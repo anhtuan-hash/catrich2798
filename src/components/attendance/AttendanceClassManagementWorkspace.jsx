@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { AttendancePanelHeading, AttendanceEmpty } from './AttendanceWorkspaceUI.jsx';
 import { attendanceSubjectKey, extraClassTypeLabel } from '../../utils/extraClassAttendance.js';
 import { roomForExtraClass, weekdaysForExtraClass } from '../../utils/extraClassSchedule2026.js';
@@ -164,6 +164,56 @@ export default function AttendanceClassManagementWorkspace({
   const [manageGradeFilter, setManageGradeFilter] = useState('all');
   const [manageDisplay, setManageDisplay] = useState('grid');
   const [editingClass, setEditingClass] = useState(false);
+  const [schoolStudentQuery, setSchoolStudentQuery] = useState('');
+  const [schoolStudents, setSchoolStudents] = useState([]);
+  const [schoolRosterStatus, setSchoolRosterStatus] = useState('');
+  const [schoolRosterRefresh, setSchoolRosterRefresh] = useState(0);
+
+  useEffect(() => {
+    if (!showAddStudent || !client || !manageDetailOpen || !selectedClass) return undefined;
+    let alive = true;
+    setSchoolRosterStatus('Đang tải danh sách học sinh dùng chung…');
+    client.rpc('get_my_assigned_school_classes').then(({ data, error }) => {
+      if (!alive) return;
+      if (error) {
+        setSchoolStudents([]);
+        setSchoolRosterStatus('Không tải được danh sách chung. Vẫn có thể thêm thủ công.');
+        return;
+      }
+      const candidates = (Array.isArray(data) ? data : []).flatMap((row) => {
+        const className = String(row.class_name || row.class_payload?.className || '').trim();
+        const students = Array.isArray(row.class_payload?.students) ? row.class_payload.students : [];
+        return students.filter((student) => (
+          student?.active !== false
+          && student?.lifecycleStatus !== 'deleted'
+          && !student?.deletedAt
+        )).map((student) => ({
+          fullName: String(student.fullName || '').trim(),
+          code: String(student.code || '').trim(),
+          className,
+          birthDate: String(student.birthDate || '').trim(),
+          identity: String(student.rosterStudentId || student.code || student.id || '').trim(),
+        })).filter((student) => student.fullName && student.className);
+      });
+      setSchoolStudents(candidates);
+      setSchoolRosterStatus(candidates.length
+        ? `${candidates.length} học sinh từ các lớp được phân công`
+        : 'Không có danh sách học sinh được cấp quyền. Có thể thêm thủ công.');
+    }).catch(() => {
+      if (!alive) return;
+      setSchoolStudents([]);
+      setSchoolRosterStatus('Mất kết nối danh sách chung. Có thể thêm thủ công.');
+    });
+    return () => { alive = false; };
+  }, [showAddStudent, manageDetailOpen, selectedClass?.id, client, schoolRosterRefresh]);
+
+  const filteredSchoolStudents = useMemo(() => {
+    const query = fold(schoolStudentQuery);
+    if (query.length < 2) return [];
+    return schoolStudents.filter((student) => (
+      fold(`${student.fullName} ${student.code} ${student.className}`).includes(query)
+    )).slice(0, 12);
+  }, [schoolStudents, schoolStudentQuery]);
 
   const filteredManageClasses = useMemo(() => activeClasses.filter((classRow) => {
     if (manageTypeFilter !== 'all' && classRow.class_type !== manageTypeFilter) return false;
@@ -392,6 +442,32 @@ export default function AttendanceClassManagementWorkspace({
           <label><span>Mã HS</span><input value={addForm.student_code} onChange={(event) => setAddForm?.((current) => ({ ...current, student_code: event.target.value }))} placeholder="Có thể để trống" /></label>
           <label><span>Họ và tên *</span><input value={addForm.student_full_name} onChange={(event) => setAddForm?.((current) => ({ ...current, student_full_name: event.target.value }))} required /></label>
           <label><span>Lớp chính khóa *</span><input value={addForm.school_class_name} onChange={(event) => setAddForm?.((current) => ({ ...current, school_class_name: event.target.value }))} placeholder="Ví dụ 12.6" required /></label>
+          <section className="attendance-school-student-lookup" aria-label="Tra cứu học sinh từ danh sách dùng chung">
+            <div className="attendance-school-student-lookup__head">
+              <strong>Chọn học sinh từ danh sách trường</strong>
+              <button type="button" onClick={() => setSchoolRosterRefresh((value) => value + 1)}>Làm mới</button>
+            </div>
+            <input value={schoolStudentQuery} onChange={(event) => setSchoolStudentQuery(event.target.value)}
+              placeholder="Nhập ít nhất 2 ký tự: tên, mã HS hoặc lớp…"
+              aria-label="Tìm học sinh trong danh sách trường" />
+            <small>{schoolRosterStatus}</small>
+            {filteredSchoolStudents.length ? <div className="attendance-school-student-lookup__results">
+              {filteredSchoolStudents.map((student, index) => (
+                <button key={student.identity || `${student.className}:${student.fullName}:${student.birthDate}:${index}`}
+                  type="button" onClick={() => {
+                    setAddForm?.((current) => ({
+                      ...current,
+                      student_code: student.code,
+                      student_full_name: student.fullName,
+                      school_class_name: student.className,
+                    }));
+                    setSchoolStudentQuery('');
+                  }}>
+                  <b>{student.fullName}</b><span>{student.className} · {student.code || 'Chưa có mã HS'}{student.birthDate ? ` · ${student.birthDate}` : ''}</span>
+                </button>
+              ))}
+            </div> : null}
+          </section>
           <div><button type="button" onClick={() => setShowAddStudent?.(false)}>Hủy</button><button type="submit" disabled={busy}><WorkspaceIcon name="plus" size={16} />Thêm vào lớp</button></div>
         </form>
       ) : null}
