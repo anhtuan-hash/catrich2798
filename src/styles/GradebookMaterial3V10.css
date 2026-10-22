@@ -1,0 +1,472 @@
+/* Material 3 Gradebook V10 — reviewed mockup, route-scoped presentation only.
+   Old data model, authentic score rounds, exports, RBAC and roster sync remain.
+   Excluded from all other ESL Brian apps. */
+#root .gradebook-studio.gb7-rebirth {
+  --md3-primary: #175cd3;
+  --md3-on-primary: #fff;
+  --md3-primary-container: #dce8ff;
+  --md3-on-primary-container: #173f87;
+  --md3-surface: #fff;
+  --md3-surface-container: #f4f7ff;
+  --md3-surface-high: #eaf1fd;
+  --md3-outline: #dbe5f3;
+  --md3-text: #1c355d;
+  --md3-muted: #687e9e;
+  width: min(1490px,calc(100% - 32px))!important;
+  max-width:1490px!important;
+  margin:0 auto!important;
+  padding:14px 0 27px!important;
+  color:var(--md3-text)!important;
+  font-family:Inter,"Google Sans",system-ui,-apple-system,sans-serif!important;
+}
+#root .gradebook-studio.gb7-rebirth :is(button,select,input,summary):focus-visible {
+  outline:3px solid #769ffb!important;outline-offset:2px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero {
+  display:block!important;margin:0 0 14px!important;padding:0!important;
+  border:1px solid #dce8f8!important;border-radius:21px!important;
+  overflow:hidden!important;background:#fff!important;
+  box-shadow:0 5px 24px rgba(36,79,141,.055)!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-banner {
+  min-height:140px;padding:25px 28px 17px;display:flex;align-items:center;justify-content:space-between;
+  gap:15px;overflow:hidden;position:relative;
+  background:
+    radial-gradient(circle at 80% 30%, #d1e5ff 0%, transparent 41%),
+    linear-gradient(105deg,#e6f1ff 0%,#eff6ff 53%,#f7faff 100%)!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-text{z-index:1;position:relative;min-width:0;flex:1}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-brand {
+  color:#246bd4;display:inline-flex;align-items:center;gap:8px;
+  font-size:10px;font-weight:850;letter-spacing:.11em;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-title{
+  display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:7px 0 5px;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-title h1{
+  color:#143c81!important;font-size:clamp(28px,3vw,43px)!important;
+  line-height:1.1!important;letter-spacing:-.04em!important;
+  font-weight:850!important;margin:0!important;text-shadow:none!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-state{
+  display:inline-flex;align-items:center;gap:5px;padding:5px 9px;
+  background:#dff7e9;color:#17694a;border:1px solid #b6e6d0;
+  border-radius:999px;font-size:10px;font-weight:780;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-state.is-dirty{
+  color:#895300;background:#fff3d5;border-color:#f5dba1;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-text p{
+  color:#607b9e!important;font-size:13px!important;
+  font-weight:550!important;line-height:1.5!important;margin:5px 0 0!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-art{
+  flex:0 1 auto;display:block!important;width:33%!important;
+  max-width:345px!important;height:130px!important;object-fit:contain!important;
+  opacity:.94!important;margin:-19px 3% -18px 0!important;filter:none!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-controls{
+  display:grid!important;grid-template-columns:1fr 1fr 1fr 1fr auto;
+  align-items:end;gap:11px;min-width:0;
+  padding:14px 22px 16px;background:#fff!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-controls > label {
+  display:flex!important;flex-direction:column!important;justify-content:center!important;
+  gap:5px!important;min-width:0!important;
+  padding:8px 11px!important;border:1px solid #dbe5f4!important;
+  border-radius:11px!important;background:#f9fbff!important;
+  min-height:50px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-controls > label > span {
+  color:#6d819d!important;font-size:10px!important;font-weight:730!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-controls :is(select,strong){
+  display:block;width:100%;border:0!important;box-shadow:none!important;
+  margin:0!important;padding:0 10px 0 0!important;min-height:20px!important;
+  height:auto!important;color:#214779!important;background:transparent!important;
+  font:780 12px/1.35 inherit!important;outline:none!important;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-buttons {
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;
+  padding-bottom:3px;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-buttons button{
+  appearance:none;display:inline-flex!important;align-items:center;justify-content:center;gap:7px!important;
+  min-height:40px!important;padding:10px 12px!important;border-radius:11px!important;
+  font-size:11px!important;font-weight:840!important;white-space:nowrap;
+  box-shadow:none!important;cursor:pointer;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-primary-button{
+  color:#fff!important;background:#155ddc!important;border:1px solid #155ddc!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-outline-button{
+  color:#155cc6!important;background:#fff!important;border:1px solid #b8cdf5!important;
+}
+/* Calm Material 3 KPI cards with one accent icon per semantic meaning. */
+#root .gradebook-studio.gb7-rebirth .gb8-kpis {
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:11px!important;margin:0 0 13px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-kpi{
+  padding:14px 15px!important;gap:12px!important;min-height:93px!important;
+  border:1px solid #e1e8f3!important;background:#fff!important;
+  border-radius:17px!important;box-shadow:0 3px 12px rgba(38,77,135,.038)!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-kpi::before {content:none!important}
+#root .gradebook-studio.gb7-rebirth .gb8-kpi.is-lavender .gb8-kpi-icon{background:#eee5ff!important;color:#8150e2!important}
+#root .gradebook-studio.gb7-rebirth .gb8-kpi.is-mint .gb8-kpi-icon{background:#d8f7e9!important;color:#0aa479!important}
+#root .gradebook-studio.gb7-rebirth .gb8-kpi.is-peach .gb8-kpi-icon{background:#fff0df!important;color:#e9851f!important}
+#root .gradebook-studio.gb7-rebirth .gb8-kpi.is-sky .gb8-kpi-icon{background:#e4edff!important;color:#2267db!important}
+#root .gradebook-studio.gb7-rebirth .gb8-kpi-icon{
+  width:47px!important;height:47px!important;flex:0 0 47px!important;
+  box-shadow:none!important;border-radius:13px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-kpi > div > span:first-child{
+  color:#60799e!important;font-size:11px!important;font-weight:750!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-kpi > div > strong{
+  color:#1c3a75!important;font-size:28px!important;font-weight:860!important;
+  line-height:1.15!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-kpi small{color:#8392a7!important;font-size:10px!important}
+#root .gradebook-studio.gb7-rebirth .gb8-kpi-track{
+  margin-top:4px!important;height:7px!important;background:#dbe8fd!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-kpi-track > span{background:#266ceb!important}
+/* One horizontal Material 3 component chooser; the semester selector is the hero. */
+#root .gradebook-studio.gb7-rebirth .gbm3-assessment-nav{
+  position:relative!important;top:auto!important;inset:auto!important;
+  z-index:1!important;display:block!important;order:0!important;
+  margin:0 0 13px!important;padding:0!important;
+  box-shadow:none!important;transform:none!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-assessment-nav > .hr-grade-navigation{
+  display:flex!important;gap:10px!important;align-items:center!important;
+  border:1px solid #dde8f6!important;border-radius:16px!important;
+  background:#fff!important;padding:9px!important;box-shadow:none!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-assessment-nav .hr-grade-views{
+  display:flex!important;flex:1!important;flex-wrap:nowrap!important;
+  gap:8px!important;justify-content:stretch!important;
+  overflow-x:auto!important;scrollbar-width:thin;min-width:0;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-assessment-nav .hr-grade-views button{
+  display:inline-flex!important;flex:1 0 103px!important;
+  align-items:center!important;justify-content:center!important;gap:6px!important;
+  min-height:39px!important;max-height:none!important;padding:8px 10px!important;
+  color:#3f638a!important;background:#f2f6fd!important;
+  border:1px solid #e1e8f3!important;border-radius:11px!important;
+  box-shadow:none!important;white-space:nowrap;font-size:12px!important;
+  font-weight:760!important;text-transform:none!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-assessment-nav .hr-grade-views button[data-grade-tone="green"] {background:#eaf8f1!important;color:#087b5a!important}
+#root .gradebook-studio.gb7-rebirth .gbm3-assessment-nav .hr-grade-views button[data-grade-tone="yellow"] {background:#fff5e6!important;color:#9f6416!important}
+#root .gradebook-studio.gb7-rebirth .gbm3-assessment-nav .hr-grade-views button[data-grade-tone="red"] {background:#ffedf0!important;color:#a34660!important}
+#root .gradebook-studio.gb7-rebirth .gbm3-assessment-nav .hr-grade-views button[data-grade-tone="purple"] {background:#f0eaff!important;color:#6740ad!important}
+#root .gradebook-studio.gb7-rebirth .gbm3-assessment-nav .hr-grade-views button.active{
+  color:#145bd1!important;background:#d9e8ff!important;
+  border-color:#92bafa!important;box-shadow:inset 0 0 0 1px #80aaff!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-tab-icon{display:inline-flex!important;align-items:center;justify-content:center}
+/* Single editor header, no focusbar, redundant score toolbars or extra progress strip. */
+#root .gradebook-studio.gb7-rebirth .hr-gradebook{
+  display:flex!important;flex-direction:column!important;gap:12px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb5-editor-anchor{
+  display:block!important;margin:0!important;padding:0!important;
+  border:1px solid #dfe8f6!important;border-radius:19px!important;
+  overflow:hidden!important;background:#fff!important;
+  box-shadow:0 4px 20px rgba(30,73,132,.04)!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-editor-head{
+  display:flex!important;align-items:center!important;flex-wrap:wrap!important;
+  gap:10px!important;min-height:69px;padding:13px 16px;
+  border-bottom:1px solid #e8eef7;background:#fff!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-editor-icon{
+  width:42px;height:42px;display:grid;place-items:center;flex:0 0 42px;
+  background:#e4eeff;color:#175bd2;border-radius:12px;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-editor-titles{min-width:0;flex:1 1 165px}
+#root .gradebook-studio.gb7-rebirth .gbm3-editor-titles h2{
+  font-size:18px!important;line-height:1.2!important;font-weight:850!important;
+  color:#1c3c76!important;margin:0 0 4px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-editor-titles p{
+  font-size:10px!important;color:#768bad!important;margin:0!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-editor-actions{
+  display:flex;align-items:center;flex-wrap:wrap;gap:8px;justify-content:flex-end;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-search{
+  display:flex;align-items:center;gap:7px;padding:0 10px;
+  min-height:38px;min-width:180px;border:1px solid #dae5f7;
+  border-radius:10px;background:#fbfcff;color:#6282af;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-search input{
+  min-height:35px!important;height:35px!important;max-width:190px;
+  padding:0!important;margin:0!important;border:0!important;
+  background:transparent!important;color:#234671!important;font-size:11px!important;
+  box-shadow:none!important;outline:none!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-sort{
+  display:flex!important;align-items:center;gap:5px;padding:0 8px;
+  min-height:37px;border:1px solid #dae5f7;border-radius:10px;background:#fff;
+  color:#6981a4;white-space:nowrap;font-size:10px;font-weight:650;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-sort select{
+  border:0!important;background:transparent!important;
+  min-height:35px!important;height:35px!important;
+  font-size:11px!important;color:#355c92!important;padding:0 13px 0 0!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-missing{
+  display:flex;align-items:center;gap:6px;white-space:nowrap;
+  color:#55718e;font-size:11px;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-missing input{
+  width:16px;height:16px;accent-color:#1764dd;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-save-wrapper{display:flex;align-items:center;gap:7px}
+#root .gradebook-studio.gb7-rebirth .gbm3-saved,
+#root .gradebook-studio.gb7-rebirth .gbm3-unsaved{
+  white-space:nowrap;font-size:10px;font-weight:730;color:#0f855f;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-unsaved{color:#b3651c}
+#root .gradebook-studio.gb7-rebirth .gbm3-save{
+  appearance:none!important;min-height:38px!important;border-radius:10px!important;
+  border:1px solid #155fdb!important;background:#1661dc!important;
+  color:#fff!important;font-size:11px!important;font-weight:830!important;
+  padding:9px 13px!important;white-space:nowrap;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-save:disabled{
+  opacity:.67;cursor:not-allowed;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-undo{
+  min-height:36px!important;border:1px solid #cad8f1!important;border-radius:10px!important;
+  color:#2f62a3!important;background:#fff!important;font-size:10px!important;padding:8px 10px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-editor-advanced{
+  border-bottom:1px solid #e5edf7;background:#f9fbff;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-editor-advanced > summary,
+#root .gradebook-studio.gb7-rebirth .gbm3-column-config > summary{
+  cursor:pointer;padding:8px 15px;color:#5c78a3;
+  font-size:10px;font-weight:760;list-style:none;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-editor-advanced > summary::-webkit-details-marker,
+#root .gradebook-studio.gb7-rebirth .gbm3-column-config > summary::-webkit-details-marker{display:none}
+#root .gradebook-studio.gb7-rebirth .gbm3-column-config{
+  position:relative;max-width:100%;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-column-config[open]{
+  width:100%;order:5;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-column-config[open] > div{
+  display:flex;flex-wrap:wrap;align-items:center;gap:7px;padding:10px;
+  border:1px solid #e5edf7;border-radius:11px;background:#fff;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-column-config button{
+  border-radius:8px!important;min-height:32px!important;
+  padding:7px 9px!important;font-size:10px!important;
+}
+/* Summary close to approved Material 3 mockup, real current-class scores.
+   Clickable component cells navigate to the original full-fidelity editor. */
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-panel{
+  display:block!important;border:0!important;border-radius:0!important;
+  box-shadow:none!important;margin:0!important;padding:0!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll{
+  display:block!important;overflow:auto!important;scrollbar-width:thin;
+  margin:0 13px!important;max-height:none!important;min-width:0!important;
+  border:1px solid #e6edf7!important;border-radius:11px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll .hr-grade-summary-table{
+  width:100%!important;min-width:1000px!important;
+  border-spacing:0!important;table-layout:auto!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll th{
+  padding:11px 8px!important;min-height:48px!important;
+  height:auto!important;border-bottom:1px solid #dae5f5!important;
+  background:#eef4fd!important;color:#476385!important;
+  font-size:11px!important;line-height:1.3!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll th.gbm3-summary-head--0{color:#286bcd!important;background:#e7efff!important}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll th.gbm3-summary-head--1{color:#07876b!important;background:#e5f7f0!important}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll th.gbm3-summary-head--2{color:#b86a13!important;background:#fff0df!important}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll th.gbm3-summary-head--3{color:#7041bf!important;background:#eee8ff!important}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll th.gbm3-summary-head--4{color:#b34973!important;background:#fdebf2!important}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll th.gbm3-summary-head--5{color:#7551bf!important;background:#f0eaff!important}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-head span,
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-head small{
+  display:block;text-align:center;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-head small{font-size:9px;opacity:.8;margin-top:3px}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll tbody td{
+  padding:7px 9px!important;border-bottom:1px solid #ecf1f8!important;
+  height:47px!important;min-height:47px!important;background:#fff!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll tbody tr:nth-child(even) td{background:#f8faff!important}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll tbody tr:hover td{background:#edf4ff!important}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll .hr-grade-student{
+  position:sticky!important;left:56px!important;z-index:2;
+  min-width:185px!important;max-width:280px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll .hr-grade-index{
+  position:sticky!important;left:0!important;z-index:3;min-width:55px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll thead .hr-grade-student,
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll thead .hr-grade-index{z-index:5}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll .hr-grade-student b{
+  font-size:11px!important;font-weight:850!important;color:#244774!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll .hr-grade-student small{
+  font-size:9px!important;color:#8ea0b9!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-click-score button{
+  display:block;width:100%;max-width:78px;min-width:53px;margin:auto;
+  min-height:29px;padding:6px;border:1px solid #d3e1f6;
+  border-radius:8px;background:#fff;color:#31527b;
+  text-align:center;font-size:11px;font-weight:760;
+  cursor:pointer;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-click-score button:hover{
+  background:#e4eeff;border-color:#83aef5;color:#155bd2;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-average{
+  color:#16447c!important;font-weight:860!important;text-align:center!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-status span{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 8px;border-radius:9px;font-size:10px;white-space:nowrap;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-status span.is-complete{color:#0c815f;background:#e0f7ec}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-status span.is-pending{color:#b46719;background:#fff3e4}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-status i{
+  display:inline-block;width:7px;height:7px;border-radius:100%;
+  background:currentColor;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-pagination{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:9px;
+  padding:13px 15px;color:#7286a3;font-size:10px;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-pagination > small{
+  width:100%;color:#8a9ab1;font-size:9px;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-pages{display:flex;align-items:center;gap:4px}
+#root .gradebook-studio.gb7-rebirth .gbm3-pages button{
+  min-width:31px;min-height:30px;padding:4px 7px;
+  border:1px solid #e1e8f4;border-radius:8px;background:#fff;color:#54719a;
+  font-size:11px;cursor:pointer;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-pages button[aria-current="page"]{
+  color:#fff;background:#1b64d9;border-color:#1b64d9;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-pages button:disabled{opacity:.4;cursor:default}
+/* The original deep editing tables are retained but no longer show duplicate
+   grading dropdowns unless 'Cấu hình đợt điểm' is explicitly expanded. */
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-panel:not(.gbm3-summary-panel){
+  border:0!important;box-shadow:none!important;margin:0!important;border-radius:0!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-panel-head{
+  min-height:55px!important;padding:10px 14px!important;
+  background:#f7faff!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-panel-head h2{
+  color:#1b4279!important;font-size:15px!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-table-wrap{
+  max-height:66vh!important;margin:7px 12px 12px!important;overflow:auto!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-empty{
+  padding:18px;text-align:center;color:#657d9e;font-size:12px;
+}
+/* User-requested removals: advanced exports/tools are opt-in disclosures,
+   so the default dashboard ends after one useful analytics section. */
+#root .gradebook-studio.gb7-rebirth .gbm3-extra-export{
+  margin:0!important;border:1px solid #dfe6f4;border-radius:12px;
+  background:#fff;overflow:hidden;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-extra-export > summary{
+  color:#526b92;padding:10px 14px;cursor:pointer;font-size:11px;
+  font-weight:720;list-style:none;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-extra-export > summary::-webkit-details-marker{display:none}
+/* One Material 3 analytics card. */
+#root .gradebook-studio.gb7-rebirth .gb9-compact-analytics{
+  margin:0 0 4px!important;padding:15px!important;
+  background:#fff!important;border:1px solid #dfe8f7!important;
+  border-radius:19px!important;box-shadow:0 4px 17px rgba(42,72,133,.045)!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb9-analytics-pane{
+  background:#fff!important;border:1px solid #e2eaf7!important;
+  border-radius:14px!important;padding:13px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb9-analytics-pane--ring{
+  background:#f9fcff!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb9-analytics-pane--bars{
+  background:#fbfcff!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb9-analytics-pane--insights{
+  background:#f9f9ff!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb9-ring{background:conic-gradient(#11a785 var(--gb9-donut),#dfe8f4 0)}
+#root .gradebook-studio.gb7-rebirth .gb9-ring strong{color:#0a9776}
+/* Hide overview inside expanded advanced tools: analytics is already visible.
+   Keep every privileged action in the drawer itself. */
+#root .gradebook-studio.gb7-rebirth .gb5-insights-drawer .hr-grade-overview{
+  display:none!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb5-insights-drawer{
+  margin:0 0 3px!important;border:1px solid #e2e9f4!important;
+  border-radius:12px!important;background:#fff!important;box-shadow:none!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb5-insights-drawer > summary{
+  background:#f7faff!important;min-height:39px!important;padding:10px 14px!important;
+}
+/* Respect app theme; do not force light surfaces in dark mode. */
+html[data-theme="dark"] #root .gradebook-studio.gb7-rebirth :is(.gbm3-hero,.gbm3-hero-controls,.gb5-editor-anchor,.gbm3-summary-panel,.gb9-compact-analytics) {
+  color:inherit!important;
+}
+@media (max-width:1260px){
+  #root .gradebook-studio.gb7-rebirth .gbm3-hero-controls{
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  }
+  #root .gradebook-studio.gb7-rebirth .gbm3-hero-buttons{
+    grid-column:1/-1;justify-content:flex-start;
+  }
+  #root .gradebook-studio.gb7-rebirth .gbm3-editor-actions{width:100%;justify-content:flex-start}
+  #root .gradebook-studio.gb7-rebirth .gbm3-editor-titles{flex:1}
+}
+@media (max-width:900px){
+  #root .gradebook-studio.gb7-rebirth .gb8-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #root .gradebook-studio.gb7-rebirth .gbm3-hero-art{width:31%!important}
+  #root .gradebook-studio.gb7-rebirth .gbm3-assessment-nav .hr-grade-views button{flex:0 0 auto!important}
+  #root .gradebook-studio.gb7-rebirth .gb9-analytics-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #root .gradebook-studio.gb7-rebirth .gb9-analytics-pane--insights{grid-column:1/-1}
+}
+@media (max-width:640px){
+  #root .gradebook-studio.gb7-rebirth{width:calc(100% - 16px)!important;max-width:calc(100% - 16px)!important;padding-top:7px!important}
+  #root .gradebook-studio.gb7-rebirth .gbm3-hero-banner{min-height:0;padding:18px 15px}
+  #root .gradebook-studio.gb7-rebirth .gbm3-hero-art{display:none!important}
+  #root .gradebook-studio.gb7-rebirth .gbm3-hero-title h1{font-size:31px!important}
+  #root .gradebook-studio.gb7-rebirth .gbm3-hero-controls{grid-template-columns:repeat(2,minmax(0,1fr))!important;padding:10px!important;gap:7px!important}
+  #root .gradebook-studio.gb7-rebirth .gbm3-hero-buttons{grid-column:1/-1}
+  #root .gradebook-studio.gb7-rebirth .gbm3-hero-buttons button{flex:1;white-space:normal!important}
+  #root .gradebook-studio.gb7-rebirth .gb8-kpis{gap:8px!important}
+  #root .gradebook-studio.gb7-rebirth .gb8-kpi{min-height:80px!important;padding:10px!important}
+  #root .gradebook-studio.gb7-rebirth .gb8-kpi-icon{flex:0 0 34px!important;width:34px!important;height:34px!important}
+  #root .gradebook-studio.gb7-rebirth .gb8-kpi > div > strong{font-size:23px!important}
+  #root .gradebook-studio.gb7-rebirth .gbm3-editor-head{padding:11px;gap:8px}
+  #root .gradebook-studio.gb7-rebirth .gbm3-editor-actions{gap:7px}
+  #root .gradebook-studio.gb7-rebirth .gbm3-search{flex:1 1 100%;width:100%}
+  #root .gradebook-studio.gb7-rebirth .gbm3-search input{max-width:none;width:100%}
+  #root .gradebook-studio.gb7-rebirth .gbm3-missing{flex:1}
+  #root .gradebook-studio.gb7-rebirth .gbm3-save-wrapper{width:100%;justify-content:space-between}
+  #root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll{margin:0 5px!important}
+  #root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll .hr-grade-summary-table{min-width:960px!important}
+  #root .gradebook-studio.gb7-rebirth .gbm3-pagination{padding:9px}
+  #root .gradebook-studio.gb7-rebirth .gb9-analytics-grid{grid-template-columns:minmax(0,1fr)!important}
+  #root .gradebook-studio.gb7-rebirth .gb9-analytics-pane--insights{grid-column:auto}
+}
