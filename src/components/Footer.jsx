@@ -1,5 +1,4 @@
 import React from 'react';
-import { createPortal } from 'react-dom';
 import { APP_VERSION } from '../config/version.js';
 import './FooterCompactDisclosure.css';
 import './FooterAuthCards.css';
@@ -47,81 +46,51 @@ const VIETNAMESE_DETAILS = {
 
 const PORTFOLIO_URL = 'https://decisive-difference-557977.framer.app/';
 
-function FooterPortfolioDialog({ isVi, onClose }) {
-  const closeButtonRef = React.useRef(null);
-
-  React.useEffect(() => {
-    const previousBodyOverflow = document.body.style.overflow;
-    const previousHtmlOverflow = document.documentElement.style.overflow;
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
-    closeButtonRef.current?.focus({ preventScroll: true });
-
-    const onKeyDown = (event) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        onClose();
-      }
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      document.body.style.overflow = previousBodyOverflow;
-      document.documentElement.style.overflow = previousHtmlOverflow;
-    };
-  }, [onClose]);
-
+function FooterPortfolioSection({ isVi }) {
   return (
-    <div
-      className="bes-portfolio-backdrop"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
+    <section
+      id="bes-portfolio-section"
+      className="bes-portfolio-inline-section"
+      aria-labelledby="bes-portfolio-inline-title"
+      data-portfolio-embed="inline"
     >
-      <section
-        className="bes-portfolio-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="bes-portfolio-dialog-title"
-        aria-describedby="bes-portfolio-dialog-hint"
-      >
-        <header className="bes-portfolio-dialog-header">
-          <span className="bes-portfolio-dialog-monogram" aria-hidden="true">AT</span>
-          <div className="bes-portfolio-dialog-heading">
-            <h2 id="bes-portfolio-dialog-title">Portfolio · Nguyễn Anh Tuấn</h2>
-            <p id="bes-portfolio-dialog-hint">
-              {isVi ? 'Hồ sơ cá nhân · Xem ngay trong ESL Brian' : 'Personal portfolio · View inside ESL Brian'}
-            </p>
-          </div>
-          <button
-            ref={closeButtonRef}
-            type="button"
-            className="bes-portfolio-dialog-close"
-            onClick={onClose}
-            aria-label={isVi ? 'Đóng portfolio' : 'Close portfolio'}
-          >
-            <span aria-hidden="true">✕</span>
-            <span>{isVi ? 'Đóng' : 'Close'}</span>
-          </button>
-        </header>
-        <div className="bes-portfolio-frame-wrap">
-          <iframe
-            className="bes-portfolio-frame"
-            title={isVi ? 'Portfolio Nguyễn Anh Tuấn trên Framer' : 'Nguyễn Anh Tuấn Framer portfolio'}
-            src={PORTFOLIO_URL}
-            loading="eager"
-            referrerPolicy="strict-origin-when-cross-origin"
-            allowFullScreen
-          />
+      <div className="bes-portfolio-inline-heading">
+        <div className="bes-portfolio-inline-intro">
+          <span className="bes-portfolio-inline-eyebrow">
+            {isVi ? 'HỒ SƠ CÁ NHÂN · FRAMER' : 'PERSONAL PORTFOLIO · FRAMER'}
+          </span>
+          <h2 id="bes-portfolio-inline-title">Portfolio · Nguyễn Anh Tuấn</h2>
+          <p>
+            {isVi
+              ? 'Khám phá hồ sơ, hành trình giáo dục và các dự án sáng tạo ngay tại ESL Brian.'
+              : 'Explore my profile, educational journey and creative projects right here in ESL Brian.'}
+          </p>
         </div>
-        <footer className="bes-portfolio-dialog-footnote">
-          <span>{isVi ? 'Website được hiển thị trực tiếp từ Framer.' : 'Portfolio shown directly from Framer.'}</span>
-          <a href={PORTFOLIO_URL} target="_blank" rel="noopener noreferrer">
-            {isVi ? 'Không xem được? Mở bản gốc ↗' : 'Not visible? Open original ↗'}
-          </a>
-        </footer>
-      </section>
-    </div>
+        <a
+          className="bes-portfolio-inline-external"
+          href={PORTFOLIO_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {isVi ? 'Xem bản gốc' : 'Original website'} <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+      <div className="bes-portfolio-inline-frame-wrap">
+        <iframe
+          className="bes-portfolio-inline-frame"
+          title={isVi ? 'Portfolio Nguyễn Anh Tuấn trên Framer' : 'Nguyễn Anh Tuấn Framer portfolio'}
+          src={PORTFOLIO_URL}
+          loading="lazy"
+          referrerPolicy="strict-origin-when-cross-origin"
+          allowFullScreen
+        />
+      </div>
+      <p className="bes-portfolio-inline-caption">
+        {isVi
+          ? 'Cuộn bên trong khung để khám phá các hiệu ứng và nội dung của portfolio Framer.'
+          : 'Scroll inside the portfolio to explore the Framer website and its interactions.'}
+      </p>
+    </section>
   );
 }
 
@@ -161,13 +130,6 @@ export default function Footer({ language, route = '' }) {
   const isVi = language === 'vi';
   const resolvedRoute = route || (typeof document !== 'undefined' ? (document.querySelector('.app-shell')?.dataset?.route || '') : '');
   const content = isVi ? VIETNAMESE_DETAILS : ENGLISH_DETAILS;
-  const [portfolioOpen, setPortfolioOpen] = React.useState(false);
-  const portfolioTriggerRef = React.useRef(null);
-  const closePortfolio = React.useCallback(() => {
-    setPortfolioOpen(false);
-    window.requestAnimationFrame(() => portfolioTriggerRef.current?.focus({ preventScroll: true }));
-  }, []);
-
   return (
     <>
     <footer
@@ -228,11 +190,13 @@ export default function Footer({ language, route = '' }) {
           <span>{content.copyright}</span>
         </span>
         <button
-          ref={portfolioTriggerRef}
           type="button"
           className="bes-portfolio-footer-trigger"
-          onClick={() => setPortfolioOpen(true)}
-          aria-haspopup="dialog"
+          onClick={() => document.getElementById('bes-portfolio-section')?.scrollIntoView({
+            behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+            block: 'start',
+          })}
+          aria-controls="bes-portfolio-section"
         >
           <span>Designed &amp; Developed by</span>
           <strong>Nguyễn Anh Tuấn</strong>
@@ -240,10 +204,7 @@ export default function Footer({ language, route = '' }) {
         </button>
       </div>
     </footer>
-    {portfolioOpen && createPortal(
-      <FooterPortfolioDialog isVi={isVi} onClose={closePortfolio} />,
-      document.body,
-    )}
+    <FooterPortfolioSection isVi={isVi} />
   </>
   );
 }
