@@ -16,6 +16,7 @@ const assignedRosterMigration = read('supabase/migrations/20261010104500_fun_for
 const assessmentDeleteMigration = read('supabase/migrations/20261010111500_fun_for_assessment_delete_sessions.sql');
 const assessmentService = read('src/utils/lessonCheckAssessment.js');
 const assessmentWorkspace = read('src/components/lessonCheck/AssessmentWorkspace.jsx');
+const canonicalSchoolRosterMigration = read('supabase/migrations/20261022194500_canonical_assigned_school_rosters.sql');
 const assessmentStyles = read('src/components/lessonCheck/AssessmentWorkspace.css');
 const directory = read('src/pages/appsDirectoryData.js');
 const design = read('src/data/designProfiles.js');
@@ -269,3 +270,13 @@ assert.match(assessmentStyles, /\.f4a-delete-session\{/);
 assert.match(vercel, /frame-src 'self' https:/, 'CSP must permit HTTPS iframe sources.');
 
 console.log('Lesson Check Studio Global Success + Supabase access contract PASS');
+
+// One canonical roster per assigned school class (production repair regression).
+
+assert.match(canonicalSchoolRosterMigration, /ON CONFLICT \(roster_key\) DO NOTHING/i, 'Never replace private or existing canonical rosters during the initial migration.');
+assert.match(canonicalSchoolRosterMigration, /get_my_assigned_school_classes\(\)/, 'Roster sharing must require server-verified teacher assignments.');
+assert.match(canonicalSchoolRosterMigration, /school_class_registries/, 'School assignments must remain the roster authorization authority.');
+assert.match(canonicalSchoolRosterMigration, /bes_homeroom_workspaces/, 'Existing class workspaces supply the non-destructive initial school roster.');
+assert.match(assessmentWorkspace, /window\.addEventListener\('focus', reload\)/, 'Lesson Check must refresh shared rosters on focus.');
+assert.match(assessmentWorkspace, /visible, view, step, refreshAssignedClasses/, 'Roster revalidation must not interrupt active assessments.');
+assert.match(assessmentWorkspace, /Cập nhật danh sách học sinh/, 'Teacher must be able to manually refresh the roster.');

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { clearSessionRecovery, loadSessionRecovery, saveSessionRecovery } from '../../utils/lessonCheckWorkbench.js';
 import { createPortal } from 'react-dom';
 import {
@@ -154,6 +154,7 @@ export default function AssessmentWorkspace({
   const [classes, setClasses] = useState([]);
   const [classLoading, setClassLoading] = useState(true);
   const [classError, setClassError] = useState('');
+  const rosterRequestSequence = useRef(0);
   const [className, setClassName] = useState('');
   const [studentQuery, setStudentQuery] = useState('');
   const [participationMode, setParticipationMode] = useState('individual');
@@ -274,34 +275,64 @@ export default function AssessmentWorkspace({
     });
   }, [groupMap, participationMode, selectedStudents]);
 
-  useEffect(() => {
-    let active = true;
-    let frame = 0;
+  const refreshAssignedClasses = useCallback(async () => {
+    const sequence = ++rosterRequestSequence.current;
     setClassLoading(true);
-
-    const load = () => {
-      listAssessmentAssignedClasses(currentUser).then((result) => {
-        if (!active) return;
-        setClassLoading(false);
-        if (!result.ok) {
-          setClassError(result.message || 'Không tải được lớp đã phân công.');
-          return;
-        }
-        setClasses(result.items || []);
-        setClassError('');
-        setClassName((current) => current || result.items?.[0]?.className || '');
-      });
-    };
-
-    // Let the modal paint first; Safari otherwise competes with the background
-    // iframe layers and the roster RPC during the opening frame.
-    frame = window.requestAnimationFrame(() => window.setTimeout(load, 0));
-
-    return () => {
-      active = false;
-      if (frame) window.cancelAnimationFrame(frame);
-    };
+    try {
+      const result = await listAssessmentAssignedClasses(currentUser);
+      if (sequence !== rosterRequestSequence.current) return;
+      if (!result.ok) {
+        setClassError(result.message || 'Không tải được danh sách học sinh dùng chung.');
+        return;
+      }
+      const nextClasses = result.items || [];
+      setClasses(nextClasses);
+      setClassError('');
+      setClassName((current) => (
+        nextClasses.some((item) => item.className === current)
+          ? current
+          : (nextClasses[0]?.className || '')
+      ));
+    } catch (error) {
+      if (sequence === rosterRequestSequence.current) {
+        setClassError(error?.message || 'Không thể cập nhật danh sách học sinh.');
+      }
+    } finally {
+      if (sequence === rosterRequestSequence.current) setClassLoading(false);
+    }
   }, [currentUser?.id]);
+
+  useEffect(() => {
+    if (!visible) return undefined;
+    // Paint the modal before requesting the canonical shared school rosters.
+    let timeout = 0;
+    const frame = window.requestAnimationFrame(() => {
+      timeout = window.setTimeout(() => { void refreshAssignedClasses(); }, 0);
+    });
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timeout);
+      ++rosterRequestSequence.current;
+    };
+  }, [currentUser?.id, visible, refreshAssignedClasses]);
+
+  useEffect(() => {
+    // Refresh only while choosing students, never during an active/graded session.
+    if (!visible || view !== 'session' || step !== 1) return undefined;
+    const reload = () => {
+      if (document.visibilityState !== 'hidden') void refreshAssignedClasses();
+    };
+    window.addEventListener('focus', reload);
+    document.addEventListener('visibilitychange', reload);
+    window.addEventListener('bes-school-class-registry-updated', reload);
+    window.addEventListener('bes-class-roster-updated', reload);
+    return () => {
+      window.removeEventListener('focus', reload);
+      document.removeEventListener('visibilitychange', reload);
+      window.removeEventListener('bes-school-class-registry-updated', reload);
+      window.removeEventListener('bes-class-roster-updated', reload);
+    };
+  }, [visible, view, step, refreshAssignedClasses]);
 
   useEffect(() => {
     setSelectedRefs([]);
@@ -826,6 +857,10 @@ export default function AssessmentWorkspace({
                 {classes.map((item) => <option key={item.className} value={item.className}>{item.className} · {item.students.length} HS</option>)}
               </select>
             </label>
+            <button type="button" className="f4a-secondary" onClick={() => { void refreshAssignedClasses(); }} disabled={classLoading} title="Đọc lại danh sách học sinh từ nguồn chung của trường">
+              <RefreshCw size={15} className={classLoading ? 'lcs-spin' : undefined} />
+              {classLoading ? 'Đang đồng bộ học sinh…' : 'Cập nhật danh sách học sinh'}
+            </button>
             {classError ? <div className="f4a-error">{classError}</div> : null}
 
             <div className="f4a-mode-switch">
