@@ -26,6 +26,26 @@ const makeGradebookRosterIdentity = new Function(
   (user) => user?.id || 'guest',
 );
 
+const projectStart = rosterSource.indexOf('export function projectSharedRosterStudents(');
+const projectEnd = rosterSource.indexOf('function findLocalStudent(');
+assert.ok(projectStart >= 0 && projectEnd > projectStart);
+const projectSharedRosterStudents = new Function('text', 'personKey',
+  rosterSource.slice(projectStart, projectEnd).replace(/^export /gm, '')
+    + '\nreturn projectSharedRosterStudents;')(
+  (value, fallback = '') => String(value ?? '').trim() || fallback,
+  (item) => item.code ? `code:${item.code.toLowerCase()}`
+    : `person:${item.fullName.toLowerCase()}|${item.birthDate || ''}|${item.gender || ''}`,
+);
+const cachedDuplicates = [
+  { id: 'same-id', fullName: 'Student A', code: '001', active: true },
+  { id: 'same-id', fullName: 'Student A', code: '001', active: true },
+];
+assert.equal(projectSharedRosterStudents(cachedDuplicates).length, 1,
+  'Old browser caches cannot reintroduce exactly identical records');
+assert.equal(projectSharedRosterStudents([
+  cachedDuplicates[0], { ...cachedDuplicates[1], active: false },
+]).length, 2, 'Conflicting status records require review; never silently merge');
+
 const date = new Date('2026-10-22T09:00:00+07:00');
 const studentWorkspace = {
   id: 'school-12-3-2026-2027',
