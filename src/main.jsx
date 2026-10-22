@@ -103,6 +103,7 @@ const StatusMenuBar = lazy(() => import('./components/StatusMenuBar.jsx'));
 const GlobalCommandPalette = lazy(() => import('./components/GlobalCommandPalette.jsx'));
 const GlobalQuickAccessRail = lazy(() => import('./components/GlobalQuickAccessRail.jsx'));
 const SharedChatbotDrawer = lazy(() => import('./components/SharedChatbotDrawer.jsx'));
+const PermissionApprovalInbox = lazy(() => import('./components/PermissionApprovalInbox.jsx'));
 const GlobalAutosave = lazy(() => import('./components/GlobalAutosave.jsx'));
 const GlobalRuntimeGuard = lazy(() => import('./components/GlobalRuntimeGuard.jsx'));
 const AdminMfaSecurity = lazy(() => import('./components/AdminMfaSecurity.jsx'));
@@ -530,6 +531,14 @@ function App() {
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="shared-chatbot-drawer" label={language === 'vi' ? 'chatbot dùng chung' : 'shared chatbot'}>
               <SharedChatbotDrawer currentUser={currentUser} language={language} />
+            </AppErrorBoundary>
+          </Suspense>
+        ) : null}
+
+        {currentUser && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'quest-join'].includes(currentRoute) ? (
+          <Suspense fallback={null}>
+            <AppErrorBoundary compact scope="ttcm-approval-inbox" label={language === 'vi' ? 'duyệt quyền truy cập' : 'access approvals'}>
+              <PermissionApprovalInbox currentUser={currentUser} language={language} />
             </AppErrorBoundary>
           </Suspense>
         ) : null}
