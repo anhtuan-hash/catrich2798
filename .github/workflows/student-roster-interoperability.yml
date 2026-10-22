@@ -14,6 +14,7 @@ on:
       - 'src/assignedSchoolClassBootstrap.js'
       - 'src/components/lessonCheck/AssessmentWorkspace.jsx'
       - 'supabase/migrations/*roster*.sql'
+      - 'scripts/test-assigned-school-class-bootstrap.mjs'
       - 'scripts/test-assigned-student-roster-sync.mjs'
       - 'scripts/test-school-class-registry.mjs'
       - '.github/workflows/student-roster-interoperability.yml'
