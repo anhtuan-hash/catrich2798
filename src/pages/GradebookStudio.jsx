@@ -623,6 +623,41 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
       />
     </> : null}
 
-    {workspace && view === 'gradebook' ? <GradebookWorkspace workspace={workspace} onCommit={commit} currentUser={currentUser} teachingOverview={teachingOverview} classManagement={classManagement} gradebookAction={gradebookAction} onDirtyChange={setGradebookDirty} /> : null}
+    {workspace && view === 'gradebook' ? <>
+      <GradebookWorkspace workspace={workspace} onCommit={commit} currentUser={currentUser} teachingOverview={teachingOverview} classManagement={classManagement} gradebookAction={gradebookAction} onDirtyChange={setGradebookDirty} />
+      {progressPreview ? <section className="gb8-analysis" aria-labelledby="gb8-analysis-title">
+        <div className="gb8-analysis-heading">
+          <div className="gb8-analysis-title"><ChartNoAxesCombined size={19} aria-hidden="true" /><div><h2 id="gb8-analysis-title">{vi ? 'Thống kê và tiến độ' : 'Statistics and progress'}</h2><p>{vi ? 'Tổng quan các ô điểm học kỳ I đã lưu · Không thay thế bảng tính điểm' : 'Saved term I score-entry overview'}</p></div></div>
+          <span className="gb8-analysis-tag">{vi ? 'Học kỳ I · Đã lưu' : 'Term I · Saved'}</span>
+        </div>
+        <div className="gb8-analysis-grid">
+          <article className="gb8-analysis-panel gb8-analysis-overall">
+            <h3>{vi ? 'Tiến độ nhập điểm' : 'Entry progress'}</h3>
+            <div className="gb8-analysis-donut" role="img" aria-label={`${progressPreview.percent}% số ô điểm đã nhập`} style={{ '--gb8-percent': `${progressPreview.percent}%` }}>
+              <div><strong>{progressPreview.percent}%</strong><span>{vi ? 'đã nhập' : 'entered'}</span></div>
+            </div>
+            <div className="gb8-analysis-legend">
+              <span><i className="is-mint" />{vi ? 'Đã nhập' : 'Entered'} <b>{progressPreview.filled}</b></span>
+              <span><i className="is-grey" />{vi ? 'Còn thiếu' : 'Missing'} <b>{progressPreview.missing}</b></span>
+            </div>
+          </article>
+          <article className="gb8-analysis-panel gb8-analysis-breakdown">
+            <h3>{vi ? 'Tiến độ các thành phần' : 'Component progress'}</h3>
+            <div className="gb8-analysis-bars">
+              {progressPreview.sections.map((item) => <div className="gb8-analysis-bar" key={item.id}>
+                <div><span>{item.short}</span><b>{item.percent}%</b></div>
+                <span className="gb8-analysis-bar-track"><span style={{ width: `${item.percent}%` }} /></span>
+              </div>)}
+            </div>
+          </article>
+          <article className="gb8-analysis-panel gb8-analysis-insights">
+            <h3>{vi ? 'Nhận xét nhanh' : 'Quick insights'}</h3>
+            <div className="gb8-insight is-green"><Check size={19} aria-hidden="true" /><div><small>{vi ? 'Thành phần đủ điểm' : 'Completed components'}</small><strong>{progressPreview.completedSections}/6</strong></div></div>
+            <div className="gb8-insight is-blue"><UsersRound size={19} aria-hidden="true" /><div><small>{vi ? 'Học sinh hiện tại' : 'Current students'}</small><strong>{studentCount}</strong></div></div>
+            <div className="gb8-insight is-orange"><BookOpenCheck size={19} aria-hidden="true" /><div><small>{vi ? 'Việc cần thực hiện' : 'Next action'}</small><strong>{progressPreview.missing ? (vi ? 'Hoàn thiện điểm còn thiếu' : 'Complete missing scores') : (vi ? 'Đã nhập đủ điểm' : 'Entry complete')}</strong></div></div>
+          </article>
+        </div>
+      </section> : null}
+    </> : null}
   </div>;
 }
