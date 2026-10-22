@@ -256,7 +256,7 @@ assert.match(assessmentStyles, /\.f4a-score-actions\{[\s\S]*?position:sticky[\s\
 assert.match(studio, /const ActivityCardPreview = React\.memo/);
 assert.match(studio, /is-assessment-open/);
 assert.match(assessmentWorkspace, /body\.style\.overflow = 'hidden'/);
-assert.match(assessmentWorkspace, /requestAnimationFrame\(\(\) => window\.setTimeout\(load, 0\)\)/);
+assert.match(assessmentWorkspace, /window\.requestAnimationFrame\(\(\) =>/, 'Keep loading shared school rosters deferred until modal paint.');
 assert.match(assessmentStyles, /Performance pass · Safari\/modal opening/);
 assert.match(assessmentStyles, /backdrop-filter:none!important/);
 assert.match(assessmentStyles, /contain:layout paint style/);
