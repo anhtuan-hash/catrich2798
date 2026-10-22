@@ -153,7 +153,7 @@ async function reconcileCloudWorkspaces(user, rosters) {
   if (!isSupabaseConfigured || !user?.id) return { changed: 0, changedClasses: [] };
   const { data, error } = await supabase
     .from('bes_homeroom_workspaces')
-    .select('workspace_id,class_name,school_year,status,semester,archived_at,payload')
+    .select('workspace_id,class_name,school_year,status,semester,archived_at,updated_at,payload')
     .eq('owner_id', user.id);
   if (error) return { changed: 0, changedClasses: [], warning: error.message };
   const importedAt = new Date().toISOString();
@@ -172,14 +172,29 @@ async function reconcileCloudWorkspaces(user, rosters) {
       archived_at: row.archived_at || payload.archivedAt || null,
       payload,
       updated_at: importedAt,
+      expectedUpdatedAt: row.updated_at,
     }];
   });
   if (!updates.length) return { changed: 0, changedClasses: [] };
-  const result = await supabase
-    .from('bes_homeroom_workspaces')
-    .upsert(updates, { onConflict: 'owner_id,workspace_id' });
-  if (result.error) return { changed: 0, changedClasses: [], warning: result.error.message };
-  return { changed: updates.length, changedClasses: updates.map((item) => item.class_name) };
+  const changedClasses = [];
+  const warnings = [];
+  // Never overwrite student edits from another device with a stale school import.
+  for (const { expectedUpdatedAt, ...snapshot } of updates) {
+    const { data, error } = await supabase
+      .from('bes_homeroom_workspaces')
+      .update(snapshot)
+      .eq('owner_id', user.id)
+      .eq('workspace_id', snapshot.workspace_id)
+      .eq('updated_at', expectedUpdatedAt)
+      .select('workspace_id')
+      .maybeSingle();
+    if (error || !data) {
+      warnings.push(`Lớp ${snapshot.class_name} có dữ liệu cloud mới hơn; đã bỏ qua bản ghi cũ để bảo vệ học sinh.`);
+    } else {
+      changedClasses.push(snapshot.class_name);
+    }
+  }
+  return { changed: changedClasses.length, changedClasses, warning: warnings.join(' ') };
 }
 
 function teacherLabel(account) {
