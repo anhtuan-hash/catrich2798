@@ -1618,8 +1618,14 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
         <main className="attendance-content">
           {standalone ? <>
             <AttendanceAppHero />
-            <AttendanceFeatureDeck items={availableAttendanceTabs} activeView={view}
+            <AttendanceFeatureDeck items={availableAttendanceTabs} showSupplemental={canSeeSupplementalHistory} activeView={view}
               onNavigate={(nextView) => {
+                if (nextView === 'supplemental') {
+                  const launcher = document.querySelector('.attendance-tabs .bes-supplemental-nav-tab');
+                  if (launcher) launcher.click();
+                  else setError('Phân hệ Học bổ sung đang được khởi tạo. Vui lòng chọn lại sau khi tải xong.');
+                  return;
+                }
                 setView(nextView);
                 window.history.replaceState(null, '', '#/attendance?tab=' + encodeURIComponent(nextView));
               }} />

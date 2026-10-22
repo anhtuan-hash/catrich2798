@@ -120,8 +120,9 @@ export function AttendanceAppHero() {
   </section>;
 }
 
-export function AttendanceFeatureDeck({items=[],activeView='quick',onNavigate}) {
+export function AttendanceFeatureDeck({items=[],showSupplemental=false,activeView='quick',onNavigate}) {
   const allowed=new Set(items.map(item=>item.tab));
+  if (showSupplemental) allowed.add('supplemental');
   const features=ATTENDANCE_FEATURE_TILES.filter(feature=>allowed.has(feature.view));
   if(!features.length) return null;
   return <nav className="awu-feature-deck" aria-label="Truy cập nhanh các phân hệ điểm danh">
