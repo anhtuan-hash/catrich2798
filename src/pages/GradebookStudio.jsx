@@ -521,7 +521,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     </section>
   );
 
-  return <div className={`page hr-page gradebook-studio gb4-spectrum gb5-focus gb7-rebirth gb4-palette-${visualPalette}`}>
+  return <div className={`page hr-page gradebook-studio gb4-spectrum gb5-focus gb7-rebirth gbm3-studio gb4-palette-${visualPalette}`}>
     <section className="gbm3-hero" aria-label={vi ? 'Thông tin sổ điểm' : 'Gradebook information'}>
       <div className="gbm3-hero-banner">
         <div className="gbm3-hero-text">
@@ -542,7 +542,10 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
         </label>
         <label><span>Môn học</span><strong>{activeSubject || '—'}</strong></label>
         <label><span>Học kỳ</span><select value={selectedSemester} onChange={(event) => {
-          if (!canLeaveGradebook()) return;
+          if (gradebookDirty) {
+            window.alert('Vui lòng lưu hoặc hoàn tác các thay đổi trước khi chuyển học kỳ.');
+            return;
+          }
           setSelectedSemester(event.target.value);
         }}><option value="semester1">Học kỳ I</option><option value="semester2">Học kỳ II</option></select></label>
         <label><span>Năm học</span><strong>{activeMeta?.schoolYear || '—'}</strong></label>
