@@ -46,6 +46,23 @@ assert.deepEqual(reconciled.learningRecords, workspace.learningRecords);
 assert.deepEqual(reconciled.conductRecords, workspace.conductRecords);
 assert.equal(reconciled.students[0].id, 'old-id');
 
+// Importing a stale file must never archive students added after it was made.
+const late = { id: 'late', code: '', fullName: 'Later Learner', active: true };
+const retained = mergeRosterStudents([...existing, late], parsed.rosters['11.4']);
+assert.equal(retained.find((student) => student.id === 'late')?.active, true);
+const explicitlyArchived = mergeRosterStudents(existing, [{
+  code: '001', fullName: 'Nguyễn Văn A', birthDate: '2009-02-01',
+  active: false, lifecycleStatus: 'archived', archivedReason: 'Transferred',
+}]);
+assert.equal(explicitlyArchived[0].active, false);
+assert.equal(explicitlyArchived[0].lifecycleStatus, 'archived');
+assert.equal(explicitlyArchived[0].inactiveReason, 'Transferred');
+const restored = mergeRosterStudents(explicitlyArchived, [{
+  code: '001', fullName: 'Nguyễn Văn A', birthDate: '2009-02-01',
+  active: true, lifecycleStatus: 'active',
+}]);
+assert.equal(restored[0].active, true);
+
 let registry = createDefaultSchoolClassRegistry();
 registry = assignHomeroomTeacher(registry, '11.4', 'teacher-a');
 registry = assignHomeroomTeacher(registry, '12.6', 'teacher-a');
