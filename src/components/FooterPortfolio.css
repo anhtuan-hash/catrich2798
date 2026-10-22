@@ -1,5 +1,6 @@
-/* Original Framer portfolio only. No ESL Brian footer content is rendered.
-   The iframe itself occupies the full available width under the app content. */
+/* Original Framer portfolio only, in full-bleed placement below ESL Brian.
+   Lock its INTERNAL iframe viewport to desktop width; shrink its visual output
+   on small screens instead of allowing Framer tablet/phone breakpoints. */
 html body #root .app-shell > section.bes-framer-portfolio-only {
   position: relative !important;
   inset: auto !important;
@@ -26,29 +27,45 @@ html body #root .app-shell > section.bes-framer-portfolio-only {
   transform: none !important;
 }
 
-html body #root .app-shell > section.bes-framer-portfolio-only > iframe.bes-framer-portfolio-only-iframe {
+html body #root .app-shell > section.bes-framer-portfolio-only > .bes-framer-portfolio-desktop-viewport {
+  position: relative !important;
   display: block !important;
-  box-sizing: border-box !important;
   width: 100% !important;
   max-width: 100% !important;
-  height: 100vh !important;
-  height: max(680px, 100dvh) !important;
-  min-height: 0 !important;
+  min-width: 0 !important;
+  height: 900px;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  background: #fff !important;
+  box-sizing: border-box !important;
+}
+
+/* Explicit width and height are set by the component after ResizeObserver
+   measures the containing width. Do not override them with width:100%! */
+html body #root .app-shell > section.bes-framer-portfolio-only .bes-framer-portfolio-desktop-viewport > iframe.bes-framer-portfolio-only-iframe {
+  position: absolute !important;
+  inset: 0 auto auto 0 !important;
+  display: block !important;
+  max-width: none !important;
+  max-height: none !important;
+  min-width: 1440px !important;
+  min-height: 900px !important;
   margin: 0 !important;
   padding: 0 !important;
   border: 0 !important;
   border-radius: 0 !important;
   background: #fff !important;
+  transform-origin: top left !important;
+  box-sizing: border-box !important;
   touch-action: pan-x pan-y;
 }
 
-/* iPhone / Android: use the entire available width, preserve native gestures. */
+/* Keep Android native scroll behaviour; the iframe is not a full-screen
+   overlay and cannot lock the app's body/document scrolling. */
 @media (max-width: 720px) {
   html body #root .app-shell > section.bes-framer-portfolio-only {
     margin-top: 8px !important;
-  }
-  html body #root .app-shell > section.bes-framer-portfolio-only > iframe.bes-framer-portfolio-only-iframe {
-    height: 100svh !important;
-    height: max(600px, 100dvh) !important;
   }
 }
