@@ -38,7 +38,7 @@ export default function GradebookWorkspace(props) {
 
   return <>
     <GradebookEngine key={props.workspace?.id} {...props} />
-    {students.length ? <details className="gbv2-support-extra" defaultOpen><summary>Hỗ trợ &amp; tra cứu học sinh <span>↗</span></summary><section className="hr-panel gradebook-student-support" aria-label="Mở hồ sơ hỗ trợ từ sổ điểm">
+    {students.length ? <details className="gbv2-support-extra"><summary>Hỗ trợ &amp; tra cứu học sinh <span>↗</span></summary><section className="hr-panel gradebook-student-support" aria-label="Mở hồ sơ hỗ trợ từ sổ điểm">
       <div className="hr-panel-head">
         <div className="gradebook-student-support-copy">
           <span className="gradebook-student-support-icon" aria-hidden="true">
