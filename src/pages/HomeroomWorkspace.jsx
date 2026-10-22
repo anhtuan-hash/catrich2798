@@ -26,6 +26,7 @@ import {
   setHomeroomWorkspaceStatus,
 } from '../utils/homeroomClassWorkspaceStore.js';
 import { makeWorkspaceId, prepareWorkspaceCommit } from '../utils/homeroomPhase3.js';
+import { syncAssignedStudentRosterDelta } from '../utils/assignedStudentRosterSync.js';
 import {
   HOMEROOM_CLASS_TYPE,
   SUBJECT_CLASS_TYPE,
@@ -410,14 +411,31 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
       result = await saveHomeroomWorkspace(normalized, currentUser);
     }
 
+    let schoolRosterSync = null;
+    if (result.ok && !result.offline) {
+      const savedCloud = result.workspace || normalized;
+      const verifiedAssignment = savedCloud.schoolAssignment?.source === 'school-class-registry'
+        || savedCloud.id === assignedHomeroomWorkspaceId();
+      if (verifiedAssignment) {
+        try {
+          schoolRosterSync = await syncAssignedStudentRosterDelta(
+            currentUser, previousWorkspace, savedCloud,
+          );
+        } catch (error) {
+          schoolRosterSync = { ok: false, message: error?.message || 'Không đồng bộ được danh sách chung.' };
+        }
+      }
+    }
     setSaving(false);
     if (result.ok) {
       const saved = result.workspace || normalized;
       setWorkspace(saved);
       setClassDraft(saved.classProfile);
       homeroomSessionCache.set(snapshotKey(currentUser, saved.id), saved);
-      setSyncState(result.offline ? 'local' : 'cloud');
-      flash(successMessage);
+      setSyncState(result.offline ? 'local' : schoolRosterSync?.ok === false ? 'local' : 'cloud');
+      flash(schoolRosterSync?.ok === false
+        ? `${successMessage} Hồ sơ đã lưu nhưng danh sách dùng chung chưa đồng bộ: ${schoolRosterSync.message}`
+        : successMessage);
     } else {
       setSyncState('local');
       flash(`${successMessage} Dữ liệu đã lưu trên thiết bị; cloud chưa đồng bộ: ${result.message || 'lỗi chưa xác định'}`);
