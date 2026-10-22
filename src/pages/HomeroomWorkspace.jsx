@@ -27,6 +27,7 @@ import {
 } from '../utils/homeroomClassWorkspaceStore.js';
 import { makeWorkspaceId, prepareWorkspaceCommit } from '../utils/homeroomPhase3.js';
 import { flushPendingAssignedStudentRosters, syncAssignedStudentRosterDelta } from '../utils/assignedStudentRosterSync.js';
+import { isHomeroomStudentListOnlyChange, mergeHomeroomStudentListAfterConflict } from '../utils/homeroomStudentConflictMerge.js';
 import {
   HOMEROOM_CLASS_TYPE,
   SUBJECT_CLASS_TYPE,
@@ -405,6 +406,7 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   const commit = async (next, successMessage = 'Đã lưu dữ liệu.') => {
     const previousWorkspace = workspace;
     let normalized = prepareWorkspaceCommit(previousWorkspace, next, currentUser, successMessage);
+    let schoolRosterBefore = previousWorkspace;
     setWorkspace(normalized);
     setClassDraft(normalized.classProfile);
     homeroomSessionCache.set(snapshotKey(currentUser, normalized.id), normalized);
@@ -428,6 +430,22 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
       result = await saveHomeroomWorkspace(normalized, currentUser);
     }
 
+    if (!result.ok && result.code === 'workspace-conflict' && result.workspace
+      && isHomeroomStudentListOnlyChange(previousWorkspace, normalized)) {
+      const latestCloud = normalizeHomeroomWorkspace(result.workspace, currentUser);
+      const merged = mergeHomeroomStudentListAfterConflict(
+        previousWorkspace, normalized, latestCloud,
+      );
+      if (merged.ok) {
+        schoolRosterBefore = latestCloud;
+        normalized = prepareWorkspaceCommit(latestCloud, merged.workspace, currentUser, successMessage);
+        homeroomSessionCache.set(snapshotKey(currentUser, normalized.id), normalized);
+        result = await saveHomeroomWorkspace(normalized, currentUser);
+      } else {
+        result = { ...result, message: merged.message };
+      }
+    }
+
     let schoolRosterSync = null;
     if (result.ok && !result.offline) {
       const savedCloud = result.workspace || normalized;
@@ -436,7 +454,7 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
       if (verifiedAssignment) {
         try {
           schoolRosterSync = await syncAssignedStudentRosterDelta(
-            currentUser, previousWorkspace, savedCloud,
+            currentUser, schoolRosterBefore, savedCloud,
           );
         } catch (error) {
           schoolRosterSync = { ok: false, message: error?.message || 'Không đồng bộ được danh sách chung.' };
