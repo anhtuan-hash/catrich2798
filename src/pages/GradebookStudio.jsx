@@ -41,6 +41,7 @@ import '../styles/GradebookRebirthV7.css';
 import '../styles/GradebookClarityV8.css';
 import '../styles/GradebookCompactV9.css';
 import '../styles/GradebookMaterial3V10.css';
+import '../styles/GradebookReadabilityV11.css';
 
 const EMPTY_CLASS = {
   className: '',
