@@ -8,6 +8,8 @@ const order={urgent:3,important:2,normal:1};
 const niceDate=(value)=>new Intl.DateTimeFormat('vi-VN',{timeZone:'Asia/Ho_Chi_Minh',dateStyle:'full',timeStyle:'short'}).format(new Date(value));
 export default function EventPopupHost({currentUser}) {
   const [event,setEvent]=useState(null);
+  const [inboxEvents,setInboxEvents]=useState([]);
+  const [inboxOpen,setInboxOpen]=useState(false);
   const [posterUrl,setPosterUrl]=useState('');
   const [detailed,setDetailed]=useState(false);
   const [actionError,setActionError]=useState('');
@@ -24,12 +26,14 @@ export default function EventPopupHost({currentUser}) {
     let active=true;
     async function load(){
       try {
-        const items=(await eligibleEvents(userId)).filter(x=>shouldAutoShow(x));
+        const items=await eligibleEvents(userId);
         items.sort((a,b)=>(order[b.priority]||1)-(order[a.priority]||1) || new Date(a.event_start_at)-new Date(b.event_start_at));
-        if(!active||!items.length)return;
-        // Only one unsolicited dialog per dashboard visit. Other events remain
-        // available for a future inbox, not as a forced stack of modals.
-        setEvent(items[0]);
+        if(!active)return;
+        setInboxEvents(items);
+        const automatic=items.find(x=>shouldAutoShow(x));
+        // One unsolicited dialog per dashboard visit, with every event still
+        // available for intentional review in the teacher's Event Inbox.
+        if(automatic)setEvent(automatic);
       }catch(error){if(active)console.warn('Event announcement unavailable:',error?.message||error);}
     }
     load();
@@ -99,8 +103,25 @@ export default function EventPopupHost({currentUser}) {
     try{await navigator.clipboard.writeText(event.meeting_code); }
     catch(e){setActionError('Không thể sao chép mã phòng.');}
   }
-  if(!event||!userId)return null;
-  return createPortal(<div className="be-pop-overlay" role="presentation">
+  if(!userId||(!event&&!inboxEvents.length))return null;
+  return createPortal(<>
+    {!event && inboxEvents.length>0 && <button type="button" className="be-pop-inbox-trigger"
+      onClick={()=>setInboxOpen(true)} aria-label={'Mở '+inboxEvents.length+' thông báo sự kiện'}>
+      <CalendarDays size={18} aria-hidden="true"/><span>Sự kiện dành cho bạn</span><strong>{inboxEvents.length}</strong>
+    </button>}
+    {!event && inboxOpen && <div className="be-pop-inbox-overlay" role="presentation">
+      <section className="be-pop-inbox-dialog" role="dialog" aria-modal="true" aria-labelledby="be-pop-inbox-title">
+        <header><div><span>BRIAN ENGLISH · EVENT INBOX</span><h2 id="be-pop-inbox-title">Sự kiện dành cho bạn</h2></div>
+          <button type="button" onClick={()=>setInboxOpen(false)} aria-label="Đóng danh sách sự kiện"><X size={18}/></button></header>
+        <div className="be-pop-inbox-list">{inboxEvents.map(item=><button type="button" key={item.id} onClick={()=>{
+          setDetailed(false);setPosterExpanded(false);setPosterUrl('');setInboxOpen(false);setActionError('');setEvent(item);
+        }}>
+          <span className="be-pop-inbox-date"><CalendarDays size={20}/></span>
+          <span><strong>{item.title}</strong><small>{niceDate(item.event_start_at)} · {item.organizer}</small></span>
+          <ExternalLink size={16}/></button>)}</div>
+      </section>
+    </div>}
+    {event && <div className="be-pop-overlay" role="presentation">
     <div className="be-pop-scrim" aria-hidden="true"/>
     <section className="be-pop-dialog" role="dialog" aria-modal="true" aria-labelledby="be-pop-title" aria-describedby="be-pop-intro">
       <header className="be-pop-header">
@@ -143,5 +164,6 @@ export default function EventPopupHost({currentUser}) {
       </footer>
     </section>
     {posterExpanded&&<div className="be-pop-lightbox" role="dialog" aria-modal="true" aria-label="Poster phóng to"><button type="button" aria-label="Đóng hình ảnh" onClick={()=>setPosterExpanded(false)}><X size={22}/></button><img src={posterUrl} alt={'Poster '+event.title}/></div>}
-  </div>,document.body);
+  </div>}
+  </>,document.body);
 }
