@@ -39,7 +39,6 @@ export default function EventManagerPage({currentUser}) {
   const [notice,setNotice]=useState('');
   const [analytics,setAnalytics]=useState(null);
   const [confirmPublish,setConfirmPublish]=useState(false);
-  const [publishWithoutPoster,setPublishWithoutPoster]=useState(false);
   const [previewMode,setPreviewMode]=useState('desktop');
   const load=useCallback(async()=>{
     if(!allowed)return;
@@ -56,7 +55,7 @@ export default function EventManagerPage({currentUser}) {
     return ()=>URL.revokeObjectURL(url);
   },[poster]);
   const openEvent=async(item)=>{
-    setError('');setNotice('');setPoster(null);setSelected(item||null);setPublishWithoutPoster(false);
+    setError('');setNotice('');setPoster(null);setSelected(item||null);
     const next={...BLANK};
     for(const key of FIELDS){
       const raw=item?.[key];
@@ -76,53 +75,30 @@ export default function EventManagerPage({currentUser}) {
   };
   const setField=(name,value)=>setForm(f=>({...f,[name]:value}));
   const toggleRecipient=(id)=>setRecipientIds(ids=>ids.includes(id)?ids.filter(x=>x!==id):[...ids,id]);
-  // A poster shown via URL.createObjectURL is LOCAL PREVIEW ONLY.
-  // Publishing must persist the selected image before notifying recipients.
-  const persistEditor = async () => {
-    const record=await saveEventDraft(form,selected?.id||null);
-    let latest=record;
-    if(poster){
-      const path=await uploadEventPoster(record.id,poster);
-      latest={...record,poster_path:path};
-      const signedUrl=await getEventPosterUrl(path);
-      setPoster(null);
-      setPosterUrl(signedUrl);
-    }
-    setSelected(latest);
-    await load();
-    return latest;
-  };
   const save=async()=>{
     if(saving)return null;
     setError('');setNotice('');setSaving(true);
     try{
-      const latest=await persistEditor();
-      setNotice(latest.poster_path
-        ? 'Đã lưu sự kiện và poster trên hệ thống. Giáo viên sẽ nhìn thấy cùng một ảnh khi có thông báo.'
-        : 'Đã lưu nội dung. Chưa có poster được lưu trên hệ thống.');
+      const record=await saveEventDraft(form,selected?.id||null);
+      let latest=record;
+      if(poster){const path=await uploadEventPoster(record.id,poster);latest={...record,poster_path:path};setPoster(null);}
+      setSelected(latest);
+      setNotice('Đã lưu sự kiện. Chưa gửi thông báo cho giáo viên.');
+      await load();
+      if(latest.poster_path) getEventPosterUrl(latest.poster_path).then(setPosterUrl).catch(()=>{});
       return latest;
-    }catch(e){
-      setError('Lưu thất bại: '+e.message+'. Sự kiện không được tự động xuất bản.');
-      return null;
-    }finally{setSaving(false);}
+    }catch(e){setError(e.message);return null;}
+    finally{setSaving(false);}
   };
   const publish=async()=>{
-    if(saving)return;
+    if(saving||!selected?.id)return;
     setSaving(true);setError('');setNotice('');
     try{
-      // Do not allow a successfully previewed but unpersisted poster to go live.
-      const saved=await persistEditor();
-      if(!saved.poster_path && !publishWithoutPoster)
-        throw new Error('Poster vẫn chưa được lưu. Hãy chọn ảnh và lưu trước khi xuất bản.');
-      const out=await publishEvent(saved.id,recipientIds);
-      setSelected(out);
-      setConfirmPublish(false);
-      setPublishWithoutPoster(false);
-      setNotice('Đã lưu nội dung'+(out.poster_path?', poster':'')+' và xuất bản sự kiện thành công.');
+      const out=await publishEvent(selected.id,recipientIds);
+      setSelected(out);setConfirmPublish(false);setNotice('Đã xuất bản thành công. Giáo viên được chọn sẽ thấy popup khi truy cập Dashboard trong thời gian hiển thị.');
       await load();
-    }catch(e){
-      setError('Không thể xuất bản: '+e.message);
-    }finally{setSaving(false);}
+    }catch(e){setError(e.message);}
+    finally{setSaving(false);}
   };
   const reannounce=async(item)=>{
     if(!window.confirm('Gửi lại thông báo này tới người nhận? Giáo viên đã xem sẽ thấy lại một lần nữa. Chỉ sử dụng khi có thay đổi quan trọng.'))return;
@@ -199,11 +175,7 @@ export default function EventManagerPage({currentUser}) {
           </div>
           <div className="bea-section-label"><span>03</span><h3>Poster & người nhận</h3></div>
           <label className="bea-file"><UploadCloud size={21}/><span>{poster?.name||'Tải poster JPG, PNG, WebP (tối đa 10MB)'}</span><input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>setPoster(e.target.files?.[0]||null)}/></label>
-          <div className={'bea-poster-status '+(poster?'is-pending':selected?.poster_path?'is-ready':'is-missing')} role="status">
-            {poster ? <><UploadCloud size={17}/><span><strong>Chỉ đang xem trước, chưa tải lên.</strong> Nhấn Lưu bản nháp hoặc Xuất bản để đưa poster lên Supabase.</span></>
-              : selected?.poster_path ? <><CheckCircle2 size={17}/><span><strong>Poster đã lưu trên hệ thống.</strong> Giáo viên sẽ nhận cùng một ảnh.</span></>
-              : <><ImageIcon size={17}/><span><strong>Chưa có ảnh được lưu.</strong> Ảnh trong bản xem trước không tự trở thành poster đã xuất bản.</span></>}
-          </div>
+          <p className="bea-help">Lưu bản nháp để tải poster lên Supabase. Poster gốc sẽ xuất hiện trong popup của giáo viên.</p>
           <div className="bea-audience-head"><strong><Users size={16}/> Danh sách giáo viên</strong><span>{recipientIds.length} được chọn</span></div>
           <div className="bea-audience-toolbar">
             <button type="button" onClick={()=>setRecipientIds(profiles.filter(p=>p.role==='teacher'||p.role==='department_head').map(x=>x.id))}>Chọn tất cả giáo viên</button>
@@ -214,7 +186,7 @@ export default function EventManagerPage({currentUser}) {
           <div className="bea-form-actions">
             <button type="button" className="bea-secondary" onClick={()=>{setForm({...HALLOWEEN_TEMPLATE});setError('');}}>Điền mẫu Halloween</button>
             <button type="button" className="bea-primary" disabled={saving} onClick={save}><Save size={17}/>{saving?'Đang lưu…':'Lưu bản nháp'}</button>
-            <button type="button" className="bea-publish" disabled={saving||!recipientIds.length||selected?.status==='cancelled'} onClick={()=>setConfirmPublish(true)}><Send size={17}/> {selected?.status==='published'?'Lưu & cập nhật':'Xuất bản'} ({recipientIds.length})</button>
+            <button type="button" className="bea-publish" disabled={saving||!selected?.id||!recipientIds.length||selected.status==='cancelled'} onClick={()=>setConfirmPublish(true)}><Send size={17}/> Xuất bản ({recipientIds.length})</button>
           </div>
           {selected?.status==='published'&&<p className="bea-help">Sự kiện này đã xuất bản. Lưu chỉnh sửa nội dung không tự bật lại popup cho giáo viên đã xem.</p>}
         </div>
@@ -228,9 +200,7 @@ export default function EventManagerPage({currentUser}) {
           </div>
         </aside>
       </div>
-      {confirmPublish&&<div className="bea-confirm-layer" role="presentation"><section className="bea-confirm" role="alertdialog" aria-modal="true" aria-labelledby="bea-confirm-title"><h3 id="bea-confirm-title">Xuất bản sự kiện?</h3><p>Nội dung, poster đang chọn và danh sách người nhận sẽ được lưu trước khi phát thông báo tới <strong>{recipientIds.length} tài khoản</strong>.</p>
-      {!poster && !selected?.poster_path && <label className="bea-publish-warning"><input type="checkbox" checked={publishWithoutPoster} onChange={e=>setPublishWithoutPoster(e.target.checked)}/> Tôi xác nhận muốn xuất bản sự kiện <strong>không có poster</strong>.</label>}
-      <div><button onClick={()=>setConfirmPublish(false)}>Kiểm tra lại</button><button className="bea-publish" disabled={saving||(!poster&&!selected?.poster_path&&!publishWithoutPoster)} onClick={publish}>{saving?'Đang lưu & xuất bản…':'Lưu poster & xuất bản'}</button></div></section></div>}
+      {confirmPublish&&<div className="bea-confirm-layer" role="presentation"><section className="bea-confirm" role="alertdialog" aria-modal="true" aria-labelledby="bea-confirm-title"><h3 id="bea-confirm-title">Xuất bản sự kiện?</h3><p>Thông báo sẽ được phân phối cho <strong>{recipientIds.length} tài khoản được chọn</strong> khi đến thời gian hiển thị. Hãy xác nhận đã kiểm tra poster, ngày giờ và danh sách người nhận.</p><div><button onClick={()=>setConfirmPublish(false)}>Kiểm tra lại</button><button className="bea-publish" disabled={saving} onClick={publish}>Xác nhận xuất bản</button></div></section></div>}
     </>:null}
     {screen==='analytics'&&<div className="bea-analytics"><button className="bea-back" onClick={()=>setScreen('list')}><ArrowLeft size={15}/> Danh sách sự kiện</button><h3>{selected?.title}</h3>{analytics?<div className="bea-metrics">{[['Người nhận',analytics.recipients],['Đã hiển thị',analytics.shown],['Đã xem chi tiết',analytics.details],['Đã xác nhận',analytics.acknowledged]].map(([k,v])=><div className="bea-metric" key={k}><strong>{v}</strong><span>{k}</span></div>)}</div>:<p>Đang tải báo cáo…</p>}<p className="bea-help">Đã hiển thị không đồng nghĩa đã đọc hoặc đã tham dự.</p></div>}
   </section>;
