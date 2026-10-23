@@ -405,7 +405,7 @@
 .attendance-member-table.is-mockup > .attendance-member-table-row,
 .attendance-member-table.is-mockup > .attendance-member-edit-row.is-mockup-row {
   display: grid;
-  grid-template-columns: 54px minmax(240px, 1.7fr) minmax(110px, .75fr) minmax(120px, .85fr) minmax(125px, .9fr) minmax(140px, .92fr);
+  grid-template-columns: 54px minmax(240px, 1.6fr) minmax(110px, .7fr) minmax(210px, 1.25fr) minmax(125px, .9fr) minmax(140px, .92fr);
   align-items: center;
   gap: 12px;
   padding: 9px 16px;
@@ -629,4 +629,84 @@
   .attendance-manage-detail-roster-card { min-height: 600px; border-radius: 14px; }
   .attendance-manage-detail-roster-footer { align-items: flex-start; flex-direction: column; }
   .attendance-manage-detail-roster-footer nav { align-self: stretch; justify-content: flex-end; overflow-x: auto; }
+}
+
+
+/* Individual student notes: inline editing, compact feedback and keyboard access. */
+.attendance-member-table.is-mockup .attendance-member-note-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  width: 100%;
+  position: relative;
+}
+.attendance-member-table.is-mockup .attendance-member-note-cell textarea {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  min-height: 37px;
+  max-height: 110px;
+  padding: 9px 10px;
+  border: 1px solid #d9e4f2;
+  border-radius: 10px;
+  background: #f8fafd;
+  box-sizing: border-box;
+  color: #183553;
+  font: inherit;
+  font-size: 11.5px;
+  line-height: 1.4;
+  resize: vertical;
+}
+.attendance-member-table.is-mockup .attendance-member-note-cell textarea:focus {
+  outline: 2px solid #9cc8fa;
+  outline-offset: 1px;
+  border-color: #3178e5;
+  background: #fff;
+}
+.attendance-member-table.is-mockup .attendance-member-note-cell textarea::placeholder { color: #8294ab; opacity: 1; }
+.attendance-member-table.is-mockup .attendance-member-note-cell textarea:disabled { opacity: .67; }
+.attendance-member-table.is-mockup .attendance-member-note-readonly {
+  display: block;
+  min-width: 0;
+  color: #4d617d;
+  font-size: 11.5px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.attendance-member-table.is-mockup .attendance-member-note-save {
+  flex: 0 0 auto;
+  min-height: 32px;
+  border: 1px solid #c7dafa;
+  border-radius: 8px;
+  background: #eaf2ff;
+  color: #195bc3;
+  font-size: 11px;
+  font-weight: 750;
+  padding: 0 9px;
+  cursor: pointer;
+}
+.attendance-member-table.is-mockup .attendance-member-note-save:focus-visible { outline: 2px solid #3178e5; outline-offset: 2px; }
+.attendance-member-table.is-mockup .attendance-member-note-feedback {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  z-index: 2;
+  display: inline-block;
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: #fff;
+  color: #566987;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.attendance-member-table.is-mockup .attendance-member-note-feedback.is-saved { color: #168052; }
+.attendance-member-table.is-mockup .attendance-member-note-feedback.is-error { color: #bd3340; }
+.attendance-member-table.is-mockup > .attendance-member-edit-row.is-mockup-row .attendance-member-note-cell textarea {
+  min-height: 34px;
+  height: 34px;
+}
+@media (max-width: 1020px) {
+  .attendance-member-table.is-mockup { min-width: 1000px; }
 }
