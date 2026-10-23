@@ -1,0 +1,94 @@
+
+/* Gradebook Mac Utilities: isolated from the global ESL Brian navigation. */
+.gbmac-utilities{font:500 13px/1.5 -apple-system,BlinkMacSystemFont,Inter,system-ui,sans-serif;color:#244368}
+.gbmac-utilities *{box-sizing:border-box}
+.gbmac-utilities .gbmac-tools-dialog{align-self:center;margin:auto;display:flex;flex-direction:column;width:min(1000px,calc(100vw - 40px));height:min(88dvh,850px);max-height:88dvh;border-radius:20px;background:#fff;overflow:hidden;border:1px solid #d9e3f0;box-shadow:0 25px 100px #14294445}
+.gbmac-utilities .gbmac-tools-header{padding:18px 22px;background:linear-gradient(110deg,#fff,#f2f7ff);min-height:91px;flex-shrink:0;align-items:center}
+.gbmac-utilities-brand{display:flex;align-items:center;gap:13px;min-width:0}
+.gbmac-utilities-symbol{display:grid;place-items:center;width:48px;height:48px;flex-shrink:0;background:#e8f2ff;border:1px solid #cfe2ff;border-radius:14px;color:#286dde}
+.gbmac-utilities .gbmac-utilities-brand span:not(.gbmac-utilities-symbol){font-size:10px;color:#6989ac;letter-spacing:.09em;font-weight:800}
+.gbmac-utilities .gbmac-utilities-brand h2{font-size:22px;font-weight:820;line-height:1.2;letter-spacing:-.025em;color:#1c3f6c;margin:3px 0}
+.gbmac-utilities .gbmac-utilities-brand p{font-size:12px;color:#8091a7;margin:0}
+.gbmac-utilities .gbmac-utilities-close{border:1px solid #d9e5f3;background:#fff;border-radius:10px;width:36px;height:36px;display:grid;place-items:center;color:#6480a5;cursor:pointer}
+.gbmac-utilities .gbmac-utilities-frame{display:grid;grid-template-columns:214px minmax(0,1fr);flex:1;min-height:0;overflow:hidden}
+.gbmac-utilities .gbmac-utilities-sidebar{display:flex;flex-direction:column;gap:6px;padding:20px 11px;min-height:0;background:#f7fafe;border-right:1px solid #e0e9f5}
+.gbmac-utilities .gbmac-utilities-nav-caption{font-size:10px;color:#99a7b9;letter-spacing:.09em;font-weight:800;margin:0 10px 10px}
+.gbmac-utilities .gbmac-utilities-nav-item{width:100%;display:flex;align-items:center;gap:11px;min-height:64px;padding:10px 11px;border:1px solid transparent;border-radius:11px;background:transparent;color:#7590b0;text-align:left;cursor:pointer;font:inherit}
+.gbmac-utilities .gbmac-utilities-nav-item:hover:not(.is-current){background:#eef4fc}
+.gbmac-utilities .gbmac-utilities-nav-item.is-current{background:#e9f3ff;border-color:#cee1fa;color:#2469d7}
+.gbmac-utilities .gbmac-utilities-nav-item>svg{flex-shrink:0}
+.gbmac-utilities .gbmac-utilities-nav-item>span:not(.gbmac-utilities-current-dot){display:grid;gap:3px;flex:1;min-width:0}
+.gbmac-utilities .gbmac-utilities-nav-item strong{font-size:12px;color:#3d5e82;font-weight:780}
+.gbmac-utilities .gbmac-utilities-nav-item.is-current strong{color:#1a5fc0}
+.gbmac-utilities .gbmac-utilities-nav-item small{color:#98a6b8;font-size:10px;line-height:1.3}
+.gbmac-utilities .gbmac-utilities-current-dot{width:6px;height:6px;background:#3276ea;border-radius:50%}
+.gbmac-utilities .gbmac-utilities-sidebar-foot{margin-top:auto;padding:13px 9px 5px;border-top:1px solid #e4ecf5;color:#98a9bd;font-size:10px;display:flex;gap:7px;align-items:flex-start}
+.gbmac-utilities .gbmac-utilities-sidebar-foot svg{flex-shrink:0}
+.gbmac-utilities .gbmac-utilities-main{min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:23px 25px;background:#fff;scrollbar-width:thin}
+.gbmac-utilities .gbmac-utilities-page[hidden]{display:none!important}
+.gbmac-utilities .gbmac-utilities-page{min-width:0}
+.gbmac-utilities .gbmac-utilities-page-head{margin-bottom:17px}
+.gbmac-utilities .gbmac-utilities-kicker{display:block;font-size:10px;letter-spacing:.09em;font-weight:800;color:#7595b8}
+.gbmac-utilities .gbmac-utilities-page-head h3{font-size:19px;color:#23446c;font-weight:820;margin:3px 0 5px;line-height:1.25}
+.gbmac-utilities .gbmac-utilities-page-head p{color:#8191a7;font-size:12px;margin:0;line-height:1.55}
+.gbmac-utilities .gb-prod-embedded{display:block;background:transparent;border:0;min-width:0;box-shadow:none}
+.gbmac-utilities .gb-prod-embedded .gb-prod-body{padding:0;border:0;display:block}
+.gbmac-utilities .gb-prod-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;border-bottom:1px solid #e7edf6;padding:0 0 14px;margin:0 0 17px}
+.gbmac-utilities .gb-prod-tabs button{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:68px;border:1px solid #e2eaf5;border-radius:10px;background:#fff;color:#597491;cursor:pointer;font:inherit;padding:9px 4px}
+.gbmac-utilities .gb-prod-tabs button:hover:not(.active){background:#f2f7ff;border-color:#bfd5f3}
+.gbmac-utilities .gb-prod-tabs button.active{background:#eaf3ff;border-color:#8cb9fa;color:#2367c8;box-shadow:inset 0 0 0 1px #cee2fc}
+.gbmac-utilities .gb-prod-tab-art{display:flex;align-items:center;justify-content:center;width:22px;height:22px}
+.gbmac-utilities .gb-prod-tab-art svg{width:18px;height:18px}
+.gbmac-utilities .gb-prod-tab-label{font-size:10px;font-weight:780;text-align:center;line-height:1.2}
+.gbmac-utilities .gb-prod-pane{display:grid;gap:14px;min-width:0}
+.gbmac-utilities .gb-prod-pane h3{font-size:17px;margin:0;color:#234973;font-weight:800}
+.gbmac-utilities .gb-prod-pane h4{font-size:14px;color:#315781;margin:3px 0}
+.gbmac-utilities .gb-prod-pane p{color:#7185a1;font-size:12px;line-height:1.6;margin:0}
+.gbmac-utilities .gb-prod-pane small{font-size:11px;color:#8497ad}
+.gbmac-utilities .gb-prod-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;align-items:end}
+.gbmac-utilities .gb-prod-fields label,.gbmac-utilities .gbmac-tool-fields label{display:grid;gap:6px;color:#5c7697;font-size:11px;font-weight:740;min-width:0}
+.gbmac-utilities .gb-prod-fields :is(input,select),.gbmac-utilities .gb-prod-pane textarea,.gbmac-utilities .gbmac-tool-fields :is(input,select){display:block;width:100%;max-width:100%;min-width:0;min-height:40px;border:1px solid #d7e2f1;background:#fcfdff;border-radius:9px;padding:9px 11px;color:#294b73;font:500 12px/1.4 -apple-system,BlinkMacSystemFont,Inter,sans-serif}
+.gbmac-utilities .gb-prod-pane textarea{min-height:103px;resize:vertical}
+.gbmac-utilities .gb-prod-pane textarea.gb-prod-paste{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.gbmac-utilities .gb-prod-fields input[type=file]{padding:7px}
+.gbmac-utilities .gb-prod-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.gbmac-utilities .gb-prod-actions button,.gbmac-utilities .gb-p3-pane button{min-height:38px;padding:9px 13px;border-radius:9px;border:1px solid #c8dcf5;background:#eff6ff;color:#2866b3;font-size:12px;font-weight:760;cursor:pointer}
+.gbmac-utilities .gb-prod-actions button.primary{color:#fff;background:#2870db;border-color:#2870db}
+.gbmac-utilities .gb-prod-actions button:disabled{opacity:.5;cursor:default}
+.gbmac-utilities .gb-prod-excel{border:1px solid #dce8f7;background:#f8fbff;border-radius:11px;overflow:hidden}
+.gbmac-utilities .gb-prod-excel-trigger{display:flex;align-items:center;gap:10px;list-style:none;cursor:pointer;padding:13px;color:#315982;font-size:12px}
+.gbmac-utilities .gb-prod-excel-trigger::-webkit-details-marker{display:none}
+.gbmac-utilities .gb-prod-excel-trigger small{color:#9babc0;font-size:10px;margin-left:auto}
+.gbmac-utilities .gb-prod-excel-chevron{margin-left:auto}
+.gbmac-utilities .gb-prod-excel-content{display:grid;gap:12px;border-top:1px solid #e1eaf5;padding:13px}
+.gbmac-utilities .gb-prod-preview,.gbmac-utilities .gb-prod-existing{display:grid;gap:8px;background:#f3f8ff;border:1px solid #dce8f8;border-radius:10px;padding:12px;color:#466a94;font-size:12px}
+.gbmac-utilities .gb-prod-preview-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.gbmac-utilities .gb-prod-preview-grid>span{padding:8px;border:1px solid #e3ebf6;border-radius:8px;background:#fff;font-size:11px}
+.gbmac-utilities .gb-prod-pane p.gb-prod-error{color:#ae3b4a}
+.gbmac-utilities .gb-prod-pane p.gb-prod-alert{color:#a16a23;background:#fff7e9;padding:11px;border-radius:9px}
+.gbmac-utilities .gb-prod-pane p.gb-prod-notice{color:#267d57;background:#eefaf3;padding:11px;border-radius:9px;font-weight:700}
+.gbmac-utilities .gb-prod-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.gbmac-utilities .gb-prod-stats>div{display:grid;gap:3px;padding:12px;border:1px solid #e2eaf5;border-radius:10px;background:#f7faff;min-width:0}
+.gbmac-utilities .gb-prod-stats b{font-size:22px;color:#2964b0;font-weight:820}
+.gbmac-utilities .gb-prod-stats span{font-size:10px;color:#7d92aa}
+.gbmac-utilities .gb-prod-progress{height:9px;border-radius:99px;background:#e5eefd;overflow:hidden}
+.gbmac-utilities .gb-prod-progress>div{height:100%;border-radius:99px;background:linear-gradient(90deg,#38a0e8,#386cda)}
+.gbmac-utilities .gb-prod-scroll{width:100%;overflow:auto;max-height:420px;border:1px solid #e0eaf5;border-radius:10px}
+.gbmac-utilities .gb-prod-scroll table{min-width:620px;width:100%;border-collapse:separate;border-spacing:0;font-size:11px;color:#405d80}
+.gbmac-utilities .gb-prod-scroll th,.gbmac-utilities .gb-prod-scroll td{padding:9px 10px;text-align:center;white-space:nowrap;border-right:1px solid #edf1f7;border-bottom:1px solid #edf1f7}
+.gbmac-utilities .gb-prod-scroll thead th{position:sticky;top:0;z-index:3;background:#f0f6fd;color:#5b7698}
+.gbmac-utilities .gb-prod-scroll tr th:first-child{position:sticky;left:0;z-index:4;text-align:left;background:#fff}
+.gbmac-utilities .gb-prod-scroll thead th:first-child{z-index:5;background:#f0f6fd}
+.gbmac-utilities .gb-prod-scroll tbody tr:nth-child(even){background:#f8fbff}
+.gbmac-utilities .gb-prod-heat td.tone-low{background:#ffecef}
+.gbmac-utilities .gb-prod-heat td.tone-middle{background:#fff2e0}
+.gbmac-utilities .gb-prod-heat td.tone-good{background:#e7f1ff}
+.gbmac-utilities .gb-prod-heat td.tone-high{background:#e4f7ed}
+.gbmac-utilities .gb-prod-heat td.tone-missing{background:#f3f5f7;color:#a6b0be}
+.gbmac-utilities .gb-prod-alert-list,.gbmac-utilities .gb-prod-history{display:grid;gap:8px;max-height:350px;overflow:auto}
+.gbmac-utilities .gb-prod-alert-list>div{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap;border:1px solid #f5e2de;background:#fff9f7;padding:10px;border-radius:9px}
+.gbmac-utilities .gb-prod-alert-list strong{color:#48627e;font-size:11px}
+.gbmac-utilities .gb-prod-alert-list span{font-size:11px;color:#a66554}
+.gbmac-utilities .gb-prod-history details,.gbmac-utilities .gb-prod-history>div{border:1px solid #e1eaf5;border-radius:9px;padding:10px;background:#f9fcff}
+.gbmac-utilities .gb-prod-history summary{color:#476989;font-size:11px;cursor:pointer}
+.gbmac-utilities .gb-prod-history ul{padding:9px 20px;border-top:1px solid #e4ecf6;font-size:11px;color:#6081a0}
