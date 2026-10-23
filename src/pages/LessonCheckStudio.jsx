@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ArrowLeft,
   BookOpen,
   Check,
   ChevronDown,
@@ -85,6 +84,7 @@ import './LessonCheckApprovedMockupOne.css';
 import './LessonCheckHeroIndependent.css';
 // Route-local width parity with Homeroom and Dashboard; loaded last.
 import './LessonCheckAlignAppGutters.css';
+import './LessonCheckHeroCompact.css';
 
 const TYPE_OPTIONS = [
   { value: 'quiz', vi: 'Trắc nghiệm', en: 'Quiz' },
@@ -1454,7 +1454,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
   return (
     <div className={`lcs-page lcs-page--library ${assessmentWorkspaceView ? 'is-assessment-open' : ''}`}>
-      <header className={'lcs-arcade-head lch-hero' + (hasHeroMedia ? ' has-custom-media' : '')}
+      <header className={'lcs-arcade-head lch-hero lch-hero--compact' + (hasHeroMedia ? ' has-custom-media' : '')}
         style={{'--lch-protection':activeHero.leftProtection / 100}}>
         {hasHeroMedia && <div className="lch-hero-media" aria-hidden="true">
           {activeHero.backgroundType==='video'
@@ -1479,20 +1479,17 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
           <Edit3 size={17} aria-hidden="true"/><span>{isVi?'Chỉnh sửa Hero':'Edit Hero'}</span>
         </button>}
         <div className="lcs-hero-main">
-          <button className="lcs-library-back" type="button"
-            onClick={() => { window.location.hash = '#/apps'; }}
-            aria-label={isVi ? 'Quay lại Ứng dụng' : 'Back to Apps'}><ArrowLeft size={18}/></button>
           <div className="lcs-hero-copy">
             <div className="lcs-hero-kicker">
               <span className="lcs-hero-kicker-icon"><Gamepad2 size={16}/></span>
-              <strong>BRIAN ACTIVITY ARCADE</strong>
+              <strong>{isVi ? 'KIỂM TRA & ĐÁNH GIÁ' : 'ASSESSMENT STUDIO'}</strong>
               <span>GLOBAL SUCCESS</span>
             </div>
             <div className="lcs-arcade-title-row">
               <h1><span className="is-fun">Fun</span> <span className="is-for">for</span>
                 <span className="is-assessment">Assessment</span></h1>
             </div>
-            <p>{isVi ? 'Đổi mới kiểm tra đánh giá' : 'Innovating assessment and evaluation'}</p>
+            <p>{isVi ? 'Thiết kế · Tổ chức · Theo dõi kết quả' : 'Create · Deliver · Review results'}</p>
             <div className="lcs-hero-statline" aria-label={isVi ? 'Thống kê kho hoạt động' : 'Activity library statistics'}>
               <span><Gamepad2 size={14}/><b>{activities.length}</b>{isVi ? 'hoạt động' : 'activities'}</span>
               <span className="is-vocabulary"><BookOpen size={14}/><b>{focusCounts.vocabulary}</b>Vocabulary</span>
