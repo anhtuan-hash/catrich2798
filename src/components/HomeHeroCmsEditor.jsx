@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   ArrowLeft,
   Check,
@@ -339,9 +340,9 @@ export default function HomeHeroCmsEditor({
   }, [tab]);
 
   const activeTab = useMemo(() => TABS.find(([id]) => id === tab), [tab]);
-  if (!open) return null;
+  if (!open || typeof document === 'undefined') return null;
 
-  return (
+  return createPortal(
     <div className="hero-editor hero-editor--drawer" data-preview-expanded={previewExpanded ? 'true' : 'false'} role="dialog" aria-modal="true" aria-label="Trình chỉnh sửa Hero trang chủ" onMouseDown={(event) => { if (event.target === event.currentTarget) closeEditor(); }}>
       <div className="hero-editor__shell" ref={shellRef}>
         <header className="hero-editor__header">
@@ -488,6 +489,7 @@ export default function HomeHeroCmsEditor({
           </div>
         </footer>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
