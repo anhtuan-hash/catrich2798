@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import GradebookEngine from './GradebookEngine.jsx';
-import './GradebookPlusCount.css';
+import GradebookMacEngine from './GradebookMacEngine.jsx';
 import { exportStudentGradeReportPdf } from '../../utils/homeroomGradeReportPdf.js';
 import { buildStudentSupportHash, normalizeStudentRef } from '../../studentSupport/studentSupportIdentity.js';
 
@@ -36,22 +35,19 @@ export default function GradebookWorkspace(props) {
     }).replace(/^#/, '');
   };
 
-  return <>
-    <GradebookEngine key={props.workspace?.id} {...props} />
-    {students.length ? (
-      <details className="gbv2-support-extra gbv13-support-compact">
-        <summary>Hồ sơ &amp; hỗ trợ học sinh <span aria-hidden="true">⌄</span></summary>
-        <section className="gbv13-support-controls" aria-label="Mở hồ sơ hỗ trợ học sinh">
-          <p>Chọn học sinh để xem hồ sơ và thông tin hỗ trợ trong phân hệ chuyên trách.</p>
-          <div>
-            <label htmlFor="gbv13-support-student">Học sinh</label>
-            <select id="gbv13-support-student" value={supportStudentId} onChange={(event) => setSupportStudentId(event.target.value)}>
-              {students.map((student) => <option key={student.id} value={student.id}>{student.fullName || student.code || 'Học sinh'}</option>)}
-            </select>
-            <button type="button" disabled={!supportStudentRef} onClick={openStudentSupport}>Mở hồ sơ <span aria-hidden="true">↗</span></button>
-          </div>
-        </section>
-      </details>
-    ) : null}
-  </>;
+  const supportPanel = students.length ? (
+    <section className="gbmac-support-tools" aria-label="Hồ sơ hỗ trợ học sinh">
+      <p>Chọn học sinh để mở hồ sơ hỗ trợ trong phân hệ chuyên trách.</p>
+      <label htmlFor="gbmac-support-student">Học sinh</label>
+      <div>
+        <select id="gbmac-support-student" value={supportStudentId}
+          onChange={(event) => setSupportStudentId(event.target.value)}>
+          {students.map((student) => <option key={student.id} value={student.id}>{student.fullName || student.code || 'Học sinh'}</option>)}
+        </select>
+        <button type="button" disabled={!supportStudentRef} onClick={openStudentSupport}>Mở hồ sơ ↗</button>
+      </div>
+    </section>
+  ) : null;
+
+  return <GradebookMacEngine key={props.workspace?.id} {...props} supportPanel={supportPanel} />;
 }
