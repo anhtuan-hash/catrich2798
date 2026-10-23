@@ -118,6 +118,7 @@ export default function AttendanceClassEditor({
   busy = false,
   onRemoveStudent,
   onReload,
+  onMemberNoteSaved,
   onError,
   onNotice,
   editingClass: controlledEditingClass,
@@ -306,8 +307,9 @@ export default function AttendanceClassEditor({
         .single();
       if (error) throw error;
       if (String(data?.teacher_note || '') !== value) throw new Error('Ghi chú chưa được lưu thành công.');
-      onNotice?.('Đã lưu ghi chú cho ' + member.student_full_name + '.');
-      try { await onReload?.(); } catch { /* Note is already saved in Supabase. */ }
+      // Update the roster in memory, without loading/unmounting the management view.
+      // This also ensures CSV export immediately contains the saved note.
+      onMemberNoteSaved?.(member.id, value);
       return true;
     } catch (error) {
       onError?.(error?.message || 'Không thể lưu ghi chú học sinh.');
