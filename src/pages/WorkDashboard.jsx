@@ -14,6 +14,7 @@ import '../styles/teacher-dashboard-google-colorful.css';
 import '../styles/teacher-dashboard-editorial-hero.css';
 import '../styles/teacher-dashboard-timeline-v2.css';
 import DashboardNewsHub from '../components/DashboardNewsHub.jsx';
+import DashboardWorkPlanner from '../components/DashboardWorkPlanner.jsx';
 // Newsroom owns its compact presentation after the six original October 10 design layers.
 import '../styles/dashboard-newsroom-editorial-20261023.css';
 import '../styles/dashboard-hero-cms.css';
@@ -507,33 +508,15 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
       </section>
 
       {error ? <div className="gd-alert"><Icon name="warning" size={22} /><div><strong>{t.partial}</strong><small>{error}</small></div><button type="button" className="gd-text-button" onClick={() => refresh()}>{t.retry}</button></div> : null}
-      <article className="gd-calendar gd-calendar-today gd-calendar-timeline-v2" id="dashboard-calendar">
-        <header className="gd-calendar-header">
-          <div className="gd-calendar-kicker">02 / TODAY</div>
-          <div className="gd-calendar-title"><span><Icon name="calendar" size={24} /></span><div><h2>{t.calendar}</h2><p>{t.calendarSummary}</p></div></div>
-          <DashboardCalendarDoodle language={language} />
-          <span className="gd-calendar-edition">DAILY SCHEDULE / BRIAN</span>
-          <button type="button" className="gd-text-button" onClick={() => openTtcm('schedule')}><Icon name="calendar" size={16} />{t.openCalendar}<Icon name="arrow" size={18} /></button>
-        </header>
-        <div className="gd-today-layout gd-today-layout-v2">
-          <aside className="gd-date-poster">
-            <div className="gd-date-poster-main">
-              <strong>{String(todayDate.getDate()).padStart(2, '0')}</strong>
-              <span>{new Intl.DateTimeFormat(locale, { month: 'long' }).format(todayDate)}</span>
-              <b>{todayWeekday}</b>
-            </div>
-            <div className="gd-date-poster-landscape" aria-hidden="true"><i /><i /><i /></div>
-            <p>{language === 'vi' ? <>Hôm nay<br />cũng là một<br />bước tiến! ✨</> : <>Today is<br />another step<br />forward! ✨</>}</p>
-          </aside>
-          <section className="gd-timeline-panel">
-            <div className="gd-timeline-head">
-              <div><span>{t.selectedDay}</span><strong>{todayDateLabel}</strong></div>
-              <span className="gd-count-chip">{todayEvents.length} {t.events}</span>
-            </div>
-            <div className="gd-agenda-list gd-agenda-list-today gd-agenda-timeline">{initialLoading ? <Empty>{t.refreshing}</Empty> : todayEvents.length ? todayEvents.map((item, index) => <CalendarEvent key={item.id} item={item} language={language} locale={locale} t={t} index={index} />) : <Empty>{t.emptyCalendar}</Empty>}</div>
-          </section>
-        </div>
-      </article>
+      <DashboardWorkPlanner
+        timeline={timeline}
+        now={now}
+        language={language}
+        loading={initialLoading}
+        coverage={snapshot.calendarCoverage}
+        onOpenFull={() => openTtcm('schedule')}
+        onOpenItem={openDashboardTarget}
+      />
       <DashboardNewsHub language={language} />
     </div>
   </section>;
