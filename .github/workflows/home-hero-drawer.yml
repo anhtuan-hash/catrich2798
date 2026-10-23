@@ -1,0 +1,34 @@
+name: Home Hero Drawer Redesign
+on:
+  pull_request:
+    paths:
+      - 'src/components/HomeHeroCmsEditor.jsx'
+      - 'src/components/HomeHeroCmsPreviewDock.jsx'
+      - 'src/styles/HomeHeroCmsEditorDrawer.css'
+      - 'src/pages/Home.jsx'
+      - 'scripts/test-home-hero-drawer.mjs'
+      - '.github/workflows/home-hero-drawer.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/components/HomeHeroCmsEditor.jsx'
+      - 'src/components/HomeHeroCmsPreviewDock.jsx'
+      - 'src/styles/HomeHeroCmsEditorDrawer.css'
+      - 'src/pages/Home.jsx'
+permissions:
+  contents: read
+jobs:
+  check-drawer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node scripts/test-home-hero-drawer.mjs
+      - run: npm ci --no-audit --no-fund
+      - name: Build production client
+        run: npx vite build

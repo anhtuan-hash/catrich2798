@@ -1,0 +1,510 @@
+/* Home Hero editor — focused side drawer (October 2026).
+ * Deliberately outranks the previous fullscreen modal skins without changing
+ * the CMS fields, upload workflow, preview logic, or publishing permissions. */
+.hero-editor.hero-editor--drawer {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 10080 !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: stretch !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: rgba(25, 40, 65, .19) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  font-family: "Google Sans", Roboto, Inter, system-ui, sans-serif !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__shell {
+  position: relative !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) auto !important;
+  width: min(660px, calc(100vw - 32px)) !important;
+  min-width: 0 !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-left: 1px solid rgba(198, 210, 228, .85) !important;
+  border-radius: 28px 0 0 28px !important;
+  background: #f7f9fd !important;
+  box-shadow: -24px 0 65px rgba(26, 43, 72, .18), -2px 0 12px rgba(38, 62, 99, .08) !important;
+  animation: bes-hero-drawer-enter .24s cubic-bezier(.2, .8, .2, 1) both;
+}
+@keyframes bes-hero-drawer-enter {
+  from { transform: translateX(22px); opacity: .88; }
+  to { transform: translateX(0); opacity: 1; }
+}
+.hero-editor.hero-editor--drawer .hero-editor__header {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  grid-template-rows: auto auto !important;
+  align-items: center !important;
+  gap: 13px 12px !important;
+  min-height: 0 !important;
+  padding: 22px 26px 16px !important;
+  border: 0 !important;
+  border-bottom: 1px solid #e3e9f1 !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__identity {
+  display: flex !important;
+  align-items: center !important;
+  min-width: 0 !important;
+  gap: 13px !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__identity-mark {
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 44px !important;
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 14px !important;
+  background: #e9f0fe !important;
+  color: #125bc9 !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__identity > span:last-child {
+  display: grid !important;
+  gap: 3px !important;
+  min-width: 0 !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__identity strong {
+  font-size: 1.31rem !important;
+  font-weight: 750 !important;
+  letter-spacing: -.028em !important;
+  line-height: 1.23 !important;
+  color: #24364d !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__identity small {
+  font-size: .72rem !important;
+  font-weight: 500 !important;
+  color: #72839b !important;
+  line-height: 1.35 !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__identity small:first-child {
+  color: #185bca !important;
+  font-size: .65rem !important;
+  font-weight: 800 !important;
+  letter-spacing: .085em !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__header-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__preview-toggle {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  height: 38px !important;
+  padding: 0 12px !important;
+  border: 1px solid #d6e2f5 !important;
+  border-radius: 999px !important;
+  background: #f1f6ff !important;
+  color: #145bc7 !important;
+  font-size: .78rem !important;
+  font-weight: 750 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__preview-toggle:hover {
+  background: #e4efff !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__close {
+  position: static !important;
+  display: grid !important;
+  justify-self: auto !important;
+  place-items: center !important;
+  width: 38px !important;
+  height: 38px !important;
+  padding: 0 !important;
+  border: 1px solid #e2e7ef !important;
+  border-radius: 50% !important;
+  background: #f4f6f9 !important;
+  color: #4a5970 !important;
+  box-shadow: none !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__device-switcher {
+  grid-column: 1 / -1 !important;
+  justify-self: start !important;
+  display: inline-flex !important;
+  gap: 3px !important;
+  padding: 3px !important;
+  max-width: 100% !important;
+  min-height: 0 !important;
+  border: 1px solid #e1e8f3 !important;
+  border-radius: 12px !important;
+  background: #f4f7fc !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__device-switcher button {
+  display: inline-flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 6px !important;
+  min-height: 34px !important;
+  padding: 7px 12px !important;
+  border: 0 !important;
+  border-radius: 9px !important;
+  background: transparent !important;
+  font-size: .76rem !important;
+  font-weight: 650 !important;
+  color: #66778f !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__device-switcher button.is-active {
+  background: #fff !important;
+  color: #185bca !important;
+  box-shadow: 0 1px 5px rgba(43,65,94,.12) !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__body {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  background: #f7f9fd !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__tabs {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 2 !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  min-height: 59px !important;
+  max-height: 59px !important;
+  gap: 4px !important;
+  padding: 8px 17px !important;
+  margin: 0 !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  border: 0 !important;
+  border-bottom: 1px solid #e2e8f2 !important;
+  background: #fff !important;
+  scrollbar-width: none !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__tabs::-webkit-scrollbar {
+  display: none !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__tabs > button {
+  position: relative !important;
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 42px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  padding: 8px 12px !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 11px !important;
+  background: transparent !important;
+  color: #687891 !important;
+  font-size: .77rem !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  box-shadow: none !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__tabs > button::before {
+  content: none !important;
+  display: none !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__tabs > button svg {
+  display: block !important;
+  width: 17px !important;
+  height: 17px !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__tabs > button span {
+  display: inline !important;
+  font-size: inherit !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__tabs > button.is-active {
+  background: #e7f0ff !important;
+  color: #0b57d0 !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__database { display: none !important; }
+.hero-editor.hero-editor--drawer .hero-editor__panel {
+  display: block !important;
+  position: relative !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch !important;
+  padding: 18px 24px 28px !important;
+  background: #f7f9fd !important;
+  scrollbar-color: #c5d2e5 transparent !important;
+  scrollbar-width: thin !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__panel > header {
+  position: relative !important;
+  top: auto !important;
+  z-index: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 11px !important;
+  min-height: 0 !important;
+  margin: 0 0 16px !important;
+  padding: 0 2px 12px !important;
+  border: 0 !important;
+  border-bottom: 1px solid #e5ebf2 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__panel > header > span {
+  flex: 0 0 38px !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 12px !important;
+  background: #e8f0fe !important;
+  color: #145cca !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__panel > header h2 {
+  font-size: .99rem !important;
+  font-weight: 750 !important;
+  color: #26364d !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__panel > header p {
+  font-size: .77rem !important;
+  line-height: 1.45 !important;
+  color: #8190a4 !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__section {
+  display: grid !important;
+  gap: 14px !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__section > :is(
+  .hero-editor__section-title,.hero-editor__languages,.hero-editor__grid,.hero-editor__card,.hero-editor__upload,.hero-editor__field
+) {
+  min-width: 0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 1px 2px rgba(38,54,81,.045) !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__section-title h3 {
+  font-size: .94rem !important;
+  font-weight: 750 !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__section .hero-editor__languages,
+.hero-editor.hero-editor--drawer .hero-editor__section .hero-editor__grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__section .hero-editor__grid.is-three {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__field > span,
+.hero-editor.hero-editor--drawer .hero-editor__field > label {
+  font-size: .88rem !important;
+  font-weight: 700 !important;
+  line-height: 1.4 !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__field input:not([type="range"]),
+.hero-editor.hero-editor--drawer .hero-editor__field textarea,
+.hero-editor.hero-editor--drawer .hero-editor__field select {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  font-size: .9rem !important;
+  line-height: 1.5 !important;
+  border-radius: 10px !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__field textarea {
+  resize: vertical !important;
+  min-height: 84px !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__preview-slot {
+  display: block !important;
+  min-width: 0 !important;
+  margin: 0 0 16px !important;
+}
+.hero-editor.hero-editor--drawer[data-preview-expanded="false"] .hero-editor__preview-slot {
+  display: none !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__preview-pane {
+  display: grid !important;
+  grid-template-rows: auto auto auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  gap: 12px !important;
+  padding: 15px !important;
+  border: 1px solid #dce6f2 !important;
+  border-radius: 17px !important;
+  background: linear-gradient(135deg, #edf5ff, #f7f9fe) !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__preview-pane > header {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__preview-stage {
+  max-height: 330px !important;
+  min-height: 190px !important;
+  overflow: auto !important;
+  padding: 14px !important;
+  border-radius: 12px !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor-preview {
+  max-width: 480px !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor-preview.is-tablet { max-width: 320px !important; }
+.hero-editor.hero-editor--drawer .hero-editor-preview.is-mobile { max-width: 170px !important; }
+.hero-editor.hero-editor--drawer .hero-editor__preview-pane > p {
+  color: #60738d !important;
+  font-size: .76rem !important;
+  line-height: 1.5 !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__footer {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 3 !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 10px !important;
+  align-items: center !important;
+  min-height: 0 !important;
+  width: 100% !important;
+  padding: 13px 23px max(17px, env(safe-area-inset-bottom)) !important;
+  margin: 0 !important;
+  border-top: 1px solid #e0e8f3 !important;
+  background: #fff !important;
+  box-shadow: 0 -8px 20px rgba(40,60,90,.035) !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__footer > div:first-child {
+  display: block !important;
+  min-width: 0 !important;
+  font-size: .75rem !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__footer > div:last-child {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 9px !important;
+  width: 100% !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__footer button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 auto !important;
+  min-height: 42px !important;
+  min-width: 0 !important;
+  gap: 7px !important;
+  padding: 10px 14px !important;
+  border-radius: 11px !important;
+  font-size: .8rem !important;
+  font-weight: 750 !important;
+  box-shadow: none !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__footer button.is-reset {
+  margin-right: auto !important;
+  background: #f4f6f9 !important;
+  color: #637187 !important;
+  border: 1px solid #e1e5ec !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__footer button.is-draft {
+  background: #edf3fd !important;
+  color: #155abf !important;
+  border: 1px solid #d6e2f5 !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__footer button.is-publish {
+  background: #0b57d0 !important;
+  color: #fff !important;
+  border: 1px solid #0b57d0 !important;
+  box-shadow: 0 3px 11px rgba(11,87,208,.22) !important;
+}
+.hero-editor.hero-editor--drawer .hero-editor__footer button:focus-visible,
+.hero-editor.hero-editor--drawer .hero-editor__tabs button:focus-visible,
+.hero-editor.hero-editor--drawer .hero-editor__header button:focus-visible {
+  outline: 3px solid #79aaf6 !important;
+  outline-offset: 2px !important;
+}
+@media (max-width: 760px) {
+  .hero-editor.hero-editor--drawer .hero-editor__shell {
+    width: 100vw !important;
+    height: 100dvh !important;
+    border-radius: 0 !important;
+    border-left: 0 !important;
+  }
+  .hero-editor.hero-editor--drawer .hero-editor__header {
+    padding: 15px 15px 12px !important;
+    gap: 9px !important;
+  }
+  .hero-editor.hero-editor--drawer .hero-editor__identity strong { font-size: 1.12rem !important; }
+  .hero-editor.hero-editor--drawer .hero-editor__tabs {
+    min-height: 55px !important;
+    max-height: 55px !important;
+    padding: 6px 12px !important;
+  }
+  .hero-editor.hero-editor--drawer .hero-editor__panel {
+    padding: 15px 14px 25px !important;
+  }
+  .hero-editor.hero-editor--drawer .hero-editor__footer {
+    padding: 9px 12px max(12px, env(safe-area-inset-bottom)) !important;
+  }
+  .hero-editor.hero-editor--drawer .hero-editor__footer > div:last-child { flex-wrap: nowrap !important; gap: 6px !important; }
+  .hero-editor.hero-editor--drawer .hero-editor__footer button { padding: 9px 10px !important; font-size: .72rem !important; }
+  .hero-editor.hero-editor--drawer .hero-editor__footer button svg { width: 14px !important; }
+}
+@media (max-width: 540px) {
+  .hero-editor.hero-editor--drawer .hero-editor__identity-mark { flex-basis: 38px !important; height: 38px !important; width: 38px !important; }
+  .hero-editor.hero-editor--drawer .hero-editor__preview-toggle { font-size: 0 !important; width: 38px !important; padding: 0 !important; }
+  .hero-editor.hero-editor--drawer .hero-editor__preview-toggle svg { width: 18px !important; height: 18px !important; }
+  .hero-editor.hero-editor--drawer .hero-editor__device-switcher { justify-self: stretch !important; width: 100% !important; }
+  .hero-editor.hero-editor--drawer .hero-editor__device-switcher button { flex: 1 !important; padding: 7px !important; }
+  .hero-editor.hero-editor--drawer .hero-editor__tabs > button { padding: 8px 10px !important; }
+  .hero-editor.hero-editor--drawer .hero-editor__section .hero-editor__languages,
+  .hero-editor.hero-editor--drawer .hero-editor__section .hero-editor__grid,
+  .hero-editor.hero-editor--drawer .hero-editor__section .hero-editor__grid.is-three {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .hero-editor.hero-editor--drawer .hero-editor__footer > div:first-child { max-height: 38px !important; overflow-y: auto !important; }
+  .hero-editor.hero-editor--drawer .hero-editor__footer > div:last-child button { flex: 1 !important; }
+  .hero-editor.hero-editor--drawer .hero-editor__footer button.is-reset { flex: 0 0 43px !important; padding: 9px !important; font-size: 0 !important; }
+  .hero-editor.hero-editor--drawer .hero-editor__footer button.is-reset svg { width: 18px !important; height: 18px !important; }
+}
+html[data-theme="dark"] .hero-editor.hero-editor--drawer .hero-editor__shell,
+.theme-dark .hero-editor.hero-editor--drawer .hero-editor__shell,
+html[data-theme="dark"] .hero-editor.hero-editor--drawer .hero-editor__body,
+.theme-dark .hero-editor.hero-editor--drawer .hero-editor__body,
+html[data-theme="dark"] .hero-editor.hero-editor--drawer .hero-editor__panel,
+.theme-dark .hero-editor.hero-editor--drawer .hero-editor__panel {
+  background: #1c242e !important;
+}
+html[data-theme="dark"] .hero-editor.hero-editor--drawer .hero-editor__header,
+.theme-dark .hero-editor.hero-editor--drawer .hero-editor__header,
+html[data-theme="dark"] .hero-editor.hero-editor--drawer .hero-editor__tabs,
+.theme-dark .hero-editor.hero-editor--drawer .hero-editor__tabs,
+html[data-theme="dark"] .hero-editor.hero-editor--drawer .hero-editor__footer,
+.theme-dark .hero-editor.hero-editor--drawer .hero-editor__footer {
+  background: #242c38 !important;
+  border-color: #364357 !important;
+}
+html[data-theme="dark"] .hero-editor.hero-editor--drawer .hero-editor__identity strong,
+.theme-dark .hero-editor.hero-editor--drawer .hero-editor__identity strong,
+html[data-theme="dark"] .hero-editor.hero-editor--drawer .hero-editor__panel > header h2,
+.theme-dark .hero-editor.hero-editor--drawer .hero-editor__panel > header h2 {
+  color: #e8edf7 !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-editor.hero-editor--drawer .hero-editor__shell { animation: none !important; }
+}
