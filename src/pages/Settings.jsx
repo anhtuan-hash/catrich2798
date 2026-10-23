@@ -1,10 +1,12 @@
 import React, { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { changeCurrentPassword } from '../utils/auth.js';
 import GlobalMotionAdminPanel from '../components/admin/GlobalMotionAdminPanel.jsx';
 import GlobalChromeSettingsPanel from '../components/admin/GlobalChromeSettingsPanel.jsx';
 import { isDepartmentLeaderRole } from '../utils/roles.js';
 import '../styles/SettingsGoogleM3.css';
 import '../styles/SettingsLauncher2.css';
+import '../styles/SettingsLauncherDrawerRedesign.css';
 import SettingsLauncherHome, { SETTINGS_LAUNCHER_TILES } from '../components/settings/SettingsLauncherHome.jsx';
 const SettingsTeacherManagement = lazy(() => import('../components/settings/SettingsTeacherManagement.jsx'));
 const GlobalFontAdminPanel = lazy(() => import('../components/admin/GlobalFontAdminPanel.jsx'));
@@ -122,6 +124,7 @@ export default function Settings({
   const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' });
   const [activeModule, setActiveModule] = useState(null);
   const [detailFullscreen, setDetailFullscreen] = useState(false);
+  const [appearanceTab, setAppearanceTab] = useState('global-font');
   const [motionDirty, setMotionDirty] = useState(false);
   const drawerRef = useRef(null);
   const drawerCloseRef = useRef(null);
@@ -132,6 +135,7 @@ export default function Settings({
     if (['permissions','teacher-create'].includes(id) && !['admin','administrator'].includes(String(currentUser?.role || '').toLowerCase())) return;
     previousTriggerRef.current = document.activeElement;
     setDetailFullscreen(['appearance','permissions','teacher-create'].includes(id));
+    setAppearanceTab(['admin','administrator'].includes(String(currentUser?.role||'').toLowerCase()) ? 'global-font' : 'language');
     setActiveModule(id);
   };
   const closeModule = () => {
@@ -325,18 +329,63 @@ export default function Settings({
             dataSyncEnabled={dataSyncEnabled} liveSyncEnabled={liveSyncEnabled}
             onOpen={openModule}
           />
-          {activeModule ? <button type="button" className="settings-launcher-backdrop"
-            onClick={closeModule} aria-label={vi ? 'Đóng bảng cài đặt' : 'Close settings panel'} /> : null}
-          {activeModule ? (
+          {activeModule && typeof document !== 'undefined' ? createPortal(
+            <div className="settings-launcher-portal" data-module={activeModule}>
+              <button type="button" className="settings-launcher-backdrop"
+                onClick={closeModule} aria-label={vi ? 'Đóng bảng cài đặt' : 'Close settings panel'} />
             <section ref={drawerRef} className={`settings-launcher-drawer ${detailFullscreen ? 'is-fullscreen' : ''}`} role="dialog" aria-modal="true"
               aria-label={vi ? moduleTitle?.vi || 'Cài đặt' : moduleTitle?.en || 'Settings'}>
               <header className="settings-launcher-drawer-header">
                 <span><M3Icon name={activeModule === 'account' ? 'person' : activeModule === 'notifications' ? 'bell' : activeModule === 'data' ? 'storage' : activeModule === 'security' ? 'shield' : 'settings'} /></span>
-                <div><small>BRIAN ENGLISH · SETTINGS</small><strong>{vi ? moduleTitle?.vi : moduleTitle?.en}</strong></div>
+                <div><small>BRIAN ENGLISH · SETTINGS</small><strong>{vi ? moduleTitle?.vi : moduleTitle?.en}</strong><span className="settings-launcher-drawer-subtitle">{activeModule === 'appearance' ? (vi ? 'Không gian tùy chỉnh giao diện' : 'Personalize the entire experience') : (vi ? 'Quản lý cài đặt' : 'Manage settings')}</span></div>
                 <button type="button" className="settings-launcher-expand" onClick={() => setDetailFullscreen(value => !value)} aria-pressed={detailFullscreen} title={vi ? (detailFullscreen ? 'Thu gọn' : 'Mở rộng') : (detailFullscreen ? 'Reduce' : 'Expand')} aria-label={vi ? (detailFullscreen ? 'Thu gọn bảng cài đặt' : 'Mở rộng bảng cài đặt') : (detailFullscreen ? 'Reduce settings panel' : 'Expand settings panel')}>{detailFullscreen ? '↙' : '⤢'}</button>
                 <button ref={drawerCloseRef} type="button" onClick={closeModule} aria-label={vi ? 'Đóng' : 'Close'} title={vi ? 'Đóng' : 'Close'}>✕</button>
               </header>
               <div className="settings-launcher-drawer-body">
+                {activeModule === 'appearance' ? (
+                  <div className="settings-appearance-workspace">
+                    <nav className="settings-appearance-tabs" role="tablist" aria-label={vi ? 'Nhóm cài đặt giao diện' : 'Appearance categories'}>
+                      {[
+                        ...( ['admin','administrator'].includes(String(currentUser?.role || '').toLowerCase()) ? [
+                          ['global-font', vi ? 'Font toàn hệ thống' : 'Global fonts'],
+                          ['regional-font', vi ? 'Font từng khu vực' : 'Regional fonts'],
+                          ['motion', vi ? 'Hiệu ứng' : 'Motion']
+                        ] : []),
+                        ['language', vi ? 'Ngôn ngữ' : 'Language'],
+                      ].map(([id,label]) => (
+                        <button key={id} type="button" role="tab" aria-selected={appearanceTab === id}
+                          className={appearanceTab === id ? 'is-selected' : ''}
+                          onClick={() => setAppearanceTab(id)}>{label}</button>
+                      ))}
+                    </nav>
+                    {['admin','administrator'].includes(String(currentUser?.role || '').toLowerCase()) ? (
+                      <Suspense fallback={<p className="settings-launcher-loading">{vi ? 'Đang tải tùy chỉnh…' : 'Loading customization…'}</p>}>
+                        <section className="settings-appearance-panel" role="tabpanel" hidden={appearanceTab !== 'global-font'}>
+                          <GlobalFontAdminPanel currentUser={currentUser} language={language} />
+                        </section>
+                        <section className="settings-appearance-panel" role="tabpanel" hidden={appearanceTab !== 'regional-font'}>
+                          <RegionalFontAdminPanel currentUser={currentUser} language={language} />
+                        </section>
+                        <section className="settings-appearance-panel" role="tabpanel" hidden={appearanceTab !== 'motion'}>
+                          <div className="settings-motion-admin-hub">
+                            <GlobalMotionAdminPanel currentUser={currentUser} language={language} onDirtyChange={setMotionDirty} />
+                          </div>
+                        </section>
+                      </Suspense>
+                    ) : null}
+                    <section className="settings-appearance-panel" role="tabpanel" hidden={appearanceTab !== 'language'}>
+                      <div className="settings-appearance-language">
+                        <CardHeader icon="globe" tone="orange" title={vi ? 'Ngôn ngữ hiển thị' : 'Display language'}
+                          subtitle={vi ? 'Ngôn ngữ áp dụng cho giao diện Brian English.' : 'Choose the language used across Brian English.'} />
+                        <SettingRow title={vi ? 'Ngôn ngữ' : 'Language'}>
+                          <SelectControl value={language} onChange={(event) => setLanguage?.(event.target.value)}>
+                            <option value="vi">Tiếng Việt</option><option value="en">English</option>
+                          </SelectControl>
+                        </SettingRow>
+                      </div>
+                    </section>
+                  </div>
+                ) : null}
                 {activeModule === 'hero' ? (
                   <div className="settings-launcher-links">
                     <p>{vi ? 'Mỗi ứng dụng có ảnh nền Hero độc lập. Mở ứng dụng tương ứng và sử dụng biểu tượng bút chì nếu tài khoản có quyền.' : 'Hero backgrounds are independent. Open an app and use the edit pencil if authorized.'}</p>
@@ -435,19 +484,7 @@ export default function Settings({
               <GlobalChromeSettingsPanel currentUser={currentUser} language={language} />
             ) : null}
 
-            {activeModule === 'appearance' && ['admin', 'administrator'].includes(String(currentUser?.role || '').toLowerCase()) ? (
-              <Suspense fallback={<p className="settings-launcher-loading">{vi ? 'Đang tải trình chỉnh font…' : 'Loading typography controls…'}</p>}>
-                <section className="settings-launcher-font-section" aria-label={vi ? 'Quản lý font chữ' : 'Typography management'}>
-                  <GlobalFontAdminPanel currentUser={currentUser} language={language} />
-                  <RegionalFontAdminPanel currentUser={currentUser} language={language} />
-                </section>
-              </Suspense>
-            ) : null}
-            {activeModule === 'appearance' && ['admin', 'administrator'].includes(String(currentUser?.role || '').toLowerCase()) && matches('chuyển động', 'motion', 'hiệu ứng', 'indicator', 'điều hướng', 'hệ thống', 'system') ? (
-              <div className="settings-motion-admin-hub"><GlobalMotionAdminPanel currentUser={currentUser} language={language} onDirtyChange={setMotionDirty} /></div>
-            ) : null}
-
-            {(activeModule === 'data' || activeModule === 'appearance') && matches('hệ thống', 'system', 'hiệu năng', 'performance', 'cache', 'ngôn ngữ') ? (
+            {activeModule === 'data' && matches('hệ thống', 'system', 'hiệu năng', 'performance', 'cache', 'ngôn ngữ') ? (
               <article id="settings-system" className="settings-google-card tone-orange">
                 <CardHeader icon={activeModule === 'appearance' ? 'globe' : 'speed'} tone="orange" title={activeModule === 'appearance' ? (vi ? 'Ngôn ngữ hiển thị' : 'Display language') : (vi ? 'Hiệu năng hệ thống' : 'System performance')} subtitle={activeModule === 'appearance' ? (vi ? 'Tùy chỉnh ngôn ngữ giao diện.' : 'Choose the application language.') : (vi ? 'Tối ưu hiệu năng và lưu trữ.' : 'Optimize performance and storage.')} />
                 {activeModule === 'data' ? <SettingRow title={vi ? 'Chế độ hiệu năng' : 'Performance mode'} description={`${vi ? 'Đang áp dụng' : 'Active'}: ${resolvedPerformance}`}><SelectControl value={performanceMode} onChange={(event) => setPerformanceMode?.(event.target.value)}><option value="auto">Auto</option><option value="low">Low</option><option value="balanced">Balanced</option><option value="high">High</option></SelectControl></SettingRow> : null}
@@ -468,6 +505,7 @@ export default function Settings({
                 {message ? <div className="settings-google-snackbar" role="status"><span>✓</span>{message}<button type="button" onClick={() => setMessage('')}>×</button></div> : null}
               </div>
             </section>
+            </div>, document.body
           ) : null}
         </main>
       </div>
