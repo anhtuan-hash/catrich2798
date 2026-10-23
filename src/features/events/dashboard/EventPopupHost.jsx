@@ -16,6 +16,8 @@ export default function EventPopupHost({currentUser}) {
   const shownRef=useRef('');
   const closeButtonRef=useRef(null);
   const openerRef=useRef(null);
+  const posterExpandedRef=useRef(false);
+  useEffect(()=>{posterExpandedRef.current=posterExpanded;},[posterExpanded]);
   const userId=currentUser?.id;
   useEffect(()=>{
     if(!userId)return undefined;
@@ -44,7 +46,20 @@ export default function EventPopupHost({currentUser}) {
     const originalOverflow=document.body.style.overflow;
     document.body.style.overflow='hidden';
     const handleEscape=(e)=>{
-      if(e.key==='Escape' && !posterExpanded) {e.preventDefault();dismiss('dismiss');}
+      if(e.key==='Escape'){
+        e.preventDefault();
+        if(posterExpandedRef.current){setPosterExpanded(false);return;}
+        dismiss('dismiss');
+      }
+      if(e.key==='Tab'){
+        const selector='button:not(:disabled), a[href]';
+        const base=document.querySelector('.be-pop-lightbox') || document.querySelector('.be-pop-dialog');
+        const focusables=Array.from(base?.querySelectorAll(selector)||[]);
+        if(!focusables.length)return;
+        const first=focusables[0],last=focusables[focusables.length-1];
+        if(e.shiftKey && document.activeElement===first){e.preventDefault();last.focus();}
+        else if(!e.shiftKey && document.activeElement===last){e.preventDefault();first.focus();}
+      }
     };
     document.addEventListener('keydown',handleEscape);
     window.requestAnimationFrame(()=>closeButtonRef.current?.focus());
@@ -58,7 +73,7 @@ export default function EventPopupHost({currentUser}) {
       openerRef.current?.focus?.();
     };
   // Deliberately keyed only by event identity, not changing receipt payload.
-  },[event?.id,event?.version,userId,posterExpanded]);
+  },[event?.id,event?.version,userId]);
 
   useEffect(()=>{
     if(!event?.poster_path)return undefined;
