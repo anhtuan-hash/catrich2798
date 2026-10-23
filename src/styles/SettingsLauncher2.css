@@ -70,15 +70,15 @@ html body #root .app-shell[data-route="settings"] .settings-google-main.settings
 .sl2-pin{display:grid!important;place-items:center!important;position:absolute;top:12px;right:11px;width:29px;height:29px;padding:0!important;border:0!important;border-radius:9px!important;background:transparent!important;color:#a2b0c7!important;opacity:.75}
 .sl2-pin.active{color:#245ed0!important;opacity:1}
 .sl2-pin:hover{background:#edf3ff!important;opacity:1}
-.sl2-tile.tone-blue,.tone-blue{--tile-bg:#e3eeff;--tile-color:#2463db}
-.sl2-tile.tone-pink,.tone-pink{--tile-bg:#ffe8f0;--tile-color:#d05896}
-.sl2-tile.tone-indigo,.tone-indigo{--tile-bg:#e6edff;--tile-color:#3e66d7}
-.sl2-tile.tone-violet,.tone-violet{--tile-bg:#eee5ff;--tile-color:#7a48d8}
-.sl2-tile.tone-green,.tone-green{--tile-bg:#e1f6ed;--tile-color:#168b68}
-.sl2-tile.tone-orange,.tone-orange{--tile-bg:#ffeddf;--tile-color:#e57a2b}
-.sl2-tile.tone-coral,.tone-coral{--tile-bg:#ffe7e9;--tile-color:#dd5465}
-.sl2-tile.tone-teal,.tone-teal{--tile-bg:#dff8f3;--tile-color:#139b8d}
-.sl2-tile.tone-slate,.tone-slate{--tile-bg:#e9eef5;--tile-color:#607393}
+.sl2 .sl2-tile.tone-blue{--tile-bg:#e3eeff;--tile-color:#2463db}
+.sl2 .sl2-tile.tone-pink{--tile-bg:#ffe8f0;--tile-color:#d05896}
+.sl2 .sl2-tile.tone-indigo{--tile-bg:#e6edff;--tile-color:#3e66d7}
+.sl2 .sl2-tile.tone-violet{--tile-bg:#eee5ff;--tile-color:#7a48d8}
+.sl2 .sl2-tile.tone-green{--tile-bg:#e1f6ed;--tile-color:#168b68}
+.sl2 .sl2-tile.tone-orange{--tile-bg:#ffeddf;--tile-color:#e57a2b}
+.sl2 .sl2-tile.tone-coral{--tile-bg:#ffe7e9;--tile-color:#dd5465}
+.sl2 .sl2-tile.tone-teal{--tile-bg:#dff8f3;--tile-color:#139b8d}
+.sl2 .sl2-tile.tone-slate{--tile-bg:#e9eef5;--tile-color:#607393}
 .sl2-grid.list{grid-template-columns:repeat(2,minmax(0,1fr))}
 .sl2-grid.list .sl2-tile{min-height:88px}
 .sl2-grid.list .sl2-tile-open{grid-template-columns:50px 1fr 16px;grid-template-rows:auto auto;align-items:center;column-gap:13px;min-height:88px;padding:13px 20px!important}
@@ -133,3 +133,22 @@ html body .app-shell[data-route="settings"] .settings-launcher-drawer-body :is(.
  .settings-launcher-drawer-header{min-height:71px;padding:13px 16px}
 }
 @media (prefers-reduced-motion:reduce){.sl2-tile,.sl2-widget{transition:none!important;transform:none!important}}
+
+/* Theme parity: Launcher respects the existing site theme. */
+html[data-theme="dark"] body .app-shell[data-route="settings"] .sl2,
+html body .app-shell[data-route="settings"][data-theme="dark"] .sl2{--sl-ink:#e8eefb;--sl-muted:#a9b8ce;--sl-line:#33425a;color:#e8eefb}
+html[data-theme="dark"] body .app-shell[data-route="settings"] .sl2 :is(.sl2-widget,.sl2-tile,.sl2-extra,.sl2-dock,.sl2-search,.sl2-switch),
+html body .app-shell[data-route="settings"][data-theme="dark"] .sl2 :is(.sl2-widget,.sl2-tile,.sl2-extra,.sl2-dock,.sl2-search,.sl2-switch){
+ background:#242d3b!important;border-color:#34465e!important;color:#e8eefb!important}
+html[data-theme="dark"] body .app-shell[data-route="settings"] .sl2 :is(h1,h2,h3,.sl2-tile strong,.sl2-profile strong),
+html body .app-shell[data-route="settings"][data-theme="dark"] .sl2 :is(h1,h2,h3,.sl2-tile strong,.sl2-profile strong){color:#f0f5ff!important}
+html[data-theme="dark"] body .app-shell[data-route="settings"] .sl2 :is(.sl2-search input,.sl2-tile-open,.sl2-extra button),
+html body .app-shell[data-route="settings"][data-theme="dark"] .sl2 :is(.sl2-search input,.sl2-tile-open,.sl2-extra button){color:#e8eefb!important}
+html[data-theme="dark"] body .app-shell[data-route="settings"] .settings-launcher-drawer,
+html body .app-shell[data-route="settings"][data-theme="dark"] .settings-launcher-drawer{background:#1d2431;border-color:#394760}
+html[data-theme="dark"] body .app-shell[data-route="settings"] .settings-launcher-drawer-header,
+html body .app-shell[data-route="settings"][data-theme="dark"] .settings-launcher-drawer-header{background:#252f40;border-color:#3c4a61}
+html[data-theme="dark"] body .app-shell[data-route="settings"] .settings-launcher-drawer-header strong,
+html body .app-shell[data-route="settings"][data-theme="dark"] .settings-launcher-drawer-header strong{color:#e9f0ff}
+html[data-theme="dark"] body .app-shell[data-route="settings"] .settings-launcher-links>a,
+html body .app-shell[data-route="settings"][data-theme="dark"] .settings-launcher-links>a{background:#263347;border-color:#40526b;color:#d3e3ff}
