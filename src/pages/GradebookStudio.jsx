@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import GradebookWorkspace from '../components/gradebook/GradebookWorkspace.jsx';
 import { UsersRound, Plus, BookOpenCheck } from 'lucide-react';
 import GradebookRosterHistoryPanel from '../components/gradebook/GradebookRosterHistoryPanel.jsx';
@@ -31,6 +32,7 @@ import { getClassTypeLabel } from '../utils/homeroomClassTypes.js';
 import { flushPendingAssignedStudentRosters, syncAssignedStudentRosterDelta } from '../utils/assignedStudentRosterSync.js';
 import '../styles/homeroom-complete.css';
 import '../styles/GradebookMacShell.css';
+import '../styles/GradebookMacRoster.css';
 
 const EMPTY_CLASS = {
   className: '',
@@ -117,6 +119,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   const workspaceRef = useRef(workspace);
   workspaceRef.current = workspace;
   const [view, setView] = useState('gradebook');
+  const [rosterOpen, setRosterOpen] = useState(false);
   const [selectedSemester, setSelectedSemester] = useState('semester1');
   const [gradebookAction, setGradebookAction] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -128,6 +131,25 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   const [teachingAssignments, setTeachingAssignments] = useState([]);
   const [assignmentSource, setAssignmentSource] = useState('loading');
   const [rosterSource, setRosterSource] = useState('loading');
+
+  // Student management is a dedicated modal. It must not displace the score
+  // editor or push the whole class roster into the document flow.
+  useEffect(() => {
+    if (!rosterOpen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setRosterOpen(false);
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [rosterOpen]);
 
   const activeClasses = useMemo(() => catalog.filter((item) => item.status !== 'archived'), [catalog]);
   const assignedReadyCount = useMemo(() => teachingAssignments.filter(
@@ -393,7 +415,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     if (!created) return;
     const className = created.classProfile?.className || classDraft.className;
     setClassDraft(EMPTY_CLASS);
-    setView('students');
+    setRosterOpen(true);
     flash(`Đã tạo lớp ${className}. Hãy nhập danh sách học sinh để bắt đầu.`);
   };
 
@@ -417,7 +439,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
       teachingSubject: assignment.subject,
     }, { fromAssignment: assignment });
     if (!created) return;
-    setView('students');
+    setRosterOpen(true);
     flash(`Đã khởi tạo Sổ điểm ${assignment.className} · ${assignment.subject} từ phân công TTCM.`);
   };
 
@@ -448,14 +470,16 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     if (nextId === workspaceId) return;
     if (!canLeaveGradebook()) return;
     setGradebookDirty(false);
+    setRosterOpen(false);
     setWorkspaceId(nextId);
   };
   const openStudentRoster = () => {
     if (!canLeaveGradebook()) return;
     setGradebookDirty(false);
-    setView('students');
+    setRosterOpen(true);
   };
   const requestGradebookAction = (action) => {
+    setRosterOpen(false);
     setView('gradebook');
     setGradebookAction((current) => ({ action, workspaceId, seq: (current?.seq || 0) + 1 }));
   };
@@ -532,8 +556,8 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
         </div>
         <div className="gbmac-shell-utilities">
           <button type="button" disabled={!workspace}
-            onClick={view==='students' ? ()=>setView('gradebook') : openStudentRoster}>
-            <UsersRound size={17} aria-hidden="true"/>{view==='students'?'Về bảng điểm':'Danh sách học sinh'}
+            onClick={openStudentRoster}>
+            <UsersRound size={17} aria-hidden="true"/>Danh sách học sinh
           </button>
           <button type="button" onClick={()=>setCreateOpen(value=>!value)}><Plus size={17} aria-hidden="true"/>{createOpen?'Đóng':'Thêm lớp'}</button>
         </div>
@@ -580,19 +604,40 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     {loading && !workspace ? <section className="hr-panel gradebook-studio-empty"><h2>Đang mở lớp…</h2><p>Brian đang tải dữ liệu lớp, roster dùng chung và sổ điểm.</p></section> : null}
     {!loading && !workspace ? <section className="hr-panel gradebook-studio-empty"><h2>{vi ? 'Chưa có lớp để mở sổ điểm' : 'No class yet'}</h2><p>{vi ? 'Chọn một lớp được TTCM phân công ở phía trên hoặc tự tạo lớp bộ môn.' : 'Choose an assigned class above or create a subject class.'}</p><button type="button" className="primary" onClick={() => setCreateOpen(true)}>＋ {vi ? 'Tạo lớp đầu tiên' : 'Create first class'}</button></section> : null}
 
-    {view !== 'gradebook' || !workspace ? <>{teachingOverview}{classManagement}</> : null}
+    {!workspace && !loading ? <div className="gbmac-setup">{teachingOverview}{classManagement}</div> : null}
 
-    {workspace && view === 'students' ? <>
-      {lifecycle.rosterEditable
-        ? <SubjectStudentsTab workspace={workspace} onCommit={commit} />
-        : <section className="hr-panel gradebook-roster-readonly"><div><h3>Danh sách học sinh đang ở chế độ chỉ đọc</h3><p>{lifecycleExplanation(lifecycle) || 'Bạn không có quyền chỉnh roster dùng chung của lớp này.'}</p></div></section>}
-      <GradebookRosterHistoryPanel
-        currentUser={currentUser}
-        workspace={workspace}
-        canRestore={lifecycle.rosterEditable}
-        onRestored={handleRosterRestored}
-      />
-    </> : null}
+    {workspace && rosterOpen ? createPortal(
+      <div className="gbmac-roster-overlay" role="presentation">
+        <button type="button" className="gbmac-roster-scrim"
+          aria-label="Đóng cửa sổ danh sách học sinh" onClick={() => setRosterOpen(false)} />
+        <section className="gbmac-roster-sheet" role="dialog" aria-modal="true"
+          aria-labelledby="gbmac-roster-title">
+          <header className="gbmac-roster-heading">
+            <div>
+              <small>BRIAN ENGLISH · QUẢN LÝ LỚP BỘ MÔN</small>
+              <h2 id="gbmac-roster-title">Danh sách học sinh</h2>
+              <p>{workspace?.classProfile?.className || activeMeta?.className || 'Lớp học'} · {studentCount} học sinh</p>
+            </div>
+            <button type="button" className="gbmac-roster-close"
+              onClick={() => setRosterOpen(false)}>Đóng <span aria-hidden="true">×</span></button>
+          </header>
+          <div className="gbmac-roster-body">
+            {lifecycle.rosterEditable
+              ? <SubjectStudentsTab workspace={workspace} onCommit={commit} />
+              : <section className="hr-panel gradebook-roster-readonly">
+                  <h3>Danh sách học sinh đang ở chế độ chỉ đọc</h3>
+                  <p>{lifecycleExplanation(lifecycle) || 'Bạn không có quyền chỉnh roster dùng chung của lớp này.'}</p>
+                </section>}
+            <div className="gbmac-roster-history">
+              <GradebookRosterHistoryPanel
+                currentUser={currentUser} workspace={workspace}
+                canRestore={lifecycle.rosterEditable} onRestored={handleRosterRestored}
+              />
+            </div>
+          </div>
+        </section>
+      </div>, document.getElementById('root') || document.body
+    ) : null}
 
     {workspace && view === 'gradebook' ? (
       <GradebookWorkspace
