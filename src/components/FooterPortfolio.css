@@ -340,3 +340,17 @@ html body #root .app-shell > footer[data-app-shell-footer="true"] .bes-portfolio
 @media (prefers-reduced-motion: reduce) {
   html body #root .app-shell .bes-portfolio-footer-trigger { transition: none; }
 }
+
+/* Shared footer / navigation horizontal alignment.
+   The app shell and pinned navigation already share the same horizontal edges.
+   Previous footer styles subtracted another 16–40px from the shell, causing
+   the footer to look shorter (e.g. Homeroom). Fill the shell instead.
+   Dashboard has an explicit, independently tuned footer width contract. */
+html body #root .app-shell:not([data-route="dashboard"]) > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
