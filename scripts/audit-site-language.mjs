@@ -18,13 +18,13 @@ for(const file of walk('src')) {
   ].filter(v=>/[À-ỹĐđĂăÂâÊêÔôƠơƯư]/.test(v));
   if (!literal.length) continue;
   const uncovered=literal.filter(v=>lookupLegacyUiEnglish(v)==null);
-  results.push({file,all:literal.length,uncovered:uncovered.length,examples:[...new Set(uncovered)].slice(0,4)});
+  results.push({file,all:literal.length,uncovered:uncovered.length,examples:[...new Set(uncovered)].slice(0,12)});
 }
 results.sort((a,b)=>b.uncovered-a.uncovered);
 const total=results.reduce((n,x)=>n+x.all,0),missing=results.reduce((n,x)=>n+x.uncovered,0);
 console.log('Site i18n source audit: '+(total-missing)+'/'+total+' literal Vietnamese UI occurrences mapped ('+(total?((total-missing)/total*100).toFixed(1):'100')+'%).');
 console.log('Potential gaps by active source file (first 15):');
-for (const entry of results.filter(x=>x.uncovered).slice(0,15)) {
+for (const entry of results.filter(x=>x.uncovered).slice(0,120)) {
   console.log(' - '+entry.file+': '+entry.uncovered+'/'+entry.all+' unmapped; '+entry.examples.join(' | ').slice(0,180));
 }
 console.log('Note: static source scanning cannot inspect dynamic strings, database content, CSS pseudo-elements, or authenticated route behavior.');
