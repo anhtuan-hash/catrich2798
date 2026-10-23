@@ -4,7 +4,7 @@ html body #root .app-shell[data-route="settings"] .settings-google-page.settings
   width:100%!important;max-width:100%!important;min-width:0!important;
   background:transparent!important;padding:0 0 60px!important;
 }
-html body #root .app-shell[data-route="settings"] .settings-launcher-shell{
+html body #root .app-shell[data-route="settings"] .settings-google-shell.settings-launcher-shell{
   display:block!important;grid-template-columns:none!important;max-width:100%!important;
   width:100%!important;min-width:0!important;gap:0!important;
 }
@@ -36,7 +36,7 @@ html body #root .app-shell[data-route="settings"] .settings-google-main.settings
 .sl2-profile strong{font-size:16px;font-weight:790;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .sl2-profile em{font-size:11px;color:#416cc3;font-style:normal;font-weight:700}
 .sl2-profile>svg{color:#58729b}
-.sl2-profile:after{content:"HỒ SƠ  ·  CÀI ĐẶT TÀI KHOẢN";position:absolute;left:20px;right:20px;bottom:20px;padding:13px 14px;border-radius:12px;background:#f6f9ff;color:#6580ad;font-size:10px;letter-spacing:.06em;font-weight:800}
+.sl2-profile .sl2-profile-hint{position:absolute;left:20px;right:20px;bottom:20px;padding:13px 14px;border-radius:12px;background:#f6f9ff;color:#6580ad;font-size:10px;letter-spacing:.06em;font-weight:800}
 .sl2-sync{display:flex!important;flex-direction:column;gap:11px!important}
 .sl2-widget-caption{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:760;color:#39587a}
 .sl2-widget-caption svg:first-child{color:#099c82}
@@ -121,7 +121,7 @@ html body .app-shell[data-route="settings"] .settings-launcher-drawer-body :is(.
 @media (max-width:600px){
  .sl2-heading{padding:10px 2px 17px;gap:14px}.sl2-heading h1{font-size:28px!important}
  .sl2-widgets{grid-template-columns:1fr;gap:10px;margin-bottom:19px}.sl2-widget{height:auto;min-height:120px;padding:15px!important}
- .sl2-profile{min-height:126px}.sl2-profile:after{bottom:10px;left:15px;right:15px;padding:8px}.sl2-sync{min-height:132px}
+ .sl2-profile{min-height:126px}.sl2-profile .sl2-profile-hint{bottom:10px;left:15px;right:15px;padding:8px}.sl2-sync{min-height:132px}
  .sl2-quick{height:auto;min-height:133px;grid-column:auto}.sl2-quick>div{grid-template-columns:repeat(4,minmax(0,1fr))}
  .sl2-bar{align-items:center}.sl2-bar h2{font-size:17px!important}.sl2-bar p{font-size:11px!important}
  .sl2-switch button{font-size:0!important;padding:9px!important;gap:0}.sl2-switch svg{width:19px;height:19px}
@@ -152,3 +152,6 @@ html[data-theme="dark"] body .app-shell[data-route="settings"] .settings-launche
 html body .app-shell[data-route="settings"][data-theme="dark"] .settings-launcher-drawer-header strong{color:#e9f0ff}
 html[data-theme="dark"] body .app-shell[data-route="settings"] .settings-launcher-links>a,
 html body .app-shell[data-route="settings"][data-theme="dark"] .settings-launcher-links>a{background:#263347;border-color:#40526b;color:#d3e3ff}
+
+html[data-theme="dark"] body .app-shell[data-route="settings"] .sl2 .sl2-profile-hint,
+html body .app-shell[data-route="settings"][data-theme="dark"] .sl2 .sl2-profile-hint{background:#2d3c52;color:#bad0f1}
