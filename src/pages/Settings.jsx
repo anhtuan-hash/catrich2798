@@ -7,6 +7,7 @@ import { isDepartmentLeaderRole } from '../utils/roles.js';
 import '../styles/SettingsGoogleM3.css';
 import '../styles/SettingsLauncher2.css';
 import '../styles/SettingsLauncherDrawerRedesign.css';
+import '../styles/SettingsLauncherPortalCompat.css';
 import SettingsLauncherHome, { SETTINGS_LAUNCHER_TILES } from '../components/settings/SettingsLauncherHome.jsx';
 const SettingsTeacherManagement = lazy(() => import('../components/settings/SettingsTeacherManagement.jsx'));
 const GlobalFontAdminPanel = lazy(() => import('../components/admin/GlobalFontAdminPanel.jsx'));
@@ -334,7 +335,7 @@ export default function Settings({
             onOpen={openModule}
           />
           {activeModule && typeof document !== 'undefined' ? createPortal(
-            <div className="settings-launcher-portal" data-module={activeModule}>
+            <div className={`settings-launcher-portal ${document.documentElement.dataset.theme === "dark" || document.querySelector('.app-shell[data-route="settings"]')?.dataset.theme === "dark" ? "is-dark" : ""}`} data-module={activeModule}>
               <button type="button" className="settings-launcher-backdrop"
                 onClick={closeModule} aria-label={vi ? 'Đóng bảng cài đặt' : 'Close settings panel'} />
             <section ref={drawerRef} className={`settings-launcher-drawer ${detailFullscreen ? 'is-fullscreen' : ''}`} role="dialog" aria-modal="true"
