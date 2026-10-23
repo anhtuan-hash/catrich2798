@@ -131,7 +131,7 @@ export default function Settings({
     if (!SETTINGS_LAUNCHER_TILES.some(item => item.id === id)) return;
     if (['permissions','teacher-create'].includes(id) && !['admin','administrator'].includes(String(currentUser?.role || '').toLowerCase())) return;
     previousTriggerRef.current = document.activeElement;
-    setDetailFullscreen(false);
+    setDetailFullscreen(['appearance','permissions','teacher-create'].includes(id));
     setActiveModule(id);
   };
   const closeModule = () => {
