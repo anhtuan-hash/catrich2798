@@ -44,4 +44,14 @@ assert.throws(() => permanentlyRemoveArchivedStudents(workspace, ['active-2']), 
 assert.throws(() => permanentlyRemoveArchivedStudents(workspace, ['archived-1', 'active-2']), /Chỉ học sinh đã lưu trữ/);
 assert.throws(() => permanentlyRemoveArchivedStudents(workspace, []), /Chưa chọn học sinh/);
 assert.equal(workspace.students.length, 2, 'Do not mutate the original workspace');
+const codeMissingLearner = { id: 'new-device-id', code: '', fullName: 'Nguyễn Văn A', birthDate: '', active: false };
+const rawServerTombstone = {
+  id: 'different-old-id', code: '', identity: 'Nguyễn Văn A|',
+  fullName: 'Nguyễn Văn A', birthDate: '',
+};
+assert.deepEqual(
+  filterPermanentlyDeletedStudents([codeMissingLearner, active], [rawServerTombstone]).map((student) => student.id),
+  ['active-2'],
+  'A name-only learner must not return from stale school assignment imports',
+);
 console.log('Archived student permanent deletion contract passed.');
