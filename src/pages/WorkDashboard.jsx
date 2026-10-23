@@ -302,6 +302,59 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   const [heroDraft, setHeroDraft] = useState(null);
   const [heroPreview, setHeroPreview] = useState(null);
   const [heroEditorOpen, setHeroEditorOpen] = useState(false);
+  const heroExclusionRef = useRef(null);
+
+  // Seasonal layers are viewport-fixed; merely raising the Hero z-index still
+  // leaves floating icons crossing the border. Exclude the Hero rectangle plus
+  // a small safety margin while Dashboard is mounted (and while scrolling).
+  useEffect(() => {
+    if (typeof document === 'undefined' || typeof window === 'undefined') return undefined;
+    const root = document.documentElement;
+    const target = heroExclusionRef.current;
+    if (!target) return undefined;
+    const properties = [
+      '--db-hero-exclusion-left', '--db-hero-exclusion-right',
+      '--db-hero-exclusion-top', '--db-hero-exclusion-bottom',
+    ];
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const rect = target.getBoundingClientRect();
+      const width = root.clientWidth || window.innerWidth;
+      const height = window.innerHeight;
+      const margin = 38;
+      // Outside the viewport, restore normal atmosphere everywhere.
+      if (rect.bottom < -margin || rect.top > height + margin) {
+        delete root.dataset.dashboardHeroExclusion;
+        return;
+      }
+      const clampTo = (n, max) => Math.max(0, Math.min(max, Math.round(n)));
+      root.style.setProperty(properties[0], `${clampTo(rect.left - margin, width)}px`);
+      root.style.setProperty(properties[1], `${clampTo(rect.right + margin, width)}px`);
+      root.style.setProperty(properties[2], `${clampTo(rect.top - margin, height)}px`);
+      root.style.setProperty(properties[3], `${clampTo(rect.bottom + margin, height)}px`);
+      root.dataset.dashboardHeroExclusion = 'on';
+    };
+    const schedule = () => {
+      if (!frame) frame = window.requestAnimationFrame(update);
+    };
+    update();
+    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(schedule) : null;
+    observer?.observe(target);
+    window.addEventListener('resize', schedule, { passive: true });
+    window.addEventListener('scroll', schedule, { passive: true, capture: true });
+    window.visualViewport?.addEventListener('resize', schedule, { passive: true });
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer?.disconnect();
+      window.removeEventListener('resize', schedule);
+      window.removeEventListener('scroll', schedule, true);
+      window.visualViewport?.removeEventListener('resize', schedule);
+      delete root.dataset.dashboardHeroExclusion;
+      properties.forEach((key) => root.style.removeProperty(key));
+    };
+  }, []);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -478,7 +531,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
     /></React.Suspense> : null}
     <div className="gd-shell">
       <section className="gd-top-grid db-hero-minimal-frame">
-        <header className={`editorial-hero is-minimal ${hasDashboardHeroMedia ? 'has-dashboard-custom-hero' : ''}`} style={dashboardHeroStyle}>
+        <header className={`editorial-hero is-minimal ${hasDashboardHeroMedia ? 'has-dashboard-custom-hero' : ''}`} style={dashboardHeroStyle} ref={heroExclusionRef}>
           {hasDashboardHeroMedia ? <div className="db-hero-media" aria-hidden="true">
             {hero.backgroundType === 'video'
               ? <video src={hero.backgroundUrl} autoPlay muted loop playsInline preload="metadata"/>
