@@ -739,7 +739,7 @@ export default function AssessmentWorkspace({
         item.sessionCount,
         item.average == null ? '' : item.average.toFixed(2),
         item.focusText,
-        formatDate(item.latest),
+        formatDate(item.latest,language),
       ]),
     ];
     downloadCsv(
@@ -895,7 +895,7 @@ export default function AssessmentWorkspace({
               <div className="f4a-toolbox-heading"><Shuffle size={16} /><strong>{t("CHỌN NGẪU NHIÊN")}</strong></div>
               <div className="f4a-scope-switch" role="group" aria-label={t("Phạm vi áp dụng")}>
                 <button type="button" className={randomScope === 'all' ? 'is-active' : ''} aria-pressed={randomScope === 'all'} onClick={() => setDrawingScope('all')}>{t("Toàn lớp")}</button>
-                <button type="button" className={randomScope === 'selected' ? 'is-active' : ''} aria-pressed={randomScope === 'selected'} onClick={() => setDrawingScope('selected')}>Đã chọn ({selectedStudents.length})</button>
+                <button type="button" className={randomScope === 'selected' ? 'is-active' : ''} aria-pressed={randomScope === 'selected'} onClick={() => setDrawingScope('selected')}>{t('Đã chọn')} ({selectedStudents.length})</button>
               </div>
               <p className="f4a-scope-note">{t("Phạm vi:")} <strong>{randomPool.length} học sinh</strong> {t("· Không gọi lặp trong một lượt.")}</p>
               <button type="button" className="f4a-draw-button" onClick={randomPick} disabled={!remainingCallCount}>
@@ -909,7 +909,7 @@ export default function AssessmentWorkspace({
               <label className="f4a-group-count-label" htmlFor="f4a-group-count"><Users size={16} />{t("CHIA NHÓM CÂN BẰNG")}</label>
               <div className="f4a-group-tool-row">
                 <select id="f4a-group-count" value={groupCount} onChange={(event) => { setGroupCount(Number(event.target.value)); if (Object.keys(groupMap).length) { setGroupMap({}); setNotice(t("Đã đổi số nhóm. Hãy nhấn Chia nhóm ngẫu nhiên để cập nhật.")); } }} aria-label={t("Số nhóm")}>
-                  {Array.from({ length: 11 }, (_, index) => index + 2).map((n) => <option key={n} value={n}>{n} nhóm</option>)}
+                  {Array.from({ length: 11 }, (_, index) => index + 2).map((n) => <option key={n} value={n}>{n} {t('nhóm')}</option>)}
                 </select>
                 <button type="button" onClick={randomGroups} disabled={groupingPool.length < 2}><Users size={15} />{groupedStudents.length ? t("Chia lại") : t("Chia nhóm ngẫu nhiên")}</button>
               </div>
@@ -942,11 +942,11 @@ export default function AssessmentWorkspace({
               <div className="f4a-groups-heading"><div><strong>{t("Kết quả chia nhóm")}</strong><span>{selectedStudents.length} học sinh · {groupedStudents.length} nhóm · chọn danh sách để chuyển nhóm</span></div><button type="button" onClick={randomGroups}><Shuffle size={14} />{t("Chia lại")}</button></div>
               <div className="f4a-groups-preview">
                 {groupedStudents.map(([label, students], index) => <article className="f4a-group-card" key={label}>
-                  <header><span className="f4a-group-icon">{index + 1}</span><strong>{label}</strong><small>{students.length} học sinh</small></header>
+                  <header><span className="f4a-group-icon">{index + 1}</span><strong>{label}</strong><small>{students.length} {t('học sinh')}</small></header>
                   <div className="f4a-group-members">{students.map((student) => <div key={studentRef(student)} className="f4a-group-member">
                     <span title={student.fullName}>{student.fullName}</span>
-                    <select aria-label={`Chuyển nhóm cho ${student.fullName}`} value={groupMap[studentRef(student)]} onChange={(event) => reassignGroup(studentRef(student), event.target.value)}>
-                      {Array.from({ length: Math.max(2, Number(groupCount) || 2) }, (_, position) => <option key={position} value={`Nhóm ${position + 1}`}>Nhóm {position + 1}</option>)}
+                    <select aria-label={language==='en'?`Move ${student.fullName} to another group`:`Chuyển nhóm cho ${student.fullName}`} value={groupMap[studentRef(student)]} onChange={(event) => reassignGroup(studentRef(student), event.target.value)}>
+                      {Array.from({ length: Math.max(2, Number(groupCount) || 2) }, (_, position) => <option key={position} value={`Nhóm ${position + 1}`}>{language==='en'?'Group':'Nhóm'} {position + 1}</option>)}
                     </select>
                   </div>)}</div>
                 </article>)}
@@ -986,7 +986,7 @@ export default function AssessmentWorkspace({
               <span><strong>{selectedStudents.length}</strong>{t("học sinh")}</span>
               <span><strong>{participationMode === 'group' ? groupedStudents.length : t("Cá nhân")}</strong>{participationMode === 'group' ? t("nhóm") : t("hình thức")}</span>
             </div>
-            <button className="f4a-primary" disabled={!selectedActivity || saving} onClick={startSession}>{saving ? <LoaderCircle className="lcs-spin" size={16} /> : <MonitorPlay size={16} />}Bắt đầu hoạt động</button>
+            <button className="f4a-primary" disabled={!selectedActivity || saving} onClick={startSession}>{saving ? <LoaderCircle className="lcs-spin" size={16} /> : <MonitorPlay size={16} />}{t('Bắt đầu hoạt động')}</button>
           </aside>
 
           <main className="f4a-activity-picker">
@@ -1010,7 +1010,7 @@ export default function AssessmentWorkspace({
             <div className="f4a-run-card">
               <span>{focusLabel(selectedActivity?.focusArea,language)}</span>
               <strong>{selectedActivity?.title}</strong>
-              <small>{selectedClass?.className} · {selectedStudents.length} học sinh · {purposeLabel(purpose,language)}</small>
+              <small>{selectedClass?.className} · {selectedStudents.length} {t('học sinh')} · {purposeLabel(purpose,language)}</small>
             </div>
             <button className="f4a-secondary" onClick={() => onLaunchActivity?.(selectedActivity)}><MonitorPlay size={16} />{t("Mở lại hoạt động")}</button>
             <button className="f4a-primary" onClick={() => { prepareResults(); setStep(4); }}><ClipboardCheck size={16} />{t("Hoạt động đã kết thúc · Ghi điểm")}</button>
@@ -1079,7 +1079,7 @@ export default function AssessmentWorkspace({
               <header><h3>{t("Hồ sơ đánh giá học sinh")}</h3><span>{studentReportRows.length} học sinh</span></header>
               <div className="f4a-report-table">
                 <div className="is-head"><span>{t("Học sinh")}</span><span>{t("Số lần")}</span><span>TB /10</span><span>{t("Chuyên đề")}</span><span>{t("Gần nhất")}</span></div>
-                {studentReportRows.map((item) => <div key={item.studentRef}><span><strong>{item.studentName}</strong><small>{item.studentCode || '—'}</small></span><span>{item.sessionCount}</span><span>{item.average == null ? '—' : item.average.toFixed(2)}</span><span>{item.focusText || '—'}</span><span>{formatDate(item.latest)}</span></div>)}
+                {studentReportRows.map((item) => <div key={item.studentRef}><span><strong>{item.studentName}</strong><small>{item.studentCode || '—'}</small></span><span>{item.sessionCount}</span><span>{item.average == null ? '—' : item.average.toFixed(2)}</span><span>{item.focusText || '—'}</span><span>{formatDate(item.latest,language)}</span></div>)}
               </div>
             </section>
 
@@ -1094,9 +1094,9 @@ export default function AssessmentWorkspace({
                     </button>
                   </div>
                   <strong>{item.activityTitle}</strong>
-                  <small>{item.className} · {item.studentCount} HS · {formatDate(item.completedAt || item.startedAt)}</small>
+                  <small>{item.className} · {item.studentCount} HS · {formatDate(item.completedAt || item.startedAt,language)}</small>
                   <em>{item.averageGrade10 == null ? t("Chưa có điểm /10") : `TB ${item.averageGrade10.toFixed(2)}/10`}</em>
-                  {item.teachingAdjustment ? <p>Điều chỉnh: {item.teachingAdjustment}</p> : null}
+                  {item.teachingAdjustment ? <p>{language==='en'?'Adjustments:':'Điều chỉnh:'} {item.teachingAdjustment}</p> : null}
                 </article>)}
               </div>
             </aside>
@@ -1112,7 +1112,7 @@ export default function AssessmentWorkspace({
         <div className="f4a-spotlight-avatar">{lastCalledStudent.fullName.trim().slice(0,1).toUpperCase()}</div>
         <strong className="f4a-spotlight-name">{lastCalledStudent.fullName}</strong>
         <span className="f4a-spotlight-code">{lastCalledStudent.code || t("Học sinh được chọn")}</span>
-        <div className="f4a-spotlight-counter">Đã gọi {calledInPool.length} / {randomPool.length} · Còn {remainingCallCount} học sinh</div>
+        <div className="f4a-spotlight-counter">{language==='en'?'Called':'Đã gọi'} {calledInPool.length} / {randomPool.length} · {language==='en'?'Remaining':'Còn'} {remainingCallCount} {t('học sinh')}</div>
         <div className="f4a-spotlight-buttons">
           <button type="button" className="is-primary" onClick={randomPick} disabled={!remainingCallCount}><Shuffle size={19} />{t("Gọi tiếp")}</button>
           <button type="button" onClick={() => setSpotlightOpen(false)}>{t("Quay lại danh sách")}</button>
