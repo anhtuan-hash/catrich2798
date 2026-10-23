@@ -38,26 +38,20 @@ export default function GradebookWorkspace(props) {
 
   return <>
     <GradebookEngine key={props.workspace?.id} {...props} />
-    {students.length ? <details className="gbv2-support-extra"><summary>Hỗ trợ &amp; tra cứu học sinh <span>↗</span></summary><section className="hr-panel gradebook-student-support" aria-label="Mở hồ sơ hỗ trợ từ sổ điểm">
-      <div className="hr-panel-head">
-        <div className="gradebook-student-support-copy">
-          <span className="gradebook-student-support-icon" aria-hidden="true">
-            <svg viewBox="0 0 48 48" focusable="false">
-              <circle cx="18" cy="17" r="7" />
-              <circle cx="31" cy="18" r="6" />
-              <path d="M7 38c1-9 5-13 11-13s10 4 11 13" />
-              <path d="M25 38c1-7 4-11 9-11s8 4 9 11" />
-            </svg>
-          </span>
-          <div><small>STUDENT SUPPORT</small><h2>Hỗ trợ &amp; tra cứu học sinh</h2><p>Mở nhanh hồ sơ học sinh, ghi chú đặc biệt và danh sách cần quan tâm.</p></div>
-        </div>
-        <div className="hr-head-actions">
-          <select aria-label="Chọn học sinh để mở hồ sơ hỗ trợ" value={supportStudentId} onChange={(event) => setSupportStudentId(event.target.value)}>
-            {students.map((student) => <option key={student.id} value={student.id}>{student.fullName || student.code || 'Học sinh'}</option>)}
-          </select>
-          <button type="button" className="secondary" disabled={!supportStudentRef} onClick={openStudentSupport}>Xem hồ sơ hỗ trợ <span aria-hidden="true">↗</span></button>
-        </div>
-      </div>
-    </section></details> : null}
+    {students.length ? (
+      <details className="gbv2-support-extra gbv13-support-compact">
+        <summary>Hồ sơ &amp; hỗ trợ học sinh <span aria-hidden="true">⌄</span></summary>
+        <section className="gbv13-support-controls" aria-label="Mở hồ sơ hỗ trợ học sinh">
+          <p>Chọn học sinh để xem hồ sơ và thông tin hỗ trợ trong phân hệ chuyên trách.</p>
+          <div>
+            <label htmlFor="gbv13-support-student">Học sinh</label>
+            <select id="gbv13-support-student" value={supportStudentId} onChange={(event) => setSupportStudentId(event.target.value)}>
+              {students.map((student) => <option key={student.id} value={student.id}>{student.fullName || student.code || 'Học sinh'}</option>)}
+            </select>
+            <button type="button" disabled={!supportStudentRef} onClick={openStudentSupport}>Mở hồ sơ <span aria-hidden="true">↗</span></button>
+          </div>
+        </section>
+      </details>
+    ) : null}
   </>;
 }

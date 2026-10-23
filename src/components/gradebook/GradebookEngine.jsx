@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   buildGradeExportColumns,
   exportClassGradebookXlsx,
@@ -333,15 +334,6 @@ function GradebookNavigationPalette({
           ><span className="gbm3-tab-icon" aria-hidden="true">{item.id === 'summary' ? <Sigma size={16}/> : <FileBarChart2 size={15}/>}</span>{labels[item.id]}</button>
         ))}
       </div>
-      {showMockExams ? (
-        <details className="gbv12-nav-more">
-          <summary title="Tiện ích khác của lớp 12" aria-label="Tiện ích khác">Khác <span aria-hidden="true">⌄</span></summary>
-          <div><button type="button" className={view === 'mock' ? 'active' : ''} onClick={(event) => {
-            onViewChange('mock');
-            event.currentTarget.closest('details')?.removeAttribute('open');
-          }}><GraduationCap size={17} aria-hidden="true"/> Thi thử lớp 12</button></div>
-        </details>
-      ) : null}
     </div>
   </nav>;
 }
@@ -440,6 +432,32 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   const [missingOnly, setMissingOnly] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
   const [insightsOpen, setInsightsOpen] = useState(false);
+  const toolboxRef = useRef(null);
+  useEffect(() => {
+    if (!insightsOpen) return undefined;
+    const oldOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setInsightsOpen(false);
+      }
+      if (event.key !== 'Tab' || !toolboxRef.current) return;
+      const focusable = [...toolboxRef.current.querySelectorAll(
+        'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), summary, a[href]'
+      )].filter((node) => node.getClientRects().length > 0);
+      if (!focusable.length) return;
+      if (event.shiftKey && document.activeElement === focusable[0]) {
+        event.preventDefault(); focusable[focusable.length - 1].focus();
+      } else if (!event.shiftKey && document.activeElement === focusable[focusable.length - 1]) {
+        event.preventDefault(); focusable[0].focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    const raf = requestAnimationFrame(() => toolboxRef.current?.querySelector('[data-gradebook-modal-close]')?.focus({ preventScroll: true }));
+    return () => { document.removeEventListener('keydown', handleKeyDown); cancelAnimationFrame(raf); document.body.style.overflow = oldOverflow; };
+  }, [insightsOpen]);
+
   const [sortBy, setSortBy] = useState('original');
   const [density, setDensity] = useState(() => {
     try { return localStorage.getItem('brian-gradebook-density-v6') === 'compact' ? 'compact' : 'comfortable'; }
@@ -1225,33 +1243,25 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       />
     ) : null}
 
-    <details className="gb5-insights-drawer" open={insightsOpen}
-      onToggle={(event) => setInsightsOpen(event.currentTarget.open)}>
-      <summary aria-label="Mở bảng phân tích và các công cụ Sổ điểm">
-        <span className="gb5-insights-symbol"><ChartColumnIncreasing size={20} aria-hidden="true" /></span>
-        <span><strong>Công cụ nâng cao</strong><small>Quản lý môn học, phân công, thống kê chi tiết — mở khi cần</small></span>
-        <span className="gb5-insights-chevron" aria-hidden="true">⌄</span>
-      </summary>
-      {insightsOpen ? <div className="gb5-insights-content">
-    {view !== 'mock' ? <section className="hr-grade-overview" aria-label="Tổng quan sổ điểm">
-      <article className="tone-blue"><span className="hr-grade-overview-icon"><GradebookUiIcon type="bars" /></span><small>Cột TX hiện có</small><strong>{totalRegularColumns}</strong><span>Trong học kỳ đang chọn</span></article>
-      <article className="tone-green"><span className="hr-grade-overview-icon"><GradebookUiIcon type="students" /></span><small>Học sinh</small><strong>{students.length}</strong><span>Danh sách lớp hiện tại</span></article>
-      <article className="tone-purple"><span className="hr-grade-overview-icon"><GradebookUiIcon type="document" /></span><small>Môn học</small><strong>{subjectEntries.length}</strong><span>Đang quản lý</span></article>
-      <article className="tone-yellow" style={{ '--gb-completion': `${students.length ? Math.round(completedFourRounds / students.length * 100) : 0}%` }}><span className="hr-grade-overview-icon"><GradebookUiIcon type="check" /></span><small>Hoàn thành 4 đợt TX</small><strong>{completedFourRounds}/{students.length}</strong><span>{activeRound ? `${activeRoundCoverage} học sinh có điểm ở đợt đang mở` : 'Theo học kỳ đang chọn'}</span></article>
-    </section> : null}
+    <div className="gbv13-tool-entrance">
+      <span><ChartColumnIncreasing size={19} aria-hidden="true" /><strong>Công cụ nâng cao</strong><small>Quản lý lớp, môn học, chốt điểm, nhập Excel và hỗ trợ chuyên sâu</small></span>
+      <div className="gbv13-tool-entry-actions">
+        {showMockExams ? <button type="button" onClick={() => setView('mock')}><GraduationCap size={16} aria-hidden="true" /> Thi thử lớp 12</button> : null}
+        <button type="button" className="is-primary" onClick={() => setInsightsOpen(true)} aria-haspopup="dialog">Mở công cụ <span aria-hidden="true">↗</span></button>
+      </div>
+    </div>
 
-
-
-
-    {!focusMode && view !== 'mock' ? <GradebookProgressDeck
-      students={students} semester={activeSemester} semesterLabel={semesterLabel}
-      subjectName={activeSubject?.name || 'Môn học'} selectedView={view}
-      showMockExams={showMockExams} missingOnly={missingOnly}
-      onOpenSection={(sectionId) => { setView(sectionId); setMissingOnly(false); setStudentQuery(''); }}
-      onShowMissing={(sectionId) => { setView(sectionId); setMissingOnly(true); setStudentQuery(''); }}
-      onShowAll={() => { setMissingOnly(false); setStudentQuery(''); }}
-      onOpenMock={() => { setView('mock'); setMissingOnly(false); setStudentQuery(''); }}
-    /> : null}
+    {insightsOpen ? createPortal(
+      <div className="gradebook-studio gb7-rebirth gbm3-v12 gbv13-toolbox-layer">
+        <button type="button" className="gbv13-toolbox-scrim" aria-label="Đóng công cụ nâng cao" onClick={() => setInsightsOpen(false)} />
+        <section className="gbv13-toolbox-dialog" role="dialog" aria-modal="true" aria-labelledby="gbv13-toolbox-title" ref={toolboxRef}>
+          <header className="gbv13-toolbox-head">
+            <span className="gbv13-toolbox-icon"><ChartColumnIncreasing size={23} aria-hidden="true" /></span>
+            <div><h2 id="gbv13-toolbox-title">Công cụ Sổ điểm</h2><p>Quản lý lớp, bộ môn và các tác vụ nâng cao. Không làm gián đoạn việc nhập điểm.</p></div>
+            <button type="button" data-gradebook-modal-close aria-label="Đóng công cụ Sổ điểm" onClick={() => setInsightsOpen(false)}>✕</button>
+          </header>
+          <div className="gbv13-toolbox-body">
+            <div className="gb5-insights-content">
 
     {!focusMode && view !== 'mock' ? <details className="gb3-mission-details">
       <summary><span><strong>Danh sách ưu tiên hoàn thiện</strong><small>Học sinh còn thiếu điểm, thống kê chi tiết và điều hướng đến đúng thành phần</small></span><span className="gb3-mission-open-label">Xem chi tiết <span aria-hidden="true">⌄</span></span></summary>
@@ -1311,8 +1321,12 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     /> : null}
 
 
-      </div> : null}
-    </details>
+
+            </div>
+          </div>
+        </section>
+      </div>, document.getElementById('root') || document.body
+    ) : null}
 
     {dirty ? <div className="gbv2-save-strip" role="status" aria-live="polite">
       <span>{savePending ? 'Đang lưu điểm' : 'Bạn có thay đổi chưa lưu'} · {activeSubject?.name || 'Môn học'} · {view === 'mock' ? 'Thi thử lớp 12' : semesterLabel}</span>
