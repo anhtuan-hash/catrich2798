@@ -1,0 +1,36 @@
+name: Dashboard Hero CMS Drawer
+on:
+  pull_request:
+    paths:
+      - 'src/pages/WorkDashboard.jsx'
+      - 'src/components/DashboardHeroEditor.*'
+      - 'src/styles/dashboard-hero-cms.css'
+      - 'src/utils/dashboardHeroCms.js'
+      - 'supabase/migrations/20261023193000_dashboard_hero_cms.sql'
+      - 'scripts/test-dashboard-hero-cms.mjs'
+      - '.github/workflows/dashboard-hero-cms.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/pages/WorkDashboard.jsx'
+      - 'src/components/DashboardHeroEditor.*'
+      - 'src/styles/dashboard-hero-cms.css'
+      - 'src/utils/dashboardHeroCms.js'
+      - 'scripts/test-dashboard-hero-cms.mjs'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node scripts/test-dashboard-hero-cms.mjs
+      - run: npm ci --no-audit --no-fund
+      - name: Reproduce Vercel full build
+        run: node scripts/test-editorial-app-heroes.mjs && npm run build
