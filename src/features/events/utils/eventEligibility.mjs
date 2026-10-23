@@ -1,5 +1,8 @@
 /** Pure popup eligibility rules. No I/O, UTC timestamps with VN day boundaries. */
 export function isEventPopupDue(event, now = new Date()) {
+  // Login-scoped events intentionally ignore historic read / acknowledgment receipts;
+  // the caller gates them by Supabase Auth session identity instead.
+  if(event?.frequency==='per_login')return true;
   const r=event?.receipt;
   if(!r)return Boolean(event);
   const ts=now.getTime();
