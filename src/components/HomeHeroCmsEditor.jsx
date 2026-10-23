@@ -128,6 +128,8 @@ export default function HomeHeroCmsEditor({
 }) {
   const fileInputRef = useRef(null);
   const shellRef = useRef(null);
+  const panelRef = useRef(null);
+  const closeEditorRef = useRef(null);
   const closeRef = useRef(null);
   const lastSavedConfigRef = useRef(normalizeHomeHeroConfig(initialConfig));
   const [tab, setTab] = useState('content');
@@ -304,7 +306,7 @@ export default function HomeHeroCmsEditor({
     const onKeyDown = (event) => {
       if (event.key === 'Escape') {
         event.preventDefault();
-        closeEditor();
+        closeEditorRef.current?.();
       }
       if (event.key !== 'Tab' || !shellRef.current) return;
       const controls = Array.from(shellRef.current.querySelectorAll(
@@ -328,7 +330,13 @@ export default function HomeHeroCmsEditor({
       document.body.style.overflow = oldOverflow;
       previouslyFocused?.focus?.();
     };
-  }, [open, busy, config, onClose, onPreview]);
+  }, [open]);
+
+  closeEditorRef.current = closeEditor;
+
+  useEffect(() => {
+    panelRef.current?.scrollTo?.({ top: 0, behavior: 'instant' });
+  }, [tab]);
 
   const activeTab = useMemo(() => TABS.find(([id]) => id === tab), [tab]);
   if (!open) return null;
@@ -365,7 +373,7 @@ export default function HomeHeroCmsEditor({
             </div>
           </aside>
 
-          <main className="hero-editor__panel" id="hero-editor-content" key={tab}>
+          <main className="hero-editor__panel" id="hero-editor-content" ref={panelRef}>
             <div id="hero-editor-preview-slot" className="hero-editor__preview-slot" />
             <header><span>{activeTab ? React.createElement(activeTab[1], { size: 20 }) : null}</span><div><h2>{activeTab?.[2]}</h2><p>Thay đổi được phản ánh trực tiếp trên bản xem trước Hero.</p></div></header>
 
