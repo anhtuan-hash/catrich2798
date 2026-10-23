@@ -477,13 +477,6 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
     /></React.Suspense> : null}
     <div className="gd-shell">
       <section className="gd-top-grid db-hero-minimal-frame">
-        {canEditHero ? <button
-          type="button"
-          className="db-hero-edit-button db-hero-edit-button--outside"
-          onClick={openHeroEditor}
-          aria-label={language === 'vi' ? 'Chỉnh sửa Hero Dashboard' : 'Edit Dashboard Hero'}
-          title={language === 'vi' ? 'Chỉnh sửa Hero' : 'Edit Hero'}
-        ><Pencil size={17} strokeWidth={1.9} aria-hidden="true" /></button> : null}
         <header className={`editorial-hero is-minimal ${hasDashboardHeroMedia ? 'has-dashboard-custom-hero' : ''}`} style={dashboardHeroStyle}>
           {hasDashboardHeroMedia ? <div className="db-hero-media" aria-hidden="true">
             {hero.backgroundType === 'video'
@@ -503,6 +496,13 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
               <span><small>{weather.loading ? t.weatherLoading : weatherDescription}</small><strong>TP.HCM · {weatherTemperature}</strong></span>
             </button>
           </div>
+        {canEditHero ? <button
+          type="button"
+          className="db-hero-edit-button db-hero-edit-button--inside"
+          onClick={openHeroEditor}
+          aria-label={language === 'vi' ? 'Chỉnh sửa Hero Dashboard' : 'Edit Dashboard Hero'}
+          title={language === 'vi' ? 'Chỉnh sửa Hero' : 'Edit Hero'}
+        ><Pencil size={17} strokeWidth={1.9} aria-hidden="true" /></button> : null}
         </header>
       </section>
 
