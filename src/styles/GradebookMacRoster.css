@@ -1,0 +1,165 @@
+/* Gradebook student roster is a dedicated modal workspace, never part
+   of the grade-entry document flow. These rules never touch global nav. */
+.gbmac-roster-overlay{
+ position:fixed;inset:0;z-index:999991;display:flex;justify-content:center;
+ align-items:center;padding:24px;background:rgba(19,37,66,.42);
+ backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+ font:500 14px/1.5 -apple-system,BlinkMacSystemFont,"Inter",system-ui,sans-serif;
+}
+.gbmac-roster-overlay *{box-sizing:border-box}
+.gbmac-roster-scrim{position:absolute;inset:0;border:0;background:transparent;cursor:default}
+.gbmac-roster-sheet{
+ position:relative;display:flex;flex-direction:column;
+ width:min(1160px,100%);max-height:min(92dvh,940px);min-height:0;
+ border:1px solid #d5e1f0;border-radius:19px;
+ box-shadow:0 28px 100px rgba(17,42,78,.27);
+ background:#f8fafc;color:#203e67;overflow:hidden;
+}
+.gbmac-roster-heading{
+ display:flex;justify-content:space-between;align-items:center;gap:16px;
+ flex:0 0 auto;padding:17px 21px;background:linear-gradient(110deg,#fff,#f3f8ff);
+ border-bottom:1px solid #e1e9f4;
+}
+.gbmac-roster-heading small{
+ display:block;font-size:10px;font-weight:780;letter-spacing:.09em;color:#6884ac;
+}
+.gbmac-roster-heading h2{
+ color:#1b4277;margin:3px 0;font-size:23px;font-weight:810;
+ letter-spacing:-.025em;line-height:1.2;
+}
+.gbmac-roster-heading p{
+ color:#69829f;font-size:12px;margin:0;
+}
+.gbmac-roster-close{
+ border:1px solid #dae6f4;border-radius:10px;
+ min-height:39px;display:flex;align-items:center;gap:7px;
+ color:#315d92;background:#fff;padding:8px 13px;font-size:12px;font-weight:760;
+ white-space:nowrap;cursor:pointer;
+}
+.gbmac-roster-close:hover{background:#ebf4ff}
+.gbmac-roster-body{
+ min-height:0;flex:1;overflow:auto;overscroll-behavior:contain;
+ padding:18px;scrollbar-width:thin;
+ -webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;
+}
+.gbmac-roster-body .hr-tab-stack{display:grid;gap:13px;min-width:0}
+.gbmac-roster-body .hr-panel{
+ padding:17px;background:#fff;border:1px solid #e0e9f5;
+ border-radius:14px;box-shadow:0 4px 14px rgba(31,65,105,.03);
+ min-width:0;
+}
+.gbmac-roster-body .hr-panel-head{
+ display:flex;align-items:flex-start;justify-content:space-between;
+ gap:13px;margin-bottom:15px;flex-wrap:wrap;
+}
+.gbmac-roster-body .hr-panel-head small{
+ font-size:11px;color:#7691ae;font-weight:730;
+}
+.gbmac-roster-body .hr-panel-head h2{
+ color:#274e7a;font-size:17px;font-weight:790;
+ margin:2px 0 0;line-height:1.25;
+}
+.gbmac-roster-body .hr-head-actions,
+.gbmac-roster-body .hr-row-actions,
+.gbmac-roster-body .hr-filter-row{
+ display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+}
+.gbmac-roster-body button{
+ border:1px solid #dae5f4;border-radius:9px;background:#fff;
+ color:#315d97;min-height:33px;padding:6px 10px;
+ font:750 12px/1.3 inherit;cursor:pointer;
+}
+.gbmac-roster-body button.primary{
+ background:#256adb;color:#fff;border-color:#256adb;
+}
+.gbmac-roster-body button.danger{
+ color:#b04151;border-color:#f4dbe0;background:#fff6f7;
+}
+.gbmac-roster-body button:hover:not(:disabled){
+ filter:brightness(.97);border-color:#8db4eb;
+}
+.gbmac-roster-body button:disabled{opacity:.55;cursor:not-allowed}
+.gbmac-roster-body .hr-form-grid.four{
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;
+}
+.gbmac-roster-body .hr-form-grid label,
+.gbmac-roster-body .hr-wide-field{
+ display:grid;gap:5px;font-size:11px;font-weight:720;color:#697e9a;min-width:0;
+}
+.gbmac-roster-body .hr-wide-field{margin-top:11px}
+.gbmac-roster-body :is(input:not([type="checkbox"]),textarea,select){
+ min-width:0;width:100%;min-height:39px;border:1px solid #d8e4f2;
+ border-radius:9px;background:#fcfdff;color:#294c79;
+ padding:8px 10px;font:500 13px/1.4 -apple-system,BlinkMacSystemFont,"Inter",sans-serif;
+}
+.gbmac-roster-body :is(input,textarea,select):focus-visible{
+ outline:2px solid #96bfff;outline-offset:1px;
+}
+.gbmac-roster-body textarea{min-height:62px;resize:vertical}
+.gbmac-roster-body .hr-filter-row input{
+ width:min(250px,100%);
+}
+.gbmac-roster-body .hr-filter-row select{
+ width:auto;min-width:132px;
+}
+.gbmac-roster-body .hr-table-wrap{
+ border:1px solid #e4eaf3;border-radius:11px;
+ overflow:auto;max-height:42dvh;scrollbar-width:thin;
+}
+.gbmac-roster-body .hr-table{
+ width:100%;border-spacing:0;border-collapse:separate;
+ font-size:12px;min-width:670px;text-align:left;
+}
+.gbmac-roster-body .hr-table th{
+ position:sticky;top:0;z-index:1;background:#eff5fd;
+ padding:11px 13px;color:#557398;font-size:11px;
+ border-bottom:1px solid #dce7f5;
+}
+.gbmac-roster-body .hr-table td{
+ padding:9px 13px;color:#415b7d;
+ border-bottom:1px solid #edf1f6;vertical-align:middle;
+}
+.gbmac-roster-body .hr-table tr:nth-child(even) td{background:#f8fbff}
+.gbmac-roster-body .hr-table tr:last-child td{border-bottom:0}
+.gbmac-roster-body .hr-person-cell{
+ display:flex;align-items:center;gap:9px;min-width:220px;
+}
+.gbmac-roster-body .hr-person-cell > span{
+ display:grid;place-items:center;flex:0 0 29px;height:29px;
+ border-radius:9px;background:#e9f4f4;color:#24847d;font-size:11px;font-weight:800;
+}
+.gbmac-roster-body .hr-person-cell p{margin:0;min-width:0}
+.gbmac-roster-body .hr-person-cell b{
+ display:block;font-size:12px;color:#2b4d79;font-weight:760;
+}
+.gbmac-roster-body .hr-person-cell small{
+ display:block;font-size:10px;color:#879bb1;
+}
+.gbmac-roster-body .hr-table td > small{
+ display:block;white-space:normal;max-width:290px;overflow-wrap:anywhere;
+ color:#7486a0;font-size:11px;
+}
+.gbmac-roster-body .hr-row-actions{flex-wrap:nowrap;justify-content:flex-end}
+.gbmac-roster-body .hr-row-actions button{white-space:nowrap;min-height:30px;font-size:11px}
+.gbmac-roster-body .hr-empty{text-align:center;padding:26px}
+.gbmac-roster-body .hr-empty h3{font-size:16px;color:#315480}
+.gbmac-roster-body .hr-empty p{color:#778ca7;font-size:12px}
+.gbmac-roster-history{margin-top:14px;padding:13px;background:#fff;border:1px solid #e1e9f3;border-radius:13px}
+@media(max-width:820px){
+ .gbmac-roster-overlay{padding:8px;align-items:flex-end}
+ .gbmac-roster-sheet{max-height:96dvh;height:96dvh;border-radius:16px 16px 0 0}
+ .gbmac-roster-heading{padding:14px}
+ .gbmac-roster-heading h2{font-size:19px}
+ .gbmac-roster-body{padding:9px}
+ .gbmac-roster-body .hr-panel{padding:12px}
+ .gbmac-roster-body .hr-form-grid.four{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .gbmac-roster-body .hr-head-actions{width:100%;justify-content:flex-start}
+ .gbmac-roster-body .hr-table-wrap{max-height:48dvh}
+}
+@media(max-width:440px){
+ .gbmac-roster-heading p{font-size:11px}
+ .gbmac-roster-close{padding:8px}
+ .gbmac-roster-body .hr-form-grid.four{grid-template-columns:1fr}
+ .gbmac-roster-body .hr-filter-row{width:100%}
+ .gbmac-roster-body .hr-filter-row input{width:100%;max-width:none}
+}
