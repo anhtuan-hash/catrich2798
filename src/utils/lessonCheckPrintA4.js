@@ -8,12 +8,12 @@ const safe = (value) => String(value ?? '')
   .replace(/"/g, '&quot;')
   .replace(/'/g, '&#039;');
 
-const fmtScore = (value) => Number.isFinite(value) ? Number(value).toFixed(2).replace('.', ',') : '—';
-const labelFocus = (name) => ({
+const fmtScore = (value, language='vi') => Number.isFinite(value) ? (language==='en' ? Number(value).toFixed(2) : Number(value).toFixed(2).replace('.', ',')) : '—';
+const labelFocus = (name, language='vi') => ({
   vocabulary: 'Vocabulary', grammar: 'Grammar', reading: 'Reading',
   listening: 'Listening', speaking: 'Speaking', mixed: 'Mixed',
   unclassified: 'Chưa phân loại',
-}[name] || name || 'Chưa phân loại');
+}[name] || name || (language==='en'?'Unclassified':'Chưa phân loại'));
 
 const PRINT_CSS = [
   '@page{size:A4 portrait;margin:17mm 18mm;}',
@@ -86,11 +86,14 @@ export function buildLessonCheckA4Html({
   studentReportRows = [],
   reportSummary = {},
   printedAt = new Date(),
+  language = 'vi',
 } = {}) {
-  const date = new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const en=language==='en';
+  const L=(viText,enText)=>en?enText:viText;
+  const date = new Intl.DateTimeFormat(en?'en-GB':'vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
     .format(printedAt);
-  const scope = asText(reportClass, 'Tất cả lớp');
-  const teacher = asText(teacherName, 'Giáo viên phụ trách');
+  const scope = asText(reportClass, L('Tất cả lớp','All classes'));
+  const teacher = asText(teacherName, L('Giáo viên phụ trách','Teacher in charge'));
 
   const gradeResults = reportResults.filter((result) => Number.isFinite(result.grade10));
   const gradedStudents = new Set(gradeResults.map((result) => result.studentRef || result.studentName).filter(Boolean));
@@ -105,7 +108,7 @@ export function buildLessonCheckA4Html({
   });
   const focusText = [...focusCounts.entries()]
     .sort((a, b) => b[1] - a[1])
-    .map(([focus, count]) => labelFocus(focus) + ' (' + count + ' phiên)')
+    .map(([focus, count]) => labelFocus(focus,language) + ' (' + count + L(' phiên)',' sessions)'))
     .join(' · ');
 
   const studentsHtml = studentReportRows.map((student, index) => {
@@ -117,7 +120,7 @@ export function buildLessonCheckA4Html({
       '<td class="student-name">' + safe(student.studentName) + '</td>' +
       '<td>' + safe(className) + '</td>' +
       '<td class="center">' + (Number(student.sessionCount) || 0) + '</td>' +
-      '<td class="score">' + fmtScore(student.average) + '</td>' +
+      '<td class="score">' + fmtScore(student.average,language) + '</td>' +
       '<td>' + safe(student.focusText || '—') + '</td></tr>';
   }).join('');
 
@@ -125,7 +128,7 @@ export function buildLessonCheckA4Html({
   const sessionNotes = completedSessions.map((session) => asText(session.notes)).filter(Boolean);
   const learnerNotes = reportResults
     .map((result) => asText(result.note)
-      ? asText(result.studentName, 'Học sinh') + ': ' + asText(result.note)
+      ? asText(result.studentName, L('Học sinh','Student')) + ': ' + asText(result.note)
       : '')
     .filter(Boolean);
   const teacherNotes = [...new Set([...sessionNotes, ...learnerNotes])];
@@ -145,8 +148,8 @@ export function buildLessonCheckA4Html({
   const adjustmentsHtml = teacherAdjustments.length
     ? '<ul class="recorded">' + teacherAdjustments.map((note) => '<li>' + safe(note) + '</li>').join('') + '</ul>'
     : '<div class="writing-line"></div>';
-  const dataFinding = gradedStudents.size + ' học sinh có điểm /10' +
-    (sessionsMissingGrade ? '; ' + sessionsMissingGrade + ' phiên đã hoàn thành chưa ghi nhận điểm /10.' : '.');
+  const dataFinding = gradedStudents.size + L(' học sinh có điểm /10',' students have scores /10') +
+    (sessionsMissingGrade ? '; ' + sessionsMissingGrade + L(' phiên đã hoàn thành chưa ghi nhận điểm /10.',' completed sessions have no recorded scores /10.') : '.');
 
   return [
     '<!doctype html><html lang="vi"><head><meta charset="utf-8">',
@@ -169,7 +172,7 @@ export function buildLessonCheckA4Html({
     '</span><span class="kpi-caption">Phiên đánh giá</span></div>',
     '<div class="kpi"><span class="kpi-value">', String(gradedStudents.size).padStart(2, '0'),
     '</span><span class="kpi-caption">Học sinh có điểm</span></div>',
-    '<div class="kpi highlight"><span class="kpi-value">', fmtScore(average),
+    '<div class="kpi highlight"><span class="kpi-value">', fmtScore(average,language),
     '</span><span class="kpi-caption">Điểm trung bình /10</span></div>',
     '</div><p class="focus-summary"><b>Chuyên đề đã thực hiện:</b> ',
     safe(focusText || 'Chưa có dữ liệu'), '</p></section>',
