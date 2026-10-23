@@ -1,0 +1,358 @@
+/* LESSON CHECK / Assessment Studio — compact hero (October 2026).
+   This last-loaded stylesheet intentionally supersedes the earlier V9/V21
+   large hero designs. Scope stays inside Lesson Check, not global navigation. */
+.lcs-page.lcs-page--library > .lcs-arcade-head.lch-hero.lch-hero--compact {
+  position: relative !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  min-height: 244px !important;
+  height: 244px !important;
+  max-height: none !important;
+  width: 100% !important;
+  margin: 0 auto 16px !important;
+  padding: 21px clamp(21px, 3vw, 43px) !important;
+  overflow: hidden !important;
+  border-radius: 23px !important;
+  border: 1px solid rgba(207,218,239,.85) !important;
+  background: linear-gradient(107deg,#eff3ff,#f5f0ff 53%,#eeeafa) !important;
+  box-shadow: 0 10px 29px rgba(42,58,109,.07) !important;
+  isolation: isolate !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lch-hero-media {
+  z-index: 0 !important;
+  inset: 0 !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lch-hero-protection {
+  z-index: 1 !important;
+  background: linear-gradient(90deg,
+    rgba(249,249,255,.98) 0%,
+    rgba(248,248,255,.94) 24%,
+    rgba(249,248,255,.77) 44%,
+    rgba(248,247,255,.32) 64%,
+    rgba(248,247,255,0) 81%) !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact.has-custom-media .lch-hero-protection {
+  background: linear-gradient(90deg,
+    rgba(251,251,255,var(--lch-protection,.88)) 0%,
+    rgba(250,250,255,.91) 27%,
+    rgba(250,250,255,.76) 44%,
+    rgba(250,250,255,.25) 67%,
+    transparent 83%) !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-hero-art {
+  z-index: 2 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  top: auto !important;
+  width: 38% !important;
+  height: 98% !important;
+  opacity: .65 !important;
+  object-position: right bottom !important;
+  pointer-events: none !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-hero-main {
+  position: relative !important;
+  z-index: 4 !important;
+  display: block !important;
+  flex: 0 1 auto !important;
+  width: min(73%, 930px) !important;
+  max-width: min(73%, 930px) !important;
+  min-width: 0 !important;
+  align-self: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-hero-copy {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-hero-kicker {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  gap: 8px !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  font-size: 9px !important;
+  letter-spacing: .08em !important;
+  line-height: 1.35 !important;
+  color: #69789d !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-hero-kicker-icon {
+  flex: 0 0 23px !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 23px !important;
+  height: 23px !important;
+  border-radius: 8px !important;
+  background: #e2edff !important;
+  color: #2460b7 !important;
+  box-shadow: none !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-hero-kicker strong {
+  color: #315787 !important;
+  font-size: 9px !important;
+  letter-spacing: .085em !important;
+  font-weight: 820 !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-hero-kicker > span:last-child {
+  color: #7b7f99 !important;
+  font-size: 9px !important;
+  letter-spacing: .04em !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-arcade-title-row {
+  margin: 5px 0 0 !important;
+  padding: 0 !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-arcade-title-row h1 {
+  display: block !important;
+  width: max-content !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  font-family: "Google Sans", Inter, system-ui, sans-serif !important;
+  font-size: clamp(29px, 3.15vw, 44px) !important;
+  font-weight: 760 !important;
+  line-height: 1.12 !important;
+  letter-spacing: -.045em !important;
+  white-space: normal !important;
+  text-wrap: balance !important;
+  color: #21395c !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-arcade-title-row h1 .is-fun,
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-arcade-title-row h1 .is-for {
+  display: inline !important;
+  color: #21395c !important;
+  font-weight: inherit !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-arcade-title-row h1 .is-assessment {
+  display: inline !important;
+  margin: 0 0 0 .13em !important;
+  color: #d56e58 !important;
+  font-weight: inherit !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-hero-copy > p {
+  margin: 4px 0 0 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+  color: #576c86 !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-hero-statline {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 5px !important;
+  width: 100% !important;
+  margin-top: 10px !important;
+  max-width: 740px !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-hero-statline > span {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  min-height: 22px !important;
+  padding: 3px 9px !important;
+  border-radius: 999px !important;
+  font-size: 10px !important;
+  line-height: 1.1 !important;
+  font-weight: 650 !important;
+  box-shadow: none !important;
+  white-space: nowrap !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-hero-statline > span b {
+  font-size: 11px !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-hero-statline svg {
+  flex: 0 0 12px !important;
+  width: 12px !important;
+  height: 12px !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, max-content)) !important;
+  justify-content: start !important;
+  align-items: center !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  gap: 8px !important;
+  margin: 13px 0 0 !important;
+  padding: 0 !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers > button,
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers .lcs-start-assessment {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 1 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 39px !important;
+  height: 39px !important;
+  gap: 7px !important;
+  padding: 8px 13px !important;
+  border: 1px solid rgba(199,216,235,.95) !important;
+  border-radius: 12px !important;
+  background: rgba(255,255,255,.93) !important;
+  color: #2c5689 !important;
+  box-shadow: 0 3px 11px rgba(35,54,94,.07) !important;
+  transform: none !important;
+  white-space: nowrap !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers .lcs-arcade-create {
+  background: #215e8f !important;
+  border-color: #215e8f !important;
+  color: #fff !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers .lcs-start-assessment {
+  background: #e9f1ff !important;
+  border-color: #bed3f5 !important;
+  color: #174e9c !important;
+  grid-column: auto !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers .lcs-cta-icon,
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers .lcs-start-assessment .lcs-cta-icon,
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers .lcs-arcade-create .lcs-cta-icon {
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 17px !important;
+  width: 17px !important;
+  height: 17px !important;
+  min-width: 17px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers .lcs-cta-icon svg {
+  width: 17px !important;
+  height: 17px !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers .lcs-cta-copy {
+  display: block !important;
+  min-width: 0 !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers .lcs-cta-copy strong,
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers .lcs-start-assessment .lcs-cta-copy strong {
+  display: block !important;
+  font-size: 12px !important;
+  font-weight: 720 !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  color: inherit !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers .lcs-cta-copy small {
+  display: none !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers .lcs-cta-chevron {
+  display: none !important;
+}
+.lcs-page--library .lch-hero.lch-hero--compact .lch-hero-edit {
+  top: 12px !important;
+  right: 14px !important;
+  min-height: 32px !important;
+  padding: 6px 10px !important;
+  font-size: 11px !important;
+  border-radius: 10px !important;
+  z-index: 9 !important;
+}
+@media (max-width: 1150px) {
+  .lcs-page.lcs-page--library > .lcs-arcade-head.lch-hero.lch-hero--compact {
+    min-height: 250px !important;
+    height: 250px !important;
+    padding: 25px 24px !important;
+  }
+  .lcs-page--library .lch-hero.lch-hero--compact .lcs-hero-main {
+    width: min(78%, 790px) !important;
+    max-width: min(78%, 790px) !important;
+  }
+  .lcs-page--library .lch-hero.lch-hero--compact .lcs-arcade-title-row h1 {
+    font-size: clamp(28px, 3.5vw, 41px) !important;
+  }
+}
+@media (max-width: 780px) {
+  .lcs-page.lcs-page--library > .lcs-arcade-head.lch-hero.lch-hero--compact {
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 58px 19px 22px !important;
+  }
+  .lcs-page--library .lch-hero.lch-hero--compact .lcs-hero-main {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .lcs-page--library .lch-hero.lch-hero--compact .lcs-hero-art {
+    right: -8% !important;
+    width: 58% !important;
+    opacity: .18 !important;
+  }
+  .lcs-page--library .lch-hero.lch-hero--compact .lcs-hero-kicker {
+    font-size: 9px !important;
+  }
+  .lcs-page--library .lch-hero.lch-hero--compact .lcs-arcade-title-row h1 {
+    font-size: clamp(29px, 5.4vw, 40px) !important;
+  }
+  .lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    width: 100% !important;
+  }
+  .lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers > button {
+    width: 100% !important;
+  }
+}
+@media (max-width: 530px) {
+  .lcs-page.lcs-page--library > .lcs-arcade-head.lch-hero.lch-hero--compact {
+    padding: 54px 15px 17px !important;
+    border-radius: 18px !important;
+  }
+  .lcs-page--library .lch-hero.lch-hero--compact .lcs-hero-kicker > span:last-child {
+    display: none !important;
+  }
+  .lcs-page--library .lch-hero.lch-hero--compact .lcs-arcade-title-row h1 {
+    font-size: clamp(27px, 7vw, 35px) !important;
+  }
+  .lcs-page--library .lch-hero.lch-hero--compact .lcs-hero-statline {
+    margin-top: 9px !important;
+    gap: 5px !important;
+  }
+  .lcs-page--library .lch-hero.lch-hero--compact .lcs-hero-statline > span {
+    padding: 4px 7px !important;
+    min-height: 23px !important;
+    font-size: 9px !important;
+  }
+  .lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    gap: 7px !important;
+    margin-top: 12px !important;
+  }
+  .lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers > button,
+  .lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers .lcs-start-assessment {
+    min-height: 42px !important;
+    height: 42px !important;
+    padding: 8px 10px !important;
+  }
+  .lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers .lcs-start-assessment {
+    grid-column: 1 / -1 !important;
+  }
+  .lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers .lcs-cta-copy strong {
+    font-size: 11px !important;
+  }
+}
+@media (max-width: 360px) {
+  .lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers {
+    grid-template-columns: 1fr !important;
+  }
+  .lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers .lcs-start-assessment {
+    grid-column: auto !important;
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  .lcs-page--library .lch-hero.lch-hero--compact .lcs-assessment-launchers > button {
+    transition: none !important;
+  }
+}
