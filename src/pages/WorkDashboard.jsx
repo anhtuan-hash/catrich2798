@@ -19,6 +19,7 @@ import DashboardWorkPlanner from '../components/DashboardWorkPlanner.jsx';
 import '../styles/dashboard-newsroom-editorial-20261023.css';
 import '../styles/dashboard-hero-cms.css';
 import '../styles/dashboard-hero-minimal-20261023.css';
+import '../styles/dashboard-hero-typography.css';
 import { isDepartmentLeaderRole } from '../utils/roles.js';
 import {
   DASHBOARD_HERO_UPDATED_EVENT, DEFAULT_DASHBOARD_HERO, normalizeDashboardHero, readDashboardHero,
@@ -543,9 +544,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
           <div className={`editorial-hero-copy${heroNameLines.length > 1 ? ' has-balanced-name' : ''}`}>
             <div className={`editorial-hero-heading${heroNameLines.length > 1 ? ' is-long-name' : name.length > 13 ? ' is-medium-name' : ''}`}>
               <span className="editorial-hero-hello">{t.hello},</span>
-              <h1 aria-label={String(name)}>{heroNameLines.length > 1
-                ? heroNameLines.map((line, index) => <span className="db-hero-name-line" aria-hidden="true" key={index}>{line}</span>)
-                : name}</h1>
+              <h1 aria-label={String(name)}>{heroNameLines.join('\n')}</h1>
             </div>
           </div>
           <div className="db-hero-weather" aria-label={language === 'vi' ? 'Thời tiết hiện tại' : 'Current weather'}>
