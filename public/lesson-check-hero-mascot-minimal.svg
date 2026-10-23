@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="400" viewBox="0 0 560 400" fill="none" role="img" aria-label="Brian mascot holding a golden trophy">
+<defs>
+ <radialGradient id="sun" cx="0" cy="0" r="1" gradientTransform="translate(281 171) rotate(90) scale(180 211)" gradientUnits="userSpaceOnUse"><stop stop-color="#FFEDE2"/><stop offset="1" stop-color="#FFF5EC" stop-opacity="0"/></radialGradient>
+ <linearGradient id="shell" x1="146" y1="106" x2="353" y2="318" gradientUnits="userSpaceOnUse"><stop stop-color="#FFF"/><stop offset=".44" stop-color="#E9F4FF"/><stop offset="1" stop-color="#A1BEE9"/></linearGradient>
+ <linearGradient id="blue" x1="175" y1="117" x2="350" y2="328" gradientUnits="userSpaceOnUse"><stop stop-color="#93E0FF"/><stop offset=".43" stop-color="#358CD7"/><stop offset="1" stop-color="#184D9A"/></linearGradient>
+ <linearGradient id="glass" x1="186" y1="101" x2="339" y2="220" gradientUnits="userSpaceOnUse"><stop stop-color="#34527A"/><stop offset=".52" stop-color="#142C50"/><stop offset="1" stop-color="#0B1B3E"/></linearGradient>
+ <linearGradient id="gold" x1="371" y1="33" x2="451" y2="165" gradientUnits="userSpaceOnUse"><stop stop-color="#FFF49D"/><stop offset=".25" stop-color="#FFD94C"/><stop offset=".65" stop-color="#FBAF17"/><stop offset="1" stop-color="#C87E12"/></linearGradient>
+ <linearGradient id="leaf" x1="20" y1="102" x2="180" y2="318"><stop stop-color="#B7D8B2"/><stop offset="1" stop-color="#548B79"/></linearGradient>
+ <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="10"/></filter>
+</defs>
+<ellipse cx="287" cy="351" rx="154" ry="19" fill="#8299A8" opacity=".13" filter="url(#shadow)"/>
+<circle cx="290" cy="170" r="167" fill="url(#sun)"/>
+<!-- trophy -->
+<g stroke-linejoin="round">
+ <path d="M365 64H438L431 135C428 153 416 160 400 160C380 160 370 147 369 131L365 64Z" fill="url(#gold)" stroke="#D9941A" stroke-width="3"/>
+ <path d="M365 76H344C344 110 353 124 380 126" stroke="#EFA72A" stroke-width="12" stroke-linecap="round"/>
+ <path d="M438 76H457C459 105 448 122 426 127" stroke="#E6A028" stroke-width="12" stroke-linecap="round"/>
+ <path d="M371 68H433" stroke="#FFF8C8" stroke-width="7" stroke-linecap="round"/>
+ <path d="M394 160V177M375 183H422" stroke="#C88720" stroke-width="12" stroke-linecap="round"/>
+ <path d="M369 185H428V194H369Z" fill="#EFA626" stroke="#C4851D" stroke-width="2"/>
+ <path d="M402 90L408 104L424 106L413 118L416 133L402 125L388 133L391 118L380 106L396 104Z" fill="#FFF7CB" stroke="#EEAA3D" stroke-width="2"/>
+</g>
+<!-- robot legs behind body -->
+<g transform="rotate(-14 215 300)">
+ <path d="M202 282L189 337C186 356 204 363 217 350L253 311" fill="url(#shell)" stroke="#6FA7DA" stroke-width="6"/>
+ <path d="M178 337Q165 350 177 367Q189 383 209 365L223 345" fill="url(#blue)" stroke="#164B8F" stroke-width="6"/>
+</g>
+<g transform="rotate(26 318 310)">
+ <path d="M307 284L327 330Q334 348 350 339L357 317" fill="url(#shell)" stroke="#6FA7DA" stroke-width="6"/>
+ <path d="M327 327Q343 314 361 332Q370 343 354 362Q338 378 318 356Z" fill="url(#blue)" stroke="#154E95" stroke-width="5"/>
+</g>
+<!-- robot rear arm left -->
+<path d="M197 240Q156 245 133 281" stroke="#6B9CCB" stroke-width="29" stroke-linecap="round"/>
+<path d="M194 238Q158 245 137 277" stroke="url(#shell)" stroke-width="23" stroke-linecap="round"/>
+<path d="M132 270C112 262 100 271 100 286C103 301 118 309 135 303Q151 294 141 278Z" fill="url(#blue)" stroke="#15549B" stroke-width="5"/>
+<!-- torso -->
+<path d="M197 243Q215 221 276 226Q320 229 329 268L334 306Q325 335 279 340Q216 347 198 307Z" fill="url(#shell)" stroke="#619ECF" stroke-width="7"/>
+<path d="M229 252Q270 263 309 249" stroke="#FFF" stroke-width="8" stroke-linecap="round" opacity=".78"/>
+<rect x="253" y="271" width="42" height="42" rx="12" fill="#F5FAFF" stroke="#C7DDF3" stroke-width="2"/>
+<path d="M263 282L274 279L288 286L284 299L272 307L264 298Z" fill="#1F689E"/>
+<path d="M267 296L281 280L287 287L275 303Z" fill="#86CFE5"/>
+<!-- right trophy arm -->
+<path d="M314 245Q354 237 374 197" stroke="#397BBE" stroke-width="33" stroke-linecap="round"/>
+<path d="M318 242Q353 232 371 196" stroke="url(#shell)" stroke-width="24" stroke-linecap="round"/>
+<path d="M364 191C370 178 386 177 396 183Q403 193 390 207Q382 219 367 213Z" fill="url(#blue)" stroke="#1F579B" stroke-width="5"/>
+<!-- head shell -->
+<g transform="rotate(8 254 165)">
+ <rect x="146" y="75" width="220" height="168" rx="82" fill="url(#shell)" stroke="#4D8DCD" stroke-width="6"/>
+ <path d="M167 130Q160 105 184 92Q211 70 278 81Q344 88 353 137" stroke="#FFF" stroke-width="13" stroke-linecap="round" opacity=".78"/>
+ <rect x="170" y="101" width="173" height="119" rx="57" fill="url(#glass)" stroke="#648BB5" stroke-width="5"/>
+ <ellipse cx="204" cy="129" rx="32" ry="11" fill="#A3E1FF" opacity=".14" transform="rotate(-19 204 129)"/>
+ <!-- facial eyes -->
+ <path d="M210 166Q221 144 237 166" stroke="#FFF" stroke-width="10" stroke-linecap="round"/>
+ <path d="M267 165Q279 142 295 165" stroke="#FFF" stroke-width="10" stroke-linecap="round"/>
+ <path d="M240 184Q253 201 267 184" stroke="#FFF" stroke-width="7" stroke-linecap="round"/>
+ <ellipse cx="202" cy="185" rx="12" ry="7" fill="#FF98AD" opacity=".96"/>
+ <ellipse cx="311" cy="182" rx="12" ry="7" fill="#FF98AD" opacity=".96"/>
+ <path d="M205 87Q253 65 308 92" stroke="#7DC7F4" stroke-width="11" stroke-linecap="round"/>
+</g>
+<!-- headphones -->
+<rect x="137" y="134" width="41" height="70" rx="21" fill="url(#blue)" stroke="#2E73B6" stroke-width="6" transform="rotate(-12 137 134)"/>
+<rect x="337" y="139" width="31" height="68" rx="17" fill="url(#blue)" stroke="#1C69AD" stroke-width="5" transform="rotate(11 337 139)"/>
+<rect x="150" y="146" width="13" height="43" rx="6" fill="#C8EBFF" opacity=".8"/>
+</svg>
