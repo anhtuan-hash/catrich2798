@@ -118,6 +118,8 @@ export default function Settings({
   const [query, setQuery] = useState('');
   const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' });
   const [activeModule, setActiveModule] = useState(null);
+  const [motionDirty, setMotionDirty] = useState(false);
+  const drawerRef = useRef(null);
   const drawerCloseRef = useRef(null);
   const previousTriggerRef = useRef(null);
   const moduleTitle = SETTINGS_LAUNCHER_TILES.find(item => item.id === activeModule);
@@ -128,22 +130,37 @@ export default function Settings({
     setActiveModule(id);
   };
   const closeModule = () => {
+    if (activeModule === 'appearance' && motionDirty && !window.confirm(vi ? 'Bạn có thay đổi hiệu ứng chưa lưu hoặc công bố. Đóng và bỏ phần xem trước?' : 'You have unpublished motion changes. Close and discard the preview?')) return;
     if (passwordForm.current || passwordForm.next || passwordForm.confirm) {
       if (!window.confirm(vi ? 'Bạn có thông tin mật khẩu chưa gửi. Đóng và bỏ nội dung đang nhập?' : 'Discard your unsent password changes?')) return;
       setPasswordForm({ current: '', next: '', confirm: '' });
     }
     setActiveModule(null);
+    setMotionDirty(false);
     requestAnimationFrame(() => previousTriggerRef.current?.focus?.());
   };
   useEffect(() => {
     if (!activeModule) return undefined;
     drawerCloseRef.current?.focus();
-    const handleEscape = (event) => {
-      if (event.key === 'Escape') { event.preventDefault(); closeModule(); }
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const handleKeys = (event) => {
+      // Nested authentication portals manage their own Escape keys.
+      if (!event.target?.closest?.('.settings-launcher-drawer')) return;
+      if (event.key === 'Escape') { event.preventDefault(); closeModule(); return; }
+      if (event.key !== 'Tab') return;
+      const controls = [...(drawerRef.current?.querySelectorAll('a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])') || [])]
+        .filter(element => element.getClientRects().length > 0);
+      if (!controls.length) return;
+      if (event.shiftKey && document.activeElement === controls[0]) {
+        event.preventDefault(); controls[controls.length - 1].focus();
+      } else if (!event.shiftKey && document.activeElement === controls[controls.length - 1]) {
+        event.preventDefault(); controls[0].focus();
+      }
     };
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [activeModule, passwordForm.current, passwordForm.next, passwordForm.confirm]);
+    window.addEventListener('keydown', handleKeys);
+    return () => { document.body.style.overflow = previousOverflow; window.removeEventListener('keydown', handleKeys); };
+  }, [activeModule, motionDirty, passwordForm.current, passwordForm.next, passwordForm.confirm]);
   const [passwordStatus, setPasswordStatus] = useState({ loading: false, message: '', ok: false });
   const importInputRef = useRef(null);
   const authProviders = useMemo(() => Array.isArray(currentUser?.authProviders) ? currentUser.authProviders : [], [currentUser?.authProviders]);
@@ -222,6 +239,7 @@ export default function Settings({
   };
 
   const clearCache = () => {
+    if (!window.confirm(vi ? 'Xóa bộ nhớ đệm và dữ liệu tạm trên thiết bị này?' : 'Clear local cache and temporary data on this device?')) return;
     const keys = [];
     for (let i = 0; i < localStorage.length; i += 1) {
       const key = localStorage.key(i);
@@ -232,6 +250,7 @@ export default function Settings({
   };
 
   const resetSettings = () => {
+    if (!window.confirm(vi ? 'Khôi phục các tùy chọn thiết bị về mặc định?' : 'Reset device preferences to defaults?')) return;
     setPerformanceMode?.('auto');
     setIndicatorMode?.('on');
     const resetBooleans = [
@@ -303,7 +322,7 @@ export default function Settings({
           {activeModule ? <button type="button" className="settings-launcher-backdrop"
             onClick={closeModule} aria-label={vi ? 'Đóng bảng cài đặt' : 'Close settings panel'} /> : null}
           {activeModule ? (
-            <section className="settings-launcher-drawer" role="dialog" aria-modal="true"
+            <section ref={drawerRef} className="settings-launcher-drawer" role="dialog" aria-modal="true"
               aria-label={vi ? moduleTitle?.vi || 'Cài đặt' : moduleTitle?.en || 'Settings'}>
               <header className="settings-launcher-drawer-header">
                 <span><M3Icon name={activeModule === 'account' ? 'person' : activeModule === 'notifications' ? 'bell' : activeModule === 'data' ? 'storage' : activeModule === 'security' ? 'shield' : 'settings'} /></span>
@@ -368,7 +387,7 @@ export default function Settings({
                 <SettingRow title={vi ? 'Đồng bộ tự động' : 'Automatic sync'}><Toggle checked={dataSyncEnabled} onChange={toggleBoolean(setDataSyncEnabled, 'bes-global-data-sync')} label="Data sync" /></SettingRow>
                 <SettingRow title={vi ? 'Đồng bộ trực tiếp' : 'Live sync'}><Toggle checked={liveSyncEnabled} onChange={toggleBoolean(setLiveSyncEnabled, 'bes-global-notice-live-sync')} label="Live sync" /></SettingRow>
                 <SettingRow title={vi ? 'Chỉ đồng bộ khi có Wi-Fi' : 'Sync on Wi-Fi only'}><Toggle checked={wifiOnly} onChange={toggleBoolean(setWifiOnly, 'bes-sync-wifi-only')} label="Wi-Fi only" /></SettingRow>
-                <SettingRow title={vi ? 'Thiết bị đã kết nối' : 'Connected devices'}><button type="button" className="settings-m3-text-button">{vi ? 'Thiết bị hiện tại' : 'Current device'} <b>›</b></button></SettingRow>
+                <SettingRow title={vi ? 'Phạm vi cài đặt' : 'Settings scope'} description={vi ? 'Các công tắc trên đang được lưu trên thiết bị này.' : 'These preferences are stored on this device.'}><span className="settings-m3-status-chip">{vi ? 'Thiết bị hiện tại' : 'Current device'}</span></SettingRow>
               </article>
             ) : null}
 
@@ -386,8 +405,8 @@ export default function Settings({
                 <CardHeader icon="shield" tone="indigo" title={vi ? 'Quyền riêng tư & bảo mật' : 'Privacy & security'} subtitle={vi ? 'Bảo vệ dữ liệu và quyền riêng tư.' : 'Protect your data and privacy.'} />
                 <SettingRow title={vi ? 'Hiển thị trạng thái hoạt động' : 'Show active status'}><Toggle checked={activeStatus} onChange={toggleBoolean(setActiveStatus, 'bes-active-status')} label="Active status" /></SettingRow>
                 <SettingRow title={vi ? 'Cho phép tìm kiếm qua email' : 'Allow email discovery'}><Toggle checked={emailDiscovery} onChange={toggleBoolean(setEmailDiscovery, 'bes-email-discovery')} label="Email discovery" /></SettingRow>
-                <SettingRow title={vi ? 'Mã hóa dữ liệu' : 'Data encryption'}><span className="settings-m3-status-chip">{vi ? 'Đang bật' : 'Enabled'}</span></SettingRow>
-                <SettingRow title={vi ? 'Xem và tải dữ liệu của bạn' : 'View and download your data'}><button type="button" className="settings-m3-outlined-button" onClick={exportSettings}>{vi ? 'Xuất dữ liệu' : 'Export data'}</button></SettingRow>
+                <SettingRow title={vi ? 'Bảo vệ dữ liệu' : 'Data protection'} description={vi ? 'Cơ chế bảo vệ do dịch vụ xác thực và lưu trữ quản lý.' : 'Managed by the authentication and storage providers.'}><span className="settings-m3-status-chip">{vi ? 'Theo nhà cung cấp' : 'Provider managed'}</span></SettingRow>
+                <SettingRow title={vi ? 'Xuất cài đặt thiết bị' : 'Export device preferences'}><button type="button" className="settings-m3-outlined-button" onClick={exportSettings}>{vi ? 'Xuất cấu hình' : 'Export configuration'}</button></SettingRow>
               </article>
             ) : null}
 
@@ -411,7 +430,7 @@ export default function Settings({
             ) : null}
 
             {activeModule === 'appearance' && ['admin', 'administrator'].includes(String(currentUser?.role || '').toLowerCase()) && matches('chuyển động', 'motion', 'hiệu ứng', 'indicator', 'điều hướng', 'hệ thống', 'system') ? (
-              <div className="settings-motion-admin-hub"><GlobalMotionAdminPanel currentUser={currentUser} language={language} /></div>
+              <div className="settings-motion-admin-hub"><GlobalMotionAdminPanel currentUser={currentUser} language={language} onDirtyChange={setMotionDirty} /></div>
             ) : null}
 
             {(activeModule === 'data' || activeModule === 'appearance') && matches('hệ thống', 'system', 'hiệu năng', 'performance', 'cache', 'ngôn ngữ') ? (
@@ -419,9 +438,7 @@ export default function Settings({
                 <CardHeader icon="speed" tone="orange" title={vi ? 'Hiệu năng hệ thống' : 'System performance'} subtitle={vi ? 'Tối ưu hiệu năng và lưu trữ.' : 'Optimize performance and storage.'} />
                 <SettingRow title={vi ? 'Chế độ hiệu năng' : 'Performance mode'} description={`${vi ? 'Đang áp dụng' : 'Active'}: ${resolvedPerformance}`}><SelectControl value={performanceMode} onChange={(event) => setPerformanceMode?.(event.target.value)}><option value="auto">Auto</option><option value="low">Low</option><option value="balanced">Balanced</option><option value="high">High</option></SelectControl></SettingRow>
                 <SettingRow title={vi ? 'Ngôn ngữ' : 'Language'}><SelectControl value={language} onChange={(event) => setLanguage?.(event.target.value)}><option value="vi">Tiếng Việt</option><option value="en">English</option></SelectControl></SettingRow>
-                <div className="settings-m3-storage">
-                  <div><span><M3Icon name="storage" size={19} />{vi ? 'Dung lượng đã dùng' : 'Storage used'}</span><b>2.4 GB / 10 GB</b></div><progress value="24" max="100" />
-                </div>
+                <div className="settings-m3-storage"><div><span><M3Icon name="storage" size={19} />{vi ? 'Dung lượng lưu trữ' : 'Storage usage'}</span><b>{vi ? 'Chưa có số liệu xác minh' : 'No verified measurement'}</b></div></div>
                 <SettingRow title={vi ? 'Tự động dọn dẹp' : 'Automatic cleanup'}><SelectControl value={autoCleanup} onChange={(event) => updateTextSetting(setAutoCleanup, 'bes-auto-cleanup')(event.target.value)}><option value="7">7 {vi ? 'ngày' : 'days'}</option><option value="30">30 {vi ? 'ngày' : 'days'}</option><option value="90">90 {vi ? 'ngày' : 'days'}</option><option value="never">{vi ? 'Không tự động' : 'Never'}</option></SelectControl></SettingRow>
                 <div className="settings-m3-utility-actions">
                   <button type="button" onClick={clearCache}>{vi ? 'Xóa bộ nhớ đệm' : 'Clear cache'}</button>
