@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { CalendarDays, Plus, Search, Eye, Save, Send, UploadCloud, X, Users, Clock3, CheckCircle2, PauseCircle, Image as ImageIcon, BarChart3, ArrowLeft, Copy, ExternalLink } from 'lucide-react';
 import { isAdminRole } from '../../../utils/roles.js';
+import { isRequiredEventRecipient, resolveEventRecipientIds } from '../utils/eventAudience.mjs';
 import {
   listManagedEvents, listEventProfiles, listRecipientIds, saveEventDraft,
   uploadEventPoster, getEventPosterUrl, publishEvent, reannounceEvent, changeEventStatus,
@@ -106,7 +107,7 @@ export default function EventManagerPage({currentUser}) {
         setPoster(null);
       }
       setSelected(latest);
-      const out=await publishEvent(latest.id,recipientIds);
+      const out=await publishEvent(latest.id,effectiveRecipientIds);
       setSelected(out);setConfirmPublish(false);
       setNotice('Đã lưu'+(out.poster_path?' poster và':'')+' xuất bản sự kiện thành công.');
       await load();
@@ -134,7 +135,9 @@ export default function EventManagerPage({currentUser}) {
     try{setAnalytics(await eventAnalytics(item.id));}catch(e){setError(e.message);}
   };
   const displayEvents=useMemo(()=>events.filter(x=>(x.title+' '+x.category).toLocaleLowerCase('vi').includes(query.toLocaleLowerCase('vi'))),[events,query]);
-  const chosen=profiles.filter(p=>recipientIds.includes(p.id));
+  const effectiveRecipientIds=useMemo(()=>resolveEventRecipientIds(profiles,recipientIds),[profiles,recipientIds]);
+  const mandatoryCount=profiles.filter(isRequiredEventRecipient).length;
+  const chosen=profiles.filter(p=>effectiveRecipientIds.includes(p.id));
   if(!allowed)return null;
   return <section className="bea-admin" id="event-manager-admin" aria-label="Quản lý sự kiện">
     <header className="bea-head">
@@ -184,9 +187,9 @@ export default function EventManagerPage({currentUser}) {
             <Input title="Liên kết Google Meet" type="url" value={form.meeting_url} onChange={v=>setField('meeting_url',v)} placeholder="https://meet.google.com/..."/>
             <Input title="Mã phòng họp" value={form.meeting_code} onChange={v=>setField('meeting_code',v)}/>
             <Input title="Ưu tiên" value={form.priority} onChange={v=>setField('priority',v)}><option value="normal">Thông thường</option><option value="important">Quan trọng</option><option value="urgent">Khẩn</option></Input>
-            <Input title="Tần suất" value={form.frequency} onChange={v=>setField('frequency',v)}><option value="once">Một lần / sự kiện</option><option value="per_login">Mỗi lần giáo viên đăng nhập</option><option value="daily">Hằng ngày đến khi xác nhận</option><option value="until_ack">Mỗi lần vào Dashboard đến khi xác nhận</option></Input>
+            <Input title="Tần suất" value={form.frequency} onChange={v=>setField('frequency',v)}><option value="once">Một lần / sự kiện</option><option value="per_login">Mỗi lần người nhận đăng nhập</option><option value="daily">Hằng ngày đến khi xác nhận</option><option value="until_ack">Mỗi lần vào Dashboard đến khi xác nhận</option></Input>
           </div>
-          {form.frequency==='per_login'&&<p className="bea-help" role="note">Popup sẽ mở lại mỗi khi giáo viên đăng xuất rồi đăng nhập lại. Không bật liên tục khi chuyển trang hoặc làm mới Dashboard trong cùng phiên đăng nhập.</p>}
+          {form.frequency==='per_login'&&<p className="bea-help" role="note">Popup sẽ mở lại mỗi khi người nhận đăng xuất rồi đăng nhập lại. Không bật liên tục khi chuyển trang hoặc làm mới Dashboard trong cùng phiên đăng nhập.</p>}
           <div className="bea-section-label"><span>03</span><h3>Poster & người nhận</h3></div>
           <label className="bea-file"><UploadCloud size={21}/><span>{poster?.name||'Tải poster JPG, PNG, WebP (tối đa 10MB)'}</span><input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>setPoster(e.target.files?.[0]||null)}/></label>
           <div className={'bea-poster-status '+(poster?'is-pending':selected?.poster_path?'is-ready':'is-missing')} role="status">
@@ -194,17 +197,20 @@ export default function EventManagerPage({currentUser}) {
               :selected?.poster_path?'Poster đã được lưu trên hệ thống và có thể hiển thị cho giáo viên.'
               :'Chưa có poster trên hệ thống. Popup giáo viên sẽ không thể hiện hình.'}</span>
           </div>
-          <div className="bea-audience-head"><strong><Users size={16}/> Danh sách giáo viên</strong><span>{recipientIds.length} được chọn</span></div>
+          <div className="bea-audience-head"><strong><Users size={16}/> Đối tượng nhận thông báo</strong><span>{effectiveRecipientIds.length} người nhận</span></div>
           <div className="bea-audience-toolbar">
-            <button type="button" onClick={()=>setRecipientIds(profiles.filter(p=>p.role==='teacher'||p.role==='department_head').map(x=>x.id))}>Chọn tất cả giáo viên</button>
+            <button type="button" onClick={()=>setRecipientIds(profiles.filter(p=>p.role==='teacher').map(x=>x.id))}>Chọn tất cả giáo viên</button>
             <button type="button" onClick={()=>setRecipientIds([])}>Bỏ chọn</button>
           </div>
-          <p className="bea-help">Chọn cụ thể GVCN khối 11 theo danh sách phân công đã xác minh. Hệ thống không suy đoán khối lớp từ tên giáo viên.</p>
-          <div className="bea-audience-list">{profiles.map(p=><label key={p.id}><input type="checkbox" checked={recipientIds.includes(p.id)} onChange={()=>toggleRecipient(p.id)}/><span><strong>{p.full_name||p.email}</strong><small>{p.job_title||p.role}</small></span></label>)}</div>
+          <p className="bea-help"><strong>Admin và TTCM được nhận mặc định ({mandatoryCount} tài khoản).</strong> Chọn thêm giáo viên phù hợp với sự kiện. Hệ thống không suy đoán khối lớp từ tên giáo viên.</p>
+          <div className="bea-audience-list">{profiles.map(p=>{
+            const required=isRequiredEventRecipient(p);
+            return <label key={p.id}><input type="checkbox" checked={required || recipientIds.includes(p.id)} disabled={required} onChange={()=>toggleRecipient(p.id)}/><span><strong>{p.full_name||p.email}</strong><small>{required ? (p.role==='admin'?'Admin · Luôn nhận':'TTCM · Luôn nhận') : p.job_title||p.role}</small></span></label>;
+          })}</div>
           <div className="bea-form-actions">
             <button type="button" className="bea-secondary" onClick={()=>{setForm({...HALLOWEEN_TEMPLATE});setError('');}}>Điền mẫu Halloween</button>
             <button type="button" className="bea-primary" disabled={saving} onClick={save}><Save size={17}/>{saving?'Đang lưu…':'Lưu sự kiện & poster'}</button>
-            <button type="button" className="bea-publish" disabled={saving||!selected?.id||!recipientIds.length||selected.status==='cancelled'} onClick={()=>setConfirmPublish(true)}><Send size={17}/> Xuất bản ({recipientIds.length})</button>
+            <button type="button" className="bea-publish" disabled={saving||!selected?.id||!effectiveRecipientIds.length||selected.status==='cancelled'} onClick={()=>setConfirmPublish(true)}><Send size={17}/> Xuất bản ({effectiveRecipientIds.length})</button>
           </div>
           {selected?.status==='published'&&<p className="bea-help">Sự kiện này đã xuất bản. Lưu chỉnh sửa nội dung không tự bật lại popup cho giáo viên đã xem.</p>}
         </div>
@@ -213,12 +219,12 @@ export default function EventManagerPage({currentUser}) {
           <div className="bea-preview-body">{posterUrl?<img src={posterUrl} alt="Xem trước poster sự kiện"/>:<div className="bea-preview-no-poster"><ImageIcon size={36}/><p>Poster sự kiện sẽ hiển thị tại đây</p></div>}
             <span className="bea-preview-category">{form.category}</span><h3>{form.title||'Tên sự kiện'}</h3><p>{form.summary||'Mô tả ngắn sự kiện'}</p>
             <div className="bea-preview-detail"><Clock3 size={16}/>{form.event_start_at?formatTime(new Date(form.event_start_at).toISOString()):'Chưa chọn thời gian'}</div>
-            <div className="bea-preview-detail"><Users size={16}/>{chosen.length} giáo viên được chọn</div>
+            <div className="bea-preview-detail"><Users size={16}/>{chosen.length} tài khoản nhận thông báo</div>
             <button type="button" disabled> Xem chi tiết </button>
           </div>
         </aside>
       </div>
-      {confirmPublish&&<div className="bea-confirm-layer" role="presentation"><section className="bea-confirm" role="alertdialog" aria-modal="true" aria-labelledby="bea-confirm-title"><h3 id="bea-confirm-title">Xuất bản sự kiện?</h3><p>Thông báo sẽ được phân phối cho <strong>{recipientIds.length} tài khoản được chọn</strong> khi đến thời gian hiển thị. Hãy xác nhận đã kiểm tra poster, ngày giờ và danh sách người nhận.</p><div><button onClick={()=>setConfirmPublish(false)}>Kiểm tra lại</button><button className="bea-publish" disabled={saving} onClick={publish}>Xác nhận xuất bản</button></div></section></div>}
+      {confirmPublish&&<div className="bea-confirm-layer" role="presentation"><section className="bea-confirm" role="alertdialog" aria-modal="true" aria-labelledby="bea-confirm-title"><h3 id="bea-confirm-title">Xuất bản sự kiện?</h3><p>Thông báo sẽ được phân phối cho <strong>{effectiveRecipientIds.length} tài khoản</strong> (bao gồm Admin/TTCM mặc định) khi đến thời gian hiển thị. Hãy xác nhận đã kiểm tra poster, ngày giờ và danh sách người nhận.</p><div><button onClick={()=>setConfirmPublish(false)}>Kiểm tra lại</button><button className="bea-publish" disabled={saving} onClick={publish}>Xác nhận xuất bản</button></div></section></div>}
     </>:null}
     {screen==='analytics'&&<div className="bea-analytics"><button className="bea-back" onClick={()=>setScreen('list')}><ArrowLeft size={15}/> Danh sách sự kiện</button><h3>{selected?.title}</h3>{analytics?<div className="bea-metrics">{[['Người nhận',analytics.recipients],['Đã hiển thị',analytics.shown],['Đã xem chi tiết',analytics.details],['Đã xác nhận',analytics.acknowledged]].map(([k,v])=><div className="bea-metric" key={k}><strong>{v}</strong><span>{k}</span></div>)}</div>:<p>Đang tải báo cáo…</p>}<p className="bea-help">Đã hiển thị không đồng nghĩa đã đọc hoặc đã tham dự.</p></div>}
   </section>;
