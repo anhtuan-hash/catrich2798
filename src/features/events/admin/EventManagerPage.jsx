@@ -184,8 +184,9 @@ export default function EventManagerPage({currentUser}) {
             <Input title="Liên kết Google Meet" type="url" value={form.meeting_url} onChange={v=>setField('meeting_url',v)} placeholder="https://meet.google.com/..."/>
             <Input title="Mã phòng họp" value={form.meeting_code} onChange={v=>setField('meeting_code',v)}/>
             <Input title="Ưu tiên" value={form.priority} onChange={v=>setField('priority',v)}><option value="normal">Thông thường</option><option value="important">Quan trọng</option><option value="urgent">Khẩn</option></Input>
-            <Input title="Tần suất" value={form.frequency} onChange={v=>setField('frequency',v)}><option value="once">Một lần / sự kiện</option><option value="daily">Hằng ngày đến khi xác nhận</option><option value="until_ack">Mỗi lần vào Dashboard đến khi xác nhận</option></Input>
+            <Input title="Tần suất" value={form.frequency} onChange={v=>setField('frequency',v)}><option value="once">Một lần / sự kiện</option><option value="per_login">Mỗi lần giáo viên đăng nhập</option><option value="daily">Hằng ngày đến khi xác nhận</option><option value="until_ack">Mỗi lần vào Dashboard đến khi xác nhận</option></Input>
           </div>
+          {form.frequency==='per_login'&&<p className="bea-help" role="note">Popup sẽ mở lại mỗi khi giáo viên đăng xuất rồi đăng nhập lại. Không bật liên tục khi chuyển trang hoặc làm mới Dashboard trong cùng phiên đăng nhập.</p>}
           <div className="bea-section-label"><span>03</span><h3>Poster & người nhận</h3></div>
           <label className="bea-file"><UploadCloud size={21}/><span>{poster?.name||'Tải poster JPG, PNG, WebP (tối đa 10MB)'}</span><input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>setPoster(e.target.files?.[0]||null)}/></label>
           <div className={'bea-poster-status '+(poster?'is-pending':selected?.poster_path?'is-ready':'is-missing')} role="status">
