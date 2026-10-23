@@ -10,8 +10,9 @@ import {
   gradeScoreNumber as scoreNumber,
 } from '../../utils/homeroomGradebookExport.js';
 import './GradebookMacEngine.css';
+import './GradebookMacUtilities.css';
 import { filterGradebookStudentView } from '../../utils/gradebookStudentView.js';
-import { Plus, Search, ArrowDownToLine, ChevronRight, Check, FileSpreadsheet, FileText, Save, SlidersHorizontal, X, ChevronDown } from 'lucide-react';
+import { Plus, Search, ArrowDownToLine, ChevronRight, Check, FileSpreadsheet, FileText, Save, SlidersHorizontal, X, ChevronDown, LayoutGrid, GraduationCap, BarChart3, Settings2, BookOpen, ShieldCheck, UsersRound } from 'lucide-react';
 import GradebookProductivityPanel from './GradebookProductivityPanel.jsx';
 import GradebookSemesterMission from './GradebookSemesterMission.jsx';
 import GradebookMockExams from './GradebookMockExams.jsx';
@@ -344,6 +345,7 @@ export default function GradebookMacEngine({ workspace, onCommit, currentUser, t
   const [missingOnly, setMissingOnly] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
   const [insightsOpen, setInsightsOpen] = useState(false);
+  const [utilityPage, setUtilityPage] = useState('tools');
   const toolboxRef = useRef(null);
   const toolboxTriggerRef = useRef(null);
   useEffect(() => {
@@ -1099,50 +1101,139 @@ export default function GradebookMacEngine({ workspace, onCommit, currentUser, t
       <ChevronRight size={17} aria-hidden="true"/>
     </button>
 
-    {insightsOpen ? createPortal(<div className="gbmac-tools-overlay" role="presentation">
-      <button type="button" className="gbmac-scrim" aria-label="Đóng công cụ" onClick={()=>setInsightsOpen(false)} />
-      <section className="gbmac-tools-dialog" role="dialog" aria-modal="true" aria-labelledby="gbmac-tools-title" ref={toolboxRef}>
+    {insightsOpen ? createPortal(<div className="gbmac-tools-overlay gbmac-utilities" role="presentation">
+      <button type="button" className="gbmac-scrim" aria-label="Đóng cửa sổ công cụ" onClick={() => setInsightsOpen(false)}/>
+      <section className="gbmac-tools-dialog" role="dialog" aria-modal="true"
+        aria-labelledby="gbmac-tools-title" ref={toolboxRef}>
         <header className="gbmac-tools-header">
-          <div><span>GRADEBOOK · UTILITIES</span><h2 id="gbmac-tools-title">Công cụ Sổ điểm</h2>
-            <p>Các công cụ ít dùng được tập trung tại đây để bảng nhập điểm luôn gọn gàng.</p>
-          </div>
-          <button type="button" data-gradebook-modal-close aria-label="Đóng" onClick={()=>setInsightsOpen(false)}><X size={20}/></button>
-        </header>
-        <div className="gbmac-tools-body">
-          {showMockExams ? <button type="button" className="gbmac-tool-option" onClick={()=>{setView('mock');setInsightsOpen(false);}}>Thi thử lớp 12 <ChevronRight size={16}/></button>:null}
-          <details className="gbmac-tool-group"><summary>Quản lý lớp và phân công <ChevronDown size={16}/></summary><div>{classManagement}{teachingOverview}</div></details>
-          <details className="gbmac-tool-group"><summary>Quản lý môn học <ChevronDown size={16}/></summary>
-            <div className="gbmac-tool-fields">
-              <label>Môn hiện tại<select value={activeSubjectKey} onChange={(event)=>setActiveSubjectKey(event.target.value)}>
-                {subjectEntries.map(([key,subject])=><option key={key} value={key}>{subject.name}</option>)}
-              </select></label>
-              <label>Thêm môn<input value={newSubject} onChange={(event)=>setNewSubject(event.target.value)} onKeyDown={(event)=>{if(event.key==='Enter')openSubject();}} placeholder="Tên môn mới" /></label>
-              <button type="button" onClick={openSubject}>Thêm môn</button>
+          <div className="gbmac-utilities-brand">
+            <span className="gbmac-utilities-symbol" aria-hidden="true"><SlidersHorizontal size={21}/></span>
+            <div>
+              <span>BRIAN ENGLISH · GRADEBOOK</span>
+              <h2 id="gbmac-tools-title">Công cụ Sổ điểm</h2>
+              <p>Quản lý điểm và học sinh trong một không gian làm việc.</p>
             </div>
-          </details>
-          <details className="gbmac-tool-group"><summary>Nhập Excel, chốt điểm, nhật ký và nâng cao <ChevronDown size={16}/></summary><div>
-            <GradebookProductivityPanel
-              students={students} semester={activeSemester} activeRound={activeRound} roundIndex={roundIndex}
-              gradebook={gradebook} subjectKey={activeSubjectKey} semesterId={semesterId}
-              onPaste={applyPaste} onSetFinalization={updateFinalization}
-              onSaveRubric={recordRubric} onRestoreHistory={restoreHistory}
-              subjectName={activeSubject?.name||'Môn học'} workspace={workspace} currentUser={currentUser}
-              finalized={finalized} onSetAlertSettings={updateAlertSettings}
-              onSetIntervention={updateIntervention} dirty={dirty}
-              computeRoundScore={(round,studentId)=>roundScore(round,studentId,studentIds)}
-            />
-          </div></details>
-          <details className="gbmac-tool-group"><summary>Tiến độ và học sinh còn thiếu điểm <ChevronDown size={16}/></summary><div>
-            <GradebookSemesterMission sections={missionSections} summary={missionSummary} queue={missionQueue}
-              onSelectSection={(id)=>{openMissionSection(id);setInsightsOpen(false);}}
-              onSelectStudent={(entry)=>{openMissionStudent(entry);setInsightsOpen(false);}}
-              finalized={finalized} />
-          </div></details>
-          <details className="gbmac-tool-group"><summary>Công thức tính điểm <ChevronDown size={16}/></summary><p>Điểm cộng = Dấu + / Dấu + cao nhất lớp (tối đa 1). Điểm đợt = min(10, trung bình các cột điểm + điểm cộng). Không coi điểm trống là 0.</p></details>
-          <div className="gbmac-tool-minor"><button type="button" onClick={()=>setDensity(x=>x==='compact'?'comfortable':'compact')}>
-            {density==='compact'?'Bảng thoáng':'Bảng gọn'}</button>
-            <button type="button" onClick={()=>setFocusMode(x=>!x)}>{focusMode?'Thoát tập trung':'Chế độ tập trung'}</button></div>
-          {supportPanel ? <details className="gbmac-tool-group"><summary>Hồ sơ và hỗ trợ học sinh <ChevronDown size={16}/></summary><div>{supportPanel}</div></details> : null}
+          </div>
+          <button type="button" data-gradebook-modal-close aria-label="Đóng Công cụ Sổ điểm"
+            className="gbmac-utilities-close" onClick={() => setInsightsOpen(false)}><X size={19}/></button>
+        </header>
+
+        <div className="gbmac-utilities-frame">
+          <nav className="gbmac-utilities-sidebar" aria-label="Nhóm công cụ Sổ điểm">
+            <div className="gbmac-utilities-nav-caption">KHÔNG GIAN LÀM VIỆC</div>
+            {[
+              {id:'tools',icon:LayoutGrid,name:'Nhập & công cụ',hint:'Nhập nhanh, chốt, nhật ký'},
+              {id:'progress',icon:BarChart3,name:'Tiến độ học kỳ',hint:'Theo dõi và hoàn thiện'},
+              {id:'classes',icon:UsersRound,name:'Lớp & phân công',hint:'Lớp học, giáo viên'},
+              {id:'settings',icon:Settings2,name:'Thiết lập khác',hint:'Môn học và hỗ trợ'},
+            ].map(item=><button type="button" key={item.id}
+              className={'gbmac-utilities-nav-item'+(utilityPage===item.id?' is-current':'')}
+              aria-current={utilityPage===item.id?'page':undefined}
+              onClick={()=>setUtilityPage(item.id)}>
+              <item.icon size={18} strokeWidth={1.85} aria-hidden="true"/>
+              <span><strong>{item.name}</strong><small>{item.hint}</small></span>
+              {utilityPage===item.id?<span className="gbmac-utilities-current-dot" aria-hidden="true"/>:null}
+            </button>)}
+            <div className="gbmac-utilities-sidebar-foot"><ShieldCheck size={15} aria-hidden="true"/>
+              <span>Thay đổi chỉ được ghi nhận khi lưu sổ điểm.</span></div>
+          </nav>
+
+          <div className="gbmac-utilities-main">
+            <section className="gbmac-utilities-page" hidden={utilityPage!=='tools'} aria-label="Nhập điểm và công cụ">
+              <header className="gbmac-utilities-page-head">
+                <span className="gbmac-utilities-kicker">CÔNG CỤ NHẬP LIỆU</span>
+                <h3>Nhập điểm & nghiệp vụ</h3>
+                <p>Nhập Excel, theo dõi dữ liệu, kiểm tra lỗi, chốt điểm và xem lịch sử.</p>
+              </header>
+              <GradebookProductivityPanel embedded
+                students={students}
+                semester={activeSemester}
+                activeRound={activeRound}
+                roundIndex={roundIndex}
+                gradebook={gradebook}
+                subjectKey={activeSubjectKey}
+                semesterId={semesterId}
+                onPaste={applyPaste}
+                onSetFinalization={updateFinalization}
+                onSaveRubric={recordRubric}
+                onRestoreHistory={restoreHistory}
+                subjectName={activeSubject?.name||'Môn học'}
+                workspace={workspace}
+                currentUser={currentUser}
+                finalized={finalized}
+                onSetAlertSettings={updateAlertSettings}
+                onSetIntervention={updateIntervention}
+                computeRoundScore={(round,studentId)=>roundScore(round,studentId,studentIds)}
+                dirty={dirty}
+              />
+            </section>
+
+            {utilityPage==='progress'? <section className="gbmac-utilities-page" aria-label="Tiến độ học kỳ">
+              <header className="gbmac-utilities-page-head">
+                <span className="gbmac-utilities-kicker">THỐNG KÊ ĐIỂM</span>
+                <h3>Tiến độ học kỳ</h3>
+                <p>Tình trạng hoàn thiện 6 thành phần điểm của lớp.</p>
+              </header>
+              <GradebookSemesterMission sections={missionSections} summary={missionSummary} queue={missionQueue}
+                onSelectSection={(id)=>{openMissionSection(id);setInsightsOpen(false);}}
+                onSelectStudent={(entry)=>{openMissionStudent(entry);setInsightsOpen(false);}}
+                finalized={finalized}/>
+            </section> : null}
+
+            {utilityPage==='classes'? <section className="gbmac-utilities-page" aria-label="Lớp và phân công">
+              <header className="gbmac-utilities-page-head">
+                <span className="gbmac-utilities-kicker">QUẢN LÝ LỚP HỌC</span>
+                <h3>Lớp & phân công</h3>
+                <p>Chọn lớp hoặc mở sổ điểm được phân công từ TTCM.</p>
+              </header>
+              <div className="gbmac-utilities-managed">
+                {classManagement}
+                {teachingOverview}
+              </div>
+            </section> : null}
+
+            {utilityPage==='settings'? <section className="gbmac-utilities-page" aria-label="Thiết lập và hỗ trợ">
+              <header className="gbmac-utilities-page-head">
+                <span className="gbmac-utilities-kicker">TÙY CHỈNH</span>
+                <h3>Thiết lập & hỗ trợ</h3>
+                <p>Quản lý môn học, chế độ hiển thị và hồ sơ học sinh.</p>
+              </header>
+              <div className="gbmac-utilities-settings">
+                <section className="gbmac-utilities-settings-card">
+                  <h4><BookOpen size={17} aria-hidden="true"/> Quản lý môn học</h4>
+                  <div className="gbmac-tool-fields">
+                    <label>Môn học hiện tại
+                      <select value={activeSubjectKey} onChange={(event)=>setActiveSubjectKey(event.target.value)}>
+                        {subjectEntries.map(([key,subject])=><option key={key} value={key}>{subject.name}</option>)}
+                      </select>
+                    </label>
+                    <label>Thêm môn học
+                      <input value={newSubject} onChange={(event)=>setNewSubject(event.target.value)}
+                        onKeyDown={(event)=>{if(event.key==='Enter')openSubject();}} placeholder="Ví dụ: Tiếng Anh"/>
+                    </label>
+                    <button type="button" onClick={openSubject}>Thêm môn</button>
+                  </div>
+                </section>
+                <section className="gbmac-utilities-settings-card">
+                  <h4><Settings2 size={17} aria-hidden="true"/> Chế độ hiển thị</h4>
+                  <div className="gbmac-tool-minor">
+                    <button type="button" onClick={()=>setDensity(x=>x==='compact'?'comfortable':'compact')}>
+                      {density==='compact'?'Bảng thoáng':'Bảng gọn'}
+                    </button>
+                    <button type="button" onClick={()=>setFocusMode(x=>!x)}>
+                      {focusMode?'Thoát tập trung':'Chế độ tập trung'}
+                    </button>
+                    {showMockExams?<button type="button" onClick={()=>{setView('mock');setInsightsOpen(false);}}>Thi thử lớp 12</button>:null}
+                  </div>
+                </section>
+                <section className="gbmac-utilities-settings-card">
+                  <h4><GraduationCap size={17} aria-hidden="true"/> Công thức tính điểm</h4>
+                  <p>Điểm cộng = Dấu + / Dấu + cao nhất lớp (tối đa 1). Điểm đợt = min(10, trung bình các cột đã có điểm + điểm cộng). Điểm chưa nhập không được tính là 0.</p>
+                </section>
+                {supportPanel?<section className="gbmac-utilities-settings-card"><h4><UsersRound size={17} aria-hidden="true"/> Hồ sơ và hỗ trợ học sinh</h4>{supportPanel}</section>:null}
+              </div>
+            </section> : null}
+          </div>
         </div>
       </section>
     </div>,document.getElementById('root') || document.body) : null}
