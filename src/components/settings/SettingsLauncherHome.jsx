@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Bell, ChevronRight, Compass, Database, Grid2X2, LayoutGrid, List, LockKeyhole, Palette, Pin, Search, Settings2, ShieldCheck, Sparkles, UserRound, WandSparkles, Layers3, Clock3, ArrowUpRight } from 'lucide-react';
+import { Bell, ChevronRight, Compass, Database, Grid2X2, LayoutGrid, List, LockKeyhole, Palette, Pin, Search, Settings2, ShieldCheck, Sparkles, UserRound, UserPlus, WandSparkles, Layers3, Clock3, ArrowUpRight } from 'lucide-react';
 import { isDepartmentLeaderRole } from '../../utils/roles.js';
 
 const TILES = [
@@ -9,6 +9,7 @@ const TILES = [
   {id:'hero',vi:'Hero',en:'Hero',desc:'Ảnh nền từng ứng dụng',sub:'App backgrounds',icon:Layers3,tone:'violet',keys:'dashboard chủ nhiệm sổ điểm kiểm tra nền'},
   {id:'apps',vi:'Ứng dụng',en:'Apps',desc:'Kho ứng dụng',sub:'Application directory',icon:Grid2X2,tone:'green',keys:'ứng dụng app catalog launcher'},
   {id:'permissions',vi:'Phân quyền',en:'Permissions',desc:'Quản trị và truy cập',sub:'Access management',icon:ShieldCheck,tone:'orange',keys:'admin ttcm quyền truy cập role',admin:true},
+  {id:'teacher-create',vi:'Tạo giáo viên',en:'Create teacher',desc:'Tạo nhanh tài khoản',sub:'Quick teacher account',icon:UserPlus,tone:'blue',keys:'tạo nhanh giáo viên tài khoản đăng nhập mật khẩu quick create teacher',admin:true},
   {id:'notifications',vi:'Thông báo',en:'Notifications',desc:'Âm báo và nhắc nhở',sub:'Alerts and reminders',icon:Bell,tone:'coral',keys:'email push nhắc nhở âm thanh rung'},
   {id:'data',vi:'Dữ liệu',en:'Data & sync',desc:'Đồng bộ và hiệu năng',sub:'Sync and performance',icon:Database,tone:'teal',keys:'wifi cache lưu trữ nhập xuất json dọn dẹp'},
   {id:'security',vi:'Bảo mật',en:'Security',desc:'Quyền riêng tư và MFA',sub:'Privacy and MFA',icon:LockKeyhole,tone:'slate',keys:'mfa xác thực quyền riêng tư bảo vệ'}
@@ -42,7 +43,7 @@ export default function SettingsLauncherHome({language='vi',currentUser,onOpen,d
     <section className="sl2-widgets">
       <button type="button" className="sl2-widget sl2-profile" onClick={()=>open('account')}><span className="sl2-avatar">{initials}</span><span><small>{vi?'Xin chào,':'Welcome,'}</small><strong>{name}</strong><em>{currentUser?.role||'Teacher'}</em></span><ArrowUpRight size={20}/><span className="sl2-profile-hint">{vi?'HỒ SƠ · CÀI ĐẶT TÀI KHOẢN':'PROFILE · ACCOUNT SETTINGS'}</span></button>
       <button type="button" className="sl2-widget sl2-sync" onClick={()=>open('data')}><span className="sl2-widget-caption"><Database size={18}/>{vi?'Trạng thái đồng bộ':'Sync settings'}<ChevronRight size={18}/></span><strong>{dataSyncEnabled&&liveSyncEnabled?(vi?'Đã bật đồng bộ':'Sync enabled'):(vi?'Kiểm tra cài đặt':'Review settings')}</strong><span>{vi?'Tự động':'Automatic'}: {dataSyncEnabled?(vi?'Bật':'On'):(vi?'Tắt':'Off')} · Live: {liveSyncEnabled?'On':'Off'}</span><small>{vi?'Theo cấu hình hiện tại, không phải chỉ số máy chủ.':'Based on your preferences, not server metrics.'}</small></button>
-      <div className="sl2-widget sl2-quick"><strong><WandSparkles size={18}/>{vi?'Thao tác nhanh':'Quick actions'}</strong><div>{[['account',UserRound,vi?'Hồ sơ':'Profile'],['appearance',Palette,vi?'Giao diện':'Theme'],...(manager?[['navigation',Compass,vi?'Điều hướng':'Navigation']]:[]),['data',Database,vi?'Dữ liệu':'Data']].map(([id,Icon,label])=><button type="button" key={id} onClick={()=>open(id)}><Icon size={23}/><span>{label}</span></button>)}</div></div>
+      <div className="sl2-widget sl2-quick"><strong><WandSparkles size={18}/>{vi?'Thao tác nhanh':'Quick actions'}</strong><div>{[['account',UserRound,vi?'Hồ sơ':'Profile'],['appearance',Palette,vi?'Giao diện':'Theme'],...(manager?[['navigation',Compass,vi?'Điều hướng':'Navigation']]:[]),['data',Database,vi?'Dữ liệu':'Data'],...(admin?[['teacher-create',UserPlus,vi?'Tạo GV':'Create']]:[])].map(([id,Icon,label])=><button type="button" key={id} onClick={()=>open(id)}><Icon size={23}/><span>{label}</span></button>)}</div></div>
     </section>
     <div className="sl2-bar"><div><h2>{vi?'Ứng dụng cài đặt':'Settings apps'}</h2><p>{vi?'Chạm vào một mục để quản lý và tùy chỉnh':'Select an app to configure'}</p></div><div className="sl2-switch"><button type="button" className={view==='grid'?'on':''} aria-pressed={view==='grid'} onClick={()=>listMode('grid')}><LayoutGrid size={17}/>{vi?'Lưới':'Grid'}</button><button type="button" className={view==='list'?'on':''} aria-pressed={view==='list'} onClick={()=>listMode('list')}><List size={17}/>{vi?'Danh sách':'List'}</button></div></div>
     <section className={'sl2-grid '+(view==='list'?'list':'')} aria-label={vi?'Ứng dụng cài đặt':'Settings apps'}>
