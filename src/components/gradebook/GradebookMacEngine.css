@@ -347,3 +347,163 @@
 @media(prefers-reduced-motion:reduce){
  .gbmac *, .gbmac *::before,.gbmac *::after{transition:none!important;scroll-behavior:auto!important}
 }
+
+
+/* ==========================================================================
+   Brian Gradebook / semantic assessment palette
+   A calm macOS surface with functional (not decorative) color coding.
+   Selected assessment maps to the same color as its own table accents.
+   ========================================================================== */
+.gbmac {
+  --gb-color-primary: #286bd5;
+  --gb-color-primary-soft: #eaf2ff;
+  --gb-color-border: #dfe7f2;
+  --gb-color-muted: #65758e;
+  --gb-view-color: #286bd5;
+  --gb-view-soft: #eaf2ff;
+  --gb-view-border: #bed5fb;
+}
+.gbmac[data-gbmac-view="regular-1"] {
+  --gb-view-color: #b44e3c;
+  --gb-view-soft: #fff0ed;
+  --gb-view-border: #f2d2ca;
+}
+.gbmac[data-gbmac-view="regular-2"] {
+  --gb-view-color: #a36a17;
+  --gb-view-soft: #fff5e3;
+  --gb-view-border: #efdcb7;
+}
+.gbmac[data-gbmac-view="regular-3"] {
+  --gb-view-color: #0d8263;
+  --gb-view-soft: #e6f7ef;
+  --gb-view-border: #bbe5d1;
+}
+.gbmac[data-gbmac-view="midterm"] {
+  --gb-view-color: #7650ac;
+  --gb-view-soft: #f4efff;
+  --gb-view-border: #dfd1f5;
+}
+.gbmac[data-gbmac-view="final"] {
+  --gb-view-color: #b44f78;
+  --gb-view-soft: #fff0f5;
+  --gb-view-border: #f4d2e0;
+}
+.gbmac[data-gbmac-view="summary"] {
+  --gb-view-color: #207c9f;
+  --gb-view-soft: #eaf8fe;
+  --gb-view-border: #c8e8f5;
+}
+.gbmac .gbmac-tabs button[data-tone="blue"] {
+  --gb-tab-color: #286bd5; --gb-tab-soft: #eaf2ff; --gb-tab-border: #cbdefb;
+}
+.gbmac .gbmac-tabs button[data-tone="red"] {
+  --gb-tab-color: #b44e3c; --gb-tab-soft: #fff0ed; --gb-tab-border: #f2d2ca;
+}
+.gbmac .gbmac-tabs button[data-tone="yellow"] {
+  --gb-tab-color: #a36a17; --gb-tab-soft: #fff5e3; --gb-tab-border: #efdcb7;
+}
+.gbmac .gbmac-tabs button[data-tone="green"] {
+  --gb-tab-color: #0d8263; --gb-tab-soft: #e6f7ef; --gb-tab-border: #bbe5d1;
+}
+.gbmac .gbmac-tabs button[data-tone="purple"] {
+  --gb-tab-color: #7650ac; --gb-tab-soft: #f4efff; --gb-tab-border: #dfd1f5;
+}
+.gbmac .gbmac-tabs button[data-tone="orange"] {
+  --gb-tab-color: #b44f78; --gb-tab-soft: #fff0f5; --gb-tab-border: #f4d2e0;
+}
+.gbmac .gbmac-tabs button[data-tone="cyan"] {
+  --gb-tab-color: #207c9f; --gb-tab-soft: #eaf8fe; --gb-tab-border: #c8e8f5;
+}
+.gbmac .gbmac-tabs button[data-tone] {
+  background: var(--gb-tab-soft);
+  color: var(--gb-tab-color);
+  border-color: var(--gb-tab-border);
+}
+.gbmac .gbmac-tabs button[data-tone]:hover:not(.is-selected) {
+  filter: saturate(1.08) brightness(.98);
+  border-color: var(--gb-tab-color);
+}
+.gbmac .gbmac-tabs button[data-tone].is-selected {
+  color: #fff;
+  background: var(--gb-tab-color);
+  border-color: var(--gb-tab-color);
+  box-shadow: 0 4px 11px rgb(38 62 99 / 12%);
+}
+.gbmac .gbmac-workspace-heading {
+  border-bottom-color: var(--gb-view-border);
+  background: linear-gradient(110deg, var(--gb-view-soft) 0%, #fff 70%);
+}
+.gbmac .gbmac-workspace-heading h2 { color: var(--gb-view-color); }
+.gbmac .gbmac-table-actions {
+  border-bottom: 1px solid var(--gb-view-border);
+  background: linear-gradient(95deg, #fff 38%, var(--gb-view-soft));
+}
+.gbmac .gbmac-table-actions .gbmac-add-column {
+  color: var(--gb-view-color);
+  background: var(--gb-view-soft);
+  border-color: var(--gb-view-border);
+}
+.gbmac .gbmac-table-actions .gbmac-add-column:hover:not(:disabled) {
+  border-color: var(--gb-view-color);
+  background: var(--gb-view-soft);
+}
+.gbmac .gbmac-search:focus-within {
+  border-color: var(--gb-view-color);
+  box-shadow: 0 0 0 3px var(--gb-view-soft);
+}
+.gbmac .gbmac-table input.hr-grade-input:focus-visible {
+  outline-color: var(--gb-view-color);
+  border-color: var(--gb-view-color);
+}
+.gbmac .gbmac-table thead th.gbmac-attempt {
+  border-top: 3px solid transparent;
+}
+.gbmac .gbmac-table thead th.gbmac-tone-0 {
+  background: #edf4ff; border-top-color: #6792d8;
+}
+.gbmac .gbmac-table thead th.gbmac-tone-1 {
+  background: #fff5e9; border-top-color: #d6a360;
+}
+.gbmac .gbmac-table thead th.gbmac-tone-2 {
+  background: #f3efff; border-top-color: #a08bd4;
+}
+.gbmac .gbmac-table thead th.gbmac-tone-3 {
+  background: #ecf9f4; border-top-color: #76bfa1;
+}
+.gbmac .gbmac-table thead th.gbmac-tone-4 {
+  background: #fff1f5; border-top-color: #d98ea9;
+}
+.gbmac .gbmac-bonus {
+  color: #9a661c;
+  background: #fffbf3;
+}
+.gbmac .gbmac-derived {
+  color: #157158;
+  background: #f1faf6;
+}
+.gbmac .gbmac-save-state:has(.is-dirty) {
+  border-color: #f0dab0;
+  background: #fff4e3;
+  color: #915d17;
+}
+.gbmac .gbmac-save-state:has(.is-saved) {
+  border-color: #c6e5d4;
+  background: #effaf3;
+  color: #177449;
+}
+.gbmac .gbmac-alert {
+  border: 1px solid #eddba9;
+  background: #fff7e8;
+  color: #885d1b;
+}
+.gbmac .gbmac-error {
+  border: 1px solid #ecc5ce;
+  background: #fff0f3;
+  color: #a83b50;
+}
+@media (prefers-contrast: more) {
+  .gbmac .gbmac-tabs button[data-tone].is-selected {
+    outline: 2px solid var(--gb-tab-color);
+    outline-offset: 2px;
+  }
+}
