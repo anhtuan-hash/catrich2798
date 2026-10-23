@@ -1,15 +1,17 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   UsersRound, Search, UserRoundCheck, UserRoundPlus, UserRoundX, AlertTriangle,
   FileUp, Download, UserRound, X, Pencil, ArrowLeftRight, Archive,
   RotateCcw, ContactRound, CalendarDays, ClipboardCheck, Award,
-  CheckCircle2, ChevronRight, ListFilter, Layers3, Save,
+  CheckCircle2, ChevronRight, ListFilter, Layers3, Save, Trash2, ShieldAlert,
 } from 'lucide-react';
 import StudentRosterImportPanel from '../StudentRosterImportPanel.jsx';
 import { addStudent, archiveStudent, restoreStudent, transferStudent, upsertStudents } from '../../utils/homeroomStore.js';
 import { downloadCsv, formatViDate, normalizePhone } from '../../utils/homeroomOfflineTools.js';
 import { buildZaloUrl, fillMessageTemplate, openZaloChat } from '../../utils/zaloLink.js';
 import { buildStudentSupportHash, normalizeStudentRef } from '../../studentSupport/studentSupportIdentity.js';
+import { permanentlyRemoveArchivedStudents } from '../../utils/permanentStudentDeletion.js';
 import {
   getStudentHubCounts, filterStudentHub, findStudentHubDuplicate, studentHubSummary,
 } from '../../utils/homeroom4StudentHub.js';
@@ -67,7 +69,7 @@ function ParentZaloBox({ student, className }) {
   </section>;
 }
 
-function StudentDetail({ workspace, student, summary, close, edit, requestAction, openSupport, decisionForm }) {
+function StudentDetail({ workspace, student, summary, close, edit, requestAction, openSupport, requestPermanentDelete, decisionForm }) {
   return <aside className="hr4-student-detail" aria-label={`Hồ sơ học sinh ${student.fullName}`}>
     <header className="hr4-student-detail-header">
       <div><small>STUDENT 360°</small><h3>Hồ sơ học sinh</h3></div>
@@ -106,7 +108,10 @@ function StudentDetail({ workspace, student, summary, close, edit, requestAction
       <button type="button" className="primary" onClick={() => edit(student)}><Pencil size={16}/> Sửa hồ sơ</button>
       <button type="button" className="secondary" disabled={!normalizeStudentRef(student)} onClick={() => openSupport(student)}><ContactRound size={16}/> Hồ sơ hỗ trợ</button>
       {student.active === false
-        ? <button type="button" className="secondary" onClick={() => requestAction(student,'restore')}><RotateCcw size={16}/> Khôi phục</button>
+        ? <>
+          <button type="button" className="secondary" onClick={() => requestAction(student,'restore')}><RotateCcw size={16}/> Khôi phục</button>
+          <button type="button" className="hr4-permanent-detail-delete" onClick={() => requestPermanentDelete([student])}><Trash2 size={16}/> Xóa vĩnh viễn</button>
+        </>
         : <>
           <button type="button" className="secondary" onClick={() => requestAction(student,'transfer')}><ArrowLeftRight size={16}/> Chuyển lớp</button>
           <button type="button" className="secondary" onClick={() => requestAction(student,'archive')}><Archive size={16}/> Lưu trữ</button>
@@ -130,6 +135,11 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
   const decisionInputRef = useRef(null);
   const [reason, setReason] = useState('');
   const [selectedRows, setSelectedRows] = useState([]);
+  const [deleteRequest, setDeleteRequest] = useState(null);
+  const [deleteTyped, setDeleteTyped] = useState('');
+  const [deleteNotice, setDeleteNotice] = useState('');
+  const deleteInputRef = useRef(null);
+  useEffect(() => { if (deleteRequest) deleteInputRef.current?.focus(); }, [deleteRequest]);
   useEffect(() => { if (decision) decisionInputRef.current?.focus(); }, [decision]);
 
   const counts = useMemo(() => getStudentHubCounts(workspace), [workspace.students]);
@@ -138,6 +148,13 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
   const summary = useMemo(() => selectedStudent ? studentHubSummary(workspace, selectedStudent.id) : null, [workspace, selectedStudent]);
   const selectedExport = (workspace.students || []).filter((item) => selectedRows.includes(String(item.id)));
   const allVisibleSelected = visible.length > 0 && visible.every((item) => selectedRows.includes(String(item.id)));
+  const archivedSelected = selectedExport.filter((item) => item.active === false);
+  const deletionStudents = deleteRequest
+    ? (workspace.students || []).filter((item) => item.active === false && deleteRequest.ids.includes(String(item.id)))
+    : [];
+  const expectedDeleteText = 'XÓA ' + deletionStudents.length;
+  const deleteConfirmed = Boolean(deleteRequest && deletionStudents.length === deleteRequest.ids.length
+    && deletionStudents.length > 0 && deleteTyped.trim().normalize('NFC').toLocaleUpperCase('vi') === expectedDeleteText);
 
   useEffect(() => {
     if (selectedId && !(workspace.students || []).some((student) => String(student.id) === String(selectedId))) setSelectedId('');
@@ -208,6 +225,36 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
   const togglePage = (checked) => setSelectedRows((previous) => checked
     ? [...new Set([...previous, ...visible.map((item) => String(item.id))])]
     : previous.filter((id) => !visible.some((item) => String(item.id) === id)));
+  const requestPermanentDelete = (students) => {
+    if (busy) return;
+    const archived = (students || []).filter((item) => item.active === false);
+    if (!archived.length) return;
+    setDecision(null);
+    setError('');
+    setDeleteNotice('');
+    setDeleteTyped('');
+    setDeleteRequest({ ids: [...new Set(archived.map((item) => String(item.id)))] });
+  };
+  const confirmPermanentDelete = async () => {
+    if (busy || !deleteConfirmed) return;
+    setBusy(true);
+    setError('');
+    try {
+      const next = permanentlyRemoveArchivedStudents(workspace, deleteRequest.ids);
+      const result = await onCommit(next, 'Đã xóa vĩnh viễn học sinh đã lưu trữ khỏi lớp.');
+      setSelectedRows([]);
+      setSelectedId('');
+      setDeleteRequest(null);
+      setDeleteTyped('');
+      setStatus('inactive');
+      setDeleteNotice(result?.ok === false
+        ? 'Hồ sơ đã được loại khỏi bản lưu trên thiết bị nhưng chưa đồng bộ cloud. Hãy kiểm tra kết nối và trạng thái đồng bộ trước khi tiếp tục.'
+        : result?.offline
+          ? 'Đã xóa trên thiết bị. Chế độ hiện tại chưa đồng bộ cloud.'
+          : 'Đã xóa hồ sơ đã lưu trữ và dữ liệu gắn với hồ sơ khỏi lớp.');
+    } catch (err) { setError(err?.message || 'Không thể xóa vĩnh viễn học sinh.'); }
+    finally { setBusy(false); }
+  };
 
   return <div className="hr4-student-hub" aria-label="Student Hub 360">
     <header className="hr4-student-title">
@@ -224,6 +271,7 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
       <SummaryChip icon={UserRoundCheck} tone="coral" label="Ưu tiên hỗ trợ" value={counts.priority}/>
       <SummaryChip icon={UserRoundX} tone="violet" label="Đã lưu trữ" value={counts.archived}/>
     </div>
+    {deleteNotice ? <p className="hr4-permanent-notice" role="status">{deleteNotice}</p> : null}
     {showImporter ? <StudentRosterImportPanel
       existingStudents={workspace.students || []} onImport={importRows} onClose={() => setShowImporter(false)}
     /> : null}
@@ -270,6 +318,7 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
           <label><input type="checkbox" checked={allVisibleSelected} onChange={(event)=>togglePage(event.target.checked)} disabled={!visible.length}/> Chọn trang hiện tại</label>
           <span>{selectedRows.length} học sinh được chọn</span>
           {selectedRows.length ? <button type="button" onClick={() => exportRoster(selectedExport,'danh-sach-da-chon')}><Download size={15}/> Xuất mục đã chọn</button> : null}
+          {status === 'inactive' && archivedSelected.length > 0 ? <button type="button" className="hr4-student-delete-bulk" disabled={busy} onClick={() => requestPermanentDelete(archivedSelected)}><Trash2 size={15}/> Xóa vĩnh viễn ({archivedSelected.length})</button> : null}
         </div>
         {visible.length ? <div className="hr4-student-directory" role="list">
           {visible.map((student) => <div key={student.id} className="hr4-student-row" data-selected={String(student.id) === String(selectedId)}>
@@ -280,6 +329,7 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
               <span className="hr4-student-pill" data-state={student.active === false ? 'inactive' : (student.supportLevel || 'normal')}>{statusLabel(student)}</span>
               <ChevronRight size={18} aria-hidden="true"/>
             </button>
+            {student.active === false ? <button type="button" className="hr4-student-delete-row" aria-label={'Xóa vĩnh viễn ' + student.fullName} title="Xóa vĩnh viễn" disabled={busy} onClick={() => requestPermanentDelete([student])}><Trash2 size={17}/></button> : null}
           </div>)}
         </div> : <div className="hr4-student-empty"><UserRound size={28}/><strong>Không tìm thấy học sinh phù hợp</strong><small>Thử thay đổi từ khóa hoặc bộ lọc để tiếp tục.</small></div>}
       </section>
@@ -287,7 +337,7 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
       {selectedStudent && summary ? <StudentDetail
         workspace={workspace} student={selectedStudent} summary={summary}
         close={() => {setSelectedId('');setDecision(null);setError('');}}
-        edit={edit} requestAction={requestAction} openSupport={openSupport}
+        edit={edit} requestAction={requestAction} openSupport={openSupport} requestPermanentDelete={requestPermanentDelete}
         decisionForm={decision && String(decision.studentId) === String(selectedStudent.id) ? <section className="hr4-student-decision" aria-label="Xác nhận thay đổi trạng thái" role="group">
           <div><small>XÁC NHẬN THAO TÁC</small>
             <h3>{decision.type === 'archive' ? 'Lưu trữ học sinh' : decision.type === 'transfer' ? 'Ghi nhận chuyển lớp' : 'Khôi phục học sinh'}</h3>
@@ -304,7 +354,21 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
         <p>Xem thông tin, tình trạng chuyên cần và rèn luyện trong sổ chủ nhiệm; sửa hoặc chuyển lớp khi cần.</p>
       </aside>}
     </div>
-
-
+    {deleteRequest ? createPortal(<div className="hr4-permanent-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) setDeleteRequest(null); }}>
+      <section className="hr4-permanent-dialog" role="alertdialog" aria-modal="true" aria-labelledby="hr4-permanent-title" aria-describedby="hr4-permanent-description">
+        <span className="hr4-permanent-icon"><ShieldAlert size={26}/></span>
+        <h2 id="hr4-permanent-title">Xóa vĩnh viễn {deletionStudents.length} học sinh?</h2>
+        <p id="hr4-permanent-description">Thao tác không thể hoàn tác. Hồ sơ, điểm danh, rèn luyện, bản sao lưu và dữ liệu liên quan trong lớp sẽ bị loại bỏ.</p>
+        <div className="hr4-permanent-names">{deletionStudents.slice(0, 5).map((item) => <span key={item.id}>{item.fullName}</span>)}{deletionStudents.length > 5 ? <small>Và {deletionStudents.length - 5} học sinh khác</small> : null}</div>
+        <label>Nhập <b>{expectedDeleteText}</b> để xác nhận
+          <input ref={deleteInputRef} value={deleteTyped} disabled={busy} autoComplete="off" spellCheck={false} placeholder={expectedDeleteText} onChange={(event) => setDeleteTyped(event.target.value)} onKeyDown={(event) => { if (event.key === 'Escape' && !busy) setDeleteRequest(null); if (event.key === 'Enter' && deleteConfirmed) confirmPermanentDelete(); }}/>
+        </label>
+        {error ? <p className="hr4-permanent-error" role="alert">{error}</p> : null}
+        <div className="hr4-permanent-actions">
+          <button type="button" className="secondary" disabled={busy} onClick={() => { setDeleteRequest(null); setError(''); }}>Hủy</button>
+          <button type="button" className="hr4-permanent-confirm" disabled={busy || !deleteConfirmed} onClick={confirmPermanentDelete}><Trash2 size={17}/>{busy ? 'Đang xóa…' : 'Xóa vĩnh viễn'}</button>
+        </div>
+      </section>
+    </div>, document.body) : null}
   </div>;
 }
