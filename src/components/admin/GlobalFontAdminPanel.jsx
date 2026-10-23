@@ -28,7 +28,7 @@ function baseName(name = '') {
   return String(name || '').replace(/\.[^.]+$/, '').trim();
 }
 
-export default function GlobalFontAdminPanel({ currentUser, language = 'vi' }) {
+export default function GlobalFontAdminPanel({ currentUser, language = 'vi', onDirtyChange }) {
   const vi = language !== 'en';
   const [selected, setSelected] = useState(getGlobalFontPreset());
   const [saved, setSaved] = useState(getGlobalFontPreset());
@@ -42,6 +42,10 @@ export default function GlobalFontAdminPanel({ currentUser, language = 'vi' }) {
     () => GLOBAL_FONT_PRESETS.find((item) => item.id === selected) || GLOBAL_FONT_PRESETS[0],
     [selected],
   );
+  // Expose pending selections to Settings Launcher; preview must not silently vanish.
+  const dirty = selected !== saved || Boolean(fontFile)
+    || (selected === 'custom' && Boolean(customConfig) && customName !== (customConfig?.name || ''));
+  useEffect(() => { onDirtyChange?.(dirty); }, [dirty, onDirtyChange]);
 
   useEffect(() => {
     let alive = true;
