@@ -3,7 +3,7 @@ import { CalendarDays, Plus, Search, Eye, Save, Send, UploadCloud, X, Users, Clo
 import { isAdminRole } from '../../../utils/roles.js';
 import {
   listManagedEvents, listEventProfiles, listRecipientIds, saveEventDraft,
-  uploadEventPoster, getEventPosterUrl, publishEvent, changeEventStatus,
+  uploadEventPoster, getEventPosterUrl, publishEvent, reannounceEvent, changeEventStatus,
   eventAnalytics, toLocalDateTime, HALLOWEEN_TEMPLATE, EVENT_CATEGORIES
 } from '../services/eventService.js';
 import './EventManager.css';
@@ -100,6 +100,16 @@ export default function EventManagerPage({currentUser}) {
     }catch(e){setError(e.message);}
     finally{setSaving(false);}
   };
+  const reannounce=async(item)=>{
+    if(!window.confirm('Gửi lại thông báo này tới người nhận? Giáo viên đã xem sẽ thấy lại một lần nữa. Chỉ sử dụng khi có thay đổi quan trọng.'))return;
+    setSaving(true);setError('');setNotice('');
+    try{
+      const updated=await reannounceEvent(item.id);
+      setSelected(updated);setNotice('Đã kích hoạt thông báo lại: phiên bản '+updated.version+'.');
+      await load();
+    }catch(e){setError(e.message);}
+    finally{setSaving(false);}
+  };
   const cancel=async(item)=>{
     if(!window.confirm('Hủy thông báo "'+item.title+'"? Giáo viên sẽ không tiếp tục nhận popup.'))return;
     setSaving(true);setError('');
@@ -134,7 +144,7 @@ export default function EventManagerPage({currentUser}) {
         <div className="bea-row-actions">
           <button onClick={()=>openEvent(item)}><Eye size={15}/> Xem / Sửa</button>
           <button onClick={()=>openAnalytics(item)}><BarChart3 size={15}/> Báo cáo</button>
-          {item.status==='published'&&<button className="bea-danger" onClick={()=>cancel(item)}><PauseCircle size={15}/> Hủy</button>}
+          {item.status==='published'&&<><button disabled={saving} onClick={()=>reannounce(item)}><Send size={15}/> Thông báo lại</button><button className="bea-danger" onClick={()=>cancel(item)}><PauseCircle size={15}/> Hủy</button></>}
         </div></article>)}</div>}
     </>:null}
     {screen==='edit'?<>
