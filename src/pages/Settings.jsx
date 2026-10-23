@@ -1,9 +1,11 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { changeCurrentPassword } from '../utils/auth.js';
 import GlobalMotionAdminPanel from '../components/admin/GlobalMotionAdminPanel.jsx';
 import GlobalChromeSettingsPanel from '../components/admin/GlobalChromeSettingsPanel.jsx';
 import { isDepartmentLeaderRole } from '../utils/roles.js';
 import '../styles/SettingsGoogleM3.css';
+import '../styles/SettingsLauncher2.css';
+import SettingsLauncherHome, { SETTINGS_LAUNCHER_TILES } from '../components/settings/SettingsLauncherHome.jsx';
 
 const ICON_PATHS = {
   search: 'M9.5 3a6.5 6.5 0 1 0 4.06 11.58L19 20l1-1-5.42-5.44A6.5 6.5 0 0 0 9.5 3Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z',
@@ -114,6 +116,33 @@ export default function Settings({
   const [autoCleanup, setAutoCleanup] = useState(() => readText('bes-auto-cleanup', '30'));
   const [message, setMessage] = useState('');
   const [query, setQuery] = useState('');
+  const [activeModule, setActiveModule] = useState(null);
+  const drawerCloseRef = useRef(null);
+  const previousTriggerRef = useRef(null);
+  const moduleTitle = SETTINGS_LAUNCHER_TILES.find(item => item.id === activeModule);
+  const openModule = (id) => {
+    if (!SETTINGS_LAUNCHER_TILES.some(item => item.id === id)) return;
+    if (id === 'permissions' && !isDepartmentLeaderRole(currentUser?.role)) return;
+    previousTriggerRef.current = document.activeElement;
+    setActiveModule(id);
+  };
+  const closeModule = () => {
+    if (passwordForm.current || passwordForm.next || passwordForm.confirm) {
+      if (!window.confirm(vi ? 'Bạn có thông tin mật khẩu chưa gửi. Đóng và bỏ nội dung đang nhập?' : 'Discard your unsent password changes?')) return;
+      setPasswordForm({ current: '', next: '', confirm: '' });
+    }
+    setActiveModule(null);
+    requestAnimationFrame(() => previousTriggerRef.current?.focus?.());
+  };
+  useEffect(() => {
+    if (!activeModule) return undefined;
+    drawerCloseRef.current?.focus();
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') { event.preventDefault(); closeModule(); }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [activeModule, passwordForm.current, passwordForm.next, passwordForm.confirm]);
   const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' });
   const [passwordStatus, setPasswordStatus] = useState({ loading: false, message: '', ok: false });
   const importInputRef = useRef(null);
@@ -263,52 +292,46 @@ export default function Settings({
   ];
 
   return (
-    <div className="page settings-google-page">
-      <div className="settings-google-shell">
-        <aside className="settings-google-sidebar" aria-label={vi ? 'Các mục cài đặt' : 'Settings sections'}>
-          <div className="settings-google-sidebar-title"><span>{vi ? 'CÀI ĐẶT' : 'SETTINGS'}</span></div>
-          <nav>
-            {navItems.map(([id, icon, title, subtitle], index) => (
-              <button key={id} type="button" className={index === 0 ? 'is-active' : ''} onClick={() => scrollTo(id)}>
-                <span><M3Icon name={icon} /></span><div><strong>{title}</strong><small>{subtitle}</small></div>
-              </button>
-            ))}
-          </nav>
-          <div className="settings-google-help-card">
-            <span><M3Icon name="help" /></span>
-            <div><strong>{vi ? 'Cần hỗ trợ?' : 'Need help?'}</strong><small>{vi ? 'Xem hướng dẫn hoặc liên hệ đội ngũ.' : 'Open guides or contact support.'}</small></div>
-            <button type="button" onClick={() => { window.location.hash = '#/contact'; }}>{vi ? 'Trung tâm trợ giúp' : 'Help center'} <b>→</b></button>
-          </div>
-        </aside>
-
-        <main className="settings-google-main">
-          <header className="settings-google-commandbar">
-            <label className="settings-google-search">
-              <M3Icon name="search" />
-              <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={vi ? 'Tìm kiếm cài đặt' : 'Search settings'} />
-              <kbd>⌘ K</kbd>
-            </label>
-            <button type="button" className="settings-google-icon-button" onClick={() => scrollTo('settings-notifications')} aria-label={vi ? 'Thông báo' : 'Notifications'}><M3Icon name="bell" /><i>3</i></button>
-            <button type="button" className="settings-google-icon-button" onClick={() => { window.location.hash = '#/contact'; }} aria-label={vi ? 'Trợ giúp' : 'Help'}><M3Icon name="help" /></button>
-          </header>
-
-          <section className="settings-google-hero">
-            <div className="settings-google-hero-copy">
-              <span>{vi ? 'TRUNG TÂM CÀI ĐẶT' : 'SETTINGS CENTER'}</span>
-              <h1>{vi ? 'Cài đặt hệ thống' : 'System settings'}</h1>
-              <p>{vi ? 'Quản lý tài khoản, thông báo, đồng bộ, bảo mật và hiệu năng hệ thống.' : 'Manage account, notifications, sync, security and system performance.'}</p>
-              <div className="settings-google-quick-chips">
-                <button type="button" onClick={() => scrollTo('settings-system')}><M3Icon name="globe" size={18} />{vi ? 'Ngôn ngữ: Tiếng Việt' : 'Language: English'}</button>
-                <span><M3Icon name="clock" size={18} />GMT+07:00</span>
-              </div>
-            </div>
-            <div className="settings-google-hero-art" aria-hidden="true">
-              <div className="settings-google-art-panel"><i /><i /><i /><b /><b /><b /></div>
-              <div className="settings-google-art-shield"><M3Icon name="shield" size={32} /></div>
-            </div>
-          </section>
-
-          {matches('tài khoản', 'account', 'hồ sơ', 'profile', 'mật khẩu', 'password') ? (
+    <div className="page settings-google-page settings-launcher-v2">
+      <div className="settings-google-shell settings-launcher-shell">
+        <main className="settings-google-main settings-launcher-stage">
+          <SettingsLauncherHome
+            currentUser={currentUser} language={language}
+            dataSyncEnabled={dataSyncEnabled} liveSyncEnabled={liveSyncEnabled}
+            onOpen={openModule}
+          />
+          {activeModule ? <button type="button" className="settings-launcher-backdrop"
+            onClick={closeModule} aria-label={vi ? 'Đóng bảng cài đặt' : 'Close settings panel'} /> : null}
+          {activeModule ? (
+            <section className="settings-launcher-drawer" role="dialog" aria-modal="true"
+              aria-label={vi ? moduleTitle?.vi || 'Cài đặt' : moduleTitle?.en || 'Settings'}>
+              <header className="settings-launcher-drawer-header">
+                <span><M3Icon name={activeModule === 'account' ? 'person' : activeModule === 'notifications' ? 'bell' : activeModule === 'data' ? 'storage' : activeModule === 'security' ? 'shield' : 'settings'} /></span>
+                <div><small>BRIAN ENGLISH · SETTINGS</small><strong>{vi ? moduleTitle?.vi : moduleTitle?.en}</strong></div>
+                <button ref={drawerCloseRef} type="button" onClick={closeModule} aria-label={vi ? 'Đóng' : 'Close'} title={vi ? 'Đóng' : 'Close'}>✕</button>
+              </header>
+              <div className="settings-launcher-drawer-body">
+                {activeModule === 'hero' ? (
+                  <div className="settings-launcher-links">
+                    <p>{vi ? 'Mỗi ứng dụng có ảnh nền Hero độc lập. Mở ứng dụng tương ứng và sử dụng biểu tượng bút chì nếu tài khoản có quyền.' : 'Hero backgrounds are independent. Open an app and use the edit pencil if authorized.'}</p>
+                    <a href="#/dashboard">Dashboard <b>↗</b></a>
+                    <a href="#/homeroom">{vi ? 'Chủ nhiệm' : 'Homeroom'} <b>↗</b></a>
+                    <a href="#/tool/gradebook-studio">{vi ? 'Sổ điểm' : 'Gradebook'} <b>↗</b></a>
+                  </div>
+                ) : null}
+                {activeModule === 'apps' ? (
+                  <div className="settings-launcher-links">
+                    <p>{vi ? 'Quản lý và mở ứng dụng tại kho ứng dụng hiện có.' : 'Open your existing application directory.'}</p>
+                    <a href="#/apps">{vi ? 'Đi tới Kho ứng dụng' : 'Open App directory'} <b>↗</b></a>
+                  </div>
+                ) : null}
+                {activeModule === 'permissions' && isDepartmentLeaderRole(currentUser?.role) ? (
+                  <div className="settings-launcher-links">
+                    <p>{vi ? 'Quyền truy cập được kiểm tra tại từng chức năng và trên máy chủ. Chỉ quản trị viên được phép thay đổi các quyền quản trị.' : 'Permissions are validated by each feature and its backend.'}</p>
+                    {['admin','administrator'].includes(String(currentUser?.role || '').toLowerCase()) ? <a href="#/admin">{vi ? 'Mở quản trị người dùng' : 'Open administration'} <b>↗</b></a> : null}
+                  </div>
+                ) : null}
+          {activeModule === 'account' && matches('tài khoản', 'account', 'hồ sơ', 'profile', 'mật khẩu', 'password') ? (
             <section id="settings-account" className="settings-v47-card settings-v65-account-card settings-google-profile-card">
               <div className="settings-google-section-heading">
                 <span><M3Icon name="person" /></span><div><h2>{vi ? 'Tài khoản & hồ sơ' : 'Account & profile'}</h2><p>{vi ? 'Thông tin nhận diện và bảo mật tài khoản hiện tại.' : 'Identity and security for the current account.'}</p></div>
@@ -329,7 +352,7 @@ export default function Settings({
           ) : null}
 
           <section className="settings-google-card-grid">
-            {matches('thông báo', 'notification', 'email', 'nhắc nhở') ? (
+            {activeModule === 'notifications' && matches('thông báo', 'notification', 'email', 'nhắc nhở') ? (
               <article id="settings-notifications" className="settings-google-card tone-blue">
                 <CardHeader icon="bell" tone="blue" title={vi ? 'Thông báo' : 'Notifications'} subtitle={vi ? 'Quản lý thông báo và nhắc nhở.' : 'Manage alerts and reminders.'} />
                 <SettingRow title={vi ? 'Thông báo trên ứng dụng' : 'In-app notifications'}><Toggle checked={pushNotifications} onChange={toggleBoolean(setPushNotifications, 'bes-push-notifications')} label="Push notifications" /></SettingRow>
@@ -339,7 +362,7 @@ export default function Settings({
               </article>
             ) : null}
 
-            {matches('đồng bộ', 'sync', 'dữ liệu', 'thiết bị', 'wifi') ? (
+            {activeModule === 'data' && matches('đồng bộ', 'sync', 'dữ liệu', 'thiết bị', 'wifi') ? (
               <article id="settings-sync" className="settings-google-card tone-green">
                 <CardHeader icon="sync" tone="green" title={vi ? 'Đồng bộ & tài khoản' : 'Sync & account'} subtitle={vi ? 'Đồng bộ dữ liệu trên các thiết bị.' : 'Keep data synchronized across devices.'} />
                 <SettingRow title={vi ? 'Đồng bộ tự động' : 'Automatic sync'}><Toggle checked={dataSyncEnabled} onChange={toggleBoolean(setDataSyncEnabled, 'bes-global-data-sync')} label="Data sync" /></SettingRow>
@@ -349,7 +372,7 @@ export default function Settings({
               </article>
             ) : null}
 
-            {matches('âm thanh', 'sound', 'rung', 'haptic') ? (
+            {activeModule === 'notifications' && matches('âm thanh', 'sound', 'rung', 'haptic') ? (
               <article className="settings-google-card tone-mint">
                 <CardHeader icon="volume" tone="mint" title={vi ? 'Âm thanh & phản hồi' : 'Sound & feedback'} subtitle={vi ? 'Tùy chỉnh âm báo và phản hồi.' : 'Adjust sounds and feedback.'} />
                 <SettingRow title={vi ? 'Âm thanh thông báo' : 'Notification sound'}><Toggle checked={soundEnabled} onChange={toggleBoolean(setSoundEnabled, 'bes-global-notice-sound')} label="Notification sound" /></SettingRow>
@@ -358,7 +381,7 @@ export default function Settings({
               </article>
             ) : null}
 
-            {matches('bảo mật', 'privacy', 'quyền riêng tư', 'trạng thái', 'email') ? (
+            {activeModule === 'security' && matches('bảo mật', 'privacy', 'quyền riêng tư', 'trạng thái', 'email') ? (
               <article id="settings-privacy" className="settings-google-card tone-indigo">
                 <CardHeader icon="shield" tone="indigo" title={vi ? 'Quyền riêng tư & bảo mật' : 'Privacy & security'} subtitle={vi ? 'Bảo vệ dữ liệu và quyền riêng tư.' : 'Protect your data and privacy.'} />
                 <SettingRow title={vi ? 'Hiển thị trạng thái hoạt động' : 'Show active status'}><Toggle checked={activeStatus} onChange={toggleBoolean(setActiveStatus, 'bes-active-status')} label="Active status" /></SettingRow>
@@ -375,7 +398,7 @@ export default function Settings({
                 className="settings-google-card tone-indigo settings-mfa-card"
                 style={{
                   gridColumn: '1 / -1',
-                  display: matches('bảo mật', 'security', 'xác thực', 'xác thực hai lớp', 'mfa', '2fa', 'tài khoản', 'account', 'two-factor') ? undefined : 'none',
+                  display: activeModule === 'security' ? undefined : 'none',
                 }}
               >
                 <CardHeader icon="shield" tone="indigo" title={vi ? 'Xác thực hai lớp (MFA)' : 'Two-factor authentication (MFA)'} subtitle={vi ? 'Bảo vệ tài khoản Admin bằng mã xác thực từ điện thoại.' : 'Protect administrator access with an authenticator app.'} />
@@ -383,15 +406,15 @@ export default function Settings({
               </article>
             ) : null}
 
-            {isDepartmentLeaderRole(currentUser?.role) && matches('hệ thống', 'system', 'toàn hệ thống', 'hiển thị', 'display', 'sidebar', 'action dock', 'tin vắn', 'newswire') ? (
+            {activeModule === 'navigation' && isDepartmentLeaderRole(currentUser?.role) && matches('hệ thống', 'system', 'toàn hệ thống', 'hiển thị', 'display', 'sidebar', 'action dock', 'tin vắn', 'newswire') ? (
               <GlobalChromeSettingsPanel currentUser={currentUser} language={language} />
             ) : null}
 
-            {['admin', 'administrator'].includes(String(currentUser?.role || '').toLowerCase()) && matches('chuyển động', 'motion', 'hiệu ứng', 'indicator', 'điều hướng', 'hệ thống', 'system') ? (
+            {activeModule === 'appearance' && ['admin', 'administrator'].includes(String(currentUser?.role || '').toLowerCase()) && matches('chuyển động', 'motion', 'hiệu ứng', 'indicator', 'điều hướng', 'hệ thống', 'system') ? (
               <div className="settings-motion-admin-hub"><GlobalMotionAdminPanel currentUser={currentUser} language={language} /></div>
             ) : null}
 
-            {matches('hệ thống', 'system', 'hiệu năng', 'performance', 'cache', 'ngôn ngữ') ? (
+            {(activeModule === 'data' || activeModule === 'appearance') && matches('hệ thống', 'system', 'hiệu năng', 'performance', 'cache', 'ngôn ngữ') ? (
               <article id="settings-system" className="settings-google-card tone-orange">
                 <CardHeader icon="speed" tone="orange" title={vi ? 'Hiệu năng hệ thống' : 'System performance'} subtitle={vi ? 'Tối ưu hiệu năng và lưu trữ.' : 'Optimize performance and storage.'} />
                 <SettingRow title={vi ? 'Chế độ hiệu năng' : 'Performance mode'} description={`${vi ? 'Đang áp dụng' : 'Active'}: ${resolvedPerformance}`}><SelectControl value={performanceMode} onChange={(event) => setPerformanceMode?.(event.target.value)}><option value="auto">Auto</option><option value="low">Low</option><option value="balanced">Balanced</option><option value="high">High</option></SelectControl></SettingRow>
@@ -411,8 +434,10 @@ export default function Settings({
             ) : null}
           </section>
 
-          {message ? <div className="settings-google-snackbar" role="status"><span>✓</span>{message}<button type="button" onClick={() => setMessage('')}>×</button></div> : null}
-          <footer className="settings-google-footer">English Hub · Google Material experience · 2026</footer>
+                {message ? <div className="settings-google-snackbar" role="status"><span>✓</span>{message}<button type="button" onClick={() => setMessage('')}>×</button></div> : null}
+              </div>
+            </section>
+          ) : null}
         </main>
       </div>
     </div>
