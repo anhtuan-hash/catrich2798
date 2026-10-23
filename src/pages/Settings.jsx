@@ -116,6 +116,7 @@ export default function Settings({
   const [autoCleanup, setAutoCleanup] = useState(() => readText('bes-auto-cleanup', '30'));
   const [message, setMessage] = useState('');
   const [query, setQuery] = useState('');
+  const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' });
   const [activeModule, setActiveModule] = useState(null);
   const drawerCloseRef = useRef(null);
   const previousTriggerRef = useRef(null);
@@ -143,7 +144,6 @@ export default function Settings({
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
   }, [activeModule, passwordForm.current, passwordForm.next, passwordForm.confirm]);
-  const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' });
   const [passwordStatus, setPasswordStatus] = useState({ loading: false, message: '', ok: false });
   const importInputRef = useRef(null);
   const authProviders = useMemo(() => Array.isArray(currentUser?.authProviders) ? currentUser.authProviders : [], [currentUser?.authProviders]);
