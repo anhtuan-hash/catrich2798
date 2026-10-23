@@ -62,7 +62,9 @@ function updateText(node, language) {
 }
 
 function updateAttribute(element, attr, language) {
-  if (!eligible(element) || !element.hasAttribute(attr)) return;
+  // Textarea content is user data, but its placeholder is static UI.
+  if (!(element.tagName === 'TEXTAREA' && attr === 'placeholder') && !eligible(element)) return;
+  if (!element.hasAttribute(attr) || element.closest?.(DO_NOT_TRANSLATE)) return;
   const value = element.getAttribute(attr) || '';
   const state = attributesMemory.get(element);
   const remembered = state?.get(attr);
@@ -89,15 +91,19 @@ function syncSubtree(root, language) {
   if (root.nodeType === 3) { updateText(root, language); return; }
   if (root.nodeType !== 1 && root.nodeType !== 9) return;
   if (root.nodeType === 1) {
-    if (!eligible(root)) return;
+    if (!eligible(root)) {
+      if (root.tagName === 'TEXTAREA') updateAttribute(root, 'placeholder', language);
+      return;
+    }
     LABEL_ATTRIBUTES.forEach(attr => updateAttribute(root, attr, language));
   }
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
   while (walker.nextNode()) {
     const item = walker.currentNode;
     if (item.nodeType === 3) updateText(item, language);
-    else if (item.nodeType === 1 && eligible(item)) {
-      LABEL_ATTRIBUTES.forEach(attr => updateAttribute(item, attr, language));
+    else if (item.nodeType === 1) {
+      if (item.tagName === 'TEXTAREA') updateAttribute(item, 'placeholder', language);
+      else if (eligible(item)) LABEL_ATTRIBUTES.forEach(attr => updateAttribute(item, attr, language));
     }
   }
 }
