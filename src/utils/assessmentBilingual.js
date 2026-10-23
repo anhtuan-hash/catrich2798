@@ -393,7 +393,16 @@ const EN = {
   "Xem chi tiết →": "View details →",
   "Trước → Sau": "Before → After",
   "Đang tải Assessment 4.0…": "Loading Assessment 4.0…",
-  "×": "×"
+  "×": "×",
+  "Chưa xác định nguồn": "Unknown source",
+  "Trùng tiêu đề": "Duplicate title",
+  "Thiếu đường dẫn hoạt động.": "Missing activity URL.",
+  "HTML không có iframe src để kiểm tra tự động.": "HTML has no iframe src for automated checking.",
+  "Đường dẫn không phải HTTPS công khai hợp lệ.": "Invalid public HTTPS URL.",
+  "Đường dẫn không đúng định dạng URL.": "Malformed URL.",
+  "Không có quyền kiểm tra nguồn.": "Not authorized to check the source.",
+  "Đang hoàn thành": "Completing",
+  "Chưa có dữ liệu điểm": "No scores yet"
 };
 export function assessmentText(value, language = 'vi') {
   if (language !== 'en' || value == null) return value;
@@ -401,3 +410,17 @@ export function assessmentText(value, language = 'vi') {
   return EN[source] ?? source;
 }
 export function assessmentLocale(language = 'vi') { return language === 'en' ? 'en-GB' : 'vi-VN'; }
+
+// Human-readable source diagnostics are localized only at display time.
+// Never translate stored activity URLs, journal records or permission statuses.
+export function assessmentSourceReason(reason,language='vi') {
+  const value=String(reason||'');
+  if(language!=='en') return value;
+  if(EN[value]) return EN[value];
+  return value
+    .replace(/^Máy chủ phản hồi hợp lệ /,'Server responded successfully ')
+    .replace(/^Máy chủ trả về HTTP /,'Server returned HTTP ')
+    .replace(/^Nguồn yêu cầu đăng nhập hoặc hạn chế truy cập /,'Login required or access restricted ')
+    .replace(/; cần kiểm tra thủ công\.$/,'; manual review needed.')
+    .replace(/^Không kết nối được dịch vụ kiểm tra; chưa thể kết luận hỏng\.$/,'Check service unavailable; cannot confirm a broken link.');
+}
