@@ -29,6 +29,8 @@ import { dashboardHeroNameLines } from '../utils/dashboardHeroName.js';
 const DashboardHeroEditor = React.lazy(() => import('../components/DashboardHeroEditor.jsx'));
 import { dashboardLocalDayKey, isDashboardTeachingPeriod } from '../utils/dashboardClassification.js';
 const EventPopupHost = React.lazy(() => import('../features/events/dashboard/EventPopupHost.jsx'));
+// Last route-local style: align all Dashboard sections to the app-shell/HomeRoom gutters.
+import '../styles/dashboard-align-homeroom-edges.css';
 
 const COPY = {
   vi: {

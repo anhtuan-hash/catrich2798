@@ -1,0 +1,62 @@
+/* Dashboard edge alignment — 2026-10-23
+ * The app shell already provides the same outer horizontal gutters as Homeroom.
+ * Previous .gd-shell additionally subtracted clamp(32px,6vw,96px),
+ * producing a second inset (roughly 46px per side at 1536px screenshots).
+ * Scope entirely to Dashboard; do not affect Homeroom, Assessment, or Home.
+ */
+#root .app-shell[data-route="dashboard"] .gd-page {
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  padding-left:0!important;
+  padding-right:0!important;
+}
+#root .app-shell[data-route="dashboard"] .gd-page > .gd-shell {
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  margin-inline:0!important;
+  padding-inline:0!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  align-content:start!important;
+  gap:clamp(16px,1.45vw,22px)!important;
+}
+#root .app-shell[data-route="dashboard"] .gd-page > .gd-shell > * {
+  min-width:0!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+#root .app-shell[data-route="dashboard"] .gd-page .gd-top-grid.db-hero-minimal-frame {
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  margin:0!important;
+  padding:0!important;
+}
+#root .app-shell[data-route="dashboard"] .gd-page .gd-top-grid > .editorial-hero.is-minimal {
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+}
+#root .app-shell[data-route="dashboard"] .gd-page > .gd-shell > .bwp,
+#root .app-shell[data-route="dashboard"] .gd-page > .gd-shell > .dnh {
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  margin-inline:0!important;
+  margin-block:0!important;
+}
+@media(max-width:900px){
+  #root .app-shell[data-route="dashboard"] .gd-page > .gd-shell {
+    gap:18px!important;
+  }
+}
+@media(max-width:620px){
+  #root .app-shell[data-route="dashboard"] .gd-page > .gd-shell {
+    gap:14px!important;
+  }
+  #root .app-shell[data-route="dashboard"] .gd-page .gd-top-grid > .editorial-hero.is-minimal {
+    margin:0!important;
+  }
+}
