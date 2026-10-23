@@ -51,7 +51,7 @@ function customDraft(value = null) {
   };
 }
 
-export default function RegionalFontAdminPanel({ currentUser, language = 'vi' }) {
+export default function RegionalFontAdminPanel({ currentUser, language = 'vi', onDirtyChange }) {
   const vi = language !== 'en';
   const [draft, setDraft] = useState(() => getRegionalFontSettings());
   const [saved, setSaved] = useState(() => getRegionalFontSettings());
@@ -100,6 +100,7 @@ export default function RegionalFontAdminPanel({ currentUser, language = 'vi' })
     () => JSON.stringify(draft) !== JSON.stringify(saved) || Object.keys(pendingFiles).length > 0,
     [draft, saved, pendingFiles],
   );
+  useEffect(() => { onDirtyChange?.(changed); }, [changed, onDirtyChange]);
   const customizedCount = useMemo(() => {
     const normalized = normalizeRegionalFontSettings(draft);
     return GLOBAL_FONT_REGIONS.filter((region) => (
