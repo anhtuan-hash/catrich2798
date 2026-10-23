@@ -338,74 +338,52 @@ function GradebookNavigationPalette({
   </nav>;
 }
 
-function GradebookCompactAnalytics({ progress, semesterLabel, studentsCount, onOpenSection }) {
-  const total = progress.total || 0;
+function GradebookCompactAnalytics({ progress, semesterLabel, onOpenSection }) {
   const next = progress.sections.find((section) => section.missing > 0 && section.total > 0);
   return (
-    <section className="gb9-compact-analytics" aria-labelledby="gb9-analytics-title">
-      <header className="gb9-analytics-head">
-        <span className="gb9-analytics-icon" aria-hidden="true"><ChartColumnIncreasing size={21} /></span>
-        <div>
-          <h2 id="gb9-analytics-title">Phân tích & tổng hợp điểm</h2>
-          <p>Tiến độ nhập điểm thực tế · {semesterLabel} · Chỉ thống kê ô điểm, không tính trung bình môn</p>
+    <section className="gb14-completion-panel" aria-labelledby="gb14-completion-title">
+      <header className="gb14-completion-head">
+        <div className="gb14-completion-title">
+          <span className="gb14-completion-icon" aria-hidden="true"><ChartColumnIncreasing size={19} /></span>
+          <div>
+            <h2 id="gb14-completion-title">Tiến độ theo thành phần điểm</h2>
+            <p>Nhấn vào thành phần để nhập hoặc chỉnh sửa điểm còn thiếu</p>
+          </div>
         </div>
-        <span className="gb9-analytics-semester">{semesterLabel}</span>
+        <span className="gb14-completion-semester">{semesterLabel}</span>
       </header>
-      <div className="gb9-analytics-grid">
-        <div className="gb9-analytics-pane gb9-analytics-pane--ring">
-          <h3>Tiến độ nhập điểm</h3>
-          <div className="gb9-ring-row">
-            <div
-              className="gb9-ring"
-              style={{ '--gb9-donut': String(progress.percent) + '%' }}
-              role="img"
-              aria-label={'Đã nhập ' + progress.percent + '% của ' + total + ' ô điểm'}
-            >
-              <span><strong>{progress.percent}%</strong><small>đã nhập</small></span>
-            </div>
-            <div className="gb9-ring-legend">
-              <span><i className="is-filled" /> Đã nhập <b>{progress.filled}</b></span>
-              <span><i className="is-missing" /> Còn thiếu <b>{progress.missing}</b></span>
-              <small>Tổng {total} ô điểm</small>
-            </div>
-          </div>
-        </div>
-        <div className="gb9-analytics-pane gb9-analytics-pane--bars">
-          <h3>Tiến độ các thành phần</h3>
-          <div className="gb9-component-bars">
-            {progress.sections.map((section) => (
-              <button
-                key={section.id}
-                type="button"
-                className={'gb9-component-bar gb9-component-bar--' + section.color}
-                onClick={() => onOpenSection(section.id)}
-                title={'Mở ' + section.title + ' · ' + section.filled + '/' + section.total + ' ô đã nhập'}
-              >
-                <span className="gb9-component-name">{section.short}</span>
-                <span className="gb9-component-track" aria-hidden="true">
-                  <span style={{ width: String(section.percent) + '%' }} />
-                </span>
-                <strong>{section.percent}%</strong>
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="gb9-analytics-pane gb9-analytics-pane--insights">
-          <h3>Nhận xét nhanh</h3>
-          <div className="gb9-insight gb9-insight--mint">
-            <BookOpenCheck size={19} aria-hidden="true" />
-            <span><small>Thành phần hoàn thiện</small><strong>{progress.completedSections}/6</strong></span>
-          </div>
-          <div className="gb9-insight gb9-insight--blue">
-            <GraduationCap size={19} aria-hidden="true" />
-            <span><small>Học sinh đang quản lý</small><strong>{studentsCount}</strong></span>
-          </div>
-          <div className="gb9-insight gb9-insight--orange">
-            <NotebookPen size={19} aria-hidden="true" />
-            <span><small>Ưu tiên tiếp theo</small><strong>{next ? 'Hoàn thiện ' + next.short : 'Đã hoàn tất điểm'}</strong></span>
-          </div>
-        </div>
+      <div className="gb14-completion-grid">
+        {progress.sections.map((section) => {
+          const complete = section.total > 0 && section.missing === 0;
+          const empty = section.total === 0;
+          return (
+            <button key={section.id} type="button"
+              className={`gb14-component-card gb14-component-card--${section.color}${complete ? ' is-complete' : ''}`}
+              onClick={() => onOpenSection(section.id)}
+              aria-label={section.title + ': ' + section.filled + '/' + section.total + ' ô điểm đã nhập. Mở nhập điểm.'}
+              title={'Mở ' + section.title}>
+              <span className="gb14-component-top">
+                <strong>{section.short}</strong>
+                <span>{empty ? 'Chưa có cột' : section.filled + '/' + section.total}</span>
+              </span>
+              <span className="gb14-component-track" aria-hidden="true">
+                <span style={{ width: section.percent + '%' }} />
+              </span>
+              <span className="gb14-component-bottom">
+                <b>{section.percent}%</b>
+                <span>{complete ? 'Hoàn tất' : 'Mở nhập điểm'} <ChevronRight size={14} aria-hidden="true" /></span>
+              </span>
+            </button>
+          );
+        })}
       </div>
+      {next ? <p className="gb14-next-step"><NotebookPen size={16} aria-hidden="true" />
+        Gợi ý tiếp theo: <button type="button" onClick={() => onOpenSection(next.id)}>
+          Hoàn thiện {next.short} ({next.missing} ô còn thiếu) <ChevronRight size={15} aria-hidden="true" />
+        </button>
+      </p> : <p className="gb14-next-step is-complete"><Check size={16} aria-hidden="true" />
+        {progress.total ? 'Các thành phần điểm hiện có đã hoàn thiện.' : 'Chưa có ô điểm để thống kê.'}
+      </p>}
     </section>
   );
 }
@@ -433,6 +411,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   const [focusMode, setFocusMode] = useState(false);
   const [insightsOpen, setInsightsOpen] = useState(false);
   const toolboxRef = useRef(null);
+  const toolboxTriggerRef = useRef(null);
   useEffect(() => {
     if (!insightsOpen) return undefined;
     const oldOverflow = document.body.style.overflow;
@@ -447,6 +426,11 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
         'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), summary, a[href]'
       )].filter((node) => node.getClientRects().length > 0);
       if (!focusable.length) return;
+      if (!toolboxRef.current.contains(document.activeElement)) {
+        event.preventDefault();
+        focusable[0].focus();
+        return;
+      }
       if (event.shiftKey && document.activeElement === focusable[0]) {
         event.preventDefault(); focusable[focusable.length - 1].focus();
       } else if (!event.shiftKey && document.activeElement === focusable[focusable.length - 1]) {
@@ -455,7 +439,12 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     };
     document.addEventListener('keydown', handleKeyDown);
     const raf = requestAnimationFrame(() => toolboxRef.current?.querySelector('[data-gradebook-modal-close]')?.focus({ preventScroll: true }));
-    return () => { document.removeEventListener('keydown', handleKeyDown); cancelAnimationFrame(raf); document.body.style.overflow = oldOverflow; };
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      cancelAnimationFrame(raf);
+      document.body.style.overflow = oldOverflow;
+      requestAnimationFrame(() => toolboxTriggerRef.current?.focus?.({ preventScroll: true }));
+    };
   }, [insightsOpen]);
 
   const [sortBy, setSortBy] = useState('original');
@@ -1234,7 +1223,6 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       <GradebookCompactAnalytics
         progress={semesterEntryProgress}
         semesterLabel={semesterLabel}
-        studentsCount={students.length}
         onOpenSection={(id) => {
           setView(id);
           setMissingOnly(false);
@@ -1247,7 +1235,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       <span><ChartColumnIncreasing size={19} aria-hidden="true" /><strong>Công cụ nâng cao</strong><small>Quản lý lớp, môn học, chốt điểm, nhập Excel và hỗ trợ chuyên sâu</small></span>
       <div className="gbv13-tool-entry-actions">
         {showMockExams ? <button type="button" onClick={() => setView('mock')}><GraduationCap size={16} aria-hidden="true" /> Thi thử lớp 12</button> : null}
-        <button type="button" className="is-primary" onClick={() => setInsightsOpen(true)} aria-haspopup="dialog">Mở công cụ <span aria-hidden="true">↗</span></button>
+        <button type="button" ref={toolboxTriggerRef} className="is-primary" onClick={() => setInsightsOpen(true)} aria-haspopup="dialog" aria-expanded={insightsOpen}>Mở công cụ <span aria-hidden="true">↗</span></button>
       </div>
     </div>
 
