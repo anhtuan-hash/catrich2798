@@ -1,0 +1,92 @@
+/* November – Tri ân thầy cô. Calm, high-quality background art only. */
+.bes-november-atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 43;
+  overflow: hidden;
+  pointer-events: none !important;
+  user-select: none;
+  isolation: isolate;
+  contain: layout style paint;
+}
+.bes-november-atmosphere * { pointer-events: none !important; }
+.bes-november-atmosphere__wash {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 6% 17%, rgba(237,166,174,.065), transparent 25%),
+    radial-gradient(circle at 94% 85%, rgba(159,194,174,.075), transparent 28%);
+}
+.bes-november-motif {
+  position: absolute;
+  left: var(--n-left);
+  top: var(--n-top);
+  width: var(--n-size);
+  height: var(--n-size);
+  opacity: var(--n-opacity);
+  transform: translate(-50%, -50%);
+}
+.bes-november-motif.is-entering { animation: bes-november-arrive 1.25s ease-out both; }
+.bes-november-motif.is-leaving { animation: bes-november-depart .98s ease-in both; }
+.bes-november-motif__art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: center;
+}
+.bes-november-motif__art svg { display: block; width: 100%; height: 100%; }
+.bes-november-motif__art.is-bloom { animation: bes-november-bloom var(--n-duration) ease-in-out infinite alternate; }
+.bes-november-motif__art.is-fall { animation: bes-november-fall var(--n-duration) ease-in-out infinite alternate; }
+.bes-november-motif__art.is-glide { animation: bes-november-glide var(--n-duration) ease-in-out infinite alternate; }
+.bes-november-motif__art.is-shine { animation: bes-november-shine var(--n-duration) ease-in-out infinite alternate; }
+.bes-november-motif__art.is-float { animation: bes-november-float var(--n-duration) ease-in-out infinite alternate; }
+@keyframes bes-november-arrive {
+  from { opacity: 0; }
+  to { opacity: var(--n-opacity); }
+}
+@keyframes bes-november-depart {
+  from { opacity: var(--n-opacity); }
+  to { opacity: 0; }
+}
+@keyframes bes-november-bloom {
+  0% { transform: translate3d(-7px, 9px, 0) scale(.95) rotate(-4deg); }
+  50% { transform: translate3d(3px, -9px, 0) scale(1.045) rotate(2deg); }
+  100% { transform: translate3d(var(--n-dx), var(--n-dy), 0) scale(.98) rotate(var(--n-angle)); }
+}
+@keyframes bes-november-fall {
+  0% { transform: translate3d(-12px, -25px, 0) rotate(-14deg); }
+  50% { transform: translate3d(15px, 7px, 0) rotate(12deg); }
+  100% { transform: translate3d(var(--n-dx), 45px, 0) rotate(var(--n-angle)); }
+}
+@keyframes bes-november-glide {
+  0% { transform: translate3d(-24px, 10px, 0) rotate(-6deg); }
+  50% { transform: translate3d(1px, -8px, 0) rotate(3deg); }
+  100% { transform: translate3d(var(--n-dx), var(--n-dy), 0) rotate(var(--n-angle)); }
+}
+@keyframes bes-november-shine {
+  0% { transform: translate3d(0, 8px, 0) scale(.92); opacity: .85; }
+  50% { transform: translate3d(4px, -5px, 0) scale(1.07); opacity: 1; }
+  100% { transform: translate3d(var(--n-dx), var(--n-dy), 0) scale(.96); opacity: .9; }
+}
+@keyframes bes-november-float {
+  0% { transform: translate3d(-5px, 7px, 0) rotate(-4deg); }
+  50% { transform: translate3d(8px, -11px, 0) rotate(3deg); }
+  100% { transform: translate3d(var(--n-dx), var(--n-dy), 0) rotate(var(--n-angle)); }
+}
+.bes-november-atmosphere[data-paused='true'] .bes-november-motif,
+.bes-november-atmosphere[data-paused='true'] .bes-november-motif__art {
+  animation-play-state: paused;
+}
+@media (max-width: 1099px) { .bes-november-atmosphere { z-index: 37; } }
+@media (max-width: 679px) { .bes-november-atmosphere__wash { opacity: .48; } }
+@media (prefers-reduced-motion: reduce) {
+  .bes-november-atmosphere .bes-november-motif,
+  .bes-november-atmosphere .bes-november-motif__art { animation: none !important; }
+}
+html[data-performance='low'] .bes-november-atmosphere .bes-november-motif,
+html[data-performance='low'] .bes-november-atmosphere .bes-november-motif__art,
+html[data-performance='minimal'] .bes-november-atmosphere .bes-november-motif,
+html[data-performance='minimal'] .bes-november-atmosphere .bes-november-motif__art {
+  animation: none !important;
+}
+@media print { .bes-november-atmosphere { display: none !important; } }
