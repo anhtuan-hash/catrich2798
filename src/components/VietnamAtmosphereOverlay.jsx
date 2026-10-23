@@ -6,6 +6,7 @@ import {
 } from '../utils/vietnamAtmosphereSettings.js';
 import { loadGlobalAtmosphereTheme, readGlobalAtmosphereLocal, subscribeGlobalAtmosphereTheme } from '../utils/globalAtmosphereTheme.js';
 import HalloweenAtmosphereOverlay from './HalloweenAtmosphereOverlay.jsx';
+import NovemberAtmosphereOverlay from './NovemberAtmosphereOverlay.jsx';
 import './VietnamAtmosphereOverlay.css';
 
 const BUILT_IN_SEQUENCE = ['flag', 'nonla', 'lotus', 'bamboo', 'drum', 'halong', 'lotus', 'nonla', 'bamboo', 'flag'];
@@ -265,6 +266,9 @@ export default function VietnamAtmosphereOverlay() {
   // Keep the full existing Vietnam implementation intact and simply choose the active layer.
   if (globalAtmosphere.activeTheme === 'halloween') {
     return <HalloweenAtmosphereOverlay settings={globalAtmosphere.halloween} />;
+  }
+  if (globalAtmosphere.activeTheme === 'november') {
+    return <NovemberAtmosphereOverlay settings={globalAtmosphere.november} />;
   }
 
   if (!settings.enabled) return null;
