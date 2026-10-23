@@ -1,0 +1,211 @@
+/* New scoped macOS-gradebook shell. Does not style the ESL Brian global navbar. */
+#root .gbmac-studio {
+  width:min(1540px,calc(100% - 28px));max-width:1540px;
+  margin:0 auto 25px;padding:12px 0 15px;
+  color:#203a63;background:transparent;
+  font:500 14px/1.5 -apple-system,BlinkMacSystemFont,"Inter",system-ui,sans-serif;
+}
+#root .gbmac-studio,#root .gbmac-studio *{box-sizing:border-box}
+#root .gbmac-studio .gbmac-shell{
+  margin:0 0 13px;background:#fff;border:1px solid #dce6f3;
+  border-radius:18px;overflow:hidden;
+  box-shadow:0 6px 20px rgba(29,55,93,.045);
+}
+#root .gbmac-studio .gbmac-shell-head{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:20px;min-height:114px;padding:17px 22px;
+  background:
+    radial-gradient(ellipse at 90% 25%,#e6f3ff 0%,transparent 33%),
+    linear-gradient(105deg,#fff 22%,#fbfdff 72%,#f4faff);
+  border-bottom:1px solid #ecf0f6;
+}
+#root .gbmac-studio .gbmac-shell-identity{
+  display:flex;align-items:center;gap:16px;min-width:0;
+}
+#root .gbmac-studio .gbmac-shell-icon{
+  width:56px;height:56px;flex:0 0 56px;
+  display:grid;place-items:center;border:1px solid #d8e8fd;
+  border-radius:16px;background:linear-gradient(140deg,#e4efff,#f4f7ff);
+  color:#246add;
+}
+#root .gbmac-studio .gbmac-shell-eyebrow{
+  display:block;font-size:10px;font-weight:820;letter-spacing:.085em;color:#607eac;
+}
+#root .gbmac-studio .gbmac-shell-title{
+  display:flex;align-items:center;flex-wrap:wrap;gap:11px;margin:4px 0;
+}
+#root .gbmac-studio .gbmac-shell-title h1{
+  margin:0;font-size:28px;line-height:1.15;font-weight:840;
+  letter-spacing:-.035em;color:#193e70;
+}
+#root .gbmac-studio .gbmac-shell-state{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:720;min-height:27px;
+  padding:4px 10px;border-radius:99px;
+  background:#ebf9f1;color:#1a7c52;border:1px solid #d2eedd;
+}
+#root .gbmac-studio .gbmac-shell-state span{
+  width:7px;height:7px;border-radius:50%;background:#2ba774;
+}
+#root .gbmac-studio .gbmac-shell-state.is-unsaved{
+  background:#fff7e8;color:#99611e;border-color:#f3dfb7;
+}
+#root .gbmac-studio .gbmac-shell-state.is-unsaved span{background:#e8a34d}
+#root .gbmac-studio .gbmac-shell-identity p{
+  font-size:12px;color:#69809c;margin:0;
+}
+#root .gbmac-studio .gbmac-shell-utilities{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+#root .gbmac-studio .gbmac-shell-utilities button {
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  min-height:40px;padding:9px 13px;border:1px solid #d7e3f2;
+  border-radius:10px;background:#fff;color:#2b5b95;
+  box-shadow:0 2px 5px #1a43650b;
+  white-space:nowrap;font-size:12px;font-weight:770;
+}
+#root .gbmac-studio .gbmac-shell-utilities button:last-child{
+  border-color:#2867d5;background:#286ade;color:#fff;
+}
+#root .gbmac-studio .gbmac-shell-utilities button:hover:not(:disabled){
+  filter:brightness(.98);border-color:#8cb9f4;
+}
+#root .gbmac-studio .gbmac-shell-utilities button:disabled{
+  opacity:.45;cursor:not-allowed;
+}
+#root .gbmac-studio .gbmac-shell-selectors{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;padding:12px 17px;
+}
+#root .gbmac-studio .gbmac-shell-selectors :is(label,.gbmac-shell-field){
+  display:flex;flex-direction:column;justify-content:center;gap:2px;
+  min-width:0;min-height:60px;padding:8px 12px;
+  background:#f8fafd;border:1px solid #e0e7f2;border-radius:11px;
+}
+#root .gbmac-studio .gbmac-shell-selectors :is(label,.gbmac-shell-field) > span{
+  font-size:11px;font-weight:710;color:#7389a6;
+}
+#root .gbmac-studio .gbmac-shell-selectors :is(select,strong){
+  width:100%;min-height:25px;margin:0;display:flex;align-items:center;
+  font-size:14px;font-weight:770;line-height:1.35;
+  border:none;background:transparent;color:#25436e;outline:0;padding:1px;
+}
+#root .gbmac-studio .gbmac-shell-selectors select:focus-visible,
+#root .gbmac-studio .gbmac-shell-utilities button:focus-visible{
+  outline:2px solid #80b0fb;outline-offset:2px;
+}
+#root .gbmac-studio .gbmac-shell-selectors select{
+  cursor:pointer;appearance:auto;
+}
+#root .gbmac-studio .gradebook-studio-message{
+  display:block;margin:8px 0;padding:10px 13px;border-radius:9px;
+  background:#eff9f3;color:#1c784b;font-size:12px;
+}
+#root .gbmac-studio .hr-saving-strip{padding:10px;color:#49729a}
+#root .gbmac-studio .gradebook-studio-create,
+#root .gbmac-studio .gradebook-studio-empty,
+#root .gbmac-studio .gradebook-assignment-note,
+#root .gbmac-studio .gradebook-lifecycle-banner,
+#root .gbmac-studio .gradebook-roster-readonly {
+  display:block;background:#fff;border:1px solid #dde8f4;border-radius:13px;
+  padding:17px;margin:10px 0;box-shadow:none;color:#375476;
+}
+#root .gbmac-studio .gradebook-studio-create .hr-panel-head{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+#root .gbmac-studio .gradebook-studio-create h2,
+#root .gbmac-studio .gradebook-studio-empty h2 {margin:0;font-size:19px}
+#root .gbmac-studio .gradebook-studio-create p{font-size:12px;color:#7b8da3}
+#root .gbmac-studio .gradebook-studio-create .hr-form-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;
+}
+#root .gbmac-studio .gradebook-studio-create label {display:grid;gap:5px;color:#6c819e;font-size:12px}
+#root .gbmac-studio .gradebook-studio-create :is(input,select){
+  min-height:42px;padding:8px 10px;border:1px solid #dbe6f3;
+  border-radius:10px;background:#fff;color:#244669;
+}
+#root .gbmac-studio .gradebook-studio-create button,
+#root .gbmac-studio .gradebook-studio-empty button{
+  border:1px solid #286ad9;border-radius:9px;background:#296cdb;
+  color:#fff;min-height:40px;padding:8px 13px;
+}
+#root .gbmac-studio .gradebook-studio-switcher{
+  background:#fff;padding:17px;border:1px solid #dce6f2;border-radius:14px;
+  margin:12px 0;
+}
+#root .gbmac-studio .gradebook-studio-switcher .gb4-manager-heading{
+  display:flex;flex-direction:column;margin-bottom:10px;
+}
+#root .gbmac-studio .gradebook-studio-switcher .gradebook-studio-class-picker{
+  display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+}
+#root .gbmac-studio .gradebook-studio-switcher label{
+  display:grid;gap:5px;font-size:12px;color:#7187a0;
+}
+#root .gbmac-studio .gradebook-studio-switcher select{
+  min-height:41px;min-width:215px;padding:8px 10px;border:1px solid #d9e5f4;border-radius:9px;
+}
+#root .gbmac-studio .gradebook-studio-switcher .gradebook-studio-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+#root .gbmac-studio .gradebook-studio-switcher button{
+  min-height:37px;border:1px solid #dce7f4;background:#f8fbff;color:#315f91;
+  border-radius:9px;padding:7px 11px;
+}
+#root .gbmac-studio .gradebook-studio-switcher button.primary{background:#286ddb;color:#fff}
+#root .gbmac-studio .gradebook-studio-class-meta{
+  display:flex;gap:7px;align-items:center;flex-wrap:wrap;font-size:11px;color:#7387a1;
+}
+#root .gbmac-studio .gradebook-studio-class-meta > *{max-width:100%;font-style:normal}
+.gbmac-tools-dialog .gradebook-assignment-panel,
+.gbmac-tools-dialog .gradebook-studio-switcher{
+  border:1px solid #e3ebf6;border-radius:12px;background:#fff;padding:12px;margin:10px 0;
+}
+.gbmac-tools-dialog .gradebook-assignment-head{
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+}
+.gbmac-tools-dialog .gradebook-assignment-head h2{margin:0;font-size:16px}
+.gbmac-tools-dialog .gradebook-assignment-head p{font-size:12px;color:#778ba5}
+.gbmac-tools-dialog .gradebook-assignment-grid{display:grid;gap:8px}
+.gbmac-tools-dialog .gradebook-assignment-grid article{
+  border:1px solid #e2eaf5;border-radius:10px;padding:10px;background:#f9fbfe;
+  display:grid;gap:5px;
+}
+.gbmac-tools-dialog .gradebook-assignment-grid h3{font-size:14px;margin:0}
+.gbmac-tools-dialog .gradebook-assignment-grid p{font-size:12px;margin:0}
+.gbmac-tools-dialog .gradebook-assignment-grid button,.gbmac-tools-dialog .gradebook-studio-actions button{
+  padding:8px 12px;border:1px solid #cfe0f4;border-radius:8px;color:#2862a7;background:#f4f9ff;
+}
+.gbmac-tools-dialog .gradebook-studio-class-picker label{display:grid;gap:7px;font-size:12px}
+.gbmac-tools-dialog .gradebook-studio-class-picker select{
+  min-height:39px;padding:8px;border:1px solid #d9e5f2;border-radius:8px;
+}
+.gbmac-tools-dialog .gradebook-studio-actions{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
+.gbmac-tools-dialog .gradebook-studio-class-meta{display:grid;gap:5px;margin:10px 0;font-size:12px}
+.gbmac-tools-dialog .gbmac-support-tools{display:grid;gap:10px}
+.gbmac-tools-dialog .gbmac-support-tools p{color:#697d99;font-size:12px;margin:0}
+.gbmac-tools-dialog .gbmac-support-tools label{font-size:12px}
+.gbmac-tools-dialog .gbmac-support-tools > div{display:flex;gap:10px}
+.gbmac-tools-dialog .gbmac-support-tools select{
+  flex:1;min-width:0;min-height:39px;border:1px solid #dce5f1;
+  border-radius:8px;padding:8px;
+}
+.gbmac-tools-dialog .gbmac-support-tools button{
+  min-height:39px;border:1px solid #cfe1f5;background:#edf5ff;
+  border-radius:8px;color:#2762a7;padding:8px 12px;
+}
+@media (max-width:920px){
+ #root .gbmac-studio .gbmac-shell-head{align-items:flex-start;gap:10px}
+ #root .gbmac-studio .gbmac-shell-utilities{justify-content:flex-end}
+ #root .gbmac-studio .gbmac-shell-selectors{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:680px){
+ #root .gbmac-studio{width:100%;padding:8px}
+ #root .gbmac-studio .gbmac-shell{border-radius:13px;margin-bottom:9px}
+ #root .gbmac-studio .gbmac-shell-head{padding:13px;flex-direction:column}
+ #root .gbmac-studio .gbmac-shell-icon{width:45px;height:45px;flex:0 0 45px;border-radius:12px}
+ #root .gbmac-studio .gbmac-shell-title h1{font-size:24px}
+ #root .gbmac-studio .gbmac-shell-utilities{width:100%;justify-content:stretch}
+ #root .gbmac-studio .gbmac-shell-utilities button{flex:1}
+ #root .gbmac-studio .gbmac-shell-selectors{padding:9px;gap:7px}
+ #root .gbmac-studio .gbmac-shell-selectors :is(label,.gbmac-shell-field){min-height:56px;padding:7px 9px}
+ #root .gbmac-studio .gradebook-studio-create .hr-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
