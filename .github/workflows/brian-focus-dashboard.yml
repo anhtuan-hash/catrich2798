@@ -1,0 +1,36 @@
+name: Brian Focus Dashboard
+on:
+  pull_request:
+    paths:
+      - 'src/pages/WorkDashboard.jsx'
+      - 'src/components/BrianFocus/**'
+      - 'scripts/test-brian-focus.mjs'
+      - 'tests/e2e/brian-focus-layout.spec.js'
+      - '.github/workflows/brian-focus-dashboard.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/pages/WorkDashboard.jsx'
+      - 'src/components/BrianFocus/**'
+      - 'scripts/test-brian-focus.mjs'
+      - 'tests/e2e/brian-focus-layout.spec.js'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Verify Focus state, clock and responsive invariants
+        run: node scripts/test-brian-focus.mjs
+      - name: Verify production UI build
+        run: npx vite build
+      - name: Verify complete Vercel build
+        run: node scripts/test-editorial-app-heroes.mjs && npm run build
