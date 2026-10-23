@@ -185,7 +185,7 @@ function SlotRow({ slot, value, language, onChange, onPreview }) {
   );
 }
 
-export default function GlobalMotionAdminPanel({ currentUser, language = 'vi' }) {
+export default function GlobalMotionAdminPanel({ currentUser, language = 'vi', onDirtyChange }) {
   const vi = language !== 'en';
   const initial = getGlobalMotionConfig();
   const [draft, setDraft] = useState(() => getGlobalMotionDraft() || initial);
@@ -199,6 +199,7 @@ export default function GlobalMotionAdminPanel({ currentUser, language = 'vi' })
   const savedRef = useRef(initial);
 
   const dirty = useMemo(() => !sameConfig(draft, saved), [draft, saved]);
+  useEffect(() => { onDirtyChange?.(dirty); }, [dirty, onDirtyChange]);
   const currentPreset = GLOBAL_MOTION_PRESETS.find((preset) => preset.id === draft.preset);
 
   useEffect(() => {
