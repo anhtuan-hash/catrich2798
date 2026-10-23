@@ -1,0 +1,377 @@
+/* Brian Focus 1.0 — Dashboard-only HTC Sense ambient clock.
+   Scoped classes; does not modify chatbot, navigation, Hero, or other apps. */
+.bfc-bubble {
+  position: fixed;
+  z-index: 2147483010;
+  right: calc(104px + env(safe-area-inset-right, 0px));
+  bottom: calc(31px + env(safe-area-inset-bottom, 0px));
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  min-width: 58px;
+  min-height: 58px;
+  padding: 0;
+  border: 1px solid rgba(221,233,255,.87);
+  border-radius: 999px;
+  color: #f7f8ff;
+  background: linear-gradient(140deg, #336cd4 0%, #7755c9 66%, #a576d6 100%);
+  box-shadow: 0 7px 23px rgba(44,77,156,.28), 0 0 0 5px rgba(232,239,255,.64);
+  cursor: pointer;
+  transition: transform .23s ease, box-shadow .23s ease, background .23s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.bfc-bubble::after {
+  position: absolute;
+  z-index: -1;
+  content: "";
+  right: 6px;
+  bottom: -4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 0 0 13px 0;
+  transform: rotate(25deg);
+  background: #7657c9;
+}
+.bfc-bubble:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 13px 30px rgba(44,77,156,.35), 0 0 0 5px rgba(232,239,255,.74);
+}
+.bfc-bubble:focus-visible,
+.bfc-overlay button:focus-visible {
+  outline: 3px solid #f4d99f;
+  outline-offset: 4px;
+}
+.bfc-overlay {
+  position: fixed;
+  z-index: 2147483005;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100dvh;
+  width: 100%;
+  padding: max(22px, env(safe-area-inset-top, 0px)) 20px max(22px, env(safe-area-inset-bottom, 0px));
+  overflow: auto;
+  overscroll-behavior: contain;
+  isolation: isolate;
+  background: rgba(9,16,32,.69);
+  -webkit-backdrop-filter: blur(17px) saturate(.7);
+  backdrop-filter: blur(17px) saturate(.7);
+  animation: bfc-overlay-enter .34s ease-out both;
+  font-family: "Google Sans", "Google Sans Text", Inter, Roboto, system-ui, sans-serif;
+  color: #f7f9ff;
+  box-sizing: border-box;
+}
+.bfc-overlay *, .bfc-overlay *::before, .bfc-overlay *::after {
+  box-sizing: border-box;
+}
+.bfc-overlay__aurora {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 32%, rgba(104,124,207,.17), transparent 45%),
+    radial-gradient(ellipse at 80% 90%, rgba(93,64,162,.12), transparent 45%),
+    linear-gradient(145deg, rgba(11,23,45,.08), rgba(7,11,24,.18));
+}
+.bfc-overlay__close {
+  position: fixed;
+  z-index: 2;
+  top: max(25px, env(safe-area-inset-top, 0px));
+  right: max(29px, env(safe-area-inset-right, 0px));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 40px;
+  padding: 9px 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(217,229,253,.21);
+  background: rgba(255,255,255,.09);
+  color: #ecf1ff;
+  font-size: 12px;
+  font-weight: 650;
+  box-shadow: 0 5px 22px rgba(0,0,0,.12);
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+.bfc-overlay__close:hover {background: rgba(255,255,255,.17);}
+.bfc-overlay__close kbd {
+  display: inline-block;
+  padding: 3px 5px;
+  border: 1px solid rgba(229,235,249,.25);
+  border-radius: 5px;
+  color: #b7c5dd;
+  background: rgba(10,22,43,.28);
+  font-size: 10px;
+  font-weight: 600;
+}
+.bfc-overlay__center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 580px);
+  min-width: 0;
+  margin: auto 0;
+  padding: 36px 0;
+  pointer-events: none;
+}
+ .bfc-clock-card {
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  position: relative;
+  pointer-events: auto;
+  isolation: isolate;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  width: min(100%, 548px);
+  min-height: 410px;
+  gap: 0;
+  padding: 33px 37px 26px;
+  overflow: hidden;
+  border-radius: 32px;
+  border: 1px solid rgba(242,246,255,.27);
+  background: linear-gradient(147deg, rgba(255,255,255,.175), rgba(181,197,230,.065) 52%, rgba(101,112,164,.11));
+  box-shadow:
+    0 34px 90px rgba(2,10,27,.40),
+    0 9px 28px rgba(9,18,38,.18),
+    inset 0 1px 0 rgba(255,255,255,.21);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  animation: bfc-card-rise .40s cubic-bezier(.2,.8,.2,1) both;
+}
+.bfc-clock-card__glint {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 40% 0%, rgba(235,242,255,.16), transparent 62%);
+}
+.bfc-clock-card__eyebrow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: #cddaf2;
+  font-size: 11px;
+  letter-spacing: .21em;
+  font-weight: 720;
+  text-transform: uppercase;
+  margin: 3px 0 21px;
+}
+.bfc-clock-card__eyebrow svg { color: #e7d99f; }
+.bfc-clock-face {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  place-items: center;
+  width: 100%;
+}
+.bfc-clock-face__digits {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 9px;
+}
+.bfc-clock-face__tile {
+  display: grid;
+  place-items: center;
+  position: relative;
+  flex: 0 1 182px;
+  min-width: 0;
+  width: 182px;
+  height: 157px;
+  border: 1px solid rgba(225,235,255,.17);
+  border-radius: 19px;
+  background:
+    linear-gradient(to bottom, rgba(255,255,255,.13) 0%,
+    rgba(255,255,255,.065) 49.8%, rgba(14,23,49,.22) 50%, rgba(24,37,70,.12) 100%);
+  color: #f8fbff;
+  font-family: "Roboto", "Arial", system-ui, sans-serif;
+  font-size: clamp(83px, 10vw, 118px);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  font-weight: 300;
+  letter-spacing: -.065em;
+  line-height: 1;
+  text-indent: -.05em;
+  text-shadow: 0 2px 25px rgba(215,230,255,.18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 8px 23px rgba(3,12,32,.15);
+}
+.bfc-clock-face__tile::after {
+  position: absolute;
+  content: "";
+  pointer-events: none;
+  height: 1px;
+  top: 50%;
+  right: 0;
+  left: 0;
+  background: rgba(14,25,50,.27);
+  box-shadow: 0 1px 0 rgba(255,255,255,.07);
+}
+.bfc-clock-face__colon {
+  display: block;
+  flex: 0 0 19px;
+  align-self: center;
+  color: rgba(231,240,255,.78);
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 72px;
+  font-weight: 250;
+  line-height: 1;
+  transform: translateY(-7px);
+}
+.bfc-clock-date {
+  margin: 20px 0 6px;
+  color: #eff3ff;
+  font-size: clamp(15px,2vw,18px);
+  font-weight: 580;
+  line-height: 1.4;
+  text-align: center;
+  letter-spacing: -.012em;
+}
+.bfc-clock-card__rule {
+  width: min(100%, 365px);
+  height: 1px;
+  margin: 22px 0 17px;
+  background: linear-gradient(90deg, transparent, rgba(226,235,255,.24), transparent);
+}
+.bfc-weather {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  gap: 13px;
+  padding: 7px 8px;
+}
+.bfc-weather__icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 39px;
+  width: 39px;
+  height: 39px;
+  border-radius: 13px;
+  background: rgba(255,221,148,.11);
+  color: #f8d797;
+}
+.bfc-weather__details {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+.bfc-weather__city {
+  color: #f5f7ff;
+  font-weight: 675;
+  font-size: 13px;
+}
+.bfc-weather__condition {
+  color: #bdcbe1;
+  font-size: 11px;
+  font-weight: 520;
+}
+.bfc-weather__temp {
+  color: #f7f9ff;
+  margin-left: 11px;
+  font-size: 25px;
+  line-height: 1;
+  font-weight: 450;
+  font-variant-numeric: tabular-nums;
+}
+.bfc-clock-card__hint {
+  color: #aab8d4;
+  font-size: 11px;
+  line-height: 1.5;
+  letter-spacing: .015em;
+  margin: 25px 0 0;
+  text-align: center;
+}
+.bfc-overlay .bfc-bubble.is-active {
+  z-index: 2147483010;
+  right: calc(104px + env(safe-area-inset-right, 0px));
+  bottom: calc(31px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(135deg,#4c638e,#555477);
+}
+.bfc-overlay .bfc-bubble.is-active::after { background: #555477; }
+@keyframes bfc-overlay-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes bfc-card-rise {
+  from { opacity: 0; transform: translateY(12px) scale(.965); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (max-width: 767px) {
+  .bfc-bubble,
+  .bfc-overlay .bfc-bubble.is-active {
+    width: 51px;
+    height: 51px;
+    min-width: 51px;
+    min-height: 51px;
+    right: calc(85px + env(safe-area-inset-right, 0px));
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+  .bfc-overlay { padding: 68px 16px 78px; }
+  .bfc-overlay__close {top: max(14px, env(safe-area-inset-top, 0px)); right: max(14px, env(safe-area-inset-right, 0px));}
+  .bfc-clock-card { border-radius: 25px; min-height: 0; padding: 28px 20px 25px; }
+  .bfc-clock-card__eyebrow {font-size: 10px; letter-spacing: .14em; margin-bottom: 17px;}
+  .bfc-clock-face__digits {gap: 5px;}
+  .bfc-clock-face__tile {
+    flex: 1 1 0;
+    width: 0;
+    min-width: 0;
+    height: 126px;
+    font-size: clamp(61px, 16vw, 91px);
+    border-radius: 16px;
+  }
+  .bfc-clock-face__colon { flex-basis: 12px; font-size: 50px; transform: translateY(-3px); }
+  .bfc-clock-date { margin-top: 16px; font-size: 14px; }
+  .bfc-clock-card__rule { margin: 18px 0 13px; }
+  .bfc-weather {gap: 8px;}
+  .bfc-weather__temp {font-size: 23px; margin-left: 2px;}
+  .bfc-clock-card__hint { margin-top: 19px; }
+}
+@media (max-width: 370px) {
+  .bfc-clock-card { padding-left: 13px; padding-right: 13px; }
+  .bfc-clock-face__tile { height: 106px; font-size: 61px; }
+  .bfc-clock-face__colon { font-size: 40px; flex-basis: 10px; }
+  .bfc-weather__city { font-size: 12px; }
+  .bfc-clock-date { font-size: 12px; }
+  .bfc-overlay__close kbd { display: none; }
+}
+@media (max-height: 590px) {
+  .bfc-overlay { align-items: flex-start; }
+  .bfc-overlay__center { padding: 16px 0; }
+  .bfc-clock-card { min-height: 0; padding-top: 23px; padding-bottom: 22px; }
+  .bfc-clock-face__tile { height: 106px; }
+  .bfc-clock-card__hint { margin-top: 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bfc-overlay, .bfc-clock-card { animation: none !important; }
+  .bfc-bubble { transition: none !important; }
+}
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .bfc-overlay { background: rgba(9,16,32,.91); }
+  .bfc-clock-card { background: rgba(28,42,70,.96); }
+}
+@media (forced-colors: active) {
+  .bfc-overlay { background: Canvas !important; color: CanvasText !important; }
+  .bfc-clock-card, .bfc-clock-face__tile, .bfc-overlay__close {
+    color: CanvasText !important;
+    border: 1px solid CanvasText !important;
+    background: Canvas !important;
+    text-shadow: none !important;
+  }
+  .bfc-weather__city,.bfc-weather__temp,.bfc-weather__condition,.bfc-clock-date {
+    color: CanvasText !important;
+  }
+}
