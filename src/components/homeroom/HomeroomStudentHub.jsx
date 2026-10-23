@@ -245,11 +245,34 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
       if (!isSupabaseConfigured || !supabase) {
         throw new Error('Không thể kết nối Supabase. Chưa có hồ sơ nào bị xóa.');
       }
-      const revision = workspace?.syncMeta?.cloudUpdatedAt;
-      if (!revision) {
-        throw new Error('Chưa có phiên bản Supabase đã xác nhận. Hãy tải lại lớp và thử lại.');
+      // Always check the actual cloud version immediately before destructive
+      // writes. Browser caches can carry old syncMeta.cloudUpdatedAt values.
+      const { data: sessionResult, error: authError } = await supabase.auth.getUser();
+      const cloudUser = sessionResult?.user;
+      if (authError || !cloudUser?.id) {
+        throw new Error('Phiên đăng nhập Supabase đã hết hạn. Chưa có hồ sơ nào bị xóa.');
+      }
+      const { data: latest, error: latestError } = await supabase
+        .from('bes_homeroom_workspaces')
+        .select('updated_at,payload')
+        .eq('owner_id', cloudUser.id)
+        .eq('workspace_id', workspace.id)
+        .maybeSingle();
+      if (latestError || !latest?.updated_at || !latest?.payload) {
+        throw new Error('Không xác minh được bản ghi trên Supabase. Chưa có hồ sơ nào bị xóa.');
       }
       const targetStudents = deletionStudents;
+      const latestRoster = Array.isArray(latest.payload.students) ? latest.payload.students : [];
+      const upToDate = targetStudents.every((item) => latestRoster.some((cloudStudent) =>
+        String(cloudStudent.id) === String(item.id)
+        && cloudStudent.active === false
+        && String(cloudStudent.fullName || '') === String(item.fullName || '')
+        && String(cloudStudent.code || '') === String(item.code || ''),
+      ));
+      if (!upToDate) {
+        throw new Error('Hồ sơ đã thay đổi trên Supabase. Hãy tải lại trang và xác nhận lại trước khi xóa.');
+      }
+      const revision = latest.updated_at;
       // The server validates ownership, archived status and the cloud revision,
       // then removes records across related tables in ONE Postgres transaction.
       // No local removal is performed before the RPC commits successfully.
@@ -268,12 +291,9 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
       // Evict the stale device copy only AFTER the Supabase transaction succeeds.
       // Next hydration must fetch the authoritative cloud workspace.
       try {
-        const { data: { user: cloudUser } = {} } = await supabase.auth.getUser();
-        if (cloudUser?.id) {
-          localStorage.removeItem(
-            'bes-homeroom-workspace-v1:' + String(cloudUser.id).toLowerCase() + ':' + workspace.id,
-          );
-        }
+        localStorage.removeItem(
+          'bes-homeroom-workspace-v1:' + String(cloudUser.id).toLowerCase() + ':' + workspace.id,
+        );
       } catch { /* Cloud deletion is already committed. */ }
       let mediaWarning = '';
       {
