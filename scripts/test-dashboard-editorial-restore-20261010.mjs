@@ -13,7 +13,8 @@ const historical = [
 ];
 
 const imports = [...page.matchAll(/import '\.\.\/styles\/([^']+\.css)';/g)].map((m) => m[1]);
-assert.deepEqual(imports, historical, 'Use the exact six October 10 editorial design layers');
+assert.deepEqual(imports, [...historical, 'dashboard-newsroom-editorial-20261023.css'],
+  'Keep the six original October 10 editorial layers, then load the isolated Newsroom authority');
 assert.match(page, /<header className="editorial-hero">/);
 assert.match(page, /<DashboardHeroCloudscape\s*\/>/);
 assert.match(page, /<DashboardHeroIllustration\s*\/>/);

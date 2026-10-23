@@ -14,6 +14,8 @@ import '../styles/teacher-dashboard-google-colorful.css';
 import '../styles/teacher-dashboard-editorial-hero.css';
 import '../styles/teacher-dashboard-timeline-v2.css';
 import DashboardNewsHub from '../components/DashboardNewsHub.jsx';
+// Newsroom owns its compact presentation after the six original October 10 design layers.
+import '../styles/dashboard-newsroom-editorial-20261023.css';
 import { dashboardLocalDayKey, isDashboardTeachingPeriod } from '../utils/dashboardClassification.js';
 
 const COPY = {
