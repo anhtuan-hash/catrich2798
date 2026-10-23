@@ -51,3 +51,23 @@
 .be-pop-overlay :is(button,a):focus-visible{outline:2px solid #77a9fa;outline-offset:3px}
 @media(max-width:720px){.be-pop-overlay{padding:9px;align-items:end}.be-pop-dialog{width:100%;max-height:96dvh;border-radius:19px 19px 0 0}.be-pop-header{padding:14px}.be-pop-header h2{font-size:19px}.be-pop-header p{font-size:11px}.be-pop-bell{width:39px;height:39px;flex:0 0 39px;border-radius:11px}.be-pop-body{grid-template-columns:1fr;padding:12px;gap:14px}.be-pop-poster>button{max-height:205px}.be-pop-poster img{max-height:170px}.be-pop-placeholder{min-height:125px}.be-pop-content h3{font-size:20px}.be-pop-footer{padding:10px;align-items:stretch;flex-direction:column}.be-pop-dismiss-actions,.be-pop-action-buttons{width:100%}.be-pop-footer button{flex:1;min-width:0;min-height:43px}}
 @media(prefers-reduced-motion:reduce){.be-pop-overlay *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+/* A small, unobtrusive way to reopen the user's events after dismissing a popup. */
+.be-pop-inbox-trigger{position:fixed;z-index:700;left:24px;bottom:22px;display:inline-flex;align-items:center;gap:9px;padding:10px 12px;min-height:43px;border:1px solid #cfe2f8;border-radius:99px;background:#fff;color:#2e5f9b;font:750 12px/1.2 -apple-system,BlinkMacSystemFont,Inter,system-ui,sans-serif;box-shadow:0 5px 20px #25456820;cursor:pointer}
+.be-pop-inbox-trigger svg{color:#2b72d0}
+.be-pop-inbox-trigger strong{display:grid;place-items:center;min-width:23px;height:23px;padding:0 5px;background:#e7f1ff;color:#2468c8;border-radius:99px}
+.be-pop-inbox-trigger:hover{background:#eef6ff}
+.be-pop-inbox-overlay{position:fixed;inset:0;z-index:999992;display:grid;place-items:center;padding:20px;background:#13294470;backdrop-filter:blur(7px)}
+.be-pop-inbox-dialog{width:min(590px,100%);max-height:85dvh;display:flex;flex-direction:column;background:#fff;border-radius:18px;border:1px solid #dce8f5;overflow:hidden;box-shadow:0 28px 90px #172d4d46;font:500 13px/1.5 -apple-system,BlinkMacSystemFont,Inter,system-ui,sans-serif}
+.be-pop-inbox-dialog header{padding:18px 20px;background:linear-gradient(105deg,#f8fbff,#ebf4ff);border-bottom:1px solid #e2eaf6;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.be-pop-inbox-dialog header span{font-size:10px;font-weight:800;color:#6c8bae;letter-spacing:.08em}
+.be-pop-inbox-dialog h2{color:#21446e;font-size:21px;margin:3px 0}
+.be-pop-inbox-dialog header button{border:1px solid #d9e5f4;border-radius:9px;background:#fff;color:#5e799a;width:35px;height:35px;display:grid;place-items:center;cursor:pointer}
+.be-pop-inbox-list{min-height:0;overflow:auto;display:grid;gap:9px;padding:13px}
+.be-pop-inbox-list button{display:flex;align-items:center;gap:12px;padding:13px;text-align:left;border:1px solid #e0eaf5;border-radius:11px;background:#fff;color:#487198;cursor:pointer}
+.be-pop-inbox-list button:hover{background:#f0f7ff;border-color:#accdf7}
+.be-pop-inbox-list button>span:nth-child(2){display:grid;gap:3px;flex:1;min-width:0}
+.be-pop-inbox-list strong{color:#244b79;font-size:13px}
+.be-pop-inbox-list small{color:#8a9db2;font-size:11px}
+.be-pop-inbox-date{display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;border-radius:11px;background:#edf5ff;color:#397cce}
+@media(max-width:680px){.be-pop-inbox-trigger{left:12px;bottom:12px;min-height:40px}.be-pop-inbox-trigger>span{font-size:11px}.be-pop-inbox-overlay{padding:9px;align-items:flex-end}.be-pop-inbox-dialog{max-height:89dvh;width:100%;border-radius:15px 15px 0 0}.be-pop-inbox-dialog h2{font-size:18px}}
