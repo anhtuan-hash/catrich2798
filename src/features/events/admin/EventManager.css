@@ -92,3 +92,20 @@
 .bea-analytics{padding:10px 20px 22px}.bea-analytics h3{margin:10px 0 3px;font-size:19px;color:#2d527c}
 @media(max-width:1050px){.bea-editor{grid-template-columns:1fr}.bea-preview{position:static;max-height:none}.bea-preview.is-mobile{max-width:420px}}
 @media(max-width:700px){.bea-head{align-items:flex-start;flex-direction:column;padding:17px}.bea-head h2{font-size:21px}.bea-metrics{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px}.bea-event-row{align-items:flex-start;flex-wrap:wrap}.bea-row-actions{width:100%;justify-content:flex-start}.bea-editor{padding:13px}.bea-two{grid-template-columns:1fr}.bea-audience-list{grid-template-columns:1fr}.bea-list{padding:0 12px 15px}.bea-list-top{padding:8px 12px}.bea-brand-icon{width:42px;height:42px}}
+
+/* A locally selected poster is NOT saved to Supabase; show this loudly and
+   never let a visually convincing local preview masquerade as a sent asset. */
+.bea-poster-status{display:flex;align-items:flex-start;gap:10px;padding:12px 13px;
+  border-radius:11px;border:1px solid #dae6f5;background:#f3f8ff;
+  font-size:12px;line-height:1.55;color:#5c7898}
+.bea-poster-status svg{flex:0 0 18px;margin-top:2px}
+.bea-poster-status strong{display:block;font-weight:810;font-size:13px}
+.bea-poster-status.is-pending{background:#fff5e8;border-color:#f1d9ad;color:#945f15}
+.bea-poster-status.is-ready{background:#eaf9f0;border-color:#c5e7d3;color:#1c7753}
+.bea-poster-status.is-missing{background:#fff0f3;border-color:#efd0d9;color:#a1455a}
+.bea-publish-warning{display:flex;align-items:flex-start;gap:10px;
+  padding:12px;margin:5px 0 14px;border-radius:10px;
+  border:1px solid #f0d8ac;background:#fff5e5;
+  color:#975d1e;font:600 13px/1.5 -apple-system,BlinkMacSystemFont,Inter,system-ui,sans-serif;
+  cursor:pointer}
+.bea-publish-warning input{width:18px;height:18px;flex-shrink:0;accent-color:#d18a28;margin-top:1px}
