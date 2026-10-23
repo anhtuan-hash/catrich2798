@@ -118,6 +118,7 @@ export default function Settings({
   const [query, setQuery] = useState('');
   const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' });
   const [activeModule, setActiveModule] = useState(null);
+  const [detailFullscreen, setDetailFullscreen] = useState(false);
   const [motionDirty, setMotionDirty] = useState(false);
   const drawerRef = useRef(null);
   const drawerCloseRef = useRef(null);
@@ -127,6 +128,7 @@ export default function Settings({
     if (!SETTINGS_LAUNCHER_TILES.some(item => item.id === id)) return;
     if (id === 'permissions' && !isDepartmentLeaderRole(currentUser?.role)) return;
     previousTriggerRef.current = document.activeElement;
+    setDetailFullscreen(false);
     setActiveModule(id);
   };
   const closeModule = () => {
@@ -136,6 +138,7 @@ export default function Settings({
       setPasswordForm({ current: '', next: '', confirm: '' });
     }
     setActiveModule(null);
+    setDetailFullscreen(false);
     setMotionDirty(false);
     requestAnimationFrame(() => previousTriggerRef.current?.focus?.());
   };
@@ -322,11 +325,12 @@ export default function Settings({
           {activeModule ? <button type="button" className="settings-launcher-backdrop"
             onClick={closeModule} aria-label={vi ? 'Đóng bảng cài đặt' : 'Close settings panel'} /> : null}
           {activeModule ? (
-            <section ref={drawerRef} className="settings-launcher-drawer" role="dialog" aria-modal="true"
+            <section ref={drawerRef} className={`settings-launcher-drawer ${detailFullscreen ? 'is-fullscreen' : ''}`} role="dialog" aria-modal="true"
               aria-label={vi ? moduleTitle?.vi || 'Cài đặt' : moduleTitle?.en || 'Settings'}>
               <header className="settings-launcher-drawer-header">
                 <span><M3Icon name={activeModule === 'account' ? 'person' : activeModule === 'notifications' ? 'bell' : activeModule === 'data' ? 'storage' : activeModule === 'security' ? 'shield' : 'settings'} /></span>
                 <div><small>BRIAN ENGLISH · SETTINGS</small><strong>{vi ? moduleTitle?.vi : moduleTitle?.en}</strong></div>
+                <button type="button" className="settings-launcher-expand" onClick={() => setDetailFullscreen(value => !value)} aria-pressed={detailFullscreen} title={vi ? (detailFullscreen ? 'Thu gọn' : 'Mở rộng') : (detailFullscreen ? 'Reduce' : 'Expand')} aria-label={vi ? (detailFullscreen ? 'Thu gọn bảng cài đặt' : 'Mở rộng bảng cài đặt') : (detailFullscreen ? 'Reduce settings panel' : 'Expand settings panel')}>{detailFullscreen ? '↙' : '⤢'}</button>
                 <button ref={drawerCloseRef} type="button" onClick={closeModule} aria-label={vi ? 'Đóng' : 'Close'} title={vi ? 'Đóng' : 'Close'}>✕</button>
               </header>
               <div className="settings-launcher-drawer-body">
