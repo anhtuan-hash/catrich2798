@@ -219,3 +219,245 @@
 .gbmac-utilities .gb-prod-preview-grid{grid-template-columns:1fr}
 }
 @media(prefers-reduced-motion:reduce){.gbmac-utilities *{transition:none!important;scroll-behavior:auto!important}}
+
+
+/* ==========================================================================
+   Brian Gradebook / macOS semantic color system
+   Single scoped palette: no changes to ESL Brian global navigation.
+   Primary = blue, tools = indigo, progress = teal, classes = amber,
+   settings = violet. Errors/warnings/success retain conventional meaning.
+   ========================================================================== */
+.gbmac-utilities {
+  --gu-primary: #2865d5;
+  --gu-ink: #263a57;
+  --gu-muted: #64758e;
+  --gu-surface: #ffffff;
+  --gu-border: #dee7f3;
+  --gu-tools: #5545b6;
+  --gu-tools-soft: #f1efff;
+  --gu-tools-border: #ddd7fc;
+  --gu-progress: #0c8174;
+  --gu-progress-soft: #e8f8f3;
+  --gu-progress-border: #bfe7dc;
+  --gu-classes: #a76610;
+  --gu-classes-soft: #fff5e3;
+  --gu-classes-border: #f4dfb8;
+  --gu-settings: #7d4cac;
+  --gu-settings-soft: #f6edfd;
+  --gu-settings-border: #e9d4f4;
+  --gu-success: #17734b;
+  --gu-warning: #986319;
+  --gu-error: #b33c53;
+  --gu-context: var(--gu-tools);
+  --gu-context-soft: var(--gu-tools-soft);
+  --gu-context-border: var(--gu-tools-border);
+}
+.gbmac-utilities[data-utility-page="progress"] {
+  --gu-context: var(--gu-progress);
+  --gu-context-soft: var(--gu-progress-soft);
+  --gu-context-border: var(--gu-progress-border);
+}
+.gbmac-utilities[data-utility-page="classes"] {
+  --gu-context: var(--gu-classes);
+  --gu-context-soft: var(--gu-classes-soft);
+  --gu-context-border: var(--gu-classes-border);
+}
+.gbmac-utilities[data-utility-page="settings"] {
+  --gu-context: var(--gu-settings);
+  --gu-context-soft: var(--gu-settings-soft);
+  --gu-context-border: var(--gu-settings-border);
+}
+.gbmac-utilities .gbmac-tools-header {
+  border-bottom: 1px solid var(--gu-context-border);
+  background:
+    radial-gradient(circle at 87% 0%, var(--gu-context-soft), transparent 48%),
+    linear-gradient(110deg, #fff, #f9fbff);
+}
+.gbmac-utilities .gbmac-utilities-symbol {
+  color: var(--gu-context);
+  background: var(--gu-context-soft);
+  border-color: var(--gu-context-border);
+}
+.gbmac-utilities .gbmac-utilities-kicker { color: var(--gu-context); }
+.gbmac-utilities .gbmac-utilities-page-head {
+  position: relative;
+  padding: 14px 17px 14px 19px;
+  border: 1px solid var(--gu-context-border);
+  border-radius: 12px;
+  background: linear-gradient(110deg, var(--gu-context-soft), #fff 88%);
+}
+.gbmac-utilities .gbmac-utilities-page-head::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 13px; bottom: 13px;
+  width: 4px;
+  border-radius: 99px;
+  background: var(--gu-context);
+}
+.gbmac-utilities .gbmac-utilities-page-head h3 { color: #253a59; }
+.gbmac-utilities .gbmac-utilities-nav-item[data-group] {
+  --gu-item: var(--gu-tools);
+  --gu-item-soft: var(--gu-tools-soft);
+  --gu-item-border: var(--gu-tools-border);
+}
+.gbmac-utilities .gbmac-utilities-nav-item[data-group="progress"] {
+  --gu-item: var(--gu-progress);
+  --gu-item-soft: var(--gu-progress-soft);
+  --gu-item-border: var(--gu-progress-border);
+}
+.gbmac-utilities .gbmac-utilities-nav-item[data-group="classes"] {
+  --gu-item: var(--gu-classes);
+  --gu-item-soft: var(--gu-classes-soft);
+  --gu-item-border: var(--gu-classes-border);
+}
+.gbmac-utilities .gbmac-utilities-nav-item[data-group="settings"] {
+  --gu-item: var(--gu-settings);
+  --gu-item-soft: var(--gu-settings-soft);
+  --gu-item-border: var(--gu-settings-border);
+}
+.gbmac-utilities .gbmac-utilities-nav-item[data-group] > svg {
+  box-sizing: content-box;
+  width: 19px; height: 19px;
+  padding: 8px;
+  border-radius: 10px;
+  color: var(--gu-item);
+  background: var(--gu-item-soft);
+  border: 1px solid var(--gu-item-border);
+}
+.gbmac-utilities .gbmac-utilities-nav-item[data-group].is-current {
+  background: var(--gu-item-soft);
+  border-color: var(--gu-item-border);
+  color: var(--gu-item);
+  box-shadow: inset 3px 0 0 var(--gu-item);
+}
+.gbmac-utilities .gbmac-utilities-nav-item[data-group].is-current strong {
+  color: var(--gu-item);
+}
+.gbmac-utilities .gbmac-utilities-nav-item[data-group] .gbmac-utilities-current-dot {
+  background: var(--gu-item);
+}
+.gbmac-utilities .gbmac-utilities-nav-item[data-group]:not(.is-current):hover {
+  background: var(--gu-item-soft);
+}
+.gbmac-utilities .gbmac-utilities-nav-item[data-group]:focus-visible,
+.gbmac-utilities .gb-prod-tabs button:focus-visible,
+.gbmac-utilities .gb-mission-card:focus-visible {
+  outline: 2px solid var(--gu-context);
+  outline-offset: 2px;
+}
+
+/* Ten advanced tools retain discrete, recognizable category colors. */
+.gbmac-utilities .gb-prod-tabs button[data-tab] {
+  --gu-tab: #3b60b5;
+  --gu-tab-soft: #edf3ff;
+  --gu-tab-border: #cddbf7;
+}
+.gbmac-utilities .gb-prod-tabs button[data-tab="paste"] {
+  --gu-tab: #245ec4; --gu-tab-soft: #eaf2ff; --gu-tab-border: #c9dcfc;
+}
+.gbmac-utilities .gb-prod-tabs button[data-tab="progress"] {
+  --gu-tab: #078676; --gu-tab-soft: #e7f7f2; --gu-tab-border: #c2e8df;
+}
+.gbmac-utilities .gb-prod-tabs button[data-tab="heatmap"] {
+  --gu-tab: #694bb3; --gu-tab-soft: #f0edff; --gu-tab-border: #d9d0fc;
+}
+.gbmac-utilities .gb-prod-tabs button[data-tab="alerts"] {
+  --gu-tab: #a56616; --gu-tab-soft: #fff4df; --gu-tab-border: #f2dbb1;
+}
+.gbmac-utilities .gb-prod-tabs button[data-tab="quality"] {
+  --gu-tab: #ad4058; --gu-tab-soft: #fff0f3; --gu-tab-border: #f5d2da;
+}
+.gbmac-utilities .gb-prod-tabs button[data-tab="history"] {
+  --gu-tab: #256e9c; --gu-tab-soft: #e9f5fc; --gu-tab-border: #cce7f6;
+}
+.gbmac-utilities .gb-prod-tabs button[data-tab="finalize"] {
+  --gu-tab: #4757b6; --gu-tab-soft: #eff0ff; --gu-tab-border: #d9defc;
+}
+.gbmac-utilities .gb-prod-tabs button[data-tab="rubric"] {
+  --gu-tab: #7c49a6; --gu-tab-soft: #f7edff; --gu-tab-border: #e7d5f7;
+}
+.gbmac-utilities .gb-prod-tabs button[data-tab="report"] {
+  --gu-tab: #087e8a; --gu-tab-soft: #e7f9fa; --gu-tab-border: #c5ebed;
+}
+.gbmac-utilities .gb-prod-tabs button[data-tab="recovery"] {
+  --gu-tab: #a15d31; --gu-tab-soft: #fff3e9; --gu-tab-border: #efdbcb;
+}
+.gbmac-utilities .gb-prod-tabs button[data-tab] {
+  color: var(--gu-tab);
+  background: #fff;
+  border-color: var(--gu-tab-border);
+}
+.gbmac-utilities .gb-prod-tabs button[data-tab] .gb-prod-tab-art {
+  width: 30px; height: 30px;
+  border-radius: 9px;
+  background: var(--gu-tab-soft);
+  color: var(--gu-tab);
+}
+.gbmac-utilities .gb-prod-tabs button[data-tab].active {
+  color: var(--gu-tab);
+  border-color: var(--gu-tab);
+  background: var(--gu-tab-soft);
+  box-shadow: inset 0 -3px 0 var(--gu-tab);
+}
+.gbmac-utilities .gb-prod-tabs button[data-tab]:hover:not(.active) {
+  background: var(--gu-tab-soft);
+  border-color: var(--gu-tab);
+}
+
+/* Mission visualizations use progress-teal while incomplete states stay warm. */
+.gbmac-utilities .gb-mission-ring {
+  background: conic-gradient(var(--gu-progress) var(--gb-mission-pct), #dcefe9 0);
+}
+.gbmac-utilities .gb-mission-ring > span { color: var(--gu-progress); }
+.gbmac-utilities .gb-mission-bar span {
+  background: linear-gradient(90deg, #16a085, #0c8174);
+}
+.gbmac-utilities .gb-mission-card-top { color: var(--gu-progress); }
+.gbmac-utilities .gb-mission-card-value { color: #0d756b; }
+.gbmac-utilities .gb-mission-card:hover {
+  border-color: var(--gu-progress-border);
+  background: var(--gu-progress-soft);
+}
+.gbmac-utilities .gbmac-utilities-managed .gradebook-assignment-state {
+  color: var(--gu-classes);
+}
+.gbmac-utilities .gbmac-utilities-managed button.primary {
+  background: #a66516;
+  border-color: #a66516;
+  color: white;
+}
+.gbmac-utilities .gbmac-utilities-settings-card h4 > svg {
+  color: var(--gu-settings);
+}
+
+/* Semantic status: preserve text labels and shape, not color alone. */
+.gbmac-utilities .gb-prod-pane p.gb-prod-notice,
+.gbmac-utilities .gb-prod-pane p.gb-prod-alert,
+.gbmac-utilities .gb-prod-pane p.gb-prod-error {
+  border: 1px solid transparent;
+}
+.gbmac-utilities .gb-prod-pane p.gb-prod-notice {
+  background: #e9f8ef;
+  color: var(--gu-success);
+  border-color: #c4e5d1;
+}
+.gbmac-utilities .gb-prod-pane p.gb-prod-alert {
+  background: #fff5e6;
+  color: var(--gu-warning);
+  border-color: #f1ddba;
+}
+.gbmac-utilities .gb-prod-pane p.gb-prod-error {
+  background: #fff0f3;
+  color: var(--gu-error);
+  border-color: #f1ccd5;
+  padding: 9px;
+  border-radius: 9px;
+}
+.gbmac-utilities .gb-prod-heat td.tone-high { background: #e4f7ea; color: #12673f; }
+.gbmac-utilities .gb-prod-heat td.tone-good { background: #e9f3ff; color: #235aa5; }
+.gbmac-utilities .gb-prod-heat td.tone-middle { background: #fff3df; color: #996016; }
+.gbmac-utilities .gb-prod-heat td.tone-low { background: #ffedf0; color: #a9384c; }
+.gbmac-utilities .gb-prod-heat td.tone-missing { background: #f0f3f7; color: #607086; }
+@media (prefers-reduced-motion: reduce) {
+  .gbmac-utilities .gbmac-utilities-nav-item[data-group] { transition: none; }
+}
