@@ -50,7 +50,7 @@ function rosterFields(student = {}) {
   };
 }
 const FIELDS = ['code','fullName','birthDate','gender','active','archivedAt','archivedReason'];
-export function applyStudentChangesToCanonicalRoster(remote = [], previous = [], next = []) {
+export function applyStudentChangesToCanonicalRoster(remote = [], previous = [], next = [], permanentRemovals = []) {
   const students = projectSharedRosterStudents(remote);
   const issues = [];
   let changed = 0;
@@ -107,6 +107,19 @@ export function applyStudentChangesToCanonicalRoster(remote = [], previous = [],
       });
     }
     changed += 1;
+  });
+  // A missing row is never treated as a delete by itself. Only an explicit
+  // permanent-deletion tombstone for a *previously archived* student may remove
+  // the corresponding canonical record. Ambiguous matches block the operation.
+  (Array.isArray(permanentRemovals) ? permanentRemovals : []).forEach((archived) => {
+    if (archived?.active !== false) return;
+    const match = selectCanonicalMatch(archived, students);
+    if (match.ambiguous) {
+      issues.push('Không thể xác định duy nhất học sinh đã lưu trữ trong danh sách dùng chung.');
+    } else if (match.index >= 0) {
+      students.splice(match.index, 1);
+      changed += 1;
+    }
   });
   return { students, changed, issues };
 }
@@ -230,7 +243,14 @@ export async function syncAssignedStudentRosterDelta(user, before, after, option
   }
   const oldStudents = Array.isArray(before?.students) ? before.students : [];
   const nextStudents = Array.isArray(after?.students) ? after.students : [];
-  const preliminary = applyStudentChangesToCanonicalRoster(oldStudents, oldStudents, nextStudents);
+  const currentIds = new Set(nextStudents.map((item) => text(item?.id)));
+  const tombstoneIds = new Set((after?.studentPermanentDeletionTombstones || [])
+    .map((item) => text(item?.id)).filter(Boolean));
+  const permanentRemovals = oldStudents.filter((item) => (
+    item.active === false && text(item.id) && tombstoneIds.has(text(item.id))
+    && !currentIds.has(text(item.id))
+  ));
+  const preliminary = applyStudentChangesToCanonicalRoster(oldStudents, oldStudents, nextStudents, permanentRemovals);
   if (preliminary.issues.length) return { ok: false, message: preliminary.issues.join(' ') };
   const rosterKey = `class:${lower(schoolYear)}||${lower(className)}`;
   if (!options.skipQueue && readPending(queueKey(user, after.classProfile)).length) {
@@ -253,7 +273,7 @@ export async function syncAssignedStudentRosterDelta(user, before, after, option
     if (readError || !row) {
       return fail(readError?.message || 'Danh sách chung chưa được tạo.');
     }
-    const applied = applyStudentChangesToCanonicalRoster(row.students || [], oldStudents, nextStudents);
+    const applied = applyStudentChangesToCanonicalRoster(row.students || [], oldStudents, nextStudents, permanentRemovals);
     if (applied.issues.length) return { ok: false, message: applied.issues.join(' ') };
     const { data, error } = await supabase.from('bes_class_rosters')
       .update({
