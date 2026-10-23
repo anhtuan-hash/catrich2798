@@ -16,6 +16,13 @@ import '../styles/teacher-dashboard-timeline-v2.css';
 import DashboardNewsHub from '../components/DashboardNewsHub.jsx';
 // Newsroom owns its compact presentation after the six original October 10 design layers.
 import '../styles/dashboard-newsroom-editorial-20261023.css';
+import '../styles/dashboard-hero-cms.css';
+import { isDepartmentLeaderRole } from '../utils/roles.js';
+import {
+  DASHBOARD_HERO_UPDATED_EVENT, DEFAULT_DASHBOARD_HERO, normalizeDashboardHero, readDashboardHero,
+} from '../utils/dashboardHeroCms.js';
+import { Pencil } from 'lucide-react';
+const DashboardHeroEditor = React.lazy(() => import('../components/DashboardHeroEditor.jsx'));
 import { dashboardLocalDayKey, isDashboardTeachingPeriod } from '../utils/dashboardClassification.js';
 const EventPopupHost = React.lazy(() => import('../features/events/dashboard/EventPopupHost.jsx'));
 
@@ -288,6 +295,48 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   const [error, setError] = useState('');
   const [now, setNow] = useState(() => new Date());
   const [weather, setWeather] = useState({ temperature: null, code: null, loading: true });
+  const canEditHero = isDepartmentLeaderRole(currentUser?.role);
+  const [heroPublished, setHeroPublished] = useState(() => normalizeDashboardHero(DEFAULT_DASHBOARD_HERO));
+  const [heroDraft, setHeroDraft] = useState(null);
+  const [heroPreview, setHeroPreview] = useState(null);
+  const [heroEditorOpen, setHeroEditorOpen] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const syncPublished = async () => {
+      try {
+        const result = await readDashboardHero();
+        if (!cancelled) setHeroPublished(result.published);
+      } catch (error) {
+        // The default Dashboard Hero remains available if CMS storage is offline.
+        if (import.meta.env.DEV) console.warn('Dashboard Hero CMS is unavailable', error);
+      }
+    };
+    syncPublished();
+    window.addEventListener('focus', syncPublished);
+    const updated = (event) => {
+      if (event?.detail?.published && !cancelled) setHeroPublished(normalizeDashboardHero(event.detail.published));
+    };
+    window.addEventListener(DASHBOARD_HERO_UPDATED_EVENT, updated);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('focus', syncPublished);
+      window.removeEventListener(DASHBOARD_HERO_UPDATED_EVENT, updated);
+    };
+  }, [currentUser?.id]);
+
+  const openHeroEditor = async () => {
+    if (!canEditHero) return;
+    // Keep the current published version until the drawer is actually opened.
+    try {
+      const result = await readDashboardHero({ includeDraft: true });
+      setHeroPublished(result.published);
+      setHeroDraft(result.draft);
+    } catch (error) {
+      setHeroDraft(heroPublished);
+    }
+    setHeroEditorOpen(true);
+  };
   const dashboardRequestRef = useRef(0);
   const weatherRequestRef = useRef(0);
   const lastRefreshRef = useRef(0);
@@ -371,6 +420,15 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   const heroDate = new Intl.DateTimeFormat(locale, { weekday: 'long', day: '2-digit', month: 'short' }).format(now);
   const weatherDescription = weather.code == null ? t.weatherLoading : weatherText(weather.code, language);
   const weatherTemperature = weather.temperature == null ? '—°C' : `${weather.temperature}°C`;
+  const hero = normalizeDashboardHero(heroPreview || heroPublished);
+  const hasDashboardHeroMedia = hero.backgroundType !== 'none' && Boolean(hero.backgroundUrl);
+  const dashboardHeroStyle = {
+    '--db-heading-color': hero.headingColor,
+    '--db-media-opacity': hero.opacity / 100,
+    '--db-shade-opacity': hero.shade / 100,
+    '--db-media-position': `${hero.positionX}% ${hero.positionY}%`,
+    '--db-media-fit': hero.backgroundFit,
+  };
 
   const scrollToCalendar = useCallback(() => {
     document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'auto', block: 'start' });
@@ -407,14 +465,30 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
 
   return <section className={`gd-page${initialLoading ? ' is-loading' : ''}`} aria-label={t.pageTitle} aria-busy={loading}>
     <React.Suspense fallback={null}><EventPopupHost currentUser={currentUser}/></React.Suspense>
+    {canEditHero ? <React.Suspense fallback={null}><DashboardHeroEditor
+      open={heroEditorOpen}
+      currentUser={currentUser}
+      initialConfig={heroDraft || heroPublished}
+      language={language}
+      onClose={() => { setHeroEditorOpen(false); setHeroPreview(null); }}
+      onPreview={setHeroPreview}
+      onPublished={(published) => { setHeroPublished(published); setHeroDraft(published); setHeroPreview(published); }}
+    /></React.Suspense> : null}
     <div className="gd-shell">
       <section className="gd-top-grid">
-        <header className="editorial-hero">
-          <DashboardHeroCloudscape />
-          <DashboardHeroDoodles language={language} />
+        <header className={`editorial-hero ${hasDashboardHeroMedia ? 'has-dashboard-custom-hero' : ''}`} style={dashboardHeroStyle}>
+          {hasDashboardHeroMedia ? <div className="db-hero-media" aria-hidden="true">
+            {hero.backgroundType === 'video'
+              ? <video src={hero.backgroundUrl} autoPlay muted loop playsInline preload="metadata"/>
+              : <img src={hero.backgroundUrl} alt="" loading="eager" decoding="async" />}
+            <div className="db-hero-media-shade" />
+          </div> : null}
+          {hero.showClouds ? <DashboardHeroCloudscape /> : null}
+          {hero.showDoodles ? <DashboardHeroDoodles language={language} /> : null}
+          {canEditHero ? <button type="button" className="db-hero-edit-button" onClick={openHeroEditor} aria-label="Chỉnh sửa Hero Dashboard"><Pencil size={15}/><span>{language === 'vi' ? 'Chỉnh sửa Hero' : 'Edit Hero'}</span></button> : null}
           <div className="editorial-hero-copy">
             <div className="editorial-hero-meta">
-              <span className="editorial-hero-eyebrow"><span aria-hidden="true" />{t.eyebrow}</span>
+              <span className="editorial-hero-eyebrow"><span aria-hidden="true" />{language === 'en' ? hero.eyebrowEn : hero.eyebrowVi}</span>
               <span className="editorial-hero-date">{heroDate}</span>
             </div>
 
@@ -423,7 +497,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
               <h1>{name}<span className="editorial-hero-wave" aria-hidden="true">👋</span></h1>
             </div>
 
-            <p className="editorial-hero-lead">{t.lead}</p>
+            <p className="editorial-hero-lead">{language === 'en' ? hero.descriptionEn : hero.descriptionVi}</p>
 
             <div className="editorial-hero-actions">
               <button type="button" className="editorial-primary-action" onClick={scrollToCalendar}><Icon name="calendar" size={20} /><span>{t.calendar}</span><Icon name="arrow" size={18} /></button>
@@ -447,7 +521,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
                 <span><small>{weather.loading ? t.weatherLoading : weatherDescription}</small><strong>TP.HCM · {weatherTemperature}</strong></span>
               </button>
             </div>
-            <div className="editorial-hero-visual"><DashboardHeroIllustration /></div>
+            {hero.showArtwork ? <div className="editorial-hero-visual"><DashboardHeroIllustration /></div> : null}
             <button type="button" className="editorial-today-chip" onClick={focusToday} title={t.dateToday}><Icon name="calendar" size={17} /><span>{t.dateToday}</span><strong>{new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit' }).format(now)}</strong></button>
           </div>
         </header>
