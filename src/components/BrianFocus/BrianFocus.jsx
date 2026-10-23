@@ -13,7 +13,7 @@ export default function BrianFocus({ language = 'vi', weather, weatherDescriptio
 
   return (
     <>
-      {!open ? <FocusBubble buttonRef={triggerRef} language={language}
+      {!open && !disabled ? <FocusBubble buttonRef={triggerRef} language={language}
         onClick={() => { if (!disabled) setOpen(true); }} /> : null}
       {open ? <FocusOverlay language={language} weather={weather}
         weatherDescription={weatherDescription}
