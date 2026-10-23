@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 
 const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8');
 const page = read('src/pages/WorkDashboard.jsx');
+const planner = read('src/components/DashboardWorkPlanner.jsx');
 const historical = [
   'teacher-dashboard-google-authentic.css',
   'teacher-dashboard-calendar-split.css',
@@ -13,17 +14,23 @@ const historical = [
 ];
 
 const imports = [...page.matchAll(/import '\.\.\/styles\/([^']+\.css)';/g)].map((m) => m[1]);
-assert.deepEqual(imports, [...historical, 'dashboard-newsroom-editorial-20261023.css'],
-  'Keep the six original October 10 editorial layers, then load the isolated Newsroom authority');
-assert.match(page, /<header className="editorial-hero">/);
-assert.match(page, /<DashboardHeroCloudscape\s*\/>/);
-assert.match(page, /<DashboardHeroIllustration\s*\/>/);
-assert.match(page, /id="dashboard-calendar"/);
-assert.match(page, /gd-calendar-today gd-calendar-timeline-v2/);
-assert.match(page, /<DashboardNewsHub language=\{language\} \/>/);
-assert.equal((page.match(/id="dashboard-calendar"/g) || []).length, 1, 'There must be one schedule');
-assert.ok(page.indexOf('<header className="editorial-hero">') < page.indexOf('id="dashboard-calendar"'));
-assert.ok(page.indexOf('id="dashboard-calendar"') < page.indexOf('<DashboardNewsHub language={language} />'));
+assert.deepEqual(imports.slice(0, 7), [...historical, 'dashboard-newsroom-editorial-20261023.css'],
+  'Preserve the original October 10 CSS foundations then load the Newsroom authority');
+assert.deepEqual(imports.slice(7),
+  ['dashboard-hero-cms.css', 'dashboard-hero-minimal-20261023.css'],
+  'Keep current independent Hero CMS and minimal visual rules after the historical styles');
+assert.match(page, /editorial-hero is-minimal/, 'Keep the approved quiet Dashboard Hero');
+assert.match(page, /editorial-hero-hello/, 'Keep the personalized greeting');
+assert.match(page, /editorial-status-weather/, 'Keep the dynamic weather');
+assert.match(page, /<DashboardWorkPlanner\s/, 'Calendar is now owned by the modern Work Planner');
+assert.match(planner, /id="dashboard-calendar"/, 'Keep the schedule deep-link target');
+assert.match(planner, /onOpenItem/, 'Keep clickable calendar entries');
+assert.match(page, /<DashboardNewsHub language=\{language\} \/>/, 'Keep the Newsroom');
+assert.equal((page.match(/<DashboardWorkPlanner\s/g) || []).length, 1, 'There must be one schedule');
+assert.ok(page.indexOf('editorial-hero is-minimal') < page.indexOf('<DashboardWorkPlanner'),
+  'Hero precedes calendar');
+assert.ok(page.indexOf('<DashboardWorkPlanner') < page.indexOf('<DashboardNewsHub language={language} />'),
+  'Calendar precedes Newsroom');
 
 for (const retired of [
   'DashboardCommandCenter', 'DashboardDailyBrief', 'DashboardInsights',
@@ -40,4 +47,4 @@ assert.match(page, /isDashboardTeachingPeriod\(item\)/, 'Keep current schedule c
 assert.match(page, /dashboardLocalDayKey/, 'Keep improved date handling');
 assert.match(page, /bes-dashboard-focus/, 'Keep schedule deep links');
 assert.match(read('src/components/DashboardNewsHub.jsx'), /role="tablist"/, 'Keep VN and English news channels');
-console.log('PASS: October 10 Dashboard restored to Hero + one Today agenda + full Newsroom, modern data safety preserved.');
+console.log('PASS: Dashboard Hero, standalone Work Planner and Newsroom remain intact with original style foundations.');
