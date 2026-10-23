@@ -4,6 +4,8 @@ import {
   readVietnamAtmosphereLocal,
   subscribeVietnamAtmosphereSettings,
 } from '../utils/vietnamAtmosphereSettings.js';
+import { loadGlobalAtmosphereTheme, readGlobalAtmosphereLocal, subscribeGlobalAtmosphereTheme } from '../utils/globalAtmosphereTheme.js';
+import HalloweenAtmosphereOverlay from './HalloweenAtmosphereOverlay.jsx';
 import './VietnamAtmosphereOverlay.css';
 
 const BUILT_IN_SEQUENCE = ['flag', 'nonla', 'lotus', 'bamboo', 'drum', 'halong', 'lotus', 'nonla', 'bamboo', 'flag'];
@@ -221,6 +223,7 @@ function VietnamMotif({ kind }) {
 export default function VietnamAtmosphereOverlay() {
   const [viewportTier, setViewportTier] = useState(getViewportTier);
   const [settings, setSettings] = useState(readVietnamAtmosphereLocal);
+  const [globalAtmosphere, setGlobalAtmosphere] = useState(readGlobalAtmosphereLocal);
 
   useEffect(() => {
     let active = true;
@@ -247,7 +250,22 @@ export default function VietnamAtmosphereOverlay() {
     };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    loadGlobalAtmosphereTheme().then((next) => {
+      if (active) setGlobalAtmosphere(next);
+    }).catch(() => null);
+    const unsubscribe = subscribeGlobalAtmosphereTheme((next) => {
+      if (active) setGlobalAtmosphere(next);
+    });
+    return () => { active = false; unsubscribe?.(); };
+  }, []);
+
   const motifs = useMemo(() => buildMotifs(viewportTier, settings), [viewportTier, settings]);
+  // Keep the full existing Vietnam implementation intact and simply choose the active layer.
+  if (globalAtmosphere.activeTheme === 'halloween') {
+    return <HalloweenAtmosphereOverlay settings={globalAtmosphere.halloween} />;
+  }
 
   if (!settings.enabled) return null;
 
