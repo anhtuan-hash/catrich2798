@@ -202,6 +202,10 @@ export default function HalloweenAtmosphereOverlay({ settings }) {
             '--h-duration': `${(motif.duration / speed).toFixed(2)}s`,
             '--h-delay': `${motif.delay.toFixed(2)}s`,
             '--h-dx': `${motif.dx.toFixed(1)}px`,
+            '--h-dx-start': `${(motif.dx * -0.35).toFixed(1)}px`,
+            '--h-dx-soft': `${(motif.dx * 0.62).toFixed(1)}px`,
+            '--h-dy-soft': `${(motif.dy * 0.7).toFixed(1)}px`,
+            '--h-dy-hover': `${(motif.dy * 0.6).toFixed(1)}px`,
             '--h-dy': `${motif.dy.toFixed(1)}px`,
             '--h-angle': `${motif.angle.toFixed(1)}deg`,
           }}
