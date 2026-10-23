@@ -17,6 +17,7 @@ import DashboardNewsHub from '../components/DashboardNewsHub.jsx';
 // Newsroom owns its compact presentation after the six original October 10 design layers.
 import '../styles/dashboard-newsroom-editorial-20261023.css';
 import { dashboardLocalDayKey, isDashboardTeachingPeriod } from '../utils/dashboardClassification.js';
+const EventPopupHost = React.lazy(() => import('../features/events/dashboard/EventPopupHost.jsx'));
 
 const COPY = {
   vi: {
@@ -405,6 +406,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   const focusToday = () => scrollToCalendar();
 
   return <section className={`gd-page${initialLoading ? ' is-loading' : ''}`} aria-label={t.pageTitle} aria-busy={loading}>
+    <React.Suspense fallback={null}><EventPopupHost currentUser={currentUser}/></React.Suspense>
     <div className="gd-shell">
       <section className="gd-top-grid">
         <header className="editorial-hero">
