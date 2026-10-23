@@ -337,11 +337,20 @@ export default function PermissionApprovalInbox({ currentUser, language = 'vi' }
         </button>
       </div> : null}
 
-      {panel !== 'drawer' && <button type="button" ref={triggerRef} className="bes-approval-fab"
-        aria-haspopup="dialog" aria-expanded={panel === 'quick'} aria-label={copy.expand}
-        title={copy.expand} onClick={() => panel === 'quick' ? close() : open('quick')}>
-        <ShieldCheck size={25} strokeWidth={2.1}/><BellRing size={15} className="bes-approval-fab-bell"/>
+      {panel !== 'drawer' && <button type="button" ref={triggerRef} className={'bes-approval-fab' + (panel === 'quick' ? ' is-active' : '')}
+        aria-haspopup="dialog" aria-expanded={panel === 'quick'} aria-label={pending.length > 0
+          ? (language === 'en' ? `${pending.length} access requests awaiting approval` : `${pending.length} yêu cầu chờ duyệt`)
+          : copy.expand}
+        onClick={() => panel === 'quick' ? close() : open('quick')}>
+        <span className="bes-approval-fab-glow" aria-hidden="true"/>
+        <ShieldCheck size={28} strokeWidth={1.8} aria-hidden="true"/>
+        <BellRing size={14} className="bes-approval-fab-bell" strokeWidth={1.85} aria-hidden="true"/>
         {pending.length > 0 ? <span className="bes-approval-count">{pending.length > 99 ? '99+' : pending.length}</span> : null}
+        <span className="bes-approval-fab-tooltip" aria-hidden="true">
+          {pending.length > 0
+            ? (language === 'en' ? `${pending.length} pending requests` : `${pending.length} yêu cầu chờ duyệt`)
+            : copy.expand}
+        </span>
       </button>}
     </div>, document.body
   );
