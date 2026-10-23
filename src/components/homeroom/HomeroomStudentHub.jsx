@@ -11,7 +11,7 @@ import { addStudent, archiveStudent, restoreStudent, transferStudent, upsertStud
 import { downloadCsv, formatViDate, normalizePhone } from '../../utils/homeroomOfflineTools.js';
 import { buildZaloUrl, fillMessageTemplate, openZaloChat } from '../../utils/zaloLink.js';
 import { buildStudentSupportHash, normalizeStudentRef } from '../../studentSupport/studentSupportIdentity.js';
-import { permanentlyRemoveArchivedStudents } from '../../utils/permanentStudentDeletion.js';
+import { isSupabaseConfigured, supabase } from '../../utils/supabase.js';
 import { deleteStudentRecordMedia, listStudentRecordMedia } from '../../utils/studentRecordMediaStore.js';
 import { cleanupStudentRecordCloudOrphans } from '../../utils/studentRecordCloudStore.js';
 import {
@@ -242,16 +242,46 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
     setBusy(true);
     setError('');
     try {
+      if (!isSupabaseConfigured || !supabase) {
+        throw new Error('Không thể kết nối Supabase. Chưa có hồ sơ nào bị xóa.');
+      }
+      const revision = workspace?.syncMeta?.cloudUpdatedAt;
+      if (!revision) {
+        throw new Error('Chưa có phiên bản Supabase đã xác nhận. Hãy tải lại lớp và thử lại.');
+      }
       const targetStudents = deletionStudents;
-      const next = permanentlyRemoveArchivedStudents(workspace, deleteRequest.ids);
-      const result = await onCommit(next, 'Đã xóa vĩnh viễn học sinh đã lưu trữ khỏi lớp.');
+      // The server validates ownership, archived status and the cloud revision,
+      // then removes records across related tables in ONE Postgres transaction.
+      // No local removal is performed before the RPC commits successfully.
+      const { data: deletion, error: cloudError } = await supabase.rpc(
+        'bes_cloud_permanent_delete_archived_v1',
+        {
+          p_workspace_id: workspace.id,
+          p_student_ids: deleteRequest.ids,
+          p_expected_revision: revision,
+        },
+      );
+      if (cloudError) throw new Error(cloudError.message || 'Supabase từ chối xóa hồ sơ.');
+      if (deletion?.ok !== true || deletion.deletedCount !== targetStudents.length) {
+        throw new Error('Supabase chưa xác nhận đủ số học sinh đã xóa.');
+      }
+      // Evict the stale device copy only AFTER the Supabase transaction succeeds.
+      // Next hydration must fetch the authoritative cloud workspace.
+      try {
+        const { data: { user: cloudUser } = {} } = await supabase.auth.getUser();
+        if (cloudUser?.id) {
+          localStorage.removeItem(
+            'bes-homeroom-workspace-v1:' + String(cloudUser.id).toLowerCase() + ':' + workspace.id,
+          );
+        }
+      } catch { /* Cloud deletion is already committed. */ }
       let mediaWarning = '';
-      if (result?.ok) {
+      {
         const cleanupResults = await Promise.all(targetStudents.map(async (student) => {
           try {
             const stored = await listStudentRecordMedia(workspace.id, student.id);
             await Promise.all(stored.map((item) => deleteStudentRecordMedia(item.key)));
-            if (result.offline) return { ok: true };
+            // Cloud commit has already completed; remove linked Storage objects.
             return await cleanupStudentRecordCloudOrphans({
               workspaceId: workspace.id, studentId: student.id, keepPaths: [],
             });
@@ -266,11 +296,11 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
       setDeleteRequest(null);
       setDeleteTyped('');
       setStatus('inactive');
-      setDeleteNotice(result?.ok === false
-        ? 'Hồ sơ đã được loại khỏi bản lưu trên thiết bị nhưng chưa đồng bộ cloud. Hãy kiểm tra kết nối và trạng thái đồng bộ trước khi tiếp tục.'
-        : result?.offline
-          ? 'Đã xóa trên thiết bị. Chế độ hiện tại chưa đồng bộ cloud.'
-          : 'Đã xóa hồ sơ đã lưu trữ và dữ liệu gắn với hồ sơ khỏi lớp.' + mediaWarning);
+      setDeleteNotice('Supabase đã xác nhận xóa vĩnh viễn ' + deletion.deletedCount
+        + ' học sinh và dữ liệu liên quan.' + mediaWarning);
+      // A hard refresh ensures no older React state or workspace snapshot can
+      // reinsert the deleted student after the server transaction.
+      window.setTimeout(() => window.location.reload(), mediaWarning ? 3200 : 1100);
     } catch (err) { setError(err?.message || 'Không thể xóa vĩnh viễn học sinh.'); }
     finally { setBusy(false); }
   };
