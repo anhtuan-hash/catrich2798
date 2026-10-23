@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import GradebookWorkspace from '../components/gradebook/GradebookWorkspace.jsx';
-import { ClipboardPenLine, ChartNoAxesCombined, FileDown, UsersRound, Plus, Sparkles, Palette, Check, ShieldCheck, BookOpenCheck } from 'lucide-react';
+import { UsersRound, Plus, BookOpenCheck } from 'lucide-react';
 import GradebookRosterHistoryPanel from '../components/gradebook/GradebookRosterHistoryPanel.jsx';
 import SubjectStudentsTab from '../components/homeroom/SubjectStudentsTab.jsx';
 import {
@@ -30,19 +30,7 @@ import { makeWorkspaceId } from '../utils/homeroomPhase3.js';
 import { getClassTypeLabel } from '../utils/homeroomClassTypes.js';
 import { flushPendingAssignedStudentRosters, syncAssignedStudentRosterDelta } from '../utils/assignedStudentRosterSync.js';
 import '../styles/homeroom-complete.css';
-import '../styles/GradebookStudio.css';
-import '../styles/GradebookLifecycle.css';
-import '../styles/GradebookAcademicWorkspace.css';
-import '../styles/GradebookSpectrumV4.css';
-import '../styles/GradebookRosterLayoutHotfix.css';
-import '../styles/GradebookFocusV5.css';
-import '../styles/GradebookRebirthV7.css';
-import '../styles/GradebookClarityV8.css';
-import '../styles/GradebookCompactV9.css';
-import '../styles/GradebookMaterial3V10.css';
-import '../styles/GradebookReadabilityV11.css';
-import '../styles/GradebookMaterial3V12.css';
-import '../styles/GradebookMinimalV13.css';
+import '../styles/GradebookMacShell.css';
 
 const EMPTY_CLASS = {
   className: '',
@@ -134,16 +122,6 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [gradebookDirty, setGradebookDirty] = useState(false);
-  const [visualPalette, setVisualPalette] = useState(() => {
-    try {
-      const saved = localStorage.getItem(`bes-gradebook-spectrum-v4:${userIdentity(currentUser)}`);
-      return ['electric','coral','orbit'].includes(saved) ? saved : 'electric';
-    } catch { return 'electric'; }
-  });
-  useEffect(() => {
-    try { localStorage.setItem(`bes-gradebook-spectrum-v4:${userIdentity(currentUser)}`, visualPalette); }
-    catch { /* Cosmetic preference is optional. */ }
-  }, [visualPalette, currentUser?.id, currentUser?.authId, currentUser?.email]);
   const [message, setMessage] = useState('');
   const [createOpen, setCreateOpen] = useState(() => !initialId);
   const [classDraft, setClassDraft] = useState(EMPTY_CLASS);
@@ -536,44 +514,42 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     </section>
   );
 
-  return <div className={`page hr-page gradebook-studio gb4-spectrum gb5-focus gb7-rebirth gbm3-studio gbm3-v12 gb4-palette-${visualPalette}`}>
-    <section className="gbm3-hero gb13-identity" aria-label="Điều khiển sổ điểm">
-      <div className="gb13-heading">
-        <div className="gb13-heading-copy">
-          <span className="gb13-eyebrow"><BookOpenCheck size={16} aria-hidden="true" /> BRIAN ENGLISH · GRADEBOOK</span>
-          <div className="gb13-titleline">
-            <h1>{vi ? 'Sổ điểm' : 'Gradebook'}</h1>
-            <span className={gradebookDirty ? 'gb13-unsaved-chip' : 'gb13-saved-chip'}>
-              {gradebookDirty ? 'Có thay đổi chưa lưu' : 'Sẵn sàng nhập điểm'}
-            </span>
+  return <div className="page hr-page gbmac-studio">
+    <section className="gbmac-shell" aria-label="Sổ điểm">
+      <div className="gbmac-shell-head">
+        <div className="gbmac-shell-identity">
+          <span className="gbmac-shell-icon" aria-hidden="true"><BookOpenCheck size={25}/></span>
+          <div>
+            <span className="gbmac-shell-eyebrow">BRIAN ENGLISH · GRADEBOOK</span>
+            <div className="gbmac-shell-title">
+              <h1>{vi ? 'Sổ điểm' : 'Gradebook'}</h1>
+              <span className={gradebookDirty ? 'gbmac-shell-state is-unsaved' : 'gbmac-shell-state'}>
+                <span aria-hidden="true" />{gradebookDirty ? 'Có thay đổi chưa lưu' : 'Sẵn sàng nhập điểm'}
+              </span>
+            </div>
+            <p>{activeMeta?.className || 'Chưa chọn lớp'} · {activeMeta?.schoolYear || '2026–2027'} · {studentCount} học sinh</p>
           </div>
-          <p>{activeMeta?.className || 'Chưa chọn lớp'} · {activeMeta?.schoolYear || '2026–2027'} · {studentCount} học sinh</p>
         </div>
-        <div className="gb13-heading-actions">
-          <button type="button" className="gb13-quiet-button" disabled={!workspace} onClick={view === 'students' ? () => setView('gradebook') : openStudentRoster}>
-            <UsersRound size={17} aria-hidden="true" />{view === 'students' ? 'Về bảng điểm' : 'Danh sách học sinh'}
+        <div className="gbmac-shell-utilities">
+          <button type="button" disabled={!workspace}
+            onClick={view==='students' ? ()=>setView('gradebook') : openStudentRoster}>
+            <UsersRound size={17} aria-hidden="true"/>{view==='students'?'Về bảng điểm':'Danh sách học sinh'}
           </button>
-          <button type="button" className="gb13-quiet-button" onClick={() => setCreateOpen((value) => !value)}>
-            <Plus size={17} aria-hidden="true" />{createOpen ? 'Đóng tạo lớp' : 'Thêm lớp'}
-          </button>
+          <button type="button" onClick={()=>setCreateOpen(value=>!value)}><Plus size={17} aria-hidden="true"/>{createOpen?'Đóng':'Thêm lớp'}</button>
         </div>
       </div>
-      <div className="gbm3-hero-controls gb13-context">
-        <label><span>Lớp học</span>
-          <select value={workspaceId} disabled={saving || !activeClasses.length} onChange={(event) => switchGradebookClass(event.target.value)}>
-            {!activeClasses.length ? <option value="">Chưa có lớp</option> : null}
-            {activeClasses.map((item) => <option key={item.id} value={item.id}>{item.className || classLabel(item)}</option>)}
-          </select>
-        </label>
-        <label><span>Môn học</span><strong>{activeSubject || '—'}</strong></label>
-        <label><span>Học kỳ</span><select value={selectedSemester} onChange={(event) => {
-          if (gradebookDirty) {
-            window.alert('Vui lòng lưu hoặc hoàn tác các thay đổi trước khi chuyển học kỳ.');
-            return;
-          }
+      <div className="gbmac-shell-selectors">
+        <label><span>Lớp học</span><select value={workspaceId}
+          disabled={saving || !activeClasses.length} onChange={(event)=>switchGradebookClass(event.target.value)}>
+          {!activeClasses.length?<option value="">Chưa có lớp</option>:null}
+          {activeClasses.map(item=><option key={item.id} value={item.id}>{item.className || classLabel(item)}</option>)}
+        </select></label>
+        <div className="gbmac-shell-field"><span>Môn học</span><strong>{activeSubject || '—'}</strong></div>
+        <label><span>Học kỳ</span><select value={selectedSemester} onChange={(event)=>{
+          if(gradebookDirty){window.alert('Hãy lưu hoặc hoàn tác thay đổi trước khi chuyển học kỳ.');return;}
           setSelectedSemester(event.target.value);
         }}><option value="semester1">Học kỳ I</option><option value="semester2">Học kỳ II</option></select></label>
-        <label><span>Năm học</span><strong>{activeMeta?.schoolYear || '—'}</strong></label>
+        <div className="gbmac-shell-field"><span>Năm học</span><strong>{activeMeta?.schoolYear || '—'}</strong></div>
       </div>
     </section>
 
