@@ -17,7 +17,7 @@ const catalog = svg.match(/export const NOVEMBER_MOTIFS = Object\.freeze\(\[([\s
 check('24 standalone November motif names', Boolean(catalog) &&
   [...catalog[1].matchAll(/'([^']+)'/g)].length === 24);
 check('November art maps the 24 motifs to actual SVG artwork',
-  ['november-20', 'rose', 'lotus', 'chalkboard', 'open-book', 'thank-you-letter'].every((kind) => svg.includes(`'${kind}': <g>`)));
+  ['november-20', 'rose', 'lotus', 'chalkboard', 'open-book', 'thank-you-letter'].every((kind) => (svg.includes(`'${kind}': <g>`) || svg.includes(`${kind}: <g>`))));
 check('November symbol library has labels and school illustrations', svg.includes('NOVEMBER_MOTIF_LABELS') && svg.includes('20</text>'));
 check('global theme now supports three selections', settings.includes("['vietnam', 'halloween', 'november']"));
 check('old Halloween fields and their saved values remain supported', settings.includes('halloween_density') && settings.includes('halloween: { ...current.halloween'));
