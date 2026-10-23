@@ -107,9 +107,9 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
   loadAssessmentWorkspace(userId).then(result=>{
    if(!live)return;
    if(result.ok){setData(result.state);savedRef.current=JSON.stringify(result.state);}
-   else setWorkspaceError(result.message || 'Chưa thể tải không gian làm việc.');
+   else setWorkspaceError(result.message || t("Chưa thể tải không gian làm việc."));
    setReady(result.ok);
-  }).catch(error=>{if(live)setWorkspaceError(error?.message||'Không kết nối được Supabase.');});
+  }).catch(error=>{if(live)setWorkspaceError(error?.message||t("Không kết nối được Supabase."));});
   refreshRecords();
   listActivityAttributes().then(result=>{if(live && result.ok)setAttributes(result.items);});
   return ()=>{live=false;};
@@ -121,7 +121,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
   const timer=setTimeout(async()=>{
    const result=await storeAssessmentWorkspace(userId,data);
    if(result.ok)savedRef.current=serialized;
-   else setNotice('Không lưu được thay đổi lên Supabase: '+result.message);
+   else setNotice(t("Không lưu được thay đổi lên Supabase: ")+result.message);
   },700);
   return ()=>clearTimeout(timer);
  },[data,ready,userId]);
@@ -146,7 +146,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
   if(!title)return;
   const id=crypto.randomUUID();
   amend(d=>({collections:[...d.collections,{id,title,activityIds:[],createdAt:new Date().toISOString()}]}));
-  setSelectedCollection(id);setCollectionName('');setNotice('Đã tạo bộ sưu tập.');
+  setSelectedCollection(id);setCollectionName('');setNotice(t("Đã tạo bộ sưu tập."));
  };
  const move=(id,direction)=>{
   if(!selected)return;
@@ -156,7 +156,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
   collectionUpdate(selected.id,()=>({activityIds:ids}));
  };
  const startRunner=()=>{
-  if(!selected?.activityIds?.length){setNotice('Hãy thêm hoạt động vào bộ sưu tập trước.');return;}
+  if(!selected?.activityIds?.length){setNotice(t("Hãy thêm hoạt động vào bộ sưu tập trước."));return;}
   amend({runner:{collectionId:selected.id,index:0,className:runner.className||'',minutes:runner.minutes||5}});
   setRunnerSeconds((runner.minutes||5)*60);setRunning(false);setTab('runner');
  };
@@ -168,7 +168,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
  const recordDone=async()=>{
   if(!activeRunner)return;
   const result=await logActivityUse(userId,activeRunner,{eventType:'completed',className:runner.className||'',duration:Number(runner.minutes)||5,notes:journalNote});
-  if(result.ok){setNotice('Đã ghi nhận vào nhật ký lớp.');setJournalNote('');refreshRecords();}
+  if(result.ok){setNotice(t("Đã ghi nhận vào nhật ký lớp."));setJournalNote('');refreshRecords();}
   else setNotice(result.message);
  };
  const filtered=useMemo(()=>{
@@ -220,7 +220,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
  };
  async function saveTeacherGroup(){
    const name=teacherGroupName.trim();
-   if(!name || !selectedTeachers.length){setNotice('Nhập tên nhóm và chọn giáo viên.');return;}
+   if(!name || !selectedTeachers.length){setNotice(t("Nhập tên nhóm và chọn giáo viên."));return;}
    setGroupBusy(true);
    const r=await saveLessonCheckTeacherGroup(userId,{
      id:teacherGroupId||undefined,name,memberIds:selectedTeachers
@@ -229,17 +229,17 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
    if(!r.ok){setNotice(r.message);return;}
    setTeacherGroups(current=>[...current.filter(item=>item.id!==r.group.id),r.group].sort((a,b)=>a.name.localeCompare(b.name,'vi')));
    setTeacherGroupId(r.group.id);
-   setNotice('Đã lưu nhóm giáo viên. Có thể sử dụng lại ở các lần cấp quyền sau.');
+   setNotice(t("Đã lưu nhóm giáo viên. Có thể sử dụng lại ở các lần cấp quyền sau."));
  }
  async function removeTeacherGroup(){
-   if(!teacherGroupId || !window.confirm('Xóa nhóm giáo viên này? Quyền đã cấp trước đó không bị thay đổi.'))return;
+   if(!teacherGroupId || !window.confirm(t("Xóa nhóm giáo viên này? Quyền đã cấp trước đó không bị thay đổi.")))return;
    setGroupBusy(true);
    const r=await deleteLessonCheckTeacherGroup(userId,teacherGroupId);
    setGroupBusy(false);
    if(!r.ok){setNotice(r.message);return;}
    setTeacherGroups(current=>current.filter(g=>g.id!==teacherGroupId));
    setTeacherGroupId('');setTeacherGroupName('');
-   setNotice('Đã xóa nhóm lưu sẵn; các quyền được cấp trước đây vẫn giữ nguyên.');
+   setNotice(t("Đã xóa nhóm lưu sẵn; các quyền được cấp trước đây vẫn giữ nguyên."));
  }
  async function auditVisibleLinks(){
    if(linkAuditBusy)return;
@@ -258,15 +258,15 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
        setLinkAudit(old=>Object.fromEntries([...Object.entries(old),...results.map(r=>[r.id,r.result])]));
      }
      setLinkAuditPage((page+1)%pageCount);
-     setNotice('Đã kiểm tra '+targets.length+' nguồn ('+(page+1)+'/'+pageCount+' đợt). Các nguồn bị CORS chặn không được kết luận là hỏng.');
+     setNotice(t("Đã kiểm tra ")+targets.length+t(" nguồn (")+(page+1)+'/'+pageCount+t(" đợt). Các nguồn bị CORS chặn không được kết luận là hỏng."));
    }finally{setLinkAuditBusy(false);}
  }
  async function grantBulk(){
-  if(!selectedActivities.length||!selectedTeachers.length){setNotice('Chọn ít nhất một hoạt động và một giáo viên.');return;}
+  if(!selectedActivities.length||!selectedTeachers.length){setNotice(t("Chọn ít nhất một hoạt động và một giáo viên."));return;}
   setWorking(true);
   const result=await bulkGrantActivities(selectedActivities,selectedTeachers,grantAction==='grant',grantAction==='grant'&&expiresOn?new Date(expiresOn+'T23:59:59').toISOString():null);
   setWorking(false);
-  setNotice(result.ok?'Đã xử lý '+result.count+' quyền; đang đồng bộ…':result.message);
+  setNotice(result.ok?t("Đã xử lý ")+result.count+t(" quyền; đang đồng bộ…"):result.message);
   if(result.ok){await onRefresh?.();await refreshRecords();}
  }
  async function getVersions(activityId){
@@ -275,7 +275,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
  }
  async function restoreVersion(v){
   const current=table.get(v.activity_id);
-  if(!current || !window.confirm('Khôi phục nội dung phiên bản cũ? Phiên bản hiện tại sẽ được lưu vào lịch sử.'))return;
+  if(!current || !window.confirm(t("Khôi phục nội dung phiên bản cũ? Phiên bản hiện tại sẽ được lưu vào lịch sử.")))return;
   const r=await readActivityVersion(v.id);
   if(!r.ok){setNotice(r.message);return;}
   const meta=r.item.metadata || {};
@@ -287,12 +287,12 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
    notes:meta.notes,sourceHost:meta.source_host,focusArea:meta.focus_area||current.focusArea,embedCode:code};
   setWorking(true);
   const done=await saveLessonCheckActivity(draft,{kind});
-  setWorking(false);setNotice(done.ok?'Đã khôi phục nội dung và giữ bản sao cũ.':done.message);
+  setWorking(false);setNotice(done.ok?t("Đã khôi phục nội dung và giữ bản sao cũ."):done.message);
   if(done.ok){getVersions(current.id);onRefresh?.();}
  }
  async function addIntervention(){
   setWorking(true);const r=await saveIntervention(userId,intervention);setWorking(false);
-  setNotice(r.ok?'Đã lưu kế hoạch hỗ trợ.':r.message);
+  setNotice(r.ok?t("Đã lưu kế hoạch hỗ trợ."):r.message);
   if(r.ok){setIntervention({studentRef:'',studentName:'',className:'',focusArea:'',actionPlan:'',baselineGrade:'',followupGrade:'',dueOn:'',status:'planned'});refreshRecords();}
  }
  const quality=useMemo(()=>assessActivityQuality(activities),[activities]);
@@ -321,7 +321,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
   <header className="a4-hero"><div><small>BRIAN ASSESSMENT 5.0 · WORKSPACE</small><h2>{t("Trung tâm hoạt động & đánh giá")}</h2><p>{t("Học liệu của tôi · Tổ chức lớp · Theo dõi kết quả · Minh chứng chuyên môn")}</p></div>
    <button type="button" onClick={()=>{refreshRecords();onRefresh?.();}}><RefreshCw size={16}/> {t("Đồng bộ")}</button></header>
   <nav className="a4-tabs" aria-label={t("Chức năng Assessment 5.0")}>{allTabs.map(([id,name])=><button key={id} type="button" className={tab===id?'active':''} onClick={()=>setTab(id)}>{t(name)}</button>)}</nav>
-  {notice?<div className="a4-notice" role="status">{notice}<button type="button" aria-label={t("Đóng")} onClick={()=>setNotice('')}><X size={15}/></button></div>:null}
+  {notice?<div className="a4-notice" role="status">{assessmentText(notice,language)}<button type="button" aria-label={t("Đóng")} onClick={()=>setNotice('')}><X size={15}/></button></div>:null}
   {!ready?<div className="a4-loading">{workspaceError?<><strong>{workspaceError}</strong> <button type="button" onClick={()=>setRetryKey(v=>v+1)}>{t("Thử lại")}</button></>:<><LoaderCircle/> {t("Đang kết nối không gian làm việc cá nhân…")}</>}</div>:null}
   {ready && tab==='mine'? <>
    <div className="a4-stats"><div><strong>{favoriteIds.length}</strong><span>{t("Yêu thích")}</span></div><div><strong>{data.recentIds.length}</strong><span>{t("Đã mở gần đây")}</span></div><div><strong>{data.collections.length}</strong><span>{t("Bộ sưu tập")}</span></div><div><strong>{allowed.length}</strong><span>{t("Có quyền truy cập")}</span></div></div>
@@ -414,7 +414,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
      </div>
    </div>
    <div className="a4-permission-grids"><div><strong>Chọn hoạt động ({selectedActivities.length})</strong><div className="a4-scroll">{activities.map(a=><label key={a.id}><input type="checkbox" checked={selectedActivities.includes(a.id)} onChange={e=>setSelectedActivities(v=>e.target.checked?[...v,a.id]:v.filter(id=>id!==a.id))}/>{a.title}</label>)}</div></div><div><strong>Chọn giáo viên ({selectedTeachers.length})</strong><div className="a4-scroll">{teacherChoices.map(t=><label key={t.userId}><input type="checkbox" checked={selectedTeachers.includes(t.userId)} onChange={e=>setSelectedTeachers(v=>e.target.checked?[...v,t.userId]:v.filter(id=>id!==t.userId))}/>{t.name} <small>{t.email}</small></label>)}</div></div></div>
-   <div className="a4-form"><select value={grantAction} onChange={e=>setGrantAction(e.target.value)}><option value="grant">{t("Cấp quyền")}</option><option value="revoke">{t("Thu hồi quyền")}</option></select><label>{t("Hết hạn (tùy chọn)")} <input type="date" disabled={grantAction==='revoke'} value={expiresOn} onChange={e=>setExpiresOn(e.target.value)}/></label><button className="a4-primary" disabled={working||!selectedActivities.length||!selectedTeachers.length} onClick={()=>{if(window.confirm(t("Xác nhận ")+(grantAction==='grant'?t("cấp"):t("thu hồi"))+' '+(selectedActivities.length*selectedTeachers.length)+t(" quyền?")))grantBulk();}}>{t("Áp dụng phân quyền")}</button></div>
+   <div className="a4-form"><select value={grantAction} onChange={e=>setGrantAction(e.target.value)}><option value="grant">{t("Cấp quyền")}</option><option value="revoke">{t("Thu hồi quyền")}</option></select><label>{t("Hết hạn (tùy chọn)")} <input type="date" disabled={grantAction==='revoke'} value={expiresOn} onChange={e=>setExpiresOn(e.target.value)}/></label><button className="a4-primary" disabled={working||!selectedActivities.length||!selectedTeachers.length} onClick={()=>{if(window.confirm(t("Xác nhận ")+(grantAction==='grantt("?t(\"cấp\"):t(\"thu hồi\"))+") '+(selectedActivities.length*selectedTeachers.length)+t(" quyền?")))grantBulk();}}>{t("Áp dụng phân quyền")}</button></div>
    <div className="a4-section-head"><strong>{t("Nhật ký cấp quyền gần đây")}</strong></div><div className="a4-table"><div className="a4-table-head"><span>{t("Thời điểm")}</span><span>{t("Hoạt động")}</span><span>{t("Giáo viên")}</span><span>{t("Thao tác")}</span></div>{audit.slice(0,80).map(a=><div key={a.id}><span>{fmt(a.recorded_at)}</span><span>{table.get(a.activity_id)?.title||a.activity_id}</span><span>{teacherChoices.find(t=>t.userId===a.teacher_id)?.name||a.teacher_id}</span><span>{a.action==='grant'?t("Cấp"):t("Thu hồi")}</span></div>)}</div>
   </>:null}
   {ready && isLeader && tab==='versions'?<>
