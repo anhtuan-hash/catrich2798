@@ -210,9 +210,20 @@
   position:sticky!important;top:0!important;z-index:2!important;
   border-bottom:1px solid #dae6f5!important;
 }
+#root .gradebook-studio.gbm3-v12 .hr-gradebook .hr-grade-table :is(th,td).hr-grade-index {
+  position:sticky!important;left:0!important;z-index:4!important;
+  width:54px!important;min-width:54px!important;max-width:54px!important;
+  background:#fff!important;
+}
+#root .gradebook-studio.gbm3-v12 .hr-gradebook .hr-grade-table thead th.hr-grade-index{
+  z-index:6!important;background:#eef3fc!important;
+}
+#root .gradebook-studio.gbm3-v12 .hr-gradebook .hr-grade-table tbody tr:nth-child(even) td.hr-grade-index{
+  background:#f9fbfe!important;
+}
 #root .gradebook-studio.gbm3-v12 .hr-gradebook .hr-grade-table th.hr-grade-student,
 #root .gradebook-studio.gbm3-v12 .hr-gradebook .hr-grade-table td.hr-grade-student{
-  position:sticky!important;left:0!important;z-index:3!important;
+  position:sticky!important;left:54px!important;z-index:3!important;
   background:#fff!important;
   box-shadow:3px 0 7px rgba(21,53,95,.05)!important;
 }
