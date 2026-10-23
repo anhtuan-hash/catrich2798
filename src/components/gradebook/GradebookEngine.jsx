@@ -334,15 +334,6 @@ function GradebookNavigationPalette({
           ><span className="gbm3-tab-icon" aria-hidden="true">{item.id === 'summary' ? <Sigma size={16}/> : <FileBarChart2 size={15}/>}</span>{labels[item.id]}</button>
         ))}
       </div>
-      {showMockExams ? (
-        <details className="gbv12-nav-more">
-          <summary title="Tiện ích khác của lớp 12" aria-label="Tiện ích khác">Khác <span aria-hidden="true">⌄</span></summary>
-          <div><button type="button" className={view === 'mock' ? 'active' : ''} onClick={(event) => {
-            onViewChange('mock');
-            event.currentTarget.closest('details')?.removeAttribute('open');
-          }}><GraduationCap size={17} aria-hidden="true"/> Thi thử lớp 12</button></div>
-        </details>
-      ) : null}
     </div>
   </nav>;
 }
@@ -1254,7 +1245,10 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
 
     <div className="gbv13-tool-entrance">
       <span><ChartColumnIncreasing size={19} aria-hidden="true" /><strong>Công cụ nâng cao</strong><small>Quản lý lớp, môn học, chốt điểm, nhập Excel và hỗ trợ chuyên sâu</small></span>
-      <button type="button" onClick={() => setInsightsOpen(true)} aria-haspopup="dialog">Mở công cụ <span aria-hidden="true">↗</span></button>
+      <div className="gbv13-tool-entry-actions">
+        {showMockExams ? <button type="button" onClick={() => setView('mock')}><GraduationCap size={16} aria-hidden="true" /> Thi thử lớp 12</button> : null}
+        <button type="button" className="is-primary" onClick={() => setInsightsOpen(true)} aria-haspopup="dialog">Mở công cụ <span aria-hidden="true">↗</span></button>
+      </div>
     </div>
 
     {insightsOpen ? createPortal(
