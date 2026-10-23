@@ -180,3 +180,31 @@ html body #root .app-shell[data-route="settings"] .settings-launcher-drawer-head
  }
  html body #root .app-shell[data-route="settings"] .settings-launcher-drawer.is-fullscreen .settings-launcher-drawer-body .settings-google-card-grid{grid-template-columns:1fr!important}
 }
+
+/* Drawer regression fix: legacy account inputs were laid out in one oversized row. */
+html body #root .app-shell[data-route="settings"] .settings-launcher-drawer .settings-google-profile-card,
+html body #root .app-shell[data-route="settings"] .settings-launcher-drawer .settings-google-password-form{
+  min-width:0!important;max-width:100%!important;width:100%!important;
+}
+html body #root .app-shell[data-route="settings"] .settings-launcher-drawer .settings-google-password-form{
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:11px!important;
+}
+html body #root .app-shell[data-route="settings"] .settings-launcher-drawer .settings-google-password-form > :is(input,button,.settings-google-password-title){
+  width:100%!important;max-width:100%!important;min-width:0!important;grid-column:1/-1!important;
+}
+html body #root .app-shell[data-route="settings"] .settings-launcher-drawer :is(.settings-google-card,.settings-v65-account-card,.settings-motion-admin-hub){
+  min-width:0!important;overflow-wrap:anywhere;
+}
+html body #root .app-shell[data-route="settings"] .settings-launcher-drawer-body{overflow-x:hidden!important}
+html body #root .app-shell[data-route="settings"] .settings-launcher-font-section{
+  display:grid;align-content:start;gap:16px;min-width:0;max-width:100%;width:100%;
+}
+html body #root .app-shell[data-route="settings"] .settings-launcher-font-section > *{
+  width:100%!important;max-width:100%!important;min-width:0!important;margin:0!important;
+}
+html body #root .app-shell[data-route="settings"] .settings-launcher-loading{
+  color:#6682a4;font-size:13px;text-align:center;padding:32px 12px;
+}
+html body #root .app-shell[data-route="settings"] .settings-launcher-drawer.is-fullscreen .settings-launcher-font-section{
+  grid-template-columns:minmax(0,1fr)!important;
+}
