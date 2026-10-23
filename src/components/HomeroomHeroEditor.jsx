@@ -5,7 +5,7 @@ import { uploadHomeHeroMedia } from '../utils/homepageHeroCms.js';
 import {
   DEFAULT_HOMEROOM_HERO, normalizeHomeroomHero, publishHomeroomHero, saveHomeroomHeroDraft,
 } from '../utils/homeroomHeroCms.js';
-import './HomeroomHeroEditor.css';
+import './DashboardHeroEditor.css';
 
 const TABS = [
   ['background', Image, 'Hình nền'],
