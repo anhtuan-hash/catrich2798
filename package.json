@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "npm run version:sync && npm run audit:inactive-modules && node scripts/test-gradebook-score-entry.mjs && node scripts/test-event-eligibility.mjs && node scripts/test-event-login-session.mjs && vite build",
+    "build": "npm run version:sync && npm run audit:inactive-modules && node scripts/test-gradebook-score-entry.mjs && node scripts/test-event-eligibility.mjs && node scripts/test-event-login-session.mjs && node scripts/test-event-poster-zoom.mjs && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "test": "node scripts/smoke-test.mjs && node scripts/test-youtube-quick-access.mjs && node scripts/test-gradebook-verified-roster.mjs && node scripts/test-assigned-student-roster-sync.mjs",
     "test:zalo-link": "node scripts/test-zalo-link.mjs",
