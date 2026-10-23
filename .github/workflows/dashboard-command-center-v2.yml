@@ -1,16 +1,12 @@
-name: BRIAN Dashboard 3.4 Wide Layout & News Release Gate
+name: BRIAN Dashboard Editorial Restoration Gate
 on:
   push:
     branches:
-      - feat/dashboard-command-center-20261012
-      - feat/dashboard-2-1-accuracy-20261012
-      - feat/dashboard-2-2-insights-20261012
-      - feat/dashboard-2-3-personal-layout-20261012
-      - feat/dashboard-3-command-center-20261012
-      - feat/dashboard-3-1-focus-search-theme-20261012
-      - feat/dashboard-3-2-weekly-planning-20261012
-      - feat/dashboard-3-3-unified-ui-20261012
-      - feat/dashboard-3-4-wide-news-single-schedule-20261012
+      - main
+      - restore/dashboard-editorial-20261010-20261023
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 permissions:
   contents: read
@@ -26,22 +22,9 @@ jobs:
           cache: 'npm'
       - name: Install locked dependencies
         run: npm ci --no-audit --no-fund
-      - name: Dashboard regression tests
-        run: |
-          node scripts/test-dashboard-command-center-v2.mjs
-          node scripts/test-dashboard-drop-zone.mjs
-          TZ=Asia/Ho_Chi_Minh node scripts/test-dashboard-command-center-v21.mjs
-          TZ=Asia/Ho_Chi_Minh node scripts/test-dashboard-command-center-v22.mjs
-          TZ=America/New_York node scripts/test-dashboard-command-center-v22.mjs
-          node scripts/test-dashboard-command-center-v23.mjs
-          TZ=Asia/Ho_Chi_Minh node scripts/test-dashboard-v3.mjs
-          TZ=Asia/Ho_Chi_Minh node scripts/test-dashboard-v31.mjs
-          TZ=Asia/Ho_Chi_Minh node scripts/test-dashboard-v32.mjs
-          TZ=America/New_York node scripts/test-dashboard-v32.mjs
-          TZ=Asia/Ho_Chi_Minh node scripts/test-dashboard-v33.mjs
-          TZ=Asia/Ho_Chi_Minh node scripts/test-dashboard-v34.mjs
-          TZ=America/New_York node scripts/test-dashboard-v34.mjs
-      - name: Gradebook non-interference tests
+      - name: Verify restored dashboard contract
+        run: TZ=Asia/Ho_Chi_Minh node scripts/test-dashboard-editorial-restore-20261010.mjs
+      - name: Gradebook and homeroom non-interference tests
         run: |
           node scripts/test-gradebook-mock-exams.mjs
           node scripts/test-gradebook-mock-exams-v2.mjs
@@ -50,5 +33,5 @@ jobs:
         run: npm run build
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
-      - name: Interactive dashboard smoke tests
-        run: npx playwright test tests/e2e/dashboard-command-center-v2.spec.js --project=chromium-desktop
+      - name: Restored dashboard desktop and mobile smoke tests
+        run: npx playwright test tests/e2e/dashboard-editorial-restore-20261010.spec.js --project=chromium-desktop
