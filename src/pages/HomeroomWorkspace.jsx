@@ -9,6 +9,10 @@ import HomeroomOverviewCompactTab from '../components/homeroom/HomeroomOverviewC
 
 import HomeroomNavigationPalette from '../components/homeroom/HomeroomNavigationPalette.jsx';
 import HomeroomGlassHero from '../components/homeroom/HomeroomGlassHero.jsx';
+import { isDepartmentLeaderRole } from '../utils/roles.js';
+import {
+  HOMEROOM_HERO_UPDATED_EVENT, DEFAULT_HOMEROOM_HERO, normalizeHomeroomHero, readHomeroomHero,
+} from '../utils/homeroomHeroCms.js';
 
 
 import {
@@ -51,11 +55,13 @@ import '../styles/homeroom-4-tokens.css';
 // Gated Homeroom-only presentation layer; no styles escape .hr-v4.
 import '../styles/homeroom-4-expressive.css';
 import '../styles/homeroom-4-loading.css';
+import '../styles/homeroom-hero-cms.css';
 
 // Homeroom 4.0 final pass: keep the initial assigned-class shell light.
 // Large feature modules are downloaded only after their tab is requested.
 // React.lazy caching retains component state while its tab is active; no RPC
 // or class selection occurs during these module imports.
+const HomeroomHeroEditor = lazy(() => import('../components/HomeroomHeroEditor.jsx'));
 const HomeroomConductTab = lazy(() => import('../components/HomeroomConductTab.jsx'));
 const AttendanceTab = lazy(() => import('../components/homeroom/HomeroomCoreTabs.jsx').then((mod) => ({ default: mod.AttendanceTab })));
 const HomeroomClassProfileEditor = lazy(() => import('../components/homeroom/HomeroomClassProfileEditor.jsx'));
@@ -165,7 +171,55 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   const [message, setMessage] = useState('');
   const [syncState, setSyncState] = useState('local');
   const [commandTarget, setCommandTarget] = useState(null);
+  const canEditHero = isDepartmentLeaderRole(currentUser?.role);
+  const [heroPublished, setHeroPublished] = useState(() => normalizeHomeroomHero(DEFAULT_HOMEROOM_HERO));
+  const [heroDraft, setHeroDraft] = useState(null);
+  const [heroPreview, setHeroPreview] = useState(null);
+  const [heroEditorOpen, setHeroEditorOpen] = useState(false);
   const hydrationSequenceRef = useRef(0);
+
+  // Reads a dedicated Homeroom CMS table, never the Dashboard CMS.
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    let cancelled = false;
+    const syncHero = async () => {
+      try {
+        const result = await readHomeroomHero();
+        if (!cancelled) setHeroPublished(result.published);
+      } catch (error) {
+        if (import.meta.env.DEV) console.warn('Homeroom Hero CMS unavailable', error);
+      }
+    };
+    const onPublished = (event) => {
+      if (!cancelled && event?.detail?.published) setHeroPublished(normalizeHomeroomHero(event.detail.published));
+    };
+    const onVisible = () => { if (document.visibilityState === 'visible') void syncHero(); };
+    void syncHero();
+    window.addEventListener('focus', syncHero);
+    window.addEventListener(HOMEROOM_HERO_UPDATED_EVENT, onPublished);
+    document.addEventListener('visibilitychange', onVisible);
+    const refresh = window.setInterval(() => { if (document.visibilityState === 'visible') void syncHero(); }, 60000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(refresh);
+      window.removeEventListener('focus', syncHero);
+      window.removeEventListener(HOMEROOM_HERO_UPDATED_EVENT, onPublished);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [currentUser?.id]);
+
+  const openHeroEditor = async () => {
+    if (!canEditHero) return;
+    try {
+      const result = await readHomeroomHero({ includeDraft: true });
+      setHeroPublished(result.published);
+      setHeroDraft(result.draft);
+    } catch (error) {
+      setHeroDraft(heroPublished);
+      if (import.meta.env.DEV) console.warn('Could not load Homeroom Hero draft', error);
+    }
+    setHeroEditorOpen(true);
+  };
 
   useEffect(() => {
     if (!currentUser?.id || typeof window === 'undefined') return undefined;
@@ -599,6 +653,15 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   }
 
   return <div className={`page hr-page hr-v4 ${subjectMode ? 'is-subject-class' : 'is-homeroom-class'}`} data-homeroom-hydrated="true">
+    {canEditHero && heroEditorOpen ? <Suspense fallback={null}><HomeroomHeroEditor
+      open={heroEditorOpen}
+      currentUser={currentUser}
+      language={language}
+      initialConfig={heroDraft || heroPublished}
+      onClose={() => { setHeroEditorOpen(false); setHeroPreview(null); }}
+      onPreview={setHeroPreview}
+      onPublished={(published) => { setHeroPublished(published); setHeroDraft(published); setHeroPreview(published); }}
+    /></Suspense> : null}
     <HomeroomGlassHero
       workspace={workspace}
       currentUser={currentUser}
@@ -607,6 +670,9 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
       subjectMode={subjectMode}
       classTypeLabel={classTypeLabel}
       activeStudents={activeStudents}
+      heroConfig={heroPreview || heroPublished}
+      canEditHero={canEditHero}
+      onEditHero={openHeroEditor}
     />
 
     <HomeroomNavigationPalette key={currentUser?.id || currentUser?.authId || currentUser?.email || 'guest'} active={visibleTab} setActive={setActiveTab} language={language} currentUser={currentUser} workspace={workspace} />
