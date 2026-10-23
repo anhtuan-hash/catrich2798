@@ -1,7 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import GradebookWorkspace from '../components/gradebook/GradebookWorkspace.jsx';
-import { UsersRound, Plus, BookOpenCheck } from 'lucide-react';
+import { UsersRound, Plus, BookOpenCheck, Pencil, LayoutDashboard, BookOpen, BarChart3 } from 'lucide-react';
+import { isDepartmentLeaderRole } from '../utils/roles.js';
+import { readGradebookHero, normalizeGradebookHero, DEFAULT_GRADEBOOK_HERO, GRADEBOOK_HERO_CHANGED_EVENT } from '../utils/gradebookHeroCms.js';
+const GradebookHeroEditor = React.lazy(() => import('../components/GradebookHeroEditor.jsx'));
 import GradebookRosterHistoryPanel from '../components/gradebook/GradebookRosterHistoryPanel.jsx';
 import SubjectStudentsTab from '../components/homeroom/SubjectStudentsTab.jsx';
 import {
@@ -33,6 +36,7 @@ import { flushPendingAssignedStudentRosters, syncAssignedStudentRosterDelta } fr
 import '../styles/homeroom-complete.css';
 import '../styles/GradebookMacShell.css';
 import '../styles/GradebookMacRoster.css';
+import '../styles/GradebookHeroCanvas.css';
 
 const EMPTY_CLASS = {
   className: '',
@@ -131,6 +135,27 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   const [teachingAssignments, setTeachingAssignments] = useState([]);
   const [assignmentSource, setAssignmentSource] = useState('loading');
   const [rosterSource, setRosterSource] = useState('loading');
+  const canEditGradebookHero = isDepartmentLeaderRole(currentUser?.role);
+  const [gradebookHeroPublished, setGradebookHeroPublished] = useState(()=>normalizeGradebookHero(DEFAULT_GRADEBOOK_HERO));
+  const [gradebookHeroDraft, setGradebookHeroDraft] = useState(null);
+  const [gradebookHeroPreview, setGradebookHeroPreview] = useState(null);
+  const [gradebookHeroEditorOpen, setGradebookHeroEditorOpen] = useState(false);
+  useEffect(()=>{
+    let alive=true;
+    readGradebookHero({includeDraft:canEditGradebookHero})
+      .then((result)=>{
+        if(!alive)return;
+        setGradebookHeroPublished(result.published);
+        if(result.draft)setGradebookHeroDraft(result.draft);
+      })
+      .catch((error)=>{console.warn('Gradebook Hero unavailable:',error?.message||error);});
+    const onUpdate=(event)=>{
+      if(!alive || !event?.detail?.published)return;
+      setGradebookHeroPublished(normalizeGradebookHero(event.detail.published));
+    };
+    window.addEventListener(GRADEBOOK_HERO_CHANGED_EVENT,onUpdate);
+    return ()=>{alive=false;window.removeEventListener(GRADEBOOK_HERO_CHANGED_EVENT,onUpdate);};
+  },[canEditGradebookHero]);
 
   // Student management is a dedicated modal. It must not displace the score
   // editor or push the whole class roster into the document flow.
@@ -538,44 +563,91 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     </section>
   );
 
+  const gradebookHero=normalizeGradebookHero(gradebookHeroPreview||gradebookHeroPublished);
+  const gradebookHeroHasMedia=gradebookHero.backgroundType!=='none' && Boolean(gradebookHero.backgroundUrl);
+  const gradebookHeroStyle={
+    '--gbmac-hero-position':gradebookHero.positionX+'% '+gradebookHero.positionY+'%',
+    '--gbmac-hero-fit':gradebookHero.backgroundFit,
+    '--gbmac-hero-media-opacity':gradebookHero.opacity/100,
+    '--gbmac-hero-title':gradebookHero.headingColor,
+    '--gbmac-left-protect':Math.min(1,.79+gradebookHero.shade/100*.23),
+    '--gbmac-left-protect-soft':Math.min(1,.62+gradebookHero.shade/100*.26),
+  };
+
   return <div className="page hr-page gbmac-studio">
-    <section className="gbmac-shell" aria-label="Sổ điểm">
-      <div className="gbmac-shell-head">
-        <div className="gbmac-shell-identity">
-          <span className="gbmac-shell-icon" aria-hidden="true"><BookOpenCheck size={25}/></span>
-          <div>
-            <span className="gbmac-shell-eyebrow">BRIAN ENGLISH · GRADEBOOK</span>
-            <div className="gbmac-shell-title">
-              <h1>{vi ? 'Sổ điểm' : 'Gradebook'}</h1>
-              <span className={gradebookDirty ? 'gbmac-shell-state is-unsaved' : 'gbmac-shell-state'}>
-                <span aria-hidden="true" />{gradebookDirty ? 'Có thay đổi chưa lưu' : 'Sẵn sàng nhập điểm'}
-              </span>
+    <section className={'gbmac-shell gbmac-hero-canvas'+(gradebookHeroHasMedia?' has-custom-media':'')}
+      aria-label="Sổ điểm" style={gradebookHeroStyle}>
+      <div className="gbmac-hero-media" aria-hidden="true">
+        {gradebookHeroHasMedia
+          ? gradebookHero.backgroundType === 'video'
+            ? <video src={gradebookHero.backgroundUrl} autoPlay loop muted playsInline preload="metadata"/>
+            : <img src={gradebookHero.backgroundUrl} alt="" loading="eager" decoding="async"/>
+          : <div className="gbmac-hero-default-art">
+              <span className="gbmac-art-orb"/>
+              <div className="gbmac-art-window">
+                <span className="gbmac-art-browser-dots"><i/><i/><i/></span>
+                <div className="gbmac-art-icon"><BookOpenCheck size={42}/></div>
+                <span className="gbmac-art-chart"><i/><i/><i/><i/><i/></span>
+                <span className="gbmac-art-line"/><span className="gbmac-art-line is-short"/>
+              </div>
+              <span className="gbmac-art-chip is-blue"><LayoutDashboard size={20}/></span>
+              <span className="gbmac-art-chip is-peach"><BarChart3 size={23}/></span>
+            </div>}
+      </div>
+      <div className="gbmac-hero-content">
+        <div className="gbmac-shell-head">
+          <div className="gbmac-shell-identity">
+            <span className="gbmac-shell-icon" aria-hidden="true"><BookOpenCheck size={27}/></span>
+            <div>
+              <span className="gbmac-shell-eyebrow">BRIAN ENGLISH / GRADEBOOK</span>
+              <div className="gbmac-shell-title"><h1>{vi ? 'Sổ điểm' : 'Gradebook'}</h1>
+                <span className={gradebookDirty ? 'gbmac-shell-state is-unsaved' : 'gbmac-shell-state'}>
+                  <span aria-hidden="true" />{gradebookDirty ? 'Có thay đổi chưa lưu' : 'Sẵn sàng nhập điểm'}
+                </span>
+              </div>
+              <p>{activeMeta?.className || 'Chưa chọn lớp'} · {activeMeta?.schoolYear || '2026–2027'} · {studentCount} học sinh</p>
             </div>
-            <p>{activeMeta?.className || 'Chưa chọn lớp'} · {activeMeta?.schoolYear || '2026–2027'} · {studentCount} học sinh</p>
           </div>
+          {canEditGradebookHero ? <button type="button" className="gbmac-hero-edit"
+            onClick={()=>setGradebookHeroEditorOpen(true)}
+            title="Chỉnh sửa nền Hero Sổ điểm" aria-label="Chỉnh sửa nền Hero Sổ điểm">
+            <Pencil size={18} aria-hidden="true"/>
+          </button> : null}
+        </div>
+        <div className="gbmac-shell-selectors">
+          <label><span>Lớp học</span><select value={workspaceId}
+            disabled={saving || !activeClasses.length} onChange={(event)=>switchGradebookClass(event.target.value)}>
+            {!activeClasses.length?<option value="">Chưa có lớp</option>:null}
+            {activeClasses.map(item=><option key={item.id} value={item.id}>{item.className || classLabel(item)}</option>)}
+          </select></label>
+          <div className="gbmac-shell-field"><span>Môn học</span><strong>{activeSubject || '—'}</strong></div>
+          <label><span>Học kỳ</span><select value={selectedSemester} onChange={(event)=>{
+            if(gradebookDirty){window.alert('Hãy lưu hoặc hoàn tác thay đổi trước khi chuyển học kỳ.');return;}
+            setSelectedSemester(event.target.value);
+          }}><option value="semester1">Học kỳ I</option><option value="semester2">Học kỳ II</option></select></label>
+          <div className="gbmac-shell-field"><span>Năm học</span><strong>{activeMeta?.schoolYear || '—'}</strong></div>
         </div>
         <div className="gbmac-shell-utilities">
-          <button type="button" disabled={!workspace}
-            onClick={openStudentRoster}>
+          <button type="button" disabled={!workspace} onClick={openStudentRoster}>
             <UsersRound size={17} aria-hidden="true"/>Danh sách học sinh
           </button>
-          <button type="button" onClick={()=>setCreateOpen(value=>!value)}><Plus size={17} aria-hidden="true"/>{createOpen?'Đóng':'Thêm lớp'}</button>
+          <button type="button" onClick={()=>setCreateOpen(value=>!value)}>
+            <Plus size={17} aria-hidden="true"/>{createOpen?'Đóng':'Thêm lớp'}
+          </button>
         </div>
       </div>
-      <div className="gbmac-shell-selectors">
-        <label><span>Lớp học</span><select value={workspaceId}
-          disabled={saving || !activeClasses.length} onChange={(event)=>switchGradebookClass(event.target.value)}>
-          {!activeClasses.length?<option value="">Chưa có lớp</option>:null}
-          {activeClasses.map(item=><option key={item.id} value={item.id}>{item.className || classLabel(item)}</option>)}
-        </select></label>
-        <div className="gbmac-shell-field"><span>Môn học</span><strong>{activeSubject || '—'}</strong></div>
-        <label><span>Học kỳ</span><select value={selectedSemester} onChange={(event)=>{
-          if(gradebookDirty){window.alert('Hãy lưu hoặc hoàn tác thay đổi trước khi chuyển học kỳ.');return;}
-          setSelectedSemester(event.target.value);
-        }}><option value="semester1">Học kỳ I</option><option value="semester2">Học kỳ II</option></select></label>
-        <div className="gbmac-shell-field"><span>Năm học</span><strong>{activeMeta?.schoolYear || '—'}</strong></div>
-      </div>
     </section>
+    {canEditGradebookHero ? <React.Suspense fallback={null}><GradebookHeroEditor
+      open={gradebookHeroEditorOpen} currentUser={currentUser} language={language}
+      initialConfig={gradebookHeroDraft||gradebookHeroPublished}
+      onClose={()=>{setGradebookHeroEditorOpen(false);setGradebookHeroPreview(null);}}
+      onPreview={setGradebookHeroPreview}
+      onPublished={(config)=>{
+        setGradebookHeroPublished(config);
+        setGradebookHeroDraft(config);
+        setGradebookHeroPreview(config);
+      }}
+    /></React.Suspense> : null}
 
     {!teachingAssignments.length && assignmentSource === 'assignment-sync-not-installed' ? <section className="gradebook-assignment-note hr-panel">
       <b>Phân công Brian Team chưa được đồng bộ vào tài khoản này.</b>
