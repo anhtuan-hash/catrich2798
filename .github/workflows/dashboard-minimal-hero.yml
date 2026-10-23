@@ -6,6 +6,8 @@ on:
       - 'src/components/DashboardHeroEditor.jsx'
       - 'src/styles/dashboard-hero-minimal-20261023.css'
       - 'scripts/test-dashboard-minimal-hero.mjs'
+      - 'scripts/test-dashboard-hero-name-lines.mjs'
+      - 'src/utils/dashboardHeroName.js'
       - '.github/workflows/dashboard-minimal-hero.yml'
   push:
     branches: [main]
@@ -14,6 +16,8 @@ on:
       - 'src/components/DashboardHeroEditor.jsx'
       - 'src/styles/dashboard-hero-minimal-20261023.css'
       - 'scripts/test-dashboard-minimal-hero.mjs'
+      - 'scripts/test-dashboard-hero-name-lines.mjs'
+      - 'src/utils/dashboardHeroName.js'
 permissions:
   contents: read
 jobs:
@@ -28,6 +32,7 @@ jobs:
           node-version: '22'
           cache: npm
       - run: node scripts/test-dashboard-minimal-hero.mjs
+      - run: node scripts/test-dashboard-hero-name-lines.mjs
       - run: npm ci --no-audit --no-fund
       - name: Verify the exact production build
         run: node scripts/test-editorial-app-heroes.mjs && npm run build
