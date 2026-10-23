@@ -127,17 +127,25 @@ export default function HomeHeroCmsEditor({
   onPublished,
 }) {
   const fileInputRef = useRef(null);
+  const shellRef = useRef(null);
+  const closeRef = useRef(null);
+  const lastSavedConfigRef = useRef(normalizeHomeHeroConfig(initialConfig));
   const [tab, setTab] = useState('content');
   const [device, setDevice] = useState('desktop');
+  const [previewExpanded, setPreviewExpanded] = useState(false);
   const [config, setConfig] = useState(() => normalizeHomeHeroConfig(initialConfig));
   const [busy, setBusy] = useState('');
   const [message, setMessage] = useState(null);
 
   useEffect(() => {
     if (!open) return;
-    setConfig(normalizeHomeHeroConfig(initialConfig));
+    const normalized = normalizeHomeHeroConfig(initialConfig);
+    lastSavedConfigRef.current = normalized;
+    setConfig(normalized);
     setMessage(null);
     setTab('content');
+    setDevice('desktop');
+    setPreviewExpanded(false);
   }, [open, initialConfig]);
 
   useEffect(() => {
@@ -242,6 +250,7 @@ export default function HomeHeroCmsEditor({
     setMessage(null);
     try {
       const result = await saveHomeHeroDraft(config, currentUser);
+      lastSavedConfigRef.current = clone(config);
       setMessage({
         tone: result.databaseReady ? 'success' : 'warning',
         text: result.databaseReady ? 'Đã lưu bản nháp lên Supabase.' : 'Đã lưu bản nháp trên trình duyệt. Cần chạy SQL nâng cấp để chia sẻ giữa các thiết bị.',
@@ -258,6 +267,7 @@ export default function HomeHeroCmsEditor({
     setMessage(null);
     try {
       const result = await publishHomeHero(config, currentUser);
+      lastSavedConfigRef.current = clone(config);
       const shortCommit = String(result.commitSha || '').slice(0, 7);
       setMessage({
         tone: 'success',
@@ -277,27 +287,69 @@ export default function HomeHeroCmsEditor({
   };
 
   const closeEditor = () => {
+    if (busy) return;
+    const changed = JSON.stringify(normalizeHomeHeroConfig(config)) !== JSON.stringify(normalizeHomeHeroConfig(lastSavedConfigRef.current));
+    if (changed && !window.confirm('Bạn có thay đổi chưa lưu. Đóng trình chỉnh sửa và bỏ các thay đổi này?')) return;
     onPreview?.(null, 'desktop');
     onClose?.();
   };
+
+  // Keyboard and focus management are scoped to the right-side drawer.
+  useEffect(() => {
+    if (!open || typeof document === 'undefined') return undefined;
+    const previouslyFocused = document.activeElement;
+    const oldOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const frame = window.requestAnimationFrame(() => closeRef.current?.focus());
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeEditor();
+      }
+      if (event.key !== 'Tab' || !shellRef.current) return;
+      const controls = Array.from(shellRef.current.querySelectorAll(
+        'button:not(:disabled),input:not(:disabled):not([type="hidden"]),textarea:not(:disabled),select:not(:disabled),a[href],[tabindex]:not([tabindex="-1"])',
+      )).filter((element) => element.getClientRects().length > 0);
+      if (!controls.length) return;
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (event.shiftKey && (document.activeElement === first || !shellRef.current.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !shellRef.current.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = oldOverflow;
+      previouslyFocused?.focus?.();
+    };
+  }, [open, busy, config, onClose, onPreview]);
 
   const activeTab = useMemo(() => TABS.find(([id]) => id === tab), [tab]);
   if (!open) return null;
 
   return (
-    <div className="hero-editor" role="dialog" aria-modal="true" aria-label="Trình chỉnh sửa Hero trang chủ">
-      <div className="hero-editor__shell">
+    <div className="hero-editor hero-editor--drawer" data-preview-expanded={previewExpanded ? 'true' : 'false'} role="dialog" aria-modal="true" aria-label="Trình chỉnh sửa Hero trang chủ" onMouseDown={(event) => { if (event.target === event.currentTarget) closeEditor(); }}>
+      <div className="hero-editor__shell" ref={shellRef}>
         <header className="hero-editor__header">
-          <div>
-            <button type="button" className="hero-editor__back" onClick={closeEditor}><ArrowLeft size={18} /></button>
-            <span><strong>Chỉnh sửa Hero</strong><small>TTCM / Admin · Nội dung và nền đa phương tiện</small></span>
+          <div className="hero-editor__identity">
+            <span className="hero-editor__identity-mark"><LayoutTemplate size={21} /></span>
+            <span><small>TRANG CHỦ / GIAO DIỆN</small><strong>Chỉnh sửa Hero</strong><small>Nội dung · Hình nền · Bố cục</small></span>
           </div>
-          <div className="hero-editor__device-switcher">
-            <PreviewDevice value="desktop" active={device === 'desktop'} icon={Monitor} label="Desktop" onClick={setDevice} />
-            <PreviewDevice value="tablet" active={device === 'tablet'} icon={Tablet} label="Tablet" onClick={setDevice} />
-            <PreviewDevice value="mobile" active={device === 'mobile'} icon={Smartphone} label="Mobile" onClick={setDevice} />
+          <div className="hero-editor__header-actions">
+            <button type="button" className="hero-editor__preview-toggle" onClick={() => setPreviewExpanded((current) => !current)} aria-expanded={previewExpanded} aria-controls="hero-editor-preview-slot"><Eye size={17} />{previewExpanded ? 'Ẩn xem trước' : 'Xem trước'}</button>
+            <button type="button" className="hero-editor__close" onClick={closeEditor} ref={closeRef} aria-label="Đóng trình chỉnh sửa Hero"><X size={20} /></button>
           </div>
-          <button type="button" className="hero-editor__close" onClick={closeEditor}><X size={20} /></button>
+          <div className="hero-editor__device-switcher" aria-label="Chế độ xem trước">
+            <PreviewDevice value="desktop" active={device === 'desktop'} icon={Monitor} label="Desktop" onClick={() => { setDevice('desktop'); setPreviewExpanded(true); }} />
+            <PreviewDevice value="tablet" active={device === 'tablet'} icon={Tablet} label="Tablet" onClick={() => { setDevice('tablet'); setPreviewExpanded(true); }} />
+            <PreviewDevice value="mobile" active={device === 'mobile'} icon={Smartphone} label="Mobile" onClick={() => { setDevice('mobile'); setPreviewExpanded(true); }} />
+          </div>
         </header>
 
         <div className="hero-editor__body">
@@ -313,7 +365,8 @@ export default function HomeHeroCmsEditor({
             </div>
           </aside>
 
-          <main className="hero-editor__panel">
+          <main className="hero-editor__panel" id="hero-editor-content" key={tab}>
+            <div id="hero-editor-preview-slot" className="hero-editor__preview-slot" />
             <header><span>{activeTab ? React.createElement(activeTab[1], { size: 20 }) : null}</span><div><h2>{activeTab?.[2]}</h2><p>Thay đổi được phản ánh trực tiếp trên bản xem trước Hero.</p></div></header>
 
             {tab === 'content' ? (
@@ -421,7 +474,7 @@ export default function HomeHeroCmsEditor({
         <footer className="hero-editor__footer">
           <div>{message ? <span className={`hero-editor__message is-${message.tone}`}>{message.text}</span> : <span className="hero-editor__hint"><Eye size={15} />Mọi thay đổi đang được xem trước trực tiếp.</span>}</div>
           <div>
-            <button type="button" className="is-reset" onClick={resetDefault}><RotateCcw size={16} />Khôi phục mặc định</button>
+            <button type="button" className="is-reset" disabled={Boolean(busy)} onClick={resetDefault}><RotateCcw size={16} />Khôi phục mặc định</button>
             <button type="button" className="is-draft" disabled={Boolean(busy)} onClick={handleSaveDraft}><Save size={16} />{busy === 'draft' ? 'Đang lưu…' : 'Lưu bản nháp'}</button>
             <button type="button" className="is-publish" disabled={Boolean(busy)} onClick={handlePublish}><Check size={17} />{busy === 'publish' ? 'Đang công bố…' : 'Công bố'}</button>
           </div>
