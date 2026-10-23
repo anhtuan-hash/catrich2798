@@ -23,7 +23,7 @@ assert.match(hub, /\/api\/news-article/, 'Backend article reader preserved');
 const imports = [...page.matchAll(/import '\.\.\/styles\/([^']+\.css)';/g)].map((m) => m[1]);
 assert.equal(imports[6], 'dashboard-newsroom-editorial-20261023.css',
   'Newsroom still follows the six original editorial CSS layers');
-assert.deepEqual(imports.slice(7), ['dashboard-hero-cms.css', 'dashboard-hero-minimal-20261023.css', 'dashboard-hero-typography.css'],
+assert.deepEqual(imports.slice(7), ['dashboard-hero-cms.css', 'dashboard-hero-minimal-20261023.css', 'dashboard-hero-typography.css', 'dashboard-align-homeroom-edges.css'],
   'Later, separately scoped Hero customization and type styles do not replace Newsroom authority');
 assert.match(css, /dnh\.dnh-editorial:not\(\.is-expanded\) \.dnh-grid/);
 assert.match(css, /grid-template-columns: minmax\(0, 1\.14fr\) minmax\(0, \.86fr\)/);
