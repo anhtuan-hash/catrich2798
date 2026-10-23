@@ -7,12 +7,18 @@
   align-items:center!important;
   justify-content:flex-start!important;
   flex-direction:row!important;
-  min-height:390px!important;
-  padding:27px 29px!important;
+  /* Same responsive desktop height rule as the Dashboard Hero. */
+  box-sizing:border-box!important;
+  width:calc(100% - clamp(32px,4.4vw,72px))!important;
+  max-width:1520px!important;
+  min-height:clamp(310px,28vw,405px)!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  padding:clamp(26px,2.3vw,36px)!important;
   gap:0!important;
   overflow:hidden!important;
   border:1px solid #f1e0d3!important;
-  border-radius:27px!important;
+  border-radius:25px!important;
   background:linear-gradient(112deg,#fffdfa 0%,#fffbf6 57%,#fff2e9 100%)!important;
   box-shadow:0 12px 30px rgba(47,65,84,.055)!important;
 }
@@ -247,7 +253,12 @@
 }
 .lcs-page--library .lch-hero button:focus-visible {outline:3px solid #8ebaf8!important;outline-offset:3px!important;}
 @media(max-width:1180px) {
-  .lcs-page--library .lcs-arcade-head.lch-hero {min-height:365px!important;padding:23px!important;}
+  /* On narrower laptops, match Dashboard's minimum without cutting off live actions. */
+  .lcs-page--library .lcs-arcade-head.lch-hero {
+    width:100%!important;
+    min-height:clamp(310px,28vw,405px)!important;
+    padding:23px!important;
+  }
   .lcs-page--library .lch-hero .lcs-hero-main {flex-basis:80%!important;width:80%!important;}
   .lcs-page--library .lch-hero .lcs-hero-art {width:38%!important;opacity:.65!important;}
   .lcs-page--library .lch-hero .lcs-arcade-title-row h1 {font-size:clamp(39px,4.8vw,56px)!important;}
@@ -256,14 +267,23 @@
   .lcs-page--library .lch-hero .lcs-assessment-launchers .lcs-cta-copy small {font-size:9px!important;}
 }
 @media(max-width:860px) {
-  .lcs-page--library .lcs-arcade-head.lch-hero {min-height:0!important;padding:65px 17px 20px!important;}
+  .lcs-page--library .lcs-arcade-head.lch-hero {
+    min-height:325px!important;
+    height:auto!important;
+    padding:65px 17px 20px!important;
+  }
   .lcs-page--library .lch-hero .lcs-hero-main {flex-basis:100%!important;width:100%!important;}
   .lcs-page--library .lch-hero .lcs-hero-art {right:-10%!important;width:53%!important;height:74%!important;opacity:.24!important;}
   .lcs-page--library .lch-hero .lcs-assessment-launchers {grid-template-columns:repeat(2,minmax(0,1fr))!important;max-width:100%!important;}
   .lcs-page--library .lch-hero .lcs-assessment-launchers .lcs-start-assessment {grid-column:1/-1!important;}
 }
 @media(max-width:560px) {
-  .lcs-page--library .lcs-arcade-head.lch-hero {padding:59px 14px 17px!important;border-radius:19px!important;}
+  .lcs-page--library .lcs-arcade-head.lch-hero {
+    min-height:302px!important;
+    height:auto!important;
+    padding:59px 14px 17px!important;
+    border-radius:20px!important;
+  }
   .lcs-page--library .lch-hero .lcs-hero-main {gap:10px!important;}
   .lcs-page--library .lch-hero .lcs-library-back {flex-basis:32px!important;width:32px!important;height:32px!important;min-width:32px!important;}
   .lcs-page--library .lch-hero .lcs-hero-kicker {gap:6px!important;font-size:8px!important;}
@@ -281,3 +301,8 @@
 }
 @media(prefers-reduced-motion:reduce){.lcs-page--library .lch-hero .lcs-assessment-launchers>button{transition:none!important;}}
 @media print{.lcs-page--library .lch-hero .lch-hero-edit{display:none!important;}}
+
+@media(min-width:1700px) {
+  /* Dashboard and Assessment fill their similarly capped centered content containers. */
+  .lcs-page--library .lcs-arcade-head.lch-hero {width:100%!important;}
+}
