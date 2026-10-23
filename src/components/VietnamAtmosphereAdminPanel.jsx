@@ -19,7 +19,21 @@ import {
   saveGlobalAtmosphereTheme,
   subscribeGlobalAtmosphereTheme,
 } from '../utils/globalAtmosphereTheme.js';
+import HalloweenMotifArt, { HALLOWEEN_SYMBOLS } from './HalloweenMotifArt.jsx';
 import './VietnamAtmosphereAdminPanel.css';
+
+const HALLOWEEN_SYMBOL_LABELS = {
+  pumpkin: 'Bí ngô', 'witch-hat': 'Mũ phù thủy', 'black-cat': 'Mèo đen',
+  bat: 'Dơi', ghost: 'Bóng ma', 'haunted-house': 'Ngôi nhà ma',
+  spider: 'Nhện', 'spider-web': 'Mạng nhện', cauldron: 'Vạc phép',
+  'candy-corn': 'Kẹo bắp', skull: 'Đầu lâu', skeleton: 'Bộ xương',
+  potion: 'Lọ thuốc phép', broom: 'Chổi phù thủy', owl: 'Cú mèo',
+  tombstone: 'Bia mộ', candle: 'Nến', crow: 'Quạ',
+  coffin: 'Quan tài', vampire: 'Ma cà rồng', mummy: 'Xác ướp',
+  lantern: 'Đèn lồng', eyeball: 'Nhãn cầu', bone: 'Khúc xương',
+  'autumn-leaf': 'Lá thu', candy: 'Kẹo Halloween', moon: 'Trăng khuyết',
+  star: 'Ngôi sao',
+};
 
 function currentRoute() {
   if (typeof window === 'undefined') return '';
@@ -263,7 +277,7 @@ export default function VietnamAtmosphereAdminPanel({ language = 'vi' }) {
             </button>
             <button type="button" className={`bes-atmosphere-theme-option is-halloween ${editingTheme === 'halloween' ? 'is-selected' : ''}`} aria-pressed={editingTheme === 'halloween'} onClick={() => setEditingTheme('halloween')}>
               <span className="bes-atmosphere-theme-art is-halloween" aria-hidden="true">🎃</span>
-              <span className="bes-atmosphere-theme-copy"><strong>{vi ? 'Không khí Halloween' : 'Halloween'}</strong><small>{vi ? 'Bí ngô, dơi, trăng và kẹo' : 'Pumpkins, bats and candy'}</small>{themeSnapshot.activeTheme === 'halloween' ? <em>{vi ? 'Đang áp dụng' : 'Active'}</em> : null}</span>
+              <span className="bes-atmosphere-theme-copy"><strong>{vi ? 'Không khí Halloween' : 'Halloween'}</strong><small>{vi ? '28 biểu tượng luân phiên' : '28 rotating illustrations'}</small>{themeSnapshot.activeTheme === 'halloween' ? <em>{vi ? 'Đang áp dụng' : 'Active'}</em> : null}</span>
             </button>
           </div>
 
@@ -286,7 +300,7 @@ export default function VietnamAtmosphereAdminPanel({ language = 'vi' }) {
             <label className="bes-vn-admin__switch-row">
               <span>
                 <b>{vi ? 'Giữ biểu tượng mặc định' : 'Keep built-in symbols'}</b>
-                <small>{editingTheme === 'halloween' ? (vi ? 'Bí ngô, dơi, trăng, ma nhỏ, kẹo và ngôi sao.' : 'Pumpkins, bats, moons, ghosts, candy and stars.') : (vi ? 'Cờ, nón lá, sen, tre, trống đồng và Hạ Long.' : 'Flag, conical hat, lotus, bamboo, bronze drum and Ha Long.')}</small>
+                <small>{editingTheme === 'halloween' ? (vi ? '28 mẫu: phù thủy, mèo đen, bí ngô, nhà ma, nhện và nhiều hình khác.' : '28 motifs: witches, black cats, pumpkins, haunted houses and more.') : (vi ? 'Cờ, nón lá, sen, tre, trống đồng và Hạ Long.' : 'Flag, conical hat, lotus, bamboo, bronze drum and Ha Long.')}</small>
               </span>
               <input type="checkbox" checked={activeDraft.showBuiltIns} onChange={(event) => patchActiveDraft({ showBuiltIns: event.target.checked })} />
             </label>
@@ -306,7 +320,7 @@ export default function VietnamAtmosphereAdminPanel({ language = 'vi' }) {
             <label>
               <span><b>{vi ? 'Mật độ biểu tượng' : 'Symbol density'}</b><output>{activeDraft.density}</output></span>
               <input type="range" min="3" max="18" step="1" value={activeDraft.density} onChange={(event) => patchActiveDraft({ density: Number(event.target.value) })} />
-              <small>{vi ? 'Điện thoại sẽ tự giảm số lượng để giữ hiệu năng.' : 'Mobile devices automatically use fewer items.'}</small>
+              <small>{editingTheme === 'halloween' ? (vi ? '28 mẫu thay phiên xuất hiện. Màn hình nhỏ tự giảm mật độ.' : '28 designs rotate over time; fewer are shown on small screens.') : (vi ? 'Điện thoại sẽ tự giảm số lượng để giữ hiệu năng.' : 'Mobile devices automatically use fewer items.')}</small>
             </label>
           </div>
 
@@ -358,11 +372,27 @@ export default function VietnamAtmosphereAdminPanel({ language = 'vi' }) {
               <div className="bes-vn-admin__empty">{vi ? 'Chưa có ảnh tùy chỉnh. Các biểu tượng mặc định vẫn đang hoạt động.' : 'No custom images yet. Built-in symbols remain active.'}</div>
             )}
           </div>) : (
-            <div className="bes-atmosphere-halloween-note">
-              <span aria-hidden="true">✦</span>
-              <div>
-                <strong>{vi ? 'Halloween vui nhộn, không làm phiền' : 'Playful, never distracting'}</strong>
-                <p>{vi ? 'Hiệu ứng chỉ xuất hiện ở lớp trang trí, không cản thao tác; tự giảm mật độ trên điện thoại và tôn trọng cài đặt giảm chuyển động.' : 'Decorations never block controls, automatically reduce on phones, and respect reduced-motion settings.'}</p>
+            <div className="bes-atmosphere-halloween-library">
+              <div className="bes-atmosphere-halloween-library__heading">
+                <div>
+                  <strong>{vi ? 'Thư viện biểu tượng Halloween' : 'Halloween icon collection'}</strong>
+                  <p>{vi ? 'Các mẫu minh họa sẽ luân phiên xuất hiện, không hiển thị dồn dập cùng lúc.' : 'Illustrations rotate gently without covering the screen.'}</p>
+                </div>
+                <span>{HALLOWEEN_SYMBOLS.length} {vi ? 'mẫu' : 'designs'}</span>
+              </div>
+              <div className="bes-atmosphere-halloween-library__grid" role="list" aria-label={vi ? 'Danh sách biểu tượng Halloween' : 'Halloween illustrations'}>
+                {HALLOWEEN_SYMBOLS.map((kind) => (
+                  <span key={kind} role="listitem" className="bes-atmosphere-halloween-library__icon" title={HALLOWEEN_SYMBOL_LABELS[kind] || kind} aria-label={HALLOWEEN_SYMBOL_LABELS[kind] || kind}>
+                    <HalloweenMotifArt kind={kind} />
+                  </span>
+                ))}
+              </div>
+              <div className="bes-atmosphere-halloween-note">
+                <span aria-hidden="true">✦</span>
+                <div>
+                  <strong>{vi ? 'Halloween vui nhộn, không làm phiền' : 'Playful, never distracting'}</strong>
+                  <p>{vi ? 'Biểu tượng không cản thao tác, tự giảm mật độ trên điện thoại và tôn trọng cài đặt giảm chuyển động.' : 'Decorations do not block controls, reduce automatically on phones, and respect reduced motion.'}</p>
+                </div>
               </div>
             </div>
           )}
