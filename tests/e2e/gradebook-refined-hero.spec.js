@@ -47,7 +47,11 @@ for (const width of [1440, 390]) {
       return {hero,content,selects,buttons,bodyScrollWidth:document.documentElement.scrollWidth};
     });
     expect(metrics.selects).toHaveLength(2);
-    expect(metrics.selects[0].left).toBeLessThan(metrics.selects[1].left);
+    if (width > 390) {
+      expect(metrics.selects[0].left).toBeLessThan(metrics.selects[1].left);
+    } else {
+      expect(Math.abs(metrics.selects[0].left - metrics.selects[1].left)).toBeLessThan(2);
+    }
     for(const x of [...metrics.selects,...metrics.buttons]){
       expect(x.right).toBeLessThanOrEqual(metrics.hero.right+2);
       expect(x.height).toBeGreaterThanOrEqual(33);
