@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Check, Eye, Image, MonitorPlay, Paintbrush, RotateCcw, Save, Settings2, UploadCloud, X } from 'lucide-react';
+import { Check, Eye, Image, MonitorPlay, Paintbrush, RotateCcw, Save, UploadCloud, X } from 'lucide-react';
 import { uploadHomeHeroMedia } from '../utils/homepageHeroCms.js';
 import {
   DEFAULT_DASHBOARD_HERO, normalizeDashboardHero, publishDashboardHero, saveDashboardHeroDraft,
@@ -9,20 +9,12 @@ import './DashboardHeroEditor.css';
 
 const TABS = [
   ['background', Image, 'Hình nền'],
-  ['content', Settings2, 'Nội dung'],
   ['appearance', Paintbrush, 'Hiển thị'],
 ];
 
 function NumberSlider({ label, value, onChange, min = 0, max = 100, unit = '%' }) {
   return <label className="db-he-field"><span>{label}<output>{value}{unit}</output></span>
     <input type="range" min={min} max={max} value={value} onChange={(e) => onChange(Number(e.target.value))} />
-  </label>;
-}
-function Switch({ label, checked, onChange, hint }) {
-  return <label className="db-he-switch">
-    <span><strong>{label}</strong>{hint ? <small>{hint}</small> : null}</span>
-    <input type="checkbox" checked={Boolean(checked)} onChange={(e) => onChange(e.target.checked)} />
-    <i aria-hidden="true" />
   </label>;
 }
 function Input({ label, value, onChange, multiline = false, placeholder = '' }) {
@@ -166,7 +158,7 @@ export default function DashboardHeroEditor({ open, initialConfig, currentUser, 
             <div className="db-he-preview-stage">
               {hasMedia && config.backgroundType === 'video'
                 ? <video src={config.backgroundUrl} autoPlay loop muted playsInline preload="metadata" style={{ objectFit: config.backgroundFit, objectPosition: `${config.positionX}% ${config.positionY}%`, opacity: config.opacity / 100 }} />
-                : hasMedia ? <img alt="" src={config.backgroundUrl} style={{ objectFit: config.backgroundFit, objectPosition: `${config.positionX}% ${config.positionY}%`, opacity: config.opacity / 100 }}/> : <span><Image size={26}/><small>{vi ? 'Đang dùng hình minh họa mặc định' : 'Using the default artwork'}</small></span>}
+                : hasMedia ? <img alt="" src={config.backgroundUrl} style={{ objectFit: config.backgroundFit, objectPosition: `${config.positionX}% ${config.positionY}%`, opacity: config.opacity / 100 }}/> : <span><Image size={26}/><small>{vi ? 'Đang dùng nền mặc định' : 'Using the default background'}</small></span>}
               <div className="db-he-preview-wash" style={{ opacity: config.shade / 100 }}/>
             </div>
             <small className="db-he-preview-note">{vi ? 'Hero thật trên Dashboard cũng thay đổi tức thời trong lúc chỉnh sửa.' : 'The actual dashboard hero updates while you edit.'}</small>
@@ -188,25 +180,12 @@ export default function DashboardHeroEditor({ open, initialConfig, currentUser, 
             <button type="button" className="db-he-remove" onClick={() => setConfig((prev) => ({ ...prev, backgroundUrl: '', backgroundType: 'none' }))}>Xóa nền tùy chỉnh</button>
           </section> : null}
 
-          {tab === 'content' ? <section className="db-he-section">
-            <h3>{vi ? 'Nội dung lời chào' : 'Greeting copy'}</h3>
-            <p>{vi ? 'Tên giáo viên, ngày, giờ và thời tiết vẫn tự động cập nhật. Chỉ thay đổi nhãn và đoạn giới thiệu.' : 'Names, dates, time, and weather remain dynamic.'}</p>
-            <Input label="Nhãn tiếng Việt" value={config.eyebrowVi} onChange={(v) => set('eyebrowVi', v)}/>
-            <Input label="Label English" value={config.eyebrowEn} onChange={(v) => set('eyebrowEn', v)}/>
-            <Input label="Mô tả tiếng Việt" multiline value={config.descriptionVi} onChange={(v) => set('descriptionVi', v)}/>
-            <Input label="Description English" multiline value={config.descriptionEn} onChange={(v) => set('descriptionEn', v)}/>
-            <div className="db-he-info">Tên giáo viên trong lời chào và nội dung lịch cá nhân không được lưu vào cấu hình Hero chung.</div>
-          </section> : null}
-
           {tab === 'appearance' ? <section className="db-he-section">
-            <h3>{vi ? 'Bố cục & hiệu ứng' : 'Appearance & effects'}</h3>
-            <p>{vi ? 'Điều chỉnh độ tương phản để các nút và lời chào vẫn đọc rõ trên nền ảnh.' : 'Maintain contrast over the chosen image.'}</p>
+            <h3>{vi ? 'Độ tương phản & kiểu chữ' : 'Contrast & typography'}</h3>
+            <p>{vi ? 'Giữ lời chào và tên giáo viên nổi bật, dễ đọc trên mọi hình nền.' : 'Maintain contrast over the chosen image.'}</p>
             <NumberSlider label={vi ? 'Lớp bảo vệ nội dung' : 'Content protection'} value={config.shade} onChange={(v) => set('shade', v)} max={80}/>
             <label className="db-he-field"><span>{vi ? 'Màu tên giáo viên' : 'Heading color'}</span><div className="db-he-color"><input type="color" value={config.headingColor} onChange={(e) => set('headingColor', e.target.value)}/><code>{config.headingColor}</code></div></label>
-            <Switch label="Hiển thị hình minh họa Dashboard" hint="Lịch, bút, sách và hình trang trí ở bên phải" checked={config.showArtwork} onChange={(v) => set('showArtwork', v)}/>
-            <Switch label="Hiển thị họa tiết vẽ tay" hint="Các biểu tượng học đường nhỏ trong Hero" checked={config.showDoodles} onChange={(v) => set('showDoodles', v)}/>
-            <Switch label="Hiển thị lớp mây phía dưới" checked={config.showClouds} onChange={(v) => set('showClouds', v)}/>
-            <div className="db-he-info">Đồng hồ, thời tiết và nút lịch sẽ luôn hoạt động, kể cả khi bạn thay toàn bộ ảnh nền.</div>
+            <div className="db-he-info">{vi ? 'Hero tối giản chỉ hiển thị “Xin chào,”, tên giáo viên và thời tiết trực tiếp. Ảnh nền và lịch bên dưới được giữ nguyên.' : 'The minimal hero shows only the greeting, teacher name and live weather. Your background and schedule remain intact.'}</div>
           </section> : null}
         </main>
         <footer className="db-he-footer">
