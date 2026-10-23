@@ -18,6 +18,11 @@ assert.equal(translateLegacyUi('Menu tài khoản','en'),'Account menu');
 assert.equal(translateLegacyUi('Lớp 11','en'),'Grade 11');
 assert.equal(translateLegacyUi('CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM','en'),'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM');
 assert.equal(translateLegacyUi('Nguyễn Văn A','en'),'Nguyễn Văn A');
+assert.equal(translateLegacyUi('Đã nhập 8 mục vào lịch làm việc dùng chung.','en'),'Imported 8 entries into the shared work schedule.');
+assert.equal(translateLegacyUi('Đã thêm Nguyễn Lê Thiện vào lớp 12.3.','en'),'Added Nguyễn Lê Thiện to class 12.3.');
+assert.equal(translateLegacyUi('Còn 2 mục bắt buộc cần hoàn thiện.','en'),'2 required items remain incomplete.');
+assert.equal(translateLegacyUi('Đã lưu: 6 câu mới · 3 câu đã có · 1 đề thi.','en'),'Saved: 6 new questions · 3 existing questions · 1 test.');
+assert.equal(translateLegacyUi('Đã thêm một con mèo vào phòng 12.3','en'),'Đã thêm một con mèo vào phòng 12.3');
 
 const main = fs.readFileSync('src/main.jsx','utf8');
 const bridge = fs.readFileSync('src/components/GlobalLegacyI18nBridge.jsx','utf8');
