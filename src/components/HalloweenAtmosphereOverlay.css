@@ -1,0 +1,45 @@
+/* Halloween is a separate, non-interactive atmospheric layer. No scroll or hit-test impact. */
+.bes-halloween-atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  overflow: hidden;
+  contain: layout style paint;
+  isolation: isolate;
+  pointer-events: none !important;
+  user-select: none;
+}
+.bes-halloween-atmosphere__wash {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 2% 12%, rgba(255,155,74,.065), transparent 25%),
+    radial-gradient(circle at 98% 89%, rgba(134,86,168,.065), transparent 28%);
+}
+.bes-halloween-motif {
+  position: absolute;
+  left: var(--h-left);
+  top: var(--h-top);
+  display: block;
+  width: var(--h-size);
+  height: var(--h-size);
+  opacity: var(--h-opacity);
+  animation: bes-halloween-drift var(--h-duration) ease-in-out var(--h-delay) infinite alternate;
+  will-change: auto;
+}
+.bes-halloween-motif svg { display: block; width: 100%; height: 100%; }
+@keyframes bes-halloween-drift {
+  0% { transform: translate3d(0, 0, 0) rotate(-4deg); }
+  100% { transform: translate3d(var(--h-drift), -14px, 0) rotate(5deg); }
+}
+@media (max-width: 1099px) { .bes-halloween-atmosphere { z-index: 38; } }
+@media (max-width: 679px) {
+  .bes-halloween-atmosphere__wash { opacity: .5; }
+  .bes-halloween-motif { animation-duration: 38s; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bes-halloween-motif { animation: none !important; transform: none !important; }
+}
+html[data-performance='low'] .bes-halloween-motif,
+html[data-performance='minimal'] .bes-halloween-motif { animation: none !important; }
+@media print { .bes-halloween-atmosphere { display: none !important; } }
