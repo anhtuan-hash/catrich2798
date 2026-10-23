@@ -62,6 +62,10 @@ import {
 } from '../utils/lessonCheckActivities.js';
 import AssessmentWorkspace from '../components/lessonCheck/AssessmentWorkspace.jsx';
 import Assessment5Header from '../components/lessonCheck/Assessment5Header.jsx';
+import {
+  DEFAULT_LESSON_CHECK_HERO, LESSON_CHECK_HERO_EVENT, normalizeLessonCheckHero,
+  readLessonCheckHero,
+} from '../utils/lessonCheckHeroCms.js';
 import { Assessment5Preview, Assessment5Queue } from '../components/lessonCheck/Assessment5Panels.jsx';
 import { readTeachingQueue, writeTeachingQueue, markRecentActivity } from '../utils/lessonCheckTeaching.js';
 import { normalizeActivityTitle, matchesActivityTitle } from '../utils/lessonCheckSearch.js';
@@ -69,6 +73,7 @@ import { listActivityAttributes, saveActivityAttributes } from '../utils/lessonC
 import { listActivityJournal, logActivityUse } from '../utils/lessonCheckWorkbench.js';
 import { loadAssessmentWorkspace, setAssessmentFavorite } from '../utils/lessonCheckWorkbench.js';
 const Assessment4Workbench = React.lazy(() => import('../components/lessonCheck/Assessment4Workbench.jsx'));
+const LessonCheckHeroEditor = React.lazy(() => import('../components/LessonCheckHeroEditor.jsx'));
 import {
   GLOBAL_SUCCESS_LESSONS,
   globalSuccessLessonTitle,
@@ -77,6 +82,7 @@ import {
 } from '../data/globalSuccessCatalog.js';
 import './LessonCheckStudio.css';
 import './LessonCheckApprovedMockupOne.css';
+import './LessonCheckHeroIndependent.css';
 
 const TYPE_OPTIONS = [
   { value: 'quiz', vi: 'Trắc nghiệm', en: 'Quiz' },
@@ -355,6 +361,45 @@ function LoadingBlock({ language }) {
 export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const isVi = language === 'vi';
   const isLeader = canPublishDepartment(currentUser);
+  const [heroPublished,setHeroPublished] = useState(() => normalizeLessonCheckHero(DEFAULT_LESSON_CHECK_HERO));
+  const [heroDraft,setHeroDraft] = useState(null);
+  const [heroPreview,setHeroPreview] = useState(null);
+  const [heroEditorOpen,setHeroEditorOpen] = useState(false);
+  const activeHero=heroPreview || heroPublished;
+  const hasHeroMedia=activeHero.backgroundType!=='none' && Boolean(activeHero.backgroundUrl);
+  useEffect(() => {
+    let cancelled=false;
+    const reload=async () => {
+      try {
+        const result=await readLessonCheckHero();
+        if(!cancelled) setHeroPublished(result.published);
+      }catch(error) {
+        if(import.meta.env.DEV) console.warn('Lesson Check Hero unavailable',error);
+      }
+    };
+    reload();
+    const updated=(event) => {
+      if(!cancelled && event?.detail?.published) setHeroPublished(normalizeLessonCheckHero(event.detail.published));
+    };
+    window.addEventListener('focus',reload);
+    window.addEventListener(LESSON_CHECK_HERO_EVENT,updated);
+    return () => {
+      cancelled=true;
+      window.removeEventListener('focus',reload);
+      window.removeEventListener(LESSON_CHECK_HERO_EVENT,updated);
+    };
+  },[currentUser?.id]);
+  const openLessonHeroEditor=async () => {
+    if(!isLeader) return;
+    try{
+      const result=await readLessonCheckHero({includeDraft:true});
+      setHeroPublished(result.published);
+      setHeroDraft(result.draft);
+    }catch(error){
+      setHeroDraft(heroPublished);
+    }
+    setHeroEditorOpen(true);
+  };
   const [activities, setActivities] = useState([]);
   const [requests, setRequests] = useState([]);
   const [singleDraft, setSingleDraft] = useState(blankDraft);
@@ -1407,54 +1452,81 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
   return (
     <div className={`lcs-page lcs-page--library ${assessmentWorkspaceView ? 'is-assessment-open' : ''}`}>
-      <header className="lcs-arcade-head">
-        <div className="lcs-hero-main">
-          <button className="lcs-library-back" onClick={() => { window.location.hash = '#/apps'; }} aria-label={isVi ? 'Quay lại Ứng dụng' : 'Back to Apps'}>
-            <ArrowLeft size={18} />
-          </button>
-
-          <div className="lcs-hero-copy">
-            <div className="lcs-hero-kicker">
-              <span className="lcs-hero-kicker-icon"><Gamepad2 size={16} /></span>
-              <strong>BRIAN ACTIVITY ARCADE</strong>
-              <span>GLOBAL SUCCESS</span>
-            </div>
-            <div className="lcs-arcade-title-row">
-              <h1><span className="is-fun">Fun</span> <span className="is-for">for</span> <span className="is-assessment">Assessment</span></h1>
-            </div>
-            <p>{isVi ? 'Đổi mới kiểm tra đánh giá' : 'Innovating assessment and evaluation'}</p>
-
-            <div className="lcs-hero-statline" aria-label={isVi ? 'Thống kê kho hoạt động' : 'Activity library statistics'}>
-              <span><Gamepad2 size={14} /><b>{activities.length}</b>{isVi ? 'hoạt động' : 'activities'}</span>
-              <span className="is-vocabulary"><BookOpen size={14} /><b>{focusCounts.vocabulary}</b>Vocabulary</span>
-              <span className="is-grammar"><Layers3 size={14} /><b>{focusCounts.grammar}</b>Grammar</span>
-              <span className="is-skills"><MonitorPlay size={14} /><b>{focusCounts.skills}</b>{isVi ? 'Kỹ năng' : 'Skills'}</span>
-            </div>
-          </div>
-        </div>
-
-        <img
+      <header className={'lcs-arcade-head lch-hero' + (hasHeroMedia ? ' has-custom-media' : '')}
+        style={{'--lch-protection':activeHero.leftProtection / 100}}>
+        {hasHeroMedia && <div className="lch-hero-media" aria-hidden="true">
+          {activeHero.backgroundType==='video'
+            ? <video src={activeHero.backgroundUrl} autoPlay muted loop playsInline preload="metadata"
+              style={{objectFit:activeHero.backgroundFit,objectPosition:activeHero.positionX+'% '+activeHero.positionY+'%',opacity:activeHero.opacity/100}}/>
+            : <img src={activeHero.backgroundUrl} alt="" decoding="async"
+              style={{objectFit:activeHero.backgroundFit,objectPosition:activeHero.positionX+'% '+activeHero.positionY+'%',opacity:activeHero.opacity/100}}/>}
+        </div>}
+        <div className="lch-hero-protection" aria-hidden="true"/>
+        {(!hasHeroMedia || activeHero.showMascot) ? <img
           className="lcs-hero-art"
-          src="/lesson-check-approved-mascot.svg"
+          src="/lesson-check-hero-mascot-minimal.svg"
           alt=""
           aria-hidden="true"
           decoding="async"
           draggable="false"
-        />
-
-        <div className="lcs-hero-side">
-          <div className="lcs-hero-deck" aria-hidden="true">
-            <span className="is-one"><BookOpen size={18} />Vocabulary</span>
-            <span className="is-two"><Layers3 size={18} />Grammar</span>
-            <span className="is-three"><MonitorPlay size={18} />Skills</span>
-          </div>
-          <div className="lcs-assessment-launchers">
-            <button className="lcs-start-assessment" type="button" onClick={() => { setAssessmentWorkspaceView('session'); setAssessmentWorkspaceVisible(true); }}><span className="lcs-cta-icon"><ClipboardCheck size={20} /></span><span className="lcs-cta-copy"><strong>{isVi ? 'Bắt đầu đánh giá' : 'Start assessment'}</strong><small>{isVi ? 'Tổ chức phiên cho lớp học' : 'Start a class session'}</small></span><ChevronRight className="lcs-cta-chevron" size={17} /></button>
-            <button className="lcs-open-reports" type="button" onClick={() => { setAssessmentWorkspaceView('reports'); setAssessmentWorkspaceVisible(true); }}><span className="lcs-cta-icon"><BarChart3 size={20} /></span><span className="lcs-cta-copy"><strong>{isVi ? 'Báo cáo' : 'Reports'}</strong><small>{isVi ? 'Kết quả và phân tích chi tiết' : 'Results and insights'}</small></span><ChevronRight className="lcs-cta-chevron" size={17} /></button>
-            {isLeader ? <button className="lcs-arcade-create" type="button" onClick={openNewActivity}><span className="lcs-cta-icon"><Plus size={20} /></span><span className="lcs-cta-copy"><strong>{isVi ? 'Tạo hoạt động' : 'Create activity'}</strong><small>{isVi ? 'Thiết kế bài kiểm tra riêng' : 'Design your own activity'}</small></span><ChevronRight className="lcs-cta-chevron" size={17} /></button> : null}
+        /> : null}
+        {isLeader && <button type="button" className="lch-hero-edit"
+          onClick={openLessonHeroEditor}
+          title={isVi?'Chỉnh sửa nền Hero Kiểm tra':'Edit Assessment Hero background'}
+          aria-label={isVi?'Chỉnh sửa nền Hero Kiểm tra':'Edit Assessment Hero background'}>
+          <Edit3 size={17} aria-hidden="true"/><span>{isVi?'Chỉnh sửa Hero':'Edit Hero'}</span>
+        </button>}
+        <div className="lcs-hero-main">
+          <button className="lcs-library-back" type="button"
+            onClick={() => { window.location.hash = '#/apps'; }}
+            aria-label={isVi ? 'Quay lại Ứng dụng' : 'Back to Apps'}><ArrowLeft size={18}/></button>
+          <div className="lcs-hero-copy">
+            <div className="lcs-hero-kicker">
+              <span className="lcs-hero-kicker-icon"><Gamepad2 size={16}/></span>
+              <strong>BRIAN ACTIVITY ARCADE</strong>
+              <span>GLOBAL SUCCESS</span>
+            </div>
+            <div className="lcs-arcade-title-row">
+              <h1><span className="is-fun">Fun</span> <span className="is-for">for</span>
+                <span className="is-assessment">Assessment</span></h1>
+            </div>
+            <p>{isVi ? 'Đổi mới kiểm tra đánh giá' : 'Innovating assessment and evaluation'}</p>
+            <div className="lcs-hero-statline" aria-label={isVi ? 'Thống kê kho hoạt động' : 'Activity library statistics'}>
+              <span><Gamepad2 size={14}/><b>{activities.length}</b>{isVi ? 'hoạt động' : 'activities'}</span>
+              <span className="is-vocabulary"><BookOpen size={14}/><b>{focusCounts.vocabulary}</b>Vocabulary</span>
+              <span className="is-grammar"><Layers3 size={14}/><b>{focusCounts.grammar}</b>Grammar</span>
+              <span className="is-skills"><MonitorPlay size={14}/><b>{focusCounts.skills}</b>{isVi ? 'Kỹ năng' : 'Skills'}</span>
+            </div>
+            <div className="lcs-assessment-launchers">
+              {isLeader && <button className="lcs-arcade-create" type="button" onClick={openNewActivity}>
+                <span className="lcs-cta-icon"><Plus size={20}/></span>
+                <span className="lcs-cta-copy"><strong>{isVi ? 'Tạo hoạt động' : 'Create activity'}</strong>
+                <small>{isVi ? 'Thiết kế bài kiểm tra riêng' : 'Design your own activity'}</small></span>
+                <ChevronRight className="lcs-cta-chevron" size={17}/></button>}
+              <button className="lcs-open-reports" type="button"
+                onClick={() => { setAssessmentWorkspaceView('reports'); setAssessmentWorkspaceVisible(true); }}>
+                <span className="lcs-cta-icon"><BarChart3 size={20}/></span>
+                <span className="lcs-cta-copy"><strong>{isVi ? 'Báo cáo' : 'Reports'}</strong>
+                <small>{isVi ? 'Kết quả và phân tích chi tiết' : 'Results and insights'}</small></span>
+                <ChevronRight className="lcs-cta-chevron" size={17}/></button>
+              <button className="lcs-start-assessment" type="button"
+                onClick={() => { setAssessmentWorkspaceView('session'); setAssessmentWorkspaceVisible(true); }}>
+                <span className="lcs-cta-icon"><ClipboardCheck size={20}/></span>
+                <span className="lcs-cta-copy"><strong>{isVi ? 'Bắt đầu đánh giá' : 'Start assessment'}</strong>
+                <small>{isVi ? 'Tổ chức phiên cho lớp học' : 'Start a class session'}</small></span>
+                <ChevronRight className="lcs-cta-chevron" size={17}/></button>
+            </div>
           </div>
         </div>
       </header>
+      <React.Suspense fallback={null}>
+        <LessonCheckHeroEditor open={heroEditorOpen}
+          initialConfig={heroDraft || heroPublished}
+          currentUser={currentUser} language={language}
+          onClose={() => {setHeroEditorOpen(false);setHeroPreview(null);}}
+          onPreview={setHeroPreview}
+          onPublished={setHeroPublished}/>
+      </React.Suspense>
 
       {notice ? <div className="lcs-toast" role="status">{notice}</div> : null}
       {error ? (

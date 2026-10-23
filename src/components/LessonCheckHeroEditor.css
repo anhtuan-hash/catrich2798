@@ -1,0 +1,43 @@
+/* Scoped Lesson Check Hero drawer. No Dashboard/Homepage selectors. */
+.lch-editor-overlay,.lch-editor-overlay *{box-sizing:border-box}
+.lch-editor-overlay{position:fixed;inset:0;z-index:10120;display:flex;justify-content:flex-end;background:rgba(17,29,49,.35);font-family:"Google Sans",Roboto,Inter,system-ui,sans-serif}
+.lch-editor{width:min(550px,100%);height:100vh;height:100dvh;display:grid;grid-template-rows:auto minmax(0,1fr) auto;background:#f7f9fd;border-left:1px solid #dce5f1;box-shadow:-20px 0 60px rgba(20,40,69,.2);overflow:hidden;border-radius:24px 0 0 24px;animation:lch-slide-in .2s ease-out}
+@keyframes lch-slide-in{from{transform:translateX(20px);opacity:.85}to{transform:translateX(0);opacity:1}}
+.lch-editor-head{display:flex;align-items:center;gap:13px;padding:23px;background:#fff;border-bottom:1px solid #e4eaf3}
+.lch-editor-mark{flex:0 0 45px;height:45px;display:grid;place-items:center;border-radius:14px;background:#ecf3ff;color:#235fbd}
+.lch-editor-head>div{flex:1;min-width:0}.lch-editor-head small{display:block;color:#4875ba;font-size:10px;font-weight:850;letter-spacing:.08em}
+.lch-editor-head h2{margin:4px 0;font-size:21px;line-height:1.25;font-weight:830;color:#183657}
+.lch-editor-head p{margin:0;font-size:11px;line-height:1.45;color:#6d8098}
+.lch-editor-close{flex:0 0 37px;height:37px;border:1px solid #e0e7f2;border-radius:50%;background:#f7faff;color:#526b89;display:grid;place-items:center;cursor:pointer}
+.lch-editor-body{min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;display:grid;align-content:start;gap:16px;padding:20px}
+.lch-editor-preview,.lch-editor-section{display:grid;gap:13px;padding:19px;background:#fff;border:1px solid #e0e8f4;border-radius:18px}
+.lch-editor-preview>strong{display:flex;align-items:center;gap:8px;color:#205bb2;font-size:14px}
+.lch-editor-preview>small{color:#77879c;line-height:1.45;font-size:11px}
+.lch-editor-stage{position:relative;aspect-ratio:16/9;overflow:hidden;border-radius:14px;background:linear-gradient(115deg,#fffbf5,#eaf5ff 65%,#f8efff)}
+.lch-editor-stage>img,.lch-editor-stage>video{position:absolute;inset:0;width:100%;height:100%}
+.lch-editor-stage>span{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:10px;color:#6284b0;font-size:12px}
+.lch-editor-stage-wash{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,#fff 0%,rgba(255,255,255,.85) 30%,transparent 80%)}
+.lch-editor-section h3{margin:0;color:#1d3859;font-size:17px;font-weight:800}
+.lch-editor-section>p{font-size:12px;color:#76899f;line-height:1.55;margin:0}
+.lch-editor-upload{display:flex;align-items:center;justify-content:center;gap:13px;min-height:86px;padding:12px;border:1.5px dashed #adc9ed;border-radius:14px;background:#f2f8ff;color:#2362bb;cursor:pointer}
+.lch-editor-upload>span{display:grid;gap:5px;text-align:left}
+.lch-editor-upload strong{font-size:14px}.lch-editor-upload small{font-size:10px;color:#7086a0}
+.lch-field{display:grid;gap:8px;min-width:0;color:#304d70;font-size:12px;font-weight:690}
+.lch-field>span{display:flex;justify-content:space-between;align-items:center;gap:9px}
+.lch-field output{color:#316ec2;font-size:11px;font-variant-numeric:tabular-nums}
+.lch-field :is(input[type="url"],select){width:100%;min-width:0;padding:10px 11px;min-height:41px;border:1px solid #d9e4f1;border-radius:11px;background:#fff;color:#27405e;font:inherit;font-weight:500}
+.lch-field input[type="range"]{width:100%;accent-color:#3578e9;cursor:pointer}
+.lch-editor-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.lch-editor-check{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:660;line-height:1.5;color:#315274}
+.lch-editor-check input{accent-color:#3279e9;width:17px;height:17px}
+.lch-editor-reset-image{justify-self:start;display:flex;align-items:center;gap:7px;min-height:37px;padding:9px 12px;border:1px solid #e4dadd;border-radius:11px;background:#fff7f6;color:#af5852;font-size:12px;font-weight:700;cursor:pointer}
+.lch-editor-footer{display:grid;gap:11px;padding:14px 20px max(17px,env(safe-area-inset-bottom,0px));background:#fff;border-top:1px solid #e0e8f4}
+.lch-editor-notice{min-height:20px;color:#79899c;line-height:1.45;font-size:11.5px}.lch-editor-notice.is-success{color:#117451}.lch-editor-notice.is-error{color:#ba3b4b}
+.lch-editor-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.lch-editor-actions button{min-height:41px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 14px;border:1px solid #d6e4f8;border-radius:11px;background:#f3f8ff;color:#2e62b0;font-size:12px;font-weight:770;cursor:pointer}
+.lch-editor-actions .lch-editor-publish{background:#286cde;color:#fff;border-color:#286cde}
+.lch-editor-actions .lch-editor-restore{margin-right:auto;background:#fff;color:#627791;border-color:#e2e8f2}
+.lch-editor button:disabled{opacity:.6;cursor:wait}
+.lch-editor button:focus-visible,.lch-editor input:focus-visible,.lch-editor select:focus-visible{outline:3px solid #95bdf6;outline-offset:2px}
+@media(max-width:640px){.lch-editor{border-radius:0}.lch-editor-head{padding:15px}.lch-editor-mark{flex-basis:39px;height:39px}.lch-editor-head h2{font-size:18px}.lch-editor-body{padding:12px}.lch-editor-preview,.lch-editor-section{padding:14px}.lch-editor-footer{padding-left:13px;padding-right:13px}.lch-editor-actions button{font-size:11px;padding:9px}}
+@media(prefers-reduced-motion:reduce){.lch-editor{animation:none}}
