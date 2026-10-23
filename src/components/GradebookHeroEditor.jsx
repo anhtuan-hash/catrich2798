@@ -5,7 +5,7 @@ import { uploadHomeHeroMedia } from '../utils/homepageHeroCms.js';
 import {
   DEFAULT_GRADEBOOK_HERO, normalizeGradebookHero, publishGradebookHero, saveGradebookHeroDraft,
 } from '../utils/gradebookHeroCms.js';
-import './Sổ điểmHeroEditor.css';
+import './DashboardHeroEditor.css';
 
 const TABS = [
   ['background', Image, 'Hình nền'],
