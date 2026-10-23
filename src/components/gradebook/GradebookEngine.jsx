@@ -1229,7 +1229,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       onToggle={(event) => setInsightsOpen(event.currentTarget.open)}>
       <summary aria-label="Mở bảng phân tích và các công cụ Sổ điểm">
         <span className="gb5-insights-symbol"><ChartColumnIncreasing size={20} aria-hidden="true" /></span>
-        <span><strong>Phân tích & công cụ Sổ điểm</strong><small>Thống kê học kỳ, tiến độ nhập, quản lý môn, phân công và công cụ nâng cao — mở khi cần</small></span>
+        <span><strong>Công cụ nâng cao</strong><small>Quản lý môn học, phân công, thống kê chi tiết — mở khi cần</small></span>
         <span className="gb5-insights-chevron" aria-hidden="true">⌄</span>
       </summary>
       {insightsOpen ? <div className="gb5-insights-content">
