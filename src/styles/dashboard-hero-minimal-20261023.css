@@ -19,6 +19,8 @@
   background: linear-gradient(118deg, #fff9f3, #f8fbff 58%, #eaf3ff) !important;
   overflow: hidden !important;
   isolation: isolate !important;
+  /* Sitewide seasonal motifs remain active elsewhere, not across the Hero. */
+  z-index: 47 !important;
 }
 .app-shell[data-route="dashboard"] .editorial-hero.is-minimal.has-dashboard-custom-hero {
   background: #ecf1f8 !important;
@@ -134,7 +136,7 @@
   position: absolute !important;
   right: 19px !important;
   top: -19px !important;
-  z-index: 15 !important;
+  z-index: 50 !important;
   display: inline-flex !important;
   align-items: center !important;
   gap: 7px !important;
