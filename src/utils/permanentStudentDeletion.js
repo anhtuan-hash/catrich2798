@@ -99,20 +99,25 @@ export function permanentlyRemoveArchivedStudents(workspace, requestedIds, actor
 
   // Remove references keyed by student ID or containing a student ID. Keep
   // unrelated class-wide data and other students' records unchanged.
-  const purge = (value) => {
+  const purge = (value, collectionKey = '') => {
     if (Array.isArray(value)) {
       return value.filter((item) => {
         if (typeof item === 'string') return !ids.has(item);
         if (!item || typeof item !== 'object') return true;
-        return !ids.has(String(item.studentId ?? '')) && !ids.has(String(item.student_id ?? ''));
-      }).map(purge);
+        if (ids.has(String(item.studentId ?? '')) || ids.has(String(item.student_id ?? ''))) return false;
+        // Backup snapshots store full student rows, not studentId references.
+        // Never allow a restored backup to resurrect an erased student.
+        return !ids.has(String(item.id ?? '')) || (
+          collectionKey !== 'students' && item.fullName == null && item.code == null
+        );
+      }).map((item) => purge(item));
     }
     if (!value || typeof value !== 'object') return value;
     return Object.fromEntries(Object.entries(value)
       .filter(([key, item]) => !ids.has(key)
         && !(item && typeof item === 'object'
           && (ids.has(String(item.studentId ?? '')) || ids.has(String(item.student_id ?? '')))))
-      .map(([key, item]) => [key, purge(item)]));
+      .map(([key, item]) => [key, purge(item, key)]));
   };
 
   const timestamp = new Date().toISOString();
