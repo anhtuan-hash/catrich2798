@@ -17,7 +17,7 @@ export function dashboardHeroNameLines(value) {
     const first = words.slice(0, index).join(' ');
     const second = words.slice(index).join(' ');
     const difference = Math.abs(first.length - second.length);
-    if (difference < leastDifference) {
+    if (difference <= leastDifference) {
       leastDifference = difference;
       split = index;
     }
