@@ -1767,6 +1767,13 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
               canArchiveClass={canUseClassArchive}
               removeStudent={removeStudent}
               loadAll={loadAll}
+              onMemberNoteSaved={(memberId, teacherNote) => {
+                setMembers((current) => current.map((member) => (
+                  String(member.id) === String(memberId)
+                    ? { ...member, teacher_note: teacherNote }
+                    : member
+                )));
+              }}
               setError={setError}
               setNotice={setNotice}
               onSelectClass={setSelectedClassId}
