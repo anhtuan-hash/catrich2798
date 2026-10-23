@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { BellRing, CalendarDays, Clock3, Copy, ExternalLink, Eye, Image as ImageIcon, MapPin, Monitor, X, Check, BellOff } from 'lucide-react';
 import { eligibleEvents, getEventPosterUrl, shouldAutoShow, recordEventInteraction } from '../services/eventService.js';
+import { supabase } from '../../../utils/supabase.js';
+import { getAuthSessionIdentity, eventLoginStorageKey, eventLoginSessionMarker, canAutoShowEvent } from '../utils/eventLoginSession.mjs';
 import './EventPopup.css';
 
 const order={urgent:3,important:2,normal:1};
@@ -16,6 +18,7 @@ export default function EventPopupHost({currentUser}) {
   const [loadingAction,setLoadingAction]=useState(false);
   const [posterExpanded,setPosterExpanded]=useState(false);
   const shownRef=useRef('');
+  const authSessionIdentityRef=useRef(null);
   const closeButtonRef=useRef(null);
   const openerRef=useRef(null);
   const posterExpandedRef=useRef(false);
@@ -26,13 +29,22 @@ export default function EventPopupHost({currentUser}) {
     let active=true;
     async function load(){
       try {
-        const items=await eligibleEvents(userId);
-        items.sort((a,b)=>(order[b.priority]||1)-(order[a.priority]||1) || new Date(a.event_start_at)-new Date(b.event_start_at));
+        const [items,sessionResult]=await Promise.all([eligibleEvents(userId),supabase.auth.getSession()]);
         if(!active)return;
+        items.sort((a,b)=>(order[b.priority]||1)-(order[a.priority]||1) || new Date(a.event_start_at)-new Date(b.event_start_at));
+        const session=sessionResult?.data?.session;
+        const sessionIdentity=session?.user?.id===userId?getAuthSessionIdentity(session):null;
+        authSessionIdentityRef.current=sessionIdentity;
         setInboxEvents(items);
-        const automatic=items.find(x=>shouldAutoShow(x));
-        // One unsolicited dialog per dashboard visit, with every event still
-        // available for intentional review in the teacher's Event Inbox.
+        const automatic=items.find(item=>{
+          if(item.frequency!=='per_login')return shouldAutoShow(item);
+          let storedMarker='';
+          try{storedMarker=window.localStorage.getItem(eventLoginStorageKey(item))||'';}
+          catch{/* private browsing: best effort with in-memory marker */}
+          return canAutoShowEvent(item,userId,sessionIdentity,storedMarker);
+        });
+        // At most one unsolicited popup per login; browsing within a session
+        // (Dashboard revisit, refresh, tab focus) must not reopen it.
         if(automatic)setEvent(automatic);
       }catch(error){if(active)console.warn('Event announcement unavailable:',error?.message||error);}
     }
@@ -67,6 +79,15 @@ export default function EventPopupHost({currentUser}) {
     };
     document.addEventListener('keydown',handleEscape);
     window.requestAnimationFrame(()=>closeButtonRef.current?.focus());
+    // One-per-login marker is set only when the popup really opens, not when
+    // the event is fetched. Reusing the same Auth session after a reload will
+    // never re-trigger this event, even if "Đã xem" was clicked previously.
+    if(firstImpression && event.frequency==='per_login' && authSessionIdentityRef.current){
+      try{window.localStorage.setItem(
+        eventLoginStorageKey(event),
+        eventLoginSessionMarker(userId,authSessionIdentityRef.current)
+      );}catch{/* session still tracked in this mounted component */}
+    }
     // Rendering the modal is the impression event; never mark a fetched event
     // as seen merely because it was eligible.
     if(firstImpression) recordEventInteraction(event,userId,'shown')
@@ -154,10 +175,12 @@ export default function EventPopupHost({currentUser}) {
         </div>
       </div>
       <footer className="be-pop-footer">
-        <div className="be-pop-dismiss-actions">
-          <button type="button" disabled={loadingAction} onClick={()=>dismiss('today')}><BellOff size={15}/> Không hiện hôm nay</button>
-          <button type="button" disabled={loadingAction} onClick={()=>dismiss('snooze')}><Clock3 size={15}/> Nhắc lại sau</button>
-        </div>
+        {event.frequency==='per_login'
+          ? <p className="be-pop-login-hint"><BellRing size={15}/> Thông báo sẽ xuất hiện lại khi bạn đăng nhập lần tiếp theo.</p>
+          : <div className="be-pop-dismiss-actions">
+              <button type="button" disabled={loadingAction} onClick={()=>dismiss('today')}><BellOff size={15}/> Không hiện hôm nay</button>
+              <button type="button" disabled={loadingAction} onClick={()=>dismiss('snooze')}><Clock3 size={15}/> Nhắc lại sau</button>
+            </div>}
         <div className="be-pop-action-buttons">
           {detailed&&<button type="button" className="be-pop-ack" disabled={loadingAction} onClick={()=>dismiss('acknowledge')}><Check size={16}/> Đã xem</button>}
           <button type="button" className="be-pop-primary" onClick={openDetails} disabled={loadingAction||detailed}><Eye size={16}/>{detailed?'Đang xem chi tiết':'Xem chi tiết'}</button>
