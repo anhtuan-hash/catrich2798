@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { BellRing, CalendarDays, Clock3, Copy, ExternalLink, Eye, Image as ImageIcon, MapPin, Monitor, X, Check, BellOff } from 'lucide-react';
+import { BellRing, CalendarDays, Clock3, Copy, ExternalLink, Eye, Image as ImageIcon, MapPin, Monitor, X, Check, BellOff, GraduationCap, ArrowRight, Sparkles, Video, Info } from 'lucide-react';
 import { eligibleEvents, getEventPosterUrl, shouldAutoShow, recordEventInteraction } from '../services/eventService.js';
 import { supabase } from '../../../utils/supabase.js';
 import { getAuthSessionIdentity, eventLoginStorageKey, eventLoginSessionMarker, canAutoShowEvent } from '../utils/eventLoginSession.mjs';
@@ -144,50 +144,131 @@ export default function EventPopupHost({currentUser}) {
       </section>
     </div>}
     {event && <div className="be-pop-overlay" role="presentation">
-    <div className="be-pop-scrim" aria-hidden="true"/>
-    <section className="be-pop-dialog" role="dialog" aria-modal="true" aria-labelledby="be-pop-title" aria-describedby="be-pop-intro">
-      <header className="be-pop-header">
-        <div className="be-pop-header-id"><span className="be-pop-bell"><BellRing size={22}/></span><div>
-          <span className="be-pop-eyebrow">BRIAN ENGLISH · THÔNG BÁO DÀNH CHO GIÁO VIÊN</span>
-          <h2 id="be-pop-title">Thông báo sự kiện</h2>
-          <p id="be-pop-intro">Thông tin mới được gửi đến bạn từ Ban tổ chức.</p>
-        </div></div>
-        <button type="button" className="be-pop-close" ref={closeButtonRef} aria-label="Đóng thông báo"
-          disabled={loadingAction} onClick={()=>dismiss('dismiss')}><X size={20}/></button>
-      </header>
-      <div className="be-pop-body">
-        <div className="be-pop-poster">{posterUrl?
-          <button type="button" aria-label="Phóng to poster sự kiện" onClick={()=>setPosterExpanded(true)}><img src={posterUrl} alt={'Poster: '+event.title}/><span><Eye size={15}/> Xem poster</span></button>:
-          <div className="be-pop-placeholder"><ImageIcon size={42}/><p>Thông báo sự kiện</p><small>{event.organizer}</small></div>}
-        </div>
-        <div className="be-pop-content">
-          <div className="be-pop-tags"><span className={'be-pop-priority is-'+event.priority}>{event.priority==='urgent'?'Khẩn':event.priority==='important'?'Sắp diễn ra':'Sự kiện'}</span><span>{event.school_year}</span></div>
-          <h3>{event.title}</h3>
-          <p className="be-pop-summary">{event.summary}</p>
-          <div className="be-pop-info">
-            <div><CalendarDays size={18}/><span><small>Thời gian</small><strong>{niceDate(event.event_start_at)}</strong><small>Đến {new Intl.DateTimeFormat('vi-VN',{timeZone:'Asia/Ho_Chi_Minh',hour:'2-digit',minute:'2-digit'}).format(new Date(event.event_end_at))}</small></span></div>
-            <div><Monitor size={18}/><span><small>Hình thức</small><strong>{event.venue_type==='online'?'Trực tuyến':event.venue_type==='offline'?'Trực tiếp':'Kết hợp'}</strong>{event.venue_name&&<small>{event.venue_name}</small>}</span></div>
-            {event.meeting_code&&<div><Copy size={18}/><span><small>Mã phòng họp</small><strong>{event.meeting_code}</strong></span><button type="button" aria-label="Sao chép mã họp" onClick={copyCode}><Copy size={14}/></button></div>}
-            <div><MapPin size={18}/><span><small>Đơn vị tổ chức</small><strong>{event.organizer}</strong></span></div>
+      <div className="be-pop-scrim" aria-hidden="true"/>
+      <section className="be-pop-dialog" role="dialog" aria-modal="true"
+        aria-labelledby="be-pop-title" aria-describedby="be-pop-intro">
+        <header className="be-pop-header">
+          <div className="be-pop-header-id">
+            <span className="be-pop-bell" aria-hidden="true"><BellRing size={30} strokeWidth={1.85}/></span>
+            <div className="be-pop-heading-copy">
+              <span className="be-pop-eyebrow">BRIAN ENGLISH · THÔNG BÁO DÀNH CHO GIÁO VIÊN</span>
+              <h2 id="be-pop-title">Thông báo sự kiện</h2>
+              <p id="be-pop-intro">Thông tin mới được gửi đến bạn từ Ban tổ chức.</p>
+            </div>
           </div>
-          {detailed&&<div className="be-pop-description"><h4>Nội dung chi tiết</h4><p>{event.description||'Vui lòng xem poster và thông tin sự kiện.'}</p>{event.meeting_url&&/^https:\/\//i.test(event.meeting_url)&&<a href={event.meeting_url} target="_blank" rel="noopener noreferrer"><ExternalLink size={15}/> Tham gia Google Meet</a>}</div>}
-          {actionError&&<p className="be-pop-error" role="alert">{actionError}</p>}
-        </div>
-      </div>
-      <footer className="be-pop-footer">
-        {event.frequency==='per_login'
-          ? <p className="be-pop-login-hint"><BellRing size={15}/> Thông báo sẽ xuất hiện lại khi bạn đăng nhập lần tiếp theo.</p>
-          : <div className="be-pop-dismiss-actions">
-              <button type="button" disabled={loadingAction} onClick={()=>dismiss('today')}><BellOff size={15}/> Không hiện hôm nay</button>
-              <button type="button" disabled={loadingAction} onClick={()=>dismiss('snooze')}><Clock3 size={15}/> Nhắc lại sau</button>
+          <div className="be-pop-header-art" aria-hidden="true">
+            <span className="be-pop-art-glow"/>
+            <Sparkles className="be-pop-art-sparkle be-pop-art-sparkle-one" size={19}/>
+            <BellRing className="be-pop-art-bell" size={104} strokeWidth={1.2}/>
+            <Sparkles className="be-pop-art-sparkle be-pop-art-sparkle-two" size={27}/>
+          </div>
+          <button type="button" className="be-pop-close" ref={closeButtonRef}
+            aria-label="Đóng thông báo" disabled={loadingAction}
+            onClick={()=>dismiss('dismiss')}><X size={22}/></button>
+        </header>
+
+        <div className="be-pop-body">
+          <div className="be-pop-poster">
+            {posterUrl
+              ? <button type="button" className="be-pop-poster-open"
+                  aria-label="Xem poster sự kiện ở kích thước lớn"
+                  onClick={()=>setPosterExpanded(true)}>
+                  <img src={posterUrl} alt={'Thư mời: '+event.title}/>
+                  <span className="be-pop-poster-cta"><Eye size={19} strokeWidth={2}/> Xem poster</span>
+                </button>
+              : <div className="be-pop-placeholder">
+                  <ImageIcon size={42} aria-hidden="true"/>
+                  <p>Thông báo sự kiện</p><small>{event.organizer}</small>
+                </div>}
+          </div>
+
+          <div className="be-pop-content">
+            <div className="be-pop-tags">
+              <span className={'be-pop-priority is-'+event.priority}>
+                <CalendarDays size={15} aria-hidden="true"/>
+                {event.priority==='urgent'?'Thông báo khẩn':new Date(event.event_start_at)>new Date()?'Sắp diễn ra':'Đang diễn ra'}
+              </span>
+              <span className="be-pop-school-year">
+                <GraduationCap size={17} aria-hidden="true"/>{event.school_year}
+              </span>
+            </div>
+            <h3>{event.title}</h3>
+            <div className="be-pop-info">
+              <div className="be-pop-info-card is-time">
+                <span className="be-pop-info-icon" aria-hidden="true"><CalendarDays size={25}/></span>
+                <span className="be-pop-info-copy">
+                  <small>Thời gian</small>
+                  <strong>{niceDate(event.event_start_at)}</strong>
+                  <span>Đến {new Intl.DateTimeFormat('vi-VN',{timeZone:'Asia/Ho_Chi_Minh',hour:'2-digit',minute:'2-digit'}).format(new Date(event.event_end_at))}</span>
+                </span>
+              </div>
+              <div className="be-pop-info-card is-format">
+                <span className="be-pop-info-icon" aria-hidden="true"><Video size={25}/></span>
+                <span className="be-pop-info-copy">
+                  <small>Hình thức</small>
+                  <strong>{event.venue_type==='online'?'Trực tuyến':event.venue_type==='offline'?'Trực tiếp':'Kết hợp'}</strong>
+                  {event.venue_name&&<span>{event.venue_name}</span>}
+                </span>
+              </div>
+              {event.meeting_code&&<div className="be-pop-info-card is-meeting">
+                <span className="be-pop-info-icon" aria-hidden="true"><Copy size={25}/></span>
+                <span className="be-pop-info-copy">
+                  <small>Mã phòng họp</small>
+                  <strong>{event.meeting_code}</strong>
+                </span>
+                <button className="be-pop-copy" type="button" aria-label="Sao chép mã phòng họp"
+                  title="Sao chép mã phòng họp" onClick={copyCode}><Copy size={19}/></button>
+              </div>}
+              <div className="be-pop-info-card is-organizer">
+                <span className="be-pop-info-icon" aria-hidden="true"><MapPin size={25}/></span>
+                <span className="be-pop-info-copy">
+                  <small>Đơn vị tổ chức</small>
+                  <strong>{event.organizer}</strong>
+                </span>
+              </div>
+            </div>
+
+            {detailed&&<div className="be-pop-description">
+              <h4>Nội dung chi tiết</h4>
+              {event.summary&&<p>{event.summary}</p>}
+              <p>{event.description||'Vui lòng xem poster và thông tin sự kiện.'}</p>
+              {event.meeting_url&&/^https:\/\//i.test(event.meeting_url)&&
+                <a href={event.meeting_url} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink size={16}/> Tham gia Google Meet
+                </a>}
             </div>}
-        <div className="be-pop-action-buttons">
-          {detailed&&<button type="button" className="be-pop-ack" disabled={loadingAction} onClick={()=>dismiss('acknowledge')}><Check size={16}/> Đã xem</button>}
-          <button type="button" className="be-pop-primary" onClick={openDetails} disabled={loadingAction||detailed}><Eye size={16}/>{detailed?'Đang xem chi tiết':'Xem chi tiết'}</button>
+            {actionError&&<p className="be-pop-error" role="alert">{actionError}</p>}
+          </div>
         </div>
-      </footer>
-    </section>
-    {posterExpanded&&<div className="be-pop-lightbox" role="dialog" aria-modal="true" aria-label="Poster phóng to"><button type="button" aria-label="Đóng hình ảnh" onClick={()=>setPosterExpanded(false)}><X size={22}/></button><img src={posterUrl} alt={'Poster '+event.title}/></div>}
+
+        <footer className="be-pop-footer">
+          {event.frequency==='per_login'
+            ? <p className="be-pop-login-hint"><Info size={20} aria-hidden="true"/>
+                <span>Thông báo sẽ xuất hiện lại khi bạn đăng nhập lần tiếp theo.</span>
+              </p>
+            : <div className="be-pop-dismiss-actions">
+                <button type="button" disabled={loadingAction} onClick={()=>dismiss('today')}>
+                  <BellOff size={17}/> Không hiện hôm nay
+                </button>
+                <button type="button" disabled={loadingAction} onClick={()=>dismiss('snooze')}>
+                  <Clock3 size={17}/> Nhắc lại sau
+                </button>
+              </div>}
+          <div className="be-pop-action-buttons">
+            <button type="button" className="be-pop-secondary" disabled={loadingAction}
+              onClick={()=>dismiss(event.frequency==='per_login'?'dismiss':'snooze')}>Để sau</button>
+            {detailed
+              ? <button type="button" className="be-pop-ack" disabled={loadingAction}
+                  onClick={()=>dismiss('acknowledge')}><Check size={18}/> Đã xem</button>
+              : <button type="button" className="be-pop-primary" disabled={loadingAction}
+                  onClick={openDetails}><Eye size={19}/> Xem chi tiết <ArrowRight size={20}/></button>}
+          </div>
+        </footer>
+      </section>
+      {posterExpanded&&<div className="be-pop-lightbox" role="dialog" aria-modal="true" aria-label="Poster phóng to">
+        <button type="button" aria-label="Đóng hình ảnh" onClick={()=>setPosterExpanded(false)}><X size={22}/></button>
+        <img src={posterUrl} alt={'Poster '+event.title}/>
+      </div>}
   </div>}
   </>,document.body);
 }
