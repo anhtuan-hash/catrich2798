@@ -11,7 +11,7 @@ import {
 } from '../../utils/homeroomGradebookExport.js';
 import './HomeroomLearningGradebook.css';
 import { filterGradebookStudentView, gradebookColumnProgress } from '../../utils/gradebookStudentView.js';
-import { Search, ScanEye, Minimize2, Keyboard, X, ArrowDownToLine, ListFilter, Rows3, Rows4, ChartColumnIncreasing, BookOpenCheck, GraduationCap, NotebookPen, FileBarChart2, Sigma } from 'lucide-react';
+import { Search, ScanEye, Minimize2, Keyboard, X, ArrowDownToLine, ListFilter, Rows3, Rows4, ChartColumnIncreasing, BookOpenCheck, GraduationCap, NotebookPen, FileBarChart2, Sigma, ChevronRight, Check } from 'lucide-react';
 import GradebookProductivityPanel from './GradebookProductivityPanel.jsx';
 import GradebookSemesterMission from './GradebookSemesterMission.jsx';
 import GradebookMockExams from './GradebookMockExams.jsx';
