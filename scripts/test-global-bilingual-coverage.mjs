@@ -12,6 +12,12 @@ assert.equal(translateLegacyUi('37 học sinh','en'),'37 students');
 assert.equal(translateLegacyUi('Nguyễn Lê Thiện','en'),'Nguyễn Lê Thiện');
 assert.equal(translateLegacyUi('Bài kiểm tra của cô Lan','en'),'Bài kiểm tra của cô Lan');
 assert.equal(lookupLegacyUiEnglish('Ghi chú đánh giá do giáo viên nhập'),null);
+assert.equal(translateLegacyUi('Hướng dẫn & Lưu ý nhanh','en'),'Instructions & quick notes');
+assert.equal(translateLegacyUi('Hướng dẫn &amp; Lưu ý nhanh','en'),'Instructions &amp; quick notes');
+assert.equal(translateLegacyUi('Menu tài khoản','en'),'Account menu');
+assert.equal(translateLegacyUi('Lớp 11','en'),'Grade 11');
+assert.equal(translateLegacyUi('CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM','en'),'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM');
+assert.equal(translateLegacyUi('Nguyễn Văn A','en'),'Nguyễn Văn A');
 
 const main = fs.readFileSync('src/main.jsx','utf8');
 const bridge = fs.readFileSync('src/components/GlobalLegacyI18nBridge.jsx','utf8');
@@ -49,5 +55,5 @@ for (const path of relevant) {
 }
 assert.ok(total >= 700, 'Expected an auditable cross-app sample');
 const coverage = covered / total;
-assert.ok(coverage >= 0.85, 'Major route labels must remain at least 85% covered: '+(coverage*100).toFixed(1)+'%');
+assert.ok(coverage >= 0.99, 'Major route labels must remain at least 99% covered: '+(coverage*100).toFixed(1)+'%');
 console.log('Global bilingual UI contract passed: '+covered+'/'+total+' audited static labels ('+(coverage*100).toFixed(1)+'%).');
