@@ -12,6 +12,8 @@ import { downloadCsv, formatViDate, normalizePhone } from '../../utils/homeroomO
 import { buildZaloUrl, fillMessageTemplate, openZaloChat } from '../../utils/zaloLink.js';
 import { buildStudentSupportHash, normalizeStudentRef } from '../../studentSupport/studentSupportIdentity.js';
 import { permanentlyRemoveArchivedStudents } from '../../utils/permanentStudentDeletion.js';
+import { deleteStudentRecordMedia, listStudentRecordMedia } from '../../utils/studentRecordMediaStore.js';
+import { cleanupStudentRecordCloudOrphans } from '../../utils/studentRecordCloudStore.js';
 import {
   getStudentHubCounts, filterStudentHub, findStudentHubDuplicate, studentHubSummary,
 } from '../../utils/homeroom4StudentHub.js';
@@ -240,8 +242,25 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
     setBusy(true);
     setError('');
     try {
+      const targetStudents = deletionStudents;
       const next = permanentlyRemoveArchivedStudents(workspace, deleteRequest.ids);
       const result = await onCommit(next, 'Đã xóa vĩnh viễn học sinh đã lưu trữ khỏi lớp.');
+      let mediaWarning = '';
+      if (result?.ok) {
+        const cleanupResults = await Promise.all(targetStudents.map(async (student) => {
+          try {
+            const stored = await listStudentRecordMedia(workspace.id, student.id);
+            await Promise.all(stored.map((item) => deleteStudentRecordMedia(item.key)));
+            if (result.offline) return { ok: true };
+            return await cleanupStudentRecordCloudOrphans({
+              workspaceId: workspace.id, studentId: student.id, keepPaths: [],
+            });
+          } catch (err) { return { ok: false, message: err?.message || 'Lỗi dọn ảnh hồ sơ.' }; }
+        }));
+        if (cleanupResults.some((item) => !item.ok)) {
+          mediaWarning = ' Một số tệp ảnh hồ sơ chưa được dọn khỏi kho lưu trữ; cần kiểm tra lại.';
+        }
+      }
       setSelectedRows([]);
       setSelectedId('');
       setDeleteRequest(null);
@@ -251,7 +270,7 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
         ? 'Hồ sơ đã được loại khỏi bản lưu trên thiết bị nhưng chưa đồng bộ cloud. Hãy kiểm tra kết nối và trạng thái đồng bộ trước khi tiếp tục.'
         : result?.offline
           ? 'Đã xóa trên thiết bị. Chế độ hiện tại chưa đồng bộ cloud.'
-          : 'Đã xóa hồ sơ đã lưu trữ và dữ liệu gắn với hồ sơ khỏi lớp.');
+          : 'Đã xóa hồ sơ đã lưu trữ và dữ liệu gắn với hồ sơ khỏi lớp.' + mediaWarning);
     } catch (err) { setError(err?.message || 'Không thể xóa vĩnh viễn học sinh.'); }
     finally { setBusy(false); }
   };
