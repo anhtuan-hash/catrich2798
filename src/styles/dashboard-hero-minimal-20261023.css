@@ -132,32 +132,53 @@
   color: #e3a73b !important;
   font-size: 23px !important;
 }
+/* Hero management is contextual: a compact floating pencil, never a call-to-action pill.
+   Keep it outside the image so it cannot cover the live weather widget. */
 .app-shell[data-route="dashboard"] .db-hero-minimal-frame > .db-hero-edit-button--outside {
   position: absolute !important;
-  right: 19px !important;
-  top: -19px !important;
+  right: 17px !important;
+  top: -17px !important;
   z-index: 50 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 7px !important;
-  min-height: 36px !important;
-  padding: 8px 13px !important;
-  border: 1px solid rgba(172,197,232,.92) !important;
-  border-radius: 999px !important;
-  background: rgba(255,255,255,.98) !important;
-  color: #155cbe !important;
-  box-shadow: 0 5px 15px rgba(22,50,86,.14) !important;
-  font: 750 12px/1.2 "Google Sans", Roboto, system-ui, sans-serif !important;
-  white-space: nowrap !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  min-height: 38px !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  border: 1px solid rgba(185, 199, 219, .83) !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, .82) !important;
+  color: #506a89 !important;
+  box-shadow: 0 3px 11px rgba(31, 54, 79, .095) !important;
+  font-size: inherit !important;
+  line-height: 1 !important;
+  opacity: .86 !important;
   cursor: pointer !important;
+  backdrop-filter: blur(12px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(125%) !important;
+  transition: opacity .18s ease, transform .18s ease,
+    background-color .18s ease, border-color .18s ease, box-shadow .18s ease !important;
 }
 .app-shell[data-route="dashboard"] .db-hero-minimal-frame > .db-hero-edit-button--outside:hover {
-  background: #eaf2ff !important;
+  opacity: 1 !important;
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, .97) !important;
+  color: #2563ba !important;
+  border-color: #a4c2ee !important;
+  box-shadow: 0 5px 14px rgba(31, 68, 118, .17) !important;
 }
 .app-shell[data-route="dashboard"] .db-hero-minimal-frame > .db-hero-edit-button--outside:focus-visible,
 .app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-status-weather:focus-visible {
+  opacity: 1 !important;
   outline: 3px solid #83b3f6 !important;
   outline-offset: 3px !important;
+}
+@media (hover: none), (pointer: coarse) {
+  .app-shell[data-route="dashboard"] .db-hero-minimal-frame > .db-hero-edit-button--outside {
+    opacity: 1 !important;
+  }
 }
 /* Preserve the uploaded artwork. Create a dependable reading zone at left
    without washing out the atmospheric photo on the right. */
@@ -215,10 +236,12 @@
   }
   .app-shell[data-route="dashboard"] .db-hero-minimal-frame > .db-hero-edit-button--outside {
     top: -17px !important;
-    right: 10px !important;
-    min-height: 32px !important;
-    padding: 7px 10px !important;
-    font-size: 11px !important;
+    right: 12px !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    border-radius: 12px !important;
   }
 }
 @media print {
