@@ -26,6 +26,7 @@ export default function SettingsTeacherManagement({ currentUser, language='vi', 
   const [error,setError]=useState('');
   const [draft,setDraft]=useState({ fullName:'', username:'', school:'', password:'' });
   const [created,setCreated]=useState(null);
+  const [passwordShown,setPasswordShown]=useState(false);
   const [expanded,setExpanded]=useState({});
   const teacherUsers=useMemo(()=>users.filter(u=>u.role!=='admin'),[users]);
   const filtered=useMemo(()=>teacherUsers.filter(u=>[u.name,u.email,u.username,u.school].join(' ').toLowerCase().includes(query.trim().toLowerCase())),[teacherUsers,query]);
@@ -114,7 +115,7 @@ export default function SettingsTeacherManagement({ currentUser, language='vi', 
         <label>{vi?'Tên đăng nhập':'Username'}<input required autoCapitalize="none" spellCheck={false} maxLength={32} value={draft.username} onChange={e=>setDraft(x=>({...x,username:cleanLogin(e.target.value)}))} placeholder="nguyen.van.a"/><small>{vi?'Đăng nhập bằng tên này, không cần email cá nhân.':'Username sign-in, no personal email required.'}</small></label>
         <label>{vi?'Đơn vị / Trường':'School'}<input maxLength={160} value={draft.school} onChange={e=>setDraft(x=>({...x,school:e.target.value}))}/></label>
         <label>{vi?'Mật khẩu tạm':'Temporary password'}
-          <div className="stm-password"><input required type="text" autoComplete="off" minLength={8} maxLength={128} value={draft.password} onChange={e=>setDraft(x=>({...x,password:e.target.value}))}/><button type="button" onClick={generatePassword}>{vi?'Tạo ngẫu nhiên':'Generate'}</button></div>
+          <div className="stm-password"><input required type={passwordShown?'text':'password'} autoComplete="new-password" minLength={8} maxLength={128} value={draft.password} onChange={e=>setDraft(x=>({...x,password:e.target.value}))}/><button type="button" aria-pressed={passwordShown} onClick={()=>setPasswordShown(value=>!value)}>{passwordShown?(vi?'Ẩn':'Hide'):(vi?'Hiện':'Show')}</button><button type="button" onClick={generatePassword}>{vi?'Tạo ngẫu nhiên':'Generate'}</button></div>
           <small>{vi?'Không lưu mật khẩu trên trang. Chia sẻ riêng với giáo viên qua kênh an toàn trước khi tạo.':'The password is not stored in this page. Share it securely before creating the account.'}</small>
         </label>
         <button className="stm-primary" type="submit" disabled={loading}>{loading?(vi?'Đang tạo…':'Creating…'):(vi?'Tạo tài khoản giáo viên':'Create teacher account')}</button>
