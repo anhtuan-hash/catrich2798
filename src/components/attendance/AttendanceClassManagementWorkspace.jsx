@@ -102,12 +102,12 @@ function classSubjectIcon(subjectKey) { return SUBJECT_ICONS[subjectKey] || 'boo
 function downloadMemberCsv(selectedClass, members) {
   if (!selectedClass) return;
   const rows = [
-    ['STT', 'Họ và tên', 'Ghi chú', 'Lớp chính khóa', 'Trạng thái'],
+    ['STT', 'Họ và tên', 'Lớp chính khóa', 'Ghi chú', 'Trạng thái'],
     ...members.map((member, index) => [
       index + 1,
       member.student_full_name || '',
-      member.teacher_note || '',
       member.school_class_name || '',
+      member.teacher_note || '',
       member.active === false ? 'Đã nghỉ' : 'Đang học',
     ]),
   ];
