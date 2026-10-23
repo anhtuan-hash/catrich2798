@@ -1,0 +1,320 @@
+/* Gradebook Hero Canvas v1 — native React layout.
+   All interactive elements stay LEFT. The right half is decorative/media only.
+   Scoped entirely to GradebookStudio; navbar and Dashboard Hero are untouched. */
+#root .gbmac-studio .gbmac-shell.gbmac-hero-canvas {
+  position: relative;
+  isolation: isolate;
+  display: block;
+  min-height: 366px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #d6e5f5;
+  border-radius: 23px;
+  background: linear-gradient(118deg,#f8fbff,#edf6ff 60%,#f3edff);
+  box-shadow: 0 13px 35px rgba(37,64,113,.08),0 1px 3px rgba(32,65,112,.035);
+}
+/* Edge-to-edge media stays readable at full opacity. No universal white veil. */
+#root .gbmac-studio .gbmac-hero-media {
+  position:absolute;
+  inset:0;
+  z-index:0;
+  overflow:hidden;
+  pointer-events:none;
+}
+#root .gbmac-studio .gbmac-hero-media :is(img,video) {
+  display:block;
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit: var(--gbmac-hero-fit,cover);
+  object-position: var(--gbmac-hero-position,70% 50%);
+  opacity: var(--gbmac-hero-media-opacity,1);
+  user-select:none;
+}
+#root .gbmac-studio .gbmac-hero-content {
+  position: relative;
+  z-index: 2;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:18px;
+  width: min(59%, 790px);
+  min-height: 366px;
+  padding: 24px 28px 26px;
+  background: linear-gradient(90deg,
+    rgba(252,254,255,var(--gbmac-left-protect,.81)) 0%,
+    rgba(252,254,255,var(--gbmac-left-protect-soft,.67)) 68%,
+    rgba(252,254,255,.07) 100%);
+}
+#root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-head{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  min-height:0;
+  padding:0;
+  border:0;
+  background:none;
+}
+#root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-identity {
+  display:flex;
+  gap:15px;
+  align-items:center;
+  min-width:0;
+  flex:1;
+}
+#root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-icon {
+  display:grid;
+  place-items:center;
+  flex:0 0 53px;
+  width:53px;height:53px;
+  border-radius:15px;
+  border:1px solid rgba(188,213,252,.85);
+  background:linear-gradient(145deg,rgba(226,239,255,.95),rgba(243,248,255,.92));
+  color:#2768d8;
+  box-shadow:0 5px 18px rgba(36,91,157,.07);
+}
+#root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-eyebrow {
+  color:#4778b2;
+  font-size:11px;
+  letter-spacing:.115em;
+  font-weight:820;
+}
+#root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-title {
+  display:flex;
+  align-items:center;
+  gap:11px;
+  flex-wrap:wrap;
+  margin:2px 0 5px;
+}
+#root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-title h1 {
+  color:var(--gbmac-hero-title,#183969);
+  font-size:clamp(30px,2.75vw,40px);
+  line-height:1.14;
+  letter-spacing:-.04em;
+  font-weight:840;
+}
+#root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-state {
+  min-height:27px;
+  font-size:11px;
+  padding:3px 9px;
+  background:rgba(230,250,238,.91);
+}
+#root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-identity p {
+  color:#527196;
+  font-size:13px;
+  font-weight:640;
+}
+/* Management is deliberately inside the left control zone. */
+#root .gbmac-studio .gbmac-hero-edit {
+  flex:0 0 40px;
+  display:grid;
+  place-items:center;
+  width:40px;height:40px;min-width:40px;
+  padding:0;
+  margin:0;
+  border:1px solid rgba(174,198,232,.92);
+  border-radius:12px;
+  background:rgba(255,255,255,.72);
+  color:#38669e;
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  box-shadow:0 3px 12px rgba(37,77,126,.08);
+  cursor:pointer;
+  transition:background .18s ease,transform .18s ease,box-shadow .18s ease;
+}
+#root .gbmac-studio .gbmac-hero-edit:hover{
+  background:#fff;
+  color:#1760c4;
+  transform:translateY(-1px);
+  box-shadow:0 7px 18px rgba(38,84,144,.14);
+}
+#root .gbmac-studio .gbmac-hero-edit:focus-visible,
+#root .gbmac-studio .gbmac-hero-canvas :is(button,select):focus-visible {
+  outline:3px solid #83b3fa;
+  outline-offset:3px;
+}
+/* Selector controls are in one unified 2x2 field group on the left. */
+#root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-selectors {
+  width:100%;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  padding:0;
+  margin:0;
+  background:none;
+}
+#root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-selectors :is(label,.gbmac-shell-field) {
+  display:flex;
+  justify-content:center;
+  gap:3px;
+  min-width:0;
+  min-height:65px;
+  padding:9px 13px;
+  border-radius:12px;
+  border:1px solid rgba(201,218,242,.94);
+  background:rgba(255,255,255,.81);
+  box-shadow:0 2px 8px rgba(22,59,114,.035);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+#root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-selectors :is(label,.gbmac-shell-field)>span {
+  color:#637f9f;
+  font-size:12px;
+  font-weight:720;
+}
+#root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-selectors :is(select,strong){
+  font-size:16px;
+  color:#254777;
+  line-height:1.45;
+  font-weight:780;
+  min-height:27px;
+}
+#root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-utilities {
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:10px;
+  width:100%;
+  margin:0;
+  padding:0;
+}
+#root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-utilities button {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  flex:0 1 auto;
+  min-height:44px;
+  padding:9px 15px;
+  border-radius:11px;
+  background:rgba(255,255,255,.9);
+  border:1px solid #c8dcf5;
+  color:#285a94;
+  font-size:13px;
+  font-weight:770;
+  box-shadow:0 4px 10px rgba(40,72,111,.045);
+}
+#root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-utilities button:last-child {
+  background:linear-gradient(108deg,#2e76e9,#2562d6);
+  color:#fff;
+  border-color:#2364d4;
+  box-shadow:0 5px 14px rgba(42,103,212,.15);
+}
+/* Beautiful lightweight fallback art when no custom image/video is published. */
+#root .gbmac-studio .gbmac-hero-default-art {
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 77% 55%,rgba(178,201,255,.46) 0%,transparent 33%),
+    radial-gradient(circle at 95% 7%,rgba(255,210,219,.64),transparent 35%),
+    radial-gradient(circle at 58% 100%,rgba(157,239,219,.42),transparent 41%),
+    linear-gradient(113deg,#f7fbff 30%,#edf5ff 70%,#f4eaff);
+}
+#root .gbmac-studio .gbmac-art-orb {
+  position:absolute;
+  right:8%;top:7%;
+  width:330px;height:330px;
+  border-radius:50%;
+  background:linear-gradient(130deg,rgba(211,231,255,.73),rgba(223,212,255,.55));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.47);
+}
+#root .gbmac-studio .gbmac-art-window {
+  position:absolute;
+  right:9%;top:18%;
+  width:300px;height:250px;
+  border:1px solid rgba(179,209,251,.9);
+  border-radius:24px;
+  padding:20px;
+  background:rgba(255,255,255,.83);
+  backdrop-filter:blur(17px);
+  -webkit-backdrop-filter:blur(17px);
+  box-shadow:0 18px 40px rgba(64,88,148,.13),inset 0 1px 0 #fff;
+  transform:rotate(4deg);
+}
+#root .gbmac-studio .gbmac-art-browser-dots {display:flex;gap:6px;margin-bottom:18px}
+#root .gbmac-studio .gbmac-art-browser-dots i{width:8px;height:8px;background:#ffbdac;border-radius:50%}
+#root .gbmac-studio .gbmac-art-browser-dots i:nth-child(2){background:#ffd878}
+#root .gbmac-studio .gbmac-art-browser-dots i:nth-child(3){background:#9de6cc}
+#root .gbmac-studio .gbmac-art-icon {
+  width:69px;height:69px;border-radius:20px;display:grid;place-items:center;
+  color:#3679df;background:#e6f0ff;margin:0 0 19px;
+}
+#root .gbmac-studio .gbmac-art-chart{
+  display:flex;align-items:end;gap:8px;height:65px;
+  position:absolute;top:67px;right:24px;
+}
+#root .gbmac-studio .gbmac-art-chart i {
+  width:15px;height:32px;border-radius:6px 6px 3px 3px;
+  background:linear-gradient(#90b8ff,#578ce7);
+}
+#root .gbmac-studio .gbmac-art-chart i:nth-child(2){height:47px;background:linear-gradient(#f5a6ce,#d97ca8)}
+#root .gbmac-studio .gbmac-art-chart i:nth-child(3){height:26px;background:linear-gradient(#9cecd0,#47b998)}
+#root .gbmac-studio .gbmac-art-chart i:nth-child(4){height:59px;background:linear-gradient(#b8a6ff,#806ceb)}
+#root .gbmac-studio .gbmac-art-chart i:nth-child(5){height:40px;background:linear-gradient(#f8d593,#ecae55)}
+#root .gbmac-studio .gbmac-art-line{display:block;margin:10px 0;height:12px;width:70%;background:#e5edfa;border-radius:99px}
+#root .gbmac-studio .gbmac-art-line.is-short{width:45%;background:#d9eafa}
+#root .gbmac-studio .gbmac-art-chip {
+  position:absolute;
+  width:56px;height:56px;
+  display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.85);
+  border-radius:18px;
+  box-shadow:0 12px 25px rgba(45,80,133,.13);
+  transform:rotate(-12deg);
+}
+#root .gbmac-studio .gbmac-art-chip.is-blue {
+  top:9%;right:30%;
+  color:#3a76e1;background:rgba(234,243,255,.96);
+}
+#root .gbmac-studio .gbmac-art-chip.is-peach {
+  right:4%;bottom:13%;
+  color:#e48b53;background:rgba(255,235,212,.96);
+  transform:rotate(9deg);
+}
+@media(max-width:1150px){
+  #root .gbmac-studio .gbmac-hero-content{width:min(67%,770px);padding:22px}
+  #root .gbmac-studio .gbmac-art-window{right:4%;width:250px}
+  #root .gbmac-studio .gbmac-art-orb{right:2%}
+}
+@media(max-width:850px){
+  #root .gbmac-studio .gbmac-hero-content{width:min(76%,760px);min-height:365px}
+  #root .gbmac-studio .gbmac-art-window{right:-50px;opacity:.65}
+  #root .gbmac-studio .gbmac-art-chip{opacity:.55}
+}
+@media(max-width:680px){
+  #root .gbmac-studio .gbmac-shell.gbmac-hero-canvas{border-radius:17px;min-height:0}
+  #root .gbmac-studio .gbmac-hero-content{
+    width:100%;
+    min-height:0;
+    padding:18px 14px;
+    gap:15px;
+    background:linear-gradient(90deg,
+      rgba(253,254,255,.93),
+      rgba(253,254,255,.86));
+  }
+  #root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-head{flex-direction:row;align-items:center}
+  #root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-identity{gap:10px}
+  #root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-icon{width:45px;height:45px;flex-basis:45px;border-radius:12px}
+  #root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-title h1{font-size:29px}
+  #root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-title{gap:7px}
+  #root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-state{min-height:23px;font-size:10px}
+  #root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-selectors{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  #root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-selectors :is(label,.gbmac-shell-field){min-height:60px;padding:9px}
+  #root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-selectors :is(select,strong){font-size:14px}
+  #root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-utilities{justify-content:stretch}
+  #root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-utilities button{flex:1;font-size:12px;padding:9px 8px;white-space:normal;text-align:center}
+  #root .gbmac-studio .gbmac-hero-edit{flex-basis:44px;width:44px;height:44px}
+  #root .gbmac-studio .gbmac-art-window{display:none}
+  #root .gbmac-studio .gbmac-art-chip{display:none}
+}
+@media(max-width:375px){
+  #root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-state{display:none}
+  #root .gbmac-studio .gbmac-hero-canvas .gbmac-shell-selectors :is(select,strong){font-size:13px}
+}
+@media(prefers-reduced-motion:reduce){
+  #root .gbmac-studio .gbmac-hero-edit{transition:none}
+}
