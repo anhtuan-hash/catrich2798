@@ -608,3 +608,86 @@ body[data-theme='dark'] .bes-atmosphere-theme-copy small,
 @media (prefers-reduced-motion: reduce) {
   .bes-atmosphere-theme-option { transition: none; }
 }
+
+
+/* Halloween symbol gallery: displays every available illustration without adding
+   additional floating elements to the site itself. */
+.bes-atmosphere-halloween-library {
+  margin: 17px 20px 0;
+  padding: 15px;
+  border: 1px solid rgba(116, 81, 145, .16);
+  border-radius: 19px;
+  background: linear-gradient(155deg,#fff9f1,#fcf6ff);
+}
+.bes-atmosphere-halloween-library__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.bes-atmosphere-halloween-library__heading strong {
+  color: #5a3b70;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+.bes-atmosphere-halloween-library__heading p {
+  margin: 5px 0 0;
+  color: #7e7084;
+  font-size: 11px;
+  line-height: 1.45;
+}
+.bes-atmosphere-halloween-library__heading > span {
+  flex-shrink: 0;
+  border-radius: 20px;
+  padding: 5px 10px;
+  background: #eadbf3;
+  color: #6f3e93;
+  font-size: 11px;
+  font-weight: 800;
+}
+.bes-atmosphere-halloween-library__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(41px, 1fr));
+  gap: 7px;
+}
+.bes-atmosphere-halloween-library__icon {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 46px;
+  aspect-ratio: 1;
+  padding: 3px;
+  border: 1px solid rgba(131, 90, 143, .1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .82);
+}
+.bes-atmosphere-halloween-library__icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 42px;
+  max-height: 42px;
+}
+.bes-atmosphere-halloween-library .bes-atmosphere-halloween-note {
+  margin: 13px 0 0;
+  padding: 11px;
+}
+@media (max-width: 420px) {
+  .bes-atmosphere-halloween-library { margin-inline: 12px; padding: 12px; }
+  .bes-atmosphere-halloween-library__grid { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 5px; }
+  .bes-atmosphere-halloween-library__icon { min-height: 35px; border-radius: 9px; }
+}
+html[data-theme='dark'] .bes-atmosphere-halloween-library,
+body[data-theme='dark'] .bes-atmosphere-halloween-library,
+.theme-dark .bes-atmosphere-halloween-library {
+  background: #302a38;
+  border-color: rgba(255, 255, 255, .14);
+}
+html[data-theme='dark'] .bes-atmosphere-halloween-library__heading strong,
+body[data-theme='dark'] .bes-atmosphere-halloween-library__heading strong,
+.theme-dark .bes-atmosphere-halloween-library__heading strong { color: #ead9f4; }
+html[data-theme='dark'] .bes-atmosphere-halloween-library__heading p,
+body[data-theme='dark'] .bes-atmosphere-halloween-library__heading p,
+.theme-dark .bes-atmosphere-halloween-library__heading p { color: #c7baca; }
