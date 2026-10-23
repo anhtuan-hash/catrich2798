@@ -154,6 +154,7 @@ export default function AttendanceClassManagementWorkspace({
   canArchiveClass = false,
   removeStudent,
   loadAll,
+  onMemberNoteSaved,
   setError,
   setNotice,
   onSelectClass,
@@ -493,6 +494,7 @@ export default function AttendanceClassManagementWorkspace({
             busy={busy}
             onRemoveStudent={removeStudent}
             onReload={loadAll}
+            onMemberNoteSaved={onMemberNoteSaved}
             onError={setError}
             onNotice={setNotice}
             editingClass={editingClass}
