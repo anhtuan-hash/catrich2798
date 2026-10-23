@@ -1862,7 +1862,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
           </section>
         ) : null}
 
-        <div className="lcs5-command-tools" aria-label="Công cụ thư viện Assessment 5.0">
+        <div className="lcs5-command-tools" aria-label={isVi?'Công cụ thư viện Assessment 5.0':'Assessment 5.0 library tools'}>
           <strong>{isVi ? 'Trình quản lý học liệu' : 'Activity library manager'}</strong>
           <div className="lcs5-tool-buttons">
             <button type="button" className={viewMode==='grid'?'is-active':''} onClick={()=>setViewMode('grid')} aria-pressed={viewMode==='grid'}><Grid2X2 size={15}/> Grid</button>
@@ -1933,7 +1933,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
           ) : null}
         </div>
 
-        {advancedFilters?<div className="lcs5-advanced-filters" aria-label="Bộ lọc nâng cao">
+        {advancedFilters?<div className="lcs5-advanced-filters" aria-label={isVi?'Bộ lọc nâng cao':'Advanced filters'}>
           <label>CEFR<select value={cefrFilter} onChange={e=>setCefrFilter(e.target.value)}><option value="all">{t('Tất cả')}</option>{['A1','A2','B1','B2','C1','C2','mixed','unclassified'].map(v=><option key={v}>{v}</option>)}</select></label>
           <label>{isVi?'Thời lượng':'Duration'}<select value={durationFilter} onChange={e=>setDurationFilter(e.target.value)}><option value="all">{t('Tất cả')}</option><option value="short">{t('≤10 phút')}</option><option value="medium">{t('11–25 phút')}</option><option value="long">{t('>25 phút')}</option></select></label>
           <label>{isVi?'Hình thức':'Mode'}<select value={deliveryFilter} onChange={e=>setDeliveryFilter(e.target.value)}><option value="all">{t('Tất cả')}</option><option value="individual">{t('Cá nhân')}</option><option value="group">{t('Nhóm')}</option><option value="whole_class">{t('Cả lớp')}</option><option value="hybrid">{t('Kết hợp')}</option></select></label>
