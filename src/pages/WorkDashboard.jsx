@@ -27,6 +27,7 @@ import {
 import { Pencil } from 'lucide-react';
 import { dashboardHeroNameLines } from '../utils/dashboardHeroName.js';
 const DashboardHeroEditor = React.lazy(() => import('../components/DashboardHeroEditor.jsx'));
+const BrianFocus = React.lazy(() => import('../components/BrianFocus/BrianFocus.jsx'));
 import { dashboardLocalDayKey, isDashboardTeachingPeriod } from '../utils/dashboardClassification.js';
 const EventPopupHost = React.lazy(() => import('../features/events/dashboard/EventPopupHost.jsx'));
 // Last route-local style: align all Dashboard sections to the app-shell/HomeRoom gutters.
@@ -534,6 +535,10 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
       onPreview={setHeroPreview}
       onPublished={(published) => { setHeroPublished(published); setHeroDraft(published); setHeroPreview(published); }}
     /></React.Suspense> : null}
+    <React.Suspense fallback={null}>
+      <BrianFocus language={language} weather={weather}
+        weatherDescription={weatherDescription} disabled={heroEditorOpen} />
+    </React.Suspense>
     <div className="gd-shell">
       <section className="gd-top-grid db-hero-minimal-frame">
         <header className={`editorial-hero is-minimal ${hasDashboardHeroMedia ? 'has-dashboard-custom-hero' : ''}`} style={dashboardHeroStyle} ref={heroExclusionRef}>
