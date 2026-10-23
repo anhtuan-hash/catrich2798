@@ -29,18 +29,18 @@
   color:#246add;
 }
 #root .gbmac-studio .gbmac-shell-eyebrow{
-  display:block;font-size:10px;font-weight:820;letter-spacing:.085em;color:#607eac;
+  display:block;font-size:12px;font-weight:820;letter-spacing:.085em;color:#607eac;
 }
 #root .gbmac-studio .gbmac-shell-title{
   display:flex;align-items:center;flex-wrap:wrap;gap:11px;margin:4px 0;
 }
 #root .gbmac-studio .gbmac-shell-title h1{
-  margin:0;font-size:28px;line-height:1.15;font-weight:840;
+  margin:0;font-size:31px;line-height:1.15;font-weight:840;
   letter-spacing:-.035em;color:#193e70;
 }
 #root .gbmac-studio .gbmac-shell-state{
   display:inline-flex;align-items:center;gap:6px;
-  font-size:11px;font-weight:720;min-height:27px;
+  font-size:13px;font-weight:720;min-height:30px;
   padding:4px 10px;border-radius:99px;
   background:#ebf9f1;color:#1a7c52;border:1px solid #d2eedd;
 }
@@ -52,17 +52,17 @@
 }
 #root .gbmac-studio .gbmac-shell-state.is-unsaved span{background:#e8a34d}
 #root .gbmac-studio .gbmac-shell-identity p{
-  font-size:12px;color:#69809c;margin:0;
+  font-size:14px;color:#69809c;margin:0;
 }
 #root .gbmac-studio .gbmac-shell-utilities{
   display:flex;align-items:center;gap:8px;flex-wrap:wrap;
 }
 #root .gbmac-studio .gbmac-shell-utilities button {
   display:inline-flex;align-items:center;justify-content:center;gap:7px;
-  min-height:40px;padding:9px 13px;border:1px solid #d7e3f2;
+  min-height:45px;padding:9px 13px;border:1px solid #d7e3f2;
   border-radius:10px;background:#fff;color:#2b5b95;
   box-shadow:0 2px 5px #1a43650b;
-  white-space:nowrap;font-size:12px;font-weight:770;
+  white-space:nowrap;font-size:14px;font-weight:770;
 }
 #root .gbmac-studio .gbmac-shell-utilities button:last-child{
   border-color:#2867d5;background:#286ade;color:#fff;
@@ -83,11 +83,11 @@
   background:#f8fafd;border:1px solid #e0e7f2;border-radius:11px;
 }
 #root .gbmac-studio .gbmac-shell-selectors :is(label,.gbmac-shell-field) > span{
-  font-size:11px;font-weight:710;color:#7389a6;
+  font-size:13px;font-weight:710;color:#7389a6;
 }
 #root .gbmac-studio .gbmac-shell-selectors :is(select,strong){
   width:100%;min-height:25px;margin:0;display:flex;align-items:center;
-  font-size:14px;font-weight:770;line-height:1.35;
+  font-size:16px;font-weight:770;line-height:1.35;
   border:none;background:transparent;color:#25436e;outline:0;padding:1px;
 }
 #root .gbmac-studio .gbmac-shell-selectors select:focus-visible,
@@ -202,7 +202,7 @@
  #root .gbmac-studio .gbmac-shell{border-radius:13px;margin-bottom:9px}
  #root .gbmac-studio .gbmac-shell-head{padding:13px;flex-direction:column}
  #root .gbmac-studio .gbmac-shell-icon{width:45px;height:45px;flex:0 0 45px;border-radius:12px}
- #root .gbmac-studio .gbmac-shell-title h1{font-size:24px}
+ #root .gbmac-studio .gbmac-shell-title h1{font-size:27px}
  #root .gbmac-studio .gbmac-shell-utilities{width:100%;justify-content:stretch}
  #root .gbmac-studio .gbmac-shell-utilities button{flex:1}
  #root .gbmac-studio .gbmac-shell-selectors{padding:9px;gap:7px}
