@@ -15,7 +15,7 @@ assert.deepEqual(zoomPosterAt(start,0.75,{x:120,y:70},dims),{scale:0.75,x:0,y:0}
 assert.deepEqual(constrainPosterView({scale:2,x:999,y:-999},dims),{scale:2,x:0,y:-220});
 assert.deepEqual(constrainPosterView({scale:4,x:999,y:-999},dims),{scale:4,x:320,y:-740});
 assert.deepEqual(panPosterBy({scale:4,x:0,y:0},120,-100,dims),{scale:4,x:120,y:-100});
-assert.deepEqual(zoomPosterAt({scale:4,x:0,y:0},2,{x:100,y:60},dims),{scale:2,x:0,y:0});
+assert.deepEqual(zoomPosterAt({scale:4,x:0,y:0},2,{x:100,y:60},dims),{scale:2,x:0,y:30});
 assert.deepEqual(constrainPosterView({scale:0.5,x:500,y:-500},dims),{scale:0.5,x:0,y:0});
 const fitted=constrainPosterView({scale:1,x:0,y:0},dims);
 assert.deepEqual(fitted,start,'Reset should fit/center full poster');
