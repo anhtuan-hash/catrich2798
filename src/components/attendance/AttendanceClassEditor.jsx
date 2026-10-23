@@ -56,6 +56,59 @@ function studentInitials(value) {
   return `${words[0][0] || ''}${words[words.length - 1][0] || ''}`.toUpperCase();
 }
 
+function MemberNoteCell({ member, canEdit, disabled, onSave }) {
+  const storedNote = String(member.teacher_note || '');
+  const [draft, setDraft] = useState(storedNote);
+  const [savingNote, setSavingNote] = useState(false);
+  const [saveState, setSaveState] = useState('');
+
+  useEffect(() => {
+    setDraft(storedNote);
+    setSaveState('');
+  }, [member.id, storedNote]);
+
+  const changed = draft.trim() !== storedNote.trim();
+
+  async function persistNote() {
+    if (!canEdit || disabled || savingNote || !changed) return;
+    setSavingNote(true);
+    setSaveState('');
+    const ok = await onSave(member, draft.trim());
+    setSavingNote(false);
+    setSaveState(ok ? 'saved' : 'error');
+  }
+
+  if (!canEdit) {
+    return <span className="attendance-member-note-readonly" title={storedNote}>{storedNote || '—'}</span>;
+  }
+
+  return (
+    <span className="attendance-member-note-cell">
+      <textarea
+        rows={1}
+        maxLength={500}
+        aria-label={'Ghi chú cho ' + member.student_full_name}
+        title="Nhập ghi chú cho học sinh. Tự lưu khi rời ô hoặc bấm Lưu."
+        placeholder="Thêm ghi chú…"
+        value={draft}
+        disabled={disabled || savingNote}
+        onChange={(event) => { setDraft(event.target.value); setSaveState(''); }}
+        onBlur={() => { void persistNote(); }}
+        onKeyDown={(event) => {
+          if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+            event.preventDefault();
+            void persistNote();
+          }
+        }}
+      />
+      {savingNote ? <small className="attendance-member-note-feedback">Đang lưu…</small> : null}
+      {!savingNote && changed ? <button type="button" className="attendance-member-note-save" onMouseDown={(event) => event.preventDefault()} onClick={() => { void persistNote(); }} disabled={disabled}>Lưu</button> : null}
+      {!savingNote && !changed && saveState === 'saved' ? <small className="attendance-member-note-feedback is-saved">Đã lưu</small> : null}
+      {saveState === 'error' ? <small className="attendance-member-note-feedback is-error">Chưa lưu · thử lại</small> : null}
+    </span>
+  );
+}
+
 export default function AttendanceClassEditor({
   client,
   selectedClass,
@@ -239,6 +292,29 @@ export default function AttendanceClassEditor({
     }
   }
 
+  async function saveMemberNote(member, value) {
+    if (!canManageMembers || !selectedClass || !member || !client) return false;
+    onError?.('');
+    try {
+      const { data: authData, error: authError } = await client.auth.getUser();
+      if (authError || !authData?.user?.id) throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+      const { data, error } = await client.from('bes_extra_class_members')
+        .update({ teacher_note: value, updated_by: authData.user.id, updated_at: new Date().toISOString() })
+        .eq('id', member.id)
+        .eq('class_id', selectedClass.id)
+        .select('id,teacher_note')
+        .single();
+      if (error) throw error;
+      if (String(data?.teacher_note || '') !== value) throw new Error('Ghi chú chưa được lưu thành công.');
+      onNotice?.('Đã lưu ghi chú cho ' + member.student_full_name + '.');
+      try { await onReload?.(); } catch { /* Note is already saved in Supabase. */ }
+      return true;
+    } catch (error) {
+      onError?.(error?.message || 'Không thể lưu ghi chú học sinh.');
+      return false;
+    }
+  }
+
   if (!selectedClass) return null;
 
   const classInfoSection = showClassInfo ? (
@@ -315,7 +391,7 @@ export default function AttendanceClassEditor({
       <>
         {classInfoSection}
         <div className="attendance-member-table is-mockup">
-          <div className="attendance-member-table-head"><span>STT</span><span>Học sinh</span><span>Lớp chính khóa</span><span>Mã HS</span><span>Trạng thái</span><span>Hành động</span></div>
+          <div className="attendance-member-table-head"><span>STT</span><span>Học sinh</span><span>Lớp chính khóa</span><span>Ghi chú</span><span>Trạng thái</span><span>Hành động</span></div>
           {members.map((member, index) => {
             const isEditing = String(editingMemberId) === String(member.id) && canManageMembers;
             if (isEditing) {
@@ -324,7 +400,7 @@ export default function AttendanceClassEditor({
                   <span className="attendance-member-table__index">{memberIndexOffset + index + 1}</span>
                   <span><label><small>Họ và tên *</small><input value={memberForm.student_full_name} onChange={(event) => setMemberForm((current) => ({ ...current, student_full_name: event.target.value }))} /></label></span>
                   <span><label><small>Lớp chính khóa *</small><input value={memberForm.school_class_name} onChange={(event) => setMemberForm((current) => ({ ...current, school_class_name: event.target.value }))} placeholder="Ví dụ 12.6" /></label></span>
-                  <span><label><small>Mã HS</small><input value={memberForm.student_code} onChange={(event) => setMemberForm((current) => ({ ...current, student_code: event.target.value }))} placeholder="Có thể để trống" /></label></span>
+                  <span><MemberNoteCell member={member} canEdit={canManageMembers} disabled={locked} onSave={saveMemberNote} /></span>
                   <span><label><small>Trạng thái</small><select value={memberForm.active ? 'active' : 'inactive'} onChange={(event) => setMemberForm((current) => ({ ...current, active: event.target.value === 'active' }))}><option value="active">Đang học</option><option value="inactive">Đã nghỉ</option></select></label></span>
                   <span className="attendance-member-edit-actions"><button type="button" disabled={locked} onClick={cancelMemberEdit}>Hủy</button><button className="is-primary" type="button" disabled={locked || !memberForm.student_full_name.trim() || !memberForm.school_class_name.trim()} onClick={() => saveMemberInfo(member)}>{saving === `member:${member.id}` ? 'Đang lưu…' : 'Lưu'}</button></span>
                 </div>
@@ -337,7 +413,7 @@ export default function AttendanceClassEditor({
                 <span className="attendance-member-table__index">{memberIndexOffset + index + 1}</span>
                 <span className="attendance-member-name-cell"><span className="attendance-member-avatar">{studentInitials(member.student_full_name)}</span><b>{member.student_full_name}</b></span>
                 <span className="attendance-member-school-class">{member.school_class_name || '—'}</span>
-                <span className="attendance-member-code">{member.student_code || '—'}</span>
+                <span><MemberNoteCell member={member} canEdit={canManageMembers} disabled={locked} onSave={saveMemberNote} /></span>
                 <span><em className={`attendance-member-status-pill ${member.active === false ? 'is-inactive' : 'is-active'}`}><i aria-hidden="true" />{member.active === false ? 'Đã nghỉ' : 'Đang học'}</em></span>
                 <span className="attendance-member-row-actions is-compact">
                   {canManageMembers ? <button type="button" className="attendance-member-edit-button" disabled={locked} onClick={() => startEditMember(member)}>Sửa</button> : null}
