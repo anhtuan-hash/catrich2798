@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { fastPreferredHomeroom, listFastHomeroomCatalog } from '../utils/homeroomFastEntry.js';
 import HomeroomOverviewCompactTab from '../components/homeroom/HomeroomOverviewCompactTab.jsx';
@@ -177,6 +177,74 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   const [heroPreview, setHeroPreview] = useState(null);
   const [heroEditorOpen, setHeroEditorOpen] = useState(false);
   const hydrationSequenceRef = useRef(0);
+
+  // Keep the initial Homeroom Hero exactly below the fixed Brian navbar.
+  // Other routes own their own spacing. The former CSS selector incorrectly
+  // matched main > .hr-page; the actual DOM has a .bqa-content-safe-frame.
+  const heroEntryPositionedRef = useRef(false);
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined' || workspace?.__besAwaitingCloudClass === true) return undefined;
+    const page = document.querySelector('.app-shell[data-route="homeroom"] .hr-page[data-homeroom-hydrated="true"]');
+    const hero = page?.querySelector(':scope > .hr-campus-hero');
+    if (!hero) return undefined;
+
+    // A hash-route change may preserve the previous page's scroll position.
+    // Reset only when entering Homeroom, never while navigating its tabs.
+    if (!heroEntryPositionedRef.current) {
+      heroEntryPositionedRef.current = true;
+      window.scrollTo(0, 0);
+      const stage = document.querySelector('.app-shell[data-route="homeroom"] #bes-main-content');
+      if (stage && stage.scrollTop > 0) stage.scrollTop = 0;
+    }
+
+    const getNavbar = () => [...document.querySelectorAll(
+      '.app-shell[data-route="homeroom"] .bes-top-chrome',
+    )].find((node) => {
+      const box = node.getBoundingClientRect();
+      const style = window.getComputedStyle(node);
+      return box.height > 25 && box.width > 180 && style.display !== 'none' && style.visibility !== 'hidden';
+    });
+
+    let frame = 0;
+    let trailingFrame = 0;
+    let observer = null;
+    const measure = () => {
+      frame = 0;
+      if (!hero.isConnected || window.scrollY > 8 || document.documentElement.scrollTop > 8) return;
+      const navbar = getNavbar();
+      if (!navbar) return;
+      const navbarBottom = navbar.getBoundingClientRect().bottom;
+      if (navbarBottom < 0 || navbarBottom > window.innerHeight) return;
+      const previous = Number.parseFloat(hero.style.getPropertyValue('--hr-v4-nav-clearance')) || 0;
+      const naturalTop = hero.getBoundingClientRect().top - previous;
+      const required = Math.max(0, Math.ceil(navbarBottom + 34 - naturalTop));
+      if (Math.abs(previous - required) > 1) {
+        hero.style.setProperty('--hr-v4-nav-clearance', `${required}px`);
+      }
+    };
+    const scheduleMeasure = () => {
+      if (!frame) frame = window.requestAnimationFrame(measure);
+    };
+
+    // Run once immediately, again when the pinned navigation has attached,
+    // and after its first resize. Do not recompute on scroll (avoids jumpiness).
+    measure();
+    trailingFrame = window.requestAnimationFrame(scheduleMeasure);
+    const delayedMeasure = window.setTimeout(scheduleMeasure, 280);
+    const navbar = getNavbar();
+    if (navbar && typeof ResizeObserver !== 'undefined') {
+      observer = new ResizeObserver(scheduleMeasure);
+      observer.observe(navbar);
+    }
+    window.addEventListener('resize', scheduleMeasure, { passive: true });
+    return () => {
+      window.clearTimeout(delayedMeasure);
+      window.cancelAnimationFrame(frame);
+      window.cancelAnimationFrame(trailingFrame);
+      observer?.disconnect();
+      window.removeEventListener('resize', scheduleMeasure);
+    };
+  }, [workspace?.__besAwaitingCloudClass]);
 
   // Reads a dedicated Homeroom CMS table, never the Dashboard CMS.
   useEffect(() => {
