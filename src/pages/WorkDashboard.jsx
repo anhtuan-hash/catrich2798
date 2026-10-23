@@ -24,6 +24,7 @@ import {
   DASHBOARD_HERO_UPDATED_EVENT, DEFAULT_DASHBOARD_HERO, normalizeDashboardHero, readDashboardHero,
 } from '../utils/dashboardHeroCms.js';
 import { Pencil } from 'lucide-react';
+import { dashboardHeroNameLines } from '../utils/dashboardHeroName.js';
 const DashboardHeroEditor = React.lazy(() => import('../components/DashboardHeroEditor.jsx'));
 import { dashboardLocalDayKey, isDashboardTeachingPeriod } from '../utils/dashboardClassification.js';
 const EventPopupHost = React.lazy(() => import('../features/events/dashboard/EventPopupHost.jsx'));
@@ -459,6 +460,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
 
   const timeline = useMemo(() => (snapshot.timeline || []).filter((item) => !isDashboardTeachingPeriod(item)).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()), [snapshot.timeline]);
   const name = currentUser?.name || currentUser?.full_name || currentUser?.email?.split('@')[0] || t.teacher;
+  const heroNameLines = dashboardHeroNameLines(name);
   const locale = language === 'vi' ? 'vi-VN' : 'en-US';
   const todayKey = dateKey(now);
   const todayDate = useMemo(() => {
@@ -538,10 +540,12 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
               : <img src={hero.backgroundUrl} alt="" loading="eager" decoding="async" />}
             <div className="db-hero-media-shade" />
           </div> : null}
-          <div className="editorial-hero-copy">
-            <div className={`editorial-hero-heading${name.length > 18 ? ' is-long-name' : name.length > 13 ? ' is-medium-name' : ''}`}>
+          <div className={`editorial-hero-copy${heroNameLines.length > 1 ? ' has-balanced-name' : ''}`}>
+            <div className={`editorial-hero-heading${heroNameLines.length > 1 ? ' is-long-name' : name.length > 13 ? ' is-medium-name' : ''}`}>
               <span className="editorial-hero-hello">{t.hello},</span>
-              <h1>{name}</h1>
+              <h1 aria-label={String(name)}>{heroNameLines.length > 1
+                ? heroNameLines.map((line, index) => <span className="db-hero-name-line" aria-hidden="true" key={index}>{line}</span>)
+                : name}</h1>
             </div>
           </div>
           <div className="db-hero-weather" aria-label={language === 'vi' ? 'Thời tiết hiện tại' : 'Current weather'}>
