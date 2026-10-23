@@ -91,13 +91,26 @@ export default function EventManagerPage({currentUser}) {
     finally{setSaving(false);}
   };
   const publish=async()=>{
-    if(saving||!selected?.id)return;
+    if(saving)return;
+    if(!poster && !selected?.poster_path &&
+      !window.confirm('Sự kiện chưa có poster được lưu lên hệ thống. Bạn có chắc muốn xuất bản mà không có hình?'))return;
     setSaving(true);setError('');setNotice('');
     try{
-      const out=await publishEvent(selected.id,recipientIds);
-      setSelected(out);setConfirmPublish(false);setNotice('Đã xuất bản thành công. Giáo viên được chọn sẽ thấy popup khi truy cập Dashboard trong thời gian hiển thị.');
+      // Persist edits and the local poster BEFORE delivering the announcement.
+      const record=await saveEventDraft(form,selected?.id||null);
+      let latest=record;
+      if(poster){
+        const path=await uploadEventPoster(record.id,poster);
+        latest={...record,poster_path:path};
+        setPosterUrl(await getEventPosterUrl(path));
+        setPoster(null);
+      }
+      setSelected(latest);
+      const out=await publishEvent(latest.id,recipientIds);
+      setSelected(out);setConfirmPublish(false);
+      setNotice('Đã lưu'+(out.poster_path?' poster và':'')+' xuất bản sự kiện thành công.');
       await load();
-    }catch(e){setError(e.message);}
+    }catch(e){setError('Không thể xuất bản: '+e.message+'. Nếu tải ảnh lỗi, thông báo sẽ không được gửi lại.');}
     finally{setSaving(false);}
   };
   const reannounce=async(item)=>{
@@ -175,7 +188,11 @@ export default function EventManagerPage({currentUser}) {
           </div>
           <div className="bea-section-label"><span>03</span><h3>Poster & người nhận</h3></div>
           <label className="bea-file"><UploadCloud size={21}/><span>{poster?.name||'Tải poster JPG, PNG, WebP (tối đa 10MB)'}</span><input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>setPoster(e.target.files?.[0]||null)}/></label>
-          <p className="bea-help">Lưu bản nháp để tải poster lên Supabase. Poster gốc sẽ xuất hiện trong popup của giáo viên.</p>
+          <div className={'bea-poster-status '+(poster?'is-pending':selected?.poster_path?'is-ready':'is-missing')} role="status">
+            <span>{poster?'Ảnh mới chỉ đang xem trước. Nhấn Lưu hoặc Xuất bản để tải lên Supabase.'
+              :selected?.poster_path?'Poster đã được lưu trên hệ thống và có thể hiển thị cho giáo viên.'
+              :'Chưa có poster trên hệ thống. Popup giáo viên sẽ không thể hiện hình.'}</span>
+          </div>
           <div className="bea-audience-head"><strong><Users size={16}/> Danh sách giáo viên</strong><span>{recipientIds.length} được chọn</span></div>
           <div className="bea-audience-toolbar">
             <button type="button" onClick={()=>setRecipientIds(profiles.filter(p=>p.role==='teacher'||p.role==='department_head').map(x=>x.id))}>Chọn tất cả giáo viên</button>
@@ -185,7 +202,7 @@ export default function EventManagerPage({currentUser}) {
           <div className="bea-audience-list">{profiles.map(p=><label key={p.id}><input type="checkbox" checked={recipientIds.includes(p.id)} onChange={()=>toggleRecipient(p.id)}/><span><strong>{p.full_name||p.email}</strong><small>{p.job_title||p.role}</small></span></label>)}</div>
           <div className="bea-form-actions">
             <button type="button" className="bea-secondary" onClick={()=>{setForm({...HALLOWEEN_TEMPLATE});setError('');}}>Điền mẫu Halloween</button>
-            <button type="button" className="bea-primary" disabled={saving} onClick={save}><Save size={17}/>{saving?'Đang lưu…':'Lưu bản nháp'}</button>
+            <button type="button" className="bea-primary" disabled={saving} onClick={save}><Save size={17}/>{saving?'Đang lưu…':'Lưu sự kiện & poster'}</button>
             <button type="button" className="bea-publish" disabled={saving||!selected?.id||!recipientIds.length||selected.status==='cancelled'} onClick={()=>setConfirmPublish(true)}><Send size={17}/> Xuất bản ({recipientIds.length})</button>
           </div>
           {selected?.status==='published'&&<p className="bea-help">Sự kiện này đã xuất bản. Lưu chỉnh sửa nội dung không tự bật lại popup cho giáo viên đã xem.</p>}
