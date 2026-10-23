@@ -195,7 +195,7 @@ export default function DashboardWorkPlanner({
           </label>
         </div>
         <div className="bwp-subheading"><span>{vi ? 'DANH SÁCH HOẠT ĐỘNG' : 'ACTIVITIES'}</span><b>{shown.length}</b></div>
-        <div className="bwp-agenda">
+        <div className="bwp-agenda" role="region" aria-label={vi ? 'Danh sách công việc, có thể cuộn để xem thêm' : 'Scrollable schedule list'} tabIndex={shown.length > 4 ? 0 : undefined}>
           {loading && !events.length ? <div className="bwp-empty">{vi ? 'Đang tải lịch làm việc…' : 'Loading schedule…'}</div> :
             shown.length ? shown.map((item,i) => {
               const kind = category(item);
