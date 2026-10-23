@@ -16,6 +16,12 @@ const DO_NOT_TRANSLATE = [
   '[contenteditable]', '[role="textbox"]', '.ql-editor', '.ProseMirror',
   '.tiptap', '.markdown-body', '.rich-text-content', '[data-user-content]',
   '.cm-editor', '.monaco-editor',
+  // User-generated student names, question bodies, notices and documents.
+  '.f4a-score-student', '.hrp-student-hero h2', '.hrp-notices article h3',
+  '.hrp-notices article p', '.a4-activity-copy strong', '.lcs-arcade-title',
+  '.qb-question-text', '.student-fullname', '.student-name',
+  '.tc-paper', '.textcare-document', '.textcare-sheet', '.tc-preview-paper',
+  '.document-preview',
 ].join(',');
 const EXCLUDED_ELEMENTS = new Set([
   'SCRIPT','STYLE','NOSCRIPT','TEXTAREA','PRE','CODE','SVG','MATH','IFRAME',
