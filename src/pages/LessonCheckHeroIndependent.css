@@ -1,0 +1,283 @@
+/* Brian English Assessment Hero V2.
+   Only .lcs-page--library .lch-hero; never selects dashboard/homepage hero. */
+.lcs-page--library .lcs-arcade-head.lch-hero {
+  position:relative!important;
+  isolation:isolate!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  flex-direction:row!important;
+  min-height:390px!important;
+  padding:27px 29px!important;
+  gap:0!important;
+  overflow:hidden!important;
+  border:1px solid #f1e0d3!important;
+  border-radius:27px!important;
+  background:linear-gradient(112deg,#fffdfa 0%,#fffbf6 57%,#fff2e9 100%)!important;
+  box-shadow:0 12px 30px rgba(47,65,84,.055)!important;
+}
+.lcs-page--library .lch-hero::before,
+.lcs-page--library .lch-hero::after {
+  display:none!important;
+  content:none!important;
+}
+.lcs-page--library .lch-hero .lch-hero-media {
+  position:absolute!important;
+  z-index:0!important;
+  inset:0!important;
+  overflow:hidden!important;
+  pointer-events:none!important;
+  border-radius:inherit!important;
+}
+.lcs-page--library .lch-hero .lch-hero-media img,
+.lcs-page--library .lch-hero .lch-hero-media video {
+  position:absolute!important;
+  display:block!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+}
+.lcs-page--library .lch-hero .lch-hero-protection {
+  position:absolute!important;
+  z-index:1!important;
+  inset:0!important;
+  border-radius:inherit!important;
+  pointer-events:none!important;
+  background:linear-gradient(90deg,
+    rgba(255,251,246,1) 0%,rgba(255,251,246,.94) 26%,
+    rgba(255,251,246,.68) 46%,rgba(255,251,246,.16) 72%,transparent 100%);
+}
+.lcs-page--library .lch-hero.has-custom-media .lch-hero-protection {
+  background:linear-gradient(90deg,
+    rgba(255,255,255,var(--lch-protection,.78)) 0%,
+    rgba(255,255,255,var(--lch-protection,.78)) 30%,
+    rgba(255,255,255,.68) 48%,
+    rgba(255,255,255,.15) 77%,transparent 100%)!important;
+}
+.lcs-page--library .lch-hero .lcs-hero-art {
+  position:absolute!important;
+  z-index:2!important;
+  inset:auto 2% 0 auto!important;
+  left:auto!important;right:2%!important;top:auto!important;bottom:0!important;
+  display:block!important;
+  width:min(39%,505px)!important;
+  height:90%!important;
+  max-width:none!important;
+  max-height:none!important;
+  object-fit:contain!important;
+  object-position:bottom right!important;
+  opacity:1!important;
+  filter:none!important;
+  pointer-events:none!important;
+  transform:none!important;
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+}
+.lcs-page--library .lch-hero.has-custom-media .lcs-hero-art {
+  opacity:.8!important;
+}
+.lcs-page--library .lch-hero .lcs-hero-main {
+  position:relative!important;
+  z-index:4!important;
+  display:flex!important;
+  flex:0 1 73%!important;
+  width:73%!important;
+  min-width:0!important;
+  max-width:none!important;
+  align-self:center!important;
+  align-items:flex-start!important;
+  gap:17px!important;
+  margin:0!important;
+}
+.lcs-page--library .lch-hero .lcs-library-back {
+  flex:0 0 39px!important;
+  width:39px!important;
+  height:39px!important;
+  min-width:39px!important;
+  margin:4px 0 0!important;
+  background:rgba(255,255,255,.92)!important;
+  border:1px solid #eadbd0!important;
+  border-radius:13px!important;
+  color:#607086!important;
+}
+.lcs-page--library .lch-hero .lcs-hero-copy {
+  flex:1 1 auto!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  position:relative!important;
+  z-index:4!important;
+  padding:0!important;
+}
+.lcs-page--library .lch-hero .lcs-hero-kicker {
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:9px!important;
+  color:#998678!important;
+  font-size:10px!important;
+  font-weight:800!important;
+  letter-spacing:.12em!important;
+}
+.lcs-page--library .lch-hero .lcs-arcade-title-row {
+  margin:16px 0 0!important;
+}
+.lcs-page--library .lch-hero .lcs-arcade-title-row h1 {
+  font-family:"Google Sans",Inter,system-ui,-apple-system,"Segoe UI",sans-serif!important;
+  font-size:clamp(43px,4.4vw,65px)!important;
+  letter-spacing:-.058em!important;
+  font-weight:850!important;
+  line-height:.99!important;
+  margin:0!important;
+  max-width:560px!important;
+  text-shadow:none!important;
+}
+.lcs-page--library .lch-hero .lcs-arcade-title-row h1 .is-assessment {
+  color:#d66f52!important;
+  margin-top:4px!important;
+  font-weight:850!important;
+  display:block!important;
+}
+.lcs-page--library .lch-hero .lcs-hero-copy>p {
+  margin:13px 0 0!important;
+  color:#37536c!important;
+  font-size:15px!important;
+  font-weight:700!important;
+  line-height:1.4!important;
+}
+.lcs-page--library .lch-hero .lcs-hero-statline {
+  display:flex!important;flex-wrap:wrap!important;gap:7px!important;
+  margin-top:16px!important;width:100%!important;max-width:760px!important;
+}
+.lcs-page--library .lch-hero .lcs-hero-statline>span {
+  min-height:33px!important;
+  padding:5px 10px!important;
+  font-size:11px!important;
+  line-height:1.35!important;
+  white-space:nowrap!important;
+}
+.lcs-page--library .lch-hero .lcs-assessment-launchers {
+  position:relative!important;z-index:5!important;
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  width:min(100%,865px)!important;max-width:865px!important;
+  gap:9px!important;margin-top:21px!important;
+  align-items:stretch!important;
+}
+.lcs-page--library .lch-hero .lcs-assessment-launchers>button {
+  display:flex!important;
+  width:100%!important;min-width:0!important;
+  min-height:67px!important;height:auto!important;
+  padding:10px 12px!important;
+  gap:10px!important;
+  border:1px solid #e7e6e2!important;
+  border-radius:15px!important;
+  box-shadow:0 5px 12px rgba(35,49,69,.085)!important;
+  background:rgba(255,255,255,.94)!important;
+  color:#17314d!important;
+  transform:none!important;
+  transition:border-color .18s,box-shadow .18s,background .18s!important;
+}
+.lcs-page--library .lch-hero .lcs-assessment-launchers>button:hover {
+  transform:translateY(-1px)!important;
+  box-shadow:0 7px 17px rgba(35,49,69,.14)!important;
+}
+.lcs-page--library .lch-hero .lcs-assessment-launchers .lcs-arcade-create {
+  background:#145546!important;
+  border-color:#145546!important;
+  color:#fff!important;
+}
+.lcs-page--library .lch-hero .lcs-assessment-launchers .lcs-arcade-create:hover {
+  background:#1b6956!important;
+}
+.lcs-page--library .lch-hero .lcs-assessment-launchers .lcs-start-assessment {
+  background:#194662!important;
+  border-color:#194662!important;
+  color:#fff!important;
+  min-height:67px!important;
+}
+.lcs-page--library .lch-hero .lcs-assessment-launchers .lcs-start-assessment:hover {
+  background:#205877!important;
+}
+.lcs-page--library .lch-hero .lcs-assessment-launchers .lcs-arcade-create .lcs-cta-icon {
+  background:rgba(255,255,255,.88)!important;color:#196e56!important;
+}
+.lcs-page--library .lch-hero .lcs-assessment-launchers .lcs-cta-icon {
+  flex:0 0 35px!important;width:35px!important;height:35px!important;
+  display:grid!important;place-items:center!important;
+  border-radius:11px!important;
+}
+.lcs-page--library .lch-hero .lcs-assessment-launchers .lcs-start-assessment .lcs-cta-icon {
+  background:rgba(255,255,255,.13)!important;color:#fff!important;
+}
+.lcs-page--library .lch-hero .lcs-assessment-launchers .lcs-cta-copy strong,
+.lcs-page--library .lch-hero .lcs-assessment-launchers .lcs-start-assessment .lcs-cta-copy strong {
+  font-size:13px!important;line-height:1.3!important;font-weight:800!important;
+  color:inherit!important;
+}
+.lcs-page--library .lch-hero .lcs-assessment-launchers .lcs-cta-copy small,
+.lcs-page--library .lch-hero .lcs-assessment-launchers .lcs-start-assessment .lcs-cta-copy small {
+  font-size:10px!important;line-height:1.35!important;
+  color:inherit!important;opacity:.75!important;
+}
+.lcs-page--library .lch-hero .lcs-assessment-launchers .lcs-cta-chevron {
+  flex:none!important;width:15px!important;height:15px!important;color:inherit!important;opacity:.65!important;
+}
+.lcs-page--library .lch-hero .lch-hero-edit {
+  position:absolute!important;
+  z-index:10!important;
+  top:16px!important;
+  right:17px!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;
+  min-height:35px!important;
+  padding:7px 12px!important;
+  border:1px solid rgba(206,216,228,.9)!important;
+  border-radius:12px!important;
+  background:rgba(255,255,255,.94)!important;
+  color:#294e75!important;
+  box-shadow:0 3px 12px rgba(35,65,87,.09)!important;
+  font-size:12px!important;font-weight:750!important;
+  cursor:pointer!important;
+  -webkit-backdrop-filter:blur(8px);
+  backdrop-filter:blur(8px);
+}
+.lcs-page--library .lch-hero .lch-hero-edit:hover {
+  background:#eff6ff!important;border-color:#90bbea!important;
+}
+.lcs-page--library .lch-hero button:focus-visible {outline:3px solid #8ebaf8!important;outline-offset:3px!important;}
+@media(max-width:1180px) {
+  .lcs-page--library .lcs-arcade-head.lch-hero {min-height:365px!important;padding:23px!important;}
+  .lcs-page--library .lch-hero .lcs-hero-main {flex-basis:80%!important;width:80%!important;}
+  .lcs-page--library .lch-hero .lcs-hero-art {width:38%!important;opacity:.65!important;}
+  .lcs-page--library .lch-hero .lcs-arcade-title-row h1 {font-size:clamp(39px,4.8vw,56px)!important;}
+  .lcs-page--library .lch-hero .lcs-assessment-launchers {gap:7px!important;}
+  .lcs-page--library .lch-hero .lcs-assessment-launchers>button {padding:9px!important;}
+  .lcs-page--library .lch-hero .lcs-assessment-launchers .lcs-cta-copy small {font-size:9px!important;}
+}
+@media(max-width:860px) {
+  .lcs-page--library .lcs-arcade-head.lch-hero {min-height:0!important;padding:65px 17px 20px!important;}
+  .lcs-page--library .lch-hero .lcs-hero-main {flex-basis:100%!important;width:100%!important;}
+  .lcs-page--library .lch-hero .lcs-hero-art {right:-10%!important;width:53%!important;height:74%!important;opacity:.24!important;}
+  .lcs-page--library .lch-hero .lcs-assessment-launchers {grid-template-columns:repeat(2,minmax(0,1fr))!important;max-width:100%!important;}
+  .lcs-page--library .lch-hero .lcs-assessment-launchers .lcs-start-assessment {grid-column:1/-1!important;}
+}
+@media(max-width:560px) {
+  .lcs-page--library .lcs-arcade-head.lch-hero {padding:59px 14px 17px!important;border-radius:19px!important;}
+  .lcs-page--library .lch-hero .lcs-hero-main {gap:10px!important;}
+  .lcs-page--library .lch-hero .lcs-library-back {flex-basis:32px!important;width:32px!important;height:32px!important;min-width:32px!important;}
+  .lcs-page--library .lch-hero .lcs-hero-kicker {gap:6px!important;font-size:8px!important;}
+  .lcs-page--library .lch-hero .lcs-hero-kicker-icon {width:23px!important;height:23px!important;}
+  .lcs-page--library .lch-hero .lcs-arcade-title-row h1 {font-size:clamp(31px,8.8vw,43px)!important;letter-spacing:-.05em!important;}
+  .lcs-page--library .lch-hero .lcs-hero-copy>p {font-size:12px!important;}
+  .lcs-page--library .lch-hero .lcs-hero-statline {gap:5px!important;margin-top:12px!important;}
+  .lcs-page--library .lch-hero .lcs-hero-statline>span {font-size:9px!important;min-height:29px!important;padding:3px 7px!important;}
+  .lcs-page--library .lch-hero .lcs-assessment-launchers {grid-template-columns:1fr!important;gap:7px!important;margin-top:15px!important;}
+  .lcs-page--library .lch-hero .lcs-assessment-launchers .lcs-start-assessment {grid-column:auto!important;}
+  .lcs-page--library .lch-hero .lcs-assessment-launchers>button,
+  .lcs-page--library .lch-hero .lcs-assessment-launchers .lcs-start-assessment {min-height:53px!important;padding:9px 11px!important;}
+  .lcs-page--library .lch-hero .lcs-hero-art {right:-25%!important;bottom:5%!important;width:90%!important;height:65%!important;opacity:.13!important;}
+  .lcs-page--library .lch-hero .lch-hero-edit {right:12px!important;top:12px!important;padding:7px 10px!important;font-size:11px!important;}
+}
+@media(prefers-reduced-motion:reduce){.lcs-page--library .lch-hero .lcs-assessment-launchers>button{transition:none!important;}}
+@media print{.lcs-page--library .lch-hero .lch-hero-edit{display:none!important;}}
