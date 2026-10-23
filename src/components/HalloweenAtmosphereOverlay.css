@@ -1,20 +1,25 @@
-/* Halloween is a separate, non-interactive atmospheric layer. No scroll or hit-test impact. */
+/* Halloween's animated layer is independent from Vietnam's original overlay.
+   It never participates in scrolling, focus or pointer hit testing. */
 .bes-halloween-atmosphere {
   position: fixed;
   inset: 0;
   z-index: 45;
   overflow: hidden;
-  contain: layout style paint;
-  isolation: isolate;
   pointer-events: none !important;
   user-select: none;
+  contain: layout style paint;
+  isolation: isolate;
+}
+.bes-halloween-atmosphere,
+.bes-halloween-atmosphere * {
+  pointer-events: none !important;
 }
 .bes-halloween-atmosphere__wash {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 2% 12%, rgba(255,155,74,.065), transparent 25%),
-    radial-gradient(circle at 98% 89%, rgba(134,86,168,.065), transparent 28%);
+    radial-gradient(circle at 5% 18%, rgba(255, 154, 78, .07), transparent 25%),
+    radial-gradient(circle at 96% 83%, rgba(139, 90, 182, .07), transparent 28%);
 }
 .bes-halloween-motif {
   position: absolute;
@@ -24,22 +29,107 @@
   width: var(--h-size);
   height: var(--h-size);
   opacity: var(--h-opacity);
-  animation: bes-halloween-drift var(--h-duration) ease-in-out var(--h-delay) infinite alternate;
-  will-change: auto;
+  transform: translate(-50%, -50%);
+  transform-origin: center;
 }
-.bes-halloween-motif svg { display: block; width: 100%; height: 100%; }
-@keyframes bes-halloween-drift {
-  0% { transform: translate3d(0, 0, 0) rotate(-4deg); }
-  100% { transform: translate3d(var(--h-drift), -14px, 0) rotate(5deg); }
+.bes-halloween-motif.is-entering {
+  animation: bes-halloween-arrive 1.15s ease-out both;
 }
-@media (max-width: 1099px) { .bes-halloween-atmosphere { z-index: 38; } }
+.bes-halloween-motif.is-leaving {
+  animation: bes-halloween-depart .84s ease-in both;
+}
+.bes-halloween-motif__art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: center center;
+}
+.bes-halloween-motif__art svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.bes-halloween-motif__art.is-fly {
+  animation: bes-halloween-fly var(--h-duration) ease-in-out var(--h-delay) infinite alternate;
+}
+.bes-halloween-motif__art.is-float {
+  animation: bes-halloween-float var(--h-duration) ease-in-out var(--h-delay) infinite alternate;
+}
+.bes-halloween-motif__art.is-swing {
+  animation: bes-halloween-swing var(--h-duration) ease-in-out var(--h-delay) infinite alternate;
+}
+.bes-halloween-motif__art.is-fall {
+  animation: bes-halloween-fall var(--h-duration) ease-in-out var(--h-delay) infinite alternate;
+}
+.bes-halloween-motif__art.is-glimmer {
+  animation: bes-halloween-glimmer var(--h-duration) ease-in-out var(--h-delay) infinite alternate;
+}
+.bes-halloween-motif__art.is-hover {
+  animation: bes-halloween-hover var(--h-duration) ease-in-out var(--h-delay) infinite alternate;
+}
+@keyframes bes-halloween-arrive {
+  from { opacity: 0; }
+  to { opacity: var(--h-opacity); }
+}
+@keyframes bes-halloween-depart {
+  from { opacity: var(--h-opacity); }
+  to { opacity: 0; }
+}
+@keyframes bes-halloween-fly {
+  0% { transform: translate3d(calc(var(--h-dx) * -.35), 9px, 0) rotate(-7deg) scale(.94); }
+  50% { transform: translate3d(5px, -16px, 0) rotate(3deg) scale(1.01); }
+  100% { transform: translate3d(var(--h-dx), var(--h-dy), 0) rotate(var(--h-angle)) scale(.97); }
+}
+@keyframes bes-halloween-float {
+  0% { transform: translate3d(-6px, 13px, 0) rotate(-3deg); }
+  50% { transform: translate3d(8px, -14px, 0) rotate(3deg); }
+  100% { transform: translate3d(calc(var(--h-dx) * .62), calc(var(--h-dy) * .7), 0) rotate(var(--h-angle)); }
+}
+@keyframes bes-halloween-swing {
+  0% { transform: translate3d(-8px, -12px, 0) rotate(-9deg); }
+  100% { transform: translate3d(9px, 24px, 0) rotate(9deg); }
+}
+@keyframes bes-halloween-fall {
+  0% { transform: translate3d(-14px, -30px, 0) rotate(-13deg); }
+  50% { transform: translate3d(17px, 18px, 0) rotate(14deg); }
+  100% { transform: translate3d(var(--h-dx), 72px, 0) rotate(var(--h-angle)); }
+}
+@keyframes bes-halloween-glimmer {
+  0% { transform: translate3d(-4px, 8px, 0) rotate(-4deg) scale(.92); filter: brightness(.93); }
+  50% { transform: translate3d(6px, -10px, 0) rotate(4deg) scale(1.07); filter: brightness(1.1); }
+  100% { transform: translate3d(var(--h-dx), var(--h-dy), 0) rotate(var(--h-angle)) scale(.96); filter: brightness(.95); }
+}
+@keyframes bes-halloween-hover {
+  0% { transform: translate3d(-5px, 12px, 0) rotate(-5deg) scale(.98); }
+  50% { transform: translate3d(7px, -13px, 0) rotate(4deg) scale(1.025); }
+  100% { transform: translate3d(calc(var(--h-dx) * .62), calc(var(--h-dy) * .6), 0) rotate(var(--h-angle)) scale(.99); }
+}
+.bes-halloween-atmosphere[data-paused='true'] .bes-halloween-motif,
+.bes-halloween-atmosphere[data-paused='true'] .bes-halloween-motif__art {
+  animation-play-state: paused;
+}
+@media (max-width: 1099px) {
+  .bes-halloween-atmosphere { z-index: 38; }
+}
 @media (max-width: 679px) {
-  .bes-halloween-atmosphere__wash { opacity: .5; }
-  .bes-halloween-motif { animation-duration: 38s; }
+  .bes-halloween-atmosphere__wash { opacity: .45; }
+  .bes-halloween-motif__art.is-fly,
+  .bes-halloween-motif__art.is-fall { animation-duration: calc(var(--h-duration) * 1.35); }
 }
+/* Never bypass accessibility or device-performance settings. */
 @media (prefers-reduced-motion: reduce) {
-  .bes-halloween-motif { animation: none !important; transform: none !important; }
+  .bes-halloween-atmosphere .bes-halloween-motif,
+  .bes-halloween-atmosphere .bes-halloween-motif__art {
+    animation: none !important;
+    filter: none !important;
+  }
 }
-html[data-performance='low'] .bes-halloween-motif,
-html[data-performance='minimal'] .bes-halloween-motif { animation: none !important; }
+html[data-performance='low'] .bes-halloween-atmosphere .bes-halloween-motif,
+html[data-performance='low'] .bes-halloween-atmosphere .bes-halloween-motif__art,
+html[data-performance='minimal'] .bes-halloween-atmosphere .bes-halloween-motif,
+html[data-performance='minimal'] .bes-halloween-atmosphere .bes-halloween-motif__art {
+  animation: none !important;
+  filter: none !important;
+}
 @media print { .bes-halloween-atmosphere { display: none !important; } }
