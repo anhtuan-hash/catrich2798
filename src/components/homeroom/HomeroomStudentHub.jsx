@@ -140,6 +140,7 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
   const [deleteRequest, setDeleteRequest] = useState(null);
   const [deleteTyped, setDeleteTyped] = useState('');
   const [deleteNotice, setDeleteNotice] = useState('');
+  const [deleteProgress, setDeleteProgress] = useState('');
   const deleteInputRef = useRef(null);
   useEffect(() => { if (deleteRequest) deleteInputRef.current?.focus(); }, [deleteRequest]);
   useEffect(() => { if (decision) decisionInputRef.current?.focus(); }, [decision]);
@@ -234,6 +235,7 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
     setDecision(null);
     setError('');
     setDeleteNotice('');
+    setDeleteProgress('');
     setDeleteTyped('');
     setDeleteRequest({ ids: [...new Set(archived.map((item) => String(item.id)))] });
   };
@@ -272,10 +274,40 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
       if (!upToDate) {
         throw new Error('Hồ sơ đã thay đổi trên Supabase. Hãy tải lại trang và xác nhận lại trước khi xóa.');
       }
-      const revision = latest.updated_at;
-      // The server validates ownership, archived status and the cloud revision,
-      // then removes records across related tables in ONE Postgres transaction.
-      // No local removal is performed before the RPC commits successfully.
+      let revision = latest.updated_at;
+      // Scrub historical snapshots in small, resumable Supabase transactions.
+      // Each request rewrites at most 2 backups; the student remains archived
+      // until ALL snapshots are clean and the final atomic deletion commits.
+      setDeleteProgress('Đang kiểm tra và dọn bản sao lưu trên Supabase…');
+      let allBackupsClean = false;
+      for (let attempt = 0; attempt < 60; attempt += 1) {
+        const { data: batch, error: batchError } = await supabase.rpc(
+          'bes_cloud_scrub_archived_backups_v2',
+          {
+            p_workspace_id: workspace.id,
+            p_student_ids: deleteRequest.ids,
+            p_expected_revision: revision,
+          },
+        );
+        if (batchError) throw new Error(batchError.message || 'Không thể dọn bản sao lưu trên Supabase.');
+        if (batch?.ok !== true || typeof batch.remaining !== 'number' || !batch.updatedAt) {
+          throw new Error('Supabase chưa xác nhận tiến độ xử lý bản sao lưu.');
+        }
+        revision = batch.updatedAt;
+        setDeleteProgress(
+          'Đang dọn bản sao lưu: ' + (batch.total - batch.remaining)
+          + '/' + batch.total + ' · Dữ liệu của học sinh khác được giữ nguyên.',
+        );
+        if (batch.remaining === 0) {
+          allBackupsClean = true;
+          break;
+        }
+        if (batch.scrubbed < 1) throw new Error('Không thể tiếp tục dọn bản sao lưu.');
+      }
+      if (!allBackupsClean) throw new Error('Chưa hoàn tất bản sao lưu. Vui lòng thử lại.');
+      setDeleteProgress('Đang xác nhận xóa vĩnh viễn trên Supabase…');
+      // The final RPC validates ownership, archived-only IDs and the revision,
+      // and removes the student across class/roster/gradebook in one transaction.
       const { data: deletion, error: cloudError } = await supabase.rpc(
         'bes_cloud_permanent_delete_archived_v1',
         {
@@ -315,13 +347,19 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
       setSelectedId('');
       setDeleteRequest(null);
       setDeleteTyped('');
+      setDeleteProgress('');
       setStatus('inactive');
       setDeleteNotice('Supabase đã xác nhận xóa vĩnh viễn ' + deletion.deletedCount
         + ' học sinh và dữ liệu liên quan.' + mediaWarning);
       // A hard refresh ensures no older React state or workspace snapshot can
       // reinsert the deleted student after the server transaction.
       window.setTimeout(() => window.location.reload(), mediaWarning ? 3200 : 1100);
-    } catch (err) { setError(err?.message || 'Không thể xóa vĩnh viễn học sinh.'); }
+    } catch (err) {
+      const raw = String(err?.message || 'Không thể xóa vĩnh viễn học sinh.');
+      setError(/statement timeout|57014|canceling statement/i.test(raw)
+        ? 'Supabase xử lý quá lâu và đã hủy bước hiện tại. Hồ sơ chưa bị xóa vĩnh viễn. Bạn có thể nhấn lại; hệ thống sẽ tiếp tục từ các bản sao lưu đã dọn.'
+        : raw);
+    }
     finally { setBusy(false); }
   };
 
@@ -432,10 +470,11 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
         <label>Nhập <b>{expectedDeleteText}</b> để xác nhận
           <input ref={deleteInputRef} value={deleteTyped} disabled={busy} autoComplete="off" spellCheck={false} placeholder={expectedDeleteText} onChange={(event) => setDeleteTyped(event.target.value)} onKeyDown={(event) => { if (event.key === 'Escape' && !busy) setDeleteRequest(null); if (event.key === 'Enter' && deleteConfirmed) confirmPermanentDelete(); }}/>
         </label>
+        {deleteProgress ? <p className="hr4-permanent-progress" role="status" aria-live="polite">{deleteProgress}</p> : null}
         {error ? <p className="hr4-permanent-error" role="alert">{error}</p> : null}
         <div className="hr4-permanent-actions">
           <button type="button" className="secondary" disabled={busy} onClick={() => { setDeleteRequest(null); setError(''); }}>Hủy</button>
-          <button type="button" className="hr4-permanent-confirm" disabled={busy || !deleteConfirmed} onClick={confirmPermanentDelete}><Trash2 size={17}/>{busy ? 'Đang xóa…' : 'Xóa vĩnh viễn'}</button>
+          <button type="button" className="hr4-permanent-confirm" disabled={busy || !deleteConfirmed} onClick={confirmPermanentDelete}><Trash2 size={17}/>{busy ? 'Đang đồng bộ Supabase…' : 'Xóa vĩnh viễn'}</button>
         </div>
       </section>
     </div>, document.body) : null}
