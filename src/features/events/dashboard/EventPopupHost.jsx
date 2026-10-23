@@ -4,6 +4,7 @@ import { BellRing, CalendarDays, Clock3, Copy, ExternalLink, Eye, Image as Image
 import { eligibleEvents, getEventPosterUrl, shouldAutoShow, recordEventInteraction } from '../services/eventService.js';
 import { supabase } from '../../../utils/supabase.js';
 import { getAuthSessionIdentity, eventLoginStorageKey, eventLoginSessionMarker, canAutoShowEvent } from '../utils/eventLoginSession.mjs';
+import EventPosterViewer from './EventPosterViewer.jsx';
 import './EventPopup.css';
 
 const order={urgent:3,important:2,normal:1};
@@ -265,10 +266,9 @@ export default function EventPopupHost({currentUser}) {
           </div>
         </footer>
       </section>
-      {posterExpanded&&<div className="be-pop-lightbox" role="dialog" aria-modal="true" aria-label="Poster phóng to">
-        <button type="button" aria-label="Đóng hình ảnh" onClick={()=>setPosterExpanded(false)}><X size={22}/></button>
-        <img src={posterUrl} alt={'Poster '+event.title}/>
-      </div>}
+      {posterExpanded&&posterUrl&&<EventPosterViewer
+        src={posterUrl} title={event.title}
+        onClose={()=>setPosterExpanded(false)}/>} 
   </div>}
   </>,document.body);
 }
