@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import './GlobalSettingsAppearanceBridge.css';
 
 const AdminPage = lazy(() => import('../pages/AdminPage.jsx'));
+const EventManagerPage = lazy(() => import('../features/events/admin/EventManagerPage.jsx'));
 const SettingsTeacherAccountCreator = lazy(() => import('./SettingsTeacherAccountCreator.jsx'));
 
 const ADMIN_HOST_ID = 'settings-admin-merge-host';
@@ -51,6 +52,7 @@ export default function GlobalSettingsAdminBridge(props) {
     { id: 'overview', label: vi ? 'Quản trị hệ thống' : 'System administration', target: `#${ADMIN_HOST_ID}` },
     { id: 'requests', label: vi ? 'Yêu cầu truy cập' : 'Access requests', target: '.permission-request-admin-panel' },
     { id: 'accounts', label: vi ? 'Tài khoản & phân quyền' : 'Accounts & permissions', target: '.permission-admin-grid' },
+    { id: 'events', label: vi ? 'Quản lý sự kiện' : 'Event announcements', target: '#event-manager-admin' },
     { id: 'security', label: vi ? 'Đồng bộ & bảo mật' : 'Sync & security', target: '.admin-sync-panel' },
   ], [vi]);
 
@@ -147,7 +149,7 @@ export default function GlobalSettingsAdminBridge(props) {
           <div className="settings-admin-merge-label">{vi ? 'QUẢN TRỊ' : 'ADMIN'}</div>
           {adminItems.map((item) => (
             <button key={item.id} type="button" className="settings-admin-merge-nav-button" onClick={() => scrollToSelector(item.target)}>
-              <span aria-hidden="true">{item.id === 'overview' ? '⚙' : item.id === 'requests' ? '◎' : item.id === 'accounts' ? '👤' : '◔'}</span>
+              <span aria-hidden="true">{item.id === 'overview' ? '⚙' : item.id === 'requests' ? '◎' : item.id === 'accounts' ? '👤' : item.id === 'events' ? '📅' : '◔'}</span>
               <div><strong>{item.label}</strong></div>
             </button>
           ))}
@@ -169,6 +171,7 @@ export default function GlobalSettingsAdminBridge(props) {
           <Suspense fallback={<div className="settings-admin-merge-loading">{vi ? 'Đang tải công cụ quản trị…' : 'Loading administration tools…'}</div>}>
             <SettingsTeacherAccountCreator language={props.language} />
             <AdminPage language={props.language} currentUser={props.currentUser} />
+            <EventManagerPage currentUser={props.currentUser} />
           </Suspense>
         </>,
         portalTargets.adminHost,
