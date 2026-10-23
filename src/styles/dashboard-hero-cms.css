@@ -25,7 +25,7 @@
   position:absolute;
   inset:0;
   opacity:var(--db-shade-opacity,.16);
-  background:linear-gradient(90deg,#fff 0%,#fff 32%,rgba(255,255,255,.72) 56%,transparent 100%);
+  background:linear-gradient(90deg,rgba(255,255,255,.82) 0%,rgba(255,255,255,.44) 26%,rgba(255,255,255,.08) 48%,transparent 68%);
   pointer-events:none;
 }
 .app-shell[data-route="dashboard"] .editorial-hero.has-dashboard-custom-hero .editorial-hero-copy,
@@ -83,7 +83,7 @@
     font-size:11px;
   }
   .app-shell[data-route="dashboard"] .editorial-hero .db-hero-media-shade {
-    background:linear-gradient(180deg,#fff 0%,rgba(255,255,255,.86) 45%,rgba(255,255,255,.25) 100%);
+    background:linear-gradient(0deg,rgba(255,255,255,.68) 0%,rgba(255,255,255,.20) 45%,transparent 75%);
   }
 }
 @media(prefers-reduced-motion:reduce){
