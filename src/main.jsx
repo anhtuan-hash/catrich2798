@@ -19,6 +19,7 @@ import './styles/v1159.css';
 import './styles/GlobalMotionSystem.css';
 import './styles/GlobalFontSystem.css';
 import './styles/GlobalRegionalFontSystem.css';
+import './styles/GlobalOuterHorizontalAlignment.css';
 import { APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import GlobalFlatNavigation from './components/GlobalFlatNavigation.jsx';
