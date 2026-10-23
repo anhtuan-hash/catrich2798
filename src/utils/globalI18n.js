@@ -12,6 +12,14 @@ const COUNT_TERMS = Object.freeze({
 export function lookupLegacyUiEnglish(source) {
   if (!source || typeof source !== 'string') return null;
   if (Object.hasOwn(LEGACY_SITE_EN, source)) return LEGACY_SITE_EN[source];
+  // JSX source contains HTML entities; browser DOM exposes decoded text.
+  // Do not decode via innerHTML: this is a pure, safe string lookup.
+  if (source.includes('&') && !source.includes('&amp;')) {
+    const encoded = source.replaceAll('&', '&amp;');
+    if (Object.hasOwn(LEGACY_SITE_EN, encoded)) {
+      return LEGACY_SITE_EN[encoded].replaceAll('&amp;', '&');
+    }
+  }
   const assessment = assessmentText(source, 'en');
   if (assessment !== source) return assessment;
   const count = /^(\d{1,6})\s+(học sinh|giáo viên|lớp|hoạt động|yêu cầu|sự kiện|nhiệm vụ|câu hỏi|bài kiểm tra)$/.exec(source);
