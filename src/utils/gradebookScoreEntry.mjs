@@ -20,7 +20,9 @@ export function normalizeTeacherScoreInput(input) {
 
   const explicitDecimal = value.includes('.');
   let numeric;
-  if (explicitDecimal || value.length === 1 || value === '10') {
+  if (value === '100') {
+    numeric = 10;
+  } else if (explicitDecimal || value.length === 1 || value === '10') {
     numeric = Number(value);
   } else if (value.length === 2) {
     numeric = Number(value) / 10;
