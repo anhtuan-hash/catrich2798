@@ -14,12 +14,14 @@ import {
 } from '../utils/vietnamAtmosphereSettings.js';
 import {
   DEFAULT_HALLOWEEN_SETTINGS,
+  DEFAULT_NOVEMBER_SETTINGS,
   loadGlobalAtmosphereTheme,
   readGlobalAtmosphereLocal,
   saveGlobalAtmosphereTheme,
   subscribeGlobalAtmosphereTheme,
 } from '../utils/globalAtmosphereTheme.js';
 import HalloweenMotifArt, { HALLOWEEN_SYMBOLS } from './HalloweenMotifArt.jsx';
+import NovemberMotifArt, { NOVEMBER_MOTIFS, NOVEMBER_MOTIF_LABELS } from './NovemberMotifArt.jsx';
 import './VietnamAtmosphereAdminPanel.css';
 
 const HALLOWEEN_SYMBOL_LABELS = {
@@ -66,6 +68,7 @@ export default function VietnamAtmosphereAdminPanel({ language = 'vi' }) {
   const [draft, setDraft] = useState(() => editableSettings(readVietnamAtmosphereLocal()));
   const [themeSnapshot, setThemeSnapshot] = useState(readGlobalAtmosphereLocal);
   const [halloweenDraft, setHalloweenDraft] = useState(() => ({ ...readGlobalAtmosphereLocal().halloween }));
+  const [novemberDraft, setNovemberDraft] = useState(() => ({ ...readGlobalAtmosphereLocal().november }));
   const [editingTheme, setEditingTheme] = useState(() => readGlobalAtmosphereLocal().activeTheme);
   const [busy, setBusy] = useState('');
   const [message, setMessage] = useState('');
@@ -126,6 +129,7 @@ export default function VietnamAtmosphereAdminPanel({ language = 'vi' }) {
       if (!active) return;
       setThemeSnapshot(next);
       setHalloweenDraft({ ...next.halloween });
+      setNovemberDraft({ ...next.november });
       setEditingTheme(next.activeTheme);
     };
     loadGlobalAtmosphereTheme().then(accept).catch(() => null);
@@ -142,9 +146,10 @@ export default function VietnamAtmosphereAdminPanel({ language = 'vi' }) {
   };
 
   const patchDraft = (patch) => setDraft((current) => ({ ...current, ...patch }));
-  const activeDraft = editingTheme === 'halloween' ? halloweenDraft : draft;
+  const activeDraft = editingTheme === 'halloween' ? halloweenDraft : editingTheme === 'november' ? novemberDraft : draft;
   const patchActiveDraft = (patch) => {
     if (editingTheme === 'halloween') setHalloweenDraft((current) => ({ ...current, ...patch }));
+    else if (editingTheme === 'november') setNovemberDraft((current) => ({ ...current, ...patch }));
     else patchDraft(patch);
   };
 
@@ -161,6 +166,14 @@ export default function VietnamAtmosphereAdminPanel({ language = 'vi' }) {
         setThemeSnapshot(next);
         setHalloweenDraft({ ...next.halloween });
         notify(vi ? 'Đã áp dụng không khí Halloween trên toàn bộ Brian.' : 'Halloween atmosphere is now live across Brian.');
+      } else if (editingTheme === 'november') {
+        const next = await saveGlobalAtmosphereTheme(currentUser, {
+          activeTheme: 'november',
+          november: novemberDraft,
+        });
+        setThemeSnapshot(next);
+        setNovemberDraft({ ...next.november });
+        notify(vi ? 'Đã áp dụng không khí Tháng 11 – Tri ân thầy cô cho toàn bộ Brian.' : 'November teacher appreciation atmosphere is now live across Brian.');
       } else {
         // Vietnam's existing images, configuration and storage are never deleted.
         const next = await saveVietnamAtmosphereSettings(currentUser, draft);
@@ -182,6 +195,8 @@ export default function VietnamAtmosphereAdminPanel({ language = 'vi' }) {
   const resetDraft = () => {
     if (editingTheme === 'halloween') {
       setHalloweenDraft({ ...DEFAULT_HALLOWEEN_SETTINGS });
+    } else if (editingTheme === 'november') {
+      setNovemberDraft({ ...DEFAULT_NOVEMBER_SETTINGS });
     } else {
       patchDraft({
         enabled: true,
@@ -264,8 +279,8 @@ export default function VietnamAtmosphereAdminPanel({ language = 'vi' }) {
           <header className="bes-vn-admin__head">
             <div>
               <span className="eyebrow">{vi ? 'Cấu hình toàn hệ thống' : 'System-wide settings'}</span>
-              <h2>{editingTheme === 'halloween' ? (vi ? 'Không khí Halloween' : 'Halloween atmosphere') : (vi ? 'Không khí Việt Nam' : 'Vietnam atmosphere')}</h2>
-              <p>{editingTheme === 'halloween' ? (vi ? 'Sắc cam, tím và các họa tiết Halloween vui nhộn, nhẹ nhàng.' : 'Gentle Halloween details in orange and purple.') : (vi ? 'Quản lý hình ảnh và chuyển động trang trí trên toàn bộ Brian.' : 'Manage decorative images and motion across Brian.')}</p>
+              <h2>{editingTheme === 'november' ? (vi ? 'Tháng 11 – Tri ân thầy cô' : 'November – Thank You, Teachers') : editingTheme === 'halloween' ? (vi ? 'Không khí Halloween' : 'Halloween atmosphere') : (vi ? 'Không khí Việt Nam' : 'Vietnam atmosphere')}</h2>
+              <p>{editingTheme === 'november' ? (vi ? 'Hoa, sách và những lời tri ân nhân ngày Nhà giáo Việt Nam 20/11.' : 'Flowers, books and gratitude for Vietnamese Teachers’ Day, 20 November.') : editingTheme === 'halloween' ? (vi ? 'Sắc cam, tím và các họa tiết Halloween vui nhộn, nhẹ nhàng.' : 'Gentle Halloween details in orange and purple.') : (vi ? 'Quản lý hình ảnh và chuyển động trang trí trên toàn bộ Brian.' : 'Manage decorative images and motion across Brian.')}</p>
             </div>
             <button type="button" className="bes-vn-admin__close" onClick={() => setOpen(false)} aria-label={vi ? 'Đóng' : 'Close'}>×</button>
           </header>
@@ -279,20 +294,24 @@ export default function VietnamAtmosphereAdminPanel({ language = 'vi' }) {
               <span className="bes-atmosphere-theme-art is-halloween" aria-hidden="true">🎃</span>
               <span className="bes-atmosphere-theme-copy"><strong>{vi ? 'Không khí Halloween' : 'Halloween'}</strong><small>{vi ? '28 biểu tượng luân phiên' : '28 rotating illustrations'}</small>{themeSnapshot.activeTheme === 'halloween' ? <em>{vi ? 'Đang áp dụng' : 'Active'}</em> : null}</span>
             </button>
+            <button type="button" className={`bes-atmosphere-theme-option is-november ${editingTheme === 'november' ? 'is-selected' : ''}`} aria-pressed={editingTheme === 'november'} onClick={() => setEditingTheme('november')}>
+              <span className="bes-atmosphere-theme-art is-november" aria-hidden="true">💐</span>
+              <span className="bes-atmosphere-theme-copy"><strong>{vi ? 'Tháng 11 – Tri ân thầy cô' : 'November – Teachers’ Day'}</strong><small>{vi ? '24 biểu tượng · Kỷ niệm ngày 20/11' : '24 illustrations · 20 November'}</small>{themeSnapshot.activeTheme === 'november' ? <em>{vi ? 'Đang áp dụng' : 'Active'}</em> : null}</span>
+            </button>
           </div>
 
-          {(editingTheme === 'halloween' ? themeSnapshot.setupRequired : snapshot.setupRequired) ? (
+          {(editingTheme !== 'vietnam' ? themeSnapshot.setupRequired : snapshot.setupRequired) ? (
             <div className="bes-vn-admin__setup" role="status">
               <strong>{vi ? 'Cần cài đặt Supabase một lần' : 'One-time Supabase setup required'}</strong>
-              <p>{snapshot.error}</p>
-              <code>{editingTheme === 'halloween' ? 'supabase/global_atmosphere_theme.sql' : 'supabase/vietnam_atmosphere.sql'}</code>
+              <p>{editingTheme !== 'vietnam' ? themeSnapshot.error : snapshot.error}</p>
+              <code>{editingTheme === 'november' ? 'supabase/global_atmosphere_november_2026.sql' : editingTheme === 'halloween' ? 'supabase/global_atmosphere_theme.sql' : 'supabase/vietnam_atmosphere.sql'}</code>
             </div>
           ) : null}
 
           <div className="bes-vn-admin__switches">
             <label className="bes-vn-admin__switch-row">
               <span>
-                <b>{editingTheme === 'halloween' ? (vi ? 'Bật lớp phủ Halloween' : 'Enable Halloween overlay') : (vi ? 'Bật lớp phủ' : 'Enable overlay')}</b>
+                <b>{editingTheme === 'november' ? (vi ? 'Bật không khí tháng 11' : 'Enable November atmosphere') : editingTheme === 'halloween' ? (vi ? 'Bật lớp phủ Halloween' : 'Enable Halloween overlay') : (vi ? 'Bật lớp phủ' : 'Enable overlay')}</b>
                 <small>{vi ? 'Ẩn hoặc hiện toàn bộ hiệu ứng.' : 'Show or hide the entire effect.'}</small>
               </span>
               <input type="checkbox" checked={activeDraft.enabled} onChange={(event) => patchActiveDraft({ enabled: event.target.checked })} />
@@ -300,7 +319,7 @@ export default function VietnamAtmosphereAdminPanel({ language = 'vi' }) {
             <label className="bes-vn-admin__switch-row">
               <span>
                 <b>{vi ? 'Giữ biểu tượng mặc định' : 'Keep built-in symbols'}</b>
-                <small>{editingTheme === 'halloween' ? (vi ? '28 mẫu: phù thủy, mèo đen, bí ngô, nhà ma, nhện và nhiều hình khác.' : '28 motifs: witches, black cats, pumpkins, haunted houses and more.') : (vi ? 'Cờ, nón lá, sen, tre, trống đồng và Hạ Long.' : 'Flag, conical hat, lotus, bamboo, bronze drum and Ha Long.')}</small>
+                <small>{editingTheme === 'november' ? (vi ? '24 mẫu: hoa, sách, bút, bảng phấn, thiệp và ngày 20/11.' : '24 illustrations: flowers, books, pens, chalkboards and 20 November.') : editingTheme === 'halloween' ? (vi ? '28 mẫu: phù thủy, mèo đen, bí ngô, nhà ma, nhện và nhiều hình khác.' : '28 motifs: witches, black cats, pumpkins, haunted houses and more.') : (vi ? 'Cờ, nón lá, sen, tre, trống đồng và Hạ Long.' : 'Flag, conical hat, lotus, bamboo, bronze drum and Ha Long.')}</small>
               </span>
               <input type="checkbox" checked={activeDraft.showBuiltIns} onChange={(event) => patchActiveDraft({ showBuiltIns: event.target.checked })} />
             </label>
@@ -310,7 +329,7 @@ export default function VietnamAtmosphereAdminPanel({ language = 'vi' }) {
             <label>
               <span><b>{vi ? 'Độ mờ' : 'Opacity'}</b><output>{Math.round(activeDraft.opacity * 100)}%</output></span>
               <input type="range" min="3" max="28" step="1" value={Math.round(activeDraft.opacity * 100)} onChange={(event) => patchActiveDraft({ opacity: Number(event.target.value) / 100 })} />
-              <small>{editingTheme === 'halloween' ? (vi ? 'Nên giữ khoảng 8–20% để không lấn át nội dung.' : '8–20% is recommended for readability.') : (vi ? 'Nên giữ trong khoảng 8–14% để không lấn át giao diện.' : '8–14% is recommended to preserve readability.')}</small>
+              <small>{editingTheme === 'november' ? (vi ? 'Đề xuất 12–16% để tạo cảm giác nhẹ nhàng, thanh lịch.' : '12–16% is recommended for a calm, elegant look.') : editingTheme === 'halloween' ? (vi ? 'Nên giữ khoảng 8–20% để không lấn át nội dung.' : '8–20% is recommended for readability.') : (vi ? 'Nên giữ trong khoảng 8–14% để không lấn át giao diện.' : '8–14% is recommended to preserve readability.')}</small>
             </label>
             <label>
               <span><b>{vi ? 'Tốc độ hoạt ảnh' : 'Animation speed'}</b><output>{activeDraft.speed.toFixed(1)}×</output></span>
@@ -320,12 +339,12 @@ export default function VietnamAtmosphereAdminPanel({ language = 'vi' }) {
             <label>
               <span><b>{vi ? 'Mật độ biểu tượng' : 'Symbol density'}</b><output>{activeDraft.density}</output></span>
               <input type="range" min="3" max="18" step="1" value={activeDraft.density} onChange={(event) => patchActiveDraft({ density: Number(event.target.value) })} />
-              <small>{editingTheme === 'halloween' ? (vi ? '28 mẫu thay phiên xuất hiện. Màn hình nhỏ tự giảm mật độ.' : '28 designs rotate over time; fewer are shown on small screens.') : (vi ? 'Điện thoại sẽ tự giảm số lượng để giữ hiệu năng.' : 'Mobile devices automatically use fewer items.')}</small>
+              <small>{editingTheme === 'november' ? (vi ? '24 mẫu luân phiên, xuất hiện ngẫu nhiên ở rìa; mobile tự giảm số lượng.' : '24 motifs gently respawn along page edges; fewer on phones.') : editingTheme === 'halloween' ? (vi ? '28 mẫu thay phiên xuất hiện. Màn hình nhỏ tự giảm mật độ.' : '28 designs rotate over time; fewer are shown on small screens.') : (vi ? 'Điện thoại sẽ tự giảm số lượng để giữ hiệu năng.' : 'Mobile devices automatically use fewer items.')}</small>
             </label>
           </div>
 
           <div className="bes-vn-admin__actions">
-            <button type="button" className="primary" disabled={Boolean(busy) || (editingTheme === 'halloween' ? themeSnapshot.setupRequired : snapshot.setupRequired)} onClick={save}>
+            <button type="button" className="primary" disabled={Boolean(busy) || (editingTheme !== 'vietnam' ? themeSnapshot.setupRequired : snapshot.setupRequired)} onClick={save}>
               {busy === 'save' ? (vi ? 'Đang lưu…' : 'Saving…') : (vi ? 'Lưu và áp dụng' : 'Save and apply')}
             </button>
             <button type="button" className="secondary" disabled={Boolean(busy)} onClick={resetDraft}>{vi ? 'Mức đề xuất' : 'Recommended'}</button>
@@ -371,7 +390,31 @@ export default function VietnamAtmosphereAdminPanel({ language = 'vi' }) {
             ) : (
               <div className="bes-vn-admin__empty">{vi ? 'Chưa có ảnh tùy chỉnh. Các biểu tượng mặc định vẫn đang hoạt động.' : 'No custom images yet. Built-in symbols remain active.'}</div>
             )}
-          </div>) : (
+          </div>) : editingTheme === 'november' ? (
+            <div className="bes-atmosphere-halloween-library bes-atmosphere-november-library">
+              <div className="bes-atmosphere-halloween-library__heading">
+                <div>
+                  <strong>{vi ? 'Bộ sưu tập Tri ân thầy cô' : 'Teacher appreciation collection'}</strong>
+                  <p>{vi ? 'Họa tiết SVG nguyên bản, sắc hồng phấn – xanh lá – vàng champagne; chuyển động nhẹ, không che thao tác.' : 'Original pastel florals and school illustrations, gently animated away from controls.'}</p>
+                </div>
+                <span>{NOVEMBER_MOTIFS.length} {vi ? 'mẫu' : 'designs'}</span>
+              </div>
+              <div className="bes-atmosphere-halloween-library__grid" role="list" aria-label={vi ? 'Danh sách biểu tượng tháng 11' : 'November illustration collection'}>
+                {NOVEMBER_MOTIFS.map((kind) => (
+                  <span key={kind} role="listitem" className="bes-atmosphere-halloween-library__icon" title={NOVEMBER_MOTIF_LABELS[kind]} aria-label={NOVEMBER_MOTIF_LABELS[kind]}>
+                    <NovemberMotifArt kind={kind}/>
+                  </span>
+                ))}
+              </div>
+              <div className="bes-atmosphere-halloween-note">
+                <span aria-hidden="true">✦</span>
+                <div>
+                  <strong>{vi ? 'Chúc mừng ngày Nhà giáo Việt Nam 20/11' : 'Happy Vietnamese Teachers’ Day'}</strong>
+                  <p>{vi ? 'Lớp này độc lập với Halloween và Việt Nam. Chỉ hiển thị sau khi nhấn Lưu và áp dụng.' : 'Independent from Halloween and Vietnam. Only appears after you save and apply.'}</p>
+                </div>
+              </div>
+            </div>
+          ) : (
             <div className="bes-atmosphere-halloween-library">
               <div className="bes-atmosphere-halloween-library__heading">
                 <div>
@@ -397,7 +440,7 @@ export default function VietnamAtmosphereAdminPanel({ language = 'vi' }) {
             </div>
           )}
 
-          {message ? <div className={`bes-vn-admin__message ${(editingTheme === 'halloween' ? themeSnapshot.setupRequired : snapshot.setupRequired) || /không|could not|cannot|chưa/i.test(message) ? 'error' : 'success'}`} role="status">{message}</div> : null}
+          {message ? <div className={`bes-vn-admin__message ${(editingTheme !== 'vietnam' ? themeSnapshot.setupRequired : snapshot.setupRequired) || /không|could not|cannot|chưa/i.test(message) ? 'error' : 'success'}`} role="status">{message}</div> : null}
           <footer>{vi ? 'Thay đổi được đồng bộ theo thời gian thực. Giáo viên không có quyền chỉnh sửa.' : 'Changes sync in real time. Teachers cannot edit these settings.'}</footer>
         </section>
       ) : null}
