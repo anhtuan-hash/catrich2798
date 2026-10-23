@@ -383,7 +383,17 @@ const EN = {
   "Không thể cập nhật quyền. Hãy thử lại.": "Could not update access rights. Please try again.",
   "Đã chọn": "Selected",
   "Không có lớp": "No classes",
-  "Không có yêu cầu": "No requests"
+  "Không có yêu cầu": "No requests",
+  "không tên": "unnamed",
+  "Đã kiểm tra ": "Checked ",
+  " nguồn (": " sources (",
+  " đợt). Các nguồn bị CORS chặn không được kết luận là hỏng.": " batches). CORS-blocked sources are not classified as broken.",
+  "Đã xử lý ": "Processed ",
+  " quyền; đang đồng bộ…": " permissions; syncing…",
+  "Xem chi tiết →": "View details →",
+  "Trước → Sau": "Before → After",
+  "Đang tải Assessment 4.0…": "Loading Assessment 4.0…",
+  "×": "×"
 };
 export function assessmentText(value, language = 'vi') {
   if (language !== 'en' || value == null) return value;
