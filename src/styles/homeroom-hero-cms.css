@@ -1,10 +1,10 @@
 /* Homeroom-only Hero customization; never changes Dashboard or Homepage styles. */
-.page.hr-page.hr-v4 {
-  /* The global fixed navigation is about 84px tall; reserve its overlapping area. */
-  padding-top: 72px !important;
-}
-.page.hr-page.hr-v4 .hr-campus-hero {
-  scroll-margin-top: calc(var(--bes-primary-nav-height, 84px) + 22px);
+/* Reserve the correct 30–34px visual gap below the pinned header on the
+   Homeroom hero itself. --hr-v4-nav-clearance is measured at route entry,
+   NOT on scroll, so ordinary scrolling still works and never jumps. */
+html body #root .app-shell[data-route='homeroom'] .page.hr-page.hr-v4 > .hr-campus-hero {
+  margin-top: var(--hr-v4-nav-clearance, 0px) !important;
+  scroll-margin-top: calc(var(--bes-primary-nav-height, 84px) + 34px) !important;
 }
 .page.hr-page.hr-v4 .hr-campus-hero.has-custom-background .hr-campus-scene {
   display: none !important;
@@ -82,7 +82,7 @@
   outline-offset: 3px;
 }
 @media (max-width: 760px) {
-  .page.hr-page.hr-v4 { padding-top: 72px !important; }
+  /* Desktop and mobile both use the same measured header clearance. */
   .page.hr-page.hr-v4 .hr-campus-hero.has-custom-background::before {
     width: 100% !important;
     height: 75% !important;
