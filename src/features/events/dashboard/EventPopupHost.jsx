@@ -43,7 +43,7 @@ export default function EventPopupHost({currentUser}) {
   useEffect(()=>{
     if(!event||!userId)return undefined;
     const key=event.id+'@'+event.version;
-    if(shownRef.current===key)return undefined;
+    const firstImpression=shownRef.current!==key;
     shownRef.current=key;
     let disposed=false;
     openerRef.current=document.activeElement;
@@ -69,7 +69,8 @@ export default function EventPopupHost({currentUser}) {
     window.requestAnimationFrame(()=>closeButtonRef.current?.focus());
     // Rendering the modal is the impression event; never mark a fetched event
     // as seen merely because it was eligible.
-    recordEventInteraction(event,userId,'shown').then(receipt=>{if(!disposed)setEvent(x=>x?.id===event.id?{...x,receipt}:x);})
+    if(firstImpression) recordEventInteraction(event,userId,'shown')
+      .then(receipt=>{if(!disposed)setEvent(x=>x?.id===event.id?{...x,receipt}:x);})
       .catch(error=>{if(!disposed)setActionError('Không đồng bộ được trạng thái xem. Có thể thử lại sau.');console.warn(error?.message||error);});
     return ()=>{
       disposed=true;document.body.style.overflow=originalOverflow;
