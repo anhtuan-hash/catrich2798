@@ -1,0 +1,27 @@
+name: Halloween Atmosphere Motion
+on:
+  pull_request:
+    paths:
+      - 'src/components/HalloweenAtmosphereOverlay.jsx'
+      - 'src/components/HalloweenAtmosphereOverlay.css'
+      - 'scripts/test-halloween-atmosphere-motion.mjs'
+      - '.github/workflows/halloween-atmosphere-motion.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/components/HalloweenAtmosphereOverlay.jsx'
+      - 'src/components/HalloweenAtmosphereOverlay.css'
+      - 'scripts/test-halloween-atmosphere-motion.mjs'
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/test-halloween-atmosphere-motion.mjs
