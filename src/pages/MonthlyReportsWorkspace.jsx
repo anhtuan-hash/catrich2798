@@ -221,7 +221,7 @@ function TeacherMonthlyReports({ currentUser }) {
       setWarning('Báo cáo chưa hoàn tất các mục bắt buộc. Hãy điền các đề mục bằng chữ và xác nhận bảng số liệu chuyên môn.');
       return;
     }
-    if (submit && !window.confirm(`Gửi báo cáo ${reportMonthLabel(month)} đến TTCM? Sau khi gửi, bạn chỉ chỉnh sửa lại khi TTCM yêu cầu.`)) return;
+    if (submit && !window.confirm(document.documentElement.lang === 'en' ? `Submit report ${reportMonthLabel(month).replace(/^Tháng /, 'Month ')} to the department head? After submission, editing is only available if revisions are requested.` : `Gửi báo cáo ${reportMonthLabel(month)} đến TTCM? Sau khi gửi, bạn chỉ chỉnh sửa lại khi TTCM yêu cầu.`)) return;
     setSaving(true);
     const result = await saveMyMonthlyReport(currentUser, context, month, payload, { submit, currentStatus: report?.status || 'draft' });
     setSaving(false);
@@ -370,7 +370,7 @@ function LeaderMonthlyReports({ currentUser, department, members }) {
     if (!report) return;
     const member = memberMap.get(String(report.teacherId));
     const name = member?.account?.name || 'giáo viên này';
-    if (!window.confirm(`Xóa báo cáo ${reportMonthLabel(month)} của ${name}? Thao tác này xóa bản TTCM đã nhận và giáo viên có thể tạo/gửi lại báo cáo mới.`)) return;
+    if (!window.confirm(document.documentElement.lang === 'en' ? `Delete ${name}'s report for ${reportMonthLabel(month).replace(/^Tháng /, 'Month ')}? This deletes the version received by the department head; the teacher can create and submit another.` : `Xóa báo cáo ${reportMonthLabel(month)} của ${name}? Thao tác này xóa bản TTCM đã nhận và giáo viên có thể tạo/gửi lại báo cáo mới.`)) return;
     const result = await deleteDepartmentMonthlyReport(currentUser, report.id);
     if (!result.ok) { setWarning(result.warning); return; }
     if (selectedId === report.id) setSelectedId('');
@@ -391,7 +391,7 @@ function LeaderMonthlyReports({ currentUser, department, members }) {
 
   const clearDeadline = async () => {
     if (!deadline) { setDeadlineInput(''); return; }
-    if (!window.confirm(`Xóa thời hạn báo cáo ${reportMonthLabel(month)}?`)) return;
+    if (!window.confirm(document.documentElement.lang === 'en' ? `Remove the report deadline for ${reportMonthLabel(month).replace(/^Tháng /, 'Month ')}?` : `Xóa thời hạn báo cáo ${reportMonthLabel(month)}?`)) return;
     setDeadlineSaving(true);
     const result = await clearMonthlyReportDeadline(currentUser, department?.id || '', month);
     setDeadlineSaving(false);
