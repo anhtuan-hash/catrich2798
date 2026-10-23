@@ -43,44 +43,14 @@ jobs:
       - name: Verify dashboard focused reader has no loading bars
         run: node scripts/test-dashboard-news-reader-no-loading-bars.mjs
 
-      - name: Verify approved Dashboard Colorful V2
-        run: node scripts/test-dashboard-colorful-v2.mjs
-
-      - name: Verify Dashboard mockup parity V3
-        run: node scripts/test-dashboard-mockup-parity-v3.mjs
-
-      - name: Verify Dashboard mockup parity V4
-        run: node scripts/test-dashboard-mockup-parity-v4.mjs
-
-      - name: Verify Dashboard mockup parity V5
-        run: node scripts/test-dashboard-mockup-parity-v5.mjs
-
-      - name: Verify Dashboard mockup parity V6
-        run: node scripts/test-dashboard-mockup-parity-v6.mjs
-
-      - name: Verify Dashboard mockup parity V7
-        run: node scripts/test-dashboard-mockup-parity-v7.mjs
-
-      - name: Verify Dashboard mockup parity V8
-        run: node scripts/test-dashboard-mockup-parity-v8.mjs
-
-      - name: Verify Dashboard mockup parity V9
-        run: node scripts/test-dashboard-mockup-parity-v9.mjs
-
-      - name: Verify Dashboard mockup parity V10
-        run: node scripts/test-dashboard-mockup-parity-v10.mjs
-
-      - name: Verify Dashboard mockup parity V11
-        run: node scripts/test-dashboard-mockup-parity-v11.mjs
+      - name: Verify restored October 10 Dashboard
+        run: TZ=Asia/Ho_Chi_Minh node scripts/test-dashboard-editorial-restore-20261010.mjs
 
       - name: Verify Dashboard footer V12
         run: node scripts/test-dashboard-footer-v12.mjs
 
       - name: Verify global Dashboard footer V13
         run: node scripts/test-global-dashboard-footer-v13.mjs
-
-      - name: Verify Brian Dashboard Drop Zone
-        run: node scripts/test-dashboard-drop-zone.mjs
 
       - name: Verify global Quick Access rail
         run: node scripts/test-global-quick-access-rail.mjs
