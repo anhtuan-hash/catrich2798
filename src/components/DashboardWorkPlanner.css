@@ -168,3 +168,204 @@
 @media (prefers-reduced-motion:reduce){
   .app-shell[data-route="dashboard"] .bwp *{transition:none!important;scroll-behavior:auto!important;}
 }
+
+
+/* Work Planner V2 — readability + hierarchy polish (2026-10-23)
+   Retains the functional calendar and agenda. All overrides are dashboard-scoped. */
+.app-shell[data-route="dashboard"] .bwp {
+  --bwp-ink:#142b4c;
+  --bwp-muted:#556985;
+  --bwp-blue:#2468d9;
+  padding:24px!important;
+  border:1px solid #dce7f5!important;
+  border-radius:24px!important;
+  background:linear-gradient(145deg,#fff 0%,#fbfdff 88%,#f6faff 100%)!important;
+  box-shadow:0 16px 42px rgba(35,74,126,.065)!important;
+}
+.app-shell[data-route="dashboard"] .bwp-top {
+  grid-template-columns:minmax(0,1fr) auto!important;
+  grid-template-rows:auto auto!important;
+  gap:18px 18px!important;
+  align-items:center!important;
+  padding:2px 2px 23px!important;
+}
+.app-shell[data-route="dashboard"] .bwp-heading {grid-column:1!important;grid-row:1!important;gap:17px!important;}
+.app-shell[data-route="dashboard"] .bwp-main-icon {width:59px!important;height:59px!important;flex-basis:59px!important;border-radius:17px!important;}
+.app-shell[data-route="dashboard"] .bwp-heading small {font-size:11px!important;letter-spacing:.105em!important;color:#3267bd!important;}
+.app-shell[data-route="dashboard"] .bwp-heading h2 {font-size:clamp(22px,2.3vw,30px)!important;line-height:1.2!important;letter-spacing:-.037em!important;color:#152c52!important;}
+.app-shell[data-route="dashboard"] .bwp-heading p {font-size:14px!important;color:#586d89!important;font-weight:530!important;margin-top:6px!important;text-transform:capitalize!important;}
+.app-shell[data-route="dashboard"] .bwp-open-all {grid-column:2!important;grid-row:1!important;font-size:14px!important;min-height:45px!important;padding:12px 19px!important;}
+.app-shell[data-route="dashboard"] .bwp-stats {grid-column:1/-1!important;grid-row:2!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important;width:100%!important;}
+.app-shell[data-route="dashboard"] .bwp-stat {
+  min-height:74px!important;padding:14px 17px!important;
+  gap:14px!important;background:#fff!important;border:1px solid #e0e9f5!important;
+  border-radius:16px!important;box-shadow:0 6px 14px rgba(33,79,132,.035)!important;
+}
+.app-shell[data-route="dashboard"] .bwp-stat>span {width:45px!important;height:45px!important;border-radius:13px!important;}
+.app-shell[data-route="dashboard"] .bwp-stat strong {font-size:27px!important;line-height:1.1!important;letter-spacing:-.035em!important;}
+.app-shell[data-route="dashboard"] .bwp-stat small {font-size:13px!important;line-height:1.25!important;color:#5b708b!important;font-weight:640!important;}
+.app-shell[data-route="dashboard"] .bwp-stat-work>span{color:#246bd9!important;background:#eaf2ff!important;}
+.app-shell[data-route="dashboard"] .bwp-stat-work strong{color:#246bd9!important;}
+.app-shell[data-route="dashboard"] .bwp-stat-professional>span{color:#7252d0!important;background:#f0ecff!important;}
+.app-shell[data-route="dashboard"] .bwp-stat-professional strong{color:#7252d0!important;}
+.app-shell[data-route="dashboard"] .bwp-layout {grid-template-columns:minmax(256px,278px) minmax(0,1fr)!important;gap:17px!important;}
+.app-shell[data-route="dashboard"] .bwp-sidebar,
+.app-shell[data-route="dashboard"] .bwp-main {border-color:#e1e9f4!important;border-radius:19px!important;box-shadow:0 5px 14px rgba(31,70,123,.022)!important;}
+.app-shell[data-route="dashboard"] .bwp-sidebar {padding:23px 17px!important;align-self:start!important;gap:16px!important;}
+.app-shell[data-route="dashboard"] .bwp-mini-header {margin-bottom:9px!important;}
+.app-shell[data-route="dashboard"] .bwp-mini-header strong {font-size:17px!important;color:#1b3860!important;}
+.app-shell[data-route="dashboard"] .bwp-mini-header button {height:35px!important;width:35px!important;background:#f3f7fe!important;}
+.app-shell[data-route="dashboard"] .bwp-weekdays span {font-size:12px!important;color:#667b98!important;font-weight:800!important;padding:8px 0!important;}
+.app-shell[data-route="dashboard"] .bwp-day {min-height:40px!important;font-size:13.5px!important;font-weight:650!important;}
+.app-shell[data-route="dashboard"] .bwp-day.is-active {font-weight:850!important;}
+.app-shell[data-route="dashboard"] .bwp-day i {width:5px!important;height:5px!important;}
+.app-shell[data-route="dashboard"] .bwp-jump-today {
+  padding:11px 15px!important;font-size:12.5px!important;
+  color:#245eae!important;background:#edf5ff!important;min-height:39px!important;
+}
+.app-shell[data-route="dashboard"] .bwp-side-card {
+  margin-top:0!important;padding:16px 17px!important;border-radius:14px!important;
+  background:#f2f7ff!important;border-color:#e0eaf8!important;
+}
+.app-shell[data-route="dashboard"] .bwp-side-art,
+.app-shell[data-route="dashboard"] .bwp-side-card>p {display:none!important;}
+.app-shell[data-route="dashboard"] .bwp-side-card>small {font-size:10.5px!important;color:#4672a7!important;letter-spacing:.09em!important;}
+.app-shell[data-route="dashboard"] .bwp-side-card>strong {font-size:21px!important;margin:7px 0 12px!important;color:#1c4372!important;}
+.app-shell[data-route="dashboard"] .bwp-side-card>div:last-of-type {
+  border-top:1px solid #dbe6f5!important;padding:12px 0 0!important;
+  font-size:13px!important;color:#295d8e!important;font-weight:650!important;
+}
+.app-shell[data-route="dashboard"] .bwp-main {padding:16px 18px 21px!important;}
+.app-shell[data-route="dashboard"] .bwp-next {
+  min-height:78px!important;padding:15px 18px!important;gap:15px!important;
+  background:linear-gradient(110deg,#fff5ea 0%,#fffcf7 100%)!important;
+  border:1px solid #ffe9ce!important;border-left:4px solid #f0a05c!important;border-radius:15px!important;
+}
+.app-shell[data-route="dashboard"] .bwp-next.is-empty {
+  background:linear-gradient(110deg,#f0f6ff,#fcfdff)!important;
+  border-color:#dce9fa!important;border-left-color:#7aacef!important;
+}
+.app-shell[data-route="dashboard"] .bwp-next-icon {width:43px!important;height:43px!important;border-radius:13px!important;}
+.app-shell[data-route="dashboard"] .bwp-next small {font-size:11px!important;letter-spacing:.075em!important;color:#bd6723!important;}
+.app-shell[data-route="dashboard"] .bwp-next strong {
+  font-size:15px!important;line-height:1.36!important;letter-spacing:-.01em!important;
+  color:#213c62!important;font-weight:760!important;
+}
+.app-shell[data-route="dashboard"] .bwp-next p {
+  display:flex!important;align-items:center!important;flex-wrap:wrap!important;
+  gap:7px!important;color:#607793!important;font-size:12.5px!important;margin-top:7px!important;
+}
+.app-shell[data-route="dashboard"] .bwp-countdown {
+  color:#a45515!important;background:#fff0df!important;border:1px solid #f4d2ae!important;
+  border-radius:99px!important;font-size:11px!important;font-weight:750!important;padding:3px 8px!important;
+}
+.app-shell[data-route="dashboard"] .bwp-next>button {font-size:12.5px!important;padding:10px 13px!important;min-height:39px!important;}
+.app-shell[data-route="dashboard"] .bwp-toolbar {gap:12px!important;padding:17px 0 15px!important;}
+.app-shell[data-route="dashboard"] .bwp-filter-group {gap:8px!important;}
+.app-shell[data-route="dashboard"] .bwp-tab {
+  min-height:41px!important;padding:10px 14px!important;border-radius:12px!important;
+  font-size:13.5px!important;font-weight:690!important;background:#f4f7fc!important;
+  color:#355780!important;border-color:#dfe9f6!important;
+}
+.app-shell[data-route="dashboard"] .bwp-tab b {font-size:11.5px!important;padding:3px 7px!important;}
+.app-shell[data-route="dashboard"] .bwp-search {
+  min-height:42px!important;max-width:270px!important;border-radius:12px!important;
+  border-color:#d8e5f4!important;background:#fff!important;
+}
+.app-shell[data-route="dashboard"] .bwp-search input {font-size:13px!important;}
+.app-shell[data-route="dashboard"] .bwp-subheading {
+  padding:14px 0 12px!important;color:#476688!important;
+  font-size:11.5px!important;letter-spacing:.085em!important;gap:10px!important;
+}
+.app-shell[data-route="dashboard"] .bwp-subheading b {font-size:11px!important;}
+.app-shell[data-route="dashboard"] .bwp-agenda {gap:10px!important;}
+.app-shell[data-route="dashboard"] .bwp-row {
+  grid-template-columns:68px 14px 46px minmax(0,1fr) auto 17px!important;
+  min-height:83px!important;gap:12px!important;padding:15px 15px!important;
+  border:1px solid #e2eaf5!important;border-radius:15px!important;
+  box-shadow:0 3px 7px rgba(38,75,125,.028)!important;
+}
+.app-shell[data-route="dashboard"] .bwp-row.is-next {
+  border-color:#c4d6f0!important;background:#f8fbff!important;
+  box-shadow:inset 3px 0 0 #347ce1,0 3px 12px rgba(37,93,174,.045)!important;
+}
+.app-shell[data-route="dashboard"] .bwp-time strong {font-size:15px!important;color:#1d3b66!important;font-weight:800!important;}
+.app-shell[data-route="dashboard"] .bwp-time small {font-size:12px!important;color:#6d829e!important;}
+.app-shell[data-route="dashboard"] .bwp-rail {min-height:49px!important;}
+.app-shell[data-route="dashboard"] .bwp-row-icon {width:44px!important;height:44px!important;border-radius:14px!important;}
+.app-shell[data-route="dashboard"] .bwp-row-copy {gap:6px!important;}
+.app-shell[data-route="dashboard"] .bwp-row-copy>strong {
+  font-size:15.5px!important;line-height:1.42!important;
+  font-weight:730!important;color:#172e4f!important;letter-spacing:-.008em!important;
+}
+.app-shell[data-route="dashboard"] .bwp-description {
+  font-size:13px!important;line-height:1.5!important;color:#586d88!important;
+  display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important;
+}
+.app-shell[data-route="dashboard"] .bwp-meta {font-size:12px!important;color:#677e98!important;gap:9px!important;}
+.app-shell[data-route="dashboard"] .bwp-meta svg {width:14px!important;height:14px!important;color:#7a91ad!important;}
+.app-shell[data-route="dashboard"] .bwp-tag {font-size:12px!important;padding:8px 11px!important;max-width:none!important;min-height:33px!important;}
+.app-shell[data-route="dashboard"] .bwp-row-arrow {color:#6985a8!important;}
+.app-shell[data-route="dashboard"] .bwp-empty {min-height:186px!important;font-size:14px!important;line-height:1.45!important;}
+.app-shell[data-route="dashboard"] .bwp-row:focus-visible {outline:3px solid #8bb7f2!important;outline-offset:2px!important;}
+@media (max-width:1200px) {
+  .app-shell[data-route="dashboard"] .bwp-layout {grid-template-columns:minmax(218px,250px) minmax(0,1fr)!important;}
+  .app-shell[data-route="dashboard"] .bwp {padding:19px!important;}
+  .app-shell[data-route="dashboard"] .bwp-main {padding:14px!important;}
+  .app-shell[data-route="dashboard"] .bwp-row {grid-template-columns:60px 12px 40px minmax(0,1fr) auto!important;gap:9px!important;padding:13px!important;}
+  .app-shell[data-route="dashboard"] .bwp-row-arrow {display:none!important;}
+  .app-shell[data-route="dashboard"] .bwp-row-copy>strong {font-size:14px!important;}
+  .app-shell[data-route="dashboard"] .bwp-description {font-size:12.5px!important;}
+  .app-shell[data-route="dashboard"] .bwp-tag {font-size:11px!important;}
+  .app-shell[data-route="dashboard"] .bwp-toolbar {flex-direction:column!important;align-items:stretch!important;}
+  .app-shell[data-route="dashboard"] .bwp-search {max-width:none!important;width:100%!important;flex-basis:auto!important;}
+}
+@media (max-width:840px) {
+  .app-shell[data-route="dashboard"] .bwp {padding:14px!important;}
+  .app-shell[data-route="dashboard"] .bwp-top {grid-template-columns:minmax(0,1fr) auto!important;gap:13px!important;}
+  .app-shell[data-route="dashboard"] .bwp-heading h2 {font-size:22px!important;}
+  .app-shell[data-route="dashboard"] .bwp-stats {grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;}
+  .app-shell[data-route="dashboard"] .bwp-stat {min-height:65px!important;padding:11px!important;}
+  .app-shell[data-route="dashboard"] .bwp-stat strong {font-size:24px!important;}
+  .app-shell[data-route="dashboard"] .bwp-layout {grid-template-columns:1fr!important;}
+  .app-shell[data-route="dashboard"] .bwp-sidebar {padding:17px!important;}
+  .app-shell[data-route="dashboard"] .bwp-side-card {display:none!important;}
+  .app-shell[data-route="dashboard"] .bwp-row {grid-template-columns:62px 12px 42px minmax(0,1fr) auto!important;}
+  .app-shell[data-route="dashboard"] .bwp-row-copy>strong {font-size:15px!important;}
+}
+@media (max-width:560px) {
+  .app-shell[data-route="dashboard"] .bwp {padding:11px!important;border-radius:18px!important;}
+  .app-shell[data-route="dashboard"] .bwp-top {padding:4px 2px 15px!important;gap:12px!important;}
+  .app-shell[data-route="dashboard"] .bwp-heading {gap:10px!important;}
+  .app-shell[data-route="dashboard"] .bwp-main-icon {width:42px!important;height:42px!important;flex-basis:42px!important;border-radius:12px!important;}
+  .app-shell[data-route="dashboard"] .bwp-heading small {font-size:9px!important;}
+  .app-shell[data-route="dashboard"] .bwp-heading h2 {font-size:17px!important;line-height:1.25!important;}
+  .app-shell[data-route="dashboard"] .bwp-heading p {font-size:11px!important;}
+  .app-shell[data-route="dashboard"] .bwp-open-all {font-size:11px!important;padding:9px!important;min-height:38px!important;}
+  .app-shell[data-route="dashboard"] .bwp-stats {gap:7px!important;}
+  .app-shell[data-route="dashboard"] .bwp-stat {min-height:61px!important;padding:9px!important;gap:9px!important;}
+  .app-shell[data-route="dashboard"] .bwp-stat>span {width:34px!important;height:34px!important;border-radius:10px!important;}
+  .app-shell[data-route="dashboard"] .bwp-stat strong {font-size:21px!important;}
+  .app-shell[data-route="dashboard"] .bwp-stat small {font-size:11px!important;}
+  .app-shell[data-route="dashboard"] .bwp-sidebar {padding:12px!important;}
+  .app-shell[data-route="dashboard"] .bwp-mini-header strong {font-size:15px!important;}
+  .app-shell[data-route="dashboard"] .bwp-day {min-height:38px!important;font-size:12px!important;}
+  .app-shell[data-route="dashboard"] .bwp-main {padding:10px!important;}
+  .app-shell[data-route="dashboard"] .bwp-next {padding:12px!important;gap:9px!important;}
+  .app-shell[data-route="dashboard"] .bwp-next strong {font-size:14px!important;}
+  .app-shell[data-route="dashboard"] .bwp-next p {font-size:11px!important;}
+  .app-shell[data-route="dashboard"] .bwp-next>button {font-size:11px!important;}
+  .app-shell[data-route="dashboard"] .bwp-filter-group {flex-wrap:nowrap!important;overflow-x:auto!important;}
+  .app-shell[data-route="dashboard"] .bwp-tab {min-height:38px!important;font-size:12px!important;padding:9px 11px!important;}
+  .app-shell[data-route="dashboard"] .bwp-row {
+    grid-template-columns:48px 7px 35px minmax(0,1fr)!important;
+    padding:12px 9px!important;gap:7px!important;min-height:83px!important;
+  }
+  .app-shell[data-route="dashboard"] .bwp-time strong {font-size:12px!important;}
+  .app-shell[data-route="dashboard"] .bwp-time small {font-size:10px!important;}
+  .app-shell[data-route="dashboard"] .bwp-row-icon {width:34px!important;height:34px!important;border-radius:11px!important;}
+  .app-shell[data-route="dashboard"] .bwp-row-copy>strong {font-size:13.5px!important;line-height:1.4!important;}
+  .app-shell[data-route="dashboard"] .bwp-description {font-size:12px!important;}
+  .app-shell[data-route="dashboard"] .bwp-meta {font-size:11px!important;}
+  .app-shell[data-route="dashboard"] .bwp-tag {grid-column:4!important;font-size:10px!important;padding:6px 9px!important;min-height:27px!important;justify-self:start!important;}
+}
