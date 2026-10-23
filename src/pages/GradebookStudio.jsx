@@ -37,6 +37,7 @@ import '../styles/homeroom-complete.css';
 import '../styles/GradebookMacShell.css';
 import '../styles/GradebookMacRoster.css';
 import '../styles/GradebookHeroCanvas.css';
+import '../styles/GradebookHeroRefined.css';
 
 const EMPTY_CLASS = {
   className: '',
@@ -575,7 +576,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   };
 
   return <div className="page hr-page gbmac-studio">
-    <section className={'gbmac-shell gbmac-hero-canvas'+(gradebookHeroHasMedia?' has-custom-media':'')}
+    <section className={'gbmac-shell gbmac-hero-canvas gbmac-hero-refined'+(gradebookHeroHasMedia?' has-custom-media':'')}
       aria-label="Sổ điểm" style={gradebookHeroStyle}>
       <div className="gbmac-hero-media" aria-hidden="true">
         {gradebookHeroHasMedia
@@ -597,43 +598,48 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
       <div className="gbmac-hero-content">
         <div className="gbmac-shell-head">
           <div className="gbmac-shell-identity">
-            <span className="gbmac-shell-icon" aria-hidden="true"><BookOpenCheck size={27}/></span>
-            <div>
-              <span className="gbmac-shell-eyebrow">BRIAN ENGLISH / GRADEBOOK</span>
-              <div className="gbmac-shell-title"><h1>{vi ? 'Sổ điểm' : 'Gradebook'}</h1>
-                <span className={gradebookDirty ? 'gbmac-shell-state is-unsaved' : 'gbmac-shell-state'}>
-                  <span aria-hidden="true" />{gradebookDirty ? 'Có thay đổi chưa lưu' : 'Sẵn sàng nhập điểm'}
-                </span>
+            <span className="gbmac-shell-icon" aria-hidden="true"><BookOpenCheck size={25}/></span>
+            <div className="gbmac-shell-identity-copy">
+              <div className="gbmac-shell-title">
+                <h1>{vi ? 'Sổ điểm' : 'Gradebook'}</h1>
               </div>
-              <p>{activeMeta?.className || 'Chưa chọn lớp'} · {activeMeta?.schoolYear || '2026–2027'} · {studentCount} học sinh</p>
+              <div className="gbmac-hero-meta">
+                <span>{studentCount} {vi ? 'học sinh' : 'students'}</span>
+                <span className="gbmac-meta-dot" aria-hidden="true"/>
+                <span>{activeSubject || (vi ? 'Chưa có môn' : 'No subject')}</span>
+                <span className="gbmac-meta-dot" aria-hidden="true"/>
+                <span>{activeMeta?.schoolYear || '2026–2027'}</span>
+              </div>
             </div>
           </div>
           {canEditGradebookHero ? <button type="button" className="gbmac-hero-edit"
             onClick={()=>setGradebookHeroEditorOpen(true)}
-            title="Chỉnh sửa nền Hero Sổ điểm" aria-label="Chỉnh sửa nền Hero Sổ điểm">
-            <Pencil size={18} aria-hidden="true"/>
+            title={vi ? 'Chỉnh sửa nền Hero Sổ điểm' : 'Edit Gradebook Hero background'}
+            aria-label={vi ? 'Chỉnh sửa nền Hero Sổ điểm' : 'Edit Gradebook Hero background'}>
+            <Pencil size={17} aria-hidden="true"/>
           </button> : null}
         </div>
-        <div className="gbmac-shell-selectors">
-          <label><span>Lớp học</span><select value={workspaceId}
+        <div className="gbmac-shell-selectors" role="group" aria-label={vi ? 'Chọn lớp và học kỳ' : 'Select class and semester'}>
+          <label><span>{vi ? 'Lớp học' : 'Class'}</span><select value={workspaceId}
             disabled={saving || !activeClasses.length} onChange={(event)=>switchGradebookClass(event.target.value)}>
-            {!activeClasses.length?<option value="">Chưa có lớp</option>:null}
+            {!activeClasses.length?<option value="">{vi ? 'Chưa có lớp' : 'No classes'}</option>:null}
             {activeClasses.map(item=><option key={item.id} value={item.id}>{item.className || classLabel(item)}</option>)}
           </select></label>
-          <div className="gbmac-shell-field"><span>Môn học</span><strong>{activeSubject || '—'}</strong></div>
-          <label><span>Học kỳ</span><select value={selectedSemester} onChange={(event)=>{
+          <label><span>{vi ? 'Học kỳ' : 'Semester'}</span><select value={selectedSemester} onChange={(event)=>{
             if(gradebookDirty){window.alert('Hãy lưu hoặc hoàn tác thay đổi trước khi chuyển học kỳ.');return;}
             setSelectedSemester(event.target.value);
-          }}><option value="semester1">Học kỳ I</option><option value="semester2">Học kỳ II</option></select></label>
-          <div className="gbmac-shell-field"><span>Năm học</span><strong>{activeMeta?.schoolYear || '—'}</strong></div>
+          }}><option value="semester1">{vi ? 'Học kỳ I' : 'Semester I'}</option><option value="semester2">{vi ? 'Học kỳ II' : 'Semester II'}</option></select></label>
         </div>
         <div className="gbmac-shell-utilities">
           <button type="button" disabled={!workspace} onClick={openStudentRoster}>
-            <UsersRound size={17} aria-hidden="true"/>Danh sách học sinh
+            <UsersRound size={17} aria-hidden="true"/>{vi ? 'Danh sách học sinh' : 'Student roster'}
           </button>
           <button type="button" onClick={()=>setCreateOpen(value=>!value)}>
-            <Plus size={17} aria-hidden="true"/>{createOpen?'Đóng':'Thêm lớp'}
+            <Plus size={17} aria-hidden="true"/>{createOpen ? (vi ? 'Đóng' : 'Close') : (vi ? 'Thêm lớp' : 'Add class')}
           </button>
+          <span className={gradebookDirty ? 'gbmac-hero-save-state is-unsaved' : 'gbmac-hero-save-state'} role="status">
+            <i aria-hidden="true"/>{gradebookDirty ? (vi ? 'Chưa lưu' : 'Unsaved') : (vi ? 'Đã lưu' : 'Saved')}
+          </span>
         </div>
       </div>
     </section>
