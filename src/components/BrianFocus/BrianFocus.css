@@ -121,7 +121,9 @@
   padding: 36px 0;
   pointer-events: none;
 }
-.bfc-clock-card {
+ .bfc-clock-card {
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   position: relative;
   pointer-events: auto;
   isolation: isolate;
@@ -168,11 +170,15 @@
 .bfc-clock-face {
   position: relative;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   place-items: center;
   width: 100%;
 }
 .bfc-clock-face__digits {
   display: flex;
+  min-width: 0;
+  max-width: 100%;
   align-items: center;
   justify-content: center;
   width: 100%;
@@ -320,9 +326,11 @@
   .bfc-clock-card__eyebrow {font-size: 10px; letter-spacing: .14em; margin-bottom: 17px;}
   .bfc-clock-face__digits {gap: 5px;}
   .bfc-clock-face__tile {
-    flex-basis: 137px;
+    flex: 1 1 0;
+    width: 0;
+    min-width: 0;
     height: 126px;
-    font-size: clamp(64px, 17vw, 95px);
+    font-size: clamp(61px, 16vw, 91px);
     border-radius: 16px;
   }
   .bfc-clock-face__colon { flex-basis: 12px; font-size: 50px; transform: translateY(-3px); }
