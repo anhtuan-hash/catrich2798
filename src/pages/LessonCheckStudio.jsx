@@ -1464,7 +1464,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         <div className="lch-hero-protection" aria-hidden="true"/>
         {(!hasHeroMedia || activeHero.showMascot) ? <img
           className="lcs-hero-art"
-          src="/lesson-check-approved-mascot.svg"
+          src="/lesson-check-hero-mascot-minimal.svg"
           alt=""
           aria-hidden="true"
           decoding="async"
