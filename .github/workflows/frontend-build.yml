@@ -46,6 +46,9 @@ jobs:
       - name: Verify restored October 10 Dashboard
         run: TZ=Asia/Ho_Chi_Minh node scripts/test-dashboard-editorial-restore-20261010.mjs
 
+      - name: Verify compact Editorial Newsroom
+        run: TZ=Asia/Ho_Chi_Minh node scripts/test-dashboard-newsroom-editorial-20261023.mjs
+
       - name: Verify Dashboard footer V12
         run: node scripts/test-dashboard-footer-v12.mjs
 
