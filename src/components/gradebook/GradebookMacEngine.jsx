@@ -1101,7 +1101,7 @@ export default function GradebookMacEngine({ workspace, onCommit, currentUser, t
       <ChevronRight size={17} aria-hidden="true"/>
     </button>
 
-    {insightsOpen ? createPortal(<div className="gbmac-tools-overlay gbmac-utilities" role="presentation">
+    {insightsOpen ? createPortal(<div className="gbmac-tools-overlay gbmac-utilities" data-utility-page={utilityPage} role="presentation">
       <button type="button" className="gbmac-scrim" aria-label="Đóng cửa sổ công cụ" onClick={() => setInsightsOpen(false)}/>
       <section className="gbmac-tools-dialog" role="dialog" aria-modal="true"
         aria-labelledby="gbmac-tools-title" ref={toolboxRef}>
@@ -1128,6 +1128,7 @@ export default function GradebookMacEngine({ workspace, onCommit, currentUser, t
               {id:'settings',icon:Settings2,name:'Thiết lập khác',hint:'Môn học và hỗ trợ'},
             ].map(item=><button type="button" key={item.id}
               className={'gbmac-utilities-nav-item'+(utilityPage===item.id?' is-current':'')}
+              data-group={item.id}
               aria-current={utilityPage===item.id?'page':undefined}
               onClick={()=>setUtilityPage(item.id)}>
               <item.icon size={18} strokeWidth={1.85} aria-hidden="true"/>
@@ -1139,7 +1140,7 @@ export default function GradebookMacEngine({ workspace, onCommit, currentUser, t
           </nav>
 
           <div className="gbmac-utilities-main">
-            <section className="gbmac-utilities-page" hidden={utilityPage!=='tools'} aria-label="Nhập điểm và công cụ">
+            <section className="gbmac-utilities-page" data-panel="tools" hidden={utilityPage!=='tools'} aria-label="Nhập điểm và công cụ">
               <header className="gbmac-utilities-page-head">
                 <span className="gbmac-utilities-kicker">CÔNG CỤ NHẬP LIỆU</span>
                 <h3>Nhập điểm & nghiệp vụ</h3>
@@ -1168,7 +1169,7 @@ export default function GradebookMacEngine({ workspace, onCommit, currentUser, t
               />
             </section>
 
-            {utilityPage==='progress'? <section className="gbmac-utilities-page" aria-label="Tiến độ học kỳ">
+            {utilityPage==='progress'? <section className="gbmac-utilities-page" data-panel="progress" aria-label="Tiến độ học kỳ">
               <header className="gbmac-utilities-page-head">
                 <span className="gbmac-utilities-kicker">THỐNG KÊ ĐIỂM</span>
                 <h3>Tiến độ học kỳ</h3>
@@ -1180,7 +1181,7 @@ export default function GradebookMacEngine({ workspace, onCommit, currentUser, t
                 finalized={finalized}/>
             </section> : null}
 
-            {utilityPage==='classes'? <section className="gbmac-utilities-page" aria-label="Lớp và phân công">
+            {utilityPage==='classes'? <section className="gbmac-utilities-page" data-panel="classes" aria-label="Lớp và phân công">
               <header className="gbmac-utilities-page-head">
                 <span className="gbmac-utilities-kicker">QUẢN LÝ LỚP HỌC</span>
                 <h3>Lớp & phân công</h3>
@@ -1192,7 +1193,7 @@ export default function GradebookMacEngine({ workspace, onCommit, currentUser, t
               </div>
             </section> : null}
 
-            {utilityPage==='settings'? <section className="gbmac-utilities-page" aria-label="Thiết lập và hỗ trợ">
+            {utilityPage==='settings'? <section className="gbmac-utilities-page" data-panel="settings" aria-label="Thiết lập và hỗ trợ">
               <header className="gbmac-utilities-page-head">
                 <span className="gbmac-utilities-kicker">TÙY CHỈNH</span>
                 <h3>Thiết lập & hỗ trợ</h3>
