@@ -17,6 +17,7 @@ import DashboardNewsHub from '../components/DashboardNewsHub.jsx';
 // Newsroom owns its compact presentation after the six original October 10 design layers.
 import '../styles/dashboard-newsroom-editorial-20261023.css';
 import '../styles/dashboard-hero-cms.css';
+import '../styles/dashboard-hero-minimal-20261023.css';
 import { isDepartmentLeaderRole } from '../utils/roles.js';
 import {
   DASHBOARD_HERO_UPDATED_EVENT, DEFAULT_DASHBOARD_HERO, normalizeDashboardHero, readDashboardHero,
