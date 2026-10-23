@@ -398,6 +398,21 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   const [semesterId, setSemesterId] = useState(semesterIdExternal || 'semester1');
   const [view, setView] = useState('summary');
   const [summaryPage, setSummaryPage] = useState(0);
+  const [targetStudentId, setTargetStudentId] = useState('');
+  useEffect(() => {
+    if (!targetStudentId || view === 'summary') return undefined;
+    const raf = window.requestAnimationFrame(() => {
+      const wrap = document.querySelector('.gradebook-studio .gb5-editor-anchor .hr-grade-table-wrap');
+      const row = Array.from(wrap?.querySelectorAll('tr[data-gradebook-student-id]') || [])
+        .find((element) => element.dataset.gradebookStudentId === String(targetStudentId));
+      if (!row) return;
+      row.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      row.querySelector('input:not([disabled])')?.focus({ preventScroll: true });
+      setTargetStudentId('');
+    });
+    return () => window.cancelAnimationFrame(raf);
+  }, [targetStudentId, view, semesterId]);
+
   const changeSemester = (id) => { setSemesterId(id); onSemesterChangeExternal?.(id); };
   useEffect(() => {
     if (semesterIdExternal && semesterIdExternal !== semesterId) setSemesterId(semesterIdExternal);
@@ -1049,7 +1064,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
               const plusCount = activeRound.plusCounts?.[student.id] ?? '';
               const bonus = gradeRoundBonus(activeRound, student.id, studentIds);
               const result = roundScore(activeRound, student.id, studentIds);
-              return <tr key={student.id}>
+              return <tr key={student.id} data-gradebook-student-id={student.id}>
                 <td className="hr-grade-index">{originalStudentPosition.get(student.id)}</td>
                 <td className="hr-grade-student"><b>{student.fullName}</b><small>{student.code || 'Chưa có mã học sinh'}</small></td>
                 {activeRound.columns.map((column, columnIndex) => <td key={column.id} className={`gb-m3-score-cell gb-m3-score-cell--${columnIndex % 4}`}>
@@ -1074,7 +1089,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
           <thead><tr><th className="hr-grade-index">STT</th><th className="hr-grade-student">Học sinh</th><th>{title}</th><th>Trạng thái</th></tr></thead>
           <tbody>{visibleStudents.map((student) => {
             const value = activeSemester[type].scores?.[student.id] ?? '';
-            return <tr key={student.id}><td className="hr-grade-index">{originalStudentPosition.get(student.id)}</td><td className="hr-grade-student"><b>{student.fullName}</b><small>{student.code || 'Chưa có mã học sinh'}</small></td><td><ScoreInput value={value} disabled={finalized} onChange={(score) => updateExamScore(type, student.id, score)} label={`${student.fullName} · ${title}`} /></td><td className="hr-grade-status">{scoreNumber(value) == null ? <span>Chưa nhập</span> : <b>Đã nhập</b>}</td></tr>;
+            return <tr key={student.id} data-gradebook-student-id={student.id}><td className="hr-grade-index">{originalStudentPosition.get(student.id)}</td><td className="hr-grade-student"><b>{student.fullName}</b><small>{student.code || 'Chưa có mã học sinh'}</small></td><td><ScoreInput value={value} disabled={finalized} onChange={(score) => updateExamScore(type, student.id, score)} label={`${student.fullName} · ${title}`} /></td><td className="hr-grade-status">{scoreNumber(value) == null ? <span>Chưa nhập</span> : <b>Đã nhập</b>}</td></tr>;
           })}</tbody>
         </table>
       </div> : <div className="hr-grade-empty"><b>Chưa có danh sách lớp</b><span>Hãy nhập học sinh trước khi mở sổ điểm.</span></div>}
@@ -1085,12 +1100,12 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     const pageCount = Math.max(1, Math.ceil(visibleStudents.length / 10));
     const currentPage = Math.min(summaryPage, pageCount - 1);
     const pageStudents = visibleStudents.slice(currentPage * 10, currentPage * 10 + 10);
-    const openComponent = (target) => {
-      setView(target);
+    const openComponent = (target, studentId) => {
+      setShowFullRoster(true);
       setMissingOnly(false);
+      setTargetStudentId(studentId);
+      setView(target);
       setSummaryPage(0);
-      window.requestAnimationFrame(() =>
-        document.getElementById('gb5-grade-entry')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
     };
     return (
       <section className="hr-panel hr-grade-panel gbm3-summary-panel">
@@ -1127,11 +1142,11 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
                   <td className="hr-grade-student"><b>{student.fullName}</b><small>{student.code || 'Chưa có mã học sinh'}</small></td>
                   {regular.map((value, scoreIndex) => <td key={scoreIndex} className="gbm3-click-score">
                     <button type="button" title={'Mở nhập điểm TX ' + (scoreIndex + 1) + ' cho ' + student.fullName}
-                      onClick={() => openComponent('regular-' + scoreIndex)}>{value == null ? '—' : formatScore(value)}</button>
+                      onClick={() => openComponent('regular-' + scoreIndex, student.id)}>{value == null ? '—' : formatScore(value)}</button>
                   </td>)}
                   {['midterm','final'].map((type,i) => <td key={type} className="gbm3-click-score">
                     <button type="button" title={'Mở nhập ' + (i ? 'cuối kỳ' : 'giữa kỳ') + ' cho ' + student.fullName}
-                      onClick={() => openComponent(type)}>{(i ? final : midterm) == null ? '—' : formatScore(i ? final : midterm)}</button>
+                      onClick={() => openComponent(type, student.id)}>{(i ? final : midterm) == null ? '—' : formatScore(i ? final : midterm)}</button>
                   </td>)}
                   <td className="gbm3-summary-average">{average == null ? '—' : formatScore(Math.round(average * 100) / 100)}</td>
                   <td className="gbm3-summary-status"><span className={complete ? 'is-complete' : 'is-pending'}><i />{complete ? 'Đủ 6/6' : count + '/6 thành phần'}</span></td>
