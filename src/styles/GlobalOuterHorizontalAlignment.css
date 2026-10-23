@@ -1,0 +1,59 @@
+/* ESL Brian — one horizontal axis for navigation, all app stages and footer.
+   This is an outer-frame contract, not a rule for child cards, tables or modals.
+   Read the pinned-nav gutter token directly so nav and content cannot drift. */
+:root {
+  --bes-unified-inline: var(--bes-pinned-hub-inline, clamp(16px, 2.6vw, 44px));
+  --bes-unified-stage-width: calc(100vw - var(--bes-unified-inline) - var(--bes-unified-inline));
+}
+
+/* Equal left/right edges on every route, including separately mounted tools.
+   .app-shell is the full viewport canvas, not an additional inset container. */
+html body #root .app-shell[data-route] > .bes-top-chrome[data-bes-pinned-hub="true"] {
+  box-sizing: border-box !important;
+  width: var(--bes-unified-stage-width) !important;
+  max-width: none !important;
+}
+html body #root .app-shell[data-route] > main#bes-main-content.wp8-page-stage {
+  box-sizing: border-box !important;
+  width: var(--bes-unified-stage-width) !important;
+  max-width: var(--bes-unified-stage-width) !important;
+  min-width: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-mode="full"] {
+  box-sizing: border-box !important;
+  width: var(--bes-unified-stage-width) !important;
+  max-width: var(--bes-unified-stage-width) !important;
+  min-width: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* Only remove extra outer insets when Quick Access isn't reserving sidebar room.
+   Never alter the sidebar's measured safe-frame width or translated position. */
+html body #root .app-shell[data-quick-access-layout="false"] > main#bes-main-content.wp8-page-stage > .bqa-content-safe-frame {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Mobile follows the same 8px gutter as the pinned nav. */
+@media (max-width: 760px) {
+  :root { --bes-unified-inline: 8px; }
+}
+
+/* Let the browser use its native safe-area margins when a display cutout
+   consumes the physical viewport. The rule never stretches a page offscreen. */
+@supports (width: 100dvw) {
+  :root {
+    --bes-unified-stage-width: calc(100dvw - var(--bes-unified-inline) - var(--bes-unified-inline));
+  }
+}
