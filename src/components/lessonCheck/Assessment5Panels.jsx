@@ -35,46 +35,50 @@ function useModalKeyboard(onClose) {
  return panelRef;
 }
 
-export function Assessment5Preview({activity,onClose,onTeach,onAddQueue,inQueue,isFavorite,onFavorite,canOpen,attributes,insight,queueReady=true}) {
+export function Assessment5Preview({activity,onClose,onTeach,onAddQueue,inQueue,isFavorite,onFavorite,canOpen,attributes,insight,queueReady=true,language='vi'}) {
+  const vi=language==='vi';
+  const tt=(a,b)=>vi?a:b;
  const panelRef=useModalKeyboard(onClose);
  if(!activity)return null;
- const status=canOpen ? 'Đã có quyền truy cập' : 'Chưa được cấp quyền';
+ const status=canOpen ? tt('Đã có quyền truy cập','Access granted') : tt('Chưa được cấp quyền','Access not granted');
  return <div className="lcs5-layer" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>
-   <aside ref={panelRef} className="lcs5-preview" role="dialog" aria-modal="true" aria-label={'Xem nhanh '+activity.title}>
-     <header><div><small>XEM NHANH · HOẠT ĐỘNG</small><h2>{activity.title}</h2></div><button type="button" onClick={onClose} aria-label="Đóng xem nhanh"><X size={20}/></button></header>
-     {activity.thumbnailUrl?<img className="lcs5-preview-image" src={activity.thumbnailUrl} alt="" loading="lazy"/>:<div className="lcs5-preview-placeholder"><Layers3 size={38}/><span>Chưa có ảnh xem trước</span></div>}
+   <aside ref={panelRef} className="lcs5-preview" role="dialog" aria-modal="true" aria-label={tt('Xem nhanh ','Preview ')+activity.title}>
+     <header><div><small>{tt('XEM NHANH · HOẠT ĐỘNG','QUICK VIEW · ACTIVITY')}</small><h2>{activity.title}</h2></div><button type="button" onClick={onClose} aria-label={tt("Đóng xem nhanh","Close quick view")}><X size={20}/></button></header>
+     {activity.thumbnailUrl?<img className="lcs5-preview-image" src={activity.thumbnailUrl} alt="" loading="lazy"/>:<div className="lcs5-preview-placeholder"><Layers3 size={38}/><span>{tt('Chưa có ảnh xem trước','No preview image')}</span></div>}
      <div className="lcs5-preview-info">
        <span>Global Success {activity.grade||'—'}</span>
        <span>Unit {activity.unitNo||'—'}</span>
-       <span>{activity.lessonTitle||'Hoạt động bổ sung'}</span>
-       <span>{attributes?.difficulty||'Chưa phân loại CEFR'}</span>
-       <span>{attributes?.duration_minutes?attributes.duration_minutes+' phút':'Thời lượng chưa gắn'}</span>
-       <span>{attributes?.delivery_mode==='group'?'Nhóm':attributes?.delivery_mode==='individual'?'Cá nhân':'Cả lớp / kết hợp'}</span>
+       <span>{activity.lessonTitle||tt('Hoạt động bổ sung','Supplementary activity')}</span>
+       <span>{attributes?.difficulty||tt('Chưa phân loại CEFR','CEFR level not assigned')}</span>
+       <span>{attributes?.duration_minutes?attributes.duration_minutes+tt(' phút',' min'):tt('Thời lượng chưa gắn','Duration not assigned')}</span>
+       <span>{attributes?.delivery_mode==='group'?tt('Nhóm','Group'):attributes?.delivery_mode==='individual'?tt('Cá nhân','Individual'):tt('Cả lớp / kết hợp','Whole class / mixed')}</span>
      </div>
-     {attributes?.learning_goal?<section className="lcs5-preview-goal"><strong>Mục tiêu học tập</strong><p>{attributes.learning_goal}</p></section>:null}
+     {attributes?.learning_goal?<section className="lcs5-preview-goal"><strong>{tt('Mục tiêu học tập','Learning objectives')}</strong><p>{attributes.learning_goal}</p></section>:null}
      <div className="lcs5-preview-status"><ShieldCheck size={17}/>{status}</div>
-     {insight?<div className="lcs5-preview-insights"><strong>Dữ liệu sử dụng thực tế</strong><div><span>Đã mở: {insight.opened}</span><span>Đã hoàn tất: {insight.completed}</span><span>Lần gần nhất: {insight.latest||'—'}</span></div></div>:null}
+     {insight?<div className="lcs5-preview-insights"><strong>{tt('Dữ liệu sử dụng thực tế','Actual usage data')}</strong><div><span>{tt('Đã mở:','Opened:')} {insight.opened}</span><span>{tt('Đã hoàn tất:','Completed:')} {insight.completed}</span><span>{tt('Lần gần nhất:','Last used:')} {insight.latest||'—'}</span></div></div>:null}
      <div className="lcs5-preview-actions">
-       <button onClick={()=>onFavorite(activity.id)}><Heart size={17} fill={isFavorite?'currentColor':'none'}/>{isFavorite?'Bỏ yêu thích':'Thả tim'}</button>
-       <button type="button" disabled={!canOpen||inQueue||!queueReady} onClick={()=>onAddQueue(activity.id)}><Plus size={17}/>{inQueue?'Đã trong buổi dạy':'Thêm vào buổi dạy'}</button>
-       <button type="button" className="is-primary" disabled={!canOpen} onClick={()=>onTeach(activity)}><MonitorPlay size={17}/>Trình chiếu</button>
+       <button onClick={()=>onFavorite(activity.id)}><Heart size={17} fill={isFavorite?'currentColor':'none'}/>{isFavorite?tt('Bỏ yêu thích','Remove favorite'):tt('Thả tim','Add to favorites')}</button>
+       <button type="button" disabled={!canOpen||inQueue||!queueReady} onClick={()=>onAddQueue(activity.id)}><Plus size={17}/>{inQueue?tt('Đã trong buổi dạy','Already in queue'):tt('Thêm vào buổi dạy','Add to teaching queue')}</button>
+       <button type="button" className="is-primary" disabled={!canOpen} onClick={()=>onTeach(activity)}><MonitorPlay size={17}/>{tt('Trình chiếu','Present')}</button>
      </div>
    </aside>
  </div>;
 }
 
-export function Assessment5Queue({items=[],onClose,onMove,onRemove,onStart,className,onClassChange,minutes,onMinutesChange,onClear,busy=false,ready=true}) {
+export function Assessment5Queue({items=[],onClose,onMove,onRemove,onStart,className,onClassChange,minutes,onMinutesChange,onClear,busy=false,ready=true,language='vi'}) {
+  const vi=language==='vi';
+  const tt=(a,b)=>vi?a:b;
  const [dragIndex,setDragIndex]=useState(null);
  const panelRef=useModalKeyboard(onClose);
  return <div className="lcs5-layer" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>
-   <aside ref={panelRef} className="lcs5-queue-drawer" role="dialog" aria-modal="true" aria-label="Hàng đợi giảng dạy">
-     <header><div><small>TEACHING QUEUE · ASSESSMENT 5.0</small><h2>Chuẩn bị buổi dạy</h2><p>Kéo thả hoặc dùng mũi tên để sắp xếp hoạt động</p></div><button onClick={onClose} aria-label="Đóng hàng đợi"><X/></button></header>
+   <aside ref={panelRef} className="lcs5-queue-drawer" role="dialog" aria-modal="true" aria-label={tt('Hàng đợi giảng dạy','Teaching queue')}>
+     <header><div><small>TEACHING QUEUE · ASSESSMENT 5.0</small><h2>{tt('Chuẩn bị buổi dạy','Prepare teaching session')}</h2><p>{tt('Kéo thả hoặc dùng mũi tên để sắp xếp hoạt động','Drag and drop or use arrows to rearrange activities')}</p></div><button onClick={onClose} aria-label={tt('Đóng hàng đợi','Close queue')}><X/></button></header>
      <div className="lcs5-queue-config">
-       <label>Lớp học<input placeholder="VD: 12.6" maxLength={80} value={className} onChange={e=>onClassChange(e.target.value)}/></label>
-       <label>Phút / hoạt động<input type="number" min={1} max={60} value={minutes} onChange={e=>onMinutesChange(e.target.value)}/></label>
+       <label>{tt('Lớp học','Class')}<input placeholder={tt('VD: 12.6','e.g. 12.6')} maxLength={80} value={className} onChange={e=>onClassChange(e.target.value)}/></label>
+       <label>{tt('Phút / hoạt động','Minutes per activity')}<input type="number" min={1} max={60} value={minutes} onChange={e=>onMinutesChange(e.target.value)}/></label>
      </div>
      <div className="lcs5-queue-count" role="status" aria-live="polite">
-       {busy?'Đang đồng bộ hàng đợi…':!ready?'Đang tải buổi dạy…':`${items.length}/20 hoạt động · Đã đồng bộ`}
+       {busy?tt('Đang đồng bộ hàng đợi…','Syncing teaching queue…'):!ready?tt('Đang tải buổi dạy…','Loading teaching session…'):`${items.length}/20 ${tt('hoạt động · Đã đồng bộ','activities · Synced')}`}
      </div>
      <div className="lcs5-queue-items">
        {items.map((item,i)=><div key={item.id} className="lcs5-queue-item" draggable
@@ -84,11 +88,11 @@ export function Assessment5Queue({items=[],onClose,onMove,onRemove,onStart,class
          onDragEnd={()=>setDragIndex(null)}>
          <span className="lcs5-queue-seq">{i+1}</span>
          <div><strong>{item.title}</strong><small>Unit {item.unitNo||'—'} · {item.focusArea||'mixed'}</small></div>
-         <div className="lcs5-queue-move"><button disabled={busy||!ready||i===0} onClick={()=>onMove(i,i-1)} aria-label={'Đưa '+item.title+' lên'}><ArrowUp size={15}/></button><button disabled={busy||!ready||i===items.length-1} onClick={()=>onMove(i,i+1)} aria-label={'Đưa '+item.title+' xuống'}><ArrowDown size={15}/></button><button disabled={busy||!ready} onClick={()=>onRemove(item.id)} aria-label={'Xóa '+item.title+' khỏi buổi dạy'}><Trash2 size={15}/></button></div>
+         <div className="lcs5-queue-move"><button disabled={busy||!ready||i===0} onClick={()=>onMove(i,i-1)} aria-label={tt('Đưa ','Move ')+item.title+tt(' lên',' up')}><ArrowUp size={15}/></button><button disabled={busy||!ready||i===items.length-1} onClick={()=>onMove(i,i+1)} aria-label={tt('Đưa ','Move ')+item.title+tt(' xuống',' down')}><ArrowDown size={15}/></button><button disabled={busy||!ready} onClick={()=>onRemove(item.id)} aria-label={tt('Xóa ','Remove ')+item.title+tt(' khỏi buổi dạy',' from teaching queue')}><Trash2 size={15}/></button></div>
        </div>)}
-       {!items.length?<div className="lcs5-queue-empty">Chưa có hoạt động. Nhấn dấu <b>+</b> trên thẻ trò chơi để thêm vào buổi dạy.</div>:null}
+       {!items.length?<div className="lcs5-queue-empty">{tt('Chưa có hoạt động. Nhấn dấu','No activities yet. Tap the')} <b>+</b> {tt('trên thẻ trò chơi để thêm vào buổi dạy.','on an activity card to add it to the queue.')}</div>:null}
      </div>
-     <footer><button onClick={onClear} disabled={!items.length||busy||!ready}>Xóa hàng đợi</button><button className="is-primary" disabled={!items.length||busy||!ready} onClick={onStart}><Play size={17}/> Bắt đầu trình chiếu</button></footer>
+     <footer><button onClick={onClear} disabled={!items.length||busy||!ready}>{tt('Xóa hàng đợi','Clear queue')}</button><button className="is-primary" disabled={!items.length||busy||!ready} onClick={onStart}><Play size={17}/> {tt('Bắt đầu trình chiếu','Start presentation')}</button></footer>
    </aside>
  </div>;
 }
