@@ -37,4 +37,7 @@ import '../styles/HomeEditorialBlueV9.css';
 import '../styles/mobile/mobile-home-compact.css';
 import '../styles/mobile/mobile-home-footer-flow-fix.css';
 
+// Final, tightly scoped drawer overrides must load after all legacy modal skins.
+import '../styles/HomeHeroCmsEditorDrawer.css';
+
 export default HomeApproved;
