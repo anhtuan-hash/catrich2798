@@ -41,4 +41,29 @@ verify('soft shimmer respects reduced motion, low performance and forced color m
   style.includes('data-performance="minimal"') &&
   style.includes('@media (forced-colors: active)') &&
   style.includes('-webkit-text-fill-color: CanvasText !important'));
+verify('long teacher names use lower proportional text sizes and balanced lines',
+  style.includes('.editorial-hero-heading.is-long-name h1') &&
+  style.includes('.editorial-hero-heading.is-medium-name h1') &&
+  style.includes('text-wrap: balance !important') &&
+  style.includes('font-size: clamp(30px, 7vw, 40px) !important'));
+verify('gradient remains dark enough for complex photo backgrounds',
+  style.includes('#183b60 34%') && style.includes('#344c70 67%') &&
+  style.includes('filter: drop-shadow(0 2px 3px rgba(255,255,255,.95)) !important'));
+verify('seasonal atmosphere is masked from Hero plus margin on the Dashboard only',
+  hero.includes('ref={heroExclusionRef}') &&
+  dash.includes('root.dataset.dashboardHeroExclusion') &&
+  dash.includes('const margin = 38') &&
+  style.includes('html[data-dashboard-hero-exclusion="on"]') &&
+  ['.bes-halloween-atmosphere', '.bes-november-atmosphere', '.bes-vn-atmosphere'].every(s => style.includes(s)));
+verify('mask dynamically follows viewport scroll and resize and cleans up on route change',
+  dash.includes("window.addEventListener('scroll', schedule") &&
+  dash.includes("window.addEventListener('resize', schedule") &&
+  dash.includes('new ResizeObserver(schedule)') &&
+  dash.includes('delete root.dataset.dashboardHeroExclusion') &&
+  dash.includes('properties.forEach((key) => root.style.removeProperty(key))'));
+verify('seasonal overlay masking uses additive CSS alpha masks rather than disabling the themes',
+  style.includes('mask-composite: add') &&
+  style.includes('-webkit-mask-composite: source-over') &&
+  style.includes('--db-hero-exclusion-left') &&
+  style.includes('--db-hero-exclusion-bottom'));
 console.log('PASS: Dashboard personalized greeting + weather minimal design.');
