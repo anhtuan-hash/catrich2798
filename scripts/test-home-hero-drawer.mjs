@@ -12,6 +12,9 @@ function check(label, condition) {
   console.log('✓ ' + label);
 }
 
+check('drawer is portaled to the document root to escape Homepage stacking contexts',
+  editor.includes("import { createPortal } from 'react-dom'") &&
+  editor.includes('return createPortal(') && editor.includes('document.body,'));
 check('right drawer replaces centered full-screen modal', editor.includes('hero-editor hero-editor--drawer') &&
   styling.includes('justify-content: flex-end !important') &&
   styling.includes('width: min(660px, calc(100vw - 32px)) !important'));
