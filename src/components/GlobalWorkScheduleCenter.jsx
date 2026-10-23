@@ -877,7 +877,7 @@ export default function GlobalWorkScheduleCenter({
 
   async function deleteEvent(target) {
     if (!leader || !target || !client || !runtime.session) return;
-    if (!window.confirm(`Xoá lịch “${target.title}”? Hành động này sẽ cập nhật trên toàn hệ thống.`)) return;
+    if (!window.confirm(language === 'en' ? `Delete schedule “${target.title}”? This change will be reflected across the system.` : `Xoá lịch “${target.title}”? Hành động này sẽ cập nhật trên toàn hệ thống.`)) return;
     setBusy(true);
     setError('');
     try {
