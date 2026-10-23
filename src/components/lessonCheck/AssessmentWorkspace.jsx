@@ -287,7 +287,7 @@ export default function AssessmentWorkspace({
       const result = await listAssessmentAssignedClasses(currentUser);
       if (sequence !== rosterRequestSequence.current) return;
       if (!result.ok) {
-        setClassError(result.message || 'Không tải được danh sách học sinh dùng chung.');
+        setClassError(result.message || t("Không tải được danh sách học sinh dùng chung."));
         return;
       }
       const nextClasses = result.items || [];
@@ -300,7 +300,7 @@ export default function AssessmentWorkspace({
       ));
     } catch (error) {
       if (sequence === rosterRequestSequence.current) {
-        setClassError(error?.message || 'Không thể cập nhật danh sách học sinh.');
+        setClassError(error?.message || t("Không thể cập nhật danh sách học sinh."));
       }
     } finally {
       if (sequence === rosterRequestSequence.current) setClassLoading(false);
@@ -408,7 +408,7 @@ export default function AssessmentWorkspace({
     setView('session');
     setStep(Math.max(2,Math.min(4,Number(restorePending.step)||3)));
     setRestorePending(null);
-    setNotice('Đã khôi phục phiên đánh giá chưa hoàn tất từ Supabase.');
+    setNotice(t("Đã khôi phục phiên đánh giá chưa hoàn tất từ Supabase."));
   }, [className, restorePending]);
 
   useEffect(() => {
@@ -448,7 +448,7 @@ export default function AssessmentWorkspace({
       if (!active) return;
       setReportLoading(false);
       if (!sessionsResult.ok || !resultsResult.ok) {
-        setReportError(sessionsResult.message || resultsResult.message || 'Không tải được báo cáo.');
+        setReportError(sessionsResult.message || resultsResult.message || t("Không tải được báo cáo."));
         return;
       }
       setReportSessions(sessionsResult.items || []);
@@ -461,7 +461,7 @@ export default function AssessmentWorkspace({
     if (!resumeToScoreToken || !sessionId) return;
     setView('session');
     setStep(4);
-    setNotice('Hoạt động đã kết thúc. Tiếp tục ghi nhận kết quả.');
+    setNotice(t("Hoạt động đã kết thúc. Tiếp tục ghi nhận kết quả."));
   }, [resumeToScoreToken, sessionId]);
 
   const rosterRefAliases = useMemo(() => buildAssessmentStudentRefAliases(classes), [classes]);
@@ -545,12 +545,12 @@ export default function AssessmentWorkspace({
 
   const randomPick = () => {
     if (!randomPool.length) {
-      setNotice('Hãy chọn học sinh hoặc chuyển phạm vi sang Toàn lớp.');
+      setNotice(t("Hãy chọn học sinh hoặc chuyển phạm vi sang Toàn lớp."));
       return;
     }
     const picked = drawUncalledStudent(randomPool, calledRefs, studentRef);
     if (!picked) {
-      setNotice('Đã gọi hết học sinh trong lượt này. Chọn “Lượt mới” để tiếp tục.');
+      setNotice(t("Đã gọi hết học sinh trong lượt này. Chọn “Lượt mới” để tiếp tục."));
       return;
     }
     const ref = studentRef(picked);
@@ -568,7 +568,7 @@ export default function AssessmentWorkspace({
 
   const randomGroups = () => {
     if (groupingPool.length < 2) {
-      setNotice('Cần ít nhất 2 học sinh trong phạm vi đã chọn để chia nhóm.');
+      setNotice(t("Cần ít nhất 2 học sinh trong phạm vi đã chọn để chia nhóm."));
       return;
     }
     const count = Math.max(2, Math.min(Number(groupCount) || 2, groupingPool.length));
@@ -577,7 +577,7 @@ export default function AssessmentWorkspace({
     setSelectedRefs(groupingPool.map(studentRef));
     setGroupMap(nextMap);
     setGroupCount(count);
-    setNotice(`Đã chia đều ${groupingPool.length} học sinh thành ${count} nhóm. Có thể điều chỉnh thành viên trực tiếp bên phải.`);
+    setNotice((language==='en' ? `Balanced ${groupingPool.length} students into ${count} groups. You can adjust memberships on the right.` : `Đã chia đều ${groupingPool.length} học sinh thành ${count} nhóm. Có thể điều chỉnh thành viên trực tiếp bên phải.`));
   };
 
   const reassignGroup = (ref, group) => {
@@ -585,7 +585,7 @@ export default function AssessmentWorkspace({
     if (previous === group) return;
     const sourceCount = selectedStudents.filter((student) => groupMap[studentRef(student)] === previous).length;
     if (sourceCount <= 1) {
-      setNotice('Mỗi nhóm cần ít nhất một học sinh. Hãy đổi thành viên khác thay vì để trống nhóm.');
+      setNotice(t("Mỗi nhóm cần ít nhất một học sinh. Hãy đổi thành viên khác thay vì để trống nhóm."));
       return;
     }
     setGroupMap((current) => ({ ...current, [ref]: group }));
@@ -647,19 +647,19 @@ export default function AssessmentWorkspace({
 
   const startSession = async () => {
     if (!selectedClass) {
-      setNotice('Hãy chọn lớp.');
+      setNotice(t("Hãy chọn lớp."));
       return;
     }
     if (!selectedStudents.length) {
-      setNotice('Hãy chọn ít nhất một học sinh.');
+      setNotice(t("Hãy chọn ít nhất một học sinh."));
       return;
     }
     if (participationMode === 'group' && selectedStudents.some((student) => !groupMap[studentRef(student)])) {
-      setNotice('Hãy chia nhóm trước khi bắt đầu.');
+      setNotice(t("Hãy chia nhóm trước khi bắt đầu."));
       return;
     }
     if (!selectedActivity) {
-      setNotice('Hãy chọn hoạt động kiểm tra.');
+      setNotice(t("Hãy chọn hoạt động kiểm tra."));
       return;
     }
     const resultState = prepareResults();
@@ -672,13 +672,13 @@ export default function AssessmentWorkspace({
     });
     setSaving(false);
     if (!saved.ok) {
-      setNotice(saved.message || 'Không thể tạo phiên đánh giá.');
+      setNotice(saved.message || t("Không thể tạo phiên đánh giá."));
       return;
     }
     setSessionId(saved.id);
     setSessionCompleted(false);
     setStep(3);
-    setNotice('Phiên đánh giá đã được ghi nhận. Bạn có thể mở hoạt động.');
+    setNotice(t("Phiên đánh giá đã được ghi nhận. Bạn có thể mở hoạt động."));
     onLaunchActivity?.(selectedActivity);
   };
 
@@ -688,12 +688,12 @@ export default function AssessmentWorkspace({
     const saved = await saveAssessmentSession(sessionPayload({ status: 'completed' }));
     setSaving(false);
     if (!saved.ok) {
-      setNotice(saved.message || 'Không thể lưu kết quả.');
+      setNotice(saved.message || t("Không thể lưu kết quả."));
       return;
     }
     setSessionId(saved.id);
     setSessionCompleted(true);
-    setNotice('Đã lưu kết quả đánh giá vào hồ sơ học sinh.');
+    setNotice(t("Đã lưu kết quả đánh giá vào hồ sơ học sinh."));
     setStep(4);
   };
 
@@ -716,17 +716,17 @@ export default function AssessmentWorkspace({
 
   const deleteSession = async (item) => {
     if (!item?.id || deletingSessionId) return;
-    const ok = window.confirm(`Xóa phiên đánh giá “${item.activityTitle || 'không tên'}” của lớp ${item.className || '—'}? Kết quả học sinh thuộc phiên này cũng sẽ bị xóa khỏi báo cáo.`);
+    const ok = window.confirm(`Xóa phiên đánh giá “${item.activityTitle || t("không tên")}” của lớp ${item.className || '—'}? Kết quả học sinh thuộc phiên này cũng sẽ bị xóa khỏi báo cáo.`);
     if (!ok) return;
     setDeletingSessionId(item.id);
     const deleted = await deleteAssessmentSession(item.id);
     setDeletingSessionId('');
     if (!deleted.ok) {
-      setNotice(deleted.message || 'Không thể xóa phiên đánh giá.');
+      setNotice(deleted.message || t("Không thể xóa phiên đánh giá."));
       return;
     }
     if (item.id === sessionId) resetSession();
-    setNotice('Đã xóa phiên đánh giá.');
+    setNotice(t("Đã xóa phiên đánh giá."));
     setReportRefreshKey((value) => value + 1);
   };
 
@@ -751,7 +751,7 @@ export default function AssessmentWorkspace({
   const printReport = () => {
     const popup = window.open('', '_blank');
     if (!popup) {
-      setNotice('Trình duyệt đang chặn cửa sổ in báo cáo. Hãy cho phép pop-up rồi thử lại.');
+      setNotice(t("Trình duyệt đang chặn cửa sổ in báo cáo. Hãy cho phép pop-up rồi thử lại."));
       return;
     }
     try { popup.opener = null; } catch { /* best effort */ }
@@ -782,7 +782,7 @@ export default function AssessmentWorkspace({
           popup.focus();
           popup.print();
         } catch {
-          setNotice('Không thể mở hộp thoại in. Hãy thử lại từ nút In / PDF.');
+          setNotice(t("Không thể mở hộp thoại in. Hãy thử lại từ nút In / PDF."));
         }
       };
       Promise.resolve(popup.document.fonts?.ready)
@@ -790,7 +790,7 @@ export default function AssessmentWorkspace({
         .catch(doPrint);
     } catch {
       try { popup.close(); } catch { /* best effort */ }
-      setNotice('Không tạo được phiếu A4 dọc. Hãy tải lại báo cáo rồi thử lại.');
+      setNotice(t("Không tạo được phiếu A4 dọc. Hãy tải lại báo cáo rồi thử lại."));
     }
   };
 
@@ -843,7 +843,7 @@ export default function AssessmentWorkspace({
       </header>
 
       <div className="f4a-scroll-region">
-      {notice ? <div className="f4a-notice">{notice}</div> : null}
+      {notice ? <div className="f4a-notice">{assessmentText(notice,language)}</div> : null}
       {view === 'session' && recoverable?.sessionId && recoverable.sessionId !== sessionId
         ? <div className="f4a-recovery-banner" role="status">
             <span><strong>{t("Phiên chưa hoàn tất")}</strong> · Lớp {recoverable.className} · Đã tự lưu {formatDate(recoverable.savedAt,language)}</span>
@@ -1088,7 +1088,7 @@ export default function AssessmentWorkspace({
               <div className="f4a-session-history">
                 {reportSessions.slice(0,20).map((item) => <article key={item.id}>
                   <div className="f4a-session-history-top">
-                    <span className={`is-${item.focusArea}`}>{focusLabel(item.focusArea)}</span>
+                    <span className={`is-${item.focusArea}`}>{focusLabel(item.focusArea,language)}</span>
                     <button type="button" className="f4a-delete-session" onClick={() => deleteSession(item)} disabled={deletingSessionId === item.id} title={t("Xóa phiên đánh giá")}>
                       {deletingSessionId === item.id ? <LoaderCircle className="lcs-spin" size={14} /> : <Trash2 size={14} />}<span>{t("Xóa")}</span>
                     </button>
