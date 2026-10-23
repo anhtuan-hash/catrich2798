@@ -1,0 +1,38 @@
+name: Gradebook Refined Hero
+on:
+  pull_request:
+    paths:
+      - 'src/pages/GradebookStudio.jsx'
+      - 'src/styles/GradebookHeroRefined.css'
+      - 'scripts/test-gradebook-refined-hero.mjs'
+      - 'tests/e2e/gradebook-refined-hero.spec.js'
+      - '.github/workflows/gradebook-refined-hero.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/pages/GradebookStudio.jsx'
+      - 'src/styles/GradebookHeroRefined.css'
+      - 'scripts/test-gradebook-refined-hero.mjs'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: node scripts/test-gradebook-refined-hero.mjs
+      - name: Compile production UI
+        run: npx vite build
+      - name: Install browser engines
+        run: npx playwright install --with-deps chromium webkit
+      - name: Verify hero geometry in Chrome and Safari
+        run: npx playwright test tests/e2e/gradebook-refined-hero.spec.js --project=chromium-desktop --project=webkit-desktop
+      - name: Reproduce full Vercel build
+        run: node scripts/test-editorial-app-heroes.mjs && npm run build
