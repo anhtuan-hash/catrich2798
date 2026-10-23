@@ -152,7 +152,7 @@ export default function EventPopupHost({currentUser}) {
           <div className="be-pop-header-id">
             <span className="be-pop-bell" aria-hidden="true"><BellRing size={30} strokeWidth={1.85}/></span>
             <div className="be-pop-heading-copy">
-              <span className="be-pop-eyebrow">BRIAN ENGLISH · THÔNG BÁO DÀNH CHO GIÁO VIÊN</span>
+              <span className="be-pop-eyebrow">BRIAN ENGLISH · THÔNG BÁO DÀNH CHO NHÀ TRƯỜNG</span>
               <h2 id="be-pop-title">Thông báo sự kiện</h2>
               <p id="be-pop-intro">Thông tin mới được gửi đến bạn từ Ban tổ chức.</p>
             </div>
