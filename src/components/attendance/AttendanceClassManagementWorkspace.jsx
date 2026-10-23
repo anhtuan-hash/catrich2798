@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { AttendancePanelHeading, AttendanceEmpty } from './AttendanceWorkspaceUI.jsx';
 import { attendanceSubjectKey, extraClassTypeLabel } from '../../utils/extraClassAttendance.js';
 import { roomForExtraClass, weekdaysForExtraClass } from '../../utils/extraClassSchedule2026.js';
@@ -99,6 +99,36 @@ const SUBJECT_ICONS = {
 };
 function classSubjectIcon(subjectKey) { return SUBJECT_ICONS[subjectKey] || 'book'; }
 
+/**
+ * Keep the class-management subview in tab-scoped storage so a session refresh,
+ * browser/window switch or temporary route remount does not return the user
+ * to the grade-filter overview. Never store student data or teacher notes here.
+ */
+function manageSessionKey(scope) {
+  return scope ? 'bes-attendance-management-ui-v1:' + String(scope) : '';
+}
+
+function readManageSession(scope) {
+  if (typeof window === 'undefined') return {};
+  const key = manageSessionKey(scope);
+  if (!key) return {};
+  try {
+    const parsed = JSON.parse(window.sessionStorage.getItem(key) || '{}');
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeManageSession(scope, next) {
+  if (typeof window === 'undefined') return;
+  const key = manageSessionKey(scope);
+  if (!key) return;
+  try {
+    window.sessionStorage.setItem(key, JSON.stringify({ ...readManageSession(scope), ...next }));
+  } catch { /* Browsing without session storage must remain usable. */ }
+}
+
 function downloadMemberCsv(selectedClass, members) {
   if (!selectedClass) return;
   const rows = [
@@ -158,17 +188,55 @@ export default function AttendanceClassManagementWorkspace({
   setError,
   setNotice,
   onSelectClass,
+  stateScope = '',
 }) {
-  const [manageDetailOpen, setManageDetailOpen] = useState(false);
-  const [manageClassQuery, setManageClassQuery] = useState('');
-  const [manageTypeFilter, setManageTypeFilter] = useState('all');
-  const [manageGradeFilter, setManageGradeFilter] = useState('all');
-  const [manageDisplay, setManageDisplay] = useState('grid');
+  const [initialManageSession] = useState(() => readManageSession(stateScope));
+  const [manageDetailOpen, setManageDetailOpen] = useState(() => Boolean(initialManageSession.detailOpen && initialManageSession.detailClassId));
+  const [openedClassId, setOpenedClassId] = useState(() => String(initialManageSession.detailClassId || ''));
+  const [manageClassQuery, setManageClassQuery] = useState(() => String(initialManageSession.classQuery || ''));
+  const [manageTypeFilter, setManageTypeFilter] = useState(() => ['all', 'remedial', 'gifted'].includes(initialManageSession.typeFilter) ? initialManageSession.typeFilter : 'all');
+  const [manageGradeFilter, setManageGradeFilter] = useState(() => ['all', '10', '11', '12'].includes(initialManageSession.gradeFilter) ? initialManageSession.gradeFilter : 'all');
+  const [manageDisplay, setManageDisplay] = useState(() => initialManageSession.display === 'list' ? 'list' : 'grid');
+  const detailBodyRef = useRef(null);
   const [editingClass, setEditingClass] = useState(false);
   const [schoolStudentQuery, setSchoolStudentQuery] = useState('');
   const [schoolStudents, setSchoolStudents] = useState([]);
   const [schoolRosterStatus, setSchoolRosterStatus] = useState('');
   const [schoolRosterRefresh, setSchoolRosterRefresh] = useState(0);
+
+  // Preserve filters and the currently opened class without requiring another
+  // data fetch. This survives a component remount caused by auth revalidation.
+  useEffect(() => {
+    writeManageSession(stateScope, {
+      detailOpen: manageDetailOpen,
+      detailClassId: openedClassId,
+      classQuery: manageClassQuery,
+      typeFilter: manageTypeFilter,
+      gradeFilter: manageGradeFilter,
+      display: manageDisplay,
+    });
+  }, [stateScope, manageDetailOpen, openedClassId, manageClassQuery, manageTypeFilter, manageGradeFilter, manageDisplay]);
+
+  // Restore the actual selected class, not simply the default first class.
+  // Wait until the roster has loaded before deciding that a saved class is gone.
+  useEffect(() => {
+    if (!manageDetailOpen || !openedClassId || !activeClasses.length) return;
+    if (!activeClasses.some((classRow) => String(classRow.id) === openedClassId)) {
+      setManageDetailOpen(false);
+      return;
+    }
+    if (String(selectedClass?.id || '') !== openedClassId) onSelectClass?.(openedClassId);
+  }, [manageDetailOpen, openedClassId, activeClasses, selectedClass?.id, onSelectClass]);
+
+  const visibleDetailClassId = manageDetailOpen && String(selectedClass?.id || '') === openedClassId
+    ? openedClassId : '';
+  useLayoutEffect(() => {
+    if (!visibleDetailClassId || !detailBodyRef.current) return;
+    const saved = readManageSession(stateScope);
+    if (String(saved.scrollClassId || '') === visibleDetailClassId) {
+      detailBodyRef.current.scrollTop = Math.max(0, Number(saved.scrollTop) || 0);
+    }
+  }, [visibleDetailClassId, stateScope]);
 
   useEffect(() => {
     if (!showAddStudent || !client || !manageDetailOpen || !selectedClass) return undefined;
@@ -225,9 +293,12 @@ export default function AttendanceClassManagementWorkspace({
     return haystack.includes(query);
   }), [activeClasses, manageClassQuery, manageTypeFilter, manageGradeFilter, teachersForClass]);
 
-  const detailVisible = Boolean(manageDetailOpen && selectedClass);
+  const detailVisible = Boolean(visibleDetailClassId && selectedClass);
 
   function openClass(classRow) {
+    const id = String(classRow.id);
+    writeManageSession(stateScope, { detailOpen: true, detailClassId: id, scrollClassId: id, scrollTop: 0 });
+    setOpenedClassId(id);
     onSelectClass?.(classRow.id);
     setMemberQuery?.('');
     setShowAddStudent?.(false);
@@ -483,7 +554,11 @@ export default function AttendanceClassManagementWorkspace({
           <button type="button" onClick={() => downloadMemberCsv(selectedClass, allSelectedMembers)}><WorkspaceIcon name="download" size={16} />Xuất danh sách</button>
         </header>
 
-        <div className={`attendance-manage-detail-body${editingClass ? ' is-editing-class' : ''}`} tabIndex={0} aria-label="Danh sách học sinh có thể cuộn">
+        <div ref={detailBodyRef} className={`attendance-manage-detail-body${editingClass ? ' is-editing-class' : ''}`} tabIndex={0} aria-label="Danh sách học sinh có thể cuộn"
+          onScroll={(event) => writeManageSession(stateScope, {
+            scrollClassId: String(selectedClass.id),
+            scrollTop: event.currentTarget.scrollTop,
+          })}>
           <AttendanceClassEditor
             client={client}
             selectedClass={selectedClass}
