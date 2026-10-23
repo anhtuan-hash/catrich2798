@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import {
   AlertTriangle, ArrowRight, BookOpen, CalendarDays, CheckCircle2,
-  ChevronLeft, ChevronRight, GraduationCap, ListChecks, MapPin,
+  ChevronLeft, ChevronRight, Clock3, GraduationCap, ListChecks, MapPin,
   Search, UsersRound, X,
 } from 'lucide-react';
 import { dashboardLocalDayKey } from '../utils/dashboardClassification.js';
@@ -94,15 +94,19 @@ export default function DashboardWorkPlanner({
       && (!needle || [item.title, item.description, item.sourceLabel, item.owner].some(
         (value) => String(value || '').toLocaleLowerCase('vi').includes(needle))));
   }, [selectedEvents, filter, search]);
-  const featured = selectedEvents.find((item) => !item.done && dateMs(item) >= now.getTime())
-    || (!isToday ? selectedEvents.find((item) => !item.done) : null);
+  const selectedDateInPast = selected.getTime() < dayStart(now).getTime();
+  const featured = selectedDateInPast ? null : selectedEvents.find((item) => !item.done && dateMs(item) >= now.getTime());
+  const upcomingMinutes = featured && isToday ? Math.ceil((dateMs(featured) - now.getTime()) / 60000) : null;
   const FeatureIcon = ICONS[category(featured)] || CalendarDays;
   const chooseDay = (d) => { setSelected(dayStart(d)); setMonth(monthNumber(d)); setFilter('all'); };
   const goToToday = () => chooseDay(now);
+  // Fill the summary with actually relevant categories instead of prominent zero cards.
+  const leadingCategories = OPTIONS.filter(([key]) => key !== 'all')
+    .sort((a,b) => counts[b[0]] - counts[a[0]])
+    .slice(0, 2);
   const stats = [
     ['all', vi ? 'Tổng hoạt động' : 'Total events', CalendarDays],
-    ['teaching', vi ? 'Giảng dạy' : 'Teaching', GraduationCap],
-    ['meeting', vi ? 'Cuộc họp' : 'Meetings', UsersRound],
+    ...leadingCategories.map(([key, label, en, Icon]) => [key, vi ? label : en, Icon]),
     ['urgent', vi ? 'Cần ưu tiên' : 'Priority', AlertTriangle],
   ];
   return <section className="bwp" id="dashboard-calendar"
@@ -111,7 +115,7 @@ export default function DashboardWorkPlanner({
       <div className="bwp-heading">
         <span className="bwp-main-icon"><CalendarDays size={25}/></span>
         <span><small>{vi ? 'KẾ HOẠCH CÔNG VIỆC' : 'WORK PLANNER'}</small>
-          <h2>{vi ? 'Lịch làm việc hôm nay' : "Today's work planner"}</h2>
+          <h2>{isToday ? (vi ? 'Lịch làm việc hôm nay' : "Today's work planner") : (vi ? 'Lịch làm việc' : 'Work planner')}</h2>
           <p>{selectedLabel}</p></span>
       </div>
       <div className="bwp-stats">
@@ -154,30 +158,31 @@ export default function DashboardWorkPlanner({
           <CalendarDays size={15}/>{vi ? 'Quay về hôm nay' : 'Back to today'}
         </button>
         <div className="bwp-side-card">
-          <div className="bwp-side-art" aria-hidden="true"><i/><i/><i/></div>
-          <small>{vi ? 'NGÀY ĐÃ CHỌN' : 'SELECTED DATE'}</small>
+          <small>{vi ? 'TỔNG QUAN NGÀY' : 'DAY AT A GLANCE'}</small>
           <strong>{new Intl.DateTimeFormat(locale,{day:'2-digit',month:'2-digit',year:'numeric'}).format(selected)}</strong>
-          <p>{vi ? 'Mỗi ngày một kế hoạch rõ ràng, mỗi việc một bước tiến.' : 'A clear plan for every productive day.'}</p>
-          <div><CheckCircle2 size={16}/>{counts.all} {vi ? 'hoạt động đã lên lịch' : 'scheduled events'}</div>
-          {coverage?.limited ? <em>{vi ? 'Dữ liệu một số nguồn lịch có thể chưa đầy đủ.' : 'Some sources may be incomplete.'}</em> : null}
+          <div><CheckCircle2 size={17}/>{counts.all} {vi ? 'hoạt động đã lên lịch' : 'scheduled events'}</div>
+          {coverage?.limited ? <em>{vi ? 'Một số nguồn lịch chưa đồng bộ đầy đủ.' : 'Some sources are incomplete.'}</em> : null}
         </div>
       </aside>
       <div className="bwp-main">
         <div className={'bwp-next' + (featured ? '' : ' is-empty')}>
-          <span className="bwp-next-icon"><FeatureIcon size={24}/></span>
-          <div><small>{featured ? (vi ? 'SẮP DIỄN RA' : 'COMING UP') : (vi ? 'KẾ HOẠCH TRONG NGÀY' : 'DAY PLAN')}</small>
-            <strong>{featured ? featured.title : (vi ? 'Không có hoạt động sắp diễn ra' : 'Nothing upcoming')}</strong>
-            <p>{featured
-              ? timeText(featured, locale, vi ? 'Cả ngày' : 'All day') + ' · ' + (featured.owner || featured.sourceLabel || '')
-              : (vi ? 'Chọn một ngày khác hoặc xem lịch đầy đủ.' : 'Select another day or open the full calendar.')}</p>
+          <span className="bwp-next-icon">{featured ? <FeatureIcon size={22}/> : <CalendarDays size={22}/>}</span>
+          <div>
+            <small>{featured ? (isToday ? (vi ? 'TIẾP THEO TRONG NGÀY' : 'UP NEXT TODAY') : (vi ? 'LỊCH NỔI BẬT' : 'FEATURED SCHEDULE')) : (vi ? 'TỔNG QUAN NGÀY' : 'DAILY OVERVIEW')}</small>
+            <strong>{featured ? featured.title : (selectedDateInPast ? (vi ? 'Đã qua ngày được chọn' : 'Selected day has passed') : (vi ? 'Không còn hoạt động sắp diễn ra' : 'No upcoming events'))}</strong>
+            {featured ? <p><Clock3 size={14}/>{timeText(featured, locale, vi ? 'Cả ngày' : 'All day')}
+              {upcomingMinutes !== null && upcomingMinutes > 0 && upcomingMinutes <= 120
+                ? <span className="bwp-countdown">{vi ? `Còn ${upcomingMinutes} phút` : `In ${upcomingMinutes} min`}</span> : null}
+              <span>{featured.owner || featured.sourceLabel || ''}</span></p> :
+              <p>{vi ? 'Sử dụng lịch tháng để xem các hoạt động khác.' : 'Use the calendar to explore other days.'}</p>}
           </div>
           {featured ? <button type="button" onClick={() => onOpenItem?.(featured)}>
-            {vi ? 'Chi tiết' : 'Details'}<ArrowRight size={16}/>
+            {vi ? 'Xem chi tiết' : 'View details'}<ArrowRight size={16}/>
           </button> : null}
         </div>
         <div className="bwp-toolbar">
           <div className="bwp-filter-group" role="group" aria-label={vi ? 'Bộ lọc lịch' : 'Schedule filters'}>
-            {OPTIONS.map(([key,label,en,Icon]) =>
+            {OPTIONS.filter(([key]) => key === 'all' || counts[key] > 0 || filter === key).map(([key,label,en,Icon]) =>
               <button key={key} type="button" aria-pressed={filter===key}
                 className={'bwp-tab' + (filter===key?' is-selected':'')}
                 onClick={() => setFilter(key)}><Icon size={16}/>{vi?label:en}<b>{counts[key]}</b></button>)}
@@ -201,7 +206,7 @@ export default function DashboardWorkPlanner({
               const end = Date.parse(item.raw?.metadata?.schedule_end_at || '');
               const active = !item.done && Number.isFinite(end) && start <= now.getTime() && now.getTime() < end;
               const place = String(item.raw?.metadata?.schedule_location || '').trim();
-              return <button type="button" className={'bwp-row kind-' + kind} key={item.id || i}
+              return <button type="button" className={'bwp-row kind-' + kind + (featured?.id === item.id ? ' is-next' : '')} key={item.id || i}
                 onClick={() => onOpenItem?.(item)}>
                 <span className="bwp-time"><strong>{timeText(item,locale,vi?'Cả ngày':'All day')}</strong><small>{minutesText(item,vi)}</small></span>
                 <span className="bwp-rail"><i/></span>
