@@ -29,7 +29,7 @@ function chipColor(score){
 export default function GradebookProductivityPanel({
   students,semester,activeRound,roundIndex,gradebook,subjectKey,semesterId,
   onPaste,onSetAlertSettings,onSetIntervention,onSetFinalization,onSaveRubric,onRestoreHistory,
-  subjectName,workspace,currentUser,computeRoundScore,dirty,finalized=false
+  subjectName,workspace,currentUser,computeRoundScore,dirty,finalized=false,embedded=false
 }){
   const [tab,setTab]=useState('paste');
   const [paste,setPaste]=useState('');
@@ -128,11 +128,12 @@ export default function GradebookProductivityPanel({
   };
   const warnings=info.atRisk;
   const visibleRows=info.rows.filter(row=>filter==='all'||(filter==='missing'&&row.missing>0)||(filter==='risk'&&(row.low||row.dropping)));
-  return <details className="gb-prod">
-    <summary className="gb-prod-heading">
+  const Container = embedded ? 'section' : 'details';
+  return <Container className={embedded ? 'gb-prod gb-prod-embedded' : 'gb-prod'}>
+    {!embedded ? <summary className="gb-prod-heading">
       <span><strong>Bộ công cụ Sổ điểm</strong><small>Nhập hàng loạt · Tiến độ · Phân tích · Cảnh báo · Nhật ký</small></span>
       <span className="gb-prod-count">{info.incomplete} học sinh chưa đủ 6 thành phần <span aria-hidden="true">⌄</span></span>
-    </summary>
+    </summary> : null}
     <div className="gb-prod-body">
       <div className="gb-prod-tabs" role="tablist" aria-label="Công cụ mở rộng">
         {TABS.map(item=><button key={item.id} type="button" role="tab" aria-selected={tab===item.id}
@@ -316,5 +317,5 @@ export default function GradebookProductivityPanel({
         onRestoreHistory={onRestoreHistory}
       />
     </div>
-  </details>;
+  </Container>;
 }
