@@ -369,3 +369,69 @@
   .app-shell[data-route="dashboard"] .bwp-meta {font-size:11px!important;}
   .app-shell[data-route="dashboard"] .bwp-tag {grid-column:4!important;font-size:10px!important;padding:6px 9px!important;min-height:27px!important;justify-self:start!important;}
 }
+
+
+/* Work Planner V3 — bounded, independently scrolling agenda.
+   The month picker, next-event card and filter toolbar stay in normal flow. */
+.app-shell[data-route="dashboard"] .bwp-main{
+  min-width:0!important;
+  min-height:0!important;
+}
+.app-shell[data-route="dashboard"] .bwp .bwp-agenda {
+  display:grid!important;
+  align-content:start!important;
+  gap:10px!important;
+  max-height:clamp(400px,52vh,520px)!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  padding:3px 9px 8px 3px!important;
+  scroll-behavior:smooth!important;
+  scroll-padding-block:12px!important;
+  scrollbar-width:thin;
+  scrollbar-color:#bfd3ec transparent;
+  scrollbar-gutter:stable;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y;
+  overscroll-behavior-y:auto;
+}
+.app-shell[data-route="dashboard"] .bwp .bwp-agenda::-webkit-scrollbar {
+  width:8px;
+}
+.app-shell[data-route="dashboard"] .bwp .bwp-agenda::-webkit-scrollbar-track {
+  background:#f4f8fd;
+  border-radius:999px;
+}
+.app-shell[data-route="dashboard"] .bwp .bwp-agenda::-webkit-scrollbar-thumb {
+  background:#b9cde6;
+  border:2px solid #f4f8fd;
+  border-radius:999px;
+}
+.app-shell[data-route="dashboard"] .bwp .bwp-agenda::-webkit-scrollbar-thumb:hover {
+  background:#83a8d5;
+}
+.app-shell[data-route="dashboard"] .bwp .bwp-agenda:focus-visible {
+  outline:2px solid #8ebaf1!important;
+  outline-offset:3px!important;
+  border-radius:12px!important;
+}
+.app-shell[data-route="dashboard"] .bwp .bwp-agenda .bwp-row {
+  min-width:0!important;
+  flex-shrink:0!important;
+}
+@media (max-width:840px) {
+  .app-shell[data-route="dashboard"] .bwp .bwp-agenda {
+    max-height:clamp(330px,56dvh,480px)!important;
+  }
+}
+@media (max-width:560px) {
+  .app-shell[data-route="dashboard"] .bwp .bwp-agenda {
+    max-height:clamp(300px,54dvh,450px)!important;
+    padding-right:5px!important;
+    gap:8px!important;
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  .app-shell[data-route="dashboard"] .bwp .bwp-agenda {
+    scroll-behavior:auto!important;
+  }
+}
