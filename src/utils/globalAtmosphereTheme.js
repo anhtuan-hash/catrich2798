@@ -15,9 +15,17 @@ export const DEFAULT_HALLOWEEN_SETTINGS = Object.freeze({
   speed: 1,
   density: 10,
 });
+export const DEFAULT_NOVEMBER_SETTINGS = Object.freeze({
+  enabled: true,
+  showBuiltIns: true,
+  opacity: 0.15,
+  speed: 1,
+  density: 10,
+});
 export const DEFAULT_GLOBAL_ATMOSPHERE = Object.freeze({
   activeTheme: 'vietnam',
   halloween: DEFAULT_HALLOWEEN_SETTINGS,
+  november: DEFAULT_NOVEMBER_SETTINGS,
   status: 'idle',
   setupRequired: false,
   error: '',
@@ -30,14 +38,23 @@ const clamp = (value, min, max, fallback) => {
 
 export function normalizeGlobalAtmosphere(value = {}) {
   const halloween = { ...DEFAULT_HALLOWEEN_SETTINGS, ...(value.halloween || {}) };
+  const november = { ...DEFAULT_NOVEMBER_SETTINGS, ...(value.november || {}) };
   return {
-    activeTheme: value.activeTheme === 'halloween' || value.active_theme === 'halloween' ? 'halloween' : 'vietnam',
+    activeTheme: ['vietnam', 'halloween', 'november'].includes(value.activeTheme ?? value.active_theme)
+      ? (value.activeTheme ?? value.active_theme) : 'vietnam',
     halloween: {
       enabled: halloween.enabled !== false,
       showBuiltIns: halloween.showBuiltIns !== false && halloween.show_built_ins !== false,
       opacity: clamp(halloween.opacity, 0.03, 0.28, DEFAULT_HALLOWEEN_SETTINGS.opacity),
       speed: clamp(halloween.speed, 0.4, 2.5, DEFAULT_HALLOWEEN_SETTINGS.speed),
       density: Math.round(clamp(halloween.density, 3, 18, DEFAULT_HALLOWEEN_SETTINGS.density)),
+    },
+    november: {
+      enabled: november.enabled !== false,
+      showBuiltIns: november.showBuiltIns !== false && november.show_built_ins !== false,
+      opacity: clamp(november.opacity, 0.03, 0.28, DEFAULT_NOVEMBER_SETTINGS.opacity),
+      speed: clamp(november.speed, 0.4, 2.5, DEFAULT_NOVEMBER_SETTINGS.speed),
+      density: Math.round(clamp(november.density, 3, 18, DEFAULT_NOVEMBER_SETTINGS.density)),
     },
     status: String(value.status || 'idle'),
     setupRequired: Boolean(value.setupRequired),
@@ -73,6 +90,13 @@ function fromRow(row) {
       opacity: row.halloween_opacity,
       speed: row.halloween_speed,
       density: row.halloween_density,
+    },
+    november: {
+      enabled: row.november_enabled,
+      showBuiltIns: row.november_show_built_ins,
+      opacity: row.november_opacity,
+      speed: row.november_speed,
+      density: row.november_density,
     },
     status: 'synced',
   });
@@ -118,6 +142,7 @@ export async function saveGlobalAtmosphereTheme(user, patch) {
     ...current,
     ...patch,
     halloween: { ...current.halloween, ...(patch?.halloween || {}) },
+    november: { ...current.november, ...(patch?.november || {}) },
   });
   const payload = {
     workspace_key: WORKSPACE,
@@ -127,6 +152,11 @@ export async function saveGlobalAtmosphereTheme(user, patch) {
     halloween_opacity: next.halloween.opacity,
     halloween_speed: next.halloween.speed,
     halloween_density: next.halloween.density,
+    november_enabled: next.november.enabled,
+    november_show_built_ins: next.november.showBuiltIns,
+    november_opacity: next.november.opacity,
+    november_speed: next.november.speed,
+    november_density: next.november.density,
     updated_at: new Date().toISOString(),
   };
   const { data, error } = await supabase.from(TABLE).upsert(payload, { onConflict: 'workspace_key' }).select('*').single();

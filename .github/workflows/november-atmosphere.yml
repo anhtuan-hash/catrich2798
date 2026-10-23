@@ -1,0 +1,34 @@
+name: November Teachers Day Atmosphere
+on:
+  pull_request:
+    paths:
+      - 'src/components/November*'
+      - 'src/components/VietnamAtmosphereAdminPanel.*'
+      - 'src/components/VietnamAtmosphereOverlay.jsx'
+      - 'src/utils/globalAtmosphereTheme.js'
+      - 'supabase/global_atmosphere_november_2026.sql'
+      - 'scripts/test-november-atmosphere.mjs'
+      - '.github/workflows/november-atmosphere.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/components/November*'
+      - 'src/utils/globalAtmosphereTheme.js'
+      - 'scripts/test-november-atmosphere.mjs'
+permissions:
+  contents: read
+jobs:
+  verify-november:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node scripts/test-november-atmosphere.mjs
+      - run: npm ci --no-audit --no-fund
+      - name: Check Vite production compilation
+        run: npx vite build
