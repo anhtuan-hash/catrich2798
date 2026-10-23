@@ -256,3 +256,17 @@ html[data-theme="dark"] .page.hr-page.hr-v4 .hr4-student-title>div:first-child>s
   .hr4-permanent-dialog { max-height: 92dvh; border-radius: 20px; padding: 20px; }
   .hr4-permanent-actions button { flex: 1; }
 }
+
+/* Transaction progress and retry notices for resumable Supabase erasure. */
+.hr4-permanent-dialog .hr4-permanent-progress {
+  margin: 13px 0 0; padding: 11px 13px;
+  background: #edf5ff; border: 1px solid #c9ddf7;
+  border-radius: 11px; color: #234a7a;
+  font-size: 13px; font-weight: 700; line-height: 1.5;
+}
+.hr4-permanent-dialog .hr4-permanent-error {
+  margin-top: 10px !important; padding: 10px 12px;
+  border-radius: 11px; background: #fff2ef;
+  border: 1px solid #ffcfca;
+  color: #aa2d23 !important; font-size: 13px; line-height: 1.5;
+}
