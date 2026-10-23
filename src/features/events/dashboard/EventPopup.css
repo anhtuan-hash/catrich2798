@@ -71,3 +71,12 @@
 .be-pop-inbox-list small{color:#8a9db2;font-size:11px}
 .be-pop-inbox-date{display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;border-radius:11px;background:#edf5ff;color:#397cce}
 @media(max-width:680px){.be-pop-inbox-trigger{left:12px;bottom:12px;min-height:40px}.be-pop-inbox-trigger>span{font-size:11px}.be-pop-inbox-overlay{padding:9px;align-items:flex-end}.be-pop-inbox-dialog{max-height:89dvh;width:100%;border-radius:15px 15px 0 0}.be-pop-inbox-dialog h2{font-size:18px}}
+
+
+/* Clear feedback for login-scoped events without offering misleading
+   "hide today" or "snooze" controls that would conflict with re-login. */
+.be-pop-login-hint{margin:0;display:inline-flex;align-items:center;gap:8px;
+  color:#547493;font-size:12px;line-height:1.5;font-weight:660;
+  max-width:500px}
+.be-pop-login-hint svg{flex:0 0 auto;color:#447ac3}
+@media(max-width:720px){.be-pop-login-hint{font-size:11px;padding:2px 4px}}
