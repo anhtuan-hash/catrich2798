@@ -83,6 +83,8 @@ import {
 import './LessonCheckStudio.css';
 import './LessonCheckApprovedMockupOne.css';
 import './LessonCheckHeroIndependent.css';
+// Route-local width parity with Homeroom and Dashboard; loaded last.
+import './LessonCheckAlignAppGutters.css';
 
 const TYPE_OPTIONS = [
   { value: 'quiz', vi: 'Trắc nghiệm', en: 'Quiz' },

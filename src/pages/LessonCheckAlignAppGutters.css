@@ -1,0 +1,72 @@
+/* Assessment / Lesson Check — unified page gutters, 2026-10-23.
+   Use the same app-shell content edges as Homeroom and the corrected Dashboard.
+   Previously the library page lost another 12px on both sides and the Hero
+   subtracted another clamp(32px,4.4vw,72px) within it.
+   This layout-only layer is scoped to the Lesson Check library page:
+   the Dashboard, Homeroom and their independent Hero CMS are untouched.
+*/
+.lcs-page.lcs-page--library{
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  margin-left:0!important;
+  margin-right:0!important;
+  padding-left:0!important;
+  padding-right:0!important;
+}
+
+/* Clear the extra Hero inset while keeping its image, CTA stack and breakpoint
+   behavior from LessonCheckHeroIndependent.css. */
+.lcs-page.lcs-page--library > .lcs-arcade-head.lch-hero {
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  margin-left:0!important;
+  margin-right:0!important;
+}
+
+/* All primary surfaces share exactly one pair of horizontal edges.
+   Keep each surface's existing vertical spacing, typography and controls. */
+.lcs-page.lcs-page--library > :is(
+  .lcs5-command,
+  .lcs-a4-launcher,
+  .lcs-arcade-library,
+  .lcs-builder-shell,
+  .lcs-system-alert,
+  .lcs-toast,
+  #assessment4-workbench
+){
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  margin-left:0!important;
+  margin-right:0!important;
+}
+.lcs-page.lcs-page--library > :is(.lcs5-command,.lcs-a4-launcher,.lcs-arcade-library) {
+  overflow-wrap:anywhere;
+}
+/* The purely decorative wash must not protrude past the page edges. */
+.lcs-page.lcs-page--library::before{
+  inset:0!important;
+  max-width:100%!important;
+}
+
+@media(max-width:900px){
+  .lcs-page.lcs-page--library {
+    width:100%!important;
+    max-width:none!important;
+  }
+}
+@media(max-width:620px){
+  .lcs-page.lcs-page--library {
+    width:100%!important;
+    max-width:none!important;
+  }
+  .lcs-page.lcs-page--library > .lcs-arcade-head.lch-hero{
+    width:100%!important;
+    max-width:none!important;
+  }
+}
