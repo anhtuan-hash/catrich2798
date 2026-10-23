@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import { isEventPopupDue } from '../src/features/events/utils/eventEligibility.mjs';
+const now=new Date('2026-10-23T12:00:00Z');
+const mk=(frequency,receipt)=>({frequency,receipt});
+assert.equal(isEventPopupDue(mk('once',null),now),true);
+assert.equal(isEventPopupDue(mk('once',{first_shown_at:'2026-10-23T11:00:00Z'}),now),false);
+assert.equal(isEventPopupDue(mk('once',{first_shown_at:'2026-10-23T11:00:00Z',snooze_until:'2026-10-23T15:00:00Z'}),now),false);
+assert.equal(isEventPopupDue(mk('once',{first_shown_at:'2026-10-23T11:00:00Z',snooze_until:'2026-10-23T11:59:59Z'}),now),true);
+assert.equal(isEventPopupDue(mk('once',{first_shown_at:'2026-10-23T11:00:00Z',hidden_until:'2026-10-23T17:00:00Z'}),now),false);
+assert.equal(isEventPopupDue(mk('once',{first_shown_at:'2026-10-23T11:00:00Z',hidden_until:'2026-10-23T11:59:00Z'}),now),true);
+assert.equal(isEventPopupDue(mk('once',{acknowledged_at:'2026-10-23T10:00:00Z',snooze_until:'2026-10-23T11:00:00Z'}),now),false);
+assert.equal(isEventPopupDue(mk('daily',{last_shown_at:'2026-10-23T04:00:00Z'}),now),false);
+assert.equal(isEventPopupDue(mk('daily',{last_shown_at:'2026-10-22T12:00:00Z'}),now),true);
+assert.equal(isEventPopupDue(mk('until_ack',{last_shown_at:'2026-10-23T04:00:00Z'}),now),true);
+assert.equal(isEventPopupDue(mk('until_ack',{acknowledged_at:'2026-10-23T10:00:00Z'}),now),false);
+console.log('Event popup scheduling regression cases passed.');
