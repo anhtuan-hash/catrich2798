@@ -126,6 +126,8 @@ export default function Settings({
   const [detailFullscreen, setDetailFullscreen] = useState(false);
   const [appearanceTab, setAppearanceTab] = useState('global-font');
   const [motionDirty, setMotionDirty] = useState(false);
+  const [fontDirty, setFontDirty] = useState(false);
+  const [regionalFontDirty, setRegionalFontDirty] = useState(false);
   const drawerRef = useRef(null);
   const drawerCloseRef = useRef(null);
   const previousTriggerRef = useRef(null);
@@ -139,7 +141,7 @@ export default function Settings({
     setActiveModule(id);
   };
   const closeModule = () => {
-    if (activeModule === 'appearance' && motionDirty && !window.confirm(vi ? 'Bạn có thay đổi hiệu ứng chưa lưu hoặc công bố. Đóng và bỏ phần xem trước?' : 'You have unpublished motion changes. Close and discard the preview?')) return;
+    if (activeModule === 'appearance' && (motionDirty || fontDirty || regionalFontDirty) && !window.confirm(vi ? 'Bạn có tùy chỉnh giao diện chưa lưu. Đóng và bỏ phần xem trước?' : 'You have unsaved appearance changes. Close and discard previews?')) return;
     if (passwordForm.current || passwordForm.next || passwordForm.confirm) {
       if (!window.confirm(vi ? 'Bạn có thông tin mật khẩu chưa gửi. Đóng và bỏ nội dung đang nhập?' : 'Discard your unsent password changes?')) return;
       setPasswordForm({ current: '', next: '', confirm: '' });
@@ -147,6 +149,8 @@ export default function Settings({
     setActiveModule(null);
     setDetailFullscreen(false);
     setMotionDirty(false);
+    setFontDirty(false);
+    setRegionalFontDirty(false);
     requestAnimationFrame(() => previousTriggerRef.current?.focus?.());
   };
   useEffect(() => {
@@ -361,10 +365,10 @@ export default function Settings({
                     {['admin','administrator'].includes(String(currentUser?.role || '').toLowerCase()) ? (
                       <Suspense fallback={<p className="settings-launcher-loading">{vi ? 'Đang tải tùy chỉnh…' : 'Loading customization…'}</p>}>
                         <section className="settings-appearance-panel" role="tabpanel" hidden={appearanceTab !== 'global-font'}>
-                          <GlobalFontAdminPanel currentUser={currentUser} language={language} />
+                          <GlobalFontAdminPanel currentUser={currentUser} language={language} onDirtyChange={setFontDirty} />
                         </section>
                         <section className="settings-appearance-panel" role="tabpanel" hidden={appearanceTab !== 'regional-font'}>
-                          <RegionalFontAdminPanel currentUser={currentUser} language={language} />
+                          <RegionalFontAdminPanel currentUser={currentUser} language={language} onDirtyChange={setRegionalFontDirty} />
                         </section>
                         <section className="settings-appearance-panel" role="tabpanel" hidden={appearanceTab !== 'motion'}>
                           <div className="settings-motion-admin-hub">
@@ -425,7 +429,7 @@ export default function Settings({
             </section>
           ) : null}
 
-          <section className="settings-google-card-grid">
+          {activeModule !== 'appearance' ? <section className="settings-google-card-grid">
             {activeModule === 'notifications' && matches('thông báo', 'notification', 'email', 'nhắc nhở') ? (
               <article id="settings-notifications" className="settings-google-card tone-blue">
                 <CardHeader icon="bell" tone="blue" title={vi ? 'Thông báo' : 'Notifications'} subtitle={vi ? 'Quản lý thông báo và nhắc nhở.' : 'Manage alerts and reminders.'} />
@@ -500,7 +504,7 @@ export default function Settings({
                 <div className="settings-m3-reset-row"><span>{vi ? 'Chuyển động và indicator được quản lý tại Hub phía trên.' : 'Motion and indicators are managed in the hub above.'}</span><button type="button" onClick={resetSettings}>{vi ? 'Đặt lại mặc định' : 'Reset defaults'}</button></div></> : null}
               </article>
             ) : null}
-          </section>
+          </section> : null}
 
                 {message ? <div className="settings-google-snackbar" role="status"><span>✓</span>{message}<button type="button" onClick={() => setMessage('')}>×</button></div> : null}
               </div>
