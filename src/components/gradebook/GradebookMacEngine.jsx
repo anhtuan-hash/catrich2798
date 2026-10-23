@@ -11,6 +11,7 @@ import {
 } from '../../utils/homeroomGradebookExport.js';
 import './GradebookMacEngine.css';
 import './GradebookMacUtilities.css';
+import { scoreEntryDraftIsAllowed, normalizeTeacherScoreInput } from '../../utils/gradebookScoreEntry.mjs';
 import { filterGradebookStudentView } from '../../utils/gradebookStudentView.js';
 import { Plus, Search, ArrowDownToLine, ChevronRight, Check, FileSpreadsheet, FileText, Save, SlidersHorizontal, X, ChevronDown, LayoutGrid, GraduationCap, BarChart3, Settings2, BookOpen, ShieldCheck, UsersRound } from 'lucide-react';
 import GradebookProductivityPanel from './GradebookProductivityPanel.jsx';
@@ -218,18 +219,6 @@ function normalizeGradebook(raw, legacyRecords = []) {
   },legacyRecords);
 }
 
-function cleanInput(value) {
-  const text = String(value ?? '').replace(',', '.').trim();
-  if (text === '') return '';
-  if (!/^\d{0,2}(?:\.\d{0,2})?$/.test(text)) return null;
-  return text;
-}
-
-function clampedInput(value) {
-  const number = scoreNumber(value);
-  return number == null ? '' : String(Math.round(number * 100) / 100);
-}
-
 function cleanPlusCountInput(value) {
   const text = String(value ?? '').trim();
   if (text === '') return '';
@@ -255,35 +244,78 @@ function ensureSubject(book, name) {
 }
 
 function ScoreInput({ value, onChange, label, disabled=false }) {
+  // Keep raw keystrokes on screen until editing finishes, while committing
+  // valid normalized scores immediately to the existing gradebook state.
+  const [draft, setDraft] = useState(() => String(value ?? ''));
+  const [invalid, setInvalid] = useState(false);
+  const editingRef = useRef(false);
+
+  useEffect(() => {
+    if (!editingRef.current) {
+      setDraft(String(value ?? ''));
+      setInvalid(false);
+    }
+  }, [value]);
+
+  const finishEditing = (input) => {
+    editingRef.current = false;
+    const normalized = normalizeTeacherScoreInput(input);
+    if (normalized === null) {
+      setInvalid(true);
+      return;
+    }
+    setInvalid(false);
+    setDraft(normalized);
+    if (normalized !== String(value ?? '')) onChange(normalized);
+  };
+
   return <input
     className="hr-grade-input"
     inputMode="decimal"
+    autoComplete="off"
     aria-label={label}
+    aria-invalid={invalid}
+    title={invalid ? 'Giá trị không hợp lệ. Nhập điểm từ 0 đến 10.' : 'Nhập nhanh: 96 → 9,6; 818 → 8,2. Điểm có dấu thập phân được giữ nguyên.'}
     disabled={disabled}
-    value={value ?? ''}
+    value={draft}
+    maxLength={6}
+    onFocus={() => { editingRef.current = true; }}
     onChange={(event) => {
-      const next = cleanInput(event.target.value);
-      if (next !== null) onChange(next);
+      const next = event.target.value;
+      if (!scoreEntryDraftIsAllowed(next)) {
+        setInvalid(true);
+        return;
+      }
+      setDraft(next);
+      setInvalid(false);
+      const normalized = normalizeTeacherScoreInput(next);
+      if (normalized !== null && normalized !== String(value ?? '')) onChange(normalized);
     }}
-    onBlur={(event) => onChange(clampedInput(event.target.value))}
+    onBlur={(event) => finishEditing(event.target.value)}
     onWheel={(event) => event.currentTarget.blur()}
     onKeyDown={(event) => {
       // Enter/Up/Down for rows, Alt+Left/Right for editable columns.
       // Tab and ordinary horizontal caret movement remain native.
-      const horizontal=event.altKey && ['ArrowLeft', 'ArrowRight'].includes(event.key);
+      const horizontal = event.altKey && ['ArrowLeft', 'ArrowRight'].includes(event.key);
       if (!horizontal && !['Enter', 'ArrowDown', 'ArrowUp'].includes(event.key)) return;
-      const cell=event.currentTarget.closest('td');
-      const row=cell?.parentElement;
+      const cell = event.currentTarget.closest('td');
+      const row = cell?.parentElement;
       if (!row || !cell) return;
-      const index=Array.from(row.cells).indexOf(cell);
-      const goingUp=event.key==='ArrowUp' || (event.key==='Enter'&&event.shiftKey);
-      const destination=horizontal
-        ? row.cells[index+(event.key==='ArrowRight'?1:-1)]
+      const index = Array.from(row.cells).indexOf(cell);
+      const goingUp = event.key === 'ArrowUp' || (event.key === 'Enter' && event.shiftKey);
+      const destination = horizontal
+        ? row.cells[index + (event.key === 'ArrowRight' ? 1 : -1)]
         : (goingUp ? row.previousElementSibling : row.nextElementSibling)?.cells?.[index];
-      const target=destination?.querySelector('input.hr-grade-input:not(:disabled)');
-      if (!target) return;
+      const target = destination?.querySelector('input.hr-grade-input:not(:disabled)');
+      if (!target) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          event.currentTarget.blur();
+        }
+        return;
+      }
       event.preventDefault();
-      target.focus();
+      target.focus(); // Triggers onBlur normalization before navigation.
       target.select();
     }}
     placeholder="—"
@@ -917,7 +949,7 @@ export default function GradebookMacEngine({ workspace, onCommit, currentUser, t
 
   const regularTable = () => (
     <div className="gbmac-table-viewport" ref={scoreTableRef} tabIndex={0} aria-label="Bảng điểm cuộn ngang và dọc">
-      <table className="gbmac-table gbmac-regular-table" style={{ minWidth: Math.max(900, 325 + activeRound.columns.length * 111 + 3 * 112) }}>
+      <table className="gbmac-table gbmac-regular-table" style={{ minWidth: Math.max(980, 320 + activeRound.columns.length * 124 + 3 * 122) }}>
         <thead><tr>
           <th className="gbmac-pin-index">STT</th>
           <th className="gbmac-pin-name">Học sinh</th>
@@ -1068,6 +1100,7 @@ export default function GradebookMacEngine({ workspace, onCommit, currentUser, t
           </button>
         </div>
       </div>
+      {view.startsWith('regular-') ? <p className="gbmac-shortcut-hint" role="note"><span aria-hidden="true">⌨</span> Nhập nhanh: <strong>96 → 9,6</strong> · <strong>818 → 8,2</strong> · Điểm có dấu thập phân giữ nguyên. Hoàn tất bằng Enter hoặc Tab.</p> : null}
       {view.startsWith('regular-') ? <div className="gbmac-table-actions">
         <button type="button" className="gbmac-add-column" disabled={finalized} onClick={addRegularColumn}>
           <Plus size={17} aria-hidden="true"/> Thêm cột điểm
