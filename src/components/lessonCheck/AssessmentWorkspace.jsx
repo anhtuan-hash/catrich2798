@@ -732,7 +732,7 @@ export default function AssessmentWorkspace({
 
     const exportReport = () => {
     const rows = [
-      ['Học sinh', 'Mã HS', 'Số lần đánh giá', 'Điểm TB /10', 'Chuyên đề', 'Lần gần nhất'],
+      [t('Học sinh'), language==='en'?'Student ID':'Mã HS',language==='en'?'Assessments':'Số lần đánh giá',language==='en'?'Average /10':'Điểm TB /10',t('Chuyên đề'),t('Lần gần nhất')],
       ...studentReportRows.map((item) => [
         item.studentName,
         item.studentCode,
@@ -763,7 +763,7 @@ export default function AssessmentWorkspace({
         || currentUser?.displayName
         || currentUser?.user_metadata?.full_name
         || currentUser?.user_metadata?.name,
-      'Giáo viên phụ trách',
+      language==='en'?'Teacher in charge':'Giáo viên phụ trách',
     );
     try {
       popup.document.open();
@@ -774,6 +774,7 @@ export default function AssessmentWorkspace({
         reportResults,
         studentReportRows,
         reportSummary,
+        language,
       }));
       popup.document.close();
       const doPrint = () => {
