@@ -1,0 +1,34 @@
+name: Compact Lesson Check Hero
+on:
+  pull_request:
+    paths:
+      - 'src/pages/LessonCheckStudio.jsx'
+      - 'src/pages/LessonCheckHeroCompact.css'
+      - 'scripts/test-lesson-check-hero-compact.mjs'
+      - 'scripts/test-lesson-check-studio.mjs'
+      - '.github/workflows/lesson-check-hero-compact.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/pages/LessonCheckStudio.jsx'
+      - 'src/pages/LessonCheckHeroCompact.css'
+      - 'scripts/test-lesson-check-hero-compact.mjs'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node scripts/test-lesson-check-hero-compact.mjs
+      - run: npm ci --no-audit --no-fund
+      - name: Compile Vite production assets
+        run: npx vite build
+      - name: Verify Vercel production build pipeline
+        run: node scripts/test-editorial-app-heroes.mjs && npm run build
