@@ -29,4 +29,16 @@ verify('old editor dead controls are removed', !editor.includes("['content', Set
 verify('editor still supports background, shade and typography', editor.includes("['background', Image") && editor.includes("['appearance', Paintbrush") && editor.includes("set('headingColor'"));
 verify('settings and media persist independently', cms.includes("from('dashboard_hero_public')") && cms.includes('dashboard_hero_drafts'));
 verify('minimal CSS loads after base CSS', dash.indexOf("import '../styles/dashboard-hero-minimal-20261023.css'") > dash.indexOf("import '../styles/dashboard-hero-cms.css'"));
+verify('gradient applies only to the two personal greeting lines', style.includes('GRADIENT LETTERING · Dashboard greeting only') &&
+  style.includes('editorial-hero.is-minimal .editorial-hero-hello') && style.includes('editorial-hero.is-minimal .editorial-hero-heading h1') &&
+  !style.includes('db-hero-weather .editorial-status-weather { background-image: linear-gradient'));
+verify('text-clipped gradient handles Chromium and Safari', style.includes('-webkit-background-clip: text !important') &&
+  style.includes('background-clip: text !important') && style.includes('-webkit-text-fill-color: transparent !important'));
+verify('text gradient retains configurable teacher-name base hue', style.includes('var(--db-heading-color, #0e263e) 0%'));
+verify('soft shimmer respects reduced motion, low performance and forced color modes',
+  style.includes('bes-dashboard-greeting-gradient-flow 30s') &&
+  style.includes('@media (prefers-reduced-motion: reduce)') &&
+  style.includes('data-performance="minimal"') &&
+  style.includes('@media (forced-colors: active)') &&
+  style.includes('-webkit-text-fill-color: CanvasText !important'));
 console.log('PASS: Dashboard personalized greeting + weather minimal design.');
