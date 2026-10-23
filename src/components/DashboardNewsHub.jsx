@@ -89,7 +89,7 @@ export default function DashboardNewsHub({ language = 'vi' }) {
   const requestRef = useRef(0);
   const hubRef = useRef(null);
 
-  const compactItems = useMemo(() => items.slice(0, 5), [items]);
+  const compactItems = useMemo(() => items.slice(0, 4), [items]);
   const featured = compactItems[0] || null;
   const secondary = compactItems.slice(1);
   const fullItems = useMemo(() => items.slice(0, visibleCount), [items, visibleCount]);
@@ -162,7 +162,7 @@ export default function DashboardNewsHub({ language = 'vi' }) {
   }, [selected]);
 
   return <>
-    <section className={`dnh${expanded ? ' is-expanded' : ''}`} aria-label={t.title} ref={hubRef}>
+    <section className={`dnh dnh-editorial${expanded ? ' is-expanded' : ''}`} aria-label={t.title} ref={hubRef}>
       <header className="dnh-head">
         <div className="dnh-title"><span className="dnh-icon" aria-hidden="true"><NewsroomMegaphoneIcon /></span><div><span>{t.eyebrow}</span><h2>{t.title}</h2><p>{t.subtitle}</p></div></div>
         <div className="dnh-actions">
@@ -177,10 +177,14 @@ export default function DashboardNewsHub({ language = 'vi' }) {
       {loading ? <div className="dnh-state" role="status" aria-live="polite">{t.loading}</div> : error ? <div className="dnh-state is-error"><span>{error}</span><button type="button" onClick={() => load({ force: true })}>{t.retry}</button></div> : !featured ? <div className="dnh-state">{t.empty}</div> : <>
         {!expanded ? <div className="dnh-grid">
           <button type="button" className="dnh-featured" onClick={() => openArticle(featured)}>
-            <span className="dnh-featured-media"><NewsImage item={featured} featured /><em>{t.featured}</em></span>
-            <span className="dnh-featured-copy"><small>{featured.source || t.fresh}{featured.publishedAt ? ` · ${dateLabel(featured.publishedAt, language)}` : ''}</small><strong>{featured.title}</strong><p>{featured.summary}</p><span>{t.read} <b>→</b></span></span>
+            <span className="dnh-featured-media">
+              {featured.image ? <img className="dnh-image-backdrop" src={featured.image} alt="" aria-hidden="true" loading="lazy" referrerPolicy="no-referrer" /> : null}
+              <NewsImage item={featured} featured />
+              <em>{t.featured}</em>
+            </span>
+            <span className="dnh-featured-copy"><small>{featured.source || t.fresh}{featured.publishedAt ? ` · ${dateLabel(featured.publishedAt, language)}` : ''}</small><strong>{featured.title}</strong>{featured.summary ? <p>{featured.summary}</p> : null}<span>{t.read} <b>→</b></span></span>
           </button>
-          <div className="dnh-list">{secondary.map((item) => <button type="button" className="dnh-story" key={item.id || item.link} onClick={() => openArticle(item)}><span className="dnh-story-media"><NewsImage item={item} /></span><span className="dnh-story-copy"><small>{item.source || t.latest} · {readingMinutes(item)} {t.minutes}</small><strong>{item.title}</strong>{item.summary ? <p className="dnh-story-summary">{item.summary}</p> : null}<span>{dateLabel(item.publishedAt, language)}</span></span></button>)}</div>
+          <div className="dnh-list">{secondary.map((item) => <button type="button" className="dnh-story" key={item.id || item.link} onClick={() => openArticle(item)}><span className="dnh-story-media"><NewsImage item={item} /></span><span className="dnh-story-copy"><small>{item.source || t.latest} · {readingMinutes(item)} {t.minutes}</small><strong>{item.title}</strong><span>{dateLabel(item.publishedAt, language)}</span></span></button>)}</div>
         </div> : <div className="dnh-full">
           <div className="dnh-full-head"><div><span>{t.eyebrow}</span><h3>{t.fullFeed}</h3><p>{t.fullFeedSub}</p></div><small>{t.showing} {fullItems.length}/{items.length} {t.articles}</small></div>
           <div className="dnh-full-grid">{fullItems.map((item, index) => <button type="button" className={`dnh-full-card${index === 0 ? ' is-lead' : ''}`} key={item.id || item.link || index} onClick={() => openArticle(item)}>
