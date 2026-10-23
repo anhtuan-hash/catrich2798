@@ -9,6 +9,7 @@ import { isSupabaseConfigured, supabase } from '../utils/supabase.js';
 import {
   getPermissionRequests, PERMISSION_REQUESTS_EVENT
 } from '../utils/permissionRequests.js';
+import { LESSON_CHECK_EVENT, listLessonCheckAccessRequests, reviewLessonCheckAccessRequest } from '../utils/lessonCheckActivities.js';
 import './PermissionApprovalInbox.css';
 
 const REFRESH_MS = 45000;
@@ -80,10 +81,45 @@ export default function PermissionApprovalInbox({ currentUser, language = 'vi' }
     const version = ++requestVersion.current;
     if (!quiet) setLoading(true);
     try {
-      const items = await getPermissionRequests({ force: true });
+      // Access requests for apps and Lesson Check activities are stored separately.
+      const [generalResult, lessonResult] = await Promise.allSettled([
+        getPermissionRequests({ force: true }),
+        listLessonCheckAccessRequests(),
+      ]);
       if (version !== requestVersion.current || !mounted.current) return;
-      const incoming = (items || []).filter((entry) => entry.status === 'pending');
-      if (knownIds.current !== null) {
+      const failures = [];
+      const general = generalResult.status === 'fulfilled' ? (generalResult.value || []) : [];
+      if (generalResult.status === 'rejected') {
+        failures.push(generalResult.reason?.message || 'Không tải được quyền ứng dụng.');
+      }
+      const lessonResponse = lessonResult.status === 'fulfilled' ? lessonResult.value : null;
+      if (!lessonResponse?.ok) {
+        failures.push(lessonResponse?.message || lessonResult.reason?.message || 'Không tải được yêu cầu học liệu.');
+      }
+      const lesson = (lessonResponse?.ok ? lessonResponse.requests : []).map((item) => ({
+        id: 'lesson:' + item.id,
+        requestId: item.id,
+        source: 'lesson_check',
+        requester_id: item.requesterId,
+        requester_name: item.requesterName,
+        requester_email: item.requesterEmail,
+        permission_id: 'lesson-check:' + item.activityId,
+        item_title: item.activityTitle || 'Hoạt động học liệu',
+        item_type: 'lesson_check_activity',
+        status: item.status,
+        message: item.message,
+        created_at: item.createdAt,
+        updated_at: item.updatedAt,
+      }));
+      const items = [...general, ...lesson].sort((a, b) => (
+        Date.parse(b.created_at || 0) - Date.parse(a.created_at || 0)
+      ));
+      const incoming = items.filter((entry) => entry.status === 'pending');
+      if (knownIds.current === null && incoming.length > 0) {
+        showToast(language === 'en'
+          ? `${incoming.length} requests are awaiting approval`
+          : `Có ${incoming.length} yêu cầu đang chờ duyệt`);
+      } else if (knownIds.current !== null) {
         const recentlyAdded = incoming.find((entry) => !knownIds.current.has(entry.id));
         if (recentlyAdded) {
           showToast((language === 'en' ? 'New request: ' : 'Yêu cầu mới: ')
@@ -92,8 +128,8 @@ export default function PermissionApprovalInbox({ currentUser, language = 'vi' }
         }
       }
       knownIds.current = new Set(incoming.map((entry) => entry.id));
-      setRequests(items || []);
-      setError('');
+      setRequests(items);
+      setError(failures.join(' · '));
     } catch (failure) {
       if (version !== requestVersion.current || !mounted.current) return;
       setError(failure?.message || copy.error);
@@ -110,6 +146,7 @@ export default function PermissionApprovalInbox({ currentUser, language = 'vi' }
     const notify = () => refresh({ quiet: true });
     const onVisible = () => { if (document.visibilityState === 'visible') notify(); };
     window.addEventListener(PERMISSION_REQUESTS_EVENT, notify);
+    window.addEventListener(LESSON_CHECK_EVENT, notify);
     window.addEventListener('focus', notify);
     document.addEventListener('visibilitychange', onVisible);
     // Realtime gives immediate updates if Postgres changes are published.
@@ -117,6 +154,7 @@ export default function PermissionApprovalInbox({ currentUser, language = 'vi' }
     const channel = supabase
       .channel('bes-approval-inbox-' + currentUser.id)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'permission_requests' }, notify)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lesson_check_activity_requests' }, notify)
       .subscribe();
     const timer = window.setInterval(() => {
       if (document.visibilityState === 'visible') notify();
@@ -126,6 +164,7 @@ export default function PermissionApprovalInbox({ currentUser, language = 'vi' }
       window.clearInterval(timer);
       window.clearTimeout(toastTimer.current);
       window.removeEventListener(PERMISSION_REQUESTS_EVENT, notify);
+      window.removeEventListener(LESSON_CHECK_EVENT, notify);
       window.removeEventListener('focus', notify);
       document.removeEventListener('visibilitychange', onVisible);
       supabase.removeChannel(channel);
@@ -174,11 +213,16 @@ export default function PermissionApprovalInbox({ currentUser, language = 'vi' }
     setBusyId(item.id);
     setError('');
     try {
-      const { data, error: rpcError } = await supabase.rpc('bes_review_permission_request', {
-        p_request_id: item.id, p_decision: decision,
-      });
-      if (rpcError) throw rpcError;
-      if (data?.ok !== true) throw new Error('Quyết định chưa được lưu vào máy chủ.');
+      if (item.source === 'lesson_check') {
+        const result = await reviewLessonCheckAccessRequest(item.requestId, decision);
+        if (!result.ok) throw new Error(result.message || 'Không thể duyệt yêu cầu học liệu.');
+      } else {
+        const { data, error: rpcError } = await supabase.rpc('bes_review_permission_request', {
+          p_request_id: item.id, p_decision: decision,
+        });
+        if (rpcError) throw rpcError;
+        if (data?.ok !== true) throw new Error('Quyết định chưa được lưu vào máy chủ.');
+      }
       setConfirmation(null);
       showToast((decision === 'approved' ? 'Đã duyệt: ' : 'Đã từ chối: ')
         + (item.requester_name || item.requester_email || item.item_title), 'success');
@@ -203,7 +247,7 @@ export default function PermissionApprovalInbox({ currentUser, language = 'vi' }
         <span className={'bes-approval-status is-' + item.status}>{STATUS_LABELS[item.status] || item.status}</span>
       </div>
       <dl className="bes-approval-meta">
-        <div><dt>{copy.scope}</dt><dd>{item.item_title || item.permission_id}</dd></div>
+        <div><dt>{item.source === 'lesson_check' ? (language === 'en' ? 'Lesson Check activity' : 'Học liệu · Kiểm tra') : copy.scope}</dt><dd>{item.item_title || item.permission_id}</dd></div>
         {!quick && <div><dt>Mã quyền</dt><dd>{item.permission_id}</dd></div>}
         {!quick && item.message ? <div><dt>{copy.reason}</dt><dd>{item.message}</dd></div> : null}
       </dl>
