@@ -16,7 +16,7 @@ export default function HomeHeroCmsPreviewDock({ open, config, language = 'vi', 
     let stopped = false;
     const resolve = () => {
       if (stopped) return;
-      const body = document.querySelector('.hero-editor__body');
+      const body = document.querySelector('.hero-editor--drawer .hero-editor__preview-slot');
       if (body) {
         setTarget(body);
         return;
