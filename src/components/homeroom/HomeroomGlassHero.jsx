@@ -1,4 +1,5 @@
 import React from 'react';
+import { Pencil } from 'lucide-react';
 import { downloadCsv } from '../../utils/homeroomOfflineTools.js';
 
 function getInitials(name) {
@@ -208,8 +209,19 @@ export default function HomeroomGlassHero({
   subjectMode = false,
   classTypeLabel = '',
   activeStudents = 0,
+  heroConfig = null,
+  canEditHero = false,
+  onEditHero = null,
 }) {
   const vi = language === 'vi';
+  const hasCustomBackground = heroConfig?.backgroundType !== 'none' && Boolean(heroConfig?.backgroundUrl);
+  const mediaStyle = hasCustomBackground ? {
+    '--hrc-custom-position': `${heroConfig.positionX}% ${heroConfig.positionY}%`,
+    '--hrc-custom-fit': heroConfig.backgroundFit,
+    '--hrc-custom-opacity': heroConfig.opacity / 100,
+    '--hrc-custom-shade': heroConfig.shade / 100,
+    '--hrc-custom-heading': heroConfig.headingColor,
+  } : undefined;
   const profile = workspace?.classProfile || {};
   const className = profile.className || (vi ? 'Chưa thiết lập' : 'Not configured');
   const schoolYear = profile.schoolYear || '—';
@@ -252,13 +264,23 @@ export default function HomeroomGlassHero({
   };
 
   return <section
-    className={`hr-campus-hero ${subjectMode ? 'is-subject' : 'is-homeroom'}`}
+    className={`hr-campus-hero ${subjectMode ? 'is-subject' : 'is-homeroom'} ${hasCustomBackground ? 'has-custom-background' : ''}`}
+    style={mediaStyle}
     data-homeroom-design="v4"
     aria-labelledby="hr-campus-hero-title"
     data-class-type={classTypeLabel}
     data-workspace-id={workspace?.id || ''}
   >
     <CampusScene />
+    {hasCustomBackground ? <div className="hr-campus-hero__custom-media" aria-hidden="true">
+      {heroConfig.backgroundType === 'video'
+        ? <video src={heroConfig.backgroundUrl} autoPlay muted loop playsInline preload="metadata" />
+        : <img src={heroConfig.backgroundUrl} alt="" loading="eager" decoding="async" />}
+      <div className="hr-campus-hero__custom-media-wash" />
+    </div> : null}
+    {canEditHero ? <button type="button" className="hr-campus-hero__edit"
+      onClick={onEditHero} aria-label={vi ? 'Đổi hình nền Hero Chủ nhiệm' : 'Customize Homeroom Hero background'}
+      title={vi ? 'Chỉnh sửa hình nền Hero' : 'Edit Hero background'}><Pencil size={17} strokeWidth={1.9} aria-hidden="true" /></button> : null}
 
     <div className="hr-campus-hero__copy">
       <p className="hr-campus-hero__eyebrow">{vi ? 'Chào mừng đến với Brian English' : 'Welcome to Brian English'}</p>
