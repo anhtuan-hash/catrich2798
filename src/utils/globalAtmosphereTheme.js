@@ -127,7 +127,6 @@ export async function saveGlobalAtmosphereTheme(user, patch) {
     halloween_opacity: next.halloween.opacity,
     halloween_speed: next.halloween.speed,
     halloween_density: next.halloween.density,
-    updated_by_email: user?.email || null,
     updated_at: new Date().toISOString(),
   };
   const { data, error } = await supabase.from(TABLE).upsert(payload, { onConflict: 'workspace_key' }).select('*').single();
