@@ -414,14 +414,14 @@ export default function Settings({
               </article>
             ) : null}
 
-            {/* Mounted permanently while Admin Settings is open, so search filtering cannot unmount the MFA portal target. */}
-            {['admin', 'administrator'].includes(String(currentUser?.role || '').toLowerCase()) ? (
+            {/* MFA portal host exists exclusively in Security. AdminMfaSecurity observes mounts and attaches on demand. */}
+            {activeModule === 'security' && ['admin', 'administrator'].includes(String(currentUser?.role || '').toLowerCase()) ? (
               <article
                 id="settings-mfa"
                 className="settings-google-card tone-indigo settings-mfa-card"
                 style={{
                   gridColumn: '1 / -1',
-                  display: activeModule === 'security' ? undefined : 'none',
+                  display: undefined,
                 }}
               >
                 <CardHeader icon="shield" tone="indigo" title={vi ? 'Xác thực hai lớp (MFA)' : 'Two-factor authentication (MFA)'} subtitle={vi ? 'Bảo vệ tài khoản Admin bằng mã xác thực từ điện thoại.' : 'Protect administrator access with an authenticator app.'} />
