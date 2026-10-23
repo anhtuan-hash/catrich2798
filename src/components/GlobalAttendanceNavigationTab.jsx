@@ -1735,7 +1735,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
             </div>
           ) : null}
 
-          {!loading && canAccessAttendanceView('manage') && view === 'manage' ? (
+          {canAccessAttendanceView('manage') && view === 'manage' ? (
             <AttendanceClassManagementWorkspace
               activeClasses={activeClasses}
               selectedClass={selectedClass}
@@ -1777,6 +1777,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
               setError={setError}
               setNotice={setNotice}
               onSelectClass={setSelectedClassId}
+              stateScope={currentUser?.id || currentUser?.authId || currentUser?.email || runtime.session?.user?.id || ''}
             />
           ) : null}
 
