@@ -449,3 +449,76 @@ html[data-dashboard-hero-exclusion="on"] :is(
     animation: none !important;
   }
 }
+
+
+/* ROOT FIX: make long teacher names a genuinely TWO-LINE composition.
+ * The old length-based font reduction did not stop the text from filling
+ * the entire left 78% of the Hero and crossing the photo's busy central art. */
+.app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-copy {
+  width: min(65%, 770px) !important;
+  min-width: 0 !important;
+}
+.app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-copy.has-balanced-name {
+  width: min(61%, 700px) !important;
+}
+.app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-copy.has-balanced-name .editorial-hero-heading {
+  width: 100% !important;
+  max-width: 100% !important;
+  gap: 8px !important;
+}
+.app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-heading h1 {
+  width: max-content !important;
+  max-width: 100% !important;
+  line-height: 1.12 !important;
+  text-wrap: balance !important;
+}
+.app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-heading .db-hero-name-line {
+  display: block !important;
+  width: max-content !important;
+  max-width: 100% !important;
+  white-space: normal !important;
+  overflow-wrap: normal !important;
+}
+.app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-heading.is-long-name h1 {
+  font-size: clamp(39px, 3.85vw, 59px) !important;
+  line-height: 1.14 !important;
+}
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  /* Dense indigo / navy / warm umber rather than pale copper over the castle. */
+  .app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-heading h1 {
+    background-image: linear-gradient(
+      111deg,
+      color-mix(in srgb, var(--db-heading-color, #0e263e) 80%, #10273c) 0%,
+      #173859 36%,
+      #35476b 69%,
+      #614e70 87%,
+      #70462f 100%
+    ) !important;
+    filter: drop-shadow(0 1px 2px rgba(255,255,255,.96)) !important;
+    -webkit-text-stroke: .22px rgba(10,30,56,.18) !important;
+  }
+}
+@media (max-width: 900px) {
+  .app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-copy,
+  .app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-copy.has-balanced-name {
+    width: min(83%, 660px) !important;
+  }
+  .app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-heading.is-long-name h1 {
+    font-size: clamp(35px, 5.2vw, 49px) !important;
+  }
+}
+@media (max-width: 620px) {
+  .app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-copy,
+  .app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-copy.has-balanced-name {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  .app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-heading .db-hero-name-line {
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+  .app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-heading.is-long-name h1 {
+    font-size: clamp(29px, 7.1vw, 39px) !important;
+    line-height: 1.16 !important;
+  }
+}

@@ -12,7 +12,7 @@ const begin = dash.indexOf('<section className="gd-top-grid db-hero-minimal-fram
 const end = dash.indexOf('</section>', begin);
 const hero = dash.slice(begin, end + 10);
 verify('hero section exists and is minimal', begin >= 0 && hero.includes('editorial-hero is-minimal'));
-verify('greeting remains personalized and localized', hero.includes('{t.hello},') && hero.includes('<h1>{name}</h1>'));
+verify('greeting remains personalized and localized with accessible balanced name lines', hero.includes('{t.hello},') && hero.includes('heroNameLines.map') && hero.includes('aria-label={String(name)}') && dash.includes('dashboardHeroNameLines(name)'));
 verify('live weather is preserved with city, condition and temperature', hero.includes('weatherDescription') && hero.includes('weatherTemperature') && hero.includes('refreshWeather') && hero.includes('TP.HCM'));
 verify('weather is the only remaining status widget', hero.includes('editorial-status-weather') && !hero.includes('editorial-status-time'));
 verify('no hero date or eyebrow', !hero.includes('editorial-hero-meta') && !hero.includes('heroDate'));
@@ -69,5 +69,14 @@ verify('seasonal overlay masking uses additive CSS alpha masks rather than disab
   style.includes('-webkit-mask-composite: source-over') &&
   style.includes('--db-hero-exclusion-left') &&
   style.includes('--db-hero-exclusion-bottom'));
+verify('true two-line layout has its own narrow left column and explicit line elements',
+  style.includes('ROOT FIX: make long teacher names') &&
+  style.includes('.editorial-hero-copy.has-balanced-name') &&
+  style.includes('width: min(61%, 700px) !important') &&
+  style.includes('.db-hero-name-line') &&
+  style.includes('display: block !important'));
+verify('updated long-name and mobile typography are responsive',
+  style.includes('font-size: clamp(39px, 3.85vw, 59px) !important') &&
+  style.includes('font-size: clamp(29px, 7.1vw, 39px) !important'));
 console.log('PASS: Dashboard personalized greeting + weather minimal design.');
 
