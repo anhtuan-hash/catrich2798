@@ -80,3 +80,58 @@ export function filterPermanentlyDeletedStudents(students = [], tombstones = [])
     !studentMatchesPermanentDeletion(student, tombstones)
   ));
 }
+
+
+/**
+ * Remove archived records from the class payload, including linked attendance,
+ * conduct, student records and historical backup snapshots. This does not
+ * touch active students. Durable tombstones prevent assignment imports from
+ * silently resurrecting records on the next login.
+ */
+export function permanentlyRemoveArchivedStudents(workspace, requestedIds, actor = null) {
+  const ids = new Set((Array.isArray(requestedIds) ? requestedIds : []).map((id) => String(id)));
+  if (!ids.size) throw new Error('Chưa chọn học sinh đã lưu trữ để xóa.');
+  const roster = Array.isArray(workspace?.students) ? workspace.students : [];
+  const toDelete = roster.filter((item) => ids.has(String(item.id)) && item.active === false);
+  if (toDelete.length !== ids.size) {
+    throw new Error('Danh sách đã thay đổi. Chỉ học sinh đã lưu trữ mới được xóa vĩnh viễn.');
+  }
+
+  // Remove references keyed by student ID or containing a student ID. Keep
+  // unrelated class-wide data and other students' records unchanged.
+  const purge = (value) => {
+    if (Array.isArray(value)) {
+      return value.filter((item) => {
+        if (typeof item === 'string') return !ids.has(item);
+        if (!item || typeof item !== 'object') return true;
+        return !ids.has(String(item.studentId ?? '')) && !ids.has(String(item.student_id ?? ''));
+      }).map(purge);
+    }
+    if (!value || typeof value !== 'object') return value;
+    return Object.fromEntries(Object.entries(value)
+      .filter(([key, item]) => !ids.has(key)
+        && !(item && typeof item === 'object'
+          && (ids.has(String(item.studentId ?? '')) || ids.has(String(item.student_id ?? '')))))
+      .map(([key, item]) => [key, purge(item)]));
+  };
+
+  const timestamp = new Date().toISOString();
+  const cleaned = purge(workspace);
+  return {
+    ...cleaned,
+    students: roster.filter((item) => !ids.has(String(item.id))),
+    studentPermanentDeletionTombstones: mergePermanentStudentTombstones(
+      workspace.studentPermanentDeletionTombstones || [], toDelete, timestamp,
+    ),
+    studentPermanentDeletionAudit: [
+      ...(cleaned.studentPermanentDeletionAudit || []),
+      {
+        id: `archived-student-delete-${Date.now()}`,
+        count: toDelete.length,
+        deletedAt: timestamp,
+        deletedBy: text(actor?.email || actor?.name || actor?.id),
+      },
+    ],
+    updatedAt: timestamp,
+  };
+}
