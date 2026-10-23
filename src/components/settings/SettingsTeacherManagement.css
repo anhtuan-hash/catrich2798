@@ -1,0 +1,67 @@
+/* Admin-only teacher management module in Settings Launcher. */
+.stm,.stm *{box-sizing:border-box}
+.stm{min-width:0;color:#173153;font-family:inherit}
+.stm button{cursor:pointer;font:inherit}
+.stm button:focus-visible,.stm input:focus-visible{outline:3px solid #a0beff;outline-offset:2px}
+.stm-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;padding:5px;border-radius:15px;background:#edf3fc}
+.stm-tabs button{display:flex;align-items:center;gap:7px;justify-content:center;flex:1 1 190px;border:0;border-radius:12px;padding:12px 14px;color:#54729f;background:transparent;font-weight:730;font-size:13px}
+.stm-tabs button.active{background:#fff;color:#1756bf;box-shadow:0 3px 12px rgba(30,66,116,.08)}
+.stm-card{background:#fff;border:1px solid #dfe8f4;border-radius:20px;padding:20px;min-width:0}
+.stm-card h3{display:flex;align-items:center;gap:8px;margin:0 0 7px;font-size:17px;color:#19365d}
+.stm-card>p,.stm-title p{font-size:12px;line-height:1.55;color:#637b99;margin:4px 0 18px}
+.stm-form{display:grid;gap:14px}
+.stm-form>label{display:grid;gap:7px;font-size:12px;color:#34577f;font-weight:770}
+.stm-form input,.stm-directory>input{min-width:0;max-width:100%;width:100%;border:1px solid #d6e2f0;border-radius:12px;padding:12px 13px;background:#fff;color:#19385f;font-size:14px;font-weight:550}
+.stm-form input:focus,.stm-directory>input:focus{border-color:#78a6ec}
+.stm-form label small{font-size:11px;font-weight:440;color:#7387a2;line-height:1.45}
+.stm-password{display:flex;gap:8px;min-width:0;flex-wrap:wrap}
+.stm-password input{flex:1 1 200px}
+.stm-password button{background:#e7effd;color:#1c5bbe;border:0;border-radius:12px;padding:10px 12px;font-weight:760;white-space:nowrap}
+.stm-primary{background:#2563eb;color:#fff;border:0;border-radius:12px;padding:12px 16px;font-size:13px;font-weight:800;justify-self:start}
+.stm-primary:disabled{opacity:.5;cursor:progress}
+.stm-alert{display:flex;gap:9px;align-items:center;padding:12px;margin-bottom:12px;border-radius:12px;font-size:12px;line-height:1.5}
+.stm-alert.error{background:#fff0ef;border:1px solid #ffd4d0;color:#a32222}
+.stm-alert.success{background:#ebf8f2;border:1px solid #c1edd4;color:#137454}
+.stm-created{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:18px;border-radius:12px;padding:12px;background:#e5f8ee;color:#13734e}
+.stm-created>div{display:grid;gap:4px;flex:1}
+.stm-created span{font-size:11px}
+.stm-created button{border:0;border-radius:9px;padding:9px;background:#c9f0df;color:#0e6947}
+.stm-title{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.stm-title>button{display:flex;align-items:center;gap:6px;border:1px solid #d9e4f4;border-radius:11px;padding:9px;background:#f4f8ff;color:#2860a8;font-size:12px;white-space:nowrap}
+.stm-layout{display:grid;grid-template-columns:minmax(170px,.86fr) minmax(0,1.3fr);gap:13px}
+.stm-directory{display:grid;grid-template-rows:auto 1fr;gap:10px;min-width:0}
+.stm-directory-list{min-height:100px;max-height:600px;overflow-y:auto;display:grid;align-content:start;gap:6px}
+.stm-directory-list>button{display:flex;align-items:center;gap:8px;width:100%;padding:10px 9px;border-radius:12px;border:1px solid #e5edf8;background:#fff;color:#315879;text-align:left;min-width:0}
+.stm-directory-list>button.active{border-color:#81b2fc;background:#edf4ff}
+.stm-directory-list>button>span:nth-child(2){display:grid;gap:4px;min-width:0;flex:1}
+.stm-directory-list strong{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stm-directory-list small{font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#7890a5}
+.stm-directory-list>p{font-size:12px;color:#7890a5;padding:10px}
+.stm-initial{width:34px;height:34px;flex:0 0 34px;display:grid;place-items:center;background:#e3efff;color:#2162bb;border-radius:11px;font-size:13px;font-weight:800}
+.stm-initial.large{width:40px;height:40px;flex-basis:40px}
+.stm-editor{min-width:0}
+.stm-editor>p{font-size:12px;color:#8293ac}
+.stm-user{display:flex;align-items:center;gap:9px;margin-bottom:11px;padding:10px;border-radius:13px;background:#f4f8fd}
+.stm-user>span:nth-child(2){flex:1;min-width:0;display:grid;gap:4px}
+.stm-user strong{font-size:13px}
+.stm-user small{font-size:10px;color:#66819f}
+.stm-user button{border:1px solid #d0dfed;color:#2863b0;background:#fff;padding:7px 9px;border-radius:9px;font-size:11px;white-space:nowrap}
+.stm-mode{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stm-mode button{min-width:0;border-radius:11px;border:1px solid #dce5f2;background:#f6f9fd;padding:10px;color:#5a7291;font-size:11px;font-weight:780;line-height:1.45}
+.stm-mode button.active{color:#1556bb;background:#e6f0ff;border-color:#8bb7ef}
+.stm-hint{font-size:11px!important;color:#6885a4!important;line-height:1.5;background:#f5f8ff;border-radius:10px;padding:10px}
+.stm-group{margin-top:9px;border:1px solid #e0e9f5;border-radius:13px;overflow:hidden}
+.stm-group-head{display:flex;align-items:center;justify-content:space-between;gap:6px;background:#f7faff;padding:9px}
+.stm-group-head>button{display:flex;align-items:center;gap:7px;flex:1;min-width:0;color:#274d80;border:0;background:transparent;text-align:left;font-size:11px;padding:2px 0}
+.stm-group-head button strong{white-space:normal}
+.stm-group-head button small{color:#7991ae;white-space:nowrap}
+.stm-group-head>label{display:flex;align-items:center;gap:5px;color:#4d7095;font-size:10px;white-space:nowrap}
+.stm-group-head input,.stm-permissions input{accent-color:#2563eb;width:16px;height:16px;flex:0 0 16px}
+.stm-permissions{padding:10px;display:grid;gap:9px}
+.stm-permissions>label{display:flex;align-items:flex-start;gap:10px;padding:8px;border-radius:8px;background:#fbfcff}
+.stm-permissions>label span{display:grid;gap:4px}
+.stm-permissions b{font-size:11px;font-weight:760;color:#264d7a}
+.stm-permissions small{font-size:10px;line-height:1.35;color:#8191a7}
+.stm-notice{padding:16px;border-radius:13px;background:#fff4ed;color:#8e4e23;font-size:13px}
+@media(max-width:780px){.stm-layout{grid-template-columns:1fr}.stm-directory-list{max-height:240px}.stm-card{padding:13px}}
+@media(max-width:480px){.stm-title{flex-wrap:wrap}.stm-group-head{align-items:flex-start}.stm-mode{grid-template-columns:1fr}.stm-group-head>label{font-size:0}}
