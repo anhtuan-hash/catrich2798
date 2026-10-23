@@ -161,7 +161,7 @@ export default function GradebookHeroEditor({ open, initialConfig, currentUser, 
                 : hasMedia ? <img alt="" src={config.backgroundUrl} style={{ objectFit: config.backgroundFit, objectPosition: `${config.positionX}% ${config.positionY}%`, opacity: config.opacity / 100 }}/> : <span><Image size={26}/><small>{vi ? 'Đang dùng nền mặc định' : 'Using the default background'}</small></span>}
               <div className="db-he-preview-wash" style={{ opacity: config.shade / 100 }}/>
             </div>
-            <small className="db-he-preview-note">{vi ? 'Hero thật trên Sổ điểm cũng thay đổi tức thời trong lúc chỉnh sửa.' : 'The actual gradebook hero updates while you edit.'}</small>
+            <small className="db-he-preview-note">{vi ? 'Hero Sổ điểm sẽ thay đổi tức thời trong lúc bạn chỉnh sửa.' : 'The actual gradebook hero updates while you edit.'}</small>
           </div>
 
           {tab === 'background' ? <section className="db-he-section">
@@ -184,7 +184,7 @@ export default function GradebookHeroEditor({ open, initialConfig, currentUser, 
             <h3>{vi ? 'Độ tương phản & kiểu chữ' : 'Contrast & typography'}</h3>
             <p>{vi ? 'Giữ tiêu đề, bộ chọn lớp và các nút thao tác dễ đọc trên mọi hình nền.' : 'Keep gradebook selectors and actions legible over the chosen background.'}</p>
             <NumberSlider label={vi ? 'Lớp bảo vệ nội dung' : 'Content protection'} value={config.shade} onChange={(v) => set('shade', v)} max={80}/>
-            <label className="db-he-field"><span>{vi ? 'Màu tên giáo viên' : 'Heading color'}</span><div className="db-he-color"><input type="color" value={config.headingColor} onChange={(e) => set('headingColor', e.target.value)}/><code>{config.headingColor}</code></div></label>
+            <label className="db-he-field"><span>{vi ? 'Màu tiêu đề Sổ điểm' : 'Gradebook heading color'}</span><div className="db-he-color"><input type="color" value={config.headingColor} onChange={(e) => set('headingColor', e.target.value)}/><code>{config.headingColor}</code></div></label>
             <div className="db-he-info">{vi ? 'Mọi bộ chọn lớp, học kỳ và nút thao tác vẫn nằm bên trái. Nền chỉ trang trí, không che vùng thao tác.' : 'Interactive gradebook controls stay on the left. The background does not cover them.'}</div>
           </section> : null}
         </main>
