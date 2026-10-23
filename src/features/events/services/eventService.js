@@ -136,17 +136,20 @@ export function shouldAutoShow(event,now=new Date()) {
   const r=event.receipt;
   if(!r)return true;
   const ts=now.getTime();
-  if(r.hidden_until && new Date(r.hidden_until).getTime()>ts)return false;
-  if(r.snooze_until && new Date(r.snooze_until).getTime()>ts)return false;
-  if(event.frequency==='once')return !r.first_shown_at;
   if(r.acknowledged_at)return false;
+  // Explicit snooze/hide choices override one-time frequency. Once their
+  // deadline has passed, show again; a subsequent impression clears the
+  // expired override so "Close" finally ends the one-time notification.
+  if(r.hidden_until)return new Date(r.hidden_until).getTime()<=ts;
+  if(r.snooze_until)return new Date(r.snooze_until).getTime()<=ts;
+  if(event.frequency==='once')return !r.first_shown_at;
   if(event.frequency==='daily')return !r.last_shown_at || new Date(r.last_shown_at).toLocaleDateString('en-CA',{timeZone:'Asia/Ho_Chi_Minh'})!==now.toLocaleDateString('en-CA',{timeZone:'Asia/Ho_Chi_Minh'});
   return true;
 }
 export async function recordEventInteraction(event,userId,action) {
   const c=client(),time=new Date().toISOString(),old=event.receipt||{};
   const patch={event_id:event.id,user_id:userId,event_version:event.version,updated_at:time};
-  if(action==='shown'){patch.first_shown_at=old.first_shown_at||time;patch.last_shown_at=time;patch.impression_count=(old.impression_count||0)+1;}
+  if(action==='shown'){patch.first_shown_at=old.first_shown_at||time;patch.last_shown_at=time;patch.impression_count=(old.impression_count||0)+1;patch.snooze_until=null;patch.hidden_until=null;}
   else if(action==='detail')patch.detail_viewed_at=time;
   else if(action==='acknowledge')patch.acknowledged_at=time;
   else if(action==='dismiss')patch.dismissed_at=time;
