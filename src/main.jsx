@@ -25,6 +25,7 @@ import { getAppDesignProfile } from './data/designProfiles.js';
 import GlobalFlatNavigation from './components/GlobalFlatNavigation.jsx';
 import AppErrorBoundary from './components/AppErrorBoundary.jsx';
 import Footer from './components/Footer.jsx';
+import GlobalLegacyI18nBridge from './components/GlobalLegacyI18nBridge.jsx';
 import PermissionRequestButton from './components/PermissionRequestButton.jsx';
 import { initializeAuthSession, logoutUser, subscribeToAuthChanges } from './utils/auth.js';
 import { getActiveAiConfig, getAiConfigs, getAiProvider, getProviderSummary, setAiStorageUser } from './utils/aiProviders.js';
@@ -453,6 +454,7 @@ function App() {
   return (
     <>
       <Suspense fallback={null}><GlobalAccessibilityAnnouncer /></Suspense>
+      <GlobalLegacyI18nBridge language={language} />
       <div
         className="app-shell metro-shell metro-clean-system"
         data-route={currentRoute}

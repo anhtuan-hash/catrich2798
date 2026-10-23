@@ -1,0 +1,53 @@
+// Sitewide i18n regression contract: run with node scripts/test-global-bilingual-coverage.mjs
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { lookupLegacyUiEnglish, translateLegacyUi } from '../src/utils/globalI18n.js';
+
+assert.equal(translateLegacyUi('Điểm danh','en'), 'Attendance');
+assert.equal(translateLegacyUi('Điểm danh','vi'), 'Điểm danh');
+assert.equal(translateLegacyUi('Không xác định','vi'), 'Không xác định');
+assert.equal(translateLegacyUi('Thêm câu hỏi thủ công','en'),'Add question manually');
+assert.equal(translateLegacyUi('Mật khẩu khóa rèn luyện','en'),'Conduct lock password');
+assert.equal(translateLegacyUi('37 học sinh','en'),'37 students');
+assert.equal(translateLegacyUi('Nguyễn Lê Thiện','en'),'Nguyễn Lê Thiện');
+assert.equal(translateLegacyUi('Bài kiểm tra của cô Lan','en'),'Bài kiểm tra của cô Lan');
+assert.equal(lookupLegacyUiEnglish('Ghi chú đánh giá do giáo viên nhập'),null);
+
+const main = fs.readFileSync('src/main.jsx','utf8');
+const bridge = fs.readFileSync('src/components/GlobalLegacyI18nBridge.jsx','utf8');
+assert.match(main, /<GlobalLegacyI18nBridge language=\{language\}/);
+assert.match(bridge, /element\.tagName === 'OPTION' && !element\.hasAttribute\('value'\)/);
+assert.match(bridge, /EXCLUDED_ELEMENTS/);
+assert.match(bridge, /MutationObserver/);
+assert.match(bridge, /attributesMemory/);
+assert.match(bridge, /textMemory/);
+assert.match(bridge, /requestAnimationFrame/);
+assert.doesNotMatch(bridge, /fetch\s*\(|XMLHttpRequest|sendBeacon/);
+
+const relevant = [
+ 'src/pages/QuestionBank.jsx',
+ 'src/pages/PersonnelHub.jsx',
+ 'src/pages/MonthlyReportsWorkspace.jsx',
+ 'src/components/GlobalAttendanceNavigationTab.jsx',
+ 'src/components/GlobalTtcmNavigationTab.jsx',
+ 'src/components/homeroom/StudentRecordsTab.jsx',
+ 'src/components/HomeroomConductTab.jsx',
+ 'src/components/gradebook/GradebookMacEngine.jsx',
+];
+let covered = 0, total = 0;
+const rows = [];
+for (const path of relevant) {
+  const source = fs.readFileSync(path,'utf8');
+  const candidates = [
+    ...[...source.matchAll(/>([^<>{}\n]{2,110})</g)].map(x=>x[1].trim()),
+    ...[...source.matchAll(/\b(?:placeholder|title|aria-label)="([^"]{2,110})"/g)].map(x=>x[1].trim()),
+  ].filter(s => /[À-ỹĐđĂăÂâÊêÔôƠơƯư]/.test(s));
+  const translated = candidates.filter(s => lookupLegacyUiEnglish(s) !== null).length;
+  total += candidates.length;
+  covered += translated;
+  rows.push(path+': '+translated+'/'+candidates.length);
+}
+assert.ok(total >= 700, 'Expected an auditable cross-app sample');
+const coverage = covered / total;
+assert.ok(coverage >= 0.85, 'Major route labels must remain at least 85% covered: '+(coverage*100).toFixed(1)+'%');
+console.log('Global bilingual UI contract passed: '+covered+'/'+total+' audited static labels ('+(coverage*100).toFixed(1)+'%).');
