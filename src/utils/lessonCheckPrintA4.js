@@ -12,7 +12,7 @@ const fmtScore = (value, language='vi') => Number.isFinite(value) ? (language===
 const labelFocus = (name, language='vi') => ({
   vocabulary: 'Vocabulary', grammar: 'Grammar', reading: 'Reading',
   listening: 'Listening', speaking: 'Speaking', mixed: 'Mixed',
-  unclassified: 'Chưa phân loại',
+  unclassified: language==='en'?'Unclassified':'Chưa phân loại',
 }[name] || name || (language==='en'?'Unclassified':'Chưa phân loại'));
 
 const PRINT_CSS = [
