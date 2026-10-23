@@ -59,7 +59,14 @@ const newPublish = `  const handlePublish = async () => {
       setBusy('');
     }
   };`;
-if (!source.includes(newPublish)) {
+// The drawer editor records a successful publish for its unsaved-changes guard.
+// Both post-publish variants are already patched; do not require verbatim equality
+// with the older editor body or rewrite the newer component at build time.
+const newPublishWithDrawerGuard = newPublish.replace(
+  "      const shortCommit = String(result.commitSha || '').slice(0, 7);",
+  "      lastSavedConfigRef.current = clone(config);\n      const shortCommit = String(result.commitSha || '').slice(0, 7);",
+);
+if (!source.includes(newPublish) && !source.includes(newPublishWithDrawerGuard)) {
   if (!source.includes(oldPublish)) throw new Error('Could not locate Hero publish handler.');
   source = source.replace(oldPublish, newPublish);
 }
