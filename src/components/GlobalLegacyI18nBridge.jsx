@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
-import { assessmentText } from '../utils/assessmentBilingual.js';
-import { LEGACY_SITE_EN } from '../utils/legacySiteTranslations.js';
+import { lookupLegacyUiEnglish } from '../utils/globalI18n.js';
 
 /*
  * Compatibility bridge for older React views without language props.
@@ -25,22 +24,6 @@ const EXCLUDED_ELEMENTS = new Set([
 const LABEL_ATTRIBUTES = ['placeholder','aria-label','title'];
 const textMemory = new WeakMap();
 const attributesMemory = new WeakMap();
-const COUNT_TERMS = Object.freeze({
-  'học sinh':'students', 'giáo viên':'teachers', 'lớp':'classes',
-  'hoạt động':'activities', 'yêu cầu':'requests', 'sự kiện':'events',
-  'nhiệm vụ':'tasks', 'câu hỏi':'questions', 'bài kiểm tra':'assessments',
-});
-
-function exactEnglish(source) {
-  const known = LEGACY_SITE_EN[source];
-  if (known !== undefined) return known;
-  const assessment = assessmentText(source, 'en');
-  if (assessment !== source) return assessment;
-  const count = /^(\d{1,6})\s+(học sinh|giáo viên|lớp|hoạt động|yêu cầu|sự kiện|nhiệm vụ|câu hỏi|bài kiểm tra)$/.exec(source);
-  if (count) return count[1] + ' ' + COUNT_TERMS[count[2]];
-  return null;
-}
-
 function eligible(element) {
   if (!element || element.closest?.(DO_NOT_TRANSLATE)) return false;
   if (EXCLUDED_ELEMENTS.has(element.tagName)) return false;
@@ -64,7 +47,7 @@ function updateText(node, language) {
   if (previous && visible === previous.display) source = previous.source;
   const normalized = source.trim();
   if (!normalized) return;
-  const english = exactEnglish(normalized);
+  const english = lookupLegacyUiEnglish(normalized);
   if (english == null || english === normalized) {
     if (language === 'vi' && previous && visible === previous.display) {
       node.nodeValue = previous.source;
@@ -84,7 +67,7 @@ function updateAttribute(element, attr, language) {
   const state = attributesMemory.get(element);
   const remembered = state?.get(attr);
   const source = remembered && remembered.display === value ? remembered.source : value;
-  const english = exactEnglish(source.trim());
+  const english = lookupLegacyUiEnglish(source.trim());
   if (!english || english === source.trim()) {
     if (language === 'vi' && remembered && value === remembered.display) {
       element.setAttribute(attr, remembered.source);
