@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { changeCurrentPassword } from '../utils/auth.js';
 import GlobalMotionAdminPanel from '../components/admin/GlobalMotionAdminPanel.jsx';
 import GlobalChromeSettingsPanel from '../components/admin/GlobalChromeSettingsPanel.jsx';
@@ -6,6 +6,9 @@ import { isDepartmentLeaderRole } from '../utils/roles.js';
 import '../styles/SettingsGoogleM3.css';
 import '../styles/SettingsLauncher2.css';
 import SettingsLauncherHome, { SETTINGS_LAUNCHER_TILES } from '../components/settings/SettingsLauncherHome.jsx';
+const SettingsTeacherManagement = lazy(() => import('../components/settings/SettingsTeacherManagement.jsx'));
+const GlobalFontAdminPanel = lazy(() => import('../components/admin/GlobalFontAdminPanel.jsx'));
+const RegionalFontAdminPanel = lazy(() => import('../components/admin/RegionalFontAdminPanel.jsx'));
 
 const ICON_PATHS = {
   search: 'M9.5 3a6.5 6.5 0 1 0 4.06 11.58L19 20l1-1-5.42-5.44A6.5 6.5 0 0 0 9.5 3Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z',
@@ -126,7 +129,7 @@ export default function Settings({
   const moduleTitle = SETTINGS_LAUNCHER_TILES.find(item => item.id === activeModule);
   const openModule = (id) => {
     if (!SETTINGS_LAUNCHER_TILES.some(item => item.id === id)) return;
-    if (id === 'permissions' && !isDepartmentLeaderRole(currentUser?.role)) return;
+    if (['permissions','teacher-create'].includes(id) && !['admin','administrator'].includes(String(currentUser?.role || '').toLowerCase())) return;
     previousTriggerRef.current = document.activeElement;
     setDetailFullscreen(false);
     setActiveModule(id);
@@ -348,11 +351,10 @@ export default function Settings({
                     <a href="#/apps">{vi ? 'Đi tới Kho ứng dụng' : 'Open App directory'} <b>↗</b></a>
                   </div>
                 ) : null}
-                {activeModule === 'permissions' && isDepartmentLeaderRole(currentUser?.role) ? (
-                  <div className="settings-launcher-links">
-                    <p>{vi ? 'Quyền truy cập được kiểm tra tại từng chức năng và trên máy chủ. Chỉ quản trị viên được phép thay đổi các quyền quản trị.' : 'Permissions are validated by each feature and its backend.'}</p>
-                    {['admin','administrator'].includes(String(currentUser?.role || '').toLowerCase()) ? <a href="#/admin">{vi ? 'Mở quản trị người dùng' : 'Open administration'} <b>↗</b></a> : null}
-                  </div>
+                {(['permissions','teacher-create'].includes(activeModule)) && ['admin','administrator'].includes(String(currentUser?.role || '').toLowerCase()) ? (
+                  <Suspense fallback={<p className="settings-launcher-loading">{vi ? 'Đang tải quản lý giáo viên…' : 'Loading teacher management…'}</p>}>
+                    <SettingsTeacherManagement key={activeModule} currentUser={currentUser} language={language} initialTab={activeModule === 'teacher-create' ? 'create' : 'permissions'} />
+                  </Suspense>
                 ) : null}
           {activeModule === 'account' && matches('tài khoản', 'account', 'hồ sơ', 'profile', 'mật khẩu', 'password') ? (
             <section id="settings-account" className="settings-v47-card settings-v65-account-card settings-google-profile-card">
@@ -433,16 +435,24 @@ export default function Settings({
               <GlobalChromeSettingsPanel currentUser={currentUser} language={language} />
             ) : null}
 
+            {activeModule === 'appearance' && ['admin', 'administrator'].includes(String(currentUser?.role || '').toLowerCase()) ? (
+              <Suspense fallback={<p className="settings-launcher-loading">{vi ? 'Đang tải trình chỉnh font…' : 'Loading typography controls…'}</p>}>
+                <section className="settings-launcher-font-section" aria-label={vi ? 'Quản lý font chữ' : 'Typography management'}>
+                  <GlobalFontAdminPanel currentUser={currentUser} language={language} />
+                  <RegionalFontAdminPanel currentUser={currentUser} language={language} />
+                </section>
+              </Suspense>
+            ) : null}
             {activeModule === 'appearance' && ['admin', 'administrator'].includes(String(currentUser?.role || '').toLowerCase()) && matches('chuyển động', 'motion', 'hiệu ứng', 'indicator', 'điều hướng', 'hệ thống', 'system') ? (
               <div className="settings-motion-admin-hub"><GlobalMotionAdminPanel currentUser={currentUser} language={language} onDirtyChange={setMotionDirty} /></div>
             ) : null}
 
             {(activeModule === 'data' || activeModule === 'appearance') && matches('hệ thống', 'system', 'hiệu năng', 'performance', 'cache', 'ngôn ngữ') ? (
               <article id="settings-system" className="settings-google-card tone-orange">
-                <CardHeader icon="speed" tone="orange" title={vi ? 'Hiệu năng hệ thống' : 'System performance'} subtitle={vi ? 'Tối ưu hiệu năng và lưu trữ.' : 'Optimize performance and storage.'} />
-                <SettingRow title={vi ? 'Chế độ hiệu năng' : 'Performance mode'} description={`${vi ? 'Đang áp dụng' : 'Active'}: ${resolvedPerformance}`}><SelectControl value={performanceMode} onChange={(event) => setPerformanceMode?.(event.target.value)}><option value="auto">Auto</option><option value="low">Low</option><option value="balanced">Balanced</option><option value="high">High</option></SelectControl></SettingRow>
-                <SettingRow title={vi ? 'Ngôn ngữ' : 'Language'}><SelectControl value={language} onChange={(event) => setLanguage?.(event.target.value)}><option value="vi">Tiếng Việt</option><option value="en">English</option></SelectControl></SettingRow>
-                <div className="settings-m3-storage"><div><span><M3Icon name="storage" size={19} />{vi ? 'Dung lượng lưu trữ' : 'Storage usage'}</span><b>{vi ? 'Chưa có số liệu xác minh' : 'No verified measurement'}</b></div></div>
+                <CardHeader icon={activeModule === 'appearance' ? 'globe' : 'speed'} tone="orange" title={activeModule === 'appearance' ? (vi ? 'Ngôn ngữ hiển thị' : 'Display language') : (vi ? 'Hiệu năng hệ thống' : 'System performance')} subtitle={activeModule === 'appearance' ? (vi ? 'Tùy chỉnh ngôn ngữ giao diện.' : 'Choose the application language.') : (vi ? 'Tối ưu hiệu năng và lưu trữ.' : 'Optimize performance and storage.')} />
+                {activeModule === 'data' ? <SettingRow title={vi ? 'Chế độ hiệu năng' : 'Performance mode'} description={`${vi ? 'Đang áp dụng' : 'Active'}: ${resolvedPerformance}`}><SelectControl value={performanceMode} onChange={(event) => setPerformanceMode?.(event.target.value)}><option value="auto">Auto</option><option value="low">Low</option><option value="balanced">Balanced</option><option value="high">High</option></SelectControl></SettingRow> : null}
+                {activeModule === 'appearance' ? <SettingRow title={vi ? 'Ngôn ngữ' : 'Language'}><SelectControl value={language} onChange={(event) => setLanguage?.(event.target.value)}><option value="vi">Tiếng Việt</option><option value="en">English</option></SelectControl></SettingRow> : null}
+                {activeModule === 'data' ? <><div className="settings-m3-storage"><div><span><M3Icon name="storage" size={19} />{vi ? 'Dung lượng lưu trữ' : 'Storage usage'}</span><b>{vi ? 'Chưa có số liệu xác minh' : 'No verified measurement'}</b></div></div>
                 <SettingRow title={vi ? 'Tự động dọn dẹp' : 'Automatic cleanup'}><SelectControl value={autoCleanup} onChange={(event) => updateTextSetting(setAutoCleanup, 'bes-auto-cleanup')(event.target.value)}><option value="7">7 {vi ? 'ngày' : 'days'}</option><option value="30">30 {vi ? 'ngày' : 'days'}</option><option value="90">90 {vi ? 'ngày' : 'days'}</option><option value="never">{vi ? 'Không tự động' : 'Never'}</option></SelectControl></SettingRow>
                 <div className="settings-m3-utility-actions">
                   <button type="button" onClick={clearCache}>{vi ? 'Xóa bộ nhớ đệm' : 'Clear cache'}</button>
@@ -450,7 +460,7 @@ export default function Settings({
                   <button type="button" onClick={() => importInputRef.current?.click()}>{vi ? 'Nhập cài đặt' : 'Import settings'}</button>
                   <input ref={importInputRef} hidden type="file" accept="application/json,.json" onChange={importSettings} />
                 </div>
-                <div className="settings-m3-reset-row"><span>{vi ? 'Chuyển động và indicator được quản lý tại Hub phía trên.' : 'Motion and indicators are managed in the hub above.'}</span><button type="button" onClick={resetSettings}>{vi ? 'Đặt lại mặc định' : 'Reset defaults'}</button></div>
+                <div className="settings-m3-reset-row"><span>{vi ? 'Chuyển động và indicator được quản lý tại Hub phía trên.' : 'Motion and indicators are managed in the hub above.'}</span><button type="button" onClick={resetSettings}>{vi ? 'Đặt lại mặc định' : 'Reset defaults'}</button></div></> : null}
               </article>
             ) : null}
           </section>
