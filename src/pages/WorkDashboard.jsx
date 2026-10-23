@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   DASHBOARD_SOURCE_EVENTS,
   createEmptyDashboardSnapshot,
@@ -7,37 +7,14 @@ import {
   loadDashboardSnapshot,
   openDashboardTarget,
 } from '../utils/dashboardAggregator.js';
-import DashboardCommandCenter from '../components/DashboardCommandCenter.jsx';
-// Unified CSS entrypoint: archived layer imports remain inside one design authority.
-import '../styles/dashboard-unified-v33.css';
-import '../styles/dashboard-v34-wide-news.css';
+import '../styles/teacher-dashboard-google-authentic.css';
+import '../styles/teacher-dashboard-calendar-split.css';
+import '../styles/teacher-dashboard-compact-layout.css';
+import '../styles/teacher-dashboard-google-colorful.css';
+import '../styles/teacher-dashboard-editorial-hero.css';
+import '../styles/teacher-dashboard-timeline-v2.css';
+import DashboardNewsHub from '../components/DashboardNewsHub.jsx';
 import { dashboardLocalDayKey, isDashboardTeachingPeriod } from '../utils/dashboardClassification.js';
-import DashboardWeeklyPlanner from '../components/DashboardWeeklyPlanner.jsx';
-import DashboardCommandPalette from '../components/DashboardCommandPalette.jsx';
-import { Search as SearchIcon, Moon, Sun, Focus, X as CloseIcon, Keyboard } from 'lucide-react';
-import DashboardDailyBrief from '../components/DashboardDailyBrief.jsx';
-import DashboardInsights from '../components/DashboardInsights.jsx';
-import DashboardMonthCalendar from '../components/DashboardMonthCalendar.jsx';
-import DashboardWidgetBoard from '../components/DashboardWidgetBoard.jsx';
-import { dashboardLayoutStorageKey, readDashboardLayout, setDashboardSectionVisible, setDashboardTheme, setDashboardFocusMode, writeDashboardLayout } from '../utils/dashboardLayoutPreferences.js';
-import BrianDashboardDropZone from '../components/BrianDashboardDropZone.jsx';
-
-const DashboardNewsHub = lazy(() => import('../components/DashboardNewsHub.jsx'));
-const WEATHER_LOCATIONS = [
-  { id: 'binh-duong', label: 'Bình Dương', latitude: 11.001, longitude: 106.653 },
-  { id: 'ho-chi-minh', label: 'TP.HCM', latitude: 10.7769, longitude: 106.7009 },
-];
-function initialWeatherLocation() {
-  try { return WEATHER_LOCATIONS.some((place) => place.id === localStorage.getItem('bes-dashboard-weather-location-v2')) ? localStorage.getItem('bes-dashboard-weather-location-v2') : 'binh-duong'; }
-  catch { return 'binh-duong'; }
-}
-function weatherSymbol(code) {
-  if (code === 0 || code === 1) return '☀️';
-  if (code === 2 || code === 3) return '⛅';
-  if (code === 45 || code === 48) return '🌫️';
-  if (Number.isFinite(code) && code >= 51) return '🌧️';
-  return '☁️';
-}
 
 const COPY = {
   vi: {
@@ -112,9 +89,6 @@ function weatherText(code, language) {
 }
 function openTtcm(view = 'feed') { window.dispatchEvent(new CustomEvent('bes-ttcm-open', { detail: { view } })); }
 function Empty({ children }) { return <div className="gd-empty"><span><Icon name="calendar" size={24} /></span><p>{children}</p></div>; }
-function Surface({ title, subtitle, icon, action, actionLabel, children, id, className = '', note = '' }) {
-  return <article className={`gd-surface ${className}`} id={id}><header className="gd-surface-header"><div className="gd-surface-heading"><span className="gd-heading-icon"><Icon name={icon} size={20} /></span><div><h2>{title}</h2>{subtitle ? <p>{subtitle}</p> : null}</div></div>{note ? <span className="gd-surface-note" aria-hidden="true">{note}</span> : null}{action ? <button type="button" className="gd-text-button" onClick={action}>{actionLabel}<Icon name="arrow" size={18} /></button> : null}</header><div className="gd-surface-body">{children}</div></article>;
-}
 function getEventVisual(item, language, index = 0) {
   const vi = language === 'vi';
   const haystack = `${item?.title || ''} ${item?.description || ''} ${item?.owner || ''} ${item?.sourceLabel || ''}`.toLowerCase();
@@ -311,35 +285,6 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   const [error, setError] = useState('');
   const [now, setNow] = useState(() => new Date());
   const [weather, setWeather] = useState({ temperature: null, code: null, loading: true });
-  const [weatherLocation, setWeatherLocation] = useState(initialWeatherLocation);
-  const [showNews, setShowNews] = useState(false);
-  const [newsExpanded, setNewsExpanded] = useState(true);
-  const [calendarRange, setCalendarRange] = useState('today');
-  const [selectedScheduleDay, setSelectedScheduleDay] = useState('');
-  const [paletteOpen, setPaletteOpen] = useState(false);
-  const [personalLayout, setPersonalLayout] = useState(() => readDashboardLayout(currentUser));
-  const layoutOwnerKey = dashboardLayoutStorageKey(currentUser);
-  useEffect(() => { setPersonalLayout(readDashboardLayout(currentUser)); }, [layoutOwnerKey]);
-  const handleLayoutChange = useCallback((updater) => {
-    setPersonalLayout((previous) => writeDashboardLayout(currentUser,
-      typeof updater === 'function' ? updater(previous) : updater));
-  }, [layoutOwnerKey]);
-  const isDashboardSectionVisible = (id) => !personalLayout.hiddenSections.includes(id);
-  const newsSectionVisible = isDashboardSectionVisible('news');
-  const isFocusMode = personalLayout.focusMode === true;
-  const isMidnight = personalLayout.theme === 'midnight';
-  useEffect(() => {
-    const onShortcut = event => {
-      if (event.altKey && event.shiftKey && !event.metaKey && !event.ctrlKey && event.key.toLowerCase() === 'k') {
-        event.preventDefault();
-        setPaletteOpen(open => !open);
-      }
-      if (event.key === 'Escape') setPaletteOpen(false);
-    };
-    window.addEventListener('keydown', onShortcut);
-    return () => window.removeEventListener('keydown', onShortcut);
-  }, []);
-  const newsRef = useRef(null);
   const dashboardRequestRef = useRef(0);
   const weatherRequestRef = useRef(0);
   const lastRefreshRef = useRef(0);
@@ -362,11 +307,9 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
 
   const refreshWeather = useCallback(async () => {
     const requestId = ++weatherRequestRef.current;
-    const place = WEATHER_LOCATIONS.find((item) => item.id === weatherLocation) || WEATHER_LOCATIONS[0];
-    setWeather((current) => ({ ...current, loading: true, temperature: null, code: null }));
+    setWeather((current) => ({ ...current, loading: true }));
     try {
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&current=temperature_2m,weather_code&timezone=Asia%2FHo_Chi_Minh`;
-      const response = await fetch(url);
+      const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=10.7769&longitude=106.7009&current=temperature_2m,weather_code&timezone=Asia%2FHo_Chi_Minh');
       if (!response.ok) throw new Error('weather unavailable');
       const payload = await response.json();
       if (requestId !== weatherRequestRef.current) return;
@@ -378,7 +321,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
     } catch {
       if (requestId === weatherRequestRef.current) setWeather((current) => ({ ...current, loading: false }));
     }
-  }, [weatherLocation]);
+  }, []);
 
   useEffect(() => { refresh(); return () => { dashboardRequestRef.current += 1; }; }, [refresh]);
   useEffect(() => {
@@ -386,16 +329,6 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
     return () => window.clearInterval(timer);
   }, []);
   useEffect(() => { refreshWeather(); return () => { weatherRequestRef.current += 1; }; }, [refreshWeather]);
-  useEffect(() => {
-    const element = newsRef.current;
-    if (!element || showNews || !newsExpanded || !newsSectionVisible) return undefined;
-    if (typeof IntersectionObserver === 'undefined') { setShowNews(true); return undefined; }
-    const observer = new IntersectionObserver((entries) => {
-      if (entries.some((entry) => entry.isIntersecting)) { setShowNews(true); observer.disconnect(); }
-    }, { rootMargin: '350px 0px' });
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [showNews, newsExpanded, newsSectionVisible]);
   useEffect(() => {
     let refreshTimer = 0;
     const queueUpdate = () => { window.clearTimeout(refreshTimer); refreshTimer = window.setTimeout(() => refresh({ quiet: true }), 450); };
@@ -427,48 +360,18 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
     return value;
   }, [todayKey]);
   const todayEvents = useMemo(() => timeline.filter((item) => dateKey(item.date) === todayKey), [timeline, todayKey]);
-  const displayScheduleDate = useMemo(() => {
-    if (calendarRange !== 'selected' || !/^\d{4}-\d{2}-\d{2}$/.test(selectedScheduleDay)) return todayDate;
-    const [year, month, day] = selectedScheduleDay.split('-').map(Number);
-    const parsed = new Date(year, month - 1, day);
-    return dateKey(parsed) === selectedScheduleDay ? parsed : todayDate;
-  }, [calendarRange, selectedScheduleDay, todayDate]);
-  const displayedEvents = useMemo(() => timeline.filter(item => dateKey(item.date) === dateKey(displayScheduleDate)), [timeline, displayScheduleDate]);
-  const displayScheduleWeekday = new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(displayScheduleDate);
-  const displayScheduleLabel = new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'long', year: 'numeric' }).format(displayScheduleDate);
-  const weekDays = useMemo(() => Array.from({ length: 7 }, (_, index) => {
-    const day = new Date(todayDate);
-    day.setDate(day.getDate() + index);
-    return { key: dateKey(day), date: day, events: timeline.filter((item) => dateKey(item.date) === dateKey(day)) };
-  }), [timeline, todayDate]);
+  const todayWeekday = new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(todayDate);
+  const todayDateLabel = new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'long', year: 'numeric' }).format(todayDate);
   const initialLoading = loading && !snapshot.generatedAt;
-  // Never label a finished appointment as the next upcoming event.
   const nextEvent = timeline.find((item) => new Date(item.date).getTime() >= now.getTime()) || null;
-  const nextEventLabel = nextEvent?.date ? new Intl.DateTimeFormat(locale, {
-    weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
-  }).format(new Date(nextEvent.date)) : '';
   const heroTime = new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }).format(now);
   const heroDate = new Intl.DateTimeFormat(locale, { weekday: 'long', day: '2-digit', month: 'short' }).format(now);
   const weatherDescription = weather.code == null ? t.weatherLoading : weatherText(weather.code, language);
   const weatherTemperature = weather.temperature == null ? '—°C' : `${weather.temperature}°C`;
-  const changeWeatherLocation = (event) => {
-    const id = event.target.value;
-    setWeatherLocation(id);
-    try { localStorage.setItem('bes-dashboard-weather-location-v2', id); } catch { /* optional */ }
-  };
-  const quickActions = [
-    ['task', t.createWork, 'ttcm:feed'], ['folder', t.uploadResource, '#/resource-library'], ['magic', t.textLab, '#/tool/textlab-activities'],
-    ...(snapshot.homeroom ? [['people', t.openHomeroom, '#/homeroom']] : []),
-  ];
 
   const scrollToCalendar = useCallback(() => {
-    if (personalLayout.hiddenSections.includes('calendar')) {
-      handleLayoutChange((current) => setDashboardSectionVisible(current, 'calendar', true));
-    }
-    window.requestAnimationFrame(() => {
-      window.setTimeout(() => document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'auto', block: 'start' }), 40);
-    });
-  }, [handleLayoutChange, personalLayout.hiddenSections]);
+    document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'auto', block: 'start' });
+  }, []);
 
   useEffect(() => {
     const focusTodaySection = () => {
@@ -497,103 +400,10 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
     }
     scrollToCalendar();
   };
-  const focusToday = () => {
-    setSelectedScheduleDay('');
-    setCalendarRange('today');
-    scrollToCalendar();
-  };
-  const openSelectedScheduleDay = useCallback((key) => {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(key || ''))) return;
-    setSelectedScheduleDay(key);
-    setCalendarRange('selected');
-    scrollToCalendar();
-  }, [scrollToCalendar]);
-  const focusTaskQueue = () => {
-    if (!isDashboardSectionVisible('priority')) handleLayoutChange(current => setDashboardSectionVisible(current,'priority',true));
-    window.requestAnimationFrame(() => window.setTimeout(() => {
-      document.querySelector('.dcc-priority')?.scrollIntoView({ behavior:'smooth', block:'center' });
-      document.querySelector('.dcc-task-search input')?.focus();
-    }, 65));
-  };
+  const focusToday = () => scrollToCalendar();
 
-  const dashboardWidgetNodes = {
-    calendar: (isDashboardSectionVisible('calendar') ? <article className="gd-calendar gd-calendar-today gd-calendar-timeline-v2" id="dashboard-calendar">
-        <header className="gd-calendar-header">
-          <div className="gd-calendar-kicker">{calendarRange === 'month' ? '02 / MONTH' : calendarRange === 'week' ? '02 / WEEK' : calendarRange === 'selected' ? '02 / DAY' : '02 / TODAY'}</div>
-          <div className="gd-calendar-title"><span><Icon name="calendar" size={24} /></span><div><h2>{calendarRange === 'selected' ? (language === 'vi' ? 'Lịch làm việc' : 'Daily schedule') : t.calendar}</h2><p>{t.calendarSummary}</p></div></div>
-          <DashboardCalendarDoodle language={language} />
-          <span className="gd-calendar-edition">DAILY SCHEDULE / BRIAN</span>
-          <button type="button" className="gd-text-button" onClick={() => openTtcm('schedule')}><Icon name="calendar" size={16} />{t.openCalendar}<Icon name="arrow" size={18} /></button>
-        </header>
-        <div className="gd-calendar-range-toggle" role="group" aria-label={language === 'vi' ? 'Phạm vi lịch' : 'Schedule range'}>
-          <button type="button" aria-pressed={calendarRange === 'today'} className={calendarRange === 'today' ? 'is-active' : ''} onClick={() => { setSelectedScheduleDay(''); setCalendarRange('today'); }}>{language === 'vi' ? 'Hôm nay' : 'Today'}</button>
-          <button type="button" aria-pressed={calendarRange === 'week'} className={calendarRange === 'week' ? 'is-active' : ''} onClick={() => setCalendarRange('week')}>{language === 'vi' ? '7 ngày tới' : 'Next 7 days'}</button>
-          {calendarRange === 'selected' ? <button type="button" className="is-active" aria-pressed="true">{language === 'vi' ? 'Ngày đã chọn' : 'Selected day'}</button> : null}
-          <button type="button" aria-pressed={calendarRange === 'month'} className={calendarRange === 'month' ? 'is-active' : ''} onClick={() => setCalendarRange('month')}>{language === 'vi' ? 'Tháng' : 'Month'}</button>
-        </div>
-        <div className={'gd-today-layout gd-today-layout-v2' + (calendarRange === 'week' ? ' gd-week-mode' : calendarRange === 'month' ? ' gd-month-mode' : '')}>
-          {calendarRange === 'month' ? <DashboardMonthCalendar timeline={timeline} now={now} language={language} coverage={snapshot.calendarCoverage}/> : calendarRange === 'week' ? <section className="gd-week-agenda" aria-live="polite">
-            {weekDays.map((day) => <div className="gd-week-day" key={day.key}>
-              <div className="gd-week-day-heading"><span>{new Intl.DateTimeFormat(locale, { weekday: 'long', day: '2-digit', month: '2-digit' }).format(day.date)}</span><b>{day.events.length} {t.events}</b></div>
-              {day.events.length ? day.events.map((item, index) => <CalendarEvent key={item.id} item={item} language={language} locale={locale} t={t} index={index} />) : <p className="gd-week-empty">{t.noEvents}</p>}
-            </div>)}
-          </section> : <>
-          <aside className="gd-date-poster">
-            <div className="gd-date-poster-main">
-              <strong>{String(displayScheduleDate.getDate()).padStart(2, '0')}</strong>
-              <span>{new Intl.DateTimeFormat(locale, { month: 'long' }).format(displayScheduleDate)}</span>
-              <b>{displayScheduleWeekday}</b>
-            </div>
-            <div className="gd-date-poster-landscape" aria-hidden="true"><i /><i /><i /></div>
-            <p>{language === 'vi' ? <>Hôm nay<br />cũng là một<br />bước tiến! ✨</> : <>Today is<br />another step<br />forward! ✨</>}</p>
-          </aside>
-          <section className="gd-timeline-panel">
-            <div className="gd-timeline-head">
-              <div><span>{calendarRange === 'selected' ? (language === 'vi' ? 'Lịch ngày đã chọn' : 'Selected day') : t.selectedDay}</span><strong>{displayScheduleLabel}</strong></div>
-              <span className="gd-count-chip">{displayedEvents.length} {t.events}</span>
-            </div>
-            <div className="gd-agenda-list gd-agenda-list-today gd-agenda-timeline">{initialLoading ? <Empty>{t.refreshing}</Empty> : displayedEvents.length ? displayedEvents.map((item, index) => <CalendarEvent key={item.id} item={item} language={language} locale={locale} t={t} index={index} />) : <Empty>{t.emptyCalendar}</Empty>}</div>
-          </section>
-          </>}
-        </div>
-      </article> : null),
-    quickActions: (isDashboardSectionVisible('quickActions') ? <Surface title={t.quickActions} icon="bolt" className="gd-quick-surface" note={language === 'vi' ? 'Tiết kiệm thời gian · Tập trung cho điều quan trọng ♡' : 'Save time · Focus on what matters ♡'}><div className="gd-quick-actions">{quickActions.map(([icon, label, target]) => <button type="button" key={label} className="gd-quick-action" onClick={() => { if (String(target).startsWith('ttcm:')) openTtcm(String(target).split(':')[1] || 'feed'); else window.location.hash = target; }}><span><Icon name={icon} size={20} /></span>{label}</button>)}</div></Surface> : null),
-    dropZone: (isDashboardSectionVisible('dropZone') ? <BrianDashboardDropZone language={language} /> : null),
-    news: (newsSectionVisible ? <section ref={newsRef} className="dcc-news-slot">
-        <button type="button" className="dcc-news-toggle" aria-expanded={newsExpanded} onClick={() => setNewsExpanded((v) => !v)}>
-          <span aria-hidden="true">📰</span><strong>{language === 'vi' ? 'Tin tức giáo dục' : 'Education news'}</strong>
-          <span>{language === 'vi' ? (newsExpanded ? 'Thu gọn' : 'Hiển thị tin tức') : (newsExpanded ? 'Collapse' : 'Show news')} {newsExpanded ? '−' : '+'}</span>
-        </button>
-        {newsExpanded ? (showNews
-          ? <Suspense fallback={<div className="dcc-news-placeholder">{t.refreshing}</div>}><DashboardNewsHub language={language} /></Suspense>
-          : <div className="dcc-news-placeholder">{t.refreshing}</div>) : null}
-      </section> : null),
-  };
-
-  return <section className={`gd-page gd-v31-page gd-v32-page gd-u33 gd-u34${initialLoading ? ' is-loading' : ''}${isFocusMode ? ' gd-v31-focus' : ''}${isMidnight ? ' gd-v31-midnight' : ''}`} aria-label={t.pageTitle} aria-busy={loading} data-dashboard-theme={isMidnight ? 'midnight' : 'daylight'}>
-    <div className="gd-shell gd-shell-v3">
-      <div className="gd-v31-toolbar" role="toolbar" aria-label={language==='vi'?'Công cụ Dashboard':'Dashboard tools'}>
-        <div className="gd-v31-toolbar-name">
-          <span className="gd-v31-toolbar-indicator"/>
-          <strong>BRIAN <span>COMMAND CENTER</span></strong>
-          <small>3.4</small>
-        </div>
-        <div className="gd-v31-toolbar-actions">
-          <button type="button" className="gd-v31-search-trigger" onClick={()=>setPaletteOpen(true)}>
-            <SearchIcon size={17}/><span>{language==='vi'?'Tìm nhanh':'Quick search'}</span><kbd>⌥ ⇧ K</kbd>
-          </button>
-          <button type="button" className={'gd-v31-mode-button'+(isFocusMode?' is-active':'')} aria-pressed={isFocusMode}
-            onClick={()=>handleLayoutChange(current=>setDashboardFocusMode(current,!current.focusMode))}>
-            {isFocusMode?<CloseIcon size={17}/>:<Focus size={17}/>}
-            <span>{isFocusMode?(language==='vi'?'Thoát tập trung':'Exit focus'):(language==='vi'?'Tập trung':'Focus')}</span>
-          </button>
-          <button type="button" className="gd-v31-theme-button" aria-pressed={isMidnight} aria-label={isMidnight?(language==='vi'?'Chuyển sang giao diện sáng':'Switch to light theme'):(language==='vi'?'Chuyển sang giao diện tối':'Switch to dark theme')}
-            title={isMidnight?(language==='vi'?'Giao diện sáng':'Light theme'):(language==='vi'?'Giao diện tối':'Dark theme')}
-            onClick={()=>handleLayoutChange(current=>setDashboardTheme(current,current.theme==='midnight'?'daylight':'midnight'))}>
-            {isMidnight?<Sun size={18}/>:<Moon size={18}/>}
-          </button>
-        </div>
-      </div>
+  return <section className={`gd-page${initialLoading ? ' is-loading' : ''}`} aria-label={t.pageTitle} aria-busy={loading}>
+    <div className="gd-shell">
       <section className="gd-top-grid">
         <header className="editorial-hero">
           <DashboardHeroCloudscape />
@@ -628,13 +438,10 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
                 <span className="editorial-status-icon"><Icon name="clock" size={18} /></span>
                 <span><small>{t.currentTime}</small><strong>{heroTime}</strong></span>
               </button>
-              <div className="editorial-status-card editorial-status-weather" title={t.weather}>
-                <span className="editorial-weather-symbol" aria-hidden="true">{weatherSymbol(weather.code)}</span>
-                <span><small>{weather.loading ? t.weatherLoading : weatherDescription}</small><strong>
-                  <select className="editorial-weather-location" aria-label={language === 'vi' ? 'Chọn khu vực thời tiết' : 'Weather location'} value={weatherLocation} onChange={changeWeatherLocation}>
-                    {WEATHER_LOCATIONS.map((place) => <option key={place.id} value={place.id}>{place.label}</option>)}
-                  </select> · {weatherTemperature}</strong></span>
-              </div>
+              <button type="button" className="editorial-status-card editorial-status-weather" onClick={refreshWeather} title={t.weather}>
+                <span className="editorial-weather-symbol" aria-hidden="true">☀</span>
+                <span><small>{weather.loading ? t.weatherLoading : weatherDescription}</small><strong>TP.HCM · {weatherTemperature}</strong></span>
+              </button>
             </div>
             <div className="editorial-hero-visual"><DashboardHeroIllustration /></div>
             <button type="button" className="editorial-today-chip" onClick={focusToday} title={t.dateToday}><Icon name="calendar" size={17} /><span>{t.dateToday}</span><strong>{new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit' }).format(now)}</strong></button>
@@ -642,26 +449,35 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
         </header>
       </section>
 
-      {isDashboardSectionVisible('nextEvent') ? <div className="dcc-next-event" aria-label={language === 'vi' ? 'Sự kiện tiếp theo' : 'Next event'}>
-        <span className="dcc-next-event-icon"><Icon name="event" size={21} /></span>
-        <div className="dcc-next-event-details">
-          <span className="dcc-next-event-eyebrow">{language === 'vi' ? 'SỰ KIỆN TIẾP THEO' : 'UP NEXT'}</span>
-          <strong>{nextEvent?.title || (language === 'vi' ? 'Chưa có sự kiện sắp tới trong hai tháng' : 'No upcoming events in the next two months')}</strong>
-          {nextEventLabel ? <small>{nextEventLabel} · {nextEvent?.sourceLabel || ''}</small> : null}
-        </div>
-        <button type="button" className="dcc-next-event-action" onClick={() => {
-          if (nextEvent) openDashboardTarget(nextEvent);
-          else openTtcm('schedule');
-        }}><span>{nextEvent ? (language === 'vi' ? 'Xem chi tiết' : 'View details') : (language === 'vi' ? 'Mở lịch' : 'Open calendar')}</span><Icon name="arrow" size={17} /></button>
-      </div> : null}
-      <DashboardCommandCenter snapshot={snapshot} todayEventCount={todayEvents.length} language={language} now={now} loading={loading} onRefresh={() => refresh()} layout={personalLayout} onChangeLayout={handleLayoutChange} onFocusCalendar={scrollToCalendar} />
-      <DashboardDailyBrief snapshot={snapshot} now={now} language={language}/>
-
-      <DashboardWeeklyPlanner timeline={timeline} attention={snapshot.attention || []} snapshot={snapshot} now={now} language={language} loading={loading} onRefresh={() => refresh()} onSelectDay={openSelectedScheduleDay}/>
-      <DashboardInsights snapshot={snapshot} now={now} language={language}/>
       {error ? <div className="gd-alert"><Icon name="warning" size={22} /><div><strong>{t.partial}</strong><small>{error}</small></div><button type="button" className="gd-text-button" onClick={() => refresh()}>{t.retry}</button></div> : null}
-      <DashboardWidgetBoard layout={personalLayout} widgets={dashboardWidgetNodes} />
+      <article className="gd-calendar gd-calendar-today gd-calendar-timeline-v2" id="dashboard-calendar">
+        <header className="gd-calendar-header">
+          <div className="gd-calendar-kicker">02 / TODAY</div>
+          <div className="gd-calendar-title"><span><Icon name="calendar" size={24} /></span><div><h2>{t.calendar}</h2><p>{t.calendarSummary}</p></div></div>
+          <DashboardCalendarDoodle language={language} />
+          <span className="gd-calendar-edition">DAILY SCHEDULE / BRIAN</span>
+          <button type="button" className="gd-text-button" onClick={() => openTtcm('schedule')}><Icon name="calendar" size={16} />{t.openCalendar}<Icon name="arrow" size={18} /></button>
+        </header>
+        <div className="gd-today-layout gd-today-layout-v2">
+          <aside className="gd-date-poster">
+            <div className="gd-date-poster-main">
+              <strong>{String(todayDate.getDate()).padStart(2, '0')}</strong>
+              <span>{new Intl.DateTimeFormat(locale, { month: 'long' }).format(todayDate)}</span>
+              <b>{todayWeekday}</b>
+            </div>
+            <div className="gd-date-poster-landscape" aria-hidden="true"><i /><i /><i /></div>
+            <p>{language === 'vi' ? <>Hôm nay<br />cũng là một<br />bước tiến! ✨</> : <>Today is<br />another step<br />forward! ✨</>}</p>
+          </aside>
+          <section className="gd-timeline-panel">
+            <div className="gd-timeline-head">
+              <div><span>{t.selectedDay}</span><strong>{todayDateLabel}</strong></div>
+              <span className="gd-count-chip">{todayEvents.length} {t.events}</span>
+            </div>
+            <div className="gd-agenda-list gd-agenda-list-today gd-agenda-timeline">{initialLoading ? <Empty>{t.refreshing}</Empty> : todayEvents.length ? todayEvents.map((item, index) => <CalendarEvent key={item.id} item={item} language={language} locale={locale} t={t} index={index} />) : <Empty>{t.emptyCalendar}</Empty>}</div>
+          </section>
+        </div>
+      </article>
+      <DashboardNewsHub language={language} />
     </div>
-    <DashboardCommandPalette open={paletteOpen} onClose={()=>setPaletteOpen(false)} snapshot={snapshot} language={language} onCalendar={scrollToCalendar} onTasks={focusTaskQueue}/>
   </section>;
 }
