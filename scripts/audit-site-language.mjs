@@ -22,7 +22,8 @@ const PRESERVE = Object.freeze({
     'ABCDEFGHIJKLMNOPQRSTUVWXYZ · abcdefghijklmnopqrstuvwxyz · 0123456789 · Ă Â Ê Ô Ơ Ư Đ',
   ],
   'src/components/homeroom/StudentRecordsTab.jsx': [
-    ",'Hồ sơ giấy'],['vnedu'", ",'Đối chiếu'],['history'",
+    ",'Hồ sơ giấy'],['vnedu',",
+    ",'Đối chiếu'],['history',"
   ],
   'src/pages/ClassroomJoin.jsx': ['Nguyễn Văn A'],
   'src/pages/QuestionBank.jsx': [
