@@ -1,0 +1,781 @@
+/* Material 3 styling bridge for Settings Drawer v2.2
+ * Root cause: SettingsGoogleM3.css styles were scoped to .app-shell,
+ * but drawer content was moved to a document.body portal.
+ * Port only the existing settings card/control selectors into the portal;
+ * keep the original design tokens, declarations, and business behavior.
+ * This copy is intentionally isolated from Dashboard, other apps and main launcher.
+ */
+html body .settings-launcher-portal {
+  --sg-blue: #0b57d0;
+  --sg-blue-hover: #0842a0;
+  --sg-blue-container: #d3e3fd;
+  --sg-blue-soft: #edf3ff;
+  --sg-green: #137333;
+  --sg-green-container: #c4eed0;
+  --sg-purple: #7e57c2;
+  --sg-purple-container: #efe7ff;
+  --sg-indigo: #3f51b5;
+  --sg-orange: #b65c00;
+  --sg-orange-container: #ffead1;
+  --sg-red: #b3261e;
+  --sg-ink: #1f1f1f;
+  --sg-muted: #5f6368;
+  --sg-line: #dfe3eb;
+  --sg-line-strong: #c7ccd5;
+  --sg-surface: #ffffff;
+  --sg-surface-2: #f8fafd;
+  --sg-surface-3: #eef3f9;
+  --sg-shadow-1: 0 1px 2px rgba(60, 64, 67, .08), 0 2px 6px rgba(60, 64, 67, .06);
+  --sg-shadow-2: 0 2px 6px rgba(60, 64, 67, .09), 0 10px 28px rgba(60, 64, 67, .08);
+
+}
+
+html[data-theme="dark"] body .settings-launcher-portal,
+html body .settings-launcher-portal.is-dark {
+  --sg-blue: #a8c7fa;
+  --sg-blue-hover: #d3e3fd;
+  --sg-blue-container: #233a5e;
+  --sg-blue-soft: #1f2b3d;
+  --sg-green: #81c995;
+  --sg-green-container: #204f34;
+  --sg-purple: #d7b7ff;
+  --sg-purple-container: #3c3151;
+  --sg-indigo: #b7c4ff;
+  --sg-orange: #ffb86c;
+  --sg-orange-container: #553414;
+  --sg-red: #f2b8b5;
+  --sg-ink: #e8eaed;
+  --sg-muted: #bdc1c6;
+  --sg-line: #3c4043;
+  --sg-line-strong: #5f6368;
+  --sg-surface: #202124;
+  --sg-surface-2: #17181a;
+  --sg-surface-3: #292a2d;
+  --sg-shadow-1: 0 1px 2px rgba(0, 0, 0, .24), 0 2px 8px rgba(0, 0, 0, .2);
+  --sg-shadow-2: 0 2px 8px rgba(0, 0, 0, .28), 0 14px 34px rgba(0, 0, 0, .22);
+}
+html body .settings-launcher-portal .settings-google-profile-card {
+  scroll-margin-top: 20px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 16px !important;
+  padding: clamp(20px, 2.2vw, 30px) !important;
+  border: 1px solid var(--sg-line) !important;
+  border-radius: 26px !important;
+  background: var(--sg-surface) !important;
+  color: var(--sg-ink) !important;
+  box-shadow: var(--sg-shadow-1) !important;
+}
+
+html body .settings-launcher-portal .settings-google-section-heading {
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 13px !important;
+}
+
+html body .settings-launcher-portal .settings-google-section-heading > span {
+  width: 44px !important;
+  height: 44px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 14px !important;
+  background: var(--sg-blue-container) !important;
+  color: var(--sg-blue) !important;
+}
+
+html body .settings-launcher-portal .settings-google-section-heading > div {
+  min-width: 0 !important;
+}
+
+html body .settings-launcher-portal .settings-google-section-heading h2 {
+  margin: 0 !important;
+  color: var(--sg-ink) !important;
+  font-size: 1.18rem !important;
+  line-height: 1.25 !important;
+  font-weight: 720 !important;
+}
+
+html body .settings-launcher-portal .settings-google-section-heading p {
+  margin: 2px 0 0 !important;
+  color: var(--sg-muted) !important;
+  font-size: .82rem !important;
+  line-height: 1.4 !important;
+}
+
+html body .settings-launcher-portal .settings-google-profile-fallback {
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  padding: 18px !important;
+  border: 1px solid var(--sg-line) !important;
+  border-radius: 20px !important;
+  background: var(--sg-surface-2) !important;
+}
+
+html body .settings-launcher-portal .settings-google-profile-fallback .settings-v65-avatar {
+  width: 68px !important;
+  height: 68px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 50% !important;
+  background: linear-gradient(145deg, #1a73e8, #8e63e9) !important;
+  color: #fff !important;
+  font-size: 1.7rem !important;
+  font-weight: 720 !important;
+}
+
+html body .settings-launcher-portal .settings-google-profile-fallback .settings-v65-profile-copy {
+  display: grid !important;
+  gap: 2px !important;
+}
+
+html body .settings-launcher-portal .settings-google-profile-fallback strong {
+  color: var(--sg-ink) !important;
+  font-size: 1.08rem !important;
+}
+
+html body .settings-launcher-portal .settings-google-profile-fallback small {
+  color: var(--sg-muted) !important;
+  font-size: .8rem !important;
+}
+
+/* Integrate the editable profile bridge from PR #147 */
+html body .settings-launcher-portal .settings-google-profile-card .bes-profile-settings-slot {
+  margin: 0 !important;
+}
+
+html body .settings-launcher-portal .settings-google-profile-card .bes-profile-editor {
+  gap: 18px !important;
+  padding: 22px !important;
+  border: 1px solid var(--sg-line) !important;
+  border-radius: 22px !important;
+  background: var(--sg-surface-2) !important;
+  color: var(--sg-ink) !important;
+  box-shadow: none !important;
+}
+
+html body .settings-launcher-portal .settings-google-profile-card .bes-profile-editor__intro {
+  grid-template-columns: 92px minmax(0, 1fr) max-content !important;
+}
+
+html body .settings-launcher-portal .settings-google-profile-card .bes-profile-editor__avatar {
+  width: 92px !important;
+  height: 92px !important;
+  flex-basis: 92px !important;
+  border-color: var(--sg-surface) !important;
+}
+
+html body .settings-launcher-portal .settings-google-profile-card .bes-profile-editor__identity h3 {
+  color: var(--sg-ink) !important;
+}
+
+html body .settings-launcher-portal .settings-google-profile-card .bes-profile-editor__identity p,
+html body .settings-launcher-portal .settings-google-profile-card .bes-profile-editor small {
+  color: var(--sg-muted) !important;
+}
+
+html body .settings-launcher-portal .settings-google-profile-card .bes-profile-field input,
+html body .settings-launcher-portal .settings-google-profile-card .bes-profile-field textarea {
+  border-color: var(--sg-line) !important;
+  background: var(--sg-surface) !important;
+  color: var(--sg-ink) !important;
+}
+
+html body .settings-launcher-portal .settings-google-password-form {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(210px, 1.1fr) repeat(3, minmax(150px, .8fr)) max-content !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 15px !important;
+  border: 1px solid var(--sg-line) !important;
+  border-radius: 18px !important;
+  background: var(--sg-surface-2) !important;
+}
+
+html body .settings-launcher-portal .settings-google-password-title {
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  color: var(--sg-blue) !important;
+}
+
+html body .settings-launcher-portal .settings-google-password-title > div {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 2px !important;
+}
+
+html body .settings-launcher-portal .settings-google-password-title strong {
+  color: var(--sg-ink) !important;
+  font-size: .86rem !important;
+  line-height: 1.25 !important;
+}
+
+html body .settings-launcher-portal .settings-google-password-title small {
+  color: var(--sg-muted) !important;
+  font-size: .7rem !important;
+  line-height: 1.35 !important;
+}
+
+html body .settings-launcher-portal .settings-google-password-form input {
+  min-width: 0 !important;
+  min-height: 44px !important;
+  padding: 0 12px !important;
+  border: 1px solid var(--sg-line) !important;
+  border-radius: 12px !important;
+  background: var(--sg-surface) !important;
+  color: var(--sg-ink) !important;
+  outline: 0 !important;
+  font-size: .8rem !important;
+}
+
+html body .settings-launcher-portal .settings-google-password-form input:focus {
+  border-color: var(--sg-blue) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sg-blue) 13%, transparent) !important;
+}
+
+html body .settings-launcher-portal .settings-google-password-form > button {
+  min-height: 44px !important;
+  padding: 0 17px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: var(--sg-blue) !important;
+  color: #fff !important;
+  font-size: .8rem !important;
+  font-weight: 680 !important;
+  cursor: pointer !important;
+}
+
+html[data-theme="dark"] body .settings-launcher-portal .settings-google-password-form > button {
+  color: #062e6f !important;
+}
+
+html body .settings-launcher-portal .settings-google-inline-message {
+  margin: 0 !important;
+  padding: 10px 13px !important;
+  border-radius: 12px !important;
+  font-size: .8rem !important;
+}
+
+html body .settings-launcher-portal .settings-google-inline-message.is-ok {
+  background: color-mix(in srgb, var(--sg-green-container) 75%, transparent) !important;
+  color: var(--sg-green) !important;
+}
+
+html body .settings-launcher-portal .settings-google-inline-message.is-error {
+  background: color-mix(in srgb, var(--sg-red) 10%, transparent) !important;
+  color: var(--sg-red) !important;
+}
+
+/* Material cards */
+html body .settings-launcher-portal .settings-google-card-grid {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+}
+
+html body .settings-launcher-portal .settings-google-card {
+  scroll-margin-top: 20px !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  padding: 20px !important;
+  border: 1px solid var(--sg-line) !important;
+  border-radius: 24px !important;
+  background: var(--sg-surface) !important;
+  color: var(--sg-ink) !important;
+  box-shadow: var(--sg-shadow-1) !important;
+}
+
+html body .settings-launcher-portal .settings-google-card:hover {
+  border-color: color-mix(in srgb, var(--card-accent, var(--sg-blue)) 28%, var(--sg-line)) !important;
+  box-shadow: var(--sg-shadow-2) !important;
+}
+
+html body .settings-launcher-portal .settings-google-card.tone-violet { --card-accent: var(--sg-purple); --card-soft: var(--sg-purple-container); }
+html body .settings-launcher-portal .settings-google-card.tone-blue { --card-accent: var(--sg-blue); --card-soft: var(--sg-blue-container); }
+html body .settings-launcher-portal .settings-google-card.tone-green,
+html body .settings-launcher-portal .settings-google-card.tone-mint { --card-accent: var(--sg-green); --card-soft: var(--sg-green-container); }
+html body .settings-launcher-portal .settings-google-card.tone-indigo { --card-accent: var(--sg-indigo); --card-soft: color-mix(in srgb, var(--sg-indigo) 14%, transparent); }
+html body .settings-launcher-portal .settings-google-card.tone-orange { --card-accent: var(--sg-orange); --card-soft: var(--sg-orange-container); }
+
+html body .settings-launcher-portal .settings-m3-card-head {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: 46px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 12px !important;
+  min-height: 64px !important;
+  margin-bottom: 8px !important;
+}
+
+html body .settings-launcher-portal .settings-m3-card-icon {
+  width: 46px !important;
+  height: 46px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 15px !important;
+  background: var(--card-soft, var(--sg-blue-container)) !important;
+  color: var(--card-accent, var(--sg-blue)) !important;
+}
+
+html body .settings-launcher-portal .settings-m3-card-head > div {
+  min-width: 0 !important;
+}
+
+html body .settings-launcher-portal .settings-m3-card-head h2 {
+  margin: 0 !important;
+  color: var(--card-accent, var(--sg-ink)) !important;
+  font-size: 1rem !important;
+  line-height: 1.25 !important;
+  font-weight: 720 !important;
+}
+
+html body .settings-launcher-portal .settings-m3-card-head p {
+  margin: 3px 0 0 !important;
+  color: var(--sg-muted) !important;
+  font-size: .72rem !important;
+  line-height: 1.35 !important;
+}
+
+html body .settings-launcher-portal .settings-m3-row {
+  min-width: 0 !important;
+  min-height: 54px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) max-content !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 10px 0 !important;
+  border-top: 1px solid color-mix(in srgb, var(--sg-line) 72%, transparent) !important;
+}
+
+html body .settings-launcher-portal .settings-m3-row > div:first-child {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 2px !important;
+}
+
+html body .settings-launcher-portal .settings-m3-row strong {
+  color: var(--sg-ink) !important;
+  font-size: .8rem !important;
+  line-height: 1.35 !important;
+  font-weight: 620 !important;
+}
+
+html body .settings-launcher-portal .settings-m3-row small {
+  color: var(--sg-muted) !important;
+  font-size: .68rem !important;
+  line-height: 1.35 !important;
+}
+
+html body .settings-launcher-portal .settings-m3-row-control {
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+}
+
+html body .settings-launcher-portal .settings-m3-toggle {
+  position: relative !important;
+  width: 44px !important;
+  min-width: 44px !important;
+  height: 26px !important;
+  min-height: 26px !important;
+  padding: 0 !important;
+  border: 2px solid var(--sg-line-strong) !important;
+  border-radius: 999px !important;
+  background: color-mix(in srgb, var(--sg-muted) 8%, var(--sg-surface)) !important;
+  cursor: pointer !important;
+}
+
+html body .settings-launcher-portal .settings-m3-toggle > span {
+  position: absolute !important;
+  left: 4px !important;
+  top: 50% !important;
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 50% !important;
+  background: var(--sg-muted) !important;
+  transform: translateY(-50%) !important;
+}
+
+html body .settings-launcher-portal .settings-m3-toggle.is-on {
+  border-color: var(--sg-blue) !important;
+  background: var(--sg-blue) !important;
+}
+
+html body .settings-launcher-portal .settings-m3-toggle.is-on > span {
+  left: 22px !important;
+  background: #fff !important;
+}
+
+html body .settings-launcher-portal .settings-m3-select {
+  min-width: 104px !important;
+  min-height: 38px !important;
+  padding: 0 30px 0 11px !important;
+  border: 1px solid var(--sg-line) !important;
+  border-radius: 10px !important;
+  background-color: var(--sg-surface) !important;
+  color: var(--sg-ink) !important;
+  font-size: .74rem !important;
+  cursor: pointer !important;
+}
+
+html body .settings-launcher-portal .settings-m3-segmented {
+  display: inline-flex !important;
+  padding: 3px !important;
+  border-radius: 10px !important;
+  background: var(--sg-surface-3) !important;
+}
+
+html body .settings-launcher-portal .settings-m3-segmented button {
+  min-width: 58px !important;
+  min-height: 32px !important;
+  padding: 0 12px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: var(--sg-muted) !important;
+  font-size: .72rem !important;
+  font-weight: 620 !important;
+  cursor: pointer !important;
+}
+
+html body .settings-launcher-portal .settings-m3-segmented button.is-active {
+  background: var(--sg-surface) !important;
+  color: var(--sg-blue) !important;
+  box-shadow: 0 1px 3px rgba(60, 64, 67, .14) !important;
+}
+
+html body .settings-launcher-portal .settings-m3-color-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+}
+
+html body .settings-launcher-portal .settings-m3-color-row button {
+  width: 22px !important;
+  min-width: 22px !important;
+  height: 22px !important;
+  min-height: 22px !important;
+  padding: 0 !important;
+  border: 2px solid transparent !important;
+  border-radius: 50% !important;
+  background: var(--swatch) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--sg-muted) 16%, transparent) !important;
+  cursor: pointer !important;
+}
+
+html body .settings-launcher-portal .settings-m3-color-row button.is-active {
+  border-color: var(--sg-surface) !important;
+  box-shadow: 0 0 0 2px var(--swatch) !important;
+}
+
+html body .settings-launcher-portal .settings-m3-two-columns {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  padding-top: 12px !important;
+  border-top: 1px solid color-mix(in srgb, var(--sg-line) 72%, transparent) !important;
+}
+
+html body .settings-launcher-portal .settings-m3-two-columns label,
+html body .settings-launcher-portal .settings-m3-reset-row label {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 5px !important;
+}
+
+html body .settings-launcher-portal .settings-m3-two-columns label > span,
+html body .settings-launcher-portal .settings-m3-reset-row label > span {
+  color: var(--sg-muted) !important;
+  font-size: .68rem !important;
+  font-weight: 600 !important;
+}
+
+html body .settings-launcher-portal .settings-m3-two-columns .settings-m3-select {
+  width: 100% !important;
+}
+
+html body .settings-launcher-portal .settings-m3-text-button {
+  min-height: 36px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 0 10px !important;
+  border: 0 !important;
+  border-radius: 9px !important;
+  background: var(--sg-blue-soft) !important;
+  color: var(--sg-blue) !important;
+  font-size: .7rem !important;
+  font-weight: 650 !important;
+  cursor: pointer !important;
+}
+
+html body .settings-launcher-portal .settings-m3-volume {
+  min-height: 52px !important;
+  display: grid !important;
+  grid-template-columns: 22px minmax(0, 1fr) max-content !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding-top: 12px !important;
+  border-top: 1px solid color-mix(in srgb, var(--sg-line) 72%, transparent) !important;
+  color: var(--card-accent) !important;
+}
+
+html body .settings-launcher-portal .settings-m3-volume input[type="range"] {
+  width: 100% !important;
+  min-height: 0 !important;
+  accent-color: var(--sg-blue) !important;
+}
+
+html body .settings-launcher-portal .settings-m3-volume b {
+  color: var(--sg-muted) !important;
+  font-size: .72rem !important;
+}
+
+html body .settings-launcher-portal .settings-m3-status-chip {
+  min-height: 28px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 0 9px !important;
+  border-radius: 999px !important;
+  background: var(--sg-green-container) !important;
+  color: var(--sg-green) !important;
+  font-size: .68rem !important;
+  font-weight: 700 !important;
+}
+
+html body .settings-launcher-portal .settings-m3-outlined-button {
+  min-height: 36px !important;
+  padding: 0 12px !important;
+  border: 1px solid color-mix(in srgb, var(--sg-blue) 38%, var(--sg-line)) !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+  color: var(--sg-blue) !important;
+  font-size: .7rem !important;
+  font-weight: 650 !important;
+  cursor: pointer !important;
+}
+
+html body .settings-launcher-portal .settings-m3-storage {
+  display: grid !important;
+  gap: 8px !important;
+  padding: 13px 0 !important;
+  border-top: 1px solid color-mix(in srgb, var(--sg-line) 72%, transparent) !important;
+}
+
+html body .settings-launcher-portal .settings-m3-storage > div {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+}
+
+html body .settings-launcher-portal .settings-m3-storage span {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  color: var(--sg-muted) !important;
+  font-size: .72rem !important;
+}
+
+html body .settings-launcher-portal .settings-m3-storage b {
+  color: var(--sg-blue) !important;
+  font-size: .7rem !important;
+}
+
+html body .settings-launcher-portal .settings-m3-storage progress {
+  width: 100% !important;
+  height: 6px !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: var(--sg-surface-3) !important;
+}
+
+html body .settings-launcher-portal .settings-m3-storage progress::-webkit-progress-bar {
+  background: var(--sg-surface-3) !important;
+}
+
+html body .settings-launcher-portal .settings-m3-storage progress::-webkit-progress-value {
+  border-radius: 999px !important;
+  background: var(--sg-blue) !important;
+}
+
+html body .settings-launcher-portal .settings-m3-utility-actions {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+  padding-top: 12px !important;
+  border-top: 1px solid color-mix(in srgb, var(--sg-line) 72%, transparent) !important;
+}
+
+html body .settings-launcher-portal .settings-m3-utility-actions button {
+  min-width: 0 !important;
+  min-height: 38px !important;
+  padding: 0 8px !important;
+  border: 1px solid var(--sg-line) !important;
+  border-radius: 10px !important;
+  background: var(--sg-surface-2) !important;
+  color: var(--sg-ink) !important;
+  font-size: .66rem !important;
+  font-weight: 620 !important;
+  cursor: pointer !important;
+}
+
+html body .settings-launcher-portal .settings-m3-utility-actions button:hover {
+  border-color: color-mix(in srgb, var(--sg-blue) 36%, var(--sg-line)) !important;
+  color: var(--sg-blue) !important;
+}
+
+html body .settings-launcher-portal .settings-m3-reset-row {
+  display: flex !important;
+  align-items: end !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  margin-top: 10px !important;
+}
+
+html body .settings-launcher-portal .settings-m3-reset-row > button {
+  min-height: 38px !important;
+  padding: 0 13px !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  background: color-mix(in srgb, var(--sg-red) 10%, transparent) !important;
+  color: var(--sg-red) !important;
+  font-size: .68rem !important;
+  font-weight: 680 !important;
+  cursor: pointer !important;
+}
+
+/* Feedback */
+html body .settings-launcher-portal .settings-google-snackbar {
+  position: fixed !important;
+  left: 50% !important;
+  bottom: 28px !important;
+  z-index: 1000 !important;
+  min-width: min(420px, calc(100vw - 32px)) !important;
+  min-height: 48px !important;
+  display: grid !important;
+  grid-template-columns: 24px minmax(0, 1fr) 28px !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 8px 10px 8px 14px !important;
+  border-radius: 14px !important;
+  background: #303134 !important;
+  color: #fff !important;
+  font-size: .8rem !important;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, .26) !important;
+  transform: translateX(-50%) !important;
+}
+
+html body .settings-launcher-portal .settings-google-snackbar > span {
+  width: 22px !important;
+  height: 22px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 50% !important;
+  background: #34a853 !important;
+  color: #fff !important;
+  font-size: .72rem !important;
+  font-weight: 800 !important;
+}
+
+html body .settings-launcher-portal .settings-google-snackbar > button {
+  width: 28px !important;
+  min-width: 28px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  color: #fff !important;
+  font-size: 1.1rem !important;
+  cursor: pointer !important;
+}
+
+html body .settings-launcher-portal .settings-google-footer {
+  padding: 6px 0 0 !important;
+  color: var(--sg-muted) !important;
+  font-size: .68rem !important;
+  text-align: center !important;
+}
+
+html body .settings-launcher-portal .settings-m3-icon {
+  display: block !important;
+  fill: currentColor !important;
+}
+
+/* This viewport grid is scoped to the portal and cannot bleed into site routes. */
+@media (max-width: 1050px) {
+  html body .settings-launcher-portal .settings-google-card-grid {
+    grid-template-columns: minmax(0,1fr) !important;
+  }
+}
+@media (max-width: 740px) {
+  html body .settings-launcher-portal .settings-m3-row {
+    grid-template-columns: minmax(0,1fr) auto !important;
+  }
+  html body .settings-launcher-portal .settings-google-password-form {
+    grid-template-columns: minmax(0,1fr) !important;
+  }
+  html body .settings-launcher-portal .settings-google-profile-card .bes-profile-editor__intro {
+    grid-template-columns: 82px minmax(0,1fr) !important;
+  }
+  html body .settings-launcher-portal .settings-google-profile-card .bes-profile-editor__avatar-actions {
+    grid-column: 1 / -1 !important;
+  }
+}
+@media (max-width: 520px) {
+  html body .settings-launcher-portal .settings-m3-utility-actions,
+  html body .settings-launcher-portal .settings-m3-two-columns {
+    grid-template-columns: minmax(0,1fr) !important;
+  }
+  html body .settings-launcher-portal .settings-m3-reset-row {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+  html body .settings-launcher-portal .settings-m3-row {
+    gap: 8px !important;
+  }
+}
+html body .settings-launcher-portal .settings-google-card-grid {
+  grid-template-columns: minmax(0,1fr) !important;
+}
+html body .settings-launcher-portal .settings-google-card {
+  width:100% !important;
+  max-width:100% !important;
+}
+html body .settings-launcher-portal .settings-m3-card-head {
+  grid-template-columns: 46px minmax(0,1fr) !important;
+}
+html body .settings-launcher-portal .settings-m3-row > div:first-child {
+  min-width:0!important;
+}
+html body .settings-launcher-portal .settings-m3-utility-actions button {
+  white-space: normal !important;
+  line-height: 1.35 !important;
+}
+html body .settings-launcher-portal .settings-m3-reset-row > span {
+  min-width:0;
+  font-size:12px;
+  color:var(--sg-muted);
+  line-height:1.5;
+}
+html body .settings-launcher-portal .settings-google-card .settings-m3-card-head {
+  margin-bottom: 10px !important;
+}
+/* Keep a focused high-contrast state on the portal's actual UI controls. */
+html body .settings-launcher-portal :is(.settings-m3-toggle,.settings-m3-select,.settings-m3-utility-actions button):focus-visible {
+  outline: 3px solid #82adfa !important;
+  outline-offset: 3px;
+}
+
