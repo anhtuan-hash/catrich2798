@@ -1,0 +1,33 @@
+name: Dashboard Minimal Hero
+on:
+  pull_request:
+    paths:
+      - 'src/pages/WorkDashboard.jsx'
+      - 'src/components/DashboardHeroEditor.jsx'
+      - 'src/styles/dashboard-hero-minimal-20261023.css'
+      - 'scripts/test-dashboard-minimal-hero.mjs'
+      - '.github/workflows/dashboard-minimal-hero.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/pages/WorkDashboard.jsx'
+      - 'src/components/DashboardHeroEditor.jsx'
+      - 'src/styles/dashboard-hero-minimal-20261023.css'
+      - 'scripts/test-dashboard-minimal-hero.mjs'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node scripts/test-dashboard-minimal-hero.mjs
+      - run: npm ci --no-audit --no-fund
+      - name: Verify the exact production build
+        run: node scripts/test-editorial-app-heroes.mjs && npm run build

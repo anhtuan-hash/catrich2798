@@ -17,6 +17,7 @@ import DashboardNewsHub from '../components/DashboardNewsHub.jsx';
 // Newsroom owns its compact presentation after the six original October 10 design layers.
 import '../styles/dashboard-newsroom-editorial-20261023.css';
 import '../styles/dashboard-hero-cms.css';
+import '../styles/dashboard-hero-minimal-20261023.css';
 import { isDepartmentLeaderRole } from '../utils/roles.js';
 import {
   DASHBOARD_HERO_UPDATED_EVENT, DEFAULT_DASHBOARD_HERO, normalizeDashboardHero, readDashboardHero,
@@ -475,54 +476,26 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
       onPublished={(published) => { setHeroPublished(published); setHeroDraft(published); setHeroPreview(published); }}
     /></React.Suspense> : null}
     <div className="gd-shell">
-      <section className="gd-top-grid">
-        <header className={`editorial-hero ${hasDashboardHeroMedia ? 'has-dashboard-custom-hero' : ''}`} style={dashboardHeroStyle}>
+      <section className="gd-top-grid db-hero-minimal-frame">
+        {canEditHero ? <button type="button" className="db-hero-edit-button db-hero-edit-button--outside" onClick={openHeroEditor} aria-label={language === 'vi' ? 'Chỉnh sửa Hero Dashboard' : 'Edit Dashboard Hero'}><Pencil size={15}/><span>{language === 'vi' ? 'Chỉnh sửa Hero' : 'Edit Hero'}</span></button> : null}
+        <header className={`editorial-hero is-minimal ${hasDashboardHeroMedia ? 'has-dashboard-custom-hero' : ''}`} style={dashboardHeroStyle}>
           {hasDashboardHeroMedia ? <div className="db-hero-media" aria-hidden="true">
             {hero.backgroundType === 'video'
               ? <video src={hero.backgroundUrl} autoPlay muted loop playsInline preload="metadata"/>
               : <img src={hero.backgroundUrl} alt="" loading="eager" decoding="async" />}
             <div className="db-hero-media-shade" />
           </div> : null}
-          {hero.showClouds ? <DashboardHeroCloudscape /> : null}
-          {hero.showDoodles ? <DashboardHeroDoodles language={language} /> : null}
-          {canEditHero ? <button type="button" className="db-hero-edit-button" onClick={openHeroEditor} aria-label="Chỉnh sửa Hero Dashboard"><Pencil size={15}/><span>{language === 'vi' ? 'Chỉnh sửa Hero' : 'Edit Hero'}</span></button> : null}
           <div className="editorial-hero-copy">
-            <div className="editorial-hero-meta">
-              <span className="editorial-hero-eyebrow"><span aria-hidden="true" />{language === 'en' ? hero.eyebrowEn : hero.eyebrowVi}</span>
-              <span className="editorial-hero-date">{heroDate}</span>
-            </div>
-
             <div className={`editorial-hero-heading${name.length > 18 ? ' is-long-name' : name.length > 13 ? ' is-medium-name' : ''}`}>
               <span className="editorial-hero-hello">{t.hello},</span>
-              <h1>{name}<span className="editorial-hero-wave" aria-hidden="true">👋</span></h1>
-            </div>
-
-            <p className="editorial-hero-lead">{language === 'en' ? hero.descriptionEn : hero.descriptionVi}</p>
-
-            <div className="editorial-hero-actions">
-              <button type="button" className="editorial-primary-action" onClick={scrollToCalendar}><Icon name="calendar" size={20} /><span>{t.calendar}</span><Icon name="arrow" size={18} /></button>
-              <button type="button" className="editorial-secondary-action" onClick={() => refresh()} disabled={loading}><Icon name="refresh" size={19} /><span>{loading ? t.refreshing : t.refresh}</span></button>
-            </div>
-
-            <div className="editorial-hero-links">
-              <button type="button" onClick={focusNearestEvent}><Icon name="event" size={17} /><span>{t.nearest}</span><Icon name="arrow" size={15} /></button>
-              <button type="button" onClick={() => openTtcm('schedule')}><Icon name="calendar" size={17} /><span>{t.openCalendar}</span><Icon name="arrow" size={15} /></button>
+              <h1>{name}</h1>
             </div>
           </div>
-
-          <div className="editorial-hero-stage">
-            <div className="editorial-hero-status" aria-label={language === 'vi' ? 'Thông tin nhanh' : 'Quick information'}>
-              <button type="button" className="editorial-status-card editorial-status-time" onClick={() => setNow(new Date())} title={t.currentTime}>
-                <span className="editorial-status-icon"><Icon name="clock" size={18} /></span>
-                <span><small>{t.currentTime}</small><strong>{heroTime}</strong></span>
-              </button>
-              <button type="button" className="editorial-status-card editorial-status-weather" onClick={refreshWeather} title={t.weather}>
-                <span className="editorial-weather-symbol" aria-hidden="true">☀</span>
-                <span><small>{weather.loading ? t.weatherLoading : weatherDescription}</small><strong>TP.HCM · {weatherTemperature}</strong></span>
-              </button>
-            </div>
-            {hero.showArtwork ? <div className="editorial-hero-visual"><DashboardHeroIllustration /></div> : null}
-            <button type="button" className="editorial-today-chip" onClick={focusToday} title={t.dateToday}><Icon name="calendar" size={17} /><span>{t.dateToday}</span><strong>{new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit' }).format(now)}</strong></button>
+          <div className="db-hero-weather" aria-label={language === 'vi' ? 'Thời tiết hiện tại' : 'Current weather'}>
+            <button type="button" className="editorial-status-card editorial-status-weather" onClick={refreshWeather} title={t.weather}>
+              <span className="editorial-weather-symbol" aria-hidden="true">☀</span>
+              <span><small>{weather.loading ? t.weatherLoading : weatherDescription}</small><strong>TP.HCM · {weatherTemperature}</strong></span>
+            </button>
           </div>
         </header>
       </section>
