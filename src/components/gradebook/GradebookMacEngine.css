@@ -1,0 +1,349 @@
+/* Gradebook Mac workspace — isolated presentation styles.
+   No legacy gbm3, gb8, gb14 or hr-grade layout selectors. */
+.gbmac {
+  --mac-text:#20375c;--mac-muted:#6b7f9a;--mac-line:#dce6f3;
+  --mac-blue:#2066dc;--mac-pale:#f4f8fd;
+  display:grid; gap:13px; color:var(--mac-text);
+  font:500 14px/1.45 -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;
+  min-width:0; width:100%;
+}
+.gbmac *, .gbmac *::before, .gbmac *::after {box-sizing:border-box}
+.gbmac button,.gbmac input,.gbmac select{font:inherit}
+.gbmac button{cursor:pointer; transition:background-color .15s,border-color .15s,box-shadow .15s}
+.gbmac button:disabled{cursor:not-allowed;opacity:.48}
+.gbmac :is(button,input,select,summary):focus-visible{
+  outline:2px solid #4a8cf4;outline-offset:2px
+}
+.gbmac-tabs{
+  display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px;padding:9px;
+  border:1px solid var(--mac-line);border-radius:16px;background:#fff;
+  box-shadow:0 6px 20px rgba(38,68,118,.035);min-width:0;
+}
+.gbmac-tabs button{
+  min-width:0;min-height:43px;border-radius:10px;border:1px solid #e2eaf7;
+  background:#f6f8fd;color:#476386;font-size:13px;font-weight:760;
+  white-space:nowrap;
+}
+.gbmac-tabs button[data-tone="blue"]{background:#edf4ff;color:#2462bf;border-color:#cfddfa}
+.gbmac-tabs button[data-tone="red"]{background:#fff3f0;color:#af5f4d;border-color:#f6e1dc}
+.gbmac-tabs button[data-tone="yellow"]{background:#fff7eb;color:#a46d22;border-color:#f4e8d0}
+.gbmac-tabs button[data-tone="green"]{background:#eaf8f2;color:#16805b;border-color:#cdeadd}
+.gbmac-tabs button[data-tone="purple"]{background:#f5efff;color:#805ec2;border-color:#e3d8fa}
+.gbmac-tabs button[data-tone="orange"]{background:#fff0f4;color:#af456f;border-color:#f6d4e1}
+.gbmac-tabs button[data-tone="cyan"]{background:#edf8ff;color:#207c9c;border-color:#d7eaf5}
+.gbmac-tabs button.is-selected,.gbmac-tabs button[data-tone].is-selected{
+  background:linear-gradient(180deg,#387dfa,#2067df);border-color:#2869da;
+  box-shadow:0 4px 10px #2868d62e;color:#fff;font-weight:800;
+}
+.gbmac-workspace{
+  border:1px solid var(--mac-line);border-radius:17px;background:#fff;
+  box-shadow:0 8px 24px rgba(40,71,115,.055);overflow:hidden;min-width:0;
+}
+.gbmac-workspace-heading{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;padding:18px 19px 12px;border-bottom:1px solid #e9eef6;
+}
+.gbmac-workspace-heading h2{font-size:21px;line-height:1.25;letter-spacing:-.02em;margin:0 0 4px;font-weight:800;color:#213f70}
+.gbmac-workspace-heading p{font-size:12px;margin:0;color:var(--mac-muted)}
+.gbmac-save-state{
+  display:flex;align-items:center;gap:6px;padding:6px 10px;
+  background:#f0fbf5;border:1px solid #d8eee1;border-radius:99px;
+  color:#237956;font-size:11px;font-weight:700;white-space:nowrap;
+}
+.gbmac-save-state > span {width:7px;height:7px;border-radius:50%;background:#31ac77}
+.gbmac-save-state .is-dirty{background:#efaa51}
+.gbmac-save-state:has(.is-dirty){background:#fff7e9;color:#9e651d;border-color:#f0dfc5}
+.gbmac-save-state:has(.is-saving){background:#eff5ff;color:#456da7;border-color:#dce7f9}
+.gbmac-save-state .is-saving{background:#678fc9}
+.gbmac-toolbar{
+  display:flex;flex-wrap:wrap;align-items:center;gap:9px;padding:13px 17px;
+  border-bottom:1px solid #edf1f8;
+}
+.gbmac-search{
+  flex:1 1 230px;max-width:390px;min-width:160px;
+  display:flex;align-items:center;gap:8px;min-height:40px;
+  border:1px solid var(--mac-line);border-radius:10px;
+  background:#fafcff;padding:0 12px;color:#7b94af;
+}
+.gbmac-search:focus-within{background:#fff;border-color:#83b2fa;box-shadow:0 0 0 3px #e8f1ff}
+.gbmac-search input{
+  width:100%;min-width:0;border:0;outline:0;background:transparent;
+  font-size:13px;color:var(--mac-text);
+}
+.gbmac-search input::placeholder{color:#92a0b6}
+.gbmac-toggle{
+  display:flex;align-items:center;gap:7px;white-space:nowrap;
+  font-size:12px;color:#546e8b;cursor:pointer;padding:0 3px;
+}
+.gbmac-toggle input{accent-color:var(--mac-blue);width:16px;height:16px}
+.gbmac-sort{
+  display:flex;align-items:center;gap:7px;min-height:40px;
+  border:1px solid var(--mac-line);background:#fafdff;
+  border-radius:10px;padding:0 9px;color:#6e85a1;
+}
+.gbmac-sort select{
+  width:auto;max-width:135px;min-width:100px;border:none;
+  background:transparent;color:#31527f;font-size:12px;
+  padding:0 2px;min-height:38px;cursor:pointer;
+}
+.gbmac-primary-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-left:auto}
+.gbmac-primary-actions button,.gbmac-table-actions button,.gbmac-export-dialog button{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  min-height:39px;border-radius:10px;padding:9px 11px;font-size:12px;
+  font-weight:730;white-space:nowrap;
+}
+.gbmac button.gbmac-save, .gbmac-export-dialog button.gbmac-save{
+  border:1px solid #2866d4;color:#fff;
+  background:linear-gradient(180deg,#3980f4,#2368d9);
+  box-shadow:0 2px 5px #2660be20;
+}
+.gbmac button.gbmac-save:hover:not(:disabled){background:#1657c2}
+.gbmac button.gbmac-outline,.gbmac button.gbmac-undo,.gbmac button.gbmac-next-empty{
+  border:1px solid #d8e5f5;background:#fff;color:#315e94;
+}
+.gbmac button.gbmac-outline:hover:not(:disabled),.gbmac button.gbmac-undo:hover:not(:disabled){
+  background:#f1f7ff;border-color:#93baf3;
+}
+.gbmac-table-actions{
+  display:flex;justify-content:flex-end;flex-wrap:wrap;
+  gap:8px;padding:10px 17px;
+}
+.gbmac button.gbmac-add-column{
+  border:1px solid #b4d1fa;color:#175fc7;background:#ecf4ff;
+}
+.gbmac button.gbmac-add-column:hover:not(:disabled){background:#e2efff;border-color:#83b4fa}
+.gbmac-hint,.gbmac-message,.gbmac-alert,.gbmac-error{
+  margin:0;padding:10px 15px;border-bottom:1px solid #e4edf8;
+  font-size:13px;color:#48698d;background:#f2f7fe;
+}
+.gbmac-alert{background:#fff5e8;color:#915b14}
+.gbmac-error,.gbmac-message.is-error{color:#9f2735;background:#fff1f3}
+.gbmac-error button{margin-left:14px;padding:5px 10px;border:1px solid #e8adb8;border-radius:7px}
+.gbmac-message.is-success{color:#27724e;background:#f0fbf5}
+.gbmac-empty{padding:18px;color:var(--mac-muted);background:#f9fcff}
+.gbmac-empty button{border:0;color:#1d66c7;background:transparent;text-decoration:underline}
+.gbmac-table-viewport {
+  overflow:auto;max-height:min(67vh,730px);min-height:210px;min-width:0;
+  border-top:1px solid #e4ecf7;overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;
+  scrollbar-width:thin;scrollbar-color:#c8d6e8 transparent;
+}
+.gbmac-table {
+  width:max-content;min-width:100%;border-spacing:0;border-collapse:separate;
+  table-layout:fixed;color:#284064;font-size:13px;
+}
+.gbmac-table thead th{
+  position:sticky;top:0;z-index:3;min-height:52px;height:52px;
+  padding:8px 7px;white-space:nowrap;text-align:center;
+  background:#f0f5fb;color:#2e4b74;border-bottom:1px solid #d5e3f4;
+  border-right:1px solid #e0eaf6;font-size:12px;font-weight:800;
+}
+.gbmac-table thead th.gbmac-attempt{min-width:111px;width:111px;padding:5px}
+.gbmac-table thead th.gbmac-tone-0{background:#eaf3ff}
+.gbmac-table thead th.gbmac-tone-1{background:#fff4e8}
+.gbmac-table thead th.gbmac-tone-2{background:#f1ecff}
+.gbmac-table thead th.gbmac-tone-3{background:#e8f8f0}
+.gbmac-table thead th.gbmac-tone-4{background:#fff0f4}
+.gbmac-column-title{display:flex;align-items:center;gap:0;justify-content:center;min-width:0}
+.gbmac-column-title input{
+  width:calc(100% - 24px);min-width:0;min-height:30px;
+  border:1px solid transparent;border-radius:7px;text-align:center;
+  color:#294a7e;background:rgba(255,255,255,.9);
+  font-weight:780;font-size:12px;
+}
+.gbmac-column-title input:focus{border-color:#75a9fa;outline:2px solid #e0efff}
+.gbmac-column-title button{
+  flex:0 0 22px;border:0;border-radius:7px;background:transparent;
+  color:#9aacc3;font-size:17px;font-weight:600;min-height:29px;
+}
+.gbmac-column-title button:hover:not(:disabled){background:#fff;color:#bd414b}
+.gbmac-table td {
+  height:55px;padding:6px 9px;vertical-align:middle;text-align:center;
+  border-right:1px solid #e7edf5;border-bottom:1px solid #e7edf5;background:#fff;
+}
+.gbmac-table tbody tr:nth-child(even) td{background:#f7faff}
+.gbmac-table tbody tr:hover td{background:#eef6ff}
+.gbmac-table :is(th,td).gbmac-pin-index {
+  position:sticky;left:0;z-index:5;min-width:54px;width:54px;max-width:54px;
+  text-align:center;font-size:12px;font-weight:750;
+  background:#f5f9fe;box-shadow:1px 0 0 #dde7f2;
+}
+.gbmac-table :is(th,td).gbmac-pin-name {
+  position:sticky;left:54px;z-index:5;width:225px;min-width:225px;max-width:225px;
+  text-align:left;padding:7px 14px;background:#f9fbfe;
+  box-shadow:4px 0 10px #174c8510;
+}
+.gbmac-table thead th.gbmac-pin-name,.gbmac-table thead th.gbmac-pin-index{
+  z-index:8;background:#eaf0f9;
+}
+.gbmac-table tbody tr:nth-child(even) td.gbmac-pin-index,
+.gbmac-table tbody tr:nth-child(even) td.gbmac-pin-name {background:#f0f5fb}
+.gbmac-table tbody tr:hover td.gbmac-pin-index,
+.gbmac-table tbody tr:hover td.gbmac-pin-name{background:#e7f1ff}
+.gbmac-table .gbmac-pin-name b {
+  display:block;color:#224572;font-size:12px;
+  line-height:1.25;white-space:normal;overflow-wrap:anywhere;
+}
+.gbmac-table .gbmac-pin-name small{
+  display:block;margin-top:3px;color:#91a1b6;font-size:10px;
+}
+.gbmac-table td[data-gbmac-score]{width:111px;min-width:111px}
+.gbmac-table input.hr-grade-input {
+  display:block;width:100%;min-width:0;height:35px;min-height:35px;
+  padding:5px 7px;border:1px solid #cbdcf3;border-radius:9px;
+  background:#fff;color:#243e65;text-align:center;
+  font-size:13px;font-weight:720;box-shadow:none;
+  -webkit-appearance:none;appearance:none;
+}
+.gbmac-table input.hr-grade-input::placeholder{color:#a8b5c5}
+.gbmac-table input.hr-grade-input:focus{
+  outline:2px solid #8eb8fd;outline-offset:0;
+  border-color:#347cef;background:#fff;
+}
+.gbmac-table input.hr-grade-input:disabled{color:#7c8d9f;background:#f4f7fb}
+.gbmac-table th.gbmac-computed-head{min-width:112px;width:112px;background:#eef5ff}
+.gbmac-table th.gbmac-total-head{min-width:118px;background:#e6f0ff}
+.gbmac-bonus,.gbmac-derived{min-width:112px}
+.gbmac-bonus strong{color:#9a651d}
+.gbmac-derived strong{color:#12806a}
+.gbmac-bonus small,.gbmac-derived small{
+  display:block;color:#8395a9;font-size:10px;margin-top:3px;
+}
+.gbmac-exam-table{max-width:950px;margin:0 auto}
+.gbmac-exam-table th:nth-child(3),.gbmac-exam-table td:nth-child(3){
+  min-width:160px;width:160px;
+}
+.gbmac-exam-table td.gbmac-exam-status{color:#667f9a;white-space:nowrap}
+.gbmac-summary-table td.gbmac-summary-score{min-width:105px}
+.gbmac-summary-score button{
+  border:1px solid #d7e7f9;border-radius:9px;background:#fdfefe;
+  min-height:34px;min-width:72px;color:#2b5eaa;font-weight:730;
+}
+.gbmac-summary-score button:hover{background:#eaf4ff;border-color:#8fb9f2}
+.gbmac-table-footer{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:8px 13px;color:#8b9bb0;font-size:11px;gap:10px;background:#f9fbff;
+}
+.gbmac-table-footer span:last-child{display:flex;align-items:center;gap:5px}
+.gbmac-more{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  width:100%;padding:13px 17px;border:1px solid var(--mac-line);
+  border-radius:13px;background:#fff;color:#567096;
+  box-shadow:0 4px 15px #24457508;
+}
+.gbmac-more > span{display:flex;align-items:center;gap:12px}
+.gbmac-more strong{font-size:13px;color:#2d507c}
+.gbmac-more small{font-size:12px;color:#7e91ac}
+.gbmac-more:hover{background:#f6faff}
+.gbmac-tools-overlay,.gbmac-export-overlay {
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  z-index:999990;background:#10213a45;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  padding:18px;font:500 14px/1.5 -apple-system,BlinkMacSystemFont,"Inter",sans-serif;
+}
+.gbmac-scrim{position:absolute;inset:0;border:0;background:transparent}
+.gbmac-tools-dialog{
+  position:relative;margin-left:auto;align-self:stretch;
+  width:min(670px,100%);display:flex;flex-direction:column;
+  min-height:0;background:#f9fbfe;color:#223e65;
+  border:1px solid #dce7f3;border-radius:19px;
+  box-shadow:0 25px 100px #1428483f;overflow:hidden;
+}
+.gbmac-tools-header,.gbmac-export-dialog > header{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  gap:14px;padding:20px 23px;border-bottom:1px solid #e4eaf4;background:#fff;
+}
+.gbmac-tools-header span{color:#5776a3;font-size:10px;letter-spacing:.09em;font-weight:800}
+.gbmac-tools-header h2,.gbmac-export-dialog h2{font-size:22px;margin:4px 0 3px;color:#1b3d6b}
+.gbmac-tools-header p,.gbmac-export-dialog header p{font-size:12px;color:#74869d;margin:0}
+.gbmac-tools-header button,.gbmac-export-dialog > header button {
+  width:34px;height:34px;border:1px solid #e0e8f3;
+  border-radius:10px;background:#f7faff;color:#577094;
+}
+.gbmac-tools-body{min-height:0;overflow:auto;padding:14px;display:grid;align-content:start;gap:9px;overscroll-behavior:contain}
+.gbmac-tool-group{
+  background:#fff;border:1px solid #e1e9f4;border-radius:12px;min-width:0;
+}
+.gbmac-tool-group > summary{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;cursor:pointer;list-style:none;
+  font-size:14px;font-weight:750;color:#264a75;
+}
+.gbmac-tool-group > summary::-webkit-details-marker{display:none}
+.gbmac-tool-group[open] > summary{border-bottom:1px solid #edf1f7}
+.gbmac-tool-group > div{padding:12px;min-width:0}
+.gbmac-tool-group > p{font-size:13px;line-height:1.65;padding:12px 16px;color:#667d9b}
+.gbmac-tool-option{
+  display:flex;align-items:center;justify-content:space-between;padding:13px 15px;
+  border:1px solid #d5e3f3;border-radius:11px;background:#fff;color:#2860ad;
+  font-size:13px;font-weight:700;
+}
+.gbmac-tool-fields{display:grid;gap:10px}
+.gbmac-tool-fields label{display:grid;gap:5px;font-size:12px;color:#587196}
+.gbmac-tool-fields input,.gbmac-tool-fields select {
+  min-height:38px;border:1px solid #d7e3f2;border-radius:9px;background:#fff;padding:7px 9px;
+}
+.gbmac-tool-fields button,.gbmac-tool-minor button{
+  min-height:38px;border:1px solid #d8e6f5;background:#f2f7ff;
+  color:#245ea7;border-radius:9px;padding:8px 12px;
+}
+.gbmac-tool-minor{display:flex;gap:9px}
+.gbmac-export-dialog{
+  position:relative;display:flex;flex-direction:column;width:min(720px,100%);max-height:90dvh;
+  border-radius:18px;border:1px solid #dce5f1;background:#fff;color:#223e65;
+  box-shadow:0 25px 80px #122f4a35;overflow:hidden;
+}
+.gbmac-export-student{padding:12px 23px;display:grid;gap:6px;font-size:12px}
+.gbmac-export-student select{min-height:39px;border:1px solid #dce5f1;border-radius:9px;padding:7px}
+.gbmac-export-select{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 23px;font-size:12px;color:#7487a2}
+.gbmac-export-select span{flex:1 1 auto}
+.gbmac-export-select button,.gbmac-export-dialog footer button:not(.gbmac-save){
+  border:1px solid #dce6f3;border-radius:8px;padding:8px 11px;background:#f7faff;color:#3e6292;
+}
+.gbmac-export-list{overflow:auto;min-height:0;flex:1;padding:0 23px 18px;display:grid;gap:12px}
+.gbmac-export-list fieldset{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:12px;
+  border:1px solid #e5ecf5;border-radius:10px;margin:0;min-width:0}
+.gbmac-export-list legend{color:#315b8e;font-size:12px;font-weight:800;padding:0 5px}
+.gbmac-export-list label{display:flex;align-items:center;gap:7px;font-size:12px;color:#385a82}
+.gbmac-export-list input{accent-color:#286bdc}
+.gbmac-export-dialog footer{display:flex;justify-content:flex-end;gap:9px;padding:14px 23px;background:#f8fbfe;border-top:1px solid #e6edf5}
+.gbmac-export-dialog footer button{min-height:38px;padding:8px 15px;border-radius:9px}
+@media(max-width:1280px){
+ .gbmac-toolbar{justify-content:flex-start}
+ .gbmac-primary-actions{margin-left:0}
+ .gbmac-search{max-width:none;flex:1 1 240px}
+ .gbmac-tabs button{font-size:12px}
+}
+@media(max-width:760px){
+ .gbmac{gap:9px}
+ .gbmac-tabs{display:flex;overflow-x:auto;gap:5px;padding:6px;border-radius:12px;scrollbar-width:none}
+ .gbmac-tabs button{flex:0 0 auto;min-width:91px;min-height:41px}
+ .gbmac-workspace{border-radius:12px}
+ .gbmac-workspace-heading{padding:12px;align-items:flex-start}
+ .gbmac-workspace-heading h2{font-size:19px}
+ .gbmac-workspace-heading p{font-size:11px}
+ .gbmac-save-state{font-size:10px}
+ .gbmac-toolbar{padding:10px;gap:7px}
+ .gbmac-search{flex-basis:100%;max-width:none}
+ .gbmac-toggle{flex:1}
+ .gbmac-primary-actions{width:100%;margin:0}
+ .gbmac-primary-actions button{flex:1 1 auto;min-height:40px}
+ .gbmac-table-actions{justify-content:flex-start;padding:9px}
+ .gbmac-table-actions button{flex:1;white-space:normal}
+ .gbmac-table-viewport{max-height:60dvh;min-height:260px}
+ .gbmac-table :is(th,td).gbmac-pin-name{width:169px;min-width:169px;max-width:169px;padding:6px 8px}
+ .gbmac-table .gbmac-pin-name b{font-size:11px}
+ .gbmac-table .gbmac-pin-name small{font-size:9px}
+ .gbmac-table :is(th,td).gbmac-pin-index{min-width:39px;width:39px;max-width:39px}
+ .gbmac-table :is(th,td).gbmac-pin-name{left:39px}
+ .gbmac-table td{height:51px;padding:5px}
+ .gbmac-table-footer span:last-child{display:none}
+ .gbmac-more small{display:none}
+ .gbmac-tools-overlay,.gbmac-export-overlay{padding:0}
+ .gbmac-tools-dialog{width:100%;border-radius:16px 16px 0 0;max-height:96dvh;align-self:flex-end}
+ .gbmac-export-dialog{width:100%;border-radius:16px 16px 0 0;max-height:95dvh;align-self:flex-end}
+ .gbmac-export-list fieldset{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+ .gbmac *, .gbmac *::before,.gbmac *::after{transition:none!important;scroll-behavior:auto!important}
+}
