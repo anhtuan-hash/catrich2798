@@ -325,3 +325,131 @@ html[data-performance="minimal"] .app-shell[data-route="dashboard"] .editorial-h
     animation: none !important;
   }
 }
+
+
+/* Dashboard Hero polish / OCT 23: harmonize any teacher-name length and image tone.
+   Long-name selectors intentionally outrank the legacy "one-line hero" rules. */
+.app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-copy {
+  width: min(78%, 1050px) !important;
+}
+.app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-heading h1 {
+  max-width: 100% !important;
+  font-size: clamp(42px, 5vw, 76px) !important;
+  line-height: 1.11 !important;
+  letter-spacing: -.046em !important;
+  text-wrap: balance !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
+}
+.app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-heading.is-medium-name h1 {
+  font-size: clamp(39px, 4.55vw, 66px) !important;
+  line-height: 1.1 !important;
+}
+.app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-heading.is-long-name h1 {
+  font-size: clamp(35px, 4.05vw, 58px) !important;
+  line-height: 1.115 !important;
+  letter-spacing: -.04em !important;
+}
+/* Preserve the original gradient but prevent lighter animation frames from
+   disappearing against Huế's lit buildings or other uploaded hero imagery. */
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-hello {
+    background-image: linear-gradient(112deg, #385d84 0%, #506488 38%, #675b83 74%, #855b4e 100%) !important;
+    background-size: 125% 100% !important;
+    background-position: 0% 50% !important;
+    filter: drop-shadow(0 1px 2px rgba(255,255,255,.92)) !important;
+    animation-duration: 34s !important;
+  }
+  .app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-heading h1 {
+    background-image: linear-gradient(
+      108deg,
+      color-mix(in srgb, var(--db-heading-color, #0e263e) 72%, #102a47) 0%,
+      #183b60 34%,
+      #344c70 67%,
+      #635573 87%,
+      #85593f 100%
+    ) !important;
+    background-size: 120% 100% !important;
+    background-position: 0% 50% !important;
+    filter: drop-shadow(0 2px 3px rgba(255,255,255,.95)) !important;
+    -webkit-text-stroke: .15px rgba(17,43,72,.16) !important;
+    animation-duration: 38s !important;
+  }
+}
+@media (max-width: 900px) {
+  .app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-copy {
+    width: 89% !important;
+  }
+  .app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-heading h1 {
+    font-size: clamp(38px, 6vw, 62px) !important;
+  }
+  .app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-heading.is-medium-name h1 {
+    font-size: clamp(35px, 5.55vw, 56px) !important;
+  }
+  .app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-heading.is-long-name h1 {
+    font-size: clamp(33px, 5.1vw, 51px) !important;
+  }
+}
+@media (max-width: 620px) {
+  .app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-copy {
+    width: 100% !important;
+  }
+  .app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-heading h1 {
+    font-size: clamp(35px, 8.1vw, 49px) !important;
+    line-height: 1.14 !important;
+  }
+  .app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-heading.is-medium-name h1 {
+    font-size: clamp(32px, 7.5vw, 44px) !important;
+  }
+  .app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-heading.is-long-name h1 {
+    font-size: clamp(30px, 7vw, 40px) !important;
+    line-height: 1.16 !important;
+  }
+}
+/* Protect uploaded Hero and its border plus 38px of breathing room from
+   global seasonal symbols. Mask *only* the decorative overlay layers.
+   Two alpha masks combine by union, leaving their central intersection clear. */
+html[data-dashboard-hero-exclusion="on"] :is(
+  .bes-halloween-atmosphere,
+  .bes-november-atmosphere,
+  .bes-vn-atmosphere
+) {
+  -webkit-mask-image:
+    linear-gradient(to right,
+      #000 0 var(--db-hero-exclusion-left),
+      transparent var(--db-hero-exclusion-left) var(--db-hero-exclusion-right),
+      #000 var(--db-hero-exclusion-right) 100%),
+    linear-gradient(to bottom,
+      #000 0 var(--db-hero-exclusion-top),
+      transparent var(--db-hero-exclusion-top) var(--db-hero-exclusion-bottom),
+      #000 var(--db-hero-exclusion-bottom) 100%);
+  mask-image:
+    linear-gradient(to right,
+      #000 0 var(--db-hero-exclusion-left),
+      transparent var(--db-hero-exclusion-left) var(--db-hero-exclusion-right),
+      #000 var(--db-hero-exclusion-right) 100%),
+    linear-gradient(to bottom,
+      #000 0 var(--db-hero-exclusion-top),
+      transparent var(--db-hero-exclusion-top) var(--db-hero-exclusion-bottom),
+      #000 var(--db-hero-exclusion-bottom) 100%);
+  -webkit-mask-composite: source-over;
+  mask-composite: add;
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-hello,
+  .app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-heading h1 {
+    animation: none !important;
+  }
+}
+@media (forced-colors: active) {
+  .app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-hello,
+  .app-shell[data-route="dashboard"] .editorial-hero.is-minimal .editorial-hero-heading h1 {
+    background-image: none !important;
+    color: CanvasText !important;
+    -webkit-text-fill-color: CanvasText !important;
+    -webkit-text-stroke: 0 !important;
+    filter: none !important;
+    animation: none !important;
+  }
+}
