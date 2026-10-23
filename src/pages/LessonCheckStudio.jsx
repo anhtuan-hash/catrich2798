@@ -1334,7 +1334,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
   async function batchSetMetadata(){
     if(!isLeader||!bulkIds.length||bulkBusy)return;
-    if(!window.confirm(isVi?('Cập nhật phân loại cho '+bulkIds.length+' hoạt động đã chọn?'):('Update the classification of '+bulkIds.length+' selected activities?'))return;
+    if(!window.confirm(isVi?('Cập nhật phân loại cho '+bulkIds.length+' hoạt động đã chọn?'):('Update the classification of '+bulkIds.length+' selected activities?')))return;
     setBulkBusy(true);
     const updates=[];let errors=0;
     for(const id of bulkIds){
@@ -1763,7 +1763,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         activities={activities} currentUser={currentUser} isLeader={isLeader}
         onLaunch={openTeachingMode} onRefresh={() => loadActivities({ silent: true })}
         initialTab={workbenchInitialTab} initialSelectedActivities={bulkIds}
-        favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite}
+        favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite} language={language}
       /></React.Suspense></div> : null}
 
       <section className="lcs-arcade-library" id="lcs5-activity-library">
