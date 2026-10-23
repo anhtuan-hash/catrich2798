@@ -42,6 +42,7 @@ import '../styles/GradebookClarityV8.css';
 import '../styles/GradebookCompactV9.css';
 import '../styles/GradebookMaterial3V10.css';
 import '../styles/GradebookReadabilityV11.css';
+import '../styles/GradebookMaterial3V12.css';
 
 const EMPTY_CLASS = {
   className: '',
@@ -444,7 +445,15 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
 
   const activeMeta = activeClasses.find((item) => item.id === workspaceId);
   const studentCount = (workspace?.students || []).filter((item) => item.active !== false).length;
-  const activeSubject = workspace?.classProfile?.teachingSubject || activeMeta?.teachingSubject || '';
+  const savedGradebook = workspace?.learningGradebook;
+  const savedSubjects = savedGradebook?.subjects && typeof savedGradebook.subjects === 'object'
+    ? savedGradebook.subjects : {};
+  const currentSavedSubject = savedSubjects[savedGradebook?.activeSubject] || Object.values(savedSubjects)[0];
+  const activeSubject = workspace?.classProfile?.teachingSubject
+    || activeMeta?.teachingSubject
+    || currentSavedSubject?.name
+    || workspace?.classProfile?.subject
+    || '';
   // Read-only saved-score summary. GradebookEngine remains the sole owner of
   // grade mathematics, draft editing, save requests and semester navigation.
   const progressPreview = useMemo(() => {
@@ -537,7 +546,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     </section>
   );
 
-  return <div className={`page hr-page gradebook-studio gb4-spectrum gb5-focus gb7-rebirth gbm3-studio gb4-palette-${visualPalette}`}>
+  return <div className={`page hr-page gradebook-studio gb4-spectrum gb5-focus gb7-rebirth gbm3-studio gbm3-v12 gb4-palette-${visualPalette}`}>
     <section className="gbm3-hero" aria-label={vi ? 'Thông tin sổ điểm' : 'Gradebook information'}>
       <div className="gbm3-hero-banner">
         <div className="gbm3-hero-text">
