@@ -21,7 +21,10 @@ verify('no large artwork, doodles or cloudscape in visible Hero', !hero.includes
 verify('no edition chip or date widget', !hero.includes('editorial-today-chip') && !hero.includes('editorial-hero-stage'));
 verify('custom background retained', hero.includes('hasDashboardHeroMedia') && hero.includes('backgroundType') && hero.includes('db-hero-media-shade'));
 verify('editor remains available to a manager within Hero', hero.includes('db-hero-edit-button--inside') && hero.includes('onClick={openHeroEditor}'));
-verify('dashboard calendar itself is preserved', dash.includes('id="dashboard-calendar"') && dash.includes('gd-calendar-today'));
+verify('dashboard work planner stays mounted and owns the schedule anchor',
+  dash.includes('<DashboardWorkPlanner') &&
+  read('src/components/DashboardWorkPlanner.jsx').includes('id="dashboard-calendar"') &&
+  dash.includes('onOpenFull={() => openTtcm('));
 verify('decorative pseudo-elements are disabled', style.includes('editorial-hero.is-minimal::after') && style.includes('content: none !important'));
 verify('greeting is readable at mobile widths', style.includes('@media (max-width: 620px)') && style.includes('overflow-wrap: break-word'));
 verify('seasonal particles remain separate from Hero and editing controls', style.includes('z-index: 47 !important') && style.includes('mask-composite: add'));
