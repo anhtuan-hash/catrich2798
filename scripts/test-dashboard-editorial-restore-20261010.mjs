@@ -17,7 +17,7 @@ const imports = [...page.matchAll(/import '\.\.\/styles\/([^']+\.css)';/g)].map(
 assert.deepEqual(imports.slice(0, 7), [...historical, 'dashboard-newsroom-editorial-20261023.css'],
   'Preserve the original October 10 CSS foundations then load the Newsroom authority');
 assert.deepEqual(imports.slice(7),
-  ['dashboard-hero-cms.css', 'dashboard-hero-minimal-20261023.css', 'dashboard-hero-typography.css'],
+  ['dashboard-hero-cms.css', 'dashboard-hero-minimal-20261023.css', 'dashboard-hero-typography.css', 'dashboard-align-homeroom-edges.css'],
   'Keep independent Hero CMS, seasonal masking and single typography system after historical styles');
 assert.match(page, /editorial-hero is-minimal/, 'Keep the approved quiet Dashboard Hero');
 assert.match(page, /editorial-hero-hello/, 'Keep the personalized greeting');
