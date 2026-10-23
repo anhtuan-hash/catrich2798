@@ -332,8 +332,16 @@ function GradebookNavigationPalette({
             onClick={() => onViewChange(item.id)}
           ><span className="gbm3-tab-icon" aria-hidden="true">{item.id === 'summary' ? <Sigma size={16}/> : <FileBarChart2 size={15}/>}</span>{labels[item.id]}</button>
         ))}
-        {showMockExams ? <button type="button" className={view === 'mock' ? 'active' : ''} aria-pressed={view === 'mock'} onClick={() => onViewChange('mock')}><GraduationCap size={15}/> Thi thử 12</button> : null}
       </div>
+      {showMockExams ? (
+        <details className="gbv12-nav-more">
+          <summary title="Tiện ích khác của lớp 12" aria-label="Tiện ích khác">Khác <span aria-hidden="true">⌄</span></summary>
+          <div><button type="button" className={view === 'mock' ? 'active' : ''} onClick={(event) => {
+            onViewChange('mock');
+            event.currentTarget.closest('details')?.removeAttribute('open');
+          }}><GraduationCap size={17} aria-hidden="true"/> Thi thử lớp 12</button></div>
+        </details>
+      ) : null}
     </div>
   </nav>;
 }
@@ -1158,7 +1166,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       <header className="gbm3-editor-head">
         <span className="gbm3-editor-icon" aria-hidden="true"><NotebookPen size={21}/></span>
         <div className="gbm3-editor-titles">
-          <h2>Bảng nhập điểm</h2>
+          <h2>{view === 'summary' ? 'Bảng tổng hợp điểm' : view === 'mock' ? 'Bảng điểm thi thử lớp 12' : 'Nhập điểm ' + (activeView?.label || '')}</h2>
           <p>{workspace.classProfile?.className || ''} · {activeSubject?.name || 'Môn học'} · {semesterLabel} · {students.length} học sinh</p>
         </div>
         <div className="gbm3-editor-actions">
@@ -1175,7 +1183,12 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
           <div className="gbm3-save-wrapper">
             <span className={dirty ? 'gbm3-unsaved' : 'gbm3-saved'} role="status">{savePending ? 'Đang lưu…' : dirty ? 'Chưa lưu' : 'Đã lưu'}</span>
             {dirty ? <button type="button" className="gbm3-undo" onClick={discard} disabled={savePending}>Hoàn tác</button> : null}
-            <button type="button" className="gbm3-save" disabled={!dirty || savePending} onClick={save}>Lưu bảng điểm</button>
+            {view === 'summary' && !dirty ? (
+              <button type="button" className="gbm3-save" onClick={() => {
+                setView(semesterEntryProgress.sections.find((section) => section.missing > 0 && section.total > 0)?.id || 'regular-0');
+                setMissingOnly(false);
+              }}>Nhập điểm</button>
+            ) : <button type="button" className="gbm3-save" disabled={!dirty || savePending} onClick={save}>Lưu điểm</button>}
           </div>
         </div>
       </header>
@@ -1216,7 +1229,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       onToggle={(event) => setInsightsOpen(event.currentTarget.open)}>
       <summary aria-label="Mở bảng phân tích và các công cụ Sổ điểm">
         <span className="gb5-insights-symbol"><ChartColumnIncreasing size={20} aria-hidden="true" /></span>
-        <span><strong>Phân tích & công cụ Sổ điểm</strong><small>Thống kê học kỳ, tiến độ nhập, quản lý môn, phân công và công cụ nâng cao — mở khi cần</small></span>
+        <span><strong>Công cụ nâng cao</strong><small>Quản lý môn học, phân công, thống kê chi tiết — mở khi cần</small></span>
         <span className="gb5-insights-chevron" aria-hidden="true">⌄</span>
       </summary>
       {insightsOpen ? <div className="gb5-insights-content">
