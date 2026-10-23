@@ -79,6 +79,7 @@ import {
   globalSuccessUnitTitle,
   unitOptionsForGrade,
 } from '../data/globalSuccessCatalog.js';
+import { assessmentText } from '../utils/assessmentBilingual.js';
 import './LessonCheckStudio.css';
 import './LessonCheckApprovedMockupOne.css';
 import './LessonCheckHeroIndependent.css';
@@ -362,6 +363,7 @@ function LoadingBlock({ language }) {
 
 export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const isVi = language === 'vi';
+  const t=(text)=>assessmentText(text,language);
   const isLeader = canPublishDepartment(currentUser);
   const [heroPublished,setHeroPublished] = useState(() => normalizeLessonCheckHero(DEFAULT_LESSON_CHECK_HERO));
   const [heroDraft,setHeroDraft] = useState(null);
@@ -698,7 +700,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       setNotice(isVi?'Hoạt động cần được cấp quyền trước khi thêm vào buổi dạy.':'Activity permission required.');return;
     }
     if(queueIds.includes(id))return;
-    if(queueIds.length>=20){setNotice('Hàng đợi tối đa 20 hoạt động.');return;}
+    if(queueIds.length>=20){setNotice(isVi?'Hàng đợi tối đa 20 hoạt động.':'Teaching queue supports up to 20 activities.');return;}
     await updateQueue([...queueIds,id]);
   },[activities,isLeader,isVi,queueIds,updateQueue]);
 
@@ -1288,7 +1290,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   }
 
   async function startTeachingQueue(){
-    if(!availableQueueItems.length){setNotice('Chưa có hoạt động được cấp quyền trong hàng đợi.');return;}
+    if(!availableQueueItems.length){setNotice(isVi?'Chưa có hoạt động được cấp quyền trong hàng đợi.':'No authorized activities in the teaching queue.');return;}
     const opened=await openTeachingMode(availableQueueItems[0]);
     if(!opened)return;
     setClassroomQueueIndex(0);
@@ -1312,7 +1314,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         setCompletedQueueIds(ids => ids.includes(completedId) ? ids : [...ids,completedId]);
         setJournalReady(false);
         setNotice(isVi?'Đã ghi nhận hoạt động hoàn thành.':'Activity completion recorded.');
-      } else setNotice(logged.message||'Không ghi được nhật ký; hoạt động vẫn đang mở.');
+      } else setNotice(logged.message||(isVi?'Không ghi được nhật ký; hoạt động vẫn đang mở.':'Journal entry could not be saved; the activity remains open.'));
     } catch {
       setNotice(isVi?'Lỗi kết nối, vui lòng ghi nhận lại.':'Connection lost. Please retry.');
     } finally {
@@ -1332,7 +1334,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
   async function batchSetMetadata(){
     if(!isLeader||!bulkIds.length||bulkBusy)return;
-    if(!window.confirm('Cập nhật phân loại cho '+bulkIds.length+' hoạt động đã chọn?'))return;
+    if(!window.confirm(isVi?('Cập nhật phân loại cho '+bulkIds.length+' hoạt động đã chọn?'):('Update the classification of '+bulkIds.length+' selected activities?')))return;
     setBulkBusy(true);
     const updates=[];let errors=0;
     for(const id of bulkIds){
@@ -1346,7 +1348,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     }
     setBulkBusy(false);
     if(updates.length)setAttributes(old=>[...old.filter(row=>!updates.some(u=>u.activity_id===row.activity_id)),...updates]);
-    setNotice('Đã cập nhật '+updates.length+' hoạt động'+(errors?' · '+errors+' lỗi, vui lòng kiểm tra quyền.':''));
+    setNotice(isVi?('Đã cập nhật '+updates.length+' hoạt động'+(errors?' · '+errors+' lỗi, vui lòng kiểm tra quyền.':'')):('Updated '+updates.length+' activities'+(errors?' · '+errors+' errors; check permissions.':'')));
     if(!errors){setBulkMode(false);setBulkIds([]);}
   }
 
@@ -1754,11 +1756,11 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         </button>
         <small>{isVi ? 'Bộ sưu tập · Lesson Runner · Nhật ký · Can thiệp · Phân quyền' : 'Collections · Runner · Journal · Interventions · Permissions'}</small>
       </div>
-      {workbenchOpen ? <div id="assessment4-workbench"><React.Suspense fallback={<div className="lcs-loading">Đang tải Assessment 4.0…</div>}><Assessment4Workbench
+      {workbenchOpen ? <div id="assessment4-workbench"><React.Suspense fallback={<div className="lcs-loading">{t('Đang tải Assessment 4.0…')}</div>}><Assessment4Workbench
         activities={activities} currentUser={currentUser} isLeader={isLeader}
         onLaunch={openTeachingMode} onRefresh={() => loadActivities({ silent: true })}
         initialTab={workbenchInitialTab} initialSelectedActivities={bulkIds}
-        favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite}
+        favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite} language={language}
       /></React.Suspense></div> : null}
 
       <section className="lcs-arcade-library" id="lcs5-activity-library">
@@ -1857,7 +1859,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
           </section>
         ) : null}
 
-        <div className="lcs5-command-tools" aria-label="Công cụ thư viện Assessment 5.0">
+        <div className="lcs5-command-tools" aria-label={isVi?'Công cụ thư viện Assessment 5.0':'Assessment 5.0 library tools'}>
           <strong>{isVi ? 'Trình quản lý học liệu' : 'Activity library manager'}</strong>
           <div className="lcs5-tool-buttons">
             <button type="button" className={viewMode==='grid'?'is-active':''} onClick={()=>setViewMode('grid')} aria-pressed={viewMode==='grid'}><Grid2X2 size={15}/> Grid</button>
@@ -1928,10 +1930,10 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
           ) : null}
         </div>
 
-        {advancedFilters?<div className="lcs5-advanced-filters" aria-label="Bộ lọc nâng cao">
-          <label>CEFR<select value={cefrFilter} onChange={e=>setCefrFilter(e.target.value)}><option value="all">Tất cả</option>{['A1','A2','B1','B2','C1','C2','mixed','unclassified'].map(v=><option key={v}>{v}</option>)}</select></label>
-          <label>{isVi?'Thời lượng':'Duration'}<select value={durationFilter} onChange={e=>setDurationFilter(e.target.value)}><option value="all">Tất cả</option><option value="short">≤10 phút</option><option value="medium">11–25 phút</option><option value="long">&gt;25 phút</option></select></label>
-          <label>{isVi?'Hình thức':'Mode'}<select value={deliveryFilter} onChange={e=>setDeliveryFilter(e.target.value)}><option value="all">Tất cả</option><option value="individual">Cá nhân</option><option value="group">Nhóm</option><option value="whole_class">Cả lớp</option><option value="hybrid">Kết hợp</option></select></label>
+        {advancedFilters?<div className="lcs5-advanced-filters" aria-label={isVi?'Bộ lọc nâng cao':'Advanced filters'}>
+          <label>CEFR<select value={cefrFilter} onChange={e=>setCefrFilter(e.target.value)}><option value="all">{t('Tất cả')}</option>{['A1','A2','B1','B2','C1','C2','mixed','unclassified'].map(v=><option key={v}>{v}</option>)}</select></label>
+          <label>{isVi?'Thời lượng':'Duration'}<select value={durationFilter} onChange={e=>setDurationFilter(e.target.value)}><option value="all">{t('Tất cả')}</option><option value="short">{t('≤10 phút')}</option><option value="medium">{t('11–25 phút')}</option><option value="long">{t('>25 phút')}</option></select></label>
+          <label>{isVi?'Hình thức':'Mode'}<select value={deliveryFilter} onChange={e=>setDeliveryFilter(e.target.value)}><option value="all">{t('Tất cả')}</option><option value="individual">{t('Cá nhân')}</option><option value="group">{t('Nhóm')}</option><option value="whole_class">{t('Cả lớp')}</option><option value="hybrid">{t('Kết hợp')}</option></select></label>
           <button type="button" onClick={()=>{setCefrFilter('all');setDurationFilter('all');setDeliveryFilter('all');}}>{isVi?'Xóa lọc nâng cao':'Reset advanced'}</button>
         </div>:null}
         {isLeader && bulkMode ? <div className="lcs5-bulk-panel">
@@ -1940,8 +1942,8 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
           <button type="button" onClick={()=>setBulkIds([])}>{isVi?'Bỏ chọn':'Deselect'}</button>
           <label>CEFR <select value={bulkCefr} onChange={e=>setBulkCefr(e.target.value)}>{['A1','A2','B1','B2','C1','C2','mixed','unclassified'].map(v=><option key={v}>{v}</option>)}</select></label>
           <label>{isVi?'Phút':'Minutes'} <select value={bulkMinutes} onChange={e=>setBulkMinutes(Number(e.target.value))}>{[5,10,15,20,25,30,40,45,60].map(n=><option key={n} value={n}>{n}</option>)}</select></label>
-          <label>{isVi?'Tổ chức':'Delivery'}<select value={bulkDelivery} onChange={e=>setBulkDelivery(e.target.value)}><option value="whole_class">Cả lớp</option><option value="group">Nhóm</option><option value="individual">Cá nhân</option><option value="hybrid">Kết hợp</option></select></label>
-          <button type="button" disabled={!bulkIds.length||bulkBusy} onClick={batchSetMetadata}>{bulkBusy?'Đang lưu…':'Áp dụng nhãn'}</button>
+          <label>{isVi?'Tổ chức':'Delivery'}<select value={bulkDelivery} onChange={e=>setBulkDelivery(e.target.value)}><option value="whole_class">{t('Cả lớp')}</option><option value="group">{t('Nhóm')}</option><option value="individual">{t('Cá nhân')}</option><option value="hybrid">{t('Kết hợp')}</option></select></label>
+          <button type="button" disabled={!bulkIds.length||bulkBusy} onClick={batchSetMetadata}>{bulkBusy?t('Đang lưu…'):(isVi?'Áp dụng nhãn':'Apply labels')}</button>
           <button type="button" disabled={!bulkIds.length} onClick={()=>openWorkspaceTab('permissions')}>{isVi?'Cấp quyền nhóm':'Bulk grants'}</button>
         </div> : null}
         <div className="lcs-arcade-results-head">
@@ -2074,6 +2076,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
       {assessmentWorkspaceView ? (
         <AssessmentWorkspace
+          language={language}
           currentUser={currentUser}
           activities={activities}
           isLeader={isLeader}
@@ -2157,7 +2160,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         </div>
       ) : null}
 
-      {previewActivity ? <Assessment5Preview activity={previewActivity} attributes={attrMap.get(previewActivity.id)}
+      {previewActivity ? <Assessment5Preview language={language} activity={previewActivity} attributes={attrMap.get(previewActivity.id)}
         insight={journalById.get(previewActivity.id)}
         canOpen={isLeader||previewActivity.hasAccess}
         isFavorite={favoriteSet.has(previewActivity.id)}
@@ -2167,12 +2170,12 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         onAddQueue={addToQueue}
         queueReady={queueReady && !queueBusy}
         onTeach={async item=>{setPreviewActivity(null);await openTeachingMode(item);}}/> : null}
-      {queueOpen?<Assessment5Queue items={availableQueueItems} busy={queueBusy} ready={queueReady} className={queueClass}
+      {queueOpen?<Assessment5Queue language={language} items={availableQueueItems} busy={queueBusy} ready={queueReady} className={queueClass}
         minutes={queueMinutes} onClassChange={setQueueClass}
         onMinutesChange={value=>setQueueMinutes(Math.max(1,Math.min(60,Number(value)||1)))}
         onMove={moveQueue}
         onRemove={id=>updateQueue(queueIds.filter(x=>x!==id))}
-        onClear={()=>{if(window.confirm('Xóa toàn bộ hàng đợi buổi dạy?'))updateQueue([]);}}
+        onClear={()=>{if(window.confirm(isVi?'Xóa toàn bộ hàng đợi buổi dạy?':'Clear the entire teaching queue?'))updateQueue([]);}}
         onClose={async()=>{
           if (queueBusy) return;
           // A failed initial load must never trap the teacher in a dialog.
@@ -2188,18 +2191,18 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
             <div><span>{isVi ? 'CHẾ ĐỘ DẠY' : 'TEACHING MODE'}</span><strong>{teachingActivity.title}</strong><small>Global Success {teachingActivity.grade} · Unit {teachingActivity.unitNo} · {teachingActivity.lessonTitle}</small></div>
             <div>
               {classroomQueueIndex!==null?<>
-                <span className="lcs5-classroom-step">Buổi dạy {classroomQueueIndex+1}/{availableQueueItems.length}</span>
-                <span className="lcs5-classroom-timer" aria-label="Thời gian còn lại">{String(Math.floor(classroomTimer/60)).padStart(2,'0')}:{String(classroomTimer%60).padStart(2,'0')}</span>
+                <span className="lcs5-classroom-step">{isVi?'Buổi dạy':'Teaching session'} {classroomQueueIndex+1}/{availableQueueItems.length}</span>
+                <span className="lcs5-classroom-timer" aria-label={isVi?'Thời gian còn lại':'Time remaining'}>{String(Math.floor(classroomTimer/60)).padStart(2,'0')}:{String(classroomTimer%60).padStart(2,'0')}</span>
                 <span className="lcs5-classroom-navigation">
-                  <button type="button" onClick={()=>setClassroomClockRunning(v=>!v)} aria-label={classroomClockRunning?'Tạm dừng đồng hồ':'Bắt đầu đồng hồ'}>{classroomClockRunning?<Pause size={16}/>:<Play size={16}/>}</button>
-                  <button type="button" onClick={()=>{setClassroomClockRunning(false);setClassroomTimer(queueMinutes*60);}} aria-label="Đặt lại đồng hồ"><RotateCcw size={15}/></button>
+                  <button type="button" onClick={()=>setClassroomClockRunning(v=>!v)} aria-label={classroomClockRunning?(isVi?'Tạm dừng đồng hồ':'Pause timer'):(isVi?'Bắt đầu đồng hồ':'Start timer')}>{classroomClockRunning?<Pause size={16}/>:<Play size={16}/>}</button>
+                  <button type="button" onClick={()=>{setClassroomClockRunning(false);setClassroomTimer(queueMinutes*60);}} aria-label={isVi?'Đặt lại đồng hồ':'Reset timer'}><RotateCcw size={15}/></button>
                   <button type="button" onClick={completeQueueStep}
                     disabled={completionBusy || completedQueueIds.includes(teachingActivity.id)}
-                    aria-label={completedQueueIds.includes(teachingActivity.id)?'Đã ghi nhận hoàn thành':'Ghi nhận hoàn thành'}>
-                    <Check size={16}/>{completedQueueIds.includes(teachingActivity.id)?'Đã ghi nhận':(completionBusy?'Đang lưu…':(isVi?'Đã xong':'Complete'))}
+                    aria-label={completedQueueIds.includes(teachingActivity.id)?(isVi?'Đã ghi nhận hoàn thành':'Completion recorded'):(isVi?'Ghi nhận hoàn thành':'Record completion')}>
+                    <Check size={16}/>{completedQueueIds.includes(teachingActivity.id)?(isVi?'Đã ghi nhận':'Recorded'):(completionBusy?t('Đang lưu…'):(isVi?'Đã xong':'Complete'))}
                   </button>
-                  <button type="button" disabled={classroomQueueIndex===0||teachingLoading} onClick={()=>jumpQueueTo(classroomQueueIndex-1)}><ChevronLeft size={16}/>Trước</button>
-                  <button type="button" disabled={classroomQueueIndex>=availableQueueItems.length-1||teachingLoading} onClick={()=>jumpQueueTo(classroomQueueIndex+1)}>Tiếp <ChevronRight size={16}/></button>
+                  <button type="button" disabled={classroomQueueIndex===0||teachingLoading} onClick={()=>jumpQueueTo(classroomQueueIndex-1)}><ChevronLeft size={16}/>{t('Trước')}</button>
+                  <button type="button" disabled={classroomQueueIndex>=availableQueueItems.length-1||teachingLoading} onClick={()=>jumpQueueTo(classroomQueueIndex+1)} >{t('Tiếp')} <ChevronRight size={16}/></button>
                 </span>
               </>:null}
               {assessmentWorkspaceView === 'session' ? <button className="lcs-score-return" onClick={() => closeTeachingMode({ resumeAssessment: true, toScore: true })}><ClipboardCheck size={18} />{isVi ? 'Kết thúc & ghi điểm' : 'Finish & score'}</button> : null}

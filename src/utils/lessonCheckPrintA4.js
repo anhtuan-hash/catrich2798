@@ -8,12 +8,12 @@ const safe = (value) => String(value ?? '')
   .replace(/"/g, '&quot;')
   .replace(/'/g, '&#039;');
 
-const fmtScore = (value) => Number.isFinite(value) ? Number(value).toFixed(2).replace('.', ',') : '—';
-const labelFocus = (name) => ({
+const fmtScore = (value, language='vi') => Number.isFinite(value) ? (language==='en' ? Number(value).toFixed(2) : Number(value).toFixed(2).replace('.', ',')) : '—';
+const labelFocus = (name, language='vi') => ({
   vocabulary: 'Vocabulary', grammar: 'Grammar', reading: 'Reading',
   listening: 'Listening', speaking: 'Speaking', mixed: 'Mixed',
-  unclassified: 'Chưa phân loại',
-}[name] || name || 'Chưa phân loại');
+  unclassified: language==='en'?'Unclassified':'Chưa phân loại',
+}[name] || name || (language==='en'?'Unclassified':'Chưa phân loại'));
 
 const PRINT_CSS = [
   '@page{size:A4 portrait;margin:17mm 18mm;}',
@@ -86,11 +86,14 @@ export function buildLessonCheckA4Html({
   studentReportRows = [],
   reportSummary = {},
   printedAt = new Date(),
+  language = 'vi',
 } = {}) {
-  const date = new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const en=language==='en';
+  const L=(viText,enText)=>en?enText:viText;
+  const date = new Intl.DateTimeFormat(en?'en-GB':'vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
     .format(printedAt);
-  const scope = asText(reportClass, 'Tất cả lớp');
-  const teacher = asText(teacherName, 'Giáo viên phụ trách');
+  const scope = asText(reportClass, L('Tất cả lớp','All classes'));
+  const teacher = asText(teacherName, L('Giáo viên phụ trách','Teacher in charge'));
 
   const gradeResults = reportResults.filter((result) => Number.isFinite(result.grade10));
   const gradedStudents = new Set(gradeResults.map((result) => result.studentRef || result.studentName).filter(Boolean));
@@ -105,7 +108,7 @@ export function buildLessonCheckA4Html({
   });
   const focusText = [...focusCounts.entries()]
     .sort((a, b) => b[1] - a[1])
-    .map(([focus, count]) => labelFocus(focus) + ' (' + count + ' phiên)')
+    .map(([focus, count]) => labelFocus(focus,language) + ' (' + count + L(' phiên)',' sessions)'))
     .join(' · ');
 
   const studentsHtml = studentReportRows.map((student, index) => {
@@ -117,7 +120,7 @@ export function buildLessonCheckA4Html({
       '<td class="student-name">' + safe(student.studentName) + '</td>' +
       '<td>' + safe(className) + '</td>' +
       '<td class="center">' + (Number(student.sessionCount) || 0) + '</td>' +
-      '<td class="score">' + fmtScore(student.average) + '</td>' +
+      '<td class="score">' + fmtScore(student.average,language) + '</td>' +
       '<td>' + safe(student.focusText || '—') + '</td></tr>';
   }).join('');
 
@@ -125,7 +128,7 @@ export function buildLessonCheckA4Html({
   const sessionNotes = completedSessions.map((session) => asText(session.notes)).filter(Boolean);
   const learnerNotes = reportResults
     .map((result) => asText(result.note)
-      ? asText(result.studentName, 'Học sinh') + ': ' + asText(result.note)
+      ? asText(result.studentName, L('Học sinh','Student')) + ': ' + asText(result.note)
       : '')
     .filter(Boolean);
   const teacherNotes = [...new Set([...sessionNotes, ...learnerNotes])];
@@ -145,59 +148,59 @@ export function buildLessonCheckA4Html({
   const adjustmentsHtml = teacherAdjustments.length
     ? '<ul class="recorded">' + teacherAdjustments.map((note) => '<li>' + safe(note) + '</li>').join('') + '</ul>'
     : '<div class="writing-line"></div>';
-  const dataFinding = gradedStudents.size + ' học sinh có điểm /10' +
-    (sessionsMissingGrade ? '; ' + sessionsMissingGrade + ' phiên đã hoàn thành chưa ghi nhận điểm /10.' : '.');
+  const dataFinding = gradedStudents.size + L(' học sinh có điểm /10',' students have scores /10') +
+    (sessionsMissingGrade ? '; ' + sessionsMissingGrade + L(' phiên đã hoàn thành chưa ghi nhận điểm /10.',' completed sessions have no recorded scores /10.') : '.');
 
   return [
-    '<!doctype html><html lang="vi"><head><meta charset="utf-8">',
+    L("<!doctype html><html lang=\"vi\"><head><meta charset=\"utf-8\">","<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\">"),
     '<meta name="viewport" content="width=device-width,initial-scale=1">',
-    '<title>Phiếu nhận xét kết quả đánh giá và điều chỉnh dạy học</title>',
+    L("<title>Phiếu nhận xét kết quả đánh giá và điều chỉnh dạy học</title>","<title>Assessment Feedback and Teaching Adjustment Sheet</title>"),
     '<style>', PRINT_CSS, '</style></head><body><article class="sheet">',
     '<header class="masthead"><div><div class="school-name">PETRUS KY SCHOOL SYSTEM</div>',
     '<div class="school-dept">ENGLISH DEPARTMENT · BINH DUONG</div></div>',
     '<div class="app-name">FUN FOR ASSESSMENT</div></header>',
-    '<h1>PHIẾU NHẬN XÉT KẾT QUẢ ĐÁNH GIÁ<br>VÀ ĐIỀU CHỈNH DẠY HỌC</h1>',
+    L("<h1>PHIẾU NHẬN XÉT KẾT QUẢ ĐÁNH GIÁ<br>VÀ ĐIỀU CHỈNH DẠY HỌC</h1>","<h1>ASSESSMENT FEEDBACK<br>AND TEACHING ADJUSTMENTS</h1>"),
     '<div class="title-rule"></div>',
-    '<div class="metadata"><div><b>Giáo viên:</b> ', safe(teacher), '</div>',
-    '<div><b>Ngày lập:</b> ', safe(date), '</div>',
-    '<div><b>Phạm vi:</b> ', safe(scope), '</div>',
-    '<div><b>Môn:</b> Tiếng Anh</div></div>',
+    L("<div class=\"metadata\"><div><b>Giáo viên:</b> ","<div class=\"metadata\"><div><b>Teacher:</b> "), safe(teacher), '</div>',
+    L("<div><b>Ngày lập:</b> ","<div><b>Prepared on:</b> "), safe(date), '</div>',
+    L("<div><b>Phạm vi:</b> ","<div><b>Scope:</b> "), safe(scope), '</div>',
+    L("<div><b>Môn:</b> Tiếng Anh</div></div>","<div><b>Subject:</b> English</div></div>"),
 
-    '<section class="section">', sectionTitle('01', 'KẾT QUẢ TỔNG QUAN'),
+    '<section class="section">', sectionTitle('01', L("KẾT QUẢ TỔNG QUAN","ASSESSMENT OVERVIEW")),
     '<div class="kpis">',
     '<div class="kpi"><span class="kpi-value">', String(completedSessions.length).padStart(2, '0'),
-    '</span><span class="kpi-caption">Phiên đánh giá</span></div>',
+    L("</span><span class=\"kpi-caption\">Phiên đánh giá</span></div>","</span><span class=\"kpi-caption\">Assessment sessions</span></div>"),
     '<div class="kpi"><span class="kpi-value">', String(gradedStudents.size).padStart(2, '0'),
-    '</span><span class="kpi-caption">Học sinh có điểm</span></div>',
-    '<div class="kpi highlight"><span class="kpi-value">', fmtScore(average),
-    '</span><span class="kpi-caption">Điểm trung bình /10</span></div>',
-    '</div><p class="focus-summary"><b>Chuyên đề đã thực hiện:</b> ',
-    safe(focusText || 'Chưa có dữ liệu'), '</p></section>',
+    L("</span><span class=\"kpi-caption\">Học sinh có điểm</span></div>","</span><span class=\"kpi-caption\">Students with scores</span></div>"),
+    '<div class="kpi highlight"><span class="kpi-value">', fmtScore(average,language),
+    L("</span><span class=\"kpi-caption\">Điểm trung bình /10</span></div>","</span><span class=\"kpi-caption\">Average /10</span></div>"),
+    L("</div><p class=\"focus-summary\"><b>Chuyên đề đã thực hiện:</b> ","</div><p class=\"focus-summary\"><b>Topics covered:</b> "),
+    safe(focusText || L("Chưa có dữ liệu","No data yet")), '</p></section>',
 
-    '<section class="section">', sectionTitle('02', 'KẾT QUẢ THEO HỌC SINH'),
+    '<section class="section">', sectionTitle('02', L("KẾT QUẢ THEO HỌC SINH","RESULTS BY STUDENT")),
     '<table><colgroup><col style="width:7%"><col style="width:29%"><col style="width:12%">',
     '<col style="width:12%"><col style="width:12%"><col style="width:28%"></colgroup>',
-    '<thead><tr><th>STT</th><th>Họ tên</th><th>Lớp</th>',
-    '<th>Số lượt</th><th>TB /10</th><th>Nội dung đánh giá</th></tr></thead>',
-    '<tbody>', studentsHtml || '<tr><td colspan="6">Chưa có kết quả học sinh trong phạm vi đã chọn.</td></tr>',
+    L("<thead><tr><th>STT</th><th>Họ tên</th><th>Lớp</th>","<thead><tr><th>No.</th><th>Student name</th><th>Class</th>"),
+    L("<th>Số lượt</th><th>TB /10</th><th>Nội dung đánh giá</th></tr></thead>","<th>Attempts</th><th>Avg. /10</th><th>Assessment focus</th></tr></thead>"),
+    '<tbody>', studentsHtml || L("<tr><td colspan=\"6\">Chưa có kết quả học sinh trong phạm vi đã chọn.</td></tr>","<tr><td colspan=\"6\">No student results for the selected scope.</td></tr>"),
     '</tbody></table></section>',
 
-    '<section class="section">', sectionTitle('03', 'NHẬN XÉT SƯ PHẠM'),
-    '<p class="thin-info"><b>Ghi nhận từ dữ liệu:</b> ', safe(dataFinding), '</p>',
-    '<div class="field"><b>Nhận xét chuyên môn của giáo viên:</b>',
+    '<section class="section">', sectionTitle('03', L("NHẬN XÉT SƯ PHẠM","PEDAGOGICAL FEEDBACK")),
+    L("<p class=\"thin-info\"><b>Ghi nhận từ dữ liệu:</b> ","<p class=\"thin-info\"><b>Data observations:</b> "), safe(dataFinding), '</p>',
+    L("<div class=\"field\"><b>Nhận xét chuyên môn của giáo viên:</b>","<div class=\"field\"><b>Teacher feedback:</b>"),
     observationsHtml, '</div></section>',
 
-    '<section class="section">', sectionTitle('04', 'ĐIỀU CHỈNH DẠY HỌC VÀ THEO DÕI'),
-    blankField('Nội dung / kỹ năng cần củng cố:'),
-    recordedField('Học sinh / nhóm học sinh cần hỗ trợ:',
+    '<section class="section">', sectionTitle('04', L("ĐIỀU CHỈNH DẠY HỌC VÀ THEO DÕI","TEACHING ADJUSTMENTS AND FOLLOW-UP")),
+    blankField(L("Nội dung / kỹ năng cần củng cố:","Content / skills to reinforce:")),
+    recordedField(L("Học sinh / nhóm học sinh cần hỗ trợ:","Students / groups needing support:"),
       confirmedSupport.join(', ')),
-    '<div class="field"><b>Biện pháp và thời điểm thực hiện:</b>',
+    L("<div class=\"field\"><b>Biện pháp và thời điểm thực hiện:</b>","<div class=\"field\"><b>Actions and implementation dates:</b>"),
     adjustmentsHtml, '</div>',
-    blankField('Cách / thời điểm đánh giá lại:'),
+    blankField(L("Cách / thời điểm đánh giá lại:","Reassessment method / date:")),
     '</section>',
-    '<section class="signatures"><div class="signature">GIÁO VIÊN THỰC HIỆN',
+    L("<section class=\"signatures\"><div class=\"signature\">GIÁO VIÊN THỰC HIỆN","<section class=\"signatures\"><div class=\"signature\">TEACHER"),
     '<span class="signature-name">', safe(teacher), '</span></div>',
-    '<div class="signature">TỔ TRƯỞNG CHUYÊN MÔN (NẾU CẦN)</div></section>',
+    L("<div class=\"signature\">TỔ TRƯỞNG CHUYÊN MÔN (NẾU CẦN)</div></section>","<div class=\"signature\">DEPARTMENT HEAD (IF REQUIRED)</div></section>"),
     '<footer class="print-footer">Fun for Assessment · Petrus Ky School System · English Department</footer>',
     '</article></body></html>',
   ].join('');

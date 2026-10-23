@@ -81,7 +81,7 @@ export default function LessonCheckHeroEditor({
       const result=await uploadLessonCheckHeroMedia(file,currentUser);
       setConfig((old) => ({...old,...result,opacity:100}));
       setMessage({type:'success',text:vi?'Đã tải ảnh nền riêng của Kiểm tra. Nhấn Công bố để áp dụng.':'Uploaded to the Assessment-only media bucket. Publish to apply.'});
-    }catch(error){setMessage({type:'error',text:error?.message||'Không tải được ảnh.'});}
+    }catch(error){setMessage({type:'error',text:error?.message||(vi?'Không tải được ảnh.':'Could not upload media.')});}
     finally{setBusy('');}
   };
   const commit = async (publish) => {
@@ -97,7 +97,7 @@ export default function LessonCheckHeroEditor({
       setMessage({type:'success',text:publish
         ? (vi?'Đã công bố Hero Kiểm tra. Dashboard và Trang chủ không thay đổi.':'Assessment hero published independently.')
         : (vi?'Đã lưu nháp riêng; giáo viên vẫn thấy bản đang công bố.':'Private draft saved; published version unchanged.')});
-    }catch(error){setMessage({type:'error',text:error?.message||'Không lưu được cấu hình.'});}
+    }catch(error){setMessage({type:'error',text:error?.message||(vi?'Không lưu được cấu hình.':'Could not save settings.')});}
     finally{setBusy('');}
   };
   if(!open || typeof document==='undefined') return null;
@@ -138,7 +138,7 @@ export default function LessonCheckHeroEditor({
             onChange={upload}/>
           <button type="button" className="lch-editor-upload" disabled={Boolean(busy)}
             onClick={() => fileRef.current?.click()}>
-            <UploadCloud size={22}/><span><strong>{busy==='upload'?'Đang tải…':vi?'Tải ảnh / GIF / video':'Upload image / GIF / video'}</strong>
+            <UploadCloud size={22}/><span><strong>{busy==='upload'?(vi?'Đang tải…':'Uploading…'):vi?'Tải ảnh / GIF / video':'Upload image / GIF / video'}</strong>
             <small>JPG · PNG · WebP · GIF · MP4 · WebM · 25 MB</small></span>
           </button>
           <label className="lch-field"><span>{vi?'Hoặc dán URL HTTPS':'Or paste an HTTPS URL'}</span>
@@ -151,12 +151,12 @@ export default function LessonCheckHeroEditor({
           <div className="lch-editor-two">
             <label className="lch-field"><span>{vi?'Định dạng':'Media type'}</span>
               <select value={config.backgroundType} onChange={(event)=>set('backgroundType',event.target.value)}>
-                <option value="none">Không có nền</option><option value="image">Ảnh</option>
+                <option value="none">{vi?'Không có nền':'No background'}</option><option value="image">{vi?'Ảnh':'Image'}</option>
                 <option value="gif">GIF</option><option value="video">Video</option>
               </select></label>
             <label className="lch-field"><span>{vi?'Cách phủ ảnh':'Image fit'}</span>
               <select value={config.backgroundFit} onChange={(event)=>set('backgroundFit',event.target.value)}>
-                <option value="cover">Phủ kín</option><option value="contain">Hiện toàn bộ</option>
+                <option value="cover">{vi?'Phủ kín':'Cover'}</option><option value="contain">{vi?'Hiện toàn bộ':'Contain'}</option>
               </select></label>
           </div>
           <Slider title={vi?'Vị trí ngang':'Horizontal position'} value={config.positionX} onChange={(v)=>set('positionX',v)}/>
@@ -183,10 +183,10 @@ export default function LessonCheckHeroEditor({
             <RotateCcw size={16}/>{vi?'Mặc định':'Default'}
           </button>
           <button type="button" disabled={Boolean(busy)} onClick={()=>commit(false)}>
-            <Save size={16}/>{busy==='draft'?'Đang lưu…':vi?'Lưu nháp':'Save draft'}
+            <Save size={16}/>{busy==='draft'?(vi?'Đang lưu…':'Saving…'):vi?'Lưu nháp':'Save draft'}
           </button>
           <button type="button" className="lch-editor-publish" disabled={Boolean(busy)} onClick={()=>commit(true)}>
-            <Check size={17}/>{busy==='publish'?'Đang công bố…':vi?'Công bố':'Publish'}
+            <Check size={17}/>{busy==='publish'?(vi?'Đang công bố…':'Publishing…'):vi?'Công bố':'Publish'}
           </button>
         </div>
       </footer>

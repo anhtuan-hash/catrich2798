@@ -90,11 +90,11 @@ export default function PermissionApprovalInbox({ currentUser, language = 'vi' }
       const failures = [];
       const general = generalResult.status === 'fulfilled' ? (generalResult.value || []) : [];
       if (generalResult.status === 'rejected') {
-        failures.push(generalResult.reason?.message || 'Không tải được quyền ứng dụng.');
+        failures.push(generalResult.reason?.message || (language==='en'?'Could not load app requests.':'Không tải được quyền ứng dụng.'));
       }
       const lessonResponse = lessonResult.status === 'fulfilled' ? lessonResult.value : null;
       if (!lessonResponse?.ok) {
-        failures.push(lessonResponse?.message || lessonResult.reason?.message || 'Không tải được yêu cầu học liệu.');
+        failures.push(lessonResponse?.message || lessonResult.reason?.message || (language==='en'?'Could not load activity requests.':'Không tải được yêu cầu học liệu.'));
       }
       const lesson = (lessonResponse?.ok ? lessonResponse.requests : []).map((item) => ({
         id: 'lesson:' + item.id,
@@ -104,7 +104,7 @@ export default function PermissionApprovalInbox({ currentUser, language = 'vi' }
         requester_name: item.requesterName,
         requester_email: item.requesterEmail,
         permission_id: 'lesson-check:' + item.activityId,
-        item_title: item.activityTitle || 'Hoạt động học liệu',
+        item_title: item.activityTitle || (language==='en'?'Learning activity':'Hoạt động học liệu'),
         item_type: 'lesson_check_activity',
         status: item.status,
         message: item.message,
@@ -123,7 +123,7 @@ export default function PermissionApprovalInbox({ currentUser, language = 'vi' }
         const recentlyAdded = incoming.find((entry) => !knownIds.current.has(entry.id));
         if (recentlyAdded) {
           showToast((language === 'en' ? 'New request: ' : 'Yêu cầu mới: ')
-            + (recentlyAdded.requester_name || recentlyAdded.requester_email || 'Giáo viên')
+            + (recentlyAdded.requester_name || recentlyAdded.requester_email || (language==='en'?'Teacher':'Giáo viên'))
             + ' · ' + (recentlyAdded.item_title || recentlyAdded.permission_id));
         }
       }
@@ -215,20 +215,20 @@ export default function PermissionApprovalInbox({ currentUser, language = 'vi' }
     try {
       if (item.source === 'lesson_check') {
         const result = await reviewLessonCheckAccessRequest(item.requestId, decision);
-        if (!result.ok) throw new Error(result.message || 'Không thể duyệt yêu cầu học liệu.');
+        if (!result.ok) throw new Error(result.message || (language==='en'?'Could not review the activity request.':'Không thể duyệt yêu cầu học liệu.'));
       } else {
         const { data, error: rpcError } = await supabase.rpc('bes_review_permission_request', {
           p_request_id: item.id, p_decision: decision,
         });
         if (rpcError) throw rpcError;
-        if (data?.ok !== true) throw new Error('Quyết định chưa được lưu vào máy chủ.');
+        if (data?.ok !== true) throw new Error((language==='en'?'Decision was not saved.':'Quyết định chưa được lưu vào máy chủ.'));
       }
       setConfirmation(null);
-      showToast((decision === 'approved' ? 'Đã duyệt: ' : 'Đã từ chối: ')
+      showToast((decision === 'approved' ? (language==='en'?'Approved: ':'Đã duyệt: ') : (language==='en'?'Rejected: ':'Đã từ chối: '))
         + (item.requester_name || item.requester_email || item.item_title), 'success');
       await refresh({ quiet: true });
     } catch (failure) {
-      setError(failure?.message || 'Không thể cập nhật quyền. Hãy thử lại.');
+      setError(failure?.message || (language==='en'?'Could not update access. Try again.':'Không thể cập nhật quyền. Hãy thử lại.'));
     } finally {
       setBusyId('');
     }
@@ -241,22 +241,22 @@ export default function PermissionApprovalInbox({ currentUser, language = 'vi' }
       <div className="bes-approval-request-top">
         <RequestAvatar item={item} />
         <div className="bes-approval-request-heading">
-          <strong>{item.requester_name || item.requester_email || 'Giáo viên'}</strong>
-          <small>{item.requester_email || 'Giáo viên'} · {timeLabel(item.created_at, language)}</small>
+          <strong>{item.requester_name || item.requester_email || (language==='en'?'Teacher':'Giáo viên')}</strong>
+          <small>{item.requester_email || (language==='en'?'Teacher':'Giáo viên')} · {timeLabel(item.created_at, language)}</small>
         </div>
-        <span className={'bes-approval-status is-' + item.status}>{STATUS_LABELS[item.status] || item.status}</span>
+        <span className={'bes-approval-status is-' + item.status}>{copy[item.status] || item.status}</span>
       </div>
       <dl className="bes-approval-meta">
         <div><dt>{item.source === 'lesson_check' ? (language === 'en' ? 'Lesson Check activity' : 'Học liệu · Kiểm tra') : copy.scope}</dt><dd>{item.item_title || item.permission_id}</dd></div>
-        {!quick && <div><dt>Mã quyền</dt><dd>{item.permission_id}</dd></div>}
+        {!quick && <div><dt>{language==='en'?'Permission ID':'Mã quyền'}</dt><dd>{item.permission_id}</dd></div>}
         {!quick && item.message ? <div><dt>{copy.reason}</dt><dd>{item.message}</dd></div> : null}
       </dl>
       {item.status === 'pending' && (!quick || panel === 'quick') ? (
         confirmation?.id === item.id ? (
           <div className="bes-approval-confirm">
             <p>{confirmation.decision === 'approved'
-              ? 'Xác nhận cấp quyền sử dụng mục này cho giáo viên?'
-              : 'Xác nhận từ chối yêu cầu của giáo viên?'}</p>
+              ? (language==='en'?'Grant the teacher access to this item?':'Xác nhận cấp quyền sử dụng mục này cho giáo viên?')
+               : (language==='en'?'Reject the teacher’s request?':'Xác nhận từ chối yêu cầu của giáo viên?')}</p>
             <div>
               <button type="button" disabled={Boolean(busyId)} onClick={() => setConfirmation(null)}>{copy.cancel}</button>
               <button type="button" className={confirmation.decision === 'approved' ? 'is-primary' : 'is-danger'}
@@ -282,19 +282,19 @@ export default function PermissionApprovalInbox({ currentUser, language = 'vi' }
     <div className="bes-approval-root" data-panel={panel}>
       {toast ? <div className={'bes-approval-toast is-' + toast.kind} role="status" aria-live="polite">
         <BellRing size={19} aria-hidden="true"/><span>{toast.message}</span>
-        <button type="button" onClick={() => setToast(null)} aria-label="Đóng thông báo"><X size={16}/></button>
+        <button type="button" onClick={() => setToast(null)} aria-label={language==='en'?'Dismiss notification':'Đóng thông báo'}><X size={16}/></button>
       </div> : null}
       {panel === 'drawer' ? (
         <div className="bes-approval-drawer-layer">
-          <button className="bes-approval-drawer-scrim" aria-label="Đóng ngăn duyệt quyền" type="button" onClick={close}/>
+          <button className="bes-approval-drawer-scrim" aria-label={language==='en'?'Close approvals':'Đóng ngăn duyệt quyền'} type="button" onClick={close}/>
           <aside className="bes-approval-drawer" role="dialog" aria-modal="true"
             aria-label={copy.title} ref={drawerRef}>
             <header className="bes-approval-drawer-header">
               <span className="bes-approval-heading-icon"><ShieldCheck size={23}/></span>
               <div><h2>{copy.title}</h2><p>{copy.subtitle}</p></div>
-              <button type="button" className="bes-approval-icon-button" aria-label="Đóng" onClick={close}><X size={21}/></button>
+              <button type="button" className="bes-approval-icon-button" aria-label={language==='en'?'Close':'Đóng'} onClick={close}><X size={21}/></button>
             </header>
-            <nav className="bes-approval-tabs" aria-label="Trạng thái yêu cầu">
+            <nav className="bes-approval-tabs" aria-label={language==='en'?'Request status':'Trạng thái yêu cầu'}>
               {['pending','approved','rejected'].map((tab) => (
                 <button type="button" key={tab} className={activeTab === tab ? 'is-selected' : ''}
                   aria-current={activeTab === tab ? 'page' : undefined}
@@ -304,7 +304,7 @@ export default function PermissionApprovalInbox({ currentUser, language = 'vi' }
               ))}
             </nav>
             <div className="bes-approval-drawer-toolbar">
-              <span>{selected.length} yêu cầu</span>
+              <span>{selected.length} {language==='en'?'requests':'yêu cầu'}</span>
               <button type="button" onClick={() => refresh()} disabled={loading}>
                 <RefreshCw size={16} className={loading ? 'is-spinning' : ''}/>{copy.refresh}
               </button>
@@ -316,7 +316,7 @@ export default function PermissionApprovalInbox({ currentUser, language = 'vi' }
               )}
             </div>
             <footer className="bes-approval-drawer-footer">
-              <LockKeyhole size={16}/><span>Chỉ TTCM/Admin có quyền mới có thể phê duyệt. Mọi quyết định được lưu lịch sử.</span>
+              <LockKeyhole size={16}/><span>{language==='en'?'Only authorized leaders/admins can approve requests. All decisions are logged.':'Chỉ TTCM/Admin có quyền mới có thể phê duyệt. Mọi quyết định được lưu lịch sử.'}</span>
             </footer>
           </aside>
         </div>
@@ -324,7 +324,7 @@ export default function PermissionApprovalInbox({ currentUser, language = 'vi' }
 
       {panel === 'quick' ? <div className="bes-approval-quick" role="region" aria-label={copy.quickTitle}>
         <header><span><Inbox size={18}/><strong>{copy.quickTitle}</strong><b>{pending.length}</b></span>
-          <button type="button" aria-label="Đóng danh sách" onClick={close}><X size={18}/></button>
+          <button type="button" aria-label={language==='en'?'Close list':'Đóng danh sách'} onClick={close}><X size={18}/></button>
         </header>
         {error ? <div className="bes-approval-error" role="alert">{error}</div> : null}
         <div className="bes-approval-quick-list">

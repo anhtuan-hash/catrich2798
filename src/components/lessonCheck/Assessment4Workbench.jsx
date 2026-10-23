@@ -10,11 +10,12 @@ import {
 import { listActivityAttributes, saveActivityAttributes } from '../../utils/lessonCheckAttributes.js';
 import { listLessonCheckTeacherGroups, saveLessonCheckTeacherGroup, deleteLessonCheckTeacherGroup } from '../../utils/lessonCheckTeacherGroups.js';
 import { checkActivityLink } from '../../utils/lessonCheckLinkAudit.js';
+import { assessmentText, assessmentLocale, assessmentSourceReason } from '../../utils/assessmentBilingual.js';
 import './Assessment4Workbench.css';
 
 const initial = { favorites: [], recentIds: [], collections: [], runner: {} };
 const uid = user => user?.id || user?.authId || '';
-const fmt = value => value ? new Date(value).toLocaleDateString('vi-VN') : '—';
+const fmt = (value, language='vi') => value ? new Date(value).toLocaleDateString(assessmentLocale(language)) : '—';
 const csvCell = v => { const raw=String(v ?? ''); const safe=['=','+','-','@'].includes(raw.trimStart().charAt(0)) ? "'"+raw : raw; return '"'+safe.replace(/"/g,'""')+'"'; };
 function csvDownload(filename, columns, rows) {
  const csv = '\uFEFF' + [columns,...rows].map(row=>row.map(csvCell).join(',')).join('\r\n');
@@ -25,7 +26,8 @@ function csvDownload(filename, columns, rows) {
 function Title({ children, detail }) {
  return <div className="a4-heading"><div><h3>{children}</h3>{detail ? <p>{detail}</p>:null}</div></div>;
 }
-function ActivityMini({ item, onOpen, onStar, favorite, more }) {
+function ActivityMini({ item, onOpen, onStar, favorite, more, language='vi' }) {
+ const t=(value)=>assessmentText(value,language);
  return <article className="a4-activity">
    {item.thumbnailUrl ? <img alt="" loading="lazy" src={item.thumbnailUrl}/> : <div className="a4-image-empty"><Layers3/></div>}
    <div className="a4-activity-copy"><strong>{item.title}</strong><small>Khối {item.grade || '—'} · Unit {item.unitNo || '—'} · {item.focusArea || 'mixed'}</small><div className="a4-mini-actions">
@@ -36,7 +38,8 @@ function ActivityMini({ item, onOpen, onStar, favorite, more }) {
  </article>;
 }
 
-export default function Assessment4Workbench({ activities=[], currentUser, isLeader=false, onLaunch, onRefresh, favoriteIds=[], onToggleFavorite, initialTab='mine', initialSelectedActivities=[] }) {
+export default function Assessment4Workbench({ activities=[], currentUser, isLeader=false, onLaunch, onRefresh, favoriteIds=[], onToggleFavorite, initialTab='mine', initialSelectedActivities=[], language='vi' }) {
+ const t=(value)=>assessmentText(value,language);
  const userId=uid(currentUser);
  const [tab,setTab]=useState(initialTab);
  const [data,setData]=useState(initial);
@@ -104,9 +107,9 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
   loadAssessmentWorkspace(userId).then(result=>{
    if(!live)return;
    if(result.ok){setData(result.state);savedRef.current=JSON.stringify(result.state);}
-   else setWorkspaceError(result.message || 'Chưa thể tải không gian làm việc.');
+   else setWorkspaceError(result.message || t("Chưa thể tải không gian làm việc."));
    setReady(result.ok);
-  }).catch(error=>{if(live)setWorkspaceError(error?.message||'Không kết nối được Supabase.');});
+  }).catch(error=>{if(live)setWorkspaceError(error?.message||t("Không kết nối được Supabase."));});
   refreshRecords();
   listActivityAttributes().then(result=>{if(live && result.ok)setAttributes(result.items);});
   return ()=>{live=false;};
@@ -118,7 +121,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
   const timer=setTimeout(async()=>{
    const result=await storeAssessmentWorkspace(userId,data);
    if(result.ok)savedRef.current=serialized;
-   else setNotice('Không lưu được thay đổi lên Supabase: '+result.message);
+   else setNotice(t("Không lưu được thay đổi lên Supabase: ")+result.message);
   },700);
   return ()=>clearTimeout(timer);
  },[data,ready,userId]);
@@ -143,7 +146,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
   if(!title)return;
   const id=crypto.randomUUID();
   amend(d=>({collections:[...d.collections,{id,title,activityIds:[],createdAt:new Date().toISOString()}]}));
-  setSelectedCollection(id);setCollectionName('');setNotice('Đã tạo bộ sưu tập.');
+  setSelectedCollection(id);setCollectionName('');setNotice(t("Đã tạo bộ sưu tập."));
  };
  const move=(id,direction)=>{
   if(!selected)return;
@@ -153,7 +156,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
   collectionUpdate(selected.id,()=>({activityIds:ids}));
  };
  const startRunner=()=>{
-  if(!selected?.activityIds?.length){setNotice('Hãy thêm hoạt động vào bộ sưu tập trước.');return;}
+  if(!selected?.activityIds?.length){setNotice(t("Hãy thêm hoạt động vào bộ sưu tập trước."));return;}
   amend({runner:{collectionId:selected.id,index:0,className:runner.className||'',minutes:runner.minutes||5}});
   setRunnerSeconds((runner.minutes||5)*60);setRunning(false);setTab('runner');
  };
@@ -165,7 +168,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
  const recordDone=async()=>{
   if(!activeRunner)return;
   const result=await logActivityUse(userId,activeRunner,{eventType:'completed',className:runner.className||'',duration:Number(runner.minutes)||5,notes:journalNote});
-  if(result.ok){setNotice('Đã ghi nhận vào nhật ký lớp.');setJournalNote('');refreshRecords();}
+  if(result.ok){setNotice(t("Đã ghi nhận vào nhật ký lớp."));setJournalNote('');refreshRecords();}
   else setNotice(result.message);
  };
  const filtered=useMemo(()=>{
@@ -217,7 +220,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
  };
  async function saveTeacherGroup(){
    const name=teacherGroupName.trim();
-   if(!name || !selectedTeachers.length){setNotice('Nhập tên nhóm và chọn giáo viên.');return;}
+   if(!name || !selectedTeachers.length){setNotice(t("Nhập tên nhóm và chọn giáo viên."));return;}
    setGroupBusy(true);
    const r=await saveLessonCheckTeacherGroup(userId,{
      id:teacherGroupId||undefined,name,memberIds:selectedTeachers
@@ -226,17 +229,17 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
    if(!r.ok){setNotice(r.message);return;}
    setTeacherGroups(current=>[...current.filter(item=>item.id!==r.group.id),r.group].sort((a,b)=>a.name.localeCompare(b.name,'vi')));
    setTeacherGroupId(r.group.id);
-   setNotice('Đã lưu nhóm giáo viên. Có thể sử dụng lại ở các lần cấp quyền sau.');
+   setNotice(t("Đã lưu nhóm giáo viên. Có thể sử dụng lại ở các lần cấp quyền sau."));
  }
  async function removeTeacherGroup(){
-   if(!teacherGroupId || !window.confirm('Xóa nhóm giáo viên này? Quyền đã cấp trước đó không bị thay đổi.'))return;
+   if(!teacherGroupId || !window.confirm(t("Xóa nhóm giáo viên này? Quyền đã cấp trước đó không bị thay đổi.")))return;
    setGroupBusy(true);
    const r=await deleteLessonCheckTeacherGroup(userId,teacherGroupId);
    setGroupBusy(false);
    if(!r.ok){setNotice(r.message);return;}
    setTeacherGroups(current=>current.filter(g=>g.id!==teacherGroupId));
    setTeacherGroupId('');setTeacherGroupName('');
-   setNotice('Đã xóa nhóm lưu sẵn; các quyền được cấp trước đây vẫn giữ nguyên.');
+   setNotice(t("Đã xóa nhóm lưu sẵn; các quyền được cấp trước đây vẫn giữ nguyên."));
  }
  async function auditVisibleLinks(){
    if(linkAuditBusy)return;
@@ -255,15 +258,15 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
        setLinkAudit(old=>Object.fromEntries([...Object.entries(old),...results.map(r=>[r.id,r.result])]));
      }
      setLinkAuditPage((page+1)%pageCount);
-     setNotice('Đã kiểm tra '+targets.length+' nguồn ('+(page+1)+'/'+pageCount+' đợt). Các nguồn bị CORS chặn không được kết luận là hỏng.');
+     setNotice(t("Đã kiểm tra ")+targets.length+t(" nguồn (")+(page+1)+'/'+pageCount+t(" đợt). Các nguồn bị CORS chặn không được kết luận là hỏng."));
    }finally{setLinkAuditBusy(false);}
  }
  async function grantBulk(){
-  if(!selectedActivities.length||!selectedTeachers.length){setNotice('Chọn ít nhất một hoạt động và một giáo viên.');return;}
+  if(!selectedActivities.length||!selectedTeachers.length){setNotice(t("Chọn ít nhất một hoạt động và một giáo viên."));return;}
   setWorking(true);
   const result=await bulkGrantActivities(selectedActivities,selectedTeachers,grantAction==='grant',grantAction==='grant'&&expiresOn?new Date(expiresOn+'T23:59:59').toISOString():null);
   setWorking(false);
-  setNotice(result.ok?'Đã xử lý '+result.count+' quyền; đang đồng bộ…':result.message);
+  setNotice(result.ok?t("Đã xử lý ")+result.count+t(" quyền; đang đồng bộ…"):result.message);
   if(result.ok){await onRefresh?.();await refreshRecords();}
  }
  async function getVersions(activityId){
@@ -272,7 +275,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
  }
  async function restoreVersion(v){
   const current=table.get(v.activity_id);
-  if(!current || !window.confirm('Khôi phục nội dung phiên bản cũ? Phiên bản hiện tại sẽ được lưu vào lịch sử.'))return;
+  if(!current || !window.confirm(t("Khôi phục nội dung phiên bản cũ? Phiên bản hiện tại sẽ được lưu vào lịch sử.")))return;
   const r=await readActivityVersion(v.id);
   if(!r.ok){setNotice(r.message);return;}
   const meta=r.item.metadata || {};
@@ -284,12 +287,12 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
    notes:meta.notes,sourceHost:meta.source_host,focusArea:meta.focus_area||current.focusArea,embedCode:code};
   setWorking(true);
   const done=await saveLessonCheckActivity(draft,{kind});
-  setWorking(false);setNotice(done.ok?'Đã khôi phục nội dung và giữ bản sao cũ.':done.message);
+  setWorking(false);setNotice(done.ok?t("Đã khôi phục nội dung và giữ bản sao cũ."):done.message);
   if(done.ok){getVersions(current.id);onRefresh?.();}
  }
  async function addIntervention(){
   setWorking(true);const r=await saveIntervention(userId,intervention);setWorking(false);
-  setNotice(r.ok?'Đã lưu kế hoạch hỗ trợ.':r.message);
+  setNotice(r.ok?t("Đã lưu kế hoạch hỗ trợ."):r.message);
   if(r.ok){setIntervention({studentRef:'',studentName:'',className:'',focusArea:'',actionPlan:'',baselineGrade:'',followupGrade:'',dueOn:'',status:'planned'});refreshRecords();}
  }
  const quality=useMemo(()=>assessActivityQuality(activities),[activities]);
@@ -315,130 +318,130 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
  const today=Date.now();
  const due=interventions.filter(i=>i.status!=='completed'&&i.due_on&&new Date(i.due_on).getTime()<today);
  return <section className="a4-workbench" aria-label="BRIAN Assessment 5.0">
-  <header className="a4-hero"><div><small>BRIAN ASSESSMENT 5.0 · WORKSPACE</small><h2>Trung tâm hoạt động & đánh giá</h2><p>Học liệu của tôi · Tổ chức lớp · Theo dõi kết quả · Minh chứng chuyên môn</p></div>
-   <button type="button" onClick={()=>{refreshRecords();onRefresh?.();}}><RefreshCw size={16}/> Đồng bộ</button></header>
-  <nav className="a4-tabs" aria-label="Chức năng Assessment 5.0">{allTabs.map(([id,name])=><button key={id} type="button" className={tab===id?'active':''} onClick={()=>setTab(id)}>{name}</button>)}</nav>
-  {notice?<div className="a4-notice" role="status">{notice}<button type="button" aria-label="Đóng" onClick={()=>setNotice('')}><X size={15}/></button></div>:null}
-  {!ready?<div className="a4-loading">{workspaceError?<><strong>{workspaceError}</strong> <button type="button" onClick={()=>setRetryKey(v=>v+1)}>Thử lại</button></>:<><LoaderCircle/> Đang kết nối không gian làm việc cá nhân…</>}</div>:null}
+  <header className="a4-hero"><div><small>BRIAN ASSESSMENT 5.0 · WORKSPACE</small><h2>{t("Trung tâm hoạt động & đánh giá")}</h2><p>{t("Học liệu của tôi · Tổ chức lớp · Theo dõi kết quả · Minh chứng chuyên môn")}</p></div>
+   <button type="button" onClick={()=>{refreshRecords();onRefresh?.();}}><RefreshCw size={16}/> {t("Đồng bộ")}</button></header>
+  <nav className="a4-tabs" aria-label={t("Chức năng Assessment 5.0")}>{allTabs.map(([id,name])=><button key={id} type="button" className={tab===id?'active':''} onClick={()=>setTab(id)}>{t(name)}</button>)}</nav>
+  {notice?<div className="a4-notice" role="status">{assessmentText(notice,language)}<button type="button" aria-label={t("Đóng")} onClick={()=>setNotice('')}><X size={15}/></button></div>:null}
+  {!ready?<div className="a4-loading">{workspaceError?<><strong>{workspaceError}</strong> <button type="button" onClick={()=>setRetryKey(v=>v+1)}>{t("Thử lại")}</button></>:<><LoaderCircle/> {t("Đang kết nối không gian làm việc cá nhân…")}</>}</div>:null}
   {ready && tab==='mine'? <>
-   <div className="a4-stats"><div><strong>{favoriteIds.length}</strong><span>Yêu thích</span></div><div><strong>{data.recentIds.length}</strong><span>Đã mở gần đây</span></div><div><strong>{data.collections.length}</strong><span>Bộ sưu tập</span></div><div><strong>{allowed.length}</strong><span>Có quyền truy cập</span></div></div>
-   <Title detail="Đánh dấu trái tim để ghim hoạt động; mọi mục được đồng bộ riêng theo tài khoản.">My Activity Workspace</Title>
-   <div className="a4-filter"><label><Search size={16}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Tên trò chơi, chuyên đề, Unit…"/></label>
-    <select aria-label="Khối" value={grade} onChange={e=>setGrade(e.target.value)}><option value="all">Mọi khối</option>{['10','11','12'].map(v=><option key={v}>{v}</option>)}</select>
-    <select aria-label="Unit" value={unit} onChange={e=>setUnit(e.target.value)}><option value="all">Mọi Unit</option>{Array.from({length:10},(_,i)=><option value={String(i+1)} key={i}>Unit {i+1}</option>)}</select>
-    <select aria-label="Chuyên đề" value={focus} onChange={e=>setFocus(e.target.value)}><option value="all">Mọi chuyên đề</option>{['vocabulary','grammar','skills','mixed','unclassified','reading','listening','speaking'].map(x=><option key={x} value={x}>{x}</option>)}</select>
-    <select aria-label="Trình độ CEFR" value={difficulty} onChange={e=>setDifficulty(e.target.value)}><option value="all">Mọi trình độ</option>{['A1','A2','B1','B2','C1','C2','mixed','unclassified'].map(v=><option key={v}>{v}</option>)}</select>
-    <select aria-label="Hình thức" value={delivery} onChange={e=>setDelivery(e.target.value)}><option value="all">Mọi hình thức</option><option value="individual">Cá nhân</option><option value="group">Nhóm</option><option value="whole_class">Cả lớp</option><option value="hybrid">Kết hợp</option></select>
-    <select aria-label="Thời lượng" value={duration} onChange={e=>setDuration(e.target.value)}><option value="all">Mọi thời lượng</option><option value="short">≤10 phút</option><option value="medium">11–25 phút</option><option value="long">Trên 25 phút</option></select>
-    <select aria-label="Sắp xếp" value={sort} onChange={e=>setSort(e.target.value)}><option value="recent">Ưu tiên gần đây</option><option value="title">A–Z</option><option value="newest">Mới cập nhật</option></select>
+   <div className="a4-stats"><div><strong>{favoriteIds.length}</strong><span>{t("Yêu thích")}</span></div><div><strong>{data.recentIds.length}</strong><span>{t("Đã mở gần đây")}</span></div><div><strong>{data.collections.length}</strong><span>{t("Bộ sưu tập")}</span></div><div><strong>{allowed.length}</strong><span>{t("Có quyền truy cập")}</span></div></div>
+   <Title detail={t("Đánh dấu trái tim để ghim hoạt động; mọi mục được đồng bộ riêng theo tài khoản.")}>My Activity Workspace</Title>
+   <div className="a4-filter"><label><Search size={16}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t("Tên trò chơi, chuyên đề, Unit…")}/></label>
+    <select aria-label={t("Khối")} value={grade} onChange={e=>setGrade(e.target.value)}><option value="all">{t("Mọi khối")}</option>{['10','11','12'].map(v=><option key={v}>{v}</option>)}</select>
+    <select aria-label="Unit" value={unit} onChange={e=>setUnit(e.target.value)}><option value="all">{t("Mọi Unit")}</option>{Array.from({length:10},(_,i)=><option value={String(i+1)} key={i}>Unit {i+1}</option>)}</select>
+    <select aria-label={t("Chuyên đề")} value={focus} onChange={e=>setFocus(e.target.value)}><option value="all">{t("Mọi chuyên đề")}</option>{['vocabulary','grammar','skills','mixed','unclassified','reading','listening','speaking'].map(x=><option key={x} value={x}>{x}</option>)}</select>
+    <select aria-label={t("Trình độ CEFR")} value={difficulty} onChange={e=>setDifficulty(e.target.value)}><option value="all">{t("Mọi trình độ")}</option>{['A1','A2','B1','B2','C1','C2','mixed','unclassified'].map(v=><option key={v}>{v}</option>)}</select>
+    <select aria-label={t("Hình thức")} value={delivery} onChange={e=>setDelivery(e.target.value)}><option value="all">{t("Mọi hình thức")}</option><option value="individual">{t("Cá nhân")}</option><option value="group">{t("Nhóm")}</option><option value="whole_class">{t("Cả lớp")}</option><option value="hybrid">{t("Kết hợp")}</option></select>
+    <select aria-label={t("Thời lượng")} value={duration} onChange={e=>setDuration(e.target.value)}><option value="all">{t("Mọi thời lượng")}</option><option value="short">{t("≤10 phút")}</option><option value="medium">{t("11–25 phút")}</option><option value="long">{t("Trên 25 phút")}</option></select>
+    <select aria-label={t("Sắp xếp")} value={sort} onChange={e=>setSort(e.target.value)}><option value="recent">{t("Ưu tiên gần đây")}</option><option value="title">A–Z</option><option value="newest">{t("Mới cập nhật")}</option></select>
    </div>
-   <div className="a4-card-grid">{filtered.slice(0,60).map(item=><ActivityMini key={item.id} item={table.get(item.id)} onOpen={launch} onStar={star} favorite={favoriteIds.includes(item.id)}/>)}</div>
-   {!filtered.length?<p className="a4-empty">Chưa có hoạt động phù hợp bộ lọc hoặc quyền truy cập.</p>:null}
+   <div className="a4-card-grid">{filtered.slice(0,60).map(item=><ActivityMini language={language} key={item.id} item={table.get(item.id)} onOpen={launch} onStar={star} favorite={favoriteIds.includes(item.id)}/>)}</div>
+   {!filtered.length?<p className="a4-empty">{t("Chưa có hoạt động phù hợp bộ lọc hoặc quyền truy cập.")}</p>:null}
   </>:null}
   {ready && tab==='collections'?<>
-   <Title detail="Tạo bộ sưu tập theo Unit, lớp hoặc tiết học. Mỗi bộ là một trình tự có thể sử dụng lại.">Activity Collections</Title>
-   <div className="a4-form"><input value={collectionName} onChange={e=>setCollectionName(e.target.value)} placeholder="Ví dụ: Unit 5 – Inventions – tiết 2" maxLength={100}/><button onClick={createCollection}><FolderPlus size={15}/> Tạo bộ mới</button></div>
+   <Title detail={t("Tạo bộ sưu tập theo Unit, lớp hoặc tiết học. Mỗi bộ là một trình tự có thể sử dụng lại.")}>Activity Collections</Title>
+   <div className="a4-form"><input value={collectionName} onChange={e=>setCollectionName(e.target.value)} placeholder={t("Ví dụ: Unit 5 – Inventions – tiết 2")} maxLength={100}/><button onClick={createCollection}><FolderPlus size={15}/> {t("Tạo bộ mới")}</button></div>
    <div className="a4-collections">{data.collections.map(c=><button key={c.id} className={selectedCollection===c.id?'active':''} onClick={()=>setSelectedCollection(c.id)}>{c.title} <small>{c.activityIds.length}</small></button>)}</div>
-   {selected?<><div className="a4-section-head"><strong>{selected.title}</strong><button onClick={()=>{if(window.confirm('Xóa bộ sưu tập này?')){amend(d=>({collections:d.collections.filter(c=>c.id!==selected.id)}));setSelectedCollection('');}}}><Trash2 size={14}/> Xóa bộ</button></div>
-    <div className="a4-form"><select value={pickActivity} onChange={e=>setPickActivity(e.target.value)}><option value="">Chọn hoạt động đã được cấp quyền</option>{allowed.filter(a=>!selected.activityIds.includes(a.id)).map(a=><option key={a.id} value={a.id}>{a.title}</option>)}</select><button onClick={()=>{if(pickActivity){collectionUpdate(selected.id,c=>({activityIds:[...c.activityIds,pickActivity]}));setPickActivity('');}}}><Plus size={15}/> Thêm</button></div>
-    <div className="a4-items">{selected.activityIds.map((id,i)=><div key={id}><span>{i+1}. {table.get(id)?.title||'Hoạt động không còn tồn tại'}</span><div><button onClick={()=>move(id,-1)} disabled={i===0}>↑</button><button onClick={()=>move(id,1)} disabled={i===selected.activityIds.length-1}>↓</button><button onClick={()=>collectionUpdate(selected.id,c=>({activityIds:c.activityIds.filter(v=>v!==id)}))}>×</button></div></div>)}</div>
-    <button className="a4-primary" onClick={startRunner}><Play size={15}/> Tổ chức chuỗi hoạt động</button>
-   </>:<p className="a4-empty">Tạo hoặc chọn một bộ sưu tập để thêm hoạt động.</p>}
+   {selected?<><div className="a4-section-head"><strong>{selected.title}</strong><button onClick={()=>{if(window.confirm(t("Xóa bộ sưu tập này?"))){amend(d=>({collections:d.collections.filter(c=>c.id!==selected.id)}));setSelectedCollection('');}}}><Trash2 size={14}/> {t("Xóa bộ")}</button></div>
+    <div className="a4-form"><select value={pickActivity} onChange={e=>setPickActivity(e.target.value)}><option value="">{t("Chọn hoạt động đã được cấp quyền")}</option>{allowed.filter(a=>!selected.activityIds.includes(a.id)).map(a=><option key={a.id} value={a.id}>{a.title}</option>)}</select><button onClick={()=>{if(pickActivity){collectionUpdate(selected.id,c=>({activityIds:[...c.activityIds,pickActivity]}));setPickActivity('');}}}><Plus size={15}/> {t("Thêm")}</button></div>
+    <div className="a4-items">{selected.activityIds.map((id,i)=><div key={id}><span>{i+1}. {table.get(id)?.title||t("Hoạt động không còn tồn tại")}</span><div><button onClick={()=>move(id,-1)} disabled={i===0}>↑</button><button onClick={()=>move(id,1)} disabled={i===selected.activityIds.length-1}>↓</button><button onClick={()=>collectionUpdate(selected.id,c=>({activityIds:c.activityIds.filter(v=>v!==id)}))}>{t("×")}</button></div></div>)}</div>
+    <button className="a4-primary" onClick={startRunner}><Play size={15}/> {t("Tổ chức chuỗi hoạt động")}</button>
+   </>:<p className="a4-empty">{t("Tạo hoặc chọn một bộ sưu tập để thêm hoạt động.")}</p>}
   </>:null}
   {ready && tab==='runner'?<>
-   <Title detail="Chuyển giữa các hoạt động trong cùng tiết học; thứ tự và tiến độ được đồng bộ trên tài khoản.">Lesson Runner</Title>
-   <div className="a4-form"><select value={runner.collectionId||''} onChange={e=>{amend({runner:{...runner,collectionId:e.target.value,index:0}});setRunning(false);}}><option value="">Chọn bộ sưu tập</option>{data.collections.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select>
-    <input aria-label="Lớp" value={runner.className||''} placeholder="Lớp sử dụng, ví dụ 12.6" onChange={e=>amend({runner:{...runner,className:e.target.value.slice(0,60)}})}/>
-    <label className="a4-minutes">Phút / hoạt động <input type="number" min={1} max={60} value={runner.minutes||5} onChange={e=>amend({runner:{...runner,minutes:Math.max(1,Math.min(60,Number(e.target.value)||1))}})}/></label>
+   <Title detail={t("Chuyển giữa các hoạt động trong cùng tiết học; thứ tự và tiến độ được đồng bộ trên tài khoản.")}>Lesson Runner</Title>
+   <div className="a4-form"><select value={runner.collectionId||''} onChange={e=>{amend({runner:{...runner,collectionId:e.target.value,index:0}});setRunning(false);}}><option value="">{t("Chọn bộ sưu tập")}</option>{data.collections.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select>
+    <input aria-label={t("Lớp")} value={runner.className||''} placeholder={t("Lớp sử dụng, ví dụ 12.6")} onChange={e=>amend({runner:{...runner,className:e.target.value.slice(0,60)}})}/>
+    <label className="a4-minutes">{t("Phút / hoạt động")} <input type="number" min={1} max={60} value={runner.minutes||5} onChange={e=>amend({runner:{...runner,minutes:Math.max(1,Math.min(60,Number(e.target.value)||1))}})}/></label>
    </div>
    {activeRunner?<div className="a4-runner"><div className="a4-runner-timer"><small>HOẠT ĐỘNG {runnerIndex+1} / {sequence.length}</small><h3>{activeRunner.title}</h3><strong>{String(Math.floor(runnerSeconds/60)).padStart(2,'0')}:{String(runnerSeconds%60).padStart(2,'0')}</strong><div className="a4-runner-actions">
-    <button onClick={()=>{if(!runnerSeconds)setRunnerSeconds((runner.minutes||5)*60);setRunning(v=>!v);}}>{running?'Tạm dừng':'Bắt đầu đếm giờ'}</button>
-    <button onClick={()=>{setRunning(false);setRunnerSeconds((runner.minutes||5)*60);}}>Đặt lại</button>
-    <button className="a4-primary" onClick={()=>launch(activeRunner)}><Play size={15}/> Mở trò chơi</button>
-   </div></div><div className="a4-runner-actions"><button disabled={runnerIndex===0} onClick={()=>navigateRunner(-1)}><ChevronLeft size={16}/> Trước</button><button onClick={recordDone}><Check size={15}/> Đã thực hiện</button><button disabled={runnerIndex===sequence.length-1} onClick={()=>navigateRunner(1)}>Tiếp <ChevronRight size={16}/></button></div>
-   <textarea value={journalNote} onChange={e=>setJournalNote(e.target.value)} placeholder="Ghi chú kết quả hoạt động (không bắt buộc)" rows={2}/></div>:<p className="a4-empty">Chọn một bộ sưu tập có hoạt động. Tiến độ sẽ được lưu để bạn quay lại tiếp tục.</p>}
+    <button onClick={()=>{if(!runnerSeconds)setRunnerSeconds((runner.minutes||5)*60);setRunning(v=>!v);}}>{running?t("Tạm dừng"):t("Bắt đầu đếm giờ")}</button>
+    <button onClick={()=>{setRunning(false);setRunnerSeconds((runner.minutes||5)*60);}}>{t("Đặt lại")}</button>
+    <button className="a4-primary" onClick={()=>launch(activeRunner)}><Play size={15}/> {t("Mở trò chơi")}</button>
+   </div></div><div className="a4-runner-actions"><button disabled={runnerIndex===0} onClick={()=>navigateRunner(-1)}><ChevronLeft size={16}/> {t("Trước")}</button><button onClick={recordDone}><Check size={15}/> {t("Đã thực hiện")}</button><button disabled={runnerIndex===sequence.length-1} onClick={()=>navigateRunner(1)}>{t("Tiếp")} <ChevronRight size={16}/></button></div>
+   <textarea value={journalNote} onChange={e=>setJournalNote(e.target.value)} placeholder={t("Ghi chú kết quả hoạt động (không bắt buộc)")} rows={2}/></div>:<p className="a4-empty">{t("Chọn một bộ sưu tập có hoạt động. Tiến độ sẽ được lưu để bạn quay lại tiếp tục.")}</p>}
   </>:null}
   {ready && tab==='journal'?<>
-   <Title detail="Các lần giáo viên mở hoặc hoàn thành hoạt động. Chọn lớp ngay trong Lesson Runner để gắn nhật ký với lớp học.">Class Activity Journal</Title>
-   <div className="a4-stats"><div><strong>{journal.length}</strong><span>Lượt sử dụng</span></div><div><strong>{completed.length}</strong><span>Đã hoàn thành</span></div><div><strong>{new Set(journal.map(i=>i.class_name).filter(Boolean)).size}</strong><span>Số lớp</span></div></div>
-   <div className="a4-table"><div className="a4-table-head"><span>Ngày</span><span>Hoạt động</span><span>Lớp</span><span>Trạng thái</span></div>{journal.slice(0,120).map(j=><div key={j.id}><span>{fmt(j.created_at)}</span><span>{j.activity_title}</span><span>{j.class_name||'—'}</span><span>{j.event_type==='completed'?'Đã thực hiện':'Đã mở'}</span></div>)}</div>
-   {!journal.length?<p className="a4-empty">Nhật ký trống. Mở hoặc hoàn thành một hoạt động để ghi nhận.</p>:null}
+   <Title detail={t("Các lần giáo viên mở hoặc hoàn thành hoạt động. Chọn lớp ngay trong Lesson Runner để gắn nhật ký với lớp học.")}>Class Activity Journal</Title>
+   <div className="a4-stats"><div><strong>{journal.length}</strong><span>{t("Lượt sử dụng")}</span></div><div><strong>{completed.length}</strong><span>{t("Đã hoàn thành")}</span></div><div><strong>{new Set(journal.map(i=>i.class_name).filter(Boolean)).size}</strong><span>{t("Số lớp")}</span></div></div>
+   <div className="a4-table"><div className="a4-table-head"><span>{t("Ngày")}</span><span>{t("Hoạt động")}</span><span>{t("Lớp")}</span><span>{t("Trạng thái")}</span></div>{journal.slice(0,120).map(j=><div key={j.id}><span>{fmt(j.created_at,language)}</span><span>{j.activity_title}</span><span>{j.class_name||'—'}</span><span>{j.event_type==='completed'?t("Đã thực hiện"):t("Đã mở")}</span></div>)}</div>
+   {!journal.length?<p className="a4-empty">{t("Nhật ký trống. Mở hoặc hoàn thành một hoạt động để ghi nhận.")}</p>:null}
   </>:null}
   {ready && tab==='analytics'?<>
-   <Title detail="Báo cáo tổng hợp minh bạch từ nhật ký và hồ sơ can thiệp, không sử dụng AI. Báo cáo điểm chuyên sâu vẫn nằm ở mục Báo cáo của Assessment.">Assessment Analytics 2.0</Title>
-   <div className="a4-stats"><div><strong>{new Set(journal.map(j=>j.activity_id).filter(Boolean)).size}</strong><span>Hoạt động từng dùng</span></div><div><strong>{completed.length}</strong><span>Lượt hoàn thành</span></div><div><strong>{interventions.length}</strong><span>Biện pháp hỗ trợ</span></div><div><strong>{due.length}</strong><span>Biện pháp quá hạn</span></div></div>
-   <div className="a4-section-head"><strong>Tần suất sử dụng theo chuyên đề</strong></div>
+   <Title detail={t("Báo cáo tổng hợp minh bạch từ nhật ký và hồ sơ can thiệp, không sử dụng AI. Báo cáo điểm chuyên sâu vẫn nằm ở mục Báo cáo của Assessment.")}>Assessment Analytics 2.0</Title>
+   <div className="a4-stats"><div><strong>{new Set(journal.map(j=>j.activity_id).filter(Boolean)).size}</strong><span>{t("Hoạt động từng dùng")}</span></div><div><strong>{completed.length}</strong><span>{t("Lượt hoàn thành")}</span></div><div><strong>{interventions.length}</strong><span>{t("Biện pháp hỗ trợ")}</span></div><div><strong>{due.length}</strong><span>{t("Biện pháp quá hạn")}</span></div></div>
+   <div className="a4-section-head"><strong>{t("Tần suất sử dụng theo chuyên đề")}</strong></div>
    {['vocabulary','grammar','reading','listening','speaking','mixed','unclassified'].map(area=>{
     const count=journal.filter(j=>table.get(j.activity_id)?.focusArea===area).length;
     const max=Math.max(1,journal.length);
     return <div className="a4-bar" key={area}><span>{area}</span><div><i style={{width:String(count/max*100)+'%'}}/></div><strong>{count}</strong></div>;
    })}
-   <div className="a4-section-head"><strong>Điểm trung bình theo Unit (dữ liệu thực từ các phiên đánh giá)</strong></div>
-   {unitResults.length?unitResults.map(row=><div key={row.unit} className="a4-bar"><span>Unit {row.unit}</span><div><i style={{width:String(row.average*10)+'%'}}/></div><strong>{row.average.toFixed(1)} /10</strong></div>):<p className="a4-empty">Chưa có dữ liệu điểm theo Unit.</p>}
-   <div className="a4-section-head"><strong>Học sinh có ít nhất hai lần được đánh giá</strong></div>
-   <div className="a4-table"><div className="a4-table-head"><span>Lớp</span><span>Học sinh</span><span>Lần đầu</span><span>Lần gần nhất</span></div>{studentProgress.slice(0,40).map((row,i)=><div key={i}><span>{row.className}</span><span>{row.name}</span><span>{row.before.toFixed(1)}</span><span>{row.after.toFixed(1)} ({row.after-row.before>=0?'+':''}{(row.after-row.before).toFixed(1)})</span></div>)}</div>
-   <div className="a4-section-head"><strong>Biện pháp điều chỉnh</strong><button onClick={()=>setTab('interventions')}>Xem chi tiết →</button></div>
-   <p className="a4-muted">{interventions.filter(i=>i.status==='completed').length} hoàn thành / {interventions.length} biện pháp; kết quả cải thiện được xác định từ điểm trước và sau thực tế.</p>
+   <div className="a4-section-head"><strong>{t("Điểm trung bình theo Unit (dữ liệu thực từ các phiên đánh giá)")}</strong></div>
+   {unitResults.length?unitResults.map(row=><div key={row.unit} className="a4-bar"><span>Unit {row.unit}</span><div><i style={{width:String(row.average*10)+'%'}}/></div><strong>{row.average.toFixed(1)} /10</strong></div>):<p className="a4-empty">{t("Chưa có dữ liệu điểm theo Unit.")}</p>}
+   <div className="a4-section-head"><strong>{t("Học sinh có ít nhất hai lần được đánh giá")}</strong></div>
+   <div className="a4-table"><div className="a4-table-head"><span>{t("Lớp")}</span><span>{t("Học sinh")}</span><span>{t("Lần đầu")}</span><span>{t("Lần gần nhất")}</span></div>{studentProgress.slice(0,40).map((row,i)=><div key={i}><span>{row.className}</span><span>{row.name}</span><span>{row.before.toFixed(1)}</span><span>{row.after.toFixed(1)} ({row.after-row.before>=0?'+':''}{(row.after-row.before).toFixed(1)})</span></div>)}</div>
+   <div className="a4-section-head"><strong>{t("Biện pháp điều chỉnh")}</strong><button onClick={()=>setTab('interventions')}>{t("Xem chi tiết →")}</button></div>
+   <p className="a4-muted">{interventions.filter(i=>i.status==='completed').length} {language==='en'?'completed':'hoàn thành'} / {interventions.length} {language==='en'?'measures; improvement is based on actual before-and-after scores.':'biện pháp; kết quả cải thiện được xác định từ điểm trước và sau thực tế.'}</p>
   </>:null}
   {ready && tab==='interventions'?<>
-   <Title detail="Theo dõi học sinh cần củng cố, kế hoạch hỗ trợ và kết quả đánh giá lại. Mỗi hồ sơ thuộc về giáo viên tạo.">Intervention Tracker</Title>
+   <Title detail={t("Theo dõi học sinh cần củng cố, kế hoạch hỗ trợ và kết quả đánh giá lại. Mỗi hồ sơ thuộc về giáo viên tạo.")}>Intervention Tracker</Title>
    <div className="a4-form a4-form-grid">
-    <input placeholder="Mã học sinh" value={intervention.studentRef} onChange={e=>setIntervention(v=>({...v,studentRef:e.target.value}))}/>
-    <input placeholder="Họ tên học sinh" value={intervention.studentName} onChange={e=>setIntervention(v=>({...v,studentName:e.target.value}))}/>
-    <input placeholder="Lớp" value={intervention.className} onChange={e=>setIntervention(v=>({...v,className:e.target.value}))}/>
-    <input placeholder="Chuyên đề cần hỗ trợ" value={intervention.focusArea} onChange={e=>setIntervention(v=>({...v,focusArea:e.target.value}))}/>
-    <label>Điểm trước <input type="number" min={0} max={10} step={0.01} value={intervention.baselineGrade} onChange={e=>setIntervention(v=>({...v,baselineGrade:e.target.value}))}/></label>
-    <label>Điểm sau <input type="number" min={0} max={10} step={0.01} value={intervention.followupGrade} onChange={e=>setIntervention(v=>({...v,followupGrade:e.target.value}))}/></label>
-    <label>Đánh giá lại <input type="date" value={intervention.dueOn} onChange={e=>setIntervention(v=>({...v,dueOn:e.target.value}))}/></label>
-    <select value={intervention.status} onChange={e=>setIntervention(v=>({...v,status:e.target.value}))}><option value="planned">Dự kiến</option><option value="in_progress">Đang hỗ trợ</option><option value="completed">Hoàn thành</option></select>
-    <textarea rows={2} placeholder="Biện pháp hỗ trợ / điều chỉnh dạy học" value={intervention.actionPlan} onChange={e=>setIntervention(v=>({...v,actionPlan:e.target.value}))}/>
+    <input placeholder={t("Mã học sinh")} value={intervention.studentRef} onChange={e=>setIntervention(v=>({...v,studentRef:e.target.value}))}/>
+    <input placeholder={t("Họ tên học sinh")} value={intervention.studentName} onChange={e=>setIntervention(v=>({...v,studentName:e.target.value}))}/>
+    <input placeholder={t("Lớp")} value={intervention.className} onChange={e=>setIntervention(v=>({...v,className:e.target.value}))}/>
+    <input placeholder={t("Chuyên đề cần hỗ trợ")} value={intervention.focusArea} onChange={e=>setIntervention(v=>({...v,focusArea:e.target.value}))}/>
+    <label>{t("Điểm trước")} <input type="number" min={0} max={10} step={0.01} value={intervention.baselineGrade} onChange={e=>setIntervention(v=>({...v,baselineGrade:e.target.value}))}/></label>
+    <label>{t("Điểm sau")} <input type="number" min={0} max={10} step={0.01} value={intervention.followupGrade} onChange={e=>setIntervention(v=>({...v,followupGrade:e.target.value}))}/></label>
+    <label>{t("Đánh giá lại")} <input type="date" value={intervention.dueOn} onChange={e=>setIntervention(v=>({...v,dueOn:e.target.value}))}/></label>
+    <select value={intervention.status} onChange={e=>setIntervention(v=>({...v,status:e.target.value}))}><option value="planned">{t("Dự kiến")}</option><option value="in_progress">{t("Đang hỗ trợ")}</option><option value="completed">{t("Hoàn thành")}</option></select>
+    <textarea rows={2} placeholder={t("Biện pháp hỗ trợ / điều chỉnh dạy học")} value={intervention.actionPlan} onChange={e=>setIntervention(v=>({...v,actionPlan:e.target.value}))}/>
    </div>
-   <button className="a4-primary" onClick={addIntervention} disabled={working}><Plus size={15}/> {intervention.id?'Lưu cập nhật':'Thêm biện pháp'}</button>
-   <div className="a4-table"><div className="a4-table-head"><span>Học sinh / Lớp</span><span>Chuyên đề</span><span>Trước → Sau</span><span>Trạng thái</span></div>{interventions.slice(0,150).map(i=><button type="button" key={i.id} onClick={()=>setIntervention({id:i.id,studentRef:i.student_ref,studentName:i.student_name,className:i.class_name,focusArea:i.focus_area,baselineGrade:i.baseline_grade??'',followupGrade:i.followup_grade??'',actionPlan:i.action_plan,dueOn:i.due_on||'',status:i.status})}><span>{i.student_name} · {i.class_name}</span><span>{i.focus_area}</span><span>{i.baseline_grade??'—'} → {i.followup_grade??'—'}</span><span>{i.status}</span></button>)}</div>
+   <button className="a4-primary" onClick={addIntervention} disabled={working}><Plus size={15}/> {intervention.id?t("Lưu cập nhật"):t("Thêm biện pháp")}</button>
+   <div className="a4-table"><div className="a4-table-head"><span>{t("Học sinh / Lớp")}</span><span>{t("Chuyên đề")}</span><span>{t("Trước → Sau")}</span><span>{t("Trạng thái")}</span></div>{interventions.slice(0,150).map(i=><button type="button" key={i.id} onClick={()=>setIntervention({id:i.id,studentRef:i.student_ref,studentName:i.student_name,className:i.class_name,focusArea:i.focus_area,baselineGrade:i.baseline_grade??'',followupGrade:i.followup_grade??'',actionPlan:i.action_plan,dueOn:i.due_on||'',status:i.status})}><span>{i.student_name} · {i.class_name}</span><span>{i.focus_area}</span><span>{i.baseline_grade??'—'} → {i.followup_grade??'—'}</span><span>{({planned:language==='en'?'Planned':'Dự kiến',in_progress:language==='en'?'In progress':'Đang hỗ trợ',completed:language==='en'?'Completed':'Hoàn thành'})[i.status]||i.status}</span></button>)}</div>
   </>:null}
   {ready && isLeader && tab==='permissions'?<>
-   <Title detail="Cấp / thu hồi nhiều quyền trong một lần. Bắt buộc xác nhận; Supabase kiểm tra vai trò TTCM trên máy chủ.">Permission Center 2.0</Title>
-   <div className="a4-group-manager" aria-label="Nhóm giáo viên dùng lại">
-     <div><strong>Nhóm giáo viên dùng lại</strong><small>Lưu danh sách để cấp quyền nhiều lần; thay đổi nhóm không tự động sửa quyền đã cấp.</small></div>
+   <Title detail={t("Cấp / thu hồi nhiều quyền trong một lần. Bắt buộc xác nhận; Supabase kiểm tra vai trò TTCM trên máy chủ.")}>Permission Center 2.0</Title>
+   <div className="a4-group-manager" aria-label={t("Nhóm giáo viên dùng lại")}>
+     <div><strong>{t("Nhóm giáo viên dùng lại")}</strong><small>{t("Lưu danh sách để cấp quyền nhiều lần; thay đổi nhóm không tự động sửa quyền đã cấp.")}</small></div>
      <div className="a4-form">
-       <select aria-label="Chọn nhóm giáo viên" value={teacherGroupId} onChange={e=>chooseTeacherGroup(e.target.value)}>
-         <option value="">+ Nhóm mới</option>
+       <select aria-label={t("Chọn nhóm giáo viên")} value={teacherGroupId} onChange={e=>chooseTeacherGroup(e.target.value)}>
+         <option value="">{t("+ Nhóm mới")}</option>
          {teacherGroups.map(g=><option key={g.id} value={g.id}>{g.name} ({g.member_ids.length} GV)</option>)}
        </select>
-       <input aria-label="Tên nhóm giáo viên" value={teacherGroupName} maxLength={100} onChange={e=>setTeacherGroupName(e.target.value)} placeholder="Ví dụ: Giáo viên khối 11"/>
-       <button disabled={groupBusy || !teacherGroupName.trim() || !selectedTeachers.length} onClick={saveTeacherGroup}>Lưu nhóm từ giáo viên đã chọn</button>
-       {teacherGroupId?<button disabled={groupBusy} onClick={removeTeacherGroup}><Trash2 size={14}/> Xóa nhóm</button>:null}
+       <input aria-label={t("Tên nhóm giáo viên")} value={teacherGroupName} maxLength={100} onChange={e=>setTeacherGroupName(e.target.value)} placeholder={t("Ví dụ: Giáo viên khối 11")}/>
+       <button disabled={groupBusy || !teacherGroupName.trim() || !selectedTeachers.length} onClick={saveTeacherGroup}>{t("Lưu nhóm từ giáo viên đã chọn")}</button>
+       {teacherGroupId?<button disabled={groupBusy} onClick={removeTeacherGroup}><Trash2 size={14}/> {t("Xóa nhóm")}</button>:null}
      </div>
    </div>
-   <div className="a4-permission-grids"><div><strong>Chọn hoạt động ({selectedActivities.length})</strong><div className="a4-scroll">{activities.map(a=><label key={a.id}><input type="checkbox" checked={selectedActivities.includes(a.id)} onChange={e=>setSelectedActivities(v=>e.target.checked?[...v,a.id]:v.filter(id=>id!==a.id))}/>{a.title}</label>)}</div></div><div><strong>Chọn giáo viên ({selectedTeachers.length})</strong><div className="a4-scroll">{teacherChoices.map(t=><label key={t.userId}><input type="checkbox" checked={selectedTeachers.includes(t.userId)} onChange={e=>setSelectedTeachers(v=>e.target.checked?[...v,t.userId]:v.filter(id=>id!==t.userId))}/>{t.name} <small>{t.email}</small></label>)}</div></div></div>
-   <div className="a4-form"><select value={grantAction} onChange={e=>setGrantAction(e.target.value)}><option value="grant">Cấp quyền</option><option value="revoke">Thu hồi quyền</option></select><label>Hết hạn (tùy chọn) <input type="date" disabled={grantAction==='revoke'} value={expiresOn} onChange={e=>setExpiresOn(e.target.value)}/></label><button className="a4-primary" disabled={working||!selectedActivities.length||!selectedTeachers.length} onClick={()=>{if(window.confirm('Xác nhận '+(grantAction==='grant'?'cấp':'thu hồi')+' '+(selectedActivities.length*selectedTeachers.length)+' quyền?'))grantBulk();}}>Áp dụng phân quyền</button></div>
-   <div className="a4-section-head"><strong>Nhật ký cấp quyền gần đây</strong></div><div className="a4-table"><div className="a4-table-head"><span>Thời điểm</span><span>Hoạt động</span><span>Giáo viên</span><span>Thao tác</span></div>{audit.slice(0,80).map(a=><div key={a.id}><span>{fmt(a.recorded_at)}</span><span>{table.get(a.activity_id)?.title||a.activity_id}</span><span>{teacherChoices.find(t=>t.userId===a.teacher_id)?.name||a.teacher_id}</span><span>{a.action==='grant'?'Cấp':'Thu hồi'}</span></div>)}</div>
+   <div className="a4-permission-grids"><div><strong>{language==='en'?'Select activities':'Chọn hoạt động'} ({selectedActivities.length})</strong><div className="a4-scroll">{activities.map(a=><label key={a.id}><input type="checkbox" checked={selectedActivities.includes(a.id)} onChange={e=>setSelectedActivities(v=>e.target.checked?[...v,a.id]:v.filter(id=>id!==a.id))}/>{a.title}</label>)}</div></div><div><strong>{language==='en'?'Select teachers':'Chọn giáo viên'} ({selectedTeachers.length})</strong><div className="a4-scroll">{teacherChoices.map(t=><label key={t.userId}><input type="checkbox" checked={selectedTeachers.includes(t.userId)} onChange={e=>setSelectedTeachers(v=>e.target.checked?[...v,t.userId]:v.filter(id=>id!==t.userId))}/>{t.name} <small>{t.email}</small></label>)}</div></div></div>
+   <div className="a4-form"><select value={grantAction} onChange={e=>setGrantAction(e.target.value)}><option value="grant">{t("Cấp quyền")}</option><option value="revoke">{t("Thu hồi quyền")}</option></select><label>{t("Hết hạn (tùy chọn)")} <input type="date" disabled={grantAction==='revoke'} value={expiresOn} onChange={e=>setExpiresOn(e.target.value)}/></label><button className="a4-primary" disabled={working||!selectedActivities.length||!selectedTeachers.length} onClick={()=>{if(window.confirm(language==='en' ? `Confirm ${grantAction==='grant'?'granting':'revoking'} ${selectedActivities.length*selectedTeachers.length} permissions?` : `Xác nhận ${grantAction==='grant'?'cấp':'thu hồi'} ${selectedActivities.length*selectedTeachers.length} quyền?`)) grantBulk();}}>{t("Áp dụng phân quyền")}</button></div>
+   <div className="a4-section-head"><strong>{t("Nhật ký cấp quyền gần đây")}</strong></div><div className="a4-table"><div className="a4-table-head"><span>{t("Thời điểm")}</span><span>{t("Hoạt động")}</span><span>{t("Giáo viên")}</span><span>{t("Thao tác")}</span></div>{audit.slice(0,80).map(a=><div key={a.id}><span>{fmt(a.recorded_at,language)}</span><span>{table.get(a.activity_id)?.title||a.activity_id}</span><span>{teacherChoices.find(t=>t.userId===a.teacher_id)?.name||a.teacher_id}</span><span>{a.action==='grant'?t("Cấp"):t("Thu hồi")}</span></div>)}</div>
   </>:null}
   {ready && isLeader && tab==='versions'?<>
-   <Title detail="Tự lưu bản nội dung trước khi sửa; khôi phục bằng quyền tổ trưởng, không mất phiên bản hiện tại.">Activity Version History</Title>
-   <div className="a4-form"><select value={versionActivity} onChange={e=>getVersions(e.target.value)}><option value="">Chọn hoạt động</option>{activities.map(a=><option key={a.id} value={a.id}>{a.title}</option>)}</select></div>
-   <div className="a4-items">{versions.map(v=><div key={v.id}><span>#{v.id} · {fmt(v.created_at)} · {v.metadata?.title||table.get(v.activity_id)?.title}</span><button disabled={working} onClick={()=>restoreVersion(v)}><RotateCcw size={14}/> Khôi phục</button></div>)}</div>
-   {versionActivity&&!versions.length?<p className="a4-empty">Chưa có phiên bản cũ. Lịch sử được tạo khi cập nhật nội dung từ thời điểm bật tính năng.</p>:null}
+   <Title detail={t("Tự lưu bản nội dung trước khi sửa; khôi phục bằng quyền tổ trưởng, không mất phiên bản hiện tại.")}>Activity Version History</Title>
+   <div className="a4-form"><select value={versionActivity} onChange={e=>getVersions(e.target.value)}><option value="">{t("Chọn hoạt động")}</option>{activities.map(a=><option key={a.id} value={a.id}>{a.title}</option>)}</select></div>
+   <div className="a4-items">{versions.map(v=><div key={v.id}><span>#{v.id} · {fmt(v.created_at,language)} · {v.metadata?.title||table.get(v.activity_id)?.title}</span><button disabled={working} onClick={()=>restoreVersion(v)}><RotateCcw size={14}/> {t("Khôi phục")}</button></div>)}</div>
+   {versionActivity&&!versions.length?<p className="a4-empty">{t("Chưa có phiên bản cũ. Lịch sử được tạo khi cập nhật nội dung từ thời điểm bật tính năng.")}</p>:null}
   </>:null}
   {ready && isLeader && tab==='quality'?<>
-   <Title detail="Kiểm tra thiếu ảnh, thiếu nhãn, nguồn chưa xác định và tiêu đề trùng; không tự động sửa học liệu.">Resource Quality Control</Title>
-   <div className="a4-stats"><div><strong>{activities.length}</strong><span>Tổng hoạt động</span></div><div><strong>{quality.length}</strong><span>Cần rà soát</span></div><div><strong>{activities.filter(a=>a.focusArea==='unclassified').length}</strong><span>Chưa phân loại</span></div><div><strong>{activities.filter(a=>!a.thumbnailUrl).length}</strong><span>Thiếu thumbnail</span></div></div>
-   <div className="a4-section-head"><strong>Thông tin sử dụng & phân loại hoạt động</strong></div>
-   <div className="a4-form"><select value={attributeId} onChange={e=>{const a=attributeById.get(e.target.value);setAttributeId(e.target.value);setAttributeDraft({difficulty:a?.difficulty||'unclassified',durationMinutes:a?.duration_minutes||15,deliveryMode:a?.delivery_mode||'whole_class',keywords:(a?.keywords||[]).join(', '),learningGoal:a?.learning_goal||''});}}><option value="">Chọn hoạt động để bổ sung metadata</option>{activities.map(a=><option key={a.id} value={a.id}>{a.title}</option>)}</select></div>
-   {attributeId?<div className="a4-form a4-form-grid"><select value={attributeDraft.difficulty} onChange={e=>setAttributeDraft(v=>({...v,difficulty:e.target.value}))}>{['unclassified','A1','A2','B1','B2','C1','C2','mixed'].map(v=><option key={v}>{v}</option>)}</select><label>Thời lượng (phút)<input type="number" min={1} max={120} value={attributeDraft.durationMinutes} onChange={e=>setAttributeDraft(v=>({...v,durationMinutes:e.target.value}))}/></label><select value={attributeDraft.deliveryMode} onChange={e=>setAttributeDraft(v=>({...v,deliveryMode:e.target.value}))}><option value="whole_class">Cả lớp</option><option value="individual">Cá nhân</option><option value="group">Nhóm</option><option value="hybrid">Kết hợp</option></select><input placeholder="Từ khóa, phân tách bằng dấu phẩy" value={attributeDraft.keywords} onChange={e=>setAttributeDraft(v=>({...v,keywords:e.target.value}))}/><textarea rows={2} placeholder="Mục tiêu học tập" value={attributeDraft.learningGoal} onChange={e=>setAttributeDraft(v=>({...v,learningGoal:e.target.value}))}/><button disabled={working} onClick={async()=>{setWorking(true);const r=await saveActivityAttributes(attributeId,attributeDraft,userId);setWorking(false);setNotice(r.ok?'Đã lưu và áp dụng bộ lọc nâng cao.':r.message);if(r.ok)setAttributes(a=>[...a.filter(x=>x.activity_id!==attributeId),r.item]);}}>Lưu phân loại</button></div>:null}
-   <div className="a4-items">{quality.slice(0,150).map(a=><div key={a.id}><span><strong>{a.title}</strong><small>{a.flags.join(' · ')}</small></span><button onClick={()=>onLaunch?.(a)}>Xem</button></div>)}</div>
+   <Title detail={t("Kiểm tra thiếu ảnh, thiếu nhãn, nguồn chưa xác định và tiêu đề trùng; không tự động sửa học liệu.")}>Resource Quality Control</Title>
+   <div className="a4-stats"><div><strong>{activities.length}</strong><span>{t("Tổng hoạt động")}</span></div><div><strong>{quality.length}</strong><span>{t("Cần rà soát")}</span></div><div><strong>{activities.filter(a=>a.focusArea==='unclassified').length}</strong><span>{t("Chưa phân loại")}</span></div><div><strong>{activities.filter(a=>!a.thumbnailUrl).length}</strong><span>{t("Thiếu thumbnail")}</span></div></div>
+   <div className="a4-section-head"><strong>{t("Thông tin sử dụng & phân loại hoạt động")}</strong></div>
+   <div className="a4-form"><select value={attributeId} onChange={e=>{const a=attributeById.get(e.target.value);setAttributeId(e.target.value);setAttributeDraft({difficulty:a?.difficulty||'unclassified',durationMinutes:a?.duration_minutes||15,deliveryMode:a?.delivery_mode||'whole_class',keywords:(a?.keywords||[]).join(', '),learningGoal:a?.learning_goal||''});}}><option value="">{t("Chọn hoạt động để bổ sung metadata")}</option>{activities.map(a=><option key={a.id} value={a.id}>{a.title}</option>)}</select></div>
+   {attributeId?<div className="a4-form a4-form-grid"><select value={attributeDraft.difficulty} onChange={e=>setAttributeDraft(v=>({...v,difficulty:e.target.value}))}>{['unclassified','A1','A2','B1','B2','C1','C2','mixed'].map(v=><option key={v}>{v}</option>)}</select><label>{t("Thời lượng (phút)")}<input type="number" min={1} max={120} value={attributeDraft.durationMinutes} onChange={e=>setAttributeDraft(v=>({...v,durationMinutes:e.target.value}))}/></label><select value={attributeDraft.deliveryMode} onChange={e=>setAttributeDraft(v=>({...v,deliveryMode:e.target.value}))}><option value="whole_class">{t("Cả lớp")}</option><option value="individual">{t("Cá nhân")}</option><option value="group">{t("Nhóm")}</option><option value="hybrid">{t("Kết hợp")}</option></select><input placeholder={t("Từ khóa, phân tách bằng dấu phẩy")} value={attributeDraft.keywords} onChange={e=>setAttributeDraft(v=>({...v,keywords:e.target.value}))}/><textarea rows={2} placeholder={t("Mục tiêu học tập")} value={attributeDraft.learningGoal} onChange={e=>setAttributeDraft(v=>({...v,learningGoal:e.target.value}))}/><button disabled={working} onClick={async()=>{setWorking(true);const r=await saveActivityAttributes(attributeId,attributeDraft,userId);setWorking(false);setNotice(r.ok?'Đã lưu và áp dụng bộ lọc nâng cao.':r.message);if(r.ok)setAttributes(a=>[...a.filter(x=>x.activity_id!==attributeId),r.item]);}}>{t("Lưu phân loại")}</button></div>:null}
+   <div className="a4-items">{quality.slice(0,150).map(a=><div key={a.id}><span><strong>{a.title}</strong><small>{a.flags.map(flag=>t(flag)).join(' · ')}</small></span><button onClick={()=>onLaunch?.(a)}>Xem</button></div>)}</div>
    <div className="a4-link-audit">
-     <div><strong>Kiểm tra liên kết học liệu</strong><small>Chỉ kiểm tra tối đa 20 nguồn cần rà soát mỗi lượt. HTTP 404/410 mới xác định hỏng; CORS, hết giờ và nguồn cần đăng nhập không được tính là hỏng.</small></div>
-     <button type="button" disabled={linkAuditBusy || !activities.length} onClick={auditVisibleLinks}>{linkAuditBusy?'Đang kiểm tra…':('Kiểm tra 20 nguồn · đợt '+(linkAuditPage+1)+'/'+Math.max(1,Math.ceil(activities.length/20)))}</button>
+     <div><strong>{t("Kiểm tra liên kết học liệu")}</strong><small>{t("Chỉ kiểm tra tối đa 20 nguồn cần rà soát mỗi lượt. HTTP 404/410 mới xác định hỏng; CORS, hết giờ và nguồn cần đăng nhập không được tính là hỏng.")}</small></div>
+     <button type="button" disabled={linkAuditBusy || !activities.length} onClick={auditVisibleLinks}>{linkAuditBusy?t("Đang kiểm tra…"):(t("Kiểm tra 20 nguồn · đợt ")+(linkAuditPage+1)+'/'+Math.max(1,Math.ceil(activities.length/20)))}</button>
    </div>
-   {Object.keys(linkAudit).length>0?<div className="a4-items" aria-live="polite">{Object.entries(linkAudit).map(([id,result])=><div key={id}><span><strong>{table.get(id)?.title||id}</strong><small>{result.reason}</small></span><span className={'a4-link-status is-'+result.status}>{({healthy:'Hợp lệ',broken:'Liên kết hỏng',unknown:'Chưa xác minh',restricted:'Giới hạn truy cập',invalid:'URL không hợp lệ',manual:'Cần xem thủ công'})[result.status]||result.status}</span></div>)}</div>:null}
-   <button onClick={()=>csvDownload('assessment-quality.csv',['Hoạt động','Khối','Unit','Cần rà soát','Kiểm tra URL','Lý do'],quality.map(a=>[a.title,a.grade,a.unitNo,a.flags.join('; '),linkAudit[a.id]?.status||'',linkAudit[a.id]?.reason||'']))}><Download size={15}/> Xuất báo cáo chất lượng</button>
+   {Object.keys(linkAudit).length>0?<div className="a4-items" aria-live="polite">{Object.entries(linkAudit).map(([id,result])=><div key={id}><span><strong>{table.get(id)?.title||id}</strong><small>{assessmentSourceReason(result.reason,language)}</small></span><span className={'a4-link-status is-'+result.status}>{({healthy:t("Hợp lệ"),broken:t("Liên kết hỏng"),unknown:t("Chưa xác minh"),restricted:t("Giới hạn truy cập"),invalid:t("URL không hợp lệ"),manual:t("Cần xem thủ công")})[result.status]||result.status}</span></div>)}</div>:null}
+   <button onClick={()=>csvDownload('assessment-quality.csv',[t("Hoạt động"),t("Khối"),'Unit',t("Cần rà soát"),t("Kiểm tra URL"),t("Lý do")],quality.map(a=>[a.title,a.grade,a.unitNo,a.flags.join('; '),linkAudit[a.id]?.status||'',linkAudit[a.id]?.reason||'']))}><Download size={15}/> {t("Xuất báo cáo chất lượng")}</button>
   </>:null}
   {ready && isLeader && tab==='evidence'?<>
-   <Title detail="Tổng hợp từ nhật ký và hồ sơ điều chỉnh thực tế; không tạo hoặc suy diễn dữ liệu minh chứng.">Department Evidence Center</Title>
-   <div className="a4-stats"><div><strong>{completed.length}</strong><span>Hoạt động ghi nhận hoàn thành</span></div><div><strong>{new Set(completed.map(j=>j.teacher_id)).size}</strong><span>Giáo viên</span></div><div><strong>{new Set(completed.map(j=>j.class_name).filter(Boolean)).size}</strong><span>Lớp</span></div><div><strong>{interventions.filter(i=>i.status==='completed').length}</strong><span>Can thiệp hoàn tất</span></div></div>
-   <div className="a4-evidence-actions"><button onClick={()=>csvDownload('assessment-session-evidence.csv',['Lớp','Hoạt động','Unit','Giáo viên','Trạng thái','Điểm trung bình','Điều chỉnh'],reportSessions.map(x=>[x.className,x.activityTitle,x.unitNo,x.teacherName,x.status,x.averageGrade10,x.teachingAdjustment]))}><Download size={15}/> Xuất kết quả phiên đánh giá CSV</button><button onClick={()=>csvDownload('assessment-journal-evidence.csv',['Ngày','Giáo viên ID','Lớp','Hoạt động','Kết quả','Phút','Ghi chú'],journal.map(j=>[j.created_at,j.teacher_id,j.class_name,j.activity_title,j.event_type,j.duration_minutes,j.notes]))}><Download size={15}/> Xuất nhật ký hoạt động CSV</button><button onClick={()=>csvDownload('assessment-interventions-evidence.csv',['Lớp','Học sinh','Chuyên đề','Điểm đầu','Điểm sau','Biện pháp','Trạng thái'],interventions.map(i=>[i.class_name,i.student_name,i.focus_area,i.baseline_grade,i.followup_grade,i.action_plan,i.status]))}><Download size={15}/> Xuất minh chứng can thiệp CSV</button></div>
-   <p className="a4-muted">Minh chứng chỉ dựa trên hoạt động đã ghi nhận trong cơ sở dữ liệu, cần giáo viên đối chiếu khi sử dụng trong báo cáo chính thức.</p>
+   <Title detail={t("Tổng hợp từ nhật ký và hồ sơ điều chỉnh thực tế; không tạo hoặc suy diễn dữ liệu minh chứng.")}>Department Evidence Center</Title>
+   <div className="a4-stats"><div><strong>{completed.length}</strong><span>{t("Hoạt động ghi nhận hoàn thành")}</span></div><div><strong>{new Set(completed.map(j=>j.teacher_id)).size}</strong><span>{t("Giáo viên")}</span></div><div><strong>{new Set(completed.map(j=>j.class_name).filter(Boolean)).size}</strong><span>{t("Lớp")}</span></div><div><strong>{interventions.filter(i=>i.status==='completed').length}</strong><span>{t("Can thiệp hoàn tất")}</span></div></div>
+   <div className="a4-evidence-actions"><button onClick={()=>csvDownload('assessment-session-evidence.csv',[t("Lớp"),t("Hoạt động"),'Unit',t("Giáo viên"),t("Trạng thái"),t("Điểm trung bình"),t("Điều chỉnh")],reportSessions.map(x=>[x.className,x.activityTitle,x.unitNo,x.teacherName,x.status,x.averageGrade10,x.teachingAdjustment]))}><Download size={15}/> {t("Xuất kết quả phiên đánh giá CSV")}</button><button onClick={()=>csvDownload('assessment-journal-evidence.csv',[t("Ngày"),t("Giáo viên ID"),t("Lớp"),t("Hoạt động"),t("Kết quả"),t("Phút"),t("Ghi chú")],journal.map(j=>[j.created_at,j.teacher_id,j.class_name,j.activity_title,j.event_type,j.duration_minutes,j.notes]))}><Download size={15}/> {t("Xuất nhật ký hoạt động CSV")}</button><button onClick={()=>csvDownload('assessment-interventions-evidence.csv',[t("Lớp"),t("Học sinh"),t("Chuyên đề"),t("Điểm đầu"),t("Điểm sau"),t("Biện pháp"),t("Trạng thái")],interventions.map(i=>[i.class_name,i.student_name,i.focus_area,i.baseline_grade,i.followup_grade,i.action_plan,i.status]))}><Download size={15}/> {t("Xuất minh chứng can thiệp CSV")}</button></div>
+   <p className="a4-muted">{t("Minh chứng chỉ dựa trên hoạt động đã ghi nhận trong cơ sở dữ liệu, cần giáo viên đối chiếu khi sử dụng trong báo cáo chính thức.")}</p>
   </>:null}
  </section>;
 }
