@@ -2178,7 +2178,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         onMinutesChange={value=>setQueueMinutes(Math.max(1,Math.min(60,Number(value)||1)))}
         onMove={moveQueue}
         onRemove={id=>updateQueue(queueIds.filter(x=>x!==id))}
-        onClear={()=>{if(window.confirm(isVi?'Xóa toàn bộ hàng đợi buổi dạy?':'Clear the entire teaching queue?')updateQueue([]);}}
+        onClear={()=>{if(window.confirm(isVi?'Xóa toàn bộ hàng đợi buổi dạy?':'Clear the entire teaching queue?'))updateQueue([]);}}
         onClose={async()=>{
           if (queueBusy) return;
           // A failed initial load must never trap the teacher in a dialog.
