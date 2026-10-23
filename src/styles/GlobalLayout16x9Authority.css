@@ -211,15 +211,15 @@ html body #root .app-shell[data-route='dashboard'] .tdb-page > * {
   margin-right: 0 !important;
 }
 
-/* Homeroom: the fixed global navigation overlaps the route stage by ~68px.
-   Keep a route-local clearance in the GLOBAL geometry authority itself: its high
-   specificity previously defeated the Homeroom-only Hero padding fix.
-   Dashboard and all other routes retain their existing top gaps. */
-html body #root .app-shell[data-route='homeroom'] main#bes-main-content > .hr-page {
+/* Homeroom lives INSIDE .bqa-content-safe-frame, unlike the old selector
+   which targeted a nonexistent direct child. Keep standard stage padding here.
+   The actual clearance below the pinned navigation is measured by Homeroom
+   alone, without affecting other apps' header/hero spacing. */
+html body #root .app-shell[data-route='homeroom'] main#bes-main-content > .bqa-content-safe-frame > .hr-page.hr-v4 {
   width: 100% !important;
   max-width: 100% !important;
   margin: 0 !important;
-  padding-top: calc(var(--bes-layout-top-gap) + 68px) !important;
+  padding-top: var(--bes-layout-top-gap) !important;
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
