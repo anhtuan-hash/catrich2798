@@ -19,6 +19,7 @@ export default function EventPosterViewer({src,title,onClose}) {
   const pointersRef=useRef(new Map());
   const gestureRef=useRef(null);
   const viewRef=useRef(RESET);
+  const openerRef=useRef(null);
   const [view,setView]=useState(RESET);
   const [isDragging,setIsDragging]=useState(false);
 
@@ -29,11 +30,10 @@ export default function EventPosterViewer({src,title,onClose}) {
     imageHeight:imageRef.current?.offsetHeight||0,
   }),[]);
   const applyView=useCallback(updater=>{
-    setView(current=>{
-      const next=typeof updater==='function'?updater(current):updater;
-      viewRef.current=next;
-      return next;
-    });
+    const current=viewRef.current;
+    const next=typeof updater==='function'?updater(current):updater;
+    viewRef.current=next;
+    setView(next);
   },[]);
   const zoomTo=useCallback((requested,point={x:0,y:0})=>{
     applyView(current=>zoomPosterAt(current,requested,point,dimensions()));
@@ -41,7 +41,8 @@ export default function EventPosterViewer({src,title,onClose}) {
   const reset=useCallback(()=>applyView(RESET),[applyView]);
 
   useEffect(()=>{
-    // Focus the lightbox close control while preserving parent modal state.
+    // Return focus to the poster button when the lightbox is closed.
+    openerRef.current=document.activeElement;
     closeRef.current?.focus({preventScroll:true});
     const onKeyDown=event=>{
       if(event.target instanceof HTMLElement &&
@@ -52,7 +53,10 @@ export default function EventPosterViewer({src,title,onClose}) {
       // Escape is handled by the parent modal, which preserves its state.
     };
     document.addEventListener('keydown',onKeyDown);
-    return ()=>document.removeEventListener('keydown',onKeyDown);
+    return ()=>{
+      document.removeEventListener('keydown',onKeyDown);
+      openerRef.current?.focus?.({preventScroll:true});
+    };
   },[zoomTo,reset]);
 
   useEffect(()=>{
