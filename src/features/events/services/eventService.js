@@ -1,4 +1,6 @@
 import { supabase, isSupabaseConfigured } from '../../../utils/supabase.js';
+import { isEventPopupDue } from '../utils/eventEligibility.mjs';
+export { isEventPopupDue as shouldAutoShow } from '../utils/eventEligibility.mjs';
 
 const BUCKET = 'bes-event-assets';
 const fail = (error) => { if (error) throw new Error(error.message || String(error)); };
@@ -131,20 +133,6 @@ export async function eligibleEvents(userId) {
   fail(events.error);fail(receipts.error);
   const allReceipts=receipts.data||[];
   return (events.data||[]).map(event=>({...event,receipt:allReceipts.find(x=>x.event_id===event.id && x.event_version===event.version)||null}));
-}
-export function shouldAutoShow(event,now=new Date()) {
-  const r=event.receipt;
-  if(!r)return true;
-  const ts=now.getTime();
-  if(r.acknowledged_at)return false;
-  // Explicit snooze/hide choices override one-time frequency. Once their
-  // deadline has passed, show again; a subsequent impression clears the
-  // expired override so "Close" finally ends the one-time notification.
-  if(r.hidden_until)return new Date(r.hidden_until).getTime()<=ts;
-  if(r.snooze_until)return new Date(r.snooze_until).getTime()<=ts;
-  if(event.frequency==='once')return !r.first_shown_at;
-  if(event.frequency==='daily')return !r.last_shown_at || new Date(r.last_shown_at).toLocaleDateString('en-CA',{timeZone:'Asia/Ho_Chi_Minh'})!==now.toLocaleDateString('en-CA',{timeZone:'Asia/Ho_Chi_Minh'});
-  return true;
 }
 export async function recordEventInteraction(event,userId,action) {
   const c=client(),time=new Date().toISOString(),old=event.receipt||{};
