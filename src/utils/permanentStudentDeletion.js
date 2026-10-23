@@ -44,7 +44,7 @@ export function mergePermanentStudentTombstones(existing = [], students = [], de
       ...item,
       id: text(item?.id),
       code: normalizePermanentStudentCode(item?.code),
-      identity: text(item?.identity) || permanentStudentIdentity(item),
+      identity: item?.fullName ? permanentStudentIdentity(item) : text(item?.identity),
       fullName: text(item?.fullName),
       birthDate: text(item?.birthDate),
       deletedAt: text(item?.deletedAt),
@@ -68,7 +68,9 @@ export function studentMatchesPermanentDeletion(student, tombstones = []) {
   return (Array.isArray(tombstones) ? tombstones : []).some((item) => {
     const tombstoneId = text(item?.id);
     const tombstoneCode = normalizePermanentStudentCode(item?.code);
-    const tombstoneIdentity = text(item?.identity) || permanentStudentIdentity(item);
+    const tombstoneIdentity = item?.fullName
+      ? permanentStudentIdentity(item)
+      : text(item?.identity);
     if (id && tombstoneId && id === tombstoneId) return true;
     if (code && tombstoneCode && code === tombstoneCode) return true;
     return identity !== '|' && tombstoneIdentity !== '|' && identity === tombstoneIdentity;
