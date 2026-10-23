@@ -23,7 +23,7 @@ html body #root .app-shell[data-route] > main#bes-main-content.wp8-page-stage {
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
-html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-mode="full"] {
+html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-mode="full"][data-footer-route] {
   box-sizing: border-box !important;
   width: var(--bes-unified-stage-width) !important;
   max-width: var(--bes-unified-stage-width) !important;
