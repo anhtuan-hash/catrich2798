@@ -168,3 +168,91 @@ html[data-theme="dark"] .page.hr-page.hr-v4 .hr4-student-title>div:first-child>s
 @media(prefers-reduced-motion:reduce) {
  .page.hr-page.hr-v4 .hr4-student-hub *, .page.hr-page.hr-v4 .hr4-student-hub *::before {transition:none!important;scroll-behavior:auto!important;}
 }
+
+
+/* Archived-student permanent deletion — destructive actions are intentionally
+   red and shown only for inactive records. Dialog is portaled to <body>. */
+.page.hr-page.hr-v4 .hr4-student-row .hr4-student-delete-row {
+  display: inline-grid !important; place-items: center; flex: 0 0 36px;
+  width: 36px !important; height: 36px !important; min-height: 36px !important;
+  padding: 0 !important; border: 1px solid #f7c8c5 !important;
+  border-radius: 12px !important; color: #b42318 !important;
+  background: #fff4f2 !important; box-shadow: none !important;
+}
+.page.hr-page.hr-v4 .hr4-student-delete-row:hover,
+.page.hr-page.hr-v4 .hr4-student-delete-row:focus-visible {
+  border-color: #d93025 !important; background: #ffe6e2 !important;
+}
+.page.hr-page.hr-v4 .hr4-student-detail-actions .hr4-permanent-detail-delete,
+.page.hr-page.hr-v4 .hr4-student-batchbar > button.hr4-student-delete-bulk {
+  display: inline-flex !important; align-items: center; justify-content: center; gap: 7px;
+  min-height: 38px !important; padding: 8px 12px !important;
+  border: 1px solid #f5c1bd !important; border-radius: 12px !important;
+  background: #fff1ef !important; color: #b42318 !important;
+  font-size: 12px !important; font-weight: 750 !important; box-shadow: none !important;
+}
+.page.hr-page.hr-v4 .hr4-student-detail-actions .hr4-permanent-detail-delete:hover,
+.page.hr-page.hr-v4 .hr4-student-batchbar > button.hr4-student-delete-bulk:hover {
+  background: #ffe3df !important;
+}
+.page.hr-page.hr-v4 .hr4-permanent-notice {
+  margin: 0; border-radius: 12px; border: 1px solid #c9d8ef;
+  padding: 12px 16px; background: #eef5ff; color: #214b7b;
+  font-weight: 700; font-size: 13px;
+}
+.hr4-permanent-overlay {
+  position: fixed; inset: 0; z-index: 2147483000; display: grid;
+  place-items: center; padding: max(18px, env(safe-area-inset-top)) 18px;
+  overflow-y: auto; background: rgba(16, 31, 53, .61);
+  -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px);
+}
+.hr4-permanent-dialog {
+  box-sizing: border-box; width: min(520px, 100%); max-height: min(90vh, 800px);
+  overflow-y: auto; padding: clamp(20px, 4vw, 30px);
+  border-radius: 25px; border: 1px solid #e1e7f0;
+  background: #fff; color: #233044; box-shadow: 0 30px 96px rgba(8, 27, 57, .32);
+  font-family: inherit;
+}
+.hr4-permanent-icon {
+  display: grid; place-items: center; width: 52px; height: 52px;
+  border-radius: 16px; color: #b42318; background: #ffebe8;
+}
+.hr4-permanent-dialog h2 {
+  margin: 18px 0 10px; font-size: clamp(21px, 3vw, 26px);
+  font-weight: 830; color: #1e2f49; line-height: 1.25;
+}
+.hr4-permanent-dialog p { margin: 0 0 15px; line-height: 1.55; font-size: 13px; color: #5e6a7a; }
+.hr4-permanent-names {
+  display: flex; flex-wrap: wrap; gap: 6px; padding: 13px;
+  border: 1px solid #ece4e2; border-radius: 14px; background: #fff9f7;
+}
+.hr4-permanent-names > span {
+  display: inline-flex; padding: 5px 9px; border-radius: 8px;
+  font-weight: 700; font-size: 12px; color: #8a342d; background: #ffece7;
+}
+.hr4-permanent-names > small { align-self: center; color: #79564e; }
+.hr4-permanent-dialog label { display: grid; gap: 8px; margin-top: 19px; font-size: 13px; font-weight: 700; }
+.hr4-permanent-dialog label b { font-weight: 850; color: #b42318; }
+.hr4-permanent-dialog label input {
+  box-sizing: border-box; width: 100%; min-height: 49px; padding: 11px 14px;
+  border: 1.5px solid #bdc7d6; border-radius: 12px; background: #fff;
+  color: #25374c; font-size: 16px; font-weight: 730; outline: none;
+}
+.hr4-permanent-dialog label input:focus { border-color: #cf3d34; box-shadow: 0 0 0 3px rgba(207, 61, 52, .12); }
+.hr4-permanent-error { color: #b42318 !important; font-weight: 700; margin-top: 12px !important; }
+.hr4-permanent-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 23px; }
+.hr4-permanent-actions button {
+  display: inline-flex; justify-content: center; align-items: center; gap: 7px;
+  min-height: 43px !important; padding: 9px 16px !important;
+  border-radius: 12px !important; font-weight: 760 !important; font-size: 13px !important;
+}
+.hr4-permanent-actions .hr4-permanent-confirm {
+  color: #fff !important; background: #bc3229 !important; border: 1px solid #bc3229 !important;
+}
+.hr4-permanent-actions .hr4-permanent-confirm:disabled { opacity: .45; cursor: not-allowed; }
+@media (max-width: 620px) {
+  .page.hr-page.hr-v4 .hr4-student-batchbar > button.hr4-student-delete-bulk { width: 100%; }
+  .hr4-permanent-overlay { padding: 12px; }
+  .hr4-permanent-dialog { max-height: 92dvh; border-radius: 20px; padding: 20px; }
+  .hr4-permanent-actions button { flex: 1; }
+}
