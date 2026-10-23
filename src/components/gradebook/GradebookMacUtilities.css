@@ -92,3 +92,130 @@
 .gbmac-utilities .gb-prod-history details,.gbmac-utilities .gb-prod-history>div{border:1px solid #e1eaf5;border-radius:9px;padding:10px;background:#f9fcff}
 .gbmac-utilities .gb-prod-history summary{color:#476989;font-size:11px;cursor:pointer}
 .gbmac-utilities .gb-prod-history ul{padding:9px 20px;border-top:1px solid #e4ecf6;font-size:11px;color:#6081a0}
+
+
+/* Advanced panels, rubrics and interventions */
+.gbmac-utilities .gb-prod-alerts-layout{display:grid;gap:11px;min-width:0}
+.gbmac-utilities .gb-prod-alerts-card{background:#f8fbff;border:1px solid #e0eaf6;border-radius:11px;padding:13px;min-width:0}
+.gbmac-utilities .gb-prod-alerts-card-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;font-size:12px;color:#3c6187}
+.gbmac-utilities .gb-prod-alerts-card-heading span{color:#8498af;font-size:11px}
+.gbmac-utilities .gb-prod-legend{color:#8499b1;font-size:11px}
+.gbmac-utilities .gb-p3-rubric{overflow:hidden;border:1px solid #dfe9f5;border-radius:10px}
+.gbmac-utilities .gb-p3-head,.gbmac-utilities .gb-p3-criterion{display:grid;grid-template-columns:minmax(0,2fr) minmax(67px,1fr) minmax(67px,1fr);align-items:center;gap:10px;padding:10px;border-bottom:1px solid #e8edf5}
+.gbmac-utilities .gb-p3-head{background:#f0f6fd;color:#5e799c;font-size:11px}
+.gbmac-utilities .gb-p3-criterion strong{font-size:11px;color:#395d85}
+.gbmac-utilities .gb-p3-rubric :is(input,select,textarea){max-width:100%;min-width:0}
+.gbmac-utilities .gb-p3-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.gbmac-utilities .gb-p3-stats>div{display:grid;gap:4px;padding:12px;border:1px solid #e1ebf6;background:#f7faff;border-radius:10px}
+.gbmac-utilities .gb-p3-stats b{font-size:19px;color:#2868c3}
+.gbmac-utilities .gb-p3-stats span{font-size:11px;color:#7e93ac}
+.gbmac-utilities .gb-p3-recovery-list{display:grid;gap:8px}
+.gbmac-utilities .gb-p3-recovery-list>div{display:grid;grid-template-columns:1fr auto;gap:10px;padding:10px;border-radius:9px;border:1px solid #e2eaf5}
+
+/* Mission tiles */
+.gbmac-utilities .gb-mission{display:grid;gap:17px;min-width:0}
+.gbmac-utilities .gb-mission-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;background:linear-gradient(110deg,#f4f9ff,#fff);border:1px solid #dce8f7;border-radius:13px;padding:16px}
+.gbmac-utilities .gb-mission-heading-copy{min-width:0}
+.gbmac-utilities .gb-mission-eyebrow{display:flex;align-items:center;gap:6px;font-size:10px;color:#7595b9;font-weight:790;letter-spacing:.07em}
+.gbmac-utilities .gb-mission-heading-copy h2{font-size:16px;margin:6px 0 3px;color:#284a74}
+.gbmac-utilities .gb-mission-heading-copy p{font-size:12px;line-height:1.55;margin:0;color:#7c91a9}
+.gbmac-utilities .gb-mission-overall{display:flex;align-items:center;gap:11px;flex-shrink:0}
+.gbmac-utilities .gb-mission-ring{position:relative;display:grid;place-items:center;width:80px;height:80px;flex-shrink:0;border-radius:50%;background:conic-gradient(#3478de var(--gb-mission-pct),#e2ecfb 0)}
+.gbmac-utilities .gb-mission-ring::before{content:"";position:absolute;inset:9px;border-radius:50%;background:#fff}
+.gbmac-utilities .gb-mission-ring>span{position:relative;color:#276ac5;font-size:20px;font-weight:820}
+.gbmac-utilities .gb-mission-ring>span small{font-size:11px}
+.gbmac-utilities .gb-mission-overall>div:last-child{display:grid;gap:3px;font-size:12px}
+.gbmac-utilities .gb-mission-overall strong{color:#315780}
+.gbmac-utilities .gb-mission-overall small{color:#758ca7;font-size:10px}
+.gbmac-utilities .gb-mission-overall em{font-style:normal;color:#ae7441;font-size:10px}
+.gbmac-utilities .gb-mission-layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(210px,1fr);gap:12px;min-width:0}
+.gbmac-utilities .gb-mission-sections,.gbmac-utilities .gb-mission-queue{border:1px solid #e1eaf6;border-radius:12px;padding:13px;min-width:0;background:#fff}
+.gbmac-utilities .gb-mission-subhead{display:flex;justify-content:space-between;align-items:center;gap:8px;color:#375c84;font-size:12px;font-weight:760;margin:0 0 12px}
+.gbmac-utilities .gb-mission-subhead span{display:flex;align-items:center;gap:7px}
+.gbmac-utilities .gb-mission-subhead small{font-size:10px;color:#91a4b9}
+.gbmac-utilities .gb-mission-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.gbmac-utilities .gb-mission-card{display:grid;gap:6px;padding:12px;min-width:0;border:1px solid #dfebf9;border-radius:10px;background:#f9fbfe;color:#3c628b;text-align:left;cursor:pointer;font:inherit}
+.gbmac-utilities .gb-mission-card:hover{background:#f0f7ff;border-color:#a6c9f9}
+.gbmac-utilities .gb-mission-card-top{display:flex;justify-content:space-between;align-items:center;color:#749cd0}
+.gbmac-utilities .gb-mission-card strong{font-size:11px}
+.gbmac-utilities .gb-mission-card-value{font-size:19px;line-height:1.2;font-weight:820;color:#2d68b8}
+.gbmac-utilities .gb-mission-card-value small{font-size:10px}
+.gbmac-utilities .gb-mission-bar{height:6px;overflow:hidden;border-radius:99px;background:#e4ecf6}
+.gbmac-utilities .gb-mission-bar span{height:100%;width:var(--gb-mission-progress);background:#347ed9;display:block;border-radius:inherit}
+.gbmac-utilities .gb-mission-card-caption{font-size:10px;color:#7c93b0}
+.gbmac-utilities .gb-mission-queue-title{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+.gbmac-utilities .gb-mission-queue-icon{display:grid;place-items:center;width:32px;height:32px;background:#ecf4ff;border-radius:9px;color:#3976c8}
+.gbmac-utilities .gb-mission-queue-title strong{display:block;font-size:11px;color:#426486}
+.gbmac-utilities .gb-mission-queue-title small{display:block;color:#97a8bc;font-size:10px}
+.gbmac-utilities .gb-mission-queue-list{display:grid;gap:6px;max-height:390px;overflow:auto}
+.gbmac-utilities .gb-mission-queue-row{display:flex;align-items:center;gap:8px;width:100%;min-width:0;border:1px solid #e2ebf6;border-radius:9px;background:#f8fbff;padding:8px;text-align:left;cursor:pointer}
+.gbmac-utilities .gb-mission-queue-row:hover{background:#eff7ff;border-color:#b3d0f6}
+.gbmac-utilities .gb-mission-avatar{display:grid;place-items:center;flex:0 0 26px;width:26px;height:26px;border-radius:8px;background:#e5efff;color:#5b81bb;font-size:10px;font-weight:800}
+.gbmac-utilities .gb-mission-student{display:grid;gap:2px;flex:1;min-width:0}
+.gbmac-utilities .gb-mission-student strong{font-size:10px;color:#3e6088;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gbmac-utilities .gb-mission-student small{font-size:9px;color:#96a7bc}
+.gbmac-utilities .gb-mission-missing{padding:3px 6px;border-radius:7px;background:#fff0e7;color:#a87843;font-size:10px;white-space:nowrap}
+.gbmac-utilities .gb-mission-queue-foot{display:flex;gap:6px;align-items:center;padding-top:11px;margin-top:11px;border-top:1px solid #e6edf6;color:#889bb1;font-size:10px}
+.gbmac-utilities .gb-mission-empty{display:grid;justify-items:center;gap:8px;padding:21px;text-align:center;color:#6996c5;font-size:12px}
+.gbmac-utilities .gb-mission-empty p{font-size:11px;margin:0;color:#91a4b8}
+
+/* Managed class cards */
+.gbmac-utilities .gbmac-utilities-managed,.gbmac-utilities .gbmac-utilities-settings{display:grid;gap:13px}
+.gbmac-utilities .gbmac-utilities-managed>section,.gbmac-utilities .gbmac-utilities-settings-card{border:1px solid #e0eaf6;border-radius:13px;background:#fff;padding:16px;min-width:0}
+.gbmac-utilities .gbmac-utilities-settings-card h4{display:flex;align-items:center;gap:8px;font-size:14px;color:#294e78;margin:0 0 14px}
+.gbmac-utilities .gbmac-utilities-settings-card p{font-size:12px;color:#728da7;margin:0;line-height:1.7}
+.gbmac-utilities .gbmac-tool-fields{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.gbmac-utilities .gbmac-tool-fields label{flex:1 1 180px}
+.gbmac-utilities .gbmac-tool-fields button,.gbmac-utilities .gbmac-tool-minor button{min-height:39px;padding:9px 12px;background:#edf5ff;color:#2762ab;border:1px solid #cadcf8;border-radius:9px;font-size:12px;font-weight:750;cursor:pointer}
+.gbmac-utilities .gbmac-tool-minor{display:flex;gap:8px;flex-wrap:wrap}
+.gbmac-utilities .gbmac-utilities-managed .gradebook-assignment-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:13px}
+.gbmac-utilities .gbmac-utilities-managed .gradebook-assignment-head h2,.gbmac-utilities .gbmac-utilities-managed .gb4-manager-heading strong{display:block;font-size:15px;color:#335878;margin:0}
+.gbmac-utilities .gbmac-utilities-managed .gradebook-assignment-head p,.gbmac-utilities .gbmac-utilities-managed .gb4-manager-heading small{display:block;color:#8b9daf;font-size:11px;margin:4px 0}
+.gbmac-utilities .gbmac-utilities-managed .gradebook-assignment-sync{font-size:11px;white-space:nowrap;color:#2b976f}
+.gbmac-utilities .gbmac-utilities-managed .gradebook-assignment-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.gbmac-utilities .gbmac-utilities-managed .gradebook-assignment-grid article{display:grid;gap:5px;min-width:0;padding:12px;border:1px solid #e1ebf6;border-radius:10px;background:#f9fbff}
+.gbmac-utilities .gbmac-utilities-managed .gradebook-assignment-grid h3{margin:0;font-size:13px;color:#315c85}
+.gbmac-utilities .gbmac-utilities-managed .gradebook-assignment-grid p{margin:0;font-size:11px;color:#8297b1}
+.gbmac-utilities .gbmac-utilities-managed .gradebook-assignment-state{color:#26966d;font-size:10px}
+.gbmac-utilities .gbmac-utilities-managed .gradebook-studio-class-picker{display:grid;gap:12px;margin:12px 0}
+.gbmac-utilities .gbmac-utilities-managed .gradebook-studio-class-picker label{display:grid;gap:5px;color:#6f89a4;font-size:11px}
+.gbmac-utilities .gbmac-utilities-managed .gradebook-studio-class-picker select{min-height:40px;padding:9px;border:1px solid #d7e3f1;border-radius:9px;background:#fcfdff}
+.gbmac-utilities .gbmac-utilities-managed .gradebook-studio-class-meta{display:grid;gap:5px;color:#6e86a3;font-size:11px}
+.gbmac-utilities .gbmac-utilities-managed .gradebook-studio-actions{display:flex;gap:7px;flex-wrap:wrap}
+.gbmac-utilities .gbmac-utilities-managed button{min-height:36px;border-radius:9px;border:1px solid #cbdcf5;background:#edf5ff;color:#2a60a8;font-size:11px;font-weight:760;padding:8px 11px;cursor:pointer}
+.gbmac-utilities .gbmac-utilities-managed button.primary{background:#286ede;border-color:#286ede;color:#fff}
+.gbmac-utilities .gbmac-support-tools{display:grid;gap:9px}
+.gbmac-utilities .gbmac-support-tools p{font-size:12px;color:#7790a9;margin:0}
+.gbmac-utilities .gbmac-support-tools label{font-size:12px;color:#5c7694}
+.gbmac-utilities .gbmac-support-tools>div{display:flex;gap:9px;align-items:center}
+.gbmac-utilities .gbmac-support-tools select{flex:1;min-width:0;min-height:38px;padding:9px;border:1px solid #dae6f5;border-radius:9px}
+.gbmac-utilities .gbmac-support-tools button{padding:9px;border:1px solid #cadcf6;background:#edf5ff;color:#2865b0;border-radius:9px}
+@media(max-width:840px){
+.gbmac-utilities .gbmac-utilities-frame{grid-template-columns:170px minmax(0,1fr)}
+.gbmac-utilities .gbmac-utilities-sidebar{padding:15px 7px}
+.gbmac-utilities .gbmac-utilities-main{padding:16px}
+.gbmac-utilities .gb-mission-layout{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+.gbmac-utilities.gbmac-tools-overlay{padding:0;align-items:flex-end}
+.gbmac-utilities .gbmac-tools-dialog{align-self:flex-end;margin:0;width:100%;height:96dvh;max-height:96dvh;border-radius:17px 17px 0 0}
+.gbmac-utilities .gbmac-tools-header{padding:14px;min-height:78px}
+.gbmac-utilities .gbmac-utilities-brand h2{font-size:18px}
+.gbmac-utilities .gbmac-utilities-brand p{font-size:11px}
+.gbmac-utilities .gbmac-utilities-symbol{width:38px;height:38px;border-radius:11px}
+.gbmac-utilities .gbmac-utilities-frame{display:flex;flex-direction:column}
+.gbmac-utilities .gbmac-utilities-sidebar{display:flex;flex-direction:row;flex-shrink:0;overflow-x:auto;padding:7px;gap:5px;min-height:0;border-right:0;border-bottom:1px solid #e2ebf7;scrollbar-width:none}
+.gbmac-utilities .gbmac-utilities-nav-caption,.gbmac-utilities .gbmac-utilities-sidebar-foot{display:none}
+.gbmac-utilities .gbmac-utilities-nav-item{flex:0 0 auto;width:auto;min-height:42px;padding:8px 10px}
+.gbmac-utilities .gbmac-utilities-nav-item strong{font-size:11px}
+.gbmac-utilities .gbmac-utilities-nav-item small,.gbmac-utilities .gbmac-utilities-current-dot{display:none}
+.gbmac-utilities .gbmac-utilities-main{padding:15px 12px}
+.gbmac-utilities .gb-prod-tabs{gap:5px}
+.gbmac-utilities .gb-prod-tabs button{min-height:60px;padding:7px 2px}
+.gbmac-utilities .gb-prod-tab-label{font-size:9px}
+.gbmac-utilities .gb-prod-stats,.gbmac-utilities .gb-mission-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.gbmac-utilities .gbmac-utilities-managed .gradebook-assignment-grid{grid-template-columns:1fr}
+.gbmac-utilities .gb-mission-heading{flex-direction:column;align-items:flex-start}
+.gbmac-utilities .gb-prod-preview-grid{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){.gbmac-utilities *{transition:none!important;scroll-behavior:auto!important}}
