@@ -92,6 +92,10 @@ export async function publishEvent(id,recipientIds) {
   const {data,error}=await client().rpc('bes_publish_event',{p_event_id:id,p_recipients:ids});
   fail(error);return data;
 }
+export async function reannounceEvent(id) {
+  const {data,error}=await client().rpc('bes_reannounce_event',{p_event_id:id});
+  fail(error);return data;
+}
 export async function changeEventStatus(id,status) {
   if(!['cancelled','archived','draft'].includes(status)) throw new Error('Trạng thái không hỗ trợ.');
   const {data,error}=await client().from('bes_events').update({status}).eq('id',id).select('*').single();
