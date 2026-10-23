@@ -15,8 +15,6 @@ import { Search, ScanEye, Minimize2, Keyboard, X, ArrowDownToLine, ListFilter, R
 import GradebookProductivityPanel from './GradebookProductivityPanel.jsx';
 import GradebookSemesterMission from './GradebookSemesterMission.jsx';
 import GradebookMockExams from './GradebookMockExams.jsx';
-import GradebookProgressDeck from './GradebookProgressDeck.jsx';
-import GradebookFocusBar from './GradebookFocusBar.jsx';
 import { summarizeGradebookProgress } from '../../utils/gradebookProgressDeck.js';
 import { isGrade12Class, normalizeMockExams, createMockExam, mockExamScoreNumber } from '../../utils/gradebookMockExams.js';
 import { semesterProgressSections, semesterProgressSummary, semesterPendingStudents } from '../../utils/gradebookSemesterMission.js';
