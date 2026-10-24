@@ -10,9 +10,12 @@ const bundled = await build({
   define:{'process.env.NODE_ENV':'"production"','import.meta.env':'{}'},
 });
 const js=bundled.outputFiles.find(f=>f.path.endsWith('.js')).text;
-const stylesheet=[
-  'BrianFocusScene.css','BrianFocusYoutubePlaylist.css',
-].map(f=>readFileSync(new URL('../../src/components/BrianFocus/'+f,import.meta.url),'utf8')).join('\n');
+// Use the real import ordering instead of a partial CSS fixture. This catches
+// global Focus 6/7/8 controls overriding the textarea's dark appearance.
+const focusSource=readFileSync(new URL('../../src/components/BrianFocus/BrianFocus.jsx',import.meta.url),'utf8');
+const cssImports=[...focusSource.matchAll(/import '\\.\\/([^']+\\.css)';/g)].map(match=>match[1]);
+const stylesheet=cssImports.map(name=>
+  readFileSync(new URL('../../src/components/BrianFocus/'+name,import.meta.url),'utf8')).join('\n');
 
 const first='dQw4w9WgXcQ',second='aBcD1234_Xy',third='ZyXw9876_Ab';
 async function setup(page) {
@@ -30,6 +33,32 @@ for(const viewport of [{width:1366,height:900},{width:390,height:844}]) {
     await expect(field).toHaveValue('https://www.youtube.com/watch?v='+first);
     await field.fill(['https://www.youtube.com/watch?v='+first,'https://youtu.be/'+second,'https://youtu.be/'+third].join('\n'));
     await expect(page.getByText('3 video hợp lệ')).toBeVisible();
+    // Regression: screenshot reported a native white textarea that expanded
+    // outside its dark container and covered the helper/status text.
+    const layout=await page.locator('#bfc-youtube-url').evaluate(area=>{
+      const shell=area.closest('.bfc-scene-editor__youtube-input');
+      const field=area.closest('.bfc-scene-editor__youtube-field');
+      const help=field.querySelector('#bfc-youtube-playlist-hint');
+      const a=area.getBoundingClientRect(),w=shell.getBoundingClientRect(),
+        h=help.getBoundingClientRect();
+      const style=getComputedStyle(area);
+      return {
+        areaLeft:a.left,areaRight:a.right,areaBottom:a.bottom,
+        shellLeft:w.left,shellRight:w.right,shellBottom:w.bottom,
+        helperTop:h.top,viewportWidth:window.innerWidth,
+        bodyWidth:document.documentElement.scrollWidth,
+        background:style.backgroundColor,color:style.color,
+        minWidth:style.minWidth,boxSizing:style.boxSizing,
+      };
+    });
+    expect(layout.background).toBe('rgba(0, 0, 0, 0)');
+    expect(layout.color).toBe('rgb(234, 243, 255)');
+    expect(layout.boxSizing).toBe('border-box');
+    expect(layout.areaLeft).toBeGreaterThan(layout.shellLeft+18);
+    expect(layout.areaRight).toBeLessThanOrEqual(layout.shellRight-7);
+    expect(layout.areaBottom).toBeLessThanOrEqual(layout.shellBottom);
+    expect(layout.helperTop).toBeGreaterThanOrEqual(layout.shellBottom-1);
+    expect(layout.bodyWidth).toBeLessThanOrEqual(layout.viewportWidth+1);
     const items=page.locator('.bfc-scene-editor__playlist-item');
     await expect(items).toHaveCount(3);
     const src=await page.locator('.bfc-scene-editor__youtube-player').getAttribute('src');
