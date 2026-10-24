@@ -2,16 +2,20 @@ import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {BOARD_W,BOARD_H,pathFromPoints,makeId} from './boardModel.js';
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 
-export function renderBoardObject(object,onErase,studentView=false,onInteract){
+export function renderBoardObject(object,onErase,studentView=false,onInteract,onSelect){
  const o=object;if(studentView&&(o.studentVisible===false||o.teacherOnly))return null;
  const erase=event=>{if(!onErase)return;event.stopPropagation();onErase(o.id);};
- if(o.kind==='stroke')return <path key={o.id} d={pathFromPoints(o.points)}
+ const press=event=>{
+  if(onErase)erase(event);
+  else if(onSelect){event.stopPropagation();onSelect(o.id,event);}
+ };
+ if(o.kind==='stroke')return <path data-board-object={o.id} key={o.id} d={pathFromPoints(o.points)}
   fill="none" stroke={o.color||'#304d53'} strokeWidth={o.width||4}
   strokeLinecap="round" strokeLinejoin="round" opacity={o.opacity??1}
-  vectorEffect="non-scaling-stroke" onPointerDown={erase} style={{pointerEvents:onErase?'stroke':'none'}}/>;
+  vectorEffect="non-scaling-stroke" onPointerDown={press} style={{pointerEvents:onErase||onSelect?'stroke':'none'}}/>;
  if(o.kind==='shape'){
-  const common={key:o.id,fill:o.fill||'none',stroke:o.color||'#315966',
-    strokeWidth:o.width||4,onPointerDown:erase,style:{pointerEvents:onErase?'all':'none'}};
+  const common={key:o.id,'data-board-object':o.id,fill:o.fill||'none',stroke:o.color||'#315966',
+    strokeWidth:o.width||4,onPointerDown:press,style:{pointerEvents:onErase||onSelect?'all':'none'}};
   return o.shape==='ellipse'?<ellipse {...common} cx={(o.x+o.x2)/2} cy={(o.y+o.y2)/2}
     rx={Math.abs(o.x2-o.x)/2} ry={Math.abs(o.y2-o.y)/2}/>:
    o.shape==='line'?<line {...common} x1={o.x} y1={o.y} x2={o.x2} y2={o.y2}/>:
@@ -19,30 +23,30 @@ export function renderBoardObject(object,onErase,studentView=false,onInteract){
     width={Math.abs(o.x2-o.x)} height={Math.abs(o.y2-o.y)} rx={5}/>;
  }
  if(o.kind==='text'||o.kind==='sticky'){
-  if(o.kind==='sticky')return <g key={o.id} onPointerDown={erase}
+  if(o.kind==='sticky')return <g key={o.id} data-board-object={o.id} onPointerDown={press}
     style={{pointerEvents:onErase?'all':'none'}}>
     <rect x={o.x} y={o.y-36} width={Math.min(520,Math.max(230,(o.text||'').length*13))}
       height={82} rx={14} fill={o.fill||'#fff0c8'} stroke="#b8ab86" strokeWidth="1.5"/>
     <text x={o.x+13} y={o.y+4} fill="#374b4a" fontSize="26">{String(o.text||'').slice(0,32)}</text>
    </g>;
-  return <text key={o.id} x={o.x} y={o.y} onPointerDown={erase}
-   style={{pointerEvents:onErase?'all':'none'}} fill={o.color||'#304d53'}
+  return <text key={o.id} data-board-object={o.id} x={o.x} y={o.y} onPointerDown={press}
+   style={{pointerEvents:onErase||onSelect?'all':'none'}} fill={o.color||'#304d53'}
    fontSize={o.fontSize||40} fontWeight="550">{String(o.text||'').slice(0,90)}</text>;
  }
- if(o.kind==='flashcard')return <g key={o.id} onPointerDown={event=>{if(onErase)erase(event);else event.stopPropagation();}} onClick={event=>{if(!onErase&&!studentView){event.stopPropagation();onInteract?.(o.id);}}} style={{cursor:'pointer'}}>
+ if(o.kind==='flashcard')return <g key={o.id} data-board-object={o.id} onPointerDown={event=>{if(onErase||onSelect)press(event);else event.stopPropagation();}} onClick={event=>{if(!onErase&&!studentView){event.stopPropagation();onInteract?.(o.id);}}} style={{cursor:'pointer'}}>
   <rect x={o.x} y={o.y} width="330" height="165" rx="18" fill="#ecf3e9" stroke="#94b2a2" strokeWidth="2"/>
   <text x={o.x+20} y={o.y+65} fill="#325449" fontSize="29">{String(o.text||'').slice(0,21)}</text>
   <text x={o.x+20} y={o.y+119} fill="#6c8d81" fontSize="18">{o.revealed?String(o.publicAnswer||o.privateAnswer||'').slice(0,29):'Tap to reveal'}</text>
  </g>;
- if(o.kind==='image'&&/^data:image\/(?:png|jpeg|webp);base64,/i.test(o.src||''))return <image key={o.id} href={o.src} x={o.x} y={o.y} width={o.width||500} height={o.height||300} preserveAspectRatio="xMidYMid meet" onPointerDown={erase}/>;
- if(o.kind==='mask')return <rect key={o.id} x={o.x} y={o.y} rx={9}
-  width={o.width||240} height={o.height||90} fill="#243b4b" opacity=".95" onPointerDown={erase}/>;
+ if(o.kind==='image'&&/^data:image\/(?:png|jpeg|webp);base64,/i.test(o.src||''))return <image key={o.id} data-board-object={o.id} href={o.src} x={o.x} y={o.y} width={o.width||500} height={o.height||300} preserveAspectRatio="xMidYMid meet" onPointerDown={press}/>
+ if(o.kind==='mask')return <rect data-board-object={o.id} key={o.id} x={o.x} y={o.y} rx={9}
+  width={o.width||240} height={o.height||90} fill="#243b4b" opacity=".95" onPointerDown={press}/>;
  return null;
 }
-export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onCommit,onErase,
+export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onCommit,onErase,onMoveObject,
  zoom=1,setZoom,camera={x:0,y:0},setCamera,contentText='',privateAnswer='',onInteract,studentView=false,spotlight=false}){
  const svg=useRef(null),preview=useRef(null),pointer=useRef(null);
- const [drawing,setDrawing]=useState(false);
+ const [drawing,setDrawing]=useState(false),[selectedId,setSelectedId]=useState('');
  const [laser,setLaser]=useState(null);
  const viewWidth=BOARD_W/zoom,viewHeight=BOARD_H/zoom;
  const local=event=>{
@@ -59,6 +63,15 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
   if(!state||state.pointerId!==event.pointerId)return;
   pointer.current=null;setDrawing(false);
   if(preview.current)preview.current.setAttribute('d','');
+  if(state.tool==='move-object'){
+   state.el?.removeAttribute('transform');
+   if(!cancel&&state.points.length>1){
+    const first=state.points[0],last=state.points.at(-1);
+    const dx=last.x-first.x,dy=last.y-first.y;
+    if(Math.hypot(dx,dy)>2)onMoveObject?.(state.id,dx,dy);
+   }
+   return;
+  }
   if(cancel||studentView)return;
   if(state.tool==='pen'||state.tool==='highlighter'){
     if(state.points.length>=1)onCommit?.({kind:'stroke',id:makeId(),points:state.points,
@@ -69,10 +82,19 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
       x:first.x,y:first.y,x2:last.x,y2:last.y,color:state.color,width:state.width,studentVisible:true});
   }
  };
+ const selectObject=(id,event)=>{
+  if(studentView||tool!=='select'||page?.locked)return;
+  event.preventDefault();event.stopPropagation();setSelectedId(id);
+  const p=local(event);
+  pointer.current={tool:'move-object',id,pointerId:event.pointerId,
+   points:[p],el:event.target.closest('[data-board-object]')};
+  svg.current.setPointerCapture?.(event.pointerId);
+ };
  const begin=event=>{
   if(studentView||!page||page.locked||event.button!==0)return;
   if(event.pointerType==='touch'&&event.isPrimary===false)return;
   const p=local(event);
+  if(tool==='select'){setSelectedId('');return;}
   if(tool==='text'||tool==='sticky'||tool==='flashcard'||tool==='mask'){
    if(!contentText.trim()&&tool!=='mask')return;
    onCommit?.({id:makeId(),kind:tool,x:p.x,y:p.y,text:contentText.trim().slice(0,90),
@@ -93,6 +115,11 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
   const state=pointer.current;
   if(!state||state.pointerId!==event.pointerId)return;
   const p=local(event);
+  if(state.tool==='move-object'){
+   const first=state.points[0];state.points=[first,p];
+   state.el?.setAttribute('transform','translate('+(p.x-first.x)+' '+(p.y-first.y)+')');
+   return;
+  }
   if(state.tool==='pan'){
    const rect=svg.current.getBoundingClientRect();
    setCamera?.({x:state.startCamera.x-(event.clientX-state.lastClient.x)*viewWidth/rect.width,
@@ -124,7 +151,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
    onPointerCancel={event=>finish(event,true)} onWheel={wheel}
    onPointerLeave={()=>{if(tool==='laser')setLaser(null);}}
    role="img" aria-label="Interactive vector teaching board">
-   {page?.objects?.map(o=>renderBoardObject(o,tool==='eraser'?onErase:null,studentView,onInteract))}
+   {page?.objects?.map(o=>renderBoardObject(o,tool==='eraser'?onErase:null,studentView,tool==='select'?null:onInteract,tool==='select'?selectObject:null))}
    {!studentView&&<path ref={preview} d="" stroke={color} strokeWidth={width}
      fill="none" opacity={tool==='highlighter'?.33:1} strokeLinecap="round"
      strokeLinejoin="round" vectorEffect="non-scaling-stroke" pointerEvents="none"/>}
