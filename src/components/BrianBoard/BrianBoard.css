@@ -176,3 +176,10 @@
 }
 .bbd-shell.is-student-view .bbd-canvas-area{padding:15px 24px;}
 .bbd-shell.is-student-view .bbd-color-strip{display:none;}
+
+.bbd-side-stack .bbd-import-image{display:flex;align-items:center;gap:7px;
+ min-height:37px;padding:8px 10px;border:1px solid var(--bbd-border);
+ border-radius:9px;background:var(--bbd-chrome);color:var(--bbd-text);
+ font-size:11px;cursor:pointer}
+.bbd-import-image input[type=file]{width:0;height:0;position:absolute;opacity:0;pointer-events:none}
+.bbd-import-image:focus-within{outline:2px solid var(--bbd-accent)}
