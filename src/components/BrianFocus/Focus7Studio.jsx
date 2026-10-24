@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { X, Check, ArrowUp, ArrowDown, Pause, Play, Trash2, Plus, RotateCcw } from 'lucide-react';
 import { getFocusInsights } from './useFocus7Data.js';
-import { videoIdFromFocusPath } from './focusYoutube.js';
+import { parseFocusYoutubeId } from './focusYoutube.js';
+const safeVideoId=value=>{try{return parseFocusYoutubeId(value);}catch{return '';}};
 import { FOCUS_SOUNDS, FOCUS_SOUND_LABELS } from './useFocusSoundscape.js';
 
 const tabs=[
@@ -37,7 +38,7 @@ export default function Focus7Studio({language='vi',data,update,appearance,onApp
    setNote('');
  };
  const saveVideo=()=>{
-   const id=videoIdFromFocusPath(videoDraft.trim());
+   const id=safeVideoId(videoDraft.trim());
    if(!id)return;
    update({favorites:[...data.favorites,id].slice(-15)});
    setVideoDraft('');
@@ -125,7 +126,7 @@ export default function Focus7Studio({language='vi',data,update,appearance,onApp
       <h3>{vi?'Cinema Media Studio':'Cinema Media Studio'}</h3>
       <p>{vi?'Video đang chạy vẫn được giữ khi đóng Focus. Chỉ nút Tắt video hoặc đổi video có chủ đích mới ảnh hưởng phát nền.':'Current video persists across Close/Open. Stop and explicit video selection control playback.'}</p>
       <div className="bfc7-fields"><label>Video YouTube URL / ID<input value={videoDraft} onChange={e=>setVideoDraft(e.target.value)} placeholder="https://www.youtube.com/watch?v=..." /></label>
-        <button type="button" onClick={saveVideo} disabled={!videoIdFromFocusPath(videoDraft.trim())}><Plus size={16}/>{vi?'Thêm':'Add'}</button></div>
+        <button type="button" onClick={saveVideo} disabled={!safeVideoId(videoDraft.trim())}><Plus size={16}/>{vi?'Thêm':'Add'}</button></div>
       <div className="bfc7-actions"><button type="button" onClick={()=>update({videoOverride:''})}>{vi?'Trở về cảnh chung':'Shared scene'}</button>
         <button type="button" onClick={youtubeSession?.playing?youtubeControls?.pause:youtubeControls?.play}>{youtubeSession?.playing?(vi?'Tạm dừng':'Pause'):(vi?'Phát':'Play')}</button>
         <button type="button" onClick={youtubeControls?.stop}>{vi?'Tắt hẳn video':'Stop video'}</button></div>
