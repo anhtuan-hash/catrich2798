@@ -16,6 +16,7 @@ import Focus7Particles from './Focus7Particles.jsx';
 import Focus8Studio from './Focus8Studio.jsx';
 import Focus8Commands from './Focus8Commands.jsx';
 import Focus8Stage from './Focus8Stage.jsx';
+import {useFocus8RemoteHost} from './Focus8Remote.jsx';
 import {getViewportLayout} from './useFocus8Data.js';
 import { canEditFocusScene } from './focusSceneService.js';
 
@@ -149,6 +150,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
     else if(type==='studio-open')setStudio8Open(true);
     else if(type==='command-open')setCommandsOpen(true);
   };
+  const remoteHost=useFocus8RemoteHost(currentUser?.id,runCommand);
   const nextStage=()=>update8({stage:{...focus8.stage,partIndex:(focus8.stage.partIndex+1)%Math.max(1,focus8.stage.parts.length),
     deadline:focus8.stage.running?Date.now()+focus8.stage.minutes*60000:focus8.stage.deadline}});
   useEffect(()=>{
@@ -390,7 +392,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
         data={focus8} update={update8} focus7={focus7} appearance={appearance}
         sessionEvents={focus7.sessions} scene={scene} timer={timerController} flow={focusFlow}
         classroom={classroom} onClassroom={setClassroom} onCommand={runCommand}
-        onAutomation={applyAutomation} onStageNext={nextStage} mixer={mixer}
+        onAutomation={applyAutomation} onStageNext={nextStage} mixer={mixer} remoteHost={remoteHost}
         onClose={()=>setStudio8Open(false)}/>}
       {commandsOpen&&<Focus8Commands language={language} onCommand={runCommand} onClose={()=>setCommandsOpen(false)}/>}
       {appearanceOpen ? <Focus6Appearance language={language} appearance={appearance}
