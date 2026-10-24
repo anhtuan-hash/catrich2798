@@ -7,7 +7,7 @@ export default function FocusBubble({ active = false, onClick, buttonRef, langua
     ? (vi ? 'Thoát chế độ tập trung' : 'Exit focus mode')
     : (vi ? 'Mở chế độ tập trung' : 'Enter focus mode');
   return (
-    <button type="button" ref={buttonRef}
+    <button type="button" id="bfc-focus-trigger" ref={buttonRef} data-bfc-focus-trigger="true"
       className={`bfc-bubble${active ? ' is-active' : ''}`}
       aria-label={label} title={label}
       aria-pressed={active} onClick={onClick}>

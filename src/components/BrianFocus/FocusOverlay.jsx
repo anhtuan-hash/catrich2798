@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
-import FocusBubble from './FocusBubble.jsx';
 import HTCSenseClock from './HTCSenseClock.jsx';
 
 /** Portal keeps the real Dashboard mounted and interactive state intact. */
@@ -30,19 +29,23 @@ export default function FocusOverlay({ onClose, language, weather, weatherDescri
         return;
       }
       if (event.key !== 'Tab' || !dialogRef.current) return;
-      const focusable = Array.from(dialogRef.current.querySelectorAll(
-        'button:not([disabled]),[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])',
-      )).filter(node => node.getClientRects().length);
+      // The Focus Bubble is portalled alongside the dialog, not underneath it.
+      // Include it explicitly in the modal's keyboard loop and aria-owns.
+      const focusable = [
+        ...Array.from(dialogRef.current.querySelectorAll(
+          'button:not([disabled]),[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])',
+        )),
+        returnFocusRef?.current,
+      ].filter(node => node && node.getClientRects().length);
       if (!focusable.length) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (event.shiftKey && (document.activeElement === first || !dialogRef.current.contains(document.activeElement))) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && (document.activeElement === last || !dialogRef.current.contains(document.activeElement))) {
-        event.preventDefault();
-        first.focus();
-      }
+      // The trigger is before the overlay in document.body. Never rely on
+      // browser DOM tab order; cycle explicitly through dialog + portal bubble.
+      const currentIndex = focusable.indexOf(document.activeElement);
+      const nextIndex = currentIndex === -1
+        ? (event.shiftKey ? focusable.length - 1 : 0)
+        : (currentIndex + (event.shiftKey ? -1 : 1) + focusable.length) % focusable.length;
+      event.preventDefault();
+      focusable[nextIndex].focus();
     };
 
     document.addEventListener('keydown', keydown);
@@ -63,6 +66,7 @@ export default function FocusOverlay({ onClose, language, weather, weatherDescri
   return createPortal(
     <div className="bfc-overlay" role="dialog" aria-modal="true"
       aria-label={vi ? 'Chế độ tập trung Brian Focus' : 'Brian Focus mode'}
+      aria-owns="bfc-focus-trigger"
       ref={dialogRef}
       onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
       <div className="bfc-overlay__aurora" aria-hidden="true"/>
@@ -76,7 +80,6 @@ export default function FocusOverlay({ onClose, language, weather, weatherDescri
       <div className="bfc-overlay__center">
         <HTCSenseClock language={language} weather={weather} weatherDescription={weatherDescription}/>
       </div>
-      <FocusBubble active onClick={onClose} language={language}/>
     </div>, document.body,
   );
 }

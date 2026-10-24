@@ -33,9 +33,14 @@ check('focus is mounted only inside Dashboard, lazy-loads and reuses weather dat
 check('focus trigger is dedicated single chat-style bubble, never replaces global assistant',
   shell.includes('<FocusBubble') && bubble.includes('bfc-bubble') &&
   bubble.includes('MoonStar') && bubble.includes('aria-pressed={active}') &&
-  css.includes('right: calc(104px + env(safe-area-inset-right, 0px))'));
+  css.includes('right: max(24px, env(safe-area-inset-right, 0px))') &&
+  css.includes('right: max(13px, env(safe-area-inset-right, 0px))') &&
+  css.includes('width: 62px') && css.includes('width: 58px'));
 check('overlay never navigates or unmounts dashboard behind it',
   overlay.includes('createPortal(') && overlay.includes('document.body') &&
+  shell.includes('createPortal(button, document.body)') &&
+  !overlay.includes('<FocusBubble') &&
+  shell.includes('active={open}') &&
   !shell.includes('window.location') && !overlay.includes('window.location'));
 check('all interaction behind Focus is isolated without removing the mounted Dashboard',
   overlay.includes("document.getElementById('root')") &&
@@ -48,7 +53,10 @@ check('focus handles Escape, outside click, trap Tab, restore scroll and focus',
   overlay.includes("event.key !== 'Tab'") &&
   overlay.includes('event.target === event.currentTarget') &&
   overlay.includes('window.scrollTo(scrollX, scrollY)') &&
-  overlay.includes('returnFocusRef?.current?.focus?.()'));
+  overlay.includes('returnFocusRef?.current?.focus?.()') &&
+  overlay.includes('aria-owns="bfc-focus-trigger"') &&
+  overlay.includes('returnFocusRef?.current') &&
+  bubble.includes('id="bfc-focus-trigger"'));
 check('clock reads real date and weather, without hard-coded screenshot values',
   clock.includes('useFocusClock(language)') &&
   clock.includes('<FocusWeather') && clock.includes('hours') && clock.includes('minutes') &&
@@ -61,8 +69,8 @@ check('overlay is modal and screen reader time does not announce every minute',
   overlay.includes('aria-modal="true"') && overlay.includes('role="dialog"') &&
   clock.includes('aria-live="off"') && overlay.includes('aria-label='));
 check('glass design has dark blur and HTC-inspired split tiles',
-  css.includes('rgba(9,16,32,.69)') &&
-  css.includes('backdrop-filter: blur(17px)') &&
+  css.includes('rgba(7,12,26,.78)') &&
+  css.includes('backdrop-filter: blur(18px)') &&
   css.includes('.bfc-clock-face__tile::after') &&
   css.includes('font-variant-numeric: tabular-nums'));
 check('mobile and reduced-motion/full-contrast fallbacks are present',
@@ -75,4 +83,17 @@ check('opening Focus does not reset the underlying Dashboard hero, planner or ne
   dash.includes('<DashboardNewsHub') &&
   dash.includes('<DashboardHeroEditor') &&
   dash.includes('<BrianFocus'));
+check('Focus button shares Chat AI exact right dock and desktop/mobile diameters',
+  css.includes('max(24px, env(safe-area-inset-right, 0px))') &&
+  css.includes('max(13px, env(safe-area-inset-right, 0px))') &&
+  css.includes('width: 62px') && css.includes('width: 58px') &&
+  !css.includes('right: calc(104px') && !css.includes('right: calc(85px'));
+check('Focus bubble stays one persistent portal and never lives in Dashboard transformed cards',
+  shell.includes('createPortal(button, document.body)') &&
+  !overlay.includes('<FocusBubble') && overlay.includes('aria-owns="bfc-focus-trigger"') &&
+  shell.includes('returnFocusRef={triggerRef}'));
+check('premium flip clock and compact weather pill use richer ambient contrast',
+  css.includes('rgba(7,12,26,.78)') &&
+  css.includes('grid-template-columns: 39px minmax(0, 1fr) auto') &&
+  css.includes('rgba(17,26,55,.35) 50%'));
 console.log('PASS: Brian Focus 1.0 — time, backdrop, accessibility, state and weather invariants.');

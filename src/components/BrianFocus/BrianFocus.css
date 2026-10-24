@@ -3,14 +3,16 @@
 .bfc-bubble {
   position: fixed;
   z-index: 2147483010;
-  right: calc(104px + env(safe-area-inset-right, 0px));
-  bottom: calc(31px + env(safe-area-inset-bottom, 0px));
+  /* Match Chat AI's right edge, but stack ABOVE chat and shield bubbles. */
+  right: max(24px, env(safe-area-inset-right, 0px));
+  bottom: calc(max(24px, env(safe-area-inset-bottom, 0px)) + 62px + 14px + 62px + 14px);
   display: grid;
   place-items: center;
-  width: 58px;
-  height: 58px;
-  min-width: 58px;
-  min-height: 58px;
+  /* Same desktop diameter as the connected Chat AI launcher. */
+  width: 62px;
+  height: 62px;
+  min-width: 62px;
+  min-height: 62px;
   padding: 0;
   border: 1px solid rgba(221,233,255,.87);
   border-radius: 999px;
@@ -56,9 +58,9 @@
   overflow: auto;
   overscroll-behavior: contain;
   isolation: isolate;
-  background: rgba(9,16,32,.69);
-  -webkit-backdrop-filter: blur(17px) saturate(.7);
-  backdrop-filter: blur(17px) saturate(.7);
+  background: rgba(7,12,26,.78);
+  -webkit-backdrop-filter: blur(18px) saturate(.72);
+  backdrop-filter: blur(18px) saturate(.72);
   animation: bfc-overlay-enter .34s ease-out both;
   font-family: "Google Sans", "Google Sans Text", Inter, Roboto, system-ui, sans-serif;
   color: #f7f9ff;
@@ -81,17 +83,17 @@
 .bfc-overlay__close {
   position: fixed;
   z-index: 2;
-  top: max(25px, env(safe-area-inset-top, 0px));
-  right: max(29px, env(safe-area-inset-right, 0px));
+  top: max(18px, env(safe-area-inset-top, 0px));
+  right: max(18px, env(safe-area-inset-right, 0px));
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 9px;
-  min-height: 40px;
-  padding: 9px 13px;
+  min-height: 38px;
+  padding: 8px 12px;
   border-radius: 999px;
   border: 1px solid rgba(217,229,253,.21);
-  background: rgba(255,255,255,.09);
+  background: rgba(255,255,255,.075);
   color: #ecf1ff;
   font-size: 12px;
   font-weight: 650;
@@ -136,8 +138,8 @@
   padding: 33px 37px 26px;
   overflow: hidden;
   border-radius: 32px;
-  border: 1px solid rgba(242,246,255,.27);
-  background: linear-gradient(147deg, rgba(255,255,255,.175), rgba(181,197,230,.065) 52%, rgba(101,112,164,.11));
+  border: 1px solid rgba(242,246,255,.31);
+  background: linear-gradient(145deg, rgba(255,255,255,.19), rgba(181,197,230,.082) 52%, rgba(101,112,164,.15));
   box-shadow:
     0 34px 90px rgba(2,10,27,.40),
     0 9px 28px rgba(9,18,38,.18),
@@ -195,8 +197,11 @@
   border: 1px solid rgba(225,235,255,.17);
   border-radius: 19px;
   background:
-    linear-gradient(to bottom, rgba(255,255,255,.13) 0%,
-    rgba(255,255,255,.065) 49.8%, rgba(14,23,49,.22) 50%, rgba(24,37,70,.12) 100%);
+    linear-gradient(to bottom,
+      rgba(255,255,255,.15) 0%,
+      rgba(255,255,255,.08) 49.5%,
+      rgba(17,26,55,.35) 50%,
+      rgba(16,25,53,.19) 100%);
   color: #f8fbff;
   font-family: "Roboto", "Arial", system-ui, sans-serif;
   font-size: clamp(83px, 10vw, 118px);
@@ -247,12 +252,16 @@
   background: linear-gradient(90deg, transparent, rgba(226,235,255,.24), transparent);
 }
 .bfc-weather {
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: 39px minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: center;
+  width: min(100%, 390px);
   max-width: 100%;
-  gap: 13px;
-  padding: 7px 8px;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid rgba(228,235,255,.12);
+  border-radius: 18px;
+  background: rgba(255,255,255,.065);
 }
 .bfc-weather__icon {
   display: grid;
@@ -295,13 +304,11 @@
   margin: 25px 0 0;
   text-align: center;
 }
-.bfc-overlay .bfc-bubble.is-active {
-  z-index: 2147483010;
-  right: calc(104px + env(safe-area-inset-right, 0px));
-  bottom: calc(31px + env(safe-area-inset-bottom, 0px));
+.bfc-bubble.is-active {
+  /* EXACTLY the same viewport dock as idle, never inside a transformed card. */
   background: linear-gradient(135deg,#4c638e,#555477);
 }
-.bfc-overlay .bfc-bubble.is-active::after { background: #555477; }
+.bfc-bubble.is-active::after { background: #555477; }
 @keyframes bfc-overlay-enter {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -311,15 +318,6 @@
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 @media (max-width: 767px) {
-  .bfc-bubble,
-  .bfc-overlay .bfc-bubble.is-active {
-    width: 51px;
-    height: 51px;
-    min-width: 51px;
-    min-height: 51px;
-    right: calc(85px + env(safe-area-inset-right, 0px));
-    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-  }
   .bfc-overlay { padding: 68px 16px 78px; }
   .bfc-overlay__close {top: max(14px, env(safe-area-inset-top, 0px)); right: max(14px, env(safe-area-inset-right, 0px));}
   .bfc-clock-card { border-radius: 25px; min-height: 0; padding: 28px 20px 25px; }
@@ -336,9 +334,20 @@
   .bfc-clock-face__colon { flex-basis: 12px; font-size: 50px; transform: translateY(-3px); }
   .bfc-clock-date { margin-top: 16px; font-size: 14px; }
   .bfc-clock-card__rule { margin: 18px 0 13px; }
-  .bfc-weather {gap: 8px;}
+  .bfc-weather {gap: 8px; padding: 11px 12px;}
   .bfc-weather__temp {font-size: 23px; margin-left: 2px;}
   .bfc-clock-card__hint { margin-top: 19px; }
+}
+/* The Chat AI dock switches to 58px / 13px only below 640px. */
+@media (max-width: 640px) {
+  .bfc-bubble {
+    width: 58px;
+    height: 58px;
+    min-width: 58px;
+    min-height: 58px;
+    right: max(13px, env(safe-area-inset-right, 0px));
+    bottom: calc(max(13px, env(safe-area-inset-bottom, 0px)) + 58px + 12px + 58px + 12px);
+  }
 }
 @media (max-width: 370px) {
   .bfc-clock-card { padding-left: 13px; padding-right: 13px; }
