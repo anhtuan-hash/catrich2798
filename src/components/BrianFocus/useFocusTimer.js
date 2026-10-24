@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 // Timer deadlines are absolute, so background tabs and laptop sleep do not
 // distort elapsed time. Persistent storage is scoped to each signed-in user.
 export const FOCUS_TIMER_PRESETS = Object.freeze({
-  pomodoro: 25, short: 5, long: 15, deep: 50, custom: 30,
+  pomodoro: 25, short: 5, recovery: 10, long: 15, deep: 50, custom: 30,
 });
 const MAX_MS = 180 * 60_000;
 
