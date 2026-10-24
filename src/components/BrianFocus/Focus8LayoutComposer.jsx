@@ -27,6 +27,8 @@ export default function Focus8LayoutComposer({data,update,language='vi'}){
  return <div className="bfc8-stack">
   <h3>{vi?'Freeform Layout Composer':'Freeform Layout Composer'}</h3>
   <p>{vi?'Kéo thả các phần tử trên khung xem trước; cập nhật ngay trong Focus. Có Undo/Redo và lưới 5%.':'Drag widgets on the preview; changes apply live. Includes Undo/Redo and 5% snapping.'}</p>
+  <label className="bfc8-check"><input type="checkbox" checked={data.layoutEnabled}
+    onChange={e=>update({layoutEnabled:e.target.checked})}/>{vi?'Áp dụng bố cục tự chọn lên màn hình Focus':'Apply custom layout to Focus'}</label>
   <div className="bfc8-actions">{['desktop','tablet','mobile'].map(x=><button key={x} className={mode===x?'is-active':''} onClick={()=>setMode(x)}>{x}</button>)}</div>
   <div ref={board} className={'bfc8-layout-board bfc8-layout-board--'+mode} role="group" aria-label="Drag to arrange widgets">
    {Object.keys(targetNames).map(id=><button type="button" key={id}
