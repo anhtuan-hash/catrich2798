@@ -27,6 +27,7 @@ function PickerOption({label,description,active,onClick}) {
 export default function Focus6Appearance({language='vi',appearance,onChange,onClose}) {
   const vi=language!=='en';
   const [tab,setTab]=useState('styles');
+  const [presetName,setPresetName]=useState(appearance.customPreset?.name||'My Space');
   const change = patch => onChange({...patch,atmosphere:'custom'});
   const move=(i,direction)=>{
     const list=[...appearance.dock];
@@ -86,6 +87,22 @@ export default function Focus6Appearance({language='vi',appearance,onChange,onCl
           {FOCUS6_ATMOSPHERES.map(p=><PickerOption key={p.id} label={vi?p.vi:p.en}
             description={p.clockMode+' · '+p.backdrop} active={appearance.atmosphere===p.id}
             onClick={()=>onChange({clockMode:p.clockMode,backdrop:p.backdrop,scale:p.scale,autoHide:p.autoHide,atmosphere:p.id})}/>)}
+        </div>
+        <div className="bfc6-picker__custom">
+          <strong>{vi?'Không gian cá nhân':'My custom space'}</strong>
+          <input type="text" maxLength={30} aria-label={vi?'Tên không gian':'Preset name'}
+            value={presetName} onChange={e=>setPresetName(e.target.value)}/>
+          <div>
+            <button type="button" onClick={()=>onChange({customPreset:{
+              name:presetName.trim()||'My Space',
+              clockMode:appearance.clockMode,backdrop:appearance.backdrop,scale:appearance.scale,
+              dim:appearance.dim,saturation:appearance.saturation,contrast:appearance.contrast,
+              blur:appearance.blur,autoHide:appearance.autoHide
+            },atmosphere:'custom'})}>{vi?'Lưu thiết lập hiện tại':'Save current settings'}</button>
+            <button type="button" disabled={!appearance.customPreset} onClick={()=>{
+              if(appearance.customPreset) onChange({...appearance.customPreset,atmosphere:'custom'});
+            }}>{vi?'Áp dụng đã lưu':'Apply saved space'}</button>
+          </div>
         </div>
         <label className="bfc6-picker__section-label">{vi?'Mục tiêu đang tập trung':'Current intention'}</label>
         <input type="text" maxLength={100} value={appearance.intention}
