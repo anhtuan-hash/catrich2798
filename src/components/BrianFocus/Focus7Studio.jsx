@@ -13,7 +13,7 @@ const tabs=[
  ['insights','09','Insights','Thống kê'],['classroom','10','Classroom','Trình chiếu'],
 ];
 const moodLabels=[['auto','Auto','Tự động'],['off','Off','Tắt'],['dawn','Dawn','Bình minh'],['golden','Golden','Nắng chiều'],['rain','Rainy','Trời mưa'],['twilight','Twilight','Chạng vạng'],['midnight','Midnight','Đêm']];
-const clockLabels=[['sense','Classic HTC'],['glass','HTC Glass'],['minimal','Minimal'],['floating','Floating'],['kyoto','Kyoto'],['swiss','Swiss'],['aurora','Aurora'],['liquid','Liquid Glass']];
+const clockLabels=[['inherit','V6 default'],['sense','Classic HTC'],['glass','HTC Glass'],['minimal','Minimal'],['floating','Floating'],['kyoto','Kyoto'],['swiss','Swiss'],['aurora','Aurora'],['liquid','Liquid Glass']];
 const particleLabels=[['off','Tắt','Off'],['dust','Bụi sáng','Light dust'],['fireflies','Đom đóm','Fireflies'],['rain','Mưa','Rain'],['snow','Tuyết','Snow'],['leaves','Lá rơi','Leaves'],['fog','Sương','Fog']];
 const dockNames={timer:['Hẹn giờ','Timer'],notes:['Ghi chú','Notes'],soundscape:['Âm thanh','Sound'],brightness:['Hình nền','Backdrop']};
 const uiRange=(label,value,min,max,onChange,unit='')=><label className="bfc7-range">
