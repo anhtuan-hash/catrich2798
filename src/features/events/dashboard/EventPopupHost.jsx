@@ -5,7 +5,10 @@ import { eligibleEvents, getEventPosterUrl, shouldAutoShow, recordEventInteracti
 import { supabase } from '../../../utils/supabase.js';
 import { getAuthSessionIdentity, eventLoginStorageKey, eventLoginSessionMarker, canAutoShowEvent } from '../utils/eventLoginSession.mjs';
 import EventPosterViewer from './EventPosterViewer.jsx';
+import { getGlobalMotionConfig, GLOBAL_MOTION_EVENT } from '../../../utils/globalMotionSystem.js';
+import { normalizeEventPopupMotion, eventPopupMotionDuration } from '../utils/eventPopupMotion.mjs';
 import './EventPopup.css';
+import './EventPopupMotion.css';
 
 const order={urgent:3,important:2,normal:1};
 const niceDate=(value)=>new Intl.DateTimeFormat('vi-VN',{timeZone:'Asia/Ho_Chi_Minh',dateStyle:'full',timeStyle:'short'}).format(new Date(value));
@@ -18,6 +21,9 @@ export default function EventPopupHost({currentUser}) {
   const [actionError,setActionError]=useState('');
   const [loadingAction,setLoadingAction]=useState(false);
   const [posterExpanded,setPosterExpanded]=useState(false);
+  const [closing,setClosing]=useState(false);
+  const [eventMotion,setEventMotion]=useState(()=>normalizeEventPopupMotion(getGlobalMotionConfig().eventPopup));
+  const exitTimerRef=useRef(null);
   const shownRef=useRef('');
   const authSessionIdentityRef=useRef(null);
   const closeButtonRef=useRef(null);
@@ -25,6 +31,12 @@ export default function EventPopupHost({currentUser}) {
   const posterExpandedRef=useRef(false);
   useEffect(()=>{posterExpandedRef.current=posterExpanded;},[posterExpanded]);
   const userId=currentUser?.id;
+  useEffect(()=>{
+    const apply=()=>setEventMotion(normalizeEventPopupMotion(getGlobalMotionConfig().eventPopup));
+    window.addEventListener(GLOBAL_MOTION_EVENT,apply);
+    return ()=>window.removeEventListener(GLOBAL_MOTION_EVENT,apply);
+  },[]);
+  useEffect(()=>()=>window.clearTimeout(exitTimerRef.current),[]);
   useEffect(()=>{
     if(!userId)return undefined;
     let active=true;
@@ -55,6 +67,7 @@ export default function EventPopupHost({currentUser}) {
 
   useEffect(()=>{
     if(!event||!userId)return undefined;
+    setClosing(false);
     const key=event.id+'@'+event.version;
     const firstImpression=shownRef.current!==key;
     shownRef.current=key;
@@ -110,10 +123,19 @@ export default function EventPopupHost({currentUser}) {
   },[event?.poster_path]);
 
   async function dismiss(action){
-    if(!event||loadingAction)return;
+    if(!event||loadingAction||closing)return;
     setLoadingAction(true);setActionError('');
-    try{await recordEventInteraction(event,userId,action);setEvent(null);}
-    catch(e){setActionError('Không thể ghi nhận lựa chọn: '+e.message);}
+    try{
+      await recordEventInteraction(event,userId,action);
+      const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches||false;
+      const duration=eventPopupMotionDuration(eventMotion,'exit',reduced);
+      if(duration>0){
+        setClosing(true);
+        await new Promise(resolve=>{exitTimerRef.current=window.setTimeout(resolve,duration+20);});
+      }
+      setEvent(null);
+      setClosing(false);
+    }catch(e){setClosing(false);setActionError('Không thể ghi nhận lựa chọn: '+e.message);}
     finally{setLoadingAction(false);}
   }
   async function openDetails(){
@@ -144,9 +166,12 @@ export default function EventPopupHost({currentUser}) {
           <ExternalLink size={16}/></button>)}</div>
       </section>
     </div>}
-    {event && <div className="be-pop-overlay" role="presentation">
+    {event && <div className={`be-pop-overlay${closing?' is-leaving':''}`} role="presentation"
+      data-event-motion="true" data-event-enter={eventMotion.enter} data-event-exit={eventMotion.exit}
+      style={{'--be-event-enter-ms':`${eventPopupMotionDuration(eventMotion,'enter')}ms`,
+        '--be-event-exit-ms':`${eventPopupMotionDuration(eventMotion,'exit')}ms`}}>
       <div className="be-pop-scrim" aria-hidden="true"/>
-      <section className="be-pop-dialog" role="dialog" aria-modal="true"
+      <section className="be-pop-dialog" data-global-motion-isolate="true" role="dialog" aria-modal="true"
         aria-labelledby="be-pop-title" aria-describedby="be-pop-intro">
         <header className="be-pop-header">
           <div className="be-pop-header-id">
@@ -164,7 +189,7 @@ export default function EventPopupHost({currentUser}) {
             <Sparkles className="be-pop-art-sparkle be-pop-art-sparkle-two" size={27}/>
           </div>
           <button type="button" className="be-pop-close" ref={closeButtonRef}
-            aria-label="Đóng thông báo" disabled={loadingAction}
+            aria-label="Đóng thông báo" disabled={loadingAction||closing}
             onClick={()=>dismiss('dismiss')}><X size={22}/></button>
         </header>
 
