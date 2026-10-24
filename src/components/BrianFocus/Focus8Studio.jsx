@@ -46,7 +46,7 @@ export default function Focus8Studio({userId,language='vi',data,update,focus7,up
   try{
    const found=await loadFocus8Vault(userId);
    if(!found){setStatus(vi?'Chưa có bản sao lưu':'No cloud backup found');return;}
-   if(!window.confirm(vi?'Khôi phục sẽ thay cấu hình Focus 6/7/8 trên thiết bị này. Tiếp tục?':'Restore will replace local Focus 6/7/8 preferences. Continue?'))return;
+   if(!window.confirm(vi?'Khôi phục sẽ thay thiết lập Focus cá nhân trên thiết bị này. Tiếp tục?':'Restore will replace your personal Focus settings on this device. Continue?'))return;
    update(normalizeFocus8(found.settings));if(found.focus7)update7?.(found.focus7);if(found.appearance)onAppearance?.(found.appearance);setCloudDate(found.updatedAt);setStatus(vi?'Đã khôi phục từ Cloud':'Restored from cloud');
   }catch(e){setStatus(e.message);}
   finally{setVaultBusy(false);}
@@ -56,7 +56,7 @@ export default function Focus8Studio({userId,language='vi',data,update,focus7,up
   try{
     const value=JSON.parse(await file.text());
     if(value.schema!=='brian-focus-v8')throw Error('Invalid Focus backup format');
-    if(!window.confirm(vi?'Nhập cấu hình Focus 8.0 từ file này?':'Import this Focus 8.0 backup?'))return;
+    if(!window.confirm(vi?'Nhập thiết lập Focus từ tệp này?':'Import your Focus settings from this file?'))return;
     update(normalizeFocus8(value.settings));if(value.focus7)update7?.(value.focus7);if(value.appearance)onAppearance?.(value.appearance);setStatus(vi?'Đã nhập cấu hình':'Imported settings');
   }catch(e){setStatus(e.message);}
  };
@@ -67,8 +67,8 @@ export default function Focus8Studio({userId,language='vi',data,update,focus7,up
   }else setStageQr('');
   return()=>{live=false;};
  },[data.stage.url]);
- return <section className="bfc8-studio" role="region" aria-label="Ambient OS 8.0 Studio">
-  <header className="bfc8-studio__head"><div><small>BRIAN FOCUS · AMBIENT OS</small><h2>{vi?'Không gian tập trung 8.0':'Ambient OS 8.0'}</h2></div>
+ return <section className="bfc8-studio" role="region" aria-label={vi?'Công cụ nâng cao Focus':'Focus advanced tools'}>
+  <header className="bfc8-studio__head"><div><small>BRIAN FOCUS · STUDIO</small><h2>{vi?'Công cụ nâng cao':'Advanced tools'}</h2></div>
    <button type="button" onClick={onClose} aria-label={vi?'Đóng Studio':'Close Studio'}>×</button></header>
   <nav className="bfc8-tabs" aria-label="Ambient OS modules">
    {TABS.map(([id,n,title])=><button type="button" key={id} className={tab===id?'active':''}
@@ -123,7 +123,7 @@ export default function Focus8Studio({userId,language='vi',data,update,focus7,up
    <button className="primary" onClick={()=>{onClassroom(!classroom);if(!classroom)onClose();}}>{classroom?(vi?'Thoát trình chiếu':'Exit presentation'):(vi?'Trình chiếu lên TV':'Start presentation')}</button>
    </div>}
   {tab==='sound'&&<div className="bfc8-stack"><h3>Sonic Atmosphere Engine</h3>
-   <p>{vi?'Dùng bộ trộn âm thanh 7.0, không tạo AudioContext thứ hai.':'Uses the existing 7.0 mixer; no second audio context.'}</p>
+   <p>{vi?'Dùng bộ trộn âm thanh hiện có, không tạo thêm AudioContext.':'Uses the existing mixer; no second audio context.'}</p>
    <label>{vi?'Thời gian chuyển âm (giây)':'Crossfade seconds'} <strong>{data.soundFade}s</strong>
      <input type="range" min="0" max="10" value={data.soundFade} onChange={e=>update({soundFade:Number(e.target.value)})}/></label>
    <div className="bfc8-actions"><button onClick={()=>void mixer?.start()} disabled={mixer?.playing}>{vi?'Phát':'Play'}</button><button onClick={()=>void mixer?.stop()} disabled={!mixer?.playing}>{vi?'Dừng':'Stop'}</button></div>
@@ -135,7 +135,7 @@ export default function Focus8Studio({userId,language='vi',data,update,focus7,up
    <div className="bfc8-rows">{monthly.slice(-12).reverse().map((x,i)=><div key={i}>{new Date(x.at).toLocaleDateString(vi?'vi-VN':'en-US')} <strong>{x.minutes}m</strong></div>)}</div>
    <div className="bfc8-actions"><button onClick={()=>download('brian-focus-sessions.csv', '\uFEFF'+focus8Csv(sessions),'text/csv;charset=utf-8')}>Export CSV</button>
     <button onClick={()=>download('brian-focus-sessions.json',JSON.stringify(sessions,null,2))}>Export JSON</button></div>
-   <p>{vi?'Chỉ xuất dữ liệu phiên thực tế đã ghi nhận từ Focus 7.0 trở đi.':'Exports only actual completed Focus sessions, not fabricated history.'}</p>
+   <p>{vi?'Chỉ xuất dữ liệu phiên Focus đã ghi nhận thực tế.':'Exports recorded completed Focus sessions, not fabricated history.'}</p>
   </div>}
   {tab==='vault'&&<div className="bfc8-stack"><h3>Personal Atmosphere Cloud Vault</h3>
    <p>{vi?'Sao lưu thủ công thiết lập 6/7/8, đồng hồ, nhật ký và preset theo tài khoản; không ghi đè cảnh nền chung.':'Manual account-scoped cloud snapshot of 6/7/8 clocks, journal and presets; shared scene stays unchanged.'}</p>
