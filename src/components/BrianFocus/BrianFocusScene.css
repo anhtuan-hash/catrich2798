@@ -265,3 +265,161 @@
 @media (prefers-reduced-motion:reduce) {
   .bfc-scene-editor,.bfc-overlay.is-editor-open .bfc-overlay__center {animation:none;transition:none;}
 }
+
+
+/* Focus YouTube scene — source URL is always composed from a validated video ID. */
+.bfc-youtube-background__player {
+  position:absolute;
+  display:block;
+  left:50%;
+  top:50%;
+  width:max(100vw,177.7778vh);
+  height:max(100vh,56.25vw);
+  min-width:200px;
+  min-height:200px;
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+  border:0;
+  background:#01030b;
+}
+.bfc-youtube-background__player.is-contain {
+  width:min(100vw,177.7778vh);
+  height:min(100vh,56.25vw);
+}
+.bfc-youtube-controls {
+  position:fixed;
+  z-index:5;
+  left:max(24px,env(safe-area-inset-left,0px));
+  bottom:max(28px,env(safe-area-inset-bottom,0px));
+  display:flex;align-items:center;gap:6px;
+  max-width:calc(100vw - 48px);
+  padding:7px 9px;
+  border:1px solid rgba(183,215,255,.31);
+  border-radius:999px;
+  background:rgba(8,19,40,.77);
+  color:#edf4ff;
+  -webkit-backdrop-filter:blur(14px);
+  backdrop-filter:blur(14px);
+  box-shadow:0 10px 40px rgba(0,0,0,.36);
+}
+.bfc-youtube-controls__brand {
+  display:grid;place-items:center;
+  color:#ff7d83;
+  padding:0 7px 0 5px;
+}
+.bfc-youtube-controls button,
+.bfc-youtube-controls a {
+  min-height:33px;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:7px 9px;
+  border:1px solid transparent;
+  border-radius:999px;
+  color:#e7f3ff;background:transparent;
+  font:650 11px "Google Sans",Inter,system-ui,sans-serif;
+  white-space:nowrap;
+  cursor:pointer;
+  text-decoration:none;
+  transition:background .2s ease, color .2s ease;
+}
+.bfc-youtube-controls button:hover,
+.bfc-youtube-controls a:hover {
+  background:rgba(120,160,223,.20);
+  color:#fff;
+}
+.bfc-youtube-controls button:focus-visible,
+.bfc-youtube-controls a:focus-visible {
+  outline:2px solid #b3e7ff;outline-offset:2px;
+}
+.bfc-youtube-controls__divider {
+  width:1px;
+  height:20px;
+  background:rgba(191,216,255,.24);
+  margin:0 3px;
+}
+.bfc-overlay:has(.bfc-youtube-background) .bfc-overlay__bottom {
+  display:none;
+}
+.bfc-overlay:has(.bfc-youtube-background) .bfc-clock-card__breath {
+  display:none;
+}
+.bfc-scene-editor__youtube-field {
+  display:grid;
+  gap:10px;
+  padding:15px;
+  border-radius:13px;
+  background:linear-gradient(130deg,rgba(39,70,132,.35),rgba(13,25,52,.58));
+  border:1px solid rgba(141,175,237,.34);
+}
+.bfc-scene-editor__youtube-field > label {
+  display:flex;align-items:center;gap:10px;
+  color:#eff5ff;font-size:12px;font-weight:650;
+}
+.bfc-scene-editor__youtube-field > label svg {
+  color:#ff848d;
+}
+.bfc-scene-editor__youtube-input {
+  display:flex;align-items:center;gap:9px;
+  min-width:0;
+  border:1px solid rgba(176,207,255,.32);
+  border-radius:10px;
+  background:rgba(8,17,38,.79);
+  padding:0 11px;
+  color:#9acaff;
+}
+.bfc-scene-editor__youtube-input:focus-within {
+  border-color:#9dd6ff;
+  box-shadow:0 0 0 2px rgba(121,172,241,.15);
+}
+.bfc-scene-editor__youtube-input input {
+  min-width:0;width:100%;
+  min-height:41px;
+  padding:10px 0;
+  outline:0;border:0;
+  color:#f4f8ff;
+  background:transparent;
+  font-size:12px;
+  font-family:inherit;
+}
+.bfc-scene-editor__youtube-input input::placeholder {
+  color:#879abd;
+}
+.bfc-scene-editor__youtube-field > small {
+  color:#a6c1e3;
+  font-size:10px;line-height:1.5;
+}
+.bfc-scene-editor__youtube-status {
+  display:flex;align-items:center;gap:7px;
+  color:#f7bea9;
+  font-size:11px;line-height:1.4;
+}
+.bfc-scene-editor__youtube-status.is-valid {color:#8be1be;}
+/* Unlike decorative HTML scene, YouTube preview deliberately allows clicking Play. */
+.bfc-scene-editor__preview > iframe.bfc-scene-editor__youtube-player {
+  z-index:1;
+  width:100%;
+  height:100%;
+  pointer-events:auto;
+  background:#070d1d;
+  border:0;
+}
+@media (max-width:767px) {
+  .bfc-youtube-controls {
+    left:max(11px,env(safe-area-inset-left,0px));
+    bottom:max(14px,env(safe-area-inset-bottom,0px));
+    padding:5px 6px;gap:1px;
+    max-width:calc(100vw - 22px);
+  }
+  .bfc-youtube-controls button,
+  .bfc-youtube-controls a {
+    min-height:35px;
+    padding:7px 7px;
+    font-size:10px;
+  }
+  .bfc-youtube-controls__brand {padding:0 5px 0 3px;}
+  .bfc-youtube-controls__divider {margin:0 1px;}
+  .bfc-scene-editor__youtube-field {padding:12px;}
+}
+@media (max-width:370px) {
+  .bfc-youtube-controls button span {display:none;}
+  .bfc-youtube-controls__brand {padding:0 6px;}
+}
