@@ -398,7 +398,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
         onChooseVideo={choosePersonalVideo} classroom={classroom} onClassroom={setClassroom}
         onClose={()=>setAtelierOpen(false)}/>}
       {studio8Open&&<Focus8Studio language={language} userId={currentUser?.id}
-        data={focus8} update={update8} focus7={focus7} appearance={appearance}
+        data={focus8} update={update8} focus7={focus7} update7={update7} appearance={appearance} onAppearance={setAppearance}
         sessionEvents={focus7.sessions} scene={scene} timer={timerController} flow={focusFlow}
         classroom={classroom} onClassroom={setClassroom} onCommand={runCommand}
         onAutomation={applyAutomation} onStageNext={nextStage} mixer={mixer} remoteHost={remoteHost}
