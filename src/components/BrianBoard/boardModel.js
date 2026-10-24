@@ -42,9 +42,34 @@ export function distStroke(a,b){
 export function appendObject(doc,pageId,obj){
  return {...doc,updatedAt:Date.now(),pages:doc.pages.map(p=>p.id===pageId?{...p,objects:[...p.objects,obj]}:p)};
 }
+/** Deliberate ALLOWLIST: never spread objects into a student/TV payload. */
 export function sanitizeStudentPage(page){
  if(!page||page.hidden)return null;
- return {id:page.id,title:page.title,background:page.background,
-  objects:page.objects.filter(o=>o.studentVisible!==false&&o.teacherOnly!==true)
-   .map(o=>{const {privateAnswer,teacherNotes,...publicObject}=o;return publicObject;})};
+ const number=(v,f=0)=>Number.isFinite(Number(v))?Number(v):f;
+ const xy=o=>({x:number(o.x),y:number(o.y)});
+ const safe=[];
+ for(const o of (Array.isArray(page.objects)?page.objects:[]).slice(0,3000)){
+  if(!o||o.studentVisible===false||o.teacherOnly===true)continue;
+  const id=String(o.id||'').slice(0,85),kind=o.kind;
+  if(kind==='stroke'&&Array.isArray(o.points)){
+   safe.push({id,kind,color:String(o.color||'#355d63').slice(0,60),width:number(o.width,4),
+    opacity:number(o.opacity,1),points:o.points.slice(0,10000).map(p=>({x:number(p.x),y:number(p.y)}))});
+  }else if(kind==='shape'){
+   safe.push({id,kind,shape:['rect','ellipse','line'].includes(o.shape)?o.shape:'rect',
+    ...xy(o),x2:number(o.x2),y2:number(o.y2),color:String(o.color||'#355d63').slice(0,60),width:number(o.width,4)});
+  }else if(kind==='text'||kind==='sticky'){
+   safe.push({id,kind,...xy(o),text:String(o.text||'').slice(0,90),
+    color:String(o.color||'#355d63').slice(0,60),fontSize:number(o.fontSize,40)});
+  }else if(kind==='mask'){
+   safe.push({id,kind,...xy(o),width:number(o.width,240),height:number(o.height,90)});
+  }else if(kind==='image'&&/^data:image\/(?:png|jpeg|webp);base64,/i.test(o.src||'')&&o.src.length<3200000){
+   safe.push({id,kind,...xy(o),width:number(o.width,500),height:number(o.height,300),src:o.src});
+  }else if(kind==='flashcard'){
+   const publicObject={id,kind,...xy(o),text:String(o.text||'').slice(0,90),revealed:o.revealed===true};
+   if(publicObject.revealed)publicObject.publicAnswer=String(o.privateAnswer||'').slice(0,120);
+   safe.push(publicObject);
+  }
+ }
+ return {id:String(page.id||'').slice(0,85),title:String(page.title||'').slice(0,90),
+  background:BACKGROUNDS.includes(page.background)?page.background:'plain',objects:safe};
 }
