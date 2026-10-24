@@ -221,3 +221,35 @@
 @media(prefers-reduced-motion:reduce){
  .bfc-overlay.bfc-atelier .bfc-scene-background__media,.bfc-overlay.bfc-atelier .bfc-clock-card{transition:none!important;}
 }
+
+/* Living Weather: truthful, non-simulated next-six-hour Open-Meteo forecast. */
+.bfc-overlay.bfc-atelier .bfc-ambient-weather__details{
+  width:min(460px,calc(100vw - 24px));max-width:min(460px,calc(100vw - 24px));
+  flex-wrap:wrap;
+}
+.bfc-overlay.bfc-atelier .bfc6-weather-forecast{
+  flex:1 0 100%;display:grid;gap:9px;
+  padding-top:10px;border-top:1px solid rgba(255,255,255,.15);
+}
+.bfc-overlay.bfc-atelier .bfc6-weather-forecast>strong{
+  font-size:9px;font-weight:750;letter-spacing:.14em;color:rgba(255,255,255,.7);
+}
+.bfc-overlay.bfc-atelier .bfc6-weather-forecast>div{
+  display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;
+}
+.bfc-overlay.bfc-atelier .bfc6-weather-forecast>div>span{
+  display:grid;justify-items:center;gap:5px;min-width:0;
+  padding:7px 2px;border-radius:9px;background:rgba(255,255,255,.06);
+}
+.bfc-overlay.bfc-atelier .bfc6-weather-forecast b{font-size:13px;font-weight:670;}
+.bfc-overlay.bfc-atelier .bfc6-weather-forecast small{font-size:9px;color:rgba(255,255,255,.75);}
+@media(max-width:760px){
+  /* Close must stay first and reachable even on a narrow toolbar. */
+  .bfc-overlay.bfc-atelier .bfc-focus-header-actions .bfc-overlay__close{order:-1!important;flex-shrink:0!important;}
+  .bfc-overlay.bfc-atelier .bfc-focus-header-actions{
+    justify-content:flex-start!important;
+    max-width:calc(100vw - 61px)!important;
+    overflow-x:auto!important;
+  }
+  .bfc-overlay.bfc-atelier .bfc6-weather-forecast>div{grid-template-columns:repeat(3,minmax(0,1fr));}
+}
