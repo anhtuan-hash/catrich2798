@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Waves, Pause, ImagePlus, Clapperboard, TimerReset, SlidersHorizontal } from 'lucide-react';
+import { X, Waves, Pause, ImagePlus, Clapperboard, TimerReset, SlidersHorizontal, Maximize2, Minimize2, EyeOff } from 'lucide-react';
 import HTCSenseClock from './HTCSenseClock.jsx';
 import CosmicAmbient from './CosmicAmbient.jsx';
 import FocusSceneBackground from './FocusSceneBackground.jsx';
@@ -8,12 +8,12 @@ import FocusYoutubeBackground from './FocusYoutubeBackground.jsx';
 import FocusSceneEditor from './FocusSceneEditor.jsx';
 import FocusEffectsLibrary from './FocusEffectsLibrary.jsx';
 import FocusWorkspace from './FocusWorkspace.jsx';
-import FocusAppearancePicker from './FocusAppearancePicker.jsx';
+import Focus6Appearance from './Focus6Appearance.jsx';
 import useFocusAppearance from './useFocusAppearance.js';
 import { canEditFocusScene } from './focusSceneService.js';
 
 /** Portal keeps the real Dashboard mounted and interactive state intact. */
-export default function FocusOverlay({ currentUser, scene, onScenePublished, sceneError, onClose, language, weather, onRefreshWeather, returnFocusRef, performance = 'balanced', exiting = false, transitions = { enter: 'portal', exit: 'portal' }, onEffectsChange, youtubeSession, youtubeControls }) {
+export default function FocusOverlay({ currentUser, scene, onScenePublished, sceneError, onClose, language, weather, onRefreshWeather, returnFocusRef, performance = 'balanced', exiting = false, transitions = { enter: 'portal', exit: 'portal' }, onEffectsChange, youtubeSession, youtubeControls, timerController, completedSessions=0 }) {
   const [motionEnabled, setMotionEnabled] = useState(() => (
     !['low', 'minimal'].includes(performance) &&
     !(typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
@@ -29,6 +29,9 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   const [activeTool, setActiveTool] = useState('');
   const [personalDim, setPersonalDim] = useState(null);
   const [quiet, setQuiet] = useState(false);
+  const [fullscreen,setFullscreen] = useState(false);
+  const [immersiveOnce,setImmersiveOnce] = useState(false);
+  const [fullscreenError,setFullscreenError] = useState('');
   const [soundscapeActive, setSoundscapeActive] = useState(false);
   const handleSoundscapeActive = useCallback(value => {
     setSoundscapeActive(value);
@@ -45,6 +48,20 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   sceneEditorRef.current = sceneEditorOpen;
   // Applying a preset while Focus is open must not replay its entrance.
   const enteredWithEffect = useRef(transitions.enter);
+  useEffect(()=>{
+    const change=()=>setFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener('fullscreenchange',change);
+    return()=>document.removeEventListener('fullscreenchange',change);
+  },[]);
+  const toggleFullscreen = async () => {
+    try {
+      if(document.fullscreenElement) await document.exitFullscreen();
+      else await dialogRef.current?.requestFullscreen?.();
+      setFullscreenError('');
+    }catch{
+      setFullscreenError(language === 'en' ? 'Fullscreen is unavailable in this browser.' : 'Trình duyệt không cho phép toàn màn hình.');
+    }
+  };
   const canManage = canEditFocusScene(currentUser);
   const dialogRef = useRef(null);
   const dismissRef = useRef(null);
@@ -54,6 +71,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   const wakeControls = () => {
     if (exiting) return;
     setControlsVisible(true);
+    if (immersiveOnce) setImmersiveOnce(false);
     window.clearTimeout(controlsTimerRef.current);
     if (appearance.autoHide && !controlsBusy) {
       controlsTimerRef.current = window.setTimeout(() => setControlsVisible(false), 5000);
@@ -85,6 +103,11 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
 
     const keydown = (event) => {
       if (event.key === 'Escape') {
+        if (document.fullscreenElement) {
+          event.preventDefault();
+          document.exitFullscreen?.().catch(()=>{});
+          return;
+        }
         event.preventDefault();
         if (appearanceOpenRef.current) setAppearanceOpen(false);
         else if (effectsOpenRef.current) setEffectsOpen(false);
@@ -127,16 +150,25 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
 
   if (typeof document === 'undefined') return null;
   const vi = language !== 'en';
-  const displayScene = personalDim === null ? scene : { ...scene, dimPercent: personalDim };
+  const dim = personalDim === null ? appearance.dim : personalDim;
+  const displayScene = { ...scene, dimPercent: dim };
+  const cinemaStyle = {
+    '--bfc6-saturation': appearance.saturation / 100,
+    '--bfc6-contrast': appearance.contrast / 100,
+    '--bfc6-blur': appearance.blur + 'px',
+    '--bfc6-scale': appearance.scale / 100,
+  };
 
   return createPortal(
-    <div className={`bfc-overlay${(!motionEnabled || ['low','minimal'].includes(performance)) ? ' bfc-overlay--low-motion' : ''}${['low','minimal'].includes(performance) ? ' bfc-overlay--entry-lite' : ''}${canManage ? ' bfc-overlay--manager' : ''}${scene.mediaType === 'youtube' ? ' bfc-overlay--youtube' : ''}${sceneEditorOpen ? ' is-editor-open' : ''}${effectsOpen ? ' is-effects-open' : ''}${activeTool ? ' is-tools-open' : ''}${quiet ? ' bfc-overlay--quiet' : ''}${appearanceOpen ? ' is-appearance-open' : ''}${!controlsVisible && appearance.autoHide && !controlsBusy ? ' bfc-atelier--idle' : ''} bfc-atelier bfc-atelier--${appearance.clockMode}${exiting ? ' bfc-overlay--exiting' : ''}`} role="dialog" aria-modal="true"
+    <div className={`bfc-overlay${(!motionEnabled || ['low','minimal'].includes(performance)) ? ' bfc-overlay--low-motion' : ''}${['low','minimal'].includes(performance) ? ' bfc-overlay--entry-lite' : ''}${canManage ? ' bfc-overlay--manager' : ''}${scene.mediaType === 'youtube' ? ' bfc-overlay--youtube' : ''}${sceneEditorOpen ? ' is-editor-open' : ''}${effectsOpen ? ' is-effects-open' : ''}${activeTool ? ' is-tools-open' : ''}${quiet ? ' bfc-overlay--quiet' : ''}${appearanceOpen ? ' is-appearance-open' : ''}${(!controlsVisible && appearance.autoHide && !controlsBusy) || immersiveOnce ? ' bfc-atelier--idle' : ''} bfc-atelier bfc-atelier--${appearance.clockMode}${exiting ? ' bfc-overlay--exiting' : ''}`} role="dialog" aria-modal="true"
       aria-label={vi ? 'Chế độ tập trung Brian Focus' : 'Brian Focus mode'}
       aria-owns="bfc-focus-trigger"
       data-focus-transition={exiting ? 'exiting' : 'entering'}
       data-focus-enter={enteredWithEffect.current}
       data-focus-exit={transitions.exit}
       ref={dialogRef}
+      style={cinemaStyle}
+      data-bfc6-backdrop={appearance.backdrop}
       tabIndex={-1}
       onPointerMove={wakeControls}
       onPointerDown={wakeControls}>
@@ -183,6 +215,16 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
         {motionEnabled ? <Pause size={15} aria-hidden="true" /> : <Waves size={15} aria-hidden="true" />}
         <span>{vi ? (motionEnabled ? 'Tạm dừng chuyển động' : 'Bật chuyển động') : (motionEnabled ? 'Pause motion' : 'Resume motion')}</span>
       </button>}
+      {!sceneEditorOpen && !effectsOpen && !appearanceOpen ? <button type="button" className="bfc6-fullscreen"
+        onClick={toggleFullscreen} aria-label={fullscreen ? (vi?'Thoát toàn màn hình':'Exit fullscreen') : (vi?'Toàn màn hình':'Fullscreen')}
+        title={fullscreen ? (vi?'Thoát toàn màn hình':'Exit fullscreen') : (vi?'Toàn màn hình':'Fullscreen')}>
+        {fullscreen?<Minimize2 size={17}/>:<Maximize2 size={17}/>}
+      </button> : null}
+      {!sceneEditorOpen && !effectsOpen && !appearanceOpen ? <button type="button" className="bfc6-immersive"
+        onClick={()=>{setControlsVisible(false);setImmersiveOnce(true);}}
+        aria-label={vi?'Ẩn tất cả công cụ':'Hide all controls'} title={vi?'Không gian điện ảnh':'Cinema only'}>
+        <EyeOff size={17}/>
+      </button> : null}
       {!sceneEditorOpen && !effectsOpen && !appearanceOpen ? <button type="button" className="bfc-focus-header__timer"
         aria-label={vi ? 'Mở đồng hồ tập trung Pomodoro' : 'Open Focus timer'}
         onClick={() => setActiveTool(value => value === 'timer' ? '' : 'timer')}>
@@ -198,18 +240,22 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
       </button>
       </div>
       <div className="bfc-overlay__center">
-        <HTCSenseClock mode={appearance.clockMode} language={language} weather={weather} onRefreshWeather={onRefreshWeather}/>
+        <HTCSenseClock mode={appearance.clockMode} scale={appearance.scale} hour12={appearance.hour12}
+          showSeconds={appearance.showSeconds} language={language} weather={weather} onRefreshWeather={onRefreshWeather}/>
+        {appearance.intention && <p className="bfc6-intention">{appearance.intention}</p>}
       </div>
-      <FocusWorkspace currentUser={currentUser} language={language}
+      <FocusWorkspace currentUser={currentUser} language={language} appearance={appearance}
+        timerController={timerController} completedSessions={completedSessions}
         activeTool={activeTool} onChangeTool={setActiveTool}
         onBrightnessChange={setPersonalDim}
         onDndChange={setQuiet}
         onSoundscapeActiveChange={handleSoundscapeActive}
         onQuickToolsOpenChange={setQuickOpen}/>
+      {fullscreenError ? <span className="bfc6-fullscreen-error" role="alert">{fullscreenError}</span> : null}
       {sceneError && canManage ? <span className="bfc-overlay__scene-sync-warning" role="status">
         {vi ? 'Nền chưa được đồng bộ' : 'Scene sync unavailable'}
       </span> : null}
-      {appearanceOpen ? <FocusAppearancePicker language={language} appearance={appearance}
+      {appearanceOpen ? <Focus6Appearance language={language} appearance={appearance}
         onChange={setAppearance} onClose={() => {setAppearanceOpen(false);appearanceButtonRef.current?.focus?.();}}/> : null}
       {effectsOpen ? <FocusEffectsLibrary language={language} current={transitions}
         onApply={onEffectsChange} onClose={() => setEffectsOpen(false)} openerRef={effectsTriggerRef} /> : null}
