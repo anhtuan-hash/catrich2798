@@ -21,11 +21,11 @@ const uiRange=(label,value,min,max,onChange,unit='')=><label className="bfc7-ran
 </label>;
 const choice=(id,label,active,onClick)=><button type="button" className={'bfc7-choice'+(active?' is-active':'')} key={id}
   aria-pressed={active} onClick={onClick}>{label}{active&&<Check size={13}/>}</button>;
-export default function Focus7Studio({language='vi',data,update,appearance,onAppearance,
+export default function Focus7Studio({language='vi',data,update,appearance,onAppearance,initialTab='atmos',
   flow,timer,mixer,youtubeSession,youtubeControls,onChooseVideo,
   classroom,onClassroom,onClose}){
  const vi=language!=='en';
- const [tab,setTab]=useState('atmos');
+ const [tab,setTab]=useState(initialTab);
  const [videoDraft,setVideoDraft]=useState('');
  const [note,setNote]=useState('');
  const [mood,setMood]=useState('calm');
