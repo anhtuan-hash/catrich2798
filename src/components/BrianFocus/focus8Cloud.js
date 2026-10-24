@@ -25,7 +25,7 @@ export async function loadFocus8Vault(userId){
   ? {settings:normalizeFocus8(data.payload.settings),version:data.version,updatedAt:data.updated_at}
   : null;
 }
-const COMMANDS=['timer-toggle','timer-reset','clock-next','classroom-toggle','mood-next','scene-next','focus-close'];
+const COMMANDS=['timer-toggle','timer-reset','clock-next','classroom-toggle','mood-next','scene-next','volume-up','volume-down','layout-toggle','focus-close'];
 export function validateFocus8Command(input){
  if(!COMMANDS.includes(input?.type))throw new Error('Invalid remote command');
  return {type:input.type};
