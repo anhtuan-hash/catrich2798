@@ -73,7 +73,8 @@ export default function BrianBoard({currentUser,language='vi'}){
   }
   const id=newBoardPresentationId();
   const url=location.origin+'/brian-board-viewer.html#board='+encodeURIComponent(id);
-  const child=window.open(url,'_blank','noopener,noreferrer');
+  const child=window.open(url,'_blank');
+  if(child)try{child.opener=null;}catch{}
   if(!child){window.alert(vi?'Hãy cho phép mở cửa sổ mới để trình chiếu.':'Allow popups to open the student display.');return;}
   const bus=new BroadcastChannel('bbd-local-'+id);
   bus.onmessage=e=>{if(e.data?.type==='request'&&docRef.current)bus.postMessage(boardStudentPayload(docRef.current));};
