@@ -30,10 +30,17 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}]) {
      expect(info.a).toBe('beEventEnter'+enter[0].toUpperCase()+enter.slice(1));
      expect(info.left).toBeGreaterThanOrEqual(-1);
      expect(info.right).toBeLessThanOrEqual(viewport.width+1);
+     // Fully play the opening before assessing closing; transitions are deliberately
+     // independent and must not be mistaken for overlapping keyframe effects.
+     await page.locator('.be-pop-dialog').evaluate(async node=>{
+       await Promise.all(node.getAnimations().map(animation=>animation.finished.catch(()=>{})));
+     });
      await page.locator('.be-pop-overlay').evaluate(node=>node.classList.add('is-leaving'));
      const exitStyle=await page.locator('.be-pop-dialog').evaluate(node=>getComputedStyle(node).animationName);
      expect(exitStyle).toBe('beEventExit'+exit[0].toUpperCase()+exit.slice(1));
-     await page.waitForTimeout(320);
+     await page.locator('.be-pop-dialog').evaluate(async node=>{
+       await Promise.all(node.getAnimations().map(animation=>animation.finished.catch(()=>{})));
+     });
      const opacity=await page.locator('.be-pop-dialog').evaluate(node=>Number(getComputedStyle(node).opacity));
      expect(opacity).toBeLessThan(.15);
    });
