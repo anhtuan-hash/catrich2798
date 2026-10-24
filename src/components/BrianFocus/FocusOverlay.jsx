@@ -1,15 +1,22 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Waves, Pause } from 'lucide-react';
+import { X, Waves, Pause, ImagePlus } from 'lucide-react';
 import HTCSenseClock from './HTCSenseClock.jsx';
 import CosmicAmbient from './CosmicAmbient.jsx';
+import FocusSceneBackground from './FocusSceneBackground.jsx';
+import FocusSceneEditor from './FocusSceneEditor.jsx';
+import { canEditFocusScene } from './focusSceneService.js';
 
 /** Portal keeps the real Dashboard mounted and interactive state intact. */
-export default function FocusOverlay({ onClose, language, weather, onRefreshWeather, returnFocusRef, performance = 'balanced' }) {
+export default function FocusOverlay({ currentUser, scene, onScenePublished, sceneError, onClose, language, weather, onRefreshWeather, returnFocusRef, performance = 'balanced' }) {
   const [motionEnabled, setMotionEnabled] = useState(() => (
     !['low', 'minimal'].includes(performance) &&
     !(typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
   ));
+  const [sceneEditorOpen, setSceneEditorOpen] = useState(false);
+  const sceneEditorRef = useRef(false);
+  sceneEditorRef.current = sceneEditorOpen;
+  const canManage = canEditFocusScene(currentUser);
   const dialogRef = useRef(null);
   const dismissRef = useRef(null);
   const closeHandlerRef = useRef(onClose);
@@ -30,7 +37,8 @@ export default function FocusOverlay({ onClose, language, weather, onRefreshWeat
     const keydown = (event) => {
       if (event.key === 'Escape') {
         event.preventDefault();
-        closeHandlerRef.current?.();
+        if (sceneEditorRef.current) setSceneEditorOpen(false);
+        else closeHandlerRef.current?.();
         return;
       }
       if (event.key !== 'Tab' || !dialogRef.current) return;
@@ -69,23 +77,29 @@ export default function FocusOverlay({ onClose, language, weather, onRefreshWeat
   const vi = language !== 'en';
 
   return createPortal(
-    <div className={`bfc-overlay${(!motionEnabled || ['low','minimal'].includes(performance)) ? ' bfc-overlay--low-motion' : ''}`} role="dialog" aria-modal="true"
+    <div className={`bfc-overlay${(!motionEnabled || ['low','minimal'].includes(performance)) ? ' bfc-overlay--low-motion' : ''}${canManage ? ' bfc-overlay--manager' : ''}${sceneEditorOpen ? ' is-editor-open' : ''}`} role="dialog" aria-modal="true"
       aria-label={vi ? 'Chế độ tập trung Brian Focus' : 'Brian Focus mode'}
       aria-owns="bfc-focus-trigger"
       ref={dialogRef}
       onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
-      <CosmicAmbient motionEnabled={motionEnabled} />
+      {scene.mediaType === 'default' ? <CosmicAmbient motionEnabled={motionEnabled} /> : <FocusSceneBackground scene={scene} language={language} motionEnabled={motionEnabled} />}
       <div className="bfc-overlay__identity" aria-hidden="true">
         <span className="bfc-overlay__identity-mark">B<span>✦</span></span>
         <span className="bfc-overlay__identity-copy">BRIAN <strong>FOCUS</strong><small>{vi ? 'KHÔNG GIAN TẬP TRUNG' : 'IMMERSIVE SPACE'}</small></span>
       </div>
-      <button className="bfc-overlay__motion" type="button"
+      {canManage && !sceneEditorOpen ? <button className="bfc-overlay__edit" type="button"
+        onClick={() => setSceneEditorOpen(true)}
+        aria-label={vi ? 'Tùy chỉnh nền Focus cho mọi tài khoản' : 'Edit shared Focus scene'}>
+        <ImagePlus size={17} aria-hidden="true"/>
+        <span>{vi ? 'Đổi nền' : 'Change scene'}</span>
+      </button> : null}
+      {scene.mediaType === 'default' && <button className="bfc-overlay__motion" type="button"
         aria-pressed={motionEnabled}
         onClick={() => setMotionEnabled(value => !value)}
         title={vi ? (motionEnabled ? 'Tạm dừng chuyển động' : 'Bật chuyển động') : (motionEnabled ? 'Pause motion' : 'Resume motion')}>
         {motionEnabled ? <Pause size={15} aria-hidden="true" /> : <Waves size={15} aria-hidden="true" />}
         <span>{vi ? (motionEnabled ? 'Tạm dừng chuyển động' : 'Bật chuyển động') : (motionEnabled ? 'Pause motion' : 'Resume motion')}</span>
-      </button>
+      </button>}
       <button className="bfc-overlay__close" type="button" ref={dismissRef}
         aria-label={vi ? 'Đóng chế độ tập trung' : 'Close Focus mode'}
         onClick={onClose}>
@@ -96,6 +110,12 @@ export default function FocusOverlay({ onClose, language, weather, onRefreshWeat
       <div className="bfc-overlay__center">
         <HTCSenseClock language={language} weather={weather} onRefreshWeather={onRefreshWeather}/>
       </div>
+      {sceneError && canManage ? <span className="bfc-overlay__scene-sync-warning" role="status">
+        {vi ? 'Nền chưa được đồng bộ' : 'Scene sync unavailable'}
+      </span> : null}
+      {sceneEditorOpen && canManage ? <FocusSceneEditor key={scene.updatedAt || 'default'}
+        language={language} currentUser={currentUser} scene={scene}
+        onPublished={onScenePublished} onClose={() => setSceneEditorOpen(false)}/> : null}
       <div className="bfc-overlay__bottom" aria-hidden="true">
         <span className="bfc-overlay__equalizer"><i/><i/><i/><i/><i/></span>
         <span>{vi ? 'THƯ GIÃN  ·  TẬP TRUNG  ·  SÁNG TẠO' : 'BREATHE  ·  FOCUS  ·  CREATE'}</span>
