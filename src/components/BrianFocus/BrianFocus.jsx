@@ -9,6 +9,8 @@ import useFocusScene from './useFocusScene.js';
 import useFocusTimer from './useFocusTimer.js';
 import useFocus7Data from './useFocus7Data.js';
 import useFocus7Flow from './useFocus7Flow.js';
+import useFocus8Data, {advanceCue} from './useFocus8Data.js';
+import {Focus8RemoteClient} from './Focus8Remote.jsx';
 import { readFocusTransitions, writeFocusTransitions, FOCUS_TRANSITION_STORAGE_KEY } from './FocusTransitionLibrary.js';
 import { startFocusExit } from './focusExitMotion.js';
 import { startFocusEnter } from './focusEnterMotion.js';
@@ -25,6 +27,7 @@ import './BrianFocusAtelier.css';
 import './BrianFocusPersistentYoutube.css';
 import './BrianFocus6.css';
 import './BrianFocus7.css';
+import './BrianFocus8.css';
 import { GLOBAL_FLOATING_ACTION_EVENT, FLOATING_ACTION_IDS } from '../../utils/unifiedFloatingDock.js';
 
 /** One global Focus trigger and overlay; the underlying app route stays mounted. */
@@ -40,11 +43,25 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
   const { weather, refresh } = useFocusWeather(open);
   const { scene, setScene, error: sceneError } = useFocusScene(open, currentUser?.id);
   const {data:focus7,update:update7} = useFocus7Data(currentUser?.id);
+  const {data:focus8,update:update8} = useFocus8Data(currentUser?.id);
+  const [remoteClient,setRemoteClient]=useState(()=>new URLSearchParams(location.hash.split('?')[1]||'').has('focusRemote'));
+  useEffect(()=>{
+    const sync=()=>setRemoteClient(new URLSearchParams(location.hash.split('?')[1]||'').has('focusRemote'));
+    window.addEventListener('hashchange',sync);
+    return()=>window.removeEventListener('hashchange',sync);
+  },[]);
   const focus7UpdateRef=useRef(update7);focus7UpdateRef.current=update7;
   const focus7RecordRef=useRef(focus7);focus7RecordRef.current=focus7;
   const timerLengthRef=useRef(25);
   const [completionToken,setCompletionToken]=useState(0);
   const [videoDeadline,setVideoDeadline]=useState(0);
+  useEffect(()=>{
+    if(!focus8.cueRunning)return undefined;
+    const id=window.setInterval(()=>{
+      if(Date.now()>=focus8.cueDeadline)update8(current=>advanceCue(current,Date.now()));
+    },1000);
+    return()=>window.clearInterval(id);
+  },[focus8.cueRunning,focus8.cueDeadline,focus8.cueIndex]);
   const mediaScene=focus7.videoOverride
     ? {...scene,mediaType:'youtube',mediaPath:'youtube:'+focus7.videoOverride}
     : scene;
@@ -203,6 +220,10 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
   return (
     <>
       {persistentYoutubePlayer}
+      {remoteClient && typeof document !== 'undefined'
+        ? createPortal(<Focus8RemoteClient userId={currentUser?.id} language={language}
+           onClose={()=>{location.hash='#/dashboard';setRemoteClient(false);}}/>,document.body)
+        : null}
       {typeof document !== 'undefined' ? createPortal(button, document.body) : null}
       {!open && youtubeSession.mounted && mediaScene.mediaType === 'youtube' && typeof document !== 'undefined'
         ? createPortal(<FocusYoutubeBackground
@@ -211,7 +232,8 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
         : null}
       {open ? (
         <FocusOverlay currentUser={currentUser} scene={mediaScene} sharedScene={scene} onScenePublished={setScene} sceneError={sceneError}
-          focus7={focus7} update7={update7} focusFlow={focusFlow} choosePersonalVideo={choosePersonalVideo}
+          focus7={focus7} update7={update7} focus8={focus8} update8={update8}
+          focusFlow={focusFlow} choosePersonalVideo={choosePersonalVideo}
           youtubeSession={youtubeSession} youtubeControls={youtubeControls}
           timerController={timerController} completedSessions={completedSessions}
           language={language} weather={weather} exiting={exiting} transitions={transitions} onEffectsChange={setEffectChoice}
