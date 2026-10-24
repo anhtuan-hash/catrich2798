@@ -1,0 +1,170 @@
+/* BRIAN FOCUS 8.0 — AMBIENT OS
+   Loaded last; all rules are Focus-scoped except the explicitly portalled
+   same-account mobile remote dialog. Existing shared scene and YouTube survive. */
+.bfc-overlay.bfc-atelier .bfc8-cue{
+  position:fixed;inset:0;pointer-events:none;z-index:2;
+  opacity:.18;mix-blend-mode:soft-light;
+  transition:background 900ms ease;
+}
+.bfc-overlay.bfc-atelier .bfc8-cue--dawn{background:linear-gradient(110deg,#ffcda3,transparent 70%);}
+.bfc-overlay.bfc-atelier .bfc8-cue--golden{background:linear-gradient(125deg,#c98d54,transparent 65%);}
+.bfc-overlay.bfc-atelier .bfc8-cue--rain{background:linear-gradient(130deg,#789fb6,transparent 70%);}
+.bfc-overlay.bfc-atelier .bfc8-cue--twilight{background:linear-gradient(125deg,#855b9b,transparent 75%);}
+.bfc-overlay.bfc-atelier .bfc8-cue--midnight{background:linear-gradient(125deg,#101b4a,transparent 75%);}
+.bfc-overlay.bfc-atelier.bfc8-depth-active :is(.bfc7-light-layer,.bfc7-particles,.bfc8-cue){
+ transform:translate3d(var(--bfc8-depth-x,0px),var(--bfc8-depth-y,0px),0);
+ will-change:transform;transition:transform .2s ease-out;
+}
+/* Custom positioning is opt-in. Users upgrading keep their V7 layout. */
+.bfc-overlay.bfc-atelier.bfc8-layout-active .bfc-overlay__center{
+ position:fixed!important;left:var(--bfc8-clock-x,50%)!important;
+ top:var(--bfc8-clock-y,50%)!important;right:auto!important;
+ width:min(92vw,610px)!important;margin:0!important;
+ padding:0!important;transform:translate(-50%,-50%)!important;
+}
+.bfc-overlay.bfc-atelier.bfc8-layout-active .bfc-utility-dock{
+ position:fixed!important;left:var(--bfc8-dock-x,50%)!important;
+ top:var(--bfc8-dock-y,94%)!important;bottom:auto!important;
+ transform:translate(-50%,-50%)!important;
+}
+.bfc-overlay.bfc-atelier .bfc-focus-header-actions .bfc8-open-studio{
+ display:grid!important;place-items:center!important;min-width:40px!important;
+ height:40px!important;min-height:40px!important;padding:9px!important;
+ border:0!important;border-radius:12px!important;
+ background:rgba(255,255,255,.11)!important;color:#fff!important;cursor:pointer;
+}
+.bfc-overlay.bfc-atelier .bfc-focus-header-actions .bfc8-open-studio:hover{background:rgba(255,255,255,.23)!important;}
+.bfc-overlay.bfc-atelier .bfc8-stage{
+ display:grid;justify-items:center;gap:11px;max-width:80vw;margin:16px auto;
+ color:#fff;text-align:center;text-shadow:0 3px 20px rgba(0,0,0,.7);
+}
+.bfc-overlay.bfc-atelier .bfc8-stage h2{font-size:clamp(19px,2.1vw,32px);margin:0;font-weight:580;letter-spacing:-.015em;}
+.bfc-overlay.bfc-atelier .bfc8-stage p{font-size:clamp(13px,1.4vw,21px);margin:0;}
+.bfc-overlay.bfc-atelier .bfc8-stage strong{font-size:clamp(33px,4.2vw,60px);font-variant-numeric:tabular-nums;}
+.bfc-overlay.bfc-atelier .bfc8-stage img{border-radius:9px;border:6px solid #fff;box-shadow:0 8px 28px rgba(0,0,0,.3);}
+.bfc-overlay.bfc-atelier.bfc7-classroom .bfc8-stage{display:grid!important;}
+.bfc-overlay.bfc-atelier .bfc8-studio{
+ position:fixed;z-index:48;
+ top:max(60px,calc(env(safe-area-inset-top,0px) + 58px));
+ right:max(17px,env(safe-area-inset-right,0px));
+ width:min(720px,calc(100vw - 34px));max-height:calc(100dvh - 80px);
+ display:flex;flex-direction:column;overflow:hidden;
+ border-radius:20px;border:1px solid rgba(245,237,219,.25);
+ background:linear-gradient(135deg,rgba(27,32,40,.985),rgba(17,22,31,.985));
+ color:#f5f2eb;box-shadow:0 35px 105px rgba(0,0,0,.48);
+ -webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);
+ font:12px/1.45 "Google Sans",Inter,system-ui,sans-serif;pointer-events:auto;
+}
+.bfc-overlay.bfc-atelier .bfc8-studio button,.bfc-overlay.bfc-atelier .bfc8-studio input,
+.bfc-overlay.bfc-atelier .bfc8-studio select,.bfc-overlay.bfc-atelier .bfc8-studio textarea{font:inherit;}
+.bfc-overlay.bfc-atelier .bfc8-studio button{cursor:pointer;}
+.bfc-overlay.bfc-atelier .bfc8-studio button:disabled{opacity:.4;cursor:not-allowed;}
+.bfc-overlay.bfc-atelier .bfc8-studio__head{
+ display:flex;align-items:center;justify-content:space-between;gap:12px;
+ padding:16px 21px 12px;border-bottom:1px solid rgba(255,255,255,.11);
+}
+.bfc-overlay.bfc-atelier .bfc8-studio__head small{font-size:9px;color:#c4bbab;letter-spacing:.19em;}
+.bfc-overlay.bfc-atelier .bfc8-studio__head h2{margin:2px 0 0;font-size:22px;font-weight:630;}
+.bfc-overlay.bfc-atelier .bfc8-studio__head>button{display:grid;place-items:center;border-radius:12px;width:38px;height:38px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;font-size:22px;}
+.bfc-overlay.bfc-atelier .bfc8-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;padding:11px 15px;border-bottom:1px solid rgba(255,255,255,.13);}
+.bfc-overlay.bfc-atelier .bfc8-tabs button{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;min-height:37px;min-width:0;padding:5px;border:1px solid transparent;border-radius:9px;color:#d7d0c7;background:rgba(255,255,255,.045);font-size:10px!important;white-space:nowrap;}
+.bfc-overlay.bfc-atelier .bfc8-tabs button.active{color:#fff;border-color:rgba(239,222,191,.6);background:rgba(255,255,255,.16);}
+.bfc-overlay.bfc-atelier .bfc8-tabs small{font-size:8px;color:#bdb2a5;letter-spacing:.1em;}
+.bfc-overlay.bfc-atelier .bfc8-studio__body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:20px;}
+.bfc-overlay.bfc-atelier .bfc8-studio__status{margin:0;padding:9px 19px;color:#d9ebcf;font-size:11px;background:rgba(75,114,84,.16);}
+.bfc-overlay.bfc-atelier .bfc8-studio>footer{border-top:1px solid rgba(255,255,255,.12);padding:11px 19px;font-size:10px;color:rgba(255,255,255,.52);}
+.bfc-overlay.bfc-atelier .bfc8-stack{display:grid;gap:13px;align-content:start;}
+.bfc-overlay.bfc-atelier .bfc8-stack h3{font-size:17px;font-weight:650;margin:0;}
+.bfc-overlay.bfc-atelier .bfc8-stack p{margin:0;line-height:1.6;font-size:11px;color:rgba(255,255,255,.69);}
+.bfc-overlay.bfc-atelier .bfc8-stack>label{display:grid;gap:7px;font-size:11px;}
+.bfc-overlay.bfc-atelier .bfc8-stack>label input,.bfc-overlay.bfc-atelier .bfc8-stack textarea,
+.bfc-overlay.bfc-atelier .bfc8-actions :is(input,select){
+ min-height:36px;min-width:0;padding:8px 10px;border-radius:10px;
+ border:1px solid rgba(255,255,255,.2);background:rgba(5,10,20,.35);color:white;
+}
+.bfc-overlay.bfc-atelier .bfc8-stack input[type=range]{width:100%;accent-color:#ddc9a3;}
+.bfc-overlay.bfc-atelier .bfc8-stack input[type=checkbox]{accent-color:#e5d3b3;}
+.bfc-overlay.bfc-atelier .bfc8-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;}
+.bfc-overlay.bfc-atelier .bfc8-actions button,.bfc-overlay.bfc-atelier .bfc8-stack>button,
+.bfc-overlay.bfc-atelier .bfc8-rows button,.bfc-overlay.bfc-atelier .bfc8-file{
+ display:inline-flex;align-items:center;justify-content:center;min-height:37px;
+ border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);
+ color:#faf8f1;border-radius:10px;padding:8px 11px;font-size:11px;cursor:pointer;
+}
+.bfc-overlay.bfc-atelier .bfc8-actions button:is(.primary,.active),
+.bfc-overlay.bfc-atelier .bfc8-stack>button.primary{color:#202733;background:#eadfc5;border-color:#f2e9d5;}
+.bfc-overlay.bfc-atelier .bfc8-rows{display:grid;gap:7px;max-height:240px;overflow-y:auto;}
+.bfc-overlay.bfc-atelier .bfc8-rows>div{display:flex;align-items:center;gap:7px;min-height:42px;padding:7px 10px;border-radius:10px;background:rgba(255,255,255,.06);}
+.bfc-overlay.bfc-atelier .bfc8-rows>div>strong,.bfc-overlay.bfc-atelier .bfc8-rows label{flex:1;font-size:11px;font-weight:550;}
+.bfc-overlay.bfc-atelier .bfc8-rows button{min-width:33px;min-height:33px;padding:5px;}
+.bfc-overlay.bfc-atelier .bfc8-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.bfc-overlay.bfc-atelier .bfc8-metrics span{display:grid;gap:3px;text-align:center;padding:14px;background:rgba(255,255,255,.06);border-radius:12px;}
+.bfc-overlay.bfc-atelier .bfc8-metrics strong{font-size:24px;}
+.bfc-overlay.bfc-atelier .bfc8-qr{display:grid;justify-items:center;gap:10px;}
+.bfc-overlay.bfc-atelier .bfc8-qr img{width:190px;height:190px;background:#fff;padding:9px;border-radius:12px;}
+.bfc-overlay.bfc-atelier .bfc8-file input{max-width:140px;font-size:10px;color:#fff;}
+.bfc-overlay.bfc-atelier .bfc8-check{display:flex!important;align-items:center;flex-direction:row!important;gap:9px!important;}
+.bfc-overlay.bfc-atelier .bfc8-layout-board{
+ position:relative;isolation:isolate;aspect-ratio:16/9;width:100%;overflow:hidden;
+ background:linear-gradient(145deg,#506071,#172638 60%,#252632);
+ border:1px solid rgba(255,255,255,.22);border-radius:13px;
+ background-image:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),
+ linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px),
+ linear-gradient(145deg,#526374,#192939);background-size:5% 5%,5% 5%,auto;
+}
+.bfc-overlay.bfc-atelier .bfc8-layout-board--tablet{max-width:340px;aspect-ratio:3/4;margin:auto;}
+.bfc-overlay.bfc-atelier .bfc8-layout-board--mobile{max-width:200px;aspect-ratio:9/16;margin:auto;}
+.bfc-overlay.bfc-atelier .bfc8-layout-item{
+ position:absolute;transform:translate(-50%,-50%);min-height:33px;
+ white-space:nowrap;padding:7px 10px;border:1px solid rgba(255,255,255,.4);
+ border-radius:10px;color:#fff;background:rgba(24,29,40,.83);cursor:grab;
+ touch-action:none;user-select:none;font-size:11px;
+}
+.bfc-overlay.bfc-atelier .bfc8-layout-item.active{border-color:#f0ddba;background:rgba(114,89,57,.8);}
+.bfc8-command-palette{
+ position:fixed;z-index:80;top:min(24vh,165px);left:50%;transform:translateX(-50%);
+ width:min(540px,calc(100vw - 30px));max-height:65dvh;overflow:hidden;
+ border-radius:19px;border:1px solid rgba(255,255,255,.31);
+ background:rgba(18,23,30,.97);box-shadow:0 24px 85px rgba(0,0,0,.55);
+ color:#f7f5ef;display:grid;pointer-events:auto;
+}
+.bfc8-command-palette input{
+ min-height:55px;padding:15px 20px;border:0;border-bottom:1px solid rgba(255,255,255,.16);
+ outline:0;background:transparent;color:#fff;font-size:15px;
+}
+.bfc8-command-palette>div{display:grid;min-height:0;overflow-y:auto;padding:8px;}
+.bfc8-command-palette button{
+ text-align:left;display:flex;justify-content:space-between;align-items:center;min-height:42px;
+ border:0;border-radius:9px;padding:9px 13px;background:transparent;color:white;cursor:pointer;
+ font-size:12px;
+}
+.bfc8-command-palette button[aria-selected=true],.bfc8-command-palette button:hover{background:rgba(255,255,255,.15);}
+.bfc8-command-palette kbd{font:12px system-ui;color:#d3c4a7;}
+.bfc8-command-palette footer{font-size:10px;color:#aeb4be;border-top:1px solid rgba(255,255,255,.1);padding:10px 14px;}
+.bfc8-remote-client{
+ position:fixed;z-index:99999;inset:0;display:grid;align-content:start;gap:18px;padding:max(18px,env(safe-area-inset-top)) 20px;
+ background:#161f2c;color:#f7f2e9;overflow-y:auto;font:14px system-ui,sans-serif;
+}
+.bfc8-remote-client header{display:flex;justify-content:space-between;align-items:center;}
+.bfc8-remote-client header button{font-size:24px;background:none;border:0;color:white;}
+.bfc8-remote-client__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.bfc8-remote-client__grid button{
+ display:grid;place-items:center;gap:10px;min-height:100px;padding:16px;
+ border-radius:14px;border:1px solid rgba(255,255,255,.2);
+ background:rgba(255,255,255,.08);color:#fff;font-size:14px;
+}
+.bfc8-remote-client__grid button span{font-size:30px;}
+@media(max-width:760px){
+ .bfc-overlay.bfc-atelier .bfc-focus-header-actions .bfc8-open-studio{min-width:36px!important;width:36px!important;padding:6px!important;}
+ .bfc-overlay.bfc-atelier .bfc8-studio{width:calc(100vw - 14px);right:7px;top:max(60px,env(safe-area-inset-top));max-height:calc(100dvh - 67px);border-radius:15px;}
+ .bfc-overlay.bfc-atelier .bfc8-studio__head{padding:12px 14px;}
+ .bfc-overlay.bfc-atelier .bfc8-studio__head h2{font-size:18px;}
+ .bfc-overlay.bfc-atelier .bfc8-tabs{grid-template-columns:repeat(5,minmax(0,1fr));padding:8px;gap:3px;}
+ .bfc-overlay.bfc-atelier .bfc8-tabs button{font-size:8px!important;padding:5px 1px;white-space:normal;text-align:center;overflow-wrap:anywhere;}
+ .bfc-overlay.bfc-atelier .bfc8-studio__body{padding:13px;}
+ .bfc-overlay.bfc-atelier .bfc8-actions select{max-width:180px;}
+ .bfc-overlay.bfc-atelier .bfc8-layout-board{max-height:350px;}
+}
+@media(prefers-reduced-motion:reduce){
+ .bfc-overlay.bfc-atelier .bfc8-cue,.bfc-overlay.bfc-atelier .bfc8-depth-active :is(.bfc7-light-layer,.bfc7-particles){transition:none!important;transform:none!important;}
+}
