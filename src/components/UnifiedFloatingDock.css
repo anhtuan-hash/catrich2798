@@ -72,6 +72,7 @@
   cursor:pointer;
   transition:transform .2s ease,box-shadow .2s ease;
 }
+.bes-unified-dock__action.is-board {color:#2d7664;background:linear-gradient(145deg,#eff8f3,#dcece4);}
 .bes-unified-dock__action.is-focus {color:#fff;background:linear-gradient(135deg,#5b6be9,#7f42d9);}
 .bes-unified-dock__action.is-approvals {color:#226be1;background:linear-gradient(135deg,#fff,#eaf3ff);}
 .bes-unified-dock__action.is-chat {color:#3669d7;background:linear-gradient(135deg,#fff,#f5f1ff);}
