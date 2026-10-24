@@ -15,7 +15,7 @@ export default function FocusYoutubeBackground({
   const playing=Boolean(session?.playing&&session?.mounted);
   const mounted=Boolean(session?.mounted);
   return <div className={'bfc-youtube-controls'+(compact?' bfc-youtube-controls--mini':'')+(mini?' bfc6-youtube-mini':'')}
-    role="group" aria-label={vi?'Điều khiển YouTube chạy nền':'Background YouTube controls'}>
+    role="group" aria-label={vi ? 'Điều khiển YouTube chạy nền' : 'Background YouTube controls'}>
     <span className="bfc-youtube-controls__brand" aria-hidden="true"><Youtube size={17}/></span>
     {compact&&<span className="bfc-youtube-controls__status" aria-live="polite">
       {playing?(vi?'YouTube đang chạy nền':'YouTube playing in background'):(vi?'YouTube tạm dừng':'YouTube paused')}
