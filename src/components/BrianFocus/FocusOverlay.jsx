@@ -369,7 +369,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
           showSeconds={appearance.showSeconds} language={language} weather={weather} onRefreshWeather={onRefreshWeather}/>
         {!classroom&&appearance.intention && <p className="bfc6-intention">{appearance.intention}</p>}
         {classroom&&<Focus8Stage stage={focus8.stage} language={language}/>}
-        {classroom&&<p className="bfc7-classroom-timer" role="timer">{timerController.formatted}</p>
+        {classroom&&<p className="bfc7-classroom-timer" role="timer">{timerController.formatted}</p>}
       </div>
       {!classroom&&<FocusWorkspace currentUser={currentUser} language={language} appearance={appearance}
         onAppearanceChange={setAppearance} mixer={mixer} onManualTimerAction={focusFlow.stop}
