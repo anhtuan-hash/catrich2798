@@ -123,3 +123,27 @@
 }
 @media(max-width:400px){.bfc-effect-gallery__head em{display:none}.bfc-effect-gallery__card-copy strong{font-size:10px}.bfc-effect-gallery__directions button span{font-size:9px}}
 @media (prefers-reduced-motion:reduce){.bfc-effect-gallery,.bfc-effect-gallery *{animation:none!important;transition:none!important}}
+
+/* Auto-replay affordance: gallery preview now loops every 3.4 seconds.
+   The slim progress bar makes this unmistakable even between transitions. */
+.bfc-effect-gallery__preview-progress{
+  grid-column:1/-1;height:3px;width:100%;overflow:hidden;
+  border-radius:99px;background:rgba(166,195,255,.13);
+  margin:0;padding:0;
+}
+.bfc-effect-gallery__preview-progress>span{
+  display:block;height:100%;width:100%;transform-origin:0 50%;
+  background:linear-gradient(90deg,#64c9ff,#b398ff,#e0b5ff);
+  animation:bfc-effect-preview-meter 3400ms linear infinite !important;
+}
+@keyframes bfc-effect-preview-meter{
+  0%{transform:scaleX(0)}
+  99.9%{transform:scaleX(1)}
+  100%{transform:scaleX(0)}
+}
+.bfc-effect-gallery__preview-meta button:disabled{
+  opacity:.45;cursor:not-allowed;
+}
+@media (prefers-reduced-motion:reduce){
+ .bfc-effect-gallery__preview-progress>span{animation:none!important;transform:scaleX(1)!important;}
+}
