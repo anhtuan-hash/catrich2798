@@ -39,7 +39,7 @@ function members(workspace) {
 }
 function sourceStatus(snapshot, key) {
   const source = snapshot?.sources?.[key];
-  return source && ['ok','limited'].includes(source.status);
+  return source && source.status === 'ok';
 }
 export function compareSyncDoctorSnapshots(snapshot = {}) {
   const { schoolYear = '', className = '', canonical = [], homeroom = [], gradebooks = [], assessmentClasses = [] } = snapshot;
