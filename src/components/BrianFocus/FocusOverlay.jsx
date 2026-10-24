@@ -38,15 +38,14 @@ export default function FocusOverlay({ onClose, language, weather, weatherDescri
         returnFocusRef?.current,
       ].filter(node => node && node.getClientRects().length);
       if (!focusable.length) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (event.shiftKey && (document.activeElement === first || !focusable.includes(document.activeElement))) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && (document.activeElement === last || !focusable.includes(document.activeElement))) {
-        event.preventDefault();
-        first.focus();
-      }
+      // The trigger is before the overlay in document.body. Never rely on
+      // browser DOM tab order; cycle explicitly through dialog + portal bubble.
+      const currentIndex = focusable.indexOf(document.activeElement);
+      const nextIndex = currentIndex === -1
+        ? (event.shiftKey ? focusable.length - 1 : 0)
+        : (currentIndex + (event.shiftKey ? -1 : 1) + focusable.length) % focusable.length;
+      event.preventDefault();
+      focusable[nextIndex].focus();
     };
 
     document.addEventListener('keydown', keydown);
