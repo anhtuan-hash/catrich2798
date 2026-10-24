@@ -35,7 +35,7 @@ for(const source of ['atelier','ambient','silk']){
  assert.equal(features.filter(match=>match[1]===source).length,10);
 }
 assert.match(hub,/input type="search"/);
-assert.match(hub,/normalize\(value\)/);
+assert.match(hub,/const normalize=value=>/);
 assert.match(hub,/initialSelected=null/);
 for(const text of ['Living Atelier 7.0','Ambient OS 8.0','Silk Flow 9.0','Focus Studio 6.0','Living Space 6.0']){
  for(const name of legacy)assert.ok(!file(name).includes(text),name+' still displays '+text);
