@@ -77,3 +77,17 @@
     transition: none !important;
   }
 }
+
+/* Exit selectors above are more specific than the entry's reduced-motion rule.
+   Repeat at highest local specificity to guarantee zero motion in both phases. */
+@media (prefers-reduced-motion: reduce) {
+  .be-pop-overlay[data-event-motion].is-leaving .be-pop-dialog,
+  .be-pop-overlay[data-event-motion].is-leaving .be-pop-scrim,
+  .be-pop-overlay[data-event-motion]:not(.is-leaving) .be-pop-dialog,
+  .be-pop-overlay[data-event-motion]:not(.is-leaving) .be-pop-scrim,
+  .be-pop-preview-stage.is-leaving .be-pop-preview-card,
+  .be-pop-preview-stage:not(.is-leaving) .be-pop-preview-card {
+    animation: none !important;
+    transition: none !important;
+  }
+}
