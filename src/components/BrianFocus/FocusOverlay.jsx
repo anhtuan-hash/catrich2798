@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Waves, Pause, ImagePlus, Clapperboard } from 'lucide-react';
+import { X, Waves, Pause, ImagePlus, Clapperboard, TimerReset } from 'lucide-react';
 import HTCSenseClock from './HTCSenseClock.jsx';
 import CosmicAmbient from './CosmicAmbient.jsx';
 import FocusSceneBackground from './FocusSceneBackground.jsx';
 import FocusYoutubeBackground from './FocusYoutubeBackground.jsx';
 import FocusSceneEditor from './FocusSceneEditor.jsx';
 import FocusEffectsLibrary from './FocusEffectsLibrary.jsx';
+import FocusWorkspace from './FocusWorkspace.jsx';
 import { canEditFocusScene } from './focusSceneService.js';
 
 /** Portal keeps the real Dashboard mounted and interactive state intact. */
@@ -17,6 +18,12 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   ));
   const [sceneEditorOpen, setSceneEditorOpen] = useState(false);
   const [effectsOpen, setEffectsOpen] = useState(false);
+  const [activeTool, setActiveTool] = useState('');
+  const [personalDim, setPersonalDim] = useState(null);
+  const [quiet, setQuiet] = useState(false);
+  const [soundscapeActive, setSoundscapeActive] = useState(false);
+  const activeToolRef = useRef('');
+  activeToolRef.current = activeTool;
   const effectsTriggerRef = useRef(null);
   const effectsOpenRef = useRef(false);
   effectsOpenRef.current = effectsOpen;
@@ -47,6 +54,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
         event.preventDefault();
         if (effectsOpenRef.current) setEffectsOpen(false);
         else if (sceneEditorRef.current) setSceneEditorOpen(false);
+        else if (activeToolRef.current) setActiveTool('');
         else closeHandlerRef.current?.();
         return;
       }
@@ -84,9 +92,10 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
 
   if (typeof document === 'undefined') return null;
   const vi = language !== 'en';
+  const displayScene = personalDim === null ? scene : { ...scene, dimPercent: personalDim };
 
   return createPortal(
-    <div className={`bfc-overlay${(!motionEnabled || ['low','minimal'].includes(performance)) ? ' bfc-overlay--low-motion' : ''}${['low','minimal'].includes(performance) ? ' bfc-overlay--entry-lite' : ''}${canManage ? ' bfc-overlay--manager' : ''}${sceneEditorOpen ? ' is-editor-open' : ''}${effectsOpen ? ' is-effects-open' : ''}${exiting ? ' bfc-overlay--exiting' : ''}`} role="dialog" aria-modal="true"
+    <div className={`bfc-overlay${(!motionEnabled || ['low','minimal'].includes(performance)) ? ' bfc-overlay--low-motion' : ''}${['low','minimal'].includes(performance) ? ' bfc-overlay--entry-lite' : ''}${canManage ? ' bfc-overlay--manager' : ''}${sceneEditorOpen ? ' is-editor-open' : ''}${effectsOpen ? ' is-effects-open' : ''}${activeTool ? ' is-tools-open' : ''}${quiet ? ' bfc-overlay--quiet' : ''}${exiting ? ' bfc-overlay--exiting' : ''}`} role="dialog" aria-modal="true"
       aria-label={vi ? 'Chế độ tập trung Brian Focus' : 'Brian Focus mode'}
       aria-owns="bfc-focus-trigger"
       data-focus-transition={exiting ? 'exiting' : 'entering'}
@@ -97,12 +106,16 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
       {scene.mediaType === 'default'
         ? <CosmicAmbient motionEnabled={motionEnabled} />
         : scene.mediaType === 'youtube'
-          ? <FocusYoutubeBackground scene={scene} language={language} />
-          : <FocusSceneBackground scene={scene} language={language} motionEnabled={motionEnabled} />}
+          ? <FocusYoutubeBackground scene={displayScene} language={language} soundscapeActive={soundscapeActive} />
+          : <FocusSceneBackground scene={displayScene} language={language} motionEnabled={motionEnabled} />}
       <div className="bfc-overlay__identity" aria-hidden="true">
         <span className="bfc-overlay__identity-mark">B<span>✦</span></span>
         <span className="bfc-overlay__identity-copy">BRIAN <strong>FOCUS</strong><small>{vi ? 'KHÔNG GIAN TẬP TRUNG' : 'IMMERSIVE SPACE'}</small></span>
       </div>
+      {scene.mediaType === 'default' && personalDim !== null ?
+        <div className="bfc-focus-scene-veil" aria-hidden="true"
+          style={{ backgroundColor: 'rgba(2,8,22,' + (personalDim / 100) + ')' }} /> : null}
+      <div className="bfc-focus-header-actions">
       {!sceneEditorOpen && !effectsOpen ? <button type="button" className="bfc-overlay__effects"
         ref={effectsTriggerRef} onClick={() => setEffectsOpen(true)}
         aria-label={vi ? 'Mở kho hiệu ứng chuyển động Focus' : 'Open Focus effects library'}>
@@ -129,9 +142,21 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
         <span>{vi ? 'Đóng' : 'Close'}</span>
         <kbd>Esc</kbd>
       </button>
+      {!sceneEditorOpen && !effectsOpen ? <button type="button" className="bfc-focus-header__timer"
+        aria-label={vi ? 'Mở đồng hồ tập trung Pomodoro' : 'Open Focus timer'}
+        onClick={() => setActiveTool(value => value === 'timer' ? '' : 'timer')}>
+        <TimerReset size={17} aria-hidden="true"/>
+        <span>{vi ? 'Hẹn giờ' : 'Focus timer'}</span>
+      </button> : null}
+      </div>
       <div className="bfc-overlay__center">
         <HTCSenseClock language={language} weather={weather} onRefreshWeather={onRefreshWeather}/>
       </div>
+      <FocusWorkspace currentUser={currentUser} language={language}
+        activeTool={activeTool} onChangeTool={setActiveTool}
+        onBrightnessChange={setPersonalDim}
+        onDndChange={setQuiet}
+        onSoundscapeActiveChange={setSoundscapeActive}/>
       {sceneError && canManage ? <span className="bfc-overlay__scene-sync-warning" role="status">
         {vi ? 'Nền chưa được đồng bộ' : 'Scene sync unavailable'}
       </span> : null}
