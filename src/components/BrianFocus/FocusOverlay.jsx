@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Waves, Pause, ImagePlus, Clapperboard, TimerReset, SlidersHorizontal, Maximize2, Minimize2, EyeOff, WandSparkles, Presentation, Command } from 'lucide-react';
 import HTCSenseClock from './HTCSenseClock.jsx';
@@ -19,6 +19,7 @@ import Focus8Commands from './Focus8Commands.jsx';
 import Focus8Stage from './Focus8Stage.jsx';
 import {useFocus8RemoteHost} from './Focus8Remote.jsx';
 import {getViewportLayout} from './useFocus8Data.js';
+import {browserFocusMotionBudget} from './focusMotionBudget.js';
 import { canEditFocusScene } from './focusSceneService.js';
 
 /** Portal keeps the real Dashboard mounted and interactive state intact. */
@@ -39,6 +40,8 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   useEffect(()=>{const update=()=>setViewportMode(getViewportLayout(window.innerWidth));
    window.addEventListener('resize',update);return()=>window.removeEventListener('resize',update);},[]);
   const depthRef=useRef(0);
+  const depthPendingRef=useRef({x:0,y:0});
+  const motionBudget=useMemo(()=>browserFocusMotionBudget(performance),[performance,viewportMode]);
   const clockModes=['inherit','sense','glass','minimal','floating','kyoto','swiss','aurora','liquid'];
   const moods=['auto','off','dawn','golden','rain','twilight','midnight'];
   const [classroom,setClassroom]=useState(false);
@@ -48,6 +51,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   const [controlsVisible, setControlsVisible] = useState(true);
   const [quickOpen, setQuickOpen] = useState(false);
   const controlsTimerRef = useRef(null);
+  const lastControlsWakeRef=useRef(0);
   const appearanceButtonRef = useRef(null);
   const { appearance, setAppearance } = useFocusAppearance(currentUser?.id);
   useEffect(()=>{
@@ -126,12 +130,17 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   const dialogRef = useRef(null);
   const moveDepth=event=>{
     wakeControls();
-    if(focus8.depth==='off'||!motionEnabled||['low','minimal'].includes(performance)||
-      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return;
-    if(depthRef.current)cancelAnimationFrame(depthRef.current);
-    const x=(event.clientX/window.innerWidth-.5)*(focus8.depth==='standard'?18:8);
-    const y=(event.clientY/window.innerHeight-.5)*(focus8.depth==='standard'?18:8);
+    if(focus8.depth==='off'||!motionEnabled||!motionBudget.parallax)return;
+    const ratio=focus8.depth==='standard'?18:8;
+    depthPendingRef.current={
+      x:(event.clientX/window.innerWidth-.5)*ratio,
+      y:(event.clientY/window.innerHeight-.5)*ratio,
+    };
+    // Never cancel and reschedule on every mousemove. One compositor write per frame.
+    if(depthRef.current)return;
     depthRef.current=requestAnimationFrame(()=>{
+      depthRef.current=0;
+      const {x,y}=depthPendingRef.current;
       dialogRef.current?.style.setProperty('--bfc8-depth-x',x.toFixed(2)+'px');
       dialogRef.current?.style.setProperty('--bfc8-depth-y',y.toFixed(2)+'px');
     });
@@ -168,9 +177,13 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   const closeHandlerRef = useRef(onClose);
   closeHandlerRef.current = onClose;
   const controlsBusy = appearanceOpen || atelierOpen || studio8Open || commandsOpen || effectsOpen || sceneEditorOpen || Boolean(activeTool) || quickOpen;
-  const wakeControls = () => {
+  const wakeControls = (force=false) => {
     if (exiting) return;
-    setControlsVisible(true);
+    const time=Date.now();
+    // Pointermove may fire >100 times/sec; only refresh inactivity on a bounded interval.
+    if(!force&&time-lastControlsWakeRef.current<250)return;
+    lastControlsWakeRef.current=time;
+    setControlsVisible(old=>old?old:true);
     if (immersiveOnce) setImmersiveOnce(false);
     window.clearTimeout(controlsTimerRef.current);
     if (appearance.autoHide && !controlsBusy) {
@@ -178,7 +191,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
     }
   };
   useEffect(() => {
-    wakeControls();
+    wakeControls(true);
     return () => window.clearTimeout(controlsTimerRef.current);
   }, [appearance.autoHide, controlsBusy, exiting]);
   useEffect(() => {
@@ -276,7 +289,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   };
 
   return createPortal(
-    <div className={`bfc-overlay${(!motionEnabled || ['low','minimal'].includes(performance)) ? ' bfc-overlay--low-motion' : ''}${['low','minimal'].includes(performance) ? ' bfc-overlay--entry-lite' : ''}${canManage ? ' bfc-overlay--manager' : ''}${scene.mediaType === 'youtube' ? ' bfc-overlay--youtube' : ''}${sceneEditorOpen ? ' is-editor-open' : ''}${effectsOpen ? ' is-effects-open' : ''}${activeTool ? ' is-tools-open' : ''}${quiet ? ' bfc-overlay--quiet' : ''}${appearanceOpen ? ' is-appearance-open' : ''}${atelierOpen?' is-atelier7-open':''}${studio8Open?' is-studio8-open':''}${focus8.layoutEnabled?' bfc8-layout-active':''}${focus8.depth!=='off'?' bfc8-depth-active':''}${classroom?' bfc7-classroom':''}${focus7.compactDock?' bfc7-compact-dock':''}${(!controlsVisible && appearance.autoHide && !controlsBusy) || immersiveOnce ? ' bfc-atelier--idle' : ''} bfc-atelier bfc-atelier--${appearance.clockMode}${exiting ? ' bfc-overlay--exiting' : ''}`} role="dialog" aria-modal="true"
+    <div className={`bfc-overlay${(!motionEnabled || ['low','minimal'].includes(performance)) ? ' bfc-overlay--low-motion' : ''}${['low','minimal'].includes(performance) ? ' bfc-overlay--entry-lite' : ''}${canManage ? ' bfc-overlay--manager' : ''}${scene.mediaType === 'youtube' ? ' bfc-overlay--youtube' : ''}${sceneEditorOpen ? ' is-editor-open' : ''}${effectsOpen ? ' is-effects-open' : ''}${activeTool ? ' is-tools-open' : ''}${quiet ? ' bfc-overlay--quiet' : ''}${appearanceOpen ? ' is-appearance-open' : ''}${atelierOpen?' is-atelier7-open':''}${studio8Open?' is-studio8-open':''}${focus8.layoutEnabled?' bfc8-layout-active':''}${focus8.depth!=='off'&&motionBudget.parallax?' bfc8-depth-active':''}${!motionBudget.parallax?' bfc8-efficient':''}${classroom?' bfc7-classroom':''}${focus7.compactDock?' bfc7-compact-dock':''}${(!controlsVisible && appearance.autoHide && !controlsBusy) || immersiveOnce ? ' bfc-atelier--idle' : ''} bfc-atelier bfc-atelier--${appearance.clockMode}${exiting ? ' bfc-overlay--exiting' : ''}`} role="dialog" aria-modal="true"
       aria-label={vi ? 'Chế độ tập trung Brian Focus' : 'Brian Focus mode'}
       aria-owns="bfc-focus-trigger"
       data-focus-transition={exiting ? 'exiting' : 'entering'}
