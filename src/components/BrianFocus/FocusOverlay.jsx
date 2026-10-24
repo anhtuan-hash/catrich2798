@@ -5,7 +5,7 @@ import HTCSenseClock from './HTCSenseClock.jsx';
 import CosmicAmbient from './CosmicAmbient.jsx';
 
 /** Portal keeps the real Dashboard mounted and interactive state intact. */
-export default function FocusOverlay({ onClose, language, weather, onRefreshWeather, returnFocusRef }) {
+export default function FocusOverlay({ onClose, language, weather, onRefreshWeather, returnFocusRef, performance = 'balanced' }) {
   const dialogRef = useRef(null);
   const dismissRef = useRef(null);
   const closeHandlerRef = useRef(onClose);
@@ -65,7 +65,7 @@ export default function FocusOverlay({ onClose, language, weather, onRefreshWeat
   const vi = language !== 'en';
 
   return createPortal(
-    <div className="bfc-overlay" role="dialog" aria-modal="true"
+    <div className={`bfc-overlay${['low','minimal'].includes(performance) ? ' bfc-overlay--low-motion' : ''}`} role="dialog" aria-modal="true"
       aria-label={vi ? 'Chế độ tập trung Brian Focus' : 'Brian Focus mode'}
       aria-owns="bfc-focus-trigger"
       ref={dialogRef}
