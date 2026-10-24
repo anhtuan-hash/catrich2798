@@ -6,6 +6,7 @@ import useFocusWeather from './useFocusWeather.js';
 import useFocusScene from './useFocusScene.js';
 import { readFocusTransitions, writeFocusTransitions, FOCUS_TRANSITION_STORAGE_KEY } from './FocusTransitionLibrary.js';
 import { startFocusExit } from './focusExitMotion.js';
+import { startFocusEnter } from './focusEnterMotion.js';
 import './BrianFocus.css';
 import './BrianFocusCosmic.css';
 import './BrianFocusPremium.css';
@@ -23,12 +24,16 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
   const [transitions, setTransitions] = useState(readFocusTransitions);
   const triggerRef = useRef(null);
   const exitPendingRef = useRef(false);
+  // Freeze the selected entrance per opening; changing gallery settings while
+  // already in Focus must not replay the opening animation.
+  const enteredWithEffectRef = useRef(transitions.enter);
   const { weather, refresh } = useFocusWeather(open);
   const { scene, setScene, error: sceneError } = useFocusScene(open, currentUser?.id);
   const setEffectChoice = choice => setTransitions(writeFocusTransitions(choice));
 
   const openFocus = () => {
     if (exitPendingRef.current) return;
+    enteredWithEffectRef.current = transitions.enter;
     setExiting(false);
     setOpen(true);
   };
@@ -44,6 +49,19 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
     }
     setExiting(true);
   };
+
+  // Enter through the same browser animation engine used by Close.
+  // This layout effect sees FocusOverlay's portal immediately after mount
+  // and starts before the browser paints a frame, preventing a sudden flash.
+  useLayoutEffect(() => {
+    if (!open || exiting) return undefined;
+    const overlay = document.querySelector('.bfc-overlay[data-focus-transition="entering"]');
+    const reducedMotion = ['low', 'minimal'].includes(performance) ||
+      Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+    const animation = startFocusEnter(overlay, enteredWithEffectRef.current, { reducedMotion });
+    // Keep fill-mode until exit starts, so the transition never snaps.
+    return () => animation?.cancel?.();
+  }, [open, exiting]);
 
   // Play the chosen effect AFTER React mounts the exiting class, but BEFORE
   // painting. Do not remove the Focus portal until the real animation finishes.
