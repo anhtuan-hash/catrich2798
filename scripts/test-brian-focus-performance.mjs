@@ -28,7 +28,8 @@ const overlay=src('FocusOverlay.jsx');
 assert.match(overlay,/time-lastControlsWakeRef\.current<250/);
 assert.match(overlay,/if\(depthRef\.current\)return;/);
 assert.match(overlay,/bfc8-efficient/);
-assert.match(overlay,/startFocus/); // proxy: legacy overlay entrance still owned by parent
+assert.match(src('BrianFocus.jsx'),/startFocusEnter/);
+assert.match(src('BrianFocus.jsx'),/startFocusExit/);
 const timer=src('useFocusTimer.js');
 assert.match(timer,/window\.setInterval\(tick, 1000\)/);
 assert.match(timer,/Number\(timer\?\.deadline\) - now/);
