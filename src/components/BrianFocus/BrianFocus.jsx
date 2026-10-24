@@ -18,6 +18,7 @@ import './BrianFocusTransitions.css';
 import './FocusEffectsLibrary.css';
 import './FocusTransitionVariants.css';
 import './BrianFocusWorkspace.css';
+import './BrianFocusAtelier.css';
 import './BrianFocusPersistentYoutube.css';
 
 /** One global Focus trigger and overlay; the underlying app route stays mounted. */
