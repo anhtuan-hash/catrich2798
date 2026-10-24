@@ -52,6 +52,13 @@ export default function BrianBoard({currentUser,language='vi'}){
  const launchRef=useRef(null),lastFocusRef=useRef(null),mounted=useRef(true);
  const page=lesson?.pages.find(x=>x.id===lesson.activePageId)||lesson?.pages[0];
  const theme=lesson?.theme||'ivory';
+ useEffect(()=>{
+  setColor(old=>{
+   if(theme==='midnight'&&old==='#335d63')return '#dcece6';
+   if(theme!=='midnight'&&old==='#dcece6')return '#335d63';
+   return old;
+  });
+ },[theme]);
  const activeCamera=page?.camera||camera;
  docRef.current=lesson;
  useEffect(()=>{
