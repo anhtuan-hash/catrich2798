@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ExternalLink, Pause, Play, Square, Volume2, VolumeX, Youtube, MoonStar, ChevronDown, ChevronUp } from 'lucide-react';
-import { videoIdFromFocusPath } from './focusYoutube.js';
+import { ExternalLink, Pause, Play, Square, Volume2, VolumeX, Youtube, MoonStar, ChevronDown, ChevronUp, SkipBack, SkipForward } from 'lucide-react';
+import { videoIdFromFocusPath, playlistIdsFromFocusPath } from './focusYoutube.js';
 
 /** Controls an existing persistent iframe; NEVER creates a second video player.
  * Stop is explicit; merely closing Focus only hides the overlay, not playback. */
@@ -10,6 +10,8 @@ export default function FocusYoutubeBackground({
   const vi=language!=='en';
   const [expanded,setExpanded]=useState(false);
   const videoId=videoIdFromFocusPath(scene?.mediaPath);
+  const playlistIds=playlistIdsFromFocusPath(scene?.mediaPath);
+  const multi=playlistIds.length>1;
   if(!videoId)return null;
   const mini=!compact&&!expanded;
   const playing=Boolean(session?.playing&&session?.mounted);
@@ -26,6 +28,19 @@ export default function FocusYoutubeBackground({
       {playing?<Pause size={16}/>:<Play size={16}/>}
       {!mini&&!compact&&<span>{playing?(vi?'Tạm dừng':'Pause'):(vi?'Phát':'Play')}</span>}
     </button>
+    {multi&&<>
+      <button type="button" onClick={controls?.previous} disabled={!mounted}
+        aria-label={vi?'Video trước trong danh sách':'Previous video in playlist'} title={vi?'Video trước':'Previous video'}>
+        <SkipBack size={16}/>
+      </button>
+      <button type="button" onClick={controls?.next} disabled={!mounted}
+        aria-label={vi?'Video tiếp theo trong danh sách':'Next video in playlist'} title={vi?'Video tiếp theo':'Next video'}>
+        <SkipForward size={16}/>
+      </button>
+      {!compact&&!mini&&<span className="bfc-youtube-controls__playlist-count" aria-label={vi?'Số video trong danh sách':'Playlist video count'}>
+        {playlistIds.length} {vi?'video':'videos'}
+      </span>}
+    </>}
     <span className="bfc-youtube-controls__divider" aria-hidden="true"/>
     <button type="button" onClick={controls?.toggleMute} disabled={!mounted}
       aria-pressed={mounted&&!session?.muted}
