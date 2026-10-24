@@ -1,5 +1,7 @@
 import {supabase,isSupabaseConfigured} from '../../utils/supabase.js';
 import {normalizeFocus8} from './useFocus8Data.js';
+import {normalizeFocus7} from './useFocus7Data.js';
+import {normalizeFocusAppearance} from './useFocusAppearance.js';
 
 async function owner(userId){
  if(!supabase||!isSupabaseConfigured||!userId)throw new Error('Please sign in to use Focus Cloud.');
@@ -7,11 +9,26 @@ async function owner(userId){
  if(error||!data?.user||data.user.id!==userId)throw new Error('Account authentication required; cloud action not authorized.');
  return data.user.id;
 }
-export async function saveFocus8Vault(userId,settings,version=1){
+export async function saveFocus8Vault(userId,settings,{focus7,appearance}={}){
  const uid=await owner(userId);
- const payload={schema:'brian-focus-v8',settings:normalizeFocus8(settings)};
+ const payload={schema:'brian-focus-v8',settings:normalizeFocus8(settings),
+   focus7:focus7?normalizeFocus7(focus7):null,
+   appearance:appearance?normalizeFocusAppearance(appearance):null};
+ const db=supabase.from('brian_focus_v8_vault');
+ const {data:existing,error:readError}=await db.select('version').eq('user_id',uid).maybeSingle();
+ if(readError)throw readError;
+ const updatedAt=new Date().toISOString();
+ if(existing){
+   const {data,error}=await supabase.from('brian_focus_v8_vault')
+    .update({payload,version:existing.version+1,updated_at:updatedAt})
+    .eq('user_id',uid).eq('version',existing.version)
+    .select('version,updated_at').maybeSingle();
+   if(error)throw error;
+   if(!data)throw new Error('Cloud backup changed on another device. Refresh before overwriting.');
+   return data;
+ }
  const {data,error}=await supabase.from('brian_focus_v8_vault')
-  .upsert({user_id:uid,payload,version:Math.max(1,Math.round(version)),updated_at:new Date().toISOString()},{onConflict:'user_id'})
+  .insert({user_id:uid,payload,version:1,updated_at:updatedAt})
   .select('version,updated_at').single();
  if(error)throw error;
  return data;
@@ -22,7 +39,10 @@ export async function loadFocus8Vault(userId){
   .select('payload,version,updated_at').eq('user_id',uid).maybeSingle();
  if(error)throw error;
  return data?.payload?.schema==='brian-focus-v8'
-  ? {settings:normalizeFocus8(data.payload.settings),version:data.version,updatedAt:data.updated_at}
+  ? {settings:normalizeFocus8(data.payload.settings),
+     focus7:data.payload.focus7?normalizeFocus7(data.payload.focus7):null,
+     appearance:data.payload.appearance?normalizeFocusAppearance(data.payload.appearance):null,
+     version:data.version,updatedAt:data.updated_at}
   : null;
 }
 const COMMANDS=['timer-toggle','timer-reset','clock-next','classroom-toggle','mood-next','scene-next','volume-up','volume-down','layout-toggle','focus-close'];
