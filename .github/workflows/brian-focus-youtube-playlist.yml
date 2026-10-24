@@ -6,6 +6,7 @@ on:
       - 'scripts/test-brian-focus-youtube.mjs'
       - 'supabase/migrations/20261024174300_brian_focus_youtube_playlist.sql'
       - 'tests/e2e/brian-focus-youtube-playlist.spec.js'
+      - 'tests/fixtures/focusYoutubePlaylistHarness.jsx'
       - '.github/workflows/brian-focus-youtube-playlist.yml'
   push:
     branches: [main]
@@ -31,3 +32,7 @@ jobs:
         run: node scripts/test-brian-focus-youtube.mjs && node scripts/test-brian-focus-v7.mjs && node scripts/test-brian-focus-workspace.mjs
       - name: Production Vite build
         run: npx vite build
+      - name: Install isolated UI test bundler and browsers
+        run: npm install --no-save --no-package-lock --no-audit --no-fund esbuild@0.25.12 && npx playwright install --with-deps chromium webkit
+      - name: Verify real YouTube playlist editor on desktop and mobile
+        run: npx playwright test tests/e2e/brian-focus-youtube-playlist.spec.js --project=chromium-desktop --project=webkit-desktop
