@@ -1,0 +1,28 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8');
+const page = read('src/main.jsx');
+const dock = read('src/components/UnifiedFloatingDock.jsx');
+const css = read('src/components/UnifiedFloatingDock.css');
+const actions = read('src/utils/unifiedFloatingDock.js');
+const chat = read('src/components/SharedChatbotDrawer.jsx');
+const focus = read('src/components/BrianFocus/BrianFocus.jsx');
+const approvals = read('src/components/PermissionApprovalInbox.jsx');
+const message = (value, label) => assert.ok(value, label);
+
+message(page.includes('<UnifiedFloatingDock') && page.includes('dockTriggerRef={unifiedDockTriggerRef}'), 'One global dock and shared Focus keyboard ref');
+message(page.includes('<SharedChatbotDrawer currentUser={currentUser} language={language} dockManaged />'), 'Chat delegated');
+message(page.includes('<PermissionApprovalInbox currentUser={currentUser} language={language} dockManaged />'), 'Approvals delegated');
+message(page.includes('showChat={selectedTool?.slug !== \'questatlas\'}'), 'Chat remains hidden in questatlas');
+message(page.includes('showFocus={Boolean(canAccessRoute)}'), 'Focus continues to respect route access');
+message(dock.includes("id=\"bfc-focus-trigger\"") && dock.includes('aria-expanded={expanded}'), 'Accessible single button');
+message(dock.includes('document.addEventListener(\'pointerdown\'') && dock.includes('document.addEventListener(\'keydown\''), 'Outside and Escape dismissal');
+message(dock.includes('disabled={!expanded}') && dock.includes('tabIndex={expanded ? 0 : -1}'), 'Collapsed buttons inaccessible');
+message(dock.includes("currentUser?.approved === true") && dock.includes('isDepartmentLeaderRole'), 'Privileged approvals visibility');
+message(dock.includes("pending > 0") && dock.includes('is-trigger'), 'Pending badge persists when collapsed');
+message(chat.includes('!dockManaged && <button') && chat.includes('GLOBAL_FLOATING_ACTION_EVENT'), 'Chat retains real dialog, no duplicate button');
+message(approvals.includes("!dockManaged && panel !== 'drawer'") && approvals.includes('broadcastUnifiedFloatingStatus'), 'Approval dialog retains ownership and badge data');
+message(focus.includes('dockManaged ? null :') && focus.includes('returnFocusRef={dockManaged ? dockTriggerRef : triggerRef}'), 'Focus retains modal, keyboard restoration');
+message(actions.includes('window.dispatchEvent(new CustomEvent(GLOBAL_FLOATING_ACTION_EVENT') && actions.includes('openUnifiedFloatingAction'), 'Actual action event dispatches');
+message(css.includes('@media(max-width:640px)') && css.includes('safe-area-inset-bottom') && css.includes('@media(prefers-reduced-motion:reduce)'), 'Mobile safe area and motion preferences');
+console.log('PASS: Unified Floating Dock 1.0 contracts (permissions, focus, chat, badges, a11y, mobile).');
