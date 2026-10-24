@@ -6,7 +6,7 @@ const COMMANDS=[
  ['mood-next','Chuyển bầu không khí','Next atmosphere'],
  ['scene-next','Chuyển cảnh timeline','Next timeline cue'],
  ['classroom-toggle','Bật/tắt trình chiếu','Toggle classroom'],
- ['studio-open','Mở Ambient OS Studio','Open Ambient OS Studio'],
+ ['studio-open','Mở Focus Studio','Open Focus Studio'],
  ['focus-close','Đóng Focus','Close Focus'],
 ];
 export default function Focus8Commands({language='vi',onCommand,onClose}){
