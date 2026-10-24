@@ -139,6 +139,7 @@ export default function EventPopupMotionAdmin({ value, onChange, language='vi' }
   });
 
   const replay=useCallback(async(kind='both',nextMotion=latestMotionRef.current)=>{
+    onceRef.current=true;
     const token=++playId.current;
     animationRef.current?.cancel();
     window.clearTimeout(pendingRef.current);
