@@ -25,6 +25,7 @@ import './FocusTransitionVariants.css';
 import './BrianFocusWorkspace.css';
 import './BrianFocusAtelier.css';
 import './BrianFocusPersistentYoutube.css';
+import './BrianFocusYoutubePlaylist.css';
 import './BrianFocus6.css';
 import './BrianFocus7.css';
 import './BrianFocus8.css';

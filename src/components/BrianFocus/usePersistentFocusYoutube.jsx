@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  buildFocusYoutubeEmbedUrl, commandFocusYoutubePlayer, videoIdFromFocusPath,
+  buildFocusYoutubeEmbedUrl, commandFocusYoutubePlayer, playlistIdsFromFocusPath,
 } from './focusYoutube.js';
 
-const emptySession = (userId = '', videoId = '', autoStart = false) => ({
-  userId, videoId, mounted: autoStart, playing: autoStart,
+const emptySession = (userId = '', videoId = '', autoStart = false, playlistKey = '') => ({
+  userId, videoId, playlistKey, mounted: autoStart, playing: autoStart,
   muted: true, explicitlyStopped: false,
 });
 
@@ -16,59 +16,63 @@ const emptySession = (userId = '', videoId = '', autoStart = false) => ({
  * tears down the embedded player.
  */
 export default function usePersistentFocusYoutube({ scene, focusOpen, userId }) {
-  const videoId = scene?.mediaType === 'youtube' ? videoIdFromFocusPath(scene.mediaPath) : '';
+  const playlist = useMemo(() => scene?.mediaType === 'youtube'
+    ? playlistIdsFromFocusPath(scene.mediaPath) : [], [scene?.mediaType, scene?.mediaPath]);
+  const playlistKey = playlist.join(',');
+  const videoId = playlist[0] || '';
   const ownerId = String(userId || '');
   const iframeRef = useRef(null);
-  const [session, setSession] = useState(() => emptySession(ownerId, videoId, false));
-  const active = session.userId === ownerId && session.videoId === videoId;
-  const current = active ? session : emptySession(ownerId, videoId, false);
+  const [session, setSession] = useState(() => emptySession(ownerId, videoId, false, playlistKey));
+  const active = session.userId === ownerId && session.playlistKey === playlistKey;
+  const current = active ? session : emptySession(ownerId, videoId, false, playlistKey);
   const source = useMemo(() => videoId && ownerId
     ? buildFocusYoutubeEmbedUrl(videoId, {
+      playlistIds: playlist,
       origin: typeof window === 'undefined' ? '' : window.location.origin,
-    }) : '', [videoId, ownerId]);
+    }) : '', [playlistKey, ownerId]);
 
   useEffect(() => {
     setSession(previous => {
-      if (previous.userId !== ownerId || previous.videoId !== videoId) {
-        return emptySession(ownerId, videoId, Boolean(videoId && ownerId && focusOpen));
+      if (previous.userId !== ownerId || previous.playlistKey !== playlistKey) {
+        return emptySession(ownerId, videoId, Boolean(videoId && ownerId && focusOpen), playlistKey);
       }
       if (focusOpen && videoId && !previous.mounted && !previous.explicitlyStopped) {
         return { ...previous, mounted: true, playing: true };
       }
       return previous; // Closing the overlay must NEVER pause or unmount YouTube.
     });
-  }, [ownerId, videoId, focusOpen]);
+  }, [ownerId, playlistKey, focusOpen]);
 
   const send = useCallback(command => commandFocusYoutubePlayer(iframeRef.current, command), []);
 
   const play = useCallback(() => {
     if (!videoId || !ownerId) return;
     setSession(value => ({
-      ...(value.videoId === videoId && value.userId === ownerId
-        ? value : emptySession(ownerId, videoId)),
+      ...(value.playlistKey === playlistKey && value.userId === ownerId
+        ? value : emptySession(ownerId, videoId, false, playlistKey)),
       mounted: true, playing: true, explicitlyStopped: false,
     }));
     send('playVideo');
-  }, [videoId, ownerId, send]);
+  }, [videoId, ownerId, playlistKey, send]);
 
   const pause = useCallback(() => {
-    setSession(value => value.videoId === videoId && value.userId === ownerId
+    setSession(value => value.playlistKey === playlistKey && value.userId === ownerId
       ? { ...value, playing: false } : value);
     send('pauseVideo');
-  }, [videoId, ownerId, send]);
+  }, [playlistKey, ownerId, send]);
 
   const stop = useCallback(() => {
     // Deliberately unmount only upon a user-initiated STOP, not Close or Escape.
     send('stopVideo');
-    setSession(value => value.videoId === videoId && value.userId === ownerId
+    setSession(value => value.playlistKey === playlistKey && value.userId === ownerId
       ? { ...value, mounted: false, playing: false, muted: true, explicitlyStopped: true } : value);
-  }, [videoId, ownerId, send]);
+  }, [playlistKey, ownerId, send]);
 
   const mute = useCallback(() => {
     send('mute');
-    setSession(value => value.videoId === videoId && value.userId === ownerId
+    setSession(value => value.playlistKey === playlistKey && value.userId === ownerId
       ? { ...value, muted: true } : value);
-  }, [videoId, ownerId, send]);
+  }, [playlistKey, ownerId, send]);
 
   const toggleMute = useCallback(() => {
     if (!current.mounted) return;
@@ -77,9 +81,18 @@ export default function usePersistentFocusYoutube({ scene, focusOpen, userId }) 
       window.dispatchEvent(new Event('bfc-youtube-unmute'));
       send('unMute');
     } else send('mute');
-    setSession(value => value.videoId === videoId && value.userId === ownerId
+    setSession(value => value.playlistKey === playlistKey && value.userId === ownerId
       ? { ...value, muted: !value.muted } : value);
-  }, [current.mounted, current.muted, videoId, ownerId, send]);
+  }, [current.mounted, current.muted, playlistKey, ownerId, send]);
+
+  // The embedded YouTube player follows playlist IDs in order automatically.
+  // Provide manual track navigation without creating or unmounting any iframe.
+  const next = useCallback(() => {
+    if (playlist.length > 1 && current.mounted) send('nextVideo');
+  }, [playlistKey, current.mounted, send]);
+  const previous = useCallback(() => {
+    if (playlist.length > 1 && current.mounted) send('previousVideo');
+  }, [playlistKey, current.mounted, send]);
 
   const onLoad = useCallback(() => {
     // If another frame was removed by Stop, this only applies to the current iframe.
@@ -116,6 +129,7 @@ export default function usePersistentFocusYoutube({ scene, focusOpen, userId }) 
     player,
     session: current,
     videoId,
-    controls: { play, pause, stop, mute, toggleMute },
+    playlist,
+    controls: { play, pause, stop, mute, toggleMute, next, previous },
   };
 }
