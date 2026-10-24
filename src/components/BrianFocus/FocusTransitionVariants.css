@@ -88,3 +88,171 @@
 @media(forced-colors:active){
  .bfc-overlay[data-focus-enter],.bfc-overlay[data-focus-exit] {clip-path:none!important;}
 }
+
+/* bfc-focus-demo-autoloop — The old preview played once (~0.9s) and froze.
+   Each choice now cycles: transition -> readable hold -> reset. The gallery
+   demo is keyed on Replay/selection so both explicitly restart the cycle.
+   CSS loop is compositor-friendly, no intervals / background timers. */
+
+@keyframes bfc-demo-loop-portal-enter {
+  0%,4% {opacity:0;clip-path:circle(0 at 92% 78%)}
+  32%,80% {opacity:1;clip-path:circle(150% at 92% 78%)}
+  100% {opacity:0;clip-path:circle(0 at 92% 78%)}
+}
+@keyframes bfc-demo-loop-portal-exit {
+  0%,15% {opacity:1;clip-path:circle(150% at 92% 78%)}
+  49%,83% {opacity:0;clip-path:circle(0 at 92% 78%)}
+  100% {opacity:1;clip-path:circle(150% at 92% 78%)}
+}
+.bfc-overlay .bfc-effect-gallery__demo[data-demo-effect="portal"][data-demo-direction="enter"] {
+  animation: bfc-demo-loop-portal-enter 3400ms cubic-bezier(.2,.79,.25,1) infinite both !important;
+}
+.bfc-overlay .bfc-effect-gallery__demo[data-demo-effect="portal"][data-demo-direction="exit"] {
+  animation: bfc-demo-loop-portal-exit 3400ms cubic-bezier(.48,.04,.59,.32) infinite both !important;
+}
+
+@keyframes bfc-demo-loop-fade-enter {
+  0%,4% {opacity:0}
+  32%,80% {opacity:1}
+  100% {opacity:0}
+}
+@keyframes bfc-demo-loop-fade-exit {
+  0%,15% {opacity:1}
+  49%,83% {opacity:0}
+  100% {opacity:1}
+}
+.bfc-overlay .bfc-effect-gallery__demo[data-demo-effect="fade"][data-demo-direction="enter"] {
+  animation: bfc-demo-loop-fade-enter 3400ms cubic-bezier(.2,.79,.25,1) infinite both !important;
+}
+.bfc-overlay .bfc-effect-gallery__demo[data-demo-effect="fade"][data-demo-direction="exit"] {
+  animation: bfc-demo-loop-fade-exit 3400ms cubic-bezier(.48,.04,.59,.32) infinite both !important;
+}
+
+@keyframes bfc-demo-loop-zoom-enter {
+  0%,4% {opacity:0;transform:scale(1.28);filter:blur(10px)}
+  32%,80% {opacity:1;transform:scale(1);filter:blur(0)}
+  100% {opacity:0;transform:scale(1.28);filter:blur(10px)}
+}
+@keyframes bfc-demo-loop-zoom-exit {
+  0%,15% {opacity:1;transform:scale(1);filter:blur(0)}
+  49%,83% {opacity:0;transform:scale(1.28);filter:blur(10px)}
+  100% {opacity:1;transform:scale(1);filter:blur(0)}
+}
+.bfc-overlay .bfc-effect-gallery__demo[data-demo-effect="zoom"][data-demo-direction="enter"] {
+  animation: bfc-demo-loop-zoom-enter 3400ms cubic-bezier(.2,.79,.25,1) infinite both !important;
+}
+.bfc-overlay .bfc-effect-gallery__demo[data-demo-effect="zoom"][data-demo-direction="exit"] {
+  animation: bfc-demo-loop-zoom-exit 3400ms cubic-bezier(.48,.04,.59,.32) infinite both !important;
+}
+
+@keyframes bfc-demo-loop-rise-enter {
+  0%,4% {opacity:0;transform:translateY(58%) scale(.95)}
+  32%,80% {opacity:1;transform:translateY(0) scale(1)}
+  100% {opacity:0;transform:translateY(58%) scale(.95)}
+}
+@keyframes bfc-demo-loop-rise-exit {
+  0%,15% {opacity:1;transform:translateY(0) scale(1)}
+  49%,83% {opacity:0;transform:translateY(58%) scale(.95)}
+  100% {opacity:1;transform:translateY(0) scale(1)}
+}
+.bfc-overlay .bfc-effect-gallery__demo[data-demo-effect="rise"][data-demo-direction="enter"] {
+  animation: bfc-demo-loop-rise-enter 3400ms cubic-bezier(.2,.79,.25,1) infinite both !important;
+}
+.bfc-overlay .bfc-effect-gallery__demo[data-demo-effect="rise"][data-demo-direction="exit"] {
+  animation: bfc-demo-loop-rise-exit 3400ms cubic-bezier(.48,.04,.59,.32) infinite both !important;
+}
+
+@keyframes bfc-demo-loop-slide-enter {
+  0%,4% {opacity:.2;transform:translateX(100%)}
+  32%,80% {opacity:1;transform:translateX(0)}
+  100% {opacity:.2;transform:translateX(100%)}
+}
+@keyframes bfc-demo-loop-slide-exit {
+  0%,15% {opacity:1;transform:translateX(0)}
+  49%,83% {opacity:.2;transform:translateX(100%)}
+  100% {opacity:1;transform:translateX(0)}
+}
+.bfc-overlay .bfc-effect-gallery__demo[data-demo-effect="slide"][data-demo-direction="enter"] {
+  animation: bfc-demo-loop-slide-enter 3400ms cubic-bezier(.2,.79,.25,1) infinite both !important;
+}
+.bfc-overlay .bfc-effect-gallery__demo[data-demo-effect="slide"][data-demo-direction="exit"] {
+  animation: bfc-demo-loop-slide-exit 3400ms cubic-bezier(.48,.04,.59,.32) infinite both !important;
+}
+
+@keyframes bfc-demo-loop-curtain-enter {
+  0%,4% {opacity:.5;clip-path:inset(0 50% 0 50%)}
+  32%,80% {opacity:1;clip-path:inset(0 0 0 0)}
+  100% {opacity:.5;clip-path:inset(0 50% 0 50%)}
+}
+@keyframes bfc-demo-loop-curtain-exit {
+  0%,15% {opacity:1;clip-path:inset(0 0 0 0)}
+  49%,83% {opacity:.5;clip-path:inset(0 50% 0 50%)}
+  100% {opacity:1;clip-path:inset(0 0 0 0)}
+}
+.bfc-overlay .bfc-effect-gallery__demo[data-demo-effect="curtain"][data-demo-direction="enter"] {
+  animation: bfc-demo-loop-curtain-enter 3400ms cubic-bezier(.2,.79,.25,1) infinite both !important;
+}
+.bfc-overlay .bfc-effect-gallery__demo[data-demo-effect="curtain"][data-demo-direction="exit"] {
+  animation: bfc-demo-loop-curtain-exit 3400ms cubic-bezier(.48,.04,.59,.32) infinite both !important;
+}
+
+@keyframes bfc-demo-loop-iris-enter {
+  0%,4% {opacity:.7;clip-path:circle(0 at 50% 50%)}
+  32%,80% {opacity:1;clip-path:circle(150% at 50% 50%)}
+  100% {opacity:.7;clip-path:circle(0 at 50% 50%)}
+}
+@keyframes bfc-demo-loop-iris-exit {
+  0%,15% {opacity:1;clip-path:circle(150% at 50% 50%)}
+  49%,83% {opacity:.7;clip-path:circle(0 at 50% 50%)}
+  100% {opacity:1;clip-path:circle(150% at 50% 50%)}
+}
+.bfc-overlay .bfc-effect-gallery__demo[data-demo-effect="iris"][data-demo-direction="enter"] {
+  animation: bfc-demo-loop-iris-enter 3400ms cubic-bezier(.2,.79,.25,1) infinite both !important;
+}
+.bfc-overlay .bfc-effect-gallery__demo[data-demo-effect="iris"][data-demo-direction="exit"] {
+  animation: bfc-demo-loop-iris-exit 3400ms cubic-bezier(.48,.04,.59,.32) infinite both !important;
+}
+
+@keyframes bfc-demo-loop-flip-enter {
+  0%,4% {opacity:0;transform:perspective(750px) rotateY(-39deg) scale(.9);filter:blur(5px)}
+  32%,80% {opacity:1;transform:perspective(750px) rotateY(0) scale(1);filter:blur(0)}
+  100% {opacity:0;transform:perspective(750px) rotateY(-39deg) scale(.9);filter:blur(5px)}
+}
+@keyframes bfc-demo-loop-flip-exit {
+  0%,15% {opacity:1;transform:perspective(750px) rotateY(0) scale(1);filter:blur(0)}
+  49%,83% {opacity:0;transform:perspective(750px) rotateY(-39deg) scale(.9);filter:blur(5px)}
+  100% {opacity:1;transform:perspective(750px) rotateY(0) scale(1);filter:blur(0)}
+}
+.bfc-overlay .bfc-effect-gallery__demo[data-demo-effect="flip"][data-demo-direction="enter"] {
+  animation: bfc-demo-loop-flip-enter 3400ms cubic-bezier(.2,.79,.25,1) infinite both !important;
+}
+.bfc-overlay .bfc-effect-gallery__demo[data-demo-effect="flip"][data-demo-direction="exit"] {
+  animation: bfc-demo-loop-flip-exit 3400ms cubic-bezier(.48,.04,.59,.32) infinite both !important;
+}
+
+@keyframes bfc-demo-loop-blur-enter {
+  0%,4% {opacity:0;filter:blur(21px) brightness(1.6);transform:scale(1.14)}
+  32%,80% {opacity:1;filter:blur(0) brightness(1);transform:scale(1)}
+  100% {opacity:0;filter:blur(21px) brightness(1.6);transform:scale(1.14)}
+}
+@keyframes bfc-demo-loop-blur-exit {
+  0%,15% {opacity:1;filter:blur(0) brightness(1);transform:scale(1)}
+  49%,83% {opacity:0;filter:blur(21px) brightness(1.6);transform:scale(1.14)}
+  100% {opacity:1;filter:blur(0) brightness(1);transform:scale(1)}
+}
+.bfc-overlay .bfc-effect-gallery__demo[data-demo-effect="blur"][data-demo-direction="enter"] {
+  animation: bfc-demo-loop-blur-enter 3400ms cubic-bezier(.2,.79,.25,1) infinite both !important;
+}
+.bfc-overlay .bfc-effect-gallery__demo[data-demo-effect="blur"][data-demo-direction="exit"] {
+  animation: bfc-demo-loop-blur-exit 3400ms cubic-bezier(.48,.04,.59,.32) infinite both !important;
+}
+
+/* "No motion" is an intentional selection, not a broken preview. */
+.bfc-overlay .bfc-effect-gallery__demo[data-demo-effect="none"] {
+  animation:none!important;opacity:1!important;transform:none!important;clip-path:none!important;filter:none!important;
+}
+@media (prefers-reduced-motion: reduce) {
+ .bfc-overlay .bfc-effect-gallery__demo[data-demo-effect] {
+  animation:none!important;transform:none!important;clip-path:none!important;filter:none!important;opacity:1!important;
+ }
+}
