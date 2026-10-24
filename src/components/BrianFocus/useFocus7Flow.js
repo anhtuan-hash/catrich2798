@@ -4,6 +4,15 @@ const empty=()=>({active:false,phase:'work',cycle:1,work:25,rest:5,repeats:4});
 function read(id){try{const raw=JSON.parse(localStorage.getItem(key(id))||'null');
  return raw&&typeof raw==='object'?{...empty(),...raw,active:raw.active===true}:empty();
 }catch{return empty();}}
+/** Deterministic phase transition shared by the live hook and regression tests. */
+export function advanceFocusFlow(flow){
+ if(!flow?.active)return {flow:{...empty(),...flow,active:false},minutes:0,mode:''};
+ if(flow.phase==='work'){
+   if(flow.cycle>=flow.repeats)return {flow:{...flow,active:false},minutes:0,mode:''};
+   return {flow:{...flow,phase:'break'},minutes:flow.rest,mode:'recovery'};
+ }
+ return {flow:{...flow,phase:'work',cycle:flow.cycle+1},minutes:flow.work,mode:'custom'};
+}
 export default function useFocus7Flow(userId,timer,completionToken){
  const [record,setRecord]=useState(()=>({owner:userId,flow:read(userId)}));
  const current=record.owner===userId?record.flow:read(userId);
@@ -28,14 +37,9 @@ export default function useFocus7Flow(userId,timer,completionToken){
    if(record.owner!==userId||!current.active)return;
    // Timer finished naturally. The same parent owns this hook while overlay
    // is closed, so phases advance without remounting media or losing time.
-   if(current.phase==='work'){
-     if(current.cycle>=current.repeats){write({active:false});return;}
-     write({phase:'break'});
-     timerRef.current.startPreset('recovery',current.rest);
-   }else{
-     write({phase:'work',cycle:current.cycle+1});
-     timerRef.current.startPreset('custom',current.work);
-   }
+   const next=advanceFocusFlow(current);
+   write(next.flow);
+   if(next.minutes>0)timerRef.current.startPreset(next.mode,next.minutes);
  },[completionToken,userId]);
  return {flow:current,start,stop};
 }
