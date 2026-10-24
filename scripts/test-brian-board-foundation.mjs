@@ -26,6 +26,11 @@ const safe=sanitizeStudentPage(privatePage);
 assert.equal(safe.objects.length,3);
 assert.equal(safe.objects.some(o=>o.id==='private'),false);
 assert.equal(JSON.stringify(safe).includes('Teacher secret'),false);
+const revealSafe=sanitizeStudentPage({...privatePage,objects:[{id:'c',kind:'flashcard',x:1,y:2,
+ text:'Question',privateAnswer:'PUBLIC AFTER REVEAL',revealed:true,internalToken:'DO NOT COPY'}]});
+assert.equal(revealSafe.objects[0].publicAnswer,'PUBLIC AFTER REVEAL');
+assert.ok(!JSON.stringify(revealSafe).includes('DO NOT COPY'));
+assert.ok(!JSON.stringify(safe).includes('internalToken'));
 assert.ok(safe.objects.some(o=>o.kind==='mask'),'Student view keeps explicit answer curtains');
 assert.equal(sanitizeStudentPage({...privatePage,hidden:true}),null);
 let records=new Map();
