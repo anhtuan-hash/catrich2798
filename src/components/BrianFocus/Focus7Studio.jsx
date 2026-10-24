@@ -13,7 +13,7 @@ const tabs=[
  ['insights','09','Insights','Thống kê'],['classroom','10','Classroom','Trình chiếu'],
 ];
 const moodLabels=[['auto','Auto','Tự động'],['off','Off','Tắt'],['dawn','Dawn','Bình minh'],['golden','Golden','Nắng chiều'],['rain','Rainy','Trời mưa'],['twilight','Twilight','Chạng vạng'],['midnight','Midnight','Đêm']];
-const clockLabels=[['inherit','Theo giao diện chung'],['sense','Classic HTC'],['glass','HTC Glass'],['minimal','Minimal'],['floating','Floating'],['kyoto','Kyoto'],['swiss','Swiss'],['aurora','Aurora'],['liquid','Liquid Glass']];
+const clockLabels=[['inherit','Use appearance setting','Theo giao diện chung'],['sense','Classic HTC'],['glass','HTC Glass'],['minimal','Minimal'],['floating','Floating'],['kyoto','Kyoto'],['swiss','Swiss'],['aurora','Aurora'],['liquid','Liquid Glass']];
 const particleLabels=[['off','Tắt','Off'],['dust','Bụi sáng','Light dust'],['fireflies','Đom đóm','Fireflies'],['rain','Mưa','Rain'],['snow','Tuyết','Snow'],['leaves','Lá rơi','Leaves'],['fog','Sương','Fog']];
 const dockNames={timer:['Hẹn giờ','Timer'],notes:['Ghi chú','Notes'],soundscape:['Âm thanh','Sound'],brightness:['Hình nền','Backdrop']};
 const uiRange=(label,value,min,max,onChange,unit='')=><label className="bfc7-range">
@@ -69,7 +69,7 @@ export default function Focus7Studio({language='vi',data,update,appearance,onApp
     </div>}
     {tab==='clock'&&<div className="bfc7-stack">
       <h3>{vi?'Signature Clock Atelier':'Signature Clock Atelier'}</h3>
-      <div className="bfc7-choices">{clockLabels.map(([id,name])=>choice(id,name,data.clock===id,()=>update({clock:id})))}</div>
+      <div className="bfc7-choices">{clockLabels.map(([id,name,nameVi])=>choice(id,vi?(nameVi||name):name,data.clock===id,()=>update({clock:id})))}</div>
       {uiRange(vi?'Độ đậm chữ':'Font weight',data.clockWeight,250,750,v=>update({clockWeight:v}))}
       {uiRange(vi?'Giãn chữ':'Letter spacing',data.clockSpacing,-8,12,v=>update({clockSpacing:v}),'px')}
       <label className="bfc7-inline">{vi?'Màu số':'Digit color'} <input type="color" value={data.clockTint}
