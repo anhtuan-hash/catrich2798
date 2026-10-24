@@ -5,6 +5,8 @@ import {
   Volume2, X, Waves, MoreHorizontal,
 } from 'lucide-react';
 import useFocusTimer, { FOCUS_TIMER_PRESETS } from './useFocusTimer.js';
+import useFocusSoundMixer from './useFocusSoundMixer.js';
+import Focus6Tasks from './Focus6Tasks.jsx';
 import useFocusSoundscape, { FOCUS_SOUNDS, FOCUS_SOUND_LABELS } from './useFocusSoundscape.js';
 import FocusNotes from './FocusNotes.jsx';
 
@@ -50,6 +52,7 @@ const TOOL_META = [
 export default function FocusWorkspace({
   currentUser, language = 'vi', activeTool, onChangeTool,
   onBrightnessChange, onDndChange, onSoundscapeActiveChange, onQuickToolsOpenChange,
+  appearance, timerController, completedSessions=0,
 }) {
   const vi = language !== 'en';
   const [prefs, setPrefs] = useState(() => readPersonal(currentUser?.id));
@@ -62,8 +65,9 @@ export default function FocusWorkspace({
     setTimerFinished(true);
     focusChime();
   }, []);
-  const timer = useFocusTimer(currentUser?.id, onTimerComplete);
-  const soundscape = useFocusSoundscape(currentUser?.id);
+  const timer = timerController;
+  const soundscape = useFocusSoundMixer(currentUser?.id);
+  const arrangedTools = [...TOOL_META].sort((a,b)=> (appearance?.dock?.indexOf(a.id)??0)-(appearance?.dock?.indexOf(b.id)??0));
 
   useEffect(() => {
     const next = readPersonal(currentUser?.id);
@@ -90,18 +94,17 @@ export default function FocusWorkspace({
     if (Object.hasOwn(patch, 'dnd')) onDndChange?.(next.dnd);
   };
   const changePanel = id => onChangeTool?.(activeTool === id ? '' : id);
-  const toggleSound = async (selection = soundscape.sound) => {
+  const toggleSound = async (selection = 'rain') => {
     setSoundError('');
     try {
-      if (soundscape.playing && soundscape.sound === selection) await soundscape.stop();
-      else await soundscape.start(selection);
+      await soundscape.toggleLayer(selection);
     } catch (error) { setSoundError(error?.message || (vi ? 'Không phát được âm thanh.' : 'Audio unavailable.')); }
   };
   const selectedTool = TOOL_META.find(tool => tool.id === activeTool);
   const progress = 1 - (timer.remainingMs / (timer.timer.minutes * 60_000) || 0);
   return <>
     <nav className="bfc-utility-dock" aria-label={vi ? 'Tiện ích Focus' : 'Focus utilities'}>
-      {TOOL_META.map(({ id, Icon, vi: vLabel, en }) => (
+      {arrangedTools.map(({ id, Icon, vi: vLabel, en }) => (
         <button type="button" key={id} className={activeTool === id ? 'is-active' : ''}
           aria-pressed={activeTool === id} aria-label={vi ? vLabel : en}
           onClick={() => {setQuickExpanded(false);changePanel(id);}} title={vi ? vLabel : en}>
@@ -135,7 +138,7 @@ export default function FocusWorkspace({
         </button>
         <button type="button" aria-pressed={soundscape.playing} onClick={() => toggleSound('white')}>
           <Waves size={19}/><strong>{vi ? 'Tiếng trắng' : 'White noise'}</strong>
-          <small>{soundscape.playing && soundscape.sound === 'white' ? (vi ? 'Đang phát' : 'Playing') : (vi ? 'Bật âm' : 'Start audio')}</small>
+          <small>{soundscape.playing && soundscape.levels.white > 0 ? (vi ? 'Đang phát' : 'Playing') : (vi ? 'Bật âm' : 'Start audio')}</small>
         </button>
         <button type="button" aria-pressed={prefs.dnd} onClick={() => savePrefs({dnd:!prefs.dnd})}>
           <Moon size={19}/><strong>{vi ? 'Yên tĩnh' : 'Do not disturb'}</strong>
@@ -194,35 +197,34 @@ export default function FocusWorkspace({
               setTimerFinished(false);timer.setPreset('custom',customMinutes);
             }}><Check size={14}/>{vi ? 'Áp dụng' : 'Apply'}</button></span>
           </label>
-          <p className="bfc-workspace__muted">{vi ? 'Bộ đếm cá nhân tiếp tục tính chính xác khi chuyển tab.' :
-            'Your personal countdown stays accurate across tabs.'}</p>
+          <p className="bfc-workspace__muted"><Check size={13}/> {vi ? 'Phiên tập trung hoàn thành hôm nay: ' : 'Focus sessions completed today: '}{completedSessions}</p>
+          <p className="bfc-workspace__muted">{vi ? 'Bộ đếm cá nhân tiếp tục tính chính xác khi chuyển tab hoặc đóng Focus.' :
+            'Your personal countdown stays accurate across tabs and after closing Focus.'}</p>
         </div>}
 
-        {activeTool === 'notes' && <FocusNotes currentUser={currentUser} language={language}/>}
+        {activeTool === 'notes' && <><Focus6Tasks userId={currentUser?.id} language={language}/><FocusNotes currentUser={currentUser} language={language}/></>}
 
-        {activeTool === 'soundscape' && <div className="bfc-soundscape">
-          <p className="bfc-workspace__muted">{vi ? 'Âm thanh được tạo trực tiếp trên thiết bị. Không tải nhạc từ nguồn ngoài.' :
-            'Sound generated on your device. No external audio stream.'}</p>
-          <div className="bfc-soundscape__grid">
-            {FOCUS_SOUNDS.map((item,index) => <button type="button" key={item}
-              className={soundscape.playing && soundscape.sound === item ? 'is-active' : ''}
-              aria-pressed={soundscape.playing && soundscape.sound === item}
-              onClick={() => toggleSound(item)}>
-              {item === 'rain' ? <CloudRain size={19}/> : item === 'forest' ? <Moon size={19}/> :
-                item === 'ocean' ? <Waves size={19}/> : item === 'wind' ? <SlidersHorizontal size={19}/> : <Headphones size={19}/>}
-              {FOCUS_SOUND_LABELS[item][vi ? 0 : 1]}
-            </button>)}
+        {activeTool === 'soundscape' && <div className="bfc-soundscape bfc6-mixer">
+          <p className="bfc-workspace__muted">{vi ? 'Phối các lớp âm thanh tạo trực tiếp trên thiết bị; chỉ phát khi bạn nhấn Bắt đầu.' :
+            'Blend locally generated sound layers; audio starts only after you press Start.'}</p>
+          {FOCUS_SOUNDS.map(item => <div className="bfc6-mixer__row" key={item}>
+            <label><span>{FOCUS_SOUND_LABELS[item][vi?0:1]}</span><strong>{soundscape.levels[item]}%</strong></label>
+            <input type="range" min="0" max="100" step="1" value={soundscape.levels[item]}
+              aria-label={FOCUS_SOUND_LABELS[item][vi?0:1]}
+              onChange={e=>soundscape.setLevel(item,e.target.value)}/>
+          </div>)}
+          <div className="bfc6-mixer__row is-master">
+            <label><span>{vi?'Âm lượng tổng':'Master volume'}</span><strong>{soundscape.master}%</strong></label>
+            <input type="range" min="0" max="100" value={soundscape.master}
+              aria-label={vi?'Âm lượng tổng':'Master volume'}
+              onChange={e=>soundscape.setMaster(e.target.value)}/>
           </div>
-          <label className="bfc-soundscape__volume"><Volume2 size={16}/>
-            <span>{vi ? 'Âm lượng' : 'Volume'} {soundscape.volume}%</span>
-            <input type="range" min={0} max={100} value={soundscape.volume}
-              onChange={event => soundscape.changeVolume(event.target.value)}/>
-          </label>
-          <button type="button" className="bfc-tool-panel__wide" onClick={() => soundscape.playing ? soundscape.stop() : toggleSound()}>
-            {soundscape.playing ? <Pause size={16}/> : <Play size={16}/>}
-            {soundscape.playing ? (vi ? 'Dừng âm thanh' : 'Stop audio') : (vi ? 'Phát âm thanh' : 'Play sound')}
+          <button type="button" className="bfc-tool-panel__wide"
+            onClick={()=>{ if(soundscape.playing)void soundscape.stop();else void soundscape.start();}}>
+            {soundscape.playing?<Pause size={16}/>:<Play size={16}/>}
+            {soundscape.playing?(vi?'Dừng bộ trộn':'Stop mixer'):(vi?'Phát âm thanh':'Start mixing')}
           </button>
-          {soundError && <p className="bfc-workspace__error" role="alert">{soundError}</p>}
+          {(soundscape.error||soundError)&&<p role="alert" className="bfc-workspace__error">{soundscape.error||soundError}</p>}
         </div>}
 
         {activeTool === 'brightness' && <div className="bfc-brightness">
