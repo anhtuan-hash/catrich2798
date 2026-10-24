@@ -1,10 +1,10 @@
 import { supabase, isSupabaseConfigured } from '../../utils/supabase.js';
 import { isDepartmentLeaderRole } from '../../utils/roles.js';
-import { parseFocusYoutubeId, videoIdFromFocusPath } from './focusYoutube.js';
+import { parseFocusYoutubePlaylist, playlistIdsFromFocusPath, videoIdFromFocusPath } from './focusYoutube.js';
 
 export const FOCUS_BUCKET = 'brian-focus-backgrounds';
 export const FOCUS_DEFAULT = Object.freeze({
-  mediaType: 'default', mediaPath: '', youtubeUrl: '', dimPercent: 24, mediaFit: 'cover', updatedAt: '',
+  mediaType: 'default', mediaPath: '', youtubeUrl: '', playlistIds: [], dimPercent: 24, mediaFit: 'cover', updatedAt: '',
 });
 const ACCEPT = Object.freeze({
   'image/jpeg': ['image', 'jpg', 8 * 1024 * 1024],
@@ -20,10 +20,11 @@ export const canEditFocusScene = user => isDepartmentLeaderRole(user?.role) && u
 
 export function parseFocusScene(row) {
   if (row?.media_type === 'youtube' && videoIdFromFocusPath(row.media_path)) {
-    const id = videoIdFromFocusPath(row.media_path);
+    const ids = playlistIdsFromFocusPath(row.media_path);
     return {
-      mediaType: 'youtube', mediaPath: 'youtube:' + id,
-      youtubeUrl: 'https://www.youtube.com/watch?v=' + id,
+      mediaType: 'youtube', mediaPath: 'youtube:' + ids.join(','),
+      youtubeUrl: ids.map(id => 'https://www.youtube.com/watch?v=' + id).join('\n'),
+      playlistIds: ids,
       dimPercent: Math.max(0, Math.min(85, Number(row.dim_percent) || 0)),
       mediaFit: row.media_fit === 'contain' ? 'contain' : 'cover',
       updatedAt: row.updated_at || '',
@@ -86,8 +87,10 @@ export async function saveFocusScene(user, draft, file) {
     if (error) throw error;
     uploadedPath = mediaPath;
   } else if (mediaType === 'youtube') {
-    // Persist only the validated YouTube ID; no arbitrary URL is rendered.
-    mediaPath = 'youtube:' + parseFocusYoutubeId(draft.youtubeUrl || videoIdFromFocusPath(draft.mediaPath));
+    // Save only validated video IDs, in order, in the existing shared settings
+    // row. Same RLS, Realtime and updated_by checks as the previous single URL.
+    const ids = parseFocusYoutubePlaylist(draft.youtubeUrl || playlistIdsFromFocusPath(draft.mediaPath));
+    mediaPath = 'youtube:' + ids.join(',');
   } else if (mediaType === 'default') {
     mediaPath = '';
   }
