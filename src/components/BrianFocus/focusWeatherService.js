@@ -1,8 +1,8 @@
 // Shared TP.HCM weather source for Dashboard and Brian Focus.
 // One in-flight Open-Meteo request per city, cached for ten minutes.
-const URL = 'https://api.open-meteo.com/v1/forecast?latitude=10.7769&longitude=106.7009&current=temperature_2m,weather_code&timezone=Asia%2FHo_Chi_Minh';
+const URL = 'https://api.open-meteo.com/v1/forecast?latitude=10.7769&longitude=106.7009&current=temperature_2m,weather_code,apparent_temperature,relative_humidity_2m,wind_speed_10m,is_day&timezone=Asia%2FHo_Chi_Minh';
 const FRESH_MS = 10 * 60 * 1000;
-let snapshot = { temperature: null, code: null, updatedAt: 0, loading: false, error: false };
+let snapshot = { temperature: null, code: null, feelsLike: null, humidity: null, windSpeed: null, isDay: null, updatedAt: 0, loading: false, error: false };
 let pending = null;
 const listeners = new Set();
 const emit = () => listeners.forEach(fn => fn(snapshot));
@@ -28,7 +28,15 @@ export async function refreshSharedFocusWeather({ force = false } = {}) {
       const temperature = payload?.current?.temperature_2m;
       const code = payload?.current?.weather_code;
       if (!Number.isFinite(temperature) || !Number.isFinite(code)) throw new Error('Invalid weather response');
-      snapshot = { temperature: Math.round(temperature), code, updatedAt: Date.now(), loading: false, error: false };
+      const optional = (value) => Number.isFinite(value) ? Math.round(value) : null;
+      snapshot = {
+        temperature: Math.round(temperature), code,
+        feelsLike: optional(payload?.current?.apparent_temperature),
+        humidity: optional(payload?.current?.relative_humidity_2m),
+        windSpeed: optional(payload?.current?.wind_speed_10m),
+        isDay: payload?.current?.is_day === 1,
+        updatedAt: Date.now(), loading: false, error: false,
+      };
     } catch {
       // Keep last known weather but indicate an error; no fabricated readings.
       snapshot = { ...snapshot, loading: false, error: true };
