@@ -110,7 +110,9 @@ export default function usePersistentFocusYoutube({ scene, focusOpen, userId }) 
 
   // Keep iframe in DOM and at viewport size while Focus is closed. Reducing
   // opacity (not display:none / visibility:hidden) avoids forcing a remount.
-  const player = (typeof document !== 'undefined' && videoId && ownerId) ? createPortal(
+  // A timer repaint must not reconcile the persistent YouTube iframe.
+  const player = useMemo(() => (
+    (typeof document !== 'undefined' && videoId && ownerId) ? createPortal(
     <div className={`bfc-persistent-youtube${focusOpen ? ' is-visible' : ' is-background'}`}
       aria-hidden="true" data-youtube-session={current.mounted ? 'mounted' : 'stopped'}>
       {active && current.mounted && <iframe ref={iframeRef}
@@ -122,14 +124,17 @@ export default function usePersistentFocusYoutube({ scene, focusOpen, userId }) 
         referrerPolicy="strict-origin-when-cross-origin"
         onLoad={onLoad}
       />}
-    </div>, document.body,
-  ) : null;
+    </div>, document.body
+  ) : null
+  ), [videoId, ownerId, focusOpen, active, current.mounted, scene.mediaFit, source, onLoad]);
+  const controls = useMemo(()=>({play,pause,stop,mute,toggleMute,next,previous}),
+    [play,pause,stop,mute,toggleMute,next,previous]);
 
   return {
     player,
     session: current,
     videoId,
     playlist,
-    controls: { play, pause, stop, mute, toggleMute, next, previous },
+    controls,
   };
 }
