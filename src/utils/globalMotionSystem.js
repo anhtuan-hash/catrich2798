@@ -1,3 +1,4 @@
+import { normalizeEventPopupMotion } from '../features/events/utils/eventPopupMotion.mjs';
 import { getRuntimeClient, subscribeTable } from '../services/runtime/core.js';
 
 const STORAGE_KEY = 'bes-global-motion-config-v2';
@@ -258,6 +259,7 @@ export function normalizeGlobalMotionConfig(input = {}) {
     speed,
     easing,
     slots,
+    eventPopup: normalizeEventPopupMotion(source.eventPopup),
   };
 }
 
