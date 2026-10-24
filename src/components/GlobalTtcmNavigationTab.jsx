@@ -521,7 +521,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
 
     const assignment = isActionItem(item);
     const confirmTitle = assignment ? 'Xóa việc đã giao' : 'Xóa nội dung';
-    if (!window.confirm(`${confirmTitle} “${item.title}”?\n\nNội dung, phản hồi và các tệp liên quan sẽ biến mất khỏi Kênh TTCM. Hành động này không thể hoàn tác.`)) return;
+    if (!window.confirm(language === 'en' ? `${assignment ? 'Delete assigned task' : 'Delete content'} “${item.title}”?\n\nThis content, its replies and associated files will be permanently removed from the department channel. This cannot be undone.` : `${confirmTitle} “${item.title}”?\n\nNội dung, phản hồi và các tệp liên quan sẽ biến mất khỏi Kênh TTCM. Hành động này không thể hoàn tác.`)) return;
 
     setBusy(true); setError(''); setNotice('');
     try {

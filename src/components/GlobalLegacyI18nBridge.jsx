@@ -25,7 +25,7 @@ const DO_NOT_TRANSLATE = [
 ].join(',');
 const EXCLUDED_ELEMENTS = new Set([
   'SCRIPT','STYLE','NOSCRIPT','TEXTAREA','PRE','CODE','SVG','MATH','IFRAME',
-  'CANVAS','VIDEO','AUDIO','SELECT'
+  'CANVAS','VIDEO','AUDIO'
 ]);
 const LABEL_ATTRIBUTES = ['placeholder','aria-label','title'];
 const textMemory = new WeakMap();
