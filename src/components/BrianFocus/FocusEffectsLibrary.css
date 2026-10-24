@@ -147,3 +147,20 @@
 @media (prefers-reduced-motion:reduce){
  .bfc-effect-gallery__preview-progress>span{animation:none!important;transform:scaleX(1)!important;}
 }
+
+/* Explicit, per-preview consent when the device requests reduced motion. */
+.bfc-effect-gallery__override{
+  grid-column:1/-1;
+  justify-self:start;
+  display:inline-flex;
+  align-items:center;
+  min-height:33px;
+  border:1px solid rgba(191,209,250,.52);
+  background:rgba(100,136,238,.18);
+  color:#e3eeff;
+  border-radius:11px;
+  padding:8px 12px;
+  font-size:11px;
+  font-weight:750;
+}
+.bfc-effect-gallery__override:hover{background:rgba(116,151,249,.3);}
