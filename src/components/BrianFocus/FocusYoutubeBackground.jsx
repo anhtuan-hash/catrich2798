@@ -9,7 +9,7 @@ import {
  * The floating controls are outside the aria-hidden visual layer, so every
  * account can start/pause/unmute the shared video independently.
  */
-export default function FocusYoutubeBackground({ scene, language = 'vi' }) {
+export default function FocusYoutubeBackground({ scene, language = 'vi', soundscapeActive = false }) {
   const vi = language !== 'en';
   const frameRef = useRef(null);
   const [muted, setMuted] = useState(true);
@@ -26,6 +26,13 @@ export default function FocusYoutubeBackground({ scene, language = 'vi' }) {
     setPlaying(true);
   }, [id]);
 
+  useEffect(() => {
+    if (soundscapeActive) {
+      commandFocusYoutubePlayer(frameRef.current, 'mute');
+      setMuted(true);
+    }
+  }, [soundscapeActive]);
+
   const sendCommand = useCallback(command => {
     commandFocusYoutubePlayer(frameRef.current, command);
   }, []);
@@ -40,6 +47,7 @@ export default function FocusYoutubeBackground({ scene, language = 'vi' }) {
   };
   const toggleSound = () => {
     const next = !muted;
+    if (!next) window.dispatchEvent(new Event('bfc-youtube-unmute'));
     sendCommand(next ? 'mute' : 'unMute');
     setMuted(next);
   };
