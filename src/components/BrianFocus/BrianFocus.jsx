@@ -21,6 +21,7 @@ import './FocusTransitionVariants.css';
 import './BrianFocusWorkspace.css';
 import './BrianFocusAtelier.css';
 import './BrianFocusPersistentYoutube.css';
+import './BrianFocus6.css';
 import { GLOBAL_FLOATING_ACTION_EVENT, FLOATING_ACTION_IDS } from '../../utils/unifiedFloatingDock.js';
 
 /** One global Focus trigger and overlay; the underlying app route stays mounted. */
