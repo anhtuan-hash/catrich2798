@@ -1,20 +1,21 @@
 import React, { useEffect, useRef } from 'react';
+import {browserFocusMotionBudget} from './focusMotionBudget.js';
 /** Ambient canvas, pointer-transparent, bounded, visibility-aware and low-power safe. */
 export default function Focus7Particles({mode='off',density=35,performance='balanced'}){
  const canvas=useRef(null);
  useEffect(()=>{
-  if(mode==='off'||performance==='minimal'||performance==='low'||
-    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return undefined;
+  const budget=browserFocusMotionBudget(performance);
+  if(mode==='off'||!budget.enabled)return undefined;
   const el=canvas.current,ctx=el?.getContext('2d',{alpha:true});
   if(!ctx)return undefined;
-  let id=0,alive=true,last=0,particles=[],w=0,h=0;
+  let id=0,alive=true,last=0,particles=[],w=0,h=0,visible=!document.hidden;
   const resize=()=>{
-    const pixel=Math.min(window.devicePixelRatio||1,2);
+    const pixel=Math.min(window.devicePixelRatio||1,budget.dpr);
     w=window.innerWidth;h=window.innerHeight;
     el.width=Math.round(w*pixel);el.height=Math.round(h*pixel);
     el.style.width=w+'px';el.style.height=h+'px';
     ctx.setTransform(pixel,0,0,pixel,0,0);
-    const count=Math.min(110,Math.max(8,Math.round((Number(density)||35)*.75)));
+    const count=Math.min(110,Math.max(5,Math.round((Number(density)||35)*.75*budget.particles)));
     particles=Array.from({length:count},(_,i)=>({
       x:Math.random()*w,y:Math.random()*h,v:.1+Math.random()*.65,
       r:.8+Math.random()*2.5,phase:Math.random()*Math.PI*2,drift:Math.random()*.8-.4,
@@ -22,9 +23,9 @@ export default function Focus7Particles({mode='off',density=35,performance='bala
     }));
   };
   const frame=time=>{
-    if(!alive)return;
+    if(!alive||!visible)return;
     id=requestAnimationFrame(frame);
-    if(document.hidden||time-last<32)return;
+    if(time-last<1000/budget.fps)return;
     const dt=Math.min(50,time-last||32)/32;last=time;
     ctx.clearRect(0,0,w,h);
     if(mode==='fog'){
@@ -57,9 +58,15 @@ export default function Focus7Particles({mode='off',density=35,performance='bala
       ctx.restore();
     }
   };
+  const visibility=()=>{
+    visible=!document.hidden;
+    cancelAnimationFrame(id);
+    if(visible){last=0;id=requestAnimationFrame(frame);}
+  };
   resize();window.addEventListener('resize',resize,{passive:true});
-  id=requestAnimationFrame(frame);
-  return()=>{alive=false;cancelAnimationFrame(id);window.removeEventListener('resize',resize);ctx.clearRect(0,0,w,h);};
+  document.addEventListener('visibilitychange',visibility);
+  if(visible)id=requestAnimationFrame(frame);
+  return()=>{alive=false;cancelAnimationFrame(id);window.removeEventListener('resize',resize);document.removeEventListener('visibilitychange',visibility);ctx.clearRect(0,0,w,h);};
  },[mode,density,performance]);
  if(mode==='off')return null;
  return <canvas ref={canvas} className="bfc7-particles" aria-hidden="true"/>;
