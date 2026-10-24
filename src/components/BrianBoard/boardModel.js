@@ -45,6 +45,6 @@ export function appendObject(doc,pageId,obj){
 export function sanitizeStudentPage(page){
  if(!page||page.hidden)return null;
  return {id:page.id,title:page.title,background:page.background,
-  objects:page.objects.filter(o=>o.studentVisible!==false&&o.kind!=='mask'&&o.teacherOnly!==true)
+  objects:page.objects.filter(o=>o.studentVisible!==false&&o.teacherOnly!==true)
    .map(o=>{const {privateAnswer,teacherNotes,...publicObject}=o;return publicObject;})};
 }
