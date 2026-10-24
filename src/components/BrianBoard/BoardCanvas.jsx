@@ -32,7 +32,7 @@ export function renderBoardObject(object,onErase,studentView=false,onInteract){
  if(o.kind==='flashcard')return <g key={o.id} onPointerDown={erase} onClick={event=>{if(!onErase&&!studentView){event.stopPropagation();onInteract?.(o.id);}}} style={{cursor:'pointer'}}>
   <rect x={o.x} y={o.y} width="330" height="165" rx="18" fill="#ecf3e9" stroke="#94b2a2" strokeWidth="2"/>
   <text x={o.x+20} y={o.y+65} fill="#325449" fontSize="29">{String(o.text||'').slice(0,21)}</text>
-  <text x={o.x+20} y={o.y+119} fill="#6c8d81" fontSize="18">{o.revealed?String(o.privateAnswer||'').slice(0,29):'Tap to reveal'}</text>
+  <text x={o.x+20} y={o.y+119} fill="#6c8d81" fontSize="18">{o.revealed?String(o.publicAnswer||o.privateAnswer||'').slice(0,29):'Tap to reveal'}</text>
  </g>;
  if(o.kind==='image'&&/^data:image\/(?:png|jpeg|webp);base64,/i.test(o.src||''))return <image key={o.id} href={o.src} x={o.x} y={o.y} width={o.width||500} height={o.height||300} preserveAspectRatio="xMidYMid meet" onPointerDown={erase}/>;
  if(o.kind==='mask')return <rect key={o.id} x={o.x} y={o.y} rx={9}
