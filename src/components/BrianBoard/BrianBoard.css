@@ -22,6 +22,7 @@
  overflow:hidden;background:var(--bbd-chrome);color:var(--bbd-text);
  font-family:"Google Sans",Inter,system-ui,sans-serif;font-size:14px;
 }
+.bbd-theme-ivory{--bbd-background:#fbfaf6;--bbd-chrome:#f0f0ec;--bbd-text:#263d40;}
 .bbd-theme-midnight{
  --bbd-background:#15252d;--bbd-chrome:#101f29;--bbd-text:#edf4f1;
  --bbd-ink:#a8d6f3;--bbd-accent:#c8a975;--bbd-panel:#1a313c;--bbd-border:#354a56;
@@ -167,3 +168,11 @@
 @media(prefers-reduced-motion:reduce){
  .bbd-board-fab{transition:none!important}
 }
+
+/* Student preview is not an admin workspace. */
+.bbd-shell.is-student-view .bbd-head :is(.bbd-lesson-name,.bbd-save-status),
+.bbd-shell.is-student-view .bbd-head-actions button:not(.bbd-close):not(:has(.lucide-eye)){
+ display:none!important;
+}
+.bbd-shell.is-student-view .bbd-canvas-area{padding:15px 24px;}
+.bbd-shell.is-student-view .bbd-color-strip{display:none;}
