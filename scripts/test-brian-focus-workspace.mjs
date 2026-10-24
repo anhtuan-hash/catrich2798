@@ -28,7 +28,7 @@ check('workspace mounts once within the existing Focus modal',
   main.includes("import './BrianFocusWorkspace.css'") &&
   main.includes('<FocusOverlay'));
 check('no duplicate overlay background renders and scene remains managed',
-  overlay.includes('personalDim === null ? scene') && overlay.includes('FocusSceneBackground scene={displayScene}') &&
+  overlay.includes('const displayScene =') && overlay.includes('dimPercent') && overlay.includes('FocusSceneBackground scene={displayScene}') &&
   overlay.includes('<FocusYoutubeBackground') && overlay.includes('scene={displayScene}'));
 check('all four real utility actions present', ['timer','notes','soundscape','brightness'].every(id => workspace.includes("id:'"+id+"'")));
 check('notes are authenticated and ownership-scoped', notes.includes(".eq('user_id', currentUser.id)") &&
