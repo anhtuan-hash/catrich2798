@@ -161,6 +161,7 @@
   animation: bfc-accent-glow 9s ease-in-out infinite alternate;
 }
 .bfc-weather {
+  grid-template-columns: 39px minmax(0,1fr) auto 30px;
   border-color: rgba(132,160,238,.36);
   background: linear-gradient(118deg, rgba(103,134,195,.24), rgba(68,70,145,.28));
   box-shadow: 0 0 0 1px rgba(137,180,255,.05) inset, 0 0 17px rgba(95,104,232,.13);
