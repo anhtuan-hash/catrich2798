@@ -110,7 +110,7 @@ export default function SyncDoctor({currentUser,language='vi'}){
       <button className="bsd-primary" disabled={busy} type="button" onClick={run}><RefreshCw size={17} className={busy?'bsd-spin':''}/>{busy?t.running:t.run}</button>
       <button className="bsd-outline" disabled={!report||busy} type="button" title={t.report} onClick={()=>saveReport(report)}><Download size={16}/>{t.export}</button>
     </section>
-    {progress&&<div className="bsd-progress" role="status"><div style={{width:Math.round(progress.done/progress.total*100)+'%'}}/ ><span>{t.running} · {progress.done}/{progress.total}</span></div>}
+    {progress&&<div className="bsd-progress" role="status"><div style={{width:Math.round(progress.done/progress.total*100)+'%'}} /><span>{t.running} · {progress.done}/{progress.total}</span></div>}
     {error&&<div className="bsd-alert" role="alert"><AlertTriangle size={18}/>{error}</div>}
     <nav className="bsd-tabs" aria-label={vi?'Khu vực Sync Doctor':'Sync Doctor sections'}>
       {t.tabs.map((label,i)=><button key={label} type="button" aria-current={tab===i?'page':undefined} className={tab===i?'active':''} onClick={()=>setTab(i)}>{label}</button>)}
