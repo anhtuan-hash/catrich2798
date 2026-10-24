@@ -1,0 +1,108 @@
+/* Persistent YouTube playback layer: this DOM subtree is a sibling of
+   FocusOverlay, never a child of it. Close hides pixels, NOT the iframe. */
+.bfc-persistent-youtube {
+  position:fixed;inset:0;
+  z-index:2147483499;
+  pointer-events:none;
+  overflow:hidden;
+  background:#060d22;
+  contain:layout paint style;
+  transition:opacity .2s ease;
+}
+.bfc-persistent-youtube.is-visible {opacity:1;}
+.bfc-persistent-youtube.is-background {opacity:0;}
+.bfc-persistent-youtube .bfc-youtube-background__player {
+  border:0;pointer-events:none;
+}
+/* The modal must remain transparent over the separate video canvas.
+   Its controls, clock and weather remain on the normal modal layer. */
+.bfc-overlay.bfc-overlay--youtube {
+  background:transparent!important;
+  background-image:none!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+.bfc-overlay--youtube .bfc-focus-youtube-shade {
+  position:fixed;inset:0;
+  z-index:1;
+  pointer-events:none;
+  background-color:rgba(2,8,22,.24);
+}
+.bfc-overlay--youtube .bfc-overlay__center {
+  position:relative;z-index:3;
+}
+.bfc-overlay--youtube .bfc-youtube-controls {
+  z-index:8;
+}
+.bfc-youtube-controls button:disabled {
+  opacity:.43;
+  cursor:not-allowed;
+}
+.bfc-youtube-controls button:disabled:hover {
+  background:transparent;
+}
+.bfc-youtube-controls__stop {
+  color:#ffc0c0!important;
+}
+.bfc-youtube-controls__stop:hover:not(:disabled){
+  background:rgba(194,61,77,.25)!important;
+}
+.bfc-youtube-controls--mini {
+  position:fixed!important;
+  z-index:2147483501;
+  left:max(16px,env(safe-area-inset-left,0px));
+  bottom:max(20px,env(safe-area-inset-bottom,0px));
+  width:auto;
+  max-width:calc(100vw - 100px);
+  padding:7px 10px;
+  gap:3px;
+  background:rgba(9,21,46,.94);
+  box-shadow:0 12px 36px rgba(0,0,0,.29);
+}
+.bfc-youtube-controls--mini .bfc-youtube-controls__status {
+  display:block;
+  max-width:175px;
+  padding:0 8px 0 2px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#c5e6ff;
+  font-size:11px;
+  font-weight:700;
+}
+.bfc-youtube-controls--mini :is(button,a) {
+  width:34px;
+  min-width:34px;
+  height:34px;
+  min-height:34px;
+  padding:7px;
+}
+@media(max-width:767px) {
+  .bfc-youtube-controls--mini {
+    left:max(10px,env(safe-area-inset-left,0px))!important;
+    right:auto!important;
+    bottom:max(13px,env(safe-area-inset-bottom,0px))!important;
+    transform:none!important;
+    gap:1px;
+    padding:5px 6px;
+  }
+  .bfc-youtube-controls--mini .bfc-youtube-controls__status {
+    max-width:108px;
+    font-size:10px;
+  }
+  .bfc-youtube-controls--mini :is(button,a) {
+    width:32px;min-width:32px;
+    height:32px;min-height:32px;
+  }
+}
+@media(max-width:390px) {
+  .bfc-youtube-controls--mini .bfc-youtube-controls__status {display:none;}
+  .bfc-youtube-controls--mini {max-width:calc(100vw - 84px);}
+}
+@media(prefers-reduced-motion:reduce) {
+  .bfc-persistent-youtube{transition:none!important;}
+}
+@media(forced-colors:active) {
+  .bfc-overlay.bfc-overlay--youtube{background:Canvas!important;}
+  .bfc-youtube-controls--mini{background:Canvas;color:CanvasText;border:1px solid CanvasText;}
+}
