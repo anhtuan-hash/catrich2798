@@ -13,6 +13,7 @@ import './BrianFocusScene.css';
 import './BrianFocusTransitions.css';
 import './FocusEffectsLibrary.css';
 import './FocusTransitionVariants.css';
+import './BrianFocusWorkspace.css';
 
 // Matches the exit timeline in BrianFocusTransitions.css.
 // The overlay stays mounted until the exit animation has completed.
