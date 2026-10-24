@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MoonStar, ShieldCheck, Sparkles, X } from 'lucide-react';
-import { isDepartmentLeaderRole } from '../utils/roles.js';
+import { MoonStar, ShieldCheck, Sparkles, X, Presentation } from 'lucide-react';
+import { isDepartmentLeaderRole,normalizeSystemRole } from '../utils/roles.js';
 import { isSupabaseConfigured } from '../utils/supabase.js';
 import { GLOBAL_FLOATING_STATUS_EVENT, FLOATING_ACTION_IDS, openUnifiedFloatingAction } from '../utils/unifiedFloatingDock.js';
 import './UnifiedFloatingDock.css';
 
 /** Single floating trigger; existing app components retain all business logic. */
-export default function UnifiedFloatingDock({ currentUser, language = 'vi', showFocus = true, showApprovals = true, showChat = true, triggerRef }) {
+export default function UnifiedFloatingDock({ currentUser, language = 'vi', showFocus = true, showBoard = true, showApprovals = true, showChat = true, triggerRef }) {
   const vi = language !== 'en';
   const [expanded, setExpanded] = useState(false);
   const [pending, setPending] = useState(0);
@@ -14,6 +14,7 @@ export default function UnifiedFloatingDock({ currentUser, language = 'vi', show
   const canReview = Boolean(showApprovals && isSupabaseConfigured && currentUser?.id &&
     currentUser?.approved === true && isDepartmentLeaderRole(currentUser.role));
   const actions = [
+    ...(showBoard && currentUser?.id && currentUser?.approved!==false && ['admin','department_head','teacher'].includes(normalizeSystemRole(currentUser.role)) ? [{ id: FLOATING_ACTION_IDS.board, label: vi ? 'Bảng giảng dạy' : 'Brian Board', Icon: Presentation }] : []),
     ...(showFocus ? [{ id: FLOATING_ACTION_IDS.focus, label: vi ? 'Màn hình tập trung' : 'Brian Focus', Icon: MoonStar }] : []),
     ...(canReview ? [{ id: FLOATING_ACTION_IDS.approvals, label: vi ? 'Duyệt quyền truy cập' : 'Access approvals', Icon: ShieldCheck }] : []),
     ...(showChat ? [{ id: FLOATING_ACTION_IDS.chat, label: 'Brian AI', Icon: Sparkles }] : []),
