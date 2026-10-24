@@ -5,10 +5,18 @@ const read=userId=>{try{const obj=JSON.parse(localStorage.getItem(store(userId))
   return Array.isArray(obj)?obj.filter(x=>typeof x.text==='string').slice(0,20):[];}catch{return[];}};
 export default function Focus6Tasks({userId,language='vi'}) {
   const vi=language!=='en';
-  const [tasks,setTasks]=useState(()=>read(userId));
+  const [record,setRecord]=useState(()=>({owner:userId,tasks:read(userId)}));
+  const tasks=record.owner===userId ? record.tasks : read(userId);
+  const setTasks=callback=>setRecord(old=>{
+    const current=old.owner===userId?old.tasks:read(userId);
+    return {owner:userId,tasks:typeof callback==='function'?callback(current):callback};
+  });
   const [draft,setDraft]=useState('');
-  useEffect(()=>setTasks(read(userId)),[userId]);
-  useEffect(()=>{try{localStorage.setItem(store(userId),JSON.stringify(tasks));}catch{}},[tasks,userId]);
+  useEffect(()=>setRecord({owner:userId,tasks:read(userId)}),[userId]);
+  useEffect(()=>{
+    if(record.owner!==userId)return; // never write another user's cached tasks into this account
+    try{localStorage.setItem(store(userId),JSON.stringify(record.tasks));}catch{}
+  },[record,userId]);
   const add=()=>{const title=draft.trim().slice(0,120);if(!title||tasks.length>=20)return;
     setTasks(prev=>[...prev,{id:String(Date.now())+'-'+Math.random().toString(16).slice(2),text:title,done:false}]);setDraft('');};
   return <section className="bfc6-tasks">
