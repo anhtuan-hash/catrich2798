@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import {browserFocusMotionBudget} from './focusMotionBudget.js';
 
 // Deterministic decor: stable positions prevent hydration jumps and accidental
 // React re-mounts while the live clock and weather update.
@@ -16,13 +17,13 @@ const DUST = Array.from({ length: 64 }, (_, i) => ({
   top: `${(i * 31 + Math.floor(i / 7) * 23 + 9) % 100}%`,
   opacity: 0.14 + (i % 5) * 0.07,
 }));
-export default function CosmicAmbient({ motionEnabled = true }) {
+export default function CosmicAmbient({ motionEnabled = true, performance='balanced' }) {
   const canvasRef = useRef(null);
 
   // A real-time, pointer-reactive depth layer: no video, external images, or React re-renders.
   useEffect(() => {
-    if (!motionEnabled || typeof window === 'undefined' ||
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+    const budget=browserFocusMotionBudget(performance);
+    if (!motionEnabled || !budget.enabled || typeof window === 'undefined') return undefined;
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext('2d', { alpha: true });
     if (!ctx) return undefined;
@@ -33,7 +34,7 @@ export default function CosmicAmbient({ motionEnabled = true }) {
     let previous = 0;
     let enabled = document.visibilityState !== 'hidden';
     let px = 0; let py = 0; let targetX = 0; let targetY = 0;
-    const particles = Array.from({ length: 125 }, (_, index) => ({
+    const particles = Array.from({ length: Math.round(125*budget.particles) }, (_, index) => ({
       x: ((index * 0.61803398875 + 0.17) % 1),
       y: ((index * 0.41421356237 + 0.38) % 1),
       depth: .28 + (index % 9) / 10,
@@ -45,7 +46,7 @@ export default function CosmicAmbient({ motionEnabled = true }) {
     const resize = () => {
       width = Math.max(1, window.innerWidth);
       height = Math.max(1, window.innerHeight);
-      const ratio = Math.min(window.devicePixelRatio || 1, 1.5);
+      const ratio = Math.min(window.devicePixelRatio || 1, budget.dpr);
       canvas.width = Math.round(width * ratio);
       canvas.height = Math.round(height * ratio);
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
@@ -58,7 +59,7 @@ export default function CosmicAmbient({ motionEnabled = true }) {
     const paint = (timestamp) => {
       if (!enabled) return;
       frame = window.requestAnimationFrame(paint);
-      if (timestamp - previous < 32) return; // cap at ~30 fps, even on fast displays
+      if (timestamp - previous < 1000/budget.fps) return; // cap RAF paints per device budget
       previous = timestamp;
       const t = timestamp * .001;
       px += (targetX - px) * .036;
@@ -112,7 +113,7 @@ export default function CosmicAmbient({ motionEnabled = true }) {
     };
     resize();
     window.addEventListener('resize', resize, { passive: true });
-    window.addEventListener('pointermove', pointer, { passive: true });
+    if(budget.parallax)window.addEventListener('pointermove', pointer, { passive: true });
     document.addEventListener('visibilitychange', visibility);
     if (enabled) frame = window.requestAnimationFrame(paint);
     return () => {
@@ -121,7 +122,7 @@ export default function CosmicAmbient({ motionEnabled = true }) {
       window.removeEventListener('pointermove', pointer);
       document.removeEventListener('visibilitychange', visibility);
     };
-  }, [motionEnabled]);
+  }, [motionEnabled,performance]);
 
   return (
     <div className="bfc-cosmos" aria-hidden="true">
