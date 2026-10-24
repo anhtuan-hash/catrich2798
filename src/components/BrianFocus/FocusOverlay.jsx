@@ -22,6 +22,8 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   effectsOpenRef.current = effectsOpen;
   const sceneEditorRef = useRef(false);
   sceneEditorRef.current = sceneEditorOpen;
+  // Applying a preset while Focus is open must not replay its entrance.
+  const enteredWithEffect = useRef(transitions.enter);
   const canManage = canEditFocusScene(currentUser);
   const dialogRef = useRef(null);
   const dismissRef = useRef(null);
@@ -88,7 +90,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
       aria-label={vi ? 'Chế độ tập trung Brian Focus' : 'Brian Focus mode'}
       aria-owns="bfc-focus-trigger"
       data-focus-transition={exiting ? 'exiting' : 'entering'}
-      data-focus-enter={transitions.enter}
+      data-focus-enter={enteredWithEffect.current}
       data-focus-exit={transitions.exit}
       ref={dialogRef}
       onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
