@@ -67,7 +67,7 @@ export default function HTCSenseClock({ language = 'vi', weather, onRefreshWeath
       <div className="bfc-clock-card__microcopy" aria-hidden="true">BRIAN / AMBIENT SPACE</div>
       <div className="bfc-clock-face" role="timer" aria-label={`${shownHours}:${minutes}`} aria-live="off">
         <div className="bfc-clock-face__digits" aria-hidden="true">
-          <SenseFlipTile key={hours} value={hours} unit="hours"/>
+          <SenseFlipTile key={shownHours} value={shownHours} unit="hours"/>
           <span className="bfc-clock-face__colon">:</span>
           <SenseFlipTile key={minutes} value={minutes} unit="minutes"/>
         </div>
