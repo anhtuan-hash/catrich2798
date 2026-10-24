@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const source=path=>readFileSync(new URL('../..'+path,import.meta.url),'utf8');
 const bundle=await build({
   entryPoints:[fileURLToPath(new URL('../fixtures/eventPopupMotionHarness.jsx',import.meta.url))],
-  bundle:true,write:false,platform:'browser',format:'iife',jsx:'automatic',
+  bundle:true,write:false,outfile:'event-popup-harness.js',platform:'browser',format:'iife',jsx:'automatic',
   loader:{'.css':'empty'},
   define:{'process.env.NODE_ENV':'"production"'},
 });
