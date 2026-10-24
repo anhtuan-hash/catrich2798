@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 
-const css = ['BrianFocus.css', 'BrianFocusCosmic.css'].map(name => readFileSync(new URL('../../src/components/BrianFocus/'+name, import.meta.url),'utf8')).join('\n');
+const css = ['BrianFocus.css', 'BrianFocusCosmic.css', 'BrianFocusPremium.css'].map(name => readFileSync(new URL('../../src/components/BrianFocus/'+name, import.meta.url),'utf8')).join('\n');
 for (const viewport of [
   { width: 1440, height: 900 },
   { width: 1024, height: 768 },
@@ -14,7 +14,7 @@ for (const viewport of [
     await page.setContent(`<main id="root"><button id="dashboard" style="position:fixed;top:100px;left:40px">Dashboard</button></main>
       <div class="bfc-overlay" role="dialog" aria-modal="true" aria-label="Chế độ tập trung Brian Focus">
         <div class="bfc-cosmos" aria-hidden="true">
-          <div class="bfc-cosmos__nebula bfc-cosmos__nebula--a"></div>
+          <div class="bfc-cosmos__nebula bfc-cosmos__nebula--a"></div><div class="bfc-cosmos__halo"></div>
           <div class="bfc-cosmos__planet bfc-cosmos__planet--left"></div>
           <div class="bfc-cosmos__stars"><span class="bfc-cosmos__star" style="left:30%;top:20%"></span></div>
         </div>
@@ -22,25 +22,26 @@ for (const viewport of [
         <div class="bfc-overlay__center">
           <div class="bfc-clock-card">
             <div class="bfc-clock-card__glint"></div>
-            <div class="bfc-clock-card__eyebrow"><span>CHẾ ĐỘ TẬP TRUNG</span></div>
+            <div class="bfc-clock-card__eyebrow"><span>CHẾ ĐỘ TẬP TRUNG</span></div><div class="bfc-clock-card__microcopy">BRIAN / AMBIENT SPACE</div>
             <div class="bfc-clock-face">
               <div class="bfc-clock-face__digits">
-                <span class="bfc-clock-face__tile">09</span>
+                <span class="bfc-clock-face__tile bfc-clock-face__tile--flip"><span class="bfc-clock-face__number">09</span><span class="bfc-clock-face__shutter">09</span><span class="bfc-clock-face__hinge bfc-clock-face__hinge--left"></span><span class="bfc-clock-face__hinge bfc-clock-face__hinge--right"></span></span>
                 <span class="bfc-clock-face__colon">:</span>
-                <span class="bfc-clock-face__tile">12</span>
+                <span class="bfc-clock-face__tile bfc-clock-face__tile--flip"><span class="bfc-clock-face__number">12</span><span class="bfc-clock-face__shutter">12</span><span class="bfc-clock-face__hinge bfc-clock-face__hinge--left"></span><span class="bfc-clock-face__hinge bfc-clock-face__hinge--right"></span></span>
               </div>
             </div>
             <div class="bfc-clock-date">Thứ Bảy, 24 tháng 10, 2026</div>
             <div class="bfc-clock-card__rule"></div>
             <div class="bfc-weather">
               <span class="bfc-weather__icon">☀</span>
-              <span class="bfc-weather__details"><span class="bfc-weather__city">TP. Hồ Chí Minh</span><span class="bfc-weather__condition">Ít mây</span></span>
+              <span class="bfc-weather__details"><span class="bfc-weather__title"><span class="bfc-weather__city">TP. Hồ Chí Minh</span><span class="bfc-weather__live">LIVE</span></span><span class="bfc-weather__condition">Ít mây</span></span>
               <span class="bfc-weather__temp">26°C</span><button class="bfc-weather__refresh" aria-label="Cập nhật thời tiết">↻</button>
             </div>
             <p class="bfc-clock-card__hint">Một khoảnh khắc bình yên để tập trung.</p><div class="bfc-clock-card__accent"></div>
           </div>
         </div>
       </div>
+      <div id="other-global-fab" style="position:fixed;bottom:100px;right:24px;z-index:2147483300;background:white;">Other toolbar</div>
       <button class="bfc-bubble is-active" aria-label="Thoát chế độ tập trung" aria-pressed="true">✕</button>`);
     await page.addStyleTag({ content: css });
     const info = await page.evaluate(() => {
@@ -55,6 +56,9 @@ for (const viewport of [
         close: bounds('.bfc-overlay__close'),
         viewportWidth: document.documentElement.clientWidth,
         scrollWidth: document.documentElement.scrollWidth,
+        overlayZ: Number(getComputedStyle(document.querySelector('.bfc-overlay')).zIndex),
+        bubbleZ: Number(getComputedStyle(document.querySelector('.bfc-bubble')).zIndex),
+        otherZ: Number(getComputedStyle(document.getElementById('other-global-fab')).zIndex),
       };
     });
     expect(info.scrollWidth).toBeLessThanOrEqual(viewport.width + 1);
@@ -65,6 +69,8 @@ for (const viewport of [
     expect(info.bubble.right).toBeLessThanOrEqual(viewport.width + 1);
     expect(info.bubble.bottom).toBeLessThanOrEqual(viewport.height + 1);
     expect(info.card.height).toBeGreaterThan(200);
+    expect(info.overlayZ).toBeGreaterThan(info.otherZ);
+    expect(info.bubbleZ).toBeGreaterThan(info.overlayZ);
     await expect(page.getByRole('button',{ name:'Cập nhật thời tiết' })).toBeVisible();
     await expect(page.getByRole('dialog',{ name: 'Chế độ tập trung Brian Focus' })).toBeVisible();
   });
