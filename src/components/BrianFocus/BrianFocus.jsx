@@ -71,14 +71,21 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
     window.addEventListener('online',change);window.addEventListener('offline',change);
     return()=>{window.removeEventListener('online',change);window.removeEventListener('offline',change);};
   },[]);
+  // Deadline-driven Orbit: no 1Hz parent renders just to poll six timers.
+  const orbitDeadlines=silk9.data.orbit.filter(x=>x.running).map(x=>x.deadline).join(',');
   useEffect(()=>{
-    if(!silk9.data.orbit.some(x=>x.running))return undefined;
-    const timer=window.setInterval(()=>silk9.update(cur=>{
-      const next=silkAdvanceTimers(cur.orbit,Date.now());
-      return next===cur.orbit?cur:{...cur,orbit:next};
-    }),1000);
-    return()=>clearInterval(timer);
-  },[silk9.data.orbit.some(x=>x.running)]);
+    if(!orbitDeadlines)return undefined;
+    const check=()=>{
+      const orbit=silk9.latest.current.orbit;
+      if(!orbit.some(x=>x.running&&x.deadline<=Date.now()))return;
+      silk9.update(cur=>({...cur,orbit:silkAdvanceTimers(cur.orbit,Date.now())}));
+    };
+    const deadlines=silk9.data.orbit.filter(x=>x.running).map(x=>x.deadline);
+    const delay=Math.max(0,Math.min(...deadlines)-Date.now()+20);
+    const timeout=window.setTimeout(check,delay);
+    document.addEventListener('visibilitychange',check);
+    return()=>{clearTimeout(timeout);document.removeEventListener('visibilitychange',check);};
+  },[orbitDeadlines]);
   const presenterRef=useRef(presenter);presenterRef.current=presenter;
   const startPresenter=async()=>{
     if(!online)return;
@@ -176,7 +183,8 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
   const timerController = useFocusTimer(currentUser?.id,onTimerComplete);
   timerModeRef.current = timerController.timer.mode;
   timerLengthRef.current=timerController.timer.minutes;
-  publishRef.current.timer=timerController.timer;
+  const selectedOrbit=silk9.data.orbit.find(x=>x.selected&&x.running);
+  publishRef.current.timer=selectedOrbit||timerController.timer;
   const focusFlow = useFocus7Flow(currentUser?.id,timerController,completionToken);
   const {
     player: persistentYoutubePlayer,
