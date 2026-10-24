@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Waves, Pause, ImagePlus, Clapperboard, TimerReset, SlidersHorizontal, Maximize2, Minimize2, EyeOff, WandSparkles, Presentation, Command } from 'lucide-react';
 import HTCSenseClock from './HTCSenseClock.jsx';
+import FocusWeather from './FocusWeather.jsx';
 import CosmicAmbient from './CosmicAmbient.jsx';
 import FocusSceneBackground from './FocusSceneBackground.jsx';
 import FocusYoutubeBackground from './FocusYoutubeBackground.jsx';
@@ -265,6 +266,8 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   const cinemaStyle = {
     '--bfc8-clock-x':layout.clock.x+'%','--bfc8-clock-y':layout.clock.y+'%',
     '--bfc8-dock-x':layout.dock.x+'%','--bfc8-dock-y':layout.dock.y+'%',
+    '--bfc8-weather-x':layout.weather.x+'%','--bfc8-weather-y':layout.weather.y+'%',
+    '--bfc8-timer-x':layout.timer.x+'%','--bfc8-timer-y':layout.timer.y+'%',
     '--bfc8-depth-x':'0px','--bfc8-depth-y':'0px',
     '--bfc6-saturation': appearance.saturation / 100,
     '--bfc6-contrast': appearance.contrast / 100,
@@ -369,11 +372,14 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
       </div>
       <div className="bfc-overlay__center">
         <HTCSenseClock mode={focus7.clock==='inherit'?appearance.clockMode:focus7.clock} clock7={focus7} scale={appearance.scale} hour12={appearance.hour12}
-          showSeconds={appearance.showSeconds} language={language} weather={weather} onRefreshWeather={onRefreshWeather}/>
+          showSeconds={appearance.showSeconds} language={language} weather={weather} showWeather={!focus8.layoutEnabled} onRefreshWeather={onRefreshWeather}/>
         {!classroom&&appearance.intention && <p className="bfc6-intention">{appearance.intention}</p>}
         {classroom&&<Focus8Stage stage={focus8.stage} language={language}/>}
         {classroom&&<p className="bfc7-classroom-timer" role="timer">{timerController.formatted}</p>}
       </div>
+      {focus8.layoutEnabled&&!classroom&&<div className="bfc8-external-weather">
+        <FocusWeather compact weather={weather} language={language} onRefresh={onRefreshWeather}/></div>}
+      {focus8.layoutEnabled&&!classroom&&timerController.timer.running&&<div className="bfc8-external-timer" role="timer">{timerController.formatted}</div>}
       {!classroom&&<FocusWorkspace currentUser={currentUser} language={language} appearance={appearance}
         onAppearanceChange={setAppearance} mixer={mixer} onManualTimerAction={focusFlow.stop}
         timerController={timerController} completedSessions={completedSessions}
