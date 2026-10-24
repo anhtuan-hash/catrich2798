@@ -26,6 +26,19 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   const controlsTimerRef = useRef(null);
   const appearanceButtonRef = useRef(null);
   const { appearance, setAppearance } = useFocusAppearance(currentUser?.id);
+  useEffect(()=>{
+    if(scene.mediaType!=='youtube')return undefined;
+    // The one persistent iframe is owned by BrianFocus (outside this portal).
+    // Visual-only filters must never remount it or modify its src/playback.
+    const iframe=document.querySelector('.bfc-persistent-youtube.is-visible .bfc-youtube-background__player');
+    if(!iframe)return undefined;
+    const previous=iframe.style.filter;
+    const sat=(appearance.saturation/100) * (appearance.backdrop==='dreamy'?1.18:appearance.backdrop==='dark'?.8:appearance.backdrop==='cinema'?.91:1);
+    const contrast=(appearance.contrast/100) * (appearance.backdrop==='cinema'?1.1:appearance.backdrop==='dark'?1.11:appearance.backdrop==='dreamy'?.93:1);
+    const brightness=appearance.backdrop==='dark'?.74:1;
+    iframe.style.filter='saturate('+sat.toFixed(2)+') contrast('+contrast.toFixed(2)+') brightness('+brightness+') blur('+appearance.blur+'px)';
+    return ()=>{iframe.style.filter=previous;};
+  },[scene.mediaType,appearance.saturation,appearance.contrast,appearance.blur,appearance.backdrop]);
   const [activeTool, setActiveTool] = useState('');
   const [personalDim, setPersonalDim] = useState(null);
   const [quiet, setQuiet] = useState(false);
