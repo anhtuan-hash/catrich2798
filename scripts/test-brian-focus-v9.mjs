@@ -52,7 +52,7 @@ assert.match(file('FocusOverlay.jsx'),/bfc9-shield/);
 assert.match(file('Focus9Viewer.jsx'),/readPresenter/);
 assert.match(file('Focus9Viewer.jsx'),/role="timer"/);
 assert.match(file('focus9Presenter.js'),/auth.getUser/);
-assert.match(file('focus9Presenter.js'),/owner/);
+assert.match(file('focus9Presenter.js'),/assertOwner/);
 assert.match(file('focus9Presenter.js'),/revoked:true/);
 assert.match(file('Focus9Studio.jsx'),/silkSnapshot/);
 assert.match(file('Focus9Studio.jsx'),/silkAdvanceTimers|silkRemaining/);
