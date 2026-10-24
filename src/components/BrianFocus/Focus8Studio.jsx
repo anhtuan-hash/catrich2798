@@ -19,7 +19,7 @@ function download(name,text,type='application/json'){
  setTimeout(()=>URL.revokeObjectURL(url),2000);
 }
 export default function Focus8Studio({userId,language='vi',data,update,focus7,appearance,onAutomation,sessionEvents,scene,
- timer,flow,classroom,onClassroom,onCommand,onClose,onStageNext,mixer,initialTab='scene'}){
+ timer,flow,classroom,onClassroom,onCommand,onClose,onStageNext,mixer,remoteHost,initialTab='scene'}){
  const vi=language!=='en';
  const [tab,setTab]=useState(initialTab),[status,setStatus]=useState('');
  const [stageQr,setStageQr]=useState('');
@@ -108,7 +108,7 @@ export default function Focus8Studio({userId,language='vi',data,update,focus7,ap
      <button type="button" onClick={()=>update({recipes:data.recipes.filter((_,j)=>j!==i)})} aria-label="Delete">×</button>
    </div>)}</div>
   </div>}
-  {tab==='remote'&&<Focus8RemoteHost userId={userId} language={language} onCommand={onCommand}/>}
+  {tab==='remote'&&<Focus8RemoteHost host={remoteHost} language={language}/>}
   {tab==='classroom'&&<div className="bfc8-stack"><h3>Classroom Stage Director</h3>
    <label>{vi?'Mục tiêu bài học':'Lesson objective'}<input maxLength={150} value={data.stage.title} onChange={e=>updateStage({title:e.target.value})}/></label>
    <label>{vi?'Link học liệu (HTTPS)':'Learning URL (HTTPS)'}<input value={data.stage.url} onChange={e=>updateStage({url:e.target.value})}/></label>
