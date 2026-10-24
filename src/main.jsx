@@ -23,6 +23,7 @@ import './styles/GlobalOuterHorizontalAlignment.css';
 import { APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import GlobalFlatNavigation from './components/GlobalFlatNavigation.jsx';
+import UnifiedFloatingDock from './components/UnifiedFloatingDock.jsx';
 import AppErrorBoundary from './components/AppErrorBoundary.jsx';
 import Footer from './components/Footer.jsx';
 import GlobalLegacyI18nBridge from './components/GlobalLegacyI18nBridge.jsx';
@@ -206,6 +207,7 @@ function App() {
   const [authReady, setAuthReady] = useState(false);
   const [loadingState, setLoadingState] = useState({ active: false, label: '' });
   const [aiOperationState, setAiOperationState] = useState({ active: false, label: '', provider: '' });
+  const unifiedDockTriggerRef = useRef(null);
   const aiOperationIdsRef = useRef(new Set());
   const aiIndicatorHideTimerRef = useRef(null);
   const languageRef = useRef(language);
@@ -534,7 +536,7 @@ function App() {
         {currentUser && selectedTool?.slug !== 'questatlas' && !['homeroom-portal', 'classroom-join', 'quest-join'].includes(currentRoute) ? (
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="shared-chatbot-drawer" label={language === 'vi' ? 'chatbot dùng chung' : 'shared chatbot'}>
-              <SharedChatbotDrawer currentUser={currentUser} language={language} />
+              <SharedChatbotDrawer currentUser={currentUser} language={language} dockManaged />
             </AppErrorBoundary>
           </Suspense>
         ) : null}
@@ -542,7 +544,8 @@ function App() {
         {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'quest-join'].includes(currentRoute) ? (
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="global-brian-focus" label="Brian Focus">
-              <BrianFocus currentUser={currentUser} language={language} performance={resolvedPerformance} />
+              <BrianFocus currentUser={currentUser} language={language} performance={resolvedPerformance}
+                dockManaged dockTriggerRef={unifiedDockTriggerRef} />
             </AppErrorBoundary>
           </Suspense>
         ) : null}
@@ -550,10 +553,17 @@ function App() {
         {currentUser && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'quest-join'].includes(currentRoute) ? (
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="ttcm-approval-inbox" label={language === 'vi' ? 'duyệt quyền truy cập' : 'access approvals'}>
-              <PermissionApprovalInbox currentUser={currentUser} language={language} />
+              <PermissionApprovalInbox currentUser={currentUser} language={language} dockManaged />
             </AppErrorBoundary>
           </Suspense>
         ) : null}
+
+        {currentUser && !['login','register','setup','homeroom-portal','classroom-join','quest-join'].includes(currentRoute) && (
+          <UnifiedFloatingDock currentUser={currentUser} language={language} triggerRef={unifiedDockTriggerRef}
+            showFocus={Boolean(canAccessRoute)}
+            showChat={selectedTool?.slug !== 'questatlas'}
+            showApprovals />
+        )}
 
         <main id="bes-main-content" tabIndex={-1} key={`${currentRoute}:${selectedTool?.slug || 'root'}`} className="wp8-page-stage wp8-door-page" data-route={currentRoute}>
           <div className="bqa-content-safe-frame" data-quick-access-safe-frame={quickAccessEnabled ? 'true' : 'false'}>
