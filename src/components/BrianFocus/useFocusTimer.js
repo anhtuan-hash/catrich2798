@@ -71,6 +71,15 @@ export default function useFocusTimer(userId, onComplete) {
     const minutes = Math.min(180, Math.max(1, Math.round(Number(requestedMinutes) || FOCUS_TIMER_PRESETS[mode] || 25)));
     setTimer({ mode, minutes, remainingMs: minutes * 60_000, running: false, deadline: 0 });
   };
+  // Atomic start avoids the stale-state race of setPreset(); start() in
+  // the same event, essential for an automatic Focus Flow phase transition.
+  const startPreset = (mode,requestedMinutes) => {
+    const minutes=Math.min(180,Math.max(1,Math.round(Number(requestedMinutes)||FOCUS_TIMER_PRESETS[mode]||25)));
+    const duration=minutes*60_000;
+    const tick=Date.now();
+    setNow(tick);
+    setTimer({mode,minutes,remainingMs:duration,running:true,deadline:tick+duration});
+  };
   const start = () => {
     setNow(Date.now());
     setTimer(value => ({ ...value, remainingMs: value.remainingMs || value.minutes*60_000, running: true,
@@ -78,5 +87,5 @@ export default function useFocusTimer(userId, onComplete) {
   };
   const pause = () => setTimer(value => ({ ...value, running: false, remainingMs: remainingFocusMs(value), deadline: 0 }));
   const reset = () => setTimer(value => ({ ...value, running: false, remainingMs: value.minutes*60_000, deadline: 0 }));
-  return { timer, remainingMs, formatted: formatFocusDuration(remainingMs), setPreset, start, pause, reset };
+  return { timer, remainingMs, formatted: formatFocusDuration(remainingMs), setPreset, startPreset, start, pause, reset };
 }
