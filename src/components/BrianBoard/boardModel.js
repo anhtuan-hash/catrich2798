@@ -8,7 +8,7 @@ export function newPage(title='Page 1'){
 }
 export function newLesson(ownerId){
  const page=newPage();
- return {schema:1,ownerId:String(ownerId||''),title:'Untitled lesson',
+ return {schema:1,id:makeId(),ownerId:String(ownerId||''),title:'Untitled lesson',
   theme:'ivory',pages:[page],activePageId:page.id,updatedAt:Date.now()};
 }
 export function normalizeLesson(raw,ownerId){
@@ -22,7 +22,7 @@ export function normalizeLesson(raw,ownerId){
    ['stroke','text','shape','image','sticky','flashcard','mask'].includes(o.kind)).map(o=>({...o})):[],
  }));
  if(!pages.length)pages.push(newPage());
- return {schema:1,ownerId:String(ownerId),title:String(raw.title||empty.title).slice(0,180),
+ return {schema:1,id:String(raw.id||'legacy-'+pages[0].id).slice(0,85),ownerId:String(ownerId),title:String(raw.title||empty.title).slice(0,180),
   theme:THEMES.includes(raw.theme)?raw.theme:'ivory',pages,
   activePageId:pages.some(x=>x.id===raw.activePageId)?raw.activePageId:pages[0].id,
   updatedAt:Number(raw.updatedAt)||Date.now()};
