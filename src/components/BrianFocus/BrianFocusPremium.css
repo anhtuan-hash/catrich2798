@@ -1,0 +1,249 @@
+/* Brian Focus 2.1 — visual refinement after screenshot audit.
+ * Overrides only the Focus experience, without changing the two existing app FABs.
+ */
+.bfc-overlay {
+  /* Existing approval FAB has z-index 2147483300; the focus surface must
+     be ABOVE it to prevent distracting clickable controls during a modal. */
+  z-index: 2147483500;
+  background: rgba(6, 12, 28, .81);
+  background-image:
+    radial-gradient(ellipse at 52% 53%, rgba(30,40,91,.20), transparent 62%),
+    linear-gradient(140deg, rgba(2,9,23,.12), rgba(12,10,42,.10));
+}
+.bfc-bubble.is-active { z-index: 2147483510; }
+/* The other utility FABs are untouched and remain available outside Focus.
+   Inside Focus, the modal correctly covers them instead of leaking through. */
+.bfc-cosmos {
+  background:
+    radial-gradient(ellipse at 54% 54%, rgba(66,71,162,.17), transparent 53%),
+    radial-gradient(ellipse at 18% 80%, rgba(42,53,122,.13), transparent 55%),
+    linear-gradient(135deg, rgba(11,19,43,.09), rgba(15,11,43,.09));
+}
+.bfc-cosmos__halo {
+  position: absolute;
+  left: 50%;
+  top: 49%;
+  width: min(92vw, 970px);
+  aspect-ratio: 1.34;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse, rgba(89,112,255,.20) 0%, rgba(80,45,172,.13) 33%, transparent 72%);
+  filter: blur(28px);
+  opacity: .85;
+  animation: bfc-premium-halo 28s ease-in-out infinite alternate;
+}
+.bfc-cosmos__stardust {
+  position: absolute;
+  inset: 0;
+}
+.bfc-cosmos__stardust > i {
+  display: block;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  background: #dde8ff;
+  border-radius: 100%;
+}
+.bfc-cosmos__constellations {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: .62;
+  pointer-events: none;
+}
+.bfc-cosmos__planet--left {
+  opacity: .68;
+  box-shadow: inset -30px -22px 28px rgba(1,8,34,.72), 0 0 35px rgba(72,105,224,.14);
+}
+.bfc-cosmos__planet--left::before {
+  content: "";
+  position: absolute;
+  inset: 18% -25%;
+  border: 1px solid rgba(149,170,255,.32);
+  border-radius: 50%;
+  transform: rotate(-24deg);
+  box-shadow: 0 0 14px rgba(78,114,250,.12);
+}
+.bfc-cosmos__planet--left::after {
+  content: "";
+  position: absolute;
+  inset: 25% -20%;
+  border-top: 2px solid rgba(182,200,255,.30);
+  border-bottom: 1px solid rgba(107,119,255,.18);
+  border-radius: 50%;
+  transform: rotate(-24deg);
+}
+.bfc-cosmos__planet--right {
+  background:
+    radial-gradient(circle at 28% 24%, rgba(195,195,255,.90) 0, rgba(113,127,215,.76) 18%, #415596 44%, #111d49 80%);
+}
+.bfc-cosmos__orbits { opacity: .56; }
+.bfc-clock-card {
+  /* Intentional breathing room while preserving the screenshot's composition. */
+  border-color: rgba(157,186,255,.49);
+  background:
+    radial-gradient(ellipse at 50% -5%, rgba(106,115,226,.18), transparent 60%),
+    linear-gradient(160deg, rgba(33,46,93,.77), rgba(10,20,50,.81) 65%, rgba(28,25,76,.78));
+  box-shadow:
+    0 32px 95px rgba(2,6,23,.58),
+    0 0 0 1px rgba(218,230,255,.06) inset,
+    0 0 48px rgba(99,92,226,.22);
+}
+.bfc-clock-card__eyebrow {
+  margin-top: 5px;
+  letter-spacing: .23em;
+}
+.bfc-clock-card__microcopy {
+  position: absolute;
+  top: 20px;
+  right: 23px;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  color: rgba(188,201,238,.34);
+  pointer-events: none;
+}
+.bfc-clock-face__tile {
+  /* Parent frame stays still, only the shutter turns on the hinge. */
+  isolation: isolate;
+  overflow: hidden;
+  text-indent: 0;
+  border: 1px solid rgba(183,199,247,.37);
+  background:
+    linear-gradient(180deg, rgba(152,169,214,.31) 0%,
+      rgba(103,119,177,.17) 49.75%, rgba(13,23,55,.70) 50%, rgba(12,23,53,.82) 100%);
+  box-shadow: 0 14px 30px rgba(1,7,26,.22), inset 0 1px rgba(224,234,255,.18);
+}
+.bfc-clock-face__tile--flip { animation: none !important; }
+.bfc-clock-face__number,
+.bfc-clock-face__shutter {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  font: inherit;
+  font-weight: 300;
+  letter-spacing: -.065em;
+  line-height: 1;
+  color: inherit;
+  text-shadow: 0 2px 18px rgba(203,217,255,.24);
+}
+.bfc-clock-face__number { z-index: 1; }
+.bfc-clock-face__shutter {
+  z-index: 2;
+  clip-path: inset(0 0 50% 0);
+  transform-origin: 50% 50%;
+  background: linear-gradient(180deg, rgba(171,188,226,.13), rgba(102,126,175,.13));
+  backface-visibility: hidden;
+  animation: bfc-premium-flap 780ms cubic-bezier(.25,.66,.29,1) both;
+}
+.bfc-clock-face__hinge {
+  position: absolute;
+  z-index: 5;
+  top: calc(50% - 3px);
+  width: 7px;
+  height: 6px;
+  border: 1px solid rgba(164,181,226,.33);
+  background: rgba(14,27,57,.92);
+  box-shadow: inset 0 1px 0 rgba(227,236,255,.22);
+}
+.bfc-clock-face__hinge--left {
+  left: -1px;
+  border-radius: 0 4px 4px 0;
+}
+.bfc-clock-face__hinge--right {
+  right: -1px;
+  border-radius: 4px 0 0 4px;
+}
+.bfc-clock-face__colon {
+  opacity: .8;
+  text-shadow: 0 0 16px rgba(128,157,249,.26);
+}
+.bfc-clock-date {
+  color: #f0f4ff;
+  letter-spacing: -.01em;
+}
+.bfc-clock-card__rule {
+  background: linear-gradient(90deg,transparent,rgba(149,183,255,.19),rgba(232,243,255,.29),rgba(171,149,255,.18),transparent);
+}
+.bfc-weather {
+  border-color: rgba(140,167,240,.38);
+  background:
+    linear-gradient(116deg, rgba(104,144,207,.20), rgba(77,69,150,.23));
+  box-shadow: 0 0 0 1px rgba(194,215,255,.035) inset, 0 12px 24px rgba(8,17,48,.15);
+}
+.bfc-weather__title {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+.bfc-weather__live {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #bde5d8;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  white-space: nowrap;
+}
+.bfc-weather__live::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #6de3be;
+  box-shadow: 0 0 6px rgba(96,222,181,.5);
+}
+.bfc-weather__live.is-stale { color:#f0cea1; }
+.bfc-weather__live.is-stale::before { background:#f1c88d;box-shadow:none; }
+.bfc-weather__condition { letter-spacing: .004em; }
+.bfc-weather__temp { font-size: 25px; font-variant-numeric: tabular-nums; }
+.bfc-weather__refresh {
+  border: 1px solid rgba(198,214,255,.08);
+  transition: background .2s ease, transform .2s ease;
+}
+.bfc-weather__refresh:hover:not(:disabled) { transform: rotate(24deg); }
+@keyframes bfc-premium-halo {
+  from { opacity: .42; transform: translate(-50%,-50%) scale(.98); }
+  to { opacity: .82; transform: translate(-50%,-50%) scale(1.07); }
+}
+@keyframes bfc-premium-flap {
+  0% { transform: perspective(760px) rotateX(0deg); opacity: .92; }
+  36% { transform: perspective(760px) rotateX(-42deg); opacity: .85; }
+  70% { transform: perspective(760px) rotateX(-86deg); opacity: .12; }
+  100% { transform: perspective(760px) rotateX(-90deg); opacity: 0; }
+}
+@media (max-width: 767px) {
+  .bfc-cosmos__planet--left { left: -8%; bottom: 12%; }
+  .bfc-cosmos__constellations { opacity: .33; }
+  .bfc-clock-card__microcopy { display:none; }
+  .bfc-clock-card__eyebrow { letter-spacing: .16em; }
+  .bfc-weather__title { gap: 5px; }
+  .bfc-weather__live { font-size:7px; }
+}
+@media (max-width: 430px) {
+  .bfc-weather__live { display:none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bfc-clock-face__shutter,
+  .bfc-cosmos__halo,
+  .bfc-weather__refresh { animation:none !important; transition:none !important; }
+  .bfc-clock-face__shutter { opacity: 0; }
+}
+.bfc-overlay--low-motion .bfc-clock-face__shutter,
+.bfc-overlay--low-motion .bfc-cosmos__halo {
+  animation:none !important;
+}
+.bfc-overlay--low-motion .bfc-clock-face__shutter {opacity:0;}
+@media (forced-colors: active) {
+  .bfc-clock-face__shutter, .bfc-cosmos__halo {display:none;}
+  .bfc-weather__live::before {background:CanvasText;box-shadow:none;}
+}
