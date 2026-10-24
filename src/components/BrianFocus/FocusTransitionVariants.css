@@ -82,8 +82,8 @@
 .bfc-overlay--entry-lite.bfc-overlay--exiting {animation:none!important;}
 @media(prefers-reduced-motion:reduce){
  .bfc-overlay[data-focus-enter],.bfc-overlay[data-focus-exit],
- .bfc-overlay[data-focus-exit].bfc-overlay--exiting,
- .bfc-effect-gallery__demo[data-demo-effect] {animation:none!important;transform:none!important;clip-path:none!important;filter:none!important;opacity:1!important;}
+ .bfc-overlay[data-focus-exit].bfc-overlay--exiting {animation:none!important;transform:none!important;clip-path:none!important;filter:none!important;opacity:1!important;}
+ .bfc-effect-gallery__demo[data-demo-effect]:not([data-preview-override="true"]) {animation:none!important;transform:none!important;clip-path:none!important;filter:none!important;opacity:1!important;}
 }
 @media(forced-colors:active){
  .bfc-overlay[data-focus-enter],.bfc-overlay[data-focus-exit] {clip-path:none!important;}
@@ -252,7 +252,15 @@
   animation:none!important;opacity:1!important;transform:none!important;clip-path:none!important;filter:none!important;
 }
 @media (prefers-reduced-motion: reduce) {
- .bfc-overlay .bfc-effect-gallery__demo[data-demo-effect] {
+ .bfc-overlay .bfc-effect-gallery__demo[data-demo-effect]:not([data-preview-override="true"]) {
   animation:none!important;transform:none!important;clip-path:none!important;filter:none!important;opacity:1!important;
  }
+}
+
+/* Browser-driven preview takes precedence over old keyframe experiments.
+   CSS does not animate the demo anymore; focusPreviewMotion.js owns the player.
+   Keeping only animation:none does NOT disable element.animate() animations.
+   The no-motion preset intentionally remains static. */
+.bfc-overlay .bfc-effect-gallery__demo[data-demo-effect] {
+  animation:none!important;
 }
