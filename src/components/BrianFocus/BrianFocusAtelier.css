@@ -34,6 +34,17 @@
 .bfc-atelier .bfc-overlay__identity-copy strong{color:#faf3e0!important;font-weight:620!important;}
 .bfc-atelier .bfc-overlay__identity-copy small{display:none!important;}
 
+/* YouTube's persistent iframe lives behind the Focus portal to preserve playback
+   across Focus toggles; the overlay MUST remain transparent for that scene. */
+.bfc-overlay.bfc-atelier.bfc-overlay--youtube {
+  background:transparent!important;
+  background-image:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+.bfc-overlay.bfc-atelier.bfc-overlay--youtube::before {
+  background:linear-gradient(180deg,rgba(1,5,12,.16),transparent 35%,transparent 72%,rgba(1,5,12,.15));
+}
 /* The photo/video is the entire canvas; clock is an unframed center island. */
 .bfc-overlay.bfc-atelier .bfc-overlay__center,
 .bfc-overlay.bfc-atelier.is-tools-open .bfc-overlay__center {
