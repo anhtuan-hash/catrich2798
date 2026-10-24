@@ -1,0 +1,46 @@
+/* Ordered YouTube playlist (Focus Scene Studio). Inherits scene editor design. */
+.bfc-scene-editor__youtube-input textarea {
+  display:block;width:100%;min-width:0;min-height:104px;resize:vertical;
+  border:0;outline:0;background:transparent;color:#eef6ff;
+  font:500 12px/1.65 -apple-system,BlinkMacSystemFont,Inter,system-ui,sans-serif;
+  overflow-wrap:anywhere;white-space:pre-wrap;
+}
+.bfc-scene-editor__youtube-input textarea::placeholder { color:#8ca5c9; opacity:.82; }
+.bfc-scene-editor__youtube-input:focus-within { outline:2px solid rgba(124,181,255,.45);outline-offset:1px; }
+.bfc-scene-editor__playlist {
+  display:grid;gap:7px;margin:12px 0 0;padding:0;max-height:224px;
+  overflow:auto;list-style:none;scrollbar-width:thin;
+}
+.bfc-scene-editor__playlist-item {
+  display:flex;align-items:center;min-width:0;gap:9px;
+  border:1px solid rgba(133,167,227,.18);
+  border-radius:11px;padding:7px 8px;background:rgba(8,24,53,.43);
+}
+.bfc-scene-editor__playlist-number {
+  flex:none;display:grid;place-items:center;width:25px;height:25px;
+  border-radius:8px;background:rgba(97,147,224,.2);color:#afceff;
+  font-size:11px;font-weight:800;
+}
+.bfc-scene-editor__playlist-item a {
+  min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:#d7eaff;text-decoration:none;font-size:12px;
+}
+.bfc-scene-editor__playlist-item a:hover { text-decoration:underline; }
+.bfc-scene-editor__playlist-actions {display:flex;gap:4px;flex:none;}
+.bfc-scene-editor__playlist-actions button {
+  display:grid;place-items:center;flex:none;
+  width:28px;height:28px;border:1px solid rgba(177,199,245,.23);
+  border-radius:8px;background:rgba(106,139,200,.12);color:#c3d8f9;
+  cursor:pointer;
+}
+.bfc-scene-editor__playlist-actions button:hover:not(:disabled) {background:rgba(116,158,236,.32);}
+.bfc-scene-editor__playlist-actions button:disabled {opacity:.35;cursor:default;}
+.bfc-youtube-controls__playlist-count {
+  flex:none;font-size:10px;font-weight:750;color:#c1d7fe;white-space:nowrap;
+}
+@media(max-width:620px) {
+  .bfc-scene-editor__playlist-item {gap:5px;padding:6px;}
+  .bfc-scene-editor__playlist-actions {gap:2px;}
+  .bfc-scene-editor__playlist-actions button {width:27px;height:27px;}
+  .bfc-youtube-controls__playlist-count {display:none;}
+}
