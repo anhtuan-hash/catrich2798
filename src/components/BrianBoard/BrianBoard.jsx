@@ -218,6 +218,15 @@ export default function BrianBoard({currentUser,language='vi'}){
  const editPage=(fn)=>mutate(d=>({...d,pages:d.pages.map(p=>p.id===d.activePageId?fn(p):p)}));
  const commitObj=object=>{if(!page||page.locked)return;editPage(p=>({...p,objects:[...p.objects,object]}));};
  const eraseObject=id=>{if(!page||page.locked)return;editPage(p=>({...p,objects:p.objects.filter(o=>o.id!==id)}));};
+ const moveObject=(id,dx,dy)=>{
+  if(!page||page.locked||!Number.isFinite(dx)||!Number.isFinite(dy))return;
+  editPage(p=>({...p,objects:p.objects.map(o=>{
+   if(o.id!==id)return o;
+   if(o.kind==='stroke')return {...o,points:o.points.map(pt=>({...pt,x:pt.x+dx,y:pt.y+dy}))};
+   if(o.kind==='shape')return {...o,x:o.x+dx,y:o.y+dy,x2:o.x2+dx,y2:o.y2+dy};
+   return {...o,x:(o.x||0)+dx,y:(o.y||0)+dy};
+  })}));
+ };
  const interactObject=id=>{if(!page||page.locked)return;
   editPage(p=>({...p,objects:p.objects.map(o=>o.id===id&&o.kind==='flashcard'
    ?{...o,revealed:!o.revealed}:o)}));
@@ -361,7 +370,7 @@ export default function BrianBoard({currentUser,language='vi'}){
     </aside>}
     <div className="bbd-canvas-area">
      <BoardCanvas page={studentView?sanitizeStudentPage(page):page} tool={studentView?'select':tool} color={color} width={thickness}
-       onCommit={commitObj} onErase={eraseObject} zoom={zoom} setZoom={setZoom}
+       onCommit={commitObj} onErase={eraseObject} onMoveObject={moveObject} zoom={zoom} setZoom={setZoom}
        camera={camera} setCamera={setCamera} contentText={contentText} privateAnswer={privateAnswer} onInteract={interactObject}
        spotlight={spotlight} studentView={studentView}/>
      <div className="bbd-canvas-bottom">
