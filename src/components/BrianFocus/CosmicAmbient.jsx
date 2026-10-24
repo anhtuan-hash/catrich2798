@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 // Deterministic decor: stable positions prevent hydration jumps and accidental
 // React re-mounts while the live clock and weather update.
@@ -16,9 +16,121 @@ const DUST = Array.from({ length: 64 }, (_, i) => ({
   top: `${(i * 31 + Math.floor(i / 7) * 23 + 9) % 100}%`,
   opacity: 0.14 + (i % 5) * 0.07,
 }));
-export default function CosmicAmbient() {
+export default function CosmicAmbient({ motionEnabled = true }) {
+  const canvasRef = useRef(null);
+
+  // A real-time, pointer-reactive depth layer: no video, external images, or React re-renders.
+  useEffect(() => {
+    if (!motionEnabled || typeof window === 'undefined' ||
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d', { alpha: true });
+    if (!ctx) return undefined;
+
+    let width = 0;
+    let height = 0;
+    let frame = 0;
+    let previous = 0;
+    let enabled = document.visibilityState !== 'hidden';
+    let px = 0; let py = 0; let targetX = 0; let targetY = 0;
+    const particles = Array.from({ length: 125 }, (_, index) => ({
+      x: ((index * 0.61803398875 + 0.17) % 1),
+      y: ((index * 0.41421356237 + 0.38) % 1),
+      depth: .28 + (index % 9) / 10,
+      size: index % 13 === 0 ? 2.1 : .55 + index % 3 * .34,
+      speed: .12 + (index % 7) * .045,
+      phase: index * 1.83,
+    }));
+
+    const resize = () => {
+      width = Math.max(1, window.innerWidth);
+      height = Math.max(1, window.innerHeight);
+      const ratio = Math.min(window.devicePixelRatio || 1, 1.5);
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    };
+    const pointer = (event) => {
+      if (event.pointerType === 'touch') return;
+      targetX = ((event.clientX / width) - .5) * 2;
+      targetY = ((event.clientY / height) - .5) * 2;
+    };
+    const paint = (timestamp) => {
+      if (!enabled) return;
+      frame = window.requestAnimationFrame(paint);
+      if (timestamp - previous < 32) return; // cap at ~30 fps, even on fast displays
+      previous = timestamp;
+      const t = timestamp * .001;
+      px += (targetX - px) * .036;
+      py += (targetY - py) * .036;
+      ctx.clearRect(0, 0, width, height);
+
+      // Independent parallax layers travel at different speeds, giving true spatial depth.
+      for (const star of particles) {
+        const x = ((star.x * width + t * star.speed * 2.6 * star.depth +
+          px * 28 * star.depth) % width + width) % width;
+        const y = ((star.y * height + t * star.speed * .65 * star.depth +
+          py * 20 * star.depth) % height + height) % height;
+        const pulse = .54 + .46 * Math.sin(t * (1.05 + star.depth) + star.phase);
+        const opacity = (.15 + pulse * .52) * star.depth;
+        ctx.fillStyle = 'rgba(219,237,255,' + opacity.toFixed(3) + ')';
+        ctx.beginPath();
+        ctx.arc(x, y, star.size, 0, Math.PI * 2);
+        ctx.fill();
+        if (star.size > 1.8 && pulse > .66) {
+          ctx.strokeStyle = 'rgba(149,192,255,' + (opacity * .23).toFixed(3) + ')';
+          ctx.lineWidth = .6;
+          ctx.beginPath();
+          ctx.moveTo(x - 6, y); ctx.lineTo(x + 6, y);
+          ctx.moveTo(x, y - 6); ctx.lineTo(x, y + 6);
+          ctx.stroke();
+        }
+      }
+
+      // Slowly flexing luminous currents float *behind* the foreground clock.
+      for (let layer = 0; layer < 3; layer++) {
+        const base = height * (.43 + layer * .12);
+        const drift = Math.sin(t * (.18 + layer * .04) + layer * 1.2) * height * .055;
+        const gradient = ctx.createLinearGradient(0, base - 80, width, base + 80);
+        gradient.addColorStop(0, 'rgba(83,122,255,0)');
+        gradient.addColorStop(.25, 'rgba(73,137,255,.045)');
+        gradient.addColorStop(.66, 'rgba(173,108,255,.09)');
+        gradient.addColorStop(1, 'rgba(79,217,240,0)');
+        ctx.beginPath();
+        ctx.moveTo(-40, base + drift);
+        ctx.bezierCurveTo(width * .22, base - height * .22 + drift,
+          width * .61, base + height * .2 - drift, width + 40, base - height * .14 + drift);
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 1.3 + layer * .5;
+        ctx.stroke();
+      }
+    };
+    const visibility = () => {
+      enabled = document.visibilityState !== 'hidden';
+      window.cancelAnimationFrame(frame);
+      if (enabled) { previous = 0; frame = window.requestAnimationFrame(paint); }
+    };
+    resize();
+    window.addEventListener('resize', resize, { passive: true });
+    window.addEventListener('pointermove', pointer, { passive: true });
+    document.addEventListener('visibilitychange', visibility);
+    if (enabled) frame = window.requestAnimationFrame(paint);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('pointermove', pointer);
+      document.removeEventListener('visibilitychange', visibility);
+    };
+  }, [motionEnabled]);
+
   return (
     <div className="bfc-cosmos" aria-hidden="true">
+      <canvas ref={canvasRef} className="bfc-cosmos__canvas" />
+      <div className="bfc-cosmos__aurora bfc-cosmos__aurora--one" />
+      <div className="bfc-cosmos__aurora bfc-cosmos__aurora--two" />
+      <div className="bfc-cosmos__aurora bfc-cosmos__aurora--three" />
+      <div className="bfc-cosmos__horizon" />
+      <div className="bfc-cosmos__glow-disc" />
       <div className="bfc-cosmos__nebula bfc-cosmos__nebula--a" />
       <div className="bfc-cosmos__nebula bfc-cosmos__nebula--b" />
       <div className="bfc-cosmos__nebula bfc-cosmos__nebula--c" />
