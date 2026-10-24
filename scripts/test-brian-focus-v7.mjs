@@ -13,6 +13,7 @@ assert.equal(normalizeFocus7({favorites:[id,id,'https://youtu.be/'+id],videoOver
 assert.equal(normalizeFocus7({videoOverride:'https://evil.example/'+id}).videoOverride,'');
 assert.deepEqual(normalizeFocus7({mood:'invalid',particle:'no',density:1000000}).mood,'auto');
 assert.equal(normalizeFocus7({density:1000000}).density,100);
+assert.equal(normalizeFocus7(null).clock,'inherit');
 assert.equal(normalizeFocus7({clock:'kyoto'}).clock,'kyoto');
 assert.equal(normalizeFocus7({clock:'liquid'}).clock,'liquid');
 assert.equal(normalizeFocus7({flow:{work:0,rest:900,repeats:99}}).flow.repeats,10);
