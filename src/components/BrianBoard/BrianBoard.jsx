@@ -7,7 +7,7 @@ import {Presentation,Pen,Highlighter,Eraser,MousePointer2,Hand,Type,Square,Circl
 import {isAdminRole,isDepartmentLeaderRole,normalizeSystemRole} from '../../utils/roles.js';
 import {GLOBAL_FLOATING_ACTION_EVENT,FLOATING_ACTION_IDS} from '../../utils/unifiedFloatingDock.js';
 import {BOARD_W,BOARD_H,newLesson,newPage,normalizeLesson,makeId,THEMES,sanitizeStudentPage} from './boardModel.js';
-import {readBoardDraft,saveBoardDraft} from './boardStorage.js';
+import {readBoardDraft,saveBoardDraft,listBoardLessons,readBoardLesson,deleteBoardLesson} from './boardStorage.js';
 import BoardCanvas from './BoardCanvas.jsx';
 import './BrianBoard.css';
 
@@ -38,7 +38,12 @@ export default function BrianBoard({currentUser,language='vi'}){
  const [timerDeadline,setTimerDeadline]=useState(0),[timerNow,setTimerNow]=useState(Date.now());
  const [teams,setTeams]=useState([{name:'Team 1',score:0},{name:'Team 2',score:0}]);
  const [randomNames,setRandomNames]=useState(''),[randomChoice,setRandomChoice]=useState('');
- const [panel,setPanel]=useState('pages');
+ const [panel,setPanel]=useState('pages'),[library,setLibrary]=useState([]),[libraryError,setLibraryError]=useState('');
+ const refreshLibrary=async()=>{
+  try{setLibrary(await listBoardLessons(ownerId));setLibraryError('');}
+  catch(e){setLibraryError(e.message||'Cannot load library');}
+ };
+ useEffect(()=>{if(open&&panel==='library')void refreshLibrary();},[open,panel,lesson?.id,lesson?.updatedAt]);
  const history=useRef([]),future=useRef([]),docRef=useRef(null),enterRef=useRef(null),closeRef=useRef(null);
  const saving=useRef(Promise.resolve()),dirty=useRef(false),animating=useRef(false);
  const launchRef=useRef(null),lastFocusRef=useRef(null),mounted=useRef(true);
@@ -213,6 +218,35 @@ export default function BrianBoard({currentUser,language='vi'}){
   if(!window.confirm(vi?'Xóa trang này? Có thể hoàn tác.':'Delete this page? Undo remains available.'))return;
   mutate(d=>{const pages=d.pages.filter(p=>p.id!==d.activePageId);return {...d,pages,activePageId:pages[0].id};});
  };
+ const switchLesson=async id=>{
+  if(id===docRef.current?.id)return;
+  if(dirty.current)await persist(docRef.current);
+  try{
+   const selected=await readBoardLesson(ownerId,id);
+   if(!selected)throw Error('Draft not found');
+   docRef.current=selected;setLesson(selected);dirty.current=false;
+   history.current=[];future.current=[];
+   await saveBoardDraft(ownerId,selected);
+   setPanel('pages');
+  }catch(e){setLibraryError(e.message||'Cannot open draft');}
+ };
+ const createLesson=async()=>{
+  if(dirty.current)await persist(docRef.current);
+  const next=newLesson(ownerId);
+  docRef.current=next;setLesson(next);history.current=[];future.current=[];
+  dirty.current=true;
+  await persist(next);setPanel('pages');void refreshLibrary();
+ };
+ const removeLesson=async id=>{
+  if(!window.confirm(vi?'Xóa hẳn bài dạy này khỏi thiết bị?':'Permanently delete this local lesson?'))return;
+  try{
+   if(docRef.current?.id===id){
+    const next=newLesson(ownerId);docRef.current=next;setLesson(next);
+    history.current=[];future.current=[];dirty.current=true;await persist(next);
+   }
+   await deleteBoardLesson(ownerId,id);void refreshLibrary();
+  }catch(e){setLibraryError(e.message||'Cannot delete draft');}
+ };
  const pageAt=index=>mutate(d=>({...d,activePageId:d.pages[index]?.id||d.activePageId}));
  const movePage=offset=>mutate(d=>{
   const index=d.pages.findIndex(p=>p.id===d.activePageId),target=index+offset;
@@ -294,8 +328,8 @@ export default function BrianBoard({currentUser,language='vi'}){
     </div>
     {!studentView&&showPages&&<aside className="bbd-sidebar">
      <div className="bbd-sidebar-tabs">
-      {['pages','teaching','design'].map(id=><button key={id} className={panel===id?'active':''} onClick={()=>setPanel(id)}>
-       {id==='pages'?(vi?'Trang':'Pages'):id==='teaching'?(vi?'Lớp học':'Classroom'):(vi?'Thiết kế':'Design')}</button>)}
+      {['pages','library','teaching','design'].map(id=><button key={id} className={panel===id?'active':''} onClick={()=>setPanel(id)}>
+       {id==='pages'?(vi?'Trang':'Pages'):id==='library'?(vi?'Thư viện':'Library'):id==='teaching'?(vi?'Lớp học':'Classroom'):(vi?'Thiết kế':'Design')}</button>)}
      </div>
      {panel==='pages'&&<div className="bbd-pages">
       <div className="bbd-side-heading"><strong>{vi?'Các trang bài giảng':'Lesson pages'}</strong>
@@ -310,6 +344,18 @@ export default function BrianBoard({currentUser,language='vi'}){
        {page?.locked?(vi?'Mở khóa trang':'Unlock page'):(vi?'Khóa trang':'Lock page')}</button>
       <button onClick={()=>editPage(p=>({...p,hidden:!p.hidden}))}>{page?.hidden?<EyeOff size={16}/>:<Eye size={16}/>}
        {page?.hidden?(vi?'Hiện trang khi chiếu':'Show on display'):(vi?'Ẩn trang khi chiếu':'Hide on display')}</button>
+     </div>}
+     {panel==='library'&&<div className="bbd-side-stack">
+      <div className="bbd-side-heading"><h3>{vi?'Thư viện bài dạy':'Lesson library'}</h3>
+       <button onClick={()=>void createLesson()}><FilePlus2 size={16}/></button></div>
+      <p>{vi?'Các bản nháp lưu riêng trên thiết bị này, không ghi vào sổ điểm hay dữ liệu lớp.':'Private lessons on this device, separate from gradebook and class data.'}</p>
+      <button onClick={()=>void createLesson()}><Plus size={16}/>{vi?'Tạo bài dạy mới':'New lesson'}</button>
+      {libraryError&&<p role="alert">{libraryError}</p>}
+      {library.map(x=><div key={x.id} className={'bbd-library-item'+(x.id===lesson?.id?' active':'')}>
+        <div><strong>{x.title}</strong><small>{x.pages} {vi?'trang':'pages'} · {new Date(x.updatedAt).toLocaleDateString()}</small></div>
+        <div className="bbd-side-actions"><button disabled={x.id===lesson?.id} onClick={()=>void switchLesson(x.id)}>{vi?'Mở':'Open'}</button>
+         <button onClick={()=>void removeLesson(x.id)}><Trash2 size={15}/></button></div>
+      </div>)}
      </div>}
      {panel==='teaching'&&<div className="bbd-side-stack">
       <h3>{vi?'Tiện ích lớp học':'Classroom tools'}</h3>
