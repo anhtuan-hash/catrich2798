@@ -38,6 +38,7 @@ import '../styles/GradebookMacShell.css';
 import '../styles/GradebookMacRoster.css';
 import '../styles/GradebookHeroCanvas.css';
 import '../styles/GradebookHeroRefined.css';
+import '../styles/GradebookHeroCommand.css';
 
 const EMPTY_CLASS = {
   className: '',
@@ -576,7 +577,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   };
 
   return <div className="page hr-page gbmac-studio">
-    <section className={'gbmac-shell gbmac-hero-canvas gbmac-hero-refined'+(gradebookHeroHasMedia?' has-custom-media':'')}
+    <section className={'gbmac-shell gbmac-hero-canvas gbmac-hero-refined gbmac-hero-command'+(gradebookHeroHasMedia?' has-custom-media':'')}
       aria-label="Sổ điểm" style={gradebookHeroStyle}>
       <div className="gbmac-hero-media" aria-hidden="true">
         {gradebookHeroHasMedia
@@ -595,11 +596,18 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
               <span className="gbmac-art-chip is-peach"><BarChart3 size={23}/></span>
             </div>}
       </div>
+      {canEditGradebookHero ? <button type="button" className="gbmac-hero-edit"
+        onClick={()=>setGradebookHeroEditorOpen(true)}
+        title={vi ? 'Chỉnh sửa hình nền Sổ điểm' : 'Customize Gradebook background'}
+        aria-label={vi ? 'Chỉnh sửa hình nền Sổ điểm' : 'Customize Gradebook background'}>
+        <Pencil size={16} aria-hidden="true"/>
+      </button> : null}
       <div className="gbmac-hero-content">
         <div className="gbmac-shell-head">
           <div className="gbmac-shell-identity">
             <span className="gbmac-shell-icon" aria-hidden="true"><BookOpenCheck size={25}/></span>
             <div className="gbmac-shell-identity-copy">
+              <span className="gbmac-hero-eyebrow">{vi ? 'BRIAN ENGLISH  /  QUẢN LÝ ĐIỂM' : 'BRIAN ENGLISH  /  ACADEMIC WORKSPACE'}</span>
               <div className="gbmac-shell-title">
                 <h1>{vi ? 'Sổ điểm' : 'Gradebook'}</h1>
               </div>
@@ -612,13 +620,9 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
               </div>
             </div>
           </div>
-          {canEditGradebookHero ? <button type="button" className="gbmac-hero-edit"
-            onClick={()=>setGradebookHeroEditorOpen(true)}
-            title={vi ? 'Chỉnh sửa nền Hero Sổ điểm' : 'Edit Gradebook Hero background'}
-            aria-label={vi ? 'Chỉnh sửa nền Hero Sổ điểm' : 'Edit Gradebook Hero background'}>
-            <Pencil size={17} aria-hidden="true"/>
-          </button> : null}
+
         </div>
+        <div className="gbmac-hero-divider" aria-hidden="true" />
         <div className="gbmac-shell-selectors" role="group" aria-label={vi ? 'Chọn lớp và học kỳ' : 'Select class and semester'}>
           <label><span>{vi ? 'Lớp học' : 'Class'}</span><select value={workspaceId}
             disabled={saving || !activeClasses.length} onChange={(event)=>switchGradebookClass(event.target.value)}>
