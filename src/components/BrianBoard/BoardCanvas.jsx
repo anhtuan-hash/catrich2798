@@ -29,7 +29,7 @@ export function renderBoardObject(object,onErase,studentView=false,onInteract){
    style={{pointerEvents:onErase?'all':'none'}} fill={o.color||'#304d53'}
    fontSize={o.fontSize||40} fontWeight="550">{String(o.text||'').slice(0,90)}</text>;
  }
- if(o.kind==='flashcard')return <g key={o.id} onPointerDown={erase} onClick={event=>{if(!onErase&&!studentView){event.stopPropagation();onInteract?.(o.id);}}} style={{cursor:'pointer'}}>
+ if(o.kind==='flashcard')return <g key={o.id} onPointerDown={event=>{if(onErase)erase(event);else event.stopPropagation();}} onClick={event=>{if(!onErase&&!studentView){event.stopPropagation();onInteract?.(o.id);}}} style={{cursor:'pointer'}}>
   <rect x={o.x} y={o.y} width="330" height="165" rx="18" fill="#ecf3e9" stroke="#94b2a2" strokeWidth="2"/>
   <text x={o.x+20} y={o.y+65} fill="#325449" fontSize="29">{String(o.text||'').slice(0,21)}</text>
   <text x={o.x+20} y={o.y+119} fill="#6c8d81" fontSize="18">{o.revealed?String(o.publicAnswer||o.privateAnswer||'').slice(0,29):'Tap to reveal'}</text>
