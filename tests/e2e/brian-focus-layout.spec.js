@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 
-const css = readFileSync(new URL('../../src/components/BrianFocus/BrianFocus.css', import.meta.url),'utf8');
+const css = ['BrianFocus.css', 'BrianFocusCosmic.css'].map(name => readFileSync(new URL('../../src/components/BrianFocus/'+name, import.meta.url),'utf8')).join('\n');
 for (const viewport of [
   { width: 1440, height: 900 },
   { width: 1024, height: 768 },
@@ -13,7 +13,11 @@ for (const viewport of [
     await page.setViewportSize(viewport);
     await page.setContent(`<main id="root"><button id="dashboard" style="position:fixed;top:100px;left:40px">Dashboard</button></main>
       <div class="bfc-overlay" role="dialog" aria-modal="true" aria-label="Chế độ tập trung Brian Focus">
-        <div class="bfc-overlay__aurora"></div>
+        <div class="bfc-cosmos" aria-hidden="true">
+          <div class="bfc-cosmos__nebula bfc-cosmos__nebula--a"></div>
+          <div class="bfc-cosmos__planet bfc-cosmos__planet--left"></div>
+          <div class="bfc-cosmos__stars"><span class="bfc-cosmos__star" style="left:30%;top:20%"></span></div>
+        </div>
         <button type="button" class="bfc-overlay__close"><span>Đóng</span><kbd>Esc</kbd></button>
         <div class="bfc-overlay__center">
           <div class="bfc-clock-card">
@@ -31,13 +35,13 @@ for (const viewport of [
             <div class="bfc-weather">
               <span class="bfc-weather__icon">☀</span>
               <span class="bfc-weather__details"><span class="bfc-weather__city">TP. Hồ Chí Minh</span><span class="bfc-weather__condition">Ít mây</span></span>
-              <span class="bfc-weather__temp">26°</span>
+              <span class="bfc-weather__temp">26°C</span><button class="bfc-weather__refresh" aria-label="Cập nhật thời tiết">↻</button>
             </div>
-            <p class="bfc-clock-card__hint">Một khoảnh khắc bình yên để tập trung.</p>
+            <p class="bfc-clock-card__hint">Một khoảnh khắc bình yên để tập trung.</p><div class="bfc-clock-card__accent"></div>
           </div>
         </div>
-        <button class="bfc-bubble is-active" aria-label="Thoát chế độ tập trung" aria-pressed="true">✕</button>
-      </div>`);
+      </div>
+      <button class="bfc-bubble is-active" aria-label="Thoát chế độ tập trung" aria-pressed="true">✕</button>`);
     await page.addStyleTag({ content: css });
     const info = await page.evaluate(() => {
       const bounds = node => {
@@ -61,6 +65,7 @@ for (const viewport of [
     expect(info.bubble.right).toBeLessThanOrEqual(viewport.width + 1);
     expect(info.bubble.bottom).toBeLessThanOrEqual(viewport.height + 1);
     expect(info.card.height).toBeGreaterThan(200);
+    await expect(page.getByRole('button',{ name:'Cập nhật thời tiết' })).toBeVisible();
     await expect(page.getByRole('dialog',{ name: 'Chế độ tập trung Brian Focus' })).toBeVisible();
   });
 }

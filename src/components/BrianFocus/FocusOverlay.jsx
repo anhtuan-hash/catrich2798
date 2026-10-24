@@ -2,9 +2,10 @@ import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import HTCSenseClock from './HTCSenseClock.jsx';
+import CosmicAmbient from './CosmicAmbient.jsx';
 
 /** Portal keeps the real Dashboard mounted and interactive state intact. */
-export default function FocusOverlay({ onClose, language, weather, weatherDescription, returnFocusRef }) {
+export default function FocusOverlay({ onClose, language, weather, onRefreshWeather, returnFocusRef, performance = 'balanced' }) {
   const dialogRef = useRef(null);
   const dismissRef = useRef(null);
   const closeHandlerRef = useRef(onClose);
@@ -64,12 +65,12 @@ export default function FocusOverlay({ onClose, language, weather, weatherDescri
   const vi = language !== 'en';
 
   return createPortal(
-    <div className="bfc-overlay" role="dialog" aria-modal="true"
+    <div className={`bfc-overlay${['low','minimal'].includes(performance) ? ' bfc-overlay--low-motion' : ''}`} role="dialog" aria-modal="true"
       aria-label={vi ? 'Chế độ tập trung Brian Focus' : 'Brian Focus mode'}
       aria-owns="bfc-focus-trigger"
       ref={dialogRef}
       onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
-      <div className="bfc-overlay__aurora" aria-hidden="true"/>
+      <CosmicAmbient />
       <button className="bfc-overlay__close" type="button" ref={dismissRef}
         aria-label={vi ? 'Đóng chế độ tập trung' : 'Close Focus mode'}
         onClick={onClose}>
@@ -78,7 +79,7 @@ export default function FocusOverlay({ onClose, language, weather, weatherDescri
         <kbd>Esc</kbd>
       </button>
       <div className="bfc-overlay__center">
-        <HTCSenseClock language={language} weather={weather} weatherDescription={weatherDescription}/>
+        <HTCSenseClock language={language} weather={weather} onRefreshWeather={onRefreshWeather}/>
       </div>
     </div>, document.body,
   );

@@ -2,35 +2,27 @@ import React, { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import FocusBubble from './FocusBubble.jsx';
 import FocusOverlay from './FocusOverlay.jsx';
+import useFocusWeather from './useFocusWeather.js';
 import './BrianFocus.css';
+import './BrianFocusCosmic.css';
 
-/**
- * Focus lives on Dashboard but its ONLY floating trigger is portalled to body.
- * This escapes transformed/scaled Dashboard sections that otherwise rebase
- * position:fixed onto a news card instead of the viewport (mobile Safari).
- */
-export default function BrianFocus({ language = 'vi', weather, weatherDescription, disabled = false }) {
+/** One global Focus trigger and overlay; the underlying app route stays mounted. */
+export default function BrianFocus({ language = 'vi', performance = 'balanced' }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef(null);
+  const { weather, refresh } = useFocusWeather(open);
 
-  const button = (!disabled || open) ? (
+  const button = (
     <FocusBubble buttonRef={triggerRef} language={language} active={open}
-      onClick={() => {
-        if (!disabled || open) setOpen(value => !value);
-      }}/>
-  ) : null;
-
+      onClick={() => setOpen(value => !value)} />
+  );
   return (
     <>
       {typeof document !== 'undefined' ? createPortal(button, document.body) : null}
       {open ? (
-        <FocusOverlay
-          onClose={() => setOpen(false)}
-          returnFocusRef={triggerRef}
-          language={language}
-          weather={weather}
-          weatherDescription={weatherDescription}
-        />
+        <FocusOverlay language={language} weather={weather}
+          onRefreshWeather={refresh} onClose={() => setOpen(false)}
+          returnFocusRef={triggerRef} performance={performance} />
       ) : null}
     </>
   );
