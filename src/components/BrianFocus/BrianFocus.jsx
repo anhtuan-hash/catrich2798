@@ -28,11 +28,12 @@ import './FocusTransitionVariants.css';
 import './BrianFocusWorkspace.css';
 import './BrianFocusAtelier.css';
 import './BrianFocusPersistentYoutube.css';
-import './BrianFocusYoutubePlaylist.css';
 import './BrianFocus6.css';
 import './BrianFocus7.css';
 import './BrianFocus8.css';
 import './BrianFocus9.css';
+// Playlist text area must win over generic Focus 6–9 form styles.
+import './BrianFocusYoutubePlaylist.css';
 import { GLOBAL_FLOATING_ACTION_EVENT, FLOATING_ACTION_IDS } from '../../utils/unifiedFloatingDock.js';
 
 /** One global Focus trigger and overlay; the underlying app route stays mounted. */
