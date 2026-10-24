@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {parseFocusYoutubeId,videoIdFromFocusPath} from '../src/components/BrianFocus/focusYoutube.js';
 import {normalizeFocus7,getFocusInsights,readFocus7} from '../src/components/BrianFocus/useFocus7Data.js';
+import {advanceFocusFlow} from '../src/components/BrianFocus/useFocus7Flow.js';
 
 const file=n=>readFileSync(new URL('../src/components/BrianFocus/'+n,import.meta.url),'utf8');
 const id='dQw4w9WgXcQ';
@@ -18,6 +19,16 @@ assert.equal(normalizeFocus7({clock:'kyoto'}).clock,'kyoto');
 assert.equal(normalizeFocus7({clock:'liquid'}).clock,'liquid');
 assert.equal(normalizeFocus7({flow:{work:0,rest:900,repeats:99}}).flow.repeats,10);
 assert.equal(normalizeFocus7({journal:[{text:'note',mood:'good',at:1}]}).journal.length,1);
+let workFlow={active:true,phase:'work',cycle:1,work:25,rest:5,repeats:4};
+const actual=[];
+for(let i=0;i<7;i++){const next=advanceFocusFlow(workFlow);actual.push(next.minutes);workFlow=next.flow;}
+assert.deepEqual(actual,[5,25,5,25,5,25,0]);
+assert.equal(workFlow.active,false);
+let deep={active:true,phase:'work',cycle:1,work:50,rest:10,repeats:2};
+deep=advanceFocusFlow(deep).flow;
+assert.equal(deep.phase,'break');
+assert.equal(advanceFocusFlow(deep).minutes,50);
+assert.equal(advanceFocusFlow({active:true,phase:'work',cycle:2,repeats:2,work:50,rest:10}).minutes,0);
 const now=new Date(2026,9,24,12).getTime();
 const insights=getFocusInsights([{at:now,minutes:25},{at:now,minutes:50}].concat([{at:now,minutes:-1}]),now);
 assert.equal(insights.totalMinutes,75);
