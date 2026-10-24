@@ -69,7 +69,7 @@ assert.match(editor,/id="bfc-youtube-url"/);
 assert.match(editor,/youtubePreviewUrl/);
 assert.match(editor,/Lưu & đồng bộ/);
 assert.match(overlay,/<FocusYoutubeBackground\s+scene={displayScene}/);
-assert.match(overlay,/const displayScene = personalDim === null \? scene/);
+assert.match(overlay,/const displayScene = (?:personalDim === null \? scene|\{ \.\.\.scene, dimPercent: dim \})/);
 assert.match(overlay,/handleSoundscapeActive/);
 assert.match(persistent,/sandbox="allow-scripts allow-same-origin allow-presentation"/);
 assert.match(persistent,/referrerPolicy="strict-origin-when-cross-origin"/);
