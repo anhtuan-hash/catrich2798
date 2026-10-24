@@ -7,6 +7,8 @@ import usePersistentFocusYoutube from './usePersistentFocusYoutube.jsx';
 import useFocusWeather from './useFocusWeather.js';
 import useFocusScene from './useFocusScene.js';
 import useFocusTimer from './useFocusTimer.js';
+import useFocus7Data from './useFocus7Data.js';
+import useFocus7Flow from './useFocus7Flow.js';
 import { readFocusTransitions, writeFocusTransitions, FOCUS_TRANSITION_STORAGE_KEY } from './FocusTransitionLibrary.js';
 import { startFocusExit } from './focusExitMotion.js';
 import { startFocusEnter } from './focusEnterMotion.js';
@@ -22,6 +24,7 @@ import './BrianFocusWorkspace.css';
 import './BrianFocusAtelier.css';
 import './BrianFocusPersistentYoutube.css';
 import './BrianFocus6.css';
+import './BrianFocus7.css';
 import { GLOBAL_FLOATING_ACTION_EVENT, FLOATING_ACTION_IDS } from '../../utils/unifiedFloatingDock.js';
 
 /** One global Focus trigger and overlay; the underlying app route stays mounted. */
@@ -36,6 +39,19 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
   const enteredWithEffectRef = useRef(transitions.enter);
   const { weather, refresh } = useFocusWeather(open);
   const { scene, setScene, error: sceneError } = useFocusScene(open, currentUser?.id);
+  const {data:focus7,update:update7} = useFocus7Data(currentUser?.id);
+  const focus7UpdateRef=useRef(update7);focus7UpdateRef.current=update7;
+  const focus7RecordRef=useRef(focus7);focus7RecordRef.current=focus7;
+  const timerLengthRef=useRef(25);
+  const [completionToken,setCompletionToken]=useState(0);
+  const [videoDeadline,setVideoDeadline]=useState(0);
+  const mediaScene=focus7.videoOverride
+    ? {...scene,mediaType:'youtube',mediaPath:'https://www.youtube.com/watch?v='+focus7.videoOverride}
+    : scene;
+  const choosePersonalVideo=id=>{
+    update7({videoOverride:id});
+    setVideoDeadline(id&&focus7.stopAfterMinutes>0?Date.now()+focus7.stopAfterMinutes*60000:0);
+  };
   const sessionDay = () => new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
   const completedKey = 'bfc-completed-v6:' + String(currentUser?.id || 'guest') + ':' + sessionDay();
   const readCompleted = () => { try {return Math.max(0,Number(localStorage.getItem(completedKey))||0);} catch {return 0;} };
@@ -45,12 +61,14 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
   const onTimerComplete = useCallback(() => {
     const focusSession = ['pomodoro','deep','custom'].includes(timerModeRef.current);
     const key = 'bfc-completed-v6:' + String(currentUser?.id || 'guest') + ':' + sessionDay();
+    setCompletionToken(n=>n+1);
     if(focusSession){
       try{
         const next=(Number(localStorage.getItem(key))||0)+1;
         localStorage.setItem(key,String(next));
         setCompletedSessions(next);
       } catch {setCompletedSessions(count=>count+1);}
+      focus7UpdateRef.current({sessions:[...focus7RecordRef.current.sessions,{at:Date.now(),minutes:timerLengthRef.current}].slice(-1000)});
     }
     // A timer was started by a user gesture. Any browser audio permission
     // restrictions are respected; failure must not affect the timer.
@@ -70,11 +88,20 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
   // Keep the timer hook mounted even when Focus overlay is closed.
   const timerController = useFocusTimer(currentUser?.id,onTimerComplete);
   timerModeRef.current = timerController.timer.mode;
+  timerLengthRef.current=timerController.timer.minutes;
+  const focusFlow = useFocus7Flow(currentUser?.id,timerController,completionToken);
   const {
     player: persistentYoutubePlayer,
     session: youtubeSession,
     controls: youtubeControls,
-  } = usePersistentFocusYoutube({ scene, focusOpen: open, userId: currentUser?.id });
+  } = usePersistentFocusYoutube({ scene:mediaScene, focusOpen: open, userId: currentUser?.id });
+  useEffect(()=>{
+    if(!videoDeadline)return undefined;
+    const remaining=videoDeadline-Date.now();
+    if(remaining<=0){youtubeControls.stop();setVideoDeadline(0);return undefined;}
+    const timeout=window.setTimeout(()=>{youtubeControls.stop();setVideoDeadline(0);},remaining);
+    return()=>window.clearTimeout(timeout);
+  },[videoDeadline]);
   const setEffectChoice = choice => setTransitions(writeFocusTransitions(choice));
 
   const openFocus = () => {
@@ -177,13 +204,14 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
     <>
       {persistentYoutubePlayer}
       {typeof document !== 'undefined' ? createPortal(button, document.body) : null}
-      {!open && youtubeSession.mounted && scene.mediaType === 'youtube' && typeof document !== 'undefined'
+      {!open && youtubeSession.mounted && mediaScene.mediaType === 'youtube' && typeof document !== 'undefined'
         ? createPortal(<FocusYoutubeBackground
-            scene={scene} session={youtubeSession} controls={youtubeControls}
+            scene={mediaScene} session={youtubeSession} controls={youtubeControls}
             language={language} compact onOpenFocus={openFocus}/>, document.body)
         : null}
       {open ? (
-        <FocusOverlay currentUser={currentUser} scene={scene} onScenePublished={setScene} sceneError={sceneError}
+        <FocusOverlay currentUser={currentUser} scene={mediaScene} sharedScene={scene} onScenePublished={setScene} sceneError={sceneError}
+          focus7={focus7} update7={update7} focusFlow={focusFlow} choosePersonalVideo={choosePersonalVideo}
           youtubeSession={youtubeSession} youtubeControls={youtubeControls}
           timerController={timerController} completedSessions={completedSessions}
           language={language} weather={weather} exiting={exiting} transitions={transitions} onEffectsChange={setEffectChoice}
