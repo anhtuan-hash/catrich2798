@@ -7,8 +7,8 @@ const key=userId=>'bfc-mixer-v6:'+String(userId||'guest');
 function load(userId){
   try{const raw=JSON.parse(localStorage.getItem(key(userId))||'{}');
     return {levels:Object.fromEntries(FOCUS_SOUNDS.map(n=>[n,clamp(raw.levels?.[n]??DEFAULT_LEVELS[n])])),
-      master:clamp(raw.master??35)};}
-  catch{return {levels:{...DEFAULT_LEVELS},master:35};}
+      master:clamp(raw.master??35),pans:Object.fromEntries(FOCUS_SOUNDS.map(n=>[n,Math.min(100,Math.max(-100,Number(raw.pans?.[n])||0))]))};}
+  catch{return {levels:{...DEFAULT_LEVELS},master:35,pans:{white:0,rain:0,ocean:0,wind:0,forest:0}};}
 }
 function makeBuffer(context,type) {
   const length=context.sampleRate*3;
@@ -40,7 +40,7 @@ export default function useFocusSoundMixer(userId) {
   const [loadedOwner,setLoadedOwner]=useState(userId);
   const [playing,setPlaying]=useState(false);
   const [error,setError]=useState('');
-  const [pans,setPans]=useState({white:0,rain:0,ocean:0,wind:0,forest:0});
+  const pans=config.pans;
   const engine=useRef(null);
   useEffect(()=>{setConfig(load(userId));setLoadedOwner(userId);},[userId]);
   useEffect(()=>{
@@ -66,7 +66,7 @@ export default function useFocusSoundMixer(userId) {
       const layers=new Map();
       for(const type of FOCUS_SOUNDS){
         const layer=createLayer(ctx,masterGain,type,config.levels[type]);
-        if(layer.pan)layer.pan.pan.value=(pans[type]||0)/100;
+        if(layer.pan)layer.pan.pan.value=(config.pans[type]||0)/100;
         layers.set(type,layer);
       }
       engine.current={ctx,masterGain,layers};
@@ -89,7 +89,7 @@ export default function useFocusSoundMixer(userId) {
   const setPan=(type,value)=>{
     if(!FOCUS_SOUNDS.includes(type))return;
     const pan=Math.min(100,Math.max(-100,Number(value)||0));
-    setPans(old=>({...old,[type]:pan}));
+    setConfig(old=>({...old,pans:{...old.pans,[type]:pan}}));
     const layer=engine.current?.layers.get(type);
     if(layer?.pan)layer.pan.pan.setTargetAtTime(pan/100,engine.current.ctx.currentTime,.05);
   };
