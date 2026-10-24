@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import FocusBubble from './FocusBubble.jsx';
 import FocusOverlay from './FocusOverlay.jsx';
 import useFocusWeather from './useFocusWeather.js';
 import useFocusScene from './useFocusScene.js';
 import { readFocusTransitions, writeFocusTransitions, FOCUS_TRANSITION_STORAGE_KEY } from './FocusTransitionLibrary.js';
+import { startFocusExit } from './focusExitMotion.js';
 import './BrianFocus.css';
 import './BrianFocusCosmic.css';
 import './BrianFocusPremium.css';
@@ -15,17 +16,12 @@ import './FocusEffectsLibrary.css';
 import './FocusTransitionVariants.css';
 import './BrianFocusWorkspace.css';
 
-// Matches the exit timeline in BrianFocusTransitions.css.
-// The overlay stays mounted until the exit animation has completed.
-const FOCUS_EXIT_DURATION_MS = 490;
-
 /** One global Focus trigger and overlay; the underlying app route stays mounted. */
 export default function BrianFocus({ currentUser, language = 'vi', performance = 'balanced' }) {
   const [open, setOpen] = useState(false);
   const [exiting, setExiting] = useState(false);
   const [transitions, setTransitions] = useState(readFocusTransitions);
   const triggerRef = useRef(null);
-  const exitTimerRef = useRef(null);
   const exitPendingRef = useRef(false);
   const { weather, refresh } = useFocusWeather(open);
   const { scene, setScene, error: sceneError } = useFocusScene(open, currentUser?.id);
@@ -40,22 +36,41 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
   const closeFocus = () => {
     if (!open || exitPendingRef.current) return;
     exitPendingRef.current = true;
-    const reduceMotion = ['low', 'minimal'].includes(performance) ||
-      Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
-    if (reduceMotion || transitions.exit === 'none') {
+    if (transitions.exit === 'none') {
       exitPendingRef.current = false;
       setExiting(false);
       setOpen(false);
       return;
     }
     setExiting(true);
-    exitTimerRef.current = window.setTimeout(() => {
-      exitTimerRef.current = null;
-      exitPendingRef.current = false;
-      setExiting(false);
-      setOpen(false);
-    }, FOCUS_EXIT_DURATION_MS);
   };
+
+  // Play the chosen effect AFTER React mounts the exiting class, but BEFORE
+  // painting. Do not remove the Focus portal until the real animation finishes.
+  useLayoutEffect(() => {
+    if (!open || !exiting) return undefined;
+    const overlay = document.querySelector('.bfc-overlay[data-focus-transition="exiting"]');
+    const reducedMotion = ['low', 'minimal'].includes(performance) ||
+      Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+    const animation = startFocusExit(overlay, transitions.exit, { reducedMotion });
+    let finished = false;
+    let cancelled = false;
+    const finish = () => {
+      if (cancelled || finished) return;
+      finished = true;
+      exitPendingRef.current = false;
+      setOpen(false);
+      setExiting(false);
+    };
+    // Fallback only for throttled tabs / unsupported Web Animations API.
+    const watchdog = window.setTimeout(finish, reducedMotion ? 750 : 1500);
+    Promise.resolve(animation?.finished).then(finish, finish);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(watchdog);
+      animation?.cancel?.();
+    };
+  }, [open, exiting, performance, transitions.exit]);
 
   // Keep the page mounted and slightly subdued while Focus is active.
   useEffect(() => {
@@ -78,7 +93,6 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
   }, []);
 
   useEffect(() => () => {
-    if (exitTimerRef.current !== null) window.clearTimeout(exitTimerRef.current);
     document.body.classList.remove('bfc-focus-session', 'bfc-focus-session--closing');
   }, []);
 
