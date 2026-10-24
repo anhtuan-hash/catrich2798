@@ -41,7 +41,12 @@ export default function FocusWeather({ weather, language = 'vi', onRefresh }) {
     <div className="bfc-weather" aria-label={vi ? 'Thời tiết trực tiếp tại TP. Hồ Chí Minh' : 'Live weather in Ho Chi Minh City'}>
       <span className="bfc-weather__icon"><WeatherIcon size={24} strokeWidth={1.6} aria-hidden="true"/></span>
       <span className="bfc-weather__details">
-        <span className="bfc-weather__city">{vi ? 'TP. Hồ Chí Minh' : 'Ho Chi Minh City'}</span>
+        <span className="bfc-weather__title">
+          <span className="bfc-weather__city">{vi ? 'TP. Hồ Chí Minh' : 'Ho Chi Minh City'}</span>
+          <span className={`bfc-weather__live${weather?.error || !hasValue ? ' is-stale' : ''}`}>
+            {weather?.error || !hasValue ? (vi ? 'GIÁN ĐOẠN' : 'OFFLINE') : 'LIVE'}
+          </span>
+        </span>
         <span className="bfc-weather__condition">{label}{time ? ` · ${time}` : ''}</span>
       </span>
       <span className="bfc-weather__temp">{hasValue ? `${weather.temperature}°C` : '—'}</span>
