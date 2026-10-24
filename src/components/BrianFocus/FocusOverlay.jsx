@@ -26,6 +26,8 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   const [appearanceOpen, setAppearanceOpen] = useState(false);
   const [atelierOpen,setAtelierOpen]=useState(false);
   const [classroom,setClassroom]=useState(false);
+  const [localMinute,setLocalMinute]=useState(()=>Date.now());
+  useEffect(()=>{const id=window.setInterval(()=>setLocalMinute(Date.now()),60000);return()=>window.clearInterval(id);},[]);
   const mixer=useFocusSoundMixer(currentUser?.id);
   const [controlsVisible, setControlsVisible] = useState(true);
   const [quickOpen, setQuickOpen] = useState(false);
@@ -173,9 +175,12 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   const vi = language !== 'en';
   const dim = personalDim === null ? appearance.dim : personalDim;
   const displayScene = { ...scene, dimPercent: dim };
-  const hour=new Date().getHours();
+  const hour=new Date(localMinute).getHours();
+  const weatherCode=Number(weather?.code);
+  const currentlyRaining=Number.isFinite(weatherCode)&&
+    ((weatherCode>=51&&weatherCode<=67)||(weatherCode>=80&&weatherCode<=82)||(weatherCode>=95&&weatherCode<=99));
   const activeMood=focus7.mood==='auto'
-    ? (hour<7?'dawn':hour<16?'golden':hour<19?'twilight':'midnight')
+    ? (currentlyRaining?'rain':hour<7?'dawn':hour<16?'golden':hour<19?'twilight':'midnight')
     : focus7.mood;
   const cinemaStyle = {
     '--bfc6-saturation': appearance.saturation / 100,
@@ -224,7 +229,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
       <button type="button" className="bfc7-classroom-toggle" onClick={()=>{setClassroom(x=>!x);setAtelierOpen(false);setActiveTool('');}}
         aria-pressed={classroom} aria-label={classroom?(vi?'Thoát trình chiếu':'Exit classroom'):(vi?'Chế độ trình chiếu':'Classroom mode')}>
         <Presentation size={18}/></button>
-      {!sceneEditorOpen && !effectsOpen && !appearanceOpen ? <button type="button" className="bfc-atelier__appearance-action"
+      {!sceneEditorOpen && !effectsOpen && !appearanceOpen && !atelierOpen ? <button type="button" className="bfc-atelier__appearance-action"
         ref={appearanceButtonRef} onClick={() => setAppearanceOpen(true)}
         aria-label={vi ? 'Chọn giao diện Focus' : 'Choose Focus appearance'}
         title={vi ? 'Giao diện Focus' : 'Focus appearance'}>
