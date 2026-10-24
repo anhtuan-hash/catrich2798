@@ -181,3 +181,26 @@
 @media(prefers-reduced-motion:reduce){
  .bfc-overlay.bfc-atelier .bfc8-cue,.bfc-overlay.bfc-atelier .bfc8-depth-active :is(.bfc7-light-layer,.bfc7-particles){transition:none!important;transform:none!important;}
 }
+
+/* Adaptive GPU budget. Only the decorative layers are simplified.
+   Clock, timers, media playback and the chosen Focus opening/closing WAAPI
+   effects remain intact. */
+.bfc-overlay.bfc-atelier.bfc8-efficient :is(.bfc8-studio,.bfc7-studio,.bfc6-picker){
+ -webkit-backdrop-filter:none!important;
+ backdrop-filter:none!important;
+}
+.bfc-overlay.bfc-atelier.bfc8-efficient :is(
+ .bfc-cosmos__meteor,.bfc-cosmos__nebula,.bfc-cosmos__halo,
+ .bfc-cosmos__aurora,.bfc-cosmos__glow-disc){
+ animation:none!important;
+}
+.bfc-overlay.bfc-atelier.bfc8-efficient .bfc8-cue{
+ mix-blend-mode:normal!important;
+ opacity:.09!important;
+}
+.bfc-overlay.bfc-atelier.bfc8-efficient .bfc-scene-background__media{
+ transition:none!important;
+}
+.bfc-overlay.bfc-atelier.bfc8-efficient .bfc7-clock--aurora .bfc-clock-minimal__time{
+ text-shadow:0 3px 16px rgba(0,0,0,.5)!important;
+}
