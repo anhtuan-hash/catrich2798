@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Check, CloudUpload, FileCode2, FileImage, Film, RotateCcw, ShieldCheck, X } from 'lucide-react';
 import {
-  saveFocusScene, sandboxFocusHtml, validateFocusFile,
+  saveFocusScene, sandboxFocusHtml, resolveFocusSceneMedia, validateFocusFile,
 } from './focusSceneService.js';
 
 export default function FocusSceneEditor({ language = 'vi', currentUser, scene, onClose, onPublished }) {
@@ -10,8 +10,18 @@ export default function FocusSceneEditor({ language = 'vi', currentUser, scene, 
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState({ src: '', html: '' });
   const [busy, setBusy] = useState(false);
+  const [publishedPreview, setPublishedPreview] = useState({ src: '', html: '' });
   const [notice, setNotice] = useState('');
   const fileInput = useRef(null);
+
+  useEffect(() => {
+    if (file || scene.mediaType === 'default') return undefined;
+    let active = true;
+    resolveFocusSceneMedia(scene).then(result => {
+      if (active) setPublishedPreview(result);
+    }).catch(() => null);
+    return () => { active = false; };
+  }, [file, scene.mediaPath, scene.mediaType]);
 
   useEffect(() => {
     if (!file) {
@@ -62,6 +72,10 @@ export default function FocusSceneEditor({ language = 'vi', currentUser, scene, 
     setNotice('');
   };
 
+  const shownPreview = file ? preview : (
+    draft.mediaType !== 'default' && draft.mediaPath === scene.mediaPath ? publishedPreview : { src: '', html: '' }
+  );
+
   const label = draft.mediaType === 'image' ? (vi ? 'Ảnh' : 'Image')
     : draft.mediaType === 'video' ? 'Video'
       : draft.mediaType === 'html' ? 'HTML' : (vi ? 'Mặc định' : 'Default');
@@ -83,14 +97,14 @@ export default function FocusSceneEditor({ language = 'vi', currentUser, scene, 
 
     <div className="bfc-scene-editor__body">
       <div className="bfc-scene-editor__preview">
-        {preview.src && draft.mediaType === 'image'
-          ? <img src={preview.src} alt="" /> : null}
-        {preview.src && draft.mediaType === 'video'
-          ? <video src={preview.src} autoPlay muted loop playsInline/> : null}
-        {preview.html && draft.mediaType === 'html'
+        {shownPreview.src && draft.mediaType === 'image'
+          ? <img src={shownPreview.src} alt="" /> : null}
+        {shownPreview.src && draft.mediaType === 'video'
+          ? <video src={shownPreview.src} autoPlay muted loop playsInline/> : null}
+        {shownPreview.html && draft.mediaType === 'html'
           ? <iframe title="HTML preview" sandbox="allow-scripts" tabIndex={-1}
-            referrerPolicy="no-referrer" srcDoc={preview.html}/> : null}
-        {!preview.src && !preview.html ? <span><FileIcon size={28}/><strong>{label}</strong>
+            referrerPolicy="no-referrer" srcDoc={shownPreview.html}/> : null}
+        {!shownPreview.src && !shownPreview.html ? <span><FileIcon size={28}/><strong>{label}</strong>
           <small>{vi ? 'Nền hiện hành hoặc hình nền mặc định' : 'Published scene or default background'}</small>
         </span> : null}
       </div>
