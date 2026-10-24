@@ -56,23 +56,23 @@ export default function usePersistentFocusYoutube({ scene, focusOpen, userId }) 
   }, [videoId, ownerId, playlistKey, send]);
 
   const pause = useCallback(() => {
-    setSession(value => value.videoId === videoId && value.userId === ownerId
+    setSession(value => value.playlistKey === playlistKey && value.userId === ownerId
       ? { ...value, playing: false } : value);
     send('pauseVideo');
-  }, [videoId, ownerId, send]);
+  }, [playlistKey, ownerId, send]);
 
   const stop = useCallback(() => {
     // Deliberately unmount only upon a user-initiated STOP, not Close or Escape.
     send('stopVideo');
-    setSession(value => value.videoId === videoId && value.userId === ownerId
+    setSession(value => value.playlistKey === playlistKey && value.userId === ownerId
       ? { ...value, mounted: false, playing: false, muted: true, explicitlyStopped: true } : value);
-  }, [videoId, ownerId, send]);
+  }, [playlistKey, ownerId, send]);
 
   const mute = useCallback(() => {
     send('mute');
-    setSession(value => value.videoId === videoId && value.userId === ownerId
+    setSession(value => value.playlistKey === playlistKey && value.userId === ownerId
       ? { ...value, muted: true } : value);
-  }, [videoId, ownerId, send]);
+  }, [playlistKey, ownerId, send]);
 
   const toggleMute = useCallback(() => {
     if (!current.mounted) return;
@@ -81,7 +81,7 @@ export default function usePersistentFocusYoutube({ scene, focusOpen, userId }) 
       window.dispatchEvent(new Event('bfc-youtube-unmute'));
       send('unMute');
     } else send('mute');
-    setSession(value => value.videoId === videoId && value.userId === ownerId
+    setSession(value => value.playlistKey === playlistKey && value.userId === ownerId
       ? { ...value, muted: !value.muted } : value);
   }, [current.mounted, current.muted, playlistKey, ownerId, send]);
 
