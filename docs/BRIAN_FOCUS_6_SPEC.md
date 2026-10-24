@@ -53,7 +53,7 @@ Approved 24 October 2026. Source of truth for implementation and QA.
 
 ## 08 — Focus Notes & Tasks
 - Reuse existing per-user notes persistence, add simple checklist and pin selected intention under clock (local browser preference).
-- Autosave with no server write; avoid duplicating notes stores.
+- Preserve existing private Supabase note autosave and its user-scoped row-level security. The **new** checklist and custom intention remain local to this browser, without new Supabase tables or writes.
 - Do not leak one account's notes into another account.
 
 ## 09 — True Immersive Mode
@@ -62,7 +62,7 @@ Approved 24 October 2026. Source of truth for implementation and QA.
 - Fullscreen is not triggered automatically, only by user gesture.
 
 ## 10 — Atmosphere Preset Studio
-- Curated Morning Energy, Deep Focus, Rainy Study, Evening Calm, Classroom Display, plus “Custom”. One-click applies personal clock/background/dock settings.
+- Curated Morning Energy, Deep Focus, Rainy Study, Evening Calm, Classroom Display, plus a locally named/saved “Custom” preset. One-click applies personal clock/background settings; Dock order remains separately personalized.
 - Save local custom preset; applying does not change shared scene or force background video playback/audio.
 - Keyboard accessible and bilingual; preview labels explain what each changes.
 
@@ -80,3 +80,11 @@ Approved 24 October 2026. Source of truth for implementation and QA.
 5. Session countdown remains accurate across close/reopen and tab inactivity; notes and preferences persist by user.
 6. Test light/dark video, no-video scene, narrow mobile, low-power/reduced-motion, English and Vietnamese labels.
 7. Report implemented vs. deferred feature limits precisely, not just optimistic READY.
+
+## Implementation constraints (released core scope)
+- YouTube mini player controls the existing persistent iframe: Play/Pause, mute, explicit Stop and open-in-YouTube. YouTube's cross-origin embed restrictions prevent guaranteeing unrestricted seek or arbitrary personal playlists; no duplicate player was introduced.
+- Smart Dock reordering uses accessible Up/Down actions in Studio (mobile-safe), not drag-and-drop.
+- Focus Session Pro supports manual 25/5 or 50/10 session presets and a daily local completion count. Automatic break sequencing is not implied.
+- Living Weather uses the current shared TP.HCM Open-Meteo endpoint and its real six-hour hourly forecast. Account-specific city switching has not been added because it would alter the shared Dashboard source.
+- Browser Fullscreen requires a supported browser and a direct user gesture; platform restrictions remain in effect.
+- Production READY confirms compilation and existing CI checks; an authenticated visual review on the owner's browser remains a separate acceptance gate.
