@@ -11,6 +11,9 @@ import {
 } from '../utils/permissionRequests.js';
 import { LESSON_CHECK_EVENT, listLessonCheckAccessRequests, reviewLessonCheckAccessRequest } from '../utils/lessonCheckActivities.js';
 import './PermissionApprovalInbox.css';
+import {
+  GLOBAL_FLOATING_ACTION_EVENT, FLOATING_ACTION_IDS, broadcastUnifiedFloatingStatus,
+} from '../utils/unifiedFloatingDock.js';
 
 const REFRESH_MS = 45000;
 const STATUS_LABELS = {
@@ -46,7 +49,7 @@ function RequestAvatar({ item }) {
   return <span className="bes-approval-avatar" aria-hidden="true">{letter}</span>;
 }
 
-export default function PermissionApprovalInbox({ currentUser, language = 'vi' }) {
+export default function PermissionApprovalInbox({ currentUser, language = 'vi', dockManaged = false }) {
   const canReview = Boolean(
     isSupabaseConfigured &&
     currentUser?.id &&
@@ -179,12 +182,24 @@ export default function PermissionApprovalInbox({ currentUser, language = 'vi' }
     window.requestAnimationFrame(() => (lastFocus.current || triggerRef.current)?.focus?.({ preventScroll: true }));
   }, []);
   const open = useCallback((mode = 'quick') => {
-    lastFocus.current = document.activeElement;
+    lastFocus.current = dockManaged
+      ? document.getElementById('bfc-focus-trigger') : document.activeElement;
     setActiveTab('pending');
     setConfirmation(null);
     setPanel(mode);
     refresh({ quiet: true });
-  }, [refresh]);
+  }, [refresh, dockManaged]);
+
+  useEffect(() => {
+    if (!dockManaged || !canReview) return undefined;
+    const handler = event => {
+      if (event.detail?.id !== FLOATING_ACTION_IDS.approvals) return;
+      if (panel === 'quick') close();
+      else open('quick');
+    };
+    window.addEventListener(GLOBAL_FLOATING_ACTION_EVENT, handler);
+    return () => window.removeEventListener(GLOBAL_FLOATING_ACTION_EVENT, handler);
+  }, [dockManaged, canReview, panel, close, open]);
 
   useEffect(() => {
     if (panel !== 'drawer') return undefined;
@@ -204,6 +219,11 @@ export default function PermissionApprovalInbox({ currentUser, language = 'vi' }
   }, [panel, close]);
 
   const pending = useMemo(() => requests.filter((r) => r.status === 'pending'), [requests]);
+  useEffect(() => {
+    if (!dockManaged || !canReview) return undefined;
+    broadcastUnifiedFloatingStatus(FLOATING_ACTION_IDS.approvals, { pending: pending.length });
+    return () => broadcastUnifiedFloatingStatus(FLOATING_ACTION_IDS.approvals, { pending: 0 });
+  }, [dockManaged, canReview, pending.length]);
   const selected = useMemo(() => requests.filter((r) => r.status === activeTab), [requests, activeTab]);
 
   const decide = async (item, decision) => {
@@ -337,7 +357,7 @@ export default function PermissionApprovalInbox({ currentUser, language = 'vi' }
         </button>
       </div> : null}
 
-      {panel !== 'drawer' && <button type="button" ref={triggerRef} className={'bes-approval-fab' + (panel === 'quick' ? ' is-active' : '')}
+      {!dockManaged && panel !== 'drawer' && <button type="button" ref={triggerRef} className={'bes-approval-fab' + (panel === 'quick' ? ' is-active' : '')}
         aria-haspopup="dialog" aria-expanded={panel === 'quick'} aria-label={pending.length > 0
           ? (language === 'en' ? `${pending.length} access requests awaiting approval` : `${pending.length} yêu cầu chờ duyệt`)
           : copy.expand}
