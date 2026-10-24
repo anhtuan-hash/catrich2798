@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Cloud, CloudDrizzle, CloudFog, CloudLightning, CloudRain, CloudSun, Snowflake, Sun, RefreshCw, Moon, Droplets, Wind, ThermometerSun } from 'lucide-react';
 
 function weatherGlyph(code, isDay = true) {
@@ -27,7 +27,8 @@ export function focusWeatherDescription(code, language = 'vi') {
   return vi ? 'Thời tiết hiện tại' : 'Current weather';
 }
 
-export default function FocusWeather({ weather, language = 'vi', onRefresh }) {
+export default function FocusWeather({ weather, language = 'vi', onRefresh, compact = false }) {
+  const [expanded, setExpanded] = useState(false);
   const vi = language !== 'en';
   const hasValue = Number.isFinite(weather?.temperature) && Number.isFinite(weather?.code);
   const WeatherIcon = weatherGlyph(weather?.code, weather?.isDay);
@@ -38,6 +39,30 @@ export default function FocusWeather({ weather, language = 'vi', onRefresh }) {
   const time = weather?.updatedAt
     ? new Intl.DateTimeFormat(vi ? 'vi-VN' : 'en-GB', { hour:'2-digit', minute:'2-digit', hourCycle:'h23', timeZone:'Asia/Ho_Chi_Minh' }).format(new Date(weather.updatedAt))
     : '';
+  if (compact) return (
+    <div className={'bfc-ambient-weather' + (expanded ? ' is-expanded' : '')}>
+      <button type="button" className="bfc-ambient-weather__summary" aria-expanded={expanded}
+        onClick={() => setExpanded(value => !value)}
+        title={vi ? 'Xem thông tin thời tiết chi tiết' : 'Expand weather details'}>
+        <WeatherIcon size={18} strokeWidth={1.7} aria-hidden="true"/>
+        <strong>{hasValue ? weather.temperature + '°' : '—'}</strong>
+        <span>{vi ? 'TP. Hồ Chí Minh' : 'Ho Chi Minh City'}</span>
+        <i aria-hidden="true">·</i>
+        <span className="bfc-ambient-weather__condition">{label}</span>
+      </button>
+      {expanded && <div className="bfc-ambient-weather__details">
+        {time && <span>{vi ? 'Cập nhật' : 'Updated'} {time}</span>}
+        {Number.isFinite(weather?.feelsLike) && <span>{vi ? 'Cảm giác' : 'Feels'} {weather.feelsLike}°</span>}
+        {Number.isFinite(weather?.humidity) && <span>{vi ? 'Độ ẩm' : 'Humidity'} {weather.humidity}%</span>}
+        {Number.isFinite(weather?.windSpeed) && <span>{vi ? 'Gió' : 'Wind'} {weather.windSpeed} km/h</span>}
+        <button type="button" onClick={onRefresh} disabled={Boolean(weather?.loading)}
+          aria-label={vi ? 'Làm mới thời tiết' : 'Refresh weather'}>
+          <RefreshCw size={14} aria-hidden="true"/> {vi ? 'Làm mới' : 'Refresh'}
+        </button>
+      </div>}
+    </div>
+  );
+
   return (
     <div className="bfc-weather" aria-label={vi ? 'Thời tiết trực tiếp tại TP. Hồ Chí Minh' : 'Live weather in Ho Chi Minh City'}>
       <span className="bfc-weather__icon"><WeatherIcon size={24} strokeWidth={1.6} aria-hidden="true"/></span>
