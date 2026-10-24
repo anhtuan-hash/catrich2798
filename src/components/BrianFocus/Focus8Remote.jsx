@@ -39,50 +39,56 @@ export function Focus8RemoteClient({userId,language='vi',onClose}){
    </>}
  </section>;
 }
-export default function Focus8RemoteHost({userId,language='vi',onCommand}){
- const vi=language!=='en';
+/** The polling hook lives on FocusOverlay, NOT inside the Studio panel.
+ * Closing Studio must never disconnect a paired phone. */
+export function useFocus8RemoteHost(userId,onCommand){
  const [session,setSession]=useState(null),[qr,setQr]=useState(''),[error,setError]=useState('');
- const [busy,setBusy]=useState(false);
- const [lastSeq,setLastSeq]=useState(0);
- const [link,setLink]=useState('');
+ const [busy,setBusy]=useState(false),[lastSeq,setLastSeq]=useState(0),[link,setLink]=useState('');
+ const onCommandRef=React.useRef(onCommand);onCommandRef.current=onCommand;
  const create=async()=>{
   setBusy(true);setError('');
   try{
    if(session)await revokeFocus8Remote(userId,session.id);
-   const s=await createFocus8Remote(userId);
-   const url=location.origin+location.pathname+'#/dashboard?focusRemote='+encodeURIComponent(s.id)+'&pairCode='+encodeURIComponent(s.code);
+   const next=await createFocus8Remote(userId);
+   const url=location.origin+location.pathname+'#/dashboard?focusRemote='+encodeURIComponent(next.id)+'&pairCode='+encodeURIComponent(next.code);
    setLink(url);setQr(await QRCode.toDataURL(url,{width:200,margin:1,errorCorrectionLevel:'M'}));
-   setSession(s);setLastSeq(s.seq);
-  }catch(e){setError(e.message);}
-  finally{setBusy(false);}
+   setSession(next);setLastSeq(next.seq);
+  }catch(e){setError(e.message);}finally{setBusy(false);}
  };
- const end=async()=>{
+ const revoke=async()=>{
   if(!session)return;
   try{await revokeFocus8Remote(userId,session.id);setSession(null);setQr('');setLink('');}
   catch(e){setError(e.message);}
  };
  useEffect(()=>{
   if(!session)return undefined;
-  let alive=true;
+  let alive=true,seq=session.seq;
   const poll=async()=>{
    try{
-    const s=await getFocus8Remote(userId,session.id,session.code);
+    const current=await getFocus8Remote(userId,session.id,session.code);
     if(!alive)return;
-    if(s.seq>lastSeq){setLastSeq(s.seq);onCommand?.(s.command);}
+    if(current.seq>seq){seq=current.seq;setLastSeq(seq);onCommandRef.current?.(current.command);}
    }catch(e){if(alive){setError(e.message);setSession(null);}}
   };
   const id=setInterval(poll,1700);
   return()=>{alive=false;clearInterval(id);};
- },[session?.id,lastSeq,userId,onCommand]);
+ },[session?.id,userId]);
  useEffect(()=>()=>{if(session?.id)revokeFocus8Remote(userId,session.id).catch(()=>{});},[session?.id,userId]);
+ return {session,qr,error,busy,lastSeq,link,create,revoke};
+}
+export default function Focus8RemoteHost({language='vi',host}){
+ const vi=language!=='en';
+ if(!host)return null;
+ const {session,qr,error,busy,link,create,revoke}=host;
  return <div className="bfc8-stack">
   <h3>{vi?'Companion Remote':'Companion Remote'}</h3>
-  <p>{vi?'Cả MacBook và điện thoại phải đăng nhập cùng tài khoản. Mã có hiệu lực 10 phút; bạn có thể thu hồi bất cứ lúc nào.':'Both devices must sign in to the same account. Pairing expires after 10 minutes and can be revoked.'}</p>
+  <p>{vi?'Điện thoại phải đăng nhập cùng tài khoản. Sau khi ghép, bạn có thể đóng bảng Studio; phiên vẫn có hiệu lực tối đa 10 phút.':'Phone must sign in to the same account. Close Studio freely; pairing stays active up to ten minutes.'}</p>
   <div className="bfc8-actions"><button type="button" onClick={create} disabled={busy}>{vi?'Tạo mã ghép QR':'Generate pairing QR'}</button>
-  {session&&<button type="button" onClick={end}>{vi?'Thu hồi phiên':'Revoke pairing'}</button>}</div>
-  {qr&&<div className="bfc8-qr"><img alt="Pair Focus remote" src={qr}/><small>{vi?'Quét bằng điện thoại sau khi đăng nhập ứng dụng':'Scan on a signed-in phone'}</small>
+   {session&&<button type="button" onClick={revoke}>{vi?'Thu hồi phiên':'Revoke pairing'}</button>}</div>
+  {qr&&<div className="bfc8-qr"><img alt="Pair Focus remote" src={qr}/>
+   <small>{vi?'Quét bằng điện thoại đã đăng nhập':'Scan using a signed-in phone'}</small>
    <button type="button" onClick={()=>navigator.clipboard?.writeText(link)}>{vi?'Sao chép liên kết':'Copy pairing URL'}</button></div>}
   {error&&<p role="alert">{error}</p>}
-  <small>{vi?'Không tạo quyền admin mới. Lệnh chỉ điều khiển phiên Focus của chính tài khoản.':'No new admin privileges; commands affect only the authenticated account’s Focus.'}</small>
+  <small>{vi?'Chỉ tài khoản đang sở hữu phiên mới truy cập được; không cấp quyền quản trị mới.':'Only the authenticated session owner can access; no new admin rights are granted.'}</small>
  </div>;
 }
