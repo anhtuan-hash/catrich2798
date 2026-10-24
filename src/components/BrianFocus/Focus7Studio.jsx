@@ -65,7 +65,7 @@ export default function Focus7Studio({language='vi',data,update,appearance,onApp
       <p>{vi?'Áp lớp ánh sáng riêng lên cảnh hiện có, không chỉnh nguồn video/ảnh của admin.':'Apply personal cinematic light without changing the shared scene.'}</p>
       <div className="bfc7-choices">{moodLabels.map(([id,en,vn])=>choice(id,vi?vn:en,data.mood===id,()=>update({mood:id})))}</div>
       {uiRange(vi?'Cường độ sắc độ':'Tint intensity',data.tint,0,40,v=>update({tint:v}),'%')}
-      <small>{vi?'Tự động dựa trên giờ địa phương, không giả lập thời tiết.':'Auto follows your device clock, not simulated weather.'}</small>
+      <small>{vi?'Tự động ưu tiên thông tin mưa thực tế (nếu có), sau đó theo giờ địa phương.':'Auto uses real reported rain when available, otherwise your device clock.'}</small>
     </div>}
     {tab==='clock'&&<div className="bfc7-stack">
       <h3>{vi?'Signature Clock Atelier':'Signature Clock Atelier'}</h3>
@@ -133,7 +133,7 @@ export default function Focus7Studio({language='vi',data,update,appearance,onApp
       {data.favorites.map((id,i)=><div className="bfc7-dock-row" key={id}>
         <strong>{i+1}. {id}</strong>
         <button type="button" aria-pressed={data.videoOverride===id} onClick={()=>onChooseVideo(id)}>{vi?'Phát video này':'Play selected'}</button>
-        <button type="button" aria-label={vi?'Xóa mục yêu thích':'Remove favorite'} onClick={()=>update({favorites:data.favorites.filter(x=>x!==id),videoOverride:data.videoOverride===id?'':data.videoOverride})}><Trash2 size={15}/></button>
+        <button type="button" aria-label={vi?'Xóa mục yêu thích':'Remove favorite'} onClick={()=>{if(data.videoOverride===id)onChooseVideo('');update({favorites:data.favorites.filter(x=>x!==id)});}}><Trash2 size={15}/></button>
       </div>)}
       {uiRange(vi?'Tự dừng sau':'Stop playback after',data.stopAfterMinutes,0,180,v=>update({stopAfterMinutes:v}),vi?' phút':' min')}
       <small>{vi?'Thời gian dừng chỉ bắt đầu tính từ lúc bạn nhấn Phát một video; 0 = không hẹn giờ.':'Stop countdown begins when you explicitly select/play a video; 0 disables it.'}</small>
