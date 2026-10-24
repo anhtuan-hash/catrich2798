@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Check, CloudUpload, FileCode2, FileImage, Film, RotateCcw, ShieldCheck, X } from 'lucide-react';
+import { Check, CloudUpload, FileCode2, FileImage, Film, RotateCcw, ShieldCheck, X, Youtube, Link2 } from 'lucide-react';
 import {
   saveFocusScene, sandboxFocusHtml, resolveFocusSceneMedia, validateFocusFile,
 } from './focusSceneService.js';
+import { buildFocusYoutubeEmbedUrl, parseFocusYoutubeId, videoIdFromFocusPath } from './focusYoutube.js';
 
 export default function FocusSceneEditor({ language = 'vi', currentUser, scene, onClose, onPublished }) {
   const vi = language !== 'en';
@@ -47,7 +48,7 @@ export default function FocusSceneEditor({ language = 'vi', currentUser, scene, 
     try {
       const { mediaType } = validateFocusFile(selected);
       setFile(selected);
-      setDraft(previous => ({ ...previous, mediaType, mediaPath: '' }));
+      setDraft(previous => ({ ...previous, mediaType, mediaPath: '', youtubeUrl: '' }));
       setNotice('');
     } catch (error) { setNotice(error?.message || String(error)); }
   };
@@ -68,7 +69,7 @@ export default function FocusSceneEditor({ language = 'vi', currentUser, scene, 
 
   const reset = () => {
     setFile(null);
-    setDraft(previous => ({ ...previous, mediaType: 'default', mediaPath: '' }));
+    setDraft(previous => ({ ...previous, mediaType: 'default', mediaPath: '', youtubeUrl: '' }));
     setNotice('');
   };
 
@@ -76,10 +77,31 @@ export default function FocusSceneEditor({ language = 'vi', currentUser, scene, 
     draft.mediaType !== 'default' && draft.mediaPath === scene.mediaPath ? publishedPreview : { src: '', html: '' }
   );
 
+  let youtubeId = '';
+  if (draft.mediaType === 'youtube') {
+    try {
+      youtubeId = parseFocusYoutubeId(
+        draft.youtubeUrl || videoIdFromFocusPath(draft.mediaPath),
+      );
+    } catch { /* invalid links are reported when publishing */ }
+  }
+  const youtubePreviewUrl = youtubeId ? buildFocusYoutubeEmbedUrl(youtubeId, {
+    autoplay: false, controls: true,
+    origin: typeof window === 'undefined' ? '' : window.location.origin,
+  }) : '';
+  const chooseYoutube = url => {
+    setFile(null);
+    setNotice('');
+    setDraft(previous => ({
+      ...previous, mediaType: 'youtube', mediaPath: '', youtubeUrl: url,
+    }));
+  };
+
   const label = draft.mediaType === 'image' ? (vi ? 'Ảnh' : 'Image')
     : draft.mediaType === 'video' ? 'Video'
-      : draft.mediaType === 'html' ? 'HTML' : (vi ? 'Mặc định' : 'Default');
-  const FileIcon = draft.mediaType === 'html' ? FileCode2
+      : draft.mediaType === 'html' ? 'HTML'
+        : draft.mediaType === 'youtube' ? 'YouTube' : (vi ? 'Mặc định' : 'Default');
+  const FileIcon = draft.mediaType === 'youtube' ? Youtube : draft.mediaType === 'html' ? FileCode2
     : draft.mediaType === 'video' ? Film : FileImage;
 
   return <section className="bfc-scene-editor" role="region"
@@ -104,7 +126,15 @@ export default function FocusSceneEditor({ language = 'vi', currentUser, scene, 
         {shownPreview.html && draft.mediaType === 'html'
           ? <iframe title="HTML preview" sandbox="allow-scripts" tabIndex={-1}
             referrerPolicy="no-referrer" srcDoc={shownPreview.html}/> : null}
-        {!shownPreview.src && !shownPreview.html ? <span><FileIcon size={28}/><strong>{label}</strong>
+        {youtubePreviewUrl && draft.mediaType === 'youtube'
+          ? <iframe className="bfc-scene-editor__youtube-player"
+              title={vi ? 'Xem thử video YouTube' : 'YouTube video preview'}
+              src={youtubePreviewUrl}
+              allow="encrypted-media; picture-in-picture"
+              sandbox="allow-scripts allow-same-origin allow-presentation"
+              referrerPolicy="strict-origin-when-cross-origin"
+            /> : null}
+        {!shownPreview.src && !shownPreview.html && !youtubePreviewUrl ? <span><FileIcon size={28}/><strong>{label}</strong>
           <small>{vi ? 'Nền hiện hành hoặc hình nền mặc định' : 'Published scene or default background'}</small>
         </span> : null}
       </div>
@@ -124,6 +154,31 @@ export default function FocusSceneEditor({ language = 'vi', currentUser, scene, 
         <small>JPG / PNG / WebP / GIF ≤ 8 MB · MP4 / WebM ≤ 50 MB · HTML ≤ 512 KB</small></span>
       </button>
       {file ? <p className="bfc-scene-editor__selected"><Check size={14}/>{file.name}</p> : null}
+      <div className="bfc-scene-editor__youtube-field">
+        <label htmlFor="bfc-youtube-url">
+          <Youtube size={18} aria-hidden="true"/>
+          <strong>{vi ? 'Chèn video từ YouTube' : 'Embed a YouTube video'}</strong>
+        </label>
+        <div className="bfc-scene-editor__youtube-input">
+          <Link2 size={16} aria-hidden="true"/>
+          <input id="bfc-youtube-url" type="url"
+            value={draft.mediaType === 'youtube' ? (draft.youtubeUrl || '') : ''}
+            onChange={event => chooseYoutube(event.target.value)}
+            placeholder="https://www.youtube.com/watch?v=..."
+            disabled={busy}
+            autoComplete="off" spellCheck={false}
+          />
+        </div>
+        <small>{vi
+          ? 'Hỗ trợ youtube.com, youtu.be và YouTube Shorts. Dán liên kết rồi chọn Lưu & đồng bộ.'
+          : 'Supports youtube.com, youtu.be and Shorts. Paste a link, then Save & sync.'}</small>
+        {draft.mediaType === 'youtube' ? <span className={`bfc-scene-editor__youtube-status ${youtubeId ? 'is-valid' : 'is-invalid'}`}
+          role="status">
+          {youtubeId
+            ? <><Check size={14}/>{vi ? 'Liên kết hợp lệ · bấm phát để xem thử bên trên' : 'Valid link · play the preview above'}</>
+            : (vi ? 'Liên kết chưa hợp lệ hoặc chưa có mã video.' : 'Invalid YouTube link or missing video ID.')}
+        </span> : null}
+      </div>
       <p className="bfc-scene-editor__tip">{vi
         ? 'HTML nên là một tệp tự chứa. Nội dung chạy trong khung cách ly, không được truy cập tài khoản, mạng hoặc các trang khác.'
         : 'Use self-contained HTML. It runs in an isolated sandbox without account or network access.'}</p>
