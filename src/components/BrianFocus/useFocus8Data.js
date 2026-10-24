@@ -9,7 +9,7 @@ const triggers=['open','break','complete'];
 const newDefaults=()=>({
  cues:[{id:'dawn',minutes:25},{id:'twilight',minutes:5}],cueRunning:false,cueIndex:0,cueDeadline:0,
  layout:{desktop:{clock:{x:50,y:50},dock:{x:50,y:94},weather:{x:50,y:68},timer:{x:50,y:82}},mobile:{clock:{x:50,y:45},dock:{x:50,y:92},weather:{x:50,y:66},timer:{x:50,y:81}},tablet:{clock:{x:50,y:48},dock:{x:50,y:93},weather:{x:50,y:67},timer:{x:50,y:82}}},
- depth:'off',recipes:[],stage:{title:'',url:'',minutes:10,parts:['Warm-up','Practice','Review'],partIndex:0,running:false,deadline:0},soundFade:2,
+ layoutEnabled:false,depth:'off',recipes:[],stage:{title:'',url:'',minutes:10,parts:['Warm-up','Practice','Review'],partIndex:0,running:false,deadline:0},soundFade:2,
  commandHistory:[],vaultVersion:1
 });
 const normalizePosition=(obj,base)=>({x:clamp(obj?.x,8,92,base.x),y:clamp(obj?.y,12,96,base.y)});
@@ -19,6 +19,7 @@ export function normalizeFocus8(v){
   cues:Array.isArray(x.cues)?x.cues.slice(0,8).filter(y=>CUES.includes(y?.id)).map(y=>({id:y.id,minutes:clamp(y.minutes,1,180,25)})):d.cues,
   cueRunning:x.cueRunning===true, cueIndex:clamp(x.cueIndex,0,7,0),cueDeadline:clamp(x.cueDeadline,0,1e14,0),
   layout:Object.fromEntries(['desktop','tablet','mobile'].map(mode=>[mode,Object.fromEntries(LABELS.map(id=>[id,normalizePosition(x.layout?.[mode]?.[id],d.layout[mode][id])]))])),
+  layoutEnabled:x.layoutEnabled===true,
   depth:['off','subtle','standard'].includes(x.depth)?x.depth:'off',
   recipes:Array.isArray(x.recipes)?x.recipes.slice(0,10).filter(y=>triggers.includes(y?.trigger)&&actions.includes(y?.action)).map(y=>({
     id:String(y.id||'').slice(0,60),trigger:y.trigger,action:y.action,value:String(y.value||'').slice(0,60),enabled:y.enabled===true})):[],
