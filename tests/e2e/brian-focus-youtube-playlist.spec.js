@@ -31,6 +31,14 @@ for(const viewport of [{width:1366,height:900},{width:390,height:844}]) {
   test(`Focus Scene Studio accepts and edits an ordered YouTube playlist on ${viewport.width}px`,async ({page})=>{
     await page.setViewportSize(viewport);
     await setup(page);
+    // Mimic aggressive legacy and runtime theme styles which previously turned
+    // the editor white in Production despite isolated Focus-only CSS tests.
+    await page.addStyleTag({content:`
+      textarea,textarea:focus,textarea:active {
+        background:white !important;background-color:white !important;
+        color:white !important;font-size:36px !important;
+        min-width:950px !important;
+      }`});
     const field=page.locator('#bfc-youtube-url');
     await expect(field).toHaveValue('https://www.youtube.com/watch?v='+first);
     await field.fill(['https://www.youtube.com/watch?v='+first,'https://youtu.be/'+second,'https://youtu.be/'+third].join('\n'));
@@ -38,13 +46,16 @@ for(const viewport of [{width:1366,height:900},{width:390,height:844}]) {
     // Regression: screenshot reported a native white textarea that expanded
     // outside its dark container and covered the helper/status text.
     const layout=await page.locator('#bfc-youtube-url').evaluate(area=>{
-      const shell=area.closest('.bfc-scene-editor__youtube-input');
-      const field=area.closest('.bfc-scene-editor__youtube-field');
+      const shadow=area.getRootNode();
+      const host=shadow.host;
+      const shell=host.closest('.bfc-scene-editor__youtube-input');
+      const field=host.closest('.bfc-scene-editor__youtube-field');
       const help=field.querySelector('#bfc-youtube-playlist-hint');
       const a=area.getBoundingClientRect(),w=shell.getBoundingClientRect(),
         h=help.getBoundingClientRect();
       const style=getComputedStyle(area);
       return {
+        isolated:shadow instanceof ShadowRoot,
         areaLeft:a.left,areaRight:a.right,areaBottom:a.bottom,
         shellLeft:w.left,shellRight:w.right,shellBottom:w.bottom,
         helperTop:h.top,viewportWidth:window.innerWidth,
@@ -53,8 +64,9 @@ for(const viewport of [{width:1366,height:900},{width:390,height:844}]) {
         minWidth:style.minWidth,boxSizing:style.boxSizing,
       };
     });
-    expect(layout.background).toBe('rgba(0, 0, 0, 0)');
-    expect(layout.color).toBe('rgb(234, 243, 255)');
+    expect(layout.isolated).toBe(true);
+    expect(layout.background).toBe('rgb(8, 22, 45)');
+    expect(layout.color).toBe('rgb(239, 246, 255)');
     expect(layout.boxSizing).toBe('border-box');
     expect(layout.areaLeft).toBeGreaterThan(layout.shellLeft+18);
     expect(layout.areaRight).toBeLessThanOrEqual(layout.shellRight-7);
@@ -75,6 +87,7 @@ for(const viewport of [{width:1366,height:900},{width:390,height:844}]) {
     await expect(items).toHaveCount(2);
     const remaining=await field.inputValue();
     expect(remaining).not.toContain(first);
+    // Check that paste still works through the native textarea in Shadow DOM.
     await field.fill('https://fake-youtube.com/watch?v='+first);
     await expect(page.locator('.bfc-scene-editor__youtube-status.is-invalid')).toBeVisible();
     await expect(page.locator('.bfc-scene-editor__playlist-item')).toHaveCount(0);
