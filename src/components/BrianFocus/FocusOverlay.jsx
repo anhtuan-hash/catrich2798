@@ -16,6 +16,8 @@ import Focus7Studio from './Focus7Studio.jsx';
 import Focus7Particles from './Focus7Particles.jsx';
 import Focus8Studio from './Focus8Studio.jsx';
 import Focus8Commands from './Focus8Commands.jsx';
+import Focus9Studio from './Focus9Studio.jsx';
+import useSilkAutopilot from './useSilkAutopilot.js';
 import Focus8Stage from './Focus8Stage.jsx';
 import {useFocus8RemoteHost} from './Focus8Remote.jsx';
 import {getViewportLayout} from './useFocus8Data.js';
@@ -23,7 +25,8 @@ import {browserFocusMotionBudget} from './focusMotionBudget.js';
 import { canEditFocusScene } from './focusSceneService.js';
 
 /** Portal keeps the real Dashboard mounted and interactive state intact. */
-export default function FocusOverlay({ currentUser, scene, onScenePublished, sceneError, onClose, language, weather, onRefreshWeather, returnFocusRef, performance = 'balanced', exiting = false, transitions = { enter: 'portal', exit: 'portal' }, onEffectsChange, youtubeSession, youtubeControls, timerController, completedSessions=0, focus7, update7, focus8, update8, focusFlow, choosePersonalVideo, sharedScene }) {
+export default function FocusOverlay({ currentUser, scene, onScenePublished, sceneError, onClose, language, weather, onRefreshWeather, returnFocusRef, performance = 'balanced', exiting = false, transitions = { enter: 'portal', exit: 'portal' }, onEffectsChange, youtubeSession, youtubeControls, timerController, completedSessions=0, focus7, update7, focus8, update8, focusFlow, choosePersonalVideo, sharedScene,
+  silk9,updateSilk,silkEvent,online,presenter,presenterError,onPresenterStart,onPresenterStop,onPresenterLink }) {
   const [motionEnabled, setMotionEnabled] = useState(() => (
     !['low', 'minimal'].includes(performance) &&
     !(typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
@@ -33,6 +36,9 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   const [appearanceOpen, setAppearanceOpen] = useState(false);
   const [atelierOpen,setAtelierOpen]=useState(false);
   const [studio8Open,setStudio8Open]=useState(false);
+  const [studio9Open,setStudio9Open]=useState(false);
+  const studio9Ref=useRef(false);studio9Ref.current=studio9Open;
+  const {fps:observedFps,quality:visualQuality}=useSilkAutopilot(silk9.performanceMode);
   const [commandsOpen,setCommandsOpen]=useState(false);
   const studio8OpenRef=useRef(false);studio8OpenRef.current=studio8Open;
   const commandsOpenRef=useRef(false);commandsOpenRef.current=commandsOpen;
@@ -130,7 +136,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   const dialogRef = useRef(null);
   const moveDepth=event=>{
     wakeControls();
-    if(focus8.depth==='off'||!motionEnabled||!motionBudget.parallax)return;
+    if(focus8.depth==='off'||!motionEnabled||!motionBudget.parallax||visualQuality==='smooth')return;
     const ratio=focus8.depth==='standard'?18:8;
     depthPendingRef.current={
       x:(event.clientX/window.innerWidth-.5)*ratio,
@@ -146,6 +152,9 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
     });
   };
   useEffect(()=>()=>{if(depthRef.current)cancelAnimationFrame(depthRef.current);},[]);
+  useEffect(()=>{
+    if(online)onRefreshWeather?.();
+  },[online]);
   const runCommand=(command)=>{
     const type=command?.type;
     if(type==='timer-toggle'){timerController.timer.running?timerController.pause():timerController.start();}
@@ -176,7 +185,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   const dismissRef = useRef(null);
   const closeHandlerRef = useRef(onClose);
   closeHandlerRef.current = onClose;
-  const controlsBusy = appearanceOpen || atelierOpen || studio8Open || commandsOpen || effectsOpen || sceneEditorOpen || Boolean(activeTool) || quickOpen;
+  const controlsBusy = studio9Open || appearanceOpen || atelierOpen || studio8Open || commandsOpen || effectsOpen || sceneEditorOpen || Boolean(activeTool) || quickOpen;
   const wakeControls = (force=false) => {
     if (exiting) return;
     const time=Date.now();
@@ -222,7 +231,8 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
           return;
         }
         event.preventDefault();
-        if(commandsOpenRef.current)setCommandsOpen(false);
+        if(studio9Ref.current)setStudio9Open(false);
+        else if(commandsOpenRef.current)setCommandsOpen(false);
         else if(studio8OpenRef.current)setStudio8Open(false);
         else if (atelierRef.current) setAtelierOpen(false);
         else if (appearanceOpenRef.current) setAppearanceOpen(false);
@@ -289,7 +299,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   };
 
   return createPortal(
-    <div className={`bfc-overlay${(!motionEnabled || ['low','minimal'].includes(performance)) ? ' bfc-overlay--low-motion' : ''}${['low','minimal'].includes(performance) ? ' bfc-overlay--entry-lite' : ''}${canManage ? ' bfc-overlay--manager' : ''}${scene.mediaType === 'youtube' ? ' bfc-overlay--youtube' : ''}${sceneEditorOpen ? ' is-editor-open' : ''}${effectsOpen ? ' is-effects-open' : ''}${activeTool ? ' is-tools-open' : ''}${quiet ? ' bfc-overlay--quiet' : ''}${appearanceOpen ? ' is-appearance-open' : ''}${atelierOpen?' is-atelier7-open':''}${studio8Open?' is-studio8-open':''}${focus8.layoutEnabled?' bfc8-layout-active':''}${focus8.depth!=='off'&&motionBudget.parallax?' bfc8-depth-active':''}${!motionBudget.parallax?' bfc8-efficient':''}${classroom?' bfc7-classroom':''}${focus7.compactDock?' bfc7-compact-dock':''}${(!controlsVisible && appearance.autoHide && !controlsBusy) || immersiveOnce ? ' bfc-atelier--idle' : ''} bfc-atelier bfc-atelier--${appearance.clockMode}${exiting ? ' bfc-overlay--exiting' : ''}`} role="dialog" aria-modal="true"
+    <div className={`bfc-overlay${(!motionEnabled || ['low','minimal'].includes(performance)) ? ' bfc-overlay--low-motion' : ''}${['low','minimal'].includes(performance) ? ' bfc-overlay--entry-lite' : ''}${canManage ? ' bfc-overlay--manager' : ''}${scene.mediaType === 'youtube' ? ' bfc-overlay--youtube' : ''}${sceneEditorOpen ? ' is-editor-open' : ''}${effectsOpen ? ' is-effects-open' : ''}${activeTool ? ' is-tools-open' : ''}${quiet ? ' bfc-overlay--quiet' : ''}${appearanceOpen ? ' is-appearance-open' : ''}${atelierOpen?' is-atelier7-open':''}${studio8Open?' is-studio8-open':''}${studio9Open?' is-studio9-open':''}${silk9.shield?' bfc9-shield':''}${visualQuality==='smooth'?' bfc9-smooth':''}${focus8.layoutEnabled?' bfc8-layout-active':''}${focus8.depth!=='off'&&motionBudget.parallax?' bfc8-depth-active':''}${!motionBudget.parallax?' bfc8-efficient':''}${classroom?' bfc7-classroom':''}${focus7.compactDock?' bfc7-compact-dock':''}${(!controlsVisible && appearance.autoHide && !controlsBusy) || immersiveOnce ? ' bfc-atelier--idle' : ''} bfc-atelier bfc-atelier--${appearance.clockMode}${exiting ? ' bfc-overlay--exiting' : ''}`} role="dialog" aria-modal="true"
       aria-label={vi ? 'Chế độ tập trung Brian Focus' : 'Brian Focus mode'}
       aria-owns="bfc-focus-trigger"
       data-focus-transition={exiting ? 'exiting' : 'entering'}
@@ -305,14 +315,14 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
       onPointerMove={moveDepth}
       onPointerDown={wakeControls}>
       {scene.mediaType === 'default'
-        ? <CosmicAmbient motionEnabled={motionEnabled} performance={performance}/>
+        ? <CosmicAmbient motionEnabled={motionEnabled} performance={visualQuality==='smooth'?'low':performance}/>
         : scene.mediaType === 'youtube'
           ? <div className="bfc-focus-youtube-shade" aria-hidden="true"
               style={{ backgroundColor: 'rgba(2,8,22,' + (Math.max(0,Math.min(85,Number(displayScene.dimPercent)||0))/100) + ')' }}/>
           : <FocusSceneBackground scene={displayScene} language={language} motionEnabled={motionEnabled} />}
       {focus8.cueRunning&&focus8.cues.length>0&&<div className={'bfc8-cue bfc8-cue--'+focus8.cues[focus8.cueIndex]?.id} aria-hidden="true"/>}
       {activeMood!=='off'&&<div className="bfc7-light-layer" style={{'--bfc7-tint':focus7.tint/100}} aria-hidden="true"/>}
-      <Focus7Particles mode={focus7.particle} density={focus7.density} performance={performance}/>
+      <Focus7Particles mode={focus7.particle} density={focus7.density} performance={visualQuality==='smooth'?'low':performance}/>
       {scene.mediaType === 'youtube' ? <FocusYoutubeBackground
         scene={displayScene} language={language}
         session={youtubeSession} controls={youtubeControls}/> : null}
@@ -324,6 +334,9 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
         <div className="bfc-focus-scene-veil" aria-hidden="true"
           style={{ backgroundColor: 'rgba(2,8,22,' + (dim / 100) + ')' }} /> : null}
       <div className="bfc-focus-header-actions">
+      {!sceneEditorOpen && !effectsOpen && !appearanceOpen && !studio9Open ? <button type="button" className="bfc9-open-studio"
+        onClick={()=>setStudio9Open(true)} aria-label="Brian Focus 9.0 Silk Flow" title="Silk Flow 9.0">
+        <span aria-hidden="true">✦</span></button>:null}
       {!sceneEditorOpen && !effectsOpen && !appearanceOpen && !studio8Open ? <button type="button" className="bfc8-open-studio"
         onClick={()=>setStudio8Open(true)} aria-label="Ambient OS 8.0" title="Ambient OS">
         <Command size={18}/></button>:null}
@@ -416,6 +429,15 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
         classroom={classroom} onClassroom={setClassroom} onCommand={runCommand}
         onAutomation={applyAutomation} onStageNext={nextStage} mixer={mixer} remoteHost={remoteHost}
         onClose={()=>setStudio8Open(false)}/>}
+      {studio9Open&&<Focus9Studio language={language} silk={silk9}
+        update={updateSilk} event={silkEvent} quality={visualQuality} fps={observedFps}
+        appearance={appearance} onAppearance={setAppearance} focus7={focus7} update7={update7}
+        focus8={focus8} update8={update8} online={online}
+        youtubeSession={youtubeSession} youtubeControls={youtubeControls}
+        mediaActive={scene.mediaType==='youtube'} stage={focus8.stage} timer={timerController.timer}
+        refreshWeather={onRefreshWeather} presenter={presenter} presenterError={presenterError}
+        onPresenterStart={onPresenterStart} onPresenterStop={onPresenterStop} onPresenterLink={onPresenterLink}
+        onClose={()=>setStudio9Open(false)}/>}
       {commandsOpen&&<Focus8Commands language={language} onCommand={runCommand} onClose={()=>setCommandsOpen(false)}/>}
       {appearanceOpen ? <Focus6Appearance language={language} appearance={appearance}
         onChange={patch=>{ if(Object.hasOwn(patch,'dim'))setPersonalDim(null);setAppearance(patch); }} onClose={() => {setAppearanceOpen(false);appearanceButtonRef.current?.focus?.();}}/> : null}
