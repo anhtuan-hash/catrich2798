@@ -43,7 +43,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   const [classroom,setClassroom]=useState(false);
   const [localMinute,setLocalMinute]=useState(()=>Date.now());
   useEffect(()=>{const id=window.setInterval(()=>setLocalMinute(Date.now()),60000);return()=>window.clearInterval(id);},[]);
-  const mixer=useFocusSoundMixer(currentUser?.id);
+  const mixer=useFocusSoundMixer(currentUser?.id,focus8.soundFade);
   const [controlsVisible, setControlsVisible] = useState(true);
   const [quickOpen, setQuickOpen] = useState(false);
   const controlsTimerRef = useRef(null);
@@ -143,6 +143,9 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
     else if(type==='classroom-toggle'){setClassroom(v=>!v);setStudio8Open(false);}
     else if(type==='clock-next'){update7({clock:clockModes[(clockModes.indexOf(focus7.clock)+1)%clockModes.length]});}
     else if(type==='mood-next'){update7({mood:moods[(moods.indexOf(focus7.mood)+1)%moods.length]});}
+    else if(type==='volume-up')mixer.setMaster(Math.min(100,mixer.master+10));
+    else if(type==='volume-down')mixer.setMaster(Math.max(0,mixer.master-10));
+    else if(type==='layout-toggle')update8({layoutEnabled:!focus8.layoutEnabled});
     else if(type==='scene-next'){
       if(focus8.cues.length){const i=(focus8.cueIndex+1)%focus8.cues.length;
       update8({cueIndex:i,cueDeadline:Date.now()+focus8.cues[i].minutes*60000});}
