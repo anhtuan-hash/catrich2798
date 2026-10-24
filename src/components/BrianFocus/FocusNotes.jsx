@@ -64,7 +64,19 @@ export default function FocusNotes({ currentUser, language = 'vi' }) {
       });
     return () => {
       active = false;
-      for (const timer of pending.current.values()) clearTimeout(timer);
+      // Closing Focus with a note still being typed must not discard edits.
+      for (const [noteId, timer] of pending.current.entries()) {
+        clearTimeout(timer);
+        const draft = notesRef.current.find(note => note.id === noteId);
+        if (draft && supabase && currentUser?.id) {
+          supabase.from('brian_focus_notes').update({
+            title: draft.title.slice(0,120),
+            body: draft.body.slice(0,5000),
+            is_done: Boolean(draft.is_done),
+            updated_at: new Date().toISOString(),
+          }).eq('id',noteId).eq('user_id',currentUser.id).then(() => {});
+        }
+      }
       pending.current.clear();
     };
   }, [currentUser?.id, vi]);
