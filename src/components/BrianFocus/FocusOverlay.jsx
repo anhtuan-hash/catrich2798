@@ -292,7 +292,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
       onPointerMove={moveDepth}
       onPointerDown={wakeControls}>
       {scene.mediaType === 'default'
-        ? <CosmicAmbient motionEnabled={motionEnabled} />
+        ? <CosmicAmbient motionEnabled={motionEnabled} performance={performance}/>
         : scene.mediaType === 'youtube'
           ? <div className="bfc-focus-youtube-shade" aria-hidden="true"
               style={{ backgroundColor: 'rgba(2,8,22,' + (Math.max(0,Math.min(85,Number(displayScene.dimPercent)||0))/100) + ')' }}/>
