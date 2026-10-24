@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Check, Clapperboard, Play, RotateCcw, Sparkles, X } from 'lucide-react';
 import { FOCUS_TRANSITIONS, normalizeFocusTransitions } from './FocusTransitionLibrary.js';
+import { startFocusPreview } from './focusPreviewMotion.js';
 
 /**
  * Focus Transition Gallery. Preview runs in a small simulated scene, never on the
@@ -13,11 +14,16 @@ export default function FocusEffectsLibrary({ language = 'vi', current, onApply,
   const [category, setCategory] = useState('all');
   const [playKey, setPlayKey] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(() => typeof window !== 'undefined' && Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches));
+  const [allowMotionPreview, setAllowMotionPreview] = useState(false);
+  const [previewState, setPreviewState] = useState('pending');
+  const demoRef = useRef(null);
+  const runningAnimationRef = useRef(null);
   const closeRef = useRef(null);
   const panelRef = useRef(null);
   const selected = draft[direction];
   const effects = FOCUS_TRANSITIONS.filter(item => category === 'all' || item.category === category);
   const preview = () => setPlayKey(n => n + 1);
+  const motionIsBlocked = reducedMotion && !allowMotionPreview;
   const choose = id => {
     setDraft(previous => ({ ...previous, [direction]: id }));
     preview();
@@ -35,6 +41,22 @@ export default function FocusEffectsLibrary({ language = 'vi', current, onApply,
     media.addEventListener?.('change', update);
     return () => media.removeEventListener?.('change', update);
   }, []);
+  // Start a real browser Animation and inspect its play state, not a simulated
+  // progress timer. Replay remounts the demo and constructs a fresh player.
+  useEffect(() => {
+    runningAnimationRef.current?.cancel();
+    runningAnimationRef.current = null;
+    if (selected === 'none') { setPreviewState('none'); return undefined; }
+    if (motionIsBlocked) { setPreviewState('reduced'); return undefined; }
+    const animation = startFocusPreview(demoRef.current, selected, direction);
+    if (!animation) { setPreviewState('unsupported'); return undefined; }
+    runningAnimationRef.current = animation;
+    setPreviewState(animation.playState === 'running' ? 'playing' : 'paused');
+    return () => {
+      animation.cancel();
+      if (runningAnimationRef.current === animation) runningAnimationRef.current = null;
+    };
+  }, [selected, direction, playKey, motionIsBlocked]);
   return (
     <section className="bfc-effect-gallery" role="region"
       ref={panelRef}
@@ -75,7 +97,8 @@ export default function FocusEffectsLibrary({ language = 'vi', current, onApply,
             <div className="bfc-effect-gallery__preview-underlay" aria-hidden="true">
               <i/><i/><i/><span>BRIAN ENGLISH</span>
             </div>
-            <div key={playKey} className="bfc-effect-gallery__demo" data-demo-effect={selected} data-demo-direction={direction}
+            <div key={playKey} ref={demoRef} className="bfc-effect-gallery__demo" data-demo-effect={selected} data-demo-direction={direction}
+              data-preview-override={allowMotionPreview ? 'true' : 'false'}
               aria-label={vi?'Xem trước hiệu ứng':'Effect preview'}>
               <span className="bfc-effect-gallery__demo-spark">✦</span>
               <span className="bfc-effect-gallery__demo-clock">11<span>:</span>41</span>
@@ -84,13 +107,16 @@ export default function FocusEffectsLibrary({ language = 'vi', current, onApply,
           </div>
           <div className="bfc-effect-gallery__preview-meta">
             <span><Sparkles size={15}/><strong>{FOCUS_TRANSITIONS.find(t=>t.id===selected)?.[vi?'labelVi':'labelEn']}</strong>
-              <small>{reducedMotion ? (vi?'Thiết bị đang bật Giảm chuyển động':'Reduce Motion is enabled on this device')
-                : selected === 'none' ? (vi?'Chuyển ngay, không có animation':'Instant change — no animation')
-                : (vi?'Tự động phát lặp · 3,4 giây':'Auto-replaying · 3.4 seconds')}</small>
+              <small aria-live="polite">{previewState === 'playing' ? (vi?'ĐANG PHÁT · lặp mỗi 3,4 giây':'PLAYING · loops every 3.4 seconds')
+                : previewState === 'reduced' ? (vi?'Thiết bị đang bật Giảm chuyển động':'Reduce Motion is enabled')
+                : previewState === 'none' ? (vi?'Đã chọn Không hiệu ứng':'No motion selected')
+                : previewState === 'unsupported' ? (vi?'Trình duyệt không hỗ trợ phát mẫu này':'Browser preview unavailable')
+                : (vi?'Đang chuẩn bị hiệu ứng':'Preparing preview')}</small>
             </span>
-            <button type="button" onClick={preview} disabled={reducedMotion || selected === 'none'} title={reducedMotion ? (vi?'Tắt Giảm chuyển động trong cài đặt thiết bị để xem':'Disable Reduce Motion in system settings to preview') : undefined}><Play size={16}/>{vi?'Phát lại':'Replay'}</button>
+            <button type="button" onClick={preview} disabled={motionIsBlocked || selected === 'none'}><Play size={16}/>{vi?'Phát lại':'Replay'}</button>
           </div>
-          {!reducedMotion && selected !== 'none' ? <div key={'meter-'+playKey+'-'+selected+'-'+direction} className="bfc-effect-gallery__preview-progress" aria-hidden="true"><span/></div> : null}
+          {previewState === 'playing' ? <div key={'meter-'+playKey+'-'+selected+'-'+direction} className="bfc-effect-gallery__preview-progress" aria-hidden="true"><span/></div> : null}
+          {reducedMotion && !allowMotionPreview ? <button type="button" className="bfc-effect-gallery__override" onClick={() => setAllowMotionPreview(true)}>{vi?'Bật xem thử chuyển động lần này':'Preview motion anyway'}</button> : null}
         </div>
 
         <div className="bfc-effect-gallery__filter" role="group" aria-label={vi?'Bộ lọc hiệu ứng':'Effect categories'}>
