@@ -253,3 +253,22 @@
   }
   .bfc-overlay.bfc-atelier .bfc6-weather-forecast>div{grid-template-columns:repeat(3,minmax(0,1fr));}
 }
+
+/* Personal Atmosphere preset — explicit save and restore, no shared writes. */
+.bfc-overlay.bfc-atelier .bfc6-picker__custom{
+  display:grid;gap:9px;padding:12px;border-radius:12px;
+  border:1px solid rgba(240,228,202,.25);background:rgba(255,255,255,.055);
+}
+.bfc-overlay.bfc-atelier .bfc6-picker__custom>strong{font-size:12px;}
+.bfc-overlay.bfc-atelier .bfc6-picker__custom input{
+  width:100%;min-height:35px;padding:8px 10px;font:12px "Google Sans",system-ui,sans-serif;
+  border-radius:9px;border:1px solid rgba(255,255,255,.25);
+  background:rgba(10,18,29,.42);color:#fff;
+}
+.bfc-overlay.bfc-atelier .bfc6-picker__custom>div{display:flex;gap:7px;flex-wrap:wrap;}
+.bfc-overlay.bfc-atelier .bfc6-picker__custom button{
+  min-height:34px;padding:7px 10px;border-radius:9px;
+  border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.09);
+  color:#fff;font-size:10px;cursor:pointer;
+}
+.bfc-overlay.bfc-atelier .bfc6-picker__custom button:disabled{opacity:.4;cursor:not-allowed;}
