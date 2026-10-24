@@ -1,232 +1,257 @@
-/* GRADEBOOK · QUIET COMMAND HERO v3
-   Dedicated to #/tool/gradebook-studio only. Keeps existing selection,
-   roster/create-class actions and independent Gradebook Hero media CMS.
-   One definitive layout authority after the older Canvas + Refined layers. */
+/* Gradebook Hero v4 — FULL-BLEED MEDIA + COMPACT GLASS CONTROLS
+   Deliberately replaces the prior split-panel Command style.
+   Only applies to GradebookStudio; Dashboard/Homeroom Hero CMS untouched. */
 
 #root .gbmac-studio .gbmac-shell.gbmac-hero-canvas.gbmac-hero-refined.gbmac-hero-command {
-  position: relative;
-  isolation: isolate;
-  display: block !important;
-  min-height: 238px !important;
-  margin-bottom: 15px !important;
+  position: relative !important;
+  display: flow-root !important;
+  isolation: isolate !important;
+  box-sizing: border-box;
+  width: 100% !important;
+  min-height: 244px !important;
+  margin: 0 0 15px !important;
   padding: 0 !important;
+  border: 1px solid rgba(208,222,242,.8) !important;
+  border-radius: 23px !important;
+  background: #e9f0fb !important;
   overflow: hidden !important;
-  border: 1px solid #dce7f4 !important;
-  border-radius: 24px !important;
-  background: #f9fbff !important;
-  box-shadow: 0 8px 25px rgba(22,55,103,.065) !important;
+  box-shadow: 0 8px 25px rgba(24,53,92,.08) !important;
 }
+
+/* Crucial: media fills the ENTIRE hero, not a right-hand column. */
 #root .gbmac-studio .gbmac-hero-command .gbmac-hero-media {
   position: absolute !important;
+  inset: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
   top: 0 !important;
   bottom: 0 !important;
-  left: 47% !important;
-  right: 0 !important;
-  width: 53% !important;
-  height: 100% !important;
-  z-index: 0 !important;
-  pointer-events: none !important;
-  background: #dbe9f7;
-}
-#root .gbmac-studio .gbmac-hero-command .gbmac-hero-media :is(img,video) {
-  object-fit: var(--gbmac-hero-fit,cover) !important;
-  object-position: var(--gbmac-hero-position,70% 50%) !important;
   width: 100% !important;
   height: 100% !important;
-  opacity: var(--gbmac-hero-media-opacity,1) !important;
+  z-index: 0 !important;
+  overflow: hidden !important;
+  background: #dfebf9 !important;
+  pointer-events: none !important;
 }
+#root .gbmac-studio .gbmac-hero-command .gbmac-hero-media :is(img,video) {
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  object-fit: var(--gbmac-hero-fit,cover) !important;
+  object-position: var(--gbmac-hero-position,center center) !important;
+  opacity: var(--gbmac-hero-media-opacity,1) !important;
+  border: 0 !important;
+}
+/* A very slight left-side readability wash: NEVER opaque over the photo. */
 #root .gbmac-studio .gbmac-hero-command .gbmac-hero-media::after {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: linear-gradient(90deg,rgba(249,252,255,.88) 0%,rgba(249,252,255,.48) 13%,rgba(249,252,255,0) 31%);
+  background: linear-gradient(90deg,
+    rgba(24,45,78,.18) 0%,
+    rgba(24,45,78,.08) 28%,
+    transparent 57%);
   pointer-events: none;
 }
+
+/* Compact translucent control island: picture stays visible around all sides. */
 #root .gbmac-studio .gbmac-hero-command .gbmac-hero-content {
   position: relative !important;
   z-index: 2 !important;
   display: flex !important;
   flex-direction: column !important;
   justify-content: center !important;
-  align-items: stretch;
-  box-sizing: border-box;
-  width: 61% !important;
-  max-width: none !important;
+  align-items: stretch !important;
+  box-sizing: border-box !important;
+  width: min(468px,calc(100% - 90px)) !important;
+  max-width: 468px !important;
   min-width: 0 !important;
-  min-height: 238px !important;
-  padding: 17px clamp(20px,2.1vw,31px) 16px !important;
-  gap: 11px !important;
-  background: linear-gradient(90deg,#f9fbff 0%,#fbfdff 68%,rgba(251,253,255,.98) 77%,rgba(251,253,255,.65) 90%,rgba(251,253,255,0) 100%) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  min-height: 0 !important;
+  height: auto !important;
+  margin: 14px 0 14px 16px !important;
+  padding: 14px 16px 13px !important;
+  gap: 10px !important;
+  background: rgba(252,254,255,.84) !important;
+  border: 1px solid rgba(255,255,255,.85) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 9px 33px rgba(20,45,78,.13), inset 0 1px rgba(255,255,255,.54) !important;
+  backdrop-filter: blur(11px) saturate(1.18) !important;
+  -webkit-backdrop-filter: blur(11px) saturate(1.18) !important;
 }
+
 #root .gbmac-studio .gbmac-hero-command .gbmac-shell-head {
   position: static !important;
   display: flex !important;
   align-items: center !important;
-  gap: 12px !important;
-  min-width: 0 !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
   min-height: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
+  background: transparent !important;
   border: 0 !important;
-  background: none !important;
 }
 #root .gbmac-studio .gbmac-hero-command .gbmac-shell-identity {
   display: flex !important;
-  align-items: center !important;
   flex: 1 1 auto !important;
+  align-items: center !important;
+  gap: 10px !important;
   min-width: 0 !important;
-  gap: 12px !important;
 }
 #root .gbmac-studio .gbmac-hero-command .gbmac-shell-icon {
-  flex: 0 0 45px !important;
-  width: 45px !important;
-  height: 45px !important;
-  border: 1px solid #cfe0f9 !important;
-  border-radius: 15px !important;
-  background: #e7f0ff !important;
-  color: #2865ca !important;
+  flex: 0 0 36px !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  border: 1px solid #c9ddfa !important;
+  border-radius: 11px !important;
+  background: rgba(230,240,255,.94) !important;
+  color: #2368d0 !important;
   box-shadow: none !important;
+}
+#root .gbmac-studio .gbmac-hero-command .gbmac-shell-icon svg {
+  width: 20px !important;
+  height: 20px !important;
 }
 #root .gbmac-studio .gbmac-hero-command .gbmac-shell-identity-copy {
   display: flex !important;
   flex-direction: column !important;
-  flex: 1 1 auto;
-  gap: 2px !important;
-  min-width: 0;
+  gap: 0 !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
 }
 #root .gbmac-studio .gbmac-hero-command .gbmac-hero-eyebrow {
-  font: 800 9px/1.35 "Be Vietnam Pro","Google Sans",system-ui,sans-serif !important;
-  letter-spacing: .135em !important;
-  color: #6384b1 !important;
-  text-transform: uppercase;
-  white-space: normal;
+  margin: 0 !important;
+  font: 760 8px/1.4 "Google Sans","Roboto",system-ui,sans-serif !important;
+  letter-spacing: .13em !important;
+  text-transform: uppercase !important;
+  color: #5378ac !important;
 }
 #root .gbmac-studio .gbmac-hero-command .gbmac-shell-title {
   display: block !important;
-  margin: 1px 0 1px !important;
+  margin: 1px 0 !important;
   padding: 0 !important;
 }
 #root .gbmac-studio .gbmac-hero-command .gbmac-shell-title h1 {
-  display: block !important;
   margin: 0 !important;
   padding: 0 !important;
-  font-family: "Google Sans","Roboto",Arial,system-ui,sans-serif !important;
-  font-size: clamp(28px,2.2vw,34px) !important;
-  line-height: 1.16 !important;
-  font-weight: 760 !important;
-  font-style: normal !important;
-  letter-spacing: -.052em !important;
-  color: var(--gbmac-hero-title,#183969) !important;
-  -webkit-text-fill-color: var(--gbmac-hero-title,#183969) !important;
+  font: 740 clamp(23px,1.8vw,28px)/1.17 "Google Sans","Roboto",system-ui,sans-serif !important;
+  letter-spacing: -.04em !important;
+  color: var(--gbmac-hero-title,#193a66) !important;
+  -webkit-text-fill-color: var(--gbmac-hero-title,#193a66) !important;
   text-shadow: none !important;
 }
 #root .gbmac-studio .gbmac-hero-command .gbmac-hero-meta {
   display: flex !important;
   flex-wrap: wrap !important;
   align-items: center !important;
-  gap: 5px 9px !important;
+  gap: 3px 7px !important;
   margin: 0 !important;
-  color: #627b9b !important;
-  font: 650 11px/1.45 "Be Vietnam Pro","Google Sans",system-ui,sans-serif !important;
-}
-#root .gbmac-studio .gbmac-hero-command .gbmac-hero-meta > span:not(.gbmac-meta-dot) {
-  min-width: 0;
-  max-width: 100%;
+  color: #557194 !important;
+  font: 625 10px/1.35 "Google Sans","Roboto",system-ui,sans-serif !important;
 }
 #root .gbmac-studio .gbmac-hero-command .gbmac-meta-dot {
-  flex: 0 0 3px;
-  width: 3px;
-  height: 3px;
-  background: #a6b9d4;
-  border-radius: 100%;
+  width: 3px !important;
+  height: 3px !important;
+  flex: 0 0 3px !important;
+  background: #98aac4 !important;
+  border-radius: 50%;
 }
+/* Edit stays on the IMAGE, not embedded among the class selectors. */
 #root .gbmac-studio .gbmac-hero-command .gbmac-hero-edit {
-  position: relative !important;
-  top: auto !important;
-  right: auto !important;
+  position: absolute !important;
+  top: 13px !important;
+  right: 13px !important;
   left: auto !important;
   bottom: auto !important;
-  z-index: 3 !important;
-  flex: 0 0 38px !important;
-  align-self: center !important;
+  z-index: 6 !important;
   display: grid !important;
   place-items: center !important;
-  width: 38px !important;
-  height: 38px !important;
-  min-width: 38px !important;
+  flex: 0 0 34px !important;
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  min-height: 34px !important;
   margin: 0 !important;
   padding: 0 !important;
-  color: #245ead !important;
-  background: rgba(255,255,255,.95) !important;
-  border: 1px solid rgba(216,228,245,.98) !important;
-  border-radius: 13px !important;
-  box-shadow: 0 5px 20px rgba(28,56,94,.12) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(224,233,245,.88) !important;
+  border-radius: 11px !important;
+  color: #245da8 !important;
+  background: rgba(255,255,255,.94) !important;
+  box-shadow: 0 4px 17px rgba(22,42,73,.18) !important;
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+  cursor: pointer;
 }
 #root .gbmac-studio .gbmac-hero-command .gbmac-hero-edit:hover {
-  transform: translateY(-1px);
+  color: #114d9b !important;
   background: #fff !important;
-  color: #1259b5 !important;
+  transform: translateY(-1px);
 }
 #root .gbmac-studio .gbmac-hero-command .gbmac-hero-divider {
-  flex: 0 0 1px;
-  width: 100%;
-  height: 1px;
-  background: #e6edf7;
+  display: block !important;
+  width: 100% !important;
+  height: 1px !important;
+  min-height: 1px !important;
+  flex: 0 0 1px !important;
+  margin: 0 !important;
+  background: rgba(132,160,194,.19) !important;
 }
 #root .gbmac-studio .gbmac-hero-command .gbmac-shell-selectors {
   display: grid !important;
   grid-template-columns: repeat(2,minmax(0,1fr)) !important;
-  gap: 10px !important;
+  gap: 8px !important;
   width: 100% !important;
   min-width: 0 !important;
+  max-width: 100% !important;
   margin: 0 !important;
   padding: 0 !important;
-  background: none !important;
+  background: transparent !important;
 }
 #root .gbmac-studio .gbmac-hero-command .gbmac-shell-selectors label {
   display: flex !important;
   flex-direction: column !important;
   align-items: stretch !important;
   justify-content: center !important;
-  min-height: 55px !important;
-  padding: 7px 12px !important;
-  gap: 3px !important;
-  border: 1px solid #e0e9f6 !important;
-  border-radius: 12px !important;
-  background: #fff !important;
-  box-shadow: 0 1px 3px rgba(23,54,102,.025) !important;
+  gap: 2px !important;
+  min-width: 0 !important;
+  min-height: 45px !important;
+  margin: 0 !important;
+  padding: 5px 10px !important;
+  border: 1px solid rgba(208,222,242,.92) !important;
+  border-radius: 10px !important;
+  background: rgba(255,255,255,.92) !important;
+  box-shadow: none !important;
   backdrop-filter: none !important;
 }
 #root .gbmac-studio .gbmac-hero-command .gbmac-shell-selectors label > span {
-  font: 750 10px/1.25 "Be Vietnam Pro","Google Sans",system-ui,sans-serif !important;
-  letter-spacing: .025em;
-  color: #718aaa !important;
+  font: 740 9px/1.2 "Google Sans","Roboto",system-ui,sans-serif !important;
+  color: #6883a6 !important;
+  letter-spacing: .015em;
 }
 #root .gbmac-studio .gbmac-hero-command .gbmac-shell-selectors select {
   display: block !important;
   width: 100% !important;
-  min-height: 25px !important;
+  min-width: 0 !important;
   max-width: 100% !important;
-  padding: 0 22px 0 0 !important;
+  min-height: 23px !important;
+  height: 23px !important;
   margin: 0 !important;
-  color: #1b3d69 !important;
-  background: transparent !important;
+  padding: 0 21px 0 0 !important;
   border: 0 !important;
-  outline: 0;
+  outline: none;
+  background: transparent !important;
   box-shadow: none !important;
-  font: 760 13px/1.4 "Be Vietnam Pro","Google Sans",system-ui,sans-serif !important;
+  color: #1b3b63 !important;
+  font: 740 12px/1.3 "Google Sans","Roboto",system-ui,sans-serif !important;
   text-overflow: ellipsis;
   cursor: pointer;
-}
-#root .gbmac-studio .gbmac-hero-command .gbmac-shell-selectors select:focus-visible,
-#root .gbmac-studio .gbmac-hero-command :is(.gbmac-hero-edit,.gbmac-shell-utilities button):focus-visible {
-  outline: 3px solid #78a9ef !important;
-  outline-offset: 3px;
 }
 #root .gbmac-studio .gbmac-hero-command .gbmac-shell-utilities {
   display: flex !important;
@@ -234,123 +259,144 @@
   justify-content: flex-start !important;
   flex-wrap: wrap !important;
   width: 100% !important;
-  min-width: 0;
-  gap: 8px !important;
-  margin: 0 !important;
+  gap: 6px !important;
   padding: 0 !important;
+  margin: 0 !important;
 }
 #root .gbmac-studio .gbmac-hero-command .gbmac-shell-utilities button {
   display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 7px !important;
   flex: 0 1 auto !important;
-  min-height: 35px !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 5px !important;
+  min-height: 30px !important;
+  height: 30px !important;
   margin: 0 !important;
-  padding: 8px 13px !important;
-  border: 1px solid #d4e2f5 !important;
-  border-radius: 11px !important;
-  background: #fff !important;
-  color: #285b94 !important;
+  padding: 5px 9px !important;
+  border: 1px solid #d1e0f3 !important;
+  border-radius: 9px !important;
+  background: rgba(255,255,255,.91) !important;
   box-shadow: none !important;
-  font: 760 12px/1.2 "Be Vietnam Pro","Google Sans",system-ui,sans-serif !important;
-  white-space: nowrap;
+  color: #275888 !important;
+  font: 725 10px/1.2 "Google Sans","Roboto",system-ui,sans-serif !important;
+  white-space: nowrap !important;
+  cursor: pointer;
 }
 #root .gbmac-studio .gbmac-hero-command .gbmac-shell-utilities button:last-of-type {
-  background: #e8f1ff !important;
-  color: #1e60bf !important;
-  border-color: #bcd5f8 !important;
+  border-color: #bbd3fa !important;
+  background: rgba(231,241,255,.91) !important;
+  color: #175cc3 !important;
+}
+#root .gbmac-studio .gbmac-hero-command .gbmac-shell-utilities button svg {
+  width: 14px !important;
+  height: 14px !important;
 }
 #root .gbmac-studio .gbmac-hero-command .gbmac-shell-utilities button:hover:not(:disabled) {
-  background: #eff6ff !important;
-  border-color: #99c0f5 !important;
+  background: #fff !important;
+  border-color: #99bff3 !important;
 }
+#root .gbmac-studio .gbmac-hero-command .gbmac-shell-utilities button:disabled { opacity: .46 !important; cursor: not-allowed; }
 #root .gbmac-studio .gbmac-hero-command .gbmac-hero-save-state {
   display: inline-flex !important;
   align-items: center !important;
-  gap: 7px !important;
+  gap: 5px !important;
+  min-height: 26px !important;
   margin: 0 0 0 auto !important;
-  padding: 7px 10px !important;
-  border-radius: 999px !important;
-  background: #e8f8f1 !important;
-  border: 1px solid #d4efdf !important;
-  color: #227354 !important;
-  font: 760 10px/1.4 "Be Vietnam Pro","Google Sans",system-ui,sans-serif !important;
+  padding: 4px 8px !important;
+  color: #1c7654 !important;
+  background: rgba(231,248,239,.94) !important;
+  border: 1px solid rgba(182,226,200,.9) !important;
+  border-radius: 99px !important;
+  font: 760 10px/1.2 "Google Sans","Roboto",system-ui,sans-serif !important;
   white-space: nowrap;
 }
 #root .gbmac-studio .gbmac-hero-command .gbmac-hero-save-state i {
-  width: 6px;
-  height: 6px;
+  display: block !important;
+  width: 6px !important;
+  height: 6px !important;
   border-radius: 50%;
-  background: #25a276;
+  background: #18a777 !important;
 }
 #root .gbmac-studio .gbmac-hero-command .gbmac-hero-save-state.is-unsaved {
-  background: #fff3de !important;
-  border-color: #f4ddaf !important;
-  color: #9d641f !important;
+  background: rgba(255,243,217,.95) !important;
+  color: #9e6428 !important;
+  border-color: #ead29f !important;
 }
-#root .gbmac-studio .gbmac-hero-command .gbmac-hero-save-state.is-unsaved i { background: #e69a32; }
+#root .gbmac-studio .gbmac-hero-command .gbmac-hero-save-state.is-unsaved i {
+  background: #df9838 !important;
+}
 
-/* Subtle fallback artwork remains only in the right-hand media panel. */
+/* Retain the existing native fallback illustration when no background is uploaded. */
 #root .gbmac-studio .gbmac-hero-command .gbmac-art-window {
+  top: 11% !important;
   right: 11% !important;
-  top: 13% !important;
-  width: min(290px,75%) !important;
-  height: 75% !important;
-  transform: rotate(3deg) !important;
+  width: min(360px,50%) !important;
+  height: 77% !important;
 }
-#root .gbmac-studio .gbmac-hero-command .gbmac-art-orb {
-  width: 260px;
-  height: 260px;
-  top: -10%;
-  right: -1%;
-}
+#root .gbmac-studio .gbmac-hero-command .gbmac-art-orb {top: -30% !important;right: 9% !important;}
 
-@media (max-width: 1120px) {
-  #root .gbmac-studio .gbmac-hero-command .gbmac-hero-media { left: 53% !important; width: 47% !important; }
-  #root .gbmac-studio .gbmac-hero-command .gbmac-hero-content { width: 67% !important; padding: 18px 22px 16px !important; }
-}
-@media (max-width: 860px) {
-  #root .gbmac-studio .gbmac-hero-command .gbmac-hero-media { left: 58% !important; width: 42% !important; }
-  #root .gbmac-studio .gbmac-hero-command .gbmac-hero-content { width: 78% !important; }
-  #root .gbmac-studio .gbmac-hero-command .gbmac-shell-identity { gap: 10px !important; }
-  #root .gbmac-studio .gbmac-hero-command .gbmac-shell-utilities { gap: 6px !important; }
-  #root .gbmac-studio .gbmac-hero-command .gbmac-hero-save-state { margin-left: 0 !important; }
-}
-@media (max-width: 680px) {
+/* Sized to the actual hero component so content stays compact on smaller widths. */
+@media (max-width: 720px) {
   #root .gbmac-studio .gbmac-shell.gbmac-hero-canvas.gbmac-hero-refined.gbmac-hero-command {
     min-height: 0 !important;
-    border-radius: 18px !important;
+    border-radius: 19px !important;
+  }
+  #root .gbmac-studio .gbmac-hero-command .gbmac-hero-content {
+    width: min(450px,calc(100% - 26px)) !important;
+    max-width: none !important;
+    margin: 12px 0 12px 12px !important;
+    padding: 13px !important;
+    background: rgba(250,253,255,.88) !important;
+    gap: 9px !important;
   }
   #root .gbmac-studio .gbmac-hero-command .gbmac-hero-media {
     inset: 0 !important;
     width: 100% !important;
-    height: 100% !important;
-    opacity: .22 !important;
-  }
-  #root .gbmac-studio .gbmac-hero-command .gbmac-hero-content {
-    width: 100% !important;
-    min-height: 0 !important;
-    padding: 18px 16px !important;
-    gap: 12px !important;
-    background: rgba(251,253,255,.89) !important;
+    opacity: 1 !important;
   }
   #root .gbmac-studio .gbmac-hero-command .gbmac-hero-edit {
-    position: relative !important;
-    top: auto !important; right: auto !important;
-    flex-basis: 36px !important;
-    width: 36px !important; height: 36px !important; min-width: 36px !important;
+    top: 10px !important;
+    right: 10px !important;
   }
-  #root .gbmac-studio .gbmac-hero-command .gbmac-shell-identity { padding-right: 0; }
-  #root .gbmac-studio .gbmac-hero-command .gbmac-shell-title h1 {font-size: 28px !important;}
-  #root .gbmac-studio .gbmac-hero-command .gbmac-shell-selectors { gap: 8px !important; }
-  #root .gbmac-studio .gbmac-hero-command .gbmac-shell-selectors label { padding: 8px 9px !important; }
-  #root .gbmac-studio .gbmac-hero-command .gbmac-shell-utilities button { font-size: 11px !important; padding: 7px 10px !important; }
+  #root .gbmac-studio .gbmac-hero-command .gbmac-shell-identity {padding-right: 0 !important;}
+  #root .gbmac-studio .gbmac-hero-command .gbmac-shell-title h1 {
+    font-size: 25px !important;
+  }
+  #root .gbmac-studio .gbmac-hero-command .gbmac-hero-save-state {
+    margin-left: 0 !important;
+  }
 }
-@media (max-width: 390px) {
-  #root .gbmac-studio .gbmac-hero-command .gbmac-shell-selectors { grid-template-columns: minmax(0,1fr) !important; }
-  #root .gbmac-studio .gbmac-hero-command .gbmac-hero-save-state { margin-left: 0 !important; }
+@media (max-width: 480px) {
+  #root .gbmac-studio .gbmac-hero-command .gbmac-hero-content {
+    width: calc(100% - 24px) !important;
+    margin: 53px 12px 12px !important;
+    padding: 13px 12px !important;
+  }
+  #root .gbmac-studio .gbmac-hero-command .gbmac-shell-selectors {
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+    gap: 6px !important;
+  }
+  #root .gbmac-studio .gbmac-hero-command .gbmac-shell-selectors label {
+    padding: 5px 7px !important;
+    min-height: 43px !important;
+  }
+  #root .gbmac-studio .gbmac-hero-command .gbmac-hero-eyebrow {
+    font-size: 7px !important;
+  }
+  #root .gbmac-studio .gbmac-hero-command .gbmac-shell-title h1 {
+    font-size: 23px !important;
+  }
+  #root .gbmac-studio .gbmac-hero-command .gbmac-shell-utilities button {
+    font-size: 10px !important;
+  }
+}
+@media (max-width: 350px) {
+  #root .gbmac-studio .gbmac-hero-command .gbmac-shell-selectors {
+    grid-template-columns: minmax(0,1fr) !important;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  #root .gbmac-studio .gbmac-hero-command :is(.gbmac-hero-edit,.gbmac-shell-utilities button) { transition: none !important; }
+  #root .gbmac-studio .gbmac-hero-command :is(.gbmac-hero-edit,.gbmac-shell-utilities button) {
+    transition: none !important; transform: none !important;
+  }
 }
