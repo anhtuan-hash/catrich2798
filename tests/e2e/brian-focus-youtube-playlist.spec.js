@@ -13,7 +13,9 @@ const js=bundled.outputFiles.find(f=>f.path.endsWith('.js')).text;
 // Use the real import ordering instead of a partial CSS fixture. This catches
 // global Focus 6/7/8 controls overriding the textarea's dark appearance.
 const focusSource=readFileSync(new URL('../../src/components/BrianFocus/BrianFocus.jsx',import.meta.url),'utf8');
-const cssImports=[...focusSource.matchAll(/import '\\.\\/([^']+\\.css)';/g)].map(match=>match[1]);
+const cssImports=focusSource.split('\n')
+  .filter(line=>line.startsWith("import './") && line.trim().endsWith(".css';"))
+  .map(line=>line.split("'")[1].slice(2));
 const stylesheet=cssImports.map(name=>
   readFileSync(new URL('../../src/components/BrianFocus/'+name,import.meta.url),'utf8')).join('\n');
 
