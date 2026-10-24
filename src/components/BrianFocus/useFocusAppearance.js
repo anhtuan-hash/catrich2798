@@ -14,7 +14,7 @@ const DEFAULTS = Object.freeze({
   clockMode:'sense', autoHide:true, scale:100, showSeconds:false, hour12:false,
   backdrop:'natural', dim:24, saturation:100, contrast:100, blur:0,
   dock:['timer','notes','soundscape','brightness'], atmosphere:'custom',
-  intention:'', immersive:false,
+  intention:'', immersive:false, customPreset:null,
 });
 const finiteRange = (x, lo, hi, def) => Number.isFinite(Number(x))
   ? Math.max(lo,Math.min(hi,Number(x))) : def;
@@ -35,6 +35,17 @@ export function normalizeFocusAppearance(value) {
     atmosphere:FOCUS6_ATMOSPHERES.some(x=>x.id===v.atmosphere)?v.atmosphere:'custom',
     intention:typeof v.intention==='string'?v.intention.slice(0,100):'',
     immersive:v.immersive===true,
+    customPreset:v.customPreset&&typeof v.customPreset==='object'?{
+      name:typeof v.customPreset.name==='string'?v.customPreset.name.slice(0,30):'My Space',
+      clockMode:MODES.includes(v.customPreset.clockMode)?v.customPreset.clockMode:'sense',
+      backdrop:BACKDROPS.includes(v.customPreset.backdrop)?v.customPreset.backdrop:'natural',
+      scale:finiteRange(v.customPreset.scale,75,125,100),
+      dim:finiteRange(v.customPreset.dim,0,85,24),
+      saturation:finiteRange(v.customPreset.saturation,60,160,100),
+      contrast:finiteRange(v.customPreset.contrast,75,135,100),
+      blur:finiteRange(v.customPreset.blur,0,8,0),
+      autoHide:v.customPreset.autoHide!==false,
+    }:null,
   };
 }
 export function readFocusAppearance(userId) {
