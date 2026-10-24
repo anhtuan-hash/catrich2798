@@ -2,7 +2,7 @@ import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {BOARD_W,BOARD_H,pathFromPoints,makeId} from './boardModel.js';
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 
-export function renderBoardObject(object,onErase,studentView=false){
+export function renderBoardObject(object,onErase,studentView=false,onInteract){
  const o=object;if(studentView&&(o.studentVisible===false||o.teacherOnly))return null;
  const erase=event=>{if(!onErase)return;event.stopPropagation();onErase(o.id);};
  if(o.kind==='stroke')return <path key={o.id} d={pathFromPoints(o.points)}
@@ -29,17 +29,18 @@ export function renderBoardObject(object,onErase,studentView=false){
    style={{pointerEvents:onErase?'all':'none'}} fill={o.color||'#304d53'}
    fontSize={o.fontSize||40} fontWeight="550">{String(o.text||'').slice(0,90)}</text>;
  }
- if(o.kind==='flashcard')return <g key={o.id} onPointerDown={erase}>
+ if(o.kind==='flashcard')return <g key={o.id} onPointerDown={erase} onClick={event=>{if(!onErase&&!studentView){event.stopPropagation();onInteract?.(o.id);}}} style={{cursor:'pointer'}}>
   <rect x={o.x} y={o.y} width="330" height="165" rx="18" fill="#ecf3e9" stroke="#94b2a2" strokeWidth="2"/>
   <text x={o.x+20} y={o.y+65} fill="#325449" fontSize="29">{String(o.text||'').slice(0,21)}</text>
   <text x={o.x+20} y={o.y+119} fill="#6c8d81" fontSize="18">{o.revealed?String(o.privateAnswer||'').slice(0,29):'Tap to reveal'}</text>
  </g>;
- if(o.kind==='mask')return studentView?null:<rect key={o.id} x={o.x} y={o.y} rx={9}
+ if(o.kind==='image'&&/^data:image\/(?:png|jpeg|webp);base64,/i.test(o.src||''))return <image key={o.id} href={o.src} x={o.x} y={o.y} width={o.width||500} height={o.height||300} preserveAspectRatio="xMidYMid meet" onPointerDown={erase}/>;
+ if(o.kind==='mask')return <rect key={o.id} x={o.x} y={o.y} rx={9}
   width={o.width||240} height={o.height||90} fill="#243b4b" opacity=".95" onPointerDown={erase}/>;
  return null;
 }
 export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onCommit,onErase,
- zoom=1,setZoom,camera={x:0,y:0},setCamera,contentText='',studentView=false,spotlight=false}){
+ zoom=1,setZoom,camera={x:0,y:0},setCamera,contentText='',privateAnswer='',onInteract,studentView=false,spotlight=false}){
  const svg=useRef(null),preview=useRef(null),pointer=useRef(null);
  const [drawing,setDrawing]=useState(false);
  const [laser,setLaser]=useState(null);
@@ -76,7 +77,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
    if(!contentText.trim()&&tool!=='mask')return;
    onCommit?.({id:makeId(),kind:tool,x:p.x,y:p.y,text:contentText.trim().slice(0,90),
     width:tool==='mask'?300:undefined,height:tool==='mask'?95:undefined,
-    color,studentVisible:tool!=='mask',privateAnswer:tool==='flashcard'?'':undefined});
+    color,studentVisible:true,privateAnswer:tool==='flashcard'?privateAnswer.slice(0,120):undefined});
    return;
   }
   if(tool==='laser'){setLaser(p);return;}
@@ -123,7 +124,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
    onPointerCancel={event=>finish(event,true)} onWheel={wheel}
    onPointerLeave={()=>{if(tool==='laser')setLaser(null);}}
    role="img" aria-label="Interactive vector teaching board">
-   {page?.objects?.map(o=>renderBoardObject(o,tool==='eraser'?onErase:null,studentView))}
+   {page?.objects?.map(o=>renderBoardObject(o,tool==='eraser'?onErase:null,studentView,onInteract))}
    {!studentView&&<path ref={preview} d="" stroke={color} strokeWidth={width}
      fill="none" opacity={tool==='highlighter'?.33:1} strokeLinecap="round"
      strokeLinejoin="round" vectorEffect="non-scaling-stroke" pointerEvents="none"/>}
