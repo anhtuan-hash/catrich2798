@@ -17,6 +17,7 @@ import Focus7Particles from './Focus7Particles.jsx';
 import Focus8Studio from './Focus8Studio.jsx';
 import Focus8Commands from './Focus8Commands.jsx';
 import Focus9Studio from './Focus9Studio.jsx';
+import FocusUnifiedStudio from './FocusUnifiedStudio.jsx';
 import useSilkAutopilot from './useSilkAutopilot.js';
 import Focus8Stage from './Focus8Stage.jsx';
 import {useFocus8RemoteHost} from './Focus8Remote.jsx';
@@ -37,6 +38,10 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   const [atelierOpen,setAtelierOpen]=useState(false);
   const [studio8Open,setStudio8Open]=useState(false);
   const [studio9Open,setStudio9Open]=useState(false);
+  const [unifiedOpen,setUnifiedOpen]=useState(false);
+  const [unifiedTarget,setUnifiedTarget]=useState(null);
+  const unifiedRef=useRef(false);unifiedRef.current=unifiedOpen;
+  const openUnifiedStudio=(target=null)=>{setUnifiedTarget(target);setUnifiedOpen(true);};
   const studio9Ref=useRef(false);studio9Ref.current=studio9Open;
   const {fps:observedFps,quality:visualQuality}=useSilkAutopilot(silk9.performanceMode);
   const [commandsOpen,setCommandsOpen]=useState(false);
@@ -119,7 +124,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
     if(rule.action==='mood'&&validMoods.includes(rule.value))update7({mood:rule.value});
     if(rule.action==='clock'&&validClocks.includes(rule.value))update7({clock:rule.value});
     if(rule.action==='particles'&&validParticles.includes(rule.value))update7({particle:rule.value});
-    if(rule.action==='journal'){setAtelierOpen(true);setAtelierTab('journal');}
+    if(rule.action==='journal'){openUnifiedStudio({source:'atelier',tab:'journal'});}
   };
   const [atelierTab,setAtelierTab]=useState('atmos');
   const prevFlowRef=useRef({phase:focusFlow.flow.phase,active:focusFlow.flow.active});
@@ -159,7 +164,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
     const type=command?.type;
     if(type==='timer-toggle'){timerController.timer.running?timerController.pause():timerController.start();}
     else if(type==='timer-reset'){timerController.reset();}
-    else if(type==='classroom-toggle'){setClassroom(v=>!v);setStudio8Open(false);}
+    else if(type==='classroom-toggle'){setClassroom(v=>!v);setUnifiedOpen(false);}
     else if(type==='clock-next'){update7({clock:clockModes[(clockModes.indexOf(focus7.clock)+1)%clockModes.length]});}
     else if(type==='mood-next'){update7({mood:moods[(moods.indexOf(focus7.mood)+1)%moods.length]});}
     else if(type==='volume-up')mixer.setMaster(Math.min(100,mixer.master+10));
@@ -169,7 +174,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
       if(focus8.cues.length){const i=(focus8.cueIndex+1)%focus8.cues.length;
       update8({cueIndex:i,cueDeadline:Date.now()+focus8.cues[i].minutes*60000});}
     } else if(type==='focus-close')onClose();
-    else if(type==='studio-open')setStudio8Open(true);
+    else if(type==='studio-open')openUnifiedStudio();
     else if(type==='command-open')setCommandsOpen(true);
   };
   const remoteHost=useFocus8RemoteHost(currentUser?.id,runCommand);
@@ -185,7 +190,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   const dismissRef = useRef(null);
   const closeHandlerRef = useRef(onClose);
   closeHandlerRef.current = onClose;
-  const controlsBusy = studio9Open || appearanceOpen || atelierOpen || studio8Open || commandsOpen || effectsOpen || sceneEditorOpen || Boolean(activeTool) || quickOpen;
+  const controlsBusy = unifiedOpen || studio9Open || appearanceOpen || atelierOpen || studio8Open || commandsOpen || effectsOpen || sceneEditorOpen || Boolean(activeTool) || quickOpen;
   const wakeControls = (force=false) => {
     if (exiting) return;
     const time=Date.now();
@@ -231,7 +236,8 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
           return;
         }
         event.preventDefault();
-        if(studio9Ref.current)setStudio9Open(false);
+        if(unifiedRef.current)setUnifiedOpen(false);
+        else if(studio9Ref.current)setStudio9Open(false);
         else if(commandsOpenRef.current)setCommandsOpen(false);
         else if(studio8OpenRef.current)setStudio8Open(false);
         else if (atelierRef.current) setAtelierOpen(false);
@@ -334,15 +340,11 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
         <div className="bfc-focus-scene-veil" aria-hidden="true"
           style={{ backgroundColor: 'rgba(2,8,22,' + (dim / 100) + ')' }} /> : null}
       <div className="bfc-focus-header-actions">
-      {!sceneEditorOpen && !effectsOpen && !appearanceOpen && !studio9Open ? <button type="button" className="bfc9-open-studio"
-        onClick={()=>setStudio9Open(true)} aria-label="Brian Focus 9.0 Silk Flow" title="Silk Flow 9.0">
-        <span aria-hidden="true">✦</span></button>:null}
-      {!sceneEditorOpen && !effectsOpen && !appearanceOpen && !studio8Open ? <button type="button" className="bfc8-open-studio"
-        onClick={()=>setStudio8Open(true)} aria-label="Ambient OS 8.0" title="Ambient OS">
-        <Command size={18}/></button>:null}
-      {!sceneEditorOpen && !effectsOpen && !appearanceOpen && !atelierOpen ? <button type="button" className="bfc7-open-studio"
-        onClick={()=>setAtelierOpen(true)} aria-label={vi?'Mở Living Atelier 7.0':'Open Living Atelier 7.0'} title="Living Atelier">
-        <WandSparkles size={18}/></button>:null}
+      {!sceneEditorOpen && !effectsOpen && !appearanceOpen ? <button type="button"
+        className="bfc-unified__launcher" onClick={()=>openUnifiedStudio()}
+        aria-label={vi?'Mở Focus Studio':'Open Focus Studio'} title="Focus Studio">
+        <WandSparkles size={18} aria-hidden="true"/><span>Studio</span>
+      </button>:null}
       <button type="button" className="bfc7-classroom-toggle" onClick={()=>{setClassroom(x=>!x);setAtelierOpen(false);setActiveTool('');}}
         aria-pressed={classroom} aria-label={classroom?(vi?'Thoát trình chiếu':'Exit classroom'):(vi?'Chế độ trình chiếu':'Classroom mode')}>
         <Presentation size={18}/></button>
@@ -418,26 +420,31 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
       {sceneError && canManage ? <span className="bfc-overlay__scene-sync-warning" role="status">
         {vi ? 'Nền chưa được đồng bộ' : 'Scene sync unavailable'}
       </span> : null}
-      {atelierOpen&&<Focus7Studio key={atelierTab} initialTab={atelierTab} language={language} data={focus7} update={update7} appearance={appearance}
-        onAppearance={setAppearance} flow={focusFlow} timer={timerController} mixer={mixer}
-        youtubeSession={youtubeSession} youtubeControls={youtubeControls}
-        onChooseVideo={choosePersonalVideo} classroom={classroom} onClassroom={setClassroom}
-        onClose={()=>setAtelierOpen(false)}/>}
-      {studio8Open&&<Focus8Studio language={language} userId={currentUser?.id}
-        data={focus8} update={update8} focus7={focus7} update7={update7} appearance={appearance} onAppearance={setAppearance}
-        sessionEvents={focus7.sessions} scene={scene} timer={timerController} flow={focusFlow}
-        classroom={classroom} onClassroom={setClassroom} onCommand={runCommand}
-        onAutomation={applyAutomation} onStageNext={nextStage} mixer={mixer} remoteHost={remoteHost}
-        onClose={()=>setStudio8Open(false)}/>}
-      {studio9Open&&<Focus9Studio language={language} silk={silk9}
-        update={updateSilk} event={silkEvent} quality={visualQuality} fps={observedFps}
-        appearance={appearance} onAppearance={setAppearance} focus7={focus7} update7={update7}
-        focus8={focus8} update8={update8} online={online}
-        youtubeSession={youtubeSession} youtubeControls={youtubeControls}
-        mediaActive={scene.mediaType==='youtube'} stage={focus8.stage} timer={timerController.timer}
-        refreshWeather={onRefreshWeather} presenter={presenter} presenterError={presenterError}
-        onPresenterStart={onPresenterStart} onPresenterStop={onPresenterStop} onPresenterLink={onPresenterLink}
-        onClose={()=>setStudio9Open(false)}/>}
+      {unifiedOpen&&<FocusUnifiedStudio key={unifiedTarget?unifiedTarget.source+':'+unifiedTarget.tab:'home'}
+        language={language} initialSelected={unifiedTarget} onClose={()=>setUnifiedOpen(false)}
+        renderTool={({source,tab})=>source==='atelier'
+        ?<Focus7Studio key={tab} initialTab={tab} language={language} data={focus7} update={update7} appearance={appearance}
+           onAppearance={setAppearance} flow={focusFlow} timer={timerController} mixer={mixer}
+           youtubeSession={youtubeSession} youtubeControls={youtubeControls}
+           onChooseVideo={choosePersonalVideo} classroom={classroom} onClassroom={setClassroom}
+           onClose={()=>setUnifiedOpen(false)}/>
+        :source==='ambient'
+        ?<Focus8Studio key={tab} initialTab={tab} language={language} userId={currentUser?.id}
+           data={focus8} update={update8} focus7={focus7} update7={update7} appearance={appearance} onAppearance={setAppearance}
+           sessionEvents={focus7.sessions} scene={scene} timer={timerController} flow={focusFlow}
+           classroom={classroom} onClassroom={setClassroom} onCommand={runCommand}
+           onAutomation={applyAutomation} onStageNext={nextStage} mixer={mixer} remoteHost={remoteHost}
+           onClose={()=>setUnifiedOpen(false)}/>
+        :<Focus9Studio key={tab} initialTab={tab} language={language} silk={silk9}
+           update={updateSilk} event={silkEvent} quality={visualQuality} fps={observedFps}
+           appearance={appearance} onAppearance={setAppearance} focus7={focus7} update7={update7}
+           focus8={focus8} update8={update8} online={online}
+           youtubeSession={youtubeSession} youtubeControls={youtubeControls}
+           mediaActive={scene.mediaType==='youtube'} stage={focus8.stage} timer={timerController.timer}
+           refreshWeather={onRefreshWeather} presenter={presenter} presenterError={presenterError}
+           onPresenterStart={onPresenterStart} onPresenterStop={onPresenterStop} onPresenterLink={onPresenterLink}
+           onClose={()=>setUnifiedOpen(false)}/>}
+      />}
       {commandsOpen&&<Focus8Commands language={language} onCommand={runCommand} onClose={()=>setCommandsOpen(false)}/>}
       {appearanceOpen ? <Focus6Appearance language={language} appearance={appearance}
         onChange={patch=>{ if(Object.hasOwn(patch,'dim'))setPersonalDim(null);setAppearance(patch); }} onClose={() => {setAppearanceOpen(false);appearanceButtonRef.current?.focus?.();}}/> : null}
