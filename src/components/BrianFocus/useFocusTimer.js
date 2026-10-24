@@ -39,14 +39,17 @@ export function recoverFocusTimer(userId) {
 
 export default function useFocusTimer(userId, onComplete) {
   const [timer, setTimer] = useState(() => recoverFocusTimer(userId));
+  const [loadedOwner, setLoadedOwner] = useState(userId);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     setTimer(recoverFocusTimer(userId));
+    setLoadedOwner(userId);
   }, [userId]);
   useEffect(() => {
-    if (!userId || typeof localStorage === 'undefined') return;
+    // Do not overwrite another teacher's saved session with a stale timer.
+    if (!userId || loadedOwner !== userId || typeof localStorage === 'undefined') return;
     try { localStorage.setItem(focusTimerStoreKey(userId), JSON.stringify(timer)); } catch { /* storage optional */ }
-  }, [timer, userId]);
+  }, [timer, userId, loadedOwner]);
   useEffect(() => {
     if (!timer.running) return undefined;
     const tick = () => setNow(Date.now());
