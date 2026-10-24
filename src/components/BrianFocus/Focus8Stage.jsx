@@ -2,7 +2,7 @@ import React,{useEffect,useState} from 'react';
 import QRCode from 'qrcode';
 export default function Focus8Stage({stage,language='vi'}){
  const vi=language!=='en';const [now,setNow]=useState(Date.now()),[qr,setQr]=useState('');
- useEffect(()=>{if(!stage?.running)return undefined;const t=setInterval(()=>setNow(Date.now()),500);return()=>clearInterval(t);},[stage?.running]);
+ useEffect(()=>{if(!stage?.running)return undefined;const t=setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(t);},[stage?.running]);
  useEffect(()=>{
   let mounted=true;
   if(!/^https:\/\//i.test(stage?.url||'')){setQr('');return undefined;}
