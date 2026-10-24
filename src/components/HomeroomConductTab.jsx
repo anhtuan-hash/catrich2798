@@ -518,7 +518,7 @@ export default function HomeroomConductTab({ workspace, onCommit, currentUser })
 
   const openWeekLockDialog = (mode) => {
     const pending = allWeekRecords.filter((item) => item.status === 'pending').length;
-    if (mode === 'lock' && pending && !window.confirm(`Tuần này còn ${pending} ghi nhận đang chờ xác nhận. Vẫn tiếp tục tổng kết?`)) return;
+    if (mode === 'lock' && pending && !window.confirm(document.documentElement.lang === 'en' ? `${pending} conduct records are awaiting confirmation this week. Continue finalization anyway?` : `Tuần này còn ${pending} ghi nhận đang chờ xác nhận. Vẫn tiếp tục tổng kết?`)) return;
     setLockDialog({
       open: true,
       mode,
@@ -620,7 +620,7 @@ export default function HomeroomConductTab({ workspace, onCommit, currentUser })
 
   const handleAdminResetLockPassword = async () => {
     if (currentUser?.role !== 'admin') return;
-    if (!window.confirm(`Đặt lại mật khẩu khóa rèn luyện về mặc định: ${DEFAULT_CONDUCT_LOCK_PASSWORD}?`)) return;
+    if (!window.confirm(document.documentElement.lang === 'en' ? `Reset the conduct lock password to its default: ${DEFAULT_CONDUCT_LOCK_PASSWORD}?` : `Đặt lại mật khẩu khóa rèn luyện về mặc định: ${DEFAULT_CONDUCT_LOCK_PASSWORD}?`)) return;
     const next = resetConductLockPassword(workspace, currentUser?.name || currentUser?.email || 'Admin');
     await onCommit(next, `Quản trị đã đặt lại mật khẩu khóa rèn luyện về mặc định ${DEFAULT_CONDUCT_LOCK_PASSWORD}.`);
     setLockPasswordDraft({ current: '', next: '', confirm: '' });
