@@ -52,9 +52,9 @@ export default function useFocusTimer(userId, onComplete) {
   }, [timer, userId, loadedOwner]);
   useEffect(() => {
     if (!timer.running) return undefined;
-    const tick = () => setNow(Date.now());
+    const tick = () => {const value=Date.now();setNow(old=>Math.floor(old/1000)===Math.floor(value/1000)?old:value);};
     tick();
-    const id = window.setInterval(tick, 500);
+    const id = window.setInterval(tick, 1000);
     document.addEventListener('visibilitychange', tick);
     return () => { window.clearInterval(id); document.removeEventListener('visibilitychange', tick); };
   }, [timer.running]);
