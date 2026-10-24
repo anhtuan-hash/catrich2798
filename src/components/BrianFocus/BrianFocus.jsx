@@ -23,6 +23,7 @@ import './FocusTransitionVariants.css';
 import './BrianFocusWorkspace.css';
 import './BrianFocusAtelier.css';
 import './BrianFocusPersistentYoutube.css';
+import './BrianFocusYoutubePlaylist.css';
 import './BrianFocus6.css';
 import './BrianFocus7.css';
 import { GLOBAL_FLOATING_ACTION_EVENT, FLOATING_ACTION_IDS } from '../../utils/unifiedFloatingDock.js';
