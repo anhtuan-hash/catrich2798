@@ -1,5 +1,13 @@
 export const APPS = [
   {
+    slug: 'sync-doctor', icon: 'SD', tone: 'blue', group: 'Operations', groupVi: 'Vận hành & dữ liệu',
+    title: 'Brian Sync Doctor', titleVi: 'Sync Doctor · Chẩn đoán đồng bộ',
+    desc: 'Read-only integrity checks across authorized class rosters, homeroom, gradebook and assessment sources.',
+    descVi: 'Đối soát danh sách học sinh, chủ nhiệm, sổ điểm và kiểm tra trong phạm vi được cấp quyền. Không thay đổi dữ liệu.',
+    status: 'Read only · Evidence · RLS', statusVi: 'Chỉ đọc · Có bằng chứng · Phân quyền',
+    api: false, featured: true, hideable: false,
+  },
+  {
     slug: 'questatlas', icon: 'QA', tone: 'blue', group: 'Teaching Design', groupVi: 'Thiết kế dạy học',
     title: 'BRIAN QuestAtlas', titleVi: 'QuestAtlas · Bản đồ tri thức & Escape Room',
     desc: 'Connect reusable knowledge nodes to teacher-authored classroom escape quests. Deterministic and no AI.',
