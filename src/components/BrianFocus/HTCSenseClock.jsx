@@ -25,6 +25,11 @@ export default function HTCSenseClock({ language = 'vi', weather, onRefreshWeath
   return (
     <div className="bfc-clock-card">
       <div className="bfc-clock-card__glint" aria-hidden="true"/>
+      <div className="bfc-clock-card__breath" aria-hidden="true"><i/><i/><i/></div>
+      <div className="bfc-clock-card__overline" aria-hidden="true">
+        <span className="bfc-clock-card__live-dot" />
+        {vi ? 'KHÔNG GIAN SỐNG' : 'LIVE AMBIENCE'} <span className="bfc-clock-card__overline-separator">/</span> BRIAN SENSE
+      </div>
       <div className="bfc-clock-card__eyebrow">
         <Sparkles size={16} strokeWidth={1.65} aria-hidden="true"/>
         <span>{vi ? 'CHẾ ĐỘ TẬP TRUNG' : 'FOCUS MODE'}</span>
@@ -42,6 +47,10 @@ export default function HTCSenseClock({ language = 'vi', weather, onRefreshWeath
       <FocusWeather weather={weather} language={language} onRefresh={onRefreshWeather}/>
       <p className="bfc-clock-card__hint">{vi ? 'Một khoảnh khắc bình yên để tập trung.' : 'A quieter moment to focus.'}</p>
       <div className="bfc-clock-card__accent" aria-hidden="true"/>
+      <div className="bfc-clock-card__breathing-guide" aria-hidden="true">
+        <span className="bfc-clock-card__breathing-dot" />
+        {vi ? 'HÍT THỞ CHẬM · GIỮ NHỊP TẬP TRUNG' : 'BREATHE SLOWLY · STAY IN FLOW'}
+      </div>
     </div>
   );
 }
