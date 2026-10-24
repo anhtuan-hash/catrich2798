@@ -75,7 +75,13 @@ export default function useFocusSoundscape(userId) {
     setPlaying(false);
   }, []);
   const start = useCallback(async (selection = sound) => {
-    await stop();
+    // Do not await anything before creating AudioContext: Safari requires a user gesture.
+    const previous = engineRef.current;
+    engineRef.current = null;
+    if (previous) {
+      previous.nodes.forEach(node => { try { node.stop(); } catch {} });
+      previous.context.close().catch(() => {});
+    }
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     if (!AudioContextClass) throw new Error('Trình duyệt không hỗ trợ phát âm thanh.');
     const context = new AudioContextClass();
