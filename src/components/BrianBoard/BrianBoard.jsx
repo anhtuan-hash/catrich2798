@@ -6,7 +6,7 @@ import {Presentation,Pen,Highlighter,Eraser,MousePointer2,Hand,Type,Square,Circl
  Download,Move,Palette,FilePlus2,LockKeyhole,LockKeyholeOpen} from 'lucide-react';
 import {isAdminRole,isDepartmentLeaderRole,normalizeSystemRole} from '../../utils/roles.js';
 import {GLOBAL_FLOATING_ACTION_EVENT,FLOATING_ACTION_IDS} from '../../utils/unifiedFloatingDock.js';
-import {BOARD_W,BOARD_H,newLesson,newPage,normalizeLesson,makeId,THEMES} from './boardModel.js';
+import {BOARD_W,BOARD_H,newLesson,newPage,normalizeLesson,makeId,THEMES,sanitizeStudentPage} from './boardModel.js';
 import {readBoardDraft,saveBoardDraft} from './boardStorage.js';
 import BoardCanvas from './BoardCanvas.jsx';
 import './BrianBoard.css';
@@ -32,7 +32,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  const [saveState,setSaveState]=useState('idle'),[saveError,setSaveError]=useState('');
  const [tool,setTool]=useState('pen'),[color,setColor]=useState('#335d63'),[thickness,setThickness]=useState(5);
  const [zoom,setZoom]=useState(1),[camera,setCamera]=useState({x:0,y:0});
- const [contentText,setContentText]=useState(''),[showPages,setShowPages]=useState(true),[spotlight,setSpotlight]=useState(false);
+ const [contentText,setContentText]=useState(''),[showPages,setShowPages]=useState(()=>window.innerWidth>780),[spotlight,setSpotlight]=useState(false);
  const [studentView,setStudentView]=useState(false),[timerSeconds,setTimerSeconds]=useState(300);
  const [timerDeadline,setTimerDeadline]=useState(0),[timerNow,setTimerNow]=useState(Date.now());
  const [teams,setTeams]=useState([{name:'Team 1',score:0},{name:'Team 2',score:0}]);
@@ -213,7 +213,7 @@ export default function BrianBoard({currentUser,language='vi'}){
    onClick={()=>void start()}><Presentation size={25} strokeWidth={1.8}/><span className="bbd-board-fab__tooltip">Brian Board</span></button>;
  return <>
   {!open&&createPortal(button,document.body)}
-  {open&&createPortal(<section ref={enterRef} className={'bbd-shell bbd-theme-'+theme} data-phase={phase}
+  {open&&createPortal(<section ref={enterRef} className={'bbd-shell bbd-theme-'+theme+(studentView?' is-student-view':'')} data-phase={phase}
    role="dialog" aria-modal="true" aria-label="Brian Teaching Board">
    <header className="bbd-head">
     <div className="bbd-brand"><span className="bbd-brand__mark">B</span><span><strong>BRIAN BOARD</strong>
@@ -228,6 +228,7 @@ export default function BrianBoard({currentUser,language='vi'}){
      <button onClick={undo} disabled={!history.current.length} title="Undo"><Undo2 size={17}/></button>
      <button onClick={redo} disabled={!future.current.length} title="Redo"><Redo2 size={17}/></button>
      <button onClick={()=>void persist(docRef.current)} title={vi?'Lưu ngay':'Save now'}><Save size={17}/><span>{vi?'Lưu':'Save'}</span></button>
+     <button onClick={()=>setShowPages(v=>!v)} title={vi?'Hiện/ẩn công cụ bên phải':'Toggle side panel'}><Move size={17}/></button>
      <button onClick={()=>setStudentView(v=>!v)} title={vi?'Xem như học sinh':'Student preview'}>
       <Eye size={18}/><span>{vi?'Xem lớp':'Preview'}</span></button>
      <button className="bbd-close" onClick={()=>void close()} title={vi?'Đóng':'Close'}><X size={18}/><span>{vi?'Đóng':'Close'}</span></button>
@@ -241,7 +242,7 @@ export default function BrianBoard({currentUser,language='vi'}){
      <button onClick={()=>setSpotlight(s=>!s)} className={spotlight?'active':''} title="Spotlight"><ScanEye size={20}/></button>
     </aside>}
     <div className="bbd-canvas-area">
-     <BoardCanvas page={page} tool={studentView?'select':tool} color={color} width={thickness}
+     <BoardCanvas page={studentView?sanitizeStudentPage(page):page} tool={studentView?'select':tool} color={color} width={thickness}
        onCommit={commitObj} onErase={eraseObject} zoom={zoom} setZoom={setZoom}
        camera={camera} setCamera={setCamera} contentText={contentText}
        spotlight={spotlight} studentView={studentView}/>
@@ -264,7 +265,7 @@ export default function BrianBoard({currentUser,language='vi'}){
       </div>
      </div>
     </div>
-    {!studentView&&<aside className="bbd-sidebar">
+    {!studentView&&showPages&&<aside className="bbd-sidebar">
      <div className="bbd-sidebar-tabs">
       {['pages','teaching','design'].map(id=><button key={id} className={panel===id?'active':''} onClick={()=>setPanel(id)}>
        {id==='pages'?(vi?'Trang':'Pages'):id==='teaching'?(vi?'Lớp học':'Classroom'):(vi?'Thiết kế':'Design')}</button>)}
