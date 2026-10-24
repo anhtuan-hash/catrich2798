@@ -20,9 +20,10 @@ import './FocusTransitionVariants.css';
 import './BrianFocusWorkspace.css';
 import './BrianFocusAtelier.css';
 import './BrianFocusPersistentYoutube.css';
+import { GLOBAL_FLOATING_ACTION_EVENT, FLOATING_ACTION_IDS } from '../../utils/unifiedFloatingDock.js';
 
 /** One global Focus trigger and overlay; the underlying app route stays mounted. */
-export default function BrianFocus({ currentUser, language = 'vi', performance = 'balanced' }) {
+export default function BrianFocus({ currentUser, language = 'vi', performance = 'balanced', dockManaged = false, dockTriggerRef }) {
   const [open, setOpen] = useState(false);
   const [exiting, setExiting] = useState(false);
   const [transitions, setTransitions] = useState(readFocusTransitions);
@@ -46,6 +47,15 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
     setExiting(false);
     setOpen(true);
   };
+
+  useEffect(() => {
+    if (!dockManaged) return undefined;
+    const handler = event => {
+      if (event.detail?.id === FLOATING_ACTION_IDS.focus && !open) openFocus();
+    };
+    window.addEventListener(GLOBAL_FLOATING_ACTION_EVENT, handler);
+    return () => window.removeEventListener(GLOBAL_FLOATING_ACTION_EVENT, handler);
+  }, [dockManaged, open, transitions.enter]);
 
   const closeFocus = () => {
     if (!open || exitPendingRef.current) return;
@@ -123,7 +133,7 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
     document.body.classList.remove('bfc-focus-session', 'bfc-focus-session--closing');
   }, []);
 
-  const button = (
+  const button = dockManaged ? null : (
     <FocusBubble buttonRef={triggerRef} language={language} active={open}
       onClick={() => (open ? closeFocus() : openFocus())} />
   );
@@ -141,7 +151,7 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
           youtubeSession={youtubeSession} youtubeControls={youtubeControls}
           language={language} weather={weather} exiting={exiting} transitions={transitions} onEffectsChange={setEffectChoice}
           onRefreshWeather={refresh} onClose={closeFocus}
-          returnFocusRef={triggerRef} performance={performance} />
+          returnFocusRef={dockManaged ? dockTriggerRef : triggerRef} performance={performance} />
       ) : null}
     </>
   );
