@@ -8,10 +8,11 @@
   bottom: calc(max(24px, env(safe-area-inset-bottom, 0px)) + 62px + 14px + 62px + 14px);
   display: grid;
   place-items: center;
-  width: 58px;
-  height: 58px;
-  min-width: 58px;
-  min-height: 58px;
+  /* Same desktop diameter as the connected Chat AI launcher. */
+  width: 62px;
+  height: 62px;
+  min-width: 62px;
+  min-height: 62px;
   padding: 0;
   border: 1px solid rgba(221,233,255,.87);
   border-radius: 999px;
@@ -317,15 +318,6 @@
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 @media (max-width: 767px) {
-  .bfc-bubble {
-    width: 52px;
-    height: 52px;
-    min-width: 52px;
-    min-height: 52px;
-    /* Same right-hand alignment as .bes-kira-chat-root at <= 640px */
-    right: max(13px, env(safe-area-inset-right, 0px));
-    bottom: calc(max(13px, env(safe-area-inset-bottom, 0px)) + 58px + 12px + 58px + 12px);
-  }
   .bfc-overlay { padding: 68px 16px 78px; }
   .bfc-overlay__close {top: max(14px, env(safe-area-inset-top, 0px)); right: max(14px, env(safe-area-inset-right, 0px));}
   .bfc-clock-card { border-radius: 25px; min-height: 0; padding: 28px 20px 25px; }
@@ -345,6 +337,17 @@
   .bfc-weather {gap: 8px; padding: 11px 12px;}
   .bfc-weather__temp {font-size: 23px; margin-left: 2px;}
   .bfc-clock-card__hint { margin-top: 19px; }
+}
+/* The Chat AI dock switches to 58px / 13px only below 640px. */
+@media (max-width: 640px) {
+  .bfc-bubble {
+    width: 58px;
+    height: 58px;
+    min-width: 58px;
+    min-height: 58px;
+    right: max(13px, env(safe-area-inset-right, 0px));
+    bottom: calc(max(13px, env(safe-area-inset-bottom, 0px)) + 58px + 12px + 58px + 12px);
+  }
 }
 @media (max-width: 370px) {
   .bfc-clock-card { padding-left: 13px; padding-right: 13px; }
