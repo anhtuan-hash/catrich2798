@@ -39,7 +39,7 @@ assert.match(overlay,/canEditFocusScene\(currentUser\)/);
 assert.match(overlay,/scene=\{sharedScene\|\|scene\}/);
 assert.match(overlay,/Focus7Studio/);assert.match(overlay,/Focus7Particles/);
 assert.match(player,/Closing the overlay must NEVER pause or unmount YouTube/);
-assert.match(player,/explicitlyStopped:\\s*true/);
+assert.ok(player.includes('explicitlyStopped: true'));
 assert.match(flow,/timerRef.current.startPreset/);
 assert.match(particles,/cancelAnimationFrame/);
 assert.match(particles,/prefers-reduced-motion/);
