@@ -6,6 +6,7 @@ import useFocusWeather from './useFocusWeather.js';
 import './BrianFocus.css';
 import './BrianFocusCosmic.css';
 import './BrianFocusPremium.css';
+import './BrianFocusLive.css';
 
 /** One global Focus trigger and overlay; the underlying app route stays mounted. */
 export default function BrianFocus({ language = 'vi', performance = 'balanced' }) {
