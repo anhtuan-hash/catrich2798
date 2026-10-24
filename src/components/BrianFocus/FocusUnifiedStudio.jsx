@@ -56,11 +56,11 @@ export function findFocusStudioTools(query='',section='all'){
  return FOCUS_STUDIO_TOOLS.filter(tool=>(section==='all'||tool.section===section)
   && words.every(term=>normalize([tool.vi,tool.en,tool.detailVi,tool.detailEn].join(' ')).includes(term)));
 }
-export default function FocusUnifiedStudio({language='vi',onClose,renderTool}){
+export default function FocusUnifiedStudio({language='vi',onClose,renderTool,initialSelected=null}){
  const vi=language!=='en';
  const [section,setSection]=useState('all');
  const [query,setQuery]=useState('');
- const [selected,setSelected]=useState(null);
+ const [selected,setSelected]=useState(initialSelected);
  const items=useMemo(()=>findFocusStudioTools(query,section),[query,section]);
  const selectedInfo=selected&&FOCUS_STUDIO_TOOLS.find(x=>x.source===selected.source&&x.tab===selected.tab);
  const selectTool=tool=>setSelected({source:tool.source,tab:tool.tab});
