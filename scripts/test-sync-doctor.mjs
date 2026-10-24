@@ -38,7 +38,7 @@ assert.doesNotMatch(adapter,/\.(?:update|insert|delete|upsert)\s*\(/);
 assert.match(adapter,/serializeSyncDoctorReport/);
 assert.match(component,/isAdminRole/);
 assert.match(component,/isDepartmentLeaderRole/);
-assert.match(component,/report\\.issues/);
+assert.match(component,/report\.issues/);
 assert.match(component,/No records are created/);
 assert.match(permissions,/slug === 'sync-doctor'/);
 assert.match(apps,/slug: 'sync-doctor'/);
