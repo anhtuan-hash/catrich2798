@@ -542,7 +542,7 @@ function App() {
         {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'quest-join'].includes(currentRoute) ? (
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="global-brian-focus" label="Brian Focus">
-              <BrianFocus language={language} />
+              <BrianFocus language={language} performance={resolvedPerformance} />
             </AppErrorBoundary>
           </Suspense>
         ) : null}
