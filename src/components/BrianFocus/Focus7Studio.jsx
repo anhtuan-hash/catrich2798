@@ -13,7 +13,7 @@ const tabs=[
  ['insights','09','Insights','Thống kê'],['classroom','10','Classroom','Trình chiếu'],
 ];
 const moodLabels=[['auto','Auto','Tự động'],['off','Off','Tắt'],['dawn','Dawn','Bình minh'],['golden','Golden','Nắng chiều'],['rain','Rainy','Trời mưa'],['twilight','Twilight','Chạng vạng'],['midnight','Midnight','Đêm']];
-const clockLabels=[['inherit','V6 default'],['sense','Classic HTC'],['glass','HTC Glass'],['minimal','Minimal'],['floating','Floating'],['kyoto','Kyoto'],['swiss','Swiss'],['aurora','Aurora'],['liquid','Liquid Glass']];
+const clockLabels=[['inherit','Theo giao diện chung'],['sense','Classic HTC'],['glass','HTC Glass'],['minimal','Minimal'],['floating','Floating'],['kyoto','Kyoto'],['swiss','Swiss'],['aurora','Aurora'],['liquid','Liquid Glass']];
 const particleLabels=[['off','Tắt','Off'],['dust','Bụi sáng','Light dust'],['fireflies','Đom đóm','Fireflies'],['rain','Mưa','Rain'],['snow','Tuyết','Snow'],['leaves','Lá rơi','Leaves'],['fog','Sương','Fog']];
 const dockNames={timer:['Hẹn giờ','Timer'],notes:['Ghi chú','Notes'],soundscape:['Âm thanh','Sound'],brightness:['Hình nền','Backdrop']};
 const uiRange=(label,value,min,max,onChange,unit='')=><label className="bfc7-range">
@@ -50,9 +50,9 @@ export default function Focus7Studio({language='vi',data,update,appearance,onApp
    update({soundRecipes:[...data.soundRecipes,recipe].slice(-8)});
    setRecipeName('');
  };
- return <section className="bfc7-studio" role="region" aria-label="Brian Focus 7 Studio">
+ return <section className="bfc7-studio" role="region" aria-label={vi?'Thiết lập không gian Focus':'Focus atmosphere settings'}>
    <header className="bfc7-studio__header">
-     <div><small>BRIAN FOCUS · LIVING ATELIER</small><strong>{vi?'Không gian sống 7.0':'Living Atelier 7.0'}</strong></div>
+     <div><small>BRIAN FOCUS · STUDIO</small><strong>{vi?'Không gian & tiện ích':'Atmosphere & tools'}</strong></div>
      <button type="button" onClick={onClose} aria-label={vi?'Đóng Studio':'Close Studio'}><X size={18}/></button>
    </header>
    <nav className="bfc7-studio__tabs" aria-label={vi?'Chọn nâng cấp':'Studio sections'}>
@@ -74,7 +74,7 @@ export default function Focus7Studio({language='vi',data,update,appearance,onApp
       {uiRange(vi?'Giãn chữ':'Letter spacing',data.clockSpacing,-8,12,v=>update({clockSpacing:v}),'px')}
       <label className="bfc7-inline">{vi?'Màu số':'Digit color'} <input type="color" value={data.clockTint}
         onChange={e=>update({clockTint:e.target.value})}/></label>
-      <small>{vi?'Giữ lựa chọn 12/24 giờ, giây và tỉ lệ từ Focus Studio 6.0.':'Uses your 6.0 time format, seconds and size.'}</small>
+      <small>{vi?'Giữ lựa chọn 12/24 giờ, giây và tỉ lệ trong phần Giao diện.':'Uses your saved time format, seconds and clock size.'}</small>
     </div>}
     {tab==='flow'&&<div className="bfc7-stack">
       <h3>{vi?'Thiết kế chu kỳ tập trung':'Focus Flow Designer'}</h3>
@@ -160,8 +160,8 @@ export default function Focus7Studio({language='vi',data,update,appearance,onApp
       <div className="bfc7-bars" aria-label={vi?'Thời gian tập trung 7 ngày':'Last seven days focus minutes'}>
         {insights.days.map(d=><div key={d.day}><span style={{height:(d.minutes>0?Math.max(8,Math.min(100,d.minutes/180*100)):2)+'%'}}/><small>{d.day.slice(5)}</small><small>{d.minutes}m</small></div>)}
       </div>
-      <p>{vi?'Biểu đồ chỉ dùng các phiên Focus 7.0 đã hoàn thành, không suy đoán dữ liệu lịch sử.':'Based only on completed 7.0 sessions, never invented historical durations.'}</p>
-      {insights.totalSessions>0&&<button type="button" onClick={()=>{if(window.confirm(vi?'Xóa lịch sử thống kê Focus 7.0?':'Clear Focus 7.0 session history?'))update({sessions:[]});}}>
+      <p>{vi?'Chỉ thống kê phiên Focus thực sự đã hoàn thành, không tạo dữ liệu giả.':'Based on completed sessions, never invented historical durations.'}</p>
+      {insights.totalSessions>0&&<button type="button" onClick={()=>{if(window.confirm(vi?'Xóa lịch sử thống kê tập trung?':'Clear recorded focus-session history?'))update({sessions:[]});}}>
         <Trash2 size={15}/>{vi?'Xóa lịch sử thống kê':'Clear history'}</button>}
     </div>}
     {tab==='classroom'&&<div className="bfc7-stack">
