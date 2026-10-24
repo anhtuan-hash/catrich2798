@@ -117,6 +117,7 @@ const TransferInboxBanner = lazy(() => import('./components/TransferInboxBanner.
 const SyncQueueIndicator = lazy(() => import('./components/SyncQueueIndicator.jsx'));
 const WorkDashboard = lazy(() => import('./pages/WorkDashboard.jsx'));
 const BrianFocus = lazy(() => import('./components/BrianFocus/BrianFocus.jsx'));
+const BrianBoard = lazy(() => import('./components/BrianBoard/BrianBoard.jsx'));
 const StudentSupportCenter = lazy(() => import('./pages/StudentSupportCenter.jsx'));
 const KnowledgeHub = lazy(() => import('./pages/KnowledgeHub.jsx'));
 const PlatformReadiness = lazy(() => import('./pages/PlatformReadiness.jsx'));
@@ -544,6 +545,9 @@ function App() {
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="global-brian-focus" label="Brian Focus">
               <BrianFocus currentUser={currentUser} language={language} performance={resolvedPerformance} />
+            </AppErrorBoundary>
+            <AppErrorBoundary compact scope="global-brian-teaching-board" label="Brian Board">
+              <BrianBoard currentUser={currentUser} language={language}/>
             </AppErrorBoundary>
           </Suspense>
         ) : null}
