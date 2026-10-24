@@ -11,6 +11,9 @@ import useFocus7Data from './useFocus7Data.js';
 import useFocus7Flow from './useFocus7Flow.js';
 import useFocus8Data, {advanceCue} from './useFocus8Data.js';
 import {Focus8RemoteClient} from './Focus8Remote.jsx';
+import useFocus9, {readSilk,silkAdvanceTimers} from './useFocus9.js';
+import Focus9Viewer from './Focus9Viewer.jsx';
+import {createPresenter,publishPresenter,revokePresenter} from './focus9Presenter.js';
 import { readFocusTransitions, writeFocusTransitions, FOCUS_TRANSITION_STORAGE_KEY } from './FocusTransitionLibrary.js';
 import { startFocusExit } from './focusExitMotion.js';
 import { startFocusEnter } from './focusEnterMotion.js';
@@ -29,6 +32,7 @@ import './BrianFocusYoutubePlaylist.css';
 import './BrianFocus6.css';
 import './BrianFocus7.css';
 import './BrianFocus8.css';
+import './BrianFocus9.css';
 import { GLOBAL_FLOATING_ACTION_EVENT, FLOATING_ACTION_IDS } from '../../utils/unifiedFloatingDock.js';
 
 /** One global Focus trigger and overlay; the underlying app route stays mounted. */
@@ -45,6 +49,70 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
   const { scene, setScene, error: sceneError } = useFocusScene(open, currentUser?.id);
   const {data:focus7,update:update7} = useFocus7Data(currentUser?.id);
   const {data:focus8,update:update8} = useFocus8Data(currentUser?.id);
+  const silk9=useFocus9(currentUser?.id);
+  const silkEventRef=useRef(silk9.event);silkEventRef.current=silk9.event;
+  const [online,setOnline]=useState(()=>typeof navigator==='undefined'||navigator.onLine!==false);
+  const [presenter,setPresenter]=useState(null);
+  const [presenterError,setPresenterError]=useState('');
+  const [resumeOffer,setResumeOffer]=useState(()=>readSilk(currentUser?.id).recovery?.open===true);
+  const [viewerId,setViewerId]=useState(()=>{
+    const params=new URLSearchParams(location.hash.split('?')[1]||'');return params.get('focusPresenter')||'';
+  });
+  useEffect(()=>setResumeOffer(readSilk(currentUser?.id).recovery?.open===true),[currentUser?.id]);
+  useEffect(()=>{
+    const refresh=()=>{const params=new URLSearchParams(location.hash.split('?')[1]||'');
+      setViewerId(params.get('focusPresenter')||'');};
+    window.addEventListener('hashchange',refresh);
+    return()=>window.removeEventListener('hashchange',refresh);
+  },[]);
+  useEffect(()=>{
+    const change=()=>{const connected=navigator.onLine!==false;setOnline(connected);
+      silkEventRef.current('network',connected?'Online':'Offline');};
+    window.addEventListener('online',change);window.addEventListener('offline',change);
+    return()=>{window.removeEventListener('online',change);window.removeEventListener('offline',change);};
+  },[]);
+  useEffect(()=>{
+    if(!silk9.data.orbit.some(x=>x.running))return undefined;
+    const timer=window.setInterval(()=>silk9.update(cur=>{
+      const next=silkAdvanceTimers(cur.orbit,Date.now());
+      return next===cur.orbit?cur:{...cur,orbit:next};
+    }),1000);
+    return()=>clearInterval(timer);
+  },[silk9.data.orbit.some(x=>x.running)]);
+  const presenterRef=useRef(presenter);presenterRef.current=presenter;
+  const startPresenter=async()=>{
+    if(!online)return;
+    try{setPresenterError('');const session=await createPresenter(currentUser?.id);
+      await publishPresenter(currentUser?.id,session.id,focus8.stage,timerController.timer);
+      setPresenter(session);
+    }catch(e){setPresenterError(e.message||'Could not start presenter');}
+  };
+  const stopPresenter=async()=>{
+    const session=presenterRef.current;
+    setPresenter(null);
+    if(session)try{await revokePresenter(currentUser?.id,session.id);}catch(e){setPresenterError(e.message);}
+  };
+  const copyPresenterLink=()=>{
+    if(!presenterRef.current)return;
+    const url=location.origin+location.pathname+'#/dashboard?focusPresenter='+encodeURIComponent(presenterRef.current.id);
+    navigator.clipboard?.writeText(url).catch(()=>{setPresenterError('Clipboard unavailable; copy the link manually.');});
+  };
+  const publishRef=useRef({stage:focus8.stage,timer:null});
+  publishRef.current.stage=focus8.stage;
+  useEffect(()=>{
+    if(!presenter?.id||!online)return undefined;
+    let active=true,inFlight=false;
+    const tick=async()=>{
+      if(!active||inFlight||document.hidden)return;
+      inFlight=true;
+      try{await publishPresenter(currentUser?.id,presenter.id,publishRef.current.stage,publishRef.current.timer);}
+      catch(e){if(active)setPresenterError(e.message||'Presentation synchronization failed');}
+      finally{inFlight=false;}
+    };
+    void tick();
+    const timer=window.setInterval(tick,3000);
+    return()=>{active=false;clearInterval(timer);};
+  },[presenter?.id,currentUser?.id,online]);
   const [remoteClient,setRemoteClient]=useState(()=>new URLSearchParams(location.hash.split('?')[1]||'').has('focusRemote'));
   useEffect(()=>{
     const sync=()=>setRemoteClient(new URLSearchParams(location.hash.split('?')[1]||'').has('focusRemote'));
@@ -80,6 +148,7 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
     const focusSession = ['pomodoro','deep','custom'].includes(timerModeRef.current);
     const key = 'bfc-completed-v6:' + String(currentUser?.id || 'guest') + ':' + sessionDay();
     setCompletionToken(n=>n+1);
+    silkEventRef.current('timer','Session complete');
     if(focusSession){
       try{
         const next=(Number(localStorage.getItem(key))||0)+1;
@@ -107,6 +176,7 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
   const timerController = useFocusTimer(currentUser?.id,onTimerComplete);
   timerModeRef.current = timerController.timer.mode;
   timerLengthRef.current=timerController.timer.minutes;
+  publishRef.current.timer=timerController.timer;
   const focusFlow = useFocus7Flow(currentUser?.id,timerController,completionToken);
   const {
     player: persistentYoutubePlayer,
@@ -124,6 +194,10 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
 
   const openFocus = () => {
     if (exitPendingRef.current) return;
+    silk9.update(cur=>({...cur,recovery:{at:Date.now(),open:true,
+      intention:focus8.stage.title||'',cue:focus8.cues[focus8.cueIndex]?.id||''}}));
+    silk9.event('open','Focus opened');
+    setResumeOffer(false);
     enteredWithEffectRef.current = transitions.enter;
     setExiting(false);
     setOpen(true);
@@ -140,6 +214,8 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
 
   const closeFocus = () => {
     if (!open || exitPendingRef.current) return;
+    silk9.update(cur=>({...cur,recovery:cur.recovery?{...cur.recovery,open:false}:null}));
+    silk9.event('close','Focus closed');
     exitPendingRef.current = true;
     if (transitions.exit === 'none') {
       exitPendingRef.current = false;
@@ -221,6 +297,15 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
   return (
     <>
       {persistentYoutubePlayer}
+      {viewerId&&typeof document!=='undefined'
+        ?createPortal(<Focus9Viewer userId={currentUser?.id} id={viewerId} language={language}
+           onClose={()=>{location.hash='#/dashboard';setViewerId('');}}/>,document.body):null}
+      {!open&&!viewerId&&resumeOffer&&<div className="bfc9-recovery-toast" role="status">
+        <strong>{language==='en'?'Previous Focus session found':'Có phiên Focus trước đó'}</strong>
+        <button type="button" onClick={openFocus}>{language==='en'?'Resume':'Mở lại'}</button>
+        <button type="button" onClick={()=>{setResumeOffer(false);silk9.update({recovery:null});}}>
+          {language==='en'?'Dismiss':'Bỏ qua'}</button>
+      </div>}
       {remoteClient && typeof document !== 'undefined'
         ? createPortal(<Focus8RemoteClient userId={currentUser?.id} language={language}
            onClose={()=>{location.hash='#/dashboard';setRemoteClient(false);}}/>,document.body)
@@ -234,6 +319,10 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
       {open ? (
         <FocusOverlay currentUser={currentUser} scene={mediaScene} sharedScene={scene} onScenePublished={setScene} sceneError={sceneError}
           focus7={focus7} update7={update7} focus8={focus8} update8={update8}
+          silk9={silk9.data} updateSilk={silk9.update} silkEvent={silk9.event}
+          online={online} presenter={presenter} presenterError={presenterError}
+          onPresenterStart={startPresenter} onPresenterStop={stopPresenter}
+          onPresenterLink={copyPresenterLink}
           focusFlow={focusFlow} choosePersonalVideo={choosePersonalVideo}
           youtubeSession={youtubeSession} youtubeControls={youtubeControls}
           timerController={timerController} completedSessions={completedSessions}
