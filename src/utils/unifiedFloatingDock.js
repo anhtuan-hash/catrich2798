@@ -4,6 +4,7 @@ export const GLOBAL_FLOATING_STATUS_EVENT = 'bes:unified-floating-status';
 
 export const FLOATING_ACTION_IDS = Object.freeze({
   focus: 'focus',
+  board: 'board',
   approvals: 'approvals',
   chat: 'chat',
 });
