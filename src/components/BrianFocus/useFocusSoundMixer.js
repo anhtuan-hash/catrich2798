@@ -35,11 +35,15 @@ function createLayer(ctx,destination,type,level) {
 /** One user-driven AudioContext with independent local-only procedural layers. */
 export default function useFocusSoundMixer(userId) {
   const [config,setConfig]=useState(()=>load(userId));
+  const [loadedOwner,setLoadedOwner]=useState(userId);
   const [playing,setPlaying]=useState(false);
   const [error,setError]=useState('');
   const engine=useRef(null);
-  useEffect(()=>{setConfig(load(userId));},[userId]);
-  useEffect(()=>{try{localStorage.setItem(key(userId),JSON.stringify(config));}catch{}},[userId,config]);
+  useEffect(()=>{setConfig(load(userId));setLoadedOwner(userId);},[userId]);
+  useEffect(()=>{
+    if(loadedOwner!==userId)return; // do not copy another account's levels during switch
+    try{localStorage.setItem(key(userId),JSON.stringify(config));}catch{}
+  },[userId,loadedOwner,config]);
   const stop=async()=>{
     const previous=engine.current;engine.current=null;
     if(previous) {
