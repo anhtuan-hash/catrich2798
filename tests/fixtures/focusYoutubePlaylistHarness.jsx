@@ -8,6 +8,8 @@ const scene={
   dimPercent:20,mediaFit:'cover',updatedAt:'2026-10-24',
 };
 createRoot(document.querySelector('#root')).render(
-  <FocusSceneEditor language="vi" currentUser={{id:'test',role:'admin',provider:'supabase'}}
-    scene={scene} onClose={()=>{}} onPublished={()=>{}}/>
+  <div className="bfc-overlay bfc-atelier" data-testid="focus-shell">
+    <FocusSceneEditor language="vi" currentUser={{id:'test',role:'admin',provider:'supabase'}}
+      scene={scene} onClose={()=>{}} onPublished={()=>{}}/>
+  </div>
 );
