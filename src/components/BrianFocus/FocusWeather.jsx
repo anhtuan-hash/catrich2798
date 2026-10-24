@@ -1,7 +1,8 @@
 import React from 'react';
-import { Cloud, CloudDrizzle, CloudFog, CloudLightning, CloudRain, CloudSun, Snowflake, Sun, RefreshCw } from 'lucide-react';
+import { Cloud, CloudDrizzle, CloudFog, CloudLightning, CloudRain, CloudSun, Snowflake, Sun, RefreshCw, Moon, Droplets, Wind, ThermometerSun } from 'lucide-react';
 
-function weatherGlyph(code) {
+function weatherGlyph(code, isDay = true) {
+  if (isDay === false && [0, 1, 2].includes(code)) return Moon;
   if (code === 0) return Sun;
   if ([1, 2].includes(code)) return CloudSun;
   if (code === 3) return Cloud;
@@ -29,7 +30,7 @@ export function focusWeatherDescription(code, language = 'vi') {
 export default function FocusWeather({ weather, language = 'vi', onRefresh }) {
   const vi = language !== 'en';
   const hasValue = Number.isFinite(weather?.temperature) && Number.isFinite(weather?.code);
-  const WeatherIcon = weatherGlyph(weather?.code);
+  const WeatherIcon = weatherGlyph(weather?.code, weather?.isDay);
   const label = weather?.loading ? (vi ? 'Đang làm mới' : 'Updating')
     : weather?.error ? (hasValue ? (vi ? 'Dữ liệu lần trước' : 'Last known data') : (vi ? 'Không có kết nối thời tiết' : 'Weather unavailable'))
       : hasValue ? focusWeatherDescription(weather?.code, language)
@@ -55,6 +56,20 @@ export default function FocusWeather({ weather, language = 'vi', onRefresh }) {
         aria-label={vi ? 'Cập nhật thời tiết' : 'Refresh weather'}>
         <RefreshCw size={15} className={weather?.loading ? 'is-spinning' : ''} aria-hidden="true" />
       </button>
+      {hasValue && (
+        <div className="bfc-weather__metrics">
+          {Number.isFinite(weather?.feelsLike) && <span className="bfc-weather__metric" title={vi ? 'Nhiệt độ cảm nhận' : 'Feels like'}>
+            <ThermometerSun size={14} aria-hidden="true"/>
+            {vi ? 'Cảm giác' : 'Feels'} {weather.feelsLike}°
+          </span>}
+          {Number.isFinite(weather?.humidity) && <span className="bfc-weather__metric" title={vi ? 'Độ ẩm' : 'Humidity'}>
+            <Droplets size={14} aria-hidden="true"/>{weather.humidity}%
+          </span>}
+          {Number.isFinite(weather?.windSpeed) && <span className="bfc-weather__metric" title={vi ? 'Tốc độ gió' : 'Wind speed'}>
+            <Wind size={14} aria-hidden="true"/>{weather.windSpeed} km/h
+          </span>}
+        </div>
+      )}
     </div>
   );
 }
