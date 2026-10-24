@@ -9,6 +9,7 @@ import {GLOBAL_FLOATING_ACTION_EVENT,FLOATING_ACTION_IDS} from '../../utils/unif
 import {BOARD_W,BOARD_H,newLesson,newPage,normalizeLesson,makeId,THEMES,sanitizeStudentPage} from './boardModel.js';
 import {readBoardDraft,saveBoardDraft,listBoardLessons,readBoardLesson,deleteBoardLesson} from './boardStorage.js';
 import BoardCanvas from './BoardCanvas.jsx';
+import {listBoardCloud,saveBoardCloud,readBoardCloud} from './boardCloud.js';
 import './BrianBoard.css';
 
 const drawTools=[
@@ -38,7 +39,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  const [timerDeadline,setTimerDeadline]=useState(0),[timerNow,setTimerNow]=useState(Date.now());
  const [teams,setTeams]=useState([{name:'Team 1',score:0},{name:'Team 2',score:0}]);
  const [randomNames,setRandomNames]=useState(''),[randomChoice,setRandomChoice]=useState('');
- const [panel,setPanel]=useState('pages'),[library,setLibrary]=useState([]),[libraryError,setLibraryError]=useState('');
+ const [panel,setPanel]=useState('pages'),[library,setLibrary]=useState([]),[libraryError,setLibraryError]=useState(''),[cloudLibrary,setCloudLibrary]=useState([]),[cloudStatus,setCloudStatus]=useState('');
  const refreshLibrary=async()=>{
   try{setLibrary(await listBoardLessons(ownerId));setLibraryError('');}
   catch(e){setLibraryError(e.message||'Cannot load library');}
@@ -247,6 +248,33 @@ export default function BrianBoard({currentUser,language='vi'}){
    await deleteBoardLesson(ownerId,id);void refreshLibrary();
   }catch(e){setLibraryError(e.message||'Cannot delete draft');}
  };
+ const cloudList=async()=>{
+  try{setCloudStatus(vi?'Đang đọc Cloud…':'Loading cloud…');
+   setCloudLibrary(await listBoardCloud(ownerId));setCloudStatus('');}
+  catch(e){setCloudStatus(e.message||'Cloud is unavailable');}
+ };
+ const backupCloud=async()=>{
+  if(!docRef.current)return;
+  try{
+   setCloudStatus(vi?'Đang sao lưu…':'Backing up…');
+   if(dirty.current)await persist(docRef.current);
+   await saveBoardCloud(ownerId,docRef.current);
+   setCloudStatus(vi?'Đã sao lưu lên tài khoản':'Backed up to your account');
+   void cloudList();
+  }catch(e){setCloudStatus(e.message||'Cloud backup failed');}
+ };
+ const restoreCloud=async id=>{
+  if(!window.confirm(vi?'Nhập bản sao Cloud thành một bài dạy MỚI? Bản hiện tại sẽ được giữ nguyên.':'Import this cloud snapshot as a NEW lesson? Your current lesson will be preserved.'))return;
+  try{
+   const found=await readBoardCloud(ownerId,id);
+   if(!found)throw Error('Cloud lesson not found');
+   if(dirty.current)await persist(docRef.current);
+   const copy={...found.lesson,id:makeId(),title:found.lesson.title+' (Cloud copy)'};
+   docRef.current=copy;setLesson(copy);history.current=[];future.current=[];
+   dirty.current=true;await persist(copy);
+   setPanel('pages');setCloudStatus(vi?'Đã nhập bản sao riêng':'Imported private copy');
+  }catch(e){setCloudStatus(e.message||'Restore failed');}
+ };
  const pageAt=index=>mutate(d=>({...d,activePageId:d.pages[index]?.id||d.activePageId}));
  const movePage=offset=>mutate(d=>{
   const index=d.pages.findIndex(p=>p.id===d.activePageId),target=index+offset;
@@ -350,6 +378,16 @@ export default function BrianBoard({currentUser,language='vi'}){
        <button onClick={()=>void createLesson()}><FilePlus2 size={16}/></button></div>
       <p>{vi?'Các bản nháp lưu riêng trên thiết bị này, không ghi vào sổ điểm hay dữ liệu lớp.':'Private lessons on this device, separate from gradebook and class data.'}</p>
       <button onClick={()=>void createLesson()}><Plus size={16}/>{vi?'Tạo bài dạy mới':'New lesson'}</button>
+      <h4>{vi?'Bản sao lưu Cloud':'Cloud backups'}</h4>
+      <div className="bbd-side-actions">
+       <button onClick={()=>void backupCloud()}><Save size={15}/>{vi?'Sao lưu Cloud':'Backup'}</button>
+       <button onClick={()=>void cloudList()}><CloudOff size={15}/>{vi?'Tải danh sách':'Refresh list'}</button>
+      </div>
+      {cloudStatus&&<p role="status">{cloudStatus}</p>}
+      {cloudLibrary.map(row=><div key={row.lesson_id} className="bbd-library-item">
+       <div><strong>{row.title}</strong><small>{new Date(row.updated_at).toLocaleDateString()} · r{row.revision}</small></div>
+       <button onClick={()=>void restoreCloud(row.lesson_id)}>{vi?'Nhập bản sao':'Import copy'}</button>
+      </div>)}
       {libraryError&&<p role="alert">{libraryError}</p>}
       {library.map(x=><div key={x.id} className={'bbd-library-item'+(x.id===lesson?.id?' active':'')}>
         <div><strong>{x.title}</strong><small>{x.pages} {vi?'trang':'pages'} · {new Date(x.updatedAt).toLocaleDateString()}</small></div>
