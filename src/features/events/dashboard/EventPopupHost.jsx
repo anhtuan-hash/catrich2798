@@ -27,6 +27,8 @@ export default function EventPopupHost({currentUser}) {
   const shownRef=useRef('');
   const authSessionIdentityRef=useRef(null);
   const closeButtonRef=useRef(null);
+  const dismissRef=useRef(null);
+  const pendingActionRef=useRef(false);
   const openerRef=useRef(null);
   const posterExpandedRef=useRef(false);
   useEffect(()=>{posterExpandedRef.current=posterExpanded;},[posterExpanded]);
@@ -79,7 +81,7 @@ export default function EventPopupHost({currentUser}) {
       if(e.key==='Escape'){
         e.preventDefault();
         if(posterExpandedRef.current){setPosterExpanded(false);return;}
-        dismiss('dismiss');
+        dismissRef.current?.('dismiss');
       }
       if(e.key==='Tab'){
         const selector='button:not(:disabled), a[href]';
@@ -123,7 +125,8 @@ export default function EventPopupHost({currentUser}) {
   },[event?.poster_path]);
 
   async function dismiss(action){
-    if(!event||loadingAction||closing)return;
+    if(!event||loadingAction||closing||pendingActionRef.current)return;
+    pendingActionRef.current=true;
     setLoadingAction(true);setActionError('');
     try{
       await recordEventInteraction(event,userId,action);
@@ -136,8 +139,9 @@ export default function EventPopupHost({currentUser}) {
       setEvent(null);
       setClosing(false);
     }catch(e){setClosing(false);setActionError('Không thể ghi nhận lựa chọn: '+e.message);}
-    finally{setLoadingAction(false);}
+    finally{pendingActionRef.current=false;setLoadingAction(false);}
   }
+  dismissRef.current=dismiss;
   async function openDetails(){
     if(!event)return;
     setDetailed(true);
