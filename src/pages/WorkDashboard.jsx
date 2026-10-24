@@ -1,3 +1,4 @@
+import { refreshSharedFocusWeather } from '../components/BrianFocus/focusWeatherService.js';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   DASHBOARD_SOURCE_EVENTS,
@@ -27,7 +28,6 @@ import {
 import { Pencil } from 'lucide-react';
 import { dashboardHeroNameLines } from '../utils/dashboardHeroName.js';
 const DashboardHeroEditor = React.lazy(() => import('../components/DashboardHeroEditor.jsx'));
-const BrianFocus = React.lazy(() => import('../components/BrianFocus/BrianFocus.jsx'));
 import { dashboardLocalDayKey, isDashboardTeachingPeriod } from '../utils/dashboardClassification.js';
 const EventPopupHost = React.lazy(() => import('../features/events/dashboard/EventPopupHost.jsx'));
 // Last route-local style: align all Dashboard sections to the app-shell/HomeRoom gutters.
@@ -421,13 +421,11 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
     const requestId = ++weatherRequestRef.current;
     setWeather((current) => ({ ...current, loading: true }));
     try {
-      const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=10.7769&longitude=106.7009&current=temperature_2m,weather_code&timezone=Asia%2FHo_Chi_Minh');
-      if (!response.ok) throw new Error('weather unavailable');
-      const payload = await response.json();
+      const next = await refreshSharedFocusWeather();
       if (requestId !== weatherRequestRef.current) return;
       setWeather({
-        temperature: Number.isFinite(payload?.current?.temperature_2m) ? Math.round(payload.current.temperature_2m) : null,
-        code: Number.isFinite(payload?.current?.weather_code) ? payload.current.weather_code : null,
+        temperature: next.temperature,
+        code: next.code,
         loading: false,
       });
     } catch {
@@ -535,10 +533,6 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
       onPreview={setHeroPreview}
       onPublished={(published) => { setHeroPublished(published); setHeroDraft(published); setHeroPreview(published); }}
     /></React.Suspense> : null}
-    <React.Suspense fallback={null}>
-      <BrianFocus language={language} weather={weather}
-        weatherDescription={weatherDescription} disabled={heroEditorOpen} />
-    </React.Suspense>
     <div className="gd-shell">
       <section className="gd-top-grid db-hero-minimal-frame">
         <header className={`editorial-hero is-minimal ${hasDashboardHeroMedia ? 'has-dashboard-custom-hero' : ''}`} style={dashboardHeroStyle} ref={heroExclusionRef}>
