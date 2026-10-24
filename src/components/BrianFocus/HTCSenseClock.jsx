@@ -36,14 +36,19 @@ function FocusSeconds() {
   return <span className="bfc-clock-seconds" aria-label={'Seconds ' + second}>{String(second).padStart(2, '0')}</span>;
 }
 
-export default function HTCSenseClock({ language = 'vi', weather, onRefreshWeather, mode = 'sense', scale = 100, hour12 = false, showSeconds = false }) {
+export default function HTCSenseClock({ language = 'vi', weather, onRefreshWeather, mode = 'sense', scale = 100, hour12 = false, showSeconds = false, clock7=null }) {
   const vi = language !== 'en';
   const { hours, minutes, dateLabel } = useFocusClock(language);
   const shownHours = hour12 ? String(Number(hours)%12||12).padStart(2,'0') : hours;
-  const clockStyle = { '--bfc6-clock-scale': String(Math.max(.75,Math.min(1.25,Number(scale)/100||1))) };
+  const clockStyle = {
+    '--bfc6-clock-scale':String(Math.max(.75,Math.min(1.25,Number(scale)/100||1))),
+    '--bfc7-clock-weight':clock7?.clockWeight||350,
+    '--bfc7-clock-spacing':(clock7?.clockSpacing??-4)+'px',
+    '--bfc7-clock-color':clock7?.clockTint||'#ffffff'
+  };
 
-  if (mode === 'minimal') return (
-    <section className="bfc-clock-card bfc-clock-card--minimal" style={clockStyle} aria-label={vi ? 'Đồng hồ tập trung' : 'Focus clock'}>
+  if (['minimal','kyoto','swiss','aurora','liquid'].includes(mode)) return (
+    <section className={'bfc-clock-card bfc-clock-card--minimal bfc7-clock--'+mode} style={clockStyle} aria-label={vi ? 'Đồng hồ tập trung' : 'Focus clock'}>
       <div className="bfc-clock-minimal__time" role="timer" aria-label={shownHours + ':' + minutes} aria-live="off">
         <span>{shownHours}</span><span className="bfc-clock-minimal__colon">:</span><span>{minutes}</span>
       </div>
