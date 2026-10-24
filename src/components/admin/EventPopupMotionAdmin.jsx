@@ -151,6 +151,9 @@ export default function EventPopupMotionAdmin({ value, onChange, language='vi' }
       const playing=playEventPopupMotion(card,nextMotion,current);
       animationRef.current=playing;
       await playing.finished;
+      // A finished "forwards" animation still owns the element's transform;
+      // release it before the next phase to avoid accumulating hidden timelines.
+      if(current==='enter' && token===playId.current)playing.cancel();
     };
     card.style.opacity='1';
     card.style.transform='none';
