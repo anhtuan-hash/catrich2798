@@ -12,6 +12,7 @@ export default function FocusEffectsLibrary({ language = 'vi', current, onApply,
   const [direction, setDirection] = useState('enter');
   const [category, setCategory] = useState('all');
   const [playKey, setPlayKey] = useState(0);
+  const [reducedMotion, setReducedMotion] = useState(() => typeof window !== 'undefined' && Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches));
   const closeRef = useRef(null);
   const panelRef = useRef(null);
   const selected = draft[direction];
@@ -26,6 +27,14 @@ export default function FocusEffectsLibrary({ language = 'vi', current, onApply,
     requestAnimationFrame(() => openerRef?.current?.focus?.());
   };
   useEffect(() => { closeRef.current?.focus(); }, []);
+  useEffect(() => {
+    const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    if (!media) return undefined;
+    const update = () => setReducedMotion(media.matches);
+    update();
+    media.addEventListener?.('change', update);
+    return () => media.removeEventListener?.('change', update);
+  }, []);
   return (
     <section className="bfc-effect-gallery" role="region"
       ref={panelRef}
@@ -74,9 +83,14 @@ export default function FocusEffectsLibrary({ language = 'vi', current, onApply,
             </div>
           </div>
           <div className="bfc-effect-gallery__preview-meta">
-            <span><Sparkles size={15}/><strong>{FOCUS_TRANSITIONS.find(t=>t.id===selected)?.[vi?'labelVi':'labelEn']}</strong><small>{direction==='enter'?(vi?'Xem trước khi mở':'Opening preview'):(vi?'Xem trước khi đóng':'Closing preview')}</small></span>
-            <button type="button" onClick={preview}><Play size={16}/>{vi?'Phát lại':'Replay'}</button>
+            <span><Sparkles size={15}/><strong>{FOCUS_TRANSITIONS.find(t=>t.id===selected)?.[vi?'labelVi':'labelEn']}</strong>
+              <small>{reducedMotion ? (vi?'Thiết bị đang bật Giảm chuyển động':'Reduce Motion is enabled on this device')
+                : selected === 'none' ? (vi?'Chuyển ngay, không có animation':'Instant change — no animation')
+                : (vi?'Tự động phát lặp · 3,4 giây':'Auto-replaying · 3.4 seconds')}</small>
+            </span>
+            <button type="button" onClick={preview} disabled={reducedMotion || selected === 'none'} title={reducedMotion ? (vi?'Tắt Giảm chuyển động trong cài đặt thiết bị để xem':'Disable Reduce Motion in system settings to preview') : undefined}><Play size={16}/>{vi?'Phát lại':'Replay'}</button>
           </div>
+          {!reducedMotion && selected !== 'none' ? <div key={'meter-'+playKey+'-'+selected+'-'+direction} className="bfc-effect-gallery__preview-progress" aria-hidden="true"><span/></div> : null}
         </div>
 
         <div className="bfc-effect-gallery__filter" role="group" aria-label={vi?'Bộ lọc hiệu ứng':'Effect categories'}>
