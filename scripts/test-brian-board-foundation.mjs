@@ -23,9 +23,10 @@ const privatePage={...first,objects:[
  {kind:'mask',id:'mask',studentVisible:true}
 ]};
 const safe=sanitizeStudentPage(privatePage);
-assert.equal(safe.objects.length,2);
-assert.equal(safe.objects.some(o=>o.id==='private'||o.kind==='mask'),false);
+assert.equal(safe.objects.length,3);
+assert.equal(safe.objects.some(o=>o.id==='private'),false);
 assert.equal(JSON.stringify(safe).includes('Teacher secret'),false);
+assert.ok(safe.objects.some(o=>o.kind==='mask'),'Student view keeps explicit answer curtains');
 assert.equal(sanitizeStudentPage({...privatePage,hidden:true}),null);
 let records=new Map();
 const transactions=[];
