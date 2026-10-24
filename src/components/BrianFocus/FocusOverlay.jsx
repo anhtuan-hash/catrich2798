@@ -275,7 +275,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
       </button>
       </div>
       <div className="bfc-overlay__center">
-        <HTCSenseClock mode={focus7.clock} clock7={focus7} scale={appearance.scale} hour12={appearance.hour12}
+        <HTCSenseClock mode={focus7.clock==='inherit'?appearance.clockMode:focus7.clock} clock7={focus7} scale={appearance.scale} hour12={appearance.hour12}
           showSeconds={appearance.showSeconds} language={language} weather={weather} onRefreshWeather={onRefreshWeather}/>
         {!classroom&&appearance.intention && <p className="bfc6-intention">{appearance.intention}</p>}
         {classroom&&<p className="bfc7-classroom-timer" role="timer">{timerController.formatted}</p>}
