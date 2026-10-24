@@ -18,16 +18,16 @@ async function tableSource(table, columns, schoolYear, className) {
   if (className) query = query.eq('class_name',className);
   const {data,error,count} = await query;
   if (error) return {status:classify(error),rows:[],message:str(error.message),count:null};
-  const partial = count != null && count > LIMIT;
+  const partial = count != null && (count > LIMIT || count === 0);
   return {status:partial?'limited':'ok',rows:data||[],count:count ?? (data||[]).length,
-    message:partial?'Đã giới hạn số bản ghi của lượt quét; hãy chọn một lớp.':''};
+    message:count === 0?'Không có bản ghi nhìn thấy; không thể khẳng định nguồn rỗng hoặc đã đồng bộ.':partial?'Đã giới hạn số bản ghi của lượt quét; hãy chọn một lớp.':''};
 }
 async function rpcSource(name) {
   const {data,error} = await supabase.rpc(name);
   if(error)return {status:classify(error),rows:[],message:str(error.message),count:null};
   const array = Array.isArray(data)?data:[];
-  return {status:'ok',rows:array.slice(0,LIMIT),count:array.length,
-    message:array.length>LIMIT?'Nguồn vượt giới hạn kiểm tra.':'', ...array.length>LIMIT?{status:'limited'}:{}};
+  return {status:array.length===0||array.length>LIMIT?'limited':'ok',rows:array.slice(0,LIMIT),count:array.length,
+    message:array.length>LIMIT?'Nguồn vượt giới hạn kiểm tra.':array.length===0?'Không có bản ghi được phép xem.':''};
 }
 function source(result,key) {
   return {id:key,label:labelMap[key],status:result.status,count:result.count,
