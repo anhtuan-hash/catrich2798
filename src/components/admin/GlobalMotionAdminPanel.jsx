@@ -18,6 +18,7 @@ import {
 } from '../../utils/globalMotionSystem.js';
 import './GlobalMotionAdminPanel.css';
 import './Windows8MotionPreview.css';
+import EventPopupMotionAdmin from './EventPopupMotionAdmin.jsx';
 
 const SLOT_ORDER = ['page', 'tab', 'modal', 'drawer', 'popover', 'list', 'indicator', 'loading', 'interaction'];
 
@@ -241,11 +242,16 @@ export default function GlobalMotionAdminPanel({ currentUser, language = 'vi', o
   }
 
   function choosePreset(id) {
-    preview(configFromMotionPreset(id), vi ? 'Đang xem thử bộ phối trên phiên Admin. Chưa thay đổi site thật.' : 'Previewing this mix in the Admin session only.');
+    preview({ ...configFromMotionPreset(id), eventPopup: draft.eventPopup },
+      vi ? 'Đang xem thử bộ phối trên phiên Admin. Chưa thay đổi site thật.' : 'Previewing this mix in the Admin session only.');
   }
 
   function updateSlot(slot, effect) {
     preview({ ...draft, preset: 'custom', slots: { ...draft.slots, [slot]: effect } });
+  }
+
+  function updateEventPopup(next) {
+    preview({ ...draft, preset: 'custom', eventPopup: next });
   }
 
   function updateMeta(key, value) {
@@ -356,6 +362,8 @@ export default function GlobalMotionAdminPanel({ currentUser, language = 'vi', o
           </div>
         </aside>
       </div>
+
+      <EventPopupMotionAdmin value={draft.eventPopup} onChange={updateEventPopup} language={language}/>
 
       <footer className="motion-library__publish">
         <div className="motion-library__publish-copy">
