@@ -19,7 +19,12 @@ export const canEditFocusScene = user => isDepartmentLeaderRole(user?.role) && u
 
 export function parseFocusScene(row) {
   if (!row || !['image', 'video', 'html'].includes(row.media_type) || !String(row.media_path || '').startsWith('focus/')) {
-    return { ...FOCUS_DEFAULT, updatedAt: row?.updated_at || '' };
+    return {
+      ...FOCUS_DEFAULT,
+      dimPercent: Number.isFinite(Number(row?.dim_percent)) ? Math.max(0, Math.min(85, Number(row.dim_percent))) : 24,
+      mediaFit: row?.media_fit === 'contain' ? 'contain' : 'cover',
+      updatedAt: row?.updated_at || '',
+    };
   }
   return {
     mediaType: row.media_type,
