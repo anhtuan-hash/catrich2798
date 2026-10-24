@@ -27,7 +27,7 @@
 .be-event-motion-settings__controls label span {font-size:12px;font-weight:750;color:#3c5674}
 .be-event-motion-settings__controls select {
   width:100%;min-height:43px;padding:9px 13px;border:1px solid #c9d9ed;border-radius:12px;
-  color:#193956;background:#fff;font:650 13px/1.4 inherit;
+  color:#193956;background:#fff;font-size:13px;font-weight:650;line-height:1.4;font-family:inherit;
 }
 .be-event-motion-settings__controls small {font-size:11px;color:#7586a0;line-height:1.5}
 .be-event-motion-settings__replay {
