@@ -1,12 +1,76 @@
-/* Ordered YouTube playlist (Focus Scene Studio). Inherits scene editor design. */
-.bfc-scene-editor__youtube-input textarea {
-  display:block;width:100%;min-width:0;min-height:104px;resize:vertical;
-  border:0;outline:0;background:transparent;color:#eef6ff;
-  font:500 12px/1.65 -apple-system,BlinkMacSystemFont,Inter,system-ui,sans-serif;
-  overflow-wrap:anywhere;white-space:pre-wrap;
+/* Playlist field: a two-column grid prevents a full-width textarea from
+ * exceeding the remaining space beside the link icon. Scope it to the
+ * actual Focus overlay to override generic site-wide textarea themes. */
+.bfc-overlay .bfc-scene-editor .bfc-scene-editor__youtube-input {
+  display:grid;
+  grid-template-columns:18px minmax(0,1fr);
+  align-items:start;
+  gap:10px;
+  box-sizing:border-box;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  padding:12px 11px;
+  overflow:hidden;
+  border-radius:12px;
+  border:1px solid rgba(151,187,247,.38);
+  background:rgba(5,15,37,.86);
+  color:#9acaff;
 }
-.bfc-scene-editor__youtube-input textarea::placeholder { color:#8ca5c9; opacity:.82; }
-.bfc-scene-editor__youtube-input:focus-within { outline:2px solid rgba(124,181,255,.45);outline-offset:1px; }
+.bfc-overlay .bfc-scene-editor .bfc-scene-editor__youtube-input > svg {
+  display:block;
+  flex:none;
+  width:18px;
+  height:18px;
+  margin-top:2px;
+  color:#88bbff;
+}
+.bfc-overlay .bfc-scene-editor .bfc-scene-editor__youtube-input textarea#bfc-youtube-url {
+  display:block;
+  box-sizing:border-box;
+  flex:none;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  height:100px;
+  min-height:100px;
+  max-height:190px;
+  margin:0;
+  padding:0;
+  border:0 !important;
+  border-radius:0;
+  outline:0;
+  box-shadow:none !important;
+  background:transparent !important;
+  background-color:transparent !important;
+  color:#eaf3ff !important;
+  -webkit-text-fill-color:#eaf3ff;
+  caret-color:#91c8ff;
+  font:500 12px/1.6 -apple-system,BlinkMacSystemFont,Inter,system-ui,sans-serif;
+  appearance:none;
+  -webkit-appearance:none;
+  resize:vertical;
+  overflow-x:hidden;
+  overflow-y:auto;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+  white-space:pre-wrap;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(151,181,236,.45) transparent;
+}
+.bfc-overlay .bfc-scene-editor .bfc-scene-editor__youtube-input textarea#bfc-youtube-url::placeholder {
+  color:#92accf !important;
+  -webkit-text-fill-color:#92accf;
+  opacity:1;
+}
+.bfc-overlay .bfc-scene-editor .bfc-scene-editor__youtube-input:focus-within {
+  border-color:#a5d8ff;
+  box-shadow:0 0 0 2px rgba(121,172,241,.20);
+}
+.bfc-overlay .bfc-scene-editor .bfc-scene-editor__youtube-input textarea#bfc-youtube-url:disabled {
+  opacity:.52;
+  cursor:not-allowed;
+}
 .bfc-scene-editor__playlist {
   display:grid;gap:7px;margin:12px 0 0;padding:0;max-height:224px;
   overflow:auto;list-style:none;scrollbar-width:thin;
