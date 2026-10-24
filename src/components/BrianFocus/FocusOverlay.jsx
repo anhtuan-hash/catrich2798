@@ -135,6 +135,12 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
         {motionEnabled ? <Pause size={15} aria-hidden="true" /> : <Waves size={15} aria-hidden="true" />}
         <span>{vi ? (motionEnabled ? 'Tạm dừng chuyển động' : 'Bật chuyển động') : (motionEnabled ? 'Pause motion' : 'Resume motion')}</span>
       </button>}
+      {!sceneEditorOpen && !effectsOpen ? <button type="button" className="bfc-focus-header__timer"
+        aria-label={vi ? 'Mở đồng hồ tập trung Pomodoro' : 'Open Focus timer'}
+        onClick={() => setActiveTool(value => value === 'timer' ? '' : 'timer')}>
+        <TimerReset size={17} aria-hidden="true"/>
+        <span>{vi ? 'Hẹn giờ' : 'Focus timer'}</span>
+      </button> : null}
       <button className="bfc-overlay__close" type="button" ref={dismissRef}
         aria-label={vi ? 'Đóng chế độ tập trung' : 'Close Focus mode'}
         onClick={onClose}>
@@ -142,12 +148,6 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
         <span>{vi ? 'Đóng' : 'Close'}</span>
         <kbd>Esc</kbd>
       </button>
-      {!sceneEditorOpen && !effectsOpen ? <button type="button" className="bfc-focus-header__timer"
-        aria-label={vi ? 'Mở đồng hồ tập trung Pomodoro' : 'Open Focus timer'}
-        onClick={() => setActiveTool(value => value === 'timer' ? '' : 'timer')}>
-        <TimerReset size={17} aria-hidden="true"/>
-        <span>{vi ? 'Hẹn giờ' : 'Focus timer'}</span>
-      </button> : null}
       </div>
       <div className="bfc-overlay__center">
         <HTCSenseClock language={language} weather={weather} onRefreshWeather={onRefreshWeather}/>
