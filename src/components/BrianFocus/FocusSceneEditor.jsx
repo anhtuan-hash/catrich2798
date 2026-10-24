@@ -1,9 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Check, CloudUpload, FileCode2, FileImage, Film, RotateCcw, ShieldCheck, X, Youtube, Link2 } from 'lucide-react';
+import { Check, CloudUpload, FileCode2, FileImage, Film, RotateCcw, ShieldCheck, X, Youtube, Link2, ArrowUp, ArrowDown, Trash2, ListVideo } from 'lucide-react';
 import {
   saveFocusScene, sandboxFocusHtml, resolveFocusSceneMedia, validateFocusFile,
 } from './focusSceneService.js';
-import { buildFocusYoutubeEmbedUrl, parseFocusYoutubeId, videoIdFromFocusPath } from './focusYoutube.js';
+import {
+  buildFocusYoutubeEmbedUrl, parseFocusYoutubePlaylist,
+  playlistIdsFromFocusPath, FOCUS_YOUTUBE_PLAYLIST_MAX,
+} from './focusYoutube.js';
 
 export default function FocusSceneEditor({ language = 'vi', currentUser, scene, onClose, onPublished }) {
   const vi = language !== 'en';
@@ -77,16 +80,17 @@ export default function FocusSceneEditor({ language = 'vi', currentUser, scene, 
     draft.mediaType !== 'default' && draft.mediaPath === scene.mediaPath ? publishedPreview : { src: '', html: '' }
   );
 
-  let youtubeId = '';
+  let youtubeIds = [];
+  let youtubeError = '';
   if (draft.mediaType === 'youtube') {
     try {
-      youtubeId = parseFocusYoutubeId(
-        draft.youtubeUrl || videoIdFromFocusPath(draft.mediaPath),
+      youtubeIds = parseFocusYoutubePlaylist(
+        draft.youtubeUrl || playlistIdsFromFocusPath(draft.mediaPath),
       );
-    } catch { /* invalid links are reported when publishing */ }
+    } catch (error) { youtubeError = error?.message || String(error); }
   }
-  const youtubePreviewUrl = youtubeId ? buildFocusYoutubeEmbedUrl(youtubeId, {
-    autoplay: false, controls: true,
+  const youtubePreviewUrl = youtubeIds.length ? buildFocusYoutubeEmbedUrl(youtubeIds[0], {
+    autoplay: false, controls: true, playlistIds: youtubeIds,
     origin: typeof window === 'undefined' ? '' : window.location.origin,
   }) : '';
   const chooseYoutube = url => {
@@ -95,6 +99,16 @@ export default function FocusSceneEditor({ language = 'vi', currentUser, scene, 
     setDraft(previous => ({
       ...previous, mediaType: 'youtube', mediaPath: '', youtubeUrl: url,
     }));
+  };
+  const changeYoutubeOrder = (mode, index) => {
+    const ids = [...youtubeIds];
+    if (mode === 'remove') ids.splice(index, 1);
+    else {
+      const other = mode === 'up' ? index - 1 : index + 1;
+      if (other < 0 || other >= ids.length) return;
+      [ids[index], ids[other]] = [ids[other], ids[index]];
+    }
+    chooseYoutube(ids.map(id => 'https://www.youtube.com/watch?v=' + id).join('\n'));
   };
 
   const label = draft.mediaType === 'image' ? (vi ? 'Ảnh' : 'Image')
@@ -157,27 +171,48 @@ export default function FocusSceneEditor({ language = 'vi', currentUser, scene, 
       <div className="bfc-scene-editor__youtube-field">
         <label htmlFor="bfc-youtube-url">
           <Youtube size={18} aria-hidden="true"/>
-          <strong>{vi ? 'Chèn video từ YouTube' : 'Embed a YouTube video'}</strong>
+          <strong>{vi ? 'Danh sách phát YouTube tự động' : 'Automatic YouTube playlist'}</strong>
         </label>
         <div className="bfc-scene-editor__youtube-input">
           <Link2 size={16} aria-hidden="true"/>
-          <input id="bfc-youtube-url" type="url"
+          <textarea id="bfc-youtube-url" rows={4}
             value={draft.mediaType === 'youtube' ? (draft.youtubeUrl || '') : ''}
             onChange={event => chooseYoutube(event.target.value)}
-            placeholder="https://www.youtube.com/watch?v=..."
-            disabled={busy}
-            autoComplete="off" spellCheck={false}
+            placeholder={['https://www.youtube.com/watch?v=VIDEO_ID_1',
+              'https://youtu.be/VIDEO_ID_2',
+              'https://www.youtube.com/watch?v=VIDEO_ID_3'].join('\n')}
+            disabled={busy} spellCheck={false}
+            aria-describedby="bfc-youtube-playlist-hint"
           />
         </div>
-        <small>{vi
-          ? 'Hỗ trợ youtube.com, youtu.be và YouTube Shorts. Dán liên kết rồi chọn Lưu & đồng bộ.'
-          : 'Supports youtube.com, youtu.be and Shorts. Paste a link, then Save & sync.'}</small>
-        {draft.mediaType === 'youtube' ? <span className={`bfc-scene-editor__youtube-status ${youtubeId ? 'is-valid' : 'is-invalid'}`}
-          role="status">
-          {youtubeId
-            ? <><Check size={14}/>{vi ? 'Liên kết hợp lệ · bấm phát để xem thử bên trên' : 'Valid link · play the preview above'}</>
-            : (vi ? 'Liên kết chưa hợp lệ hoặc chưa có mã video.' : 'Invalid YouTube link or missing video ID.')}
-        </span> : null}
+        <small id="bfc-youtube-playlist-hint">{vi
+          ? `Dán mỗi URL trên một dòng (tối đa ${FOCUS_YOUTUBE_PLAYLIST_MAX} video). Tự phát lần lượt theo thứ tự, chuyển bài khi kết thúc và lặp lại danh sách. Các link trùng sẽ được bỏ qua.`
+          : `Paste one URL per line (up to ${FOCUS_YOUTUBE_PLAYLIST_MAX} videos). Plays in order, advances on completion and repeats the playlist. Duplicates are removed.`}</small>
+        {draft.mediaType === 'youtube' ? <>
+          <span className={`bfc-scene-editor__youtube-status ${youtubeIds.length ? 'is-valid' : 'is-invalid'}`}
+            role="status">
+            {youtubeIds.length
+              ? <><ListVideo size={15}/>{vi ? `${youtubeIds.length} video hợp lệ · Sẵn sàng phát liên tục`
+                : `${youtubeIds.length} valid videos · Continuous playback ready`}</>
+              : (youtubeError || (vi ? 'Hãy dán liên kết YouTube.' : 'Paste YouTube links.'))}
+          </span>
+          {youtubeIds.length > 0 && <ol className="bfc-scene-editor__playlist" aria-label={vi?'Thứ tự phát':'Playlist order'}>
+            {youtubeIds.map((id,index)=><li key={id} className="bfc-scene-editor__playlist-item">
+              <span className="bfc-scene-editor__playlist-number">{index + 1}</span>
+              <a href={`https://www.youtube.com/watch?v=${id}`} target="_blank"
+                rel="noreferrer noopener" title={vi?'Mở trên YouTube':'Open on YouTube'}>
+                {id}</a>
+              <div className="bfc-scene-editor__playlist-actions">
+                <button type="button" disabled={busy||index===0} onClick={()=>changeYoutubeOrder('up',index)}
+                  aria-label={vi?`Đưa video ${index+1} lên`:`Move video ${index+1} up`}><ArrowUp size={14}/></button>
+                <button type="button" disabled={busy||index===youtubeIds.length-1} onClick={()=>changeYoutubeOrder('down',index)}
+                  aria-label={vi?`Đưa video ${index+1} xuống`:`Move video ${index+1} down`}><ArrowDown size={14}/></button>
+                <button type="button" disabled={busy} onClick={()=>changeYoutubeOrder('remove',index)}
+                  aria-label={vi?`Xóa video ${index+1}`:`Remove video ${index+1}`}><Trash2 size={14}/></button>
+              </div>
+            </li>)}
+          </ol>}
+        </> : null}
       </div>
       <p className="bfc-scene-editor__tip">{vi
         ? 'HTML nên là một tệp tự chứa. Nội dung chạy trong khung cách ly, không được truy cập tài khoản, mạng hoặc các trang khác.'
