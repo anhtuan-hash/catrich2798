@@ -1,0 +1,142 @@
+/* Brian Focus · cinematic two-way route-safe transition
+   The global Focus overlay is a body portal. Its exit must finish before React
+   unmounts it (BrianFocus.jsx waits 490ms; this CSS runs for 470ms).
+   No layout or style modifications leak to normal routes after Focus closes. */
+
+body #root {
+  transition: filter 430ms cubic-bezier(.18,.7,.25,1),
+              transform 500ms cubic-bezier(.18,.7,.25,1);
+  transform-origin: center center;
+}
+body.bfc-focus-session #root {
+  filter: blur(3px) brightness(.81) saturate(.84);
+  transform: scale(.986);
+}
+body.bfc-focus-session--closing #root {
+  filter: none;
+  transform: none;
+}
+
+/* Fallback for browsers that cannot clip a large viewport radius. */
+.bfc-overlay:not(.bfc-overlay--exiting) {
+  animation: bfc-focus-fade-in 600ms cubic-bezier(.19,.82,.24,1) both !important;
+}
+.bfc-overlay.bfc-overlay--exiting {
+  pointer-events: none !important;
+  animation: bfc-focus-fade-out 470ms cubic-bezier(.55,.05,.55,1) both !important;
+}
+@keyframes bfc-focus-fade-in {
+  0% { opacity: 0; transform: scale(1.022); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes bfc-focus-fade-out {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(.975); }
+}
+
+/* On modern browsers reveal / dismiss the Focus scene from its FAB's corner.
+   Use 170vmax to guarantee the diagonal of even ultrawide viewports is covered. */
+@supports (clip-path: circle(100px at 50% 50%)) {
+  .bfc-overlay:not(.bfc-overlay--exiting):not(.bfc-overlay--low-motion) {
+    animation: bfc-focus-reveal 680ms cubic-bezier(.16,.72,.2,1) both !important;
+  }
+  .bfc-overlay.bfc-overlay--exiting:not(.bfc-overlay--low-motion) {
+    animation: bfc-focus-dismiss 470ms cubic-bezier(.55,.02,.65,.28) both !important;
+  }
+  @keyframes bfc-focus-reveal {
+    0% {
+      opacity: .35;
+      clip-path: circle(0px at calc(100% - 55px) calc(100% - 170px));
+    }
+    14% { opacity: 1; }
+    100% {
+      opacity: 1;
+      clip-path: circle(170vmax at calc(100% - 55px) calc(100% - 170px));
+    }
+  }
+  @keyframes bfc-focus-dismiss {
+    0% {
+      opacity: 1;
+      clip-path: circle(170vmax at calc(100% - 55px) calc(100% - 170px));
+    }
+    84% { opacity: 1; }
+    100% {
+      opacity: 0;
+      clip-path: circle(0px at calc(100% - 55px) calc(100% - 170px));
+    }
+  }
+}
+
+/* Layered timing: HTC split-flap clock and weather float into the scene.
+   No change to the clock's per-minute digit flip animations. */
+.bfc-overlay:not(.bfc-overlay--exiting) .bfc-overlay__center {
+  animation: bfc-focus-center-in 780ms cubic-bezier(.14,.74,.23,1) both !important;
+}
+.bfc-overlay:not(.bfc-overlay--exiting) .bfc-overlay__identity {
+  animation: bfc-focus-header-in 640ms 130ms cubic-bezier(.2,.72,.2,1) both !important;
+}
+.bfc-overlay:not(.bfc-overlay--exiting) .bfc-overlay__bottom {
+  animation: bfc-focus-footer-in 760ms 230ms cubic-bezier(.2,.72,.2,1) both !important;
+}
+.bfc-overlay--exiting .bfc-overlay__center {
+  animation: bfc-focus-center-out 350ms cubic-bezier(.4,0,.75,.5) both !important;
+}
+.bfc-overlay--exiting .bfc-overlay__identity,
+.bfc-overlay--exiting .bfc-overlay__bottom,
+.bfc-overlay--exiting :is(.bfc-overlay__edit,.bfc-overlay__close,.bfc-overlay__motion) {
+  animation: bfc-focus-header-out 260ms ease-in both !important;
+}
+@keyframes bfc-focus-center-in {
+  from { opacity: 0; transform: translateY(25px) scale(.955); filter: blur(6px); }
+  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+@keyframes bfc-focus-header-in {
+  from { opacity: 0; transform: translateY(-13px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes bfc-focus-footer-in {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes bfc-focus-center-out {
+  from { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  to { opacity: 0; transform: translateY(-16px) scale(.967); filter: blur(5px); }
+}
+@keyframes bfc-focus-header-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* A lightweight crossfade is enough on low-power devices. */
+.bfc-overlay--low-motion:not(.bfc-overlay--exiting) {
+  animation: bfc-focus-fade-in 190ms ease-out both !important;
+}
+.bfc-overlay--low-motion.bfc-overlay--exiting {
+  animation: none !important;
+}
+.bfc-overlay--low-motion :is(.bfc-overlay__center,.bfc-overlay__identity,.bfc-overlay__bottom) {
+  animation: none !important;
+}
+
+/* Reduced motion is always authoritative, including the underlay. */
+@media (prefers-reduced-motion: reduce) {
+  body #root,
+  body.bfc-focus-session #root,
+  body.bfc-focus-session--closing #root {
+    transition: none !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  .bfc-overlay,
+  .bfc-overlay:not(.bfc-overlay--exiting),
+  .bfc-overlay.bfc-overlay--exiting,
+  .bfc-overlay :is(.bfc-overlay__center,.bfc-overlay__identity,.bfc-overlay__bottom) {
+    animation: none !important;
+    clip-path: none !important;
+    filter: none !important;
+  }
+}
+@media (forced-colors: active) {
+  body.bfc-focus-session #root { filter: none !important; transform: none !important; }
+  .bfc-overlay { clip-path: none !important; }
+}
