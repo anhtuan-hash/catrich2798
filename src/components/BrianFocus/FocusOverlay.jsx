@@ -4,6 +4,7 @@ import { X, Waves, Pause, ImagePlus } from 'lucide-react';
 import HTCSenseClock from './HTCSenseClock.jsx';
 import CosmicAmbient from './CosmicAmbient.jsx';
 import FocusSceneBackground from './FocusSceneBackground.jsx';
+import FocusYoutubeBackground from './FocusYoutubeBackground.jsx';
 import FocusSceneEditor from './FocusSceneEditor.jsx';
 import { canEditFocusScene } from './focusSceneService.js';
 
@@ -82,7 +83,11 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
       aria-owns="bfc-focus-trigger"
       ref={dialogRef}
       onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
-      {scene.mediaType === 'default' ? <CosmicAmbient motionEnabled={motionEnabled} /> : <FocusSceneBackground scene={scene} language={language} motionEnabled={motionEnabled} />}
+      {scene.mediaType === 'default'
+        ? <CosmicAmbient motionEnabled={motionEnabled} />
+        : scene.mediaType === 'youtube'
+          ? <FocusYoutubeBackground scene={scene} language={language} />
+          : <FocusSceneBackground scene={scene} language={language} motionEnabled={motionEnabled} />}
       <div className="bfc-overlay__identity" aria-hidden="true">
         <span className="bfc-overlay__identity-mark">B<span>✦</span></span>
         <span className="bfc-overlay__identity-copy">BRIAN <strong>FOCUS</strong><small>{vi ? 'KHÔNG GIAN TẬP TRUNG' : 'IMMERSIVE SPACE'}</small></span>
