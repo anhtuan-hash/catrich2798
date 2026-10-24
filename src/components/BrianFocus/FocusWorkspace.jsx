@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   BellOff, Check, ChevronRight, ClipboardPenLine, CloudRain, Headphones,
   Moon, Pause, Play, SlidersHorizontal, Sparkles, Sun, TimerReset,
-  Volume2, X, Waves,
+  Volume2, X, Waves, MoreHorizontal,
 } from 'lucide-react';
 import useFocusTimer, { FOCUS_TIMER_PRESETS } from './useFocusTimer.js';
 import useFocusSoundscape, { FOCUS_SOUNDS, FOCUS_SOUND_LABELS } from './useFocusSoundscape.js';
@@ -56,7 +56,7 @@ export default function FocusWorkspace({
   const [customMinutes, setCustomMinutes] = useState(30);
   const [timerFinished, setTimerFinished] = useState(false);
   const [soundError, setSoundError] = useState('');
-  const [quickExpanded, setQuickExpanded] = useState(true);
+  const [quickExpanded, setQuickExpanded] = useState(false);
   const onTimerComplete = useCallback(() => {
     setTimerFinished(true);
     focusChime();
@@ -103,14 +103,21 @@ export default function FocusWorkspace({
       {TOOL_META.map(({ id, Icon, vi: vLabel, en }) => (
         <button type="button" key={id} className={activeTool === id ? 'is-active' : ''}
           aria-pressed={activeTool === id} aria-label={vi ? vLabel : en}
-          onClick={() => changePanel(id)} title={vi ? vLabel : en}>
+          onClick={() => {setQuickExpanded(false);changePanel(id);}} title={vi ? vLabel : en}>
           <span className="bfc-utility-dock__icon"><Icon size={22} strokeWidth={1.7}/></span>
           <span className="bfc-utility-dock__label">{vi ? vLabel : en}</span>
         </button>
       ))}
+      <button type="button" className={quickExpanded ? 'is-active' : ''}
+        aria-expanded={quickExpanded} aria-label={vi ? 'Mở tiện ích khác' : 'More quick tools'}
+        onClick={() => {onChangeTool?.('');setQuickExpanded(value => !value);}}
+        title={vi ? 'Thêm tiện ích' : 'More tools'}>
+        <span className="bfc-utility-dock__icon"><MoreHorizontal size={22} strokeWidth={1.7}/></span>
+        <span className="bfc-utility-dock__label">{vi ? 'Thêm' : 'More'}</span>
+      </button>
     </nav>
 
-    <div className={'bfc-quick-tools' + (quickExpanded && !prefs.dnd ? ' is-expanded' : ' is-collapsed')}>
+    {quickExpanded && <div className={'bfc-quick-tools' + (!prefs.dnd ? ' is-expanded' : ' is-collapsed')}>
       <button type="button" className="bfc-quick-tools__title"
         aria-expanded={quickExpanded && !prefs.dnd} onClick={() => setQuickExpanded(value => !value)}>
         <Sparkles size={15}/>
@@ -138,7 +145,7 @@ export default function FocusWorkspace({
         <BellOff size={14}/>{prefs.dnd ? (vi ? 'Đang bật yên tĩnh · Tắt' : 'Quiet mode on · Disable') :
           (vi ? 'Mở tiện ích' : 'Show tools')}
       </button>}
-    </div>
+    </div>}
 
     {activeTool && selectedTool && <section className="bfc-tool-panel"
       role="region" aria-label={vi ? selectedTool.vi : selectedTool.en}>
