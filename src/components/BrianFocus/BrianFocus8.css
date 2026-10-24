@@ -15,6 +15,19 @@
  transform:translate3d(var(--bfc8-depth-x,0px),var(--bfc8-depth-y,0px),0);
  will-change:transform;transition:transform .2s ease-out;
 }
+/* Weather and active timer are independent Freeform widgets only when opted in. */
+.bfc-overlay.bfc-atelier .bfc8-external-weather,
+.bfc-overlay.bfc-atelier .bfc8-external-timer{
+ position:fixed;z-index:7;transform:translate(-50%,-50%);
+ pointer-events:auto;
+}
+.bfc-overlay.bfc-atelier .bfc8-external-weather{left:var(--bfc8-weather-x,50%);top:var(--bfc8-weather-y,68%);}
+.bfc-overlay.bfc-atelier .bfc8-external-timer{
+ left:var(--bfc8-timer-x,50%);top:var(--bfc8-timer-y,82%);
+ font:600 clamp(19px,2vw,26px) "Google Sans",system-ui,sans-serif;color:#fff;
+ text-shadow:0 3px 22px rgba(0,0,0,.58);font-variant-numeric:tabular-nums;
+}
+.bfc-overlay.bfc-atelier.bfc7-classroom .bfc8-external-weather{display:none!important;}
 /* Custom positioning is opt-in. Users upgrading keep their V7 layout. */
 .bfc-overlay.bfc-atelier.bfc8-layout-active .bfc-overlay__center{
  position:fixed!important;left:var(--bfc8-clock-x,50%)!important;
