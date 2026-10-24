@@ -596,6 +596,12 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
               <span className="gbmac-art-chip is-peach"><BarChart3 size={23}/></span>
             </div>}
       </div>
+      {canEditGradebookHero ? <button type="button" className="gbmac-hero-edit"
+        onClick={()=>setGradebookHeroEditorOpen(true)}
+        title={vi ? 'Chỉnh sửa hình nền Sổ điểm' : 'Customize Gradebook background'}
+        aria-label={vi ? 'Chỉnh sửa hình nền Sổ điểm' : 'Customize Gradebook background'}>
+        <Pencil size={15} aria-hidden="true"/>
+      </button> : null}
       <div className="gbmac-hero-content">
         <div className="gbmac-shell-head">
           <div className="gbmac-shell-identity">
@@ -614,12 +620,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
               </div>
             </div>
           </div>
-          {canEditGradebookHero ? <button type="button" className="gbmac-hero-edit"
-            onClick={()=>setGradebookHeroEditorOpen(true)}
-            title={vi ? 'Chỉnh sửa hình nền Sổ điểm' : 'Customize Gradebook background'}
-            aria-label={vi ? 'Chỉnh sửa hình nền Sổ điểm' : 'Customize Gradebook background'}>
-            <Pencil size={16} aria-hidden="true"/>
-          </button> : null}
+
         </div>
         <div className="gbmac-hero-divider" aria-hidden="true" />
         <div className="gbmac-shell-selectors" role="group" aria-label={vi ? 'Chọn lớp và học kỳ' : 'Select class and semester'}>
