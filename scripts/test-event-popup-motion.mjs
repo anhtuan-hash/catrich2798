@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { EVENT_ENTER_CHOICES, EVENT_EXIT_CHOICES, EVENT_SPEED_CHOICES,
-  normalizeEventPopupMotion, eventPopupMotionDuration } from '../src/features/events/utils/eventPopupMotion.mjs';
+  normalizeEventPopupMotion, eventPopupMotionDuration, eventPopupMotionFrames, playEventPopupMotion } from '../src/features/events/utils/eventPopupMotion.mjs';
 
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const config=read('src/utils/globalMotionSystem.js');
@@ -45,19 +45,42 @@ check('popup listens to published motion config and is independent of generic mo
   host.includes('GLOBAL_MOTION_EVENT') &&
   host.includes("getGlobalMotionConfig().eventPopup") &&
   host.includes('data-global-motion-isolate="true"'));
-check('closing animation completes before modal unmount and receipt is recorded first',
+check('real popup animates entrance and exit with shared native timeline',
   host.includes("await recordEventInteraction(event,userId,action)") &&
-  host.includes('setClosing(true)') &&
-  host.includes('window.setTimeout(resolve,duration+20)') &&
-  host.indexOf('setClosing(true)') < host.indexOf('setEvent(null)') &&
-  host.includes('loadingAction||closing'));
+  host.includes("playEventPopupMotion(dialogRef.current,eventMotion,'enter')") &&
+  host.includes("playEventPopupMotion(dialogRef.current,eventMotion,'exit')") &&
+  host.includes('await leaving.finished') &&
+  host.indexOf('await leaving.finished') < host.indexOf('setEvent(null)') &&
+  host.includes('loadingAction||closing') &&
+  host.includes('data-event-driven="true"'));
 check('all entry and exit effects have matching keyframes and are scoped to event portal',
   ['Rise','Scale','Slide','Flip','Fade'].every(v=>style.includes('beEventEnter'+v)) &&
   ['Shrink','Fade','Slide','Flip'].every(v=>style.includes('beEventExit'+v)) &&
   style.includes('.be-pop-overlay.is-leaving') &&
   style.includes('.be-pop-preview-stage.is-leaving'));
-check('reduce-motion accessibility and controlled exit duration are implemented',
+check('preview always runs same native timeline as live event and supports full-size popup',
+  panel.includes("playEventPopupMotion(card,nextMotion,current)") &&
+  panel.includes("playEventPopupMotion(dialogRef.current,motion,'enter')") &&
+  panel.includes("playEventPopupMotion(dialogRef.current,motion,'exit')") &&
+  panel.includes('ActualEventPreview') &&
+  panel.includes("replay('both')") &&
+  panel.includes("replay('enter')") &&
+  panel.includes("replay('exit')") &&
+  panel.includes('IntersectionObserver'));
+check('reduced motion and CSS isolation do not break native animation runtime',
   style.includes('prefers-reduced-motion: reduce') &&
-  host.includes("matchMedia?.('(prefers-reduced-motion: reduce)')") &&
-  host.includes("eventPopupMotionDuration(eventMotion,'exit',reduced)"));
+  style.includes('[data-event-driven="true"]') &&
+  style.includes('animation: none !important') &&
+  eventPopupMotionDuration({},'enter',true) === 0);
+for(const {id} of EVENT_ENTER_CHOICES) {
+  const frames=eventPopupMotionFrames({enter:id},'enter');
+  assert.equal(id==='none'?frames.length===0:frames.length===2,true);
+}
+for(const {id} of EVENT_EXIT_CHOICES) {
+  const frames=eventPopupMotionFrames({exit:id},'exit');
+  assert.equal(id==='none'?frames.length===0:frames.length===2,true);
+}
+const nothing=playEventPopupMotion(null,{},'enter');
+assert.equal(nothing.duration,0);
+await nothing.finished;
 console.log('PASS: Event announcement motion, Admin-only saved config, bidirectional exit, accessibility.');
