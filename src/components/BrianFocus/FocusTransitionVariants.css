@@ -82,7 +82,9 @@
 .bfc-overlay--entry-lite.bfc-overlay--exiting {animation:none!important;}
 @media(prefers-reduced-motion:reduce){
  .bfc-overlay[data-focus-enter],.bfc-overlay[data-focus-exit],
- .bfc-overlay[data-focus-exit].bfc-overlay--exiting {animation:none!important;transform:none!important;clip-path:none!important;filter:none!important;opacity:1!important;}
+ .bfc-overlay[data-focus-exit].bfc-overlay--exiting {animation:none!important;transform:none!important;clip-path:none!important;filter:none!important;}
+ /* Do not force opacity:1 here: it would suppress the new WAAPI 210ms fade
+    when macOS Reduce Motion or the app's lightweight mode is enabled. */
  .bfc-effect-gallery__demo[data-demo-effect]:not([data-preview-override="true"]) {animation:none!important;transform:none!important;clip-path:none!important;filter:none!important;opacity:1!important;}
 }
 @media(forced-colors:active){
