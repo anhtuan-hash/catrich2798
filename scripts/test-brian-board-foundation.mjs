@@ -49,6 +49,12 @@ globalThis.indexedDB={
         records.set(value.key,value);
         queueMicrotask(()=>tx.oncomplete?.());
        },
+       getAll:()=>{
+        const req={result:null,onerror:null,onsuccess:null};
+        queueMicrotask(()=>{req.result=[...records.values()];req.onsuccess?.();});
+        return req;
+       },
+       delete:key=>{records.delete(key);queueMicrotask(()=>tx.oncomplete?.());},
       }),
      };
      return tx;
@@ -66,6 +72,16 @@ const original=await readBoardDraft('teacher-abc');
 const other=await readBoardDraft('teacher-def');
 assert.equal(original.pages[0].objects.length,1);
 assert.equal(other.pages[0].objects.length,0);
+const storage=await import('../src/components/BrianBoard/boardStorage.js');
+const listedA=await storage.listBoardLessons('teacher-abc'),listedB=await storage.listBoardLessons('teacher-def');
+assert.equal(listedA.length,1);assert.equal(listedB.length,1);
+assert.equal(listedA[0].id,original.id);
+assert.equal((await storage.readBoardLesson('teacher-abc',original.id)).id,original.id);
+assert.equal(await storage.readBoardLesson('teacher-def',original.id),null);
+await storage.deleteBoardLesson('teacher-abc',original.id);
+assert.equal((await storage.listBoardLessons('teacher-abc')).length,0);
+assert.equal((await storage.listBoardLessons('teacher-def')).length,1);
+
 await assert.rejects(()=>saveBoardDraft('teacher-def',changed),/Owner mismatch/);
 const body=read('BrianBoard.jsx'),canvas=read('BoardCanvas.jsx'),css=read('BrianBoard.css');
 const app=readFileSync(new URL('../src/main.jsx',import.meta.url),'utf8');
