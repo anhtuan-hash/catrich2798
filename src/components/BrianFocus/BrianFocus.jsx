@@ -7,7 +7,7 @@ import './BrianFocus.css';
 import './BrianFocusCosmic.css';
 
 /** One global Focus trigger and overlay; the underlying app route stays mounted. */
-export default function BrianFocus({ language = 'vi' }) {
+export default function BrianFocus({ language = 'vi', performance = 'balanced' }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef(null);
   const { weather, refresh } = useFocusWeather(open);
@@ -22,7 +22,7 @@ export default function BrianFocus({ language = 'vi' }) {
       {open ? (
         <FocusOverlay language={language} weather={weather}
           onRefreshWeather={refresh} onClose={() => setOpen(false)}
-          returnFocusRef={triggerRef} />
+          returnFocusRef={triggerRef} performance={performance} />
       ) : null}
     </>
   );
