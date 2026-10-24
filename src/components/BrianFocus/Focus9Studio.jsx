@@ -170,8 +170,8 @@ export default function Focus9Studio({
    <p>{vi?'Xem lại sự kiện, không tua lại hoặc thay đổi phiên hiện tại.':'Review events without rewinding or modifying active playback.'}</p>
    <div className="bfc9-actions"><select value={filter} onChange={e=>setFilter(e.target.value)}>
     {['all','open','close','timer','stage','snapshot','capture','network'].map(x=><option key={x}>{x}</option>)}</select>
-    <button onClick={()=>saveDownload('focus9-timeline.csv','\uFEFF'+csv,'text/csv;charset=utf-8')}>CSV</button>
-    <button onClick={()=>saveDownload('focus9-timeline.json',JSON.stringify(timeline,null,2))}>JSON</button></div>
+    <button onClick={()=>saveDownload('brian-focus-timeline.csv','\uFEFF'+csv,'text/csv;charset=utf-8')}>CSV</button>
+    <button onClick={()=>saveDownload('brian-focus-timeline.json',JSON.stringify(timeline,null,2))}>JSON</button></div>
    {timeline.slice(0,100).map(x=><div key={x.id} className="bfc9-item"><small>{new Date(x.at).toLocaleString()}</small><strong>{x.type} · {x.label}</strong></div>)}
   </div>}
   {tab==='offline'&&<div className="bfc9-stack"><h3>Offline-Ready & Reconnect Shield</h3>
