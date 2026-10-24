@@ -36,7 +36,7 @@ function FocusSeconds() {
   return <span className="bfc-clock-seconds" aria-label={'Seconds ' + second}>{String(second).padStart(2, '0')}</span>;
 }
 
-export default function HTCSenseClock({ language = 'vi', weather, onRefreshWeather, mode = 'sense', scale = 100, hour12 = false, showSeconds = false, clock7=null }) {
+export default function HTCSenseClock({ language = 'vi', weather, onRefreshWeather, mode = 'sense', scale = 100, hour12 = false, showSeconds = false, clock7=null, showWeather = true }) {
   const vi = language !== 'en';
   const { hours, minutes, dateLabel } = useFocusClock(language);
   const shownHours = hour12 ? String(Number(hours)%12||12).padStart(2,'0') : hours;
@@ -53,7 +53,7 @@ export default function HTCSenseClock({ language = 'vi', weather, onRefreshWeath
         <span>{shownHours}</span><span className="bfc-clock-minimal__colon">:</span><span>{minutes}</span>
       </div>
       <div className="bfc-clock-minimal__date">{dateLabel}{showSeconds && <span className="bfc6-seconds"> · <FocusSeconds/></span>}{hour12 && <span className="bfc6-ampm"> {Number(hours)<12?'AM':'PM'}</span>}</div>
-      <FocusWeather compact weather={weather} language={language} onRefresh={onRefreshWeather}/>
+      {showWeather&&<FocusWeather compact weather={weather} language={language} onRefresh={onRefreshWeather}/>}
     </section>
   );
 
@@ -82,7 +82,7 @@ export default function HTCSenseClock({ language = 'vi', weather, onRefreshWeath
         {showSeconds && <span className="bfc6-seconds"><FocusSeconds/></span>}{hour12 && <span className="bfc6-ampm">{Number(hours)<12?'AM':'PM'}</span>}
       </div>
       <div className="bfc-clock-card__rule" aria-hidden="true"/>
-      <FocusWeather compact weather={weather} language={language} onRefresh={onRefreshWeather}/>
+      {showWeather&&<FocusWeather compact weather={weather} language={language} onRefresh={onRefreshWeather}/>}
       <p className="bfc-clock-card__hint">{vi ? 'Một khoảnh khắc bình yên để tập trung.' : 'A quieter moment to focus.'}</p>
       <div className="bfc-clock-card__accent" aria-hidden="true"/>
       <div className="bfc-clock-card__breathing-guide" aria-hidden="true">
