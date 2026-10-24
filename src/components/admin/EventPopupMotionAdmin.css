@@ -62,3 +62,53 @@
 @media(prefers-reduced-motion:reduce) {
  .be-pop-preview-stage .be-pop-preview-card {animation:none!important}
 }
+
+
+/* Admin preview controls — shared animation timeline is driven by WAAPI. */
+.be-event-motion-settings__buttons {display:flex;flex-wrap:wrap;gap:8px}
+.be-event-motion-settings__buttons button {
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  min-height:42px;border-radius:12px;cursor:pointer;padding:9px 13px;
+  font-size:12px;font-weight:800;font-family:inherit;
+}
+.be-event-motion-settings__replay {flex:1 1 185px}
+.be-event-motion-settings__secondary {
+  border:1px solid #d3e0f4;background:#fff;color:#48658b;
+}
+.be-event-motion-settings__secondary:hover {background:#f0f6ff}
+.be-event-motion-settings__actual {
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  padding:11px 16px;min-height:44px;border-radius:12px;
+  border:1px solid #2d63cf;background:linear-gradient(115deg,#3173e9,#574ace);
+  color:#fff;font-size:13px;font-weight:850;font-family:inherit;cursor:pointer;
+  box-shadow:0 7px 20px rgba(49,93,202,.18);
+}
+.be-event-motion-settings__actual:hover {filter:brightness(1.06)}
+.be-event-motion-settings__phase {
+  position:absolute;top:15px;left:18px;
+  display:inline-flex;align-items:center;gap:8px;
+  padding:7px 11px;border-radius:999px;
+  border:1px solid #c9d8f5;background:rgba(255,255,255,.75);
+  color:#345b98;font-size:10px;font-weight:850;letter-spacing:.025em;
+}
+.be-event-motion-settings__phase-dot {
+  width:8px;height:8px;border-radius:100%;background:#a1afc6;
+}
+.be-event-motion-settings__phase-dot.opening {background:#2389e4;box-shadow:0 0 0 4px rgba(45,119,238,.13)}
+.be-event-motion-settings__phase-dot.holding {background:#31a981}
+.be-event-motion-settings__phase-dot.closing {background:#db8a44;box-shadow:0 0 0 4px rgba(218,136,55,.13)}
+.be-event-motion-settings__phase-dot.finished {background:#6d66c7}
+.be-pop-preview-stage[data-event-driven="true"] .be-pop-preview-card {
+  transform-origin:center 45%;backface-visibility:hidden;
+}
+.be-pop-preview-stage[data-preview-phase="opening"] {
+  box-shadow:inset 0 0 0 2px rgba(58,122,239,.2);
+}
+.be-pop-preview-stage[data-preview-phase="closing"] {
+  box-shadow:inset 0 0 0 2px rgba(211,119,78,.24);
+}
+.be-event-motion-settings__caption {margin-top:12px;text-align:center}
+@media(max-width:500px) {
+  .be-event-motion-settings__buttons button {flex:1 1 45%}
+  .be-event-motion-settings__actual {width:100%}
+}
