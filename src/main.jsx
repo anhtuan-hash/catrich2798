@@ -115,6 +115,7 @@ const ContentTransferHub = lazy(() => import('./components/ContentTransferHub.js
 const TransferInboxBanner = lazy(() => import('./components/TransferInboxBanner.jsx'));
 const SyncQueueIndicator = lazy(() => import('./components/SyncQueueIndicator.jsx'));
 const WorkDashboard = lazy(() => import('./pages/WorkDashboard.jsx'));
+const BrianFocus = lazy(() => import('./components/BrianFocus/BrianFocus.jsx'));
 const StudentSupportCenter = lazy(() => import('./pages/StudentSupportCenter.jsx'));
 const KnowledgeHub = lazy(() => import('./pages/KnowledgeHub.jsx'));
 const PlatformReadiness = lazy(() => import('./pages/PlatformReadiness.jsx'));
@@ -534,6 +535,14 @@ function App() {
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="shared-chatbot-drawer" label={language === 'vi' ? 'chatbot dùng chung' : 'shared chatbot'}>
               <SharedChatbotDrawer currentUser={currentUser} language={language} />
+            </AppErrorBoundary>
+          </Suspense>
+        ) : null}
+
+        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'quest-join'].includes(currentRoute) ? (
+          <Suspense fallback={null}>
+            <AppErrorBoundary compact scope="global-brian-focus" label="Brian Focus">
+              <BrianFocus language={language} />
             </AppErrorBoundary>
           </Suspense>
         ) : null}
