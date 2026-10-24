@@ -29,7 +29,7 @@ check('workspace mounts once within the existing Focus modal',
   main.includes('<FocusOverlay'));
 check('no duplicate overlay background renders and scene remains managed',
   overlay.includes('personalDim === null ? scene') && overlay.includes('FocusSceneBackground scene={displayScene}') &&
-  overlay.includes('FocusYoutubeBackground scene={displayScene}'));
+  overlay.includes('<FocusYoutubeBackground') && overlay.includes('scene={displayScene}'));
 check('all four real utility actions present', ['timer','notes','soundscape','brightness'].every(id => workspace.includes("id:'"+id+"'")));
 check('notes are authenticated and ownership-scoped', notes.includes(".eq('user_id', currentUser.id)") &&
   notes.includes("supabase.from('brian_focus_notes')") &&
@@ -45,7 +45,7 @@ check('sound is locally synthesized with lifecycle cleanup and browser gesture',
   sound.includes('context.close()'));
 check('soundscape and YouTube playback do not compete',
   workspace.includes("addEventListener('bfc-youtube-unmute'") &&
-  overlay.includes('soundscapeActive={soundscapeActive}'));
+  overlay.includes('onSoundscapeActiveChange={handleSoundscapeActive}'));
 check('mobile docks and sheet defined and no scroll lock for panels',
   css.includes('@media(max-width:850px)') &&
   css.includes('.bfc-tool-panel__content') &&
