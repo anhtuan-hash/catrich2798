@@ -28,9 +28,11 @@ function createLayer(ctx,destination,type,level) {
   filter.frequency.value=({white:11000,rain:470,ocean:430,wind:500,forest:1650})[type];
   if(type==='wind')filter.Q.value=.55;
   const gain=ctx.createGain();gain.gain.value=clamp(level)/100;
-  source.connect(filter).connect(gain).connect(destination);
+  const pan=typeof ctx.createStereoPanner==='function'?ctx.createStereoPanner():null;
+  if(pan){source.connect(filter).connect(gain).connect(pan).connect(destination);}
+  else {source.connect(filter).connect(gain).connect(destination);}
   source.start();
-  return {gain,source};
+  return {gain,source,pan};
 }
 /** One user-driven AudioContext with independent local-only procedural layers. */
 export default function useFocusSoundMixer(userId) {
@@ -38,6 +40,7 @@ export default function useFocusSoundMixer(userId) {
   const [loadedOwner,setLoadedOwner]=useState(userId);
   const [playing,setPlaying]=useState(false);
   const [error,setError]=useState('');
+  const [pans,setPans]=useState({white:0,rain:0,ocean:0,wind:0,forest:0});
   const engine=useRef(null);
   useEffect(()=>{setConfig(load(userId));setLoadedOwner(userId);},[userId]);
   useEffect(()=>{
@@ -61,7 +64,11 @@ export default function useFocusSoundMixer(userId) {
       const masterGain=ctx.createGain();masterGain.gain.value=clamp(config.master)/100*.34;
       masterGain.connect(ctx.destination);
       const layers=new Map();
-      for(const type of FOCUS_SOUNDS)layers.set(type,createLayer(ctx,masterGain,type,config.levels[type]));
+      for(const type of FOCUS_SOUNDS){
+        const layer=createLayer(ctx,masterGain,type,config.levels[type]);
+        if(layer.pan)layer.pan.pan.value=(pans[type]||0)/100;
+        layers.set(type,layer);
+      }
       engine.current={ctx,masterGain,layers};
       await ctx.resume();
       setPlaying(true);setError('');
@@ -79,6 +86,18 @@ export default function useFocusSoundMixer(userId) {
     setConfig(old=>({...old,master}));
     if(engine.current)engine.current.masterGain.gain.setTargetAtTime(master/100*.34,engine.current.ctx.currentTime,.05);
   };
+  const setPan=(type,value)=>{
+    if(!FOCUS_SOUNDS.includes(type))return;
+    const pan=Math.min(100,Math.max(-100,Number(value)||0));
+    setPans(old=>({...old,[type]:pan}));
+    const layer=engine.current?.layers.get(type);
+    if(layer?.pan)layer.pan.pan.setTargetAtTime(pan/100,engine.current.ctx.currentTime,.05);
+  };
+  const loadRecipe=recipe=>{
+    if(!recipe?.levels)return;
+    for(const type of FOCUS_SOUNDS){setLevel(type,recipe.levels[type]??0);setPan(type,recipe.pans?.[type]??0);}
+    setMaster(recipe.master??35);
+  };
   const toggleLayer=async type=>{
     if(!FOCUS_SOUNDS.includes(type))return;
     const level=config.levels[type];
@@ -94,5 +113,5 @@ export default function useFocusSoundMixer(userId) {
     if(prior){prior.layers.forEach(({source})=>{try{source.stop()}catch{}});prior.ctx.close().catch(()=>{});}
   },[]);
   useEffect(()=>{void stop();},[userId]);
-  return { ...config, playing, error, start, stop, setLevel, setMaster, toggleLayer };
+  return { ...config, pans, playing, error, start, stop, setLevel, setPan, setMaster, toggleLayer, loadRecipe };
 }
