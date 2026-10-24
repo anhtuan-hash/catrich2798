@@ -101,6 +101,9 @@ export default function FocusWorkspace({
     } catch (error) { setSoundError(error?.message || (vi ? 'Không phát được âm thanh.' : 'Audio unavailable.')); }
   };
   const selectedTool = TOOL_META.find(tool => tool.id === activeTool);
+  useEffect(() => {
+    if (!timer.timer.running && timer.timer.remainingMs === 0) setTimerFinished(true);
+  }, [timer.timer.running, timer.timer.remainingMs]);
   const progress = 1 - (timer.remainingMs / (timer.timer.minutes * 60_000) || 0);
   return <>
     <nav className="bfc-utility-dock" aria-label={vi ? 'Tiện ích Focus' : 'Focus utilities'}>
@@ -168,6 +171,7 @@ export default function FocusWorkspace({
             {[
               ['pomodoro',vi ? 'Tập trung' : 'Focus'],
               ['short',vi ? 'Nghỉ ngắn' : 'Short break'],
+              ['recovery',vi ? 'Nghỉ 10 phút' : '10-min recovery'],
               ['long',vi ? 'Nghỉ dài' : 'Long break'],
               ['deep',vi ? 'Chuyên sâu' : 'Deep work'],
             ].map(([id,label]) => <button type="button" key={id}
