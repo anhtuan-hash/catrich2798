@@ -46,7 +46,7 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
   const [completionToken,setCompletionToken]=useState(0);
   const [videoDeadline,setVideoDeadline]=useState(0);
   const mediaScene=focus7.videoOverride
-    ? {...scene,mediaType:'youtube',mediaPath:'https://www.youtube.com/watch?v='+focus7.videoOverride}
+    ? {...scene,mediaType:'youtube',mediaPath:'youtube:'+focus7.videoOverride}
     : scene;
   const choosePersonalVideo=id=>{
     update7({videoOverride:id});
