@@ -52,7 +52,7 @@ export function buildFocusYoutubeEmbedUrl(videoId, {
   return url.toString();
 }
 
-const PLAYER_COMMANDS = new Set(['playVideo', 'pauseVideo', 'mute', 'unMute']);
+const PLAYER_COMMANDS = new Set(['playVideo', 'pauseVideo', 'stopVideo', 'mute', 'unMute']);
 export function commandFocusYoutubePlayer(iframe, command) {
   if (!iframe?.contentWindow || !PLAYER_COMMANDS.has(command)) return false;
   iframe.contentWindow.postMessage(JSON.stringify({
