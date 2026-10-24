@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { videoIdFromFocusPath } from './focusYoutube.js';
+import { parseFocusYoutubeId } from './focusYoutube.js';
 
 const STORE = 'bfc-living-atelier-v7:';
 const MOODS = ['auto','dawn','golden','rain','twilight','midnight','off'];
@@ -15,7 +15,7 @@ const defaults = () => ({
 });
 export function normalizeFocus7(value){
  const v=value&&typeof value==='object'?value:{};
- const safeId=x=>typeof x==='string' ? videoIdFromFocusPath(x) || '' : '';
+ const safeId=x=>{try{return parseFocusYoutubeId(x);}catch{return '';}};
  return {
   mood:MOODS.includes(v.mood)?v.mood:'auto',tint:clamp(v.tint,0,40,12),
   particle:PARTICLES.includes(v.particle)?v.particle:'off',density:clamp(v.density,5,100,35),
