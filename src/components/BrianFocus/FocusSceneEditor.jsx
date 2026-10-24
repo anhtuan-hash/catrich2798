@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Check, CloudUpload, FileCode2, FileImage, Film, RotateCcw, ShieldCheck, X, Youtube, Link2, ArrowUp, ArrowDown, Trash2, ListVideo } from 'lucide-react';
+import FocusPlaylistUrlInput from './FocusPlaylistUrlInput.jsx';
 import {
   saveFocusScene, sandboxFocusHtml, resolveFocusSceneMedia, validateFocusFile,
 } from './focusSceneService.js';
@@ -17,6 +18,7 @@ export default function FocusSceneEditor({ language = 'vi', currentUser, scene, 
   const [publishedPreview, setPublishedPreview] = useState({ src: '', html: '' });
   const [notice, setNotice] = useState('');
   const fileInput = useRef(null);
+  const youtubeInputControlRef = useRef(null);
 
   useEffect(() => {
     if (file || scene.mediaType === 'default') return undefined;
@@ -169,20 +171,22 @@ export default function FocusSceneEditor({ language = 'vi', currentUser, scene, 
       </button>
       {file ? <p className="bfc-scene-editor__selected"><Check size={14}/>{file.name}</p> : null}
       <div className="bfc-scene-editor__youtube-field">
-        <label htmlFor="bfc-youtube-url">
+        <label htmlFor="bfc-youtube-url"
+          onClick={() => youtubeInputControlRef.current?.focus()}>
           <Youtube size={18} aria-hidden="true"/>
           <strong>{vi ? 'Danh sách phát YouTube tự động' : 'Automatic YouTube playlist'}</strong>
         </label>
         <div className="bfc-scene-editor__youtube-input">
           <Link2 size={16} aria-hidden="true"/>
-          <textarea id="bfc-youtube-url" rows={4}
+          <FocusPlaylistUrlInput
+            controlRef={youtubeInputControlRef}
+            language={language}
             value={draft.mediaType === 'youtube' ? (draft.youtubeUrl || '') : ''}
-            onChange={event => chooseYoutube(event.target.value)}
+            onValueChange={chooseYoutube}
             placeholder={['https://www.youtube.com/watch?v=VIDEO_ID_1',
               'https://youtu.be/VIDEO_ID_2',
               'https://www.youtube.com/watch?v=VIDEO_ID_3'].join('\n')}
-            disabled={busy} spellCheck={false}
-            aria-describedby="bfc-youtube-playlist-hint"
+            disabled={busy}
           />
         </div>
         <small id="bfc-youtube-playlist-hint">{vi
