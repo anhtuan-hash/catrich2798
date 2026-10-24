@@ -18,7 +18,7 @@ function download(name,text,type='application/json'){
  const a=document.createElement('a');a.href=url;a.download=name;a.click();
  setTimeout(()=>URL.revokeObjectURL(url),2000);
 }
-export default function Focus8Studio({userId,language='vi',data,update,focus7,appearance,onAutomation,sessionEvents,scene,
+export default function Focus8Studio({userId,language='vi',data,update,focus7,update7,appearance,onAppearance,onAutomation,sessionEvents,scene,
  timer,flow,classroom,onClassroom,onCommand,onClose,onStageNext,mixer,remoteHost,initialTab='scene'}){
  const vi=language!=='en';
  const [tab,setTab]=useState(initialTab),[status,setStatus]=useState('');
@@ -37,7 +37,7 @@ export default function Focus8Studio({userId,language='vi',data,update,focus7,ap
  const moodChange=id=>onAutomation?.({action:'mood',value:id});
  const saveVault=async()=>{
    setVaultBusy(true);setStatus('');
-   try{const result=await saveFocus8Vault(userId,data);setCloudDate(result.updated_at);setStatus(vi?'Đã sao lưu lên tài khoản':'Cloud backup saved');}
+   try{const result=await saveFocus8Vault(userId,data,{focus7,appearance});setCloudDate(result.updated_at);setStatus(vi?'Đã sao lưu lên tài khoản':'Cloud backup saved');}
    catch(e){setStatus(e.message);}
    finally{setVaultBusy(false);}
  };
@@ -46,8 +46,8 @@ export default function Focus8Studio({userId,language='vi',data,update,focus7,ap
   try{
    const found=await loadFocus8Vault(userId);
    if(!found){setStatus(vi?'Chưa có bản sao lưu':'No cloud backup found');return;}
-   if(!window.confirm(vi?'Khôi phục sẽ thay thiết lập 8.0 hiện tại trên thiết bị này. Tiếp tục?':'Restore will replace local 8.0 settings. Continue?'))return;
-   update(normalizeFocus8(found.settings));setCloudDate(found.updatedAt);setStatus(vi?'Đã khôi phục từ Cloud':'Restored from cloud');
+   if(!window.confirm(vi?'Khôi phục sẽ thay cấu hình Focus 6/7/8 trên thiết bị này. Tiếp tục?':'Restore will replace local Focus 6/7/8 preferences. Continue?'))return;
+   update(normalizeFocus8(found.settings));if(found.focus7)update7?.(found.focus7);if(found.appearance)onAppearance?.(found.appearance);setCloudDate(found.updatedAt);setStatus(vi?'Đã khôi phục từ Cloud':'Restored from cloud');
   }catch(e){setStatus(e.message);}
   finally{setVaultBusy(false);}
  };
@@ -138,7 +138,7 @@ export default function Focus8Studio({userId,language='vi',data,update,focus7,ap
    <p>{vi?'Chỉ xuất dữ liệu phiên thực tế đã ghi nhận từ Focus 7.0 trở đi.':'Exports only actual completed Focus sessions, not fabricated history.'}</p>
   </div>}
   {tab==='vault'&&<div className="bfc8-stack"><h3>Personal Atmosphere Cloud Vault</h3>
-   <p>{vi?'Sao lưu và khôi phục thiết lập 8.0 theo tài khoản Supabase. Không ghi đè cảnh nền chung.':'Backup and restore 8.0 settings under authenticated Supabase RLS. Shared scene stays unchanged.'}</p>
+   <p>{vi?'Sao lưu thủ công thiết lập 6/7/8, đồng hồ, nhật ký và preset theo tài khoản; không ghi đè cảnh nền chung.':'Manual account-scoped cloud snapshot of 6/7/8 clocks, journal and presets; shared scene stays unchanged.'}</p>
    <div className="bfc8-actions"><button disabled={vaultBusy} className="primary" onClick={saveVault}>{vi?'Sao lưu Cloud':'Backup to cloud'}</button>
     <button disabled={vaultBusy} onClick={restoreVault}>{vi?'Khôi phục Cloud':'Restore cloud backup'}</button></div>
    <div className="bfc8-actions"><button onClick={()=>download('brian-focus-v8.json',JSON.stringify({schema:'brian-focus-v8',settings:data},null,2))}>{vi?'Xuất cấu hình JSON':'Export JSON'}</button>
