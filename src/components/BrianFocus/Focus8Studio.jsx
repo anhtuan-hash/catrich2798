@@ -57,7 +57,7 @@ export default function Focus8Studio({userId,language='vi',data,update,focus7,up
     const value=JSON.parse(await file.text());
     if(value.schema!=='brian-focus-v8')throw Error('Invalid Focus backup format');
     if(!window.confirm(vi?'Nhập cấu hình Focus 8.0 từ file này?':'Import this Focus 8.0 backup?'))return;
-    update(normalizeFocus8(value.settings));setStatus(vi?'Đã nhập cấu hình':'Imported settings');
+    update(normalizeFocus8(value.settings));if(value.focus7)update7?.(value.focus7);if(value.appearance)onAppearance?.(value.appearance);setStatus(vi?'Đã nhập cấu hình':'Imported settings');
   }catch(e){setStatus(e.message);}
  };
  useEffect(()=>{
@@ -141,7 +141,7 @@ export default function Focus8Studio({userId,language='vi',data,update,focus7,up
    <p>{vi?'Sao lưu thủ công thiết lập 6/7/8, đồng hồ, nhật ký và preset theo tài khoản; không ghi đè cảnh nền chung.':'Manual account-scoped cloud snapshot of 6/7/8 clocks, journal and presets; shared scene stays unchanged.'}</p>
    <div className="bfc8-actions"><button disabled={vaultBusy} className="primary" onClick={saveVault}>{vi?'Sao lưu Cloud':'Backup to cloud'}</button>
     <button disabled={vaultBusy} onClick={restoreVault}>{vi?'Khôi phục Cloud':'Restore cloud backup'}</button></div>
-   <div className="bfc8-actions"><button onClick={()=>download('brian-focus-v8.json',JSON.stringify({schema:'brian-focus-v8',settings:data},null,2))}>{vi?'Xuất cấu hình JSON':'Export JSON'}</button>
+   <div className="bfc8-actions"><button onClick={()=>download('brian-focus-v8.json',JSON.stringify({schema:'brian-focus-v8',settings:data,focus7,appearance},null,2))}>{vi?'Xuất cấu hình JSON':'Export JSON'}</button>
     <label className="bfc8-file">{vi?'Nhập cấu hình':'Import JSON'}<input type="file" accept="application/json,.json" onChange={e=>{void importVault(e.target.files?.[0]);e.target.value='';}}/></label></div>
    {cloudDate&&<small>{vi?'Sao lưu gần nhất: ':'Last backup: '}{new Date(cloudDate).toLocaleString()}</small>}
   </div>}
