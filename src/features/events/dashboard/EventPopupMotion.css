@@ -91,3 +91,48 @@
     transition: none !important;
   }
 }
+
+
+/* Interactive previews and real event dialogs use the same Web Animations
+ * controller, not short CSS animations that could be suppressed by other
+ * global motion libraries. CSS here preserves static styles only. */
+.be-pop-overlay[data-event-driven="true"] .be-pop-dialog,
+.be-pop-overlay[data-event-driven="true"] .be-pop-scrim,
+.be-pop-preview-stage[data-event-driven="true"] .be-pop-preview-card {
+  animation: none !important;
+  transition: none !important;
+}
+.be-pop-overlay--actual-preview {
+  z-index: 2147483605 !important;
+  perspective: 1100px;
+}
+.be-pop-overlay--actual-preview .be-pop-dialog {
+  transform-origin: center 45%;
+  backface-visibility: hidden;
+}
+.be-pop-preview-poster {
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:18px;
+  min-height:340px;
+  width:100%;
+  border-radius:18px;
+  border:1px solid rgba(239,210,255,.34);
+  background:
+    radial-gradient(circle at 65% 22%,rgba(255,194,77,.53),transparent 27%),
+    radial-gradient(circle at 20% 80%,rgba(85,113,232,.38),transparent 52%),
+    linear-gradient(135deg,#24375f,#584183 60%,#1b345b);
+  text-align:center;
+  color:#fdf6ff;
+  padding:24px;
+}
+.be-pop-preview-poster strong {font-size:clamp(22px,3vw,30px);letter-spacing:.14em}
+.be-pop-preview-poster span {max-width:260px;font-size:16px;line-height:1.5;font-weight:650}
+.be-pop-preview-poster small {font-size:11px;color:#ecd5ff;font-weight:750;letter-spacing:.08em}
+.be-pop-overlay--actual-preview .be-pop-header-art {display:grid;place-items:center}
+@media(max-width:680px){
+  .be-pop-overlay--actual-preview .be-pop-preview-poster {min-height:190px;gap:9px}
+  .be-pop-overlay--actual-preview .be-pop-footer {gap:10px}
+}
