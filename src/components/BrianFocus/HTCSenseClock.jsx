@@ -36,12 +36,22 @@ function FocusSeconds() {
   return <span className="bfc-clock-seconds" aria-label={'Seconds ' + second}>{String(second).padStart(2, '0')}</span>;
 }
 
-export default function HTCSenseClock({ language = 'vi', weather, onRefreshWeather }) {
+export default function HTCSenseClock({ language = 'vi', weather, onRefreshWeather, mode = 'sense' }) {
   const vi = language !== 'en';
   const { hours, minutes, dateLabel } = useFocusClock(language);
 
+  if (mode === 'minimal') return (
+    <section className="bfc-clock-card bfc-clock-card--minimal" aria-label={vi ? 'Đồng hồ tập trung' : 'Focus clock'}>
+      <div className="bfc-clock-minimal__time" role="timer" aria-label={hours + ':' + minutes} aria-live="off">
+        <span>{hours}</span><span className="bfc-clock-minimal__colon">:</span><span>{minutes}</span>
+      </div>
+      <div className="bfc-clock-minimal__date">{dateLabel}</div>
+      <FocusWeather compact weather={weather} language={language} onRefresh={onRefreshWeather}/>
+    </section>
+  );
+
   return (
-    <div className="bfc-clock-card">
+    <div className="bfc-clock-card bfc-clock-card--sense">
       <div className="bfc-clock-card__glint" aria-hidden="true"/>
       <div className="bfc-clock-card__breath" aria-hidden="true"><i/><i/><i/></div>
       <div className="bfc-clock-card__overline" aria-hidden="true">
@@ -65,7 +75,7 @@ export default function HTCSenseClock({ language = 'vi', weather, onRefreshWeath
         <FocusSeconds />
       </div>
       <div className="bfc-clock-card__rule" aria-hidden="true"/>
-      <FocusWeather weather={weather} language={language} onRefresh={onRefreshWeather}/>
+      <FocusWeather compact weather={weather} language={language} onRefresh={onRefreshWeather}/>
       <p className="bfc-clock-card__hint">{vi ? 'Một khoảnh khắc bình yên để tập trung.' : 'A quieter moment to focus.'}</p>
       <div className="bfc-clock-card__accent" aria-hidden="true"/>
       <div className="bfc-clock-card__breathing-guide" aria-hidden="true">
