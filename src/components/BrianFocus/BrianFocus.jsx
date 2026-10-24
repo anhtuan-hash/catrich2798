@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import FocusBubble from './FocusBubble.jsx';
 import FocusOverlay from './FocusOverlay.jsx';
@@ -6,6 +6,7 @@ import FocusYoutubeBackground from './FocusYoutubeBackground.jsx';
 import usePersistentFocusYoutube from './usePersistentFocusYoutube.jsx';
 import useFocusWeather from './useFocusWeather.js';
 import useFocusScene from './useFocusScene.js';
+import useFocusTimer from './useFocusTimer.js';
 import { readFocusTransitions, writeFocusTransitions, FOCUS_TRANSITION_STORAGE_KEY } from './FocusTransitionLibrary.js';
 import { startFocusExit } from './focusExitMotion.js';
 import { startFocusEnter } from './focusEnterMotion.js';
@@ -34,6 +35,35 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
   const enteredWithEffectRef = useRef(transitions.enter);
   const { weather, refresh } = useFocusWeather(open);
   const { scene, setScene, error: sceneError } = useFocusScene(open, currentUser?.id);
+  const sessionDay = () => new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+  const completedKey = 'bfc-completed-v6:' + String(currentUser?.id || 'guest') + ':' + sessionDay();
+  const readCompleted = () => { try {return Math.max(0,Number(localStorage.getItem(completedKey))||0);} catch {return 0;} };
+  const [completedSessions,setCompletedSessions] = useState(readCompleted);
+  useEffect(()=>setCompletedSessions(readCompleted()),[completedKey]);
+  const onTimerComplete = useCallback(() => {
+    const key = 'bfc-completed-v6:' + String(currentUser?.id || 'guest') + ':' + sessionDay();
+    try{
+      const next=(Number(localStorage.getItem(key))||0)+1;
+      localStorage.setItem(key,String(next));
+      setCompletedSessions(next);
+    } catch {setCompletedSessions(count=>count+1);}
+    // A timer was started by a user gesture. Any browser audio permission
+    // restrictions are respected; failure must not affect the timer.
+    try{
+      const Context=window.AudioContext||window.webkitAudioContext;
+      if(Context){
+        const ctx=new Context(), osc=ctx.createOscillator(), gain=ctx.createGain();
+        osc.type='sine';osc.frequency.value=660;
+        gain.gain.setValueAtTime(.0001,ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(.038,ctx.currentTime+.025);
+        gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.48);
+        osc.connect(gain).connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+.5);
+        osc.onended=()=>ctx.close().catch(()=>{});
+      }
+    }catch{}
+  },[currentUser?.id]);
+  // Keep the timer hook mounted even when Focus overlay is closed.
+  const timerController = useFocusTimer(currentUser?.id,onTimerComplete);
   const {
     player: persistentYoutubePlayer,
     session: youtubeSession,
@@ -149,6 +179,7 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
       {open ? (
         <FocusOverlay currentUser={currentUser} scene={scene} onScenePublished={setScene} sceneError={sceneError}
           youtubeSession={youtubeSession} youtubeControls={youtubeControls}
+          timerController={timerController} completedSessions={completedSessions}
           language={language} weather={weather} exiting={exiting} transitions={transitions} onEffectsChange={setEffectChoice}
           onRefreshWeather={refresh} onClose={closeFocus}
           returnFocusRef={dockManaged ? dockTriggerRef : triggerRef} performance={performance} />
