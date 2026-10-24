@@ -35,25 +35,35 @@ function createLayer(ctx,destination,type,level) {
   return {gain,source,pan};
 }
 /** One user-driven AudioContext with independent local-only procedural layers. */
-export default function useFocusSoundMixer(userId) {
+export default function useFocusSoundMixer(userId,fadeSeconds=0) {
   const [config,setConfig]=useState(()=>load(userId));
   const [loadedOwner,setLoadedOwner]=useState(userId);
   const [playing,setPlaying]=useState(false);
   const [error,setError]=useState('');
   const pans=config.pans;
   const engine=useRef(null);
+  const fadeRef=useRef(0);
+  fadeRef.current=Math.min(10,Math.max(0,Number(fadeSeconds)||0));
   useEffect(()=>{setConfig(load(userId));setLoadedOwner(userId);},[userId]);
   useEffect(()=>{
     if(loadedOwner!==userId)return; // do not copy another account's levels during switch
     try{localStorage.setItem(key(userId),JSON.stringify(config));}catch{}
   },[userId,loadedOwner,config]);
-  const stop=async()=>{
+  const stop=async(immediate=false)=>{
     const previous=engine.current;engine.current=null;
+    setPlaying(false);
     if(previous) {
+      const duration=immediate?0:fadeRef.current;
+      if(duration>0){
+        const {ctx,masterGain}=previous;
+        masterGain.gain.cancelScheduledValues(ctx.currentTime);
+        masterGain.gain.setValueAtTime(Math.max(.0001,masterGain.gain.value),ctx.currentTime);
+        masterGain.gain.linearRampToValueAtTime(.0001,ctx.currentTime+duration);
+        await new Promise(resolve=>window.setTimeout(resolve,duration*1000));
+      }
       previous.layers.forEach(({source})=>{try{source.stop()}catch{}});
       await previous.ctx.close().catch(()=>{});
     }
-    setPlaying(false);
   };
   const start=async()=>{
     if(engine.current)return;
@@ -61,7 +71,9 @@ export default function useFocusSoundMixer(userId) {
     if(!Context){setError('Web Audio unavailable');return;}
     try{
       const ctx=new Context();
-      const masterGain=ctx.createGain();masterGain.gain.value=clamp(config.master)/100*.34;
+      const masterGain=ctx.createGain();
+      const target=clamp(config.master)/100*.34;
+      masterGain.gain.value=fadeRef.current>0?.0001:target;
       masterGain.connect(ctx.destination);
       const layers=new Map();
       for(const type of FOCUS_SOUNDS){
@@ -71,6 +83,7 @@ export default function useFocusSoundMixer(userId) {
       }
       engine.current={ctx,masterGain,layers};
       await ctx.resume();
+      if(fadeRef.current>0)masterGain.gain.linearRampToValueAtTime(Math.max(.0001,target),ctx.currentTime+fadeRef.current);
       setPlaying(true);setError('');
     }catch(e){setError(e?.message||'Audio unavailable');await stop();}
   };
@@ -105,7 +118,7 @@ export default function useFocusSoundMixer(userId) {
     if(!playing) await start();
   };
   useEffect(()=>{
-    const onUnmute=()=>{void stop();};
+    const onUnmute=()=>{void stop(true);};
     window.addEventListener('bfc-youtube-unmute',onUnmute);
     return()=>window.removeEventListener('bfc-youtube-unmute',onUnmute);
   },[]);
