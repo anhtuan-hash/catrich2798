@@ -8,6 +8,8 @@ on:
       - 'src/utils/globalMotionSystem.js'
       - 'scripts/test-event-popup-motion.mjs'
       - 'tests/e2e/event-popup-motion.spec.js'
+      - 'tests/e2e/event-popup-motion-react-preview.spec.js'
+      - 'tests/fixtures/eventPopupMotionHarness.jsx'
       - '.github/workflows/event-popup-admin-motion.yml'
   push:
     branches: [main]
@@ -36,6 +38,6 @@ jobs:
       - name: Build production UI
         run: npx vite build
       - name: Verify two-way animation in Chromium and WebKit
-        run: npx playwright install --with-deps chromium webkit && npx playwright test tests/e2e/event-popup-motion.spec.js --project=chromium-desktop --project=webkit-desktop
+        run: npx playwright install --with-deps chromium webkit && npx playwright test tests/e2e/event-popup-motion.spec.js tests/e2e/event-popup-motion-react-preview.spec.js --project=chromium-desktop --project=webkit-desktop
       - name: Full site build
         run: node scripts/test-editorial-app-heroes.mjs && npm run build
