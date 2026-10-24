@@ -25,10 +25,12 @@ import './FocusTransitionVariants.css';
 import './BrianFocusWorkspace.css';
 import './BrianFocusAtelier.css';
 import './BrianFocusPersistentYoutube.css';
-import './BrianFocusYoutubePlaylist.css';
 import './BrianFocus6.css';
 import './BrianFocus7.css';
 import './BrianFocus8.css';
+// Keep the Scene Studio textarea rules last: global/app themes must not turn
+// the multi-URL editor into a white field or enlarge it beyond the drawer.
+import './BrianFocusYoutubePlaylist.css';
 import { GLOBAL_FLOATING_ACTION_EVENT, FLOATING_ACTION_IDS } from '../../utils/unifiedFloatingDock.js';
 
 /** One global Focus trigger and overlay; the underlying app route stays mounted. */
