@@ -198,9 +198,9 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
         <span className="bfc-overlay__identity-mark">B<span>✦</span></span>
         <span className="bfc-overlay__identity-copy">BRIAN <strong>FOCUS</strong><small>{vi ? 'KHÔNG GIAN TẬP TRUNG' : 'IMMERSIVE SPACE'}</small></span>
       </div>
-      {scene.mediaType === 'default' && personalDim !== null ?
+      {scene.mediaType === 'default' ?
         <div className="bfc-focus-scene-veil" aria-hidden="true"
-          style={{ backgroundColor: 'rgba(2,8,22,' + (personalDim / 100) + ')' }} /> : null}
+          style={{ backgroundColor: 'rgba(2,8,22,' + (dim / 100) + ')' }} /> : null}
       <div className="bfc-focus-header-actions">
       {!sceneEditorOpen && !effectsOpen && !appearanceOpen ? <button type="button" className="bfc-atelier__appearance-action"
         ref={appearanceButtonRef} onClick={() => setAppearanceOpen(true)}
@@ -269,7 +269,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
         {vi ? 'Nền chưa được đồng bộ' : 'Scene sync unavailable'}
       </span> : null}
       {appearanceOpen ? <Focus6Appearance language={language} appearance={appearance}
-        onChange={setAppearance} onClose={() => {setAppearanceOpen(false);appearanceButtonRef.current?.focus?.();}}/> : null}
+        onChange={patch=>{ if(Object.hasOwn(patch,'dim'))setPersonalDim(null);setAppearance(patch); }} onClose={() => {setAppearanceOpen(false);appearanceButtonRef.current?.focus?.();}}/> : null}
       {effectsOpen ? <FocusEffectsLibrary language={language} current={transitions}
         onApply={onEffectsChange} onClose={() => setEffectsOpen(false)} openerRef={effectsTriggerRef} /> : null}
       {sceneEditorOpen && canManage ? <FocusSceneEditor key={scene.updatedAt || 'default'}
