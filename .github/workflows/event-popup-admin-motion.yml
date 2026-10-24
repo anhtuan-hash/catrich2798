@@ -37,6 +37,8 @@ jobs:
         run: node scripts/test-event-popup-motion.mjs && node scripts/test-event-login-session.mjs && node scripts/test-event-eligibility.mjs
       - name: Build production UI
         run: npx vite build
+      - name: Install isolated React preview test bundler
+        run: npm install --no-save --no-package-lock --no-audit --no-fund esbuild@0.25.12
       - name: Verify two-way animation in Chromium and WebKit
         run: npx playwright install --with-deps chromium webkit && npx playwright test tests/e2e/event-popup-motion.spec.js tests/e2e/event-popup-motion-react-preview.spec.js --project=chromium-desktop --project=webkit-desktop
       - name: Full site build
