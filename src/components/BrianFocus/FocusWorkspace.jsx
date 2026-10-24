@@ -4,7 +4,6 @@ import {
   Moon, Pause, Play, SlidersHorizontal, Sparkles, Sun, TimerReset,
   Volume2, X, Waves, MoreHorizontal,
 } from 'lucide-react';
-import useFocusSoundMixer from './useFocusSoundMixer.js';
 import Focus6Tasks from './Focus6Tasks.jsx';
 import { FOCUS_SOUNDS, FOCUS_SOUND_LABELS } from './useFocusSoundscape.js';
 import FocusNotes from './FocusNotes.jsx';
@@ -32,7 +31,7 @@ const TOOL_META = [
 export default function FocusWorkspace({
   currentUser, language = 'vi', activeTool, onChangeTool,
   onBrightnessChange, onDndChange, onSoundscapeActiveChange, onQuickToolsOpenChange,
-  appearance, timerController, completedSessions=0,
+  appearance, timerController, completedSessions=0, mixer, onAppearanceChange, onManualTimerAction,
 }) {
   const vi = language !== 'en';
   const [prefs, setPrefs] = useState(() => readPersonal(currentUser?.id));
@@ -42,7 +41,7 @@ export default function FocusWorkspace({
   const [quickExpanded, setQuickExpanded] = useState(false);
   useEffect(() => { onQuickToolsOpenChange?.(quickExpanded); }, [quickExpanded, onQuickToolsOpenChange]);
   const timer = timerController;
-  const soundscape = useFocusSoundMixer(currentUser?.id);
+  const soundscape = mixer;
   const arrangedTools = [...TOOL_META].sort((a,b)=> (appearance?.dock?.indexOf(a.id)??0)-(appearance?.dock?.indexOf(b.id)??0));
 
   useEffect(() => {
@@ -86,6 +85,14 @@ export default function FocusWorkspace({
       {arrangedTools.map(({ id, Icon, vi: vLabel, en }) => (
         <button type="button" key={id} className={activeTool === id ? 'is-active' : ''}
           aria-pressed={activeTool === id} aria-label={vi ? vLabel : en}
+          draggable onDragStart={e=>e.dataTransfer.setData('text/plain',id)}
+          onDragOver={e=>e.preventDefault()}
+          onDrop={e=>{
+            e.preventDefault();const source=e.dataTransfer.getData('text/plain');
+            if(!appearance?.dock?.includes(source)||source===id)return;
+            const order=[...appearance.dock];order.splice(order.indexOf(source),1);
+            order.splice(order.indexOf(id),0,source);onAppearanceChange?.({dock:order});
+          }}
           onClick={() => {setQuickExpanded(false);changePanel(id);}} title={vi ? vLabel : en}>
           <span className="bfc-utility-dock__icon"><Icon size={22} strokeWidth={1.7}/></span>
           <span className="bfc-utility-dock__label">{vi ? vLabel : en}</span>
@@ -109,7 +116,7 @@ export default function FocusWorkspace({
       </button>
       {quickExpanded && !prefs.dnd ? <div className="bfc-quick-tools__items">
         <button type="button" onClick={() => {
-          timer.setPreset('pomodoro');
+          onManualTimerAction?.();timer.setPreset('pomodoro');
           onChangeTool?.('timer');
         }}>
           <TimerReset size={19}/><strong>Pomodoro</strong>
@@ -152,7 +159,7 @@ export default function FocusWorkspace({
               ['deep',vi ? 'Chuyên sâu' : 'Deep work'],
             ].map(([id,label]) => <button type="button" key={id}
               className={timer.timer.mode === id ? 'is-active' : ''}
-              onClick={() => {setTimerFinished(false);timer.setPreset(id);}}>{label}</button>)}
+              onClick={() => {onManualTimerAction?.();setTimerFinished(false);timer.setPreset(id);}}>{label}</button>)}
           </div>
           <div className="bfc-timer__dial" style={{ '--bfc-progress': String(Math.max(0,Math.min(100,progress*100)))+'%' }}>
             <span className="bfc-timer__time" role="timer" aria-label={timer.formatted}>{timer.formatted}</span>
@@ -162,10 +169,10 @@ export default function FocusWorkspace({
           <div className="bfc-timer__controls">
             <button type="button" className="is-primary" onClick={() => {
               setTimerFinished(false);
-              timer.timer.running ? timer.pause() : timer.start();
+              onManualTimerAction?.();timer.timer.running ? timer.pause() : timer.start();
             }}>{timer.timer.running ? <Pause size={16}/> : <Play size={16}/>}
             {timer.timer.running ? (vi ? 'Tạm dừng' : 'Pause') : (vi ? 'Bắt đầu' : 'Start')}</button>
-            <button type="button" onClick={() => {setTimerFinished(false);timer.reset();}}>
+            <button type="button" onClick={() => {onManualTimerAction?.();setTimerFinished(false);timer.reset();}}>
               <TimerReset size={16}/>{vi ? 'Đặt lại' : 'Reset'}
             </button>
           </div>
@@ -174,7 +181,7 @@ export default function FocusWorkspace({
               onChange={event => setCustomMinutes(event.target.value)}
               aria-label={vi ? 'Số phút' : 'Minutes'}/>
             <button type="button" onClick={() => {
-              setTimerFinished(false);timer.setPreset('custom',customMinutes);
+              onManualTimerAction?.();setTimerFinished(false);timer.setPreset('custom',customMinutes);
             }}><Check size={14}/>{vi ? 'Áp dụng' : 'Apply'}</button></span>
           </label>
           <p className="bfc-workspace__muted"><Check size={13}/> {vi ? 'Phiên tập trung hoàn thành hôm nay: ' : 'Focus sessions completed today: '}{completedSessions}</p>
