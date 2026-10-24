@@ -1,0 +1,129 @@
+/* Brian unified floating dock / Material 3. One floating control across the app. */
+.bes-unified-dock {
+  --bes-dock-bottom:max(23px,env(safe-area-inset-bottom,0px));
+  --bes-dock-right:max(23px,env(safe-area-inset-right,0px));
+  position:fixed!important;
+  inset:auto var(--bes-dock-right) var(--bes-dock-bottom) auto!important;
+  width:64px;
+  height:64px;
+  z-index:2147483015;
+  pointer-events:none;
+  isolation:isolate;
+  font-family:Inter,"Google Sans",system-ui,sans-serif;
+}
+.bes-unified-dock * {box-sizing:border-box;}
+.bes-unified-dock__trigger {
+  position:absolute;inset:0;
+  width:64px;height:64px;
+  display:grid;place-items:center;
+  padding:0;border:1px solid rgba(234,238,255,.91);
+  border-radius:24px;
+  background:linear-gradient(145deg,#347deb 0%,#6752ed 43%,#953ee8 100%);
+  color:#fff;
+  box-shadow:0 12px 28px rgba(75,65,184,.3),0 0 0 5px rgba(231,236,255,.68),inset 0 1px rgba(255,255,255,.32);
+  cursor:pointer;pointer-events:auto;
+  transition:transform .23s ease,border-radius .23s ease,box-shadow .23s ease;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+.bes-unified-dock__trigger:hover {transform:translateY(-2px);box-shadow:0 15px 31px rgba(75,65,184,.36),0 0 0 5px rgba(227,236,255,.8);}
+.bes-unified-dock.is-expanded .bes-unified-dock__trigger {border-radius:50%;}
+.bes-unified-dock__online {
+  position:absolute;bottom:0;right:0;
+  width:16px;height:16px;border-radius:50%;
+  border:3px solid #fff;background:#20ab62;
+  box-shadow:0 1px 5px rgba(0,0,0,.17);
+  pointer-events:none;
+}
+.bes-unified-dock__actions {
+  position:absolute;
+  bottom:calc(100% + 11px);
+  right:0;
+  display:flex;flex-direction:column;align-items:center;
+  gap:11px;
+  padding:10px 5px;
+  width:64px;
+  border-radius:32px;
+  background:rgba(245,248,255,.18);
+  border:1px solid rgba(204,219,252,.2);
+  box-shadow:0 10px 32px rgba(60,73,139,.07);
+  -webkit-backdrop-filter:blur(12px);
+  backdrop-filter:blur(12px);
+  transform-origin:bottom center;
+  opacity:0;visibility:hidden;
+  transform:translateY(16px) scale(.88);
+  pointer-events:none;
+  transition:opacity .22s ease,transform .25s cubic-bezier(.2,.8,.2,1),visibility 0s linear .25s;
+}
+.bes-unified-dock.is-expanded .bes-unified-dock__actions {
+  opacity:1;visibility:visible;
+  transform:translateY(0) scale(1);
+  pointer-events:auto;
+  transition:opacity .22s ease,transform .25s cubic-bezier(.2,.8,.2,1),visibility 0s;
+}
+.bes-unified-dock__action {
+  width:52px;height:52px;min-width:52px;min-height:52px;
+  position:relative;
+  display:grid;place-items:center;
+  padding:0;border-radius:50%;
+  border:1px solid rgba(217,228,255,.9);
+  color:#3357aa;background:linear-gradient(145deg,#fff,#edf2ff);
+  box-shadow:0 6px 20px rgba(55,76,163,.16);
+  cursor:pointer;
+  transition:transform .2s ease,box-shadow .2s ease;
+}
+.bes-unified-dock__action.is-focus {color:#fff;background:linear-gradient(135deg,#5b6be9,#7f42d9);}
+.bes-unified-dock__action.is-approvals {color:#226be1;background:linear-gradient(135deg,#fff,#eaf3ff);}
+.bes-unified-dock__action.is-chat {color:#3669d7;background:linear-gradient(135deg,#fff,#f5f1ff);}
+.bes-unified-dock__action:hover {transform:scale(1.07);box-shadow:0 9px 23px rgba(50,68,167,.27);}
+.bes-unified-dock :is(button:focus-visible){outline:3px solid #ffa83c;outline-offset:3px;}
+.bes-unified-dock__badge {
+  position:absolute;top:-8px;right:-8px;
+  min-width:22px;height:22px;padding:0 4px;
+  display:grid;place-items:center;
+  border-radius:999px;
+  border:2px solid white;
+  color:#fff;background:#e84264;
+  font-size:10px;font-weight:800;font-variant-numeric:tabular-nums;
+  white-space:nowrap;pointer-events:none;
+}
+.bes-unified-dock__badge.is-trigger {top:-7px;right:-7px;}
+.bes-unified-dock__tooltip {
+  position:absolute;right:calc(100% + 13px);top:50%;transform:translateY(-50%) translateX(5px);
+  pointer-events:none;
+  opacity:0;
+  border-radius:10px;
+  padding:8px 12px;
+  color:#fff;background:#19294f;
+  box-shadow:0 6px 20px rgba(16,30,60,.18);
+  font-size:11px;font-weight:650;
+  white-space:nowrap;
+  transition:opacity .17s ease,transform .17s ease;
+}
+.bes-unified-dock__action:is(:hover,:focus-visible) .bes-unified-dock__tooltip {opacity:1;transform:translateY(-50%) translateX(0);}
+@media(hover:none) {.bes-unified-dock__tooltip {display:none;}}
+@media(max-width:640px) {
+  .bes-unified-dock {
+    --bes-dock-bottom:max(13px,env(safe-area-inset-bottom,0px));
+    --bes-dock-right:max(13px,env(safe-area-inset-right,0px));
+    width:58px;height:58px;
+  }
+  .bes-unified-dock__trigger{width:58px;height:58px;border-radius:21px;}
+  .bes-unified-dock__actions {width:58px;gap:8px;padding:8px 3px;bottom:calc(100% + 12px);}
+  .bes-unified-dock__action {width:48px;height:48px;min-width:48px;min-height:48px;}
+}
+@media(max-height:480px) {
+  .bes-unified-dock__actions {gap:5px;padding:6px 3px;}
+  .bes-unified-dock__action {height:44px;min-height:44px;width:44px;min-width:44px;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .bes-unified-dock__trigger,.bes-unified-dock__actions,.bes-unified-dock__action,
+  .bes-unified-dock__tooltip {transition:none!important;animation:none!important;}
+}
+@media(forced-colors:active) {
+  .bes-unified-dock__trigger,.bes-unified-dock__action {
+    background:ButtonFace!important;color:ButtonText!important;
+    border:2px solid ButtonText!important;
+  }
+  .bes-unified-dock__online{border:2px solid ButtonText;}
+}
