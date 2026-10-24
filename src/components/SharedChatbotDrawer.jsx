@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { isSupabaseConfigured, supabase } from '../utils/supabase.js';
 import '../styles/SharedChatbotDrawer.css';
+import { GLOBAL_FLOATING_ACTION_EVENT, FLOATING_ACTION_IDS } from '../utils/unifiedFloatingDock.js';
 
 const MAX_HISTORY = 24;
 
@@ -108,8 +109,16 @@ function MessageContent({ content }) {
   );
 }
 
-export default function SharedChatbotDrawer({ currentUser, language = 'vi' }) {
+export default function SharedChatbotDrawer({ currentUser, language = 'vi', dockManaged = false }) {
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!dockManaged) return undefined;
+    const handler = event => {
+      if (event.detail?.id === FLOATING_ACTION_IDS.chat) setOpen(value => !value);
+    };
+    window.addEventListener(GLOBAL_FLOATING_ACTION_EVENT, handler);
+    return () => window.removeEventListener(GLOBAL_FLOATING_ACTION_EVENT, handler);
+  }, [dockManaged]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [messages, setMessages] = useState(() => [createWelcome(language)]);
@@ -360,11 +369,11 @@ export default function SharedChatbotDrawer({ currentUser, language = 'vi' }) {
         </section>
       ) : null}
 
-      <button type="button" className="bes-kira-chat-launcher" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-label={open ? text.close : text.open} title={open ? text.close : text.open}>
+      {!dockManaged && <button type="button" className="bes-kira-chat-launcher" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-label={open ? text.close : text.open} title={open ? text.close : text.open}>
         <span className="bes-kira-chat-launcher-glow" aria-hidden="true" />
         {open ? <ChatIcon close /> : <SparkIcon />}
         <span className="bes-kira-chat-online" aria-hidden="true" />
-      </button>
+      </button>}
     </div>
   );
 }
