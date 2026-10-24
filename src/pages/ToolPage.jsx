@@ -9,6 +9,7 @@ const TextLabActivities = lazy(() => import('./TextLabActivities.jsx'));
 const THPTPracticeHub = lazy(() => import('./THPTPracticeHub.jsx'));
 const BrianTeamPortal = lazy(() => import('./BrianTeamPortal.jsx'));
 const GradebookStudio = lazy(() => import('./GradebookStudio.jsx'));
+const SyncDoctor = lazy(() => import('./SyncDoctor.jsx'));
 const LessonCheckStudio = lazy(() => import('./LessonCheckStudio.jsx'));
 const QuestAtlas = lazy(() => import('../features/questatlas/QuestAtlas.jsx'));
 
@@ -54,6 +55,7 @@ export default function ToolPage(props) {
   }
 
   if (tool?.slug === 'gradebook-studio') return renderLazy(GradebookStudio, props);
+  if (tool?.slug === 'sync-doctor') return renderLazy(SyncDoctor, props);
   if (tool?.slug === 'lesson-check-studio') return renderLazy(LessonCheckStudio, props);
   if (tool?.slug === 'questatlas') return renderLazy(QuestAtlas, props);
   if (tool?.slug === 'textlab-activities') return renderLazy(TextLabActivities, props);
