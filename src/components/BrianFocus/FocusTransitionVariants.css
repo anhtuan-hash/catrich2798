@@ -1,0 +1,90 @@
+/* Configurable Focus transitions, intentionally loaded AFTER baseline transitions.
+   Read-only choice from FocusTransitionLibrary; no inline CSS injection.
+   Exit animations all finish <=470ms before React unmount at 490ms.
+   The old default is portal, and none bypasses all effects. */
+@keyframes bfc-variant-portal-in { 0%{opacity:0;clip-path:circle(0 at 91% 85%)} 12%{opacity:1} 100%{opacity:1;clip-path:circle(170vmax at 91% 85%)} }
+@keyframes bfc-variant-portal-out { 0%{opacity:1;clip-path:circle(170vmax at 91% 85%)} 83%{opacity:1} 100%{opacity:0;clip-path:circle(0 at 91% 85%)} }
+.bfc-overlay[data-focus-enter="portal"]:not(.bfc-overlay--exiting):not(.bfc-overlay--entry-lite) {animation:bfc-variant-portal-in 660ms cubic-bezier(.18,.77,.25,1) both !important;}
+.bfc-overlay[data-focus-exit="portal"].bfc-overlay--exiting:not(.bfc-overlay--entry-lite) {animation:bfc-variant-portal-out 460ms cubic-bezier(.55,.04,.68,.3) both !important;}
+@keyframes bfc-variant-portal-demo-in { 0%{opacity:0;clip-path:circle(0 at 92% 78%)} 15%{opacity:1} 100%{opacity:1;clip-path:circle(150% at 92% 78%)} }
+@keyframes bfc-variant-portal-demo-out { 0%{opacity:1;clip-path:circle(150% at 92% 78%)} 85%{opacity:1} 100%{opacity:0;clip-path:circle(0 at 92% 78%)} }
+.bfc-effect-gallery__demo[data-demo-effect="portal"][data-demo-direction="enter"]{animation:bfc-variant-portal-demo-in 930ms cubic-bezier(.18,.77,.25,1) both !important;}
+.bfc-effect-gallery__demo[data-demo-effect="portal"][data-demo-direction="exit"]{animation:bfc-variant-portal-demo-out 760ms cubic-bezier(.55,.04,.68,.3) both !important;}
+@keyframes bfc-variant-fade-in { from{opacity:0}to{opacity:1} }
+@keyframes bfc-variant-fade-out { from{opacity:1}to{opacity:0} }
+.bfc-overlay[data-focus-enter="fade"]:not(.bfc-overlay--exiting):not(.bfc-overlay--entry-lite) {animation:bfc-variant-fade-in 660ms cubic-bezier(.18,.77,.25,1) both !important;}
+.bfc-overlay[data-focus-exit="fade"].bfc-overlay--exiting:not(.bfc-overlay--entry-lite) {animation:bfc-variant-fade-out 460ms cubic-bezier(.55,.04,.68,.3) both !important;}
+@keyframes bfc-variant-fade-demo-in { from{opacity:0}to{opacity:1} }
+@keyframes bfc-variant-fade-demo-out { from{opacity:1}to{opacity:0} }
+.bfc-effect-gallery__demo[data-demo-effect="fade"][data-demo-direction="enter"]{animation:bfc-variant-fade-demo-in 930ms cubic-bezier(.18,.77,.25,1) both !important;}
+.bfc-effect-gallery__demo[data-demo-effect="fade"][data-demo-direction="exit"]{animation:bfc-variant-fade-demo-out 760ms cubic-bezier(.55,.04,.68,.3) both !important;}
+@keyframes bfc-variant-zoom-in { from{opacity:0;transform:scale(1.16);filter:blur(7px)}to{opacity:1;transform:scale(1);filter:blur(0)} }
+@keyframes bfc-variant-zoom-out { from{opacity:1;transform:scale(1);filter:blur(0)}to{opacity:0;transform:scale(.86);filter:blur(7px)} }
+.bfc-overlay[data-focus-enter="zoom"]:not(.bfc-overlay--exiting):not(.bfc-overlay--entry-lite) {animation:bfc-variant-zoom-in 660ms cubic-bezier(.18,.77,.25,1) both !important;}
+.bfc-overlay[data-focus-exit="zoom"].bfc-overlay--exiting:not(.bfc-overlay--entry-lite) {animation:bfc-variant-zoom-out 460ms cubic-bezier(.55,.04,.68,.3) both !important;}
+@keyframes bfc-variant-zoom-demo-in { from{opacity:0;transform:scale(1.16);filter:blur(7px)}to{opacity:1;transform:scale(1);filter:blur(0)} }
+@keyframes bfc-variant-zoom-demo-out { from{opacity:1;transform:scale(1);filter:blur(0)}to{opacity:0;transform:scale(.86);filter:blur(7px)} }
+.bfc-effect-gallery__demo[data-demo-effect="zoom"][data-demo-direction="enter"]{animation:bfc-variant-zoom-demo-in 930ms cubic-bezier(.18,.77,.25,1) both !important;}
+.bfc-effect-gallery__demo[data-demo-effect="zoom"][data-demo-direction="exit"]{animation:bfc-variant-zoom-demo-out 760ms cubic-bezier(.55,.04,.68,.3) both !important;}
+@keyframes bfc-variant-rise-in { from{opacity:0;transform:translateY(10vh) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)} }
+@keyframes bfc-variant-rise-out { from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(-10vh) scale(.96)} }
+.bfc-overlay[data-focus-enter="rise"]:not(.bfc-overlay--exiting):not(.bfc-overlay--entry-lite) {animation:bfc-variant-rise-in 660ms cubic-bezier(.18,.77,.25,1) both !important;}
+.bfc-overlay[data-focus-exit="rise"].bfc-overlay--exiting:not(.bfc-overlay--entry-lite) {animation:bfc-variant-rise-out 460ms cubic-bezier(.55,.04,.68,.3) both !important;}
+@keyframes bfc-variant-rise-demo-in { from{opacity:0;transform:translateY(10vh) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)} }
+@keyframes bfc-variant-rise-demo-out { from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(-10vh) scale(.96)} }
+.bfc-effect-gallery__demo[data-demo-effect="rise"][data-demo-direction="enter"]{animation:bfc-variant-rise-demo-in 930ms cubic-bezier(.18,.77,.25,1) both !important;}
+.bfc-effect-gallery__demo[data-demo-effect="rise"][data-demo-direction="exit"]{animation:bfc-variant-rise-demo-out 760ms cubic-bezier(.55,.04,.68,.3) both !important;}
+@keyframes bfc-variant-slide-in { from{opacity:.3;transform:translateX(100%)}to{opacity:1;transform:translateX(0)} }
+@keyframes bfc-variant-slide-out { from{opacity:1;transform:translateX(0)}to{opacity:.15;transform:translateX(100%)} }
+.bfc-overlay[data-focus-enter="slide"]:not(.bfc-overlay--exiting):not(.bfc-overlay--entry-lite) {animation:bfc-variant-slide-in 660ms cubic-bezier(.18,.77,.25,1) both !important;}
+.bfc-overlay[data-focus-exit="slide"].bfc-overlay--exiting:not(.bfc-overlay--entry-lite) {animation:bfc-variant-slide-out 460ms cubic-bezier(.55,.04,.68,.3) both !important;}
+@keyframes bfc-variant-slide-demo-in { from{opacity:.3;transform:translateX(100%)}to{opacity:1;transform:translateX(0)} }
+@keyframes bfc-variant-slide-demo-out { from{opacity:1;transform:translateX(0)}to{opacity:.15;transform:translateX(100%)} }
+.bfc-effect-gallery__demo[data-demo-effect="slide"][data-demo-direction="enter"]{animation:bfc-variant-slide-demo-in 930ms cubic-bezier(.18,.77,.25,1) both !important;}
+.bfc-effect-gallery__demo[data-demo-effect="slide"][data-demo-direction="exit"]{animation:bfc-variant-slide-demo-out 760ms cubic-bezier(.55,.04,.68,.3) both !important;}
+@keyframes bfc-variant-curtain-in { from{opacity:.7;clip-path:inset(0 50% 0 50%)}to{opacity:1;clip-path:inset(0 0 0 0)} }
+@keyframes bfc-variant-curtain-out { from{opacity:1;clip-path:inset(0 0 0 0)}to{opacity:.3;clip-path:inset(0 50% 0 50%)} }
+.bfc-overlay[data-focus-enter="curtain"]:not(.bfc-overlay--exiting):not(.bfc-overlay--entry-lite) {animation:bfc-variant-curtain-in 660ms cubic-bezier(.18,.77,.25,1) both !important;}
+.bfc-overlay[data-focus-exit="curtain"].bfc-overlay--exiting:not(.bfc-overlay--entry-lite) {animation:bfc-variant-curtain-out 460ms cubic-bezier(.55,.04,.68,.3) both !important;}
+@keyframes bfc-variant-curtain-demo-in { from{opacity:.7;clip-path:inset(0 50% 0 50%)}to{opacity:1;clip-path:inset(0 0 0 0)} }
+@keyframes bfc-variant-curtain-demo-out { from{opacity:1;clip-path:inset(0 0 0 0)}to{opacity:.3;clip-path:inset(0 50% 0 50%)} }
+.bfc-effect-gallery__demo[data-demo-effect="curtain"][data-demo-direction="enter"]{animation:bfc-variant-curtain-demo-in 930ms cubic-bezier(.18,.77,.25,1) both !important;}
+.bfc-effect-gallery__demo[data-demo-effect="curtain"][data-demo-direction="exit"]{animation:bfc-variant-curtain-demo-out 760ms cubic-bezier(.55,.04,.68,.3) both !important;}
+@keyframes bfc-variant-iris-in { from{opacity:.7;clip-path:circle(0 at 50% 50%)}to{opacity:1;clip-path:circle(170vmax at 50% 50%)} }
+@keyframes bfc-variant-iris-out { from{opacity:1;clip-path:circle(170vmax at 50% 50%)}to{opacity:.3;clip-path:circle(0 at 50% 50%)} }
+.bfc-overlay[data-focus-enter="iris"]:not(.bfc-overlay--exiting):not(.bfc-overlay--entry-lite) {animation:bfc-variant-iris-in 660ms cubic-bezier(.18,.77,.25,1) both !important;}
+.bfc-overlay[data-focus-exit="iris"].bfc-overlay--exiting:not(.bfc-overlay--entry-lite) {animation:bfc-variant-iris-out 460ms cubic-bezier(.55,.04,.68,.3) both !important;}
+@keyframes bfc-variant-iris-demo-in { from{opacity:.7;clip-path:circle(0 at 50% 50%)}to{opacity:1;clip-path:circle(150% at 50% 50%)} }
+@keyframes bfc-variant-iris-demo-out { from{opacity:1;clip-path:circle(150% at 50% 50%)}to{opacity:.3;clip-path:circle(0 at 50% 50%)} }
+.bfc-effect-gallery__demo[data-demo-effect="iris"][data-demo-direction="enter"]{animation:bfc-variant-iris-demo-in 930ms cubic-bezier(.18,.77,.25,1) both !important;}
+.bfc-effect-gallery__demo[data-demo-effect="iris"][data-demo-direction="exit"]{animation:bfc-variant-iris-demo-out 760ms cubic-bezier(.55,.04,.68,.3) both !important;}
+@keyframes bfc-variant-flip-in { from{opacity:0;transform:perspective(1300px) rotateY(-16deg) scale(.94);filter:blur(5px)}to{opacity:1;transform:perspective(1300px) rotateY(0) scale(1);filter:blur(0)} }
+@keyframes bfc-variant-flip-out { from{opacity:1;transform:perspective(1300px) rotateY(0) scale(1);filter:blur(0)}to{opacity:0;transform:perspective(1300px) rotateY(16deg) scale(.94);filter:blur(5px)} }
+.bfc-overlay[data-focus-enter="flip"]:not(.bfc-overlay--exiting):not(.bfc-overlay--entry-lite) {animation:bfc-variant-flip-in 660ms cubic-bezier(.18,.77,.25,1) both !important;}
+.bfc-overlay[data-focus-exit="flip"].bfc-overlay--exiting:not(.bfc-overlay--entry-lite) {animation:bfc-variant-flip-out 460ms cubic-bezier(.55,.04,.68,.3) both !important;}
+@keyframes bfc-variant-flip-demo-in { from{opacity:0;transform:perspective(1300px) rotateY(-16deg) scale(.94);filter:blur(5px)}to{opacity:1;transform:perspective(1300px) rotateY(0) scale(1);filter:blur(0)} }
+@keyframes bfc-variant-flip-demo-out { from{opacity:1;transform:perspective(1300px) rotateY(0) scale(1);filter:blur(0)}to{opacity:0;transform:perspective(1300px) rotateY(16deg) scale(.94);filter:blur(5px)} }
+.bfc-effect-gallery__demo[data-demo-effect="flip"][data-demo-direction="enter"]{animation:bfc-variant-flip-demo-in 930ms cubic-bezier(.18,.77,.25,1) both !important;}
+.bfc-effect-gallery__demo[data-demo-effect="flip"][data-demo-direction="exit"]{animation:bfc-variant-flip-demo-out 760ms cubic-bezier(.55,.04,.68,.3) both !important;}
+@keyframes bfc-variant-blur-in { from{opacity:0;filter:blur(24px) brightness(1.5);transform:scale(1.025)}to{opacity:1;filter:blur(0) brightness(1);transform:scale(1)} }
+@keyframes bfc-variant-blur-out { from{opacity:1;filter:blur(0) brightness(1);transform:scale(1)}to{opacity:0;filter:blur(20px) brightness(1.5);transform:scale(.98)} }
+.bfc-overlay[data-focus-enter="blur"]:not(.bfc-overlay--exiting):not(.bfc-overlay--entry-lite) {animation:bfc-variant-blur-in 660ms cubic-bezier(.18,.77,.25,1) both !important;}
+.bfc-overlay[data-focus-exit="blur"].bfc-overlay--exiting:not(.bfc-overlay--entry-lite) {animation:bfc-variant-blur-out 460ms cubic-bezier(.55,.04,.68,.3) both !important;}
+@keyframes bfc-variant-blur-demo-in { from{opacity:0;filter:blur(24px) brightness(1.5);transform:scale(1.025)}to{opacity:1;filter:blur(0) brightness(1);transform:scale(1)} }
+@keyframes bfc-variant-blur-demo-out { from{opacity:1;filter:blur(0) brightness(1);transform:scale(1)}to{opacity:0;filter:blur(20px) brightness(1.5);transform:scale(.98)} }
+.bfc-effect-gallery__demo[data-demo-effect="blur"][data-demo-direction="enter"]{animation:bfc-variant-blur-demo-in 930ms cubic-bezier(.18,.77,.25,1) both !important;}
+.bfc-effect-gallery__demo[data-demo-effect="blur"][data-demo-direction="exit"]{animation:bfc-variant-blur-demo-out 760ms cubic-bezier(.55,.04,.68,.3) both !important;}
+
+.bfc-overlay[data-focus-enter="none"]:not(.bfc-overlay--exiting),.bfc-overlay[data-focus-exit="none"].bfc-overlay--exiting {animation:none!important;clip-path:none!important;filter:none!important;}
+.bfc-overlay[data-focus-enter="none"] :is(.bfc-overlay__center,.bfc-overlay__identity,.bfc-overlay__bottom) {animation:none!important;}
+.bfc-effect-gallery__demo[data-demo-effect="none"] {animation:none!important;clip-path:none!important;opacity:1!important;transform:none!important;filter:none!important;}
+.bfc-overlay--entry-lite:not(.bfc-overlay--exiting) { animation:bfc-focus-fade-in 190ms ease-out both !important; }
+.bfc-overlay--entry-lite.bfc-overlay--exiting {animation:none!important;}
+@media(prefers-reduced-motion:reduce){
+ .bfc-overlay[data-focus-enter],.bfc-overlay[data-focus-exit],
+ .bfc-overlay[data-focus-exit].bfc-overlay--exiting,
+ .bfc-effect-gallery__demo[data-demo-effect] {animation:none!important;transform:none!important;clip-path:none!important;filter:none!important;opacity:1!important;}
+}
+@media(forced-colors:active){
+ .bfc-overlay[data-focus-enter],.bfc-overlay[data-focus-exit] {clip-path:none!important;}
+}
