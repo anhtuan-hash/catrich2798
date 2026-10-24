@@ -4,11 +4,11 @@ import { parseFocusYoutubeId } from './focusYoutube.js';
 const STORE = 'bfc-living-atelier-v7:';
 const MOODS = ['auto','dawn','golden','rain','twilight','midnight','off'];
 const PARTICLES = ['off','dust','fireflies','rain','snow','leaves','fog'];
-const CLOCKS = ['sense','glass','minimal','floating','kyoto','swiss','aurora','liquid'];
+const CLOCKS = ['inherit','sense','glass','minimal','floating','kyoto','swiss','aurora','liquid'];
 const clamp=(v,lo,hi,def)=>Number.isFinite(Number(v))?Math.min(hi,Math.max(lo,Number(v))):def;
 const defaults = () => ({
   mood:'auto',tint:12,particle:'off',density:35,
-  clock:'sense',clockWeight:350,clockSpacing:-4,clockTint:'#ffffff',
+  clock:'inherit',clockWeight:350,clockSpacing:-4,clockTint:'#ffffff',
   compactDock:false, soundPan:{}, soundRecipes:[], favorites:[],
   videoOverride:'', stopAfterMinutes:0, flow:{work:25,rest:5,repeats:4,preset:'pomodoro'},
   journal:[], sessions:[],
@@ -19,7 +19,7 @@ export function normalizeFocus7(value){
  return {
   mood:MOODS.includes(v.mood)?v.mood:'auto',tint:clamp(v.tint,0,40,12),
   particle:PARTICLES.includes(v.particle)?v.particle:'off',density:clamp(v.density,5,100,35),
-  clock:CLOCKS.includes(v.clock)?v.clock:'sense',clockWeight:clamp(v.clockWeight,250,750,350),
+  clock:CLOCKS.includes(v.clock)?v.clock:'inherit',clockWeight:clamp(v.clockWeight,250,750,350),
   clockSpacing:clamp(v.clockSpacing,-8,12,-4),
   clockTint:/^#[\da-f]{6}$/i.test(v.clockTint||'')?v.clockTint:'#ffffff',
   compactDock:!!v.compactDock,
