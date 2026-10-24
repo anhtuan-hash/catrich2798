@@ -31,6 +31,8 @@ export function saveBoardDraft(ownerId,lesson){
   return new Promise((resolve,reject)=>{
    const tx=db.transaction(STORE,'readwrite');
    tx.objectStore(STORE).put({key:String(ownerId)+':active',ownerId:String(ownerId),lesson:serialized,updatedAt:Date.now()});
+   tx.objectStore(STORE).put({key:String(ownerId)+':lesson:'+serialized.id,ownerId:String(ownerId),
+    lesson:serialized,updatedAt:Date.now()});
    tx.oncomplete=()=>resolve({updatedAt:Date.now()});
    tx.onerror=()=>reject(tx.error||new Error('Cannot save lesson'));
    tx.onabort=()=>reject(tx.error||new Error('Lesson transaction aborted'));
@@ -38,4 +40,36 @@ export function saveBoardDraft(ownerId,lesson){
  };
  saveChain=saveChain.catch(()=>{}).then(operation);
  return saveChain;
+}
+
+/** A teacher sees only their local lesson IDs. No server/student master involved. */
+export async function listBoardLessons(ownerId){
+ const db=await openBoardDB();
+ const rows=await new Promise((resolve,reject)=>{
+  const tx=db.transaction(STORE,'readonly'),req=tx.objectStore(STORE).getAll();
+  req.onsuccess=()=>resolve(req.result||[]);
+  req.onerror=()=>reject(req.error);
+ });
+ return rows.filter(row=>row.ownerId===String(ownerId)&&row.key.startsWith(String(ownerId)+':lesson:'))
+  .map(row=>({id:row.lesson?.id,title:row.lesson?.title||'Untitled lesson',
+    pages:row.lesson?.pages?.length||0,updatedAt:row.updatedAt}))
+  .sort((a,b)=>b.updatedAt-a.updatedAt).slice(0,100);
+}
+export async function readBoardLesson(ownerId,lessonId){
+ const db=await openBoardDB();
+ const key=String(ownerId)+':lesson:'+String(lessonId);
+ const row=await new Promise((resolve,reject)=>{
+  const tx=db.transaction(STORE,'readonly'),req=tx.objectStore(STORE).get(key);
+  req.onsuccess=()=>resolve(req.result||null);req.onerror=()=>reject(req.error);
+ });
+ return row?.ownerId===String(ownerId)?normalizeLesson(row.lesson,ownerId):null;
+}
+export async function deleteBoardLesson(ownerId,lessonId){
+ const db=await openBoardDB();
+ const key=String(ownerId)+':lesson:'+String(lessonId);
+ return new Promise((resolve,reject)=>{
+  const tx=db.transaction(STORE,'readwrite');
+  tx.objectStore(STORE).delete(key);
+  tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);
+ });
 }
