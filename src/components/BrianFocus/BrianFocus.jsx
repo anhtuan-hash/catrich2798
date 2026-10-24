@@ -40,14 +40,18 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
   const completedKey = 'bfc-completed-v6:' + String(currentUser?.id || 'guest') + ':' + sessionDay();
   const readCompleted = () => { try {return Math.max(0,Number(localStorage.getItem(completedKey))||0);} catch {return 0;} };
   const [completedSessions,setCompletedSessions] = useState(readCompleted);
+  const timerModeRef = useRef('pomodoro');
   useEffect(()=>setCompletedSessions(readCompleted()),[completedKey]);
   const onTimerComplete = useCallback(() => {
+    const focusSession = ['pomodoro','deep','custom'].includes(timerModeRef.current);
     const key = 'bfc-completed-v6:' + String(currentUser?.id || 'guest') + ':' + sessionDay();
-    try{
-      const next=(Number(localStorage.getItem(key))||0)+1;
-      localStorage.setItem(key,String(next));
-      setCompletedSessions(next);
-    } catch {setCompletedSessions(count=>count+1);}
+    if(focusSession){
+      try{
+        const next=(Number(localStorage.getItem(key))||0)+1;
+        localStorage.setItem(key,String(next));
+        setCompletedSessions(next);
+      } catch {setCompletedSessions(count=>count+1);}
+    }
     // A timer was started by a user gesture. Any browser audio permission
     // restrictions are respected; failure must not affect the timer.
     try{
@@ -65,6 +69,7 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
   },[currentUser?.id]);
   // Keep the timer hook mounted even when Focus overlay is closed.
   const timerController = useFocusTimer(currentUser?.id,onTimerComplete);
+  timerModeRef.current = timerController.timer.mode;
   const {
     player: persistentYoutubePlayer,
     session: youtubeSession,
