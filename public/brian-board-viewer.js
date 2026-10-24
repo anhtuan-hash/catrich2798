@@ -36,7 +36,12 @@ function drawing(o){
   const g=make('g'),x=Number(o.x)||0,y=Number(o.y)||0;
   add(g,make('rect',{x,y:y-24,width:360,height:125,rx:14,fill:'#e9f0e1',stroke:'#94b2a2'}));
   const el=add(g,make('text',{x:x+12,y:y+29,fill:'#355c63','font-size':25}));
-  el.textContent=String(o.text||'').slice(0,27);return g;
+  el.textContent=String(o.text||'').slice(0,27);
+  if(o.kind==='flashcard'){
+   const ans=add(g,make('text',{x:x+12,y:y+72,fill:'#618371','font-size':18}));
+   ans.textContent=o.revealed?String(o.publicAnswer||'').slice(0,29):'Tap to reveal';
+  }
+  return g;
  }
  if(o.kind==='image'&&/^data:image\/(png|jpeg|webp);base64,/i.test(o.src||'')){
   return make('image',{href:o.src,x:o.x,y:o.y,width:o.width||500,height:o.height||300});
