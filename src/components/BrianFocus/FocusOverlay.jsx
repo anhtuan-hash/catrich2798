@@ -1,20 +1,25 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Waves, Pause, ImagePlus } from 'lucide-react';
+import { X, Waves, Pause, ImagePlus, Clapperboard } from 'lucide-react';
 import HTCSenseClock from './HTCSenseClock.jsx';
 import CosmicAmbient from './CosmicAmbient.jsx';
 import FocusSceneBackground from './FocusSceneBackground.jsx';
 import FocusYoutubeBackground from './FocusYoutubeBackground.jsx';
 import FocusSceneEditor from './FocusSceneEditor.jsx';
+import FocusEffectsLibrary from './FocusEffectsLibrary.jsx';
 import { canEditFocusScene } from './focusSceneService.js';
 
 /** Portal keeps the real Dashboard mounted and interactive state intact. */
-export default function FocusOverlay({ currentUser, scene, onScenePublished, sceneError, onClose, language, weather, onRefreshWeather, returnFocusRef, performance = 'balanced', exiting = false }) {
+export default function FocusOverlay({ currentUser, scene, onScenePublished, sceneError, onClose, language, weather, onRefreshWeather, returnFocusRef, performance = 'balanced', exiting = false, transitions = { enter: 'portal', exit: 'portal' }, onEffectsChange }) {
   const [motionEnabled, setMotionEnabled] = useState(() => (
     !['low', 'minimal'].includes(performance) &&
     !(typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
   ));
   const [sceneEditorOpen, setSceneEditorOpen] = useState(false);
+  const [effectsOpen, setEffectsOpen] = useState(false);
+  const effectsTriggerRef = useRef(null);
+  const effectsOpenRef = useRef(false);
+  effectsOpenRef.current = effectsOpen;
   const sceneEditorRef = useRef(false);
   sceneEditorRef.current = sceneEditorOpen;
   const canManage = canEditFocusScene(currentUser);
@@ -38,7 +43,8 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
     const keydown = (event) => {
       if (event.key === 'Escape') {
         event.preventDefault();
-        if (sceneEditorRef.current) setSceneEditorOpen(false);
+        if (effectsOpenRef.current) setEffectsOpen(false);
+        else if (sceneEditorRef.current) setSceneEditorOpen(false);
         else closeHandlerRef.current?.();
         return;
       }
@@ -78,10 +84,12 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   const vi = language !== 'en';
 
   return createPortal(
-    <div className={`bfc-overlay${(!motionEnabled || ['low','minimal'].includes(performance)) ? ' bfc-overlay--low-motion' : ''}${['low','minimal'].includes(performance) ? ' bfc-overlay--entry-lite' : ''}${canManage ? ' bfc-overlay--manager' : ''}${sceneEditorOpen ? ' is-editor-open' : ''}${exiting ? ' bfc-overlay--exiting' : ''}`} role="dialog" aria-modal="true"
+    <div className={`bfc-overlay${(!motionEnabled || ['low','minimal'].includes(performance)) ? ' bfc-overlay--low-motion' : ''}${['low','minimal'].includes(performance) ? ' bfc-overlay--entry-lite' : ''}${canManage ? ' bfc-overlay--manager' : ''}${sceneEditorOpen ? ' is-editor-open' : ''}${effectsOpen ? ' is-effects-open' : ''}${exiting ? ' bfc-overlay--exiting' : ''}`} role="dialog" aria-modal="true"
       aria-label={vi ? 'Chế độ tập trung Brian Focus' : 'Brian Focus mode'}
       aria-owns="bfc-focus-trigger"
       data-focus-transition={exiting ? 'exiting' : 'entering'}
+      data-focus-enter={transitions.enter}
+      data-focus-exit={transitions.exit}
       ref={dialogRef}
       onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
       {scene.mediaType === 'default'
@@ -93,7 +101,13 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
         <span className="bfc-overlay__identity-mark">B<span>✦</span></span>
         <span className="bfc-overlay__identity-copy">BRIAN <strong>FOCUS</strong><small>{vi ? 'KHÔNG GIAN TẬP TRUNG' : 'IMMERSIVE SPACE'}</small></span>
       </div>
-      {canManage && !sceneEditorOpen ? <button className="bfc-overlay__edit" type="button"
+      {!sceneEditorOpen && !effectsOpen ? <button type="button" className="bfc-overlay__effects"
+        ref={effectsTriggerRef} onClick={() => setEffectsOpen(true)}
+        aria-label={vi ? 'Mở kho hiệu ứng chuyển động Focus' : 'Open Focus effects library'}>
+        <Clapperboard size={17} aria-hidden="true"/>
+        <span>{vi ? 'Hiệu ứng' : 'Effects'}</span>
+      </button> : null}
+      {canManage && !sceneEditorOpen && !effectsOpen ? <button className="bfc-overlay__edit" type="button"
         onClick={() => setSceneEditorOpen(true)}
         aria-label={vi ? 'Tùy chỉnh nền Focus cho mọi tài khoản' : 'Edit shared Focus scene'}>
         <ImagePlus size={17} aria-hidden="true"/>
@@ -119,6 +133,8 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
       {sceneError && canManage ? <span className="bfc-overlay__scene-sync-warning" role="status">
         {vi ? 'Nền chưa được đồng bộ' : 'Scene sync unavailable'}
       </span> : null}
+      {effectsOpen ? <FocusEffectsLibrary language={language} current={transitions}
+        onApply={onEffectsChange} onClose={() => setEffectsOpen(false)} openerRef={effectsTriggerRef} /> : null}
       {sceneEditorOpen && canManage ? <FocusSceneEditor key={scene.updatedAt || 'default'}
         language={language} currentUser={currentUser} scene={scene}
         onPublished={onScenePublished} onClose={() => setSceneEditorOpen(false)}/> : null}
