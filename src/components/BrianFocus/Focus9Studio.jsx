@@ -19,10 +19,10 @@ export default function Focus9Studio({
  appearance,onAppearance,focus7,update7,focus8,update8,
  youtubeSession,youtubeControls,mediaActive,online,
  presenter,onPresenterStart,onPresenterStop,onPresenterLink,
- stage,timer,refreshWeather,
+ stage,timer,refreshWeather,initialTab='performance',
 }){
  const vi=language!=='en';
- const [tab,setTab]=useState('performance');
+ const [tab,setTab]=useState(initialTab);
  const [name,setName]=useState('');
  const [undo,setUndo]=useState(null);
  const [timerLabel,setTimerLabel]=useState('');
@@ -88,8 +88,8 @@ export default function Focus9Studio({
  };
  const timeline=silk.timeline.filter(x=>filter==='all'||x.type===filter).slice().reverse();
  const csv=['time,type,description',...timeline.map(x=>[new Date(x.at).toISOString(),x.type,x.label].map(v=>'"'+String(v).replaceAll('"','""')+'"').join(','))].join('\r\n');
- return <section className="bfc9-studio" role="region" aria-label="Brian Focus 9 Silk Flow">
-  <header><div><small>BRIAN FOCUS · SILK FLOW</small><h2>{vi?'Không gian tập trung 9.0':'Silk Flow 9.0'}</h2></div>
+ return <section className="bfc9-studio" role="region" aria-label={vi?'Tập trung và hiệu năng':'Focus productivity and performance'}>
+  <header><div><small>BRIAN FOCUS · STUDIO</small><h2>{vi?'Tập trung và hiệu năng':'Focus & performance'}</h2></div>
    <button type="button" onClick={onClose} aria-label={vi?'Đóng':'Close'}>×</button></header>
   <nav className="bfc9-tabs" aria-label="Silk Flow Modules">{TABS.map(([id,vn,en],i)=><button type="button" key={id}
    className={tab===id?'active':''} aria-current={tab===id?'page':undefined} onClick={()=>setTab(id)}>
@@ -110,7 +110,7 @@ export default function Focus9Studio({
    <button onClick={()=>update({recovery:null})} disabled={!silk.recovery}>{vi?'Xóa dữ liệu phục hồi':'Discard recovery'}</button>
   </div>}
   {tab==='snapshots'&&<div className="bfc9-stack"><h3>One-Touch Workspace Snapshots</h3>
-   <p>{vi?'Lưu giao diện 6–8.0; không lưu nguồn YouTube, dữ liệu admin hay làm dừng nhạc đang phát.':'Save 6–8.0 appearance, never YouTube source, administrator data or active playback.'}</p>
+   <p>{vi?'Lưu tùy chỉnh không gian, không lưu nguồn YouTube hoặc thay đổi quyền quản trị.':'Save workspace settings without altering YouTube playback or admin data.'}</p>
    <div className="bfc9-actions"><input maxLength={50} value={name} onChange={e=>setName(e.target.value)} placeholder={vi?'Tên không gian':'Snapshot name'}/>
     <button disabled={!name.trim()||silk.snapshots.length>=12} onClick={saveSnapshot}>{vi?'Lưu':'Save'}</button>
     {undo&&<button onClick={()=>{onAppearance(undo.appearance);update7(undo.focus7);update8(undo.focus8);setUndo(null);}}>{vi?'Hoàn tác':'Undo'}</button>}</div>
