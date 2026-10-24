@@ -1,11 +1,15 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { X, Waves, Pause } from 'lucide-react';
 import HTCSenseClock from './HTCSenseClock.jsx';
 import CosmicAmbient from './CosmicAmbient.jsx';
 
 /** Portal keeps the real Dashboard mounted and interactive state intact. */
 export default function FocusOverlay({ onClose, language, weather, onRefreshWeather, returnFocusRef, performance = 'balanced' }) {
+  const [motionEnabled, setMotionEnabled] = useState(() => (
+    !['low', 'minimal'].includes(performance) &&
+    !(typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
+  ));
   const dialogRef = useRef(null);
   const dismissRef = useRef(null);
   const closeHandlerRef = useRef(onClose);
@@ -37,7 +41,7 @@ export default function FocusOverlay({ onClose, language, weather, onRefreshWeat
           'button:not([disabled]),[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])',
         )),
         returnFocusRef?.current,
-      ].filter(node => node && node.getClientRects().length);
+      ].filter(node => node && node.getClientRects().length && getComputedStyle(node).opacity !== '0');
       if (!focusable.length) return;
       // The trigger is before the overlay in document.body. Never rely on
       // browser DOM tab order; cycle explicitly through dialog + portal bubble.
@@ -65,12 +69,23 @@ export default function FocusOverlay({ onClose, language, weather, onRefreshWeat
   const vi = language !== 'en';
 
   return createPortal(
-    <div className={`bfc-overlay${['low','minimal'].includes(performance) ? ' bfc-overlay--low-motion' : ''}`} role="dialog" aria-modal="true"
+    <div className={`bfc-overlay${(!motionEnabled || ['low','minimal'].includes(performance)) ? ' bfc-overlay--low-motion' : ''}`} role="dialog" aria-modal="true"
       aria-label={vi ? 'Chế độ tập trung Brian Focus' : 'Brian Focus mode'}
       aria-owns="bfc-focus-trigger"
       ref={dialogRef}
       onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
-      <CosmicAmbient />
+      <CosmicAmbient motionEnabled={motionEnabled} />
+      <div className="bfc-overlay__identity" aria-hidden="true">
+        <span className="bfc-overlay__identity-mark">B<span>✦</span></span>
+        <span className="bfc-overlay__identity-copy">BRIAN <strong>FOCUS</strong><small>{vi ? 'KHÔNG GIAN TẬP TRUNG' : 'IMMERSIVE SPACE'}</small></span>
+      </div>
+      <button className="bfc-overlay__motion" type="button"
+        aria-pressed={motionEnabled}
+        onClick={() => setMotionEnabled(value => !value)}
+        title={vi ? (motionEnabled ? 'Tạm dừng chuyển động' : 'Bật chuyển động') : (motionEnabled ? 'Pause motion' : 'Resume motion')}>
+        {motionEnabled ? <Pause size={15} aria-hidden="true" /> : <Waves size={15} aria-hidden="true" />}
+        <span>{vi ? (motionEnabled ? 'Tạm dừng chuyển động' : 'Bật chuyển động') : (motionEnabled ? 'Pause motion' : 'Resume motion')}</span>
+      </button>
       <button className="bfc-overlay__close" type="button" ref={dismissRef}
         aria-label={vi ? 'Đóng chế độ tập trung' : 'Close Focus mode'}
         onClick={onClose}>
@@ -80,6 +95,11 @@ export default function FocusOverlay({ onClose, language, weather, onRefreshWeat
       </button>
       <div className="bfc-overlay__center">
         <HTCSenseClock language={language} weather={weather} onRefreshWeather={onRefreshWeather}/>
+      </div>
+      <div className="bfc-overlay__bottom" aria-hidden="true">
+        <span className="bfc-overlay__equalizer"><i/><i/><i/><i/><i/></span>
+        <span>{vi ? 'THƯ GIÃN  ·  TẬP TRUNG  ·  SÁNG TẠO' : 'BREATHE  ·  FOCUS  ·  CREATE'}</span>
+        <span className="bfc-overlay__bottom-line" />
       </div>
     </div>, document.body,
   );
