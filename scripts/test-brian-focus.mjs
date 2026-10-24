@@ -16,6 +16,7 @@ const timeHook = read('src/components/BrianFocus/useFocusClock.js');
 const cosmos = read('src/components/BrianFocus/CosmicAmbient.jsx');
 const css = read('src/components/BrianFocus/BrianFocus.css');
 const cosmicCss = read('src/components/BrianFocus/BrianFocusCosmic.css');
+const premiumCss = read('src/components/BrianFocus/BrianFocusPremium.css');
 const check = (label,value) => { assert.ok(value,label); console.log('✓ '+label); };
 
 const midnight=formatFocusTime(new Date('2026-10-23T17:00:00Z'),'vi');
@@ -97,4 +98,34 @@ check('tablet/mobile widths are handled and Focus button keeps dock alignment',
   css.includes('@media (max-width: 640px)') &&
   cosmicCss.includes('@media (max-width: 370px)') &&
   css.includes('width: 62px') && css.includes('width: 58px'));
+check('premium Focus styles load last to override legacy presentation safely',
+  globalFocus.includes("import './BrianFocusPremium.css'") &&
+  globalFocus.indexOf("import './BrianFocusPremium.css'") > globalFocus.indexOf("import './BrianFocusCosmic.css'"));
+check('modal genuinely occludes 2 other floating actions without touching them',
+  premiumCss.includes('z-index: 2147483500') &&
+  premiumCss.includes('.bfc-bubble.is-active { z-index: 2147483510; }') &&
+  read('src/components/PermissionApprovalInbox.css').includes('z-index:2147483300') &&
+  overlay.includes("root.inert = true"));
+check('HTC flip design uses distinct face and top shutter with hinge pins',
+  clock.includes('bfc-clock-face__shutter') &&
+  clock.includes('bfc-clock-face__number') &&
+  clock.includes('bfc-clock-face__hinge--left') &&
+  clock.includes('bfc-clock-face__hinge--right') &&
+  clock.includes('key={hours}') && clock.includes('key={minutes}') &&
+  premiumCss.includes('@keyframes bfc-premium-flap'));
+check('cosmos adds tasteful depth via static dust and constellations',
+  cosmos.includes('const DUST = Array.from({ length: 64 }') &&
+  cosmos.includes('bfc-cosmos__stardust') &&
+  cosmos.includes('bfc-cosmos__constellations') &&
+  cosmos.includes('bfc-cosmos__halo') &&
+  premiumCss.includes('.bfc-cosmos__planet--left::before'));
+check('live weather does not silently report live during network errors',
+  weather.includes('bfc-weather__live') &&
+  weather.includes('weather?.error || !hasValue') &&
+  weather.includes('OFFLINE') &&
+  weather.includes('LIVE'));
+check('premium effects respect reduced motion, low power and contrast accessibility',
+  premiumCss.includes('prefers-reduced-motion: reduce') &&
+  premiumCss.includes('.bfc-overlay--low-motion') &&
+  premiumCss.includes('@media (forced-colors: active)'));
 console.log('PASS: Brian Focus 2.0 global dock, shared weather, HTC flip, cosmic ambience and accessibility.');
