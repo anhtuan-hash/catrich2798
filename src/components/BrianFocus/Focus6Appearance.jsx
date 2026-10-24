@@ -36,9 +36,9 @@ export default function Focus6Appearance({language='vi',appearance,onChange,onCl
     [list[i],list[j]]=[list[j],list[i]];
     change({dock:list});
   };
-  return <section className="bfc6-picker" role="region" aria-label={vi?'Tùy chỉnh Brian Focus 6.0':'Customize Brian Focus 6.0'}>
+  return <section className="bfc6-picker" role="region" aria-label={vi?'Tùy chỉnh giao diện Focus':'Customize Focus appearance'}>
     <header className="bfc6-picker__head">
-      <span><WandSparkles size={19}/><strong>Focus Studio</strong><small>Living Space 6.0</small></span>
+      <span><WandSparkles size={19}/><strong>Focus Studio</strong><small>{vi?'Giao diện cá nhân':'Personal appearance'}</small></span>
       <button type="button" onClick={onClose} aria-label={vi?'Đóng giao diện':'Close appearance'}><X size={18}/></button>
     </header>
     <nav className="bfc6-picker__tabs" aria-label={vi?'Mục cài đặt':'Sections'}>
