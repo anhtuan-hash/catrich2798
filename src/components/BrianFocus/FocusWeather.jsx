@@ -59,6 +59,16 @@ export default function FocusWeather({ weather, language = 'vi', onRefresh, comp
           aria-label={vi ? 'Làm mới thời tiết' : 'Refresh weather'}>
           <RefreshCw size={14} aria-hidden="true"/> {vi ? 'Làm mới' : 'Refresh'}
         </button>
+        <div className="bfc6-weather-forecast" aria-label={vi ? 'Dự báo sáu giờ tiếp theo' : 'Next six hourly forecasts'}>
+          <strong>{vi ? '6 GIỜ TỚI' : 'NEXT 6 HOURS'}</strong>
+          <div>{Array.isArray(weather?.nextHours) && weather.nextHours.length
+            ? weather.nextHours.map(item => <span key={item.time}>
+                <small>{String(item.time).slice(11,16)}</small>
+                <b>{item.temperature}°</b>
+                {Number.isFinite(item.probability) ? <small>{item.probability}% {vi ? 'mưa' : 'rain'}</small> : null}
+              </span>)
+            : <small>{vi ? 'Dự báo chưa khả dụng' : 'Forecast unavailable'}</small>}</div>
+        </div>
       </div>}
     </div>
   );
