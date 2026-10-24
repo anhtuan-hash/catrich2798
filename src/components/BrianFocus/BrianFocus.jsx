@@ -2,6 +2,8 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import FocusBubble from './FocusBubble.jsx';
 import FocusOverlay from './FocusOverlay.jsx';
+import FocusYoutubeBackground from './FocusYoutubeBackground.jsx';
+import usePersistentFocusYoutube from './usePersistentFocusYoutube.jsx';
 import useFocusWeather from './useFocusWeather.js';
 import useFocusScene from './useFocusScene.js';
 import { readFocusTransitions, writeFocusTransitions, FOCUS_TRANSITION_STORAGE_KEY } from './FocusTransitionLibrary.js';
@@ -29,6 +31,11 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
   const enteredWithEffectRef = useRef(transitions.enter);
   const { weather, refresh } = useFocusWeather(open);
   const { scene, setScene, error: sceneError } = useFocusScene(open, currentUser?.id);
+  const {
+    player: persistentYoutubePlayer,
+    session: youtubeSession,
+    controls: youtubeControls,
+  } = usePersistentFocusYoutube({ scene, focusOpen: open, userId: currentUser?.id });
   const setEffectChoice = choice => setTransitions(writeFocusTransitions(choice));
 
   const openFocus = () => {
@@ -120,9 +127,16 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
   );
   return (
     <>
+      {persistentYoutubePlayer}
       {typeof document !== 'undefined' ? createPortal(button, document.body) : null}
+      {!open && youtubeSession.mounted && scene.mediaType === 'youtube' && typeof document !== 'undefined'
+        ? createPortal(<FocusYoutubeBackground
+            scene={scene} session={youtubeSession} controls={youtubeControls}
+            language={language} compact onOpenFocus={openFocus}/>, document.body)
+        : null}
       {open ? (
         <FocusOverlay currentUser={currentUser} scene={scene} onScenePublished={setScene} sceneError={sceneError}
+          youtubeSession={youtubeSession} youtubeControls={youtubeControls}
           language={language} weather={weather} exiting={exiting} transitions={transitions} onEffectsChange={setEffectChoice}
           onRefreshWeather={refresh} onClose={closeFocus}
           returnFocusRef={triggerRef} performance={performance} />
