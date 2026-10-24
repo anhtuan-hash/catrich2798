@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { formatFocusTime, BRIAN_FOCUS_TIME_ZONE } from '../src/components/BrianFocus/useFocusClock.js';
-import { focusWeatherDescription } from '../src/components/BrianFocus/FocusWeather.jsx';
 
 const read = file => readFileSync(new URL('../'+file, import.meta.url),'utf8');
 const root = read('src/main.jsx');
@@ -82,7 +81,7 @@ check('widget has WMO description, live timestamp, temperature and explicit refr
   weather.includes('updatedAt') &&
   weather.includes('onClick={onRefresh}') &&
   weather.includes('Weather unavailable') &&
-  clock.includes('onRefreshWeather={onRefreshWeather}') &&
+  clock.includes('onRefresh={onRefreshWeather}') &&
   hook.includes('refreshSharedFocusWeather({ force: true })'));
 check('weather service never requests geolocation',
   !service.includes('navigator.geolocation') &&
