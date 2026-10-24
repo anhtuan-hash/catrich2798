@@ -6,7 +6,8 @@ const commands=[
  ['timer-toggle','⏯','Hẹn giờ','Timer'],['timer-reset','↺','Đặt lại','Reset'],
  ['clock-next','◷','Đồng hồ','Clock'],['classroom-toggle','▣','Lớp học','Classroom'],
  ['mood-next','☀','Bầu không khí','Mood'],['scene-next','▰','Cảnh kế','Next scene'],
- ['focus-close','×','Đóng Focus','Close Focus']
+ ['volume-up','+','Tăng âm lượng','Volume up'],['volume-down','−','Giảm âm lượng','Volume down'],
+ ['layout-toggle','▧','Đổi bố cục','Toggle layout'],['focus-close','×','Đóng Focus','Close Focus']
 ];
 function parseHash(){
  const query=(window.location.hash.split('?')[1]||'');
