@@ -10,6 +10,7 @@ import {BOARD_W,BOARD_H,newLesson,newPage,normalizeLesson,makeId,THEMES,sanitize
 import {readBoardDraft,saveBoardDraft,listBoardLessons,readBoardLesson,deleteBoardLesson} from './boardStorage.js';
 import BoardCanvas from './BoardCanvas.jsx';
 import {listBoardCloud,saveBoardCloud,readBoardCloud} from './boardCloud.js';
+import {boardStudentPayload,newBoardPresentationId} from './boardPresentation.js';
 import './BrianBoard.css';
 
 const drawTools=[
@@ -39,6 +40,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  const [timerDeadline,setTimerDeadline]=useState(0),[timerNow,setTimerNow]=useState(Date.now());
  const [teams,setTeams]=useState([{name:'Team 1',score:0},{name:'Team 2',score:0}]);
  const [randomNames,setRandomNames]=useState(''),[randomChoice,setRandomChoice]=useState('');
+ const [presenting,setPresenting]=useState(false),presentationRef=useRef(null);
  const [panel,setPanel]=useState('pages'),[library,setLibrary]=useState([]),[libraryError,setLibraryError]=useState(''),[cloudLibrary,setCloudLibrary]=useState([]),[cloudStatus,setCloudStatus]=useState('');
  const refreshLibrary=async()=>{
   try{setLibrary(await listBoardLessons(ownerId));setLibraryError('');}
@@ -52,6 +54,33 @@ export default function BrianBoard({currentUser,language='vi'}){
  const theme=lesson?.theme||'ivory';
  const activeCamera=page?.camera||camera;
  docRef.current=lesson;
+ useEffect(()=>{
+  const session=presentationRef.current;
+  if(session&&lesson)session.bus.postMessage(boardStudentPayload(lesson));
+ },[lesson]);
+ useEffect(()=>()=>{const session=presentationRef.current;
+  if(session){session.bus.postMessage({type:'end'});session.bus.close();presentationRef.current=null;}
+ },[]);
+ const stopPresentation=()=>{
+  const session=presentationRef.current;
+  if(session){session.bus.postMessage({type:'end'});session.bus.close();presentationRef.current=null;}
+  setPresenting(false);
+ };
+ const startPresentation=()=>{
+  if(presentationRef.current)return stopPresentation();
+  if(!('BroadcastChannel' in window)){
+   window.alert(vi?'Trình duyệt này chưa hỗ trợ trình chiếu hai cửa sổ.':'This browser does not support local dual-screen mode.');return;
+  }
+  const id=newBoardPresentationId();
+  const url=location.origin+'/brian-board-viewer.html#board='+encodeURIComponent(id);
+  const child=window.open(url,'_blank','noopener,noreferrer');
+  if(!child){window.alert(vi?'Hãy cho phép mở cửa sổ mới để trình chiếu.':'Allow popups to open the student display.');return;}
+  const bus=new BroadcastChannel('bbd-local-'+id);
+  bus.onmessage=e=>{if(e.data?.type==='request'&&docRef.current)bus.postMessage(boardStudentPayload(docRef.current));};
+  presentationRef.current={id,bus};
+  setPresenting(true);
+  bus.postMessage(boardStudentPayload(docRef.current));
+ };
  useEffect(()=>()=>{mounted.current=false;},[]);
  useEffect(()=>{
   if(!open||!timerDeadline)return undefined;
@@ -120,7 +149,7 @@ export default function BrianBoard({currentUser,language='vi'}){
   setLoading(false);setPhase('entering');setOpen(true);
  },[allowed,open,ownerId,vi]);
  const finishClose=useCallback(()=>{
-  setPhase('closed');setOpen(false);animating.current=false;setStudentView(false);
+  stopPresentation();setPhase('closed');setOpen(false);animating.current=false;setStudentView(false);
   setTimeout(()=>lastFocusRef.current?.focus?.({preventScroll:true}),0);
  },[]);
  const close=useCallback(async()=>{
@@ -315,6 +344,8 @@ export default function BrianBoard({currentUser,language='vi'}){
      <button onClick={redo} disabled={!future.current.length} title="Redo"><Redo2 size={17}/></button>
      <button onClick={()=>void persist(docRef.current)} title={vi?'Lưu ngay':'Save now'}><Save size={17}/><span>{vi?'Lưu':'Save'}</span></button>
      <button onClick={()=>setShowPages(v=>!v)} title={vi?'Hiện/ẩn công cụ bên phải':'Toggle side panel'}><Move size={17}/></button>
+     <button onClick={startPresentation} title={vi?'Mở màn hình học sinh (cùng máy)':'Open local student display'} className={presenting?'is-presenting':''}>
+      <Presentation size={18}/><span>{presenting?(vi?'Dừng chia sẻ':'Stop TV'):(vi?'Màn hình TV':'TV Display')}</span></button>
      <button onClick={()=>setStudentView(v=>!v)} title={vi?'Xem như học sinh':'Student preview'}>
       <Eye size={18}/><span>{vi?'Xem lớp':'Preview'}</span></button>
      <button className="bbd-close" onClick={()=>void close()} title={vi?'Đóng':'Close'}><X size={18}/><span>{vi?'Đóng':'Close'}</span></button>
