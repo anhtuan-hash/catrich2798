@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import FocusWeather from './FocusWeather.jsx';
 import useFocusClock from './useFocusClock.js';
@@ -16,6 +16,24 @@ function SenseFlipTile({ value, unit }) {
       <span className="bfc-clock-face__hinge bfc-clock-face__hinge--right" aria-hidden="true"/>
     </span>
   );
+}
+
+function FocusSeconds() {
+  const [second, setSecond] = useState(() => new Date().getSeconds());
+  useEffect(() => {
+    let timeout;
+    let stopped = false;
+    const tick = () => {
+      if (stopped) return;
+      setSecond(new Date().getSeconds());
+      timeout = window.setTimeout(tick, 1000 - (Date.now() % 1000) + 20);
+    };
+    tick();
+    const handleVisibility = () => { if (!document.hidden) { window.clearTimeout(timeout); tick(); } };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => { stopped = true; window.clearTimeout(timeout); document.removeEventListener('visibilitychange', handleVisibility); };
+  }, []);
+  return <span className="bfc-clock-seconds" aria-label={'Seconds ' + second}>{String(second).padStart(2, '0')}</span>;
 }
 
 export default function HTCSenseClock({ language = 'vi', weather, onRefreshWeather }) {
@@ -42,7 +60,10 @@ export default function HTCSenseClock({ language = 'vi', weather, onRefreshWeath
           <SenseFlipTile key={minutes} value={minutes} unit="minutes"/>
         </div>
       </div>
-      <div className="bfc-clock-date">{dateLabel}</div>
+      <div className="bfc-clock-date-row">
+        <div className="bfc-clock-date">{dateLabel}</div>
+        <FocusSeconds />
+      </div>
       <div className="bfc-clock-card__rule" aria-hidden="true"/>
       <FocusWeather weather={weather} language={language} onRefresh={onRefreshWeather}/>
       <p className="bfc-clock-card__hint">{vi ? 'Một khoảnh khắc bình yên để tập trung.' : 'A quieter moment to focus.'}</p>
