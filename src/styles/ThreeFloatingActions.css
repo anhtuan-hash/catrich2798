@@ -1,0 +1,148 @@
+/* Brian floating actions — three distinct functions, one Material 3 visual language.
+   Pure visual layer; original launchers retain click, permissions, and notification state. */
+:root {
+  --bes-floating-diameter: 62px;
+  --bes-floating-gap: 14px;
+  --bes-floating-edge: max(24px, env(safe-area-inset-right, 0px));
+  --bes-floating-bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  --bes-floating-shadow: 0 10px 27px rgba(38,55,110,.17), 0 3px 8px rgba(20,39,90,.08);
+  --bes-floating-glass: linear-gradient(145deg,rgba(255,255,255,.97),rgba(234,241,255,.94));
+}
+.bes-kira-chat-root {
+  right:var(--bes-floating-edge)!important;
+  bottom:var(--bes-floating-bottom)!important;
+}
+.bes-approval-root .bes-approval-fab,
+.bfc-bubble {
+  right:var(--bes-floating-edge)!important;
+}
+.bes-approval-root .bes-approval-fab {
+  bottom:calc(var(--bes-floating-bottom) + var(--bes-floating-diameter) + var(--bes-floating-gap))!important;
+}
+.bfc-bubble {
+  bottom:calc(var(--bes-floating-bottom) + 2 * (var(--bes-floating-diameter) + var(--bes-floating-gap)))!important;
+}
+.bes-kira-chat-root .bes-kira-chat-launcher,
+.bes-approval-root .bes-approval-fab,
+.bfc-bubble {
+  width:var(--bes-floating-diameter)!important;
+  height:var(--bes-floating-diameter)!important;
+  min-width:var(--bes-floating-diameter)!important;
+  min-height:var(--bes-floating-diameter)!important;
+  display:grid!important;
+  place-items:center!important;
+  padding:0!important;
+  border:1px solid rgba(215,225,246,.95)!important;
+  border-radius:50%!important;
+  background:var(--bes-floating-glass)!important;
+  color:#4d63c8!important;
+  box-shadow:var(--bes-floating-shadow)!important;
+  outline-offset:3px;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .22s ease,box-shadow .22s ease,background .22s ease!important;
+}
+.bes-kira-chat-root .bes-kira-chat-launcher {
+  color:#4868bb!important;
+}
+.bes-approval-root .bes-approval-fab {
+  color:#2776bc!important;
+}
+.bfc-bubble {
+  color:#7154cf!important;
+}
+.bfc-bubble.is-active,
+.bes-approval-root .bes-approval-fab.is-active {
+  background:linear-gradient(145deg,rgba(233,238,255,.98),rgba(224,234,255,.96))!important;
+  box-shadow:0 0 0 3px rgba(136,159,235,.12),var(--bes-floating-shadow)!important;
+}
+.bes-kira-chat-root .bes-kira-chat-launcher:hover,
+.bes-approval-root .bes-approval-fab:hover,
+.bfc-bubble:hover {
+  transform:translateY(-3px)!important;
+  background:linear-gradient(145deg,#fff,#e8efff)!important;
+  box-shadow:0 14px 33px rgba(47,66,135,.23),0 4px 9px rgba(23,41,100,.09)!important;
+}
+.bes-kira-chat-root .bes-kira-chat-launcher:focus-visible,
+.bes-approval-root .bes-approval-fab:focus-visible,
+.bfc-bubble:focus-visible {
+  outline:3px solid #8bb6ff!important;
+  outline-offset:4px!important;
+}
+.bes-kira-chat-root .bes-kira-chat-launcher .bes-kira-spark {
+  width:28px;height:28px;
+}
+.bes-approval-root .bes-approval-fab > svg:not(.bes-approval-fab-bell) {
+  width:27px!important;height:27px!important;
+}
+.bfc-bubble > svg {
+  width:27px;height:27px;
+  color:inherit!important;
+}
+.bfc-bubble::after {
+  /* Old chat-tail decoration caused the three shapes to look inconsistent. */
+  display:none!important;
+}
+.bes-approval-root .bes-approval-fab-glow,
+.bes-kira-chat-root .bes-kira-chat-launcher-glow {
+  inset:-4px!important;
+  border-radius:50%!important;
+  background:rgba(115,142,225,.09)!important;
+  box-shadow:0 0 0 3px rgba(126,158,241,.07)!important;
+}
+.bes-approval-root .bes-approval-fab-bell {
+  right:9px!important;bottom:8px!important;
+  width:13px!important;height:13px!important;
+  color:#3c83d0!important;stroke:#3c83d0!important;
+}
+.bes-approval-root .bes-approval-count {
+  border:2px solid #fff!important;
+  width:auto;min-width:23px!important;height:23px!important;
+  font-size:11px!important;
+}
+.bes-kira-chat-root .bes-kira-chat-online {
+  bottom:0!important;right:0!important;
+  border:3px solid #fff;
+  width:15px;height:15px;
+}
+@media(max-width:640px) {
+  :root {
+    --bes-floating-diameter:58px;
+    --bes-floating-gap:12px;
+    --bes-floating-edge:max(13px,env(safe-area-inset-right,0px));
+    --bes-floating-bottom:max(13px,env(safe-area-inset-bottom,0px));
+  }
+  .bes-kira-chat-root:not(.is-open) {
+    right:var(--bes-floating-edge)!important;
+    bottom:var(--bes-floating-bottom)!important;
+  }
+  .bes-approval-root .bes-approval-fab,
+  .bfc-bubble {
+    right:var(--bes-floating-edge)!important;
+  }
+  .bes-approval-root .bes-approval-fab {
+    bottom:calc(var(--bes-floating-bottom) + var(--bes-floating-diameter) + var(--bes-floating-gap))!important;
+  }
+  .bfc-bubble {
+    bottom:calc(var(--bes-floating-bottom) + 2 * (var(--bes-floating-diameter) + var(--bes-floating-gap)))!important;
+  }
+}
+/* Keep full-screen AI composer edge-to-edge on phones, as it was before this change. */
+@media(max-width:640px) {
+  .bes-kira-chat-root.is-open {right:0!important;bottom:0!important;}
+}
+@media(hover:none) {
+  .bes-kira-chat-root .bes-kira-chat-launcher:hover,
+  .bes-approval-root .bes-approval-fab:hover,
+  .bfc-bubble:hover {transform:none!important;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .bes-kira-chat-root .bes-kira-chat-launcher,
+  .bes-approval-root .bes-approval-fab,
+  .bfc-bubble {transition:none!important;}
+}
+@media(forced-colors:active) {
+  .bes-kira-chat-root .bes-kira-chat-launcher,
+  .bes-approval-root .bes-approval-fab,
+  .bfc-bubble {background:ButtonFace!important;color:ButtonText!important;border:2px solid ButtonText!important;}
+}
