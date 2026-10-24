@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Waves, Pause, ImagePlus, Clapperboard, TimerReset } from 'lucide-react';
 import HTCSenseClock from './HTCSenseClock.jsx';
@@ -11,7 +11,7 @@ import FocusWorkspace from './FocusWorkspace.jsx';
 import { canEditFocusScene } from './focusSceneService.js';
 
 /** Portal keeps the real Dashboard mounted and interactive state intact. */
-export default function FocusOverlay({ currentUser, scene, onScenePublished, sceneError, onClose, language, weather, onRefreshWeather, returnFocusRef, performance = 'balanced', exiting = false, transitions = { enter: 'portal', exit: 'portal' }, onEffectsChange }) {
+export default function FocusOverlay({ currentUser, scene, onScenePublished, sceneError, onClose, language, weather, onRefreshWeather, returnFocusRef, performance = 'balanced', exiting = false, transitions = { enter: 'portal', exit: 'portal' }, onEffectsChange, youtubeSession, youtubeControls }) {
   const [motionEnabled, setMotionEnabled] = useState(() => (
     !['low', 'minimal'].includes(performance) &&
     !(typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
@@ -22,6 +22,10 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   const [personalDim, setPersonalDim] = useState(null);
   const [quiet, setQuiet] = useState(false);
   const [soundscapeActive, setSoundscapeActive] = useState(false);
+  const handleSoundscapeActive = useCallback(value => {
+    setSoundscapeActive(value);
+    if (value) youtubeControls?.mute?.();
+  }, [youtubeControls?.mute]);
   const activeToolRef = useRef('');
   activeToolRef.current = activeTool;
   const effectsTriggerRef = useRef(null);
@@ -95,7 +99,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   const displayScene = personalDim === null ? scene : { ...scene, dimPercent: personalDim };
 
   return createPortal(
-    <div className={`bfc-overlay${(!motionEnabled || ['low','minimal'].includes(performance)) ? ' bfc-overlay--low-motion' : ''}${['low','minimal'].includes(performance) ? ' bfc-overlay--entry-lite' : ''}${canManage ? ' bfc-overlay--manager' : ''}${sceneEditorOpen ? ' is-editor-open' : ''}${effectsOpen ? ' is-effects-open' : ''}${activeTool ? ' is-tools-open' : ''}${quiet ? ' bfc-overlay--quiet' : ''}${exiting ? ' bfc-overlay--exiting' : ''}`} role="dialog" aria-modal="true"
+    <div className={`bfc-overlay${(!motionEnabled || ['low','minimal'].includes(performance)) ? ' bfc-overlay--low-motion' : ''}${['low','minimal'].includes(performance) ? ' bfc-overlay--entry-lite' : ''}${canManage ? ' bfc-overlay--manager' : ''}${scene.mediaType === 'youtube' ? ' bfc-overlay--youtube' : ''}${sceneEditorOpen ? ' is-editor-open' : ''}${effectsOpen ? ' is-effects-open' : ''}${activeTool ? ' is-tools-open' : ''}${quiet ? ' bfc-overlay--quiet' : ''}${exiting ? ' bfc-overlay--exiting' : ''}`} role="dialog" aria-modal="true"
       aria-label={vi ? 'Chế độ tập trung Brian Focus' : 'Brian Focus mode'}
       aria-owns="bfc-focus-trigger"
       data-focus-transition={exiting ? 'exiting' : 'entering'}
@@ -106,8 +110,12 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
       {scene.mediaType === 'default'
         ? <CosmicAmbient motionEnabled={motionEnabled} />
         : scene.mediaType === 'youtube'
-          ? <FocusYoutubeBackground scene={displayScene} language={language} soundscapeActive={soundscapeActive} />
+          ? <div className="bfc-focus-youtube-shade" aria-hidden="true"
+              style={{ backgroundColor: 'rgba(2,8,22,' + (Math.max(0,Math.min(85,Number(displayScene.dimPercent)||0))/100) + ')' }}/>
           : <FocusSceneBackground scene={displayScene} language={language} motionEnabled={motionEnabled} />}
+      {scene.mediaType === 'youtube' ? <FocusYoutubeBackground
+        scene={displayScene} language={language}
+        session={youtubeSession} controls={youtubeControls}/> : null}
       <div className="bfc-overlay__identity" aria-hidden="true">
         <span className="bfc-overlay__identity-mark">B<span>✦</span></span>
         <span className="bfc-overlay__identity-copy">BRIAN <strong>FOCUS</strong><small>{vi ? 'KHÔNG GIAN TẬP TRUNG' : 'IMMERSIVE SPACE'}</small></span>
@@ -156,7 +164,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
         activeTool={activeTool} onChangeTool={setActiveTool}
         onBrightnessChange={setPersonalDim}
         onDndChange={setQuiet}
-        onSoundscapeActiveChange={setSoundscapeActive}/>
+        onSoundscapeActiveChange={handleSoundscapeActive}/>
       {sceneError && canManage ? <span className="bfc-overlay__scene-sync-warning" role="status">
         {vi ? 'Nền chưa được đồng bộ' : 'Scene sync unavailable'}
       </span> : null}
