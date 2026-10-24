@@ -1,0 +1,372 @@
+/* BRIAN FOCUS 4.0 — approved immersive composition.
+   Scoped strictly to Focus so Dashboard, Attendance and other apps are untouched. */
+.bfc-overlay {
+  --bfc-tool-border: rgba(180,211,255,.25);
+  --bfc-tool-glass: linear-gradient(145deg,rgba(21,37,75,.81),rgba(10,19,44,.84));
+  --bfc-tool-light: #dfeeff;
+}
+.bfc-overlay::before {
+  content:'';position:fixed;inset:0;
+  pointer-events:none;z-index:1;
+  background:radial-gradient(ellipse at center,transparent 25%,rgba(3,9,25,.23) 100%);
+}
+.bfc-focus-header-actions {
+  position:fixed;z-index:8;
+  top:max(30px,env(safe-area-inset-top,0px));
+  right:max(33px,env(safe-area-inset-right,0px));
+  display:flex;gap:9px;align-items:center;
+}
+.bfc-focus-header-actions :is(.bfc-overlay__close,.bfc-overlay__edit,.bfc-overlay__effects,.bfc-overlay__motion,.bfc-focus-header__timer) {
+  position:static!important;
+  inset:auto!important;
+  margin:0!important;
+  transform:none!important;
+  opacity:1;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  flex:0 0 auto;
+  width:auto;min-width:0;min-height:42px;max-width:none;
+  border-radius:999px;border:1px solid rgba(173,205,254,.36);
+  background:linear-gradient(145deg,rgba(23,42,84,.77),rgba(15,23,54,.70));
+  box-shadow:inset 0 1px rgba(241,247,255,.12),0 10px 24px rgba(1,5,18,.20);
+  padding:9px 14px;
+  color:#eff6ff;font:650 12px/1.1 Inter,system-ui,sans-serif;
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  transition:background .2s ease,border-color .2s ease,transform .2s ease;
+  cursor:pointer;
+}
+.bfc-focus-header-actions :is(button:hover,button:focus-visible) {
+  border-color:rgba(188,227,255,.7);
+  background:rgba(72,111,169,.58);
+}
+.bfc-focus-header-actions .bfc-overlay__effects {
+  font-size:0;padding:9px 11px;
+}
+.bfc-focus-header-actions .bfc-overlay__effects svg {width:18px;height:18px;}
+.bfc-focus-header-actions .bfc-overlay__effects span {display:none;}
+.bfc-focus-header-actions .bfc-overlay__motion {font-size:0;padding:9px 11px;}
+.bfc-focus-header-actions .bfc-overlay__motion span {display:none;}
+.bfc-focus-header-actions .bfc-overlay__close {
+  background:rgba(6,13,33,.78);
+}
+.bfc-focus-header-actions .bfc-overlay__close kbd {
+  font:10px/1.1 ui-monospace,monospace;
+}
+.bfc-overlay__identity {z-index:7;top:max(32px,env(safe-area-inset-top,0px));}
+.bfc-overlay__center {
+  width:min(100%,860px);max-width:860px;
+  position:relative;z-index:3;
+  padding:70px 15px 86px;
+  margin-left:auto;margin-right:auto;
+}
+.bfc-clock-card {
+  width:100%;max-width:860px;
+  min-height:0;
+  padding:0;
+}
+.bfc-clock-card__overline {
+  margin:0 0 12px;
+  font-size:10px;letter-spacing:.18em;
+}
+.bfc-clock-card__eyebrow {margin:0 0 25px;font-size:11px;}
+.bfc-clock-face__digits {gap:clamp(12px,2vw,22px);}
+.bfc-clock-face__tile {
+  flex:0 0 clamp(165px,16vw,242px);
+  width:clamp(165px,16vw,242px);
+  height:clamp(175px,18vw,247px);
+  font-size:clamp(105px,11.5vw,160px);
+  border-radius:26px;
+  box-shadow:0 20px 62px rgba(0,8,37,.4),inset 0 1px rgba(249,251,255,.25),0 0 28px rgba(90,137,235,.14);
+}
+.bfc-clock-face__colon {font-size:clamp(62px,7vw,92px);}
+.bfc-clock-date-row {margin-top:21px;}
+.bfc-clock-date {font-size:clamp(16px,1.8vw,22px);}
+.bfc-clock-card__rule {margin:24px 0 15px;}
+.bfc-weather {max-width:550px;width:min(100%,550px);}
+.bfc-clock-card__accent {display:none;}
+.bfc-clock-card__breath {opacity:.20;}
+.bfc-overlay:has(.bfc-scene-background) .bfc-clock-card__breath {display:none;}
+/* Strip unwanted decorative frame from legacy center on media backgrounds. */
+.bfc-overlay .bfc-overlay__center::before,
+.bfc-overlay .bfc-overlay__center::after,
+.bfc-overlay .bfc-clock-card::before,
+.bfc-overlay .bfc-clock-card::after {display:none;}
+.bfc-overlay.is-tools-open .bfc-overlay__center {
+  margin-left:max(2%,calc(50% - 580px));margin-right:auto;
+}
+.bfc-overlay--quiet .bfc-clock-card__eyebrow,.bfc-overlay--quiet .bfc-clock-card__overline {opacity:.42;}
+
+/* Small floating icon rail, right of the clock and weather. */
+.bfc-utility-dock {
+  position:fixed;z-index:7;
+  right:max(28px,env(safe-area-inset-right,0px));
+  top:49%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:12px;
+}
+.bfc-utility-dock > button {
+  display:grid;justify-items:center;gap:5px;
+  min-width:70px;
+  padding:0 3px;
+  border:0;background:none;color:#dce9ff;
+  font:600 10px/1.2 Inter,system-ui,sans-serif;cursor:pointer;
+}
+.bfc-utility-dock__icon {
+  width:55px;height:55px;border-radius:50%;
+  display:grid;place-items:center;
+  border:1px solid rgba(166,204,255,.42);
+  background:linear-gradient(144deg,rgba(40,65,121,.78),rgba(10,18,48,.79));
+  box-shadow:inset 0 1px rgba(238,248,255,.16),0 10px 23px rgba(0,3,13,.18);
+  -webkit-backdrop-filter:blur(13px);backdrop-filter:blur(13px);
+  transition:transform .2s ease,border-color .2s ease,background .2s ease;
+}
+.bfc-utility-dock > button:is(:hover,:focus-visible) .bfc-utility-dock__icon,
+.bfc-utility-dock > button.is-active .bfc-utility-dock__icon {
+  border-color:#a2d8ff;
+  background:rgba(66,114,198,.70);
+  transform:translateY(-2px);
+}
+.bfc-utility-dock__label {text-shadow:0 1px 8px #070d21;}
+
+/* Optional compact lower-right Quick Focus Tools card. */
+.bfc-quick-tools {
+  position:fixed;z-index:7;
+  right:max(30px,env(safe-area-inset-right,0px));
+  bottom:max(27px,env(safe-area-inset-bottom,0px));
+  width:min(370px,calc(100vw - 60px));
+  max-width:100%;
+  background:var(--bfc-tool-glass);
+  border:1px solid var(--bfc-tool-border);
+  border-radius:22px;
+  box-shadow:0 16px 50px rgba(0,0,0,.34);
+  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+  overflow:hidden;
+}
+.bfc-quick-tools.is-collapsed {width:250px;}
+.bfc-quick-tools__title {
+  display:flex;align-items:center;gap:10px;width:100%;
+  min-height:42px;padding:10px 15px;
+  border:0;background:none;color:#d9eaff;
+  font:750 11px Inter,system-ui,sans-serif;
+  text-align:left;cursor:pointer;
+}
+.bfc-quick-tools__title span {flex:1;}
+.bfc-quick-tools__arrow {transition:transform .2s ease;}
+.bfc-quick-tools.is-expanded .bfc-quick-tools__arrow {transform:rotate(90deg);}
+.bfc-quick-tools__items {
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:9px;padding:1px 12px 12px;
+}
+.bfc-quick-tools__items button {
+  display:grid;justify-items:center;align-content:center;gap:7px;
+  min-width:0;min-height:93px;padding:10px 4px;
+  color:#e0eeff;
+  background:linear-gradient(145deg,rgba(74,100,169,.45),rgba(28,47,98,.55));
+  border:1px solid rgba(156,196,250,.30);border-radius:16px;
+  font:650 10px Inter,system-ui,sans-serif;
+  cursor:pointer;transition:background .18s ease;
+}
+.bfc-quick-tools__items button:hover {background:rgba(80,118,197,.57);}
+.bfc-quick-tools__items button svg{color:#b7d9ff;}
+.bfc-quick-tools__items button strong{font-size:10px;}
+.bfc-quick-tools__items button small{font-size:10px;color:#9cbcec;}
+.bfc-quick-tools__dnd {
+  display:flex;align-items:center;gap:8px;
+  padding:8px 15px 14px;
+  background:none;border:0;color:#b8cbed;font-size:11px;cursor:pointer;
+}
+
+/* Functional flyout, visually separated from the clock. */
+.bfc-tool-panel {
+  position:fixed;z-index:10;
+  right:max(110px,calc(env(safe-area-inset-right,0px) + 110px));
+  top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;
+  width:min(380px,calc(100vw - 130px));
+  max-height:min(660px,calc(100dvh - 125px));
+  border:1px solid rgba(175,207,255,.38);border-radius:23px;
+  color:#ecf5ff;
+  background:linear-gradient(155deg,rgba(26,43,83,.95),rgba(7,17,43,.96));
+  box-shadow:0 24px 90px rgba(0,0,0,.53),inset 0 1px rgba(236,245,255,.12);
+  -webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);
+  overflow:hidden;
+  animation:bfc-tool-slide-in .24s ease both;
+}
+.bfc-tool-panel__header {
+  display:flex;justify-content:space-between;align-items:center;
+  padding:17px 19px 14px;
+  border-bottom:1px solid rgba(187,212,255,.16);
+}
+.bfc-tool-panel__header small {font:750 9px Inter,system-ui,sans-serif;letter-spacing:.18em;color:#91baf3;}
+.bfc-tool-panel__header h3 {display:flex;align-items:center;gap:9px;margin:7px 0 0;font-size:16px;font-weight:730;}
+.bfc-tool-panel__header > button {
+  display:grid;place-items:center;width:32px;height:32px;
+  background:rgba(175,204,255,.09);color:#ecf3ff;
+  border:1px solid rgba(173,202,255,.22);border-radius:10px;cursor:pointer;
+}
+.bfc-tool-panel__content {
+  flex:1;min-height:0;padding:17px 19px 19px;overflow-y:auto;
+  scrollbar-width:thin;overscroll-behavior:contain;
+}
+.bfc-tool-panel button:focus-visible,
+.bfc-quick-tools button:focus-visible {outline:2px solid #a5dafa;outline-offset:2px;}
+.bfc-workspace__muted {display:flex;align-items:center;gap:7px;margin:6px 0 12px;color:#9fb6d9;font-size:11px;line-height:1.5;}
+.bfc-workspace__error{font-size:11px;line-height:1.4;color:#ffc7bd;}
+.bfc-tool-panel__wide {display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:39px;margin-top:11px;padding:9px 13px;background:rgba(75,106,172,.28);border:1px solid rgba(168,195,251,.25);color:#e9f5ff;border-radius:12px;font-size:11px;cursor:pointer;}
+/* Timer with genuinely deadline-based countdown. */
+.bfc-timer__modes {display:flex;gap:5px;flex-wrap:wrap;}
+.bfc-timer__modes button {
+  padding:7px 10px;min-height:31px;border-radius:10px;
+  border:1px solid rgba(174,206,248,.24);background:rgba(255,255,255,.055);
+  font:600 10px Inter,system-ui,sans-serif;color:#adc5e9;cursor:pointer;
+}
+.bfc-timer__modes button.is-active {background:rgba(86,142,237,.38);color:#fff;border-color:#91c5fa;}
+.bfc-timer__dial {
+  display:grid;place-items:center;align-content:center;gap:7px;
+  width:185px;height:185px;margin:21px auto 20px;
+  border-radius:50%;
+  background:
+    radial-gradient(circle closest-side,#13264d 90%,transparent 92%),
+    conic-gradient(#9bd6ff var(--bfc-progress),rgba(127,167,240,.16) 0);
+  box-shadow:0 0 29px rgba(77,143,233,.12);
+}
+.bfc-timer__time {font:300 44px/1 Inter,system-ui,sans-serif;letter-spacing:-.025em;font-variant-numeric:tabular-nums;}
+.bfc-timer__dial small {font-size:9px;letter-spacing:.17em;color:#9fc8fa;}
+.bfc-timer__controls {display:flex;gap:10px;}
+.bfc-timer__controls button {
+  flex:1;display:flex;align-items:center;justify-content:center;gap:7px;
+  min-height:41px;padding:9px;
+  background:rgba(60,92,155,.26);border:1px solid rgba(168,200,255,.30);
+  color:#edf5ff;border-radius:11px;font-size:11px;font-weight:670;cursor:pointer;
+}
+.bfc-timer__controls button.is-primary {background:linear-gradient(120deg,#4d91ea,#80c4f8);color:#071b36;border:0;}
+.bfc-timer__custom {display:grid;gap:9px;margin-top:17px;font-size:11px;color:#c4d9f4;}
+.bfc-timer__custom > span{display:flex;gap:8px;}
+.bfc-timer__custom input{width:90px;min-height:37px;padding:8px 10px;border:1px solid rgba(168,199,251,.30);border-radius:9px;background:#16284d;color:#fff;}
+.bfc-timer__custom button{display:flex;align-items:center;gap:5px;padding:8px 13px;color:#e9f5ff;border:1px solid rgba(158,207,255,.36);border-radius:9px;background:rgba(70,119,205,.33);cursor:pointer;}
+/* Privacy-first notes. */
+.bfc-notes__toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.bfc-notes__toolbar strong{font-size:12px;}
+.bfc-notes__toolbar button{display:flex;align-items:center;gap:6px;padding:7px 9px;border:1px solid rgba(159,196,249,.30);border-radius:10px;background:rgba(66,109,185,.22);color:#e2efff;font-size:11px;cursor:pointer;}
+.bfc-notes__main{display:grid;gap:12px;margin-top:15px;}
+.bfc-notes__list{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;}
+.bfc-notes__list button{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;max-width:135px;padding:7px 9px;border:1px solid rgba(149,185,239,.26);border-radius:9px;background:rgba(255,255,255,.06);color:#becfea;font-size:11px;cursor:pointer;}
+.bfc-notes__list button span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bfc-notes__list button.is-selected{background:rgba(93,146,244,.29);border-color:#9bcaff;color:#fff;}
+.bfc-notes__edit{display:grid;gap:10px;}
+.bfc-notes__edit input:not([type=checkbox]),.bfc-notes__edit textarea{width:100%;padding:11px 12px;border:1px solid rgba(170,204,253,.29);border-radius:11px;background:rgba(7,18,43,.60);color:#f1f7ff;font:12px/1.5 Inter,system-ui,sans-serif;}
+.bfc-notes__edit textarea{resize:vertical;min-height:125px;max-height:235px;}
+.bfc-notes__actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.bfc-notes__actions label{display:inline-flex;align-items:center;gap:5px;font-size:10px;margin-right:auto;}
+.bfc-notes__actions label input{accent-color:#8ed6ff;}
+.bfc-notes__actions button{display:inline-flex;align-items:center;gap:5px;padding:7px 8px;border:1px solid rgba(166,193,238,.24);background:rgba(255,255,255,.05);color:#cfddf4;border-radius:8px;font-size:10px;cursor:pointer;}
+.bfc-notes__actions button.is-danger{color:#ffb4b7;}
+.bfc-notes__status,.bfc-notes__empty{color:#91aaca;font-size:10px;line-height:1.5;}
+.bfc-notes__status{min-height:18px;margin:10px 0 0;}
+/* Procedural soundscape. */
+.bfc-soundscape__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+.bfc-soundscape__grid button{display:flex;align-items:center;justify-content:center;gap:8px;min-height:47px;padding:9px;border:1px solid rgba(179,211,255,.27);border-radius:12px;background:rgba(42,76,142,.30);color:#edf6ff;font-size:11px;cursor:pointer;}
+.bfc-soundscape__grid button.is-active{background:rgba(97,145,220,.55);border-color:#94d5ff;}
+.bfc-soundscape__volume{display:flex;align-items:center;gap:8px;margin-top:19px;font-size:11px;color:#c6d9f3;}
+.bfc-soundscape__volume input{min-width:0;flex:1;accent-color:#8bcbfb;}
+/* Background brightness only. */
+.bfc-brightness label{display:grid;grid-template-columns:1fr auto;gap:12px;margin:14px 0;font-size:12px;color:#e3efff;}
+.bfc-brightness label input{grid-column:1/-1;width:100%;accent-color:#9bcdfa;}
+.bfc-brightness__presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+.bfc-brightness__presets button{padding:10px;border-radius:10px;border:1px solid rgba(170,201,250,.26);background:rgba(56,84,147,.23);color:#d6e7fd;font-size:11px;cursor:pointer;}
+.bfc-brightness__presets button[aria-pressed=true]{border-color:#93c7ff;background:rgba(72,128,218,.45);}
+.bfc-focus-scene-veil {
+  position:fixed;inset:0;z-index:2;pointer-events:none;
+  transition:background-color .2s ease;
+}
+.bfc-overlay--quiet .bfc-quick-tools:not(.is-collapsed) {opacity:.74;}
+.bfc-overlay--quiet .bfc-overlay__bottom {opacity:.18;}
+@keyframes bfc-tool-slide-in {
+  from{opacity:0;transform:translate(12px,-49%) scale(.98)}
+  to{opacity:1;transform:translate(0,-50%) scale(1)}
+}
+@media(max-width:1250px) {
+  .bfc-quick-tools{width:290px;right:16px;bottom:16px;}
+  .bfc-utility-dock {right:12px;gap:9px;}
+  .bfc-utility-dock__icon{width:48px;height:48px;}
+  .bfc-utility-dock>button{min-width:58px;font-size:9px;}
+  .bfc-tool-panel{right:87px;width:min(355px,calc(100vw - 105px));}
+  .bfc-overlay.is-tools-open .bfc-overlay__center{margin-left:2%;margin-right:auto;}
+  .bfc-quick-tools__items button{min-height:82px;}
+}
+@media(max-width:850px) {
+  .bfc-focus-header-actions {top:max(15px,env(safe-area-inset-top,0px));right:13px;gap:5px;}
+  .bfc-focus-header-actions :is(.bfc-overlay__close,.bfc-overlay__edit,.bfc-overlay__effects,.bfc-overlay__motion,.bfc-focus-header__timer){
+    padding:8px 9px;min-height:37px;font-size:10px;gap:5px;
+  }
+  .bfc-focus-header-actions .bfc-overlay__close kbd{display:none;}
+  .bfc-overlay__identity {top:max(15px,env(safe-area-inset-top,0px));left:14px;}
+  .bfc-overlay__center,.bfc-overlay.is-tools-open .bfc-overlay__center {margin:auto;padding:83px 10px 156px;}
+  .bfc-utility-dock {
+    left:50%;right:auto;top:auto;
+    bottom:max(95px,calc(env(safe-area-inset-bottom,0px) + 95px));
+    transform:translateX(-50%);
+    flex-direction:row;gap:clamp(4px,2vw,16px);
+    border:1px solid rgba(174,207,255,.25);border-radius:20px;
+    padding:8px 10px;
+    background:rgba(8,18,44,.73);backdrop-filter:blur(13px);
+  }
+  .bfc-utility-dock__icon{width:39px;height:39px;}
+  .bfc-utility-dock__icon svg{width:18px;height:18px;}
+  .bfc-utility-dock>button{min-width:59px;gap:3px;}
+  .bfc-quick-tools {bottom:max(14px,env(safe-area-inset-bottom,0px));right:50%;transform:translateX(50%);width:min(95vw,390px);}
+  .bfc-tool-panel {
+    top:auto;bottom:0;right:0;left:0;
+    transform:none;width:100%;max-height:min(76dvh,660px);
+    border-radius:24px 24px 0 0;
+    animation:bfc-tool-sheet .25s ease-out both;
+  }
+  .bfc-tool-panel__content {padding-bottom:max(20px,env(safe-area-inset-bottom,0px));}
+  .bfc-quick-tools.is-expanded{width:min(95vw,390px);}
+}
+@media(max-width:575px) {
+  .bfc-overlay__identity {top:max(15px,env(safe-area-inset-top,0px));left:12px;}
+  .bfc-overlay__identity-copy{display:none;}
+  .bfc-focus-header-actions{right:10px;gap:4px;}
+  .bfc-focus-header-actions :is(.bfc-overlay__close,.bfc-overlay__edit,.bfc-overlay__effects,.bfc-overlay__motion,.bfc-focus-header__timer){
+    min-height:36px;padding:7px 9px;
+  }
+  .bfc-focus-header-actions :is(.bfc-overlay__edit,.bfc-focus-header__timer) span{display:none;}
+  .bfc-clock-face__tile {
+    flex:1 1 0;min-width:0;width:0;
+    height:clamp(120px,38vw,160px);font-size:clamp(77px,21vw,118px);border-radius:16px;
+  }
+  .bfc-clock-face__colon{flex-basis:12px;font-size:48px;}
+  .bfc-clock-card__overline{font-size:8px;letter-spacing:.06em;}
+  .bfc-clock-card__eyebrow{font-size:9px;margin-bottom:17px;}
+  .bfc-clock-date-row{margin-top:17px;}
+  .bfc-clock-date{font-size:13px;}
+  .bfc-weather{max-width:100%;}
+  .bfc-overlay__center{padding-top:100px;padding-bottom:180px;}
+  .bfc-quick-tools{width:min(95vw,360px);}
+  .bfc-quick-tools__items button{min-height:66px;padding:6px 3px;gap:4px;}
+  .bfc-youtube-controls{bottom:max(169px,calc(env(safe-area-inset-bottom,0px) + 169px));left:50%;transform:translateX(-50%);z-index:7;}
+  .bfc-utility-dock{bottom:max(91px,calc(env(safe-area-inset-bottom,0px) + 91px));}
+  .bfc-quick-tools{bottom:max(9px,env(safe-area-inset-bottom,0px));}
+}
+@media(max-width:370px) {
+  .bfc-overlay__center{padding-top:83px;}
+  .bfc-clock-face__tile{height:115px;font-size:72px;}
+  .bfc-utility-dock__icon{width:36px;height:36px;}
+  .bfc-utility-dock>button{min-width:54px;}
+  .bfc-quick-tools__title{min-height:36px;}
+}
+@media(max-height:660px) and (min-width:851px) {
+  .bfc-overlay__center {padding-top:50px;padding-bottom:30px;}
+  .bfc-clock-face__tile{height:clamp(118px,24vh,182px);font-size:clamp(77px,17vh,130px);}
+  .bfc-weather{padding:9px 12px;}
+  .bfc-tool-panel {max-height:calc(100dvh - 85px);}
+  .bfc-utility-dock__icon{width:44px;height:44px;}
+  .bfc-utility-dock{gap:7px;}
+  .bfc-quick-tools{width:295px;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .bfc-tool-panel,.bfc-utility-dock__icon,.bfc-focus-scene-veil{animation:none!important;transition:none!important;}
+}
+@media(forced-colors:active) {
+  .bfc-tool-panel,.bfc-quick-tools,.bfc-utility-dock__icon{background:Canvas;color:CanvasText;border:1px solid CanvasText;}
+}
+@keyframes bfc-tool-sheet {from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
