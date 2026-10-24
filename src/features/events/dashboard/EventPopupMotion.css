@@ -1,0 +1,79 @@
+/* Event announcement motion: independent of the global generic modal slot.
+   Exit must be painted before the host unmounts (handled in EventPopupHost).
+   Scoped to event overlays and the Admin preview, not all dialogs. */
+.be-pop-overlay[data-event-motion] {
+  --be-event-enter-ms: 400ms;
+  --be-event-exit-ms: 290ms;
+  --be-event-ease: cubic-bezier(.18,.86,.27,1);
+}
+.be-pop-overlay[data-event-motion] .be-pop-scrim {
+  animation: beEventScrimIn var(--be-event-enter-ms) ease-out both !important;
+}
+.be-pop-overlay[data-event-motion] .be-pop-dialog {
+  animation-duration: var(--be-event-enter-ms) !important;
+  animation-timing-function: var(--be-event-ease) !important;
+  animation-fill-mode: both !important;
+  animation-iteration-count: 1 !important;
+}
+.be-pop-overlay[data-event-enter="rise"] .be-pop-dialog,
+.be-pop-preview-stage[data-event-enter="rise"] .be-pop-preview-card { animation-name: beEventEnterRise !important; }
+.be-pop-overlay[data-event-enter="scale"] .be-pop-dialog,
+.be-pop-preview-stage[data-event-enter="scale"] .be-pop-preview-card { animation-name: beEventEnterScale !important; }
+.be-pop-overlay[data-event-enter="slide"] .be-pop-dialog,
+.be-pop-preview-stage[data-event-enter="slide"] .be-pop-preview-card { animation-name: beEventEnterSlide !important; }
+.be-pop-overlay[data-event-enter="flip"] .be-pop-dialog,
+.be-pop-preview-stage[data-event-enter="flip"] .be-pop-preview-card { animation-name: beEventEnterFlip !important; }
+.be-pop-overlay[data-event-enter="fade"] .be-pop-dialog,
+.be-pop-preview-stage[data-event-enter="fade"] .be-pop-preview-card { animation-name: beEventEnterFade !important; }
+.be-pop-overlay[data-event-enter="none"]:not(.is-leaving) .be-pop-dialog,
+.be-pop-preview-stage[data-event-enter="none"]:not(.is-leaving) .be-pop-preview-card {
+  animation: none !important;
+}
+.be-pop-overlay.is-leaving .be-pop-scrim {
+  animation: beEventScrimOut var(--be-event-exit-ms) ease-in both !important;
+}
+.be-pop-overlay.is-leaving .be-pop-dialog {
+  animation-duration: var(--be-event-exit-ms) !important;
+  animation-timing-function: cubic-bezier(.45,0,.8,.35) !important;
+  animation-fill-mode: both !important;
+  pointer-events: none;
+}
+.be-pop-overlay.is-leaving[data-event-exit="shrink"] .be-pop-dialog,
+.be-pop-preview-stage.is-leaving[data-event-exit="shrink"] .be-pop-preview-card { animation-name: beEventExitShrink !important; }
+.be-pop-overlay.is-leaving[data-event-exit="fade"] .be-pop-dialog,
+.be-pop-preview-stage.is-leaving[data-event-exit="fade"] .be-pop-preview-card { animation-name: beEventExitFade !important; }
+.be-pop-overlay.is-leaving[data-event-exit="slide"] .be-pop-dialog,
+.be-pop-preview-stage.is-leaving[data-event-exit="slide"] .be-pop-preview-card { animation-name: beEventExitSlide !important; }
+.be-pop-overlay.is-leaving[data-event-exit="flip"] .be-pop-dialog,
+.be-pop-preview-stage.is-leaving[data-event-exit="flip"] .be-pop-preview-card { animation-name: beEventExitFlip !important; }
+.be-pop-overlay.is-leaving[data-event-exit="none"] .be-pop-dialog,
+.be-pop-preview-stage.is-leaving[data-event-exit="none"] .be-pop-preview-card { animation: none !important; }
+@keyframes beEventScrimIn { from {opacity:0} to {opacity:1} }
+@keyframes beEventScrimOut { from {opacity:1} to {opacity:0} }
+@keyframes beEventEnterRise {from{opacity:0;transform:translate3d(0,28px,0) scale(.985)}to{opacity:1;transform:none}}
+@keyframes beEventEnterScale {from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
+@keyframes beEventEnterSlide {from{opacity:0;transform:translate3d(70px,0,0)}to{opacity:1;transform:none}}
+@keyframes beEventEnterFlip {from{opacity:0;transform:perspective(1000px) rotateX(-16deg) scale(.96)}to{opacity:1;transform:perspective(1000px) rotateX(0deg) scale(1)}}
+@keyframes beEventEnterFade {from{opacity:0}to{opacity:1}}
+@keyframes beEventExitShrink {from{opacity:1;transform:none}to{opacity:0;transform:translate3d(0,18px,0) scale(.92)}}
+@keyframes beEventExitFade {from{opacity:1}to{opacity:0}}
+@keyframes beEventExitSlide {from{opacity:1;transform:none}to{opacity:0;transform:translate3d(55px,0,0)}}
+@keyframes beEventExitFlip {from{opacity:1;transform:perspective(1000px) rotateX(0deg)}to{opacity:0;transform:perspective(1000px) rotateX(15deg) scale(.96)}}
+/* Reuse exact keyframes in the Admin's in-place visual test. */
+.be-pop-preview-stage .be-pop-preview-card {
+  animation-duration: var(--be-event-enter-ms,400ms);
+  animation-timing-function: cubic-bezier(.18,.86,.27,1);
+  animation-fill-mode: both;
+}
+.be-pop-preview-stage.is-leaving .be-pop-preview-card {
+  animation-duration: var(--be-event-exit-ms,290ms) !important;
+  animation-timing-function: ease-in !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .be-pop-overlay[data-event-motion] .be-pop-dialog,
+  .be-pop-overlay[data-event-motion] .be-pop-scrim,
+  .be-pop-preview-stage .be-pop-preview-card {
+    animation: none !important;
+    transition: none !important;
+  }
+}
