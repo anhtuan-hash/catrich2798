@@ -1,13 +1,12 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   BellOff, Check, ChevronRight, ClipboardPenLine, CloudRain, Headphones,
   Moon, Pause, Play, SlidersHorizontal, Sparkles, Sun, TimerReset,
   Volume2, X, Waves, MoreHorizontal,
 } from 'lucide-react';
-import useFocusTimer, { FOCUS_TIMER_PRESETS } from './useFocusTimer.js';
 import useFocusSoundMixer from './useFocusSoundMixer.js';
 import Focus6Tasks from './Focus6Tasks.jsx';
-import useFocusSoundscape, { FOCUS_SOUNDS, FOCUS_SOUND_LABELS } from './useFocusSoundscape.js';
+import { FOCUS_SOUNDS, FOCUS_SOUND_LABELS } from './useFocusSoundscape.js';
 import FocusNotes from './FocusNotes.jsx';
 
 const STORAGE_PREFIX = 'bfc-preferences-v4:';
@@ -22,25 +21,6 @@ function readPersonal(userId) {
       dnd: saved.dnd === true,
     };
   } catch { return defaults; }
-}
-function focusChime() {
-  try {
-    const Context = window.AudioContext || window.webkitAudioContext;
-    if (!Context) return;
-    const audio = new Context();
-    const tone = audio.createOscillator();
-    const level = audio.createGain();
-    tone.type = 'sine';
-    tone.frequency.setValueAtTime(640, audio.currentTime);
-    tone.frequency.exponentialRampToValueAtTime(830, audio.currentTime + .17);
-    level.gain.setValueAtTime(.0001, audio.currentTime);
-    level.gain.exponentialRampToValueAtTime(.05, audio.currentTime + .02);
-    level.gain.exponentialRampToValueAtTime(.0001, audio.currentTime + .55);
-    tone.connect(level).connect(audio.destination);
-    tone.start();
-    tone.stop(audio.currentTime + .56);
-    tone.onended = () => audio.close().catch(() => {});
-  } catch { /* Browser may block sound until a gesture; never break the timer. */ }
 }
 const TOOL_META = [
   { id:'timer', Icon:TimerReset, vi:'Hẹn giờ', en:'Timer' },
@@ -61,10 +41,6 @@ export default function FocusWorkspace({
   const [soundError, setSoundError] = useState('');
   const [quickExpanded, setQuickExpanded] = useState(false);
   useEffect(() => { onQuickToolsOpenChange?.(quickExpanded); }, [quickExpanded, onQuickToolsOpenChange]);
-  const onTimerComplete = useCallback(() => {
-    setTimerFinished(true);
-    focusChime();
-  }, []);
   const timer = timerController;
   const soundscape = useFocusSoundMixer(currentUser?.id);
   const arrangedTools = [...TOOL_META].sort((a,b)=> (appearance?.dock?.indexOf(a.id)??0)-(appearance?.dock?.indexOf(b.id)??0));
