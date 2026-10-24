@@ -54,7 +54,7 @@ export default function FocusWorkspace({
     onSoundscapeActiveChange?.(soundscape.playing);
   }, [soundscape.playing, onSoundscapeActiveChange]);
   useEffect(() => {
-    const onYoutubeUnmute = () => { soundscape.stop().catch(() => {}); };
+    const onYoutubeUnmute = () => { soundscape.stop(true).catch(() => {}); };
     window.addEventListener('bfc-youtube-unmute', onYoutubeUnmute);
     return () => window.removeEventListener('bfc-youtube-unmute', onYoutubeUnmute);
   }, [soundscape.stop]);
