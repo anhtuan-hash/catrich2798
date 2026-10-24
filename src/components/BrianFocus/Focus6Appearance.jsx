@@ -38,7 +38,7 @@ export default function Focus6Appearance({language='vi',appearance,onChange,onCl
   };
   return <section className="bfc6-picker" role="region" aria-label={vi?'Tùy chỉnh giao diện Focus':'Customize Focus appearance'}>
     <header className="bfc6-picker__head">
-      <span><WandSparkles size={19}/><strong>Focus Studio</strong><small>{vi?'Giao diện cá nhân':'Personal appearance'}</small></span>
+      <span><WandSparkles size={19}/><strong>{vi?'Giao diện Focus':'Focus appearance'}</strong><small>{vi?'Tùy chỉnh cá nhân':'Personal settings'}</small></span>
       <button type="button" onClick={onClose} aria-label={vi?'Đóng giao diện':'Close appearance'}><X size={18}/></button>
     </header>
     <nav className="bfc6-picker__tabs" aria-label={vi?'Mục cài đặt':'Sections'}>
