@@ -49,7 +49,7 @@ const TOOL_META = [
 
 export default function FocusWorkspace({
   currentUser, language = 'vi', activeTool, onChangeTool,
-  onBrightnessChange, onDndChange, onSoundscapeActiveChange,
+  onBrightnessChange, onDndChange, onSoundscapeActiveChange, onQuickToolsOpenChange,
 }) {
   const vi = language !== 'en';
   const [prefs, setPrefs] = useState(() => readPersonal(currentUser?.id));
@@ -57,6 +57,7 @@ export default function FocusWorkspace({
   const [timerFinished, setTimerFinished] = useState(false);
   const [soundError, setSoundError] = useState('');
   const [quickExpanded, setQuickExpanded] = useState(false);
+  useEffect(() => { onQuickToolsOpenChange?.(quickExpanded); }, [quickExpanded, onQuickToolsOpenChange]);
   const onTimerComplete = useCallback(() => {
     setTimerFinished(true);
     focusChime();
