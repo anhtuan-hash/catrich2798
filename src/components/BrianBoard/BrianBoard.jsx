@@ -3,7 +3,7 @@ import {createPortal} from 'react-dom';
 import {Presentation,Pen,Highlighter,Eraser,MousePointer2,Hand,Type,Square,Circle,Minus,
  StickyNote,ScanEye,Undo2,Redo2,Plus,Copy,Trash2,Save,CheckCircle2,X,ChevronLeft,
  ChevronRight,CloudOff,Play,Pause,RotateCcw,Timer,Users,Eye,EyeOff,Maximize2,
- Download,Move,Palette,FilePlus2,LockKeyhole,LockKeyholeOpen} from 'lucide-react';
+ Download,Move,Palette,FilePlus2,LockKeyhole,LockKeyholeOpen,Layers,ArrowUp,ArrowDown,ImagePlus} from 'lucide-react';
 import {isAdminRole,isDepartmentLeaderRole,normalizeSystemRole} from '../../utils/roles.js';
 import {GLOBAL_FLOATING_ACTION_EVENT,FLOATING_ACTION_IDS} from '../../utils/unifiedFloatingDock.js';
 import {BOARD_W,BOARD_H,newLesson,newPage,normalizeLesson,makeId,THEMES,sanitizeStudentPage} from './boardModel.js';
@@ -17,6 +17,7 @@ const drawTools=[
  ['eraser',Eraser,'Erase stroke','Tẩy nét'],['text',Type,'Text','Chữ'],
  ['shape-rect',Square,'Rectangle','Hình chữ nhật'],['shape-ellipse',Circle,'Ellipse','Hình tròn'],
  ['shape-line',Minus,'Line','Đường thẳng'],['sticky',StickyNote,'Sticky note','Ghi chú'],
+ ['flashcard',Layers,'Flashcard','Thẻ lật'],['mask',EyeOff,'Answer curtain','Che đáp án'],
  ['laser',ScanEye,'Laser pointer','Con trỏ laser'],
 ];
 const SHAPES=['ivory','midnight','classroom'];
@@ -32,7 +33,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  const [saveState,setSaveState]=useState('idle'),[saveError,setSaveError]=useState('');
  const [tool,setTool]=useState('pen'),[color,setColor]=useState('#335d63'),[thickness,setThickness]=useState(5);
  const [zoom,setZoom]=useState(1),[camera,setCamera]=useState({x:0,y:0});
- const [contentText,setContentText]=useState(''),[showPages,setShowPages]=useState(()=>window.innerWidth>780),[spotlight,setSpotlight]=useState(false);
+ const [contentText,setContentText]=useState(''),[privateAnswer,setPrivateAnswer]=useState(''),[showPages,setShowPages]=useState(()=>window.innerWidth>780),[spotlight,setSpotlight]=useState(false);
  const [studentView,setStudentView]=useState(false),[timerSeconds,setTimerSeconds]=useState(300);
  const [timerDeadline,setTimerDeadline]=useState(0),[timerNow,setTimerNow]=useState(Date.now());
  const [teams,setTeams]=useState([{name:'Team 1',score:0},{name:'Team 2',score:0}]);
@@ -181,6 +182,23 @@ export default function BrianBoard({currentUser,language='vi'}){
  const editPage=(fn)=>mutate(d=>({...d,pages:d.pages.map(p=>p.id===d.activePageId?fn(p):p)}));
  const commitObj=object=>{if(!page||page.locked)return;editPage(p=>({...p,objects:[...p.objects,object]}));};
  const eraseObject=id=>{if(!page||page.locked)return;editPage(p=>({...p,objects:p.objects.filter(o=>o.id!==id)}));};
+ const interactObject=id=>{if(!page||page.locked)return;
+  editPage(p=>({...p,objects:p.objects.map(o=>o.id===id&&o.kind==='flashcard'
+   ?{...o,revealed:!o.revealed}:o)}));
+ };
+ const insertImage=file=>{
+  if(!file)return;
+  if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>2*1024*1024){
+    window.alert(vi?'Chỉ nhận PNG/JPEG/WebP tối đa 2 MB':'Choose a PNG/JPEG/WebP image up to 2 MB');return;
+  }
+  const reader=new FileReader();
+  reader.onload=()=>{
+   const src=String(reader.result||'');
+   if(!/^data:image\/(?:png|jpeg|webp);base64,/i.test(src))return;
+   commitObj({kind:'image',id:makeId(),src,x:150,y:120,width:560,height:340,studentVisible:true});
+  };
+  reader.readAsDataURL(file);
+ };
  const addPage=()=>mutate(d=>{
   const next=newPage('Page '+(d.pages.length+1));
   return {...d,pages:[...d.pages,next],activePageId:next.id};
@@ -196,6 +214,12 @@ export default function BrianBoard({currentUser,language='vi'}){
   mutate(d=>{const pages=d.pages.filter(p=>p.id!==d.activePageId);return {...d,pages,activePageId:pages[0].id};});
  };
  const pageAt=index=>mutate(d=>({...d,activePageId:d.pages[index]?.id||d.activePageId}));
+ const movePage=offset=>mutate(d=>{
+  const index=d.pages.findIndex(p=>p.id===d.activePageId),target=index+offset;
+  if(target<0||target>=d.pages.length)return d;
+  const pages=[...d.pages];[pages[index],pages[target]]=[pages[target],pages[index]];
+  return {...d,pages};
+ });
  const exportPNG=async()=>{
   const root=document.querySelector('.bbd-canvas__svg');if(!root)return;
   const serializer=new XMLSerializer();
@@ -244,7 +268,7 @@ export default function BrianBoard({currentUser,language='vi'}){
     <div className="bbd-canvas-area">
      <BoardCanvas page={studentView?sanitizeStudentPage(page):page} tool={studentView?'select':tool} color={color} width={thickness}
        onCommit={commitObj} onErase={eraseObject} zoom={zoom} setZoom={setZoom}
-       camera={camera} setCamera={setCamera} contentText={contentText}
+       camera={camera} setCamera={setCamera} contentText={contentText} privateAnswer={privateAnswer} onInteract={interactObject}
        spotlight={spotlight} studentView={studentView}/>
      <div className="bbd-canvas-bottom">
       <div className="bbd-color-strip">
@@ -256,6 +280,9 @@ export default function BrianBoard({currentUser,language='vi'}){
        {['text','sticky','flashcard'].includes(tool)&&<input className="bbd-object-text"
         value={contentText} onChange={e=>setContentText(e.target.value)}
         placeholder={vi?'Nhập nội dung rồi chạm bảng':'Type, then tap the board'}/>}
+       {tool==='flashcard'&&<input className="bbd-object-text" value={privateAnswer}
+        onChange={e=>setPrivateAnswer(e.target.value)}
+        placeholder={vi?'Đáp án riêng của giáo viên':'Teacher-only answer'}/>}
       </div>
       <div className="bbd-zoom">
        <button onClick={()=>setZoom(z=>Math.max(.35,Math.round((z-.15)*100)/100))}>−</button>
@@ -277,7 +304,8 @@ export default function BrianBoard({currentUser,language='vi'}){
        onClick={()=>pageAt(i)}><span className="bbd-page__num">{String(i+1).padStart(2,'0')}</span>
         <span>{p.title}</span>{p.locked&&<LockKeyhole size={13}/>}</button>)}
       <div className="bbd-side-actions"><button onClick={copyPage}><Copy size={16}/>{vi?'Nhân bản':'Duplicate'}</button>
-       <button onClick={deletePage} disabled={lesson?.pages.length<2}><Trash2 size={16}/>{vi?'Xóa':'Delete'}</button></div>
+       <button onClick={deletePage} disabled={lesson?.pages.length<2}><Trash2 size={16}/>{vi?'Xóa':'Delete'}</button> <button title="Move page up" onClick={()=>movePage(-1)}><ArrowUp size={16}/></button>
+   <button title="Move page down" onClick={()=>movePage(1)}><ArrowDown size={16}/></button></div>
       <button onClick={()=>editPage(p=>({...p,locked:!p.locked}))}>{page?.locked?<LockKeyholeOpen size={16}/>:<LockKeyhole size={16}/>}
        {page?.locked?(vi?'Mở khóa trang':'Unlock page'):(vi?'Khóa trang':'Lock page')}</button>
       <button onClick={()=>editPage(p=>({...p,hidden:!p.hidden}))}>{page?.hidden?<EyeOff size={16}/>:<Eye size={16}/>}
@@ -313,6 +341,8 @@ export default function BrianBoard({currentUser,language='vi'}){
       <h4>{vi?'Nền trang':'Page background'}</h4>
       {['plain','grid','lines'].map(x=><button key={x} onClick={()=>editPage(p=>({...p,background:x}))}
        className={'bbd-theme-choice'+(page?.background===x?' active':'')}>{x}</button>)}
+      <label className="bbd-import-image"><ImagePlus size={16}/>{vi?'Thêm ảnh (tối đa 2 MB)':'Insert image (max 2 MB)'}
+       <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>{insertImage(e.target.files?.[0]);e.target.value='';}}/></label>
       <button onClick={exportPNG}><Download size={16}/>{vi?'Xuất trang SVG':'Export SVG page'}</button>
       <p>{vi?'Nét viết và trang bài dạy được lưu riêng trên trình duyệt này.':'Your lesson draft is saved privately on this device.'}</p>
      </div>}
