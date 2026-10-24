@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Check, CloudUpload, FileCode2, FileImage, Film, RotateCcw, ShieldCheck, X, Youtube, Link2, ArrowUp, ArrowDown, Trash2, ListVideo } from 'lucide-react';
+import { Check, CloudUpload, FileCode2, FileImage, Film, RotateCcw, ShieldCheck, X, Youtube, Link2, ArrowUp, ArrowDown, Trash2, ListVideo, Eye, EyeOff } from 'lucide-react';
 import FocusPlaylistUrlInput from './FocusPlaylistUrlInput.jsx';
 import {
   saveFocusScene, sandboxFocusHtml, resolveFocusSceneMedia, validateFocusFile,
@@ -14,6 +14,9 @@ export default function FocusSceneEditor({ language = 'vi', currentUser, scene, 
   const [draft, setDraft] = useState(() => ({ ...scene }));
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState({ src: '', html: '' });
+  // Explicit preview: YouTube iframes otherwise take over the edit surface and
+  // reload on every playlist keystroke. Keep editing UI accessible by default.
+  const [previewOpen,setPreviewOpen]=useState(false);
   const [busy, setBusy] = useState(false);
   const [publishedPreview, setPublishedPreview] = useState({ src: '', html: '' });
   const [notice, setNotice] = useState('');
@@ -55,6 +58,7 @@ export default function FocusSceneEditor({ language = 'vi', currentUser, scene, 
       setFile(selected);
       setDraft(previous => ({ ...previous, mediaType, mediaPath: '', youtubeUrl: '' }));
       setNotice('');
+      setPreviewOpen(false);
     } catch (error) { setNotice(error?.message || String(error)); }
   };
 
@@ -76,6 +80,7 @@ export default function FocusSceneEditor({ language = 'vi', currentUser, scene, 
     setFile(null);
     setDraft(previous => ({ ...previous, mediaType: 'default', mediaPath: '', youtubeUrl: '' }));
     setNotice('');
+    setPreviewOpen(false);
   };
 
   const shownPreview = file ? preview : (
@@ -97,6 +102,7 @@ export default function FocusSceneEditor({ language = 'vi', currentUser, scene, 
   }) : '';
   const chooseYoutube = url => {
     setFile(null);
+    setPreviewOpen(false);
     setNotice('');
     setDraft(previous => ({
       ...previous, mediaType: 'youtube', mediaPath: '', youtubeUrl: url,
@@ -134,26 +140,6 @@ export default function FocusSceneEditor({ language = 'vi', currentUser, scene, 
     </header>
 
     <div className="bfc-scene-editor__body">
-      <div className="bfc-scene-editor__preview">
-        {shownPreview.src && draft.mediaType === 'image'
-          ? <img src={shownPreview.src} alt="" /> : null}
-        {shownPreview.src && draft.mediaType === 'video'
-          ? <video src={shownPreview.src} autoPlay muted loop playsInline/> : null}
-        {shownPreview.html && draft.mediaType === 'html'
-          ? <iframe title="HTML preview" sandbox="allow-scripts" tabIndex={-1}
-            referrerPolicy="no-referrer" srcDoc={shownPreview.html}/> : null}
-        {youtubePreviewUrl && draft.mediaType === 'youtube'
-          ? <iframe className="bfc-scene-editor__youtube-player"
-              title={vi ? 'Xem thử video YouTube' : 'YouTube video preview'}
-              src={youtubePreviewUrl}
-              allow="encrypted-media; picture-in-picture"
-              sandbox="allow-scripts allow-same-origin allow-presentation"
-              referrerPolicy="strict-origin-when-cross-origin"
-            /> : null}
-        {!shownPreview.src && !shownPreview.html && !youtubePreviewUrl ? <span><FileIcon size={28}/><strong>{label}</strong>
-          <small>{vi ? 'Nền hiện hành hoặc hình nền mặc định' : 'Published scene or default background'}</small>
-        </span> : null}
-      </div>
       <div className="bfc-scene-editor__current">
         <ShieldCheck size={16}/>
         <span>{vi ? 'Đang công bố:' : 'Published:'} <strong>{
@@ -217,6 +203,37 @@ export default function FocusSceneEditor({ language = 'vi', currentUser, scene, 
             </li>)}
           </ol>}
         </> : null}
+      </div>
+      <div className="bfc-scene-editor__preview-section">
+        <button type="button" className="bfc-scene-editor__preview-toggle"
+          aria-expanded={previewOpen}
+          aria-controls="bfc-scene-live-preview"
+          onClick={()=>setPreviewOpen(open=>!open)}>
+          {previewOpen?<EyeOff size={16}/>:<Eye size={16}/>}
+          <span>{vi?'Xem trước nền':'Preview background'}</span>
+          <small>{previewOpen?(vi?'Thu gọn':'Collapse'):(vi?'Chỉ mở khi cần':'Open only when needed')}</small>
+        </button>
+        {previewOpen&&<div id="bfc-scene-live-preview"
+          className="bfc-scene-editor__preview" data-preview-expanded="true">
+          {shownPreview.src&&draft.mediaType==='image'
+            ? <img src={shownPreview.src} alt="" /> : null}
+          {shownPreview.src&&draft.mediaType==='video'
+            ? <video src={shownPreview.src} autoPlay muted loop playsInline/> : null}
+          {shownPreview.html&&draft.mediaType==='html'
+            ? <iframe title="HTML preview" sandbox="allow-scripts" tabIndex={-1}
+                referrerPolicy="no-referrer" srcDoc={shownPreview.html}/> : null}
+          {youtubePreviewUrl&&draft.mediaType==='youtube'
+            ? <iframe className="bfc-scene-editor__youtube-player"
+                title={vi?'Xem thử video YouTube':'YouTube video preview'}
+                src={youtubePreviewUrl}
+                allow="encrypted-media; picture-in-picture"
+                sandbox="allow-scripts allow-same-origin allow-presentation"
+                referrerPolicy="strict-origin-when-cross-origin"/> : null}
+          {!shownPreview.src&&!shownPreview.html&&!youtubePreviewUrl&&<span>
+            <FileIcon size={24}/><strong>{label}</strong>
+            <small>{vi?'Nền đang sử dụng hoặc nền mặc định':'Published or default background'}</small>
+          </span>}
+        </div>}
       </div>
       <p className="bfc-scene-editor__tip">{vi
         ? 'HTML nên là một tệp tự chứa. Nội dung chạy trong khung cách ly, không được truy cập tài khoản, mạng hoặc các trang khác.'
