@@ -6,7 +6,7 @@ import { supabase } from '../../../utils/supabase.js';
 import { getAuthSessionIdentity, eventLoginStorageKey, eventLoginSessionMarker, canAutoShowEvent } from '../utils/eventLoginSession.mjs';
 import EventPosterViewer from './EventPosterViewer.jsx';
 import { getGlobalMotionConfig, GLOBAL_MOTION_EVENT } from '../../../utils/globalMotionSystem.js';
-import { normalizeEventPopupMotion, eventPopupMotionDuration } from '../utils/eventPopupMotion.mjs';
+import { normalizeEventPopupMotion, playEventPopupMotion } from '../utils/eventPopupMotion.mjs';
 import './EventPopup.css';
 import './EventPopupMotion.css';
 
@@ -23,7 +23,8 @@ export default function EventPopupHost({currentUser}) {
   const [posterExpanded,setPosterExpanded]=useState(false);
   const [closing,setClosing]=useState(false);
   const [eventMotion,setEventMotion]=useState(()=>normalizeEventPopupMotion(getGlobalMotionConfig().eventPopup));
-  const exitTimerRef=useRef(null);
+  const dialogRef=useRef(null);
+  const animationRef=useRef(null);
   const shownRef=useRef('');
   const authSessionIdentityRef=useRef(null);
   const closeButtonRef=useRef(null);
@@ -38,7 +39,19 @@ export default function EventPopupHost({currentUser}) {
     window.addEventListener(GLOBAL_MOTION_EVENT,apply);
     return ()=>window.removeEventListener(GLOBAL_MOTION_EVENT,apply);
   },[]);
-  useEffect(()=>()=>window.clearTimeout(exitTimerRef.current),[]);
+  useEffect(()=>{
+    if(!event?.id)return undefined;
+    // Start a fresh, observable entrance animation when the real popup mounts.
+    const frame=window.requestAnimationFrame(()=>{
+      animationRef.current?.cancel();
+      animationRef.current=playEventPopupMotion(dialogRef.current,eventMotion,'enter');
+    });
+    return ()=>{
+      window.cancelAnimationFrame(frame);
+      animationRef.current?.cancel();
+      animationRef.current=null;
+    };
+  },[event?.id,event?.version]);
   useEffect(()=>{
     if(!userId)return undefined;
     let active=true;
@@ -130,12 +143,13 @@ export default function EventPopupHost({currentUser}) {
     setLoadingAction(true);setActionError('');
     try{
       await recordEventInteraction(event,userId,action);
-      const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches||false;
-      const duration=eventPopupMotionDuration(eventMotion,'exit',reduced);
-      if(duration>0){
-        setClosing(true);
-        await new Promise(resolve=>{exitTimerRef.current=window.setTimeout(resolve,duration+20);});
-      }
+      // Stop the entering phase first so two opposing animations cannot
+      // compete. This uses the exact same controller as the Admin preview.
+      animationRef.current?.cancel();
+      setClosing(true);
+      const leaving=playEventPopupMotion(dialogRef.current,eventMotion,'exit');
+      animationRef.current=leaving;
+      await leaving.finished;
       setEvent(null);
       setClosing(false);
     }catch(e){setClosing(false);setActionError('Không thể ghi nhận lựa chọn: '+e.message);}
@@ -171,11 +185,10 @@ export default function EventPopupHost({currentUser}) {
       </section>
     </div>}
     {event && <div className={`be-pop-overlay${closing?' is-leaving':''}`} role="presentation"
-      data-event-motion="true" data-event-enter={eventMotion.enter} data-event-exit={eventMotion.exit}
-      style={{'--be-event-enter-ms':`${eventPopupMotionDuration(eventMotion,'enter')}ms`,
-        '--be-event-exit-ms':`${eventPopupMotionDuration(eventMotion,'exit')}ms`}}>
+      data-event-motion="true" data-event-driven="true"
+      data-event-enter={eventMotion.enter} data-event-exit={eventMotion.exit}>
       <div className="be-pop-scrim" aria-hidden="true"/>
-      <section className="be-pop-dialog" data-global-motion-isolate="true" role="dialog" aria-modal="true"
+      <section ref={dialogRef} className="be-pop-dialog" data-global-motion-isolate="true" role="dialog" aria-modal="true"
         aria-labelledby="be-pop-title" aria-describedby="be-pop-intro">
         <header className="be-pop-header">
           <div className="be-pop-header-id">
