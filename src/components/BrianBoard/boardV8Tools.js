@@ -175,3 +175,40 @@ export function syncDiagramConnections(objects){
   return a&&b?{...o,x:a.x,y:a.y,x2:b.x,y2:b.y}:o;
  });
 }
+
+/** Eight-handle transform, with opposite handle anchored and safe scale bounds.
+ * Live preview is handled by the canvas; only final numeric coordinates are persisted.
+ */
+export const BOARD_RESIZE_HANDLES=['nw','n','ne','e','se','s','sw','w'];
+export function groupResizeTransform(objects,ids,handle,delta){
+ const bounds=groupBounds(objects,ids);
+ if(!bounds||!BOARD_RESIZE_HANDLES.includes(handle))return objects;
+ const selected=new Set(ids);
+ const dx=finite(delta?.x),dy=finite(delta?.y);
+ const minWidth=36,minHeight=36;
+ const x1=bounds.x,y1=bounds.y,x2=x1+bounds.width,y2=y1+bounds.height;
+ let left=x1,right=x2,top=y1,bottom=y2;
+ if(handle.includes('w'))left=Math.min(right-minWidth,x1+dx);
+ if(handle.includes('e'))right=Math.max(left+minWidth,x2+dx);
+ if(handle.includes('n'))top=Math.min(bottom-minHeight,y1+dy);
+ if(handle.includes('s'))bottom=Math.max(top+minHeight,y2+dy);
+ const fx=Math.max(.2,Math.min(5,(right-left)/Math.max(1,bounds.width)));
+ const fy=Math.max(.2,Math.min(5,(bottom-top)/Math.max(1,bounds.height)));
+ // Opposite edge remains stationary, centered edges retain their original axis.
+ const xAnchor=handle.includes('w')?x2:handle.includes('e')?x1:x1;
+ const yAnchor=handle.includes('n')?y2:handle.includes('s')?y1:y1;
+ const tx=v=>xAnchor+(finite(v)-xAnchor)*fx;
+ const ty=v=>yAnchor+(finite(v)-yAnchor)*fy;
+ return objects.map(o=>{
+  if(!selected.has(o.id)||o.locked)return o;
+  if(o.kind==='stroke')return {...o,points:(o.points||[]).map(p=>({...p,x:tx(p.x),y:ty(p.y)})),
+   width:Math.max(1,finite(o.width,4)*Math.sqrt(fx*fy))};
+  if(o.kind==='shape')return {...o,x:tx(o.x),y:ty(o.y),x2:tx(o.x2),y2:ty(o.y2)};
+  const changes={x:tx(o.x),y:ty(o.y)};
+  if(o.kind==='image'||o.kind==='mask')Object.assign(changes,{
+   width:Math.max(24,finite(o.width,300)*fx),
+   height:Math.max(24,finite(o.height,120)*fy)});
+  if(o.kind==='text')changes.fontSize=Math.max(12,Math.min(160,finite(o.fontSize,40)*Math.sqrt(fx*fy)));
+  return {...o,...changes};
+ });
+}
