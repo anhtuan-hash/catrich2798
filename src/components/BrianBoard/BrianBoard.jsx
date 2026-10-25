@@ -12,7 +12,7 @@ import BoardCanvas from './BoardCanvas.jsx';
 import {listBoardCloud,saveBoardCloud,readBoardCloud} from './boardCloud.js';
 import {boardStudentPayload,newBoardPresentationId} from './boardPresentation.js';
 import {importBoardPdf,exportBoardStudentPdf} from './boardPdf.js';
-import {createBoardActivity,publicBoardActivity} from './boardActivities.js';
+import {createBoardActivity} from './boardActivities.js';
 import BoardActivityStage from './BoardActivityStage.jsx';
 import './BrianBoard.css';
 import './BoardActivities.css';
@@ -59,6 +59,8 @@ export default function BrianBoard({currentUser,language='vi'}){
  const saving=useRef(Promise.resolve()),dirty=useRef(false),animating=useRef(false);
  const launchRef=useRef(null),lastFocusRef=useRef(null),mounted=useRef(true);
  const page=lesson?.pages.find(x=>x.id===lesson.activePageId)||lesson?.pages[0];
+ // Exact TV payload for classroom preview: never read a raw activity in student mode.
+ const studentActivityPreview=studentView&&lesson?boardStudentPayload(lesson,activeActivityId).activity:null;
  const activeActivityRef=useRef(activeActivityId);activeActivityRef.current=activeActivityId;
  const theme=lesson?.theme||'ivory';
  useEffect(()=>{
@@ -430,9 +432,21 @@ export default function BrianBoard({currentUser,language='vi'}){
     <div className="bbd-canvas-area">
      {activeActivityId&&page?.activities?.find(a=>a.id===activeActivityId)
        ?studentView?<div className="bbd-activity-stage" aria-label="Student activity preview">
-        <h2>{page.activities.find(a=>a.id===activeActivityId)?.title}</h2>
-        <p>{page.activities.find(a=>a.id===activeActivityId)?.prompt}</p>
-        <div className="bbd-activity-stage__tray">{publicBoardActivity(page.activities.find(a=>a.id===activeActivityId))?.labels?.map((x,i)=><span className="bbd-activity-card" key={i}>{x}</span>)}</div>
+        {!studentActivityPreview?<p role="status">{vi?'Trang hoặc hoạt động này không hiển thị cho học sinh.':'This page or activity is hidden from students.'}</p>:<>
+         <h2>{studentActivityPreview.title}</h2>
+         {studentActivityPreview.prompt&&<p>{studentActivityPreview.prompt}</p>}
+         <div className="bbd-activity-preview__groups">
+          <section><h3>{studentActivityPreview.type==='ordering'?(vi?'Các mảnh câu đã xáo trộn':'Scrambled sentence pieces'):(vi?'Nội dung câu hỏi':'Prompts')}</h3>
+           <div className="bbd-activity-stage__tray">{studentActivityPreview.labels.map((x,i)=><span className="bbd-activity-card" key={i}>{i+1}. {x}</span>)}</div>
+          </section>
+          {studentActivityPreview.type==='matching'&&<section><h3>{vi?'Ngân hàng phương án':'Answer bank'}</h3>
+           <div className="bbd-activity-stage__tray">{studentActivityPreview.options.map((x,i)=><span className="bbd-activity-card" key={i}>{String.fromCharCode(65+i)}. {x}</span>)}</div>
+          </section>}
+          {studentActivityPreview.type==='sorting'&&<section><h3>{vi?'Các nhóm phân loại':'Categories'}</h3>
+           <div className="bbd-activity-stage__tray">{studentActivityPreview.categories.map((x,i)=><span className="bbd-activity-card" key={i}>{x}</span>)}</div>
+          </section>}
+         </div>
+        </>}
        </div>
        :<BoardActivityStage activity={page.activities.find(a=>a.id===activeActivityId)}
          vi={vi} onClose={()=>setActiveActivityId(null)}/>
