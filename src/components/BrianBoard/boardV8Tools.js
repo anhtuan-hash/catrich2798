@@ -218,7 +218,11 @@ export function rotateBoardObjects(objects,ids,degrees){
  const angle=Math.max(-180,Math.min(180,finite(degrees)));
  const picked=new Set(ids),bounds=groupBounds(objects,ids);
  if(!bounds||!angle)return objects;
- const center={x:bounds.x+bounds.width/2,y:bounds.y+bounds.height/2};
+ const eligible=objects.filter(o=>picked.has(o.id)&&!o.locked);
+ const only=eligible.length===1?eligible[0]:null;
+ const center=only?.kind==='shape'&&['line','arrow'].includes(only.shape)?
+  {x:(finite(only.x)+finite(only.x2))/2,y:(finite(only.y)+finite(only.y2))/2}:
+  {x:bounds.x+bounds.width/2,y:bounds.y+bounds.height/2};
  const theta=angle*Math.PI/180,cos=Math.cos(theta),sin=Math.sin(theta);
  const turn=(x,y)=>({
   x:center.x+(finite(x)-center.x)*cos-(finite(y)-center.y)*sin,
