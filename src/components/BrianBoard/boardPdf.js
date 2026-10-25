@@ -219,7 +219,7 @@ export function pageToSvg(page,theme='ivory'){
    svgNode('image',{href:o.src,x:o.x,y:o.y,width:o.width||500,height:o.height||300,
     preserveAspectRatio:'xMidYMid meet'},svg);
   }else if(o.kind==='mask'){
-   svgNode('rect',{x:o.x,y:o.y,width:o.width||240,height:o.height||90,rx:9,fill:'#243b4b'},svg);
+   if(!o.revealed)svgNode('rect',{x:o.x,y:o.y,width:o.width||240,height:o.height||90,rx:9,fill:'#243b4b'},svg);
   }else if(o.kind==='sticky'||o.kind==='flashcard'){
    const w=o.kind==='flashcard'?340:360,h=o.kind==='flashcard'?165:115;
    svgNode('rect',{x:o.x,y:o.y,width:w,height:h,rx:13,fill:'#edf4e6',stroke:'#a2b8a6'},svg);
