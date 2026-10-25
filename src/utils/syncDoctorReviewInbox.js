@@ -90,3 +90,25 @@ export async function previewSyncDoctorReview(requestId){
   // This endpoint is deliberately read-only: no snapshots, no repairs, no restore.
   return {...data,checkedAt:new Date().toISOString()};
 }
+
+
+export async function createSyncDoctorPrivateBackup(requestId){
+  requireBackend();
+  if(!text(requestId))throw new Error('Chưa chọn yêu cầu đã được duyệt.');
+  const {data,error}=await supabase.rpc('bes_sync_create_private_backup',{p_request_id:requestId});
+  checkFailure(error);
+  if(data?.state!=='backup_ready'||data?.repairEnabled!==false||data?.rollbackEnabled!==false
+    ||data?.studentDataExposed!==false)throw new Error('Phản hồi sao lưu không đạt điều kiện an toàn.');
+  return data;
+}
+export async function rehearseSyncDoctorRollback(requestId){
+  requireBackend();
+  if(!text(requestId))throw new Error('Chưa chọn yêu cầu sao lưu.');
+  const {data,error}=await supabase.rpc('bes_sync_rehearse_private_restore',{p_request_id:requestId});
+  checkFailure(error);
+  if(!data || data?.repairEnabled!==false || data?.restorable===true)
+    throw new Error('Phản hồi diễn tập không đạt điều kiện an toàn.');
+  if(data.state==='rehearsal_passed' && (data.rollbackEnabled!==false||data.liveRestoreTested!==false))
+    throw new Error('Không thể công nhận phép thử hoàn tác trên dữ liệu thật.');
+  return data;
+}
