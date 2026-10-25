@@ -1,0 +1,49 @@
+/* Brian Teaching Board V7 — light mini-map, SVG geometry only. */
+.bbd-navigator{position:absolute;right:22px;bottom:87px;z-index:7;width:240px;
+ border:1px solid var(--bbd-border,#cbdace);border-radius:17px;
+ background:color-mix(in srgb,var(--bbd-panel,#fff) 94%,transparent);
+ box-shadow:0 11px 36px rgba(25,61,48,.16);padding:9px;
+ backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+ color:var(--bbd-text,#24483c);transition:box-shadow .2s ease;
+ pointer-events:auto;user-select:none}
+.bbd-navigator.is-collapsed{width:171px}
+.bbd-navigator__top{display:flex;align-items:center;justify-content:space-between;gap:5px}
+.bbd-navigator__top>div{display:flex;align-items:center;gap:7px;min-width:0}
+.bbd-navigator__top strong{font-size:12px;white-space:nowrap}
+.bbd-navigator__top small{font-size:10px;color:var(--bbd-muted,#60796f);white-space:nowrap}
+.bbd-navigator__top button{width:29px;height:29px;border:1px solid var(--bbd-border);
+ display:grid;place-items:center;border-radius:9px;background:var(--bbd-soft);
+ color:var(--bbd-text);flex:0 0 auto;cursor:pointer}
+.bbd-navigator__map{display:block;width:100%;height:140px;touch-action:none;
+ margin-top:7px;border:1px solid var(--bbd-border);border-radius:11px;
+ background:var(--bbd-background,#f5faf7);cursor:crosshair}
+.bbd-navigator__map.is-dragging{cursor:grabbing}
+.bbd-navigator__map:focus-visible{outline:3px solid var(--bbd-ring);outline-offset:2px}
+.bbd-navigator__ground{fill:var(--bbd-background,#f6faf6)}
+.bbd-navigator__origin{fill:color-mix(in srgb,var(--bbd-accent) 7%,transparent);
+ stroke:var(--bbd-border);stroke-width:18;stroke-dasharray:28 15}
+.bbd-navigator__mark{fill:var(--bbd-accent);opacity:.27;stroke:var(--bbd-accent);
+ stroke-opacity:.5;stroke-width:7}
+.bbd-navigator__frame{fill:color-mix(in srgb,var(--bbd-accent) 10%,transparent);
+ stroke:var(--bbd-accent);stroke-width:23}
+.bbd-navigator__frame.is-active{fill:color-mix(in srgb,var(--bbd-accent) 24%,transparent);
+ stroke:#f2b354;stroke-width:32}
+.bbd-navigator__index{fill:var(--bbd-accent);font-family:system-ui,sans-serif;font-weight:800}
+.bbd-navigator__viewport{fill:rgba(219,169,74,.14);stroke:#d59b40;stroke-width:30;pointer-events:none}
+.bbd-navigator__crosshair{fill:#dc934a;stroke:white;stroke-width:10;pointer-events:none}
+.bbd-navigator__actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.bbd-navigator__actions button{display:flex;align-items:center;justify-content:center;gap:6px;
+ min-height:36px;font-size:11px;font-weight:750;padding:5px;border:1px solid var(--bbd-border);
+ border-radius:10px;background:var(--bbd-soft);color:var(--bbd-text);cursor:pointer}
+.bbd-navigator__actions button:hover:not(:disabled),.bbd-navigator__top button:hover{
+ background:var(--bbd-highlight)}
+@media(max-width:900px){.bbd-navigator{right:12px;bottom:83px;width:209px}
+ .bbd-navigator__map{height:115px}}
+@media(max-width:640px){
+ .bbd-navigator{right:11px;bottom:145px;width:172px;padding:7px;border-radius:12px}
+ .bbd-navigator.is-collapsed{width:152px}
+ .bbd-navigator__map{height:97px}
+ .bbd-navigator__top small{display:none}
+ .bbd-navigator__actions button{font-size:10px;min-height:33px}
+}
+@media(prefers-reduced-motion:reduce){.bbd-navigator{transition:none}}
