@@ -104,6 +104,46 @@ begin
   exception when insufficient_privilege then null;end;
 
   perform set_config('request.jwt.claim.sub',reviewer::text,true);
+
+  -- Real SQL negative cases inside nested subtransactions: each mutation rolls back.
+  begin
+    update public.bes_class_rosters set students=students ||
+      jsonb_build_array(students->1) where roster_key='class:2026-2027||12.synth';
+    perform public.bes_sync_execute_one_student(local_request_id);
+    raise exception 'Duplicate canonical roster identity was permitted';
+  exception when sqlstate '55000' then null;end;
+  begin
+    update public.bes_class_rosters set students=jsonb_set(students,'{1,active}','false'::jsonb)
+      where roster_key='class:2026-2027||12.synth';
+    perform public.bes_sync_execute_one_student(local_request_id);
+    raise exception 'Inactive candidate was permitted';
+  exception when sqlstate '55000' then null;end;
+  begin
+    update public.bes_class_rosters set students=jsonb_set(students,'{1,code}','"OLD100"'::jsonb)
+      where roster_key='class:2026-2027||12.synth';
+    perform public.bes_sync_execute_one_student(local_request_id);
+    raise exception 'Duplicate canonical code was permitted';
+  exception when sqlstate '55000' then null;end;
+  begin
+    update public.bes_gradebook_workspaces
+      set payload=jsonb_set(payload,'{scoreMap,legacy-100,midterm}','10'::jsonb,true)
+      where owner_id=requester and workspace_id='syn-12';
+    perform public.bes_sync_execute_one_student(local_request_id);
+    raise exception 'Changed gradebook checksum was permitted';
+  exception when serialization_failure then null;end;
+  begin
+    update bes_internal.bes_sync_backup_snapshots
+      set expires_at=now()-interval '1 second' where request_id=local_request_id;
+    perform public.bes_sync_execute_one_student(local_request_id);
+    raise exception 'Expired backup was permitted';
+  exception when sqlstate '55000' then null;end;
+  begin
+    update public.bes_gradebook_workspaces set student_count=999
+      where owner_id=requester and workspace_id='syn-12';
+    perform public.bes_sync_execute_one_student(local_request_id);
+    raise exception 'Counter drift at execution was permitted';
+  exception when serialization_failure then null;end;
+
   select public.bes_sync_execute_one_student(local_request_id) into result;
   if result->>'state'<>'repaired' then raise exception 'Single student repair failed: %',result;end if;
   select payload,jsonb_array_length(payload->'students') into current_payload,after_rows
