@@ -3,7 +3,7 @@ import {BOARD_W,BOARD_H,pathFromPoints,makeId} from './boardModel.js';
 import {snapBoardPoint,constrainBoardShape,smoothBoardPath,pressureBoardSegments,
  boardShapeGeometry,boardShapePreviewPath} from './boardDrawing.js';
 import {frameFromCorners} from './boardSpatial.js';
-import {lassoObjectIds} from './boardV8Tools.js';
+import {lassoObjectIds,recognizeBoardGesture} from './boardV8Tools.js';
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 
 export function renderBoardObject(object,onErase,studentView=false,onInteract,onSelect){
@@ -89,7 +89,7 @@ export function renderBoardObject(object,onErase,studentView=false,onInteract,on
 export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onCommit,onErase,onDuplicateObject,onMoveObject,onBatchEdit,onPrecisionErase,onSaveAsset,
  zoom=1,setZoom,camera={x:0,y:0},setCamera,contentText='',privateAnswer='',onInteract,
  studentView=false,spotlight=false,penPreset='classic',snapToGrid=false,shapeFill='none',vi=true,
- frames=[],showFrames=true,onCreateFrame,activeFrameId=null,onPointerPosition}){
+ frames=[],showFrames=true,onCreateFrame,activeFrameId=null,onPointerPosition,smartGeometry=false}){
  const svg=useRef(null),preview=useRef(null),pointer=useRef(null);
  const [drawing,setDrawing]=useState(false),[selectedId,setSelectedId]=useState(''),[selectedIds,setSelectedIds]=useState([]);
  const [laser,setLaser]=useState(null);
@@ -151,8 +151,16 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
    if(state.points.length)onPrecisionErase?.(state.points);
    return;
   }
-  if(state.tool==='pen'||state.tool==='highlighter'||state.tool==='lasso'||state.tool==='eraser-precision'){
+  if(state.tool==='pen'||state.tool==='highlighter'){
    const points=state.points.slice(0,4000);
+   if(state.tool==='pen'&&smartGeometry&&performance.now()-(state.lastMoveAt||0)>650){
+    const shape=recognizeBoardGesture(points);
+    if(shape){
+     onCommit?.({id:makeId(),kind:'shape',...shape,color:state.color,
+      width:state.width,fill:'none',studentVisible:true});
+     return;
+    }
+   }
    if(points.length>=1)onCommit?.({kind:'stroke',id:makeId(),points,
     color:state.color,width:state.width,opacity:state.opacity??1,studentVisible:true,
     smoothed:true,pressureSensitive:state.pressureSensitive===true});
@@ -209,7 +217,8 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
    points:[{...(tool.startsWith('shape-')?origin:p),pressure:event.pressure||.5}],
    lastClient:{x:event.clientX,y:event.clientY},startCamera:{...camera},
    color,width:appliedPreset.width,opacity:appliedPreset.opacity,
-   pressureSensitive:appliedPreset.pressure,shift:event.shiftKey,snapToGrid,shapeFill};
+   pressureSensitive:appliedPreset.pressure,shift:event.shiftKey,snapToGrid,shapeFill,
+   lastMoveAt:performance.now()};
   event.currentTarget.setPointerCapture?.(event.pointerId);
   setDrawing(true);
  };
@@ -222,6 +231,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
   const state=pointer.current;
   if(!state||state.pointerId!==event.pointerId)return;
   const p=local(event);
+  if(state.tool==='pen')state.lastMoveAt=performance.now();
   if(state.tool==='move-object'){
    const first=state.points[0];state.points=[first,p];
    state.el?.setAttribute('transform','translate('+(p.x-first.x)+' '+(p.y-first.y)+')');
