@@ -46,7 +46,7 @@ Create an isolated local project and generate an independent synthetic auth/prof
 5. Rollback receives **another separate A consent** and B execution; pristine post-write checksum and version restore exactly the backup, with no concurrent edits.
 6. After a concurrent grade/notes/student change, rollback refuses to overwrite legitimate work.
 7. Expired, missing, changed or corrupted private backup blocks both repair and restore.
-8. Verify the live browser UI with two distinct authorized sessions; check Arabic? No — supported languages are Vietnamese and English, and verify iPhone Safari and Android scrolling.
+8. Verify the live browser UI with two distinct authorized sessions; check Vietnamese/English display and verify iPhone Safari and Android scrolling.
 9. Re-run security advisors and confirm RLS on all Sync Doctor metadata tables, no client snapshot SELECT, and no anon privileges on definer RPCs.
 
 ## Release decision
