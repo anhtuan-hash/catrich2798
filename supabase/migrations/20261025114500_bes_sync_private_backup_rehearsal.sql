@@ -55,9 +55,9 @@ begin
     raise exception 'Approved independent gradebook review required' using errcode='42501';
  end if;
 
- if (select count(*) from public.bes_gradebook_workspaces g
-     where g.workspace_id=r.workspace_id and g.school_year=r.school_year
-      and g.class_name=r.class_name)<>1 then
+ if (select count(*) from public.bes_gradebook_workspaces target_g
+     where target_g.workspace_id=r.workspace_id and target_g.school_year=r.school_year
+      and target_g.class_name=r.class_name)<>1 then
    raise exception 'Ambiguous workspace: one target required' using errcode='55000';
  end if;
  -- Lock target before the read-only identity/revision check and snapshot.
