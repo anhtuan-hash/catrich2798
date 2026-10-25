@@ -24,7 +24,7 @@ export const LAB_EXAMPLES={
  evidence_hunter:'PASSAGE: Burning fossil fuels releases carbon dioxide into the atmosphere. These gases trap heat and cause global warming.\nWhat causes warming? | Burning fossil fuels | Burning fossil fuels releases carbon dioxide | Clouds | Oceans',
  four_corners:'Which is renewable? | Coal | Oil | Solar | Gas | C\nChoose the correct verb: She ___ English. | study | studies | studying | studied | B',
  flashcard_duel:'sustainable | able to continue without harming the environment\nemissions | gases released into the atmosphere',
- mystery_reveal:'Which gas contributes to global warming? | Carbon dioxide\nName a renewable resource. | Solar energy',
+ mystery_reveal:'MYSTERY: Planet Earth\nWhich gas contributes to global warming? | Carbon dioxide\nName a renewable resource. | Solar energy',
  stress_tap:'pho/to/graph | 1\nre/new/a/ble | 2',
  concept_connection:'Burning fossil fuels | causes | carbon emissions\nCarbon emissions | increase | global warming'
 };
@@ -44,7 +44,7 @@ export function parseLabActivity(type,raw){
  need(LAB_TYPES.includes(type),'Unsupported activity type');
  const input=lines(raw);
  need(input.length>0&&input.length<=25,'Use between 1 and 25 lines');
- let passage='',items=[],distractors=[];
+ let passage='',items=[],distractors=[],mysteryAnswer='';
  if(type==='hotspot'||type==='drag_label'){
   items=input.map((line,i)=>{
    const row=split(line,3);
@@ -92,7 +92,10 @@ export function parseLabActivity(type,raw){
    return {id:'i'+i,label:t(p[0],220),options:p.slice(1,5).map(x=>t(x,140)),answer:p[5].toUpperCase()};
   });
  }else if(type==='flashcard_duel'||type==='mystery_reveal'){
-  items=input.map((line,i)=>{
+  const questions=type==='mystery_reveal'&&/^MYSTERY:/i.test(input[0])?input.slice(1):input;
+  if(type==='mystery_reveal'&&questions.length!==input.length)
+   mysteryAnswer=t(input[0].replace(/^MYSTERY:/i,''),130);
+  items=questions.map((line,i)=>{
    const p=split(line,2);
    need(p.length===2&&p.every(Boolean),'Use Prompt | Answer on each line');
    return {id:'i'+i,label:t(p[0],220),answer:t(p[1],180)};
@@ -115,7 +118,7 @@ export function parseLabActivity(type,raw){
   });
  }
  need(items.length>=1&&items.length<=(type==='cloze_snap'?12:type==='four_corners'?16:20),'The activity needs 1–20 valid items (Cloze: max 12, Four Corners: max 16)');
- return {items,passage,distractors};
+ return {items,passage,distractors,mysteryAnswer};
 }
 export function createLabActivity({type,title,prompt,raw,imageData}){
  const parts=parseLabActivity(type,raw);
