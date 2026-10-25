@@ -6,7 +6,7 @@ import {normalizeBoardFrames} from '../src/components/BrianBoard/boardSpatial.js
 import {lassoObjectIds,moveBoardObjects,scaleBoardObjects,duplicateBoardObjects,
  reorderBoardObjects,splitStrokeByEraser,eraseInkAtPoint,buildBoardTemplate,
  BOARD_V8_TEMPLATES,recognizeBoardGesture,createDiagramConnection,syncDiagramConnections,
- groupResizeTransform,BOARD_RESIZE_HANDLES,rotateBoardObjects,alignBoardObjects} from '../src/components/BrianBoard/boardV8Tools.js';
+ groupResizeTransform,BOARD_RESIZE_HANDLES,rotateBoardObjects,alignBoardObjects,layoutBoardNodes} from '../src/components/BrianBoard/boardV8Tools.js';
 import {normalizeBoardCrop} from '../src/components/BrianBoard/boardImageStudio.js';
 import {measureRuler,measureAngle,drawCompassCircle} from '../src/components/BrianBoard/boardMeasure.js';
 const source=f=>readFileSync(new URL('../src/components/BrianBoard/'+f,import.meta.url),'utf8');
@@ -52,6 +52,17 @@ assert.equal(distributed[0].x,alignItems[0].x);
 assert.equal(distributed[2].x,alignItems[2].x);
 assert.notEqual(distributed[1].x,alignItems[1].x);
 assert.deepEqual(alignItems.map(o=>o.x),[0,100,250]);
+const layoutHorizontal=layoutBoardNodes(alignItems,['left','middle','right'],'horizontal',50);
+assert.equal(layoutHorizontal.length,3);
+assert.ok(layoutHorizontal[0].x<layoutHorizontal[1].x);
+assert.ok(layoutHorizontal[1].x<layoutHorizontal[2].x);
+const layoutVertical=layoutBoardNodes(alignItems,['left','middle','right'],'vertical',40);
+assert.ok(layoutVertical[1].y>layoutVertical[0].y);
+const layoutGrid=layoutBoardNodes(alignItems,['left','middle','right'],'grid',40);
+assert.equal(layoutGrid.length,3);
+assert.equal(layoutBoardNodes(alignItems,['left'],'grid'),alignItems);
+assert.deepEqual(alignItems.map(o=>o.x),[0,100,250],'Layouts do not mutate source');
+
 assert.deepEqual(normalizeBoardCrop({x:0.2,y:0.1,width:.5,height:.7}),{x:.2,y:.1,width:.5,height:.7});
 assert.equal(normalizeBoardCrop({x:.98,y:.99,width:1,height:1}).x,.92);
 const scaled=scaleBoardObjects(objects,['c'],1.5);
@@ -131,6 +142,8 @@ assert.match(board,/syncDiagramConnections/);
 assert.match(board,/groupResizeTransform/);
 assert.match(board,/rotateBoardObjects/);
 assert.match(board,/alignBoardObjects/);
+assert.match(board,/layoutBoardNodes/);
+assert.ok(canvas.includes("'layout',{mode"));
 assert.match(canvas,/bbd-v8-align-select/);
 assert.ok(canvas.includes("'rotate',{degrees"));
 assert.match(board,/onCommitMany=\{commitMany\}/);
@@ -173,6 +186,7 @@ assert.match(board,/effectBoardImageRegion/);
 assert.match(source('BoardCropEditor.jsx'),/mode==='blur'/);
 assert.match(source('BoardCropEditor.jsx'),/onPointerMove=\{drag\}/);
 assert.match(source('boardPdf.js'),/spatialObjectBounds\(o\)/);
+assert.match(source('boardPdf.js'),/pdfBackground:true/);
 assert.match(source('BoardCanvas.jsx'),/renderBoardObjectRaw/);
 assert.match(source('boardModel.js'),/\.\.\.rotation\(o\)/);
 
