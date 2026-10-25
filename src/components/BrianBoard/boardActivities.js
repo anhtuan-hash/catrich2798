@@ -23,20 +23,22 @@ export function createBoardActivity({type,title,prompt,raw}){
   if(type==='sorting'&&new Set(items.map(x=>x.answer)).size>6)
    throw Error('Sorting allows up to six categories');
  }
- return {id:makeId(),type,title:clean(title)||'Interactive activity',prompt:clean(prompt),items,createdAt:Date.now()};
+ return {id:makeId(),type,title:clean(title)||'Interactive activity',prompt:clean(prompt),items,
+  studentVisible:true,createdAt:Date.now()};
 }
 export function normalizeBoardActivities(activities){
  if(!Array.isArray(activities))return [];
  return activities.slice(0,24).filter(x=>x&&BOARD_ACTIVITY_TYPES.includes(x.type)&&Array.isArray(x.items))
   .map(x=>({
    id:String(x.id||makeId()).slice(0,80),type:x.type,title:clean(x.title),prompt:clean(x.prompt),
+   studentVisible:x.studentVisible!==false,teacherOnly:x.teacherOnly===true,
    items:x.items.slice(0,20).map((row,i)=>({id:String(row.id||'i'+i).slice(0,30),
     label:clean(row.label),...(x.type!=='ordering'?{answer:clean(row.answer)}:{})})),
    createdAt:Number(x.createdAt)||Date.now()
   })).filter(x=>x.items.length>=2);
 }
 export function publicBoardActivity(activity){
- if(!activity||!BOARD_ACTIVITY_TYPES.includes(activity.type))return null;
+ if(!activity||!BOARD_ACTIVITY_TYPES.includes(activity.type)||activity.studentVisible===false||activity.teacherOnly===true)return null;
  return {id:String(activity.id||''),type:activity.type,title:clean(activity.title),prompt:clean(activity.prompt),
   // No answer mapping, ordered solution, or token indices leave the teacher context.
   labels:activity.type==='ordering'?(()=>{
