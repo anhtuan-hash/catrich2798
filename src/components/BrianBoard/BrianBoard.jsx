@@ -39,6 +39,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  const vi=language!=='en',ownerId=currentUser?.id,allowed=rolesAllowed(currentUser);
  const [open,setOpen]=useState(false),[phase,setPhase]=useState('closed');
  const [lesson,setLesson]=useState(null),[loading,setLoading]=useState(false);
+ const ownerRef=useRef(ownerId);ownerRef.current=ownerId;
  const [saveState,setSaveState]=useState('idle'),[saveError,setSaveError]=useState('');
  const [tool,setTool]=useState('pen'),[color,setColor]=useState('#335d63'),[thickness,setThickness]=useState(5);
  const [zoom,setZoom]=useState(1),[camera,setCamera]=useState({x:0,y:0});
@@ -280,7 +281,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  };
  const toggleActivityVisibility=id=>{
   if(page?.locked)return;
-  editPage(p=>({...p,activities:(p.activities||[]).map(activity=>activity.id===id?
+  editPage(p=>({...p,activities:(p.activities||[]).map(activity=>activity.id===id&&!activity.teacherOnly?
    {...activity,studentVisible:activity.studentVisible===false}:activity)}));
  };
  const deleteActivity=id=>{
@@ -353,7 +354,8 @@ export default function BrianBoard({currentUser,language='vi'}){
  });
  const copyPage=()=>mutate(d=>{
   const orig=d.pages.find(p=>p.id===d.activePageId);
-  const next={...snapshots(orig),id:makeId(),title:orig.title+' copy',objects:orig.objects.map(o=>({...o,id:makeId()}))};
+  const next={...snapshots(orig),id:makeId(),title:orig.title+' copy',objects:orig.objects.map(o=>({...o,id:makeId()})),
+   activities:(orig.activities||[]).map(a=>({...snapshots(a),id:makeId()}))};
   return {...d,pages:[...d.pages,next],activePageId:next.id};
  });
  const deletePage=()=>{
@@ -401,9 +403,10 @@ export default function BrianBoard({currentUser,language='vi'}){
   const account=ownerId;
   try{
    const copy=importPrivateBoardBackup(await file.text(),account);
-   if(account!==ownerId)return;
+   if(account!==ownerRef.current)return;
    if(!window.confirm(vi?'Khôi phục thành bài dạy MỚI? Tệp chứa đáp án riêng của giáo viên, không chia sẻ với học sinh.':'Restore as a NEW lesson? This private file can contain teacher answers.'))return;
-   if(dirty.current)await persist(docRef.current);
+   if(dirty.current){await persist(docRef.current);if(dirty.current)throw Error('Save your current lesson before importing a new one');}
+   if(account!==ownerRef.current)return;
    docRef.current=copy;setLesson(copy);history.current=[];future.current=[];
    dirty.current=true;await persist(copy);setPanel('pages');
    setBackupStatus(vi?'Đã khôi phục bản sao mới trên thiết bị':'Restored as a new private lesson');
@@ -608,7 +611,7 @@ export default function BrianBoard({currentUser,language='vi'}){
        <button disabled={page?.locked||!(page?.activities||[]).some(a=>a.studentVisible!==false)}
         onClick={hideEveryActivity}><EyeOff size={16}/>{vi?'Ẩn toàn bộ bài tập khỏi học sinh':'Hide all activities from students'}</button>
        {(page?.activities||[]).map((x,i)=><div key={x.id} className="bbd-library-item bbd-activity-entry">
-        <div><strong>{i+1}. {x.title}</strong><small>{x.type} · {x.items.length} {vi?'mục':'items'} · {x.studentVisible===false?(vi?'Ẩn với học sinh':'Teacher-only draft'):(vi?'Hiện cho học sinh':'Published')}</small></div>
+        <div><strong>{i+1}. {x.title}</strong><small>{x.type} · {x.items.length} {vi?'mục':'items'} · {x.studentVisible===false||x.teacherOnly===true?(vi?'Ẩn với học sinh':'Teacher-only draft'):(vi?'Hiện cho học sinh':'Published')}</small></div>
         <div className="bbd-side-actions bbd-activity-actions">
          <button onClick={()=>setActiveActivityId(x.id)} title={vi?'Chạy bài tập':'Play activity'}><Play size={15}/>{vi?'Chạy':'Play'}</button>
          <button disabled={page?.locked} onClick={()=>beginActivityEditing(x)} title={vi?'Chỉnh sửa':'Edit'}><Edit3 size={15}/></button>
@@ -616,9 +619,9 @@ export default function BrianBoard({currentUser,language='vi'}){
           title={vi?'Nhân bản riêng, mặc định ẩn':'Duplicate as unpublished draft'}><Copy size={15}/></button>
          <button disabled={page?.locked||i===0} onClick={()=>orderActivity(x.id,-1)} title={vi?'Đưa lên':'Move up'}><ArrowUp size={15}/></button>
          <button disabled={page?.locked||i===(page?.activities?.length||0)-1} onClick={()=>orderActivity(x.id,1)} title={vi?'Đưa xuống':'Move down'}><ArrowDown size={15}/></button>
-         <button disabled={page?.locked} onClick={()=>toggleActivityVisibility(x.id)}
+         <button disabled={page?.locked||x.teacherOnly===true} onClick={()=>toggleActivityVisibility(x.id)}
            aria-label={x.studentVisible===false?(vi?'Công bố bài tập':'Publish activity'):(vi?'Ẩn bài tập với học sinh':'Hide activity from students')}
-           title={x.studentVisible===false?(vi?'Công bố cho học sinh':'Publish to students'):(vi?'Chỉ giáo viên thấy':'Hide from students')}>
+           title={x.teacherOnly===true?(vi?'Nội dung chỉ giáo viên':'Teacher-only content'):(x.studentVisible===false?(vi?'Công bố cho học sinh':'Publish to students'):(vi?'Chỉ giáo viên thấy':'Hide from students'))}>
            {x.studentVisible===false?<EyeOff size={15}/>:<Eye size={15}/>}
          </button>
          <button disabled={page?.locked} onClick={()=>deleteActivity(x.id)} title={vi?'Xóa hoạt động':'Delete activity'}><Trash2 size={15}/></button>
