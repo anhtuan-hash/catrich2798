@@ -415,6 +415,19 @@ export default function BrianBoard({currentUser,language='vi'}){
    return p;
   });
  };
+ const pinActivity=id=>{
+  if(!page||page.locked||page.objects.length>=3000)return;
+  const activity=page.activities.find(a=>a.id===id);if(!activity)return;
+  commitObj({id:makeId(),kind:'activity-pin',x:camera.x+BOARD_W/zoom*.3,
+   y:camera.y+BOARD_H/zoom*.3,activityId:id,text:activity.title.slice(0,90),
+   teacherOnly:true,studentVisible:false});
+  setActiveActivityId(null);
+  setTool('select');
+ };
+ const setLayerFlag=(id,flag)=>{
+  if(!page||page.locked)return;
+  editPage(p=>({...p,objects:p.objects.map(o=>o.id===id?{...o,[flag]:o[flag]!==true}:o)}));
+ };
  const insertTeachingTemplate=id=>{
   if(!page||page.locked)return;
   const created=buildBoardTemplate(id,currentViewport,vi);
@@ -447,7 +460,13 @@ export default function BrianBoard({currentUser,language='vi'}){
    return {...o,x:(o.x||0)+dx,y:(o.y||0)+dy};
   })}));
  };
- const interactObject=id=>{if(!page||page.locked)return;
+ const interactObject=id=>{
+  if(!page||page.locked)return;
+  const pin=page.objects.find(o=>o.id===id&&o.kind==='activity-pin');
+  if(pin){
+   if(page.activities?.some(a=>a.id===pin.activityId))setActiveActivityId(pin.activityId);
+   return;
+  }
   editPage(p=>({...p,objects:p.objects.map(o=>o.id===id&&['flashcard','mask'].includes(o.kind)
    ?{...o,revealed:!o.revealed}:o)}));
  };
@@ -888,8 +907,8 @@ export default function BrianBoard({currentUser,language='vi'}){
        title={vi?'Đóng bảng điều khiển':'Close inspector'} aria-label={vi?'Đóng bảng điều khiển':'Close inspector'}
        onClick={closeInspector}><X size={18}/></button>
      <div className="bbd-sidebar-tabs">
-      {['pages','frames','activities','assets','library','teaching','design'].map(id=><button key={id} className={panel===id?'active':''} onClick={()=>setPanel(id)}>
-       {id==='pages'?(vi?'Trang':'Pages'):id==='frames'?(vi?'Khung':'Frames'):id==='activities'?(vi?'Bài tập':'Activities'):id==='assets'?(vi?'Mẫu':'Templates'):id==='library'?(vi?'Thư viện':'Library'):id==='teaching'?(vi?'Lớp học':'Classroom'):(vi?'Thiết kế':'Design')}</button>)}
+      {['pages','frames','activities','layers','assets','library','teaching','design'].map(id=><button key={id} className={panel===id?'active':''} onClick={()=>setPanel(id)}>
+       {id==='pages'?(vi?'Trang':'Pages'):id==='frames'?(vi?'Khung':'Frames'):id==='activities'?(vi?'Bài tập':'Activities'):id==='layers'?(vi?'Lớp':'Layers'):id==='assets'?(vi?'Mẫu':'Templates'):id==='library'?(vi?'Thư viện':'Library'):id==='teaching'?(vi?'Lớp học':'Classroom'):(vi?'Thiết kế':'Design')}</button>)}
      </div>
      {panel==='pages'&&<div className="bbd-pages">
       <div className="bbd-side-heading"><strong>{vi?'Các trang bài giảng':'Lesson pages'}</strong>
@@ -960,6 +979,27 @@ export default function BrianBoard({currentUser,language='vi'}){
       <p>{vi?'Phím tắt: F vẽ khung · P kéo bảng · Alt+←/→ chuyển khung · G khớp tất cả · M bản đồ · C chế độ gọn · 0 về gốc.':
        'Shortcuts: F draw frame · P pan · Alt+←/→ frames · G fit all · M map · C clean view · 0 home.'}</p>
      </div>}
+     {panel==='layers'&&<div className="bbd-side-stack bbd-v8-layers">
+      <div className="bbd-side-heading"><h3>{vi?'Quản lý lớp đối tượng':'Object layers'}</h3><Layers size={19}/></div>
+      <p>{vi?'Ẩn/hiện, khóa hoặc đổi thứ tự đối tượng trên bảng. Đối tượng ẩn cũng không xuất hiện trên TV.':
+       'Hide, lock, or reorder individual objects. Hidden objects are excluded from the TV.'}</p>
+      <div className="bbd-v8-layers-list">
+       {[...(page?.objects||[])].reverse().map((o,index)=><div className="bbd-v8-layer" key={o.id}>
+        <div><strong>{(page.objects.length-index)} · {o.kind}</strong>
+         <small>{String(o.text||o.shape||o.id).slice(0,37)}</small></div>
+        <button disabled={page?.locked} onClick={()=>setLayerFlag(o.id,'hidden')}
+         aria-label={o.hidden?(vi?'Hiện đối tượng':'Show object'):(vi?'Ẩn đối tượng':'Hide object')}>
+         {o.hidden?<EyeOff size={17}/>:<Eye size={17}/>}</button>
+        <button disabled={page?.locked} onClick={()=>setLayerFlag(o.id,'locked')}
+         aria-label={o.locked?(vi?'Mở khóa đối tượng':'Unlock object'):(vi?'Khóa đối tượng':'Lock object')}>
+         {o.locked?<LockKeyhole size={17}/>:<LockKeyholeOpen size={17}/>}</button>
+        <button disabled={page?.locked} onClick={()=>batchEdit([o.id],'front')}
+         aria-label={vi?'Đưa lên trên':'Bring to front'}><ArrowUp size={15}/></button>
+        <button disabled={page?.locked} onClick={()=>batchEdit([o.id],'back')}
+         aria-label={vi?'Đưa xuống dưới':'Send to back'}><ArrowDown size={15}/></button>
+       </div>)}
+      </div>
+     </div>}
      {panel==='assets'&&<div className="bbd-side-stack bbd-v8-assets">
       <div className="bbd-side-heading"><h3>{vi?'Thư viện mẫu giảng dạy':'Teaching templates'}</h3><LayoutTemplate size={19}/></div>
       <p>{vi?'Chèn bố cục có thể viết, kéo thả và chỉnh sửa ngay vào vùng đang nhìn. Không cần AI.':
@@ -1009,6 +1049,8 @@ export default function BrianBoard({currentUser,language='vi'}){
         <div><strong>{i+1}. {x.title}</strong><small>{x.type} · {x.items.length} {vi?'mục':'items'} · {x.studentVisible===false||x.teacherOnly===true?(vi?'Ẩn với học sinh':'Teacher-only draft'):(vi?'Hiện cho học sinh':'Published')}</small></div>
         <div className="bbd-side-actions bbd-activity-actions">
          <button onClick={()=>setActiveActivityId(x.id)} title={vi?'Chạy bài tập':'Play activity'}><Play size={15}/>{vi?'Chạy':'Play'}</button>
+         <button disabled={page?.locked||page?.objects?.length>=3000} onClick={()=>pinActivity(x.id)}
+          title={vi?'Ghim bài tập lên bảng':'Pin activity on board'}><MapPinned size={15}/></button>
          <button disabled={page?.locked} onClick={()=>beginActivityEditing(x)} title={vi?'Chỉnh sửa':'Edit'}><Edit3 size={15}/></button>
          <button disabled={page?.locked||page?.activities?.length>=24} onClick={()=>duplicateActivity(x.id)}
           title={vi?'Nhân bản riêng, mặc định ẩn':'Duplicate as unpublished draft'}><Copy size={15}/></button>
