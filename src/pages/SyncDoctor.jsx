@@ -70,6 +70,7 @@ const viText={
   releaseGatePass:'Đã triển khai',
   releaseGatePending:'Chưa nghiệm thu',
   releaseGateLocal:'Kiểm thử ngoại tuyến bằng hồ sơ giả lập, không cần dịch vụ trả phí',
+  releaseGateSqlPrepared:'Bộ kiểm thử PostgreSQL cục bộ đã chuẩn bị, chưa thực thi',
   releaseGateDb:'Kiểm thử thực thi và hoàn tác bằng PostgreSQL cách ly',
   releaseGateAccounts:'Kiểm thử hai tài khoản thật và Safari/Android',
   releaseGateHold:'Cả ba lệnh thực thi, sửa và hoàn tác vẫn bị khóa ở Supabase Production.',
@@ -141,6 +142,7 @@ const enText={
   releaseGatePass:'Implemented',
   releaseGatePending:'Not accepted',
   releaseGateLocal:'Offline synthetic student repair/rollback checks, with no paid service',
+  releaseGateSqlPrepared:'Local PostgreSQL test harness prepared, not executed',
   releaseGateDb:'Isolated PostgreSQL write and rollback integration tests',
   releaseGateAccounts:'Two real-account sessions and Safari/Android verification',
   releaseGateHold:'All three execution, repair and rollback RPCs remain disabled in Production.',
@@ -561,7 +563,7 @@ export default function SyncDoctor({currentUser,language='vi'}){
       {t.settingsLines.map(line=><div className="bsd-policy" key={line}><ShieldCheck size={18}/>{line}</div>)}
       <div className="bsd-release-gates">
         <h3>{t.releaseGateTitle}</h3><p>{t.releaseGateSubtitle}</p>
-        {[[t.releaseGateLocal,true],[t.releaseGateDb,false],[t.releaseGateAccounts,false]].map(([label,passed])=>
+        {[[t.releaseGateLocal,true],[t.releaseGateSqlPrepared,true],[t.releaseGateDb,false],[t.releaseGateAccounts,false]].map(([label,passed])=>
           <div className="bsd-release-gate" key={label}>
             {passed?<CheckCircle2 size={19} color="#24755c"/>:<LockKeyhole size={19} color="#99682d"/>}
             <span>{label}</span>
