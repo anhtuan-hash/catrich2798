@@ -133,8 +133,8 @@ begin
   select payload into current_payload from public.bes_gradebook_workspaces
     where owner_id=requester and workspace_id='syn-12';
   if current_payload<>old_payload then raise exception 'Exact backup was not restored';end if;
-  select count(*) into event_count from public.bes_sync_review_events
-    where request_id=request_id and action in
+  select count(*) into event_count from public.bes_sync_review_events e
+    where e.request_id=request_id and action in
     ('execution_authorized','repaired','rollback_authorized','rolled_back');
   if event_count<>4 then raise exception 'Audit trail missing steps: %',event_count;end if;
   raise notice 'PASS local SQL: independent roles, ambiguous workspace, approved private backup, one append preserving scores, anti-replay, concurrent edit refusal, exact rollback';
