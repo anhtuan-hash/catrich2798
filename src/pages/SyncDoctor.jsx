@@ -5,7 +5,7 @@ import { Activity, AlertTriangle, ArrowRight, BookUser, CheckCircle2, ChevronRig
 import {isAdminRole,isDepartmentLeaderRole} from '../utils/roles.js';
 import {runSyncDoctorScan,serializeSyncDoctorReport} from '../utils/syncDoctorDiagnostics.js';
 import {buildSyncReviewPlans,serializeSyncReviewDocket} from '../utils/syncDoctorPlanning.mjs';
-import {getSyncDoctorReviewInbox,submitSyncDoctorReview,decideSyncDoctorReview,cancelSyncDoctorReview,previewSyncDoctorReview} from '../utils/syncDoctorReviewInbox.js';
+import {getSyncDoctorReviewInbox,submitSyncDoctorReview,decideSyncDoctorReview,cancelSyncDoctorReview,previewSyncDoctorReview,createSyncDoctorPrivateBackup,rehearseSyncDoctorRollback} from '../utils/syncDoctorReviewInbox.js';
 import './SyncDoctor.css';
 
 const viText={
@@ -45,6 +45,12 @@ const viText={
   backupMissing:'Chưa tạo bản sao lưu',noRollback:'Chưa có khả năng hoàn tác',
   noExecution:'Không thay đổi dữ liệu. Cần quy trình sao lưu, hoàn tác và một lần phê duyệt thực thi riêng.',
   previewTime:'Thời điểm kiểm tra',reasonLabel:'Lý do',
+  privateBackup:'Tạo bản sao lưu riêng tư',rehearsal:'Diễn tập hoàn tác',
+  backupTitle:'Sao lưu trước khi sửa',backupReady:'Đã sao lưu, chờ diễn tập',
+  rehearsalPassed:'Diễn tập trong bộ nhớ thành công',rehearsalFailed:'Chưa đạt kiểm tra hoàn tác',
+  retention:'Bản sao lưu tự xóa sau 48 giờ',restoreNote:'Chưa phục hồi thử trên bảng dữ liệu thật; chức năng sửa và hoàn tác thật vẫn bị khóa.',
+  backupUnavailable:'Chỉ người đã duyệt độc lập mới được thực hiện, và chỉ hỗ trợ Sổ điểm.',
+  backupTime:'Hết hạn',
   docket:'Xuất phiếu rà soát',plansOverview:'Kế hoạch dự kiến được tạo từ lần quét gần nhất — không thực hiện thay đổi dữ liệu.',
   preview:'Xem trước phương án',constraints:'Điều kiện an toàn',steps:'Các bước rà soát',
   approval:'Cần người có thẩm quyền duyệt',reviewable:'Có thể rà soát',blocked:'Chưa đủ điều kiện',
@@ -89,6 +95,12 @@ const enText={
   backupMissing:'Backup not created',noRollback:'Rollback not available',
   noExecution:'No data will change. A backup, rollback workflow and separate execution approval are required.',
   previewTime:'Checked at',reasonLabel:'Reason',
+  privateBackup:'Create private backup',rehearsal:'Rehearse rollback',
+  backupTitle:'Pre-repair private backup',backupReady:'Backup secured; rehearsal pending',
+  rehearsalPassed:'In-memory rehearsal passed',rehearsalFailed:'Rollback rehearsal not passed',
+  retention:'Backup auto-purged after 48 hours',restoreNote:'No live database restoration was tested; real repair and rollback remain disabled.',
+  backupUnavailable:'Only the independent approver may act; gradebook only.',
+  backupTime:'Expires',
   docket:'Export review docket',plansOverview:'Proposals from the latest scan; no changes can be executed.',
   preview:'Review preview',constraints:'Safety requirements',steps:'Review steps',
   approval:'Independent approval required',reviewable:'Ready for review',blocked:'Blocked — investigate',
@@ -149,6 +161,8 @@ export default function SyncDoctor({currentUser,language='vi'}){
   const [reviewSubmitting,setReviewSubmitting]=useState(false);
   const [preflightById,setPreflightById]=useState({});
   const [preflightLoading,setPreflightLoading]=useState('');
+  const [backupLoading,setBackupLoading]=useState('');
+  const [recoveryByRequest,setRecoveryByRequest]=useState({});
   const controller=useRef(null);
   const busy=!!progress;
   const refreshReviews=async()=>{
@@ -189,6 +203,24 @@ export default function SyncDoctor({currentUser,language='vi'}){
       setPreflightById(old=>({...old,[requestId]:result}));
     }catch(err){setReviewError(String(err?.message||err));}
     finally{setPreflightLoading('');}
+  };
+  const backupReview=async(requestId)=>{
+    if(backupLoading||reviewSubmitting)return;
+    setBackupLoading(requestId);setReviewError('');
+    try{
+      const result=await createSyncDoctorPrivateBackup(requestId);
+      setRecoveryByRequest(old=>({...old,[requestId]:{...(old[requestId]||{}),backup:result}}));
+    }catch(err){setReviewError(String(err?.message||err));}
+    finally{setBackupLoading('');}
+  };
+  const rehearseReview=async(requestId)=>{
+    if(backupLoading||reviewSubmitting)return;
+    setBackupLoading(requestId);setReviewError('');
+    try{
+      const result=await rehearseSyncDoctorRollback(requestId);
+      setRecoveryByRequest(old=>({...old,[requestId]:{...(old[requestId]||{}),rehearsal:result}}));
+    }catch(err){setReviewError(String(err?.message||err));}
+    finally{setBackupLoading('');}
   };
   const run=async()=>{
     if(busy||!authorized)return;
@@ -367,6 +399,26 @@ export default function SyncDoctor({currentUser,language='vi'}){
                     </div>;
                   })()}
                 </div>}
+              {item.status==='approved_for_review'&&item.issue_code==='STUDENT_NOT_LINKED'&&
+                item.source==='gradebook'&&item.reviewer_id===currentUser.id&&
+                <section className="bsd-backup-panel">
+                  <div className="bsd-backup-head"><ShieldCheck size={18}/><div><strong>{t.backupTitle}</strong>
+                    <small>{t.backupUnavailable}</small></div></div>
+                  <div className="bsd-backup-actions">
+                    <button type="button" className="bsd-outline" onClick={()=>backupReview(item.id)}
+                      disabled={!!backupLoading||!!reviewSubmitting}><Database size={16}/>{t.privateBackup}</button>
+                    <button type="button" className="bsd-outline" onClick={()=>rehearseReview(item.id)}
+                      disabled={!!backupLoading||!recoveryByRequest[item.id]?.backup}><RefreshCw size={16}/>{t.rehearsal}</button>
+                  </div>
+                  {recoveryByRequest[item.id]?.backup&&<div className="bsd-backup-result">
+                    <CheckCircle2 size={17}/><div><strong>{t.backupReady}</strong>
+                      <small>{t.backupTime}: {datetime(recoveryByRequest[item.id].backup.expiresAt)}</small></div></div>}
+                  {recoveryByRequest[item.id]?.rehearsal&&<div className="bsd-backup-result">
+                    <ShieldCheck size={17}/><div>
+                      <strong>{recoveryByRequest[item.id].rehearsal.state==='rehearsal_passed'?t.rehearsalPassed:t.rehearsalFailed}</strong>
+                      <small>{t.restoreNote}</small></div></div>}
+                  <small>{t.retention} · {t.restoreNote}</small>
+                </section>}
               {pending&&<div className="bsd-request-actions">
                 {owned?<button type="button" className="bsd-outline" disabled={reviewSubmitting} onClick={()=>actionReview(item.id,'cancelled')}>
                   <X size={15}/>{t.cancelRequest}</button>:
