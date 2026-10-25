@@ -86,7 +86,7 @@ export function renderBoardObject(object,onErase,studentView=false,onInteract,on
  }
  return null;
 }
-export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onCommit,onErase,onDuplicateObject,onMoveObject,onBatchEdit,onPrecisionErase,
+export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onCommit,onErase,onDuplicateObject,onMoveObject,onBatchEdit,onPrecisionErase,onSaveAsset,
  zoom=1,setZoom,camera={x:0,y:0},setCamera,contentText='',privateAnswer='',onInteract,
  studentView=false,spotlight=false,penPreset='classic',snapToGrid=false,shapeFill='none',vi=true,
  frames=[],showFrames=true,onCreateFrame,activeFrameId=null,onPointerPosition}){
@@ -320,6 +320,8 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
     <button type="button" onClick={()=>onBatchEdit?.(selectedIds,'scale',{factor:.85})}>−15%</button>
     <button type="button" onClick={()=>onBatchEdit?.(selectedIds,'duplicate')}>
      {vi?'⧉ Nhân bản':'⧉ Duplicate'}</button>
+    <button type="button" onClick={()=>onSaveAsset?.(selectedIds)}>
+     {vi?'Lưu học liệu':'Save asset'}</button>
     <button type="button" onClick={()=>{onBatchEdit?.(selectedIds,'delete');setSelectedIds([]);setSelectedId('');}}>
      {vi?'× Xóa':'× Delete'}</button>
    </div>}
