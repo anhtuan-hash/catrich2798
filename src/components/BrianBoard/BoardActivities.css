@@ -67,3 +67,19 @@
 @media(prefers-reduced-motion:reduce){
  .bbd-activity-stage .bbd-activity-card{transition:none!important}
 }
+/* Phase 3 workflow upgrades: compact, finger-friendly controls in the existing board. */
+.bbd-activity-entry{align-items:stretch;flex-direction:column;gap:10px}
+.bbd-activity-entry>div:first-child{min-width:0;overflow-wrap:anywhere}
+.bbd-activity-actions{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.bbd-activity-actions button{min-width:0;min-height:39px!important;padding:8px 5px!important}
+.bbd-activity-actions button:first-child{grid-column:span 2}
+.bbd-library-search{display:grid;gap:7px;color:var(--bbd-text)}
+.bbd-library-search input{margin-top:2px}
+.bbd-import-image input[type=file]{min-width:0;max-width:100%;font-size:11px;cursor:pointer}
+.bbd-timer-presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:13px}
+.bbd-timer--finished{border:2px solid #d58a58;background:#fff2de;color:#82482a}
+.bbd-timer--finished strong{color:#934727}
+.bbd-timer--finished p{font-weight:800}
+.bbd-team input{flex:1;min-width:0!important;max-width:100%;font-size:12px!important}
+.bbd-picker-progress{margin:0;color:var(--bbd-accent);font-size:12px;font-variant-numeric:tabular-nums}
+@media(max-width:640px){.bbd-activity-actions{grid-template-columns:repeat(3,minmax(0,1fr))}.bbd-activity-actions button:first-child{grid-column:span 1}}
