@@ -4,6 +4,7 @@ import { Activity, AlertTriangle, ArrowRight, BookUser, CheckCircle2, ChevronRig
   Info, LockKeyhole, MonitorSmartphone, RefreshCw, Search, ShieldCheck, X } from 'lucide-react';
 import {isAdminRole,isDepartmentLeaderRole} from '../utils/roles.js';
 import {runSyncDoctorScan,serializeSyncDoctorReport} from '../utils/syncDoctorDiagnostics.js';
+import {buildSyncReviewPlans,serializeSyncReviewDocket} from '../utils/syncDoctorPlanning.mjs';
 import './SyncDoctor.css';
 
 const viText={
@@ -28,6 +29,12 @@ const viText={
   severity:'Mức độ',filter:'Lọc theo mức',scope:'Phạm vi',sourceLimited:'Chưa xác minh toàn bộ hệ thống',
   view:'Xem chi tiết',closed:'Đóng',started:'Bắt đầu',finished:'Kết thúc',result:'Kết quả',
   report:'Báo cáo sẽ ẩn mã định danh học sinh và không có thông tin cá nhân.',
+  docket:'Xuất phiếu rà soát',plansOverview:'Kế hoạch dự kiến được tạo từ lần quét gần nhất — không thực hiện thay đổi dữ liệu.',
+  preview:'Xem trước phương án',constraints:'Điều kiện an toàn',steps:'Các bước rà soát',
+  approval:'Cần người có thẩm quyền duyệt',reviewable:'Có thể rà soát',blocked:'Chưa đủ điều kiện',
+  noPlan:'Chưa có kế hoạch; hãy quét dữ liệu trước.',sourceRevision:'Phiên bản nguồn',identity:'Học sinh liên quan',
+  planCount:'Phương án đề xuất',viewPlan:'Xem kế hoạch',sourceIncomplete:'Dữ liệu đọc bị giới hạn; không cho phép tự áp dụng.',
+  inactive:'Không hỗ trợ tự sửa trong giai đoạn này.',
 };
 const enText={
   eyebrow:'BRIAN / DATA INTEGRITY CENTER',title:'Sync Doctor',
@@ -51,12 +58,43 @@ const enText={
   severity:'Severity',filter:'Filter by severity',scope:'Scope',sourceLimited:'Not a school-wide audit',
   view:'View details',closed:'Close',started:'Started',finished:'Finished',result:'Result',
   report:'Exported reports omit student identity keys and personal data.',
+  docket:'Export review docket',plansOverview:'Proposals from the latest scan; no changes can be executed.',
+  preview:'Review preview',constraints:'Safety requirements',steps:'Review steps',
+  approval:'Independent approval required',reviewable:'Ready for review',blocked:'Blocked — investigate',
+  noPlan:'No review plans yet. Run a scan first.',sourceRevision:'Source revision',identity:'Student in scope',
+  planCount:'Review proposals',viewPlan:'View plan',sourceIncomplete:'Incomplete source coverage. No changes can be applied.',
+  inactive:'Automatic repair is unavailable in this release.',
 };
 const tone={critical:'danger',high:'warning',medium:'medium',low:'info'};
-const statuses={ok:['Có thể đọc','Readable'],limited:['Một phần','Partial'],error:['Lỗi','Error'],
+const statuses={ok:['Có thể đọc','Readable'],empty:['Không có bản ghi','No visible rows'],limited:['Một phần','Partial'],error:['Lỗi','Error'],
   unauthorized:['Không có quyền','No permission'],unavailable:['Không khả dụng','Unavailable']};
+
+const sourceEn={canonical:'Canonical roster',homeroom:'Homeroom',gradebook:'Gradebook',assessment:'Assessment',assignment:'Assignments'};
+const issueEn={
+  IDENTITY_MISSING:'Student missing a stable identifier',
+  IDENTITY_DUPLICATE:'Duplicate internal student identifier',
+  STUDENT_CODE_DUPLICATE:'Duplicate student code in class',
+  MULTIPLE_LOCAL_MATCHES:'Multiple local records match one student',
+  AMBIGUOUS_IDENTITY:'Similar records without a reliable identity key',
+  STUDENT_NOT_LINKED:'Canonical student not linked to destination',
+  CANONICAL_NOT_VISIBLE:'No visible canonical class roster',
+  ASSESSMENT_LINK_REVIEW:'Assessment student association unverified',
+  SOURCE_UNVERIFIED:'Data source cannot be verified',
+  SOURCE_COVERAGE_PARTIAL:'Source scan has incomplete coverage',
+  SOURCE_NO_VISIBLE_ROWS:'No visible rows in source',
+  LOCAL_QUEUE_PENDING:'Pending changes on this device',
+};
+const issueTitle=(issue,vi)=>vi?issue.description:(issueEn[issue.code]||issue.description);
+
 const iconFor={canonical:Database,homeroom:BookUser,gradebook:ClipboardCheck,assessment:FileSearch,assignment:ShieldCheck};
 const yearNow=()=>{const today=new Date(),start=today.getMonth()>=7?today.getFullYear():today.getFullYear()-1;return String(start)+'-'+String(start+1);};
+const saveDocket=(report,plans)=>{
+  if(!report || !plans.length)return;
+  const blob=new Blob([serializeSyncReviewDocket(report,plans)],{type:'application/json;charset=utf-8'});
+  const href=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=href;a.download='brian-sync-review-'+report.schoolYear+'.json';
+  a.click();URL.revokeObjectURL(href);
+};
 const saveReport=(report)=>{const blob=new Blob([serializeSyncDoctorReport(report)],{type:'application/json;charset=utf-8'});
   const href=URL.createObjectURL(blob),a=document.createElement('a');a.href=href;a.download='brian-sync-doctor-'+report.schoolYear+'.json';a.click();
   URL.revokeObjectURL(href);};
@@ -90,6 +128,9 @@ export default function SyncDoctor({currentUser,language='vi'}){
     }catch(err){if(!ctrl.signal.aborted)setError(String(err?.message||err));}
     finally{if(controller.current===ctrl){controller.current=null;setProgress(null);}}
   };
+  const reviewPlans=useMemo(()=>buildSyncReviewPlans(report),[report]);
+  const selectedPlan=reviewPlans.find(p=>p.id===selected?.id)||reviewPlans[0]||null;
+  const staleScope=Boolean(report&&(report.schoolYear!==schoolYear||report.className!==className.trim()));
   const issues=useMemo(()=>report?.issues.filter(item=>(filter==='all'||item.severity===filter)&&
     (!query||[item.description,item.className,item.code].join(' ').toLowerCase().includes(query.toLowerCase())))||[],[report,filter,query]);
   const totals={issues:report?.issues.length||0,critical:report?.issues.filter(i=>i.severity==='critical'||i.severity==='high').length||0,
@@ -112,6 +153,7 @@ export default function SyncDoctor({currentUser,language='vi'}){
     </section>
     {progress&&<div className="bsd-progress" role="status"><div style={{width:Math.round(progress.done/progress.total*100)+'%'}} /><span>{t.running} · {progress.done}/{progress.total}</span></div>}
     {error&&<div className="bsd-alert" role="alert"><AlertTriangle size={18}/>{error}</div>}
+    {staleScope&&<div className="bsd-banner" role="status"><Info size={17}/><div><strong>{vi?'Bạn đã đổi phạm vi quét':'Scan scope changed'}</strong><p>{vi?'Kết quả bên dưới thuộc lần quét trước. Hãy quét lại để cập nhật kế hoạch.':'The displayed results are from the previous scan; rescan before reviewing plans.'}</p></div></div>}
     <nav className="bsd-tabs" aria-label={vi?'Khu vực Sync Doctor':'Sync Doctor sections'}>
       {t.tabs.map((label,i)=><button key={label} type="button" aria-current={tab===i?'page':undefined} className={tab===i?'active':''} onClick={()=>setTab(i)}>{label}</button>)}
     </nav>
@@ -128,7 +170,7 @@ export default function SyncDoctor({currentUser,language='vi'}){
           <section className="bsd-panel"><div className="bsd-panel-head"><h3>{t.sources}</h3><button type="button" onClick={()=>setTab(2)}>{t.view}<ArrowRight size={15}/></button></div>
             {report.sources.map(s=><SourceRow key={s.id} src={s} vi={vi}/>)}</section>
           <section className="bsd-panel"><div className="bsd-panel-head"><h3>{t.attention}</h3><button type="button" onClick={()=>setTab(1)}>{t.view}<ArrowRight size={15}/></button></div>
-            {report.issues.slice(0,5).map(i=><button className="bsd-issue-preview" key={i.id} onClick={()=>{setSelected(i);setTab(1)}}><span className={'bsd-severity '+(tone[i.severity]||'info')}></span><span><strong>{i.description}</strong><small>{i.className||'—'} · {i.code}</small></span><ChevronRight size={17}/></button>)}
+            {report.issues.slice(0,5).map(i=><button className="bsd-issue-preview" key={i.id} onClick={()=>{setSelected(i);setTab(1)}}><span className={'bsd-severity '+(tone[i.severity]||'info')}></span><span><strong>{issueTitle(i,vi)}</strong><small>{i.className||'—'} · {i.code}</small></span><ChevronRight size={17}/></button>)}
             {!report.issues.length&&<div className="bsd-subempty"><CheckCircle2/>{t.emptyIssues}</div>}
           </section>
         </div>
@@ -142,13 +184,15 @@ export default function SyncDoctor({currentUser,language='vi'}){
           <label><Filter size={16}/>{t.filter}<select value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">{vi?'Tất cả':'All'}</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></label></div>
         <div className="bsd-two bsd-issues-layout"><section className="bsd-panel bsd-issues-list">
           {issues.length?issues.map(i=><button key={i.id} className={'bsd-issue-line '+(selected?.id===i.id?'selected':'')} onClick={()=>setSelected(i)}>
-            <span className={'bsd-severity '+(tone[i.severity]||'info')}></span><span><strong>{i.description}</strong><small>{i.className||'—'} · {i.code}</small></span><ChevronRight size={16}/></button>):<div className="bsd-subempty">{t.emptyIssues}</div>}
+            <span className={'bsd-severity '+(tone[i.severity]||'info')}></span><span><strong>{issueTitle(i,vi)}</strong><small>{i.className||'—'} · {i.code}</small></span><ChevronRight size={16}/></button>):<div className="bsd-subempty">{t.emptyIssues}</div>}
         </section><section className="bsd-panel bsd-evidence">
           <div className="bsd-panel-head"><h3>{t.evidence}</h3>{selected&&<button type="button" aria-label={t.closed} onClick={()=>setSelected(null)}><X size={17}/></button>}</div>
           {selected?<><div className="bsd-case-label"><span className={'bsd-severity '+(tone[selected.severity]||'info')}></span>{selected.severity.toUpperCase()} · {selected.code}</div>
-            <h3>{selected.description}</h3><p>{selected.detail}</p>
+            <h3>{issueTitle(selected,vi)}</h3><p>{selected.detail}</p>
             <dl><dt>{t.scope}</dt><dd>{selected.year} · {selected.className||'—'}</dd><dt>{t.sourceLimited}</dt><dd>{selected.evidence?.source||'—'}</dd></dl>
+            {selected.evidence?.studentName&&<div className="bsd-student-evidence"><BookUser size={17}/><span><strong>{t.identity}:</strong> {selected.evidence.studentName}{selected.evidence.studentCode?' · '+selected.evidence.studentCode:''}</span></div>}
             <div className="bsd-advice"><LockKeyhole size={17}/>{t.review}. {t.planDesc}</div>
+            <button className="bsd-outline bsd-review-link" type="button" onClick={()=>setTab(3)}>{t.viewPlan}<ArrowRight size={16}/></button>
           </>:<div className="bsd-subempty"><FileSearch size={28}/>{t.choose}</div>}
         </section></div>
       </>}
@@ -156,12 +200,41 @@ export default function SyncDoctor({currentUser,language='vi'}){
     {tab===2&&<div className="bsd-stack"><div className="bsd-heading"><div><span className="bsd-overline bsd-dark">SOURCE HEALTH</span><h2>{t.tabs[2]}</h2><p>{t.sourceLimited}</p></div><button className="bsd-outline" onClick={run} disabled={busy}>{t.again}</button></div>
       {!report?<Empty t={t}/>:<section className="bsd-panel">{report.sources.map(s=><SourceRow key={s.id} src={s} vi={vi} expanded/>)}</section>}
     </div>}
-    {tab===3&&<section className="bsd-panel bsd-simple"><span className="bsd-overline bsd-dark">DRY RUN / APPROVAL</span><h2>{t.planTitle}</h2><p>{t.planDesc}</p><div className="bsd-plan-steps">{t.planSteps.map((step,i)=><div key={step}><b>{String(i+1).padStart(2,'0')}</b><span>{step}</span><LockKeyhole size={16}/></div>)}</div><div className="bsd-advice"><ShieldCheck size={17}/>{t.safety}</div></section>}
+    {tab===3&&<div className="bsd-stack">
+      <div className="bsd-heading"><div><span className="bsd-overline bsd-dark">REPAIR PREFLIGHT · NO MUTATION</span><h2>{t.planTitle}</h2><p>{t.plansOverview}</p></div>
+        <button type="button" className="bsd-outline" disabled={!reviewPlans.length||busy||staleScope} onClick={()=>saveDocket(report,reviewPlans)}><Download size={16}/>{t.docket}</button></div>
+      {!report?<Empty t={t}/>:!reviewPlans.length?<div className="bsd-empty">{t.noPlan}</div>:<>
+        <div className="bsd-review-summary"><ShieldCheck size={19}/><div><strong>{t.safety}</strong><span>{t.planCount}: {reviewPlans.length} · {t.inactive}</span></div></div>
+        {staleScope&&<div className="bsd-banner"><AlertTriangle size={18}/><div><strong>{t.sourceIncomplete}</strong><p>{vi?'Phạm vi quét đã thay đổi. Hãy quét lại trước khi lập hồ sơ rà soát.':'Scope has changed. Rescan before preparing a review docket.'}</p></div></div>}
+        <div className="bsd-two bsd-review-layout"><section className="bsd-panel bsd-issues-list">
+          {reviewPlans.map(p=><button key={p.id} className={'bsd-issue-line '+(selectedPlan?.id===p.id?'selected':'')} type="button"
+            onClick={()=>setSelected(report.issues.find(item=>item.id===p.id)||null)}>
+            <span className={'bsd-severity '+(tone[p.severity]||'info')}></span>
+            <span><strong>{vi?p.viTitle:p.enTitle}</strong><small>{p.className||'—'} · {p.code} · {p.eligibility==='blocked'?t.blocked:t.reviewable}</small></span>
+            <ChevronRight size={16}/></button>)}
+        </section><section className="bsd-panel bsd-plan-detail">
+          <div className="bsd-panel-head"><h3>{t.preview}</h3><span className={'bsd-status '+(selectedPlan?.eligibility==='blocked'?'warn':'ok')}>{selectedPlan?.eligibility==='blocked'?t.blocked:t.reviewable}</span></div>
+          {selectedPlan&&<><h3>{vi?selectedPlan.viTitle:selectedPlan.enTitle}</h3><p>{vi?selectedPlan.viSummary:selectedPlan.enSummary}</p>
+            <div className="bsd-plan-meta"><span>{t.scope}: <strong>{selectedPlan.year} · {selectedPlan.className||'—'}</strong></span>
+            <span>{vi?'Nguồn':'Source'}: <strong>{selectedPlan.source}</strong></span>
+            <span>{t.sourceRevision}: <strong>{selectedPlan.sourceRevision?selectedPlan.sourceRevision.slice(0,19):'—'}</strong></span>
+            <span>{vi?'Thời điểm quét':'Scanned'}: <strong>{datetime(selectedPlan.scanAt)}</strong></span></div>
+            {selectedPlan.blockers.length>0&&<div className="bsd-plan-blockers"><strong><AlertTriangle size={15}/>{t.constraints}</strong>
+              {selectedPlan.blockers.map((item,i)=><div key={i}>{item}</div>)}</div>}
+            <h4>{t.steps}</h4><ol>{(vi?selectedPlan.viSteps:selectedPlan.enSteps).map(step=><li key={step}>{step}</li>)}</ol>
+            <div className="bsd-advice"><LockKeyhole size={17}/><div><strong>{t.approval}</strong><p>{t.inactive}</p></div></div>
+            {selected?.id===selectedPlan.id&&selected.evidence?.studentName&&
+              <div className="bsd-student-evidence"><BookUser size={17}/><span><strong>{t.identity}:</strong> {selected.evidence.studentName}{selected.evidence.studentCode?' · '+selected.evidence.studentCode:''}</span></div>}
+            <button type="button" className="bsd-outline bsd-review-link" disabled={busy||staleScope} onClick={()=>saveDocket(report,[selectedPlan])}>
+              <Download size={16}/>{t.docket}</button>
+          </>}
+        </section></div></>}
+    </div>}
     {tab===4&&<section className="bsd-panel bsd-simple"><span className="bsd-overline bsd-dark">SESSION OBSERVABILITY</span><h2>{t.auditTitle}</h2><p>{t.auditDesc}</p>{history.length?history.map((h,i)=><div className="bsd-history-line" key={h.startedAt+i}><Clock3 size={17}/><div><strong>{datetime(h.startedAt)}</strong><span>{h.schoolYear} · {h.className||t.all} · {h.count} {t.findings} · {h.coverage}</span></div></div>):<Empty t={t}/>}</section>}
     {tab===5&&<section className="bsd-panel bsd-simple"><span className="bsd-overline bsd-dark">GOVERNANCE POLICY</span><h2>{t.settingsTitle}</h2><p>{t.safetyText}</p>{t.settingsLines.map(line=><div className="bsd-policy" key={line}><ShieldCheck size={18}/>{line}</div>)}</section>}
   </div>;
 }
 function Empty({t}){return <section className="bsd-empty"><div><FileSearch size={32}/></div><h3>{t.empty}</h3><p>{t.emptyDesc}</p></section>;}
 function SourceRow({src,vi,expanded=false}){const Icon=iconFor[src.id]||HardDrive;const label=statuses[src.status]?.[vi?0:1]||(vi?'Chưa xác định':'Unknown');
-  return <div className="bsd-source-row"><span className="bsd-source-icon"><Icon size={20}/></span><div><strong>{src.label}</strong>{expanded&&<p>{src.message||(vi?'Dữ liệu được phân quyền theo tài khoản hiện tại.':'Visible under the active account only.')}</p>}</div>
-    <span className={'bsd-status '+(src.status==='ok'?'ok':src.status==='limited'?'warn':'error')}>{label}</span><span className="bsd-count">{src.count??'—'}</span></div>;}
+  return <div className="bsd-source-row"><span className="bsd-source-icon"><Icon size={20}/></span><div><strong>{vi?src.label:(sourceEn[src.id]||src.label)}</strong>{expanded&&<p>{src.message||(vi?'Dữ liệu được phân quyền theo tài khoản hiện tại.':'Visible under the active account only.')}</p>}</div>
+    <span className={'bsd-status '+(src.status==='ok'?'ok':(src.status==='limited'||src.status==='empty')?'warn':'error')}>{label}</span><span className="bsd-count">{src.count??'—'}</span></div>;}
