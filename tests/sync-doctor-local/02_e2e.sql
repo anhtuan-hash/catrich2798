@@ -67,6 +67,14 @@ begin
     raise exception 'Ambiguous target was allowed';
   exception when sqlstate '55000' then null;end;
 
+  -- Counter drift must block even if the JSON payload checksum has not changed.
+  begin
+    update public.bes_gradebook_workspaces set student_count=777
+      where owner_id=requester and workspace_id='syn-12';
+    perform public.bes_sync_create_private_backup(local_request_id);
+    raise exception 'Inconsistent student_count was allowed to create a repair backup';
+  exception when sqlstate '55000' then null;end;
+
   select public.bes_sync_preview_review(local_request_id) into result;
   if result->>'state'<>'ready_for_manual_review'
       or result->>'readOnly'<>'true' or result->>'canExecute'<>'false' then
@@ -112,12 +120,30 @@ begin
     raise exception 'Duplicate repair not blocked';
   exception when insufficient_privilege then null;end;
 
+  -- Counter drift after a repair must block separately authorizing a rollback.
+  begin
+    update public.bes_gradebook_workspaces set student_count=1234
+      where owner_id=requester and workspace_id='syn-12';
+    perform set_config('request.jwt.claim.sub',requester::text,true);
+    perform public.bes_sync_authorize_transition(local_request_id,'rollback');
+    raise exception 'Inconsistent post-repair student_count was accepted';
+  exception when serialization_failure then null;end;
+  perform set_config('request.jwt.claim.sub',reviewer::text,true);
+
   -- Requester must separately authorize actual rollback.
   perform set_config('request.jwt.claim.sub',requester::text,true);
   if public.bes_sync_authorize_transition(local_request_id,'rollback')<>'rollback_authorized' then
     raise exception 'Second-stage rollback consent failed';end if;
 
   perform set_config('request.jwt.claim.sub',reviewer::text,true);
+  -- A changed numeric counter alone is also a concurrent change, even when JSON is unchanged.
+  begin
+    update public.bes_gradebook_workspaces set student_count=888
+      where owner_id=requester and workspace_id='syn-12';
+    perform public.bes_sync_restore_single_link(local_request_id);
+    raise exception 'Concurrent counter update was overwritten';
+  exception when serialization_failure then null;end;
+
   -- Negative: real, legitimate concurrent grade edits MUST prevent rollback.
   begin
     update public.bes_gradebook_workspaces
@@ -133,6 +159,9 @@ begin
   select payload into current_payload from public.bes_gradebook_workspaces
     where owner_id=requester and workspace_id='syn-12';
   if current_payload<>old_payload then raise exception 'Exact backup was not restored';end if;
+  if (select student_count from public.bes_gradebook_workspaces
+    where owner_id=requester and workspace_id='syn-12')<>1 then
+    raise exception 'Original student_count was not restored';end if;
   select count(*) into event_count from public.bes_sync_review_events e
     where e.request_id=local_request_id and action in
     ('execution_authorized','repaired','rollback_authorized','rolled_back');

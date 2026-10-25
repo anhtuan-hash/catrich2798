@@ -147,3 +147,9 @@
 .bsd-release-gate>strong.pass{background:#e4f5eb;color:#26704f}
 .bsd-release-gate>strong.pending{background:#fff0dd;color:#986522}
 @media(max-width:570px){.bsd-release-gates{padding:13px}.bsd-release-gate{align-items:flex-start;flex-wrap:wrap}.bsd-release-gate>span{flex-basis:calc(100% - 40px)}.bsd-release-gate>strong{margin-left:30px}}
+
+
+/* Six scoped integrity indicators; avoid a single orphan metric at desktop widths. */
+.bsd-monitor-snapshot{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:650px){.bsd-monitor-snapshot{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:365px){.bsd-monitor-snapshot{grid-template-columns:1fr}}

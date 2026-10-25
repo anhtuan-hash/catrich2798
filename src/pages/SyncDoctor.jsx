@@ -56,7 +56,7 @@ const viText={
   monitorWarning:'Số liệu chỉ là dấu hiệu cần rà soát. Không phải danh sách học sinh đã xác nhận sai lệch.',
   monitorChecked:'Lần quét gần nhất',monitorClasses:'Lớp chuẩn',monitorGradebooks:'Sổ điểm bộ môn',
   monitorHomeroom:'Lớp chủ nhiệm',monitorSuspects:'Liên kết cần rà soát',
-  monitorAffected:'Workspace cần đối soát',monitorHistory:'Lịch sử kiểm tra',
+  monitorAffected:'Workspace cần đối soát',monitorCountDrift:'Workspace lệch bộ đếm HS',monitorHistory:'Lịch sử kiểm tra',
   monitorEmpty:'Chưa có dữ liệu giám sát.',monitorRefresh:'Cập nhật giám sát',
   monitorAlertTitle:'Giám sát tự động phát hiện dấu hiệu cần rà soát',
   monitorAlertDetail:'liên kết nghi vấn tại',monitorAlertScope:'workspace. Chưa xác nhận lỗi học sinh.',
@@ -128,7 +128,7 @@ const enText={
   monitorWarning:'Counts are advisory indicators, not confirmed student errors.',
   monitorChecked:'Latest scan',monitorClasses:'Canonical classes',monitorGradebooks:'Subject gradebooks',
   monitorHomeroom:'Homeroom workspaces',monitorSuspects:'Possible missing links',
-  monitorAffected:'Affected workspaces',monitorHistory:'Monitoring history',
+  monitorAffected:'Affected workspaces',monitorCountDrift:'Student counter mismatches',monitorHistory:'Monitoring history',
   monitorEmpty:'No monitoring results yet.',monitorRefresh:'Refresh monitor',
   monitorAlertTitle:'Scheduled monitoring found possible associations to review',
   monitorAlertDetail:'possible links across',monitorAlertScope:'workspaces. No student error is confirmed.',
@@ -345,6 +345,8 @@ export default function SyncDoctor({currentUser,language='vi'}){
             monitorSummary.kind==='partial'?t.monitorPartial:
             monitorSummary.kind==='healthy'?t.monitorHealthy:t.monitorNoRun}</strong>
           {monitorSummary.kind==='attention'&&<p><b>{monitorSummary.possibleLinks}</b> {t.monitorAlertDetail} <b>{monitorSummary.affected}</b> {t.monitorAlertScope}</p>}
+          {monitorSummary.counterMismatches!==null&&monitorSummary.counterMismatches>0&&
+            <p><b>{monitorSummary.counterMismatches}</b> · {t.monitorCountDrift}</p>}
           {monitorSummary.delta!==null&&<small>{t.monitorTrend}: {monitorSummary.delta>0?'+':''}{monitorSummary.delta}</small>}
           {monitorSummary.checkedAt&&<small>{t.monitorChecked}: {datetime(monitorSummary.checkedAt)}</small>}
         </div>
@@ -540,7 +542,8 @@ export default function SyncDoctor({currentUser,language='vi'}){
             [t.monitorGradebooks,monitorRuns[0].gradebook_workspaces,ClipboardCheck],
             [t.monitorHomeroom,monitorRuns[0].homeroom_workspaces,Database],
             [t.monitorSuspects,monitorRuns[0].possible_missing_links,AlertTriangle],
-            [t.monitorAffected,monitorRuns[0].affected_workspaces,FileSearch]
+            [t.monitorAffected,monitorRuns[0].affected_workspaces,FileSearch],
+            [t.monitorCountDrift,monitorRuns[0].counter_mismatch_workspaces??'—',AlertTriangle]
           ].map(([label,value,Icon])=><div className="bsd-monitor-stat" key={label}>
             <Icon size={19}/><span>{label}</span><strong>{value}</strong></div>)}
         </div>
