@@ -26,9 +26,20 @@ function ImagePlane({activity,children,onTap,className=''}) {
  </div>;
 }
 function Teams({scores,setScores,team,setTeam,vi}){
- return <div className="bbd-lab-teams" role="group" aria-label={vi?'Bảng điểm đội':'Team scoreboard'}>
-  {scores.map((x,i)=><button key={i} type="button" className={i===team?'selected':''}
-   onClick={()=>setTeam(i)} aria-pressed={i===team}>{x.name}<strong>{x.score}</strong></button>)}
+ return <div className="bbd-lab-team-panel" role="group" aria-label={vi?'Bảng điểm đội':'Team scoreboard'}>
+  <div className="bbd-lab-teams">
+   {scores.map((x,i)=><button key={i} type="button" className={i===team?'selected':''}
+    onClick={()=>setTeam(i)} aria-pressed={i===team}>{x.name}<strong>{x.score}</strong></button>)}
+  </div>
+  <div className="bbd-lab-team-commands">
+   <button type="button" disabled={scores.length>=8} onClick={()=>
+    setScores(old=>old.length>=8?old:[...old,{name:'Team '+(old.length+1),score:0}])}>
+    {vi?'+ Thêm đội':'+ Add team'}</button>
+   <button type="button" disabled={scores.length<=2} onClick={()=>{
+    setScores(old=>old.length<=2?old:old.slice(0,-1));
+    setTeam(i=>Math.min(i,scores.length-2));
+   }}>{vi?'− Bớt đội':'− Remove team'}</button>
+  </div>
  </div>;
 }
 export default function BoardActivityLabStage({activity,vi=true,onClose,onPublicState}){
@@ -37,6 +48,13 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
  const [evidenceRange,setEvidenceRange]=useState([]),[answerChoice,setAnswerChoice]=useState('');
  const [team,setTeam]=useState(0),[scores,setScores]=useState(makeScores);
  const [cornerChoices,setCornerChoices]=useState({}),[cornerLocked,setCornerLocked]=useState(false);
+ const [timerSeconds,setTimerSeconds]=useState(120),[timerEnd,setTimerEnd]=useState(0);
+ const [timeNow,setTimeNow]=useState(Date.now());
+ useEffect(()=>{
+  if(!timerEnd)return undefined;
+  const task=setInterval(()=>setTimeNow(Date.now()),1000);
+  return()=>clearInterval(task);
+ },[timerEnd]);
  const [shown,setShown]=useState(false),[opened,setOpened]=useState([]),[revealAll,setRevealAll]=useState(false);
  const [guess,setGuess]=useState(''),[chosenLabel,setChosenLabel]=useState(''),[placed,setPlaced]=useState({});
  const [finalGuess,setFinalGuess]=useState(''),[finalAwarded,setFinalAwarded]=useState(false);
@@ -44,6 +62,8 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
  const items=activity.items||[],item=items[index],n=items.length;
  const response=items.map((_,i)=>answers[i]);
  const score=gradeLabActivity(activity,response),finished=Object.keys(answers).length===n;
+ const remaining=timerEnd?Math.max(0,Math.ceil((timerEnd-timeNow)/1000)):timerSeconds;
+ const displayTimer=Math.floor(remaining/60)+':'+String(remaining%60).padStart(2,'0');
  const isAnswerable=activity.type!=='flashcard_duel';
  const options=useMemo(()=>{
   if(activity.type==='cloze_snap')return shuffle(uniq([...items.map(x=>x.answer),...(activity.distractors||[])]));
@@ -52,14 +72,15 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
  },[activity]);
  useEffect(()=>{
   onPublicState?.({index,opened:[...opened],scores:scores.map(x=>({name:x.name,score:x.score})),
-   finished,revealAll:false});
- },[index,opened,scores,finished,onPublicState]);
+   finished,revealAll:false,seconds:remaining});
+ },[index,opened,scores,finished,remaining,onPublicState]);
  const reset=()=>{
   setIndex(0);setAnswers({});setFeedback('');setSelected('');setSelectedWords([]);
   setEvidenceRange([]);setAnswerChoice('');setScores(makeScores());setTeam(0);
   setShown(false);setOpened([]);setRevealAll(false);setGuess('');setChosenLabel('');
   setPlaced({});setSource('');setRelation('');setTarget('');setCornerChoices({});setCornerLocked(false);
   setFinalGuess('');setFinalAwarded(false);
+  setTimerEnd(0);setTimerSeconds(120);
  };
  const next=delta=>{
   setIndex(i=>Math.max(0,Math.min(n-1,i+delta)));setFeedback('');setSelected('');
@@ -160,6 +181,16 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
    <button type="button" onClick={onClose}><ArrowLeft size={18}/>{vi?'Về bảng':'Back to board'}</button>
   </header>
   <Teams scores={scores} setScores={setScores} team={team} setTeam={setTeam} vi={vi}/>
+  <div className="bbd-lab-clock">
+   <strong>{vi?'Giờ chơi':'Game timer'}: {displayTimer}</strong>
+   {[30,60,120].map(seconds=><button key={seconds} type="button"
+    onClick={()=>{setTimerEnd(0);setTimerSeconds(seconds);}}>
+    {seconds<60?'30s':seconds/60+'m'}</button>)}
+   <button type="button" onClick={()=>{if(timerEnd){setTimerSeconds(remaining);setTimerEnd(0);}
+    else{setTimeNow(Date.now());setTimerEnd(Date.now()+timerSeconds*1000);}}}>
+    {timerEnd?(vi?'Tạm dừng':'Pause'):(vi?'Bắt đầu':'Start')}</button>
+   {timerEnd&&remaining===0&&<span role="status">{vi?'HẾT GIỜ':'TIME UP'}</span>}
+  </div>
   <div className="bbd-lab-progress">
    <strong>{vi?'Thử thách':'Challenge'} {index+1}/{n}</strong>
    <span>{vi?'Đã thực hiện':'Attempted'} {Object.keys(answers).length}/{total}</span>
