@@ -3,7 +3,7 @@ import {createPortal} from 'react-dom';
 import {Presentation,Pen,Highlighter,Eraser,MousePointer2,Hand,Type,Square,Circle,Minus,
  StickyNote,ScanEye,Undo2,Redo2,Plus,Copy,Trash2,Save,CheckCircle2,X,ChevronLeft,
  ChevronRight,CloudOff,Play,Pause,RotateCcw,Timer,Users,Eye,EyeOff,Maximize2,
- Download,Move,Palette,FilePlus2,LockKeyhole,LockKeyholeOpen,Layers,ArrowUp,ArrowDown,ImagePlus,Search,RefreshCcw,FileJson,FileUp,Edit3,ArrowUpRight,Triangle,Grid3X3,Droplets,Frame,Clapperboard,MapPinned} from 'lucide-react';
+ Download,Move,Palette,FilePlus2,LockKeyhole,LockKeyholeOpen,Layers,ArrowUp,ArrowDown,ImagePlus,Search,RefreshCcw,FileJson,FileUp,Edit3,ArrowUpRight,Triangle,Grid3X3,Droplets,Frame,Clapperboard,MapPinned,Map,Focus} from 'lucide-react';
 import {isAdminRole,isDepartmentLeaderRole,normalizeSystemRole} from '../../utils/roles.js';
 import {GLOBAL_FLOATING_ACTION_EVENT,FLOATING_ACTION_IDS} from '../../utils/unifiedFloatingDock.js';
 import {BOARD_W,BOARD_H,newLesson,newPage,normalizeLesson,makeId,THEMES,sanitizeStudentPage} from './boardModel.js';
@@ -14,7 +14,7 @@ import {boardStudentPayload,newBoardPresentationId} from './boardPresentation.js
 import {importBoardPdf,exportBoardStudentPdf} from './boardPdf.js';
 import {createBoardActivity} from './boardActivities.js';
 import {BOARD_PEN_PRESETS} from './boardDrawing.js';
-import {safeBoardViewport,viewportForFrame,cameraForViewport,nextFramePlacement,adjacentFrameIndex,FRAME_LIMIT} from './boardSpatial.js';
+import {safeBoardViewport,viewportForFrame,cameraForViewport,nextFramePlacement,adjacentFrameIndex,FRAME_LIMIT,fitBoardContent,reorderBoardFrame,duplicateBoardFrame} from './boardSpatial.js';
 import {BOARD_BACKUP_MAX_BYTES,duplicateBoardLesson,exportPrivateBoardBackup,importPrivateBoardBackup,
  boardActivityRaw,reviseBoardActivity,duplicateBoardActivity,moveBoardActivity,hideAllBoardActivities,
  selectBoardNameWithoutRepeat} from './boardWorkflow.js';
@@ -23,6 +23,7 @@ import BoardActivityLabBuilder from './BoardActivityLabBuilder.jsx';
 import BoardActivityPublicPreview from './BoardActivityPublicPreview.jsx';
 import {LAB_TYPES,LAB_LABELS,LAB_EXAMPLES,LAB_IMAGE_TYPES} from './boardActivityLab.js';
 import BoardPenToolbarExtras from './BoardPenToolbarExtras.jsx';
+import BoardNavigator from './BoardNavigator.jsx';
 import './BrianBoard.css';
 import './BoardActivities.css';
 import './BoardVisualRefresh.css';
@@ -64,6 +65,8 @@ export default function BrianBoard({currentUser,language='vi'}){
  useEffect(()=>{try{window.localStorage.setItem('bbd-motion-v1',motion);}catch{}},[motion]);
  const [zoom,setZoom]=useState(1),[camera,setCamera]=useState({x:0,y:0});
  const [activeFrameId,setActiveFrameId]=useState(null),[showFrames,setShowFrames]=useState(true);
+ const [navigatorOpen,setNavigatorOpen]=useState(()=>window.innerWidth>640),[showNavigator,setShowNavigator]=useState(true);
+ const [cleanMode,setCleanMode]=useState(false);
  const frameFlight=useRef(0);
 
  const [contentText,setContentText]=useState(''),[privateAnswer,setPrivateAnswer]=useState(''),[showPages,setShowPages]=useState(()=>window.innerWidth>780),[spotlight,setSpotlight]=useState(false);
@@ -501,6 +504,38 @@ export default function BrianBoard({currentUser,language='vi'}){
  };
  const homeCanvas=()=>{
   flyToView({camera:{x:0,y:0},zoom:1});setActiveFrameId(null);
+ };
+ const fitAllCanvas=()=>{
+  if(!page)return;
+  flyToView(fitBoardContent({frames,objects:page.objects}));
+  setActiveFrameId(null);
+ };
+ const centerCanvasOn=point=>{
+  if(!point)return;
+  if(frameFlight.current)cancelAnimationFrame(frameFlight.current);
+  frameFlight.current=0;
+  const viewWidth=BOARD_W/zoom,viewHeight=BOARD_H/zoom;
+  const limit=value=>Math.max(-100000,Math.min(100000,value));
+  setCamera({x:limit(point.x-viewWidth/2),y:limit(point.y-viewHeight/2)});
+  setActiveFrameId(null);
+ };
+ const toggleCleanMode=()=>{
+  setCleanMode(old=>{
+   const next=!old;
+   if(next)setShowPages(false);
+   return next;
+  });
+ };
+ const shiftFrame=(id,direction)=>{
+  if(page?.locked)return;
+  editPage(p=>({...p,frames:reorderBoardFrame(p.frames,id,direction)}));
+ };
+ const cloneFrame=id=>{
+  if(page?.locked||frames.length>=FRAME_LIMIT)return;
+  const newId=makeId(),next=duplicateBoardFrame(frames,id,newId);
+  if(next.length===frames.length)return;
+  editPage(p=>({...p,frames:next}));
+  setActiveFrameId(newId);
  };
  const updateFrame=(id,fn)=>{
   if(page?.locked)return;
