@@ -12,9 +12,19 @@ body{font-family:"Google Sans",Inter,system-ui,sans-serif;background:#101f29;col
 background:#fbfaf6;overflow:hidden;display:grid;place-items:center}
 svg{width:100%;height:100%;display:block}
 .notice{text-align:center;display:none;font-size:clamp(18px,3vw,28px);padding:20px}
+.activity{width:100%;height:100%;display:flex;flex-direction:column;gap:24px;overflow:auto;padding:clamp(16px,4vw,58px);color:#243e3b}
+.activity[hidden]{display:none}.activity h2{margin:0;font-size:clamp(24px,4vw,56px)}
+.activity p{margin:0;font-size:clamp(16px,2.2vw,28px)}
+.activity .choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.activity .group{display:flex;flex-direction:column;gap:12px;min-width:0}
+.activity .group>strong{font-size:clamp(16px,2vw,26px);color:#456f63}
+.activity .choice{padding:16px;border-radius:14px;border:1px solid #c1d4cb;
+ background:#f5faf5;font-size:clamp(16px,2vw,30px);overflow-wrap:anywhere}
+@media(max-width:700px){.activity .choices{gap:8px}.activity .choice{padding:9px}}
+
 @media(max-width:700px){.shell{padding:8px}.brand{font-size:10px}.header{gap:8px}#title{font-size:15px}}
 </style></head><body><main class="shell">
 <header class="header"><span class="brand">BRIAN BOARD · STUDENT VIEW</span><strong id="title">The Living Classroom</strong><small id="status">Connecting…</small></header>
 <div class="board" id="board"><div class="notice" id="notice">Waiting for the teacher’s board…</div>
-<svg id="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet" aria-label="Published lesson"></svg></div>
+<svg id="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet" aria-label="Published lesson"></svg><section class="activity" id="activity" hidden aria-label="Published classroom activity"></section></div>
 </main><script type="module" src="/brian-board-viewer.js"></script></body></html>
