@@ -12,18 +12,56 @@ const make=(name,attrs={})=>{
  return el;
 };
 function add(parent,el){parent.appendChild(el);return el;}
+function viewerSmoothPath(points=[]){
+ if(!points.length)return '';
+ if(points.length===1)return 'M '+points[0].x+' '+points[0].y+' l 0.01 0.01';
+ if(points.length===2)return 'M '+points[0].x+' '+points[0].y+' L '+points[1].x+' '+points[1].y;
+ let d='M '+points[0].x+' '+points[0].y;
+ for(let i=1;i<points.length-1;i++){
+  const a=points[i],b=points[i+1];
+  d+=' Q '+a.x+' '+a.y+' '+((a.x+b.x)/2).toFixed(1)+' '+((a.y+b.y)/2).toFixed(1);
+ }
+ const last=points.at(-1);return d+' L '+last.x+' '+last.y;
+}
+function viewerShapeGeometry(o){
+ const a=Number(o.x)||0,b=Number(o.y)||0,c=Number(o.x2)||0,d=Number(o.y2)||0;
+ if(o.shape==='triangle')return {type:'polygon',points:[[(a+c)/2,Math.min(b,d)],[Math.max(a,c),Math.max(b,d)],[Math.min(a,c),Math.max(b,d)]]};
+ if(o.shape==='arrow'){
+  const angle=Math.atan2(d-b,c-a),size=Math.min(45,Math.max(16,Math.hypot(c-a,d-b)*.16));
+  const left=[c-size*Math.cos(angle-Math.PI/6),d-size*Math.sin(angle-Math.PI/6)];
+  const right=[c-size*Math.cos(angle+Math.PI/6),d-size*Math.sin(angle+Math.PI/6)];
+  return {type:'polyline',points:[[a,b],[c,d],left,[c,d],right]};
+ }
+ return null;
+}
 function drawing(o){
  if(!o||typeof o!=='object')return null;
  const visible=o.studentVisible!==false&&o.teacherOnly!==true;
  if(!visible)return null;
  if(o.kind==='stroke'&&Array.isArray(o.points)){
-  const pts=o.points.slice(0,10000).map(p=>[Number(p.x)||0,Number(p.y)||0]);
-  const d=pts.map((p,i)=>(i?'L':'M')+p[0]+' '+p[1]).join(' ');
+  const pts=o.points.slice(0,4000);
+  if(o.pressureSensitive===true&&pts.length>1){
+   const group=make('g',{opacity:o.opacity??1}),step=Math.max(1,Math.ceil((pts.length-1)/300));
+   for(let i=0;i<pts.length-1;i+=step){
+    const a=pts[i],b=pts[Math.min(pts.length-1,i+step)];
+    const press=x=>Math.min(1,Math.max(.05,Number(x.pressure)||.5));
+    const width=Math.max(.65,(Number(o.width)||4)*(.35+1.15*(press(a)+press(b))/2));
+    add(group,make('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:o.color||'#355c63',
+     'stroke-width':width,'stroke-linecap':'round'}));
+   }
+   return group;
+  }
+  const d=o.smoothed===true?viewerSmoothPath(pts):
+   pts.map((p,i)=>(i?'L':'M')+(Number(p.x)||0)+' '+(Number(p.y)||0)).join(' ');
   return make('path',{d,stroke:o.color||'#355c63','stroke-width':o.width||4,
    'stroke-linecap':'round','stroke-linejoin':'round',fill:'none',opacity:o.opacity??1});
  }
  if(o.kind==='shape'){
-  const base={fill:'none',stroke:o.color||'#355c63','stroke-width':o.width||4};
+  const base={fill:/^#[0-9a-fA-F]{6}$/.test(o.fill||'')?o.fill:'none',stroke:o.color||'#355c63','stroke-width':o.width||4};
+  const geometry=viewerShapeGeometry(o);
+  if(geometry)return make(geometry.type==='polygon'?'polygon':'polyline',{...base,
+   fill:geometry.type==='polyline'?'none':base.fill,
+   points:geometry.points.map(p=>p.join(',')).join(' ')});
   if(o.shape==='ellipse')return make('ellipse',{...base,cx:(o.x+o.x2)/2,cy:(o.y+o.y2)/2,rx:Math.abs(o.x2-o.x)/2,ry:Math.abs(o.y2-o.y)/2});
   if(o.shape==='line')return make('line',{...base,x1:o.x,y1:o.y,x2:o.x2,y2:o.y2});
   return make('rect',{...base,x:Math.min(o.x,o.x2),y:Math.min(o.y,o.y2),width:Math.abs(o.x2-o.x),height:Math.abs(o.y2-o.y),rx:5});
@@ -77,6 +115,17 @@ function renderPublicActivity(activity){
 function render(data){
  if(data?.schema!==1||data?.type!=='state')return;
  svg.replaceChildren();
+ if(data.page?.background==='dots'){
+  const g=add(svg,make('g',{opacity:.65,fill:'#abc2b5'}));
+  for(let y=18;y<900;y+=36)for(let x=18;x<1600;x+=36)add(g,make('circle',{cx:x,cy:y,r:1.4}));
+ }else if(data.page?.background==='grid'){
+  const g=add(svg,make('g',{stroke:'#b4c9c0','stroke-width':1,opacity:.7}));
+  for(let x=0;x<=1600;x+=38)add(g,make('line',{x1:x,y1:0,x2:x,y2:900}));
+  for(let y=0;y<=900;y+=38)add(g,make('line',{x1:0,y1:y,x2:1600,y2:y}));
+ }else if(data.page?.background==='lines'){
+  const g=add(svg,make('g',{stroke:'#b4c9c0','stroke-width':1,opacity:.7}));
+  for(let y=38;y<=900;y+=38)add(g,make('line',{x1:0,y1:y,x2:1600,y2:y}));
+ }
  document.body.style.background=data.theme==='midnight'?'#101f29':'#e2ebe6';
  document.getElementById('board').style.background=data.theme==='midnight'?'#15252d':
   data.theme==='classroom'?'#eaf2ec':'#fbfaf6';
