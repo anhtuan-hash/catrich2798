@@ -328,6 +328,8 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
      {vi?'Xuống dưới':'Back'}</button>
     <button type="button" onClick={()=>onBatchEdit?.(selectedIds,'scale',{factor:1.15})}>+15%</button>
     <button type="button" onClick={()=>onBatchEdit?.(selectedIds,'scale',{factor:.85})}>−15%</button>
+    {selectedIds.length===2&&<button type="button" onClick={()=>onBatchEdit?.(selectedIds,'connect')}>
+     {vi?'Nối sơ đồ →':'Connect nodes →'}</button>}
     <button type="button" onClick={()=>onBatchEdit?.(selectedIds,'duplicate')}>
      {vi?'⧉ Nhân bản':'⧉ Duplicate'}</button>
     <button type="button" onClick={()=>onSaveAsset?.(selectedIds)}>
