@@ -66,7 +66,7 @@ export function sanitizeStudentPage(page){
    safe.push({id,kind,...xy(o),text:String(o.text||'').slice(0,90),
     color:String(o.color||'#355d63').slice(0,60),fontSize:number(o.fontSize,40)});
   }else if(kind==='mask'){
-   safe.push({id,kind,...xy(o),width:number(o.width,240),height:number(o.height,90)});
+   safe.push({id,kind,...xy(o),width:number(o.width,240),height:number(o.height,90),revealed:o.revealed===true});
   }else if(kind==='image'&&/^data:image\/(?:png|jpeg|webp);base64,/i.test(o.src||'')&&o.src.length<3200000){
    safe.push({id,kind,...xy(o),width:number(o.width,500),height:number(o.height,300),src:o.src});
   }else if(kind==='flashcard'){
