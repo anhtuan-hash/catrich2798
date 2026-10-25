@@ -25,6 +25,7 @@ import BoardActivityPublicPreview from './BoardActivityPublicPreview.jsx';
 import {LAB_TYPES,LAB_LABELS,LAB_EXAMPLES,LAB_IMAGE_TYPES} from './boardActivityLab.js';
 import BoardPenToolbarExtras from './BoardPenToolbarExtras.jsx';
 import BoardNavigator from './BoardNavigator.jsx';
+import BoardFrameThumbnail from './BoardFrameThumbnail.jsx';
 import {eraseInkAtPoint,scaleBoardObjects,duplicateBoardObjects,reorderBoardObjects,
  BOARD_V8_TEMPLATES,buildBoardTemplate} from './boardV8Tools.js';
 import './BrianBoard.css';
@@ -942,6 +943,7 @@ export default function BrianBoard({currentUser,language='vi'}){
       <button type="button" onClick={homeCanvas}><MapPinned size={16}/>{vi?'Về tọa độ gốc 0,0':'Return to origin 0,0'}</button>
       <div className="bbd-frame-count">{frames.length}/{FRAME_LIMIT} {vi?'khung':'frames'}</div>
       {frames.map((f,i)=><div key={f.id} className={'bbd-frame-card'+(activeFrameId===f.id?' active':'')}>
+       <BoardFrameThumbnail frame={f} objects={page.objects}/>
        <div className="bbd-frame-card__top">
         <span className="bbd-frame-card__number">{String(i+1).padStart(2,'0')}</span>
         <input aria-label={(vi?'Tên khung ':'Frame name ')+(i+1)} value={f.title} maxLength={90}
