@@ -28,6 +28,7 @@ import BoardNavigator from './BoardNavigator.jsx';
 import BoardFrameThumbnail from './BoardFrameThumbnail.jsx';
 import BoardReliabilityPanel from './BoardReliabilityPanel.jsx';
 import {listBoardAssets,saveBoardAsset,readBoardAsset} from './boardAssets.js';
+import {cropBoardImageData} from './boardImageStudio.js';
 import {eraseInkAtPoint,scaleBoardObjects,duplicateBoardObjects,reorderBoardObjects,
  BOARD_V8_TEMPLATES,buildBoardTemplate,createDiagramConnection,syncDiagramConnections} from './boardV8Tools.js';
 import './BrianBoard.css';
@@ -457,6 +458,18 @@ export default function BrianBoard({currentUser,language='vi'}){
    teacherOnly:true,studentVisible:false});
   setActiveActivityId(null);
   setTool('select');
+ };
+ const cropImageInLayer=async(id,edge)=>{
+  if(!page||page.locked)return;
+  const original=page.objects.find(o=>o.id===id&&o.kind==='image');
+  if(!original)return;
+  const pageId=page.id,lessonId=lesson.id;
+  try{
+   const data=await cropBoardImageData(original.src,edge,.12);
+   if(docRef.current?.id!==lessonId||docRef.current.activePageId!==pageId)return;
+   editPage(p=>({...p,objects:p.objects.map(o=>o.id===id?
+    {...o,src:data.src,width:o.height*data.ratio}:o)}));
+  }catch(e){setAssetStatus(e.message||'Could not crop image');setPanel('assets');}
  };
  const setLayerFlag=(id,flag)=>{
   if(!page||page.locked)return;
@@ -1028,6 +1041,11 @@ export default function BrianBoard({currentUser,language='vi'}){
         <button disabled={page?.locked} onClick={()=>setLayerFlag(o.id,'locked')}
          aria-label={o.locked?(vi?'Mở khóa đối tượng':'Unlock object'):(vi?'Khóa đối tượng':'Lock object')}>
          {o.locked?<LockKeyhole size={17}/>:<LockKeyholeOpen size={17}/>}</button>
+        {o.kind==='image'&&<div className="bbd-v8-crop-buttons" aria-label={vi?'Cắt ảnh':'Crop image'}>
+         {['left','top','right','bottom'].map(edge=><button type="button" key={edge}
+          disabled={page?.locked} onClick={()=>void cropImageInLayer(o.id,edge)}
+          title={vi?'Cắt 12% cạnh '+edge:'Crop 12% from '+edge}>{edge[0].toUpperCase()}</button>)}
+        </div>}
         <button disabled={page?.locked} onClick={()=>batchEdit([o.id],'front')}
          aria-label={vi?'Đưa lên trên':'Bring to front'}><ArrowUp size={15}/></button>
         <button disabled={page?.locked} onClick={()=>batchEdit([o.id],'back')}
