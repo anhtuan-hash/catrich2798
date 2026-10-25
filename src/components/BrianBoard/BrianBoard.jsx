@@ -30,7 +30,8 @@ import BoardReliabilityPanel from './BoardReliabilityPanel.jsx';
 import {listBoardAssets,saveBoardAsset,readBoardAsset} from './boardAssets.js';
 import {cropBoardImageData} from './boardImageStudio.js';
 import {eraseInkAtPoint,scaleBoardObjects,duplicateBoardObjects,reorderBoardObjects,
- BOARD_V8_TEMPLATES,buildBoardTemplate,createDiagramConnection,syncDiagramConnections} from './boardV8Tools.js';
+ BOARD_V8_TEMPLATES,buildBoardTemplate,createDiagramConnection,syncDiagramConnections,
+ groupResizeTransform} from './boardV8Tools.js';
 import './BrianBoard.css';
 import './BoardActivities.css';
 import './BoardVisualRefresh.css';
@@ -417,6 +418,7 @@ export default function BrianBoard({currentUser,language='vi'}){
    if(action==='duplicate')return {...p,objects:duplicateBoardObjects(objects,ids).slice(0,3000)};
    if(action==='front'||action==='back')return {...p,objects:reorderBoardObjects(objects,ids,action)};
    if(action==='scale')return {...p,objects:syncDiagramConnections(scaleBoardObjects(objects,ids,params.factor))};
+   if(action==='resize')return {...p,objects:syncDiagramConnections(groupResizeTransform(objects,ids,params.handle,params.delta))};
    if(action==='connect'&&ids.length===2){
     const link=createDiagramConnection(objects,ids[0],ids[1]);
     return link&&objects.length<3000?{...p,objects:[...objects,link]}:p;
