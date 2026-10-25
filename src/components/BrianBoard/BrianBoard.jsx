@@ -26,6 +26,7 @@ import {LAB_TYPES,LAB_LABELS,LAB_EXAMPLES,LAB_IMAGE_TYPES} from './boardActivity
 import BoardPenToolbarExtras from './BoardPenToolbarExtras.jsx';
 import BoardNavigator from './BoardNavigator.jsx';
 import BoardFrameThumbnail from './BoardFrameThumbnail.jsx';
+import BoardReliabilityPanel from './BoardReliabilityPanel.jsx';
 import {eraseInkAtPoint,scaleBoardObjects,duplicateBoardObjects,reorderBoardObjects,
  BOARD_V8_TEMPLATES,buildBoardTemplate} from './boardV8Tools.js';
 import './BrianBoard.css';
@@ -908,8 +909,8 @@ export default function BrianBoard({currentUser,language='vi'}){
        title={vi?'Đóng bảng điều khiển':'Close inspector'} aria-label={vi?'Đóng bảng điều khiển':'Close inspector'}
        onClick={closeInspector}><X size={18}/></button>
      <div className="bbd-sidebar-tabs">
-      {['pages','frames','activities','layers','assets','library','teaching','design'].map(id=><button key={id} className={panel===id?'active':''} onClick={()=>setPanel(id)}>
-       {id==='pages'?(vi?'Trang':'Pages'):id==='frames'?(vi?'Khung':'Frames'):id==='activities'?(vi?'Bài tập':'Activities'):id==='layers'?(vi?'Lớp':'Layers'):id==='assets'?(vi?'Mẫu':'Templates'):id==='library'?(vi?'Thư viện':'Library'):id==='teaching'?(vi?'Lớp học':'Classroom'):(vi?'Thiết kế':'Design')}</button>)}
+      {['pages','frames','activities','layers','assets','library','teaching','reliability','design'].map(id=><button key={id} className={panel===id?'active':''} onClick={()=>setPanel(id)}>
+       {id==='pages'?(vi?'Trang':'Pages'):id==='frames'?(vi?'Khung':'Frames'):id==='activities'?(vi?'Bài tập':'Activities'):id==='reliability'?(vi?'Ổn định':'Reliability'):id==='layers'?(vi?'Lớp':'Layers'):id==='assets'?(vi?'Mẫu':'Templates'):id==='library'?(vi?'Thư viện':'Library'):id==='teaching'?(vi?'Lớp học':'Classroom'):(vi?'Thiết kế':'Design')}</button>)}
      </div>
      {panel==='pages'&&<div className="bbd-pages">
       <div className="bbd-side-heading"><strong>{vi?'Các trang bài giảng':'Lesson pages'}</strong>
@@ -1154,6 +1155,8 @@ export default function BrianBoard({currentUser,language='vi'}){
       {!!randomUsed.length&&!selectBoardNameWithoutRepeat(randomNames,randomUsed).remaining&&
        <p role="status">{vi?'Đã chọn hết danh sách. Nhấn Bắt đầu lại để tiếp tục.':'Everyone has been picked. Restart for another round.'}</p>}
      </div>}
+     {panel==='reliability'&&<BoardReliabilityPanel saveState={saveState} presenting={presenting}
+      lesson={lesson} vi={vi} onSave={()=>void persist(docRef.current)} onPrivateBackup={exportPrivateJson}/>}
      {panel==='design'&&<div className="bbd-side-stack">
       <h3>{vi?'Chủ đề bảng':'Board theme'}</h3>
       {SHAPES.map(id=><button key={id} className={'bbd-theme-choice'+(theme===id?' active':'')}
