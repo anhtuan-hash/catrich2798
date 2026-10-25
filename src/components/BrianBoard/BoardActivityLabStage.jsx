@@ -39,6 +39,7 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
  const [cornerChoices,setCornerChoices]=useState({}),[cornerLocked,setCornerLocked]=useState(false);
  const [shown,setShown]=useState(false),[opened,setOpened]=useState([]),[revealAll,setRevealAll]=useState(false);
  const [guess,setGuess]=useState(''),[chosenLabel,setChosenLabel]=useState(''),[placed,setPlaced]=useState({});
+ const [finalGuess,setFinalGuess]=useState(''),[finalAwarded,setFinalAwarded]=useState(false);
  const [source,setSource]=useState(''),[relation,setRelation]=useState(''),[target,setTarget]=useState('');
  const items=activity.items||[],item=items[index],n=items.length;
  const response=items.map((_,i)=>answers[i]);
@@ -58,6 +59,7 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
   setEvidenceRange([]);setAnswerChoice('');setScores(makeScores());setTeam(0);
   setShown(false);setOpened([]);setRevealAll(false);setGuess('');setChosenLabel('');
   setPlaced({});setSource('');setRelation('');setTarget('');setCornerChoices({});setCornerLocked(false);
+  setFinalGuess('');setFinalAwarded(false);
  };
  const next=delta=>{
   setIndex(i=>Math.max(0,Math.min(n-1,i+delta)));setFeedback('');setSelected('');
@@ -136,6 +138,13 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
    const free=randomTile(current);
    return free===undefined?current:[...current,free];
   });
+ };
+ const guessPicture=()=>{
+  if(!finalGuess.trim()||!activity.mysteryAnswer||finalAwarded)return;
+  if(normalized(finalGuess)===normalized(activity.mysteryAnswer)){
+   setFinalAwarded(true);setRevealAll(true);award(20);
+   setFeedback(vi?'Đoán đúng bức ảnh! Thưởng 20 điểm.':'Mystery solved! Bonus +20 points.');
+  }else setFeedback(vi?'Chưa đúng chủ đề bức ảnh.':'Picture guess is not correct.');
  };
  const total=score.total;
  const list=items.map(x=>x.label);
@@ -252,6 +261,14 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
     <button disabled={!guess.trim()||answers[index]!==undefined} onClick={handleMystery}>{vi?'Kiểm tra + mở ô':'Check & reveal tile'}</button>
     <button type="button" onClick={()=>setRevealAll(v=>!v)}>{revealAll?(vi?'Che ảnh':'Cover image'):(vi?'Mở toàn bộ ảnh':'Reveal entire image')}</button></div>
    <p>{vi?'Ô đã mở':'Revealed tiles'}: {opened.length}/16</p>
+   {activity.mysteryAnswer&&<div className="bbd-lab-guess">
+    <input type="text" value={finalGuess} maxLength={130}
+     onChange={e=>setFinalGuess(e.target.value)}
+     onKeyDown={e=>{if(e.key==='Enter')guessPicture();}}
+     placeholder={vi?'Đoán tên/chủ đề bức ảnh để nhận thưởng':'Guess the picture/topic for bonus points'}/>
+    <button type="button" disabled={!finalGuess.trim()||finalAwarded} onClick={guessPicture}>
+     {finalAwarded?(vi?'Đã nhận +20':'Bonus earned +20'):(vi?'Đoán ảnh +20':'Guess picture +20')}</button>
+   </div>}
   </>}
   {activity.type==='stress_tap'&&<>
    <h3>{vi?'Chạm âm tiết mang trọng âm chính':'Tap the primary stressed syllable'}</h3>
