@@ -111,7 +111,7 @@ assert.match(canvas,/recognizeBoardGesture/);
 assert.match(canvas,/beginResize/);
 assert.match(canvas,/resize-group/);
 assert.match(canvas,/transformHandles\.map/);
-assert.match(canvas,/state\.tool==='lasso'\|\|state\.tool==='eraser-precision'/);
+assert.match(canvas,/\['pen','highlighter','lasso','eraser-precision'\]\.includes\(state\.tool\)/);
 assert.match(canvas,/onBatchEdit\?\.\(selectedIds,'connect'\)/);
 const assets=source('boardAssets.js'),storage=source('boardStorage.js');
 assert.match(assets,/openBoardDB/);assert.match(assets,/ownerId/);
