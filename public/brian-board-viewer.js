@@ -3,6 +3,7 @@ const params=new URLSearchParams(location.hash.slice(1));
 const token=params.get('board')||'';
 const svg=document.getElementById('svg'),status=document.getElementById('status');
 const title=document.getElementById('title'),notice=document.getElementById('notice');
+const activityBox=document.getElementById('activity');
 const ns='http://www.w3.org/2000/svg';
 const make=(name,attrs={})=>{
  const el=document.createElementNS(ns,name);
@@ -48,6 +49,31 @@ function drawing(o){
  }
  return null;
 }
+function renderPublicActivity(activity){
+ activityBox.replaceChildren();
+ if(!activity||!['matching','ordering','sorting'].includes(activity.type)){
+  activityBox.hidden=true;svg.style.display='block';return;
+ }
+ activityBox.hidden=false;svg.style.display='none';
+ const h=document.createElement('h2');h.textContent=String(activity.title||'Class activity').slice(0,130);
+ activityBox.appendChild(h);
+ if(activity.prompt){const p=document.createElement('p');p.textContent=String(activity.prompt).slice(0,130);activityBox.appendChild(p);}
+ const container=document.createElement('div');container.className='choices';
+ const section=(heading,values)=>{
+  const box=document.createElement('section');box.className='group';
+  const title=document.createElement('strong');title.textContent=heading;box.appendChild(title);
+  (Array.isArray(values)?values:[]).slice(0,24).forEach((label,i)=>{
+   const item=document.createElement('div');item.className='choice';
+   item.textContent=String(i+1)+'. '+String(label||'').slice(0,130);
+   box.appendChild(item);
+  });
+  container.appendChild(box);
+ };
+ section(activity.type==='ordering'?'Arrange the words':'Prompts',activity.labels);
+ if(activity.type==='matching')section('Answers',activity.options);
+ if(activity.type==='sorting')section('Categories',activity.categories);
+ activityBox.appendChild(container);
+}
 function render(data){
  if(data?.schema!==1||data?.type!=='state')return;
  svg.replaceChildren();
@@ -55,6 +81,7 @@ function render(data){
  document.getElementById('board').style.background=data.theme==='midnight'?'#15252d':
   data.theme==='classroom'?'#eaf2ec':'#fbfaf6';
  title.textContent=String(data.title||'Brian Board').slice(0,180);
+ renderPublicActivity(data.page?data.activity:null);
  if(!data.page){notice.style.display='block';notice.textContent='This page is hidden from students.';}
  else{
   notice.style.display='none';
@@ -72,6 +99,7 @@ if(!/^[0-9a-f]{36}$/.test(token)||!('BroadcastChannel' in window)){
  bus.onmessage=event=>{
   if(event.data?.type==='end'){
    svg.replaceChildren();notice.style.display='block';notice.textContent='Presentation ended.';
+   renderPublicActivity(null);
    status.textContent='Disconnected';return;
   }
   render(event.data);
