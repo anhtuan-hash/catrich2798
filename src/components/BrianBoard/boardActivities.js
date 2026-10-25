@@ -1,8 +1,10 @@
+import {LAB_TYPES,createLabActivity,normalizeLabActivity,labPublicActivity,gradeLabActivity} from './boardActivityLab.js';
 const makeId=()=>typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);
-export const BOARD_ACTIVITY_TYPES=['matching','ordering','sorting'];
+export const BOARD_ACTIVITY_TYPES=['matching','ordering','sorting',...LAB_TYPES];
 const clean=s=>String(s||'').trim().slice(0,130);
 const rows=raw=>String(raw||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-export function createBoardActivity({type,title,prompt,raw}){
+export function createBoardActivity({type,title,prompt,raw,imageData}){
+ if(LAB_TYPES.includes(type))return createLabActivity({type,title,prompt,raw,imageData});
  if(!BOARD_ACTIVITY_TYPES.includes(type))throw Error('Unsupported activity type');
  const input=rows(raw);let items=[];
  if(type==='ordering'){
@@ -28,16 +30,20 @@ export function createBoardActivity({type,title,prompt,raw}){
 }
 export function normalizeBoardActivities(activities){
  if(!Array.isArray(activities))return [];
- return activities.slice(0,24).filter(x=>x&&BOARD_ACTIVITY_TYPES.includes(x.type)&&Array.isArray(x.items))
-  .map(x=>({
+ return activities.slice(0,24).map(x=>{
+  if(LAB_TYPES.includes(x?.type))return normalizeLabActivity(x);
+  if(!x||!BOARD_ACTIVITY_TYPES.includes(x.type)||!Array.isArray(x.items))return null;
+  return ({
    id:String(x.id||makeId()).slice(0,80),type:x.type,title:clean(x.title),prompt:clean(x.prompt),
    studentVisible:x.studentVisible!==false,teacherOnly:x.teacherOnly===true,
    items:x.items.slice(0,20).map((row,i)=>({id:String(row.id||'i'+i).slice(0,30),
     label:clean(row.label),...(x.type!=='ordering'?{answer:clean(row.answer)}:{})})),
    createdAt:Number(x.createdAt)||Date.now()
-  })).filter(x=>x.items.length>=2);
+  });
+ }).filter(x=>x&&x.items.length>=2||x&&LAB_TYPES.includes(x.type)&&x.items.length>=1);
 }
 export function publicBoardActivity(activity){
+ if(LAB_TYPES.includes(activity?.type))return labPublicActivity(activity);
  if(!activity||!BOARD_ACTIVITY_TYPES.includes(activity.type)||activity.studentVisible===false||activity.teacherOnly===true)return null;
  return {id:String(activity.id||''),type:activity.type,title:clean(activity.title),prompt:clean(activity.prompt),
   // No answer mapping, ordered solution, or token indices leave the teacher context.
@@ -60,6 +66,7 @@ export function shuffleBoardItems(items,random=Math.random){
  return out;
 }
 export function gradeBoardActivity(activity,chosen){
+ if(LAB_TYPES.includes(activity?.type))return gradeLabActivity(activity,chosen);
  if(!activity||!Array.isArray(chosen))return {correct:0,total:0};
  const total=activity.items.length;
  let correct=0;
