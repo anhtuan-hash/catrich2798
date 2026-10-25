@@ -3,7 +3,7 @@ import {createPortal} from 'react-dom';
 import {Presentation,Pen,Highlighter,Eraser,MousePointer2,Hand,Type,Square,Circle,Minus,
  StickyNote,ScanEye,Undo2,Redo2,Plus,Copy,Trash2,Save,CheckCircle2,X,ChevronLeft,
  ChevronRight,CloudOff,Play,Pause,RotateCcw,Timer,Users,Eye,EyeOff,Maximize2,
- Download,Move,Palette,FilePlus2,LockKeyhole,LockKeyholeOpen,Layers,ArrowUp,ArrowDown,ImagePlus,Search,RefreshCcw,FileJson,FileUp,Edit3} from 'lucide-react';
+ Download,Move,Palette,FilePlus2,LockKeyhole,LockKeyholeOpen,Layers,ArrowUp,ArrowDown,ImagePlus,Search,RefreshCcw,FileJson,FileUp,Edit3,ArrowUpRight,Triangle,Grid3X3,Droplets} from 'lucide-react';
 import {isAdminRole,isDepartmentLeaderRole,normalizeSystemRole} from '../../utils/roles.js';
 import {GLOBAL_FLOATING_ACTION_EVENT,FLOATING_ACTION_IDS} from '../../utils/unifiedFloatingDock.js';
 import {BOARD_W,BOARD_H,newLesson,newPage,normalizeLesson,makeId,THEMES,sanitizeStudentPage} from './boardModel.js';
@@ -13,6 +13,7 @@ import {listBoardCloud,saveBoardCloud,readBoardCloud} from './boardCloud.js';
 import {boardStudentPayload,newBoardPresentationId} from './boardPresentation.js';
 import {importBoardPdf,exportBoardStudentPdf} from './boardPdf.js';
 import {createBoardActivity} from './boardActivities.js';
+import {BOARD_PEN_PRESETS} from './boardDrawing.js';
 import {BOARD_BACKUP_MAX_BYTES,duplicateBoardLesson,exportPrivateBoardBackup,importPrivateBoardBackup,
  boardActivityRaw,reviseBoardActivity,duplicateBoardActivity,moveBoardActivity,hideAllBoardActivities,
  selectBoardNameWithoutRepeat} from './boardWorkflow.js';
@@ -23,9 +24,12 @@ import './BoardActivities.css';
 const drawTools=[
  ['select',MousePointer2,'Select','Chọn'],['pan',Hand,'Pan','Di chuyển'],
  ['pen',Pen,'Pen','Bút'],['highlighter',Highlighter,'Highlight','Đánh dấu'],
- ['eraser',Eraser,'Erase stroke','Tẩy nét'],['text',Type,'Text','Chữ'],
+ ['eraser',Eraser,'Erase object','Tẩy đối tượng'],['eraser-ink',Eraser,'Erase ink only','Chỉ tẩy nét bút'],
+ ['text',Type,'Text','Chữ'],
  ['shape-rect',Square,'Rectangle','Hình chữ nhật'],['shape-ellipse',Circle,'Ellipse','Hình tròn'],
- ['shape-line',Minus,'Line','Đường thẳng'],['sticky',StickyNote,'Sticky note','Ghi chú'],
+ ['shape-line',Minus,'Line','Đường thẳng'],
+ ['shape-arrow',ArrowUpRight,'Arrow','Mũi tên'],['shape-triangle',Triangle,'Triangle','Tam giác'],
+ ['sticky',StickyNote,'Sticky note','Ghi chú'],
  ['flashcard',Layers,'Flashcard','Thẻ lật'],['mask',EyeOff,'Answer curtain','Che đáp án'],
  ['laser',ScanEye,'Laser pointer','Con trỏ laser'],
 ];
@@ -42,6 +46,8 @@ export default function BrianBoard({currentUser,language='vi'}){
  const ownerRef=useRef(ownerId);ownerRef.current=ownerId;
  const [saveState,setSaveState]=useState('idle'),[saveError,setSaveError]=useState('');
  const [tool,setTool]=useState('pen'),[color,setColor]=useState('#335d63'),[thickness,setThickness]=useState(5);
+ const [penPreset,setPenPreset]=useState('classic'),[snapToGrid,setSnapToGrid]=useState(false);
+ const [shapeFill,setShapeFill]=useState('none');
  const [zoom,setZoom]=useState(1),[camera,setCamera]=useState({x:0,y:0});
  const [contentText,setContentText]=useState(''),[privateAnswer,setPrivateAnswer]=useState(''),[showPages,setShowPages]=useState(()=>window.innerWidth>780),[spotlight,setSpotlight]=useState(false);
  const [studentView,setStudentView]=useState(false),[timerSeconds,setTimerSeconds]=useState(300);
@@ -292,6 +298,22 @@ export default function BrianBoard({currentUser,language='vi'}){
  };
  const commitObj=object=>{if(!page||page.locked)return;editPage(p=>({...p,objects:[...p.objects,object]}));};
  const eraseObject=id=>{if(!page||page.locked)return;editPage(p=>({...p,objects:p.objects.filter(o=>o.id!==id)}));};
+ const duplicateObject=id=>{
+  if(!page||page.locked||page.objects.length>=3000)return;
+  const obj=page.objects.find(o=>o.id===id);
+  if(!obj)return;
+  const copy=snapshots(obj);
+  copy.id=makeId();
+  if(copy.kind==='stroke')copy.points=(copy.points||[]).map(pt=>({...pt,x:pt.x+30,y:pt.y+30}));
+  else if(copy.kind==='shape'){copy.x+=30;copy.y+=30;copy.x2+=30;copy.y2+=30;}
+  else{copy.x=(copy.x||0)+30;copy.y=(copy.y||0)+30;}
+  commitObj(copy);
+ };
+ const clearInk=()=>{
+  if(!page||page.locked||!page.objects.some(o=>o.kind==='stroke'))return;
+  if(!window.confirm(vi?'Xóa toàn bộ nét bút ở trang này? Có thể hoàn tác.':'Clear all pen strokes on this page? Undo is available.'))return;
+  editPage(p=>({...p,objects:p.objects.filter(o=>o.kind!=='stroke')}));
+ };
  const moveObject=(id,dx,dy)=>{
   if(!page||page.locked||!Number.isFinite(dx)||!Number.isFinite(dy))return;
   editPage(p=>({...p,objects:p.objects.map(o=>{
@@ -538,7 +560,8 @@ export default function BrianBoard({currentUser,language='vi'}){
        :<BoardActivityStage activity={page.activities.find(a=>a.id===activeActivityId)}
          vi={vi} onClose={()=>setActiveActivityId(null)}/>
        :<BoardCanvas page={studentView?sanitizeStudentPage(page):page} tool={studentView?'select':tool} color={color} width={thickness}
-       onCommit={commitObj} onErase={eraseObject} onMoveObject={moveObject} zoom={zoom} setZoom={setZoom}
+       onCommit={commitObj} onErase={eraseObject} onDuplicateObject={duplicateObject} onMoveObject={moveObject}
+       penPreset={penPreset} snapToGrid={snapToGrid} shapeFill={shapeFill} zoom={zoom} setZoom={setZoom}
        camera={camera} setCamera={setCamera} contentText={contentText} privateAnswer={privateAnswer} onInteract={interactObject}
        spotlight={spotlight} studentView={studentView}/>}
      <div className="bbd-canvas-bottom">
@@ -548,6 +571,26 @@ export default function BrianBoard({currentUser,language='vi'}){
          aria-label={'Ink color '+c} style={{background:c}}/>)}
        <input aria-label="Stroke thickness" type="range" min="2" max="22" value={thickness}
         onChange={e=>setThickness(Number(e.target.value))}/>
+       {!studentView&&<div className="bbd-pen-presets" role="group" aria-label={vi?'Kiểu bút':'Pen presets'}>
+        {Object.entries(BOARD_PEN_PRESETS).map(([id,preset])=><button key={id} type="button"
+         className={penPreset===id?'active':''} title={preset.label} aria-pressed={penPreset===id}
+         onClick={()=>{setPenPreset(id);setTool('pen');setThickness(preset.width);}}>
+         {id==='fine'?'01':id==='classic'?'02':id==='fountain'?'03':'04'}</button>)}
+       </div>}
+       {!studentView&&<button type="button" className={'bbd-tool-toggle'+(snapToGrid?' active':'')}
+        title={vi?'Bật/tắt căn lưới 25 đơn vị':'Toggle 25-unit magnetic grid'}
+        aria-pressed={snapToGrid} onClick={()=>setSnapToGrid(v=>!v)}><Grid3X3 size={17}/></button>}
+       {!studentView&&tool.startsWith('shape-')&&<select className="bbd-shape-fill"
+        aria-label={vi?'Màu tô hình':'Shape fill'} value={shapeFill} onChange={e=>setShapeFill(e.target.value)}>
+        <option value="none">{vi?'Không tô':'No fill'}</option>
+        <option value="#fff0c8">{vi?'Vàng nhạt':'Soft yellow'}</option>
+        <option value="#dcefe7">{vi?'Xanh lá nhạt':'Soft mint'}</option>
+        <option value="#dce7fa">{vi?'Xanh dương nhạt':'Soft blue'}</option>
+       </select>}
+       {!studentView&&<button type="button" className="bbd-clear-ink"
+        disabled={page?.locked||!page?.objects.some(o=>o.kind==='stroke')}
+        onClick={clearInk} title={vi?'Xóa tất cả nét bút, có thể hoàn tác':'Clear all pen ink, undo available'}>
+        <Eraser size={16}/><span>{vi?'Xóa nét':'Clear ink'}</span></button>
        {['text','sticky','flashcard'].includes(tool)&&<input className="bbd-object-text"
         value={contentText} onChange={e=>setContentText(e.target.value)}
         placeholder={vi?'Nhập nội dung rồi chạm bảng':'Type, then tap the board'}/>}
@@ -706,7 +749,7 @@ export default function BrianBoard({currentUser,language='vi'}){
       {SHAPES.map(id=><button key={id} className={'bbd-theme-choice'+(theme===id?' active':'')}
        onClick={()=>mutate(d=>({...d,theme:id}))}>{drawTheme[id]}</button>)}
       <h4>{vi?'Nền trang':'Page background'}</h4>
-      {['plain','grid','lines'].map(x=><button key={x} onClick={()=>editPage(p=>({...p,background:x}))}
+      {['plain','grid','lines','dots'].map(x=><button key={x} onClick={()=>editPage(p=>({...p,background:x}))}
        className={'bbd-theme-choice'+(page?.background===x?' active':'')}>{x}</button>)}
       <label className="bbd-import-image"><FilePlus2 size={16}/>{vi?'Nhập PDF (tối đa 12 trang)':'Import PDF (up to 12 pages)'}
        <input type="file" accept=".pdf,application/pdf" disabled={pdfBusy}
