@@ -2,7 +2,7 @@
 import {normalizeBoardActivities} from './boardActivities.js';
 export const BOARD_W=1600,BOARD_H=900;
 export const THEMES=['ivory','midnight','classroom'];
-export const BACKGROUNDS=['plain','grid','lines'];
+export const BACKGROUNDS=['plain','grid','lines','dots'];
 export const makeId=()=>typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);
 export function newPage(title='Page 1'){
  return {id:makeId(),title,background:'plain',objects:[],activities:[],hidden:false,locked:false};
@@ -55,9 +55,11 @@ export function sanitizeStudentPage(page){
   const id=String(o.id||'').slice(0,85),kind=o.kind;
   if(kind==='stroke'&&Array.isArray(o.points)){
    safe.push({id,kind,color:String(o.color||'#355d63').slice(0,60),width:number(o.width,4),
-    opacity:number(o.opacity,1),points:o.points.slice(0,10000).map(p=>({x:number(p.x),y:number(p.y)}))});
+    opacity:number(o.opacity,1),smoothed:o.smoothed===true,pressureSensitive:o.pressureSensitive===true,
+    points:o.points.slice(0,4000).map(p=>({x:number(p.x),y:number(p.y),pressure:number(p.pressure,.5)}))});
   }else if(kind==='shape'){
-   safe.push({id,kind,shape:['rect','ellipse','line'].includes(o.shape)?o.shape:'rect',
+   safe.push({id,kind,shape:['rect','ellipse','line','arrow','triangle'].includes(o.shape)?o.shape:'rect',
+    fill:/^#[0-9a-fA-F]{6}$/.test(o.fill||'')?o.fill:'none',
     ...xy(o),x2:number(o.x2),y2:number(o.y2),color:String(o.color||'#355d63').slice(0,60),width:number(o.width,4)});
   }else if(kind==='text'||kind==='sticky'){
    safe.push({id,kind,...xy(o),text:String(o.text||'').slice(0,90),
