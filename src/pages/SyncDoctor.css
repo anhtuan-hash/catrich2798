@@ -58,3 +58,26 @@
 .bsd-plan-detail .bsd-advice strong{display:block}
 @media(max-width:940px){.bsd-review-layout{grid-template-columns:1fr}}
 @media(max-width:570px){.bsd-plan-meta{grid-template-columns:1fr}.bsd-review-summary{align-items:flex-start}.bsd-plan-detail{padding:16px}}
+
+
+/* Brian Sync Doctor approval workflow: all styles scoped to this app. */
+.bsd-submit-panel{margin-top:18px;padding:17px;border:1px solid #cddff0;border-radius:15px;background:#f4f8ff;display:flex;flex-direction:column;gap:11px}
+.bsd-submit-panel h4{margin:0;color:#1b456f;font-size:14px}
+.bsd-submit-panel p,.bsd-decision small{margin:0;color:#667a94;font-size:12px;line-height:1.6}
+.bsd-submit-panel label,.bsd-decision label{font-size:12px;font-weight:750;color:#344f6e}
+.bsd-submit-panel textarea,.bsd-decision textarea{font:inherit!important;width:100%;border:1px solid #c6d9e9;border-radius:12px;background:#fff!important;color:#1d3450!important;padding:12px;min-height:80px;resize:vertical;font-size:13px!important;outline:none;box-sizing:border-box}
+.bsd-submit-panel textarea:focus,.bsd-decision textarea:focus{border-color:#3979c5;box-shadow:0 0 0 3px #347ac629}
+.bsd-submit-panel>.bsd-primary{align-self:flex-start}
+.bsd-submit-panel small{font-size:11px;color:#627793}
+.bsd-request{border-bottom:1px solid #dfebf4;padding:18px 3px;min-width:0}
+.bsd-request:last-child{border-bottom:0}
+.bsd-request-main{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.bsd-request-main>div{display:grid;gap:5px;min-width:0}
+.bsd-request-main strong{font-size:13px;color:#233b57;overflow-wrap:anywhere}
+.bsd-request-main small{font-size:11px;color:#738398}
+.bsd-request-main p,.bsd-reviewer-note{margin:5px 0 0;font-size:12px;color:#4a637c;line-height:1.55;overflow-wrap:anywhere}
+.bsd-request-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:12px}
+.bsd-decision{background:#edf4ff;padding:16px;margin-top:12px;border:1px solid #ccddf0;border-radius:13px;display:grid;gap:11px}
+.bsd-decision>div{display:flex;gap:9px;flex-wrap:wrap}
+.bsd-decision .bsd-primary,.bsd-decision .bsd-outline{font-size:12px!important}
+@media(max-width:580px){.bsd-request-main{flex-direction:column}.bsd-request-main .bsd-status{align-self:flex-start}.bsd-submit-panel>.bsd-primary{width:100%}.bsd-decision>div>*{flex:1}}
