@@ -12,7 +12,7 @@ Implemented in ESL Brian `src/components/BrianBoard/` without replacing the exis
 ### 2. Actual PDF output
 - Open **Design → Xuất PDF bài dạy cho học sinh**.
 - pdf-lib creates a valid multipage 16:9 PDF; up to 50 visible pages, excludes hidden pages and teacher-only objects via `sanitizeStudentPage`. Each exported page is flattened to JPEG (not vector or OCR searchable text), including the teacher's public whiteboard annotations.
-- Interactive activity widgets are not currently PDF pages. They remain available as live Board activities and public read-only second-screen questions.
+- **New optional worksheet export**: use **Design → Xuất PDF kèm bài tập (không đáp án)** to insert printable exercises immediately after their visible lesson page. Matching shows prompts plus a separately sorted answer bank; sentence ordering uses scrambled phrase pieces; sorting shows categories and unlabeled items. Only `publicBoardActivity` fields enter the PDF drawing layer: no correct pair mappings, hidden pages, teacher-only annotations or unpublished activities. The original **Xuất PDF bài dạy cho học sinh** still exports only board pages. Both options are flattened JPEG pages (not editable/searchable text) with a total cap of 50 public pages and activity sheets.
 
 ### 3. Three interactive learning activities (real)
 - Open **Bài tập / Activities** tab on the right.
@@ -31,7 +31,7 @@ Implemented in ESL Brian `src/components/BrianBoard/` without replacing the exis
 ## QA
 - Build gates: `node scripts/test-brian-board-foundation.mjs` and `node scripts/test-brian-board-phase2.mjs`.
 - Phase 2 contract checks: PDF magic header, page and file caps, matching/sorting/ordering auto grading, saved activity normalization, teacher-only answer removal, stable public TV ordering, PDF export privacy, preserved Brian Focus launcher.
-- Manual signed-in browser acceptance not yet performed in a real classroom: import 2-page scanned + text PDF, write on both pages, close/reopen, export and inspect the resulting PDF, test touch ordering and matching with TV over HDMI, confirm teacher answers never appear on TV.
+- Manual signed-in browser acceptance not yet performed in a real classroom: import 2-page scanned + text PDF, write on both pages, close/reopen, export and inspect both PDFs including printable activities, test touch ordering and matching with TV over HDMI, confirm teacher answers never appear on TV.
 
 ## Remaining approved areas
 - Secure *different-device* remote presenter sharing with short-lived revocable pairing and teacher authorization.
