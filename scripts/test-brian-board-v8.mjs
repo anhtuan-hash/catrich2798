@@ -8,6 +8,7 @@ import {lassoObjectIds,moveBoardObjects,scaleBoardObjects,duplicateBoardObjects,
  BOARD_V8_TEMPLATES,recognizeBoardGesture,createDiagramConnection,syncDiagramConnections,
  groupResizeTransform,BOARD_RESIZE_HANDLES} from '../src/components/BrianBoard/boardV8Tools.js';
 import {normalizeBoardCrop} from '../src/components/BrianBoard/boardImageStudio.js';
+import {measureRuler,measureAngle,drawCompassCircle} from '../src/components/BrianBoard/boardMeasure.js';
 const source=f=>readFileSync(new URL('../src/components/BrianBoard/'+f,import.meta.url),'utf8');
 const square=[{x:0,y:0},{x:100,y:0},{x:100,y:100},{x:0,y:100}];
 const objects=[
@@ -54,6 +55,18 @@ for(const template of BOARD_V8_TEMPLATES){
  assert.ok(created.every(o=>o.id&&o.studentVisible===true));
 }
 assert.deepEqual(buildBoardTemplate('unknown'),[]);
+const measured=measureRuler({x:0,y:0},{x:300,y:400});
+assert.equal(measured.length,2);
+assert.equal(measured[1].text,'500 units');
+const ninety=measureAngle({x:10,y:10},{x:110,y:10},{x:10,y:110});
+assert.equal(ninety.length,3);
+assert.equal(ninety[2].text,'90°');
+assert.equal(measureAngle({x:0,y:0},{x:10,y:0},{x:100,y:0}).length,0);
+const compass=drawCompassCircle({x:50,y:50},{x:50,y:150});
+assert.equal(compass?.shape,'ellipse');
+assert.equal(compass?.x,-50);
+assert.equal(compass?.x2,150);
+assert.equal(drawCompassCircle({x:0,y:0},{x:1,y:1}),null);
 assert.deepEqual(recognizeBoardGesture([]),null);
 const horizontal=Array.from({length:15},(_,i)=>({x:i*15,y:3}));
 assert.equal(recognizeBoardGesture(horizontal)?.shape,'line');
@@ -96,6 +109,10 @@ assert.match(board,/smartGeometry=\{smartGeometry\}/);
 assert.match(board,/cropImageInLayer/);
 assert.match(board,/syncDiagramConnections/);
 assert.match(board,/groupResizeTransform/);
+assert.match(board,/onCommitMany=\{commitMany\}/);
+assert.match(board,/\['ruler',Ruler/);
+assert.match(board,/\['protractor',Triangle/);
+assert.match(board,/\['compass',Compass/);
 assert.match(board,/frame\.transition/);
 assert.match(board,/const isFocus=transition==='focus'/);
 assert.match(board,/BoardCropEditor/);
@@ -109,6 +126,9 @@ assert.match(canvas,/bbd-v8-selection/);
 assert.match(canvas,/activity-pin/);
 assert.match(canvas,/recognizeBoardGesture/);
 assert.match(canvas,/beginResize/);
+assert.match(canvas,/measureAngle/);
+assert.match(canvas,/measureRuler/);
+assert.match(canvas,/drawCompassCircle/);
 assert.match(canvas,/resize-group/);
 assert.match(canvas,/transformHandles\.map/);
 assert.match(canvas,/\['pen','highlighter','lasso','eraser-precision'\]\.includes\(state\.tool\)/);
