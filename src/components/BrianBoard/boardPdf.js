@@ -1,5 +1,6 @@
 import {BOARD_W,BOARD_H,newPage,makeId,pathFromPoints,sanitizeStudentPage} from './boardModel.js';
 import {publicBoardActivity} from './boardActivities.js';
+import {normalizeBoardFrames,viewportForFrame,safeBoardViewport} from './boardSpatial.js';
 import {smoothBoardPath,pressureBoardSegments,boardShapeGeometry} from './boardDrawing.js';
 
 export const MAX_BOARD_PDF_MB=15,MAX_BOARD_PDF_PAGES=12;
@@ -74,7 +75,10 @@ export function buildStudentPdfSlides(lesson,{includeActivities=false}={}){
  for(const raw of Array.isArray(lesson?.pages)?lesson.pages:[]){
   const safe=sanitizeStudentPage(raw);
   if(!safe)continue;
-  slides.push({kind:'page',page:safe});
+  const frames=normalizeBoardFrames(raw.frames).filter(f=>!f.hidden);
+  if(frames.length)frames.forEach(frame=>slides.push({kind:'page',page:safe,
+   viewport:viewportForFrame(frame),frameTitle:frame.title}));
+  else slides.push({kind:'page',page:safe});
   if(includeActivities){
    for(const source of (Array.isArray(raw.activities)?raw.activities:[]).slice(0,24)){
     if(source?.teacherOnly===true||source?.studentVisible===false)continue;
@@ -180,18 +184,24 @@ export function publicActivityToSvg(activity){
 }
 
 const finite=(v,f=0)=>Number.isFinite(Number(v))?Number(v):f;
-export function pageToSvg(page,theme='ivory'){
+export function pageToSvg(page,theme='ivory',viewport=null){
+ const region=safeBoardViewport(viewport);
  const bg=theme==='midnight'?'#15252d':theme==='classroom'?'#eaf2ec':'#fbfaf6';
- const svg=svgNode('svg',{xmlns:NS,viewBox:'0 0 '+BOARD_W+' '+BOARD_H,width:BOARD_W,height:BOARD_H});
- svgNode('rect',{x:0,y:0,width:BOARD_W,height:BOARD_H,fill:bg},svg);
+ const svg=svgNode('svg',{xmlns:NS,viewBox:[region.x,region.y,region.width,region.height].join(' '),
+   width:BOARD_W,height:BOARD_H});
+ svgNode('rect',{x:region.x,y:region.y,width:region.width,height:region.height,fill:bg},svg);
  if(page?.background==='dots'){
-  for(let y=18;y<BOARD_H;y+=36)for(let x=18;x<BOARD_W;x+=36)
+  for(let y=Math.floor(region.y/36)*36+18;y<region.y+region.height;y+=36)
+   for(let x=Math.floor(region.x/36)*36+18;x<region.x+region.width;x+=36)
    svgNode('circle',{cx:x,cy:y,r:1.4,fill:'#b2c5bc',opacity:.65},svg);
  }else if(page?.background==='grid'){
-  for(let x=0;x<=BOARD_W;x+=38)svgNode('line',{x1:x,y1:0,x2:x,y2:BOARD_H,stroke:'#d5e0da','stroke-width':1},svg);
-  for(let y=0;y<=BOARD_H;y+=38)svgNode('line',{x1:0,y1:y,x2:BOARD_W,y2:y,stroke:'#d5e0da','stroke-width':1},svg);
+  for(let x=Math.floor(region.x/38)*38;x<=region.x+region.width;x+=38)
+   svgNode('line',{x1:x,y1:region.y,x2:x,y2:region.y+region.height,stroke:'#d5e0da','stroke-width':1},svg);
+  for(let y=Math.floor(region.y/38)*38;y<=region.y+region.height;y+=38)
+   svgNode('line',{x1:region.x,y1:y,x2:region.x+region.width,y2:y,stroke:'#d5e0da','stroke-width':1},svg);
  }else if(page?.background==='lines'){
-  for(let y=38;y<=BOARD_H;y+=38)svgNode('line',{x1:0,y1:y,x2:BOARD_W,y2:y,stroke:'#d5e0da','stroke-width':1},svg);
+  for(let y=Math.floor(region.y/38)*38+38;y<=region.y+region.height;y+=38)
+   svgNode('line',{x1:region.x,y1:y,x2:region.x+region.width,y2:y,stroke:'#d5e0da','stroke-width':1},svg);
  }
  for(const o of page?.objects||[]){
   if(o.kind==='stroke'&&Array.isArray(o.points)){
@@ -232,7 +242,7 @@ export function pageToSvg(page,theme='ivory'){
  return svg;
 }
 async function renderCanvasToJpeg(slide,theme){
- const svg=slide.kind==='activity'?publicActivityToSvg(slide.activity):pageToSvg(slide.page,theme);
+ const svg=slide.kind==='activity'?publicActivityToSvg(slide.activity):pageToSvg(slide.page,theme,slide.viewport);
  const source=new XMLSerializer().serializeToString(svg);
  const url=URL.createObjectURL(new Blob([source],{type:'image/svg+xml;charset=utf-8'}));
  try{
