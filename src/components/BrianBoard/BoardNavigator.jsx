@@ -77,7 +77,7 @@ export default function BoardNavigator({page,viewport,activeFrameId,vi=true,
     {objectBoxes.map((b,i)=><rect key={i} x={b.x} y={b.y}
      width={Math.max(b.width,14)} height={Math.max(b.height,14)}
      className="bbd-navigator__mark"/>)}
-    {frames.map((f,i)=><g key={f.id} opacity={f.hidden?.35:1}>
+    {frames.map((f,i)=><g key={f.id} opacity={f.hidden ? 0.35 : 1}>
      <rect x={f.x} y={f.y} width={f.width} height={f.height} rx="10"
       className={'bbd-navigator__frame'+(activeFrameId===f.id?' is-active':'')}/>
      <text x={f.x+24} y={f.y+80} fontSize="69" className="bbd-navigator__index">{i+1}</text>
