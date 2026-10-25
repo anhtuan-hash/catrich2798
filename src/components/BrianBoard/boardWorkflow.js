@@ -5,6 +5,7 @@
  */
 import {makeId,normalizeLesson} from './boardModel.js';
 import {createBoardActivity,normalizeBoardActivities} from './boardActivities.js';
+import {LAB_TYPES} from './boardActivityLab.js';
 
 export const BOARD_BACKUP_FORMAT='brian-board-private-backup/v1';
 export const BOARD_BACKUP_MAX_BYTES=25*1024*1024;
@@ -47,12 +48,13 @@ export function importPrivateBoardBackup(text,ownerId){
 }
 export function boardActivityRaw(activity){
  if(!activity||!Array.isArray(activity.items))return '';
+ if(LAB_TYPES.includes(activity.type))return String(activity.raw||'');
  if(activity.type==='ordering')return activity.items.map(x=>x.label).join(' | ');
  return activity.items.map(x=>x.label+' | '+x.answer).join('\n');
 }
-export function reviseBoardActivity(current,{type,title,prompt,raw}){
+export function reviseBoardActivity(current,{type,title,prompt,raw,imageData}){
  if(!current?.id)throw Error('Activity was not found');
- const edited=createBoardActivity({type,title,prompt,raw});
+ const edited=createBoardActivity({type,title,prompt,raw,imageData:imageData===undefined?current.image:imageData});
  return {...edited,id:current.id,createdAt:current.createdAt,
   studentVisible:current.studentVisible!==false,teacherOnly:current.teacherOnly===true};
 }
