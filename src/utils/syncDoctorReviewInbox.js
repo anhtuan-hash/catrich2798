@@ -77,3 +77,16 @@ export async function cancelSyncDoctorReview(requestId){
   checkFailure(error);
   return data;
 }
+
+
+export async function previewSyncDoctorReview(requestId){
+  requireBackend();
+  if(!text(requestId))throw new Error('Chưa chọn yêu cầu đã duyệt.');
+  const {data,error}=await supabase.rpc('bes_sync_preview_review',{p_request_id:requestId});
+  checkFailure(error);
+  if(!data || data.readOnly!==true || data.canExecute!==false){
+    throw new Error('Không nhận được kết quả kiểm tra an toàn. Không thể tiếp tục.');
+  }
+  // This endpoint is deliberately read-only: no snapshots, no repairs, no restore.
+  return {...data,checkedAt:new Date().toISOString()};
+}
