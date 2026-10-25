@@ -87,30 +87,96 @@ function drawing(o){
  }
  return null;
 }
-function renderPublicActivity(activity){
+function renderPublicActivity(activity,live=null){
  activityBox.replaceChildren();
- if(!activity||!['matching','ordering','sorting'].includes(activity.type)){
+ const types=['matching','ordering','sorting','hotspot','drag_label','cloze_snap',
+  'error_detective','evidence_hunter','four_corners','flashcard_duel','mystery_reveal',
+  'stress_tap','concept_connection'];
+ if(!activity||!types.includes(activity.type)){
   activityBox.hidden=true;svg.style.display='block';return;
  }
  activityBox.hidden=false;svg.style.display='none';
- const h=document.createElement('h2');h.textContent=String(activity.title||'Class activity').slice(0,130);
- activityBox.appendChild(h);
- if(activity.prompt){const p=document.createElement('p');p.textContent=String(activity.prompt).slice(0,130);activityBox.appendChild(p);}
- const container=document.createElement('div');container.className='choices';
- const section=(heading,values)=>{
-  const box=document.createElement('section');box.className='group';
-  const title=document.createElement('strong');title.textContent=heading;box.appendChild(title);
-  (Array.isArray(values)?values:[]).slice(0,24).forEach((label,i)=>{
-   const item=document.createElement('div');item.className='choice';
-   item.textContent=String(i+1)+'. '+String(label||'').slice(0,130);
-   box.appendChild(item);
-  });
-  container.appendChild(box);
+ const text=(tag,value,cls)=>{
+  const el=document.createElement(tag);
+  if(cls)el.className=cls;
+  el.textContent=String(value??'').slice(0,2500);return el;
  };
- section(activity.type==='ordering'?'Arrange the words':'Prompts',activity.labels);
- if(activity.type==='matching')section('Answers',activity.options);
- if(activity.type==='sorting')section('Categories',activity.categories);
- activityBox.appendChild(container);
+ const heading=text('h2',activity.title||'Class activity');
+ activityBox.appendChild(heading);
+ if(activity.prompt)activityBox.appendChild(text('p',activity.prompt));
+ const index=Math.max(0,Math.min((activity.items?.length||activity.labels?.length||1)-1,Number(live?.index)||0));
+ const item=activity.items?.[index];
+ const special=['matching','ordering','sorting'].includes(activity.type);
+ const content=document.createElement('div');content.className='tv-lab';
+ if(!special)content.appendChild(text('p','Challenge '+(index+1)+' / '+(activity.items?.length||activity.labels?.length||1),'tv-progress'));
+ if(live?.scores?.length){
+  const scores=document.createElement('div');scores.className='tv-scores';
+  live.scores.forEach(row=>scores.appendChild(text('span',row.name+'  '+row.score)));
+  content.appendChild(scores);
+ }
+ const list=(heading,values)=>{
+  const group=document.createElement('section');group.className='group';
+  group.appendChild(text('strong',heading));
+  (Array.isArray(values)?values:[]).slice(0,24).forEach((value,i)=>{
+   group.appendChild(text('div',(i+1)+'. '+String(value??''),'choice'));
+  });
+  content.appendChild(group);
+ };
+ const photograph=(mystery=false)=>{
+  const frame=document.createElement('div');frame.className='tv-photo';
+  if(activity.image){
+   const pic=document.createElement('img');pic.src=activity.image;pic.alt='Classroom image';
+   frame.appendChild(pic);
+  }else frame.appendChild(text('div','Interactive classroom picture','tv-photo-placeholder'));
+  if(activity.type==='drag_label'){
+   (activity.items||[]).forEach((target,i)=>{
+    const dot=text('span',i+1,'tv-pin');
+    dot.style.left=target.x+'%';dot.style.top=target.y+'%';frame.appendChild(dot);
+   });
+  }
+  if(mystery){
+   for(let i=0;i<16;i++){
+    const tile=text('span',i+1,'tv-cover');
+    tile.style.left=(i%4*25)+'%';tile.style.top=(Math.floor(i/4)*25)+'%';
+    if(live?.opened?.includes(i))tile.classList.add('open');
+    frame.appendChild(tile);
+   }
+  }
+  content.appendChild(frame);
+ };
+ if(special){
+  list(activity.type==='ordering'?'Reorder these pieces':'Prompts',activity.labels);
+  if(activity.type==='matching')list('Answer bank',activity.options);
+  if(activity.type==='sorting')list('Categories',activity.categories);
+ }else if(activity.type==='hotspot'){
+  content.appendChild(text('p',item?.label||activity.labels?.[index],'tv-question'));
+  photograph();
+ }else if(activity.type==='drag_label'){
+  list('Drag each label to a numbered position',activity.labels);
+  photograph();
+ }else if(activity.type==='cloze_snap'){
+  content.appendChild(text('p',activity.labels?.[index],'tv-question'));list('Word bank',activity.options);
+ }else if(activity.type==='error_detective'){
+  content.appendChild(text('p',item?.label,'tv-question'));list('Possible corrections',item?.options);
+ }else if(activity.type==='evidence_hunter'){
+  content.appendChild(text('p',activity.passage,'tv-passage'));
+  content.appendChild(text('p',item?.label,'tv-question'));
+  list('Answers',item?.options);
+ }else if(activity.type==='four_corners'){
+  content.appendChild(text('p',item?.label,'tv-question'));
+  const corners=document.createElement('div');corners.className='tv-corners';
+  (item?.options||[]).forEach((value,i)=>corners.appendChild(text('div','ABCD'[i]+'. '+value,'tv-corner tv-corner-'+i)));
+  content.appendChild(corners);
+ }else if(activity.type==='flashcard_duel'){
+  content.appendChild(text('p',item?.label,'tv-flashcard'));
+ }else if(activity.type==='mystery_reveal'){
+  content.appendChild(text('p',item?.label,'tv-question'));photograph(true);
+ }else if(activity.type==='stress_tap'){
+  list('Select the primary stressed syllable',item?.syllables);
+ }else if(activity.type==='concept_connection'){
+  list('Concept nodes',activity.labels);list('Relations',activity.categories);
+ }
+ activityBox.appendChild(content);
 }
 function render(data){
  if(data?.schema!==1||data?.type!=='state')return;
@@ -130,7 +196,7 @@ function render(data){
  document.getElementById('board').style.background=data.theme==='midnight'?'#15252d':
   data.theme==='classroom'?'#eaf2ec':'#fbfaf6';
  title.textContent=String(data.title||'Brian Board').slice(0,180);
- renderPublicActivity(data.page?data.activity:null);
+ renderPublicActivity(data.page?data.activity:null,data.live);
  if(!data.page){notice.style.display='block';notice.textContent='This page is hidden from students.';}
  else{
   notice.style.display='none';
