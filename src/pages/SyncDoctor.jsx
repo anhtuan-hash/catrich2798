@@ -5,13 +5,14 @@ import { Activity, AlertTriangle, ArrowRight, BookUser, CheckCircle2, ChevronRig
 import {isAdminRole,isDepartmentLeaderRole} from '../utils/roles.js';
 import {runSyncDoctorScan,serializeSyncDoctorReport} from '../utils/syncDoctorDiagnostics.js';
 import {buildSyncReviewPlans,serializeSyncReviewDocket} from '../utils/syncDoctorPlanning.mjs';
+import {summarizeSyncMonitor} from '../utils/syncDoctorMonitoring.mjs';
 import {getSyncDoctorReviewInbox,submitSyncDoctorReview,decideSyncDoctorReview,cancelSyncDoctorReview,previewSyncDoctorReview,createSyncDoctorPrivateBackup,rehearseSyncDoctorRollback,listSyncDoctorMonitorRuns} from '../utils/syncDoctorReviewInbox.js';
 import './SyncDoctor.css';
 
 const viText={
   eyebrow:'BRIAN / DATA INTEGRITY CENTER',title:'Sync Doctor',
   sub:'Kiểm tra và đối soát dữ liệu liên thông trong một không gian an toàn.',
-  safety:'GIAI ĐOẠN 3 · DUYỆT RÀ SOÁT',safetyText:'Chỉ ghi phiếu duyệt; không sửa hồ sơ hoặc điểm học sinh.',
+  safety:'GIÁM SÁT · BẢO VỆ DỮ LIỆU',safetyText:'Có giám sát tự động; sửa và hoàn tác dữ liệu thật đang bị khóa.',
   tabs:['Tổng quan','Vấn đề','Nguồn dữ liệu','Kế hoạch sửa','Nhật ký','Cài đặt','Giám sát'],
   run:'Quét dữ liệu',running:'Đang đối soát',export:'Xuất báo cáo',year:'Năm học',
   class:'Lớp cần kiểm tra',all:'Tất cả lớp có quyền xem',classHint:'Để trống để quét các lớp được phép đọc.',
@@ -57,6 +58,12 @@ const viText={
   monitorHomeroom:'Lớp chủ nhiệm',monitorSuspects:'Liên kết cần rà soát',
   monitorAffected:'Workspace cần đối soát',monitorHistory:'Lịch sử kiểm tra',
   monitorEmpty:'Chưa có dữ liệu giám sát.',monitorRefresh:'Cập nhật giám sát',
+  monitorAlertTitle:'Giám sát tự động phát hiện dấu hiệu cần rà soát',
+  monitorAlertDetail:'liên kết nghi vấn tại',monitorAlertScope:'workspace. Chưa xác nhận lỗi học sinh.',
+  monitorTrend:'Thay đổi so với lần quét trước',monitorStale:'Dữ liệu giám sát quá hạn 36 giờ — kiểm tra Cron.',
+  monitorPartial:'Giám sát chưa đủ dữ liệu; không xác nhận hệ thống nhất quán.',
+  monitorHealthy:'Giám sát gần nhất chưa ghi nhận thiếu liên kết trong phạm vi kiểm tra.',
+  monitorNoRun:'Chưa có kết quả giám sát tự động có thể xác minh.',monitorGo:'Xem chi tiết giám sát',
   repairLocked:'Sửa và hoàn tác dữ liệu thật vẫn bị khóa cho tới khi hoàn tất kiểm thử thực thi độc lập.',
   docket:'Xuất phiếu rà soát',plansOverview:'Kế hoạch dự kiến được tạo từ lần quét gần nhất — không thực hiện thay đổi dữ liệu.',
   preview:'Xem trước phương án',constraints:'Điều kiện an toàn',steps:'Các bước rà soát',
@@ -68,7 +75,7 @@ const viText={
 const enText={
   eyebrow:'BRIAN / DATA INTEGRITY CENTER',title:'Sync Doctor',
   sub:'Diagnose data consistency safely across your connected Brian modules.',
-  safety:'PHASE 3 · REVIEW APPROVAL',safetyText:'Only review metadata is saved; student records and scores remain unchanged.',
+  safety:'MONITORING · DATA PROTECTION',safetyText:'Monitoring and review are enabled; live academic repair and rollback remain locked.',
   tabs:['Overview','Issues','Sources','Repair plans','Audit','Settings','Monitoring'],
   run:'Run scan',running:'Scanning',export:'Export report',year:'School year',
   class:'Class scope',all:'All visible classes',classHint:'Leave blank to check classes your account can access.',
@@ -114,6 +121,12 @@ const enText={
   monitorHomeroom:'Homeroom workspaces',monitorSuspects:'Possible missing links',
   monitorAffected:'Affected workspaces',monitorHistory:'Monitoring history',
   monitorEmpty:'No monitoring results yet.',monitorRefresh:'Refresh monitor',
+  monitorAlertTitle:'Scheduled monitoring found possible associations to review',
+  monitorAlertDetail:'possible links across',monitorAlertScope:'workspaces. No student error is confirmed.',
+  monitorTrend:'Change since previous scan',monitorStale:'Monitoring is more than 36 hours old — check Cron.',
+  monitorPartial:'Monitoring coverage is incomplete; consistency is not confirmed.',
+  monitorHealthy:'Latest scheduled scan found no potential missing links in its limited scope.',
+  monitorNoRun:'No verifiable scheduled scan is available.',monitorGo:'Open Monitoring',
   repairLocked:'Real academic repair and rollback remain locked pending independent execution tests.',
   docket:'Export review docket',plansOverview:'Proposals from the latest scan; no changes can be executed.',
   preview:'Review preview',constraints:'Safety requirements',steps:'Review steps',
@@ -189,7 +202,13 @@ export default function SyncDoctor({currentUser,language='vi'}){
     catch(err){setMonitorError(String(err?.message||err));}
     finally{setMonitorLoading(false);}
   };
-  useEffect(()=>{if(authorized&&tab===6)void refreshMonitor();},[tab,authorized,currentUser?.id]);
+  useEffect(()=>{
+    controller.current?.abort();
+    setReport(null);setSelected(null);setHistory([]);
+    setMonitorRuns([]);setReviewInbox({requests:[],events:[]});
+    setPreflightById({});setRecoveryByRequest({});
+  },[currentUser?.id]);
+  useEffect(()=>{if(authorized&&(tab===0||tab===6))void refreshMonitor();},[tab,authorized,currentUser?.id]);
   const refreshReviews=async()=>{
     if(!authorized)return;
     setReviewLoading(true);setReviewError('');
@@ -272,6 +291,7 @@ export default function SyncDoctor({currentUser,language='vi'}){
     (!query||[item.description,item.className,item.code].join(' ').toLowerCase().includes(query.toLowerCase())))||[],[report,filter,query]);
   const totals={issues:report?.issues.length||0,critical:report?.issues.filter(i=>i.severity==='critical'||i.severity==='high').length||0,
     sources:report?.sources.filter(s=>s.status==='ok').length||0};
+  const monitorSummary=summarizeSyncMonitor(monitorRuns);
   if(!authorized)return <section className="bsd-root bsd-denied"><LockKeyhole size={36}/><h1>Sync Doctor</h1><p>{t.noAccess}</p>
     <button type="button" onClick={()=>window.location.hash='#/apps'}>{t.back}</button></section>;
   return <div className="bsd-root">
@@ -299,6 +319,19 @@ export default function SyncDoctor({currentUser,language='vi'}){
     {tab===0&&<div className="bsd-stack">
       <div className="bsd-heading"><div><span className="bsd-overline bsd-dark">SYSTEM OVERVIEW</span><h2>{t.overview}</h2><p>{t.intro}</p></div>
         {report&&<span className="bsd-timestamp"><Clock3 size={15}/>{datetime(report.finishedAt)}</span>}</div>
+      <div className={'bsd-live-health '+monitorSummary.kind} role="status">
+        <div className="bsd-live-health-icon"><Activity size={22}/></div>
+        <div className="bsd-live-health-copy">
+          <strong>{monitorSummary.kind==='attention'?t.monitorAlertTitle:
+            monitorSummary.kind==='stale'?t.monitorStale:
+            monitorSummary.kind==='partial'?t.monitorPartial:
+            monitorSummary.kind==='healthy'?t.monitorHealthy:t.monitorNoRun}</strong>
+          {monitorSummary.kind==='attention'&&<p><b>{monitorSummary.possibleLinks}</b> {t.monitorAlertDetail} <b>{monitorSummary.affected}</b> {t.monitorAlertScope}</p>}
+          {monitorSummary.delta!==null&&<small>{t.monitorTrend}: {monitorSummary.delta>0?'+':''}{monitorSummary.delta}</small>}
+          {monitorSummary.checkedAt&&<small>{t.monitorChecked}: {datetime(monitorSummary.checkedAt)}</small>}
+        </div>
+        <button type="button" className="bsd-outline" onClick={()=>setTab(6)}>{t.monitorGo}<ArrowRight size={16}/></button>
+      </div>
       <div className="bsd-metrics">
         {[[t.findings,report?totals.issues:'—',FileSearch],[t.critical,report?totals.critical:'—',AlertTriangle],[t.classes,report?report.classesChecked:'—',BookUser],[t.sources,report?totals.sources+'/5':'—',Cloud]].map(([label,n,Icon])=>
           <article className="bsd-metric" key={label}><div><span>{label}</span><strong>{n}</strong></div><span className="bsd-metric-icon"><Icon size={23}/></span></article>)}
