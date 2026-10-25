@@ -19,7 +19,6 @@ create table if not exists bes_internal.bes_sync_backup_snapshots (
 create index if not exists bes_sync_backups_expiry_idx on bes_internal.bes_sync_backup_snapshots(expires_at);
 alter table bes_internal.bes_sync_backup_snapshots enable row level security;
 revoke all on bes_internal.bes_sync_backup_snapshots from public,anon,authenticated;
-revoke all on schema bes_internal from anon,authenticated;
 comment on table bes_internal.bes_sync_backup_snapshots is
   'Private 48-hour gradebook snapshots for an approved, single-student review; no client SELECT access.';
 
@@ -56,6 +55,11 @@ begin
     raise exception 'Approved independent gradebook review required' using errcode='42501';
  end if;
 
+ if (select count(*) from public.bes_gradebook_workspaces g
+     where g.workspace_id=r.workspace_id and g.school_year=r.school_year
+      and g.class_name=r.class_name)<>1 then
+   raise exception 'Ambiguous workspace: one target required' using errcode='55000';
+ end if;
  -- Lock target before the read-only identity/revision check and snapshot.
  select * into g from public.bes_gradebook_workspaces
   where workspace_id=r.workspace_id and school_year=r.school_year and class_name=r.class_name
@@ -85,7 +89,7 @@ begin
  select * into existing from bes_internal.bes_sync_backup_snapshots b
   where b.request_id=p_request_id for update;
  if found then
-   if existing.snapshot_hash<>h or existing.source_revision<>g.updated_at
+   if existing.created_by<>actor or existing.snapshot_hash<>h or existing.source_revision<>g.updated_at
      or existing.expires_at<=now() then
        raise exception 'Existing snapshot is outdated; cannot overwrite' using errcode='40001';
    end if;
