@@ -14,7 +14,8 @@ export function boardStudentPayload(lesson,activityId=null,live=null){
    name:String(row.name||'Team').slice(0,28),
    score:Math.max(0,Math.min(10000,Math.floor(Number(row.score)||0)))
   })):[],
-  finished:live.finished===true
+  finished:live.finished===true,
+  seconds:Math.max(0,Math.min(3600,Math.floor(Number(live.seconds)||0)))
  }:null;
  return {type:'state',schema:1,title:String(lesson?.title||'Teaching Board').slice(0,180),
   theme:['ivory','midnight','classroom'].includes(lesson?.theme)?lesson.theme:'ivory',
