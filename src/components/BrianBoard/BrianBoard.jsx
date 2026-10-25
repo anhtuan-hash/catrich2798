@@ -47,6 +47,7 @@ const rolesAllowed=user=>{
 export default function BrianBoard({currentUser,language='vi'}){
  const vi=language!=='en',ownerId=currentUser?.id,allowed=rolesAllowed(currentUser);
  const [open,setOpen]=useState(false),[phase,setPhase]=useState('closed');
+ const closingInspector=useRef(false);
  const [lesson,setLesson]=useState(null),[loading,setLoading]=useState(false);
  const ownerRef=useRef(ownerId);ownerRef.current=ownerId;
  const [saveState,setSaveState]=useState('idle'),[saveError,setSaveError]=useState('');
@@ -95,6 +96,25 @@ export default function BrianBoard({currentUser,language='vi'}){
  useEffect(()=>{setActivityLive(null);},[activeActivityId,lesson?.activePageId]);
  const theme=lesson?.theme||'ivory';
  const stageKey=(page?.id||'empty')+':'+(activeActivityId||'board')+':'+(studentView?'student':'teacher');
+ const activeToolName=drawTools.find(([id])=>id===tool);
+ const modeLabel=studentView?(vi?'Xem trước cho học sinh':'Student preview'):
+  activeActivityId?(vi?'Sân khấu bài tập':'Activity stage'):(activeToolName?.[vi?3:2]||'Board');
+ const closeInspector=()=>{
+  if(closingInspector.current)return;
+  const reduce=motion==='off'||window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+  if(window.innerWidth>780||reduce){setShowPages(false);return;}
+  const pane=document.getElementById('bbd-sidebar');
+  if(!pane?.animate){setShowPages(false);return;}
+  closingInspector.current=true;
+  const effect=pane.animate([
+   {opacity:1,transform:'translateX(0)'},
+   {opacity:.15,transform:'translateX(42px)'}
+  ],{duration:185,easing:'cubic-bezier(.55,.02,.75,.3)',fill:'forwards'});
+  effect.finished.then(()=>{
+   setShowPages(false);closingInspector.current=false;
+  },()=>{setShowPages(false);closingInspector.current=false;});
+ };
+ const toggleInspector=()=>{if(showPages)closeInspector();else setShowPages(true);};
  useEffect(()=>{
   setColor(old=>{
    if(theme==='midnight'&&old==='#335d63')return '#dcece6';
@@ -543,7 +563,7 @@ export default function BrianBoard({currentUser,language='vi'}){
      <button onClick={undo} disabled={!history.current.length} title="Undo"><Undo2 size={17}/></button>
      <button onClick={redo} disabled={!future.current.length} title="Redo"><Redo2 size={17}/></button>
      <button onClick={()=>void persist(docRef.current)} title={vi?'Lưu ngay':'Save now'}><Save size={17}/><span>{vi?'Lưu':'Save'}</span></button>
-     <button onClick={()=>setShowPages(v=>!v)} title={vi?'Hiện/ẩn công cụ bên phải':'Toggle side panel'}
+     <button onClick={toggleInspector} title={vi?'Hiện/ẩn công cụ bên phải':'Toggle side panel'}
       aria-controls="bbd-sidebar" aria-expanded={showPages} aria-label={vi?'Mở hoặc đóng bảng điều khiển':'Toggle inspector panel'}><Move size={17}/></button>
      <button onClick={startPresentation} title={vi?'Mở màn hình học sinh (cùng máy)':'Open local student display'} className={presenting?'is-presenting':''}>
       <Presentation size={18}/><span>{presenting?(vi?'Dừng chia sẻ':'Stop TV'):(vi?'Màn hình TV':'TV Display')}</span></button>
@@ -563,6 +583,13 @@ export default function BrianBoard({currentUser,language='vi'}){
      <button onClick={()=>setSpotlight(s=>!s)} className={spotlight?'active':''} title="Spotlight"><ScanEye size={20}/></button>
     </aside>}
     <div className="bbd-canvas-area">
+     <div className="bbd-canvas-crumb" aria-live="polite">
+      <span className="bbd-canvas-crumb__dot" aria-hidden="true"/>
+      <strong>{page?.title||(vi?'Trang bảng':'Board page')}</strong>
+      <span className="bbd-canvas-crumb__separator" aria-hidden="true">/</span>
+      <span>{modeLabel}</span>
+      <small>{vi?'Trang':'Page'} {lesson?.pages.findIndex(p=>p.id===lesson.activePageId)+1||1}</small>
+     </div>
      <div key={stageKey} className="bbd-stage-transition" data-motion={motion} aria-label={vi?'Không gian trình bày':'Presentation surface'}>
      {activeActivityId&&page?.activities?.find(a=>a.id===activeActivityId)
        ?studentView?<div className="bbd-activity-stage" aria-label="Student activity preview">
@@ -620,12 +647,12 @@ export default function BrianBoard({currentUser,language='vi'}){
     </div>
     {!studentView&&showPages&&<button className="bbd-sidebar-scrim" type="button"
       tabIndex={-1} aria-label={vi?'Đóng bảng điều khiển':'Close inspector'}
-      onClick={()=>setShowPages(false)}/>}
+      onClick={closeInspector}/>}
     {!studentView&&showPages&&<aside className="bbd-sidebar" id="bbd-sidebar"
       aria-label={vi?'Bảng điều khiển bài dạy':'Lesson inspector'}>
       <button type="button" className="bbd-sidebar-close"
        title={vi?'Đóng bảng điều khiển':'Close inspector'} aria-label={vi?'Đóng bảng điều khiển':'Close inspector'}
-       onClick={()=>setShowPages(false)}><X size={18}/></button>
+       onClick={closeInspector}><X size={18}/></button>
      <div className="bbd-sidebar-tabs">
       {['pages','activities','library','teaching','design'].map(id=><button key={id} className={panel===id?'active':''} onClick={()=>setPanel(id)}>
        {id==='pages'?(vi?'Trang':'Pages'):id==='activities'?(vi?'Bài tập':'Activities'):id==='library'?(vi?'Thư viện':'Library'):id==='teaching'?(vi?'Lớp học':'Classroom'):(vi?'Thiết kế':'Design')}</button>)}
@@ -805,7 +832,7 @@ export default function BrianBoard({currentUser,language='vi'}){
      <span>{lesson.pages.findIndex(p=>p.id===lesson.activePageId)+1} / {lesson.pages.length}</span>
      <button onClick={()=>pageAt(Math.min(lesson.pages.length-1,lesson.pages.findIndex(p=>p.id===lesson.activePageId)+1))}><ChevronRight size={17}/></button>
     </div>
-    <button onClick={()=>setShowPages(s=>!s)}>{vi?'Brian Board · Bản nháp cá nhân':'Brian Board · Personal draft'}</button>
+    <button onClick={toggleInspector}>{vi?'Brian Board · Bản nháp cá nhân':'Brian Board · Personal draft'}</button>
    </footer>
   </section>,document.body)}
  </>;
