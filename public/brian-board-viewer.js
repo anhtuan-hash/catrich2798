@@ -230,7 +230,23 @@ function render(data){
  else{
   notice.style.display='none';
   (Array.isArray(data.page.objects)?data.page.objects:[]).slice(0,3000).forEach(o=>{
-   const el=drawing(o);if(el)add(svg,el);
+   const el=drawing(o);if(!el)return;
+   const degrees=Number(o.rotation)||0;
+   if(!degrees){add(svg,el);return;}
+   // Only allow finite, bounded geometry in a student-safe projection.
+   const x=Number(o.x)||0,y=Number(o.y)||0;
+   const width=o.kind==='shape'?Math.abs((Number(o.x2)||0)-x):
+    o.kind==='text'?Math.max(70,Math.min(1350,String(o.text||'').length*24)):
+    o.kind==='sticky'?Math.max(230,Math.min(520,String(o.text||'').length*13)):
+    o.kind==='flashcard'?340:Number(o.width)||300;
+   const height=o.kind==='shape'?Math.abs((Number(o.y2)||0)-y):
+    o.kind==='text'?64:o.kind==='sticky'?82:o.kind==='flashcard'?170:Number(o.height)||180;
+   const minX=o.kind==='shape'?Math.min(x,Number(o.x2)||0):x;
+   const minY=o.kind==='shape'?Math.min(y,Number(o.y2)||0):
+    o.kind==='text'?y-52:o.kind==='sticky'?y-36:y;
+   const cx=minX+width/2,cy=minY+height/2;
+   const group=add(svg,make('g',{transform:'rotate('+Math.max(-360,Math.min(360,degrees))+' '+cx+' '+cy+')'}));
+   add(group,el);
   });
  }
  renderPointer(pointerState);
