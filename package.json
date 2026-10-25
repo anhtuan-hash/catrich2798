@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "npm run version:sync && npm run audit:inactive-modules && node scripts/test-gradebook-score-entry.mjs && node scripts/test-event-eligibility.mjs && node scripts/test-event-login-session.mjs && node scripts/test-event-poster-zoom.mjs && node scripts/test-event-admin-recipients.mjs && node scripts/test-archived-student-permanent-delete.mjs && npm run audit:i18n && npm run test:i18n && node scripts/test-brian-focus-youtube.mjs && node scripts/test-brian-focus-workspace.mjs && node scripts/test-unified-floating-dock.mjs && node scripts/test-brian-focus-v7.mjs && node scripts/test-brian-focus-v8.mjs && node scripts/test-brian-focus-performance.mjs && node scripts/test-brian-focus-v9.mjs && node scripts/test-brian-focus-unified-studio.mjs && node scripts/test-brian-focus-preview-layout.mjs && node scripts/test-brian-board-foundation.mjs && node scripts/test-sync-doctor.mjs && node scripts/test-sync-doctor-approvals.mjs && node scripts/test-sync-doctor-preflight.mjs && node scripts/test-sync-doctor-backup.mjs && node scripts/test-sync-doctor-final.mjs && node scripts/test-sync-doctor-monitor-hardening.mjs && node scripts/test-brian-board-phase2.mjs && node scripts/test-brian-board-upgrades.mjs && node scripts/test-brian-board-drawing-v4.mjs && vite build",
+    "build": "npm run version:sync && npm run audit:inactive-modules && node scripts/test-gradebook-score-entry.mjs && node scripts/test-event-eligibility.mjs && node scripts/test-event-login-session.mjs && node scripts/test-event-poster-zoom.mjs && node scripts/test-event-admin-recipients.mjs && node scripts/test-archived-student-permanent-delete.mjs && npm run audit:i18n && npm run test:i18n && node scripts/test-brian-focus-youtube.mjs && node scripts/test-brian-focus-workspace.mjs && node scripts/test-unified-floating-dock.mjs && node scripts/test-brian-focus-v7.mjs && node scripts/test-brian-focus-v8.mjs && node scripts/test-brian-focus-performance.mjs && node scripts/test-brian-focus-v9.mjs && node scripts/test-brian-focus-unified-studio.mjs && node scripts/test-brian-focus-preview-layout.mjs && node scripts/test-brian-board-foundation.mjs && node scripts/test-sync-doctor.mjs && node scripts/test-sync-doctor-approvals.mjs && node scripts/test-sync-doctor-preflight.mjs && node scripts/test-sync-doctor-backup.mjs && node scripts/test-sync-doctor-final.mjs && node scripts/test-sync-doctor-monitor-hardening.mjs && node scripts/test-sync-doctor-offline-repair-model.mjs && node scripts/test-brian-board-phase2.mjs && node scripts/test-brian-board-upgrades.mjs && node scripts/test-brian-board-drawing-v4.mjs && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "test": "node scripts/smoke-test.mjs && node scripts/test-youtube-quick-access.mjs && node scripts/test-gradebook-verified-roster.mjs && node scripts/test-assigned-student-roster-sync.mjs",
     "test:zalo-link": "node scripts/test-zalo-link.mjs",
@@ -156,7 +156,8 @@
     "test:sync-doctor-preflight": "node scripts/test-sync-doctor-preflight.mjs",
     "test:sync-doctor-backup": "node scripts/test-sync-doctor-backup.mjs",
     "test:sync-doctor-final": "node scripts/test-sync-doctor-final.mjs",
-    "test:sync-doctor-monitor": "node scripts/test-sync-doctor-monitor-hardening.mjs"
+    "test:sync-doctor-monitor": "node scripts/test-sync-doctor-monitor-hardening.mjs",
+    "test:sync-doctor-offline": "node scripts/test-sync-doctor-offline-repair-model.mjs"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",
