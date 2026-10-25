@@ -147,12 +147,19 @@ export default function BrianBoard({currentUser,language='vi'}){
  },[theme]);
  const activeCamera=page?.camera||camera;
  docRef.current=lesson;
+ const lastStateBroadcast=useRef(0);
  useEffect(()=>{
   const session=presentationRef.current;
-  if(session&&lesson){
-   const payload=boardStudentPayload(lesson,activeActivityId,activityLive,currentViewport);
-   session.bus.postMessage(payload);
-  }
+  if(!session||!lesson)return undefined;
+  const send=()=>{
+   if(presentationRef.current!==session)return;
+   session.bus.postMessage(boardStudentPayload(lesson,activeActivityId,activityLive,currentViewport));
+   lastStateBroadcast.current=Date.now();
+  };
+  const elapsed=Date.now()-lastStateBroadcast.current;
+  if(elapsed>=110){send();return undefined;}
+  const timeout=setTimeout(send,110-elapsed);
+  return()=>clearTimeout(timeout);
  },[lesson,activeActivityId,activityLive,camera.x,camera.y,zoom]);
  useEffect(()=>()=>{const session=presentationRef.current;
   if(session){session.bus.postMessage({type:'end'});session.bus.close();presentationRef.current=null;}
