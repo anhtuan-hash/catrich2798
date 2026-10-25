@@ -52,7 +52,7 @@ export function sanitizeStudentPage(page){
  const xy=o=>({x:number(o.x),y:number(o.y)});
  const safe=[];
  for(const o of (Array.isArray(page.objects)?page.objects:[]).slice(0,3000)){
-  if(!o||o.studentVisible===false||o.teacherOnly===true)continue;
+  if(!o||o.studentVisible===false||o.teacherOnly===true||o.hidden===true)continue;
   const id=String(o.id||'').slice(0,85),kind=o.kind;
   if(kind==='stroke'&&Array.isArray(o.points)){
    safe.push({id,kind,color:String(o.color||'#355d63').slice(0,60),width:number(o.width,4),
