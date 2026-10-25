@@ -132,6 +132,49 @@ export function publicActivityToSvg(activity){
   });
   worksheetHeading(svg,'YOUR ANSWER:',82,853);
   svgNode('line',{x1:274,y1:853,x2:1516,y2:853,stroke:'#aec5b8','stroke-width':2},svg);
+ }else{
+  // Lab worksheets are public-only: they deliberately contain no answer mapping.
+  const text=(value,x,y,max=86)=>{
+   const source=String(value||'').slice(0,2200),words=source.split(/\s+/);
+   let current='',line=0;
+   const flush=()=>{if(current&&line<21){textNode(svg,current,x,y+line*27,20,'#23443c');line++;current='';}};
+   for(const word of words){
+    if((current+' '+word).trim().length>max)flush();
+    current=(current+' '+word).trim();
+   }
+   flush();return line;
+  };
+  const visible=Array.isArray(activity.items)?activity.items:[];
+  const labels=activity.type==='cloze_snap'?activity.labels:
+   activity.type==='concept_connection'?activity.labels:
+   visible.length?visible.map(i=>i.label||i.syllables?.join(' / ')):activity.labels;
+  worksheetHeading(svg,'STUDENT CHALLENGE',82,245);
+  if(activity.passage){
+   worksheetHeading(svg,'READING PASSAGE',82,287);
+   text(activity.passage,85,322,105);
+  }
+  const top=activity.passage?610:288;
+  (labels||[]).slice(0,12).forEach((label,i)=>worksheetRow(svg,label,i,82,top+i*47,680,47));
+  if(Array.isArray(activity.options)&&activity.options.length){
+   worksheetHeading(svg,'CHOICES / WORD BANK',822,245);
+   activity.options.slice(0,12).forEach((value,i)=>worksheetRow(svg,value,i,825,284+i*49,680,49));
+  }else if(Array.isArray(activity.categories)&&activity.categories.length){
+   worksheetHeading(svg,'RELATIONS / CATEGORIES',822,245);
+   activity.categories.slice(0,12).forEach((value,i)=>worksheetRow(svg,value,i,825,284+i*49,680,49));
+  }
+  if(activity.type==='four_corners'||activity.type==='evidence_hunter'||activity.type==='error_detective'){
+   worksheetHeading(svg,'QUESTIONS AND CHOICES',822,245);
+   visible.slice(0,6).forEach((entry,i)=>{
+    text((i+1)+'. '+entry.label,827,288+i*92,46);
+    text((entry.options||[]).map((x,j)=>String.fromCharCode(65+j)+'. '+x).join('  '),
+     827,323+i*92,46);
+   });
+  }
+  if(/^data:image\/(?:png|jpeg|webp);base64,/.test(activity.image||'')){
+   svgNode('image',{href:activity.image,x:830,y:390,width:660,height:372,preserveAspectRatio:'xMidYMid meet'},svg);
+  }
+  if(activity.type==='stress_tap')worksheetHeading(svg,'CIRCLE THE STRESSED SYLLABLE',822,245);
+  if(activity.type==='mystery_reveal')worksheetHeading(svg,'REVEAL AFTER EACH CORRECT ANSWER',822,245);
  }
  return svg;
 }
