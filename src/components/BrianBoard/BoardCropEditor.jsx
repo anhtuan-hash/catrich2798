@@ -47,10 +47,11 @@ export default function BoardCropEditor({image,onApply,onCancel,vi=true}){
   </div>
   <p>{vi?'Kéo vùng sáng để di chuyển. Kéo góc để chỉnh vùng cắt. Ảnh gốc có thể khôi phục bằng Undo.':
    'Drag the light window to move, or drag corners to crop. Use Undo to recover your source image.'}</p>
-  <div ref={surface} className="bbd-v8-crop-editor__stage" onPointerMove={drag}
+  <div ref={surface} className="bbd-v8-crop-editor__stage"
+   style={{aspectRatio:(Math.max(1,image?.width||500))+'/'+(Math.max(1,image?.height||300))}}
+   onPointerMove={drag}
    onPointerUp={end} onPointerCancel={end} onLostPointerCapture={end}>
    <img src={image.src} alt={vi?'Ảnh chuẩn bị cắt':'Image to crop'} draggable={false}/>
-   <div className="bbd-v8-crop-editor__shade"/>
    <div className="bbd-v8-crop-editor__region" style={{
     left:(rect.x*100)+'%',top:(rect.y*100)+'%',width:(rect.width*100)+'%',
     height:(rect.height*100)+'%'}} onPointerDown={e=>begin('move',e)}>
