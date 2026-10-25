@@ -436,6 +436,25 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
      {vi?'Xuống dưới':'Back'}</button>
     <button type="button" onClick={()=>onBatchEdit?.(selectedIds,'scale',{factor:1.15})}>+15%</button>
     <button type="button" onClick={()=>onBatchEdit?.(selectedIds,'scale',{factor:.85})}>−15%</button>
+    <button type="button" onClick={()=>onBatchEdit?.(selectedIds,'rotate',{degrees:-15})}
+     title={vi?'Xoay ngược kim đồng hồ':'Rotate counterclockwise'}>↶ 15°</button>
+    <button type="button" onClick={()=>onBatchEdit?.(selectedIds,'rotate',{degrees:15})}
+     title={vi?'Xoay theo kim đồng hồ':'Rotate clockwise'}>↷ 15°</button>
+    <select className="bbd-v8-align-select" defaultValue="" aria-label={vi?'Căn chỉnh nhóm đối tượng':'Align selected objects'}
+     onChange={e=>{
+      if(e.target.value)onBatchEdit?.(selectedIds,'align',{mode:e.target.value});
+      e.target.value='';
+     }}>
+     <option value="">{vi?'Căn chỉnh…':'Align…'}</option>
+     <option value="left">{vi?'Căn trái':'Left'}</option>
+     <option value="center">{vi?'Căn giữa ngang':'Center horizontally'}</option>
+     <option value="right">{vi?'Căn phải':'Right'}</option>
+     <option value="top">{vi?'Căn trên':'Top'}</option>
+     <option value="middle">{vi?'Căn giữa dọc':'Center vertically'}</option>
+     <option value="bottom">{vi?'Căn dưới':'Bottom'}</option>
+     <option value="distribute-x">{vi?'Chia đều ngang':'Distribute horizontally'}</option>
+     <option value="distribute-y">{vi?'Chia đều dọc':'Distribute vertically'}</option>
+    </select>
     {selectedIds.length===2&&<button type="button" onClick={()=>onBatchEdit?.(selectedIds,'connect')}>
      {vi?'Nối sơ đồ →':'Connect nodes →'}</button>}
     <button type="button" onClick={()=>onBatchEdit?.(selectedIds,'duplicate')}>
