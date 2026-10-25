@@ -44,6 +44,7 @@ function Teams({scores,setScores,team,setTeam,vi}){
 }
 export default function BoardActivityLabStage({activity,vi=true,onClose,onPublicState}){
  const [index,setIndex]=useState(0),[answers,setAnswers]=useState({}),[feedback,setFeedback]=useState('');
+ const [feedbackTone,setFeedbackTone]=useState('neutral');
  const [selected,setSelected]=useState(''),[selectedWords,setSelectedWords]=useState([]);
  const [evidenceRange,setEvidenceRange]=useState([]),[answerChoice,setAnswerChoice]=useState('');
  const [team,setTeam]=useState(0),[scores,setScores]=useState(makeScores);
@@ -75,7 +76,7 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
    finished,revealAll,seconds:remaining});
  },[index,opened,scores,finished,revealAll,remaining,onPublicState]);
  const reset=()=>{
-  setIndex(0);setAnswers({});setFeedback('');setSelected('');setSelectedWords([]);
+  setIndex(0);setAnswers({});setFeedback('');setFeedbackTone('neutral');setSelected('');setSelectedWords([]);
   setEvidenceRange([]);setAnswerChoice('');setScores(makeScores());setTeam(0);
   setShown(false);setOpened([]);setRevealAll(false);setGuess('');setChosenLabel('');
   setPlaced({});setSource('');setRelation('');setTarget('');setCornerChoices({});setCornerLocked(false);
@@ -83,7 +84,7 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
   setTimerEnd(0);setTimerSeconds(120);
  };
  const next=delta=>{
-  setIndex(i=>Math.max(0,Math.min(n-1,i+delta)));setFeedback('');setSelected('');
+  setIndex(i=>Math.max(0,Math.min(n-1,i+delta)));setFeedback('');setFeedbackTone('neutral');setSelected('');
   setSelectedWords([]);setEvidenceRange([]);setAnswerChoice('');setShown(false);
   setGuess('');setSource('');setRelation('');setTarget('');setCornerChoices({});setCornerLocked(false);
  };
@@ -91,6 +92,7 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
  const store=(value,correct)=>{
   if(Object.prototype.hasOwnProperty.call(answers,index))return;
   setAnswers(a=>({...a,[index]:value}));
+  setFeedbackTone(correct?'success':'retry');
   setFeedback(correct?(vi?'Chính xác! +10 điểm':'Correct! +10 points'):(vi?'Chưa đúng. Xem giải thích cùng giáo viên.':'Not correct. Review with your teacher.'));
   if(correct)award(10);
  };
@@ -124,6 +126,7 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
    {...entry,score:entry.score+10}:entry));
   setAnswers(prev=>({...prev,[index]:correctTeams.length?item.answer:'—'}));
   setCornerLocked(true);
+  setFeedbackTone(correctTeams.length?'success':'retry');
   setFeedback((vi?'Đã khóa đáp án. Số đội trả lời đúng: ':'Answers locked. Correct teams: ')+correctTeams.length);
  };
  const assignTarget=(targetItem,labelId=chosenLabel)=>{
@@ -133,12 +136,13 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
   if(!label||!targetItemData)return;
   setChosenLabel('');
   if(label.id!==targetItem){
+   setFeedbackTone('retry');
    setFeedback(vi?'Sai vị trí. Nhãn quay về khay, hãy thử lại.':'Wrong target. The label returns to the tray; try again.');
    return;
   }
   setPlaced(p=>({...p,[labelId]:targetItem}));
   setAnswers(a=>({...a,[items.findIndex(i=>i.id===labelId)]:{x:targetItemData.x,y:targetItemData.y}}));
-  setFeedback(vi?'Đúng vị trí! +10 điểm':'Correct position! +10 points');
+  setFeedbackTone('success');setFeedback(vi?'Đúng vị trí! +10 điểm':'Correct position! +10 points');
   award(10);
  };
  const checkError=answer=>{
@@ -163,9 +167,9 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
  const guessPicture=()=>{
   if(!finalGuess.trim()||!activity.mysteryAnswer||finalAwarded)return;
   if(normalized(finalGuess)===normalized(activity.mysteryAnswer)){
-   setFinalAwarded(true);setRevealAll(true);award(20);
+   setFinalAwarded(true);setRevealAll(true);award(20);setFeedbackTone('success');
    setFeedback(vi?'Đoán đúng bức ảnh! Thưởng 20 điểm.':'Mystery solved! Bonus +20 points.');
-  }else setFeedback(vi?'Chưa đúng chủ đề bức ảnh.':'Picture guess is not correct.');
+  }else{setFeedbackTone('retry');setFeedback(vi?'Chưa đúng chủ đề bức ảnh.':'Picture guess is not correct.');}
  };
  const total=score.total;
  const list=items.map(x=>x.label);
@@ -321,8 +325,9 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
    <button className="bbd-lab-primary" disabled={!source||!target||!relation||answers[index]!==undefined}
     onClick={checkConcept}>{vi?'Kiểm tra liên kết':'Check connection'}</button>
   </>}
-  <div className="bbd-activity-stage__status">
-   <span role="status" aria-live="polite">{feedback}</span>
+  <div key={index+'-'+feedbackTone+'-'+Object.keys(answers).length}
+   className={'bbd-activity-stage__status bbd-lab-feedback bbd-lab-feedback--'+feedbackTone} data-tone={feedbackTone}>
+   <span role="status" aria-live="polite">{feedback||(vi?'Sẵn sàng':'Ready')}</span>
    {finished&&<strong>{vi?'Kết quả cuối':'Final score'}: {score.correct}/{score.total}</strong>}
   </div>
   <footer className="bbd-lab-footer">
