@@ -32,7 +32,7 @@ import {cropBoardImageData,cropBoardImageRegion,effectBoardImageRegion} from './
 import BoardCropEditor from './BoardCropEditor.jsx';
 import {eraseInkAtPoint,scaleBoardObjects,duplicateBoardObjects,reorderBoardObjects,
  BOARD_V8_TEMPLATES,buildBoardTemplate,createDiagramConnection,syncDiagramConnections,
- groupResizeTransform,rotateBoardObjects,alignBoardObjects} from './boardV8Tools.js';
+ groupResizeTransform,rotateBoardObjects,alignBoardObjects,layoutBoardNodes} from './boardV8Tools.js';
 import './BrianBoard.css';
 import './BoardActivities.css';
 import './BoardVisualRefresh.css';
@@ -429,6 +429,7 @@ export default function BrianBoard({currentUser,language='vi'}){
    if(action==='resize')return {...p,objects:syncDiagramConnections(groupResizeTransform(objects,ids,params.handle,params.delta))};
    if(action==='rotate')return {...p,objects:syncDiagramConnections(rotateBoardObjects(objects,ids,params.degrees))};
    if(action==='align')return {...p,objects:syncDiagramConnections(alignBoardObjects(objects,ids,params.mode))};
+   if(action==='layout')return {...p,objects:syncDiagramConnections(layoutBoardNodes(objects,ids,params.mode,params.gap))};
    if(action==='connect'&&ids.length===2){
     const link=createDiagramConnection(objects,ids[0],ids[1]);
     return link&&objects.length<3000?{...p,objects:[...objects,link]}:p;
