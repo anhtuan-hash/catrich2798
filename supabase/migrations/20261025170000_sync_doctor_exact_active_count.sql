@@ -68,9 +68,12 @@ begin
  if coalesce(jsonb_typeof(g.payload),'null')<>'object' then
    raise exception 'Unexpected gradebook payload shape' using errcode='22023'; end if;
 
+ if coalesce(jsonb_typeof(g.payload->'students'),'null')<>'array' then
+   raise exception 'Workspace students are not a supported array' using errcode='55000';
+ end if;
  select count(*) into active_count from jsonb_array_elements(g.payload->'students') x(value)
    where x.value->>'active' is distinct from 'false';
- if jsonb_typeof(g.payload->'students')<>'array' or g.student_count is distinct from active_count then
+ if g.student_count is distinct from active_count then
    raise exception 'Workspace active-student counter inconsistent, manual review required' using errcode='55000';
  end if;
  h:=encode(sha256(convert_to(g.payload::text,'UTF8')),'hex');
