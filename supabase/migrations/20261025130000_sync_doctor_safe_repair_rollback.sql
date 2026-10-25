@@ -243,3 +243,10 @@ revoke execute on function public.bes_sync_restore_single_link(uuid) from public
 grant execute on function public.bes_sync_authorize_transition(uuid,text) to authenticated;
 grant execute on function public.bes_sync_execute_one_student(uuid) to authenticated;
 grant execute on function public.bes_sync_restore_single_link(uuid) to authenticated;
+
+-- RELEASE HOLD: User-facing academic data mutations remain inaccessible until an
+-- independent staging-based positive/negative write-and-restore E2E test passes.
+-- The production write test was not authorized by safety checks on 2026-10-25.
+revoke execute on function public.bes_sync_authorize_transition(uuid,text) from authenticated;
+revoke execute on function public.bes_sync_execute_one_student(uuid) from authenticated;
+revoke execute on function public.bes_sync_restore_single_link(uuid) from authenticated;
