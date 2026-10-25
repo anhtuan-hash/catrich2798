@@ -1,5 +1,5 @@
 // Sync Doctor deterministic rules. No AI, no writes, no guesses from names alone.
-export const SYNC_DOCTOR_RULESET = '1.0.0';
+export const SYNC_DOCTOR_RULESET = '1.1.0';
 const str = (value) => String(value ?? '').trim();
 const fold = (value) => str(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd').toLowerCase();
 const classKey = (year, name) => fold(year) + '||' + fold(name);
@@ -7,11 +7,11 @@ const list = (value) => Array.isArray(value) ? value : [];
 export const isActiveSyncStudent = (student = {}) => student.active !== false &&
   !['deleted','archived','transferred'].includes(str(student.lifecycleStatus)) && !student.deletedAt && !student.archivedAt;
 export function studentIdentity(student = {}) {
-  return { id: str(student.rosterStudentId), code: fold(student.code),
+  return { id: str(student.rosterStudentId || student.id), code: fold(student.code),
     name: fold(student.fullName), birth: str(student.birthDate), gender: fold(student.gender) };
 }
 function issue(code, severity, year, cls, description, detail = '', evidence = {}) {
-  return { id: [code, year, cls, evidence.ref || ''].join(':'), code, severity, year, className: cls,
+  return { id: [code, year, cls, evidence.source || 'canonical', evidence.workspaceId || '', evidence.ref || ''].join(':'), code, severity, year, className: cls,
     description, detail, evidence, action: 'review', status: 'open' };
 }
 function indexDuplicates(students, year, cls) {
@@ -70,20 +70,29 @@ export function compareSyncDoctorSnapshots(snapshot = {}) {
     for (const local of locals) {
       const localStudents = members(local);
       const type = local._kind, applicable = type==='gradebook' ? sourceStatus(snapshot,'gradebook') : sourceStatus(snapshot,'homeroom');
+      const workspaceEvidence = (official) => ({
+        ref: studentIdentity(official).id, source: type,
+        workspaceId: str(local.workspace_id),
+        studentName: str(official.fullName),
+        studentCode: str(official.code),
+        beforeCount: localStudents.length, canonicalCount: students.length,
+        sourceRevision: str(local.updated_at),
+        canonicalRevision: str(ref.updated_at),
+      });
       if (!applicable) continue;
       for(const official of active) {
         const match = localStudents.map(s=>matches(official,s,codeCounts));
         const confident = match.filter(m=>m==='exact'||m==='code').length;
         if (confident > 1) issues.push(issue('MULTIPLE_LOCAL_MATCHES','high',scopeYear,scopeClass,
           'Nhiều học sinh cùng khớp một định danh','Không tự gộp hoặc xóa học sinh.',
-          {ref:studentIdentity(official).id,source:type}));
+          workspaceEvidence(official)));
         if (confident) continue;
         if (match.includes('review')) issues.push(issue('AMBIGUOUS_IDENTITY','high',scopeYear,scopeClass,
           'Hồ sơ tương tự nhưng không có khóa định danh chắc chắn','Cần giáo viên đối chiếu bằng chứng; tên không đủ để tự ghép.',
-          {ref:studentIdentity(official).id,source:type}));
+          workspaceEvidence(official)));
         else issues.push(issue('STUDENT_NOT_LINKED','medium',scopeYear,scopeClass,
           'Học sinh danh sách chuẩn chưa liên kết ' + (type==='gradebook'?'Sổ điểm':'GVCN'),
-          'Chỉ đề xuất kiểm tra; không thêm tự động.',{ref:studentIdentity(official).id,source:type}));
+          'Chỉ đề xuất kiểm tra; không thêm tự động.',workspaceEvidence(official)));
       }
     }
     if (sourceStatus(snapshot,'assessment')) for (const a of assessments.filter(a=>
@@ -97,7 +106,7 @@ export function compareSyncDoctorSnapshots(snapshot = {}) {
         // The assessment adapter may represent only assigned students or historical aliases.
         issues.push(issue('ASSESSMENT_LINK_REVIEW','low',scopeYear,scopeClass,
           'Chưa xác minh liên kết học sinh trong Kiểm tra',
-          'Có thể sử dụng mã cũ; không thay đổi kết quả.',{ref:key,source:'assessment'}));
+          'Có thể sử dụng mã cũ; không thay đổi kết quả.',{ref:key,source:'assessment',studentName:str(s.fullName),studentCode:str(s.code),canonicalRevision:str(ref.updated_at)}));
       }
     }
   }
@@ -111,6 +120,10 @@ export function compareSyncDoctorSnapshots(snapshot = {}) {
     if(source?.status==='limited')issues.push(issue('SOURCE_COVERAGE_PARTIAL','low',year,cls,
       'Nguồn ' + (source.label || key) + ' chỉ có dữ liệu một phần',
       'Không xác nhận toàn bộ hệ thống đã nhất quán.',{ref:key,source:key}));
+    if(source?.status==='empty')issues.push(issue('SOURCE_NO_VISIBLE_ROWS','low',year,cls,
+      'Không thấy bản ghi thuộc nguồn ' + (source.label || key),
+      'Có thể dữ liệu chưa được tạo hoặc không nằm trong phạm vi quyền đọc; cần xác minh.',
+      {ref:key,source:key}));
   }
   if (snapshot.localQueue?.pending > 0) issues.push(issue('LOCAL_QUEUE_PENDING','medium',year,cls,
     'Có thay đổi chưa gửi từ thiết bị này','Chỉ có thể xem hàng đợi của trình duyệt hiện tại.',
