@@ -27,6 +27,7 @@ import BoardPenToolbarExtras from './BoardPenToolbarExtras.jsx';
 import BoardNavigator from './BoardNavigator.jsx';
 import BoardFrameThumbnail from './BoardFrameThumbnail.jsx';
 import BoardReliabilityPanel from './BoardReliabilityPanel.jsx';
+import {listBoardAssets,saveBoardAsset,readBoardAsset} from './boardAssets.js';
 import {eraseInkAtPoint,scaleBoardObjects,duplicateBoardObjects,reorderBoardObjects,
  BOARD_V8_TEMPLATES,buildBoardTemplate} from './boardV8Tools.js';
 import './BrianBoard.css';
@@ -88,6 +89,7 @@ export default function BrianBoard({currentUser,language='vi'}){
   [activityError,setActivityError]=useState(''),[activeActivityId,setActiveActivityId]=useState(null),[editingActivityId,setEditingActivityId]=useState(null);
  const [activityImage,setActivityImage]=useState(''),[activityLive,setActivityLive]=useState(null);
  const [checkpoints,setCheckpoints]=useState([]),[checkpointTitle,setCheckpointTitle]=useState('');
+ const [savedAssets,setSavedAssets]=useState([]),[assetStatus,setAssetStatus]=useState('');
  const [checkpointStatus,setCheckpointStatus]=useState('');
  const activityLiveRef=useRef(null);activityLiveRef.current=activityLive;
  const [panel,setPanel]=useState('pages'),[library,setLibrary]=useState([]),[libraryError,setLibraryError]=useState(''),[cloudLibrary,setCloudLibrary]=useState([]),[cloudStatus,setCloudStatus]=useState('');
@@ -416,6 +418,32 @@ export default function BrianBoard({currentUser,language='vi'}){
    if(action==='scale')return {...p,objects:scaleBoardObjects(objects,ids,params.factor)};
    return p;
   });
+ };
+ const refreshAssets=async()=>{
+  try{setSavedAssets(await listBoardAssets(ownerId));}
+  catch(e){setAssetStatus(e.message||'Asset library unavailable');}
+ };
+ useEffect(()=>{if(open&&panel==='assets')void refreshAssets();},[open,panel,ownerId]);
+ const saveSelectedAsset=async ids=>{
+  if(!ownerId||!page||!ids?.length)return;
+  const title=window.prompt(vi?'Đặt tên cho nhóm học liệu tái sử dụng':'Name your reusable teaching block');
+  if(!title?.trim())return;
+  const objects=page.objects.filter(o=>ids.includes(o.id));
+  try{
+   await saveBoardAsset(ownerId,objects,title);
+   setAssetStatus(vi?'Đã lưu học liệu riêng':'Saved to your private assets');
+   setPanel('assets');void refreshAssets();
+  }catch(e){setAssetStatus(e.message||'Cannot save reusable assets');}
+ };
+ const insertSavedAsset=async id=>{
+  if(!page||page.locked)return;
+  try{
+   const objects=await readBoardAsset(ownerId,id,camera.x+90,camera.y+110);
+   if(!objects.length)throw Error('Asset unavailable');
+   if(objects.length+page.objects.length>3000)throw Error('Page object limit reached');
+   editPage(p=>({...p,objects:[...p.objects,...objects]}));
+   setAssetStatus(vi?'Đã đặt học liệu vào bảng':'Asset added to canvas');
+  }catch(e){setAssetStatus(e.message||'Unable to insert asset');}
  };
  const pinActivity=id=>{
   if(!page||page.locked||page.objects.length>=3000)return;
@@ -856,7 +884,7 @@ export default function BrianBoard({currentUser,language='vi'}){
          vi={vi} onClose={()=>setActiveActivityId(null)} onPublicState={receivePublicActivityState}/>
        :<BoardCanvas page={studentView?sanitizeStudentPage(page):page} tool={studentView?'select':tool} color={color} width={thickness}
        onCommit={commitObj} onErase={eraseObject} onDuplicateObject={duplicateObject} onMoveObject={moveObject}
-       onBatchEdit={batchEdit} onPrecisionErase={precisionErase}
+       onBatchEdit={batchEdit} onPrecisionErase={precisionErase} onSaveAsset={saveSelectedAsset}
        penPreset={penPreset} snapToGrid={snapToGrid} shapeFill={shapeFill} vi={vi} zoom={zoom} setZoom={setZoom}
        camera={camera} setCamera={next=>{setCamera(next);setActiveFrameId(null);}}
        frames={frames} showFrames={showFrames} activeFrameId={activeFrameId}
@@ -1014,6 +1042,15 @@ export default function BrianBoard({currentUser,language='vi'}){
         <LayoutTemplate size={19}/><strong>{vi?template.vi:template.en}</strong>
         <small>{vi?'Chèn vào canvas':'Add to canvas'}</small></button>)}
       </div>
+      <h4>{vi?'Học liệu riêng có thể tái sử dụng':'Reusable private blocks'}</h4>
+      <p>{vi?'Dùng Khoanh chọn → Lưu học liệu để thêm nét viết hoặc sơ đồ vào thư viện.':
+       'Use Lasso → Save asset to keep selected strokes and diagrams for another lesson.'}</p>
+      {savedAssets.map(asset=><div key={asset.id} className="bbd-v8-checkpoint">
+       <strong>{asset.title}</strong><small>{asset.count} {vi?'đối tượng':'objects'}</small>
+       <button disabled={page?.locked} type="button" onClick={()=>void insertSavedAsset(asset.id)}>
+        <Plus size={15}/>{vi?'Chèn vào bảng':'Insert'}</button>
+      </div>)}
+      {assetStatus&&<p role="status">{assetStatus}</p>}
      </div>}
      {panel==='activities'&&<div className="bbd-side-stack bbd-activity-builder">
        <h3>{vi?'Hoạt động tương tác':'Interactive activities'}</h3>
