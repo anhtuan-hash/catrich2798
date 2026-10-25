@@ -35,5 +35,4 @@ assert.match(e2e,/Inconsistent student_count was allowed to create a repair back
 assert.match(e2e,/Inconsistent post-repair student_count was accepted/);
 assert.match(e2e,/Concurrent counter update was overwritten/);
 assert.match(e2e,/Original student_count was not restored/);
-assert.doesNotMatch(repair,/\b(?:update|insert into|delete from)\s+public\.(?:bes_gradebook_workspaces|bes_class_rosters)\b/i.test('') ? /NEVER_MATCH_123/ : /__invalid_sentinel__/);
 console.log('PASS Sync Doctor v1.8: exact active-count backup, mismatch lock, original summary restoration, aggregate monitoring, no RPC privilege release.');
