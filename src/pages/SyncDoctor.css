@@ -119,3 +119,19 @@
 .bsd-monitor-row:nth-child(even){background:#f0f5fa}.bsd-monitor-row>span:first-child{display:flex;align-items:center;gap:7px}
 @media(max-width:1000px){.bsd-monitor-snapshot{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:610px){.bsd-monitor-snapshot{grid-template-columns:repeat(2,minmax(0,1fr))}.bsd-monitor-row{grid-template-columns:1fr auto}.bsd-monitor-row span:nth-child(2){display:none}.bsd-monitor>.bsd-panel-head{flex-wrap:wrap}}
+
+
+/* Scheduled monitor appears in Overview even without a manual scan. */
+.bsd-live-health{display:flex;align-items:center;gap:16px;padding:17px 19px;border:1px solid #d9e4f1;background:#f0f6fd;border-radius:17px;color:#365777;min-width:0}
+.bsd-live-health.attention{background:#fff7eb;border-color:#f1dec2;color:#795022}
+.bsd-live-health.stale,.bsd-live-health.partial{background:#fff8eb;border-color:#eeddb8;color:#775e26}
+.bsd-live-health.healthy{background:#ebf8f3;border-color:#cde8dc;color:#247255}
+.bsd-live-health-icon{height:43px;width:43px;flex:none;display:grid;place-items:center;border:1px solid currentColor;border-radius:14px;opacity:.75}
+.bsd-live-health-copy{display:grid;gap:5px;flex:1;min-width:0}
+.bsd-live-health-copy strong{font-size:13px;line-height:1.45}
+.bsd-live-health-copy p{font-size:12px;line-height:1.55;margin:0;color:inherit}
+.bsd-live-health-copy small{font-size:11px;line-height:1.4;color:inherit;opacity:.85}
+.bsd-live-health>.bsd-outline{flex:none}
+@media(max-width:610px){.bsd-live-health{align-items:flex-start;flex-wrap:wrap;padding:14px;gap:11px}
+.bsd-live-health-icon{height:34px;width:34px}.bsd-live-health-icon svg{width:19px}
+.bsd-live-health>.bsd-outline{width:100%}}
