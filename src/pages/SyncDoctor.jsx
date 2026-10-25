@@ -66,12 +66,12 @@ const viText={
   monitorNoRun:'Chưa có kết quả giám sát tự động có thể xác minh.',monitorGo:'Xem chi tiết giám sát',
   repairLocked:'Sửa và hoàn tác dữ liệu thật vẫn bị khóa cho tới khi hoàn tất kiểm thử thực thi độc lập.',
   releaseGateTitle:'Cổng nghiệm thu an toàn',
-  releaseGateSubtitle:'Kiểm thử mô phỏng không thay thế PostgreSQL thực tế. Không có chức năng ghi dữ liệu học sinh được bật.',
+  releaseGateSubtitle:'PostgreSQL 16 cách ly đã kiểm thử sửa và hoàn tác bằng dữ liệu giả lập. Vẫn cần nghiệm thu đăng nhập thật; chưa mở quyền ghi dữ liệu học sinh.',
   releaseGatePass:'Đã triển khai',
   releaseGatePending:'Chưa nghiệm thu',
   releaseGateLocal:'Kiểm thử ngoại tuyến bằng hồ sơ giả lập, không cần dịch vụ trả phí',
-  releaseGateSqlPrepared:'Bộ kiểm thử PostgreSQL cục bộ đã chuẩn bị, chưa thực thi',
-  releaseGateDb:'Kiểm thử thực thi và hoàn tác bằng PostgreSQL cách ly',
+  releaseGateSqlPrepared:'Bộ kiểm thử SQL thực tế đã chạy trên runner công khai miễn phí',
+  releaseGateDb:'PostgreSQL 16: sửa một học sinh, bảo toàn điểm, chặn xung đột và hoàn tác — ĐẠT',
   releaseGateAccounts:'Kiểm thử hai tài khoản thật và Safari/Android',
   releaseGateHold:'Cả ba lệnh thực thi, sửa và hoàn tác vẫn bị khóa ở Supabase Production.',
   docket:'Xuất phiếu rà soát',plansOverview:'Kế hoạch dự kiến được tạo từ lần quét gần nhất — không thực hiện thay đổi dữ liệu.',
@@ -138,12 +138,12 @@ const enText={
   monitorNoRun:'No verifiable scheduled scan is available.',monitorGo:'Open Monitoring',
   repairLocked:'Real academic repair and rollback remain locked pending independent execution tests.',
   releaseGateTitle:'Safety release gates',
-  releaseGateSubtitle:'Synthetic model tests do not replace real PostgreSQL integration testing. No academic data write is enabled.',
+  releaseGateSubtitle:'Isolated PostgreSQL 16 passed synthetic-data repair and rollback tests. Real-account browser UAT remains pending; academic writes remain disabled.',
   releaseGatePass:'Implemented',
   releaseGatePending:'Not accepted',
   releaseGateLocal:'Offline synthetic student repair/rollback checks, with no paid service',
-  releaseGateSqlPrepared:'Local PostgreSQL test harness prepared, not executed',
-  releaseGateDb:'Isolated PostgreSQL write and rollback integration tests',
+  releaseGateSqlPrepared:'Real SQL acceptance harness executed on a free public runner',
+  releaseGateDb:'PostgreSQL 16: one-student repair, score integrity, conflict refusal and rollback — PASSED',
   releaseGateAccounts:'Two real-account sessions and Safari/Android verification',
   releaseGateHold:'All three execution, repair and rollback RPCs remain disabled in Production.',
   docket:'Export review docket',plansOverview:'Proposals from the latest scan; no changes can be executed.',
@@ -566,7 +566,7 @@ export default function SyncDoctor({currentUser,language='vi'}){
       {t.settingsLines.map(line=><div className="bsd-policy" key={line}><ShieldCheck size={18}/>{line}</div>)}
       <div className="bsd-release-gates">
         <h3>{t.releaseGateTitle}</h3><p>{t.releaseGateSubtitle}</p>
-        {[[t.releaseGateLocal,true],[t.releaseGateSqlPrepared,true],[t.releaseGateDb,false],[t.releaseGateAccounts,false]].map(([label,passed])=>
+        {[[t.releaseGateLocal,true],[t.releaseGateSqlPrepared,true],[t.releaseGateDb,true],[t.releaseGateAccounts,false]].map(([label,passed])=>
           <div className="bsd-release-gate" key={label}>
             {passed?<CheckCircle2 size={19} color="#24755c"/>:<LockKeyhole size={19} color="#99682d"/>}
             <span>{label}</span>
