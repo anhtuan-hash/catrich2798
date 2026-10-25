@@ -68,6 +68,24 @@ const enText={
 const tone={critical:'danger',high:'warning',medium:'medium',low:'info'};
 const statuses={ok:['Có thể đọc','Readable'],empty:['Không có bản ghi','No visible rows'],limited:['Một phần','Partial'],error:['Lỗi','Error'],
   unauthorized:['Không có quyền','No permission'],unavailable:['Không khả dụng','Unavailable']};
+
+const sourceEn={canonical:'Canonical roster',homeroom:'Homeroom',gradebook:'Gradebook',assessment:'Assessment',assignment:'Assignments'};
+const issueEn={
+  IDENTITY_MISSING:'Student missing a stable identifier',
+  IDENTITY_DUPLICATE:'Duplicate internal student identifier',
+  STUDENT_CODE_DUPLICATE:'Duplicate student code in class',
+  MULTIPLE_LOCAL_MATCHES:'Multiple local records match one student',
+  AMBIGUOUS_IDENTITY:'Similar records without a reliable identity key',
+  STUDENT_NOT_LINKED:'Canonical student not linked to destination',
+  CANONICAL_NOT_VISIBLE:'No visible canonical class roster',
+  ASSESSMENT_LINK_REVIEW:'Assessment student association unverified',
+  SOURCE_UNVERIFIED:'Data source cannot be verified',
+  SOURCE_COVERAGE_PARTIAL:'Source scan has incomplete coverage',
+  SOURCE_NO_VISIBLE_ROWS:'No visible rows in source',
+  LOCAL_QUEUE_PENDING:'Pending changes on this device',
+};
+const issueTitle=(issue,vi)=>vi?issue.description:(issueEn[issue.code]||issue.description);
+
 const iconFor={canonical:Database,homeroom:BookUser,gradebook:ClipboardCheck,assessment:FileSearch,assignment:ShieldCheck};
 const yearNow=()=>{const today=new Date(),start=today.getMonth()>=7?today.getFullYear():today.getFullYear()-1;return String(start)+'-'+String(start+1);};
 const saveDocket=(report,plans)=>{
@@ -152,7 +170,7 @@ export default function SyncDoctor({currentUser,language='vi'}){
           <section className="bsd-panel"><div className="bsd-panel-head"><h3>{t.sources}</h3><button type="button" onClick={()=>setTab(2)}>{t.view}<ArrowRight size={15}/></button></div>
             {report.sources.map(s=><SourceRow key={s.id} src={s} vi={vi}/>)}</section>
           <section className="bsd-panel"><div className="bsd-panel-head"><h3>{t.attention}</h3><button type="button" onClick={()=>setTab(1)}>{t.view}<ArrowRight size={15}/></button></div>
-            {report.issues.slice(0,5).map(i=><button className="bsd-issue-preview" key={i.id} onClick={()=>{setSelected(i);setTab(1)}}><span className={'bsd-severity '+(tone[i.severity]||'info')}></span><span><strong>{i.description}</strong><small>{i.className||'—'} · {i.code}</small></span><ChevronRight size={17}/></button>)}
+            {report.issues.slice(0,5).map(i=><button className="bsd-issue-preview" key={i.id} onClick={()=>{setSelected(i);setTab(1)}}><span className={'bsd-severity '+(tone[i.severity]||'info')}></span><span><strong>{issueTitle(i,vi)}</strong><small>{i.className||'—'} · {i.code}</small></span><ChevronRight size={17}/></button>)}
             {!report.issues.length&&<div className="bsd-subempty"><CheckCircle2/>{t.emptyIssues}</div>}
           </section>
         </div>
@@ -166,11 +184,11 @@ export default function SyncDoctor({currentUser,language='vi'}){
           <label><Filter size={16}/>{t.filter}<select value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">{vi?'Tất cả':'All'}</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></label></div>
         <div className="bsd-two bsd-issues-layout"><section className="bsd-panel bsd-issues-list">
           {issues.length?issues.map(i=><button key={i.id} className={'bsd-issue-line '+(selected?.id===i.id?'selected':'')} onClick={()=>setSelected(i)}>
-            <span className={'bsd-severity '+(tone[i.severity]||'info')}></span><span><strong>{i.description}</strong><small>{i.className||'—'} · {i.code}</small></span><ChevronRight size={16}/></button>):<div className="bsd-subempty">{t.emptyIssues}</div>}
+            <span className={'bsd-severity '+(tone[i.severity]||'info')}></span><span><strong>{issueTitle(i,vi)}</strong><small>{i.className||'—'} · {i.code}</small></span><ChevronRight size={16}/></button>):<div className="bsd-subempty">{t.emptyIssues}</div>}
         </section><section className="bsd-panel bsd-evidence">
           <div className="bsd-panel-head"><h3>{t.evidence}</h3>{selected&&<button type="button" aria-label={t.closed} onClick={()=>setSelected(null)}><X size={17}/></button>}</div>
           {selected?<><div className="bsd-case-label"><span className={'bsd-severity '+(tone[selected.severity]||'info')}></span>{selected.severity.toUpperCase()} · {selected.code}</div>
-            <h3>{selected.description}</h3><p>{selected.detail}</p>
+            <h3>{issueTitle(selected,vi)}</h3><p>{selected.detail}</p>
             <dl><dt>{t.scope}</dt><dd>{selected.year} · {selected.className||'—'}</dd><dt>{t.sourceLimited}</dt><dd>{selected.evidence?.source||'—'}</dd></dl>
             {selected.evidence?.studentName&&<div className="bsd-student-evidence"><BookUser size={17}/><span><strong>{t.identity}:</strong> {selected.evidence.studentName}{selected.evidence.studentCode?' · '+selected.evidence.studentCode:''}</span></div>}
             <div className="bsd-advice"><LockKeyhole size={17}/>{t.review}. {t.planDesc}</div>
@@ -218,5 +236,5 @@ export default function SyncDoctor({currentUser,language='vi'}){
 }
 function Empty({t}){return <section className="bsd-empty"><div><FileSearch size={32}/></div><h3>{t.empty}</h3><p>{t.emptyDesc}</p></section>;}
 function SourceRow({src,vi,expanded=false}){const Icon=iconFor[src.id]||HardDrive;const label=statuses[src.status]?.[vi?0:1]||(vi?'Chưa xác định':'Unknown');
-  return <div className="bsd-source-row"><span className="bsd-source-icon"><Icon size={20}/></span><div><strong>{src.label}</strong>{expanded&&<p>{src.message||(vi?'Dữ liệu được phân quyền theo tài khoản hiện tại.':'Visible under the active account only.')}</p>}</div>
-    <span className={'bsd-status '+(src.status==='ok'?'ok':src.status==='limited'?'warn':'error')}>{label}</span><span className="bsd-count">{src.count??'—'}</span></div>;}
+  return <div className="bsd-source-row"><span className="bsd-source-icon"><Icon size={20}/></span><div><strong>{vi?src.label:(sourceEn[src.id]||src.label)}</strong>{expanded&&<p>{src.message||(vi?'Dữ liệu được phân quyền theo tài khoản hiện tại.':'Visible under the active account only.')}</p>}</div>
+    <span className={'bsd-status '+(src.status==='ok'?'ok':(src.status==='limited'||src.status==='empty')?'warn':'error')}>{label}</span><span className="bsd-count">{src.count??'—'}</span></div>;}
