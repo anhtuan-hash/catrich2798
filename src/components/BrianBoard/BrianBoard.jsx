@@ -571,27 +571,7 @@ export default function BrianBoard({currentUser,language='vi'}){
          aria-label={'Ink color '+c} style={{background:c}}/>)}
        <input aria-label="Stroke thickness" type="range" min="2" max="22" value={thickness}
         onChange={e=>setThickness(Number(e.target.value))}/>
-       {!studentView&&<div className="bbd-pen-presets" role="group" aria-label={vi?'Kiểu bút':'Pen presets'}>
-        {Object.entries(BOARD_PEN_PRESETS).map(([id,preset])=><button key={id} type="button"
-         className={penPreset===id?'active':''} title={preset.label} aria-pressed={penPreset===id}
-         onClick={()=>{setPenPreset(id);setTool('pen');setThickness(preset.width);}}>
-         {id==='fine'?'01':id==='classic'?'02':id==='fountain'?'03':'04'}</button>)}
-       </div>}
-       {!studentView&&<button type="button" className={'bbd-tool-toggle'+(snapToGrid?' active':'')}
-        title={vi?'Bật/tắt căn lưới 25 đơn vị':'Toggle 25-unit magnetic grid'}
-        aria-pressed={snapToGrid} onClick={()=>setSnapToGrid(v=>!v)}><Grid3X3 size={17}/></button>}
-       {!studentView&&tool.startsWith('shape-')&&<select className="bbd-shape-fill"
-        aria-label={vi?'Màu tô hình':'Shape fill'} value={shapeFill} onChange={e=>setShapeFill(e.target.value)}>
-        <option value="none">{vi?'Không tô':'No fill'}</option>
-        <option value="#fff0c8">{vi?'Vàng nhạt':'Soft yellow'}</option>
-        <option value="#dcefe7">{vi?'Xanh lá nhạt':'Soft mint'}</option>
-        <option value="#dce7fa">{vi?'Xanh dương nhạt':'Soft blue'}</option>
-       </select>}
-       {!studentView&&<button type="button" className="bbd-clear-ink"
-        disabled={page?.locked||!page?.objects.some(o=>o.kind==='stroke')}
-        onClick={clearInk} title={vi?'Xóa tất cả nét bút, có thể hoàn tác':'Clear all pen ink, undo available'}>
-        <Eraser size={16}/><span>{vi?'Xóa nét':'Clear ink'}</span></button>}
-       {['text','sticky','flashcard'].includes(tool)&&<input className="bbd-object-text"
+{['text','sticky','flashcard'].includes(tool)&&<input className="bbd-object-text"
         value={contentText} onChange={e=>setContentText(e.target.value)}
         placeholder={vi?'Nhập nội dung rồi chạm bảng':'Type, then tap the board'}/>}
        {tool==='flashcard'&&<input className="bbd-object-text" value={privateAnswer}
