@@ -67,6 +67,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  const [activeFrameId,setActiveFrameId]=useState(null),[showFrames,setShowFrames]=useState(true);
  const [navigatorOpen,setNavigatorOpen]=useState(()=>window.innerWidth>640),[showNavigator,setShowNavigator]=useState(true);
  const [cleanMode,setCleanMode]=useState(false);
+ const inspectorBeforeClean=useRef(false);
  const frameFlight=useRef(0);
 
  const [contentText,setContentText]=useState(''),[privateAnswer,setPrivateAnswer]=useState(''),[showPages,setShowPages]=useState(()=>window.innerWidth>780),[spotlight,setSpotlight]=useState(false);
@@ -526,11 +527,13 @@ export default function BrianBoard({currentUser,language='vi'}){
   setActiveFrameId(null);
  };
  const toggleCleanMode=()=>{
-  setCleanMode(old=>{
-   const next=!old;
-   if(next)setShowPages(false);
-   return next;
-  });
+  if(!cleanMode){
+   inspectorBeforeClean.current=showPages;
+   setShowPages(false);setCleanMode(true);
+  }else{
+   setCleanMode(false);
+   if(inspectorBeforeClean.current&&window.innerWidth>780)setShowPages(true);
+  }
  };
  const shiftFrame=(id,direction)=>{
   if(page?.locked)return;
