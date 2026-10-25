@@ -91,6 +91,8 @@ create table bes_internal.bes_sync_backup_snapshots(
   rehearsal_ok boolean not null default false,
   post_checksum text,
   post_revision timestamptz,
+  original_student_count integer,
+  post_student_count integer,
   executed_at timestamptz,
   rolled_back_at timestamptz
 );
