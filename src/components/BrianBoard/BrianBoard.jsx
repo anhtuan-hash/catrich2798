@@ -3,7 +3,7 @@ import {createPortal} from 'react-dom';
 import {Presentation,Pen,Highlighter,Eraser,MousePointer2,Hand,Type,Square,Circle,Minus,
  StickyNote,ScanEye,Undo2,Redo2,Plus,Copy,Trash2,Save,CheckCircle2,X,ChevronLeft,
  ChevronRight,CloudOff,Play,Pause,RotateCcw,Timer,Users,Eye,EyeOff,Maximize2,
- Download,Move,Palette,FilePlus2,LockKeyhole,LockKeyholeOpen,Layers,ArrowUp,ArrowDown,ImagePlus,Search,RefreshCcw,FileJson,FileUp,Edit3,ArrowUpRight,Triangle,Grid3X3,Droplets,Frame,Clapperboard,MapPinned,Map,Focus,Lasso,Paintbrush,LayoutTemplate,SquareStack,BookMarked,ShieldCheck,Crop} from 'lucide-react';
+ Download,Move,Palette,FilePlus2,LockKeyhole,LockKeyholeOpen,Layers,ArrowUp,ArrowDown,ImagePlus,Search,RefreshCcw,FileJson,FileUp,Edit3,ArrowUpRight,Triangle,Grid3X3,Droplets,Frame,Clapperboard,MapPinned,Map,Focus,Lasso,Paintbrush,LayoutTemplate,SquareStack,BookMarked,ShieldCheck,Crop,Ruler,Compass} from 'lucide-react';
 import {isAdminRole,isDepartmentLeaderRole,normalizeSystemRole} from '../../utils/roles.js';
 import {GLOBAL_FLOATING_ACTION_EVENT,FLOATING_ACTION_IDS} from '../../utils/unifiedFloatingDock.js';
 import {BOARD_W,BOARD_H,newLesson,newPage,normalizeLesson,makeId,THEMES,sanitizeStudentPage} from './boardModel.js';
@@ -47,6 +47,8 @@ const drawTools=[
  ['shape-rect',Square,'Rectangle','Hình chữ nhật'],['shape-ellipse',Circle,'Ellipse','Hình tròn'],
  ['shape-line',Minus,'Line','Đường thẳng'],
  ['shape-arrow',ArrowUpRight,'Arrow','Mũi tên'],['shape-triangle',Triangle,'Triangle','Tam giác'],
+ ['ruler',Ruler,'Ruler · world units','Thước đo độ dài'],['protractor',Triangle,'Angle between two rays','Thước đo góc'],
+ ['compass',Compass,'Compass · draw circle','Compa · vẽ đường tròn'],
  ['sticky',StickyNote,'Sticky note','Ghi chú'],
  ['flashcard',Layers,'Flashcard','Thẻ lật'],['mask',EyeOff,'Answer curtain','Che đáp án'],
  ['laser',ScanEye,'Laser pointer','Con trỏ laser'],
@@ -406,6 +408,10 @@ export default function BrianBoard({currentUser,language='vi'}){
   if(editingActivityId===id)cancelActivityEditing();
  };
  const commitObj=object=>{if(!page||page.locked)return;editPage(p=>({...p,objects:[...p.objects,object]}));};
+ const commitMany=objects=>{
+  if(!page||page.locked||!objects?.length||page.objects.length+objects.length>3000)return;
+  editPage(p=>({...p,objects:[...p.objects,...objects]}));
+ };
  const eraseObject=id=>{if(!page||page.locked)return;editPage(p=>({...p,objects:p.objects.filter(o=>o.id!==id)}));};
  const precisionErase=points=>{
   if(!page||page.locked||!points?.length)return;
@@ -881,7 +887,7 @@ export default function BrianBoard({currentUser,language='vi'}){
    <div className="bbd-workspace">
     {!studentView&&!cleanMode&&<aside className="bbd-tools" aria-label="Drawing tools">
      {drawTools.map(([id,Icon,en,vn])=><React.Fragment key={id}>
-       {['pen','text','shape-rect','sticky','laser'].includes(id)&&<span className="bbd-tool-divider" aria-hidden="true"/>}
+       {['pen','text','shape-rect','ruler','sticky','laser'].includes(id)&&<span className="bbd-tool-divider" aria-hidden="true"/>}
        <button type="button" onClick={()=>setTool(id)} aria-pressed={tool===id}
         className={tool===id?'active':''} aria-label={vi?vn:en} title={vi?vn:en}><Icon size={20}/></button>
       </React.Fragment>)}
@@ -937,6 +943,7 @@ export default function BrianBoard({currentUser,language='vi'}){
        :<BoardCanvas page={studentView?sanitizeStudentPage(page):page} tool={studentView?'select':tool} color={color} width={thickness}
        onCommit={commitObj} onErase={eraseObject} onDuplicateObject={duplicateObject} onMoveObject={moveObject}
        onBatchEdit={batchEdit} onPrecisionErase={precisionErase} onSaveAsset={saveSelectedAsset}
+       onCommitMany={commitMany}
        penPreset={penPreset} snapToGrid={snapToGrid} shapeFill={shapeFill} smartGeometry={smartGeometry} vi={vi} zoom={zoom} setZoom={setZoom}
        camera={camera} setCamera={next=>{setCamera(next);setActiveFrameId(null);}}
        frames={frames} showFrames={showFrames} activeFrameId={activeFrameId}
