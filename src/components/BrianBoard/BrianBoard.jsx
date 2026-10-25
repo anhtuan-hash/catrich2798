@@ -63,7 +63,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  const [saveState,setSaveState]=useState('idle'),[saveError,setSaveError]=useState('');
  const [tool,setTool]=useState('pen'),[color,setColor]=useState('#335d63'),[thickness,setThickness]=useState(5);
  const [penPreset,setPenPreset]=useState('classic'),[snapToGrid,setSnapToGrid]=useState(false);
- const [shapeFill,setShapeFill]=useState('none');
+ const [shapeFill,setShapeFill]=useState('none'),[smartGeometry,setSmartGeometry]=useState(false);
  const [motion,setMotion]=useState(()=>{
   try{const saved=window.localStorage.getItem('bbd-motion-v1');
    return ['off','balanced','expressive'].includes(saved)?saved:'balanced';
@@ -885,7 +885,7 @@ export default function BrianBoard({currentUser,language='vi'}){
        :<BoardCanvas page={studentView?sanitizeStudentPage(page):page} tool={studentView?'select':tool} color={color} width={thickness}
        onCommit={commitObj} onErase={eraseObject} onDuplicateObject={duplicateObject} onMoveObject={moveObject}
        onBatchEdit={batchEdit} onPrecisionErase={precisionErase} onSaveAsset={saveSelectedAsset}
-       penPreset={penPreset} snapToGrid={snapToGrid} shapeFill={shapeFill} vi={vi} zoom={zoom} setZoom={setZoom}
+       penPreset={penPreset} snapToGrid={snapToGrid} shapeFill={shapeFill} smartGeometry={smartGeometry} vi={vi} zoom={zoom} setZoom={setZoom}
        camera={camera} setCamera={next=>{setCamera(next);setActiveFrameId(null);}}
        frames={frames} showFrames={showFrames} activeFrameId={activeFrameId}
        onPointerPosition={broadcastPointer} onCreateFrame={createDrawnFrame} contentText={contentText} privateAnswer={privateAnswer} onInteract={interactObject}
@@ -1206,6 +1206,12 @@ export default function BrianBoard({currentUser,language='vi'}){
         aria-pressed={motion===id} onClick={()=>setMotion(id)}>
         {id==='off'?(vi?'Tắt':'Off'):id==='balanced'?(vi?'Tinh tế':'Subtle'):(vi?'Sống động':'Expressive')}</button>)}
       </div>
+      <h4>{vi?'Hình học thông minh (không AI)':'Smart geometry (no AI)'}</h4>
+      <label className="bbd-v8-check-label">
+       <input type="checkbox" checked={smartGeometry} onChange={e=>setSmartGeometry(e.target.checked)}/>
+       <span>{vi?'Giữ bút 0,65 giây sau khi vẽ để nắn đường thẳng, hình tròn hoặc chữ nhật.':
+        'Hold the pen for 0.65 seconds after drawing to straighten lines, circles or rectangles.'}</span>
+      </label>
       <h4>{vi?'Nền trang':'Page background'}</h4>
       {['plain','grid','lines','dots'].map(x=><button key={x} onClick={()=>editPage(p=>({...p,background:x}))}
        className={'bbd-theme-choice'+(page?.background===x?' active':'')}>{x}</button>)}
