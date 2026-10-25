@@ -287,17 +287,19 @@ export default function BrianBoard({currentUser,language='vi'}){
   }catch(e){setPdfStatus(e?.message||'PDF import failed');}
   finally{setPdfBusy(false);}
  };
- const exportStudentPdf=async()=>{
+ const exportStudentPdf=async(includeActivities=false)=>{
   if(pdfBusy||!docRef.current)return;
   setPdfBusy(true);setPdfStatus(vi?'Đang xuất PDF cho học sinh…':'Exporting student PDF…');
   try{
    const bytes=await exportBoardStudentPdf(docRef.current,({page,total})=>
-    setPdfStatus((vi?'Đang xuất trang ':'Exporting page ')+page+'/'+total));
+    setPdfStatus((vi?'Đang xuất trang ':'Exporting page ')+page+'/'+total),{includeActivities});
    const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
    const a=document.createElement('a');a.href=url;
-   a.download='brian-board-student-'+(docRef.current.title||'lesson').replace(/[^a-z0-9_-]+/gi,'_')+'.pdf';
+   a.download='brian-board-student-'+(docRef.current.title||'lesson').replace(/[^a-z0-9_-]+/gi,'_')+
+    (includeActivities?'-activities':'')+'.pdf';
    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
-   setPdfStatus(vi?'Đã tạo PDF không có ghi chú riêng':'Exported without teacher-only notes');
+   setPdfStatus(includeActivities?(vi?'Đã xuất cả phiếu bài tập, không có đáp án riêng':'Exported worksheets without private answer keys'):
+   (vi?'Đã tạo PDF không có ghi chú riêng':'Exported without teacher-only notes'));
   }catch(e){setPdfStatus(e?.message||'PDF export failed');}
   finally{setPdfBusy(false);}
  };
@@ -568,6 +570,8 @@ export default function BrianBoard({currentUser,language='vi'}){
       {pdfStatus&&<span role="status" className="bbd-pdf-status">{pdfStatus}</span>}
       <button disabled={pdfBusy} onClick={()=>void exportStudentPdf()}>
        <Download size={16}/>{vi?'Xuất PDF bài dạy cho học sinh':'Export student PDF'}</button>
+      <button disabled={pdfBusy} onClick={()=>void exportStudentPdf(true)}>
+       <Download size={16}/>{vi?'Xuất PDF kèm bài tập (không đáp án)':'Export PDF with answer-free worksheets'}</button>
       <label className="bbd-import-image"><ImagePlus size={16}/>{vi?'Thêm ảnh (tối đa 2 MB)':'Insert image (max 2 MB)'}
        <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>{insertImage(e.target.files?.[0]);e.target.value='';}}/></label>
       <button onClick={exportPNG}><Download size={16}/>{vi?'Xuất trang SVG':'Export SVG page'}</button>
