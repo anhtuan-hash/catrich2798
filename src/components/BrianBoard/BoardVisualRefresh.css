@@ -374,3 +374,23 @@
  .bbd-lesson-name{max-width:none;min-width:60px}
  .bbd-save-status{display:inline-flex}
 }
+
+/* Feedback feels responsive without an ongoing animation loop or audio. */
+.bbd-lab-feedback{position:relative;overflow:hidden;font-weight:710;min-height:51px}
+.bbd-lab-feedback--success{
+ background:color-mix(in srgb,var(--bbd-highlight) 75%,var(--bbd-panel));
+ border-color:var(--bbd-accent);color:var(--bbd-heading)}
+.bbd-lab-feedback--retry{background:color-mix(in srgb,#d9a75e 15%,var(--bbd-panel));
+ border-color:color-mix(in srgb,#cd9865 55%,var(--bbd-border));color:var(--bbd-text)}
+.bbd-lab-feedback--success:before{content:"";width:5px;position:absolute;inset:0 auto 0 0;
+ background:var(--bbd-accent)}
+.bbd-lab-feedback--retry:before{content:"";width:5px;position:absolute;inset:0 auto 0 0;
+ background:#b67d47}
+.bbd-shell[data-motion="expressive"] .bbd-lab-feedback--success{
+ animation:bbd-confirm-enter .32s cubic-bezier(.2,.85,.26,1)}
+.bbd-shell[data-motion="balanced"] .bbd-lab-feedback--success{
+ animation:bbd-confirm-enter .20s ease-out}
+@keyframes bbd-confirm-enter{
+ from{opacity:.55;transform:translate3d(0,5px,0)}
+ to{opacity:1;transform:translate3d(0,0,0)}
+}
