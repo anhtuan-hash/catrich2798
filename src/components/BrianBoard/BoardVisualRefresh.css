@@ -592,3 +592,21 @@
  .bbd-v8-crop-editor__handle{width:20px;height:20px}
 }
 @media(prefers-reduced-motion:reduce){.bbd-v8-crop-editor *{transition:none!important}}
+
+/* V8.2 contextual rotation, alignment and spatial diagram layout */
+.bbd-v8-selection .bbd-v8-align-select{
+ appearance:auto;min-height:36px;max-width:200px;
+ padding:7px 12px;border:1px solid var(--bbd-border);
+ background:var(--bbd-soft);color:var(--bbd-heading);
+ border-radius:10px;font-size:12px;font-weight:720;
+ cursor:pointer;flex:0 1 auto
+}
+.bbd-v8-selection .bbd-v8-align-select:focus-visible{
+ outline:3px solid var(--bbd-ring);outline-offset:2px
+}
+.bbd-v8-selection button[title*="Rotate"],.bbd-v8-selection button[title*="Xoay"]{
+ background:var(--bbd-highlight);border-color:var(--bbd-accent)
+}
+@media(max-width:640px){
+ .bbd-v8-selection .bbd-v8-align-select{max-width:145px;min-height:42px;font-size:12px}
+}
