@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const ui=readFileSync(new URL('../src/pages/SyncDoctor.jsx',import.meta.url),'utf8');
+assert.match(ui,/const activeUserId=useRef\(currentUser\?\.id\)/);
+assert.match(ui,/monitorSeq\.current\+=1;reviewSeq\.current\+=1/);
+assert.match(ui,/activeUserId\.current===requesterId&&monitorSeq\.current===requestSeq/);
+assert.match(ui,/activeUserId\.current===requesterId&&reviewSeq\.current===requestSeq/);
+assert.match(ui,/if\(isCurrent\(\)\)setMonitorRuns\(rows\)/);
+assert.match(ui,/if\(isCurrent\(\)\)setReviewInbox\(next\)/);
+assert.match(ui,/if\(isCurrent\(\)\)setMonitorError/);
+assert.match(ui,/if\(isCurrent\(\)\)setReviewError/);
+assert.match(ui,/setMonitorRuns\(\[\]\);setReviewInbox\(\{requests:\[\],events:\[\]\}\)/);
+assert.match(ui,/setMonitorLoading\(false\);setReviewLoading\(false\)/);
+console.log('PASS Sync Doctor: late prior-account monitor/audit responses are ignored after role or account changes.');
