@@ -107,6 +107,9 @@ export default function BrianBoard({currentUser,language='vi'}){
    y:Math.max(-100000,Math.min(100000,Number(point.y)||0))}:null;
   session.bus.postMessage({type:'pointer',mode:mode==='spotlight'?'spotlight':'laser',point:bounded});
  };
+ useEffect(()=>{
+  if(tool!=='laser'&&!spotlight)broadcastPointer(null);
+ },[tool,spotlight,studentView,activeActivityId]);
  useEffect(()=>{setCamera({x:0,y:0});setZoom(1);setActiveFrameId(null);},[page?.id]);
  // Exact TV payload for classroom preview: never read a raw activity in student mode.
  const studentActivityPayload=studentView&&lesson?boardStudentPayload(lesson,activeActivityId,activityLive):null;
@@ -254,6 +257,8 @@ export default function BrianBoard({currentUser,language='vi'}){
   setLoading(false);setPhase('entering');setOpen(true);
  },[allowed,open,ownerId,vi]);
  const finishClose=useCallback(()=>{
+  if(frameFlight.current)cancelAnimationFrame(frameFlight.current);
+  frameFlight.current=0;
   stopPresentation();setPhase('closed');setOpen(false);animating.current=false;setStudentView(false);
   setTimeout(()=>lastFocusRef.current?.focus?.({preventScroll:true}),0);
  },[]);
