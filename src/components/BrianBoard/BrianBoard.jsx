@@ -18,6 +18,9 @@ import {BOARD_BACKUP_MAX_BYTES,duplicateBoardLesson,exportPrivateBoardBackup,imp
  boardActivityRaw,reviseBoardActivity,duplicateBoardActivity,moveBoardActivity,hideAllBoardActivities,
  selectBoardNameWithoutRepeat} from './boardWorkflow.js';
 import BoardActivityStage from './BoardActivityStage.jsx';
+import BoardActivityLabBuilder from './BoardActivityLabBuilder.jsx';
+import BoardActivityPublicPreview from './BoardActivityPublicPreview.jsx';
+import {LAB_TYPES,LAB_LABELS,LAB_EXAMPLES,LAB_IMAGE_TYPES} from './boardActivityLab.js';
 import BoardPenToolbarExtras from './BoardPenToolbarExtras.jsx';
 import './BrianBoard.css';
 import './BoardActivities.css';
@@ -60,6 +63,8 @@ export default function BrianBoard({currentUser,language='vi'}){
  const [activityType,setActivityType]=useState('matching'),[activityTitle,setActivityTitle]=useState(''),
   [activityPrompt,setActivityPrompt]=useState(''),[activityRaw,setActivityRaw]=useState(''),
   [activityError,setActivityError]=useState(''),[activeActivityId,setActiveActivityId]=useState(null),[editingActivityId,setEditingActivityId]=useState(null);
+ const [activityImage,setActivityImage]=useState(''),[activityLive,setActivityLive]=useState(null);
+ const activityLiveRef=useRef(null);activityLiveRef.current=activityLive;
  const [panel,setPanel]=useState('pages'),[library,setLibrary]=useState([]),[libraryError,setLibraryError]=useState(''),[cloudLibrary,setCloudLibrary]=useState([]),[cloudStatus,setCloudStatus]=useState('');
  const [libraryQuery,setLibraryQuery]=useState(''),[backupStatus,setBackupStatus]=useState('');
  useEffect(()=>{setRandomNames('');setRandomChoice('');setRandomUsed([]);setEditingActivityId(null);},[ownerId,lesson?.id]);
@@ -73,8 +78,14 @@ export default function BrianBoard({currentUser,language='vi'}){
  const launchRef=useRef(null),lastFocusRef=useRef(null),mounted=useRef(true);
  const page=lesson?.pages.find(x=>x.id===lesson.activePageId)||lesson?.pages[0];
  // Exact TV payload for classroom preview: never read a raw activity in student mode.
- const studentActivityPreview=studentView&&lesson?boardStudentPayload(lesson,activeActivityId).activity:null;
+ const studentActivityPayload=studentView&&lesson?boardStudentPayload(lesson,activeActivityId,activityLive):null;
+ const studentActivityPreview=studentActivityPayload?.activity||null;
  const activeActivityRef=useRef(activeActivityId);activeActivityRef.current=activeActivityId;
+ const receivePublicActivityState=useCallback(next=>{
+  const value={...next,activityId:activeActivityRef.current};
+  setActivityLive(prev=>JSON.stringify(prev)===JSON.stringify(value)?prev:value);
+ },[]);
+ useEffect(()=>{setActivityLive(null);},[activeActivityId,lesson?.activePageId]);
  const theme=lesson?.theme||'ivory';
  useEffect(()=>{
   setColor(old=>{
@@ -87,8 +98,8 @@ export default function BrianBoard({currentUser,language='vi'}){
  docRef.current=lesson;
  useEffect(()=>{
   const session=presentationRef.current;
-  if(session&&lesson)session.bus.postMessage(boardStudentPayload(lesson,activeActivityId));
- },[lesson,activeActivityId]);
+  if(session&&lesson)session.bus.postMessage(boardStudentPayload(lesson,activeActivityId,activityLive));
+ },[lesson,activeActivityId,activityLive]);
  useEffect(()=>()=>{const session=presentationRef.current;
   if(session){session.bus.postMessage({type:'end'});session.bus.close();presentationRef.current=null;}
  },[]);
@@ -108,10 +119,10 @@ export default function BrianBoard({currentUser,language='vi'}){
   if(child)try{child.opener=null;}catch{}
   if(!child){window.alert(vi?'Hãy cho phép mở cửa sổ mới để trình chiếu.':'Allow popups to open the student display.');return;}
   const bus=new BroadcastChannel('bbd-local-'+id);
-  bus.onmessage=e=>{if(e.data?.type==='request'&&docRef.current)bus.postMessage(boardStudentPayload(docRef.current,activeActivityRef.current));};
+  bus.onmessage=e=>{if(e.data?.type==='request'&&docRef.current)bus.postMessage(boardStudentPayload(docRef.current,activeActivityRef.current,activityLiveRef.current));};
   presentationRef.current={id,bus};
   setPresenting(true);
-  bus.postMessage(boardStudentPayload(docRef.current,activeActivityRef.current));
+  bus.postMessage(boardStudentPayload(docRef.current,activeActivityRef.current,activityLiveRef.current));
  };
  useEffect(()=>()=>{mounted.current=false;},[]);
  useEffect(()=>{
@@ -248,20 +259,20 @@ export default function BrianBoard({currentUser,language='vi'}){
  },[open]);
  const editPage=(fn)=>mutate(d=>({...d,pages:d.pages.map(p=>p.id===d.activePageId?fn(p):p)}));
  const cancelActivityEditing=()=>{
-  setEditingActivityId(null);setActivityRaw('');setActivityTitle('');setActivityPrompt('');setActivityError('');
+  setEditingActivityId(null);setActivityRaw('');setActivityTitle('');setActivityPrompt('');setActivityImage('');setActivityError('');
  };
  const beginActivityEditing=activity=>{
   if(page?.locked)return;
   setEditingActivityId(activity.id);setActivityType(activity.type);
   setActivityTitle(activity.title);setActivityPrompt(activity.prompt);
-  setActivityRaw(boardActivityRaw(activity));setActivityError('');
+  setActivityRaw(boardActivityRaw(activity));setActivityImage(activity.image||'');setActivityError('');
  };
  const addActivity=()=>{
   if(!page||page.locked||(!editingActivityId&&page.activities?.length>=24))return;
   try{
    const original=(page.activities||[]).find(a=>a.id===editingActivityId);
    if(editingActivityId&&!original)throw Error('Activity no longer exists; cancel editing and retry');
-   const input={type:activityType,title:activityTitle,prompt:activityPrompt,raw:activityRaw};
+   const input={type:activityType,title:activityTitle,prompt:activityPrompt,raw:activityRaw,imageData:activityImage};
    const activity=original?reviseBoardActivity(original,input):createBoardActivity(input);
    editPage(p=>({...p,activities:original?p.activities.map(a=>a.id===original.id?activity:a):
     [...(p.activities||[]),activity]}));
