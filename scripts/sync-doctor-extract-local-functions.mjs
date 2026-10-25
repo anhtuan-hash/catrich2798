@@ -4,10 +4,12 @@ import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 const entries=[
   ['supabase/migrations/20261025103500_bes_sync_doctor_readonly_preflight.sql',['public.bes_sync_preview_review']],
-  ['supabase/migrations/20261025114500_bes_sync_private_backup_rehearsal.sql',
-    ['public.bes_sync_create_private_backup','public.bes_sync_rehearse_private_restore']],
-  ['supabase/migrations/20261025143000_bes_sync_repair_scope_hardening.sql',
-    ['public.bes_sync_authorize_transition','public.bes_sync_execute_one_student','public.bes_sync_restore_single_link']],
+  // The latest v1.8 migration supersedes both original backup and v1.5 functions.
+  // Never test obsolete versions when deciding whether academic writes are safe.
+  ['supabase/migrations/20261025170000_sync_doctor_exact_active_count.sql',
+    ['public.bes_sync_create_private_backup','public.bes_sync_rehearse_private_restore',
+     'public.bes_sync_authorize_transition','public.bes_sync_execute_one_student',
+     'public.bes_sync_restore_single_link']],
 ];
 const sections=['-- Generated for an isolated temporary LOCAL database only.'];
 for(const [file,names] of entries){
