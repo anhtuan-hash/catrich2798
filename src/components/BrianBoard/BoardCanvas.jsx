@@ -2,6 +2,7 @@ import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {BOARD_W,BOARD_H,pathFromPoints,makeId} from './boardModel.js';
 import {snapBoardPoint,constrainBoardShape,smoothBoardPath,pressureBoardSegments,
  boardShapeGeometry,boardShapePreviewPath} from './boardDrawing.js';
+import {frameFromCorners} from './boardSpatial.js';
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 
 export function renderBoardObject(object,onErase,studentView=false,onInteract,onSelect){
@@ -57,13 +58,23 @@ export function renderBoardObject(object,onErase,studentView=false,onInteract,on
   <text x={o.x+20} y={o.y+119} fill="#6c8d81" fontSize="18">{o.revealed?String(o.publicAnswer||o.privateAnswer||'').slice(0,29):'Tap to reveal'}</text>
  </g>;
  if(o.kind==='image'&&/^data:image\/(?:png|jpeg|webp);base64,/i.test(o.src||''))return <image key={o.id} data-board-object={o.id} href={o.src} x={o.x} y={o.y} width={o.width||500} height={o.height||300} preserveAspectRatio="xMidYMid meet" onPointerDown={press}/>
- if(o.kind==='mask')return <rect data-board-object={o.id} key={o.id} x={o.x} y={o.y} rx={9}
-  width={o.width||240} height={o.height||90} fill="#243b4b" opacity=".95" onPointerDown={press}/>;
+ if(o.kind==='mask'){
+  if(o.revealed)return null;
+  return <g key={o.id} data-board-object={o.id} style={{cursor:!studentView?'pointer':'default'}}
+   onPointerDown={press}
+   onClick={event=>{if(!studentView&&!onErase&&!onSelect){event.stopPropagation();onInteract?.(o.id);}}}>
+   <rect x={o.x} y={o.y} rx={9} width={o.width||240} height={o.height||90}
+    fill="#243b4b" opacity=".96"/>
+   {!studentView&&<text x={o.x+14} y={o.y+Math.min(53,(o.height||90)/2+11)} fill="#fff"
+    fontSize="22" pointerEvents="none">Tap to reveal</text>}
+  </g>;
+ }
  return null;
 }
 export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onCommit,onErase,onDuplicateObject,onMoveObject,
  zoom=1,setZoom,camera={x:0,y:0},setCamera,contentText='',privateAnswer='',onInteract,
- studentView=false,spotlight=false,penPreset='classic',snapToGrid=false,shapeFill='none',vi=true}){
+ studentView=false,spotlight=false,penPreset='classic',snapToGrid=false,shapeFill='none',vi=true,
+ frames=[],showFrames=true,onCreateFrame,activeFrameId=null}){
  const svg=useRef(null),preview=useRef(null),pointer=useRef(null);
  const [drawing,setDrawing]=useState(false),[selectedId,setSelectedId]=useState('');
  const [laser,setLaser]=useState(null);
@@ -99,6 +110,10 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
    if(points.length>=1)onCommit?.({kind:'stroke',id:makeId(),points,
     color:state.color,width:state.width,opacity:state.opacity??1,studentVisible:true,
     smoothed:true,pressureSensitive:state.pressureSensitive===true});
+  }else if(state.tool==='frame'){
+   const last=state.points.at(-1),first=state.points[0];
+   const frame=frameFromCorners(makeId(),first,last,vi?'Khung mới':'New frame');
+   if(frame)onCreateFrame?.(frame);
   }else if(state.tool.startsWith('shape-')){
    const last=state.points.at(-1),first=state.points[0],shape=state.tool.slice(6);
    const bounds=constrainBoardShape(first,last,shape,{shift:state.shift,snap:state.snapToGrid});
@@ -128,7 +143,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
    return;
   }
   if(tool==='laser'){setLaser(p);return;}
-  if(!['pen','highlighter','shape-rect','shape-ellipse','shape-line','shape-arrow','shape-triangle','pan'].includes(tool))return;
+  if(!['pen','highlighter','shape-rect','shape-ellipse','shape-line','shape-arrow','shape-triangle','pan','frame'].includes(tool))return;
   event.preventDefault();
   const appliedPreset=tool==='highlighter'?{width:Math.max(width,14),opacity:.3,pressure:false}:
    penPreset==='fine'?{width,opacity:1,pressure:false}:
@@ -145,7 +160,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
   setDrawing(true);
  };
  const move=event=>{
-  if(tool==='laser'){setLaser(local(event));return;}
+  if(tool==='laser'||spotlight){setLaser(local(event));if(tool==='laser')return;}
   const state=pointer.current;
   if(!state||state.pointerId!==event.pointerId)return;
   const p=local(event);
@@ -166,7 +181,8 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
   }else state.points=[state.points[0],p];
   state.shift=event.shiftKey;
   if(preview.current){
-   const path=state.tool.startsWith('shape-')?(()=>{
+   const path=state.tool==='frame'?boardShapePreviewPath('rect',state.points[0].x,
+    state.points[0].y,p.x,p.y):state.tool.startsWith('shape-')?(()=>{
     const f=state.points[0],b=constrainBoardShape(f,p,state.tool.slice(6),
      {shift:state.shift,snap:state.snapToGrid});
     return boardShapePreviewPath(state.tool.slice(6),b.x,b.y,b.x2,b.y2);
@@ -189,18 +205,31 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
    preserveAspectRatio="xMidYMid meet"
    onPointerDown={begin} onPointerMove={move} onPointerUp={event=>finish(event)}
    onPointerCancel={event=>finish(event,true)} onWheel={wheel}
-   onPointerLeave={()=>{if(tool==='laser')setLaser(null);}}
+   onPointerLeave={()=>{if(tool==='laser'||spotlight)setLaser(null);}}
    role="img" aria-label="Interactive vector teaching board">
+   {!studentView&&showFrames&&frames.map((f,i)=><g key={f.id} className="bbd-frame-outline"
+     pointerEvents="none" opacity={activeFrameId===f.id?1:.8}>
+     <rect x={f.x} y={f.y} width={f.width} height={f.height}
+      rx="17" fill="none" stroke={activeFrameId===f.id?'#4cc99a':'#4f8d79'}
+      strokeWidth={activeFrameId===f.id?5:3} strokeDasharray="18 12"/>
+     <rect x={f.x} y={f.y-47} rx="9" width={Math.min(530,Math.max(170,f.title.length*15))} height="42"
+      fill="#214c40"/>
+     <text x={f.x+14} y={f.y-17} fill="#fff" fontSize="24">{i+1}. {f.title.slice(0,27)}</text>
+    </g>)}
    {page?.objects?.map(o=>renderBoardObject(o,
     (tool==='eraser'||tool==='eraser-ink'&&o.kind==='stroke')?onErase:null,
     studentView,tool==='select'||tool==='eraser-ink'?null:onInteract,tool==='select'?selectObject:null))}
    {!studentView&&<path ref={preview} d="" stroke={color} strokeWidth={width}
      fill="none" opacity={tool==='highlighter'?.33:1} strokeLinecap="round"
      strokeLinejoin="round" vectorEffect="non-scaling-stroke" pointerEvents="none"/>}
-   {spotlight&&laser&&<><rect x={camera.x} y={camera.y} width={viewWidth} height={viewHeight}
-    fill="#020a14" fillOpacity=".55" pointerEvents="none"/>
-    <circle cx={laser.x} cy={laser.y} r="150" fill="#fff" fillOpacity=".1"
-     stroke="#ffdd88" strokeWidth="3" pointerEvents="none"/></>}
+   {spotlight&&laser&&<><defs><mask id="bbd-spotlight-cutout">
+     <rect x={camera.x-100} y={camera.y-100} width={viewWidth+200} height={viewHeight+200} fill="#fff"/>
+     <circle cx={laser.x} cy={laser.y} r="150" fill="#000"/>
+    </mask></defs>
+    <rect x={camera.x-100} y={camera.y-100} width={viewWidth+200} height={viewHeight+200}
+     fill="#020a14" fillOpacity=".79" mask="url(#bbd-spotlight-cutout)" pointerEvents="none"/>
+    <circle cx={laser.x} cy={laser.y} r="150" fill="none"
+     stroke="#ffe6a6" strokeWidth="3" pointerEvents="none"/></>}
    {tool==='laser'&&laser&&<circle cx={laser.x} cy={laser.y} r="13"
     fill="#fa445c" stroke="#fff" strokeWidth="3" pointerEvents="none"/>}
   </svg>
