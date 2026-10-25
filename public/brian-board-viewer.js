@@ -109,6 +109,7 @@ function renderPublicActivity(activity,live=null){
  const special=['matching','ordering','sorting'].includes(activity.type);
  const content=document.createElement('div');content.className='tv-lab';
  if(!special)content.appendChild(text('p','Challenge '+(index+1)+' / '+(activity.items?.length||activity.labels?.length||1),'tv-progress'));
+ if(!special&&live?.seconds!=null)content.appendChild(text('p','Time: '+Math.floor(live.seconds/60)+':'+String(live.seconds%60).padStart(2,'0'),'tv-progress'));
  if(live?.scores?.length){
   const scores=document.createElement('div');scores.className='tv-scores';
   live.scores.forEach(row=>scores.appendChild(text('span',row.name+'  '+row.score)));
@@ -134,7 +135,7 @@ function renderPublicActivity(activity,live=null){
     dot.style.left=target.x+'%';dot.style.top=target.y+'%';frame.appendChild(dot);
    });
   }
-  if(mystery){
+  if(mystery&&!live?.revealed){
    for(let i=0;i<16;i++){
     const tile=text('span',i+1,'tv-cover');
     tile.style.left=(i%4*25)+'%';tile.style.top=(Math.floor(i/4)*25)+'%';
