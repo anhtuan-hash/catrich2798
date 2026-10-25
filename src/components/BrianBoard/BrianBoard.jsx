@@ -54,6 +54,7 @@ export default function BrianBoard({currentUser,language='vi'}){
   [activityError,setActivityError]=useState(''),[activeActivityId,setActiveActivityId]=useState(null),[editingActivityId,setEditingActivityId]=useState(null);
  const [panel,setPanel]=useState('pages'),[library,setLibrary]=useState([]),[libraryError,setLibraryError]=useState(''),[cloudLibrary,setCloudLibrary]=useState([]),[cloudStatus,setCloudStatus]=useState('');
  const [libraryQuery,setLibraryQuery]=useState(''),[backupStatus,setBackupStatus]=useState('');
+ useEffect(()=>{setRandomNames('');setRandomChoice('');setRandomUsed([]);setEditingActivityId(null);},[ownerId,lesson?.id]);
  const refreshLibrary=async()=>{
   try{setLibrary(await listBoardLessons(ownerId));setLibraryError('');}
   catch(e){setLibraryError(e.message||'Cannot load library');}
@@ -659,26 +660,43 @@ export default function BrianBoard({currentUser,language='vi'}){
      </div>}
      {panel==='teaching'&&<div className="bbd-side-stack">
       <h3>{vi?'Tiện ích lớp học':'Classroom tools'}</h3>
-      <div className="bbd-timer"><strong>{timerText}</strong><div className="bbd-side-actions">
+      <div className={'bbd-timer'+(timerDeadline&&remaining===0?' bbd-timer--finished':'')}>
+       <strong role="timer">{timerText}</strong>
+       {timerDeadline&&remaining===0&&<p role="status">{vi?'Hết giờ!':'Time is up!'}</p>}
+       <div className="bbd-side-actions">
        <button onClick={()=>{if(timerDeadline){setTimerSeconds(remaining);setTimerDeadline(0);}
         else{setTimerDeadline(Date.now()+timerSeconds*1000);setTimerNow(Date.now());}}}>
         {timerDeadline?<Pause size={16}/>:<Play size={16}/>}</button>
-       <button onClick={()=>{setTimerDeadline(0);setTimerSeconds(300);}}><RotateCcw size={16}/></button></div></div>
+       <button onClick={()=>{setTimerDeadline(0);setTimerSeconds(300);}} title={vi?'Đặt lại 5 phút':'Reset to 5 min'}><RotateCcw size={16}/></button></div>
+       <div className="bbd-timer-presets">{[3,5,10].map(min=><button key={min} type="button"
+        aria-label={(vi?'Đặt giờ ':'Set timer ')+min+(vi?' phút':' minutes')}
+        onClick={()=>{setTimerDeadline(0);setTimerSeconds(min*60);setTimerNow(Date.now());}}>{min} {vi?'phút':'min'}</button>)}</div></div>
       <label>{vi?'Thời lượng (phút)':'Minutes'}
        <input type="number" min="1" max="180" value={Math.max(1,Math.round(timerSeconds/60))}
         onChange={e=>{if(!timerDeadline)setTimerSeconds(Math.max(60,Math.min(10800,Number(e.target.value||5)*60)));}}/></label>
       <h4>{vi?'Điểm đội':'Team scores'}</h4>
       {teams.map((team,i)=><div className="bbd-team" key={i}>
-       <span>{team.name}</span><button onClick={()=>setTeams(t=>t.map((x,j)=>j===i?{...x,score:Math.max(0,x.score-1)}:x))}>−</button>
+       <input aria-label={(vi?'Tên đội ':'Team name ')+(i+1)} maxLength={28} value={team.name}
+        onChange={e=>setTeams(t=>t.map((x,j)=>j===i?{...x,name:e.target.value.slice(0,28)}:x))}/>
+       <button onClick={()=>setTeams(t=>t.map((x,j)=>j===i?{...x,score:Math.max(0,x.score-1)}:x))}>−</button>
        <strong>{team.score}</strong><button onClick={()=>setTeams(t=>t.map((x,j)=>j===i?{...x,score:x.score+1}:x))}>+</button></div>)}
       <button disabled={teams.length>=8} onClick={addTeam}><Users size={17}/>{vi?'Thêm đội':'Add team'}</button>
+      <button onClick={()=>{if(window.confirm(vi?'Đưa điểm tất cả các đội về 0?':'Reset all team scores to zero?'))setTeams(t=>t.map(x=>({...x,score:0})));}}>
+       <RefreshCcw size={16}/>{vi?'Đặt lại điểm các đội':'Reset team scores'}</button>
       <h4>{vi?'Chọn ngẫu nhiên':'Random picker'}</h4>
-      <textarea rows={3} value={randomNames} onChange={e=>setRandomNames(e.target.value)}
+      <textarea rows={3} value={randomNames} onChange={e=>{setRandomNames(e.target.value);resetNamePicker();}}
        placeholder={vi?'Nhập tên, mỗi dòng một người':'One name per line'}/>
-      <button onClick={()=>{const list=randomNames.split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean);
-       if(list.length){const bytes=new Uint32Array(1);crypto.getRandomValues(bytes);setRandomChoice(list[bytes[0]%list.length]);}}}>
-       {vi?'Chọn một người':'Pick one'}</button>
-      {randomChoice&&<strong className="bbd-random-result">{randomChoice}</strong>}
+      <p className="bbd-picker-progress" aria-live="polite">
+       {vi?'Đã chọn':'Picked'}: {randomUsed.length} / {selectBoardNameWithoutRepeat(randomNames,randomUsed).total}
+      </p>
+      <div className="bbd-side-actions">
+       <button disabled={!selectBoardNameWithoutRepeat(randomNames,randomUsed).remaining} onClick={chooseName}>
+        {vi?'Chọn không lặp':'Pick without repeats'}</button>
+       <button onClick={resetNamePicker}><RotateCcw size={16}/>{vi?'Bắt đầu lại':'Restart'}</button>
+      </div>
+      {randomChoice&&<strong className="bbd-random-result" role="status">{randomChoice}</strong>}
+      {!!randomUsed.length&&!selectBoardNameWithoutRepeat(randomNames,randomUsed).remaining&&
+       <p role="status">{vi?'Đã chọn hết danh sách. Nhấn Bắt đầu lại để tiếp tục.':'Everyone has been picked. Restart for another round.'}</p>}
      </div>}
      {panel==='design'&&<div className="bbd-side-stack">
       <h3>{vi?'Chủ đề bảng':'Board theme'}</h3>
