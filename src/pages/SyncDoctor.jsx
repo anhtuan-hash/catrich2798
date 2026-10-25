@@ -5,14 +5,14 @@ import { Activity, AlertTriangle, ArrowRight, BookUser, CheckCircle2, ChevronRig
 import {isAdminRole,isDepartmentLeaderRole} from '../utils/roles.js';
 import {runSyncDoctorScan,serializeSyncDoctorReport} from '../utils/syncDoctorDiagnostics.js';
 import {buildSyncReviewPlans,serializeSyncReviewDocket} from '../utils/syncDoctorPlanning.mjs';
-import {getSyncDoctorReviewInbox,submitSyncDoctorReview,decideSyncDoctorReview,cancelSyncDoctorReview,previewSyncDoctorReview,createSyncDoctorPrivateBackup,rehearseSyncDoctorRollback} from '../utils/syncDoctorReviewInbox.js';
+import {getSyncDoctorReviewInbox,submitSyncDoctorReview,decideSyncDoctorReview,cancelSyncDoctorReview,previewSyncDoctorReview,createSyncDoctorPrivateBackup,rehearseSyncDoctorRollback,listSyncDoctorMonitorRuns} from '../utils/syncDoctorReviewInbox.js';
 import './SyncDoctor.css';
 
 const viText={
   eyebrow:'BRIAN / DATA INTEGRITY CENTER',title:'Sync Doctor',
   sub:'Kiểm tra và đối soát dữ liệu liên thông trong một không gian an toàn.',
   safety:'GIAI ĐOẠN 3 · DUYỆT RÀ SOÁT',safetyText:'Chỉ ghi phiếu duyệt; không sửa hồ sơ hoặc điểm học sinh.',
-  tabs:['Tổng quan','Vấn đề','Nguồn dữ liệu','Kế hoạch sửa','Nhật ký','Cài đặt'],
+  tabs:['Tổng quan','Vấn đề','Nguồn dữ liệu','Kế hoạch sửa','Nhật ký','Cài đặt','Giám sát'],
   run:'Quét dữ liệu',running:'Đang đối soát',export:'Xuất báo cáo',year:'Năm học',
   class:'Lớp cần kiểm tra',all:'Tất cả lớp có quyền xem',classHint:'Để trống để quét các lớp được phép đọc.',
   overview:'Tổng quan chẩn đoán',intro:'Thông tin lấy từ nguồn được cấp quyền. Không có dữ liệu không đồng nghĩa đã đồng bộ.',
@@ -51,6 +51,13 @@ const viText={
   retention:'Bản sao lưu hết hạn sau 48 giờ; hệ thống dọn mỗi ngày',restoreNote:'Chưa phục hồi thử trên bảng dữ liệu thật; chức năng sửa và hoàn tác thật vẫn bị khóa.',
   backupUnavailable:'Chỉ người đã duyệt độc lập mới được thực hiện, và chỉ hỗ trợ Sổ điểm.',
   backupTime:'Hết hạn',
+  monitorTitle:'Giám sát đồng bộ tự động',monitorSub:'Tổng hợp theo lịch; không thu thập tên, mã học sinh hay điểm số.',
+  monitorWarning:'Số liệu chỉ là dấu hiệu cần rà soát. Không phải danh sách học sinh đã xác nhận sai lệch.',
+  monitorChecked:'Lần quét gần nhất',monitorClasses:'Lớp chuẩn',monitorGradebooks:'Sổ điểm bộ môn',
+  monitorHomeroom:'Lớp chủ nhiệm',monitorSuspects:'Liên kết cần rà soát',
+  monitorAffected:'Workspace cần đối soát',monitorHistory:'Lịch sử kiểm tra',
+  monitorEmpty:'Chưa có dữ liệu giám sát.',monitorRefresh:'Cập nhật giám sát',
+  repairLocked:'Sửa và hoàn tác dữ liệu thật vẫn bị khóa cho tới khi hoàn tất kiểm thử thực thi độc lập.',
   docket:'Xuất phiếu rà soát',plansOverview:'Kế hoạch dự kiến được tạo từ lần quét gần nhất — không thực hiện thay đổi dữ liệu.',
   preview:'Xem trước phương án',constraints:'Điều kiện an toàn',steps:'Các bước rà soát',
   approval:'Cần người có thẩm quyền duyệt',reviewable:'Có thể rà soát',blocked:'Chưa đủ điều kiện',
@@ -62,7 +69,7 @@ const enText={
   eyebrow:'BRIAN / DATA INTEGRITY CENTER',title:'Sync Doctor',
   sub:'Diagnose data consistency safely across your connected Brian modules.',
   safety:'PHASE 3 · REVIEW APPROVAL',safetyText:'Only review metadata is saved; student records and scores remain unchanged.',
-  tabs:['Overview','Issues','Sources','Repair plans','Audit','Settings'],
+  tabs:['Overview','Issues','Sources','Repair plans','Audit','Settings','Monitoring'],
   run:'Run scan',running:'Scanning',export:'Export report',year:'School year',
   class:'Class scope',all:'All visible classes',classHint:'Leave blank to check classes your account can access.',
   overview:'Diagnostic overview',intro:'Results are limited to authorized sources. Missing data is not proof of success.',
@@ -101,6 +108,13 @@ const enText={
   retention:'Backup expires after 48 hours; daily cleanup removes expired copies',restoreNote:'No live database restoration was tested; real repair and rollback remain disabled.',
   backupUnavailable:'Only the independent approver may act; gradebook only.',
   backupTime:'Expires',
+  monitorTitle:'Automated data integrity monitoring',monitorSub:'Scheduled summaries without names, student codes or grades.',
+  monitorWarning:'Counts are advisory indicators, not confirmed student errors.',
+  monitorChecked:'Latest scan',monitorClasses:'Canonical classes',monitorGradebooks:'Subject gradebooks',
+  monitorHomeroom:'Homeroom workspaces',monitorSuspects:'Possible missing links',
+  monitorAffected:'Affected workspaces',monitorHistory:'Monitoring history',
+  monitorEmpty:'No monitoring results yet.',monitorRefresh:'Refresh monitor',
+  repairLocked:'Real academic repair and rollback remain locked pending independent execution tests.',
   docket:'Export review docket',plansOverview:'Proposals from the latest scan; no changes can be executed.',
   preview:'Review preview',constraints:'Safety requirements',steps:'Review steps',
   approval:'Independent approval required',reviewable:'Ready for review',blocked:'Blocked — investigate',
@@ -163,8 +177,19 @@ export default function SyncDoctor({currentUser,language='vi'}){
   const [preflightLoading,setPreflightLoading]=useState('');
   const [backupLoading,setBackupLoading]=useState('');
   const [recoveryByRequest,setRecoveryByRequest]=useState({});
+  const [monitorRuns,setMonitorRuns]=useState([]);
+  const [monitorLoading,setMonitorLoading]=useState(false);
+  const [monitorError,setMonitorError]=useState('');
   const controller=useRef(null);
   const busy=!!progress;
+  const refreshMonitor=async()=>{
+    if(!authorized)return;
+    setMonitorLoading(true);setMonitorError('');
+    try{setMonitorRuns(await listSyncDoctorMonitorRuns());}
+    catch(err){setMonitorError(String(err?.message||err));}
+    finally{setMonitorLoading(false);}
+  };
+  useEffect(()=>{if(authorized&&tab===6)void refreshMonitor();},[tab,authorized,currentUser?.id]);
   const refreshReviews=async()=>{
     if(!authorized)return;
     setReviewLoading(true);setReviewError('');
@@ -450,6 +475,37 @@ export default function SyncDoctor({currentUser,language='vi'}){
           <div className="bsd-subempty">{t.empty}</div>}
       </section>
     </div>}
+    {tab===6&&<section className="bsd-panel bsd-monitor">
+      <div className="bsd-panel-head"><div><span className="bsd-overline bsd-dark">AUTOMATED HEALTH · PRIVACY SAFE</span>
+        <h2>{t.monitorTitle}</h2><p>{t.monitorSub}</p></div>
+        <button type="button" className="bsd-outline" onClick={refreshMonitor} disabled={monitorLoading}>
+          <RefreshCw size={16} className={monitorLoading?'bsd-spin':''}/>{t.monitorRefresh}</button></div>
+      <div className="bsd-advice"><Info size={17}/>{t.monitorWarning}</div>
+      {monitorError&&<div className="bsd-alert" role="alert">{monitorError}</div>}
+      {!monitorRuns.length?<div className="bsd-subempty">{t.monitorEmpty}</div>:<>
+        <div className="bsd-monitor-snapshot">
+          {[
+            [t.monitorClasses,monitorRuns[0].canonical_classes,BookUser],
+            [t.monitorGradebooks,monitorRuns[0].gradebook_workspaces,ClipboardCheck],
+            [t.monitorHomeroom,monitorRuns[0].homeroom_workspaces,Database],
+            [t.monitorSuspects,monitorRuns[0].possible_missing_links,AlertTriangle],
+            [t.monitorAffected,monitorRuns[0].affected_workspaces,FileSearch]
+          ].map(([label,value,Icon])=><div className="bsd-monitor-stat" key={label}>
+            <Icon size={19}/><span>{label}</span><strong>{value}</strong></div>)}
+        </div>
+        <p className="bsd-monitor-checked"><Clock3 size={16}/>{t.monitorChecked}: {datetime(monitorRuns[0].checked_at)} · {monitorRuns[0].school_year}</p>
+        <h3>{t.monitorHistory}</h3>
+        <div className="bsd-monitor-history">
+          {monitorRuns.map(r=><div key={r.id} className="bsd-monitor-row">
+            <span><Clock3 size={16}/>{datetime(r.checked_at)}</span>
+            <span>{r.school_year}</span>
+            <span>{t.monitorSuspects}: <b>{r.possible_missing_links}</b></span>
+            <span className={'bsd-status '+(r.status==='healthy'?'ok':'warn')}>{r.status}</span>
+          </div>)}
+        </div>
+      </>}
+      <div className="bsd-advice"><LockKeyhole size={16}/>{t.repairLocked}</div>
+    </section>}
     {tab===5&&<section className="bsd-panel bsd-simple"><span className="bsd-overline bsd-dark">GOVERNANCE POLICY</span><h2>{t.settingsTitle}</h2><p>{t.safetyText}</p>{t.settingsLines.map(line=><div className="bsd-policy" key={line}><ShieldCheck size={18}/>{line}</div>)}</section>}
   </div>;
 }
