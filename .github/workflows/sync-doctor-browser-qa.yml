@@ -1,0 +1,43 @@
+name: Sync Doctor browser-responsive acceptance
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/sync-doctor-browser-qa.yml'
+      - 'tests/fixtures/sync-doctor-qa.*'
+      - 'tests/e2e/sync-doctor-responsive-qa.spec.js'
+      - 'playwright.sync-doctor-qa.config.js'
+      - 'src/pages/SyncDoctor.jsx'
+      - 'src/pages/SyncDoctor.css'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-doctor-browser-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-qa:
+    name: Local synthetic roles and responsive Chromium/WebKit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+    steps:
+      - name: Checkout source only
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Prepare Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install existing application dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Install browser engines
+        run: npx playwright install --with-deps chromium webkit
+      - name: Run isolated QA against localhost (no real accounts or cloud calls)
+        run: npx playwright test --config=playwright.sync-doctor-qa.config.js
