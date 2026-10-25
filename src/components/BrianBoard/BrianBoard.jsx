@@ -12,7 +12,7 @@ import BoardCanvas from './BoardCanvas.jsx';
 import {listBoardCloud,saveBoardCloud,readBoardCloud} from './boardCloud.js';
 import {boardStudentPayload,newBoardPresentationId} from './boardPresentation.js';
 import {importBoardPdf,exportBoardStudentPdf} from './boardPdf.js';
-import {createBoardActivity} from './boardActivities.js';
+import {createBoardActivity,publicBoardActivity} from './boardActivities.js';
 import BoardActivityStage from './BoardActivityStage.jsx';
 import './BrianBoard.css';
 import './BoardActivities.css';
@@ -59,6 +59,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  const saving=useRef(Promise.resolve()),dirty=useRef(false),animating=useRef(false);
  const launchRef=useRef(null),lastFocusRef=useRef(null),mounted=useRef(true);
  const page=lesson?.pages.find(x=>x.id===lesson.activePageId)||lesson?.pages[0];
+ const activeActivityRef=useRef(activeActivityId);activeActivityRef.current=activeActivityId;
  const theme=lesson?.theme||'ivory';
  useEffect(()=>{
   setColor(old=>{
@@ -71,8 +72,8 @@ export default function BrianBoard({currentUser,language='vi'}){
  docRef.current=lesson;
  useEffect(()=>{
   const session=presentationRef.current;
-  if(session&&lesson)session.bus.postMessage(boardStudentPayload(lesson));
- },[lesson]);
+  if(session&&lesson)session.bus.postMessage(boardStudentPayload(lesson,activeActivityId));
+ },[lesson,activeActivityId]);
  useEffect(()=>()=>{const session=presentationRef.current;
   if(session){session.bus.postMessage({type:'end'});session.bus.close();presentationRef.current=null;}
  },[]);
@@ -92,10 +93,10 @@ export default function BrianBoard({currentUser,language='vi'}){
   if(child)try{child.opener=null;}catch{}
   if(!child){window.alert(vi?'Hãy cho phép mở cửa sổ mới để trình chiếu.':'Allow popups to open the student display.');return;}
   const bus=new BroadcastChannel('bbd-local-'+id);
-  bus.onmessage=e=>{if(e.data?.type==='request'&&docRef.current)bus.postMessage(boardStudentPayload(docRef.current));};
+  bus.onmessage=e=>{if(e.data?.type==='request'&&docRef.current)bus.postMessage(boardStudentPayload(docRef.current,activeActivityRef.current));};
   presentationRef.current={id,bus};
   setPresenting(true);
-  bus.postMessage(boardStudentPayload(docRef.current));
+  bus.postMessage(boardStudentPayload(docRef.current,activeActivityRef.current));
  };
  useEffect(()=>()=>{mounted.current=false;},[]);
  useEffect(()=>{
@@ -426,7 +427,12 @@ export default function BrianBoard({currentUser,language='vi'}){
     </aside>}
     <div className="bbd-canvas-area">
      {activeActivityId&&page?.activities?.find(a=>a.id===activeActivityId)
-       ?<BoardActivityStage activity={page.activities.find(a=>a.id===activeActivityId)}
+       ?studentView?<div className="bbd-activity-stage" aria-label="Student activity preview">
+        <h2>{page.activities.find(a=>a.id===activeActivityId)?.title}</h2>
+        <p>{page.activities.find(a=>a.id===activeActivityId)?.prompt}</p>
+        <div className="bbd-activity-stage__tray">{publicBoardActivity(page.activities.find(a=>a.id===activeActivityId))?.labels?.map((x,i)=><span className="bbd-activity-card" key={i}>{x}</span>)}</div>
+       </div>
+       :<BoardActivityStage activity={page.activities.find(a=>a.id===activeActivityId)}
          vi={vi} onClose={()=>setActiveActivityId(null)}/>
        :<BoardCanvas page={studentView?sanitizeStudentPage(page):page} tool={studentView?'select':tool} color={color} width={thickness}
        onCommit={commitObj} onErase={eraseObject} onMoveObject={moveObject} zoom={zoom} setZoom={setZoom}
