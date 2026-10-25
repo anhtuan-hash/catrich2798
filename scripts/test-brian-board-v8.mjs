@@ -13,7 +13,7 @@ const objects=[
  {id:'b',kind:'text',x:210,y:260,text:'PRIVATE TEACHER ANSWER',studentVisible:false},
  {id:'c',kind:'shape',shape:'rect',x:15,y:15,x2:65,y2:60,color:'#335d63',width:4}
 ];
-assert.deepEqual(lassoObjectIds(objects,square),['a','c']);
+assert.deepEqual(lassoObjectIds(objects,square),['c']); // the text center lies outside the lasso
 assert.deepEqual(lassoObjectIds(objects,square.slice(0,2)),[]);
 const moved=moveBoardObjects(objects,['c'],10,15);
 assert.equal(moved[2].x,25);assert.equal(moved[2].y2,75);
