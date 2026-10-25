@@ -140,8 +140,10 @@ export function labPublicActivity(raw){
  const visible={id:a.id,type:a.type,title:a.title,prompt:a.prompt,
   image:a.image,labels:a.items.map(i=>i.label),options:[],categories:[],
   passage:a.type==='evidence_hunter'?a.passage:'',items:[]};
- if(a.type==='hotspot'||a.type==='drag_label')
-  visible.items=a.items.map(i=>({label:i.label,x:i.x,y:i.y}));
+ // Public TV/worksheet never receives label↔position mappings.
+ // Drag targets are anonymized. Hotspot coordinates stay teacher-only until answered.
+ if(a.type==='hotspot')visible.items=a.items.map(i=>({label:i.label}));
+ if(a.type==='drag_label')visible.items=a.items.map(i=>({x:i.x,y:i.y}));
  if(a.type==='cloze_snap')visible.options=[...new Set([...a.items.map(i=>i.answer),...a.distractors])].sort();
  if(a.type==='error_detective')
   visible.items=a.items.map(i=>({label:i.label,options:[i.wrong,...a.items.map(j=>j.answer)].sort()}));
