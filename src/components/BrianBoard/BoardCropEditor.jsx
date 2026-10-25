@@ -2,7 +2,7 @@ import React,{useRef,useState} from 'react';
 import {Check,RotateCcw,X,Crop} from 'lucide-react';
 import {normalizeBoardCrop} from './boardImageStudio.js';
 
-export default function BoardCropEditor({image,onApply,onCancel,vi=true}){
+export default function BoardCropEditor({image,onApply,onCancel,vi=true,mode='crop'}){
  const initial={x:.06,y:.06,width:.88,height:.88};
  const [rect,setRect]=useState(initial),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const surface=useRef(null),active=useRef(null);
@@ -42,11 +42,12 @@ export default function BoardCropEditor({image,onApply,onCancel,vi=true}){
   finally{setBusy(false);}
  };
  return <div className="bbd-v8-crop-editor">
-  <div className="bbd-v8-crop-editor__heading"><Crop size={18}/><strong>{vi?'Cắt ảnh theo vùng':'Freeform image crop'}</strong>
+  <div className="bbd-v8-crop-editor__heading"><Crop size={18}/><strong>{mode==='crop'?(vi?'Cắt ảnh theo vùng':'Freeform image crop'):
+   mode==='blur'?(vi?'Làm mờ chi tiết':'Blur selected region'):(vi?'Đen trắng một vùng':'Grayscale selected region')}</strong>
    <button type="button" disabled={busy} onClick={onCancel} aria-label={vi?'Đóng trình cắt':'Close crop editor'}><X size={15}/></button>
   </div>
-  <p>{vi?'Kéo vùng sáng để di chuyển. Kéo góc để chỉnh vùng cắt. Ảnh gốc có thể khôi phục bằng Undo.':
-   'Drag the light window to move, or drag corners to crop. Use Undo to recover your source image.'}</p>
+  <p>{vi?'Kéo vùng chọn và điều chỉnh bốn góc. Undo giúp khôi phục ảnh trước khi sửa.':
+   'Drag the selection and adjust its corners. Undo restores the previous image.'}</p>
   <div ref={surface} className="bbd-v8-crop-editor__stage"
    style={{aspectRatio:(Math.max(1,image?.width||500))+'/'+(Math.max(1,image?.height||300))}}
    onPointerMove={drag}
@@ -75,7 +76,7 @@ export default function BoardCropEditor({image,onApply,onCancel,vi=true}){
    <small>{Math.round(rect.width*100)}% × {Math.round(rect.height*100)}%</small>
    <button type="button" onClick={()=>setRect(initial)} disabled={busy}><RotateCcw size={15}/>{vi?'Đặt lại':'Reset'}</button>
    <button type="button" className="is-primary" onClick={()=>void apply()} disabled={busy}>
-    <Check size={16}/>{busy?(vi?'Đang cắt':'Cropping'):(vi?'Áp dụng':'Apply crop')}</button>
+    <Check size={16}/>{busy?(vi?'Đang xử lý':'Processing'):(vi?'Áp dụng':'Apply')}</button>
   </div>
   {error&&<p role="alert">{error}</p>}
  </div>;
