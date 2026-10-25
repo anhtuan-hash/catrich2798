@@ -11,6 +11,7 @@ import {readBoardDraft,saveBoardDraft,listBoardLessons,readBoardLesson,deleteBoa
 import BoardCanvas from './BoardCanvas.jsx';
 import {listBoardCloud,saveBoardCloud,readBoardCloud} from './boardCloud.js';
 import {boardStudentPayload,newBoardPresentationId} from './boardPresentation.js';
+import {importBoardPdf,exportBoardStudentPdf} from './boardPdf.js';
 import './BrianBoard.css';
 
 const drawTools=[
@@ -41,6 +42,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  const [teams,setTeams]=useState([{name:'Team 1',score:0},{name:'Team 2',score:0}]);
  const [randomNames,setRandomNames]=useState(''),[randomChoice,setRandomChoice]=useState('');
  const [presenting,setPresenting]=useState(false),presentationRef=useRef(null);
+ const [pdfBusy,setPdfBusy]=useState(false),[pdfStatus,setPdfStatus]=useState('');
  const [panel,setPanel]=useState('pages'),[library,setLibrary]=useState([]),[libraryError,setLibraryError]=useState(''),[cloudLibrary,setCloudLibrary]=useState([]),[cloudStatus,setCloudStatus]=useState('');
  const refreshLibrary=async()=>{
   try{setLibrary(await listBoardLessons(ownerId));setLibraryError('');}
@@ -250,6 +252,34 @@ export default function BrianBoard({currentUser,language='vi'}){
    commitObj({kind:'image',id:makeId(),src,x:150,y:120,width:560,height:340,studentVisible:true});
   };
   reader.readAsDataURL(file);
+ };
+ const addPdfPages=async file=>{
+  if(!file||pdfBusy||!docRef.current)return;
+  setPdfBusy(true);setPdfStatus(vi?'Đang đọc PDF…':'Reading PDF…');
+  const ownerAtStart=ownerId,lessonAtStart=docRef.current.id;
+  try{
+   const pages=await importBoardPdf(file,docRef.current.pages.length,({page,total})=>{
+    setPdfStatus((vi?'Đang tạo trang PDF ':'Rendering PDF page ')+page+'/'+total);
+   });
+   if(ownerAtStart!==ownerId||lessonAtStart!==docRef.current?.id)return;
+   mutate(d=>({...d,pages:[...d.pages,...pages],activePageId:pages[0].id}));
+   setPanel('pages');setPdfStatus((vi?'Đã thêm ':'Imported ')+pages.length+(vi?' trang PDF':' PDF pages'));
+  }catch(e){setPdfStatus(e?.message||'PDF import failed');}
+  finally{setPdfBusy(false);}
+ };
+ const exportStudentPdf=async()=>{
+  if(pdfBusy||!docRef.current)return;
+  setPdfBusy(true);setPdfStatus(vi?'Đang xuất PDF cho học sinh…':'Exporting student PDF…');
+  try{
+   const bytes=await exportBoardStudentPdf(docRef.current,({page,total})=>
+    setPdfStatus((vi?'Đang xuất trang ':'Exporting page ')+page+'/'+total));
+   const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
+   const a=document.createElement('a');a.href=url;
+   a.download='brian-board-student-'+(docRef.current.title||'lesson').replace(/[^a-z0-9_-]+/gi,'_')+'.pdf';
+   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
+   setPdfStatus(vi?'Đã tạo PDF không có ghi chú riêng':'Exported without teacher-only notes');
+  }catch(e){setPdfStatus(e?.message||'PDF export failed');}
+  finally{setPdfBusy(false);}
  };
  const addPage=()=>mutate(d=>{
   const next=newPage('Page '+(d.pages.length+1));
@@ -473,6 +503,12 @@ export default function BrianBoard({currentUser,language='vi'}){
       <h4>{vi?'Nền trang':'Page background'}</h4>
       {['plain','grid','lines'].map(x=><button key={x} onClick={()=>editPage(p=>({...p,background:x}))}
        className={'bbd-theme-choice'+(page?.background===x?' active':'')}>{x}</button>)}
+      <label className="bbd-import-image"><FilePlus2 size={16}/>{vi?'Nhập PDF (tối đa 12 trang)':'Import PDF (up to 12 pages)'}
+       <input type="file" accept=".pdf,application/pdf" disabled={pdfBusy}
+        onChange={e=>{void addPdfPages(e.target.files?.[0]);e.target.value='';}}/></label>
+      {pdfStatus&&<span role="status" className="bbd-pdf-status">{pdfStatus}</span>}
+      <button disabled={pdfBusy} onClick={()=>void exportStudentPdf()}>
+       <Download size={16}/>{vi?'Xuất PDF bài dạy cho học sinh':'Export student PDF'}</button>
       <label className="bbd-import-image"><ImagePlus size={16}/>{vi?'Thêm ảnh (tối đa 2 MB)':'Insert image (max 2 MB)'}
        <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>{insertImage(e.target.files?.[0]);e.target.value='';}}/></label>
       <button onClick={exportPNG}><Download size={16}/>{vi?'Xuất trang SVG':'Export SVG page'}</button>
