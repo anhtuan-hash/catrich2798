@@ -36,6 +36,7 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
  const [selected,setSelected]=useState(''),[selectedWords,setSelectedWords]=useState([]);
  const [evidenceRange,setEvidenceRange]=useState([]),[answerChoice,setAnswerChoice]=useState('');
  const [team,setTeam]=useState(0),[scores,setScores]=useState(makeScores);
+ const [cornerChoices,setCornerChoices]=useState({}),[cornerLocked,setCornerLocked]=useState(false);
  const [shown,setShown]=useState(false),[opened,setOpened]=useState([]),[revealAll,setRevealAll]=useState(false);
  const [guess,setGuess]=useState(''),[chosenLabel,setChosenLabel]=useState(''),[placed,setPlaced]=useState({});
  const [source,setSource]=useState(''),[relation,setRelation]=useState(''),[target,setTarget]=useState('');
@@ -56,12 +57,12 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
   setIndex(0);setAnswers({});setFeedback('');setSelected('');setSelectedWords([]);
   setEvidenceRange([]);setAnswerChoice('');setScores(makeScores());setTeam(0);
   setShown(false);setOpened([]);setRevealAll(false);setGuess('');setChosenLabel('');
-  setPlaced({});setSource('');setRelation('');setTarget('');
+  setPlaced({});setSource('');setRelation('');setTarget('');setCornerChoices({});setCornerLocked(false);
  };
  const next=delta=>{
   setIndex(i=>Math.max(0,Math.min(n-1,i+delta)));setFeedback('');setSelected('');
   setSelectedWords([]);setEvidenceRange([]);setAnswerChoice('');setShown(false);
-  setGuess('');setSource('');setRelation('');setTarget('');
+  setGuess('');setSource('');setRelation('');setTarget('');setCornerChoices({});setCornerLocked(false);
  };
  const award=points=>setScores(curr=>curr.map((t,i)=>i===team?{...t,score:Math.max(0,t.score+points)}:t));
  const store=(value,correct)=>{
@@ -93,6 +94,15 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
   store(right,right);
  };
  const checkStress=number=>{if(answers[index]!==undefined)return;store(number,Number(number)===item.answer);};
+ const lockFourCorners=()=>{
+  if(cornerLocked||answers[index]!==undefined||!Object.keys(cornerChoices).length)return;
+  const correctTeams=Object.entries(cornerChoices).filter(([,answer])=>answer===item.answer);
+  setScores(prev=>prev.map((entry,i)=>correctTeams.some(([id])=>Number(id)===i)?
+   {...entry,score:entry.score+10}:entry));
+  setAnswers(prev=>({...prev,[index]:correctTeams.length?item.answer:'—'}));
+  setCornerLocked(true);
+  setFeedback((vi?'Đã khóa đáp án. Số đội trả lời đúng: ':'Answers locked. Correct teams: ')+correctTeams.length);
+ };
  const assignTarget=(targetItem,labelId=chosenLabel)=>{
   if(!labelId||placed[labelId]||Object.values(placed).includes(targetItem))return;
   const label=items.find(i=>i.id===labelId);
@@ -203,9 +213,19 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
   </>}
   {activity.type==='four_corners'&&<>
    <h3>{item.label}</h3>
+   <p>{vi?'Chọn đội phía trên, sau đó chọn A/B/C/D. Khóa tất cả đáp án cùng lúc để chấm điểm.':
+    'Select a team above and choose A/B/C/D. Lock all teams together to score.'}</p>
    <div className="bbd-lab-four">{item.options.map((x,i)=><button key={i}
-    disabled={answers[index]!==undefined} onClick={()=>checkChoice(alpha[i])}
-    className={'bbd-lab-corner corner-'+i}><strong>{alpha[i]}</strong><span>{x}</span></button>)}</div>
+    disabled={answers[index]!==undefined||cornerLocked}
+    onClick={()=>setCornerChoices(old=>({...old,[team]:alpha[i]}))}
+    className={'bbd-lab-corner corner-'+i+(cornerChoices[team]===alpha[i]?' is-picked':'')}
+    aria-pressed={cornerChoices[team]===alpha[i]}>
+    <strong>{alpha[i]}</strong><span>{x}</span></button>)}</div>
+   <div className="bbd-lab-tray">{scores.map((x,i)=><span key={i}
+    className="bbd-activity-card">{x.name}: {cornerChoices[i]||(vi?'chưa chọn':'not selected')}</span>)}</div>
+   <button type="button" className="bbd-lab-primary" disabled={cornerLocked||
+    answers[index]!==undefined||!Object.keys(cornerChoices).length}
+    onClick={lockFourCorners}>{vi?'Khóa đáp án tất cả đội & chấm điểm':'Lock all team answers & score'}</button>
   </>}
   {activity.type==='flashcard_duel'&&<>
    <div className="bbd-lab-flashcard" role="group">
