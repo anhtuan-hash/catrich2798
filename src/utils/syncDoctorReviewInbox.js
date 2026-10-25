@@ -118,7 +118,7 @@ export async function rehearseSyncDoctorRollback(requestId){
 export async function listSyncDoctorMonitorRuns(){
   requireBackend();
   const {data,error}=await supabase.from('bes_sync_monitor_runs')
-    .select('id,checked_at,school_year,canonical_classes,gradebook_workspaces,homeroom_workspaces,possible_missing_links,affected_workspaces,status,note')
+    .select('id,checked_at,school_year,canonical_classes,gradebook_workspaces,homeroom_workspaces,possible_missing_links,affected_workspaces,counter_mismatch_workspaces,status,note')
     .order('checked_at',{ascending:false}).limit(30);
   checkFailure(error);
   return Array.isArray(data)?data:[];
