@@ -1,11 +1,12 @@
 /** Brian Board: independent per-owner draft. No Brian Focus storage keys. */
 import {normalizeBoardActivities} from './boardActivities.js';
+import {normalizeBoardFrames} from './boardSpatial.js';
 export const BOARD_W=1600,BOARD_H=900;
 export const THEMES=['ivory','midnight','classroom'];
 export const BACKGROUNDS=['plain','grid','lines','dots'];
 export const makeId=()=>typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);
 export function newPage(title='Page 1'){
- return {id:makeId(),title,background:'plain',objects:[],activities:[],hidden:false,locked:false};
+ return {id:makeId(),title,background:'plain',objects:[],activities:[],frames:[],hidden:false,locked:false};
 }
 export function newLesson(ownerId){
  const page=newPage();
@@ -19,7 +20,7 @@ export function normalizeLesson(raw,ownerId){
   id:String(p.id||makeId()).slice(0,85),title:String(p.title||'Page '+(i+1)).slice(0,90),
   background:BACKGROUNDS.includes(p.background)?p.background:'plain',
   locked:p.locked===true,hidden:p.hidden===true,
-  activities:normalizeBoardActivities(p.activities),
+  activities:normalizeBoardActivities(p.activities),frames:normalizeBoardFrames(p.frames),
   objects:Array.isArray(p.objects)?p.objects.slice(0,3000).filter(o=>o&&typeof o==='object'&&
    ['stroke','text','shape','image','sticky','flashcard','mask'].includes(o.kind)).map(o=>({...o})):[],
  }));
