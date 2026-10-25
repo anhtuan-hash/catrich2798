@@ -74,6 +74,7 @@ const viText={
   releaseGateDb:'PostgreSQL 16: sửa một học sinh, bảo toàn điểm, chặn xung đột và hoàn tác — ĐẠT',
   releaseGateAccounts:'Kiểm thử hai tài khoản thật và Safari/Android',
   releaseGateHold:'Cả ba lệnh thực thi, sửa và hoàn tác vẫn bị khóa ở Supabase Production.',
+  releaseGateEvidence:'Xem bằng chứng kiểm thử PostgreSQL thực tế · GitHub Actions',
   docket:'Xuất phiếu rà soát',plansOverview:'Kế hoạch dự kiến được tạo từ lần quét gần nhất — không thực hiện thay đổi dữ liệu.',
   preview:'Xem trước phương án',constraints:'Điều kiện an toàn',steps:'Các bước rà soát',
   approval:'Cần người có thẩm quyền duyệt',reviewable:'Có thể rà soát',blocked:'Chưa đủ điều kiện',
@@ -146,6 +147,7 @@ const enText={
   releaseGateDb:'PostgreSQL 16: one-student repair, score integrity, conflict refusal and rollback — PASSED',
   releaseGateAccounts:'Two real-account sessions and Safari/Android verification',
   releaseGateHold:'All three execution, repair and rollback RPCs remain disabled in Production.',
+  releaseGateEvidence:'View real PostgreSQL test evidence · GitHub Actions',
   docket:'Export review docket',plansOverview:'Proposals from the latest scan; no changes can be executed.',
   preview:'Review preview',constraints:'Safety requirements',steps:'Review steps',
   approval:'Independent approval required',reviewable:'Ready for review',blocked:'Blocked — investigate',
@@ -573,6 +575,8 @@ export default function SyncDoctor({currentUser,language='vi'}){
             <strong className={passed?'pass':'pending'}>{passed?t.releaseGatePass:t.releaseGatePending}</strong>
           </div>)}
         <div className="bsd-advice"><LockKeyhole size={17}/>{t.releaseGateHold}</div>
+        <a className="bsd-evidence-link" href="https://github.com/anhtuan-hash/catrich2798/actions/runs/40194640091"
+          target="_blank" rel="noopener noreferrer">{t.releaseGateEvidence}</a>
       </div>
     </section>}
   </div>;
