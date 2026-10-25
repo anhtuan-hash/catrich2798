@@ -418,3 +418,11 @@
  .bbd-frame-panel .bbd-side-heading h3{font-size:16px}
  .bbd-frame-card .bbd-side-actions button{min-height:44px}
 }
+
+/* In-place writing floats above the SVG, never covers the board permanently. */
+.bbd-canvas__inline-editor{position:absolute;z-index:12;width:min(300px,70%);min-height:52px;
+ border:2px solid var(--bbd-accent);border-radius:12px;background:var(--bbd-panel);
+ color:var(--bbd-text);font-size:18px!important;font-weight:650;line-height:1.35;
+ box-shadow:var(--bbd-lift);padding:12px 14px}
+.bbd-canvas__inline-editor:focus{outline:3px solid color-mix(in srgb,var(--bbd-ring) 22%,transparent)}
+@media(max-width:640px){.bbd-canvas__inline-editor{font-size:16px!important;min-height:46px;max-width:80%}}
