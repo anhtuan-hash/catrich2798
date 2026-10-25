@@ -29,6 +29,7 @@ export default function BoardActivityPublicPreview({activity,live,vi=true}){
   <div className="bbd-lab-progress">
    <strong>{label(titles[activity.type],vi)}</strong>
    <strong>{current+1}/{activity.items?.length||activity.labels?.length||1}</strong>
+   {live?.seconds!=null&&<strong>{Math.floor(live.seconds/60)}:{String(live.seconds%60).padStart(2,'0')}</strong>}
   </div>
   {live?.scores&&<div className="bbd-lab-teams">{live.scores.map((x,i)=>
    <div className="bbd-lab-public-team" key={i}>{x.name} <strong>{x.score}</strong></div>)}</div>}
@@ -38,7 +39,7 @@ export default function BoardActivityPublicPreview({activity,live,vi=true}){
      <div className="bbd-lab-public-placeholder">{activity.prompt||'Learning picture'}</div>}
     {activity.type==='drag_label'&&(activity.items||[]).map((p,i)=>
      <span key={i} className="bbd-lab-public-dot" style={{left:p.x+'%',top:p.y+'%'}}>{i+1}</span>)}
-    {activity.type==='mystery_reveal'&&Array.from({length:16},(_,i)=>
+    {activity.type==='mystery_reveal'&&!live?.revealed&&Array.from({length:16},(_,i)=>
      <div key={i} className={'bbd-lab-cover'+(live?.opened?.includes(i)?' open':'')}
       style={{left:i%4*25+'%',top:Math.floor(i/4)*25+'%'}}>{i+1}</div>)}
    </div>}
