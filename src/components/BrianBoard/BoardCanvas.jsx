@@ -3,7 +3,7 @@ import {BOARD_W,BOARD_H,pathFromPoints,makeId} from './boardModel.js';
 import {snapBoardPoint,constrainBoardShape,smoothBoardPath,pressureBoardSegments,
  boardShapeGeometry,boardShapePreviewPath} from './boardDrawing.js';
 import {frameFromCorners} from './boardSpatial.js';
-import {lassoObjectIds,recognizeBoardGesture} from './boardV8Tools.js';
+import {lassoObjectIds,recognizeBoardGesture,groupBounds,BOARD_RESIZE_HANDLES} from './boardV8Tools.js';
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 
 export function renderBoardObject(object,onErase,studentView=false,onInteract,onSelect){
@@ -90,7 +90,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
  zoom=1,setZoom,camera={x:0,y:0},setCamera,contentText='',privateAnswer='',onInteract,
  studentView=false,spotlight=false,penPreset='classic',snapToGrid=false,shapeFill='none',vi=true,
  frames=[],showFrames=true,onCreateFrame,activeFrameId=null,onPointerPosition,smartGeometry=false}){
- const svg=useRef(null),preview=useRef(null),pointer=useRef(null);
+ const svg=useRef(null),preview=useRef(null),pointer=useRef(null),resizeOutline=useRef(null);
  const [drawing,setDrawing]=useState(false),[selectedId,setSelectedId]=useState(''),[selectedIds,setSelectedIds]=useState([]);
  const [laser,setLaser]=useState(null);
  const [inlineText,setInlineText]=useState(null);
@@ -118,6 +118,12 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
  const stylusActive=useRef(false);
  useEffect(()=>{setSelectedId('');setSelectedIds([]);pointer.current=null;stylusActive.current=false;},[page?.id]);
  const viewWidth=BOARD_W/zoom,viewHeight=BOARD_H/zoom;
+ const selection=groupBounds(page?.objects||[],selectedIds);
+ const transformHandles=selection?BOARD_RESIZE_HANDLES.map(handle=>{
+  const h=handle.includes('w')?selection.x:handle.includes('e')?selection.x+selection.width:selection.x+selection.width/2;
+  const v=handle.includes('n')?selection.y:handle.includes('s')?selection.y+selection.height:selection.y+selection.height/2;
+  return {handle,x:h,y:v};
+ }):[];
  const local=event=>{
   const root=svg.current;if(!root)return {x:0,y:0};
   const point=root.createSVGPoint();
@@ -132,6 +138,15 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
   if(!state||state.pointerId!==event.pointerId)return;
   pointer.current=null;setDrawing(false);if(state.pointerType==='pen')stylusActive.current=false;
   if(preview.current)preview.current.setAttribute('d','');
+  if(state.tool==='resize-group'){
+   if(resizeOutline.current)resizeOutline.current.style.opacity='0';
+   if(!cancel){
+    const origin=state.points[0],last=state.points.at(-1);
+    const dx=last.x-origin.x,dy=last.y-origin.y;
+    if(Math.hypot(dx,dy)>1)onBatchEdit?.(state.selectedIds,'resize',{handle:state.handle,delta:{x:dx,y:dy}});
+   }
+   return;
+  }
   if(state.tool==='move-object'){
    state.el?.removeAttribute('transform');
    if(!cancel&&state.points.length>1){
@@ -175,6 +190,15 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
     onCommit?.({kind:'shape',id:makeId(),shape,...bounds,color:state.color,
      width:state.width,fill:state.shapeFill,studentVisible:true});
   }
+ };
+ const beginResize=(handle,event)=>{
+  if(studentView||page?.locked||!selectedIds.length)return;
+  event.preventDefault();event.stopPropagation();
+  const p=local(event);
+  pointer.current={tool:'resize-group',handle,pointerId:event.pointerId,
+   points:[p],selectedIds:[...selectedIds],bounds:selection};
+  svg.current?.setPointerCapture?.(event.pointerId);
+  setDrawing(true);
  };
  const selectObject=(id,event)=>{
   if(studentView||tool!=='select'||page?.locked)return;
@@ -231,6 +255,23 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
   const state=pointer.current;
   if(!state||state.pointerId!==event.pointerId)return;
   const p=local(event);
+  if(state.tool==='resize-group'){
+   state.points=[state.points[0],p];
+   const b=state.bounds;
+   if(b&&resizeOutline.current){
+    const dx=p.x-state.points[0].x,dy=p.y-state.points[0].y;
+    const x=b.x+(state.handle.includes('w')?dx:0),
+     y=b.y+(state.handle.includes('n')?dy:0);
+    const w=Math.max(36,b.width+(state.handle.includes('e')?dx:state.handle.includes('w')?-dx:0));
+    const h=Math.max(36,b.height+(state.handle.includes('s')?dy:state.handle.includes('n')?-dy:0));
+    resizeOutline.current.setAttribute('x',String(x));
+    resizeOutline.current.setAttribute('y',String(y));
+    resizeOutline.current.setAttribute('width',String(w));
+    resizeOutline.current.setAttribute('height',String(h));
+    resizeOutline.current.style.opacity='1';
+   }
+   return;
+  }
   if(state.tool==='pen')state.lastMoveAt=performance.now();
   if(state.tool==='move-object'){
    const first=state.points[0];state.points=[first,p];
@@ -297,6 +338,25 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
     !o.locked&&(tool==='eraser'||tool==='eraser-ink'&&o.kind==='stroke')?onErase:null,
     studentView,tool==='select'||tool==='eraser-ink'?null:onInteract,
     tool==='select'&&!o.locked?selectObject:null))}
+   {selection&&['select','lasso'].includes(tool)&&!studentView&&!page?.locked&&<g className="bbd-v8-resize-overlay">
+     <rect x={selection.x} y={selection.y} width={selection.width} height={selection.height}
+      fill="none" stroke="#308e6e" strokeWidth={2.5/zoom} strokeDasharray={12/zoom+" "+7/zoom}
+      pointerEvents="none"/>
+     <rect ref={resizeOutline} x={selection.x} y={selection.y} width={selection.width}
+      height={selection.height} stroke="#e4a34a" strokeWidth={3/zoom} strokeDasharray={8/zoom+" "+4/zoom}
+      fill="none" opacity="0" pointerEvents="none"/>
+     {transformHandles.map(({handle,x,y})=><circle key={handle} cx={x} cy={y} r={12/zoom}
+      fill="#fffefa" stroke="#27755e" strokeWidth={3/zoom} role="button" tabIndex={0}
+      aria-label={(vi?'Thay đổi kích thước, tay nắm ':'Resize group, handle ')+handle}
+      onPointerDown={event=>beginResize(handle,event)}
+      onKeyDown={event=>{
+       if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(event.key))return;
+       event.preventDefault();
+       onBatchEdit?.(selectedIds,'resize',{handle,delta:{
+        x:event.key==='ArrowLeft'?-18:event.key==='ArrowRight'?18:0,
+        y:event.key==='ArrowUp'?-18:event.key==='ArrowDown'?18:0}});
+      }} style={{cursor:handle.includes('n')||handle.includes('s')?'nwse-resize':'ew-resize'}}/>)}
+    </g>}
    {!studentView&&<path ref={preview} d="" stroke={color} strokeWidth={width}
      fill="none" opacity={tool==='highlighter'?.33:1} strokeLinecap="round"
      strokeLinejoin="round" vectorEffect="non-scaling-stroke" pointerEvents="none"/>}
