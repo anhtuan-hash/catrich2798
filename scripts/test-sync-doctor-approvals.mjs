@@ -20,7 +20,7 @@ assert.match(sql,/r\.source_revision/);
 assert.match(sql,/r\.canonical_revision/);
 assert.match(sql,/security definer set search_path = ''/i);
 assert.match(sql,/revoke execute on function public\.bes_sync_decide_review/);
-assert.match(sql,/only requester can cancel/i);
+assert.match(sql,/only the requester can cancel/i);
 assert.match(sql,/comment on table public\.bes_sync_review_requests/i);
 assert.doesNotMatch(sql,/update\s+public\.(bes_gradebook_workspaces|bes_homeroom_workspaces|bes_class_rosters|lesson_check_assessment_results)/i);
 assert.doesNotMatch(sql,/delete\s+from\s+public\.(bes_gradebook_workspaces|bes_homeroom_workspaces|bes_class_rosters|lesson_check_assessment_results)/i);
