@@ -242,6 +242,11 @@ export default function BrianBoard({currentUser,language='vi'}){
    setActiveActivityId(activity.id);setActivityError('');setActivityRaw('');
   }catch(e){setActivityError(e.message||'Invalid activity');}
  };
+ const toggleActivityVisibility=id=>{
+  if(page?.locked)return;
+  editPage(p=>({...p,activities:(p.activities||[]).map(activity=>activity.id===id?
+   {...activity,studentVisible:activity.studentVisible===false}:activity)}));
+ };
  const deleteActivity=id=>{
   if(!window.confirm(vi?'Xóa hoạt động này? Có thể hoàn tác.':'Remove this activity? Undo is available.'))return;
   editPage(p=>({...p,activities:(p.activities||[]).filter(a=>a.id!==id)}));
@@ -519,9 +524,14 @@ export default function BrianBoard({currentUser,language='vi'}){
        <button disabled={page?.locked||page?.activities?.length>=24} onClick={addActivity}>
         <Plus size={16}/>{vi?'Tạo & chạy hoạt động':'Create & play'}</button>
        {(page?.activities||[]).map((x,i)=><div key={x.id} className="bbd-library-item">
-        <div><strong>{i+1}. {x.title}</strong><small>{x.type} · {x.items.length} {vi?'mục':'items'}</small></div>
+        <div><strong>{i+1}. {x.title}</strong><small>{x.type} · {x.items.length} {vi?'mục':'items'} · {x.studentVisible===false?(vi?'Ẩn với học sinh':'Teacher-only draft'):(vi?'Hiện cho học sinh':'Published')}</small></div>
         <div className="bbd-side-actions">
          <button onClick={()=>setActiveActivityId(x.id)}><Play size={15}/>{vi?'Chạy':'Play'}</button>
+         <button disabled={page?.locked} onClick={()=>toggleActivityVisibility(x.id)}
+           aria-label={x.studentVisible===false?(vi?'Công bố bài tập':'Publish activity'):(vi?'Ẩn bài tập với học sinh':'Hide activity from students')}
+           title={x.studentVisible===false?(vi?'Công bố cho học sinh':'Publish to students'):(vi?'Chỉ giáo viên thấy':'Hide from students')}>
+           {x.studentVisible===false?<EyeOff size={15}/>:<Eye size={15}/>}
+         </button>
          <button disabled={page?.locked} onClick={()=>deleteActivity(x.id)}><Trash2 size={15}/></button>
         </div>
        </div>)}
