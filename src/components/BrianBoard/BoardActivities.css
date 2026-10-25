@@ -35,6 +35,11 @@
 .bbd-activity-stage__tray .bbd-activity-card{min-height:58px}
 .bbd-activity-stage__tray .bbd-activity-card.is-category{border-color:var(--bbd-accent)}
 .bbd-activity-placeholder{color:var(--bbd-text);opacity:.55;font-size:15px;padding:15px}
+/* TV-parity student preview: view-only, never raw answer data. */
+.bbd-activity-preview__groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px;min-height:0}
+.bbd-activity-preview__groups>section{min-width:0;display:flex;flex-direction:column;gap:12px}
+.bbd-activity-preview__groups .bbd-activity-stage__tray{align-content:flex-start;overflow-wrap:anywhere}
+.bbd-activity-preview__groups .bbd-activity-card{cursor:default;user-select:text}
 .bbd-activity-stage__status{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
  gap:10px;min-height:45px;padding:10px 13px;border:1px solid var(--bbd-border);
  background:var(--bbd-panel);border-radius:11px;font-size:13px}
