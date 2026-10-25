@@ -394,3 +394,27 @@
  from{opacity:.55;transform:translate3d(0,5px,0)}
  to{opacity:1;transform:translate3d(0,0,0)}
 }
+
+/* Spatial board / frame presentation — frame metadata lives in private lesson drafts. */
+.bbd-frame-panel{gap:12px}
+.bbd-frame-panel .bbd-side-heading{gap:8px;color:var(--bbd-accent)}
+.bbd-frame-panel .bbd-side-heading h3{font-size:17px}
+.bbd-frame-panel .bbd-frame-count{font-size:12px;color:var(--bbd-muted);font-weight:750;
+ border-top:1px solid var(--bbd-border);padding-top:10px}
+.bbd-frame-card{display:grid;gap:9px;border-radius:15px;background:var(--bbd-background);
+ border:1px solid var(--bbd-border);padding:13px;
+ transition:background .2s ease,border-color .2s ease,transform .2s ease}
+.bbd-frame-card.active{border:2px solid var(--bbd-accent);background:var(--bbd-highlight)}
+.bbd-frame-card:hover{border-color:var(--bbd-accent)}
+.bbd-frame-card__top{display:flex;gap:8px;align-items:center;min-width:0}
+.bbd-frame-card__number{display:grid;place-items:center;min-width:36px;height:36px;border-radius:11px;
+ background:var(--bbd-accent);color:var(--bbd-panel);font-weight:850}
+.bbd-frame-card__top input{flex:1;width:0;min-width:0;font-weight:750}
+.bbd-frame-card small{font-size:12px;color:var(--bbd-muted);font-variant-numeric:tabular-nums}
+.bbd-canvas--tool-frame{cursor:crosshair}
+.bbd-frame-outline{pointer-events:none}
+.bbd-zoom button:disabled{opacity:.4}
+@media(max-width:780px){
+ .bbd-frame-panel .bbd-side-heading h3{font-size:16px}
+ .bbd-frame-card .bbd-side-actions button{min-height:44px}
+}
