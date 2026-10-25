@@ -70,7 +70,7 @@ assert.match(adapter,/serializeSyncDoctorReport/);
 assert.match(component,/isAdminRole/);
 assert.match(component,/isDepartmentLeaderRole/);
 assert.match(component,/report\.issues/);
-assert.match(component,/student records and scores remain unchanged/);
+assert.match(component,/live academic repair and rollback remain locked/);
 assert.match(component,/serializeSyncReviewDocket/);
 assert.match(component,/REPAIR PREFLIGHT/);
 assert.match(permissions,/slug === 'sync-doctor'/);
