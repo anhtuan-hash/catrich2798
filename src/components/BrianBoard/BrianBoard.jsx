@@ -18,6 +18,7 @@ import {BOARD_BACKUP_MAX_BYTES,duplicateBoardLesson,exportPrivateBoardBackup,imp
  boardActivityRaw,reviseBoardActivity,duplicateBoardActivity,moveBoardActivity,hideAllBoardActivities,
  selectBoardNameWithoutRepeat} from './boardWorkflow.js';
 import BoardActivityStage from './BoardActivityStage.jsx';
+import BoardPenToolbarExtras from './BoardPenToolbarExtras.jsx';
 import './BrianBoard.css';
 import './BoardActivities.css';
 
@@ -571,7 +572,12 @@ export default function BrianBoard({currentUser,language='vi'}){
          aria-label={'Ink color '+c} style={{background:c}}/>)}
        <input aria-label="Stroke thickness" type="range" min="2" max="22" value={thickness}
         onChange={e=>setThickness(Number(e.target.value))}/>
-{['text','sticky','flashcard'].includes(tool)&&<input className="bbd-object-text"
+        <BoardPenToolbarExtras studentView={studentView} tool={tool} vi={vi}
+         presets={BOARD_PEN_PRESETS} penPreset={penPreset} setPenPreset={setPenPreset}
+         setTool={setTool} setThickness={setThickness} snapToGrid={snapToGrid}
+         setSnapToGrid={setSnapToGrid} shapeFill={shapeFill} setShapeFill={setShapeFill}
+         page={page} clearInk={clearInk}/>
+        {['text','sticky','flashcard'].includes(tool)&&<input className="bbd-object-text"
         value={contentText} onChange={e=>setContentText(e.target.value)}
         placeholder={vi?'Nhập nội dung rồi chạm bảng':'Type, then tap the board'}/>}
        {tool==='flashcard'&&<input className="bbd-object-text" value={privateAnswer}
