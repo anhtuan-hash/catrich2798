@@ -95,6 +95,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  const page=lesson?.pages.find(x=>x.id===lesson.activePageId)||lesson?.pages[0];
  useEffect(()=>()=>{if(frameFlight.current)cancelAnimationFrame(frameFlight.current);},[page?.id]);
  const frames=page?.frames||[];
+ const visibleFrames=frames.filter(frame=>!frame.hidden);
  const currentViewport=safeBoardViewport({x:camera.x,y:camera.y,width:BOARD_W/zoom,height:BOARD_H/zoom});
  const viewportRef=useRef(currentViewport);viewportRef.current=currentViewport;
  const lastPointerBroadcast=useRef(0);
@@ -143,7 +144,7 @@ export default function BrianBoard({currentUser,language='vi'}){
    setShowPages(false);closingInspector.current=false;
   },()=>{setShowPages(false);closingInspector.current=false;});
  };
- const toggleInspector=()=>{if(showPages)closeInspector();else setShowPages(true);};
+ const toggleInspector=()=>{if(cleanMode){setCleanMode(false);setShowPages(true);}else if(showPages)closeInspector();else setShowPages(true);};
  useEffect(()=>{
   setColor(old=>{
    if(theme==='midnight'&&old==='#335d63')return '#dcece6';
@@ -320,14 +321,19 @@ export default function BrianBoard({currentUser,language='vi'}){
     const i=adjacentFrameIndex(list,activeFrameId,e.key==='ArrowRight'?1:-1);
     if(i>=0)goToFrame(list[i]);
    }
-   else if(!e.metaKey&&!e.ctrlKey){
+   else if(!e.metaKey&&!e.ctrlKey&&!e.altKey&&!e.repeat){
+    const key=e.key.toLowerCase();
     const keymap={b:'pen',h:'highlighter',e:'eraser',v:'select',t:'text',p:'pan',f:'frame'};
-    if(keymap[e.key.toLowerCase()])setTool(keymap[e.key.toLowerCase()]);
+    if(keymap[key]){e.preventDefault();setTool(keymap[key]);}
+    else if(key==='g'){e.preventDefault();fitAllCanvas();}
+    else if(key==='m'){e.preventDefault();setShowNavigator(old=>!old);}
+    else if(key==='0'){e.preventDefault();homeCanvas();}
+    else if(key==='c'){e.preventDefault();toggleCleanMode();}
    }
   };
   document.addEventListener('keydown',key);
   return()=>document.removeEventListener('keydown',key);
- },[open,close,undo,redo,persist,studentView,activeFrameId,page?.id]);
+ },[open,close,undo,redo,persist,studentView,activeFrameId,page?.id,page?.objects,frames,zoom,camera.x,camera.y,cleanMode,motion]);
  useEffect(()=>{
   if(!open)return undefined;
   document.body.classList.add('bbd-board-session');
@@ -731,6 +737,23 @@ export default function BrianBoard({currentUser,language='vi'}){
       <span>{modeLabel}</span>
       <small>{vi?'Trang':'Page'} {lesson?.pages.findIndex(p=>p.id===lesson.activePageId)+1||1}</small>
      </div>
+     {!activeActivityId&&visibleFrames.length>0&&<div className="bbd-frame-strip" aria-label={vi?'Điều khiển lộ trình khung':'Presentation frame sequence'}>
+      <div className="bbd-frame-strip__intro"><Frame size={15}/>
+       <span>{vi?'LỘ TRÌNH':'FRAME DECK'}</span>
+       <strong>{activeFrameId?Math.max(1,visibleFrames.findIndex(f=>f.id===activeFrameId)+1):'–'} / {visibleFrames.length}</strong>
+      </div>
+      <div className="bbd-frame-strip__items">
+       {visibleFrames.map((f,i)=><button key={f.id} type="button" className={activeFrameId===f.id?'active':''}
+        title={f.title} aria-pressed={activeFrameId===f.id} onClick={()=>goToFrame(f)}>
+        <span>{i+1}</span><span>{f.title}</span></button>)}
+      </div>
+      <div className="bbd-frame-strip__nav">
+       <button type="button" onClick={()=>moveBetweenFrames(-1)}
+        aria-label={vi?'Khung trước':'Previous frame'} title={vi?'Khung trước':'Previous frame'}><ChevronLeft size={16}/></button>
+       <button type="button" onClick={()=>moveBetweenFrames(1)}
+        aria-label={vi?'Khung sau':'Next frame'} title={vi?'Khung sau':'Next frame'}><ChevronRight size={16}/></button>
+      </div>
+     </div>}
      <div key={stageKey} className="bbd-stage-transition" data-motion={motion} aria-label={vi?'Không gian trình bày':'Presentation surface'}>
      {activeActivityId&&page?.activities?.find(a=>a.id===activeActivityId)
        ?studentView?<div className="bbd-activity-stage" aria-label="Student activity preview">
@@ -866,8 +889,8 @@ export default function BrianBoard({currentUser,language='vi'}){
       </div>)}
       {!frames.length&&<p>{vi?'Bắt đầu bằng công cụ Vẽ khung rồi kéo một hình chữ nhật trên bảng, hoặc chọn Thêm khung kế tiếp.':
        'Use Draw frame and drag a rectangle, or choose Add next frame.'}</p>}
-      <p>{vi?'Phím tắt: F vẽ khung; P kéo bảng; Alt + ←/→ di chuyển giữa các khung.':
-       'Shortcuts: F draw frame; P pan; Alt + ←/→ navigate frames.'}</p>
+      <p>{vi?'Phím tắt: F vẽ khung · P kéo bảng · Alt+←/→ chuyển khung · G khớp tất cả · M bản đồ · C chế độ gọn · 0 về gốc.':
+       'Shortcuts: F draw frame · P pan · Alt+←/→ frames · G fit all · M map · C clean view · 0 home.'}</p>
      </div>}
      {panel==='activities'&&<div className="bbd-side-stack bbd-activity-builder">
        <h3>{vi?'Hoạt động tương tác':'Interactive activities'}</h3>
