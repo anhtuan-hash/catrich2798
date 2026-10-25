@@ -73,3 +73,50 @@ export async function deleteBoardLesson(ownerId,lessonId){
   tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);
  });
 }
+
+/** V8 teacher-only named checkpoints, stored in the existing IndexedDB lessons store.
+ * Keys are scoped to owner + lesson; the last six checkpoints are retained.
+ * Never exposed to TV, students, or cloud backups without an explicit private export.
+ */
+export async function listBoardCheckpoints(ownerId,lessonId){
+ if(!ownerId||!lessonId)return [];
+ const db=await openBoardDB();
+ const rows=await new Promise((resolve,reject)=>{
+  const tx=db.transaction(STORE,'readonly'),req=tx.objectStore(STORE).getAll();
+  req.onsuccess=()=>resolve(req.result||[]);
+  req.onerror=()=>reject(req.error);
+ });
+ const prefix=String(ownerId)+':checkpoint:'+String(lessonId)+':';
+ return rows.filter(x=>x.ownerId===String(ownerId)&&x.key.startsWith(prefix))
+  .map(x=>({id:x.key.slice(prefix.length),title:x.title||'Checkpoint',
+   createdAt:x.createdAt||0})).sort((a,b)=>b.createdAt-a.createdAt).slice(0,6);
+}
+export async function saveBoardCheckpoint(ownerId,lesson,title){
+ if(!ownerId||lesson?.ownerId!==String(ownerId))throw Error('Checkpoint owner mismatch');
+ const current=normalizeLesson(lesson,ownerId);
+ const existing=await listBoardCheckpoints(ownerId,current.id);
+ const suffix=typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():
+  Date.now().toString(36)+Math.random().toString(36).slice(2);
+ const key=String(ownerId)+':checkpoint:'+current.id+':'+suffix;
+ const createdAt=Date.now(),safeTitle=String(title||'Teaching checkpoint').slice(0,80);
+ const db=await openBoardDB();
+ await new Promise((resolve,reject)=>{
+  const tx=db.transaction(STORE,'readwrite'),store=tx.objectStore(STORE);
+  store.put({key,ownerId:String(ownerId),title:safeTitle,createdAt,lesson:structuredClone(current)});
+  existing.slice(5).forEach(checkpoint=>
+   store.delete(String(ownerId)+':checkpoint:'+current.id+':'+checkpoint.id));
+  tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);
+ });
+ return {id:suffix,title:safeTitle,createdAt};
+}
+export async function readBoardCheckpoint(ownerId,lessonId,checkpointId){
+ if(!ownerId||!lessonId||!checkpointId)return null;
+ const key=String(ownerId)+':checkpoint:'+String(lessonId)+':'+String(checkpointId);
+ const db=await openBoardDB();
+ const row=await new Promise((resolve,reject)=>{
+  const tx=db.transaction(STORE,'readonly'),req=tx.objectStore(STORE).get(key);
+  req.onsuccess=()=>resolve(req.result||null);req.onerror=()=>reject(req.error);
+ });
+ if(!row||row.ownerId!==String(ownerId)||row.lesson?.id!==String(lessonId))return null;
+ return normalizeLesson(row.lesson,ownerId);
+}
