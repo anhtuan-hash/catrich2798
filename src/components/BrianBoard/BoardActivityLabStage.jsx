@@ -93,21 +93,20 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
   store(right,right);
  };
  const checkStress=number=>{if(answers[index]!==undefined)return;store(number,Number(number)===item.answer);};
- const assignTarget=(targetItem)=>{
-  if(!chosenLabel||answers[targetItem]!==undefined)return;
-  const label=items.find(i=>i.id===chosenLabel);
-  if(!label)return;
+ const assignTarget=(targetItem,labelId=chosenLabel)=>{
+  if(!labelId||placed[labelId]||Object.values(placed).includes(targetItem))return;
+  const label=items.find(i=>i.id===labelId);
   const targetItemData=items.find(i=>i.id===targetItem);
-  const point={x:targetItemData.x,y:targetItemData.y};
-  // Item placement is a scored attempt; labels must be matched to the fixed image positions.
-  if(placed[chosenLabel])return;
-  const correct=label.id===targetItem;
-  setPlaced(p=>({...p,[chosenLabel]:targetItem}));
+  if(!label||!targetItemData)return;
   setChosenLabel('');
-  if(correct)setFeedback(vi?'Nhãn đúng vị trí!':'Correct label!');
-  else setFeedback(vi?'Nhãn chưa đúng vị trí.':'Incorrect label position.');
-  setAnswers(a=>({...a,[items.findIndex(i=>i.id===chosenLabel)]:correct?point:{x:-999,y:-999}}));
-  if(correct)award(10);
+  if(label.id!==targetItem){
+   setFeedback(vi?'Sai vị trí. Nhãn quay về khay, hãy thử lại.':'Wrong target. The label returns to the tray; try again.');
+   return;
+  }
+  setPlaced(p=>({...p,[labelId]:targetItem}));
+  setAnswers(a=>({...a,[items.findIndex(i=>i.id===labelId)]:{x:targetItemData.x,y:targetItemData.y}}));
+  setFeedback(vi?'Đúng vị trí! +10 điểm':'Correct position! +10 points');
+  award(10);
  };
  const checkError=answer=>{
   const tokens=item.label.split(/\s+/).filter(Boolean);
@@ -161,10 +160,7 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
    <ImagePlane activity={activity} onTap={activity.type==='hotspot'?tapPoint:undefined}>
     {activity.type==='drag_label'&&items.map((x,i)=><button key={x.id}
      type="button" style={{left:x.x+'%',top:x.y+'%'}} className="bbd-lab-target"
-     onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();const token=e.dataTransfer.getData('text/plain');if(token){setChosenLabel(token);const chosen=items.find(j=>j.id===token);if(!placed[token]){
-      const right=chosen.id===x.id;const response={x:right?x.x:-999,y:right?x.y:-999};
-      setPlaced(p=>({...p,[token]:x.id}));setAnswers(a=>({...a,[items.findIndex(j=>j.id===token)]:response}));
-      if(right)award(10);setFeedback(right?'✓':vi?'Sai vị trí':'Wrong position');}}}}
+     onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();const token=e.dataTransfer.getData('text/plain');assignTarget(x.id,token);}}
      onClick={()=>assignTarget(x.id)}>
      {items.some(q=>placed[q.id]===x.id)?'✓':String(i+1)}</button>)}
     {activity.type==='hotspot'&&answers[index]!==undefined&&<div className="bbd-lab-pin"
