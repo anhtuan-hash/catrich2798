@@ -6,7 +6,7 @@ import {normalizeBoardFrames} from '../src/components/BrianBoard/boardSpatial.js
 import {lassoObjectIds,moveBoardObjects,scaleBoardObjects,duplicateBoardObjects,
  reorderBoardObjects,splitStrokeByEraser,eraseInkAtPoint,buildBoardTemplate,
  BOARD_V8_TEMPLATES,recognizeBoardGesture,createDiagramConnection,syncDiagramConnections,
- groupResizeTransform,BOARD_RESIZE_HANDLES} from '../src/components/BrianBoard/boardV8Tools.js';
+ groupResizeTransform,BOARD_RESIZE_HANDLES,rotateBoardObjects,alignBoardObjects} from '../src/components/BrianBoard/boardV8Tools.js';
 import {normalizeBoardCrop} from '../src/components/BrianBoard/boardImageStudio.js';
 import {measureRuler,measureAngle,drawCompassCircle} from '../src/components/BrianBoard/boardMeasure.js';
 const source=f=>readFileSync(new URL('../src/components/BrianBoard/'+f,import.meta.url),'utf8');
@@ -32,6 +32,26 @@ assert.equal(anchored[2].y2,objects[2].y2);
 const protectedItem={...objects[2],locked:true};
 assert.equal(groupResizeTransform([protectedItem],['c'],'se',{x:80,y:40})[0],protectedItem);
 assert.deepEqual(groupResizeTransform(objects,['c'],'unknown',{x:30,y:20}),objects);
+const textToTurn={id:'turn-me',kind:'text',x:40,y:70,text:'Hello',fontSize:30,studentVisible:true};
+const rotated=rotateBoardObjects([textToTurn],['turn-me'],30);
+assert.equal(rotated[0].rotation,30);
+assert.equal(textToTurn.rotation,undefined,'Original text must stay immutable');
+const lineToTurn={id:'line',kind:'shape',shape:'line',x:0,y:0,x2:100,y2:0,width:4};
+const turnedLine=rotateBoardObjects([lineToTurn],['line'],90)[0];
+assert.ok(Math.abs(turnedLine.x-50)<.0001);
+assert.ok(Math.abs(turnedLine.x2-50)<.0001);
+const alignItems=[
+ {id:'left',kind:'shape',shape:'rect',x:0,y:0,x2:40,y2:40},
+ {id:'middle',kind:'shape',shape:'rect',x:100,y:110,x2:160,y2:160},
+ {id:'right',kind:'shape',shape:'rect',x:250,y:210,x2:290,y2:270}
+];
+const aligned=alignBoardObjects(alignItems,['left','middle','right'],'left');
+assert.deepEqual(aligned.map(o=>o.x),[0,0,0]);
+const distributed=alignBoardObjects(alignItems,['left','middle','right'],'distribute-x');
+assert.equal(distributed[0].x,alignItems[0].x);
+assert.equal(distributed[2].x,alignItems[2].x);
+assert.notEqual(distributed[1].x,alignItems[1].x);
+assert.deepEqual(alignItems.map(o=>o.x),[0,100,250]);
 assert.deepEqual(normalizeBoardCrop({x:0.2,y:0.1,width:.5,height:.7}),{x:.2,y:.1,width:.5,height:.7});
 assert.equal(normalizeBoardCrop({x:.98,y:.99,width:1,height:1}).x,.92);
 const scaled=scaleBoardObjects(objects,['c'],1.5);
@@ -109,6 +129,10 @@ assert.match(board,/smartGeometry=\{smartGeometry\}/);
 assert.match(board,/cropImageInLayer/);
 assert.match(board,/syncDiagramConnections/);
 assert.match(board,/groupResizeTransform/);
+assert.match(board,/rotateBoardObjects/);
+assert.match(board,/alignBoardObjects/);
+assert.match(canvas,/bbd-v8-align-select/);
+assert.ok(canvas.includes("'rotate',{degrees"));
 assert.match(board,/onCommitMany=\{commitMany\}/);
 assert.match(board,/\['ruler',Ruler/);
 assert.match(board,/\['protractor',Triangle/);
@@ -148,6 +172,10 @@ assert.match(board,/cropEditMode/);
 assert.match(board,/effectBoardImageRegion/);
 assert.match(source('BoardCropEditor.jsx'),/mode==='blur'/);
 assert.match(source('BoardCropEditor.jsx'),/onPointerMove=\{drag\}/);
+assert.match(source('boardPdf.js'),/spatialObjectBounds\(o\)/);
+assert.match(source('BoardCanvas.jsx'),/renderBoardObjectRaw/);
+assert.match(source('boardModel.js'),/\.\.\.rotation\(o\)/);
+
 assert.match(source('BoardFrameThumbnail.jsx'),/renderBoardObject/);
 assert.ok(!board.includes('dangerouslySetInnerHTML'));
 assert.ok(!canvas.includes('dangerouslySetInnerHTML'));
