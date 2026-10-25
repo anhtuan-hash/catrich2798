@@ -212,3 +212,70 @@ export function groupResizeTransform(objects,ids,handle,delta){
   return {...o,...changes};
  });
 }
+
+/** Rotation preserves each item's native SVG primitives for PDF, TV and handwriting. */
+export function rotateBoardObjects(objects,ids,degrees){
+ const angle=Math.max(-180,Math.min(180,finite(degrees)));
+ const picked=new Set(ids),bounds=groupBounds(objects,ids);
+ if(!bounds||!angle)return objects;
+ const center={x:bounds.x+bounds.width/2,y:bounds.y+bounds.height/2};
+ const theta=angle*Math.PI/180,cos=Math.cos(theta),sin=Math.sin(theta);
+ const turn=(x,y)=>({
+  x:center.x+(finite(x)-center.x)*cos-(finite(y)-center.y)*sin,
+  y:center.y+(finite(x)-center.x)*sin+(finite(y)-center.y)*cos
+ });
+ return objects.map(o=>{
+  if(!picked.has(o.id)||o.locked)return o;
+  const b=spatialObjectBounds(o),itemCenter=b&&{x:b.x+b.width/2,y:b.y+b.height/2};
+  if(!itemCenter)return o;
+  // A straight line/arrow can be rotated entirely by changing its endpoints.
+  if(o.kind==='shape'&&['line','arrow'].includes(o.shape)){
+   const a=turn(o.x,o.y),z=turn(o.x2,o.y2);
+   return {...o,x:a.x,y:a.y,x2:z.x,y2:z.y};
+  }
+  if(o.kind==='stroke'){
+   return {...o,points:(o.points||[]).map(p=>({...p,...turn(p.x,p.y)}))};
+  }
+  const destination=turn(itemCenter.x,itemCenter.y);
+  const dx=destination.x-itemCenter.x,dy=destination.y-itemCenter.y;
+  if(o.kind==='shape')return {...o,x:o.x+dx,y:o.y+dy,
+   x2:o.x2+dx,y2:o.y2+dy,rotation:(finite(o.rotation)+angle+360)%360};
+  return {...o,x:o.x+dx,y:o.y+dy,rotation:(finite(o.rotation)+angle+360)%360};
+ });
+}
+export function alignBoardObjects(objects,ids,operation){
+ const keys=new Set(ids),selected=objects.filter(o=>keys.has(o.id)&&!o.locked);
+ if(selected.length<2)return objects;
+ const bounds=selected.map(o=>spatialObjectBounds(o)).filter(Boolean);
+ if(bounds.length!==selected.length)return objects;
+ const left=Math.min(...bounds.map(b=>b.x)),right=Math.max(...bounds.map(b=>b.x+b.width));
+ const top=Math.min(...bounds.map(b=>b.y)),bottom=Math.max(...bounds.map(b=>b.y+b.height));
+ const items=selected.map((o,i)=>({id:o.id,b:bounds[i]}));
+ const centers=items.map(v=>({id:v.id,x:v.b.x+v.b.width/2,y:v.b.y+v.b.height/2}));
+ const changes=new Map();
+ if(['left','center','right','top','middle','bottom'].includes(operation)){
+  for(const item of items){
+   let dx=0,dy=0;
+   if(operation==='left')dx=left-item.b.x;
+   if(operation==='center')dx=(left+right-item.b.width)/2-item.b.x;
+   if(operation==='right')dx=right-item.b.width-item.b.x;
+   if(operation==='top')dy=top-item.b.y;
+   if(operation==='middle')dy=(top+bottom-item.b.height)/2-item.b.y;
+   if(operation==='bottom')dy=bottom-item.b.height-item.b.y;
+   changes.set(item.id,{x:dx,y:dy});
+  }
+ }else if((operation==='distribute-x'||operation==='distribute-y')&&items.length>=3){
+  const axis=operation==='distribute-x'?'x':'y';
+  const sorted=[...centers].sort((a,b)=>a[axis]-b[axis]);
+  const first=sorted[0][axis],last=sorted.at(-1)[axis];
+  sorted.forEach((entry,i)=>{
+   const offset=first+(last-first)*i/(sorted.length-1)-entry[axis];
+   changes.set(entry.id,axis==='x'?{x:offset,y:0}:{x:0,y:offset});
+  });
+ }else return objects;
+ return moveBoardObjects(objects,[...changes.keys()],0,0).map(o=>{
+  const d=changes.get(o.id);
+  if(!d)return o;
+  return moveBoardObjects([o],[o.id],d.x,d.y)[0];
+ });
+}
