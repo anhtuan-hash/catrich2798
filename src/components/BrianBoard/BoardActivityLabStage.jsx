@@ -72,8 +72,8 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
  },[activity]);
  useEffect(()=>{
   onPublicState?.({index,opened:[...opened],scores:scores.map(x=>({name:x.name,score:x.score})),
-   finished,revealAll:false,seconds:remaining});
- },[index,opened,scores,finished,remaining,onPublicState]);
+   finished,revealAll,seconds:remaining});
+ },[index,opened,scores,finished,revealAll,remaining,onPublicState]);
  const reset=()=>{
   setIndex(0);setAnswers({});setFeedback('');setSelected('');setSelectedWords([]);
   setEvidenceRange([]);setAnswerChoice('');setScores(makeScores());setTeam(0);
@@ -119,7 +119,7 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
  const checkStress=number=>{if(answers[index]!==undefined)return;store(number,Number(number)===item.answer);};
  const lockFourCorners=()=>{
   if(cornerLocked||answers[index]!==undefined||!Object.keys(cornerChoices).length)return;
-  const correctTeams=Object.entries(cornerChoices).filter(([,answer])=>answer===item.answer);
+  const correctTeams=Object.entries(cornerChoices).filter(([id,answer])=>Number(id)<scores.length&&answer===item.answer);
   setScores(prev=>prev.map((entry,i)=>correctTeams.some(([id])=>Number(id)===i)?
    {...entry,score:entry.score+10}:entry));
   setAnswers(prev=>({...prev,[index]:correctTeams.length?item.answer:'—'}));
