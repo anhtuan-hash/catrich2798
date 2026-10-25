@@ -288,7 +288,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
      <text x={f.x+14} y={f.y-17} fill="#fff" fontSize="24">{i+1}. {f.title.slice(0,27)}</text>
     </g>)}
    {page?.objects?.map(o=>renderBoardObject(o,
-    (tool==='eraser'||tool==='eraser-ink'&&o.kind==='stroke')?onErase:null,
+    !o.locked&&(tool==='eraser'||tool==='eraser-ink'&&o.kind==='stroke')?onErase:null,
     studentView,tool==='select'||tool==='eraser-ink'?null:onInteract,
     tool==='select'&&!o.locked?selectObject:null))}
    {!studentView&&<path ref={preview} d="" stroke={color} strokeWidth={width}
