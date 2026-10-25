@@ -2,9 +2,22 @@ import {test,expect} from '@playwright/test';
 
 test.beforeEach(async({page})=>{
   // Test fixture must never call the live Supabase REST endpoint.
+  const jsErrors=[];
+  page.on('pageerror',error=>jsErrors.push(error.message));
+  page.on('response',response=>{if(response.status()>=400)jsErrors.push(response.status()+' '+response.url());});
   await page.route('https://**/*',route=>route.abort('blockedbyclient'));
-  await page.goto('/tests/fixtures/sync-doctor-qa.html');
-  await expect(page.getByRole('heading',{name:/Sync Doctor/i})).toBeVisible();
+  const response=await page.goto('/tests/fixtures/sync-doctor-qa.html');
+  try{
+    await expect(page.getByRole('heading',{name:/Sync Doctor/i})).toBeVisible({timeout:3500});
+  }catch(err){
+    console.log('SYNC DOCTOR QA BOOT:',JSON.stringify({
+      status:response?.status(),url:page.url(),
+      title:await page.title(),
+      body:(await page.locator('body').innerText()).slice(0,800),
+      errors:jsErrors.slice(0,8),
+    }));
+    throw err;
+  }
 });
 
 test('synthetic access: teacher/guest denied; administrator/head can navigate without write actions',async({page})=>{
