@@ -576,7 +576,7 @@ export default function BrianBoard({currentUser,language='vi'}){
   editPage(p=>({...p,frames:[...(p.frames||[]),named]}));
   setActiveFrameId(named.id);setPanel('frames');
  };
- const flyToView=next=>{
+ const flyToView=(next,transition='fly')=>{
   if(frameFlight.current)cancelAnimationFrame(frameFlight.current);
   frameFlight.current=0;
   const reduced=motion==='off'||window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
@@ -584,13 +584,28 @@ export default function BrianBoard({currentUser,language='vi'}){
    setZoom(next.zoom);setCamera(next.camera);return;
   }
   const from={x:camera.x,y:camera.y,zoom},start=performance.now();
-  const duration=motion==='expressive'?510:320;
+  const isFocus=transition==='focus';
+  const duration=isFocus?(motion==='expressive'?950:680):(motion==='expressive'?510:320);
+  // Focus travels via a deliberately wider establishing shot, then enters the target Frame.
+  const startCenter={x:from.x+BOARD_W/(2*from.zoom),y:from.y+BOARD_H/(2*from.zoom)};
+  const endCenter={x:next.camera.x+BOARD_W/(2*next.zoom),y:next.camera.y+BOARD_H/(2*next.zoom)};
+  const overviewZoom=Math.max(.2,Math.min(from.zoom,next.zoom)*.64);
+  const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
   const tick=now=>{
-   const t=Math.min(1,(now-start)/duration),e=1-Math.pow(1-t,3);
-   setCamera({x:from.x+(next.camera.x-from.x)*e,y:from.y+(next.camera.y-from.y)*e});
-   setZoom(from.zoom+(next.zoom-from.zoom)*e);
+   const t=Math.min(1,(now-start)/duration),e=isFocus?ease(t):1-Math.pow(1-t,3);
+   const cx=startCenter.x+(endCenter.x-startCenter.x)*e;
+   const cy=startCenter.y+(endCenter.y-startCenter.y)*e;
+   const z=isFocus?(t<.5?
+    from.zoom+(overviewZoom-from.zoom)*ease(t*2):
+    overviewZoom+(next.zoom-overviewZoom)*ease((t-.5)*2)):
+    from.zoom+(next.zoom-from.zoom)*e;
+   setZoom(z);
+   setCamera({x:cx-BOARD_W/(2*z),y:cy-BOARD_H/(2*z)});
    if(t<1)frameFlight.current=requestAnimationFrame(tick);
-   else frameFlight.current=0;
+   else{
+    frameFlight.current=0;
+    setCamera(next.camera);setZoom(next.zoom);
+   }
   };
   frameFlight.current=requestAnimationFrame(tick);
  };
@@ -598,8 +613,10 @@ export default function BrianBoard({currentUser,language='vi'}){
   if(!frame||frame.hidden)return;
   const v=viewportForFrame(frame);
   const next=cameraForViewport(v);
+  if(frameFlight.current)cancelAnimationFrame(frameFlight.current);
+  frameFlight.current=0;
   if(frame.transition==='instant'){setCamera(next.camera);setZoom(next.zoom);}
-  else flyToView(next);setActiveFrameId(frame.id);
+  else flyToView(next,frame.transition);setActiveFrameId(frame.id);
   setActiveActivityId(null);
  };
  const moveBetweenFrames=delta=>{
