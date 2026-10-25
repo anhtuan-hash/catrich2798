@@ -91,6 +91,19 @@ export default function BrianBoard({currentUser,language='vi'}){
  const frames=page?.frames||[];
  const currentViewport=safeBoardViewport({x:camera.x,y:camera.y,width:BOARD_W/zoom,height:BOARD_H/zoom});
  const viewportRef=useRef(currentViewport);viewportRef.current=currentViewport;
+ const lastPointerBroadcast=useRef(0);
+ const broadcastPointer=(point,mode='laser')=>{
+  const session=presentationRef.current;
+  if(!session)return;
+  if(point){
+   const now=Date.now();
+   if(now-lastPointerBroadcast.current<42)return;
+   lastPointerBroadcast.current=now;
+  }
+  const bounded=point?{x:Math.max(-100000,Math.min(100000,Number(point.x)||0)),
+   y:Math.max(-100000,Math.min(100000,Number(point.y)||0))}:null;
+  session.bus.postMessage({type:'pointer',mode:mode==='spotlight'?'spotlight':'laser',point:bounded});
+ };
  useEffect(()=>{setCamera({x:0,y:0});setZoom(1);setActiveFrameId(null);},[page?.id]);
  // Exact TV payload for classroom preview: never read a raw activity in student mode.
  const studentActivityPayload=studentView&&lesson?boardStudentPayload(lesson,activeActivityId,activityLive):null;
@@ -145,6 +158,7 @@ export default function BrianBoard({currentUser,language='vi'}){
   const session=presentationRef.current;
   if(session){session.bus.postMessage({type:'end'});session.bus.close();presentationRef.current=null;}
   setPresenting(false);
+  lastPointerBroadcast.current=0;
  };
  const startPresentation=()=>{
   if(presentationRef.current)return stopPresentation();
@@ -672,7 +686,7 @@ export default function BrianBoard({currentUser,language='vi'}){
        penPreset={penPreset} snapToGrid={snapToGrid} shapeFill={shapeFill} vi={vi} zoom={zoom} setZoom={setZoom}
        camera={camera} setCamera={next=>{setCamera(next);setActiveFrameId(null);}}
        frames={frames} showFrames={showFrames} activeFrameId={activeFrameId}
-       onCreateFrame={createDrawnFrame} contentText={contentText} privateAnswer={privateAnswer} onInteract={interactObject}
+       onPointerPosition={broadcastPointer} onCreateFrame={createDrawnFrame} contentText={contentText} privateAnswer={privateAnswer} onInteract={interactObject}
        spotlight={spotlight} studentView={studentView}/>}
      </div>
      <div className="bbd-canvas-bottom">
