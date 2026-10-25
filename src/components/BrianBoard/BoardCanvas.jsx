@@ -74,7 +74,7 @@ export function renderBoardObject(object,onErase,studentView=false,onInteract,on
 export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onCommit,onErase,onDuplicateObject,onMoveObject,
  zoom=1,setZoom,camera={x:0,y:0},setCamera,contentText='',privateAnswer='',onInteract,
  studentView=false,spotlight=false,penPreset='classic',snapToGrid=false,shapeFill='none',vi=true,
- frames=[],showFrames=true,onCreateFrame,activeFrameId=null}){
+ frames=[],showFrames=true,onCreateFrame,activeFrameId=null,onPointerPosition}){
  const svg=useRef(null),preview=useRef(null),pointer=useRef(null);
  const [drawing,setDrawing]=useState(false),[selectedId,setSelectedId]=useState('');
  const [laser,setLaser]=useState(null);
@@ -142,7 +142,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
     color,studentVisible:true,privateAnswer:tool==='flashcard'?privateAnswer.slice(0,120):undefined});
    return;
   }
-  if(tool==='laser'){setLaser(p);return;}
+  if(tool==='laser'){setLaser(p);onPointerPosition?.(p,spotlight?'spotlight':'laser');return;}
   if(!['pen','highlighter','shape-rect','shape-ellipse','shape-line','shape-arrow','shape-triangle','pan','frame'].includes(tool))return;
   event.preventDefault();
   const appliedPreset=tool==='highlighter'?{width:Math.max(width,14),opacity:.3,pressure:false}:
@@ -160,7 +160,11 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
   setDrawing(true);
  };
  const move=event=>{
-  if(tool==='laser'||spotlight){setLaser(local(event));if(tool==='laser')return;}
+  if(tool==='laser'||spotlight){
+   const pos=local(event);setLaser(pos);
+   onPointerPosition?.(pos,spotlight?'spotlight':'laser');
+   if(tool==='laser')return;
+  }
   const state=pointer.current;
   if(!state||state.pointerId!==event.pointerId)return;
   const p=local(event);
@@ -205,7 +209,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
    preserveAspectRatio="xMidYMid meet"
    onPointerDown={begin} onPointerMove={move} onPointerUp={event=>finish(event)}
    onPointerCancel={event=>finish(event,true)} onWheel={wheel}
-   onPointerLeave={()=>{if(tool==='laser'||spotlight)setLaser(null);}}
+   onPointerLeave={()=>{if(tool==='laser'||spotlight){setLaser(null);onPointerPosition?.(null);}}}
    role="img" aria-label="Interactive vector teaching board">
    {!studentView&&showFrames&&frames.map((f,i)=><g key={f.id} className="bbd-frame-outline"
      pointerEvents="none" opacity={activeFrameId===f.id?1:.8}>
