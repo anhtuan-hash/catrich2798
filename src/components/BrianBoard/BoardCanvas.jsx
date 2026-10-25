@@ -61,7 +61,7 @@ export function renderBoardObject(object,onErase,studentView=false,onInteract,on
  if(o.kind==='mask'){
   if(o.revealed)return null;
   return <g key={o.id} data-board-object={o.id} style={{cursor:!studentView?'pointer':'default'}}
-   onPointerDown={press}
+   onPointerDown={event=>{if(onErase||onSelect)press(event);else event.stopPropagation();}}
    onClick={event=>{if(!studentView&&!onErase&&!onSelect){event.stopPropagation();onInteract?.(o.id);}}}>
    <rect x={o.x} y={o.y} rx={9} width={o.width||240} height={o.height||90}
     fill="#243b4b" opacity=".96"/>
