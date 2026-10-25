@@ -160,7 +160,7 @@ begin
  -- nothing is appended to persisted gradebook data.
  simulated:=jsonb_set(backup.snapshot,'{students}',
     students||jsonb_build_array(jsonb_build_object('__sync_doctor_simulated',true)),true);
- restored:=jsonb_set(simulated,'{students}',(simulated->'students')-1,true);
+ restored:=jsonb_set(simulated,'{students}',(simulated->'students')-(jsonb_array_length(simulated->'students')-1),true);
  if restored<>backup.snapshot
    or encode(sha256(convert_to(restored::text,'UTF8')),'hex')<>backup.snapshot_hash then
     raise exception 'In-memory rollback mismatch' using errcode='XX001';end if;
