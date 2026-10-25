@@ -112,3 +112,14 @@ export async function rehearseSyncDoctorRollback(requestId){
     throw new Error('Không thể công nhận phép thử hoàn tác trên dữ liệu thật.');
   return data;
 }
+
+
+// Advisory daily monitor; no student identities or scores are returned.
+export async function listSyncDoctorMonitorRuns(){
+  requireBackend();
+  const {data,error}=await supabase.from('bes_sync_monitor_runs')
+    .select('id,checked_at,school_year,canonical_classes,gradebook_workspaces,homeroom_workspaces,possible_missing_links,affected_workspaces,status,note')
+    .order('checked_at',{ascending:false}).limit(30);
+  checkFailure(error);
+  return Array.isArray(data)?data:[];
+}
