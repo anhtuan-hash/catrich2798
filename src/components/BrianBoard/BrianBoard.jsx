@@ -590,7 +590,7 @@ export default function BrianBoard({currentUser,language='vi'}){
        {!studentView&&<button type="button" className="bbd-clear-ink"
         disabled={page?.locked||!page?.objects.some(o=>o.kind==='stroke')}
         onClick={clearInk} title={vi?'Xóa tất cả nét bút, có thể hoàn tác':'Clear all pen ink, undo available'}>
-        <Eraser size={16}/><span>{vi?'Xóa nét':'Clear ink'}</span></button>
+        <Eraser size={16}/><span>{vi?'Xóa nét':'Clear ink'}</span></button>}
        {['text','sticky','flashcard'].includes(tool)&&<input className="bbd-object-text"
         value={contentText} onChange={e=>setContentText(e.target.value)}
         placeholder={vi?'Nhập nội dung rồi chạm bảng':'Type, then tap the board'}/>}
