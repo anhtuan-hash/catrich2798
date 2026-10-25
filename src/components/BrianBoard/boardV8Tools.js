@@ -126,3 +126,26 @@ export function buildBoardTemplate(name,viewport={x:0,y:0,width:1600,height:900}
  return [txt(title,x,y,48),rect(x+w*.34,y+250,w*.31,115),txt('MAIN IDEA',x+w*.37,y+310,30),
   ...['CAUSES','EXAMPLES','EFFECTS','SOLUTIONS'].map((t,i)=>txt(t,x+(i%2)*w*.58,y+150+Math.floor(i/2)*350,31))];
 }
+
+/** Optional hold-to-perfect geometry. Deterministic analytic recognition; not AI. */
+export function recognizeBoardGesture(points){
+ const p=Array.isArray(points)?points.filter(v=>Number.isFinite(v?.x)&&Number.isFinite(v?.y)):[];
+ if(p.length<7)return null;
+ const xs=p.map(q=>q.x),ys=p.map(q=>q.y);
+ const left=Math.min(...xs),top=Math.min(...ys),right=Math.max(...xs),bottom=Math.max(...ys);
+ const w=right-left,h=bottom-top,diag=Math.hypot(w,h);
+ if(diag<80)return null;
+ const start=p[0],end=p.at(-1);
+ const closed=Math.hypot(start.x-end.x,start.y-end.y)<diag*.19;
+ if(!closed){
+  const dx=end.x-start.x,dy=end.y-start.y,length=Math.hypot(dx,dy);
+  if(length<60)return null;
+  const average=p.reduce((sum,q)=>sum+Math.abs(dy*q.x-dx*q.y+end.x*start.y-end.y*start.x)/length,0)/p.length;
+  return average<Math.max(9,length*.046)?{shape:'line',x:start.x,y:start.y,x2:end.x,y2:end.y}:null;
+ }
+ if(w<50||h<50)return null;
+ const center={x:(left+right)/2,y:(top+bottom)/2};
+ const radii=p.map(q=>Math.hypot((q.x-center.x)/(w/2),(q.y-center.y)/(h/2)));
+ const error=radii.reduce((sum,r)=>sum+Math.abs(r-1),0)/radii.length;
+ return {shape:error<.21?'ellipse':'rect',x:left,y:top,x2:right,y2:bottom};
+}
