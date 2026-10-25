@@ -1,0 +1,62 @@
+name: Sync Doctor isolated PostgreSQL acceptance
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/sync-doctor-postgres-e2e.yml'
+      - 'scripts/test-sync-doctor-local-postgres.sh'
+      - 'scripts/sync-doctor-extract-local-functions.mjs'
+      - 'tests/sync-doctor-local/**'
+      - 'supabase/migrations/20261025103500_bes_sync_doctor_readonly_preflight.sql'
+      - 'supabase/migrations/20261025170000_sync_doctor_exact_active_count.sql'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-doctor-postgres-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  synthetic-postgres:
+    name: Real PLpgSQL on isolated PostgreSQL 16
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: synthetic-test-only
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 12
+    steps:
+      - name: Checkout proposed source (no write credentials)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Confirm local PostgreSQL client
+        run: |
+          set -euo pipefail
+          command -v psql
+          psql --version
+          node --version
+      - name: Execute actual stored functions against disposable synthetic database
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: synthetic-test-only
+        run: |
+          set -euo pipefail
+          bash scripts/test-sync-doctor-local-postgres.sh
+      - name: Verify no cloud resources were provisioned
+        if: always()
+        run: echo "Only ephemeral GitHub-hosted runner and PostgreSQL service; no Production endpoint, secrets or uploads."
