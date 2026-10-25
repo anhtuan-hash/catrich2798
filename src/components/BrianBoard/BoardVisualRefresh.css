@@ -354,3 +354,23 @@
  .bbd-canvas-crumb strong{font-size:12px;max-width:42%}
  .bbd-canvas-crumb>small{padding:4px 8px}
 }
+
+/* Responsive usability fixes: the inspector close control belongs to mobile only. */
+.bbd-sidebar-close{display:none}
+@media(max-width:780px){
+ .bbd-sidebar-close{display:grid!important;place-items:center}
+}
+@media(max-width:640px){
+ .bbd-head{height:107px;min-height:107px;flex-wrap:wrap;
+  align-content:center;row-gap:5px;column-gap:7px}
+ .bbd-brand{flex:0 0 auto}
+ .bbd-lesson-name{flex:1 1 115px;max-width:none;min-width:66px}
+ .bbd-head-actions{order:4;flex:1 0 100%;width:100%;justify-content:space-between}
+ .bbd-head-actions button:nth-child(3){display:flex}
+ .bbd-save-status{flex:0 0 auto}
+}
+@media(max-width:390px){
+ .bbd-brand strong{display:block;font-size:9px}
+ .bbd-lesson-name{max-width:none;min-width:60px}
+ .bbd-save-status{display:inline-flex}
+}
