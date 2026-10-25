@@ -3,7 +3,7 @@ import {createPortal} from 'react-dom';
 import {Presentation,Pen,Highlighter,Eraser,MousePointer2,Hand,Type,Square,Circle,Minus,
  StickyNote,ScanEye,Undo2,Redo2,Plus,Copy,Trash2,Save,CheckCircle2,X,ChevronLeft,
  ChevronRight,CloudOff,Play,Pause,RotateCcw,Timer,Users,Eye,EyeOff,Maximize2,
- Download,Move,Palette,FilePlus2,LockKeyhole,LockKeyholeOpen,Layers,ArrowUp,ArrowDown,ImagePlus} from 'lucide-react';
+ Download,Move,Palette,FilePlus2,LockKeyhole,LockKeyholeOpen,Layers,ArrowUp,ArrowDown,ImagePlus,Search,RefreshCcw,FileJson,FileUp,Edit3} from 'lucide-react';
 import {isAdminRole,isDepartmentLeaderRole,normalizeSystemRole} from '../../utils/roles.js';
 import {GLOBAL_FLOATING_ACTION_EVENT,FLOATING_ACTION_IDS} from '../../utils/unifiedFloatingDock.js';
 import {BOARD_W,BOARD_H,newLesson,newPage,normalizeLesson,makeId,THEMES,sanitizeStudentPage} from './boardModel.js';
@@ -13,6 +13,9 @@ import {listBoardCloud,saveBoardCloud,readBoardCloud} from './boardCloud.js';
 import {boardStudentPayload,newBoardPresentationId} from './boardPresentation.js';
 import {importBoardPdf,exportBoardStudentPdf} from './boardPdf.js';
 import {createBoardActivity} from './boardActivities.js';
+import {BOARD_BACKUP_MAX_BYTES,duplicateBoardLesson,exportPrivateBoardBackup,importPrivateBoardBackup,
+ boardActivityRaw,reviseBoardActivity,duplicateBoardActivity,moveBoardActivity,hideAllBoardActivities,
+ selectBoardNameWithoutRepeat} from './boardWorkflow.js';
 import BoardActivityStage from './BoardActivityStage.jsx';
 import './BrianBoard.css';
 import './BoardActivities.css';
@@ -43,13 +46,14 @@ export default function BrianBoard({currentUser,language='vi'}){
  const [studentView,setStudentView]=useState(false),[timerSeconds,setTimerSeconds]=useState(300);
  const [timerDeadline,setTimerDeadline]=useState(0),[timerNow,setTimerNow]=useState(Date.now());
  const [teams,setTeams]=useState([{name:'Team 1',score:0},{name:'Team 2',score:0}]);
- const [randomNames,setRandomNames]=useState(''),[randomChoice,setRandomChoice]=useState('');
+ const [randomNames,setRandomNames]=useState(''),[randomChoice,setRandomChoice]=useState(''),[randomUsed,setRandomUsed]=useState([]);
  const [presenting,setPresenting]=useState(false),presentationRef=useRef(null);
  const [pdfBusy,setPdfBusy]=useState(false),[pdfStatus,setPdfStatus]=useState('');
  const [activityType,setActivityType]=useState('matching'),[activityTitle,setActivityTitle]=useState(''),
   [activityPrompt,setActivityPrompt]=useState(''),[activityRaw,setActivityRaw]=useState(''),
-  [activityError,setActivityError]=useState(''),[activeActivityId,setActiveActivityId]=useState(null);
+  [activityError,setActivityError]=useState(''),[activeActivityId,setActiveActivityId]=useState(null),[editingActivityId,setEditingActivityId]=useState(null);
  const [panel,setPanel]=useState('pages'),[library,setLibrary]=useState([]),[libraryError,setLibraryError]=useState(''),[cloudLibrary,setCloudLibrary]=useState([]),[cloudStatus,setCloudStatus]=useState('');
+ const [libraryQuery,setLibraryQuery]=useState(''),[backupStatus,setBackupStatus]=useState('');
  const refreshLibrary=async()=>{
   try{setLibrary(await listBoardLessons(ownerId));setLibraryError('');}
   catch(e){setLibraryError(e.message||'Cannot load library');}
@@ -234,13 +238,44 @@ export default function BrianBoard({currentUser,language='vi'}){
   return()=>document.body.classList.remove('bbd-board-session');
  },[open]);
  const editPage=(fn)=>mutate(d=>({...d,pages:d.pages.map(p=>p.id===d.activePageId?fn(p):p)}));
+ const cancelActivityEditing=()=>{
+  setEditingActivityId(null);setActivityRaw('');setActivityTitle('');setActivityPrompt('');setActivityError('');
+ };
+ const beginActivityEditing=activity=>{
+  if(page?.locked)return;
+  setEditingActivityId(activity.id);setActivityType(activity.type);
+  setActivityTitle(activity.title);setActivityPrompt(activity.prompt);
+  setActivityRaw(boardActivityRaw(activity));setActivityError('');
+ };
  const addActivity=()=>{
-  if(!page||page.locked||page.activities?.length>=24)return;
+  if(!page||page.locked||(!editingActivityId&&page.activities?.length>=24))return;
   try{
-   const activity=createBoardActivity({type:activityType,title:activityTitle,prompt:activityPrompt,raw:activityRaw});
-   editPage(p=>({...p,activities:[...(p.activities||[]),activity]}));
-   setActiveActivityId(activity.id);setActivityError('');setActivityRaw('');
+   const original=(page.activities||[]).find(a=>a.id===editingActivityId);
+   if(editingActivityId&&!original)throw Error('Activity no longer exists; cancel editing and retry');
+   const input={type:activityType,title:activityTitle,prompt:activityPrompt,raw:activityRaw};
+   const activity=original?reviseBoardActivity(original,input):createBoardActivity(input);
+   editPage(p=>({...p,activities:original?p.activities.map(a=>a.id===original.id?activity:a):
+    [...(p.activities||[]),activity]}));
+   setActiveActivityId(activity.id);cancelActivityEditing();
   }catch(e){setActivityError(e.message||'Invalid activity');}
+ };
+ const duplicateActivity=id=>{
+  if(page?.locked||page?.activities?.length>=24)return;
+  const original=(page.activities||[]).find(a=>a.id===id);if(!original)return;
+  try{
+   const copy=duplicateBoardActivity(original);
+   editPage(p=>({...p,activities:[...(p.activities||[]),copy]}));
+   setActiveActivityId(copy.id);setActivityError('');
+  }catch(e){setActivityError(e.message||'Unable to duplicate activity');}
+ };
+ const orderActivity=(id,offset)=>{
+  if(page?.locked)return;
+  editPage(p=>({...p,activities:moveBoardActivity(p.activities,id,offset)}));
+ };
+ const hideEveryActivity=()=>{
+  if(page?.locked||!(page?.activities||[]).some(a=>a.studentVisible!==false))return;
+  if(!window.confirm(vi?'Ẩn toàn bộ bài tập của trang này khỏi học sinh và TV?':'Hide all activities on this page from student preview, TV and PDF?'))return;
+  editPage(p=>({...p,activities:hideAllBoardActivities(p.activities)}));
  };
  const toggleActivityVisibility=id=>{
   if(page?.locked)return;
@@ -251,6 +286,7 @@ export default function BrianBoard({currentUser,language='vi'}){
   if(!window.confirm(vi?'Xóa hoạt động này? Có thể hoàn tác.':'Remove this activity? Undo is available.'))return;
   editPage(p=>({...p,activities:(p.activities||[]).filter(a=>a.id!==id)}));
   if(activeActivityId===id)setActiveActivityId(null);
+  if(editingActivityId===id)cancelActivityEditing();
  };
  const commitObj=object=>{if(!page||page.locked)return;editPage(p=>({...p,objects:[...p.objects,object]}));};
  const eraseObject=id=>{if(!page||page.locked)return;editPage(p=>({...p,objects:p.objects.filter(o=>o.id!==id)}));};
@@ -336,6 +372,42 @@ export default function BrianBoard({currentUser,language='vi'}){
    setPanel('pages');
   }catch(e){setLibraryError(e.message||'Cannot open draft');}
  };
+ const duplicateLesson=async id=>{
+  try{
+   if(dirty.current)await persist(docRef.current);
+   const original=id===docRef.current?.id?docRef.current:await readBoardLesson(ownerId,id);
+   if(!original)throw Error('Lesson is unavailable');
+   const copy=duplicateBoardLesson(original,ownerId);
+   docRef.current=copy;setLesson(copy);history.current=[];future.current=[];
+   dirty.current=true;await persist(copy);setPanel('pages');void refreshLibrary();
+   setBackupStatus(vi?'Đã nhân bản bài dạy riêng':'A separate private lesson was created');
+  }catch(e){setLibraryError(e.message||'Could not duplicate lesson');}
+ };
+ const exportPrivateJson=()=>{
+  try{
+   const data=exportPrivateBoardBackup(docRef.current,ownerId);
+   const blob=new Blob([data],{type:'application/json;charset=utf-8'});
+   const url=URL.createObjectURL(blob),a=document.createElement('a');
+   a.href=url;a.download='brian-board-private-'+(docRef.current.title||'lesson').replace(/[^a-z0-9_-]+/gi,'_')+'.json';
+   document.body.appendChild(a);a.click();a.remove();
+   setTimeout(()=>URL.revokeObjectURL(url),1500);
+   setBackupStatus(vi?'Đã xuất bản sao JSON riêng tư':'Private JSON backup exported');
+  }catch(e){setBackupStatus(e.message||'Private export failed');}
+ };
+ const importPrivateJson=async file=>{
+  if(!file)return;
+  if(file.size>BOARD_BACKUP_MAX_BYTES){setBackupStatus(vi?'Bản sao vượt 25 MB':'Backup exceeds 25 MB');return;}
+  const account=ownerId;
+  try{
+   const copy=importPrivateBoardBackup(await file.text(),account);
+   if(account!==ownerId)return;
+   if(!window.confirm(vi?'Khôi phục thành bài dạy MỚI? Tệp chứa đáp án riêng của giáo viên, không chia sẻ với học sinh.':'Restore as a NEW lesson? This private file can contain teacher answers.'))return;
+   if(dirty.current)await persist(docRef.current);
+   docRef.current=copy;setLesson(copy);history.current=[];future.current=[];
+   dirty.current=true;await persist(copy);setPanel('pages');
+   setBackupStatus(vi?'Đã khôi phục bản sao mới trên thiết bị':'Restored as a new private lesson');
+  }catch(e){setBackupStatus(e.message||'Backup import failed');}
+ };
  const createLesson=async()=>{
   if(dirty.current)await persist(docRef.current);
   const next=newLesson(ownerId);
@@ -397,6 +469,12 @@ export default function BrianBoard({currentUser,language='vi'}){
   setTimeout(()=>URL.revokeObjectURL(url),1000);
  };
  const addTeam=()=>setTeams(prev=>prev.length>=8?prev:[...prev,{name:'Team '+(prev.length+1),score:0}]);
+ const chooseName=()=>{
+  const bytes=new Uint32Array(1);crypto.getRandomValues(bytes);
+  const result=selectBoardNameWithoutRepeat(randomNames,randomUsed,bytes[0]/4294967296);
+  setRandomChoice(result.choice);setRandomUsed(result.used);
+ };
+ const resetNamePicker=()=>{setRandomUsed([]);setRandomChoice('');};
  const drawTheme={ivory:'Ivory Studio',midnight:'Midnight Slate',classroom:'Classroom Canvas'};
  if(!allowed)return null;
  const button=<button type="button" className="bbd-board-fab" ref={launchRef}
