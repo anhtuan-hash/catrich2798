@@ -15,6 +15,9 @@ assert.match(canImportPdf({fileBytes:16000000,pages:2,currentPages:1}),/15/);
 const matching=createBoardActivity({type:'matching',title:'Global warming',prompt:'Match.',
  raw:'renewable | renewable energy\nemissions | gases\nwildlife | animals'});
 assert.equal(matching.items.length,3);
+assert.equal(matching.studentVisible,true);
+assert.equal(publicBoardActivity({...matching,studentVisible:false}),null);
+assert.equal(publicBoardActivity({...matching,teacherOnly:true}),null);
 assert.deepEqual(gradeBoardActivity(matching,['renewable energy','gases','animals']),{correct:3,total:3,complete:true});
 assert.deepEqual(gradeBoardActivity(matching,['animals','gases','renewable energy']).correct,1);
 const publicMatching=publicBoardActivity(matching);
@@ -37,6 +40,9 @@ assert.equal(publicState.activity.type,'matching');
 assert.equal(publicState.activity.labels.length,3);
 assert.equal(publicState.activity.options.length,3);
 assert.ok(!publicState.activity.items,'Teacher answer mapping must never go to TV');
+const privatePresentation={...lesson,pages:[{...lesson.pages[0],activities:[{...matching,studentVisible:false}]}]};
+assert.equal(boardStudentPayload(privatePresentation,matching.id).activity,null,
+ 'Teacher-only unpublished activity must not appear on TV or preview');
 const sortedState=boardStudentPayload(lesson,ordering.id);
 assert.equal(sortedState.activity.labels.length,4);
 assert.deepEqual(sortedState.activity.labels,publicBoardActivity(ordering).labels,
@@ -78,6 +84,8 @@ assert.throws(()=>buildStudentPdfSlides({
 
 const restored=normalizeLesson(lesson,'private-owner');
 assert.equal(restored.pages[0].activities.length,3);
+assert.equal(normalizeLesson(privatePresentation,'private-owner').pages[0].activities[0].studentVisible,false,
+ 'Activity publishing state must persist across owner-private restores');
 assert.equal(normalizeLesson({...lesson,ownerId:'wrong-owner'},'private-owner').pages[0].activities.length,0);
 assert.ok(!JSON.stringify(sanitizeStudentPage(lesson.pages[0])).includes('renewable energy'),
  'Private answer mapping must never leak via regular canvas projection.');
@@ -105,6 +113,8 @@ assert.doesNotMatch(boardUI,/publicBoardActivity\(page\.activities/,
  'Student preview must use the same sanitized payload as television');
 assert.match(boardUI,/Export PDF with answer-free worksheets/);
 assert.match(boardUI,/exportStudentPdf\(true\)/);
+assert.match(boardUI,/toggleActivityVisibility/);
+assert.match(boardUI,/Công bố cho học sinh/);
 
 assert.match(read('BoardActivities.css'),/prefers-reduced-motion/);
 console.log('PASS Brian Board phase 2: PDF validation, private worksheet export, 3 scored activities, per-page persistence and safe projections.');
