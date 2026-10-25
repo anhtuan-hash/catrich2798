@@ -455,6 +455,17 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
      <option value="distribute-x">{vi?'Chia đều ngang':'Distribute horizontally'}</option>
      <option value="distribute-y">{vi?'Chia đều dọc':'Distribute vertically'}</option>
     </select>
+    <select className="bbd-v8-align-select" defaultValue=""
+     aria-label={vi?'Bố trí sơ đồ tự động':'Automatic diagram layout'}
+     onChange={e=>{
+      if(e.target.value)onBatchEdit?.(selectedIds,'layout',{mode:e.target.value,gap:65});
+      e.target.value='';
+     }}>
+     <option value="">{vi?'Sơ đồ…':'Diagram…'}</option>
+     <option value="horizontal">{vi?'Sắp hàng ngang':'Horizontal flow'}</option>
+     <option value="vertical">{vi?'Sắp hàng dọc':'Vertical flow'}</option>
+     <option value="grid">{vi?'Sắp lưới':'Grid layout'}</option>
+    </select>
     {selectedIds.length===2&&<button type="button" onClick={()=>onBatchEdit?.(selectedIds,'connect')}>
      {vi?'Nối sơ đồ →':'Connect nodes →'}</button>}
     <button type="button" onClick={()=>onBatchEdit?.(selectedIds,'duplicate')}>
