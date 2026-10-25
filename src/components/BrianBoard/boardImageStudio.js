@@ -51,3 +51,29 @@ export async function cropBoardImageRegion(src,region){
  if(encoded.length>3000000)throw Error('Cropped image exceeds 3 MB');
  return {src:encoded,ratio:width/height,region:r};
 }
+
+/** Apply a privacy-safe local effect inside a teacher-drawn region.
+ * Original image stays available via Board Undo and JSON checkpoints.
+ */
+export async function effectBoardImageRegion(src,rect,effect='blur'){
+ if(!['blur','grayscale'].includes(effect))throw Error('Unsupported image effect');
+ if(!/^data:image\/(?:png|jpeg|webp);base64,/i.test(String(src||'')))throw Error('Invalid local image');
+ const r=normalizeBoardCrop(rect);
+ const image=new Image();image.decoding='async';image.src=src;
+ await (image.decode?image.decode():new Promise((resolve,reject)=>{
+  image.onload=resolve;image.onerror=reject;
+ }));
+ const w=image.naturalWidth,h=image.naturalHeight;
+ if(!w||!h||w*h>18000000)throw Error('Image is too large');
+ const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+ const ctx=canvas.getContext('2d',{alpha:true});
+ if(!ctx||!('filter' in ctx))throw Error('Image filters are not supported in this browser');
+ ctx.drawImage(image,0,0,w,h);
+ ctx.save();
+ ctx.beginPath();ctx.rect(r.x*w,r.y*h,r.width*w,r.height*h);ctx.clip();
+ ctx.filter=effect==='blur'?'blur(14px)':'grayscale(100%)';
+ ctx.drawImage(image,0,0,w,h);ctx.restore();
+ const data=canvas.toDataURL('image/webp',.86);
+ if(data.length>3000000)throw Error('Edited image exceeds 3 MB');
+ return {src:data,ratio:w/h,region:r};
+}
