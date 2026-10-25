@@ -21,6 +21,7 @@ Implemented in ESL Brian `src/components/BrianBoard/` without replacing the exis
 - Sorting: each line `item | category`, 2–20 items, up to 6 categories.
 - Type title/instructions, **Tạo & chạy**. Teacher taps pairs/words/categories; Board checks correct responses, shows count and allows restart / teacher-controlled reveal. Activities are saved inside each owner-private lesson page and restored from IndexedDB. No AI is used.
 - The second-screen view receives only **public question text and answer options**, without private correct mapping or teacher-only fields. Ordering prompts are shuffled deterministically before broadcast. Teacher-facing stage shows correctness on the teacher screen; the student display intentionally has no privileged controls.
+- **Per-activity publishing**: teachers may toggle the eye icon beside an activity to keep it unpublished while continuing to edit or run it privately. This flag is saved with owner-private lessons and respected by local TV, Student Preview and optional PDF worksheet export. Locked pages prevent toggling.
 
 ### 4. Privacy and persistence
 - No new Supabase migration was required in Phase 2; the existing separate, owner-restricted Board Cloud table remains intact, and backup is always manually requested.
