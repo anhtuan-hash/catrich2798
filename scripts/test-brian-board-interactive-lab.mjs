@@ -37,6 +37,13 @@ for(const a of samples){
  assert.equal(revised.createdAt,a.createdAt);
 }
 assert.ok(LAB_EXAMPLES.evidence_hunter.startsWith('PASSAGE:'));
+assert.match(LAB_EXAMPLES.mystery_reveal,/^MYSTERY:/);
+assert.equal(samples.find(x=>x.type==='mystery_reveal').mysteryAnswer,'Planet Earth');
+assert.equal('mysteryAnswer' in publicBoardActivity(samples.find(x=>x.type==='mystery_reveal')),false);
+const dragProjection=publicBoardActivity(samples.find(x=>x.type==='drag_label'));
+assert.notEqual(dragProjection.labels[0],samples.find(x=>x.type==='drag_label').items[0].label,
+ 'Position-index matching must not reveal labels to the TV');
+
 assert.deepEqual(gradeBoardActivity(samples[0],[{x:30,y:35},{x:76,y:55}]),
  {correct:2,total:2,complete:true});
 assert.equal(gradeLabActivity(samples[1],[{x:22,y:38},{x:73,y:64}]).correct,2);
@@ -68,6 +75,10 @@ for(const a of samples){
  assert.deepEqual(page.live.opened,[2,4]);
  assert.equal(page.live.index,1);
  assert.equal(page.live.scores[0].score,20);
+ const timed=boardStudentPayload(lesson,a.id,{activityId:a.id,seconds:65,revealAll:true});
+ assert.equal(timed.live.seconds,65);
+ assert.equal(timed.live.revealed,true);
+ assert.equal(JSON.stringify(timed).includes('mysteryAnswer'),false);
 }
 const hidden={...lesson,pages:[{...lesson.pages[0],hidden:true}]};
 assert.equal(boardStudentPayload(hidden,samples[0].id).activity,null);
@@ -94,6 +105,12 @@ assert.match(stage,/checkStress/);
 assert.match(stage,/handleMystery/);
 assert.match(stage,/checkConcept/);
 assert.match(stage,/award\(10\)/);
+assert.match(stage,/lockFourCorners/);
+assert.match(stage,/assignTarget\(x\.id,token\)/);
+assert.match(stage,/guessPicture/);
+assert.match(stage,/setTimerSeconds/);
+assert.match(stage,/scores\.length>=8/);
+
 const ui=file('BrianBoard.jsx');
 assert.match(ui,/LAB_TYPES\.map/);
 assert.match(ui,/BoardActivityLabBuilder/);
