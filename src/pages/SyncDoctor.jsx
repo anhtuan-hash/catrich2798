@@ -1,16 +1,17 @@
-import React,{useMemo,useRef,useState} from 'react';
+import React,{useEffect,useMemo,useRef,useState} from 'react';
 import { Activity, AlertTriangle, ArrowRight, BookUser, CheckCircle2, ChevronRight,
   ClipboardCheck, Clock3, Cloud, Database, Download, FileSearch, Filter, HardDrive,
   Info, LockKeyhole, MonitorSmartphone, RefreshCw, Search, ShieldCheck, X } from 'lucide-react';
 import {isAdminRole,isDepartmentLeaderRole} from '../utils/roles.js';
 import {runSyncDoctorScan,serializeSyncDoctorReport} from '../utils/syncDoctorDiagnostics.js';
 import {buildSyncReviewPlans,serializeSyncReviewDocket} from '../utils/syncDoctorPlanning.mjs';
+import {getSyncDoctorReviewInbox,submitSyncDoctorReview,decideSyncDoctorReview,cancelSyncDoctorReview} from '../utils/syncDoctorReviewInbox.js';
 import './SyncDoctor.css';
 
 const viText={
   eyebrow:'BRIAN / DATA INTEGRITY CENTER',title:'Sync Doctor',
   sub:'Kiểm tra và đối soát dữ liệu liên thông trong một không gian an toàn.',
-  safety:'GIAI ĐOẠN 1 · CHỈ ĐỌC',safetyText:'Không tạo, xóa, cập nhật hay tự gộp hồ sơ.',
+  safety:'GIAI ĐOẠN 3 · DUYỆT RÀ SOÁT',safetyText:'Chỉ ghi phiếu duyệt; không sửa hồ sơ hoặc điểm học sinh.',
   tabs:['Tổng quan','Vấn đề','Nguồn dữ liệu','Kế hoạch sửa','Nhật ký','Cài đặt'],
   run:'Quét dữ liệu',running:'Đang đối soát',export:'Xuất báo cáo',year:'Năm học',
   class:'Lớp cần kiểm tra',all:'Tất cả lớp có quyền xem',classHint:'Để trống để quét các lớp được phép đọc.',
@@ -22,13 +23,22 @@ const viText={
   status:'Trạng thái',records:'Bản ghi xem được',message:'Ghi chú',again:'Quét lại',
   planTitle:'Kế hoạch khắc phục',planDesc:'Chức năng sửa dữ liệu chưa được bật trong giai đoạn chỉ đọc.',
   planSteps:['Xác nhận định danh và nguồn gốc','Xem trước thay đổi và ảnh hưởng','Duyệt quyền độc lập','Thực hiện an toàn và quét xác minh'],
-  auditTitle:'Nhật ký trong phiên',auditDesc:'Các lượt quét chỉ được lưu trong phiên màn hình hiện tại, không phải nhật ký máy chủ.',
+  auditTitle:'Nhật ký và phê duyệt',auditDesc:'Yêu cầu và quyết định được lưu trên Supabase. Lượt quét chỉ lưu trong phiên hiện tại.',
   settingsTitle:'Chính sách an toàn',settingsLines:['Không ghi đè điểm, hồ sơ GVCN hay đánh giá.','Không ghép hai học sinh chỉ vì trùng họ tên.','Không suy diễn lỗi khi nguồn bị từ chối quyền đọc.','Hàng đợi cục bộ chỉ thuộc trình duyệt này.','Các thao tác sửa yêu cầu kiến trúc phê duyệt ở giai đoạn tiếp theo.'],
   noAccess:'Tài khoản chưa được cấp quyền quản trị Sync Doctor.',back:'Về ứng dụng',
   device:'Thiết bị hiện tại',pending:'Tác vụ đang chờ',scanHistory:'Lượt quét',review:'Cần người có quyền kiểm tra',
   severity:'Mức độ',filter:'Lọc theo mức',scope:'Phạm vi',sourceLimited:'Chưa xác minh toàn bộ hệ thống',
   view:'Xem chi tiết',closed:'Đóng',started:'Bắt đầu',finished:'Kết thúc',result:'Kết quả',
   report:'Báo cáo sẽ ẩn mã định danh học sinh và không có thông tin cá nhân.',
+  submitReview:'Gửi yêu cầu rà soát',submitNote:'Ghi chú gửi người duyệt (không ghi dữ liệu cá nhân)',
+  reviewQueue:'Yêu cầu rà soát trên máy chủ',reloadQueue:'Tải lại yêu cầu',serverAudit:'Lịch sử phê duyệt trên máy chủ',
+  reviewWarning:'Chấp thuận rà soát không đồng nghĩa cho phép sửa dữ liệu. Mỗi yêu cầu cần người duyệt khác người gửi.',
+  decideApprove:'Chấp thuận rà soát',decideReject:'Từ chối',cancelRequest:'Hủy yêu cầu',
+  decisionNote:'Ý kiến người duyệt',requester:'Người gửi',reviewer:'Người duyệt',
+  statusSubmitted:'Đang chờ',statusApproved:'Đã duyệt rà soát',statusRejected:'Đã từ chối',
+  statusStale:'Dữ liệu đã thay đổi',statusCancelled:'Đã hủy',reviewNone:'Chưa có yêu cầu gửi đến máy chủ.',
+  auditNone:'Chưa có hoạt động phê duyệt được ghi nhận.',sessionAudit:'Lượt quét trong phiên này',
+  safeNoPII:'Chỉ nhập nhận xét quy trình; không nhập tên, mã học sinh hoặc dữ liệu điểm.',
   docket:'Xuất phiếu rà soát',plansOverview:'Kế hoạch dự kiến được tạo từ lần quét gần nhất — không thực hiện thay đổi dữ liệu.',
   preview:'Xem trước phương án',constraints:'Điều kiện an toàn',steps:'Các bước rà soát',
   approval:'Cần người có thẩm quyền duyệt',reviewable:'Có thể rà soát',blocked:'Chưa đủ điều kiện',
@@ -39,7 +49,7 @@ const viText={
 const enText={
   eyebrow:'BRIAN / DATA INTEGRITY CENTER',title:'Sync Doctor',
   sub:'Diagnose data consistency safely across your connected Brian modules.',
-  safety:'PHASE 1 · READ ONLY',safetyText:'No records are created, deleted, edited or merged.',
+  safety:'PHASE 3 · REVIEW APPROVAL',safetyText:'Only review metadata is saved; student records and scores remain unchanged.',
   tabs:['Overview','Issues','Sources','Repair plans','Audit','Settings'],
   run:'Run scan',running:'Scanning',export:'Export report',year:'School year',
   class:'Class scope',all:'All visible classes',classHint:'Leave blank to check classes your account can access.',
@@ -51,13 +61,22 @@ const enText={
   status:'Status',records:'Visible rows',message:'Notes',again:'Rescan',
   planTitle:'Repair plans',planDesc:'Data repair is not enabled in the read-only release.',
   planSteps:['Verify identity and authoritative source','Preview data changes and impact','Obtain independent approval','Apply safely and verify again'],
-  auditTitle:'Session audit',auditDesc:'Scans are stored in this screen session only, not in a server-side audit trail.',
+  auditTitle:'Approvals & audit',auditDesc:'Review requests and decisions are saved on Supabase. Scans remain session-only.',
   settingsTitle:'Safety policy',settingsLines:['No overwriting scores, homeroom records or assessment results.','Never merge students using name alone.','Permission-denied data is not treated as empty.','Local queue covers this browser only.','Repair requires approval infrastructure in a later phase.'],
   noAccess:'This account does not have Sync Doctor administrative access.',back:'Back to Apps',
   device:'This device',pending:'Pending changes',scanHistory:'Scans',review:'Human review required',
   severity:'Severity',filter:'Filter by severity',scope:'Scope',sourceLimited:'Not a school-wide audit',
   view:'View details',closed:'Close',started:'Started',finished:'Finished',result:'Result',
   report:'Exported reports omit student identity keys and personal data.',
+  submitReview:'Submit review request',submitNote:'Note for reviewer (no personal data)',
+  reviewQueue:'Server review requests',reloadQueue:'Refresh requests',serverAudit:'Server approval history',
+  reviewWarning:'Approval only authorizes manual review, never data modification. The reviewer must be different from the requester.',
+  decideApprove:'Approve review',decideReject:'Reject',cancelRequest:'Cancel request',
+  decisionNote:'Reviewer note',requester:'Requester',reviewer:'Reviewer',
+  statusSubmitted:'Pending',statusApproved:'Review approved',statusRejected:'Rejected',
+  statusStale:'Source changed',statusCancelled:'Cancelled',reviewNone:'No server review requests yet.',
+  auditNone:'No approval events recorded.',sessionAudit:'Scans in this session',
+  safeNoPII:'Enter process notes only; never include student names, IDs or scores.',
   docket:'Export review docket',plansOverview:'Proposals from the latest scan; no changes can be executed.',
   preview:'Review preview',constraints:'Safety requirements',steps:'Review steps',
   approval:'Independent approval required',reviewable:'Ready for review',blocked:'Blocked — investigate',
@@ -108,8 +127,46 @@ export default function SyncDoctor({currentUser,language='vi'}){
     [query,setQuery]=useState(''),[report,setReport]=useState(null),
     [history,setHistory]=useState([]),[progress,setProgress]=useState(null),
     [error,setError]=useState(''),[selected,setSelected]=useState(null);
+  const [reviewInbox,setReviewInbox]=useState({requests:[],events:[]});
+  const [reviewLoading,setReviewLoading]=useState(false);
+  const [reviewError,setReviewError]=useState('');
+  const [reviewSuccess,setReviewSuccess]=useState('');
+  const [reviewNote,setReviewNote]=useState('');
+  const [decisionNote,setDecisionNote]=useState('');
+  const [reviewTarget,setReviewTarget]=useState('');
+  const [reviewSubmitting,setReviewSubmitting]=useState(false);
   const controller=useRef(null);
   const busy=!!progress;
+  const refreshReviews=async()=>{
+    if(!authorized)return;
+    setReviewLoading(true);setReviewError('');
+    try{const next=await getSyncDoctorReviewInbox();setReviewInbox(next);}
+    catch(err){setReviewError(String(err?.message||err));}
+    finally{setReviewLoading(false);}
+  };
+  useEffect(()=>{if(authorized&&(tab===3||tab===4))void refreshReviews();},[tab,authorized,currentUser?.id]);
+  const requestReview=async()=>{
+    const issue=report?.issues?.find(i=>i.id===selectedPlan?.id);
+    if(!issue || !selectedPlan || reviewSubmitting)return;
+    setReviewSubmitting(true);setReviewError('');setReviewSuccess('');
+    try{
+      await submitSyncDoctorReview(selectedPlan,issue,report,reviewNote);
+      setReviewSuccess(vi?'Đã gửi phiếu rà soát đến máy chủ.':'Review request submitted.');
+      setReviewNote('');await refreshReviews();
+    }catch(err){setReviewError(String(err?.message||err));}
+    finally{setReviewSubmitting(false);}
+  };
+  const actionReview=async(requestId,decision)=>{
+    if(reviewSubmitting)return;
+    setReviewSubmitting(true);setReviewError('');setReviewSuccess('');
+    try{
+      if(decision==='cancelled')await cancelSyncDoctorReview(requestId);
+      else await decideSyncDoctorReview(requestId,decision,decisionNote);
+      setReviewSuccess(vi?'Đã lưu quyết định và nhật ký trên máy chủ.':'Decision and audit saved on server.');
+      setDecisionNote('');setReviewTarget('');await refreshReviews();
+    }catch(err){setReviewError(String(err?.message||err));}
+    finally{setReviewSubmitting(false);}
+  };
   const run=async()=>{
     if(busy||!authorized)return;
     controller.current?.abort();
@@ -153,6 +210,8 @@ export default function SyncDoctor({currentUser,language='vi'}){
     </section>
     {progress&&<div className="bsd-progress" role="status"><div style={{width:Math.round(progress.done/progress.total*100)+'%'}} /><span>{t.running} · {progress.done}/{progress.total}</span></div>}
     {error&&<div className="bsd-alert" role="alert"><AlertTriangle size={18}/>{error}</div>}
+    {reviewError&&<div className="bsd-alert" role="alert"><AlertTriangle size={18}/>{reviewError}</div>}
+    {reviewSuccess&&<div className="bsd-advice" role="status"><CheckCircle2 size={18}/>{reviewSuccess}</div>}
     {staleScope&&<div className="bsd-banner" role="status"><Info size={17}/><div><strong>{vi?'Bạn đã đổi phạm vi quét':'Scan scope changed'}</strong><p>{vi?'Kết quả bên dưới thuộc lần quét trước. Hãy quét lại để cập nhật kế hoạch.':'The displayed results are from the previous scan; rescan before reviewing plans.'}</p></div></div>}
     <nav className="bsd-tabs" aria-label={vi?'Khu vực Sync Doctor':'Sync Doctor sections'}>
       {t.tabs.map((label,i)=><button key={label} type="button" aria-current={tab===i?'page':undefined} className={tab===i?'active':''} onClick={()=>setTab(i)}>{label}</button>)}
@@ -227,10 +286,72 @@ export default function SyncDoctor({currentUser,language='vi'}){
               <div className="bsd-student-evidence"><BookUser size={17}/><span><strong>{t.identity}:</strong> {selected.evidence.studentName}{selected.evidence.studentCode?' · '+selected.evidence.studentCode:''}</span></div>}
             <button type="button" className="bsd-outline bsd-review-link" disabled={busy||staleScope} onClick={()=>saveDocket(report,[selectedPlan])}>
               <Download size={16}/>{t.docket}</button>
+            <section className="bsd-submit-panel">
+              <h4>{t.submitReview}</h4><p>{t.reviewWarning}</p>
+              <label htmlFor="bsd-review-note">{t.submitNote}</label>
+              <textarea id="bsd-review-note" value={reviewNote} maxLength={600} onChange={e=>setReviewNote(e.target.value)}
+                placeholder={t.safeNoPII} rows={3}/>
+              <button className="bsd-primary" type="button" onClick={requestReview}
+                disabled={reviewSubmitting||busy||staleScope||selectedPlan.eligibility!=='reviewable'||!selectedPlan.year||!selectedPlan.className||
+                  (selectedPlan.code==='STUDENT_NOT_LINKED'&&(!selectedPlan.canonicalRevision||!selectedPlan.sourceRevision||
+                    !report.issues.some(i=>i.id===selectedPlan.id&&i.evidence?.workspaceId)))}>
+                <ShieldCheck size={16}/>{reviewSubmitting?(vi?'Đang gửi...':'Submitting...'):t.submitReview}
+              </button>
+              <small>{t.safeNoPII}</small>
+            </section>
           </>}
         </section></div></>}
     </div>}
-    {tab===4&&<section className="bsd-panel bsd-simple"><span className="bsd-overline bsd-dark">SESSION OBSERVABILITY</span><h2>{t.auditTitle}</h2><p>{t.auditDesc}</p>{history.length?history.map((h,i)=><div className="bsd-history-line" key={h.startedAt+i}><Clock3 size={17}/><div><strong>{datetime(h.startedAt)}</strong><span>{h.schoolYear} · {h.className||t.all} · {h.count} {t.findings} · {h.coverage}</span></div></div>):<Empty t={t}/>}</section>}
+    {tab===4&&<div className="bsd-stack">
+      <div className="bsd-heading"><div><span className="bsd-overline bsd-dark">SERVER AUDIT · HUMAN APPROVAL</span>
+        <h2>{t.auditTitle}</h2><p>{t.auditDesc}</p></div>
+        <button type="button" className="bsd-outline" onClick={refreshReviews} disabled={reviewLoading||reviewSubmitting}>
+          <RefreshCw size={16}/>{reviewLoading?t.running:t.reloadQueue}</button></div>
+      <div className="bsd-advice"><ShieldCheck size={17}/>{t.reviewWarning}</div>
+      <section className="bsd-panel"><div className="bsd-panel-head"><h3>{t.reviewQueue}</h3><span>{reviewInbox.requests.length}</span></div>
+        {!reviewInbox.requests.length?<div className="bsd-subempty">{t.reviewNone}</div>:
+          reviewInbox.requests.map(item=>{
+            const owned=item.requester_id===currentUser.id;
+            const pending=item.status==='submitted';
+            const canDecide=pending&&!owned;
+            const target=reviewTarget===item.id;
+            const statusText={submitted:t.statusSubmitted,approved_for_review:t.statusApproved,rejected:t.statusRejected,stale:t.statusStale,cancelled:t.statusCancelled}[item.status]||item.status;
+            return <div key={item.id} className="bsd-request">
+              <div className="bsd-request-main"><div><strong>{item.issue_code} · {item.class_name} · {item.school_year}</strong>
+                <small>{item.source} · {datetime(item.submitted_at)} · {owned?t.requester:t.reviewer}</small>
+                {item.note&&<p>{item.note}</p>}</div><span className={'bsd-status '+(pending?'warn':item.status==='approved_for_review'?'ok':'error')}>{statusText}</span></div>
+              {item.reviewer_note&&<p className="bsd-reviewer-note">{t.decisionNote}: {item.reviewer_note}</p>}
+              {pending&&<div className="bsd-request-actions">
+                {owned?<button type="button" className="bsd-outline" disabled={reviewSubmitting} onClick={()=>actionReview(item.id,'cancelled')}>
+                  <X size={15}/>{t.cancelRequest}</button>:
+                  <button type="button" className="bsd-outline" disabled={reviewSubmitting}
+                    onClick={()=>{setReviewTarget(target?'':item.id);setDecisionNote('')}}>{t.reviewQueue}<ChevronRight size={15}/></button>}
+              </div>}
+              {canDecide&&target&&<div className="bsd-decision">
+                <label htmlFor={'bsd-decision-'+item.id}>{t.decisionNote}</label>
+                <textarea id={'bsd-decision-'+item.id} rows={3} maxLength={600} value={decisionNote}
+                  onChange={e=>setDecisionNote(e.target.value)} placeholder={t.safeNoPII}/>
+                <div><button className="bsd-primary" type="button" disabled={reviewSubmitting}
+                  onClick={()=>actionReview(item.id,'approved_for_review')}><ShieldCheck size={15}/>{t.decideApprove}</button>
+                  <button className="bsd-outline" type="button" disabled={reviewSubmitting||!decisionNote.trim()}
+                    onClick={()=>actionReview(item.id,'rejected')}><X size={15}/>{t.decideReject}</button></div>
+                <small>{t.reviewWarning}</small>
+              </div>}
+            </div>;
+          })}
+      </section>
+      <section className="bsd-panel"><div className="bsd-panel-head"><h3>{t.serverAudit}</h3></div>
+        {!reviewInbox.events.length?<div className="bsd-subempty">{t.auditNone}</div>:
+          reviewInbox.events.map(event=><div className="bsd-history-line" key={event.id}><Clock3 size={17}/>
+            <div><strong>{event.action} · {datetime(event.occurred_at)}</strong>
+              <span>{event.request_id?.slice(0,8)} · {event.note||'—'}</span></div></div>)}
+      </section>
+      <section className="bsd-panel"><div className="bsd-panel-head"><h3>{t.sessionAudit}</h3></div>
+        {history.length?history.map((h,i)=><div className="bsd-history-line" key={h.startedAt+i}><Clock3 size={17}/>
+          <div><strong>{datetime(h.startedAt)}</strong><span>{h.schoolYear} · {h.className||t.all} · {h.count} {t.findings} · {h.coverage}</span></div></div>):
+          <div className="bsd-subempty">{t.empty}</div>}
+      </section>
+    </div>}
     {tab===5&&<section className="bsd-panel bsd-simple"><span className="bsd-overline bsd-dark">GOVERNANCE POLICY</span><h2>{t.settingsTitle}</h2><p>{t.safetyText}</p>{t.settingsLines.map(line=><div className="bsd-policy" key={line}><ShieldCheck size={18}/>{line}</div>)}</section>}
   </div>;
 }
