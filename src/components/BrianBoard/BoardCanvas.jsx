@@ -79,8 +79,10 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
  const [drawing,setDrawing]=useState(false),[selectedId,setSelectedId]=useState('');
  const [laser,setLaser]=useState(null);
  const [inlineText,setInlineText]=useState(null);
+ const inlineCommitted=useRef(false);
  const saveInlineText=()=>{
-  if(!inlineText)return;
+  if(!inlineText||inlineCommitted.current)return;
+  inlineCommitted.current=true;
   const value=inlineText.text.replace(/\s+/g,' ').trim().slice(0,90);
   if(value&&!studentView&&!page?.locked)onCommit?.({
    id:makeId(),kind:'text',x:inlineText.x,y:inlineText.y,text:value,
@@ -89,9 +91,10 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
   setInlineText(null);
  };
  const editTextAnywhere=event=>{
-  if(studentView||page?.locked||event.target.closest('[data-board-object]'))return;
+  if(studentView||page?.locked||tool!=='select'||event.target.closest('[data-board-object]'))return;
   event.preventDefault();
   const pos=local(event),rect=event.currentTarget.getBoundingClientRect();
+  inlineCommitted.current=false;
   setInlineText({x:pos.x,y:pos.y,
    left:Math.max(7,Math.min(event.clientX-rect.left,rect.width-275)),
    top:Math.max(5,Math.min(event.clientY-rect.top,rect.height-54)),
@@ -155,6 +158,14 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
   const p=local(event),origin=snapBoardPoint(p,snapToGrid);
   if(tool==='select'){setSelectedId('');return;}
   if(tool==='text'||tool==='sticky'||tool==='flashcard'||tool==='mask'){
+   if(tool==='text'&&!contentText.trim()){
+    const rect=svg.current.getBoundingClientRect();
+    inlineCommitted.current=false;
+    setInlineText({x:origin.x,y:origin.y,
+     left:Math.max(7,Math.min(event.clientX-rect.left,rect.width-275)),
+     top:Math.max(5,Math.min(event.clientY-rect.top,rect.height-54)),text:''});
+    return;
+   }
    if(!contentText.trim()&&tool!=='mask')return;
    onCommit?.({id:makeId(),kind:tool,x:origin.x,y:origin.y,text:contentText.trim().slice(0,90),
     width:tool==='mask'?300:undefined,height:tool==='mask'?95:undefined,
@@ -266,7 +277,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
     onKeyDown={e=>{
      e.stopPropagation();
      if(e.key==='Enter'){e.preventDefault();saveInlineText();}
-     if(e.key==='Escape'){e.preventDefault();setInlineText(null);}
+     if(e.key==='Escape'){e.preventDefault();inlineCommitted.current=true;setInlineText(null);}
     }}
     onBlur={saveInlineText}
     placeholder={vi?'Viết gì đó rồi Enter':'Type and press Enter'}/>}
