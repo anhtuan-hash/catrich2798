@@ -39,5 +39,7 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Install browser engines
         run: npx playwright install --with-deps chromium webkit
+      - name: Chromium boot smoke
+        run: npx playwright test --config=playwright.sync-doctor-qa.config.js --project=desktop-chromium --grep 'synthetic access'
       - name: Run isolated QA against localhost (no real accounts or cloud calls)
         run: npx playwright test --config=playwright.sync-doctor-qa.config.js
