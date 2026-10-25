@@ -629,6 +629,15 @@ export default function BrianBoard({currentUser,language='vi'}){
        <button onClick={()=>void createLesson()}><FilePlus2 size={16}/></button></div>
       <p>{vi?'Các bản nháp lưu riêng trên thiết bị này, không ghi vào sổ điểm hay dữ liệu lớp.':'Private lessons on this device, separate from gradebook and class data.'}</p>
       <button onClick={()=>void createLesson()}><Plus size={16}/>{vi?'Tạo bài dạy mới':'New lesson'}</button>
+      <button onClick={()=>void duplicateLesson(lesson.id)}><Copy size={16}/>{vi?'Nhân bản bài dạy hiện tại':'Duplicate current lesson'}</button>
+      <h4>{vi?'Sao lưu ngoại tuyến (riêng tư)':'Offline backup (private)'}</h4>
+      <p>{vi?'JSON có thể chứa ghi chú và đáp án riêng của giáo viên. Không gửi cho học sinh. Chỉ nhập lại bằng cùng tài khoản.':'JSON may contain private notes and answer keys. Do not share with students. Restore using the same account only.'}</p>
+      <button onClick={exportPrivateJson}><FileJson size={16}/>{vi?'Tải bản sao JSON':'Download private JSON'}</button>
+      <label className="bbd-import-image"><FileUp size={16}/>{vi?'Khôi phục JSON thành bài mới':'Restore JSON as new lesson'}
+       <input type="file" accept=".json,application/json" onChange={e=>{void importPrivateJson(e.target.files?.[0]);e.target.value='';}}/></label>
+      {backupStatus&&<p role="status" className="bbd-pdf-status">{backupStatus}</p>}
+      <label className="bbd-library-search"><Search size={15}/>{vi?'Tìm trong thư viện':'Search lesson library'}
+       <input value={libraryQuery} onChange={e=>setLibraryQuery(e.target.value)} placeholder={vi?'Tên bài dạy':'Lesson title'}/></label>
       <h4>{vi?'Bản sao lưu Cloud':'Cloud backups'}</h4>
       <div className="bbd-side-actions">
        <button onClick={()=>void backupCloud()}><Save size={15}/>{vi?'Sao lưu Cloud':'Backup'}</button>
@@ -640,11 +649,13 @@ export default function BrianBoard({currentUser,language='vi'}){
        <button onClick={()=>void restoreCloud(row.lesson_id)}>{vi?'Nhập bản sao':'Import copy'}</button>
       </div>)}
       {libraryError&&<p role="alert">{libraryError}</p>}
-      {library.map(x=><div key={x.id} className={'bbd-library-item'+(x.id===lesson?.id?' active':'')}>
+      {library.filter(x=>x.title.toLocaleLowerCase().includes(libraryQuery.trim().toLocaleLowerCase())).map(x=>
+       <div key={x.id} className={'bbd-library-item'+(x.id===lesson?.id?' active':'')}>
         <div><strong>{x.title}</strong><small>{x.pages} {vi?'trang':'pages'} · {new Date(x.updatedAt).toLocaleDateString()}</small></div>
         <div className="bbd-side-actions"><button disabled={x.id===lesson?.id} onClick={()=>void switchLesson(x.id)}>{vi?'Mở':'Open'}</button>
-         <button onClick={()=>void removeLesson(x.id)}><Trash2 size={15}/></button></div>
-      </div>)}
+         <button onClick={()=>void duplicateLesson(x.id)} title={vi?'Nhân bản bài dạy':'Duplicate lesson'}><Copy size={15}/></button>
+         <button onClick={()=>void removeLesson(x.id)} title={vi?'Xóa bài dạy':'Delete lesson'}><Trash2 size={15}/></button></div>
+       </div>)}
      </div>}
      {panel==='teaching'&&<div className="bbd-side-stack">
       <h3>{vi?'Tiện ích lớp học':'Classroom tools'}</h3>
