@@ -1,6 +1,6 @@
 import {BOARD_W,BOARD_H,newPage,makeId,pathFromPoints,sanitizeStudentPage} from './boardModel.js';
 import {publicBoardActivity} from './boardActivities.js';
-import {normalizeBoardFrames,viewportForFrame,safeBoardViewport} from './boardSpatial.js';
+import {normalizeBoardFrames,viewportForFrame,safeBoardViewport,spatialObjectBounds} from './boardSpatial.js';
 import {smoothBoardPath,pressureBoardSegments,boardShapeGeometry} from './boardDrawing.js';
 
 export const MAX_BOARD_PDF_MB=15,MAX_BOARD_PDF_PAGES=12;
@@ -204,35 +204,37 @@ export function pageToSvg(page,theme='ivory',viewport=null){
    svgNode('line',{x1:region.x,y1:y,x2:region.x+region.width,y2:y,stroke:'#d5e0da','stroke-width':1},svg);
  }
  for(const o of page?.objects||[]){
+  const angle=Number(o.rotation)||0,b=angle?spatialObjectBounds(o):null;
+  const target=b?svgNode('g',{transform:'rotate('+angle+' '+(b.x+b.width/2)+' '+(b.y+b.height/2)+')'},target):svg;
   if(o.kind==='stroke'&&Array.isArray(o.points)){
    if(o.pressureSensitive&&o.points.length>1){
-    const group=svgNode('g',{opacity:o.opacity??1},svg);
+    const group=svgNode('g',{opacity:o.opacity??1},target);
     pressureBoardSegments(o.points,finite(o.width,5)).forEach(seg=>svgNode('line',{
      x1:seg.x1,y1:seg.y1,x2:seg.x2,y2:seg.y2,stroke:o.color||'#335d63',
      'stroke-width':seg.width,'stroke-linecap':'round'},group));
    }else svgNode('path',{d:o.smoothed?smoothBoardPath(o.points):pathFromPoints(o.points),
     fill:'none',stroke:o.color||'#335d63','stroke-width':finite(o.width,5),
-    'stroke-linecap':'round','stroke-linejoin':'round',opacity:o.opacity??1},svg);
+    'stroke-linecap':'round','stroke-linejoin':'round',opacity:o.opacity??1},target);
   }else if(o.kind==='shape'){
    const common={fill:/^#[0-9a-fA-F]{6}$/.test(o.fill||'')?o.fill:'none',
     stroke:o.color||'#335d63','stroke-width':finite(o.width,4)};
    const geometry=boardShapeGeometry(o.shape,o.x,o.y,o.x2,o.y2);
    if(geometry)svgNode(geometry.type==='polygon'?'polygon':'polyline',{
     ...common,fill:geometry.type==='polyline'?'none':common.fill,
-    points:geometry.points.map(p=>p.join(',')).join(' ')},svg);
+    points:geometry.points.map(p=>p.join(',')).join(' ')},target);
    else if(o.shape==='ellipse')svgNode('ellipse',{...common,cx:(o.x+o.x2)/2,cy:(o.y+o.y2)/2,
-    rx:Math.abs(o.x2-o.x)/2,ry:Math.abs(o.y2-o.y)/2},svg);
-   else if(o.shape==='line')svgNode('line',{...common,x1:o.x,y1:o.y,x2:o.x2,y2:o.y2},svg);
+    rx:Math.abs(o.x2-o.x)/2,ry:Math.abs(o.y2-o.y)/2},target);
+   else if(o.shape==='line')svgNode('line',{...common,x1:o.x,y1:o.y,x2:o.x2,y2:o.y2},target);
    else svgNode('rect',{...common,x:Math.min(o.x,o.x2),y:Math.min(o.y,o.y2),
-    width:Math.abs(o.x2-o.x),height:Math.abs(o.y2-o.y),rx:5},svg);
+    width:Math.abs(o.x2-o.x),height:Math.abs(o.y2-o.y),rx:5},target);
   }else if(o.kind==='image'&&/^data:image\/(?:png|jpeg|webp);base64,/i.test(o.src||'')){
    svgNode('image',{href:o.src,x:o.x,y:o.y,width:o.width||500,height:o.height||300,
-    preserveAspectRatio:'xMidYMid meet'},svg);
+    preserveAspectRatio:'xMidYMid meet'},target);
   }else if(o.kind==='mask'){
-   if(!o.revealed)svgNode('rect',{x:o.x,y:o.y,width:o.width||240,height:o.height||90,rx:9,fill:'#243b4b'},svg);
+   if(!o.revealed)svgNode('rect',{x:o.x,y:o.y,width:o.width||240,height:o.height||90,rx:9,fill:'#243b4b'},target);
   }else if(o.kind==='sticky'||o.kind==='flashcard'){
    const w=o.kind==='flashcard'?340:360,h=o.kind==='flashcard'?165:115;
-   svgNode('rect',{x:o.x,y:o.y,width:w,height:h,rx:13,fill:'#edf4e6',stroke:'#a2b8a6'},svg);
+   svgNode('rect',{x:o.x,y:o.y,width:w,height:h,rx:13,fill:'#edf4e6',stroke:'#a2b8a6'},target);
    textNode(svg,o.text,o.x+12,o.y+47,25);
    if(o.kind==='flashcard')textNode(svg,o.revealed?o.publicAnswer:'••••••',o.x+12,o.y+111,20,'#53715d');
   }else if(o.kind==='text'){
