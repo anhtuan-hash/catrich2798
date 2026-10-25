@@ -50,27 +50,28 @@ export function sanitizeStudentPage(page){
  if(!page||page.hidden)return null;
  const number=(v,f=0)=>Number.isFinite(Number(v))?Number(v):f;
  const xy=o=>({x:number(o.x),y:number(o.y)});
+ const rotation=o=>({rotation:Math.max(-360,Math.min(360,number(o.rotation))) });
  const safe=[];
  for(const o of (Array.isArray(page.objects)?page.objects:[]).slice(0,3000)){
   if(!o||o.studentVisible===false||o.teacherOnly===true||o.hidden===true)continue;
   const id=String(o.id||'').slice(0,85),kind=o.kind;
   if(kind==='stroke'&&Array.isArray(o.points)){
    safe.push({id,kind,color:String(o.color||'#355d63').slice(0,60),width:number(o.width,4),
-    opacity:number(o.opacity,1),smoothed:o.smoothed===true,pressureSensitive:o.pressureSensitive===true,
+    ...rotation(o),opacity:number(o.opacity,1),smoothed:o.smoothed===true,pressureSensitive:o.pressureSensitive===true,
     points:o.points.slice(0,4000).map(p=>({x:number(p.x),y:number(p.y),pressure:number(p.pressure,.5)}))});
   }else if(kind==='shape'){
    safe.push({id,kind,shape:['rect','ellipse','line','arrow','triangle'].includes(o.shape)?o.shape:'rect',
-    fill:/^#[0-9a-fA-F]{6}$/.test(o.fill||'')?o.fill:'none',
+    ...rotation(o),fill:/^#[0-9a-fA-F]{6}$/.test(o.fill||'')?o.fill:'none',
     ...xy(o),x2:number(o.x2),y2:number(o.y2),color:String(o.color||'#355d63').slice(0,60),width:number(o.width,4)});
   }else if(kind==='text'||kind==='sticky'){
-   safe.push({id,kind,...xy(o),text:String(o.text||'').slice(0,90),
+   safe.push({id,kind,...xy(o),...rotation(o),text:String(o.text||'').slice(0,90),
     color:String(o.color||'#355d63').slice(0,60),fontSize:number(o.fontSize,40)});
   }else if(kind==='mask'){
-   safe.push({id,kind,...xy(o),width:number(o.width,240),height:number(o.height,90),revealed:o.revealed===true});
+   safe.push({id,kind,...xy(o),...rotation(o),width:number(o.width,240),height:number(o.height,90),revealed:o.revealed===true});
   }else if(kind==='image'&&/^data:image\/(?:png|jpeg|webp);base64,/i.test(o.src||'')&&o.src.length<3200000){
-   safe.push({id,kind,...xy(o),width:number(o.width,500),height:number(o.height,300),src:o.src});
+   safe.push({id,kind,...xy(o),...rotation(o),width:number(o.width,500),height:number(o.height,300),src:o.src});
   }else if(kind==='flashcard'){
-   const publicObject={id,kind,...xy(o),text:String(o.text||'').slice(0,90),revealed:o.revealed===true};
+   const publicObject={id,kind,...xy(o),...rotation(o),text:String(o.text||'').slice(0,90),revealed:o.revealed===true};
    if(publicObject.revealed)publicObject.publicAnswer=String(o.privateAnswer||'').slice(0,120);
    safe.push(publicObject);
   }
