@@ -7,7 +7,7 @@ import {lassoObjectIds} from './boardV8Tools.js';
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 
 export function renderBoardObject(object,onErase,studentView=false,onInteract,onSelect){
- const o=object;if(studentView&&(o.studentVisible===false||o.teacherOnly))return null;
+ const o=object;if(o.hidden===true||studentView&&(o.studentVisible===false||o.teacherOnly))return null;
  const erase=event=>{if(!onErase)return;event.stopPropagation();onErase(o.id);};
  const press=event=>{
   if(onErase)erase(event);
@@ -279,7 +279,8 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
     </g>)}
    {page?.objects?.map(o=>renderBoardObject(o,
     (tool==='eraser'||tool==='eraser-ink'&&o.kind==='stroke')?onErase:null,
-    studentView,tool==='select'||tool==='eraser-ink'?null:onInteract,tool==='select'?selectObject:null))}
+    studentView,tool==='select'||tool==='eraser-ink'?null:onInteract,
+    tool==='select'&&!o.locked?selectObject:null))}
    {!studentView&&<path ref={preview} d="" stroke={color} strokeWidth={width}
      fill="none" opacity={tool==='highlighter'?.33:1} strokeLinecap="round"
      strokeLinejoin="round" vectorEffect="non-scaling-stroke" pointerEvents="none"/>}
