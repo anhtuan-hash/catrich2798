@@ -553,7 +553,8 @@ export default function BrianBoard({currentUser,language='vi'}){
     <div className="bbd-canvas-area">
      {activeActivityId&&page?.activities?.find(a=>a.id===activeActivityId)
        ?studentView?<div className="bbd-activity-stage" aria-label="Student activity preview">
-        {!studentActivityPreview?<p role="status">{vi?'Trang hoặc hoạt động này không hiển thị cho học sinh.':'This page or activity is hidden from students.'}</p>:<>
+        {!studentActivityPreview?<p role="status">{vi?'Trang hoặc hoạt động này không hiển thị cho học sinh.':'This page or activity is hidden from students.'}</p>:LAB_TYPES.includes(studentActivityPreview.type)?
+         <BoardActivityPublicPreview activity={studentActivityPreview} live={studentActivityPayload.live} vi={vi}/>:<>
          <h2>{studentActivityPreview.title}</h2>
          {studentActivityPreview.prompt&&<p>{studentActivityPreview.prompt}</p>}
          <div className="bbd-activity-preview__groups">
@@ -570,7 +571,7 @@ export default function BrianBoard({currentUser,language='vi'}){
         </>}
        </div>
        :<BoardActivityStage activity={page.activities.find(a=>a.id===activeActivityId)}
-         vi={vi} onClose={()=>setActiveActivityId(null)}/>
+         vi={vi} onClose={()=>setActiveActivityId(null)} onPublicState={receivePublicActivityState}/>
        :<BoardCanvas page={studentView?sanitizeStudentPage(page):page} tool={studentView?'select':tool} color={color} width={thickness}
        onCommit={commitObj} onErase={eraseObject} onDuplicateObject={duplicateObject} onMoveObject={moveObject}
        penPreset={penPreset} snapToGrid={snapToGrid} shapeFill={shapeFill} vi={vi} zoom={zoom} setZoom={setZoom}
@@ -624,12 +625,13 @@ export default function BrianBoard({currentUser,language='vi'}){
      </div>}
      {panel==='activities'&&<div className="bbd-side-stack bbd-activity-builder">
        <h3>{vi?'Hoạt động tương tác':'Interactive activities'}</h3>
-       <p>{vi?'Tạo bài ghép đôi, sắp xếp câu hoặc phân loại và chạy ngay trên bảng.':'Create and play matching, sentence ordering or sorting activities.'}</p>
+       <p>{vi?'13 dạng bài tập — 10 hoạt động mới với chạm, kéo thả và chấm điểm ngay trên bảng.':'13 playable modes — including ten new touch, drag-and-drop and automatically graded activities.'}</p>
        <label>{vi?'Loại hoạt động':'Activity type'}
-        <select value={activityType} onChange={e=>{setActivityType(e.target.value);setActivityRaw('');setActivityError('');}}>
+        <select value={activityType} onChange={e=>{setActivityType(e.target.value);setActivityRaw('');setActivityImage('');setActivityError('');}}>
          <option value="matching">{vi?'Ghép đôi':'Matching'}</option>
          <option value="ordering">{vi?'Sắp xếp câu':'Sentence ordering'}</option>
          <option value="sorting">{vi?'Phân loại':'Sorting'}</option>
+         {LAB_TYPES.map(id=><option key={id} value={id}>{LAB_LABELS[id][vi?1:0]}</option>)}
         </select></label>
        <label>{vi?'Tên hoạt động':'Title'}<input maxLength={130} value={activityTitle}
          onChange={e=>setActivityTitle(e.target.value)} placeholder="Planet Earth"/></label>
@@ -637,10 +639,14 @@ export default function BrianBoard({currentUser,language='vi'}){
          onChange={e=>setActivityPrompt(e.target.value)} placeholder="Match, sort or reorder"/></label>
        <label>{vi?'Nội dung câu hỏi':'Question content'}
         <textarea rows={6} spellCheck={false} value={activityRaw} onChange={e=>setActivityRaw(e.target.value)}
-         placeholder={activityType==='ordering'?'We | should | save | energy | every day':
+         placeholder={LAB_TYPES.includes(activityType)?LAB_EXAMPLES[activityType]:activityType==='ordering'?'We | should | save | energy | every day':
           activityType==='matching'?'renewable | tái tạo\nemissions | khí thải\nwildlife | động vật hoang dã':
             'solar | Renewable\ncoal | Fossil fuel\nwind | Renewable'}/></label>
-       <p>{activityType==='ordering'?(vi?'Nhập các cụm theo thứ tự ĐÚNG, ngăn bằng dấu |.':'Enter phrases in the CORRECT order, separated by |.'):
+       {LAB_TYPES.includes(activityType)&&<BoardActivityLabBuilder type={activityType} vi={vi}
+        raw={activityRaw} setRaw={setActivityRaw} image={activityImage} setImage={setActivityImage}
+        setError={setActivityError}/>}
+       <p>{LAB_TYPES.includes(activityType)?(vi?'Lưu ý: nội dung bên trong [[...]], đáp án và quan hệ chấm điểm chỉ được lưu trong bài dạy của giáo viên.':'Answer keys and marked evidence remain teacher-private.'):
+        activityType==='ordering'?(vi?'Nhập các cụm theo thứ tự ĐÚNG, ngăn bằng dấu |.':'Enter phrases in the CORRECT order, separated by |.'):
         (vi?'Mỗi dòng: nội dung | đáp án hoặc nhóm.':'One line per item: prompt | answer or category.')}</p>
        {activityError&&<p role="alert">{activityError}</p>}
        <button disabled={page?.locked||(!editingActivityId&&page?.activities?.length>=24)} onClick={addActivity}>
