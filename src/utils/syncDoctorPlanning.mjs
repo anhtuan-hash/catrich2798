@@ -71,11 +71,10 @@ export function createSyncReviewPlan(issue, report) {
   const sourceVerified = !origin || checked?.status==='ok';
   const canonicalVerified = !['STUDENT_NOT_LINKED','ASSESSMENT_LINK_REVIEW','CANONICAL_NOT_VISIBLE'].includes(issue.code)
     || canonical?.status==='ok';
-  const eligibleForManualReview=sourceVerified && canonicalVerified && report.completeness==='complete' && !severe.has(issue.code);
+  const eligibleForManualReview=sourceVerified && canonicalVerified && !severe.has(issue.code);
   const blockers=[
     ...(!sourceVerified?[ 'Chưa xác minh được nguồn đích / Source not verified' ]:[]),
     ...(!canonicalVerified?[ 'Chưa xác minh nguồn danh sách chuẩn / Canonical source not verified' ]:[]),
-    ...(report.completeness!=='complete'?[ 'Phạm vi quét chưa đầy đủ / Incomplete scan scope' ]:[]),
     ...(severe.has(issue.code)?[ 'Rủi ro định danh: bắt buộc đối chiếu thủ công / Identity risk' ]:[]),
   ];
   const affectedCount = issue.code==='STUDENT_NOT_LINKED' ? 1 : null;
