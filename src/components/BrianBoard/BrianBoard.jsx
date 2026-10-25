@@ -3,7 +3,7 @@ import {createPortal} from 'react-dom';
 import {Presentation,Pen,Highlighter,Eraser,MousePointer2,Hand,Type,Square,Circle,Minus,
  StickyNote,ScanEye,Undo2,Redo2,Plus,Copy,Trash2,Save,CheckCircle2,X,ChevronLeft,
  ChevronRight,CloudOff,Play,Pause,RotateCcw,Timer,Users,Eye,EyeOff,Maximize2,
- Download,Move,Palette,FilePlus2,LockKeyhole,LockKeyholeOpen,Layers,ArrowUp,ArrowDown,ImagePlus,Search,RefreshCcw,FileJson,FileUp,Edit3,ArrowUpRight,Triangle,Grid3X3,Droplets,Frame,Clapperboard,MapPinned,Map,Focus,Lasso,Paintbrush,LayoutTemplate,SquareStack,BookMarked,ShieldCheck} from 'lucide-react';
+ Download,Move,Palette,FilePlus2,LockKeyhole,LockKeyholeOpen,Layers,ArrowUp,ArrowDown,ImagePlus,Search,RefreshCcw,FileJson,FileUp,Edit3,ArrowUpRight,Triangle,Grid3X3,Droplets,Frame,Clapperboard,MapPinned,Map,Focus,Lasso,Paintbrush,LayoutTemplate,SquareStack,BookMarked,ShieldCheck,Crop} from 'lucide-react';
 import {isAdminRole,isDepartmentLeaderRole,normalizeSystemRole} from '../../utils/roles.js';
 import {GLOBAL_FLOATING_ACTION_EVENT,FLOATING_ACTION_IDS} from '../../utils/unifiedFloatingDock.js';
 import {BOARD_W,BOARD_H,newLesson,newPage,normalizeLesson,makeId,THEMES,sanitizeStudentPage} from './boardModel.js';
@@ -28,7 +28,8 @@ import BoardNavigator from './BoardNavigator.jsx';
 import BoardFrameThumbnail from './BoardFrameThumbnail.jsx';
 import BoardReliabilityPanel from './BoardReliabilityPanel.jsx';
 import {listBoardAssets,saveBoardAsset,readBoardAsset} from './boardAssets.js';
-import {cropBoardImageData} from './boardImageStudio.js';
+import {cropBoardImageData,cropBoardImageRegion} from './boardImageStudio.js';
+import BoardCropEditor from './BoardCropEditor.jsx';
 import {eraseInkAtPoint,scaleBoardObjects,duplicateBoardObjects,reorderBoardObjects,
  BOARD_V8_TEMPLATES,buildBoardTemplate,createDiagramConnection,syncDiagramConnections,
  groupResizeTransform} from './boardV8Tools.js';
@@ -66,6 +67,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  const [tool,setTool]=useState('pen'),[color,setColor]=useState('#335d63'),[thickness,setThickness]=useState(5);
  const [penPreset,setPenPreset]=useState('classic'),[snapToGrid,setSnapToGrid]=useState(false);
  const [shapeFill,setShapeFill]=useState('none'),[smartGeometry,setSmartGeometry]=useState(false);
+ const [cropEditId,setCropEditId]=useState(null);
  const [motion,setMotion]=useState(()=>{
   try{const saved=window.localStorage.getItem('bbd-motion-v1');
    return ['off','balanced','expressive'].includes(saved)?saved:'balanced';
@@ -460,6 +462,20 @@ export default function BrianBoard({currentUser,language='vi'}){
    teacherOnly:true,studentVisible:false});
   setActiveActivityId(null);
   setTool('select');
+ };
+ const cropImageRegion=async(id,rect)=>{
+  const start=docRef.current,active=start?.pages.find(p=>p.id===start.activePageId);
+  const original=active?.objects.find(o=>o.id===id&&o.kind==='image');
+  if(!original||active?.locked)throw Error('Image not editable');
+  const result=await cropBoardImageRegion(original.src,rect);
+  if(docRef.current?.id!==start.id||docRef.current.activePageId!==active.id)
+   throw Error('Lesson changed while cropping; no changes made');
+  const current=docRef.current.pages.find(p=>p.id===active.id)?.objects.find(o=>o.id===id);
+  if(current?.src!==original.src)throw Error('Image changed while cropping');
+  editPage(p=>({...p,objects:p.objects.map(o=>o.id===id?
+   {...o,src:result.src,width:Math.max(24,o.width*result.region.width),
+    height:Math.max(24,o.height*result.region.height)}:o)}));
+  setCropEditId(null);
  };
  const cropImageInLayer=async(id,edge)=>{
   if(!page||page.locked)return;
@@ -1060,17 +1076,19 @@ export default function BrianBoard({currentUser,language='vi'}){
         <button disabled={page?.locked} onClick={()=>setLayerFlag(o.id,'locked')}
          aria-label={o.locked?(vi?'Mở khóa đối tượng':'Unlock object'):(vi?'Khóa đối tượng':'Lock object')}>
          {o.locked?<LockKeyhole size={17}/>:<LockKeyholeOpen size={17}/>}</button>
-        {o.kind==='image'&&<div className="bbd-v8-crop-buttons" aria-label={vi?'Cắt ảnh':'Crop image'}>
-         {['left','top','right','bottom'].map(edge=><button type="button" key={edge}
-          disabled={page?.locked} onClick={()=>void cropImageInLayer(o.id,edge)}
-          title={vi?'Cắt 12% cạnh '+edge:'Crop 12% from '+edge}>{edge[0].toUpperCase()}</button>)}
-        </div>}
+        {o.kind==='image'&&<button type="button" disabled={page?.locked}
+         onClick={()=>setCropEditId(current=>current===o.id?null:o.id)}
+         aria-label={vi?'Cắt ảnh theo vùng tự do':'Edit custom crop'} title={vi?'Cắt ảnh tùy chỉnh':'Custom image crop'}>
+         <Crop size={17}/></button>}
         <button disabled={page?.locked} onClick={()=>batchEdit([o.id],'front')}
          aria-label={vi?'Đưa lên trên':'Bring to front'}><ArrowUp size={15}/></button>
         <button disabled={page?.locked} onClick={()=>batchEdit([o.id],'back')}
          aria-label={vi?'Đưa xuống dưới':'Send to back'}><ArrowDown size={15}/></button>
        </div>)}
       </div>
+      {cropEditId&&page?.objects?.some(o=>o.id===cropEditId&&o.kind==='image')&&
+       <BoardCropEditor key={cropEditId} image={page.objects.find(o=>o.id===cropEditId)}
+        vi={vi} onApply={rect=>cropImageRegion(cropEditId,rect)} onCancel={()=>setCropEditId(null)}/>}
      </div>}
      {panel==='assets'&&<div className="bbd-side-stack bbd-v8-assets">
       <div className="bbd-side-heading"><h3>{vi?'Thư viện mẫu giảng dạy':'Teaching templates'}</h3><LayoutTemplate size={19}/></div>
