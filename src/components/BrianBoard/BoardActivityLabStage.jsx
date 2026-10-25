@@ -143,7 +143,7 @@ export default function BoardActivityLabStage({activity,vi=true,onClose,onPublic
  };
  const checkError=answer=>{
   const tokens=item.label.split(/\s+/).filter(Boolean);
-  const candidate=selectedWords.sort((a,b)=>a-b).map(i=>tokens[i]).join(' ');
+  const candidate=selectedWords.slice().sort((a,b)=>a-b).map(i=>tokens[i]).join(' ');
   const right=normalized(candidate)===normalized(item.wrong)&&normalized(answer)===normalized(item.answer);
   store({wrong:candidate,answer},right);
  };
