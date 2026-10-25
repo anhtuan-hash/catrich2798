@@ -244,8 +244,14 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
    return;
   }
   const events=event.getCoalescedEvents?.()||[event];
-  if(state.tool==='pen'||state.tool==='highlighter'){
-   for(const e of events){if(state.points.length>=4000)break;const q=local(e);state.points.push({...q,pressure:e.pressure||.5});}
+  if(['pen','highlighter','lasso','eraser-precision'].includes(state.tool)){
+   for(const e of events){
+    if(state.points.length>=4000)break;
+    const q=local(e);
+    const prev=state.points.at(-1);
+    if(prev&&Math.hypot(prev.x-q.x,prev.y-q.y)<(state.tool==='eraser-precision'?7:2))continue;
+    state.points.push({...q,pressure:e.pressure||.5});
+   }
   }else state.points=[state.points[0],p];
   state.shift=event.shiftKey;
   if(preview.current){
