@@ -78,6 +78,25 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
  const svg=useRef(null),preview=useRef(null),pointer=useRef(null);
  const [drawing,setDrawing]=useState(false),[selectedId,setSelectedId]=useState('');
  const [laser,setLaser]=useState(null);
+ const [inlineText,setInlineText]=useState(null);
+ const saveInlineText=()=>{
+  if(!inlineText)return;
+  const value=inlineText.text.replace(/\s+/g,' ').trim().slice(0,90);
+  if(value&&!studentView&&!page?.locked)onCommit?.({
+   id:makeId(),kind:'text',x:inlineText.x,y:inlineText.y,text:value,
+   fontSize:40,color,studentVisible:true
+  });
+  setInlineText(null);
+ };
+ const editTextAnywhere=event=>{
+  if(studentView||page?.locked||event.target.closest('[data-board-object]'))return;
+  event.preventDefault();
+  const pos=local(event),rect=event.currentTarget.getBoundingClientRect();
+  setInlineText({x:pos.x,y:pos.y,
+   left:Math.max(7,Math.min(event.clientX-rect.left,rect.width-275)),
+   top:Math.max(5,Math.min(event.clientY-rect.top,rect.height-54)),
+   text:''});
+ };
  const stylusActive=useRef(false);
  useEffect(()=>{setSelectedId('');pointer.current=null;stylusActive.current=false;},[page?.id]);
  const viewWidth=BOARD_W/zoom,viewHeight=BOARD_H/zoom;
@@ -207,6 +226,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
   data-tool={tool} aria-label="Teaching board drawing surface">
   <svg ref={svg} className="bbd-canvas__svg" viewBox={camera.x+' '+camera.y+' '+viewWidth+' '+viewHeight}
    preserveAspectRatio="xMidYMid meet"
+   onDoubleClick={editTextAnywhere}
    onPointerDown={begin} onPointerMove={move} onPointerUp={event=>finish(event)}
    onPointerCancel={event=>finish(event,true)} onWheel={wheel}
    onPointerLeave={()=>{if(tool==='laser'||spotlight){setLaser(null);onPointerPosition?.(null);}}}
@@ -237,6 +257,19 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
    {tool==='laser'&&laser&&<circle cx={laser.x} cy={laser.y} r="13"
     fill="#fa445c" stroke="#fff" strokeWidth="3" pointerEvents="none"/>}
   </svg>
+  {inlineText&&<input autoFocus type="text" className="bbd-canvas__inline-editor"
+    aria-label={vi?'Nhập chữ trực tiếp trên bảng':'Type anywhere on the board'}
+    maxLength={90} value={inlineText.text}
+    style={{left:inlineText.left,top:inlineText.top}}
+    onPointerDown={e=>e.stopPropagation()}
+    onChange={e=>setInlineText(v=>({...v,text:e.target.value}))}
+    onKeyDown={e=>{
+     e.stopPropagation();
+     if(e.key==='Enter'){e.preventDefault();saveInlineText();}
+     if(e.key==='Escape'){e.preventDefault();setInlineText(null);}
+    }}
+    onBlur={saveInlineText}
+    placeholder={vi?'Viết gì đó rồi Enter':'Type and press Enter'}/>}
   {tool==='select'&&!studentView&&!page?.locked&&selectedId&&page?.objects?.some(o=>o.id===selectedId)&&
    <div className="bbd-canvas__selection-actions" role="group" aria-label="Selected board object">
     <button type="button" onClick={()=>{onDuplicateObject?.(selectedId);setSelectedId('');}}>
