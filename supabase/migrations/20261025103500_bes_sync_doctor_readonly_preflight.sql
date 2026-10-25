@@ -16,6 +16,7 @@ declare
   target_revision timestamptz;
   target_students jsonb;
   candidate jsonb;
+  matched_candidate jsonb;
   candidate_id text;
   candidate_code text;
   test_case text;
@@ -72,9 +73,9 @@ begin
       'readOnly',true,'canExecute',false);
   end if;
 
-  if jsonb_typeof(c_students) <> 'array' or
-     jsonb_typeof(target_payload) <> 'object' or
-     jsonb_typeof(target_payload->'students') <> 'array' then
+  if coalesce(jsonb_typeof(c_students),'null') <> 'array' or
+     coalesce(jsonb_typeof(target_payload),'null') <> 'object' or
+     coalesce(jsonb_typeof(target_payload->'students'),'null') <> 'array' then
     return jsonb_build_object('state','blocked','reason','unsupported_student_shape',
       'readOnly',true,'canExecute',false);
   end if;
@@ -90,12 +91,13 @@ begin
   -- no student names or identifiers are returned to the browser.
   for candidate in select value from jsonb_array_elements(c_students)
   loop
-    candidate_id := nullif(trim(coalesce(candidate->>'rosterStudentId',candidate->>'id','')),'');
+    candidate_id := coalesce(nullif(trim(coalesce(candidate->>'rosterStudentId','')),''),nullif(trim(coalesce(candidate->>'id','')),''));
     if candidate_id is not null then
       test_case := concat_ws(':',r.issue_code,r.school_year,r.class_name,
         r.source,r.workspace_id,candidate_id);
       if encode(sha256(convert_to(test_case,'UTF8')),'hex')=r.case_hash then
         matched_count := matched_count + 1;
+        matched_candidate := candidate;
         exit when matched_count>1;
       end if;
     end if;
@@ -105,7 +107,8 @@ begin
     return jsonb_build_object('state','blocked','reason','student_identity_not_unique',
       'readOnly',true,'canExecute',false);
   end if;
-  candidate_id := nullif(trim(coalesce(candidate->>'rosterStudentId',candidate->>'id','')),'');
+  candidate := matched_candidate;
+  candidate_id := coalesce(nullif(trim(coalesce(candidate->>'rosterStudentId','')),''),nullif(trim(coalesce(candidate->>'id','')),''));
   candidate_code := lower(trim(coalesce(candidate->>'code','')));
 
   if candidate->>'active'='false'
