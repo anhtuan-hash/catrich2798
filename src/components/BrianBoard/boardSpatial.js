@@ -22,7 +22,9 @@ export function normalizeBoardFrames(frames){
   const v=safeBoardViewport(raw);
   return [{id,title:String(raw.title||'Frame '+(index+1)).trim().slice(0,90)||'Frame '+(index+1),
    x:v.x,y:v.y,width:clamp(v.width,FRAME_MIN_WIDTH,8000),height:clamp(v.height,FRAME_MIN_HEIGHT,4500),
-   hidden:raw.hidden===true}];
+   hidden:raw.hidden===true,
+   teacherNotes:String(raw.teacherNotes||'').slice(0,3500),
+   transition:['fly','instant','focus'].includes(raw.transition)?raw.transition:'fly'}];
  });
 }
 export function frameFromCorners(id,start,end,title='Frame'){
