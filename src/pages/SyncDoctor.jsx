@@ -214,27 +214,41 @@ export default function SyncDoctor({currentUser,language='vi'}){
   const [monitorLoading,setMonitorLoading]=useState(false);
   const [monitorError,setMonitorError]=useState('');
   const controller=useRef(null);
+  const activeUserId=useRef(currentUser?.id);
+  activeUserId.current=currentUser?.id;
+  const monitorSeq=useRef(0);
+  const reviewSeq=useRef(0);
   const busy=!!progress;
   const refreshMonitor=async()=>{
     if(!authorized)return;
+    const requesterId=currentUser?.id,requestSeq=++monitorSeq.current;
+    const isCurrent=()=>activeUserId.current===requesterId&&monitorSeq.current===requestSeq;
     setMonitorLoading(true);setMonitorError('');
-    try{setMonitorRuns(await listSyncDoctorMonitorRuns());}
-    catch(err){setMonitorError(String(err?.message||err));}
-    finally{setMonitorLoading(false);}
+    try{
+      const rows=await listSyncDoctorMonitorRuns();
+      if(isCurrent())setMonitorRuns(rows);
+    }catch(err){if(isCurrent())setMonitorError(String(err?.message||err));}
+    finally{if(isCurrent())setMonitorLoading(false);}
   };
   useEffect(()=>{
     controller.current?.abort();
+    monitorSeq.current+=1;reviewSeq.current+=1;
     setReport(null);setSelected(null);setHistory([]);
     setMonitorRuns([]);setReviewInbox({requests:[],events:[]});
+    setMonitorLoading(false);setReviewLoading(false);
     setPreflightById({});setRecoveryByRequest({});
   },[currentUser?.id]);
   useEffect(()=>{if(authorized&&(tab===0||tab===6))void refreshMonitor();},[tab,authorized,currentUser?.id]);
   const refreshReviews=async()=>{
     if(!authorized)return;
+    const requesterId=currentUser?.id,requestSeq=++reviewSeq.current;
+    const isCurrent=()=>activeUserId.current===requesterId&&reviewSeq.current===requestSeq;
     setReviewLoading(true);setReviewError('');
-    try{const next=await getSyncDoctorReviewInbox();setReviewInbox(next);}
-    catch(err){setReviewError(String(err?.message||err));}
-    finally{setReviewLoading(false);}
+    try{
+      const next=await getSyncDoctorReviewInbox();
+      if(isCurrent())setReviewInbox(next);
+    }catch(err){if(isCurrent())setReviewError(String(err?.message||err));}
+    finally{if(isCurrent())setReviewLoading(false);}
   };
   useEffect(()=>{if(authorized&&(tab===3||tab===4))void refreshReviews();},[tab,authorized,currentUser?.id]);
   const requestReview=async()=>{
