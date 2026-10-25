@@ -2,12 +2,12 @@ import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {BOARD_W,BOARD_H,pathFromPoints,makeId} from './boardModel.js';
 import {snapBoardPoint,constrainBoardShape,smoothBoardPath,pressureBoardSegments,
  boardShapeGeometry,boardShapePreviewPath} from './boardDrawing.js';
-import {frameFromCorners} from './boardSpatial.js';
+import {frameFromCorners,spatialObjectBounds} from './boardSpatial.js';
 import {lassoObjectIds,recognizeBoardGesture,groupBounds,BOARD_RESIZE_HANDLES} from './boardV8Tools.js';
 import {measureRuler,measureAngle,drawCompassCircle} from './boardMeasure.js';
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 
-export function renderBoardObject(object,onErase,studentView=false,onInteract,onSelect){
+function renderBoardObjectRaw(object,onErase,studentView=false,onInteract,onSelect){
  const o=object;if(o.hidden===true||studentView&&(o.studentVisible===false||o.teacherOnly))return null;
  const erase=event=>{if(!onErase)return;event.stopPropagation();onErase(o.id);};
  const press=event=>{
@@ -86,6 +86,16 @@ export function renderBoardObject(object,onErase,studentView=false,onInteract,on
   </g>;
  }
  return null;
+}
+export function renderBoardObject(object,onErase,studentView=false,onInteract,onSelect){
+ const rendered=renderBoardObjectRaw(object,onErase,studentView,onInteract,onSelect);
+ if(!rendered)return null;
+ const deg=Number(object?.rotation)||0;
+ if(!deg)return rendered;
+ const b=spatialObjectBounds(object);
+ if(!b)return rendered;
+ const cx=b.x+b.width/2,cy=b.y+b.height/2;
+ return <g key={object.id} transform={'rotate('+deg+' '+cx+' '+cy+')'}>{rendered}</g>;
 }
 export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onCommit,onErase,onDuplicateObject,onMoveObject,onBatchEdit,onPrecisionErase,onSaveAsset,onCommitMany,
  zoom=1,setZoom,camera={x:0,y:0},setCamera,contentText='',privateAnswer='',onInteract,
