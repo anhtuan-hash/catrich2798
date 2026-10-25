@@ -15,6 +15,7 @@ export function boardStudentPayload(lesson,activityId=null,live=null){
    score:Math.max(0,Math.min(10000,Math.floor(Number(row.score)||0)))
   })):[],
   finished:live.finished===true,
+  revealed:live.revealAll===true,
   seconds:Math.max(0,Math.min(3600,Math.floor(Number(live.seconds)||0)))
  }:null;
  return {type:'state',schema:1,title:String(lesson?.title||'Teaching Board').slice(0,180),
