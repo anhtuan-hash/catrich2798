@@ -105,3 +105,17 @@
 .bsd-backup-result>div{display:grid;gap:5px;min-width:0}.bsd-backup-result strong{font-size:12px}.bsd-backup-result small{font-size:11px}
 .bsd-backup-panel>small{font-size:11px;color:#567d73;line-height:1.6}
 @media(max-width:570px){.bsd-backup-actions>*{flex:1;min-width:0}.bsd-backup-panel{padding:13px}}
+
+
+/* Sync Doctor scheduled monitoring */
+.bsd-monitor{display:grid;gap:17px}.bsd-monitor>.bsd-panel-head{align-items:flex-start;margin-bottom:0}
+.bsd-monitor h2{font-size:24px;margin:5px 0;color:#1b3656}.bsd-monitor p{margin:4px 0;color:#687d94;font-size:12px;line-height:1.6}
+.bsd-monitor-snapshot{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:11px}
+.bsd-monitor-stat{display:grid;gap:7px;padding:14px;border:1px solid #dbe6f0;border-radius:14px;background:#f5f9fd;min-width:0}
+.bsd-monitor-stat>svg{color:#4177af}.bsd-monitor-stat>span{font-size:11px;color:#5b7190;line-height:1.35}.bsd-monitor-stat>strong{font-size:27px;color:#1d4267}
+.bsd-monitor-checked{display:flex;align-items:center;gap:9px}.bsd-monitor h3{margin:0;font-size:15px}
+.bsd-monitor-history{display:grid;gap:1px;border:1px solid #dce7f3;border-radius:13px;overflow:hidden}
+.bsd-monitor-row{display:grid;grid-template-columns:1.5fr .7fr 1fr auto;gap:12px;align-items:center;padding:12px 13px;background:#fafcfe;color:#48617d;font-size:12px;min-width:0}
+.bsd-monitor-row:nth-child(even){background:#f0f5fa}.bsd-monitor-row>span:first-child{display:flex;align-items:center;gap:7px}
+@media(max-width:1000px){.bsd-monitor-snapshot{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:610px){.bsd-monitor-snapshot{grid-template-columns:repeat(2,minmax(0,1fr))}.bsd-monitor-row{grid-template-columns:1fr auto}.bsd-monitor-row span:nth-child(2){display:none}.bsd-monitor>.bsd-panel-head{flex-wrap:wrap}}
