@@ -15,6 +15,7 @@ import {importBoardPdf,exportBoardStudentPdf} from './boardPdf.js';
 import {createBoardActivity} from './boardActivities.js';
 import BoardActivityStage from './BoardActivityStage.jsx';
 import './BrianBoard.css';
+import './BoardActivities.css';
 
 const drawTools=[
  ['select',MousePointer2,'Select','Chọn'],['pan',Hand,'Pan','Di chuyển'],
