@@ -109,3 +109,14 @@
  display:flex;justify-content:space-between;border-radius:12px;font-weight:750}
 .bbd-lab-public-passage{font-size:clamp(16px,2vw,25px);line-height:1.7;
  padding:22px;border-radius:15px;background:var(--bbd-panel,#fff)}
+
+.bbd-lab-team-panel{display:grid;gap:8px}
+.bbd-lab-team-commands,.bbd-lab-clock{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.bbd-lab-team-commands button,.bbd-lab-clock button{min-height:35px;border:1px solid var(--bbd-border,#bacfc2);
+ border-radius:9px;padding:6px 10px;background:var(--bbd-panel,#fff);color:var(--bbd-text,#244536);font-weight:650}
+.bbd-lab-clock{border:1px solid #bed4c8;border-radius:13px;padding:9px 12px;
+ background:var(--bbd-panel,#fff);font-variant-numeric:tabular-nums}
+.bbd-lab-clock strong{font-size:16px;margin-right:auto}
+.bbd-lab-clock span{font-weight:850;color:#ad4a3f}
+.bbd-lab-corner.is-picked{outline:5px solid #f1eaae;outline-offset:1px;filter:brightness(1.1)}
+.bbd-lab-public .bbd-lab-teams{gap:8px}
