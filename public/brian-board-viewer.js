@@ -179,6 +179,27 @@ function renderPublicActivity(activity,live=null){
  }
  activityBox.appendChild(content);
 }
+let pointerState=null;
+function renderPointer(update){
+ const old=svg.querySelector('#bbd-tv-pointer');old?.remove();
+ if(!update?.point)return;
+ const point=update.point;
+ const x=Number(point.x),y=Number(point.y);
+ if(!Number.isFinite(x)||!Number.isFinite(y)||Math.abs(x)>100000||Math.abs(y)>100000)return;
+ const view=svg.viewBox.baseVal;
+ const g=add(svg,make('g',{id:'bbd-tv-pointer','pointer-events':'none'}));
+ if(update.mode==='spotlight'){
+  const defs=add(g,make('defs')),mask=add(defs,make('mask',{id:'bbd-tv-pointer-mask'}));
+  add(mask,make('rect',{x:view.x-100,y:view.y-100,width:view.width+200,height:view.height+200,fill:'#fff'}));
+  add(mask,make('circle',{cx:x,cy:y,r:145,fill:'#000'}));
+  add(g,make('rect',{x:view.x-100,y:view.y-100,width:view.width+200,height:view.height+200,
+   fill:'#040a11','fill-opacity':'.78',mask:'url(#bbd-tv-pointer-mask)'}));
+  add(g,make('circle',{cx:x,cy:y,r:145,fill:'none',stroke:'#f8d88d','stroke-width':3}));
+ }else{
+  add(g,make('circle',{cx:x,cy:y,r:13,fill:'#ff4b69',stroke:'#fff','stroke-width':4}));
+  add(g,make('circle',{cx:x,cy:y,r:29,fill:'none',stroke:'#ff4b69','stroke-opacity':'.45','stroke-width':4}));
+ }
+}
 function render(data){
  if(data?.schema!==1||data?.type!=='state')return;
  const raw=data.viewport||{},num=(v,f)=>Number.isFinite(Number(v))?Number(v):f;
@@ -212,6 +233,7 @@ function render(data){
    const el=drawing(o);if(el)add(svg,el);
   });
  }
+ renderPointer(pointerState);
  status.textContent='Live · '+new Date().toLocaleTimeString();
 }
 if(!/^[0-9a-f]{36}$/.test(token)||!('BroadcastChannel' in window)){
@@ -222,8 +244,14 @@ if(!/^[0-9a-f]{36}$/.test(token)||!('BroadcastChannel' in window)){
  bus.onmessage=event=>{
   if(event.data?.type==='end'){
    svg.replaceChildren();notice.style.display='block';notice.textContent='Presentation ended.';
-   renderPublicActivity(null);
+   renderPublicActivity(null);pointerState=null;
    status.textContent='Disconnected';return;
+  }
+  if(event.data?.type==='pointer'){
+   const next=event.data;
+   pointerState=next?.point?{point:{x:Number(next.point.x),y:Number(next.point.y)},
+    mode:next.mode==='spotlight'?'spotlight':'laser'}:null;
+   renderPointer(pointerState);return;
   }
   render(event.data);
  };
