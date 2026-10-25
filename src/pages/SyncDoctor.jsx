@@ -65,6 +65,14 @@ const viText={
   monitorHealthy:'Giám sát gần nhất chưa ghi nhận thiếu liên kết trong phạm vi kiểm tra.',
   monitorNoRun:'Chưa có kết quả giám sát tự động có thể xác minh.',monitorGo:'Xem chi tiết giám sát',
   repairLocked:'Sửa và hoàn tác dữ liệu thật vẫn bị khóa cho tới khi hoàn tất kiểm thử thực thi độc lập.',
+  releaseGateTitle:'Cổng nghiệm thu an toàn',
+  releaseGateSubtitle:'Kiểm thử mô phỏng không thay thế PostgreSQL thực tế. Không có chức năng ghi dữ liệu học sinh được bật.',
+  releaseGatePass:'Đã triển khai',
+  releaseGatePending:'Chưa nghiệm thu',
+  releaseGateLocal:'Kiểm thử ngoại tuyến bằng hồ sơ giả lập, không cần dịch vụ trả phí',
+  releaseGateDb:'Kiểm thử thực thi và hoàn tác bằng PostgreSQL cách ly',
+  releaseGateAccounts:'Kiểm thử hai tài khoản thật và Safari/Android',
+  releaseGateHold:'Cả ba lệnh thực thi, sửa và hoàn tác vẫn bị khóa ở Supabase Production.',
   docket:'Xuất phiếu rà soát',plansOverview:'Kế hoạch dự kiến được tạo từ lần quét gần nhất — không thực hiện thay đổi dữ liệu.',
   preview:'Xem trước phương án',constraints:'Điều kiện an toàn',steps:'Các bước rà soát',
   approval:'Cần người có thẩm quyền duyệt',reviewable:'Có thể rà soát',blocked:'Chưa đủ điều kiện',
@@ -128,6 +136,14 @@ const enText={
   monitorHealthy:'Latest scheduled scan found no potential missing links in its limited scope.',
   monitorNoRun:'No verifiable scheduled scan is available.',monitorGo:'Open Monitoring',
   repairLocked:'Real academic repair and rollback remain locked pending independent execution tests.',
+  releaseGateTitle:'Safety release gates',
+  releaseGateSubtitle:'Synthetic model tests do not replace real PostgreSQL integration testing. No academic data write is enabled.',
+  releaseGatePass:'Implemented',
+  releaseGatePending:'Not accepted',
+  releaseGateLocal:'Offline synthetic student repair/rollback checks, with no paid service',
+  releaseGateDb:'Isolated PostgreSQL write and rollback integration tests',
+  releaseGateAccounts:'Two real-account sessions and Safari/Android verification',
+  releaseGateHold:'All three execution, repair and rollback RPCs remain disabled in Production.',
   docket:'Export review docket',plansOverview:'Proposals from the latest scan; no changes can be executed.',
   preview:'Review preview',constraints:'Safety requirements',steps:'Review steps',
   approval:'Independent approval required',reviewable:'Ready for review',blocked:'Blocked — investigate',
@@ -539,7 +555,21 @@ export default function SyncDoctor({currentUser,language='vi'}){
       </>}
       <div className="bsd-advice"><LockKeyhole size={16}/>{t.repairLocked}</div>
     </section>}
-    {tab===5&&<section className="bsd-panel bsd-simple"><span className="bsd-overline bsd-dark">GOVERNANCE POLICY</span><h2>{t.settingsTitle}</h2><p>{t.safetyText}</p>{t.settingsLines.map(line=><div className="bsd-policy" key={line}><ShieldCheck size={18}/>{line}</div>)}</section>}
+    {tab===5&&<section className="bsd-panel bsd-simple">
+      <span className="bsd-overline bsd-dark">GOVERNANCE POLICY</span>
+      <h2>{t.settingsTitle}</h2><p>{t.safetyText}</p>
+      {t.settingsLines.map(line=><div className="bsd-policy" key={line}><ShieldCheck size={18}/>{line}</div>)}
+      <div className="bsd-release-gates">
+        <h3>{t.releaseGateTitle}</h3><p>{t.releaseGateSubtitle}</p>
+        {[[t.releaseGateLocal,true],[t.releaseGateDb,false],[t.releaseGateAccounts,false]].map(([label,passed])=>
+          <div className="bsd-release-gate" key={label}>
+            {passed?<CheckCircle2 size={19} color="#24755c"/>:<LockKeyhole size={19} color="#99682d"/>}
+            <span>{label}</span>
+            <strong className={passed?'pass':'pending'}>{passed?t.releaseGatePass:t.releaseGatePending}</strong>
+          </div>)}
+        <div className="bsd-advice"><LockKeyhole size={17}/>{t.releaseGateHold}</div>
+      </div>
+    </section>}
   </div>;
 }
 function Empty({t}){return <section className="bsd-empty"><div><FileSearch size={32}/></div><h3>{t.empty}</h3><p>{t.emptyDesc}</p></section>;}
