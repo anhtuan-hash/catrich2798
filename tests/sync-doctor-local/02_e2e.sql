@@ -37,6 +37,15 @@ begin
     old_revision,canonical_revision,'approved_for_review'
   ) returning id into local_request_id;
 
+  -- Validate actual database grant barriers before superuser-driven fixture calls.
+  if has_function_privilege('authenticated','public.bes_sync_authorize_transition(uuid,text)','execute')
+     or has_function_privilege('authenticated','public.bes_sync_execute_one_student(uuid)','execute')
+     or has_function_privilege('authenticated','public.bes_sync_restore_single_link(uuid)','execute')
+     or has_function_privilege('anon','public.bes_sync_execute_one_student(uuid)','execute')
+     or has_table_privilege('authenticated','bes_internal.bes_sync_backup_snapshots','select') then
+      raise exception 'Academic write or private backup permission was accidentally granted';
+  end if;
+
   -- Authorize vs execute are independent people, and teacher has no authority.
   perform set_config('request.jwt.claim.sub',teacher::text,true);
   begin
@@ -193,6 +202,21 @@ begin
     perform public.bes_sync_restore_single_link(local_request_id);
     raise exception 'Concurrent score edit was overwritten';
   exception when serialization_failure then null;end;
+
+  -- The original private backup cannot be expired or altered for a live restore.
+  begin
+    update bes_internal.bes_sync_backup_snapshots
+      set expires_at=now()-interval '1 second' where request_id=local_request_id;
+    perform public.bes_sync_restore_single_link(local_request_id);
+    raise exception 'Expired private snapshot was allowed for rollback';
+  exception when sqlstate '55000' then null;end;
+  begin
+    update bes_internal.bes_sync_backup_snapshots
+      set snapshot=jsonb_set(snapshot,'{scoreMap,legacy-100,midterm}','10'::jsonb,true)
+      where request_id=local_request_id;
+    perform public.bes_sync_restore_single_link(local_request_id);
+    raise exception 'Corrupt backup snapshot was allowed for rollback';
+  exception when sqlstate 'XX001' then null;end;
 
   select public.bes_sync_restore_single_link(local_request_id) into result;
   if result->>'state'<>'rolled_back' then raise exception 'Live rollback failed: %',result;end if;
