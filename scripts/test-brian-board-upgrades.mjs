@@ -106,6 +106,12 @@ assert.match(board,/\[3,5,10\]\.map/);
 assert.match(board,/selectBoardNameWithoutRepeat/);
 assert.match(board,/setRandomUsed/);
 assert.match(board,/Reset team scores/);
+assert.match(board,/ownerRef\.current/,'Import must check current account identity after file read');
+assert.match(board,/activities:\(orig\.activities\|\|\[\]\)\.map/,'Page copies need new activity IDs');
+assert.match(board,/activity\.id===id&&!activity\.teacherOnly/,'Teacher-only items cannot be published');
+assert.match(board,/if\(dirty\.current\)\{await persist\(docRef\.current\);if\(dirty\.current\)/,
+ 'Backup import must not discard an unsaved lesson');
+
 assert.match(style,/bbd-activity-actions/);
 assert.match(style,/bbd-timer-presets/);
 assert.ok(!board.includes('dangerouslySetInnerHTML'));
