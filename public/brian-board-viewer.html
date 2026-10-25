@@ -23,6 +23,30 @@ svg{width:100%;height:100%;display:block}
 @media(max-width:700px){.activity .choices{gap:8px}.activity .choice{padding:9px}}
 
 @media(max-width:700px){.shell{padding:8px}.brand{font-size:10px}.header{gap:8px}#title{font-size:15px}}
+.tv-lab{display:grid;gap:16px;min-height:0;font-size:clamp(17px,2vw,31px)}
+.tv-progress{font-size:clamp(13px,1.5vw,20px)!important;color:#54806c;font-weight:800}
+.tv-scores{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.tv-scores>span{background:#e0eee7;border-radius:12px;padding:11px;font-weight:800;font-size:clamp(12px,1.5vw,22px)}
+.tv-question{font-weight:750;font-size:clamp(20px,3vw,48px)!important}
+.tv-passage{background:#f5f8f4;border:1px solid #c6d9cf;padding:16px;border-radius:16px;line-height:1.65}
+.tv-photo{position:relative;width:min(100%,1000px);aspect-ratio:16/9;overflow:hidden;
+ border:2px solid #82ae9e;border-radius:18px;background:#d7ebe2}
+.tv-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.tv-photo-placeholder{position:absolute;inset:0;display:grid;place-items:center;padding:20px;
+ background:linear-gradient(135deg,#d5e8dc,#deeafb);font-weight:850}
+.tv-pin{position:absolute;transform:translate(-50%,-50%);z-index:2;display:grid;place-items:center;
+ border-radius:50%;background:white;border:3px solid #4c8e70;width:42px;height:42px;font-weight:900;font-size:16px}
+.tv-cover{position:absolute;z-index:3;width:25%;height:25%;display:grid;place-items:center;
+ color:white;background:#315d66;border:1px solid #8aa8a9;font-size:clamp(20px,3vw,42px);font-weight:900}
+.tv-cover.open{opacity:0}
+.tv-corners{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.tv-corner{border-radius:17px;color:white;padding:24px;min-height:95px;font-weight:850}
+.tv-corner-0{background:#3979c6}.tv-corner-1{background:#be496c}
+.tv-corner-2{background:#3a916d}.tv-corner-3{background:#9b7535}
+.tv-flashcard{background:#e2f2e6;border-radius:22px;padding:50px;text-align:center;font-weight:850;
+ font-size:clamp(30px,4vw,64px)!important}
+@media(max-width:700px){.tv-scores{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .tv-corner{min-height:68px;padding:12px}}
 </style></head><body><main class="shell">
 <header class="header"><span class="brand">BRIAN BOARD · STUDENT VIEW</span><strong id="title">The Living Classroom</strong><small id="status">Connecting…</small></header>
 <div class="board" id="board"><div class="notice" id="notice">Waiting for the teacher’s board…</div>
