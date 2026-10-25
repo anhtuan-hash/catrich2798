@@ -15,6 +15,7 @@ const inside=(point,polygon)=>{
 export function lassoObjectIds(objects,polygon){
  if(!Array.isArray(polygon)||polygon.length<3)return [];
  return (objects||[]).filter(obj=>{
+  if(obj.locked||obj.hidden)return false;
   const box=spatialObjectBounds(obj);
   if(!box)return false;
   const center={x:box.x+box.width/2,y:box.y+box.height/2};
@@ -24,7 +25,7 @@ export function lassoObjectIds(objects,polygon){
 export function moveBoardObjects(objects,ids,dx,dy){
  const keys=new Set(ids),x=finite(dx),y=finite(dy);
  return objects.map(o=>{
-  if(!keys.has(o.id))return o;
+  if(!keys.has(o.id)||o.locked)return o;
   if(o.kind==='stroke')return {...o,points:(o.points||[]).map(p=>shift(p,x,y))};
   if(o.kind==='shape')return {...o,x:finite(o.x)+x,y:finite(o.y)+y,x2:finite(o.x2)+x,y2:finite(o.y2)+y};
   return {...o,x:finite(o.x)+x,y:finite(o.y)+y};
@@ -38,7 +39,7 @@ export function scaleBoardObjects(objects,ids,factor,origin){
  const px=origin?.x??Math.min(...bounds.map(x=>x.x)),py=origin?.y??Math.min(...bounds.map(x=>x.y));
  const tx=v=>px+(finite(v)-px)*scale,ty=v=>py+(finite(v)-py)*scale;
  return objects.map(o=>{
-  if(!chosen.has(o.id))return o;
+  if(!chosen.has(o.id)||o.locked)return o;
   if(o.kind==='stroke')return {...o,points:(o.points||[]).map(p=>({...p,x:tx(p.x),y:ty(p.y)})),
    width:Math.max(1,finite(o.width,4)*scale)};
   if(o.kind==='shape')return {...o,x:tx(o.x),y:ty(o.y),x2:tx(o.x2),y2:ty(o.y2)};
@@ -84,7 +85,7 @@ export function splitStrokeByEraser(stroke,point,radius=24){
  return segments.filter(x=>x.length>0).map((points,i)=>({...stroke,id:i===0?stroke.id:id(),points}));
 }
 export function eraseInkAtPoint(objects,point,radius=24){
- return objects.flatMap(o=>o.kind==='stroke'?splitStrokeByEraser(o,point,radius):[o]);
+ return objects.flatMap(o=>o.kind==='stroke'&&!o.locked?splitStrokeByEraser(o,point,radius):[o]);
 }
 export function groupBounds(objects,ids){
  const keys=new Set(ids),b=objects.filter(o=>keys.has(o.id)).map(spatialObjectBounds).filter(Boolean);
