@@ -1,6 +1,8 @@
 import React,{useMemo,useState} from 'react';
 import {X,RotateCcw,CheckCircle2,ArrowLeft,Eye,EyeOff} from 'lucide-react';
 import {gradeBoardActivity,shuffleBoardItems} from './boardActivities.js';
+import {LAB_TYPES} from './boardActivityLab.js';
+import BoardActivityLabStage from './BoardActivityLabStage.jsx';
 
 function Stage({activity,vi,onClose}){
  const [seed,setSeed]=useState(0),[selected,setSelected]=useState(null),
@@ -81,5 +83,6 @@ function Stage({activity,vi,onClose}){
  </section>;
 }
 export default function BoardActivityStage(props){
+ if(LAB_TYPES.includes(props.activity?.type))return <BoardActivityLabStage key={props.activity.id} {...props}/>;
  return <Stage key={props.activity.id} {...props}/>;
 }
