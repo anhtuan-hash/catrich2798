@@ -64,6 +64,8 @@ export default function BrianBoard({currentUser,language='vi'}){
  useEffect(()=>{try{window.localStorage.setItem('bbd-motion-v1',motion);}catch{}},[motion]);
  const [zoom,setZoom]=useState(1),[camera,setCamera]=useState({x:0,y:0});
  const [activeFrameId,setActiveFrameId]=useState(null),[showFrames,setShowFrames]=useState(true);
+ const frameFlight=useRef(0);
+
  const [contentText,setContentText]=useState(''),[privateAnswer,setPrivateAnswer]=useState(''),[showPages,setShowPages]=useState(()=>window.innerWidth>780),[spotlight,setSpotlight]=useState(false);
  const [studentView,setStudentView]=useState(false),[timerSeconds,setTimerSeconds]=useState(300);
  const [timerDeadline,setTimerDeadline]=useState(0),[timerNow,setTimerNow]=useState(Date.now());
@@ -88,6 +90,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  const saving=useRef(Promise.resolve()),dirty=useRef(false),animating=useRef(false);
  const launchRef=useRef(null),lastFocusRef=useRef(null),mounted=useRef(true);
  const page=lesson?.pages.find(x=>x.id===lesson.activePageId)||lesson?.pages[0];
+ useEffect(()=>()=>{if(frameFlight.current)cancelAnimationFrame(frameFlight.current);},[page?.id]);
  const frames=page?.frames||[];
  const currentViewport=safeBoardViewport({x:camera.x,y:camera.y,width:BOARD_W/zoom,height:BOARD_H/zoom});
  const viewportRef=useRef(currentViewport);viewportRef.current=currentViewport;
@@ -454,11 +457,29 @@ export default function BrianBoard({currentUser,language='vi'}){
   editPage(p=>({...p,frames:[...(p.frames||[]),named]}));
   setActiveFrameId(named.id);setPanel('frames');
  };
+ const flyToView=next=>{
+  if(frameFlight.current)cancelAnimationFrame(frameFlight.current);
+  frameFlight.current=0;
+  const reduced=motion==='off'||window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+  if(reduced||typeof requestAnimationFrame!=='function'){
+   setZoom(next.zoom);setCamera(next.camera);return;
+  }
+  const from={x:camera.x,y:camera.y,zoom},start=performance.now();
+  const duration=motion==='expressive'?510:320;
+  const tick=now=>{
+   const t=Math.min(1,(now-start)/duration),e=1-Math.pow(1-t,3);
+   setCamera({x:from.x+(next.camera.x-from.x)*e,y:from.y+(next.camera.y-from.y)*e});
+   setZoom(from.zoom+(next.zoom-from.zoom)*e);
+   if(t<1)frameFlight.current=requestAnimationFrame(tick);
+   else frameFlight.current=0;
+  };
+  frameFlight.current=requestAnimationFrame(tick);
+ };
  const goToFrame=frame=>{
   if(!frame||frame.hidden)return;
   const v=viewportForFrame(frame);
   const next=cameraForViewport(v);
-  setZoom(next.zoom);setCamera(next.camera);setActiveFrameId(frame.id);
+  flyToView(next);setActiveFrameId(frame.id);
   setActiveActivityId(null);
  };
  const moveBetweenFrames=delta=>{
@@ -467,7 +488,7 @@ export default function BrianBoard({currentUser,language='vi'}){
   if(i>=0)goToFrame(visible[i]);
  };
  const homeCanvas=()=>{
-  setCamera({x:0,y:0});setZoom(1);setActiveFrameId(null);
+  flyToView({camera:{x:0,y:0},zoom:1});setActiveFrameId(null);
  };
  const updateFrame=(id,fn)=>{
   if(page?.locked)return;
