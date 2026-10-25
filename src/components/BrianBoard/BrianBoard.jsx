@@ -599,18 +599,28 @@ export default function BrianBoard({currentUser,language='vi'}){
        <p>{activityType==='ordering'?(vi?'Nhập các cụm theo thứ tự ĐÚNG, ngăn bằng dấu |.':'Enter phrases in the CORRECT order, separated by |.'):
         (vi?'Mỗi dòng: nội dung | đáp án hoặc nhóm.':'One line per item: prompt | answer or category.')}</p>
        {activityError&&<p role="alert">{activityError}</p>}
-       <button disabled={page?.locked||page?.activities?.length>=24} onClick={addActivity}>
-        <Plus size={16}/>{vi?'Tạo & chạy hoạt động':'Create & play'}</button>
-       {(page?.activities||[]).map((x,i)=><div key={x.id} className="bbd-library-item">
+       <button disabled={page?.locked||(!editingActivityId&&page?.activities?.length>=24)} onClick={addActivity}>
+        {editingActivityId?<Save size={16}/>:<Plus size={16}/>}
+        {editingActivityId?(vi?'Lưu thay đổi bài tập':'Save activity changes'):(vi?'Tạo & chạy hoạt động':'Create & play')}</button>
+       {editingActivityId&&<button onClick={cancelActivityEditing}>
+        <X size={16}/>{vi?'Hủy chỉnh sửa':'Cancel editing'}</button>}
+       <button disabled={page?.locked||!(page?.activities||[]).some(a=>a.studentVisible!==false)}
+        onClick={hideEveryActivity}><EyeOff size={16}/>{vi?'Ẩn toàn bộ bài tập khỏi học sinh':'Hide all activities from students'}</button>
+       {(page?.activities||[]).map((x,i)=><div key={x.id} className="bbd-library-item bbd-activity-entry">
         <div><strong>{i+1}. {x.title}</strong><small>{x.type} · {x.items.length} {vi?'mục':'items'} · {x.studentVisible===false?(vi?'Ẩn với học sinh':'Teacher-only draft'):(vi?'Hiện cho học sinh':'Published')}</small></div>
-        <div className="bbd-side-actions">
-         <button onClick={()=>setActiveActivityId(x.id)}><Play size={15}/>{vi?'Chạy':'Play'}</button>
+        <div className="bbd-side-actions bbd-activity-actions">
+         <button onClick={()=>setActiveActivityId(x.id)} title={vi?'Chạy bài tập':'Play activity'}><Play size={15}/>{vi?'Chạy':'Play'}</button>
+         <button disabled={page?.locked} onClick={()=>beginActivityEditing(x)} title={vi?'Chỉnh sửa':'Edit'}><Edit3 size={15}/></button>
+         <button disabled={page?.locked||page?.activities?.length>=24} onClick={()=>duplicateActivity(x.id)}
+          title={vi?'Nhân bản riêng, mặc định ẩn':'Duplicate as unpublished draft'}><Copy size={15}/></button>
+         <button disabled={page?.locked||i===0} onClick={()=>orderActivity(x.id,-1)} title={vi?'Đưa lên':'Move up'}><ArrowUp size={15}/></button>
+         <button disabled={page?.locked||i===(page?.activities?.length||0)-1} onClick={()=>orderActivity(x.id,1)} title={vi?'Đưa xuống':'Move down'}><ArrowDown size={15}/></button>
          <button disabled={page?.locked} onClick={()=>toggleActivityVisibility(x.id)}
            aria-label={x.studentVisible===false?(vi?'Công bố bài tập':'Publish activity'):(vi?'Ẩn bài tập với học sinh':'Hide activity from students')}
            title={x.studentVisible===false?(vi?'Công bố cho học sinh':'Publish to students'):(vi?'Chỉ giáo viên thấy':'Hide from students')}>
            {x.studentVisible===false?<EyeOff size={15}/>:<Eye size={15}/>}
          </button>
-         <button disabled={page?.locked} onClick={()=>deleteActivity(x.id)}><Trash2 size={15}/></button>
+         <button disabled={page?.locked} onClick={()=>deleteActivity(x.id)} title={vi?'Xóa hoạt động':'Delete activity'}><Trash2 size={15}/></button>
         </div>
        </div>)}
       </div>}
