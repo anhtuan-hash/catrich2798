@@ -43,7 +43,8 @@ export async function importBoardPdf(file,currentPages=1,onProgress=()=>{}){
    const newLessonPage=newPage('PDF · '+i);
    newLessonPage.objects=[{id:makeId(),kind:'image',src,
     x:Math.round((BOARD_W-viewport.width)/2),y:Math.round((BOARD_H-viewport.height)/2),
-    width:Math.round(viewport.width),height:Math.round(viewport.height),studentVisible:true}];
+    width:Math.round(viewport.width),height:Math.round(viewport.height),studentVisible:true,
+    locked:true,pdfBackground:true}];
    result.push(newLessonPage);
    canvas.width=0;canvas.height=0;
    page.cleanup?.();
