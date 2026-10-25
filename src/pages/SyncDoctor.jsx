@@ -5,7 +5,7 @@ import { Activity, AlertTriangle, ArrowRight, BookUser, CheckCircle2, ChevronRig
 import {isAdminRole,isDepartmentLeaderRole} from '../utils/roles.js';
 import {runSyncDoctorScan,serializeSyncDoctorReport} from '../utils/syncDoctorDiagnostics.js';
 import {buildSyncReviewPlans,serializeSyncReviewDocket} from '../utils/syncDoctorPlanning.mjs';
-import {getSyncDoctorReviewInbox,submitSyncDoctorReview,decideSyncDoctorReview,cancelSyncDoctorReview} from '../utils/syncDoctorReviewInbox.js';
+import {getSyncDoctorReviewInbox,submitSyncDoctorReview,decideSyncDoctorReview,cancelSyncDoctorReview,previewSyncDoctorReview} from '../utils/syncDoctorReviewInbox.js';
 import './SyncDoctor.css';
 
 const viText={
@@ -39,6 +39,12 @@ const viText={
   statusStale:'Dữ liệu đã thay đổi',statusCancelled:'Đã hủy',reviewNone:'Chưa có yêu cầu gửi đến máy chủ.',
   auditNone:'Chưa có hoạt động phê duyệt được ghi nhận.',sessionAudit:'Lượt quét trong phiên này',
   safeNoPII:'Chỉ nhập nhận xét quy trình; không nhập tên, mã học sinh hoặc dữ liệu điểm.',
+  dryRun:'Kiểm tra an toàn',dryRunTitle:'Xem trước khắc phục trên máy chủ',
+  readyPreview:'Có thể lập phương án thủ công',blockedPreview:'Không đủ điều kiện thực hiện',stalePreview:'Phiên bản dữ liệu đã đổi',
+  currentCount:'Hiện có',proposedCount:'Dự kiến',checksum:'Dấu kiểm tra dữ liệu',
+  backupMissing:'Chưa tạo bản sao lưu',noRollback:'Chưa có khả năng hoàn tác',
+  noExecution:'Không thay đổi dữ liệu. Cần quy trình sao lưu, hoàn tác và một lần phê duyệt thực thi riêng.',
+  previewTime:'Thời điểm kiểm tra',reasonLabel:'Lý do',
   docket:'Xuất phiếu rà soát',plansOverview:'Kế hoạch dự kiến được tạo từ lần quét gần nhất — không thực hiện thay đổi dữ liệu.',
   preview:'Xem trước phương án',constraints:'Điều kiện an toàn',steps:'Các bước rà soát',
   approval:'Cần người có thẩm quyền duyệt',reviewable:'Có thể rà soát',blocked:'Chưa đủ điều kiện',
@@ -77,6 +83,12 @@ const enText={
   statusStale:'Source changed',statusCancelled:'Cancelled',reviewNone:'No server review requests yet.',
   auditNone:'No approval events recorded.',sessionAudit:'Scans in this session',
   safeNoPII:'Enter process notes only; never include student names, IDs or scores.',
+  dryRun:'Run safety preflight',dryRunTitle:'Server-side repair preview',
+  readyPreview:'Ready for manual planning',blockedPreview:'Repair cannot proceed',stalePreview:'Source revision changed',
+  currentCount:'Current',proposedCount:'Proposed',checksum:'Data fingerprint',
+  backupMissing:'Backup not created',noRollback:'Rollback not available',
+  noExecution:'No data will change. A backup, rollback workflow and separate execution approval are required.',
+  previewTime:'Checked at',reasonLabel:'Reason',
   docket:'Export review docket',plansOverview:'Proposals from the latest scan; no changes can be executed.',
   preview:'Review preview',constraints:'Safety requirements',steps:'Review steps',
   approval:'Independent approval required',reviewable:'Ready for review',blocked:'Blocked — investigate',
@@ -135,6 +147,8 @@ export default function SyncDoctor({currentUser,language='vi'}){
   const [decisionNote,setDecisionNote]=useState('');
   const [reviewTarget,setReviewTarget]=useState('');
   const [reviewSubmitting,setReviewSubmitting]=useState(false);
+  const [preflightById,setPreflightById]=useState({});
+  const [preflightLoading,setPreflightLoading]=useState('');
   const controller=useRef(null);
   const busy=!!progress;
   const refreshReviews=async()=>{
@@ -166,6 +180,15 @@ export default function SyncDoctor({currentUser,language='vi'}){
       setDecisionNote('');setReviewTarget('');await refreshReviews();
     }catch(err){setReviewError(String(err?.message||err));}
     finally{setReviewSubmitting(false);}
+  };
+  const inspectRepair=async(requestId)=>{
+    if(preflightLoading)return;
+    setPreflightLoading(requestId);setReviewError('');
+    try{
+      const result=await previewSyncDoctorReview(requestId);
+      setPreflightById(old=>({...old,[requestId]:result}));
+    }catch(err){setReviewError(String(err?.message||err));}
+    finally{setPreflightLoading('');}
   };
   const run=async()=>{
     if(busy||!authorized)return;
@@ -321,6 +344,29 @@ export default function SyncDoctor({currentUser,language='vi'}){
                 <small>{item.source} · {datetime(item.submitted_at)} · {owned?t.requester:t.reviewer}</small>
                 {item.note&&<p>{item.note}</p>}</div><span className={'bsd-status '+(pending?'warn':item.status==='approved_for_review'?'ok':'error')}>{statusText}</span></div>
               {item.reviewer_note&&<p className="bsd-reviewer-note">{t.decisionNote}: {item.reviewer_note}</p>}
+              {item.status==='approved_for_review' && item.issue_code==='STUDENT_NOT_LINKED' &&
+                (item.source==='gradebook'||item.source==='homeroom') && <div className="bsd-preflight">
+                  <button type="button" className="bsd-outline" disabled={reviewSubmitting||!!preflightLoading}
+                    onClick={()=>inspectRepair(item.id)}><FileSearch size={16}/>
+                    {preflightLoading===item.id?t.running:t.dryRun}</button>
+                  {preflightById[item.id]&&(()=>{
+                    const p=preflightById[item.id];
+                    const ready=p.state==='ready_for_manual_review';
+                    return <div className={'bsd-preflight-result '+(ready?'ready':'blocked')}>
+                      <strong><ShieldCheck size={16}/>{ready?t.readyPreview:p.state==='stale'?t.stalePreview:t.blockedPreview}</strong>
+                      <p>{t.reasonLabel}: {p.reason||'—'}</p>
+                      {ready&&<>
+                        <div className="bsd-preflight-metrics">
+                          <span>{t.currentCount}: <b>{p.beforeCount}</b></span>
+                          <span>{t.proposedCount}: <b>{p.proposedCount}</b></span>
+                        </div>
+                        <p>{t.checksum}: <code>{String(p.targetChecksum||'').slice(0,16)}…</code></p>
+                        <p>{t.backupMissing} · {t.noRollback}</p>
+                      </>}
+                      <small>{t.previewTime}: {datetime(p.checkedAt)} · {t.noExecution}</small>
+                    </div>;
+                  })()}
+                </div>}
               {pending&&<div className="bsd-request-actions">
                 {owned?<button type="button" className="bsd-outline" disabled={reviewSubmitting} onClick={()=>actionReview(item.id,'cancelled')}>
                   <X size={15}/>{t.cancelRequest}</button>:
