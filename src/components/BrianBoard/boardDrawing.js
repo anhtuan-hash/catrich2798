@@ -62,3 +62,17 @@ export function boardShapeGeometry(shape,x,y,x2,y2){
  }
  return null;
 }
+
+export function boardShapePreviewPath(shape,x,y,x2,y2){
+ const a=Number(x)||0,b=Number(y)||0,c=Number(x2)||0,d=Number(y2)||0;
+ if(shape==='rect')return 'M '+a+' '+b+' H '+c+' V '+d+' H '+a+' Z';
+ if(shape==='ellipse'){
+  const rx=Math.abs(c-a)/2,ry=Math.abs(d-b)/2,mx=(a+c)/2;
+  return rx&&ry?'M '+(mx-rx)+' '+(b+d)/2+' A '+rx+' '+ry+' 0 1 0 '+(mx+rx)+' '+(b+d)/2+
+   ' A '+rx+' '+ry+' 0 1 0 '+(mx-rx)+' '+(b+d)/2:'';
+ }
+ const geometry=boardShapeGeometry(shape,a,b,c,d);
+ if(geometry)return geometry.points.map((p,i)=>(i?' L ':'M ')+p[0]+' '+p[1]).join('')+
+  (geometry.type==='polygon'?' Z':'');
+ return 'M '+a+' '+b+' L '+c+' '+d;
+}
