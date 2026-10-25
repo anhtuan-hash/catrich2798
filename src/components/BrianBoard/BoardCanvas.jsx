@@ -61,7 +61,7 @@ export function renderBoardObject(object,onErase,studentView=false,onInteract,on
   width={o.width||240} height={o.height||90} fill="#243b4b" opacity=".95" onPointerDown={press}/>;
  return null;
 }
-export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onCommit,onErase,onMoveObject,
+export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onCommit,onErase,onDuplicateObject,onMoveObject,
  zoom=1,setZoom,camera={x:0,y:0},setCamera,contentText='',privateAnswer='',onInteract,
  studentView=false,spotlight=false,penPreset='classic',snapToGrid=false,shapeFill='none'}){
  const svg=useRef(null),preview=useRef(null),pointer=useRef(null);
@@ -118,7 +118,6 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
  const begin=event=>{
   if(studentView||!page||page.locked||event.button!==0)return;
   if(event.pointerType==='touch'&&(event.isPrimary===false||stylusActive.current))return;
-  if(event.pointerType==='pen')stylusActive.current=true;
   const p=local(event),origin=snapBoardPoint(p,snapToGrid);
   if(tool==='select'){setSelectedId('');return;}
   if(tool==='text'||tool==='sticky'||tool==='flashcard'||tool==='mask'){
@@ -136,6 +135,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
    penPreset==='fountain'?{width:Math.max(width,7),opacity:1,pressure:true}:
    penPreset==='marker'?{width:Math.max(width,12),opacity:.46,pressure:false}:
    {width,opacity:1,pressure:false};
+  if(event.pointerType==='pen')stylusActive.current=true;
   pointer.current={pointerId:event.pointerId,pointerType:event.pointerType,tool,
    points:[{...(tool.startsWith('shape-')?origin:p),pressure:event.pressure||.5}],
    lastClient:{x:event.clientX,y:event.clientY},startCamera:{...camera},
@@ -193,7 +193,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
    role="img" aria-label="Interactive vector teaching board">
    {page?.objects?.map(o=>renderBoardObject(o,
     (tool==='eraser'||tool==='eraser-ink'&&o.kind==='stroke')?onErase:null,
-    studentView,tool==='select'?null:onInteract,tool==='select'?selectObject:null))}
+    studentView,tool==='select'||tool==='eraser-ink'?null:onInteract,tool==='select'?selectObject:null))}
    {!studentView&&<path ref={preview} d="" stroke={color} strokeWidth={width}
      fill="none" opacity={tool==='highlighter'?.33:1} strokeLinecap="round"
      strokeLinejoin="round" vectorEffect="non-scaling-stroke" pointerEvents="none"/>}
@@ -204,6 +204,13 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
    {tool==='laser'&&laser&&<circle cx={laser.x} cy={laser.y} r="13"
     fill="#fa445c" stroke="#fff" strokeWidth="3" pointerEvents="none"/>}
   </svg>
+  {tool==='select'&&!studentView&&!page?.locked&&selectedId&&page?.objects?.some(o=>o.id===selectedId)&&
+   <div className="bbd-canvas__selection-actions" role="group" aria-label="Selected board object">
+    <button type="button" onClick={()=>{onDuplicateObject?.(selectedId);setSelectedId('');}}>
+     { '⧉' } { 'Duplicate' }</button>
+    <button type="button" onClick={()=>{onErase?.(selectedId);setSelectedId('');}}>
+     { '×' } { 'Delete' }</button>
+   </div>}
   {drawing&&<span className="bbd-canvas__draw-indicator">●</span>}
  </div>;
 }
