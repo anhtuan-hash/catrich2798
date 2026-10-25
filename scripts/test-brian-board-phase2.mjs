@@ -103,7 +103,7 @@ assert.match(viewer,/renderPublicActivity/);
 assert.match(viewer,/textContent/);
 assert.ok(!viewer.includes('innerHTML'),'Student TV must not inject editable HTML');
 const boardUI=read('BrianBoard.jsx');
-assert.match(boardUI,/boardStudentPayload\(lesson,activeActivityId,activityLive\)/);
+assert.match(boardUI,/boardStudentPayload\(lesson,activeActivityId,activityLive,currentViewport\)/);
 assert.match(boardUI,/Student activity preview/);
 assert.match(boardUI,/studentActivityPreview=studentActivityPayload\?\.activity\|\|null/);
 assert.match(boardUI,/!studentActivityPreview/);
