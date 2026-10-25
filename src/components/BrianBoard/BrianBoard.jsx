@@ -12,6 +12,8 @@ import BoardCanvas from './BoardCanvas.jsx';
 import {listBoardCloud,saveBoardCloud,readBoardCloud} from './boardCloud.js';
 import {boardStudentPayload,newBoardPresentationId} from './boardPresentation.js';
 import {importBoardPdf,exportBoardStudentPdf} from './boardPdf.js';
+import {createBoardActivity} from './boardActivities.js';
+import BoardActivityStage from './BoardActivityStage.jsx';
 import './BrianBoard.css';
 
 const drawTools=[
@@ -43,6 +45,9 @@ export default function BrianBoard({currentUser,language='vi'}){
  const [randomNames,setRandomNames]=useState(''),[randomChoice,setRandomChoice]=useState('');
  const [presenting,setPresenting]=useState(false),presentationRef=useRef(null);
  const [pdfBusy,setPdfBusy]=useState(false),[pdfStatus,setPdfStatus]=useState('');
+ const [activityType,setActivityType]=useState('matching'),[activityTitle,setActivityTitle]=useState(''),
+  [activityPrompt,setActivityPrompt]=useState(''),[activityRaw,setActivityRaw]=useState(''),
+  [activityError,setActivityError]=useState(''),[activeActivityId,setActiveActivityId]=useState(null);
  const [panel,setPanel]=useState('pages'),[library,setLibrary]=useState([]),[libraryError,setLibraryError]=useState(''),[cloudLibrary,setCloudLibrary]=useState([]),[cloudStatus,setCloudStatus]=useState('');
  const refreshLibrary=async()=>{
   try{setLibrary(await listBoardLessons(ownerId));setLibraryError('');}
@@ -225,6 +230,19 @@ export default function BrianBoard({currentUser,language='vi'}){
   return()=>document.body.classList.remove('bbd-board-session');
  },[open]);
  const editPage=(fn)=>mutate(d=>({...d,pages:d.pages.map(p=>p.id===d.activePageId?fn(p):p)}));
+ const addActivity=()=>{
+  if(!page||page.locked||page.activities?.length>=24)return;
+  try{
+   const activity=createBoardActivity({type:activityType,title:activityTitle,prompt:activityPrompt,raw:activityRaw});
+   editPage(p=>({...p,activities:[...(p.activities||[]),activity]}));
+   setActiveActivityId(activity.id);setActivityError('');setActivityRaw('');
+  }catch(e){setActivityError(e.message||'Invalid activity');}
+ };
+ const deleteActivity=id=>{
+  if(!window.confirm(vi?'Xóa hoạt động này? Có thể hoàn tác.':'Remove this activity? Undo is available.'))return;
+  editPage(p=>({...p,activities:(p.activities||[]).filter(a=>a.id!==id)}));
+  if(activeActivityId===id)setActiveActivityId(null);
+ };
  const commitObj=object=>{if(!page||page.locked)return;editPage(p=>({...p,objects:[...p.objects,object]}));};
  const eraseObject=id=>{if(!page||page.locked)return;editPage(p=>({...p,objects:p.objects.filter(o=>o.id!==id)}));};
  const moveObject=(id,dx,dy)=>{
@@ -406,10 +424,13 @@ export default function BrianBoard({currentUser,language='vi'}){
      <button onClick={()=>setSpotlight(s=>!s)} className={spotlight?'active':''} title="Spotlight"><ScanEye size={20}/></button>
     </aside>}
     <div className="bbd-canvas-area">
-     <BoardCanvas page={studentView?sanitizeStudentPage(page):page} tool={studentView?'select':tool} color={color} width={thickness}
+     {activeActivityId&&page?.activities?.find(a=>a.id===activeActivityId)
+       ?<BoardActivityStage activity={page.activities.find(a=>a.id===activeActivityId)}
+         vi={vi} onClose={()=>setActiveActivityId(null)}/>
+       :<BoardCanvas page={studentView?sanitizeStudentPage(page):page} tool={studentView?'select':tool} color={color} width={thickness}
        onCommit={commitObj} onErase={eraseObject} onMoveObject={moveObject} zoom={zoom} setZoom={setZoom}
        camera={camera} setCamera={setCamera} contentText={contentText} privateAnswer={privateAnswer} onInteract={interactObject}
-       spotlight={spotlight} studentView={studentView}/>
+       spotlight={spotlight} studentView={studentView}/>}
      <div className="bbd-canvas-bottom">
       <div className="bbd-color-strip">
        {['#335d63','#648cd0','#db8159','#a5669f','#e0b143','#272a31','#f7f6f1'].map(c=>
@@ -434,8 +455,8 @@ export default function BrianBoard({currentUser,language='vi'}){
     </div>
     {!studentView&&showPages&&<aside className="bbd-sidebar">
      <div className="bbd-sidebar-tabs">
-      {['pages','library','teaching','design'].map(id=><button key={id} className={panel===id?'active':''} onClick={()=>setPanel(id)}>
-       {id==='pages'?(vi?'Trang':'Pages'):id==='library'?(vi?'Thư viện':'Library'):id==='teaching'?(vi?'Lớp học':'Classroom'):(vi?'Thiết kế':'Design')}</button>)}
+      {['pages','activities','library','teaching','design'].map(id=><button key={id} className={panel===id?'active':''} onClick={()=>setPanel(id)}>
+       {id==='pages'?(vi?'Trang':'Pages'):id==='activities'?(vi?'Bài tập':'Activities'):id==='library'?(vi?'Thư viện':'Library'):id==='teaching'?(vi?'Lớp học':'Classroom'):(vi?'Thiết kế':'Design')}</button>)}
      </div>
      {panel==='pages'&&<div className="bbd-pages">
       <div className="bbd-side-heading"><strong>{vi?'Các trang bài giảng':'Lesson pages'}</strong>
@@ -451,7 +472,38 @@ export default function BrianBoard({currentUser,language='vi'}){
       <button onClick={()=>editPage(p=>({...p,hidden:!p.hidden}))}>{page?.hidden?<EyeOff size={16}/>:<Eye size={16}/>}
        {page?.hidden?(vi?'Hiện trang khi chiếu':'Show on display'):(vi?'Ẩn trang khi chiếu':'Hide on display')}</button>
      </div>}
-     {panel==='library'&&<div className="bbd-side-stack">
+     {panel==='activities'&&<div className="bbd-side-stack bbd-activity-builder">
+       <h3>{vi?'Hoạt động tương tác':'Interactive activities'}</h3>
+       <p>{vi?'Tạo bài ghép đôi, sắp xếp câu hoặc phân loại và chạy ngay trên bảng.':'Create and play matching, sentence ordering or sorting activities.'}</p>
+       <label>{vi?'Loại hoạt động':'Activity type'}
+        <select value={activityType} onChange={e=>{setActivityType(e.target.value);setActivityRaw('');setActivityError('');}}>
+         <option value="matching">{vi?'Ghép đôi':'Matching'}</option>
+         <option value="ordering">{vi?'Sắp xếp câu':'Sentence ordering'}</option>
+         <option value="sorting">{vi?'Phân loại':'Sorting'}</option>
+        </select></label>
+       <label>{vi?'Tên hoạt động':'Title'}<input maxLength={130} value={activityTitle}
+         onChange={e=>setActivityTitle(e.target.value)} placeholder="Planet Earth"/></label>
+       <label>{vi?'Yêu cầu':'Instruction'}<input maxLength={130} value={activityPrompt}
+         onChange={e=>setActivityPrompt(e.target.value)} placeholder="Match, sort or reorder"/></label>
+       <label>{vi?'Nội dung câu hỏi':'Question content'}
+        <textarea rows={6} spellCheck={false} value={activityRaw} onChange={e=>setActivityRaw(e.target.value)}
+         placeholder={activityType==='ordering'?'We | should | save | energy | every day':
+          activityType==='matching'?'renewable | tái tạo\nemissions | khí thải\nwildlife | động vật hoang dã':
+            'solar | Renewable\ncoal | Fossil fuel\nwind | Renewable'}/></label>
+       <p>{activityType==='ordering'?(vi?'Nhập các cụm theo thứ tự ĐÚNG, ngăn bằng dấu |.':'Enter phrases in the CORRECT order, separated by |.'):
+        (vi?'Mỗi dòng: nội dung | đáp án hoặc nhóm.':'One line per item: prompt | answer or category.')}</p>
+       {activityError&&<p role="alert">{activityError}</p>}
+       <button disabled={page?.locked||page?.activities?.length>=24} onClick={addActivity}>
+        <Plus size={16}/>{vi?'Tạo & chạy hoạt động':'Create & play'}</button>
+       {(page?.activities||[]).map((x,i)=><div key={x.id} className="bbd-library-item">
+        <div><strong>{i+1}. {x.title}</strong><small>{x.type} · {x.items.length} {vi?'mục':'items'}</small></div>
+        <div className="bbd-side-actions">
+         <button onClick={()=>setActiveActivityId(x.id)}><Play size={15}/>{vi?'Chạy':'Play'}</button>
+         <button disabled={page?.locked} onClick={()=>deleteActivity(x.id)}><Trash2 size={15}/></button>
+        </div>
+       </div>)}
+      </div>}
+      {panel==='library'&&<div className="bbd-side-stack">
       <div className="bbd-side-heading"><h3>{vi?'Thư viện bài dạy':'Lesson library'}</h3>
        <button onClick={()=>void createLesson()}><FilePlus2 size={16}/></button></div>
       <p>{vi?'Các bản nháp lưu riêng trên thiết bị này, không ghi vào sổ điểm hay dữ liệu lớp.':'Private lessons on this device, separate from gradebook and class data.'}</p>
