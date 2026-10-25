@@ -41,3 +41,20 @@
 @media(max-width:940px){.bsd-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.bsd-hero-mark{width:110px;height:110px}.bsd-two,.bsd-issues-layout{grid-template-columns:1fr}.bsd-root{width:calc(100% - 28px)}}
 @media(max-width:570px){.bsd-root{width:calc(100% - 20px);margin:13px auto 40px}.bsd-hero{min-height:216px;padding:25px 20px;border-radius:19px}.bsd-hero-mark{width:65px;height:65px;border-radius:18px;position:absolute;right:18px;top:21px;opacity:.6}.bsd-hero-mark-inner svg:first-child{width:35px}.bsd-hero-mark-inner svg:last-child{width:16px;right:-9px;bottom:-8px}.bsd-hero h1{font-size:35px}.bsd-hero-copy>p{max-width:320px;margin-top:10px}.bsd-safety{font-size:10px}.bsd-controls{padding:14px;gap:12px}.bsd-field,.bsd-grow{width:100%;min-width:0}.bsd-primary,.bsd-outline{flex:1;padding:11px 8px}.bsd-tabs{margin-top:9px}.bsd-tabs button{font-size:12px!important;padding:11px 13px}.bsd-metrics{gap:8px}.bsd-metric{padding:14px;min-height:110px;align-items:flex-start}.bsd-metric-icon{width:33px;height:33px}.bsd-metric-icon svg{width:18px}.bsd-metric strong{font-size:27px}.bsd-metric>div>span{font-size:11px}.bsd-panel{padding:16px}.bsd-source-row{gap:7px}.bsd-source-icon{width:30px;height:30px}.bsd-source-row strong{font-size:11px}.bsd-status{padding:5px;font-size:9px}.bsd-count{font-size:10px}.bsd-issue-filters>label{width:100%;justify-content:flex-end}}
 @media(prefers-reduced-motion:reduce){.bsd-root *{transition:none!important;animation:none!important}}
+
+/* Sync Doctor v1.1 — review preflight, no executable repair controls */
+.bsd-review-summary{display:flex;align-items:center;gap:13px;padding:15px 18px;border:1px solid #c8e0db;background:#edf9f4;color:#236752;border-radius:16px}
+.bsd-review-summary>div{display:grid;gap:4px}.bsd-review-summary strong{font-size:12px}.bsd-review-summary span{font-size:11px;color:#44786e}
+.bsd-review-layout{grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);align-items:start}
+.bsd-plan-detail{min-width:0}.bsd-plan-detail>h3{margin:9px 0 9px;font-size:17px;color:#193c63}.bsd-plan-detail>p{font-size:12px;color:#5e7188;line-height:1.7;margin:0 0 16px}
+.bsd-plan-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0;padding:15px;background:#f5f9fe;border:1px solid #e0eaf7;border-radius:13px}
+.bsd-plan-meta span{display:grid;gap:5px;color:#678097;font-size:11px;overflow-wrap:anywhere}.bsd-plan-meta strong{font-size:12px;font-weight:700;color:#233e5e}
+.bsd-plan-detail h4{font-size:12px;margin:18px 0 8px;color:#24466a}.bsd-plan-detail ol{margin:0 0 17px;padding-left:20px;font-size:12px;color:#52687f;line-height:1.9}
+.bsd-plan-blockers{margin:12px 0;padding:13px 15px;background:#fff6ea;border:1px solid #efdec4;border-radius:13px;color:#855821;font-size:12px}
+.bsd-plan-blockers strong{display:flex;align-items:center;gap:6px;margin-bottom:8px}.bsd-plan-blockers>div{padding:5px 0;border-top:1px solid #f0dfcc;line-height:1.5}
+.bsd-review-link{width:100%;margin-top:13px}.bsd-student-evidence{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;margin:15px 0;background:#f2f7fc;border:1px solid #dae5f0;border-radius:13px;color:#2f526f;font-size:12px;line-height:1.55}
+.bsd-student-evidence svg{flex:none;color:#537caa}.bsd-student-evidence>span{min-width:0;overflow-wrap:anywhere}
+.bsd-plan-detail .bsd-advice p{margin:3px 0 0;line-height:1.6}
+.bsd-plan-detail .bsd-advice strong{display:block}
+@media(max-width:940px){.bsd-review-layout{grid-template-columns:1fr}}
+@media(max-width:570px){.bsd-plan-meta{grid-template-columns:1fr}.bsd-review-summary{align-items:flex-start}.bsd-plan-detail{padding:16px}}
