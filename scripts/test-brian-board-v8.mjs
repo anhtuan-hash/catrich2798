@@ -5,7 +5,7 @@ import {boardStudentPayload} from '../src/components/BrianBoard/boardPresentatio
 import {normalizeBoardFrames} from '../src/components/BrianBoard/boardSpatial.js';
 import {lassoObjectIds,moveBoardObjects,scaleBoardObjects,duplicateBoardObjects,
  reorderBoardObjects,splitStrokeByEraser,eraseInkAtPoint,buildBoardTemplate,
- BOARD_V8_TEMPLATES} from '../src/components/BrianBoard/boardV8Tools.js';
+ BOARD_V8_TEMPLATES,recognizeBoardGesture,createDiagramConnection,syncDiagramConnections} from '../src/components/BrianBoard/boardV8Tools.js';
 const source=f=>readFileSync(new URL('../src/components/BrianBoard/'+f,import.meta.url),'utf8');
 const square=[{x:0,y:0},{x:100,y:0},{x:100,y:100},{x:0,y:100}];
 const objects=[
@@ -39,6 +39,20 @@ for(const template of BOARD_V8_TEMPLATES){
  assert.ok(created.every(o=>o.id&&o.studentVisible===true));
 }
 assert.deepEqual(buildBoardTemplate('unknown'),[]);
+assert.deepEqual(recognizeBoardGesture([]),null);
+const horizontal=Array.from({length:15},(_,i)=>({x:i*15,y:3}));
+assert.equal(recognizeBoardGesture(horizontal)?.shape,'line');
+const circular=Array.from({length:30},(_,i)=>({
+ x:150+75*Math.cos(i/29*Math.PI*2),y:130+65*Math.sin(i/29*Math.PI*2)
+}));
+assert.equal(recognizeBoardGesture(circular)?.shape,'ellipse');
+const connection=createDiagramConnection(objects,'a','c');
+assert.equal(connection?.kind,'shape');
+assert.equal(connection?.shape,'arrow');
+assert.ok(connection?.fromId==='a'&&connection?.toId==='c');
+const linked=syncDiagramConnections(moveBoardObjects([...objects,connection],['c'],50,20));
+assert.notEqual(linked.at(-1).x2,connection.x2);
+
 const frame=normalizeBoardFrames([{id:'a',title:'Frame 01',x:0,y:0,width:1600,height:900,
  teacherNotes:'THE ANSWER IS 42',transition:'focus'}]);
 assert.equal(frame[0].teacherNotes,'THE ANSWER IS 42');
@@ -63,6 +77,9 @@ assert.match(board,/teacherNotes/);
 assert.match(board,/onBatchEdit=\{batchEdit\}/);
 assert.match(board,/onPrecisionErase=\{precisionErase\}/);
 assert.match(board,/onSaveAsset=\{saveSelectedAsset\}/);
+assert.match(board,/smartGeometry=\{smartGeometry\}/);
+assert.match(board,/cropImageInLayer/);
+assert.match(board,/syncDiagramConnections/);
 assert.match(board,/bbd-v8-layers/);
 assert.match(board,/insertTeachingTemplate/);
 assert.match(board,/pinActivity/);
@@ -70,6 +87,8 @@ assert.match(canvas,/lassoObjectIds/);
 assert.match(canvas,/onPrecisionErase/);
 assert.match(canvas,/bbd-v8-selection/);
 assert.match(canvas,/activity-pin/);
+assert.match(canvas,/recognizeBoardGesture/);
+assert.match(canvas,/onBatchEdit\?\.\(selectedIds,'connect'\)/);
 const assets=source('boardAssets.js'),storage=source('boardStorage.js');
 assert.match(assets,/openBoardDB/);assert.match(assets,/ownerId/);
 assert.match(storage,/saveBoardCheckpoint/);
@@ -78,6 +97,8 @@ assert.match(storage,/listBoardCheckpoints/);
 const check=source('BoardReliabilityPanel.jsx');
 assert.match(check,/navigator\.storage/);
 assert.match(check,/onPrivateBackup/);
+assert.match(source('boardImageStudio.js'),/cropBoardImageData/);
+assert.match(source('BoardFrameThumbnail.jsx'),/renderBoardObject/);
 assert.ok(!board.includes('dangerouslySetInnerHTML'));
 assert.ok(!canvas.includes('dangerouslySetInnerHTML'));
 console.log('PASS Brian Board V8: lasso, precision eraser, immutable transformations, 7 templates, private presenter notes/assets/checkpoints, pins, layer controls, and device diagnostics.');
