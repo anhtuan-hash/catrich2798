@@ -7,7 +7,8 @@ import {Presentation,Pen,Highlighter,Eraser,MousePointer2,Hand,Type,Square,Circl
 import {isAdminRole,isDepartmentLeaderRole,normalizeSystemRole} from '../../utils/roles.js';
 import {GLOBAL_FLOATING_ACTION_EVENT,FLOATING_ACTION_IDS} from '../../utils/unifiedFloatingDock.js';
 import {BOARD_W,BOARD_H,newLesson,newPage,normalizeLesson,makeId,THEMES,sanitizeStudentPage} from './boardModel.js';
-import {readBoardDraft,saveBoardDraft,listBoardLessons,readBoardLesson,deleteBoardLesson} from './boardStorage.js';
+import {readBoardDraft,saveBoardDraft,listBoardLessons,readBoardLesson,deleteBoardLesson,
+ saveBoardCheckpoint,listBoardCheckpoints,readBoardCheckpoint} from './boardStorage.js';
 import BoardCanvas from './BoardCanvas.jsx';
 import {listBoardCloud,saveBoardCloud,readBoardCloud} from './boardCloud.js';
 import {boardStudentPayload,newBoardPresentationId} from './boardPresentation.js';
@@ -84,6 +85,8 @@ export default function BrianBoard({currentUser,language='vi'}){
   [activityPrompt,setActivityPrompt]=useState(''),[activityRaw,setActivityRaw]=useState(''),
   [activityError,setActivityError]=useState(''),[activeActivityId,setActiveActivityId]=useState(null),[editingActivityId,setEditingActivityId]=useState(null);
  const [activityImage,setActivityImage]=useState(''),[activityLive,setActivityLive]=useState(null);
+ const [checkpoints,setCheckpoints]=useState([]),[checkpointTitle,setCheckpointTitle]=useState('');
+ const [checkpointStatus,setCheckpointStatus]=useState('');
  const activityLiveRef=useRef(null);activityLiveRef.current=activityLive;
  const [panel,setPanel]=useState('pages'),[library,setLibrary]=useState([]),[libraryError,setLibraryError]=useState(''),[cloudLibrary,setCloudLibrary]=useState([]),[cloudStatus,setCloudStatus]=useState('');
  const [libraryQuery,setLibraryQuery]=useState(''),[backupStatus,setBackupStatus]=useState('');
@@ -527,7 +530,8 @@ export default function BrianBoard({currentUser,language='vi'}){
   if(!frame||frame.hidden)return;
   const v=viewportForFrame(frame);
   const next=cameraForViewport(v);
-  flyToView(next);setActiveFrameId(frame.id);
+  if(frame.transition==='instant'){setCamera(next.camera);setZoom(next.zoom);}
+  else flyToView(next);setActiveFrameId(frame.id);
   setActiveActivityId(null);
  };
  const moveBetweenFrames=delta=>{
@@ -646,6 +650,30 @@ export default function BrianBoard({currentUser,language='vi'}){
    setBackupStatus(vi?'Đã khôi phục bản sao mới trên thiết bị':'Restored as a new private lesson');
   }catch(e){setBackupStatus(e.message||'Backup import failed');}
  };
+ const refreshCheckpoints=async()=>{
+  try{setCheckpoints(await listBoardCheckpoints(ownerId,docRef.current?.id));}
+  catch(e){setCheckpointStatus(e.message||'Checkpoint listing failed');}
+ };
+ const addCheckpoint=async()=>{
+  if(!docRef.current)return;
+  try{
+   const prior=docRef.current;
+   await saveBoardCheckpoint(ownerId,prior,checkpointTitle||prior.title);
+   setCheckpointStatus(vi?'Đã lưu mốc bài dạy riêng':'Private lesson checkpoint saved');
+   setCheckpointTitle('');await refreshCheckpoints();
+  }catch(e){setCheckpointStatus(e.message||'Checkpoint save failed');}
+ };
+ const restoreCheckpoint=async id=>{
+  if(!docRef.current)return;
+  if(!window.confirm(vi?'Khôi phục mốc này? Nội dung hiện tại vẫn có thể Undo trong phiên.':
+    'Restore checkpoint? You can still Undo the operation this session.'))return;
+  try{
+   const saved=await readBoardCheckpoint(ownerId,docRef.current.id,id);
+   if(!saved)throw Error('Checkpoint unavailable or owner mismatch');
+   mutate(()=>saved);setCheckpointStatus(vi?'Đã khôi phục mốc bài dạy':'Checkpoint restored');
+  }catch(e){setCheckpointStatus(e.message||'Could not restore checkpoint');}
+ };
+ useEffect(()=>{if(open&&panel==='library'&&lesson?.id)void refreshCheckpoints();},[open,panel,lesson?.id]);
  const createLesson=async()=>{
   if(dirty.current)await persist(docRef.current);
   const next=newLesson(ownerId);
@@ -901,6 +929,16 @@ export default function BrianBoard({currentUser,language='vi'}){
          disabled={page?.locked} onChange={e=>updateFrame(f.id,old=>({...old,title:e.target.value.slice(0,90)}))}/>
        </div>
        <small>{Math.round(f.x)}, {Math.round(f.y)} · {Math.round(f.width)} × {Math.round(f.height)}</small>
+       <label>{vi?'Ghi chú trình bày (riêng giáo viên)':'Private presenter notes'}
+        <textarea rows={3} value={f.teacherNotes||''} maxLength={3500}
+         disabled={page?.locked} placeholder={vi?'Mục tiêu, đáp án, câu hỏi gợi mở...':'Objectives, answer notes, prompts...'}
+         onChange={e=>updateFrame(f.id,current=>({...current,teacherNotes:e.target.value.slice(0,3500)}))}/></label>
+       <label>{vi?'Chuyển cảnh':'Frame transition'}
+        <select value={f.transition||'fly'} disabled={page?.locked}
+         onChange={e=>updateFrame(f.id,current=>({...current,transition:e.target.value}))}>
+         <option value="fly">Smooth Fly</option><option value="instant">Instant</option>
+         <option value="focus">Focus Zoom</option>
+        </select></label>
        <div className="bbd-side-actions">
         <button type="button" onClick={()=>goToFrame(f)} disabled={f.hidden}>
          <Presentation size={16}/>{vi?'Đến khung':'Go to frame'}</button>
@@ -991,6 +1029,20 @@ export default function BrianBoard({currentUser,language='vi'}){
       <p>{vi?'Các bản nháp lưu riêng trên thiết bị này, không ghi vào sổ điểm hay dữ liệu lớp.':'Private lessons on this device, separate from gradebook and class data.'}</p>
       <button onClick={()=>void createLesson()}><Plus size={16}/>{vi?'Tạo bài dạy mới':'New lesson'}</button>
       <button onClick={()=>void duplicateLesson(lesson.id)}><Copy size={16}/>{vi?'Nhân bản bài dạy hiện tại':'Duplicate current lesson'}</button>
+      <h4>{vi?'Mốc phiên bản (chỉ giáo viên)':'Private lesson checkpoints'}</h4>
+      <p>{vi?'Lưu tối đa 6 mốc trên thiết bị này, không đưa lên TV.':
+       'Keep up to six named checkpoints on this device; never sent to TV.'}</p>
+      <label>{vi?'Tên mốc lưu':'Checkpoint name'}
+       <input maxLength={80} value={checkpointTitle} onChange={e=>setCheckpointTitle(e.target.value)}
+        placeholder={vi?'Trước giờ dạy / Hoạt động 1':'Before teaching / Activity 1'}/></label>
+      <button type="button" onClick={()=>void addCheckpoint()}><Save size={16}/>
+       {vi?'Lưu mốc hiện tại':'Save checkpoint'}</button>
+      {checkpoints.map(item=><div className="bbd-v8-checkpoint" key={item.id}>
+       <strong>{item.title}</strong><small>{new Date(item.createdAt).toLocaleString()}</small>
+       <button type="button" onClick={()=>void restoreCheckpoint(item.id)}><RotateCcw size={15}/>
+        {vi?'Khôi phục':'Restore'}</button>
+      </div>)}
+      {checkpointStatus&&<p role="status">{checkpointStatus}</p>}
       <h4>{vi?'Sao lưu ngoại tuyến (riêng tư)':'Offline backup (private)'}</h4>
       <p>{vi?'JSON có thể chứa ghi chú và đáp án riêng của giáo viên. Không gửi cho học sinh. Chỉ nhập lại bằng cùng tài khoản.':'JSON may contain private notes and answer keys. Do not share with students. Restore using the same account only.'}</p>
       <button onClick={exportPrivateJson}><FileJson size={16}/>{vi?'Tải bản sao JSON':'Download private JSON'}</button>
