@@ -29,7 +29,7 @@ import BoardFrameThumbnail from './BoardFrameThumbnail.jsx';
 import BoardReliabilityPanel from './BoardReliabilityPanel.jsx';
 import {listBoardAssets,saveBoardAsset,readBoardAsset} from './boardAssets.js';
 import {eraseInkAtPoint,scaleBoardObjects,duplicateBoardObjects,reorderBoardObjects,
- BOARD_V8_TEMPLATES,buildBoardTemplate} from './boardV8Tools.js';
+ BOARD_V8_TEMPLATES,buildBoardTemplate,createDiagramConnection,syncDiagramConnections} from './boardV8Tools.js';
 import './BrianBoard.css';
 import './BoardActivities.css';
 import './BoardVisualRefresh.css';
@@ -415,7 +415,11 @@ export default function BrianBoard({currentUser,language='vi'}){
    if(action==='delete')return {...p,objects:objects.filter(o=>!ids.includes(o.id))};
    if(action==='duplicate')return {...p,objects:duplicateBoardObjects(objects,ids).slice(0,3000)};
    if(action==='front'||action==='back')return {...p,objects:reorderBoardObjects(objects,ids,action)};
-   if(action==='scale')return {...p,objects:scaleBoardObjects(objects,ids,params.factor)};
+   if(action==='scale')return {...p,objects:syncDiagramConnections(scaleBoardObjects(objects,ids,params.factor))};
+   if(action==='connect'&&ids.length===2){
+    const link=createDiagramConnection(objects,ids[0],ids[1]);
+    return link&&objects.length<3000?{...p,objects:[...objects,link]}:p;
+   }
    return p;
   });
  };
@@ -483,12 +487,12 @@ export default function BrianBoard({currentUser,language='vi'}){
  };
  const moveObject=(id,dx,dy)=>{
   if(!page||page.locked||!Number.isFinite(dx)||!Number.isFinite(dy))return;
-  editPage(p=>({...p,objects:p.objects.map(o=>{
+  editPage(p=>({...p,objects:syncDiagramConnections(p.objects.map(o=>{
    if(o.id!==id)return o;
    if(o.kind==='stroke')return {...o,points:o.points.map(pt=>({...pt,x:pt.x+dx,y:pt.y+dy}))};
    if(o.kind==='shape')return {...o,x:o.x+dx,y:o.y+dy,x2:o.x2+dx,y2:o.y2+dy};
    return {...o,x:(o.x||0)+dx,y:(o.y||0)+dy};
-  })}));
+  }))}));
  };
  const interactObject=id=>{
   if(!page||page.locked)return;
