@@ -4,6 +4,7 @@ import {snapBoardPoint,constrainBoardShape,smoothBoardPath,pressureBoardSegments
  boardShapeGeometry,boardShapePreviewPath} from './boardDrawing.js';
 import {frameFromCorners} from './boardSpatial.js';
 import {lassoObjectIds,recognizeBoardGesture,groupBounds,BOARD_RESIZE_HANDLES} from './boardV8Tools.js';
+import {measureRuler,measureAngle,drawCompassCircle} from './boardMeasure.js';
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 
 export function renderBoardObject(object,onErase,studentView=false,onInteract,onSelect){
@@ -86,7 +87,7 @@ export function renderBoardObject(object,onErase,studentView=false,onInteract,on
  }
  return null;
 }
-export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onCommit,onErase,onDuplicateObject,onMoveObject,onBatchEdit,onPrecisionErase,onSaveAsset,
+export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onCommit,onErase,onDuplicateObject,onMoveObject,onBatchEdit,onPrecisionErase,onSaveAsset,onCommitMany,
  zoom=1,setZoom,camera={x:0,y:0},setCamera,contentText='',privateAnswer='',onInteract,
  studentView=false,spotlight=false,penPreset='classic',snapToGrid=false,shapeFill='none',vi=true,
  frames=[],showFrames=true,onCreateFrame,activeFrameId=null,onPointerPosition,smartGeometry=false}){
@@ -94,6 +95,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
  const [drawing,setDrawing]=useState(false),[selectedId,setSelectedId]=useState(''),[selectedIds,setSelectedIds]=useState([]);
  const [laser,setLaser]=useState(null);
  const [inlineText,setInlineText]=useState(null);
+ const [measureBase,setMeasureBase]=useState(null);
  const inlineCommitted=useRef(false);
  const saveInlineText=()=>{
   if(!inlineText||inlineCommitted.current)return;
@@ -117,6 +119,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
  };
  const stylusActive=useRef(false);
  useEffect(()=>{setSelectedId('');setSelectedIds([]);pointer.current=null;stylusActive.current=false;},[page?.id]);
+ useEffect(()=>{setMeasureBase(null);},[tool,page?.id]);
  const viewWidth=BOARD_W/zoom,viewHeight=BOARD_H/zoom;
  const selection=groupBounds(page?.objects||[],selectedIds);
  const transformHandles=selection?BOARD_RESIZE_HANDLES.map(handle=>{
@@ -179,6 +182,21 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
    if(points.length>=1)onCommit?.({kind:'stroke',id:makeId(),points,
     color:state.color,width:state.width,opacity:state.opacity??1,studentVisible:true,
     smoothed:true,pressureSensitive:state.pressureSensitive===true});
+  }else if(state.tool==='ruler'){
+   const objects=measureRuler(state.points[0],state.points.at(-1));
+   if(objects.length)onCommitMany?.(objects);
+  }else if(state.tool==='compass'){
+   const circle=drawCompassCircle(state.points[0],state.points.at(-1));
+   if(circle)onCommit?.(circle);
+  }else if(state.tool==='protractor'){
+   const first=state.points[0],last=state.points.at(-1);
+   if(Math.hypot(last.x-first.x,last.y-first.y)<20)return;
+   if(!measureBase)setMeasureBase({vertex:first,baseline:last});
+   else{
+    const shapes=measureAngle(measureBase.vertex,measureBase.baseline,last);
+    if(shapes.length)onCommitMany?.(shapes);
+    setMeasureBase(null);
+   }
   }else if(state.tool==='frame'){
    const last=state.points.at(-1),first=state.points[0];
    const frame=frameFromCorners(makeId(),first,last,vi?'Khung mới':'New frame');
@@ -229,7 +247,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
    return;
   }
   if(tool==='laser'){setLaser(p);onPointerPosition?.(p,spotlight?'spotlight':'laser');return;}
-  if(!['pen','highlighter','shape-rect','shape-ellipse','shape-line','shape-arrow','shape-triangle','pan','frame','lasso','eraser-precision'].includes(tool))return;
+  if(!['pen','highlighter','shape-rect','shape-ellipse','shape-line','shape-arrow','shape-triangle','pan','frame','lasso','eraser-precision','ruler','protractor','compass'].includes(tool))return;
   event.preventDefault();
   const appliedPreset=tool==='highlighter'?{width:Math.max(width,14),opacity:.3,pressure:false}:
    penPreset==='fine'?{width,opacity:1,pressure:false}:
@@ -238,7 +256,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
    {width,opacity:1,pressure:false};
   if(event.pointerType==='pen')stylusActive.current=true;
   pointer.current={pointerId:event.pointerId,pointerType:event.pointerType,tool,
-   points:[{...(tool.startsWith('shape-')?origin:p),pressure:event.pressure||.5}],
+   points:[{...(tool.startsWith('shape-')?origin:(tool==='protractor'&&measureBase?measureBase.vertex:p)),pressure:event.pressure||.5}],
    lastClient:{x:event.clientX,y:event.clientY},startCamera:{...camera},
    color,width:appliedPreset.width,opacity:appliedPreset.opacity,
    pressureSensitive:appliedPreset.pressure,shift:event.shiftKey,snapToGrid,shapeFill,
@@ -296,7 +314,13 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
   }else state.points=[state.points[0],p];
   state.shift=event.shiftKey;
   if(preview.current){
-   const path=state.tool==='lasso'?smoothBoardPath([...state.points,state.points[0]]):
+   const path=['ruler','protractor'].includes(state.tool)?
+    boardShapePreviewPath('line',state.points[0].x,state.points[0].y,p.x,p.y):
+    state.tool==='compass'?(()=>{
+     const c=state.points[0],r=Math.hypot(p.x-c.x,p.y-c.y);
+     return boardShapePreviewPath('ellipse',c.x-r,c.y-r,c.x+r,c.y+r);
+    })():
+    state.tool==='lasso'?smoothBoardPath([...state.points,state.points[0]]):
     state.tool==='eraser-precision'?smoothBoardPath(state.points):
     state.tool==='frame'?boardShapePreviewPath('rect',state.points[0].x,
     state.points[0].y,p.x,p.y):state.tool.startsWith('shape-')?(()=>{
@@ -338,6 +362,14 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
     !o.locked&&(tool==='eraser'||tool==='eraser-ink'&&o.kind==='stroke')?onErase:null,
     studentView,tool==='select'||tool==='eraser-ink'?null:onInteract,
     tool==='select'&&!o.locked?selectObject:null))}
+   {measureBase&&tool==='protractor'&&!studentView&&<g pointerEvents="none">
+     <line x1={measureBase.vertex.x} y1={measureBase.vertex.y}
+      x2={measureBase.baseline.x} y2={measureBase.baseline.y}
+      stroke="#6ca7e5" strokeWidth={4/zoom} strokeDasharray={11/zoom+' '+7/zoom}/>
+     <circle cx={measureBase.vertex.x} cy={measureBase.vertex.y} r={10/zoom} fill="#538bc2"/>
+     <text x={measureBase.vertex.x+20/zoom} y={measureBase.vertex.y-24/zoom}
+      fill="#538bc2" fontSize={23/zoom}>{vi?'Kéo tia thứ hai':'Draw second ray'}</text>
+    </g>}
    {selection&&['select','lasso'].includes(tool)&&!studentView&&!page?.locked&&<g className="bbd-v8-resize-overlay">
      <rect x={selection.x} y={selection.y} width={selection.width} height={selection.height}
       fill="none" stroke="#308e6e" strokeWidth={2.5/zoom} strokeDasharray={12/zoom+" "+7/zoom}
