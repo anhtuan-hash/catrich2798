@@ -561,7 +561,7 @@ export default function BrianBoard({currentUser,language='vi'}){
          vi={vi} onClose={()=>setActiveActivityId(null)}/>
        :<BoardCanvas page={studentView?sanitizeStudentPage(page):page} tool={studentView?'select':tool} color={color} width={thickness}
        onCommit={commitObj} onErase={eraseObject} onDuplicateObject={duplicateObject} onMoveObject={moveObject}
-       penPreset={penPreset} snapToGrid={snapToGrid} shapeFill={shapeFill} zoom={zoom} setZoom={setZoom}
+       penPreset={penPreset} snapToGrid={snapToGrid} shapeFill={shapeFill} vi={vi} zoom={zoom} setZoom={setZoom}
        camera={camera} setCamera={setCamera} contentText={contentText} privateAnswer={privateAnswer} onInteract={interactObject}
        spotlight={spotlight} studentView={studentView}/>}
      <div className="bbd-canvas-bottom">
