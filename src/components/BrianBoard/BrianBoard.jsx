@@ -3,7 +3,7 @@ import {createPortal} from 'react-dom';
 import {Presentation,Pen,Highlighter,Eraser,MousePointer2,Hand,Type,Square,Circle,Minus,
  StickyNote,ScanEye,Undo2,Redo2,Plus,Copy,Trash2,Save,CheckCircle2,X,ChevronLeft,
  ChevronRight,CloudOff,Play,Pause,RotateCcw,Timer,Users,Eye,EyeOff,Maximize2,
- Download,Move,Palette,FilePlus2,LockKeyhole,LockKeyholeOpen,Layers,ArrowUp,ArrowDown,ImagePlus,Search,RefreshCcw,FileJson,FileUp,Edit3,ArrowUpRight,Triangle,Grid3X3,Droplets,Frame,Clapperboard,MapPinned,Map,Focus} from 'lucide-react';
+ Download,Move,Palette,FilePlus2,LockKeyhole,LockKeyholeOpen,Layers,ArrowUp,ArrowDown,ImagePlus,Search,RefreshCcw,FileJson,FileUp,Edit3,ArrowUpRight,Triangle,Grid3X3,Droplets,Frame,Clapperboard,MapPinned,Map,Focus,Lasso,Paintbrush,LayoutTemplate,SquareStack,BookMarked,ShieldCheck} from 'lucide-react';
 import {isAdminRole,isDepartmentLeaderRole,normalizeSystemRole} from '../../utils/roles.js';
 import {GLOBAL_FLOATING_ACTION_EVENT,FLOATING_ACTION_IDS} from '../../utils/unifiedFloatingDock.js';
 import {BOARD_W,BOARD_H,newLesson,newPage,normalizeLesson,makeId,THEMES,sanitizeStudentPage} from './boardModel.js';
@@ -24,15 +24,18 @@ import BoardActivityPublicPreview from './BoardActivityPublicPreview.jsx';
 import {LAB_TYPES,LAB_LABELS,LAB_EXAMPLES,LAB_IMAGE_TYPES} from './boardActivityLab.js';
 import BoardPenToolbarExtras from './BoardPenToolbarExtras.jsx';
 import BoardNavigator from './BoardNavigator.jsx';
+import {eraseInkAtPoint,scaleBoardObjects,duplicateBoardObjects,reorderBoardObjects,
+ BOARD_V8_TEMPLATES,buildBoardTemplate} from './boardV8Tools.js';
 import './BrianBoard.css';
 import './BoardActivities.css';
 import './BoardVisualRefresh.css';
 
 const drawTools=[
- ['select',MousePointer2,'Select','Chọn'],['pan',Hand,'Pan','Di chuyển'],
+ ['select',MousePointer2,'Select','Chọn'],['lasso',Lasso,'Freeform lasso','Khoanh chọn tự do'],['pan',Hand,'Pan','Di chuyển'],
  ['frame',Frame,'Draw frame','Vẽ khung trình chiếu'],
  ['pen',Pen,'Pen','Bút'],['highlighter',Highlighter,'Highlight','Đánh dấu'],
  ['eraser',Eraser,'Erase object','Tẩy đối tượng'],['eraser-ink',Eraser,'Erase ink only','Chỉ tẩy nét bút'],
+ ['eraser-precision',Paintbrush,'Precision eraser','Tẩy từng đoạn nét'],
  ['text',Type,'Text','Chữ'],
  ['shape-rect',Square,'Rectangle','Hình chữ nhật'],['shape-ellipse',Circle,'Ellipse','Hình tròn'],
  ['shape-line',Minus,'Line','Đường thẳng'],
@@ -393,6 +396,29 @@ export default function BrianBoard({currentUser,language='vi'}){
  };
  const commitObj=object=>{if(!page||page.locked)return;editPage(p=>({...p,objects:[...p.objects,object]}));};
  const eraseObject=id=>{if(!page||page.locked)return;editPage(p=>({...p,objects:p.objects.filter(o=>o.id!==id)}));};
+ const precisionErase=points=>{
+  if(!page||page.locked||!points?.length)return;
+  const sampled=points.length>120?points.filter((_,i)=>i%Math.ceil(points.length/120)===0):points;
+  editPage(p=>({...p,objects:sampled.reduce((objects,point)=>eraseInkAtPoint(objects,point,23),p.objects)}));
+ };
+ const batchEdit=(ids,action,params={})=>{
+  if(!page||page.locked||!ids.length)return;
+  editPage(p=>{
+   const objects=p.objects;
+   if(action==='delete')return {...p,objects:objects.filter(o=>!ids.includes(o.id))};
+   if(action==='duplicate')return {...p,objects:duplicateBoardObjects(objects,ids).slice(0,3000)};
+   if(action==='front'||action==='back')return {...p,objects:reorderBoardObjects(objects,ids,action)};
+   if(action==='scale')return {...p,objects:scaleBoardObjects(objects,ids,params.factor)};
+   return p;
+  });
+ };
+ const insertTeachingTemplate=id=>{
+  if(!page||page.locked)return;
+  const created=buildBoardTemplate(id,currentViewport,vi);
+  if(!created.length||page.objects.length+created.length>3000)return;
+  editPage(p=>({...p,objects:[...p.objects,...created]}));
+  setTool('select');
+ };
  const duplicateObject=id=>{
   if(!page||page.locked||page.objects.length>=3000)return;
   const obj=page.objects.find(o=>o.id===id);
@@ -781,6 +807,7 @@ export default function BrianBoard({currentUser,language='vi'}){
          vi={vi} onClose={()=>setActiveActivityId(null)} onPublicState={receivePublicActivityState}/>
        :<BoardCanvas page={studentView?sanitizeStudentPage(page):page} tool={studentView?'select':tool} color={color} width={thickness}
        onCommit={commitObj} onErase={eraseObject} onDuplicateObject={duplicateObject} onMoveObject={moveObject}
+       onBatchEdit={batchEdit} onPrecisionErase={precisionErase}
        penPreset={penPreset} snapToGrid={snapToGrid} shapeFill={shapeFill} vi={vi} zoom={zoom} setZoom={setZoom}
        camera={camera} setCamera={next=>{setCamera(next);setActiveFrameId(null);}}
        frames={frames} showFrames={showFrames} activeFrameId={activeFrameId}
@@ -833,8 +860,8 @@ export default function BrianBoard({currentUser,language='vi'}){
        title={vi?'Đóng bảng điều khiển':'Close inspector'} aria-label={vi?'Đóng bảng điều khiển':'Close inspector'}
        onClick={closeInspector}><X size={18}/></button>
      <div className="bbd-sidebar-tabs">
-      {['pages','frames','activities','library','teaching','design'].map(id=><button key={id} className={panel===id?'active':''} onClick={()=>setPanel(id)}>
-       {id==='pages'?(vi?'Trang':'Pages'):id==='frames'?(vi?'Khung':'Frames'):id==='activities'?(vi?'Bài tập':'Activities'):id==='library'?(vi?'Thư viện':'Library'):id==='teaching'?(vi?'Lớp học':'Classroom'):(vi?'Thiết kế':'Design')}</button>)}
+      {['pages','frames','activities','assets','library','teaching','design'].map(id=><button key={id} className={panel===id?'active':''} onClick={()=>setPanel(id)}>
+       {id==='pages'?(vi?'Trang':'Pages'):id==='frames'?(vi?'Khung':'Frames'):id==='activities'?(vi?'Bài tập':'Activities'):id==='assets'?(vi?'Mẫu':'Templates'):id==='library'?(vi?'Thư viện':'Library'):id==='teaching'?(vi?'Lớp học':'Classroom'):(vi?'Thiết kế':'Design')}</button>)}
      </div>
      {panel==='pages'&&<div className="bbd-pages">
       <div className="bbd-side-heading"><strong>{vi?'Các trang bài giảng':'Lesson pages'}</strong>
@@ -894,6 +921,18 @@ export default function BrianBoard({currentUser,language='vi'}){
        'Use Draw frame and drag a rectangle, or choose Add next frame.'}</p>}
       <p>{vi?'Phím tắt: F vẽ khung · P kéo bảng · Alt+←/→ chuyển khung · G khớp tất cả · M bản đồ · C chế độ gọn · 0 về gốc.':
        'Shortcuts: F draw frame · P pan · Alt+←/→ frames · G fit all · M map · C clean view · 0 home.'}</p>
+     </div>}
+     {panel==='assets'&&<div className="bbd-side-stack bbd-v8-assets">
+      <div className="bbd-side-heading"><h3>{vi?'Thư viện mẫu giảng dạy':'Teaching templates'}</h3><LayoutTemplate size={19}/></div>
+      <p>{vi?'Chèn bố cục có thể viết, kéo thả và chỉnh sửa ngay vào vùng đang nhìn. Không cần AI.':
+       'Insert editable template objects into the current view. No AI or external service.'}</p>
+      <div className="bbd-v8-template-grid">
+       {BOARD_V8_TEMPLATES.map(template=><button type="button" key={template.id}
+        disabled={page?.locked||page?.objects?.length>2980}
+        onClick={()=>insertTeachingTemplate(template.id)}>
+        <LayoutTemplate size={19}/><strong>{vi?template.vi:template.en}</strong>
+        <small>{vi?'Chèn vào canvas':'Add to canvas'}</small></button>)}
+      </div>
      </div>}
      {panel==='activities'&&<div className="bbd-side-stack bbd-activity-builder">
        <h3>{vi?'Hoạt động tương tác':'Interactive activities'}</h3>
