@@ -3,6 +3,7 @@ import {BOARD_W,BOARD_H,pathFromPoints,makeId} from './boardModel.js';
 import {snapBoardPoint,constrainBoardShape,smoothBoardPath,pressureBoardSegments,
  boardShapeGeometry,boardShapePreviewPath} from './boardDrawing.js';
 import {frameFromCorners} from './boardSpatial.js';
+import {lassoObjectIds} from './boardV8Tools.js';
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 
 export function renderBoardObject(object,onErase,studentView=false,onInteract,onSelect){
@@ -71,12 +72,12 @@ export function renderBoardObject(object,onErase,studentView=false,onInteract,on
  }
  return null;
 }
-export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onCommit,onErase,onDuplicateObject,onMoveObject,
+export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onCommit,onErase,onDuplicateObject,onMoveObject,onBatchEdit,onPrecisionErase,
  zoom=1,setZoom,camera={x:0,y:0},setCamera,contentText='',privateAnswer='',onInteract,
  studentView=false,spotlight=false,penPreset='classic',snapToGrid=false,shapeFill='none',vi=true,
  frames=[],showFrames=true,onCreateFrame,activeFrameId=null,onPointerPosition}){
  const svg=useRef(null),preview=useRef(null),pointer=useRef(null);
- const [drawing,setDrawing]=useState(false),[selectedId,setSelectedId]=useState('');
+ const [drawing,setDrawing]=useState(false),[selectedId,setSelectedId]=useState(''),[selectedIds,setSelectedIds]=useState([]);
  const [laser,setLaser]=useState(null);
  const [inlineText,setInlineText]=useState(null);
  const inlineCommitted=useRef(false);
@@ -101,7 +102,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
    text:''});
  };
  const stylusActive=useRef(false);
- useEffect(()=>{setSelectedId('');pointer.current=null;stylusActive.current=false;},[page?.id]);
+ useEffect(()=>{setSelectedId('');setSelectedIds([]);pointer.current=null;stylusActive.current=false;},[page?.id]);
  const viewWidth=BOARD_W/zoom,viewHeight=BOARD_H/zoom;
  const local=event=>{
   const root=svg.current;if(!root)return {x:0,y:0};
@@ -127,7 +128,16 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
    return;
   }
   if(cancel||studentView)return;
-  if(state.tool==='pen'||state.tool==='highlighter'){
+  if(state.tool==='lasso'){
+   const ids=lassoObjectIds(page?.objects||[],state.points);
+   setSelectedIds(ids);setSelectedId(ids[0]||'');
+   return;
+  }
+  if(state.tool==='eraser-precision'){
+   if(state.points.length)onPrecisionErase?.(state.points);
+   return;
+  }
+  if(state.tool==='pen'||state.tool==='highlighter'||state.tool==='lasso'||state.tool==='eraser-precision'){
    const points=state.points.slice(0,4000);
    if(points.length>=1)onCommit?.({kind:'stroke',id:makeId(),points,
     color:state.color,width:state.width,opacity:state.opacity??1,studentVisible:true,
@@ -146,7 +156,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
  };
  const selectObject=(id,event)=>{
   if(studentView||tool!=='select'||page?.locked)return;
-  event.preventDefault();event.stopPropagation();setSelectedId(id);
+  event.preventDefault();event.stopPropagation();setSelectedId(id);setSelectedIds([id]);
   const p=local(event);
   pointer.current={tool:'move-object',id,pointerId:event.pointerId,
    points:[p],el:event.target.closest('[data-board-object]')};
@@ -156,7 +166,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
   if(studentView||!page||page.locked||event.button!==0)return;
   if(event.pointerType==='touch'&&(event.isPrimary===false||stylusActive.current))return;
   const p=local(event),origin=snapBoardPoint(p,snapToGrid);
-  if(tool==='select'){setSelectedId('');return;}
+  if(tool==='select'){setSelectedId('');setSelectedIds([]);return;}
   if(tool==='text'||tool==='sticky'||tool==='flashcard'||tool==='mask'){
    if(tool==='text'&&!contentText.trim()){
     const rect=svg.current.getBoundingClientRect();
@@ -173,7 +183,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
    return;
   }
   if(tool==='laser'){setLaser(p);onPointerPosition?.(p,spotlight?'spotlight':'laser');return;}
-  if(!['pen','highlighter','shape-rect','shape-ellipse','shape-line','shape-arrow','shape-triangle','pan','frame'].includes(tool))return;
+  if(!['pen','highlighter','shape-rect','shape-ellipse','shape-line','shape-arrow','shape-triangle','pan','frame','lasso','eraser-precision'].includes(tool))return;
   event.preventDefault();
   const appliedPreset=tool==='highlighter'?{width:Math.max(width,14),opacity:.3,pressure:false}:
    penPreset==='fine'?{width,opacity:1,pressure:false}:
@@ -215,14 +225,16 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
   }else state.points=[state.points[0],p];
   state.shift=event.shiftKey;
   if(preview.current){
-   const path=state.tool==='frame'?boardShapePreviewPath('rect',state.points[0].x,
+   const path=state.tool==='lasso'?smoothBoardPath([...state.points,state.points[0]]):
+    state.tool==='eraser-precision'?smoothBoardPath(state.points):
+    state.tool==='frame'?boardShapePreviewPath('rect',state.points[0].x,
     state.points[0].y,p.x,p.y):state.tool.startsWith('shape-')?(()=>{
     const f=state.points[0],b=constrainBoardShape(f,p,state.tool.slice(6),
      {shift:state.shift,snap:state.snapToGrid});
     return boardShapePreviewPath(state.tool.slice(6),b.x,b.y,b.x2,b.y2);
    })():smoothBoardPath(state.points);
    preview.current.setAttribute('d',path);
-   preview.current.setAttribute('stroke-width',String(state.width));
+   preview.current.setAttribute('stroke-width',String(state.tool==='lasso'?3:state.tool==='eraser-precision'?30:state.width));
    preview.current.setAttribute('opacity',String(state.opacity));
   }
  };
@@ -281,11 +293,19 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
     }}
     onBlur={saveInlineText}
     placeholder={vi?'Viết gì đó rồi Enter':'Type and press Enter'}/>}
-  {tool==='select'&&!studentView&&!page?.locked&&selectedId&&page?.objects?.some(o=>o.id===selectedId)&&
-   <div className="bbd-canvas__selection-actions" role="group" aria-label="Selected board object">
-    <button type="button" onClick={()=>{onDuplicateObject?.(selectedId);setSelectedId('');}}>
+  {['select','lasso'].includes(tool)&&!studentView&&!page?.locked&&selectedIds.length>0&&
+   <div className="bbd-canvas__selection-actions bbd-v8-selection" role="group"
+    aria-label={vi?'Nhóm đối tượng đã chọn':'Selected objects'}>
+    <strong>{selectedIds.length} {vi?'đối tượng':'objects'}</strong>
+    <button type="button" onClick={()=>onBatchEdit?.(selectedIds,'front')}>
+     {vi?'Lên trên':'Front'}</button>
+    <button type="button" onClick={()=>onBatchEdit?.(selectedIds,'back')}>
+     {vi?'Xuống dưới':'Back'}</button>
+    <button type="button" onClick={()=>onBatchEdit?.(selectedIds,'scale',{factor:1.15})}>+15%</button>
+    <button type="button" onClick={()=>onBatchEdit?.(selectedIds,'scale',{factor:.85})}>−15%</button>
+    <button type="button" onClick={()=>onBatchEdit?.(selectedIds,'duplicate')}>
      {vi?'⧉ Nhân bản':'⧉ Duplicate'}</button>
-    <button type="button" onClick={()=>{onErase?.(selectedId);setSelectedId('');}}>
+    <button type="button" onClick={()=>{onBatchEdit?.(selectedIds,'delete');setSelectedIds([]);setSelectedId('');}}>
      {vi?'× Xóa':'× Delete'}</button>
    </div>}
   {drawing&&<span className="bbd-canvas__draw-indicator">●</span>}
