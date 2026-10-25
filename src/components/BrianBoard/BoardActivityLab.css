@@ -83,3 +83,29 @@
  .bbd-lab-stage{padding:12px!important}.bbd-lab-progress{font-size:12px}
 }
 @media(prefers-reduced-motion:reduce){.bbd-lab-cover{transition:none}}
+
+.bbd-lab-builder{display:grid;gap:12px;min-width:0;padding:12px;border-radius:14px;
+ border:1px solid var(--bbd-border,#dae4dd);background:var(--bbd-background,#f7faf7)}
+.bbd-lab-builder p{font-size:12px;line-height:1.55;margin:0}
+.bbd-lab-builder__targets{display:flex;gap:6px;overflow-x:auto;padding:5px}
+.bbd-lab-builder__targets button{flex:0 0 auto;min-height:36px;border-radius:9px;
+ font-size:11px;padding:8px;border:1px solid #b0cdbc}
+.bbd-lab-builder__targets button.active{outline:2px solid #498c71}
+.bbd-lab-builder__image{position:relative;width:100%;aspect-ratio:16/9;
+ border:1px solid #9ebcaf;border-radius:13px;display:grid;place-items:center;
+ background:linear-gradient(125deg,#e3f0e9,#cbdde9);overflow:hidden;
+ text-align:center;padding:10px;cursor:crosshair;touch-action:manipulation}
+.bbd-lab-builder__image img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.bbd-lab-public{width:100%;display:grid;gap:16px;min-height:0;overflow:auto}
+.bbd-lab-public-image{position:relative;max-width:900px;width:100%;aspect-ratio:16/9;
+ overflow:hidden;border:2px solid #87b099;border-radius:17px;margin-inline:auto;
+ background:#dee9e4;display:grid;place-items:center}
+.bbd-lab-public-image img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.bbd-lab-public-placeholder{font-weight:850;font-size:clamp(18px,3vw,32px);padding:20px;text-align:center}
+.bbd-lab-public-dot{position:absolute;transform:translate(-50%,-50%);z-index:2;
+ width:34px;height:34px;border-radius:50%;background:white;border:2px solid #46906e;
+ display:grid;place-items:center;color:#23513e;font-size:15px;font-weight:850}
+.bbd-lab-public-team{background:var(--bbd-panel,#fff);padding:12px;
+ display:flex;justify-content:space-between;border-radius:12px;font-weight:750}
+.bbd-lab-public-passage{font-size:clamp(16px,2vw,25px);line-height:1.7;
+ padding:22px;border-radius:15px;background:var(--bbd-panel,#fff)}
