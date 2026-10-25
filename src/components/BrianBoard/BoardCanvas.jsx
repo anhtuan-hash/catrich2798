@@ -63,7 +63,7 @@ export function renderBoardObject(object,onErase,studentView=false,onInteract,on
 }
 export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onCommit,onErase,onDuplicateObject,onMoveObject,
  zoom=1,setZoom,camera={x:0,y:0},setCamera,contentText='',privateAnswer='',onInteract,
- studentView=false,spotlight=false,penPreset='classic',snapToGrid=false,shapeFill='none'}){
+ studentView=false,spotlight=false,penPreset='classic',snapToGrid=false,shapeFill='none',vi=true}){
  const svg=useRef(null),preview=useRef(null),pointer=useRef(null);
  const [drawing,setDrawing]=useState(false),[selectedId,setSelectedId]=useState('');
  const [laser,setLaser]=useState(null);
@@ -131,9 +131,9 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
   if(!['pen','highlighter','shape-rect','shape-ellipse','shape-line','shape-arrow','shape-triangle','pan'].includes(tool))return;
   event.preventDefault();
   const appliedPreset=tool==='highlighter'?{width:Math.max(width,14),opacity:.3,pressure:false}:
-   penPreset==='fine'?{width:Math.min(width,2),opacity:1,pressure:false}:
-   penPreset==='fountain'?{width:Math.max(width,7),opacity:1,pressure:true}:
-   penPreset==='marker'?{width:Math.max(width,12),opacity:.46,pressure:false}:
+   penPreset==='fine'?{width,opacity:1,pressure:false}:
+   penPreset==='fountain'?{width,opacity:1,pressure:true}:
+   penPreset==='marker'?{width,opacity:.46,pressure:false}:
    {width,opacity:1,pressure:false};
   if(event.pointerType==='pen')stylusActive.current=true;
   pointer.current={pointerId:event.pointerId,pointerType:event.pointerType,tool,
@@ -162,7 +162,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
   }
   const events=event.getCoalescedEvents?.()||[event];
   if(state.tool==='pen'||state.tool==='highlighter'){
-   for(const e of events){const q=local(e);state.points.push({...q,pressure:e.pressure||.5});}
+   for(const e of events){if(state.points.length>=4000)break;const q=local(e);state.points.push({...q,pressure:e.pressure||.5});}
   }else state.points=[state.points[0],p];
   state.shift=event.shiftKey;
   if(preview.current){
@@ -207,9 +207,9 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
   {tool==='select'&&!studentView&&!page?.locked&&selectedId&&page?.objects?.some(o=>o.id===selectedId)&&
    <div className="bbd-canvas__selection-actions" role="group" aria-label="Selected board object">
     <button type="button" onClick={()=>{onDuplicateObject?.(selectedId);setSelectedId('');}}>
-     { '⧉' } { 'Duplicate' }</button>
+     {vi?'⧉ Nhân bản':'⧉ Duplicate'}</button>
     <button type="button" onClick={()=>{onErase?.(selectedId);setSelectedId('');}}>
-     { '×' } { 'Delete' }</button>
+     {vi?'× Xóa':'× Delete'}</button>
    </div>}
   {drawing&&<span className="bbd-canvas__draw-indicator">●</span>}
  </div>;
