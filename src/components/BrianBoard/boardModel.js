@@ -22,7 +22,7 @@ export function normalizeLesson(raw,ownerId){
   locked:p.locked===true,hidden:p.hidden===true,
   activities:normalizeBoardActivities(p.activities),frames:normalizeBoardFrames(p.frames),
   objects:Array.isArray(p.objects)?p.objects.slice(0,3000).filter(o=>o&&typeof o==='object'&&
-   ['stroke','text','shape','image','sticky','flashcard','mask'].includes(o.kind)).map(o=>({...o})):[],
+   ['stroke','text','shape','image','sticky','flashcard','mask','activity-pin'].includes(o.kind)).map(o=>({...o})):[],
  }));
  if(!pages.length)pages.push(newPage());
  return {schema:1,id:String(raw.id||'legacy-'+pages[0].id).slice(0,85),ownerId:String(ownerId),title:String(raw.title||empty.title).slice(0,180),
