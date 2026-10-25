@@ -53,6 +53,20 @@ export function renderBoardObject(object,onErase,studentView=false,onInteract,on
    style={{pointerEvents:onErase||onSelect?'all':'none'}} fill={o.color||'#304d53'}
    fontSize={o.fontSize||40} fontWeight="550">{String(o.text||'').slice(0,90)}</text>;
  }
+ if(o.kind==='activity-pin'){
+  if(studentView)return null;
+  return <g key={o.id} data-board-object={o.id} role="button" tabIndex={0}
+   onPointerDown={event=>{if(onErase||onSelect)press(event);else event.stopPropagation();}}
+   onClick={event=>{if(!onErase&&!onSelect){event.stopPropagation();onInteract?.(o.id);}}}
+   onKeyDown={event=>{if((event.key==='Enter'||event.key===' ')&&!onErase&&!onSelect)onInteract?.(o.id);}}
+   style={{cursor:'pointer'}}>
+   <rect x={o.x} y={o.y} width="310" height="100" rx="18" fill="#e2efe5" stroke="#3b8c6a" strokeWidth="3"/>
+   <circle cx={o.x+48} cy={o.y+50} r="28" fill="#3d876d"/>
+   <text x={o.x+36} y={o.y+61} fill="white" fontSize="35">▶</text>
+   <text x={o.x+95} y={o.y+44} fill="#254639" fontSize="21" fontWeight="700">ACTIVITY</text>
+   <text x={o.x+95} y={o.y+75} fill="#4e7863" fontSize="18">{String(o.text||'').slice(0,18)}</text>
+  </g>;
+ }
  if(o.kind==='flashcard')return <g key={o.id} data-board-object={o.id} onPointerDown={event=>{if(onErase||onSelect)press(event);else event.stopPropagation();}} onClick={event=>{if(!onErase&&!studentView){event.stopPropagation();onInteract?.(o.id);}}} style={{cursor:'pointer'}}>
   <rect x={o.x} y={o.y} width="330" height="165" rx="18" fill="#ecf3e9" stroke="#94b2a2" strokeWidth="2"/>
   <text x={o.x+20} y={o.y+65} fill="#325449" fontSize="29">{String(o.text||'').slice(0,21)}</text>
