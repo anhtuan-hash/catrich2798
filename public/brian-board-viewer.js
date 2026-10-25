@@ -181,17 +181,24 @@ function renderPublicActivity(activity,live=null){
 }
 function render(data){
  if(data?.schema!==1||data?.type!=='state')return;
+ const raw=data.viewport||{},num=(v,f)=>Number.isFinite(Number(v))?Number(v):f;
+ const w=Math.max(200,Math.min(10000,num(raw.width,1600))),
+  h=Math.max(112.5,Math.min(10000,num(raw.height,900))),
+  x=Math.max(-100000,Math.min(100000,num(raw.x,0))),
+  y=Math.max(-100000,Math.min(100000,num(raw.y,0)));
+ svg.setAttribute('viewBox',[x,y,w,h].join(' '));
  svg.replaceChildren();
- if(data.page?.background==='dots'){
-  const g=add(svg,make('g',{opacity:.65,fill:'#abc2b5'}));
-  for(let y=18;y<900;y+=36)for(let x=18;x<1600;x+=36)add(g,make('circle',{cx:x,cy:y,r:1.4}));
- }else if(data.page?.background==='grid'){
-  const g=add(svg,make('g',{stroke:'#b4c9c0','stroke-width':1,opacity:.7}));
-  for(let x=0;x<=1600;x+=38)add(g,make('line',{x1:x,y1:0,x2:x,y2:900}));
-  for(let y=0;y<=900;y+=38)add(g,make('line',{x1:0,y1:y,x2:1600,y2:y}));
+ const defs=add(svg,make('defs')),pattern=add(defs,make('pattern',{
+  id:'bbd-tv-grid',width:38,height:38,patternUnits:'userSpaceOnUse'}));
+ if(data.page?.background==='grid'){
+  add(pattern,make('path',{d:'M 38 0 L 0 0 0 38',fill:'none',stroke:'#b4c9c0','stroke-width':1}));
+  add(svg,make('rect',{x,y,width:w,height:h,fill:'url(#bbd-tv-grid)',opacity:.75}));
  }else if(data.page?.background==='lines'){
-  const g=add(svg,make('g',{stroke:'#b4c9c0','stroke-width':1,opacity:.7}));
-  for(let y=38;y<=900;y+=38)add(g,make('line',{x1:0,y1:y,x2:1600,y2:y}));
+  add(pattern,make('line',{x1:0,y1:37,x2:38,y2:37,stroke:'#b4c9c0','stroke-width':1}));
+  add(svg,make('rect',{x,y,width:w,height:h,fill:'url(#bbd-tv-grid)',opacity:.75}));
+ }else if(data.page?.background==='dots'){
+  add(pattern,make('circle',{cx:18,cy:18,r:1.4,fill:'#abc2b5'}));
+  add(svg,make('rect',{x,y,width:w,height:h,fill:'url(#bbd-tv-grid)',opacity:.75}));
  }
  document.body.style.background=data.theme==='midnight'?'#101f29':'#e2ebe6';
  document.getElementById('board').style.background=data.theme==='midnight'?'#15252d':
