@@ -685,7 +685,7 @@ export default function BrianBoard({currentUser,language='vi'}){
    onClick={()=>void start()}><Presentation size={25} strokeWidth={1.8}/><span className="bbd-board-fab__tooltip">Brian Board</span></button>;
  return <>
   {!open&&createPortal(button,document.body)}
-  {open&&createPortal(<section ref={enterRef} className={'bbd-shell bbd-theme-'+theme+(studentView?' is-student-view':'')} data-phase={phase} data-motion={motion}
+  {open&&createPortal(<section ref={enterRef} className={'bbd-shell bbd-theme-'+theme+(studentView?' is-student-view':'')+(cleanMode?' is-clean-mode':'')} data-phase={phase} data-motion={motion}
    role="dialog" aria-modal="true" aria-label="Brian Teaching Board">
    <header className="bbd-head">
     <div className="bbd-brand"><span className="bbd-brand__mark">B</span><span><strong>BRIAN BOARD</strong>
@@ -700,6 +700,10 @@ export default function BrianBoard({currentUser,language='vi'}){
      <button onClick={undo} disabled={!history.current.length} title="Undo"><Undo2 size={17}/></button>
      <button onClick={redo} disabled={!future.current.length} title="Redo"><Redo2 size={17}/></button>
      <button onClick={()=>void persist(docRef.current)} title={vi?'Lưu ngay':'Save now'}><Save size={17}/><span>{vi?'Lưu':'Save'}</span></button>
+     <button onClick={toggleCleanMode} className={cleanMode?'is-active':''}
+      title={cleanMode?(vi?'Hiện lại bảng công cụ':'Restore editing panels'):(vi?'Chế độ trình bày gọn':'Distraction-free presentation')}
+      aria-pressed={cleanMode} aria-label={cleanMode?(vi?'Thoát chế độ gọn':'Exit clean mode'):(vi?'Bật chế độ gọn':'Enter clean mode')}>
+      <Focus size={17}/><span>{cleanMode?(vi?'Thoát gọn':'Restore'):(vi?'Gọn':'Clean')}</span></button>
      <button onClick={toggleInspector} title={vi?'Hiện/ẩn công cụ bên phải':'Toggle side panel'}
       aria-controls="bbd-sidebar" aria-expanded={showPages} aria-label={vi?'Mở hoặc đóng bảng điều khiển':'Toggle inspector panel'}><Move size={17}/></button>
      <button onClick={startPresentation} title={vi?'Mở màn hình học sinh (cùng máy)':'Open local student display'} className={presenting?'is-presenting':''}>
@@ -711,7 +715,7 @@ export default function BrianBoard({currentUser,language='vi'}){
    </header>
    {saveError&&<div className="bbd-storage-warning" role="alert">{saveError}</div>}
    <div className="bbd-workspace">
-    {!studentView&&<aside className="bbd-tools" aria-label="Drawing tools">
+    {!studentView&&!cleanMode&&<aside className="bbd-tools" aria-label="Drawing tools">
      {drawTools.map(([id,Icon,en,vn])=><React.Fragment key={id}>
        {['pen','text','shape-rect','sticky','laser'].includes(id)&&<span className="bbd-tool-divider" aria-hidden="true"/>}
        <button type="button" onClick={()=>setTool(id)} aria-pressed={tool===id}
@@ -780,18 +784,24 @@ export default function BrianBoard({currentUser,language='vi'}){
        <button onClick={()=>setZoom(z=>Math.max(.35,Math.round((z-.15)*100)/100))}>−</button>
        <span>{Math.round(zoom*100)}%</span>
        <button onClick={()=>setZoom(z=>Math.min(3,Math.round((z+.15)*100)/100))}>+</button>
-       <button onClick={homeCanvas} title={vi?'Về vùng bảng ban đầu':'Return to board origin'}><Maximize2 size={16}/></button>
+       <button onClick={homeCanvas} title={vi?'Về vùng bảng ban đầu':'Return to board origin'}><MapPinned size={16}/></button>
+       <button onClick={fitAllCanvas} title={vi?'Khớp toàn bộ nội dung':'Fit all content'} aria-label={vi?'Khớp toàn bộ nội dung':'Fit all content'}><Maximize2 size={16}/></button>
+       <button onClick={()=>setShowNavigator(v=>!v)} aria-pressed={showNavigator}
+        title={vi?'Bật/tắt bản đồ thu nhỏ':'Toggle mini-map'}><Map size={16}/></button>
        <button disabled={!frames.filter(f=>!f.hidden).length} onClick={()=>moveBetweenFrames(-1)}
         title={vi?'Khung trước':'Previous frame'}><ChevronLeft size={16}/></button>
        <button disabled={!frames.filter(f=>!f.hidden).length} onClick={()=>moveBetweenFrames(1)}
         title={vi?'Khung sau':'Next frame'}><ChevronRight size={16}/></button>
       </div>
      </div>
+     {!studentView&&showNavigator&&!activeActivityId&&<BoardNavigator page={page} viewport={currentViewport}
+      activeFrameId={activeFrameId} vi={vi} open={navigatorOpen} onToggle={()=>setNavigatorOpen(v=>!v)}
+      onCenter={centerCanvasOn} onFitAll={fitAllCanvas} onHome={homeCanvas}/>}
     </div>
-    {!studentView&&showPages&&<button className="bbd-sidebar-scrim" type="button"
+    {!studentView&&showPages&&!cleanMode&&<button className="bbd-sidebar-scrim" type="button"
       tabIndex={-1} aria-label={vi?'Đóng bảng điều khiển':'Close inspector'}
       onClick={closeInspector}/>}
-    {!studentView&&showPages&&<aside className="bbd-sidebar" id="bbd-sidebar"
+    {!studentView&&showPages&&!cleanMode&&<aside className="bbd-sidebar" id="bbd-sidebar"
       aria-label={vi?'Bảng điều khiển bài dạy':'Lesson inspector'}>
       <button type="button" className="bbd-sidebar-close"
        title={vi?'Đóng bảng điều khiển':'Close inspector'} aria-label={vi?'Đóng bảng điều khiển':'Close inspector'}
@@ -841,6 +851,12 @@ export default function BrianBoard({currentUser,language='vi'}){
        <div className="bbd-side-actions">
         <button type="button" onClick={()=>goToFrame(f)} disabled={f.hidden}>
          <Presentation size={16}/>{vi?'Đến khung':'Go to frame'}</button>
+        <button type="button" disabled={page?.locked||i===0}
+         title={vi?'Chuyển khung lên trước':'Move frame up'} onClick={()=>shiftFrame(f.id,-1)}><ArrowUp size={16}/></button>
+        <button type="button" disabled={page?.locked||i===frames.length-1}
+         title={vi?'Chuyển khung xuống sau':'Move frame down'} onClick={()=>shiftFrame(f.id,1)}><ArrowDown size={16}/></button>
+        <button type="button" disabled={page?.locked||frames.length>=FRAME_LIMIT}
+         title={vi?'Nhân bản khung':'Duplicate frame'} onClick={()=>cloneFrame(f.id)}><Copy size={16}/></button>
         <button type="button" disabled={page?.locked}
          title={f.hidden?(vi?'Hiện khung trong lộ trình':'Show frame'):(vi?'Ẩn khung khỏi lộ trình':'Skip frame')}
          onClick={()=>updateFrame(f.id,old=>({...old,hidden:!old.hidden}))}>
