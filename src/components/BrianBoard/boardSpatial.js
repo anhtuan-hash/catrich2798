@@ -41,7 +41,11 @@ export function viewportForFrame(frame,boardW=1600,boardH=900){
 export function cameraForViewport(v,boardW=1600,boardH=900){
  const viewport=safeBoardViewport(v);
  const zoom=clamp(Math.min(boardW/viewport.width,boardH/viewport.height),.2,5);
- return {camera:{x:viewport.x,y:viewport.y},zoom};
+ const visibleWidth=boardW/zoom,visibleHeight=boardH/zoom;
+ return {camera:{
+  x:clamp(viewport.x+(viewport.width-visibleWidth)/2,MIN_WORLD,MAX_WORLD),
+  y:clamp(viewport.y+(viewport.height-visibleHeight)/2,MIN_WORLD,MAX_WORLD)
+ },zoom};
 }
 export function nextFramePlacement(frames=[],w=1600,h=900){
  const list=normalizeBoardFrames(frames);
