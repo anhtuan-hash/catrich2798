@@ -61,8 +61,8 @@ export default function BoardCropEditor({image,onApply,onCancel,vi=true}){
      onKeyDown={e=>{
       if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))return;
       e.preventDefault();
-      const dx=e.key==='ArrowLeft'?-.015:e.key==='ArrowRight'?.015:0;
-      const dy=e.key==='ArrowUp'?-.015:e.key==='ArrowDown'?.015:0;
+      const dx=e.key==='ArrowLeft'?-.015:e.key==='ArrowRight' ? .015 : 0;
+      const dy=e.key==='ArrowUp'?-.015:e.key==='ArrowDown' ? .015 : 0;
       let v={...rect};
       if(handle.includes('w')){v.x+=dx;v.width-=dx;}else v.width+=dx;
       if(handle.includes('n')){v.y+=dy;v.height-=dy;}else v.height+=dy;
