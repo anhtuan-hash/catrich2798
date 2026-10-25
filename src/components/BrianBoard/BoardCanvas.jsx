@@ -1,5 +1,7 @@
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {BOARD_W,BOARD_H,pathFromPoints,makeId} from './boardModel.js';
+import {snapBoardPoint,constrainBoardShape,smoothBoardPath,pressureBoardSegments,
+ boardShapeGeometry,boardShapePreviewPath} from './boardDrawing.js';
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 
 export function renderBoardObject(object,onErase,studentView=false,onInteract,onSelect){
@@ -9,13 +11,29 @@ export function renderBoardObject(object,onErase,studentView=false,onInteract,on
   if(onErase)erase(event);
   else if(onSelect){event.stopPropagation();onSelect(o.id,event);}
  };
- if(o.kind==='stroke')return <path data-board-object={o.id} key={o.id} d={pathFromPoints(o.points)}
-  fill="none" stroke={o.color||'#304d53'} strokeWidth={o.width||4}
-  strokeLinecap="round" strokeLinejoin="round" opacity={o.opacity??1}
-  vectorEffect="non-scaling-stroke" onPointerDown={press} style={{pointerEvents:onErase||onSelect?'stroke':'none'}}/>;
+ if(o.kind==='stroke'){
+  if(o.pressureSensitive===true&&Array.isArray(o.points)&&o.points.length>1){
+   return <g data-board-object={o.id} key={o.id} opacity={o.opacity??1}
+    onPointerDown={press} style={{pointerEvents:onErase||onSelect?'stroke':'none'}}>
+    {pressureBoardSegments(o.points,o.width||4).map((seg,i)=><line key={i}
+     x1={seg.x1} y1={seg.y1} x2={seg.x2} y2={seg.y2}
+     stroke={o.color||'#304d53'} strokeWidth={seg.width}
+     strokeLinecap="round" vectorEffect="non-scaling-stroke"/>)}
+   </g>;
+  }
+  return <path data-board-object={o.id} key={o.id}
+   d={o.smoothed?smoothBoardPath(o.points):pathFromPoints(o.points)}
+   fill="none" stroke={o.color||'#304d53'} strokeWidth={o.width||4}
+   strokeLinecap="round" strokeLinejoin="round" opacity={o.opacity??1}
+   vectorEffect="non-scaling-stroke" onPointerDown={press} style={{pointerEvents:onErase||onSelect?'stroke':'none'}}/>;
+ }
  if(o.kind==='shape'){
   const common={key:o.id,'data-board-object':o.id,fill:o.fill||'none',stroke:o.color||'#315966',
     strokeWidth:o.width||4,onPointerDown:press,style:{pointerEvents:onErase||onSelect?'all':'none'}};
+  const geometry=boardShapeGeometry(o.shape,o.x,o.y,o.x2,o.y2);
+  if(geometry)return geometry.type==='polygon'?
+   <polygon {...common} points={geometry.points.map(p=>p.join(',')).join(' ')}/>:
+   <polyline {...common} points={geometry.points.map(p=>p.join(',')).join(' ')} fill="none"/>;
   return o.shape==='ellipse'?<ellipse {...common} cx={(o.x+o.x2)/2} cy={(o.y+o.y2)/2}
     rx={Math.abs(o.x2-o.x)/2} ry={Math.abs(o.y2-o.y)/2}/>:
    o.shape==='line'?<line {...common} x1={o.x} y1={o.y} x2={o.x2} y2={o.y2}/>:
@@ -44,10 +62,13 @@ export function renderBoardObject(object,onErase,studentView=false,onInteract,on
  return null;
 }
 export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onCommit,onErase,onMoveObject,
- zoom=1,setZoom,camera={x:0,y:0},setCamera,contentText='',privateAnswer='',onInteract,studentView=false,spotlight=false}){
+ zoom=1,setZoom,camera={x:0,y:0},setCamera,contentText='',privateAnswer='',onInteract,
+ studentView=false,spotlight=false,penPreset='classic',snapToGrid=false,shapeFill='none'}){
  const svg=useRef(null),preview=useRef(null),pointer=useRef(null);
  const [drawing,setDrawing]=useState(false),[selectedId,setSelectedId]=useState('');
  const [laser,setLaser]=useState(null);
+ const stylusActive=useRef(false);
+ useEffect(()=>{setSelectedId('');pointer.current=null;stylusActive.current=false;},[page?.id]);
  const viewWidth=BOARD_W/zoom,viewHeight=BOARD_H/zoom;
  const local=event=>{
   const root=svg.current;if(!root)return {x:0,y:0};
@@ -61,7 +82,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
  const finish=(event,cancel=false)=>{
   const state=pointer.current;
   if(!state||state.pointerId!==event.pointerId)return;
-  pointer.current=null;setDrawing(false);
+  pointer.current=null;setDrawing(false);if(state.pointerType==='pen')stylusActive.current=false;
   if(preview.current)preview.current.setAttribute('d','');
   if(state.tool==='move-object'){
    state.el?.removeAttribute('transform');
@@ -74,12 +95,16 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
   }
   if(cancel||studentView)return;
   if(state.tool==='pen'||state.tool==='highlighter'){
-    if(state.points.length>=1)onCommit?.({kind:'stroke',id:makeId(),points:state.points,
-     color:state.color,width:state.width,opacity:state.tool==='highlighter'?.33:1,studentVisible:true});
+   const points=state.points.slice(0,4000);
+   if(points.length>=1)onCommit?.({kind:'stroke',id:makeId(),points,
+    color:state.color,width:state.width,opacity:state.opacity??1,studentVisible:true,
+    smoothed:true,pressureSensitive:state.pressureSensitive===true});
   }else if(state.tool.startsWith('shape-')){
-    const last=state.points.at(-1),first=state.points[0];
-    if(Math.hypot(last.x-first.x,last.y-first.y)>5)onCommit?.({kind:'shape',id:makeId(),shape:state.tool.slice(6),
-      x:first.x,y:first.y,x2:last.x,y2:last.y,color:state.color,width:state.width,studentVisible:true});
+   const last=state.points.at(-1),first=state.points[0],shape=state.tool.slice(6);
+   const bounds=constrainBoardShape(first,last,shape,{shift:state.shift,snap:state.snapToGrid});
+   if(Math.hypot(bounds.x2-bounds.x,bounds.y2-bounds.y)>5)
+    onCommit?.({kind:'shape',id:makeId(),shape,...bounds,color:state.color,
+     width:state.width,fill:state.shapeFill,studentVisible:true});
   }
  };
  const selectObject=(id,event)=>{
@@ -92,21 +117,30 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
  };
  const begin=event=>{
   if(studentView||!page||page.locked||event.button!==0)return;
-  if(event.pointerType==='touch'&&event.isPrimary===false)return;
-  const p=local(event);
+  if(event.pointerType==='touch'&&(event.isPrimary===false||stylusActive.current))return;
+  if(event.pointerType==='pen')stylusActive.current=true;
+  const p=local(event),origin=snapBoardPoint(p,snapToGrid);
   if(tool==='select'){setSelectedId('');return;}
   if(tool==='text'||tool==='sticky'||tool==='flashcard'||tool==='mask'){
    if(!contentText.trim()&&tool!=='mask')return;
-   onCommit?.({id:makeId(),kind:tool,x:p.x,y:p.y,text:contentText.trim().slice(0,90),
+   onCommit?.({id:makeId(),kind:tool,x:origin.x,y:origin.y,text:contentText.trim().slice(0,90),
     width:tool==='mask'?300:undefined,height:tool==='mask'?95:undefined,
     color,studentVisible:true,privateAnswer:tool==='flashcard'?privateAnswer.slice(0,120):undefined});
    return;
   }
   if(tool==='laser'){setLaser(p);return;}
-  if(!['pen','highlighter','shape-rect','shape-ellipse','shape-line','pan'].includes(tool))return;
+  if(!['pen','highlighter','shape-rect','shape-ellipse','shape-line','shape-arrow','shape-triangle','pan'].includes(tool))return;
   event.preventDefault();
-  pointer.current={pointerId:event.pointerId,tool,points:[p],lastClient:{x:event.clientX,y:event.clientY},
-    startCamera:{...camera},color,width};
+  const appliedPreset=tool==='highlighter'?{width:Math.max(width,14),opacity:.3,pressure:false}:
+   penPreset==='fine'?{width:Math.min(width,2),opacity:1,pressure:false}:
+   penPreset==='fountain'?{width:Math.max(width,7),opacity:1,pressure:true}:
+   penPreset==='marker'?{width:Math.max(width,12),opacity:.46,pressure:false}:
+   {width,opacity:1,pressure:false};
+  pointer.current={pointerId:event.pointerId,pointerType:event.pointerType,tool,
+   points:[{...(tool.startsWith('shape-')?origin:p),pressure:event.pressure||.5}],
+   lastClient:{x:event.clientX,y:event.clientY},startCamera:{...camera},
+   color,width:appliedPreset.width,opacity:appliedPreset.opacity,
+   pressureSensitive:appliedPreset.pressure,shift:event.shiftKey,snapToGrid,shapeFill};
   event.currentTarget.setPointerCapture?.(event.pointerId);
   setDrawing(true);
  };
@@ -130,10 +164,16 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
   if(state.tool==='pen'||state.tool==='highlighter'){
    for(const e of events){const q=local(e);state.points.push({...q,pressure:e.pressure||.5});}
   }else state.points=[state.points[0],p];
+  state.shift=event.shiftKey;
   if(preview.current){
-    const path=state.tool.startsWith('shape-')?
-      'M '+state.points[0].x+' '+state.points[0].y+' L '+p.x+' '+p.y:pathFromPoints(state.points);
-    preview.current.setAttribute('d',path);
+   const path=state.tool.startsWith('shape-')?(()=>{
+    const f=state.points[0],b=constrainBoardShape(f,p,state.tool.slice(6),
+     {shift:state.shift,snap:state.snapToGrid});
+    return boardShapePreviewPath(state.tool.slice(6),b.x,b.y,b.x2,b.y2);
+   })():smoothBoardPath(state.points);
+   preview.current.setAttribute('d',path);
+   preview.current.setAttribute('stroke-width',String(state.width));
+   preview.current.setAttribute('opacity',String(state.opacity));
   }
  };
  const wheel=event=>{
@@ -151,7 +191,9 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
    onPointerCancel={event=>finish(event,true)} onWheel={wheel}
    onPointerLeave={()=>{if(tool==='laser')setLaser(null);}}
    role="img" aria-label="Interactive vector teaching board">
-   {page?.objects?.map(o=>renderBoardObject(o,tool==='eraser'?onErase:null,studentView,tool==='select'?null:onInteract,tool==='select'?selectObject:null))}
+   {page?.objects?.map(o=>renderBoardObject(o,
+    (tool==='eraser'||tool==='eraser-ink'&&o.kind==='stroke')?onErase:null,
+    studentView,tool==='select'?null:onInteract,tool==='select'?selectObject:null))}
    {!studentView&&<path ref={preview} d="" stroke={color} strokeWidth={width}
      fill="none" opacity={tool==='highlighter'?.33:1} strokeLinecap="round"
      strokeLinejoin="round" vectorEffect="non-scaling-stroke" pointerEvents="none"/>}
