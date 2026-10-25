@@ -1,6 +1,6 @@
 import React,{useMemo,useRef,useState} from 'react';
 import {Map,Maximize2,MapPinned,ChevronsUpDown} from 'lucide-react';
-import {boardOverviewBounds,spatialObjectBounds} from './boardSpatial.js';
+import {boardOverviewBounds,unionBoardBounds,spatialObjectBounds} from './boardSpatial.js';
 import './BoardNavigator.css';
 
 /**
@@ -14,9 +14,11 @@ export default function BoardNavigator({page,viewport,activeFrameId,vi=true,
  const frames=page?.frames||[];
  const objectBoxes=useMemo(()=>(page?.objects||[]).slice(0,3000)
   .map(spatialObjectBounds).filter(Boolean),[page?.objects]);
- const extents=useMemo(()=>boardOverviewBounds({
-  frames,objects:page?.objects,viewport
- }),[frames,page?.objects,viewport?.x,viewport?.y,viewport?.width,viewport?.height]);
+ const fixedBounds=useMemo(()=>boardOverviewBounds({
+  frames,objects:page?.objects,viewport:{x:0,y:0,width:1600,height:900}
+ }),[frames,page?.objects]);
+ const extents=useMemo(()=>unionBoardBounds([fixedBounds,viewport],0)||fixedBounds,
+  [fixedBounds,viewport?.x,viewport?.y,viewport?.width,viewport?.height]);
  const toWorld=event=>{
   const root=svg.current;
   if(!root||!root.getScreenCTM)return null;
