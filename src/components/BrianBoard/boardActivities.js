@@ -39,7 +39,15 @@ export function publicBoardActivity(activity){
  if(!activity||!BOARD_ACTIVITY_TYPES.includes(activity.type))return null;
  return {id:String(activity.id||''),type:activity.type,title:clean(activity.title),prompt:clean(activity.prompt),
   // No answer mapping, ordered solution, or token indices leave the teacher context.
-  labels:activity.items.map(x=>clean(x.label)),
+  labels:activity.type==='ordering'?(()=>{
+    const items=activity.items;
+    // Stable pseudorandom view order; never broadcast the solution order.
+    let state=[...String(activity.id)].reduce((h,ch)=>((h*33)^ch.charCodeAt(0))>>>0,2166136261)>>>0;
+    const random=()=>{state^=state<<13;state^=state>>>17;state^=state<<5;return (state>>>0)/4294967296;};
+    const shuffled=shuffleBoardItems(items,random).map(x=>clean(x.label));
+    if(shuffled.length>1&&shuffled.every((x,i)=>x===clean(items[i].label)))shuffled.push(shuffled.shift());
+    return shuffled;
+   })():activity.items.map(x=>clean(x.label)),
   options:activity.type==='matching'?activity.items.map(x=>clean(x.answer)).sort():[],
   categories:activity.type==='sorting'?[...new Set(activity.items.map(x=>clean(x.answer)))].sort():[]
  };
