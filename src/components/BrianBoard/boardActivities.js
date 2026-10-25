@@ -1,4 +1,4 @@
-import {makeId} from './boardModel.js';
+const makeId=()=>typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);
 export const BOARD_ACTIVITY_TYPES=['matching','ordering','sorting'];
 const clean=s=>String(s||'').trim().slice(0,130);
 const rows=raw=>String(raw||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
