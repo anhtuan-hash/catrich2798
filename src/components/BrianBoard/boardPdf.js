@@ -1,5 +1,6 @@
 import {BOARD_W,BOARD_H,newPage,makeId,pathFromPoints,sanitizeStudentPage} from './boardModel.js';
 import {publicBoardActivity} from './boardActivities.js';
+import {smoothBoardPath,pressureBoardSegments,boardShapeGeometry} from './boardDrawing.js';
 
 export const MAX_BOARD_PDF_MB=15,MAX_BOARD_PDF_PAGES=12;
 export function validateBoardPdfHeader(bytes){
@@ -140,13 +141,33 @@ export function pageToSvg(page,theme='ivory'){
  const bg=theme==='midnight'?'#15252d':theme==='classroom'?'#eaf2ec':'#fbfaf6';
  const svg=svgNode('svg',{xmlns:NS,viewBox:'0 0 '+BOARD_W+' '+BOARD_H,width:BOARD_W,height:BOARD_H});
  svgNode('rect',{x:0,y:0,width:BOARD_W,height:BOARD_H,fill:bg},svg);
+ if(page?.background==='dots'){
+  for(let y=18;y<BOARD_H;y+=36)for(let x=18;x<BOARD_W;x+=36)
+   svgNode('circle',{cx:x,cy:y,r:1.4,fill:'#b2c5bc',opacity:.65},svg);
+ }else if(page?.background==='grid'){
+  for(let x=0;x<=BOARD_W;x+=38)svgNode('line',{x1:x,y1:0,x2:x,y2:BOARD_H,stroke:'#d5e0da','stroke-width':1},svg);
+  for(let y=0;y<=BOARD_H;y+=38)svgNode('line',{x1:0,y1:y,x2:BOARD_W,y2:y,stroke:'#d5e0da','stroke-width':1},svg);
+ }else if(page?.background==='lines'){
+  for(let y=38;y<=BOARD_H;y+=38)svgNode('line',{x1:0,y1:y,x2:BOARD_W,y2:y,stroke:'#d5e0da','stroke-width':1},svg);
+ }
  for(const o of page?.objects||[]){
   if(o.kind==='stroke'&&Array.isArray(o.points)){
-   svgNode('path',{d:pathFromPoints(o.points),fill:'none',stroke:o.color||'#335d63',
-    'stroke-width':finite(o.width,5),'stroke-linecap':'round','stroke-linejoin':'round',opacity:o.opacity??1},svg);
+   if(o.pressureSensitive&&o.points.length>1){
+    const group=svgNode('g',{opacity:o.opacity??1},svg);
+    pressureBoardSegments(o.points,finite(o.width,5)).forEach(seg=>svgNode('line',{
+     x1:seg.x1,y1:seg.y1,x2:seg.x2,y2:seg.y2,stroke:o.color||'#335d63',
+     'stroke-width':seg.width,'stroke-linecap':'round'},group));
+   }else svgNode('path',{d:o.smoothed?smoothBoardPath(o.points):pathFromPoints(o.points),
+    fill:'none',stroke:o.color||'#335d63','stroke-width':finite(o.width,5),
+    'stroke-linecap':'round','stroke-linejoin':'round',opacity:o.opacity??1},svg);
   }else if(o.kind==='shape'){
-   const common={fill:'none',stroke:o.color||'#335d63','stroke-width':finite(o.width,4)};
-   if(o.shape==='ellipse')svgNode('ellipse',{...common,cx:(o.x+o.x2)/2,cy:(o.y+o.y2)/2,
+   const common={fill:/^#[0-9a-fA-F]{6}$/.test(o.fill||'')?o.fill:'none',
+    stroke:o.color||'#335d63','stroke-width':finite(o.width,4)};
+   const geometry=boardShapeGeometry(o.shape,o.x,o.y,o.x2,o.y2);
+   if(geometry)svgNode(geometry.type==='polygon'?'polygon':'polyline',{
+    ...common,fill:geometry.type==='polyline'?'none':common.fill,
+    points:geometry.points.map(p=>p.join(',')).join(' ')},svg);
+   else if(o.shape==='ellipse')svgNode('ellipse',{...common,cx:(o.x+o.x2)/2,cy:(o.y+o.y2)/2,
     rx:Math.abs(o.x2-o.x)/2,ry:Math.abs(o.y2-o.y)/2},svg);
    else if(o.shape==='line')svgNode('line',{...common,x1:o.x,y1:o.y,x2:o.x2,y2:o.y2},svg);
    else svgNode('rect',{...common,x:Math.min(o.x,o.x2),y:Math.min(o.y,o.y2),
