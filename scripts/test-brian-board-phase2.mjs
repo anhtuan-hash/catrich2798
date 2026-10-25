@@ -50,6 +50,9 @@ const tv=boardStudentPayload(secret,matching.id);
 assert.equal(JSON.stringify(tv).includes('DO_NOT_SEND'),false);
 assert.equal(JSON.stringify(tv).includes('TEACHER_SECRET'),false);
 assert.equal(boardStudentPayload(secret,'non-existent').activity,null);
+const hiddenPresentation={...lesson,pages:[{...lesson.pages[0],hidden:true}]};
+assert.equal(boardStudentPayload(hiddenPresentation,matching.id).activity,null,
+ 'An unpublished page cannot show exercises on TV or classroom preview');
 
 // Page-only PDF remains the default; worksheets require an explicit selection.
 assert.deepEqual(buildStudentPdfSlides(lesson).map(s=>s.kind),['page']);
@@ -94,6 +97,12 @@ assert.ok(!viewer.includes('innerHTML'),'Student TV must not inject editable HTM
 const boardUI=read('BrianBoard.jsx');
 assert.match(boardUI,/boardStudentPayload\(lesson,activeActivityId\)/);
 assert.match(boardUI,/Student activity preview/);
+assert.match(boardUI,/studentActivityPreview=studentView&&lesson\?boardStudentPayload\(lesson,activeActivityId\)\.activity/);
+assert.match(boardUI,/!studentActivityPreview/);
+assert.match(boardUI,/studentActivityPreview\.options\.map/);
+assert.match(boardUI,/studentActivityPreview\.categories\.map/);
+assert.doesNotMatch(boardUI,/publicBoardActivity\(page\.activities/,
+ 'Student preview must use the same sanitized payload as television');
 assert.match(boardUI,/Export PDF with answer-free worksheets/);
 assert.match(boardUI,/exportStudentPdf\(true\)/);
 
