@@ -149,3 +149,28 @@ export function recognizeBoardGesture(points){
  const error=radii.reduce((sum,r)=>sum+Math.abs(r-1),0)/radii.length;
  return {shape:error<.21?'ellipse':'rect',x:left,y:top,x2:right,y2:bottom};
 }
+
+/** Two-node diagram connection: positions follow source/target on editing.
+ * Public student payloads only include rendered arrow coordinates.
+ */
+export function boardObjectCenter(o){
+ const b=spatialObjectBounds(o);
+ return b?{x:b.x+b.width/2,y:b.y+b.height/2}:null;
+}
+export function createDiagramConnection(objects,fromId,toId){
+ if(!fromId||!toId||fromId===toId)return null;
+ const source=objects.find(o=>o.id===fromId),target=objects.find(o=>o.id===toId);
+ if(!source||!target)return null;
+ const a=boardObjectCenter(source),b=boardObjectCenter(target);
+ if(!a||!b)return null;
+ return {id:id(),kind:'shape',shape:'arrow',x:a.x,y:a.y,x2:b.x,y2:b.y,
+  fromId,toId,color:'#347963',width:6,fill:'none',studentVisible:true};
+}
+export function syncDiagramConnections(objects){
+ const byId=new Map(objects.map(o=>[o.id,o]));
+ return objects.map(o=>{
+  if(o.kind!=='shape'||!o.fromId||!o.toId)return o;
+  const a=boardObjectCenter(byId.get(o.fromId)),b=boardObjectCenter(byId.get(o.toId));
+  return a&&b?{...o,x:a.x,y:a.y,x2:b.x,y2:b.y}:o;
+ });
+}
