@@ -1,0 +1,128 @@
+/** Brian Board V8 – deterministic canvas editing without AI or server dependencies. */
+import {spatialObjectBounds} from './boardSpatial.js';
+
+const finite=(v,f=0)=>Number.isFinite(Number(v))?Number(v):f;
+const shift=(point,dx,dy)=>({...point,x:finite(point.x)+dx,y:finite(point.y)+dy});
+const id=()=>typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);
+const inside=(point,polygon)=>{
+ let contained=false;
+ for(let i=0,j=polygon.length-1;i<polygon.length;j=i++){
+  const a=polygon[i],b=polygon[j];
+  if((a.y>point.y)!==(b.y>point.y)&&point.x<(b.x-a.x)*(point.y-a.y)/(b.y-a.y)+a.x)contained=!contained;
+ }
+ return contained;
+};
+export function lassoObjectIds(objects,polygon){
+ if(!Array.isArray(polygon)||polygon.length<3)return [];
+ return (objects||[]).filter(obj=>{
+  const box=spatialObjectBounds(obj);
+  if(!box)return false;
+  const center={x:box.x+box.width/2,y:box.y+box.height/2};
+  return inside(center,polygon);
+ }).map(o=>o.id);
+}
+export function moveBoardObjects(objects,ids,dx,dy){
+ const keys=new Set(ids),x=finite(dx),y=finite(dy);
+ return objects.map(o=>{
+  if(!keys.has(o.id))return o;
+  if(o.kind==='stroke')return {...o,points:(o.points||[]).map(p=>shift(p,x,y))};
+  if(o.kind==='shape')return {...o,x:finite(o.x)+x,y:finite(o.y)+y,x2:finite(o.x2)+x,y2:finite(o.y2)+y};
+  return {...o,x:finite(o.x)+x,y:finite(o.y)+y};
+ });
+}
+export function scaleBoardObjects(objects,ids,factor,origin){
+ const scale=Math.max(.5,Math.min(2,finite(factor,1)));
+ const chosen=new Set(ids);
+ const bounds=(objects||[]).filter(o=>chosen.has(o.id)).map(spatialObjectBounds).filter(Boolean);
+ if(!bounds.length)return objects;
+ const px=origin?.x??Math.min(...bounds.map(x=>x.x)),py=origin?.y??Math.min(...bounds.map(x=>x.y));
+ const tx=v=>px+(finite(v)-px)*scale,ty=v=>py+(finite(v)-py)*scale;
+ return objects.map(o=>{
+  if(!chosen.has(o.id))return o;
+  if(o.kind==='stroke')return {...o,points:(o.points||[]).map(p=>({...p,x:tx(p.x),y:ty(p.y)})),
+   width:Math.max(1,finite(o.width,4)*scale)};
+  if(o.kind==='shape')return {...o,x:tx(o.x),y:ty(o.y),x2:tx(o.x2),y2:ty(o.y2)};
+  return {...o,x:tx(o.x),y:ty(o.y),
+   ...(o.kind==='image'||o.kind==='mask'?{width:Math.max(24,finite(o.width,300)*scale),height:Math.max(24,finite(o.height,120)*scale)}:{}),
+   ...(o.kind==='text'?{fontSize:Math.max(12,Math.min(160,finite(o.fontSize,40)*scale))}:{})};
+ });
+}
+export function duplicateBoardObjects(objects,ids){
+ const selected=new Set(ids);
+ return [...objects,...objects.filter(o=>selected.has(o.id)).map(o=>{
+  let copy={...o,id:id()};
+  if(o.kind==='stroke')copy.points=o.points.map(p=>shift(p,35,35));
+  else if(o.kind==='shape'){copy.x+=35;copy.y+=35;copy.x2+=35;copy.y2+=35;}
+  else{copy.x=finite(o.x)+35;copy.y=finite(o.y)+35;}
+  return copy;
+ })];
+}
+export function reorderBoardObjects(objects,ids,action){
+ const keys=new Set(ids),rest=objects.filter(o=>!keys.has(o.id)),picked=objects.filter(o=>keys.has(o.id));
+ if(action==='front')return [...rest,...picked];
+ if(action==='back')return [...picked,...rest];
+ return objects;
+}
+export function splitStrokeByEraser(stroke,point,radius=24){
+ const pts=Array.isArray(stroke?.points)?stroke.points:[];
+ if(stroke?.kind!=='stroke'||!pts.length)return [stroke];
+ const r=Math.max(3,Math.min(120,finite(radius,24))),segments=[];
+ let current=[],changed=false;
+ const push=()=>{if(current.length){segments.push(current);current=[];}};
+ for(let i=0;i<pts.length;i++){
+  const p=pts[i],near=Math.hypot(p.x-point.x,p.y-point.y)<=r;
+  let crossing=false;
+  if(i>0){
+   const a=pts[i-1],vx=p.x-a.x,vy=p.y-a.y,den=vx*vx+vy*vy;
+   const t=den?Math.max(0,Math.min(1,((point.x-a.x)*vx+(point.y-a.y)*vy)/den)):0;
+   crossing=Math.hypot(a.x+vx*t-point.x,a.y+vy*t-point.y)<=r;
+  }
+  if(near||crossing){changed=true;push();}else current.push(p);
+ }
+ push();
+ if(!changed)return [stroke];
+ return segments.filter(x=>x.length>0).map((points,i)=>({...stroke,id:i===0?stroke.id:id(),points}));
+}
+export function eraseInkAtPoint(objects,point,radius=24){
+ return objects.flatMap(o=>o.kind==='stroke'?splitStrokeByEraser(o,point,radius):[o]);
+}
+export function groupBounds(objects,ids){
+ const keys=new Set(ids),b=objects.filter(o=>keys.has(o.id)).map(spatialObjectBounds).filter(Boolean);
+ if(!b.length)return null;
+ const x=Math.min(...b.map(q=>q.x)),y=Math.min(...b.map(q=>q.y));
+ return {x,y,width:Math.max(...b.map(q=>q.x+q.width))-x,height:Math.max(...b.map(q=>q.y+q.height))-y};
+}
+export const BOARD_V8_TEMPLATES=[
+ {id:'reading',vi:'Reading · Hai cột',en:'Reading · Two columns'},
+ {id:'grammar',vi:'Grammar · Giải thích',en:'Grammar · Explanation'},
+ {id:'vocabulary',vi:'Vocabulary Wall',en:'Vocabulary Wall'},
+ {id:'debate',vi:'Debate · For / Against',en:'Debate · For / Against'},
+ {id:'timeline',vi:'Timeline · Dòng thời gian',en:'Timeline'},
+ {id:'exit',vi:'Exit Ticket',en:'Exit Ticket'},
+ {id:'mindmap',vi:'Mind Map',en:'Mind Map'}
+];
+export function buildBoardTemplate(name,viewport={x:0,y:0,width:1600,height:900},vi=true){
+ if(!BOARD_V8_TEMPLATES.some(t=>t.id===name))return [];
+ const x=finite(viewport.x)+Math.max(50,finite(viewport.width,1600)*.08),
+  y=finite(viewport.y)+Math.max(70,finite(viewport.height,900)*.12),
+  w=Math.min(1200,finite(viewport.width,1600)*.8);
+ const txt=(text,px,py,size=36)=>({kind:'text',id:id(),x:px,y:py,text,fontSize:size,
+  color:'#325d50',studentVisible:true});
+ const rect=(px,py,wid,hei,fill='#e4f2e9')=>({kind:'shape',id:id(),shape:'rect',x:px,y:py,
+  x2:px+wid,y2:py+hei,color:'#50907b',width:3,fill,studentVisible:true});
+ const title=BOARD_V8_TEMPLATES.find(t=>t.id===name)[vi?'vi':'en'];
+ if(name==='reading')return [txt(title,x,y,48),rect(x,y+60,w*.48,570),rect(x+w*.52,y+60,w*.48,570),
+  txt('READING TEXT',x+25,y+130,34),txt('QUESTIONS / EVIDENCE',x+w*.55,y+130,32)];
+ if(name==='grammar')return [txt(title,x,y,48),rect(x,y+70,w,155),txt('RULE / FORM',x+30,y+150),
+  rect(x,y+255,w*.48,320),rect(x+w*.52,y+255,w*.48,320),txt('EXAMPLES',x+25,y+335),txt('PRACTICE',x+w*.55,y+335)];
+ if(name==='vocabulary')return [txt(title,x,y,48),...Array.from({length:8},(_,i)=>rect(x+(i%4)*(w/4+3),y+75+Math.floor(i/4)*240,w/4-13,214,'#fff1cd'))];
+ if(name==='debate')return [txt(title,x,y,48),rect(x,y+70,w*.48,495,'#e0f0e6'),rect(x+w*.52,y+70,w*.48,495,'#fbe8df'),
+  txt('FOR',x+34,y+142,38),txt('AGAINST',x+w*.55,y+142,38)];
+ if(name==='timeline')return [txt(title,x,y,48),{kind:'shape',id:id(),shape:'arrow',x,y:y+330,x2:x+w,y2:y+330,
+  color:'#397d65',width:8,fill:'none',studentVisible:true},...Array.from({length:5},(_,i)=>txt(String(i+1),
+  x+i*w/5+35,y+273,36))];
+ if(name==='exit')return [txt(title,x,y,48),...['3 things I learned','2 questions I have','1 action I will take'].map((t,i)=>[
+  rect(x,y+70+i*195,w,178,i%2?'#e4ebfb':'#e6f3e8'),txt(t,x+25,y+140+i*195,35)]).flat()];
+ return [txt(title,x,y,48),rect(x+w*.34,y+250,w*.31,115),txt('MAIN IDEA',x+w*.37,y+310,30),
+  ...['CAUSES','EXAMPLES','EFFECTS','SOLUTIONS'].map((t,i)=>txt(t,x+(i%2)*w*.58,y+150+Math.floor(i/2)*350,31))];
+}
