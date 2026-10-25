@@ -3,7 +3,7 @@ import {createPortal} from 'react-dom';
 import {Presentation,Pen,Highlighter,Eraser,MousePointer2,Hand,Type,Square,Circle,Minus,
  StickyNote,ScanEye,Undo2,Redo2,Plus,Copy,Trash2,Save,CheckCircle2,X,ChevronLeft,
  ChevronRight,CloudOff,Play,Pause,RotateCcw,Timer,Users,Eye,EyeOff,Maximize2,
- Download,Move,Palette,FilePlus2,LockKeyhole,LockKeyholeOpen,Layers,ArrowUp,ArrowDown,ImagePlus,Search,RefreshCcw,FileJson,FileUp,Edit3,ArrowUpRight,Triangle,Grid3X3,Droplets} from 'lucide-react';
+ Download,Move,Palette,FilePlus2,LockKeyhole,LockKeyholeOpen,Layers,ArrowUp,ArrowDown,ImagePlus,Search,RefreshCcw,FileJson,FileUp,Edit3,ArrowUpRight,Triangle,Grid3X3,Droplets,Frame,Clapperboard,MapPinned} from 'lucide-react';
 import {isAdminRole,isDepartmentLeaderRole,normalizeSystemRole} from '../../utils/roles.js';
 import {GLOBAL_FLOATING_ACTION_EVENT,FLOATING_ACTION_IDS} from '../../utils/unifiedFloatingDock.js';
 import {BOARD_W,BOARD_H,newLesson,newPage,normalizeLesson,makeId,THEMES,sanitizeStudentPage} from './boardModel.js';
@@ -14,6 +14,7 @@ import {boardStudentPayload,newBoardPresentationId} from './boardPresentation.js
 import {importBoardPdf,exportBoardStudentPdf} from './boardPdf.js';
 import {createBoardActivity} from './boardActivities.js';
 import {BOARD_PEN_PRESETS} from './boardDrawing.js';
+import {safeBoardViewport,viewportForFrame,cameraForViewport,nextFramePlacement,adjacentFrameIndex,FRAME_LIMIT} from './boardSpatial.js';
 import {BOARD_BACKUP_MAX_BYTES,duplicateBoardLesson,exportPrivateBoardBackup,importPrivateBoardBackup,
  boardActivityRaw,reviseBoardActivity,duplicateBoardActivity,moveBoardActivity,hideAllBoardActivities,
  selectBoardNameWithoutRepeat} from './boardWorkflow.js';
@@ -28,6 +29,7 @@ import './BoardVisualRefresh.css';
 
 const drawTools=[
  ['select',MousePointer2,'Select','Chọn'],['pan',Hand,'Pan','Di chuyển'],
+ ['frame',Frame,'Draw frame','Vẽ khung trình chiếu'],
  ['pen',Pen,'Pen','Bút'],['highlighter',Highlighter,'Highlight','Đánh dấu'],
  ['eraser',Eraser,'Erase object','Tẩy đối tượng'],['eraser-ink',Eraser,'Erase ink only','Chỉ tẩy nét bút'],
  ['text',Type,'Text','Chữ'],
@@ -61,6 +63,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  });
  useEffect(()=>{try{window.localStorage.setItem('bbd-motion-v1',motion);}catch{}},[motion]);
  const [zoom,setZoom]=useState(1),[camera,setCamera]=useState({x:0,y:0});
+ const [activeFrameId,setActiveFrameId]=useState(null),[showFrames,setShowFrames]=useState(true);
  const [contentText,setContentText]=useState(''),[privateAnswer,setPrivateAnswer]=useState(''),[showPages,setShowPages]=useState(()=>window.innerWidth>780),[spotlight,setSpotlight]=useState(false);
  const [studentView,setStudentView]=useState(false),[timerSeconds,setTimerSeconds]=useState(300);
  const [timerDeadline,setTimerDeadline]=useState(0),[timerNow,setTimerNow]=useState(Date.now());
@@ -85,6 +88,10 @@ export default function BrianBoard({currentUser,language='vi'}){
  const saving=useRef(Promise.resolve()),dirty=useRef(false),animating=useRef(false);
  const launchRef=useRef(null),lastFocusRef=useRef(null),mounted=useRef(true);
  const page=lesson?.pages.find(x=>x.id===lesson.activePageId)||lesson?.pages[0];
+ const frames=page?.frames||[];
+ const currentViewport=safeBoardViewport({x:camera.x,y:camera.y,width:BOARD_W/zoom,height:BOARD_H/zoom});
+ const viewportRef=useRef(currentViewport);viewportRef.current=currentViewport;
+ useEffect(()=>{setCamera({x:0,y:0});setZoom(1);setActiveFrameId(null);},[page?.id]);
  // Exact TV payload for classroom preview: never read a raw activity in student mode.
  const studentActivityPayload=studentView&&lesson?boardStudentPayload(lesson,activeActivityId,activityLive):null;
  const studentActivityPreview=studentActivityPayload?.activity||null;
@@ -126,8 +133,11 @@ export default function BrianBoard({currentUser,language='vi'}){
  docRef.current=lesson;
  useEffect(()=>{
   const session=presentationRef.current;
-  if(session&&lesson)session.bus.postMessage(boardStudentPayload(lesson,activeActivityId,activityLive));
- },[lesson,activeActivityId,activityLive]);
+  if(session&&lesson){
+   const payload=boardStudentPayload(lesson,activeActivityId,activityLive,currentViewport);
+   session.bus.postMessage(payload);
+  }
+ },[lesson,activeActivityId,activityLive,camera.x,camera.y,zoom]);
  useEffect(()=>()=>{const session=presentationRef.current;
   if(session){session.bus.postMessage({type:'end'});session.bus.close();presentationRef.current=null;}
  },[]);
@@ -147,10 +157,10 @@ export default function BrianBoard({currentUser,language='vi'}){
   if(child)try{child.opener=null;}catch{}
   if(!child){window.alert(vi?'Hãy cho phép mở cửa sổ mới để trình chiếu.':'Allow popups to open the student display.');return;}
   const bus=new BroadcastChannel('bbd-local-'+id);
-  bus.onmessage=e=>{if(e.data?.type==='request'&&docRef.current)bus.postMessage(boardStudentPayload(docRef.current,activeActivityRef.current,activityLiveRef.current));};
+  bus.onmessage=e=>{if(e.data?.type==='request'&&docRef.current)bus.postMessage(boardStudentPayload(docRef.current,activeActivityRef.current,activityLiveRef.current,viewportRef.current));};
   presentationRef.current={id,bus};
   setPresenting(true);
-  bus.postMessage(boardStudentPayload(docRef.current,activeActivityRef.current,activityLiveRef.current));
+  bus.postMessage(boardStudentPayload(docRef.current,activeActivityRef.current,activityLiveRef.current,viewportRef.current));
  };
  useEffect(()=>()=>{mounted.current=false;},[]);
  useEffect(()=>{
@@ -272,14 +282,20 @@ export default function BrianBoard({currentUser,language='vi'}){
     e.preventDefault();e.shiftKey?redo():undo();
    }else if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='y'){e.preventDefault();redo();}
    else if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='s'){e.preventDefault();void persist(docRef.current);}
+   else if(e.altKey&&(e.key==='ArrowRight'||e.key==='ArrowLeft')){
+    e.preventDefault();
+    const list=(docRef.current?.pages?.find(p=>p.id===docRef.current.activePageId)?.frames||[]).filter(f=>!f.hidden);
+    const i=adjacentFrameIndex(list,activeFrameId,e.key==='ArrowRight'?1:-1);
+    if(i>=0)goToFrame(list[i]);
+   }
    else if(!e.metaKey&&!e.ctrlKey){
-    const keymap={b:'pen',h:'highlighter',e:'eraser',v:'select',t:'text',p:'pan'};
+    const keymap={b:'pen',h:'highlighter',e:'eraser',v:'select',t:'text',p:'pan',f:'frame'};
     if(keymap[e.key.toLowerCase()])setTool(keymap[e.key.toLowerCase()]);
    }
   };
   document.addEventListener('keydown',key);
   return()=>document.removeEventListener('keydown',key);
- },[open,close,undo,redo,persist,studentView]);
+ },[open,close,undo,redo,persist,studentView,activeFrameId,page?.id]);
  useEffect(()=>{
   if(!open)return undefined;
   document.body.classList.add('bbd-board-session');
@@ -364,7 +380,7 @@ export default function BrianBoard({currentUser,language='vi'}){
   })}));
  };
  const interactObject=id=>{if(!page||page.locked)return;
-  editPage(p=>({...p,objects:p.objects.map(o=>o.id===id&&o.kind==='flashcard'
+  editPage(p=>({...p,objects:p.objects.map(o=>o.id===id&&['flashcard','mask'].includes(o.kind)
    ?{...o,revealed:!o.revealed}:o)}));
  };
  const insertImage=file=>{
@@ -409,6 +425,45 @@ export default function BrianBoard({currentUser,language='vi'}){
    (vi?'Đã tạo PDF không có ghi chú riêng':'Exported without teacher-only notes'));
   }catch(e){setPdfStatus(e?.message||'PDF export failed');}
   finally{setPdfBusy(false);}
+ };
+ const addFrameAtView=()=>{
+  if(!page||page.locked||frames.length>=FRAME_LIMIT)return;
+  const placed=nextFramePlacement(frames,BOARD_W,BOARD_H);
+  const frame={...placed,id:makeId(),title:(vi?'Khung ':'Frame ')+(frames.length+1),hidden:false};
+  editPage(p=>({...p,frames:[...(p.frames||[]),frame]}));
+  setActiveFrameId(frame.id);setPanel('frames');
+  goToFrame(frame);
+ };
+ const createDrawnFrame=frame=>{
+  if(!page||page.locked||frames.length>=FRAME_LIMIT)return;
+  const named={...frame,title:(vi?'Khung ':'Frame ')+(frames.length+1)};
+  editPage(p=>({...p,frames:[...(p.frames||[]),named]}));
+  setActiveFrameId(named.id);setPanel('frames');
+ };
+ const goToFrame=frame=>{
+  if(!frame||frame.hidden)return;
+  const v=viewportForFrame(frame);
+  const next=cameraForViewport(v);
+  setZoom(next.zoom);setCamera(next.camera);setActiveFrameId(frame.id);
+  setActiveActivityId(null);
+ };
+ const moveBetweenFrames=delta=>{
+  const visible=frames.filter(f=>!f.hidden);
+  const i=adjacentFrameIndex(visible,activeFrameId,delta);
+  if(i>=0)goToFrame(visible[i]);
+ };
+ const homeCanvas=()=>{
+  setCamera({x:0,y:0});setZoom(1);setActiveFrameId(null);
+ };
+ const updateFrame=(id,fn)=>{
+  if(page?.locked)return;
+  editPage(p=>({...p,frames:(p.frames||[]).map(f=>f.id===id?fn(f):f)}));
+ };
+ const removeFrame=id=>{
+  if(page?.locked)return;
+  if(!window.confirm(vi?'Xóa khung trình chiếu này? Nét viết trong vùng vẫn được giữ.':'Delete this presentation frame? Drawing content will stay.'))return;
+  editPage(p=>({...p,frames:(p.frames||[]).filter(f=>f.id!==id)}));
+  if(activeFrameId===id)setActiveFrameId(null);
  };
  const addPage=()=>mutate(d=>{
   const next=newPage('Page '+(d.pages.length+1));
@@ -615,7 +670,9 @@ export default function BrianBoard({currentUser,language='vi'}){
        :<BoardCanvas page={studentView?sanitizeStudentPage(page):page} tool={studentView?'select':tool} color={color} width={thickness}
        onCommit={commitObj} onErase={eraseObject} onDuplicateObject={duplicateObject} onMoveObject={moveObject}
        penPreset={penPreset} snapToGrid={snapToGrid} shapeFill={shapeFill} vi={vi} zoom={zoom} setZoom={setZoom}
-       camera={camera} setCamera={setCamera} contentText={contentText} privateAnswer={privateAnswer} onInteract={interactObject}
+       camera={camera} setCamera={next=>{setCamera(next);setActiveFrameId(null);}}
+       frames={frames} showFrames={showFrames} activeFrameId={activeFrameId}
+       onCreateFrame={createDrawnFrame} contentText={contentText} privateAnswer={privateAnswer} onInteract={interactObject}
        spotlight={spotlight} studentView={studentView}/>}
      </div>
      <div className="bbd-canvas-bottom">
@@ -641,7 +698,11 @@ export default function BrianBoard({currentUser,language='vi'}){
        <button onClick={()=>setZoom(z=>Math.max(.35,Math.round((z-.15)*100)/100))}>−</button>
        <span>{Math.round(zoom*100)}%</span>
        <button onClick={()=>setZoom(z=>Math.min(3,Math.round((z+.15)*100)/100))}>+</button>
-       <button onClick={()=>{setZoom(1);setCamera({x:0,y:0});}} title="Reset view"><Maximize2 size={16}/></button>
+       <button onClick={homeCanvas} title={vi?'Về vùng bảng ban đầu':'Return to board origin'}><Maximize2 size={16}/></button>
+       <button disabled={!frames.filter(f=>!f.hidden).length} onClick={()=>moveBetweenFrames(-1)}
+        title={vi?'Khung trước':'Previous frame'}><ChevronLeft size={16}/></button>
+       <button disabled={!frames.filter(f=>!f.hidden).length} onClick={()=>moveBetweenFrames(1)}
+        title={vi?'Khung sau':'Next frame'}><ChevronRight size={16}/></button>
       </div>
      </div>
     </div>
@@ -654,8 +715,8 @@ export default function BrianBoard({currentUser,language='vi'}){
        title={vi?'Đóng bảng điều khiển':'Close inspector'} aria-label={vi?'Đóng bảng điều khiển':'Close inspector'}
        onClick={closeInspector}><X size={18}/></button>
      <div className="bbd-sidebar-tabs">
-      {['pages','activities','library','teaching','design'].map(id=><button key={id} className={panel===id?'active':''} onClick={()=>setPanel(id)}>
-       {id==='pages'?(vi?'Trang':'Pages'):id==='activities'?(vi?'Bài tập':'Activities'):id==='library'?(vi?'Thư viện':'Library'):id==='teaching'?(vi?'Lớp học':'Classroom'):(vi?'Thiết kế':'Design')}</button>)}
+      {['pages','frames','activities','library','teaching','design'].map(id=><button key={id} className={panel===id?'active':''} onClick={()=>setPanel(id)}>
+       {id==='pages'?(vi?'Trang':'Pages'):id==='frames'?(vi?'Khung':'Frames'):id==='activities'?(vi?'Bài tập':'Activities'):id==='library'?(vi?'Thư viện':'Library'):id==='teaching'?(vi?'Lớp học':'Classroom'):(vi?'Thiết kế':'Design')}</button>)}
      </div>
      {panel==='pages'&&<div className="bbd-pages">
       <div className="bbd-side-heading"><strong>{vi?'Các trang bài giảng':'Lesson pages'}</strong>
@@ -670,6 +731,45 @@ export default function BrianBoard({currentUser,language='vi'}){
        {page?.locked?(vi?'Mở khóa trang':'Unlock page'):(vi?'Khóa trang':'Lock page')}</button>
       <button onClick={()=>editPage(p=>({...p,hidden:!p.hidden}))}>{page?.hidden?<EyeOff size={16}/>:<Eye size={16}/>}
        {page?.hidden?(vi?'Hiện trang khi chiếu':'Show on display'):(vi?'Ẩn trang khi chiếu':'Hide on display')}</button>
+     </div>}
+     {panel==='frames'&&<div className="bbd-side-stack bbd-frame-panel">
+      <div className="bbd-side-heading"><h3>{vi?'Không gian vô hạn · Frames':'Infinite board · Frames'}</h3>
+       <Clapperboard size={20}/></div>
+      <p>{vi?'Dùng bàn tay để kéo bảng ra mọi hướng. Vẽ khung như slide hoặc tạo khung kế tiếp. Mỗi khung là một điểm dừng trong bài dạy; nội dung vẽ không bị chia cắt.':
+       'Pan freely across the board. Draw presentation frames or add a frame to the right. Each frame becomes a lesson stop without splitting your drawing.'}</p>
+      <div className="bbd-side-actions">
+       <button type="button" disabled={page?.locked||frames.length>=FRAME_LIMIT}
+        onClick={()=>{setTool('frame');setShowFrames(true);}}>
+        <Frame size={16}/>{vi?'Vẽ khung':'Draw frame'}</button>
+       <button type="button" disabled={page?.locked||frames.length>=FRAME_LIMIT} onClick={addFrameAtView}>
+        <Plus size={16}/>{vi?'Thêm khung kế tiếp':'Add next frame'}</button>
+      </div>
+      <button type="button" onClick={()=>setShowFrames(v=>!v)}>
+       {showFrames?<EyeOff size={16}/>:<Eye size={16}/>}
+       {showFrames?(vi?'Ẩn viền khung khi viết':'Hide frame outlines'):(vi?'Hiện viền khung':'Show frame outlines')}</button>
+      <button type="button" onClick={homeCanvas}><MapPinned size={16}/>{vi?'Về tọa độ gốc 0,0':'Return to origin 0,0'}</button>
+      <div className="bbd-frame-count">{frames.length}/{FRAME_LIMIT} {vi?'khung':'frames'}</div>
+      {frames.map((f,i)=><div key={f.id} className={'bbd-frame-card'+(activeFrameId===f.id?' active':'')}>
+       <div className="bbd-frame-card__top">
+        <span className="bbd-frame-card__number">{String(i+1).padStart(2,'0')}</span>
+        <input aria-label={(vi?'Tên khung ':'Frame name ')+(i+1)} value={f.title} maxLength={90}
+         disabled={page?.locked} onChange={e=>updateFrame(f.id,old=>({...old,title:e.target.value.slice(0,90)}))}/>
+       </div>
+       <small>{Math.round(f.x)}, {Math.round(f.y)} · {Math.round(f.width)} × {Math.round(f.height)}</small>
+       <div className="bbd-side-actions">
+        <button type="button" onClick={()=>goToFrame(f)} disabled={f.hidden}>
+         <Presentation size={16}/>{vi?'Đến khung':'Go to frame'}</button>
+        <button type="button" disabled={page?.locked}
+         title={f.hidden?(vi?'Hiện khung trong lộ trình':'Show frame'):(vi?'Ẩn khung khỏi lộ trình':'Skip frame')}
+         onClick={()=>updateFrame(f.id,old=>({...old,hidden:!old.hidden}))}>
+         {f.hidden?<EyeOff size={16}/>:<Eye size={16}/>}</button>
+        <button type="button" disabled={page?.locked} onClick={()=>removeFrame(f.id)}><Trash2 size={16}/></button>
+       </div>
+      </div>)}
+      {!frames.length&&<p>{vi?'Bắt đầu bằng công cụ Vẽ khung rồi kéo một hình chữ nhật trên bảng, hoặc chọn Thêm khung kế tiếp.':
+       'Use Draw frame and drag a rectangle, or choose Add next frame.'}</p>}
+      <p>{vi?'Phím tắt: F vẽ khung; P kéo bảng; Alt + ←/→ di chuyển giữa các khung.':
+       'Shortcuts: F draw frame; P pan; Alt + ←/→ navigate frames.'}</p>
      </div>}
      {panel==='activities'&&<div className="bbd-side-stack bbd-activity-builder">
        <h3>{vi?'Hoạt động tương tác':'Interactive activities'}</h3>
