@@ -143,7 +143,12 @@ export function labPublicActivity(raw){
  // Public TV/worksheet never receives label↔position mappings.
  // Drag targets are anonymized. Hotspot coordinates stay teacher-only until answered.
  if(a.type==='hotspot')visible.items=a.items.map(i=>({label:i.label}));
- if(a.type==='drag_label')visible.items=a.items.map(i=>({x:i.x,y:i.y}));
+ if(a.type==='drag_label'){
+  visible.items=a.items.map(i=>({x:i.x,y:i.y}));
+  // Never preserve positional index pairing between the published label bank
+  // and the numbered targets. Mapping remains exclusively teacher-side.
+  if(a.items.length>1)visible.labels=[...a.items.slice(1),a.items[0]].map(i=>i.label);
+ }
  if(a.type==='cloze_snap')visible.options=[...new Set([...a.items.map(i=>i.answer),...a.distractors])].sort();
  if(a.type==='error_detective')
   visible.items=a.items.map(i=>({label:i.label,options:[i.wrong,...a.items.map(j=>j.answer)].sort()}));
