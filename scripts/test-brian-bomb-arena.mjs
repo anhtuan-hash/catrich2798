@@ -1,85 +1,132 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {createArena,arenaReducer,rankTeams,ARENA_MODES} from '../src/components/BrianBombArena/arenaEngine.js';
+import {createArena,arenaReducer,rankTeams,ARENA_MODES,generateTileEvents,pointsForEvent,TILE_ICONS} from '../src/components/BrianBombArena/arenaEngine.js';
+
 const check=(label,run)=>{run();console.log('✓ '+label);};
 const apply=(game,action)=>arenaReducer(game,action);
-check('All four game modes generate valid boards and event counts',()=>{
+const running=(mode='luck')=>apply(createArena({mode,size:5,teamCount:2}),{type:'START'});
+
+check('Every generated tile in 4x4/5x5/6x6 is a number or a bomb across four modes',()=>{
   for(const mode of ARENA_MODES)for(const size of [4,5,6]){
     const s=createArena({mode,size,teamCount:8,ownerId:'teacher-1'},()=>0.25);
+    assert.equal(s.ruleVersion,2);
     assert.equal(s.tiles.length,size*size);
     assert.equal(new Set(s.tiles.map(t=>t.label)).size,size*size);
     assert.equal(s.teams.length,8);assert.equal(s.ownerId,'teacher-1');
     assert.equal(s.questionGate,mode==='challenge');
+    assert.ok(s.tiles.every(t=>t.event==='bomb'||[10,20,30,50,100].includes(pointsForEvent(t.event))));
+    assert.ok(s.tiles.some(t=>t.event==='bomb'));
+    assert.equal(s.tiles.filter(t=>t.event==='bomb').length,
+      generateTileEvents(mode,size*size,()=>0.1).filter(k=>k==='bomb').length);
   }
 });
-check('Classic reveal awards points and rotates turns once',()=>{
-  const s=apply(createArena({mode:'classic',size:4,teamCount:2}),{type:'START'});
-  s.tiles[0].event='points100';
+check('Chaos increases bomb frequency above classic and luck on 5x5',()=>{
+  const count=m=>generateTileEvents(m,25,()=>0.5).filter(x=>x==='bomb').length;
+  assert.equal(count('classic'),2);assert.equal(count('luck'),4);assert.equal(count('chaos'),6);
+  assert.equal(TILE_ICONS.points10,'10');assert.equal(TILE_ICONS.points100,'100');
+});
+check('Classic adds points to secured score, advances and never reopens an exposed tile',()=>{
+  const s=running('classic');s.tiles[0].event='points20';
   const result=apply(s,{type:'SELECT',index:0});
-  assert.equal(result.tiles[0].opened,true);assert.equal(result.teams[0].score,100);
+  assert.equal(result.tiles[0].opened,true);assert.equal(result.teams[0].score,20);
   assert.equal(result.turn,1);
   assert.equal(apply(result,{type:'SELECT',index:0}),result);
 });
-check('Undo and redo restore tiles, score, turn and ownership',()=>{
-  const s=apply(createArena({mode:'classic',teamCount:2}),{type:'START'});
-  s.tiles[0].event='points200';
-  const played=apply(s,{type:'SELECT',index:0});
-  const undone=apply(played,{type:'UNDO'});
-  assert.equal(undone.tiles[0].opened,false);assert.equal(undone.teams[0].score,0);
+check('Classic bomb ends turn without destroying previously banked scores',()=>{
+  const s=running('classic');s.teams[0].score=150;s.tiles[0].event='bomb';
+  const next=apply(s,{type:'SELECT',index:0});
+  assert.equal(next.teams[0].score,150);assert.equal(next.turn,1);
+  assert.equal(next.last.event,'bomb');
+});
+check('Chaos bomb deducts 50 but never makes secured score negative',()=>{
+  const s=running('chaos');s.teams[0].score=20;s.tiles[0].event='bomb';
+  const next=apply(s,{type:'SELECT',index:0});
+  assert.equal(next.teams[0].score,0);assert.equal(next.turn,1);
+});
+check('Press Your Luck adds numeric tiles to POT and not to secured score',()=>{
+  const s=running('luck');s.tiles[0].event='points10';s.tiles[1].event='points30';
+  const first=apply(s,{type:'SELECT',index:0});
+  assert.equal(first.teams[0].bank,10);assert.equal(first.teams[0].score,0);assert.equal(first.turn,0);
+  const second=apply(first,{type:'SELECT',index:1});
+  assert.equal(second.teams[0].bank,40);assert.equal(second.turn,0);
+});
+check('Bank moves POT into score exactly once and transfers turn',()=>{
+  const s=running('luck');s.tiles[0].event='points50';
+  const earned=apply(s,{type:'SELECT',index:0});
+  const banked=apply(earned,{type:'BANK'});
+  assert.equal(banked.teams[0].score,50);assert.equal(banked.teams[0].bank,0);
+  assert.equal(banked.turn,1);assert.equal(banked.last.event,'bank');assert.equal(banked.last.points,50);
+  assert.equal(apply(banked,{type:'BANK'}),banked);
+});
+check('Bomb wipes only unbanked POT, keeps past BANK and ends turn',()=>{
+  const s=running('luck');s.teams[0].score=70;s.tiles[0].event='points30';s.tiles[1].event='bomb';
+  const earned=apply(s,{type:'SELECT',index:0});
+  const bombed=apply(earned,{type:'SELECT',index:1});
+  assert.equal(bombed.teams[0].bank,0);assert.equal(bombed.teams[0].score,70);
+  assert.equal(bombed.turn,1);assert.equal(bombed.last.event,'bomb');
+  assert.equal(bombed.last.potBefore,30);
+});
+check('Undo and Redo restore an exploded POT, the tile and current team',()=>{
+  const s=running('luck');s.tiles[0].event='points20';s.tiles[1].event='bomb';
+  const earned=apply(s,{type:'SELECT',index:0});
+  const bombed=apply(earned,{type:'SELECT',index:1});
+  const undone=apply(bombed,{type:'UNDO'});
+  assert.equal(undone.teams[0].bank,20);assert.equal(undone.tiles[1].opened,false);
   assert.equal(undone.turn,0);
   const redone=apply(undone,{type:'REDO'});
-  assert.equal(redone.tiles[0].opened,true);assert.equal(redone.teams[0].score,200);
+  assert.equal(redone.teams[0].bank,0);assert.equal(redone.tiles[1].opened,true);
+  assert.equal(redone.turn,1);
 });
-check('Bomb removes points but never makes scores negative',()=>{
-  let s=apply(createArena({mode:'classic',teamCount:2}),{type:'START'});
-  s=apply(s,{type:'SCORE',index:0,value:300});s.tiles[0].event='bomb';
-  const played=apply(s,{type:'SELECT',index:0});
-  assert.equal(played.teams[0].score,0);
-  assert.equal(apply(played,{type:'SCORE',index:0,value:-100}).teams[0].score,0);
+check('A teacher cannot swap teams or advance while POT is unbanked',()=>{
+  const s=running('luck');s.tiles[0].event='points100';
+  const earned=apply(s,{type:'SELECT',index:0});
+  assert.equal(apply(earned,{type:'TEAM',index:1}),earned);
+  assert.equal(apply(earned,{type:'NEXT'}),earned);
 });
-check('Shield absorbs next bomb',()=>{
-  const s=apply(createArena({mode:'classic',teamCount:2}),{type:'START'});
-  s.teams[0].score=100;s.teams[0].shields=1;s.tiles[0].event='bomb';
-  const played=apply(s,{type:'SELECT',index:0});
-  assert.equal(played.teams[0].score,100);assert.equal(played.teams[0].shields,0);
-});
-check('Press Your Luck awards temporary points then BANK',()=>{
-  const s=apply(createArena({mode:'luck',teamCount:2}),{type:'START'});
-  s.tiles[0].event='points100';
-  const played=apply(s,{type:'SELECT',index:0});
-  assert.equal(played.teams[0].score,0);assert.equal(played.teams[0].bank,100);assert.equal(played.turn,0);
-  const banked=apply(played,{type:'BANK'});
-  assert.equal(banked.teams[0].score,100);assert.equal(banked.teams[0].bank,0);assert.equal(banked.turn,1);
-});
-check('Question gate requires teacher answer even for an empty question bank',()=>{
+check('Question Gate requires teacher confirmation and wrong answer loses pending POT',()=>{
   const s=apply(createArena({mode:'challenge',teamCount:2}),{type:'START'});
   const selected=apply(s,{type:'SELECT',index:0});
   assert.equal(selected.selectedTile,0);assert.equal(selected.tiles[0].opened,false);
-  const wrong=apply(selected,{type:'ANSWER',correct:false});
-  assert.equal(wrong.tiles[0].opened,false);assert.equal(wrong.turn,1);
-  const correct=apply(selected,{type:'ANSWER',correct:true});
-  assert.equal(correct.tiles[0].opened,true);
+  assert.equal(apply(selected,{type:'ANSWER',correct:false}).turn,1);
+  assert.equal(apply(selected,{type:'ANSWER',correct:true}).tiles[0].opened,true);
+  const luck=running('luck');luck.questionGate=true;luck.teams[0].bank=80;
+  const pick=apply(luck,{type:'SELECT',index:0});
+  const failed=apply(pick,{type:'ANSWER',correct:false});
+  assert.equal(failed.teams[0].bank,0);assert.equal(failed.turn,1);
 });
-check('Final tile secures all outstanding temporary banks',()=>{
-  const s=apply(createArena({mode:'luck',size:4,teamCount:2}),{type:'START'});
-  s.tiles.forEach((cell,index)=>{cell.opened=index!==0;});
-  s.tiles[0].event='points50';s.teams[1].bank=200;
+check('Final tile and manual finish secure outstanding POTs',()=>{
+  const s=running('luck');s.tiles.forEach((cell,i)=>{cell.opened=i!==0;});
+  s.tiles[0].event='points10';s.teams[1].bank=200;
   const final=apply(s,{type:'SELECT',index:0});
   assert.equal(final.phase,'finished');assert.equal(final.teams[1].score,200);
-  assert.equal(final.teams[1].bank,0);
+  assert.equal(final.teams[1].bank,0);assert.equal(final.teams[0].score,10);
+  const manual=running('luck');manual.teams[0].bank=40;
+  assert.equal(apply(manual,{type:'FINISH'}).teams[0].score,40);
 });
-check('Ranking sorts by score without mutating source array',()=>{
+check('Existing v1 special tiles still load and work without new-board generation',()=>{
+  const s=running('luck');s.tiles[0].event='shield';
+  assert.equal(apply(s,{type:'SELECT',index:0}).teams[0].shields,1);
+});
+check('Ranking is stable and non-mutating',()=>{
   const teams=[{id:'a',name:'Alpha',score:25},{id:'b',name:'Beta',score:40}];
   assert.equal(rankTeams(teams)[0].id,'b');assert.equal(teams[0].id,'a');
 });
-check('Portal is integrated without altering existing launchers',()=>{
-  const main=readFileSync(new URL('../src/main.jsx',import.meta.url),'utf8');
-  const bubble=readFileSync(new URL('../src/components/BrianBombArena/BrianBombArena.jsx',import.meta.url),'utf8');
-  const css=readFileSync(new URL('../src/components/BrianBombArena/BrianBombArena.css',import.meta.url),'utf8');
+check('Portal, audio, FX and existing Focus/Board are wired, with reduced-motion support',()=>{
+  const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
+  const main=read('src/main.jsx');
+  const bubble=read('src/components/BrianBombArena/BrianBombArena.jsx');
+  const css=read('src/components/BrianBombArena/BrianBombArena.css');
+  const sound=read('src/components/BrianBombArena/arenaSound.js');
+  const effect=read('src/components/BrianBombArena/ArenaEffects.jsx');
   assert.match(main,/<BrianBombArena currentUser=\{currentUser\} language=\{language\}/);
   assert.match(main,/<BrianFocus currentUser=\{currentUser\} language=\{language\} performance=\{resolvedPerformance\}/);
   assert.match(main,/<BrianBoard currentUser=\{currentUser\} language=\{language\}/);
-  assert.match(bubble,/allowedUser/);assert.match(css,/body:not\(:has\(\.bes-approval-root\)\) \.bba-bubble/);
+  assert.match(bubble,/onClick=\{bankTurn\}/);assert.match(bubble,/revealFx\(tile\)/);
+  assert.match(bubble,/ArenaEffects fx=\{fx\}/);assert.match(bubble,/useState\('luck'\)/);
+  assert.match(css,/bba-fx-shock/);assert.match(css,/bba-fx-spark/);
   assert.match(css,/prefers-reduced-motion/);assert.match(css,/safe-area-inset/);
+  assert.match(css,/body:not\(:has\(\.bes-approval-root\)\) \.bba-bubble/);
+  assert.match(sound,/createArenaSound/);assert.match(sound,/createBufferSource/);
+  assert.match(effect,/bba-fx-shockwave/);assert.match(effect,/bba-fx-confetti/);
 });
-console.log('PASS: Brian Bomb Arena engine, integration and accessibility static checks.');
+console.log('PASS: Bomb Arena v2 numbers/POT/BANK, explosions, fireworks and Focus/Board contract.');
