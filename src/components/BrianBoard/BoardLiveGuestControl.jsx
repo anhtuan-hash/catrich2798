@@ -1,7 +1,7 @@
 import React,{useEffect,useState,useRef} from 'react';
 import QRCode from 'qrcode';
 import {QrCode,Copy,Users,Check, X,Pause,Play,Square,Download,RefreshCw,ShieldCheck} from 'lucide-react';
-import {createGuestRoom,teacherRoomState,controlTeacherRoom,restoreGuestRoom,safeGuestShareUrl}
+import {createGuestRoom,teacherRoomState,controlTeacherRoom,removeFinishedGuestRoom,restoreGuestRoom,safeGuestShareUrl}
  from './boardLiveApi.js';
 import './BoardLiveGuestControl.css';
 const csvCell=x=>{
@@ -113,6 +113,13 @@ export default function BoardLiveGuestControl({session,onProjection,onReset,vi=t
       {room.showResults?(vi?'Ẩn kết quả':'Hide results'):(vi?'Hiện kết quả':'Show results')}</button>
      <button onClick={()=>void refresh()} disabled={busy}><RefreshCw size={15}/>{vi?'Cập nhật':'Refresh'}</button>
      <button onClick={download}><Download size={15}/>{vi?'Xuất CSV':'Export CSV'}</button>
+     {room.status==='closed'&&<button type="button" disabled={busy} onClick={()=>{
+      if(!window.confirm(vi?'Xóa vĩnh viễn phiên và toàn bộ ý kiến/phiếu bầu?':'Permanently delete session and all responses?'))return;
+      setBusy(true);setError('');
+      void removeFinishedGuestRoom(room.id).then(()=>{
+       setRoom(null);setQr('');onReset?.();
+      }).catch(e=>setError(e.message||'Deletion failed')).finally(()=>setBusy(false));
+     }}>{vi?'Xóa dữ liệu phiên':'Delete room data'}</button>}
      {room.status==='closed'&&<button type="button" onClick={()=>{
       setRoom(null);setQr('');setMessage('');setError('');onReset?.();
      }}><QrCode size={15}/>{vi?'Hoạt động mới':'New activity'}</button>}
