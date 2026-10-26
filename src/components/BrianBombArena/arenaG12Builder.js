@@ -23,7 +23,10 @@ export function buildG12Unit({unit,title,grammar,seeds}){
     if(!Array.isArray(authoredGroup)||authoredGroup.length!==5)
       throw Error('Incomplete original prompts for Unit '+unit+', group '+(stemIndex+1));
     return authoredGroup.map((authoredPrompt,v)=>{
-      const prompt=String(authoredPrompt).trim();
+      const sentence=String(authoredPrompt).trim();
+      const prompt=!sentence.includes('___')&&unit===5
+        ? 'Identify the sentence type: '+sentence.replace(/^Identify the sentence type:\s*/i,'')
+        : sentence;
       if(prompt.includes('@')||prompt.length<35||
         !(prompt.includes('___')||prompt.startsWith('Identify the sentence type:')))
         throw Error('Invalid or incomplete authored Grade 12 question '+unit+'/'+stemIndex+'/'+v);
