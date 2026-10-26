@@ -744,7 +744,7 @@ export default function BrianBoard({currentUser,language='vi'}){
    });
    if(ownerAtStart!==ownerId||lessonAtStart!==docRef.current?.id)return;
    mutate(d=>({...d,pages:[...d.pages,...pages],activePageId:pages[0].id}));
-   setPanel('pptx');setTool('select');setActiveFrameId(null);setCamera({x:0,y:0});setZoom(1);
+   setPanel('pptx');setShowPages(true);setTool('select');setActiveFrameId(null);setCamera({x:0,y:0});setZoom(1);
    setPptxStatus((vi?'Đã nhập ':'Imported ')+pages.length+(vi?' slide, ':' slides, ')+report.objects+
     (vi?' đối tượng. Thành phần chưa hỗ trợ: ':' objects. Unsupported items: ')+report.skipped);
   }catch(e){setPptxStatus(e?.message||'Không thể nhập PowerPoint');}
