@@ -10,7 +10,8 @@ export function pdfAnnotationSummary(page){
  const other=(page?.objects||[]).filter(o=>o?.id!==background?.id);
  return {hasPdf:!!background,paperLocked:background?.locked!==false,
   paperVisible:background?.hidden!==true,annotationCount:other.length,
-  annotationLimit:PDF_ANNOTATION_LIMIT,annotations:other.filter(o=>o.pdfAnnotation===true).length};
+  annotationLimit:PDF_ANNOTATION_LIMIT,annotations:other.filter(o=>o.pdfAnnotation===true).length,
+  visibleAnnotations:other.filter(o=>o.pdfAnnotation===true&&o.hidden!==true).length};
 }
 export function annotateBoardObject(page,object){
  const paper=findPdfBackground(page);
@@ -25,6 +26,11 @@ export function setPdfPaperState(page,attribute,value){
  if(!findPdfBackground(page)||!['locked','hidden'].includes(attribute))return page;
  return {...page,objects:page.objects.map(o=>o.pdfBackground?{...o,[attribute]:value===true}:o)};
 }
+export function togglePdfAnnotations(page,visible){
+ if(!findPdfBackground(page))return page;
+ return {...page,objects:page.objects.map(o=>o.pdfAnnotation===true?
+  {...o,hidden:visible!==true}:o)};
+}
 export function clearPdfAnnotations(page,{includeLegacy=false}={}){
  const paper=findPdfBackground(page);
  if(!paper)return page;
@@ -38,6 +44,8 @@ export function pdfHighlightRegion(page,{x,y,width,height},fill='#fff2a1'){
  const dimensions=[x,y,width,height].map(Number);
  if(!dimensions.every(Number.isFinite)||width<12||height<8)throw Error('Invalid highlight area');
  if(page.objects.length>=3000)throw Error('Page object limit reached');
+ if(page.objects.filter(o=>o.pdfAnnotation===true).length>=PDF_ANNOTATION_LIMIT)
+  throw Error('PDF annotation limit reached');
  const left=Math.max(background.x,Math.min(x,background.x+background.width-12));
  const top=Math.max(background.y,Math.min(y,background.y+background.height-8));
  const w=Math.min(width,background.x+background.width-left),h=Math.min(height,background.y+background.height-top);
