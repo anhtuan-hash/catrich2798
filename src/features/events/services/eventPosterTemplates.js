@@ -61,9 +61,19 @@ export async function createEventPosterFile(event,preferredId='') {
   let selected=choosePosterTemplate(event,templates,preferredId);
   if(!selected)selected=choosePosterTemplate(event,BUILTIN_POSTER_TEMPLATES);
   if(!selected)throw new Error('Không có mẫu poster phù hợp.');
-  const signed=selected.source==='uploaded'?await templateSignedUrl(selected):'';
-  const file=await renderEventPosterFile(event,selected,signed);
-  return {file,template:selected};
+  try {
+    const signed=selected.source==='uploaded'?await templateSignedUrl(selected):'';
+    const file=await renderEventPosterFile(event,selected,signed);
+    return {file,template:selected};
+  } catch (error) {
+    if (preferredId || selected.source!=='uploaded') throw error;
+    // Artwork might have been removed or is corrupt. An automatic workflow
+    // must still produce a legible poster via a deterministic built-in design.
+    const fallback=choosePosterTemplate(event,BUILTIN_POSTER_TEMPLATES);
+    if(!fallback)throw error;
+    const file=await renderEventPosterFile(event,fallback);
+    return {file,template:fallback};
+  }
 }
 /** The only auto-write path: draft-only, skip events with an already saved poster. */
 export async function autoAttachPosterToDraft(event) {
