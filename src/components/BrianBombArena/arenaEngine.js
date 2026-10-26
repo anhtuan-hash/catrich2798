@@ -138,6 +138,44 @@ export function arenaReducer(state,action){
       if(s.questionGate){s.selectedTile=action.index;changed=true;}
       else changed=reveal(s,action.index);
       break;
+    case 'ANSWER_CHOICE':{
+      // Authoritatively grade against the selected MCQ in the saved game state.
+      // A tap is one atomic transaction: grade -> tile reveal -> score -> turn.
+      if(s.phase!=='running'||s.selectedTile===null)break;
+      const question=s.questions?.length?s.questions[s.questionIndex%s.questions.length]:null;
+      const tile=s.tiles[s.selectedTile];
+      if(!question||!Array.isArray(question.options)||question.options.length!==4
+        ||!Number.isInteger(action.choice)||action.choice<0||action.choice>3
+        ||!tile||tile.opened||tile.event==='blocked')break;
+      const correct=action.choice===question.answerIndex;
+      const before=team.score,potBefore=team.bank,amount=20;
+      const chosenTile=s.selectedTile;
+      // Question-gated MCQ rounds intentionally override the hidden tile:
+      // correct answer = +20, incorrect answer = bomb and -20 secured points.
+      // This avoids a right answer triggering a contradictory random bomb.
+      tile.event=correct?'points20':'bomb';
+      tile.opened=true;tile.owner=team.id;team.turns++;s.moves++;
+      if(correct){
+        if(s.mode==='luck')team.bank+=amount;
+        else team.score+=amount;
+      }else{
+        team.bank=0;
+        team.score=Math.max(0,team.score-amount);
+      }
+      s.last={
+        event:tile.event,label:correct?'+20':'-20',tile:tile.label,tileId:chosenTile,
+        team:team.name,points:correct?amount:-amount,grade:correct?'correct':'incorrect',
+        chosen:action.choice,correctAnswer:question.answerIndex,
+        before,after:team.score,potBefore,potAfter:team.bank,bank:team.bank,
+      };
+      s.selectedTile=null;s.questionIndex++;
+      if(s.tiles.every(cell=>cell.opened)){
+        if(s.mode==='luck')s.teams.forEach(t=>{t.score+=t.bank;t.bank=0;});
+        s.phase='finished';
+      }else if(!correct||s.mode!=='luck')next(s);
+      changed=true;
+      break;
+    }
     case 'ANSWER':
       if(s.phase!=='running'||s.selectedTile===null)break;
       if(action.correct===true)changed=reveal(s,s.selectedTile);
