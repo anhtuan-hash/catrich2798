@@ -39,7 +39,7 @@ export default function BoardPdfStudio({lesson,page,vi=true,tool,onTool,onPaperS
       {status.paperLocked?(vi?'Mở khóa nền':'Unlock paper'):(vi?'Khóa nền':'Lock paper')}</button>
     </div>
     <button type="button" className="bbd-v9-pdf-clear" onClick={onClear}
-      disabled={page?.locked||status.annotationCount===0}>
+      disabled={page?.locked||status.annotations===0}>
       <Trash2 size={16}/>{vi?'Xóa nét chú thích (có thể Undo)':'Clear annotations (Undo available)'}</button>
    </>}
   {pdfIndices.length>0&&<div className="bbd-v9-pdf-pagination">
