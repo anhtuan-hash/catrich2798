@@ -209,11 +209,16 @@ export default function BrianBombArena({currentUser,language='vi'}){
       <div className="bba-ranking">{rankTeams(session.teams).map((t,i)=><div key={t.id} className="bba-rank">
         <span>{i+1}</span><strong>{t.name}</strong><b>{t.score}</b><small>{tr('ĐIỂM ĐÃ CHỐT','SECURED SCORE')}</small></div>)}</div>
       <div className="bba-result-actions"><button type="button" onClick={exportResults}><Save size={16}/>{tr('Xuất bảng điểm CSV','Export scores CSV')}</button>
-      <button type="button" onClick={()=>{setSession(null);setScreen('setup')}}><RotateCcw size={16}/>{tr('Tạo ván mới','New game')}</button>
+      <button type="button" onClick={()=>void reset()}><RotateCcw size={16}/>{tr('Tạo ván mới','New game')}</button>
         <button type="button" onClick={()=>setScreen('arena')}><Eye size={16}/>{tr('Xem lại bảng','Review board')}</button>
         <button type="button" onClick={()=>setConfirmReset(true)}><XCircle size={16}/>{tr('Xóa phiên','Delete session')}</button></div>
     </section>;
     return <div className="bba-arena">
+      {session.ruleVersion!==2&&<div className="bba-upgrade-banner" role="status">
+        <span>💣 {tr('Phiên này dùng luật chơi cũ. Hãy tạo ván mới để chơi dạng mở số / bom với POT và hiệu ứng v2.',
+          'This session uses the previous rules. Start a new game for number/bomb tiles, POT and v2 effects.')}</span>
+        <button type="button" onClick={()=>setConfirmReset(true)}>{tr('Tạo ván Bomb Arena v2','Start Bomb Arena v2')}</button>
+      </div>}
       
 {session.mode==='luck'&&<div className="bba-pot-stage" aria-live="polite">
         <div className={'bba-pot-card'+(fx?.type==='points'?' is-increasing':'')+(fx?.type==='bomb'?' is-zeroed':'')}>
