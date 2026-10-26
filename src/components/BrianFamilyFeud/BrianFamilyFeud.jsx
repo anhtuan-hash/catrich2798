@@ -16,6 +16,7 @@ import {
 } from './familyFeudEngine.js';
 import {loadFeud,saveFeud,clearFeud} from './familyFeudStorage.js';
 import './BrianFamilyFeud.css';
+import './FamilyFeudTV.css';
 
 const TEAM_COLORS=['#F39A3D','#59B6F8','#E275C8','#65D4A3','#B89AF9','#F2D067'];
 const UNIT_ICONS=['🏅','🌐','🌿','🏙️','💼','🤖','📰','🐘','🧭','📚'];
@@ -28,6 +29,39 @@ const exportFile=(name,contents)=>{
   link.click();link.remove();window.setTimeout(()=>URL.revokeObjectURL(url),1500);
 };
 const showPoints=(number)=>Number(number||0).toLocaleString('en-US');
+const FONT_STEPS=[.94,1.06,1.18,1.3,1.42];
+function loadClassroomScale(){
+  try{
+    const value=Number(window.localStorage.getItem('bff-classroom-font-scale'));
+    return FONT_STEPS.includes(value)?value:1.18;
+  }catch{return 1.18;}
+}
+// Count up visually without touching the saved score or scoring reducer.
+function LiveTeamScore({value,animate=true}){
+  const [number,setNumber]=useState(value);
+  const previous=useRef(value);
+  useEffect(()=>{
+    const from=previous.current;
+    previous.current=value;
+    if(!animate||from===value||
+      window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches){
+      setNumber(value);return;
+    }
+    const start=performance.now(),duration=640;
+    let raf=0;
+    const tick=now=>{
+      const progress=Math.min(1,(now-start)/duration);
+      const ease=1-Math.pow(1-progress,3);
+      setNumber(Math.round(from+(value-from)*ease));
+      if(progress<1)raf=window.requestAnimationFrame(tick);
+    };
+    raf=window.requestAnimationFrame(tick);
+    return()=>window.cancelAnimationFrame(raf);
+  },[value,animate]);
+  return <strong className="bff-score-number" aria-label={showPoints(value)}>
+    <span key={value} className="bff-score-pop" aria-hidden="true">{showPoints(number)}</span>
+  </strong>;
+}
 
 export default function BrianFamilyFeud({currentUser,language='vi'}){
   const vi=language!=='en',tr=(vn,en)=>vi?vn:en,ownerId=String(currentUser?.id||'');
@@ -44,8 +78,19 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
   const [status,setStatus]=useState(''),[fx,setFx]=useState(null),[fastTime,setFastTime]=useState(45);
   const [fastTeam,setFastTeam]=useState(0);
   const [fullscreenFocus,setFullscreenFocus]=useState(true);
+  const [fontScale,setFontScale]=useState(loadClassroomScale);
+  const fxSequence=useRef(0);
   const motion=readBubbleMotion();
   const motionKind=motion.effect,motionDuration=motion.duration;
+  const motionOn=motionDuration>0;
+  useEffect(()=>{
+    try{window.localStorage.setItem('bff-classroom-font-scale',String(fontScale));}catch{}
+  },[fontScale]);
+  const changeScale=direction=>setFontScale(value=>{
+    const currentIndex=FONT_STEPS.indexOf(value);
+    const index=currentIndex>=0?currentIndex:2;
+    return FONT_STEPS[Math.max(0,Math.min(FONT_STEPS.length-1,index+direction))];
+  });
   const shellRef=useRef(null);
 
   const playSound=type=>{
@@ -57,7 +102,7 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
   };
   const animate=(type,label)=>{
     window.clearTimeout(fxTimer.current);
-    setFx({id:Date.now(),type,label});
+    setFx({id:++fxSequence.current,type,label});
     fxTimer.current=window.setTimeout(()=>setFx(null),type==='strike'?1400:1800);
   };
   const dispatch=action=>setGame(prev=>prev?feudReducer(prev,action):prev);
@@ -304,19 +349,20 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
     <button type="button" className="bff-action bff-start" onClick={start} disabled={!loaded||selection.length<3}>
       <Play size={23}/>{tr('TẠO VÁN FAMILY FEUD','CREATE FAMILY FEUD GAME')}<ArrowRight size={22}/></button>
   </div>;
-  const scorebar=game&&<div className="bff-scorebar">
+  const scorebar=game&&<div className="bff-scorebar" aria-label={tr('Bảng điểm các đội','Team scoreboard')}>
     {game.teams.map((team,index)=><section key={team.id}
       className={'bff-team'+(game.controller===index?' is-controlling':'')+(game.phase==='steal'&&game.stealer===index?' is-stealer':'')}
       style={{'--bff-team-color':TEAM_COLORS[index%TEAM_COLORS.length]}}>
       <button type="button" onClick={()=>dispatch({type:game.phase==='steal'?'SET_STEALER':'SET_CONTROLLER',index})}
         disabled={game.phase!=='ready'&&game.phase!=='steal'||game.phase==='steal'&&index===game.controller}
         aria-label={tr('Chọn đội ','Select team ')+team.name}><span className="bff-team-color"/>{team.name}</button>
-      <strong>{showPoints(team.score)}</strong><small>{team.roundWins} {tr('vòng thắng','wins')}</small>
+      <LiveTeamScore value={team.score} animate={motionOn}/>
+      <small>{team.roundWins} {tr('vòng thắng','wins')}</small>
     </section>)}
   </div>;
-  const playScreen=game&&<div className="bff-game">
+  const playScreen=game&&<div className="bff-game" key={'round-'+game.roundIndex}>
     {scorebar}
-    <div className="bff-round-banner">
+    <div className="bff-round-banner" key={'banner-'+game.roundIndex}>
       {game.edition&&<span className="bff-edition-round">
         {UNIT_ICONS[(game.edition.unit||1)-1]} UNIT {game.edition.unit} · {game.edition.title}
       </span>}
@@ -327,10 +373,11 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
       <span>{tr('POT','POT')}: <b>{showPoints(game.pointsPot)}</b></span>
     </div>
     <div className="bff-play-grid">
-      <section className="bff-board-panel">
+      <section key={game.roundIndex+'-'+(game.phase==='ready'?'ready':'active')}
+        className="bff-board-panel" data-round-scene="enter">
         <div className="bff-board-head">
           <span className="bff-eyebrow">BRIAN FAMILY FEUD</span>
-          <h2>{board?.prompt}</h2>
+          <h2 className="bff-tv-question">{board?.prompt}</h2>
           <small>{board?.category}</small>
         </div>
         <div className="bff-answer-board" aria-label={tr('Bảng sáu đáp án','Six-answer survey-style board')}>
@@ -379,19 +426,28 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
         <div className="bff-actions">
           {game.phase==='ready'&&<button className="bff-action bff-primary" type="button" onClick={()=>{
             dispatch({type:'START_ROUND'});playSound('flip');
+            animate('round',tr('BẮT ĐẦU!','LET’S PLAY!'));
           }}><Play size={21}/>{tr('BẮT ĐẦU VÒNG','START ROUND')}</button>}
           {['playing','steal'].includes(game.phase)&&<>
             <button className="bff-action bff-strike-btn" type="button" onClick={doStrike}>
               <X size={24}/>{game.phase==='steal'?tr('CƯỚP SAI — CHỐT VÒNG','STEAL FAILED — AWARD ROUND'):tr('ĐÁP ÁN SAI +1 X','WRONG ANSWER +1 X')}</button>
             <button className="bff-action bff-subtle" type="button" onClick={()=>{
               dispatch({type:'END_ROUND'});playSound('bank');
+              animate('score',tr('ĐÃ CHỐT ĐIỂM!','POINTS BANKED!'));
             }}>{tr('Chốt điểm và kết thúc vòng','End & award this round')}</button>
           </>}
           {game.phase==='round_done'&&<>
             <p className="bff-round-result"><Trophy size={20}/>{game.last?.team} +{showPoints(game.last?.points)}</p>
             <button className="bff-action bff-subtle" type="button" onClick={()=>dispatch({type:'SHOW_ALL'})}>
               <Eye size={18}/>{tr('Hiện tất cả đáp án','Reveal all answers')}</button>
-            <button className="bff-action bff-primary" type="button" onClick={()=>{dispatch({type:'NEXT_ROUND'});setHostKey(false);}}>
+            <button className="bff-action bff-primary" type="button" onClick={()=>{
+              const isFinal=game.roundIndex+1>=game.roundLimit;
+              dispatch({type:'NEXT_ROUND'});setHostKey(false);
+              playSound(isFinal?'win':'flip');
+              animate(isFinal?'win':'round',isFinal?
+                tr('CHÚC MỪNG ĐỘI CHIẾN THẮNG!','CELEBRATE THE CHAMPIONS!'):
+                tr('VÒNG TIẾP THEO!','NEXT ROUND!'));
+            }}>
               <ArrowRight size={19}/>{game.roundIndex+1<game.roundLimit?tr('VÒNG TIẾP THEO','NEXT ROUND'):tr('XEM KẾT QUẢ','FINAL RESULTS')}</button>
             <button className="bff-action bff-subtle" type="button" onClick={()=>dispatch({type:'FINISH_GAME'})}>
               {tr('Kết thúc trò chơi tại đây','Finish game now')}</button>
@@ -466,11 +522,21 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
     {!open&&createPortal(launch,document.body)}
     {open&&createPortal(<section className="bff-shell" role="dialog" aria-modal="true" aria-label="Brian Family Feud"
        ref={shellRef} data-bubble-phase={exiting?'exit':'enter'} data-motion-kind={motionKind}
-       style={{'--bff-motion-duration':motionDuration+'ms'}}>
+       style={{'--bff-motion-duration':motionDuration+'ms','--bff-type-scale':fontScale}}
+       data-classroom-ui="v2">
       <header className="bff-topbar">
         <div className="bff-brand"><span className="bff-brand-icon">👨‍👩‍👧‍👦</span><div>
           <strong>BRIAN FAMILY FEUD</strong><small>THE CLASSROOM SHOWDOWN</small></div></div>
         <div className="bff-header-actions">
+          <div className="bff-font-controls" role="group" aria-label={tr('Cỡ chữ trình chiếu','Classroom font size')}>
+            <button type="button" onClick={()=>changeScale(-1)}
+              disabled={fontScale===FONT_STEPS[0]}
+              aria-label={tr('Giảm cỡ chữ','Decrease text size')} title={tr('Giảm cỡ chữ','Smaller text')}>A−</button>
+            <span aria-live="polite">{Math.round(fontScale*100)}%</span>
+            <button type="button" onClick={()=>changeScale(1)}
+              disabled={fontScale===FONT_STEPS.at(-1)}
+              aria-label={tr('Tăng cỡ chữ','Increase text size')} title={tr('Tăng cỡ chữ','Larger text')}>A+</button>
+          </div>
           {game&&<button type="button" title="Undo" disabled={!game.history.length} onClick={()=>dispatch({type:'UNDO'})}><Undo2 size={20}/></button>}
           {game&&<button type="button" title="Redo" disabled={!game.future.length} onClick={()=>dispatch({type:'REDO'})}><Redo2 size={20}/></button>}
           <button type="button" title={tr('Bật/tắt âm thanh','Toggle sound')} onClick={()=>setSoundOn(x=>!x)}>
@@ -493,9 +559,9 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
            tr('Đã lưu tiến trình','Session autosaved')}</span>}
       </footer>
       {fx&&<div key={fx.id} className={'bff-fx is-'+fx.type} aria-live="polite" role="status">
-        <div className="bff-fx-icon">{fx.type==='strike'?'❌':fx.type==='win'?'🏆':'✨'}</div>
+        <div className="bff-fx-icon">{fx.type==='strike'?'❌':fx.type==='win'?'🏆':fx.type==='round'?'🎬':'✨'}</div>
         <strong>{fx.label}</strong>
-        {fx.type!=='strike'&&<div className="bff-sparks">{Array.from({length:22},(_,i)=>
+        {fx.type!=='strike'&&fx.type!=='round'&&<div className="bff-sparks">{Array.from({length:22},(_,i)=>
           <i key={i} style={{'--i':i,'--rotation':(i*360/22)+'deg'}}/>)}</div>}
       </div>}
       {confirmReset&&<div className="bff-confirm-mask" role="alertdialog" aria-modal="true"
