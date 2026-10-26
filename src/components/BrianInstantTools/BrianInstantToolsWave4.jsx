@@ -217,7 +217,7 @@ function ReactionTimer({value,onChange,language,sound}){
  return <div className="bit-w4-reaction">
   <div className="bit-w4-react-header"><p>{t.reactionHelp}</p>
     <div className="bit-w4-react-stats"><span>{t.best}: <b>{best??'—'}{best!==null?' ms':''}</b></span><span>{t.recent}: {value.history.slice(0,4).join(', ')||'—'}</span></div></div>
-  <button type="button" className={'bit-w4-reaction-stage is-'+phase} onClick={tap} disabled={phase==='idle'||phase==='early'||phase==='result'} aria-label={phase==='ready'?t.tapNow:phase==='waiting'?t.waiting:t.begin}>
+  <button type="button" className={'bit-w4-reaction-stage is-'+phase} onClick={tap} disabled={phase==='idle'||phase==='early'||phase==='result'} aria-label={phase==='ready'?t.tapNow:phase==='waiting'?t.waiting:t.ready}>
     <Zap size={57}/><strong>{phase==='ready'?t.tapNow:phase==='waiting'?t.waiting:phase==='early'?t.falseStart:phase==='result'?result+' ms':t.ready}</strong>
   </button>
   <div className="bit-w4-react-buttons">
