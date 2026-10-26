@@ -132,7 +132,7 @@ const ClassroomJoin = lazy(() => import('./pages/ClassroomJoin.jsx'));
 const BoardLiveJoin = lazy(() => import('./pages/BoardLiveJoin.jsx'));
 const QuestJoin = lazy(() => import('./features/questatlas/QuestJoin.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'tools', 'homeroom', 'attendance', 'homeroom-portal', 'classroom-join', 'quest-join', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qb-practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
+const ROUTES = ['home', 'apps', 'news', 'tools', 'homeroom', 'attendance', 'homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qb-practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'qb-practice']);
 
 function getInitialRoute() {
@@ -158,6 +158,7 @@ const ROUTE_DESIGN_PROFILES = {
   attendance: { accent: '#155ED6', soft: '#E8F1FF', ink: '#10294E' },
   'homeroom-portal': { accent: '#1F8F70', soft: '#DDF7ED', ink: '#0B382B' },
   'classroom-join': { accent: '#315FC4', soft: '#EAF0FF', ink: '#14213D' },
+  'board-live': { accent: '#23835F', soft: '#E5F4E9', ink: '#1B4932' },
   library: { accent: '#6FBA7B', soft: '#E4F6E6', ink: '#17351D' },
   'resource-library': { accent: '#2878D0', soft: '#E7F2FF', ink: '#0D2947' },
   'knowledge-hub': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
@@ -476,7 +477,7 @@ function App() {
           '--active-app-ink': activeDesignProfile.ink,
         }}
       >
-        {!['homeroom-portal', 'classroom-join'].includes(currentRoute) ? <div className="bes-top-chrome">
+        {!['homeroom-portal', 'classroom-join', 'board-live'].includes(currentRoute) ? <div className="bes-top-chrome">
           {currentRoute !== 'quest-join' && <>
             <Suspense fallback={null}>
               <StatusMenuBar route={currentRoute} {...context} />
@@ -534,7 +535,7 @@ function App() {
             <TransferInboxBanner currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} language={language} />
           </Suspense>
         ) : null}
-        {currentUser && selectedTool?.slug !== 'questatlas' && !['homeroom-portal', 'classroom-join', 'quest-join'].includes(currentRoute) ? (
+        {currentUser && selectedTool?.slug !== 'questatlas' && !['homeroom-portal', 'classroom-join', 'board-live', 'quest-join'].includes(currentRoute) ? (
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="shared-chatbot-drawer" label={language === 'vi' ? 'chatbot dùng chung' : 'shared chatbot'}>
               <SharedChatbotDrawer currentUser={currentUser} language={language} />
@@ -628,7 +629,7 @@ function App() {
             <SyncQueueIndicator currentUser={currentUser} language={language} externalLauncher />
           </Suspense>
         </> : null}
-        {!['homeroom-portal', 'classroom-join', 'quest-join'].includes(currentRoute) ? <Footer language={language} currentUser={currentUser} /> : null}
+        {!['homeroom-portal', 'classroom-join', 'board-live', 'quest-join'].includes(currentRoute) ? <Footer language={language} currentUser={currentUser} /> : null}
       </div>
     </>
   );
