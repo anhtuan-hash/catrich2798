@@ -76,7 +76,7 @@ function Notes({value,onChange,language,pinnedId,onPin}){
     <label htmlFor="bit-w3-note-body">{t.content}</label>
     <textarea id="bit-w3-note-body" rows={12} maxLength={4000} value={active.body} onChange={e=>edit({body:e.target.value.slice(0,4000)})}/>
     <small className="bit-w3-hint">{active.body.length}/4000 · {t.pinHelp}</small>
-   </>:<div className="bit-w3-empty"><StickyNote size={36}/><p>{t.noteEmpty}</p><button className="bit-primary" type="button" onClick={add}><Plus size={17}/>{t.new}</button></div>}
+   </>:<div className="bit-w3-empty"><StickyNote size={36}/><p>{t.noteEmpty}</p></div>}
   </section>
  </div>;
 }
