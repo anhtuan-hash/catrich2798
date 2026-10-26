@@ -35,9 +35,23 @@ export function moveScheduleWeek(anchorDay, weeks = 1) {
   return addUtcDays(scheduleWeekWindow(anchorDay).monday, Number(weeks) * 7);
 }
 
+// A past import stored schedule records with the default item_type='task'.
+// The source and metadata guards MUST both be present to avoid ordinary tasks.
+export const LEGACY_SCHEDULE_SOURCE = 'work-schedule-import-v1168';
+
+export function isLegacyScheduleItem(item) {
+  return item?.item_type === 'task'
+    && item?.source_module === LEGACY_SCHEDULE_SOURCE
+    && item?.metadata?.schedule_event === true;
+}
+
+export function isWeekDeletableScheduleItem(item) {
+  return item?.item_type === 'schedule' || isLegacyScheduleItem(item);
+}
+
 export function isImportedScheduleItem(item) {
   const m = item?.metadata || {};
-  return item?.item_type === 'schedule'
+  return isWeekDeletableScheduleItem(item)
     && m.schedule_manual !== true
     && Boolean(m.schedule_import_id || m.schedule_source_file || m.schedule_imported_at);
 }
@@ -49,7 +63,7 @@ export function eligibleScheduleWeekRows(rows = [], window, includeManual = fals
   if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return [];
   const seen = new Set();
   return rows.filter((item) => {
-    if (!item?.id || item.item_type !== 'schedule' || seen.has(item.id)) return false;
+    if (!item?.id || !isWeekDeletableScheduleItem(item) || seen.has(item.id)) return false;
     const date = Date.parse(item.due_at || '');
     if (!Number.isFinite(date) || date < start || date >= end) return false;
     if (!includeManual && !isImportedScheduleItem(item)) return false;
@@ -64,7 +78,9 @@ export function deletionPreviewIsCurrent(preview = [], checked = []) {
   const map = new Map(preview.map((row) => [row.id, row]));
   return checked.every((item) => {
     const saved = map.get(item.id);
-    return saved && saved.item_type === 'schedule'
+    return saved && isWeekDeletableScheduleItem(saved) && isWeekDeletableScheduleItem(item)
+      && saved.item_type === item.item_type
+      && (saved.source_module || '') === (item.source_module || '')
       && saved.title === item.title
       && saved.due_at === item.due_at
       && isImportedScheduleItem(saved) === isImportedScheduleItem(item)
