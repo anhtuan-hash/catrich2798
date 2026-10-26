@@ -1,0 +1,71 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {
+ initialState,sanitizeState,normalizeRevealItems,spotlightStyle,soundFXVolume,
+ storageKey
+} from '../src/components/BrianInstantTools/instantToolsCore.mjs';
+const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+const base=initialState();
+assert.equal(base.spotlight.radius,155);
+assert.equal(base.spotlight.dim,82);
+assert.equal(base.bigText.text,'Ready to learn?');
+assert.equal(base.bigText.fontSize,110);
+assert.equal(base.teleprompter.fontSize,38);
+assert.equal(base.teleprompter.speed,45);
+assert.equal(base.reveal.items.length,6);
+assert.equal(base.soundFX.volume,70);
+// Loading a real Wave 1 saved envelope must never erase Wave 1 fields
+// or initialise Wave 2 with minimum slider values.
+const old={version:1,state:{sound:false,dice:{count:4,values:[4,3,2,1],history:[]},wheel:{names:['A','B','C'],rotation:50,winner:'C'},scoreboard:{teams:[{name:'A',score:4},{name:'B',score:0}]},timers:{items:base.timers.items},qr:{input:'https://example.com'}}};
+const upgraded=sanitizeState(old);
+assert.equal(upgraded.dice.count,4);
+assert.equal(upgraded.sound,false);
+assert.equal(upgraded.wheel.names.length,3);
+assert.equal(upgraded.scoreboard.teams[0].score,4);
+assert.equal(upgraded.spotlight.radius,155);
+assert.equal(upgraded.bigText.fontSize,110);
+assert.equal(upgraded.teleprompter.speed,45);
+assert.equal(upgraded.soundFX.volume,70);
+assert.deepEqual(normalizeRevealItems('One\n\nTwo\nThree'),['One','Two','Three']);
+assert.equal(normalizeRevealItems(''),null); // replace below if null
+assert.equal(normalizeRevealItems(Array.from({length:40},(_,i)=>'Q'+i)).length,24);
+const corrupted=sanitizeState({version:1,state:{spotlight:{radius:10000,dim:-1},bigText:{text:'x'.repeat(1000),fontSize:1000,theme:'invalid'},teleprompter:{script:'a'.repeat(13000),speed:900,mirror:'yes',fontSize:0},reveal:{items:['One','Two'],revealed:[-1,1,1,9,'2']},soundFX:{volume:-100}}});
+assert.equal(corrupted.spotlight.radius,260);
+assert.equal(corrupted.spotlight.dim,45);
+assert.equal(corrupted.bigText.text.length,400);
+assert.equal(corrupted.bigText.fontSize,220);
+assert.equal(corrupted.bigText.theme,'midnight');
+assert.equal(corrupted.teleprompter.script.length,12000);
+assert.equal(corrupted.teleprompter.speed,160);
+assert.equal(corrupted.teleprompter.fontSize,12);
+assert.equal(corrupted.teleprompter.mirror,false);
+assert.deepEqual(corrupted.reveal.revealed,[1]);
+assert.equal(corrupted.soundFX.volume,0);
+assert.equal(soundFXVolume(70),.7);
+assert.equal(soundFXVolume(1000),1);
+assert.match(spotlightStyle(440,260,155,82),/radial-gradient\(circle 155px at 440px 260px/);
+assert.notEqual(storageKey('teacher-a'),storageKey('teacher-b'));
+const ui=read('src/components/BrianInstantTools/BrianInstantTools.jsx');
+const wave=read('src/components/BrianInstantTools/BrianInstantToolsWave2.jsx');
+const css=read('src/components/BrianInstantTools/BrianInstantToolsWave2.css');
+const main=read('src/main.jsx');
+assert.ok(ui.includes('...WAVE2_LIBRARY'));
+assert.match(ui,/subtitle:'10 công cụ/);
+assert.match(ui,/SpotlightOverlay/);
+assert.match(ui,/Wave2Tool key=/);
+assert.match(ui,/bit-w2-stage-overlay/);
+assert.match(wave,/function SpotlightTool/);
+assert.match(wave,/function BigTextTool/);
+assert.match(wave,/function TeleprompterTool/);
+assert.match(wave,/function RevealTool/);
+assert.match(wave,/function SoundFXTool/);
+assert.equal((wave.match(/\{id:'(?:bell|applause|drum|correct|wrong|whistle|pop|countdown|victory|attention|magic|halloween)'/g)||[]).length,12);
+assert.match(wave,/requestAnimationFrame/);
+assert.match(wave,/cancelAnimationFrame/);
+assert.match(wave,/createPortal/);
+assert.match(wave,/AudioContext/);
+assert.doesNotMatch(wave,/fetch\(|supabase|dangerouslySetInnerHTML|innerHTML|iframe|import\(.*audio/);
+assert.match(css,/@media\(max-width:650px\)/);
+assert.match(css,/prefers-reduced-motion:reduce/);
+for(const phrase of ['global-brian-focus','global-brian-teaching-board','shared-chatbot-drawer','ttcm-approval-inbox'])assert.match(main,new RegExp(phrase));
+console.log('PASS Brian Instant Tools Wave 2: 10 cards, five utilities, 12 sound cues, safe persisted migration, role-dock non-interference.');
