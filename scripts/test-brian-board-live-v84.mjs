@@ -6,7 +6,7 @@ import {createLiveSession,advanceLiveSession,editLiveQuestion,recordTeacherVote,
  queueTeacherContribution,moderateContribution,clearLiveEntries,aggregateCloud,
  publicLiveSnapshot,LIVE_LIMITS,isLiveActive} from '../src/components/BrianBoard/boardClassroomLive.js';
 import {boardRemoteTopic,validateRemoteEnvelope,REMOTE_MAX_BYTES,
- REMOTE_MAX_MESSAGES,REMOTE_DURATION_MS} from '../src/components/BrianBoard/boardRemoteTV.js';
+ REMOTE_MAX_MESSAGES,REMOTE_DURATION_MS} from '../src/components/BrianBoard/boardRemoteTVCore.js';
 const source=path=>readFileSync(new URL(path,import.meta.url),'utf8');
 const NOW=Date.now();
 const draft=createLiveSession('poll',NOW);
