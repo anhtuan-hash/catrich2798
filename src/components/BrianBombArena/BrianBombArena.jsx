@@ -30,6 +30,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
   const [volume,setVolume]=useState(true),[presenter,setPresenter]=useState(false);
   // Optimised for large-screen teaching; may be enlarged further during a class.
   const [questionSize,setQuestionSize]=useState(1);
+  const [shellMounted,setShellMounted]=useState(false);
   const [bombSoundStyle,setBombSoundStyle]=useState('recorded'),[soundVolume,setSoundVolume]=useState(75);
   const [samplePackId,setSamplePackId]=useState(SAMPLE_PACKS[0].id);
   const [confirmReset,setConfirmReset]=useState(false),[saveError,setSaveError]=useState(false);
@@ -73,6 +74,8 @@ export default function BrianBombArena({currentUser,language='vi'}){
     hoverAnimations.current.clear();
   };
   const update=action=>setSession(s=>s?arenaReducer(s,action):s);
+  // Also restores a pending question after reopening an autosaved game.
+  useEffect(()=>{setShellMounted(open);},[open]);
   useEffect(()=>{
     if(session?.selectedTile===null||session?.selectedTile===undefined||screen!=='arena'||!open)return;
     questionDialogRef.current?.focus({preventScroll:true});
@@ -426,7 +429,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
           </div>}
         </aside>
       </div>
-      {session.selectedTile!==null&&session.phase==='running'&&!presenter&&shellRef.current&&createPortal(
+      {session.selectedTile!==null&&session.phase==='running'&&!presenter&&shellMounted&&shellRef.current&&createPortal(
         <div className="bba-question-mask bba-classroom-question-mask" role="dialog" aria-modal="true"
              aria-label={tr('Câu hỏi trắc nghiệm trên màn hình lớp học','Classroom quiz question')}
              ref={questionDialogRef} tabIndex={-1}>
