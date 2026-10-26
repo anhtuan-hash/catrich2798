@@ -93,6 +93,33 @@ async function loadScheduleWeekFromServer(client, window) {
   }
   return eligibleScheduleWeekRows(list, window, true);
 }
+// An import that completed its SQL insert but stalled on posters may have
+// committed the whole file already. Check current Supabase rows, not merely
+// the 15-minute in-memory calendar cache, before offering to reimport.
+async function fetchServerScheduleFingerprints(client, parsedRows) {
+  if (!client) throw new Error('Cần kết nối Supabase trước khi nhập lịch.');
+  const dates = parsedRows.map((row) => new Date(row.startAt).getTime()).filter(Number.isFinite);
+  if (!dates.length) return new Set();
+  const start = new Date(Math.min(...dates) - 86400000).toISOString();
+  const end = new Date(Math.max(...dates) + 86400000).toISOString();
+  const fingerprints = new Set();
+  for (let index = 0; index < 5000; index += 500) {
+    const { data, error } = await client.from('work_hub_items')
+      .select('metadata')
+      .eq('item_type', WORK_SCHEDULE_ITEM_TYPE)
+      .gte('due_at', start).lte('due_at', end)
+      .order('due_at', { ascending: true })
+      .range(index, index + 499);
+    if (error) throw new Error('Không xác minh được hoạt động đã lưu: ' + error.message);
+    for (const item of data || []) {
+      if (item?.metadata?.schedule_fingerprint)
+        fingerprints.add(item.metadata.schedule_fingerprint);
+    }
+    if ((data || []).length < 500) return fingerprints;
+  }
+  throw new Error('Quá nhiều hoạt động trong khoảng thời gian đã chọn; không thể xác minh trùng an toàn.');
+}
+
 const SCHEDULE_CACHE_KEY = 'bes-system-work-schedule-cache-v1';
 const SCHEDULE_SYNC_KEY = 'bes-system-work-schedule-sync-v1';
 const SCHEDULE_CACHE_MAX_AGE = 15 * 60 * 1000;
@@ -823,9 +850,12 @@ export default function GlobalWorkScheduleCenter({
         : await readXlsxFile(file);
       const parsed = scheduleRowsFromGrid(grid, { fileName: file.name });
       if (!parsed.ok) throw new Error(parsed.message);
+      if (!client || !runtime.ready || !runtime.session)
+        throw new Error('Cần kết nối Supabase để kiểm tra trùng trước khi nhập lịch.');
+      const serverFingerprints = await fetchServerScheduleFingerprints(client, parsed.validRows);
       const rows = parsed.validRows.map((row) => ({
         ...row,
-        duplicate: existingFingerprints.has(row.fingerprint),
+        duplicate: serverFingerprints.has(row.fingerprint),
       }));
       setCandidateSelection(new Set(rows.filter((row) => !row.duplicate && detectScheduleEvent(row)).map((row) => row.fingerprint)));
       setAutoDetectEvents(true);
