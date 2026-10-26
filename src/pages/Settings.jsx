@@ -3,13 +3,14 @@ import { createPortal } from 'react-dom';
 import { changeCurrentPassword } from '../utils/auth.js';
 import GlobalMotionAdminPanel from '../components/admin/GlobalMotionAdminPanel.jsx';
 import GlobalChromeSettingsPanel from '../components/admin/GlobalChromeSettingsPanel.jsx';
-import { isDepartmentLeaderRole } from '../utils/roles.js';
+import { isAdminRole, isDepartmentLeaderRole } from '../utils/roles.js';
 import '../styles/SettingsGoogleM3.css';
 import '../styles/SettingsLauncher2.css';
 import '../styles/SettingsLauncherDrawerRedesign.css';
 import '../styles/SettingsLauncherPortalCompat.css';
 import SettingsLauncherHome, { SETTINGS_LAUNCHER_TILES } from '../components/settings/SettingsLauncherHome.jsx';
 const SettingsTeacherManagement = lazy(() => import('../components/settings/SettingsTeacherManagement.jsx'));
+const EventManagerPage = lazy(() => import('../features/events/admin/EventManagerPage.jsx'));
 const GlobalFontAdminPanel = lazy(() => import('../components/admin/GlobalFontAdminPanel.jsx'));
 const RegionalFontAdminPanel = lazy(() => import('../components/admin/RegionalFontAdminPanel.jsx'));
 
@@ -135,9 +136,9 @@ export default function Settings({
   const moduleTitle = SETTINGS_LAUNCHER_TILES.find(item => item.id === activeModule);
   const openModule = (id) => {
     if (!SETTINGS_LAUNCHER_TILES.some(item => item.id === id)) return;
-    if (['permissions','teacher-create'].includes(id) && !['admin','administrator'].includes(String(currentUser?.role || '').toLowerCase())) return;
+    if (['permissions','teacher-create','events'].includes(id) && !isAdminRole(currentUser?.role)) return;
     previousTriggerRef.current = document.activeElement;
-    setDetailFullscreen(['appearance','permissions','teacher-create'].includes(id));
+    setDetailFullscreen(['appearance','permissions','teacher-create','events'].includes(id));
     setAppearanceTab(['admin','administrator'].includes(String(currentUser?.role||'').toLowerCase()) ? 'global-font' : 'language');
     setActiveModule(id);
   };
@@ -403,6 +404,22 @@ export default function Settings({
                   <div className="settings-launcher-links">
                     <p>{vi ? 'Quản lý và mở ứng dụng tại kho ứng dụng hiện có.' : 'Open your existing application directory.'}</p>
                     <a href="#/apps">{vi ? 'Đi tới Kho ứng dụng' : 'Open App directory'} <b>↗</b></a>
+                  </div>
+                ) : null}
+                {activeModule === 'events' && isAdminRole(currentUser?.role) ? (
+                  <div className="settings-event-workspace">
+                    <div className="settings-event-shortcut">
+                      <div>
+                        <strong>{vi ? 'Trung tâm sự kiện' : 'Event center'}</strong>
+                        <p>{vi ? 'Tạo, chỉnh sửa, xuất bản và theo dõi thông báo sự kiện. Hiệu ứng popup được cấu hình trong Giao diện.' : 'Create, publish and monitor event announcements. Popup effects are configured in Appearance.'}</p>
+                      </div>
+                      <button type="button" onClick={() => { setActiveModule('appearance'); setAppearanceTab('motion'); setDetailFullscreen(true); }}>
+                        {vi ? 'Cài đặt hiệu ứng popup' : 'Configure popup effects'} <span aria-hidden="true">↗</span>
+                      </button>
+                    </div>
+                    <Suspense fallback={<p className="settings-launcher-loading">{vi ? 'Đang tải trung tâm sự kiện…' : 'Loading event center…'}</p>}>
+                      <EventManagerPage currentUser={currentUser} />
+                    </Suspense>
                   </div>
                 ) : null}
                 {(['permissions','teacher-create'].includes(activeModule)) && ['admin','administrator'].includes(String(currentUser?.role || '').toLowerCase()) ? (
