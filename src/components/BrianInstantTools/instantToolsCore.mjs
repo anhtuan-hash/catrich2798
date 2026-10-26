@@ -1,3 +1,4 @@
+import {sanitizeWave3} from './instantToolsWave3Core.mjs';
 // Pure, network-free helpers for Brian Instant Tools.
 export const STORE_VERSION=1;
 export const DEFAULT_NAMES=['Team 1','Team 2','Team 3','Team 4'];
@@ -17,6 +18,7 @@ export const initialState=()=>({
   teleprompter:{script:'Good afternoon, everyone! Welcome to our English lesson.\nToday we will learn, explore, and create together.',fontSize:38,speed:45,mirror:false,theme:'dark'},
   reveal:{items:['Warm-up','Vocabulary','Grammar','Reading','Speaking','Wrap-up'],revealed:[]},
   soundFX:{volume:70},
+  ...sanitizeWave3(null),
 });
 const safeName=(value,fallback,max=32)=>String(value??'').trim().slice(0,max)||fallback;
 const list=(v)=>Array.isArray(v)?v:[];
@@ -132,6 +134,7 @@ export function sanitizeState(raw){
   if(cards)base.reveal.items=cards;
   base.reveal.revealed=Array.isArray(s.reveal?.revealed)?[...new Set(s.reveal.revealed.filter(n=>Number.isInteger(n)&&n>=0&&n<base.reveal.items.length))]:[];
   base.soundFX.volume=Math.round(clamp(s.soundFX?.volume??base.soundFX.volume,0,100));
+  Object.assign(base,sanitizeWave3(s));
   return base;
 }
 
