@@ -32,7 +32,7 @@ function renderBoardObjectRaw(object,onErase,studentView=false,onInteract,onSele
  }
  if(o.kind==='shape'){
   const common={key:o.id,'data-board-object':o.id,fill:o.fill||'none',stroke:o.color||'#315966',
-    strokeWidth:o.width||4,onPointerDown:press,style:{pointerEvents:onErase||onSelect?'all':'none'}};
+    strokeWidth:o.width||4,opacity:o.opacity??1,onPointerDown:press,style:{pointerEvents:onErase||onSelect?'all':'none'}};
   const geometry=boardShapeGeometry(o.shape,o.x,o.y,o.x2,o.y2);
   if(geometry)return geometry.type==='polygon'?
    <polygon {...common} points={geometry.points.map(p=>p.join(',')).join(' ')}/>:
