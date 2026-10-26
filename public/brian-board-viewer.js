@@ -57,7 +57,7 @@ function drawing(o){
    'stroke-linecap':'round','stroke-linejoin':'round',fill:'none',opacity:o.opacity??1});
  }
  if(o.kind==='shape'){
-  const base={fill:/^#[0-9a-fA-F]{6}$/.test(o.fill||'')?o.fill:'none',stroke:o.color||'#355c63','stroke-width':o.width||4};
+  const base={fill:/^#[0-9a-fA-F]{6}$/.test(o.fill||'')?o.fill:'none',stroke:o.color||'#355c63','stroke-width':o.width||4,opacity:Math.max(0,Math.min(1,Number(o.opacity??1)))};
   const geometry=viewerShapeGeometry(o);
   if(geometry)return make(geometry.type==='polygon'?'polygon':'polyline',{...base,
    fill:geometry.type==='polyline'?'none':base.fill,
