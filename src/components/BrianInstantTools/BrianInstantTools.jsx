@@ -85,7 +85,14 @@ function DiceTool({value,onChange,t,sound}){
       <div className="bit-roll-history">{value.history.map((a,i)=><span key={i}>{a.reduce((x,y)=>x+y,0)}</span>)}</div>
     </div>
     <div className="bit-preview bit-dice-zone">
-      <div className="bit-dice-grid">{value.values.slice(0,value.count).map((n,i)=><span className={'bit-die'+(rolling?' is-rolling':'')} key={i} style={{'--die-index':i}} aria-label={String(n)}>{DICE_FACES[n-1]}</span>)}</div>
+      <div className="bit-dice-grid">{value.values.slice(0,value.count).map((n,i)=>{
+        const orientations=['rotateX(0deg) rotateY(0deg)','rotateY(-90deg)','rotateY(180deg)','rotateY(90deg)','rotateX(-90deg)','rotateX(90deg)'];
+        return <span className={'bit-die'+(rolling?' is-rolling':'')} key={i} style={{'--die-index':i}} role="img" aria-label={String(n)}>
+          <span className="bit-cube" style={{transform:orientations[n-1]}}>
+            {DICE_FACES.map((face,side)=><span className={'bit-cube-face bit-cube-face-'+(side+1)} key={side} aria-hidden="true">{face}</span>)}
+          </span>
+        </span>;
+      })}</div>
     </div>
   </div>;
 }
