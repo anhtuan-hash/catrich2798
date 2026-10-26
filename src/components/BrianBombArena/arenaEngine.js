@@ -1,3 +1,4 @@
+import {buildChaosKit,isChaosKit,beginChaosQuestion,pauseChaosTimer,resumeChaosTimer,resolveChaosAnswer} from './arenaChaosEngine.js';
 // Brian Bomb Arena v2: the visible tile is ALWAYS a number or a bomb on new boards.
 // The engine is pure so all score/POT actions are atomic, undoable and testable.
 export const ARENA_MODES = Object.freeze(['classic','chaos','luck','challenge']);
@@ -8,7 +9,7 @@ export const POINT_VALUES = Object.freeze([10,20,30,50,100]);
 const SCORES = Object.freeze(['points10','points20','points30','points50','points100']);
 export const TILE_ICONS = Object.freeze({
   points10:'10',points20:'20',points30:'30',points50:'50',points100:'100',
-  points150:'150',points200:'200',bomb:'💣',blocked:'◆',
+  points40:'40',points60:'60',points150:'150',points200:'200',bomb:'💣',blocked:'◆',
   minus:'⚡',double:'✨',shield:'🛡️',steal:'🔄',swap:'🔀',empty:'☁️',
 });
 export const pointsForEvent = event => /^points\d+$/.test(String(event||''))
@@ -53,7 +54,7 @@ export function createArena(config={},rng=rngDefault){
   }));
   const teams=Array.from({length:teamCount},(_,index)=>({
     id:'team-'+(index+1),name:String(config.teamNames?.[index]||'Team '+(index+1)).slice(0,32),
-    score:0,bank:0,shields:0,turns:0,
+    score:0,bank:0,shields:0,combo:0,turns:0,
   }));
   return {
     schema:1,ruleVersion:4,id:makeId(),ownerId:String(config.ownerId||''),mode,size,
@@ -67,6 +68,8 @@ export function createArena(config={},rng=rngDefault){
         unit:Number(q.unit)||null,grade:Number(q.grade)||11,
       }:{}),
     })).filter(q=>q.prompt):[],
+    chaosKit:mode==='chaos'&&Array.isArray(config.chaosFeatures)&&config.chaosFeatures.length
+      ?buildChaosKit(config.chaosFeatures,config.difficulty):null,
     tiles,teams,turn:0,questionIndex:0,selectedTile:null,phase:'ready',
     last:null,moves:0,theme:config.theme||'mint',updatedAt:Date.now(),history:[],future:[],
   };
@@ -121,8 +124,10 @@ export function arenaReducer(state,action){
   if(!team)return state;
   let changed=false;
   switch(action.type){
-    case 'START':if(['ready','paused'].includes(s.phase)){s.phase='running';changed=true;}break;
-    case 'PAUSE':if(s.phase==='running'){s.phase='paused';changed=true;}break;
+    case 'START':if(['ready','paused'].includes(s.phase)){
+      s.phase='running';resumeChaosTimer(s,action.now);changed=true;
+    }break;
+    case 'PAUSE':if(s.phase==='running'){pauseChaosTimer(s,action.now);s.phase='paused';changed=true;}break;
     case 'FINISH':
       if(['running','paused'].includes(s.phase)){
         if(s.mode==='luck')s.teams.forEach(t=>{t.score+=t.bank;t.bank=0;});
@@ -135,10 +140,14 @@ export function arenaReducer(state,action){
     case 'SELECT':
       if(s.phase!=='running'||s.selectedTile!==null||!Number.isInteger(action.index)
         ||!s.tiles[action.index]||s.tiles[action.index].opened)break;
-      if(s.questionGate){s.selectedTile=action.index;changed=true;}
+      if(s.questionGate){s.selectedTile=action.index;beginChaosQuestion(s,action.now);changed=true;}
       else changed=reveal(s,action.index);
       break;
+    case 'TIMEOUT':
+      if(isChaosKit(s))changed=resolveChaosAnswer(s,action);
+      break;
     case 'ANSWER_CHOICE':{
+      if(isChaosKit(s)){changed=resolveChaosAnswer(s,action);break;}
       // Authoritatively grade against the selected MCQ in the saved game state.
       // A tap is one atomic transaction: grade -> tile reveal -> score -> turn.
       if(s.phase!=='running'||s.selectedTile===null)break;
@@ -177,6 +186,7 @@ export function arenaReducer(state,action){
       break;
     }
     case 'ANSWER':
+      if(isChaosKit(s))break; // Chaos requires auto-graded A-D, no manual bypass.
       if(s.phase!=='running'||s.selectedTile===null)break;
       if(action.correct===true)changed=reveal(s,s.selectedTile);
       else{
