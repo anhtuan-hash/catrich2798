@@ -114,6 +114,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  const [remoteSent,setRemoteSent]=useState(0);
  const [pdfBusy,setPdfBusy]=useState(false),[pdfStatus,setPdfStatus]=useState('');
  const [pptxBusy,setPptxBusy]=useState(false),[pptxStatus,setPptxStatus]=useState('');
+ const pptxPickerRef=useRef(null);
  const [activityType,setActivityType]=useState('matching'),[activityTitle,setActivityTitle]=useState(''),
   [activityPrompt,setActivityPrompt]=useState(''),[activityRaw,setActivityRaw]=useState(''),
   [activityError,setActivityError]=useState(''),[activeActivityId,setActiveActivityId]=useState(null),[editingActivityId,setEditingActivityId]=useState(null);
@@ -1069,6 +1070,12 @@ export default function BrianBoard({currentUser,language='vi'}){
      <button onClick={undo} disabled={!history.current.length} title="Undo"><Undo2 size={17}/></button>
      <button onClick={redo} disabled={!future.current.length} title="Redo"><Redo2 size={17}/></button>
      <button onClick={()=>void persist(docRef.current)} title={vi?'Lưu ngay':'Save now'}><Save size={17}/><span>{vi?'Lưu':'Save'}</span></button>
+     <button type="button" disabled={pptxBusy} title={vi?'Tải PowerPoint vào Board':'Import PowerPoint into Board'}
+      aria-label={vi?'Tải tệp PowerPoint':'Upload PowerPoint'} onClick={()=>pptxPickerRef.current?.click()}>
+      <Presentation size={17}/><span>PPTX</span></button>
+     <input ref={pptxPickerRef} type="file" hidden tabIndex={-1}
+      accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+      onChange={e=>{void addPptxSlides(e.target.files?.[0]);e.target.value='';}}/>
      <button onClick={toggleCleanMode} className={cleanMode?'is-active':''}
       title={cleanMode?(vi?'Hiện lại bảng công cụ':'Restore editing panels'):(vi?'Chế độ trình bày gọn':'Distraction-free presentation')}
       aria-pressed={cleanMode} aria-label={cleanMode?(vi?'Thoát chế độ gọn':'Exit clean mode'):(vi?'Bật chế độ gọn':'Enter clean mode')}>
