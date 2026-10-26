@@ -9,7 +9,7 @@ const csvCell=x=>{
  const safe=/^[=+@\-\t\r]/.test(s)?'\''+s:s;
  return '"'+safe.replaceAll('"','""')+'"';
 };
-export default function BoardLiveGuestControl({session,onProjection,vi=true}){
+export default function BoardLiveGuestControl({session,onProjection,onReset,vi=true}){
  const [room,setRoom]=useState(null),[qr,setQr]=useState(''),[busy,setBusy]=useState(false);
  const [error,setError]=useState(''),[message,setMessage]=useState('');
  const roomId=room?.id;
@@ -113,6 +113,9 @@ export default function BoardLiveGuestControl({session,onProjection,vi=true}){
       {room.showResults?(vi?'Ẩn kết quả':'Hide results'):(vi?'Hiện kết quả':'Show results')}</button>
      <button onClick={()=>void refresh()} disabled={busy}><RefreshCw size={15}/>{vi?'Cập nhật':'Refresh'}</button>
      <button onClick={download}><Download size={15}/>{vi?'Xuất CSV':'Export CSV'}</button>
+     {room.status==='closed'&&<button type="button" onClick={()=>{
+      setRoom(null);setQr('');setMessage('');setError('');onReset?.();
+     }}><QrCode size={15}/>{vi?'Hoạt động mới':'New activity'}</button>}
      <button onClick={()=>{
       if(window.confirm(vi?'Kết thúc phiên và ngừng nhận phản hồi mới?':'Close session and block new responses?'))
        void control('close');
