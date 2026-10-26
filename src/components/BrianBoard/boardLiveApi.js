@@ -18,6 +18,16 @@ export async function createGuestRoom(session){
  return rpc('bbd_live_create',{p_mode:session.mode,p_question:String(session.question||'').slice(0,220),
   p_options:session.mode==='poll'?session.options.slice(0,6):[]});
 }
+export async function restoreGuestRoom(){
+ ensure();
+ const user=await supabase.auth.getUser();
+ if(user.error||!user.data?.user)return null;
+ const {data,error}=await supabase.from('bbd_live_rooms').select('id')
+  .eq('owner_id',user.data.user.id).in('status',['live','paused'])
+  .gt('expires_at',new Date().toISOString()).order('created_at',{ascending:false}).limit(1);
+ if(error)throw Error(error.message||'Cannot restore previous class');
+ return data?.length?teacherRoomState(data[0].id):null;
+}
 export const joinGuestRoom=code=>rpc('bbd_live_join',{p_code:safeCode(code)});
 export const getGuestRoom=(code,token)=>rpc('bbd_live_guest_state',{
  p_code:safeCode(code),p_token:String(token||'')});
