@@ -567,3 +567,19 @@ body .bba-bubble:focus-visible{outline:3px solid #ffa6ac;outline-offset:4px;}
     animation:bba-arena-shake .45s ease-in-out!important;
   }
 }
+
+/* English 11 Global Success: 100 MCQ preset */
+.bba-question-unit{font-size:12px;font-weight:850;letter-spacing:.1em;color:var(--bba-accent)}
+.bba-mcq-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}
+.bba-mcq-option{display:flex;align-items:center;text-align:left;gap:12px;min-height:64px;padding:12px;
+  border:1px solid var(--bba-border);border-radius:13px;background:var(--bba-card);color:var(--bba-text);
+  font-weight:650;font-size:14px;line-height:1.4}
+.bba-mcq-option>b{display:grid;place-items:center;flex:none;width:34px;height:34px;border-radius:10px;
+  background:var(--bba-panel);border:1px solid var(--bba-border);color:var(--bba-accent)}
+.bba-mcq-option.is-selected{outline:2px solid var(--bba-accent);background:var(--bba-panel)}
+.bba-mcq-option.is-correct{border:2px solid #159c79;background:rgba(49,195,124,.16)}
+.bba-mcq-explanation{display:block;font-size:12px;line-height:1.5;margin-top:8px;color:var(--bba-muted)}
+@media(max-width:640px){.bba-mcq-options{grid-template-columns:1fr;gap:7px}
+ .bba-mcq-option{min-height:52px;padding:9px;font-size:13px}
+ .bba-mcq-option>b{width:30px;height:30px}
+}

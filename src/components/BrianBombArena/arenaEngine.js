@@ -60,6 +60,12 @@ export function createArena(config={},rng=rngDefault){
     questionGate:mode==='challenge'||Boolean(config.questionGate),
     questions:Array.isArray(config.questions)?config.questions.slice(0,300).map(q=>({
       prompt:String(q.prompt||'').slice(0,600),answer:String(q.answer||'').slice(0,300),
+      ...(Array.isArray(q.options)&&q.options.length===4?{
+        options:q.options.map(value=>String(value).slice(0,200)),
+        answerIndex:Number(q.answerIndex),
+        explanation:String(q.explanation||'').slice(0,400),
+        unit:Number(q.unit)||null,
+      }:{}),
     })).filter(q=>q.prompt):[],
     tiles,teams,turn:0,questionIndex:0,selectedTile:null,phase:'ready',
     last:null,moves:0,theme:config.theme||'mint',updatedAt:Date.now(),history:[],future:[],
