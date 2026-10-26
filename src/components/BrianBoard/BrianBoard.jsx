@@ -117,6 +117,15 @@ export default function BrianBoard({currentUser,language='vi'}){
  const [panel,setPanel]=useState('pages'),[library,setLibrary]=useState([]),[libraryError,setLibraryError]=useState(''),[cloudLibrary,setCloudLibrary]=useState([]),[cloudStatus,setCloudStatus]=useState('');
  const [libraryQuery,setLibraryQuery]=useState(''),[backupStatus,setBackupStatus]=useState('');
  useEffect(()=>{setRandomNames('');setRandomChoice('');setRandomUsed([]);setEditingActivityId(null);setClassroomSession(null);},[ownerId,lesson?.id]);
+ useEffect(()=>{
+  if(!classroomSession||!['live','paused'].includes(classroomSession.status))return;
+  const id=setInterval(()=>{
+   if(Date.now()>=classroomSession.expiresAt)
+    setClassroomSession(current=>current?.id===classroomSession.id&&current.status!=='closed'?
+     {...current,status:'closed',version:current.version+1}:current);
+  },5000);
+  return()=>clearInterval(id);
+ },[classroomSession?.id,classroomSession?.status,classroomSession?.expiresAt]);
  const refreshLibrary=async()=>{
   try{setLibrary(await listBoardLessons(ownerId));setLibraryError('');}
   catch(e){setLibraryError(e.message||'Cannot load library');}
@@ -283,8 +292,10 @@ export default function BrianBoard({currentUser,language='vi'}){
    });
    remoteChannelRef.current=channel;
    remoteTimerRef.current=setInterval(()=>{
-    if(Date.now()>=remoteExpiryRef.current||remoteSentRef.current>=REMOTE_MAX_MESSAGES)
-     stopRemoteTV();
+    if(Date.now()>=remoteExpiryRef.current||remoteSentRef.current>=REMOTE_MAX_MESSAGES){
+     stopRemoteTV();return;
+    }
+    if(Date.now()-remoteLastRef.current>=16000)sendRemoteTV();
    },2000);
   }catch(e){setRemoteStatus('error');setRemoteError(e.message||'Unable to start remote TV');}
  };
