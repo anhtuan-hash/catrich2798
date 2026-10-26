@@ -3,15 +3,12 @@
 export const ARENA_MODES = Object.freeze(['classic','chaos','luck','challenge']);
 export const ARENA_SIZES = Object.freeze([4,5,6]);
 export const POINT_VALUES = Object.freeze([10,20,30,50,100]);
-const COUNTS = Object.freeze({
-  // For a 5×5 board. Other board sizes use largest-remainder proportional scaling.
-  classic:{points10:7,points20:6,points30:5,points50:4,points100:1,bomb:2},
-  chaos:{points10:5,points20:5,points30:4,points50:4,points100:1,bomb:6},
-  luck:{points10:7,points20:6,points30:4,points50:3,points100:1,bomb:4},
-});
+// Every playable board has equal bombs and scoring tiles. In odd 5x5,
+// C3 is a visibly locked FREE tile so the remaining 24 cells split 12/12.
+const SCORES = Object.freeze(['points10','points20','points30','points50','points100']);
 export const TILE_ICONS = Object.freeze({
   points10:'10',points20:'20',points30:'30',points50:'50',points100:'100',
-  points150:'150',points200:'200',bomb:'💣',
+  points150:'150',points200:'200',bomb:'💣',blocked:'◆',
   minus:'⚡',double:'✨',shield:'🛡️',steal:'🔄',swap:'🔀',empty:'☁️',
 });
 export const pointsForEvent = event => /^points\d+$/.test(String(event||''))
@@ -26,21 +23,25 @@ const rngDefault=()=>{
 const makeId=()=>(typeof crypto!=='undefined'&&crypto.randomUUID)?crypto.randomUUID():
   'arena-'+Date.now().toString(36)+'-'+Math.floor(rngDefault()*1e9).toString(36);
 export function generateTileEvents(mode,count,rng=rngDefault){
-  if(!Number.isInteger(count)||count<1||count>36)throw Error('Invalid arena size');
-  const weights=COUNTS[mode==='challenge'?'classic':mode]||COUNTS.classic;
-  const allocations=Object.entries(weights).map(([key,n])=>{
-    const exact=n*count/25;return {key,amount:Math.floor(exact),remainder:exact%1};
-  });
-  let left=count-allocations.reduce((sum,item)=>sum+item.amount,0);
-  allocations.sort((a,b)=>b.remainder-a.remainder);
-  for(let i=0;i<left;i++)allocations[i%allocations.length].amount++;
-  const values=allocations.flatMap(item=>Array(item.amount).fill(item.key));
-  for(let i=values.length-1;i>0;i--){
-    const raw=Number(rng());
-    const j=Math.floor(Math.max(0,Math.min(0.999999999,Number.isFinite(raw)?raw:0))*(i+1));
-    [values[i],values[j]]=[values[j],values[i]];
+  if(![16,25,36].includes(count))throw Error('Invalid arena size');
+  const hasCenterLock=count%2===1;
+  const playable=count-(hasCenterLock?1:0),perKind=playable/2;
+  const items=[];
+  // Balanced risk does not depend on mode. Modes only change the penalty
+  // after a bomb is opened; the number of bombs stays exactly the same.
+  for(let i=0;i<perKind;i++){
+    items.push('bomb');
+    items.push(SCORES[i%SCORES.length]);
   }
-  return values;
+  // Fisher-Yates shuffle over playable tiles only (center remains locked).
+  for(let i=items.length-1;i>0;i--){
+    const raw=Number(rng());
+    const n=Math.max(0,Math.min(.999999999,Number.isFinite(raw)?raw:0));
+    const j=Math.floor(n*(i+1));
+    [items[i],items[j]]=[items[j],items[i]];
+  }
+  if(hasCenterLock)items.splice((count-1)/2,0,'blocked');
+  return items;
 }
 export function createArena(config={},rng=rngDefault){
   const size=ARENA_SIZES.includes(Number(config.size))?Number(config.size):5;
@@ -48,14 +49,14 @@ export function createArena(config={},rng=rngDefault){
   const teamCount=Math.max(2,Math.min(8,Number(config.teamCount)||4));
   const tiles=generateTileEvents(mode,size*size,rng).map((event,index)=>({
     id:index,label:String.fromCharCode(65+Math.floor(index/size))+(index%size+1),
-    event,opened:false,owner:null,
+    event,opened:event==='blocked',owner:null,
   }));
   const teams=Array.from({length:teamCount},(_,index)=>({
     id:'team-'+(index+1),name:String(config.teamNames?.[index]||'Team '+(index+1)).slice(0,32),
     score:0,bank:0,shields:0,turns:0,
   }));
   return {
-    schema:1,ruleVersion:2,id:makeId(),ownerId:String(config.ownerId||''),mode,size,
+    schema:1,ruleVersion:4,id:makeId(),ownerId:String(config.ownerId||''),mode,size,
     questionGate:mode==='challenge'||Boolean(config.questionGate),
     questions:Array.isArray(config.questions)?config.questions.slice(0,300).map(q=>({
       prompt:String(q.prompt||'').slice(0,600),answer:String(q.answer||'').slice(0,300),
@@ -68,7 +69,7 @@ function snapshot(state){const {history,future,...rest}=state;return clone(rest)
 function next(s){s.turn=(s.turn+1)%s.teams.length;s.selectedTile=null;}
 function reveal(s,index){
   const tile=s.tiles[index],team=s.teams[s.turn];
-  if(!tile||tile.opened||s.phase!=='running')return false;
+  if(!tile||tile.opened||tile.event==='blocked'||s.phase!=='running')return false;
   const potBefore=team.bank,scoreBefore=team.score,kind=tile.event;
   tile.opened=true;tile.owner=team.id;team.turns++;s.moves++;
   const add=value=>{if(s.mode==='luck')team.bank+=value;else team.score+=value;};
