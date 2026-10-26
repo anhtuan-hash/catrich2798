@@ -82,3 +82,18 @@ test('Wave 3 text undo and checklist delete undo restore the original content',a
  await page.getByRole('button',{name:'Hoàn tác xóa'}).click();
  await expect(page.locator('.bit-w3-task')).toHaveCount(1);
 });
+
+test('Class Bell automatically advances on elapsed wall time even when manual tab is shown',async({page})=>{
+ await enter(page,19);
+ await page.getByRole('tab',{name:'Lịch chuông tự động'}).click();
+ await page.locator('.bit-timeline-phase').first().locator('input[type=number]').fill('15');
+ await page.getByRole('button',{name:'Bắt đầu',exact:true}).click();
+ await expect(page.locator('[data-tool="class-bell-timeline"]')).toHaveAttribute('data-state','running');
+ await page.clock.install();
+ await page.getByRole('tab',{name:'Chuông thủ công'}).click();
+ await expect(page.locator('.bit-w4-bell-card')).toHaveCount(4);
+ await page.clock.fastForward(16500);
+ await page.getByRole('tab',{name:'Lịch chuông tự động'}).click();
+ await expect(page.locator('.bit-timeline-eyebrow')).toContainText('2/3');
+ await expect(page.locator('[data-tool="class-bell-timeline"]')).toHaveAttribute('data-state','running');
+});
