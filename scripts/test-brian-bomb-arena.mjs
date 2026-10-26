@@ -152,12 +152,12 @@ check('Portal, audio, FX and existing Focus/Board are wired, with reduced-motion
 console.log('PASS: Bomb Arena v2 numbers/POT/BANK, explosions, fireworks and Focus/Board contract.');
 
 check('Three grade-focused sample banks contain 36 complete, unique questions each',()=>{
-  assert.equal(SAMPLE_PACKS.length,3);
-  assert.equal(SAMPLE_PACKS.reduce((n,p)=>n+p.count,0),108);
+  assert.equal(SAMPLE_PACKS.length,4);
+  assert.equal(SAMPLE_PACKS.reduce((n,p)=>n+p.count,0),208);
   for(const pack of SAMPLE_PACKS){
-    assert.equal(pack.count,36);
+    assert.equal(pack.count,pack.id==='g11-global-success-grammar-100'?100:36);
     assert.ok(pack.items.every(q=>q.prompt.length>10&&q.answer.length>0));
-    assert.equal(new Set(pack.items.map(q=>q.prompt.toLowerCase())).size,36);
+    assert.equal(new Set(pack.items.map(q=>q.prompt.toLowerCase())).size,pack.count);
     assert.equal(getSamplePack(pack.id).id,pack.id);
   }
 });
