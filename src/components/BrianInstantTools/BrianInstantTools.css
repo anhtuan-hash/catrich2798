@@ -131,3 +131,33 @@
 @media(max-width:370px){.bit-library{grid-template-columns:1fr}.bit-window-actions button{min-width:32px;width:32px;height:32px}.bit-header h2{font-size:16px}.bit-qr-expand img{max-width:240px}}
 @media(prefers-reduced-motion:reduce){.bit-overlay,.bit-portal,.bit-die.is-rolling{animation:none!important}.bit-launcher,.bit-app-card,.bit-primary{transition:none!important}.bit-wheel{transition:none!important}}
 @media(forced-colors:active){.bit-launcher,.bit-primary,.bit-app-card{border:2px solid ButtonText}}
+
+
+/* True six-face CSS 3D dice — no WebGL, GPU package or external assets. */
+.bit-die{background:transparent;box-shadow:none;transform:none;perspective:780px;
+  --bit-half:clamp(35px,4.5vw,56.5px)}
+.bit-cube{display:block;width:100%;height:100%;position:relative;transform-style:preserve-3d;
+ transition:transform .7s cubic-bezier(.18,.8,.2,1)}
+.bit-cube-face{position:absolute;inset:0;display:grid;place-items:center;
+  background:linear-gradient(145deg,#fff,#d9e6ff);color:#536cc9;
+  border:2px solid #c8d5ee;border-radius:17px;
+  box-shadow:inset -7px -9px 17px #7893d440;
+  font-size:clamp(52px,7vw,85px);line-height:1;backface-visibility:hidden}
+.bit-cube-face-1{transform:rotateY(0deg) translateZ(var(--bit-half))}
+.bit-cube-face-2{transform:rotateY(90deg) translateZ(var(--bit-half))}
+.bit-cube-face-3{transform:rotateY(180deg) translateZ(var(--bit-half))}
+.bit-cube-face-4{transform:rotateY(-90deg) translateZ(var(--bit-half))}
+.bit-cube-face-5{transform:rotateX(90deg) translateZ(var(--bit-half))}
+.bit-cube-face-6{transform:rotateX(-90deg) translateZ(var(--bit-half))}
+.bit-die.is-rolling{animation:none}
+.bit-die.is-rolling .bit-cube{animation:bit-cube-tumble .73s cubic-bezier(.25,.8,.25,1) both}
+@keyframes bit-cube-tumble{
+  0%{transform:rotateX(0deg) rotateY(0deg)}
+  45%{transform:rotateX(175deg) rotateY(203deg)}
+  100%{transform:rotateX(350deg) rotateY(355deg)}
+}
+@media(max-width:650px){
+ .bit-die{--bit-half:35px;width:70px;height:70px}
+ .bit-cube-face{font-size:53px;border-radius:13px}
+}
+@media(prefers-reduced-motion:reduce){.bit-die.is-rolling .bit-cube{animation:none!important}.bit-cube{transition:none!important}}
