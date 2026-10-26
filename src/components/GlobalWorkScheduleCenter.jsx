@@ -7,6 +7,10 @@ import { emitAutomationEvent } from '../utils/automationEngine.js';
 import { recordAuditEvent } from '../utils/collaborationGovernance.js';
 import { isLeader, uid } from '../pages/v1093/shared.js';
 import { isAdminRole } from '../utils/roles.js';
+import {
+  scheduleWeekWindow, moveScheduleWeek, eligibleScheduleWeekRows,
+  deletionPreviewIsCurrent, scheduleDeleteBatches, isImportedScheduleItem,
+} from '../utils/scheduleWeekBulkDelete.mjs';
 import { detectScheduleEvent } from '../utils/scheduleEventDetection.mjs';
 import { createDraftsForScheduleItems } from '../features/events/services/scheduleEventDrafts.js';
 import {
@@ -23,6 +27,59 @@ import {
 import './GlobalWorkScheduleCenter.css';
 
 const SCHEDULE_UPDATE_EVENT = 'bes-work-schedule-updated';
+
+const deleteI18n = {
+  vi: {
+    button: 'Xóa theo tuần', title: 'Xóa nhanh lịch theo tuần', heading: 'CHỌN TUẦN CẦN XÓA',
+    warning: 'Hành động này xóa vĩnh viễn công việc trong lịch chung của tuần đã chọn, không thể hoàn tác. Sự kiện đã tạo trong Quản lý sự kiện vẫn được giữ nguyên.',
+    manual: 'Bao gồm mục thêm thủ công (mặc định chỉ xóa mục đã tải từ kế hoạch)',
+    selected: 'Mục được chọn', eligible: 'Mục trong tuần', imported: 'Từ file', linked: 'Có bản nháp sự kiện',
+    none: 'Tuần này không có công việc thuộc phạm vi xóa.', all: 'Chọn tất cả', clear: 'Bỏ chọn',
+    key: 'Nhập XOA để xác nhận', placeholder: 'Nhập XOA', cancel: 'Đóng',
+    deleting: 'Đang xóa…', submit: 'Xóa {n} công việc', confirm: 'Chọn công việc, sau đó nhập XOA để xác nhận.',
+    loading: 'Đang đọc dữ liệu mới nhất từ Supabase…', navPrev: 'Tuần trước', navNext: 'Tuần sau',
+    noSession: 'Cần kết nối Supabase và đăng nhập để xóa công việc.',
+    changed: 'Danh sách công việc đã thay đổi trên máy chủ. Hãy đóng và mở lại để kiểm tra trước khi xóa.',
+    success: 'Đã xóa {n} công việc của tuần {week}; các tuần khác không bị ảnh hưởng.',
+    partial: 'Đã xóa {n} mục, nhưng một số mục chưa xóa được. Vui lòng kiểm tra lại.',
+    tooMany: 'Tuần có quá nhiều mục; vui lòng liên hệ quản trị viên để rà soát trước khi xóa.',
+  },
+  en: {
+    button: 'Delete by week', title: 'Quick weekly schedule cleanup', heading: 'SELECT A WEEK TO DELETE',
+    warning: 'This permanently deletes selected items from the shared weekly schedule and cannot be undone. Events already created in Event Manager are left untouched.',
+    manual: 'Include manually added items (default: uploaded work-plan items only)',
+    selected: 'Selected', eligible: 'This week', imported: 'Uploaded', linked: 'Linked event draft',
+    none: 'No eligible schedule items in this week.', all: 'Select all', clear: 'Clear selection',
+    key: 'Type XOA to confirm', placeholder: 'Type XOA', cancel: 'Close',
+    deleting: 'Deleting…', submit: 'Delete {n} items', confirm: 'Select items and type XOA to confirm.',
+    loading: 'Loading current records from Supabase…', navPrev: 'Previous week', navNext: 'Next week',
+    noSession: 'An authenticated Supabase connection is required.',
+    changed: 'Schedule items changed on the server. Close and reopen the review to confirm the latest data.',
+    success: 'Deleted {n} items in week {week}. Other weeks were not changed.',
+    partial: 'Deleted {n} items, but some could not be removed. Review the remaining items.',
+    tooMany: 'This week contains too many records for safe bulk removal. Ask an administrator to review.',
+  },
+};
+function labelForWeek(key) {
+  if (!key) return '';
+  const [year, month, day] = key.split('-');
+  return `${day}/${month}/${year}`;
+}
+async function loadScheduleWeekFromServer(client, window) {
+  const list = [];
+  const pageSize = 500;
+  for (let offset = 0; offset < 4000; offset += pageSize) {
+    const { data, error } = await client.from('work_hub_items')
+      .select('id,title,item_type,due_at,metadata,created_at')
+      .eq('item_type', WORK_SCHEDULE_ITEM_TYPE)
+      .gte('due_at', window.startAt).lt('due_at', window.endAt)
+      .order('due_at', { ascending: true }).range(offset, offset + pageSize - 1);
+    if (error) throw error;
+    list.push(...(data || []));
+    if ((data || []).length < pageSize) return eligibleScheduleWeekRows(list, window, true);
+  }
+  throw new Error(deleteI18n.vi.tooMany);
+}
 const SCHEDULE_CACHE_KEY = 'bes-system-work-schedule-cache-v1';
 const SCHEDULE_SYNC_KEY = 'bes-system-work-schedule-sync-v1';
 const SCHEDULE_CACHE_MAX_AGE = 15 * 60 * 1000;
@@ -409,6 +466,14 @@ export default function GlobalWorkScheduleCenter({
   const [importPreview, setImportPreview] = useState(null);
   const [autoDetectEvents, setAutoDetectEvents] = useState(true);
   const [candidateSelection, setCandidateSelection] = useState(() => new Set());
+  const [deleteWeekOpen, setDeleteWeekOpen] = useState(false);
+  const [deleteWeekAnchor, setDeleteWeekAnchor] = useState('');
+  const [deleteWeekItems, setDeleteWeekItems] = useState([]);
+  const [deleteWeekSelected, setDeleteWeekSelected] = useState(() => new Set());
+  const [deleteWeekIncludeManual, setDeleteWeekIncludeManual] = useState(false);
+  const [deleteWeekConfirm, setDeleteWeekConfirm] = useState('');
+  const [deleteWeekLoading, setDeleteWeekLoading] = useState(false);
+  const [deleteWeekError, setDeleteWeekError] = useState('');
   const [editor, setEditor] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -535,6 +600,46 @@ export default function GlobalWorkScheduleCenter({
       if (!/column .* does not exist|42703/i.test(profileError.message || '')) return;
     }
   }, [client, leader, runtime.ready, runtime.session]);
+
+  const deleteWeekWindow = useMemo(
+    () => deleteWeekAnchor ? scheduleWeekWindow(deleteWeekAnchor) : null,
+    [deleteWeekAnchor],
+  );
+  const deleteWeekCandidates = useMemo(
+    () => eligibleScheduleWeekRows(deleteWeekItems, deleteWeekWindow, deleteWeekIncludeManual),
+    [deleteWeekItems, deleteWeekWindow, deleteWeekIncludeManual],
+  );
+  const deleteWeekTargets = useMemo(
+    () => deleteWeekCandidates.filter((item) => deleteWeekSelected.has(item.id)),
+    [deleteWeekCandidates, deleteWeekSelected],
+  );
+
+  // Always preview a fresh week-scoped server read; never use a potentially stale
+  // cached calendar page or its 600-entry cap to authorize deletion.
+  useEffect(() => {
+    if (!deleteWeekOpen || !deleteWeekWindow) return undefined;
+    let active = true;
+    setDeleteWeekLoading(true);
+    setDeleteWeekError('');
+    setDeleteWeekItems([]);
+    setDeleteWeekSelected(new Set());
+    setDeleteWeekConfirm('');
+    (async () => {
+      try {
+        if (!client || !runtime.ready || !runtime.session) throw new Error(deleteI18n[language === 'en' ? 'en' : 'vi'].noSession);
+        const rows = await loadScheduleWeekFromServer(client, deleteWeekWindow);
+        if (!active) return;
+        setDeleteWeekItems(rows);
+        setDeleteWeekSelected(new Set(eligibleScheduleWeekRows(rows, deleteWeekWindow, deleteWeekIncludeManual).map((row) => row.id)));
+      } catch (loadError) {
+        if (active) setDeleteWeekError(loadError.message || 'Could not read this week.');
+      } finally {
+        if (active) setDeleteWeekLoading(false);
+      }
+    })();
+    return () => { active = false; };
+    // Scope changes are controlled by week navigation; manual inclusion updates selection separately.
+  }, [client, runtime.ready, runtime.session, deleteWeekOpen, deleteWeekWindow, language]);
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => { loadProfiles(); }, [loadProfiles]);
@@ -909,6 +1014,101 @@ export default function GlobalWorkScheduleCenter({
     }
   }
 
+  function openDeleteWeek() {
+    if (!leader || busy) return;
+    const now = new Date();
+    const anchor = embedded ? dailyCursor
+      : calendarMode === 'week' ? cursor
+        : cursor.getFullYear() === now.getFullYear() && cursor.getMonth() === now.getMonth() ? now : cursor;
+    setDeleteWeekIncludeManual(false);
+    setDeleteWeekItems([]);
+    setDeleteWeekSelected(new Set());
+    setDeleteWeekConfirm('');
+    setDeleteWeekError('');
+    setDeleteWeekAnchor(dayKey(anchor));
+    setDeleteWeekOpen(true);
+    setError('');
+    setNotice('');
+  }
+
+  function toggleWeekManual(enabled) {
+    setDeleteWeekIncludeManual(enabled);
+    setDeleteWeekSelected(new Set(eligibleScheduleWeekRows(deleteWeekItems, deleteWeekWindow, enabled).map((item) => item.id)));
+    setDeleteWeekConfirm('');
+  }
+
+  async function deleteSelectedWeekItems() {
+    if (!leader || !currentUser?.id || !deleteWeekWindow || deleteWeekLoading || busy ||
+        deleteWeekConfirm.trim().toUpperCase() !== 'XOA' || !deleteWeekTargets.length) return;
+    const txt = deleteI18n[language === 'en' ? 'en' : 'vi'];
+    if (!client || !runtime.ready || !runtime.session) { setDeleteWeekError(txt.noSession); return; }
+    setBusy(true);
+    setDeleteWeekLoading(true);
+    setDeleteWeekError('');
+    let removed = [];
+    let issue = null;
+    try {
+      const rows = await loadScheduleWeekFromServer(client, deleteWeekWindow);
+      const chosen = new Set(deleteWeekTargets.map((item) => item.id));
+      const fresh = eligibleScheduleWeekRows(rows, deleteWeekWindow, deleteWeekIncludeManual)
+        .filter((item) => chosen.has(item.id));
+      if (!deletionPreviewIsCurrent(deleteWeekTargets, fresh)) throw new Error(txt.changed);
+      for (const batch of scheduleDeleteBatches(deleteWeekTargets)) {
+        const { data, error: deletionError } = await client.from('work_hub_items')
+          .delete().eq('item_type', WORK_SCHEDULE_ITEM_TYPE)
+          .gte('due_at', deleteWeekWindow.startAt).lt('due_at', deleteWeekWindow.endAt)
+          .in('id', batch).select('id');
+        if (deletionError) throw deletionError;
+        const got = (data || []).map((item) => item.id);
+        removed.push(...got);
+        if (got.length !== batch.length) throw new Error(txt.changed);
+      }
+      // Event Center is intentionally not touched here, including already
+      // published announcements and separately stored event drafts.
+    } catch (deleteError) {
+      issue = deleteError;
+    }
+    if (removed.length) {
+      const gone = new Set(removed);
+      setItems((current) => {
+        const next = current.filter((item) => !gone.has(item.id));
+        writeCachedSchedule(next);
+        writeScheduleSyncStamp();
+        return next;
+      });
+      setDeleteWeekItems((current) => current.filter((item) => !gone.has(item.id)));
+      setDeleteWeekSelected((current) => new Set([...current].filter((id) => !gone.has(id))));
+      window.dispatchEvent(new CustomEvent(SCHEDULE_UPDATE_EVENT, {
+        detail: { deleted: true, itemIds: removed, localApplied: true, week: deleteWeekWindow.monday },
+      }));
+      try {
+        await recordAuditEvent({
+          action: 'schedule.week_bulk_deleted',
+          entity_type: 'work_schedule_week',
+          entity_id: uid('schedule-week-delete'),
+          source_module: 'work-schedule',
+          before_data: { week_start: deleteWeekWindow.monday, week_end: deleteWeekWindow.sunday,
+            deleted_ids: removed, deleted_count: removed.length, include_manual: deleteWeekIncludeManual },
+        }, currentUser);
+      } catch (auditError) {
+        console.warn('[Work schedule] Unable to save the weekly deletion audit', auditError);
+      }
+    }
+    setBusy(false);
+    setDeleteWeekLoading(false);
+    setDeleteWeekConfirm('');
+    if (issue) {
+      setDeleteWeekError(removed.length
+        ? txt.partial.replace('{n}', String(removed.length)) + ' ' + (issue.message || '')
+        : issue.message || txt.changed);
+      return;
+    }
+    setNotice(txt.success.replace('{n}', String(removed.length))
+      .replace('{week}', `${labelForWeek(deleteWeekWindow.monday)} – ${labelForWeek(deleteWeekWindow.sunday)}`));
+    setDeleteWeekOpen(false);
+    await load({ force: true, silent: true });
+  }
+
   async function deleteEvent(target) {
     if (!leader || !target || !client || !runtime.session) return;
     if (!window.confirm(language === 'en' ? `Delete schedule “${target.title}”? This change will be reflected across the system.` : `Xoá lịch “${target.title}”? Hành động này sẽ cập nhật trên toàn hệ thống.`)) return;
@@ -970,6 +1170,7 @@ export default function GlobalWorkScheduleCenter({
               <button type="button" className="secondary" onClick={() => downloadTextFile('mau-lich-lam-viec.csv', makeScheduleTemplateCsv())}>⇩ File mẫu</button>
               <button type="button" className="secondary" disabled={busy} onClick={() => fileInputRef.current?.click()}>⇧ Upload lịch</button>
               <button type="button" className="primary" onClick={() => setEditor(defaultEditor())}>＋ Thêm lịch</button>
+              <button type="button" className="work-schedule-week-delete-button" disabled={busy} onClick={openDeleteWeek}>🗑 {deleteI18n[language === 'en' ? 'en' : 'vi'].button}</button>
             </> : <span className="work-schedule-readonly">Chế độ xem lịch chung</span>}
           </div>
         </header>
@@ -1001,6 +1202,7 @@ export default function GlobalWorkScheduleCenter({
               <button type="button" className="is-template" onClick={() => downloadTextFile('mau-lich-lam-viec.csv', makeScheduleTemplateCsv())} title="Tải file CSV mẫu">⇩ Mẫu</button>
               <button type="button" className="is-upload" disabled={busy} onClick={() => fileInputRef.current?.click()} title="Tải lên lịch làm việc từ XLSX hoặc CSV">⇧ Tải lên lịch</button>
               <button type="button" className="is-add" disabled={busy} onClick={() => setEditor(defaultEditor())} title="Thêm hoạt động thủ công">＋ Thêm</button>
+              <button type="button" className="is-week-delete" disabled={busy} onClick={openDeleteWeek}>🗑 {deleteI18n[language === 'en' ? 'en' : 'vi'].button}</button>
             </div> : null}
             <div className="work-schedule-category-filters" aria-label="Lọc lịch theo loại hoạt động">
               {TIMELINE_CATEGORIES.map(([id, label, color]) => <button type="button" key={id} className={timelineCategory === id ? 'is-selected' : ''} aria-pressed={timelineCategory === id} style={{ '--category': color }} onClick={() => setTimelineCategory(id)}><i />{label}</button>)}
@@ -1118,6 +1320,43 @@ export default function GlobalWorkScheduleCenter({
           {!filteredEvents.length ? <div className="work-schedule-empty"><strong>Chưa có hoạt động phù hợp</strong><span>TTCM/Admin có thể upload file mẫu hoặc thêm lịch thủ công.</span></div> : null}
         </div>}
       </section> : null}
+
+      {deleteWeekOpen && deleteWeekWindow ? <div className="work-schedule-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && !deleteWeekLoading) setDeleteWeekOpen(false); }}>
+        <section className="work-schedule-modal work-schedule-delete-week" role="dialog" aria-modal="true" aria-label={deleteI18n[language === 'en' ? 'en' : 'vi'].title} onKeyDown={(event) => { if (event.key === 'Escape' && !deleteWeekLoading) setDeleteWeekOpen(false); }}>
+          <header><div><span>{deleteI18n[language === 'en' ? 'en' : 'vi'].heading}</span><h2>{deleteI18n[language === 'en' ? 'en' : 'vi'].title}</h2></div><button type="button" disabled={deleteWeekLoading} onClick={() => setDeleteWeekOpen(false)} aria-label="Close">×</button></header>
+          <div className="work-schedule-delete-week-body">
+            <div className="work-schedule-delete-week-nav">
+              <button type="button" disabled={deleteWeekLoading} aria-label={deleteI18n[language === 'en' ? 'en' : 'vi'].navPrev} onClick={() => setDeleteWeekAnchor(moveScheduleWeek(deleteWeekAnchor, -1))}>‹</button>
+              <strong>{labelForWeek(deleteWeekWindow.monday)} – {labelForWeek(deleteWeekWindow.sunday)}</strong>
+              <button type="button" disabled={deleteWeekLoading} aria-label={deleteI18n[language === 'en' ? 'en' : 'vi'].navNext} onClick={() => setDeleteWeekAnchor(moveScheduleWeek(deleteWeekAnchor, 1))}>›</button>
+            </div>
+            <p className="work-schedule-delete-week-warning">⚠ {deleteI18n[language === 'en' ? 'en' : 'vi'].warning}</p>
+            <label className="work-schedule-delete-week-manual"><input type="checkbox" checked={deleteWeekIncludeManual} disabled={deleteWeekLoading} onChange={(event) => toggleWeekManual(event.target.checked)}/><span>{deleteI18n[language === 'en' ? 'en' : 'vi'].manual}</span></label>
+            <div className="work-schedule-delete-week-summary">
+              <span><strong>{deleteWeekCandidates.length}</strong> {deleteI18n[language === 'en' ? 'en' : 'vi'].eligible}</span>
+              <span><strong>{deleteWeekTargets.length}</strong> {deleteI18n[language === 'en' ? 'en' : 'vi'].selected}</span>
+              <div>
+                <button type="button" disabled={deleteWeekLoading} onClick={() => { setDeleteWeekSelected(new Set(deleteWeekCandidates.map((item) => item.id))); setDeleteWeekConfirm(''); }}>{deleteI18n[language === 'en' ? 'en' : 'vi'].all}</button>
+                <button type="button" disabled={deleteWeekLoading} onClick={() => { setDeleteWeekSelected(new Set()); setDeleteWeekConfirm(''); }}>{deleteI18n[language === 'en' ? 'en' : 'vi'].clear}</button>
+              </div>
+            </div>
+            {deleteWeekLoading ? <p className="work-schedule-delete-week-loading">{deleteI18n[language === 'en' ? 'en' : 'vi'].loading}</p> : null}
+            {deleteWeekError ? <p className="work-schedule-delete-week-error" role="alert">{deleteWeekError}</p> : null}
+            {!deleteWeekLoading && !deleteWeekCandidates.length ? <p className="work-schedule-delete-week-empty">{deleteI18n[language === 'en' ? 'en' : 'vi'].none}</p> : null}
+            <div className="work-schedule-delete-week-list">
+              {deleteWeekCandidates.map((item) => <label key={item.id} className="work-schedule-delete-week-item">
+                <input type="checkbox" disabled={deleteWeekLoading} checked={deleteWeekSelected.has(item.id)} onChange={(event) => { setDeleteWeekSelected((prev) => { const next = new Set(prev); if (event.target.checked) next.add(item.id); else next.delete(item.id); return next; }); setDeleteWeekConfirm(''); }} />
+                <span><strong>{item.title}</strong><small>{formatScheduleDateTime(item.due_at)} · {isImportedScheduleItem(item) ? deleteI18n[language === 'en' ? 'en' : 'vi'].imported : (language === 'en' ? 'Manual' : 'Thêm thủ công')}{item.metadata?.schedule_event_draft_id ? ' · ' + deleteI18n[language === 'en' ? 'en' : 'vi'].linked : ''}</small></span>
+              </label>)}
+            </div>
+            <label className="work-schedule-delete-week-confirm"><span>{deleteI18n[language === 'en' ? 'en' : 'vi'].key}</span><input value={deleteWeekConfirm} disabled={deleteWeekLoading || !deleteWeekTargets.length} onChange={(event) => setDeleteWeekConfirm(event.target.value)} placeholder={deleteI18n[language === 'en' ? 'en' : 'vi'].placeholder} autoComplete="off" spellCheck={false}/></label>
+          </div>
+          <footer>
+            <button type="button" className="secondary" disabled={deleteWeekLoading} onClick={() => setDeleteWeekOpen(false)}>{deleteI18n[language === 'en' ? 'en' : 'vi'].cancel}</button>
+            <button type="button" className="work-schedule-delete-confirm-button" disabled={deleteWeekLoading || !deleteWeekTargets.length || deleteWeekConfirm.trim().toUpperCase() !== 'XOA'} onClick={deleteSelectedWeekItems}>{deleteWeekLoading ? deleteI18n[language === 'en' ? 'en' : 'vi'].deleting : deleteI18n[language === 'en' ? 'en' : 'vi'].submit.replace('{n}', String(deleteWeekTargets.length))}</button>
+          </footer>
+        </section>
+      </div> : null}
 
       {importOpen ? <div className="work-schedule-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) setImportOpen(false); }}>
         <section className="work-schedule-modal import-modal">
