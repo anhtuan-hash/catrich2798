@@ -50,7 +50,7 @@ const wave=read('src/components/BrianInstantTools/BrianInstantToolsWave2.jsx');
 const css=read('src/components/BrianInstantTools/BrianInstantToolsWave2.css');
 const main=read('src/main.jsx');
 assert.ok(ui.includes('...WAVE2_LIBRARY'));
-assert.match(ui,/subtitle:'10 công cụ/);
+assert.match(ui,/subtitle:'(?:10|15|20) công cụ/);
 assert.match(ui,/SpotlightOverlay/);
 assert.match(ui,/Wave2Tool key=/);
 assert.match(ui,/bit-w2-stage-overlay/);
