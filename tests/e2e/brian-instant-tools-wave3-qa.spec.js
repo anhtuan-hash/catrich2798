@@ -4,7 +4,7 @@ test.beforeEach(async({page})=>{
  await page.route('https://**/*',route=>route.abort('blockedbyclient'));
  await page.goto(url);
  await page.getByRole('button',{name:'Mở bộ công cụ tức thì'}).click();
- await expect(page.locator('.bit-app-card')).toHaveCount(15);
+ await expect(page.locator('.bit-app-card')).toHaveCount(20);
 });
 async function enter(page,n){await page.locator('.bit-app-card').nth(n).click();}
 test('Toolbox expands to 15 cards and Wave 3 is bilingual with no document overflow',async({page})=>{

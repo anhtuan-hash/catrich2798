@@ -4,7 +4,7 @@ test.beforeEach(async({page})=>{
  await page.route('https://**/*',route=>route.abort('blockedbyclient'));
  await page.goto(url);
  await page.getByRole('button',{name:'Mở bộ công cụ tức thì'}).click();
- await expect(page.locator('.bit-app-card')).toHaveCount(15);
+ await expect(page.locator('.bit-app-card')).toHaveCount(20);
 });
 async function select(page,id){
  const position={spotlight:5,bigText:6,teleprompter:7,reveal:8,soundFX:9}[id];

@@ -12,7 +12,7 @@ async function openLibrary(page){
 test('Portal navigation, bilingual, minimize, keyboard and narrow-screen clipping',async({page})=>{
   await openLibrary(page);
   const tiles=page.locator('.bit-app-card');
-  await expect(tiles).toHaveCount(15);
+  await expect(tiles).toHaveCount(20);
   await expect(page.locator('.bit-header')).toContainText('Brian Instant Tools');
   await page.getByRole('button',{name:'Thu nhỏ về bong bóng'}).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
@@ -25,6 +25,8 @@ test('Portal navigation, bilingual, minimize, keyboard and narrow-screen clippin
   await expect(page.locator('.bit-overlay')).toHaveCount(0);
 });
 test('Dice rolls and Scoreboard undo retain local session without modifying scores elsewhere',async({page})=>{
+  // Reduced motion prevents celebration canvas from intercepting iPhone touch input.
+  await page.emulateMedia({reducedMotion:'reduce'});
   await openLibrary(page);
   await page.locator('.bit-app-card').nth(0).click();
   await expect(page.locator('.bit-die')).toHaveCount(2);
