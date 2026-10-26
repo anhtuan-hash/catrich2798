@@ -80,7 +80,13 @@ export function SpotlightOverlay({config,onExit,language='vi'}){
   window.addEventListener('keydown',handler,true);
   return ()=>window.removeEventListener('keydown',handler,true);
  },[onExit]);
- const move=e=>setPos({x:e.clientX,y:e.clientY});
+ const pointerFrame=useRef(null);
+ useEffect(()=>()=>cancelAnimationFrame(pointerFrame.current),[]);
+ const move=e=>{
+  if(pointerFrame.current!==null)return;
+  const x=e.clientX,y=e.clientY;
+  pointerFrame.current=requestAnimationFrame(()=>{pointerFrame.current=null;setPos({x,y});});
+ };
  return createPortal(<div className="bit-spot-overlay" role="dialog" aria-label="Spotlight" aria-modal="true"
    onPointerMove={move} onPointerDown={move}
    style={{background:spotlightStyle(pos.x,pos.y,config.radius,config.dim)}}>
