@@ -2928,4 +2928,13 @@ export const LEGACY_SITE_EN = Object.freeze({
   "Có giờ bắt đầu": "Start time provided",
   "Chưa xác định giờ – chờ bổ sung": "No confirmed time — review required",
   "TTCM / Tổ Tiếng Anh THPT": "Department head / High School English",
+  "Tham gia hoạt động lớp học": "Join classroom activity",
+  "Nhập mã giáo viên cung cấp hoặc quét QR. Không cần đăng ký tài khoản.": "Enter the teacher's code or scan the QR code. No account required.",
+  "Mã phiên 12 ký tự": "12-character session code",
+  "Kết quả lớp học": "Classroom results",
+  "Ý kiến đã được giáo viên duyệt": "Teacher-approved submissions",
+  "Nội dung được kiểm duyệt · Không yêu cầu họ tên hoặc số điện thoại": "Moderated content · Names and phone numbers are not required",
+  "Ví dụ: a1b2c3d4e5f6": "Example: a1b2c3d4e5f6",
+  "Chọn phương án": "Choose an option",
+  "Viết câu trả lời tại đây…": "Write your answer here…",
 });
