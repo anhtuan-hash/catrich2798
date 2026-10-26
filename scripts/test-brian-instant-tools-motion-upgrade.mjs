@@ -22,6 +22,8 @@ assert.equal(advanceTimeline({...start,running:false,endsAt:null},200000).change
 const invalid=sanitizeTimeline({index:999,segments:[{name:'Math',seconds:180}],endsAt:-4,running:true,remainingMs:999999});
 assert.equal(invalid.index,0);assert.equal(invalid.running,false);assert.equal(invalid.remainingMs,180000);
 const restored=sanitizeState({version:1,state:{dice:{count:5},classBell:{volume:50,duration:3,timeline:start},notes:{items:[{id:'n',title:'Saved'}]}}});
+assert.deepEqual(sanitizeState({version:1,state:{buzzer:{teams:['Same','Same'],score:[0,1]}}}).buzzer.teams,['Same','Same']);
+assert.equal(sanitizeState({version:1,state:{buzzer:{teams:['Same','Same'],score:[0,1]}}}).buzzer.score[1],1);
 assert.equal(restored.classBell.volume,50);assert.equal(restored.classBell.timeline.segments.length,3);
 assert.equal(restored.classBell.timeline.running,true);assert.equal(restored.dice.count,5);assert.equal(restored.notes.items[0].title,'Saved');
 const w4=read('src/components/BrianInstantTools/BrianInstantToolsWave4.jsx');
