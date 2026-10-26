@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured } from '../../../utils/supabase.js';
 import { saveEventDraft } from './eventService.js';
+import { autoAttachPosterToDraft } from './eventPosterTemplates.js';
 import { scheduleItemToEvent } from '../../../utils/workScheduleImport.js';
 import { detectScheduleEvent, draftFromScheduleRow } from '../../../utils/scheduleEventDetection.mjs';
 
@@ -51,19 +52,31 @@ export async function createDraftFromScheduleItem(item) {
   let record = existing?.[0] || null;
   const newlyCreated = !record;
   if (!record) record = await saveEventDraft(draft);
+  let posterStatus = 'existing';
+  let posterWarning = '';
+  try {
+    if (!record.poster_path && record.status === 'draft') {
+      const posterResult = await autoAttachPosterToDraft(record);
+      posterStatus = posterResult.status;
+    }
+  } catch (posterError) {
+    posterStatus = 'failed';
+    posterWarning = 'Poster chưa được tạo: ' + (posterError.message || 'Lỗi không xác định');
+  }
   // Only admin can update event metadata; failed association is explicit but
   // the duplicate title/time guard still keeps common re-uploads idempotent.
   const nextMetadata = {
     ...metadata,
     schedule_event_detection: { ...detection, approvalStatus: 'draft_created' },
     schedule_event_draft_id: record.id,
+    schedule_event_poster_status: posterStatus,
   };
   const { error: updateError } = await db.from('work_hub_items')
     .update({ metadata: nextMetadata }).eq('id', item.id);
   if (updateError) {
-    return { status: newlyCreated ? 'created_unlinked' : 'exists_unlinked', id: record.id, warning: updateError.message };
+    return { status: newlyCreated ? 'created_unlinked' : 'exists_unlinked', id: record.id, warning: [updateError.message, posterWarning].filter(Boolean).join(' | ') };
   }
-  return { status: newlyCreated ? 'created' : 'exists', id: record.id };
+  return { status: newlyCreated ? 'created' : 'exists', id: record.id, posterStatus, warning: posterWarning };
 }
 
 export async function createDraftsForScheduleItems(items = []) {
