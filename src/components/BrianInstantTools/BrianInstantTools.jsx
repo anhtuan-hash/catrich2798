@@ -175,7 +175,7 @@ function ScoreboardTool({value,onChange,t,sound}){
     </div>
     <div className="bit-team-grid">{teams.map((team,i)=><div key={team.id} className={'bit-team'+(leaders.includes(team.id)?' is-leading':'')} style={{'--team-color':PALETTE[i%PALETTE.length]}}>
       <div className="bit-team-top">{leaders.includes(team.id)&&<Trophy size={18} aria-label={t.leaders}/>}<input value={team.name} aria-label={t.team+' '+(i+1)} maxLength={32} onChange={e=>onChange(v=>({...v,teams:v.teams.map(x=>x.id===team.id?{...x,name:e.target.value}:x)}))}/></div>
-      <strong className="bit-team-score" aria-live="polite">{team.score}</strong>
+      <strong className="bit-team-score" key={team.score} aria-live="polite">{team.score}</strong>
       <div className="bit-team-actions">{[-1,1,5].map(delta=><button type="button" key={delta} onClick={()=>changeScore(team.id,delta)}>{delta>0?'+':''}{delta}</button>)}</div>
     </div>)}</div>
   </div>;
@@ -200,7 +200,7 @@ function TimerTool({value,onChange,t,sound,now}){
     </div>
     <div className="bit-timer-grid">{items.map((item,i)=>{
       const remaining=timerRemaining(item,now),completed=remaining<=0;
-      const status=completed?'is-done':item.running?'is-running':'is-paused';
+      const status=completed?'is-done':item.running?(remaining<=10000?'is-ending':'is-running'):'is-paused';
       return <div className={'bit-timer-card '+status} key={item.id} style={{'--team-color':PALETTE[i%PALETTE.length]}}>
         <input aria-label={t.label+' '+(i+1)} value={item.label} maxLength={32} onChange={e=>setItem(item.id,x=>({...x,label:e.target.value}))}/>
         <strong className="bit-time" aria-live="off">{formatClock(remaining)}</strong>
@@ -223,6 +223,7 @@ function QrTool({value,onChange,t,sound}){
   useEffect(()=>{
     const valid=makeQrInput(value.input);
     if(valid.error){setPng('');setError(t[valid.error==='empty'?'qrEmpty':valid.error==='long'?'qrLong':'qrInvalid']);return;}
+    setPng('');setActual('');
     let active=true;
     const timer=setTimeout(()=>{
       QRCode.toDataURL(valid.value,{width:480,margin:3,errorCorrectionLevel:'M',color:{dark:'#1c314f',light:'#ffffff'}})
@@ -249,7 +250,7 @@ function QrTool({value,onChange,t,sound}){
         <button className="bit-secondary" type="button" disabled={!png} onClick={copy}>{copied?<Check size={18}/>:<Copy size={18}/>} {t.qrCopy}</button></div>
     </div>
     <div className="bit-preview bit-qr-preview">
-      {png?<><button type="button" className="bit-qr-expand" onClick={()=>setShowBig(true)} aria-label={t.expand}><img src={png} alt={t.qrPreview}/><Maximize2 size={15}/></button><span>{t.qrPreview}</span></>:<QrCode size={110} strokeWidth={.6}/>}
+      {png?<><button key={actual} type="button" className="bit-qr-expand" onClick={()=>setShowBig(true)} aria-label={t.expand}><img src={png} alt={t.qrPreview}/><Maximize2 size={15}/></button><span>{t.qrPreview}</span></>:<QrCode size={110} strokeWidth={.6}/>}
     </div>
     {showBig&&createPortal(<div className="bit-qr-lightbox" role="dialog" aria-modal="true" aria-label={t.qrPreview} onClick={()=>setShowBig(false)}>
       <button className="bit-lightbox-close" type="button" aria-label={t.close} onClick={()=>setShowBig(false)}><X/></button><img src={png} alt={t.qrPreview}/></div>,document.body)}
