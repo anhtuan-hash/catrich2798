@@ -36,7 +36,7 @@ assert.equal(makeQrInput('https://example.com/x').kind,'url');
 assert.equal(makeQrInput('English 11: Global Warming').kind,'text');
 assert.equal(makeQrInput('javascript:alert(1)').error,'protocol');
 assert.equal(makeQrInput('data:text/plain,hello').error,'protocol');
-assert.equal(makeQrInput('http://bad user:secret@example.com').error,'protocol');
+assert.equal(makeQrInput('https://user:secret@example.com').error,'protocol');
 assert.equal(makeQrInput('').error,'empty');
 assert.equal(makeQrInput('x'.repeat(901)).error,'long');
 const base=initialState();
