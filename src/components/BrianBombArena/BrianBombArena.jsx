@@ -28,6 +28,8 @@ export default function BrianBombArena({currentUser,language='vi'}){
   const [questionText,setQuestionText]=useState(''),[showAnswer,setShowAnswer]=useState(false);
   const [loadedPackId,setLoadedPackId]=useState(null),[selectedChoice,setSelectedChoice]=useState(null);
   const [volume,setVolume]=useState(true),[presenter,setPresenter]=useState(false);
+  // Optimised for large-screen teaching; may be enlarged further during a class.
+  const [questionSize,setQuestionSize]=useState(1);
   const [bombSoundStyle,setBombSoundStyle]=useState('recorded'),[soundVolume,setSoundVolume]=useState(75);
   const [samplePackId,setSamplePackId]=useState(SAMPLE_PACKS[0].id);
   const [confirmReset,setConfirmReset]=useState(false),[saveError,setSaveError]=useState(false);
@@ -36,6 +38,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
   const [forceFx,setForceFx]=useState(false);
   const [audioFeedback,setAudioFeedback]=useState('');
   const closeRef=useRef(null),soundRef=useRef(null),fxTimer=useRef(null),answerTapLockRef=useRef(false);
+  const shellRef=useRef(null),questionDialogRef=useRef(null);
   // Do not animate the BUTTON hitbox: doing so causes mouseleave while hovering
   // and makes the shake appear to stop after one frame on Safari/Chrome.
   const hoverAnimations=useRef(new Map());
@@ -70,6 +73,10 @@ export default function BrianBombArena({currentUser,language='vi'}){
     hoverAnimations.current.clear();
   };
   const update=action=>setSession(s=>s?arenaReducer(s,action):s);
+  useEffect(()=>{
+    if(session?.selectedTile===null||session?.selectedTile===undefined||screen!=='arena'||!open)return;
+    questionDialogRef.current?.focus({preventScroll:true});
+  },[session?.selectedTile,session?.questionIndex,screen,open]);
   useEffect(()=>()=>{window.clearTimeout(fxTimer.current);soundRef.current?.close();
     hoverAnimations.current.forEach(animation=>animation.cancel());hoverAnimations.current.clear();
   },[]);
@@ -419,9 +426,21 @@ export default function BrianBombArena({currentUser,language='vi'}){
           </div>}
         </aside>
       </div>
-      {session.selectedTile!==null&&session.phase==='running'&&!presenter&&<div className="bba-question-mask" role="dialog" aria-modal="true" aria-label={tr('Kiểm tra kiến thức','Question gate')}>
-        <div className="bba-question-card">
-          <span className="bba-eyebrow">{tr('CÂU HỎI CHO ','QUESTION FOR ')+leader?.name}</span>
+      {session.selectedTile!==null&&session.phase==='running'&&!presenter&&shellRef.current&&createPortal(
+        <div className="bba-question-mask bba-classroom-question-mask" role="dialog" aria-modal="true"
+             aria-label={tr('Câu hỏi trắc nghiệm trên màn hình lớp học','Classroom quiz question')}
+             ref={questionDialogRef} tabIndex={-1}>
+          <div className={'bba-question-card bba-classroom-question-card bba-question-size-'+questionSize}>
+            <div className="bba-question-header">
+              <span className="bba-eyebrow">{tr('CÂU HỎI CHO ','QUESTION FOR ')+leader?.name}</span>
+              <div className="bba-question-size-controls" role="group" aria-label={tr('Điều chỉnh cỡ chữ cho lớp học','Classroom font size controls')}>
+                <span>{tr('CỠ CHỮ','TEXT SIZE')}</span>
+                <button type="button" onClick={()=>setQuestionSize(n=>Math.max(0,n-1))}
+                  disabled={questionSize===0} aria-label={tr('Thu nhỏ chữ câu hỏi','Decrease question font size')}>A−</button>
+                <button type="button" onClick={()=>setQuestionSize(n=>Math.min(2,n+1))}
+                  disabled={questionSize===2} aria-label={tr('Phóng to chữ câu hỏi','Increase question font size')}>A+</button>
+              </div>
+            </div>
           <h2>{selectedQuestion?.prompt||tr('Giáo viên xác nhận kết quả','Teacher confirms the answer')}</h2>
           {selectedQuestion?.unit&&<p className="bba-question-unit">{selectedQuestion.grade===12?'ENGLISH 12':'ENGLISH 11'} · UNIT {selectedQuestion.unit} · {tr('NGỮ PHÁP','GRAMMAR')}</p>}
           {selectedQuestion?.options&&<p className="bba-instant-hint">{tr('Chạm một phương án để chấm ngay: đúng +20, sai −20 và mất POT.', 'Tap an option to grade instantly: correct +20, wrong −20 and lose POT.')}</p>}
@@ -448,8 +467,8 @@ export default function BrianBombArena({currentUser,language='vi'}){
             <button type="button" className="bba-primary" onClick={()=>answer(true)}><CheckCircle2 size={20}/>{tr('Chính xác — mở ô','Correct — reveal')}</button>
           </>}
           </div>
-        </div>
-      </div>}
+          </div>
+        </div>,shellRef.current)}
     </div>;
   };
   const bubble=<button type="button" className="bba-bubble" onClick={()=>{
@@ -462,7 +481,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
   return <>
     {!open&&createPortal(bubble,document.body)}
     {open&&createPortal(<section className={'bba-shell bba-theme-'+(session?.theme||theme)+(fx?.type==='bomb'?' is-exploding':'')+(forceFx?' bba-allow-fx':'')}
-       role="dialog" aria-modal="true" aria-label="Brian Bomb Arena">
+       role="dialog" aria-modal="true" aria-label="Brian Bomb Arena" ref={shellRef}>
       <header className="bba-header"><div className="bba-brand"><span>💣</span><div><strong>BRIAN BOMB ARENA</strong><small>THE EXPLOSIVE CLASSROOM</small></div></div>
         <div className="bba-header-actions">
           {session&&screen==='arena'&&<button type="button" onClick={()=>setPresenter(x=>!x)} aria-pressed={presenter} title={tr('Chế độ trình chiếu','Presenter mode')}><Monitor size={18}/><span>{presenter?tr('Giáo viên','Teacher'):tr('Trình chiếu','Present')}</span></button>}
