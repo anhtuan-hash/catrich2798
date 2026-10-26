@@ -12,6 +12,8 @@ on:
       - 'scripts/test-brian-instant-tools-wave2.mjs'
       - 'scripts/test-brian-instant-tools-wave3.mjs'
       - 'tests/e2e/brian-instant-tools-wave3-qa.spec.js'
+      - 'scripts/test-brian-instant-tools-wave4.mjs'
+      - 'tests/e2e/brian-instant-tools-wave4-qa.spec.js'
       - 'playwright.brian-instant-tools.config.js'
   workflow_dispatch:
 permissions:
@@ -36,5 +38,7 @@ jobs:
         run: npx playwright install --with-deps chromium webkit
       - name: Check pure tool contracts
         run: node scripts/test-brian-instant-tools.mjs
+      - name: Check Wave 4 pure contracts
+        run: node scripts/test-brian-instant-tools-wave4.mjs
       - name: Run isolated tools UI (no cloud / no student data)
         run: npx playwright test --config=playwright.brian-instant-tools.config.js
