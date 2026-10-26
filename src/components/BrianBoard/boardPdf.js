@@ -218,7 +218,7 @@ export function pageToSvg(page,theme='ivory',viewport=null){
     'stroke-linecap':'round','stroke-linejoin':'round',opacity:o.opacity??1},target);
   }else if(o.kind==='shape'){
    const common={fill:/^#[0-9a-fA-F]{6}$/.test(o.fill||'')?o.fill:'none',
-    stroke:o.color||'#335d63','stroke-width':finite(o.width,4)};
+    stroke:o.color||'#335d63','stroke-width':finite(o.width,4),opacity:Math.max(0,Math.min(1,finite(o.opacity,1)))};
    const geometry=boardShapeGeometry(o.shape,o.x,o.y,o.x2,o.y2);
    if(geometry)svgNode(geometry.type==='polygon'?'polygon':'polyline',{
     ...common,fill:geometry.type==='polyline'?'none':common.fill,
