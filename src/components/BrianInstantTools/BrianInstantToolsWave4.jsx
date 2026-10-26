@@ -45,13 +45,13 @@ function localBeep(frequency=660,seconds=.15,volume=.07){
 }
 function GroupMaker({value,onChange,language,sound}){
  const t=useStrings(language),[draft,setDraft]=useState(value.names.join('\n')),[copied,setCopied]=useState('');
- const [error,setError]=useState('');
+ const [error,setError]=useState(''),[dealRun,setDealRun]=useState(0);
  const update=fn=>onChange(v=>fn(v));
  const split=()=>{
   const names=normalizePeople(draft);
   if(names.length<2){setError(t.needNames);return;}
   const groups=makeGroups(names,value.count,secureInt);
-  update(v=>({...v,names,groups}));setError('');if(sound)localBeep(588,.17);
+  update(v=>({...v,names,groups}));setDealRun(n=>n+1);setError('');if(sound)localBeep(588,.17);
  };
  const copy=async()=>{
   const contents=value.groups.map((g,i)=>(language==='en'?t.group:t.group)+' '+(i+1)+': '+g.members.join(', ')).join('\n');
@@ -69,9 +69,9 @@ function GroupMaker({value,onChange,language,sound}){
    <button type="button" className="bit-secondary" disabled={!value.groups.length} onClick={copy}><Copy size={17}/>{t.copy}</button>
    {copied&&<p role="status" className="bit-w4-hint">{copied}</p>}
   </section>
-  <section className="bit-w4-group-view">{value.groups.length?value.groups.map((g,i)=><article className="bit-w4-group-card" key={g.id} style={{'--w4-accent':['#587ce1','#21a994','#df9861','#b66ec1','#4aa8c9','#e27f9c','#6bb366','#8c85d8'][i]}}>
+  <section className="bit-w4-group-view" key={dealRun}>{value.groups.length?value.groups.map((g,i)=><article className="bit-w4-group-card" key={g.id} style={{'--w4-accent':['#587ce1','#21a994','#df9861','#b66ec1','#4aa8c9','#e27f9c','#6bb366','#8c85d8'][i]}}>
     <header><strong>{t.group} {i+1}</strong><small>{g.members.length} {t.members}</small></header>
-    <ol>{g.members.map((name,j)=><li key={j}>{name}</li>)}</ol>
+    <ol>{g.members.map((name,j)=><li key={j} style={{'--w4-stagger':Math.min(700,(j*8+i*70))+'ms'}}>{name}</li>)}</ol>
    </article>):<div className="bit-w4-empty"><UsersRound size={48}/><p>{t.groupsEmpty}</p></div>}</section>
  </div>;
 }
@@ -215,7 +215,21 @@ function ReactionTimer({value,onChange,language,sound}){
   readyAt.current=null;setResult(ms);setPhase('result');
   onChange(v=>({...v,history:[ms,...v.history].slice(0,10)}));
   if(sound)localBeep(950,.14);
+  if((!value.history.length||ms<Math.min(...value.history))&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){
+   import('canvas-confetti').then(({default:burst})=>burst({particleCount:55,spread:55,origin:{y:.7},disableForReducedMotion:true})).catch(()=>{});
+  }
  };
+ useEffect(()=>{
+  const handler=e=>{
+   if(e.repeat||e.altKey||e.ctrlKey||e.metaKey)return;
+   if(/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(e.target?.tagName)||e.target?.isContentEditable)return;
+   if(e.code==='Space'||e.code==='Enter'){
+    if(phase==='waiting'||phase==='ready'){e.preventDefault();tap();}
+    else if(phase==='idle'||phase==='early'||phase==='result'){e.preventDefault();start();}
+   }
+  };
+  window.addEventListener('keydown',handler);return ()=>window.removeEventListener('keydown',handler);
+ });
  const best=value.history.length?Math.min(...value.history):null;
  return <div className="bit-w4-reaction">
   <div className="bit-w4-react-header"><p>{t.reactionHelp}</p>
