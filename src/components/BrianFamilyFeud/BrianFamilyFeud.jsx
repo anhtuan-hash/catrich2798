@@ -522,7 +522,8 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
     {!open&&createPortal(launch,document.body)}
     {open&&createPortal(<section className="bff-shell" role="dialog" aria-modal="true" aria-label="Brian Family Feud"
        ref={shellRef} data-bubble-phase={exiting?'exit':'enter'} data-motion-kind={motionKind}
-       style={{'--bff-motion-duration':motionDuration+'ms','--bff-type-scale':fontScale}}
+       style={{'--bff-motion-duration':motionDuration+'ms','--bff-type-scale':fontScale,
+         '--bff-font-bonus':Math.round((fontScale-1.18)*40)+'px'}}
        data-classroom-ui="v2">
       <header className="bff-topbar">
         <div className="bff-brand"><span className="bff-brand-icon">👨‍👩‍👧‍👦</span><div>
