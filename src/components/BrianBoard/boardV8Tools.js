@@ -169,11 +169,26 @@ export function createDiagramConnection(objects,fromId,toId){
 }
 export function syncDiagramConnections(objects){
  const byId=new Map(objects.map(o=>[o.id,o]));
- return objects.map(o=>{
+ const edges=objects.map(o=>{
   if(o.kind!=='shape'||!o.fromId||!o.toId)return o;
   const a=boardObjectCenter(byId.get(o.fromId)),b=boardObjectCenter(byId.get(o.toId));
   return a&&b?{...o,x:a.x,y:a.y,x2:b.x,y2:b.y}:o;
  });
+ const updated=new Map(edges.map(o=>[o.id,o]));
+ return edges.map(o=>{
+  if(o.kind!=='text'||!o.connectorId)return o;
+  const link=updated.get(o.connectorId);
+  if(!link||link.kind!=='shape')return o;
+  return {...o,x:(link.x+link.x2)/2+9,y:(link.y+link.y2)/2-15};
+ });
+}
+export function createLabeledDiagramConnection(objects,fromId,toId,label){
+ const link=createDiagramConnection(objects,fromId,toId);
+ const title=String(label||'').trim().slice(0,60);
+ if(!link||!title)return [];
+ return [link,{id:id(),kind:'text',text:title,
+  x:(link.x+link.x2)/2+9,y:(link.y+link.y2)/2-15,
+  fontSize:27,color:'#255f51',connectorId:link.id,studentVisible:true}];
 }
 
 /** Eight-handle transform, with opposite handle anchored and safe scale bounds.
