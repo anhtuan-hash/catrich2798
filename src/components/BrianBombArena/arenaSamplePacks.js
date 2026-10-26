@@ -1,5 +1,13 @@
+import {G11_GRAMMAR_MCQS} from './arenaG11Grammar100.js';
 // Offline classroom sample packs; no network, AI, or paid service.
 const rawPacks = [
+  {
+    id:'g11-global-success-grammar-100',
+    titleVi:'Tiếng Anh 11 · Ngữ pháp 10 Unit · 100 câu trắc nghiệm',
+    titleEn:'English 11 · Global Success · 100 Grammar MCQs',
+    level:'B1–B2',topic:'Grammar · Units 1–10',
+    items:G11_GRAMMAR_MCQS.map(q=>({prompt:q.prompt,answer:q.answer,options:q.options,answerIndex:q.answerIndex,explanation:q.explanation,unit:q.unit,topic:q.topic})),
+  },
   {
     "id": "g11-global-warming",
     "titleVi": "Tiếng Anh 11 · Unit 5 Global Warming",
@@ -461,7 +469,15 @@ const rawPacks = [
   }
 ];
 
-const normalize=q=>({prompt:String(q[0]||'').trim().slice(0,600),answer:String(q[1]||'').trim().slice(0,300)});
+const normalize=q=>({
+  prompt:String((Array.isArray(q)?q[0]:q.prompt)||'').trim().slice(0,600),
+  answer:String((Array.isArray(q)?q[1]:q.answer)||'').trim().slice(0,300),
+  ...(Array.isArray(q)?{}:q.options?{
+    options:q.options.slice(0,4).map(v=>String(v).slice(0,200)),
+    answerIndex:q.answerIndex,explanation:String(q.explanation||'').slice(0,400),
+    unit:q.unit,topic:q.topic,
+  }:{})
+});
 function parseDelimited(text,delimiter=','){
   const rows=[];let row=[],cell='',quoted=false;
   for(let i=0;i<text.length;i++){
