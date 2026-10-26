@@ -203,12 +203,22 @@ export default function BrianBombArena({currentUser,language='vi'}){
     if(answerTapLockRef.current||session?.phase!=='running'||session.selectedTile===null
       ||!selectedQuestion?.options||!Number.isInteger(index))return;
     answerTapLockRef.current=true; // prevents rapid double tap before React's commit.
-    const correct=index===selectedQuestion.answerIndex;
-    const tileId=session.selectedTile;
-    update({type:'ANSWER_CHOICE',choice:index});
+    const now=Date.now(),kit=isChaosKit(session)?session.chaosKit:null;
+    const timedOut=Boolean(kit?.features.timer&&kit.questionDueAt!==null&&now>=kit.questionDueAt);
+    const correct=!timedOut&&index===selectedQuestion.answerIndex;
+    const tileId=session.selectedTile,activeTeam=session.teams[session.turn];
+    const streak=(activeTeam.combo||0)+1,multiplier=kit?.features.combo?(streak>=6?3:streak>=3?2:1):1;
+    const points=kit?20*multiplier:20;
+    const bossDefeat=Boolean(correct&&kit?.features.boss&&kit.bossActive&&!kit.bossDefeated&&kit.bossHP===1);
+    const shieldUsed=Boolean(!correct&&kit?.features.shield&&activeTeam.shields>0);
+    update(timedOut?{type:'TIMEOUT',now}:{type:'ANSWER_CHOICE',choice:index,now});
     setShowAnswer(false);setSelectedChoice(index);
-    if(correct){playSound('bigpoints');showFx('points',20,tileId,'correct');}
-    else{playSound('bomb');showFx('bomb',-20,tileId,'incorrect');}
+    if(correct){
+      playSound(bossDefeat?'win':'bigpoints');
+      showFx(bossDefeat?'win':'points',points+(bossDefeat?kit.bonus:0),tileId,
+        bossDefeat?'boss':kit?'defused':'correct');
+    }else{playSound('bomb');showFx('bomb',shieldUsed?0:-20,tileId,
+      timedOut?'timeout':shieldUsed?'shield':'incorrect');}
   };
   const answer=correct=>{
     if(session?.selectedTile===null)return;
@@ -222,6 +232,32 @@ export default function BrianBombArena({currentUser,language='vi'}){
     const amount=session.teams[session.turn].bank;
     update({type:'BANK'});playSound('bank');showFx('bank',amount);
   };
+  useEffect(()=>{
+    if(!isChaosKit(session)||!session.chaosKit.features.timer||
+       session.phase!=='running'||session.selectedTile===null||!open||presenter)return;
+    const deadline=session.chaosKit.questionDueAt;
+    if(!Number.isFinite(deadline))return;
+    const key=session.id+':'+session.questionIndex+':'+session.selectedTile;
+    timeoutKeyRef.current=null;
+    const check=()=>{
+      const now=Date.now();
+      setCountdown(Math.max(0,Math.ceil((deadline-now)/1000)));
+      if(now<deadline||timeoutKeyRef.current===key||answerTapLockRef.current)return;
+      timeoutKeyRef.current=key;answerTapLockRef.current=true;
+      const shield=session.chaosKit.features.shield&&session.teams[session.turn].shields>0;
+      update({type:'TIMEOUT',now});playSound('bomb');
+      showFx('bomb',shield?0:-20,session.selectedTile,'timeout');
+    };
+    check();
+    const interval=window.setInterval(check,100);
+    return()=>window.clearInterval(interval);
+  },[session?.id,session?.questionIndex,session?.selectedTile,session?.chaosKit?.questionDueAt,session?.phase,open,presenter]);
+  useEffect(()=>{
+    if(!isChaosKit(session)||session.phase!=='running'||session.selectedTile===null)return;
+    const onVisibility=()=>{if(document.visibilityState==='hidden')update({type:'PAUSE',now:Date.now()});};
+    document.addEventListener('visibilitychange',onVisibility);
+    return()=>document.removeEventListener('visibilitychange',onVisibility);
+  },[session?.id,session?.phase,session?.selectedTile]);
   const finishPortalClose=()=>{
     window.clearTimeout(portalExitTimer.current);
     portalExitPending.current=false;
@@ -231,6 +267,8 @@ export default function BrianBombArena({currentUser,language='vi'}){
   };
   const close=()=>{
     if(portalExitPending.current)return;
+    if(isChaosKit(session)&&session.phase==='running'&&session.selectedTile!==null)
+      update({type:'PAUSE',now:Date.now()});
     const {duration}=readBubbleMotion();
     if(!duration){finishPortalClose();return;}
     portalExitPending.current=true;setPortalExiting(true);
