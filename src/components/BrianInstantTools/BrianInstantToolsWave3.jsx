@@ -83,8 +83,9 @@ function Notes({value,onChange,language,pinnedId,onPin}){
 function TextTools({value,onChange,language}){
  const t=L[language]||L.vi;
  const stats=useMemo(()=>textStats(value.text),[value.text]);
- const [message,setMessage]=useState('');
+ const [message,setMessage]=useState(''),[previousText,setPreviousText]=useState(null);
  const update=text=>onChange(v=>({...v,text}));
+ const transform=id=>{setPreviousText(value.text);update(transformText(value.text,id));setMessage(language==='en'?'Text transformed':'Đã chuyển đổi văn bản');};
  const copy=async()=>{
    try{await navigator.clipboard.writeText(value.text);setMessage(t.copied);}
    catch{setMessage(t.copyFail);}
@@ -94,13 +95,14 @@ function TextTools({value,onChange,language}){
     [t.words,stats.words],[t.chars,stats.chars],[t.nonspace,stats.charsNoSpaces],[t.sentences,stats.sentences],[t.paragraphs,stats.paragraphs]
   ].map(([name,n])=><div className="bit-w3-stat" key={name}><strong>{n.toLocaleString()}</strong><span>{name}</span></div>)}</div>
   <div className="bit-w3-toolbar">{[['upper',t.upper,CaseUpper],['lower',t.lower,CaseLower],['title',t.titleCase,ArrowDownAZ],['trim',t.clean,AlignLeft]].map(([id,name,Icon])=><button key={id} className="bit-secondary" type="button"
-    onClick={()=>update(transformText(value.text,id))}><Icon size={16}/>{name}</button>)}
+    onClick={()=>transform(id)}><Icon size={16}/>{name}</button>)}
+    <button type="button" className="bit-secondary" disabled={previousText===null} onClick={()=>{update(previousText);setPreviousText(null);setMessage(language==='en'?'Undone':'Đã hoàn tác');}}><RotateCcw size={17}/>{language==='en'?'Undo':'Hoàn tác'}</button>
     <button type="button" className="bit-secondary" onClick={copy}><Copy size={17}/>{t.copy}</button>
     <button type="button" className="bit-w3-danger" onClick={()=>{if(window.confirm(t.clearConfirm))update('');}}><Trash2 size={17}/>{t.clear}</button></div>
   <label htmlFor="bit-w3-textarea">{t.input}</label>
   <textarea id="bit-w3-textarea" rows={14} maxLength={20000} value={value.text} placeholder="Paste your text here…"
     onChange={e=>update(e.target.value.slice(0,20000))}/>
-  <div className="bit-w3-hint">{message||t.save} · {value.text.length}/20000</div>
+  <div className="bit-w3-hint" role="status">{message||t.save} · {value.text.length}/20000</div>
  </div>;
 }
 const KEYS=[
@@ -191,7 +193,7 @@ function QuickLinks({value,onChange,language}){
 }
 function Checklist({value,onChange,language}){
  const t=L[language]||L.vi;
- const [draft,setDraft]=useState(''),[filter,setFilter]=useState('all');
+ const [draft,setDraft]=useState(''),[filter,setFilter]=useState('all'),[deleted,setDeleted]=useState(null);
  const items=value.items,done=items.filter(x=>x.done).length;
  const update=fn=>onChange(v=>({...v,items:fn(v.items)}));
  const add=()=>{
@@ -208,13 +210,14 @@ function Checklist({value,onChange,language}){
   </form>
   <div className="bit-w3-actions"><div className="bit-w3-filters">{[['all',t.all],['open',t.openTasks],['done',t.doneTasks]].map(([id,label])=><button type="button" key={id}
     className={filter===id?'active':''} aria-pressed={filter===id} onClick={()=>setFilter(id)}>{label}</button>)}</div>
-    <button type="button" className="bit-w3-danger" disabled={!done} onClick={()=>{if(window.confirm(t.clearDoneAsk))update(xs=>xs.filter(x=>!x.done));}}><Trash2 size={17}/>{t.clearCompleted}</button>
+    <button type="button" className="bit-secondary" disabled={!deleted} onClick={()=>{update(xs=>[...xs.slice(0,deleted.index),deleted.item,...xs.slice(deleted.index)].slice(0,60));setDeleted(null);}}><RotateCcw size={17}/>{language==='en'?'Undo delete':'Hoàn tác xóa'}</button>
+    <button type="button" className="bit-w3-danger" disabled={!done} onClick={()=>{if(window.confirm(t.clearDoneAsk)){setDeleted(null);update(xs=>xs.filter(x=>!x.done));}}}><Trash2 size={17}/>{t.clearCompleted}</button>
   </div>
   <div className="bit-w3-tasks">{shown.length?shown.map(x=><div className={'bit-w3-task'+(x.done?' is-done':'')} key={x.id}>
     <button className="bit-w3-task-toggle" type="button" aria-label={(x.done?t.openTasks:t.finished)+': '+x.text} aria-pressed={x.done} onClick={()=>update(xs=>xs.map(a=>a.id===x.id?{...a,done:!a.done}:a))}>
       {x.done?<CheckCircle2 size={26}/>:<Square size={26}/>}</button>
     <input aria-label={t.task} maxLength={160} value={x.text} onChange={e=>update(xs=>xs.map(a=>a.id===x.id?{...a,text:e.target.value.slice(0,160)}:a))}/>
-    <button type="button" className="bit-w3-icon" aria-label={t.delete+': '+x.text} onClick={()=>{if(window.confirm(t.deleteConfirm))update(xs=>xs.filter(a=>a.id!==x.id));}}><Trash2 size={18}/></button>
+    <button type="button" className="bit-w3-icon" aria-label={t.delete+': '+x.text} onClick={()=>{if(window.confirm(t.deleteConfirm)){setDeleted({item:x,index:items.findIndex(a=>a.id===x.id)});update(xs=>xs.filter(a=>a.id!==x.id));}}}><Trash2 size={18}/></button>
   </div>):<p className="bit-w3-hint">{t.todoEmpty}</p>}</div>
   <p className="bit-w3-hint">{items.length}/60 · {t.save}</p>
  </div>;
