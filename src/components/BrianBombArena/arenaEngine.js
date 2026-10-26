@@ -128,7 +128,7 @@ export function arenaReducer(state,action){
       const team=s.teams[s.turn];team.score+=team.bank;team.bank=0;
       s.last={event:'bank',team:team.name,after:team.score};advance(s);changed=true;break;
     }
-    case 'NEXT':if(s.phase==='running'&&!s.selectedTile){advance(s);changed=true;}break;
+    case 'NEXT':if(s.phase==='running'&&!s.selectedTile&&(s.mode!=='luck'||s.teams[s.turn].bank===0)){advance(s);changed=true;}break;
     case 'SCORE':{
       if(!['running','paused'].includes(s.phase)||!Number.isInteger(action.index)||!s.teams[action.index])break;
       const value=Number(action.value);
