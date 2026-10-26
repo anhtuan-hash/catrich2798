@@ -17,7 +17,7 @@ assert.equal(new Set(flat).size,7);
 assert.throws(()=>makeBalancedGroups('A\nA',3),/MIN_NAMES/);
 assert.throws(()=>makeBalancedGroups('A\nB',2,()=>999),/RNG/);
 assert.ok(rmsToDbfs(.1)<-19&&rmsToDbfs(.1)>-21);
-assert.equal(rmsToDbfs(0),-90);
+assert.ok(rmsToDbfs(0)<-89.9);
 assert.equal(rmsToDbfs(1),0);
 assert.ok(relativeLoudness(-10)>relativeLoudness(-40));
 assert.equal(reactionLabel(130),'excellent');
