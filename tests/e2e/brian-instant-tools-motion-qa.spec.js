@@ -53,6 +53,11 @@ test('Buzzer permits duplicate labels without awarding to the wrong team',async(
  await page.getByRole('button',{name:'Cộng điểm'}).click();
  await expect(page.locator('.bit-w4-buzz-team').nth(1).locator('span').last()).toContainText('1');
  await expect(page.locator('.bit-w4-buzz-team').first().locator('span').last()).toContainText('0');
+ await page.getByRole('button',{name:'Bắt đầu lượt mới'}).click();
+ await page.evaluate(()=>document.activeElement?.blur());
+ await page.keyboard.press('3');
+ await expect(page.locator('.bit-w4-buzz-team').nth(2)).toHaveClass(/is-winner/);
+ await expect(page.locator('.bit-w4-big-buzz:disabled')).toHaveCount(4);
 });
 test('Group Maker animates a real balanced assignment',async({page})=>{
  await enter(page,15);
