@@ -101,7 +101,7 @@ function TextTools({value,onChange,language}){
     <button type="button" className="bit-w3-danger" onClick={()=>{if(window.confirm(t.clearConfirm))update('');}}><Trash2 size={17}/>{t.clear}</button></div>
   <label htmlFor="bit-w3-textarea">{t.input}</label>
   <textarea id="bit-w3-textarea" rows={14} maxLength={20000} value={value.text} placeholder="Paste your text here…"
-    onChange={e=>update(e.target.value.slice(0,20000))}/>
+    onChange={e=>{setPreviousText(null);setMessage('');update(e.target.value.slice(0,20000));}}/>
   <div className="bit-w3-hint" role="status">{message||t.save} · {value.text.length}/20000</div>
  </div>;
 }
