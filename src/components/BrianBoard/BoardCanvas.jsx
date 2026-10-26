@@ -475,6 +475,10 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
     </select>
     {selectedIds.length===2&&<button type="button" onClick={()=>onBatchEdit?.(selectedIds,'connect')}>
      {vi?'Nối sơ đồ →':'Connect nodes →'}</button>}
+    {selectedIds.length===2&&<button type="button" onClick={()=>{
+     const label=window.prompt(vi?'Nhãn liên kết (hiển thị cho học sinh):':'Connection label (visible to students):');
+     if(label?.trim())onBatchEdit?.(selectedIds,'connect-labeled',{label:label.trim().slice(0,60)});
+    }}>{vi?'Nối có nhãn':'Labeled link'}</button>}
     <button type="button" onClick={()=>onBatchEdit?.(selectedIds,'duplicate')}>
      {vi?'⧉ Nhân bản':'⧉ Duplicate'}</button>
     <button type="button" onClick={()=>onSaveAsset?.(selectedIds)}>
