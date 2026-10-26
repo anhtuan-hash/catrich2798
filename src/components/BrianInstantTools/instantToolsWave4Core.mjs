@@ -45,7 +45,9 @@ export function relativeNoise(samples){
  return Math.round(bound(rms*450,0,100));
 }
 export function safeTeamNames(names){
- const clean=normalizePeople(arr(names),8);
+ // Team identity comes from its stable position, not from display text.
+ // Duplicated labels must not collapse or reindex stored scores on reload.
+ const clean=arr(names).slice(0,8).map((name,i)=>str(name,32,'Team '+(i+1)).trim()||'Team '+(i+1));
  return clean.length>=2?clean:BUZZER_DEFAULT;
 }
 export function lockBuzzer(locked,name){
