@@ -62,7 +62,7 @@ export function sanitizeStudentPage(page){
   }else if(kind==='shape'){
    safe.push({id,kind,shape:['rect','ellipse','line','arrow','triangle'].includes(o.shape)?o.shape:'rect',
     ...rotation(o),fill:/^#[0-9a-fA-F]{6}$/.test(o.fill||'')?o.fill:'none',
-    ...xy(o),x2:number(o.x2),y2:number(o.y2),color:String(o.color||'#355d63').slice(0,60),width:number(o.width,4)});
+    ...xy(o),x2:number(o.x2),y2:number(o.y2),color:String(o.color||'#355d63').slice(0,60),width:number(o.width,4),opacity:Math.max(0,Math.min(1,number(o.opacity,1)))});
   }else if(kind==='text'||kind==='sticky'){
    safe.push({id,kind,...xy(o),...rotation(o),text:String(o.text||'').slice(0,90),
     color:String(o.color||'#355d63').slice(0,60),fontSize:number(o.fontSize,40)});
