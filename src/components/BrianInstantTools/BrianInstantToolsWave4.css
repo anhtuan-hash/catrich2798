@@ -68,3 +68,23 @@
 .bit-w4-bell-card.is-played{animation:bit-w4-bell-ring .55s ease-out}
 @keyframes bit-w4-bell-ring{0%{transform:scale(.94);box-shadow:0 0 0 0 #6b87ea52}45%{transform:scale(1.045);box-shadow:0 0 0 12px #6b87ea11}100%{transform:scale(1);box-shadow:0 0 0 0 #6b87ea00}}
 @media(prefers-reduced-motion:reduce){.bit-w4-bell-tabs button{transition:none}.bit-w4-bell-card.is-played{animation:none}}
+
+/* 20-tools Motion Pass — Wave 4 state-linked animations. */
+@keyframes bit-w4-deal{0%{opacity:0;transform:translateY(-14px) scale(.96)}70%{opacity:1;transform:translateY(2px) scale(1.015)}100%{opacity:1;transform:none}}
+.bit-w4-group-card li{animation:bit-w4-deal .43s cubic-bezier(.2,.85,.25,1) both;animation-delay:var(--w4-stagger,0ms)}
+.bit-w4-group-card{transition:box-shadow .2s,transform .2s}
+.bit-w4-group-card:hover{box-shadow:0 13px 26px #385cc323;transform:translateY(-2px)}
+@keyframes bit-w4-win{0%{transform:scale(.92);box-shadow:0 0 0 0 #ebbd686b}45%{transform:scale(1.04);box-shadow:0 0 0 14px #ebbd680e}100%{transform:scale(1);box-shadow:0 0 0 0 #ebbd6800}}
+.bit-w4-buzz-team.is-winner{animation:bit-w4-win .55s ease-out}
+.bit-w4-buzz-team:not(.is-winner) .bit-w4-big-buzz:disabled{filter:saturate(.65);transition:filter .18s,opacity .18s}
+.bit-w4-buzz-status.has-winner{animation:bit-w4-deal .28s ease-out}
+@keyframes bit-w4-react-pop{0%{transform:scale(.95);filter:brightness(1.3)}100%{transform:scale(1);filter:brightness(1)}}
+@keyframes bit-w4-react-early{0%,100%{transform:translateX(0)}25%,75%{transform:translateX(-8px)}50%{transform:translateX(8px)}}
+.bit-w4-reaction-stage.is-ready,.bit-w4-reaction-stage.is-result{animation:bit-w4-react-pop .25s ease-out}
+.bit-w4-reaction-stage.is-early{animation:bit-w4-react-early .26s ease-out}
+.bit-w4-meter.is-loud{box-shadow:0 8px 30px #d8586340,inset 0 0 0 2px #d96b7a1c}
+.bit-w4-meter-track span{will-change:width}
+@media(prefers-reduced-motion:reduce){
+ .bit-w4-group-card li,.bit-w4-buzz-team.is-winner,.bit-w4-buzz-status.has-winner,.bit-w4-reaction-stage.is-ready,.bit-w4-reaction-stage.is-result,.bit-w4-reaction-stage.is-early{animation:none!important}
+ .bit-w4-group-card{transition:none!important}.bit-w4-group-card:hover{transform:none!important}
+}
