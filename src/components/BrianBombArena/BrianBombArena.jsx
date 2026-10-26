@@ -7,7 +7,8 @@ import {isAdminRole,isDepartmentLeaderRole,normalizeSystemRole} from '../../util
 import {createArena,arenaReducer,rankTeams,TILE_ICONS,ARENA_MODES} from './arenaEngine.js';
 import {loadArena,saveArena,clearArena} from './arenaStorage.js';
 import './BrianBombArena.css';
-import {createArenaSound} from './arenaSound.js';
+import {createArenaSound,BOMB_SOUND_STYLES} from './arenaSound.js';
+import {SAMPLE_PACKS,getSamplePack,packToText,parseArenaQuestions,toArenaCSV,EMPTY_CSV_TEMPLATE} from './arenaSamplePacks.js';
 import ArenaEffects from './ArenaEffects.jsx';
 
 const COLORS=['#ef6577','#61a9f6','#f4c265','#60d5b0','#ad8ff4','#f39b68','#8ed8ee','#d49bbd'];
@@ -16,17 +17,6 @@ const MODE_EMOJI={classic:'⭐',chaos:'⚡',luck:'🎲',challenge:'🎓'};
 const THEME_NAMES={mint:'Mint Classroom',neon:'Neon Reactor',comic:'Comic Blast',cosmic:'Cosmic Danger'};
 const allowedUser=user=>Boolean(user?.id&&user.approved!==false&&(
   isAdminRole(user.role)||isDepartmentLeaderRole(user.role)||normalizeSystemRole(user.role)==='teacher'));
-function parseQuestions(input){
-  // UTF-8 text, question||answer, or straightforward CSV with header question,answer.
-  return String(input||'').split(/\r?\n/).map(line=>line.trim()).filter(Boolean)
-    .filter((line,i)=>!(i===0&&/^(question|câu hỏi)\s*,\s*(answer|đáp án)/i.test(line)))
-    .map(line=>{
-      const separator=line.includes('||')?'||':line.includes('\t')?'\t':',';
-      const parts=line.split(separator);
-      return {prompt:String(parts.shift()||'').replace(/^"|"$/g,'').trim(),
-        answer:parts.join(separator).replace(/^"|"$/g,'').trim()};
-    }).filter(x=>x.prompt).slice(0,300);
-}
 export default function BrianBombArena({currentUser,language='vi'}){
   const vi=language!=='en',tr=(vn,en)=>vi?vn:en,ownerId=String(currentUser?.id||'');
   const allowed=allowedUser(currentUser);
@@ -37,6 +27,8 @@ export default function BrianBombArena({currentUser,language='vi'}){
   const [theme,setTheme]=useState('mint'),[questionGate,setQuestionGate]=useState(false);
   const [questionText,setQuestionText]=useState(''),[showAnswer,setShowAnswer]=useState(false);
   const [volume,setVolume]=useState(true),[presenter,setPresenter]=useState(false);
+  const [bombSoundStyle,setBombSoundStyle]=useState('cinematic'),[soundVolume,setSoundVolume]=useState(75);
+  const [samplePackId,setSamplePackId]=useState(SAMPLE_PACKS[0].id);
   const [confirmReset,setConfirmReset]=useState(false),[saveError,setSaveError]=useState(false);
   const [status,setStatus]=useState('');
   const [fx,setFx]=useState(null);
@@ -46,7 +38,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
   const playSound=type=>{
     if(!volume)return;
     if(!soundRef.current)soundRef.current=createArenaSound();
-    soundRef.current.play(type);
+    soundRef.current.play(type,{style:bombSoundStyle,volume:soundVolume});
   };
   const showFx=(type,amount=0,tileId=null)=>{
     window.clearTimeout(fxTimer.current);
@@ -105,7 +97,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
   },[session?.phase,screen]);
 
   const begin=()=>{
-    const questions=parseQuestions(questionText);
+    const questions=parseArenaQuestions(questionText);
     const game=createArena({ownerId,mode,size,teamCount,
       teamNames:names.split(/\n|;/).map(x=>x.trim()).filter(Boolean),
       questionGate:mode==='challenge'||questionGate,questions,theme});
@@ -152,6 +144,20 @@ export default function BrianBombArena({currentUser,language='vi'}){
     }catch{setStatus(tr('Không đọc được tệp','Could not read file'));}
     event.target.value='';
   };
+  const importSamplePack=()=>{
+    const pack=getSamplePack(samplePackId);
+    setQuestionText(packToText(pack));setQuestionGate(true);
+    setStatus(tr('Đã nạp '+pack.count+' câu: '+pack.titleVi,'Loaded '+pack.count+' questions: '+pack.titleEn));
+  };
+  const exportQuestionCSV=(kind='pack')=>{
+    const pack=getSamplePack(samplePackId);
+    const contents=kind==='template'?EMPTY_CSV_TEMPLATE:toArenaCSV(pack.items);
+    const filename=kind==='template'?'brian-bomb-arena-mau-import.csv':'brian-bomb-arena-'+pack.id+'.csv';
+    const blob=new Blob([contents],{type:'text/csv;charset=utf-8;'});
+    const url=URL.createObjectURL(blob),link=document.createElement('a');
+    link.href=url;link.download=filename;document.body.appendChild(link);link.click();link.remove();
+    window.setTimeout(()=>URL.revokeObjectURL(url),2000);
+  };
   const exportResults=()=>{
     if(!session)return;
     const rows=[['Rank','Team','Score','Turns','Shields'],...rankTeams(session.teams).map((t,i)=>[i+1,t.name,t.score,t.turns,t.shields])];
@@ -192,14 +198,53 @@ export default function BrianBombArena({currentUser,language='vi'}){
           <h3>{tr('04 · Không gian trò chơi','04 · Game atmosphere')}</h3>
           <div className="bba-theme-grid">{Object.keys(THEME_NAMES).map(t=><button type="button" key={t} className={'bba-theme-button is-'+t+(theme===t?' is-picked':'')}
             aria-pressed={theme===t} onClick={()=>setTheme(t)}><Sparkles size={20}/><span>{THEME_NAMES[t]}</span></button>)}</div>
-          <h3>{tr('05 · Câu hỏi kiến thức','05 · Learning questions')}</h3>
+          <h3>{tr('05 · Ngân hàng câu hỏi mẫu','05 · Quick sample packs')}</h3>
+          <div className="bba-samples" aria-label={tr('Nạp bộ câu hỏi mẫu','Load sample question pack')}>
+            <label className="bba-sample-heading" htmlFor="bba-sample-pack">{tr('Chọn một bộ có sẵn (36 câu/bộ)','Select a ready-to-use pack (36 questions each)')}</label>
+            <select id="bba-sample-pack" value={samplePackId} onChange={event=>setSamplePackId(event.target.value)}>
+              {SAMPLE_PACKS.map(pack=><option key={pack.id} value={pack.id}>
+                {vi?pack.titleVi:pack.titleEn} · {pack.count} {tr('câu','questions')}
+              </option>)}
+            </select>
+            <div className="bba-sample-preview">
+              <span>{getSamplePack(samplePackId).level} · {getSamplePack(samplePackId).topic}</span>
+              <p>{getSamplePack(samplePackId).items[0]?.prompt}</p>
+              <small>{tr('Đáp án: ','Answer: ')}{getSamplePack(samplePackId).items[0]?.answer}</small>
+            </div>
+            <div className="bba-sample-actions">
+              <button type="button" className="bba-sample-load" onClick={importSamplePack}>
+                <Plus size={17}/>{tr('Nạp nhanh 36 câu','Load 36 questions')}
+              </button>
+              <button type="button" onClick={()=>exportQuestionCSV('pack')}>
+                <Save size={16}/>{tr('Tải bộ CSV','Download CSV')}
+              </button>
+              <button type="button" onClick={()=>exportQuestionCSV('template')}>
+                <Upload size={16}/>{tr('CSV mẫu trống','Blank CSV template')}
+              </button>
+            </div>
+          </div>
+          <h3>{tr('06 · Câu hỏi kiến thức','06 · Learning questions')}</h3>
           <label className="bba-check"><input type="checkbox" checked={mode==='challenge'||questionGate} disabled={mode==='challenge'}
             onChange={e=>setQuestionGate(e.target.checked)}/><span>{tr('Bắt buộc trả lời trước khi mở ô','Answer a question before revealing a tile')}</span></label>
           <label className="bba-label">{tr('Một dòng mỗi câu: Câu hỏi || Đáp án','One line per item: Question || Answer')}
             <textarea rows="5" value={questionText} onChange={e=>setQuestionText(e.target.value.slice(0,70000))}
              placeholder="What is a renewable energy source? || Solar power"/></label>
           <label className="bba-file"><Upload size={16}/>{tr('Nhập CSV / Excel','Import CSV / Excel')}<input type="file" accept=".csv,.xlsx,text/csv" onChange={upload}/></label>
-          <p className="bba-muted">{tr('Nếu chưa nhập câu hỏi, trò chơi sử dụng bảng bí mật không cần chấm đáp án.','With an empty bank, the game runs as a tile-only activity.')}</p>
+          <p className="bba-muted">{tr('Đã nhận diện: ','Recognized: ')}<b>{parseArenaQuestions(questionText).length}</b> {tr('câu. Nếu bỏ trống, có thể chơi mà không cần trả lời câu hỏi.','questions. Leave empty to play without a question bank.')}</p>
+          <h3>{tr('07 · Âm thanh bom','07 · Bomb sound design')}</h3>
+          <div className="bba-sound-settings">
+            <label htmlFor="bba-bomb-style">{tr('Kiểu tiếng nổ','Explosion sound style')}</label>
+            <select id="bba-bomb-style" value={bombSoundStyle} onChange={e=>setBombSoundStyle(e.target.value)}>
+              {BOMB_SOUND_STYLES.map(style=><option key={style.id} value={style.id}>{vi?style.vi:style.en}</option>)}
+            </select>
+            <label htmlFor="bba-sound-volume">{tr('Âm lượng','Volume')}: <b>{soundVolume}%</b></label>
+            <input id="bba-sound-volume" type="range" min="10" max="100" step="5" value={soundVolume}
+              onChange={e=>setSoundVolume(Number(e.target.value))}/>
+            <button type="button" className="bba-sound-preview" onClick={()=>playSound('bomb')} disabled={!volume}>
+              <Volume2 size={17}/>{tr('Nghe thử tiếng bom','Preview explosion')}
+            </button>
+            <small>{tr('Âm thanh tạo ngay trong trình duyệt, không tải về từ dịch vụ khác.','Synthesized in your browser; no external sound service.')}</small>
+          </div>
           <button type="button" className="bba-primary bba-full" onClick={begin}><Play size={18}/>{tr('Bắt đầu trò chơi','Start game')}<ChevronRight size={18}/></button>
         </section>
       </div>
