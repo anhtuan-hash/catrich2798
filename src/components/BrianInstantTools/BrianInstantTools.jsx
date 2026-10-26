@@ -5,7 +5,7 @@ import confetti from 'canvas-confetti';
 import {
   Blocks,Dices,Disc3,Trophy,Timer,QrCode,X,ChevronLeft,Maximize2,Minimize2,
   Volume2,VolumeX,Play,Pause,RotateCcw,Undo2,Plus,Minus,Download,Copy,
-  Sparkles,Check,ArrowRight,Save,Grid2X2
+  Sparkles,Check,ArrowRight,Save,Grid2X2,StickyNote
 } from 'lucide-react';
 import {
   initialState,sanitizeState,storageKey,secureInt,diceRoll,wheelTarget,PALETTE,
@@ -13,6 +13,7 @@ import {
 } from './instantToolsCore.mjs';
 import './BrianInstantTools.css';
 import {Wave2Tool,WAVE2_LIBRARY,SpotlightOverlay} from './BrianInstantToolsWave2.jsx';
+import {Wave3Tool,WAVE3_LIBRARY} from './BrianInstantToolsWave3.jsx';
 
 const LIBRARY=[
   {id:'dice',Icon:Dices,vi:'Xúc xắc 3D',en:'3D Dice',descVi:'Lắc xúc xắc tức thì',descEn:'Roll instantly'},
@@ -21,11 +22,12 @@ const LIBRARY=[
   {id:'timers',Icon:Timer,vi:'Đồng hồ nhiều đội',en:'Multi-Timer',descVi:'Các bộ đếm độc lập',descEn:'Independent clocks'},
   {id:'qr',Icon:QrCode,vi:'Tạo mã QR',en:'QR Maker',descVi:'Tạo và lưu QR ngay',descEn:'Instant QR and download'},
   ...WAVE2_LIBRARY,
+  ...WAVE3_LIBRARY,
 ];
 const MSG={
-  vi:{launcher:'Mở bộ công cụ tức thì',eyebrow:'INSTANT CLASSROOM KIT',title:'Brian Instant Tools',subtitle:'10 công cụ sẵn sàng sử dụng',home:'Bộ công cụ',minimize:'Thu nhỏ về bong bóng',expand:'Phóng to',restore:'Thu nhỏ cửa sổ',
+  vi:{launcher:'Mở bộ công cụ tức thì',eyebrow:'INSTANT CLASSROOM KIT',title:'Brian Instant Tools',subtitle:'15 công cụ sẵn sàng sử dụng',home:'Bộ công cụ',minimize:'Thu nhỏ về bong bóng',expand:'Phóng to',restore:'Thu nhỏ cửa sổ',
     save:'Tự lưu trên thiết bị',saveFailed:'Không thể lưu phiên trên trình duyệt này',roll:'Tung xúc xắc',diceCount:'Số xúc xắc',sum:'Tổng điểm',history:'Lần tung gần đây',sound:'Bật/tắt âm thanh',spin:'QUAY NGAY',spinning:'Đang quay…',winner:'Kết quả',apply:'Áp dụng tên',options:'Tên đội / học sinh (mỗi dòng một tên)',badOptions:'Cần 2–16 tên khác nhau.',undo:'Hoàn tác',reset:'Đặt lại',resetAsk:'Bạn có chắc muốn đặt lại điểm số?',team:'Đội',addTeam:'Thêm đội',removeTeam:'Bớt đội',celebrate:'Ăn mừng',leaders:'Đang dẫn đầu',duration:'Thời lượng',allPause:'Dừng tất cả',allReset:'Đặt lại tất cả',start:'Bắt đầu',pause:'Tạm dừng',resume:'Tiếp tục',minutes:'phút',done:'Hết giờ!',timerResetAsk:'Đặt lại toàn bộ đồng hồ?',qrLabel:'Liên kết hoặc văn bản',qrGenerate:'Tạo mã QR',qrPreview:'Mã QR đã tạo',qrEmpty:'Vui lòng nhập nội dung.',qrLong:'Tối đa 900 ký tự.',qrInvalid:'Đường dẫn không hợp lệ hoặc chứa giao thức không an toàn.',qrDownload:'Tải PNG',qrCopy:'Sao chép nội dung',qrError:'Không tạo được QR. Hãy thử nội dung ngắn hơn.',qrHint:'Tạo mã QR ngay trên thiết bị. Không gửi dữ liệu ra bên ngoài.',copyFailed:'Không thể sao chép trên trình duyệt này.',close:'Đóng',back:'Trở về bộ công cụ',tools:'Công cụ',label:'Tên',clear:'Xóa kết quả',continue:'Mở công cụ',savedLocal:'Tự lưu trên trình duyệt, không đồng bộ giữa thiết bị'},
-  en:{launcher:'Open instant classroom tools',eyebrow:'INSTANT CLASSROOM KIT',title:'Brian Instant Tools',subtitle:'10 ready-to-use tools',home:'Tool library',minimize:'Minimize to bubble',expand:'Expand',restore:'Restore window',
+  en:{launcher:'Open instant classroom tools',eyebrow:'INSTANT CLASSROOM KIT',title:'Brian Instant Tools',subtitle:'15 ready-to-use tools',home:'Tool library',minimize:'Minimize to bubble',expand:'Expand',restore:'Restore window',
     save:'Saved on this device',saveFailed:'This browser cannot save the session',roll:'Roll dice',diceCount:'Number of dice',sum:'Total',history:'Recent rolls',sound:'Toggle sounds',spin:'SPIN NOW',spinning:'Spinning…',winner:'Winner',apply:'Apply names',options:'Names or teams (one per line)',badOptions:'Enter 2–16 different names.',undo:'Undo',reset:'Reset',resetAsk:'Reset all team scores?',team:'Team',addTeam:'Add team',removeTeam:'Remove team',celebrate:'Celebrate',leaders:'Leading',duration:'Duration',allPause:'Pause all',allReset:'Reset all',start:'Start',pause:'Pause',resume:'Resume',minutes:'minutes',done:'Time is up!',timerResetAsk:'Reset all timers?',qrLabel:'Link or text',qrGenerate:'Generate QR',qrPreview:'Generated QR',qrEmpty:'Enter some content.',qrLong:'Maximum 900 characters.',qrInvalid:'Invalid link or unsafe protocol.',qrDownload:'Download PNG',qrCopy:'Copy content',qrError:'Unable to generate QR. Try shorter content.',qrHint:'QR is generated on your device. Nothing is sent online.',copyFailed:'Could not copy on this browser.',close:'Close',back:'Back to tool library',tools:'Tools',label:'Name',clear:'Clear winner',continue:'Open tool',savedLocal:'Auto-saved in this browser; not synced across devices'},
 };
 const DICE_FACES=['⚀','⚁','⚂','⚃','⚄','⚅'];
@@ -259,6 +261,7 @@ export default function BrianInstantTools({currentUser,language='vi'}){
   const [tool,setTool]=useState('home');
   const [expanded,setExpanded]=useState(false);
   const [spotlightActive,setSpotlightActive]=useState(false);
+  const [pinnedNoteId,setPinnedNoteId]=useState(null);
   const [saveFailed,setSaveFailed]=useState(false);
   const [now,setNow]=useState(()=>Date.now());
   const launcher=useRef(null),dialog=useRef(null);
@@ -295,6 +298,7 @@ export default function BrianInstantTools({currentUser,language='vi'}){
     return ()=>{document.body.style.overflow=before;window.removeEventListener('keydown',onKey);launcher.current?.focus();};
   },[open]);
   const active=LIBRARY.find(x=>x.id===tool);
+  const pinnedNote=data.notes.items.find(n=>n.id===pinnedNoteId);
   const update=useCallback((section,fn)=>edit(setData,section,fn),[]);
   const choose=id=>{setTool(id);beep('tap',sound);};
   const activateSpotlight=()=>{setOpen(false);setSpotlightActive(true);};
@@ -325,11 +329,19 @@ export default function BrianInstantTools({currentUser,language='vi'}){
             {tool==='qr'&&<QrTool value={data.qr} onChange={fn=>update('qr',fn)} t={t} sound={sound}/>}
             {WAVE2_LIBRARY.some(item=>item.id===tool)&&<Wave2Tool key={tool} tool={tool} value={data[tool]}
               onChange={fn=>update(tool,fn)} language={language} sound={sound} onSpotlightStart={activateSpotlight}/>}
+            {WAVE3_LIBRARY.some(item=>item.id===tool)&&<Wave3Tool key={tool} tool={tool} value={data[tool]}
+              onChange={fn=>update(tool,fn)} language={language} pinnedId={pinnedNoteId} onPin={setPinnedNoteId}/>}
           </>}
         </div>
-        <footer className="bit-footer"><span>BRIAN INSTANT TOOLS · 02 / 04</span><span>{saveFailed?t.saveFailed:t.savedLocal}</span></footer>
+        <footer className="bit-footer"><span>BRIAN INSTANT TOOLS · 03 / 04</span><span>{saveFailed?t.saveFailed:t.savedLocal}</span></footer>
       </section>
     </div>,document.body)}
     {spotlightActive&&<SpotlightOverlay config={data.spotlight} language={language} onExit={()=>setSpotlightActive(false)}/>}
+    {pinnedNote&&createPortal(<aside className={'bit-w3-pinned tone-'+pinnedNote.color} role="complementary" aria-label={pinnedNote.title||'Pinned note'}>
+      <header><StickyNote size={19}/><strong>{pinnedNote.title||'Quick Note'}</strong>
+        <button type="button" aria-label={language==='en'?'Edit pinned note':'Sửa ghi chú được ghim'} onClick={()=>{setOpen(true);setTool('notes');}}><ChevronLeft size={17}/></button>
+        <button type="button" aria-label={language==='en'?'Unpin note':'Bỏ ghim ghi chú'} onClick={()=>setPinnedNoteId(null)}><X size={18}/></button>
+      </header><pre>{pinnedNote.body}</pre>
+    </aside>,document.body)}
   </>;
 }
