@@ -7,11 +7,13 @@ import {isAdminRole,isDepartmentLeaderRole,normalizeSystemRole} from '../../util
 import {createArena,arenaReducer,rankTeams,TILE_ICONS,ARENA_MODES} from './arenaEngine.js';
 import {loadArena,saveArena,clearArena} from './arenaStorage.js';
 import './BrianBombArena.css';
+import {createArenaSound} from './arenaSound.js';
+import ArenaEffects from './ArenaEffects.jsx';
 
 const COLORS=['#ef6577','#61a9f6','#f4c265','#60d5b0','#ad8ff4','#f39b68','#8ed8ee','#d49bbd'];
 const MODE_NAMES={classic:['Cổ điển','Classic'],chaos:['Hỗn loạn','Total Chaos'],luck:['Thử vận may','Press Your Luck'],challenge:['Thử thách Brian','Brian Challenge']};
 const MODE_EMOJI={classic:'⭐',chaos:'⚡',luck:'🎲',challenge:'🎓'};
-const THEME_NAMES={neon:'Neon Reactor',comic:'Comic Blast',cosmic:'Cosmic Danger'};
+const THEME_NAMES={mint:'Mint Classroom',neon:'Neon Reactor',comic:'Comic Blast',cosmic:'Cosmic Danger'};
 const allowedUser=user=>Boolean(user?.id&&user.approved!==false&&(
   isAdminRole(user.role)||isDepartmentLeaderRole(user.role)||normalizeSystemRole(user.role)==='teacher'));
 function parseQuestions(input){
@@ -25,40 +27,40 @@ function parseQuestions(input){
         answer:parts.join(separator).replace(/^"|"$/g,'').trim()};
     }).filter(x=>x.prompt).slice(0,300);
 }
-function useGameSound(){
-  const ctx=useRef(null);
-  useEffect(()=>()=>{try{ctx.current?.close();}catch{/* optional */}},[]);
-  return type=>{
-    try{
-      const AC=window.AudioContext||window.webkitAudioContext;
-      if(!AC)return;
-      if(!ctx.current)ctx.current=new AC();
-      const audio=ctx.current;if(audio.state==='suspended')void audio.resume();
-      const notes=type==='bomb'?[160,90]:type==='success'?[550,830]:[440];
-      notes.forEach((hz,i)=>{
-        const osc=audio.createOscillator(),gain=audio.createGain(),at=audio.currentTime+i*.11;
-        osc.type=type==='bomb'?'sawtooth':'sine';osc.frequency.setValueAtTime(hz,at);
-        gain.gain.setValueAtTime(.0001,at);gain.gain.exponentialRampToValueAtTime(.045,at+.025);
-        gain.gain.exponentialRampToValueAtTime(.0001,at+.19);
-        osc.connect(gain);gain.connect(audio.destination);osc.start(at);osc.stop(at+.2);
-      });
-    }catch{/* Sound must never block play. */}
-  };
-}
 export default function BrianBombArena({currentUser,language='vi'}){
   const vi=language!=='en',tr=(vn,en)=>vi?vn:en,ownerId=String(currentUser?.id||'');
   const allowed=allowedUser(currentUser);
   const [open,setOpen]=useState(false),[screen,setScreen]=useState('setup');
   const [loaded,setLoaded]=useState(false),[session,setSession]=useState(null);
-  const [mode,setMode]=useState('classic'),[size,setSize]=useState(5);
+  const [mode,setMode]=useState('luck'),[size,setSize]=useState(5);
   const [teamCount,setTeamCount]=useState(4),[names,setNames]=useState('');
-  const [theme,setTheme]=useState('neon'),[questionGate,setQuestionGate]=useState(false);
+  const [theme,setTheme]=useState('mint'),[questionGate,setQuestionGate]=useState(false);
   const [questionText,setQuestionText]=useState(''),[showAnswer,setShowAnswer]=useState(false);
   const [volume,setVolume]=useState(true),[presenter,setPresenter]=useState(false);
   const [confirmReset,setConfirmReset]=useState(false),[saveError,setSaveError]=useState(false);
   const [status,setStatus]=useState('');
-  const closeRef=useRef(null),playSound=useGameSound();
+  const [fx,setFx]=useState(null);
+  const closeRef=useRef(null),soundRef=useRef(null),fxTimer=useRef(null);
   const update=action=>setSession(s=>s?arenaReducer(s,action):s);
+  useEffect(()=>()=>{window.clearTimeout(fxTimer.current);soundRef.current?.close();},[]);
+  const playSound=type=>{
+    if(!volume)return;
+    if(!soundRef.current)soundRef.current=createArenaSound();
+    soundRef.current.play(type);
+  };
+  const showFx=(type,amount=0,tileId=null)=>{
+    window.clearTimeout(fxTimer.current);
+    setFx({id:Date.now()+'-'+Math.random().toString(36).slice(2),type,amount,tileId});
+    fxTimer.current=window.setTimeout(()=>setFx(null),type==='bomb'?1550:1350);
+  };
+  const revealFx=tile=>{
+    if(tile?.event==='bomb'){playSound('bomb');showFx('bomb',0,tile.id);}
+    else{
+      const amount=Number(String(tile?.event||'').replace('points',''))||0;
+      playSound(amount>=50?'bigpoints':'points');
+      showFx('points',amount,tile.id);
+    }
+  };
 
   useEffect(()=>{
     let valid=true;
@@ -97,7 +99,9 @@ export default function BrianBombArena({currentUser,language='vi'}){
   },[open,confirmReset]);
 
   useEffect(()=>{
-    if(session?.phase==='finished'&&screen==='arena')setScreen('results');
+    if(session?.phase!=='finished'||screen!=='arena')return undefined;
+    const timeout=window.setTimeout(()=>setScreen('results'),1500);
+    return()=>window.clearTimeout(timeout);
   },[session?.phase,screen]);
 
   const begin=()=>{
@@ -107,23 +111,29 @@ export default function BrianBombArena({currentUser,language='vi'}){
       questionGate:mode==='challenge'||questionGate,questions,theme});
     setSession(arenaReducer(game,{type:'START'}));
     setPresenter(false);setShowAnswer(false);setSaveError(false);setScreen('arena');
-    if(volume)playSound('success');
+    playSound('bank');
   };
   const pick=i=>{
     if(!session||session.phase!=='running'||session.selectedTile!==null)return;
     const tile=session.tiles[i];if(!tile||tile.opened)return;
     update({type:'SELECT',index:i});setShowAnswer(false);
-    if(volume&&!session.questionGate)playSound(tile.event==='bomb'?'bomb':'success');
+    if(!session.questionGate)revealFx(tile);else playSound('flip');
   };
   const answer=correct=>{
     if(session?.selectedTile===null)return;
     const tile=session.tiles[session.selectedTile];
     update({type:'ANSWER',correct});setShowAnswer(false);
-    if(volume)playSound(correct?(tile?.event==='bomb'?'bomb':'success'):'bomb');
+    if(correct)revealFx(tile);else playSound('wrong');
   };
-  const close=()=>{setOpen(false);setConfirmReset(false);};
+  const bankTurn=()=>{
+    if(!session||session.phase!=='running'||session.mode!=='luck'||session.selectedTile!==null
+      ||!session.teams[session.turn]?.bank)return;
+    const amount=session.teams[session.turn].bank;
+    update({type:'BANK'});playSound('bank');showFx('bank',amount);
+  };
+  const close=()=>{window.clearTimeout(fxTimer.current);setFx(null);setOpen(false);setConfirmReset(false);};
   const reset=async()=>{
-    await clearArena(ownerId);setSession(null);setScreen('setup');setConfirmReset(false);
+    await clearArena(ownerId);setSession(null);setScreen('setup');setConfirmReset(false);setFx(null);
     setPresenter(false);setQuestionText('');setStatus('');
   };
   const save=()=>{if(session)void saveArena(ownerId,session).then(ok=>setStatus(ok?tr('Đã lưu phiên','Session saved'):tr('Không thể lưu phiên','Save failed')));};
