@@ -186,7 +186,7 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
   const fastAnswer=index=>{
     if(game?.phase!=='fast_money'||game.fast.paused)return;
     if(Date.now()>=game.fast.dueAt){dispatch({type:'FAST_TIMEOUT',now:Date.now()});return;}
-    const isLast=game.fast.index===game.fast.questions.length-1;
+    const isLast=game.fast.player===1&&game.fast.index===game.fast.questions.length-1;
     dispatch({type:'FAST_ANSWER',index,now:Date.now()});
     playSound(isLast?'win':'points');
     animate('reveal','+'+game.fast.questions[game.fast.index].answers[index].points);
@@ -287,9 +287,9 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
           {board?.answers.map((answer,index)=>{
             const revealed=game.revealed.includes(index)||game.showAll;
             return <button type="button" key={index} className={'bff-answer-tile'+(revealed?' is-revealed':'')}
-              disabled={!hostKey||!['playing','steal'].includes(game.phase)||game.revealed.includes(index)}
+              disabled={!['playing','steal'].includes(game.phase)||game.revealed.includes(index)}
               onClick={()=>doReveal(index)}
-              title={hostKey&&!revealed?tr('Lật ô số ','Reveal slot ')+(index+1):undefined}
+              title={!revealed?tr('Lật ô số ','Reveal slot ')+(index+1):undefined}
               aria-label={tr('Đáp án ','Answer ')+(index+1)+(revealed?': '+answer.text:' · hidden')}>
               <span className="bff-answer-rank">{index+1}</span>
               <span className="bff-answer-text">{revealed?answer.text:'••••••••••'}</span>
@@ -384,6 +384,8 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
     <div className="bff-fast-header">
       <span className="bff-eyebrow">BRIAN FAMILY FEUD · FAST MONEY</span>
       <h2>{game.fast.questions.length} {tr('CÂU HỎI THẦN TỐC','QUICKFIRE QUESTIONS')}</h2>
+      <div className="bff-fast-player">{tr('NGƯỜI CHƠI','PLAYER')} {game.fast.player+1} / 2 ·
+        {game.teams[game.fast.team]?.name}</div>
       <div className={'bff-fast-clock'+(fastTime<=10?' is-danger':'')}>
         <Timer size={27}/>{game.fast.paused?tr('TẠM DỪNG','PAUSED'):fastTime+'s'}</div>
       <strong>{showPoints(game.fast.points)} / 200 {tr('điểm mục tiêu','target points')}</strong>
@@ -393,12 +395,14 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
       <h3>{fastBoard?.prompt||'—'}</h3>
     </div>
     <div className="bff-fast-answers">{fastBoard?.answers.map((answer,index)=><button key={index} type="button"
-      disabled={game.fast.paused} onClick={()=>fastAnswer(index)}>
+      disabled={game.fast.paused||(game.fast.player===1&&game.fast.answers.some(a=>
+        a.player===0&&a.boardId===fastBoard.id&&a.answerIndex===index))}
+      onClick={()=>fastAnswer(index)}>
       <span>{index+1}</span><strong>{answer.text}</strong><b>+{answer.points}</b></button>)}</div>
     <div className="bff-fast-actions">
       <button type="button" onClick={()=>dispatch({type:game.fast.paused?'FAST_RESUME':'FAST_PAUSE',now:Date.now()})}
         className="bff-action bff-primary">{game.fast.paused?<Play size={17}/>:<Pause size={17}/>}
-        {game.fast.paused?tr('Tiếp tục','Resume'):tr('Tạm dừng','Pause')}</button>
+        {game.fast.paused?(game.fast.player===1?tr('Bắt đầu người chơi 2','Start Player 2'):tr('Tiếp tục','Resume')):tr('Tạm dừng','Pause')}</button>
       <button type="button" onClick={fastPass} disabled={game.fast.paused} className="bff-action">
         <FastForward size={17}/>{tr('Bỏ qua câu này','Pass this question')}</button>
       <button type="button" onClick={()=>dispatch({type:'FAST_FINISH'})} className="bff-action">
