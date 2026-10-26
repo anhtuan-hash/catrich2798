@@ -41,7 +41,7 @@ check('Ten separate games are mapped one-to-one to the official English 12 Units
  assert.equal(getGrade12FeudGame('g12-unit-11'),null);
 });
 check('Exactly 120 independently written question boards and 720 six-answer suggestions',()=>{
- assert.equal(GRADE12_FEUD_TOTAL_BOARDS,120);
+ assert.equal(GRADE12_FAMILY_FEUD_TOTAL_BOARDS,120);
  const boardIds=new Set(),prompts=new Set();
  for(const game of GRADE12_FAMILY_FEUD_GAMES){
   assert.equal(game.boardCount,12);
