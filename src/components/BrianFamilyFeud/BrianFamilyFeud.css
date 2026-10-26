@@ -322,3 +322,58 @@ html[data-motion-bubble="none"] body .bff-bubble:hover,
 html[data-motion-bubble="none"] body .bff-bubble:active{
  transform:none!important;transition:none!important
 }
+
+
+/* Grade 12 Global Success: ten independent Family Feud game selectors. */
+.bff-edition-selector{display:grid;gap:13px;min-width:0}
+.bff-edition-head{display:grid;gap:4px}
+.bff-edition-head>strong{font-size:clamp(19px,1.55vw,26px);font-weight:950;letter-spacing:.02em}
+.bff-edition-head>small{font-size:clamp(12px,.95vw,15px);color:var(--bff-muted);line-height:1.45}
+.bff-unit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:8px 0 4px}
+.bff-unit-game{
+  position:relative;display:flex;min-width:0;flex-direction:column;align-items:flex-start;gap:5px;
+  min-height:143px;padding:clamp(12px,1.2vw,19px);
+  border:2px solid var(--bff-stroke);border-radius:17px;
+  background:linear-gradient(145deg,#294366,#1d2d50);
+  color:var(--bff-text);text-align:left;overflow:hidden;
+  transition:border-color .2s ease,background .2s ease,transform .2s ease,box-shadow .2s ease;
+}
+.bff-unit-game:not(.is-selected):hover{transform:translateY(-2px);border-color:#7cb8f4}
+.bff-unit-game.is-selected{
+  border-color:var(--bff-gold);background:linear-gradient(135deg,#4d4a5d,#365d78);
+  box-shadow:0 0 0 1px #ffe1a450,inset 0 0 24px #ffc76c12;
+}
+.bff-unit-game-icon{font-size:clamp(25px,2.1vw,35px);line-height:1;filter:drop-shadow(0 5px 6px #06142b40)}
+.bff-unit-number{font-size:11px;font-weight:950;letter-spacing:.16em;color:var(--bff-gold)}
+.bff-unit-game strong{font-size:clamp(15px,1.2vw,19px);font-weight:900;line-height:1.25;text-wrap:balance}
+.bff-unit-game>small{font-size:12px;color:var(--bff-muted);margin-top:auto}
+.bff-unit-check{position:absolute;top:13px;right:13px;color:var(--bff-gold)}
+.bff-legacy-select{min-height:47px;width:100%;border:1px solid var(--bff-stroke);
+  border-radius:12px;background:transparent;color:var(--bff-muted);font-weight:800;
+  display:flex;gap:9px;align-items:center;justify-content:center;padding:10px 14px}
+.bff-legacy-select:hover,.bff-legacy-select.is-selected{color:var(--bff-gold);border-color:var(--bff-gold)}
+.bff-current-edition{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;margin-top:12px;
+  padding:11px 12px;border:1px solid #ffca7e55;background:#ffc76c12;border-radius:12px}
+.bff-current-edition span{font-size:13px;font-weight:950;color:var(--bff-gold)}
+.bff-current-edition strong{font-size:clamp(16px,1.15vw,19px);color:var(--bff-text)}
+.bff-edition-round{color:var(--bff-gold);font-size:clamp(13px,1.1vw,18px);max-width:100%;font-weight:900}
+.bff-results-unit,.bff-fast-unit{color:var(--bff-gold);font-weight:900;letter-spacing:.06em;font-size:clamp(15px,1.35vw,22px)}
+@media(min-width:1380px){
+  .bff-setup-grid{grid-template-columns:minmax(360px,.77fr) minmax(580px,1.23fr)}
+  .bff-unit-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:1080px) and (min-width:791px){
+  .bff-unit-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .bff-unit-game{min-height:132px}
+}
+@media(max-width:450px){
+  .bff-unit-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .bff-unit-game{padding:11px;min-height:130px;border-radius:12px}
+  .bff-unit-game strong{font-size:14px}
+  .bff-unit-game>small{font-size:10px}
+  .bff-unit-game-icon{font-size:22px}
+  .bff-unit-number{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){
+  .bff-unit-game{transition:none!important;transform:none!important}
+}
