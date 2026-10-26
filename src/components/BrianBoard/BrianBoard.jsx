@@ -6,6 +6,7 @@ import {Presentation,Pen,Highlighter,Eraser,MousePointer2,Hand,Type,Square,Circl
  Download,Move,Palette,FilePlus2,LockKeyhole,LockKeyholeOpen,Layers,ArrowUp,ArrowDown,ImagePlus,Search,RefreshCcw,FileJson,FileUp,Edit3,ArrowUpRight,Triangle,Grid3X3,Droplets,Frame,Clapperboard,MapPinned,Map,Focus,Lasso,Paintbrush,LayoutTemplate,SquareStack,BookMarked,ShieldCheck,Crop,Ruler,Compass,Monitor} from 'lucide-react';
 import {isAdminRole,isDepartmentLeaderRole,normalizeSystemRole} from '../../utils/roles.js';
 import {GLOBAL_FLOATING_ACTION_EVENT,FLOATING_ACTION_IDS} from '../../utils/unifiedFloatingDock.js';
+import {readBubbleMotion} from '../../utils/bubbleMotion.js';
 import {BOARD_W,BOARD_H,newLesson,newPage,normalizeLesson,makeId,THEMES,sanitizeStudentPage} from './boardModel.js';
 import {readBoardDraft,saveBoardDraft,listBoardLessons,readBoardLesson,deleteBoardLesson,
  saveBoardCheckpoint,listBoardCheckpoints,readBoardCheckpoint} from './boardStorage.js';
@@ -407,7 +408,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  },[open,phase,persist,saveState,vi]);
  useLayoutEffect(()=>{
   if(!open||phase!=='entering')return undefined;
-  const el=enterRef.current;const reduce=motion==='off'||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const el=enterRef.current;const reduce=motion==='off'||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||readBubbleMotion().duration===0;
   const animation=!reduce&&el?.animate?.(
     [{opacity:0,transform:'translateY(12px) scale(.975)',clipPath:'inset(5% round 30px)'},{opacity:1,transform:'translateY(0) scale(1)',clipPath:'inset(0% round 0px)'}],
     {duration:motion==='expressive'?490:330,easing:'cubic-bezier(.16,.8,.26,1)',fill:'both'});
@@ -417,7 +418,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  },[open,phase,motion]);
  useLayoutEffect(()=>{
   if(!open||phase!=='exiting')return undefined;
-  const el=enterRef.current,reduce=motion==='off'||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const el=enterRef.current,reduce=motion==='off'||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||readBubbleMotion().duration===0;
   const animation=!reduce&&el?.animate?.(
     [{opacity:1,transform:'scale(1)'},{opacity:0,transform:'translateY(18px) scale(.965)'}],
     {duration:motion==='expressive'?420:260,easing:'cubic-bezier(.55,.02,.73,.33)',fill:'forwards'});

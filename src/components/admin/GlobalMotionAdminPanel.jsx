@@ -20,7 +20,7 @@ import './GlobalMotionAdminPanel.css';
 import './Windows8MotionPreview.css';
 import EventPopupMotionAdmin from './EventPopupMotionAdmin.jsx';
 
-const SLOT_ORDER = ['page', 'tab', 'modal', 'drawer', 'popover', 'list', 'indicator', 'loading', 'interaction'];
+const SLOT_ORDER = ['page', 'tab', 'modal', 'drawer', 'bubble', 'popover', 'list', 'indicator', 'loading', 'interaction'];
 
 function sameConfig(a, b) {
   return JSON.stringify(normalizeGlobalMotionConfig(a)) === JSON.stringify(normalizeGlobalMotionConfig(b));

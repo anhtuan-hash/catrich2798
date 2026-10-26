@@ -19,6 +19,7 @@ const SLOT_DATASETS = Object.freeze({
   indicator: 'motionIndicator',
   loading: 'motionLoading',
   interaction: 'motionInteraction',
+  bubble: 'motionBubble',
 });
 
 const SPEED_PROFILES = Object.freeze({
@@ -142,6 +143,18 @@ export const MOTION_LIBRARY = Object.freeze({
       option('pulse', 'Pulse', 'Pulse', 'Chấm pulse nhẹ ở trung tâm.'),
     ]),
   }),
+  bubble: Object.freeze({
+    labelVi: 'Bong bóng ứng dụng', label: 'Floating bubble apps', icon: '◉',
+    descriptionVi: 'Một bộ hiệu ứng chung cho launcher và portal của Bomb Arena, Instant Tools, Focus, Board; giữ nguyên trạng thái phiên và hiệu ứng chuyên biệt.',
+    options: Object.freeze([
+      option('none','Tắt chuyển động','None','Mở và đóng ngay, hỗ trợ thiết bị yếu.'),
+      option('fade','Fade','Fade','Hiện/ẩn nhẹ, không phóng to.'),
+      option('zoom','Soft Zoom','Soft Zoom','Phóng nhẹ vào tâm màn hình, mở/đóng đối xứng.'),
+      option('glide','Glide Up','Glide Up','Trượt lên nhẹ từ hướng bubble.'),
+      option('spring','Spring Bloom','Spring Bloom','Nảy nhẹ có kiểm soát, không rung layout.'),
+      option('cinematic','Cinematic','Cinematic','Chuyển cảnh có chiều sâu nhẹ, phù hợp TV/máy chiếu.'),
+    ]),
+  }),
   interaction: Object.freeze({
     labelVi: 'Micro interaction', label: 'Micro interaction', icon: '◎',
     descriptionVi: 'Phản hồi hover/press cho button, card, chip và các control tương tác.',
@@ -160,31 +173,31 @@ const PRESET_DEFINITIONS = [
     id: 'editorial-calm', labelVi: 'Editorial Calm', label: 'Editorial Calm', recommended: true,
     descriptionVi: 'Nhẹ, tĩnh, sang và ưu tiên nội dung. Phù hợp phong cách editorial hiện tại của Brian.',
     speed: 'balanced', easing: 'editorial',
-    slots: { page: 'editorial-rise', tab: 'crossfade', modal: 'editorial-scale', drawer: 'slide-right', popover: 'soft-pop', list: 'editorial-cascade', indicator: 'editorial-ink', loading: 'thin-progress', interaction: 'soft-press' },
+    slots: { page: 'editorial-rise', tab: 'crossfade', modal: 'editorial-scale', drawer: 'slide-right', popover: 'soft-pop', list: 'editorial-cascade', indicator: 'editorial-ink', loading: 'thin-progress', interaction: 'soft-press', bubble: 'zoom' },
   },
   {
     id: 'material-clean', labelVi: 'Material Clean', label: 'Material Clean',
     descriptionVi: 'Chuyển động rõ cấu trúc, gọn và quen thuộc theo Material.',
     speed: 'compact', easing: 'material',
-    slots: { page: 'shared-axis', tab: 'material-shift', modal: 'editorial-scale', drawer: 'slide-right', popover: 'material-menu', list: 'material-stagger', indicator: 'underline', loading: 'material-spinner', interaction: 'soft-press' },
+    slots: { page: 'shared-axis', tab: 'material-shift', modal: 'editorial-scale', drawer: 'slide-right', popover: 'material-menu', list: 'material-stagger', indicator: 'underline', loading: 'material-spinner', interaction: 'soft-press', bubble: 'zoom' },
   },
   {
     id: 'fluent', labelVi: 'Fluent', label: 'Fluent',
     descriptionVi: 'Mềm, có chiều sâu và phù hợp các workspace hiện đại.',
     speed: 'balanced', easing: 'fluent',
-    slots: { page: 'fluent-depth', tab: 'crossfade', modal: 'fluent-zoom', drawer: 'fluent-reveal', popover: 'fluent-pop', list: 'fade-up', indicator: 'sliding-pill', loading: 'thin-progress', interaction: 'lift' },
+    slots: { page: 'fluent-depth', tab: 'crossfade', modal: 'fluent-zoom', drawer: 'fluent-reveal', popover: 'fluent-pop', list: 'fade-up', indicator: 'sliding-pill', loading: 'thin-progress', interaction: 'lift', bubble: 'spring' },
   },
   {
     id: 'metro', labelVi: 'Metro', label: 'Metro',
     descriptionVi: 'Chuyển ngang phẳng, indicator khối và loader chấm kiểu Metro.',
     speed: 'balanced', easing: 'fluent',
-    slots: { page: 'metro-sweep', tab: 'directional', modal: 'fade', drawer: 'slide-left', popover: 'drop', list: 'soft-stagger', indicator: 'metro-block', loading: 'metro-dots', interaction: 'border' },
+    slots: { page: 'metro-sweep', tab: 'directional', modal: 'fade', drawer: 'slide-left', popover: 'drop', list: 'soft-stagger', indicator: 'metro-block', loading: 'metro-dots', interaction: 'border', bubble: 'glide' },
   },
   {
     id: 'no-motion', labelVi: 'No Motion', label: 'No Motion',
     descriptionVi: 'Tắt mọi animation nhưng vẫn giữ giao diện và trạng thái truy cập.',
     speed: 'fast', easing: 'linear',
-    slots: { page: 'none', tab: 'none', modal: 'none', drawer: 'none', popover: 'none', list: 'none', indicator: 'none', loading: 'none', interaction: 'none' },
+    slots: { page: 'none', tab: 'none', modal: 'none', drawer: 'none', popover: 'none', list: 'none', indicator: 'none', loading: 'none', interaction: 'none', bubble: 'none' },
   },
 ];
 

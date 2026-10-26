@@ -15,6 +15,7 @@ import './BrianInstantTools.css';
 import {Wave2Tool,WAVE2_LIBRARY,SpotlightOverlay} from './BrianInstantToolsWave2.jsx';
 import {Wave3Tool,WAVE3_LIBRARY} from './BrianInstantToolsWave3.jsx';
 import {Wave4Tool,WAVE4_LIBRARY} from './BrianInstantToolsWave4.jsx';
+import {readBubbleMotion} from '../../utils/bubbleMotion.js';
 
 const LIBRARY=[
   {id:'dice',Icon:Dices,vi:'Xúc xắc 3D',en:'3D Dice',descVi:'Lắc xúc xắc tức thì',descEn:'Roll instantly'},
@@ -261,6 +262,20 @@ export default function BrianInstantTools({currentUser,language='vi'}){
   const t=language==='en'?MSG.en:MSG.vi;
   const [data,setData]=useState(()=>load(userId));
   const [open,setOpen]=useState(false);
+  const [portalExiting,setPortalExiting]=useState(false);
+  const portalExitTimer=useRef(null),portalExitPending=useRef(false);
+  const finishClose=()=>{
+    window.clearTimeout(portalExitTimer.current);
+    portalExitPending.current=false;
+    setOpen(false);setPortalExiting(false);
+  };
+  const closePanel=()=>{
+    if(portalExitPending.current)return;
+    const duration=readBubbleMotion().duration;
+    if(!duration){finishClose();return;}
+    portalExitPending.current=true;setPortalExiting(true);
+    portalExitTimer.current=window.setTimeout(finishClose,duration);
+  };
   const [tool,setTool]=useState('home');
   const [expanded,setExpanded]=useState(false);
   const [spotlightActive,setSpotlightActive]=useState(false);
@@ -271,6 +286,7 @@ export default function BrianInstantTools({currentUser,language='vi'}){
   const tickLock=useRef(false);
   const sound=data.sound;
   const storage=storageKey(userId);
+  useEffect(()=>()=>window.clearTimeout(portalExitTimer.current),[]);
   useEffect(()=>{
     if(!storage)return;
     try{window.localStorage.setItem(storage,JSON.stringify({version:STORE_VERSION,state:data}));setSaveFailed(false);}
@@ -296,7 +312,7 @@ export default function BrianInstantTools({currentUser,language='vi'}){
     const before=document.body.style.overflow;
     document.body.style.overflow='hidden';
     dialog.current?.focus();
-    const onKey=e=>{if(e.key==='Escape'&&!document.querySelector('.bit-w2-stage-overlay, .bit-qr-lightbox')){setOpen(false);}};
+    const onKey=e=>{if(e.key==='Escape'&&!document.querySelector('.bit-w2-stage-overlay, .bit-qr-lightbox')){closePanel();}};
     window.addEventListener('keydown',onKey);
     return ()=>{document.body.style.overflow=before;window.removeEventListener('keydown',onKey);launcher.current?.focus();};
   },[open]);
@@ -307,15 +323,16 @@ export default function BrianInstantTools({currentUser,language='vi'}){
   const activateSpotlight=()=>{setOpen(false);setSpotlightActive(true);};
   if(!userId||!storage)return null;
   return <>
-    <button className="bit-launcher" ref={launcher} type="button" aria-label={t.launcher} title={t.launcher} aria-expanded={open} onClick={()=>setOpen(v=>!v)}><Blocks size={27} strokeWidth={1.8}/><span className="bit-launcher-dot" aria-hidden="true"/></button>
-    {open&&createPortal(<div className="bit-overlay" onPointerDown={e=>{if(e.target===e.currentTarget)setOpen(false);}}>
+    <button className="bit-launcher" ref={launcher} type="button" aria-label={t.launcher} title={t.launcher} aria-expanded={open} onClick={()=>{if(open)closePanel();else{portalExitPending.current=false;setPortalExiting(false);setOpen(true);}}}><Blocks size={27} strokeWidth={1.8}/><span className="bit-launcher-dot" aria-hidden="true"/></button>
+    {open&&createPortal(<div className="bit-overlay" data-bubble-phase={portalExiting?'exit':'enter'}
+        onPointerDown={e=>{if(e.target===e.currentTarget)closePanel();}}>
       <section ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label={active?(language==='en'?active.en:active.vi):t.title} className={'bit-portal'+(expanded?' is-max':'')}>
         <header className="bit-header">
           <div className="bit-header-title"><div className="bit-brand"><Blocks size={25}/></div><div><span className="bit-eyebrow">{t.eyebrow}</span><h2>{active?(language==='en'?active.en:active.vi):t.title}</h2></div></div>
           <div className="bit-window-actions">
             <button type="button" aria-label={t.sound} title={t.sound} onClick={()=>setData(p=>({...p,sound:!p.sound}))}>{sound?<Volume2 size={19}/>:<VolumeX size={19}/>}</button>
             <button type="button" aria-label={expanded?t.restore:t.expand} title={expanded?t.restore:t.expand} onClick={()=>setExpanded(e=>!e)}>{expanded?<Minimize2 size={18}/>:<Maximize2 size={18}/>}</button>
-            <button type="button" aria-label={t.minimize} title={t.minimize} onClick={()=>setOpen(false)}><X size={21}/></button>
+            <button type="button" aria-label={t.minimize} title={t.minimize} onClick={closePanel}><X size={21}/></button>
           </div>
         </header>
         <div className="bit-content">

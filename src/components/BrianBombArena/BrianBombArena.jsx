@@ -10,6 +10,7 @@ import './BrianBombArena.css';
 import {createArenaSound,BOMB_SOUND_STYLES} from './arenaSound.js';
 import {SAMPLE_PACKS,getSamplePack,packToText,parseArenaQuestions,toArenaCSV,EMPTY_CSV_TEMPLATE} from './arenaSamplePacks.js';
 import ArenaEffects from './ArenaEffects.jsx';
+import {readBubbleMotion} from '../../utils/bubbleMotion.js';
 
 const COLORS=['#ef6577','#61a9f6','#f4c265','#60d5b0','#ad8ff4','#f39b68','#8ed8ee','#d49bbd'];
 const MODE_NAMES={classic:['Cổ điển','Classic'],chaos:['Hỗn loạn','Total Chaos'],luck:['Thử vận may','Press Your Luck'],challenge:['Thử thách Brian','Brian Challenge']};
@@ -21,6 +22,8 @@ export default function BrianBombArena({currentUser,language='vi'}){
   const vi=language!=='en',tr=(vn,en)=>vi?vn:en,ownerId=String(currentUser?.id||'');
   const allowed=allowedUser(currentUser);
   const [open,setOpen]=useState(false),[screen,setScreen]=useState('setup');
+  const [portalExiting,setPortalExiting]=useState(false);
+  const portalExitTimer=useRef(null),portalExitPending=useRef(false);
   const [loaded,setLoaded]=useState(false),[session,setSession]=useState(null);
   const [mode,setMode]=useState('luck'),[size,setSize]=useState(5);
   const [teamCount,setTeamCount]=useState(4),[names,setNames]=useState('');
@@ -80,7 +83,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
     if(session?.selectedTile===null||session?.selectedTile===undefined||screen!=='arena'||!open)return;
     questionDialogRef.current?.focus({preventScroll:true});
   },[session?.selectedTile,session?.questionIndex,screen,open]);
-  useEffect(()=>()=>{window.clearTimeout(fxTimer.current);soundRef.current?.close();
+  useEffect(()=>()=>{window.clearTimeout(portalExitTimer.current);window.clearTimeout(fxTimer.current);soundRef.current?.close();
     hoverAnimations.current.forEach(animation=>animation.cancel());hoverAnimations.current.clear();
   },[]);
   useEffect(()=>{if(!shakeEnabled)clearAllTileShakes();},[shakeEnabled]);
@@ -144,7 +147,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
     const onKey=e=>{
       if(e.key==='Escape'){
         if(confirmReset)setConfirmReset(false);
-        else setOpen(false);
+        else close();
       }
     };
     document.addEventListener('keydown',onKey);
@@ -200,7 +203,20 @@ export default function BrianBombArena({currentUser,language='vi'}){
     const amount=session.teams[session.turn].bank;
     update({type:'BANK'});playSound('bank');showFx('bank',amount);
   };
-  const close=()=>{clearAllTileShakes();window.clearTimeout(fxTimer.current);setFx(null);setOpen(false);setConfirmReset(false);};
+  const finishPortalClose=()=>{
+    window.clearTimeout(portalExitTimer.current);
+    portalExitPending.current=false;
+    clearAllTileShakes();
+    window.clearTimeout(fxTimer.current);setFx(null);
+    setOpen(false);setPortalExiting(false);setConfirmReset(false);
+  };
+  const close=()=>{
+    if(portalExitPending.current)return;
+    const {duration}=readBubbleMotion();
+    if(!duration){finishPortalClose();return;}
+    portalExitPending.current=true;setPortalExiting(true);
+    portalExitTimer.current=window.setTimeout(finishPortalClose,duration);
+  };
   const reset=async()=>{
     await clearArena(ownerId);setSession(null);setScreen('setup');setConfirmReset(false);setFx(null);
     setPresenter(false);setQuestionText('');setLoadedPackId(null);setSelectedChoice(null);setStatus('');
@@ -481,6 +497,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
   const bubble=<button type="button" className="bba-bubble" onClick={()=>{
     if(!soundRef.current)soundRef.current=createArenaSound();
     soundRef.current.unlock?.();
+    portalExitPending.current=false;setPortalExiting(false);
     setOpen(true);if(session?.phase==='finished')setScreen('results');
   }}
     title={tr('Mở Brian Bomb Arena','Open Brian Bomb Arena')} aria-label={tr('Mở Brian Bomb Arena','Open Brian Bomb Arena')}>
@@ -488,7 +505,8 @@ export default function BrianBombArena({currentUser,language='vi'}){
   return <>
     {!open&&createPortal(bubble,document.body)}
     {open&&createPortal(<section className={'bba-shell bba-theme-'+(session?.theme||theme)+(fx?.type==='bomb'?' is-exploding':'')+(forceFx?' bba-allow-fx':'')}
-       role="dialog" aria-modal="true" aria-label="Brian Bomb Arena" ref={shellRef}>
+       role="dialog" aria-modal="true" aria-label="Brian Bomb Arena"
+       data-bubble-phase={portalExiting?'exit':'enter'} ref={shellRef}>
       <header className="bba-header"><div className="bba-brand"><span>💣</span><div><strong>BRIAN BOMB ARENA</strong><small>THE EXPLOSIVE CLASSROOM</small></div></div>
         <div className="bba-header-actions">
           {session&&screen==='arena'&&<button type="button" onClick={()=>setPresenter(x=>!x)} aria-pressed={presenter} title={tr('Chế độ trình chiếu','Presenter mode')}><Monitor size={18}/><span>{presenter?tr('Giáo viên','Teacher'):tr('Trình chiếu','Present')}</span></button>}

@@ -37,6 +37,7 @@ import './BrianFocusYoutubePlaylist.css';
 import './FocusUnifiedStudio.css';
 import './FocusScenePreviewLayout.css';
 import { GLOBAL_FLOATING_ACTION_EVENT, FLOATING_ACTION_IDS } from '../../utils/unifiedFloatingDock.js';
+import {readBubbleMotion} from '../../utils/bubbleMotion.js';
 
 /** One global Focus trigger and overlay; the underlying app route stays mounted. */
 export default function BrianFocus({ currentUser, language = 'vi', performance = 'balanced', dockManaged = false, dockTriggerRef }) {
@@ -228,7 +229,7 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
     silk9.update(cur=>({...cur,recovery:cur.recovery?{...cur.recovery,open:false}:null}));
     silk9.event('close','Focus closed');
     exitPendingRef.current = true;
-    if (transitions.exit === 'none') {
+    if (transitions.exit === 'none' || readBubbleMotion().duration === 0) {
       exitPendingRef.current = false;
       setExiting(false);
       setOpen(false);
@@ -244,7 +245,7 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
     if (!open || exiting) return undefined;
     const overlay = document.querySelector('.bfc-overlay[data-focus-transition="entering"]');
     const reducedMotion = ['low', 'minimal'].includes(performance) ||
-      Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+      (Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) || readBubbleMotion().duration === 0);
     const animation = startFocusEnter(overlay, enteredWithEffectRef.current, { reducedMotion });
     // Keep fill-mode until exit starts, so the transition never snaps.
     return () => animation?.cancel?.();
@@ -256,7 +257,7 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
     if (!open || !exiting) return undefined;
     const overlay = document.querySelector('.bfc-overlay[data-focus-transition="exiting"]');
     const reducedMotion = ['low', 'minimal'].includes(performance) ||
-      Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+      (Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) || readBubbleMotion().duration === 0);
     const animation = startFocusExit(overlay, transitions.exit, { reducedMotion });
     let finished = false;
     let cancelled = false;
