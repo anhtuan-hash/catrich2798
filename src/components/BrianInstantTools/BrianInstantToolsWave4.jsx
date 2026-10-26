@@ -50,8 +50,9 @@ function GroupMaker({value,onChange,language,sound}){
  const split=()=>{
   const names=normalizePeople(draft);
   if(names.length<2){setError(t.needNames);return;}
-  const groups=makeGroups(names,value.count,secureInt);
-  update(v=>({...v,names,groups}));setDealRun(n=>n+1);setError('');if(sound)localBeep(588,.17);
+  const groupCount=Math.min(value.count,names.length);
+  const groups=makeGroups(names,groupCount,secureInt);
+  update(v=>({...v,names,groups,count:groupCount}));setDealRun(n=>n+1);setError('');if(sound)localBeep(588,.17);
  };
  const copy=async()=>{
   const contents=value.groups.map((g,i)=>(language==='en'?t.group:t.group)+' '+(i+1)+': '+g.members.join(', ')).join('\n');
@@ -183,7 +184,7 @@ function Buzzer({value,onChange,language,sound}){
    </div>
    <div className={'bit-w4-buzz-status'+(winner?' has-winner':'')} role="status">{winner?<><Trophy size={23}/>{t.winner}: {winner}</>:armed?<><Zap size={23}/>{t.armed}</>:t.buzzHint}
     {round>0&&<small>{t.round} {round}</small>}</div>
-   <div className="bit-w4-buzz-grid">{teams.map((name,i)=><section key={i} className={'bit-w4-buzz-team'+(winner===name?' is-winner':'')}>
+   <div className="bit-w4-buzz-grid">{teams.map((name,i)=><section key={i} className={'bit-w4-buzz-team'+(winnerIndex.current===i?' is-winner':'')}>
     <input aria-label={t.team+' '+(i+1)} maxLength={32} value={name} onChange={e=>update(v=>({...v,teams:v.teams.map((x,j)=>i===j?e.target.value.slice(0,32):x)}))}/>
     <button className="bit-w4-big-buzz" type="button" disabled={!armed||Boolean(winner)} onClick={()=>buzz(name||t.team+' '+(i+1),i)}><BellRing size={27}/>{t.buzz}</button>
     <span>{t.score}: {value.score[i]||0}</span>
