@@ -1021,6 +1021,10 @@ export default function GlobalWorkScheduleCenter({
       : calendarMode === 'week' ? cursor
         : cursor.getFullYear() === now.getFullYear() && cursor.getMonth() === now.getMonth() ? now : cursor;
     setDeleteWeekIncludeManual(false);
+    setDeleteWeekItems([]);
+    setDeleteWeekSelected(new Set());
+    setDeleteWeekConfirm('');
+    setDeleteWeekError('');
     setDeleteWeekAnchor(dayKey(anchor));
     setDeleteWeekOpen(true);
     setError('');
@@ -1166,7 +1170,7 @@ export default function GlobalWorkScheduleCenter({
               <button type="button" className="secondary" onClick={() => downloadTextFile('mau-lich-lam-viec.csv', makeScheduleTemplateCsv())}>⇩ File mẫu</button>
               <button type="button" className="secondary" disabled={busy} onClick={() => fileInputRef.current?.click()}>⇧ Upload lịch</button>
               <button type="button" className="primary" onClick={() => setEditor(defaultEditor())}>＋ Thêm lịch</button>
-              <button type="button" className="work-schedule-week-delete-button" disabled={busy} onClick={openDeleteWeek}>♻ {deleteI18n[language === 'en' ? 'en' : 'vi'].button}</button>
+              <button type="button" className="work-schedule-week-delete-button" disabled={busy} onClick={openDeleteWeek}>🗑 {deleteI18n[language === 'en' ? 'en' : 'vi'].button}</button>
             </> : <span className="work-schedule-readonly">Chế độ xem lịch chung</span>}
           </div>
         </header>
@@ -1198,7 +1202,7 @@ export default function GlobalWorkScheduleCenter({
               <button type="button" className="is-template" onClick={() => downloadTextFile('mau-lich-lam-viec.csv', makeScheduleTemplateCsv())} title="Tải file CSV mẫu">⇩ Mẫu</button>
               <button type="button" className="is-upload" disabled={busy} onClick={() => fileInputRef.current?.click()} title="Tải lên lịch làm việc từ XLSX hoặc CSV">⇧ Tải lên lịch</button>
               <button type="button" className="is-add" disabled={busy} onClick={() => setEditor(defaultEditor())} title="Thêm hoạt động thủ công">＋ Thêm</button>
-              <button type="button" className="is-week-delete" disabled={busy} onClick={openDeleteWeek}>♻ {deleteI18n[language === 'en' ? 'en' : 'vi'].button}</button>
+              <button type="button" className="is-week-delete" disabled={busy} onClick={openDeleteWeek}>🗑 {deleteI18n[language === 'en' ? 'en' : 'vi'].button}</button>
             </div> : null}
             <div className="work-schedule-category-filters" aria-label="Lọc lịch theo loại hoạt động">
               {TIMELINE_CATEGORIES.map(([id, label, color]) => <button type="button" key={id} className={timelineCategory === id ? 'is-selected' : ''} aria-pressed={timelineCategory === id} style={{ '--category': color }} onClick={() => setTimelineCategory(id)}><i />{label}</button>)}
