@@ -47,6 +47,24 @@ svg{width:100%;height:100%;display:block}
  font-size:clamp(30px,4vw,64px)!important}
 @media(max-width:700px){.tv-scores{grid-template-columns:repeat(2,minmax(0,1fr))}
  .tv-corner{min-height:68px;padding:12px}}
+.tv-live-label{font-size:clamp(13px,1.5vw,20px);font-weight:850;color:#327c5b;letter-spacing:.14em}
+.tv-live-question{color:#466e5c;font-size:clamp(19px,2.5vw,33px)!important;font-weight:680}
+.tv-live-poll{display:grid;gap:18px;max-width:1100px}
+.tv-live-poll-row{display:grid;grid-template-columns:1fr auto;gap:6px}
+.tv-live-poll-row strong{font-size:clamp(18px,2.25vw,32px);overflow-wrap:anywhere}
+.tv-live-poll-row span{font-size:clamp(15px,2vw,28px);font-weight:850}
+.tv-live-meter{grid-column:1/-1;height:17px;background:#dfebe2;border-radius:20px;overflow:hidden}
+.tv-live-meter div{height:100%;background:linear-gradient(90deg,#267958,#8bbd8f);border-radius:20px}
+.tv-live-cloud{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;
+ align-content:center;gap:17px 26px;min-height:260px}
+.tv-live-cloud span{max-width:100%;color:#347d5c;font-weight:800;overflow-wrap:anywhere}
+.tv-live-wall{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:16px}
+.tv-live-note{background:#ffefc7;border-radius:17px;min-height:140px;padding:19px;
+ font-size:clamp(16px,2vw,30px);font-weight:730;overflow-wrap:anywhere}
+.tv-live-note.tone-1{background:#daf1e2}.tv-live-note.tone-2{background:#e5eafa}.tv-live-note.tone-3{background:#fbe1d9}
+.tv-live-footnote{font-size:13px;color:#67806f}
+@media(max-width:700px){.tv-live-wall{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .tv-live-note{padding:12px;min-height:95px}}
 </style></head><body><main class="shell">
 <header class="header"><span class="brand">BRIAN BOARD · STUDENT VIEW</span><strong id="title">The Living Classroom</strong><small id="status">Connecting…</small></header>
 <div class="board" id="board"><div class="notice" id="notice">Waiting for the teacher’s board…</div>
