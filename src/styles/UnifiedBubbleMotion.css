@@ -1,0 +1,133 @@
+/* Brian Unified Bubble Motion v1.
+   The existing global Motion Hub owns speed/easing and the Bubble slot.
+   Only portal opacity/transform are animated; app state and canvas are untouched. */
+html[data-motion-bubble]{
+  --bes-bubble-easing:var(--gm-ease,cubic-bezier(.22,1,.36,1));
+  --bes-bubble-duration:var(--gm-slow,285ms);
+}
+/* Launcher language is shared among Focus, Board, Bomb, Instant and Chat. */
+html[data-motion-bubble]:not([data-motion-bubble="none"]) body :is(
+ .bba-bubble,.bit-launcher,.bbd-board-fab,.bfc-bubble,
+ .bes-approval-root .bes-approval-fab,.bes-kira-chat-root .bes-kira-chat-launcher
+){
+  transition:transform var(--gm-base,215ms) var(--bes-bubble-easing),
+    box-shadow var(--gm-base,215ms) ease!important;
+}
+@media(hover:hover){
+  html[data-motion-bubble]:not([data-motion-bubble="none"]) body :is(
+   .bba-bubble,.bit-launcher,.bbd-board-fab,.bfc-bubble,
+   .bes-approval-root .bes-approval-fab,.bes-kira-chat-root .bes-kira-chat-launcher
+  ):not(:disabled):hover{transform:translateY(-3px) scale(1.035)!important;}
+}
+html[data-motion-bubble]:not([data-motion-bubble="none"]) body :is(
+  .bba-bubble,.bit-launcher,.bbd-board-fab,.bfc-bubble
+):not(:disabled):active{transform:scale(.955)!important;}
+/* Bomb Arena & Instant Tools opt into the same open/close transition contract. */
+html[data-motion-bubble] .bba-shell[data-bubble-phase],
+html[data-motion-bubble] .bit-overlay[data-bubble-phase]{
+  animation-duration:var(--bes-bubble-duration)!important;
+  animation-timing-function:var(--bes-bubble-easing)!important;
+  animation-fill-mode:both!important;
+}
+html[data-motion-bubble] .bit-portal{animation:none!important;}
+html[data-motion-bubble="fade"] :is(.bba-shell,.bit-overlay)[data-bubble-phase="enter"]{
+  animation-name:bes-bubble-fade-in!important;
+}
+html[data-motion-bubble="fade"] :is(.bba-shell,.bit-overlay)[data-bubble-phase="exit"]{
+  animation-name:bes-bubble-fade-out!important;
+}
+html[data-motion-bubble="zoom"] :is(.bba-shell,.bit-overlay)[data-bubble-phase="enter"]{
+  animation-name:bes-bubble-zoom-in!important;
+}
+html[data-motion-bubble="zoom"] :is(.bba-shell,.bit-overlay)[data-bubble-phase="exit"]{
+  animation-name:bes-bubble-zoom-out!important;
+}
+html[data-motion-bubble="glide"] :is(.bba-shell,.bit-overlay)[data-bubble-phase="enter"]{
+  animation-name:bes-bubble-glide-in!important;
+}
+html[data-motion-bubble="glide"] :is(.bba-shell,.bit-overlay)[data-bubble-phase="exit"]{
+  animation-name:bes-bubble-glide-out!important;
+}
+html[data-motion-bubble="spring"] :is(.bba-shell,.bit-overlay)[data-bubble-phase="enter"]{
+  animation-name:bes-bubble-spring-in!important;
+}
+html[data-motion-bubble="spring"] :is(.bba-shell,.bit-overlay)[data-bubble-phase="exit"]{
+  animation-name:bes-bubble-spring-out!important;
+}
+html[data-motion-bubble="cinematic"] :is(.bba-shell,.bit-overlay)[data-bubble-phase="enter"]{
+  animation-name:bes-bubble-cinema-in!important;
+}
+html[data-motion-bubble="cinematic"] :is(.bba-shell,.bit-overlay)[data-bubble-phase="exit"]{
+  animation-name:bes-bubble-cinema-out!important;
+}
+html[data-motion-bubble="none"] :is(.bba-shell,.bit-overlay)[data-bubble-phase]{
+  animation:none!important;
+}
+/* Prevent stray clicks while an exit is committed. */
+:is(.bba-shell,.bit-overlay)[data-bubble-phase="exit"]{pointer-events:none!important;}
+@keyframes bes-bubble-fade-in{from{opacity:0}to{opacity:1}}
+@keyframes bes-bubble-fade-out{from{opacity:1}to{opacity:0}}
+@keyframes bes-bubble-zoom-in{
+  from{opacity:0;transform:scale(.965)}to{opacity:1;transform:scale(1)}
+}
+@keyframes bes-bubble-zoom-out{
+  from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(.965)}
+}
+@keyframes bes-bubble-glide-in{
+  from{opacity:0;transform:translate3d(0,28px,0)}to{opacity:1;transform:translate3d(0,0,0)}
+}
+@keyframes bes-bubble-glide-out{
+  from{opacity:1;transform:translate3d(0,0,0)}to{opacity:0;transform:translate3d(0,24px,0)}
+}
+@keyframes bes-bubble-spring-in{
+  from{opacity:0;transform:scale(.93) translate3d(0,14px,0)}
+  72%{opacity:1;transform:scale(1.008)}
+  to{opacity:1;transform:scale(1)}
+}
+@keyframes bes-bubble-spring-out{
+  from{opacity:1;transform:scale(1)}
+  to{opacity:0;transform:scale(.94) translate3d(0,14px,0)}
+}
+@keyframes bes-bubble-cinema-in{
+  from{opacity:0;transform:translate3d(0,18px,0) scale(.945);filter:brightness(.9)}
+  to{opacity:1;transform:translate3d(0,0,0) scale(1);filter:brightness(1)}
+}
+@keyframes bes-bubble-cinema-out{
+  from{opacity:1;transform:translate3d(0,0,0) scale(1);filter:brightness(1)}
+  to{opacity:0;transform:translate3d(0,18px,0) scale(.945);filter:brightness(.92)}
+}
+/* Contextual movement inside Bomb Arena; never animate the tile hitbox
+   because this would break Safari's hover/press handling. */
+html[data-motion-bubble]:not([data-motion-bubble="none"]) .bba-shell .bba-hero-icon{
+  animation:bes-bubble-float 4s ease-in-out infinite;
+}
+html[data-motion-bubble]:not([data-motion-bubble="none"]) .bba-shell .bba-panel{
+  animation:bes-bubble-panel-in var(--gm-base,215ms) var(--bes-bubble-easing) both;
+}
+html[data-motion-bubble]:not([data-motion-bubble="none"]) .bba-shell .bba-scoreboard .bba-team{
+  transition:box-shadow var(--gm-base,215ms) ease,border-color var(--gm-base,215ms) ease!important;
+}
+html[data-motion-bubble]:not([data-motion-bubble="none"]) .bba-shell .bba-mode:not(:disabled):active{
+  transform:scale(.985);
+}
+html[data-motion-bubble]:not([data-motion-bubble="none"]) .bba-shell .bba-bank-button:not(:disabled){
+  transition:transform var(--gm-fast,135ms) ease,box-shadow var(--gm-base,215ms) ease;
+}
+html[data-motion-bubble]:not([data-motion-bubble="none"]) .bit-portal .bit-app-card:not(:disabled):active{
+  transform:scale(.98);
+}
+@keyframes bes-bubble-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes bes-bubble-panel-in{
+  from{opacity:.45;transform:translate3d(0,12px,0)}to{opacity:1;transform:translate3d(0,0,0)}
+}
+/* System accessibility always overrides custom effects and can never hide content. */
+@media(prefers-reduced-motion:reduce){
+  html[data-motion-bubble] :is(.bba-shell,.bit-overlay,.bit-portal)[data-bubble-phase],
+  html[data-motion-bubble] .bba-shell .bba-hero-icon,
+  html[data-motion-bubble] .bba-shell .bba-panel{
+    animation:none!important;transform:none!important;filter:none!important;opacity:1!important;
+  }
+  html[data-motion-bubble] body :is(.bba-bubble,.bit-launcher,.bbd-board-fab,.bfc-bubble){
+    transition:none!important;
+  }
+}
