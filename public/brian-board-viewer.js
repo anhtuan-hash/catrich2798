@@ -68,7 +68,7 @@ function drawing(o){
  }
  if(o.kind==='mask')return o.revealed?null:make('rect',{x:o.x,y:o.y,width:o.width||240,height:o.height||90,rx:9,fill:'#243b4b'});
  if(o.kind==='text'){
-  const el=make('text',{x:o.x,y:o.y,fill:o.color||'#355c63','font-size':o.fontSize||40,'font-weight':550});
+  const el=make('text',{x:o.x,y:o.y,fill:o.color||'#355c63','font-size':o.fontSize||40,'font-weight':o.fontWeight==='700'?700:550});
   el.textContent=String(o.text||'').slice(0,90);return el;
  }
  if(o.kind==='sticky'||o.kind==='flashcard'){

@@ -52,7 +52,7 @@ function renderBoardObjectRaw(object,onErase,studentView=false,onInteract,onSele
    </g>;
   return <text key={o.id} data-board-object={o.id} x={o.x} y={o.y} onPointerDown={press}
    style={{pointerEvents:onErase||onSelect?'all':'none'}} fill={o.color||'#304d53'}
-   fontSize={o.fontSize||40} fontWeight="550">{String(o.text||'').slice(0,90)}</text>;
+   fontSize={o.fontSize||40} fontWeight={o.fontWeight||'550'}>{String(o.text||'').slice(0,90)}</text>;
  }
  if(o.kind==='activity-pin'){
   if(studentView)return null;

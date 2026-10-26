@@ -19,6 +19,7 @@ export function normalizeLesson(raw,ownerId){
  const pages=raw.pages.slice(0,80).filter(p=>p&&typeof p==='object').map((p,i)=>({
   id:String(p.id||makeId()).slice(0,85),title:String(p.title||'Page '+(i+1)).slice(0,90),
   background:BACKGROUNDS.includes(p.background)?p.background:'plain',
+  pptxSource:p.pptxSource===true,
   locked:p.locked===true,hidden:p.hidden===true,
   activities:normalizeBoardActivities(p.activities),frames:normalizeBoardFrames(p.frames),
   objects:Array.isArray(p.objects)?p.objects.slice(0,3000).filter(o=>o&&typeof o==='object'&&
@@ -65,7 +66,7 @@ export function sanitizeStudentPage(page){
     ...xy(o),x2:number(o.x2),y2:number(o.y2),color:String(o.color||'#355d63').slice(0,60),width:number(o.width,4),opacity:Math.max(0,Math.min(1,number(o.opacity,1)))});
   }else if(kind==='text'||kind==='sticky'){
    safe.push({id,kind,...xy(o),...rotation(o),text:String(o.text||'').slice(0,90),
-    color:String(o.color||'#355d63').slice(0,60),fontSize:number(o.fontSize,40)});
+    color:String(o.color||'#355d63').slice(0,60),fontSize:number(o.fontSize,40),fontWeight:o.fontWeight==='700'?'700':'550'});
   }else if(kind==='mask'){
    safe.push({id,kind,...xy(o),...rotation(o),width:number(o.width,240),height:number(o.height,90),revealed:o.revealed===true});
   }else if(kind==='image'&&/^data:image\/(?:png|jpeg|webp);base64,/i.test(o.src||'')&&o.src.length<3200000){
