@@ -109,3 +109,17 @@
   color:#975d1e;font:600 13px/1.5 -apple-system,BlinkMacSystemFont,Inter,system-ui,sans-serif;
   cursor:pointer}
 .bea-publish-warning input{width:18px;height:18px;flex-shrink:0;accent-color:#d18a28;margin-top:1px}
+
+
+/* Pending role-specific schedule candidates: admin review only */
+.bea-schedule-suggestions{margin:4px 20px 18px;padding:16px;border:1px solid #d9e5f6;border-radius:15px;background:#f7faff}
+.bea-schedule-suggestions>header{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.bea-schedule-suggestions>header strong{font-size:16px;color:#234c77}
+.bea-schedule-suggestions>header p{color:#6b839d;font-size:12px;margin:4px 0 0}
+.bea-schedule-suggestions-list{display:grid;gap:8px;margin-top:14px;max-height:290px;overflow-y:auto}
+.bea-schedule-suggestions-list article{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid #e1e9f5;border-radius:11px;background:#fff;padding:11px 13px}
+.bea-schedule-suggestions-list article>div{display:grid;gap:3px;min-width:0}
+.bea-schedule-suggestions-list article strong{font-size:13px;overflow-wrap:anywhere}
+.bea-schedule-suggestions-list article small{font-size:11px;color:#6983a0}
+.bea-schedule-suggestions-list article button{flex:none;border:1px solid #ccdff6;border-radius:9px;padding:8px 10px;background:#eaf2ff;color:#285fa8;font-size:12px;font-weight:700}
+@media(max-width:560px){.bea-schedule-suggestions{margin:6px 10px}.bea-schedule-suggestions-list article{align-items:flex-start;flex-direction:column}.bea-schedule-suggestions-list article button{align-self:flex-end}}
