@@ -12,6 +12,7 @@ import {
   normalizeWheelNames,clamp,scoreLeaders,timerRemaining,formatClock,makeQrInput,STORE_VERSION
 } from './instantToolsCore.mjs';
 import './BrianInstantTools.css';
+import {Wave2Tool,WAVE2_LIBRARY,SpotlightOverlay} from './BrianInstantToolsWave2.jsx';
 
 const LIBRARY=[
   {id:'dice',Icon:Dices,vi:'Xúc xắc 3D',en:'3D Dice',descVi:'Lắc xúc xắc tức thì',descEn:'Roll instantly'},
@@ -19,11 +20,12 @@ const LIBRARY=[
   {id:'scoreboard',Icon:Trophy,vi:'Bảng điểm đội',en:'Scoreboard',descVi:'Cộng điểm và ăn mừng',descEn:'Score and celebrate'},
   {id:'timers',Icon:Timer,vi:'Đồng hồ nhiều đội',en:'Multi-Timer',descVi:'Các bộ đếm độc lập',descEn:'Independent clocks'},
   {id:'qr',Icon:QrCode,vi:'Tạo mã QR',en:'QR Maker',descVi:'Tạo và lưu QR ngay',descEn:'Instant QR and download'},
+  ...WAVE2_LIBRARY,
 ];
 const MSG={
-  vi:{launcher:'Mở bộ công cụ tức thì',eyebrow:'INSTANT CLASSROOM KIT',title:'Brian Instant Tools',subtitle:'5 công cụ sẵn sàng sử dụng',home:'Bộ công cụ',minimize:'Thu nhỏ về bong bóng',expand:'Phóng to',restore:'Thu nhỏ cửa sổ',
+  vi:{launcher:'Mở bộ công cụ tức thì',eyebrow:'INSTANT CLASSROOM KIT',title:'Brian Instant Tools',subtitle:'10 công cụ sẵn sàng sử dụng',home:'Bộ công cụ',minimize:'Thu nhỏ về bong bóng',expand:'Phóng to',restore:'Thu nhỏ cửa sổ',
     save:'Tự lưu trên thiết bị',saveFailed:'Không thể lưu phiên trên trình duyệt này',roll:'Tung xúc xắc',diceCount:'Số xúc xắc',sum:'Tổng điểm',history:'Lần tung gần đây',sound:'Bật/tắt âm thanh',spin:'QUAY NGAY',spinning:'Đang quay…',winner:'Kết quả',apply:'Áp dụng tên',options:'Tên đội / học sinh (mỗi dòng một tên)',badOptions:'Cần 2–16 tên khác nhau.',undo:'Hoàn tác',reset:'Đặt lại',resetAsk:'Bạn có chắc muốn đặt lại điểm số?',team:'Đội',addTeam:'Thêm đội',removeTeam:'Bớt đội',celebrate:'Ăn mừng',leaders:'Đang dẫn đầu',duration:'Thời lượng',allPause:'Dừng tất cả',allReset:'Đặt lại tất cả',start:'Bắt đầu',pause:'Tạm dừng',resume:'Tiếp tục',minutes:'phút',done:'Hết giờ!',timerResetAsk:'Đặt lại toàn bộ đồng hồ?',qrLabel:'Liên kết hoặc văn bản',qrGenerate:'Tạo mã QR',qrPreview:'Mã QR đã tạo',qrEmpty:'Vui lòng nhập nội dung.',qrLong:'Tối đa 900 ký tự.',qrInvalid:'Đường dẫn không hợp lệ hoặc chứa giao thức không an toàn.',qrDownload:'Tải PNG',qrCopy:'Sao chép nội dung',qrError:'Không tạo được QR. Hãy thử nội dung ngắn hơn.',qrHint:'Tạo mã QR ngay trên thiết bị. Không gửi dữ liệu ra bên ngoài.',copyFailed:'Không thể sao chép trên trình duyệt này.',close:'Đóng',back:'Trở về bộ công cụ',tools:'Công cụ',label:'Tên',clear:'Xóa kết quả',continue:'Mở công cụ',savedLocal:'Tự lưu trên trình duyệt, không đồng bộ giữa thiết bị'},
-  en:{launcher:'Open instant classroom tools',eyebrow:'INSTANT CLASSROOM KIT',title:'Brian Instant Tools',subtitle:'5 ready-to-use tools',home:'Tool library',minimize:'Minimize to bubble',expand:'Expand',restore:'Restore window',
+  en:{launcher:'Open instant classroom tools',eyebrow:'INSTANT CLASSROOM KIT',title:'Brian Instant Tools',subtitle:'10 ready-to-use tools',home:'Tool library',minimize:'Minimize to bubble',expand:'Expand',restore:'Restore window',
     save:'Saved on this device',saveFailed:'This browser cannot save the session',roll:'Roll dice',diceCount:'Number of dice',sum:'Total',history:'Recent rolls',sound:'Toggle sounds',spin:'SPIN NOW',spinning:'Spinning…',winner:'Winner',apply:'Apply names',options:'Names or teams (one per line)',badOptions:'Enter 2–16 different names.',undo:'Undo',reset:'Reset',resetAsk:'Reset all team scores?',team:'Team',addTeam:'Add team',removeTeam:'Remove team',celebrate:'Celebrate',leaders:'Leading',duration:'Duration',allPause:'Pause all',allReset:'Reset all',start:'Start',pause:'Pause',resume:'Resume',minutes:'minutes',done:'Time is up!',timerResetAsk:'Reset all timers?',qrLabel:'Link or text',qrGenerate:'Generate QR',qrPreview:'Generated QR',qrEmpty:'Enter some content.',qrLong:'Maximum 900 characters.',qrInvalid:'Invalid link or unsafe protocol.',qrDownload:'Download PNG',qrCopy:'Copy content',qrError:'Unable to generate QR. Try shorter content.',qrHint:'QR is generated on your device. Nothing is sent online.',copyFailed:'Could not copy on this browser.',close:'Close',back:'Back to tool library',tools:'Tools',label:'Name',clear:'Clear winner',continue:'Open tool',savedLocal:'Auto-saved in this browser; not synced across devices'},
 };
 const DICE_FACES=['⚀','⚁','⚂','⚃','⚄','⚅'];
@@ -256,6 +258,7 @@ export default function BrianInstantTools({currentUser,language='vi'}){
   const [open,setOpen]=useState(false);
   const [tool,setTool]=useState('home');
   const [expanded,setExpanded]=useState(false);
+  const [spotlightActive,setSpotlightActive]=useState(false);
   const [saveFailed,setSaveFailed]=useState(false);
   const [now,setNow]=useState(()=>Date.now());
   const launcher=useRef(null),dialog=useRef(null);
@@ -287,13 +290,14 @@ export default function BrianInstantTools({currentUser,language='vi'}){
     const before=document.body.style.overflow;
     document.body.style.overflow='hidden';
     dialog.current?.focus();
-    const onKey=e=>{if(e.key==='Escape'){setOpen(false);}};
+    const onKey=e=>{if(e.key==='Escape'&&!document.querySelector('.bit-w2-stage-overlay, .bit-qr-lightbox')){setOpen(false);}};
     window.addEventListener('keydown',onKey);
     return ()=>{document.body.style.overflow=before;window.removeEventListener('keydown',onKey);launcher.current?.focus();};
   },[open]);
   const active=LIBRARY.find(x=>x.id===tool);
   const update=useCallback((section,fn)=>edit(setData,section,fn),[]);
   const choose=id=>{setTool(id);beep('tap',sound);};
+  const activateSpotlight=()=>{setOpen(false);setSpotlightActive(true);};
   if(!userId||!storage)return null;
   return <>
     <button className="bit-launcher" ref={launcher} type="button" aria-label={t.launcher} title={t.launcher} aria-expanded={open} onClick={()=>setOpen(v=>!v)}><Blocks size={27} strokeWidth={1.8}/><span className="bit-launcher-dot" aria-hidden="true"/></button>
@@ -310,7 +314,7 @@ export default function BrianInstantTools({currentUser,language='vi'}){
         <div className="bit-content">
           {tool==='home'?<>
             <div className="bit-intro"><span className="bit-intro-kicker"><Sparkles size={16}/>{t.subtitle}</span><h3>{t.home}</h3><p>{t.savedLocal}</p></div>
-            <div className="bit-library">{LIBRARY.map(({id,Icon,vi,en,descVi,descEn},i)=><button className="bit-app-card" type="button" key={id} onClick={()=>choose(id)} style={{'--card-accent':PALETTE[i]}}>
+            <div className="bit-library">{LIBRARY.map(({id,Icon,vi,en,descVi,descEn},i)=><button className="bit-app-card" type="button" key={id} onClick={()=>choose(id)} style={{'--card-accent':PALETTE[i%PALETTE.length]}}>
               <span className="bit-app-icon"><Icon size={29}/></span><strong>{language==='en'?en:vi}</strong><small>{language==='en'?descEn:descVi}</small><ArrowRight size={18} className="bit-card-arrow"/></button>)}</div>
           </>:<>
             <nav className="bit-backbar"><button type="button" className="bit-secondary" onClick={()=>setTool('home')}><ChevronLeft size={18}/>{t.back}</button><span className="bit-pill"><Save size={15}/>{saveFailed?t.saveFailed:t.save}</span></nav>
@@ -319,10 +323,13 @@ export default function BrianInstantTools({currentUser,language='vi'}){
             {tool==='scoreboard'&&<ScoreboardTool value={data.scoreboard} onChange={fn=>update('scoreboard',fn)} t={t} sound={sound}/>}
             {tool==='timers'&&<TimerTool value={data.timers} onChange={fn=>update('timers',fn)} t={t} sound={sound} now={now}/>}
             {tool==='qr'&&<QrTool value={data.qr} onChange={fn=>update('qr',fn)} t={t} sound={sound}/>}
+            {WAVE2_LIBRARY.some(item=>item.id===tool)&&<Wave2Tool key={tool} tool={tool} value={data[tool]}
+              onChange={fn=>update(tool,fn)} language={language} sound={sound} onSpotlightStart={activateSpotlight}/>}
           </>}
         </div>
-        <footer className="bit-footer"><span>BRIAN INSTANT TOOLS · 01 / 04</span><span>{saveFailed?t.saveFailed:t.savedLocal}</span></footer>
+        <footer className="bit-footer"><span>BRIAN INSTANT TOOLS · 02 / 04</span><span>{saveFailed?t.saveFailed:t.savedLocal}</span></footer>
       </section>
     </div>,document.body)}
+    {spotlightActive&&<SpotlightOverlay config={data.spotlight} language={language} onExit={()=>setSpotlightActive(false)}/>}
   </>;
 }
