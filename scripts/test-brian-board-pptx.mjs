@@ -22,6 +22,7 @@ const editor=read('src/components/BrianBoard/BoardPptxStudio.jsx');
 const canvas=read('src/components/BrianBoard/BoardCanvas.jsx');
 const importer=read('src/components/BrianBoard/boardPptx.js');
 assert.match(board,/importBoardPptx/);assert.match(board,/onPresent=\{startPresentation\}/);
+assert.match(board,/pptxPickerRef/);assert.match(board,/setShowPages\(true\)/);
 assert.match(board,/onEdit=\{changePptxText\}/);assert.match(board,/addPptxSlides/);
 assert.match(canvas,/fontWeight=\{o.fontWeight\|\|'550'\}/);
 assert.match(editor,/onEdit\(o.id/);assert.match(editor,/onDelete\(o.id\)/);
