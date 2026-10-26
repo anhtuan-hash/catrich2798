@@ -207,17 +207,29 @@ export default function BrianBombArena({currentUser,language='vi'}){
     if(screen==='results')return <section className="bba-results">
       <div className="bba-winner"><Trophy size={49}/><p>{tr('KẾT QUẢ TRÒ CHƠI','FINAL RESULTS')}</p><h2>{rankTeams(session.teams)[0]?.name}</h2></div>
       <div className="bba-ranking">{rankTeams(session.teams).map((t,i)=><div key={t.id} className="bba-rank">
-        <span>{i+1}</span><strong>{t.name}</strong><b>{t.score}</b></div>)}</div>
+        <span>{i+1}</span><strong>{t.name}</strong><b>{t.score}</b><small>{tr('ĐIỂM ĐÃ CHỐT','SECURED SCORE')}</small></div>)}</div>
       <div className="bba-result-actions"><button type="button" onClick={exportResults}><Save size={16}/>{tr('Xuất bảng điểm CSV','Export scores CSV')}</button>
       <button type="button" onClick={()=>{setSession(null);setScreen('setup')}}><RotateCcw size={16}/>{tr('Tạo ván mới','New game')}</button>
         <button type="button" onClick={()=>setScreen('arena')}><Eye size={16}/>{tr('Xem lại bảng','Review board')}</button>
         <button type="button" onClick={()=>setConfirmReset(true)}><XCircle size={16}/>{tr('Xóa phiên','Delete session')}</button></div>
     </section>;
     return <div className="bba-arena">
+      
+{session.mode==='luck'&&<div className="bba-pot-stage" aria-live="polite">
+        <div className={'bba-pot-card'+(fx?.type==='points'?' is-increasing':'')+(fx?.type==='bomb'?' is-zeroed':'')}>
+          <div><span className="bba-pot-label">POT · {leader?.name}</span>
+            <strong className="bba-pot-amount">{leader?.bank||0}</strong>
+            <small>{tr('Điểm tạm, chưa an toàn','Unsecured turn points')}</small></div>
+          <button type="button" className="bba-bank-button" onClick={bankTurn}
+            disabled={presenter||session.phase!=='running'||session.selectedTile!==null||(leader?.bank||0)<=0}>
+            <Wallet size={20}/><span>BANK</span></button>
+        </div>
+        <p>{tr('Mở tiếp để tăng POT, hoặc Bank để giữ điểm. Trúng bom sẽ mất POT!','Flip more tiles to grow your POT, or Bank to secure it. A bomb wipes your POT!')}</p>
+      </div>}
       <div className="bba-scoreboard" aria-label={tr('Bảng điểm','Scoreboard')}>
         {session.teams.map((t,i)=><section className={'bba-team '+(session.turn===i?'is-current':'')} key={t.id}
           style={{'--team-accent':COLORS[i%COLORS.length]}}>
-          <button type="button" onClick={()=>update({type:'TEAM',index:i})} disabled={presenter||session.phase!=='running'||session.selectedTile!==null}
+          <button type="button" onClick={()=>update({type:'TEAM',index:i})} disabled={presenter||session.phase!=='running'||session.selectedTile!==null||(session.mode==='luck'&&(leader?.bank||0)>0)}
             aria-label={tr('Chọn đội ','Select team ')+t.name}><span className="bba-team-indicator"/><strong>{t.name}</strong></button>
           <b>{t.score}</b>
           {session.mode==='luck'&&<small>BANK: {t.bank}</small>}
@@ -228,11 +240,11 @@ export default function BrianBombArena({currentUser,language='vi'}){
       </div>
       <div className="bba-playground">
         <div className="bba-board-wrap">
-          <div className="bba-board-top"><span>{tr('CHIẾN TRƯỜNG BÍ MẬT','MYSTERY FIELD')}</span>
+          <div className="bba-board-top"><span>{tr('MỞ Ô SỐ · TRÁNH BOM','FLIP NUMBERS · AVOID BOMBS')}</span>
             <span>{remaining} {tr('ô còn lại','tiles left')}</span></div>
           <div className="bba-tiles" style={{'--bba-columns':session.size}}>
             {session.tiles.map((tile,i)=><button key={tile.id} type="button"
-              className={'bba-tile '+(tile.opened?'is-revealed':'is-hidden')}
+              className={'bba-tile '+(tile.opened?'is-revealed':'is-hidden')+(tile.opened&&tile.event==='bomb'?' is-bomb':'')+(fx?.tileId===tile.id?' is-just-opened':'')}
               disabled={tile.opened||session.phase!=='running'||session.selectedTile!==null||presenter}
               aria-label={tile.label+(tile.opened?' revealed':'')} onClick={()=>pick(i)}>
               <span className="bba-tile-front">{tile.label}</span>
@@ -251,10 +263,9 @@ export default function BrianBombArena({currentUser,language='vi'}){
             <p>{session.last.event==='incorrect'?tr('Trả lời chưa đúng','Incorrect answer'):
               session.last.event==='bank'?tr('Đã chốt điểm','Points banked'):session.last.label}</p>
           </div>}
-          {session.mode==='luck'&&session.phase==='running'&&!presenter&&<div className="bba-luck-actions">
-            <button type="button" onClick={()=>update({type:'BANK'})}><Wallet size={17}/>{tr('CHỐT ĐIỂM','BANK')}</button>
-            <p>{tr('Tiếp tục chọn ô hoặc chốt số điểm tạm hiện có.','Keep picking, or secure your temporary points.')}</p>
-          </div>}
+          {session.mode==='luck'&&session.phase==='running'&&<div className="bba-luck-actions">
+             <p>{tr('🎲 Mở ô số để tăng POT. 💣 Bom sẽ xóa POT. Nhấn BANK phía trên để chốt.','🎲 Numbers increase POT. 💣 Bombs wipe POT. Press BANK above to secure it.')}</p>
+           </div>}
           {session.phase==='paused'&&<div className="bba-pause-message"><Pause size={24}/>{tr('Đã tạm dừng trò chơi','Game paused')}</div>}
           {!presenter&&<div className="bba-game-controls">
             <button type="button" onClick={()=>update({type:'UNDO'})} disabled={!session.history.length}><Undo2 size={17}/>{tr('Hoàn tác','Undo')}</button>
@@ -282,7 +293,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
     <Bomb size={27} strokeWidth={1.75}/><span className="bba-bubble-tip">Bomb Arena</span></button>;
   return <>
     {!open&&createPortal(bubble,document.body)}
-    {open&&createPortal(<section className={'bba-shell bba-theme-'+(session?.theme||theme)}
+    {open&&createPortal(<section className={'bba-shell bba-theme-'+(session?.theme||theme)+(fx?.type==='bomb'?' is-exploding':'')}
        role="dialog" aria-modal="true" aria-label="Brian Bomb Arena">
       <header className="bba-header"><div className="bba-brand"><span>💣</span><div><strong>BRIAN BOMB ARENA</strong><small>THE EXPLOSIVE CLASSROOM</small></div></div>
         <div className="bba-header-actions">
@@ -291,7 +302,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
             {session.phase==='paused'?<Play size={18}/>:<Pause size={18}/>}<span>{session.phase==='paused'?tr('Tiếp tục','Resume'):tr('Tạm dừng','Pause')}</span></button>}
           {session&&!presenter&&<button type="button" onClick={save} title={tr('Lưu phiên','Save session')}><Save size={18}/></button>}
           <button type="button" onClick={()=>setVolume(x=>!x)} title={volume?tr('Tắt âm','Mute'):tr('Bật âm','Unmute')}>{volume?<Volume2 size={19}/>:<VolumeX size={19}/>}</button>
-          <button type="button" onClick={closeRef?close:close} ref={closeRef} className="bba-close" aria-label={tr('Đóng trò chơi','Close game')}><X size={21}/></button>
+          <button type="button" onClick={close} ref={closeRef} className="bba-close" aria-label={tr('Đóng trò chơi','Close game')}><X size={21}/></button>
         </div>
       </header>
       <main className="bba-main">
@@ -302,7 +313,8 @@ export default function BrianBombArena({currentUser,language='vi'}){
           <button type="button" onClick={()=>update({type:'FINISH'})}>{tr('Kết thúc','Finish')}</button>
           <button type="button" onClick={()=>setConfirmReset(true)}><RotateCcw size={14}/>{tr('Ván mới','New game')}</button></div>}
       </footer>
-      {confirmReset&&<div className="bba-confirm" role="alertdialog" aria-modal="true" aria-label={tr('Xóa phiên hiện tại','Delete current session')}>
+      <ArenaEffects fx={fx} vi={vi}/>
+       {confirmReset&&<div className="bba-confirm" role="alertdialog" aria-modal="true" aria-label={tr('Xóa phiên hiện tại','Delete current session')}>
         <div><HelpCircle size={26}/><h3>{tr('Xóa phiên đang lưu?','Delete saved session?')}</h3>
           <p>{tr('Thao tác này sẽ xóa tiến trình hiện tại trên thiết bị.','This removes the current saved progress on this device.')}</p>
           <div><button type="button" onClick={()=>setConfirmReset(false)}>{tr('Hủy','Cancel')}</button>
