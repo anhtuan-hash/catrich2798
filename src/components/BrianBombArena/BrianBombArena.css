@@ -383,13 +383,8 @@ body .bba-bubble:focus-visible{outline:3px solid #ffa6ac;outline-offset:4px;}
   91%{transform:translate(1px,-2px) rotate(1.2deg);}
 }
 .bba-shell .bba-tile.is-hidden{transition:background .16s,box-shadow .16s!important;transform:none;}
-@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
-  .bba-shell .bba-tile.is-hidden:not(:disabled):hover{
-    animation:bba-hover-tremble .13s linear infinite!important;
-    transform-origin:center center;
-    will-change:transform;
-  }
-}
+/* v5: removed the old button-level shake rule.
+   The button must NEVER move: only .bba-tile-visual animates. */
 /* Touch has no hover; reduced-motion users retain a static focus outline. */
 @media(prefers-reduced-motion:reduce){
   .bba-shell .bba-tile.is-hidden:hover{animation:none!important;transform:none!important;}
@@ -469,4 +464,13 @@ body .bba-bubble:focus-visible{outline:3px solid #ffa6ac;outline-offset:4px;}
   .bba-shell .bba-tile.is-hover-shaking.is-hidden:not(:disabled):hover .bba-tile-visual{
     animation:bba-shake-face .19s linear infinite;
   }
+}
+
+/* Definitive reset for CSS from older themes with !important hover rules.
+   This selector equals/exceeds the old specificity and is intentionally last. */
+.bba-shell .bba-tile.is-hidden:not(:disabled):hover,
+.bba-theme-mint .bba-tile.is-hidden:not(:disabled):hover{
+  animation:none!important;
+  transform:none!important;
+  transform-origin:center center;
 }

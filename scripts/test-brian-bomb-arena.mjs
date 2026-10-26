@@ -214,8 +214,10 @@ check('UI exposes quick sample import, CSV template, sound preview and loudness'
   assert.match(css,/bba-sound-settings/);
   assert.match(css,/bba-hover-tremble/);
   assert.match(css,/not\(:disabled\):hover/);
-  assert.match(css,/animation:bba-hover-tremble \.13s linear infinite/);
-  assert.match(css,/pointer:fine/);
+  // Regression: the original button-level keyframes MUST NOT be applied.
+  assert.ok(!css.includes('animation:bba-hover-tremble .13s linear infinite'));
+  assert.match(css,/\.bba-shell \.bba-tile\.is-hidden:not\(:disabled\):hover,/);
+  assert.match(ui,/onMouseEnter=\{event=>startTileShake/);
   assert.match(ui,/tile\.event==='blocked'/);
   assert.match(ui,/ruleVersion!==4/);
 });
