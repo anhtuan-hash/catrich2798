@@ -30,6 +30,9 @@ import BoardReliabilityPanel from './BoardReliabilityPanel.jsx';
 import {listBoardAssets,saveBoardAsset,readBoardAsset} from './boardAssets.js';
 import {cropBoardImageData,cropBoardImageRegion,effectBoardImageRegion} from './boardImageStudio.js';
 import BoardCropEditor from './BoardCropEditor.jsx';
+import BoardPdfStudio from './BoardPdfStudio.jsx';
+import {annotateBoardObject,annotateBoardObjects,pdfHighlightRegion,
+ setPdfPaperState,clearPdfAnnotations,pdfPageIndices,findPdfBackground} from './boardPdfAnnotations.js';
 import {eraseInkAtPoint,scaleBoardObjects,duplicateBoardObjects,reorderBoardObjects,
  BOARD_V8_TEMPLATES,buildBoardTemplate,createDiagramConnection,syncDiagramConnections,
  groupResizeTransform,rotateBoardObjects,alignBoardObjects,layoutBoardNodes} from './boardV8Tools.js';
@@ -41,6 +44,7 @@ const drawTools=[
  ['select',MousePointer2,'Select','Chọn'],['lasso',Lasso,'Freeform lasso','Khoanh chọn tự do'],['pan',Hand,'Pan','Di chuyển'],
  ['frame',Frame,'Draw frame','Vẽ khung trình chiếu'],
  ['pen',Pen,'Pen','Bút'],['highlighter',Highlighter,'Highlight','Đánh dấu'],
+ ['pdf-highlight',Highlighter,'PDF region highlight','Tô sáng vùng PDF'],
  ['eraser',Eraser,'Erase object','Tẩy đối tượng'],['eraser-ink',Eraser,'Erase ink only','Chỉ tẩy nét bút'],
  ['eraser-precision',Paintbrush,'Precision eraser','Tẩy từng đoạn nét'],
  ['text',Type,'Text','Chữ'],
@@ -407,12 +411,32 @@ export default function BrianBoard({currentUser,language='vi'}){
   if(activeActivityId===id)setActiveActivityId(null);
   if(editingActivityId===id)cancelActivityEditing();
  };
- const commitObj=object=>{if(!page||page.locked)return;editPage(p=>({...p,objects:[...p.objects,object]}));};
+ const commitObj=object=>{if(!page||page.locked)return;editPage(p=>({...p,objects:[...p.objects,annotateBoardObject(p,object)]}));};
  const commitMany=objects=>{
   if(!page||page.locked||!objects?.length||page.objects.length+objects.length>3000)return;
-  editPage(p=>({...p,objects:[...p.objects,...objects]}));
+  editPage(p=>({...p,objects:[...p.objects,...annotateBoardObjects(p,objects)]}));
  };
  const eraseObject=id=>{if(!page||page.locked)return;editPage(p=>({...p,objects:p.objects.filter(o=>o.id!==id)}));};
+ const pdfHighlight=area=>{
+  if(!page||page.locked||!findPdfBackground(page))return;
+  try{editPage(p=>pdfHighlightRegion(p,area));}
+  catch(e){setPdfStatus(e.message||'Unable to highlight PDF');}
+ };
+ const pdfPaperState=(attr,value)=>{
+  if(!page||page.locked)return;
+  editPage(p=>setPdfPaperState(p,attr,value));
+ };
+ const pdfClear=()=>{
+  if(!page||page.locked||!findPdfBackground(page))return;
+  if(!window.confirm(vi?'Xóa tất cả chú thích trên trang PDF này? Có thể Undo.':
+   'Delete all annotations on this PDF page? Undo is available.'))return;
+  editPage(p=>clearPdfAnnotations(p));
+ };
+ const pdfNavigate=direction=>{
+  const indices=pdfPageIndices(docRef.current),i=indices.indexOf(docRef.current.pages.findIndex(p=>p.id===page.id));
+  const target=indices[i+direction];
+  if(Number.isInteger(target))pageAt(target);
+ };
  const precisionErase=points=>{
   if(!page||page.locked||!points?.length)return;
   const sampled=points.length>120?points.filter((_,i)=>i%Math.ceil(points.length/120)===0):points;
@@ -569,7 +593,7 @@ export default function BrianBoard({currentUser,language='vi'}){
    });
    if(ownerAtStart!==ownerId||lessonAtStart!==docRef.current?.id)return;
    mutate(d=>({...d,pages:[...d.pages,...pages],activePageId:pages[0].id}));
-   setPanel('pages');setPdfStatus((vi?'Đã thêm ':'Imported ')+pages.length+(vi?' trang PDF':' PDF pages'));
+   setPanel('pdf');setPdfStatus((vi?'Đã thêm ':'Imported ')+pages.length+(vi?' trang PDF':' PDF pages'));
   }catch(e){setPdfStatus(e?.message||'PDF import failed');}
   finally{setPdfBusy(false);}
  };
@@ -948,7 +972,7 @@ export default function BrianBoard({currentUser,language='vi'}){
        :<BoardCanvas page={studentView?sanitizeStudentPage(page):page} tool={studentView?'select':tool} color={color} width={thickness}
        onCommit={commitObj} onErase={eraseObject} onDuplicateObject={duplicateObject} onMoveObject={moveObject}
        onBatchEdit={batchEdit} onPrecisionErase={precisionErase} onSaveAsset={saveSelectedAsset}
-       onCommitMany={commitMany}
+       onCommitMany={commitMany} onPdfHighlight={pdfHighlight}
        penPreset={penPreset} snapToGrid={snapToGrid} shapeFill={shapeFill} smartGeometry={smartGeometry} vi={vi} zoom={zoom} setZoom={setZoom}
        camera={camera} setCamera={next=>{setCamera(next);setActiveFrameId(null);}}
        frames={frames} showFrames={showFrames} activeFrameId={activeFrameId}
@@ -1001,8 +1025,8 @@ export default function BrianBoard({currentUser,language='vi'}){
        title={vi?'Đóng bảng điều khiển':'Close inspector'} aria-label={vi?'Đóng bảng điều khiển':'Close inspector'}
        onClick={closeInspector}><X size={18}/></button>
      <div className="bbd-sidebar-tabs">
-      {['pages','frames','activities','layers','assets','library','teaching','reliability','design'].map(id=><button key={id} className={panel===id?'active':''} onClick={()=>setPanel(id)}>
-       {id==='pages'?(vi?'Trang':'Pages'):id==='frames'?(vi?'Khung':'Frames'):id==='activities'?(vi?'Bài tập':'Activities'):id==='reliability'?(vi?'Ổn định':'Reliability'):id==='layers'?(vi?'Lớp':'Layers'):id==='assets'?(vi?'Mẫu':'Templates'):id==='library'?(vi?'Thư viện':'Library'):id==='teaching'?(vi?'Lớp học':'Classroom'):(vi?'Thiết kế':'Design')}</button>)}
+      {['pages','frames','pdf','activities','layers','assets','library','teaching','reliability','design'].map(id=><button key={id} className={panel===id?'active':''} onClick={()=>setPanel(id)}>
+       {id==='pages'?(vi?'Trang':'Pages'):id==='frames'?(vi?'Khung':'Frames'):id==='pdf'?'PDF':id==='activities'?(vi?'Bài tập':'Activities'):id==='reliability'?(vi?'Ổn định':'Reliability'):id==='layers'?(vi?'Lớp':'Layers'):id==='assets'?(vi?'Mẫu':'Templates'):id==='library'?(vi?'Thư viện':'Library'):id==='teaching'?(vi?'Lớp học':'Classroom'):(vi?'Thiết kế':'Design')}</button>)}
      </div>
      {panel==='pages'&&<div className="bbd-pages">
       <div className="bbd-side-heading"><strong>{vi?'Các trang bài giảng':'Lesson pages'}</strong>
@@ -1018,6 +1042,8 @@ export default function BrianBoard({currentUser,language='vi'}){
       <button onClick={()=>editPage(p=>({...p,hidden:!p.hidden}))}>{page?.hidden?<EyeOff size={16}/>:<Eye size={16}/>}
        {page?.hidden?(vi?'Hiện trang khi chiếu':'Show on display'):(vi?'Ẩn trang khi chiếu':'Hide on display')}</button>
      </div>}
+     {panel==='pdf'&&<BoardPdfStudio lesson={lesson} page={page} vi={vi} tool={tool}
+      onTool={setTool} onPaperState={pdfPaperState} onClear={pdfClear} onNavigate={pdfNavigate}/>}
      {panel==='frames'&&<div className="bbd-side-stack bbd-frame-panel">
       <div className="bbd-side-heading"><h3>{vi?'Không gian vô hạn · Frames':'Infinite board · Frames'}</h3>
        <Clapperboard size={20}/></div>
