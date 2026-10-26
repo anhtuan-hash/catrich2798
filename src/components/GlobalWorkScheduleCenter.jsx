@@ -996,7 +996,7 @@ export default function GlobalWorkScheduleCenter({
     if (isAdminRole(currentUser?.role) && autoDetectEvents && suggestionCount) {
       const candidates = created.filter((item) =>
         item.metadata?.schedule_event_detection?.approvalStatus === 'pending');
-      setEventDraftProgress({ total: candidates.length, completed: 0, created: 0, failed: 0, state: 'running' });
+      setEventDraftProgress({ total: candidates.length, completed: 0, created: 0, failed: 0, needsTime: 0, state: 'running' });
       // Browser-tab best effort only. Unfinished candidates stay pending for
       // explicit retry from Event Manager; no fake durable worker claim.
       void createDraftsForScheduleItems(candidates, {
@@ -1004,14 +1004,14 @@ export default function GlobalWorkScheduleCenter({
       }).then((result) => {
         setEventDraftProgress({
           total: candidates.length, completed: candidates.length,
-          created: result.created, failed: result.errors.length, state: 'done',
+          created: result.created, failed: result.errors.length, needsTime: result.needsTime, state: 'done',
         });
         if (result.errors.length)
           setError('Lịch đã lưu. Một số bản nháp/poster chưa hoàn tất: ' +
             result.errors.slice(0, 2).join(' | ') +
             '. Có thể kiểm tra và xử lý lại trong Quản lý sự kiện.');
       }).catch((error) => {
-        setEventDraftProgress({total:candidates.length,completed:0,created:0,failed:1,state:'error'});
+        setEventDraftProgress({total:candidates.length,completed:0,created:0,failed:1,needsTime:0,state:'error'});
         setError('Lịch đã lưu. Việc tạo bản nháp/poster gặp lỗi: ' +
           (error.message || 'Không xác định') + '. Hãy kiểm tra trong Quản lý sự kiện.');
       });
@@ -1278,7 +1278,8 @@ export default function GlobalWorkScheduleCenter({
               (language === 'en' ? ' candidates. You can use the calendar.' : ' ứng viên. Bạn có thể tiếp tục dùng lịch.')
             : (language === 'en' ? 'Finished: ' : 'Đã xử lý: ') +
               eventDraftProgress.created + (language === 'en' ? ' drafts; ' : ' bản nháp; ') +
-              eventDraftProgress.failed + (language === 'en' ? ' issues. Check Event Manager.' : ' lỗi. Xem Quản lý sự kiện.')}</span>
+              eventDraftProgress.failed + (language === 'en' ? ' issues; ' : ' lỗi; ') +
+              (eventDraftProgress.needsTime || 0) + (language === 'en' ? ' need a time. Review in Event Manager.' : ' cần bổ sung giờ. Xem Quản lý sự kiện.')}</span>
           {eventDraftProgress.state !== 'running' ? <button type="button" aria-label="Đóng trạng thái tạo sự kiện" onClick={() => setEventDraftProgress(null)}>×</button> : null}
           <div className="work-schedule-import-progress-track" aria-hidden="true"><i style={{width: String(eventDraftProgress.total ? Math.round(eventDraftProgress.completed / eventDraftProgress.total * 100) : 0) + '%'}} /></div>
         </div> : null}
