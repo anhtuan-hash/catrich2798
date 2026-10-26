@@ -26,6 +26,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
   const [teamCount,setTeamCount]=useState(4),[names,setNames]=useState('');
   const [theme,setTheme]=useState('mint'),[questionGate,setQuestionGate]=useState(false);
   const [questionText,setQuestionText]=useState(''),[showAnswer,setShowAnswer]=useState(false);
+  const [loadedPackId,setLoadedPackId]=useState(null),[selectedChoice,setSelectedChoice]=useState(null);
   const [volume,setVolume]=useState(true),[presenter,setPresenter]=useState(false);
   const [bombSoundStyle,setBombSoundStyle]=useState('recorded'),[soundVolume,setSoundVolume]=useState(75);
   const [samplePackId,setSamplePackId]=useState(SAMPLE_PACKS[0].id);
@@ -147,25 +148,28 @@ export default function BrianBombArena({currentUser,language='vi'}){
   },[session?.phase,screen]);
 
   const begin=()=>{
-    const questions=parseArenaQuestions(questionText);
+    const pack=getSamplePack(loadedPackId);
+    const questions=loadedPackId&&questionText===packToText(pack)
+      ? pack.items.map(q=>({...q}))
+      : parseArenaQuestions(questionText);
     const game=createArena({ownerId,mode,size,teamCount,
       teamNames:names.split(/\n|;/).map(x=>x.trim()).filter(Boolean),
       questionGate:mode==='challenge'||questionGate,questions,theme});
     setSession(arenaReducer(game,{type:'START'}));
-    setPresenter(false);setShowAnswer(false);setSaveError(false);setScreen('arena');
+    setPresenter(false);setShowAnswer(false);setSelectedChoice(null);setSaveError(false);setScreen('arena');
     playSound('bank');
   };
   const pick=i=>{
     if(!session||session.phase!=='running'||session.selectedTile!==null)return;
     const tile=session.tiles[i];if(!tile||tile.opened||tile.event==='blocked')return;
     stopTileShake(i);
-    update({type:'SELECT',index:i});setShowAnswer(false);
+    update({type:'SELECT',index:i});setShowAnswer(false);setSelectedChoice(null);
     if(!session.questionGate)revealFx(tile);else playSound('flip');
   };
   const answer=correct=>{
     if(session?.selectedTile===null)return;
     const tile=session.tiles[session.selectedTile];
-    update({type:'ANSWER',correct});setShowAnswer(false);
+    update({type:'ANSWER',correct});setShowAnswer(false);setSelectedChoice(null);
     if(correct)revealFx(tile);else playSound('wrong');
   };
   const bankTurn=()=>{
@@ -177,7 +181,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
   const close=()=>{clearAllTileShakes();window.clearTimeout(fxTimer.current);setFx(null);setOpen(false);setConfirmReset(false);};
   const reset=async()=>{
     await clearArena(ownerId);setSession(null);setScreen('setup');setConfirmReset(false);setFx(null);
-    setPresenter(false);setQuestionText('');setStatus('');
+    setPresenter(false);setQuestionText('');setLoadedPackId(null);setSelectedChoice(null);setStatus('');
   };
   const save=()=>{if(session)void saveArena(ownerId,session).then(ok=>setStatus(ok?tr('Đã lưu phiên','Session saved'):tr('Không thể lưu phiên','Save failed')));};
   const upload=async event=>{
@@ -189,15 +193,15 @@ export default function BrianBombArena({currentUser,language='vi'}){
         const {default:readXlsxFile}=await import('read-excel-file');
         const rows=await readXlsxFile(file);
         const start=/^question$/i.test(String(rows[0]?.[0]||''))?1:0;
-        setQuestionText(rows.slice(start).map(row=>String(row[0]||'')+' || '+String(row[1]||'')).join('\n'));
-      }else{const csv=await file.text();setQuestionText(csv);}
+        setQuestionText(rows.slice(start).map(row=>String(row[0]||'')+' || '+String(row[1]||'')).join('\n'));setLoadedPackId(null);
+      }else{const csv=await file.text();setQuestionText(csv);setLoadedPackId(null);}
       setQuestionGate(true);setStatus(tr('Đã nạp ngân hàng câu hỏi','Question bank imported'));
     }catch{setStatus(tr('Không đọc được tệp','Could not read file'));}
     event.target.value='';
   };
   const importSamplePack=()=>{
     const pack=getSamplePack(samplePackId);
-    setQuestionText(packToText(pack));setQuestionGate(true);
+    setQuestionText(packToText(pack));setLoadedPackId(pack.id);setQuestionGate(true);
     setStatus(tr('Đã nạp '+pack.count+' câu: '+pack.titleVi,'Loaded '+pack.count+' questions: '+pack.titleEn));
   };
   const exportQuestionCSV=(kind='pack')=>{
@@ -280,7 +284,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
           <label className="bba-check"><input type="checkbox" checked={mode==='challenge'||questionGate} disabled={mode==='challenge'}
             onChange={e=>setQuestionGate(e.target.checked)}/><span>{tr('Bắt buộc trả lời trước khi mở ô','Answer a question before revealing a tile')}</span></label>
           <label className="bba-label">{tr('Một dòng mỗi câu: Câu hỏi || Đáp án','One line per item: Question || Answer')}
-            <textarea rows="5" value={questionText} onChange={e=>setQuestionText(e.target.value.slice(0,70000))}
+            <textarea rows="5" value={questionText} onChange={e=>{setQuestionText(e.target.value.slice(0,70000));setLoadedPackId(null);}}
              placeholder="What is a renewable energy source? || Solar power"/></label>
           <label className="bba-file"><Upload size={16}/>{tr('Nhập CSV / Excel','Import CSV / Excel')}<input type="file" accept=".csv,.xlsx,text/csv" onChange={upload}/></label>
           <p className="bba-muted">{tr('Đã nhận diện: ','Recognized: ')}<b>{parseArenaQuestions(questionText).length}</b> {tr('câu. Nếu bỏ trống, có thể chơi mà không cần trả lời câu hỏi.','questions. Leave empty to play without a question bank.')}</p>
@@ -407,12 +411,32 @@ export default function BrianBombArena({currentUser,language='vi'}){
         <div className="bba-question-card">
           <span className="bba-eyebrow">{tr('CÂU HỎI CHO ','QUESTION FOR ')+leader?.name}</span>
           <h2>{selectedQuestion?.prompt||tr('Giáo viên xác nhận kết quả','Teacher confirms the answer')}</h2>
+          {selectedQuestion?.unit&&<p className="bba-question-unit">UNIT {selectedQuestion.unit} · {tr('NGỮ PHÁP','GRAMMAR')}</p>}
+          {Array.isArray(selectedQuestion?.options)&&selectedQuestion.options.length===4&&
+            <div className="bba-mcq-options" role="group" aria-label={tr('Bốn phương án trắc nghiệm','Four multiple-choice options')}>
+              {selectedQuestion.options.map((option,index)=><button key={index} type="button"
+                className={'bba-mcq-option'+(selectedChoice===index?' is-selected':'')+
+                  (showAnswer&&selectedQuestion.answerIndex===index?' is-correct':'')}
+                aria-pressed={selectedChoice===index} onClick={()=>setSelectedChoice(index)}>
+                <b>{'ABCD'[index]}</b><span>{option}</span>
+              </button>)}
+            </div>}
           <button type="button" className="bba-answer-toggle" onClick={()=>setShowAnswer(x=>!x)}>
             {showAnswer?<EyeOff size={17}/>:<Eye size={17}/>}
             {showAnswer?tr('Ẩn đáp án','Hide answer'):tr('Xem đáp án','Show answer')}</button>
-          {showAnswer&&<p className="bba-answer">{selectedQuestion?.answer||'—'}</p>}
-          <div className="bba-question-actions"><button type="button" onClick={()=>answer(false)}><XCircle size={20}/>{tr('Chưa đúng','Incorrect')}</button>
-            <button type="button" className="bba-primary" onClick={()=>answer(true)}><CheckCircle2 size={20}/>{tr('Chính xác — mở ô','Correct — reveal')}</button></div>
+          {showAnswer&&<p className="bba-answer">
+            {selectedQuestion?.options?'✓ '+('ABCD'[selectedQuestion.answerIndex]||'')+' · ':''}
+            {selectedQuestion?.answer||'—'}
+            {selectedQuestion?.explanation&&<small className="bba-mcq-explanation">{selectedQuestion.explanation}</small>}
+          </p>}
+          <div className="bba-question-actions">
+            {selectedQuestion?.options
+              ? <button type="button" className="bba-primary" disabled={selectedChoice===null}
+                  onClick={()=>answer(selectedChoice===selectedQuestion.answerIndex)}>
+                  <CheckCircle2 size={20}/>{tr('Xác nhận đáp án','Submit answer')}</button>
+              : <><button type="button" onClick={()=>answer(false)}><XCircle size={20}/>{tr('Chưa đúng','Incorrect')}</button>
+                <button type="button" className="bba-primary" onClick={()=>answer(true)}><CheckCircle2 size={20}/>{tr('Chính xác — mở ô','Correct — reveal')}</button></>}
+          </div>
         </div>
       </div>}
     </div>;
