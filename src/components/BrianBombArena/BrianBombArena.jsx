@@ -257,7 +257,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
             aria-pressed={theme===t} onClick={()=>setTheme(t)}><Sparkles size={20}/><span>{THEME_NAMES[t]}</span></button>)}</div>
           <h3>{tr('05 · Ngân hàng câu hỏi mẫu','05 · Quick sample packs')}</h3>
           <div className="bba-samples" aria-label={tr('Nạp bộ câu hỏi mẫu','Load sample question pack')}>
-            <label className="bba-sample-heading" htmlFor="bba-sample-pack">{tr('Chọn một bộ có sẵn (36 câu/bộ)','Select a ready-to-use pack (36 questions each)')}</label>
+            <label className="bba-sample-heading" htmlFor="bba-sample-pack">{tr('Chọn Unit (100 câu/Unit) hoặc bộ mẫu 36 câu','Choose a Unit (100 questions) or a 36-question sample pack')}</label>
             <select id="bba-sample-pack" value={samplePackId} onChange={event=>setSamplePackId(event.target.value)}>
               {SAMPLE_PACKS.map(pack=><option key={pack.id} value={pack.id}>
                 {vi?pack.titleVi:pack.titleEn} · {pack.count} {tr('câu','questions')}
@@ -270,7 +270,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
             </div>
             <div className="bba-sample-actions">
               <button type="button" className="bba-sample-load" onClick={importSamplePack}>
-                <Plus size={17}/>{tr('Nạp nhanh 36 câu','Load 36 questions')}
+                <Plus size={17}/>{tr('Nạp nhanh ','Load ')+getSamplePack(samplePackId).count+tr(' câu',' questions')}
               </button>
               <button type="button" onClick={()=>exportQuestionCSV('pack')}>
                 <Save size={16}/>{tr('Tải bộ CSV','Download CSV')}

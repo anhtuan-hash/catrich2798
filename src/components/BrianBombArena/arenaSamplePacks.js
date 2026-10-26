@@ -1,3 +1,4 @@
+import {G11_UNIT_PACKS} from './arenaG11UnitPacks.js';
 import {G11_GRAMMAR_MCQS} from './arenaG11Grammar100.js';
 // Offline classroom sample packs; no network, AI, or paid service.
 const rawPacks = [
@@ -505,7 +506,7 @@ export function parseArenaQuestions(input){
   if(rows.length&&/^(question|prompt|câu hỏi)$/i.test(String(rows[0][0]||'').trim()))rows=rows.slice(1);
   return rows.map(normalize).filter(x=>x.prompt).slice(0,300);
 }
-export const SAMPLE_PACKS=Object.freeze(rawPacks.map(({items,...meta})=>Object.freeze({
+export const SAMPLE_PACKS=Object.freeze([...G11_UNIT_PACKS,...rawPacks.filter(pack=>pack.id!=='g11-global-success-grammar-100')].map(({items,...meta})=>Object.freeze({
   ...meta,items:Object.freeze(items.map(q=>Object.freeze(normalize(q)))),
   count:items.length,
 })));
