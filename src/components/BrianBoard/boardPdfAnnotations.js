@@ -25,7 +25,7 @@ export function setPdfPaperState(page,attribute,value){
  if(!findPdfBackground(page)||!['locked','hidden'].includes(attribute))return page;
  return {...page,objects:page.objects.map(o=>o.pdfBackground?{...o,[attribute]:value===true}:o)};
 }
-export function clearPdfAnnotations(page,{includeLegacy=true}={}){
+export function clearPdfAnnotations(page,{includeLegacy=false}={}){
  const paper=findPdfBackground(page);
  if(!paper)return page;
  return {...page,objects:page.objects.filter(o=>o.id===paper.id||
