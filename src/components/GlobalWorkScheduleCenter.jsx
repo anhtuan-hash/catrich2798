@@ -848,6 +848,16 @@ export default function GlobalWorkScheduleCenter({
       const recipients = assigneeIds.length ? assigneeIds : [currentUser.id];
       const existing = editor.id ? events.find((entry) => entry.id === editor.id) : null;
       const payload = eventPayload(editor, currentUser, recipients, existing?.raw?.metadata || {});
+      // A manual edit of the datetime input is explicit, unlike the importer's calendar fallback.
+      if (existing?.raw?.metadata?.schedule_event_detection) {
+        payload.metadata.schedule_has_explicit_time = true;
+        payload.metadata.schedule_has_explicit_end_time = Boolean(editor.endAt);
+        payload.metadata.schedule_event_detection = {
+          ...existing.raw.metadata.schedule_event_detection,
+          timeKnown: true,
+          needsTimeReview: false,
+        };
+      }
       let saved;
       if (editor.id) {
         const { data, error: updateError } = await client
