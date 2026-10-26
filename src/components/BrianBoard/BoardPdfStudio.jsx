@@ -21,7 +21,7 @@ export default function BoardPdfStudio({lesson,page,vi=true,tool,onTool,onPaperS
      (vi?'Mở Thiết kế → Nhập PDF để thêm tài liệu.':'Open Design → Import PDF to start.')}</small></div>:
    <>
     <div className="bbd-v9-pdf-stats">
-     <div><strong>{status.annotationCount}</strong><small>{vi?'Đối tượng chú thích':'Annotation objects'}</small></div>
+     <div><strong>{status.annotations}</strong><small>{vi?'Chú thích V8.3':'V8.3 annotations'}</small></div>
      <div><strong>{status.paperLocked?'🔒':'🔓'}</strong><small>{vi?'Nền tài liệu':'PDF paper'}</small></div>
     </div>
     <button type="button" className={tool==='pdf-highlight'?'is-active':''}
