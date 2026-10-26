@@ -34,7 +34,7 @@ export default function BoardPdfStudio({lesson,page,vi=true,tool,onTool,onPaperS
      <button type="button" onClick={()=>onPaperState('hidden',status.paperVisible)} disabled={page?.locked}>
       {status.paperVisible?<EyeOff size={16}/>:<Eye size={16}/>}
       {status.paperVisible?(vi?'Ẩn nền PDF':'Hide paper'):(vi?'Hiện nền PDF':'Show paper')}</button>
-     <button type="button" onClick={()=>onPaperState('locked',status.paperLocked)} disabled={page?.locked}>
+     <button type="button" onClick={()=>onPaperState('locked',!status.paperLocked)} disabled={page?.locked}>
       {status.paperLocked?<Unlock size={16}/>:<Lock size={16}/>}
       {status.paperLocked?(vi?'Mở khóa nền':'Unlock paper'):(vi?'Khóa nền':'Lock paper')}</button>
     </div>
