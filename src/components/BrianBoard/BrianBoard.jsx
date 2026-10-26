@@ -35,7 +35,7 @@ import {annotateBoardObject,annotateBoardObjects,pdfHighlightRegion,
  setPdfPaperState,clearPdfAnnotations,pdfPageIndices,findPdfBackground} from './boardPdfAnnotations.js';
 import {eraseInkAtPoint,scaleBoardObjects,duplicateBoardObjects,reorderBoardObjects,
  BOARD_V8_TEMPLATES,buildBoardTemplate,createDiagramConnection,syncDiagramConnections,
- groupResizeTransform,rotateBoardObjects,alignBoardObjects,layoutBoardNodes} from './boardV8Tools.js';
+ groupResizeTransform,rotateBoardObjects,alignBoardObjects,layoutBoardNodes,createLabeledDiagramConnection} from './boardV8Tools.js';
 import './BrianBoard.css';
 import './BoardActivities.css';
 import './BoardVisualRefresh.css';
@@ -458,6 +458,11 @@ export default function BrianBoard({currentUser,language='vi'}){
    if(action==='connect'&&ids.length===2){
     const link=createDiagramConnection(objects,ids[0],ids[1]);
     return link&&objects.length<3000?{...p,objects:[...objects,link]}:p;
+   }
+   if(action==='connect-labeled'&&ids.length===2){
+    const linked=createLabeledDiagramConnection(objects,ids[0],ids[1],params.label);
+    return linked.length===2&&objects.length+linked.length<=3000?
+     {...p,objects:[...objects,...linked]}:p;
    }
    return p;
   });
