@@ -212,9 +212,11 @@ function RevealTool({value,onChange,language}){
    const shown=value.revealed.includes(i);
    return <button key={i} type="button" className={'bit-w2-reveal-card'+(shown?' is-flipped':'')}
      aria-pressed={shown} onClick={()=>reveal(i)}>
-     <span className="bit-w2-reveal-index">{String(i+1).padStart(2,'0')}</span>
-     <strong>{shown?item:'?'}</strong>
-     <span className="bit-w2-reveal-mark">{shown?<Eye size={18}/>:<Layers3 size={19}/>}</span>
+     <span className="bit-w2-reveal-scene" aria-hidden="true">
+       <span className="bit-w2-reveal-face bit-w2-reveal-front"><span className="bit-w2-reveal-number">{String(i+1).padStart(2,'0')}</span><strong>?</strong><Layers3 size={21}/></span>
+       <span className="bit-w2-reveal-face bit-w2-reveal-back"><span className="bit-w2-reveal-number">{String(i+1).padStart(2,'0')}</span><strong>{item}</strong><Eye size={20}/></span>
+     </span>
+     <span className="bit-w2-reveal-sr">{shown?item:(language==='en'?'Hidden card':'Thẻ chưa mở')}</span>
    </button>;
   })}</div>
  </div>;
