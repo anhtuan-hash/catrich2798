@@ -85,3 +85,14 @@
 .bit-w2-reveal-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;white-space:nowrap;border:0}
 .bit-w2-reveal-card:focus-visible{outline:3px solid #3768df;outline-offset:5px}
 @media(prefers-reduced-motion:reduce){.bit-w2-reveal-scene{transition:none!important}}
+
+@keyframes bit-w2-stage-reveal{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+@keyframes bit-w2-cue{0%{transform:scale(.94)}45%{transform:scale(1.045)}100%{transform:none}}
+.bit-w2-stage-overlay>.bit-w2-bigstage{animation:bit-w2-stage-reveal .26s ease-out}
+.bit-w2-big-preview .bit-w2-bigstage{transition:background .24s,color .24s}
+.bit-w2-bigtext{overflow-wrap:anywhere}
+.bit-w2-tele-stage{position:relative}
+.bit-w2-tele-stage:before{content:'';position:sticky;display:block;top:33%;height:2px;background:#f1c96a;opacity:.62;pointer-events:none}
+.bit-w2-sound-card.is-played{animation:bit-w2-cue .45s ease-out}
+.bit-w2-sound-card:active{transform:scale(.95)}
+@media(prefers-reduced-motion:reduce){.bit-w2-stage-overlay>.bit-w2-bigstage,.bit-w2-sound-card.is-played{animation:none}.bit-w2-big-preview .bit-w2-bigstage{transition:none}}
