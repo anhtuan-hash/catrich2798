@@ -10,6 +10,7 @@ import { isAdminRole } from '../utils/roles.js';
 import {
   scheduleWeekWindow, moveScheduleWeek, eligibleScheduleWeekRows,
   deletionPreviewIsCurrent, scheduleDeleteBatches, isImportedScheduleItem,
+  LEGACY_SCHEDULE_SOURCE,
 } from '../utils/scheduleWeekBulkDelete.mjs';
 import { detectScheduleEvent } from '../utils/scheduleEventDetection.mjs';
 import { createDraftsForScheduleItems } from '../features/events/services/scheduleEventDrafts.js';
@@ -68,17 +69,29 @@ function labelForWeek(key) {
 async function loadScheduleWeekFromServer(client, window) {
   const list = [];
   const pageSize = 500;
-  for (let offset = 0; offset < 4000; offset += pageSize) {
-    const { data, error } = await client.from('work_hub_items')
-      .select('id,title,item_type,due_at,metadata,created_at')
-      .eq('item_type', WORK_SCHEDULE_ITEM_TYPE)
-      .gte('due_at', window.startAt).lt('due_at', window.endAt)
-      .order('due_at', { ascending: true }).range(offset, offset + pageSize - 1);
-    if (error) throw error;
-    list.push(...(data || []));
-    if ((data || []).length < pageSize) return eligibleScheduleWeekRows(list, window, true);
+  // Include correctly typed schedules AND legacy imported schedules written
+  // as item_type='task'. A metadata flag alone never qualifies normal tasks.
+  for (const itemType of [WORK_SCHEDULE_ITEM_TYPE, 'task']) {
+    let complete = false;
+    for (let offset = 0; offset < 4000; offset += pageSize) {
+      let query = client.from('work_hub_items')
+        .select('id,title,item_type,source_module,due_at,metadata,created_at')
+        .eq('item_type', itemType)
+        .gte('due_at', window.startAt).lt('due_at', window.endAt);
+      if (itemType === 'task') {
+        query = query.eq('source_module', LEGACY_SCHEDULE_SOURCE)
+          .contains('metadata', { schedule_event: true });
+      }
+      const { data, error } = await query
+        .order('due_at', { ascending: true }).order('id', { ascending: true })
+        .range(offset, offset + pageSize - 1);
+      if (error) throw error;
+      list.push(...(data || []));
+      if ((data || []).length < pageSize) { complete = true; break; }
+    }
+    if (!complete) throw new Error(deleteI18n.vi.tooMany);
   }
-  throw new Error(deleteI18n.vi.tooMany);
+  return eligibleScheduleWeekRows(list, window, true);
 }
 const SCHEDULE_CACHE_KEY = 'bes-system-work-schedule-cache-v1';
 const SCHEDULE_SYNC_KEY = 'bes-system-work-schedule-sync-v1';
@@ -1053,15 +1066,24 @@ export default function GlobalWorkScheduleCenter({
       const fresh = eligibleScheduleWeekRows(rows, deleteWeekWindow, deleteWeekIncludeManual)
         .filter((item) => chosen.has(item.id));
       if (!deletionPreviewIsCurrent(deleteWeekTargets, fresh)) throw new Error(txt.changed);
-      for (const batch of scheduleDeleteBatches(deleteWeekTargets)) {
-        const { data, error: deletionError } = await client.from('work_hub_items')
-          .delete().eq('item_type', WORK_SCHEDULE_ITEM_TYPE)
-          .gte('due_at', deleteWeekWindow.startAt).lt('due_at', deleteWeekWindow.endAt)
-          .in('id', batch).select('id');
-        if (deletionError) throw deletionError;
-        const got = (data || []).map((item) => item.id);
-        removed.push(...got);
-        if (got.length !== batch.length) throw new Error(txt.changed);
+      for (const itemType of [WORK_SCHEDULE_ITEM_TYPE, 'task']) {
+        const typeTargets = deleteWeekTargets.filter((item) => item.item_type === itemType);
+        for (const batch of scheduleDeleteBatches(typeTargets)) {
+          let query = client.from('work_hub_items')
+            .delete().eq('item_type', itemType)
+            .gte('due_at', deleteWeekWindow.startAt).lt('due_at', deleteWeekWindow.endAt)
+            .in('id', batch);
+          if (itemType === 'task') {
+            // Critical: never delete an ordinary task even if its ID was submitted.
+            query = query.eq('source_module', LEGACY_SCHEDULE_SOURCE)
+              .contains('metadata', { schedule_event: true });
+          }
+          const { data, error: deletionError } = await query.select('id');
+          if (deletionError) throw deletionError;
+          const got = (data || []).map((item) => item.id);
+          removed.push(...got);
+          if (got.length !== batch.length) throw new Error(txt.changed);
+        }
       }
       // Event Center is intentionally not touched here, including already
       // published announcements and separately stored event drafts.
