@@ -14,6 +14,8 @@ import BoardCanvas from './BoardCanvas.jsx';
 import {listBoardCloud,saveBoardCloud,readBoardCloud} from './boardCloud.js';
 import {boardStudentPayload,newBoardPresentationId} from './boardPresentation.js';
 import {importBoardPdf,exportBoardStudentPdf} from './boardPdf.js';
+import {importBoardPptx,importedPptxPageIndices} from './boardPptx.js';
+import BoardPptxStudio from './BoardPptxStudio.jsx';
 import {createBoardActivity} from './boardActivities.js';
 import {BOARD_PEN_PRESETS} from './boardDrawing.js';
 import {safeBoardViewport,viewportForFrame,cameraForViewport,nextFramePlacement,adjacentFrameIndex,FRAME_LIMIT,fitBoardContent,reorderBoardFrame,duplicateBoardFrame} from './boardSpatial.js';
@@ -111,6 +113,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  const [remoteStatus,setRemoteStatus]=useState('off'),[remoteError,setRemoteError]=useState('');
  const [remoteSent,setRemoteSent]=useState(0);
  const [pdfBusy,setPdfBusy]=useState(false),[pdfStatus,setPdfStatus]=useState('');
+ const [pptxBusy,setPptxBusy]=useState(false),[pptxStatus,setPptxStatus]=useState('');
  const [activityType,setActivityType]=useState('matching'),[activityTitle,setActivityTitle]=useState(''),
   [activityPrompt,setActivityPrompt]=useState(''),[activityRaw,setActivityRaw]=useState(''),
   [activityError,setActivityError]=useState(''),[activeActivityId,setActiveActivityId]=useState(null),[editingActivityId,setEditingActivityId]=useState(null);
@@ -730,6 +733,38 @@ export default function BrianBoard({currentUser,language='vi'}){
   }catch(e){setPdfStatus(e?.message||'PDF import failed');}
   finally{setPdfBusy(false);}
  };
+ const addPptxSlides=async file=>{
+  if(!file||pptxBusy||!docRef.current)return;
+  setPptxBusy(true);setPptxStatus(vi?'Đang đọc PowerPoint…':'Reading PowerPoint…');
+  const ownerAtStart=ownerId,lessonAtStart=docRef.current.id;
+  try{
+   const {pages,report}=await importBoardPptx(file,docRef.current.pages.length,({slide,total})=>{
+    setPptxStatus((vi?'Đang nhập slide ':'Importing slide ')+slide+'/'+total);
+   });
+   if(ownerAtStart!==ownerId||lessonAtStart!==docRef.current?.id)return;
+   mutate(d=>({...d,pages:[...d.pages,...pages],activePageId:pages[0].id}));
+   setPanel('pptx');setTool('select');setActiveFrameId(null);setCamera({x:0,y:0});setZoom(1);
+   setPptxStatus((vi?'Đã nhập ':'Imported ')+pages.length+(vi?' slide, ':' slides, ')+report.objects+
+    (vi?' đối tượng. Thành phần chưa hỗ trợ: ':' objects. Unsupported items: ')+report.skipped);
+  }catch(e){setPptxStatus(e?.message||'Không thể nhập PowerPoint');}
+  finally{setPptxBusy(false);}
+ };
+ const changePptxText=(id,patch)=>{
+  if(!page?.pptxSource||page.locked)return;
+  editPage(p=>({...p,objects:p.objects.map(o=>o.id===id&&o.kind==='text'&&o.pptxEditable&&!o.locked?
+   {...o,...patch}:o)}));
+ };
+ const removePptxText=id=>{
+  if(!page?.pptxSource||page.locked)return;
+  editPage(p=>({...p,objects:p.objects.filter(o=>o.id!==id)}));
+ };
+ const navigatePptx=direction=>{
+  const indices=importedPptxPageIndices(docRef.current);
+  const current=docRef.current?.pages?.findIndex(p=>p.id===docRef.current.activePageId)??-1;
+  const index=indices.indexOf(current);
+  const next=indices[Math.max(0,Math.min(indices.length-1,index+direction))];
+  if(Number.isInteger(next))pageAt(next);
+ };
  const exportStudentPdf=async(includeActivities=false)=>{
   if(pdfBusy||!docRef.current)return;
   setPdfBusy(true);setPdfStatus(vi?'Đang xuất PDF cho học sinh…':'Exporting student PDF…');
@@ -1166,8 +1201,8 @@ export default function BrianBoard({currentUser,language='vi'}){
        title={vi?'Đóng bảng điều khiển':'Close inspector'} aria-label={vi?'Đóng bảng điều khiển':'Close inspector'}
        onClick={closeInspector}><X size={18}/></button>
      <div className="bbd-sidebar-tabs">
-      {['pages','frames','pdf','activities','live','layers','assets','library','teaching','reliability','design'].map(id=><button key={id} className={panel===id?'active':''} onClick={()=>setPanel(id)}>
-       {id==='pages'?(vi?'Trang':'Pages'):id==='frames'?(vi?'Khung':'Frames'):id==='pdf'?'PDF':id==='live'?'Live':id==='activities'?(vi?'Bài tập':'Activities'):id==='reliability'?(vi?'Ổn định':'Reliability'):id==='layers'?(vi?'Lớp':'Layers'):id==='assets'?(vi?'Mẫu':'Templates'):id==='library'?(vi?'Thư viện':'Library'):id==='teaching'?(vi?'Lớp học':'Classroom'):(vi?'Thiết kế':'Design')}</button>)}
+      {['pages','frames','pptx','pdf','activities','live','layers','assets','library','teaching','reliability','design'].map(id=><button key={id} className={panel===id?'active':''} onClick={()=>setPanel(id)}>
+       {id==='pages'?(vi?'Trang':'Pages'):id==='frames'?(vi?'Khung':'Frames'):id==='pdf'?'PDF':id==='pptx'?'PPTX':id==='live'?'Live':id==='activities'?(vi?'Bài tập':'Activities'):id==='reliability'?(vi?'Ổn định':'Reliability'):id==='layers'?(vi?'Lớp':'Layers'):id==='assets'?(vi?'Mẫu':'Templates'):id==='library'?(vi?'Thư viện':'Library'):id==='teaching'?(vi?'Lớp học':'Classroom'):(vi?'Thiết kế':'Design')}</button>)}
      </div>
      {panel==='pages'&&<div className="bbd-pages">
       <div className="bbd-side-heading"><strong>{vi?'Các trang bài giảng':'Lesson pages'}</strong>
@@ -1216,6 +1251,9 @@ export default function BrianBoard({currentUser,language='vi'}){
        <BoardClassroomLivePublic snapshot={publicLiveSnapshot(classroomSession)} vi={vi}/>
       </div>}
      </div>}
+     {panel==='pptx'&&<BoardPptxStudio lesson={lesson} page={page} vi={vi}
+      onEdit={changePptxText} onDelete={removePptxText} onNavigate={navigatePptx}
+      onPresent={startPresentation} presenting={presenting}/>}
      {panel==='pdf'&&<BoardPdfStudio lesson={lesson} page={page} vi={vi} tool={tool}
       onTool={setTool} onPaperState={pdfPaperState} onClear={pdfClear} onNavigate={pdfNavigate}
       onAnnotationVisibility={pdfToggleAnnotations}/>}
@@ -1504,6 +1542,10 @@ export default function BrianBoard({currentUser,language='vi'}){
       <h4>{vi?'Nền trang':'Page background'}</h4>
       {['plain','grid','lines','dots'].map(x=><button key={x} onClick={()=>editPage(p=>({...p,background:x}))}
        className={'bbd-theme-choice'+(page?.background===x?' active':'')}>{x}</button>)}
+      <label className="bbd-import-image"><Presentation size={16}/>{vi?'Nhập PowerPoint (.pptx, tối đa 20 slide)':'Import PowerPoint (.pptx, up to 20 slides)'}
+       <input type="file" accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        disabled={pptxBusy} onChange={e=>{void addPptxSlides(e.target.files?.[0]);e.target.value='';}}/></label>
+      {pptxStatus&&<span role="status" className="bbd-pdf-status">{pptxStatus}</span>}
       <label className="bbd-import-image"><FilePlus2 size={16}/>{vi?'Nhập PDF (tối đa 12 trang)':'Import PDF (up to 12 pages)'}
        <input type="file" accept=".pdf,application/pdf" disabled={pdfBusy}
         onChange={e=>{void addPdfPages(e.target.files?.[0]);e.target.value='';}}/></label>
