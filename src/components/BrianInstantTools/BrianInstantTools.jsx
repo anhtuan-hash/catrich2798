@@ -169,7 +169,7 @@ function ScoreboardTool({value,onChange,t,sound}){
   return <div className="bit-scoreboard">
     <div className="bit-actions"><button type="button" className="bit-secondary" onClick={()=>changeCount(1)} disabled={teams.length===8}><Plus size={17}/>{t.addTeam}</button>
       <button type="button" className="bit-secondary" onClick={()=>changeCount(-1)} disabled={teams.length===2}><Minus size={17}/>{t.removeTeam}</button>
-      <button type="button" className="bit-secondary" disabled={!value.undo.length} onClick={()=>onChange(v=>({...v,teams:v.undo[0],undo:v.undo.slice(1)}))}><Undo2 size={17}/>{t.undo}</button>
+      <button type="button" className="bit-secondary" disabled={!value.undo.length} onClick={()=>onChange(v=>v.undo.length&&Array.isArray(v.undo[0])?({...v,teams:v.undo[0],undo:v.undo.slice(1)}):v)}><Undo2 size={17}/>{t.undo}</button>
       <button type="button" className="bit-secondary" onClick={()=>{if(window.confirm(t.resetAsk))onChange(v=>({...v,teams:v.teams.map(x=>({...x,score:0})),undo:[v.teams,...v.undo].slice(0,30)}));}}><RotateCcw size={17}/>{t.reset}</button>
       <button type="button" className="bit-secondary" onClick={()=>{beep('win',sound);celebrate();}}><Sparkles size={17}/>{t.celebrate}</button>
     </div>
