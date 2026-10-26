@@ -1,0 +1,46 @@
+.bbd-guest-page{min-height:100dvh;background:radial-gradient(circle at top left,#e0f4e7,transparent 55%),linear-gradient(150deg,#f6f8f2,#e7f0eb);color:#213c31;font-family:Inter,system-ui,sans-serif;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom)}
+.bbd-guest-shell{max-width:680px;margin:0 auto;padding:16px 0 38px}
+.bbd-guest-top{display:flex;gap:11px;align-items:center;padding:15px 5px 25px}
+.bbd-guest-monogram{display:grid;place-items:center;width:48px;height:48px;border-radius:14px;background:#226b51;color:white;font-size:29px;font-weight:900}
+.bbd-guest-top>div:nth-child(2){display:flex;flex-direction:column;gap:3px}
+.bbd-guest-top strong{font-size:15px;letter-spacing:.12em}
+.bbd-guest-top small{font-size:11px;color:#638371}
+.bbd-guest-live{margin-left:auto;color:#21885d;font-size:12px;letter-spacing:.07em;font-weight:850}
+.bbd-guest-card{display:flex;flex-direction:column;gap:15px;border-radius:25px;background:#fff;
+ border:1px solid #d5e5d9;padding:clamp(21px,4vw,39px);box-shadow:0 14px 45px rgba(24,70,48,.09)}
+.bbd-guest-symbol{display:grid;place-items:center;width:64px;height:64px;border-radius:19px;background:#dff1e4;color:#227b56}
+.bbd-guest-card h1{font-size:clamp(27px,5vw,44px);line-height:1.17;letter-spacing:-.03em;margin:0}
+.bbd-guest-card p{font-size:15px;color:#607a6a;line-height:1.55;margin:0}
+.bbd-guest-card label{font-size:13px;font-weight:800;display:flex;flex-direction:column;gap:10px}
+.bbd-guest-card input,.bbd-guest-card textarea{font:inherit;font-size:17px;width:100%;border:1.5px solid #b8d5c4;
+ border-radius:13px;padding:14px 15px;background:#f8fcf8;color:#1d4934;outline-offset:2px}
+.bbd-guest-card input:focus,.bbd-guest-card textarea:focus{outline:3px solid #a5d7bb}
+.bbd-guest-card>button:not(.bbd-guest-secondary){display:flex;align-items:center;justify-content:center;gap:9px;
+ min-height:53px;border:0;border-radius:13px;background:#226c51;color:white;
+ font-size:16px;font-weight:850;padding:12px 16px;cursor:pointer}
+.bbd-guest-card button:disabled{opacity:.5;cursor:not-allowed}
+.bbd-guest-meta{display:flex;align-items:center;gap:8px;color:#2d795b;font-weight:850;font-size:12px;letter-spacing:.08em}
+.bbd-guest-meta small{margin-left:auto;color:#779486;font-size:12px;letter-spacing:.07em}
+.bbd-guest-choices{display:grid;gap:10px}
+.bbd-guest-choices button{min-height:64px;text-align:left;display:flex;align-items:center;gap:14px;border-radius:13px;
+ background:#f7faf6;border:1.5px solid #d2e3d7;color:#244e38;font-size:16px;font-weight:770;
+ padding:12px 14px;cursor:pointer}
+.bbd-guest-choices button span{display:grid;place-items:center;min-width:34px;height:34px;border-radius:10px;
+ background:#e4f1e7;color:#236d51;font-weight:900}
+.bbd-guest-choices button.is-selected{border-color:#26895e;background:#e5f6e8;box-shadow:0 0 0 2px #d4efdb}
+.bbd-guest-error{font-size:13px!important;color:#aa3f40!important;border-radius:10px;padding:10px;background:#fff0ee}
+.bbd-guest-success{font-size:14px!important;color:#26734a!important;display:flex;align-items:center;gap:8px}
+.bbd-guest-secondary{min-height:45px;display:flex;align-items:center;justify-content:center;gap:9px;
+ border-radius:12px;background:#f1f6f0;border:1px solid #c8ddce;font-weight:790;font-size:13px;color:#2e664e}
+.bbd-guest-results{display:grid;gap:11px;padding:16px;border:1px solid #d4e4d9;background:#f8faf7;border-radius:15px}
+.bbd-guest-results h3{font-size:16px;margin:0}
+.bbd-guest-result{display:grid;grid-template-columns:1fr auto;gap:5px;font-size:13px}
+.bbd-guest-result>div{grid-column:1/-1;height:9px;border-radius:20px;background:#e3e9e4;overflow:hidden}
+.bbd-guest-result>div>span{display:block;height:100%;background:#318963;border-radius:20px}
+.bbd-guest-tags{display:flex;flex-wrap:wrap;gap:7px}
+.bbd-guest-tags span{background:#e4f2e7;color:#276846;border-radius:11px;padding:10px 12px;font-weight:710}
+.bbd-guest-shell>footer{display:flex;align-items:center;justify-content:center;gap:5px;color:#779688;
+ font-size:11px;text-align:center;margin-top:22px}
+@media(max-width:460px){.bbd-guest-card{padding:22px 18px}.bbd-guest-top strong{font-size:12px}
+ .bbd-guest-top small{font-size:10px}.bbd-guest-live{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.bbd-guest-page *{transition:none!important}}
