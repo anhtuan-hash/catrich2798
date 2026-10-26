@@ -6,6 +6,9 @@ import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
 import { emitAutomationEvent } from '../utils/automationEngine.js';
 import { recordAuditEvent } from '../utils/collaborationGovernance.js';
 import { isLeader, uid } from '../pages/v1093/shared.js';
+import { isAdminRole } from '../utils/roles.js';
+import { detectScheduleEvent } from '../utils/scheduleEventDetection.mjs';
+import { createDraftsForScheduleItems } from '../features/events/services/scheduleEventDrafts.js';
 import {
   WORK_SCHEDULE_ITEM_TYPE,
   WORK_SCHEDULE_SOURCE,
@@ -404,6 +407,8 @@ export default function GlobalWorkScheduleCenter({
   const [selectedId, setSelectedId] = useState(hashState.eventId);
   const [importOpen, setImportOpen] = useState(false);
   const [importPreview, setImportPreview] = useState(null);
+  const [autoDetectEvents, setAutoDetectEvents] = useState(true);
+  const [candidateSelection, setCandidateSelection] = useState(() => new Set());
   const [editor, setEditor] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -702,6 +707,8 @@ export default function GlobalWorkScheduleCenter({
         ...row,
         duplicate: existingFingerprints.has(row.fingerprint),
       }));
+      setCandidateSelection(new Set(rows.filter((row) => !row.duplicate && detectScheduleEvent(row)).map((row) => row.fingerprint)));
+      setAutoDetectEvents(true);
       setImportPreview({ ...parsed, fileName: file.name, rows });
       setImportOpen(true);
     } catch (fileError) {
@@ -738,6 +745,12 @@ export default function GlobalWorkScheduleCenter({
           schedule_import_id: importId,
           schedule_source_file: importPreview.fileName,
           schedule_source_row: row.sourceRow,
+          schedule_has_explicit_time: row.timeKnown === true,
+          schedule_has_explicit_end_time: row.endTimeKnown === true,
+          // Review metadata is not a published event and never triggers a popup.
+          ...(autoDetectEvents && candidateSelection.has(row.fingerprint) && detectScheduleEvent(row)
+            ? { schedule_event_detection: detectScheduleEvent(row) }
+            : {}),
           schedule_imported_at: new Date().toISOString(),
         },
       };
@@ -752,6 +765,13 @@ export default function GlobalWorkScheduleCenter({
         created.push(...(data || []));
       }
 
+      // An admin may stage event drafts immediately; TTCM-created suggestions
+      // remain in schedule metadata until an admin explicitly reviews them.
+      let draftOutcome = null;
+      if (isAdminRole(currentUser?.role) && autoDetectEvents) {
+        draftOutcome = await createDraftsForScheduleItems(created);
+      }
+
       await recordAuditEvent({
         action: 'schedule.file_imported',
         entity_type: 'work_schedule_import',
@@ -762,6 +782,8 @@ export default function GlobalWorkScheduleCenter({
           imported_count: created.length,
           skipped_duplicates: importPreview.rows.filter((row) => row.duplicate).length,
           invalid_count: importPreview.invalidRows.length,
+          detected_count: created.filter((item) => item.metadata?.schedule_event_detection).length,
+          draft_created_count: draftOutcome?.created || 0,
           item_ids: created.map((item) => item.id),
         },
       }, currentUser);
@@ -798,7 +820,9 @@ export default function GlobalWorkScheduleCenter({
       setImportPreview(null);
       setImportOpen(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
-      setNotice(`Đã nhận diện và đồng bộ ${created.length} hoạt động vào lịch chung toàn hệ thống.`);
+      const suggestionCount = created.filter((item) => item.metadata?.schedule_event_detection).length;
+      setNotice(`Đã đồng bộ ${created.length} hoạt động; nhận diện ${suggestionCount} ứng viên TTCM/Tổ Tiếng Anh THPT.${draftOutcome ? ` Admin đã tạo ${draftOutcome.created} bản nháp (${draftOutcome.needsTime} mục cần bổ sung giờ).` : ' Các ứng viên đang chờ admin kiểm tra.'}`);
+      if (draftOutcome?.errors?.length) setError(`Một số bản nháp chưa được tạo: ${draftOutcome.errors.slice(0, 3).join(' | ')}`);
     } catch (importError) {
       setError(importError.message || 'Không thể nhập lịch làm việc.');
     } finally {
@@ -824,6 +848,16 @@ export default function GlobalWorkScheduleCenter({
       const recipients = assigneeIds.length ? assigneeIds : [currentUser.id];
       const existing = editor.id ? events.find((entry) => entry.id === editor.id) : null;
       const payload = eventPayload(editor, currentUser, recipients, existing?.raw?.metadata || {});
+      // A manual edit of the datetime input is explicit, unlike the importer's calendar fallback.
+      if (existing?.raw?.metadata?.schedule_event_detection) {
+        payload.metadata.schedule_has_explicit_time = true;
+        payload.metadata.schedule_has_explicit_end_time = Boolean(editor.endAt);
+        payload.metadata.schedule_event_detection = {
+          ...existing.raw.metadata.schedule_event_detection,
+          timeKnown: true,
+          needsTimeReview: false,
+        };
+      }
       let saved;
       if (editor.id) {
         const { data, error: updateError } = await client
@@ -1096,6 +1130,25 @@ export default function GlobalWorkScheduleCenter({
               <article><strong>{importPreview.recognized.length}</strong><span>Cột đã nhận diện</span></article>
             </div>
             <div className="work-schedule-detected-columns"><b>Đã nhận diện:</b> {importPreview.recognized.join(' · ')}</div>
+            <div className="work-schedule-event-detection" role="group" aria-label="Tạo sự kiện liên quan TTCM và Tổ Tiếng Anh THPT">
+              <label className="work-schedule-detection-switch">
+                <input type="checkbox" checked={autoDetectEvents} onChange={(event) => setAutoDetectEvents(event.target.checked)} />
+                <span><strong>Tự động nhận diện sự kiện TTCM / Tổ Tiếng Anh THPT</strong><small>Không dùng AI, không phát sinh phí. Chỉ chuẩn bị bản nháp, admin duyệt trước khi thông báo.</small></span>
+              </label>
+              {autoDetectEvents ? <>
+                <p className="work-schedule-detection-caption">Ứng viên phù hợp · chọn những mục cần chuyển thành sự kiện:</p>
+                <div className="work-schedule-detection-list">
+                  {importPreview.rows.filter((row) => !row.duplicate && detectScheduleEvent(row)).map((row) => {
+                    const match = detectScheduleEvent(row);
+                    return <label key={row.fingerprint} className="work-schedule-detection-item">
+                      <input type="checkbox" checked={candidateSelection.has(row.fingerprint)} onChange={(event) => setCandidateSelection((current) => { const next = new Set(current); if (event.target.checked) next.add(row.fingerprint); else next.delete(row.fingerprint); return next; })} />
+                      <span><strong>{row.title}</strong><small>{match.reason} · {match.needsTimeReview ? 'Chưa xác định giờ – chờ bổ sung' : 'Có giờ bắt đầu'}</small></span>
+                    </label>;
+                  })}
+                  {!importPreview.rows.some((row) => !row.duplicate && detectScheduleEvent(row)) ? <p className="work-schedule-detection-empty">Không có nội dung khớp TTCM hoặc Tổ Tiếng Anh THPT trong các dòng mới.</p> : null}
+                </div>
+              </> : null}
+            </div>
             <div className="work-schedule-preview-table"><table><thead><tr><th>Dòng</th><th>Ngày giờ</th><th>Nội dung</th><th>Địa điểm</th><th>Phụ trách</th><th>Trạng thái</th></tr></thead><tbody>{importPreview.rows.slice(0, 100).map((row) => <tr key={`${row.sourceRow}-${row.fingerprint}`} className={row.duplicate ? 'duplicate' : ''}><td>{row.sourceRow}</td><td>{formatScheduleDateTime(row.startAt)}</td><td><strong>{row.title}</strong></td><td>{row.location || '—'}</td><td>{row.ownerText || '—'}</td><td>{row.duplicate ? 'Trùng dữ liệu' : 'Sẵn sàng'}</td></tr>)}</tbody></table></div>
             {importPreview.invalidRows.length ? <details className="work-schedule-invalid"><summary>{importPreview.invalidRows.length} dòng không hợp lệ</summary>{importPreview.invalidRows.map((row) => <p key={row.sourceRow}><b>Dòng {row.sourceRow}:</b> {row.errors.join(', ')}</p>)}</details> : null}
           </> : <div className="work-schedule-empty"><strong>Chưa có dữ liệu xem trước</strong></div>}
