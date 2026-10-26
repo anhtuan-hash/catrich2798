@@ -23,7 +23,7 @@ test('Toolbox expands to 15 cards and Wave 3 is bilingual with no document overf
 });
 test('Quick Notes auto-save and pinned memo survive Portal minimize, but do not bleed between accounts',async({page})=>{
  await enter(page,10);
- await page.getByRole('button',{name:'Tạo mới'}).click();
+ await page.locator('.bit-w3-notes .bit-w3-head .bit-primary').click();
  await page.locator('#bit-w3-note-title').fill('Lesson 11');
  await page.locator('#bit-w3-note-body').fill('Homework: Unit 5 reading');
  await page.getByRole('button',{name:'Ghim ra màn hình'}).click();
