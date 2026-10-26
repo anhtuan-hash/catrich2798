@@ -301,8 +301,12 @@ function ClassBell({value,onChange,language,sound}){
    <button type="button" role="tab" aria-selected={mode==='manual'} className={mode==='manual'?'active':''} onClick={()=>setMode('manual')}>{language==='en'?'Manual Bells':'Chuông thủ công'}</button>
    <button type="button" role="tab" aria-selected={mode==='timeline'} className={mode==='timeline'?'active':''} onClick={()=>setMode('timeline')}>{language==='en'?'Class Timeline':'Lịch chuông tự động'}</button>
   </div>
-  {mode==='manual'?<ManualClassBell value={value} onChange={onChange} language={language} sound={sound}/>:
-   <ClassBellTimeline value={value.timeline} onChange={onChange} language={language} sound={sound}/>}
+  <div role="tabpanel" hidden={mode!=='manual'} aria-hidden={mode!=='manual'}>
+   <ManualClassBell value={value} onChange={onChange} language={language} sound={sound}/>
+  </div>
+  <div role="tabpanel" hidden={mode!=='timeline'} aria-hidden={mode!=='timeline'}>
+   <ClassBellTimeline value={value.timeline} onChange={onChange} language={language} sound={sound}/>
+  </div>
  </div>;
 }
 export function Wave4Tool({tool,value,onChange,language,sound}){
