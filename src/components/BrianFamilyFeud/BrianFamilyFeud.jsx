@@ -294,20 +294,20 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
       <section className="bff-card">
         <h3>{tr('03 · Bộ câu hỏi','03 · Question bank')}</h3>
         <div className="bff-edition-selector" role="group"
-          aria-label={tr('Chọn trò chơi tiếng Anh 12 theo Unit','Choose Grade 12 Unit game')}>
+          aria-label={tr('Chọn trò chơi tiếng Anh 11 hoặc 12 theo Unit','Choose Grade 11 or 12 Unit game')}>
           <div className="bff-edition-head">
-            <span className="bff-eyebrow">ENGLISH 12 · GLOBAL SUCCESS</span>
+            <span className="bff-eyebrow">ENGLISH {selectedGrade} · GLOBAL SUCCESS</span>
             <strong>{tr('10 TRÒ CHƠI THEO UNIT','10 UNIT GAMES')}</strong>
             <small>{tr('Mỗi Unit: 12 bảng · 6 đáp án/bảng · 5 vòng chính + Fast Money',
               'Each Unit: 12 boards · 6 answers/board · 5 rounds + Fast Money')}</small>
           </div>
-          <div className="bff-unit-grid">{GRADE12_FAMILY_FEUD_GAMES.map((unit)=>
+          <div className="bff-unit-grid">{availableUnitGames.map((unit)=>
             <button key={unit.id} type="button"
               className={'bff-unit-game'+(selectedUnitGame?.id===unit.id?' is-selected':'')}
               onClick={()=>chooseUnit(unit.id)}
               aria-pressed={selectedUnitGame?.id===unit.id}
               aria-label={'Unit '+unit.unit+': '+unit.title}>
-              <span className="bff-unit-game-icon">{UNIT_ICONS[unit.unit-1]}</span>
+              <span className="bff-unit-game-icon">{getUnitIcon(selectedGrade,unit.unit)}</span>
               <span className="bff-unit-number">UNIT {String(unit.unit).padStart(2,'0')}</span>
               <strong>{unit.title}</strong>
               <small>{unit.boardCount} {tr('bảng · B1–B2','boards · B1–B2')}</small>
@@ -332,7 +332,7 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
         <div className="bff-bank-preview">
           <b>{selection.length} {tr('bảng câu hỏi','question boards')}</b>
           {selectedUnitGame&&<div className="bff-current-edition">
-            <span>{UNIT_ICONS[selectedUnitGame.unit-1]} UNIT {selectedUnitGame.unit}</span>
+            <span>{getUnitIcon(selectedUnitGame.grade,selectedUnitGame.unit)} ENGLISH {selectedUnitGame.grade} · UNIT {selectedUnitGame.unit}</span>
             <strong>{selectedUnitGame.title}</strong>
           </div>}
           <p>{selection[0]?.prompt||tr('Chưa có câu hỏi','No questions available')}</p>
@@ -344,7 +344,7 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
             <input type="file" accept=".csv,text/csv" onChange={importCSV}/></label>
           <button type="button" onClick={()=>exportFile('brian-family-feud-bank.csv',exportFeudCSV(selection))}>
             <FileDown size={17}/>{tr('Tải CSV','Export CSV')}</button>
-          {customBank&&<button type="button" onClick={()=>{setCustomBank(null);chooseUnit('g12-unit-1');setGrade('all');}}>
+          {customBank&&<button type="button" onClick={()=>{setCustomBank(null);chooseUnit(selectedGrade===11?'g11-unit-1':'g12-unit-1');setGrade('all');}}>
             <RotateCcw size={15}/>{tr('Mặc định','Defaults')}</button>}
         </div>
         <div className="bff-disclaimer">ⓘ {tr('Điểm được biên soạn phục vụ trò chơi; không phải khảo sát 100 người thật.',
@@ -370,7 +370,7 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
     {scorebar}
     <div className="bff-round-banner" key={'banner-'+game.roundIndex}>
       {game.edition&&<span className="bff-edition-round">
-        {UNIT_ICONS[(game.edition.unit||1)-1]} UNIT {game.edition.unit} · {game.edition.title}
+        {getUnitIcon(game.edition.grade||12,game.edition.unit)} ENGLISH {game.edition.grade||12} · UNIT {game.edition.unit} · {game.edition.title}
       </span>}
       <span>{tr('VÒNG','ROUND')} {Math.min(game.roundIndex+1,game.roundLimit)} / {game.roundLimit}</span>
       <strong>{tr('NHÂN ĐIỂM','MULTIPLIER')} ×{currentMult}</strong>
@@ -466,7 +466,7 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
   </div>;
   const resultsScreen=game&&<div className="bff-results">
     <span className="bff-eyebrow">FAMILY FEUD · CLASSROOM CHAMPIONS</span>
-    {game.edition&&<p className="bff-results-unit">UNIT {game.edition.unit} · {game.edition.title}</p>}
+    {game.edition&&<p className="bff-results-unit">ENGLISH {game.edition.grade||12} · UNIT {game.edition.unit} · {game.edition.title}</p>}
     <h2>🏆 {tr('BẢNG XẾP HẠNG','FINAL SCOREBOARD')}</h2>
     <div className="bff-podium">{ranking.map((team,index)=><section key={team.id}
        className={'bff-podium-card'+(index===0?' is-winner':'')}>
