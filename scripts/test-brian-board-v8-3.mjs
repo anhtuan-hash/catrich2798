@@ -7,7 +7,7 @@ import {createLabeledDiagramConnection,syncDiagramConnections,moveBoardObjects}
  from '../src/components/BrianBoard/boardV8Tools.js';
 import {BOARD_IMAGE_FILTERS,boardImageFilterCss} from '../src/components/BrianBoard/boardImageStudio.js';
 import {findPdfBackground,pdfAnnotationSummary,annotateBoardObject,annotateBoardObjects,
- pdfHighlightRegion,setPdfPaperState,clearPdfAnnotations,pdfPageIndices}
+ pdfHighlightRegion,setPdfPaperState,clearPdfAnnotations,togglePdfAnnotations,pdfPageIndices}
  from '../src/components/BrianBoard/boardPdfAnnotations.js';
 const source=f=>readFileSync(new URL('../src/components/BrianBoard/'+f,import.meta.url),'utf8');
 const lesson=newLesson('owner-test');
@@ -17,7 +17,7 @@ const page={...lesson.pages[0],objects:[paper]};
 assert.equal(findPdfBackground(page).id,'paper-1');
 assert.deepEqual(pdfPageIndices({...lesson,pages:[lesson.pages[0],page]}),[1]);
 assert.deepEqual(pdfAnnotationSummary(page),{hasPdf:true,paperLocked:true,paperVisible:true,
- annotationCount:0,annotationLimit:400,annotations:0});
+ annotationCount:0,annotationLimit:400,annotations:0,visibleAnnotations:0});
 const stroke={id:'draw-1',kind:'stroke',points:[{x:110,y:140},{x:155,y:155}],
  width:4,color:'#333333',studentVisible:true};
 assert.equal(annotateBoardObject(page,stroke).pdfAnnotation,true);
@@ -29,6 +29,11 @@ assert.equal(highlighted.objects[1].shape,'rect');
 assert.equal(highlighted.objects[1].pdfAnnotation,true);
 assert.equal(highlighted.objects[1].opacity,.42);
 assert.equal(highlighted.objects[1].studentVisible,true);
+const hiddenMarkup=togglePdfAnnotations(highlighted,false);
+assert.equal(hiddenMarkup.objects[1].hidden,true);
+assert.equal(pdfAnnotationSummary(hiddenMarkup).visibleAnnotations,0);
+assert.equal(togglePdfAnnotations(hiddenMarkup,true).objects[1].hidden,false);
+assert.equal(page.objects.length,1);
 assert.equal(page.objects.length,1,'Highlight must not mutate PDF input');
 const paperHidden=setPdfPaperState(highlighted,'hidden',true);
 assert.equal(findPdfBackground(paperHidden).hidden,true);
@@ -83,6 +88,7 @@ assert.match(canvas,/onPdfHighlight/);
 assert.match(canvas,/pdf-highlight/);
 assert.match(studio,/onNavigate/);
 assert.match(studio,/onPaperState/);
+assert.match(studio,/onAnnotationVisibility/);
 assert.match(source('boardPdf.js'),/opacity:Math\.max/);
 assert.match(source('boardModel.js'),/opacity:Math\.max/);
 assert.match(source('boardImageStudio.js'),/applyBoardImageFilter/);
