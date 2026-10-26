@@ -84,8 +84,10 @@ check('Interactive UI handles answer taps without a Submit button and shows fire
  assert.match(ui,/answerTapLockRef\.current=true/);
  assert.match(ui,/type:'ANSWER_CHOICE'/);
  assert.ok(!ui.includes('Xác nhận đáp án'));
- assert.match(ui,/showFx\('points',20,tileId,'correct'\)/);
- assert.match(ui,/showFx\('bomb',-20,tileId,'incorrect'\)/);
+ assert.match(ui,/showFx\(bossDefeat\?'win':'points'/);
+ assert.match(ui,/kit\?'defused':'correct'/);
+ assert.match(ui,/showFx\('bomb',shieldUsed\?0:-20,tileId/);
+ assert.match(ui,/timedOut\?'timeout':shieldUsed\?'shield':'incorrect'/);
  assert.match(fx,/CHÍNH XÁC!/);assert.match(fx,/SAI RỒI!/);
 });
 console.log('PASS: 10×100 Grade 12 grammar MCQs and instant scoring with bomb/fireworks.');
