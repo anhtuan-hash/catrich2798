@@ -28,7 +28,7 @@ import BoardNavigator from './BoardNavigator.jsx';
 import BoardFrameThumbnail from './BoardFrameThumbnail.jsx';
 import BoardReliabilityPanel from './BoardReliabilityPanel.jsx';
 import {listBoardAssets,saveBoardAsset,readBoardAsset} from './boardAssets.js';
-import {cropBoardImageData,cropBoardImageRegion,effectBoardImageRegion} from './boardImageStudio.js';
+import {cropBoardImageData,cropBoardImageRegion,effectBoardImageRegion,applyBoardImageFilter} from './boardImageStudio.js';
 import BoardCropEditor from './BoardCropEditor.jsx';
 import BoardPdfStudio from './BoardPdfStudio.jsx';
 import {annotateBoardObject,annotateBoardObjects,pdfHighlightRegion,
@@ -74,6 +74,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  const [penPreset,setPenPreset]=useState('classic'),[snapToGrid,setSnapToGrid]=useState(false);
  const [shapeFill,setShapeFill]=useState('none'),[smartGeometry,setSmartGeometry]=useState(false);
  const [cropEditId,setCropEditId]=useState(null),[cropEditMode,setCropEditMode]=useState('crop');
+ const [imageEffectBusy,setImageEffectBusy]=useState(''),[imageEffectStatus,setImageEffectStatus]=useState('');
  const [motion,setMotion]=useState(()=>{
   try{const saved=window.localStorage.getItem('bbd-motion-v1');
    return ['off','balanced','expressive'].includes(saved)?saved:'balanced';
@@ -495,6 +496,22 @@ export default function BrianBoard({currentUser,language='vi'}){
    teacherOnly:true,studentVisible:false});
   setActiveActivityId(null);
   setTool('select');
+ };
+ const applyImagePreset=async(id,preset)=>{
+  const snapshot=docRef.current,currentPage=snapshot?.pages.find(p=>p.id===snapshot.activePageId);
+  const image=currentPage?.objects.find(o=>o.id===id&&o.kind==='image');
+  if(!image||currentPage?.locked||image.locked)return;
+  setImageEffectBusy(id);setImageEffectStatus('');
+  try{
+   const result=await applyBoardImageFilter(image.src,preset);
+   const latest=docRef.current;
+   const current=latest?.pages.find(p=>p.id===currentPage.id)?.objects.find(o=>o.id===id);
+   if(latest?.id!==snapshot.id||latest.activePageId!==currentPage.id||current?.src!==image.src)
+    throw Error('The image or lesson changed while processing');
+   editPage(p=>({...p,objects:p.objects.map(o=>o.id===id?{...o,src:result.src}:o)}));
+   setImageEffectStatus(vi?'Đã cập nhật ảnh (Undo để khôi phục)':'Image updated (Undo to restore)');
+  }catch(e){setImageEffectStatus(e.message||'Image filter failed');}
+  finally{setImageEffectBusy('');}
  };
  const cropImageRegion=async(id,rect,mode='crop')=>{
   const start=docRef.current,active=start?.pages.find(p=>p.id===start.activePageId);
@@ -1114,6 +1131,17 @@ export default function BrianBoard({currentUser,language='vi'}){
         <button disabled={page?.locked} onClick={()=>setLayerFlag(o.id,'locked')}
          aria-label={o.locked?(vi?'Mở khóa đối tượng':'Unlock object'):(vi?'Khóa đối tượng':'Lock object')}>
          {o.locked?<LockKeyhole size={17}/>:<LockKeyholeOpen size={17}/>}</button>
+        {o.kind==='image'&&!o.pdfBackground&&<select className="bbd-v9-image-preset"
+          value="" disabled={page?.locked||o.locked||imageEffectBusy===o.id}
+          aria-label={vi?'Hiệu ứng màu ảnh':'Image color preset'}
+          onChange={e=>{if(e.target.value)void applyImagePreset(o.id,e.target.value);e.target.value='';}}>
+          <option value="">{vi?'Màu ảnh…':'Photo…'}</option>
+          <option value="brighter">{vi?'Sáng hơn':'Brighter'}</option>
+          <option value="contrast">{vi?'Tăng tương phản':'Contrast'}</option>
+          <option value="vivid">{vi?'Màu sống động':'Vivid color'}</option>
+          <option value="sepia">{vi?'Tông hoài cổ':'Sepia'}</option>
+          <option value="grayscale">{vi?'Đen trắng toàn ảnh':'Full grayscale'}</option>
+         </select>}
         {o.kind==='image'&&<div className="bbd-v8-crop-buttons">
          {['crop','blur','grayscale'].map(mode=><button type="button" key={mode} disabled={page?.locked}
           onClick={()=>{setCropEditMode(mode);setCropEditId(o.id);}}
@@ -1128,7 +1156,8 @@ export default function BrianBoard({currentUser,language='vi'}){
          aria-label={vi?'Đưa xuống dưới':'Send to back'}><ArrowDown size={15}/></button>
        </div>)}
       </div>
-      {cropEditId&&page?.objects?.some(o=>o.id===cropEditId&&o.kind==='image')&&
+      {imageEffectStatus&&<p role="status" className="bbd-v9-image-status">{imageEffectStatus}</p>}
+      {marker}
        <BoardCropEditor key={cropEditId+':'+cropEditMode} image={page.objects.find(o=>o.id===cropEditId)}
         vi={vi} mode={cropEditMode} onApply={rect=>cropImageRegion(cropEditId,rect,cropEditMode)}
         onCancel={()=>setCropEditId(null)}/>}
