@@ -1196,19 +1196,19 @@ export default function BrianBoard({currentUser,language='vi'}){
         (vi?'Lỗi kết nối':'Connection error')}{' · '+remoteSent+'/'+REMOTE_MAX_MESSAGES}</small>
        {remoteError&&<p role="status">{remoteError}</p>}
       </div>
+      {!liveGuestRoomStarted&&<BoardClassroomLive session={classroomSession} vi={vi}
+       onChange={setClassroomSession} onCreate={mode=>{
+        setClassroomSession(createLiveSession(mode));setActiveActivityId(null);
+       }}/>}
       <BoardLiveGuestControl session={classroomSession} vi={vi}
        onProjection={remote=>{
         setLiveGuestRoomStarted(true);
         setClassroomSession(previous=>composeGuestPublicSession(remote,previous));
        }}/>
-      {!liveGuestRoomStarted?<BoardClassroomLive session={classroomSession} vi={vi}
-       onChange={setClassroomSession} onCreate={mode=>{
-        setClassroomSession(createLiveSession(mode));setActiveActivityId(null);
-       }}/>:
-       <div className="bbd-live-remote-preview">
-        <strong>{vi?'Màn hình kết quả đã duyệt':'Approved student-view results'}</strong>
-        <BoardClassroomLivePublic snapshot={publicLiveSnapshot(classroomSession)} vi={vi}/>
-       </div>}
+      {liveGuestRoomStarted&&<div className="bbd-live-remote-preview">
+       <strong>{vi?'Màn hình kết quả đã duyệt':'Approved student-view results'}</strong>
+       <BoardClassroomLivePublic snapshot={publicLiveSnapshot(classroomSession)} vi={vi}/>
+      </div>}
      </div>}
      {panel==='pdf'&&<BoardPdfStudio lesson={lesson} page={page} vi={vi} tool={tool}
       onTool={setTool} onPaperState={pdfPaperState} onClear={pdfClear} onNavigate={pdfNavigate}
