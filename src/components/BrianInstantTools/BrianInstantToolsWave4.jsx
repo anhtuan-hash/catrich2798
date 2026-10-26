@@ -7,6 +7,7 @@ import {
 import {secureInt} from './instantToolsCore.mjs';
 import {normalizePeople,makeGroups,relativeNoise,lockBuzzer,reactionDelay,BUZZER_DEFAULT} from './instantToolsWave4Core.mjs';
 import './BrianInstantToolsWave4.css';
+import ClassBellTimeline from './BrianInstantToolsClassTimeline.jsx';
 export const WAVE4_LIBRARY=[
   {id:'groupMaker',Icon:UsersRound,vi:'Chia nhóm nhanh',en:'Group Maker',descVi:'Chia nhóm cân bằng một chạm',descEn:'Balanced groups in one tap'},
   {id:'noiseMeter',Icon:AudioLines,vi:'Đồng hồ tiếng ồn',en:'Noise Meter',descVi:'Đo âm thanh tương đối bằng micro',descEn:'Relative microphone noise level'},
@@ -44,13 +45,14 @@ function localBeep(frequency=660,seconds=.15,volume=.07){
 }
 function GroupMaker({value,onChange,language,sound}){
  const t=useStrings(language),[draft,setDraft]=useState(value.names.join('\n')),[copied,setCopied]=useState('');
- const [error,setError]=useState('');
+ const [error,setError]=useState(''),[dealRun,setDealRun]=useState(0);
  const update=fn=>onChange(v=>fn(v));
  const split=()=>{
   const names=normalizePeople(draft);
   if(names.length<2){setError(t.needNames);return;}
-  const groups=makeGroups(names,value.count,secureInt);
-  update(v=>({...v,names,groups}));setError('');if(sound)localBeep(588,.17);
+  const groupCount=Math.min(value.count,names.length);
+  const groups=makeGroups(names,groupCount,secureInt);
+  update(v=>({...v,names,groups,count:groupCount}));setDealRun(n=>n+1);setError('');if(sound)localBeep(588,.17);
  };
  const copy=async()=>{
   const contents=value.groups.map((g,i)=>(language==='en'?t.group:t.group)+' '+(i+1)+': '+g.members.join(', ')).join('\n');
@@ -68,9 +70,9 @@ function GroupMaker({value,onChange,language,sound}){
    <button type="button" className="bit-secondary" disabled={!value.groups.length} onClick={copy}><Copy size={17}/>{t.copy}</button>
    {copied&&<p role="status" className="bit-w4-hint">{copied}</p>}
   </section>
-  <section className="bit-w4-group-view">{value.groups.length?value.groups.map((g,i)=><article className="bit-w4-group-card" key={g.id} style={{'--w4-accent':['#587ce1','#21a994','#df9861','#b66ec1','#4aa8c9','#e27f9c','#6bb366','#8c85d8'][i]}}>
+  <section className="bit-w4-group-view" key={dealRun}>{value.groups.length?value.groups.map((g,i)=><article className="bit-w4-group-card" key={g.id} style={{'--w4-accent':['#587ce1','#21a994','#df9861','#b66ec1','#4aa8c9','#e27f9c','#6bb366','#8c85d8'][i]}}>
     <header><strong>{t.group} {i+1}</strong><small>{g.members.length} {t.members}</small></header>
-    <ol>{g.members.map((name,j)=><li key={j}>{name}</li>)}</ol>
+    <ol>{g.members.map((name,j)=><li key={j} style={{'--w4-stagger':Math.min(700,(j*8+i*70))+'ms'}}>{name}</li>)}</ol>
    </article>):<div className="bit-w4-empty"><UsersRound size={48}/><p>{t.groupsEmpty}</p></div>}</section>
  </div>;
 }
@@ -145,32 +147,44 @@ function NoiseMeter({value,onChange,language}){
 function Buzzer({value,onChange,language,sound}){
  const t=useStrings(language);
  const [armed,setArmed]=useState(false),[winner,setWinner]=useState(null),[round,setRound]=useState(0);
+ const winnerIndex=useRef(null),armedRef=useRef(false);
  const teams=value.teams;
  const update=fn=>onChange(v=>fn(v));
- const arm=()=>{setRound(v=>v+1);setArmed(true);setWinner(null);};
- const buzz=(name)=>{
-  if(!armed||winner)return;
-  const chosen=lockBuzzer(winner,name);
+ const arm=()=>{winnerIndex.current=null;armedRef.current=true;setRound(v=>v+1);setArmed(true);setWinner(null);};
+ const buzz=(name,index)=>{
+  if(!armedRef.current||winnerIndex.current!==null)return;
+  winnerIndex.current=index;armedRef.current=false;
+  const chosen=name;
   setWinner(chosen);setArmed(false);
   update(v=>({...v,history:[chosen,...v.history].slice(0,15)}));
   if(sound)localBeep(720,.26);
  };
+ useEffect(()=>{
+  const handleKey=e=>{
+   if(e.repeat||e.altKey||e.ctrlKey||e.metaKey||!armedRef.current)return;
+   if(/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(e.target?.tagName)||e.target?.isContentEditable)return;
+   const n=Number(e.key);
+   if(Number.isInteger(n)&&n>=1&&n<=teams.length)buzz(teams[n-1]||t.team+' '+n,n-1);
+  };
+  window.addEventListener('keydown',handleKey);
+  return ()=>window.removeEventListener('keydown',handleKey);
+ });
  const count=amount=>{
   const n=Math.min(8,Math.max(2,teams.length+amount));
   if(n===teams.length)return;
   update(v=>({...v,teams:Array.from({length:n},(_,i)=>v.teams[i]||'Team '+(i+1)),score:Array.from({length:n},(_,i)=>v.score[i]||0)}));
-  setArmed(false);setWinner(null);
+  armedRef.current=false;winnerIndex.current=null;setArmed(false);setWinner(null);
  };
  const award=()=>{
-  const idx=teams.indexOf(winner);
-  if(idx<0)return;
+  const idx=winnerIndex.current;
+  if(idx===null||idx<0||idx>=teams.length)return;
   update(v=>({...v,score:v.teams.map((_,i)=>i===idx?Math.min(999,(v.score[i]||0)+1):(v.score[i]||0))}));
   if(sound)localBeep(950,.12);
  };
  const reset=()=>{
   if(!window.confirm(t.resetAsk))return;
   update(v=>({...v,score:v.teams.map(()=>0),history:[]}));
-  setWinner(null);setArmed(false);setRound(0);
+  winnerIndex.current=null;armedRef.current=false;setWinner(null);setArmed(false);setRound(0);
  };
  return <div className="bit-w4-buzzer">
    <div className="bit-w4-buzz-actions">
@@ -180,9 +194,9 @@ function Buzzer({value,onChange,language,sound}){
    </div>
    <div className={'bit-w4-buzz-status'+(winner?' has-winner':'')} role="status">{winner?<><Trophy size={23}/>{t.winner}: {winner}</>:armed?<><Zap size={23}/>{t.armed}</>:t.buzzHint}
     {round>0&&<small>{t.round} {round}</small>}</div>
-   <div className="bit-w4-buzz-grid">{teams.map((name,i)=><section key={i} className={'bit-w4-buzz-team'+(winner===name?' is-winner':'')}>
+   <div className="bit-w4-buzz-grid">{teams.map((name,i)=><section key={i} className={'bit-w4-buzz-team'+(winnerIndex.current===i?' is-winner':'')}>
     <input aria-label={t.team+' '+(i+1)} maxLength={32} value={name} onChange={e=>update(v=>({...v,teams:v.teams.map((x,j)=>i===j?e.target.value.slice(0,32):x)}))}/>
-    <button className="bit-w4-big-buzz" type="button" disabled={!armed||Boolean(winner)} onClick={()=>buzz(name||t.team+' '+(i+1))}><BellRing size={27}/>{t.buzz}</button>
+    <button className="bit-w4-big-buzz" type="button" disabled={!armed||Boolean(winner)} onClick={()=>buzz(name||t.team+' '+(i+1),i)}><BellRing size={27}/>{t.buzz}</button>
     <span>{t.score}: {value.score[i]||0}</span>
    </section>)}</div>
    <div className="bit-w4-buzz-actions"><button type="button" className="bit-secondary" disabled={!winner} onClick={award}><CheckCircle2 size={18}/>{t.correct}</button>
@@ -212,7 +226,21 @@ function ReactionTimer({value,onChange,language,sound}){
   readyAt.current=null;setResult(ms);setPhase('result');
   onChange(v=>({...v,history:[ms,...v.history].slice(0,10)}));
   if(sound)localBeep(950,.14);
+  if((!value.history.length||ms<Math.min(...value.history))&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){
+   import('canvas-confetti').then(({default:burst})=>burst({particleCount:55,spread:55,origin:{y:.7},disableForReducedMotion:true})).catch(()=>{});
+  }
  };
+ useEffect(()=>{
+  const handler=e=>{
+   if(e.repeat||e.altKey||e.ctrlKey||e.metaKey)return;
+   if(/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(e.target?.tagName)||e.target?.isContentEditable)return;
+   if(e.code==='Space'||e.code==='Enter'){
+    if(phase==='waiting'||phase==='ready'){e.preventDefault();tap();}
+    else if(phase==='idle'||phase==='early'||phase==='result'){e.preventDefault();start();}
+   }
+  };
+  window.addEventListener('keydown',handler);return ()=>window.removeEventListener('keydown',handler);
+ });
  const best=value.history.length?Math.min(...value.history):null;
  return <div className="bit-w4-reaction">
   <div className="bit-w4-react-header"><p>{t.reactionHelp}</p>
@@ -232,7 +260,7 @@ const BELLS=[
  {key:'transition',Icon:Flag,freq:[622,523,622]},
  {key:'finish',Icon:PartyPopper,freq:[660,523,440,349]}
 ];
-function ClassBell({value,onChange,language,sound}){
+function ManualClassBell({value,onChange,language,sound}){
  const t=useStrings(language),[last,setLast]=useState(null);
  const contexts=useRef([]);
  const endAll=useCallback(()=>{
@@ -274,6 +302,21 @@ function ClassBell({value,onChange,language,sound}){
   </section>
   <div className="bit-w4-bell-grid">{BELLS.map(({key,Icon,...cue})=><button key={key} type="button" className={'bit-w4-bell-card'+(last===key?' is-played':'')} onClick={()=>play({key,...cue})}>
      <Icon size={36}/><strong>{t[key]}</strong><Volume2 size={16}/></button>)}</div>
+ </div>;
+}
+function ClassBell({value,onChange,language,sound}){
+ const [mode,setMode]=useState('manual');
+ return <div className="bit-w4-bell-workspace">
+  <div className="bit-w4-bell-tabs" role="tablist" aria-label={language==='en'?'Bell modes':'Chế độ chuông'}>
+   <button type="button" role="tab" aria-selected={mode==='manual'} className={mode==='manual'?'active':''} onClick={()=>setMode('manual')}>{language==='en'?'Manual Bells':'Chuông thủ công'}</button>
+   <button type="button" role="tab" aria-selected={mode==='timeline'} className={mode==='timeline'?'active':''} onClick={()=>setMode('timeline')}>{language==='en'?'Class Timeline':'Lịch chuông tự động'}</button>
+  </div>
+  <div role="tabpanel" hidden={mode!=='manual'} aria-hidden={mode!=='manual'}>
+   <ManualClassBell value={value} onChange={onChange} language={language} sound={sound}/>
+  </div>
+  <div role="tabpanel" hidden={mode!=='timeline'} aria-hidden={mode!=='timeline'}>
+   <ClassBellTimeline value={value.timeline} onChange={onChange} language={language} sound={sound}/>
+  </div>
  </div>;
 }
 export function Wave4Tool({tool,value,onChange,language,sound}){

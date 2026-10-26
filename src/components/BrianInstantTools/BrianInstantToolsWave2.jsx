@@ -80,7 +80,13 @@ export function SpotlightOverlay({config,onExit,language='vi'}){
   window.addEventListener('keydown',handler,true);
   return ()=>window.removeEventListener('keydown',handler,true);
  },[onExit]);
- const move=e=>setPos({x:e.clientX,y:e.clientY});
+ const pointerFrame=useRef(null);
+ useEffect(()=>()=>cancelAnimationFrame(pointerFrame.current),[]);
+ const move=e=>{
+  if(pointerFrame.current!==null)return;
+  const x=e.clientX,y=e.clientY;
+  pointerFrame.current=requestAnimationFrame(()=>{pointerFrame.current=null;setPos({x,y});});
+ };
  return createPortal(<div className="bit-spot-overlay" role="dialog" aria-label="Spotlight" aria-modal="true"
    onPointerMove={move} onPointerDown={move}
    style={{background:spotlightStyle(pos.x,pos.y,config.radius,config.dim)}}>
@@ -212,9 +218,11 @@ function RevealTool({value,onChange,language}){
    const shown=value.revealed.includes(i);
    return <button key={i} type="button" className={'bit-w2-reveal-card'+(shown?' is-flipped':'')}
      aria-pressed={shown} onClick={()=>reveal(i)}>
-     <span className="bit-w2-reveal-index">{String(i+1).padStart(2,'0')}</span>
-     <strong>{shown?item:'?'}</strong>
-     <span className="bit-w2-reveal-mark">{shown?<Eye size={18}/>:<Layers3 size={19}/>}</span>
+     <span className="bit-w2-reveal-scene" aria-hidden="true">
+       <span className="bit-w2-reveal-face bit-w2-reveal-front"><span className="bit-w2-reveal-number">{String(i+1).padStart(2,'0')}</span><strong>?</strong><Layers3 size={21}/></span>
+       <span className="bit-w2-reveal-face bit-w2-reveal-back"><span className="bit-w2-reveal-number">{String(i+1).padStart(2,'0')}</span><strong>{item}</strong><Eye size={20}/></span>
+     </span>
+     <span className="bit-w2-reveal-sr">{shown?item:(language==='en'?'Hidden card':'Thẻ chưa mở')}</span>
    </button>;
   })}</div>
  </div>;

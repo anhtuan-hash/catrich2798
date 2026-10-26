@@ -72,3 +72,27 @@
 }
 @media(prefers-reduced-motion:reduce){.bit-w2-reveal-card,.bit-w2-sound-card{transition:none!important}}
 @media(forced-colors:active){.bit-w2-reveal-card,.bit-w2-sound-card{border:2px solid ButtonText}}
+
+.bit-w2-reveal-card{perspective:950px;padding:0;display:block;position:relative;min-height:172px;overflow:visible;background:transparent;border:0;box-shadow:none}
+.bit-w2-reveal-scene{position:relative;display:block;width:100%;height:172px;transform-style:preserve-3d;transition:transform .52s cubic-bezier(.2,.75,.15,1)}
+.bit-w2-reveal-card.is-flipped .bit-w2-reveal-scene{transform:rotateY(180deg)}
+.bit-w2-reveal-face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:6px;padding:15px;border-radius:19px;backface-visibility:hidden;-webkit-backface-visibility:hidden;border:1px solid #98b1e4;box-shadow:0 10px 22px #344f9135;text-align:center;overflow:hidden}
+.bit-w2-reveal-front{background:linear-gradient(135deg,#536cd4,#8e8de9);color:#fff}
+.bit-w2-reveal-back{background:linear-gradient(145deg,#e0ffef,#fafef7);color:#296557;transform:rotateY(180deg);border-color:#96d8b5}
+.bit-w2-reveal-face strong{font-size:clamp(24px,2.5vw,33px);line-height:1.25;font-weight:850;max-height:102px;overflow:auto;overflow-wrap:anywhere}
+.bit-w2-reveal-front strong{font-size:clamp(44px,5vw,66px)}
+.bit-w2-reveal-number{align-self:flex-start;font-size:11px;font-weight:850}
+.bit-w2-reveal-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;white-space:nowrap;border:0}
+.bit-w2-reveal-card:focus-visible{outline:3px solid #3768df;outline-offset:5px}
+@media(prefers-reduced-motion:reduce){.bit-w2-reveal-scene{transition:none!important}}
+
+@keyframes bit-w2-stage-reveal{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+@keyframes bit-w2-cue{0%{transform:scale(.94)}45%{transform:scale(1.045)}100%{transform:none}}
+.bit-w2-stage-overlay>.bit-w2-bigstage{animation:bit-w2-stage-reveal .26s ease-out}
+.bit-w2-big-preview .bit-w2-bigstage{transition:background .24s,color .24s}
+.bit-w2-bigtext{overflow-wrap:anywhere}
+.bit-w2-tele-stage{position:relative}
+.bit-w2-tele-stage:before{content:'';position:sticky;display:block;top:33%;height:2px;background:#f1c96a;opacity:.62;pointer-events:none}
+.bit-w2-sound-card.is-played{animation:bit-w2-cue .45s ease-out}
+.bit-w2-sound-card:active{transform:scale(.95)}
+@media(prefers-reduced-motion:reduce){.bit-w2-stage-overlay>.bit-w2-bigstage,.bit-w2-sound-card.is-played{animation:none}.bit-w2-big-preview .bit-w2-bigstage{transition:none}}

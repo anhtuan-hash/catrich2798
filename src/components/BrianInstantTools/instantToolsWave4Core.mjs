@@ -1,4 +1,5 @@
 // Pure helpers. No cloud access, no school roster, no microphone APIs in this module.
+import {sanitizeTimeline} from './instantToolsTimelineCore.mjs';
 const bound=(v,min,max,defaultValue=min)=>Number.isFinite(Number(v))?Math.min(max,Math.max(min,Number(v))):defaultValue;
 const str=(v,len,def='')=>typeof v==='string'?v.slice(0,len):def;
 const arr=x=>Array.isArray(x)?x:[];
@@ -44,7 +45,9 @@ export function relativeNoise(samples){
  return Math.round(bound(rms*450,0,100));
 }
 export function safeTeamNames(names){
- const clean=normalizePeople(arr(names),8);
+ // Team identity comes from its stable position, not from display text.
+ // Duplicated labels must not collapse or reindex stored scores on reload.
+ const clean=arr(names).slice(0,8).map((name,i)=>str(name,32,'Team '+(i+1)).trim()||'Team '+(i+1));
  return clean.length>=2?clean:BUZZER_DEFAULT;
 }
 export function lockBuzzer(locked,name){
@@ -75,6 +78,6 @@ export function sanitizeWave4(raw){
    buzzer:{teams,score:arr(s.buzzer?.score).slice(0,teams.length).map(n=>Math.round(bound(n,0,999,0))),
      history:arr(s.buzzer?.history).slice(0,15).filter(x=>typeof x==='string').map(x=>x.slice(0,60))},
    reaction:{history:arr(s.reaction?.history).slice(0,10).map(x=>Math.round(bound(x,1,30000,30000)))},
-   classBell:{volume:Math.round(bound(s.classBell?.volume,0,100,65)),duration:Math.round(bound(s.classBell?.duration,1,4,2))}
+   classBell:{volume:Math.round(bound(s.classBell?.volume,0,100,65)),duration:Math.round(bound(s.classBell?.duration,1,4,2)),timeline:sanitizeTimeline(s.classBell?.timeline)}
  };
 }

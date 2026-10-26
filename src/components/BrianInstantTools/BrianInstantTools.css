@@ -161,3 +161,46 @@
  .bit-cube-face{font-size:53px;border-radius:13px}
 }
 @media(prefers-reduced-motion:reduce){.bit-die.is-rolling .bit-cube{animation:none!important}.bit-cube{transition:none!important}}
+
+/* Wave 1 motion standard: semantic feedback, no permanent attention stealing. */
+@keyframes bit-score-flip{0%{opacity:.52;transform:translateY(11px) scale(.95)}65%{opacity:1;transform:translateY(-2px) scale(1.045)}100%{opacity:1;transform:none}}
+@keyframes bit-time-warning{0%,100%{box-shadow:0 5px 18px #3150780d}50%{box-shadow:0 0 0 4px #f3ae612d,0 9px 22px #eaa46d22}}
+@keyframes bit-qr-appear{0%{opacity:0;transform:translateY(8px) scale(.96)}100%{opacity:1;transform:none}}
+@keyframes bit-library-in{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:none}}
+.bit-team-score{display:block;animation:bit-score-flip .27s cubic-bezier(.2,.85,.25,1);font-variant-numeric:tabular-nums}
+.bit-team.is-leading{box-shadow:0 8px 28px #5375c323;border-color:#a7bce4}
+.bit-team.is-leading>.bit-team-top>svg{filter:drop-shadow(0 0 6px #f4c45d88)}
+.bit-timer-card.is-ending{border-color:#f4ae6c;background:#fffaf3;animation:bit-time-warning 1s ease-in-out infinite}
+.bit-timer-card.is-ending .bit-time{color:#be672d}
+.bit-qr-expand{animation:bit-qr-appear .26s ease-out both}
+.bit-app-card{animation:bit-library-in .27s ease-out both}
+.bit-app-card:nth-child(5n+2){animation-delay:30ms}.bit-app-card:nth-child(5n+3){animation-delay:60ms}.bit-app-card:nth-child(5n+4){animation-delay:90ms}
+.bit-team-actions button,.bit-preset button,.bit-timer-controls button{transition:transform .14s,box-shadow .14s}
+.bit-team-actions button:active,.bit-preset button:active,.bit-timer-controls button:active{transform:scale(.94)}
+.bit-wheel-hub{box-shadow:0 1px 14px #34517671,inset 0 0 0 3px #ffffffab}
+.bit-launcher:focus-visible,.bit-app-card:focus-visible{outline:3px solid #5f80da;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){
+ .bit-team-score,.bit-timer-card.is-ending,.bit-qr-expand,.bit-app-card{animation:none!important}
+ .bit-team-actions button,.bit-preset button,.bit-timer-controls button{transition:none!important}
+}
+
+/* Projection mode: readable at the back of a classroom, scoped to expanded desktop Portal. */
+@media(min-width:1100px){
+ .bit-portal.is-max .bit-content{padding-left:clamp(26px,3vw,64px);padding-right:clamp(26px,3vw,64px)}
+ .bit-portal.is-max .bit-team-score{font-size:clamp(74px,7.2vw,124px);line-height:1.08}
+ .bit-portal.is-max .bit-time{font-size:clamp(70px,7vw,112px);line-height:1.1}
+ .bit-portal.is-max .bit-team-top input,.bit-portal.is-max .bit-timer-card>input{font-size:20px}
+ .bit-portal.is-max .bit-team-actions button,.bit-portal.is-max .bit-preset button{min-height:53px;font-size:18px}
+ .bit-portal.is-max .bit-w4-react-stats{font-size:21px}
+ .bit-portal.is-max .bit-w4-reaction-stage strong{font-size:clamp(44px,5vw,76px)}
+ .bit-portal.is-max .bit-w4-buzz-team>input{font-size:22px}
+ .bit-portal.is-max .bit-w4-big-buzz{min-height:150px;font-size:24px}
+ .bit-portal.is-max .bit-w4-group-card ol{font-size:18px;line-height:1.75}
+ .bit-portal.is-max .bit-w4-group-card header strong{font-size:20px}
+ .bit-portal.is-max .bit-w4-bell-card strong{font-size:19px}
+ .bit-portal.is-max .bit-w3-calculator input{font-size:33px}
+ .bit-portal.is-max .bit-w3-calc-grid button{min-height:65px;font-size:25px}
+ .bit-portal.is-max .bit-w3-stat strong{font-size:30px}
+ .bit-portal.is-max .bit-timeline-clock{font-size:clamp(88px,9vw,132px)}
+ .bit-portal.is-max .bit-w2-reveal-face strong{font-size:clamp(24px,3vw,42px)}
+}
