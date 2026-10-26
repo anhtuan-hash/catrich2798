@@ -159,6 +159,16 @@ function Buzzer({value,onChange,language,sound}){
   update(v=>({...v,history:[chosen,...v.history].slice(0,15)}));
   if(sound)localBeep(720,.26);
  };
+ useEffect(()=>{
+  const handleKey=e=>{
+   if(e.repeat||e.altKey||e.ctrlKey||e.metaKey||!armedRef.current)return;
+   if(/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(e.target?.tagName)||e.target?.isContentEditable)return;
+   const n=Number(e.key);
+   if(Number.isInteger(n)&&n>=1&&n<=teams.length)buzz(teams[n-1]||t.team+' '+n,n-1);
+  };
+  window.addEventListener('keydown',handleKey);
+  return ()=>window.removeEventListener('keydown',handleKey);
+ });
  const count=amount=>{
   const n=Math.min(8,Math.max(2,teams.length+amount));
   if(n===teams.length)return;
