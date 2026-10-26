@@ -67,7 +67,7 @@ const w3=read('src/components/BrianInstantTools/BrianInstantToolsWave3.jsx');
 const css=read('src/components/BrianInstantTools/BrianInstantToolsWave3.css');
 const main=read('src/main.jsx');
 assert.ok(ui.includes('...WAVE3_LIBRARY'));
-assert.ok(ui.includes("subtitle:'15 công cụ"));
+assert.ok(ui.includes("subtitle:'20 công cụ"));
 assert.ok(ui.includes('bit-w3-pinned'));
 for(const part of ['Notes','TextTools','CalculatorTool','QuickLinks','Checklist'])assert.ok(w3.includes('function '+part+'('),part);
 assert.match(w3,/rel="noopener noreferrer"/);
