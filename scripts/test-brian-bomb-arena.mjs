@@ -11,20 +11,38 @@ const running=(mode='luck')=>apply(createArena({mode,size:5,teamCount:2}),{type:
 check('Every generated tile in 4x4/5x5/6x6 is a number or a bomb across four modes',()=>{
   for(const mode of ARENA_MODES)for(const size of [4,5,6]){
     const s=createArena({mode,size,teamCount:8,ownerId:'teacher-1'},()=>0.25);
-    assert.equal(s.ruleVersion,2);
+    assert.equal(s.ruleVersion,4);
     assert.equal(s.tiles.length,size*size);
     assert.equal(new Set(s.tiles.map(t=>t.label)).size,size*size);
     assert.equal(s.teams.length,8);assert.equal(s.ownerId,'teacher-1');
     assert.equal(s.questionGate,mode==='challenge');
-    assert.ok(s.tiles.every(t=>t.event==='bomb'||[10,20,30,50,100].includes(pointsForEvent(t.event))));
+    assert.ok(s.tiles.every(t=>t.event==='bomb'||t.event==='blocked'||[10,20,30,50,100].includes(pointsForEvent(t.event))));
+    const bombs=s.tiles.filter(t=>t.event==='bomb').length;
+    const scores=s.tiles.filter(t=>pointsForEvent(t.event)>0).length;
+    assert.equal(bombs,scores);
+    assert.equal(bombs,size===4?8:size===5?12:18);
+    assert.equal(s.tiles.filter(t=>t.event==='blocked').length,size===5?1:0);
+    if(size===5){
+      assert.equal(s.tiles[12].event,'blocked');
+      assert.equal(s.tiles[12].opened,true);
+    }
     assert.ok(s.tiles.some(t=>t.event==='bomb'));
     assert.equal(s.tiles.filter(t=>t.event==='bomb').length,
       generateTileEvents(mode,size*size,()=>0.1).filter(k=>k==='bomb').length);
   }
 });
-check('Chaos increases bomb frequency above classic and luck on 5x5',()=>{
-  const count=m=>generateTileEvents(m,25,()=>0.5).filter(x=>x==='bomb').length;
-  assert.equal(count('classic'),2);assert.equal(count('luck'),4);assert.equal(count('chaos'),6);
+check('All modes have exact 1:1 bomb/score balance, including odd 5x5 locked centre',()=>{
+  for(const size of [4,5,6]){
+    const count=size*size;
+    const target=(count-(count%2))/2;
+    for(const mode of ARENA_MODES){
+      const values=generateTileEvents(mode,count,()=>.5);
+      assert.equal(values.filter(x=>x==='bomb').length,target);
+      assert.equal(values.filter(x=>pointsForEvent(x)>0).length,target);
+      assert.equal(values.filter(x=>x==='blocked').length,count%2);
+      if(size===5)assert.equal(values[12],'blocked');
+    }
+  }
   assert.equal(TILE_ICONS.points10,'10');assert.equal(TILE_ICONS.points100,'100');
 });
 check('Classic adds points to secured score, advances and never reopens an exposed tile',()=>{
@@ -165,7 +183,8 @@ check('Exported UTF-8 CSV round trips punctuation, quotes and commas correctly',
   assert.equal(parseArenaQuestions(EMPTY_CSV_TEMPLATE).length,0);
 });
 check('Audio engine defines three classroom-safe profiles and a callable preview',()=>{
-  assert.equal(BOMB_SOUND_STYLES.length,3);
+  assert.equal(BOMB_SOUND_STYLES.length,4);
+  assert.equal(BOMB_SOUND_STYLES[0].id,'recorded');
   assert.ok(BOMB_SOUND_STYLES.some(x=>x.id==='cinematic'));
   assert.ok(BOMB_SOUND_STYLES.some(x=>x.id==='arcade'));
   assert.ok(BOMB_SOUND_STYLES.some(x=>x.id==='gentle'));
@@ -175,6 +194,9 @@ check('Audio engine defines three classroom-safe profiles and a callable preview
   assert.match(source,/function arcade/);
   assert.match(source,/function gentle/);
   assert.match(source,/createBufferSource/);
+  assert.match(source,/RECORDED_EXPLOSION_URL/);
+  assert.match(source,/new Audio\(\)/);
+  assert.match(source,/media\.play\(\)/);
   const service=createArenaSound();
   assert.equal(typeof service.play,'function');
   assert.equal(typeof service.close,'function');
@@ -190,6 +212,20 @@ check('UI exposes quick sample import, CSV template, sound preview and loudness'
   assert.match(ui,/parseArenaQuestions\(questionText\)/);
   assert.match(css,/bba-sample-actions/);
   assert.match(css,/bba-sound-settings/);
+  assert.match(css,/bba-hover-tremble/);
+  assert.match(css,/not\(:disabled\):hover/);
+  assert.match(css,/animation:bba-hover-tremble \.13s linear infinite/);
+  assert.match(css,/pointer:fine/);
+  assert.match(ui,/tile\.event==='blocked'/);
+  assert.match(ui,/ruleVersion!==4/);
+});
+check('Locked centre tile is not actionable or counted as a scoring question',()=>{
+  const s=apply(createArena({mode:'luck',size:5}),{type:'START'});
+  const originalBank=s.teams[0].bank;
+  const next=apply(s,{type:'SELECT',index:12});
+  assert.equal(next,s);
+  assert.equal(next.teams[0].bank,originalBank);
+  assert.equal(next.tiles.filter(tile=>!tile.opened).length,24);
 });
 console.log('PASS: Bomb Arena v3 sound presets and 108 quick-import sample questions.');
 
