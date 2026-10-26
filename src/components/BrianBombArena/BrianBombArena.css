@@ -394,3 +394,79 @@ body .bba-bubble:focus-visible{outline:3px solid #ffa6ac;outline-offset:4px;}
 @media(prefers-reduced-motion:reduce){
   .bba-shell .bba-tile.is-hidden:hover{animation:none!important;transform:none!important;}
 }
+
+
+/* Bomb Arena v5: animate only the drawn tile, NEVER the clickable hitbox.
+   Earlier button-level translate() caused browsers to lose :hover as soon as
+   the button moved away from the stationary pointer. The stable button now
+   captures mouseenter/mouseleave; WAAPI vibrates this noninteractive surface. */
+.bba-shell .bba-tile.is-hidden{
+  background:transparent!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+  transform:none!important;
+  transition:none!important;
+}
+.bba-shell .bba-tile.is-hidden:hover{
+  transform:none!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  animation:none!important;
+}
+.bba-tile-visual{
+  position:absolute;inset:0;display:block;
+  border-radius:inherit;
+  pointer-events:none!important;
+  transform:translate3d(0,0,0);
+  transform-origin:center center;
+  contain:paint;
+}
+.bba-shell .bba-tile.is-hidden .bba-tile-visual{
+  background:linear-gradient(155deg,#3a6395,#253e69);
+  border:1px solid #486a99;
+  box-shadow:inset 0 1px 0 #ffffff42,0 7px 13px #070d2080;
+}
+.bba-theme-mint .bba-tile.is-hidden .bba-tile-visual{
+  background:linear-gradient(155deg,#faf8ff,#eee8ff);
+  border:1px solid #ded4ff;
+  box-shadow:0 4px 0 #cabbfc,0 5px 14px #c9bbec33;
+}
+.bba-theme-mint .bba-tile.is-hidden:hover .bba-tile-visual{
+  background:linear-gradient(155deg,#fff,#eee3ff);
+  box-shadow:0 5px 0 #baa8fc,0 9px 17px #afa0dc55;
+}
+.bba-tile.is-revealed .bba-tile-visual{
+  background:transparent;border:0;box-shadow:none;
+}
+.bba-tile.is-blocked .bba-tile-visual{
+  animation:none!important;transform:none!important;
+}
+/* Fallback when Element.animate() is unavailable; the mouse stays inside
+   the stationary, transparent button while the face keeps oscillating. */
+@keyframes bba-shake-face{
+  0%,100%{transform:translate3d(0,0,0) rotate(0deg);}
+  17%{transform:translate3d(-3px,2px,0) rotate(-1.6deg);}
+  34%{transform:translate3d(3px,-2px,0) rotate(1.9deg);}
+  51%{transform:translate3d(-2px,-2px,0) rotate(-1.4deg);}
+  68%{transform:translate3d(3px,2px,0) rotate(1.6deg);}
+  85%{transform:translate3d(-2px,1px,0) rotate(-1.2deg);}
+}
+.bba-shell .bba-tile.is-hover-shaking.is-hidden:not(:disabled):hover .bba-tile-visual{
+  animation:bba-shake-face .19s linear infinite;
+  will-change:transform;
+}
+.bba-shake-toggle{
+  display:inline-flex;gap:6px;align-items:center;justify-content:center;
+  padding:7px 10px!important;border:1px solid var(--bba-border);
+  border-radius:10px;background:var(--bba-card);color:var(--bba-text);
+  font-size:12px;font-weight:800;white-space:nowrap;
+}
+.bba-shake-toggle.is-on{border-color:var(--bba-accent);color:var(--bba-accent);}
+.bba-shake-toggle:focus-visible{outline:3px solid var(--bba-accent);outline-offset:2px;}
+/* The explicit ON/OFF control overrides the generic system motion policy only
+   for the small tile face. Other entrance/explosion animations retain reduced-motion. */
+@media(prefers-reduced-motion:reduce){
+  .bba-shell .bba-tile.is-hover-shaking.is-hidden:not(:disabled):hover .bba-tile-visual{
+    animation:bba-shake-face .19s linear infinite;
+  }
+}
