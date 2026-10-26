@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createArena,arenaReducer,rankTeams,ARENA_MODES,generateTileEvents,pointsForEvent,TILE_ICONS} from '../src/components/BrianBombArena/arenaEngine.js';
+import {SAMPLE_PACKS,getSamplePack,packToText,parseArenaQuestions,toArenaCSV,EMPTY_CSV_TEMPLATE} from '../src/components/BrianBombArena/arenaSamplePacks.js';
+import {createArenaSound,BOMB_SOUND_STYLES} from '../src/components/BrianBombArena/arenaSound.js';
 
 const check=(label,run)=>{run();console.log('✓ '+label);};
 const apply=(game,action)=>arenaReducer(game,action);
@@ -130,3 +132,64 @@ check('Portal, audio, FX and existing Focus/Board are wired, with reduced-motion
   assert.match(effect,/bba-fx-shockwave/);assert.match(effect,/bba-fx-confetti/);
 });
 console.log('PASS: Bomb Arena v2 numbers/POT/BANK, explosions, fireworks and Focus/Board contract.');
+
+check('Three grade-focused sample banks contain 36 complete, unique questions each',()=>{
+  assert.equal(SAMPLE_PACKS.length,3);
+  assert.equal(SAMPLE_PACKS.reduce((n,p)=>n+p.count,0),108);
+  for(const pack of SAMPLE_PACKS){
+    assert.equal(pack.count,36);
+    assert.ok(pack.items.every(q=>q.prompt.length>10&&q.answer.length>0));
+    assert.equal(new Set(pack.items.map(q=>q.prompt.toLowerCase())).size,36);
+    assert.equal(getSamplePack(pack.id).id,pack.id);
+  }
+});
+check('One-click sample pack text parses all answers without dropping any question',()=>{
+  for(const pack of SAMPLE_PACKS){
+    const parsed=parseArenaQuestions(packToText(pack));
+    assert.equal(parsed.length,pack.count);
+    assert.equal(parsed[0].answer,pack.items[0].answer);
+    assert.equal(parsed[parsed.length-1].prompt,pack.items[pack.items.length-1].prompt);
+  }
+});
+check('Exported UTF-8 CSV round trips punctuation, quotes and commas correctly',()=>{
+  const questions=[
+    {prompt:'What does "reduce, reuse, recycle" mean?',answer:'Reduce waste, reuse materials'},
+    {prompt:'Complete: I have lived here ___ 2020.',answer:'since'},
+  ];
+  const csv=toArenaCSV(questions);
+  const parsed=parseArenaQuestions(csv);
+  assert.equal(parsed.length,2);
+  assert.equal(parsed[0].prompt,questions[0].prompt);
+  assert.equal(parsed[0].answer,questions[0].answer);
+  assert.equal(parsed[1].answer,'since');
+  assert.equal(parseArenaQuestions(EMPTY_CSV_TEMPLATE).length,0);
+});
+check('Audio engine defines three classroom-safe profiles and a callable preview',()=>{
+  assert.equal(BOMB_SOUND_STYLES.length,3);
+  assert.ok(BOMB_SOUND_STYLES.some(x=>x.id==='cinematic'));
+  assert.ok(BOMB_SOUND_STYLES.some(x=>x.id==='arcade'));
+  assert.ok(BOMB_SOUND_STYLES.some(x=>x.id==='gentle'));
+  const source=readFileSync(new URL('../src/components/BrianBombArena/arenaSound.js',import.meta.url),'utf8');
+  assert.match(source,/createDynamicsCompressor/);
+  assert.match(source,/function cinematic/);
+  assert.match(source,/function arcade/);
+  assert.match(source,/function gentle/);
+  assert.match(source,/createBufferSource/);
+  const service=createArenaSound();
+  assert.equal(typeof service.play,'function');
+  assert.equal(typeof service.close,'function');
+});
+check('UI exposes quick sample import, CSV template, sound preview and loudness',()=>{
+  const ui=readFileSync(new URL('../src/components/BrianBombArena/BrianBombArena.jsx',import.meta.url),'utf8');
+  const css=readFileSync(new URL('../src/components/BrianBombArena/BrianBombArena.css',import.meta.url),'utf8');
+  assert.match(ui,/onClick=\{importSamplePack\}/);
+  assert.match(ui,/onClick=\{\(\)=>exportQuestionCSV\('pack'\)\}/);
+  assert.match(ui,/onClick=\{\(\)=>exportQuestionCSV\('template'\)\}/);
+  assert.match(ui,/onClick=\{\(\)=>playSound\('bomb'\)\}/);
+  assert.match(ui,/BOMB_SOUND_STYLES\.map/);
+  assert.match(ui,/parseArenaQuestions\(questionText\)/);
+  assert.match(css,/bba-sample-actions/);
+  assert.match(css,/bba-sound-settings/);
+});
+console.log('PASS: Bomb Arena v3 sound presets and 108 quick-import sample questions.');
+
