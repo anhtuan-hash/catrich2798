@@ -19,6 +19,7 @@ export function normalizeLesson(raw,ownerId){
  const pages=raw.pages.slice(0,80).filter(p=>p&&typeof p==='object').map((p,i)=>({
   id:String(p.id||makeId()).slice(0,85),title:String(p.title||'Page '+(i+1)).slice(0,90),
   background:BACKGROUNDS.includes(p.background)?p.background:'plain',
+  pptxSource:p.pptxSource===true,
   locked:p.locked===true,hidden:p.hidden===true,
   activities:normalizeBoardActivities(p.activities),frames:normalizeBoardFrames(p.frames),
   objects:Array.isArray(p.objects)?p.objects.slice(0,3000).filter(o=>o&&typeof o==='object'&&
