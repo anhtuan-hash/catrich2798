@@ -500,7 +500,4 @@ export function toArenaCSV(questions){
   return '\uFEFF'+[['question','answer'],...questions.map(q=>[q.prompt,q.answer])]
     .map(row=>row.map(quote).join(',')).join('\r\n');
 }
-export const EMPTY_CSV_TEMPLATE=toArenaCSV([
-  {prompt:'What is renewable energy?',answer:'Energy from naturally replenished sources'},
-  {prompt:'Complete: She has lived here ___ 2020.',answer:'since'},
-]);
+export const EMPTY_CSV_TEMPLATE='\uFEFF"question","answer"\r\n';
