@@ -377,3 +377,30 @@ html[data-motion-bubble="none"] body .bff-bubble:active{
 @media(prefers-reduced-motion:reduce){
   .bff-unit-game{transition:none!important;transform:none!important}
 }
+
+/* Grade-specific Family Feud selection; no change to game stage or other bubbles. */
+.bff-grade-switch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:11px}
+.bff-grade-option{
+  min-width:0;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px 12px;
+  min-height:72px;padding:13px 17px;border:2px solid var(--bff-stroke);border-radius:17px;
+  color:var(--bff-text);background:linear-gradient(145deg,#243957,#1e2f50);
+  box-shadow:inset 0 1px 0 #fff1;transition:border-color .18s ease,background .18s ease,transform .18s ease;
+}
+.bff-grade-option>span{font-size:clamp(23px,2vw,34px)}
+.bff-grade-option>strong{font-size:clamp(18px,1.35vw,27px);font-weight:950;letter-spacing:.035em}
+.bff-grade-option>small{font-weight:800;letter-spacing:.12em;font-size:10px;color:var(--bff-muted)}
+.bff-grade-option.is-active{
+  color:#18263d;background:linear-gradient(115deg,#ffd993,#f5b558);
+  border-color:#ffdb93;box-shadow:0 0 0 1px #f5bc6560,0 5px 17px #f5b55830;
+}
+.bff-grade-option.is-active>small{color:#564027}
+.bff-grade-option:not(.is-active):hover{border-color:var(--bff-gold);transform:translateY(-2px)}
+@media(max-width:490px){
+  .bff-grade-switch{gap:8px}
+  .bff-grade-option{min-height:70px;gap:5px;padding:9px 7px;flex-direction:column}
+  .bff-grade-option>strong{font-size:17px}
+  .bff-grade-option>small{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){
+  .bff-grade-option{transition:none!important;transform:none!important}
+}

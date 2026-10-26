@@ -47,6 +47,7 @@ export function createFamilyFeud(options={}){
     schema:1,id:secureId(),ownerId:String(options.ownerId||''),createdAt:Date.now(),
     phase:'ready',bank,roundLimit:count,roundIndex:0,
     edition:options.edition?{id:String(options.edition.id||''),unit:Number(options.edition.unit)||null,
+      ...(options.edition.grade===11||options.edition.grade===12?{grade:options.edition.grade}:{}),
       title:String(options.edition.title||'').slice(0,100)}:null,
     teams,controller:0,stealer:1,
     multiplier:1,pointsPot:0,strikes:0,revealed:[],showAll:false,

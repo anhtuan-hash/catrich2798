@@ -135,7 +135,9 @@ check('Legacy Family Feud general English 10–12 bank stays intact and has no U
 check('Bilingual unit gallery, explicit labels and mode isolation are mounted in UI',()=>{
  const ui=readFileSync(new URL('../src/components/BrianFamilyFeud/BrianFamilyFeud.jsx',import.meta.url),'utf8');
  const styles=readFileSync(new URL('../src/components/BrianFamilyFeud/BrianFamilyFeud.css',import.meta.url),'utf8');
- assert.match(ui,/GRADE12_FAMILY_FEUD_GAMES\.map/);
+ assert.match(ui,/availableUnitGames\.map/);
+ assert.match(ui,/selectedGrade===11\?GRADE11_FAMILY_FEUD_GAMES:GRADE12_FAMILY_FEUD_GAMES/);
+ assert.match(ui,/getGrade12FeudGame\(selectedUnitId\)/);
  assert.match(ui,/getGrade12FeudGame\(selectedUnitId\)/);
  assert.match(ui,/setSelectedUnitId\(id\)/);
  assert.match(ui,/edition:selectedUnitGame/);
