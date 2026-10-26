@@ -258,6 +258,8 @@ export function scheduleRowsFromGrid(grid = [], options = {}) {
     const embeddedRange = parseTimeRange(rawDate);
     const startTime = explicitStart || range.start || embeddedRange.start;
     const endTime = explicitEnd || range.end || embeddedRange.end;
+    // Keep the existing visual calendar fallback, but never mistake an inferred 08:00 for an explicitly scheduled event.
+    const timeKnown = Boolean(startTime);
     const startDate = withTime(date, startTime, 8, 0);
     let endDate = withTime(date, endTime, startTime?.hours ?? 9, startTime?.minutes ?? 0);
     if (startDate && endDate && endDate <= startDate) endDate = new Date(startDate.getTime() + 60 * 60000);
@@ -287,6 +289,8 @@ export function scheduleRowsFromGrid(grid = [], options = {}) {
       note,
       priority: normalizePriority(getCell(row, detection.map, 'priority')),
       visibility: normalizeVisibility(getCell(row, detection.map, 'visibility')),
+      timeKnown,
+      endTimeKnown: Boolean(endTime),
       sourceRow,
       sourceFileName: fileName,
     };
