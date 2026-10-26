@@ -8,6 +8,7 @@ import {
   eventAnalytics, toLocalDateTime, HALLOWEEN_TEMPLATE, EVENT_CATEGORIES
 } from '../services/eventService.js';
 import './EventManager.css';
+import EventPosterTemplatePanel from './EventPosterTemplatePanel.jsx';
 import { listScheduleEventSuggestions, createDraftFromScheduleItem, createDraftsForScheduleItems } from '../services/scheduleEventDrafts.js';
 
 const BLANK = Object.freeze({
@@ -224,6 +225,11 @@ export default function EventManagerPage({currentUser}) {
           </div>
           {form.frequency==='per_login'&&<p className="bea-help" role="note">Popup sẽ mở lại mỗi khi người nhận đăng xuất rồi đăng nhập lại. Không bật liên tục khi chuyển trang hoặc làm mới Dashboard trong cùng phiên đăng nhập.</p>}
           <div className="bea-section-label"><span>03</span><h3>Poster & người nhận</h3></div>
+          <EventPosterTemplatePanel
+            eventData={form}
+            disabled={saving}
+            onGenerated={(file,template)=>{setPoster(file);setNotice('Đã tạo poster từ mẫu '+template.name+'. Hãy lưu sự kiện để đồng bộ ảnh.');setError('');}}
+          />
           <label className="bea-file"><UploadCloud size={21}/><span>{poster?.name||'Tải poster JPG, PNG, WebP (tối đa 10MB)'}</span><input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>setPoster(e.target.files?.[0]||null)}/></label>
           <div className={'bea-poster-status '+(poster?'is-pending':selected?.poster_path?'is-ready':'is-missing')} role="status">
             <span>{poster?'Ảnh mới chỉ đang xem trước. Nhấn Lưu hoặc Xuất bản để tải lên Supabase.'
