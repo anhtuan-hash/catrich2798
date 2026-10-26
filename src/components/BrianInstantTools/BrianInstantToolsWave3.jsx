@@ -137,7 +137,7 @@ function CalculatorTool({value,onChange,language}){
   <section className="bit-w3-calculator">
     <label htmlFor="bit-w3-expression">{t.expression}</label>
     <input id="bit-w3-expression" inputMode="decimal" maxLength={120} value={expr} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();equal();}}}
-     onChange={e=>change(e.target.value)} placeholder="(125 + 75) × 20%"/>
+     onChange={e=>change(e.target.value)} placeholder="(125+75)*20%"/>
     {error&&<p role="alert" className="bit-error">{error}</p>}
     <div className="bit-w3-calc-grid">
       {KEYS.flat().map((key,i)=><button type="button" className={key==='='?'is-equal':/[+−×÷]/.test(key)?'is-operator':''} key={i}
