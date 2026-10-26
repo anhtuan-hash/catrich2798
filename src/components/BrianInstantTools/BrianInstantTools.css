@@ -1,0 +1,163 @@
+/* Brian Instant Tools — isolated CSS; no global overrides for Board/Focus/Chat/Approvals. */
+.bit-launcher{
+ position:fixed;z-index:11450;
+ right:calc(var(--bes-floating-edge,24px) + var(--bes-floating-diameter,62px) + var(--bes-floating-gap,14px));
+ bottom:var(--bes-floating-bottom,24px);
+ width:var(--bes-floating-diameter,62px);height:var(--bes-floating-diameter,62px);
+ border-radius:50%;display:grid;place-items:center;
+ border:1px solid #d7dff3;background:linear-gradient(145deg,#fff,#e9f1fd);
+ color:#466bbf;box-shadow:0 10px 27px #26376e2b,0 3px 8px #14275a15;
+ cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .2s,box-shadow .2s;
+}
+.bit-launcher:hover{transform:translateY(-3px);box-shadow:0 16px 29px #283d7733}
+.bit-launcher:focus-visible,.bit-portal button:focus-visible,.bit-portal input:focus-visible,.bit-portal textarea:focus-visible{outline:3px solid #74a9ff;outline-offset:3px}
+.bit-launcher-dot{position:absolute;right:9px;bottom:9px;width:8px;height:8px;border-radius:50%;background:#20c9aa;box-shadow:0 0 0 3px #fff}
+.bit-overlay{position:fixed;inset:0;z-index:2147481000;background:#0f1c39c9;backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:clamp(12px,2vw,30px);padding-bottom:max(12px,env(safe-area-inset-bottom,0px));animation:bit-overlay-in .25s ease}
+.bit-portal{width:min(1120px,100%);height:min(790px,calc(100dvh - 38px));max-height:calc(100dvh - 16px);display:flex;flex-direction:column;overflow:hidden;border-radius:28px;border:1px solid #dfe9fd;background:#f6f9ff;box-shadow:0 40px 90px #0008;animation:bit-portal-in .3s cubic-bezier(.2,.85,.1,1);font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:#21304e;box-sizing:border-box}
+.bit-portal *{box-sizing:border-box}
+.bit-portal.is-max{width:100%;height:100%;max-height:100%;border-radius:16px}
+.bit-header{background:linear-gradient(112deg,#fff,#eaf3ff);border-bottom:1px solid #dce6f4;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 22px;min-height:84px}
+.bit-header-title{display:flex;align-items:center;gap:14px;min-width:0}
+.bit-brand{background:linear-gradient(145deg,#576de2,#5bb4d6);color:#fff;width:50px;height:50px;flex:none;display:grid;place-items:center;border-radius:17px;box-shadow:0 8px 20px #375de133}
+.bit-eyebrow{font-size:10px;letter-spacing:.17em;font-weight:800;color:#5979aa}
+.bit-header h2{font-size:clamp(18px,2vw,25px);margin:3px 0 0;line-height:1.2;color:#243c62;font-weight:800}
+.bit-window-actions{display:flex;gap:7px}
+.bit-window-actions button{min-width:39px;height:39px;display:grid;place-items:center;background:#ffffffb8;border:1px solid #dce5f3;border-radius:13px;color:#526b92;cursor:pointer}
+.bit-window-actions button:hover{background:#e5edff}
+.bit-content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:clamp(15px,3vw,30px);scrollbar-gutter:stable}
+.bit-intro{padding:14px 4px 23px}
+.bit-intro-kicker{display:inline-flex;gap:6px;align-items:center;font-size:11px;font-weight:700;color:#4e6ba8;letter-spacing:.1em}
+.bit-intro h3{font-size:clamp(26px,3vw,37px);letter-spacing:-.04em;margin:6px 0;color:#253b62;line-height:1.15}
+.bit-intro p{font-size:13px;color:#7b8ba5;line-height:1.6;margin:8px 0 0}
+.bit-library{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.bit-app-card{display:flex;flex-direction:column;align-items:flex-start;position:relative;gap:8px;text-align:left;padding:24px;min-height:187px;border:1px solid #dfe7f4;border-radius:21px;background:#fff;box-shadow:0 6px 24px #314e7710;color:#273957;cursor:pointer;transition:transform .2s,box-shadow .2s,border-color .2s}
+.bit-app-card:hover{transform:translateY(-4px);box-shadow:0 14px 27px #314e7721;border-color:#b8c8e6}
+.bit-app-icon{width:61px;height:61px;display:grid;place-items:center;border-radius:19px;color:var(--card-accent);background:color-mix(in srgb,var(--card-accent) 13%,white)}
+.bit-app-card strong{font-size:17px;margin-top:7px}.bit-app-card small{color:#7487a1;font-size:12px}
+.bit-card-arrow{position:absolute;right:22px;bottom:24px;color:#a1b2c9}
+.bit-backbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 20px;flex-wrap:wrap}
+.bit-pill{font-size:11px;color:#6c819d;display:inline-flex;align-items:center;gap:7px}
+.bit-two-cols{display:grid;grid-template-columns:minmax(245px,.8fr) minmax(0,1.2fr);gap:20px;min-height:430px}
+.bit-panel{padding:clamp(18px,2vw,26px);border:1px solid #dfe8f3;border-radius:22px;background:#fff;display:flex;flex-direction:column;align-items:stretch;gap:16px}
+.bit-field-label{font-size:13px;color:#4c6383;font-weight:700}
+.bit-panel textarea{width:100%;resize:vertical;border:1px solid #cfdced;background:#f9fbfe;border-radius:14px;padding:14px;color:#263d5c;line-height:1.6;font:inherit;font-size:14px;min-height:100px}
+.bit-panel textarea:focus{border-color:#7294ec;outline:2px solid #d8e6ff}
+.bit-preview{min-height:370px;border:1px solid #dfe8f4;background:radial-gradient(ellipse at 30% 23%,#fff,#e3edfc);border-radius:22px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:18px}
+.bit-primary,.bit-secondary{display:inline-flex;align-items:center;justify-content:center;gap:9px;border-radius:13px;padding:12px 16px;font-family:inherit;font-size:13px;font-weight:750;cursor:pointer;min-height:43px;transition:transform .15s,background .15s}
+.bit-primary{background:linear-gradient(115deg,#516ad4,#6e8df0);border:1px solid #6078dd;color:#fff;box-shadow:0 7px 17px #516ad42b}
+.bit-primary:hover:not(:disabled){transform:translateY(-2px);background:#435fcf}
+.bit-secondary{background:#fff;color:#4b6286;border:1px solid #dce5f3}
+.bit-secondary:hover:not(:disabled){background:#eaf1fe}
+.bit-primary:disabled,.bit-secondary:disabled,.bit-icon-button:disabled{opacity:.45;cursor:not-allowed}
+.bit-stepper{display:flex;align-items:center;justify-content:space-between;border-radius:13px;background:#f0f5fc;padding:6px;gap:12px}
+.bit-stepper button{width:44px;height:44px;display:grid;place-items:center;background:white;border:1px solid #dbe7f5;border-radius:11px;color:#546bae;cursor:pointer}
+.bit-stepper strong{font-size:25px}
+.bit-stat{display:flex;align-items:center;justify-content:space-between;padding:17px;background:#ecf3ff;border-radius:14px;color:#4e6586}
+.bit-stat strong{color:#516bd1;font-size:32px}
+.bit-muted{font-size:12px;color:#8390a5;line-height:1.5}
+.bit-roll-history{display:flex;flex-wrap:wrap;gap:7px}
+.bit-roll-history span{display:grid;place-items:center;padding:7px;min-width:35px;border-radius:9px;background:#f2f5fb;color:#4d6490;font-size:12px}
+.bit-dice-zone{perspective:900px}
+.bit-dice-grid{display:flex;justify-content:center;align-items:center;gap:clamp(9px,2vw,18px);flex-wrap:wrap;max-width:530px}
+.bit-die{width:clamp(70px,9vw,113px);height:clamp(70px,9vw,113px);display:grid;place-items:center;color:#546dd4;background:linear-gradient(145deg,#fff,#dbe6ff);box-shadow:inset -8px -9px 18px #8ea5dc33,0 12px 20px #5c73b22b;border-radius:22px;font-size:clamp(55px,7vw,91px);line-height:1;transform-style:preserve-3d}
+.bit-die.is-rolling{animation:bit-die-spin .73s cubic-bezier(.26,.76,.32,1);animation-delay:calc(var(--die-index) * 40ms)}
+.bit-wheel-zone{--bit-wheel-label-radius:clamp(99px,13.2vw,153px);min-height:460px}
+.bit-wheel{width:min(100%,390px);aspect-ratio:1;border-radius:50%;position:relative;flex:none;border:10px solid white;box-shadow:0 0 0 8px #dde8f7,0 15px 45px #466ea22b}
+.bit-pointer{position:absolute;top:calc(50% - min(50%,195px) - 14px);left:50%;transform:translateX(-50%);font-size:36px;color:#284570;z-index:3;filter:drop-shadow(0 2px 2px #fff)}
+.bit-wheel-label{position:absolute;left:50%;top:50%;transform-origin:0 0;margin-left:-38px;margin-top:-10px;width:76px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:clamp(10px,1vw,14px);font-weight:800;color:white;text-shadow:0 1px 3px #122c42a1;text-align:center;pointer-events:none}
+.bit-wheel-hub{position:absolute;inset:40%;border-radius:50%;display:grid;place-items:center;background:#f9fbff;color:#5b6dd5;box-shadow:0 1px 10px #34517671}
+.bit-winner{display:grid;justify-items:center;gap:5px;background:#fff6df;padding:16px;border-radius:15px;color:#b17c26}
+.bit-winner strong{font-size:22px;color:#674c16;overflow-wrap:anywhere}
+.bit-error{background:#fff0f0;color:#ab3c44;padding:10px 12px;border-radius:10px;font-size:12px}
+.bit-actions{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:18px}
+.bit-scoreboard,.bit-timers{width:100%}
+.bit-team-grid,.bit-timer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.bit-team,.bit-timer-card{border-radius:19px;background:#fff;border:1px solid #dfe7f2;box-shadow:0 5px 18px #3150780d;padding:19px;min-width:0}
+.bit-team{border-top:5px solid var(--team-color);transition:box-shadow .2s}
+.bit-team.is-leading{box-shadow:0 0 0 2px color-mix(in srgb,var(--team-color) 32%,transparent),0 7px 27px #2c5a7b24}
+.bit-team-top{display:flex;gap:8px;align-items:center;color:var(--team-color)}
+.bit-team-top input,.bit-timer-card input{max-width:100%;min-width:0;width:100%;border:none;background:transparent;font:inherit;font-size:15px;font-weight:700;color:#3a5576;padding:5px}
+.bit-team-top input:focus,.bit-timer-card input:focus{outline:2px solid #9db6e9;border-radius:6px}
+.bit-team-score{display:block;font-size:clamp(38px,5vw,68px);line-height:1.2;text-align:center;color:#2e3f62;font-variant-numeric:tabular-nums;margin:12px 0}
+.bit-team-actions{display:flex;gap:8px;justify-content:center}
+.bit-team-actions button,.bit-preset button{border-radius:11px;border:1px solid #dbe5f2;background:#f6f9ff;color:#435e8a;cursor:pointer;padding:11px 17px;min-height:43px;font-weight:700}
+.bit-team-actions button:hover,.bit-preset button:hover{background:#e8effe}
+.bit-timer-card{border-top:5px solid var(--team-color)}
+.bit-timer-card.is-done{border-color:#f5babe;background:#fff4f3}
+.bit-time{display:block;text-align:center;font-size:clamp(42px,6vw,73px);font-variant-numeric:tabular-nums;color:#2a446d;margin:9px 0}
+.bit-progress{height:8px;border-radius:40px;background:#eaf0f9;overflow:hidden}
+.bit-progress span{display:block;height:100%;border-radius:40px;background:var(--team-color);transition:width .18s linear}
+.bit-done{display:block;color:#b44d44;font-weight:800;font-size:12px;margin-top:7px;text-align:center}
+.bit-preset{display:flex;gap:6px;justify-content:center;margin:15px 0;flex-wrap:wrap}
+.bit-preset button{padding:8px 11px;min-height:37px}
+.bit-preset button.active{background:#ebedff;border-color:#aebdea;color:#5367c7}
+.bit-timer-controls{display:flex;gap:10px;justify-content:center}
+.bit-icon-button{width:45px;height:43px;display:grid;place-items:center;border-radius:12px;border:1px solid #dce5f3;background:white;color:#5a6c83;cursor:pointer}
+.bit-qr-preview{flex-direction:column;gap:17px;color:#89a4cb}
+.bit-qr-expand{display:flex;align-items:flex-end;gap:5px;background:#fff;padding:12px;border:1px solid #d3dfeb;border-radius:15px;cursor:zoom-in}
+.bit-qr-expand img{display:block;width:min(100%,310px);height:auto;max-width:310px;image-rendering:pixelated}
+.bit-qr-preview>span{font-size:12px;font-weight:700;color:#7184a0}
+.bit-qr-lightbox{position:fixed;inset:0;z-index:2147483000;background:#081021ed;display:grid;place-items:center;padding:20px;cursor:zoom-out}
+.bit-qr-lightbox img{width:min(90vw,75vh,850px);background:white;border-radius:18px;padding:20px;image-rendering:pixelated}
+.bit-lightbox-close{position:absolute;right:max(20px,env(safe-area-inset-right));top:max(20px,env(safe-area-inset-top));color:white;background:#30405f;border:1px solid #7784a0;border-radius:14px;width:50px;height:50px;display:grid;place-items:center;cursor:pointer}
+.bit-footer{border-top:1px solid #e4ebf7;padding:11px 22px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;color:#8495ae;font-size:10px;letter-spacing:.06em}
+@keyframes bit-overlay-in{from{opacity:0}to{opacity:1}}
+@keyframes bit-portal-in{from{transform:translateY(18px) scale(.975);opacity:.2}to{transform:translateY(0) scale(1);opacity:1}}
+@keyframes bit-die-spin{0%{transform:rotateX(0) rotateY(0)}35%{transform:rotateX(160deg) rotateY(210deg) scale(1.08)}100%{transform:rotateX(360deg) rotateY(360deg) scale(1)}}
+@media(max-width:850px){.bit-library{grid-template-columns:repeat(2,minmax(0,1fr))}.bit-two-cols{grid-template-columns:1fr}.bit-wheel-zone{--bit-wheel-label-radius:120px}.bit-portal{height:calc(100dvh - 26px)}}
+@media(max-width:650px){
+ .bit-launcher{right:calc(var(--bes-floating-edge,13px) + var(--bes-floating-diameter,58px) + var(--bes-floating-gap,12px));bottom:var(--bes-floating-bottom,13px)}
+ .bit-overlay{padding:0}
+ .bit-portal,.bit-portal.is-max{border-radius:0;width:100%;max-height:100dvh;height:100dvh}
+ .bit-header{padding:12px 14px;padding-top:max(12px,env(safe-area-inset-top,0px));min-height:76px}
+ .bit-brand{width:41px;height:41px;border-radius:14px}
+ .bit-header-title{gap:9px}.bit-eyebrow{font-size:8px;letter-spacing:.1em}
+ .bit-header h2{font-size:18px}
+ .bit-window-actions{gap:4px}.bit-window-actions button{min-width:36px;width:36px;height:36px}
+ .bit-content{padding:14px;scrollbar-gutter:auto}
+ .bit-intro{padding:12px 3px 18px}
+ .bit-library{gap:10px}
+ .bit-app-card{padding:16px;min-height:160px}
+ .bit-app-icon{width:48px;height:48px;border-radius:15px}.bit-app-card strong{font-size:14px}.bit-app-card small{font-size:11px}
+ .bit-card-arrow{right:11px;bottom:15px;width:14px}
+ .bit-panel{padding:15px}.bit-preview{min-height:270px}
+ .bit-die{font-size:65px}
+ .bit-wheel-zone{min-height:330px;--bit-wheel-label-radius:106px}
+ .bit-wheel{width:min(100%,290px)}.bit-pointer{top:17px}
+ .bit-team-grid,.bit-timer-grid{grid-template-columns:1fr}
+ .bit-team-actions button{flex:1}
+ .bit-footer{padding:9px 12px 14px;gap:5px}
+}
+@media(max-width:370px){.bit-library{grid-template-columns:1fr}.bit-window-actions button{min-width:32px;width:32px;height:32px}.bit-header h2{font-size:16px}.bit-qr-expand img{max-width:240px}}
+@media(prefers-reduced-motion:reduce){.bit-overlay,.bit-portal,.bit-die.is-rolling{animation:none!important}.bit-launcher,.bit-app-card,.bit-primary{transition:none!important}.bit-wheel{transition:none!important}}
+@media(forced-colors:active){.bit-launcher,.bit-primary,.bit-app-card{border:2px solid ButtonText}}
+
+
+/* True six-face CSS 3D dice — no WebGL, GPU package or external assets. */
+.bit-die{background:transparent;box-shadow:none;transform:none;perspective:780px;
+  --bit-half:clamp(35px,4.5vw,56.5px)}
+.bit-cube{display:block;width:100%;height:100%;position:relative;transform-style:preserve-3d;
+ transition:transform .7s cubic-bezier(.18,.8,.2,1)}
+.bit-cube-face{position:absolute;inset:0;display:grid;place-items:center;
+  background:linear-gradient(145deg,#fff,#d9e6ff);color:#536cc9;
+  border:2px solid #c8d5ee;border-radius:17px;
+  box-shadow:inset -7px -9px 17px #7893d440;
+  font-size:clamp(52px,7vw,85px);line-height:1;backface-visibility:hidden}
+.bit-cube-face-1{transform:rotateY(0deg) translateZ(var(--bit-half))}
+.bit-cube-face-2{transform:rotateY(90deg) translateZ(var(--bit-half))}
+.bit-cube-face-3{transform:rotateY(180deg) translateZ(var(--bit-half))}
+.bit-cube-face-4{transform:rotateY(-90deg) translateZ(var(--bit-half))}
+.bit-cube-face-5{transform:rotateX(90deg) translateZ(var(--bit-half))}
+.bit-cube-face-6{transform:rotateX(-90deg) translateZ(var(--bit-half))}
+.bit-die.is-rolling{animation:none}
+.bit-die.is-rolling .bit-cube{animation:bit-cube-tumble .73s cubic-bezier(.25,.8,.25,1) both}
+@keyframes bit-cube-tumble{
+  0%{transform:rotateX(0deg) rotateY(0deg)}
+  45%{transform:rotateX(175deg) rotateY(203deg)}
+  100%{transform:rotateX(350deg) rotateY(355deg)}
+}
+@media(max-width:650px){
+ .bit-die{--bit-half:35px;width:70px;height:70px}
+ .bit-cube-face{font-size:53px;border-radius:13px}
+}
+@media(prefers-reduced-motion:reduce){.bit-die.is-rolling .bit-cube{animation:none!important}.bit-cube{transition:none!important}}
