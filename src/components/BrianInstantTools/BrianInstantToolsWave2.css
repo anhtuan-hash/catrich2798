@@ -1,0 +1,74 @@
+/* Wave 2 extends Brian Instant Tools only. No modifications to Board/Focus/Chat/Approval dock. */
+.bit-w2-panel{display:flex;flex-direction:column;gap:14px;padding:22px;border-radius:20px;background:#fff;border:1px solid #dae5f3;min-width:0}
+.bit-w2-panel h3,.bit-w2-sound-head h3{display:flex;align-items:center;gap:9px;color:#34486e;font-size:21px;margin:0 0 4px}
+.bit-w2-panel p,.bit-w2-sound-head p{color:#768ba4;line-height:1.55;font-size:12px;margin:0}
+.bit-w2-panel label,.bit-w2-volume label{font-size:13px;font-weight:720;color:#526c8c}
+.bit-w2-panel textarea{width:100%;min-height:135px;resize:vertical;border-radius:14px;border:1px solid #cfddec;background:#f8fbff;color:#243c61;font:inherit;font-size:14px;line-height:1.6;padding:13px}
+.bit-w2-panel input[type=range],.bit-w2-volume input[type=range]{width:100%;accent-color:#6675d6;cursor:pointer;min-height:30px}
+.bit-w2-field{display:grid;gap:6px}
+.bit-w2-spot{max-width:730px;margin:0 auto}
+.bit-w2-spot-preview{width:100%;height:220px;border-radius:18px;background-color:#e9f1ff;display:grid;place-items:center;color:#4578dc;position:relative}
+.bit-w2-spot-preview svg{filter:drop-shadow(0 0 15px #b5c9e9)}
+.bit-spot-overlay{position:fixed;inset:0;z-index:2147481800;cursor:crosshair;touch-action:none;user-select:none;-webkit-user-select:none}
+.bit-spot-toolbar{position:absolute;top:max(14px,env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:#eaf2fff2;color:#263960;border:1px solid #bbcdea;box-shadow:0 8px 20px #10193645;border-radius:18px;padding:10px 13px;display:flex;gap:18px;align-items:center;justify-content:center;max-width:calc(100vw - 24px);font-weight:750}
+.bit-spot-toolbar>span{display:flex;align-items:center;gap:7px;white-space:nowrap}
+.bit-spot-toolbar small{font-size:11px;color:#657fa0;font-weight:550}
+.bit-spot-toolbar button{display:flex;align-items:center;justify-content:center;gap:7px;min-height:42px;white-space:nowrap;background:#405fbb;color:white;border:0;border-radius:12px;padding:8px 12px;cursor:pointer}
+.bit-w2-two-col{display:grid;grid-template-columns:minmax(255px,.83fr) minmax(0,1.17fr);gap:17px;min-height:445px}
+.bit-w2-two-col>.bit-w2-panel{align-self:start}
+.bit-w2-theme{display:flex;flex-wrap:wrap;gap:8px}
+.bit-w2-theme button{min-height:40px;border-radius:12px;border:1px solid #d4dff0;padding:9px 12px;background:#f4f7fe;color:#516b90;font:inherit;font-size:12px;font-weight:650;cursor:pointer;display:flex;gap:8px;align-items:center}
+.bit-w2-theme button.active,.bit-w2-theme button[aria-pressed=true]{color:#425fd2;background:#e5ecff;border-color:#97aaed}
+.bit-w2-big-preview{border-radius:20px;overflow:hidden;min-width:0;min-height:445px}
+.bit-w2-bigstage{height:100%;min-height:370px;width:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:25px;overflow:hidden}
+.bit-w2-bigstage.theme-midnight,.bit-w2-bigstage.theme-neon{background:radial-gradient(circle at 25% 18%,#243d78,#07162d);color:#fff}
+.bit-w2-bigstage.theme-ivory{background:linear-gradient(140deg,#fffefa,#eae9e0);color:#364a64}
+.bit-w2-bigstage.theme-neon{color:#8af5e4;text-shadow:0 0 18px #2bffe76b}
+.bit-w2-bigtext{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font-weight:860;letter-spacing:-.04em;line-height:1.1;font-size:clamp(30px,5vw,var(--big-size));max-height:100%;overflow:auto}
+.bit-w2-stage-overlay{position:fixed;inset:0;background:#07152e;z-index:2147482100;display:flex;align-items:center;justify-content:center}
+.bit-w2-stage-overlay>.bit-w2-bigstage{height:100%;min-height:0;border-radius:0}
+.bit-w2-stage-overlay .bit-w2-bigtext{font-size:clamp(38px,11vw,var(--big-size))}
+.bit-w2-stage-close{position:absolute;top:max(17px,env(safe-area-inset-top,0px));right:max(17px,env(safe-area-inset-right,0px));padding:10px 14px;display:flex;align-items:center;gap:8px;border:1px solid #8499c8;border-radius:13px;background:#234477;color:white;font-size:13px;font-weight:700;cursor:pointer;min-height:44px}
+.bit-w2-tele-stage{height:440px;border-radius:20px;overflow-y:auto;overscroll-behavior:contain;background:#081326;color:#f9fcff;padding:32px 28px;scrollbar-width:thin;scrollbar-color:#526b91 #172643}
+.bit-w2-tele-stage.theme-light{background:#fffcf4;color:#243853}
+.bit-w2-tele-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5;font-weight:660;min-height:calc(100% + 100px);padding-top:35%;padding-bottom:75%;text-align:center}
+.bit-w2-tele-end{display:flex;justify-content:center;color:#6b86b7;padding:24px}
+.bit-w2-actions{display:flex;gap:9px;flex-wrap:wrap}
+.bit-w2-reveal-wrap{display:grid;grid-template-columns:minmax(240px,.7fr) minmax(0,1.3fr);gap:17px;align-items:start}
+.bit-w2-reveal-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.bit-w2-count{font-size:13px;color:#5c6f94;font-weight:700}
+.bit-w2-reveal-card{min-height:148px;border:1px solid #a4b9e6;border-radius:18px;background:linear-gradient(145deg,#455fc0,#7d80dd);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:8px;padding:14px;cursor:pointer;box-shadow:0 7px 14px #394ba22c;transition:transform .2s,background .2s;overflow-wrap:anywhere}
+.bit-w2-reveal-card:hover{transform:translateY(-3px)}
+.bit-w2-reveal-card.is-flipped{background:linear-gradient(150deg,#e5fff3,#f9fff7);color:#2e6254;border-color:#a4dfbf}
+.bit-w2-reveal-card strong{font-size:clamp(15px,2vw,22px);line-height:1.25;text-align:center}
+.bit-w2-reveal-index{font-size:11px;opacity:.8;align-self:flex-start;letter-spacing:.1em}
+.bit-w2-reveal-mark{opacity:.8;align-self:flex-end}
+.bit-w2-sound-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;background:white;border:1px solid #dce5f4;border-radius:19px;padding:18px;margin-bottom:18px}
+.bit-w2-volume{display:grid;gap:8px;min-width:190px;max-width:280px}
+.bit-w2-sound-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.bit-w2-sound-card{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:135px;gap:11px;border:1px solid #dce6f5;background:#fff;border-radius:18px;color:var(--w2-sfx-color);cursor:pointer;box-shadow:0 5px 15px #354a7411;transition:transform .16s,background .16s}
+.bit-w2-sound-card:hover,.bit-w2-sound-card.is-played{background:#eff4ff;transform:translateY(-3px)}
+.bit-w2-sound-card strong{font-size:12px;text-align:center;color:#4b607f}
+.bit-w2-sfx-mini{position:absolute;right:12px;top:11px;opacity:.55}
+@media(max-width:900px){
+ .bit-w2-two-col,.bit-w2-reveal-wrap{grid-template-columns:1fr}
+ .bit-w2-reveal-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .bit-w2-sound-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .bit-w2-big-preview{min-height:320px}
+ .bit-w2-bigstage{min-height:320px}
+}
+@media(max-width:650px){
+ .bit-w2-panel{padding:15px}
+ .bit-w2-sound-head{flex-direction:column}
+ .bit-w2-volume{max-width:none;width:100%}
+ .bit-w2-reveal-grid,.bit-w2-sound-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .bit-w2-reveal-card{min-height:123px}
+ .bit-w2-sound-card{min-height:115px}
+ .bit-w2-tele-stage{height:330px}
+ .bit-spot-toolbar{width:calc(100vw - 20px);padding:8px}
+ .bit-spot-toolbar small{display:none}
+ .bit-w2-bigstage{min-height:260px}
+ .bit-w2-bigtext{font-size:clamp(28px,9vw,var(--big-size))}
+}
+@media(prefers-reduced-motion:reduce){.bit-w2-reveal-card,.bit-w2-sound-card{transition:none!important}}
+@media(forced-colors:active){.bit-w2-reveal-card,.bit-w2-sound-card{border:2px solid ButtonText}}
