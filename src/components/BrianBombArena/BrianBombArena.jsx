@@ -129,11 +129,27 @@ export default function BrianBombArena({currentUser,language='vi'}){
   const save=()=>{if(session)void saveArena(ownerId,session).then(ok=>setStatus(ok?tr('Đã lưu phiên','Session saved'):tr('Không thể lưu phiên','Save failed')));};
   const upload=async event=>{
     const file=event.target.files?.[0];if(!file)return;
-    if(file.size>250000){setStatus(tr('Tệp CSV vượt 250 KB','CSV exceeds 250 KB'));return;}
-    try{const csv=await file.text();setQuestionText(csv);setQuestionGate(true);
-      setStatus(tr('Đã nạp tệp CSV','CSV loaded'));}
-    catch{setStatus(tr('Không đọc được tệp','Could not read file'));}
+    const isExcel=/\.xlsx$/i.test(file.name),limit=isExcel?2000000:250000;
+    if(file.size>limit){setStatus(tr('Tệp vượt dung lượng cho phép','File is too large'));event.target.value='';return;}
+    try{
+      if(isExcel){
+        const {default:readXlsxFile}=await import('read-excel-file');
+        const rows=await readXlsxFile(file);
+        const start=/^question$/i.test(String(rows[0]?.[0]||''))?1:0;
+        setQuestionText(rows.slice(start).map(row=>String(row[0]||'')+' || '+String(row[1]||'')).join('\n'));
+      }else{const csv=await file.text();setQuestionText(csv);}
+      setQuestionGate(true);setStatus(tr('Đã nạp ngân hàng câu hỏi','Question bank imported'));
+    }catch{setStatus(tr('Không đọc được tệp','Could not read file'));}
     event.target.value='';
+  };
+  const exportResults=()=>{
+    if(!session)return;
+    const rows=[['Rank','Team','Score','Turns','Shields'],...rankTeams(session.teams).map((t,i)=>[i+1,t.name,t.score,t.turns,t.shields])];
+    const csv='\uFEFF'+rows.map(row=>row.map(value=>'"'+String(value).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+    const url=URL.createObjectURL(blob),link=document.createElement('a');
+    link.href=url;link.download='brian-bomb-arena-results.csv';document.body.appendChild(link);link.click();link.remove();
+    window.setTimeout(()=>URL.revokeObjectURL(url),2000);
   };
   if(!allowed)return null;
   const remaining=session?.tiles.filter(t=>!t.opened).length||0;
@@ -172,7 +188,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
           <label className="bba-label">{tr('Một dòng mỗi câu: Câu hỏi || Đáp án','One line per item: Question || Answer')}
             <textarea rows="5" value={questionText} onChange={e=>setQuestionText(e.target.value.slice(0,70000))}
              placeholder="What is a renewable energy source? || Solar power"/></label>
-          <label className="bba-file"><Upload size={16}/>{tr('Nhập tệp CSV','Import CSV')}<input type="file" accept=".csv,text/csv" onChange={upload}/></label>
+          <label className="bba-file"><Upload size={16}/>{tr('Nhập CSV / Excel','Import CSV / Excel')}<input type="file" accept=".csv,.xlsx,text/csv" onChange={upload}/></label>
           <p className="bba-muted">{tr('Nếu chưa nhập câu hỏi, trò chơi sử dụng bảng bí mật không cần chấm đáp án.','With an empty bank, the game runs as a tile-only activity.')}</p>
           <button type="button" className="bba-primary bba-full" onClick={begin}><Play size={18}/>{tr('Bắt đầu trò chơi','Start game')}<ChevronRight size={18}/></button>
         </section>
@@ -182,7 +198,8 @@ export default function BrianBombArena({currentUser,language='vi'}){
       <div className="bba-winner"><Trophy size={49}/><p>{tr('KẾT QUẢ TRÒ CHƠI','FINAL RESULTS')}</p><h2>{rankTeams(session.teams)[0]?.name}</h2></div>
       <div className="bba-ranking">{rankTeams(session.teams).map((t,i)=><div key={t.id} className="bba-rank">
         <span>{i+1}</span><strong>{t.name}</strong><b>{t.score}</b></div>)}</div>
-      <div className="bba-result-actions"><button type="button" onClick={()=>{setSession(null);setScreen('setup')}}><RotateCcw size={16}/>{tr('Tạo ván mới','New game')}</button>
+      <div className="bba-result-actions"><button type="button" onClick={exportResults}><Save size={16}/>{tr('Xuất bảng điểm CSV','Export scores CSV')}</button>
+      <button type="button" onClick={()=>{setSession(null);setScreen('setup')}}><RotateCcw size={16}/>{tr('Tạo ván mới','New game')}</button>
         <button type="button" onClick={()=>setScreen('arena')}><Eye size={16}/>{tr('Xem lại bảng','Review board')}</button>
         <button type="button" onClick={()=>setConfirmReset(true)}><XCircle size={16}/>{tr('Xóa phiên','Delete session')}</button></div>
     </section>;
@@ -232,7 +249,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
           {!presenter&&<div className="bba-game-controls">
             <button type="button" onClick={()=>update({type:'UNDO'})} disabled={!session.history.length}><Undo2 size={17}/>{tr('Hoàn tác','Undo')}</button>
             <button type="button" onClick={()=>update({type:'REDO'})} disabled={!session.future.length}><Redo2 size={17}/>{tr('Làm lại','Redo')}</button>
-            <button type="button" onClick={()=>update({type:'NEXT'})} disabled={session.phase!=='running'||session.selectedTile!==null}><ArrowRight size={17}/>{tr('Đổi lượt','Next team')}</button>
+            <button type="button" onClick={()=>update({type:'NEXT'})} disabled={session.phase!=='running'||session.selectedTile!==null||(session.mode==='luck'&&leader?.bank>0)}><ArrowRight size={17}/>{tr('Đổi lượt','Next team')}</button>
           </div>}
         </aside>
       </div>
