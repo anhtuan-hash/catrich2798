@@ -2914,7 +2914,7 @@ export const LEGACY_SITE_EN = Object.freeze({
   "Điều hướng chính trên di động": "Main mobile navigation",
   "Quy định": "Regulations",
   "KHO HỌC LIỆU ↔ LUYỆN THI THPT": "RESOURCE LIBRARY ↔ HIGH-SCHOOL EXAM PREP",
-  "“Soạn cho tôi đề này theo yêu cầu. Khi hoàn tất, tự lưu bản đầy đủ vào Brian Question Bank.”": "“Create this test according to my requirements, then automatically save the full version to Brian Question Bank.”"
+  "“Soạn cho tôi đề này theo yêu cầu. Khi hoàn tất, tự lưu bản đầy đủ vào Brian Question Bank.”": "“Create this test according to my requirements, then automatically save the full version to Brian Question Bank.”",
   "Tự động nhận diện sự kiện TTCM / Tổ Tiếng Anh THPT": "Automatically detect department-head / High School English events",
   "Không dùng AI, không phát sinh phí. Chỉ chuẩn bị bản nháp, admin duyệt trước khi thông báo.": "No AI or extra API cost. Creates drafts only; an admin must approve before announcements.",
   "Ứng viên phù hợp · chọn những mục cần chuyển thành sự kiện:": "Matching activities · select candidates for event drafts:",
