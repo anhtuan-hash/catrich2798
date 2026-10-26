@@ -1,0 +1,36 @@
+name: Brian Instant Tools — browser UAT
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/brian-instant-tools-qa.yml'
+      - 'src/components/BrianInstantTools/**'
+      - 'src/main.jsx'
+      - 'scripts/test-brian-instant-tools.mjs'
+      - 'tests/fixtures/brian-instant-tools-qa.*'
+      - 'tests/e2e/brian-instant-tools-qa.spec.js'
+      - 'playwright.brian-instant-tools.config.js'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser-uat:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 19
+    steps:
+      - name: Checkout without persistent credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Existing dependencies only
+        run: npm ci --no-audit --no-fund
+      - name: Install free browser engines
+        run: npx playwright install --with-deps chromium webkit
+      - name: Check pure tool contracts
+        run: node scripts/test-brian-instant-tools.mjs
+      - name: Run isolated tools UI (no cloud / no student data)
+        run: npx playwright test --config=playwright.brian-instant-tools.config.js
