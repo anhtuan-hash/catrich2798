@@ -25,7 +25,7 @@ export default function ClassBellTimeline({value,onChange,language='vi',sound=tr
  const timeline=sanitizeTimeline(value||initialTimeline());
  const [now,setNow]=useState(Date.now());
  const [alert,setAlert]=useState(false);
- const ctx=useRef(null),active=useRef(true),transitionRef=useRef(null);
+ const ctx=useRef(null),active=useRef(true),transitionRef=useRef(null),alertTimer=useRef(null);
  const getAudio=async()=>{
   if(!sound)return;
   try{
@@ -36,7 +36,7 @@ export default function ClassBellTimeline({value,onChange,language='vi',sound=tr
  };
  useEffect(()=>{
   active.current=true;
-  return ()=>{active.current=false;ctx.current?.close?.().catch(()=>{});ctx.current=null;};
+  return ()=>{active.current=false;clearTimeout(alertTimer.current);ctx.current?.close?.().catch(()=>{});ctx.current=null;};
  },[]);
  useEffect(()=>{
   if(!timeline.running)return;
@@ -54,8 +54,8 @@ export default function ClassBellTimeline({value,onChange,language='vi',sound=tr
   onChange(prev=>({...prev,timeline:saved}));
   bell(ctx.current,sound?value.volume:0);
   setAlert(true);
-  const id=window.setTimeout(()=>{if(active.current)setAlert(false);},1500);
-  return ()=>clearTimeout(id);
+  clearTimeout(alertTimer.current);
+  alertTimer.current=window.setTimeout(()=>{if(active.current)setAlert(false);},1500);
  },[now,timeline.running,timeline.endsAt,timeline.index,sound,value.volume,onChange]);
  useEffect(()=>{
   const hide=()=>{if(document.hidden)setAlert(false);else setNow(Date.now());};
