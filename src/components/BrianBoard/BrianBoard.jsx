@@ -31,6 +31,8 @@ import {listBoardAssets,saveBoardAsset,readBoardAsset} from './boardAssets.js';
 import {cropBoardImageData,cropBoardImageRegion,effectBoardImageRegion,applyBoardImageFilter} from './boardImageStudio.js';
 import BoardCropEditor from './BoardCropEditor.jsx';
 import BoardClassroomLive,{BoardClassroomLivePublic} from './BoardClassroomLive.jsx';
+import BoardLiveGuestControl from './BoardLiveGuestControl.jsx';
+import {composeGuestPublicSession} from './boardLiveApi.js';
 import BoardRemoteTV from './BoardRemoteTV.jsx';
 import {authorizeSameOwner,createRemoteTeacherChannel,closeRemoteChannel,
  REMOTE_MAX_BYTES,REMOTE_MAX_MESSAGES,REMOTE_DURATION_MS,REMOTE_MIN_INTERVAL_MS} from './boardRemoteTV.js';
@@ -100,6 +102,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  const [randomNames,setRandomNames]=useState(''),[randomChoice,setRandomChoice]=useState(''),[randomUsed,setRandomUsed]=useState([]);
  const [presenting,setPresenting]=useState(false),presentationRef=useRef(null);
  const [classroomSession,setClassroomSession]=useState(null);
+ const [liveGuestRoomStarted,setLiveGuestRoomStarted]=useState(false);
  const classroomSessionRef=useRef(null);classroomSessionRef.current=classroomSession;
  const remoteChannelRef=useRef(null),remoteSentRef=useRef(0),remoteLastRef=useRef(0);
  const remoteExpiryRef=useRef(0),remoteTimerRef=useRef(null);
@@ -116,7 +119,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  const activityLiveRef=useRef(null);activityLiveRef.current=activityLive;
  const [panel,setPanel]=useState('pages'),[library,setLibrary]=useState([]),[libraryError,setLibraryError]=useState(''),[cloudLibrary,setCloudLibrary]=useState([]),[cloudStatus,setCloudStatus]=useState('');
  const [libraryQuery,setLibraryQuery]=useState(''),[backupStatus,setBackupStatus]=useState('');
- useEffect(()=>{setRandomNames('');setRandomChoice('');setRandomUsed([]);setEditingActivityId(null);setClassroomSession(null);},[ownerId,lesson?.id]);
+ useEffect(()=>{setRandomNames('');setRandomChoice('');setRandomUsed([]);setEditingActivityId(null);setClassroomSession(null);setLiveGuestRoomStarted(false);},[ownerId,lesson?.id]);
  useEffect(()=>{
   if(!classroomSession||!['live','paused'].includes(classroomSession.status))return;
   const id=setInterval(()=>{
@@ -1193,8 +1196,19 @@ export default function BrianBoard({currentUser,language='vi'}){
         (vi?'Lỗi kết nối':'Connection error')}{' · '+remoteSent+'/'+REMOTE_MAX_MESSAGES}</small>
        {remoteError&&<p role="status">{remoteError}</p>}
       </div>
-      <BoardClassroomLive session={classroomSession} vi={vi}
-      onChange={setClassroomSession} onCreate={mode=>{setClassroomSession(createLiveSession(mode));setActiveActivityId(null);}}/>
+      <BoardLiveGuestControl session={classroomSession} vi={vi}
+       onProjection={remote=>{
+        setLiveGuestRoomStarted(true);
+        setClassroomSession(previous=>composeGuestPublicSession(remote,previous));
+       }}/>
+      {!liveGuestRoomStarted?<BoardClassroomLive session={classroomSession} vi={vi}
+       onChange={setClassroomSession} onCreate={mode=>{
+        setClassroomSession(createLiveSession(mode));setActiveActivityId(null);
+       }}/>:
+       <div className="bbd-live-remote-preview">
+        <strong>{vi?'Màn hình kết quả đã duyệt':'Approved student-view results'}</strong>
+        <BoardClassroomLivePublic snapshot={publicLiveSnapshot(classroomSession)} vi={vi}/>
+       </div>}
      </div>}
      {panel==='pdf'&&<BoardPdfStudio lesson={lesson} page={page} vi={vi} tool={tool}
       onTool={setTool} onPaperState={pdfPaperState} onClear={pdfClear} onNavigate={pdfNavigate}
