@@ -110,15 +110,22 @@ function reveal(s,index){
 }
 export function arenaReducer(state,action){
   if(!state||!action)return state;
-  if(action.type==='UNDO'){
-    if(!state.history?.length)return state;
-    return {...clone(state.history.at(-1)),history:state.history.slice(0,-1),
-      future:[snapshot(state),...(state.future||[])].slice(0,60),updatedAt:Date.now()};
-  }
-  if(action.type==='REDO'){
-    if(!state.future?.length)return state;
-    return {...clone(state.future[0]),history:[...(state.history||[]),snapshot(state)].slice(-60),
-      future:state.future.slice(1),updatedAt:Date.now()};
+  if(action.type==='UNDO'||action.type==='REDO'){
+    const undo=action.type==='UNDO';
+    if(undo?!state.history?.length:!state.future?.length)return state;
+    const restored=undo?clone(state.history.at(-1)):clone(state.future[0]);
+    const result={...restored,
+      history:undo?state.history.slice(0,-1):[...(state.history||[]),snapshot(state)].slice(-60),
+      future:undo?[snapshot(state),...(state.future||[])].slice(0,60):state.future.slice(1),
+      updatedAt:Date.now()};
+    // Restoring an answered/expired question must not instantly explode due
+    // to an obsolete absolute timestamp saved in the historical snapshot.
+    if(isChaosKit(result)&&result.phase==='running'&&result.selectedTile!==null&&result.chaosKit.features.timer){
+      const remaining=result.chaosKit.timerSeconds*1000;
+      result.chaosKit.remainingMs=remaining;
+      result.chaosKit.questionDueAt=Date.now()+remaining;
+    }
+    return result;
   }
   const s=snapshot(state),team=s.teams?.[s.turn];
   if(!team)return state;
