@@ -447,10 +447,10 @@ export const G12_PACKS_3_4=[
       [
         "How long ___ @ in the city centre?",
         [
-          "did ... live",
-          "has ... lived",
-          "was ... living",
-          "does ... live"
+          "lived",
+          "has lived",
+          "was living",
+          "lives"
         ],
         1,
         [
