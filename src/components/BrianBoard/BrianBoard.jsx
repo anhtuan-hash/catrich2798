@@ -30,6 +30,8 @@ import BoardReliabilityPanel from './BoardReliabilityPanel.jsx';
 import {listBoardAssets,saveBoardAsset,readBoardAsset} from './boardAssets.js';
 import {cropBoardImageData,cropBoardImageRegion,effectBoardImageRegion,applyBoardImageFilter} from './boardImageStudio.js';
 import BoardCropEditor from './BoardCropEditor.jsx';
+import BoardClassroomLive,{BoardClassroomLivePublic} from './BoardClassroomLive.jsx';
+import {createLiveSession,publicLiveSnapshot} from './boardClassroomLive.js';
 import BoardPdfStudio from './BoardPdfStudio.jsx';
 import {annotateBoardObject,annotateBoardObjects,pdfHighlightRegion,
  setPdfPaperState,clearPdfAnnotations,togglePdfAnnotations,pdfPageIndices,findPdfBackground} from './boardPdfAnnotations.js';
@@ -94,6 +96,8 @@ export default function BrianBoard({currentUser,language='vi'}){
  const [teams,setTeams]=useState([{name:'Team 1',score:0},{name:'Team 2',score:0}]);
  const [randomNames,setRandomNames]=useState(''),[randomChoice,setRandomChoice]=useState(''),[randomUsed,setRandomUsed]=useState([]);
  const [presenting,setPresenting]=useState(false),presentationRef=useRef(null);
+ const [classroomSession,setClassroomSession]=useState(null);
+ const classroomSessionRef=useRef(null);classroomSessionRef.current=classroomSession;
  const [pdfBusy,setPdfBusy]=useState(false),[pdfStatus,setPdfStatus]=useState('');
  const [activityType,setActivityType]=useState('matching'),[activityTitle,setActivityTitle]=useState(''),
   [activityPrompt,setActivityPrompt]=useState(''),[activityRaw,setActivityRaw]=useState(''),
@@ -105,7 +109,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  const activityLiveRef=useRef(null);activityLiveRef.current=activityLive;
  const [panel,setPanel]=useState('pages'),[library,setLibrary]=useState([]),[libraryError,setLibraryError]=useState(''),[cloudLibrary,setCloudLibrary]=useState([]),[cloudStatus,setCloudStatus]=useState('');
  const [libraryQuery,setLibraryQuery]=useState(''),[backupStatus,setBackupStatus]=useState('');
- useEffect(()=>{setRandomNames('');setRandomChoice('');setRandomUsed([]);setEditingActivityId(null);},[ownerId,lesson?.id]);
+ useEffect(()=>{setRandomNames('');setRandomChoice('');setRandomUsed([]);setEditingActivityId(null);setClassroomSession(null);},[ownerId,lesson?.id]);
  const refreshLibrary=async()=>{
   try{setLibrary(await listBoardLessons(ownerId));setLibraryError('');}
   catch(e){setLibraryError(e.message||'Cannot load library');}
@@ -138,7 +142,8 @@ export default function BrianBoard({currentUser,language='vi'}){
  },[tool,spotlight,studentView,activeActivityId]);
  useEffect(()=>{setCamera({x:0,y:0});setZoom(1);setActiveFrameId(null);},[page?.id]);
  // Exact TV payload for classroom preview: never read a raw activity in student mode.
- const studentActivityPayload=studentView&&lesson?boardStudentPayload(lesson,activeActivityId,activityLive):null;
+ const studentActivityPayload=studentView&&lesson?boardStudentPayload(lesson,activeActivityId,activityLive,
+  currentViewport,classroomSession):null;
  const studentActivityPreview=studentActivityPayload?.activity||null;
  const activeActivityRef=useRef(activeActivityId);activeActivityRef.current=activeActivityId;
  const receivePublicActivityState=useCallback(next=>{
@@ -182,14 +187,14 @@ export default function BrianBoard({currentUser,language='vi'}){
   if(!session||!lesson)return undefined;
   const send=()=>{
    if(presentationRef.current!==session)return;
-   session.bus.postMessage(boardStudentPayload(lesson,activeActivityId,activityLive,currentViewport));
+   session.bus.postMessage(boardStudentPayload(lesson,activeActivityId,activityLive,currentViewport,classroomSession));
    lastStateBroadcast.current=Date.now();
   };
   const elapsed=Date.now()-lastStateBroadcast.current;
   if(elapsed>=110){send();return undefined;}
   const timeout=setTimeout(send,110-elapsed);
   return()=>clearTimeout(timeout);
- },[lesson,activeActivityId,activityLive,camera.x,camera.y,zoom]);
+ },[lesson,activeActivityId,activityLive,classroomSession,camera.x,camera.y,zoom]);
  useEffect(()=>()=>{const session=presentationRef.current;
   if(session){session.bus.postMessage({type:'end'});session.bus.close();presentationRef.current=null;}
  },[]);
@@ -210,10 +215,10 @@ export default function BrianBoard({currentUser,language='vi'}){
   if(child)try{child.opener=null;}catch{}
   if(!child){window.alert(vi?'Hãy cho phép mở cửa sổ mới để trình chiếu.':'Allow popups to open the student display.');return;}
   const bus=new BroadcastChannel('bbd-local-'+id);
-  bus.onmessage=e=>{if(e.data?.type==='request'&&docRef.current)bus.postMessage(boardStudentPayload(docRef.current,activeActivityRef.current,activityLiveRef.current,viewportRef.current));};
+  bus.onmessage=e=>{if(e.data?.type==='request'&&docRef.current)bus.postMessage(boardStudentPayload(docRef.current,activeActivityRef.current,activityLiveRef.current,viewportRef.current,classroomSessionRef.current));};
   presentationRef.current={id,bus};
   setPresenting(true);
-  bus.postMessage(boardStudentPayload(docRef.current,activeActivityRef.current,activityLiveRef.current,viewportRef.current));
+  bus.postMessage(boardStudentPayload(docRef.current,activeActivityRef.current,activityLiveRef.current,viewportRef.current,classroomSessionRef.current));
  };
  useEffect(()=>()=>{mounted.current=false;},[]);
  useEffect(()=>{
@@ -974,7 +979,9 @@ export default function BrianBoard({currentUser,language='vi'}){
       </div>
      </div>}
      <div key={stageKey} className="bbd-stage-transition" data-motion={motion} aria-label={vi?'Không gian trình bày':'Presentation surface'}>
-     {activeActivityId&&page?.activities?.find(a=>a.id===activeActivityId)
+     {studentView&&publicLiveSnapshot(classroomSession)?
+      <BoardClassroomLivePublic snapshot={publicLiveSnapshot(classroomSession)} vi={vi}/>:
+      activeActivityId&&page?.activities?.find(a=>a.id===activeActivityId)
        ?studentView?<div className="bbd-activity-stage" aria-label="Student activity preview">
         {!studentActivityPreview?<p role="status">{vi?'Trang hoặc hoạt động này không hiển thị cho học sinh.':'This page or activity is hidden from students.'}</p>:LAB_TYPES.includes(studentActivityPreview.type)?
          <BoardActivityPublicPreview activity={studentActivityPreview} live={studentActivityPayload.live} vi={vi}/>:<>
@@ -1051,8 +1058,8 @@ export default function BrianBoard({currentUser,language='vi'}){
        title={vi?'Đóng bảng điều khiển':'Close inspector'} aria-label={vi?'Đóng bảng điều khiển':'Close inspector'}
        onClick={closeInspector}><X size={18}/></button>
      <div className="bbd-sidebar-tabs">
-      {['pages','frames','pdf','activities','layers','assets','library','teaching','reliability','design'].map(id=><button key={id} className={panel===id?'active':''} onClick={()=>setPanel(id)}>
-       {id==='pages'?(vi?'Trang':'Pages'):id==='frames'?(vi?'Khung':'Frames'):id==='pdf'?'PDF':id==='activities'?(vi?'Bài tập':'Activities'):id==='reliability'?(vi?'Ổn định':'Reliability'):id==='layers'?(vi?'Lớp':'Layers'):id==='assets'?(vi?'Mẫu':'Templates'):id==='library'?(vi?'Thư viện':'Library'):id==='teaching'?(vi?'Lớp học':'Classroom'):(vi?'Thiết kế':'Design')}</button>)}
+      {['pages','frames','pdf','activities','live','layers','assets','library','teaching','reliability','design'].map(id=><button key={id} className={panel===id?'active':''} onClick={()=>setPanel(id)}>
+       {id==='pages'?(vi?'Trang':'Pages'):id==='frames'?(vi?'Khung':'Frames'):id==='pdf'?'PDF':id==='live'?'Live':id==='activities'?(vi?'Bài tập':'Activities'):id==='reliability'?(vi?'Ổn định':'Reliability'):id==='layers'?(vi?'Lớp':'Layers'):id==='assets'?(vi?'Mẫu':'Templates'):id==='library'?(vi?'Thư viện':'Library'):id==='teaching'?(vi?'Lớp học':'Classroom'):(vi?'Thiết kế':'Design')}</button>)}
      </div>
      {panel==='pages'&&<div className="bbd-pages">
       <div className="bbd-side-heading"><strong>{vi?'Các trang bài giảng':'Lesson pages'}</strong>
@@ -1068,6 +1075,8 @@ export default function BrianBoard({currentUser,language='vi'}){
       <button onClick={()=>editPage(p=>({...p,hidden:!p.hidden}))}>{page?.hidden?<EyeOff size={16}/>:<Eye size={16}/>}
        {page?.hidden?(vi?'Hiện trang khi chiếu':'Show on display'):(vi?'Ẩn trang khi chiếu':'Hide on display')}</button>
      </div>}
+     {panel==='live'&&<BoardClassroomLive session={classroomSession} vi={vi}
+      onChange={setClassroomSession} onCreate={mode=>{setClassroomSession(createLiveSession(mode));setActiveActivityId(null);}}/>}
      {panel==='pdf'&&<BoardPdfStudio lesson={lesson} page={page} vi={vi} tool={tool}
       onTool={setTool} onPaperState={pdfPaperState} onClear={pdfClear} onNavigate={pdfNavigate}
       onAnnotationVisibility={pdfToggleAnnotations}/>}
