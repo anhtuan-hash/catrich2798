@@ -118,6 +118,7 @@ const SyncQueueIndicator = lazy(() => import('./components/SyncQueueIndicator.js
 const WorkDashboard = lazy(() => import('./pages/WorkDashboard.jsx'));
 const BrianFocus = lazy(() => import('./components/BrianFocus/BrianFocus.jsx'));
 const BrianBoard = lazy(() => import('./components/BrianBoard/BrianBoard.jsx'));
+const BrianBombArena = lazy(() => import('./components/BrianBombArena/BrianBombArena.jsx'));
 const StudentSupportCenter = lazy(() => import('./pages/StudentSupportCenter.jsx'));
 const KnowledgeHub = lazy(() => import('./pages/KnowledgeHub.jsx'));
 const PlatformReadiness = lazy(() => import('./pages/PlatformReadiness.jsx'));
@@ -550,6 +551,9 @@ function App() {
             </AppErrorBoundary>
             <AppErrorBoundary compact scope="global-brian-teaching-board" label="Brian Board">
               <BrianBoard currentUser={currentUser} language={language}/>
+            </AppErrorBoundary>
+            <AppErrorBoundary compact scope="global-brian-bomb-arena" label="Brian Bomb Arena">
+              <BrianBombArena currentUser={currentUser} language={language}/>
             </AppErrorBoundary>
           </Suspense>
         ) : null}
