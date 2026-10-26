@@ -53,7 +53,8 @@ export default function ClassBellTimeline({value,onChange,language='vi',sound=tr
   const {changes,finished,...saved}=next;
   onChange(prev=>({...prev,timeline:saved}));
   // Catch up missed phases silently after the tab was hidden; never ring stale bells.
-  const audible=!returningFromHidden.current;
+  const freshTransition=next.changes===1&&now-timeline.endsAt<=1500;
+  const audible=!returningFromHidden.current&&freshTransition;
   returningFromHidden.current=false;
   if(audible)bell(ctx.current,sound?value.volume:0);
   setAlert(audible);
