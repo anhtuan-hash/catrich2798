@@ -31,7 +31,7 @@ jobs:
       - name: Existing dependencies only
         run: npm ci --no-audit --no-fund
       - name: Install free browser engines
-        run: npx playwright install chromium webkit
+        run: npx playwright install --with-deps chromium webkit
       - name: Check pure tool contracts
         run: node scripts/test-brian-instant-tools.mjs
       - name: Run isolated tools UI (no cloud / no student data)
