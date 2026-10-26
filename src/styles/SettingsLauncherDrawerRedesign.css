@@ -413,3 +413,30 @@ html[data-theme="dark"] .settings-launcher-portal .settings-appearance-tabs >but
 @media (prefers-reduced-motion:reduce) {
   .settings-launcher-portal *, .settings-launcher-portal *::before, .settings-launcher-portal *::after {transition:none!important;animation:none!important;}
 }
+
+/* Event center: direct Admin entry in the v2 settings drawer. */
+.settings-launcher-portal .settings-event-workspace { width: 100%; min-width: 0; display: grid; gap: 18px; }
+.settings-launcher-portal .settings-event-shortcut {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  gap: 16px; padding: 18px 22px; border: 1px solid #dce5f4;
+  border-radius: 20px; background: linear-gradient(115deg, #f5f8ff, #faf7ff);
+}
+.settings-launcher-portal .settings-event-shortcut > div { flex: 1 1 270px; min-width: 0; }
+.settings-launcher-portal .settings-event-shortcut strong { display: block; color: #172f57; font-size: 18px; }
+.settings-launcher-portal .settings-event-shortcut p { margin: 6px 0 0; color: #5d708e; font-size: 14px; line-height: 1.5; }
+.settings-launcher-portal .settings-event-shortcut button {
+  border: 1px solid #c9c9fa; border-radius: 14px; background: #eeeaff;
+  color: #5438ae; padding: 12px 16px; font-size: 14px;
+  font-weight: 750; cursor: pointer;
+}
+.settings-launcher-portal .settings-event-shortcut button:hover { background: #e2d9ff; }
+.settings-launcher-portal .settings-event-workspace .bea-admin { min-width: 0; max-width: 100%; }
+html[data-theme="dark"] .settings-launcher-portal .settings-event-shortcut {
+  background: linear-gradient(115deg, #1d2b45, #282340); border-color: #3b4c6c;
+}
+html[data-theme="dark"] .settings-launcher-portal .settings-event-shortcut strong { color: #eef2ff; }
+html[data-theme="dark"] .settings-launcher-portal .settings-event-shortcut p { color: #b2bed3; }
+@media (max-width: 640px) {
+  .settings-launcher-portal .settings-event-shortcut { padding: 15px; }
+  .settings-launcher-portal .settings-event-shortcut button { width: 100%; }
+}
