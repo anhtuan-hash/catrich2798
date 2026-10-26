@@ -10,6 +10,7 @@ import {readBubbleMotion} from '../../utils/bubbleMotion.js';
 import {createArenaSound} from '../BrianBombArena/arenaSound.js';
 import {FAMILY_FEUD_BANK,FAMILY_FEUD_BANK_NOTICE} from './familyFeudBank.js';
 import {GRADE12_FAMILY_FEUD_GAMES,getGrade12FeudGame} from './g12FeudUnitGames.js';
+import {GRADE11_FAMILY_FEUD_GAMES,getGrade11FeudGame} from './g11FeudUnitGames.js';
 import {
   createFamilyFeud,feudReducer,rankFeudTeams,currentFeudBoard,
   FEUD_ROUND_LIMITS,importFeudCSV,exportFeudCSV,exportFeudResults
@@ -20,6 +21,8 @@ import './FamilyFeudTV.css';
 
 const TEAM_COLORS=['#F39A3D','#59B6F8','#E275C8','#65D4A3','#B89AF9','#F2D067'];
 const UNIT_ICONS=['🏅','🌐','🌿','🏙️','💼','🤖','📰','🐘','🧭','📚'];
+const G11_ICONS=['💚','👪','🌇','🤝','🌍','🏛️','🎓','🗝️','🫶','🌱'];
+const getUnitIcon=(grade,unit)=>((grade===11?G11_ICONS:UNIT_ICONS)[(unit||1)-1]||'🎓');
 const allowedUser=user=>Boolean(user?.id&&user.approved!==false&&(
   isAdminRole(user.role)||isDepartmentLeaderRole(user.role)||normalizeSystemRole(user.role)==='teacher'));
 const exportFile=(name,contents)=>{
@@ -73,6 +76,7 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
   const [teamCount,setTeamCount]=useState(4),[teamNames,setTeamNames]=useState('');
   const [roundLimit,setRoundLimit]=useState(5),[grade,setGrade]=useState('all');
   const [selectedUnitId,setSelectedUnitId]=useState('g12-unit-1');
+  const [selectedGrade,setSelectedGrade]=useState(12);
   const [customBank,setCustomBank]=useState(null),[hostKey,setHostKey]=useState(false);
   const [soundOn,setSoundOn]=useState(true),[confirmReset,setConfirmReset]=useState(false);
   const [status,setStatus]=useState(''),[fx,setFx]=useState(null),[fastTime,setFastTime]=useState(45);
@@ -189,10 +193,11 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
     return()=>document.removeEventListener('visibilitychange',onHidden);
   },[open,game?.phase,game?.fast?.paused]);
 
-  const selectedUnitGame=!customBank?getGrade12FeudGame(selectedUnitId):null;
+  const selectedUnitGame=!customBank?(getGrade11FeudGame(selectedUnitId)||getGrade12FeudGame(selectedUnitId)):null;
+  const availableUnitGames=selectedGrade===11?GRADE11_FAMILY_FEUD_GAMES:GRADE12_FAMILY_FEUD_GAMES;
   const selection=useMemo(()=>{
     if(customBank)return customBank;
-    const unitGame=getGrade12FeudGame(selectedUnitId);
+    const unitGame=getGrade11FeudGame(selectedUnitId)||getGrade12FeudGame(selectedUnitId);
     if(unitGame)return unitGame.boards;
     return grade==='all'?FAMILY_FEUD_BANK:
       FAMILY_FEUD_BANK.filter(q=>q.category.startsWith('English '+grade+' ·'));
@@ -200,13 +205,14 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
   const chooseUnit=id=>{
     setCustomBank(null);setSelectedUnitId(id);setRoundLimit(5);setStatus('');
   };
+  const chooseGrade=level=>{setSelectedGrade(level);chooseUnit(level===11?'g11-unit-1':'g12-unit-1');};
   const start=()=>{
     if(selection.length<3){setStatus(tr('Cần tối thiểu 3 bảng câu hỏi.','At least 3 boards are required.'));return;}
     const names=teamNames.split(/[\n;]/).map(x=>x.trim()).filter(Boolean);
     try{
       const created=createFamilyFeud({ownerId,bank:selection,roundLimit,teamCount,teamNames:names,
         edition:selectedUnitGame?{id:selectedUnitGame.id,unit:selectedUnitGame.unit,
-          title:selectedUnitGame.title}:null});
+          grade:selectedUnitGame.grade,title:selectedUnitGame.title}:null});
       setGame(created);setHostKey(false);setStatus('');playSound('bank');
     }catch(e){setStatus(String(e.message||e));}
   };
