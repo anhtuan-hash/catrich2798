@@ -35,3 +35,20 @@
   .work-schedule-calendar.is-week .work-schedule-weekdays,
   .work-schedule-calendar.is-week .work-schedule-grid{min-width:980px}
 }
+
+
+/* Schedule import: targeted role-based event recognition preview */
+.work-schedule-event-detection{margin:12px 18px;padding:15px;border-radius:16px;border:1px solid #cfe0f8;background:#f7faff;min-width:0}
+.work-schedule-detection-switch{display:flex;align-items:flex-start;gap:12px;cursor:pointer}
+.work-schedule-detection-switch>input{width:20px;height:20px;flex:none;accent-color:#2976df;margin-top:3px}
+.work-schedule-detection-switch span{display:grid;gap:4px;min-width:0}
+.work-schedule-detection-switch strong{font-size:14px;color:#21446c}
+.work-schedule-detection-switch small,.work-schedule-detection-caption{font-size:12px;color:#6683a3}
+.work-schedule-detection-caption{margin:11px 0 7px}
+.work-schedule-detection-list{display:grid;gap:7px;max-height:225px;overflow-y:auto}
+.work-schedule-detection-item{display:flex;align-items:flex-start;gap:10px;background:#fff;padding:10px 12px;border:1px solid #e1eaf6;border-radius:11px;cursor:pointer}
+.work-schedule-detection-item input{width:17px;height:17px;flex:none;accent-color:#286bd9;margin-top:3px}
+.work-schedule-detection-item span{display:grid;gap:3px;min-width:0}
+.work-schedule-detection-item strong{font-size:12px;color:#22466e;white-space:normal;overflow-wrap:anywhere}
+.work-schedule-detection-item small,.work-schedule-detection-empty{font-size:11px;color:#687f99}
+@media(max-width:600px){.work-schedule-event-detection{margin:8px;padding:12px}}
