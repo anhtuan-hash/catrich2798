@@ -610,3 +610,46 @@
 @media(max-width:640px){
  .bbd-v8-selection .bbd-v8-align-select{max-width:145px;min-height:42px;font-size:12px}
 }
+
+/* V8.3 · PDF Annotation Studio and private Image Studio */
+.bbd-v9-pdf-studio{display:flex;flex-direction:column;gap:13px;padding:14px 12px 22px;color:var(--bbd-text)}
+.bbd-v9-pdf-studio .bbd-side-heading h3{display:flex;gap:8px;align-items:center;font-size:17px}
+.bbd-v9-pdf-studio p{font-size:12px;line-height:1.6;margin:0;color:var(--bbd-muted)}
+.bbd-v9-pdf-studio button{min-height:40px;display:inline-flex;align-items:center;
+ justify-content:center;gap:9px;border-radius:11px;border:1px solid var(--bbd-border);
+ background:var(--bbd-soft);color:var(--bbd-heading);
+ padding:9px 11px;font-weight:750;font-size:12px;text-align:center}
+.bbd-v9-pdf-studio button:hover:not(:disabled){border-color:var(--bbd-accent);background:var(--bbd-highlight)}
+.bbd-v9-pdf-studio button:disabled{opacity:.4;cursor:not-allowed}
+.bbd-v9-pdf-studio button.is-active,.bbd-v9-pdf-studio button[aria-pressed="true"]{
+ color:var(--bbd-heading);border-color:var(--bbd-accent);background:var(--bbd-highlight)}
+.bbd-v9-pdf-empty{display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center;
+ padding:22px 12px;border-radius:15px;background:var(--bbd-soft);
+ border:1px dashed var(--bbd-border)}
+.bbd-v9-pdf-empty strong{font-size:13px}
+.bbd-v9-pdf-empty small{font-size:12px;line-height:1.6;color:var(--bbd-muted)}
+.bbd-v9-pdf-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.bbd-v9-pdf-stats>div{display:flex;flex-direction:column;align-items:flex-start;gap:6px;
+ padding:14px;border:1px solid var(--bbd-border);border-radius:13px;background:var(--bbd-soft)}
+.bbd-v9-pdf-stats strong{font-size:26px;color:var(--bbd-heading)}
+.bbd-v9-pdf-stats small{font-size:11px;color:var(--bbd-muted)}
+.bbd-v9-pdf-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.bbd-v9-pdf-clear{color:#bc524a!important;border-color:#deb4ad!important}
+.bbd-v9-pdf-pagination{display:flex;justify-content:space-between;align-items:center;gap:8px;
+ padding:12px;border-radius:13px;border:1px solid var(--bbd-border);background:var(--bbd-soft)}
+.bbd-v9-pdf-pagination strong{font-size:12px}
+.bbd-v9-pdf-pagination>div{display:flex;gap:5px}
+.bbd-v9-pdf-pagination button{min-width:39px;min-height:39px;padding:7px}
+.bbd-v9-pdf-disclaimer{display:flex;align-items:flex-start;gap:7px;line-height:1.6;
+ font-size:11px;color:var(--bbd-muted)}
+.bbd-v9-pdf-disclaimer svg{flex:0 0 15px;margin-top:3px}
+.bbd-v9-image-preset{max-width:125px;min-height:35px;font-size:11px;
+ background:var(--bbd-soft);color:var(--bbd-heading);border:1px solid var(--bbd-border);
+ border-radius:9px;cursor:pointer}
+.bbd-v9-image-status{font-size:12px;color:var(--bbd-accent);line-height:1.55}
+.bbd-canvas--tool-pdf-highlight{cursor:crosshair}
+@media(max-width:640px){
+ .bbd-v9-pdf-studio{padding:12px 10px 24px}
+ .bbd-v9-pdf-actions button{min-height:45px}
+ .bbd-v9-image-preset{max-width:110px;min-height:41px}
+}
