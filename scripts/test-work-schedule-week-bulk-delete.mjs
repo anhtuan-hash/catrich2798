@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {
   scheduleWeekWindow, moveScheduleWeek, eligibleScheduleWeekRows,
-  isImportedScheduleItem, deletionPreviewIsCurrent, scheduleDeleteBatches,
+  isImportedScheduleItem, isLegacyScheduleItem, isWeekDeletableScheduleItem,
+  deletionPreviewIsCurrent, scheduleDeleteBatches,
 } from '../src/utils/scheduleWeekBulkDelete.mjs';
 
 const w = scheduleWeekWindow('2026-10-30');
@@ -37,6 +38,20 @@ assert.deepEqual(eligibleScheduleWeekRows(rows,w).map(x=>x.id),['start','inside'
 assert.deepEqual(eligibleScheduleWeekRows(rows,w,true).map(x=>x.id),['start','inside','last','manual','legacy']);
 assert.equal(isImportedScheduleItem(rows[5]),false);
 assert.equal(isImportedScheduleItem(rows[1]),true);
+const legacySchedule = {
+  ...schedule('legacy-import', '2026-10-26T02:00:00Z', { schedule_event:true, schedule_import_id:'week15' }),
+  item_type:'task', source_module:'work-schedule-import-v1168',
+};
+assert.equal(isLegacyScheduleItem(legacySchedule),true);
+assert.equal(isWeekDeletableScheduleItem(legacySchedule),true);
+assert.equal(isImportedScheduleItem(legacySchedule),true);
+assert.deepEqual(eligibleScheduleWeekRows([...rows,legacySchedule],w).map(x=>x.id),['start','inside','last','legacy-import']);
+assert.equal(isLegacyScheduleItem({ ...legacySchedule,source_module:'work-hub' }),false);
+assert.equal(isLegacyScheduleItem({ ...legacySchedule,metadata:{ schedule_import_id:'week15' } }),false);
+assert.equal(isWeekDeletableScheduleItem({ ...legacySchedule,item_type:'task',metadata:{ schedule_event:false } }),false);
+assert.equal(deletionPreviewIsCurrent([legacySchedule],[{ ...legacySchedule, item_type:'schedule' }]),false);
+assert.equal(deletionPreviewIsCurrent([legacySchedule],[{ ...legacySchedule, source_module:'other' }]),false);
+assert.equal(deletionPreviewIsCurrent([legacySchedule],[{ ...legacySchedule, title:'Changed' }]),false);
 assert.deepEqual(eligibleScheduleWeekRows([rows[0],rows[0]],w).map(x=>x.id),['start']);
 
 const selected=eligibleScheduleWeekRows(rows,w);
@@ -54,7 +69,10 @@ const ui=fs.readFileSync('src/components/GlobalWorkScheduleCenter.jsx','utf8');
 assert.match(ui,/deleteWeekConfirm\.trim\(\)\.toUpperCase\(\) !== 'XOA'/);
 assert.match(ui,/loadScheduleWeekFromServer\(client, deleteWeekWindow\)/);
 assert.match(ui,/deletionPreviewIsCurrent\(deleteWeekTargets, fresh\)/);
-assert.match(ui,/\.delete\(\)\.eq\('item_type', WORK_SCHEDULE_ITEM_TYPE\)/);
+assert.match(ui,/\.delete\(\)\.eq\('item_type', itemType\)/);
+assert.match(ui,/\.eq\('source_module', LEGACY_SCHEDULE_SOURCE\)/);
+assert.match(ui,/\.contains\('metadata', \{ schedule_event: true \}\)/);
+assert.match(ui,/for \(const itemType of \[WORK_SCHEDULE_ITEM_TYPE, 'task'\]\)/);
 assert.match(ui,/\.gte\('due_at', deleteWeekWindow\.startAt\)\.lt\('due_at', deleteWeekWindow\.endAt\)/);
 assert.doesNotMatch(ui.slice(ui.indexOf('async function deleteSelectedWeekItems()'),ui.indexOf('async function deleteEvent(target)')),/from\('bes_events'\)\.delete/);
 console.log('Weekly schedule bulk-delete: week boundaries, selection safety, race checks, and no event cascade passed.');
