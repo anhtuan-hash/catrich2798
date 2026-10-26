@@ -12,7 +12,7 @@ const uid=()=>{
 const str=(value,max=LIVE_LIMITS.text)=>String(value??'').replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,max);
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,Number.isFinite(Number(value))?Math.floor(Number(value)):min));
 export const isLiveActive=(session,now=Date.now())=>!!(session&&session.status==='live'&&
- now<session.expiresAt&&session.expiresAt>session.startedAt);
+ now>=session.startedAt&&now<session.expiresAt&&session.expiresAt>session.startedAt);
 export function createLiveSession(mode='poll',now=Date.now()){
  if(!LIVE_MODES.includes(mode))throw Error('Invalid classroom activity');
  return {id:uid(),mode,status:'draft',title:mode==='poll'?'Quick Class Poll':
