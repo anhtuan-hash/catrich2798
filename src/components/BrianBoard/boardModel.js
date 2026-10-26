@@ -66,7 +66,7 @@ export function sanitizeStudentPage(page){
     ...xy(o),x2:number(o.x2),y2:number(o.y2),color:String(o.color||'#355d63').slice(0,60),width:number(o.width,4),opacity:Math.max(0,Math.min(1,number(o.opacity,1)))});
   }else if(kind==='text'||kind==='sticky'){
    safe.push({id,kind,...xy(o),...rotation(o),text:String(o.text||'').slice(0,90),
-    color:String(o.color||'#355d63').slice(0,60),fontSize:number(o.fontSize,40)});
+    color:String(o.color||'#355d63').slice(0,60),fontSize:number(o.fontSize,40),fontWeight:o.fontWeight==='700'?'700':'550'});
   }else if(kind==='mask'){
    safe.push({id,kind,...xy(o),...rotation(o),width:number(o.width,240),height:number(o.height,90),revealed:o.revealed===true});
   }else if(kind==='image'&&/^data:image\/(?:png|jpeg|webp);base64,/i.test(o.src||'')&&o.src.length<3200000){
