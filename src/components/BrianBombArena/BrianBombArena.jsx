@@ -298,7 +298,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
       <div className="bba-playground">
         <div className="bba-board-wrap">
           <div className="bba-board-top"><span>{tr('MỞ Ô SỐ · TRÁNH BOM','FLIP NUMBERS · AVOID BOMBS')}</span>
-            <span>{remaining} {tr('ô còn lại','tiles left')} · {session.tiles.filter(tile=>tile.event==='bomb').length} 💣 / {session.tiles.filter(tile=>/^points\\d+$/.test(tile.event)).length} ⭐</span></div>
+            <span>{remaining} {tr('ô còn lại','tiles left')} · {session.tiles.filter(tile=>tile.event==='bomb').length} 💣 / {session.tiles.filter(tile=>tile.event.startsWith('points')).length} ⭐</span></div>
           <div className="bba-tiles" style={{'--bba-columns':session.size}}>
             {session.tiles.map((tile,i)=><button key={tile.id} type="button"
               className={'bba-tile '+(tile.opened?'is-revealed':'is-hidden')+(tile.event==='blocked'?' is-blocked':'')+(tile.opened&&tile.event==='bomb'?' is-bomb':'')+(fx?.tileId===tile.id?' is-just-opened':'')}
