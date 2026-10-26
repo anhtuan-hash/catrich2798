@@ -697,7 +697,7 @@ export const G12_PACKS_9_10=[
         "Warn someone not to + verb."
       ],
       [
-        "The careers adviser recommended @ ___ a professional network.",
+        "The careers adviser encouraged @ ___ a professional network.",
         [
           "to build",
           "build",
@@ -712,7 +712,7 @@ export const G12_PACKS_9_10=[
           "Minh",
           "the student"
         ],
-        "Recommend somebody to do something is possible in some contexts, but advise is preferred for this structure."
+        "Encourage somebody to do something takes the to-infinitive."
       ],
       [
         "The lecturer asked @ ___ the survey before the lesson ended.",
