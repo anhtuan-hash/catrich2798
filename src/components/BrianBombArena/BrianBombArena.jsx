@@ -458,6 +458,18 @@ export default function BrianBombArena({currentUser,language='vi'}){
         </div>
         <p>{tr('Mở tiếp để tăng POT, hoặc Bank để giữ điểm. Trúng bom sẽ mất POT!','Flip more tiles to grow your POT, or Bank to secure it. A bomb wipes your POT!')}</p>
       </div>}
+      {chaos&&<div className="bba-chaos-hud" aria-label={tr('Trạng thái cơ chế hỗn loạn','Chaos mechanics status')}>
+        <strong>⚡ CHAOS FIVE · EXTREME</strong>
+        <div>{CHAOS_FEATURES.filter(f=>chaos.features[f]).map(f=><span key={f}>
+          {CHAOS_FEATURE_LABELS[f][vi?0:1]}</span>)}</div>
+        {chaos.features.boss&&<section className={'bba-boss-hud'+(chaos.bossActive?' is-active':'')} aria-live="polite">
+          <strong>👹 {chaos.bossDefeated?tr('ĐÃ HẠ TRÙM!','BOSS DEFEATED!'):
+            chaos.bossActive?tr('TRÙM BOM XUẤT HIỆN','FINAL BOSS ACTIVE'):
+            tr('Trùm xuất hiện khi còn 5 ô','Boss enters with 5 tiles remaining')}</strong>
+          {chaos.bossActive&&<div className="bba-boss-hearts">{Array.from({length:chaos.bossMaxHP},(_,i)=>
+            <span key={i} aria-label={i<chaos.bossHP?'HP':'Lost HP'}>{i<chaos.bossHP?'❤️':'🖤'}</span>)}</div>}
+        </section>}
+      </div>}
       <div className="bba-scoreboard" aria-label={tr('Bảng điểm','Scoreboard')}>
         {session.teams.map((t,i)=><section className={'bba-team '+(session.turn===i?'is-current':'')} key={t.id}
           style={{'--team-accent':COLORS[i%COLORS.length]}}>
@@ -465,7 +477,9 @@ export default function BrianBombArena({currentUser,language='vi'}){
             aria-label={tr('Chọn đội ','Select team ')+t.name}><span className="bba-team-indicator"/><strong>{t.name}</strong></button>
           <b>{t.score}</b>
           {session.mode==='luck'&&<small>BANK: {t.bank}</small>}
-          {t.shields>0&&<small>🛡️ {t.shields}</small>}
+          {chaos?.features.combo&&<small>⚡ Combo {t.combo||0} · ×{(t.combo||0)>=6?3:(t.combo||0)>=3?2:1}</small>}
+          {chaos?.features.shield&&<small>🛡️ {t.shields||0}/2</small>}
+          {!chaos&&t.shields>0&&<small>🛡️ {t.shields}</small>}
           {!presenter&&<div className="bba-team-tools"><button type="button" onClick={()=>update({type:'SCORE',index:i,value:t.score-50})} aria-label={tr('Trừ 50 điểm','Minus 50 points')}>−</button>
             <button type="button" onClick={()=>update({type:'SCORE',index:i,value:t.score+50})} aria-label={tr('Cộng 50 điểm','Plus 50 points')}>+</button></div>}
         </section>)}
@@ -499,6 +513,11 @@ export default function BrianBombArena({currentUser,language='vi'}){
             <h2>{leader?.name}</h2><p>{MODE_EMOJI[session.mode]} {MODE_NAMES[session.mode][vi?0:1]}</p>
             {session.mode==='luck'&&<div className="bba-bank">{tr('Điểm tạm','Temporary bank')} <strong>{leader?.bank||0}</strong></div>}
           </div>
+          {chaos&&<div className="bba-chaos-side" role="status">
+            <strong>⚡ COMBO: {leader?.combo||0} {(leader?.combo||0)>=6?'×3':(leader?.combo||0)>=3?'×2':'×1'}</strong>
+            {chaos.features.shield&&<span>🛡️ {tr('Khiên','Shields')}: {leader?.shields||0}/2</span>}
+            {chaos.features.boss&&chaos.bossActive&&<span>👹 Boss HP: {chaos.bossHP}/{chaos.bossMaxHP}</span>}
+          </div>}
           {session.last&&<div className="bba-result-event" role="status">
             <span className="bba-event-icon">{TILE_ICONS[session.last.event]||'🎯'}</span>
             <strong>{session.last.tile||session.last.team}</strong>
@@ -536,15 +555,23 @@ export default function BrianBombArena({currentUser,language='vi'}){
                questionSize===0?'clamp(29px,2.9vw,47px)':'clamp(35px,3.6vw,62px)'}}>
              {selectedQuestion?.prompt||tr('Giáo viên xác nhận kết quả','Teacher confirms the answer')}
            </div>
+          {chaos?.features.timer&&<div className={'bba-timer-display'+(countdown<=5?' is-critical':'')}
+            role="timer" aria-live={countdown<=5?'assertive':'off'}>
+              ⏱️ {countdown}s <span>{tr('GỠ BOM TRƯỚC KHI HẾT GIỜ!','DEFUSE BEFORE TIME RUNS OUT!')}</span>
+            </div>}
+          {chaos?.features.defuse&&<div className="bba-defuse-instruction">
+            ✂️ {tr('CHỌN DÂY A–D · ĐÚNG: THÁO BOM / SAI: KÍCH NỔ','CHOOSE WIRE A–D · RIGHT: DEFUSE / WRONG: EXPLODE')}
+          </div>}
           {selectedQuestion?.unit&&<p className="bba-question-unit">{selectedQuestion.grade===12?'ENGLISH 12':'ENGLISH 11'} · UNIT {selectedQuestion.unit} · {tr('NGỮ PHÁP','GRAMMAR')}</p>}
-          {selectedQuestion?.options&&<p className="bba-instant-hint">{tr('Chạm một phương án để chấm ngay: đúng +20, sai −20 và mất POT.', 'Tap an option to grade instantly: correct +20, wrong −20 and lose POT.')}</p>}
+          {selectedQuestion?.options&&!chaos&&<p className="bba-instant-hint">{tr('Chạm một phương án để chấm ngay: đúng +20, sai −20 và mất POT.', 'Tap an option to grade instantly: correct +20, wrong −20 and lose POT.')}</p>}
           {Array.isArray(selectedQuestion?.options)&&selectedQuestion.options.length===4&&
             <div className="bba-mcq-options" role="group" aria-label={tr('Bốn phương án trắc nghiệm','Four multiple-choice options')}>
               {selectedQuestion.options.map((option,index)=><button key={index} type="button"
-                className={'bba-mcq-option'+(selectedChoice===index?' is-selected':'')+
+                className={'bba-mcq-option'+(chaos?.features.defuse?' bba-defuse-wire wire-'+index:'')+(selectedChoice===index?' is-selected':'')+
                   (showAnswer&&selectedQuestion.answerIndex===index?' is-correct':'')}
                 aria-pressed={selectedChoice===index} onClick={()=>answerChoice(index)}>
-                <b>{'ABCD'[index]}</b><span>{option}</span>
+                <b>{chaos?.features.defuse?'✂':'ABCD'[index]}</b>
+                <span>{chaos?.features.defuse?<strong className="bba-wire-letter">{'ABCD'[index]} · </strong>:null}{option}</span>
               </button>)}
             </div>}
           {!selectedQuestion?.options&&<button type="button" className="bba-answer-toggle" onClick={()=>setShowAnswer(x=>!x)}>
