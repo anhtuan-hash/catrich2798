@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Floating Actions — isolated visual QA</title>
+<link rel="stylesheet" href="/src/styles/SharedChatbotDrawer.css"/>
+<link rel="stylesheet" href="/src/components/BrianFocus/BrianFocus.css"/>
+<link rel="stylesheet" href="/src/components/PermissionApprovalInbox.css"/>
+<link rel="stylesheet" href="/src/components/BrianBoard/BrianBoard.css"/>
+<link rel="stylesheet" href="/src/styles/ThreeFloatingActions.css"/>
+<style>body{margin:0;min-height:100dvh;background:#eff5fb;font:14px system-ui}
+main{margin:32px;max-width:550px;border-radius:20px;background:white;padding:24px;color:#244367}
+main p{line-height:1.65}button{font:inherit}
+</style>
+</head>
+<body>
+<main><h1>Brian floating actions · isolated layout fixture</h1>
+<p>Mock buttons use the real production CSS selectors only. No Supabase, school data or live event handlers are loaded.</p></main>
+<div class="bes-kira-chat-root">
+<button class="bes-kira-chat-launcher" type="button" aria-label="Brian AI"><span aria-hidden="true">✨</span></button>
+</div>
+<button type="button" class="bfc-bubble" aria-label="Brian Focus"><span aria-hidden="true">☾</span></button>
+<button type="button" class="bbd-board-fab" aria-label="Brian Board"><span aria-hidden="true">▣</span></button>
+<script>
+const params=new URLSearchParams(location.search);
+const role=params.get('role')||'teacher';
+if(role==='admin'){
+ const approvals=document.createElement('div');
+ approvals.className='bes-approval-root';
+ if(params.get('drawer')!=='1'){
+  approvals.innerHTML='<button type="button" class="bes-approval-fab" aria-label="Access approvals">✓</button>';
+ }
+ document.body.appendChild(approvals);
+}
+document.body.dataset.fixtureRole=role;
+</script>
+</body>
+</html>

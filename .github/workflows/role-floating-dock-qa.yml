@@ -1,0 +1,43 @@
+name: Role-adaptive floating action QA
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/role-floating-dock-qa.yml'
+      - 'src/styles/ThreeFloatingActions.css'
+      - 'playwright.role-floating-actions.config.js'
+      - 'tests/fixtures/role-floating-dock.html'
+      - 'tests/e2e/role-floating-dock.spec.js'
+      - 'scripts/test-role-floating-dock.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: role-floating-dock-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  responsive:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    name: No-network teacher/admin layout · Chrome/Android/WebKit
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Prepare Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install existing dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Install browsers
+        run: npx playwright install --with-deps chromium webkit
+      - name: Check role-responsive dock CSS contract
+        run: node scripts/test-role-floating-dock.mjs
+      - name: Run synthetic browser layout tests
+        run: npx playwright test --config=playwright.role-floating-actions.config.js
