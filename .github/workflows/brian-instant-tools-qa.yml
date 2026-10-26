@@ -42,5 +42,7 @@ jobs:
         run: node scripts/test-brian-instant-tools.mjs
       - name: Check Motion P0 contracts
         run: node scripts/test-brian-instant-tools-motion-upgrade.mjs
+      - name: Verify production Vite compilation in isolation
+        run: npx vite build
       - name: Run isolated tools UI (no cloud / no student data)
         run: npx playwright test --config=playwright.brian-instant-tools.config.js
