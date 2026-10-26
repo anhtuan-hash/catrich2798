@@ -897,3 +897,69 @@ body .bba-bubble:focus-visible{outline:3px solid #ffa6ac;outline-offset:4px;}
     line-height:1.18!important;
   }
 }
+
+
+/* Chaos Five extreme profile — all animations are optional and non-blocking. */
+.bba-shell .bba-chaos-setup{border:1px solid #9d57da66;background:linear-gradient(155deg,#845bd615,#ff7b7b12);
+  padding:clamp(15px,2vw,24px);border-radius:19px;margin:19px 0}
+.bba-shell .bba-chaos-setup h3{color:var(--bba-text);margin:0 0 9px}
+.bba-chaos-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:12px 0}
+.bba-chaos-option{display:flex;gap:11px;align-items:center;min-height:53px;padding:10px 13px;
+  border-radius:12px;border:1px solid var(--bba-border);background:var(--bba-card);
+  font-weight:750;font-size:clamp(12px,1.1vw,16px)}
+.bba-chaos-option input{width:21px;height:21px;accent-color:#a76af7;flex:none}
+.bba-chaos-setup small{font-size:12px;color:var(--bba-muted);line-height:1.5}
+.bba-chaos-error{padding:12px 14px;background:#fbe2cf;color:#8a350c;border:2px solid #f6a659;
+ border-radius:12px;font-weight:800;font-size:15px}
+.bba-chaos-hud{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;
+ padding:12px 16px;margin-bottom:14px;border:1px solid #a377e58a;border-radius:17px;
+ background:linear-gradient(100deg,#5223a223,#ed54651a);}
+.bba-chaos-hud>strong{letter-spacing:.08em;color:var(--bba-text);font-size:clamp(14px,1.15vw,19px)}
+.bba-chaos-hud>div{display:flex;flex-wrap:wrap;gap:6px}
+.bba-chaos-hud>div>span{display:inline-flex;padding:7px 10px;border-radius:999px;
+ border:1px solid var(--bba-border);font-size:12px;font-weight:700;background:var(--bba-panel)}
+.bba-chaos-hud .bba-boss-hud{display:flex;align-items:center;justify-content:space-between;gap:15px;
+ width:100%;padding:12px 16px;border-radius:13px;
+ background:var(--bba-panel);border:2px solid var(--bba-border)}
+.bba-chaos-hud .bba-boss-hud.is-active{border-color:#db4668;background:linear-gradient(90deg,#d8446322,#f5bb5124);
+ animation:bba-boss-pulse 1.65s ease-in-out infinite}
+.bba-chaos-hud .bba-boss-hud strong{font-size:clamp(14px,1.4vw,21px)}
+.bba-boss-hearts{display:flex;gap:7px;font-size:clamp(23px,2.3vw,36px);filter:drop-shadow(0 2px 6px #d6385966)}
+.bba-chaos-side{display:grid;gap:7px;border-radius:13px;border:1px solid var(--bba-border);
+ background:var(--bba-panel);padding:16px;font-size:clamp(14px,1.15vw,18px)}
+.bba-chaos-side strong{font-weight:850;color:var(--bba-accent)}
+.bba-timer-display{display:flex;align-items:center;justify-content:center;gap:16px;
+ min-height:68px;border:2px solid #e5ad40;padding:10px 18px;
+ border-radius:17px;background:#fef0d1;color:#a04813;font-size:clamp(28px,3vw,51px);
+ line-height:1.2;font-weight:950;font-variant-numeric:tabular-nums}
+.bba-timer-display span{font-size:clamp(14px,1.25vw,23px);letter-spacing:.035em}
+.bba-timer-display.is-critical{background:#fff0e9;border-color:#e8404b;color:#b3182b;
+ animation:bba-danger-pulse .55s ease-in-out infinite alternate}
+.bba-defuse-instruction{font-weight:850;font-size:clamp(15px,1.4vw,22px);letter-spacing:.045em;
+ color:#e09328;text-align:center}
+.bba-shell .bba-classroom-question-card .bba-mcq-option.bba-defuse-wire{
+ border-left:clamp(7px,.7vw,12px) solid var(--wire)!important;
+ background:linear-gradient(90deg,color-mix(in srgb,var(--wire) 14%,var(--bba-card)),var(--bba-card))!important;
+ box-shadow:inset 4px 0 0 color-mix(in srgb,var(--wire) 55%,transparent);
+}
+.bba-defuse-wire.wire-0{--wire:#ff6871}
+.bba-defuse-wire.wire-1{--wire:#3bb5ff}
+.bba-defuse-wire.wire-2{--wire:#f6c14d}
+.bba-defuse-wire.wire-3{--wire:#51bd8e}
+.bba-shell .bba-defuse-wire>b{background:var(--wire)!important;border:0!important;
+ color:#101e2c!important;text-shadow:0 1px #fff8}
+.bba-shell .bba-defuse-wire .bba-wire-letter{color:var(--wire);font-weight:950}
+.bba-shell .bba-defuse-wire:not(:disabled):hover{box-shadow:0 0 19px var(--wire)!important}
+@keyframes bba-boss-pulse{50%{box-shadow:0 0 22px #e14a6960}}
+@keyframes bba-danger-pulse{to{box-shadow:0 0 23px #e8404b80;transform:scale(1.015)}}
+@media(max-width:700px){
+  .bba-chaos-options{grid-template-columns:1fr}
+  .bba-chaos-hud{padding:9px 10px}
+  .bba-chaos-hud>div>span{font-size:10px;padding:5px 7px}
+  .bba-timer-display{min-height:50px;padding:7px 11px;gap:8px;font-size:25px}
+  .bba-timer-display span{font-size:11px}
+  .bba-boss-hearts{font-size:22px}
+}
+@media(prefers-reduced-motion:reduce){
+  .bba-chaos-hud .bba-boss-hud.is-active,.bba-timer-display.is-critical{animation:none!important}
+}
