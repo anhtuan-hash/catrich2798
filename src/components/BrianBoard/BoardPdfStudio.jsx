@@ -4,7 +4,7 @@ import {pdfAnnotationSummary,pdfPageIndices} from './boardPdfAnnotations.js';
 /** PDF page artwork remains an owner-private raster background.
  * All canvas annotations are ordinary undoable vector objects.
  */
-export default function BoardPdfStudio({lesson,page,vi=true,tool,onTool,onPaperState,onClear,onNavigate}){
+export default function BoardPdfStudio({lesson,page,vi=true,tool,onTool,onPaperState,onClear,onNavigate,onAnnotationVisibility}){
  const status=pdfAnnotationSummary(page);
  const pdfIndices=pdfPageIndices(lesson);
  const currentIndex=lesson?.pages?.findIndex(p=>p.id===page?.id)??-1;
@@ -31,6 +31,9 @@ export default function BoardPdfStudio({lesson,page,vi=true,tool,onTool,onPaperS
     <p>{vi?'Kéo hình chữ nhật trên tài liệu để tô sáng màu vàng. Nét đánh dấu được lưu riêng và có Undo.':
      'Drag a rectangle to highlight. Markup remains independent of the PDF paper and supports Undo.'}</p>
     <div className="bbd-v9-pdf-actions">
+     <button type="button" onClick={()=>onAnnotationVisibility(status.visibleAnnotations===0)} disabled={page?.locked||!status.annotations}>
+      {status.visibleAnnotations?<EyeOff size={16}/>:<Eye size={16}/>}
+      {status.visibleAnnotations?(vi?'Ẩn chú thích':'Hide markup'):(vi?'Hiện chú thích':'Show markup')}</button>
      <button type="button" onClick={()=>onPaperState('hidden',status.paperVisible)} disabled={page?.locked}>
       {status.paperVisible?<EyeOff size={16}/>:<Eye size={16}/>}
       {status.paperVisible?(vi?'Ẩn nền PDF':'Hide paper'):(vi?'Hiện nền PDF':'Show paper')}</button>
