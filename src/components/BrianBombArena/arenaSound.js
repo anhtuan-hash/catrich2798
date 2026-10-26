@@ -1,4 +1,5 @@
-// Brian Bomb Arena v4 — authentic recorded explosion with synthesized fallback.
+import {createIOSMediaSounds} from './arenaIOSAudio.js';
+// Brian Bomb Arena v6 — recorded desktop sounds plus local iOS media fallback.
 // Recording: Fg2, Wikimedia Commons, public-domain dedication (PD-self).
 // https://commons.wikimedia.org/wiki/File:Explosion-LS100155.ogg
 // The sample is served by Wikimedia CDN; synthesizer stays available offline.
@@ -12,6 +13,8 @@ export const BOMB_SOUND_STYLES = Object.freeze([
 const bounded=(v,lo,hi)=>Math.max(lo,Math.min(hi,Number.isFinite(Number(v))?Number(v):lo));
 export function createArenaSound(){
   let context=null,output=null,noiseCache=null,recorded=null;
+  const ios=createIOSMediaSounds();
+  const iosDevice=ios.isIOS();
   const setupRecording=()=>{
     if(recorded||typeof Audio==='undefined')return recorded;
     const element=new Audio();
@@ -22,7 +25,7 @@ export function createArenaSound(){
     return recorded;
   };
   // Preload while teacher is choosing a game, not when the bomb is first opened.
-  setupRecording();
+  if(!iosDevice)setupRecording();
   function getAudio(){
     const AC=typeof window!=='undefined'&&(window.AudioContext||window.webkitAudioContext);
     if(!AC)return null;
@@ -111,6 +114,27 @@ export function createArenaSound(){
     burst(ctx,{at:t+.17,duration:.29,filter:'lowpass',startHz:550,endHz:180,gain:.075,attack:.026});
   }
   function play(type,{style='recorded',volume=1}={}){
+    // Safari may report a running AudioContext while hardware produces silence.
+    // Prefer HTMLMediaElement for *every* effect on iOS, including silent-mode iPhones.
+    if(iosDevice){
+      if(type==='bomb'&&style==='recorded'){
+        const media=setupRecording();
+        // If the remote recording isn't ready, use a LOCAL synthesized WAV immediately
+        // from this exact user gesture rather than awaiting a download / rejected promise.
+        if(media&&media.readyState>=2){
+          try{
+            ios.unlock();
+            media.pause();media.currentTime=0;
+            const v=bounded(volume,0,100);
+            media.volume=Math.min(.9,(v>1?v/100:v)*.82);
+            const pending=media.play();
+            if(pending?.catch)void pending.catch(()=>ios.play('bomb',volume));
+            return true;
+          }catch{/* Local iOS fallback below. */}
+        }
+      }
+      return ios.play(type,volume);
+    }
     if(type==='bomb'&&style==='recorded'){
       const media=setupRecording();
       if(media){
@@ -166,7 +190,10 @@ export function createArenaSound(){
   }
   return {
     play,
+    unlock:()=>ios.unlock(),
+    getStatus:()=>ios.getStatus(),
     close:()=>{
+      ios.close();
       if(recorded){recorded.pause();recorded.removeAttribute('src');recorded.load();recorded=null;}
       if(context){void context.close().catch(()=>{});context=null;output=null;noiseCache=null;}
     },
