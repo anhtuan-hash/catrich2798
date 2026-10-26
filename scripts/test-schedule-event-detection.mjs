@@ -30,6 +30,6 @@ assert.ok(draft.description.includes('tuan15.csv'));
 assert.equal(detectScheduleEvent({title:'Thao giảng tiếng Anh lớp 8.8',ownerText:'BGH, TCM'}), null);
 assert.ok(detectScheduleEvent({title:'Họp TT-TPCM', ownerText:'BGH, TTCM các tổ'}));
 assert.ok(detectScheduleEvent({title:'Họp tổng kết',ownerText:'Tổ Tiếng Anh THPT'}));
-const csv = 'Ngày,Bắt đầu,Nội dung công việc,Người phụ trách\\n26/10/2026,09:00,Họp TTCM,TTCM\\n';
+const csv = 'Ngày,Bắt đầu,Nội dung công việc,Người phụ trách\n26/10/2026,09:00,Họp TTCM,TTCM\n';
 assert.equal(parseDelimitedText(csv).length,2);
 console.log('PASS: TTCM/English THPT event detection, missing-time review, no false THCS events');
