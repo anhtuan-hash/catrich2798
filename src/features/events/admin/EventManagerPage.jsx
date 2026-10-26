@@ -8,6 +8,7 @@ import {
   eventAnalytics, toLocalDateTime, HALLOWEEN_TEMPLATE, EVENT_CATEGORIES
 } from '../services/eventService.js';
 import './EventManager.css';
+import { listScheduleEventSuggestions, createDraftFromScheduleItem, createDraftsForScheduleItems } from '../services/scheduleEventDrafts.js';
 
 const BLANK = Object.freeze({
   title:'',category:'Sinh hoạt chuyên đề',summary:'',description:'',organizer:'Tổ Tiếng Anh THPT',
@@ -40,11 +41,16 @@ export default function EventManagerPage({currentUser}) {
   const [notice,setNotice]=useState('');
   const [analytics,setAnalytics]=useState(null);
   const [confirmPublish,setConfirmPublish]=useState(false);
+  const [scheduleCandidates,setScheduleCandidates]=useState([]);
+  const [scheduleReviewBusy,setScheduleReviewBusy]=useState(false);
   const [previewMode,setPreviewMode]=useState('desktop');
   const load=useCallback(async()=>{
     if(!allowed)return;
     setLoading(true);
-    try{const [items,people]=await Promise.all([listManagedEvents(),listEventProfiles()]);setEvents(items);setProfiles(people);}
+    try{const [items,people]=await Promise.all([listManagedEvents(),listEventProfiles()]);setEvents(items);setProfiles(people);
+      try { setScheduleCandidates(await listScheduleEventSuggestions()); }
+      catch (suggestionError) { console.warn('Schedule event suggestions unavailable:', suggestionError.message); }
+    }
     catch(e){setError(e.message);}
     finally{setLoading(false);}
   },[allowed]);
@@ -134,6 +140,24 @@ export default function EventManagerPage({currentUser}) {
     setSelected(item);setScreen('analytics');setAnalytics(null);setError('');
     try{setAnalytics(await eventAnalytics(item.id));}catch(e){setError(e.message);}
   };
+  const reviewScheduleCandidate=async(item)=>{
+    setScheduleReviewBusy(true);setError('');setNotice('');
+    try {
+      const outcome=await createDraftFromScheduleItem(item);
+      if(outcome.status==='needs_time')throw new Error('Chưa có giờ bắt đầu được ghi rõ trong lịch. Hãy sửa giờ trên lịch làm việc trước.');
+      setNotice(outcome.status.startsWith('created')?'Đã tạo bản nháp; hãy mở để rà soát và xuất bản.':'Sự kiện này đã có bản nháp, không tạo trùng.');
+      await load();
+    }catch(err){setError(err.message);}finally{setScheduleReviewBusy(false);}
+  };
+  const reviewAllScheduleCandidates=async()=>{
+    setScheduleReviewBusy(true);setError('');setNotice('');
+    try {
+      const result=await createDraftsForScheduleItems(scheduleCandidates.map(entry=>entry.item));
+      setNotice(`Đã tạo ${result.created} bản nháp mới; ${result.exists} đã có, ${result.needsTime} mục cần bổ sung giờ.`);
+      if(result.errors.length)setError(result.errors.slice(0,3).join(' | '));
+      await load();
+    }catch(err){setError(err.message);}finally{setScheduleReviewBusy(false);}
+  };
   const displayEvents=useMemo(()=>events.filter(x=>(x.title+' '+x.category).toLocaleLowerCase('vi').includes(query.toLocaleLowerCase('vi'))),[events,query]);
   const effectiveRecipientIds=useMemo(()=>resolveEventRecipientIds(profiles,recipientIds),[profiles,recipientIds]);
   const mandatoryCount=profiles.filter(isRequiredEventRecipient).length;
@@ -152,6 +176,15 @@ export default function EventManagerPage({currentUser}) {
       <div className="bea-metrics">
         {[['Tổng sự kiện',events.length,'all'],['Đang thông báo',events.filter(x=>x.status==='published'&&Date.parse(x.display_start_at)<=Date.now()&&Date.parse(x.display_end_at)>Date.now()).length,'live'],['Bản nháp',events.filter(x=>x.status==='draft').length,'draft'],['Sắp diễn ra',events.filter(x=>Date.parse(x.event_start_at)>Date.now()&&x.status==='published').length,'soon']].map(([label,value,tone])=><div className={'bea-metric is-'+tone} key={label}><strong>{value}</strong><span>{label}</span></div>)}
       </div>
+      {scheduleCandidates.length ? <section className="bea-schedule-suggestions" aria-label="Sự kiện nhận diện từ kế hoạch làm việc">
+        <header><div><strong>Ứng viên từ kế hoạch làm việc ({scheduleCandidates.length})</strong><p>Hệ thống lọc TTCM và Tổ Tiếng Anh THPT. Tạo bản nháp không đồng nghĩa với xuất bản.</p></div><button type="button" className="bea-primary" disabled={scheduleReviewBusy} onClick={reviewAllScheduleCandidates}>Tạo bản nháp hàng loạt</button></header>
+        <div className="bea-schedule-suggestions-list">
+          {scheduleCandidates.map(({item,row,detection})=><article key={item.id}>
+            <div><strong>{row.title}</strong><small>{detection.reason} · {detection.needsTimeReview || !row.timeKnown ? 'Thiếu giờ bắt đầu chính xác' : formatTime(row.startAt)}</small></div>
+            <button type="button" disabled={scheduleReviewBusy || !row.timeKnown} onClick={()=>reviewScheduleCandidate(item)}>{row.timeKnown ? 'Tạo bản nháp' : 'Cần bổ sung giờ'}</button>
+          </article>)}
+        </div>
+      </section> : null}
       <div className="bea-list-top"><h3>Danh sách sự kiện</h3><label className="bea-search"><Search size={16}/><input aria-label="Tìm kiếm sự kiện" placeholder="Tìm tên sự kiện..." value={query} onChange={e=>setQuery(e.target.value)}/></label></div>
       {loading?<p className="bea-loading">Đang tải sự kiện…</p>:displayEvents.length===0?<div className="bea-empty"><CalendarDays size={30}/><strong>Chưa có sự kiện phù hợp</strong><p>Hãy tạo sự kiện đầu tiên hoặc dùng bản nháp Halloween.</p><button onClick={()=>{openEvent(null);setForm({...HALLOWEEN_TEMPLATE});}}>Tạo thư mời Halloween</button></div>:
       <div className="bea-list">{displayEvents.map(item=><article className="bea-event-row" key={item.id}>
