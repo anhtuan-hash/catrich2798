@@ -17,7 +17,7 @@ const page={...lesson.pages[0],objects:[paper]};
 assert.equal(findPdfBackground(page).id,'paper-1');
 assert.deepEqual(pdfPageIndices({...lesson,pages:[lesson.pages[0],page]}),[1]);
 assert.deepEqual(pdfAnnotationSummary(page),{hasPdf:true,paperLocked:true,paperVisible:true,
- annotationCount:0,annotationLimit:400,annotations:0});
+ annotationCount:0,annotationLimit:400,annotations:0,visibleAnnotations:0});
 const stroke={id:'draw-1',kind:'stroke',points:[{x:110,y:140},{x:155,y:155}],
  width:4,color:'#333333',studentVisible:true};
 assert.equal(annotateBoardObject(page,stroke).pdfAnnotation,true);
