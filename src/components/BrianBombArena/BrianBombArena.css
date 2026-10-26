@@ -315,3 +315,12 @@ body .bba-bubble:focus-visible{outline:3px solid #ffa6ac;outline-offset:4px;}
   .bba-fx-confetti,.bba-fx-explosion{display:none;}
   .bba-fx-copy{filter:none;}
 }
+
+/* Existing locally saved v1 sessions must not be discarded silently. */
+.bba-upgrade-banner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+  padding:13px 16px;margin:0 0 18px;border:1px solid #eda943;border-radius:14px;
+  background:#fff1c9;color:#744716;font-size:13px;font-weight:700;}
+.bba-upgrade-banner span{flex:1;min-width:200px;}
+.bba-upgrade-banner button{border:0;border-radius:11px;min-height:42px;padding:9px 14px;
+  background:#9b5a19;color:#fff;font-weight:850;}
+@media(max-width:640px){.bba-upgrade-banner{padding:10px 12px}.bba-upgrade-banner button{width:100%;}}
