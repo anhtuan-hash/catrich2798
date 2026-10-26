@@ -21,9 +21,26 @@ check('Large heading, team score, answer text and answer numbers use dedicated T
   '.bff-control-card','.bff-board-panel'
  ])assert.ok(tv.includes(selector),'TV missing '+selector);
  assert.match(tv,/--bff-font-bonus/);
- assert.match(tv,/font-size:clamp\(31px,calc\(2\.65vw/);
+ assert.match(tv,/font-size:clamp\(42px,calc\(3\.5vw/);
+ assert.match(tv,/\.bff-board-head div\.bff-tv-question/);
+ assert.match(ui,/<div className="bff-tv-question" role="heading" aria-level=\{2\}>/);
+ assert.doesNotMatch(ui,/<h2 className="bff-tv-question">/);
+ assert.match(tv,/80px\)!important/);
  assert.match(tv,/min-height:clamp\(63px,7\.3vh,93px\)/);
  assert.match(tv,/grid-template-columns:minmax\(0,2\.45fr\) minmax\(300px,1fr\)/);
+});
+check('1536px classroom projector question stays large, and A+ meaningfully increases it',()=>{
+ // Static CSS policy model; DOM paint is verified separately in device smoke test.
+ const projector=width=>Math.max(42,Math.min(76,3.15*width/100));
+ const size=(width,scale)=>Math.max(42,Math.min(76,3.15*width/100+Math.round((scale-1.18)*85)));
+ assert.ok(size(1536,1.18)>=46,'Default TV font too small');
+ assert.ok(size(1536,1.42)>=65,'Maximum A+ TV font too small');
+ assert.ok(size(1536,1.42)-size(1536,1.18)>=15,'A+ must visibly enlarge prompt');
+ assert.match(tv,/max-height:960px/);
+ assert.match(tv,/calc\(3\.15vw \+ var\(--bff-question-bonus,0px\)\)/);
+ assert.match(ui,/--bff-question-bonus':Math\.round\(\(fontScale-1\.18\)\*85\)\+'px'/);
+ assert.match(ui,/!game\.edition&&<small>/);
+ assert.ok(projector(1536)>42);
 });
 check('Real A-/A+ controls change typography and persist on device',()=>{
  assert.match(ui,/FONT_STEPS=\[\.94,1\.06,1\.18,1\.3,1\.42\]/);
