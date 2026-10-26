@@ -179,6 +179,63 @@ function renderPublicActivity(activity,live=null){
  }
  activityBox.appendChild(content);
 }
+/** Teacher-approved Classroom Live snapshots only: no student identifiers or moderation queue. */
+function renderClassroomLive(snapshot){
+ activityBox.replaceChildren();
+ activityBox.hidden=false;svg.style.display='none';
+ const addText=(tag,value,klass)=>{
+  const el=document.createElement(tag);el.textContent=String(value??'').slice(0,240);
+  if(klass)el.className=klass;
+  activityBox.appendChild(el);return el;
+ };
+ if(!snapshot||!['poll','cloud','wall'].includes(snapshot.kind))return;
+ addText('span','BRIAN CLASSROOM LIVE · '+(snapshot.status==='live'?'LIVE':
+  snapshot.status==='paused'?'PAUSED':'ENDED'),'tv-live-label');
+ addText('h2',snapshot.title||'Classroom Live');
+ if(snapshot.question)addText('p',snapshot.question,'tv-live-question');
+ if(snapshot.kind==='poll'){
+  const grid=document.createElement('div');grid.className='tv-live-poll';
+  const votes=Array.isArray(snapshot.votes)?snapshot.votes.slice(0,6):null;
+  const total=votes?votes.reduce((sum,n)=>sum+Math.max(0,Number(n)||0),0):0;
+  (snapshot.options||[]).slice(0,6).forEach((label,i)=>{
+   const row=document.createElement('div');row.className='tv-live-poll-row';
+   const choice=document.createElement('strong');
+   choice.textContent=String.fromCharCode(65+i)+'. '+String(label||'').slice(0,65);
+   row.appendChild(choice);
+   if(votes){
+    const count=Math.max(0,Number(votes[i])||0),percent=total?Math.round(count/total*100):0;
+    const result=document.createElement('span');result.textContent=percent+'% · '+count;
+    row.appendChild(result);
+    const rail=document.createElement('div');rail.className='tv-live-meter';
+    const bar=document.createElement('div');bar.style.width=percent+'%';rail.appendChild(bar);row.appendChild(rail);
+   }
+   grid.appendChild(row);
+  });
+  activityBox.appendChild(grid);
+ }else if(snapshot.kind==='cloud'){
+  const box=document.createElement('div');box.className='tv-live-cloud';
+  const frequency=new Map();
+  (snapshot.entries||[]).slice(0,80).forEach(item=>{
+   const word=String(item||'').slice(0,35).trim();
+   if(word)frequency.set(word,(frequency.get(word)||0)+1);
+  });
+  [...frequency.entries()].sort((a,b)=>b[1]-a[1]).forEach(([word,count])=>{
+   const item=document.createElement('span');item.textContent=word;
+   item.style.fontSize=Math.min(62,23+count*6)+'px';box.appendChild(item);
+  });
+  activityBox.appendChild(box);
+ }else{
+  const box=document.createElement('div');box.className='tv-live-wall';
+  (snapshot.entries||[]).slice(0,60).forEach((item,i)=>{
+   const note=document.createElement('div');
+   note.className='tv-live-note tone-'+i%4;
+   note.textContent=String(item||'').slice(0,80);
+   box.appendChild(note);
+  });
+  activityBox.appendChild(box);
+ }
+ addText('small','Teacher-approved content only','tv-live-footnote');
+}
 let pointerState=null;
 function renderPointer(update){
  const old=svg.querySelector('#bbd-tv-pointer');old?.remove();
@@ -225,7 +282,8 @@ function render(data){
  document.getElementById('board').style.background=data.theme==='midnight'?'#15252d':
   data.theme==='classroom'?'#eaf2ec':'#fbfaf6';
  title.textContent=String(data.title||'Brian Board').slice(0,180);
- renderPublicActivity(data.page?data.activity:null,data.live);
+ if(data.classroom)renderClassroomLive(data.classroom);
+ else renderPublicActivity(data.page?data.activity:null,data.live);
  if(!data.page){notice.style.display='block';notice.textContent='This page is hidden from students.';}
  else{
   notice.style.display='none';
