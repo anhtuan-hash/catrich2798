@@ -77,20 +77,31 @@ function settleFast(s){
     reachedTarget:s.fast.points>=200};
   return true;
 }
+function finishFastLeg(s){
+  const f=s.fast;
+  if(!f||s.phase!=='fast_money')return false;
+  if(f.player===0){
+    f.player=1;f.index=0;f.remainingMs=45000;f.dueAt=null;f.paused=true;
+    return true;
+  }
+  return settleFast(s);
+}
 function runFastAnswer(s,action,pass=false){
   const f=s.fast;
   if(!f||s.phase!=='fast_money'||f.paused||f.index>=f.questions.length)return false;
   const now=nowValue(action.now);
-  if(f.dueAt!==null&&now>=f.dueAt)return settleFast(s);
+  if(f.dueAt!==null&&now>=f.dueAt)return finishFastLeg(s);
   let points=0;
   if(!pass){
     const answerIndex=Number(action.index);
     if(!Number.isInteger(answerIndex)||answerIndex<0||answerIndex>=f.questions[f.index].answers.length)return false;
+    if(f.player===1&&f.answers.some(a=>a.player===0&&a.boardId===f.questions[f.index].id&&a.answerIndex===answerIndex))
+      return false; // Repeated Fast Money answers are prohibited on the second pass.
     points=f.questions[f.index].answers[answerIndex].points;
   }
-  f.answers.push({boardId:f.questions[f.index].id,answerIndex:pass?null:Number(action.index),points});
+  f.answers.push({player:f.player,boardId:f.questions[f.index].id,answerIndex:pass?null:Number(action.index),points});
   f.points+=points;f.index++;
-  if(f.index>=f.questions.length)return settleFast(s);
+  if(f.index>=f.questions.length)return finishFastLeg(s);
   return true;
 }
 export function feudReducer(state,action){
@@ -170,7 +181,7 @@ export function feudReducer(state,action){
         const unused=s.bank.slice(s.roundLimit);
         const fastBoards=(unused.length>=5?unused:s.bank).slice(0,5);
         if(fastBoards.length<5)break;
-        s.fast={team:action.team,questions:fastBoards,index:0,points:0,
+         s.fast={team:action.team,questions:fastBoards,index:0,player:0,points:0,
           answers:[],remainingMs:45000,dueAt:nowValue(action.now)+45000,
           paused:false,settled:false,target:200};
         s.phase='fast_money';changed=true;
@@ -179,7 +190,7 @@ export function feudReducer(state,action){
     case 'FAST_PASS':changed=runFastAnswer(s,action,true);break;
     case 'FAST_TIMEOUT':
       if(s.phase==='fast_money'&&s.fast&&!s.fast.paused&&s.fast.dueAt!==null&&
-        nowValue(action.now)>=s.fast.dueAt)changed=settleFast(s);
+        nowValue(action.now)>=s.fast.dueAt)changed=finishFastLeg(s);
       break;
     case 'FAST_FINISH':
       if(s.phase==='fast_money')changed=settleFast(s);
