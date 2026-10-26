@@ -474,3 +474,96 @@ body .bba-bubble:focus-visible{outline:3px solid #ffa6ac;outline-offset:4px;}
   transform:none!important;
   transform-origin:center center;
 }
+
+
+/* Brian Bomb Arena v6 — iOS Safari FX visibility and A/V diagnostics.
+   Fixed positioning avoids the mobile portal's independently scrolling main area. */
+.bba-shell .bba-fx-layer{
+  position:fixed!important;inset:0!important;
+  width:100vw!important;height:100dvh!important;
+  z-index:2147483600!important;pointer-events:none!important;
+  display:grid!important;place-items:center!important;
+  opacity:1!important;visibility:visible!important;
+  -webkit-transform:translateZ(0);
+  transform:translateZ(0);
+  -webkit-backface-visibility:hidden;
+  isolation:isolate;
+}
+.bba-shell .bba-fx-copy{
+  z-index:3!important;opacity:1;
+  text-align:center;
+}
+.bba-shell .bba-quick-test{display:inline-flex;align-items:center;gap:5px}
+.bba-shell .bba-quick-test span{font-size:10px;font-weight:850}
+.bba-shell .bba-motion-check{display:flex;gap:8px;align-items:flex-start;
+  font-size:12px;line-height:1.4;font-weight:650;color:var(--bba-text);}
+.bba-shell .bba-motion-check input{flex:none;width:19px;height:19px;accent-color:var(--bba-accent);}
+.bba-shell .bba-audio-feedback{display:block;background:var(--bba-card);
+  padding:10px 12px;border:1px solid var(--bba-border);border-radius:11px;}
+.bba-shell .bba-fx-copy strong{display:block;word-break:break-word}
+@media(max-width:640px){
+  .bba-shell .bba-fx-copy{width:min(96vw,500px);padding:14px}
+  .bba-shell .bba-fx-copy strong{font-size:clamp(49px,13vw,90px)}
+  .bba-shell .bba-fx-layer.is-bank .bba-fx-copy strong{font-size:clamp(32px,8vw,58px)}
+  .bba-shell .bba-fx-confetti i{width:9px;height:15px}
+  .bba-shell .bba-header-actions .bba-quick-test{display:flex;min-width:41px;padding:5px;gap:3px}
+  .bba-shell .bba-header-actions .bba-quick-test span{display:block;font-size:9px}
+}
+/* Respect system Reduce Motion but keep a clearly visible reward/explosion.
+   The old CSS hid ALL bomb graphics and particles, making taps appear inert. */
+@media(prefers-reduced-motion:reduce){
+  .bba-shell:not(.bba-allow-fx) .bba-fx-layer{
+    animation:none!important;opacity:1!important;
+    background:radial-gradient(circle,#fff3bd5e,transparent 70%);
+  }
+  .bba-shell:not(.bba-allow-fx) .bba-fx-layer.is-bomb{
+    background:radial-gradient(circle,#ff9c807f,transparent 72%);
+  }
+  .bba-shell:not(.bba-allow-fx) .bba-fx-copy{
+    display:flex!important;opacity:1!important;
+    animation:none!important;transform:none!important;
+    filter:none!important;
+  }
+  .bba-shell:not(.bba-allow-fx) .bba-fx-confetti{
+    display:grid!important;
+  }
+  .bba-shell:not(.bba-allow-fx) .bba-fx-confetti i{
+    display:none!important;
+  }
+  .bba-shell:not(.bba-allow-fx) .bba-fx-confetti::before{
+    content:"✦ ✨ ★ ✦ ✨ ★ ✦";
+    position:absolute;top:32%;left:0;right:0;
+    font-size:clamp(17px,4vw,32px);color:#f2a13a;
+    text-align:center;letter-spacing:8px;
+    text-shadow:0 0 12px #fec55080;
+  }
+  .bba-shell:not(.bba-allow-fx) .bba-fx-explosion{
+    display:grid!important;opacity:1!important;
+  }
+  .bba-shell:not(.bba-allow-fx) .bba-fx-shockwave,
+  .bba-shell:not(.bba-allow-fx) .bba-fx-smoke{display:none!important;}
+  .bba-shell:not(.bba-allow-fx) .bba-fx-fireball{
+    display:block!important;opacity:1!important;
+    transform:none!important;animation:none!important;
+  }
+  /* Opt-in to full animation explicitly even when system reduction is active. */
+  .bba-shell.bba-allow-fx .bba-fx-layer.is-bomb{
+    animation:bba-bomb-flash .62s ease-out both!important;
+  }
+  .bba-shell.bba-allow-fx .bba-fx-copy{
+    animation:bba-fx-float 1.2s ease-out both!important;
+  }
+  .bba-shell.bba-allow-fx .bba-fx-confetti{
+    display:grid!important;
+  }
+  .bba-shell.bba-allow-fx .bba-fx-confetti i{
+    animation:bba-fx-spark 1.25s var(--delay) cubic-bezier(.08,.75,.25,1) both!important;
+  }
+  .bba-shell.bba-allow-fx .bba-fx-explosion{display:grid!important}
+  .bba-shell.bba-allow-fx .bba-fx-shockwave{animation:bba-fx-shock .73s ease-out both!important}
+  .bba-shell.bba-allow-fx .bba-fx-fireball{animation:bba-fireball .8s ease-out both!important}
+  .bba-shell.bba-allow-fx .bba-fx-smoke{animation:bba-smoke 1.4s ease-out both!important}
+  .bba-shell.bba-allow-fx.is-exploding .bba-board-wrap{
+    animation:bba-arena-shake .45s ease-in-out!important;
+  }
+}
