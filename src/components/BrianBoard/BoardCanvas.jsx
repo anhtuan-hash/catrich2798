@@ -97,7 +97,7 @@ export function renderBoardObject(object,onErase,studentView=false,onInteract,on
  const cx=b.x+b.width/2,cy=b.y+b.height/2;
  return <g key={object.id} transform={'rotate('+deg+' '+cx+' '+cy+')'}>{rendered}</g>;
 }
-export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onCommit,onErase,onDuplicateObject,onMoveObject,onBatchEdit,onPrecisionErase,onSaveAsset,onCommitMany,
+export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onCommit,onErase,onDuplicateObject,onMoveObject,onBatchEdit,onPrecisionErase,onSaveAsset,onCommitMany,onPdfHighlight,
  zoom=1,setZoom,camera={x:0,y:0},setCamera,contentText='',privateAnswer='',onInteract,
  studentView=false,spotlight=false,penPreset='classic',snapToGrid=false,shapeFill='none',vi=true,
  frames=[],showFrames=true,onCreateFrame,activeFrameId=null,onPointerPosition,smartGeometry=false}){
@@ -192,6 +192,11 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
    if(points.length>=1)onCommit?.({kind:'stroke',id:makeId(),points,
     color:state.color,width:state.width,opacity:state.opacity??1,studentVisible:true,
     smoothed:true,pressureSensitive:state.pressureSensitive===true});
+  }else if(state.tool==='pdf-highlight'){
+   const first=state.points[0],last=state.points.at(-1);
+   const rect={x:Math.min(first.x,last.x),y:Math.min(first.y,last.y),
+    width:Math.abs(last.x-first.x),height:Math.abs(last.y-first.y)};
+   if(rect.width>=12&&rect.height>=8)onPdfHighlight?.(rect);
   }else if(state.tool==='ruler'){
    const objects=measureRuler(state.points[0],state.points.at(-1));
    if(objects.length)onCommitMany?.(objects);
@@ -257,7 +262,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
    return;
   }
   if(tool==='laser'){setLaser(p);onPointerPosition?.(p,spotlight?'spotlight':'laser');return;}
-  if(!['pen','highlighter','shape-rect','shape-ellipse','shape-line','shape-arrow','shape-triangle','pan','frame','lasso','eraser-precision','ruler','protractor','compass'].includes(tool))return;
+  if(!['pen','highlighter','shape-rect','shape-ellipse','shape-line','shape-arrow','shape-triangle','pan','frame','lasso','eraser-precision','ruler','protractor','compass','pdf-highlight'].includes(tool))return;
   event.preventDefault();
   const appliedPreset=tool==='highlighter'?{width:Math.max(width,14),opacity:.3,pressure:false}:
    penPreset==='fine'?{width,opacity:1,pressure:false}:
@@ -324,7 +329,9 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
   }else state.points=[state.points[0],p];
   state.shift=event.shiftKey;
   if(preview.current){
-   const path=['ruler','protractor'].includes(state.tool)?
+   const path=state.tool==='pdf-highlight'?
+    boardShapePreviewPath('rect',state.points[0].x,state.points[0].y,p.x,p.y):
+    ['ruler','protractor'].includes(state.tool)?
     boardShapePreviewPath('line',state.points[0].x,state.points[0].y,p.x,p.y):
     state.tool==='compass'?(()=>{
      const c=state.points[0],r=Math.hypot(p.x-c.x,p.y-c.y);
@@ -339,7 +346,7 @@ export default function BoardCanvas({page,tool='pen',color='#355e63',width=5,onC
     return boardShapePreviewPath(state.tool.slice(6),b.x,b.y,b.x2,b.y2);
    })():smoothBoardPath(state.points);
    preview.current.setAttribute('d',path);
-   preview.current.setAttribute('stroke-width',String(state.tool==='lasso'?3:state.tool==='eraser-precision'?30:state.width));
+   preview.current.setAttribute('stroke-width',String(state.tool==='lasso'?3:state.tool==='eraser-precision'?30:state.tool==='pdf-highlight'?8:state.width));
    preview.current.setAttribute('opacity',String(state.opacity));
   }
  };
