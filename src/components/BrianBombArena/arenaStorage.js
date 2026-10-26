@@ -1,6 +1,14 @@
 // Owner-scoped offline drafts; IndexedDB primary and localStorage fallback.
 const DB_NAME='brian-bomb-arena-v1';
 const STORE='sessions';
+const pendingWrites=new Map();
+function serial(ownerId,task){
+  const key=keyFor(ownerId),prior=pendingWrites.get(key)||Promise.resolve();
+  const current=prior.catch(()=>{}).then(task);
+  pendingWrites.set(key,current);
+  void current.finally(()=>{if(pendingWrites.get(key)===current)pendingWrites.delete(key);});
+  return current;
+}
 const keyFor=ownerId=>'bomb-arena:'+String(ownerId||'anonymous');
 function db(){
   return new Promise((resolve,reject)=>{
@@ -30,13 +38,17 @@ export async function loadArena(ownerId){
     try{return JSON.parse(localStorage.getItem(keyFor(ownerId))||'null');}catch{return null;}
   }
 }
-export async function saveArena(ownerId,session){
-  try{await transaction(ownerId,session,true);return true;}
-  catch{
-    try{localStorage.setItem(keyFor(ownerId),JSON.stringify(session));return true;}catch{return false;}
-  }
+export function saveArena(ownerId,session){
+  return serial(ownerId,async()=>{
+    try{await transaction(ownerId,session,true);return true;}
+    catch{
+      try{localStorage.setItem(keyFor(ownerId),JSON.stringify(session));return true;}catch{return false;}
+    }
+  });
 }
-export async function clearArena(ownerId){
-  try{await transaction(ownerId,null,true);}catch{/* local fallback below */}
-  try{localStorage.removeItem(keyFor(ownerId));}catch{/* no-op */}
+export function clearArena(ownerId){
+  return serial(ownerId,async()=>{
+    try{await transaction(ownerId,null,true);}catch{/* local fallback below */}
+    try{localStorage.removeItem(keyFor(ownerId));}catch{/* no-op */}
+  });
 }
