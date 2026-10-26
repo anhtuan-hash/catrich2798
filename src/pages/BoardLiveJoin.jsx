@@ -28,6 +28,20 @@ export default function BoardLiveJoin(){
   finally{setLoading(false);}
  };
  useEffect(()=>{if(valid)void join(code);},[]);
+ useEffect(()=>{
+  if(!token||!room||room.status==='closed')return;
+  let running=false,alive=true;
+  const id=setInterval(async()=>{
+   if(!alive||running||document.hidden)return;
+   running=true;
+   try{
+    const updated=await getGuestRoom(code,token);
+    if(alive)setRoom(updated);
+   }catch{/* Manual refresh remains available when connectivity fails. */}
+   finally{running=false;}
+  },20000);
+  return()=>{alive=false;clearInterval(id);};
+ },[code,token,room?.status]);
  const refresh=async()=>{
   if(!token)return;
   setLoading(true);
