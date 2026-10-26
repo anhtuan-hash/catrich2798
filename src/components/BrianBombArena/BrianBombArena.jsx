@@ -147,7 +147,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
     const onKey=e=>{
       if(e.key==='Escape'){
         if(confirmReset)setConfirmReset(false);
-        else setOpen(false);
+        else close();
       }
     };
     document.addEventListener('keydown',onKey);
