@@ -1201,6 +1201,7 @@ export default function BrianBoard({currentUser,language='vi'}){
         setClassroomSession(createLiveSession(mode));setActiveActivityId(null);
        }}/>}
       <BoardLiveGuestControl session={classroomSession} vi={vi}
+       onReset={()=>{setLiveGuestRoomStarted(false);setClassroomSession(createLiveSession('poll'));}}
        onProjection={remote=>{
         setLiveGuestRoomStarted(true);
         setClassroomSession(previous=>composeGuestPublicSession(remote,previous));
