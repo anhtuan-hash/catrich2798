@@ -79,18 +79,33 @@ export async function createDraftFromScheduleItem(item) {
   return { status: newlyCreated ? 'created' : 'exists', id: record.id, posterStatus, warning: posterWarning };
 }
 
-export async function createDraftsForScheduleItems(items = []) {
+export async function createDraftsForScheduleItems(items = [], { onProgress } = {}) {
+  const candidates = items.filter((item) =>
+    item?.metadata?.schedule_event_detection?.approvalStatus === 'pending');
   const result = { created: 0, exists: 0, needsTime: 0, errors: [] };
-  for (const item of items) {
-    if (!item?.metadata?.schedule_event_detection || item.metadata.schedule_event_detection.approvalStatus !== 'pending') continue;
+  let completed = 0;
+  const update = () => {
+    if (typeof onProgress !== 'function') return;
+    try {
+      onProgress({
+        total: candidates.length, completed, created: result.created,
+        exists: result.exists, needsTime: result.needsTime, failed: result.errors.length,
+      });
+    } catch (error) { console.warn('[Brian Schedule] Progress listener failed:', error); }
+  };
+  update();
+  for (const item of candidates) {
     try {
       const outcome = await createDraftFromScheduleItem(item);
       if (['created', 'created_unlinked'].includes(outcome.status)) result.created += 1;
       else if (['exists', 'exists_unlinked'].includes(outcome.status)) result.exists += 1;
       else if (outcome.status === 'needs_time') result.needsTime += 1;
-      if (outcome.warning) result.errors.push(`${item.title}: ${outcome.warning}`);
+      if (outcome.warning) result.errors.push(String(item.title || 'Sự kiện') + ': ' + outcome.warning);
     } catch (error) {
-      result.errors.push(`${item.title}: ${error.message}`);
+      result.errors.push(String(item.title || 'Sự kiện') + ': ' + (error.message || 'Lỗi không xác định'));
+    } finally {
+      completed += 1;
+      update();
     }
   }
   return result;
