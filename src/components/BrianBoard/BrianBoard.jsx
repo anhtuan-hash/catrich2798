@@ -32,7 +32,7 @@ import {cropBoardImageData,cropBoardImageRegion,effectBoardImageRegion,applyBoar
 import BoardCropEditor from './BoardCropEditor.jsx';
 import BoardClassroomLive,{BoardClassroomLivePublic} from './BoardClassroomLive.jsx';
 import BoardLiveGuestControl from './BoardLiveGuestControl.jsx';
-import {composeGuestPublicSession} from './boardLiveApi.js';
+import {composeGuestPublicSession,controlTeacherRoom} from './boardLiveApi.js';
 import BoardRemoteTV from './BoardRemoteTV.jsx';
 import {authorizeSameOwner,createRemoteTeacherChannel,closeRemoteChannel,
  REMOTE_MAX_BYTES,REMOTE_MAX_MESSAGES,REMOTE_DURATION_MS,REMOTE_MIN_INTERVAL_MS} from './boardRemoteTV.js';
@@ -103,6 +103,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  const [presenting,setPresenting]=useState(false),presentationRef=useRef(null);
  const [classroomSession,setClassroomSession]=useState(null);
  const [liveGuestRoomStarted,setLiveGuestRoomStarted]=useState(false);
+ const guestRoomRef=useRef(null);
  const classroomSessionRef=useRef(null);classroomSessionRef.current=classroomSession;
  const remoteChannelRef=useRef(null),remoteSentRef=useRef(0),remoteLastRef=useRef(0);
  const remoteExpiryRef=useRef(0),remoteTimerRef=useRef(null);
@@ -388,6 +389,8 @@ export default function BrianBoard({currentUser,language='vi'}){
  const finishClose=useCallback(()=>{
   if(frameFlight.current)cancelAnimationFrame(frameFlight.current);
   frameFlight.current=0;
+  if(guestRoomRef.current){const id=guestRoomRef.current;guestRoomRef.current=null;
+   void controlTeacherRoom(id,'close').catch(()=>{});}
   stopPresentation();stopRemoteTV();setPhase('closed');setOpen(false);animating.current=false;setStudentView(false);
   setTimeout(()=>lastFocusRef.current?.focus?.({preventScroll:true}),0);
  },[]);
@@ -1201,8 +1204,9 @@ export default function BrianBoard({currentUser,language='vi'}){
         setClassroomSession(createLiveSession(mode));setActiveActivityId(null);
        }}/>}
       <BoardLiveGuestControl session={classroomSession} vi={vi}
-       onReset={()=>{setLiveGuestRoomStarted(false);setClassroomSession(createLiveSession('poll'));}}
+       onReset={()=>{guestRoomRef.current=null;setLiveGuestRoomStarted(false);setClassroomSession(createLiveSession('poll'));}}
        onProjection={remote=>{
+        guestRoomRef.current=remote.status==='closed'?null:remote.id;
         setLiveGuestRoomStarted(true);
         setClassroomSession(previous=>composeGuestPublicSession(remote,previous));
        }}/>
