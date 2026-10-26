@@ -444,7 +444,11 @@ export default function BrianBombArena({currentUser,language='vi'}){
                   disabled={questionSize===2} aria-label={tr('Phóng to chữ câu hỏi','Increase question font size')}>A+</button>
               </div>
             </div>
-          <h2>{selectedQuestion?.prompt||tr('Giáo viên xác nhận kết quả','Teacher confirms the answer')}</h2>
+          <div className="bba-question-display" role="heading" aria-level={2}
+             style={{fontSize:questionSize===2?'clamp(40px,4.2vw,72px)':
+               questionSize===0?'clamp(29px,2.9vw,47px)':'clamp(35px,3.6vw,62px)'}}>
+             {selectedQuestion?.prompt||tr('Giáo viên xác nhận kết quả','Teacher confirms the answer')}
+           </div>
           {selectedQuestion?.unit&&<p className="bba-question-unit">{selectedQuestion.grade===12?'ENGLISH 12':'ENGLISH 11'} · UNIT {selectedQuestion.unit} · {tr('NGỮ PHÁP','GRAMMAR')}</p>}
           {selectedQuestion?.options&&<p className="bba-instant-hint">{tr('Chạm một phương án để chấm ngay: đúng +20, sai −20 và mất POT.', 'Tap an option to grade instantly: correct +20, wrong −20 and lose POT.')}</p>}
           {Array.isArray(selectedQuestion?.options)&&selectedQuestion.options.length===4&&
