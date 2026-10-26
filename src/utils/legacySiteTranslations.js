@@ -2963,4 +2963,5 @@ export const LEGACY_SITE_EN = Object.freeze({
   "Loại sự kiện": "Event type",
   "Lưu vào thư viện mẫu": "Save to template library",
   "Đang tạo poster…": "Generating poster…",
+  "Đóng trạng thái tạo sự kiện": "Dismiss event creation progress",
 });
