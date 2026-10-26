@@ -5,6 +5,7 @@ import {Bomb,X,Play,Pause,RotateCcw,Save,Volume2,VolumeX,Undo2,Redo2,
   Wallet,CheckCircle2,XCircle,Plus,Minus,HelpCircle,Upload,Sparkles} from 'lucide-react';
 import {isAdminRole,isDepartmentLeaderRole,normalizeSystemRole} from '../../utils/roles.js';
 import {createArena,arenaReducer,rankTeams,TILE_ICONS,ARENA_MODES} from './arenaEngine.js';
+import {CHAOS_FEATURES,isChaosKit} from './arenaChaosEngine.js';
 import {loadArena,saveArena,clearArena} from './arenaStorage.js';
 import './BrianBombArena.css';
 import {createArenaSound,BOMB_SOUND_STYLES} from './arenaSound.js';
@@ -15,6 +16,13 @@ import {readBubbleMotion} from '../../utils/bubbleMotion.js';
 const COLORS=['#ef6577','#61a9f6','#f4c265','#60d5b0','#ad8ff4','#f39b68','#8ed8ee','#d49bbd'];
 const MODE_NAMES={classic:['Cổ điển','Classic'],chaos:['Hỗn loạn','Total Chaos'],luck:['Thử vận may','Press Your Luck'],challenge:['Thử thách Brian','Brian Challenge']};
 const MODE_EMOJI={classic:'⭐',chaos:'⚡',luck:'🎲',challenge:'🎓'};
+const CHAOS_FEATURE_LABELS={
+ defuse:['✂️ Gỡ bom · dây A–D','✂️ Defuse · A–D wires'],
+ combo:['⚡ Combo liên hoàn · x2/x3','⚡ Combo streak · x2/x3'],
+ shield:['🛡️ Khiên bảo vệ · tối đa 2','🛡️ Shield · max 2'],
+ timer:['⏱️ Bom hẹn giờ · 15 giây','⏱️ Time Bomb · 15 seconds'],
+ boss:['👹 Trùm bom cuối · 3 HP','👹 Final Boss · 3 HP'],
+};
 const THEME_NAMES={mint:'Mint Classroom',neon:'Neon Reactor',comic:'Comic Blast',cosmic:'Cosmic Danger'};
 const allowedUser=user=>Boolean(user?.id&&user.approved!==false&&(
   isAdminRole(user.role)||isDepartmentLeaderRole(user.role)||normalizeSystemRole(user.role)==='teacher'));
@@ -28,6 +36,8 @@ export default function BrianBombArena({currentUser,language='vi'}){
   const [mode,setMode]=useState('luck'),[size,setSize]=useState(5);
   const [teamCount,setTeamCount]=useState(4),[names,setNames]=useState('');
   const [theme,setTheme]=useState('mint'),[questionGate,setQuestionGate]=useState(false);
+  const [chaosFeatures,setChaosFeatures]=useState([...CHAOS_FEATURES]);
+  const [countdown,setCountdown]=useState(15);
   const [questionText,setQuestionText]=useState(''),[showAnswer,setShowAnswer]=useState(false);
   const [loadedPackId,setLoadedPackId]=useState(null),[selectedChoice,setSelectedChoice]=useState(null);
   const [volume,setVolume]=useState(true),[presenter,setPresenter]=useState(false);
@@ -42,6 +52,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
   const [forceFx,setForceFx]=useState(false);
   const [audioFeedback,setAudioFeedback]=useState('');
   const closeRef=useRef(null),soundRef=useRef(null),fxTimer=useRef(null),answerTapLockRef=useRef(false);
+  const timeoutKeyRef=useRef(null);
   const shellRef=useRef(null),questionDialogRef=useRef(null);
   // Do not animate the BUTTON hitbox: doing so causes mouseleave while hovering
   // and makes the shake appear to stop after one frame on Safari/Chrome.
@@ -165,9 +176,17 @@ export default function BrianBombArena({currentUser,language='vi'}){
     const questions=loadedPackId&&questionText===packToText(pack)
       ? pack.items.map(q=>({...q}))
       : parseArenaQuestions(questionText);
+    const chaosEnabled=mode==='chaos'&&chaosFeatures.length>0;
+    if(chaosEnabled&&(questions.length===0||questions.some(q=>!Array.isArray(q.options)||
+      q.options.length!==4||!Number.isInteger(q.answerIndex)||q.answerIndex<0||q.answerIndex>3))){
+      setStatus(tr('⚠️ Hỗn loạn cần ngân hàng A–D. Hãy nạp một bộ câu hỏi ở mục 05.',
+        '⚠️ Chaos needs A–D questions. Load a question pack in section 05.'));
+      return;
+    }
     const game=createArena({ownerId,mode,size,teamCount,
+      chaosFeatures:chaosEnabled?chaosFeatures:[],difficulty:'extreme',
       teamNames:names.split(/\n|;/).map(x=>x.trim()).filter(Boolean),
-      questionGate:mode==='challenge'||questionGate,questions,theme});
+      questionGate:chaosEnabled||mode==='challenge'||questionGate,questions,theme});
     setSession(arenaReducer(game,{type:'START'}));
     setPresenter(false);setShowAnswer(false);setSelectedChoice(null);setSaveError(false);setScreen('arena');
     playSound('bank');
@@ -176,7 +195,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
     if(!session||session.phase!=='running'||session.selectedTile!==null)return;
     const tile=session.tiles[i];if(!tile||tile.opened||tile.event==='blocked')return;
     stopTileShake(i);
-    update({type:'SELECT',index:i});setShowAnswer(false);setSelectedChoice(null);
+    update({type:'SELECT',index:i,now:Date.now()});setShowAnswer(false);setSelectedChoice(null);
     if(!session.questionGate)revealFx(tile);else playSound('flip');
   };
   useEffect(()=>{answerTapLockRef.current=false;},[session?.selectedTile,session?.questionIndex]);
@@ -262,6 +281,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
   };
   if(!allowed)return null;
   const remaining=session?.tiles.filter(t=>!t.opened).length||0;
+  const chaos=isChaosKit(session)?session.chaosKit:null;
   const selectedQuestion=session?.questions?.length?session.questions[session.questionIndex%session.questions.length]:null;
   const leader=session?.teams?.[session.turn];
   const box=()=>{
@@ -278,6 +298,18 @@ export default function BrianBombArena({currentUser,language='vi'}){
             aria-pressed={mode===value} onClick={()=>setMode(value)}>
             <span>{MODE_EMOJI[value]}</span><strong>{MODE_NAMES[value][vi?0:1]}</strong>
           </button>)}</div>
+          {mode==='chaos'&&<div className="bba-chaos-setup">
+            <h3>{tr('⚡ Chaos Five · Hỗn loạn cực đại','⚡ Chaos Five · Extreme mode')}</h3>
+            <p className="bba-muted">{tr('Bật/tắt cơ chế. Cần ngân hàng câu hỏi A–D để chấm ngay.',
+              'Choose mechanics. A–D MCQs are required for one-tap scoring.')}</p>
+            <div className="bba-chaos-options">{CHAOS_FEATURES.map(feature=><label key={feature} className="bba-chaos-option">
+              <input type="checkbox" checked={chaosFeatures.includes(feature)}
+                onChange={e=>setChaosFeatures(current=>e.target.checked?[...current,feature]:current.filter(x=>x!==feature))}/>
+              <span>{CHAOS_FEATURE_LABELS[feature][vi?0:1]}</span>
+            </label>)}</div>
+            <small>{tr('Extreme: đúng +20, combo x2/x3, sai −20, Boss +100, 15 giây.',
+              'Extreme: correct +20, combo x2/x3, wrong −20, Boss +100, 15 seconds.')}</small>
+          </div>}
           <h3>{tr('02 · Kích thước bảng','02 · Board size')}</h3>
           <p className="bba-muted">{tr('Tỷ lệ 1:1 bom và điểm: 4×4 = 8/8; 5×5 = 12/12, ô C3 khóa; 6×6 = 18/18.',
             'Exactly equal bombs and scoring tiles: 4×4 = 8/8; 5×5 = 12/12 with C3 locked; 6×6 = 18/18.')}</p>
@@ -319,7 +351,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
             </div>
           </div>
           <h3>{tr('06 · Câu hỏi kiến thức','06 · Learning questions')}</h3>
-          <label className="bba-check"><input type="checkbox" checked={mode==='challenge'||questionGate} disabled={mode==='challenge'}
+          <label className="bba-check"><input type="checkbox" checked={mode==='challenge'||(mode==='chaos'&&chaosFeatures.length>0)||questionGate} disabled={mode==='challenge'||(mode==='chaos'&&chaosFeatures.length>0)}
             onChange={e=>setQuestionGate(e.target.checked)}/><span>{tr('Bắt buộc trả lời trước khi mở ô','Answer a question before revealing a tile')}</span></label>
           <label className="bba-label">{tr('Một dòng mỗi câu: Câu hỏi || Đáp án','One line per item: Question || Answer')}
             <textarea rows="5" value={questionText} onChange={e=>{setQuestionText(e.target.value.slice(0,70000));setLoadedPackId(null);}}
@@ -356,6 +388,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
             {bombSoundStyle==='recorded'&&<a href="https://commons.wikimedia.org/wiki/File:Explosion-LS100155.ogg" target="_blank" rel="noopener noreferrer"
               className="bba-sound-credit">{tr('Nguồn: Fg2 · Wikimedia Commons (public domain)','Source: Fg2 · Wikimedia Commons (public domain)')}</a>}
           </div>
+          {status.startsWith('⚠️')&&<p role="alert" className="bba-chaos-error">{status}</p>}
           <button type="button" className="bba-primary bba-full" onClick={begin}><Play size={18}/>{tr('Bắt đầu trò chơi','Start game')}<ChevronRight size={18}/></button>
         </section>
       </div>
