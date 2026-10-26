@@ -154,6 +154,7 @@ body .bes-kira-chat-root .bes-kira-chat-online {
    Detect the persistent approval ROOT, not its FAB: the FAB disappears
    while its drawer is open, but the layout must not jump. */
 body .bbd-board-fab {
+  box-sizing:border-box!important;
   right:var(--bes-floating-edge)!important;
   bottom:calc(var(--bes-floating-bottom) + 3 * (var(--bes-floating-diameter) + var(--bes-floating-gap)))!important;
   width:var(--bes-floating-diameter)!important;
