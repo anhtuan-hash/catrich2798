@@ -118,20 +118,20 @@ export function sanitizeState(raw){
     });
   }
   base.qr.input=typeof s.qr?.input==='string'?s.qr.input.slice(0,900):base.qr.input;
-  base.spotlight.radius=Math.round(clamp(s.spotlight?.radius,90,260));
-  base.spotlight.dim=Math.round(clamp(s.spotlight?.dim,45,95));
+  base.spotlight.radius=Math.round(clamp(s.spotlight?.radius??base.spotlight.radius,90,260));
+  base.spotlight.dim=Math.round(clamp(s.spotlight?.dim??base.spotlight.dim,45,95));
   base.bigText.text=cleanText(s.bigText?.text,400,base.bigText.text);
-  base.bigText.fontSize=Math.round(clamp(s.bigText?.fontSize,52,220));
+  base.bigText.fontSize=Math.round(clamp(s.bigText?.fontSize??base.bigText.fontSize,52,220));
   base.bigText.theme=['midnight','ivory','neon'].includes(s.bigText?.theme)?s.bigText.theme:'midnight';
   base.teleprompter.script=cleanText(s.teleprompter?.script,12000,base.teleprompter.script);
-  base.teleprompter.fontSize=Math.round(clamp(s.teleprompter?.fontSize,12,80));
-  base.teleprompter.speed=Math.round(clamp(s.teleprompter?.speed,12,160));
+  base.teleprompter.fontSize=Math.round(clamp(s.teleprompter?.fontSize??base.teleprompter.fontSize,12,80));
+  base.teleprompter.speed=Math.round(clamp(s.teleprompter?.speed??base.teleprompter.speed,12,160));
   base.teleprompter.mirror=s.teleprompter?.mirror===true;
   base.teleprompter.theme=s.teleprompter?.theme==='light'?'light':'dark';
   const cards=normalizeRevealItems(s.reveal?.items);
   if(cards)base.reveal.items=cards;
   base.reveal.revealed=Array.isArray(s.reveal?.revealed)?[...new Set(s.reveal.revealed.filter(n=>Number.isInteger(n)&&n>=0&&n<base.reveal.items.length))]:[];
-  base.soundFX.volume=Math.round(clamp(s.soundFX?.volume,0,100));
+  base.soundFX.volume=Math.round(clamp(s.soundFX?.volume??base.soundFX.volume,0,100));
   return base;
 }
 
