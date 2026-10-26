@@ -25,6 +25,8 @@ test('Portal navigation, bilingual, minimize, keyboard and narrow-screen clippin
   await expect(page.locator('.bit-overlay')).toHaveCount(0);
 });
 test('Dice rolls and Scoreboard undo retain local session without modifying scores elsewhere',async({page})=>{
+  // Reduced motion prevents celebration canvas from intercepting iPhone touch input.
+  await page.emulateMedia({reducedMotion:'reduce'});
   await openLibrary(page);
   await page.locator('.bit-app-card').nth(0).click();
   await expect(page.locator('.bit-die')).toHaveCount(2);
