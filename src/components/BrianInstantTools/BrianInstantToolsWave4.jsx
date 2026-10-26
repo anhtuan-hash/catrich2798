@@ -7,6 +7,7 @@ import {
 import {secureInt} from './instantToolsCore.mjs';
 import {normalizePeople,makeGroups,relativeNoise,lockBuzzer,reactionDelay,BUZZER_DEFAULT} from './instantToolsWave4Core.mjs';
 import './BrianInstantToolsWave4.css';
+import ClassBellTimeline from './BrianInstantToolsClassTimeline.jsx';
 export const WAVE4_LIBRARY=[
   {id:'groupMaker',Icon:UsersRound,vi:'Chia nhóm nhanh',en:'Group Maker',descVi:'Chia nhóm cân bằng một chạm',descEn:'Balanced groups in one tap'},
   {id:'noiseMeter',Icon:AudioLines,vi:'Đồng hồ tiếng ồn',en:'Noise Meter',descVi:'Đo âm thanh tương đối bằng micro',descEn:'Relative microphone noise level'},
@@ -232,7 +233,7 @@ const BELLS=[
  {key:'transition',Icon:Flag,freq:[622,523,622]},
  {key:'finish',Icon:PartyPopper,freq:[660,523,440,349]}
 ];
-function ClassBell({value,onChange,language,sound}){
+function ManualClassBell({value,onChange,language,sound}){
  const t=useStrings(language),[last,setLast]=useState(null);
  const contexts=useRef([]);
  const endAll=useCallback(()=>{
@@ -274,6 +275,17 @@ function ClassBell({value,onChange,language,sound}){
   </section>
   <div className="bit-w4-bell-grid">{BELLS.map(({key,Icon,...cue})=><button key={key} type="button" className={'bit-w4-bell-card'+(last===key?' is-played':'')} onClick={()=>play({key,...cue})}>
      <Icon size={36}/><strong>{t[key]}</strong><Volume2 size={16}/></button>)}</div>
+ </div>;
+}
+function ClassBell({value,onChange,language,sound}){
+ const [mode,setMode]=useState('manual');
+ return <div className="bit-w4-bell-workspace">
+  <div className="bit-w4-bell-tabs" role="tablist" aria-label={language==='en'?'Bell modes':'Chế độ chuông'}>
+   <button type="button" role="tab" aria-selected={mode==='manual'} className={mode==='manual'?'active':''} onClick={()=>setMode('manual')}>{language==='en'?'Manual Bells':'Chuông thủ công'}</button>
+   <button type="button" role="tab" aria-selected={mode==='timeline'} className={mode==='timeline'?'active':''} onClick={()=>setMode('timeline')}>{language==='en'?'Class Timeline':'Lịch chuông tự động'}</button>
+  </div>
+  {mode==='manual'?<ManualClassBell value={value} onChange={onChange} language={language} sound={sound}/>:
+   <ClassBellTimeline value={value.timeline} onChange={onChange} language={language} sound={sound}/>}
  </div>;
 }
 export function Wave4Tool({tool,value,onChange,language,sound}){
