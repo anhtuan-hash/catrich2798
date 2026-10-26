@@ -207,7 +207,9 @@ check('UI exposes quick sample import, CSV template, sound preview and loudness'
   assert.match(ui,/onClick=\{importSamplePack\}/);
   assert.match(ui,/onClick=\{\(\)=>exportQuestionCSV\('pack'\)\}/);
   assert.match(ui,/onClick=\{\(\)=>exportQuestionCSV\('template'\)\}/);
-  assert.match(ui,/onClick=\{\(\)=>playSound\('bomb'\)\}/);
+  assert.match(ui,/onClick=\{testAudio\}/);
+  assert.match(ui,/onClick=\{testVisual\}/);
+  assert.match(ui,/bba-allow-fx/);
   assert.match(ui,/BOMB_SOUND_STYLES\.map/);
   assert.match(ui,/parseArenaQuestions\(questionText\)/);
   assert.match(css,/bba-sample-actions/);
