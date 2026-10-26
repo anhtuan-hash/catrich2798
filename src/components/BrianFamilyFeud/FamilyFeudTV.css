@@ -157,22 +157,28 @@
   perspective:1000px;
 }
 .bff-shell[data-classroom-ui="v2"] .bff-board-head{
-  padding:4px 7px 13px;
+  padding:6px 12px 11px;
+  text-align:center;
 }
 .bff-shell[data-classroom-ui="v2"] .bff-board-head .bff-eyebrow{
   font-size:clamp(12px,calc(.86vw + var(--bff-font-bonus,0px)),19px);
   letter-spacing:.15em;
 }
-.bff-shell[data-classroom-ui="v2"] .bff-board-head .bff-tv-question{
-  font-size:clamp(31px,calc(2.65vw + var(--bff-font-bonus,0px)),58px);
-  font-weight:950;
-  line-height:1.16;
-  max-width:1100px;
+/* The prompt is a semantic div (role=heading), not an h2: older global heading
+   rules must never shrink the most important classroom text. */
+.bff-shell[data-classroom-ui="v2"] .bff-board-head div.bff-tv-question{
+  display:block;
+  width:100%;
+  font-size:clamp(42px,calc(3.5vw + var(--bff-question-bonus,0px)),80px)!important;
+  font-weight:950!important;
+  line-height:1.12;
+  max-width:1280px;
   color:#fff;
-  letter-spacing:-.03em;
-  margin:11px auto;
+  letter-spacing:-.032em;
+  margin:12px auto 8px;
   overflow-wrap:anywhere;
-  text-shadow:0 3px 10px #040c2050;
+  text-wrap:balance;
+  text-shadow:0 4px 15px #010b22b0;
 }
 .bff-shell[data-classroom-ui="v2"] .bff-board-head small {
   color:#d7e3f7;
@@ -367,8 +373,12 @@
   .bff-shell[data-classroom-ui="v2"] .bff-scorebar{margin-bottom:9px}
   .bff-shell[data-classroom-ui="v2"] .bff-team{min-height:84px;padding-block:9px}
   .bff-shell[data-classroom-ui="v2"] .bff-round-banner{min-height:58px;padding-block:7px;margin-bottom:10px}
-  .bff-shell[data-classroom-ui="v2"] .bff-board-head {padding-bottom:8px}
-  .bff-shell[data-classroom-ui="v2"] .bff-board-head .bff-tv-question {margin-block:8px}
+  .bff-shell[data-classroom-ui="v2"] .bff-board-head {padding:5px 8px 8px}
+  .bff-shell[data-classroom-ui="v2"] .bff-board-head div.bff-tv-question {
+    font-size:clamp(42px,calc(3.15vw + var(--bff-question-bonus,0px)),76px)!important;
+    line-height:1.09;
+    margin:8px auto 6px;
+  }
   .bff-shell[data-classroom-ui="v2"] .bff-answer-board{gap:7px}
   .bff-shell[data-classroom-ui="v2"] .bff-answer-tile{min-height:clamp(59px,6.35vh,73px);padding-block:5px}
   .bff-shell[data-classroom-ui="v2"] .bff-answer-rank {height:46px;width:46px}
@@ -382,8 +392,8 @@
   .bff-shell[data-classroom-ui="v2"] .bff-control-panel{
     display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
   }
-  .bff-shell[data-classroom-ui="v2"] .bff-board-head .bff-tv-question{
-    font-size:clamp(30px,calc(3.2vw + var(--bff-font-bonus,0px)),47px);
+  .bff-shell[data-classroom-ui="v2"] .bff-board-head div.bff-tv-question{
+    font-size:clamp(34px,calc(4.1vw + var(--bff-mobile-question-bonus,0px)),62px)!important;
   }
   .bff-shell[data-classroom-ui="v2"] .bff-answer-tile{min-height:clamp(67px,7vh,89px)}
 }
@@ -417,8 +427,8 @@
   }
   .bff-shell[data-classroom-ui="v2"] .bff-edition-round{font-size:14px}
   .bff-shell[data-classroom-ui="v2"] .bff-board-panel{padding:14px;border-radius:17px}
-  .bff-shell[data-classroom-ui="v2"] .bff-board-head .bff-tv-question{
-    font-size:clamp(28px,calc(4vw + var(--bff-font-bonus,0px)),41px);
+  .bff-shell[data-classroom-ui="v2"] .bff-board-head div.bff-tv-question{
+    font-size:clamp(29px,calc(4.5vw + var(--bff-mobile-question-bonus,0px)),49px)!important;
   }
   .bff-shell[data-classroom-ui="v2"] .bff-answer-tile{
     min-height:64px;padding:7px 11px;font-size:clamp(20px,calc(3.2vw + var(--bff-font-bonus,0px)),31px);
@@ -437,7 +447,9 @@
   .bff-shell[data-classroom-ui="v2"] .bff-topbar{align-items:flex-start}
   .bff-shell[data-classroom-ui="v2"] .bff-header-actions{width:100%;justify-content:space-between}
   .bff-shell[data-classroom-ui="v2"] .bff-header-actions>button{min-width:36px;min-height:36px}
-  .bff-shell[data-classroom-ui="v2"] .bff-board-head .bff-tv-question{font-size:clamp(26px,6.3vw,34px)}
+  .bff-shell[data-classroom-ui="v2"] .bff-board-head div.bff-tv-question{
+    font-size:clamp(25px,calc(30px + var(--bff-mobile-question-bonus,0px)),42px)!important;
+  }
   .bff-shell[data-classroom-ui="v2"] .bff-answer-tile{min-height:60px}
   .bff-shell[data-classroom-ui="v2"] .bff-answer-rank{width:36px;height:36px;font-size:21px}
   .bff-shell[data-classroom-ui="v2"] .bff-answer-points{min-width:42px;min-height:37px;font-size:21px}
