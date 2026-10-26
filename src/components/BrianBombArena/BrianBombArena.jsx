@@ -33,8 +33,44 @@ export default function BrianBombArena({currentUser,language='vi'}){
   const [status,setStatus]=useState('');
   const [fx,setFx]=useState(null);
   const closeRef=useRef(null),soundRef=useRef(null),fxTimer=useRef(null);
+  // Do not animate the BUTTON hitbox: doing so causes mouseleave while hovering
+  // and makes the shake appear to stop after one frame on Safari/Chrome.
+  const hoverAnimations=useRef(new Map());
+  const [shakeEnabled,setShakeEnabled]=useState(true);
+  const stopTileShake=(tileId,event)=>{
+    const current=hoverAnimations.current.get(tileId);
+    if(current){current.cancel();hoverAnimations.current.delete(tileId);}
+    event?.currentTarget?.classList.remove('is-hover-shaking');
+  };
+  const startTileShake=(event,tileId)=>{
+    const tile=event.currentTarget;
+    if(!shakeEnabled||tile.disabled||!tile.classList.contains('is-hidden'))return;
+    stopTileShake(tileId);
+    const surface=tile.querySelector('.bba-tile-visual');
+    if(!surface)return;
+    tile.classList.add('is-hover-shaking');
+    if(typeof surface.animate==='function'){
+      const animation=surface.animate([
+        {transform:'translate3d(0,0,0) rotate(0deg)'},
+        {transform:'translate3d(-3px,2px,0) rotate(-1.6deg)'},
+        {transform:'translate3d(3px,-2px,0) rotate(1.9deg)'},
+        {transform:'translate3d(-2px,-2px,0) rotate(-1.4deg)'},
+        {transform:'translate3d(3px,2px,0) rotate(1.6deg)'},
+        {transform:'translate3d(-2px,1px,0) rotate(-1.2deg)'},
+        {transform:'translate3d(0,0,0) rotate(0deg)'},
+      ],{duration:190,iterations:Infinity,easing:'linear'});
+      hoverAnimations.current.set(tileId,animation);
+    }
+  };
+  const clearAllTileShakes=()=>{
+    hoverAnimations.current.forEach(animation=>animation.cancel());
+    hoverAnimations.current.clear();
+  };
   const update=action=>setSession(s=>s?arenaReducer(s,action):s);
-  useEffect(()=>()=>{window.clearTimeout(fxTimer.current);soundRef.current?.close();},[]);
+  useEffect(()=>()=>{window.clearTimeout(fxTimer.current);soundRef.current?.close();
+    hoverAnimations.current.forEach(animation=>animation.cancel());hoverAnimations.current.clear();
+  },[]);
+  useEffect(()=>{if(!shakeEnabled)clearAllTileShakes();},[shakeEnabled]);
   const playSound=type=>{
     if(!volume)return;
     if(!soundRef.current)soundRef.current=createArenaSound();
@@ -108,6 +144,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
   const pick=i=>{
     if(!session||session.phase!=='running'||session.selectedTile!==null)return;
     const tile=session.tiles[i];if(!tile||tile.opened||tile.event==='blocked')return;
+    stopTileShake(i);
     update({type:'SELECT',index:i});setShowAnswer(false);
     if(!session.questionGate)revealFx(tile);else playSound('flip');
   };
@@ -123,7 +160,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
     const amount=session.teams[session.turn].bank;
     update({type:'BANK'});playSound('bank');showFx('bank',amount);
   };
-  const close=()=>{window.clearTimeout(fxTimer.current);setFx(null);setOpen(false);setConfirmReset(false);};
+  const close=()=>{clearAllTileShakes();window.clearTimeout(fxTimer.current);setFx(null);setOpen(false);setConfirmReset(false);};
   const reset=async()=>{
     await clearArena(ownerId);setSession(null);setScreen('setup');setConfirmReset(false);setFx(null);
     setPresenter(false);setQuestionText('');setStatus('');
@@ -298,14 +335,24 @@ export default function BrianBombArena({currentUser,language='vi'}){
       <div className="bba-playground">
         <div className="bba-board-wrap">
           <div className="bba-board-top"><span>{tr('MỞ Ô SỐ · TRÁNH BOM','FLIP NUMBERS · AVOID BOMBS')}</span>
-            <span>{remaining} {tr('ô còn lại','tiles left')} · {session.tiles.filter(tile=>tile.event==='bomb').length} 💣 / {session.tiles.filter(tile=>tile.event.startsWith('points')).length} ⭐</span></div>
+            <span>{remaining} {tr('ô còn lại','tiles left')} · {session.tiles.filter(tile=>tile.event==='bomb').length} 💣 / {session.tiles.filter(tile=>tile.event.startsWith('points')).length} ⭐</span>
+            {!presenter&&<button type="button" className={'bba-shake-toggle'+(shakeEnabled?' is-on':'')}
+              aria-pressed={shakeEnabled} onClick={()=>setShakeEnabled(v=>!v)}>
+              <Sparkles size={15}/>{shakeEnabled?tr('Rung ô: BẬT','Shake: ON'):tr('Rung ô: TẮT','Shake: OFF')}
+            </button>}</div>
           <div className="bba-tiles" style={{'--bba-columns':session.size}}>
             {session.tiles.map((tile,i)=><button key={tile.id} type="button"
               className={'bba-tile '+(tile.opened?'is-revealed':'is-hidden')+(tile.event==='blocked'?' is-blocked':'')+(tile.opened&&tile.event==='bomb'?' is-bomb':'')+(fx?.tileId===tile.id?' is-just-opened':'')}
               disabled={tile.opened||session.phase!=='running'||session.selectedTile!==null||presenter}
-              aria-label={tile.event==='blocked'?tile.label+' locked safe tile':tile.label+(tile.opened?' revealed':'')} onClick={()=>pick(i)}>
-              <span className="bba-tile-front">{tile.event==='blocked'?'◆':tile.label}</span>
-              <span className="bba-tile-back" aria-hidden={!tile.opened}>{tile.event==='blocked'?'◆':tile.opened?TILE_ICONS[tile.event]:'?'}</span>
+              aria-label={tile.event==='blocked'?tile.label+' locked safe tile':tile.label+(tile.opened?' revealed':'')}
+              onMouseEnter={event=>startTileShake(event,tile.id)}
+              onMouseLeave={event=>stopTileShake(tile.id,event)}
+              onBlur={event=>stopTileShake(tile.id,event)}
+              onClick={()=>pick(i)}>
+              <span className="bba-tile-visual" aria-hidden="true">
+                <span className="bba-tile-front">{tile.event==='blocked'?'◆':tile.label}</span>
+                <span className="bba-tile-back">{tile.event==='blocked'?'◆':tile.opened?TILE_ICONS[tile.event]:'?'}</span>
+              </span>
             </button>)}
           </div>
         </div>
