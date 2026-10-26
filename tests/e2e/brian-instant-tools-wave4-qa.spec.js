@@ -91,7 +91,7 @@ test('Buzzer locks on first team, cannot be stolen, awards score and persists on
 });
 test('Reaction Timer rejects early taps and records a valid tap after green',async({page})=>{
   await tool(page,18);
-  await page.getByRole('button',{name:'Bắt đầu thử'}).click();
+  await page.locator('.bit-w4-react-buttons .bit-primary').click();
   await page.locator('.bit-w4-reaction-stage').click();
   await expect(page.locator('.bit-w4-reaction-stage')).toContainText('Bấm quá sớm');
   await page.getByRole('button',{name:'Thử lại'}).click();
@@ -109,7 +109,7 @@ test('Class Bell has four click-to-play cues, global mute and persisted controls
   await page.locator('.bit-w4-bell-card').first().click();
   await expect(page.locator('.bit-w4-panel')).toContainText('Đã phát chuông');
   await page.getByRole('button',{name:'Bật/tắt âm thanh'}).click();
-  await expect(page.getByRole('status')).toContainText('Âm thanh toàn cục đang tắt');
+  await expect(page.locator('.bit-w4-panel .bit-error[role="status"]')).toContainText('Âm thanh toàn cục đang tắt');
   await page.reload();await page.getByRole('button',{name:'Mở bộ công cụ tức thì'}).click();await tool(page,19);
   await expect(page.locator('#bit-w4-volume')).toHaveValue('45');
   await expect(page.locator('#bit-w4-duration')).toHaveValue('3');
