@@ -93,6 +93,33 @@ async function loadScheduleWeekFromServer(client, window) {
   }
   return eligibleScheduleWeekRows(list, window, true);
 }
+// An import that completed its SQL insert but stalled on posters may have
+// committed the whole file already. Check current Supabase rows, not merely
+// the 15-minute in-memory calendar cache, before offering to reimport.
+async function fetchServerScheduleFingerprints(client, parsedRows) {
+  if (!client) throw new Error('Cần kết nối Supabase trước khi nhập lịch.');
+  const dates = parsedRows.map((row) => new Date(row.startAt).getTime()).filter(Number.isFinite);
+  if (!dates.length) return new Set();
+  const start = new Date(Math.min(...dates) - 86400000).toISOString();
+  const end = new Date(Math.max(...dates) + 86400000).toISOString();
+  const fingerprints = new Set();
+  for (let index = 0; index < 5000; index += 500) {
+    const { data, error } = await client.from('work_hub_items')
+      .select('metadata')
+      .eq('item_type', WORK_SCHEDULE_ITEM_TYPE)
+      .gte('due_at', start).lte('due_at', end)
+      .order('due_at', { ascending: true })
+      .range(index, index + 499);
+    if (error) throw new Error('Không xác minh được hoạt động đã lưu: ' + error.message);
+    for (const item of data || []) {
+      if (item?.metadata?.schedule_fingerprint)
+        fingerprints.add(item.metadata.schedule_fingerprint);
+    }
+    if ((data || []).length < 500) return fingerprints;
+  }
+  throw new Error('Quá nhiều hoạt động trong khoảng thời gian đã chọn; không thể xác minh trùng an toàn.');
+}
+
 const SCHEDULE_CACHE_KEY = 'bes-system-work-schedule-cache-v1';
 const SCHEDULE_SYNC_KEY = 'bes-system-work-schedule-sync-v1';
 const SCHEDULE_CACHE_MAX_AGE = 15 * 60 * 1000;
@@ -477,6 +504,8 @@ export default function GlobalWorkScheduleCenter({
   const [selectedId, setSelectedId] = useState(hashState.eventId);
   const [importOpen, setImportOpen] = useState(false);
   const [importPreview, setImportPreview] = useState(null);
+  const [importStage, setImportStage] = useState('');
+  const [eventDraftProgress, setEventDraftProgress] = useState(null);
   const [autoDetectEvents, setAutoDetectEvents] = useState(true);
   const [candidateSelection, setCandidateSelection] = useState(() => new Set());
   const [deleteWeekOpen, setDeleteWeekOpen] = useState(false);
@@ -821,9 +850,12 @@ export default function GlobalWorkScheduleCenter({
         : await readXlsxFile(file);
       const parsed = scheduleRowsFromGrid(grid, { fileName: file.name });
       if (!parsed.ok) throw new Error(parsed.message);
+      if (!client || !runtime.ready || !runtime.session)
+        throw new Error('Cần kết nối Supabase để kiểm tra trùng trước khi nhập lịch.');
+      const serverFingerprints = await fetchServerScheduleFingerprints(client, parsed.validRows);
       const rows = parsed.validRows.map((row) => ({
         ...row,
-        duplicate: existingFingerprints.has(row.fingerprint),
+        duplicate: serverFingerprints.has(row.fingerprint),
       }));
       setCandidateSelection(new Set(rows.filter((row) => !row.duplicate && detectScheduleEvent(row)).map((row) => row.fingerprint)));
       setAutoDetectEvents(true);
@@ -838,7 +870,7 @@ export default function GlobalWorkScheduleCenter({
   }
 
   async function importSchedule() {
-    if (!leader || !importPreview) return;
+    if (!leader || !importPreview || busy) return;
     if (!client || !runtime.ready || !runtime.session) {
       setError('Cần kết nối Supabase để đồng bộ lịch với toàn hệ thống.');
       return;
@@ -848,8 +880,8 @@ export default function GlobalWorkScheduleCenter({
       setError('Không còn dòng hợp lệ mới để nhập.');
       return;
     }
-
     setBusy(true);
+    setImportStage('Đang lưu lịch chung…');
     setError('');
     setNotice('');
     const importId = uid('schedule-import');
@@ -865,7 +897,6 @@ export default function GlobalWorkScheduleCenter({
           schedule_source_row: row.sourceRow,
           schedule_has_explicit_time: row.timeKnown === true,
           schedule_has_explicit_end_time: row.endTimeKnown === true,
-          // Review metadata is not a published event and never triggers a popup.
           ...(autoDetectEvents && candidateSelection.has(row.fingerprint) && detectScheduleEvent(row)
             ? { schedule_event_detection: detectScheduleEvent(row) }
             : {}),
@@ -873,78 +904,117 @@ export default function GlobalWorkScheduleCenter({
         },
       };
     });
-
+    const created = [];
     try {
-      const created = [];
       for (let index = 0; index < payloads.length; index += 50) {
-        const batch = payloads.slice(index, index + 50);
-        const { data, error: insertError } = await client.from('work_hub_items').insert(batch).select(SCHEDULE_COLUMNS);
+        setImportStage((language === 'en' ? 'Saving ' : 'Đang lưu ') +
+          Math.min(index + 50, payloads.length) + '/' + payloads.length +
+          (language === 'en' ? ' activities…' : ' hoạt động…'));
+        const { data, error: insertError } = await client.from('work_hub_items')
+          .insert(payloads.slice(index, index + 50)).select(SCHEDULE_COLUMNS);
         if (insertError) throw insertError;
         created.push(...(data || []));
       }
-
-      // An admin may stage event drafts immediately; TTCM-created suggestions
-      // remain in schedule metadata until an admin explicitly reviews them.
-      let draftOutcome = null;
-      if (isAdminRole(currentUser?.role) && autoDetectEvents) {
-        draftOutcome = await createDraftsForScheduleItems(created);
-      }
-
-      await recordAuditEvent({
-        action: 'schedule.file_imported',
-        entity_type: 'work_schedule_import',
-        entity_id: importId,
-        source_module: 'work-schedule',
-        after_data: {
-          file_name: importPreview.fileName,
-          imported_count: created.length,
-          skipped_duplicates: importPreview.rows.filter((row) => row.duplicate).length,
-          invalid_count: importPreview.invalidRows.length,
-          detected_count: created.filter((item) => item.metadata?.schedule_event_detection).length,
-          draft_created_count: draftOutcome?.created || 0,
-          item_ids: created.map((item) => item.id),
-        },
-      }, currentUser);
-      await emitAutomationEvent('schedule_imported', {
-        source: 'work-schedule',
-        import_id: importId,
-        count: created.length,
-        summary: `Đã nhập ${created.length} mục vào lịch làm việc dùng chung.`,
-      }, currentUser);
-
-      setItems((current) => {
-        const next = mergeScheduleItems(current, created);
-        writeCachedSchedule(next);
-        writeScheduleSyncStamp();
-        return next;
-      });
-      window.dispatchEvent(new CustomEvent(SCHEDULE_UPDATE_EVENT, {
-        detail: { importId, count: created.length, localApplied: true },
-      }));
-      window.dispatchEvent(new CustomEvent('bes-global-notification', {
-        detail: {
-          id: `work-schedule-import:${importId}`,
-          title: 'Lịch làm việc đã được cập nhật',
-          message: `${created.length} hoạt động mới từ file ${importPreview.fileName}`,
-          target: '#/dashboard',
-          createdAt: new Date().toISOString(),
-          read: false,
-          category: 'schedule',
-          status: 'imported',
-          chip: 'Lịch chung',
-          source: 'work-schedule-import',
-        },
-      }));
-      setImportPreview(null);
-      setImportOpen(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      const suggestionCount = created.filter((item) => item.metadata?.schedule_event_detection).length;
-      setNotice(`Đã đồng bộ ${created.length} hoạt động; nhận diện ${suggestionCount} ứng viên TTCM/Tổ Tiếng Anh THPT.${draftOutcome ? ` Admin đã tạo ${draftOutcome.created} bản nháp (${draftOutcome.needsTime} mục cần bổ sung giờ).` : ' Các ứng viên đang chờ admin kiểm tra.'}`);
-      if (draftOutcome?.errors?.length) setError(`Một số bản nháp chưa được tạo: ${draftOutcome.errors.slice(0, 3).join(' | ')}`);
     } catch (importError) {
-      setError(importError.message || 'Không thể nhập lịch làm việc.');
-    } finally {
+      if (created.length) {
+        setItems((current) => {
+          const next = mergeScheduleItems(current, created);
+          writeCachedSchedule(next);
+          writeScheduleSyncStamp();
+          return next;
+        });
+        window.dispatchEvent(new CustomEvent(SCHEDULE_UPDATE_EVENT, {
+          detail: { importId, count: created.length, localApplied: true },
+        }));
+      }
+      const partial = created.length
+        ? ' Đã xác nhận lưu ' + created.length + '/' + payloads.length +
+          ' hoạt động; hãy kiểm tra lịch trước khi nhập lại.'
+        : ' Hãy kiểm tra lịch trước khi tải lại file để tránh tạo trùng.';
+      setError((importError.message || 'Không thể nhập lịch làm việc.') + partial);
+      setImportStage('');
       setBusy(false);
+      return;
+    }
+
+    // Primary operation ends here. Do NOT await poster generation, draft
+    // creation, audit logs or automation before confirming the import.
+    setItems((current) => {
+      const next = mergeScheduleItems(current, created);
+      writeCachedSchedule(next);
+      writeScheduleSyncStamp();
+      return next;
+    });
+    window.dispatchEvent(new CustomEvent(SCHEDULE_UPDATE_EVENT, {
+      detail: { importId, count: created.length, localApplied: true },
+    }));
+    window.dispatchEvent(new CustomEvent('bes-global-notification', {
+      detail: {
+        id: 'work-schedule-import:' + importId,
+        title: 'Lịch làm việc đã được cập nhật',
+        message: created.length + ' hoạt động mới từ file ' + importPreview.fileName,
+        target: '#/dashboard', createdAt: new Date().toISOString(),
+        read: false, category: 'schedule', status: 'imported',
+        chip: 'Lịch chung', source: 'work-schedule-import',
+      },
+    }));
+    const suggestionCount = created.filter((item) => item.metadata?.schedule_event_detection).length;
+    const sourceFile = importPreview.fileName;
+    const duplicated = importPreview.rows.filter((row) => row.duplicate).length;
+    const invalid = importPreview.invalidRows.length;
+    setImportPreview(null);
+    setImportOpen(false);
+    setImportStage('');
+    setBusy(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    setNotice(language === 'en'
+      ? 'Saved ' + created.length + ' activities. ' + suggestionCount +
+        ' event candidates detected; drafts and posters are processed separately.'
+      : 'Đã lưu ' + created.length + ' hoạt động vào lịch chung. Nhận diện ' +
+        suggestionCount + ' ứng viên; bản nháp/poster được xử lý riêng.');
+
+    // Supplementary calls cannot turn a successful save into an import error.
+    void Promise.allSettled([
+      recordAuditEvent({
+        action: 'schedule.file_imported', entity_type: 'work_schedule_import',
+        entity_id: importId, source_module: 'work-schedule',
+        after_data: {
+          file_name: sourceFile, imported_count: created.length,
+          skipped_duplicates: duplicated, invalid_count: invalid,
+          detected_count: suggestionCount, item_ids: created.map((item) => item.id),
+        },
+      }, currentUser),
+      emitAutomationEvent('schedule_imported', {
+        source: 'work-schedule', import_id: importId, count: created.length,
+        summary: 'Đã nhập ' + created.length + ' mục vào lịch làm việc dùng chung.',
+      }, currentUser),
+    ]).then((outcomes) => {
+      if (outcomes.some((outcome) => outcome.status === 'rejected'))
+        console.warn('[Brian Schedule] Supplementary import actions did not all complete:', outcomes);
+    }).catch((error) => console.warn('[Brian Schedule] Follow-up failure:', error));
+
+    if (isAdminRole(currentUser?.role) && autoDetectEvents && suggestionCount) {
+      const candidates = created.filter((item) =>
+        item.metadata?.schedule_event_detection?.approvalStatus === 'pending');
+      setEventDraftProgress({ total: candidates.length, completed: 0, created: 0, failed: 0, needsTime: 0, state: 'running' });
+      // Browser-tab best effort only. Unfinished candidates stay pending for
+      // explicit retry from Event Manager; no fake durable worker claim.
+      void createDraftsForScheduleItems(candidates, {
+        onProgress: (progress) => setEventDraftProgress({ ...progress, state: 'running' }),
+      }).then((result) => {
+        setEventDraftProgress({
+          total: candidates.length, completed: candidates.length,
+          created: result.created, failed: result.errors.length, needsTime: result.needsTime, state: 'done',
+        });
+        if (result.errors.length)
+          setError('Lịch đã lưu. Một số bản nháp/poster chưa hoàn tất: ' +
+            result.errors.slice(0, 2).join(' | ') +
+            '. Có thể kiểm tra và xử lý lại trong Quản lý sự kiện.');
+      }).catch((error) => {
+        setEventDraftProgress({total:candidates.length,completed:0,created:0,failed:1,needsTime:0,state:'error'});
+        setError('Lịch đã lưu. Việc tạo bản nháp/poster gặp lỗi: ' +
+          (error.message || 'Không xác định') + '. Hãy kiểm tra trong Quản lý sự kiện.');
+      });
     }
   }
 
@@ -1200,6 +1270,20 @@ export default function GlobalWorkScheduleCenter({
         {error ? <div className="work-schedule-alert error"><b>Không thể xử lý</b><span>{error}</span><button type="button" onClick={() => setError('')}>×</button></div> : null}
         {notice ? <div className="work-schedule-alert success"><span>{notice}</span><button type="button" onClick={() => setNotice('')}>×</button></div> : null}
 
+        {eventDraftProgress ? <div className="work-schedule-import-progress" role="status" aria-live="polite">
+          <strong>{language === 'en' ? 'Event drafts & posters' : 'Bản nháp sự kiện & poster'}</strong>
+          <span>{eventDraftProgress.state === 'running'
+            ? (language === 'en' ? 'Processing ' : 'Đang xử lý ') +
+              eventDraftProgress.completed + '/' + eventDraftProgress.total +
+              (language === 'en' ? ' candidates. You can use the calendar.' : ' ứng viên. Bạn có thể tiếp tục dùng lịch.')
+            : (language === 'en' ? 'Finished: ' : 'Đã xử lý: ') +
+              eventDraftProgress.created + (language === 'en' ? ' drafts; ' : ' bản nháp; ') +
+              eventDraftProgress.failed + (language === 'en' ? ' issues; ' : ' lỗi; ') +
+              (eventDraftProgress.needsTime || 0) + (language === 'en' ? ' need a time. Review in Event Manager.' : ' cần bổ sung giờ. Xem Quản lý sự kiện.')}</span>
+          {eventDraftProgress.state !== 'running' ? <button type="button" aria-label="Đóng trạng thái tạo sự kiện" onClick={() => setEventDraftProgress(null)}>×</button> : null}
+          <div className="work-schedule-import-progress-track" aria-hidden="true"><i style={{width: String(eventDraftProgress.total ? Math.round(eventDraftProgress.completed / eventDraftProgress.total * 100) : 0) + '%'}} /></div>
+        </div> : null}
+
         <div className="work-schedule-metrics">
           <article><strong>{metrics.today}</strong><span>Hôm nay</span></article>
           <article><strong>{metrics.nextSeven}</strong><span>7 ngày tới</span></article>
@@ -1413,7 +1497,7 @@ export default function GlobalWorkScheduleCenter({
             <div className="work-schedule-preview-table"><table><thead><tr><th>Dòng</th><th>Ngày giờ</th><th>Nội dung</th><th>Địa điểm</th><th>Phụ trách</th><th>Trạng thái</th></tr></thead><tbody>{importPreview.rows.slice(0, 100).map((row) => <tr key={`${row.sourceRow}-${row.fingerprint}`} className={row.duplicate ? 'duplicate' : ''}><td>{row.sourceRow}</td><td>{formatScheduleDateTime(row.startAt)}</td><td><strong>{row.title}</strong></td><td>{row.location || '—'}</td><td>{row.ownerText || '—'}</td><td>{row.duplicate ? 'Trùng dữ liệu' : 'Sẵn sàng'}</td></tr>)}</tbody></table></div>
             {importPreview.invalidRows.length ? <details className="work-schedule-invalid"><summary>{importPreview.invalidRows.length} dòng không hợp lệ</summary>{importPreview.invalidRows.map((row) => <p key={row.sourceRow}><b>Dòng {row.sourceRow}:</b> {row.errors.join(', ')}</p>)}</details> : null}
           </> : <div className="work-schedule-empty"><strong>Chưa có dữ liệu xem trước</strong></div>}
-          <footer><button type="button" className="secondary" disabled={busy} onClick={() => setImportOpen(false)}>Huỷ</button><button type="button" className="primary" disabled={busy || !importableCount} onClick={importSchedule}>{busy ? 'Đang đồng bộ…' : `Nhập ${importableCount} hoạt động`}</button></footer>
+          <footer><button type="button" className="secondary" disabled={busy} onClick={() => setImportOpen(false)}>Huỷ</button><button type="button" className="primary" disabled={busy || !importableCount} onClick={importSchedule}>{busy ? (importStage || 'Đang lưu lịch…') : `Nhập ${importableCount} hoạt động`}</button></footer>
         </section>
       </div> : null}
 

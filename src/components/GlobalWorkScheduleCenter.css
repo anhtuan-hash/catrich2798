@@ -104,3 +104,16 @@ html[data-theme=dark] .work-schedule-delete-week-item,
 html[data-theme=dark] .work-schedule-delete-week-confirm input{
  background:var(--wsc-surface);color:var(--wsc-ink)
 }
+
+/* Non-blocking detected-event/portrait work after the calendar import commits. */
+.work-schedule-import-progress{
+  position:relative;display:flex;align-items:center;flex-wrap:wrap;gap:5px 12px;
+  margin-top:10px;padding:12px 15px 17px;border:1px solid #bdd7f5;
+  border-radius:13px;background:#f3f8ff;color:#1c517f;font-size:12px;
+}
+.work-schedule-import-progress>strong{font-weight:850}
+.work-schedule-import-progress>span{flex:1 1 230px;font-size:12px;line-height:1.5}
+.work-schedule-import-progress>button{flex:none;width:27px;height:27px;border:0;border-radius:50%;background:transparent;color:inherit;font-size:19px;cursor:pointer}
+.work-schedule-import-progress-track{position:absolute;bottom:0;left:0;right:0;height:5px;overflow:hidden;border-radius:0 0 13px 13px;background:#d4e5f8}
+.work-schedule-import-progress-track>i{display:block;height:100%;background:#2579d9;transition:width .25s ease}
+html[data-theme=dark] .work-schedule-import-progress{background:#1d344b;border-color:#436587;color:#daedff}
