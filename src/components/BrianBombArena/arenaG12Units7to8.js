@@ -391,25 +391,32 @@ export const G12_PACKS_7_8=[
         "First conditional: if + present simple, will + base verb."
       ],
       [
-        "Unless @ stop illegal hunting, many species will disappear.",
+        "Unless @ ___ illegal hunting, many species will disappear.",
         [
-          "hunters",
-          "hunter",
-          "a hunter",
-          "the hunter's"
+          "stop",
+          "stops",
+          "stopped",
+          "stopping"
         ],
         0,
         [
-          "in the forest",
-          "in protected parks",
-          "near villages",
-          "in wetland areas",
-          "on the island"
+          "the authorities",
+          "park rangers",
+          "local governments",
+          "law enforcement teams",
+          "conservation officers"
         ],
-        "Plural hunters matches stop; unless means if not."
+        "Unless + present simple for a real future condition; plural subjects take stop."
       ],
       [
-        "If @ had more funding, it could protect a larger area.",
+        "If @ ___ more funding, it could protect a larger area.",
+        [
+          "had",
+          "has",
+          "will have",
+          "having"
+        ],
+        0,
         [
           "the charity",
           "the national park",
@@ -417,14 +424,7 @@ export const G12_PACKS_7_8=[
           "the research team",
           "the organisation"
         ],
-        0,
-        [
-          "were",
-          "had",
-          "has",
-          "will have"
-        ],
-        "This seed must be normalised: hypothetical if-clauses use had, not present has."
+        "Second conditional: if + past simple had, result could + infinitive."
       ],
       [
         "As long as @ ___ responsible guidelines, eco-tourism can benefit nature.",
@@ -445,7 +445,14 @@ export const G12_PACKS_7_8=[
         "As long as introduces a condition; plural subjects use follow."
       ],
       [
-        "If @ had not protected the eggs, the turtles would have died.",
+        "If @ ___ protected the eggs, the turtles would have died.",
+        [
+          "have not",
+          "had not",
+          "will not",
+          "would not"
+        ],
+        1,
         [
           "the volunteers",
           "the rangers",
@@ -453,17 +460,17 @@ export const G12_PACKS_7_8=[
           "the rescuers",
           "the conservationists"
         ],
-        0,
-        [
-          "have",
-          "had",
-          "will",
-          "would"
-        ],
-        "Past perfect after if is used for a past counterfactual condition."
+        "Third conditional if + past perfect (had not + V3)."
       ],
       [
-        "@ will not survive unless their nesting sites are protected.",
+        "@ ___ unless their nesting sites are protected.",
+        [
+          "will not survive",
+          "would not survive",
+          "had not survived",
+          "have not survived"
+        ],
+        0,
         [
           "The sea turtles",
           "The rare birds",
@@ -471,14 +478,7 @@ export const G12_PACKS_7_8=[
           "The endangered species",
           "The wild predators"
         ],
-        0,
-        [
-          "would",
-          "will",
-          "had",
-          "have"
-        ],
-        "In real conditional future results use will + base verb."
+        "First conditional result uses will + base verb."
       ],
       [
         "If the temperature rises, @ ___ suitable habitats.",
@@ -517,7 +517,14 @@ export const G12_PACKS_7_8=[
         "Unreal condition in the present uses past simple with would."
       ],
       [
-        "@ are more vulnerable than species living in protected areas.",
+        "@ are more vulnerable ___ species living in protected areas.",
+        [
+          "than",
+          "as",
+          "like",
+          "from"
+        ],
+        0,
         [
           "Endangered animals",
           "Migrating birds",
@@ -525,14 +532,7 @@ export const G12_PACKS_7_8=[
           "Wild predators",
           "Sea turtles"
         ],
-        0,
-        [
-          "than",
-          "as",
-          "like",
-          "from"
-        ],
-        "Comparative adjectives take than."
+        "Comparative adjectives use than."
       ],
       [
         "@ are not as common ___ they were fifty years ago.",
@@ -553,7 +553,14 @@ export const G12_PACKS_7_8=[
         "Not as + adjective + as expresses inequality."
       ],
       [
-        "@ need more protection than common species do.",
+        "@ need more protection ___ common species do.",
+        [
+          "than",
+          "as",
+          "to",
+          "with"
+        ],
+        0,
         [
           "Endangered mammals",
           "Rare butterflies",
@@ -561,14 +568,7 @@ export const G12_PACKS_7_8=[
           "Marine turtles",
           "Wild cats"
         ],
-        0,
-        [
-          "than",
-          "as",
-          "to",
-          "with"
-        ],
-        "Comparative more + noun + than."
+        "More ... than is the comparative pattern."
       ],
       [
         "The fewer trees we cut down, the ___ the habitat becomes.",
@@ -607,7 +607,14 @@ export const G12_PACKS_7_8=[
         "Provided that functions as if; plural subjects take have."
       ],
       [
-        "If @ had known about the threat, they would have acted sooner.",
+        "If @ ___ known about the threat, they would have acted sooner.",
+        [
+          "have",
+          "had",
+          "would",
+          "will"
+        ],
+        1,
         [
           "the conservationists",
           "the researchers",
@@ -615,32 +622,25 @@ export const G12_PACKS_7_8=[
           "the volunteers",
           "the authorities"
         ],
-        0,
-        [
-          "have",
-          "had",
-          "would",
-          "will"
-        ],
-        "Past unreal condition: if + had + past participle."
+        "Third conditional: if + had + past participle."
       ],
       [
-        "@ is less destructive than illegal logging.",
-        [
-          "Responsible tourism",
-          "Eco-friendly farming",
-          "Sustainable fishing",
-          "Protected agriculture",
-          "Habitat restoration"
-        ],
-        0,
+        "@ is ___ destructive than illegal logging.",
         [
           "less",
           "fewer",
           "little",
           "least"
         ],
-        "Less + adjective + than compares the degree of a quality."
+        0,
+        [
+          "Responsible tourism",
+          "Eco-friendly farming",
+          "Sustainable fishing",
+          "Habitat restoration",
+          "Wildlife monitoring"
+        ],
+        "Less + adjective + than compares degree."
       ],
       [
         "In case @ ___ injured animals, they should call the rescue centre.",
@@ -661,7 +661,14 @@ export const G12_PACKS_7_8=[
         "In case + present simple describes a precaution."
       ],
       [
-        "Only if @ cooperate can the conservation plan succeed.",
+        "Only if @ ___ can the conservation plan succeed.",
+        [
+          "cooperate",
+          "cooperated",
+          "cooperates",
+          "will cooperate"
+        ],
+        0,
         [
           "the agencies",
           "local schools",
@@ -669,17 +676,17 @@ export const G12_PACKS_7_8=[
           "communities",
           "the volunteers"
         ],
-        0,
-        [
-          "cooperate",
-          "cooperated",
-          "cooperates",
-          "will cooperate"
-        ],
-        "Only if + subject + present, followed by inversion in the main clause."
+        "Only if + plural subject + present simple, with inversion in main clause."
       ],
       [
-        "@ may recover if their breeding areas remain undisturbed.",
+        "@ may recover ___ their breeding areas remain undisturbed.",
+        [
+          "if",
+          "unless",
+          "despite",
+          "because of"
+        ],
+        0,
         [
           "Wildlife populations",
           "Rare bird species",
@@ -687,17 +694,17 @@ export const G12_PACKS_7_8=[
           "Sea turtle groups",
           "Endangered mammals"
         ],
-        0,
-        [
-          "if",
-          "unless",
-          "despite",
-          "because of"
-        ],
-        "If introduces a real condition for recovery."
+        "If gives the condition for recovery."
       ],
       [
-        "@ are just as important as large protected forests.",
+        "@ are just as important ___ large protected forests.",
+        [
+          "as",
+          "than",
+          "like",
+          "from"
+        ],
+        0,
         [
           "Small wetlands",
           "Mangrove areas",
@@ -705,14 +712,7 @@ export const G12_PACKS_7_8=[
           "Coastal reserves",
           "Coral reefs"
         ],
-        0,
-        [
-          "as",
-          "than",
-          "like",
-          "from"
-        ],
-        "As + adjective + as expresses equality."
+        "As adjective as expresses equality."
       ],
       [
         "If @ ___ extinct, an important part of biodiversity would be lost.",
