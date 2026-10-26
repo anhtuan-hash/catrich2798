@@ -1,7 +1,7 @@
 import React,{useEffect,useState,useRef} from 'react';
 import QRCode from 'qrcode';
 import {QrCode,Copy,Users,Check, X,Pause,Play,Square,Download,RefreshCw,ShieldCheck} from 'lucide-react';
-import {createGuestRoom,teacherRoomState,controlTeacherRoom,composeGuestPublicSession,safeGuestShareUrl}
+import {createGuestRoom,teacherRoomState,controlTeacherRoom,restoreGuestRoom,safeGuestShareUrl}
  from './boardLiveApi.js';
 import './BoardLiveGuestControl.css';
 const csvCell=x=>{
@@ -12,7 +12,13 @@ const csvCell=x=>{
 export default function BoardLiveGuestControl({session,onProjection,vi=true}){
  const [room,setRoom]=useState(null),[qr,setQr]=useState(''),[busy,setBusy]=useState(false);
  const [error,setError]=useState(''),[message,setMessage]=useState('');
- const roomId=room?.id,sessionMode=session?.mode;
+ const roomId=room?.id;
+ useEffect(()=>{
+  let active=true;
+  void restoreGuestRoom().then(data=>{if(active&&data)sendProjection(data);})
+   .catch(e=>{if(active)setError(e.message||'Unable to restore previous session');});
+  return()=>{active=false;};
+ },[]);
  const onProjectionRef=useRef(onProjection);onProjectionRef.current=onProjection;
  const sendProjection=(data)=>{
   setRoom(data);
