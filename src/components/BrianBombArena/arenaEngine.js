@@ -64,7 +64,7 @@ export function createArena(config={},rng=rngDefault){
         options:q.options.map(value=>String(value).slice(0,200)),
         answerIndex:Number(q.answerIndex),
         explanation:String(q.explanation||'').slice(0,400),
-        unit:Number(q.unit)||null,
+        unit:Number(q.unit)||null,grade:Number(q.grade)||11,
       }:{}),
     })).filter(q=>q.prompt):[],
     tiles,teams,turn:0,questionIndex:0,selectedTile:null,phase:'ready',
