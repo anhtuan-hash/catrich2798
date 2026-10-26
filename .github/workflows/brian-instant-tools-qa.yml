@@ -22,6 +22,11 @@ permissions:
   contents: read
 jobs:
   browser-uat:
+    name: UAT / ${{ matrix.browser }}
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [desktop-chromium, android-chromium, iphone-webkit]
     runs-on: ubuntu-24.04
     timeout-minutes: 19
     steps:
@@ -37,7 +42,7 @@ jobs:
       - name: Existing dependencies only
         run: npm ci --no-audit --no-fund
       - name: Install free browser engines
-        run: npx playwright install --with-deps chromium webkit
+        run: npx playwright install --with-deps ${{ matrix.browser == 'iphone-webkit' && 'webkit' || 'chromium' }}
       - name: Check pure tool contracts
         run: node scripts/test-brian-instant-tools.mjs
       - name: Check Motion P0 contracts
@@ -45,4 +50,4 @@ jobs:
       - name: Verify production Vite compilation in isolation
         run: npx vite build
       - name: Run isolated tools UI (no cloud / no student data)
-        run: npx playwright test --config=playwright.brian-instant-tools.config.js
+        run: npx playwright test --config=playwright.brian-instant-tools.config.js --project=${{ matrix.browser }}
