@@ -376,9 +376,9 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
       <section key={game.roundIndex+'-'+(game.phase==='ready'?'ready':'active')}
         className="bff-board-panel" data-round-scene="enter">
         <div className="bff-board-head">
-          <span className="bff-eyebrow">BRIAN FAMILY FEUD</span>
-          <h2 className="bff-tv-question">{board?.prompt}</h2>
-          <small>{board?.category}</small>
+          <span className="bff-eyebrow">QUESTION · {String(game.roundIndex+1).padStart(2,'0')}</span>
+          <div className="bff-tv-question" role="heading" aria-level={2}>{board?.prompt}</div>
+          {!game.edition&&<small>{board?.category}</small>}
         </div>
         <div className="bff-answer-board" aria-label={tr('Bảng sáu đáp án','Six-answer survey-style board')}>
           {board?.answers.map((answer,index)=>{
@@ -523,7 +523,9 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
     {open&&createPortal(<section className="bff-shell" role="dialog" aria-modal="true" aria-label="Brian Family Feud"
        ref={shellRef} data-bubble-phase={exiting?'exit':'enter'} data-motion-kind={motionKind}
        style={{'--bff-motion-duration':motionDuration+'ms','--bff-type-scale':fontScale,
-         '--bff-font-bonus':Math.round((fontScale-1.18)*40)+'px'}}
+         '--bff-font-bonus':Math.round((fontScale-1.18)*40)+'px',
+         '--bff-question-bonus':Math.round((fontScale-1.18)*85)+'px',
+         '--bff-mobile-question-bonus':Math.round((fontScale-1.18)*34)+'px'}}
        data-classroom-ui="v2">
       <header className="bff-topbar">
         <div className="bff-brand"><span className="bff-brand-icon">👨‍👩‍👧‍👦</span><div>
