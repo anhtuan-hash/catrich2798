@@ -35,6 +35,7 @@ export const submitGuestRoom=(code,token,choice,body)=>rpc('bbd_live_submit',{
  p_code:safeCode(code),p_token:String(token||''),
  p_choice:Number.isInteger(choice)?choice:null,p_body:typeof body==='string'?body:null});
 export const teacherRoomState=id=>rpc('bbd_live_teacher_state',{p_room:safeId(id)});
+export async function removeFinishedGuestRoom(id){return rpc('bbd_live_teacher_delete',{p_room:safeId(id)});}
 export const controlTeacherRoom=(id,action,entry=null,value=null)=>rpc('bbd_live_teacher_control',{
  p_room:safeId(id),p_action:action,p_entry:safeId(entry),p_value:value});
 export function composeGuestPublicSession(room,baseSession){
