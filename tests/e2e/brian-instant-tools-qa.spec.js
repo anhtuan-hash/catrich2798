@@ -34,7 +34,11 @@ test('Dice rolls and Scoreboard undo retain local session without modifying scor
   await page.locator('.bit-app-card').nth(2).click();
   await page.locator('.bit-team').first().getByRole('button',{name:'+5'}).click();
   await expect(page.locator('.bit-team-score').first()).toHaveText('5');
-  await page.getByRole('button',{name:'Hoàn tác'}).click();
+  // Allow pointer animation/confetti to settle on iPhone WebKit before the next touch.
+  await page.waitForTimeout(1200);
+  const undo=page.getByRole('button',{name:'Hoàn tác'});
+  await undo.scrollIntoViewIfNeeded();
+  await undo.click({timeout:16000});
   await expect(page.locator('.bit-team-score').first()).toHaveText('0');
   await page.locator('.bit-team').first().getByRole('button',{name:'+1'}).click();
   await page.reload();
