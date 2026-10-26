@@ -27,7 +27,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
   const [theme,setTheme]=useState('mint'),[questionGate,setQuestionGate]=useState(false);
   const [questionText,setQuestionText]=useState(''),[showAnswer,setShowAnswer]=useState(false);
   const [volume,setVolume]=useState(true),[presenter,setPresenter]=useState(false);
-  const [bombSoundStyle,setBombSoundStyle]=useState('cinematic'),[soundVolume,setSoundVolume]=useState(75);
+  const [bombSoundStyle,setBombSoundStyle]=useState('recorded'),[soundVolume,setSoundVolume]=useState(75);
   const [samplePackId,setSamplePackId]=useState(SAMPLE_PACKS[0].id);
   const [confirmReset,setConfirmReset]=useState(false),[saveError,setSaveError]=useState(false);
   const [status,setStatus]=useState('');
@@ -107,7 +107,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
   };
   const pick=i=>{
     if(!session||session.phase!=='running'||session.selectedTile!==null)return;
-    const tile=session.tiles[i];if(!tile||tile.opened)return;
+    const tile=session.tiles[i];if(!tile||tile.opened||tile.event==='blocked')return;
     update({type:'SELECT',index:i});setShowAnswer(false);
     if(!session.questionGate)revealFx(tile);else playSound('flip');
   };
@@ -186,6 +186,8 @@ export default function BrianBombArena({currentUser,language='vi'}){
             <span>{MODE_EMOJI[value]}</span><strong>{MODE_NAMES[value][vi?0:1]}</strong>
           </button>)}</div>
           <h3>{tr('02 · Kích thước bảng','02 · Board size')}</h3>
+          <p className="bba-muted">{tr('Tỷ lệ 1:1 bom và điểm: 4×4 = 8/8; 5×5 = 12/12, ô C3 khóa; 6×6 = 18/18.',
+            'Exactly equal bombs and scoring tiles: 4×4 = 8/8; 5×5 = 12/12 with C3 locked; 6×6 = 18/18.')}</p>
           <div className="bba-pill-row">{[4,5,6].map(n=><button type="button" key={n} className={'bba-pill '+(size===n?'is-picked':'')}
             aria-pressed={size===n} onClick={()=>setSize(n)}>{n} × {n}<small>{n*n} {tr('ô','tiles')}</small></button>)}</div>
           <h3>{tr('03 · Đội thi đấu','03 · Teams')}</h3>
@@ -243,7 +245,12 @@ export default function BrianBombArena({currentUser,language='vi'}){
             <button type="button" className="bba-sound-preview" onClick={()=>playSound('bomb')} disabled={!volume}>
               <Volume2 size={17}/>{tr('Nghe thử tiếng bom','Preview explosion')}
             </button>
-            <small>{tr('Âm thanh tạo ngay trong trình duyệt, không tải về từ dịch vụ khác.','Synthesized in your browser; no external sound service.')}</small>
+            <small>{bombSoundStyle==='recorded'?
+              tr('Âm thanh thu thật (public domain), phát từ Wikimedia Commons. Cần kết nối mạng để tải lần đầu.',
+                'Real public-domain recording streamed from Wikimedia Commons; internet required for first playback.'):
+              tr('Âm thanh tổng hợp tại thiết bị; hoạt động ngoại tuyến.','Locally synthesized audio; works offline.')}</small>
+            {bombSoundStyle==='recorded'&&<a href="https://commons.wikimedia.org/wiki/File:Explosion-LS100155.ogg" target="_blank" rel="noopener noreferrer"
+              className="bba-sound-credit">{tr('Nguồn: Fg2 · Wikimedia Commons (public domain)','Source: Fg2 · Wikimedia Commons (public domain)')}</a>}
           </div>
           <button type="button" className="bba-primary bba-full" onClick={begin}><Play size={18}/>{tr('Bắt đầu trò chơi','Start game')}<ChevronRight size={18}/></button>
         </section>
@@ -259,10 +266,10 @@ export default function BrianBombArena({currentUser,language='vi'}){
         <button type="button" onClick={()=>setConfirmReset(true)}><XCircle size={16}/>{tr('Xóa phiên','Delete session')}</button></div>
     </section>;
     return <div className="bba-arena">
-      {session.ruleVersion!==2&&<div className="bba-upgrade-banner" role="status">
-        <span>💣 {tr('Phiên này dùng luật chơi cũ. Hãy tạo ván mới để chơi dạng mở số / bom với POT và hiệu ứng v2.',
-          'This session uses the previous rules. Start a new game for number/bomb tiles, POT and v2 effects.')}</span>
-        <button type="button" onClick={()=>setConfirmReset(true)}>{tr('Tạo ván Bomb Arena v2','Start Bomb Arena v2')}</button>
+      {session.ruleVersion!==4&&<div className="bba-upgrade-banner" role="status">
+        <span>💣 {tr('Phiên này dùng luật cũ. Tạo ván mới để có tỷ lệ 1:1 số ô bom và ô điểm, cùng âm thanh bom ghi âm thực tế.',
+          'This is a previous-rule session. Start a new game for 1:1 bomb/score tiles and recorded explosion audio.')}</span>
+        <button type="button" onClick={()=>setConfirmReset(true)}>{tr('Tạo ván Bomb Arena v4','Start Bomb Arena v4')}</button>
       </div>}
       
 {session.mode==='luck'&&<div className="bba-pot-stage" aria-live="polite">
@@ -291,14 +298,14 @@ export default function BrianBombArena({currentUser,language='vi'}){
       <div className="bba-playground">
         <div className="bba-board-wrap">
           <div className="bba-board-top"><span>{tr('MỞ Ô SỐ · TRÁNH BOM','FLIP NUMBERS · AVOID BOMBS')}</span>
-            <span>{remaining} {tr('ô còn lại','tiles left')}</span></div>
+            <span>{remaining} {tr('ô còn lại','tiles left')} · {session.tiles.filter(tile=>tile.event==='bomb').length} 💣 / {session.tiles.filter(tile=>tile.event.startsWith('points')).length} ⭐</span></div>
           <div className="bba-tiles" style={{'--bba-columns':session.size}}>
             {session.tiles.map((tile,i)=><button key={tile.id} type="button"
-              className={'bba-tile '+(tile.opened?'is-revealed':'is-hidden')+(tile.opened&&tile.event==='bomb'?' is-bomb':'')+(fx?.tileId===tile.id?' is-just-opened':'')}
+              className={'bba-tile '+(tile.opened?'is-revealed':'is-hidden')+(tile.event==='blocked'?' is-blocked':'')+(tile.opened&&tile.event==='bomb'?' is-bomb':'')+(fx?.tileId===tile.id?' is-just-opened':'')}
               disabled={tile.opened||session.phase!=='running'||session.selectedTile!==null||presenter}
-              aria-label={tile.label+(tile.opened?' revealed':'')} onClick={()=>pick(i)}>
-              <span className="bba-tile-front">{tile.label}</span>
-              <span className="bba-tile-back" aria-hidden={!tile.opened}>{tile.opened?TILE_ICONS[tile.event]:'?'}</span>
+              aria-label={tile.event==='blocked'?tile.label+' locked safe tile':tile.label+(tile.opened?' revealed':'')} onClick={()=>pick(i)}>
+              <span className="bba-tile-front">{tile.event==='blocked'?'◆':tile.label}</span>
+              <span className="bba-tile-back" aria-hidden={!tile.opened}>{tile.event==='blocked'?'◆':tile.opened?TILE_ICONS[tile.event]:'?'}</span>
             </button>)}
           </div>
         </div>

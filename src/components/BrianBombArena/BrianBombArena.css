@@ -360,3 +360,37 @@ body .bba-bubble:focus-visible{outline:3px solid #ffa6ac;outline-offset:4px;}
   .bba-sample-actions button:first-child{grid-column:1/-1;}
   .bba-sample-actions button{font-size:11px;}
 }
+
+
+/* Bomb Arena v4 — equal-count board: disabled centre C3 is visibly neutral. */
+.bba-shell .bba-tile.is-blocked,.bba-theme-mint .bba-tile.is-blocked{
+  background:repeating-linear-gradient(135deg,#dce5e8 0px,#dce5e8 9px,#c5d5da 9px,#c5d5da 18px)!important;
+  color:#526774!important;border:2px dashed #a3b7bf!important;box-shadow:none!important;
+  opacity:.82!important;cursor:not-allowed!important;transform:none!important;animation:none!important;
+}
+.bba-shell .bba-tile.is-blocked .bba-tile-back{color:#526774!important;opacity:1;transform:none;font-size:clamp(20px,2.5vw,35px);}
+.bba-shell .bba-tile.is-blocked .bba-tile-front{display:none;}
+.bba-sound-credit{display:inline-flex;color:var(--bba-accent);font-size:11px;text-decoration:underline;text-underline-offset:3px;}
+/* Continuous shake only while a desktop pointer is physically over a playable,
+   unopened tile. Leaving stops the keyframe immediately, without delayed settling. */
+@keyframes bba-hover-tremble{
+  0%,100%{transform:translate(0,0) rotate(0deg);}
+  12%{transform:translate(-2px,1px) rotate(-1.5deg);}
+  27%{transform:translate(2px,-2px) rotate(1.7deg);}
+  41%{transform:translate(-1px,2px) rotate(-1.1deg);}
+  58%{transform:translate(2px,1px) rotate(1.5deg);}
+  76%{transform:translate(-2px,-1px) rotate(-1.6deg);}
+  91%{transform:translate(1px,-2px) rotate(1.2deg);}
+}
+.bba-shell .bba-tile.is-hidden{transition:background .16s,box-shadow .16s!important;transform:none;}
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+  .bba-shell .bba-tile.is-hidden:not(:disabled):hover{
+    animation:bba-hover-tremble .13s linear infinite!important;
+    transform-origin:center center;
+    will-change:transform;
+  }
+}
+/* Touch has no hover; reduced-motion users retain a static focus outline. */
+@media(prefers-reduced-motion:reduce){
+  .bba-shell .bba-tile.is-hidden:hover{animation:none!important;transform:none!important;}
+}

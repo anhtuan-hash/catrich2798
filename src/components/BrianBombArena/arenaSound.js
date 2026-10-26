@@ -1,13 +1,28 @@
-// Brian Bomb Arena v3: layered cinematic sound design entirely in Web Audio.
-// No external audio asset, licence, subscription, network call or AI dependency.
+// Brian Bomb Arena v4 — authentic recorded explosion with synthesized fallback.
+// Recording: Fg2, Wikimedia Commons, public-domain dedication (PD-self).
+// https://commons.wikimedia.org/wiki/File:Explosion-LS100155.ogg
+// The sample is served by Wikimedia CDN; synthesizer stays available offline.
+export const RECORDED_EXPLOSION_URL='https://upload.wikimedia.org/wikipedia/commons/transcoded/b/b9/Explosion-LS100155.ogg/Explosion-LS100155.ogg.mp3';
 export const BOMB_SOUND_STYLES = Object.freeze([
+  {id:'recorded',vi:'Tiếng nổ ghi âm thực tế',en:'Real recorded explosion'},
   {id:'cinematic',vi:'Nổ trầm chân thực',en:'Cinematic boom'},
   {id:'arcade',vi:'Nổ game vui nhộn',en:'Arcade blast'},
   {id:'gentle',vi:'Nổ nhẹ cho lớp học',en:'Classroom soft'},
 ]);
 const bounded=(v,lo,hi)=>Math.max(lo,Math.min(hi,Number.isFinite(Number(v))?Number(v):lo));
 export function createArenaSound(){
-  let context=null,output=null,noiseCache=null;
+  let context=null,output=null,noiseCache=null,recorded=null;
+  const setupRecording=()=>{
+    if(recorded||typeof Audio==='undefined')return recorded;
+    const element=new Audio();
+    element.preload='auto';
+    element.src=RECORDED_EXPLOSION_URL;
+    try{element.load();}catch{/* No network: synth fallback on play. */}
+    recorded=element;
+    return recorded;
+  };
+  // Preload while teacher is choosing a game, not when the bomb is first opened.
+  setupRecording();
   function getAudio(){
     const AC=typeof window!=='undefined'&&(window.AudioContext||window.webkitAudioContext);
     if(!AC)return null;
@@ -95,7 +110,25 @@ export function createArenaSound(){
     tone(ctx,{freq:170,end:65,at:t,duration:.38,type:'triangle',gain:.11,attack:.017});
     burst(ctx,{at:t+.17,duration:.29,filter:'lowpass',startHz:550,endHz:180,gain:.075,attack:.026});
   }
-  function play(type,{style='cinematic',volume=1}={}){
+  function play(type,{style='recorded',volume=1}={}){
+    if(type==='bomb'&&style==='recorded'){
+      const media=setupRecording();
+      if(media){
+        try{
+          media.pause();
+          media.currentTime=0;
+          const v=bounded(volume,0,100);
+          media.volume=Math.min(.9,(v>1?v/100:v)*.82);
+          const playback=media.play();
+          // Browser/network failure falls back to the already available synth.
+          if(playback?.catch)void playback.catch(()=>{
+            try{const ctx=getAudio();if(ctx)cinematic(ctx,ctx.currentTime+.006,.7);}catch{/* no-op */}
+          });
+          return true;
+        }catch{/* Fall through to synthesized cinematic. */}
+      }
+      style='cinematic';
+    }
     try{
       const ctx=getAudio();
       if(!ctx)return false;
@@ -134,6 +167,7 @@ export function createArenaSound(){
   return {
     play,
     close:()=>{
+      if(recorded){recorded.pause();recorded.removeAttribute('src');recorded.load();recorded=null;}
       if(context){void context.close().catch(()=>{});context=null;output=null;noiseCache=null;}
     },
   };
