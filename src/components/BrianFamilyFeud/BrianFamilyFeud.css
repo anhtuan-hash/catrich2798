@@ -313,3 +313,12 @@ body .bff-bubble:focus-visible{outline:3px solid #f9bd54;outline-offset:4px}
  .bff-shell,.bff-shell *,.bff-shell *::before,.bff-shell *::after,
  body .bff-bubble{animation:none!important;transition:none!important}
 }
+
+.bff-fast-player{display:inline-flex;align-items:center;justify-content:center;
+ padding:9px 17px;border-radius:999px;background:#f6bc5d24;
+ border:1px solid #ffcb736a;color:var(--bff-gold);font-weight:900;
+ font-size:clamp(15px,1.3vw,22px)}
+html[data-motion-bubble="none"] body .bff-bubble:hover,
+html[data-motion-bubble="none"] body .bff-bubble:active{
+ transform:none!important;transition:none!important
+}
