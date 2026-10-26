@@ -10,6 +10,15 @@ export default function BoardPptxStudio({lesson,page,vi=true,onEdit,onDelete,onN
  const index=all.indexOf(active);
  const textObjects=(page?.pptxSource?page.objects||[]:[]).filter(o=>o.kind==='text'&&o.pptxEditable);
  const [search,setSearch]=useState('');
+ // Keep keystrokes local; commit on blur/Enter so large imported images are not
+ // cloned into Brian Board's undo history on every typed character.
+ const [drafts,setDrafts]=useState({});
+ const saveText=o=>{
+  if(!(o.id in drafts))return;
+  const text=drafts[o.id].slice(0,90);
+  if(text!==o.text)onEdit(o.id,{text});
+  setDrafts(prev=>{const next={...prev};delete next[o.id];return next;});
+ };
  const visible=textObjects.filter(o=>String(o.text||'').toLocaleLowerCase().includes(search.toLocaleLowerCase())).slice(0,130);
  return <div className="bbd-pptx-studio" data-testid="board-pptx-studio">
    <div className="bbd-pptx-title"><Presentation size={22}/><h3>{vi?'PowerPoint Studio':'PowerPoint Studio'}</h3></div>
@@ -29,9 +38,11 @@ export default function BoardPptxStudio({lesson,page,vi=true,onEdit,onDelete,onN
        <div className="bbd-pptx-caption"><Type size={17}/><strong>{vi?'Chỉnh sửa trực tiếp nội dung chữ':'Edit slide text'}</strong><small>{textObjects.length} {vi?'khung chữ':'text items'}</small></div>
        <div className="bbd-pptx-edit-list">{visible.map((o,i)=><div key={o.id} className="bbd-pptx-edit-item">
          <span className="bbd-pptx-label">{vi?'Khung chữ':'Text'} {i+1}</span>
-         <textarea rows={2} maxLength={90} value={o.text||''} disabled={page.locked||o.locked}
+         <textarea rows={2} maxLength={90} value={drafts[o.id]??o.text??''} disabled={page.locked||o.locked}
            aria-label={(vi?'Sửa văn bản ':'Edit text ')+(i+1)}
-           onChange={e=>onEdit(o.id,{text:e.target.value.slice(0,90)})}/>
+           onChange={e=>setDrafts(prev=>({...prev,[o.id]:e.target.value.slice(0,90)}))}
+           onBlur={()=>saveText(o)}
+           onKeyDown={e=>{if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){e.preventDefault();e.currentTarget.blur();}}}/>
          <div className="bbd-pptx-edit-controls">
            <label><Type size={14}/><input type="number" min="14" max="115" value={o.fontSize||40} disabled={page.locked||o.locked}
             aria-label={vi?'Kích cỡ chữ':'Font size'}
