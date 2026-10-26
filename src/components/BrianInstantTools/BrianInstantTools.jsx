@@ -14,6 +14,7 @@ import {
 import './BrianInstantTools.css';
 import {Wave2Tool,WAVE2_LIBRARY,SpotlightOverlay} from './BrianInstantToolsWave2.jsx';
 import {Wave3Tool,WAVE3_LIBRARY} from './BrianInstantToolsWave3.jsx';
+import {Wave4Tool,WAVE4_LIBRARY} from './BrianInstantToolsWave4.jsx';
 
 const LIBRARY=[
   {id:'dice',Icon:Dices,vi:'Xúc xắc 3D',en:'3D Dice',descVi:'Lắc xúc xắc tức thì',descEn:'Roll instantly'},
@@ -23,11 +24,12 @@ const LIBRARY=[
   {id:'qr',Icon:QrCode,vi:'Tạo mã QR',en:'QR Maker',descVi:'Tạo và lưu QR ngay',descEn:'Instant QR and download'},
   ...WAVE2_LIBRARY,
   ...WAVE3_LIBRARY,
+  ...WAVE4_LIBRARY,
 ];
 const MSG={
-  vi:{launcher:'Mở bộ công cụ tức thì',eyebrow:'INSTANT CLASSROOM KIT',title:'Brian Instant Tools',subtitle:'15 công cụ sẵn sàng sử dụng',home:'Bộ công cụ',minimize:'Thu nhỏ về bong bóng',expand:'Phóng to',restore:'Thu nhỏ cửa sổ',
+  vi:{launcher:'Mở bộ công cụ tức thì',eyebrow:'INSTANT CLASSROOM KIT',title:'Brian Instant Tools',subtitle:'20 công cụ sẵn sàng sử dụng',home:'Bộ công cụ',minimize:'Thu nhỏ về bong bóng',expand:'Phóng to',restore:'Thu nhỏ cửa sổ',
     save:'Tự lưu trên thiết bị',saveFailed:'Không thể lưu phiên trên trình duyệt này',roll:'Tung xúc xắc',diceCount:'Số xúc xắc',sum:'Tổng điểm',history:'Lần tung gần đây',sound:'Bật/tắt âm thanh',spin:'QUAY NGAY',spinning:'Đang quay…',winner:'Kết quả',apply:'Áp dụng tên',options:'Tên đội / học sinh (mỗi dòng một tên)',badOptions:'Cần 2–16 tên khác nhau.',undo:'Hoàn tác',reset:'Đặt lại',resetAsk:'Bạn có chắc muốn đặt lại điểm số?',team:'Đội',addTeam:'Thêm đội',removeTeam:'Bớt đội',celebrate:'Ăn mừng',leaders:'Đang dẫn đầu',duration:'Thời lượng',allPause:'Dừng tất cả',allReset:'Đặt lại tất cả',start:'Bắt đầu',pause:'Tạm dừng',resume:'Tiếp tục',minutes:'phút',done:'Hết giờ!',timerResetAsk:'Đặt lại toàn bộ đồng hồ?',qrLabel:'Liên kết hoặc văn bản',qrGenerate:'Tạo mã QR',qrPreview:'Mã QR đã tạo',qrEmpty:'Vui lòng nhập nội dung.',qrLong:'Tối đa 900 ký tự.',qrInvalid:'Đường dẫn không hợp lệ hoặc chứa giao thức không an toàn.',qrDownload:'Tải PNG',qrCopy:'Sao chép nội dung',qrError:'Không tạo được QR. Hãy thử nội dung ngắn hơn.',qrHint:'Tạo mã QR ngay trên thiết bị. Không gửi dữ liệu ra bên ngoài.',copyFailed:'Không thể sao chép trên trình duyệt này.',close:'Đóng',back:'Trở về bộ công cụ',tools:'Công cụ',label:'Tên',clear:'Xóa kết quả',continue:'Mở công cụ',savedLocal:'Tự lưu trên trình duyệt, không đồng bộ giữa thiết bị'},
-  en:{launcher:'Open instant classroom tools',eyebrow:'INSTANT CLASSROOM KIT',title:'Brian Instant Tools',subtitle:'15 ready-to-use tools',home:'Tool library',minimize:'Minimize to bubble',expand:'Expand',restore:'Restore window',
+  en:{launcher:'Open instant classroom tools',eyebrow:'INSTANT CLASSROOM KIT',title:'Brian Instant Tools',subtitle:'20 ready-to-use tools',home:'Tool library',minimize:'Minimize to bubble',expand:'Expand',restore:'Restore window',
     save:'Saved on this device',saveFailed:'This browser cannot save the session',roll:'Roll dice',diceCount:'Number of dice',sum:'Total',history:'Recent rolls',sound:'Toggle sounds',spin:'SPIN NOW',spinning:'Spinning…',winner:'Winner',apply:'Apply names',options:'Names or teams (one per line)',badOptions:'Enter 2–16 different names.',undo:'Undo',reset:'Reset',resetAsk:'Reset all team scores?',team:'Team',addTeam:'Add team',removeTeam:'Remove team',celebrate:'Celebrate',leaders:'Leading',duration:'Duration',allPause:'Pause all',allReset:'Reset all',start:'Start',pause:'Pause',resume:'Resume',minutes:'minutes',done:'Time is up!',timerResetAsk:'Reset all timers?',qrLabel:'Link or text',qrGenerate:'Generate QR',qrPreview:'Generated QR',qrEmpty:'Enter some content.',qrLong:'Maximum 900 characters.',qrInvalid:'Invalid link or unsafe protocol.',qrDownload:'Download PNG',qrCopy:'Copy content',qrError:'Unable to generate QR. Try shorter content.',qrHint:'QR is generated on your device. Nothing is sent online.',copyFailed:'Could not copy on this browser.',close:'Close',back:'Back to tool library',tools:'Tools',label:'Name',clear:'Clear winner',continue:'Open tool',savedLocal:'Auto-saved in this browser; not synced across devices'},
 };
 const DICE_FACES=['⚀','⚁','⚂','⚃','⚄','⚅'];
@@ -331,9 +333,11 @@ export default function BrianInstantTools({currentUser,language='vi'}){
               onChange={fn=>update(tool,fn)} language={language} sound={sound} onSpotlightStart={activateSpotlight}/>}
             {WAVE3_LIBRARY.some(item=>item.id===tool)&&<Wave3Tool key={tool} tool={tool} value={data[tool]}
               onChange={fn=>update(tool,fn)} language={language} pinnedId={pinnedNoteId} onPin={setPinnedNoteId}/>}
+            {WAVE4_LIBRARY.some(item=>item.id===tool)&&<Wave4Tool key={tool} tool={tool} value={data[tool]}
+              onChange={fn=>update(tool,fn)} language={language} sound={sound}/>} 
           </>}
         </div>
-        <footer className="bit-footer"><span>BRIAN INSTANT TOOLS · 03 / 04</span><span>{saveFailed?t.saveFailed:t.savedLocal}</span></footer>
+        <footer className="bit-footer"><span>BRIAN INSTANT TOOLS · 04 / 04</span><span>{saveFailed?t.saveFailed:t.savedLocal}</span></footer>
       </section>
     </div>,document.body)}
     {spotlightActive&&<SpotlightOverlay config={data.spotlight} language={language} onExit={()=>setSpotlightActive(false)}/>}
