@@ -12,7 +12,7 @@ async function openLibrary(page){
 test('Portal navigation, bilingual, minimize, keyboard and narrow-screen clipping',async({page})=>{
   await openLibrary(page);
   const tiles=page.locator('.bit-app-card');
-  await expect(tiles).toHaveCount(15);
+  await expect(tiles).toHaveCount(20);
   await expect(page.locator('.bit-header')).toContainText('Brian Instant Tools');
   await page.getByRole('button',{name:'Thu nhỏ về bong bóng'}).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
