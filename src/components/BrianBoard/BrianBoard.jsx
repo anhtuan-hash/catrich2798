@@ -1162,7 +1162,7 @@ export default function BrianBoard({currentUser,language='vi'}){
        </div>)}
       </div>
       {imageEffectStatus&&<p role="status" className="bbd-v9-image-status">{imageEffectStatus}</p>}
-      {marker}
+      {cropEditId&&page?.objects?.some(o=>o.id===cropEditId&&o.kind==='image')&&
        <BoardCropEditor key={cropEditId+':'+cropEditMode} image={page.objects.find(o=>o.id===cropEditId)}
         vi={vi} mode={cropEditMode} onApply={rect=>cropImageRegion(cropEditId,rect,cropEditMode)}
         onCancel={()=>setCropEditId(null)}/>}
