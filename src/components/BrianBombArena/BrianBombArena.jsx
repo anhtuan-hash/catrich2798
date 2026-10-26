@@ -32,6 +32,8 @@ export default function BrianBombArena({currentUser,language='vi'}){
   const [confirmReset,setConfirmReset]=useState(false),[saveError,setSaveError]=useState(false);
   const [status,setStatus]=useState('');
   const [fx,setFx]=useState(null);
+  const [forceFx,setForceFx]=useState(false);
+  const [audioFeedback,setAudioFeedback]=useState('');
   const closeRef=useRef(null),soundRef=useRef(null),fxTimer=useRef(null);
   // Do not animate the BUTTON hitbox: doing so causes mouseleave while hovering
   // and makes the shake appear to stop after one frame on Safari/Chrome.
@@ -72,9 +74,21 @@ export default function BrianBombArena({currentUser,language='vi'}){
   },[]);
   useEffect(()=>{if(!shakeEnabled)clearAllTileShakes();},[shakeEnabled]);
   const playSound=type=>{
-    if(!volume)return;
+    if(!volume)return false;
     if(!soundRef.current)soundRef.current=createArenaSound();
-    soundRef.current.play(type,{style:bombSoundStyle,volume:soundVolume});
+    return soundRef.current.play(type,{style:bombSoundStyle,volume:soundVolume});
+  };
+  const testAudio=()=>{
+    // Must be a direct onClick, not setTimeout/useEffect: Safari requires a gesture.
+    const requested=playSound('bomb');
+    setAudioFeedback(requested
+      ? tr('Đã yêu cầu phát. Nếu chưa nghe, tăng âm lượng media và thử mở Safari trực tiếp.',
+           'Playback requested. If silent, raise media volume and try Safari directly.')
+      : tr('Thiết bị chưa cấp quyền phát âm thanh. Chạm lại để thử.',
+           'Audio was blocked. Tap again to retry.'));
+  };
+  const testVisual=()=>{
+    showFx('bomb',0,null);
   };
   const showFx=(type,amount=0,tileId=null)=>{
     window.clearTimeout(fxTimer.current);
@@ -279,9 +293,20 @@ export default function BrianBombArena({currentUser,language='vi'}){
             <label htmlFor="bba-sound-volume">{tr('Âm lượng','Volume')}: <b>{soundVolume}%</b></label>
             <input id="bba-sound-volume" type="range" min="10" max="100" step="5" value={soundVolume}
               onChange={e=>setSoundVolume(Number(e.target.value))}/>
-            <button type="button" className="bba-sound-preview" onClick={()=>playSound('bomb')} disabled={!volume}>
+            <button type="button" className="bba-sound-preview" onClick={testAudio} disabled={!volume}>
               <Volume2 size={17}/>{tr('Nghe thử tiếng bom','Preview explosion')}
             </button>
+            <button type="button" className="bba-sound-preview" onClick={testVisual}>
+              <Sparkles size={17}/>{tr('Xem thử nổ bom trên iPhone','Test visual explosion')}
+            </button>
+            <label className="bba-motion-check">
+              <input type="checkbox" checked={forceFx} onChange={e=>setForceFx(e.target.checked)}/>
+              {tr('Hiệu ứng động đầy đủ (bật thủ công khi iOS Giảm chuyển động)',
+                  'Full animated effects (opt-in when iOS Reduce Motion is enabled)')}
+            </label>
+            {audioFeedback&&<small role="status" className="bba-audio-feedback">{audioFeedback}</small>}
+            <small>{tr('iPhone: âm thanh hiệu ứng được tạo thành WAV ngoại tuyến và phát bằng trình phát media iOS.',
+              'iPhone: sound effects use offline WAV through iOS media playback.')}</small>
             <small>{bombSoundStyle==='recorded'?
               tr('Âm thanh thu thật (public domain), phát từ Wikimedia Commons. Cần kết nối mạng để tải lần đầu.',
                 'Real public-domain recording streamed from Wikimedia Commons; internet required for first playback.'):
@@ -392,12 +417,16 @@ export default function BrianBombArena({currentUser,language='vi'}){
       </div>}
     </div>;
   };
-  const bubble=<button type="button" className="bba-bubble" onClick={()=>{setOpen(true);if(session?.phase==='finished')setScreen('results');}}
+  const bubble=<button type="button" className="bba-bubble" onClick={()=>{
+    if(!soundRef.current)soundRef.current=createArenaSound();
+    soundRef.current.unlock?.();
+    setOpen(true);if(session?.phase==='finished')setScreen('results');
+  }}
     title={tr('Mở Brian Bomb Arena','Open Brian Bomb Arena')} aria-label={tr('Mở Brian Bomb Arena','Open Brian Bomb Arena')}>
     <Bomb size={27} strokeWidth={1.75}/><span className="bba-bubble-tip">Bomb Arena</span></button>;
   return <>
     {!open&&createPortal(bubble,document.body)}
-    {open&&createPortal(<section className={'bba-shell bba-theme-'+(session?.theme||theme)+(fx?.type==='bomb'?' is-exploding':'')}
+    {open&&createPortal(<section className={'bba-shell bba-theme-'+(session?.theme||theme)+(fx?.type==='bomb'?' is-exploding':'')+(forceFx?' bba-allow-fx':'')}
        role="dialog" aria-modal="true" aria-label="Brian Bomb Arena">
       <header className="bba-header"><div className="bba-brand"><span>💣</span><div><strong>BRIAN BOMB ARENA</strong><small>THE EXPLOSIVE CLASSROOM</small></div></div>
         <div className="bba-header-actions">
@@ -405,6 +434,12 @@ export default function BrianBombArena({currentUser,language='vi'}){
           {session&&screen==='arena'&&!presenter&&<button type="button" onClick={()=>update({type:session.phase==='paused'?'START':'PAUSE'})} disabled={session.phase==='finished'}>
             {session.phase==='paused'?<Play size={18}/>:<Pause size={18}/>}<span>{session.phase==='paused'?tr('Tiếp tục','Resume'):tr('Tạm dừng','Pause')}</span></button>}
           {session&&!presenter&&<button type="button" onClick={save} title={tr('Lưu phiên','Save session')}><Save size={18}/></button>}
+          <button type="button" className="bba-quick-test" onClick={testAudio}
+            aria-label={tr('Thử âm thanh trên iPhone','Test iPhone sound')} title={tr('Thử âm thanh','Test sound')}>
+            <Volume2 size={18}/><span>TEST</span></button>
+          <button type="button" className="bba-quick-test" onClick={testVisual}
+            aria-label={tr('Thử hiệu ứng bom','Test bomb visual')} title={tr('Thử hiệu ứng','Test visual')}>
+            <Sparkles size={18}/><span>FX</span></button>
           <button type="button" onClick={()=>setVolume(x=>!x)} title={volume?tr('Tắt âm','Mute'):tr('Bật âm','Unmute')}>{volume?<Volume2 size={19}/>:<VolumeX size={19}/>}</button>
           <button type="button" onClick={close} ref={closeRef} className="bba-close" aria-label={tr('Đóng trò chơi','Close game')}><X size={21}/></button>
         </div>
