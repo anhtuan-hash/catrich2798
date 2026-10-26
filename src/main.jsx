@@ -120,6 +120,7 @@ const WorkDashboard = lazy(() => import('./pages/WorkDashboard.jsx'));
 const BrianFocus = lazy(() => import('./components/BrianFocus/BrianFocus.jsx'));
 const BrianBoard = lazy(() => import('./components/BrianBoard/BrianBoard.jsx'));
 const BrianBombArena = lazy(() => import('./components/BrianBombArena/BrianBombArena.jsx'));
+const BrianFamilyFeud = lazy(() => import('./components/BrianFamilyFeud/BrianFamilyFeud.jsx'));
 const BrianInstantTools = lazy(() => import('./components/BrianInstantTools/BrianInstantTools.jsx'));
 const StudentSupportCenter = lazy(() => import('./pages/StudentSupportCenter.jsx'));
 const KnowledgeHub = lazy(() => import('./pages/KnowledgeHub.jsx'));
@@ -556,6 +557,9 @@ function App() {
             </AppErrorBoundary>
             <AppErrorBoundary compact scope="global-brian-bomb-arena" label="Brian Bomb Arena">
               <BrianBombArena currentUser={currentUser} language={language}/>
+            </AppErrorBoundary>
+            <AppErrorBoundary compact scope="global-brian-family-feud" label="Brian Family Feud">
+              <BrianFamilyFeud key={currentUser.id} currentUser={currentUser} language={language}/>
             </AppErrorBoundary>
             <AppErrorBoundary compact scope="global-brian-instant-tools" label="Brian Instant Tools">
               <BrianInstantTools key={currentUser.id} currentUser={currentUser} language={language}/>
