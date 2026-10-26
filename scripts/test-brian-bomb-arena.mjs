@@ -228,4 +228,25 @@ check('Locked centre tile is not actionable or counted as a scoring question',()
   assert.equal(next.tiles.filter(tile=>!tile.opened).length,24);
 });
 console.log('PASS: Bomb Arena v3 sound presets and 108 quick-import sample questions.');
+check('V5 shake uses nonmoving button hitbox, WAAPI and immediate mouseleave cleanup',()=>{
+  const ui=readFileSync(new URL('../src/components/BrianBombArena/BrianBombArena.jsx',import.meta.url),'utf8');
+  const css=readFileSync(new URL('../src/components/BrianBombArena/BrianBombArena.css',import.meta.url),'utf8');
+  assert.match(ui,/hoverAnimations=useRef\(new Map\(\)\)/);
+  assert.match(ui,/onMouseEnter=\{event=>startTileShake\(event,tile.id\)\}/);
+  assert.match(ui,/onMouseLeave=\{event=>stopTileShake\(tile.id,event\)\}/);
+  assert.match(ui,/surface\.animate\(\[/);
+  assert.match(ui,/iterations:Infinity/);
+  assert.match(ui,/current\.cancel\(\)/);
+  assert.match(ui,/className="bba-tile-visual"/);
+  assert.match(ui,/aria-pressed=\{shakeEnabled\}/);
+  assert.match(css,/\.bba-shell \.bba-tile\.is-hidden:hover\{/);
+  assert.match(css,/transform:none!important/);
+  assert.match(css,/\.bba-tile-visual\{/);
+  assert.match(css,/pointer-events:none!important/);
+  assert.match(css,/bba-shake-face \.19s linear infinite/);
+  assert.match(css,/bba-shake-toggle/);
+  assert.match(css,/\.bba-tile\.is-hover-shaking\.is-hidden:not\(:disabled\):hover \.bba-tile-visual/);
+});
+console.log('PASS: Bomb Arena v5 pointer-safe continuous tile shake regression checks.');
+
 
