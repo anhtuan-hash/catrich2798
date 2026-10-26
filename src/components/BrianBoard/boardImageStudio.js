@@ -77,3 +77,35 @@ export async function effectBoardImageRegion(src,rect,effect='blur'){
  if(data.length>3000000)throw Error('Edited image exceeds 3 MB');
  return {src:data,ratio:w/h,region:r};
 }
+
+/** One-click local photo adjustments, without changing the original lesson resource server-side. */
+export const BOARD_IMAGE_FILTERS={
+ brighter:'brightness(1.18) contrast(1.06)',
+ contrast:'contrast(1.27) saturate(1.06)',
+ vivid:'saturate(1.45) contrast(1.08)',
+ sepia:'sepia(.62) contrast(1.08)',
+ grayscale:'grayscale(1)',
+ reset:'none'
+};
+export function boardImageFilterCss(preset){
+ return BOARD_IMAGE_FILTERS[preset]||BOARD_IMAGE_FILTERS.reset;
+}
+export async function applyBoardImageFilter(src,preset){
+ if(!Object.hasOwn(BOARD_IMAGE_FILTERS,preset))throw Error('Unsupported image filter');
+ if(!/^data:image\/(?:png|jpeg|webp);base64,/i.test(String(src||'')))throw Error('Invalid local image');
+ if(preset==='reset')return {src};
+ const image=new Image();image.decoding='async';image.src=src;
+ await (image.decode?image.decode():new Promise((resolve,reject)=>{
+  image.onload=resolve;image.onerror=reject;
+ }));
+ const width=image.naturalWidth,height=image.naturalHeight;
+ if(!width||!height||width*height>18000000)throw Error('Image dimensions unsupported');
+ const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+ const context=canvas.getContext('2d',{alpha:false});
+ if(!context||!('filter' in context))throw Error('Browser canvas filter is unavailable');
+ context.filter=boardImageFilterCss(preset);
+ context.drawImage(image,0,0,width,height);
+ const data=canvas.toDataURL('image/webp',.86);
+ if(data.length>3000000)throw Error('Edited image exceeds 3 MB');
+ return {src:data};
+}
