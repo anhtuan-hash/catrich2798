@@ -7,11 +7,13 @@ import {isAdminRole,isDepartmentLeaderRole,normalizeSystemRole} from '../../util
 import {createArena,arenaReducer,rankTeams,TILE_ICONS,ARENA_MODES} from './arenaEngine.js';
 import {loadArena,saveArena,clearArena} from './arenaStorage.js';
 import './BrianBombArena.css';
+import {createArenaSound} from './arenaSound.js';
+import ArenaEffects from './ArenaEffects.jsx';
 
 const COLORS=['#ef6577','#61a9f6','#f4c265','#60d5b0','#ad8ff4','#f39b68','#8ed8ee','#d49bbd'];
 const MODE_NAMES={classic:['Cổ điển','Classic'],chaos:['Hỗn loạn','Total Chaos'],luck:['Thử vận may','Press Your Luck'],challenge:['Thử thách Brian','Brian Challenge']};
 const MODE_EMOJI={classic:'⭐',chaos:'⚡',luck:'🎲',challenge:'🎓'};
-const THEME_NAMES={neon:'Neon Reactor',comic:'Comic Blast',cosmic:'Cosmic Danger'};
+const THEME_NAMES={mint:'Mint Classroom',neon:'Neon Reactor',comic:'Comic Blast',cosmic:'Cosmic Danger'};
 const allowedUser=user=>Boolean(user?.id&&user.approved!==false&&(
   isAdminRole(user.role)||isDepartmentLeaderRole(user.role)||normalizeSystemRole(user.role)==='teacher'));
 function parseQuestions(input){
@@ -25,40 +27,40 @@ function parseQuestions(input){
         answer:parts.join(separator).replace(/^"|"$/g,'').trim()};
     }).filter(x=>x.prompt).slice(0,300);
 }
-function useGameSound(){
-  const ctx=useRef(null);
-  useEffect(()=>()=>{try{ctx.current?.close();}catch{/* optional */}},[]);
-  return type=>{
-    try{
-      const AC=window.AudioContext||window.webkitAudioContext;
-      if(!AC)return;
-      if(!ctx.current)ctx.current=new AC();
-      const audio=ctx.current;if(audio.state==='suspended')void audio.resume();
-      const notes=type==='bomb'?[160,90]:type==='success'?[550,830]:[440];
-      notes.forEach((hz,i)=>{
-        const osc=audio.createOscillator(),gain=audio.createGain(),at=audio.currentTime+i*.11;
-        osc.type=type==='bomb'?'sawtooth':'sine';osc.frequency.setValueAtTime(hz,at);
-        gain.gain.setValueAtTime(.0001,at);gain.gain.exponentialRampToValueAtTime(.045,at+.025);
-        gain.gain.exponentialRampToValueAtTime(.0001,at+.19);
-        osc.connect(gain);gain.connect(audio.destination);osc.start(at);osc.stop(at+.2);
-      });
-    }catch{/* Sound must never block play. */}
-  };
-}
 export default function BrianBombArena({currentUser,language='vi'}){
   const vi=language!=='en',tr=(vn,en)=>vi?vn:en,ownerId=String(currentUser?.id||'');
   const allowed=allowedUser(currentUser);
   const [open,setOpen]=useState(false),[screen,setScreen]=useState('setup');
   const [loaded,setLoaded]=useState(false),[session,setSession]=useState(null);
-  const [mode,setMode]=useState('classic'),[size,setSize]=useState(5);
+  const [mode,setMode]=useState('luck'),[size,setSize]=useState(5);
   const [teamCount,setTeamCount]=useState(4),[names,setNames]=useState('');
-  const [theme,setTheme]=useState('neon'),[questionGate,setQuestionGate]=useState(false);
+  const [theme,setTheme]=useState('mint'),[questionGate,setQuestionGate]=useState(false);
   const [questionText,setQuestionText]=useState(''),[showAnswer,setShowAnswer]=useState(false);
   const [volume,setVolume]=useState(true),[presenter,setPresenter]=useState(false);
   const [confirmReset,setConfirmReset]=useState(false),[saveError,setSaveError]=useState(false);
   const [status,setStatus]=useState('');
-  const closeRef=useRef(null),playSound=useGameSound();
+  const [fx,setFx]=useState(null);
+  const closeRef=useRef(null),soundRef=useRef(null),fxTimer=useRef(null);
   const update=action=>setSession(s=>s?arenaReducer(s,action):s);
+  useEffect(()=>()=>{window.clearTimeout(fxTimer.current);soundRef.current?.close();},[]);
+  const playSound=type=>{
+    if(!volume)return;
+    if(!soundRef.current)soundRef.current=createArenaSound();
+    soundRef.current.play(type);
+  };
+  const showFx=(type,amount=0,tileId=null)=>{
+    window.clearTimeout(fxTimer.current);
+    setFx({id:Date.now()+'-'+Math.random().toString(36).slice(2),type,amount,tileId});
+    fxTimer.current=window.setTimeout(()=>setFx(null),type==='bomb'?1550:1350);
+  };
+  const revealFx=tile=>{
+    if(tile?.event==='bomb'){playSound('bomb');showFx('bomb',0,tile.id);}
+    else{
+      const amount=Number(String(tile?.event||'').replace('points',''))||0;
+      playSound(amount>=50?'bigpoints':'points');
+      showFx('points',amount,tile.id);
+    }
+  };
 
   useEffect(()=>{
     let valid=true;
@@ -97,7 +99,9 @@ export default function BrianBombArena({currentUser,language='vi'}){
   },[open,confirmReset]);
 
   useEffect(()=>{
-    if(session?.phase==='finished'&&screen==='arena')setScreen('results');
+    if(session?.phase!=='finished'||screen!=='arena')return undefined;
+    const timeout=window.setTimeout(()=>setScreen('results'),1500);
+    return()=>window.clearTimeout(timeout);
   },[session?.phase,screen]);
 
   const begin=()=>{
@@ -107,23 +111,29 @@ export default function BrianBombArena({currentUser,language='vi'}){
       questionGate:mode==='challenge'||questionGate,questions,theme});
     setSession(arenaReducer(game,{type:'START'}));
     setPresenter(false);setShowAnswer(false);setSaveError(false);setScreen('arena');
-    if(volume)playSound('success');
+    playSound('bank');
   };
   const pick=i=>{
     if(!session||session.phase!=='running'||session.selectedTile!==null)return;
     const tile=session.tiles[i];if(!tile||tile.opened)return;
     update({type:'SELECT',index:i});setShowAnswer(false);
-    if(volume&&!session.questionGate)playSound(tile.event==='bomb'?'bomb':'success');
+    if(!session.questionGate)revealFx(tile);else playSound('flip');
   };
   const answer=correct=>{
     if(session?.selectedTile===null)return;
     const tile=session.tiles[session.selectedTile];
     update({type:'ANSWER',correct});setShowAnswer(false);
-    if(volume)playSound(correct?(tile?.event==='bomb'?'bomb':'success'):'bomb');
+    if(correct)revealFx(tile);else playSound('wrong');
   };
-  const close=()=>{setOpen(false);setConfirmReset(false);};
+  const bankTurn=()=>{
+    if(!session||session.phase!=='running'||session.mode!=='luck'||session.selectedTile!==null
+      ||!session.teams[session.turn]?.bank)return;
+    const amount=session.teams[session.turn].bank;
+    update({type:'BANK'});playSound('bank');showFx('bank',amount);
+  };
+  const close=()=>{window.clearTimeout(fxTimer.current);setFx(null);setOpen(false);setConfirmReset(false);};
   const reset=async()=>{
-    await clearArena(ownerId);setSession(null);setScreen('setup');setConfirmReset(false);
+    await clearArena(ownerId);setSession(null);setScreen('setup');setConfirmReset(false);setFx(null);
     setPresenter(false);setQuestionText('');setStatus('');
   };
   const save=()=>{if(session)void saveArena(ownerId,session).then(ok=>setStatus(ok?tr('Đã lưu phiên','Session saved'):tr('Không thể lưu phiên','Save failed')));};
@@ -197,17 +207,34 @@ export default function BrianBombArena({currentUser,language='vi'}){
     if(screen==='results')return <section className="bba-results">
       <div className="bba-winner"><Trophy size={49}/><p>{tr('KẾT QUẢ TRÒ CHƠI','FINAL RESULTS')}</p><h2>{rankTeams(session.teams)[0]?.name}</h2></div>
       <div className="bba-ranking">{rankTeams(session.teams).map((t,i)=><div key={t.id} className="bba-rank">
-        <span>{i+1}</span><strong>{t.name}</strong><b>{t.score}</b></div>)}</div>
+        <span>{i+1}</span><strong>{t.name}</strong><b>{t.score}</b><small>{tr('ĐIỂM ĐÃ CHỐT','SECURED SCORE')}</small></div>)}</div>
       <div className="bba-result-actions"><button type="button" onClick={exportResults}><Save size={16}/>{tr('Xuất bảng điểm CSV','Export scores CSV')}</button>
-      <button type="button" onClick={()=>{setSession(null);setScreen('setup')}}><RotateCcw size={16}/>{tr('Tạo ván mới','New game')}</button>
+      <button type="button" onClick={()=>void reset()}><RotateCcw size={16}/>{tr('Tạo ván mới','New game')}</button>
         <button type="button" onClick={()=>setScreen('arena')}><Eye size={16}/>{tr('Xem lại bảng','Review board')}</button>
         <button type="button" onClick={()=>setConfirmReset(true)}><XCircle size={16}/>{tr('Xóa phiên','Delete session')}</button></div>
     </section>;
     return <div className="bba-arena">
+      {session.ruleVersion!==2&&<div className="bba-upgrade-banner" role="status">
+        <span>💣 {tr('Phiên này dùng luật chơi cũ. Hãy tạo ván mới để chơi dạng mở số / bom với POT và hiệu ứng v2.',
+          'This session uses the previous rules. Start a new game for number/bomb tiles, POT and v2 effects.')}</span>
+        <button type="button" onClick={()=>setConfirmReset(true)}>{tr('Tạo ván Bomb Arena v2','Start Bomb Arena v2')}</button>
+      </div>}
+      
+{session.mode==='luck'&&<div className="bba-pot-stage" aria-live="polite">
+        <div className={'bba-pot-card'+(fx?.type==='points'?' is-increasing':'')+(fx?.type==='bomb'?' is-zeroed':'')}>
+          <div><span className="bba-pot-label">POT · {leader?.name}</span>
+            <strong className="bba-pot-amount">{leader?.bank||0}</strong>
+            <small>{tr('Điểm tạm, chưa an toàn','Unsecured turn points')}</small></div>
+          <button type="button" className="bba-bank-button" onClick={bankTurn}
+            disabled={presenter||session.phase!=='running'||session.selectedTile!==null||(leader?.bank||0)<=0}>
+            <Wallet size={20}/><span>BANK</span></button>
+        </div>
+        <p>{tr('Mở tiếp để tăng POT, hoặc Bank để giữ điểm. Trúng bom sẽ mất POT!','Flip more tiles to grow your POT, or Bank to secure it. A bomb wipes your POT!')}</p>
+      </div>}
       <div className="bba-scoreboard" aria-label={tr('Bảng điểm','Scoreboard')}>
         {session.teams.map((t,i)=><section className={'bba-team '+(session.turn===i?'is-current':'')} key={t.id}
           style={{'--team-accent':COLORS[i%COLORS.length]}}>
-          <button type="button" onClick={()=>update({type:'TEAM',index:i})} disabled={presenter||session.phase!=='running'||session.selectedTile!==null}
+          <button type="button" onClick={()=>update({type:'TEAM',index:i})} disabled={presenter||session.phase!=='running'||session.selectedTile!==null||(session.mode==='luck'&&(leader?.bank||0)>0)}
             aria-label={tr('Chọn đội ','Select team ')+t.name}><span className="bba-team-indicator"/><strong>{t.name}</strong></button>
           <b>{t.score}</b>
           {session.mode==='luck'&&<small>BANK: {t.bank}</small>}
@@ -218,11 +245,11 @@ export default function BrianBombArena({currentUser,language='vi'}){
       </div>
       <div className="bba-playground">
         <div className="bba-board-wrap">
-          <div className="bba-board-top"><span>{tr('CHIẾN TRƯỜNG BÍ MẬT','MYSTERY FIELD')}</span>
+          <div className="bba-board-top"><span>{tr('MỞ Ô SỐ · TRÁNH BOM','FLIP NUMBERS · AVOID BOMBS')}</span>
             <span>{remaining} {tr('ô còn lại','tiles left')}</span></div>
           <div className="bba-tiles" style={{'--bba-columns':session.size}}>
             {session.tiles.map((tile,i)=><button key={tile.id} type="button"
-              className={'bba-tile '+(tile.opened?'is-revealed':'is-hidden')}
+              className={'bba-tile '+(tile.opened?'is-revealed':'is-hidden')+(tile.opened&&tile.event==='bomb'?' is-bomb':'')+(fx?.tileId===tile.id?' is-just-opened':'')}
               disabled={tile.opened||session.phase!=='running'||session.selectedTile!==null||presenter}
               aria-label={tile.label+(tile.opened?' revealed':'')} onClick={()=>pick(i)}>
               <span className="bba-tile-front">{tile.label}</span>
@@ -241,10 +268,9 @@ export default function BrianBombArena({currentUser,language='vi'}){
             <p>{session.last.event==='incorrect'?tr('Trả lời chưa đúng','Incorrect answer'):
               session.last.event==='bank'?tr('Đã chốt điểm','Points banked'):session.last.label}</p>
           </div>}
-          {session.mode==='luck'&&session.phase==='running'&&!presenter&&<div className="bba-luck-actions">
-            <button type="button" onClick={()=>update({type:'BANK'})}><Wallet size={17}/>{tr('CHỐT ĐIỂM','BANK')}</button>
-            <p>{tr('Tiếp tục chọn ô hoặc chốt số điểm tạm hiện có.','Keep picking, or secure your temporary points.')}</p>
-          </div>}
+          {session.mode==='luck'&&session.phase==='running'&&<div className="bba-luck-actions">
+             <p>{tr('🎲 Mở ô số để tăng POT. 💣 Bom sẽ xóa POT. Nhấn BANK phía trên để chốt.','🎲 Numbers increase POT. 💣 Bombs wipe POT. Press BANK above to secure it.')}</p>
+           </div>}
           {session.phase==='paused'&&<div className="bba-pause-message"><Pause size={24}/>{tr('Đã tạm dừng trò chơi','Game paused')}</div>}
           {!presenter&&<div className="bba-game-controls">
             <button type="button" onClick={()=>update({type:'UNDO'})} disabled={!session.history.length}><Undo2 size={17}/>{tr('Hoàn tác','Undo')}</button>
@@ -272,7 +298,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
     <Bomb size={27} strokeWidth={1.75}/><span className="bba-bubble-tip">Bomb Arena</span></button>;
   return <>
     {!open&&createPortal(bubble,document.body)}
-    {open&&createPortal(<section className={'bba-shell bba-theme-'+(session?.theme||theme)}
+    {open&&createPortal(<section className={'bba-shell bba-theme-'+(session?.theme||theme)+(fx?.type==='bomb'?' is-exploding':'')}
        role="dialog" aria-modal="true" aria-label="Brian Bomb Arena">
       <header className="bba-header"><div className="bba-brand"><span>💣</span><div><strong>BRIAN BOMB ARENA</strong><small>THE EXPLOSIVE CLASSROOM</small></div></div>
         <div className="bba-header-actions">
@@ -281,7 +307,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
             {session.phase==='paused'?<Play size={18}/>:<Pause size={18}/>}<span>{session.phase==='paused'?tr('Tiếp tục','Resume'):tr('Tạm dừng','Pause')}</span></button>}
           {session&&!presenter&&<button type="button" onClick={save} title={tr('Lưu phiên','Save session')}><Save size={18}/></button>}
           <button type="button" onClick={()=>setVolume(x=>!x)} title={volume?tr('Tắt âm','Mute'):tr('Bật âm','Unmute')}>{volume?<Volume2 size={19}/>:<VolumeX size={19}/>}</button>
-          <button type="button" onClick={closeRef?close:close} ref={closeRef} className="bba-close" aria-label={tr('Đóng trò chơi','Close game')}><X size={21}/></button>
+          <button type="button" onClick={close} ref={closeRef} className="bba-close" aria-label={tr('Đóng trò chơi','Close game')}><X size={21}/></button>
         </div>
       </header>
       <main className="bba-main">
@@ -292,7 +318,8 @@ export default function BrianBombArena({currentUser,language='vi'}){
           <button type="button" onClick={()=>update({type:'FINISH'})}>{tr('Kết thúc','Finish')}</button>
           <button type="button" onClick={()=>setConfirmReset(true)}><RotateCcw size={14}/>{tr('Ván mới','New game')}</button></div>}
       </footer>
-      {confirmReset&&<div className="bba-confirm" role="alertdialog" aria-modal="true" aria-label={tr('Xóa phiên hiện tại','Delete current session')}>
+      <ArenaEffects fx={fx} vi={vi}/>
+       {confirmReset&&<div className="bba-confirm" role="alertdialog" aria-modal="true" aria-label={tr('Xóa phiên hiện tại','Delete current session')}>
         <div><HelpCircle size={26}/><h3>{tr('Xóa phiên đang lưu?','Delete saved session?')}</h3>
           <p>{tr('Thao tác này sẽ xóa tiến trình hiện tại trên thiết bị.','This removes the current saved progress on this device.')}</p>
           <div><button type="button" onClick={()=>setConfirmReset(false)}>{tr('Hủy','Cancel')}</button>
