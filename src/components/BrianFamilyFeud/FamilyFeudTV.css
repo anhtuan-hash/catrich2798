@@ -1,0 +1,459 @@
+/*
+ * Brian Family Feud — Classroom Show Stage v2
+ * Scoped to Brian Family Feud, deliberately loaded after its legacy styles.
+ * TV-first at 1536×900, 1920×1080; avoids clipping on iPhone/iPad.
+ * No JS layout measurements, no dependencies, and no animation of button hitboxes.
+ */
+.bff-shell[data-classroom-ui="v2"] {
+  --bff-bg:#101c33;
+  --bff-panel:#1b2c4f;
+  --bff-card:#294066;
+  --bff-stroke:#496993;
+  --bff-gold:#ffd078;
+  --bff-text:#f7faff;
+  --bff-muted:#d2dff0;
+  --bff-motion-ease:var(--gm-ease,cubic-bezier(.21,.85,.3,1));
+  --bff-stage-speed:var(--gm-slow,380ms);
+  --bff-pop-speed:var(--gm-base,230ms);
+  background:
+    radial-gradient(ellipse 65% 47% at 12% -8%,#388ac344,transparent 85%),
+    radial-gradient(ellipse 45% 35% at 101% 6%,#c07b4436,transparent 85%),
+    linear-gradient(160deg,#152541,#0e192e 78%);
+  font-size:17px;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-topbar {
+  min-height:80px;
+  padding-block:10px;
+  box-shadow:0 6px 25px #080e2230;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-brand strong {
+  font-size:clamp(22px,calc(1.7vw + var(--bff-font-bonus,0px)),33px);
+  font-weight:950;
+  letter-spacing:.045em;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-brand small {
+  font-size:clamp(11px,calc(.79vw + var(--bff-font-bonus,0px)),16px);
+  font-weight:800;
+}
+.bff-font-controls {
+  display:flex;
+  align-items:center;
+  gap:5px;
+  border:1px solid #d3dfe8;
+  background:#edf4f8;
+  border-radius:13px;
+  padding:3px;
+  color:#2f4b5d;
+  white-space:nowrap;
+}
+.bff-shell .bff-header-actions .bff-font-controls button {
+  min-width:41px;
+  min-height:39px;
+  padding:3px 5px;
+  font-size:17px;
+  font-weight:950;
+  font-variant-numeric:tabular-nums;
+  background:#fff;
+  box-shadow:0 2px 4px #00112412;
+}
+.bff-font-controls>span {
+  min-width:45px;
+  text-align:center;
+  font-size:12px;
+  font-weight:850;
+  color:#4b6a7c;
+  font-variant-numeric:tabular-nums;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-main {
+  padding:clamp(14px,1.35vw,25px);
+  padding-bottom:max(18px,env(safe-area-inset-bottom,0px));
+}
+.bff-shell[data-classroom-ui="v2"] .bff-game {
+  max-width:1900px;
+  margin:0 auto;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-scorebar {
+  gap:clamp(9px,.9vw,15px);
+  margin-bottom:12px;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-team {
+  min-height:96px;
+  padding:12px clamp(13px,1.2vw,23px);
+  background:linear-gradient(145deg,#223757,#192b4c);
+  border:2px solid #5775a4;
+  border-radius:19px;
+  box-shadow:0 8px 22px #050e253f;
+  transition:border-color var(--bff-pop-speed) ease,box-shadow var(--bff-pop-speed) ease;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-team.is-controlling {
+  border-color:var(--bff-gold);
+  box-shadow:0 0 0 1px #e6b65a65,0 5px 25px #e5af423d;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-team.is-stealer {
+  border-color:#fb718a;
+  box-shadow:0 0 0 1px #fb718a50,0 5px 28px #db376340;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-team button {
+  font-size:clamp(18px,calc(1.45vw + var(--bff-font-bonus,0px)),31px);
+  line-height:1.18;
+  font-weight:950;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-team-color{
+  height:25px;width:11px;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-team .bff-score-number {
+  font-size:clamp(38px,calc(3.45vw + var(--bff-font-bonus,0px)),73px);
+  line-height:1;
+  letter-spacing:-.035em;
+  min-width:1.5ch;
+  font-variant-numeric:tabular-nums;
+  color:#fff;
+  text-shadow:0 3px 10px #0005;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-team small {
+  color:#d5e3f6;
+  font-weight:800;
+  font-size:clamp(12px,calc(.88vw + var(--bff-font-bonus,0px)),18px);
+}
+.bff-score-pop {display:inline-block;transform-origin:50% 60%;}
+.bff-shell[data-classroom-ui="v2"] .bff-round-banner {
+  min-height:66px;
+  padding:9px clamp(14px,1.5vw,26px);
+  margin-bottom:13px;
+  border:1px solid #dfab5caa;
+  border-radius:18px;
+  background:linear-gradient(100deg,#e4a13c24,#2589bd23);
+  box-shadow:inset 0 1px 0 #fff2,0 6px 24px #030a2028;
+  font-size:clamp(17px,calc(1.25vw + var(--bff-font-bonus,0px)),28px);
+  font-weight:950;
+  gap:8px clamp(12px,1.5vw,28px);
+}
+.bff-shell[data-classroom-ui="v2"] .bff-round-banner strong,
+.bff-shell[data-classroom-ui="v2"] .bff-round-banner b {color:var(--bff-gold);}
+.bff-shell[data-classroom-ui="v2"] .bff-edition-round {
+  font-size:clamp(15px,calc(1.03vw + var(--bff-font-bonus,0px)),24px);
+  max-width:min(100%,450px);
+  line-height:1.25;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-pills button {
+  padding:8px 15px;
+  min-height:45px;
+  font-size:clamp(17px,1.15vw,23px);
+}
+.bff-shell[data-classroom-ui="v2"] .bff-play-grid{
+  grid-template-columns:minmax(0,2.45fr) minmax(300px,1fr);
+  gap:clamp(12px,1.25vw,23px);
+  align-items:start;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-board-panel{
+  min-width:0;
+  border:2px solid #739bd3;
+  border-radius:25px;
+  padding:clamp(14px,1.45vw,27px);
+  background:
+    radial-gradient(ellipse at 50% -4%,#3c92e33b,transparent 60%),
+    linear-gradient(165deg,#1c345c,#15284a);
+  box-shadow:0 15px 35px #040c264a,inset 0 1px 0 #d1e3ff2a;
+  perspective:1000px;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-board-head{
+  padding:4px 7px 13px;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-board-head .bff-eyebrow{
+  font-size:clamp(12px,calc(.86vw + var(--bff-font-bonus,0px)),19px);
+  letter-spacing:.15em;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-board-head .bff-tv-question{
+  font-size:clamp(31px,calc(2.65vw + var(--bff-font-bonus,0px)),58px);
+  font-weight:950;
+  line-height:1.16;
+  max-width:1100px;
+  color:#fff;
+  letter-spacing:-.03em;
+  margin:11px auto;
+  overflow-wrap:anywhere;
+  text-shadow:0 3px 10px #040c2050;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-board-head small {
+  color:#d7e3f7;
+  font-weight:750;
+  font-size:clamp(14px,calc(.92vw + var(--bff-font-bonus,0px)),21px);
+  line-height:1.3;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-answer-board{
+  gap:clamp(7px,.8vh,11px);
+}
+.bff-shell[data-classroom-ui="v2"] .bff-answer-tile{
+  min-height:clamp(63px,7.3vh,93px);
+  padding:10px clamp(13px,1.1vw,22px);
+  border:2px solid #5475aa;
+  border-radius:17px;
+  background:linear-gradient(150deg,#2a4573,#1e345a);
+  color:#fafdff;
+  font-size:clamp(24px,calc(1.86vw + var(--bff-font-bonus,0px)),43px);
+  font-weight:950;
+  line-height:1.17;
+  gap:clamp(10px,1.2vw,20px);
+  box-shadow:inset 0 1px 0 #e1ebff19,0 3px 9px #040c2838;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  touch-action:manipulation;
+  will-change:auto;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-answer-rank{
+  width:clamp(45px,3.5vw,66px);
+  height:clamp(45px,3.5vw,66px);
+  border-radius:13px;
+  font-size:clamp(27px,calc(2.05vw + var(--bff-font-bonus,0px)),42px);
+  color:#292542;
+  background:linear-gradient(145deg,#ffe0a1,#ffbb59);
+  box-shadow:0 2px 8px #120d0d27;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-answer-text{
+  flex:1;
+  min-width:0;
+  font-size:inherit;
+  font-weight:950;
+  letter-spacing:.01em;
+  color:#fbfdff;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-answer-points{
+  min-width:clamp(57px,4.5vw,83px);
+  min-height:clamp(44px,3.3vw,65px);
+  border:1px solid #7997c4;
+  border-radius:12px;
+  font-size:clamp(25px,calc(1.95vw + var(--bff-font-bonus,0px)),40px);
+  font-weight:950;
+  color:var(--bff-gold);
+  background:#0f214166;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-answer-tile.is-revealed{
+  background:linear-gradient(112deg,#296f9e,#247fa8);
+  border-color:#fbc873;
+  box-shadow:inset 0 1px 0 #dffaff35,0 0 18px #ecc05c40;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-answer-tile.is-revealed .bff-answer-points{
+  color:#12273e;
+  background:linear-gradient(125deg,#ffe4a7,#ffc65d);
+  border-color:transparent;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-strikes{
+  padding:12px 4px 0;
+  gap:clamp(16px,4.6vw,84px);
+  font-size:clamp(52px,4.6vw,88px);
+}
+.bff-shell[data-classroom-ui="v2"] .bff-control-panel{gap:11px;min-width:0;}
+.bff-shell[data-classroom-ui="v2"] :is(.bff-control-card,.bff-host-card,.bff-steal-card){
+  border-radius:21px;
+  padding:clamp(16px,1.65vw,29px);
+  background:linear-gradient(155deg,#21385d,#182948);
+}
+.bff-shell[data-classroom-ui="v2"] :is(.bff-control-card,.bff-steal-card) h3{
+  font-size:clamp(26px,calc(2.05vw + var(--bff-font-bonus,0px)),42px);
+  font-weight:950;
+  margin:8px 0;
+}
+.bff-shell[data-classroom-ui="v2"] :is(.bff-control-card,.bff-steal-card) p{
+  font-size:clamp(16px,calc(1.14vw + var(--bff-font-bonus,0px)),23px);
+  line-height:1.4;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-host-toggle{
+  min-height:61px;
+  border-radius:14px;
+  font-size:clamp(16px,calc(1.1vw + var(--bff-font-bonus,0px)),24px);
+  font-weight:950;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-host-answers button{
+  font-size:clamp(16px,calc(1.05vw + var(--bff-font-bonus,0px)),22px);
+  min-height:52px;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-actions .bff-action,
+.bff-shell[data-classroom-ui="v2"] .bff-start{
+  min-height:70px;
+  padding:12px clamp(14px,1.15vw,23px);
+  border-radius:17px;
+  font-size:clamp(19px,calc(1.35vw + var(--bff-font-bonus,0px)),29px);
+  font-weight:950;
+  line-height:1.23;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-shortcuts{
+  color:#c7d7ef;
+  font-size:clamp(12px,calc(.83vw + var(--bff-font-bonus,0px)),18px);
+}
+.bff-shell[data-classroom-ui="v2"] .bff-round-result{
+  font-size:clamp(19px,calc(1.45vw + var(--bff-font-bonus,0px)),30px);
+}
+.bff-shell[data-classroom-ui="v2"] .bff-setup .bff-card{
+  font-size:clamp(16px,calc(1.05vw + var(--bff-font-bonus,0px)),22px);
+}
+.bff-shell[data-classroom-ui="v2"] .bff-fast-question h3 {
+  font-size:clamp(32px,calc(3.2vw + var(--bff-font-bonus,0px)),62px);
+}
+.bff-shell[data-classroom-ui="v2"] .bff-fast-answers button{
+  min-height:80px;
+  font-size:clamp(20px,calc(1.65vw + var(--bff-font-bonus,0px)),39px);
+}
+.bff-shell[data-classroom-ui="v2"] .bff-podium-card strong{
+  font-size:clamp(44px,calc(4vw + var(--bff-font-bonus,0px)),78px);
+}
+
+/* Scene changes are keyed by round/ready->playing; do not animate scoring state. */
+.bff-shell[data-classroom-ui="v2"] .bff-round-banner{
+  animation:bff-stage-sweep var(--bff-stage-speed) var(--bff-motion-ease) both;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-board-panel[data-round-scene="enter"]{
+  animation:bff-stage-board var(--bff-stage-speed) var(--bff-motion-ease) both;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-board-panel[data-round-scene="enter"] .bff-answer-tile:not(.is-revealed){
+  animation:bff-stage-tile .3s var(--bff-motion-ease) both;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-board-panel .bff-answer-tile:nth-child(1){animation-delay:35ms!important}
+.bff-shell[data-classroom-ui="v2"] .bff-board-panel .bff-answer-tile:nth-child(2){animation-delay:75ms!important}
+.bff-shell[data-classroom-ui="v2"] .bff-board-panel .bff-answer-tile:nth-child(3){animation-delay:115ms!important}
+.bff-shell[data-classroom-ui="v2"] .bff-board-panel .bff-answer-tile:nth-child(4){animation-delay:155ms!important}
+.bff-shell[data-classroom-ui="v2"] .bff-board-panel .bff-answer-tile:nth-child(5){animation-delay:195ms!important}
+.bff-shell[data-classroom-ui="v2"] .bff-board-panel .bff-answer-tile:nth-child(6){animation-delay:235ms!important}
+/* Revealed answers always use their own flip, not a new scene entrance. */
+.bff-shell[data-classroom-ui="v2"] .bff-answer-tile.is-revealed {
+  animation:bff-stage-reveal .5s cubic-bezier(.22,.84,.28,1) both;
+  animation-delay:0ms!important;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-score-pop{
+  animation:bff-stage-score-pop .7s var(--bff-motion-ease) both;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-strikes .is-struck{
+  animation:bff-stage-strike .52s cubic-bezier(.22,.85,.35,1) both;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-fx.is-round{
+  animation:bff-stage-overlay-in 1.25s ease both;
+}
+.bff-shell[data-classroom-ui="v2"] .bff-fx.is-score{
+  animation:bff-stage-overlay-in 1.45s ease both;
+}
+@keyframes bff-stage-sweep{
+  from{opacity:.5;transform:translate3d(0,-12px,0)}
+  to{opacity:1;transform:translate3d(0,0,0)}
+}
+@keyframes bff-stage-board{
+  from{opacity:.45;transform:translate3d(0,18px,0) scale(.98)}
+  to{opacity:1;transform:translate3d(0,0,0) scale(1)}
+}
+@keyframes bff-stage-tile{
+  from{opacity:0;transform:translate3d(0,18px,0)}
+  to{opacity:1;transform:translate3d(0,0,0)}
+}
+@keyframes bff-stage-reveal{
+  0%{opacity:.7;transform:perspective(900px) rotateX(68deg) scale(.96)}
+  58%{opacity:1;transform:perspective(900px) rotateX(-8deg) scale(1.015)}
+  100%{opacity:1;transform:perspective(900px) rotateX(0) scale(1)}
+}
+@keyframes bff-stage-score-pop{
+  0%{transform:scale(.93);filter:brightness(1)}
+  42%{transform:scale(1.16);filter:brightness(1.4);color:#ffe4a8}
+  100%{transform:scale(1);filter:brightness(1);color:inherit}
+}
+@keyframes bff-stage-strike{
+  0%{opacity:0;transform:scale(1.5) rotate(-10deg)}
+  68%{opacity:1;transform:scale(1.14) rotate(3deg)}
+  100%{opacity:1;transform:scale(1) rotate(0)}
+}
+@keyframes bff-stage-overlay-in{
+  0%,100%{opacity:0}10%,72%{opacity:1}
+}
+
+/* Short projectors (e.g. screenshot 1536×960): show all six tiles when possible. */
+@media (min-width:1100px) and (max-height:960px){
+  .bff-shell[data-classroom-ui="v2"] .bff-main {padding-block:12px}
+  .bff-shell[data-classroom-ui="v2"] .bff-scorebar{margin-bottom:9px}
+  .bff-shell[data-classroom-ui="v2"] .bff-team{min-height:84px;padding-block:9px}
+  .bff-shell[data-classroom-ui="v2"] .bff-round-banner{min-height:58px;padding-block:7px;margin-bottom:10px}
+  .bff-shell[data-classroom-ui="v2"] .bff-board-head {padding-bottom:8px}
+  .bff-shell[data-classroom-ui="v2"] .bff-board-head .bff-tv-question {margin-block:8px}
+  .bff-shell[data-classroom-ui="v2"] .bff-answer-board{gap:7px}
+  .bff-shell[data-classroom-ui="v2"] .bff-answer-tile{min-height:clamp(59px,6.35vh,73px);padding-block:5px}
+  .bff-shell[data-classroom-ui="v2"] .bff-answer-rank {height:46px;width:46px}
+  .bff-shell[data-classroom-ui="v2"] .bff-answer-points {min-height:44px}
+  .bff-shell[data-classroom-ui="v2"] .bff-strikes{font-size:54px;padding-top:7px}
+}
+
+/* Tablet: keep board wide and controls below instead of crushing text. */
+@media(max-width:1080px){
+  .bff-shell[data-classroom-ui="v2"] .bff-play-grid{grid-template-columns:1fr}
+  .bff-shell[data-classroom-ui="v2"] .bff-control-panel{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .bff-shell[data-classroom-ui="v2"] .bff-board-head .bff-tv-question{
+    font-size:clamp(30px,calc(3.2vw + var(--bff-font-bonus,0px)),47px);
+  }
+  .bff-shell[data-classroom-ui="v2"] .bff-answer-tile{min-height:clamp(67px,7vh,89px)}
+}
+@media(max-width:790px){
+  .bff-shell[data-classroom-ui="v2"] .bff-topbar{
+    flex-wrap:wrap;
+    gap:7px;
+    padding:8px 12px;
+  }
+  .bff-shell[data-classroom-ui="v2"] .bff-header-actions{gap:5px}
+  .bff-shell[data-classroom-ui="v2"] .bff-font-controls{padding:2px}
+  .bff-shell[data-classroom-ui="v2"] .bff-header-actions .bff-font-controls button{
+    min-height:34px;min-width:34px;font-size:14px
+  }
+  .bff-font-controls>span{min-width:32px;font-size:10px}
+  .bff-shell[data-classroom-ui="v2"] .bff-brand strong{font-size:clamp(15px,3vw,23px)}
+  .bff-shell[data-classroom-ui="v2"] .bff-brand small{font-size:9px}
+  .bff-shell[data-classroom-ui="v2"] .bff-scorebar{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .bff-shell[data-classroom-ui="v2"] .bff-team{
+    min-height:83px;padding:10px 12px;border-radius:14px;
+  }
+  .bff-shell[data-classroom-ui="v2"] .bff-team button{
+    font-size:clamp(14px,calc(2.6vw + var(--bff-font-bonus,0px)),22px);
+  }
+  .bff-shell[data-classroom-ui="v2"] .bff-team .bff-score-number{
+    font-size:clamp(29px,calc(4.4vw + var(--bff-font-bonus,0px)),51px);
+  }
+  .bff-shell[data-classroom-ui="v2"] .bff-round-banner{
+    min-height:58px;font-size:clamp(15px,calc(2.4vw + var(--bff-font-bonus,0px)),22px);
+    gap:7px;justify-content:center;
+  }
+  .bff-shell[data-classroom-ui="v2"] .bff-edition-round{font-size:14px}
+  .bff-shell[data-classroom-ui="v2"] .bff-board-panel{padding:14px;border-radius:17px}
+  .bff-shell[data-classroom-ui="v2"] .bff-board-head .bff-tv-question{
+    font-size:clamp(28px,calc(4vw + var(--bff-font-bonus,0px)),41px);
+  }
+  .bff-shell[data-classroom-ui="v2"] .bff-answer-tile{
+    min-height:64px;padding:7px 11px;font-size:clamp(20px,calc(3.2vw + var(--bff-font-bonus,0px)),31px);
+    border-radius:13px;
+  }
+  .bff-shell[data-classroom-ui="v2"] .bff-answer-rank{
+    height:42px;width:42px;font-size:24px
+  }
+  .bff-shell[data-classroom-ui="v2"] .bff-answer-points{
+    min-height:42px;min-width:51px;font-size:24px;
+  }
+  .bff-shell[data-classroom-ui="v2"] .bff-control-panel{grid-template-columns:1fr}
+  .bff-shell[data-classroom-ui="v2"] .bff-actions .bff-action{min-height:58px;font-size:18px}
+}
+@media(max-width:420px){
+  .bff-shell[data-classroom-ui="v2"] .bff-topbar{align-items:flex-start}
+  .bff-shell[data-classroom-ui="v2"] .bff-header-actions{width:100%;justify-content:space-between}
+  .bff-shell[data-classroom-ui="v2"] .bff-header-actions>button{min-width:36px;min-height:36px}
+  .bff-shell[data-classroom-ui="v2"] .bff-board-head .bff-tv-question{font-size:clamp(26px,6.3vw,34px)}
+  .bff-shell[data-classroom-ui="v2"] .bff-answer-tile{min-height:60px}
+  .bff-shell[data-classroom-ui="v2"] .bff-answer-rank{width:36px;height:36px;font-size:21px}
+  .bff-shell[data-classroom-ui="v2"] .bff-answer-points{min-width:42px;min-height:37px;font-size:21px}
+  .bff-shell[data-classroom-ui="v2"] .bff-answer-text{font-size:clamp(18px,5vw,24px)}
+  .bff-shell[data-classroom-ui="v2"] .bff-team .bff-score-number{font-size:32px}
+}
+/* Motion Hub OFF, OS Reduce Motion and focus/blur restrictions win over effects. */
+.bff-shell[data-classroom-ui="v2"][data-motion-kind="none"] *,
+.bff-shell[data-classroom-ui="v2"][data-motion-kind="none"] *::before,
+.bff-shell[data-classroom-ui="v2"][data-motion-kind="none"] *::after{
+  animation:none!important;transition:none!important;
+}
+@media(prefers-reduced-motion:reduce){
+  .bff-shell[data-classroom-ui="v2"] *,
+  .bff-shell[data-classroom-ui="v2"] *::before,
+  .bff-shell[data-classroom-ui="v2"] *::after {
+    animation:none!important;transition:none!important;filter:none!important;
+  }
+}
