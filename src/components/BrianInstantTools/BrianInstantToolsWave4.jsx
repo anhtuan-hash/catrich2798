@@ -146,12 +146,14 @@ function NoiseMeter({value,onChange,language}){
 function Buzzer({value,onChange,language,sound}){
  const t=useStrings(language);
  const [armed,setArmed]=useState(false),[winner,setWinner]=useState(null),[round,setRound]=useState(0);
+ const winnerIndex=useRef(null),armedRef=useRef(false);
  const teams=value.teams;
  const update=fn=>onChange(v=>fn(v));
- const arm=()=>{setRound(v=>v+1);setArmed(true);setWinner(null);};
- const buzz=(name)=>{
-  if(!armed||winner)return;
-  const chosen=lockBuzzer(winner,name);
+ const arm=()=>{winnerIndex.current=null;armedRef.current=true;setRound(v=>v+1);setArmed(true);setWinner(null);};
+ const buzz=(name,index)=>{
+  if(!armedRef.current||winnerIndex.current!==null)return;
+  winnerIndex.current=index;armedRef.current=false;
+  const chosen=name;
   setWinner(chosen);setArmed(false);
   update(v=>({...v,history:[chosen,...v.history].slice(0,15)}));
   if(sound)localBeep(720,.26);
@@ -160,18 +162,18 @@ function Buzzer({value,onChange,language,sound}){
   const n=Math.min(8,Math.max(2,teams.length+amount));
   if(n===teams.length)return;
   update(v=>({...v,teams:Array.from({length:n},(_,i)=>v.teams[i]||'Team '+(i+1)),score:Array.from({length:n},(_,i)=>v.score[i]||0)}));
-  setArmed(false);setWinner(null);
+  armedRef.current=false;winnerIndex.current=null;setArmed(false);setWinner(null);
  };
  const award=()=>{
-  const idx=teams.indexOf(winner);
-  if(idx<0)return;
+  const idx=winnerIndex.current;
+  if(idx===null||idx<0||idx>=teams.length)return;
   update(v=>({...v,score:v.teams.map((_,i)=>i===idx?Math.min(999,(v.score[i]||0)+1):(v.score[i]||0))}));
   if(sound)localBeep(950,.12);
  };
  const reset=()=>{
   if(!window.confirm(t.resetAsk))return;
   update(v=>({...v,score:v.teams.map(()=>0),history:[]}));
-  setWinner(null);setArmed(false);setRound(0);
+  winnerIndex.current=null;armedRef.current=false;setWinner(null);setArmed(false);setRound(0);
  };
  return <div className="bit-w4-buzzer">
    <div className="bit-w4-buzz-actions">
@@ -183,7 +185,7 @@ function Buzzer({value,onChange,language,sound}){
     {round>0&&<small>{t.round} {round}</small>}</div>
    <div className="bit-w4-buzz-grid">{teams.map((name,i)=><section key={i} className={'bit-w4-buzz-team'+(winner===name?' is-winner':'')}>
     <input aria-label={t.team+' '+(i+1)} maxLength={32} value={name} onChange={e=>update(v=>({...v,teams:v.teams.map((x,j)=>i===j?e.target.value.slice(0,32):x)}))}/>
-    <button className="bit-w4-big-buzz" type="button" disabled={!armed||Boolean(winner)} onClick={()=>buzz(name||t.team+' '+(i+1))}><BellRing size={27}/>{t.buzz}</button>
+    <button className="bit-w4-big-buzz" type="button" disabled={!armed||Boolean(winner)} onClick={()=>buzz(name||t.team+' '+(i+1),i)}><BellRing size={27}/>{t.buzz}</button>
     <span>{t.score}: {value.score[i]||0}</span>
    </section>)}</div>
    <div className="bit-w4-buzz-actions"><button type="button" className="bit-secondary" disabled={!winner} onClick={award}><CheckCircle2 size={18}/>{t.correct}</button>
