@@ -571,22 +571,22 @@ export const G12_PACKS_3_4=[
         "The + comparative, the + comparative expresses linked changes."
       ],
       [
-        "The more @ are built, the greater the demand for electricity.",
+        "The more @ ___, the greater the demand for electricity.",
         [
-          "skyscraper",
-          "skyscrapers",
-          "skyscraping",
-          "skyscraped"
+          "is built",
+          "are built",
+          "building",
+          "has built"
         ],
         1,
         [
-          "in the suburbs",
-          "near the station",
-          "in the city centre",
-          "along the river",
-          "in the new district"
+          "skyscrapers",
+          "office towers",
+          "high-rise buildings",
+          "shopping centres",
+          "apartment blocks"
         ],
-        "More + plural count noun is used in a double comparative."
+        "A plural subject requires are built in passive present simple."
       ],
       [
         "The ___ public transport becomes, the fewer cars people use.",
@@ -625,14 +625,14 @@ export const G12_PACKS_3_4=[
         "Polysyllabic adjectives take more in double comparatives."
       ],
       [
-        "The faster @ develops, the more job opportunities it creates.",
+        "The faster @ ___, the more job opportunities it creates.",
         [
-          "a city",
-          "cities",
-          "city",
-          "urban"
+          "develop",
+          "develops",
+          "developed",
+          "developing"
         ],
-        0,
+        1,
         [
           "the capital",
           "the region",
@@ -640,7 +640,7 @@ export const G12_PACKS_3_4=[
           "the town",
           "the metropolis"
         ],
-        "A singular geographic area with develops takes a singular NP; a city is the correct grammatical choice here."
+        "Singular subject in a double comparative requires develops."
       ],
       [
         "The ___ the neighbourhood gets, the more expensive rent becomes.",
