@@ -146,3 +146,54 @@ body .bes-kira-chat-root .bes-kira-chat-online {
   body .bes-approval-root .bes-approval-fab,
   body .bfc-bubble {background:ButtonFace!important;color:ButtonText!important;border:2px solid ButtonText!important;}
 }
+
+
+/* Role-adaptive floating launcher layout v1.0.
+   Four slots when the approval component is mounted (Admin/TTCM);
+   three contiguous slots without that component (teacher).
+   Detect the persistent approval ROOT, not its FAB: the FAB disappears
+   while its drawer is open, but the layout must not jump. */
+body .bbd-board-fab {
+  right:var(--bes-floating-edge)!important;
+  bottom:calc(var(--bes-floating-bottom) + 3 * (var(--bes-floating-diameter) + var(--bes-floating-gap)))!important;
+  width:var(--bes-floating-diameter)!important;
+  height:var(--bes-floating-diameter)!important;
+  min-width:var(--bes-floating-diameter)!important;
+  min-height:var(--bes-floating-diameter)!important;
+  padding:0!important;
+  border:1px solid rgba(215,225,246,.95)!important;
+  border-radius:50%!important;
+  background:linear-gradient(145deg,#f2faf6,#e0f1e9)!important;
+  color:#2d7664!important;
+  box-shadow:var(--bes-floating-shadow)!important;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+body .bbd-board-fab:hover {
+  box-shadow:0 14px 33px rgba(47,66,135,.23),0 4px 9px rgba(23,41,100,.09)!important;
+}
+body .bbd-board-fab:focus-visible {
+  outline:3px solid #8bb6ff!important;
+  outline-offset:4px!important;
+}
+
+/* The teacher has no approval root: shift Focus & Board DOWN one slot,
+   leaving exactly the same 14px (mobile 12px) visible gap as Admin. */
+body:not(:has(.bes-approval-root)) .bfc-bubble {
+  bottom:calc(var(--bes-floating-bottom) + var(--bes-floating-diameter) + var(--bes-floating-gap))!important;
+}
+body:not(:has(.bes-approval-root)) .bbd-board-fab {
+  bottom:calc(var(--bes-floating-bottom) + 2 * (var(--bes-floating-diameter) + var(--bes-floating-gap)))!important;
+}
+@media(hover:none) {
+  body .bbd-board-fab:hover {transform:none!important;}
+}
+@media(prefers-reduced-motion:reduce) {
+  body .bbd-board-fab {transition:none!important;}
+}
+@media(forced-colors:active) {
+  body .bbd-board-fab {
+    background:ButtonFace!important;color:ButtonText!important;
+    border:2px solid ButtonText!important;
+  }
+}
