@@ -153,6 +153,10 @@ body .bes-kira-chat-root .bes-kira-chat-online {
    three contiguous slots without that component (teacher).
    Detect the persistent approval ROOT, not its FAB: the FAB disappears
    while its drawer is open, but the layout must not jump. */
+body .bbd-board-fab,
+body .bfc-bubble,
+body .bes-approval-root .bes-approval-fab,
+body .bes-kira-chat-root .bes-kira-chat-launcher {box-sizing:border-box!important;}
 body .bbd-board-fab {
   box-sizing:border-box!important;
   right:var(--bes-floating-edge)!important;
