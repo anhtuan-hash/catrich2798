@@ -46,7 +46,7 @@ export async function createDraftFromScheduleItem(item) {
   if (!draft) return { status: 'needs_time', reason: 'Chưa có giờ bắt đầu chính xác' };
 
   const { data: existing, error: lookupError } = await db.from('bes_events')
-    .select('id,status').eq('title', draft.title)
+    .select('id,status,poster_path').eq('title', draft.title)
     .eq('event_start_at', draft.event_start_at).limit(1);
   if (lookupError) throw lookupError;
   let record = existing?.[0] || null;
