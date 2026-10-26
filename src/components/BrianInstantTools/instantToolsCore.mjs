@@ -12,6 +12,11 @@ export const initialState=()=>({
     id:'timer-'+(i+1),label:'Team '+(i+1),durationSeconds:180,remainingMs:180000,endsAt:null,running:false,alerted:false,
   }))},
   qr:{input:'https://esl-brian.vercel.app'},
+  spotlight:{radius:155,dim:82},
+  bigText:{text:'Ready to learn?',fontSize:110,theme:'midnight'},
+  teleprompter:{script:'Good afternoon, everyone! Welcome to our English lesson.\nToday we will learn, explore, and create together.',fontSize:38,speed:45,mirror:false,theme:'dark'},
+  reveal:{items:['Warm-up','Vocabulary','Grammar','Reading','Speaking','Wrap-up'],revealed:[]},
+  soundFX:{volume:70},
 });
 const safeName=(value,fallback,max=32)=>String(value??'').trim().slice(0,max)||fallback;
 const list=(v)=>Array.isArray(v)?v:[];
@@ -113,5 +118,35 @@ export function sanitizeState(raw){
     });
   }
   base.qr.input=typeof s.qr?.input==='string'?s.qr.input.slice(0,900):base.qr.input;
+  base.spotlight.radius=Math.round(clamp(s.spotlight?.radius??base.spotlight.radius,90,260));
+  base.spotlight.dim=Math.round(clamp(s.spotlight?.dim??base.spotlight.dim,45,95));
+  base.bigText.text=cleanText(s.bigText?.text,400,base.bigText.text);
+  base.bigText.fontSize=Math.round(clamp(s.bigText?.fontSize??base.bigText.fontSize,52,220));
+  base.bigText.theme=['midnight','ivory','neon'].includes(s.bigText?.theme)?s.bigText.theme:'midnight';
+  base.teleprompter.script=cleanText(s.teleprompter?.script,12000,base.teleprompter.script);
+  base.teleprompter.fontSize=Math.round(clamp(s.teleprompter?.fontSize??base.teleprompter.fontSize,12,80));
+  base.teleprompter.speed=Math.round(clamp(s.teleprompter?.speed??base.teleprompter.speed,12,160));
+  base.teleprompter.mirror=s.teleprompter?.mirror===true;
+  base.teleprompter.theme=s.teleprompter?.theme==='light'?'light':'dark';
+  const cards=normalizeRevealItems(s.reveal?.items);
+  if(cards)base.reveal.items=cards;
+  base.reveal.revealed=Array.isArray(s.reveal?.revealed)?[...new Set(s.reveal.revealed.filter(n=>Number.isInteger(n)&&n>=0&&n<base.reveal.items.length))]:[];
+  base.soundFX.volume=Math.round(clamp(s.soundFX?.volume??base.soundFX.volume,0,100));
   return base;
 }
+
+export function cleanText(value,max,fallback=''){
+  return typeof value==='string'?value.slice(0,max):fallback;
+}
+export function normalizeRevealItems(input){
+  const items=(Array.isArray(input)?input:String(input??'').split(/\r?\n/))
+    .map(x=>String(x??'').trim().slice(0,120)).filter(Boolean).slice(0,24);
+  return items.length?items:null;
+}
+export function spotlightStyle(x,y,radius,dim){
+  const r=Math.round(clamp(radius,90,260));
+  const a=clamp(dim,45,95)/100;
+  const px=Math.round(clamp(x,0,100000)),py=Math.round(clamp(y,0,100000));
+  return 'radial-gradient(circle '+r+'px at '+px+'px '+py+'px, transparent 0%, transparent '+Math.max(1,r-2)+'px, rgba(4,12,30,'+a+') '+(r+4)+'px)';
+}
+export function soundFXVolume(n){return clamp(n,0,100)/100;}
