@@ -11,8 +11,12 @@ const SPARKS=Array.from({length:COUNT},(_,i)=>({
 export default function ArenaEffects({fx,vi=true}){
   if(!fx)return null;
   const bomb=fx.type==='bomb',bank=fx.type==='bank',win=fx.type==='win';
-  const title=bomb?'BOOM!':win?'VICTORY!':bank?(vi?'ĐÃ CHỐT ĐIỂM!':'BANKED!'):'+'+fx.amount;
-  const sub=bomb?(vi?'Mất toàn bộ POT của lượt này':'Your turn POT was lost'):
+  const title=fx.feedback==='incorrect'?(vi?'SAI RỒI! −20':'INCORRECT! −20'):
+    fx.feedback==='correct'?(vi?'CHÍNH XÁC! +20':'CORRECT! +20'):
+    bomb?'BOOM!':win?'VICTORY!':bank?(vi?'ĐÃ CHỐT ĐIỂM!':'BANKED!'):'+'+fx.amount;
+  const sub=fx.feedback==='incorrect'?(vi?'💣 Nổ bom: trừ 20 điểm và mất POT, chuyển lượt!':'💣 Bomb: −20 points, lose POT and pass the turn!'):
+    fx.feedback==='correct'?(vi?'🎆 Cộng 20 điểm (vào POT khi Thử vận may)':'🎆 +20 points (to POT in Press Your Luck)'):
+    bomb?(vi?'Mất toàn bộ POT của lượt này':'Your turn POT was lost'):
     win?(vi?'Chúc mừng đội chiến thắng':'Congratulations!'):
     bank?('+'+fx.amount+' '+(vi?'điểm an toàn':'secured points')):
     (vi?'Cộng vào POT / điểm đội':'Added to POT / team score');

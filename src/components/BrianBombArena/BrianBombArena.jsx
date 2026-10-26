@@ -35,7 +35,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
   const [fx,setFx]=useState(null);
   const [forceFx,setForceFx]=useState(false);
   const [audioFeedback,setAudioFeedback]=useState('');
-  const closeRef=useRef(null),soundRef=useRef(null),fxTimer=useRef(null);
+  const closeRef=useRef(null),soundRef=useRef(null),fxTimer=useRef(null),answerTapLockRef=useRef(false);
   // Do not animate the BUTTON hitbox: doing so causes mouseleave while hovering
   // and makes the shake appear to stop after one frame on Safari/Chrome.
   const hoverAnimations=useRef(new Map());
@@ -91,9 +91,9 @@ export default function BrianBombArena({currentUser,language='vi'}){
   const testVisual=()=>{
     showFx('bomb',0,null);
   };
-  const showFx=(type,amount=0,tileId=null)=>{
+  const showFx=(type,amount=0,tileId=null,feedback=null)=>{
     window.clearTimeout(fxTimer.current);
-    setFx({id:Date.now()+'-'+Math.random().toString(36).slice(2),type,amount,tileId});
+    setFx({id:Date.now()+'-'+Math.random().toString(36).slice(2),type,amount,tileId,feedback});
     fxTimer.current=window.setTimeout(()=>setFx(null),type==='bomb'?1550:1350);
   };
   const revealFx=tile=>{
@@ -165,6 +165,18 @@ export default function BrianBombArena({currentUser,language='vi'}){
     stopTileShake(i);
     update({type:'SELECT',index:i});setShowAnswer(false);setSelectedChoice(null);
     if(!session.questionGate)revealFx(tile);else playSound('flip');
+  };
+  useEffect(()=>{answerTapLockRef.current=false;},[session?.selectedTile,session?.questionIndex]);
+  const answerChoice=index=>{
+    if(answerTapLockRef.current||session?.phase!=='running'||session.selectedTile===null
+      ||!selectedQuestion?.options||!Number.isInteger(index))return;
+    answerTapLockRef.current=true; // prevents rapid double tap before React's commit.
+    const correct=index===selectedQuestion.answerIndex;
+    const tileId=session.selectedTile;
+    update({type:'ANSWER_CHOICE',choice:index});
+    setShowAnswer(false);setSelectedChoice(index);
+    if(correct){playSound('bigpoints');showFx('points',20,tileId,'correct');}
+    else{playSound('bomb');showFx('bomb',-20,tileId,'incorrect');}
   };
   const answer=correct=>{
     if(session?.selectedTile===null)return;
@@ -411,31 +423,30 @@ export default function BrianBombArena({currentUser,language='vi'}){
         <div className="bba-question-card">
           <span className="bba-eyebrow">{tr('CÂU HỎI CHO ','QUESTION FOR ')+leader?.name}</span>
           <h2>{selectedQuestion?.prompt||tr('Giáo viên xác nhận kết quả','Teacher confirms the answer')}</h2>
-          {selectedQuestion?.unit&&<p className="bba-question-unit">UNIT {selectedQuestion.unit} · {tr('NGỮ PHÁP','GRAMMAR')}</p>}
+          {selectedQuestion?.unit&&<p className="bba-question-unit">{selectedQuestion.grade===12?'ENGLISH 12':'ENGLISH 11'} · UNIT {selectedQuestion.unit} · {tr('NGỮ PHÁP','GRAMMAR')}</p>}
+          {selectedQuestion?.options&&<p className="bba-instant-hint">{tr('Chạm một phương án để chấm ngay: đúng +20, sai −20 và mất POT.', 'Tap an option to grade instantly: correct +20, wrong −20 and lose POT.')}</p>}
           {Array.isArray(selectedQuestion?.options)&&selectedQuestion.options.length===4&&
             <div className="bba-mcq-options" role="group" aria-label={tr('Bốn phương án trắc nghiệm','Four multiple-choice options')}>
               {selectedQuestion.options.map((option,index)=><button key={index} type="button"
                 className={'bba-mcq-option'+(selectedChoice===index?' is-selected':'')+
                   (showAnswer&&selectedQuestion.answerIndex===index?' is-correct':'')}
-                aria-pressed={selectedChoice===index} onClick={()=>setSelectedChoice(index)}>
+                aria-pressed={selectedChoice===index} onClick={()=>answerChoice(index)}>
                 <b>{'ABCD'[index]}</b><span>{option}</span>
               </button>)}
             </div>}
-          <button type="button" className="bba-answer-toggle" onClick={()=>setShowAnswer(x=>!x)}>
+          {!selectedQuestion?.options&&<button type="button" className="bba-answer-toggle" onClick={()=>setShowAnswer(x=>!x)}>
             {showAnswer?<EyeOff size={17}/>:<Eye size={17}/>}
-            {showAnswer?tr('Ẩn đáp án','Hide answer'):tr('Xem đáp án','Show answer')}</button>
+            {showAnswer?tr('Ẩn đáp án','Hide answer'):tr('Xem đáp án','Show answer')}</button>}
           {showAnswer&&<p className="bba-answer">
             {selectedQuestion?.options?'✓ '+('ABCD'[selectedQuestion.answerIndex]||'')+' · ':''}
             {selectedQuestion?.answer||'—'}
             {selectedQuestion?.explanation&&<small className="bba-mcq-explanation">{selectedQuestion.explanation}</small>}
           </p>}
           <div className="bba-question-actions">
-            {selectedQuestion?.options
-              ? <button type="button" className="bba-primary" disabled={selectedChoice===null}
-                  onClick={()=>answer(selectedChoice===selectedQuestion.answerIndex)}>
-                  <CheckCircle2 size={20}/>{tr('Xác nhận đáp án','Submit answer')}</button>
-              : <><button type="button" onClick={()=>answer(false)}><XCircle size={20}/>{tr('Chưa đúng','Incorrect')}</button>
-                <button type="button" className="bba-primary" onClick={()=>answer(true)}><CheckCircle2 size={20}/>{tr('Chính xác — mở ô','Correct — reveal')}</button></>}
+            {!selectedQuestion?.options&&<>
+            <button type="button" onClick={()=>answer(false)}><XCircle size={20}/>{tr('Chưa đúng','Incorrect')}</button>
+            <button type="button" className="bba-primary" onClick={()=>answer(true)}><CheckCircle2 size={20}/>{tr('Chính xác — mở ô','Correct — reveal')}</button>
+          </>}
           </div>
         </div>
       </div>}

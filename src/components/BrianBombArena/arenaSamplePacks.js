@@ -1,3 +1,4 @@
+import {G12_UNIT_PACKS} from './arenaG12UnitPacks.js';
 import {G11_UNIT_PACKS} from './arenaG11UnitPacks.js';
 import {G11_GRAMMAR_MCQS} from './arenaG11Grammar100.js';
 // Offline classroom sample packs; no network, AI, or paid service.
@@ -476,7 +477,7 @@ const normalize=q=>({
   ...(Array.isArray(q)?{}:q.options?{
     options:q.options.slice(0,4).map(v=>String(v).slice(0,200)),
     answerIndex:q.answerIndex,explanation:String(q.explanation||'').slice(0,400),
-    unit:q.unit,topic:q.topic,
+    unit:q.unit,topic:q.topic,grade:Number(q.grade)||11,
   }:{})
 });
 function parseDelimited(text,delimiter=','){
@@ -506,7 +507,7 @@ export function parseArenaQuestions(input){
   if(rows.length&&/^(question|prompt|câu hỏi)$/i.test(String(rows[0][0]||'').trim()))rows=rows.slice(1);
   return rows.map(normalize).filter(x=>x.prompt).slice(0,300);
 }
-export const SAMPLE_PACKS=Object.freeze([...G11_UNIT_PACKS,...rawPacks.filter(pack=>pack.id!=='g11-global-success-grammar-100')].map(({items,...meta})=>Object.freeze({
+export const SAMPLE_PACKS=Object.freeze([...G12_UNIT_PACKS,...G11_UNIT_PACKS,...rawPacks.filter(pack=>pack.id!=='g11-global-success-grammar-100')].map(({items,...meta})=>Object.freeze({
   ...meta,items:Object.freeze(items.map(q=>Object.freeze(normalize(q)))),
   count:items.length,
 })));
