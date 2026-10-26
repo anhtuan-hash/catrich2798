@@ -129,10 +129,11 @@ const HiddenAppsVault = lazy(() => import('./pages/HiddenAppsVault.jsx'));
 const QuestionBank = lazy(() => import('./pages/QuestionBank.jsx'));
 const QuestionBankPractice = lazy(() => import('./pages/QuestionBankPractice.jsx'));
 const ClassroomJoin = lazy(() => import('./pages/ClassroomJoin.jsx'));
+const BoardLiveJoin = lazy(() => import('./pages/BoardLiveJoin.jsx'));
 const QuestJoin = lazy(() => import('./features/questatlas/QuestJoin.jsx'));
 
 const ROUTES = ['home', 'apps', 'news', 'tools', 'homeroom', 'attendance', 'homeroom-portal', 'classroom-join', 'quest-join', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qb-practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
-const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'quest-join', 'qb-practice']);
+const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'qb-practice']);
 
 function getInitialRoute() {
   const href = window.location.href || '';
@@ -578,6 +579,7 @@ function App() {
             {canAccessRoute && currentRoute === 'attendance' && currentUser && <AttendanceWorkspace {...context} />}
             {currentRoute === 'homeroom-portal' && <HomeroomPortal {...context} />}
             {currentRoute === 'classroom-join' && <ClassroomJoin />}
+            {currentRoute === 'board-live' && <BoardLiveJoin />}
             {currentRoute === 'quest-join' && <QuestJoin />}
             {currentRoute === 'resources' && <Resources items={RESOURCE_ITEMS} {...context} />}
             {canAccessRoute && currentRoute === 'library' && currentUser && <Library {...context} />}
