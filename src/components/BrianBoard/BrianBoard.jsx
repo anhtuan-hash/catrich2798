@@ -32,7 +32,7 @@ import {cropBoardImageData,cropBoardImageRegion,effectBoardImageRegion,applyBoar
 import BoardCropEditor from './BoardCropEditor.jsx';
 import BoardPdfStudio from './BoardPdfStudio.jsx';
 import {annotateBoardObject,annotateBoardObjects,pdfHighlightRegion,
- setPdfPaperState,clearPdfAnnotations,pdfPageIndices,findPdfBackground} from './boardPdfAnnotations.js';
+ setPdfPaperState,clearPdfAnnotations,togglePdfAnnotations,pdfPageIndices,findPdfBackground} from './boardPdfAnnotations.js';
 import {eraseInkAtPoint,scaleBoardObjects,duplicateBoardObjects,reorderBoardObjects,
  BOARD_V8_TEMPLATES,buildBoardTemplate,createDiagramConnection,syncDiagramConnections,
  groupResizeTransform,rotateBoardObjects,alignBoardObjects,layoutBoardNodes,createLabeledDiagramConnection} from './boardV8Tools.js';
@@ -427,7 +427,11 @@ export default function BrianBoard({currentUser,language='vi'}){
   if(!page||page.locked)return;
   editPage(p=>setPdfPaperState(p,attr,value));
  };
- const pdfClear=()=>{
+ const pdfToggleAnnotations=visible=>{
+  if(!page||page.locked)return;
+  editPage(p=>togglePdfAnnotations(p,visible));
+ };
+  const pdfClear=()=>{
   if(!page||page.locked||!findPdfBackground(page))return;
   if(!window.confirm(vi?'Xóa tất cả chú thích trên trang PDF này? Có thể Undo.':
    'Delete all annotations on this PDF page? Undo is available.'))return;
@@ -1065,7 +1069,8 @@ export default function BrianBoard({currentUser,language='vi'}){
        {page?.hidden?(vi?'Hiện trang khi chiếu':'Show on display'):(vi?'Ẩn trang khi chiếu':'Hide on display')}</button>
      </div>}
      {panel==='pdf'&&<BoardPdfStudio lesson={lesson} page={page} vi={vi} tool={tool}
-      onTool={setTool} onPaperState={pdfPaperState} onClear={pdfClear} onNavigate={pdfNavigate}/>}
+      onTool={setTool} onPaperState={pdfPaperState} onClear={pdfClear} onNavigate={pdfNavigate}
+      onAnnotationVisibility={pdfToggleAnnotations}/>}
      {panel==='frames'&&<div className="bbd-side-stack bbd-frame-panel">
       <div className="bbd-side-heading"><h3>{vi?'Không gian vô hạn · Frames':'Infinite board · Frames'}</h3>
        <Clapperboard size={20}/></div>
