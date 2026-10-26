@@ -295,6 +295,17 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
         <h3>{tr('03 · Bộ câu hỏi','03 · Question bank')}</h3>
         <div className="bff-edition-selector" role="group"
           aria-label={tr('Chọn trò chơi tiếng Anh 11 hoặc 12 theo Unit','Choose Grade 11 or 12 Unit game')}>
+          <div className="bff-grade-switch" role="group"
+            aria-label={tr('Chọn khối lớp','Choose grade')}>
+            {[11,12].map(level=><button key={level} type="button"
+              className={'bff-grade-option'+(selectedGrade===level?' is-active':'')}
+              aria-pressed={selectedGrade===level}
+              onClick={()=>chooseGrade(level)}>
+              <span>{level===11?'🌱':'🎓'}</span>
+              <strong>ENGLISH {level}</strong>
+              <small>GLOBAL SUCCESS</small>
+            </button>)}
+          </div>
           <div className="bff-edition-head">
             <span className="bff-eyebrow">ENGLISH {selectedGrade} · GLOBAL SUCCESS</span>
             <strong>{tr('10 TRÒ CHƠI THEO UNIT','10 UNIT GAMES')}</strong>
