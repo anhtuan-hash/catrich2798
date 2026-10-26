@@ -8,7 +8,7 @@ import {createLiveSession,advanceLiveSession,editLiveQuestion,recordTeacherVote,
 import {boardRemoteTopic,validateRemoteEnvelope,REMOTE_MAX_BYTES,
  REMOTE_MAX_MESSAGES,REMOTE_DURATION_MS} from '../src/components/BrianBoard/boardRemoteTV.js';
 const source=path=>readFileSync(new URL(path,import.meta.url),'utf8');
-const NOW=1793000000000;
+const NOW=Date.now();
 const draft=createLiveSession('poll',NOW);
 assert.equal(draft.status,'draft');
 assert.equal(publicLiveSnapshot(draft,NOW),null);
