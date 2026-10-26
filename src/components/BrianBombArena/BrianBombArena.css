@@ -869,3 +869,31 @@ body .bba-bubble:focus-visible{outline:3px solid #ffa6ac;outline-offset:4px;}
 @media(prefers-reduced-motion:reduce){
   .bba-shell .bba-classroom-question-card .bba-mcq-option{transition:none!important;}
 }
+
+/* 2026 Classroom legibility regression fix:
+   Browser/global h2 typographic rules were shrinking the question while A–D
+   buttons remained large. This heading is an explicit, unreset block instead. */
+.bba-shell .bba-classroom-question-card .bba-question-display{
+  display:block!important;
+  width:100%;
+  flex:none;
+  padding:0;
+  margin:clamp(14px,2.4vh,28px) 0 clamp(10px,1.2vh,18px)!important;
+  color:var(--bba-text)!important;
+  font-weight:900!important;
+  letter-spacing:-.025em;
+  line-height:1.2!important;
+  text-align:left!important;
+  text-wrap:pretty;
+  overflow-wrap:break-word;
+  word-break:normal;
+}
+.bba-shell .bba-classroom-question-card .bba-question-header{
+  flex:none;
+}
+@media(max-width:640px){
+  .bba-shell .bba-classroom-question-card .bba-question-display{
+    margin:8px 0!important;
+    line-height:1.18!important;
+  }
+}
