@@ -187,6 +187,7 @@ export default function BrianBombArena({currentUser,language='vi'}){
       chaosFeatures:chaosEnabled?chaosFeatures:[],difficulty:'extreme',
       teamNames:names.split(/\n|;/).map(x=>x.trim()).filter(Boolean),
       questionGate:chaosEnabled||mode==='challenge'||questionGate,questions,theme});
+    setStatus('');
     setSession(arenaReducer(game,{type:'START'}));
     setPresenter(false);setShowAnswer(false);setSelectedChoice(null);setSaveError(false);setScreen('arena');
     playSound('bank');
@@ -607,7 +608,10 @@ export default function BrianBombArena({currentUser,language='vi'}){
        data-bubble-phase={portalExiting?'exit':'enter'} ref={shellRef}>
       <header className="bba-header"><div className="bba-brand"><span>💣</span><div><strong>BRIAN BOMB ARENA</strong><small>THE EXPLOSIVE CLASSROOM</small></div></div>
         <div className="bba-header-actions">
-          {session&&screen==='arena'&&<button type="button" onClick={()=>setPresenter(x=>!x)} aria-pressed={presenter} title={tr('Chế độ trình chiếu','Presenter mode')}><Monitor size={18}/><span>{presenter?tr('Giáo viên','Teacher'):tr('Trình chiếu','Present')}</span></button>}
+          {session&&screen==='arena'&&<button type="button" onClick={()=>setPresenter(x=>!x)}
+             disabled={Boolean(chaos?.features.timer&&session.selectedTile!==null&&session.phase==='running')}
+             title={chaos?.features.timer&&session.selectedTile!==null?tr('Hãy trả lời hoặc tạm dừng trước khi trình chiếu','Answer or pause before presenting'):undefined}
+             aria-pressed={presenter} title={tr('Chế độ trình chiếu','Presenter mode')}><Monitor size={18}/><span>{presenter?tr('Giáo viên','Teacher'):tr('Trình chiếu','Present')}</span></button>}
           {session&&screen==='arena'&&!presenter&&<button type="button" onClick={()=>update({type:session.phase==='paused'?'START':'PAUSE'})} disabled={session.phase==='finished'}>
             {session.phase==='paused'?<Play size={18}/>:<Pause size={18}/>}<span>{session.phase==='paused'?tr('Tiếp tục','Resume'):tr('Tạm dừng','Pause')}</span></button>}
           {session&&!presenter&&<button type="button" onClick={save} title={tr('Lưu phiên','Save session')}><Save size={18}/></button>}
