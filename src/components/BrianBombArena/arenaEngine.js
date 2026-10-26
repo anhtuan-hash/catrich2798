@@ -88,7 +88,7 @@ function award(s,index){
   s.questionIndex++;
   s.selectedTile=null;
   if(s.tiles.every(x=>x.opened)){
-    if(s.mode==='luck')t.score+=t.bank,t.bank=0;
+    if(s.mode==='luck')s.teams.forEach(team=>{team.score+=team.bank;team.bank=0;});
     s.phase='finished';
   }else if(s.mode!=='luck'||(kind==='bomb'&&label==='bank-lost'))advance(s);
   return true;
@@ -113,7 +113,7 @@ export function arenaReducer(state,action){
     case 'TEAM':if(s.phase==='running'&&!s.selectedTile&&Number.isInteger(action.index)&&action.index>=0&&action.index<s.teams.length){s.turn=action.index;changed=true;}break;
     case 'SELECT':{
       if(s.phase!=='running'||s.selectedTile!==null||!s.tiles[action.index]||s.tiles[action.index].opened)break;
-      if(s.questionGate&&s.questions.length){s.selectedTile=action.index;changed=true;}
+      if(s.questionGate){s.selectedTile=action.index;changed=true;}
       else changed=award(s,action.index);
       break;
     }
