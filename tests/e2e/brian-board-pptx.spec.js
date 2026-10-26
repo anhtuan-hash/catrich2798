@@ -47,6 +47,7 @@ test('local PPTX imports text, shapes and pictures; teacher can edit and switch 
  expect(result.objects.some(o=>o.kind==='image'&&o.src.startsWith('data:image/png;base64,'))).toBe(true);
  expect(result.student.objects.some(o=>o.kind==='text')).toBe(true);
  await page.getByRole('textbox',{name:'Sửa văn bản 1'}).fill('Edited by teacher');
+ await page.getByRole('textbox',{name:'Sửa văn bản 1'}).press('Tab');
  await expect(page.locator('#summary')).toContainText('Edited by teacher');
  result=await page.evaluate(()=>window.__boardPptxResult);
  expect(result.objects.some(o=>o.text==='Edited by teacher')).toBe(true);
