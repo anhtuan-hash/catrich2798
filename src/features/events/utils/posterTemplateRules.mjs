@@ -29,12 +29,13 @@ export const BUILTIN_POSTER_TEMPLATES=Object.freeze(builtins.map(([group,name,to
 })));
 
 export function isAllowedPosterGroup(group){return POSTER_GROUPS.some(x=>x.id===group)}
-export function posterTemplatePath({name,group,tone='dark',side='left',stamp='20261026'}) {
+export function posterTemplatePath({name,group,tone='dark',side='left',stamp='20261026',extension='png'}) {
   if(!isAllowedPosterGroup(group)) throw new Error('Invalid poster category');
   if(!['dark','light'].includes(tone)||!['left','right','center'].includes(side)) throw new Error('Invalid template layout');
   const stampSafe=String(stamp).replace(/[^0-9a-z]/gi,'').slice(0,24);
   if(!stampSafe)throw new Error('Invalid template ID');
-  return 'templates/'+group+'/'+escapeSlug(name)+'--'+tone+'--'+side+'--'+stampSafe+'.png';
+  if(!['png','jpg','webp'].includes(extension)) throw new Error('Unsupported template file type');
+  return 'templates/'+group+'/'+escapeSlug(name)+'--'+tone+'--'+side+'--'+stampSafe+'.'+extension;
 }
 export function decodePosterTemplatePath(path) {
   const match=/^templates\/(halloween|meeting|teaching|seminar|training|extracurricular|general)\/([a-z0-9-]+)--(dark|light)--(left|right|center)--([a-z0-9]+)\.(png|jpe?g|webp)$/.exec(String(path||''));
