@@ -25,7 +25,7 @@ export default function ClassBellTimeline({value,onChange,language='vi',sound=tr
  const timeline=sanitizeTimeline(value||initialTimeline());
  const [now,setNow]=useState(Date.now());
  const [alert,setAlert]=useState(false);
- const ctx=useRef(null),active=useRef(true),transitionRef=useRef(null),alertTimer=useRef(null);
+ const ctx=useRef(null),active=useRef(true),transitionRef=useRef(null),alertTimer=useRef(null),returningFromHidden=useRef(false);
  const getAudio=async()=>{
   if(!sound)return;
   try{
@@ -46,19 +46,22 @@ export default function ClassBellTimeline({value,onChange,language='vi',sound=tr
  useEffect(()=>{
   if(!timeline.running||document.hidden)return;
   const next=advanceTimeline(timeline,now);
-  if(!next.changes)return;
+  if(!next.changes){returningFromHidden.current=false;return;}
   const signature=String(timeline.endsAt)+'/'+next.index;
   if(transitionRef.current===signature)return;
   transitionRef.current=signature;
   const {changes,finished,...saved}=next;
   onChange(prev=>({...prev,timeline:saved}));
-  bell(ctx.current,sound?value.volume:0);
-  setAlert(true);
+  // Catch up missed phases silently after the tab was hidden; never ring stale bells.
+  const audible=!returningFromHidden.current;
+  returningFromHidden.current=false;
+  if(audible)bell(ctx.current,sound?value.volume:0);
+  setAlert(audible);
   clearTimeout(alertTimer.current);
   alertTimer.current=window.setTimeout(()=>{if(active.current)setAlert(false);},1500);
  },[now,timeline.running,timeline.endsAt,timeline.index,sound,value.volume,onChange]);
  useEffect(()=>{
-  const hide=()=>{if(document.hidden)setAlert(false);else setNow(Date.now());};
+  const hide=()=>{if(document.hidden){returningFromHidden.current=true;setAlert(false);}else setNow(Date.now());};
   document.addEventListener('visibilitychange',hide);
   return ()=>document.removeEventListener('visibilitychange',hide);
  },[]);
