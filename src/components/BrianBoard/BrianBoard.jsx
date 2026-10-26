@@ -31,6 +31,9 @@ import {listBoardAssets,saveBoardAsset,readBoardAsset} from './boardAssets.js';
 import {cropBoardImageData,cropBoardImageRegion,effectBoardImageRegion,applyBoardImageFilter} from './boardImageStudio.js';
 import BoardCropEditor from './BoardCropEditor.jsx';
 import BoardClassroomLive,{BoardClassroomLivePublic} from './BoardClassroomLive.jsx';
+import BoardRemoteTV from './BoardRemoteTV.jsx';
+import {authorizeSameOwner,createRemoteTeacherChannel,closeRemoteChannel,
+ REMOTE_MAX_BYTES,REMOTE_MAX_MESSAGES,REMOTE_DURATION_MS,REMOTE_MIN_INTERVAL_MS} from './boardRemoteTV.js';
 import {createLiveSession,publicLiveSnapshot} from './boardClassroomLive.js';
 import BoardPdfStudio from './BoardPdfStudio.jsx';
 import {annotateBoardObject,annotateBoardObjects,pdfHighlightRegion,
@@ -98,6 +101,10 @@ export default function BrianBoard({currentUser,language='vi'}){
  const [presenting,setPresenting]=useState(false),presentationRef=useRef(null);
  const [classroomSession,setClassroomSession]=useState(null);
  const classroomSessionRef=useRef(null);classroomSessionRef.current=classroomSession;
+ const remoteChannelRef=useRef(null),remoteSentRef=useRef(0),remoteLastRef=useRef(0);
+ const remoteExpiryRef=useRef(0),remoteTimerRef=useRef(null);
+ const [remoteStatus,setRemoteStatus]=useState('off'),[remoteError,setRemoteError]=useState('');
+ const [remoteSent,setRemoteSent]=useState(0);
  const [pdfBusy,setPdfBusy]=useState(false),[pdfStatus,setPdfStatus]=useState('');
  const [activityType,setActivityType]=useState('matching'),[activityTitle,setActivityTitle]=useState(''),
   [activityPrompt,setActivityPrompt]=useState(''),[activityRaw,setActivityRaw]=useState(''),
@@ -220,7 +227,84 @@ export default function BrianBoard({currentUser,language='vi'}){
   setPresenting(true);
   bus.postMessage(boardStudentPayload(docRef.current,activeActivityRef.current,activityLiveRef.current,viewportRef.current,classroomSessionRef.current));
  };
- useEffect(()=>()=>{mounted.current=false;},[]);
+ const stopRemoteTV=()=>{
+  const channel=remoteChannelRef.current;
+  remoteChannelRef.current=null;
+  if(remoteTimerRef.current){clearInterval(remoteTimerRef.current);remoteTimerRef.current=null;}
+  if(channel){
+   void channel.send({type:'broadcast',event:'end',payload:{ended:true}}).catch(()=>{});
+   void closeRemoteChannel(channel);
+  }
+  setRemoteStatus('off');setRemoteError('');
+ };
+ const sendRemoteTV=()=>{
+  const channel=remoteChannelRef.current,now=Date.now();
+  if(!channel||now>=remoteExpiryRef.current||
+   remoteSentRef.current>=REMOTE_MAX_MESSAGES){
+   if(channel)stopRemoteTV();return;
+  }
+  if(now-remoteLastRef.current<REMOTE_MIN_INTERVAL_MS)return;
+  const doc=docRef.current;
+  if(!doc)return;
+  const payload=boardStudentPayload(doc,activeActivityRef.current,
+   activityLiveRef.current,viewportRef.current,classroomSessionRef.current);
+  const envelope={sessionId:remoteSessionIdRef.current,payload,at:now,expiresAt:remoteExpiryRef.current};
+  const bytes=JSON.stringify(envelope).length;
+  if(bytes>REMOTE_MAX_BYTES){
+   setRemoteError(vi?'Trang quá lớn để gửi sang TV. Hãy ẩn ảnh lớn hoặc dùng TV cùng thiết bị.':
+    'This view exceeds 60 KB. Hide large images or use same-device TV.');
+   return;
+  }
+  remoteLastRef.current=now;remoteSentRef.current++;
+  setRemoteSent(remoteSentRef.current);
+  void channel.send({type:'broadcast',event:'snapshot',payload:envelope}).then(result=>{
+   if(result!=='ok'&&result!=='sent')setRemoteError('Remote TV send: '+String(result));
+  }).catch(e=>setRemoteError(e.message||'Remote TV send failed'));
+ };
+ const remoteSessionIdRef=useRef(null);
+ const startRemoteTV=async()=>{
+  if(remoteChannelRef.current){stopRemoteTV();return;}
+  setRemoteError('');setRemoteStatus('connecting');
+  try{
+   await authorizeSameOwner(ownerId);
+   if(ownerRef.current!==ownerId)throw Error('Account changed while connecting');
+   remoteSessionIdRef.current=newBoardPresentationId();
+   remoteSentRef.current=0;remoteLastRef.current=0;setRemoteSent(0);
+   remoteExpiryRef.current=Date.now()+REMOTE_DURATION_MS;
+   const channel=createRemoteTeacherChannel(ownerId,{
+    onRequest:()=>{remoteLastRef.current=0;sendRemoteTV();},
+    onStatus:(state,error)=>{
+     if(remoteChannelRef.current!==channel)return;
+     if(state==='SUBSCRIBED'){setRemoteStatus('live');sendRemoteTV();}
+     else if(state==='CHANNEL_ERROR'||state==='TIMED_OUT'||state==='CLOSED'){
+      setRemoteStatus('error');setRemoteError(error?.message||'Remote channel unavailable');
+     }
+    }
+   });
+   remoteChannelRef.current=channel;
+   remoteTimerRef.current=setInterval(()=>{
+    if(Date.now()>=remoteExpiryRef.current||remoteSentRef.current>=REMOTE_MAX_MESSAGES)
+     stopRemoteTV();
+   },2000);
+  }catch(e){setRemoteStatus('error');setRemoteError(e.message||'Unable to start remote TV');}
+ };
+ const copyRemoteTVLink=async()=>{
+  const url=new URL(location.origin+'/');
+  url.searchParams.set('bbd_remote_tv','1');
+  try{await navigator.clipboard.writeText(url.toString());setRemoteError(vi?'Đã sao chép liên kết TV':'TV link copied');}
+  catch{window.prompt(vi?'Sao chép liên kết và mở trên thiết bị TV đã đăng nhập cùng tài khoản:':
+   'Copy this link to a second device signed in to the same teacher account:',url.toString());}
+ };
+ useEffect(()=>{
+  if(!remoteChannelRef.current||remoteStatus!=='live')return;
+  const id=setTimeout(sendRemoteTV,REMOTE_MIN_INTERVAL_MS);
+  return()=>clearTimeout(id);
+ },[lesson,activeActivityId,activityLive,classroomSession,camera.x,camera.y,zoom,remoteStatus]);
+ useEffect(()=>()=>{if(remoteTimerRef.current)clearInterval(remoteTimerRef.current);
+  if(remoteChannelRef.current)void closeRemoteChannel(remoteChannelRef.current);
+  remoteChannelRef.current=null;
+ },[ownerId]);
+  useEffect(()=>()=>{mounted.current=false;},[]);
  useEffect(()=>{
   if(!open||!timerDeadline)return undefined;
   const id=setInterval(()=>setTimerNow(Date.now()),1000);
@@ -290,7 +374,7 @@ export default function BrianBoard({currentUser,language='vi'}){
  const finishClose=useCallback(()=>{
   if(frameFlight.current)cancelAnimationFrame(frameFlight.current);
   frameFlight.current=0;
-  stopPresentation();setPhase('closed');setOpen(false);animating.current=false;setStudentView(false);
+  stopPresentation();stopRemoteTV();setPhase('closed');setOpen(false);animating.current=false;setStudentView(false);
   setTimeout(()=>lastFocusRef.current?.focus?.({preventScroll:true}),0);
  },[]);
  const close=useCallback(async()=>{
@@ -910,6 +994,8 @@ export default function BrianBoard({currentUser,language='vi'}){
  const resetNamePicker=()=>{setRandomUsed([]);setRandomChoice('');};
  const drawTheme={ivory:'Ivory Studio',midnight:'Midnight Slate',classroom:'Classroom Canvas'};
  if(!allowed)return null;
+ if(new URLSearchParams(window.location.search).get('bbd_remote_tv')==='1')
+  return createPortal(<BoardRemoteTV ownerId={ownerId} vi={vi}/>,document.body);
  const button=<button type="button" className="bbd-board-fab" ref={launchRef}
    aria-label={vi?'Mở bảng giảng dạy Brian Board':'Open Brian Teaching Board'} title="Brian Board"
    onClick={()=>void start()}><Presentation size={25} strokeWidth={1.8}/><span className="bbd-board-fab__tooltip">Brian Board</span></button>;
@@ -936,6 +1022,10 @@ export default function BrianBoard({currentUser,language='vi'}){
       <Focus size={17}/><span>{cleanMode?(vi?'Thoát gọn':'Restore'):(vi?'Gọn':'Clean')}</span></button>
      <button onClick={toggleInspector} title={vi?'Hiện/ẩn công cụ bên phải':'Toggle side panel'}
       aria-controls="bbd-sidebar" aria-expanded={showPages} aria-label={vi?'Mở hoặc đóng bảng điều khiển':'Toggle inspector panel'}><Move size={17}/></button>
+     <button type="button" onClick={()=>void startRemoteTV()}
+      title={vi?'TV khác thiết bị, chỉ cùng tài khoản giáo viên':'Remote TV, signed-in same teacher only'}
+      className={remoteStatus==='live'?'is-presenting':''}>
+      <Monitor size={18}/><span>{remoteStatus==='live'?(vi?'Dừng TV từ xa':'Stop remote'):(vi?'TV từ xa':'Remote TV')}</span></button>
      <button onClick={startPresentation} title={vi?'Mở màn hình học sinh (cùng máy)':'Open local student display'} className={presenting?'is-presenting':''}>
       <Presentation size={18}/><span>{presenting?(vi?'Dừng chia sẻ':'Stop TV'):(vi?'Màn hình TV':'TV Display')}</span></button>
      <button onClick={()=>setStudentView(v=>!v)} title={vi?'Xem như học sinh':'Student preview'}>
@@ -1075,8 +1165,26 @@ export default function BrianBoard({currentUser,language='vi'}){
       <button onClick={()=>editPage(p=>({...p,hidden:!p.hidden}))}>{page?.hidden?<EyeOff size={16}/>:<Eye size={16}/>}
        {page?.hidden?(vi?'Hiện trang khi chiếu':'Show on display'):(vi?'Ẩn trang khi chiếu':'Hide on display')}</button>
      </div>}
-     {panel==='live'&&<BoardClassroomLive session={classroomSession} vi={vi}
-      onChange={setClassroomSession} onCreate={mode=>{setClassroomSession(createLiveSession(mode));setActiveActivityId(null);}}/>}
+     {panel==='live'&&<div className="bbd-live-panel">
+      <div className="bbd-live-remote">
+       <strong>{vi?'TV khác thiết bị (cùng tài khoản)':'Remote signed-in teacher TV'}</strong>
+       <p>{vi?'Đăng nhập cùng tài khoản giáo viên trên TV. Bật kênh riêng và mở liên kết dưới đây. Phiên tối đa 20 phút hoặc 600 lượt gửi.':
+        'Sign in as the same teacher on your second device. Private channel is capped at 20 minutes or 600 sends.'}</p>
+       <div className="bbd-live-controls">
+        <button type="button" onClick={()=>void startRemoteTV()} disabled={remoteStatus==='connecting'}>
+         <Monitor size={16}/>{remoteStatus==='live'?(vi?'Ngắt TV từ xa':'Disconnect TV'):
+          (vi?'Bật TV từ xa':'Enable remote TV')}</button>
+        <button type="button" onClick={()=>void copyRemoteTVLink()}>
+         <Copy size={16}/>{vi?'Sao chép liên kết TV':'Copy TV link'}</button>
+       </div>
+       <small role="status">{remoteStatus==='live'?(vi?'Đã mở kênh riêng':'Private channel live'):
+        remoteStatus==='connecting'?(vi?'Đang kết nối':'Connecting'):remoteStatus==='off'?(vi?'Chưa mở kênh':'Not active'):
+        (vi?'Lỗi kết nối':'Connection error')}{' · '+remoteSent+'/'+REMOTE_MAX_MESSAGES}</small>
+       {remoteError&&<p role="status">{remoteError}</p>}
+      </div>
+      <BoardClassroomLive session={classroomSession} vi={vi}
+      onChange={setClassroomSession} onCreate={mode=>{setClassroomSession(createLiveSession(mode));setActiveActivityId(null);}}/>
+     </div>}
      {panel==='pdf'&&<BoardPdfStudio lesson={lesson} page={page} vi={vi} tool={tool}
       onTool={setTool} onPaperState={pdfPaperState} onClear={pdfClear} onNavigate={pdfNavigate}
       onAnnotationVisibility={pdfToggleAnnotations}/>}
