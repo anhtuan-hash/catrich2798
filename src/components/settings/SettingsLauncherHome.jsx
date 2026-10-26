@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Bell, ChevronRight, Compass, Database, Grid2X2, LayoutGrid, List, LockKeyhole, Palette, Pin, Search, Settings2, ShieldCheck, Sparkles, UserRound, UserPlus, WandSparkles, Layers3, Clock3, ArrowUpRight } from 'lucide-react';
+import { Bell, ChevronRight, Compass, Database, Grid2X2, LayoutGrid, List, LockKeyhole, Palette, Pin, Search, CalendarDays, Settings2, ShieldCheck, Sparkles, UserRound, UserPlus, WandSparkles, Layers3, Clock3, ArrowUpRight } from 'lucide-react';
 import { isDepartmentLeaderRole } from '../../utils/roles.js';
 
 const TILES = [
@@ -11,6 +11,7 @@ const TILES = [
   {id:'permissions',vi:'Phân quyền',en:'Permissions',desc:'Quản trị và truy cập',sub:'Access management',icon:ShieldCheck,tone:'orange',keys:'admin ttcm quyền truy cập role',admin:true},
   {id:'teacher-create',vi:'Tạo giáo viên',en:'Create teacher',desc:'Tạo nhanh tài khoản',sub:'Quick teacher account',icon:UserPlus,tone:'blue',keys:'tạo nhanh giáo viên tài khoản đăng nhập mật khẩu quick create teacher',admin:true},
   {id:'notifications',vi:'Thông báo',en:'Notifications',desc:'Âm báo và nhắc nhở',sub:'Alerts and reminders',icon:Bell,tone:'coral',keys:'email push nhắc nhở âm thanh rung'},
+  {id:'events',vi:'Sự kiện',en:'Events',desc:'Quản lý sự kiện và popup',sub:'Manage events and popup effects',icon:CalendarDays,tone:'violet',keys:'sự kiện tạo sự kiện thông báo sự kiện event announcement popup poster hiệu ứng event motion',admin:true},
   {id:'data',vi:'Dữ liệu',en:'Data & sync',desc:'Đồng bộ và hiệu năng',sub:'Sync and performance',icon:Database,tone:'teal',keys:'wifi cache lưu trữ nhập xuất json dọn dẹp'},
   {id:'security',vi:'Bảo mật',en:'Security',desc:'Quyền riêng tư và MFA',sub:'Privacy and MFA',icon:LockKeyhole,tone:'slate',keys:'mfa xác thực quyền riêng tư bảo vệ'}
 ];
