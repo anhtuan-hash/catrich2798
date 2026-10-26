@@ -91,9 +91,9 @@ export default function BrianBombArena({currentUser,language='vi'}){
   const testVisual=()=>{
     showFx('bomb',0,null);
   };
-  const showFx=(type,amount=0,tileId=null)=>{
+  const showFx=(type,amount=0,tileId=null,feedback=null)=>{
     window.clearTimeout(fxTimer.current);
-    setFx({id:Date.now()+'-'+Math.random().toString(36).slice(2),type,amount,tileId});
+    setFx({id:Date.now()+'-'+Math.random().toString(36).slice(2),type,amount,tileId,feedback});
     fxTimer.current=window.setTimeout(()=>setFx(null),type==='bomb'?1550:1350);
   };
   const revealFx=tile=>{
@@ -175,8 +175,8 @@ export default function BrianBombArena({currentUser,language='vi'}){
     const tileId=session.selectedTile;
     update({type:'ANSWER_CHOICE',choice:index});
     setShowAnswer(false);setSelectedChoice(index);
-    if(correct){playSound('bigpoints');showFx('points',20,tileId);}
-    else{playSound('bomb');showFx('bomb',-20,tileId);}
+    if(correct){playSound('bigpoints');showFx('points',20,tileId,'correct');}
+    else{playSound('bomb');showFx('bomb',-20,tileId,'incorrect');}
   };
   const answer=correct=>{
     if(session?.selectedTile===null)return;
