@@ -509,7 +509,7 @@ export const POWERUP_CARDS=Object.freeze([
 export const POWERUP_MAX=50;
 const validIds=new Set(POWERUP_CARDS.map(card=>card.id));
 export const getPowerup=id=>POWERUP_CARDS.find(p=>p.id===id)||null;
-export const powerupColor=card=>card?.type==='reward'?'#18a990':'#f3994f';
+export const powerupColor=(card,index=0)=>card?.type==='reward'?['#128b86','#17a998','#42c6aa','#65cdb0','#36b6b8'][index%5]:['#ef8e4e','#eeae4d','#d87485','#f4bf6c','#eb986d'][index%5];
 export const powerupEligible=(settings,filter='all')=>POWERUP_CARDS.filter(p=>
   (filter==='all'||p.type===filter)&&settings.enabledIds.includes(p.id)&&
   (!settings.noRepeat||!settings.usedIds.includes(p.id)));
