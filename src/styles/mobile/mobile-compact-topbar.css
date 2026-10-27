@@ -1,124 +1,215 @@
-/* Compact mobile global navigation - Home/Reports/Search/Notifications/Account.
-   Module headings remain inside modules, and TTCM is in the navigation drawer.
-   Desktop and tablet navigation outside mobile presentation are untouched. */
+/* BRIAN mobile quick-nav: approved icon-only layout.
+ * Menu | real logo | Reports | TTCM | Attendance | Notifications | Account.
+ * Scope all changes to mobile presentation; preserve desktop navigation.
+ */
 html.bes-mobile-shell-active {
   --bes-mobile-topbar-height: 64px;
+  --bes-mobile-quick-touch: 44px;
 }
 
 html.bes-mobile-shell-active .bes-mobile-topbar.bes-mobile-topbar--compact {
-  grid-template-columns: 44px minmax(0, 1fr) auto;
-  gap: 6px;
+  grid-template-columns: var(--bes-mobile-quick-touch) minmax(var(--bes-mobile-quick-touch), 1fr) auto;
+  align-items: center;
+  gap: 5px;
   min-height: calc(var(--bes-mobile-topbar-height) + env(safe-area-inset-top));
-  padding: env(safe-area-inset-top) max(12px, env(safe-area-inset-right)) 0 max(12px, env(safe-area-inset-left));
+  padding: env(safe-area-inset-top) max(10px, env(safe-area-inset-right)) 0 max(10px, env(safe-area-inset-left));
   border-bottom: 1px solid rgba(43, 75, 121, 0.08);
-  background: color-mix(in srgb, #fff 96%, transparent);
-  box-shadow: 0 3px 14px rgba(25, 46, 82, 0.05);
+  background: color-mix(in srgb, #fff 97%, transparent);
+  box-shadow: 0 3px 15px rgba(25, 46, 82, 0.055);
 }
 
-html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-icon-button {
-  width: 44px;
-  min-width: 44px;
-  height: 44px;
-  min-height: 44px;
-  border-radius: 13px;
-  color: #344866;
-  transition: background-color 140ms ease, color 140ms ease, transform 140ms ease;
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-icon-button,
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-avatar-button {
+  box-sizing: border-box;
+  flex: 0 0 var(--bes-mobile-quick-touch);
+  width: var(--bes-mobile-quick-touch);
+  min-width: var(--bes-mobile-quick-touch);
+  height: var(--bes-mobile-quick-touch);
+  min-height: var(--bes-mobile-quick-touch);
+  margin: 0;
+  padding: 0;
+  border-radius: 14px;
+  transition: background-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
 }
 
-html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-icon-button:active {
-  transform: scale(0.94);
-  color: #1d59c9;
-  background: #edf3ff;
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-icon-button:active,
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-avatar-button:active {
+  transform: scale(0.95);
+}
+
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-topbar__menu {
+  background: #f3f6fc;
+  border: 1px solid #e5ecf7;
+  color: #233c67;
 }
 
 html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-brand--compact {
-  min-width: 0;
-  min-height: 44px;
-  gap: 8px;
-  white-space: nowrap;
+  box-sizing: border-box;
+  justify-self: start;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: var(--bes-mobile-quick-touch);
+  min-width: var(--bes-mobile-quick-touch);
+  height: var(--bes-mobile-quick-touch);
+  min-height: var(--bes-mobile-quick-touch);
+  padding: 0;
+  border-radius: 14px;
 }
 
+/* Keep the original site logo asset, not a generated logo or a wordmark. */
 html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-brand__mark {
   box-sizing: border-box;
-  width: 34px;
-  height: 34px;
-  border-radius: 11px;
+  width: var(--bes-mobile-quick-touch);
+  height: var(--bes-mobile-quick-touch);
+  min-width: 0;
+  flex: 0 0 auto;
   padding: 2px;
-  box-shadow: 0 2px 8px rgba(20, 72, 163, 0.10);
+  border-radius: 14px;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 3px 12px rgba(23, 72, 163, 0.13);
 }
 
 html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-brand__logo {
-  border-radius: 9px;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 11px;
 }
 
-html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-brand__copy strong {
-  max-width: none;
-  font-size: 15px;
-  line-height: 1.1;
-  font-weight: 840;
-  letter-spacing: 0.045em;
-  color: #1a2940;
-}
-
+/* Separate left-side brand from quick actions, without putting text on the bar. */
 html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-topbar__actions {
-  gap: 2px;
-  flex-shrink: 0;
+  display: flex;
+  justify-self: end;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
 }
 
 html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-topbar__reports {
-  background: #f0f5ff;
-  color: #245dc6;
+  position: relative;
+  background: #edf4ff;
+  color: #1964d9;
 }
 
 html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-topbar__reports.is-active {
   background: #dce9ff;
-  color: #1648b2;
   box-shadow: inset 0 0 0 1px #bed3ff;
 }
 
-html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-avatar-button {
-  box-sizing: border-box;
-  display: inline-grid;
-  place-items: center;
+/* TTCM is an icon-first communication shortcut with a tiny identifier. */
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-topbar__ttcm {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  background: #f4efff;
+  color: #8050d8;
+}
+
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-topbar__ttcm svg {
   flex: 0 0 auto;
-  width: 44px;
-  min-width: 44px;
-  height: 44px;
-  min-height: 44px;
-  margin-left: 2px;
-  border: 1px solid #dce7fa;
-  background: #eef3ff;
-  color: #2157bd;
-  font-size: 14px;
-  font-weight: 800;
+}
+
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-topbar__ttcm small {
+  display: block;
+  margin-top: -1px;
+  font: inherit;
+  font-size: 8px;
+  line-height: 1;
+  letter-spacing: 0.015em;
+  font-weight: 850;
+  color: #8150d4;
+}
+
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-topbar__attendance {
+  background: #e9f8f3;
+  color: #109c7b;
+}
+
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-topbar__attendance.is-active {
+  box-shadow: inset 0 0 0 1px #95d8c7;
+}
+
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-notification-button {
+  position: relative;
+  background: #f1f5fc;
+  color: #233b68;
 }
 
 html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-unread-dot {
-  top: 6px;
-  right: 7px;
-  width: 9px;
-  height: 9px;
-  background: #e5484d;
+  top: 5px;
+  right: 5px;
+  box-sizing: content-box;
+  width: 8px;
+  height: 8px;
+  border: 2px solid #f1f5fc;
+  background: #ef4156;
 }
 
-/* Keep every interactive target at least 44px. Hide only the optional search
-   shortcut on narrow phones; the same search remains available in the menu. */
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-avatar-button {
+  display: inline-grid;
+  place-items: center;
+  margin-left: 1px;
+  border: 1px solid #dce7fa;
+  border-radius: 50%;
+  background: #eef3ff;
+  color: #2157bd;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-icon-button:focus-visible,
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-brand:focus-visible,
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-avatar-button:focus-visible {
+  outline: 3px solid #6b9cff;
+  outline-offset: 2px;
+}
+
+/* Narrow iPhones: preserve all four requested shortcuts (no hidden buttons).
+ * Targets shrink only when the viewport cannot accommodate 7 x 44px.
+ */
 @media (max-width: 389px) {
-  html.bes-mobile-shell-active .bes-mobile-topbar--compact {
-    grid-template-columns: 44px minmax(0, 1fr) auto;
+  html.bes-mobile-shell-active {
+    --bes-mobile-quick-touch: 40px;
+  }
+  html.bes-mobile-shell-active .bes-mobile-topbar.bes-mobile-topbar--compact {
     gap: 4px;
     padding-inline: 9px;
   }
-  html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-topbar__search {
-    display: none;
+  html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-topbar__actions {
+    gap: 2px;
   }
-  html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-brand__copy strong {
-    font-size: 14px;
+}
+
+@media (max-width: 339px) {
+  html.bes-mobile-shell-active {
+    --bes-mobile-quick-touch: 36px;
+  }
+  html.bes-mobile-shell-active .bes-mobile-topbar.bes-mobile-topbar--compact {
+    padding-inline: 7px;
+    gap: 3px;
+  }
+  html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-icon-button,
+  html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-avatar-button {
+    border-radius: 11px;
+  }
+  html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-brand__mark {
+    border-radius: 11px;
+  }
+  html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-topbar__ttcm small {
+    font-size: 7px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-icon-button {
+  html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-icon-button,
+  html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-avatar-button {
     transition: none;
   }
 }
