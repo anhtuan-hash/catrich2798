@@ -199,7 +199,7 @@ export default function LearningReportsWorkspace({currentUser}) {
   const effectiveAttendance=selected?.status==='approved' && selected.attendance_snapshot
     ? selected.attendance_snapshot : attendance;
   const hasLinkedClass=(effectiveAttendance?.classes?.length||0)>0;
-  const deadlinePassed=Boolean(selected&&new Date(selected.due_at).getTime()<Date.now());
+  const deadlinePassed=Boolean(selected?.effective_due_at&&new Date(selected.effective_due_at).getTime()<Date.now());
   const reportLocked=selected&&!editable;
   const saveBindings=async(ids)=>{
     if(!selected)return;
@@ -309,7 +309,7 @@ export default function LearningReportsWorkspace({currentUser}) {
 
     {isLeader&&!selected&&managerView!=='reports'&&<LearningReportsManagerDashboard
       departmentId={departmentId} kind={filter==='remedial'?'remedial':'gifted'} mode={managerView}
-      onModeChange={setManagerView} accounts={accounts}
+      onModeChange={setManagerView} onDeadlineUpdated={load} accounts={accounts}
       onOpenReport={id=>{setManagerView('reports');setSelectedId(id);}}/>}
     {(managerView==='reports'||!isLeader)&&!selected&&<section className="blr-list">
       <div className="blr-title-row"><h2>{isLeader?'Danh sách báo cáo được giao':'Báo cáo được phân công'}</h2>
@@ -322,7 +322,7 @@ export default function LearningReportsWorkspace({currentUser}) {
           return <button key={task.id} type="button" className="blr-task" onClick={()=>setSelectedId(task.id)}>
             <div className="blr-task-top"><span>{task.report_kind==='gifted'?<Award/>:<BookOpenCheck/>}{LEARNING_REPORT_KINDS[task.report_kind]}</span><Status value={task.status}/></div>
             <h3>{isLeader?teacherName(task.teacher_id):'Báo cáo '+task.period.slice(0,7)}</h3>
-            <small><CalendarClock size={15}/> Hạn nộp: {dateLabel(task.due_at)}</small>
+            <small><CalendarClock size={15}/> Hạn nộp: {dateLabel(task.effective_due_at)}</small>
             <div className="blr-progress"><i style={{width:p.percent+'%'}}/></div>
             <small>{p.count}/5 phần đã hoàn thành · {p.percent}% phần chuyên môn</small>
           </button>;
@@ -333,7 +333,7 @@ export default function LearningReportsWorkspace({currentUser}) {
       <div className="blr-editor-head"><button type="button" onClick={()=>setSelectedId('')}>← Danh sách báo cáo</button>
         <div><small>{isLeader?teacherName(selected.teacher_id):'BÁO CÁO CỦA TÔI'}</small>
           <h2>{LEARNING_REPORT_KINDS[selected.report_kind]} · {selected.period?.slice(0,7)}</h2>
-          <p><Clock3 size={16}/> Hạn {dateLabel(selected.due_at)} {deadlinePassed&&currentStatus!=='approved'&&<b className="blr-overdue">· Quá hạn</b>} · <Status value={currentStatus}/></p></div></div>
+          <p><Clock3 size={16}/> Hạn {dateLabel(selected.effective_due_at)} {deadlinePassed&&currentStatus!=='approved'&&<b className="blr-overdue">· Quá hạn</b>} · <Status value={currentStatus}/></p></div></div>
       {isLeader&&<ClassBindingEditor key={selected.id} options={classOptions} busy={bindingBusy} onSave={saveBindings} teacherLabel={teacherName(selected.teacher_id)}/>}
       <div className="blr-attendance-refresh"><strong>Thống kê chuyên cần tự động</strong>
         <button type="button" onClick={reloadAttendance} disabled={attendanceLoading}><RefreshCw size={16}/> Cập nhật từ Điểm danh</button></div>
