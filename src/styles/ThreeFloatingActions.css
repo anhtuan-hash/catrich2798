@@ -202,3 +202,23 @@ body:not(:has(.bes-approval-root)) .bbd-board-fab {
     border:2px solid ButtonText!important;
   }
 }
+
+/* Compact a single 7-bubble column in landscape/short classroom displays.
+   The same diameter, gap, edge and bottom variables feed every launcher;
+   no bubble shifts into a second horizontal column. */
+@media(max-height:480px){
+  :root{
+    --bes-floating-diameter:46px;
+    --bes-floating-gap:5px;
+    --bes-floating-edge:max(9px,env(safe-area-inset-right,0px));
+    --bes-floating-bottom:max(9px,env(safe-area-inset-bottom,0px));
+  }
+}
+@media(max-height:380px){
+  :root{
+    --bes-floating-diameter:42px;
+    --bes-floating-gap:3px;
+    --bes-floating-edge:max(6px,env(safe-area-inset-right,0px));
+    --bes-floating-bottom:max(6px,env(safe-area-inset-bottom,0px));
+  }
+}
