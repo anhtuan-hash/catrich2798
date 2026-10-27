@@ -8,12 +8,14 @@ export default function FocusSourcePicker({
 }) {
   const vi = language !== 'en';
   const root = useRef(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   useEffect(() => {
     const first = root.current?.querySelector('button:not(:disabled)');
     first?.focus();
     const onKeyDown = event => {
       if (event.key === 'Escape') {
-        event.preventDefault(); event.stopPropagation(); onClose();
+        event.preventDefault(); event.stopPropagation(); onCloseRef.current?.();
         return;
       }
       if (event.key !== 'Tab') return;
@@ -26,7 +28,7 @@ export default function FocusSourcePicker({
     };
     window.addEventListener('keydown', onKeyDown, true);
     return () => window.removeEventListener('keydown', onKeyDown, true);
-  }, [onClose]);
+  }, []);
 
   const unavailable = !websites && !videos;
   return <div className="bfc-source-choice" ref={root} role="dialog" aria-modal="true"
