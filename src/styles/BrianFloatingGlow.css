@@ -1,0 +1,142 @@
+/* BRIAN Floating Glow: one light-weight halo for independent classroom bubbles.
+   Visual-only: never changes right/bottom, hit areas, permissions, or click handlers. */
+html body .bit-launcher {
+  --bes-bubble-glow-rgb:76,125,242;
+  --bes-bubble-glow-delay:-.8s;
+}
+html body .bff-bubble {
+  --bes-bubble-glow-rgb:244,170,65;
+  --bes-bubble-glow-delay:-1.6s;
+}
+html body .bba-bubble {
+  --bes-bubble-glow-rgb:244,88,126;
+  --bes-bubble-glow-delay:-.25s;
+}
+html body .bbd-board-fab {
+  --bes-bubble-glow-rgb:52,184,141;
+  --bes-bubble-glow-delay:-1.25s;
+}
+html body .bfc-bubble {
+  --bes-bubble-glow-rgb:140,104,238;
+  --bes-bubble-glow-delay:-2.1s;
+}
+html body .bes-approval-root .bes-approval-fab {
+  --bes-bubble-glow-rgb:239,151,75;
+  --bes-bubble-glow-delay:-.6s;
+}
+html body .bes-kira-chat-root .bes-kira-chat-launcher {
+  --bes-bubble-glow-rgb:112,110,247;
+  --bes-bubble-glow-delay:-1.9s;
+}
+
+/* A gentle, colored glass aura; keep native hover transforms and button styles. */
+html body :is(
+  .bit-launcher,
+  .bff-bubble,
+  .bba-bubble,
+  .bbd-board-fab,
+  .bfc-bubble,
+  .bes-approval-root .bes-approval-fab,
+  .bes-kira-chat-root .bes-kira-chat-launcher
+) {
+  isolation:isolate;
+  overflow:visible;
+  box-shadow:
+    0 9px 24px rgba(36,54,101,.16),
+    0 0 0 2px rgba(var(--bes-bubble-glow-rgb),.15),
+    0 0 15px rgba(var(--bes-bubble-glow-rgb),.27),
+    0 0 28px rgba(var(--bes-bubble-glow-rgb),.15) !important;
+}
+
+/* Pseudo-element halo glows behind content, with no extra DOM or event listeners.
+   Only opacity changes during idle animation; the button itself never moves. */
+html body :is(
+  .bit-launcher,
+  .bff-bubble,
+  .bba-bubble,
+  .bbd-board-fab,
+  .bfc-bubble,
+  .bes-approval-root .bes-approval-fab,
+  .bes-kira-chat-root .bes-kira-chat-launcher
+)::before {
+  content:"";
+  position:absolute;
+  inset:-10px;
+  z-index:-1;
+  border-radius:50%;
+  pointer-events:none;
+  background:radial-gradient(circle,
+    rgba(var(--bes-bubble-glow-rgb),.34) 25%,
+    rgba(var(--bes-bubble-glow-rgb),.19) 49%,
+    rgba(var(--bes-bubble-glow-rgb),0) 77%);
+  opacity:.66;
+  animation:bes-bubble-halo-pulse 3.2s ease-in-out infinite;
+  animation-delay:var(--bes-bubble-glow-delay,0s);
+  transition:opacity .2s ease;
+}
+
+@keyframes bes-bubble-halo-pulse {
+  0%,100% {opacity:.52}
+  50% {opacity:1}
+}
+
+/* Deliberately avoid animating transform: Motion Hub, hover and active own it. */
+@media(hover:hover) {
+  html body :is(
+    .bit-launcher,
+    .bff-bubble,
+    .bba-bubble,
+    .bbd-board-fab,
+    .bfc-bubble,
+    .bes-approval-root .bes-approval-fab,
+    .bes-kira-chat-root .bes-kira-chat-launcher
+  ):hover {
+    box-shadow:
+      0 13px 31px rgba(36,54,101,.22),
+      0 0 0 3px rgba(var(--bes-bubble-glow-rgb),.23),
+      0 0 22px rgba(var(--bes-bubble-glow-rgb),.45),
+      0 0 43px rgba(var(--bes-bubble-glow-rgb),.30) !important;
+  }
+}
+html body :is(
+  .bit-launcher,
+  .bff-bubble,
+  .bba-bubble,
+  .bbd-board-fab,
+  .bfc-bubble,
+  .bes-approval-root .bes-approval-fab,
+  .bes-kira-chat-root .bes-kira-chat-launcher
+):focus-visible {
+  box-shadow:
+    0 13px 31px rgba(36,54,101,.22),
+    0 0 0 3px rgba(var(--bes-bubble-glow-rgb),.26),
+    0 0 22px rgba(var(--bes-bubble-glow-rgb),.45),
+    0 0 43px rgba(var(--bes-bubble-glow-rgb),.30) !important;
+}
+
+/* When the system or Brian Motion Hub disables motion, retain a static halo. */
+@media(prefers-reduced-motion:reduce) {
+  html body :is(
+    .bit-launcher,.bff-bubble,.bba-bubble,.bbd-board-fab,.bfc-bubble,
+    .bes-approval-root .bes-approval-fab,
+    .bes-kira-chat-root .bes-kira-chat-launcher
+  )::before {animation:none!important;transition:none!important;opacity:.70}
+}
+html[data-motion-bubble="none"] body :is(
+  .bit-launcher,.bff-bubble,.bba-bubble,.bbd-board-fab,.bfc-bubble,
+  .bes-approval-root .bes-approval-fab,
+  .bes-kira-chat-root .bes-kira-chat-launcher
+)::before {animation:none!important;transition:none!important;opacity:.70}
+
+@media(forced-colors:active) {
+  html body :is(
+    .bit-launcher,.bff-bubble,.bba-bubble,.bbd-board-fab,.bfc-bubble,
+    .bes-approval-root .bes-approval-fab,
+    .bes-kira-chat-root .bes-kira-chat-launcher
+  ) {box-shadow:none!important}
+  html body :is(
+    .bit-launcher,.bff-bubble,.bba-bubble,.bbd-board-fab,.bfc-bubble,
+    .bes-approval-root .bes-approval-fab,
+    .bes-kira-chat-root .bes-kira-chat-launcher
+  )::before {display:none!important}
+}
