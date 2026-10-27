@@ -1,6 +1,6 @@
 import React,{useEffect,useMemo,useState} from 'react';
-import {CalendarClock,CheckCircle2,Download,FileText,Search,
-  Trash2,UsersRound,X,AlertTriangle,Eye,CheckSquare,Square} from 'lucide-react';
+import {CheckCircle2,Download,FileText,Search,ClipboardList,
+  Trash2,UsersRound,X,AlertTriangle,Eye} from 'lucide-react';
 import {LEARNING_REPORT_KINDS,LEARNING_REPORT_STATUSES,reportProgress} from './learningReportsService.js';
 import './LearningAssignmentManager.css';
 import {reportCanBeRevoked,filteredLearningAssignments} from './learningAssignmentsModel.js';
@@ -57,9 +57,13 @@ export default function LearningAssignmentManager({
   };
   return <section className="blru" aria-label="Quản lý giao báo cáo">
     <div className="blru-header">
-      <div><small>QUẢN LÝ BÁO CÁO GIÁO VIÊN</small>
-        <h2>Danh sách báo cáo được giao</h2>
-        <p>HSG và Phụ đạo dùng chung một bảng theo dõi, lọc độc lập theo từng loại và tháng.</p></div>
+      <div className="blru-head-title">
+        <span className="blru-head-icon" aria-hidden="true"><ClipboardList size={22}/></span>
+        <div><small>QUẢN LÝ BÁO CÁO GIÁO VIÊN</small>
+          <h2>Danh sách báo cáo được giao</h2>
+          <p>HSG và Phụ đạo dùng chung một bảng theo dõi, lọc độc lập theo từng loại và tháng.</p>
+        </div>
+      </div>
       <button type="button" onClick={()=>toCsv(visible)} disabled={!visible.length}>
         <Download size={17}/> Xuất CSV
       </button>

@@ -19,6 +19,8 @@ on:
       - 'supabase/migrations/20261027155000_learning_reports_dual_kind_campaign_unique.sql'
       - 'scripts/test-revoke-learning-report-assignments.mjs'
       - 'scripts/test-learning-reports-unified-workspace.mjs'
+      - 'scripts/test-learning-reports-macos-material3-design.mjs'
+      - 'src/pages/BrianTeamPortal.css'
       - 'supabase/migrations/20261027153000_learning_report_bulk_revocation.sql'
       - 'supabase/migrations/20261027142000_revoke_learning_report_assignments.sql'
       - 'supabase/migrations/20261027130000_smart_learning_identity_preview.sql'
@@ -61,6 +63,8 @@ jobs:
         run: node scripts/test-revoke-learning-report-assignments.mjs
       - name: Verify unified workspace and safe select-all bulk actions
         run: node scripts/test-learning-reports-unified-workspace.mjs
+      - name: Check macOS Material 3 visual system and protected operations
+        run: node scripts/test-learning-reports-macos-material3-design.mjs
       - name: Validate report JSX syntax
         run: |
           node --input-type=module <<'NODE'
