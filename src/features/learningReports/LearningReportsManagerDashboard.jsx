@@ -6,6 +6,7 @@ import {
   loadLearningTeamDashboard,setLearningTeamDeadline,
 } from './learningReportsService.js';
 import {buildLearningYearDashboard,schoolYearStartYear} from './learningReportsAnalytics.js';
+import {isValidReportPeriod,reportSchoolYear} from './learningReportsPeriod.js';
 import './LearningReportsManagerDashboard.css';
 
 const fmt=n=>new Intl.NumberFormat('vi-VN',{maximumFractionDigits:1}).format(Number(n)||0);
@@ -57,11 +58,7 @@ export default function LearningReportsManagerDashboard({
   departmentId,kind,mode,onModeChange,onOpenReport,onDeadlineUpdated,accounts=[],
   selectedPeriod,onPeriodChange
 }){
-  const periodSchoolYear=period=>{
-    const [y,m]=String(period||'').split('-').map(Number);
-    return y&&m>=1&&m<=12?(m>=8?y:y-1):schoolYearStartYear();
-  };
-  const [startYear,setStartYear]=useState(()=>periodSchoolYear(selectedPeriod));
+  const [startYear,setStartYear]=useState(()=>reportSchoolYear(selectedPeriod,schoolYearStartYear()));
   const [data,setData]=useState(null);
   const [month,setMonth]=useState(()=>{
     if(/^\\d{4}-(0[1-9]|1[0-2])$/.test(selectedPeriod||''))return selectedPeriod;
@@ -89,7 +86,7 @@ export default function LearningReportsManagerDashboard({
   useEffect(()=>{refresh();},[refresh]);
   useEffect(()=>{
     if(!/^\\d{4}-(0[1-9]|1[0-2])$/.test(selectedPeriod||''))return;
-    const y=periodSchoolYear(selectedPeriod);
+    const y=reportSchoolYear(selectedPeriod,schoolYearStartYear());
     setStartYear(prev=>prev===y?prev:y);
     setMonth(prev=>prev===selectedPeriod?prev:selectedPeriod);
   },[selectedPeriod]);
