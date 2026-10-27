@@ -16,6 +16,9 @@ test('Wheel Studio exposes editable weighted rows, three modes, themes, presets 
  await expect(page.getByRole('button',{name:'Loại dần'})).toHaveClass(/active/);
  await page.getByRole('button',{name:'candy'}).click();
  await expect(page.getByRole('button',{name:'candy'})).toHaveAttribute('aria-pressed','true');
+ await page.getByRole('textbox',{name:'Tên bộ vòng quay'}).fill('Warm-up Grade 11');
+ await page.getByRole('button',{name:'Lưu bộ'}).click();
+ await expect(page.locator('.bit-ws-saved-list')).toContainText('Warm-up Grade 11');
  await page.getByRole('tab',{name:'Danh sách'}).click();
  await page.locator('.bit-ws-details summary').click();
  await page.locator('#bit-wheel-list').fill('Anna\nBrian\nCara');
