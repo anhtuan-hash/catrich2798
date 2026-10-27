@@ -1,0 +1,30 @@
+name: Brian Single-Column Bubbles
+on:
+  pull_request:
+    paths:
+      - 'src/components/BrianInstantTools/BrianInstantTools.css'
+      - 'src/styles/ThreeFloatingActions.css'
+      - 'scripts/test-single-column-floating-bubbles.mjs'
+      - '.github/workflows/brian-floating-single-column.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Assert all floating bubbles align with no overlap
+        run: |
+          node scripts/test-single-column-floating-bubbles.mjs
+          node scripts/test-role-floating-dock.mjs
+          node scripts/test-unified-floating-dock.mjs
+          node scripts/test-unified-bubble-motion.mjs
+      - name: Compile production bundle
+        run: npx vite build
