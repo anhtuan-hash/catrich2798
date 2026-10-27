@@ -19,7 +19,7 @@ import './LearningReportsMacMaterial.css';
 const dateOnly = () => { const now = new Date(); return [now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-'); };
 const periodNow = () => dateOnly().slice(0,7);
 
-const validPeriod = value => /^\\d{4}-(0[1-9]|1[0-2])$/.test(String(value||''));
+const validPeriod = value => /^\d{4}-(0[1-9]|1[0-2])$/.test(String(value||''));
 const periodTitle = period => {
   const [year,month]=String(period||periodNow()).split('-');
   return 'Tháng '+Number(month)+'/'+year;
