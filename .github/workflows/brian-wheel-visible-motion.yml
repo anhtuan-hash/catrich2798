@@ -29,6 +29,6 @@ jobs:
       - name: Build production assets
         run: npx vite build
       - name: Install browser engines
-        run: npx playwright install webkit
+        run: npx playwright install --with-deps webkit
       - name: Check real wheel motion and fireworks in browsers
         run: npx playwright test --config=playwright.brian-wheel-motion.config.js --project=iphone-webkit
