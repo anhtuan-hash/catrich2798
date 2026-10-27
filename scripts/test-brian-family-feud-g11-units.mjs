@@ -87,6 +87,9 @@ check('All ten games complete actual rounds, strikes, steals and two-player Fast
     assert.equal(g.phase,'steal');
     g=feudReducer(g,{type:'REVEAL',index:1});
    }else g=feudReducer(g,{type:'END_ROUND'});
+   assert.equal(g.phase,'round_scoring');
+   g=feudReducer(g,{type:'SET_ROUND_DRAFT',index:0,value:String(10+round)});
+   g=feudReducer(g,{type:'SAVE_ROUND_SCORES'});
    assert.equal(g.phase,'round_done');
    g=feudReducer(g,{type:'NEXT_ROUND'});
   }
@@ -99,6 +102,9 @@ check('All ten games complete actual rounds, strikes, steals and two-player Fast
   g=feudReducer(g,{type:'FAST_RESUME',now:200000});
   assert.equal(feudReducer(g,{type:'FAST_ANSWER',index:0,now:201000}),g);
   for(let i=0;i<5;i++)g=feudReducer(g,{type:'FAST_ANSWER',index:1,now:201000+i});
+  assert.equal(g.phase,'fast_scoring');
+  g=feudReducer(g,{type:'SET_FAST_DRAFT',value:'55'});
+  g=feudReducer(g,{type:'CONFIRM_FAST_SCORE'});
   assert.equal(g.phase,'fast_done');
   assert.equal(g.fast.answers.length,10);
   assert.ok(g.fast.points>=200);
