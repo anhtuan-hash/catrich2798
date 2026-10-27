@@ -236,6 +236,7 @@ export default function LearningReportsWorkspace({currentUser}) {
       setTasks(rows=>rows.map(t=>t.id===updated.id?updated:t));
       setNotice(status==='approved'?'Đã xác nhận báo cáo.':'Đã yêu cầu giáo viên bổ sung.');
       setSelectedId('');
+      if(isLeader)setManagerView('summary');
     }catch(e){setError(e.message);}finally{setBusy(false);}
   };
   return <main className="blr-shell">
@@ -290,12 +291,11 @@ export default function LearningReportsWorkspace({currentUser}) {
       departmentId={departmentId} kind={filter==='remedial'?'remedial':'gifted'} mode={managerView}
       onModeChange={setManagerView} onDeadlineUpdated={load} accounts={accounts}
       onOpenReport={id=>{setManagerView('reports');setSelectedId(id);}}/>}
-    {(managerView==='reports'||!isLeader)&&!selected&&<section className="blr-list">
-      <div className="blr-title-row"><h2>{isLeader?'Danh sách báo cáo được giao':'Báo cáo được phân công'}</h2>
-        <span>{filtered.length} báo cáo</span>{isLeader&&<button onClick={()=>downloadCsv(filtered.map(x=>({...x,teacherName:teacherName(x.teacher_id)})))} disabled={!filtered.length}>
-          <Download size={17}/> Xuất CSV</button>}</div>
+    {!isLeader&&!selected&&<section className="blr-list">
+      <div className="blr-title-row"><h2>Báo cáo được phân công</h2>
+        <span>{filtered.length} báo cáo</span></div>
       {loading?<div className="blr-empty">Đang tải báo cáo…</div>:!filtered.length?<div className="blr-empty"><FileText size={35}/>
-        {isLeader?'Chưa có báo cáo nào được giao cho kỳ này.':'Bạn chưa được phân công báo cáo bồi dưỡng hoặc phụ đạo.'}</div>
+        Bạn chưa được phân công báo cáo bồi dưỡng hoặc phụ đạo.</div>
         :<div className="blr-list-grid">{filtered.map(task=>{
           const p=reportProgress(task.report_kind,task.payload);
           return <button key={task.id} type="button" className="blr-task" onClick={()=>setSelectedId(task.id)}>
@@ -309,7 +309,8 @@ export default function LearningReportsWorkspace({currentUser}) {
     </section>}
 
     {selected&&<div className="blr-editor">
-      <div className="blr-editor-head"><button type="button" onClick={()=>setSelectedId('')}>← Danh sách báo cáo</button>
+      <div className="blr-editor-head"><button type="button" onClick={()=>{setSelectedId('');if(isLeader)setManagerView('summary');}}>
+          {isLeader?'← Tổng hợp tổ':'← Danh sách báo cáo'}</button>
         <div><small>{isLeader?teacherName(selected.teacher_id):'BÁO CÁO CỦA TÔI'}</small>
           <h2>{LEARNING_REPORT_KINDS[selected.report_kind]} · {selected.period?.slice(0,7)}</h2>
           <p><Clock3 size={16}/> Hạn {dateLabel(selected.effective_due_at)} {deadlinePassed&&currentStatus!=='approved'&&<b className="blr-overdue">· Quá hạn</b>} · <Status value={currentStatus}/></p>
