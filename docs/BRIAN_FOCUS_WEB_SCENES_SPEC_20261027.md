@@ -36,3 +36,12 @@ Accept HTTPS only. Reject local/special domains, literal IP addresses, credentia
 
 ## Rollback
 Set shared media_type back to previously selected image/video/html/youtube/default using Scene Studio. Schema additions are backwards-compatible and need not be reverted. Feature can be reverted by Git rollback without deleting website settings.
+
+
+## Enhancement — per-website fullscreen (2026-10-27)
+- Add a labeled **Toàn màn hình / Fullscreen** button to the Web Scenes toolbar for the selected site, plus a Maximize/Minimize control on each visible website panel header (next to Reload and Open).
+- Use the standard Fullscreen API on the existing panel element, not the iframe URL or the entire Brian Focus overlay. The same iframe remains mounted while expanding and returning, so interactive game state survives this UI change.
+- Preserve the in-panel header while fullscreen for an always-visible Exit action. Escape exits browser-native fullscreen; fullscreenchange reconciles React state. If the API is unavailable or refused, use a CSS viewport-maximized fallback and capture Escape before Brian Focus's global Escape handler, so the Focus session is not closed.
+- Entering fullscreen activates iframe interaction. Restoring removes only fullscreen state and returns to the existing website layout without touching the global playlist or YouTube player.
+- Hide redundant workspace chrome during fallback only, maintain responsive layout and keyboard accessible controls. The separate existing Focus-wide fullscreen control remains unchanged.
+- Test contracts cover native request, exit, fallback, Escape handling, and the new controls. No Supabase schema changes.
