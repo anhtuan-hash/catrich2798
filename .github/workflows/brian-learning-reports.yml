@@ -63,9 +63,15 @@ jobs:
               fileName: path, reportDiagnostics: true,
               compilerOptions: { allowJs:true, jsx:ts.JsxEmit.ReactJSX, target:ts.ScriptTarget.ES2022 },
             });
-            return (result.diagnostics || []).filter(item => item.category === ts.DiagnosticCategory.Error);
+            return (result.diagnostics || [])
+              .filter(item => item.category === ts.DiagnosticCategory.Error)
+              .map(item => ({
+                path,
+                line: fs.readFileSync(path, 'utf8').slice(0, item.start || 0).split('\n').length,
+                message: ts.flattenDiagnosticMessageText(item.messageText, '\n'),
+              }));
           });
-          for (const item of errors) console.error(ts.flattenDiagnosticMessageText(item.messageText, '\n'));
+          for (const item of errors) console.error(item.path + ':' + item.line + ': ' + item.message);
           if (errors.length) process.exit(1);
           console.log('PASS: JSX parsed and transpiled');
           NODE
