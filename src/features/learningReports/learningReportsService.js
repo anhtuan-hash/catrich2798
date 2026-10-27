@@ -149,10 +149,57 @@ export async function issueLearningReports({ departmentId, kind, month, dueAt, t
   });
   fail(error); return (Array.isArray(data) ? data[0] : data) || {};
 }
+export async function listLearningDeadlineOverrides() {
+  const {data,error}=await db().from('bes_learning_report_deadlines')
+    .select('head_id,department_id,report_kind,period,due_at,cleared')
+    .order('period',{ascending:false}).limit(400);
+  fail(error);return data||[];
+}
+export function applyLearningDeadlineOverrides(tasks,deadlines) {
+  const byKey=new Map((deadlines||[]).map(d=>[
+    [d.head_id,d.department_id,d.report_kind,String(d.period||'').slice(0,7)].join(':'),
+    d,
+  ]));
+  return (tasks||[]).map(t=>{
+    const override=byKey.get([t.head_id,t.department_id,t.report_kind,String(t.period||'').slice(0,7)].join(':'));
+    return {...t,effective_due_at:override
+      ? override.cleared?null:override.due_at
+      :t.due_at,
+      deadline_cleared:Boolean(override?.cleared)};
+  });
+}
 export async function listLearningReports() {
-  const {data,error} = await db().from('bes_learning_report_tasks')
-    .select('*').order('created_at',{ascending:false}).limit(400);
-  fail(error); return data || [];
+  const [reports,overrides]=await Promise.all([
+    db().from('bes_learning_report_tasks').select('*')
+      .order('created_at',{ascending:false}).limit(400),
+    db().from('bes_learning_report_deadlines').select('head_id,department_id,report_kind,period,due_at,cleared')
+      .order('period',{ascending:false}).limit(400),
+  ]);
+  fail(reports.error);fail(overrides.error);
+  return applyLearningDeadlineOverrides(reports.data||[],overrides.data||[]);
+}
+export async function loadLearningTeamDashboard(departmentId,kind,year) {
+  if(!departmentId || !['gifted','remedial'].includes(kind) || !Number.isInteger(Number(year)))
+    throw new Error('Tổ, loại báo cáo hoặc năm học không hợp lệ.');
+  const y=Number(year);
+  if(y<2020||y>2100) throw new Error('Năm học không hợp lệ.');
+  const {data,error}=await db().rpc('bes_learning_report_team_dashboard',{
+    p_department_id:departmentId,p_kind:kind,
+    p_from:`${y}-08-01`,p_to:`${y+1}-08-01`,
+  });
+  fail(error);return data||{reports:[],sessions:[],deadlines:[]};
+}
+export async function setLearningTeamDeadline(departmentId,kind,period,dueAt,clear=false) {
+  if(!/^(20\\d{2})-(0[1-9]|1[0-2])$/.test(String(period||'')))
+    throw new Error('Kỳ báo cáo không hợp lệ.');
+  if(!clear && (!dueAt || !Number.isFinite(new Date(dueAt).getTime())
+    || new Date(dueAt).getTime()<=Date.now()))
+    throw new Error('Vui lòng chọn hạn nộp trong tương lai.');
+  const {data,error}=await db().rpc('bes_set_learning_report_deadline',{
+    p_department_id:departmentId,p_kind:kind,p_period:period+'-01',
+    p_due_at:clear?null:new Date(dueAt).toISOString(),p_clear:clear,
+  });
+  fail(error);return data;
 }
 export async function listLearningSessions(taskId) {
   if (!taskId) return [];
@@ -211,9 +258,13 @@ export async function deleteLearningSession(sessionId) {
 export async function listUnreadLearningReportNotifications(userId) {
   if (!userId || !isSupabaseConfigured) return [];
   const {data,error}=await db().from('bes_learning_report_tasks')
-    .select('id,report_kind,period,due_at,created_at,notified_read_at,status')
+    .select('id,head_id,department_id,report_kind,period,due_at,created_at,notified_read_at,status')
     .eq('teacher_id',userId).eq('notify_enabled',true)
     .is('notified_read_at',null).order('created_at',{ascending:false}).limit(25);
   if (error) return [];
-  return data || [];
+  try {
+    const deadlines=await listLearningDeadlineOverrides();
+    const rows=applyLearningDeadlineOverrides(data||[],deadlines);
+    return rows.map(row=>({...row,due_at:row.effective_due_at}));
+  } catch {return data||[];}
 }
