@@ -3,6 +3,7 @@ import {CalendarClock,CheckCircle2,Download,FileText,Search,
   Trash2,UsersRound,X,AlertTriangle,Eye,CheckSquare,Square} from 'lucide-react';
 import {LEARNING_REPORT_KINDS,LEARNING_REPORT_STATUSES,reportProgress} from './learningReportsService.js';
 import './LearningAssignmentManager.css';
+import {reportCanBeRevoked,filteredLearningAssignments} from './learningAssignmentsModel.js';
 const statusOrder=['all','draft','submitted','revision','approved'];
 const safeCsvCell=value=>{
   let s=String(value??'');
@@ -19,22 +20,6 @@ const toCsv=(rows)=>{
   const a=document.createElement('a');a.href=url;a.download='brian-bao-cao-boi-duong-phu-dao.csv';a.click();
   window.setTimeout(()=>URL.revokeObjectURL(url),1500);
 };
-export function reportCanBeRevoked(task){
-  if(!task||task.status!=='draft'||task.submitted_at||task.reviewed_at)return false;
-  return !Object.values(task.payload||{}).some(v=>v!==null&&v!==undefined&&
-    (typeof v==='object'?Object.keys(v).length>0:String(v).trim()!==''));
-}
-export function filteredLearningAssignments(tasks,{kind='all',month='all',status='all',query=''}={}){
-  const q=query.trim().toLocaleLowerCase('vi');
-  return (tasks||[]).filter(t=>
-    (kind==='all'||t.report_kind===kind)&&
-    (month==='all'||String(t.period||'').slice(0,7)===month)&&
-    (status==='all'||t.status===status)&&
-    (!q||String(t.teacherLabel||'').toLocaleLowerCase('vi').includes(q)||
-      String(LEARNING_REPORT_KINDS[t.report_kind]||'').toLocaleLowerCase('vi').includes(q))
-  ).sort((a,b)=>String(b.period).localeCompare(String(a.period))||
-    String(a.teacherLabel).localeCompare(String(b.teacherLabel),'vi'));
-}
 export default function LearningAssignmentManager({
   tasks=[],kind='all',teacherName,onOpen,onBulkRevoke,busy=false,
 }){
