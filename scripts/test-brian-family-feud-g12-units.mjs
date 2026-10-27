@@ -90,8 +90,12 @@ check('All ten games complete real reducer flow: five rounds, three strikes/stea
     for(let n=0;n<3;n++)session=feudReducer(session,{type:'STRIKE'});
     assert.equal(session.phase,'steal');
     session=feudReducer(session,{type:'REVEAL',index:1});
-    assert.equal(session.phase,'round_done');
+    assert.equal(session.phase,'round_scoring');
    }else session=feudReducer(session,{type:'END_ROUND'});
+   assert.equal(session.phase,'round_scoring');
+   session=feudReducer(session,{type:'SET_ROUND_DRAFT',index:0,value:String(10+i)});
+   session=feudReducer(session,{type:'SAVE_ROUND_SCORES'});
+   assert.equal(session.phase,'round_done');
    session=feudReducer(session,{type:'NEXT_ROUND'});
   }
   assert.equal(session.phase,'finished');
@@ -106,10 +110,13 @@ check('All ten games complete real reducer flow: five rounds, three strikes/stea
   assert.equal(feudReducer(session,{type:'FAST_ANSWER',index:0,now:201000}),session,
    'Second participant cannot repeat the same answer');
   for(let i=0;i<5;i++)session=feudReducer(session,{type:'FAST_ANSWER',index:1,now:201000+i});
+  assert.equal(session.phase,'fast_scoring');
+  session=feudReducer(session,{type:'SET_FAST_DRAFT',value:'55'});
+  session=feudReducer(session,{type:'CONFIRM_FAST_SCORE'});
   assert.equal(session.phase,'fast_done');
   assert.equal(session.fast.answers.length,10);
   assert.ok(session.fast.points>=200);
-  assert.equal(session.last.kind,'fast_money');
+  assert.equal(session.last.kind,'fast_money_manual');
   assert.equal(session.edition.unit,game.unit);
  }
 });
