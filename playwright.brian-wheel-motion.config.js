@@ -1,6 +1,6 @@
 import {defineConfig,devices} from '@playwright/test';
 export default defineConfig({
- testDir:'./tests/e2e',testMatch:'brian-wheel-visible-motion.spec.js',
+ testDir:'./tests/e2e',testMatch:['brian-wheel-visible-motion.spec.js','brian-dice-visible-motion.spec.js'],
  timeout:45000,expect:{timeout:10000},retries:process.env.CI?1:0,reporter:'list',
  use:{baseURL:'http://127.0.0.1:4179',trace:'retain-on-failure'},
  webServer:{command:'npx vite --host 127.0.0.1 --port 4179',
