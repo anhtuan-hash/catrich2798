@@ -68,6 +68,7 @@ test('Timer pause and QR are usable fully offline',async({page})=>{
 test('Wheel animation, deterministic result and per-user local storage isolation',async({page})=>{
   await openLibrary(page);
   await page.locator('.bit-app-card').nth(1).click();
+  await page.locator('.bit-ws-details summary').click();
   await page.locator('#bit-wheel-list').fill('Alpha\nBeta\nGamma');
   await page.getByRole('button',{name:'Áp dụng tên'}).click();
   await page.getByRole('button',{name:'QUAY NGAY'}).click();
