@@ -131,7 +131,7 @@ check('Grade 11/12 gallery selection, title, round banner, CSV and saved edition
  assert.match(ui,/GRADE12_FAMILY_FEUD_GAMES/);
  assert.match(ui,/getGrade11FeudGame\(selectedUnitId\)/);
  assert.match(ui,/getGrade12FeudGame\(selectedUnitId\)/);
- assert.match(ui,/selectedGrade===11\?GRADE11_FAMILY_FEUD_GAMES:GRADE12_FAMILY_FEUD_GAMES/);
+ assert.match(ui,/selectedGrade===10\?GRADE10_FAMILY_FEUD_GAMES:selectedGrade===11\?GRADE11_FAMILY_FEUD_GAMES:GRADE12_FAMILY_FEUD_GAMES/);
  assert.match(ui,/setSelectedGrade\(level\)/);
  assert.match(ui,/chooseUnit\(level===11\?'g11-unit-1':'g12-unit-1'\)/);
  assert.match(ui,/availableUnitGames\.map/);
