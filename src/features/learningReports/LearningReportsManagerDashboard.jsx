@@ -61,7 +61,7 @@ export default function LearningReportsManagerDashboard({
   const [startYear,setStartYear]=useState(()=>reportSchoolYear(selectedPeriod,schoolYearStartYear()));
   const [data,setData]=useState(null);
   const [month,setMonth]=useState(()=>{
-    if(/^\\d{4}-(0[1-9]|1[0-2])$/.test(selectedPeriod||''))return selectedPeriod;
+    if(isValidReportPeriod(selectedPeriod))return selectedPeriod;
     const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
   });
   const [deadlineInput,setDeadlineInput]=useState('');
@@ -85,7 +85,7 @@ export default function LearningReportsManagerDashboard({
   },[departmentId,kind,startYear]);
   useEffect(()=>{refresh();},[refresh]);
   useEffect(()=>{
-    if(!/^\\d{4}-(0[1-9]|1[0-2])$/.test(selectedPeriod||''))return;
+    if(!isValidReportPeriod(selectedPeriod))return;
     const y=reportSchoolYear(selectedPeriod,schoolYearStartYear());
     setStartYear(prev=>prev===y?prev:y);
     setMonth(prev=>prev===selectedPeriod?prev:selectedPeriod);
