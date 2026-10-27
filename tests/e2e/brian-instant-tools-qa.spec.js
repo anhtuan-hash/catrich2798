@@ -73,10 +73,10 @@ test('Wheel animation, deterministic result and per-user local storage isolation
   await page.getByRole('button',{name:'Áp dụng tên'}).click();
   await page.getByRole('button',{name:'QUAY NGAY'}).click();
   await expect(page.locator('.bit-winner')).toBeVisible({timeout:8500});
-  await expect(page.locator('.bit-wheel-label')).toHaveCount(3);
+  await expect(page.locator('.bit-ws-label')).toHaveCount(3);
   await page.getByRole('button',{name:'Thu nhỏ về bong bóng'}).click();
   await page.getByTestId('user').click();
   await openLibrary(page);
   await page.locator('.bit-app-card').nth(1).click();
-  await expect(page.locator('.bit-wheel-label')).toHaveCount(4);
+  await expect(page.locator('.bit-ws-label')).toHaveCount(4);
 });
