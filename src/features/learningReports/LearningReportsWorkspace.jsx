@@ -313,7 +313,11 @@ export default function LearningReportsWorkspace({currentUser}) {
           <h2>{LEARNING_REPORT_KINDS[selected.report_kind]} · {selected.period?.slice(0,7)}</h2>
           <p><Clock3 size={16}/> Hạn {dateLabel(selected.effective_due_at)} {deadlinePassed&&currentStatus!=='approved'&&<b className="blr-overdue">· Quá hạn</b>} · <Status value={currentStatus}/></p>
           <p className="blr-deadline-countdown"><CalendarClock size={16}/> {teacherDeadlineStatus}</p></div></div>
-      {isLeader&&<ClassBindingEditor key={selected.id} options={classOptions} busy={bindingBusy} onSave={saveBindings} teacherLabel={teacherName(selected.teacher_id)}/>}
+      {isLeader&&<details className="blr-legacy-bindings">
+        <summary>Quản lý liên kết lớp cũ (chỉ khi cần chỉnh sửa)</summary>
+        <ClassBindingEditor key={selected.id} options={classOptions} busy={bindingBusy}
+          onSave={saveBindings} teacherLabel={teacherName(selected.teacher_id)}/>
+      </details>}}
       <div className="blr-attendance-refresh"><strong>Thống kê chuyên cần tự động</strong>
         <button type="button" onClick={reloadAttendance} disabled={attendanceLoading}><RefreshCw size={16}/> Cập nhật từ Điểm danh</button></div>
       <AttendancePanel data={effectiveAttendance} loading={attendanceLoading}/>
