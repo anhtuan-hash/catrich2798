@@ -91,3 +91,58 @@
 .btp-secondary-areas{margin-top:8px;background:#fff;border:1px solid #e0e8f0;padding:6px}
 .btp-secondary-areas button{min-height:35px}
 @media(max-width:760px){.btp-primary-areas,.btp-secondary-areas{width:calc(100% - 20px)}.btp-primary-areas button{font-size:12px;padding:0 11px;min-height:43px}}
+
+
+/* Scoped specialist-programme macOS × Material 3 navigation. Monthly reports unaffected. */
+.btp-specialist-portal{
+  background:linear-gradient(180deg,#f5f8fc 0%,#f8fafc 70%,#f5f8fd 100%);
+}
+.btp-specialist-portal .btp-switcher{
+  border:1px solid #dce6f2;
+  border-radius:16px;
+  background:rgba(255,255,255,.96);
+  box-shadow:0 4px 19px rgba(33,65,106,.055);
+  padding:7px;
+  gap:7px;
+  width:min(1440px,calc(100% - 36px));
+}
+.btp-specialist-portal .btp-primary-areas{
+  background:linear-gradient(110deg,#fff,#f9fbff);
+  margin-top:15px;
+}
+.btp-specialist-portal .btp-secondary-areas{
+  background:#fff;
+  margin-top:8px;
+}
+.btp-specialist-portal .btp-switcher button{
+  position:relative;
+  border-radius:11px;
+  min-height:40px;
+  padding:9px 16px;
+  color:#4c6580;
+  font-size:13px;
+  font-weight:750;
+  transition:background-color .17s,color .17s;
+}
+.btp-specialist-portal .btp-switcher button:hover{color:#225fa7;background:#f2f7fe}
+.btp-specialist-portal .btp-switcher button.is-active{
+  color:#2564b4;
+  background:linear-gradient(125deg,#ebf3ff,#fff5f2);
+  box-shadow:inset 0 0 0 1px rgba(151,187,231,.35);
+}
+.btp-specialist-portal .btp-primary-areas button:nth-child(2).is-active,
+.btp-specialist-portal .btp-secondary-areas button.is-active{
+  color:#bc523d;
+  background:linear-gradient(118deg,#fff0e9,#fff7f3);
+  box-shadow:inset 0 0 0 1px #f4dfd8;
+}
+.btp-specialist-portal .btp-switcher button:focus-visible{
+  outline:3px solid #a7ccff;outline-offset:2px;
+}
+@media(max-width:650px){
+  .btp-specialist-portal .btp-switcher{width:calc(100% - 20px);gap:3px}
+  .btp-specialist-portal .btp-switcher button{padding:7px 10px;min-height:39px;font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){
+  .btp-specialist-portal .btp-switcher button{transition:none}
+}
