@@ -15,6 +15,8 @@ on:
       - 'scripts/test-learning-reports-manager-analytics.mjs'
       - 'scripts/test-learning-report-navigation-countdown.mjs'
       - 'scripts/test-smart-learning-auto-assignment.mjs'
+      - 'scripts/test-learning-report-dual-kind-campaign.mjs'
+      - 'supabase/migrations/20261027155000_learning_reports_dual_kind_campaign_unique.sql'
       - 'scripts/test-revoke-learning-report-assignments.mjs'
       - 'scripts/test-learning-reports-unified-workspace.mjs'
       - 'supabase/migrations/20261027153000_learning_report_bulk_revocation.sql'
@@ -53,6 +55,8 @@ jobs:
         run: node scripts/test-learning-report-navigation-countdown.mjs
       - name: Validate smart whole-team report assignment contracts
         run: node scripts/test-smart-learning-auto-assignment.mjs
+      - name: Confirm teachers can receive both HSG and remedial reports in one campaign
+        run: node scripts/test-learning-report-dual-kind-campaign.mjs
       - name: Verify safe revoke of teacher report assignments
         run: node scripts/test-revoke-learning-report-assignments.mjs
       - name: Verify unified workspace and safe select-all bulk actions
