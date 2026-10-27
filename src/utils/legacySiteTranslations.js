@@ -3093,4 +3093,5 @@ export const LEGACY_SITE_EN = Object.freeze({
   "Học sinh cải thiện": "Improved students",
   "Chưa giao": "Not assigned",
   "Bảng số liệu": "Data summary",
+  "Lượt HS tiến bộ": "Instances of student progress",
 });
