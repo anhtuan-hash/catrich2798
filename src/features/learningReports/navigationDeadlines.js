@@ -6,6 +6,7 @@ export const LEARNING_NAV_LABELS = Object.freeze({
   monthly: {vi:'Tháng',en:'Monthly'},
 });
 const validDate = value => {
+  if(value===null || value===undefined || value==='') return null;
   const ms=new Date(value).getTime();
   return Number.isFinite(ms)?ms:null;
 };
