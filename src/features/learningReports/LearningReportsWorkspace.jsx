@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import LearningReportsManagerDashboard from './LearningReportsManagerDashboard.jsx';
 import { Award, BookOpenCheck, CalendarClock, CheckCircle2, ClipboardCheck, Clock3,
   Download, FileText, RefreshCw, Save, Send, Link2, ShieldCheck, UsersRound, X } from 'lucide-react';
 import { isDepartmentLeaderRole } from '../../utils/roles.js';
@@ -139,7 +140,8 @@ export default function LearningReportsWorkspace({currentUser}) {
   const [error,setError]=useState('');
   const [notice,setNotice]=useState('');
   const [showComposer,setShowComposer]=useState(false);
-  const [filter,setFilter]=useState('all');
+  const [filter,setFilter]=useState(isLeader?'gifted':'all');
+  const [managerView,setManagerView]=useState('reports');
 
   const load=useCallback(async()=>{
     const [rows,meta]=await Promise.all([
@@ -261,13 +263,18 @@ export default function LearningReportsWorkspace({currentUser}) {
           </button>)}
       </div>
       <div className="blr-actions"><button type="button" onClick={()=>load().catch(e=>setError(e.message))}><RefreshCw size={16}/> Làm mới</button>
-      {isLeader&&<button className="is-primary" type="button" onClick={()=>{setShowComposer(v=>!v);setSelectedId('');}}>
+      {isLeader&&<button className="is-primary" type="button" onClick={()=>{setManagerView('reports');setShowComposer(v=>!v);setSelectedId('');}}>
         <Send size={16}/> Giao báo cáo</button>}</div>
     </div>
     {error&&<div className="blr-banner is-error" role="alert">{error}<button onClick={()=>setError('')} aria-label="Đóng"><X size={16}/></button></div>}
     {notice&&<div className="blr-banner is-success" role="status"><CheckCircle2 size={18}/>{notice}<button onClick={()=>setNotice('')} aria-label="Đóng"><X size={16}/></button></div>}
 
-    {isLeader&&<div className="blr-metrics">
+    {isLeader&&!selected&&<div className="blr-manager-modes" role="tablist" aria-label="Tổng hợp và thống kê chuyên môn">
+      <button type="button" role="tab" aria-selected={managerView==='reports'} className={managerView==='reports'?'is-active':''} onClick={()=>setManagerView('reports')}><FileText size={16}/> Báo cáo giáo viên</button>
+      <button type="button" role="tab" aria-selected={managerView==='summary'} className={managerView==='summary'?'is-active':''} onClick={()=>{setShowComposer(false);setManagerView('summary');}}><UsersRound size={16}/> Tổng hợp tổ</button>
+      <button type="button" role="tab" aria-selected={managerView==='history'} className={managerView==='history'?'is-active':''} onClick={()=>{setShowComposer(false);setManagerView('history');}}><CalendarClock size={16}/> Thống kê tháng</button>
+    </div>}
+    {isLeader&&managerView==='reports'&&<div className="blr-metrics">
       <Metric label="Báo cáo đã giao" value={filtered.length}/>
       <Metric label="Chờ TTCM duyệt" value={pending}/>
       <Metric label="Đã xác nhận" value={done}/>
@@ -278,7 +285,7 @@ export default function LearningReportsWorkspace({currentUser}) {
       {departments.map(d=><option value={d.id} key={d.id}>{d.name}</option>)}</select>
     </label>}
 
-    {isLeader&&showComposer&&<form className="blr-composer" onSubmit={doIssue}>
+    {isLeader&&managerView==='reports'&&showComposer&&<form className="blr-composer" onSubmit={doIssue}>
       <div className="blr-title-row"><h2>Tạo yêu cầu báo cáo</h2><button type="button" aria-label="Đóng" onClick={()=>setShowComposer(false)}><X size={20}/></button></div>
       <div className="blr-compose-grid">
         <label>Loại báo cáo<select value={kind} onChange={e=>setKind(e.target.value)}>
@@ -300,7 +307,11 @@ export default function LearningReportsWorkspace({currentUser}) {
       <div className="blr-actions"><button className="is-primary" type="submit" disabled={busy||!recipients.length||!dueAt}><Send size={17}/>{busy?'Đang giao…': 'Giao '+recipients.length+' báo cáo'}</button></div>
     </form>}
 
-    {!selected&&<section className="blr-list">
+    {isLeader&&!selected&&managerView!=='reports'&&<LearningReportsManagerDashboard
+      departmentId={departmentId} kind={filter==='remedial'?'remedial':'gifted'} mode={managerView}
+      onModeChange={setManagerView} accounts={accounts}
+      onOpenReport={id=>{setManagerView('reports');setSelectedId(id);}}/>}
+    {(managerView==='reports'||!isLeader)&&!selected&&<section className="blr-list">
       <div className="blr-title-row"><h2>{isLeader?'Danh sách báo cáo được giao':'Báo cáo được phân công'}</h2>
         <span>{filtered.length} báo cáo</span>{isLeader&&<button onClick={()=>downloadCsv(filtered.map(x=>({...x,teacherName:teacherName(x.teacher_id)})))} disabled={!filtered.length}>
           <Download size={17}/> Xuất CSV</button>}</div>
