@@ -2,7 +2,7 @@
 // the original monthly deadline remains an independent candidate.
 export const LEARNING_NAV_LABELS = Object.freeze({
   gifted: {vi:'HSG',en:'Gifted'},
-  remedial: {vi:'Phụ đạo',en:'Remedial'},
+  remedial: {vi:'PĐ',en:'Rem'},
   monthly: {vi:'Tháng',en:'Monthly'},
 });
 const validDate = value => {
@@ -67,7 +67,9 @@ export function navigationDeadlineSummary(items,language='vi',now=Date.now()){
     dateStyle:'short',timeStyle:'short',
   });
   return (items||[]).map(item=>{
-    const label=LEARNING_NAV_LABELS[item.kind]?.[language==='en'?'en':'vi']||item.kind;
+    const label=item.kind==='gifted'?(language==='en'?'Gifted enrichment':'Bồi dưỡng HSG')
+      : item.kind==='remedial'?(language==='en'?'Remedial teaching':'Phụ đạo học sinh')
+      : (language==='en'?'Monthly report':'Báo cáo tháng');
     const group=item.role==='manager'
       ? language==='en'?'issued':'đã giao'
       : language==='en'?'assigned':'được giao';
