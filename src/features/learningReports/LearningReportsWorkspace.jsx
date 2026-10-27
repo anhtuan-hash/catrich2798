@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import LearningReportsManagerDashboard from './LearningReportsManagerDashboard.jsx';
+import SmartAssignmentComposer from './SmartAssignmentComposer.jsx';
 import { Award, BookOpenCheck, CalendarClock, CheckCircle2, ClipboardCheck, Clock3,
   Download, FileText, RefreshCw, Save, Send, Link2, ShieldCheck, UsersRound, X } from 'lucide-react';
 import { isDepartmentLeaderRole } from '../../utils/roles.js';
@@ -7,7 +8,7 @@ import { loadTeamWorkspace, listTeamTeacherAccounts } from '../../utils/personne
 import {
   LEARNING_REPORT_KINDS, LEARNING_REPORT_SECTIONS, LEARNING_REPORT_STATUSES,
   reportProgress, participationPercent, listLearningReports, loadLearningAttendance,
-  listLearningClassOptions, bindLearningClasses, issueLearningReports,
+  listLearningClassOptions, bindLearningClasses,
   saveLearningReport, reviewLearningReport, markLearningReportRead,
 } from './learningReportsService.js';
 import './LearningReportsWorkspace.css';
@@ -121,13 +122,7 @@ export default function LearningReportsWorkspace({currentUser}) {
   const [tasks,setTasks]=useState([]);
   const [workspace,setWorkspace]=useState(null);
   const [accounts,setAccounts]=useState([]);
-  const [kind,setKind]=useState('gifted');
-  const [month,setMonth]=useState(periodNow);
-  const [dueAt,setDueAt]=useState('');
   const [departmentId,setDepartmentId]=useState('');
-  const [recipients,setRecipients]=useState([]);
-  const [notification,setNotification]=useState(true);
-  const [createEvent,setCreateEvent]=useState(true);
   const [selectedId,setSelectedId]=useState('');
   const [payload,setPayload]=useState({});
   const [attendance,setAttendance]=useState(null);
@@ -226,18 +221,6 @@ export default function LearningReportsWorkspace({currentUser}) {
     catch(e){setError(e.message);}finally{setAttendanceLoading(false);}
   };
 
-  const doIssue=async(e)=>{
-    e.preventDefault();setError('');setNotice('');
-    if(!departmentId){setError('Chưa có tổ chuyên môn để giao báo cáo.');return;}
-    if(!recipients.length){setError('Chọn ít nhất một giáo viên trong tổ.');return;}
-    setBusy(true);
-    try{
-      const result=await issueLearningReports({departmentId,kind,month,dueAt,teacherIds:recipients,notification,event:createEvent});
-      await load();setShowComposer(false);setRecipients([]);
-      setNotice('Đã giao '+result.assigned_count+' báo cáo '+LEARNING_REPORT_KINDS[kind]+
-        (result.created_event_id?' và xuất bản sự kiện hạn nộp.':'.'));
-    }catch(e){setError(e.message);}finally{setBusy(false);}
-  };
   const doSave=async(submit)=>{
     setError('');setNotice('');setBusy(true);
     try{
@@ -255,7 +238,6 @@ export default function LearningReportsWorkspace({currentUser}) {
       setSelectedId('');
     }catch(e){setError(e.message);}finally{setBusy(false);}
   };
-  function toggleRecipient(id){setRecipients(old=>old.includes(id)?old.filter(x=>x!==id):[...old,id]);}
   return <main className="blr-shell">
     <header className="blr-hero"><div><small>BRIAN REPORTS · SPECIALIST PROGRAMMES</small>
       <h1>Bồi dưỡng & Phụ đạo</h1><p>Quản lý hiệu quả dạy học, nhật ký từng buổi và báo cáo chuyên môn có minh chứng.</p></div>
@@ -287,31 +269,21 @@ export default function LearningReportsWorkspace({currentUser}) {
       <Metric label="Chưa hoàn tất" value={filtered.length-done}/>
     </div>}
     {isLeader&&<label className="blr-department-label">Tổ chuyên môn
-      <select value={departmentId} onChange={e=>{setDepartmentId(e.target.value);setRecipients([]);setSelectedId('');}}>
+      <select value={departmentId} onChange={e=>{setDepartmentId(e.target.value);setSelectedId('');}}>
       {departments.map(d=><option value={d.id} key={d.id}>{d.name}</option>)}</select>
     </label>}
 
-    {isLeader&&managerView==='reports'&&showComposer&&<form className="blr-composer" onSubmit={doIssue}>
-      <div className="blr-title-row"><h2>Tạo yêu cầu báo cáo</h2><button type="button" aria-label="Đóng" onClick={()=>setShowComposer(false)}><X size={20}/></button></div>
-      <div className="blr-compose-grid">
-        <label>Loại báo cáo<select value={kind} onChange={e=>setKind(e.target.value)}>
-          {Object.entries(LEARNING_REPORT_KINDS).map(([id,label])=><option key={id} value={id}>{label}</option>)}
-        </select></label>
-        <label>Kỳ báo cáo<input required type="month" value={month} onChange={e=>setMonth(e.target.value)}/></label>
-        <label>Thời hạn nộp<input required type="datetime-local" value={dueAt} onChange={e=>setDueAt(e.target.value)}/></label>
-      </div>
-      <div className="blr-recipient-head"><strong>Giáo viên thuộc {department?.name||'tổ chuyên môn'}</strong>
-        <div className="blr-actions"><button type="button" onClick={()=>setRecipients(eligibleMembers.map(m=>m.id))}>Chọn tất cả</button>
-        <button type="button" onClick={()=>setRecipients([])}>Bỏ chọn</button></div></div>
-      <div className="blr-recipient-grid">{eligibleMembers.map(m=><label key={m.id}>
-        <input type="checkbox" checked={recipients.includes(m.id)} onChange={()=>toggleRecipient(m.id)}/>{m.name}</label>)}
-        {!eligibleMembers.length&&<p>Chưa có thành viên đang hoạt động được gắn tài khoản trong tổ.</p>}</div>
-      <div className="blr-options">
-        <label><input type="checkbox" checked={notification} onChange={e=>setNotification(e.target.checked)}/> Thông báo trong tài khoản giáo viên</label>
-        <label><input type="checkbox" checked={createEvent} onChange={e=>setCreateEvent(e.target.checked)}/> Xuất bản sự kiện hạn nộp cho giáo viên được chọn</label>
-      </div>
-      <div className="blr-actions"><button className="is-primary" type="submit" disabled={busy||!recipients.length||!dueAt}><Send size={17}/>{busy?'Đang giao…': 'Giao '+recipients.length+' báo cáo'}</button></div>
-    </form>}
+    {isLeader&&managerView==='reports'&&showComposer&&<SmartAssignmentComposer
+      departmentId={departmentId} departmentName={department?.name||'Tổ chuyên môn'}
+      eligibleMembers={eligibleMembers} onClose={()=>setShowComposer(false)}
+      onSuccess={async result=>{
+        await load();setShowComposer(false);setSelectedId('');
+        setNotice('Đã tự động giao '+result.created+' báo cáo mới; '+result.existing+
+          ' báo cáo đã có được giữ nguyên. Đã liên kết '+result.linkedClasses+
+          ' cặp lớp/giáo viên.'+(result.needsReview?' Còn '+result.needsReview+
+          ' tên giáo viên cần xác minh.':''));
+      }}
+    />}
 
     {isLeader&&!selected&&managerView!=='reports'&&<LearningReportsManagerDashboard
       departmentId={departmentId} kind={filter==='remedial'?'remedial':'gifted'} mode={managerView}
