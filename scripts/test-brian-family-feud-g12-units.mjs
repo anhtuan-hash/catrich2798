@@ -136,7 +136,7 @@ check('Bilingual unit gallery, explicit labels and mode isolation are mounted in
  const ui=readFileSync(new URL('../src/components/BrianFamilyFeud/BrianFamilyFeud.jsx',import.meta.url),'utf8');
  const styles=readFileSync(new URL('../src/components/BrianFamilyFeud/BrianFamilyFeud.css',import.meta.url),'utf8');
  assert.match(ui,/availableUnitGames\.map/);
- assert.match(ui,/selectedGrade===11\?GRADE11_FAMILY_FEUD_GAMES:GRADE12_FAMILY_FEUD_GAMES/);
+ assert.match(ui,/selectedGrade===10\?GRADE10_FAMILY_FEUD_GAMES:selectedGrade===11\?GRADE11_FAMILY_FEUD_GAMES:GRADE12_FAMILY_FEUD_GAMES/);
  assert.match(ui,/getGrade12FeudGame\(selectedUnitId\)/);
  assert.match(ui,/getGrade12FeudGame\(selectedUnitId\)/);
  assert.match(ui,/setSelectedUnitId\(id\)/);

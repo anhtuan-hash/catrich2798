@@ -11,6 +11,7 @@ import {createArenaSound} from '../BrianBombArena/arenaSound.js';
 import {FAMILY_FEUD_BANK,FAMILY_FEUD_BANK_NOTICE} from './familyFeudBank.js';
 import {GRADE12_FAMILY_FEUD_GAMES,getGrade12FeudGame} from './g12FeudUnitGames.js';
 import {GRADE11_FAMILY_FEUD_GAMES,getGrade11FeudGame} from './g11FeudUnitGames.js';
+import {GRADE10_FAMILY_FEUD_GAMES,getGrade10FeudGame} from './g10FeudUnitGames.js';
 import {
   createFamilyFeud,feudReducer,rankFeudTeams,currentFeudBoard,
   FEUD_ROUND_LIMITS,importFeudCSV,exportFeudCSV,exportFeudResults
@@ -22,7 +23,8 @@ import './FamilyFeudTV.css';
 const TEAM_COLORS=['#F39A3D','#59B6F8','#E275C8','#65D4A3','#B89AF9','#F2D067'];
 const UNIT_ICONS=['🏅','🌐','🌿','🏙️','💼','🤖','📰','🐘','🧭','📚'];
 const G11_ICONS=['💚','👪','🌇','🤝','🌍','🏛️','🎓','🗝️','🫶','🌱'];
-const getUnitIcon=(grade,unit)=>((grade===11?G11_ICONS:UNIT_ICONS)[(unit||1)-1]||'🎓');
+const G10_ICONS=['🏠','♻️','🎵','🤲','💡','⚖️','🌐','💻','🌳','🏞️'];
+const getUnitIcon=(grade,unit)=>((grade===10?G10_ICONS:grade===11?G11_ICONS:UNIT_ICONS)[(unit||1)-1]||'🎓');
 const allowedUser=user=>Boolean(user?.id&&user.approved!==false&&(
   isAdminRole(user.role)||isDepartmentLeaderRole(user.role)||normalizeSystemRole(user.role)==='teacher'));
 const exportFile=(name,contents)=>{
@@ -193,11 +195,11 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
     return()=>document.removeEventListener('visibilitychange',onHidden);
   },[open,game?.phase,game?.fast?.paused]);
 
-  const selectedUnitGame=!customBank?(getGrade11FeudGame(selectedUnitId)||getGrade12FeudGame(selectedUnitId)):null;
-  const availableUnitGames=selectedGrade===11?GRADE11_FAMILY_FEUD_GAMES:GRADE12_FAMILY_FEUD_GAMES;
+  const selectedUnitGame=!customBank?(getGrade10FeudGame(selectedUnitId)||getGrade11FeudGame(selectedUnitId)||getGrade12FeudGame(selectedUnitId)):null;
+  const availableUnitGames=selectedGrade===10?GRADE10_FAMILY_FEUD_GAMES:selectedGrade===11?GRADE11_FAMILY_FEUD_GAMES:GRADE12_FAMILY_FEUD_GAMES;
   const selection=useMemo(()=>{
     if(customBank)return customBank;
-    const unitGame=getGrade11FeudGame(selectedUnitId)||getGrade12FeudGame(selectedUnitId);
+    const unitGame=getGrade10FeudGame(selectedUnitId)||getGrade11FeudGame(selectedUnitId)||getGrade12FeudGame(selectedUnitId);
     if(unitGame)return unitGame.boards;
     return grade==='all'?FAMILY_FEUD_BANK:
       FAMILY_FEUD_BANK.filter(q=>q.category.startsWith('English '+grade+' ·'));
@@ -205,7 +207,7 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
   const chooseUnit=id=>{
     setCustomBank(null);setSelectedUnitId(id);setRoundLimit(5);setStatus('');
   };
-  const chooseGrade=level=>{setSelectedGrade(level);chooseUnit(level===11?'g11-unit-1':'g12-unit-1');};
+  const chooseGrade=level=>{setSelectedGrade(level);chooseUnit('g'+level+'-unit-1');};
   const start=()=>{
     if(selection.length<3){setStatus(tr('Cần tối thiểu 3 bảng câu hỏi.','At least 3 boards are required.'));return;}
     const names=teamNames.split(/[\n;]/).map(x=>x.trim()).filter(Boolean);
@@ -294,14 +296,14 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
       <section className="bff-card">
         <h3>{tr('03 · Bộ câu hỏi','03 · Question bank')}</h3>
         <div className="bff-edition-selector" role="group"
-          aria-label={tr('Chọn trò chơi tiếng Anh 11 hoặc 12 theo Unit','Choose Grade 11 or 12 Unit game')}>
+          aria-label={tr('Chọn trò chơi tiếng Anh 10, 11 hoặc 12 theo Unit','Choose Grade 10, 11 or 12 Unit game')}>
           <div className="bff-grade-switch" role="group"
             aria-label={tr('Chọn khối lớp','Choose grade')}>
-            {[11,12].map(level=><button key={level} type="button"
+            {[10,11,12].map(level=><button key={level} type="button"
               className={'bff-grade-option'+(selectedGrade===level?' is-active':'')}
               aria-pressed={selectedGrade===level}
               onClick={()=>chooseGrade(level)}>
-              <span>{level===11?'🌱':'🎓'}</span>
+              <span>{level===10?'🏠':level===11?'🌱':'🎓'}</span>
               <strong>ENGLISH {level}</strong>
               <small>GLOBAL SUCCESS</small>
             </button>)}
@@ -355,7 +357,7 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
             <input type="file" accept=".csv,text/csv" onChange={importCSV}/></label>
           <button type="button" onClick={()=>exportFile('brian-family-feud-bank.csv',exportFeudCSV(selection))}>
             <FileDown size={17}/>{tr('Tải CSV','Export CSV')}</button>
-          {customBank&&<button type="button" onClick={()=>{setCustomBank(null);chooseUnit(selectedGrade===11?'g11-unit-1':'g12-unit-1');setGrade('all');}}>
+          {customBank&&<button type="button" onClick={()=>{setCustomBank(null);chooseUnit('g'+selectedGrade+'-unit-1');setGrade('all');}}>
             <RotateCcw size={15}/>{tr('Mặc định','Defaults')}</button>}
         </div>
         <div className="bff-disclaimer">ⓘ {tr('Điểm được biên soạn phục vụ trò chơi; không phải khảo sát 100 người thật.',
@@ -507,7 +509,7 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
     {scorebar}
     <div className="bff-fast-header">
       <span className="bff-eyebrow">BRIAN FAMILY FEUD · FAST MONEY</span>
-      {game.edition&&<p className="bff-fast-unit">UNIT {game.edition.unit} · {game.edition.title}</p>}
+      {game.edition&&<p className="bff-fast-unit">ENGLISH {game.edition.grade||12} · UNIT {game.edition.unit} · {game.edition.title}</p>}
       <h2>{game.fast.questions.length} {tr('CÂU HỎI THẦN TỐC','QUICKFIRE QUESTIONS')}</h2>
       <div className="bff-fast-player">{tr('NGƯỜI CHƠI','PLAYER')} {game.fast.player+1} / 2 ·
         {game.teams[game.fast.team]?.name}</div>
