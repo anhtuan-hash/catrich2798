@@ -7,6 +7,7 @@ import CosmicAmbient from './CosmicAmbient.jsx';
 import FocusSceneBackground from './FocusSceneBackground.jsx';
 import FocusYoutubeBackground from './FocusYoutubeBackground.jsx';
 import FocusWebScenes from './FocusWebScenes.jsx';
+import FocusSourcePicker from './FocusSourcePicker.jsx';
 import FocusSceneEditor from './FocusSceneEditor.jsx';
 import FocusEffectsLibrary from './FocusEffectsLibrary.jsx';
 import FocusWorkspace from './FocusWorkspace.jsx';
@@ -28,13 +29,15 @@ import { canEditFocusScene } from './focusSceneService.js';
 
 /** Portal keeps the real Dashboard mounted and interactive state intact. */
 export default function FocusOverlay({ currentUser, scene, onScenePublished, sceneError, onClose, language, weather, onRefreshWeather, returnFocusRef, performance = 'balanced', exiting = false, transitions = { enter: 'portal', exit: 'portal' }, onEffectsChange, youtubeSession, youtubeControls, timerController, completedSessions=0, focus7, update7, focus8, update8, focusFlow, choosePersonalVideo, sharedScene,
-  silk9,updateSilk,silkEvent,online,presenter,presenterError,onPresenterStart,onPresenterStop,onPresenterLink }) {
+  silk9,updateSilk,silkEvent,online,presenter,presenterError,onPresenterStart,onPresenterStop,onPresenterLink,
+  sourceChoice='original',onSourceChoice,sourceAvailability,sceneStatus='synced',onRetryScene }) {
   const [motionEnabled, setMotionEnabled] = useState(() => (
     !['low', 'minimal'].includes(performance) &&
     !(typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
   ));
   const [sceneEditorOpen, setSceneEditorOpen] = useState(false);
   const [webInteractive, setWebInteractive] = useState(false);
+  const [webClockVisible, setWebClockVisible] = useState(true);
   const [effectsOpen, setEffectsOpen] = useState(false);
   const [appearanceOpen, setAppearanceOpen] = useState(false);
   const [atelierOpen,setAtelierOpen]=useState(false);
@@ -307,7 +310,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   };
 
   return createPortal(
-    <div className={`bfc-overlay${(!motionEnabled || ['low','minimal'].includes(performance)) ? ' bfc-overlay--low-motion' : ''}${['low','minimal'].includes(performance) ? ' bfc-overlay--entry-lite' : ''}${canManage ? ' bfc-overlay--manager' : ''}${scene.mediaType === 'website' ? ' bfc-overlay--web' : ''}${webInteractive && scene.mediaType === 'website' ? ' bfc-overlay--web-interactive' : ''}${scene.mediaType === 'youtube' ? ' bfc-overlay--youtube' : ''}${sceneEditorOpen ? ' is-editor-open' : ''}${effectsOpen ? ' is-effects-open' : ''}${activeTool ? ' is-tools-open' : ''}${quiet ? ' bfc-overlay--quiet' : ''}${appearanceOpen ? ' is-appearance-open' : ''}${atelierOpen?' is-atelier7-open':''}${studio8Open?' is-studio8-open':''}${studio9Open?' is-studio9-open':''}${silk9.shield?' bfc9-shield':''}${visualQuality==='smooth'?' bfc9-smooth':''}${focus8.layoutEnabled?' bfc8-layout-active':''}${focus8.depth!=='off'&&motionBudget.parallax?' bfc8-depth-active':''}${!motionBudget.parallax?' bfc8-efficient':''}${classroom?' bfc7-classroom':''}${focus7.compactDock?' bfc7-compact-dock':''}${(!controlsVisible && appearance.autoHide && !controlsBusy) || immersiveOnce ? ' bfc-atelier--idle' : ''} bfc-atelier bfc-atelier--${appearance.clockMode}${exiting ? ' bfc-overlay--exiting' : ''}`} role="dialog" aria-modal="true"
+    <div className={`bfc-overlay${(!motionEnabled || ['low','minimal'].includes(performance)) ? ' bfc-overlay--low-motion' : ''}${['low','minimal'].includes(performance) ? ' bfc-overlay--entry-lite' : ''}${canManage ? ' bfc-overlay--manager' : ''}${scene.mediaType === 'website' ? ' bfc-overlay--web' : ''}${webInteractive && scene.mediaType === 'website' ? ' bfc-overlay--web-interactive' : ''}${!webClockVisible && scene.mediaType === 'website' ? ' bfc-overlay--web-clock-hidden' : ''}${scene.mediaType === 'youtube' ? ' bfc-overlay--youtube' : ''}${sceneEditorOpen ? ' is-editor-open' : ''}${effectsOpen ? ' is-effects-open' : ''}${activeTool ? ' is-tools-open' : ''}${quiet ? ' bfc-overlay--quiet' : ''}${appearanceOpen ? ' is-appearance-open' : ''}${atelierOpen?' is-atelier7-open':''}${studio8Open?' is-studio8-open':''}${studio9Open?' is-studio9-open':''}${silk9.shield?' bfc9-shield':''}${visualQuality==='smooth'?' bfc9-smooth':''}${focus8.layoutEnabled?' bfc8-layout-active':''}${focus8.depth!=='off'&&motionBudget.parallax?' bfc8-depth-active':''}${!motionBudget.parallax?' bfc8-efficient':''}${classroom?' bfc7-classroom':''}${focus7.compactDock?' bfc7-compact-dock':''}${(!controlsVisible && appearance.autoHide && !controlsBusy) || immersiveOnce ? ' bfc-atelier--idle' : ''} bfc-atelier bfc-atelier--${appearance.clockMode}${exiting ? ' bfc-overlay--exiting' : ''}`} role="dialog" aria-modal="true"
       aria-label={vi ? 'Chế độ tập trung Brian Focus' : 'Brian Focus mode'}
       aria-owns="bfc-focus-trigger"
       data-focus-transition={exiting ? 'exiting' : 'entering'}
@@ -338,6 +341,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
         session={youtubeSession} controls={youtubeControls}/> : null}
       {scene.mediaType === 'website' ? <FocusWebScenes
          scene={displayScene} language={language} onInteractiveChange={setWebInteractive}
+         clockVisible={webClockVisible} onClockVisibilityChange={setWebClockVisible}
          blocked={sceneEditorOpen || effectsOpen || appearanceOpen || unifiedOpen || atelierOpen || studio8Open || studio9Open}/> : null}
        <div className="bfc-overlay__identity" aria-hidden="true">
         <span className="bfc-overlay__identity-mark">B<span>✦</span></span>
@@ -460,6 +464,12 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
       {sceneEditorOpen && canManage ? <FocusSceneEditor key={scene.updatedAt || 'default'}
         language={language} currentUser={currentUser} scene={sharedScene||scene}
         onPublished={onScenePublished} onClose={() => setSceneEditorOpen(false)}/> : null}
+      {sourceChoice === 'ask' && <FocusSourcePicker
+        language={language} websites={sourceAvailability?.websites || 0}
+        videos={sourceAvailability?.videos || 0}
+        loading={sceneStatus === 'idle'} error={sceneError}
+        allowOriginal={!['youtube','website'].includes(sharedScene?.mediaType)}
+        onSelect={onSourceChoice} onClose={onClose} onRetry={onRetryScene}/>}
       <div className="bfc-overlay__bottom" aria-hidden="true">
         <span className="bfc-overlay__equalizer"><i/><i/><i/><i/><i/></span>
         <span>{vi ? 'THƯ GIÃN  ·  TẬP TRUNG  ·  SÁNG TẠO' : 'BREATHE  ·  FOCUS  ·  CREATE'}</span>

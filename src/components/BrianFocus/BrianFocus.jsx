@@ -6,6 +6,7 @@ import FocusYoutubeBackground from './FocusYoutubeBackground.jsx';
 import usePersistentFocusYoutube from './usePersistentFocusYoutube.jsx';
 import useFocusWeather from './useFocusWeather.js';
 import useFocusScene from './useFocusScene.js';
+import { getFocusSourceAvailability, resolveFocusSessionScene } from './focusSourceSelection.js';
 import useFocusTimer from './useFocusTimer.js';
 import useFocus7Data from './useFocus7Data.js';
 import useFocus7Flow from './useFocus7Flow.js';
@@ -43,6 +44,7 @@ import {readBubbleMotion} from '../../utils/bubbleMotion.js';
 /** One global Focus trigger and overlay; the underlying app route stays mounted. */
 export default function BrianFocus({ currentUser, language = 'vi', performance = 'balanced', dockManaged = false, dockTriggerRef }) {
   const [open, setOpen] = useState(false);
+  const [sourceChoice, setSourceChoice] = useState('ask');
   const [exiting, setExiting] = useState(false);
   const [transitions, setTransitions] = useState(readFocusTransitions);
   const triggerRef = useRef(null);
@@ -51,7 +53,7 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
   // already in Focus must not replay the opening animation.
   const enteredWithEffectRef = useRef(transitions.enter);
   const { weather, refresh } = useFocusWeather(open);
-  const { scene, setScene, error: sceneError } = useFocusScene(open, currentUser?.id);
+  const { scene, setScene, refresh: refreshScene, status: sceneStatus, error: sceneError } = useFocusScene(open, currentUser?.id);
   const {data:focus7,update:update7} = useFocus7Data(currentUser?.id);
   const {data:focus8,update:update8} = useFocus8Data(currentUser?.id);
   const silk9=useFocus9(currentUser?.id);
@@ -143,9 +145,15 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
     },1000);
     return()=>window.clearInterval(id);
   },[focus8.cueRunning,focus8.cueDeadline,focus8.cueIndex]);
-  const mediaScene=focus7.videoOverride
-    ? {...scene,mediaType:'youtube',mediaPath:'youtube:'+focus7.videoOverride}
-    : scene;
+  const sourceAvailability = getFocusSourceAvailability(scene, focus7.videoOverride);
+  const mediaScene = resolveFocusSessionScene(scene, sourceChoice, focus7.videoOverride);
+  // The persistent YouTube player remains the same DOM instance when a user
+  // returns to Web Scenes. Opening the source chooser never autoplays YouTube.
+  const youtubePlayerScene = resolveFocusSessionScene(scene, 'youtube', focus7.videoOverride);
+  const onScenePublished = next => {
+    setScene(next);
+    setSourceChoice(['website','youtube'].includes(next?.mediaType) ? next.mediaType : 'original');
+  };
   const choosePersonalVideo=id=>{
     update7({videoOverride:id});
     setVideoDeadline(id&&focus7.stopAfterMinutes>0?Date.now()+focus7.stopAfterMinutes*60000:0);
@@ -195,7 +203,7 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
     player: persistentYoutubePlayer,
     session: youtubeSession,
     controls: youtubeControls,
-  } = usePersistentFocusYoutube({ scene:mediaScene, focusOpen: open, userId: currentUser?.id });
+  } = usePersistentFocusYoutube({ scene:youtubePlayerScene, focusOpen: open && sourceChoice === 'youtube', userId: currentUser?.id });
   useEffect(()=>{
     if(!videoDeadline)return undefined;
     const remaining=videoDeadline-Date.now();
@@ -213,6 +221,7 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
     setResumeOffer(false);
     enteredWithEffectRef.current = transitions.enter;
     setExiting(false);
+    setSourceChoice('ask');
     setOpen(true);
   };
 
@@ -324,13 +333,17 @@ export default function BrianFocus({ currentUser, language = 'vi', performance =
            onClose={()=>{location.hash='#/dashboard';setRemoteClient(false);}}/>,document.body)
         : null}
       {typeof document !== 'undefined' ? createPortal(button, document.body) : null}
-      {!open && youtubeSession.mounted && mediaScene.mediaType === 'youtube' && typeof document !== 'undefined'
+      {!open && youtubeSession.mounted && youtubePlayerScene.mediaType === 'youtube' && typeof document !== 'undefined'
         ? createPortal(<FocusYoutubeBackground
-            scene={mediaScene} session={youtubeSession} controls={youtubeControls}
+            scene={youtubePlayerScene} session={youtubeSession} controls={youtubeControls}
             language={language} compact onOpenFocus={openFocus}/>, document.body)
         : null}
       {open ? (
-        <FocusOverlay currentUser={currentUser} scene={mediaScene} sharedScene={scene} onScenePublished={setScene} sceneError={sceneError}
+        <FocusOverlay currentUser={currentUser} scene={mediaScene} sharedScene={scene}
+          onScenePublished={onScenePublished} sceneError={sceneError}
+          sourceChoice={sourceChoice} onSourceChoice={setSourceChoice}
+          sourceAvailability={sourceAvailability} sceneStatus={sceneStatus}
+          onRetryScene={() => refreshScene().catch(() => {})}
           focus7={focus7} update7={update7} focus8={focus8} update8={update8}
           silk9={silk9.data} updateSilk={silk9.update} silkEvent={silk9.event}
           online={online} presenter={presenter} presenterError={presenterError}
