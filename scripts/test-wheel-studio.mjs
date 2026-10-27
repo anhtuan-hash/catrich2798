@@ -37,6 +37,13 @@ assert.deepEqual(again.map(r=>r.label),rows.map(r=>r.label));
 assert.deepEqual(again.map(r=>r.weight),rows.map(r=>r.weight));
 assert.equal(again[2].enabled,false);
 assert.equal(shuffleWheelRows(rows,()=>0).length,rows.length);
+const withSaved=sanitiseWheelStudio({rows,savedLists:[
+ {id:'classA',label:'Class A',rows,mode:'accumulation',theme:'sunset',duration:10}
+]});
+assert.equal(withSaved.savedLists.length,1);
+assert.equal(withSaved.savedLists[0].rows.length,3);
+assert.equal(withSaved.savedLists[0].theme,'sunset');
+assert.equal(withSaved.savedLists[0].mode,'accumulation');
 assert.equal(Object.keys(WHEEL_THEMES).length,4);
 assert.equal(WHEEL_MAX_ITEMS,60);
 assert.equal(sanitiseWheelStudio({rows:[{id:'evil',label:'x'.repeat(400),weight:999}]}).rows[0].label.length,45);
