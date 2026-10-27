@@ -1,30 +1,24 @@
-# Brian Family Feud — Classroom Bubble v1
+# Brian Family Feud — Classroom Bubble v2: Teacher Manual Scoring
 
-## Purpose
-Build a teacher-led, offline-first Family Feud-inspired team activity for English classes, integrated as an independent floating bubble alongside Focus, Board, Bomb Arena and Instant Tools. Names, logos and sounds remain original **Brian Family Feud** assets: no game-show trademark logo or copyrighted sound replication.
+## Teacher-operated round flow
+- Configure 2–6 teams and 3/5/8/10 rounds, with English 10–12 Global Success question banks or teacher-imported CSV.
+- Teacher starts a round, reveals correct student guesses, adds strikes and optionally offers a steal chance.
+- Answer values and the multiplier produce a **suggested POT only**. Revealing a tile, a full board, and successful/failed steals **never award team points**.
+- When the teacher presses End Round, all six answers are revealed, or a steal resolves, the game enters `round_scoring`.
+- Enter an independent non-negative integer score for **every** team; zero is allowed. Confirm All Team Scores applies the values atomically, records each team's round contribution, and unlocks Next Round.
+- There is no double credit on repeated confirm. Teachers can Edit This Round's Scores; the old contribution is removed and replaced before updating team totals.
+- The leader count (historically roundWins) counts the team(s) that earned the highest **positive** manually entered points each round. Ties share the lead; all-zero rounds award no lead.
+- Undo/Redo and existing offline IndexedDB/localStorage auto-save cover edits, entries, and awarded scores. Legacy v1 sessions retain points already awarded in earlier rounds; future rounds follow manual scoring.
+- End-of-game CSV includes totals, round leader count, per-round score columns, and any manually awarded Fast Money bonus.
 
-## Scope
-- 2–6 teams; bilingual VI/EN interface; 16:9 TV presentation and iPhone/iPad.
-- 30 ready-made original English-language teaching prompts, each with six *teacher-authored* suggested answers. Answer points sum to 100 **for gameplay**, not a factual claim of 100 survey participants.
-- Rounds: teacher chooses controlling team and presses Start; hidden ranked answers appear; students say their guess aloud; teacher taps a matching row to reveal answer and add to round POT or taps Strike for an incorrect guess. Each team can receive up to 3 strikes. Third strike opens a **one-attempt Steal** for the next team. Successful steal reveals an unanswered answer and gives the stealing team the round POT. Failed steal gives POT to original controlling team. Reveal All exposes answers without changing scores.
-- Multipliers: standard x1, Double x2, Triple x3 on last rounds, overridable per round via setup (only before starting). Scores awarded atomically only at round settlement, preventing duplicate counting.
-- Rapid **Fast Money**: choose one team after any settled round, two team representatives each answer five prompts in sequence; the second cannot repeat the first person's answer to the same prompt; teacher chooses answers or passes (0); both representatives have independent 45s countdowns; points accumulate for classroom pacing (can pause); target 200 points displayed as a threshold. This is an optional bonus, not required for winning.
-- Host controls: answer key visible only inside a host panel toggle (can hide before projection); unrevealed board slots show ordinal numbers but no answers or points. Clicking the host answer key reveals to class.
-- Sound: locally synthesized tones using Web Audio on supported browsers; sound-off option, iOS first-tap unlock, fail gracefully if unavailable. FX: flip, glowing tiles, red X strikes, confetti; respects system reduced motion and global Motion Hub Bubble setting; shared opening/closing phase animation.
-- Storage: dedicated IndexedDB db + localStorage fallback keyed by user ID; no cross-over to Bomb Arena session or Supabase; auto-save on reducer state transitions, not timer animation frames. Import/export teacher answer bank in CSV (question,answer,points,category), validate data. Export scoreboard CSV. Teacher-controlled New Game confirmation.
-- Keyboard: keys 1–8 reveal ranks when host mode active, X strike, Escape closes the bubble; focus trapped by modal manually where practical. No shortcuts while typing.
-- Round states: setup, ready, playing, steal, round_done, finished, fast_money, fast_done. Every reducer action is pure and undoable (except a fast timer tick).
-- Security: validate lengths, options, unique normalized answer labels, 6 answers per sample question, bounded score 0–999999, no uncontrolled HTML insertion or remote execution.
-- No new npm dependency, AI integration, server APIs, schema migration, or costs.
-- Regression tests: 30×6 sum100, no duplicates, settlement once, 3 strikes/steal success/failure, multiplier, fast money, undo/redo, legacy app mounting and styles unaffected, production build succeeds.
+## Fast Money
+- Existing optional two-player five-question challenge, timers, animations, audio, and 200-point threshold stay in place.
+- The tally from revealed Fast Money answers is **suggested only**.
+- When Fast Money ends, `fast_scoring` prompts the teacher to enter and confirm the actual bonus; no automatic award occurs. Teachers can reopen to edit without double credit.
 
-## Explicit score settlement
-- Revealed answer points contribute to a **pending round POT** = sum(answer.value * roundMultiplier), not directly to team.
-- If all 6 answers revealed, controlling team wins POT automatically.
-- On third incorrect attempt, switch to steal phase (one guess only). Correct answer adds its points to POT, thief wins entire POT; incorrect guess closes steal and controller wins POT.
-- On manual End Round (if fewer than 3 strikes), controlling team wins the current POT.
-- Scores are clamped and settlement idempotent.
-- Fast Money uses a combined two-person tally and **adds the earned bonus to chosen team's cumulative score only once** when Finish Fast Money is called.
-
-## Non-goals v1
-No simultaneous student-device accounts, no live votes, no purported real survey statistics, no automatic NLP answer validation. The teacher is authoritative; same-screen TV projection should conceal the host answer key until requested.
+## Design and technical constraints
+- Bilingual VI/EN scoring UI, large numeric input rows for TV and smartphone, clear Confirm action, accessible labels.
+- No AI integration, remote service, new dependencies, Supabase migration, or additional cost.
+- Existing Focus, Board, Bomb Arena and permission systems untouched.
+- Reducer actions: `SET_ROUND_DRAFT`, `SAVE_ROUND_SCORES`, `EDIT_ROUND_SCORES`, `SET_FAST_DRAFT`, `CONFIRM_FAST_SCORE`, `EDIT_FAST_SCORE`.
+- Regression tests cover 2–6 teams, no auto-score, per-team manual score confirmation, blank/invalid values, round corrections, no double scoring, undo/redo, Fast Money and full Unit banks.
