@@ -57,3 +57,18 @@
 @media(max-width:800px){.blrd-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.blrd-month-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.blrd-hero{padding:23px}.blrd-deadline{align-items:stretch}}
 @media(max-width:560px){.blrd-metrics{grid-template-columns:1fr}.blrd-month-grid{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px}.blrd-paper header{padding:15px}.blrd-hero h2{font-size:28px}.blrd-deadline-actions{width:100%}.blrd-month{padding:12px!important}}
 @media(prefers-reduced-motion:reduce){.blrd-shell *{transition:none!important}}
+
+/* Native print / Save PDF avoids font encoding issues in generated files. */
+@media print{
+  .btp-switcher,.btp-primary-areas,.btp-secondary-areas,
+  .blr-topline,.blr-unified-tabs,.blr-department-label,
+  .blrd-hero-controls,.blrd-paper header>button,.blr-banner,
+  .brian-nav,.brian-floating-dock{display:none!important}
+  .blr-shell,.blrd-shell{background:#fff!important;padding:0!important}
+  .blrd-paper,.blrd-hero,.blrd-metric{break-inside:avoid;box-shadow:none!important;border-color:#ccc!important}
+  .blrd-month-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .blrd-metrics{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .blrd-table-scroll{overflow:visible}
+  .blrd-paper th,.blrd-paper td{font-size:9pt;padding:7px 6px;white-space:normal}
+  @page{size:A4 landscape;margin:13mm}
+}
