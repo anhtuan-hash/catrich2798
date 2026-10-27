@@ -143,3 +143,38 @@
   .bfc-web-scenes__toolbar .bfc-web-scenes__fullscreen span {display:none;}
   .bfc-web-scenes__toolbar .bfc-web-scenes__fullscreen {padding-inline:7px;}
 }
+
+/* A floating Next controller belongs to the fullscreen panel, not Focus chrome.
+   Keeping it inside the panel allows navigation without exiting native fullscreen. */
+.bfc-web-scenes__panel {position:relative;}
+.bfc-web-scenes__fullscreen-next {
+  position:absolute;
+  right:max(22px, calc(env(safe-area-inset-right, 0px) + 22px));
+  bottom:max(25px, calc(env(safe-area-inset-bottom, 0px) + 25px));
+  z-index:12;pointer-events:auto;display:flex;align-items:center;justify-content:center;
+  gap:12px;min-width:132px;min-height:62px;padding:10px 17px 10px 20px;
+  color:#061a31;background:linear-gradient(120deg,#a7e9ff,#7dc5ff);
+  border:1px solid rgba(255,255,255,.58);border-radius:19px;
+  box-shadow:0 12px 32px rgba(0,10,38,.55),0 0 24px rgba(113,208,255,.33);
+  font:inherit;cursor:pointer;touch-action:manipulation;
+  transition:transform .16s ease, box-shadow .16s ease,filter .16s ease;
+}
+.bfc-web-scenes__fullscreen-next-copy {display:flex;flex-direction:column;align-items:flex-start;gap:1px;}
+.bfc-web-scenes__fullscreen-next-copy strong {font-size:15px;line-height:1.2;font-weight:800;}
+.bfc-web-scenes__fullscreen-next-copy small {font-size:11px;font-weight:750;opacity:.75;font-variant-numeric:tabular-nums;}
+.bfc-web-scenes__fullscreen-next:hover {
+  transform:translateY(-2px);filter:brightness(1.07);
+  box-shadow:0 16px 38px rgba(0,10,38,.59),0 0 32px rgba(113,208,255,.45);
+}
+.bfc-web-scenes__fullscreen-next:active {transform:translateY(0) scale(.97);}
+.bfc-web-scenes__fullscreen-next:focus-visible {outline:3px solid #fff;outline-offset:3px;}
+@media(max-width:640px) {
+  .bfc-web-scenes__fullscreen-next {
+    min-width:116px;min-height:54px;padding:8px 14px;
+    bottom:max(15px, calc(env(safe-area-inset-bottom, 0px) + 15px));
+    right:max(12px, calc(env(safe-area-inset-right, 0px) + 12px));
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  .bfc-web-scenes__fullscreen-next {transition:none;}
+}
