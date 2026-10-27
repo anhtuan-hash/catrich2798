@@ -45,7 +45,12 @@ const studio=file('Focus7Studio.jsx'),flow=file('useFocus7Flow.js'),particles=fi
 const mixer=file('useFocusSoundMixer.js'),css=file('BrianFocus7.css');
 assert.match(parent,/startFocusEnter/);assert.match(parent,/startFocusExit/);
 assert.match(parent,/usePersistentFocusYoutube/);
-assert.match(parent,/mediaPath:'youtube:'\+focus7.videoOverride/);
+// A teacher's personal YouTube override is now resolved by the local source
+// chooser. Preserve its priority without bypassing Web Scenes selection.
+assert.match(parent,/resolveFocusSessionScene\(scene, sourceChoice, focus7.videoOverride\)/);
+assert.match(parent,/youtubePlayerScene = resolveFocusSessionScene\(scene, 'youtube', focus7.videoOverride\)/);
+assert.match(file('focusSourceSelection.js'),/if \(videoOverride\)/);
+assert.match(file('focusSourceSelection.js'),/parseFocusYoutubePlaylist\(\[videoOverride\]\)/);
 assert.match(parent,/scene=\{mediaScene\}/);
 assert.match(overlay,/canEditFocusScene\(currentUser\)/);
 assert.match(overlay,/scene=\{sharedScene\|\|scene\}/);
