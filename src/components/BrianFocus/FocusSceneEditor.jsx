@@ -207,6 +207,11 @@ export default function FocusSceneEditor({ language = 'vi', currentUser, scene, 
       </div>
       <FocusWebsiteEditor draft={draft} setDraft={setDraft} setFile={setFile}
         setNotice={setNotice} language={language} busy={busy}/>
+      {draft.mediaType !== 'youtube' && draft.youtubeUrl?.trim() && <button
+        type="button" className="bfc-scene-editor__web-use" disabled={busy}
+        onClick={() => chooseYoutube(draft.youtubeUrl)}>
+        <Youtube size={15}/>{vi ? 'Khôi phục playlist YouTube đã lưu' : 'Restore saved YouTube playlist'}
+      </button>}
       <div className="bfc-scene-editor__preview-section">
         <button type="button" className="bfc-scene-editor__preview-toggle"
           aria-expanded={previewOpen}

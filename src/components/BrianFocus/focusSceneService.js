@@ -24,10 +24,13 @@ export function parseFocusScene(row) {
     webScenes: normalizeFocusWebScenes(row?.web_scenes,
       typeof window === 'undefined' ? '' : window.location.origin),
     webLayout: normalizeFocusWebLayout(row?.web_layout),
+    youtubeUrl: playlistIdsFromFocusPath(row?.media_type === 'youtube'
+      ? row?.media_path : row?.youtube_playlist_backup)
+      .map(id => 'https://www.youtube.com/watch?v=' + id).join('\n'),
   };
   if (row?.media_type === 'website' && webProps.webScenes.length) {
     return {
-      ...webProps, mediaType: 'website', mediaPath: '', youtubeUrl: '', playlistIds: [],
+      ...webProps, mediaType: 'website', mediaPath: '', playlistIds: [],
       dimPercent: Math.max(0, Math.min(85, Number(row.dim_percent) || 0)),
       mediaFit: row.media_fit === 'contain' ? 'contain' : 'cover',
       updatedAt: row.updated_at || '',
@@ -66,7 +69,7 @@ export function parseFocusScene(row) {
 export async function loadFocusScene() {
   if (!isSupabaseConfigured || !supabase) throw new Error('Chưa kết nối máy chủ.');
   const { data, error } = await supabase.from('brian_focus_settings')
-    .select('id,media_type,media_path,media_fit,dim_percent,web_scenes,web_layout,updated_at')
+    .select('id,media_type,media_path,media_fit,dim_percent,web_scenes,web_layout,youtube_playlist_backup,updated_at')
     .eq('id', 'global').maybeSingle();
   if (error) throw error;
   return parseFocusScene(data);
@@ -122,6 +125,10 @@ export async function saveFocusScene(user, draft, file) {
       .update({
         media_type: mediaType,
         media_path: mediaPath,
+        ...(mediaType === 'youtube' ? { youtube_playlist_backup: mediaPath } :
+          draft.youtubeUrl?.trim() ? {
+            youtube_playlist_backup: 'youtube:' + parseFocusYoutubePlaylist(draft.youtubeUrl).join(','),
+          } : {}),
         ...(mediaType === 'website' ? {
           web_scenes: validateFocusWebScenes(draft.webScenes,
             typeof window === 'undefined' ? '' : window.location.origin),
@@ -132,7 +139,7 @@ export async function saveFocusScene(user, draft, file) {
         updated_by: user.id,
         updated_at: new Date().toISOString(),
       }).eq('id', 'global')
-      .select('id,media_type,media_path,media_fit,dim_percent,web_scenes,web_layout,updated_at').single();
+      .select('id,media_type,media_path,media_fit,dim_percent,web_scenes,web_layout,youtube_playlist_backup,updated_at').single();
     if (error) throw error;
     if (!data) throw new Error('Máy chủ chưa xác nhận công bố.');
     return parseFocusScene(data);
