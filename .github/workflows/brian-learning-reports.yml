@@ -5,12 +5,15 @@ on:
       - 'src/features/learningReports/**'
       - 'src/pages/BrianTeamPortal.jsx'
       - 'src/components/GlobalWorkHubNotificationBridge.jsx'
+      - 'src/components/GlobalReportsNavigationTab.jsx'
+      - 'src/components/GlobalReportsNavigationTab.css'
       - 'src/utils/legacySiteTranslations.js'
       - 'supabase/migrations/20261027100000_learning_reports_gifted_remedial.sql'
       - 'scripts/test-learning-reports-contract.mjs'
       - 'scripts/test-learning-report-attendance-contract.mjs'
       - 'scripts/test-learning-report-instructor-scoping.mjs'
       - 'scripts/test-learning-reports-manager-analytics.mjs'
+      - 'scripts/test-learning-report-navigation-countdown.mjs'
       - 'supabase/migrations/20261027143000_learning_reports_manager_analytics.sql'
       - 'supabase/migrations/20261027143500_learning_report_deadline_rls_scope.sql'
       - 'supabase/migrations/20261027132000_learning_reports_instructor_scoped.sql'
@@ -36,13 +39,16 @@ jobs:
         run: node scripts/test-learning-report-instructor-scoping.mjs
       - name: Check annual dashboard contracts and arithmetic
         run: node scripts/test-learning-reports-manager-analytics.mjs
+      - name: Check shared navigation countdown for HSG and remedial requests
+        run: node scripts/test-learning-report-navigation-countdown.mjs
       - name: Validate report JSX syntax
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           import ts from 'typescript';
           const paths = ['src/features/learningReports/LearningReportsWorkspace.jsx',
-            'src/features/learningReports/LearningReportsManagerDashboard.jsx'];
+            'src/features/learningReports/LearningReportsManagerDashboard.jsx',
+            'src/components/GlobalReportsNavigationTab.jsx'];
           const errors = paths.flatMap(path => {
             const result = ts.transpileModule(fs.readFileSync(path, 'utf8'), {
               fileName: path, reportDiagnostics: true,
@@ -58,5 +64,6 @@ jobs:
         run: |
           node --check src/features/learningReports/learningReportsService.js
           node --check src/features/learningReports/learningReportsAnalytics.js
+          node --check src/features/learningReports/navigationDeadlines.js
       - name: Bilingual UI audit
         run: npm run audit:i18n
