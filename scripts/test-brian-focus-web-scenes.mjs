@@ -44,6 +44,14 @@ assert.match(editor,/parseFocusWebInput/);
 assert.match(editor,/bfc-scene-editor__website-field/);
 assert.match(stage,/sandbox="allow-scripts allow-forms allow-same-origin allow-popups"/);
 assert.match(stage,/is-interactive/);
+assert.match(stage,/bfc-web-scenes__clock-toggle/);
+assert.match(stage,/onClockVisibilityChange/);
+assert.match(stage,/clockVisible/);
+assert.match(overlay,/bfc-overlay--web-clock-hidden/);
+assert.match(overlay,/<FocusSourcePicker/);
+assert.match(css,/bfc-overlay--web-clock-hidden/);
+assert.match(css,/\.bfc-source-choice__options/);
+
 assert.match(stage,/node\.requestFullscreen\(\)/);
 assert.match(stage,/document\.exitFullscreen\(\)/);
 assert.match(stage,/fullscreenchange/);

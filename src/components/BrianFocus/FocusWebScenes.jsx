@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ExternalLink, Globe2, Grid2X2, LayoutPanelLeft, Maximize2, Minimize2,
-  SkipBack, SkipForward, RefreshCw, MousePointer2, ShieldCheck } from 'lucide-react';
+  SkipBack, SkipForward, RefreshCw, MousePointer2, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { normalizeFocusWebLayout, normalizeFocusWebScenes } from './focusWebScenes.js';
 import { nextFocusWebIndex } from './focusWebNavigation.js';
 
@@ -9,7 +9,10 @@ import { nextFocusWebIndex } from './focusWebNavigation.js';
  * The sandbox intentionally forbids top navigation. A site may still refuse
  * iframe embedding via X-Frame-Options / CSP; open-in-tab remains available.
  */
-export default function FocusWebScenes({ scene, language = 'vi', onInteractiveChange, blocked = false }) {
+export default function FocusWebScenes({
+  scene, language = 'vi', onInteractiveChange,
+  clockVisible = true, onClockVisibilityChange, blocked = false,
+}) {
   const vi = language !== 'en';
   const pages = useMemo(() => normalizeFocusWebScenes(
     scene?.webScenes, typeof window === 'undefined' ? '' : window.location.origin,
@@ -183,6 +186,15 @@ export default function FocusWebScenes({ scene, language = 'vi', onInteractiveCh
         title={vi ? 'Chia bốn' : 'Four panels'} aria-label={vi ? 'Chia bốn' : 'Four panels'}>
         <Grid2X2 size={15}/></button>
       <span className="bfc-web-scenes__separator"/>
+      <button type="button" className={'bfc-web-scenes__clock-toggle' + (!clockVisible ? ' is-active' : '')}
+        disabled={blocked} aria-pressed={!clockVisible}
+        aria-label={clockVisible ? (vi ? 'Ẩn đồng hồ Focus' : 'Hide Focus clock') :
+          (vi ? 'Hiện đồng hồ Focus' : 'Show Focus clock')}
+        title={clockVisible ? (vi ? 'Ẩn đồng hồ' : 'Hide clock') : (vi ? 'Hiện đồng hồ' : 'Show clock')}
+        onClick={() => onClockVisibilityChange?.(!clockVisible)}>
+        {clockVisible ? <EyeOff size={16}/> : <Eye size={16}/>}
+        <span>{clockVisible ? (vi ? 'Ẩn đồng hồ' : 'Hide clock') : (vi ? 'Hiện đồng hồ' : 'Show clock')}</span>
+      </button>
       <button type="button" className={'bfc-web-scenes__activate' + (isLive ? ' is-active' : '')}
         disabled={blocked} aria-pressed={isLive}
         onClick={() => setInteractive(value => !value)}

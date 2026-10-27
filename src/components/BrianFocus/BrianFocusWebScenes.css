@@ -228,3 +228,111 @@
 }
 /* Below 1280px retain the original second-row toolbar, preventing overlap
  * with the logo and the focus-header buttons on tablets/phones. */
+
+
+/* Teacher-controlled Focus clock visibility in Web Scenes.
+ * Do not unmount clock/timer nodes; only remove their visual overlay on iframes.
+ */
+.bfc-overlay.bfc-atelier.bfc-overlay--web.bfc-overlay--web-clock-hidden
+  :is(.bfc-overlay__center,.bfc8-external-weather,.bfc8-external-timer) {
+  visibility:hidden!important;opacity:0!important;pointer-events:none!important;
+}
+.bfc-web-scenes__clock-toggle span {font-size:11px;font-weight:730;white-space:nowrap;}
+.bfc-web-scenes__toolbar .bfc-web-scenes__clock-toggle.is-active {
+  background:rgba(120,204,255,.30);color:#c8ebff;
+}
+@media(min-width:1280px) {
+  /* Icon-only on the shared logo/Focus top row, retaining a11y label + tooltip. */
+  .bfc-overlay.bfc-atelier.bfc-overlay--web .bfc-web-scenes__clock-toggle span {display:none;}
+}
+
+/* Focus scene chooser — a keyboard-contained session-only startup decision. */
+.bfc-source-choice {
+  position:fixed;inset:0;z-index:190;isolation:isolate;
+  display:grid;place-items:center;padding:clamp(12px,3vw,32px);
+  box-sizing:border-box;pointer-events:auto;
+  color:#e9f5ff;font-family:"Google Sans",system-ui,sans-serif;
+}
+.bfc-source-choice__shade {
+  position:absolute;inset:0;z-index:-1;
+  background:rgba(1,9,24,.79);backdrop-filter:blur(16px) saturate(.8);
+  -webkit-backdrop-filter:blur(16px) saturate(.8);
+}
+.bfc-source-choice__card {
+  position:relative;display:grid;gap:14px;
+  width:min(100%,660px);max-height:calc(100dvh - 26px);overflow:auto;
+  padding:clamp(20px,3vw,32px);border-radius:27px;
+  border:1px solid rgba(186,215,255,.30);
+  background:linear-gradient(135deg,#132d55 0%,#101d38 55%,#0a172c 100%);
+  box-shadow:0 30px 90px rgba(0,0,0,.56),inset 0 1px rgba(255,255,255,.10);
+}
+.bfc-source-choice__top {display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.bfc-source-choice__eyebrow {font-size:11px;font-weight:750;letter-spacing:.16em;color:#a7d3ff;}
+.bfc-source-choice__dismiss {
+  display:grid;place-items:center;width:36px;height:36px;
+  border:1px solid rgba(217,232,255,.25);border-radius:11px;
+  background:rgba(239,244,255,.07);color:#eff7ff;cursor:pointer;
+}
+.bfc-source-choice__card h2 {font-size:clamp(23px,3vw,30px);font-weight:750;letter-spacing:-.025em;line-height:1.15;margin:0;}
+.bfc-source-choice__card>p {font-size:13px;line-height:1.55;color:#bfd0e8;margin:0;}
+.bfc-source-choice__options {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;}
+.bfc-source-choice__option {
+  display:flex;flex-direction:column;align-items:flex-start;gap:11px;
+  min-height:218px;padding:21px;cursor:pointer;text-align:left;
+  border:1px solid rgba(173,217,255,.30);border-radius:21px;color:#f3faff;
+  background:linear-gradient(150deg,rgba(42,106,166,.35),rgba(19,45,79,.64));
+  box-shadow:inset 0 1px rgba(255,255,255,.09);
+  transition:transform .16s ease,background .16s ease,border-color .16s ease;
+}
+.bfc-source-choice__option--youtube {
+  background:linear-gradient(145deg,rgba(159,63,88,.35),rgba(56,32,67,.51));
+}
+.bfc-source-choice__option:hover:not(:disabled) {
+  transform:translateY(-3px);border-color:#9bd1fc;background-color:rgba(120,179,235,.12);
+}
+.bfc-source-choice__option:disabled {opacity:.40;cursor:not-allowed;}
+.bfc-source-choice__illustration {
+  display:grid;place-items:center;width:54px;height:54px;border-radius:17px;
+  background:rgba(108,204,255,.18);color:#9bddff;
+}
+.bfc-source-choice__option--youtube .bfc-source-choice__illustration {
+  background:rgba(255,108,130,.17);color:#ffc1c6;
+}
+.bfc-source-choice__option strong {font-size:20px;font-weight:760;line-height:1.15;}
+.bfc-source-choice__option small {font-size:12px;color:#c6d8f0;line-height:1.4;}
+.bfc-source-choice__go {
+  display:flex;align-items:center;gap:8px;margin-top:auto;
+  font-size:12px;font-weight:760;color:#bfeaff;
+}
+.bfc-source-choice__error {
+  display:flex;gap:12px;align-items:center;justify-content:space-between;
+  padding:11px;border:1px solid rgba(255,167,167,.42);border-radius:12px;
+  background:rgba(137,45,57,.20);font-size:12px;
+}
+.bfc-source-choice__error button {
+  display:flex;align-items:center;gap:6px;flex-shrink:0;padding:8px 10px;
+  border:1px solid rgba(244,196,196,.50);border-radius:9px;
+  background:rgba(255,255,255,.08);color:#fff;cursor:pointer;
+}
+.bfc-source-choice__status {padding:8px 10px;border-radius:9px;background:rgba(93,162,231,.13);}
+.bfc-source-choice__original {
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:11px;border:1px solid rgba(157,190,226,.24);border-radius:12px;
+  background:rgba(255,255,255,.06);color:#e7f3ff;font-size:12px;cursor:pointer;
+}
+.bfc-source-choice__card .bfc-source-choice__footnote {
+  color:#9eafc6;text-align:center;font-size:10px;
+}
+.bfc-source-choice button:focus-visible {outline:3px solid #90d4ff;outline-offset:3px;}
+@media(max-width:600px) {
+  .bfc-source-choice__card {padding:18px;gap:11px;border-radius:19px;}
+  .bfc-source-choice__options {grid-template-columns:minmax(0,1fr);gap:9px;}
+  .bfc-source-choice__option {min-height:113px;padding:13px;gap:5px;border-radius:13px;}
+  .bfc-source-choice__illustration {width:38px;height:38px;border-radius:12px;}
+  .bfc-source-choice__illustration svg {width:22px;height:22px;}
+  .bfc-source-choice__option strong {font-size:16px;}
+  .bfc-source-choice__go {margin-top:3px;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .bfc-source-choice__option {transition:none;}
+}
