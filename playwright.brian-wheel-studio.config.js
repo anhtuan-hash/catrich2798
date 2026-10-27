@@ -1,6 +1,6 @@
 import {defineConfig,devices} from '@playwright/test';
 export default defineConfig({
- testDir:'./tests/e2e',testMatch:'brian-wheel-studio.spec.js',
+ testDir:'./tests/e2e',testMatch:['brian-wheel-studio.spec.js','brian-powerup-wheel.spec.js'],
  timeout:45000,expect:{timeout:9000},retries:process.env.CI?1:0,reporter:'list',
  use:{baseURL:'http://127.0.0.1:4182',trace:'retain-on-failure'},
  webServer:{
