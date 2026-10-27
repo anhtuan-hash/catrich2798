@@ -34,7 +34,7 @@ const randomInt=(a,b)=>{
 export default function WheelStudio({value,onChange,t,sound,onSound,onCelebrate}){
  const vi=t.spin==='QUAY NGAY',T=TXT[vi?'vi':'en'];
  const [tab,setTab]=useState('items'),[paste,setPaste]=useState((value.rows||[]).map(r=>r.label).join('\n'));
- const [search,setSearch]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+ const [search,setSearch]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false),[saveName,setSaveName]=useState('');
  const [selected,setSelected]=useState(null),[burst,setBurst]=useState(0);
  const wheelRef=useRef(null),frameRef=useRef(null),intervalRef=useRef(null),runRef=useRef(null),csvRef=useRef(null),mounted=useRef(true);
  const rows=value.rows||[],segments=useMemo(()=>wheelSegments(rows,value.theme),[rows,value.theme]);
@@ -168,6 +168,38 @@ export default function WheelStudio({value,onChange,t,sound,onSound,onCelebrate}
       <button key={id} type="button" title={id} aria-label={id} aria-pressed={value.theme===id} disabled={busy}
        onClick={()=>change(w=>({...w,theme:id}))}
        style={{background:'conic-gradient('+colors.map((c,i)=>c+' '+i/colors.length*360+'deg '+(i+1)/colors.length*360+'deg').join(',')+')'}}/>)}</div>
+     <div className="bit-ws-saved">
+      <h4>{vi?'Bộ vòng quay đã lưu':'Saved wheel lists'} <small>{(value.savedLists||[]).length}/8</small></h4>
+      <div className="bit-ws-save-form">
+       <input maxLength={40} value={saveName} onChange={e=>setSaveName(e.target.value)}
+        placeholder={vi?'Tên bộ vòng quay (VD: Lớp 11A)':'Preset name (e.g. Class 11A)'}
+        aria-label={vi?'Tên bộ vòng quay':'Wheel preset name'}/>
+       <button type="button" disabled={!saveName.trim()||busy} onClick={()=>{
+        const label=saveName.trim().slice(0,40);
+        change(w=>{
+         const previous=(w.savedLists||[]).filter(p=>p.label!==label);
+         const snapshot={id:'set-'+Date.now().toString(36),label,rows:w.rows.map(r=>({...r})),
+          mode:w.mode,theme:w.theme,duration:w.duration};
+         return {...w,savedLists:[...previous,snapshot].slice(-8)};
+        });
+        setSaveName('');
+       }}>{vi?'Lưu bộ':'Save'}</button>
+      </div>
+      <div className="bit-ws-saved-list">{(value.savedLists||[]).map(p=>
+       <div key={p.id}><strong>{p.label}</strong><span>{p.rows.length} {T.items.toLowerCase()}</span>
+        <button type="button" disabled={busy} onClick={()=>{
+         setSelected(null);setFrozenSegments(null);
+         setPaste(p.rows.map(r=>r.label).join('\\n'));
+         change(w=>({...w,rows:p.rows.map(r=>({...r})),theme:p.theme,mode:p.mode,
+          duration:p.duration,rotation:0,history:[],spins:0,counts:{},winner:null}));
+         if(wheelRef.current)wheelRef.current.style.transform='rotate(0deg)';
+         setTab('items');
+        }}>{vi?'Mở':'Load'}</button>
+        <button type="button" disabled={busy} aria-label={'Delete saved '+p.label}
+         onClick={()=>change(w=>({...w,savedLists:(w.savedLists||[]).filter(x=>x.id!==p.id)}))}>
+         <Trash2 size={14}/></button>
+       </div>)}</div>
+     </div>
      {[[T.confetti,'confetti'],[T.labels,'showLabels'],[T.mystery,'mystery']].map(([label,key])=>
       <label className="bit-ws-toggle" key={key}><span>{label}</span><input type="checkbox" disabled={busy} checked={Boolean(value[key])}
        onChange={e=>change(w=>({...w,[key]:e.target.checked}))}/></label>)}
