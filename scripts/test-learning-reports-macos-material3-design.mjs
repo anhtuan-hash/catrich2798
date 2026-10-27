@@ -16,7 +16,7 @@ const checks=[
   ['No global html/body styling',!/^\s*(?:html|body|\*)\s*\{/m.test(css)],
   ['Typography / surfaces / colours from tokens',css.includes('--blm-brand:#2465c8')&&css.includes('--blm-shadow:')],
   ['Hero includes CSS decorative document and layered surfaces',css.includes('.blr-hero-icon:before')&&css.includes('.blr-hero:after')],
-  ['Hero decoration hidden from screenreader',workspace.includes('className="blr-hero-visual" aria-hidden="true"')&&workspace.includes('className="blr-hero-icon"')],
+  ['Editorial illustration hidden from screenreader',workspace.includes('className="blr-editorial-hero__art" aria-hidden="true"')&&workspace.includes('className="blr-editorial-hero__paper"')],
   ['Accessible role tabs preserved',workspace.includes('role="tablist"')&&workspace.includes('aria-selected={managerView')],
   ['Metric cards have real semantic icons',workspace.includes('icon={FileText}')&&workspace.includes('icon={Clock3}')&&workspace.includes('icon={CheckCircle2}')&&workspace.includes('icon={AlertCircle}')],
   ['Metric numerals use readable tabular figures',css.includes('font-variant-numeric:tabular-nums')],
