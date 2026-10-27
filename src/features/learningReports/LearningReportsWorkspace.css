@@ -82,3 +82,5 @@
 .blr-manager-modes button{flex:0 1 auto;padding:10px 15px}
 .blr-manager-modes button.is-active{background:#e6f1ff!important;border-color:#75aceb!important;color:#155b9b!important}
 @media(max-width:560px){.blr-manager-modes button{flex:1 1 145px;font-size:13px}}
+
+.blr-deadline-countdown{color:#2063a3!important;font-weight:800;font-size:13px!important}
