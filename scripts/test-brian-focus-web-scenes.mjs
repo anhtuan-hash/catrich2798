@@ -1,10 +1,16 @@
 import assert from 'node:assert/strict';
+import { nextFocusWebIndex } from '../src/components/BrianFocus/focusWebNavigation.js';
 import { readFileSync } from 'node:fs';
 import {
   normalizeFocusWebUrl, parseFocusWebInput, normalizeFocusWebScenes,
   validateFocusWebScenes, normalizeFocusWebLayout,
 } from '../src/components/BrianFocus/focusWebScenes.js';
 
+assert.equal(nextFocusWebIndex(0, 3), 1);
+assert.equal(nextFocusWebIndex(1, 3), 2);
+assert.equal(nextFocusWebIndex(2, 3), 0, 'Last website wraps to first');
+assert.equal(nextFocusWebIndex(0, 1), 0, 'Single website stays');
+assert.equal(nextFocusWebIndex(null, 0), 0, 'Empty playlist is safe');
 const app='https://esl-brian.vercel.app';
 const url='https://arcade.padlet.com/game/123';
 assert.equal(normalizeFocusWebUrl(url,app),url);
@@ -47,6 +53,17 @@ assert.match(stage,/bfc-web-scenes__panel-fullscreen/);
 assert.match(stage,/bfc-web-scenes__fullscreen/);
 assert.match(stage,/is-fallback-expanded/);
 assert.match(stage,/nativeFullscreenNode/);
+assert.match(stage,/fullscreenPageIndexRef/);
+assert.match(stage,/nextFullscreenWebsite/);
+assert.match(stage,/nextFocusWebIndex\(previous\.pageIndex, pages\.length\)/);
+assert.match(stage,/key=\{slotPage\.url\}/);
+assert.match(stage,/expanded\.pageIndex/);
+assert.match(stage,/className="bfc-web-scenes__fullscreen-next"/);
+assert.match(stage,/isExpanded && pages\.length > 1/);
+assert.match(stage,/setSelected\(fullscreenPageIndexRef\.current\)/);
+assert.match(css,/\.bfc-web-scenes__fullscreen-next/);
+assert.match(css,/safe-area-inset-right/);
+
 assert.match(css,/:fullscreen/);
 assert.match(css,/is-fallback-expanded/);
 assert.match(stage,/target="_blank"/);
