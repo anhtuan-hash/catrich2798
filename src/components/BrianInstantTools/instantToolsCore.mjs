@@ -1,3 +1,4 @@
+import {sanitiseWheelStudio} from './wheelStudioCore.mjs';
 import {sanitizeWave3} from './instantToolsWave3Core.mjs';
 import {sanitizeWave4} from './instantToolsWave4Core.mjs';
 // Pure, network-free helpers for Brian Instant Tools.
@@ -8,7 +9,7 @@ export const clamp=(value,min,max)=>Math.min(max,Math.max(min,Number.isFinite(Nu
 export const initialState=()=>({
   sound:true,
   dice:{count:2,values:[1,1],history:[]},
-  wheel:{names:[...DEFAULT_NAMES],rotation:0,winner:null},
+  wheel:{names:[...DEFAULT_NAMES],...sanitiseWheelStudio({names:DEFAULT_NAMES})},
   scoreboard:{teams:DEFAULT_NAMES.map((name,i)=>({id:'team-'+(i+1),name,score:0})),undo:[]},
   timers:{items:Array.from({length:4},(_,i)=>({
     id:'timer-'+(i+1),label:'Team '+(i+1),durationSeconds:180,remainingMs:180000,endsAt:null,running:false,alerted:false,
@@ -98,10 +99,9 @@ export function sanitizeState(raw){
   base.dice.values=list(d.values).slice(0,6).map(x=>Math.round(clamp(x,1,6)));
   if(!base.dice.values.length)base.dice.values=[1];
   base.dice.history=list(d.history).slice(0,8).map(x=>list(x).slice(0,6).map(n=>Math.round(clamp(n,1,6))));
-  const w=s.wheel||{},names=normalizeWheelNames(w.names);
-  base.wheel.names=names||[...DEFAULT_NAMES];
-  base.wheel.rotation=clamp(w.rotation,0,100000000);
-  base.wheel.winner=typeof w.winner==='string'?w.winner.slice(0,32):null;
+  const w=s.wheel||{};
+  const studio=sanitiseWheelStudio(w);
+  base.wheel={...studio,names:studio.rows.map(r=>r.label).slice(0,60)};
   const sc=s.scoreboard||{},teamList=list(sc.teams).slice(0,8);
   if(teamList.length>=2){
     base.scoreboard.teams=teamList.map((t,i)=>({
