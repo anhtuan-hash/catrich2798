@@ -94,15 +94,4 @@ jobs:
       - name: Bilingual UI audit
         run: npm run audit:i18n
       - name: Reproduce exact Vercel release build command
-        run: |
-          node scripts/test-editorial-app-heroes.mjs
-          npm run version:sync
-          npm run audit:inactive-modules
-          npm run audit:i18n
-          npm run test:i18n
-          node scripts/test-learning-reports-contract.mjs
-          node scripts/test-learning-report-instructor-scoping.mjs
-          node scripts/test-learning-report-attendance-contract.mjs
-          node scripts/test-learning-reports-unified-workspace.mjs
-          node scripts/test-auth-security-hardening.mjs
-          npx vite build
+        run: node scripts/build-brian-vercel-release.mjs
