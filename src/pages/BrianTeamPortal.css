@@ -82,3 +82,12 @@
     font-size: 12px;
   }
 }
+
+/* Two distinct reporting workspaces, each with its own local navigation.
+   The monthly report workspace is never overlaid by the special programmes. */
+.btp-primary-areas{max-width:1240px;gap:8px;background:#f4f7fc;border:1px solid #dbe5f1;padding:7px}
+.btp-primary-areas button{min-height:45px;padding:0 17px;font-size:14px;font-weight:800}
+.btp-primary-areas button.is-active{background:#fff;color:#155a9e;border:1px solid #c7ddf3;box-shadow:0 2px 9px #204d750c}
+.btp-secondary-areas{margin-top:8px;background:#fff;border:1px solid #e0e8f0;padding:6px}
+.btp-secondary-areas button{min-height:35px}
+@media(max-width:760px){.btp-primary-areas,.btp-secondary-areas{width:calc(100% - 20px)}.btp-primary-areas button{font-size:12px;padding:0 11px;min-height:43px}}
