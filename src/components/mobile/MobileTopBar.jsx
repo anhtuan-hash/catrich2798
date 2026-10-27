@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, FileText, Menu, Search, UserRound } from 'lucide-react';
+import { Bell, CalendarCheck2, FileText, Menu, UserRound, UsersRound } from 'lucide-react';
 import '../../pages/AuthPageMobileRedesign.css';
 import '../../pages/AuthPageMobileHeroRemoval.css';
 import '../../styles/mobile/mobile-brand-logo.css';
@@ -10,31 +10,43 @@ function userInitial(currentUser) {
 }
 
 /**
- * A single compact, global mobile toolbar. Module titles belong to each
- * module's own page header, not the site navigation.
+ * Site-wide mobile quick navigation: Menu, original BRIAN logo,
+ * Reports, TTCM, Attendance, Notifications and Account.
+ * Keep verbose page/module titles inside their own content instead.
  */
 export default function MobileTopBar({
   language = 'vi',
   onMenu,
   onHome,
-  onSearch,
   onReports,
+  onTtcm,
+  onAttendance,
   onNotifications,
   onAccount,
   accountOpen = false,
   currentUser,
   canAccessReports = false,
+  canAccessTtcm = false,
+  canAccessAttendance = false,
   reportActive = false,
+  attendanceActive = false,
   hasUnread = false,
 }) {
   const vi = language !== 'en';
+  const quickLabel = {
+    reports: vi ? 'Báo cáo' : 'Reports',
+    ttcm: vi ? 'TTCM · Trao đổi tổ' : 'Department communications',
+    attendance: vi ? 'Điểm danh' : 'Attendance',
+    notifications: vi ? 'Thông báo' : 'Notifications',
+  };
+
   return (
     <header className="bes-mobile-topbar bes-mobile-topbar--compact" data-bes-mobile-topbar="true">
       <button
         type="button"
         className="bes-mobile-icon-button bes-mobile-topbar__menu"
         onClick={onMenu}
-        aria-label={vi ? 'Mở menu điều hướng' : 'Open navigation'}
+        aria-label={vi ? 'Mở menu điều hướng' : 'Open navigation menu'}
         title={vi ? 'Menu' : 'Menu'}
       >
         <Menu size={21} strokeWidth={2.1} />
@@ -44,37 +56,50 @@ export default function MobileTopBar({
         type="button"
         className="bes-mobile-brand bes-mobile-brand--compact"
         onClick={onHome}
-        aria-label={vi ? 'Về Trang chủ Brian English' : 'Go to Brian English Home'}
+        aria-label={vi ? 'Về Trang chủ' : 'Go to Home'}
         title={vi ? 'Trang chủ' : 'Home'}
       >
         <span className="bes-mobile-brand__mark" aria-hidden="true">
           <img className="bes-mobile-brand__logo" src="/brian-english-brand-logo.png" alt="" />
         </span>
-        <span className="bes-mobile-brand__copy"><strong>BRIAN</strong></span>
       </button>
 
-      <div className="bes-mobile-topbar__actions">
-        {currentUser ? (
-          <button
-            type="button"
-            className="bes-mobile-icon-button bes-mobile-topbar__search"
-            onClick={onSearch}
-            aria-label={vi ? 'Tìm kiếm' : 'Search'}
-            title={vi ? 'Tìm kiếm' : 'Search'}
-          >
-            <Search size={20} strokeWidth={2} />
-          </button>
-        ) : null}
+      <nav className="bes-mobile-topbar__actions" aria-label={vi ? 'Truy cập nhanh' : 'Quick access'}>
         {currentUser && canAccessReports ? (
           <button
             type="button"
             className={`bes-mobile-icon-button bes-mobile-topbar__reports${reportActive ? ' is-active' : ''}`}
             onClick={onReports}
-            aria-label={vi ? 'Mở Báo cáo' : 'Open Reports'}
-            title={vi ? 'Báo cáo' : 'Reports'}
+            aria-label={quickLabel.reports}
+            title={quickLabel.reports}
             aria-current={reportActive ? 'page' : undefined}
           >
-            <FileText size={20} strokeWidth={2} />
+            <FileText size={21} strokeWidth={2.1} />
+          </button>
+        ) : null}
+        {currentUser && canAccessTtcm ? (
+          <button
+            type="button"
+            className="bes-mobile-icon-button bes-mobile-topbar__ttcm"
+            onClick={onTtcm}
+            aria-label={quickLabel.ttcm}
+            title={quickLabel.ttcm}
+            aria-haspopup="dialog"
+          >
+            <UsersRound size={22} strokeWidth={2.05} />
+            <small aria-hidden="true">TTCM</small>
+          </button>
+        ) : null}
+        {currentUser && canAccessAttendance ? (
+          <button
+            type="button"
+            className={`bes-mobile-icon-button bes-mobile-topbar__attendance${attendanceActive ? ' is-active' : ''}`}
+            onClick={onAttendance}
+            aria-label={quickLabel.attendance}
+            title={quickLabel.attendance}
+            aria-current={attendanceActive ? 'page' : undefined}
+          >
+            <CalendarCheck2 size={21} strokeWidth={2.1} />
           </button>
         ) : null}
         {currentUser ? (
@@ -82,10 +107,10 @@ export default function MobileTopBar({
             type="button"
             className="bes-mobile-icon-button bes-mobile-notification-button"
             onClick={onNotifications}
-            aria-label={vi ? 'Thông báo' : 'Notifications'}
-            title={vi ? 'Thông báo' : 'Notifications'}
+            aria-label={quickLabel.notifications}
+            title={quickLabel.notifications}
           >
-            <Bell size={20} strokeWidth={2} />
+            <Bell size={21} strokeWidth={2.1} />
             {hasUnread ? <span className="bes-mobile-unread-dot" aria-hidden="true" /> : null}
           </button>
         ) : null}
@@ -100,7 +125,7 @@ export default function MobileTopBar({
         >
           {currentUser ? <span>{userInitial(currentUser)}</span> : <UserRound size={20} />}
         </button>
-      </div>
+      </nav>
     </header>
   );
 }
