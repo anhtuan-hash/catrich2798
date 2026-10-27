@@ -491,7 +491,7 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
              </div>:<p className="bff-round-result"><Trophy size={20}/>{game.last?.team} +{showPoints(game.last?.points)}</p>}
              {(game.roundAwards||[]).some(record=>record.roundIndex===game.roundIndex)&&
                <button className="bff-action bff-subtle" type="button" onClick={()=>dispatch({type:'EDIT_ROUND_SCORES'})}>
-                 <Settings2 size={19}/>{tr('SỬA ĐIỂM VÒNG NÀY','EDIT THIS ROUND’S SCORES')}</button>
+                 <Settings2 size={19}/>{tr('SỬA ĐIỂM VÒNG NÀY','EDIT THIS ROUND’S SCORES')}</button>}
             <button className="bff-action bff-subtle" type="button" onClick={()=>dispatch({type:'SHOW_ALL'})}>
               <Eye size={18}/>{tr('Hiện tất cả đáp án','Reveal all answers')}</button>
             <button className="bff-action bff-primary" type="button" onClick={()=>{
