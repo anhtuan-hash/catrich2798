@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import LearningReportsManagerDashboard from './LearningReportsManagerDashboard.jsx';
 import SmartAssignmentComposer from './SmartAssignmentComposer.jsx';
 import { Award, BookOpenCheck, CalendarClock, CheckCircle2, ClipboardCheck, Clock3,
-  Download, FileText, RefreshCw, Save, Send, Link2, ShieldCheck, UsersRound, X } from 'lucide-react';
+  Download, FileText, RefreshCw, Save, Send, Trash2, Link2, ShieldCheck, UsersRound, X } from 'lucide-react';
 import { isDepartmentLeaderRole } from '../../utils/roles.js';
 import { loadTeamWorkspace, listTeamTeacherAccounts } from '../../utils/personnelHub.js';
 import {
@@ -10,6 +10,7 @@ import {
   reportProgress, participationPercent, listLearningReports, loadLearningAttendance,
   listLearningClassOptions, bindLearningClasses,
   saveLearningReport, reviewLearningReport, markLearningReportRead,
+  revokeLearningReportAssignment,
 } from './learningReportsService.js';
 import './LearningReportsWorkspace.css';
 
@@ -137,6 +138,7 @@ export default function LearningReportsWorkspace({currentUser}) {
   const [showComposer,setShowComposer]=useState(false);
   const [filter,setFilter]=useState(isLeader?'gifted':'all');
   const [managerView,setManagerView]=useState('reports');
+  const [withdrawingId,setWithdrawingId]=useState(null);
   const [clockNow,setClockNow]=useState(Date.now());
   useEffect(()=>{const id=window.setInterval(()=>setClockNow(Date.now()),60000);return()=>window.clearInterval(id);},[]);
 
@@ -229,6 +231,29 @@ export default function LearningReportsWorkspace({currentUser}) {
       setNotice(submit?'Đã gửi báo cáo cho TTCM.':'Đã lưu bản nháp.');
     }catch(e){setError(e.message);}finally{setBusy(false);}
   };
+  const doRevoke=async(task)=>{
+    if(!isLeader||!task||withdrawingId)return;
+    if(task.status!=='draft'){
+      setError('Chỉ có thể xóa việc giao báo cáo chưa được nộp.');return;
+    }
+    const recipient=teacherName(task.teacher_id);
+    const name=LEARNING_REPORT_KINDS[task.report_kind];
+    const month=String(task.period||'').slice(0,7);
+    if(!window.confirm('XÓA VIỆC GIAO BÁO CÁO?\n\n'+
+      'Giáo viên: '+recipient+'\nLoại: '+name+'\nTháng: '+month+
+      '\n\nNhiệm vụ chưa làm sẽ bị thu hồi, đồng hồ và sự kiện tương ứng được cập nhật. '+
+      'Báo cáo có nội dung, đã nộp hoặc đã duyệt sẽ không được xóa.'))return;
+    setWithdrawingId(task.id);setError('');setNotice('');
+    try{
+      await revokeLearningReportAssignment(task.id);
+      setTasks(rows=>rows.filter(row=>row.id!==task.id));
+      if(selectedId===task.id)setSelectedId('');
+      setNotice('Đã xóa việc giao '+name+' tháng '+month+' cho '+recipient+
+        '. Không ảnh hưởng dữ liệu Điểm danh hoặc các giáo viên khác.');
+    }catch(e){
+      setError('Không thể xóa việc giao báo cáo: '+e.message);
+    }finally{setWithdrawingId(null);}
+  };
   const doReview=async(status)=>{
     setBusy(true);setError('');setNotice('');
     try{
@@ -291,20 +316,42 @@ export default function LearningReportsWorkspace({currentUser}) {
       departmentId={departmentId} kind={filter==='remedial'?'remedial':'gifted'} mode={managerView}
       onModeChange={setManagerView} onDeadlineUpdated={load} accounts={accounts}
       onOpenReport={id=>{setManagerView('reports');setSelectedId(id);}}/>}
-    {!isLeader&&!selected&&<section className="blr-list">
-      <div className="blr-title-row"><h2>Báo cáo được phân công</h2>
-        <span>{filtered.length} báo cáo</span></div>
-      {loading?<div className="blr-empty">Đang tải báo cáo…</div>:!filtered.length?<div className="blr-empty"><FileText size={35}/>
-        Bạn chưa được phân công báo cáo bồi dưỡng hoặc phụ đạo.</div>
+    {(isLeader?managerView==='reports':true)&&!selected&&<section className="blr-list">
+      <div className="blr-title-row">
+        <h2>{isLeader?'Danh sách báo cáo được giao':'Báo cáo được phân công'}</h2>
+        <span>{filtered.length} báo cáo</span>
+        {isLeader&&<button type="button" onClick={()=>downloadCsv(filtered.map(x=>({
+          ...x,teacherName:teacherName(x.teacher_id),
+        })))} disabled={!filtered.length}><Download size={17}/> Xuất CSV</button>}
+      </div>
+      {isLeader&&<p className="blr-revoke-note">TTCM có thể xóa việc giao đối với bản nháp chưa được giáo viên nhập nội dung. Báo cáo đã có nội dung, đã nộp hoặc đã duyệt sẽ được bảo vệ.</p>}
+      {loading?<div className="blr-empty">Đang tải báo cáo…</div>
+        :!filtered.length?<div className="blr-empty"><FileText size={35}/>
+          {isLeader?'Chưa có báo cáo nào được giao trong mục này.':'Bạn chưa được phân công báo cáo bồi dưỡng hoặc phụ đạo.'}
+        </div>
         :<div className="blr-list-grid">{filtered.map(task=>{
           const p=reportProgress(task.report_kind,task.payload);
-          return <button key={task.id} type="button" className="blr-task" onClick={()=>setSelectedId(task.id)}>
-            <div className="blr-task-top"><span>{task.report_kind==='gifted'?<Award/>:<BookOpenCheck/>}{LEARNING_REPORT_KINDS[task.report_kind]}</span><Status value={task.status}/></div>
-            <h3>{isLeader?teacherName(task.teacher_id):'Báo cáo '+task.period.slice(0,7)}</h3>
-            <small><CalendarClock size={15}/> Hạn nộp: {dateLabel(task.effective_due_at)}</small>
-            <div className="blr-progress"><i style={{width:p.percent+'%'}}/></div>
-            <small>{p.count}/5 phần đã hoàn thành · {p.percent}% phần chuyên môn</small>
-          </button>;
+          const hasContent=Object.values(task.payload||{}).some(v=>String(v??'').trim().length>0);
+          const canWithdraw=task.status==='draft'&&!hasContent;
+          return <article key={task.id} className="blr-task-frame">
+            <button type="button" className="blr-task" onClick={()=>setSelectedId(task.id)}>
+              <div className="blr-task-top"><span>
+                {task.report_kind==='gifted'?<Award/>:<BookOpenCheck/>}
+                {LEARNING_REPORT_KINDS[task.report_kind]}</span><Status value={task.status}/></div>
+              <h3>{isLeader?teacherName(task.teacher_id):'Báo cáo '+task.period.slice(0,7)}</h3>
+              <small><CalendarClock size={15}/> Hạn nộp: {dateLabel(task.effective_due_at)}</small>
+              <div className="blr-progress"><i style={{width:p.percent+'%'}}/></div>
+              <small>{p.count}/5 phần đã hoàn thành · {p.percent}% phần chuyên môn</small>
+            </button>
+            {isLeader&&<div className="blr-task-actions">
+              <button type="button" className="blr-task-revoke"
+                disabled={!canWithdraw||Boolean(withdrawingId)}
+                title={canWithdraw?'Thu hồi nhiệm vụ được giao':'Không thể xóa báo cáo đã có nội dung hoặc đã nộp'}
+                onClick={()=>doRevoke(task)}>
+                <Trash2 size={16}/>{withdrawingId===task.id?'Đang xóa…':'Xóa giao báo cáo'}
+              </button>
+            </div>}
+          </article>;
         })}</div>}
     </section>}
 

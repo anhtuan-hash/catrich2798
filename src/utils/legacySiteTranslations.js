@@ -3124,4 +3124,12 @@ export const LEGACY_SITE_EN = Object.freeze({
   "Quản lý liên kết lớp cũ (chỉ khi cần chỉnh sửa)": "Manage legacy class links (only when corrections are needed)",
   "Loại": "Type",
   "Báo cáo được phân công": "My assigned reports",
+  "Xóa giao báo cáo": "Revoke assignment",
+  "Thu hồi nhiệm vụ được giao": "Revoke assigned report",
+  "Không thể xóa báo cáo đã có nội dung hoặc đã nộp": "Cannot revoke a report with content or a submitted report",
+  "Chưa có báo cáo nào được giao trong mục này.": "No reports have been assigned in this section.",
+  "TTCM có thể xóa việc giao đối với bản nháp chưa được giáo viên nhập nội dung. Báo cáo đã có nội dung, đã nộp hoặc đã duyệt sẽ được bảo vệ.": "Department heads may revoke empty draft assignments. Written, submitted and approved reports are protected.",
+  "Đang xóa…": "Removing…",
+  "Không thể xóa việc giao báo cáo:": "Unable to revoke assignment:",
+  "XÓA VIỆC GIAO BÁO CÁO?": "REVOKE ASSIGNED REPORT?",
 });
