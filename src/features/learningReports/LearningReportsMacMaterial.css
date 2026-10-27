@@ -506,3 +506,24 @@
     box-shadow:none!important;break-inside:avoid;border-color:#c9ced7;
   }
 }
+
+
+/* Floating utilities remain outside Specialist; reserve right-side interactive clearance. */
+@media(min-width:651px){
+  .blr-shell{padding-right:clamp(30px,5.5vw,72px)}
+}
+@media(max-width:650px){
+  .blr-shell{padding-right:0}
+}
+/* Override the generic action surface using equal or greater specificity. */
+.blr-shell button.is-primary:not(.blr-task):not(.blrd-month),
+.blr-shell .blrd-shell button.is-primary:not(.blrd-month){
+  background:linear-gradient(120deg,#3479da,#1764c4);
+  color:#fff;
+  border-color:#2469cf;
+}
+.blr-shell button.is-primary:not(.blr-task):not(.blrd-month):hover:not(:disabled),
+.blr-shell .blrd-shell button.is-primary:not(.blrd-month):hover:not(:disabled){
+  background:linear-gradient(120deg,#266bc9,#1554a3);
+  color:#fff;
+}
