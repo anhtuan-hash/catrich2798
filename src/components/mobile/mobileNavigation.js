@@ -66,6 +66,9 @@ export function buildMobileNavigationModel({
     ? canShowOriginalApps
     : Boolean(authenticated && (isAdminNavigation || canAccessRoute('apps')));
   if (showApps) drawerBaseItems.push(routeItem('apps', 'apps'));
+  // Search stays reachable from the drawer on small phones where the topbar
+  // hides its search shortcut to preserve usable touch target spacing.
+  if (authenticated) drawerBaseItems.push(item('search', t.search, { action: 'search' }));
   if (authenticated && isAdminNavigation) drawerBaseItems.push(routeItem('admin', 'admin'));
 
   return { bottomItems, drawerBaseItems };
