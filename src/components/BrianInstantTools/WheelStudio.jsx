@@ -38,15 +38,20 @@ export default function WheelStudio({value,onChange,t,sound,onSound,onCelebrate}
  const [selected,setSelected]=useState(null),[burst,setBurst]=useState(0);
  const wheelRef=useRef(null),frameRef=useRef(null),intervalRef=useRef(null),runRef=useRef(null),csvRef=useRef(null),mounted=useRef(true);
  const rows=value.rows||[],segments=useMemo(()=>wheelSegments(rows,value.theme),[rows,value.theme]);
+ const [frozenSegments,setFrozenSegments]=useState(null);
+ const shownSegments=(busy||selected)&&frozenSegments?frozenSegments:segments;
  const counts=value.counts||{},history=value.history||[];
  const active=segments.length,mode=value.mode||'normal',seconds=Number(value.duration)||5;
  const palette=WHEEL_THEMES[value.theme]||WHEEL_THEMES.aurora;
  const change=fn=>onChange(old=>{const next=fn(old);return {...next,names:next.rows.map(r=>r.label)};});
  const setRows=fn=>change(w=>({...w,rows:fn(w.rows),winner:null}));
- useEffect(()=>()=>{
+ useEffect(()=>{
+  mounted.current=true;
+  return ()=>{
   mounted.current=false;
   if(frameRef.current!==null)cancelAnimationFrame(frameRef.current);
   clearInterval(intervalRef.current);runRef.current=null;
+  };
  },[]);
  useEffect(()=>{
   if(!runRef.current&&wheelRef.current)wheelRef.current.style.transform='rotate('+Number(value.rotation||0)+'deg)';
@@ -71,7 +76,7 @@ export default function WheelStudio({value,onChange,t,sound,onSound,onCelebrate}
  };
  const spin=()=>{
   if(runRef.current||active<2)return;
-  setSelected(null);setBurst(0);setError('');
+  setSelected(null);setFrozenSegments(segments);setBurst(0);setError('');
   const result=pickWheelSegment(segments,randomInt);
   const from=((Number(value.rotation||0)%360)+360)%360,to=wheelTargetForSegment(from,result,6);
   const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
@@ -108,7 +113,7 @@ export default function WheelStudio({value,onChange,t,sound,onSound,onCelebrate}
    setRows(()=>parsed);setPaste(parsed.map(r=>r.label).join('\n'));setError('');
   }catch{setError(T.wrong);}
  };
- const gradient=segments.length?'conic-gradient('+segments.map(r=>r.color+' '+r.start.toFixed(3)+'deg '+r.end.toFixed(3)+'deg').join(',')+')':'#a9cad1';
+ const gradient=shownSegments.length?'conic-gradient('+shownSegments.map(r=>r.color+' '+r.start.toFixed(3)+'deg '+r.end.toFixed(3)+'deg').join(',')+')':'#a9cad1';
  const modes=['normal','elimination','accumulation'];
  const tabs=[['items',T.items],['results',T.results],['settings',T.settings]];
  return <section className="bit-wheel-studio" data-testid="brian-wheel-studio">
@@ -173,10 +178,10 @@ export default function WheelStudio({value,onChange,t,sound,onSound,onCelebrate}
     <div className="bit-ws-stage-top"><span>● LIVE WHEEL</span><small>{active} {T.active}</small></div>
     <div className="bit-ws-wheel-housing">
      <div className="bit-pointer" aria-hidden="true">▼</div>
-     <div className="bit-wheel bit-ws-disc" ref={wheelRef} data-testid="animated-lucky-wheel" style={{background:gradient}}>
-      {value.showLabels!==false&&segments.length<=36&&segments.map(r=><span key={r.id} className="bit-ws-label"
+     <div className={'bit-wheel bit-ws-disc'+(busy?' is-spinning':'')} ref={wheelRef} data-testid="animated-lucky-wheel" style={{background:gradient}}>
+      {value.showLabels!==false&&shownSegments.length<=36&&shownSegments.map(r=><span key={r.id} className="bit-wheel-label bit-ws-label"
        style={{transform:'translate(-50%,-50%) rotate('+r.center+'deg) translateY(calc(-1 * var(--ws-radius))) rotate(-'+r.center+'deg)'}}>{value.mystery?'?':r.label}</span>)}
-      <button type="button" disabled={busy||active<2} className="bit-ws-hub" aria-label={T.spin} onClick={spin}><Sparkles size={27}/></button>
+      <button type="button" disabled={busy||active<2} className="bit-ws-hub" aria-label={vi?'Quay bằng nút trung tâm':'Spin from center'} onClick={spin}><Sparkles size={27}/></button>
      </div>
      {burst>0&&<div key={burst} className="bit-wheel-fireworks" aria-hidden="true">{Array.from({length:28},(_,i)=>
       <span key={i} style={{'--spark-angle':i*360/28+'deg','--spark-distance':140+i%5*23+'px',
@@ -185,7 +190,7 @@ export default function WheelStudio({value,onChange,t,sound,onSound,onCelebrate}
     <div className="bit-ws-spin-actions">{busy?<button className="bit-ws-spin" type="button" onClick={stop}><Target size={22}/>{T.stop}</button>:
      <button className="bit-ws-spin" type="button" onClick={spin} disabled={active<2}><Sparkles size={22}/>{T.spin}</button>}
      <button className="bit-ws-reset" type="button" title={T.reset} aria-label={T.reset} disabled={busy||rows.every(r=>r.enabled)}
-      onClick={()=>setRows(rs=>rs.map(r=>({...r,enabled:true})))}><RotateCcw size={18}/></button></div>
+      onClick={()=>{setRows(rs=>rs.map(r=>({...r,enabled:true})));setSelected(null);setFrozenSegments(null);}}><RotateCcw size={18}/></button></div>
     {busy?<p role="status" className="bit-ws-spinning">{T.spinning}</p>:selected?
      <div className="bit-winner bit-ws-winner" aria-live="polite"><Trophy size={20}/><small>{T.winner}</small><strong>{selected.label}</strong>
       {mode==='elimination'&&<em>{T.removed}</em>}</div>:
