@@ -3056,4 +3056,8 @@ export const LEGACY_SITE_EN = Object.freeze({
   "Mục tiêu, chuyên đề và hoạt động kỳ tới": "Goals, topics and activities for the next period",
   "Kiến nghị với TTCM/nhà trường (nếu có)": "Recommendations to the head or school (if any)",
   "Những kiến thức/kỹ năng còn hạn chế": "Remaining knowledge and skill gaps",
+  "Chọn tất cả": "Select all",
+  "Bỏ chọn": "Clear selection",
+  "Xuất CSV": "Export CSV",
+  "Đang tải báo cáo…": "Loading reports…",
 });
