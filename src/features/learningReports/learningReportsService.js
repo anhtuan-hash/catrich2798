@@ -136,6 +136,42 @@ export async function bindLearningClasses(taskId, bindings) {
   });
   fail(error);return Number(data||0);
 }
+// Attendance-driven bulk dispatch. These RPCs check TTCM ownership and actual
+// instructors on the server. The browser never assigns attendance sessions.
+export async function previewSmartLearningAssignments({
+  departmentId,month,kinds=['gifted','remedial'],teacherIds=null,
+}) {
+  if (!departmentId||!/^\d{4}-(0[1-9]|1[0-2])$/.test(String(month||'')))
+    throw new Error('Tổ và tháng báo cáo chưa hợp lệ.');
+  const {data,error}=await db().rpc('bes_preview_auto_learning_assignments',{
+    p_department_id:departmentId,p_period:month+'-01',
+    p_kinds:kinds,p_teacher_ids:teacherIds,
+  });
+  fail(error);return data||{groups:[],exceptions:[],totalNew:0,totalExisting:0};
+}
+export async function dispatchSmartLearningAssignments({
+  departmentId,month,kinds=['gifted','remedial'],teacherIds=null,dueAt,
+  fingerprint,notification=true,event=true,
+}) {
+  const date=safeDate(dueAt);
+  if(!date||date.getTime()<=Date.now())throw new Error('Vui lòng chọn hạn nộp trong tương lai.');
+  if(!fingerprint)throw new Error('Phải xem trước dữ liệu Điểm danh trước khi giao báo cáo.');
+  const {data,error}=await db().rpc('bes_dispatch_auto_learning_reports',{
+    p_department_id:departmentId,p_period:month+'-01',
+    p_due_at:date.toISOString(),p_kinds:kinds,p_teacher_ids:teacherIds,
+    p_expected_fingerprint:fingerprint,p_send_notification:notification,
+    p_create_event:event,
+  });
+  fail(error);notifyLearningDeadlineChange();return data||{};
+}
+export async function verifySmartLearningInstructor({departmentId,sourceName,teacherId}) {
+  if(!teacherId||!String(sourceName||'').trim())throw new Error('Chọn giáo viên cần xác minh.');
+  const {data,error}=await db().rpc('bes_verify_attendance_teacher_identity',{
+    p_department_id:departmentId,p_source_name:sourceName,p_teacher_id:teacherId,
+  });
+  fail(error);return data;
+}
+
 export async function issueLearningReports({ departmentId, kind, month, dueAt, teacherIds, notification = true, event = true }) {
   const due = safeDate(dueAt);
   const ids = [...new Set((teacherIds || []).map(normalizeId).filter(Boolean))];
