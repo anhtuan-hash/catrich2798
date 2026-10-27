@@ -20,6 +20,7 @@ on:
       - 'scripts/test-revoke-learning-report-assignments.mjs'
       - 'scripts/test-learning-reports-unified-workspace.mjs'
       - 'scripts/test-learning-reports-macos-material3-design.mjs'
+      - 'scripts/test-learning-report-interactive-hero.mjs'
       - 'src/pages/BrianTeamPortal.css'
       - 'supabase/migrations/20261027153000_learning_report_bulk_revocation.sql'
       - 'supabase/migrations/20261027142000_revoke_learning_report_assignments.sql'
@@ -65,6 +66,8 @@ jobs:
         run: node scripts/test-learning-reports-unified-workspace.mjs
       - name: Check macOS Material 3 visual system and protected operations
         run: node scripts/test-learning-reports-macos-material3-design.mjs
+      - name: Verify interactive report month hero and unified tab presentation
+        run: node scripts/test-learning-report-interactive-hero.mjs
       - name: Validate report JSX syntax
         run: |
           node --input-type=module <<'NODE'

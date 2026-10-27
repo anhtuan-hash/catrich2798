@@ -6,6 +6,7 @@ import {
   loadLearningTeamDashboard,setLearningTeamDeadline,
 } from './learningReportsService.js';
 import {buildLearningYearDashboard,schoolYearStartYear} from './learningReportsAnalytics.js';
+import {isValidReportPeriod,reportSchoolYear} from './learningReportsPeriod.js';
 import './LearningReportsManagerDashboard.css';
 
 const fmt=n=>new Intl.NumberFormat('vi-VN',{maximumFractionDigits:1}).format(Number(n)||0);
@@ -54,11 +55,13 @@ function Score({data,kind}){
   </div>;
 }
 export default function LearningReportsManagerDashboard({
-  departmentId,kind,mode,onModeChange,onOpenReport,onDeadlineUpdated,accounts=[]
+  departmentId,kind,mode,onModeChange,onOpenReport,onDeadlineUpdated,accounts=[],
+  selectedPeriod,onPeriodChange
 }){
-  const [startYear,setStartYear]=useState(schoolYearStartYear);
+  const [startYear,setStartYear]=useState(()=>reportSchoolYear(selectedPeriod,schoolYearStartYear()));
   const [data,setData]=useState(null);
   const [month,setMonth]=useState(()=>{
+    if(isValidReportPeriod(selectedPeriod))return selectedPeriod;
     const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
   });
   const [deadlineInput,setDeadlineInput]=useState('');
@@ -82,12 +85,21 @@ export default function LearningReportsManagerDashboard({
   },[departmentId,kind,startYear]);
   useEffect(()=>{refresh();},[refresh]);
   useEffect(()=>{
+    if(!isValidReportPeriod(selectedPeriod))return;
+    const y=reportSchoolYear(selectedPeriod,schoolYearStartYear());
+    setStartYear(prev=>prev===y?prev:y);
+    setMonth(prev=>prev===selectedPeriod?prev:selectedPeriod);
+  },[selectedPeriod]);
+
+  useEffect(()=>{
     if(!year.months.some(m=>m.period===month)){
       const thisMonth=new Date();
       const actual=thisMonth.getFullYear()+'-'+String(thisMonth.getMonth()+1).padStart(2,'0');
-      setMonth(year.months.some(m=>m.period===actual)?actual:year.months[0].period);
+      const preferred=year.months.some(m=>m.period===selectedPeriod)?selectedPeriod:null;
+      const next=preferred||(year.months.some(m=>m.period===actual)?actual:year.months[0].period);
+      setMonth(next);
     }
-  },[startYear,month,year.months]);
+  },[startYear,month,year.months,selectedPeriod]);
   useEffect(()=>{setDeadlineInput(inputDate(current?.deadline?.value));},[month,current?.deadline?.value]);
   useEffect(()=>{
     const timer=window.setInterval(()=>setClock(Date.now()),1000);
@@ -146,7 +158,9 @@ export default function LearningReportsManagerDashboard({
         m.summary.expected,m.summary.absent,m.summary.late,m.summary.attendancePct??'']),
       'brian-'+kind+'-nam-hoc-'+startYear+'-'+(startYear+1)+'.csv');
   };
-  const openMonth=period=>{setMonth(period);onModeChange('summary');};
+  const openMonth=period=>{
+    setMonth(period);onPeriodChange?.(period);onModeChange('summary');
+  };
   return <div className="blrd-shell">
     <header className="blrd-hero">
       <div><small><CalendarRange size={16}/> {mode==='history'?'QUẢN LÝ BÁO CÁO THEO NĂM HỌC':'TỔNG HỢP CHUYÊN MÔN THEO THÁNG'}</small>
@@ -154,7 +168,13 @@ export default function LearningReportsManagerDashboard({
         <p>{LEARNING_REPORT_KINDS[kind]} · Dữ liệu từ báo cáo giáo viên và Điểm danh đã chốt, phân tách theo đúng giáo viên thực dạy.</p>
       </div>
       <div className="blrd-hero-controls">
-        <label>Năm học <select value={startYear} onChange={e=>setStartYear(Number(e.target.value))}>
+        <label>Năm học <select value={startYear} onChange={e=>{
+          const y=Number(e.target.value);
+          const m=Number(month.slice(5))||10;
+          const periodYear=m>=8?y:y+1;
+          const next=periodYear+'-'+String(m).padStart(2,'0');
+          setStartYear(y);setMonth(next);onPeriodChange?.(next);
+        }}>
           {Array.from({length:5},(_,i)=>schoolYearStartYear()-2+i).map(y=><option key={y} value={y}>{y}–{y+1}</option>)}
         </select></label>
         <button type="button" onClick={refresh} disabled={loading}><RefreshCw size={16}/>{loading?'Đang tải…':'Làm mới'}</button>
@@ -171,7 +191,10 @@ export default function LearningReportsManagerDashboard({
           {current?.deadline?.multiple&&<p>Các báo cáo đang có hạn riêng khác nhau. Hãy đặt hạn chung để thống nhất.</p>}
         </div>
         <div className="blrd-deadline-actions">
-          <label>Tháng báo cáo<select value={month} onChange={e=>setMonth(e.target.value)}>
+          <label>Tháng báo cáo<select value={month} onChange={e=>{
+              setMonth(e.target.value);
+              onPeriodChange?.(e.target.value);
+            }}>
             {year.months.map(m=><option key={m.period} value={m.period}>{monthText(m.period)}</option>)}
           </select></label>
           <label>Thời hạn<input type="datetime-local" value={deadlineInput} onChange={e=>setDeadlineInput(e.target.value)}/></label>

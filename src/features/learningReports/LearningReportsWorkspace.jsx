@@ -2,8 +2,9 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import LearningReportsManagerDashboard from './LearningReportsManagerDashboard.jsx';
 import SmartAssignmentComposer from './SmartAssignmentComposer.jsx';
 import LearningAssignmentManager from './LearningAssignmentManager.jsx';
+import {isValidReportPeriod,reportPeriodTitle,shiftReportPeriod} from './learningReportsPeriod.js';
 import { Award, BookOpenCheck, CalendarClock, CheckCircle2, ClipboardCheck, Clock3,
-  Download, FileText, RefreshCw, Save, Send, Trash2, Link2, ShieldCheck, UsersRound, AlertCircle, X } from 'lucide-react';
+  Download, FileText, RefreshCw, Save, Send, Trash2, Link2, ShieldCheck, UsersRound, AlertCircle, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { isDepartmentLeaderRole } from '../../utils/roles.js';
 import { loadTeamWorkspace, listTeamTeacherAccounts } from '../../utils/personnelHub.js';
 import {
@@ -15,9 +16,11 @@ import {
 } from './learningReportsService.js';
 import './LearningReportsWorkspace.css';
 import './LearningReportsMacMaterial.css';
+import './LearningReportsHeroInteractive.css';
 
 const dateOnly = () => { const now = new Date(); return [now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-'); };
 const periodNow = () => dateOnly().slice(0,7);
+
 const dateLabel = value => value ? new Intl.DateTimeFormat('vi-VN',{dateStyle:'medium',timeStyle:'short'}).format(new Date(value)) : '—';
 const safeText = value => String(value ?? '');
 const csvCell = value => '"' + safeText(value).replaceAll('"','""') + '"';
@@ -143,6 +146,7 @@ export default function LearningReportsWorkspace({currentUser}) {
   const [showComposer,setShowComposer]=useState(false);
   const [analyticsKind,setAnalyticsKind]=useState('gifted');
   const [managerView,setManagerView]=useState('reports');
+  const [heroPeriod,setHeroPeriod]=useState(periodNow);
   const [bulkBusy,setBulkBusy]=useState(false);
   const [clockNow,setClockNow]=useState(Date.now());
   useEffect(()=>{const id=window.setInterval(()=>setClockNow(Date.now()),60000);return()=>window.clearInterval(id);},[]);
@@ -179,6 +183,20 @@ export default function LearningReportsWorkspace({currentUser}) {
   const filtered=tasks.filter(t=>isLeader?t.department_id===departmentId:t.teacher_id===currentUser?.id);
   const pending=filtered.filter(t=>t.status==='submitted').length;
   const done=filtered.filter(t=>t.status==='approved').length;
+  const reportPeriodTasks=filtered.filter(t=>String(t.period||'').slice(0,7)===heroPeriod);
+  const heroDrafts=reportPeriodTasks.filter(t=>t.status==='draft'||t.status==='revision').length;
+  const heroModeLabel=!isLeader?'Báo cáo của tôi':
+    managerView==='summary'?'Tổng hợp tổ':
+    managerView==='history'?'Thống kê tháng':'Báo cáo giáo viên';
+  const updateHeroPeriod=period=>{
+    if(!isValidReportPeriod(period))return;
+    setHeroPeriod(period);
+    if(isLeader&&!selected){
+      setShowComposer(false);
+      setManagerView('summary');
+    }
+  };
+
 
   useEffect(()=>{
     if(!selected){setAttendance(null);setClassOptions([]);return;}
@@ -261,9 +279,44 @@ export default function LearningReportsWorkspace({currentUser}) {
     }catch(e){setError(e.message);}finally{setBusy(false);}
   };
   return <main className="blr-shell">
-    <header className="blr-hero"><div><small>BRIAN REPORTS · SPECIALIST PROGRAMMES</small>
-      <h1>Bồi dưỡng & Phụ đạo</h1><p>Quản lý hiệu quả dạy học, nhật ký từng buổi và báo cáo chuyên môn có minh chứng.</p></div>
-      <div className="blr-hero-icon" aria-hidden="true"><BookOpenCheck size={48}/></div>
+    <header className="blr-hero blr-hero-interactive">
+      <div className="blr-hero-copy">
+        <small>BRIAN REPORTS · SPECIALIST PROGRAMMES</small>
+        <h1>Bồi dưỡng & Phụ đạo</h1>
+        <p>Quản lý hiệu quả dạy học, nhật ký từng buổi và báo cáo chuyên môn có minh chứng.</p>
+        <div className="blr-hero-inline-meta">
+          <span className="blr-hero-pill"><CalendarClock size={16} aria-hidden="true"/>{reportPeriodTitle(heroPeriod)}</span>
+          <span className="blr-hero-pill is-soft"><FileText size={16} aria-hidden="true"/>{heroModeLabel}</span>
+        </div>
+      </div>
+      <div className="blr-hero-stage">
+        <div className="blr-hero-visual" aria-hidden="true">
+          <div className="blr-hero-icon"><BookOpenCheck size={47}/></div>
+        </div>
+        <div className="blr-hero-month-card">
+          <label htmlFor="blr-hero-report-period">Tháng báo cáo</label>
+          <div className="blr-hero-month-control">
+            <button type="button" className="blr-hero-month-nav"
+              aria-label="Tháng trước" title="Xem tháng trước"
+              onClick={()=>updateHeroPeriod(shiftReportPeriod(heroPeriod,-1))}><ChevronLeft size={17}/></button>
+            <input id="blr-hero-report-period" type="month" aria-label="Chọn tháng báo cáo"
+              value={heroPeriod} onChange={e=>updateHeroPeriod(e.target.value)}/>
+            <button type="button" className="blr-hero-month-nav"
+              aria-label="Tháng sau" title="Xem tháng sau"
+              onClick={()=>updateHeroPeriod(shiftReportPeriod(heroPeriod,1))}><ChevronRight size={17}/></button>
+          </div>
+        </div>
+        <button type="button" className="blr-hero-chip is-count"
+          onClick={()=>{if(isLeader){setShowComposer(false);setSelectedId('');setManagerView('reports');}}}
+          disabled={!isLeader} title="Mở danh sách báo cáo giáo viên">
+          <span>Đã giao trong {reportPeriodTitle(heroPeriod).toLowerCase()}</span>
+          <strong>{reportPeriodTasks.length} <FileText size={16} aria-hidden="true"/></strong>
+        </button>
+        <div className="blr-hero-chip is-status">
+          <span>Còn cần hoàn tất</span>
+          <strong>{heroDrafts} <Clock3 size={16} aria-hidden="true"/></strong>
+        </div>
+      </div>
     </header>
     <div className="blr-topline blr-topline-unified">
       <div className="blr-workspace-title">
@@ -326,6 +379,7 @@ export default function LearningReportsWorkspace({currentUser}) {
 
     {isLeader&&!selected&&managerView!=='reports'&&<LearningReportsManagerDashboard
       departmentId={departmentId} kind={analyticsKind} mode={managerView}
+      selectedPeriod={heroPeriod} onPeriodChange={setHeroPeriod}
       onModeChange={setManagerView} onDeadlineUpdated={load} accounts={accounts}
       onOpenReport={id=>{setManagerView('reports');setSelectedId(id);}}/>}
     {isLeader&&managerView==='reports'&&!selected&&<LearningAssignmentManager
