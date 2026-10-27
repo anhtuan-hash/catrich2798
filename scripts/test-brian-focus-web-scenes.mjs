@@ -64,6 +64,16 @@ assert.match(stage,/setSelected\(fullscreenPageIndexRef\.current\)/);
 assert.match(css,/\.bfc-web-scenes__fullscreen-next/);
 assert.match(css,/safe-area-inset-right/);
 
+// Web Scenes top-row desktop alignment; narrow screens retain the second row.
+assert.match(css,/@media \(min-width: 1280px\)/);
+assert.match(css,/\.bfc-overlay\.bfc-atelier\.bfc-overlay--web \.bfc-web-scenes__toolbar/);
+assert.match(css,/top:max\(17px/);
+assert.match(css,/left:max\(156px/);
+assert.match(css,/right:max\(624px/);
+assert.match(css,/top:max\(76px/);
+assert.match(css,/\.bfc-web-scenes\.is-fallback-expanded \.bfc-web-scenes__stage/);
+assert.match(css,/@media \(min-width: 1280px\) and \(max-width: 1439px\)/);
+
 assert.match(css,/:fullscreen/);
 assert.match(css,/is-fallback-expanded/);
 assert.match(stage,/target="_blank"/);

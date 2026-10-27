@@ -178,3 +178,53 @@
 @media(prefers-reduced-motion:reduce) {
   .bfc-web-scenes__fullscreen-next {transition:none;}
 }
+
+
+/* Web Scenes shares the top desktop row with BRIAN FOCUS at left and the
+ * existing Focus action strip at right. Isolated to website mode. */
+@media (min-width: 1280px) {
+  .bfc-overlay.bfc-atelier.bfc-overlay--web .bfc-web-scenes__toolbar {
+    top:max(17px, env(safe-area-inset-top, 0px));
+    left:max(156px, calc(env(safe-area-inset-left, 0px) + 156px));
+    right:max(624px, calc(env(safe-area-inset-right, 0px) + 624px));
+    transform:none;
+    box-sizing:border-box;
+    width:auto;
+    max-width:none;
+    min-width:0;
+    margin:0;
+    padding:5px 8px;
+    gap:4px;
+    justify-content:center;
+    flex-wrap:nowrap;
+    white-space:nowrap;
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .bfc-overlay.bfc-atelier.bfc-overlay--web .bfc-web-scenes__toolbar::-webkit-scrollbar {
+    display:none;
+  }
+  .bfc-overlay.bfc-atelier.bfc-overlay--web .bfc-web-scenes__toolbar > * {
+    flex-shrink:0;
+  }
+  /* Reclaim the second row for taller interactive web panels. */
+  .bfc-overlay.bfc-atelier.bfc-overlay--web .bfc-web-scenes__stage {
+    top:max(76px, calc(env(safe-area-inset-top, 0px) + 76px));
+  }
+  /* The iOS/no-Fullscreen-API fallback still needs to occupy the full screen. */
+  .bfc-overlay.bfc-atelier.bfc-overlay--web
+  .bfc-web-scenes.is-fallback-expanded .bfc-web-scenes__stage {
+    inset:0;
+  }
+}
+
+/* On narrow laptops the toolbar remains on the same row in icon-first form. */
+@media (min-width: 1280px) and (max-width: 1439px) {
+  .bfc-overlay.bfc-atelier.bfc-overlay--web .bfc-web-scenes__brand strong,
+  .bfc-overlay.bfc-atelier.bfc-overlay--web .bfc-web-scenes__activate span,
+  .bfc-overlay.bfc-atelier.bfc-overlay--web .bfc-web-scenes__fullscreen span {
+    display:none;
+  }
+}
+/* Below 1280px retain the original second-row toolbar, preventing overlap
+ * with the logo and the focus-header buttons on tablets/phones. */
