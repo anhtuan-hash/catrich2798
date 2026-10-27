@@ -100,7 +100,8 @@ export function sanitizeState(raw){
   if(!base.dice.values.length)base.dice.values=[1];
   base.dice.history=list(d.history).slice(0,8).map(x=>list(x).slice(0,6).map(n=>Math.round(clamp(n,1,6))));
   const w=s.wheel||{};
-  const studio=sanitiseWheelStudio(w);
+  const legacyNames=normalizeWheelNames(w.names);
+  const studio=sanitiseWheelStudio({...w,names:legacyNames||[...DEFAULT_NAMES]});
   base.wheel={...studio,names:studio.rows.map(r=>r.label).slice(0,60)};
   const sc=s.scoreboard||{},teamList=list(sc.teams).slice(0,8);
   if(teamList.length>=2){
