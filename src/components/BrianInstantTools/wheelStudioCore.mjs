@@ -1,3 +1,4 @@
+import {sanitizePowerups} from './powerupCatalog.mjs';
 // Brian Wheel Studio: bounded, network-free selectors and layout math.
 export function wheelRandomInt(min,max){
  const range=max-min+1;
@@ -81,7 +82,7 @@ export function sanitiseWheelStudio(w){
   mode:['normal','elimination','accumulation'].includes(p?.mode)?p.mode:'normal',
   duration:wheelLimit(p?.duration??5,2,20)
 })).filter(p=>p.rows.length>=2);
- return {rows,savedLists,mode:['normal','elimination','accumulation'].includes(w?.mode)?w.mode:'normal',
+ return {rows,savedLists,powerups:sanitizePowerups(w?.powerups),mode:['normal','elimination','accumulation'].includes(w?.mode)?w.mode:'normal',
   theme:Object.hasOwn(WHEEL_THEMES,w?.theme)?w.theme:'aurora',
   duration:wheelLimit(w?.duration??5,2,20),
   confetti:w?.confetti!==false,showLabels:w?.showLabels!==false,mystery:w?.mystery===true,
