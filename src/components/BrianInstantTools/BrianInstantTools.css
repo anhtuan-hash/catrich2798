@@ -220,3 +220,32 @@
   .bit-wheel-live:before,.bit-wheel-winner,.bit-wheel-fireworks span{animation:none!important}
   .bit-wheel-fireworks{display:none}
 }
+
+/* Physically readable dice tumble, with correct final orientation per selected face.
+ * Angles include complete rotations so cube can settle without a post-animation jump. */
+.bit-die.is-rolling{
+  animation:bit-die-lift 1.34s cubic-bezier(.24,.75,.20,1) both!important;
+  animation-delay:calc(var(--die-index) * 55ms)!important;
+}
+.bit-die.is-rolling .bit-cube{
+  animation:bit-die-tumble-real 1.34s cubic-bezier(.19,.58,.15,1) both!important;
+  animation-delay:calc(var(--die-index) * 55ms)!important;
+  will-change:transform;
+}
+@keyframes bit-die-lift{
+  0%{transform:translateY(0)}
+  18%{transform:translateY(-25px)}
+  40%{transform:translateY(-48px)}
+  66%{transform:translateY(-13px)}
+  82%{transform:translateY(-8px)}
+  100%{transform:translateY(0)}
+}
+@keyframes bit-die-tumble-real{
+  from{transform:rotateX(var(--die-target-x)) rotateY(var(--die-target-y)) scale(.92)}
+  28%{transform:rotateX(calc(var(--die-target-x) + 300deg)) rotateY(calc(var(--die-target-y) + 420deg)) scale(1.05)}
+  68%{transform:rotateX(calc(var(--die-target-x) + 810deg)) rotateY(calc(var(--die-target-y) + 1010deg)) scale(1.02)}
+  to{transform:rotateX(calc(var(--die-target-x) + 1080deg)) rotateY(calc(var(--die-target-y) + 1440deg)) scale(1)}
+}
+@media(prefers-reduced-motion:reduce){
+ .bit-die.is-rolling,.bit-die.is-rolling .bit-cube{animation:none!important}
+}

@@ -72,34 +72,45 @@ function load(user){
 const edit=(set,section,fn)=>set(prev=>({...prev,[section]:fn(prev[section])}));
 function DiceTool({value,onChange,t,sound}){
   const [rolling,setRolling]=useState(false);
-  const timeout=useRef(null);
-  useEffect(()=>()=>clearTimeout(timeout.current),[]);
+  const timeout=useRef(null),rollingRef=useRef(false);
+  useEffect(()=>()=>{clearTimeout(timeout.current);rollingRef.current=false;},[]);
   const roll=()=>{
-    if(rolling)return;
+    if(rollingRef.current)return;
+    rollingRef.current=true;
     const values=diceRoll(value.count);
     setRolling(true);
     beep('roll',sound);
     onChange(d=>({...d,values,history:[values,...d.history].slice(0,8)}));
-    timeout.current=setTimeout(()=>{setRolling(false);beep('tap',sound);},750);
+    // The last of six cubes starts 300ms after the first and must finish
+    // tumbling before we reveal the final total.
+    timeout.current=setTimeout(()=>{
+      rollingRef.current=false;setRolling(false);beep('tap',sound);
+    },1670);
   };
+  const orientations=[
+    {x:0,y:0},{x:0,y:-90},{x:0,y:180},
+    {x:0,y:90},{x:-90,y:0},{x:90,y:0}
+  ];
   return <div className="bit-two-cols">
     <div className="bit-panel">
       <label className="bit-field-label" htmlFor="bit-dice-count">{t.diceCount}</label>
       <div className="bit-stepper">
-        <button type="button" onClick={()=>onChange(d=>({...d,count:Math.max(1,d.count-1)}))} aria-label="-"><Minus size={18}/></button>
+        <button type="button" disabled={rolling} onClick={()=>onChange(d=>({...d,count:Math.max(1,d.count-1)}))} aria-label="-"><Minus size={18}/></button>
         <strong>{value.count}</strong>
-        <button type="button" onClick={()=>onChange(d=>({...d,count:Math.min(6,d.count+1)}))} aria-label="+"><Plus size={18}/></button>
+        <button type="button" disabled={rolling} onClick={()=>onChange(d=>({...d,count:Math.min(6,d.count+1)}))} aria-label="+"><Plus size={18}/></button>
       </div>
-      <button type="button" className="bit-primary" disabled={rolling} onClick={roll}><Dices size={21}/>{t.roll}</button>
-      <div className="bit-stat"><span>{t.sum}</span><strong>{value.values.reduce((a,b)=>a+b,0)}</strong></div>
+      <button type="button" className="bit-primary" disabled={rolling} aria-busy={rolling} onClick={roll}><Dices size={21}/>{t.roll}</button>
+      <div className="bit-stat" aria-live="polite"><span>{t.sum}</span><strong>{rolling?'…':value.values.reduce((a,b)=>a+b,0)}</strong></div>
       <div className="bit-muted">{t.history}</div>
       <div className="bit-roll-history">{value.history.map((a,i)=><span key={i}>{a.reduce((x,y)=>x+y,0)}</span>)}</div>
     </div>
-    <div className="bit-preview bit-dice-zone">
+    <div className={'bit-preview bit-dice-zone'+(rolling?' is-tumbling':'')}>
       <div className="bit-dice-grid">{value.values.slice(0,value.count).map((n,i)=>{
-        const orientations=['rotateX(0deg) rotateY(0deg)','rotateY(-90deg)','rotateY(180deg)','rotateY(90deg)','rotateX(-90deg)','rotateX(90deg)'];
-        return <span className={'bit-die'+(rolling?' is-rolling':'')} key={i} style={{'--die-index':i}} role="img" aria-label={String(n)}>
-          <span className="bit-cube" style={{transform:orientations[n-1]}}>
+        const target=orientations[n-1]||orientations[0];
+        return <span data-testid="animated-die" className={'bit-die'+(rolling?' is-rolling':'')}
+          key={i} style={{'--die-index':i,'--die-target-x':target.x+'deg','--die-target-y':target.y+'deg'}}
+          role="img" aria-label={String(n)}>
+          <span className="bit-cube" style={{transform:'rotateX('+target.x+'deg) rotateY('+target.y+'deg)'}}>
             {DICE_FACES.map((face,side)=><span className={'bit-cube-face bit-cube-face-'+(side+1)} key={side} aria-hidden="true">{face}</span>)}
           </span>
         </span>;
