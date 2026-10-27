@@ -4,7 +4,7 @@ import SmartAssignmentComposer from './SmartAssignmentComposer.jsx';
 import LearningAssignmentManager from './LearningAssignmentManager.jsx';
 import {isValidReportPeriod,reportPeriodTitle,shiftReportPeriod} from './learningReportsPeriod.js';
 import { Award, BookOpenCheck, CalendarClock, CheckCircle2, ClipboardCheck, Clock3,
-  Download, FileText, RefreshCw, Save, Send, Trash2, Link2, ShieldCheck, UsersRound, AlertCircle, ChevronLeft, ChevronRight, X } from 'lucide-react';
+  Download, FileText, RefreshCw, Save, Send, Trash2, Link2, ShieldCheck, UsersRound, AlertCircle, ChevronLeft, ChevronRight, ChevronDown, Sparkles, X } from 'lucide-react';
 import { isDepartmentLeaderRole } from '../../utils/roles.js';
 import { loadTeamWorkspace, listTeamTeacherAccounts } from '../../utils/personnelHub.js';
 import {
@@ -17,6 +17,7 @@ import {
 import './LearningReportsWorkspace.css';
 import './LearningReportsMacMaterial.css';
 import './LearningReportsHeroInteractive.css';
+import './LearningReportsEditorialHero.css';
 
 const dateOnly = () => { const now = new Date(); return [now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-'); };
 const periodNow = () => dateOnly().slice(0,7);
@@ -183,11 +184,6 @@ export default function LearningReportsWorkspace({currentUser}) {
   const filtered=tasks.filter(t=>isLeader?t.department_id===departmentId:t.teacher_id===currentUser?.id);
   const pending=filtered.filter(t=>t.status==='submitted').length;
   const done=filtered.filter(t=>t.status==='approved').length;
-  const reportPeriodTasks=filtered.filter(t=>String(t.period||'').slice(0,7)===heroPeriod);
-  const heroDrafts=reportPeriodTasks.filter(t=>t.status==='draft'||t.status==='revision').length;
-  const heroModeLabel=!isLeader?'Báo cáo của tôi':
-    managerView==='summary'?'Tổng hợp tổ':
-    managerView==='history'?'Thống kê tháng':'Báo cáo giáo viên';
   const updateHeroPeriod=period=>{
     if(!isValidReportPeriod(period))return;
     setHeroPeriod(period);
@@ -279,44 +275,49 @@ export default function LearningReportsWorkspace({currentUser}) {
     }catch(e){setError(e.message);}finally{setBusy(false);}
   };
   return <main className="blr-shell">
-    <header className="blr-hero blr-hero-interactive">
-      <div className="blr-hero-copy">
-        <small>BRIAN REPORTS · SPECIALIST PROGRAMMES</small>
-        <h1>Bồi dưỡng & Phụ đạo</h1>
-        <p>Quản lý hiệu quả dạy học, nhật ký từng buổi và báo cáo chuyên môn có minh chứng.</p>
-        <div className="blr-hero-inline-meta">
-          <span className="blr-hero-pill"><CalendarClock size={16} aria-hidden="true"/>{reportPeriodTitle(heroPeriod)}</span>
-          <span className="blr-hero-pill is-soft"><FileText size={16} aria-hidden="true"/>{heroModeLabel}</span>
+    <header className="blr-hero blr-hero-interactive blr-editorial-hero" aria-label="Bồi dưỡng và Phụ đạo">
+      <div className="blr-editorial-hero__copy">
+        <div className="blr-editorial-hero__eyebrow"><Sparkles size={17} aria-hidden="true"/> BRIAN REPORTS</div>
+        <h1>
+          <span>Bồi dưỡng &amp;</span>
+          <span>Phụ đạo tháng <em>{Number(heroPeriod.slice(5))}</em></span>
+        </h1>
+        <p>Đồng hành · Bồi dưỡng · Nâng cao chất lượng học tập</p>
+        <div className="blr-editorial-hero__month-toolbar" aria-label="Điều hướng tháng báo cáo">
+          <button type="button" className="blr-editorial-hero__month-step"
+            aria-label="Tháng trước" title="Xem tháng trước"
+            onClick={()=>updateHeroPeriod(shiftReportPeriod(heroPeriod,-1))}>
+            <ChevronLeft size={16} aria-hidden="true"/>
+          </button>
+          <label className="blr-editorial-hero__month-chip">
+            <CalendarClock size={16} aria-hidden="true"/>
+            <span>{reportPeriodTitle(heroPeriod)}</span>
+            <ChevronDown size={15} aria-hidden="true"/>
+            <input id="blr-hero-report-period" type="month"
+              aria-label="Chọn tháng báo cáo" value={heroPeriod}
+              onChange={e=>updateHeroPeriod(e.target.value)}/>
+          </label>
+          <button type="button" className="blr-editorial-hero__month-step"
+            aria-label="Tháng sau" title="Xem tháng sau"
+            onClick={()=>updateHeroPeriod(shiftReportPeriod(heroPeriod,1))}>
+            <ChevronRight size={16} aria-hidden="true"/>
+          </button>
         </div>
       </div>
-      <div className="blr-hero-stage">
-        <div className="blr-hero-visual" aria-hidden="true">
-          <div className="blr-hero-icon"><BookOpenCheck size={47}/></div>
-        </div>
-        <div className="blr-hero-month-card">
-          <label htmlFor="blr-hero-report-period">Tháng báo cáo</label>
-          <div className="blr-hero-month-control">
-            <button type="button" className="blr-hero-month-nav"
-              aria-label="Tháng trước" title="Xem tháng trước"
-              onClick={()=>updateHeroPeriod(shiftReportPeriod(heroPeriod,-1))}><ChevronLeft size={17}/></button>
-            <input id="blr-hero-report-period" type="month" aria-label="Chọn tháng báo cáo"
-              value={heroPeriod} onChange={e=>updateHeroPeriod(e.target.value)}/>
-            <button type="button" className="blr-hero-month-nav"
-              aria-label="Tháng sau" title="Xem tháng sau"
-              onClick={()=>updateHeroPeriod(shiftReportPeriod(heroPeriod,1))}><ChevronRight size={17}/></button>
+      <div className="blr-editorial-hero__art" aria-hidden="true">
+        <div className="blr-editorial-hero__peach"/>
+        <div className="blr-editorial-hero__blue"/>
+        <p className="blr-editorial-hero__motto">
+          <span>Mỗi giờ dạy</span><span>đều tạo nên</span><span>sự tiến bộ!</span>
+        </p>
+        <div className="blr-editorial-hero__paper">
+          <div className="blr-editorial-hero__seal">
+            <BookOpenCheck size={25}/>
+            <span>Better<br/>Teachers<br/>Brighter<br/>Futures</span>
           </div>
         </div>
-        <button type="button" className="blr-hero-chip is-count"
-          onClick={()=>{if(isLeader){setShowComposer(false);setSelectedId('');setManagerView('reports');}}}
-          disabled={!isLeader} title="Mở danh sách báo cáo giáo viên">
-          <span>Đã giao trong {reportPeriodTitle(heroPeriod).toLowerCase()}</span>
-          <strong>{reportPeriodTasks.length} <FileText size={16} aria-hidden="true"/></strong>
-        </button>
-        <div className="blr-hero-chip is-status">
-          <span>Còn cần hoàn tất</span>
-          <strong>{heroDrafts} <Clock3 size={16} aria-hidden="true"/></strong>
-        </div>
       </div>
+      <span className="blr-editorial-hero__accent" aria-hidden="true"/>
     </header>
     <div className="blr-topline blr-topline-unified">
       <div className="blr-workspace-title">
