@@ -122,49 +122,106 @@ function WheelTool({value,onChange,t,sound}){
   const [draft,setDraft]=useState(value.names.join('\n'));
   const [error,setError]=useState('');
   const [spinning,setSpinning]=useState(false);
-  const [spinSpec,setSpinSpec]=useState(null);
   const [burst,setBurst]=useState(0);
-  const wheelRef=useRef(null),timeout=useRef(null),burstTimeout=useRef(null),inFlight=useRef(false);
-  useEffect(()=>()=>{clearTimeout(timeout.current);clearTimeout(burstTimeout.current);inFlight.current=false;},[]);
+  const wheelRef=useRef(null),raf=useRef(null),tickTimer=useRef(null),burstTimeout=useRef(null),inFlight=useRef(false);
+  const unmounted=useRef(false);
+  const normalizeAngle=angle=>((Number(angle)||0)%360+360)%360;
+
+  // This component intentionally does not bind the wheel's transform to React.
+  // A direct requestAnimationFrame driver prevents WebKit from snapping immediately
+  // to the selected winner when it receives a new inline transform in the same render.
+  useEffect(()=>{
+    if(!inFlight.current&&wheelRef.current)
+      wheelRef.current.style.transform='rotate('+normalizeAngle(value.rotation)+'deg)';
+  },[value.rotation]);
+  useEffect(()=>()=>{
+    unmounted.current=true;
+    if(raf.current!==null)window.cancelAnimationFrame(raf.current);
+    clearInterval(tickTimer.current);
+    clearTimeout(burstTimeout.current);
+    inFlight.current=false;
+  },[]);
+
   const apply=()=>{
     if(inFlight.current)return;
     const names=normalizeWheelNames(draft);
     if(!names){setError(t.badOptions);return;}
     clearTimeout(burstTimeout.current);
-    setBurst(0);setSpinSpec(null);
-    onChange(w=>({...w,names,rotation:0,winner:null}));setError('');beep('tap',sound);
+    setBurst(0);
+    onChange(w=>({...w,names,rotation:0,winner:null}));
+    if(wheelRef.current)wheelRef.current.style.transform='rotate(0deg)';
+    setError('');beep('tap',sound);
   };
+
   const spin=()=>{
     if(inFlight.current||value.names.length<2)return;
-    const idx=secureInt(0,value.names.length-1);
-    const rotation=wheelTarget(value.rotation,idx,value.names.length);
-    // A dedicated CSS keyframe animation is used instead of a transition which
-    // could be attached in the same render as the transform update.
     inFlight.current=true;
-    clearTimeout(burstTimeout.current);setBurst(0);
-    setSpinSpec({from:value.rotation,to:rotation});
-    setSpinning(true);
-    onChange(w=>({...w,rotation,winner:null}));
-    beep('roll',sound);
-    timeout.current=setTimeout(()=>{
+    if(raf.current!==null)window.cancelAnimationFrame(raf.current);
+    clearInterval(tickTimer.current);
+    clearTimeout(burstTimeout.current);
+    setBurst(0);
+    const idx=secureInt(0,value.names.length-1);
+    const startAngle=normalizeAngle(value.rotation);
+    const targetAngle=wheelTarget(startAngle,idx,value.names.length);
+    const finalAngle=normalizeAngle(targetAngle);
+    const reduced=Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches);
+
+    const finish=()=>{
+      if(!inFlight.current||unmounted.current)return;
       inFlight.current=false;
-      setSpinning(false);setSpinSpec(null);
-      onChange(w=>({...w,winner:w.names[idx]??null}));
+      if(raf.current!==null)window.cancelAnimationFrame(raf.current);
+      raf.current=null;
+      clearInterval(tickTimer.current);tickTimer.current=null;
+      if(wheelRef.current)wheelRef.current.style.transform='rotate('+finalAngle+'deg)';
+      setSpinning(false);
+      onChange(w=>({...w,rotation:finalAngle,winner:w.names[idx]??null}));
       beep('win',sound);
-      setBurst(n=>n+1);
-      const rect=wheelRef.current?.getBoundingClientRect();
-      const origin=rect?{
-        x:Math.max(.05,Math.min(.95,(rect.left+rect.width/2)/window.innerWidth)),
-        y:Math.max(.08,Math.min(.9,(rect.top+rect.height/2)/window.innerHeight))
-      }:{x:.5,y:.52};
-      celebrate(origin);
-      burstTimeout.current=setTimeout(()=>setBurst(0),2600);
-    },4600);
+      if(!reduced){
+        setBurst(n=>n+1);
+        const rect=wheelRef.current?.getBoundingClientRect();
+        celebrate(rect?{
+          x:Math.max(.05,Math.min(.95,(rect.left+rect.width/2)/window.innerWidth)),
+          y:Math.max(.08,Math.min(.9,(rect.top+rect.height/2)/window.innerHeight))
+        }:{x:.5,y:.52});
+        burstTimeout.current=setTimeout(()=>{if(!unmounted.current)setBurst(0);},2600);
+      }
+    };
+
+    if(wheelRef.current)wheelRef.current.style.transform='rotate('+startAngle+'deg)';
+    if(reduced){finish();return;}
+    setSpinning(true);
+    onChange(w=>({...w,winner:null}));
+    beep('roll',sound);
+
+    const durationMs=4800;
+    const startTime=window.performance.now();
+    let lastPaintAt=-Infinity;
+    const paint=now=>{
+      if(!inFlight.current||unmounted.current||now<lastPaintAt)return;
+      lastPaintAt=now;
+      const progress=Math.min(1,Math.max(0,(now-startTime)/durationMs));
+      // Use real per-frame transform updates, independent of CSS interpolation.
+      const ease=1-Math.pow(1-progress,3);
+      const angle=startAngle+(targetAngle-startAngle)*ease;
+      if(wheelRef.current)wheelRef.current.style.transform='rotate('+angle+'deg)';
+      if(progress>=1)finish();
+    };
+    const frame=now=>{
+      paint(now);
+      if(inFlight.current)raf.current=window.requestAnimationFrame(frame);
+    };
+    // Some Safari/WebKit configurations suspend animation frames temporarily
+    // while still delivering timers. This lightweight backup cannot race
+    // the main animation because both use the same monotonic clock.
+    tickTimer.current=window.setInterval(()=>paint(window.performance.now()),80);
+    raf.current=window.requestAnimationFrame(frame);
   };
+
   const colors=value.names.map((_,i)=>{
     const start=i*360/value.names.length,end=(i+1)*360/value.names.length;
     return PALETTE[i%PALETTE.length]+' '+start+'deg '+end+'deg';
   }).join(', ');
+
   return <div className="bit-two-cols">
     <div className="bit-panel">
       <label className="bit-field-label" htmlFor="bit-wheel-list">{t.options}</label>
@@ -177,11 +234,8 @@ function WheelTool({value,onChange,t,sound}){
     </div>
     <div className={'bit-preview bit-wheel-zone'+(spinning?' is-spinning':'')+(burst?' has-fireworks':'')}>
       <div className="bit-pointer" aria-hidden="true">▼</div>
-      <div ref={wheelRef} data-testid="animated-lucky-wheel" className={'bit-wheel'+(spinSpec?' is-spinning':'')}
-        style={{background:'conic-gradient('+colors+')',
-          transform:'rotate('+value.rotation+'deg)',
-          '--bit-spin-from':(spinSpec?.from??value.rotation)+'deg',
-          '--bit-spin-to':(spinSpec?.to??value.rotation)+'deg'}}>
+      <div ref={wheelRef} data-testid="animated-lucky-wheel" className={'bit-wheel'+(spinning?' is-spinning':'')}
+        style={{background:'conic-gradient('+colors+')'}}>
         {value.names.map((name,i)=>{
           const a=(i+.5)*360/value.names.length;
           return <span key={i} className="bit-wheel-label" style={{transform:'rotate('+a+'deg) translateY(calc(-1 * var(--bit-wheel-label-radius))) rotate(90deg)'}} title={name}>{name}</span>;

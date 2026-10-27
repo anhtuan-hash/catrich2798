@@ -162,16 +162,13 @@
 }
 @media(prefers-reduced-motion:reduce){.bit-die.is-rolling .bit-cube{animation:none!important}.bit-cube{transition:none!important}}
 
-/* Deterministic wheel rotation: keyframes are mounted with the new spin spec
- * instead of trying to enable transition and change transform in one render. */
+/* Safari-safe wheel rendering: JS requestAnimationFrame owns the transform.
+ * No CSS transition/keyframe can override the visible per-frame wheel angle. */
 .bit-wheel.is-spinning{
-  animation:bit-wheel-visible-spin 4.6s cubic-bezier(.12,.72,.10,1) both;
+  animation:none!important;
+  transition:none!important;
   will-change:transform;
   backface-visibility:hidden;
-}
-@keyframes bit-wheel-visible-spin{
-  from{transform:rotate(var(--bit-spin-from))}
-  to{transform:rotate(var(--bit-spin-to))}
 }
 .bit-wheel-zone.is-spinning .bit-pointer{
   animation:bit-wheel-pointer-tick .19s ease-in-out infinite alternate;
