@@ -84,3 +84,16 @@
 @media(max-width:560px){.blr-manager-modes button{flex:1 1 145px;font-size:13px}}
 
 .blr-deadline-countdown{color:#2063a3!important;font-weight:800;font-size:13px!important}
+
+/* Assigned tasks remain visible to TTCM. Revoke only unstarted assignments;
+   the teacher's report button and the destructive action are separate controls. */
+.blr-task-frame{display:flex;flex-direction:column;min-width:0;border:1px solid #dfe8f0;border-radius:18px;background:#fff;overflow:hidden;transition:border-color .2s,box-shadow .2s}
+.blr-task-frame:hover{border-color:#89b8e0;box-shadow:0 9px 20px #244c7a11}
+.blr-task-frame>.blr-task{display:grid;width:100%;flex:1;text-align:left;min-width:0;border:0;border-radius:0;box-shadow:none;padding:19px}
+.blr-task-frame>.blr-task:hover{box-shadow:none;border-color:transparent}
+.blr-task-actions{display:flex;justify-content:flex-end;border-top:1px solid #e5edf4;padding:10px 13px;background:#fbfcff}
+.blr-shell .blr-task-actions button.blr-task-revoke{min-height:34px;padding:6px 11px;color:#b13535;background:#fff8f8;border:1px solid #f3cdcd;border-radius:10px;font-size:12px;font-weight:800}
+.blr-shell .blr-task-actions button.blr-task-revoke:hover:not(:disabled){background:#ffeded;border-color:#e99d9d}
+.blr-shell .blr-task-actions button.blr-task-revoke:disabled{opacity:.45;cursor:not-allowed}
+.blr-revoke-note{margin:-5px 0 17px;color:#6b8196;font-size:13px;line-height:1.5}
+@media(prefers-reduced-motion:reduce){.blr-task-frame{transition:none}}
