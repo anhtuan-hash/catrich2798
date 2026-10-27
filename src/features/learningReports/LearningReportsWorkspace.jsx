@@ -174,7 +174,7 @@ export default function LearningReportsWorkspace({currentUser}) {
   }));
   const teacherName=useCallback(id=>accounts.find(a=>a.id===id)?.name||
     members.find(m=>m.teacherAccountId===id)?.staffCode||'Giáo viên',[accounts,members]);
-  const filtered=tasks.filter(t=>(!isLeader||t.department_id===departmentId)
+  const filtered=tasks.filter(t=>(isLeader?t.department_id===departmentId:t.teacher_id===currentUser?.id)
     &&(filter==='all'||t.report_kind===filter));
   const pending=filtered.filter(t=>t.status==='submitted').length;
   const done=filtered.filter(t=>t.status==='approved').length;
