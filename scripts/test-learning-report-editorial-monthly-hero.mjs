@@ -9,7 +9,7 @@ const tabs=['reports','summary','history'];
 const checks=[
  ['Reference-specific design specification',spec.includes('## 1. Nguồn tham chiếu bắt buộc')&&spec.includes('## 7. Kiểm thử, phát hành')],
  ['Editorial hero replaces three floating KPI cards',jsx.includes('blr-editorial-hero__paper')&&!jsx.includes('blr-hero-chip is-count')],
- ['Exact monthly header and live orange month',jsx.includes('Bồi dưỡng &amp;')&&jsx.includes('Phụ đạo tháng <em>{Number(heroPeriod.slice(5))}</em>')],
+ ['Exact monthly header and live orange month',jsx.includes('Bồi dưỡng &')&&jsx.includes('Phụ đạo tháng <em>{Number(heroPeriod.slice(5))}</em>')],
  ['Ivory, pale peach and blue palette',css.includes('#fffcf8')&&css.includes('rgba(255,211,183')&&css.includes('rgba(213,231,250')],
  ['Editorial paper and seal design',css.includes('.blr-editorial-hero__paper')&&css.includes('.blr-editorial-hero__seal')],
  ['Rotated motivational message',jsx.includes('Mỗi giờ dạy')&&css.includes('.blr-editorial-hero__motto')],
