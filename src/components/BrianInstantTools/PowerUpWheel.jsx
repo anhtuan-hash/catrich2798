@@ -45,7 +45,7 @@ export default function PowerUpWheel({value,onChange,t,sound,onSound,onCelebrate
  const wheelRef=useRef(null),raf=useRef(null),clock=useRef(null),running=useRef(null),mounted=useRef(true);
  const cards=powerupEligible(state,state.filter);
  const segments=useMemo(()=>wheelSegments(cards.map((c,i)=>({
-  id:c.id,label:c[vi?'vi':'en'],weight:1,enabled:true,color:powerupColor(c)
+  id:c.id,label:c[vi?'vi':'en'],weight:1,enabled:true,color:powerupColor(c,i)
  })), 'aurora'),[cards,vi]);
  const frozen=useRef(null);
  const activeSegs=rolling&&frozen.current?frozen.current:segments;
