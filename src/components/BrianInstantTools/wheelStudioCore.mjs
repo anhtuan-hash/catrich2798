@@ -1,5 +1,14 @@
 // Brian Wheel Studio: bounded, network-free selectors and layout math.
-import {PALETTE,secureInt} from './instantToolsCore.mjs';
+export function wheelRandomInt(min,max){
+ const range=max-min+1;
+ if(!Number.isInteger(range)||range<=0||range>65536)throw Error('Invalid wheel range');
+ if(globalThis.crypto?.getRandomValues){
+  const a=new Uint32Array(1),limit=0x100000000-(0x100000000%range);
+  do{globalThis.crypto.getRandomValues(a);}while(a[0]>=limit);
+  return min+a[0]%range;
+ }
+ return min+Math.floor(Math.random()*range);
+}
 export const WHEEL_MAX_ITEMS=60;
 export const WHEEL_THEMES={
  aurora:['#166a71','#2aa69a','#53c5ad','#54a4bd','#6575cd','#9066b7','#dc739f','#f1a661'],
@@ -36,7 +45,7 @@ export function wheelSegments(rows,theme='aurora'){
   return result;
  });
 }
-export function pickWheelSegment(segments,random=secureInt){
+export function pickWheelSegment(segments,random=wheelRandomInt){
  const total=segments.reduce((s,r)=>s+r.weight,0);
  if(!total)return null;
  const value=random(0,total-1);
