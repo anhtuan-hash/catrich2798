@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Bell, X } from 'lucide-react';
 import { hasAnyAttendanceAccess, hasRouteAccess, hasToolAccess } from '../../utils/permissions.js';
-import { isAdminRole, isDepartmentLeaderRole } from '../../utils/roles.js';
+import { isAdminRole, isDepartmentLeaderRole, normalizeSystemRole, SYSTEM_ROLES } from '../../utils/roles.js';
+import { withAttendanceReadOnlyAccess } from '../../utils/attendanceReadonlyAccess.js';
 import { isAppHiddenForUser } from '../../utils/appVisibility.js';
 import { visibilityIdForRoute } from '../../data/appVisibilityRegistry.js';
 import { buildMobileNavigationModel, runMobileNavigationItem } from './mobileNavigation.js';
@@ -160,7 +161,11 @@ export default function MobileAppShell({
     return !isAppHiddenForUser(snapshot, currentUser, id);
   }, [currentUser, snapshot]);
 
-  const canAccessAttendance = Boolean(currentUser?.id && (isAdminNavigation || hasAnyAttendanceAccess(currentUser)));
+  // Mirrors the existing global Attendance read-only bridge: every signed-in
+  // account can view Calendar/History, while write tabs retain explicit grants.
+  const canAccessAttendance = Boolean(currentUser?.id && hasAnyAttendanceAccess(withAttendanceReadOnlyAccess(currentUser)));
+  const systemRole = normalizeSystemRole(currentUser?.role, SYSTEM_ROLES.GUEST);
+  const canAccessTtcm = Boolean(currentUser?.id && [SYSTEM_ROLES.ADMIN, SYSTEM_ROLES.DEPARTMENT_HEAD, SYSTEM_ROLES.TEACHER].includes(systemRole));
   const canShowOriginalApps = Boolean(currentUser && (isAdminNavigation || hasRouteAccess(currentUser, 'apps')));
   const canAccessReports = Boolean(currentUser && (
     isDepartmentLeaderRole(currentUser.role) || hasToolAccess(currentUser, 'brian-team')
@@ -344,10 +349,24 @@ export default function MobileAppShell({
           language={language}
           onHome={() => runMobileNavigationItem({ id: 'home', route: 'home', action: 'route', label: language === 'en' ? 'Home' : 'Trang chủ' })}
           canAccessReports={canAccessReports}
+          canAccessTtcm={canAccessTtcm}
+          canAccessAttendance={canAccessAttendance}
           reportActive={reportActive}
+          attendanceActive={route === 'attendance'}
           onReports={openReports}
+          onTtcm={() => {
+            if (!canAccessTtcm) return;
+            setMoreOpen(false);
+            setAccountOpen(false);
+            window.dispatchEvent(new CustomEvent('bes-ttcm-open', { detail: { view: 'feed' } }));
+          }}
+          onAttendance={() => {
+            if (!canAccessAttendance) return;
+            setMoreOpen(false);
+            setAccountOpen(false);
+            runMobileNavigationItem({ id: 'attendance', action: 'attendance' });
+          }}
           onMenu={() => { setAccountOpen(false); setMoreOpen(true); }}
-          onSearch={() => runMobileNavigationItem({ action: 'search' })}
           onNotifications={() => { setAccountOpen(false); setNotificationsOpen(true); }}
           onAccount={openAccountMenu}
           accountOpen={accountOpen}
@@ -358,7 +377,7 @@ export default function MobileAppShell({
         <div className="brian-nav__primary bes-mobile-bridge-host" hidden aria-hidden="true">
           {/* Reuse the desktop Reports portal and its existing role gate on mobile. */}
           <div className="brian-nav__utility-reports" data-nav-key="reports" />
-          {/* Keep TTCM available in the menu, without a permanent header badge. */}
+          {/* TTCM remains in the menu and also has its approved icon shortcut. */}
           <div className="brian-nav__utility-ttcm" data-nav-key="ttcm" />
         </div>
       </div>
