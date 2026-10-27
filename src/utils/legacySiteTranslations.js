@@ -3123,4 +3123,5 @@ export const LEGACY_SITE_EN = Object.freeze({
   "Đang giao báo cáo…": "Assigning reports…",
   "Quản lý liên kết lớp cũ (chỉ khi cần chỉnh sửa)": "Manage legacy class links (only when corrections are needed)",
   "Loại": "Type",
+  "Báo cáo được phân công": "My assigned reports",
 });
