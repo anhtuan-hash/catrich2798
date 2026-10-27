@@ -15,6 +15,8 @@ on:
       - 'scripts/test-learning-reports-manager-analytics.mjs'
       - 'scripts/test-learning-report-navigation-countdown.mjs'
       - 'scripts/test-smart-learning-auto-assignment.mjs'
+      - 'scripts/test-revoke-learning-report-assignments.mjs'
+      - 'supabase/migrations/20261027142000_revoke_learning_report_assignments.sql'
       - 'supabase/migrations/20261027130000_smart_learning_identity_preview.sql'
       - 'supabase/migrations/20261027130100_smart_candidates_uuid_aggregate.sql'
       - 'supabase/migrations/20261027131000_smart_learning_dispatch.sql'
@@ -49,6 +51,8 @@ jobs:
         run: node scripts/test-learning-report-navigation-countdown.mjs
       - name: Validate smart whole-team report assignment contracts
         run: node scripts/test-smart-learning-auto-assignment.mjs
+      - name: Verify safe revoke of teacher report assignments
+        run: node scripts/test-revoke-learning-report-assignments.mjs
       - name: Validate report JSX syntax
         run: |
           node --input-type=module <<'NODE'
