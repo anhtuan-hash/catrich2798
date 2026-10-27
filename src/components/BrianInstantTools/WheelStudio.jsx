@@ -179,7 +179,7 @@ export default function WheelStudio({value,onChange,t,sound,onSound,onCelebrate}
     <div className="bit-ws-wheel-housing">
      <div className="bit-pointer" aria-hidden="true">▼</div>
      <div className={'bit-wheel bit-ws-disc'+(busy?' is-spinning':'')} ref={wheelRef} data-testid="animated-lucky-wheel" style={{background:gradient}}>
-      {value.showLabels!==false&&shownSegments.length<=36&&shownSegments.map(r=><span key={r.id} className="bit-wheel-label bit-ws-label"
+      {value.showLabels!==false&&shownSegments.length<=36&&shownSegments.map(r=><span key={r.id} className="bit-ws-label"
        style={{transform:'translate(-50%,-50%) rotate('+r.center+'deg) translateY(calc(-1 * var(--ws-radius))) rotate(-'+r.center+'deg)'}}>{value.mystery?'?':r.label}</span>)}
       <button type="button" disabled={busy||active<2} className="bit-ws-hub" aria-label={vi?'Quay bằng nút trung tâm':'Spin from center'} onClick={spin}><Sparkles size={27}/></button>
      </div>
