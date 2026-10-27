@@ -19,44 +19,100 @@ export default function ReportProofreadingStudio({ html, departmentId, onClose, 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [status, setStatus] = useState('');
+  const [notices, setNotices] = useState([]);
   const abortRef = useRef(null);
   useEffect(() => () => abortRef.current?.abort(), []);
 
   const run = async () => {
     if (!consent || busy) return;
-    setBusy(true); setError(''); setStatus(''); setRevisions(null);
+    setBusy(true); setError(''); setStatus(''); setRevisions(null); setNotices([]);
     const controller = new AbortController();
     abortRef.current = controller;
+    const skipped = [];
+    let requests = 0;
     try {
       if (!supabase) throw new Error('Supabase chưa sẵn sàng.');
       const { data, error: authError } = await supabase.auth.getSession();
       if (authError || !data?.session?.access_token)
         throw new Error('Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.');
-      const groups = chunkProofreadBlocks(blocks);
+      // Smaller batches lower truncation risk for local Vietnamese administrative prose.
+      const groups = chunkProofreadBlocks(blocks, 1800, 4);
       if (!groups.length) throw new Error('Không tìm thấy đoạn thuyết minh cần hiệu đính.');
-      const items = [];
-      for (let i = 0; i < groups.length; i++) {
-        setStatus('Đang hiệu đính nhóm ' + (i + 1) + '/' + groups.length + '…');
+
+      const send = async (group, plain = false) => {
+        requests += 1;
+        if (requests > 60) throw new Error('Báo cáo vượt giới hạn lượt thử an toàn. Hãy hiệu đính lại sau.');
         const response = await fetch('/api/report-proofread', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + data.session.access_token },
-          body: JSON.stringify({ departmentId, mode, blocks: groups[i] }),
+          body: JSON.stringify({ departmentId, mode, blocks: group, ...(plain ? { plain: true } : {}) }),
           signal: controller.signal,
         });
         const payload = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(payload.error || 'Không kết nối được dịch vụ hiệu đính.');
-        if (!Array.isArray(payload.revisions) || payload.revisions.length !== groups[i].length)
-          throw new Error('AI đã bỏ sót đoạn báo cáo, vui lòng thử lại.');
-        items.push(...payload.revisions);
+        if (!response.ok) {
+          const error = new Error(payload.error || 'Không kết nối được dịch vụ hiệu đính.');
+          error.code = payload.code || 'REQUEST_FAILED';
+          throw error;
+        }
+        if (!Array.isArray(payload.revisions) || payload.revisions.length !== group.length)
+          throw Object.assign(new Error('AI trả về thiếu đoạn báo cáo.'), { code: 'AI_INCOMPLETE' });
+        return payload.revisions;
+      };
+
+      const recover = async (group) => {
+        try {
+          const revisions = await send(group);
+          if (revisions.some((item, i) =>
+            item.id !== group[i].id || !item.text?.trim() ||
+            !sameReportNumbers(group[i].text, item.text)
+          )) throw Object.assign(new Error('AI không bảo toàn nội dung gốc.'), { code: 'FACT_GUARD' });
+          return revisions;
+        } catch (error) {
+          if (controller.signal.aborted) throw error;
+          if (!['AI_FORMAT', 'AI_INCOMPLETE', 'FACT_GUARD'].includes(error.code)) throw error;
+          if (group.length > 1) {
+            const half = Math.ceil(group.length / 2);
+            const a = await recover(group.slice(0, half));
+            const b = await recover(group.slice(half));
+            return [...a, ...b];
+          }
+          // Last resort: short single-paragraph plain text, still checked for number integrity.
+          try {
+            const plainResult = await send(group, true);
+            if (plainResult[0].id !== group[0].id ||
+              !sameReportNumbers(group[0].text, plainResult[0].text))
+              throw new Error('AI thay đổi số liệu.');
+            return plainResult;
+          } catch (fallbackError) {
+            if (controller.signal.aborted) throw fallbackError;
+            // Do not mask API/auth/quota/network errors; these are actionable.
+            if (fallbackError.code && !['AI_FORMAT', 'AI_INCOMPLETE', 'FACT_GUARD'].includes(fallbackError.code))
+              throw fallbackError;
+            skipped.push(group[0].id);
+            return [{ id: group[0].id, text: group[0].text }];
+          }
+        }
+      };
+
+      const items = [];
+      for (let i = 0; i < groups.length; i++) {
+        setStatus('Đang hiệu đính nhóm ' + (i + 1) + '/' + groups.length + '…');
+        items.push(...await recover(groups[i]));
       }
-      if (items.some((v, i) => v.id !== blocks[i].id)) throw new Error('Thứ tự nội dung không khớp bản gốc.');
+      if (items.length !== blocks.length || items.some((v, i) => v.id !== blocks[i].id))
+        throw new Error('Thứ tự hoặc số đoạn không khớp bản gốc.');
       setRevisions(items);
-      setStatus('Đã nhận bản đề xuất. Hãy đọc, điều chỉnh và duyệt từng mục trước khi áp dụng.');
+      setNotices(skipped);
+      setStatus(skipped.length
+        ? 'Đã hoàn tất bản đề xuất. Các mục không đạt kiểm tra được giữ nguyên, vui lòng đọc lại trước khi duyệt.'
+        : 'Đã nhận bản đề xuất. Hãy đọc, điều chỉnh và duyệt từng mục trước khi áp dụng.');
     } catch (err) {
+      setStatus('');
       if (err?.name !== 'AbortError') setError(err?.message || 'Lỗi hiệu đính không xác định.');
     } finally { setBusy(false); if (abortRef.current === controller) abortRef.current = null; }
   };
 
+  const close = () => { abortRef.current?.abort(); onClose(); };
   const revise = (id, text) => setRevisions((current) => current.map((item) => item.id === id ? { ...item, text } : item));
   const apply = () => {
     try { onApply(applyProofreadBlocks(html, revisions)); }
@@ -75,7 +131,7 @@ export default function ReportProofreadingStudio({ html, departmentId, onClose, 
             <h2><Sparkles /> AI hiệu đính báo cáo tổ</h2>
             <p>Chỉ gửi đoạn thuyết minh. Tiêu đề, bảng số liệu, chữ ký và thông tin hành chính luôn được khóa.</p>
           </div>
-          <button type="button" disabled={busy} onClick={onClose} aria-label="Đóng"><X /></button>
+          <button type="button" onClick={close} aria-label="Đóng"><X /></button>
         </header>
         <div className="rps-content">
           <div className="rps-settings">
@@ -97,6 +153,9 @@ export default function ReportProofreadingStudio({ html, departmentId, onClose, 
           </div>
           {error && <div className="rps-error" role="alert"><AlertTriangle /> {error}</div>}
           {status && <p className="rps-status" role="status">{status}</p>}
+          {notices.length > 0 && <p className="rps-warning" role="alert">
+            AI chưa thể xử lý {notices.length} mục. Hệ thống đã giữ nguyên những mục này; bạn có thể chỉnh sửa thủ công trong cột bên phải.
+          </p>}
           <div className="rps-column-labels"><strong>Bản gốc</strong><strong>Bản AI đề xuất {revisions ? '· ' + changed + ' mục đã sửa' : ''}</strong></div>
           <div className="rps-blocks">
             {blocks.map((item, index) => (
@@ -118,7 +177,7 @@ export default function ReportProofreadingStudio({ html, departmentId, onClose, 
         <footer className="rps-footer">
           <span><ShieldCheck /> AI có thể mắc lỗi. TTCM kiểm tra trước khi duyệt.</span>
           <div>
-            <button type="button" onClick={onClose} disabled={busy}><X /> Hủy</button>
+            <button type="button" onClick={close}><X /> Hủy</button>
             <button type="button" className="rps-primary" disabled={!safe || busy} onClick={apply}><FileCheck2 /> Duyệt & áp dụng</button>
           </div>
         </footer>
