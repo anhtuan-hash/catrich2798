@@ -1,0 +1,124 @@
+/* Compact mobile global navigation - Home/Reports/Search/Notifications/Account.
+   Module headings remain inside modules, and TTCM is in the navigation drawer.
+   Desktop and tablet navigation outside mobile presentation are untouched. */
+html.bes-mobile-shell-active {
+  --bes-mobile-topbar-height: 64px;
+}
+
+html.bes-mobile-shell-active .bes-mobile-topbar.bes-mobile-topbar--compact {
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: 6px;
+  min-height: calc(var(--bes-mobile-topbar-height) + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) max(12px, env(safe-area-inset-right)) 0 max(12px, env(safe-area-inset-left));
+  border-bottom: 1px solid rgba(43, 75, 121, 0.08);
+  background: color-mix(in srgb, #fff 96%, transparent);
+  box-shadow: 0 3px 14px rgba(25, 46, 82, 0.05);
+}
+
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-icon-button {
+  width: 40px;
+  min-width: 40px;
+  height: 42px;
+  min-height: 42px;
+  border-radius: 13px;
+  color: #344866;
+  transition: background-color 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-icon-button:active {
+  transform: scale(0.94);
+  color: #1d59c9;
+  background: #edf3ff;
+}
+
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-brand--compact {
+  min-width: 0;
+  min-height: 44px;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-brand__mark {
+  box-sizing: border-box;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  padding: 2px;
+  box-shadow: 0 2px 8px rgba(20, 72, 163, 0.10);
+}
+
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-brand__logo {
+  border-radius: 9px;
+}
+
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-brand__copy strong {
+  max-width: none;
+  font-size: 15px;
+  line-height: 1.1;
+  font-weight: 840;
+  letter-spacing: 0.045em;
+  color: #1a2940;
+}
+
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-topbar__actions {
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-topbar__reports {
+  background: #f0f5ff;
+  color: #245dc6;
+}
+
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-topbar__reports.is-active {
+  background: #dce9ff;
+  color: #1648b2;
+  box-shadow: inset 0 0 0 1px #bed3ff;
+}
+
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-avatar-button {
+  box-sizing: border-box;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+  min-height: 38px;
+  margin-left: 2px;
+  border: 1px solid #dce7fa;
+  background: #eef3ff;
+  color: #2157bd;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-unread-dot {
+  top: 6px;
+  right: 7px;
+  width: 9px;
+  height: 9px;
+  background: #e5484d;
+}
+
+/* All buttons remain at least 40px wide and 42px tall. Hide only the least
+   important shortcut on unusually narrow phones; search remains in the menu. */
+@media (max-width: 359px) {
+  html.bes-mobile-shell-active .bes-mobile-topbar--compact {
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    gap: 4px;
+    padding-inline: 9px;
+  }
+  html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-topbar__search {
+    display: none;
+  }
+  html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-brand__copy strong {
+    font-size: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-icon-button {
+    transition: none;
+  }
+}
