@@ -534,10 +534,34 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
         }}><Timer size={19}/>{tr('FAST MONEY · 45 GIÂY','FAST MONEY · 45 SECONDS')}</button>
       </div>}
       {game.fastPlayed&&<div className="bff-fast-result">
-        <Gift size={25}/>{tr('Fast Money: ','Fast Money: ')}{showPoints(game.fast?.points)} / 200
+        <Gift size={25}/>{tr('Điểm Fast Money đã nhập: ','Manually awarded Fast Money: ')}
+        {showPoints(game.fast?.manualAward??game.fast?.points)} · {tr('Điểm gợi ý: ','Suggested: ')}
+        {showPoints(game.fast?.points)} / 200
         {game.fast?.points>=200?' 🎉':''}</div>}
+      {game.phase==='fast_done'&&<button className="bff-action" type="button"
+        onClick={()=>dispatch({type:'EDIT_FAST_SCORE'})}>
+        <Settings2 size={18}/>{tr('Sửa điểm Fast Money','Edit Fast Money score')}</button>
       <button type="button" className="bff-action" onClick={()=>setConfirmReset(true)}>
         <RotateCcw size={18}/>{tr('Tạo ván Family Feud mới','Create another Family Feud game')}</button>
+    </div>
+  </div>;
+  const fastScoreScreen=game?.phase==='fast_scoring'&&<div className="bff-fast-score-screen">
+    {scorebar}
+    <div className="bff-manual-score-card">
+      <span className="bff-eyebrow">✍ FAST MONEY · {tr('NHẬP ĐIỂM THỦ CÔNG','MANUAL SCORING')}</span>
+      <h2>{game.teams[game.fast.team]?.name}</h2>
+      <p>{tr('Tổng điểm đáp án gợi ý: ','Suggested answer total: ')}<strong>{showPoints(game.fast.points)}</strong>.
+        {' '}{tr('Giáo viên tự nhập số điểm thực tế muốn cộng cho đội.','Enter the actual bonus to award; it is never credited automatically.')}</p>
+      <label className="bff-fast-score-input">{tr('Điểm thưởng Fast Money','Fast Money bonus')}
+        <input type="number" inputMode="numeric" min="0" max="999999" step="1" value={game.fastDraft??'0'}
+          onChange={e=>dispatch({type:'SET_FAST_DRAFT',value:e.target.value})}/>
+      </label>
+      <button className="bff-action bff-primary" type="button"
+        disabled={!/^(0|[1-9][0-9]{0,5})$/.test(String(game.fastDraft))}
+        onClick={()=>{
+          dispatch({type:'CONFIRM_FAST_SCORE'});playSound('bank');
+          animate('score',tr('ĐÃ CHỐT ĐIỂM!','POINTS BANKED!'));
+        }}><CheckCircle2 size={21}/>{tr('XÁC NHẬN ĐIỂM FAST MONEY','CONFIRM FAST MONEY SCORE')}</button>
     </div>
   </div>;
   const fastScreen=game?.fast&&<div className="bff-fast-screen">
