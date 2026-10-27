@@ -14,6 +14,12 @@ on:
       - 'scripts/test-learning-report-instructor-scoping.mjs'
       - 'scripts/test-learning-reports-manager-analytics.mjs'
       - 'scripts/test-learning-report-navigation-countdown.mjs'
+      - 'scripts/test-smart-learning-auto-assignment.mjs'
+      - 'supabase/migrations/20261027130000_smart_learning_identity_preview.sql'
+      - 'supabase/migrations/20261027130100_smart_candidates_uuid_aggregate.sql'
+      - 'supabase/migrations/20261027131000_smart_learning_dispatch.sql'
+      - 'supabase/migrations/20261027131100_smart_dispatch_event_immutable_guard.sql'
+      - 'supabase/migrations/20261027131200_smart_identity_conflict_guard.sql'
       - 'supabase/migrations/20261027143000_learning_reports_manager_analytics.sql'
       - 'supabase/migrations/20261027143500_learning_report_deadline_rls_scope.sql'
       - 'supabase/migrations/20261027132000_learning_reports_instructor_scoped.sql'
@@ -41,6 +47,8 @@ jobs:
         run: node scripts/test-learning-reports-manager-analytics.mjs
       - name: Check shared navigation countdown for HSG and remedial requests
         run: node scripts/test-learning-report-navigation-countdown.mjs
+      - name: Validate smart whole-team report assignment contracts
+        run: node scripts/test-smart-learning-auto-assignment.mjs
       - name: Validate report JSX syntax
         run: |
           node --input-type=module <<'NODE'
@@ -48,6 +56,7 @@ jobs:
           import ts from 'typescript';
           const paths = ['src/features/learningReports/LearningReportsWorkspace.jsx',
             'src/features/learningReports/LearningReportsManagerDashboard.jsx',
+            'src/features/learningReports/SmartAssignmentComposer.jsx',
             'src/components/GlobalReportsNavigationTab.jsx'];
           const errors = paths.flatMap(path => {
             const result = ts.transpileModule(fs.readFileSync(path, 'utf8'), {
