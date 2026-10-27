@@ -76,3 +76,9 @@
 .blr-instructor-class select{width:100%;min-width:0;white-space:normal}
 .blr-instructor-class .blr-synced-pill{align-self:flex-start;white-space:normal;line-height:1.5}
 .blr-instructor-class p{font-size:12px}
+
+/* Manager-level views: same content width and calm navigation as Brian Reports. */
+.blr-manager-modes{display:flex;align-items:center;flex-wrap:wrap;gap:8px;background:#f5f8fc;border:1px solid #dce7f2;border-radius:14px;padding:8px;margin:12px 0 20px}
+.blr-manager-modes button{flex:0 1 auto;padding:10px 15px}
+.blr-manager-modes button.is-active{background:#e6f1ff!important;border-color:#75aceb!important;color:#155b9b!important}
+@media(max-width:560px){.blr-manager-modes button{flex:1 1 145px;font-size:13px}}
