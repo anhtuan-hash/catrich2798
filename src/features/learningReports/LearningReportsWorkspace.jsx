@@ -1,24 +1,20 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Award, BookOpenCheck, CalendarClock, CheckCircle2, ClipboardCheck, Clock3,
-  Download, FileText, RefreshCw, Save, Send, Trash2, UsersRound, X } from 'lucide-react';
+  Download, FileText, RefreshCw, Save, Send, Link2, ShieldCheck, UsersRound, X } from 'lucide-react';
 import { isDepartmentLeaderRole } from '../../utils/roles.js';
 import { loadTeamWorkspace, listTeamTeacherAccounts } from '../../utils/personnelHub.js';
 import {
   LEARNING_REPORT_KINDS, LEARNING_REPORT_SECTIONS, LEARNING_REPORT_STATUSES,
-  reportProgress, aggregateLearningSessions, participationPercent, listLearningReports,
-  listLearningSessions, issueLearningReports, saveLearningReport, reviewLearningReport,
-  saveLearningSession, deleteLearningSession, markLearningReportRead,
+  reportProgress, participationPercent, listLearningReports, loadLearningAttendance,
+  listLearningClassOptions, bindLearningClasses, issueLearningReports,
+  saveLearningReport, reviewLearningReport, markLearningReportRead,
 } from './learningReportsService.js';
 import './LearningReportsWorkspace.css';
 
 const dateOnly = () => { const now = new Date(); return [now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-'); };
 const periodNow = () => dateOnly().slice(0,7);
 const dateLabel = value => value ? new Intl.DateTimeFormat('vi-VN',{dateStyle:'medium',timeStyle:'short'}).format(new Date(value)) : '—';
-const n = value => Math.max(0,Number(value)||0);
 const safeText = value => String(value ?? '');
-const defaultSession = () => ({
-  session_date:dateOnly(),class_label:'',topic:'',periods:1,expected_count:0,present_count:0,observation:'',
-});
 const csvCell = value => '"' + safeText(value).replaceAll('"','""') + '"';
 
 function downloadCsv(items) {
@@ -45,46 +41,62 @@ function TextField({label,fieldType,value,disabled,onChange,required}) {
         disabled={disabled} value={safeText(value)} onChange={e=>onChange(e.target.value)}/>}
   </label>;
 }
-function Journal({task,rows,onReload,onError}) {
-  const [editing,setEditing]=useState('');
-  const [form,setForm]=useState(defaultSession);
-  const [busy,setBusy]=useState(false);
-  const editable=['draft','revision'].includes(task.status);
-  const stats=aggregateLearningSessions(rows);
-  async function save(e) {
-    e.preventDefault();setBusy(true);
-    try { await saveLearningSession(task,form,editing);setEditing('');setForm(defaultSession());await onReload(); }
-    catch(error){onError(error.message);}
-    finally{setBusy(false);}
-  }
-  async function remove(id){
-    if(!window.confirm('Xóa nhật ký buổi dạy này?'))return;
-    setBusy(true);
-    try{await deleteLearningSession(id);await onReload();}
-    catch(error){onError(error.message);}finally{setBusy(false);}
-  }
-  return <section className="blr-journal">
-    <header><div><h3>Nhật ký từng buổi dạy</h3><p>Dữ liệu chuyên cần được tính từ số lượt có mặt/tổng lượt phải tham gia.</p></div><span>{stats.sessions} buổi · {stats.periods} tiết · {participationPercent(stats)??'—'}% chuyên cần</span></header>
-    {editable&&<form className="blr-journal-form" onSubmit={save}>
-      <label>Ngày dạy<input type="date" required value={form.session_date} onChange={e=>setForm(p=>({...p,session_date:e.target.value}))}/></label>
-      <label>Khối/lớp<input value={form.class_label} onChange={e=>setForm(p=>({...p,class_label:e.target.value}))} placeholder="VD: 11A1"/></label>
-      <label>Số tiết<input type="number" min="1" max="12" required value={form.periods} onChange={e=>setForm(p=>({...p,periods:e.target.value}))}/></label>
-      <label>Đăng ký<input type="number" min="0" max="300" required value={form.expected_count} onChange={e=>setForm(p=>({...p,expected_count:e.target.value}))}/></label>
-      <label>Có mặt<input type="number" min="0" max="300" required value={form.present_count} onChange={e=>setForm(p=>({...p,present_count:e.target.value}))}/></label>
-      <label className="is-wide">Nội dung đã dạy<input required minLength={2} maxLength={500} value={form.topic} onChange={e=>setForm(p=>({...p,topic:e.target.value}))}/></label>
-      <label className="is-wide">Nhận xét sau buổi học<textarea rows={2} value={form.observation} onChange={e=>setForm(p=>({...p,observation:e.target.value}))}/></label>
-      <div className="blr-actions is-wide">
-        <button type="submit" disabled={busy}><Save size={16}/>{editing?'Cập nhật':'Thêm buổi dạy'}</button>
-        {editing&&<button type="button" onClick={()=>{setEditing('');setForm(defaultSession());}}>Hủy sửa</button>}
+function AttendancePanel({data,loading}) {
+  const classes=data?.classes||[];
+  const sessions=data?.sessions||[];
+  const t=data?.totals||{};
+  const pct=Number(t.expected)>0 ? participationPercent({expected:Number(t.expected),present:Number(t.present)}) : null;
+  return <section className="blr-journal blr-attendance-source" aria-label="Dữ liệu tự động từ điểm danh">
+    <header>
+      <div><h3><ShieldCheck size={21}/> Dữ liệu tự động từ Brian Attendance</h3>
+        <p>Số liệu chỉ lấy từ các buổi điểm danh đã chốt trong kỳ báo cáo; không cần nhập lại.</p></div>
+      <span>{loading?'Đang đồng bộ…':'Nguồn: Điểm danh chính thức'}</span>
+    </header>
+    {!classes.length ? <div className="blr-attendance-warning">
+      <Link2 size={21}/><div><strong>Chưa liên kết lớp điểm danh</strong>
+        <p>TTCM cần chọn lớp phụ trách trong mục “Liên kết lớp điểm danh”. Giáo viên không phải nhập số liệu thủ công.</p></div>
+    </div> : <>
+      <div className="blr-attendance-classes"><strong>Đội tuyển / lớp đã liên kết:</strong>
+        {classes.map(c=><span key={c.id}>{c.name} · {c.registered} HS đăng ký</span>)}</div>
+      <div className="blr-attendance-metrics">
+        {[
+          ['Lớp liên kết',classes.length],['Buổi đã chốt',t.sessions??0],
+          ['Số tiết thực hiện',t.periods??0],['Lượt có mặt',(t.present??0)+'/'+(t.expected??0)],
+          ['Đi trễ',t.late??0],['Vắng',t.absent??0],
+          ['Chuyên cần',pct===null?'—':pct+'%'],
+        ].map(([label,value])=><div key={label}><small>{label}</small><strong>{value}</strong></div>)}
       </div>
-    </form>}
-    <div className="blr-session-list">{rows.length ? rows.map(row=><article key={row.id}>
-      <div><strong>{row.topic}</strong><small>{row.session_date} · {row.class_label||'Chưa ghi lớp'} · {row.periods} tiết · {row.present_count}/{row.expected_count} HS</small>{row.observation&&<p>{row.observation}</p>}</div>
-      {editable&&<div className="blr-actions">
-        <button type="button" onClick={()=>{setEditing(row.id);setForm({session_date:row.session_date,class_label:row.class_label,topic:row.topic,periods:row.periods,expected_count:row.expected_count,present_count:row.present_count,observation:row.observation});}}>Sửa</button>
-        <button type="button" className="is-danger" disabled={busy} onClick={()=>remove(row.id)} aria-label="Xóa nhật ký"><Trash2 size={16}/></button>
-      </div>}
-    </article>) : <p className="blr-muted">Chưa có buổi dạy được ghi nhận. Có thể nhập nhật ký ngay sau mỗi buổi.</p>}</div>
+      <div className="blr-attendance-sessions">
+        <h4>Nhật ký các buổi đã chốt · {data?.period||''}</h4>
+        {!sessions.length?<p className="blr-muted">Chưa có buổi điểm danh đã chốt trong tháng này. Số liệu sẽ tự xuất hiện khi Điểm danh được xác nhận.</p>
+        :sessions.map(row=><article key={row.id}>
+          <div><strong>{row.date} · {row.className}</strong>
+            <small>{row.periods} tiết · Có mặt {row.present}/{row.expected} · Đi trễ {row.late} · Vắng {row.absent}</small>
+            {row.note&&<p>Ghi chú từ điểm danh: {row.note}</p>}</div>
+          <span className="blr-synced-pill"><ShieldCheck size={13}/> Đã đồng bộ</span>
+        </article>)}
+      </div>
+    </>}
+  </section>;
+}
+function ClassBindingEditor({options=[],busy,onSave}) {
+  const [ids,setIds]=useState([]);
+  useEffect(()=>{setIds(options.filter(c=>c.linked).map(c=>c.id));},[options]);
+  const toggle=id=>setIds(old=>old.includes(id)?old.filter(x=>x!==id):[...old,id]);
+  return <section className="blr-bind-editor">
+    <header><div><h3><Link2 size={19}/> Liên kết lớp điểm danh</h3>
+      <p>Chỉ TTCM liên kết. Một lần liên kết được dùng lại cho các báo cáo tháng sau của giáo viên này.</p></div>
+      <button type="button" className="is-primary" disabled={busy} onClick={()=>onSave(ids)}>
+        <Save size={16}/>{busy?'Đang lưu…':'Lưu liên kết lớp'}</button>
+    </header>
+    <div className="blr-bind-grid">
+      {options.map(c=><label key={c.id} className={ids.includes(c.id)?'is-checked':''}>
+        <input type="checkbox" checked={ids.includes(c.id)} onChange={()=>toggle(c.id)}/>
+        <span><strong>{c.name}</strong><small>{c.subject||'Môn học'} · {c.grade||'Khối'} · {c.completedSessions} buổi đã chốt trong kỳ</small></span>
+      </label>)}
+      {!options.length&&<p>Chưa có lớp điểm danh phù hợp với loại báo cáo này.</p>}
+    </div>
+    <p className="blr-muted">Chọn đúng mã lớp; không tự ghép theo tên giáo viên. Việc thay đổi liên kết không ghi đè dữ liệu Điểm danh.</p>
   </section>;
 }
 export default function LearningReportsWorkspace({currentUser}) {
@@ -101,7 +113,10 @@ export default function LearningReportsWorkspace({currentUser}) {
   const [createEvent,setCreateEvent]=useState(true);
   const [selectedId,setSelectedId]=useState('');
   const [payload,setPayload]=useState({});
-  const [sessions,setSessions]=useState([]);
+  const [attendance,setAttendance]=useState(null);
+  const [attendanceLoading,setAttendanceLoading]=useState(false);
+  const [classOptions,setClassOptions]=useState([]);
+  const [bindingBusy,setBindingBusy]=useState(false);
   const [reviewComment,setReviewComment]=useState('');
   const [loading,setLoading]=useState(true);
   const [busy,setBusy]=useState(false);
@@ -145,24 +160,47 @@ export default function LearningReportsWorkspace({currentUser}) {
   const done=filtered.filter(t=>t.status==='approved').length;
 
   useEffect(()=>{
-    if(!selected){setSessions([]);return;}
+    if(!selected){setAttendance(null);setClassOptions([]);return;}
+    let active=true;
     setPayload({...selected.payload});setReviewComment(selected.reviewer_comment||'');
     if(!isLeader && selected.teacher_id===currentUser?.id && !selected.notified_read_at){
       markLearningReportRead(selected).catch(()=>{});
     }
-    let active=true;
-    listLearningSessions(selected.id).then(rows=>{if(active)setSessions(rows);})
-      .catch(e=>{if(active)setError(e.message);});
+    setAttendanceLoading(true);
+    const calls=[loadLearningAttendance(selected.id),isLeader?listLearningClassOptions(selected.id):Promise.resolve([])];
+    Promise.all(calls).then(([summary,options])=>{
+      if(!active)return;
+      setAttendance(summary);setClassOptions(options);
+    }).catch(e=>{if(active)setError('Không thể tải dữ liệu điểm danh: '+e.message);})
+      .finally(()=>{if(active)setAttendanceLoading(false);});
     return()=>{active=false;};
-  },[selectedId, selected?.id, currentUser?.id, isLeader]);
-
-  const reloadSessions=async()=>{if(selected) setSessions(await listLearningSessions(selected.id));};
+  },[selected?.id,isLeader,currentUser?.id]);
   const currentStatus=selected?.status||'draft';
   const editable=selected && !isLeader && selected.teacher_id===currentUser?.id&&['draft','revision'].includes(currentStatus);
   const progress=selected?reportProgress(selected.report_kind,payload):null;
-  const sessionStats=aggregateLearningSessions(sessions);
+  const effectiveAttendance=selected?.status==='approved' && selected.attendance_snapshot
+    ? selected.attendance_snapshot : attendance;
+  const hasLinkedClass=(effectiveAttendance?.classes?.length||0)>0;
   const deadlinePassed=Boolean(selected&&new Date(selected.due_at).getTime()<Date.now());
   const reportLocked=selected&&!editable;
+  const saveBindings=async(ids)=>{
+    if(!selected)return;
+    setBindingBusy(true);setError('');setNotice('');
+    try{
+      const count=await bindLearningClasses(selected.id,ids);
+      const [summary,options]=await Promise.all([
+        loadLearningAttendance(selected.id),listLearningClassOptions(selected.id),
+      ]);
+      setAttendance(summary);setClassOptions(options);
+      setNotice('Đã liên kết '+count+' lớp điểm danh. Dữ liệu được tổng hợp tự động.');
+    }catch(e){setError(e.message);}finally{setBindingBusy(false);}
+  };
+  const reloadAttendance=async()=>{
+    if(!selected)return;
+    setAttendanceLoading(true);setError('');
+    try{setAttendance(await loadLearningAttendance(selected.id));}
+    catch(e){setError(e.message);}finally{setAttendanceLoading(false);}
+  };
 
   const doIssue=async(e)=>{
     e.preventDefault();setError('');setNotice('');
@@ -259,7 +297,7 @@ export default function LearningReportsWorkspace({currentUser}) {
             <h3>{isLeader?teacherName(task.teacher_id):'Báo cáo '+task.period.slice(0,7)}</h3>
             <small><CalendarClock size={15}/> Hạn nộp: {dateLabel(task.due_at)}</small>
             <div className="blr-progress"><i style={{width:p.percent+'%'}}/></div>
-            <small>{p.count}/5 phần đã hoàn thành · {p.percent}%</small>
+            <small>{p.count}/5 phần đã hoàn thành · {p.percent}% phần chuyên môn</small>
           </button>;
         })}</div>}
     </section>}
@@ -269,7 +307,12 @@ export default function LearningReportsWorkspace({currentUser}) {
         <div><small>{isLeader?teacherName(selected.teacher_id):'BÁO CÁO CỦA TÔI'}</small>
           <h2>{LEARNING_REPORT_KINDS[selected.report_kind]} · {selected.period?.slice(0,7)}</h2>
           <p><Clock3 size={16}/> Hạn {dateLabel(selected.due_at)} {deadlinePassed&&currentStatus!=='approved'&&<b className="blr-overdue">· Quá hạn</b>} · <Status value={currentStatus}/></p></div></div>
-      <div className="blr-progressline"><strong>Tiến độ nội dung: {progress.count}/5 phần</strong><div className="blr-progress"><i style={{width:progress.percent+'%'}}/></div><span>{progress.percent}%</span></div>
+      {isLeader&&<ClassBindingEditor key={selected.id} options={classOptions} busy={bindingBusy} onSave={saveBindings}/>}
+      <div className="blr-attendance-refresh"><strong>Thống kê chuyên cần tự động</strong>
+        <button type="button" onClick={reloadAttendance} disabled={attendanceLoading}><RefreshCw size={16}/> Cập nhật từ Điểm danh</button></div>
+      <AttendancePanel data={effectiveAttendance} loading={attendanceLoading}/>
+      {selected.status==='approved'&&selected.attendance_snapshot&&<p className="blr-muted">Số liệu điểm danh tại thời điểm TTCM xác nhận báo cáo đã được lưu để đối chiếu.</p>}
+      <div className="blr-progressline"><strong>Tiến độ nhận xét chuyên môn: {progress.count}/5 phần</strong><div className="blr-progress"><i style={{width:progress.percent+'%'}}/></div><span>{progress.percent}%</span></div>
       {selected.reviewer_comment&&<div className="blr-banner">Nhận xét TTCM: {selected.reviewer_comment}</div>}
       {LEARNING_REPORT_SECTIONS[selected.report_kind].map((section,index)=><section className="blr-form-section" key={section.id}>
         <header><div className="blr-step">{String(index+1).padStart(2,'0')}</div><h3>{section.title}</h3>
@@ -278,11 +321,10 @@ export default function LearningReportsWorkspace({currentUser}) {
           label={label} fieldType={type} required={required!==false} value={payload[key]??''} disabled={reportLocked}
           onChange={value=>setPayload(old=>({...old,[key]:value}))}/>)}</div>
       </section>)}
-      <Journal key={selected.id} task={selected} rows={sessions} onReload={reloadSessions} onError={setError}/>
-      <div className="blr-journal-summary">Tổng hợp nhật ký: <strong>{sessionStats.sessions} buổi · {sessionStats.periods} tiết · {sessionStats.present}/{sessionStats.expected} lượt tham gia · {participationPercent(sessionStats)??'—'}% chuyên cần</strong></div>
+      {editable&&!hasLinkedClass&&<p className="blr-attendance-warning">Chưa thể gửi báo cáo vì TTCM chưa liên kết lớp điểm danh. Bạn vẫn có thể lưu phần đánh giá chuyên môn.</p>}
       {editable&&<div className="blr-actions blr-bottom-actions">
         <button type="button" disabled={busy} onClick={()=>doSave(false)}><Save size={18}/> Lưu nháp</button>
-        <button type="button" className="is-primary" disabled={busy||!progress.ready} onClick={()=>doSave(true)}><Send size={18}/> Gửi TTCM</button>
+        <button type="button" className="is-primary" disabled={busy||!progress.ready||!hasLinkedClass||attendanceLoading} onClick={()=>doSave(true)}><Send size={18}/> Gửi TTCM</button>
       </div>}
       {isLeader&&<section className="blr-review"><h3>Đánh giá của TTCM</h3>
         <label>Nhận xét / yêu cầu bổ sung<textarea rows={3} value={reviewComment} onChange={e=>setReviewComment(e.target.value)}/></label>

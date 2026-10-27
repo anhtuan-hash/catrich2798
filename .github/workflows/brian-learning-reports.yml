@@ -8,6 +8,7 @@ on:
       - 'src/utils/legacySiteTranslations.js'
       - 'supabase/migrations/20261027100000_learning_reports_gifted_remedial.sql'
       - 'scripts/test-learning-reports-contract.mjs'
+      - 'scripts/test-learning-report-attendance-contract.mjs'
       - '.github/workflows/brian-learning-reports.yml'
   workflow_dispatch:
 jobs:
@@ -23,6 +24,8 @@ jobs:
       - run: npm ci
       - name: Validate report contracts
         run: node scripts/test-learning-reports-contract.mjs
+      - name: Verify authoritative Attendance read-through
+        run: node scripts/test-learning-report-attendance-contract.mjs
       - name: Validate report JSX syntax
         run: |
           node --input-type=module <<'NODE'

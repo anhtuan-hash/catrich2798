@@ -36,3 +36,33 @@
 @media(max-width:900px){.blr-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.blr-list-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.blr-compose-grid{grid-template-columns:1fr}.blr-recipient-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.blr-journal-form{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.blr-shell{width:calc(100% - 18px)}.blr-hero{padding:20px}.blr-hero-icon{display:none}.blr-list-grid,.blr-recipient-grid,.blr-fields,.blr-metrics,.blr-journal-form{grid-template-columns:1fr}.blr-journal-form .is-wide,.blr-field:has(textarea){grid-column:auto}.blr-form-section,.blr-editor{padding:13px}.blr-task-top{flex-wrap:wrap}.blr-topline{align-items:stretch}.blr-kind-tabs{width:100%}.blr-kind-tabs button{flex:1}.blr-session-list article{flex-direction:column}}
 @media(prefers-reduced-motion:reduce){.blr-shell *, .blr-shell *::before,.blr-shell *::after{transition:none!important;animation:none!important}}
+
+/* Brian Reports · Attendance-backed professional report */
+.blr-attendance-source{background:#fbfdff;border-color:#cddfed}
+.blr-attendance-source h3,.blr-bind-editor h3{display:flex;align-items:center;gap:9px}
+.blr-attendance-source h3 svg,.blr-bind-editor h3 svg{color:#2379b0}
+.blr-attendance-source header>span{background:#e4f4e9;color:#226846;border-radius:999px;padding:7px 11px;font-size:12px}
+.blr-attendance-warning{display:flex;gap:12px;align-items:flex-start;border:1px solid #f3d2a5;background:#fff9ed;color:#8b5b18;border-radius:14px;padding:17px;margin:15px 0}
+.blr-attendance-warning svg{flex-shrink:0}.blr-attendance-warning p{margin:6px 0 0;color:#916d37}
+.blr-attendance-classes{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:16px 0}
+.blr-attendance-classes>span{border:1px solid #d7e7f3;border-radius:999px;background:#eaf5ff;padding:8px 12px;font-size:13px}
+.blr-attendance-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin:18px 0}
+.blr-attendance-metrics>div{display:grid;gap:8px;border:1px solid #dce8f3;border-radius:14px;padding:15px;background:white}
+.blr-attendance-metrics small{font-size:12px;font-weight:700;color:#5d748c}
+.blr-attendance-metrics strong{font-size:23px;color:#184e7b}
+.blr-attendance-sessions h4{font-size:16px;margin:22px 0 12px}
+.blr-attendance-sessions article{display:flex;justify-content:space-between;align-items:start;gap:12px;padding:14px 0;border-top:1px solid #e5edf5}
+.blr-attendance-sessions article small{display:block;margin-top:5px;color:#637e98}
+.blr-attendance-sessions article p{margin:8px 0;font-size:13px;color:#5b7087}
+.blr-synced-pill{flex-shrink:0;display:inline-flex;gap:5px;align-items:center;font-size:11px;font-weight:800;color:#1f7b56;background:#e6f8ec;border-radius:999px;padding:7px 9px}
+.blr-attendance-refresh{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin:22px 0 12px}
+.blr-bind-editor{border:1px solid #b8d7e9;border-radius:19px;background:#f6fbff;padding:22px;margin:16px 0}
+.blr-bind-editor header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:15px}
+.blr-bind-editor h3{font-size:19px;margin:0 0 8px}.blr-bind-editor p{font-size:13px;color:#57718b;margin:0}
+.blr-bind-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:13px}
+.blr-bind-grid label{display:flex;gap:10px;align-items:center;background:#fff;padding:14px;border:1px solid #d5e4f0;border-radius:12px;cursor:pointer}
+.blr-bind-grid label.is-checked{background:#eaf6ff;border-color:#3282b9}
+.blr-bind-grid label strong{display:block;font-size:13px;line-height:1.5}
+.blr-bind-grid label small{display:block;font-size:12px;color:#64819a;margin-top:4px}
+@media(max-width:840px){.blr-bind-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.blr-bind-grid{grid-template-columns:1fr}.blr-attendance-sessions article{flex-direction:column}.blr-attendance-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.blr-bind-editor{padding:14px}}
