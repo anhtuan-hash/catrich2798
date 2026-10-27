@@ -23,8 +23,22 @@ jobs:
       - run: npm ci
       - name: Validate report contracts
         run: node scripts/test-learning-reports-contract.mjs
-      - name: Parse and bundle report frontend
-        run: ./node_modules/.bin/esbuild src/features/learningReports/LearningReportsWorkspace.jsx --bundle --external:* --format=esm --outfile=/tmp/brian-learning-reports.js
+      - name: Validate report JSX syntax
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import ts from 'typescript';
+          const path = 'src/features/learningReports/LearningReportsWorkspace.jsx';
+          const result = ts.transpileModule(fs.readFileSync(path, 'utf8'), {
+            fileName: path,
+            reportDiagnostics: true,
+            compilerOptions: { allowJs:true, jsx:ts.JsxEmit.ReactJSX, target:ts.ScriptTarget.ES2022 },
+          });
+          const errors = (result.diagnostics || []).filter(item => item.category === ts.DiagnosticCategory.Error);
+          for (const item of errors) console.error(ts.flattenDiagnosticMessageText(item.messageText, '\n'));
+          if (errors.length) process.exit(1);
+          console.log('PASS: JSX parsed and transpiled');
+          NODE
       - name: Check JS syntax
         run: node --check src/features/learningReports/learningReportsService.js
       - name: Bilingual UI audit
