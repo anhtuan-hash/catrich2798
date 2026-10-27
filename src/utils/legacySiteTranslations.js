@@ -3060,4 +3060,11 @@ export const LEGACY_SITE_EN = Object.freeze({
   "Bỏ chọn": "Clear selection",
   "Xuất CSV": "Export CSV",
   "Đang tải báo cáo…": "Loading reports…",
+  "Liên kết lớp và giáo viên đứng lớp": "Link class and actual instructor",
+  "Đang lập báo cáo cho:": "Reporting for:",
+  "Giáo viên thực dạy của lớp này": "Actual class instructor",
+  "Không liên kết lớp này": "Do not link this class",
+  "Lớp chưa có danh sách giáo viên trong Điểm danh.": "This class has no instructor roster in Attendance.",
+  "Chỉ lấy buổi đã chốt do đúng giáo viên này giảng dạy; không cộng chung buổi của giáo viên khác trong cùng lớp.": "Only confirmed lessons taught by this exact instructor are counted; co-teachers' lessons are excluded.",
+  "Hai giáo viên cùng lớp được phân biệt bằng tên người dạy trên từng buổi điểm danh. Mỗi buổi chỉ thuộc báo cáo của giáo viên được chọn, không cộng dồn toàn lớp.": "Co-teachers are distinguished by the actual instructor recorded for every attendance session.",
 });

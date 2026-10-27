@@ -120,9 +120,19 @@ export async function listLearningClassOptions(taskId) {
   const {data,error}=await db().rpc('bes_learning_report_class_options',{p_task_id:taskId});
   fail(error);return Array.isArray(data)?data:[];
 }
-export async function bindLearningClasses(taskId, classIds) {
-  const {data,error}=await db().rpc('bes_learning_report_bind_classes',{
-    p_task_id:taskId,p_class_ids:[...new Set((classIds||[]).filter(Boolean))],
+export async function bindLearningClasses(taskId, bindings) {
+  if (!taskId) throw new Error('Chưa chọn báo cáo.');
+  if (!Array.isArray(bindings)) throw new Error('Liên kết lớp và giáo viên không hợp lệ.');
+  const normalized=bindings.map(row=>({
+    classId:String(row?.classId||'').trim(),
+    instructorName:String(row?.instructorName||'').trim(),
+  }));
+  if (normalized.some(row=>!row.classId||!row.instructorName))
+    throw new Error('Phải chọn chính xác giáo viên giảng dạy cho mỗi lớp.');
+  if (new Set(normalized.map(row=>row.classId)).size!==normalized.length)
+    throw new Error('Mỗi lớp chỉ có thể liên kết một tên giáo viên cho báo cáo này.');
+  const {data,error}=await db().rpc('bes_learning_report_bind_instructors',{
+    p_task_id:taskId,p_links:normalized,
   });
   fail(error);return Number(data||0);
 }

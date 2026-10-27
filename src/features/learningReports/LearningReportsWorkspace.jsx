@@ -49,7 +49,7 @@ function AttendancePanel({data,loading}) {
   return <section className="blr-journal blr-attendance-source" aria-label="Dữ liệu tự động từ điểm danh">
     <header>
       <div><h3><ShieldCheck size={21}/> Dữ liệu tự động từ Brian Attendance</h3>
-        <p>Số liệu chỉ lấy từ các buổi điểm danh đã chốt trong kỳ báo cáo; không cần nhập lại.</p></div>
+        <p>Chỉ lấy các buổi đã chốt do đúng giáo viên này giảng dạy; không cộng chung buổi của giáo viên khác trong cùng lớp.</p></div>
       <span>{loading?'Đang đồng bộ…':'Nguồn: Điểm danh chính thức'}</span>
     </header>
     {!classes.length ? <div className="blr-attendance-warning">
@@ -57,7 +57,7 @@ function AttendancePanel({data,loading}) {
         <p>TTCM cần chọn lớp phụ trách trong mục “Liên kết lớp điểm danh”. Giáo viên không phải nhập số liệu thủ công.</p></div>
     </div> : <>
       <div className="blr-attendance-classes"><strong>Đội tuyển / lớp đã liên kết:</strong>
-        {classes.map(c=><span key={c.id}>{c.name} · {c.registered} HS đăng ký</span>)}</div>
+        {classes.map(c=><span key={c.id}>{c.name} · GV: {c.instructorName} · {c.registered} HS đăng ký</span>)}</div>
       <div className="blr-attendance-metrics">
         {[
           ['Lớp liên kết',classes.length],['Buổi đã chốt',t.sessions??0],
@@ -70,7 +70,7 @@ function AttendancePanel({data,loading}) {
         <h4>Nhật ký các buổi đã chốt · {data?.period||''}</h4>
         {!sessions.length?<p className="blr-muted">Chưa có buổi điểm danh đã chốt trong tháng này. Số liệu sẽ tự xuất hiện khi Điểm danh được xác nhận.</p>
         :sessions.map(row=><article key={row.id}>
-          <div><strong>{row.date} · {row.className}</strong>
+          <div><strong>{row.date} · {row.className} · GV: {row.instructorName}</strong>
             <small>{row.periods} tiết · Có mặt {row.present}/{row.expected} · Đi trễ {row.late} · Vắng {row.absent}</small>
             {row.note&&<p>Ghi chú từ điểm danh: {row.note}</p>}</div>
           <span className="blr-synced-pill"><ShieldCheck size={13}/> Đã đồng bộ</span>
@@ -79,24 +79,40 @@ function AttendancePanel({data,loading}) {
     </>}
   </section>;
 }
-function ClassBindingEditor({options=[],busy,onSave}) {
-  const [ids,setIds]=useState([]);
-  useEffect(()=>{setIds(options.filter(c=>c.linked).map(c=>c.id));},[options]);
-  const toggle=id=>setIds(old=>old.includes(id)?old.filter(x=>x!==id):[...old,id]);
+function ClassBindingEditor({options=[],busy,onSave,teacherLabel=''}) {
+  const [byClass,setByClass]=useState({});
+  useEffect(()=>{
+    setByClass(Object.fromEntries(options.filter(c=>c.linked&&c.linkedInstructor)
+      .map(c=>[c.id,c.linkedInstructor])));
+  },[options]);
+  const selected=options.filter(c=>byClass[c.id]).map(c=>({
+    classId:c.id,instructorName:byClass[c.id],
+  }));
   return <section className="blr-bind-editor">
-    <header><div><h3><Link2 size={19}/> Liên kết lớp điểm danh</h3>
-      <p>Chỉ TTCM liên kết. Một lần liên kết được dùng lại cho các báo cáo tháng sau của giáo viên này.</p></div>
-      <button type="button" className="is-primary" disabled={busy} onClick={()=>onSave(ids)}>
-        <Save size={16}/>{busy?'Đang lưu…':'Lưu liên kết lớp'}</button>
+    <header><div><h3><Link2 size={19}/> Liên kết lớp và giáo viên đứng lớp</h3>
+      <p>Đang lập báo cáo cho: <strong>{teacherLabel}</strong>. Chọn tên người giảng dạy được ghi trong Điểm danh của từng lớp. Liên kết này được dùng lại trong các kỳ tiếp theo.</p></div>
+      <button type="button" className="is-primary" disabled={busy} onClick={()=>onSave(selected)}>
+        <Save size={16}/>{busy?'Đang lưu…':'Lưu '+selected.length+' liên kết'}</button>
     </header>
     <div className="blr-bind-grid">
-      {options.map(c=><label key={c.id} className={ids.includes(c.id)?'is-checked':''}>
-        <input type="checkbox" checked={ids.includes(c.id)} onChange={()=>toggle(c.id)}/>
-        <span><strong>{c.name}</strong><small>{c.subject||'Môn học'} · {c.grade||'Khối'} · {c.completedSessions} buổi đã chốt trong kỳ</small></span>
-      </label>)}
+      {options.map(c=><div key={c.id} className={'blr-instructor-class '+(byClass[c.id]?'is-checked':'')}>
+        <strong>{c.name}</strong>
+        <small>{c.subject||'Môn học'} · {c.grade||'Khối'}</small>
+        <label htmlFor={'blr-instructor-'+c.id}>Giáo viên thực dạy của lớp này</label>
+        <select id={'blr-instructor-'+c.id} value={byClass[c.id]||''} disabled={busy}
+          onChange={e=>setByClass(old=>({...old,[c.id]:e.target.value}))}>
+          <option value="">Không liên kết lớp này</option>
+          {(c.instructors||[]).map(instructor=><option key={instructor.name}
+            value={instructor.name} disabled={instructor.assignedToOther}>
+            {instructor.name} · {instructor.confirmedSessions} buổi đã chốt{instructor.assignedToOther?' · Đã gán giáo viên khác':''}
+          </option>)}
+        </select>
+        {!c.instructors?.length&&<p className="blr-muted">Lớp chưa có danh sách giáo viên trong Điểm danh.</p>}
+        {byClass[c.id]&&<span className="blr-synced-pill"><ShieldCheck size={13}/> Chỉ lấy buổi dạy của {byClass[c.id]}</span>}
+      </div>)}
       {!options.length&&<p>Chưa có lớp điểm danh phù hợp với loại báo cáo này.</p>}
     </div>
-    <p className="blr-muted">Chọn đúng mã lớp; không tự ghép theo tên giáo viên. Việc thay đổi liên kết không ghi đè dữ liệu Điểm danh.</p>
+    <p className="blr-muted">Hai giáo viên cùng lớp được phân biệt bằng tên người dạy trên từng buổi điểm danh. Mỗi buổi chỉ thuộc báo cáo của giáo viên được chọn, không cộng dồn toàn lớp.</p>
   </section>;
 }
 export default function LearningReportsWorkspace({currentUser}) {
@@ -192,7 +208,7 @@ export default function LearningReportsWorkspace({currentUser}) {
         loadLearningAttendance(selected.id),listLearningClassOptions(selected.id),
       ]);
       setAttendance(summary);setClassOptions(options);
-      setNotice('Đã liên kết '+count+' lớp điểm danh. Dữ liệu được tổng hợp tự động.');
+      setNotice('Đã liên kết '+count+' cặp lớp + giáo viên. Chỉ những buổi giảng dạy của giáo viên được chọn mới được tổng hợp.');
     }catch(e){setError(e.message);}finally{setBindingBusy(false);}
   };
   const reloadAttendance=async()=>{
@@ -307,7 +323,7 @@ export default function LearningReportsWorkspace({currentUser}) {
         <div><small>{isLeader?teacherName(selected.teacher_id):'BÁO CÁO CỦA TÔI'}</small>
           <h2>{LEARNING_REPORT_KINDS[selected.report_kind]} · {selected.period?.slice(0,7)}</h2>
           <p><Clock3 size={16}/> Hạn {dateLabel(selected.due_at)} {deadlinePassed&&currentStatus!=='approved'&&<b className="blr-overdue">· Quá hạn</b>} · <Status value={currentStatus}/></p></div></div>
-      {isLeader&&<ClassBindingEditor key={selected.id} options={classOptions} busy={bindingBusy} onSave={saveBindings}/>}
+      {isLeader&&<ClassBindingEditor key={selected.id} options={classOptions} busy={bindingBusy} onSave={saveBindings} teacherLabel={teacherName(selected.teacher_id)}/>}
       <div className="blr-attendance-refresh"><strong>Thống kê chuyên cần tự động</strong>
         <button type="button" onClick={reloadAttendance} disabled={attendanceLoading}><RefreshCw size={16}/> Cập nhật từ Điểm danh</button></div>
       <AttendancePanel data={effectiveAttendance} loading={attendanceLoading}/>

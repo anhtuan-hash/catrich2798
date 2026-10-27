@@ -9,6 +9,9 @@ on:
       - 'supabase/migrations/20261027100000_learning_reports_gifted_remedial.sql'
       - 'scripts/test-learning-reports-contract.mjs'
       - 'scripts/test-learning-report-attendance-contract.mjs'
+      - 'scripts/test-learning-report-instructor-scoping.mjs'
+      - 'supabase/migrations/20261027132000_learning_reports_instructor_scoped.sql'
+      - 'supabase/migrations/20261027133000_learning_report_teacher_name_uniqueness.sql'
       - '.github/workflows/brian-learning-reports.yml'
   workflow_dispatch:
 jobs:
@@ -26,6 +29,8 @@ jobs:
         run: node scripts/test-learning-reports-contract.mjs
       - name: Verify authoritative Attendance read-through
         run: node scripts/test-learning-report-attendance-contract.mjs
+      - name: Verify per-instructor source attribution
+        run: node scripts/test-learning-report-instructor-scoping.mjs
       - name: Validate report JSX syntax
         run: |
           node --input-type=module <<'NODE'
