@@ -29,6 +29,7 @@ const ORIGINAL_BRIDGE_CLASSES = [
   ['dashboard', 'brian-nav__dashboard-tab'],
   ['homeroom', 'brian-nav__homeroom-tab'],
   ['gradebook', 'brian-nav__gradebook-tab'],
+  ['lesson-check', 'brian-nav__lesson-check-tab'],
   ['reports', 'brian-nav__reports-tab'],
   ['ttcm', 'brian-nav__ttcm-tab'],
   ['attendance', 'brian-nav__attendance-tab'],
@@ -41,17 +42,29 @@ function originalBridgeKey(button, index = 0) {
   return match?.[0] || `bridge-${index}`;
 }
 
+// Report navigation is portalled into a nested desktop utility slot. Mobile
+// must discover that button without including unrelated nested controls.
+function originalBridgeButtons(host) {
+  if (!host) return [];
+  return Array.from(host.children).flatMap((node) => {
+    if (node.tagName === 'BUTTON') return [node];
+    if (node.classList?.contains('brian-nav__utility-reports')) {
+      return Array.from(node.children).filter((child) => child.tagName === 'BUTTON');
+    }
+    return [];
+  });
+}
+
 function originalBridgeLabel(button) {
   if (!button) return '';
   const clone = button.cloneNode(true);
-  clone.querySelectorAll('svg, b, [aria-hidden="true"], .brian-nav__reports-countdown').forEach((node) => node.remove());
+  clone.querySelectorAll('svg, b, [aria-hidden="true"], .brian-nav__reports-countdown, .brian-nav__reports-more').forEach((node) => node.remove());
   return String(clone.textContent || '').replace(/\s+/g, ' ').trim();
 }
 
 function readOriginalBridgeItems(host) {
   if (!host) return [];
-  return Array.from(host.children)
-    .filter((node) => node?.tagName === 'BUTTON')
+  return originalBridgeButtons(host)
     .map((button, index) => ({
       id: `original:${originalBridgeKey(button, index)}`,
       bridgeKey: originalBridgeKey(button, index),
@@ -59,7 +72,12 @@ function readOriginalBridgeItems(host) {
       label: originalBridgeLabel(button),
       active: button.classList.contains('is-active') || button.getAttribute('aria-current') === 'page' || button.getAttribute('aria-expanded') === 'true',
     }))
-    .filter((item) => item.label);
+    .filter((item) => item.label)
+    .sort((a, b) => {
+      const aOrder = ORIGINAL_BRIDGE_CLASSES.findIndex(([key]) => key === a.bridgeKey);
+      const bOrder = ORIGINAL_BRIDGE_CLASSES.findIndex(([key]) => key === b.bridgeKey);
+      return (aOrder < 0 ? Infinity : aOrder) - (bOrder < 0 ? Infinity : bOrder);
+    });
 }
 
 function notificationStorageKey(currentUser) {
@@ -253,7 +271,7 @@ export default function MobileAppShell({
     }
     if (item?.action === 'original-bridge') {
       const host = document.querySelector('.bes-mobile-bridge-host');
-      const source = Array.from(host?.children || []).find((button, index) => originalBridgeKey(button, index) === item.bridgeKey);
+      const source = originalBridgeButtons(host).find((button, index) => originalBridgeKey(button, index) === item.bridgeKey);
       source?.click?.();
       return;
     }
@@ -313,7 +331,10 @@ export default function MobileAppShell({
           hasUnread={hasUnread}
         />
         <MobileBottomNavigation items={navigation.bottomItems} onSelect={selectItem} />
-        <div className="brian-nav__primary bes-mobile-bridge-host" hidden aria-hidden="true" />
+        <div className="brian-nav__primary bes-mobile-bridge-host" hidden aria-hidden="true">
+          {/* Reuse the desktop Reports portal and its existing role gate on mobile. */}
+          <div className="brian-nav__utility-reports" data-nav-key="reports" />
+        </div>
       </div>
 
       <MobileMoreSheet
