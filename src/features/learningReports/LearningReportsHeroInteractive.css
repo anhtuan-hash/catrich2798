@@ -1,0 +1,319 @@
+
+/*
+ * Hero 2.0: interactive reporting month + consistent Material 3 segment tabs.
+ * Specialist-scoped only. Month control is live React state, not a static label.
+ */
+.blr-shell .blr-hero.blr-hero-interactive{
+  display:grid;
+  grid-template-columns:minmax(0,1.4fr) minmax(300px,.9fr);
+  align-items:center;
+  column-gap:24px;
+  min-height:257px;
+  padding:32px clamp(24px,3.3vw,50px);
+  border:1px solid #d6e5f7;
+  border-radius:29px;
+  background:
+    radial-gradient(ellipse at 80% 36%,rgba(202,225,255,.55) 0,rgba(231,240,255,.22) 25%,transparent 50%),
+    radial-gradient(ellipse at 108% 120%,rgba(255,214,200,.26),transparent 40%),
+    linear-gradient(112deg,#edf6ff 0%,#fcfdff 53%,#fff7f2 100%);
+  box-shadow:0 12px 31px rgba(34,69,111,.065);
+}
+.blr-shell .blr-hero.blr-hero-interactive::before{
+  content:"";
+  position:absolute;
+  width:min(67vw,690px);
+  height:250px;
+  right:-120px;
+  bottom:-190px;
+  border:1px solid rgba(255,255,255,.82);
+  border-radius:50%;
+  background:linear-gradient(120deg,rgba(202,227,255,.5),rgba(255,229,219,.4));
+  transform:rotate(-13deg);
+}
+.blr-shell .blr-hero.blr-hero-interactive::after{
+  content:"";
+  position:absolute;
+  width:380px;height:380px;
+  right:-175px;top:-205px;
+  border:1px solid rgba(255,255,255,.68);
+  background:rgba(255,255,255,.19);
+  border-radius:50%;
+  transform:none;
+}
+.blr-shell .blr-hero.blr-hero-interactive .blr-hero-copy{
+  position:relative;
+  z-index:2;
+  max-width:100%;
+  min-width:0;
+}
+.blr-shell .blr-hero.blr-hero-interactive .blr-hero-copy h1{
+  font-size:clamp(35px,4vw,53px);
+  line-height:1.09;
+  letter-spacing:-.052em;
+  color:#10365e;
+  margin:11px 0 11px;
+}
+.blr-shell .blr-hero.blr-hero-interactive .blr-hero-copy p{
+  font-size:clamp(13px,1.16vw,15px);
+  line-height:1.66;
+  max-width:690px;
+}
+.blr-shell .blr-hero-inline-meta{
+  margin-top:19px;
+  display:flex;align-items:center;flex-wrap:wrap;
+  gap:9px;
+}
+.blr-shell .blr-hero-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  min-height:36px;
+  padding:7px 13px;
+  color:#255b8a;
+  border:1px solid #d2e3f7;
+  border-radius:100px;
+  font-size:12px;
+  font-weight:720;
+  background:rgba(255,255,255,.8);
+  box-shadow:0 2px 8px rgba(35,81,134,.035);
+  white-space:nowrap;
+}
+.blr-shell .blr-hero-pill.is-soft{background:rgba(237,246,255,.74);color:#5b7490}
+.blr-shell .blr-hero-stage{
+  z-index:2;
+  position:relative;
+  width:100%;
+  min-height:192px;
+  display:grid;
+  place-items:center;
+  margin-left:0;
+}
+.blr-shell .blr-hero-visual{
+  position:absolute;
+  left:27%;top:16%;
+  width:129px;height:135px;
+  border:1px solid rgba(255,255,255,.72);
+  border-radius:46%;
+  background:radial-gradient(circle at 30% 29%,#eaf4ff,#cbdfff);
+  display:grid;place-items:center;
+  transform:rotate(-10deg);
+  box-shadow:0 12px 28px rgba(48,92,153,.08);
+}
+.blr-shell .blr-hero-visual .blr-hero-icon{
+  position:relative;
+  z-index:2;
+  width:104px;height:116px;
+  margin:0;
+  transform:rotate(17deg);
+  border-radius:26px;
+  box-shadow:0 12px 30px rgba(41,94,154,.12),inset 0 1px 1px #fff;
+}
+.blr-shell .blr-hero-visual .blr-hero-icon:before{
+  width:133px;height:133px;left:-16px;top:-17px;
+}
+.blr-shell .blr-hero-visual .blr-hero-icon:after{
+  width:35px;height:35px;left:-15px;bottom:-10px;
+}
+.blr-shell .blr-hero-month-card,
+.blr-shell .blr-hero-chip{
+  position:absolute;
+  z-index:3;
+  display:grid;align-content:center;
+  gap:5px;
+  padding:12px 14px;
+  text-align:left;
+  border:1px solid rgba(215,230,247,.95);
+  border-radius:17px;
+  background:rgba(255,255,255,.95);
+  box-shadow:0 10px 23px rgba(40,78,120,.085);
+  color:#24496e;
+}
+.blr-shell .blr-hero-month-card{right:3px;top:0;min-width:217px;max-width:244px}
+.blr-shell .blr-hero-month-card > label,
+.blr-shell .blr-hero-chip > span{
+  font-size:11px;
+  color:#70859e;
+  font-weight:730;
+  letter-spacing:.005em;
+}
+.blr-shell .blr-hero-month-control{
+  display:flex;align-items:center;gap:5px;
+}
+.blr-shell .blr-hero-month-control input[type=month]{
+  min-width:0;
+  width:135px;
+  flex:1 1 auto;
+  min-height:34px;
+  padding:5px 6px;
+  border:1px solid transparent;
+  background:#f1f6fd;
+  border-radius:8px;
+  color:#1b527e;
+  font-size:13px;
+  font-weight:790;
+  letter-spacing:0;
+  box-shadow:none;
+  color-scheme:light;
+}
+.blr-shell .blr-hero-month-control input[type=month]::-webkit-calendar-picker-indicator{
+  cursor:pointer;
+  opacity:.75;
+  width:12px;
+  margin-left:2px;
+}
+.blr-shell button.blr-hero-month-nav:not(.blr-task):not(.blrd-month){
+  display:grid;place-items:center;
+  flex:0 0 31px;
+  width:31px;height:33px;min-height:33px;
+  padding:0;
+  background:#f4f8ff;
+  border:1px solid #e1eaf6;
+  border-radius:9px;
+  color:#426d98;
+  box-shadow:none;
+}
+.blr-shell button.blr-hero-month-nav:not(.blr-task):not(.blrd-month):hover{
+  color:#1d5fb2;border-color:#abcaf1;background:#e9f2ff;
+}
+.blr-shell button.blr-hero-chip:not(.blr-task):not(.blrd-month){
+  display:grid;align-content:center;
+  min-height:67px;
+  gap:3px;
+  text-align:left;
+  border:1px solid #dbe7f5;
+  background:rgba(255,255,255,.95);
+  padding:11px 13px;
+  color:#24496e;
+}
+.blr-shell button.blr-hero-chip:not(.blr-task):not(.blrd-month):hover:not(:disabled){
+  border-color:#adcdf4;background:#f7fbff;transform:translateY(-2px);
+}
+.blr-shell .blr-hero-chip strong{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:21px;
+  line-height:1.17;
+  letter-spacing:-.035em;
+  color:#153b62;
+  font-variant-numeric:tabular-nums;
+}
+.blr-shell .blr-hero-chip.is-count{
+  left:0;bottom:0;
+  min-width:148px;
+}
+.blr-shell .blr-hero-chip.is-status{
+  right:0;bottom:0;
+  min-width:136px;
+  background:rgba(241,250,246,.94);
+  border-color:#d7ede5;
+}
+.blr-shell .blr-hero-chip.is-status strong{color:#247457}
+.blr-shell .blr-hero-stage button:disabled{opacity:1;cursor:default}
+.blr-shell .blr-hero-stage button:disabled:hover{transform:none}
+/* Tab parity: all 3 have the same height, radius, padding, indicator and tonal active state. */
+.blr-shell .blr-manager-modes.blr-unified-tabs{
+  display:flex;align-items:center;flex-wrap:wrap;
+  gap:8px;
+  padding:8px;
+  border-radius:18px;
+  background:linear-gradient(120deg,#f8fbff,#f2f7fd);
+  border:1px solid #dce8f5;
+  margin-bottom:18px;
+}
+.blr-shell .blr-manager-modes.blr-unified-tabs > button:not(.blr-task):not(.blrd-month){
+  display:inline-flex;
+  align-items:center;justify-content:center;
+  flex:0 0 auto;
+  gap:9px;
+  min-height:44px;height:44px;
+  min-width:177px;
+  margin:0;
+  padding:0 16px;
+  border:1px solid transparent;
+  border-radius:12px;
+  background:rgba(255,255,255,.89);
+  color:#416483;
+  font-size:13px;font-weight:750;
+  line-height:1.2;
+  box-shadow:none;
+  text-transform:none;
+}
+.blr-shell .blr-manager-modes.blr-unified-tabs > button:not(.blr-task):not(.blrd-month):hover:not(:disabled){
+  background:#eaf3ff;
+  border-color:#bfd8f5;
+  color:#225eaa;
+}
+.blr-shell .blr-manager-modes.blr-unified-tabs > button.is-active:not(.blr-task):not(.blrd-month),
+.blr-shell .blr-manager-modes.blr-unified-tabs > button[aria-selected=true]:not(.blr-task):not(.blrd-month){
+  background:#e8f2ff;
+  border-color:#b9d5f6;
+  color:#155aa8;
+  box-shadow:inset 0 0 0 1px rgba(205,228,255,.65);
+}
+.blr-shell .blr-manager-modes.blr-unified-tabs > button.is-active:after{display:none}
+.blr-shell .blr-manager-modes.blr-unified-tabs .blr-analytics-kind{
+  margin-left:auto;
+  font-size:12px;
+  color:#57718a;
+}
+@media(max-width:1090px){
+  .blr-shell .blr-hero.blr-hero-interactive{
+    grid-template-columns:minmax(0,1fr) minmax(280px,350px);
+    column-gap:10px;
+  }
+  .blr-shell .blr-hero.blr-hero-interactive .blr-hero-copy h1{
+    font-size:clamp(32px,4.1vw,48px)
+  }
+  .blr-shell .blr-hero-stage{min-height:197px}
+  .blr-shell .blr-hero-visual{left:22%}
+}
+@media(max-width:825px){
+  .blr-shell .blr-hero.blr-hero-interactive{
+    grid-template-columns:minmax(0,1fr);
+    row-gap:9px;
+  }
+  .blr-shell .blr-hero-stage{min-height:185px;max-width:520px;margin-inline:auto}
+  .blr-shell .blr-hero-visual{left:36%;top:15%}
+  .blr-shell .blr-manager-modes.blr-unified-tabs > button:not(.blr-task):not(.blrd-month){
+    flex:1 1 145px;
+    min-width:145px;
+  }
+}
+@media(max-width:650px){
+  .blr-shell .blr-hero.blr-hero-interactive{
+    padding:24px 19px;
+    border-radius:22px;
+  }
+  .blr-shell .blr-hero.blr-hero-interactive .blr-hero-copy h1{
+    font-size:clamp(30px,8vw,42px);
+  }
+  .blr-shell .blr-hero-stage{min-height:192px}
+  .blr-shell .blr-hero-month-card{right:0;top:0;min-width:206px}
+  .blr-shell .blr-hero-visual{display:grid;left:8%;top:12%;opacity:.55;transform:scale(.85)}
+  .blr-shell .blr-hero-chip.is-count{left:0;bottom:0;min-width:133px}
+  .blr-shell .blr-hero-chip.is-status{right:0;bottom:0;min-width:122px}
+  .blr-shell .blr-manager-modes.blr-unified-tabs{gap:6px;padding:6px}
+  .blr-shell .blr-manager-modes.blr-unified-tabs > button:not(.blr-task):not(.blrd-month){
+    flex:1 1 calc(50% - 6px);
+    min-width:0;
+    height:44px;
+    min-height:44px;
+    padding:0 9px;
+    font-size:12px;
+  }
+  .blr-shell .blr-manager-modes.blr-unified-tabs .blr-analytics-kind{
+    flex:1 0 100%;
+  }
+}
+@media(max-width:390px){
+  .blr-shell .blr-hero-visual{opacity:.35}
+  .blr-shell .blr-hero-chip.is-count,.blr-shell .blr-hero-chip.is-status{min-width:113px;padding:8px}
+  .blr-shell .blr-hero-chip > span{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){
+  .blr-shell .blr-hero-chip,.blr-shell .blr-manager-modes.blr-unified-tabs > button{
+    transition:none!important;
+  }
+}
+@media print{
+  .blr-shell .blr-hero-stage{display:none!important}
+}
