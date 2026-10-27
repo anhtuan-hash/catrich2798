@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import LearningReportsManagerDashboard from './LearningReportsManagerDashboard.jsx';
 import SmartAssignmentComposer from './SmartAssignmentComposer.jsx';
 import LearningAssignmentManager from './LearningAssignmentManager.jsx';
+import {isValidReportPeriod,reportPeriodTitle,shiftReportPeriod} from './learningReportsPeriod.js';
 import { Award, BookOpenCheck, CalendarClock, CheckCircle2, ClipboardCheck, Clock3,
   Download, FileText, RefreshCw, Save, Send, Trash2, Link2, ShieldCheck, UsersRound, AlertCircle, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { isDepartmentLeaderRole } from '../../utils/roles.js';
@@ -19,17 +20,6 @@ import './LearningReportsHeroInteractive.css';
 
 const dateOnly = () => { const now = new Date(); return [now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-'); };
 const periodNow = () => dateOnly().slice(0,7);
-
-const validPeriod = value => /^\d{4}-(0[1-9]|1[0-2])$/.test(String(value||''));
-const periodTitle = period => {
-  const [year,month]=String(period||periodNow()).split('-');
-  return 'Tháng '+Number(month)+'/'+year;
-};
-const shiftPeriod=(period,offset)=>{
-  const [year,month]=String(period||periodNow()).split('-').map(Number);
-  const d=new Date(year,month-1+offset,1);
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-};
 
 const dateLabel = value => value ? new Intl.DateTimeFormat('vi-VN',{dateStyle:'medium',timeStyle:'short'}).format(new Date(value)) : '—';
 const safeText = value => String(value ?? '');
@@ -199,7 +189,7 @@ export default function LearningReportsWorkspace({currentUser}) {
     managerView==='summary'?'Tổng hợp tổ':
     managerView==='history'?'Thống kê tháng':'Báo cáo giáo viên';
   const updateHeroPeriod=period=>{
-    if(!validPeriod(period))return;
+    if(!isValidReportPeriod(period))return;
     setHeroPeriod(period);
     if(isLeader&&!selected){
       setShowComposer(false);
@@ -295,7 +285,7 @@ export default function LearningReportsWorkspace({currentUser}) {
         <h1>Bồi dưỡng & Phụ đạo</h1>
         <p>Quản lý hiệu quả dạy học, nhật ký từng buổi và báo cáo chuyên môn có minh chứng.</p>
         <div className="blr-hero-inline-meta">
-          <span className="blr-hero-pill"><CalendarClock size={16} aria-hidden="true"/>{periodTitle(heroPeriod)}</span>
+          <span className="blr-hero-pill"><CalendarClock size={16} aria-hidden="true"/>{reportPeriodTitle(heroPeriod)}</span>
           <span className="blr-hero-pill is-soft"><FileText size={16} aria-hidden="true"/>{heroModeLabel}</span>
         </div>
       </div>
@@ -308,18 +298,18 @@ export default function LearningReportsWorkspace({currentUser}) {
           <div className="blr-hero-month-control">
             <button type="button" className="blr-hero-month-nav"
               aria-label="Tháng trước" title="Xem tháng trước"
-              onClick={()=>updateHeroPeriod(shiftPeriod(heroPeriod,-1))}><ChevronLeft size={17}/></button>
+              onClick={()=>updateHeroPeriod(shiftReportPeriod(heroPeriod,-1))}><ChevronLeft size={17}/></button>
             <input id="blr-hero-report-period" type="month" aria-label="Chọn tháng báo cáo"
               value={heroPeriod} onChange={e=>updateHeroPeriod(e.target.value)}/>
             <button type="button" className="blr-hero-month-nav"
               aria-label="Tháng sau" title="Xem tháng sau"
-              onClick={()=>updateHeroPeriod(shiftPeriod(heroPeriod,1))}><ChevronRight size={17}/></button>
+              onClick={()=>updateHeroPeriod(shiftReportPeriod(heroPeriod,1))}><ChevronRight size={17}/></button>
           </div>
         </div>
         <button type="button" className="blr-hero-chip is-count"
           onClick={()=>{if(isLeader){setShowComposer(false);setSelectedId('');setManagerView('reports');}}}
           disabled={!isLeader} title="Mở danh sách báo cáo giáo viên">
-          <span>Đã giao trong {periodTitle(heroPeriod).toLowerCase()}</span>
+          <span>Đã giao trong {reportPeriodTitle(heroPeriod).toLowerCase()}</span>
           <strong>{reportPeriodTasks.length} <FileText size={16} aria-hidden="true"/></strong>
         </button>
         <div className="blr-hero-chip is-status">
