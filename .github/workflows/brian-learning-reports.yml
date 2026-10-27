@@ -1,0 +1,45 @@
+name: Brian learning reports verification
+on:
+  pull_request:
+    paths:
+      - 'src/features/learningReports/**'
+      - 'src/pages/BrianTeamPortal.jsx'
+      - 'src/components/GlobalWorkHubNotificationBridge.jsx'
+      - 'src/utils/legacySiteTranslations.js'
+      - 'supabase/migrations/20261027100000_learning_reports_gifted_remedial.sql'
+      - 'scripts/test-learning-reports-contract.mjs'
+      - '.github/workflows/brian-learning-reports.yml'
+  workflow_dispatch:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Validate report contracts
+        run: node scripts/test-learning-reports-contract.mjs
+      - name: Validate report JSX syntax
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import ts from 'typescript';
+          const path = 'src/features/learningReports/LearningReportsWorkspace.jsx';
+          const result = ts.transpileModule(fs.readFileSync(path, 'utf8'), {
+            fileName: path,
+            reportDiagnostics: true,
+            compilerOptions: { allowJs:true, jsx:ts.JsxEmit.ReactJSX, target:ts.ScriptTarget.ES2022 },
+          });
+          const errors = (result.diagnostics || []).filter(item => item.category === ts.DiagnosticCategory.Error);
+          for (const item of errors) console.error(ts.flattenDiagnosticMessageText(item.messageText, '\n'));
+          if (errors.length) process.exit(1);
+          console.log('PASS: JSX parsed and transpiled');
+          NODE
+      - name: Check JS syntax
+        run: node --check src/features/learningReports/learningReportsService.js
+      - name: Bilingual UI audit
+        run: npm run audit:i18n

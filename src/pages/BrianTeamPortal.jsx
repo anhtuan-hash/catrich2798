@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { BarChart3, CalendarRange, FileText, UsersRound } from 'lucide-react';
+import { Award, BarChart3, BookOpenCheck, CalendarRange, FileText, UsersRound } from 'lucide-react';
 import { isDepartmentLeaderRole } from '../utils/roles.js';
 import MonthlyReportsWorkspace from './MonthlyReportsWorkspace.jsx';
 import MonthlyReportsHistory from './MonthlyReportsHistory.jsx';
 import MonthlyReportsInteractiveHero from './MonthlyReportsInteractiveHero.jsx';
 import PersonnelHub from './PersonnelHub.jsx';
+import LearningReportsWorkspace from '../features/learningReports/LearningReportsWorkspace.jsx';
 import './BrianTeamPortal.css';
 
 export default function BrianTeamPortal(props) {
@@ -22,10 +23,20 @@ export default function BrianTeamPortal(props) {
   if (!isLeader) {
     return (
       <div className="btp-shell">
-        <div className="btp-report-grid">
-          <MonthlyReportsInteractiveHero />
-          <MonthlyReportsWorkspace currentUser={currentUser} />
-        </div>
+        <nav className="btp-switcher" aria-label="Báo cáo giáo viên">
+          <button type="button" className={view === 'mine' ? 'is-active' : ''} onClick={() => setView('mine')}>
+            <FileText /> Báo cáo tháng
+          </button>
+          <button type="button" className={view === 'learning' ? 'is-active' : ''} onClick={() => setView('learning')}>
+            <BookOpenCheck /> Bồi dưỡng & Phụ đạo
+          </button>
+        </nav>
+        {view === 'mine' ? (
+          <div className="btp-report-grid">
+            <MonthlyReportsInteractiveHero />
+            <MonthlyReportsWorkspace currentUser={currentUser} />
+          </div>
+        ) : <LearningReportsWorkspace currentUser={currentUser} />}
       </div>
     );
   }
@@ -54,6 +65,12 @@ export default function BrianTeamPortal(props) {
         >
           <CalendarRange /> Thống kê tháng
         </button>
+        <button type="button" className={view === 'learning' ? 'is-active' : ''} onClick={() => setView('learning')}>
+          <Award /> Bồi dưỡng & Phụ đạo
+        </button>
+        <button type="button" className={view === 'learning-mine' ? 'is-active' : ''} onClick={() => setView('learning-mine')}>
+          <BookOpenCheck /> Báo cáo BD/PD của tôi
+        </button>
         <button
           type="button"
           className={view === 'team' ? 'is-active' : ''}
@@ -72,6 +89,8 @@ export default function BrianTeamPortal(props) {
       {view === 'reports' && <MonthlyReportsWorkspace currentUser={currentUser} />}
       {view === 'history' && <MonthlyReportsHistory currentUser={currentUser} />}
       {view === 'team' && <PersonnelHub {...props} />}
+      {view === 'learning' && <LearningReportsWorkspace currentUser={currentUser} />}
+      {view === 'learning-mine' && <LearningReportsWorkspace currentUser={teacherViewUser} />}
     </div>
   );
 }

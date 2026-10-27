@@ -5,6 +5,7 @@ import {
   listWorkHubNotifications,
   subscribeWorkHubNotifications,
 } from '../utils/workHubDelivery.js';
+import { LEARNING_REPORT_KINDS, listUnreadLearningReportNotifications } from '../features/learningReports/learningReportsService.js';
 
 const HIDDEN_TASK_STATUSES = new Set(['draft', 'completed', 'approved', 'archived', 'cancelled']);
 const FOCUS_REFRESH_INTERVAL = 60 * 60 * 1000;
@@ -262,6 +263,41 @@ export default function GlobalWorkHubNotificationBridge({ currentUser, language 
   useEffect(() => {
     cleanStoredScheduleNotifications(currentUser);
   }, [currentUser?.email, currentUser?.id]);
+
+  // Teacher-only gifted/remedial dispatch notifications. This supplements Work Hub
+  // without replacing its inbox, event popup or existing notification subscriptions.
+  useEffect(() => {
+    if (!userId || !runtime.ready || !runtime.session) return undefined;
+    let active = true;
+    const pollLearningReports = async () => {
+      try {
+        const reports = await listUnreadLearningReportNotifications(userId);
+        if (!active || !reports.length) return;
+        const state = storedReadState(currentUser);
+        dispatchNotifications(reports.map(report => {
+          const id = 'learning-report:' + report.id;
+          const kind = LEARNING_REPORT_KINDS[report.report_kind] || 'Báo cáo chuyên môn';
+          return {
+            id,
+            title: 'Yêu cầu báo cáo: ' + kind,
+            message: 'Bạn được phân công nộp báo cáo kỳ ' + String(report.period || '').slice(0,7) +
+              ', hạn ' + formatDueDate(report.due_at, language) + '. Mở Brian Reports để thực hiện.',
+            target: '#/tool/brian-team',
+            createdAt: report.created_at,
+            read: Boolean(state.get(id)),
+            category: 'work',
+            source: 'learning-report',
+            status: report.status,
+            chip: 'Bồi dưỡng & Phụ đạo',
+          };
+        }));
+      } catch { /* Reporting data must not block global notifications. */ }
+    };
+    pollLearningReports();
+    const interval = window.setInterval(pollLearningReports, 60_000);
+    return () => { active = false; window.clearInterval(interval); };
+  }, [currentUser?.id, language, runtime.ready, runtime.session, userId]);
+
 
   const refresh = useCallback(({ force = false } = {}) => {
     if (!userId || !runtime.ready || !runtime.session) return Promise.resolve();
