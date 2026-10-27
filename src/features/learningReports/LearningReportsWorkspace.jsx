@@ -318,7 +318,7 @@ export default function LearningReportsWorkspace({currentUser}) {
         <summary>Quản lý liên kết lớp cũ (chỉ khi cần chỉnh sửa)</summary>
         <ClassBindingEditor key={selected.id} options={classOptions} busy={bindingBusy}
           onSave={saveBindings} teacherLabel={teacherName(selected.teacher_id)}/>
-      </details>}}
+      </details>}
       <div className="blr-attendance-refresh"><strong>Thống kê chuyên cần tự động</strong>
         <button type="button" onClick={reloadAttendance} disabled={attendanceLoading}><RefreshCw size={16}/> Cập nhật từ Điểm danh</button></div>
       <AttendancePanel data={effectiveAttendance} loading={attendanceLoading}/>
