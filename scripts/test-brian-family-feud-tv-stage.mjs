@@ -102,7 +102,11 @@ check('Core scoring, three-strike steals and original app mounts remain safe',()
  for(let i=0;i<3;i++)s=feudReducer(s,{type:'STRIKE'});
  assert.equal(s.phase,'steal');
  s=feudReducer(s,{type:'STRIKE'});
- assert.equal(s.teams[0].score,32);
+ assert.equal(s.phase,'round_scoring');
+  assert.equal(s.teams[0].score,0);
+  s=feudReducer(s,{type:'SET_ROUND_DRAFT',index:0,value:'32'});
+  s=feudReducer(s,{type:'SAVE_ROUND_SCORES'});
+  assert.equal(s.teams[0].score,32);
  assert.match(main,/<BrianBombArena currentUser=\{currentUser\} language=\{language\}\/>/);
  assert.match(main,/<BrianFamilyFeud key=\{currentUser\.id\} currentUser=\{currentUser\} language=\{language\}\/>/);
  assert.ok(legacy.includes('.bff-strikes'));
