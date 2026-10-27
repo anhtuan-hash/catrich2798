@@ -74,7 +74,7 @@ begin
           order by lower(regexp_replace(btrim(tc.teacher_name),'\s+',' ','g')),tc.teacher_name
         ) t
       ),'[]'::jsonb)
-    ) order by c.class_name),'[]'::jsonb)
+    ) order by c.class_name)
     from public.bes_extra_classes c
     where c.class_type=v_task.report_kind
       and lower(btrim(c.subject))=lower(btrim(v_subject))
