@@ -1,0 +1,55 @@
+import {test,expect} from '@playwright/test';
+test.beforeEach(async({page})=>{
+ await page.goto('/tests/fixtures/brian-instant-tools-qa.html');
+ await page.getByRole('button',{name:'Mở bộ công cụ tức thì'}).click();
+ await page.locator('.bit-app-card').nth(1).click();
+ await page.getByRole('button',{name:/QUAY POWER-UP · 50 THẺ/}).click();
+ await expect(page.getByTestId('powerup-wheel')).toBeVisible();
+});
+test('Library contains 25 safe rewards and 25 learning challenges, with selectable filters',async({page})=>{
+ await expect(page.locator('.bit-pu-library-card')).toHaveCount(50);
+ await expect(page.locator('.bit-pu-library-card.reward')).toHaveCount(25);
+ await expect(page.locator('.bit-pu-library-card.challenge')).toHaveCount(25);
+ await page.getByRole('button',{name:'Thưởng',exact:true}).click();
+ await expect(page.locator('.bit-pu-library-card')).toHaveCount(25);
+ await expect(page.locator('.bit-pu-totals strong').last()).toHaveText('25');
+ await page.getByRole('button',{name:'Phạt / Thử thách'}).click();
+ await expect(page.locator('.bit-pu-library-card.challenge')).toHaveCount(25);
+ await page.getByRole('button',{name:'Tất cả',exact:true}).click();
+ await page.getByRole('button',{name:'Bỏ chọn'}).click();
+ await expect(page.locator('.bit-pu-totals strong').last()).toHaveText('0');
+ await expect(page.getByRole('button',{name:'QUAY POWER-UP',exact:true})).toBeDisabled();
+ await page.getByRole('button',{name:'Chọn tất cả'}).click();
+ await expect(page.locator('.bit-pu-totals strong').last()).toHaveText('50');
+});
+test('Spins visibly, reveals result, requires teacher approval and records team',async({page})=>{
+ await page.emulateMedia({reducedMotion:'no-preference'});
+ await page.getByPlaceholder('Nhập tên đội (không bắt buộc)').fill('Nhóm 11A');
+ const disc=page.getByTestId('powerup-disc');
+ const before=await disc.evaluate(el=>getComputedStyle(el).transform);
+ await page.getByRole('button',{name:'QUAY POWER-UP',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Dừng sớm'})).toBeVisible();
+ await expect.poll(()=>disc.evaluate(el=>getComputedStyle(el).transform),{timeout:1900}).not.toBe(before);
+ await page.getByRole('button',{name:'Dừng sớm'}).click();
+ await expect(page.getByTestId('powerup-reveal')).toBeVisible({timeout:5000});
+ await expect(page.getByTestId('powerup-reveal')).toContainText('Nhóm 11A');
+ await expect(page.getByTestId('powerup-reveal')).toContainText('GIÁO VIÊN DUYỆT KẾT QUẢ');
+ await expect(page.getByRole('button',{name:'QUAY POWER-UP',exact:true})).toBeDisabled();
+ await page.getByRole('button',{name:'Áp dụng'}).click();
+ await expect(page.getByRole('button',{name:'QUAY POWER-UP',exact:true})).toBeEnabled();
+ await expect(page.locator('.bit-pu-totals strong').last()).toHaveText('49');
+ await page.getByRole('tab',{name:'Lịch sử'}).click();
+ await expect(page.locator('.bit-pu-history strong').first()).toBeVisible();
+ await expect(page.locator('.bit-pu-history')).toContainText('Nhóm 11A');
+ await page.getByRole('button',{name:'Hoàn tác cuối'}).click();
+ await expect(page.locator('.bit-pu-totals strong').last()).toHaveText('50');
+});
+test('Reduced motion skips animation but still supports teacher skip',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.getByRole('button',{name:'QUAY POWER-UP',exact:true}).click();
+ await expect(page.getByTestId('powerup-reveal')).toBeVisible({timeout:3500});
+ await page.getByRole('button',{name:'Bỏ qua'}).click();
+ await expect(page.getByTestId('powerup-reveal')).toHaveCount(0);
+ await page.getByRole('tab',{name:'Lịch sử'}).click();
+ await expect(page.locator('.bit-pu-history')).toContainText('Bỏ qua');
+});

@@ -5,6 +5,8 @@ on:
       - 'src/components/BrianInstantTools/**'
       - 'scripts/test-wheel-studio.mjs'
       - 'tests/e2e/brian-wheel-studio.spec.js'
+      - 'tests/e2e/brian-powerup-wheel.spec.js'
+      - 'scripts/test-brian-powerups-50.mjs'
       - 'playwright.brian-wheel-studio.config.js'
       - '.github/workflows/brian-wheel-studio-qa.yml'
   workflow_dispatch:
@@ -20,7 +22,7 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with: {node-version: '22', cache: npm}
       - run: npm ci --no-audit --no-fund
-      - run: node scripts/test-brian-instant-tools.mjs && node scripts/test-wheel-studio.mjs
+      - run: node scripts/test-brian-instant-tools.mjs && node scripts/test-wheel-studio.mjs && node scripts/test-brian-powerups-50.mjs
       - run: npx vite build
   desktop-uat:
     runs-on: ubuntu-24.04
