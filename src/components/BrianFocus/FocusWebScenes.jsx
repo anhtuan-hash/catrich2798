@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ExternalLink, Globe2, Grid2X2, LayoutPanelLeft, Maximize2, Minimize2,
   SkipBack, SkipForward, RefreshCw, MousePointer2, ShieldCheck } from 'lucide-react';
 import { normalizeFocusWebLayout, normalizeFocusWebScenes } from './focusWebScenes.js';
@@ -17,11 +17,23 @@ export default function FocusWebScenes({ scene, language = 'vi', onInteractiveCh
   const [layout, setLayout] = useState(() => normalizeFocusWebLayout(scene?.webLayout));
   const [interactive, setInteractive] = useState(false);
   const [revisions, setRevisions] = useState({});
+  // Native fullscreen uses the actual panel node: iframe state remains mounted.
+  // CSS fallback maximizes inside the page on iOS / unsupported browsers.
+  const panelNodes = useRef(new Map());
+  const nativeFullscreenNode = useRef(null);
+  const [expanded, setExpanded] = useState({ url: '', mode: '' });
 
   useEffect(() => {
     setSelected(0);
     setLayout(normalizeFocusWebLayout(scene?.webLayout));
     setInteractive(false);
+    // Shared scene changes must not leave a stale fullscreen panel visible.
+    const oldNode = nativeFullscreenNode.current;
+    if (oldNode && document.fullscreenElement === oldNode) {
+      document.exitFullscreen?.().catch(() => {});
+    }
+    nativeFullscreenNode.current = null;
+    setExpanded({ url: '', mode: '' });
     onInteractiveChange?.(false);
   }, [scene?.updatedAt, scene?.webLayout, onInteractiveChange]);
 
@@ -29,6 +41,78 @@ export default function FocusWebScenes({ scene, language = 'vi', onInteractiveCh
     onInteractiveChange?.(interactive && !blocked);
     return () => onInteractiveChange?.(false);
   }, [interactive, blocked, onInteractiveChange]);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      if (nativeFullscreenNode.current &&
+          document.fullscreenElement !== nativeFullscreenNode.current) {
+        nativeFullscreenNode.current = null;
+        setExpanded(previous => previous.mode === 'native' ? { url: '', mode: '' } : previous);
+      }
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  useEffect(() => {
+    if (expanded.mode !== 'fallback') return undefined;
+    // FocusOverlay handles Escape on document. Capture fallback Escape first
+    // so the website shrinks instead of closing the entire Focus overlay.
+    const onEscape = event => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      event.stopPropagation();
+      setExpanded({ url: '', mode: '' });
+    };
+    window.addEventListener('keydown', onEscape, true);
+    return () => window.removeEventListener('keydown', onEscape, true);
+  }, [expanded.mode]);
+
+  useEffect(() => {
+    if (!blocked) return;
+    const node = nativeFullscreenNode.current;
+    if (node && document.fullscreenElement === node) {
+      document.exitFullscreen?.().catch(() => {});
+    }
+    nativeFullscreenNode.current = null;
+    setExpanded({ url: '', mode: '' });
+  }, [blocked]);
+
+  useEffect(() => () => {
+    const node = nativeFullscreenNode.current;
+    if (node && document.fullscreenElement === node) {
+      document.exitFullscreen?.().catch(() => {});
+    }
+  }, []);
+
+  const leaveWebFullscreen = async () => {
+    const node = nativeFullscreenNode.current;
+    nativeFullscreenNode.current = null;
+    if (node && document.fullscreenElement === node) {
+      try { await document.exitFullscreen(); } catch { /* Continue restoring local layout. */ }
+    }
+    setExpanded({ url: '', mode: '' });
+  };
+
+  const toggleWebFullscreen = async url => {
+    if (expanded.url === url) {
+      await leaveWebFullscreen();
+      return;
+    }
+    const node = panelNodes.current.get(url);
+    if (!node || blocked) return;
+    setInteractive(true);
+    try {
+      if (typeof node.requestFullscreen === 'function') {
+        // Must run directly from the click, before any awaited operation.
+        await node.requestFullscreen();
+        nativeFullscreenNode.current = node;
+        setExpanded({ url, mode: 'native' });
+        return;
+      }
+    } catch { /* Safari iOS / restrictive browser: use immersive CSS fallback. */ }
+    setExpanded({ url, mode: 'fallback' });
+  };
 
   if (!pages.length) {
     return <div className="bfc-web-empty" role="status">
@@ -43,7 +127,8 @@ export default function FocusWebScenes({ scene, language = 'vi', onInteractiveCh
   const changePage = delta => setSelected(previous => (previous + delta + pages.length) % pages.length);
   const refresh = url => setRevisions(previous => ({ ...previous, [url]: (previous[url] || 0) + 1 }));
 
-  return <div className={'bfc-web-scenes' + (isLive ? ' is-interactive' : ' is-preview')}
+  return <div className={'bfc-web-scenes' + (isLive ? ' is-interactive' : ' is-preview') +
+    (expanded.mode === 'fallback' ? ' is-fallback-expanded' : '')}
     aria-label={vi ? 'Website tương tác trong Focus' : 'Interactive Focus websites'}>
     <div className="bfc-web-scenes__toolbar" role="toolbar"
       aria-label={vi ? 'Điều khiển website' : 'Website controls'}>
@@ -77,14 +162,37 @@ export default function FocusWebScenes({ scene, language = 'vi', onInteractiveCh
         <span>{isLive ? (vi ? 'Thoát tương tác' : 'Stop interacting') :
           (vi ? 'Tương tác' : 'Interact')}</span>
       </button>
+      <button type="button" className="bfc-web-scenes__fullscreen"
+        disabled={blocked} onClick={() => toggleWebFullscreen(pages[selected].url)}
+        title={vi ? 'Mở website toàn màn hình' : 'Open website fullscreen'}
+        aria-label={vi ? 'Mở website toàn màn hình' : 'Open website fullscreen'}>
+        <Maximize2 size={16}/><span>{vi ? 'Toàn màn hình' : 'Fullscreen'}</span>
+      </button>
     </div>
     <div className={'bfc-web-scenes__stage bfc-web-scenes__stage--' + layout + (isLive ? ' is-live' : '')}>
       {indices.map((index) => {
         const page = pages[index];
-        return <div className="bfc-web-scenes__panel" key={page.url}>
+        return <div className={'bfc-web-scenes__panel' +
+          (expanded.url === page.url ? ' is-expanded' : '')}
+          key={page.url}
+          ref={node => {
+            if (node) panelNodes.current.set(page.url, node);
+            else panelNodes.current.delete(page.url);
+          }}>
           <div className="bfc-web-scenes__panel-head">
             <span title={page.title}><Globe2 size={13}/>{page.title}</span>
             <div className="bfc-web-scenes__panel-actions">
+              <button type="button" className="bfc-web-scenes__panel-fullscreen"
+                onClick={() => toggleWebFullscreen(page.url)}
+                aria-pressed={expanded.url === page.url}
+                title={expanded.url === page.url ?
+                  (vi ? 'Thoát toàn màn hình (Esc)' : 'Exit fullscreen (Esc)') :
+                  (vi ? 'Mở website toàn màn hình' : 'Fullscreen website')}
+                aria-label={expanded.url === page.url ?
+                  (vi ? 'Thoát toàn màn hình website' : 'Exit website fullscreen') :
+                  (vi ? 'Mở website toàn màn hình' : 'Open website fullscreen')}>
+                {expanded.url === page.url ? <Minimize2 size={15}/> : <Maximize2 size={15}/>}
+              </button>
               <button type="button" onClick={() => refresh(page.url)}
                 title={vi ? 'Tải lại trang' : 'Reload website'} aria-label={vi ? 'Tải lại trang' : 'Reload website'}>
                 <RefreshCw size={14}/></button>
