@@ -1,8 +1,8 @@
 /* Brian Instant Tools — isolated CSS; no global overrides for Board/Focus/Chat/Approvals. */
 .bit-launcher{
  position:fixed;z-index:11450;
- right:calc(var(--bes-floating-edge,24px) + var(--bes-floating-diameter,62px) + var(--bes-floating-gap,14px));
- bottom:var(--bes-floating-bottom,24px);
+ right:var(--bes-floating-edge,24px)!important;
+ bottom:calc(var(--bes-floating-bottom,24px) + 6 * (var(--bes-floating-diameter,62px) + var(--bes-floating-gap,14px)))!important;
  width:var(--bes-floating-diameter,62px);height:var(--bes-floating-diameter,62px);
  border-radius:50%;display:grid;place-items:center;
  border:1px solid #d7dff3;background:linear-gradient(145deg,#fff,#e9f1fd);
@@ -106,7 +106,7 @@
 @keyframes bit-die-spin{0%{transform:rotateX(0) rotateY(0)}35%{transform:rotateX(160deg) rotateY(210deg) scale(1.08)}100%{transform:rotateX(360deg) rotateY(360deg) scale(1)}}
 @media(max-width:850px){.bit-library{grid-template-columns:repeat(2,minmax(0,1fr))}.bit-two-cols{grid-template-columns:1fr}.bit-wheel-zone{--bit-wheel-label-radius:120px}.bit-portal{height:calc(100dvh - 26px)}}
 @media(max-width:650px){
- .bit-launcher{right:calc(var(--bes-floating-edge,13px) + var(--bes-floating-diameter,58px) + var(--bes-floating-gap,12px));bottom:var(--bes-floating-bottom,13px)}
+ .bit-launcher{right:var(--bes-floating-edge,13px)!important;bottom:calc(var(--bes-floating-bottom,13px) + 6 * (var(--bes-floating-diameter,58px) + var(--bes-floating-gap,12px)))!important}
  .bit-overlay{padding:0}
  .bit-portal,.bit-portal.is-max{border-radius:0;width:100%;max-height:100dvh;height:100dvh}
  .bit-header{padding:12px 14px;padding-top:max(12px,env(safe-area-inset-top,0px));min-height:76px}
@@ -245,4 +245,21 @@
 }
 @media(prefers-reduced-motion:reduce){
  .bit-die.is-rolling,.bit-die.is-rolling .bit-cube{animation:none!important}
+}
+
+/* Single right-hand bubble column: all independent launchers share the same
+   right edge and height-based slot. Instant Tools sits above Family Feud.
+   TTCM/admin: Chat 0, Approvals 1, Focus 2, Board 3, Bomb 4, Feud 5, Instant 6.
+   Teacher: Chat 0, Focus 1, Board 2, Bomb 3, Feud 4, Instant 5. */
+body .bit-launcher {
+  box-sizing:border-box!important;
+  right:var(--bes-floating-edge,max(24px,env(safe-area-inset-right,0px)))!important;
+  bottom:calc(var(--bes-floating-bottom,24px) + 6 * (var(--bes-floating-diameter,62px) + var(--bes-floating-gap,14px)))!important;
+  min-width:var(--bes-floating-diameter,62px)!important;
+  min-height:var(--bes-floating-diameter,62px)!important;
+  width:var(--bes-floating-diameter,62px)!important;
+  height:var(--bes-floating-diameter,62px)!important;
+}
+body:not(:has(.bes-approval-root)) .bit-launcher {
+  bottom:calc(var(--bes-floating-bottom,24px) + 5 * (var(--bes-floating-diameter,62px) + var(--bes-floating-gap,14px)))!important;
 }
