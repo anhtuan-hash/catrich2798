@@ -3,7 +3,7 @@ import LearningReportsManagerDashboard from './LearningReportsManagerDashboard.j
 import SmartAssignmentComposer from './SmartAssignmentComposer.jsx';
 import LearningAssignmentManager from './LearningAssignmentManager.jsx';
 import { Award, BookOpenCheck, CalendarClock, CheckCircle2, ClipboardCheck, Clock3,
-  Download, FileText, RefreshCw, Save, Send, Trash2, Link2, ShieldCheck, UsersRound, X } from 'lucide-react';
+  Download, FileText, RefreshCw, Save, Send, Trash2, Link2, ShieldCheck, UsersRound, AlertCircle, X } from 'lucide-react';
 import { isDepartmentLeaderRole } from '../../utils/roles.js';
 import { loadTeamWorkspace, listTeamTeacherAccounts } from '../../utils/personnelHub.js';
 import {
@@ -14,6 +14,7 @@ import {
   bulkRevokeLearningReportAssignments,
 } from './learningReportsService.js';
 import './LearningReportsWorkspace.css';
+import './LearningReportsMacMaterial.css';
 
 const dateOnly = () => { const now = new Date(); return [now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-'); };
 const periodNow = () => dateOnly().slice(0,7);
@@ -31,8 +32,11 @@ function downloadCsv(items) {
   const link=document.createElement('a');link.href=url;link.download='brian-learning-reports.csv';link.click();
   window.setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
-function Metric({label,value,note}) {
-  return <article className="blr-metric"><small>{label}</small><strong>{value}</strong>{note&&<span>{note}</span>}</article>;
+function Metric({label,value,note,icon:Icon=FileText}) {
+  return <article className="blr-metric">
+    <span className="blr-metric-icon" aria-hidden="true"><Icon size={22}/></span>
+    <small>{label}</small><strong>{value}</strong>{note&&<span>{note}</span>}
+  </article>;
 }
 function Status({value}) {
   return <span className={'blr-status is-'+value}>{LEARNING_REPORT_STATUSES[value]||value}</span>;
@@ -259,7 +263,7 @@ export default function LearningReportsWorkspace({currentUser}) {
   return <main className="blr-shell">
     <header className="blr-hero"><div><small>BRIAN REPORTS · SPECIALIST PROGRAMMES</small>
       <h1>Bồi dưỡng & Phụ đạo</h1><p>Quản lý hiệu quả dạy học, nhật ký từng buổi và báo cáo chuyên môn có minh chứng.</p></div>
-      <div className="blr-hero-icon"><BookOpenCheck size={48}/></div>
+      <div className="blr-hero-icon" aria-hidden="true"><BookOpenCheck size={48}/></div>
     </header>
     <div className="blr-topline blr-topline-unified">
       <div className="blr-workspace-title">
@@ -297,10 +301,10 @@ export default function LearningReportsWorkspace({currentUser}) {
       </label>}
     </div>}
     {isLeader&&managerView==='reports'&&<div className="blr-metrics">
-      <Metric label="Báo cáo đã giao" value={filtered.length}/>
-      <Metric label="Chờ TTCM duyệt" value={pending}/>
-      <Metric label="Đã xác nhận" value={done}/>
-      <Metric label="Chưa hoàn tất" value={filtered.length-done}/>
+      <Metric label="Báo cáo đã giao" icon={FileText} value={filtered.length}/>
+      <Metric label="Chờ TTCM duyệt" icon={Clock3} value={pending}/>
+      <Metric label="Đã xác nhận" icon={CheckCircle2} value={done}/>
+      <Metric label="Chưa hoàn tất" icon={AlertCircle} value={filtered.length-done}/>
     </div>}
     {isLeader&&<label className="blr-department-label">Tổ chuyên môn
       <select value={departmentId} onChange={e=>{setDepartmentId(e.target.value);setSelectedId('');}}>
