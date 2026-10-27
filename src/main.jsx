@@ -22,6 +22,7 @@ import './styles/GlobalRegionalFontSystem.css';
 import './styles/GlobalOuterHorizontalAlignment.css';
 import './styles/ThreeFloatingActions.css';
 import './styles/UnifiedBubbleMotion.css';
+import './styles/BrianFloatingGlow.css';
 import { APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import GlobalFlatNavigation from './components/GlobalFlatNavigation.jsx';
