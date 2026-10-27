@@ -21,6 +21,7 @@ on:
       - 'scripts/test-learning-reports-unified-workspace.mjs'
       - 'scripts/test-learning-reports-macos-material3-design.mjs'
       - 'scripts/test-learning-report-interactive-hero.mjs'
+      - 'scripts/test-learning-report-editorial-monthly-hero.mjs'
       - 'src/pages/BrianTeamPortal.css'
       - 'supabase/migrations/20261027153000_learning_report_bulk_revocation.sql'
       - 'supabase/migrations/20261027142000_revoke_learning_report_assignments.sql'
@@ -68,6 +69,8 @@ jobs:
         run: node scripts/test-learning-reports-macos-material3-design.mjs
       - name: Verify interactive report month hero and unified tab presentation
         run: node scripts/test-learning-report-interactive-hero.mjs
+      - name: Check editorial monthly hero reference, month interaction and tab parity
+        run: node scripts/test-learning-report-editorial-monthly-hero.mjs
       - name: Validate report JSX syntax
         run: |
           node --input-type=module <<'NODE'
