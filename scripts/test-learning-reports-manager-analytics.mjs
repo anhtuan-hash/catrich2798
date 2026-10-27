@@ -46,7 +46,7 @@ const sql=from('supabase/migrations/20261027143000_learning_reports_manager_anal
 const security=from('supabase/migrations/20261027143500_learning_report_deadline_rls_scope.sql');
 const service=from('src/features/learningReports/learningReportsService.js');
 const checks=[
- ['two subdashboards wired by kind',ui.includes("kind={filter==='remedial'?'remedial':'gifted'}")],
+ ['two subdashboards wired by kind',ui.includes('kind={analyticsKind}')&&ui.includes('setAnalyticsKind')],
  ['manager-only render',ui.includes("isLeader&&!selected&&managerView!=='reports'")],
  ['monthly mode',ui.includes("managerView==='summary'")],
  ['history mode',ui.includes("managerView==='history'")],

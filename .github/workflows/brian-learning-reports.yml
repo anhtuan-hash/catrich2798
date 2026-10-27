@@ -16,6 +16,8 @@ on:
       - 'scripts/test-learning-report-navigation-countdown.mjs'
       - 'scripts/test-smart-learning-auto-assignment.mjs'
       - 'scripts/test-revoke-learning-report-assignments.mjs'
+      - 'scripts/test-learning-reports-unified-workspace.mjs'
+      - 'supabase/migrations/20261027153000_learning_report_bulk_revocation.sql'
       - 'supabase/migrations/20261027142000_revoke_learning_report_assignments.sql'
       - 'supabase/migrations/20261027130000_smart_learning_identity_preview.sql'
       - 'supabase/migrations/20261027130100_smart_candidates_uuid_aggregate.sql'
@@ -53,6 +55,8 @@ jobs:
         run: node scripts/test-smart-learning-auto-assignment.mjs
       - name: Verify safe revoke of teacher report assignments
         run: node scripts/test-revoke-learning-report-assignments.mjs
+      - name: Verify unified workspace and safe select-all bulk actions
+        run: node scripts/test-learning-reports-unified-workspace.mjs
       - name: Validate report JSX syntax
         run: |
           node --input-type=module <<'NODE'
@@ -61,6 +65,8 @@ jobs:
           const paths = ['src/features/learningReports/LearningReportsWorkspace.jsx',
             'src/features/learningReports/LearningReportsManagerDashboard.jsx',
             'src/features/learningReports/SmartAssignmentComposer.jsx',
+            'src/features/learningReports/LearningAssignmentManager.jsx',
+            'src/pages/BrianTeamPortal.jsx',
             'src/components/GlobalReportsNavigationTab.jsx'];
           const errors = paths.flatMap(path => {
             const result = ts.transpileModule(fs.readFileSync(path, 'utf8'), {
@@ -84,5 +90,8 @@ jobs:
           node --check src/features/learningReports/learningReportsService.js
           node --check src/features/learningReports/learningReportsAnalytics.js
           node --check src/features/learningReports/navigationDeadlines.js
+          node --check src/features/learningReports/learningAssignmentsModel.js
       - name: Bilingual UI audit
         run: npm run audit:i18n
+      - name: Reproduce exact Vercel release build command
+        run: node scripts/build-brian-vercel-release.mjs
