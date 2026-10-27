@@ -47,9 +47,9 @@ export default function LearningAssignmentManager({
   })),[tasks,teacherName]);
   const months=useMemo(()=>[...new Set(enriched.map(t=>String(t.period||'').slice(0,7)).filter(Boolean))].sort().reverse(),[enriched]);
   const visible=useMemo(()=>filteredLearningAssignments(enriched,{kind,month,status,query}),[enriched,kind,month,status,query]);
-  const revocable=visible.filter(reportCanBeRevoked);
+  const revocable=useMemo(()=>visible.filter(reportCanBeRevoked),[visible]);
   const eligibleIds=useMemo(()=>new Set(revocable.map(t=>t.id)),[revocable]);
-  useEffect(()=>{setSelectedIds(old=>old.filter(id=>eligibleIds.has(id)));},[eligibleIds]);
+  useEffect(()=>{setSelectedIds(old=>{const next=old.filter(id=>eligibleIds.has(id));return next.length===old.length?old:next;});},[eligibleIds]);
   const selected=visible.filter(t=>selectedIds.includes(t.id)&&reportCanBeRevoked(t));
   const allSelected=revocable.length>0&&revocable.every(t=>selectedIds.includes(t.id));
   const toggle=id=>setSelectedIds(old=>old.includes(id)?old.filter(x=>x!==id):[...old,id]);
