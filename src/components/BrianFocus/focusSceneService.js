@@ -1,6 +1,7 @@
 import { supabase, isSupabaseConfigured } from '../../utils/supabase.js';
 import { isDepartmentLeaderRole } from '../../utils/roles.js';
 import { parseFocusYoutubePlaylist, playlistIdsFromFocusPath, videoIdFromFocusPath } from './focusYoutube.js';
+import { normalizeFocusWebScenes, normalizeFocusWebLayout, validateFocusWebScenes } from './focusWebScenes.js';
 
 export const FOCUS_BUCKET = 'brian-focus-backgrounds';
 export const FOCUS_DEFAULT = Object.freeze({
@@ -19,9 +20,23 @@ const ACCEPT = Object.freeze({
 export const canEditFocusScene = user => isDepartmentLeaderRole(user?.role) && user?.provider === 'supabase';
 
 export function parseFocusScene(row) {
+  const webProps = {
+    webScenes: normalizeFocusWebScenes(row?.web_scenes,
+      typeof window === 'undefined' ? '' : window.location.origin),
+    webLayout: normalizeFocusWebLayout(row?.web_layout),
+  };
+  if (row?.media_type === 'website' && webProps.webScenes.length) {
+    return {
+      ...webProps, mediaType: 'website', mediaPath: '', youtubeUrl: '', playlistIds: [],
+      dimPercent: Math.max(0, Math.min(85, Number(row.dim_percent) || 0)),
+      mediaFit: row.media_fit === 'contain' ? 'contain' : 'cover',
+      updatedAt: row.updated_at || '',
+    };
+  }
   if (row?.media_type === 'youtube' && videoIdFromFocusPath(row.media_path)) {
     const ids = playlistIdsFromFocusPath(row.media_path);
     return {
+      ...webProps,
       mediaType: 'youtube', mediaPath: 'youtube:' + ids.join(','),
       youtubeUrl: ids.map(id => 'https://www.youtube.com/watch?v=' + id).join('\n'),
       playlistIds: ids,
@@ -32,13 +47,14 @@ export function parseFocusScene(row) {
   }
   if (!row || !['image', 'video', 'html'].includes(row.media_type) || !String(row.media_path || '').startsWith('focus/')) {
     return {
-      ...FOCUS_DEFAULT,
+      ...FOCUS_DEFAULT, ...webProps,
       dimPercent: Number.isFinite(Number(row?.dim_percent)) ? Math.max(0, Math.min(85, Number(row.dim_percent))) : 24,
       mediaFit: row?.media_fit === 'contain' ? 'contain' : 'cover',
       updatedAt: row?.updated_at || '',
     };
   }
   return {
+    ...webProps,
     mediaType: row.media_type,
     mediaPath: String(row.media_path),
     mediaFit: row.media_fit === 'contain' ? 'contain' : 'cover',
@@ -50,7 +66,7 @@ export function parseFocusScene(row) {
 export async function loadFocusScene() {
   if (!isSupabaseConfigured || !supabase) throw new Error('Chưa kết nối máy chủ.');
   const { data, error } = await supabase.from('brian_focus_settings')
-    .select('id,media_type,media_path,media_fit,dim_percent,updated_at')
+    .select('id,media_type,media_path,media_fit,dim_percent,web_scenes,web_layout,updated_at')
     .eq('id', 'global').maybeSingle();
   if (error) throw error;
   return parseFocusScene(data);
@@ -91,10 +107,14 @@ export async function saveFocusScene(user, draft, file) {
     // row. Same RLS, Realtime and updated_by checks as the previous single URL.
     const ids = parseFocusYoutubePlaylist(draft.youtubeUrl || playlistIdsFromFocusPath(draft.mediaPath));
     mediaPath = 'youtube:' + ids.join(',');
+  } else if (mediaType === 'website') {
+    validateFocusWebScenes(draft.webScenes,
+      typeof window === 'undefined' ? '' : window.location.origin);
+    mediaPath = '';
   } else if (mediaType === 'default') {
     mediaPath = '';
   }
-  if (!['default', 'youtube'].includes(mediaType) && !String(mediaPath).startsWith('focus/')) {
+  if (!['default', 'youtube', 'website'].includes(mediaType) && !String(mediaPath).startsWith('focus/')) {
     throw new Error('Hãy chọn ảnh, video hoặc tệp HTML trước khi công bố.');
   }
   try {
@@ -102,12 +122,17 @@ export async function saveFocusScene(user, draft, file) {
       .update({
         media_type: mediaType,
         media_path: mediaPath,
+        ...(mediaType === 'website' ? {
+          web_scenes: validateFocusWebScenes(draft.webScenes,
+            typeof window === 'undefined' ? '' : window.location.origin),
+          web_layout: normalizeFocusWebLayout(draft.webLayout),
+        } : {}),
         media_fit: draft.mediaFit === 'contain' ? 'contain' : 'cover',
         dim_percent: Math.max(0, Math.min(85, Math.round(Number(draft.dimPercent) || 0))),
         updated_by: user.id,
         updated_at: new Date().toISOString(),
       }).eq('id', 'global')
-      .select('id,media_type,media_path,media_fit,dim_percent,updated_at').single();
+      .select('id,media_type,media_path,media_fit,dim_percent,web_scenes,web_layout,updated_at').single();
     if (error) throw error;
     if (!data) throw new Error('Máy chủ chưa xác nhận công bố.');
     return parseFocusScene(data);
@@ -128,7 +153,7 @@ export function sandboxFocusHtml(source) {
 }
 
 export async function resolveFocusSceneMedia(scene) {
-  if (['default', 'youtube'].includes(scene?.mediaType) || !scene?.mediaPath) return { src: '', html: '' };
+  if (['default', 'youtube', 'website'].includes(scene?.mediaType) || !scene?.mediaPath) return { src: '', html: '' };
   if (!supabase || !scene.mediaPath.startsWith('focus/')) throw new Error('Đường dẫn nền không hợp lệ.');
   if (scene.mediaType === 'html') {
     const { data, error } = await supabase.storage.from(FOCUS_BUCKET).download(scene.mediaPath);

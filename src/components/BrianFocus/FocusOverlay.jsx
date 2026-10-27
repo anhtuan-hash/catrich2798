@@ -6,6 +6,7 @@ import FocusWeather from './FocusWeather.jsx';
 import CosmicAmbient from './CosmicAmbient.jsx';
 import FocusSceneBackground from './FocusSceneBackground.jsx';
 import FocusYoutubeBackground from './FocusYoutubeBackground.jsx';
+import FocusWebScenes from './FocusWebScenes.jsx';
 import FocusSceneEditor from './FocusSceneEditor.jsx';
 import FocusEffectsLibrary from './FocusEffectsLibrary.jsx';
 import FocusWorkspace from './FocusWorkspace.jsx';
@@ -33,6 +34,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
     !(typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
   ));
   const [sceneEditorOpen, setSceneEditorOpen] = useState(false);
+  const [webInteractive, setWebInteractive] = useState(false);
   const [effectsOpen, setEffectsOpen] = useState(false);
   const [appearanceOpen, setAppearanceOpen] = useState(false);
   const [atelierOpen,setAtelierOpen]=useState(false);
@@ -305,7 +307,7 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
   };
 
   return createPortal(
-    <div className={`bfc-overlay${(!motionEnabled || ['low','minimal'].includes(performance)) ? ' bfc-overlay--low-motion' : ''}${['low','minimal'].includes(performance) ? ' bfc-overlay--entry-lite' : ''}${canManage ? ' bfc-overlay--manager' : ''}${scene.mediaType === 'youtube' ? ' bfc-overlay--youtube' : ''}${sceneEditorOpen ? ' is-editor-open' : ''}${effectsOpen ? ' is-effects-open' : ''}${activeTool ? ' is-tools-open' : ''}${quiet ? ' bfc-overlay--quiet' : ''}${appearanceOpen ? ' is-appearance-open' : ''}${atelierOpen?' is-atelier7-open':''}${studio8Open?' is-studio8-open':''}${studio9Open?' is-studio9-open':''}${silk9.shield?' bfc9-shield':''}${visualQuality==='smooth'?' bfc9-smooth':''}${focus8.layoutEnabled?' bfc8-layout-active':''}${focus8.depth!=='off'&&motionBudget.parallax?' bfc8-depth-active':''}${!motionBudget.parallax?' bfc8-efficient':''}${classroom?' bfc7-classroom':''}${focus7.compactDock?' bfc7-compact-dock':''}${(!controlsVisible && appearance.autoHide && !controlsBusy) || immersiveOnce ? ' bfc-atelier--idle' : ''} bfc-atelier bfc-atelier--${appearance.clockMode}${exiting ? ' bfc-overlay--exiting' : ''}`} role="dialog" aria-modal="true"
+    <div className={`bfc-overlay${(!motionEnabled || ['low','minimal'].includes(performance)) ? ' bfc-overlay--low-motion' : ''}${['low','minimal'].includes(performance) ? ' bfc-overlay--entry-lite' : ''}${canManage ? ' bfc-overlay--manager' : ''}${scene.mediaType === 'website' ? ' bfc-overlay--web' : ''}${webInteractive && scene.mediaType === 'website' ? ' bfc-overlay--web-interactive' : ''}${scene.mediaType === 'youtube' ? ' bfc-overlay--youtube' : ''}${sceneEditorOpen ? ' is-editor-open' : ''}${effectsOpen ? ' is-effects-open' : ''}${activeTool ? ' is-tools-open' : ''}${quiet ? ' bfc-overlay--quiet' : ''}${appearanceOpen ? ' is-appearance-open' : ''}${atelierOpen?' is-atelier7-open':''}${studio8Open?' is-studio8-open':''}${studio9Open?' is-studio9-open':''}${silk9.shield?' bfc9-shield':''}${visualQuality==='smooth'?' bfc9-smooth':''}${focus8.layoutEnabled?' bfc8-layout-active':''}${focus8.depth!=='off'&&motionBudget.parallax?' bfc8-depth-active':''}${!motionBudget.parallax?' bfc8-efficient':''}${classroom?' bfc7-classroom':''}${focus7.compactDock?' bfc7-compact-dock':''}${(!controlsVisible && appearance.autoHide && !controlsBusy) || immersiveOnce ? ' bfc-atelier--idle' : ''} bfc-atelier bfc-atelier--${appearance.clockMode}${exiting ? ' bfc-overlay--exiting' : ''}`} role="dialog" aria-modal="true"
       aria-label={vi ? 'Chế độ tập trung Brian Focus' : 'Brian Focus mode'}
       aria-owns="bfc-focus-trigger"
       data-focus-transition={exiting ? 'exiting' : 'entering'}
@@ -322,7 +324,9 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
       onPointerDown={wakeControls}>
       {scene.mediaType === 'default'
         ? <CosmicAmbient motionEnabled={motionEnabled} performance={visualQuality==='smooth'?'low':performance}/>
-        : scene.mediaType === 'youtube'
+        : scene.mediaType === 'website'
+          ? null
+          : scene.mediaType === 'youtube'
           ? <div className="bfc-focus-youtube-shade" aria-hidden="true"
               style={{ backgroundColor: 'rgba(2,8,22,' + (Math.max(0,Math.min(85,Number(displayScene.dimPercent)||0))/100) + ')' }}/>
           : <FocusSceneBackground scene={displayScene} language={language} motionEnabled={motionEnabled} />}
@@ -332,7 +336,10 @@ export default function FocusOverlay({ currentUser, scene, onScenePublished, sce
       {scene.mediaType === 'youtube' ? <FocusYoutubeBackground
         scene={displayScene} language={language}
         session={youtubeSession} controls={youtubeControls}/> : null}
-      <div className="bfc-overlay__identity" aria-hidden="true">
+      {scene.mediaType === 'website' ? <FocusWebScenes
+         scene={displayScene} language={language} onInteractiveChange={setWebInteractive}
+         blocked={sceneEditorOpen || effectsOpen || appearanceOpen || unifiedOpen || atelierOpen || studio8Open || studio9Open}/> : null}
+       <div className="bfc-overlay__identity" aria-hidden="true">
         <span className="bfc-overlay__identity-mark">B<span>✦</span></span>
         <span className="bfc-overlay__identity-copy">BRIAN <strong>FOCUS</strong><small>{vi ? 'KHÔNG GIAN TẬP TRUNG' : 'IMMERSIVE SPACE'}</small></span>
       </div>

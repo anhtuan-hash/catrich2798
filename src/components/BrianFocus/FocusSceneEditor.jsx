@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Check, CloudUpload, FileCode2, FileImage, Film, RotateCcw, ShieldCheck, X, Youtube, Link2, ArrowUp, ArrowDown, Trash2, ListVideo, Eye, EyeOff } from 'lucide-react';
 import FocusPlaylistUrlInput from './FocusPlaylistUrlInput.jsx';
+import FocusWebsiteEditor from './FocusWebsiteEditor.jsx';
 import {
   saveFocusScene, sandboxFocusHtml, resolveFocusSceneMedia, validateFocusFile,
 } from './focusSceneService.js';
@@ -122,7 +123,7 @@ export default function FocusSceneEditor({ language = 'vi', currentUser, scene, 
   const label = draft.mediaType === 'image' ? (vi ? 'Ảnh' : 'Image')
     : draft.mediaType === 'video' ? 'Video'
       : draft.mediaType === 'html' ? 'HTML'
-        : draft.mediaType === 'youtube' ? 'YouTube' : (vi ? 'Mặc định' : 'Default');
+        : draft.mediaType === 'youtube' ? 'YouTube' : draft.mediaType === 'website' ? 'Web Scenes' : (vi ? 'Mặc định' : 'Default');
   const FileIcon = draft.mediaType === 'youtube' ? Youtube : draft.mediaType === 'html' ? FileCode2
     : draft.mediaType === 'video' ? Film : FileImage;
 
@@ -204,6 +205,8 @@ export default function FocusSceneEditor({ language = 'vi', currentUser, scene, 
           </ol>}
         </> : null}
       </div>
+      <FocusWebsiteEditor draft={draft} setDraft={setDraft} setFile={setFile}
+        setNotice={setNotice} language={language} busy={busy}/>
       <div className="bfc-scene-editor__preview-section">
         <button type="button" className="bfc-scene-editor__preview-toggle"
           aria-expanded={previewOpen}
