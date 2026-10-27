@@ -142,6 +142,8 @@ export default function LearningReportsWorkspace({currentUser}) {
   const [showComposer,setShowComposer]=useState(false);
   const [filter,setFilter]=useState(isLeader?'gifted':'all');
   const [managerView,setManagerView]=useState('reports');
+  const [clockNow,setClockNow]=useState(Date.now());
+  useEffect(()=>{const id=window.setInterval(()=>setClockNow(Date.now()),60000);return()=>window.clearInterval(id);},[]);
 
   const load=useCallback(async()=>{
     const [rows,meta]=await Promise.all([
@@ -199,7 +201,11 @@ export default function LearningReportsWorkspace({currentUser}) {
   const effectiveAttendance=selected?.status==='approved' && selected.attendance_snapshot
     ? selected.attendance_snapshot : attendance;
   const hasLinkedClass=(effectiveAttendance?.classes?.length||0)>0;
-  const deadlinePassed=Boolean(selected?.effective_due_at&&new Date(selected.effective_due_at).getTime()<Date.now());
+  const deadlinePassed=Boolean(selected?.effective_due_at&&new Date(selected.effective_due_at).getTime()<clockNow);
+  const msLeft=selected?.effective_due_at?new Date(selected.effective_due_at).getTime()-clockNow:null;
+  const teacherDeadlineStatus=msLeft===null?'Chưa đặt hạn nộp':
+    msLeft<=0?'Đã hết hạn':
+    'Còn '+Math.floor(msLeft/86400000)+' ngày '+Math.floor(msLeft%86400000/3600000)+' giờ';
   const reportLocked=selected&&!editable;
   const saveBindings=async(ids)=>{
     if(!selected)return;
@@ -333,7 +339,8 @@ export default function LearningReportsWorkspace({currentUser}) {
       <div className="blr-editor-head"><button type="button" onClick={()=>setSelectedId('')}>← Danh sách báo cáo</button>
         <div><small>{isLeader?teacherName(selected.teacher_id):'BÁO CÁO CỦA TÔI'}</small>
           <h2>{LEARNING_REPORT_KINDS[selected.report_kind]} · {selected.period?.slice(0,7)}</h2>
-          <p><Clock3 size={16}/> Hạn {dateLabel(selected.effective_due_at)} {deadlinePassed&&currentStatus!=='approved'&&<b className="blr-overdue">· Quá hạn</b>} · <Status value={currentStatus}/></p></div></div>
+          <p><Clock3 size={16}/> Hạn {dateLabel(selected.effective_due_at)} {deadlinePassed&&currentStatus!=='approved'&&<b className="blr-overdue">· Quá hạn</b>} · <Status value={currentStatus}/></p>
+          <p className="blr-deadline-countdown"><CalendarClock size={16}/> {teacherDeadlineStatus}</p></div></div>
       {isLeader&&<ClassBindingEditor key={selected.id} options={classOptions} busy={bindingBusy} onSave={saveBindings} teacherLabel={teacherName(selected.teacher_id)}/>}
       <div className="blr-attendance-refresh"><strong>Thống kê chuyên cần tự động</strong>
         <button type="button" onClick={reloadAttendance} disabled={attendanceLoading}><RefreshCw size={16}/> Cập nhật từ Điểm danh</button></div>
