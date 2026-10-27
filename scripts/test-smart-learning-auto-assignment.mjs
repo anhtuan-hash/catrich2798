@@ -45,7 +45,7 @@ const tests=[
 ['Legacy manual mapping not compulsory',workspace.includes('blr-legacy-bindings')],
 ['Existing task not modified by frontend',!component.includes('.from(')],
 ['Existing navigation timers receive dispatch signal',service.includes('notifyLearningDeadlineChange();return data||{}')],
-['Backend scopes candidate IDs to active members',identity.includes('coalesce(m->>\\'status\\',\\'active\\')')],
+['Backend scopes candidate IDs to active members',identity.includes("coalesce(m->>\'status\',\'active\')")],
 ];
 for(const [label,pass] of tests)console.log((pass?'PASS':'FAIL')+': '+label);
 assert.ok(tests.every(x=>x[1]),'Smart assignment contract failed');
