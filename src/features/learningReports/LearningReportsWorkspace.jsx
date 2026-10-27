@@ -307,6 +307,11 @@ export default function LearningReportsWorkspace({currentUser}) {
         <div><small>{isLeader?teacherName(selected.teacher_id):'BÁO CÁO CỦA TÔI'}</small>
           <h2>{LEARNING_REPORT_KINDS[selected.report_kind]} · {selected.period?.slice(0,7)}</h2>
           <p><Clock3 size={16}/> Hạn {dateLabel(selected.due_at)} {deadlinePassed&&currentStatus!=='approved'&&<b className="blr-overdue">· Quá hạn</b>} · <Status value={currentStatus}/></p></div></div>
+      {isLeader&&<ClassBindingEditor key={selected.id} options={classOptions} busy={bindingBusy} onSave={saveBindings}/>}
+      <div className="blr-attendance-refresh"><strong>Thống kê chuyên cần tự động</strong>
+        <button type="button" onClick={reloadAttendance} disabled={attendanceLoading}><RefreshCw size={16}/> Cập nhật từ Điểm danh</button></div>
+      <AttendancePanel data={effectiveAttendance} loading={attendanceLoading}/>
+      {selected.status==='approved'&&selected.attendance_snapshot&&<p className="blr-muted">Số liệu điểm danh tại thời điểm TTCM xác nhận báo cáo đã được lưu để đối chiếu.</p>}
       <div className="blr-progressline"><strong>Tiến độ nhận xét chuyên môn: {progress.count}/5 phần</strong><div className="blr-progress"><i style={{width:progress.percent+'%'}}/></div><span>{progress.percent}%</span></div>
       {selected.reviewer_comment&&<div className="blr-banner">Nhận xét TTCM: {selected.reviewer_comment}</div>}
       {LEARNING_REPORT_SECTIONS[selected.report_kind].map((section,index)=><section className="blr-form-section" key={section.id}>
@@ -316,11 +321,6 @@ export default function LearningReportsWorkspace({currentUser}) {
           label={label} fieldType={type} required={required!==false} value={payload[key]??''} disabled={reportLocked}
           onChange={value=>setPayload(old=>({...old,[key]:value}))}/>)}</div>
       </section>)}
-      {isLeader&&<ClassBindingEditor key={selected.id} options={classOptions} busy={bindingBusy} onSave={saveBindings}/>}
-      <div className="blr-attendance-refresh"><strong>Thống kê chuyên cần tự động</strong>
-        <button type="button" onClick={reloadAttendance} disabled={attendanceLoading}><RefreshCw size={16}/> Cập nhật từ Điểm danh</button></div>
-      <AttendancePanel data={effectiveAttendance} loading={attendanceLoading}/>
-      {selected.status==='approved'&&selected.attendance_snapshot&&<p className="blr-muted">Số liệu điểm danh tại thời điểm TTCM xác nhận báo cáo đã được lưu để đối chiếu.</p>}
       {editable&&!hasLinkedClass&&<p className="blr-attendance-warning">Chưa thể gửi báo cáo vì TTCM chưa liên kết lớp điểm danh. Bạn vẫn có thể lưu phần đánh giá chuyên môn.</p>}
       {editable&&<div className="blr-actions blr-bottom-actions">
         <button type="button" disabled={busy} onClick={()=>doSave(false)}><Save size={18}/> Lưu nháp</button>
