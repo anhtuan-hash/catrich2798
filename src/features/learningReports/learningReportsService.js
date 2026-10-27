@@ -9,66 +9,63 @@ export const LEARNING_REPORT_STATUSES = Object.freeze({
 });
 export const LEARNING_REPORT_SECTIONS = Object.freeze({
   gifted: [
-    { id: 'team', title: 'Đội tuyển & mục tiêu', fields: [
-      ['teamName','Tên đội tuyển','text'], ['examLevel','Kỳ thi/cấp thi','text'],
-      ['initialStudents','Sĩ số đầu kỳ','number'], ['currentStudents','Sĩ số hiện tại','number'],
-      ['objectives','Mục tiêu bồi dưỡng','textarea'], ['overview','Tình hình đội tuyển','textarea'],
-    ] },
-    { id: 'curriculum', title: 'Tiến độ chương trình', fields: [
-      ['plannedPeriods','Số tiết theo kế hoạch','number'], ['completedPeriods','Số tiết đã thực hiện','number'],
-      ['topics','Chuyên đề đã dạy','textarea'], ['methods','Phương pháp bồi dưỡng','textarea'],
-      ['adjustments','Điều chỉnh chương trình (nếu có)','textarea',false],
-    ] },
-    { id: 'attendance', title: 'Chuyên cần & thái độ', fields: [
-      ['attendanceSummary','Nhận xét chuyên cần','textarea'],
-      ['studyHabits','Chuẩn bị bài, thái độ, bài tập','textarea'],
-      ['atRiskStudents','Học sinh cần hỗ trợ thêm (nếu có)','textarea',false],
-      ['attendanceActions','Biện pháp cải thiện chuyên cần','textarea'],
-    ] },
-    { id: 'outcomes', title: 'Kết quả bồi dưỡng', fields: [
-      ['assessmentCount','Số lần kiểm tra/thi thử','number'],
-      ['scoreSummary','Kết quả khảo sát/thi thử','textarea'],
-      ['improvement','Phân tích sự tiến bộ','textarea'],
-      ['readiness','Mức độ sẵn sàng dự thi','textarea'],
+    { id:'team',title:'Mục tiêu & tình hình đội tuyển',fields:[
+      ['examLevel','Kỳ thi/cấp thi hướng tới','text',false],
+      ['objectives','Mục tiêu bồi dưỡng','textarea'],
+      ['overview','Tình hình chất lượng đội tuyển','textarea'],
+    ]},
+    { id:'curriculum',title:'Chương trình & phương pháp',fields:[
+      ['topics','Chuyên đề, kỹ năng đã thực hiện (nếu điểm danh chưa ghi)','textarea'],
+      ['methods','Phương pháp bồi dưỡng, luyện đề, hướng dẫn tự học','textarea'],
+      ['adjustments','Điều chỉnh kế hoạch (nếu có)','textarea',false],
+    ]},
+    { id:'attendance',title:'Nhận xét quá trình học tập',fields:[
+      ['studyHabits','Thái độ học tập, chuẩn bị bài, ý thức tự học','textarea'],
+      ['atRiskStudents','Học sinh cần hỗ trợ riêng (nếu có)','textarea',false],
+      ['attendanceActions','Biện pháp hỗ trợ chuyên cần (nếu có)','textarea',false],
+    ]},
+    { id:'outcomes',title:'Đánh giá kết quả bồi dưỡng',fields:[
+      ['assessmentCount','Số lần kiểm tra/thi thử (nếu có)','number',false],
+      ['scoreSummary','Kết quả kiểm tra, thi thử (nếu có)','textarea',false],
+      ['improvement','Tiến bộ về kiến thức, kỹ năng','textarea'],
+      ['readiness','Đánh giá năng lực, khả năng dự thi','textarea'],
       ['achievements','Thành tích đã đạt (nếu có)','textarea',false],
-    ] },
-    { id: 'reflection', title: 'Khó khăn & kế hoạch', fields: [
-      ['difficulties','Khó khăn','textarea'], ['solutions','Biện pháp khắc phục','textarea'],
-      ['nextPlan','Kế hoạch kỳ tới','textarea'], ['recommendations','Kiến nghị (nếu có)','textarea',false],
-    ] },
+    ]},
+    { id:'reflection',title:'Kế hoạch & kiến nghị',fields:[
+      ['difficulties','Khó khăn (nếu có)','textarea',false],
+      ['solutions','Biện pháp khắc phục','textarea',false],
+      ['nextPlan','Mục tiêu, chuyên đề và hoạt động kỳ tới','textarea'],
+      ['recommendations','Kiến nghị với TTCM/nhà trường (nếu có)','textarea',false],
+    ]},
   ],
   remedial: [
-    { id: 'students', title: 'Đối tượng & đầu vào', fields: [
-      ['className','Khối/lớp phụ đạo','text'], ['studentCount','Số học sinh được phân công','number'],
-      ['baseline','Căn cứ và kết quả khảo sát đầu vào','textarea'],
-      ['knowledgeGaps','Lỗ hổng kiến thức, kỹ năng','textarea'],
+    { id:'students',title:'Đối tượng & nguyên nhân',fields:[
+      ['baseline','Kết quả khảo sát đầu vào','textarea'],
+      ['knowledgeGaps','Lỗ hổng kiến thức, kỹ năng chủ yếu','textarea'],
       ['objectives','Mục tiêu phụ đạo','textarea'],
-    ] },
-    { id: 'curriculum', title: 'Nội dung & tiến độ', fields: [
-      ['plannedPeriods','Số tiết theo kế hoạch','number'], ['completedPeriods','Số tiết đã thực hiện','number'],
-      ['topics','Nội dung củng cố (Vocabulary/Grammar/Reading...)','textarea'],
-      ['methods','Hình thức hỗ trợ và bài tập bổ trợ','textarea'],
-      ['adjustments','Điều chỉnh kế hoạch (nếu có)','textarea',false],
-    ] },
-    { id: 'attendance', title: 'Chuyên cần & phối hợp', fields: [
-      ['attendanceSummary','Tình hình chuyên cần và hoàn thành nhiệm vụ','textarea'],
-      ['frequentAbsences','Học sinh vắng thường xuyên (nếu có)','textarea',false],
-      ['participation','Thái độ và mức độ hợp tác','textarea'],
-      ['coordination','Phối hợp với GVCN/phụ huynh (nếu có)','textarea',false],
-    ] },
-    { id: 'outcomes', title: 'Tiến bộ & kết quả', fields: [
-      ['afterAssessment','Kết quả đánh giá lại','textarea'],
-      ['improvedCount','Số học sinh có tiến bộ','number'],
-      ['goalMetCount','Số học sinh đạt mục tiêu','number'],
+    ]},
+    { id:'curriculum',title:'Nội dung & cách thức phụ đạo',fields:[
+      ['topics','Nội dung củng cố (nếu chưa có trong ghi chú điểm danh)','textarea'],
+      ['methods','Hình thức hỗ trợ, bài tập bổ trợ','textarea'],
+      ['adjustments','Điều chỉnh chương trình (nếu có)','textarea',false],
+    ]},
+    { id:'attendance',title:'Nhận xét quá trình tham gia',fields:[
+      ['participation','Tinh thần học tập, hợp tác, hoàn thành bài tập','textarea'],
+      ['coordination','Phối hợp GVCN/phụ huynh (nếu có)','textarea',false],
+    ]},
+    { id:'outcomes',title:'Kết quả & sự tiến bộ',fields:[
+      ['afterAssessment','Đánh giá sau phụ đạo','textarea'],
+      ['improvedCount','Số học sinh tiến bộ (nếu đã đánh giá)','number',false],
+      ['goalMetCount','Số học sinh đạt mục tiêu (nếu đã đánh giá)','number',false],
       ['improvement','Phân tích tiến bộ so với đầu vào','textarea'],
-      ['remainingGaps','Nhóm học sinh chưa đạt và nội dung cần tiếp tục hỗ trợ','textarea'],
-    ] },
-    { id: 'reflection', title: 'Phương hướng & kiến nghị', fields: [
-      ['assessment','Đánh giá mức độ hoàn thành mục tiêu','textarea'],
-      ['difficulties','Khó khăn và nguyên nhân','textarea'],
-      ['nextPlan','Học sinh tiếp tục phụ đạo, chuyên đề tiếp theo','textarea'],
+      ['remainingGaps','Những kiến thức/kỹ năng còn hạn chế','textarea'],
+    ]},
+    { id:'reflection',title:'Phương hướng & đề xuất',fields:[
+      ['assessment','Đánh giá hiệu quả biện pháp phụ đạo','textarea'],
+      ['difficulties','Khó khăn cần tháo gỡ (nếu có)','textarea',false],
+      ['nextPlan','Nội dung và nhóm học sinh cần hỗ trợ tiếp','textarea'],
       ['recommendations','Kiến nghị (nếu có)','textarea',false],
-    ] },
+    ]},
   ],
 });
 
@@ -114,6 +111,21 @@ export function aggregateLearningSessions(rows = []) {
 export function participationPercent(stats) {
   return stats.expected > 0 ? Math.round(stats.present*1000/stats.expected)/10 : null;
 }
+export async function loadLearningAttendance(taskId) {
+  if (!taskId) throw new Error('Thiếu mã báo cáo.');
+  const {data,error}=await db().rpc('bes_learning_report_attendance',{p_task_id:taskId});
+  fail(error);return data||{classes:[],sessions:[],totals:{}};
+}
+export async function listLearningClassOptions(taskId) {
+  const {data,error}=await db().rpc('bes_learning_report_class_options',{p_task_id:taskId});
+  fail(error);return Array.isArray(data)?data:[];
+}
+export async function bindLearningClasses(taskId, classIds) {
+  const {data,error}=await db().rpc('bes_learning_report_bind_classes',{
+    p_task_id:taskId,p_class_ids:[...new Set((classIds||[]).filter(Boolean))],
+  });
+  fail(error);return Number(data||0);
+}
 export async function issueLearningReports({ departmentId, kind, month, dueAt, teacherIds, notification = true, event = true }) {
   const due = safeDate(dueAt);
   const ids = [...new Set((teacherIds || []).map(normalizeId).filter(Boolean))];
@@ -141,7 +153,12 @@ export async function listLearningSessions(taskId) {
 export async function saveLearningReport(task, payload, submit = false) {
   if (!task?.id) throw new Error('Không tìm thấy nhiệm vụ báo cáo.');
   if (!['draft','revision'].includes(task.status)) throw new Error('Báo cáo đã khóa chỉnh sửa.');
-  if (submit && !reportProgress(task.report_kind,payload).ready) throw new Error('Cần hoàn thành đủ 05 phần trước khi nộp.');
+  if (submit) {
+    if (!reportProgress(task.report_kind,payload).ready)
+      throw new Error('Cần hoàn thành đủ 05 phần chuyên môn trước khi nộp.');
+    const attendance=await loadLearningAttendance(task.id);
+    if (!attendance.classes?.length) throw new Error('TTCM cần liên kết lớp điểm danh trước khi nộp báo cáo.');
+  }
   const {data,error} = await db().from('bes_learning_report_tasks').update({
     payload, status: submit ? 'submitted' : 'draft',
     notified_read_at:task.notified_read_at || new Date().toISOString(),
