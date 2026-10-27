@@ -23,7 +23,7 @@ export default function BrianTeamPortal(props) {
 
   if (!isLeader) {
     return (
-      <div className="btp-shell">
+      <div className={view==='learning'?'btp-shell btp-specialist-portal':'btp-shell'}>
         <nav className="btp-switcher" aria-label="Báo cáo giáo viên">
           <button type="button" className={view === 'mine' ? 'is-active' : ''} onClick={() => setView('mine')}>
             <FileText /> Báo cáo tháng
@@ -43,7 +43,7 @@ export default function BrianTeamPortal(props) {
   }
 
   return (
-    <div className="btp-shell">
+    <div className={programmeArea?'btp-shell btp-specialist-portal':'btp-shell'}>
       <nav className="btp-switcher btp-switcher--leader btp-primary-areas" aria-label="Khu vực báo cáo">
         <button type="button" className={!programmeArea?'is-active':''}
           onClick={()=>setView('mine')}><FileText/> Báo cáo chuyên môn tháng</button>
