@@ -379,7 +379,7 @@ html[data-motion-bubble="none"] body .bff-bubble:active{
 }
 
 /* Grade-specific Family Feud selection; no change to game stage or other bubbles. */
-.bff-grade-switch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:11px}
+.bff-grade-switch{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:11px}
 .bff-grade-option{
   min-width:0;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px 12px;
   min-height:72px;padding:13px 17px;border:2px solid var(--bff-stroke);border-radius:17px;
@@ -404,3 +404,6 @@ html[data-motion-bubble="none"] body .bff-bubble:active{
 @media(prefers-reduced-motion:reduce){
   .bff-grade-option{transition:none!important;transform:none!important}
 }
+
+/* Grade 10/11/12 — show three equal options at every viewport. */
+@media(max-width:490px){.bff-grade-switch{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.bff-grade-option{min-height:75px;padding:8px 4px}.bff-grade-option>strong{font-size:clamp(12px,3.4vw,16px);white-space:nowrap}.bff-grade-option>small{font-size:8px;letter-spacing:.04em}}
