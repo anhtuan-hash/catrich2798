@@ -3121,4 +3121,6 @@ export const LEGACY_SITE_EN = Object.freeze({
   "Liên kết tự động được lưu lâu dài. Báo cáo đã tồn tại và dữ liệu đã duyệt không bị ghi đè.": "Automatic links are retained. Existing assignments and approved reports are never overwritten.",
   "Đang phân tích…": "Analyzing…",
   "Đang giao báo cáo…": "Assigning reports…",
+  "Quản lý liên kết lớp cũ (chỉ khi cần chỉnh sửa)": "Manage legacy class links (only when corrections are needed)",
+  "Loại": "Type",
 });
