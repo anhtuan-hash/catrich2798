@@ -1,10 +1,13 @@
-name: Brian Single-Column Bubbles
+name: Brian Floating Bubbles Layout and Glow
 on:
   pull_request:
     paths:
       - 'src/components/BrianInstantTools/BrianInstantTools.css'
       - 'src/styles/ThreeFloatingActions.css'
+      - 'src/styles/BrianFloatingGlow.css'
+      - 'src/main.jsx'
       - 'scripts/test-single-column-floating-bubbles.mjs'
+      - 'scripts/test-floating-bubble-glow.mjs'
       - '.github/workflows/brian-floating-single-column.yml'
   workflow_dispatch:
 permissions:
@@ -23,6 +26,7 @@ jobs:
       - name: Assert all floating bubbles align with no overlap
         run: |
           node scripts/test-single-column-floating-bubbles.mjs
+          node scripts/test-floating-bubble-glow.mjs
           node scripts/test-role-floating-dock.mjs
           node scripts/test-unified-floating-dock.mjs
           node scripts/test-unified-bubble-motion.mjs
