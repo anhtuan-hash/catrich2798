@@ -237,6 +237,20 @@ export function notifyLearningDeadlineChange() {
   window.dispatchEvent(new Event('bes-learning-report-deadline-change'));
 }
 
+// Remove an unstarted assignment; report content and approved records are
+// explicitly protected by a server-side TTCM authorization check.
+export async function revokeLearningReportAssignment(taskId) {
+  const id=String(taskId||'').trim();
+  if(!id)throw new Error('Chưa chọn yêu cầu báo cáo cần thu hồi.');
+  const {data,error}=await db().rpc('bes_revoke_learning_report_assignment',{
+    p_task_id:id,
+  });
+  fail(error);
+  if(!data?.removed)throw new Error('Không thể thu hồi nhiệm vụ báo cáo.');
+  notifyLearningDeadlineChange();
+  return data;
+}
+
 export async function listLearningReports() {
   const [reports,overrides]=await Promise.all([
     db().from('bes_learning_report_tasks').select('*')
