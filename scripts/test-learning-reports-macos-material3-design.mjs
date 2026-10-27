@@ -27,7 +27,7 @@ const checks=[
   ['Action panel remains working',workspace.includes('setShowComposer(v=>!v)')&&workspace.includes('<SmartAssignmentComposer')],
   ['Attendance source and teacher identity preserved',workspace.includes('loadLearningAttendance(selected.id)')&&workspace.includes('attendance_snapshot')],
   ['Student data and write functions untouched',workspace.includes('saveLearningReport(selected,payload,submit)')&&workspace.includes('reviewLearningReport(selected.id,status,reviewComment)')],
-  ['Summary and annual views accessible',workspace.includes('managerView===\\'summary\\'')&&workspace.includes('managerView===\\'history\\'')],
+  ['Summary and annual views accessible',workspace.includes("managerView==='summary'")&&workspace.includes("managerView==='history'")],
   ['Month and annual metrics visually harmonized',css.includes('.blrd-metrics')&&css.includes('.blrd-month-grid')&&css.includes('.blrd-deadline')],
   ['Native Print/PDF retained',analytics.includes('window.print()')],
   ['Auto assignment preview retained',smart.includes('previewSmartLearningAssignments')],
