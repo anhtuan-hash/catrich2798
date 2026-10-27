@@ -239,9 +239,9 @@ export default function LearningReportsWorkspace({currentUser}) {
     const recipient=teacherName(task.teacher_id);
     const name=LEARNING_REPORT_KINDS[task.report_kind];
     const month=String(task.period||'').slice(0,7);
-    if(!window.confirm('XÓA VIỆC GIAO BÁO CÁO?\\n\\n'+
-      'Giáo viên: '+recipient+'\\nLoại: '+name+'\\nTháng: '+month+
-      '\\n\\nNhiệm vụ chưa làm sẽ bị thu hồi, đồng hồ và sự kiện tương ứng được cập nhật. '+
+    if(!window.confirm('XÓA VIỆC GIAO BÁO CÁO?\n\n'+
+      'Giáo viên: '+recipient+'\nLoại: '+name+'\nTháng: '+month+
+      '\n\nNhiệm vụ chưa làm sẽ bị thu hồi, đồng hồ và sự kiện tương ứng được cập nhật. '+
       'Báo cáo có nội dung, đã nộp hoặc đã duyệt sẽ không được xóa.'))return;
     setWithdrawingId(task.id);setError('');setNotice('');
     try{
