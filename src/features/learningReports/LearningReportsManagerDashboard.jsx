@@ -50,7 +50,7 @@ function Score({data,kind}){
     <Metric label="Lượt có mặt" value={fmt(s.present)+'/'+fmt(s.expected)} sub={s.attendancePct===null?'Chưa có điểm danh':s.attendancePct+'% chuyên cần'} icon={UsersRound}/>
     <Metric label="Lượt vắng / đi trễ" value={fmt(s.absent)+' / '+fmt(s.late)} sub="Đã chốt trên Brian Attendance" icon={AlertTriangle}/>
     <Metric label="Kiến nghị" value={fmt(s.recommendations)} sub="Báo cáo có nội dung kiến nghị" icon={FileBarChart2}/>
-    <Metric label={kind==='gifted'?'Lần kiểm tra / thi thử':'Học sinh cải thiện'} value={fmt(kind==='gifted'?s.assessments:s.improved)} sub={kind==='gifted'?fmt(s.achievements)+' báo cáo có thành tích':fmt(s.goals)+' đạt mục tiêu (theo GV đánh giá)'} icon={Award}/>
+    <Metric label={kind==='gifted'?'Lần kiểm tra / thi thử':'Lượt HS tiến bộ'} value={fmt(kind==='gifted'?s.assessments:s.improved)} sub={kind==='gifted'?fmt(s.achievements)+' báo cáo có thành tích':fmt(s.goals)+' lượt đạt mục tiêu (theo GV báo cáo; có thể trùng giữa các tháng)'} icon={Award}/>
   </div>;
 }
 export default function LearningReportsManagerDashboard({
