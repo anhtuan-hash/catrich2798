@@ -540,7 +540,7 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
         {game.fast?.points>=200?' 🎉':''}</div>}
       {game.phase==='fast_done'&&<button className="bff-action" type="button"
         onClick={()=>dispatch({type:'EDIT_FAST_SCORE'})}>
-        <Settings2 size={18}/>{tr('Sửa điểm Fast Money','Edit Fast Money score')}</button>
+        <Settings2 size={18}/>{tr('Sửa điểm Fast Money','Edit Fast Money score')}</button>}
       <button type="button" className="bff-action" onClick={()=>setConfirmReset(true)}>
         <RotateCcw size={18}/>{tr('Tạo ván Family Feud mới','Create another Family Feud game')}</button>
     </div>
