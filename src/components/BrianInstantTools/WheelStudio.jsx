@@ -3,6 +3,8 @@ import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {Check,ChevronDown,Download,Eye,EyeOff,FileUp,History,Plus,RotateCcw,Settings2,Shuffle,Sparkles,Trophy,Trash2,Target} from 'lucide-react';
 import {WHEEL_THEMES,wheelSegments,pickWheelSegment,wheelTargetForSegment,makeWheelHistory,wheelCsv,parseWheelCsv,shuffleWheelRows} from './wheelStudioCore.mjs';
 import './WheelStudio.css';
+import PowerUpWheel from './PowerUpWheel.jsx';
+import {Dices,Zap} from 'lucide-react';
 const TXT={
  vi:{items:'Danh sách',results:'Kết quả',settings:'Tùy chỉnh',title:'Vòng quay may mắn',spin:'QUAY NGAY',spinning:'Đang quay…',stop:'DỪNG SỚM',apply:'Áp dụng tên',
  modes:['Thông thường','Loại dần','Tích lũy'],add:'Thêm mục',shuffle:'Trộn',reset:'Khôi phục tất cả',recent:'Lịch sử lượt quay',
@@ -34,6 +36,7 @@ const randomInt=(a,b)=>{
 export default function WheelStudio({value,onChange,t,sound,onSound,onCelebrate}){
  const vi=t.spin==='QUAY NGAY',T=TXT[vi?'vi':'en'];
  const [tab,setTab]=useState('items'),[paste,setPaste]=useState((value.rows||[]).map(r=>r.label).join('\n'));
+ const [wheelView,setWheelView]=useState('standard');
  const [search,setSearch]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false),[saveName,setSaveName]=useState('');
  const [selected,setSelected]=useState(null),[burst,setBurst]=useState(0);
  const wheelRef=useRef(null),frameRef=useRef(null),intervalRef=useRef(null),runRef=useRef(null),csvRef=useRef(null),mounted=useRef(true);
@@ -116,7 +119,17 @@ export default function WheelStudio({value,onChange,t,sound,onSound,onCelebrate}
  const gradient=shownSegments.length?'conic-gradient('+shownSegments.map(r=>r.color+' '+r.start.toFixed(3)+'deg '+r.end.toFixed(3)+'deg').join(',')+')':'#a9cad1';
  const modes=['normal','elimination','accumulation'];
  const tabs=[['items',T.items],['results',T.results],['settings',T.settings]];
- return <section className="bit-wheel-studio" data-testid="brian-wheel-studio">
+ return <>
+  <div className="bit-ws-mode-switch" role="group" aria-label={vi?'Chọn chế độ vòng quay':'Choose wheel mode'}>
+   <button type="button" aria-pressed={wheelView==='standard'} onClick={()=>setWheelView('standard')}>
+    <Target size={18}/>{vi?'Vòng quay tên / đội':'Names / Teams'}</button>
+   <button type="button" aria-pressed={wheelView==='powerups'} onClick={()=>setWheelView('powerups')}>
+    <Zap size={18}/>{vi?'QUAY POWER-UP · 50 THẺ':'POWER-UP WHEEL · 50 CARDS'}</button>
+  </div>
+  {wheelView==='powerups'?
+   <PowerUpWheel value={value} onChange={onChange} t={t} sound={sound}
+    onSound={onSound} onCelebrate={onCelebrate}/>:
+  <section className="bit-wheel-studio" data-testid="brian-wheel-studio">
   <div className="bit-ws-top"><div><span className="bit-ws-kicker"><Sparkles size={14}/> BRIAN WHEEL STUDIO</span>
    <h3>{T.title}</h3><p>Random Picker · Classroom Edition</p></div>
    <div className="bit-ws-metrics"><span><strong>{active}</strong>{T.active}</span><span><strong>{value.spins||0}</strong>{T.stats}</span></div></div>
@@ -230,5 +243,6 @@ export default function WheelStudio({value,onChange,t,sound,onSound,onCelebrate}
     <div className="bit-ws-stage-bottom"><span>{T.modes[modes.indexOf(mode)]}</span><span>{seconds}s · {rows.length} {T.items.toLowerCase()}</span></div>
    </div>
   </div><p className="bit-ws-footer">{T.notes}</p>
- </section>;
+ </section>}
+ </>;
 }
