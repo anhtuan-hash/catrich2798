@@ -1,6 +1,6 @@
 {
   "installCommand": "npm ci --no-audit --no-fund --registry=https://registry.npmjs.org",
-  "buildCommand": "node scripts/test-editorial-app-heroes.mjs && npm run version:sync && npm run audit:inactive-modules && npm run audit:i18n && npm run test:i18n && node scripts/test-learning-reports-contract.mjs && node scripts/test-learning-report-instructor-scoping.mjs && node scripts/test-learning-report-attendance-contract.mjs && node scripts/test-learning-reports-unified-workspace.mjs && node scripts/test-auth-security-hardening.mjs && npx vite build",
+  "buildCommand": "node scripts/build-brian-vercel-release.mjs",
   "outputDirectory": "dist",
   "rewrites": [
     {
