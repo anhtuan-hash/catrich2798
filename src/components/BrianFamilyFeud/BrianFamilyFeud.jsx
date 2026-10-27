@@ -117,7 +117,7 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
     let active=true;setLoaded(false);
     void loadFeud(ownerId).then(saved=>{
       if(!active)return;
-      if(saved?.schema===1&&saved.ownerId===ownerId&&Array.isArray(saved.bank)&&Array.isArray(saved.teams)){
+      if([1,2].includes(saved?.schema)&&saved.ownerId===ownerId&&Array.isArray(saved.bank)&&Array.isArray(saved.teams)){
         // A resumed Fast Money timer never runs invisibly while the app is closed.
         if(saved.phase==='fast_money'&&saved.fast&&!saved.fast.paused){
           saved.fast.remainingMs=Math.max(0,Math.min(45000,(saved.fast.dueAt||Date.now())-Date.now()));
@@ -276,8 +276,8 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
     <header className="bff-intro">
       <span className="bff-eyebrow">THE CLASSROOM SURVEY SHOW</span>
       <h2>{tr('Một câu hỏi. Sáu đáp án. Cả lớp bùng nổ!','One question. Six answers. One big showdown!')}</h2>
-      <p>{tr('Học sinh đoán câu trả lời; giáo viên bấm lật ô, ghi điểm, trao quyền cướp điểm và điều khiển Fast Money.',
-        'Students call out answers. The teacher reveals tiles, manages strikes and steals, and hosts Fast Money.')}</p>
+      <p>{tr('Giáo viên mở đáp án và tự nhập điểm cho từng đội sau mỗi vòng. Lật đáp án không tự cộng điểm.',
+        'Reveal answers, then manually enter each team’s score after every round. Reveals never award points.')}</p>
     </header>
     <div className="bff-setup-grid">
       <section className="bff-card">
@@ -291,7 +291,8 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
         <h3>{tr('02 · Số vòng chơi','02 · Rounds')}</h3>
         <div className="bff-pills">{(selectedUnitGame?[3,5]:FEUD_ROUND_LIMITS).map(n=><button type="button" key={n} className={roundLimit===n?'is-active':''}
             onClick={()=>setRoundLimit(n)}>{n} {tr('vòng','rounds')}</button>)}</div>
-        <p className="bff-muted">{tr('Hai vòng cuối tự động nhân đôi và nhân ba điểm.','The last two rounds automatically double and triple the points.')}</p>
+        <p className="bff-muted">{tr('Điểm đáp án chỉ để tham khảo; giáo viên tự quyết định và nhập điểm từng đội.',
+          'Answer values are hints only. The teacher decides and enters every team score.')}</p>
       </section>
       <section className="bff-card">
         <h3>{tr('03 · Bộ câu hỏi','03 · Question bank')}</h3>
@@ -376,7 +377,7 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
         disabled={game.phase!=='ready'&&game.phase!=='steal'||game.phase==='steal'&&index===game.controller}
         aria-label={tr('Chọn đội ','Select team ')+team.name}><span className="bff-team-color"/>{team.name}</button>
       <LiveTeamScore value={team.score} animate={motionOn}/>
-      <small>{team.roundWins} {tr('vòng thắng','wins')}</small>
+      <small>{team.roundWins} {tr('vòng dẫn đầu','rounds led')}</small>
     </section>)}
   </div>;
   const playScreen=game&&<div className="bff-game" key={'round-'+game.roundIndex}>
@@ -389,7 +390,7 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
       <strong>{tr('NHÂN ĐIỂM','MULTIPLIER')} ×{currentMult}</strong>
       {game.phase==='ready'&&<div className="bff-pills">{[1,2,3].map(n=><button key={n} type="button"
         className={currentMult===n?'is-active':''} onClick={()=>dispatch({type:'SET_MULTIPLIER',value:n})}>×{n}</button>)}</div>}
-      <span>{tr('POT','POT')}: <b>{showPoints(game.pointsPot)}</b></span>
+      <span>{tr('ĐIỂM GỢI Ý','SUGGESTED POT')}: <b>{showPoints(game.pointsPot)}</b></span>
     </div>
     <div className="bff-play-grid">
       <section key={game.roundIndex+'-'+(game.phase==='ready'?'ready':'active')}
@@ -423,8 +424,9 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
           <h3>{controller?.name}</h3>
           <p>{game.phase==='ready'?tr('Sẵn sàng cho câu hỏi mới.','Ready to start a new question.'):
              game.phase==='steal'?tr('Ba lần sai! Đội khác được cướp điểm.','Three strikes! The other team can steal.'):
-             game.phase==='round_done'?tr('Vòng này đã chốt điểm.','Round points have been awarded.'):
-             tr('Học sinh nêu đáp án, giáo viên lật ô phù hợp.','Students call out answers; the teacher reveals matching tiles.')}</p>
+             game.phase==='round_scoring'?tr('Nhập điểm cho TỪNG ĐỘI trước khi sang vòng mới.','Enter a score for EACH TEAM before continuing.'):
+             game.phase==='round_done'?tr('Đã lưu điểm thủ công cho vòng này.','Manual round scores saved.'):
+             tr('Học sinh nêu đáp án, giáo viên lật ô phù hợp. Không tự cộng điểm.','Reveal matching tiles; no points are automatically added.')}</p>
         </div>
         {game.phase==='steal'&&<div className="bff-steal-card">
           <span className="bff-eyebrow">⚡ {tr('CƠ HỘI CƯỚP ĐIỂM','STEAL CHANCE')}</span>
@@ -449,11 +451,11 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
           }}><Play size={21}/>{tr('BẮT ĐẦU VÒNG','START ROUND')}</button>}
           {['playing','steal'].includes(game.phase)&&<>
             <button className="bff-action bff-strike-btn" type="button" onClick={doStrike}>
-              <X size={24}/>{game.phase==='steal'?tr('CƯỚP SAI — CHỐT VÒNG','STEAL FAILED — AWARD ROUND'):tr('ĐÁP ÁN SAI +1 X','WRONG ANSWER +1 X')}</button>
+              <X size={24}/>{game.phase==='steal'?tr('CƯỚP SAI · NHẬP ĐIỂM','STEAL FAILED · ENTER SCORES'):tr('ĐÁP ÁN SAI +1 X','WRONG ANSWER +1 X')}</button>
             <button className="bff-action bff-subtle" type="button" onClick={()=>{
-              dispatch({type:'END_ROUND'});playSound('bank');
-              animate('score',tr('ĐÃ CHỐT ĐIỂM!','POINTS BANKED!'));
-            }}>{tr('Chốt điểm và kết thúc vòng','End & award this round')}</button>
+              dispatch({type:'END_ROUND'});playSound('flip');
+              animate('round',tr('MỜI GIÁO VIÊN NHẬP ĐIỂM','TEACHER: ENTER SCORES'));
+            }}>{tr('KẾT THÚC VÒNG · NHẬP ĐIỂM','END ROUND · ENTER SCORES')}</button>
           </>}
           {game.phase==='round_done'&&<>
             <p className="bff-round-result"><Trophy size={20}/>{game.last?.team} +{showPoints(game.last?.points)}</p>
@@ -484,7 +486,7 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
     <div className="bff-podium">{ranking.map((team,index)=><section key={team.id}
        className={'bff-podium-card'+(index===0?' is-winner':'')}>
       <span>{index===0?'👑':'#'+(index+1)}</span><h3>{team.name}</h3>
-      <strong>{showPoints(team.score)}</strong><small>{team.roundWins} {tr('vòng thắng','round wins')}</small>
+      <strong>{showPoints(team.score)}</strong><small>{team.roundWins} {tr('vòng dẫn đầu','rounds led')}</small>
     </section>)}</div>
     <div className="bff-results-actions">
       <button type="button" className="bff-action" onClick={()=>exportFile('brian-family-feud-scores.csv',exportFeudResults(game))}>
@@ -571,8 +573,8 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
       <main className="bff-main">
         {!loaded?<div className="bff-loading">{tr('Đang khôi phục ván chơi…','Restoring saved session…')}</div>:
          !game?setup:
-         ['ready','playing','steal','round_done'].includes(game.phase)?playScreen:
-         game.phase==='fast_money'?fastScreen:resultsScreen}
+         ['ready','playing','steal','round_scoring','round_done'].includes(game.phase)?playScreen:
+         game.phase==='fast_money'?fastScreen:game.phase==='fast_scoring'?fastScoreScreen:resultsScreen}
       </main>
       <footer className="bff-footer">
         <span>{tr('Tự lưu trên thiết bị · Dữ liệu khảo sát mô phỏng · Không dùng AI',
