@@ -10,6 +10,9 @@ on:
       - 'scripts/test-learning-reports-contract.mjs'
       - 'scripts/test-learning-report-attendance-contract.mjs'
       - 'scripts/test-learning-report-instructor-scoping.mjs'
+      - 'scripts/test-learning-reports-manager-analytics.mjs'
+      - 'supabase/migrations/20261027143000_learning_reports_manager_analytics.sql'
+      - 'supabase/migrations/20261027143500_learning_report_deadline_rls_scope.sql'
       - 'supabase/migrations/20261027132000_learning_reports_instructor_scoped.sql'
       - 'supabase/migrations/20261027133000_learning_report_teacher_name_uniqueness.sql'
       - '.github/workflows/brian-learning-reports.yml'
@@ -31,23 +34,29 @@ jobs:
         run: node scripts/test-learning-report-attendance-contract.mjs
       - name: Verify per-instructor source attribution
         run: node scripts/test-learning-report-instructor-scoping.mjs
+      - name: Check annual dashboard contracts and arithmetic
+        run: node scripts/test-learning-reports-manager-analytics.mjs
       - name: Validate report JSX syntax
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           import ts from 'typescript';
-          const path = 'src/features/learningReports/LearningReportsWorkspace.jsx';
-          const result = ts.transpileModule(fs.readFileSync(path, 'utf8'), {
-            fileName: path,
-            reportDiagnostics: true,
-            compilerOptions: { allowJs:true, jsx:ts.JsxEmit.ReactJSX, target:ts.ScriptTarget.ES2022 },
+          const paths = ['src/features/learningReports/LearningReportsWorkspace.jsx',
+            'src/features/learningReports/LearningReportsManagerDashboard.jsx'];
+          const errors = paths.flatMap(path => {
+            const result = ts.transpileModule(fs.readFileSync(path, 'utf8'), {
+              fileName: path, reportDiagnostics: true,
+              compilerOptions: { allowJs:true, jsx:ts.JsxEmit.ReactJSX, target:ts.ScriptTarget.ES2022 },
+            });
+            return (result.diagnostics || []).filter(item => item.category === ts.DiagnosticCategory.Error);
           });
-          const errors = (result.diagnostics || []).filter(item => item.category === ts.DiagnosticCategory.Error);
           for (const item of errors) console.error(ts.flattenDiagnosticMessageText(item.messageText, '\n'));
           if (errors.length) process.exit(1);
           console.log('PASS: JSX parsed and transpiled');
           NODE
       - name: Check JS syntax
-        run: node --check src/features/learningReports/learningReportsService.js
+        run: |
+          node --check src/features/learningReports/learningReportsService.js
+          node --check src/features/learningReports/learningReportsAnalytics.js
       - name: Bilingual UI audit
         run: npm run audit:i18n
