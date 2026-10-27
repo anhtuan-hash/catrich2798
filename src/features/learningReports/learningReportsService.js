@@ -239,6 +239,19 @@ export function notifyLearningDeadlineChange() {
 
 // Remove an unstarted assignment; report content and approved records are
 // explicitly protected by a server-side TTCM authorization check.
+// Batch withdrawal applies exactly the same server-side checks as the individual
+// action. Protected reports appear in the skipped list and remain untouched.
+export async function bulkRevokeLearningReportAssignments(taskIds) {
+  const ids=[...new Set((taskIds||[]).filter(Boolean).map(String))];
+  if(!ids.length||ids.length>100)throw new Error('Chọn từ 1 đến 100 báo cáo để thu hồi.');
+  const {data,error}=await db().rpc('bes_bulk_revoke_learning_report_assignments',{
+    p_task_ids:ids,
+  });
+  fail(error);
+  if(data?.removedCount>0)notifyLearningDeadlineChange();
+  return data||{removedCount:0,skippedCount:0,removed:[],skipped:[]};
+}
+
 export async function revokeLearningReportAssignment(taskId) {
   const id=String(taskId||'').trim();
   if(!id)throw new Error('Chưa chọn yêu cầu báo cáo cần thu hồi.');

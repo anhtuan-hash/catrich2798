@@ -1,6 +1,6 @@
 import React, {useCallback,useEffect,useMemo,useState} from 'react';
 import {Award, BarChart3, CalendarClock, CalendarRange, CheckCircle2, ClipboardList,
-  Download, FileBarChart2, RefreshCw, Send, UsersRound, X, AlertTriangle} from 'lucide-react';
+  Download, FileBarChart2, RefreshCw, Send, UsersRound, X, AlertTriangle, Printer} from 'lucide-react';
 import {
   LEARNING_REPORT_KINDS, LEARNING_REPORT_STATUSES,
   loadLearningTeamDashboard,setLearningTeamDeadline,
@@ -158,6 +158,7 @@ export default function LearningReportsManagerDashboard({
           {Array.from({length:5},(_,i)=>schoolYearStartYear()-2+i).map(y=><option key={y} value={y}>{y}–{y+1}</option>)}
         </select></label>
         <button type="button" onClick={refresh} disabled={loading}><RefreshCw size={16}/>{loading?'Đang tải…':'Làm mới'}</button>
+        <button type="button" onClick={()=>window.print()}><Printer size={16}/> In / Lưu PDF</button>
       </div>
     </header>
     {error&&<div className="blrd-message is-error" role="alert">{error}<button onClick={()=>setError('')} aria-label="Đóng"><X size={17}/></button></div>}

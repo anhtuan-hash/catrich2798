@@ -1,0 +1,44 @@
+.blru{background:#fff;border:1px solid #dce6f1;border-radius:22px;overflow:hidden;color:#173653;box-shadow:0 10px 26px #17365308}
+.blru *{box-sizing:border-box}
+.blru button,.blru select,.blru input{font:inherit}
+.blru button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:37px;border-radius:10px;border:1px solid #cedfed;background:#fff;color:#23517d;padding:8px 12px;font-size:13px;font-weight:750;cursor:pointer}
+.blru button:hover:not(:disabled){background:#eff6ff;border-color:#8cbde7}
+.blru button:disabled{opacity:.45;cursor:not-allowed}
+.blru-header{padding:23px 24px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;border-bottom:1px solid #e5edf5}
+.blru-header small{color:#5780a3;font-size:11px;letter-spacing:.12em;font-weight:800}
+.blru-header h2{font-size:clamp(19px,2vw,25px);letter-spacing:-.02em;margin:7px 0}
+.blru-header p{color:#71889e;font-size:13px;margin:0;line-height:1.6}
+.blru-filters{display:grid;grid-template-columns:minmax(200px,2fr) minmax(160px,1fr) minmax(170px,1fr);gap:13px;padding:18px 24px;background:#f9fbfe}
+.blru-filters label{display:grid;gap:8px;font-size:12px;font-weight:800;color:#56738d}
+.blru-filters input,.blru-filters select{min-width:0;width:100%;min-height:42px;padding:10px 12px;background:#fff;border:1px solid #d6e3ef;border-radius:11px;color:#234562}
+.blru-input-with-icon{position:relative;display:block}.blru-input-with-icon svg{position:absolute;left:12px;top:12px;color:#6c86a0}
+.blru-input-with-icon input{padding-left:38px}
+.blru-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 24px;border-top:1px solid #e8eef5;border-bottom:1px solid #e8eef5}
+.blru-select-all{display:inline-flex!important;align-items:center;gap:9px;cursor:pointer;font-size:13px;font-weight:850}
+.blru input[type="checkbox"]{width:17px;height:17px;accent-color:#1a67bf;cursor:pointer}
+.blru-count{font-size:12px;color:#6a8299;flex:1}
+.blru-buttons{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+.blru button.blru-danger{background:#fff3f1;color:#a93b38;border-color:#f1ccc6}
+.blru button.blru-danger:hover:not(:disabled){background:#ffe6e0;border-color:#e6a39a}
+.blru-table-scroll{width:100%;overflow-x:auto}
+.blru-table{width:100%;border-collapse:collapse;font-size:13px;text-align:left}
+.blru-table th{font-size:11px;font-weight:800;color:#688097;text-transform:none;background:#f4f8fc;padding:14px 12px;white-space:nowrap}
+.blru-table td{border-top:1px solid #e9eef5;padding:14px 12px;vertical-align:middle;white-space:nowrap}
+.blru-table td:nth-child(2){min-width:168px}
+.blru-table tr.is-selected{background:#eef7ff}
+.blru-program{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border-radius:999px;font-weight:700;background:#e9f3ff;color:#185b9e}
+.blru-program.is-remedial{background:#edf8ef;color:#157c54}
+.blru-progress{background:#e7edf4;width:85px;height:7px;border-radius:99px;overflow:hidden}
+.blru-progress i{height:100%;display:block;background:linear-gradient(90deg,#2675e8,#36b588);border-radius:99px}
+.blru-table td small{font-size:11px;color:#647d96}
+.blru-status{padding:6px 10px;display:inline-block;border-radius:999px;font-size:11px;font-weight:800;background:#eef2f7;color:#576c81}
+.blru-status.is-submitted{background:#e5efff;color:#2763ac}
+.blru-status.is-approved{background:#e6f7ed;color:#21754a}
+.blru-status.is-revision{background:#fff2e8;color:#ba6735}
+.blru-protected{display:flex;align-items:center;gap:4px;font-size:10px;color:#778da0;margin-top:6px}
+.blru-empty{display:flex;align-items:center;justify-content:center;gap:11px;color:#70879b;padding:40px;font-size:14px}
+.blru-footer{display:flex;align-items:start;gap:8px;border-top:1px solid #e9eef5;padding:13px 24px;font-size:12px;color:#758aa1;line-height:1.6}
+.blru-footer svg{flex-shrink:0;margin-top:1px}
+@media(max-width:900px){.blru-filters{grid-template-columns:1fr 1fr}.blru-filters label:first-child{grid-column:1/-1}}
+@media(max-width:560px){.blru-filters{grid-template-columns:1fr;padding:14px}.blru-filters label:first-child{grid-column:auto}.blru-toolbar,.blru-header{padding:14px}.blru-buttons{width:100%;margin:0}.blru-buttons button{flex:1}.blru-footer{padding:12px 14px}}
+@media print{.blru-filters,.blru-toolbar,.blru-header>button,.blru-footer,.blru-view{display:none!important}.blru{border:0;box-shadow:none}.blru-table-scroll{overflow:visible}.blru-table td,.blru-table th{font-size:9pt}}

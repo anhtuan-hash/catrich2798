@@ -12,6 +12,7 @@ export default function BrianTeamPortal(props) {
   const { currentUser } = props;
   const isLeader = isDepartmentLeaderRole(currentUser?.role);
   const [view, setView] = useState('mine');
+  const programmeArea = view === 'learning' || view === 'learning-mine';
 
   const teacherViewUser = useMemo(() => {
     if (!isLeader) return currentUser;
@@ -43,43 +44,30 @@ export default function BrianTeamPortal(props) {
 
   return (
     <div className="btp-shell">
-      <nav className="btp-switcher btp-switcher--leader" aria-label="Brian Team">
-        <button
-          type="button"
-          className={view === 'mine' ? 'is-active' : ''}
-          onClick={() => setView('mine')}
-        >
-          <FileText /> Báo cáo của tôi
-        </button>
-        <button
-          type="button"
-          className={view === 'reports' ? 'is-active' : ''}
-          onClick={() => setView('reports')}
-        >
-          <BarChart3 /> Tổng hợp tổ
-        </button>
-        <button
-          type="button"
-          className={view === 'history' ? 'is-active' : ''}
-          onClick={() => setView('history')}
-        >
-          <CalendarRange /> Thống kê tháng
-        </button>
-        <button type="button" className={view === 'learning' ? 'is-active' : ''} onClick={() => setView('learning')}>
-          <Award /> Bồi dưỡng & Phụ đạo
-        </button>
-        <button type="button" className={view === 'learning-mine' ? 'is-active' : ''} onClick={() => setView('learning-mine')}>
-          <BookOpenCheck /> Báo cáo BD/PD của tôi
-        </button>
-        <button
-          type="button"
-          className={view === 'team' ? 'is-active' : ''}
-          onClick={() => setView('team')}
-        >
-          <UsersRound /> Nhân sự & quản lý tổ
-        </button>
+      <nav className="btp-switcher btp-switcher--leader btp-primary-areas" aria-label="Khu vực báo cáo">
+        <button type="button" className={!programmeArea?'is-active':''}
+          onClick={()=>setView('mine')}><FileText/> Báo cáo chuyên môn tháng</button>
+        <button type="button" className={programmeArea?'is-active':''}
+          onClick={()=>setView('learning')}><BookOpenCheck/> Bồi dưỡng & Phụ đạo</button>
       </nav>
-
+      <nav className="btp-switcher btp-switcher--leader btp-secondary-areas"
+        aria-label={programmeArea?'Quản lý Bồi dưỡng và Phụ đạo':'Quản lý báo cáo tháng'}>
+        {programmeArea ? <>
+          <button type="button" className={view==='learning'?'is-active':''}
+            onClick={()=>setView('learning')}><Award/> Quản lý HSG & Phụ đạo</button>
+          <button type="button" className={view==='learning-mine'?'is-active':''}
+            onClick={()=>setView('learning-mine')}><BookOpenCheck/> Báo cáo của tôi</button>
+        </> : <>
+          <button type="button" className={view==='mine'?'is-active':''}
+            onClick={()=>setView('mine')}><FileText/> Báo cáo của tôi</button>
+          <button type="button" className={view==='reports'?'is-active':''}
+            onClick={()=>setView('reports')}><BarChart3/> Tổng hợp tổ</button>
+          <button type="button" className={view==='history'?'is-active':''}
+            onClick={()=>setView('history')}><CalendarRange/> Thống kê tháng</button>
+          <button type="button" className={view==='team'?'is-active':''}
+            onClick={()=>setView('team')}><UsersRound/> Nhân sự & quản lý tổ</button>
+        </>}
+      </nav>
       {view === 'mine' && (
         <div className="btp-report-grid">
           <MonthlyReportsInteractiveHero />

@@ -58,7 +58,7 @@ assert.match(main, /<AdminMfaSecurity user=\{currentUser\}/, 'Global MFA challen
 assert.doesNotMatch(center, /<AdminMfaSecurity/, 'Legacy account center must not mount a duplicate MFA panel.');
 assert.match(settings, /id="bes-admin-mfa-settings-target"/, 'Settings must expose an MFA portal target.');
 assert.match(settings, /id="settings-mfa"/, 'Admin MFA section must have a navigable anchor.');
-assert.match(settings, /'mfa', '2fa'/, 'Settings search must find MFA.');
+assert.match(settings, /'settings-mfa'[\s\S]*?'MFA \/ 2FA'/, 'Admin Settings navigation must advertise MFA/2FA as a discoverable security option.');
 assert.match(mfa, /document\.getElementById\('bes-admin-mfa-settings-target'\)/, 'MFA must target the active Settings page, not legacy account center.');
 assert.doesNotMatch(mfa, /route === 'settings' && profileHost/, 'Legacy portal host silently hides MFA.');
 assert.ok(mfaCss.includes('.bes-mfa-shield'));
