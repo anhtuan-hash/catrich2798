@@ -88,3 +88,16 @@
 @media(max-width:730px){.bit-ws-top{align-items:start}.bit-ws-metrics span{min-width:63px;padding:8px}.bit-ws-layout{grid-template-columns:1fr}.bit-ws-sidebar{min-height:0}.bit-ws-list{max-height:240px}.bit-ws-stage.bit-preview{min-height:520px}.bit-ws-disc.bit-wheel{--ws-radius:clamp(97px,30vw,144px)}.bit-ws-wheel-housing{min-height:340px}}
 @media(max-width:420px){.bit-ws-stage.bit-preview{padding:10px;min-height:430px}.bit-ws-wheel-housing{min-height:285px}.bit-ws-disc.bit-wheel{width:min(94%,295px);--ws-radius:100px;border-width:8px}.bit-ws-label{font-size:11px}.bit-ws-spin{min-height:48px;font-size:14px}.bit-ws-top h3{font-size:24px}}
 @media(prefers-reduced-motion:reduce){.bit-ws-winner,.bit-ws-spinning{animation:none!important}.bit-ws-disc,.bit-ws-disc *{transition:none!important}}
+
+.bit-ws-saved{border-top:1px solid #e0ecee;padding-top:15px;display:grid;gap:10px}
+.bit-ws-saved h4{display:flex;align-items:center;justify-content:space-between}
+.bit-ws-saved h4 small{font-size:11px;color:#7c9ca2;font-weight:600}
+.bit-ws-save-form{display:flex;gap:7px}
+.bit-ws-save-form input{flex:1;min-width:0;min-height:42px;border:1px solid #d9e8e8;background:#fff;border-radius:10px;padding:9px;color:#284f5f;font:13px Inter,system-ui,sans-serif}
+.bit-ws-save-form button,.bit-ws-saved-list button{border:1px solid #cce0df;border-radius:10px;padding:7px 11px;background:#e7f6f1;color:#127d70;font-weight:800;font-size:12px;cursor:pointer}
+.bit-ws-save-form button:disabled,.bit-ws-saved-list button:disabled{opacity:.4;cursor:default}
+.bit-ws-saved-list{display:grid;gap:5px;max-height:200px;overflow-y:auto}
+.bit-ws-saved-list>div{display:flex;align-items:center;gap:5px;border:1px solid #e1ecee;padding:7px;border-radius:10px;background:#fff}
+.bit-ws-saved-list strong{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+.bit-ws-saved-list span{color:#8097a3;font-size:11px}
+.bit-ws-saved-list button:last-child{padding:6px;display:grid;place-items:center;background:#fff;color:#8f9ba3}
