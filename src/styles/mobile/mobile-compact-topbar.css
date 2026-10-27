@@ -6,7 +6,7 @@ html.bes-mobile-shell-active {
 }
 
 html.bes-mobile-shell-active .bes-mobile-topbar.bes-mobile-topbar--compact {
-  grid-template-columns: 42px minmax(0, 1fr) auto;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
   gap: 6px;
   min-height: calc(var(--bes-mobile-topbar-height) + env(safe-area-inset-top));
   padding: env(safe-area-inset-top) max(12px, env(safe-area-inset-right)) 0 max(12px, env(safe-area-inset-left));
@@ -16,10 +16,10 @@ html.bes-mobile-shell-active .bes-mobile-topbar.bes-mobile-topbar--compact {
 }
 
 html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-icon-button {
-  width: 40px;
-  min-width: 40px;
-  height: 42px;
-  min-height: 42px;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
   border-radius: 13px;
   color: #344866;
   transition: background-color 140ms ease, color 140ms ease, transform 140ms ease;
@@ -81,10 +81,10 @@ html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-avatar-butt
   display: inline-grid;
   place-items: center;
   flex: 0 0 auto;
-  width: 38px;
-  min-width: 38px;
-  height: 38px;
-  min-height: 38px;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
   margin-left: 2px;
   border: 1px solid #dce7fa;
   background: #eef3ff;
@@ -101,11 +101,11 @@ html.bes-mobile-shell-active .bes-mobile-topbar--compact .bes-mobile-unread-dot 
   background: #e5484d;
 }
 
-/* All buttons remain at least 40px wide and 42px tall. Hide only the least
-   important shortcut on unusually narrow phones; search remains in the menu. */
-@media (max-width: 359px) {
+/* Keep every interactive target at least 44px. Hide only the optional search
+   shortcut on narrow phones; the same search remains available in the menu. */
+@media (max-width: 389px) {
   html.bes-mobile-shell-active .bes-mobile-topbar--compact {
-    grid-template-columns: 40px minmax(0, 1fr) auto;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
     gap: 4px;
     padding-inline: 9px;
   }
