@@ -59,99 +59,97 @@ check('Reveal correct answer adds to the POT and never prematurely credits a tea
  assert.equal(reveal(g,0),g,'Cannot reveal one answer twice');
  assert.equal(before.pointsPot,0,'Reducer does not mutate original state');
 });
-check('Three strikes open exactly one steal attempt',()=>{
+check('Strike, steal and full reveal never auto-credit team scores',()=>{
  let g=strikeToSteal(start(mk()));
- assert.equal(g.phase,'steal');assert.equal(g.strikes,3);
- assert.equal(g.stealer,1);
- assert.equal(doAction(g,'STRIKE').phase,'round_done');
-});
-check('Successful steal awards all POT including the stolen answer to the opposing team',()=>{
- let g=start(mk());
- g=reveal(g,0);g=strikeToSteal(g);
- g=reveal(g,1);
- assert.equal(g.phase,'round_done');
- assert.equal(g.pointsPot,56);
- assert.equal(g.teams[1].score,56);
- assert.equal(g.teams[0].score,0);
- assert.equal(g.teams[1].roundWins,1);
- assert.equal(g.last.kind,'steal_success');
- assert.equal(reveal(g,2),g,'No extra settlement after steal');
-});
-check('Steal failure awards the pending POT to original controlling team',()=>{
- let g=reveal(start(mk()),2);
- g=strikeToSteal(g);
- g=doAction(g,'SET_STEALER',{index:3});
- assert.equal(g.stealer,3);
+ assert.equal(g.phase,'steal');
  g=fail(g);
- assert.equal(g.teams[0].score,17);
- assert.equal(g.teams[3].score,0);
- assert.equal(g.last.kind,'steal_failed');
-});
-check('All six answers auto-settle and total 100, once only',()=>{
- let g=start(mk());
+ assert.equal(g.phase,'round_scoring');
+ assert.equal(g.teams[0].score,0);
+ assert.equal(doAction(g,'NEXT_ROUND'),g,'Teacher score required');
+ g=reveal(start(mk()),0);g=strikeToSteal(g);g=reveal(g,1);
+ assert.equal(g.phase,'round_scoring');
+ assert.equal(g.last.kind,'steal_success');
+ assert.deepEqual(g.teams.map(t=>t.score),[0,0,0,0]);
+ g=start(mk());
  for(let i=0;i<6;i++)g=reveal(g,i);
- assert.equal(g.phase,'round_done');
- assert.equal(g.teams[0].score,100);
- assert.equal(doAction(g,'END_ROUND'),g);
+ assert.equal(g.phase,'round_scoring');
+ assert.equal(g.teams[0].score,0);
 });
-check('Manual end round credits POT once; Reveal All changes presentation only',()=>{
- let g=reveal(start(mk()),0);
- g=finish(g);
- assert.equal(g.teams[0].score,32);
+check('Each team score is independently entered, and only confirmed once',()=>{
+ let g=finish(reveal(start(mk()),0));
+ assert.equal(g.phase,'round_scoring');
+ g=doAction(g,'SET_ROUND_DRAFT',{index:0,value:'20'});
+ g=doAction(g,'SET_ROUND_DRAFT',{index:1,value:'90'});
+ g=doAction(g,'SET_ROUND_DRAFT',{index:2,value:'15'});
+ assert.deepEqual(g.teams.map(t=>t.score),[0,0,0,0]);
+ g=doAction(g,'SET_ROUND_DRAFT',{index:0,value:''});
+ assert.equal(doAction(g,'SAVE_ROUND_SCORES'),g,'Blank input blocks confirmation');
+ g=doAction(g,'SET_ROUND_DRAFT',{index:0,value:'20'});
+ assert.equal(doAction(g,'SET_ROUND_DRAFT',{index:0,value:'-1'}),g);
+ g=doAction(g,'SAVE_ROUND_SCORES');
+ assert.equal(g.phase,'round_done');
+ assert.deepEqual(g.teams.map(t=>t.score),[20,90,15,0]);
+ assert.deepEqual(g.teams.map(t=>t.roundWins),[0,1,0,0]);
+ assert.equal(doAction(g,'SAVE_ROUND_SCORES'),g,'No double count');
+ assert.match(exportFeudResults(g),/round_1/);
+ g=doAction(g,'EDIT_ROUND_SCORES');
+ g=doAction(g,'SET_ROUND_DRAFT',{index:1,value:'35'});
+ g=doAction(g,'SET_ROUND_DRAFT',{index:2,value:'70'});
+ g=doAction(g,'SAVE_ROUND_SCORES');
+ assert.deepEqual(g.teams.map(t=>t.score),[20,35,70,0]);
+ assert.deepEqual(g.teams.map(t=>t.roundWins),[0,0,1,0]);
  g=doAction(g,'SHOW_ALL');
  assert.equal(g.showAll,true);
- assert.equal(g.teams[0].score,32);
- assert.equal(doAction(g,'SHOW_ALL'),g);
 });
-check('Last rounds automatically apply x2 and x3 multipliers',()=>{
+check('Multiplier remains a hint; rounds cannot advance before manual score confirmation',()=>{
  let g=mk({roundLimit:3});
- g=finish(reveal(start(g),0));
- g=doAction(g,'NEXT_ROUND');
- assert.equal(g.multiplier,2);
- g=finish(reveal(start(g),0));
- assert.equal(g.pointsPot,70);
- g=doAction(g,'NEXT_ROUND');
- assert.equal(g.multiplier,3);
- g=finish(reveal(start(g),0));
- assert.equal(g.phase,'round_done');
- g=doAction(g,'NEXT_ROUND');
+ for(let round=0;round<3;round++){
+  g=start(g);
+  const suggested=currentFeudBoard(g).answers[0].points*g.multiplier;
+  g=finish(reveal(g,0));
+  assert.equal(g.pointsPot,suggested);
+  assert.equal(g.phase,'round_scoring');
+  assert.equal(doAction(g,'NEXT_ROUND'),g);
+  g=doAction(g,'SET_ROUND_DRAFT',{index:round,value:String(round+11)});
+  g=doAction(g,'SAVE_ROUND_SCORES');
+  g=doAction(g,'NEXT_ROUND');
+ }
  assert.equal(g.phase,'finished');
+ assert.deepEqual(g.teams.slice(0,3).map(t=>t.score),[11,12,13]);
 });
-check('Host can override multiplier before start but not during a round',()=>{
- let g=mk();g=doAction(g,'SET_MULTIPLIER',{value:3});
- assert.equal(g.multiplier,3);
- g=start(g);
- assert.equal(doAction(g,'SET_MULTIPLIER',{value:1}),g);
-});
-check('Undo and Redo restore revealed slots, strikes, score and settlement',()=>{
- let g=reveal(start(mk()),0);
- const award=finish(g);
- let undone=doAction(award,'UNDO');
- assert.equal(undone.phase,'playing');
+check('Undo and Redo restore saved teacher scoring changes',()=>{
+ let g=finish(reveal(start(mk()),0));
+ g=doAction(g,'SET_ROUND_DRAFT',{index:0,value:'40'});
+ g=doAction(g,'SAVE_ROUND_SCORES');
+ assert.equal(g.teams[0].score,40);
+ let undone=doAction(g,'UNDO');
+ assert.equal(undone.phase,'round_scoring');
  assert.equal(undone.teams[0].score,0);
- assert.equal(undone.pointsPot,32);
+ assert.equal(undone.roundDraft[0],'40');
  const redone=doAction(undone,'REDO');
- assert.equal(redone.teams[0].score,32);
+ assert.equal(redone.teams[0].score,40);
  assert.equal(redone.phase,'round_done');
 });
-check('Fast Money uses two contestants and two sets of five distinct answer choices',()=>{
+check('Fast Money is scored manually after both players finish',()=>{
  let g=doAction(mk(),'FINISH_GAME');
  g=doAction(g,'FAST_START',{team:2,now:100000});
- assert.equal(g.phase,'fast_money');assert.equal(g.fast.player,0);
- assert.equal(g.fast.questions.length,5);
- assert.equal(g.fast.dueAt,145000);
  for(let i=0;i<5;i++)g=doAction(g,'FAST_ANSWER',{index:0,now:101000+i});
- assert.equal(g.fast.player,1);assert.equal(g.fast.paused,true);
- assert.equal(g.fast.answers.length,5);
- assert.equal(g.phase,'fast_money');
+ assert.equal(g.fast.player,1);
  g=doAction(g,'FAST_RESUME',{now:200000});
- assert.equal(g.fast.dueAt,245000);
- assert.equal(doAction(g,'FAST_ANSWER',{index:0,now:201000}),g,'Player 2 cannot repeat player 1 answer');
+ assert.equal(doAction(g,'FAST_ANSWER',{index:0,now:201000}),g);
  for(let i=0;i<5;i++)g=doAction(g,'FAST_ANSWER',{index:1,now:201000+i});
- assert.equal(g.phase,'fast_done');assert.equal(g.fast.settled,true);
+ assert.equal(g.phase,'fast_scoring');
  assert.ok(g.fast.points>=200);
- assert.equal(g.teams[2].score,g.fast.points);
- assert.equal(doAction(g,'FAST_FINISH'),g,'Cannot credit Fast Money bonus twice');
+ assert.equal(g.teams[2].score,0);
+ g=doAction(g,'SET_FAST_DRAFT',{value:'125'});
+ g=doAction(g,'CONFIRM_FAST_SCORE');
+ assert.equal(g.phase,'fast_done');
+ assert.equal(g.teams[2].score,125);
+ assert.equal(doAction(g,'CONFIRM_FAST_SCORE'),g);
+ g=doAction(g,'EDIT_FAST_SCORE');
+ g=doAction(g,'SET_FAST_DRAFT',{value:'60'});
+ g=doAction(g,'CONFIRM_FAST_SCORE');
+ assert.equal(g.teams[2].score,60);
 });
 check('Fast Money timer: pause, resume and timeout each participant safely',()=>{
  let g=doAction(mk(),'FINISH_GAME');
@@ -166,7 +164,7 @@ check('Fast Money timer: pause, resume and timeout each participant safely',()=>
  assert.equal(g.fast.player,1);assert.equal(g.fast.paused,true);
  g=doAction(g,'FAST_RESUME',{now:950000});
  g=doAction(g,'FAST_TIMEOUT',{now:995000});
- assert.equal(g.phase,'fast_done');assert.equal(g.fast.settled,true);
+ assert.equal(g.phase,'fast_scoring');assert.equal(g.fast.settled,true);
 });
 check('CSV export/import preserves answer commas, quotes, UTF-8 and numeric keys',()=>{
  const bank=FAMILY_FEUD_BANK.slice(0,5).map(board=>({
