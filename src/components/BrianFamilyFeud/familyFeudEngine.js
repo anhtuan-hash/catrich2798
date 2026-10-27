@@ -44,27 +44,53 @@ export function createFamilyFeud(options={}){
     score:0,roundWins:0,
   }));
   return {
-    schema:1,id:secureId(),ownerId:String(options.ownerId||''),createdAt:Date.now(),
+    schema:2,id:secureId(),ownerId:String(options.ownerId||''),createdAt:Date.now(),
     phase:'ready',bank,roundLimit:count,roundIndex:0,
     edition:options.edition?{id:String(options.edition.id||''),unit:Number(options.edition.unit)||null,
       ...([10,11,12].includes(Number(options.edition.grade))?{grade:Number(options.edition.grade)}:{}),
       title:String(options.edition.title||'').slice(0,100)}:null,
     teams,controller:0,stealer:1,
     multiplier:1,pointsPot:0,strikes:0,revealed:[],showAll:false,
+    roundDraft:teams.map(()=>'0'),roundAwards:[],fastDraft:'0',
     last:null,fast:null,fastPlayed:false,
     history:[],future:[],updatedAt:Date.now(),
   };
 }
 export const currentFeudBoard=s=>s?.bank?.[s.roundIndex]||null;
 function clampScore(value){return finite(value,0,999999,0);}
-function award(s,teamIndex,reason){
+// Revealed values are only teacher hints; they never auto-award scores.
+function queueManualScoring(s,teamIndex,reason){
   const team=s.teams[teamIndex];
-  if(!team||s.phase==='round_done'||s.phase==='finished')return false;
-  team.score=clampScore(team.score+s.pointsPot);
-  team.roundWins++;
-  s.last={kind:reason,team:team.name,points:s.pointsPot,multiplier:s.multiplier};
-  s.phase='round_done';
-  return true;
+  if(!team||!['playing','steal'].includes(s.phase))return false;
+  s.roundDraft=s.teams.map(()=>'0');
+  s.roundAwards ||= [];
+  s.last={kind:reason,suggestedTeam:team.name,suggestedPoints:s.pointsPot,multiplier:s.multiplier};
+  s.phase='round_scoring';return true;
+}
+const validManualScore=value=>/^(0|[1-9][0-9]{0,5})$/.test(String(value));
+const leaders=values=>{
+  const max=Math.max(0,...values);
+  return values.map(v=>max>0&&v===max?1:0);
+};
+function commitManualRound(s){
+  if(s.phase!=='round_scoring'||!Array.isArray(s.roundDraft)||
+    s.roundDraft.length!==s.teams.length||!s.roundDraft.every(validManualScore))return false;
+  const values=s.roundDraft.map(Number);
+  const previous=(s.roundAwards||[]).find(r=>r.roundIndex===s.roundIndex);
+  const oldValues=previous?.values||s.teams.map(()=>0);
+  const oldLeaders=leaders(oldValues),newLeaders=leaders(values);
+  for(let i=0;i<s.teams.length;i++){
+    const next=s.teams[i].score-oldValues[i]+values[i];
+    if(next<0||next>999999)return false;
+  }
+  for(let i=0;i<s.teams.length;i++){
+    s.teams[i].score+=values[i]-oldValues[i];
+    s.teams[i].roundWins=Math.max(0,s.teams[i].roundWins+newLeaders[i]-oldLeaders[i]);
+  }
+  s.roundAwards=[...(s.roundAwards||[]).filter(r=>r.roundIndex!==s.roundIndex),
+    {roundIndex:s.roundIndex,values}].sort((a,b)=>a.roundIndex-b.roundIndex);
+  s.last={kind:'manual_scores',values,points:values.reduce((a,b)=>a+b,0)};
+  s.phase='round_done';return true;
 }
 function nextMultiplier(nextIndex,roundLimit){
   return nextIndex===roundLimit-1?3:nextIndex===roundLimit-2?2:1;
@@ -73,10 +99,9 @@ function settleFast(s){
   if(!s.fast||s.fast.settled)return false;
   const player=s.teams[s.fast.team];
   if(!player)return false;
-  player.score=clampScore(player.score+s.fast.points);
   s.fast.settled=true;s.fast.dueAt=null;s.fast.remainingMs=0;
-  s.phase='fast_done';s.fastPlayed=true;
-  s.last={kind:'fast_money',team:player.name,points:s.fast.points,
+  s.phase='fast_scoring';s.fastDraft='0';
+  s.last={kind:'fast_ready',team:player.name,suggestedPoints:s.fast.points,
     reachedTarget:s.fast.points>=200};
   return true;
 }
@@ -141,8 +166,8 @@ export function feudReducer(state,action){
       if(!Number.isInteger(action.index)||!board.answers[action.index]||s.revealed.includes(action.index))break;
       s.revealed.push(action.index);
       s.pointsPot=clampScore(s.pointsPot+board.answers[action.index].points*s.multiplier);
-      if(s.phase==='steal')changed=award(s,s.stealer,'steal_success');
-      else if(s.revealed.length===board.answers.length)changed=award(s,s.controller,'all_revealed');
+      if(s.phase==='steal')changed=queueManualScoring(s,s.stealer,'steal_success');
+      else if(s.revealed.length===board.answers.length)changed=queueManualScoring(s,s.controller,'all_revealed');
       else{changed=true;s.last={kind:'reveal',answerIndex:action.index,points:board.answers[action.index].points*s.multiplier};}
       break;
     }
@@ -152,17 +177,30 @@ export function feudReducer(state,action){
         if(s.strikes>=3)s.phase='steal';
         s.last={kind:'strike',strikes:s.strikes};
         changed=true;
-      }else if(s.phase==='steal')changed=award(s,s.controller,'steal_failed');
+      }else if(s.phase==='steal')changed=queueManualScoring(s,s.controller,'steal_failed');
       break;
     case 'SET_STEALER':
       if(s.phase==='steal'&&Number.isInteger(action.index)&&s.teams[action.index]&&action.index!==s.controller){
         s.stealer=action.index;changed=s.stealer!==state.stealer;
       }break;
     case 'END_ROUND':
-      if(s.phase==='playing'||s.phase==='steal')changed=award(s,s.controller,'manual_settlement');
+      if(s.phase==='playing'||s.phase==='steal')changed=queueManualScoring(s,s.controller,'manual_settlement');
       break;
+    case 'SET_ROUND_DRAFT':
+      if(s.phase==='round_scoring'&&Number.isInteger(action.index)&&s.teams[action.index]){
+        const value=String(action.value??'');
+        if(/^[0-9]{0,6}$/.test(value)){
+          s.roundDraft ||= s.teams.map(()=>'0');
+          if(s.roundDraft[action.index]!==value){s.roundDraft[action.index]=value;changed=true;}
+        }
+      }break;
+    case 'SAVE_ROUND_SCORES':changed=commitManualRound(s);break;
+    case 'EDIT_ROUND_SCORES':
+      if(s.phase==='round_done'&&(s.roundAwards||[]).some(r=>r.roundIndex===s.roundIndex)){
+        s.phase='round_scoring';changed=true;
+      }break;
     case 'SHOW_ALL':
-      if(s.phase==='round_done'&&!s.showAll){s.showAll=true;changed=true;}break;
+      if(['round_scoring','round_done'].includes(s.phase)&&!s.showAll){s.showAll=true;changed=true;}break;
     case 'NEXT_ROUND':
       if(s.phase==='round_done'){
         if(s.roundIndex+1>=s.roundLimit){s.phase='finished';}
@@ -172,6 +210,7 @@ export function feudReducer(state,action){
           s.stealer=(s.controller+1)%s.teams.length;
           s.multiplier=nextMultiplier(s.roundIndex,s.roundLimit);
           s.pointsPot=0;s.revealed=[];s.strikes=0;s.showAll=false;
+          s.roundDraft=s.teams.map(()=>'0');
         }
         changed=true;
       }break;
@@ -188,6 +227,25 @@ export function feudReducer(state,action){
           answers:[],remainingMs:45000,dueAt:nowValue(action.now)+45000,
           paused:false,settled:false,target:200};
         s.phase='fast_money';changed=true;
+      }break;
+    case 'SET_FAST_DRAFT':
+      if(s.phase==='fast_scoring'){
+        const value=String(action.value??'');
+        if(/^[0-9]{0,6}$/.test(value)&&s.fastDraft!==value){s.fastDraft=value;changed=true;}
+      }break;
+    case 'CONFIRM_FAST_SCORE':
+      if(s.phase==='fast_scoring'&&s.fast&&validManualScore(s.fastDraft)){
+        const team=s.teams[s.fast.team],previous=s.fast.manualAward||0,next=Number(s.fastDraft);
+        if(team&&team.score-previous+next>=0&&team.score-previous+next<=999999){
+          team.score=team.score-previous+next;s.fast.manualAward=next;
+          s.fastPlayed=true;s.phase='fast_done';
+          s.last={kind:'fast_money_manual',team:team.name,points:next,
+            suggestedPoints:s.fast.points};changed=true;
+        }
+      }break;
+    case 'EDIT_FAST_SCORE':
+      if(s.phase==='fast_done'&&s.fast&&Number.isInteger(s.fast.manualAward)){
+        s.fastDraft=String(s.fast.manualAward);s.phase='fast_scoring';changed=true;
       }break;
     case 'FAST_ANSWER':changed=runFastAnswer(s,action);break;
     case 'FAST_PASS':changed=runFastAnswer(s,action,true);break;
@@ -253,6 +311,13 @@ export function exportFeudCSV(bank){
     .join('\r\n');
 }
 export function exportFeudResults(game){
-  return '\uFEFFteam,score,round_wins\r\n'+rankFeudTeams(game?.teams||[])
-    .map(t=>[t.name,t.score,t.roundWins].map(quote).join(',')).join('\r\n');
+  const rounds=Array.from({length:game?.roundLimit||0},(_,i)=>'round_'+(i+1));
+  const header=['team','score','round_wins',...rounds,'fast_money'];
+  const rows=rankFeudTeams(game?.teams||[]).map(team=>{
+    const index=game.teams.findIndex(entry=>entry.id===team.id);
+    const earned=rounds.map((_,r)=>(game.roundAwards||[]).find(a=>a.roundIndex===r)?.values?.[index]??0);
+    const bonus=game.fast?.team===index?game.fast.manualAward||0:0;
+    return [team.name,team.score,team.roundWins,...earned,bonus].map(quote).join(',');
+  });
+  return '\uFEFF'+header.join(',')+'\r\n'+rows.join('\r\n');
 }
