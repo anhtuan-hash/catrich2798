@@ -1,0 +1,52 @@
+import {test,expect} from '@playwright/test';
+test.beforeEach(async({page})=>{
+ await page.goto('/tests/fixtures/brian-instant-tools-qa.html');
+ await page.getByRole('button',{name:'Mở bộ công cụ tức thì'}).click();
+ await page.locator('.bit-app-card').nth(1).click();
+ await expect(page.getByTestId('brian-wheel-studio')).toBeVisible();
+});
+test('Wheel Studio exposes editable weighted rows, three modes, themes, presets and CSV actions',async({page})=>{
+ await expect(page.locator('.bit-ws-item')).toHaveCount(4);
+ await page.getByRole('button',{name:'Thêm mục'}).click();
+ await expect(page.locator('.bit-ws-item')).toHaveCount(5);
+ await page.locator('.bit-ws-weight').first().fill('4');
+ await expect(page.locator('.bit-ws-weight').first()).toHaveValue('4');
+ await page.getByRole('tab',{name:'Tùy chỉnh'}).click();
+ await page.getByRole('button',{name:'Loại dần'}).click();
+ await expect(page.getByRole('button',{name:'Loại dần'})).toHaveClass(/active/);
+ await page.getByRole('button',{name:'candy'}).click();
+ await expect(page.getByRole('button',{name:'candy'})).toHaveAttribute('aria-pressed','true');
+ await page.getByRole('textbox',{name:'Tên bộ vòng quay'}).fill('Warm-up Grade 11');
+ await page.getByRole('button',{name:'Lưu bộ'}).click();
+ await expect(page.locator('.bit-ws-saved-list')).toContainText('Warm-up Grade 11');
+ await page.getByRole('tab',{name:'Danh sách'}).click();
+ await page.locator('.bit-ws-details summary').click();
+ await page.locator('#bit-wheel-list').fill('Anna\nBrian\nCara');
+ await page.getByRole('button',{name:'Áp dụng tên'}).click();
+ await expect(page.locator('.bit-ws-item')).toHaveCount(3);
+ await expect(page.locator('.bit-ws-label')).toHaveCount(3);
+});
+test('Normal spin has actual movement, result and confetti; elimination reduces active count',async({page})=>{
+ await page.emulateMedia({reducedMotion:'no-preference'});
+ await page.getByRole('tab',{name:'Tùy chỉnh'}).click();
+ await page.getByRole('button',{name:'Loại dần'}).click();
+ await page.locator('input[type=range]').fill('2');
+ const wheel=page.getByTestId('animated-lucky-wheel');
+ const start=await wheel.evaluate(el=>getComputedStyle(el).transform);
+ await page.getByRole('button',{name:'QUAY NGAY'}).click();
+ await expect(wheel).toHaveClass(/is-spinning/);
+ await expect.poll(()=>wheel.evaluate(el=>getComputedStyle(el).transform),{timeout:1700}).not.toBe(start);
+ await expect(page.locator('.bit-ws-winner')).toBeVisible({timeout:6500});
+ await expect(page.locator('.bit-wheel-fireworks span')).toHaveCount(28);
+ await expect(page.locator('.bit-ws-metrics strong').first()).toHaveText('3');
+ await page.getByRole('tab',{name:'Kết quả'}).click();
+ await expect(page.locator('.bit-ws-history>div')).toHaveCount(1);
+ await page.getByRole('button',{name:'Khôi phục tất cả'}).click();
+ await expect(page.locator('.bit-ws-metrics strong').first()).toHaveText('4');
+});
+test('Reduced-motion returns a winner without any required wheel animation',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.getByRole('button',{name:'QUAY NGAY'}).click();
+ await expect(page.locator('.bit-ws-winner')).toBeVisible({timeout:3500});
+ await expect(page.getByTestId('animated-lucky-wheel')).not.toHaveClass(/is-spinning/);
+});

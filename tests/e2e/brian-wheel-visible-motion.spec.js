@@ -14,6 +14,7 @@ test.beforeEach(async({page})=>{
 test('Lucky Wheel visibly moves across consecutive frames; result aligns with pointer',async({page})=>{
  await page.emulateMedia({reducedMotion:'no-preference'});
  const wheel=page.getByTestId('animated-lucky-wheel');
+ await page.locator('.bit-ws-details summary').click();
  await page.locator('#bit-wheel-list').fill('Alpha\nBeta\nGamma\nDelta');
  await page.getByRole('button',{name:'Áp dụng tên'}).click();
  const before=await wheel.evaluate(el=>getComputedStyle(el).transform);
@@ -32,7 +33,7 @@ test('Lucky Wheel visibly moves across consecutive frames; result aligns with po
  }).not.toBe(at140);
  const atLater=await wheel.evaluate(el=>getComputedStyle(el).transform);
  expect(atLater).not.toBe(before);
- await expect(page.getByRole('button',{name:'Đang quay…'})).toBeDisabled();
+ await expect(page.getByRole('button',{name:'DỪNG SỚM'})).toBeVisible();
  await expect(page.locator('.bit-winner')).toBeVisible({timeout:9500});
  const winner=(await page.locator('.bit-winner strong').textContent())?.trim();
  expect(['Alpha','Beta','Gamma','Delta']).toContain(winner);
