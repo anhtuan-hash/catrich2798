@@ -277,11 +277,12 @@ export default function LearningReportsWorkspace({currentUser}) {
       departmentId={departmentId} departmentName={department?.name||'Tổ chuyên môn'}
       eligibleMembers={eligibleMembers} onClose={()=>setShowComposer(false)}
       onSuccess={async result=>{
-        await load();setShowComposer(false);setSelectedId('');
+        setShowComposer(false);setSelectedId('');
         setNotice('Đã tự động giao '+result.created+' báo cáo mới; '+result.existing+
           ' báo cáo đã có được giữ nguyên. Đã liên kết '+result.linkedClasses+
           ' cặp lớp/giáo viên.'+(result.needsReview?' Còn '+result.needsReview+
           ' tên giáo viên cần xác minh.':''));
+        try{await load();}catch(e){setError('Đã giao thành công nhưng cần làm mới danh sách: '+e.message);}
       }}
     />}
 
