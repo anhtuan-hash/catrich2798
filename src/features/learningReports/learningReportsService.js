@@ -190,7 +190,7 @@ export async function loadLearningTeamDashboard(departmentId,kind,year) {
   fail(error);return data||{reports:[],sessions:[],deadlines:[]};
 }
 export async function setLearningTeamDeadline(departmentId,kind,period,dueAt,clear=false) {
-  if(!/^(20\\d{2})-(0[1-9]|1[0-2])$/.test(String(period||'')))
+  if(!/^(20\d{2})-(0[1-9]|1[0-2])$/.test(String(period||'')))
     throw new Error('Kỳ báo cáo không hợp lệ.');
   if(!clear && (!dueAt || !Number.isFinite(new Date(dueAt).getTime())
     || new Date(dueAt).getTime()<=Date.now()))
