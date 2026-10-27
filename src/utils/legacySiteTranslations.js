@@ -3168,4 +3168,11 @@ export const LEGACY_SITE_EN = Object.freeze({
   "Đã nhập nội dung, nộp hoặc duyệt": "Contains content, submitted or approved",
   "Quản lý báo cáo Bồi dưỡng và Phụ đạo": "Manage enrichment and remedial reports",
   "Nhân sự & quản lý tổ": "Personnel & department management",
+  "Tháng trước": "Previous month",
+  "Tháng sau": "Next month",
+  "Xem tháng trước": "View previous month",
+  "Xem tháng sau": "View next month",
+  "Mở danh sách báo cáo giáo viên": "Open teacher report list",
+  "Còn cần hoàn tất": "Still to complete",
+  "Đã giao trong": "Assigned in",
 });
