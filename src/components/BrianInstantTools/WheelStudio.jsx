@@ -99,7 +99,7 @@ export default function WheelStudio({value,onChange,t,sound,onSound,onCelebrate}
  };
  const stop=()=>{const r=runRef.current;if(!r)return;r.from=r.last;r.start=performance.now();r.duration=750;};
  useEffect(()=>{
-  const cb=e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter'&&!/INPUT|TEXTAREA/.test(e.target?.tagName||'')){e.preventDefault();spin();}};
+  const cb=e=>{if(wheelView==='standard'&&(e.ctrlKey||e.metaKey)&&e.key==='Enter'&&!/INPUT|TEXTAREA/.test(e.target?.tagName||'')){e.preventDefault();spin();}};
   addEventListener('keydown',cb);return ()=>removeEventListener('keydown',cb);
  });
  const apply=()=>{
