@@ -16,7 +16,7 @@ const cases=[
  ['required completion validation',service.includes('reportProgress')&&service.includes('complete.every(Boolean)')],
  ['journal aggregation follows counts not invented rates',service.includes('expected_count')&&service.includes('present_count')&&service.includes('participationPercent')],
  ['teacher journal validates present <= expected',service.includes('present>expected')],
- ['TTCM dispatch with exact selected teachers',ui.includes('teacherIds:recipients')&&service.includes('bes_issue_learning_reports')],
+ ['TTCM dispatch with exact selected teachers',ui.includes('<SmartAssignmentComposer')&&service.includes('bes_dispatch_auto_learning_reports')],
  ['teacher receives notifications',bridge.includes('listUnreadLearningReportNotifications')&&bridge.includes('learning-report:')],
  ['event recipient scoping',sql.includes('insert into public.bes_event_recipients(event_id,user_id)')&&sql.includes('unnest(v_teachers)')],
  ['five-section editor with save and submit',ui.includes('LEARNING_REPORT_SECTIONS[selected.report_kind].map')&&ui.includes('saveLearningReport(selected,payload,submit)')],
