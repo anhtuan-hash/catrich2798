@@ -457,8 +457,41 @@ export default function BrianFamilyFeud({currentUser,language='vi'}){
               animate('round',tr('MỜI GIÁO VIÊN NHẬP ĐIỂM','TEACHER: ENTER SCORES'));
             }}>{tr('KẾT THÚC VÒNG · NHẬP ĐIỂM','END ROUND · ENTER SCORES')}</button>
           </>}
+          {game.phase==='round_scoring'&&<div className="bff-manual-score-card">
+            <span className="bff-eyebrow">✍ {tr('GIÁO VIÊN CHẤM ĐIỂM','TEACHER SCORE ENTRY')}</span>
+            <h3>{tr('Nhập điểm sau vòng','Enter scores for round')} {game.roundIndex+1}</h3>
+            <p>{tr('Điểm gợi ý không tự cộng. Nhập 0 nếu đội không được điểm; chỉ xác nhận mới cộng điểm.',
+              'Suggestions are never awarded automatically. Enter 0 for no points; only Confirm changes team totals.')}</p>
+            <div className="bff-manual-score-list">
+              {game.teams.map((team,index)=><label key={team.id} className="bff-manual-score-row">
+                <span className="bff-manual-score-team">
+                  <i style={{background:TEAM_COLORS[index%TEAM_COLORS.length]}}/>{team.name}
+                </span>
+                <span className="bff-manual-score-input"><input type="number" inputMode="numeric" min="0" max="999999"
+                  step="1" value={game.roundDraft?.[index]??'0'}
+                  aria-label={tr('Điểm vòng này của ','Round score for ')+team.name}
+                  onChange={e=>dispatch({type:'SET_ROUND_DRAFT',index,value:e.target.value})}/>
+                  <small>{tr('điểm','pts')}</small></span>
+              </label>)}
+            </div>
+            <button type="button" className="bff-action bff-primary bff-confirm-scores"
+              disabled={!game.roundDraft||game.roundDraft.some(value=>!/^(0|[1-9][0-9]{0,5})$/.test(String(value)))}
+              onClick={()=>{
+                dispatch({type:'SAVE_ROUND_SCORES'});playSound('bank');
+                animate('score',tr('ĐÃ CHỐT ĐIỂM!','POINTS BANKED!'));
+              }}><CheckCircle2 size={21}/>{tr('XÁC NHẬN ĐIỂM CHO TẤT CẢ ĐỘI','CONFIRM ALL TEAM SCORES')}</button>
+            <button type="button" className="bff-action bff-subtle" onClick={()=>dispatch({type:'SHOW_ALL'})}>
+              <Eye size={18}/>{tr('Hiện tất cả đáp án','Reveal all answers')}</button>
+          </div>}
           {game.phase==='round_done'&&<>
-            <p className="bff-round-result"><Trophy size={20}/>{game.last?.team} +{showPoints(game.last?.points)}</p>
+            {game.last?.kind==='manual_scores'?<div className="bff-saved-scores" aria-live="polite">
+               <strong>✓ {tr('ĐÃ LƯU ĐIỂM VÒNG','ROUND SCORES SAVED')} {game.roundIndex+1}</strong>
+               {game.teams.map((team,index)=><span key={team.id}>{team.name}
+                 <b>+{showPoints(game.last.values[index]||0)}</b></span>)}
+             </div>:<p className="bff-round-result"><Trophy size={20}/>{game.last?.team} +{showPoints(game.last?.points)}</p>}
+             {(game.roundAwards||[]).some(record=>record.roundIndex===game.roundIndex)&&
+               <button className="bff-action bff-subtle" type="button" onClick={()=>dispatch({type:'EDIT_ROUND_SCORES'})}>
+                 <Settings2 size={19}/>{tr('SỬA ĐIỂM VÒNG NÀY','EDIT THIS ROUND’S SCORES')}</button>
             <button className="bff-action bff-subtle" type="button" onClick={()=>dispatch({type:'SHOW_ALL'})}>
               <Eye size={18}/>{tr('Hiện tất cả đáp án','Reveal all answers')}</button>
             <button className="bff-action bff-primary" type="button" onClick={()=>{
