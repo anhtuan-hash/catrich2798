@@ -1311,3 +1311,9 @@
     flex-direction: column;
   }
 }
+
+/* Brian Reports AI proofreading action: visible but never overrides document print styles. */
+.mr-generated > header > div:last-child { justify-content: flex-end; }
+.mr-generated button.is-primary { background: #2857d7; color: #fff; border-color: #2857d7; }
+.mr-generated button.is-primary:hover:not(:disabled) { background: #224ac0; color: #fff; }
+@media (max-width: 790px) { .mr-generated > header { align-items: flex-start; flex-direction: column; } .mr-generated > header > div:last-child { justify-content: flex-start; } }
