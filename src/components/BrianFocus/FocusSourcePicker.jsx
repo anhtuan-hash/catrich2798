@@ -11,7 +11,8 @@ export default function FocusSourcePicker({
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   useEffect(() => {
-    const first = root.current?.querySelector('button:not(:disabled)');
+    const first = root.current?.querySelector('.bfc-source-choice__option:not(:disabled)') ||
+      root.current?.querySelector('button:not(:disabled)');
     first?.focus();
     const onKeyDown = event => {
       if (event.key === 'Escape') {
