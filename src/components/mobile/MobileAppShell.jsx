@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Bell, X } from 'lucide-react';
-import { hasAnyAttendanceAccess, hasRouteAccess } from '../../utils/permissions.js';
-import { isAdminRole } from '../../utils/roles.js';
+import { hasAnyAttendanceAccess, hasRouteAccess, hasToolAccess } from '../../utils/permissions.js';
+import { isAdminRole, isDepartmentLeaderRole } from '../../utils/roles.js';
 import { isAppHiddenForUser } from '../../utils/appVisibility.js';
 import { visibilityIdForRoute } from '../../data/appVisibilityRegistry.js';
 import { buildMobileNavigationModel, runMobileNavigationItem } from './mobileNavigation.js';
@@ -12,6 +12,7 @@ import MobileMoreSheet from './MobileMoreSheet.jsx';
 import MobileAccountMenu from './MobileAccountMenu.jsx';
 import '../../styles/mobile/mobile-tokens.css';
 import '../../styles/mobile/mobile-shell.css';
+import '../../styles/mobile/mobile-compact-topbar.css';
 
 const ROUTE_TITLES = {
   home: ['Trang chủ', 'Home'], apps: ['Ứng dụng', 'Apps'], news: ['Đọc báo', 'Newsroom'], games: ['Trò chơi', 'Games'], tools: ['Công cụ', 'Tools'],
@@ -48,7 +49,8 @@ function originalBridgeButtons(host) {
   if (!host) return [];
   return Array.from(host.children).flatMap((node) => {
     if (node.tagName === 'BUTTON') return [node];
-    if (node.classList?.contains('brian-nav__utility-reports')) {
+    if (node.classList?.contains('brian-nav__utility-reports')
+      || node.classList?.contains('brian-nav__utility-ttcm')) {
       return Array.from(node.children).filter((child) => child.tagName === 'BUTTON');
     }
     return [];
@@ -160,6 +162,9 @@ export default function MobileAppShell({
 
   const canAccessAttendance = Boolean(currentUser?.id && (isAdminNavigation || hasAnyAttendanceAccess(currentUser)));
   const canShowOriginalApps = Boolean(currentUser && (isAdminNavigation || hasRouteAccess(currentUser, 'apps')));
+  const canAccessReports = Boolean(currentUser && (
+    isDepartmentLeaderRole(currentUser.role) || hasToolAccess(currentUser, 'brian-team')
+  ));
   const navigation = useMemo(() => buildMobileNavigationModel({
     authenticated: Boolean(currentUser),
     currentRoute: route,
@@ -178,6 +183,7 @@ export default function MobileAppShell({
   const titlePair = ROUTE_TITLES[route] || [selectedTool?.titleVi || selectedTool?.title || 'Brian English', selectedTool?.title || selectedTool?.titleVi || 'Brian English'];
   const title = language === 'en' ? titlePair[1] : titlePair[0];
   const hasUnread = notifications.some((item) => !item?.read);
+  const reportActive = route === 'tool' && selectedTool?.slug === 'brian-team';
 
   useEffect(() => {
     const root = document.documentElement;
@@ -278,6 +284,20 @@ export default function MobileAppShell({
     runMobileNavigationItem(item);
   };
 
+  const openReports = () => {
+    if (!canAccessReports) return;
+    setMoreOpen(false);
+    setAccountOpen(false);
+    const host = document.querySelector('.bes-mobile-bridge-host');
+    const button = originalBridgeButtons(host).find((node, index) => originalBridgeKey(node, index) === 'reports');
+    if (button) {
+      button.click();
+    } else {
+      // Use the same destination when the desktop Reports portal has not mounted yet.
+      runMobileNavigationItem({ id: 'reports', route: 'tool/brian-team', action: 'route', label: language === 'en' ? 'Reports' : 'Báo cáo' });
+    }
+  };
+
   const accountItem = currentUser
     ? { id: 'account', label: language === 'en' ? 'Account' : 'Tài khoản', route: 'settings', action: 'route' }
     : { id: 'login', label: language === 'en' ? 'Sign in' : 'Đăng nhập', route: 'login', action: 'route' };
@@ -321,7 +341,11 @@ export default function MobileAppShell({
     <>
       <div className="bes-mobile-shell" data-bes-mobile-shell="true" data-route={route}>
         <MobileTopBar
-          title={title}
+          language={language}
+          onHome={() => runMobileNavigationItem({ id: 'home', route: 'home', action: 'route', label: language === 'en' ? 'Home' : 'Trang chủ' })}
+          canAccessReports={canAccessReports}
+          reportActive={reportActive}
+          onReports={openReports}
           onMenu={() => { setAccountOpen(false); setMoreOpen(true); }}
           onSearch={() => runMobileNavigationItem({ action: 'search' })}
           onNotifications={() => { setAccountOpen(false); setNotificationsOpen(true); }}
@@ -334,6 +358,8 @@ export default function MobileAppShell({
         <div className="brian-nav__primary bes-mobile-bridge-host" hidden aria-hidden="true">
           {/* Reuse the desktop Reports portal and its existing role gate on mobile. */}
           <div className="brian-nav__utility-reports" data-nav-key="reports" />
+          {/* Keep TTCM available in the menu, without a permanent header badge. */}
+          <div className="brian-nav__utility-ttcm" data-nav-key="ttcm" />
         </div>
       </div>
 
