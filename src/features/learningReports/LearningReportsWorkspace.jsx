@@ -279,7 +279,7 @@ export default function LearningReportsWorkspace({currentUser}) {
       <div className="blr-editorial-hero__copy">
         <div className="blr-editorial-hero__eyebrow"><Sparkles size={17} aria-hidden="true"/> BRIAN REPORTS</div>
         <h1>
-          <span>Bồi dưỡng &amp;</span>
+          <span>Bồi dưỡng &</span>
           <span>Phụ đạo tháng <em>{Number(heroPeriod.slice(5))}</em></span>
         </h1>
         <p>Đồng hành · Bồi dưỡng · Nâng cao chất lượng học tập</p>
