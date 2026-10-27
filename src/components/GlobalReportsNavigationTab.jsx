@@ -6,6 +6,9 @@ import { launchRoute } from '../utils/navigation.js';
 import { loadTeamWorkspace } from '../utils/personnelHub.js';
 import { currentReportMonth, loadMonthlyReportContexts } from '../utils/monthlyReports.js';
 import { deadlineState, loadMonthlyReportDeadline } from '../utils/monthlyReportAdmin.js';
+import { listNavigationLearningDeadlineTasks } from '../features/learningReports/learningReportsService.js';
+import { selectReportNavigationDeadlines, formatNavigationDeadline, navigationDeadlineSummary }
+  from '../features/learningReports/navigationDeadlines.js';
 import './GlobalReportsNavigationTab.css';
 
 function compactCountdown(state, language) {
@@ -125,6 +128,7 @@ export default function GlobalReportsNavigationTab({
 }) {
   const [host, setHost] = useState(null);
   const [deadline, setDeadline] = useState(null);
+  const [learningDeadlines, setLearningDeadlines] = useState([]);
   const [now, setNow] = useState(Date.now());
 
   const allowed = useMemo(() => Boolean(
@@ -230,34 +234,77 @@ export default function GlobalReportsNavigationTab({
     };
   }, [allowed, currentUser?.id, currentUser?.role]);
 
+  // A second, independent source for HSG / remedial assignments. Keep the
+  // monthly-report fetch unchanged and fail independently when one source errors.
+  useEffect(() => {
+    if (!allowed || !currentUser?.id) {
+      setLearningDeadlines([]);
+      return undefined;
+    }
+    let alive=true;
+    setLearningDeadlines([]);
+    const refresh=async()=>{
+      try {
+        const tasks=await listNavigationLearningDeadlineTasks(
+          currentUser.id,isDepartmentLeaderRole(currentUser.role),
+        );
+        if(alive)setLearningDeadlines(tasks);
+      } catch (error) {
+        // A temporary reporting failure must never remove the monthly timer.
+        if(alive)setLearningDeadlines([]);
+      }
+    };
+    const onFocus=()=>refresh();
+    const onVisibility=()=>{if(!document.hidden)refresh();};
+    refresh();
+    const timer=window.setInterval(refresh,60000);
+    window.addEventListener('focus',onFocus);
+    document.addEventListener('visibilitychange',onVisibility);
+    window.addEventListener('bes-learning-report-deadline-change',refresh);
+    return ()=>{
+      alive=false;
+      window.clearInterval(timer);
+      window.removeEventListener('focus',onFocus);
+      document.removeEventListener('visibilitychange',onVisibility);
+      window.removeEventListener('bes-learning-report-deadline-change',refresh);
+    };
+  },[allowed,currentUser?.id,currentUser?.role]);
+
   useEffect(() => {
     setNow(Date.now());
-    if (!deadline) return undefined;
+    if (!deadline && learningDeadlines.length===0) return undefined;
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
-  }, [deadline]);
+  }, [deadline, learningDeadlines.length]);
 
   if (!host || !allowed) return null;
 
   const label = language === 'vi' ? 'Báo cáo' : 'Reports';
-  const countdown = deadlineState(deadline, now);
-  // Do not render an empty deadline badge: leave the unavailable status in
-  // the accessible name/title, and only show a visual chip for real deadlines.
-  const deadlineStatus = !countdown.active ? 'unset' : countdown.expired ? 'expired' : 'active';
-  const showCountdownUnderLabel = countdown.active;
-  const countdownLabel = compactCountdown(countdown, language);
-  const countdownAccessibleLabel = accessibleCountdown(countdown, language);
-  const deadlineTitle = countdown.active
-    ? new Intl.DateTimeFormat(language === 'vi' ? 'vi-VN' : 'en', { dateStyle: 'short', timeStyle: 'medium' }).format(new Date(deadline))
-    : '';
-  const accessibleLabel = `${label} · ${countdownAccessibleLabel}`;
-  const buttonTitle = countdown.active ? `${deadlineTitle} · ${countdownAccessibleLabel}` : accessibleLabel;
+  const picked = selectReportNavigationDeadlines({
+    monthlyDeadline:deadline,learningTasks:learningDeadlines,
+    userId:currentUser?.id,isLeader:isDepartmentLeaderRole(currentUser?.role),now,
+  });
+  const selectedDeadline=picked.primary?.dueAt||null;
+  const countdown=deadlineState(selectedDeadline,now);
+  const deadlineStatus=!countdown.active?'unset':countdown.expired?'expired':'active';
+  const showCountdownUnderLabel=countdown.active;
+  const countdownLabel=picked.primary?.kind==='monthly'
+    ?compactCountdown(countdown,language)
+    :formatNavigationDeadline(picked.primary,language,now);
+  const countdownAccessibleLabel=accessibleCountdown(countdown,language);
+  const deadlineDetails=navigationDeadlineSummary(picked.items,language,now);
+  const accessibleLabel=label+' · '+(picked.items.length
+    ? picked.items.map(item=>formatNavigationDeadline(item,language,now)).join(' · ')
+    :countdownAccessibleLabel);
+  const buttonTitle=deadlineDetails||accessibleLabel;
 
   return createPortal(
     <button
       type="button"
       className={`brian-nav__reports-tab brian-nav__reports-send ${active ? 'is-active' : ''} ${showCountdownUnderLabel ? 'shows-countdown' : ''} is-deadline-${deadlineStatus}`.trim()}
       data-deadline-status={deadlineStatus}
+      data-report-kind={picked.primary?.kind||'none'}
+      data-pending-report-deadlines={picked.items.length}
       aria-current={active ? 'page' : undefined}
       aria-label={accessibleLabel}
       title={buttonTitle}
@@ -284,6 +331,9 @@ export default function GlobalReportsNavigationTab({
         {showCountdownUnderLabel ? (
           <span className="brian-nav__reports-countdown" aria-hidden="true">{countdownLabel}</span>
         ) : null}
+        {picked.otherCount>0&&(
+          <span className="brian-nav__reports-more" aria-hidden="true">+{picked.otherCount}</span>
+        )}
       </span>
     </button>,
     host,
