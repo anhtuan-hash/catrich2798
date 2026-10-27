@@ -1,0 +1,330 @@
+/* BRIAN Reports · editorial hero — shared visual DNA with Báo cáo công việc tháng.
+   All overrides are isolated to the HSG & Phụ đạo workspace. */
+.blr-shell .blr-hero.blr-hero-interactive.blr-editorial-hero{
+  position:relative;
+  isolation:isolate;
+  display:grid;
+  grid-template-columns:minmax(0,61%) minmax(0,39%);
+  align-items:center;
+  min-height:284px;
+  overflow:hidden;
+  padding:27px clamp(26px,3vw,43px) 32px;
+  border:1px solid #e8dbc9;
+  border-radius:21px;
+  background:linear-gradient(108deg,#fffcf8 0%,#fffdfa 50%,#fff5ed 100%);
+  box-shadow:0 7px 22px rgba(72,63,53,.04);
+}
+/* Remove the outdated tilted-blue-screen illustration from the previous hero. */
+.blr-shell .blr-editorial-hero::before,
+.blr-shell .blr-editorial-hero::after{display:none!important}
+.blr-shell .blr-editorial-hero__copy{
+  min-width:0;
+  position:relative;
+  z-index:4;
+  align-self:center;
+  max-width:none!important;
+}
+.blr-shell .blr-editorial-hero__eyebrow{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  width:max-content;
+  margin-bottom:9px;
+  color:#d95339;
+  font-size:11px;
+  font-weight:840;
+  letter-spacing:.17em;
+}
+.blr-shell .blr-editorial-hero__copy h1{
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  margin:0!important;
+  color:#0a345c;
+  font-family:"Chalkboard SE","Bradley Hand","Segoe Print","Comic Sans MS",Georgia,serif;
+  font-size:clamp(37px,3.65vw,57px)!important;
+  font-weight:400!important;
+  line-height:1.035!important;
+  letter-spacing:-.052em!important;
+  white-space:normal;
+  text-wrap:balance;
+}
+.blr-shell .blr-editorial-hero__copy h1 span{display:block;max-width:100%}
+.blr-shell .blr-editorial-hero__copy h1 em{
+  font:inherit;
+  color:#dc613f;
+  font-style:normal;
+  font-weight:700!important;
+}
+.blr-shell .blr-editorial-hero__copy p{
+  margin:11px 0 0;
+  color:#496b89;
+  font-size:13px!important;
+  font-weight:720;
+  line-height:1.5;
+  letter-spacing:.005em;
+}
+.blr-shell .blr-editorial-hero__month-toolbar{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin-top:18px;
+  padding:4px;
+  border:1px solid rgba(198,216,232,.83);
+  border-radius:13px;
+  background:rgba(255,255,255,.77);
+  box-shadow:0 2px 9px rgba(34,75,117,.035);
+}
+.blr-shell .blr-editorial-hero__month-chip{
+  display:flex;
+  position:relative;
+  align-items:center;
+  gap:8px;
+  min-height:32px;
+  padding:5px 8px;
+  border-radius:9px;
+  color:#225a88;
+  font-weight:740;
+  font-size:12px;
+  line-height:1.15;
+  cursor:pointer;
+  white-space:nowrap;
+  background:#f4f8fc;
+}
+.blr-shell .blr-editorial-hero__month-chip svg{width:16px;height:16px;flex:0 0 auto}
+.blr-shell .blr-editorial-hero__month-chip input[type="month"]{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+  margin:0;
+  padding:0;
+  opacity:0;
+  cursor:pointer;
+  border:0;
+}
+.blr-shell .blr-editorial-hero__month-chip:focus-within{
+  outline:3px solid rgba(46,113,191,.37);
+  outline-offset:2px;
+}
+.blr-shell button.blr-editorial-hero__month-step:not(.blr-task):not(.blrd-month){
+  display:grid;
+  place-items:center;
+  flex:0 0 32px;
+  width:32px;
+  height:32px;
+  min-height:32px;
+  padding:0;
+  border:1px solid transparent;
+  border-radius:9px;
+  background:transparent;
+  color:#466d90;
+  box-shadow:none;
+}
+.blr-shell button.blr-editorial-hero__month-step:not(.blr-task):not(.blrd-month):hover:not(:disabled){
+  color:#165ca1;
+  background:#e8f1fb;
+  border-color:#d1e0ef;
+}
+.blr-shell .blr-editorial-hero__art{
+  position:absolute;
+  z-index:2;
+  inset:0 0 0 50%;
+  overflow:hidden;
+  pointer-events:none;
+}
+.blr-shell .blr-editorial-hero__peach{
+  position:absolute;
+  width:320px;
+  height:225px;
+  top:-79px;
+  right:-33px;
+  border-radius:50%;
+  transform:rotate(-23deg);
+  background:rgba(255,211,183,.51);
+  filter:blur(1px);
+}
+.blr-shell .blr-editorial-hero__blue{
+  position:absolute;
+  width:550px;
+  height:348px;
+  right:-82px;
+  bottom:-236px;
+  transform:rotate(-15deg);
+  border-radius:50%;
+  background:rgba(213,231,250,.78);
+}
+.blr-shell .blr-editorial-hero__motto{
+  position:absolute;
+  z-index:4;
+  top:77px;
+  right:34%;
+  margin:0;
+  transform:rotate(-8deg);
+  color:#2b78c3;
+  font-size:13px!important;
+  line-height:1.42!important;
+  font-weight:760;
+  font-style:italic;
+  text-align:center;
+}
+.blr-shell .blr-editorial-hero__motto span{display:block}
+.blr-shell .blr-editorial-hero__paper{
+  position:absolute;
+  z-index:4;
+  top:30px;
+  right:49px;
+  width:140px;
+  height:174px;
+  display:grid;
+  place-items:center;
+  transform:rotate(10deg);
+  border:1px solid rgba(255,255,255,.95);
+  border-radius:29px;
+  background:linear-gradient(135deg,rgba(234,240,249,.90),rgba(255,246,238,.70));
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.8);
+}
+.blr-shell .blr-editorial-hero__seal{
+  display:grid;
+  justify-items:center;
+  align-content:center;
+  gap:6px;
+  width:95px;
+  height:95px;
+  border:1px solid #bedcfd;
+  border-radius:50%;
+  transform:rotate(-10deg);
+  background:rgba(248,251,255,.7);
+  color:#2873c8;
+  text-align:center;
+}
+.blr-shell .blr-editorial-hero__seal span{
+  font-size:10px;
+  line-height:1.13;
+  font-weight:800;
+  font-style:italic;
+}
+.blr-shell .blr-editorial-hero__accent{
+  position:absolute;
+  z-index:4;
+  width:80px;
+  height:2px;
+  left:35px;
+  bottom:22px;
+  background:#f15b41;
+  transform:rotate(-3deg);
+  pointer-events:none;
+}
+/* One Material segmented-control system: no special first tab variant. */
+.blr-shell .blr-manager-modes.blr-unified-tabs{
+  gap:8px;
+  padding:8px;
+  border:1px solid #dfe8f4;
+  border-radius:16px;
+  background:#f5f8fc;
+}
+.blr-shell .blr-manager-modes.blr-unified-tabs > button[role="tab"]:not(.blr-task):not(.blrd-month){
+  display:inline-flex;
+  flex:0 0 180px;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  box-sizing:border-box;
+  min-width:0;
+  width:180px;
+  height:44px;
+  min-height:44px;
+  margin:0;
+  padding:0 13px;
+  border-radius:12px!important;
+  border:1px solid transparent!important;
+  box-shadow:none!important;
+  background:#fff!important;
+  color:#405f7d!important;
+  font-size:13px;
+  font-weight:750;
+  line-height:1.2;
+  white-space:nowrap;
+}
+.blr-shell .blr-manager-modes.blr-unified-tabs > button[role="tab"] svg{
+  width:16px;height:16px;flex:0 0 16px;
+}
+.blr-shell .blr-manager-modes.blr-unified-tabs > button[role="tab"]:hover:not(:disabled){
+  color:#2160ad!important;
+  background:#f0f6ff!important;
+  border-color:#cadff7!important;
+}
+.blr-shell .blr-manager-modes.blr-unified-tabs > button[role="tab"][aria-selected="true"]{
+  color:#1a5ba9!important;
+  background:#e7f1ff!important;
+  border-color:#aecdf3!important;
+  box-shadow:inset 0 0 0 1px rgba(211,231,255,.65)!important;
+}
+.blr-shell .blr-manager-modes.blr-unified-tabs > button[role="tab"]::after{
+  display:none!important;
+}
+@media(max-width:1100px){
+  .blr-shell .blr-hero.blr-editorial-hero{
+    grid-template-columns:minmax(0,62%) minmax(0,38%);
+    min-height:263px;
+  }
+  .blr-shell .blr-editorial-hero__copy h1{
+    font-size:clamp(33px,4vw,47px)!important;
+  }
+  .blr-shell .blr-editorial-hero__paper{right:22px;top:36px;width:125px;height:157px}
+  .blr-shell .blr-editorial-hero__motto{right:31%;top:85px;font-size:11px!important}
+}
+@media(max-width:760px){
+  .blr-shell .blr-hero.blr-editorial-hero{
+    display:block;
+    padding:24px 20px 29px;
+    min-height:244px;
+  }
+  .blr-shell .blr-editorial-hero__copy{max-width:100%;z-index:5}
+  .blr-shell .blr-editorial-hero__copy h1{
+    font-size:clamp(32px,6.3vw,45px)!important;
+    max-width:490px;
+  }
+  .blr-shell .blr-editorial-hero__art{
+    inset:0 0 0 60%;
+    opacity:.6;
+  }
+  .blr-shell .blr-editorial-hero__paper{
+    width:95px;height:125px;right:0;top:38px;border-radius:24px;
+  }
+  .blr-shell .blr-editorial-hero__seal{width:73px;height:73px;gap:2px}
+  .blr-shell .blr-editorial-hero__seal span{font-size:8px}
+  .blr-shell .blr-editorial-hero__seal svg{width:18px;height:18px}
+  .blr-shell .blr-editorial-hero__motto{display:none}
+  .blr-shell .blr-editorial-hero__accent{left:21px;bottom:15px}
+  .blr-shell .blr-manager-modes.blr-unified-tabs > button[role="tab"]:not(.blr-task):not(.blrd-month){
+    flex:1 1 155px;
+    width:auto;
+  }
+}
+@media(max-width:470px){
+  .blr-shell .blr-editorial-hero__copy h1{
+    font-size:clamp(29px,7vw,37px)!important;
+  }
+  .blr-shell .blr-editorial-hero__copy p{
+    font-size:11px!important;
+    max-width:95%;
+  }
+  .blr-shell .blr-editorial-hero__art{opacity:.22}
+  .blr-shell .blr-editorial-hero__month-toolbar{margin-top:13px}
+  .blr-shell .blr-manager-modes.blr-unified-tabs > button[role="tab"]:not(.blr-task):not(.blrd-month){
+    flex:1 1 100%;
+    width:100%;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .blr-shell .blr-editorial-hero *,
+  .blr-shell .blr-editorial-hero *::before,
+  .blr-shell .blr-editorial-hero *::after{animation:none!important;transition:none!important}
+}
+@media print{
+  .blr-shell .blr-editorial-hero__month-toolbar{display:none!important}
+  .blr-shell .blr-editorial-hero__art{display:none!important}
+}
