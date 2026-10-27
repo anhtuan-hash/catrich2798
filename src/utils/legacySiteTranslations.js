@@ -1,5 +1,18 @@
 // Safe, exact-match translations for legacy UI chrome. Personal and authored content is never translated.
 export const LEGACY_SITE_EN = Object.freeze({
+  // Brian monthly department report AI proofreading controls.
+  "AI hiệu đính báo cáo tổ": "AI proofreading for department report",
+  "Chỉ gửi đoạn thuyết minh. Tiêu đề, bảng số liệu, chữ ký và thông tin hành chính luôn được khóa.": "Only narrative text is sent. Headings, tables, signatures and administrative details stay locked.",
+  "Chế độ hiệu đính": "Proofreading mode",
+  "Tôi đồng ý gửi các đoạn thuyết minh đến Cloudflare Workers AI và đã kiểm tra quy định bảo mật của nhà trường.": "I consent to sending narrative text to Cloudflare Workers AI and have reviewed school privacy requirements.",
+  "Không tự ghi đè báo cáo gốc": "The original report is never overwritten automatically",
+  "Bản gốc": "Original",
+  "Báo cáo không có đoạn thuyết minh để gửi AI.": "This report has no narrative text to send to AI.",
+  "AI có thể mắc lỗi. TTCM kiểm tra trước khi duyệt.": "AI can make mistakes. The department head must review before approval.",
+  "Duyệt & áp dụng": "Approve & apply",
+  "AI hiệu đính báo cáo tháng": "AI proofreading for monthly report",
+  "Đang xem phiên bản đã hiệu đính · Bản gốc vẫn được giữ để khôi phục": "Showing the edited version · The original is preserved for restoration",
+  "AI hiệu đính": "AI proofreading",
   "Trang chủ": "Home",
   "Ứng dụng": "Apps",
   "Chủ nhiệm": "Homeroom",
