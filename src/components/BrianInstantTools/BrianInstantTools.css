@@ -161,3 +161,62 @@
  .bit-cube-face{font-size:53px;border-radius:13px}
 }
 @media(prefers-reduced-motion:reduce){.bit-die.is-rolling .bit-cube{animation:none!important}.bit-cube{transition:none!important}}
+
+/* Deterministic wheel rotation: keyframes are mounted with the new spin spec
+ * instead of trying to enable transition and change transform in one render. */
+.bit-wheel.is-spinning{
+  animation:bit-wheel-visible-spin 4.6s cubic-bezier(.12,.72,.10,1) both;
+  will-change:transform;
+  backface-visibility:hidden;
+}
+@keyframes bit-wheel-visible-spin{
+  from{transform:rotate(var(--bit-spin-from))}
+  to{transform:rotate(var(--bit-spin-to))}
+}
+.bit-wheel-zone.is-spinning .bit-pointer{
+  animation:bit-wheel-pointer-tick .19s ease-in-out infinite alternate;
+  transform-origin:top center;
+}
+@keyframes bit-wheel-pointer-tick{
+  from{transform:translateX(-50%) rotate(-6deg)}
+  to{transform:translateX(-50%) rotate(6deg)}
+}
+.bit-wheel-live{
+  display:flex;align-items:center;gap:8px;
+  color:#4d67b8;font-size:14px;font-weight:800;
+  margin:0;
+}
+.bit-wheel-live:before{
+  content:'';height:9px;width:9px;border-radius:50%;background:#637de8;
+  box-shadow:0 0 0 5px #637de82d;animation:bit-wheel-status-pulse .8s ease-in-out infinite alternate;
+}
+@keyframes bit-wheel-status-pulse{to{opacity:.35;transform:scale(.72)}}
+.bit-wheel-winner{animation:bit-wheel-win-enter .6s cubic-bezier(.17,.82,.25,1) both}
+@keyframes bit-wheel-win-enter{
+  from{opacity:.3;transform:translateY(15px) scale(.9)}
+  65%{opacity:1;transform:translateY(-3px) scale(1.04)}
+  to{opacity:1;transform:none}
+}
+.bit-wheel-fireworks{
+  position:absolute;inset:0;pointer-events:none;z-index:6;overflow:hidden;
+}
+.bit-wheel-fireworks span{
+  position:absolute;left:50%;top:50%;
+  width:clamp(8px,1.25vw,15px);height:clamp(13px,1.8vw,22px);
+  border-radius:4px;background:var(--spark-color);
+  box-shadow:0 1px 4px #203e6630;
+  animation:bit-wheel-spark-burst 1.35s cubic-bezier(.15,.65,.12,1) var(--spark-delay) both;
+}
+.bit-wheel-fireworks span:nth-child(3n){border-radius:50%;width:12px;height:12px}
+.bit-wheel-fireworks span:nth-child(4n){border-radius:2px;transform-origin:center}
+@keyframes bit-wheel-spark-burst{
+  0%{opacity:0;transform:translate(-50%,-50%) rotate(var(--spark-angle)) translateY(0) scale(.35)}
+  13%{opacity:1}
+  67%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-50%) rotate(var(--spark-angle)) translateY(calc(-1 * var(--spark-distance))) scale(.48)}
+}
+@media(prefers-reduced-motion:reduce){
+  .bit-wheel.is-spinning,.bit-wheel-zone.is-spinning .bit-pointer,
+  .bit-wheel-live:before,.bit-wheel-winner,.bit-wheel-fireworks span{animation:none!important}
+  .bit-wheel-fireworks{display:none}
+}

@@ -56,9 +56,13 @@ function beep(type,enabled){
     });
   }catch{/* Audio is optional and requires a browser gesture. */}
 }
-function celebrate(){
+function celebrate(origin={x:.5,y:.52}){
   if(typeof window==='undefined'||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return;
-  try{confetti({particleCount:85,spread:62,origin:{y:.64},disableForReducedMotion:true,colors:PALETTE});}catch{/* visual decoration only */}
+  try{
+    // Toolbox overlay uses z-index 2147481000. The default confetti canvas is behind it.
+    confetti({particleCount:130,spread:82,startVelocity:43,scalar:1.14,gravity:1.05,
+      origin,zIndex:2147483200,disableForReducedMotion:true,colors:PALETTE});
+  }catch{/* The CSS winner burst remains visible when canvas fireworks are unavailable. */}
 }
 function load(user){
   const key=storageKey(user);
@@ -107,24 +111,43 @@ function WheelTool({value,onChange,t,sound}){
   const [draft,setDraft]=useState(value.names.join('\n'));
   const [error,setError]=useState('');
   const [spinning,setSpinning]=useState(false);
-  const timeout=useRef(null);
-  useEffect(()=>()=>clearTimeout(timeout.current),[]);
+  const [spinSpec,setSpinSpec]=useState(null);
+  const [burst,setBurst]=useState(0);
+  const wheelRef=useRef(null),timeout=useRef(null),burstTimeout=useRef(null),inFlight=useRef(false);
+  useEffect(()=>()=>{clearTimeout(timeout.current);clearTimeout(burstTimeout.current);inFlight.current=false;},[]);
   const apply=()=>{
+    if(inFlight.current)return;
     const names=normalizeWheelNames(draft);
     if(!names){setError(t.badOptions);return;}
+    clearTimeout(burstTimeout.current);
+    setBurst(0);setSpinSpec(null);
     onChange(w=>({...w,names,rotation:0,winner:null}));setError('');beep('tap',sound);
   };
   const spin=()=>{
-    if(spinning||value.names.length<2)return;
+    if(inFlight.current||value.names.length<2)return;
     const idx=secureInt(0,value.names.length-1);
     const rotation=wheelTarget(value.rotation,idx,value.names.length);
+    // A dedicated CSS keyframe animation is used instead of a transition which
+    // could be attached in the same render as the transform update.
+    inFlight.current=true;
+    clearTimeout(burstTimeout.current);setBurst(0);
+    setSpinSpec({from:value.rotation,to:rotation});
     setSpinning(true);
     onChange(w=>({...w,rotation,winner:null}));
     beep('roll',sound);
     timeout.current=setTimeout(()=>{
-      setSpinning(false);
+      inFlight.current=false;
+      setSpinning(false);setSpinSpec(null);
       onChange(w=>({...w,winner:w.names[idx]??null}));
-      beep('win',sound);celebrate();
+      beep('win',sound);
+      setBurst(n=>n+1);
+      const rect=wheelRef.current?.getBoundingClientRect();
+      const origin=rect?{
+        x:Math.max(.05,Math.min(.95,(rect.left+rect.width/2)/window.innerWidth)),
+        y:Math.max(.08,Math.min(.9,(rect.top+rect.height/2)/window.innerHeight))
+      }:{x:.5,y:.52};
+      celebrate(origin);
+      burstTimeout.current=setTimeout(()=>setBurst(0),2600);
     },4600);
   };
   const colors=value.names.map((_,i)=>{
@@ -137,18 +160,31 @@ function WheelTool({value,onChange,t,sound}){
       <textarea id="bit-wheel-list" rows="7" value={draft} maxLength={650} onChange={e=>setDraft(e.target.value)} disabled={spinning}/>
       {error&&<p role="alert" className="bit-error">{error}</p>}
       <button className="bit-secondary" type="button" onClick={apply} disabled={spinning}><Check size={17}/>{t.apply}</button>
-      <button type="button" className="bit-primary" onClick={spin} disabled={spinning}>{spinning?t.spinning:t.spin}</button>
-      {value.winner&&<div className="bit-winner" aria-live="polite"><Trophy size={26}/><small>{t.winner}</small><strong>{value.winner}</strong></div>}
+      <button type="button" className="bit-primary" onClick={spin} disabled={spinning} aria-busy={spinning}>{spinning?t.spinning:t.spin}</button>
+      {spinning&&<p className="bit-wheel-live" role="status">{t.spinning}</p>}
+      {value.winner&&<div className="bit-winner bit-wheel-winner" aria-live="polite"><Trophy size={26}/><small>{t.winner}</small><strong>{value.winner}</strong></div>}
     </div>
-    <div className="bit-preview bit-wheel-zone">
+    <div className={'bit-preview bit-wheel-zone'+(spinning?' is-spinning':'')+(burst?' has-fireworks':'')}>
       <div className="bit-pointer" aria-hidden="true">▼</div>
-      <div className="bit-wheel" style={{background:'conic-gradient('+colors+')',transform:'rotate('+value.rotation+'deg)',transition:spinning?'transform 4.6s cubic-bezier(.12,.79,.09,1)':'none'}}>
+      <div ref={wheelRef} data-testid="animated-lucky-wheel" className={'bit-wheel'+(spinSpec?' is-spinning':'')}
+        style={{background:'conic-gradient('+colors+')',
+          transform:'rotate('+value.rotation+'deg)',
+          '--bit-spin-from':(spinSpec?.from??value.rotation)+'deg',
+          '--bit-spin-to':(spinSpec?.to??value.rotation)+'deg'}}>
         {value.names.map((name,i)=>{
           const a=(i+.5)*360/value.names.length;
           return <span key={i} className="bit-wheel-label" style={{transform:'rotate('+a+'deg) translateY(calc(-1 * var(--bit-wheel-label-radius))) rotate(90deg)'}} title={name}>{name}</span>;
         })}
         <span className="bit-wheel-hub" aria-hidden="true"><Sparkles size={24}/></span>
       </div>
+      {burst>0&&<div className="bit-wheel-fireworks" key={burst} aria-hidden="true">
+        {Array.from({length:28},(_,i)=><span key={i} style={{
+          '--spark-angle':(i*360/28)+'deg',
+          '--spark-distance':(140+(i%5)*23)+'px',
+          '--spark-delay':((i%6)*33)+'ms',
+          '--spark-color':PALETTE[i%PALETTE.length]
+        }}/>)}
+      </div>}
     </div>
   </div>;
 }
