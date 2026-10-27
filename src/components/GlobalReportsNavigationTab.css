@@ -235,3 +235,41 @@ html body #root .app-shell[data-route] .brian-nav__primary > .brian-nav__reports
   color: #684900 !important;
   opacity: 1 !important;
 }
+
+/* Shared countdown for Monthly / HSG / Remedial assignments.
+   Preserve the original one-pill navigation and show +N for other pending dates. */
+html body #root .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.shows-countdown .brian-nav__reports-more {
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  font-size:9px!important;
+  font-weight:850!important;
+  min-width:20px!important;
+  height:18px!important;
+  padding:0 3px!important;
+  border-radius:999px!important;
+  background:#edf3fc!important;
+  border:1px solid #c9d9ed!important;
+  color:#285d91!important;
+  white-space:nowrap!important;
+  line-height:18px!important;
+  font-variant-numeric:tabular-nums!important;
+}
+html body #root .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.shows-countdown[data-report-kind="gifted"] .brian-nav__reports-countdown {
+  background:linear-gradient(180deg,#e6f8ed,#c5f0d8)!important;
+  color:#17643c!important;
+  border-color:#a3d9bc!important;
+  text-shadow:none!important;
+}
+html body #root .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.shows-countdown[data-report-kind="remedial"] .brian-nav__reports-countdown {
+  background:linear-gradient(180deg,#eff4ff,#d6e5ff)!important;
+  color:#285c9c!important;
+  border-color:#b9d2f4!important;
+  text-shadow:none!important;
+}
+html body #root .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.shows-countdown.is-deadline-expired .brian-nav__reports-countdown {
+  background:#fff1ef!important;
+  color:#b13d37!important;
+  border-color:#f2c3c0!important;
+  text-shadow:none!important;
+}

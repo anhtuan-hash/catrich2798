@@ -147,7 +147,7 @@ export async function issueLearningReports({ departmentId, kind, month, dueAt, t
     p_department_id:departmentId,p_kind:kind,p_period:month+'-01',p_due_at:due.toISOString(),
     p_teacher_ids:ids,p_send_notification:notification,p_create_event:event,
   });
-  fail(error); return (Array.isArray(data) ? data[0] : data) || {};
+  fail(error); notifyLearningDeadlineChange(); return (Array.isArray(data) ? data[0] : data) || {};
 }
 export async function listLearningDeadlineOverrides() {
   const {data,error}=await db().from('bes_learning_report_deadlines')
@@ -168,6 +168,39 @@ export function applyLearningDeadlineOverrides(tasks,deadlines) {
       deadline_cleared:Boolean(override?.cleared)};
   });
 }
+// Minimal metadata for the permanent navigation timer; never download report payloads.
+export async function listNavigationLearningDeadlineTasks(userId,isLeader=false) {
+  const id=String(userId||'').trim();
+  if(!id)return [];
+  const start=new Date();
+  start.setDate(1);
+  start.setMonth(start.getMonth()-3);
+  const end=new Date();
+  end.setDate(1);
+  end.setMonth(end.getMonth()+12);
+  const monthDate=value=>value.getFullYear()+'-'+String(value.getMonth()+1).padStart(2,'0')+'-01';
+  const minMonth=monthDate(start),maxMonth=monthDate(end);
+  let query=db().from('bes_learning_report_tasks')
+    .select('id,head_id,teacher_id,department_id,report_kind,period,due_at,status')
+    .in('status',['draft','revision','submitted'])
+    .gte('period',minMonth).lte('period',maxMonth)
+    .order('due_at',{ascending:true}).limit(400);
+  if(isLeader) query=query.or('teacher_id.eq.'+id+',head_id.eq.'+id);
+  else query=query.eq('teacher_id',id);
+  const [tasks,deadlines]=await Promise.all([
+    query,
+    db().from('bes_learning_report_deadlines')
+      .select('head_id,department_id,report_kind,period,due_at,cleared')
+      .gte('period',minMonth).lte('period',maxMonth).limit(400),
+  ]);
+  fail(tasks.error);fail(deadlines.error);
+  return applyLearningDeadlineOverrides(tasks.data||[],deadlines.data||[]);
+}
+export function notifyLearningDeadlineChange() {
+  if(typeof window==='undefined')return;
+  window.dispatchEvent(new Event('bes-learning-report-deadline-change'));
+}
+
 export async function listLearningReports() {
   const [reports,overrides]=await Promise.all([
     db().from('bes_learning_report_tasks').select('*')
@@ -199,7 +232,7 @@ export async function setLearningTeamDeadline(departmentId,kind,period,dueAt,cle
     p_department_id:departmentId,p_kind:kind,p_period:period+'-01',
     p_due_at:clear?null:new Date(dueAt).toISOString(),p_clear:clear,
   });
-  fail(error);return data;
+  fail(error);notifyLearningDeadlineChange();return data;
 }
 export async function listLearningSessions(taskId) {
   if (!taskId) return [];
@@ -220,7 +253,7 @@ export async function saveLearningReport(task, payload, submit = false) {
     payload, status: submit ? 'submitted' : 'draft',
     notified_read_at:task.notified_read_at || new Date().toISOString(),
   }).eq('id',task.id).select('*').single();
-  fail(error);return data;
+  fail(error);notifyLearningDeadlineChange();return data;
 }
 export async function reviewLearningReport(taskId, status, comment) {
   if (!['approved','revision'].includes(status)) throw new Error('Trạng thái duyệt không hợp lệ.');
@@ -228,7 +261,7 @@ export async function reviewLearningReport(taskId, status, comment) {
   const {data,error} = await db().from('bes_learning_report_tasks')
     .update({status,reviewer_comment:String(comment||'').trim()})
     .eq('id',taskId).select('*').single();
-  fail(error);return data;
+  fail(error);notifyLearningDeadlineChange();return data;
 }
 export async function markLearningReportRead(task) {
   if (!task?.id || task.notified_read_at) return;
