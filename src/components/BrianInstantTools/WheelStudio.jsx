@@ -189,7 +189,7 @@ export default function WheelStudio({value,onChange,t,sound,onSound,onCelebrate}
        <div key={p.id}><strong>{p.label}</strong><span>{p.rows.length} {T.items.toLowerCase()}</span>
         <button type="button" disabled={busy} onClick={()=>{
          setSelected(null);setFrozenSegments(null);
-         setPaste(p.rows.map(r=>r.label).join('\\n'));
+         setPaste(p.rows.map(r=>r.label).join('\n'));
          change(w=>({...w,rows:p.rows.map(r=>({...r})),theme:p.theme,mode:p.mode,
           duration:p.duration,rotation:0,history:[],spins:0,counts:{},winner:null}));
          if(wheelRef.current)wheelRef.current.style.transform='rotate(0deg)';
