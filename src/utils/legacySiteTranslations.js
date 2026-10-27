@@ -3150,4 +3150,9 @@ export const LEGACY_SITE_EN = Object.freeze({
   "Chọn báo cáo của": "Select report of",
   "Báo cáo của tôi": "My reports",
   "Quản lý báo cáo giáo viên": "Manage teacher reports",
+  "Danh sách báo cáo được giao": "Assigned teacher reports",
+  "Quản lý giao báo cáo": "Manage report assignments",
+  "Đã nhập nội dung, nộp hoặc duyệt": "Contains content, submitted or approved",
+  "Quản lý báo cáo Bồi dưỡng và Phụ đạo": "Manage enrichment and remedial reports",
+  "Nhân sự & quản lý tổ": "Personnel & department management",
 });
