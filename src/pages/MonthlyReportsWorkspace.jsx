@@ -19,6 +19,7 @@ import {
   toLocalDateTimeInput,
 } from '../utils/monthlyReportAdmin.js';
 import './MonthlyReportsWorkspace.css';
+import ReportProofreadingStudio from '../components/ReportProofreadingStudio.jsx';
 
 const teacherName = (user) => user?.full_name || user?.name || user?.email || 'Giáo viên';
 const statusClass = (status) => `mr-status is-${status || 'draft'}`;
@@ -328,6 +329,8 @@ function LeaderMonthlyReports({ currentUser, department, members }) {
   const [selectedId, setSelectedId] = useState('');
   const [reviewComment, setReviewComment] = useState('');
   const [generatedHtml, setGeneratedHtml] = useState('');
+  const [originalHtml, setOriginalHtml] = useState('');
+  const [proofreadOpen, setProofreadOpen] = useState(false);
   const [deadline, setDeadline] = useState(null);
   const [deadlineInput, setDeadlineInput] = useState('');
   const [deadlineSaving, setDeadlineSaving] = useState(false);
@@ -339,6 +342,9 @@ function LeaderMonthlyReports({ currentUser, department, members }) {
   const deadlineCountdown = useDeadlineCountdown(deadline);
 
   const reload = async () => {
+    setGeneratedHtml('');
+    setOriginalHtml('');
+    setProofreadOpen(false);
     setLoading(true);
     const [reportsResult, deadlineResult] = await Promise.all([
       listDepartmentMonthlyReports(currentUser, month, department?.id || ''),
@@ -401,7 +407,12 @@ function LeaderMonthlyReports({ currentUser, department, members }) {
     setWarning('');
   };
 
-  const generate = () => setGeneratedHtml(buildDepartmentMonthlyReportHtml({ department, members, reports, month }));
+  const generate = () => {
+    const html = buildDepartmentMonthlyReportHtml({ department, members, reports, month });
+    setOriginalHtml(html);
+    setGeneratedHtml(html);
+    setProofreadOpen(false);
+  };
   const exportWord = () => {
     const html = generatedHtml || buildDepartmentMonthlyReportHtml({ department, members, reports, month });
     const blob = new Blob([`\ufeff${html}`], { type: 'application/msword;charset=utf-8' });
@@ -471,7 +482,8 @@ function LeaderMonthlyReports({ currentUser, department, members }) {
         {loading && <div className="mr-table-loading"><LoaderCircle className="spin" /> Đang tải dữ liệu…</div>}
       </div>
 
-      {generatedHtml && <section className="mr-generated"><header><div><small>BẢN TỔNG HỢP</small><h3>Báo cáo chuyên môn {reportMonthLabel(month)}</h3></div><div><button onClick={exportWord}><Download /> Xuất Word</button><button onClick={printReport}><Printer /> In / PDF</button><button className="mr-icon-btn" onClick={() => setGeneratedHtml('')}><X /></button></div></header><iframe title="Bản xem trước báo cáo chuyên môn" srcDoc={generatedHtml} /></section>}
+      {generatedHtml && <section className="mr-generated"><header><div><small>BẢN TỔNG HỢP</small><h3>Báo cáo chuyên môn {reportMonthLabel(month)}</h3>{originalHtml && generatedHtml !== originalHtml && <small>Đang xem phiên bản đã hiệu đính · Bản gốc vẫn được giữ để khôi phục</small>}</div><div><button type="button" className="is-primary" onClick={() => setProofreadOpen(true)}><Sparkles /> AI hiệu đính</button>{originalHtml && generatedHtml !== originalHtml && <button type="button" onClick={() => setGeneratedHtml(originalHtml)}><RefreshCw /> Bản gốc</button>}<button onClick={exportWord}><Download /> Xuất Word</button><button onClick={printReport}><Printer /> In / PDF</button><button className="mr-icon-btn" onClick={() => { setGeneratedHtml(''); setOriginalHtml(''); setProofreadOpen(false); }}><X /></button></div></header><iframe title="Bản xem trước báo cáo chuyên môn" srcDoc={generatedHtml} sandbox="" /></section>}
+      {proofreadOpen && generatedHtml && <ReportProofreadingStudio html={generatedHtml} departmentId={department?.id || ''} onClose={() => setProofreadOpen(false)} onApply={(corrected) => { setGeneratedHtml(corrected); setProofreadOpen(false); setWarning(''); }} />}
 
       {selected && <Modal title={`Duyệt báo cáo · ${memberMap.get(selected.teacherId)?.account?.name || 'Giáo viên'}`} onClose={() => { setSelectedId(''); setReviewComment(''); }} wide><ReadOnlyReport report={selected} member={memberMap.get(selected.teacherId)} /><div className="mr-review-box"><Field label="Nhận xét của TTCM"><textarea rows="3" value={reviewComment} onChange={(event) => setReviewComment(event.target.value)} placeholder="Bắt buộc khi yêu cầu chỉnh sửa; tùy chọn khi duyệt." /></Field><div className="mr-review-actions"><button type="button" className="is-revision" onClick={() => doReview('revision')}><MessageSquareWarning /> Yêu cầu chỉnh sửa</button><button type="button" className="is-primary" onClick={() => doReview('approved')}><FileCheck2 /> Duyệt báo cáo</button></div></div></Modal>}
     </div>
