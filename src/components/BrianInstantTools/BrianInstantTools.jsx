@@ -123,7 +123,7 @@ function WheelTool({value,onChange,t,sound}){
   const [error,setError]=useState('');
   const [spinning,setSpinning]=useState(false);
   const [burst,setBurst]=useState(0);
-  const wheelRef=useRef(null),raf=useRef(null),burstTimeout=useRef(null),inFlight=useRef(false);
+  const wheelRef=useRef(null),raf=useRef(null),tickTimer=useRef(null),burstTimeout=useRef(null),inFlight=useRef(false);
   const unmounted=useRef(false);
   const normalizeAngle=angle=>((Number(angle)||0)%360+360)%360;
 
@@ -137,6 +137,7 @@ function WheelTool({value,onChange,t,sound}){
   useEffect(()=>()=>{
     unmounted.current=true;
     if(raf.current!==null)window.cancelAnimationFrame(raf.current);
+    clearInterval(tickTimer.current);
     clearTimeout(burstTimeout.current);
     inFlight.current=false;
   },[]);
@@ -156,6 +157,7 @@ function WheelTool({value,onChange,t,sound}){
     if(inFlight.current||value.names.length<2)return;
     inFlight.current=true;
     if(raf.current!==null)window.cancelAnimationFrame(raf.current);
+    clearInterval(tickTimer.current);
     clearTimeout(burstTimeout.current);
     setBurst(0);
     const idx=secureInt(0,value.names.length-1);
@@ -166,7 +168,10 @@ function WheelTool({value,onChange,t,sound}){
 
     const finish=()=>{
       if(!inFlight.current||unmounted.current)return;
-      inFlight.current=false;raf.current=null;
+      inFlight.current=false;
+      if(raf.current!==null)window.cancelAnimationFrame(raf.current);
+      raf.current=null;
+      clearInterval(tickTimer.current);tickTimer.current=null;
       if(wheelRef.current)wheelRef.current.style.transform='rotate('+finalAngle+'deg)';
       setSpinning(false);
       onChange(w=>({...w,rotation:finalAngle,winner:w.names[idx]??null}));
@@ -190,17 +195,25 @@ function WheelTool({value,onChange,t,sound}){
 
     const durationMs=4800;
     const startTime=window.performance.now();
-    const frame=now=>{
-      if(!inFlight.current||unmounted.current)return;
+    let lastPaintAt=-Infinity;
+    const paint=now=>{
+      if(!inFlight.current||unmounted.current||now<lastPaintAt)return;
+      lastPaintAt=now;
       const progress=Math.min(1,Math.max(0,(now-startTime)/durationMs));
-      // Real frames, not CSS keyframes/custom-property interpolation:
-      // the wheel moves through >5 rotations before resting on the selected slice.
+      // Use real per-frame transform updates, independent of CSS interpolation.
       const ease=1-Math.pow(1-progress,3);
       const angle=startAngle+(targetAngle-startAngle)*ease;
       if(wheelRef.current)wheelRef.current.style.transform='rotate('+angle+'deg)';
-      if(progress>=1){finish();return;}
-      raf.current=window.requestAnimationFrame(frame);
+      if(progress>=1)finish();
     };
+    const frame=now=>{
+      paint(now);
+      if(inFlight.current)raf.current=window.requestAnimationFrame(frame);
+    };
+    // Some Safari/WebKit configurations suspend animation frames temporarily
+    // while still delivering timers. This lightweight backup cannot race
+    // the main animation because both use the same monotonic clock.
+    tickTimer.current=window.setInterval(()=>paint(window.performance.now()),80);
     raf.current=window.requestAnimationFrame(frame);
   };
 
