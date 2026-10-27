@@ -54,7 +54,7 @@ function Score({data,kind}){
   </div>;
 }
 export default function LearningReportsManagerDashboard({
-  departmentId,kind,mode,onModeChange,onOpenReport,accounts=[]
+  departmentId,kind,mode,onModeChange,onOpenReport,onDeadlineUpdated,accounts=[]
 }){
   const [startYear,setStartYear]=useState(schoolYearStartYear);
   const [data,setData]=useState(null);
@@ -123,6 +123,7 @@ export default function LearningReportsManagerDashboard({
     try{
       await setLearningTeamDeadline(departmentId,kind,month,deadlineInput,clear);
       await refresh();
+      if(typeof onDeadlineUpdated==='function')await onDeadlineUpdated();
       setNotice(clear?'Đã xóa hạn nộp và hủy sự kiện hạn nộp tương ứng.':'Đã cập nhật hạn nộp và lịch sự kiện của báo cáo.');
     }catch(e){setError('Không cập nhật được hạn nộp: '+e.message);}
     finally{setSaving(false);}
