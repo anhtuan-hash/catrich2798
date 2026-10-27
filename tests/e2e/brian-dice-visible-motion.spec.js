@@ -1,7 +1,14 @@
 import {test,expect} from '@playwright/test';
 test.beforeEach(async({page})=>{
+ const errors=[];
+ page.on('pageerror',error=>errors.push(error.message));
  await page.goto('/tests/fixtures/brian-instant-tools-qa.html');
- await page.getByRole('button',{name:'Mở bộ công cụ tức thì'}).click();
+ const launcher=page.getByRole('button',{name:'Mở bộ công cụ tức thì'});
+ try{await expect(launcher).toBeVisible({timeout:12000});}catch{
+  const state=await page.evaluate(()=>({url:location.href,root:document.querySelector('#root')?.innerText?.slice(0,300),scripts:[...document.scripts].map(s=>s.src)}));
+  throw Error('Toolbox fixture failed to mount: '+JSON.stringify({state,errors}));
+ }
+ await launcher.click();
  await page.locator('.bit-app-card').first().click();
 });
 test('3D dice visibly tumble and settle with the correct total',async({page})=>{
