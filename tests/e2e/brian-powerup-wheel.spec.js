@@ -15,7 +15,7 @@ test('Library contains 25 safe rewards and 25 learning challenges, with selectab
  await expect(page.locator('.bit-pu-totals strong').last()).toHaveText('25');
  await page.getByRole('button',{name:'Phạt / Thử thách'}).click();
  await expect(page.locator('.bit-pu-library-card.challenge')).toHaveCount(25);
- await page.getByRole('button',{name:'Tất cả'}).click();
+ await page.getByRole('button',{name:'Tất cả',exact:true}).click();
  await page.getByRole('button',{name:'Bỏ chọn'}).click();
  await expect(page.locator('.bit-pu-totals strong').last()).toHaveText('0');
  await expect(page.getByRole('button',{name:'QUAY POWER-UP',exact:true})).toBeDisabled();
