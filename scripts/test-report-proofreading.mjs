@@ -27,14 +27,22 @@ const response = (obj, ok = true, status = 200) => ({ ok, status, json: async ()
 let cfCalls = 0;
 let changedText = 'Tổ có 6 giáo viên; thực hiện dự giờ 12 tiết.';
 let workspace = 'english';
+let responseKind = 'jsonText';
+let lastCloudflareBody = null;
 function mockFetch() {
-  globalThis.fetch = async (url) => {
+  globalThis.fetch = async (url, options) => {
     if (url === BASE + '/auth/v1/user') return response({ id: USER });
     if (url.includes('/rest/v1/profiles?')) return response([{ role: 'department_head', approved: true }]);
     if (url.includes('/rest/v1/department_team_workspaces?')) return response([{ payload: { departments: [{ id: workspace }] } }]);
     if (url.includes('api.cloudflare.com')) {
       cfCalls++;
-      return response({ success: true, result: { response: JSON.stringify({ revisions: [{ id: 'b0', text: changedText }] }) } });
+      lastCloudflareBody = JSON.parse(options.body);
+      if (responseKind === 'badJson') return response({ success: true, result: { response: 'Sorry, I cannot format this as JSON.' } });
+      if (responseKind === 'jsonNotMet') return response({ success: false, errors: [{ message: "JSON Mode couldn't be met" }] }, false, 400);
+      if (responseKind === 'quota') return response({ success: false, errors: [{ message: 'quota exceeded' }] }, false, 429);
+      if (responseKind === 'plain') return response({ success: true, result: { response: changedText } });
+      const revisions = [{ id: 'b0', text: changedText }];
+      return response({ success: true, result: { response: responseKind === 'object' ? { revisions } : JSON.stringify({ revisions }) } });
     }
     throw new Error('Unexpected URL in test: ' + url);
   };
@@ -101,4 +109,37 @@ test.after(() => {
   for (const [key, value] of Object.entries(originalEnv)) {
     if (value === undefined) delete process.env[key]; else process.env[key] = value;
   }
+});
+
+test('Cloudflare structured object response is accepted without JSON.parse on an object', async () => {
+  mockFetch(); responseKind = 'object'; changedText = 'Tổ có 6 giáo viên; thực hiện dự giờ 12 tiết.';
+  const res = mkRes(); await handler(mkReq(), res);
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.revisions[0].text, changedText);
+  assert.equal(lastCloudflareBody.response_format.type, 'json_schema');
+});
+test('Malformed response triggers bounded recovery signal without rewriting original', async () => {
+  mockFetch(); responseKind = 'badJson';
+  const res = mkRes(); await handler(mkReq(), res);
+  assert.equal(res.statusCode, 422);
+  assert.equal(res.body.code, 'AI_FORMAT');
+});
+test('JSON mode failure is explicitly recoverable', async () => {
+  mockFetch(); responseKind = 'jsonNotMet';
+  const res = mkRes(); await handler(mkReq(), res);
+  assert.equal(res.statusCode, 422);
+  assert.equal(res.body.code, 'AI_FORMAT');
+});
+test('Single-paragraph plain text fallback never requires JSON', async () => {
+  mockFetch(); responseKind = 'plain'; changedText = 'Tổ có 6 giáo viên; thực hiện dự giờ 12 tiết.';
+  const res = mkRes(); await handler(mkReq({departmentId:'english',mode:'formal',blocks,plain:true}),res);
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.revisions[0].text, changedText);
+  assert.equal(lastCloudflareBody.response_format, undefined);
+});
+test('Quota errors fail closed, no model swap', async () => {
+  mockFetch(); responseKind = 'quota';
+  const res = mkRes(); await handler(mkReq(),res);
+  assert.equal(res.statusCode, 429);
+  assert.equal(res.body.code, 'FREE_QUOTA');
 });
