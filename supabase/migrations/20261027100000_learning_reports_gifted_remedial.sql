@@ -99,7 +99,20 @@ begin
     or new.notify_enabled is distinct from old.notify_enabled
     or new.created_at is distinct from old.created_at
   then raise exception 'Immutable report identity'; end if;
-  if (select auth.uid())=old.teacher_id and (select auth.uid())<>old.head_id then
+  -- Marking a notification read never unlocks or rewrites a submitted report.
+  if (select auth.uid())=old.teacher_id
+    and new.status is not distinct from old.status
+    and new.payload is not distinct from old.payload
+    and new.reviewer_comment is not distinct from old.reviewer_comment
+    and new.submitted_at is not distinct from old.submitted_at
+    and new.reviewed_at is not distinct from old.reviewed_at
+    and old.notified_read_at is null and new.notified_read_at is not null
+  then
+    new.updated_at=now();
+    return new;
+  end if;
+  if (select auth.uid())=old.teacher_id and old.status in ('draft','revision')
+    and new.status in ('draft','submitted') then
     if old.status not in ('draft','revision') or new.status not in ('draft','submitted')
       or new.reviewer_comment is distinct from old.reviewer_comment
       or new.reviewed_at is distinct from old.reviewed_at
