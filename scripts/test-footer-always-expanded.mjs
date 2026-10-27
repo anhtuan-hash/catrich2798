@@ -7,7 +7,7 @@ const footerCssUrl = new URL('../src/components/FooterCompactDisclosure.css', im
 const footer = fs.readFileSync(footerUrl, 'utf8');
 const footerCss = fs.readFileSync(footerCssUrl, 'utf8');
 
-assert.doesNotMatch(footer, /useState\s*\(/, 'Footer must not keep collapse/expand state');
+assert.doesNotMatch(footer, /\[\s*(?:expanded|isExpanded|collapsed|isCollapsed)\s*,\s*set\w+\s*\]\s*=\s*(?:React\.)?useState\s*\(/, 'Footer must not keep collapse/expand state; independent portfolio dialog state is permitted');
 assert.doesNotMatch(footer, /aria-expanded=/, 'Footer must not expose a collapse control');
 assert.doesNotMatch(footer, /data-expanded=/, 'Footer must not have collapsed/expanded variants');
 assert.doesNotMatch(footer, /signature-footer-disclosure-action/, 'Footer must not render the collapse/expand action or chevron');
