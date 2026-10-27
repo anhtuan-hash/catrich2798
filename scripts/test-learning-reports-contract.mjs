@@ -12,7 +12,7 @@ const t=read('src/utils/legacySiteTranslations.js');
 
 const cases=[
  ['two distinct reporting forms',service.includes('gifted: [')&&service.includes('remedial: [')],
- ['five sections each', (service.match(/id: '(team|curriculum|attendance|outcomes|reflection|students)'/g)||[]).length===10],
+ ['five sections each', (service.match(/id:\s*'(team|curriculum|attendance|outcomes|reflection|students)'/g)||[]).length===10],
  ['required completion validation',service.includes('reportProgress')&&service.includes('complete.every(Boolean)')],
  ['journal aggregation follows counts not invented rates',service.includes('expected_count')&&service.includes('present_count')&&service.includes('participationPercent')],
  ['teacher journal validates present <= expected',service.includes('present>expected')],
