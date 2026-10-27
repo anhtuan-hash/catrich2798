@@ -3175,4 +3175,11 @@ export const LEGACY_SITE_EN = Object.freeze({
   "Mở danh sách báo cáo giáo viên": "Open teacher report list",
   "Còn cần hoàn tất": "Still to complete",
   "Đã giao trong": "Assigned in",
+  "Bồi dưỡng &": "Enrichment &",
+  "Phụ đạo tháng": "Remedial teaching for month",
+  "Đồng hành · Bồi dưỡng · Nâng cao chất lượng học tập": "Support · Enrich · Improve learning outcomes",
+  "Mỗi giờ dạy": "Every lesson",
+  "sự tiến bộ!": "progress!",
+  "Điều hướng tháng báo cáo": "Navigate reporting month",
+  "Bồi dưỡng và Phụ đạo": "Enrichment and remedial teaching",
 });
