@@ -23,11 +23,15 @@ test('Lucky Wheel visibly moves across consecutive frames; result aligns with po
  // an animation class alone is not evidence the browser rendered rotation.
  await page.waitForTimeout(140);
  const at140=await wheel.evaluate(el=>getComputedStyle(el).transform);
- await page.waitForTimeout(350);
- const at490=await wheel.evaluate(el=>getComputedStyle(el).transform);
+ // iPhone WebKit simulators can throttle for a few hundred milliseconds
+ // when other jobs compete for the host CPU. Poll up to 2s for a different
+ // *painted* transform rather than sampling at a single arbitrary instant.
  expect(at140).not.toBe(before);
- expect(at490).not.toBe(at140);
- expect(at490).not.toBe(before);
+ await expect.poll(()=>wheel.evaluate(el=>getComputedStyle(el).transform),{
+   timeout:2400,intervals:[120,180,250,350]
+ }).not.toBe(at140);
+ const atLater=await wheel.evaluate(el=>getComputedStyle(el).transform);
+ expect(atLater).not.toBe(before);
  await expect(page.getByRole('button',{name:'Đang quay…'})).toBeDisabled();
  await expect(page.locator('.bit-winner')).toBeVisible({timeout:9500});
  const winner=(await page.locator('.bit-winner strong').textContent())?.trim();
@@ -53,7 +57,7 @@ test('Lucky Wheel visibly moves across consecutive frames; result aligns with po
  await expect(wheel).toHaveClass(/is-spinning/);
  await page.waitForTimeout(170);
  const second=await wheel.evaluate(el=>getComputedStyle(el).transform);
- expect(second).not.toBe(at490);
+ expect(second).not.toBe(atLater);
 });
 test('Reduced-motion respects preference while still choosing a valid winner',async({page})=>{
  await page.emulateMedia({reducedMotion:'reduce'});
