@@ -73,7 +73,15 @@ export function sanitiseWheelStudio(w){
  if(w?.counts&&typeof w.counts==='object'){
   rows.forEach(r=>{counts[r.id]=Math.floor(wheelLimit(w.counts[r.id]||0,0,100000));});
  }
- return {rows,mode:['normal','elimination','accumulation'].includes(w?.mode)?w.mode:'normal',
+ const savedLists=(Array.isArray(w?.savedLists)?w.savedLists:[]).slice(0,8).map((p,i)=>({
+  id:/^[a-z0-9_-]{1,55}$/i.test(p?.id||'')?p.id:'saved-'+i,
+  label:str(p?.label,40)||'Wheel '+(i+1),
+  rows:wheelSanitizeRows(p?.rows||[],[]),
+  theme:Object.hasOwn(WHEEL_THEMES,p?.theme)?p.theme:'aurora',
+  mode:['normal','elimination','accumulation'].includes(p?.mode)?p.mode:'normal',
+  duration:wheelLimit(p?.duration??5,2,20)
+})).filter(p=>p.rows.length>=2);
+ return {rows,savedLists,mode:['normal','elimination','accumulation'].includes(w?.mode)?w.mode:'normal',
   theme:Object.hasOwn(WHEEL_THEMES,w?.theme)?w.theme:'aurora',
   duration:wheelLimit(w?.duration??5,2,20),
   confetti:w?.confetti!==false,showLabels:w?.showLabels!==false,mystery:w?.mystery===true,
