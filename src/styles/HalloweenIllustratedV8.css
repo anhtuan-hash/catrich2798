@@ -712,3 +712,24 @@ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
    background-position:center,center 0%,center!important;
  }
 }
+
+
+/* Storybook lettering remains accessible real text, not pixels inside art. */
+@media(min-width:901px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ .hero-cms__content {padding-left:clamp(58px,7.25vw,116px)!important;}
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ .hero-cms__content h1 span:first-child {
+ display:block!important;transform:rotate(-3deg)!important;transform-origin:left center!important;
+ text-shadow:0 4px 0 #552568,0 7px 18px #080319ad!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ .hero-cms__content h1 span:last-child {
+ display:block!important;transform:rotate(-.9deg)!important;transform-origin:left center!important;
+}
+@media(max-width:900px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
+ padding-left:24px!important;
+ }
+}
