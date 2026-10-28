@@ -202,7 +202,6 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
             <h3>{artworkTitle || (en ? 'Artwork ' : 'Tác phẩm ') + String(currentIndex + 1).padStart(2, '0')}</h3>
             <p>{artworkStory || (en ? 'A school story told through images.' : 'Những câu chuyện được kể qua từng bức tranh.')}</p>
           </div>
-div>
         </aside>
       <div className="bhs-home__stage" ref={stageRef}
         onTouchStart={(event) => { touchStart.current = event.touches[0]?.clientX ?? null; }}
