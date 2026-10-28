@@ -90,14 +90,36 @@ try {
     assert.ok(svg.includes('<svg') && !svg.includes('<script'),
       'safe original SVG response '+filename);
   }
+  const cardColors=await page.locator('.signature-footer-v50-main > section').evaluateAll(nodes=>
+    nodes.map(el=>({background:getComputedStyle(el).backgroundColor,
+      image:getComputedStyle(el).backgroundImage,
+      borderRadius:getComputedStyle(el).borderRadius})));
+  assert.deepEqual(cardColors.map(x=>x.background),
+    ['rgb(255, 241, 227)','rgb(244, 237, 250)','rgb(255, 242, 229)'],
+    'brand, profile and credentials share cohesive warm-mist seasonal surfaces');
+  assert.ok(cardColors.every(x=>x.image.startsWith('linear-gradient(') && x.borderRadius==='19px'),
+    'three illustrated cards have gentle foreground color veil and same radius');
   assert.ok(themedCard.background!==beforeCard.background,'profile card receives Halloween palette');
   assert.equal(await page.locator('.signature-footer-v50-main > section').count(),3,'all three original footer cards remain');
   for(const url of ['/brian-english-brand-logo.png','/footer-pek-logo.png','/footer-cambridge-logo.png']){
     const r=await page.request.get(BASE+url);
     assert.equal(r.status(),200,'original logo asset remains available: '+url);
   }
-  assert.ok(Math.abs(themed.rect.width-neutral.rect.width)<=1 &&
-    Math.abs(themed.rect.height-neutral.rect.height)<=1,'no footer geometry drift on Halloween activation');
+  assert.ok(Math.abs(themed.rect.width-neutral.rect.width)<=1,
+    'Halloween footer keeps its original full width');
+  assert.ok(themed.rect.height<=neutral.rect.height+1,
+    'Halloween version avoids extra unused dark footer space');
+  const footerCompact=await page.locator(footer).evaluate(el=>({
+    paddingBottom:getComputedStyle(el).paddingBottom,
+    signature:el.querySelector('.signature-footer-dashboard-signoff')?.textContent?.trim(),
+  }));
+  assert.equal(footerCompact.paddingBottom,'26px',
+    'desktop Halloween bottom strip is intentionally reduced to 26px');
+  assert.equal(footerCompact.signature,'Teach Better Together ♡',
+    'real footer signoff remains visible and unchanged');
+  const safeArea=await page.locator('.signature-footer-v50-credentials').evaluate(el=>
+    parseFloat(getComputedStyle(el).paddingRight));
+  assert.ok(safeArea>=67,'wide desktop credentials text avoids the right utility dock');
   assert.deepEqual(await get('#hero-unmodified'),hero0,'home Hero is unaffected');
   await page.locator('.bes-portfolio-footer-trigger').click();
   assert.equal(await page.locator('.bes-portfolio-dialog').count(),1,'portfolio dialog still opens');

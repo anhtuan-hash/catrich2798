@@ -1,0 +1,170 @@
+/*
+ * Halloween seasonal chrome v3 — authoritative, opt-in visual layer.
+ * Imported AFTER the original Halloween skin. No changes when Admin turns OFF.
+ * Do not style route content, Hero, Footer or Floating Dock here.
+ */
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] {
+  --brian-nav-ink:#fff7eb;
+  --brian-nav-muted:#e4d4e9;
+  --brian-nav-soft:rgba(245,185,125,.11);
+  --brian-nav-line:rgba(228,162,102,.48);
+  --brian-nav-accent:#f4aa64;
+  --brian-nav-surface:#171327;
+  background-color:#171327!important;
+  /* Illustration is retained but intentionally restrained behind legible menu. */
+  background-image:
+    linear-gradient(105deg,rgba(17,13,32,.72) 0%,rgba(31,20,45,.73) 55%,rgba(20,15,36,.62) 100%),
+    url('/assets/navbar/halloween-navbar.svg')!important;
+  background-size:cover!important;
+  background-position:center center!important;
+  box-shadow:0 9px 28px rgba(29,14,46,.21),
+    0 0 0 1px rgba(222,149,94,.23),
+    inset 0 1px rgba(255,208,161,.18)!important;
+}
+
+/* One seasonal palette — no nine-way pastel competition.
+   All critical status/countdown labels keep their own semantic colors. */
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > :is(
+ [data-nav-key='home'],[data-nav-key='apps'],
+ .brian-nav__dashboard-tab,.brian-nav__homeroom-tab,
+ .brian-nav__gradebook-tab,.brian-nav__lesson-check-tab,
+ .brian-nav__reports-tab,.brian-nav__ttcm-tab,
+ .brian-nav__attendance-tab
+) {
+  --nav-pastel-surface:#fff8f0!important;
+  --nav-pastel-hover:#fff0df!important;
+  --nav-pastel-active:#f4ad69!important;
+  --nav-pastel-border:#e7d6ca!important;
+  --nav-pastel-ink:#302638!important;
+  --nav-rgb:220,168,126!important;
+  --nav-accent:#302638!important;
+  color:#302638!important;
+  background:#fff8f0!important;
+  background-image:none!important;
+  border:1px solid #e7d6ca!important;
+  border-radius:12px!important;
+  text-shadow:none!important;
+  filter:none!important;
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif!important;
+  font-weight:760!important;
+  font-size:clamp(12px,.82vw,14px)!important;
+  letter-spacing:-.015em!important;
+  box-shadow:0 2px 7px rgba(16,9,30,.13),inset 0 1px rgba(255,255,255,.9)!important;
+  transition:background-color .17s ease,border-color .17s ease,box-shadow .17s ease!important;
+}
+/* Text-only routes have embedded spans. Prevent old per-tab tokens from
+   recoloring their labels, without affecting unread counters and badges. */
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > :is(
+ [data-nav-key='home'],[data-nav-key='apps'],
+ .brian-nav__dashboard-tab,.brian-nav__homeroom-tab,
+ .brian-nav__gradebook-tab,.brian-nav__lesson-check-tab,
+ .brian-nav__reports-tab,.brian-nav__ttcm-tab,
+ .brian-nav__attendance-tab
+) :is(.brian-nav__reports-copy,.brian-nav__reports-label,span:not(.brian-nav__ttcm-badge):not(.brian-nav__reports-countdown),strong) {
+  color:#302638!important;
+  text-shadow:none!important;
+  font-family:inherit!important;
+  font-weight:760!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > :is(
+ [data-nav-key='home'],[data-nav-key='apps'],
+ .brian-nav__dashboard-tab,.brian-nav__homeroom-tab,
+ .brian-nav__gradebook-tab,.brian-nav__lesson-check-tab,
+ .brian-nav__reports-tab,.brian-nav__ttcm-tab,
+ .brian-nav__attendance-tab
+):is(.is-active,.active,[aria-current='page']) {
+  --nav-pastel-active:#f4ad69!important;
+  color:#2a1b2f!important;
+  background:#f4ad69!important;
+  background-image:none!important;
+  border-color:#ed9e56!important;
+  box-shadow:0 0 0 2px rgba(255,178,91,.30),0 3px 10px rgba(42,14,35,.2)!important;
+}
+/* Some tabs use data-active. Scope the selected state to actual nav buttons. */
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > button[data-active='true'] {
+  color:#2a1b2f!important;
+  background:#f4ad69!important;
+  background-image:none!important;
+  border-color:#ed9e56!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > :is(
+ [data-nav-key='home'],[data-nav-key='apps'],
+ .brian-nav__dashboard-tab,.brian-nav__homeroom-tab,
+ .brian-nav__gradebook-tab,.brian-nav__lesson-check-tab,
+ .brian-nav__reports-tab,.brian-nav__ttcm-tab,
+ .brian-nav__attendance-tab
+):is(:hover,:focus-visible):not(:disabled) {
+  color:#2a1b2f!important;
+  background:#fff0df!important;
+  background-image:none!important;
+  border-color:#e5ac7d!important;
+  box-shadow:0 3px 12px rgba(30,12,40,.22)!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > button:is(.is-active,.active,[aria-current='page']):hover {
+  background:#f7bb7d!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > button:focus-visible {
+  outline:3px solid #ffe0b3!important;
+  outline-offset:3px!important;
+}
+/* Keep the brand bright, not washed out by orange illustration. */
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__brand {
+  color:#fff6ec!important;
+  text-shadow:none!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__brand > span {
+  color:#fff6ec!important;
+  text-shadow:0 1px 2px rgba(0,0,0,.35)!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__brand img {
+  background:#fffdf7!important;
+  filter:none!important;
+  box-shadow:0 0 0 1px rgba(255,202,159,.50)!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__login {
+  color:#fff0e4!important;
+  background:rgba(57,35,63,.83)!important;
+  border-color:rgba(227,153,102,.48)!important;
+  box-shadow:0 2px 10px rgba(14,6,29,.13)!important;
+}
+html.bes-mobile-shell-active body #root .bes-mobile-shell[data-halloween-nav="true"] .bes-mobile-topbar.bes-mobile-topbar--compact {
+  background-image:
+    linear-gradient(100deg,rgba(19,13,35,.65),rgba(35,22,51,.64)),
+    url('/assets/navbar/halloween-navbar.svg')!important;
+  box-shadow:0 4px 18px rgba(28,14,40,.20)!important;
+}
+@media(prefers-reduced-motion:reduce){
+  html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > button {transition:none!important;}
+}
+
+/* BRIAN's legacy per-destination theme injects a very high-specificity
+   background-color after some route adapters mount. Pin one uniform seasonal
+   color with a selector stronger than those legacy rules — seasonal ON only. */
+html body #root#root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"][data-halloween-nav="true"] .brian-nav__primary > :is(
+ [data-nav-key='home'],[data-nav-key='apps'],.brian-nav__dashboard-tab,
+ .brian-nav__homeroom-tab,.brian-nav__gradebook-tab,.brian-nav__lesson-check-tab,
+ .brian-nav__reports-tab,.brian-nav__ttcm-tab,.brian-nav__attendance-tab
+) {
+  background-color:#fff8f0!important;
+  background-image:none!important;
+  background-attachment:initial!important;
+  color:#302638!important;
+  border-color:#e7d6ca!important;
+}
+html body #root#root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"][data-halloween-nav="true"] .brian-nav__primary > :is(
+ [data-nav-key='home'],[data-nav-key='apps'],.brian-nav__dashboard-tab,
+ .brian-nav__homeroom-tab,.brian-nav__gradebook-tab,.brian-nav__lesson-check-tab,
+ .brian-nav__reports-tab,.brian-nav__ttcm-tab,.brian-nav__attendance-tab
+):is(.is-active,.active,[aria-current='page'],[data-active='true']) {
+  background-color:#f4ad69!important;
+  background-image:none!important;
+  color:#2a1b2f!important;
+  border-color:#e9a05b!important;
+}
+html body #root#root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"][data-halloween-nav="true"] .brian-nav__primary > :is(
+ [data-nav-key='home'],[data-nav-key='apps'],.brian-nav__dashboard-tab,
+ .brian-nav__homeroom-tab,.brian-nav__gradebook-tab,.brian-nav__lesson-check-tab,
+ .brian-nav__reports-tab,.brian-nav__ttcm-tab,.brian-nav__attendance-tab
+):hover:not(.is-active):not(.active):not([aria-current='page']) {
+  background-color:#fff0df!important;
+}

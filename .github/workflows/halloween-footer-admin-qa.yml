@@ -4,6 +4,9 @@ on:
     paths:
       - 'src/components/Footer.jsx'
       - 'src/components/HalloweenFooterSkin.css'
+      - 'src/components/HalloweenFooterRefinement.css'
+      - 'docs/brian-seasonal-chrome-v3-spec.md'
+      - 'scripts/test-halloween-chrome-v3.mjs'
       - 'src/utils/halloweenFooterTheme.js'
       - 'src/components/admin/HalloweenFooterAdminPanel*'
       - 'src/pages/Settings.jsx'
@@ -30,6 +33,8 @@ jobs:
           cache: npm
       - name: Install
         run: npm ci --ignore-scripts
+      - name: Halloween chrome V3 shared palette and rollback scope
+        run: node scripts/test-halloween-chrome-v3.mjs
       - name: Halloween footer security and scoped design assertions
         run: node scripts/test-halloween-footer.mjs
       - name: Install Chromium

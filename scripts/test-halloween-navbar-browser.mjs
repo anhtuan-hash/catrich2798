@@ -41,6 +41,8 @@ try {
  // Regression for the user-visible issue: grey glossy route pills with
  // dark-blue illegible labels in a dark Halloween navigation bar.
  await page.setViewportSize({width:1680,height:920});
+ // Let the intentional 170ms background-color transition complete after ON.
+ await page.waitForTimeout(350);
  const pills = await page.locator('.brian-nav__primary > button').evaluateAll(nodes=>{
    const rgb=value=>(value.match(/[0-9]+(?:[.][0-9]+)?/g)||[]).slice(0,3).map(Number);
    const luminance=colors=>{
@@ -65,6 +67,26 @@ try {
    assert.equal(item.bounds.height,40,item.text+' original pill height remains 40px');
  }
  console.log('✓ All '+pills.length+' Halloween navigation pills have flat opaque high contrast labels (min '+Math.min(...pills.map(p=>p.contrast))+':1)');
+ const rest = pills.filter(p=>p.text!=='Trang chủ');
+ assert.ok(rest.length>=8,'non-selected routes include the eight other main destinations');
+ const navDebug=await page.evaluate(()=>{
+  const el=document.querySelector('.brian-nav__primary > [data-nav-key="apps"]');
+  const style=getComputedStyle(el);
+  return {theme:document.querySelector('.brian-nav')?.dataset.halloweenNav,
+    resting:style.backgroundColor,background:style.backgroundImage,
+    surface:style.getPropertyValue('--nav-pastel-surface'),
+    cssLoaded:[...document.styleSheets].map(x=>x.href||'style').filter(x=>x.includes('HalloweenNavigation'))};
+ });
+ console.log('V3 route diagnostics',JSON.stringify(navDebug));
+ assert.ok(rest.every(p=>p.background==='rgb(255, 248, 240)'),
+   'all eight resting destinations share one ivory background: '+JSON.stringify(rest.map(p=>({text:p.text,background:p.background}))));
+ const activePill=pills.find(p=>p.text==='Trang chủ');
+ assert.ok(activePill && activePill.background==='rgb(244, 173, 105)',
+   'only selected Trang chủ uses warm pumpkin-orange accent: '+JSON.stringify(activePill));
+ assert.ok(pills.every(p=>p.ink==='rgb(48, 38, 56)' || p.text==='Trang chủ'),
+   'every inactive route uses identical dark ink');
+ console.log('✓ Single ivory palette across '+rest.length+' resting tabs; one orange active accent');
+
  console.log('✓ Desktop navbar ON/OFF restores original without moving navbar or breaking click');
  await page.locator('#mobile-toggle').click();
  await page.setViewportSize({width:390,height:844});

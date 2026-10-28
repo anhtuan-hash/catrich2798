@@ -55,6 +55,7 @@ import './DashboardTopChromeMockup.css';
 import './GlobalNavigationTextOnlyCompact.css';
 import './GlobalNavigationUtilityIcons.css';
 import './HalloweenNavigationSkin.css';
+import './HalloweenNavigationRefinement.css';
 
 export default function GlobalFlatNavigation(props) {
   const presentation = usePresentationMode();

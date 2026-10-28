@@ -7,6 +7,7 @@ import '../../src/components/GlobalNavigationUtilityIcons.css';
 import '../../src/components/DashboardTopChromeMockup.css';
 import '../../src/styles/mobile/mobile-compact-topbar.css';
 import '../../src/components/HalloweenNavigationSkin.css';
+import '../../src/components/HalloweenNavigationRefinement.css';
 
 function Fixture() {
   const [enabled,setEnabled] = useState(true);
