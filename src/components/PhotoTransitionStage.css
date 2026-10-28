@@ -1,0 +1,59 @@
+/* Shared cinematic engine — both images overlap during real two-way transitions. */
+.bss-motion { position:absolute; inset:0; overflow:hidden; isolation:isolate; background:#050c18; pointer-events:none; }
+.bss-motion__layer {
+  position:absolute; inset:0; display:grid; place-items:center; isolation:isolate;
+  transform:translateZ(0); backface-visibility:hidden;
+}
+.bss-motion__ambient {
+  position:absolute; inset:-35px; z-index:-1;
+  background-size:cover; background-position:center;
+  filter:blur(44px) saturate(1.28) brightness(.34);
+  transform:scale(1.08); opacity:.85;
+}
+.bss-motion__layer::after {
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(ellipse 68% 88% at center,transparent 43%,#04091560 100%);
+}
+.bss-motion__image {
+  display:block; width:100%; height:100%; object-fit:contain;
+  position:relative; z-index:1; will-change:transform,opacity,filter;
+  filter:drop-shadow(0 16px 45px #00000042);
+}
+.bss-motion__layer--in,.bss-motion__layer--out {
+  animation-duration:var(--bss-motion-duration,900ms);
+  animation-timing-function:cubic-bezier(.22,.68,.15,1);
+  animation-fill-mode:both;
+}
+.bss-motion__layer--in {z-index:2}
+.bss-motion__layer--out {z-index:1}
+.bss-motion--fade .bss-motion__layer--in {animation-name:bss-enter-fade}
+.bss-motion--fade .bss-motion__layer--out {animation-name:bss-exit-fade}
+@keyframes bss-enter-fade {from{opacity:0;filter:brightness(1.15)}to{opacity:1;filter:none}}
+@keyframes bss-exit-fade {from{opacity:1}to{opacity:.12}}
+.bss-motion--slide .bss-motion__layer--in {animation-name:bss-enter-slide}
+.bss-motion--slide .bss-motion__layer--out {animation-name:bss-exit-slide}
+@keyframes bss-enter-slide {from{opacity:.5;transform:translateX(9%) scale(1.025)}to{opacity:1;transform:none}}
+@keyframes bss-exit-slide {from{opacity:1;transform:none}to{opacity:.1;transform:translateX(-12%) scale(.96)}}
+.bss-motion--reverse.bss-motion--slide .bss-motion__layer--in {animation-name:bss-enter-slide-reverse}
+.bss-motion--reverse.bss-motion--slide .bss-motion__layer--out {animation-name:bss-exit-slide-reverse}
+@keyframes bss-enter-slide-reverse {from{opacity:.5;transform:translateX(-9%) scale(1.025)}to{opacity:1;transform:none}}
+@keyframes bss-exit-slide-reverse {from{opacity:1;transform:none}to{opacity:.1;transform:translateX(12%) scale(.96)}}
+.bss-motion--zoom .bss-motion__layer--in {animation-name:bss-enter-zoom}
+.bss-motion--zoom .bss-motion__layer--out {animation-name:bss-exit-zoom}
+@keyframes bss-enter-zoom {from{opacity:0;transform:scale(1.105);filter:blur(4px)}to{opacity:1;transform:scale(1);filter:blur(0)}}
+@keyframes bss-exit-zoom {from{opacity:1;transform:scale(1)}to{opacity:.12;transform:scale(1.055)}}
+.bss-motion--reveal .bss-motion__layer--in {animation-name:bss-enter-reveal}
+.bss-motion--reveal .bss-motion__layer--out {animation-name:bss-exit-reveal}
+@keyframes bss-enter-reveal {from{clip-path:inset(0 100% 0 0);transform:scale(1.035)}to{clip-path:inset(0 0 0 0);transform:scale(1)}}
+@keyframes bss-exit-reveal {from{opacity:1;transform:none}to{opacity:.5;transform:scale(.97)}}
+.bss-motion--reverse.bss-motion--reveal .bss-motion__layer--in {animation-name:bss-enter-reveal-reverse}
+@keyframes bss-enter-reveal-reverse {from{clip-path:inset(0 0 0 100%);transform:scale(1.035)}to{clip-path:inset(0 0 0 0);transform:scale(1)}}
+.bss-motion--blur .bss-motion__layer--in {animation-name:bss-enter-blur}
+.bss-motion--blur .bss-motion__layer--out {animation-name:bss-exit-blur}
+@keyframes bss-enter-blur {from{opacity:0;filter:blur(18px) brightness(1.38);transform:scale(1.06)}to{opacity:1;filter:blur(0) brightness(1);transform:none}}
+@keyframes bss-exit-blur {from{opacity:1;filter:blur(0)}to{opacity:.12;filter:blur(10px)}}
+@media (prefers-reduced-motion:reduce) {
+  .bss-motion__layer--out {display:none!important}
+  .bss-motion__layer--in {animation:none!important}
+  .bss-motion__image {will-change:auto}
+}
