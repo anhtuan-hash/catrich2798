@@ -220,7 +220,7 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
         {seasonalHome.enabled && isHalloweenAlbum(selected) && <span className="bhs-home__halloween-ghost" aria-hidden="true" />}
         <PhotoTransitionStage photo={photo} src={publicImage(photo.image_path)}
           alt={photo.caption || (en ? 'Gallery photo ' : 'Ảnh số ') + (currentIndex + 1)}
-          mode={seasonalHome.enabled && isHalloweenAlbum(selected) ? 'fade' : selected.transition} direction={direction} />
+          mode={selected.transition} direction={direction} />
         {count > 1 && <>
           <button type="button" className="bhs-home__arrow is-previous" onClick={previous}
             aria-label={en ? 'Previous photo' : 'Ảnh trước'}><ChevronLeft size={26} /></button>
