@@ -32,7 +32,7 @@ gate('ADMIN',panel.includes("currentUser?.provider==='supabase'")&&
  settings.includes('<HalloweenNavbarAdminPanel')&&
  settings.includes('<HalloweenFooterAdminPanel'),
  'Admin controls show master and existing independent settings, with state confirmation');
-gate('G01',nav.includes('seasonalHome.enabled && seasonalNavbar.enabled')&&
+gate('G01',nav.includes('seasonalHome.enabled && (route === "home" || seasonalNavbar.enabled)')&&
  mobile.includes('seasonalHome.enabled && seasonalNavbar.enabled'),
  'master OFF restores original navbar on desktop/mobile even if cached child flag is ON');
 gate('G02',overlay.includes('.bha-hero.hero-cms')&&
@@ -51,7 +51,7 @@ gate('G04',overlay.includes('.bha-practice.bha-practice--editorial-v3')&&
  overlay.includes('.bha-folio-grade--12')&&
  !overlay.includes('pointer-events:none!important;\n  cursor'),
  'all three weekly sections have coordinated colors with real click targets intact');
-gate('G05',footer.includes('seasonalHome.enabled && seasonalFooter.enabled')&&
+gate('G05',footer.includes('seasonalHome.enabled && (resolvedRoute === "home" || seasonalFooter.enabled)')&&
  read('src/components/HalloweenFooterRefinement.css').includes('halloween-brand-card.svg')&&
  read('src/components/HalloweenFooterRefinement.css').includes('halloween-credentials-card.svg'),
  'Footer decorated internally, with master OFF restoring original 3 cards');
