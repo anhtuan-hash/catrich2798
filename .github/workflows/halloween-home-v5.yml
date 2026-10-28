@@ -1,0 +1,44 @@
+name: Halloween Full Home V5 — pixel fidelity and complete restore
+on:
+  pull_request:
+    paths:
+      - 'public/assets/home/halloween-v5-*'
+      - 'src/styles/HalloweenFullHomeV5.css'
+      - 'src/pages/Home.jsx'
+      - 'src/components/HomeHeroExperience2026.jsx'
+      - 'src/components/mobile/MobileHomeView.jsx'
+      - 'src/components/admin/HalloweenHomeAdminPanel.jsx'
+      - 'scripts/test-halloween-home-v5*'
+      - 'tests/fixtures/halloween-home-v5*'
+      - '.github/workflows/halloween-home-v5.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  full-home-mockup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Verify full-home seasonal composition, original CMS and Admin restore
+        run: node scripts/test-halloween-home-v5.mjs
+      - name: Legacy V4 permission regression
+        run: node scripts/test-halloween-home-v4.mjs
+      - name: Build real Vite application
+        run: npx vite build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Capture desktop, tablet and mobile Halloween ON/OFF; test functional controls
+        run: node scripts/test-halloween-home-v5-browser.mjs
+      - name: Upload original-versus-Halloween screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: halloween-home-v5-original-vs-seasonal
+          path: artifacts/halloween-home-v5/
+          if-no-files-found: warn
