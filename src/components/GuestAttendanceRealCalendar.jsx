@@ -25,18 +25,13 @@ function statusLabel(status, en) {
   if (status === 'cancelled') return en ? 'Cancelled' : 'Đã hủy';
   if (status === 'recorded') return en ? 'Recorded' : 'Đã ghi nhận';
   if (status === 'future') return en ? 'Scheduled' : 'Theo lịch';
-  return en ? 'Not yet recorded' : 'Chưa điểm danh';
+  return en ? 'No attendance record' : 'Chưa có bản ghi';
 }
 const classTypeLabel = (type, en) =>
   type === 'gifted' ? (en ? 'Advanced class' : 'Bồi dưỡng HSG')
     : type === 'remedial' ? (en ? 'Remedial class' : 'Phụ đạo') : (type || '');
 
 function buildCalendar(sessions, classes, today) {
-  const byDate = new Map();
-  const get = (date) => {
-    if (!byDate.has(date)) byDate.set(date, []);
-    return byDate.get(date);
-  };
   const recorded = new Map();
   sessions.filter((item) => item.entry_date && item.title).forEach((item) => {
     const key = item.entry_date + '::' + clean(item.title);
@@ -87,7 +82,6 @@ function buildCalendar(sessions, classes, today) {
         missing: rows.filter((row) => row.status === 'missing').length,
         future: rows.filter((row) => row.status === 'future').length,
       };
-      get(date).push(...rows);
       days.push({ date, day, rows, counts });
     }
     months.push({ key: dateKey(year, monthNo, 1).slice(0, 7), year, monthNo, leading, days });
@@ -108,7 +102,7 @@ export default function GuestAttendanceRealCalendar({ sessions = [], classes = [
         'Lịch học của các lớp đang hoạt động, đối chiếu với từng phiên điểm danh đã chốt hoặc đã hủy. Kéo xuống để xem từng tháng và từng buổi, không cần nhấp chọn.'}</p>
       <div className="brian-guest-attendance-calendar__legend">
         <span className="is-completed"><CheckCircle2 size={14}/>{en ? 'Confirmed' : 'Đã điểm danh'}</span>
-        <span className="is-missing"><Clock3 size={14}/>{en ? 'Unrecorded' : 'Chưa điểm danh'}</span>
+        <span className="is-missing"><Clock3 size={14}/>{en ? 'No record' : 'Chưa ghi nhận'}</span>
         <span className="is-cancelled"><XCircle size={14}/>{en ? 'Cancelled' : 'Đã hủy'}</span>
         <span className="is-future"><CalendarDays size={14}/>{en ? 'Scheduled' : 'Theo lịch'}</span>
       </div>
