@@ -49,7 +49,7 @@ assert.match(nav, /aria-modal="true"/);
 assert.match(shell, /<GlobalGuestNavigationHub[^\n]*mobile=\{mobile\}/);
 
 assert.match(entrypoint, /GuestFullPages\.jsx/);
-assert.match(page, /data-real-public-data="true"/);
+assert.match(page, /data-real-public-data=\{section!==\'attendance\'/);
 assert.match(page, /<WebAppsRedesign/);
 assert.match(page, /<DashboardWorkPlanner/);
 assert.match(page, /<DashboardNewsHub/);
@@ -93,7 +93,7 @@ assert.match(navCss, /\.brian-nav__primary:has\(> \[data-guest-destination\]\) >
 
 assert.match(page, /room_label,time_label,periods,difficulty,duration_minutes/);
 assert.match(page, /start_time,end_time,refreshed_at/);
-assert.match(page, /function GuestScheduleArchive/);
+assert.doesNotMatch(page, /function GuestScheduleArchive/);
 assert.match(page, /function GuestDashboard/);
 assert.match(page, /title:item.title/);
 assert.match(page, /date:item.start_time/);
@@ -104,12 +104,27 @@ assert.doesNotMatch(page, /countWeight:/);
 assert.doesNotMatch(page, /title:\(Number\(item.total_count\)/);
 assert.doesNotMatch(page, /entries\.flatMap\(item=>/);
 assert.match(page, /brian-guest-full__extended-report/);
-assert.match(page, /data-demo-attendance="true"/);
+// Guest Attendance shows a complete app, but its data stays fixed and private.
+assert.match(page, /<GuestAttendanceStudio language=\{language\}\/>/);
+assert.match(page, /section !== 'attendance' && <PublicPreviewBanner/);
 assert.match(page, /data-demo-only=\{section==='attendance'/);
-assert.match(page, /count:'03'/);
-assert.match(page, /count:'02'/);
-assert.match(page, /count:'01'/);
-assert.match(page, /Không tải danh sách lớp, học sinh hay lịch sử điểm danh thật/);
+const guestStudio = read('src/components/GuestAttendanceStudio.jsx');
+const studioCss = read('src/components/GuestAttendanceStudio.css');
+for (const cls of ['10.5','11.1','11.3','12.2']) {
+  assert.ok(guestStudio.includes("'" + cls + "'"), "Missing dotted class " + cls);
+}
+assert.doesNotMatch(guestStudio, /\b(?:10A1|11A3|12A2|11A1)\b/);
+for (const part of ['CalendarPanel','TodaySessions','QuickAttendance','AttendanceHistory','AttendanceReports']) {
+  assert.match(guestStudio,new RegExp('function ' + part));
+}
+assert.match(guestStudio,/data-guest-attendance-studio="true"/);
+assert.match(guestStudio,/data-sample-fixture="true"/);
+assert.match(studioCss,/\.gas-primary-grid/);
+assert.match(studioCss,/\.gas-secondary-grid/);
+assert.match(studioCss,/@media \(max-width:600px\)/);
+assert.doesNotMatch(guestStudio, /\b(?:supabase|fetch\(|axios|XMLHttpRequest|localStorage|sessionStorage)\b/);
+assert.doesNotMatch(guestStudio, /<button|<input|<select|<textarea|onClick=|onChange=/);
+assert.doesNotMatch(guestStudio, />[^<]*(?:dữ liệu mô phỏng|dữ liệu mẫu|sample data)[^<]*</i);
 assert.match(page, /if\(section==='attendance'\)/);
 assert.doesNotMatch(page, /bes_guest_attendance_schedule|GuestAttendanceRealCalendar/);
 assert.doesNotMatch(page, /function GuestScheduleArchive|<GuestScheduleArchive/);
@@ -121,4 +136,4 @@ assert.match(pageStyle, /brian-guest-full__calendar-archive/);
 assert.match(pageStyle, /\.bwp-agenda \{max-height:none!important;overflow:visible!important/);
 assert.match(spec, /Supabase RLS/);
 
-console.log('BRIAN Public Preview: hidden detailed schedule archive, static guest attendance demo and protected private records — PASS');
+console.log('BRIAN Public Preview: full read-only attendance studio, dotted classes, no private data reads, scroll-safe display — PASS');
