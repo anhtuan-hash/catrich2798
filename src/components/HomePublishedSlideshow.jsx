@@ -4,6 +4,7 @@ import { isSupabaseConfigured, supabase } from '../utils/supabase.js';
 import PhotoTransitionStage from './PhotoTransitionStage.jsx';
 import './HomePublishedSlideshow.css';
 import './HomePublishedSlideshowRefinement.css';
+import './HomePublishedSlideshowExhibition.css';
 
 const BUCKET = 'brian-slideshows';
 const CHANGE_EVENT = 'bes-slideshow-published-updated';
@@ -149,6 +150,12 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
   const previous = () => { setDirection(-1); setIndex((old) => (old - 1 + count) % count); };
   const next = () => { setDirection(1); setIndex((old) => (old + 1) % count); };
 
+  const captionText = photo?.caption?.trim() || '';
+  const separatorIndex = captionText.indexOf('|');
+  const artworkTitle = separatorIndex >= 0 ? captionText.slice(0, separatorIndex).trim() : '';
+  const artworkStory = separatorIndex >= 0 ? captionText.slice(separatorIndex + 1).trim() : captionText;
+  const effectLabel = ({ fade: 'Dissolve', slide: 'Glide', zoom: 'Cinema Zoom', reveal: 'Silk Reveal', blur: 'Dreamy Focus' })[selected?.transition] || 'Dissolve';
+
   if (!selected || !photo) return null;
 
   return (
@@ -178,6 +185,39 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
             onClick={() => changeAlbum(album.id)}>{album.title}</button>)}
       </nav>}
 
+      <div className="bhs-home__exhibition" data-home-exhibition-layout="info-left-artwork-right">
+        <aside className="bhs-home__story-panel" aria-label={en ? 'Current artwork information' : 'Thông tin tác phẩm đang xem'}>
+          <div className="bhs-home__story-top">
+            <span className="bhs-home__story-kicker">{en ? 'CURRENT ARTWORK' : 'TÁC PHẨM ĐANG XEM'}</span>
+            <div className="bhs-home__story-count-row">
+              <strong className="bhs-home__story-count">
+                {String(currentIndex + 1).padStart(2, '0')} <i>/</i> {String(count).padStart(2, '0')}
+              </strong>
+              {count > 1 && <div className="bhs-home__story-navigation">
+                <button type="button" onClick={previous} aria-label={en ? 'Previous artwork' : 'Tác phẩm trước'}><ChevronLeft size={20} /></button>
+                <button type="button" onClick={next} aria-label={en ? 'Next artwork' : 'Tác phẩm tiếp theo'}><ChevronRight size={20} /></button>
+              </div>}
+            </div>
+          </div>
+          <div className="bhs-home__story-main" aria-live="polite" aria-atomic="true">
+            <h3>{artworkTitle || (en ? 'Artwork ' : 'Tác phẩm ') + String(currentIndex + 1).padStart(2, '0')}</h3>
+            <p>{artworkStory || (en ? 'A school story told through images.' : 'Những câu chuyện được kể qua từng bức tranh.')}</p>
+          </div>
+          <div className="bhs-home__story-meta">
+            <div className="bhs-home__story-meta-item">
+              <span className="bhs-home__story-meta-icon"><Images size={17}/></span>
+              <span><small>{en ? 'COLLECTION' : 'BỘ SƯU TẬP'}</small><strong>{selected.title}</strong></span>
+            </div>
+            <div className="bhs-home__story-meta-item">
+              <span className="bhs-home__story-meta-icon"><Play size={17}/></span>
+              <span><small>{en ? 'SLIDE DURATION' : 'THỜI GIAN MỖI ẢNH'}</small><strong>{selected.slide_interval} {en ? 'seconds' : 'giây'}</strong></span>
+            </div>
+          </div>
+          <div className="bhs-home__story-bottom">
+            <span>{en ? 'TRANSITION' : 'HIỆU ỨNG'}</span>
+            <strong>{effectLabel}</strong>
+          </div>
+        </aside>
       <div className="bhs-home__stage" ref={stageRef}
         onTouchStart={(event) => { touchStart.current = event.touches[0]?.clientX ?? null; }}
         onTouchEnd={(event) => {
@@ -216,16 +256,7 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
           </button>
         </div>
       </div>
-      {photo.caption && <div className="bhs-home__artwork-detail" aria-live="polite" aria-atomic="true">
-        <div className="bhs-home__artwork-index">
-          <span>{en ? 'CURRENT ARTWORK' : 'TÁC PHẨM ĐANG XEM'}</span>
-          <strong>{String(currentIndex + 1).padStart(2, '0')} <i>/</i> {String(count).padStart(2, '0')}</strong>
-        </div>
-        <div className="bhs-home__artwork-copy">
-          <strong>{photo.caption.includes('|') ? photo.caption.split('|')[0].trim() : (en ? 'Artwork story' : 'Câu chuyện tác phẩm')}</strong>
-          <p>{photo.caption.includes('|') ? photo.caption.split('|').slice(1).join('|').trim() : photo.caption}</p>
-        </div>
-      </div>}
+      </div>
       <div className="bhs-home__footer">
         <span>{en ? 'A school story in pictures' : 'Những khoảnh khắc đáng nhớ của nhà trường'}</span>
         <span>{count} {en ? 'photos' : 'ảnh'} <i /> {en ? 'Public gallery' : 'Album công khai'}</span>

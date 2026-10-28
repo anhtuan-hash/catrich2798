@@ -51,10 +51,15 @@ check(gallery.includes("const [playing, setPlaying]") && gallery.includes('toggl
 check(gallery.includes('announceSlideshowChange()') && home.includes(".eq('is_published', true)"),
   'public gallery remains governed by Supabase publication state');
 const homeRefinement = read('src/components/HomePublishedSlideshowRefinement.css');
-check(!home.includes('className="bhs-home__caption"') && home.includes('className="bhs-home__artwork-detail"'),
+check(!home.includes('className="bhs-home__caption"') && home.includes('className="bhs-home__story-panel"'),
   'the homepage never paints captions over the artwork');
-check(home.indexOf('className="bhs-home__artwork-detail"') > home.indexOf('className="bhs-home__stage"'),
-  'artwork description is located in the DOM after the image stage');
+check(home.indexOf('className="bhs-home__story-panel"') < home.indexOf('className="bhs-home__stage"') &&
+  home.includes('data-home-exhibition-layout="info-left-artwork-right"'),
+  'artwork information lives to the left of the image in the exhibition DOM');
+const exhibitionCSS = read('src/components/HomePublishedSlideshowExhibition.css');
+check(exhibitionCSS.includes('grid-template-columns:minmax(250px, 31%) minmax(0, 1fr)') &&
+  exhibitionCSS.includes('flex-direction:column') && exhibitionCSS.includes('object-fit:contain!important'),
+  'responsive exhibition presents the sidebar on the left without image cropping');
 check(home.includes('descriptionExpanded') && home.includes('aria-expanded={descriptionExpanded}') &&
   homeRefinement.includes('-webkit-line-clamp:2'),
   'long album description is initially clamped to two lines and expandable');
