@@ -3,6 +3,14 @@ import { isRetiredApp } from './retiredApps.js';
 
 export const ROUTE_APP_SHORTCUTS = [
   {
+    slug: 'photo-slideshow', route: 'slideshow', visibilityId: 'route:slideshow', icon: 'PS', tone: 'blue',
+    group: 'Creative Studio', groupVi: 'Trình chiếu & sáng tạo',
+    title: 'Photo Slideshow', titleVi: 'Trình chiếu ảnh',
+    desc: 'Present school photos in an immersive slideshow. Guests can view published albums without signing in.',
+    descVi: 'Tạo album, trình chiếu ảnh toàn màn hình và chia sẻ cho người xem không cần đăng nhập.',
+    status: 'Public viewer', statusVi: 'Xem công khai · Không cần đăng nhập', hideable: false,
+  },
+  {
     slug: 'homeroom-hub', route: 'homeroom', icon: 'HR', tone: 'mint',
     group: 'School Management', groupVi: 'Quản lý lớp học',
     title: 'Homeroom Teacher', titleVi: 'Giáo viên chủ nhiệm',

@@ -121,7 +121,7 @@ export const ASSESSMENT_PERMISSION_GROUP = {
   ids: [ROUTE_PERMISSION_IDS['assessment-core']],
 };
 
-const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup']);
+const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'slideshow']);
 const RETIRED_ROUTES = new Set(['library', 'practice']);
 
 const SECTION_BY_SLUG = new Map([
