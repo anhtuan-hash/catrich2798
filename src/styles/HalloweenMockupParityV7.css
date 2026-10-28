@@ -1,0 +1,323 @@
+/*
+ * Halloween V7 — layout parity corrections based on the APPROVED 1024x1536
+ * reference supplied by the site owner, NOT a stylistic guess.
+ *
+ * Every selector is strictly scoped to the live Home and the validated
+ * Admin master theme flag. OFF restores the original interface without
+ * deleting CMS media, student works, learning items, or account data.
+ *
+ * Art direction note: this stylesheet improves composition. It is NOT a
+ * substitute for the original layered high-resolution illustration.
+ */
+html[data-halloween-home-v4="on"] body:has(.app-shell[data-route="home"]) {
+  background:#100521!important;
+  background-image:radial-gradient(ellipse at 56% 35%,#401465 0,#1b093c 45%,#100521 100%)!important;
+}
+html[data-halloween-home-v4="on"] body:has(.app-shell[data-route="home"]) #root {
+  background:#100521!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] {
+  --h7-night:#140728;
+  --h7-purple:#321058;
+  --h7-orange:#ff9f42;
+  --h7-gold:#ffd278;
+  --h7-lilac:#ecd6ff;
+  background:linear-gradient(180deg,#17062d,#200844 43%,#1c093b 69%,#0e0622)!important;
+  box-shadow:none!important;
+  color:#fff4e9!important;
+  padding-bottom:0!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] > main.wp8-page-stage {
+  max-width:none!important;
+  width:100%!important;
+  padding:0!important;
+  margin:0!important;
+  background:transparent!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-home {
+  width:min(1480px,calc(100% - 28px))!important;
+  max-width:none!important;
+  margin:auto!important;
+  padding:0!important;
+  gap:0!important;
+  background:transparent!important;
+  color:#fff1eb!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-editorial-dateline {
+  display:none!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-top {
+  gap:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  margin:0!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-top-chrome,
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .bes-top-chrome {
+  margin-top:5px!important;
+  margin-bottom:0!important;
+  width:min(1480px,calc(100% - 28px))!important;
+  background:rgba(20,6,37,.83)!important;
+  border:1px solid #ba6d7b7a!important;
+  border-radius:22px!important;
+  box-shadow:0 9px 24px #0007,0 0 20px #ab4bd240!important;
+  backdrop-filter:blur(20px) saturate(1.4)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-top-chrome .brian-nav[data-halloween-nav="true"] {
+  background:linear-gradient(110deg,#1b092ee8,#32124de8)!important;
+  background-image:linear-gradient(110deg,#1b092ee8,#32124de8)!important;
+  border-radius:21px!important;
+  border:0!important;
+  box-shadow:none!important;
+  min-height:50px!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > button {
+  background:#352052!important;
+  color:#ffefff!important;
+  border-color:#674677!important;
+  border-radius:12px!important;
+  box-shadow:inset 0 1px #ffffff19!important;
+  min-height:35px!important;
+  font-weight:770!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > button.is-active {
+  background:linear-gradient(130deg,#ffce75,#ff8c36)!important;
+  color:#2a103e!important;
+  border-color:#ffb15e!important;
+  box-shadow:0 0 19px #ff923dbd,0 0 7px #ff923dbd!important;
+  font-weight:880!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms {
+  margin-top:0!important;
+  height:clamp(385px,37vw,585px)!important;
+  min-height:clamp(385px,37vw,585px)!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:inset 0 -8px 18px #1a0627cc!important;
+  background-position:center,right center!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
+  padding:clamp(24px,4vw,57px)!important;
+  width:min(57%,720px)!important;
+  max-width:720px!important;
+  border:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1 {
+  font-size:clamp(3.5rem,7.4vw,7rem)!important;
+  line-height:.93!important;
+  max-width:680px!important;
+  font-weight:900!important;
+  text-shadow:0 4px 20px #120426a9!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h2 {
+  font-size:clamp(1.1rem,1.5vw,1.55rem)!important;
+  margin-top:12px!important;
+  color:#ffdc8d!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content > p {
+  max-width:525px!important;
+  color:#f5e5ff!important;
+  font-size:clamp(.96rem,1.22vw,1.14rem)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__actions {
+  display:flex!important;align-items:center!important;gap:10px!important;flex-wrap:wrap!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__actions .hero-cms__button {
+  min-height:46px!important;padding:10px 19px!important;border-radius:999px!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-home-published-slideshow="true"] {
+  margin:0!important;
+  padding:22px clamp(19px,3vw,37px) 16px!important;
+  border:1px solid #ec9a6480!important;
+  border-radius:23px!important;
+  min-height:0!important;
+  background-color:#15062b!important;
+  box-shadow:0 2px 22px #9a35da35,inset 0 0 0 1px #ffffff14!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-home-published-slideshow="true"]::before {
+  display:none!important;
+  content:none!important;
+  height:0!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__header {
+  margin:0 0 18px!important;
+  min-height:0!important;
+  align-items:center!important;
+  flex-wrap:wrap!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__headline h2 {
+  font-family:BrianGesco,Inter,sans-serif!important;
+  color:#ffb459!important;
+  font-size:clamp(25px,2.25vw,37px)!important;
+  font-weight:900!important;
+  line-height:1.15!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition {
+  display:grid!important;
+  grid-template-columns:minmax(250px,35%) minmax(0,1fr)!important;
+  grid-template-rows:minmax(0,1fr) auto!important;
+  column-gap:clamp(13px,1.8vw,23px)!important;
+  row-gap:10px!important;
+  align-items:stretch!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition > .bhs-home__story-panel {
+  grid-column:1!important;
+  grid-row:1 / 3!important;
+  align-self:stretch!important;
+  background:linear-gradient(150deg,#3c1462,#25103e)!important;
+  border:1px solid #da8d688f!important;
+  border-radius:20px!important;
+  padding:clamp(19px,2vw,30px)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition > .bhs-home__stage {
+  grid-column:2!important;
+  grid-row:1!important;
+  height:clamp(245px,26vw,420px)!important;
+  min-height:0!important;
+  aspect-ratio:auto!important;
+  width:100%!important;
+  align-self:stretch!important;
+  overflow:hidden!important;
+  border-radius:18px!important;
+  background:#0a071e!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip {
+  grid-column:2!important;
+  grid-row:2!important;
+  display:flex!important;
+  gap:8px!important;
+  overflow-x:auto!important;
+  scrollbar-width:thin;
+  scrollbar-color:#dc884a transparent;
+  padding:4px 0 7px!important;
+  min-width:0!important;
+  min-height:69px!important;
+  background:rgba(8,3,22,.4)!important;
+  border-radius:13px!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip-item {
+  position:relative!important;flex:0 0 73px!important;
+  width:73px!important;height:61px!important;
+  display:block!important;overflow:hidden!important;
+  padding:0!important;border-radius:9px!important;
+  border:2px solid #77509a!important;
+  background:#1d133c!important;
+  box-shadow:0 3px 9px #0008!important;
+  cursor:pointer!important;
+  transition:transform .15s ease,border-color .15s ease!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip-item:hover {
+  border-color:#ffb759!important;transform:translateY(-2px)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip-item.is-active {
+  border-color:#ffc274!important;
+  box-shadow:0 0 0 2px #f29b3b75,0 0 12px #ffa43caa!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip-item img {
+  width:100%!important;height:100%!important;
+  object-fit:cover!important;object-position:center!important;
+  display:block!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip-item > span {
+  position:absolute;right:2px;bottom:2px;
+  background:#1d0d3bdc!important;color:#ffda93!important;
+  border-radius:4px!important;font-size:9px!important;font-weight:850!important;
+  padding:1px 3px!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__footer {
+  padding-top:8px!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice.bha-practice--editorial-v3 {
+  margin:0!important;
+  padding:24px clamp(19px,2.7vw,36px) 23px!important;
+  border:1px solid #c7738580!important;
+  border-radius:0!important;
+  background-image:
+    linear-gradient(180deg,rgba(15,6,35,.25),rgba(20,6,40,.67)),
+    url('/assets/home/halloween-v5-environment.svg')!important;
+  background-size:cover!important;
+  background-position:center!important;
+  box-shadow:inset 0 1px #ffffff18!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice__editorial-copy > span {
+  color:#ffb45a!important;
+  font-size:clamp(.8rem,1vw,1rem)!important;
+  font-weight:900!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice__editorial-copy h2 {
+  color:#fff0eb!important;
+  font-size:clamp(1.4rem,2vw,2rem)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice__editorial-copy p {
+  color:#f8ddf2!important;
+  font-size:.85rem!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade {
+  border-radius:18px!important;
+  border-width:2px!important;
+  box-shadow:0 0 27px var(--h5-card-glow),0 9px 19px #0005!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade .bha-folio-grade__masthead {
+  min-height:49px!important;
+  font-size:12px!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade:hover {
+  transform:translateY(-3px)!important;
+}
+html body #root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"] {
+  margin-top:0!important;
+  border-radius:0!important;
+  border-color:#ab5b7b88!important;
+  background:linear-gradient(180deg,#1d0a39,#0e0625)!important;
+}
+html body #root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .signature-footer-v50-main > section {
+  box-shadow:0 0 22px #ffab5659,0 4px 11px #0005!important;
+  border:1px solid #e4a87cbd!important;
+}
+@media(max-width:860px){
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition {
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-rows:auto auto auto!important;
+  }
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition > .bhs-home__stage {
+    grid-column:1!important;grid-row:1!important;
+    height:clamp(220px,57vw,390px)!important;
+  }
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip {
+    grid-column:1!important;grid-row:2!important;
+  }
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition > .bhs-home__story-panel {
+    grid-column:1!important;grid-row:3!important;
+  }
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
+    width:73%!important;
+  }
+}
+@media(max-width:580px){
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-home {
+    width:calc(100% - 16px)!important;
+  }
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
+    width:92%!important;padding:26px!important;
+  }
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms {
+    height:430px!important;min-height:430px!important;
+    background-position:center,67% center!important;
+  }
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1 {
+    font-size:clamp(3rem,13.6vw,5.1rem)!important;
+  }
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice {
+    padding-left:14px!important;padding-right:14px!important;
+  }
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip-item {
+    flex-basis:61px!important;width:61px!important;height:54px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip-item {
+    transition:none!important;transform:none!important;
+  }
+}
