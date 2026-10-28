@@ -112,3 +112,18 @@
     --bhs-safe-top:18px;
   }
 }
+
+
+/* Explicit border-box transport height: without this, the bar was 76px tall
+   instead of 60px in some CSS contexts and could overlap the image viewport. */
+.app-shell[data-route="home"] .bhs-home__stage > .bhs-home__controls {
+  box-sizing:border-box!important;
+  height:60px!important;
+  min-height:60px!important;
+}
+@media(max-width:720px) {
+  .app-shell[data-route="home"] .bhs-home__stage > .bhs-home__controls {
+    height:49px!important;
+    min-height:49px!important;
+  }
+}
