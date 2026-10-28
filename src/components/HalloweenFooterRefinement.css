@@ -26,8 +26,8 @@ html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsi
 }
 /* Cards should look designed as ONE family — different mild seasonal tints
    but identical radius, restrained copper edge, soft structural shadow. */
-html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-main > section,
-html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-main > section {
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-footer-mode="full"][data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-main > section,
+html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-main > section {
   border:1px solid rgba(213,172,146,.58)!important;
   border-radius:19px!important;
   box-shadow:0 8px 19px rgba(21,12,36,.13),
@@ -36,8 +36,8 @@ html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][da
 }
 /* Art is under a translucent ivory veil; real brand logos are untouched.
    Three original hand-drawn SVG layers remain behind the text, muted. */
-html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-brand,
-html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-brand {
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-footer-mode="full"][data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-brand,
+html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-brand {
   background-color:#fff1e3!important;
   background-image:
     linear-gradient(120deg,rgba(255,250,243,.28),rgba(255,247,234,.48)),
@@ -47,8 +47,8 @@ html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][da
   background-size:cover,100% 100%,cover!important;
   background-repeat:no-repeat!important;
 }
-html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-profile,
-html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-profile {
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-footer-mode="full"][data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-profile,
+html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-profile {
   background-color:#f4edfa!important;
   background-image:
     linear-gradient(120deg,rgba(255,253,255,.36),rgba(251,245,255,.51)),
@@ -58,8 +58,8 @@ html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][da
   background-size:cover,100% 100%,cover!important;
   background-repeat:no-repeat!important;
 }
-html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-credentials,
-html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-credentials {
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-footer-mode="full"][data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-credentials,
+html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-credentials {
   background-color:#fff2e5!important;
   background-image:
     linear-gradient(120deg,rgba(255,251,247,.34),rgba(255,248,239,.50)),
@@ -69,42 +69,42 @@ html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][da
   background-size:cover,100% 100%,cover!important;
   background-repeat:no-repeat!important;
 }
-html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-profile h2,
-html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-profile h2 {
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-footer-mode="full"][data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-profile h2,
+html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-profile h2 {
   color:#44305b!important;
   text-shadow:none!important;
   font-weight:820!important;
 }
-html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-section-label,
-html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-section-label {
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-footer-mode="full"][data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-section-label,
+html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-section-label {
   color:#a84819!important;
   font-weight:840!important;
   text-shadow:none!important;
 }
-html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-detail,
-html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-credentials > ul > li,
-html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-detail,
-html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-credentials > ul > li {
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-footer-mode="full"][data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-detail,
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-footer-mode="full"][data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-credentials > ul > li,
+html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-detail,
+html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-credentials > ul > li {
   color:#362d3f!important;
   border-bottom-color:rgba(132,89,105,.15)!important;
   text-shadow:none!important;
 }
-html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-star,
-html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-star {
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-footer-mode="full"][data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-star,
+html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-star {
   color:#b76520!important;
   filter:none!important;
 }
-html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-affiliations img,
-html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-brian-logo,
-html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-affiliations img,
-html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-brian-logo {
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-footer-mode="full"][data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-affiliations img,
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-footer-mode="full"][data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-brian-logo,
+html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-affiliations img,
+html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-brian-logo {
   filter:none!important;
   opacity:1!important;
 }
 /* Compact attribution instead of leaving an oversized empty plum band.
    Portfolio remains a real button with its original click/focus behavior. */
-html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] > .signature-footer-static-summary.signature-footer-static-summary--attribution-only,
-html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] > .signature-footer-static-summary.signature-footer-static-summary--attribution-only {
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-footer-mode="full"][data-app-shell-footer="true"][data-halloween-footer="true"] > .signature-footer-static-summary.signature-footer-static-summary--attribution-only,
+html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] > .signature-footer-static-summary.signature-footer-static-summary--attribution-only {
   margin:4px auto 0!important;
   padding:3px 0 0!important;
   min-height:34px!important;
@@ -113,8 +113,8 @@ html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][da
   justify-content:center!important;
   align-items:center!important;
 }
-html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .bes-portfolio-footer-trigger,
-html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .bes-portfolio-footer-trigger {
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-footer-mode="full"][data-app-shell-footer="true"][data-halloween-footer="true"] .bes-portfolio-footer-trigger,
+html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .bes-portfolio-footer-trigger {
   min-height:33px!important;
   padding:7px 13px!important;
   color:#fff4e9!important;
@@ -122,56 +122,56 @@ html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][da
   border:1px solid rgba(237,174,116,.63)!important;
   box-shadow:0 3px 10px rgba(8,5,20,.20)!important;
 }
-html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .bes-portfolio-footer-trigger strong,
-html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .bes-portfolio-footer-trigger strong {
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-footer-mode="full"][data-app-shell-footer="true"][data-halloween-footer="true"] .bes-portfolio-footer-trigger strong,
+html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .bes-portfolio-footer-trigger strong {
   color:#ffcf93!important;
 }
-html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-dashboard-signoff,
-html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-dashboard-signoff {
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-footer-mode="full"][data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-dashboard-signoff,
+html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-dashboard-signoff {
   color:#f6c494!important;
   font-weight:760!important;
   font-size:12px!important;
   text-shadow:0 1px 4px rgba(0,0,0,.35)!important;
 }
 /* The previous pastel page landscape must not re-appear over the plum frame. */
-html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-dashboard-landscape,
-html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-dashboard-landscape {
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-footer-mode="full"][data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-dashboard-landscape,
+html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-dashboard-landscape {
   opacity:0!important;
   visibility:hidden!important;
 }
 @media(min-width:1340px){
   /* A fixed 6-button Toolbox overlaps the right edge at screenshot widths.
      Reserve space INSIDE credential text without moving the 3 card grid. */
-  html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-credentials,
-  html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-credentials {
+  html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-footer-mode="full"][data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-credentials,
+  html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-credentials {
     padding-inline-end:clamp(67px,5.7vw,90px)!important;
   }
 }
 @media(min-width:1041px) and (max-width:1339px) {
-  html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-credentials,
-  html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-credentials {
+  html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-footer-mode="full"][data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-credentials,
+  html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-credentials {
     padding-inline-end:clamp(27px,3.2vw,44px)!important;
   }
 }
 @media(max-width:1040px){
-  html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"],
-  html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] {
+  html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-footer-mode="full"][data-app-shell-footer="true"][data-halloween-footer="true"],
+  html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] {
     padding-bottom:37px!important;
   }
 }
 @media(max-width:720px){
-  html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"],
-  html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] {
+  html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-footer-mode="full"][data-app-shell-footer="true"][data-halloween-footer="true"],
+  html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] {
     padding-bottom:45px!important;
   }
-  html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-main > section,
-  html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-main > section {
+  html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-footer-mode="full"][data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-main > section,
+  html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-main > section {
     background-size:cover,100% 100%,cover!important;
   }
 }
 @media(prefers-reduced-motion:reduce){
-  html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] *,
-  html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] * {
+  html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-footer-mode="full"][data-app-shell-footer="true"][data-halloween-footer="true"] *,
+  html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] * {
     transition-duration:0s!important;
   }
 }
