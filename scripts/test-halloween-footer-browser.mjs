@@ -43,6 +43,27 @@ try {
   await toggle(true);
   const themed=await get(footer);
   const themedCard=await get('.signature-footer-v50-profile');
+  const visualAudit=await page.evaluate(()=>{
+    const ft=document.querySelector('footer[data-app-shell-footer="true"]');
+    const global=document.querySelector('#global-halloween-motif-test');
+    const bg=getComputedStyle(ft);
+    const brand=getComputedStyle(document.querySelector('.signature-footer-v50-brand'));
+    const credentials=getComputedStyle(document.querySelector('.signature-footer-v50-credentials'));
+    return {footerZ:Number(bg.zIndex),globalZ:Number(getComputedStyle(global).zIndex),
+      background:bg.backgroundImage,brandBackground:brand.backgroundImage,credentialBackground:credentials.backgroundImage,
+      cards:[...document.querySelectorAll('.signature-footer-v50-main > section')].map(el=>({
+        style:getComputedStyle(el).backgroundImage,opacity:getComputedStyle(el).opacity
+      }))};
+  });
+  assert.ok(visualAudit.footerZ>visualAudit.globalZ,
+    'entire footer including all text/cards paints above floating Halloween motifs');
+  assert.match(visualAudit.background,/radial-gradient/,'background uses refined low-noise ambient glow');
+  assert.ok(visualAudit.cards.every(item=>item.opacity==='1'),
+    'student-facing institution and qualification cards remain fully opaque and readable');
+  const originalLandscape=await page.locator('.signature-footer-dashboard-landscape').evaluate(el=>{
+    const st=getComputedStyle(el);return {visibility:st.visibility,opacity:st.opacity};
+  });
+  assert.equal(originalLandscape.visibility,'hidden','old pastel landscape does not leak into night background');
   assert.match(themed.background,/halloween-night-footer[.]svg/,'Halloween art applied to actual footer');
   assert.ok(themedCard.background!==beforeCard.background,'profile card receives Halloween palette');
   assert.equal(await page.locator('.signature-footer-v50-main > section').count(),3,'all three original footer cards remain');
@@ -64,6 +85,7 @@ try {
     'toggle OFF restores original card backgrounds');
   await toggle(true);
   assert.match((await get(footer)).background,/halloween-night-footer[.]svg/,'toggle ON reapplies design');
+  console.log('✓ Elegant background and atmosphere safely behind all three cards');
   console.log('✓ Desktop ON/OFF: unchanged geometry, original logos, portfolio and Hero');
   await page.setViewportSize({width:390,height:844});
   const mobileFooter=await get(footer);
