@@ -44,5 +44,6 @@ import '../styles/HalloweenFullHomeV4.css';
 import '../styles/HalloweenFullHomeV5.css';
 import '../styles/HalloweenFullHomeV6VisualRepair.css';
 import '../styles/HalloweenMockupParityV7.css';
+import '../styles/HalloweenIllustratedV8.css';
 
 export default HomeApproved;
