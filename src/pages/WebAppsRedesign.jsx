@@ -5,6 +5,7 @@ import '../styles/apps-directory-redesign.css';
 import { getAppDesignProfile } from '../data/designProfiles.js';
 import {
   DEFAULT_LAUNCHER_GROUPS,
+  createDefaultLauncherConfig,
   launcherItemId,
   launcherNavId,
   loadLauncherConfig,
@@ -20,7 +21,7 @@ import { APP_ORDER, ROUTE_APPS, copy, defaultGroupOf, descOf, launch, shortDesc,
 import { AppsDirectoryHero, GroupRail, TopMenu } from './appsDirectoryComponents.jsx';
 import AppListRow from './appsDirectoryListComponents.jsx';
 
-export default function WebAppsRedesign({ apps, language = 'vi', hasApiKey, currentUser, setLanguage, appVisibility: externalAppVisibility }) {
+export default function WebAppsRedesign({ apps, language = 'vi', hasApiKey, currentUser, setLanguage, appVisibility: externalAppVisibility, publicReadonly = false }) {
   const t = copy[language] || copy.vi;
   const isAdmin = currentUser?.role === 'admin';
   const appVisibility = externalAppVisibility || { snapshot: {}, hiddenIds: [] };
@@ -69,8 +70,9 @@ export default function WebAppsRedesign({ apps, language = 'vi', hasApiKey, curr
   const [draftConfig, setDraftConfig] = useState(() => loadLauncherConfig(itemIds));
 
   useEffect(() => { editModeRef.current = editMode; }, [editMode]);
-  useEffect(() => { try { localStorage.setItem('bes-launcher-density', density); } catch { /* optional */ } }, [density]);
+  useEffect(() => { if (publicReadonly) return; try { localStorage.setItem('bes-launcher-density', density); } catch { /* optional */ } }, [density, publicReadonly]);
   useEffect(() => {
+    if (publicReadonly) return undefined;
     let active = true;
     const normalized = normalizeLauncherConfig(loadLauncherConfig(itemIds), itemIds);
     setConfig(normalized); setDraftConfig(normalized);
@@ -88,12 +90,12 @@ export default function WebAppsRedesign({ apps, language = 'vi', hasApiKey, curr
       if (!editModeRef.current) setDraftConfig(clean);
     }, itemIds);
     return () => { active = false; unsubscribe(); };
-  }, [itemIds.join('|')]);
+  }, [itemIds.join('|'), publicReadonly]);
 
-  const workingConfig = normalizeLauncherConfig(editMode ? draftConfig : config, itemIds);
+  const workingConfig = normalizeLauncherConfig(publicReadonly ? createDefaultLauncherConfig(itemIds) : editMode ? draftConfig : config, itemIds);
   const orderMap = useMemo(() => new Map(workingConfig.order.map((id, index) => [id, index])), [workingConfig.order]);
   const orderedItems = useMemo(() => [...baseItems].sort((a, b) => (orderMap.get(launcherItemId(a)) ?? 999) - (orderMap.get(launcherItemId(b)) ?? 999)), [baseItems, orderMap]);
-  const visibleItems = orderedItems.filter((item) => editMode || !workingConfig.hidden.includes(launcherItemId(item)));
+  const visibleItems = orderedItems.filter((item) => publicReadonly || editMode || !workingConfig.hidden.includes(launcherItemId(item)));
   const groupOptions = Array.isArray(workingConfig.groups) && workingConfig.groups.length ? workingConfig.groups : DEFAULT_LAUNCHER_GROUPS;
   const groupForItem = (item) => workingConfig.assignments[launcherItemId(item)] || defaultGroupOf(item);
   const groupCounts = groupOptions.reduce((acc, group) => {
@@ -217,7 +219,7 @@ export default function WebAppsRedesign({ apps, language = 'vi', hasApiKey, curr
   );
 
   return (
-    <div className={`flat-design-home flat-apps-directory apps-directory-native launcher-v10831 launcher-v1136 launcher-command-center launcher-style-radial density-${density} ${editMode ? 'is-launcher-edit-mode' : ''}`} aria-label="Creative apps directory">
+    <div data-public-readonly-apps={publicReadonly ? 'true' : undefined} className={`flat-design-home flat-apps-directory apps-directory-native launcher-v10831 launcher-v1136 launcher-command-center launcher-style-radial density-${density} ${editMode ? 'is-launcher-edit-mode' : ''}`} aria-label="Creative apps directory">
       <TopMenu language={language} setLanguage={setLanguage} hasApiKey={hasApiKey} currentUser={currentUser} />
       <AppsDirectoryHero
         language={language} isAdmin={isAdmin} editMode={editMode} saving={saving} visibleItems={visibleItems}
@@ -255,9 +257,9 @@ export default function WebAppsRedesign({ apps, language = 'vi', hasApiKey, curr
                   <small>{group.items.length}</small>
                 </header>
                 <div className="apps-directory-group-items">
-                  {group.items.slice(0, 4).map((item) => renderAppRow(item, `${group.id}-`))}
+                  {(publicReadonly ? group.items : group.items.slice(0, 4)).map((item) => renderAppRow(item, `${group.id}-`))}
                 </div>
-                {group.items.length > 4 && (
+                {!publicReadonly && group.items.length > 4 && (
                   <button type="button" className="apps-directory-group-more" onClick={() => setActiveGroup(group.id)}>
                     <span>›</span>{language === 'vi' ? `Xem tất cả ${group.items.length} ứng dụng` : `View all ${group.items.length} apps`}
                   </button>
