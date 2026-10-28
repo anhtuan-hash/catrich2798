@@ -256,7 +256,7 @@ html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-
   background:rgba(255,255,255,.83)!important;
 }
 /* Footer uses the same 3 REAL identity cards; no fake logos/credentials. */
-html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer[data-app-shell-footer="true"] {
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-halloween-footer="true"] {
   border:2px solid rgba(255,147,64,.70)!important;
   border-radius:30px!important;
   background-color:#1a0d34!important;
@@ -265,12 +265,12 @@ html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] > foo
   box-shadow:0 0 43px rgba(122,40,204,.25),0 22px 46px rgba(0,0,0,.36)!important;
   overflow:hidden!important;
 }
-html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer[data-halloween-footer="true"] .signature-footer-v50-main > section {
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-main > section {
   border:1px solid rgba(254,185,108,.80)!important;
   border-radius:19px!important;
   box-shadow:0 0 26px rgba(255,147,57,.15),0 7px 23px rgba(0,0,0,.28)!important;
 }
-html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger {
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-halloween-footer="true"] .bes-portfolio-footer-trigger {
   color:#ffe0aa!important;border-color:#ffaf6a!important;
 }
 /* G01: all actual navbar destinations become moonlit violet, with a single
@@ -392,7 +392,7 @@ html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-
   html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-home {width:min(100% - 20px,720px)!important}
   html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home {padding:17px!important}
   html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__story-panel {border-radius:17px!important}
-  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer[data-app-shell-footer="true"] {border-radius:22px!important}
+  html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-halloween-footer="true"] {border-radius:22px!important}
 }
 @media(prefers-reduced-motion:reduce) {
   html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms::after {animation:none!important}
