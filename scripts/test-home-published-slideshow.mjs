@@ -13,6 +13,13 @@ const homeSlideIndex = home.indexOf('<HomePublishedSlideshow language={language}
 const toolIndex = home.indexOf('<section className="bha-tools"', heroIndex);
 test(heroIndex >= 0 && homeSlideIndex > heroIndex && homeSlideIndex < toolIndex,
   'desktop published slideshow is directly after Hero and before the remaining home content');
+test(source('src/main.jsx').includes("const PhotoSlideshow = lazy(") &&
+     source('src/main.jsx').includes("'slideshow', 'qb-practice'") &&
+     source('src/main.jsx').includes("currentRoute === 'slideshow' && <PhotoSlideshow"),
+  'independent public slideshow route survives the guest-preview update');
+test(viewer.includes('data-guest-allow="slideshow-viewer"') &&
+     source('src/main.jsx').includes("action.closest('[data-guest-allow]')"),
+  'anonymous visitors may view/operate slideshow without unlocking other homepage actions');
 test(home.includes('homeSlideshow={<HomePublishedSlideshow language={language} />}'),
   'mobile home receives same published slideshow');
 const mobileHero = mobile.indexOf('data-mobile-home-hero');
