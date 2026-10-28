@@ -67,6 +67,15 @@ try {
  console.log('✓ All '+pills.length+' Halloween navigation pills have flat opaque high contrast labels (min '+Math.min(...pills.map(p=>p.contrast))+':1)');
  const rest = pills.filter(p=>p.text!=='Trang chủ');
  assert.ok(rest.length>=8,'non-selected routes include the eight other main destinations');
+ const navDebug=await page.evaluate(()=>{
+  const el=document.querySelector('.brian-nav__primary > [data-nav-key="apps"]');
+  const style=getComputedStyle(el);
+  return {theme:document.querySelector('.brian-nav')?.dataset.halloweenNav,
+    resting:style.backgroundColor,background:style.backgroundImage,
+    surface:style.getPropertyValue('--nav-pastel-surface'),
+    cssLoaded:[...document.styleSheets].map(x=>x.href||'style').filter(x=>x.includes('HalloweenNavigation'))};
+ });
+ console.log('V3 route diagnostics',JSON.stringify(navDebug));
  assert.ok(rest.every(p=>p.background==='rgb(255, 248, 240)'),
    'all eight resting destinations share one ivory background: '+JSON.stringify(rest.map(p=>({text:p.text,background:p.background}))));
  const activePill=pills.find(p=>p.text==='Trang chủ');
