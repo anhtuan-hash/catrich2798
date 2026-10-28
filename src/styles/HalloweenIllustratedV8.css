@@ -667,3 +667,27 @@ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] 
 @media(prefers-reduced-motion:reduce) {
   html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade::before {animation:none!important}
 }
+
+
+/* V8 visual inspection fix: artistic cutouts must not reveal pixels from the
+ * source mockup's original logo/card boxes. Crop to the pumpkins ONLY. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ .bha-practice.bha-practice--editorial-v3::after {
+  left:-41px!important;bottom:-17px!important;
+  clip-path:ellipse(50% 38% at 44% 76%)!important;
+  mask-image:radial-gradient(ellipse at 42% 76%,#000 45%,transparent 83%)!important;
+  width:130px!important;height:128px!important;
+}
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"]
+ > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"]::before,
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"]
+ > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"]::after {
+  bottom:-19px!important;
+  width:148px!important;height:150px!important;
+  clip-path:ellipse(49% 37% at 44% 78%)!important;
+  mask-image:radial-gradient(ellipse at 44% 77%,#000 45%,transparent 82%)!important;
+}
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"]
+ > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"]::before {left:-34px!important;}
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"]
+ > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"]::after {right:-34px!important;}
