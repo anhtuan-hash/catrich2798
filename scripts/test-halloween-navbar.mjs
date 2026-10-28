@@ -31,11 +31,11 @@ pass(runtime.includes("const TABLE = 'bes_navigation_theme_settings'") &&
  runtime.includes('subscribeTable({') &&
  runtime.includes('30000'),
  'public state revalidates through realtime, focus, and polling');
-pass(nav.includes('useHalloweenNavbarTheme()') &&
- nav.includes('halloweenNavEnabled={seasonalNavbar.enabled}') &&
- nav.includes("import './HalloweenNavigationSkin.css'"),
- 'one shared hook supplies both desktop and mobile navigation');
-pass(desktop.includes('data-halloween-nav={halloweenNavEnabled ? "true" : "false"}') &&
+pass(nav.includes("{mobile ? <MobileAppShell {...props} /> : <Navigation {...props} />}") &&
+ nav.includes("import './HalloweenNavigationSkin.css'") &&
+ desktop.includes('useHalloweenNavbarTheme()') && mobile.includes('useHalloweenNavbarTheme()'),
+ 'original navigation split remains unchanged; both active shells read the public theme');
+pass(desktop.includes('data-halloween-nav={seasonalNavbar.enabled ? "true" : "false"}') &&
  mobile.includes('data-halloween-nav={halloweenNavEnabled ? "true" : "false"}'),
  'theme attribute is placed on navigation surfaces only');
 pass(settings.includes('HalloweenNavbarAdminPanel') &&
