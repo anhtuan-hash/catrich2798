@@ -107,3 +107,13 @@
 .brian-guest-lock-dialog__actions button, .brian-guest-lock-dialog__actions a { display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 13px; min-height: 43px; padding: 11px 17px; font-weight: 720; font-size: 14px; text-decoration: none; background: #edf3fa; color: #27476f; cursor: pointer; }
 .brian-guest-lock-dialog__actions a { background: #2870e5; color: #fff; }
 @media(max-width:820px) { .brian-guest-mobile-destinations { position: relative; z-index: 4; } }
+
+/* Fix guest order: guest portal buttons default to order:0 while Home is order:10.
+   Explicitly put Home first and all remaining destinations in approved sequence. */
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary:has(> [data-guest-destination]) > button:first-child { order: -10 !important; }
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > [data-guest-destination="apps"] { order: 20 !important; }
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > [data-guest-destination="dashboard"] { order: 30 !important; }
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > [data-guest-destination="homeroom"] { order: 40 !important; }
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > [data-guest-destination="gradebook"] { order: 45 !important; }
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > [data-guest-destination="assessment"] { order: 47 !important; }
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > [data-guest-destination="attendance"] { order: 48 !important; }
