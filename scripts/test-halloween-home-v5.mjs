@@ -44,7 +44,7 @@ assert.match(master,/halloween_home_enabled/);
 assert.match(admin,/role="switch"/);
 assert.match(admin,/saveHalloweenHomeTheme\(!theme\.enabled\)/);
 assert.match(slideshow,/seasonalHome\.enabled && isHalloweenAlbum\(selected\)/);
-assert.match(footer,/seasonalHome\.enabled && seasonalFooter\.enabled/);
+assert.match(footer,/seasonalHome\.enabled && \(resolvedRoute === "home" \|\| seasonalFooter\.enabled\)/);
 assert.match(nav,/root\.dataset\.halloweenHomeV4 = active \? 'on' : 'off'/);
 assert.ok(!/localStorage\.setItem/.test(css),'CSS is purely visual: no data mutations');
 assert.ok(/@media\(prefers-reduced-motion:reduce\)/.test(css),'Respect reduced motion');
