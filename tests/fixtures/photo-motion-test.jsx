@@ -1,35 +1,49 @@
 import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import PhotoTransitionStage from '../../src/components/PhotoTransitionStage.jsx';
+import '../../src/components/HomePublishedSlideshow.css';
+import '../../src/components/HomePublishedSlideshowRefinement.css';
+import '../../src/pages/PhotoSlideshow.css';
+import '../../src/pages/PhotoSlideshowGalleryV2.css';
 
-const art = [
-  ['#fa923a','#442554'],
-  ['#239ab2','#082d53'],
-  ['#ac7fd7','#364d89'],
-  ['#62aa84','#1b473f'],
-  ['#c97273','#422e52'],
-  ['#efbe4e','#654d18'],
-].map(([a,b], i) => 'data:image/svg+xml,' + encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400">' +
-  '<defs><linearGradient id="g"><stop stop-color="' + a + '"/><stop offset="1" stop-color="' + b + '"/></linearGradient></defs>' +
-  '<rect width="640" height="400" fill="url(#g)"/>' +
-  '<circle cx="330" cy="180" r="' + (60 + i*12) + '" fill="white" opacity=".4"/>' +
-  '<text x="65" y="330" font-size="140" fill="white" font-family="sans-serif">' + i + '</text></svg>'));
+const palette = [
+  ['#fa923a','#442554'], ['#239ab2','#082d53'], ['#ac7fd7','#364d89'],
+  ['#62aa84','#1b473f'], ['#c97273','#422e52'], ['#efbe4e','#654d18'],
+];
+const sizes = [[640,400],[360,800],[1100,320],[700,700],[500,900],[640,400]];
+const art = palette.map(([a,b], i) => {
+  const [w,h] = sizes[i];
+  return 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '">' +
+    '<defs><linearGradient id="g"><stop stop-color="' + a + '"/><stop offset="1" stop-color="' + b + '"/></linearGradient></defs>' +
+    '<rect width="' + w + '" height="' + h + '" fill="url(#g)"/>' +
+    '<circle cx="' + (w/2) + '" cy="' + (h/2) + '" r="65" fill="white" opacity=".4"/>' +
+    '<rect x="5" y="5" width="' + (w-10) + '" height="' + (h-10) + '" stroke="white" stroke-width="10" fill="none"/>' +
+    '<text x="30" y="' + (h/2) + '" font-size="95" fill="white" font-family="sans-serif">' + i + '</text></svg>');
+});
 function Fixture() {
   const [index, setIndex] = useState(0);
   const [mode, setMode] = useState('fade');
+  const [layout, setLayout] = useState('home');
   const [direction, setDirection] = useState(1);
   const photo = { id: 'test-photo-' + index };
-  return <div>
-    <div style={{padding:'15px',display:'flex',gap:'10px'}}>
+  const gallery = layout === 'gallery';
+  const stage = <div className={gallery ? 'bss-stage' : 'bhs-home__stage'} style={{ width: 'min(900px, 100%)', margin: 0 }}>
+    <PhotoTransitionStage photo={photo} src={art[index]} mode={mode} direction={direction} alt={'Artwork '+index}/>
+    <div className={gallery ? 'bss-stage-controls' : 'bhs-home__controls'}><span>01 / 06</span></div>
+  </div>;
+  return <div className="app-shell" data-route={gallery ? 'slideshow' : 'home'}>
+    <div style={{padding:'15px',display:'flex',gap:'10px',flexWrap:'wrap'}}>
       <select id="transition-mode" value={mode} onChange={(event) => setMode(event.target.value)}>
         {['fade','slide','zoom','reveal','blur'].map((item) => <option key={item} value={item}>{item}</option>)}
       </select>
       <button id="next-photo" onClick={() => {setDirection(1);setIndex((i)=>(i+1)%art.length)}}>Next photo</button>
       <button id="previous-photo" onClick={() => {setDirection(-1);setIndex((i)=>(i-1+art.length)%art.length)}}>Previous photo</button>
+      <button id="toggle-layout" onClick={() => setLayout((v)=>v==='home'?'gallery':'home')}>Switch layout</button>
+      <output id="current-index">{index}</output>
     </div>
-    <div style={{position:'relative',width:'min(900px,100vw)',height:'480px',overflow:'hidden'}}>
-      <PhotoTransitionStage photo={photo} src={art[index]} mode={mode} direction={direction} alt={'Artwork '+index}/>
+    <div className={gallery ? 'bss bss--gallery-view' : 'bhs-home'} style={{width:'min(920px,100%)',margin:'0 auto',padding:'10px'}}>
+      {stage}
     </div>
   </div>;
 }

@@ -77,3 +77,53 @@
 .app-shell[data-route="home"] .bhs-home__stage > .bhs-home__caption {
   display:none!important;
 }
+
+
+/* Artwork-safe viewport: the transport bar and navigation arrows cannot obscure
+   any part of the image. Applies to fullscreen and mobile as well. */
+.app-shell[data-route="home"] .bhs-home__stage {
+  --bhs-safe-bottom:72px;
+  --bhs-safe-side:60px;
+  --bhs-safe-top:14px;
+}
+.app-shell[data-route="home"] .bhs-home__stage > .bss-motion {
+  top:var(--bhs-safe-top)!important;
+  bottom:var(--bhs-safe-bottom)!important;
+  left:var(--bhs-safe-side)!important;
+  right:var(--bhs-safe-side)!important;
+  width:auto!important;height:auto!important;
+  max-width:none!important;
+  overflow:hidden;
+}
+.app-shell[data-route="home"] .bhs-home__stage:fullscreen {
+  --bhs-safe-bottom:96px;
+  --bhs-safe-side:76px;
+  --bhs-safe-top:28px;
+}
+@media(max-width:720px) {
+  .app-shell[data-route="home"] .bhs-home__stage {
+    --bhs-safe-bottom:59px;
+    --bhs-safe-side:43px;
+    --bhs-safe-top:10px;
+  }
+  .app-shell[data-route="home"] .bhs-home__stage:fullscreen {
+    --bhs-safe-bottom:82px;
+    --bhs-safe-side:43px;
+    --bhs-safe-top:18px;
+  }
+}
+
+
+/* Explicit border-box transport height: without this, the bar was 76px tall
+   instead of 60px in some CSS contexts and could overlap the image viewport. */
+.app-shell[data-route="home"] .bhs-home__stage > .bhs-home__controls {
+  box-sizing:border-box!important;
+  height:60px!important;
+  min-height:60px!important;
+}
+@media(max-width:720px) {
+  .app-shell[data-route="home"] .bhs-home__stage > .bhs-home__controls {
+    height:49px!important;
+    min-height:49px!important;
+  }
+}

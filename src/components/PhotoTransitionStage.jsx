@@ -7,45 +7,43 @@ const EASING = 'cubic-bezier(.22,.76,.16,1)';
 
 function transitionFrames(mode, direction) {
   const sign = direction < 0 ? -1 : 1;
+  // Animate layers without enlarging the artwork beyond its contain box:
+  // the whole illustration stays readable from edge to edge.
   switch (mode) {
     case 'slide':
       return {
         incoming: [
-          { opacity: .72, transform: 'translateX(' + (sign * 18) + '%) scale(1.035)' },
-          { opacity: 1, transform: 'translateX(0) scale(1)' },
+          { opacity: .52, transform: 'translateX(' + (sign * 3) + '%)' },
+          { opacity: 1, transform: 'translateX(0)' },
         ],
         outgoing: [
-          { opacity: 1, transform: 'translateX(0) scale(1)' },
-          { opacity: .2, transform: 'translateX(' + (-sign * 13) + '%) scale(.96)' },
+          { opacity: 1, transform: 'translateX(0)' },
+          { opacity: .2, transform: 'translateX(' + (-sign * 3) + '%)' },
         ],
       };
     case 'zoom':
       return {
-        incoming: [{ opacity: .18, transform: 'scale(.88)' }, { opacity: 1, transform: 'scale(1)' }],
-        outgoing: [{ opacity: 1, transform: 'scale(1)' }, { opacity: .12, transform: 'scale(1.16)' }],
+        incoming: [{ opacity: .3, transform: 'scale(.96)' }, { opacity: 1, transform: 'scale(1)' }],
+        outgoing: [{ opacity: 1, transform: 'scale(1)' }, { opacity: .16, transform: 'scale(.98)' }],
       };
     case 'reveal':
       return {
         incoming: [
-          { clipPath: sign > 0 ? 'inset(0 100% 0 0)' : 'inset(0 0 0 100%)', opacity: .92 },
+          { clipPath: sign > 0 ? 'inset(0 100% 0 0)' : 'inset(0 0 0 100%)', opacity: 1 },
           { clipPath: 'inset(0 0 0 0)', opacity: 1 },
         ],
-        outgoing: [{ opacity: 1, transform: 'scale(1)' }, { opacity: .45, transform: 'scale(.95)' }],
+        outgoing: [{ opacity: 1 }, { opacity: .45 }],
       };
     case 'blur':
+      // Never blur the submitted artwork itself. The background is softly
+      // blurred; the painting fades in sharply at its original proportions.
       return {
-        incoming: [
-          { opacity: .16, filter: 'blur(22px) brightness(1.4)', transform: 'scale(1.07)' },
-          { opacity: 1, filter: 'blur(0px) brightness(1)', transform: 'scale(1)' },
-        ],
-        outgoing: [
-          { opacity: 1, filter: 'blur(0px)' },
-          { opacity: .1, filter: 'blur(14px)' },
-        ],
+        incoming: [{ opacity: .1, filter: 'brightness(.8)' }, { opacity: 1, filter: 'brightness(1)' }],
+        outgoing: [{ opacity: 1 }, { opacity: .1 }],
       };
     default:
       return {
-        incoming: [{ opacity: 0, transform: 'scale(1.035)' }, { opacity: 1, transform: 'scale(1)' }],
+        incoming: [{ opacity: 0 }, { opacity: 1 }],
         outgoing: [{ opacity: 1 }, { opacity: .08 }],
       };
   }

@@ -302,3 +302,38 @@
   .bss--gallery-view .bss-stage-prev,.bss--gallery-view .bss-stage-next,
   .bss--gallery-view .bss-filmstrip button {transition:none!important}
 }
+
+
+/* Uncropped gallery image area. Buttons, progress and curatorial labels are
+   outside the artwork's bounded viewport, never over its real pixels. */
+.bss--gallery-view .bss-stage {
+  --bss-gallery-safe-bottom:80px;
+  --bss-gallery-safe-side:64px;
+  --bss-gallery-safe-top:42px;
+}
+.bss--gallery-view .bss-stage > .bss-motion {
+  top:var(--bss-gallery-safe-top)!important;
+  bottom:var(--bss-gallery-safe-bottom)!important;
+  left:var(--bss-gallery-safe-side)!important;
+  right:var(--bss-gallery-safe-side)!important;
+  width:auto!important;height:auto!important;
+  max-width:none!important;
+  overflow:hidden;
+}
+.bss--gallery-view .bss-stage:fullscreen {
+  --bss-gallery-safe-bottom:100px;
+  --bss-gallery-safe-side:78px;
+  --bss-gallery-safe-top:58px;
+}
+@media(max-width:780px) {
+  .bss--gallery-view .bss-stage {
+    --bss-gallery-safe-bottom:64px;
+    --bss-gallery-safe-side:43px;
+    --bss-gallery-safe-top:36px;
+  }
+  .bss--gallery-view .bss-stage:fullscreen {
+    --bss-gallery-safe-bottom:85px;
+    --bss-gallery-safe-side:45px;
+    --bss-gallery-safe-top:48px;
+  }
+}
