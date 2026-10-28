@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import Navigation from './GlobalCompactNavigation.jsx';
 import MobileAppShell from './mobile/MobileAppShell.jsx';
 import usePresentationMode from '../hooks/usePresentationMode.js';
+import {useHalloweenHomeTheme} from '../utils/halloweenHomeTheme.js';
 import { writePresentationOverride } from '../device/presentationMode.js';
 import GlobalWindowsPhone8Loading from './GlobalWindowsPhone8Loading.jsx';
 import GlobalPageLaunchEffect from './GlobalPageLaunchEffect.jsx';
@@ -59,6 +60,18 @@ import './HalloweenNavigationRefinement.css';
 
 export default function GlobalFlatNavigation(props) {
   const presentation = usePresentationMode();
+  const seasonalHome = useHalloweenHomeTheme();
+  useEffect(() => {
+    const root = document.documentElement;
+    const shell = document.querySelector('.app-shell');
+    const active = Boolean(seasonalHome.enabled);
+    root.dataset.halloweenHomeV4 = active ? 'on' : 'off';
+    if (shell) shell.dataset.halloweenHomeV4 = active ? 'on' : 'off';
+    return () => {
+      delete root.dataset.halloweenHomeV4;
+      if (shell) delete shell.dataset.halloweenHomeV4;
+    };
+  }, [seasonalHome.enabled]);
   const mobile = presentation.presentationMode === 'mobile';
   const forcedMobile = mobile && presentation.override === 'mobile' && presentation.deviceClass !== 'phone';
   const returnLabel = props.language === 'en' ? 'Desktop' : 'Máy tính';
