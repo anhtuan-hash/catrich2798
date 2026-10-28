@@ -41,6 +41,8 @@ try {
  // Regression for the user-visible issue: grey glossy route pills with
  // dark-blue illegible labels in a dark Halloween navigation bar.
  await page.setViewportSize({width:1680,height:920});
+ // Let the intentional 170ms background-color transition complete after ON.
+ await page.waitForTimeout(350);
  const pills = await page.locator('.brian-nav__primary > button').evaluateAll(nodes=>{
    const rgb=value=>(value.match(/[0-9]+(?:[.][0-9]+)?/g)||[]).slice(0,3).map(Number);
    const luminance=colors=>{
