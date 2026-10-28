@@ -33,7 +33,7 @@ gate('ADMIN',panel.includes("currentUser?.provider==='supabase'")&&
  settings.includes('<HalloweenFooterAdminPanel'),
  'Admin controls show master and existing independent settings, with state confirmation');
 gate('G01',nav.includes('seasonalHome.enabled && (route === "home" || seasonalNavbar.enabled)')&&
- mobile.includes('seasonalHome.enabled && seasonalNavbar.enabled'),
+ mobile.includes('seasonalHome.enabled && (route === "home" || seasonalNavbar.enabled)'),
  'master OFF restores original navbar on desktop/mobile even if cached child flag is ON');
 gate('G02',overlay.includes('.bha-hero.hero-cms')&&
  !overlay.includes('filter:blur(')&&
