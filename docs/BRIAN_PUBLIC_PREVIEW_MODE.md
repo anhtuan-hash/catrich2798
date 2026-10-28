@@ -119,3 +119,23 @@ remain visible as locked navigation labels only, with no page or data access.
 - Verify database cron has a successful run and aggregate values change following a source update.
 - Verify Guest nav Home appears immediately after the logo, ahead of Apps and Dashboard.
 - Run `node scripts/test-brian-public-preview.mjs`, then full Vite build.
+
+## Correction: complete real published-content surfaces
+
+- The guest preview must not render repeated placeholder task records. Daily
+  work counts are represented by one dated row with a real count weight.
+  The `DashboardWorkPlanner` consumes `countWeight` for accurate totals.
+- Assessment must display **all** rows of the public assessment metadata
+  feed (no artificial first-N limit in the UI) with title, thumbnail, grade,
+  unit, focus, difficulty and duration where recorded. The layout must cap
+  image sizes and preserve a responsive grid.
+- Attendance must display **all** approved public session-summary rows, with
+  date, class label, subject, completed/cancelled status, time range, room,
+  lesson periods and totals, followed by real month and class reports.
+- Navigation remains usable, but content buttons cannot execute, and normal
+  wheel, trackpad and touch scrolling must not be prevented.
+- No anonymous access is granted to attendance member lists, individual
+  student-level attendance records, grades, personal details or confidential
+  work item descriptions. An admin-authorized release is a separate,
+  irreversible publication decision; simply disabling mouse events does
+  **not** safeguard data returned to a public browser.

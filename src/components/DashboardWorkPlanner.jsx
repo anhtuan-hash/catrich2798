@@ -73,7 +73,7 @@ export default function DashboardWorkPlanner({
     const map = new Map();
     events.forEach((item) => {
       const key = dashboardLocalDayKey(item.date);
-      map.set(key, (map.get(key) || 0) + 1);
+      map.set(key, (map.get(key) || 0) + Math.max(1, Number(item.countWeight) || 1));
     });
     return map;
   }, [events]);
@@ -81,10 +81,10 @@ export default function DashboardWorkPlanner({
     events.filter((item) => dashboardLocalDayKey(item.date) === selectedKey),
   [events, selectedKey]);
   const counts = useMemo(() => {
-    const summary = { all: selectedEvents.length, teaching: 0, meeting: 0, work: 0, professional: 0, urgent: 0 };
+    const summary = { all: selectedEvents.reduce((sum, item) => sum + Math.max(1, Number(item.countWeight) || 1), 0), teaching: 0, meeting: 0, work: 0, professional: 0, urgent: 0 };
     selectedEvents.forEach((item) => {
-      summary[category(item)] += 1;
-      if (!item.done && ['high', 'urgent'].includes(String(item.priority))) summary.urgent++;
+      summary[category(item)] += Math.max(1, Number(item.countWeight) || 1);
+      if (!item.done && ['high', 'urgent'].includes(String(item.priority))) summary.urgent += Math.max(1, Number(item.countWeight) || 1);
     });
     return summary;
   }, [selectedEvents]);

@@ -79,7 +79,7 @@ function usePublicReadonlyData(section) {
           supabase.from('bes_guest_preview_feed')
             .select('section,entry_key,kind,label,count_value,item_date,refreshed_at').eq('section',section).limit(150),
           supabase.from('bes_guest_preview_entries')
-            .select('section,entry_id,title,subtitle,tag,grade,unit_no,image_url,entry_date,status,total_count,present_count,refreshed_at')
+            .select('section,entry_id,title,subtitle,tag,grade,unit_no,image_url,entry_date,status,total_count,present_count,room_label,time_label,periods,difficulty,duration_minutes,refreshed_at')
             .eq('section',section).order('entry_date',{ascending:false,nullsFirst:false}).limit(1000),
           section==='dashboard'?readDashboardHero({includeDraft:false}):
             section==='assessment'?readLessonCheckHero({includeDraft:false}):Promise.resolve(null),
@@ -174,23 +174,38 @@ function GuestAssessment({entries,stats,hero,language}){
           <div className="lcs-card-media-shade" aria-hidden="true"/>
           <div className="lcs-card-media-top"><span className={'lcs-focus-indicator is-'+(item.tag||'unclassified')}>{(item.tag||'ACTIVITY').toUpperCase()}</span></div>
         </div>
-        <div className="brian-guest-full__activity-copy"><small>GLOBAL SUCCESS {item.grade||''} · UNIT {item.unit_no??'—'}</small><h3>{item.title}</h3><p>{item.subtitle||'Global Success'}</p></div>
+        <div className="brian-guest-full__activity-copy"><small>GLOBAL SUCCESS {item.grade||''} · UNIT {item.unit_no??'—'}</small><h3>{item.title}</h3><p>{item.subtitle||'Global Success'}</p><div className="brian-guest-full__activity-meta">{item.difficulty&&<span>{item.difficulty}</span>}{item.duration_minutes&&<span>{item.duration_minutes} {en?'minutes':'phút'}</span>}<span>{item.tag||'Activity'}</span></div></div>
         <div className="brian-guest-full__locked"><LockKeyhole size={14}/>{en?'Sign in to open':'Đăng nhập để mở'}</div>
       </article>)}
     </div>
+    <section className="brian-guest-full__extended-report">
+      <header><BarChart3 size={20}/><h2>{en?'Actual activity coverage by grade':'Thống kê toàn bộ hoạt động theo khối'}</h2></header>
+      <div className="brian-guest-full__extended-grid">
+        {['10','11','12'].map(grade=>{
+          const subset=entries.filter(item=>String(item.grade)===grade);
+          const units=new Map();
+          subset.forEach(item=>{const key=String(item.unit_no??'—');units.set(key,(units.get(key)||0)+1);});
+          return <article key={grade} className="brian-guest-full__report-card">
+            <h3>{en?'Grade':'Khối'} {grade}</h3><strong>{subset.length} {en?'activities':'hoạt động'}</strong>
+            <div>{[...units.entries()].sort((a,b)=>Number(a[0])-Number(b[0])).map(([unit,count])=>
+              <p key={unit}><span>Unit {unit}</span><b>{count}</b></p>)}</div>
+          </article>;
+        })}
+      </div>
+    </section>
   </div>;
 }
 function GuestDashboard({entries,stats,hero,language}){
   const en=language==='en';
   const now=new Date();
   // Reuse the genuine Dashboard planner and newsroom, fed only redacted day-level counts.
-  const timeline=useMemo(()=>entries.flatMap(item=>
-    Array.from({length:Math.min(Number(item.total_count)||0,50)},(_,i)=>({
-      id:item.entry_id+'-'+i,date:(item.entry_date||'')+'T12:00:00',
-      title:en?'Recorded activity (private details)':'Hoạt động đã ghi nhận (chi tiết riêng tư)',
-      description:en?'Sign in for details':'Đăng nhập để xem chi tiết',
+  const timeline=useMemo(()=>entries.filter(item=>item.entry_date).map(item=>({
+      id:item.entry_id,date:item.entry_date+'T12:00:00',
+      countWeight:Math.max(1,Number(item.total_count)||1),
+      title:(Number(item.total_count)||0)+' '+(en?'recorded work items':'công việc đã ghi nhận'),
+      description:en?'This date contains real internal records; details require a signed-in authorized account.':'Đây là số lượng công việc thật theo ngày. Nội dung nội bộ chỉ dành cho người được cấp quyền.',
       sourceLabel:'BRIAN',done:true,
-    }))),[entries,en]);
+    })),[entries,en]);
   return <div className="brian-guest-full__section brian-guest-full__dashboard gd-page">
     <PublicHero section="dashboard" hero={hero} language={language}/>
     <CountStrip section="dashboard" stats={stats} language={language}/>
@@ -220,7 +235,7 @@ function GuestAttendance({entries,stats,language}){
         <header><CalendarDays size={20}/>{en?'Attendance sessions':'Các buổi điểm danh'}</header>
         {entries.map((item,index)=><article key={item.entry_id} className="brian-guest-full__history-row">
           <span className="brian-guest-full__history-number">{index+1}</span>
-          <div><strong>{item.title}</strong><small>{item.subtitle||'English'} · {item.entry_date||'—'}</small></div>
+          <div><strong>{item.title}</strong><small>{item.subtitle||'English'} · {item.entry_date||'—'}</small><small>{item.time_label||'—'}{item.room_label?' · '+item.room_label:''}{item.periods?' · '+item.periods+(en?' periods':' tiết'):''}</small></div>
           <span className={'brian-guest-full__history-status '+(item.status==='cancelled'?'cancelled':'complete')}>
             {item.status==='cancelled'?(en?'Cancelled':'Đã hủy'):(en?'Completed':'Đã chốt')}</span>
           <strong className="brian-guest-full__history-count">{item.status==='cancelled'?'—':total(item.present_count)+'/'+total(item.total_count)}</strong>
@@ -231,6 +246,30 @@ function GuestAttendance({entries,stats,language}){
         <div className="brian-guest-full__history-days">{grouped.map(([day,count])=><div key={day}><time>{day}</time><strong>{count}</strong></div>)}</div>
       </aside>
     </div>
+    <section className="brian-guest-full__extended-report" aria-label={en?'Recorded attendance reports':'Báo cáo điểm danh thực tế'}>
+      <header><BarChart3 size={20}/><h2>{en?'Recorded monthly attendance reports':'Báo cáo điểm danh theo tháng'}</h2></header>
+      <div className="brian-guest-full__extended-grid">
+        {[...new Set(entries.map(item=>item.entry_date?.slice(0,7)).filter(Boolean))].sort().reverse().map(month=>{
+          const items=entries.filter(item=>item.entry_date?.startsWith(month));
+          const completed=items.filter(item=>item.status==='completed');
+          return <article className="brian-guest-full__report-card" key={month}>
+            <h3>{month}</h3><strong>{items.length} {en?'sessions':'buổi'}</strong>
+            <p><span>{en?'Completed':'Hoàn tất'}</span><b>{completed.length}</b></p>
+            <p><span>{en?'Cancelled':'Đã hủy'}</span><b>{items.length-completed.length}</b></p>
+            <p><span>{en?'Recorded presence':'Lượt có mặt'}</span><b>{total(completed.reduce((sum,item)=>sum+Number(item.present_count||0),0))}</b></p>
+          </article>;
+        })}
+      </div>
+    </section>
+    <section className="brian-guest-full__extended-report" aria-label={en?'Recorded classes':'Thống kê lớp đã điểm danh'}>
+      <header><Users size={20}/><h2>{en?'Classes in attendance records':'Danh sách lớp có dữ liệu điểm danh'}</h2></header>
+      <div className="brian-guest-full__classes">
+        {[...new Map(entries.map(item=>[item.title,item.title])).keys()].sort((a,b)=>a.localeCompare(b,'vi')).map(name=>{
+          const items=entries.filter(item=>item.title===name);
+          return <article key={name}><strong>{name}</strong><span>{items.length} {en?'sessions':'buổi'}</span><small>{items[0]?.subtitle||''}</small></article>;
+        })}
+      </div>
+    </section>
   </div>;
 }
 function PublicSignin({language}){
