@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 135">
+<defs><filter id="g"><feGaussianBlur stdDeviation="4"/></filter></defs>
+<path d="M15 116Q7 96 12 55C14 23 35 11 60 11s46 14 48 45l2 61-18-11-16 13-17-14-16 14-14-13Z" fill="#a4bdff" opacity=".45" filter="url(#g)"/>
+<path d="M16 110V56C16 26 35 13 60 13s44 16 44 44v53l-15-9-15 12-15-10-15 11-15-11Z" fill="#f7f4ff" stroke="#e5dbff" stroke-width="4"/>
+<ellipse cx="47" cy="61" rx="6" ry="9" fill="#241638"/><ellipse cx="76" cy="61" rx="6" ry="9" fill="#241638"/>
+<path d="M53 83Q61 95 70 83" fill="none" stroke="#241638" stroke-width="5" stroke-linecap="round"/>
+<circle cx="32" cy="77" r="8" fill="#f6b0d8" opacity=".68"/><circle cx="91" cy="77" r="8" fill="#f6b0d8" opacity=".68"/>
+</svg>
