@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": "1793195941901-e2ee7a3d",
+  "revision": "1793195941901-e2ee7a3d-clear-glass",
   "publishedAt": "2026-10-28T13:59:01.901Z",
   "publishedBy": "anhtuan@pek.edu.vn",
   "delivery": "vercel-static",
@@ -99,7 +99,7 @@
       "muted": true
     },
     "overlay": {
-      "enabled": true,
+      "enabled": false,
       "color": "#ffffff",
       "opacity": 10,
       "leftProtection": 92,
