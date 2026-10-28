@@ -605,3 +605,65 @@ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-hallo
    min-height:0!important;font-size:11px!important;line-height:1.38!important;
  }
 }
+
+
+/* Illustrated bento detail: real cartoon artworks rather than Unicode emoji.
+ * Icons are decoration only; grades and counts remain accessible text. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade::before {
+  content:""!important;display:block!important;
+  position:absolute!important;z-index:7!important;
+  pointer-events:none!important;
+  width:clamp(47px,5.6vw,78px)!important;
+  height:clamp(54px,6.4vw,89px)!important;
+  top:-12px!important;right:clamp(25px,3.2vw,48px)!important;
+  background-repeat:no-repeat!important;background-position:center!important;
+  background-size:cover!important;
+  mask-image:radial-gradient(ellipse at 55% 45%,#000 44%,transparent 84%)!important;
+  filter:drop-shadow(0 0 12px #ffe5b55e)!important;
+  animation:h8-friendly-ghost 7s ease-in-out infinite alternate!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade--10::before {
+  background-image:url('/assets/home/halloween-v8-gallery-ghost.avif')!important;
+  filter:hue-rotate(28deg) drop-shadow(0 0 12px #3c8bff83)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade--11::before {
+  width:clamp(59px,6vw,87px)!important;
+  height:clamp(52px,5.5vw,79px)!important;
+  background-image:url('/assets/home/halloween-v8-footer-pumpkins.avif')!important;
+  filter:drop-shadow(0 0 13px #ff902e9c)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade--12::before {
+  background-image:url('/assets/home/halloween-v8-gallery-ghost.avif')!important;
+  filter:hue-rotate(90deg) drop-shadow(0 0 10px #16cabb83)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice__published-count {
+  border:1px solid #b46b4bb8!important;
+  color:#ffdbac!important;
+  background-color:#542437!important;
+  background-image:
+    linear-gradient(90deg,#12091b52,transparent 20%,#ffe3ab1b 51%,#10061b47),
+    repeating-linear-gradient(0deg,#7d3c31 0px,#67302d 10px,#57212b 12px,#7b403a 20px)!important;
+  border-radius:9px!important;
+  box-shadow:inset 0 2px #ffce8b40,0 8px 17px #09021d9c,0 0 14px #f8a05235!important;
+  transform:rotate(-.6deg);
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice__published-count > :is(span,small) {
+  color:#ffe1bf!important;text-shadow:0 2px 6px #180715!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice__published-count strong {
+  color:#ffe2a3!important;
+  text-shadow:0 2px 0 #4c2233,0 0 18px #ffb25c81!important;
+}
+@media(min-width:901px) and (max-width:1180px) {
+  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade::before {
+    top:1px!important;right:65px!important;width:44px!important;height:51px!important;
+  }
+}
+@media(max-width:900px) {
+  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade::before {
+    top:6px!important;right:85px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade::before {animation:none!important}
+}
