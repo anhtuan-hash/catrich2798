@@ -637,7 +637,7 @@ function App() {
             </AppErrorBoundary>
           </Suspense>
         )}
-        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'dashboard'].includes(currentRoute) ? <>
+        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'dashboard', 'slideshow'].includes(currentRoute) ? <>
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="content-transfer" label={language === 'vi' ? 'gửi nội dung' : 'content transfer'}>
               <ContentTransferHub currentUser={currentUser} currentRoute={currentRoute} selectedTool={selectedTool} language={language} accent={activeDesignProfile.accent} appVisibility={appVisibility} />
