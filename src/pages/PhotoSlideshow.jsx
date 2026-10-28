@@ -53,6 +53,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
   const [fullscreen, setFullscreen] = useState(false);
   const stageRef = useRef(null);
   const touchRef = useRef(null);
+  const preserveEditorOnNavigation = useRef(false);
   const selected = useMemo(() => albums.find(a => a.slug === slug), [albums, slug]);
   const ordered = useMemo(() => selected
     ? slides.filter(s => s.album_id === selected.id).sort((a, b) =>
@@ -83,7 +84,11 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
   }, []);
 
   useEffect(() => {
-    const onHash = () => { setSlug(readSlug()); setIndex(0); setPlaying(true); setEditing(false); };
+    const onHash = () => {
+      setSlug(readSlug()); setIndex(0); setPlaying(true);
+      setEditing(preserveEditorOnNavigation.current);
+      preserveEditorOnNavigation.current = false;
+    };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
@@ -118,7 +123,10 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
     return () => document.removeEventListener('keydown', onKey);
   }, [selected?.id, ordered.length, editing]);
 
-  const goAlbum = value => { window.location.hash = '#/slideshow' + (value ? '?album=' + encodeURIComponent(value) : ''); };
+  const goAlbum = (value, keepEditor = false) => {
+    preserveEditorOnNavigation.current = keepEditor;
+    window.location.hash = '#/slideshow' + (value ? '?album=' + encodeURIComponent(value) : '');
+  };
   const notify = text => { setMessage(text); setError(''); };
   const fail = e => { setError(e?.message || String(e)); setMessage(''); };
   const run = async operation => {
@@ -166,7 +174,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
     setCreating(false);
     await refresh();
     notify('Đã lưu album thành công.');
-    if (newSlug) goAlbum(newSlug);
+    if (newSlug) goAlbum(newSlug, true);
   });
   const upload = files => run(async () => {
     if (!editorAllowed || !selected) return;
@@ -260,9 +268,9 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
       {message && <p className="bss-notice" role="status"><Check size={17}/>{message}</p>}
       {loading ? <div className="bss-state">Đang tải bộ sưu tập…</div> : null}
       {!loading && editing && editorAllowed ? <section className="bss-editor">
-        <div className="bss-edit-heading"><div><span>BRIAN STUDIO</span><h2>{creating ? t.create : selected ? t.edit : t.albums}</h2></div><button type="button" className="bss-action" onClick={startCreate}><Plus size={17}/> {t.create}</button></div>
+        <div className="bss-edit-heading"><div><span>BRIAN STUDIO</span><h2>{creating ? t.create : selected ? t.edit : t.albums}</h2></div><div className="bss-header-actions">{selected && !creating && <button type="button" className="bss-pill" onClick={() => goAlbum("", true)}><ArrowLeft size={16}/> Tất cả album</button>}<button type="button" className="bss-action" onClick={startCreate}><Plus size={17}/> {t.create}</button></div></div>
         {!creating && !selected ? <div className="bss-album-grid">
-          {albums.map(a => <button key={a.id} className="bss-album-card" onClick={() => goAlbum(a.slug)}>
+          {albums.map(a => <button key={a.id} className="bss-album-card" onClick={() => goAlbum(a.slug, true)}>
             <div className="bss-album-cover" style={{ backgroundImage: 'linear-gradient(0deg, rgba(7,12,31,.8),transparent),url("' + imageUrl(slides.find(s => s.album_id === a.id)?.image_path) + '")' }}/>
             <div className="bss-album-meta"><b>{a.title}</b><span>{a.is_published ? t.published : t.draft} · {slides.filter(s => s.album_id === a.id).length} ảnh</span></div>
           </button>)}
