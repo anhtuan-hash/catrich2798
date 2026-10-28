@@ -154,7 +154,6 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
   const separatorIndex = captionText.indexOf('|');
   const artworkTitle = separatorIndex >= 0 ? captionText.slice(0, separatorIndex).trim() : '';
   const artworkStory = separatorIndex >= 0 ? captionText.slice(separatorIndex + 1).trim() : captionText;
-  const effectLabel = ({ fade: 'Dissolve', slide: 'Glide', zoom: 'Cinema Zoom', reveal: 'Silk Reveal', blur: 'Dreamy Focus' })[selected?.transition] || 'Dissolve';
 
   if (!selected || !photo) return null;
 
@@ -203,20 +202,7 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
             <h3>{artworkTitle || (en ? 'Artwork ' : 'Tác phẩm ') + String(currentIndex + 1).padStart(2, '0')}</h3>
             <p>{artworkStory || (en ? 'A school story told through images.' : 'Những câu chuyện được kể qua từng bức tranh.')}</p>
           </div>
-          <div className="bhs-home__story-meta">
-            <div className="bhs-home__story-meta-item">
-              <span className="bhs-home__story-meta-icon"><Images size={17}/></span>
-              <span><small>{en ? 'COLLECTION' : 'BỘ SƯU TẬP'}</small><strong>{selected.title}</strong></span>
-            </div>
-            <div className="bhs-home__story-meta-item">
-              <span className="bhs-home__story-meta-icon"><Play size={17}/></span>
-              <span><small>{en ? 'SLIDE DURATION' : 'THỜI GIAN MỖI ẢNH'}</small><strong>{selected.slide_interval} {en ? 'seconds' : 'giây'}</strong></span>
-            </div>
-          </div>
-          <div className="bhs-home__story-bottom">
-            <span>{en ? 'TRANSITION' : 'HIỆU ỨNG'}</span>
-            <strong>{effectLabel}</strong>
-          </div>
+div>
         </aside>
       <div className="bhs-home__stage" ref={stageRef}
         onTouchStart={(event) => { touchStart.current = event.touches[0]?.clientX ?? null; }}
