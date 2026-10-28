@@ -390,7 +390,7 @@ function App() {
     if (!(node instanceof Element)) return;
     const action = node.closest('button, a, input, select, textarea, [role="button"], [contenteditable="true"]');
     if (!action || action.closest('[data-guest-allow]')) return;
-    if (event.type === 'keydown' && !['Enter', ' '].includes(event.key)) return;
+    if (event.type === 'keydown' && !['Enter', ' '].includes(event.key) && !action.matches('input, select, textarea, [contenteditable="true"]')) return;
     event.preventDefault();
     event.stopPropagation();
     setGuestHomeNotice(true);
@@ -593,7 +593,7 @@ function App() {
           </Suspense>
         ) : null}
 
-        <main id="bes-main-content" tabIndex={-1} key={`${currentRoute}:${selectedTool?.slug || 'root'}`} className="wp8-page-stage wp8-door-page" data-route={currentRoute} onClickCapture={guardGuestHomeInteraction} onKeyDownCapture={guardGuestHomeInteraction} onSubmitCapture={guardGuestHomeInteraction}>
+        <main id="bes-main-content" tabIndex={-1} key={`${currentRoute}:${selectedTool?.slug || 'root'}`} className="wp8-page-stage wp8-door-page" data-route={currentRoute} onClickCapture={guardGuestHomeInteraction} onKeyDownCapture={guardGuestHomeInteraction} onSubmitCapture={guardGuestHomeInteraction} onChangeCapture={guardGuestHomeInteraction} onPasteCapture={guardGuestHomeInteraction} onBeforeInputCapture={guardGuestHomeInteraction}>
           <div className="bqa-content-safe-frame" data-quick-access-safe-frame={quickAccessEnabled ? 'true' : 'false'}>
           <Suspense fallback={<RouteFallback language={language} />}>
             {currentRoute === 'home' && (!currentUser || visibilityReady) && <Home {...context} />}
