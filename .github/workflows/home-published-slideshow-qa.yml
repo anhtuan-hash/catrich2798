@@ -3,6 +3,11 @@ on:
   pull_request:
     paths:
       - 'src/components/HomePublishedSlideshow*'
+      - 'src/components/SlideshowLinkedText*'
+      - 'src/utils/linkifyPublicText.js'
+      - 'scripts/test-slideshow-external-links.mjs'
+      - 'tests/fixtures/photo-motion-test.jsx'
+      - 'scripts/test-photo-transition-browser.mjs'
       - 'src/pages/HomeApproved.jsx'
       - 'src/components/mobile/MobileHomeView.jsx'
       - 'src/pages/PhotoSlideshow.jsx'
@@ -25,6 +30,8 @@ jobs:
           cache: npm
       - name: Install
         run: npm ci --ignore-scripts
+      - name: Slideshow hyperlink safety and guest URL regression
+        run: node scripts/test-slideshow-external-links.mjs
       - name: Slideshow publication regression
         run: node scripts/test-home-published-slideshow.mjs
       - name: Build with actual Vercel production release gates

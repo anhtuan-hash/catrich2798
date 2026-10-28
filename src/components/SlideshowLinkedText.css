@@ -1,0 +1,27 @@
+/* Published slideshow: plainly visible, keyboard-accessible external links. */
+.bhs-home .bss-inline-link,
+.bss .bss-inline-link {
+  color:#1263bf!important;
+  font:inherit;
+  font-weight:760;
+  text-decoration:underline!important;
+  text-decoration-thickness:1.5px;
+  text-underline-offset:3px;
+  overflow-wrap:anywhere;
+  cursor:pointer!important;
+  pointer-events:auto!important;
+  border-radius:3px;
+}
+.bhs-home .bss-inline-link:hover,
+.bss .bss-inline-link:hover {
+  color:#075099!important;
+  text-decoration-thickness:2.5px;
+}
+.bhs-home .bss-inline-link:focus-visible,
+.bss .bss-inline-link:focus-visible {
+  outline:3px solid #87baf5;
+  outline-offset:3px;
+  background:#e8f3ff;
+}
+.bss--gallery-view .bss-inline-link {color:#b0dcff!important;}
+.bss--gallery-view .bss-inline-link:hover {color:#fff!important;}

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Expand, Images, Maximize2, Pause, Play } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '../utils/supabase.js';
 import PhotoTransitionStage from './PhotoTransitionStage.jsx';
+import SlideshowLinkedText from './SlideshowLinkedText.jsx';
 import './HomePublishedSlideshow.css';
 import './HomePublishedSlideshowRefinement.css';
 import './HomePublishedSlideshowExhibition.css';
@@ -164,7 +165,7 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
           <div className="bhs-home__kicker"><Images size={15} /> BRIAN PHOTO STORY <i /> {en ? 'NOW SHOWING' : 'ĐANG TRÌNH CHIẾU'}</div>
           <h2>{selected.title}</h2>
           {selected.description && <div className={'bhs-home__summary' + (descriptionExpanded ? ' is-expanded' : '')}>
-            <p>{selected.description}</p>
+            <p><SlideshowLinkedText text={selected.description} /></p>
             <button type="button" aria-expanded={descriptionExpanded}
               onClick={() => setDescriptionExpanded((old) => !old)}>
               {descriptionExpanded ? (en ? 'Show less' : 'Thu gọn') : (en ? 'Read introduction' : 'Xem giới thiệu')}
@@ -200,7 +201,7 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
           </div>
           <div className="bhs-home__story-main" aria-live="polite" aria-atomic="true">
             <h3>{artworkTitle || (en ? 'Artwork ' : 'Tác phẩm ') + String(currentIndex + 1).padStart(2, '0')}</h3>
-            <p>{artworkStory || (en ? 'A school story told through images.' : 'Những câu chuyện được kể qua từng bức tranh.')}</p>
+            <p><SlideshowLinkedText text={artworkStory || (en ? 'A school story told through images.' : 'Những câu chuyện được kể qua từng bức tranh.')} /></p>
           </div>
         </aside>
       <div className="bhs-home__stage" ref={stageRef}
