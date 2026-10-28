@@ -1,5 +1,6 @@
 import React,{useEffect,useState} from 'react';
 import {createRoot} from 'react-dom/client';
+import PhotoTransitionStage from '../../src/components/PhotoTransitionStage.jsx';
 import '../../src/components/GlobalCompactNavigation.css';
 import '../../src/components/GlobalNavigationPastelPalette.css';
 import '../../src/components/GlobalNavigationTextOnlyCompact.css';
@@ -66,7 +67,7 @@ function Fixture(){
       <div className="bhs-home__exhibition"><aside className="bhs-home__story-panel">
        <div className="bhs-home__story-top"><span className="bhs-home__story-kicker">TÁC PHẨM ĐANG XEM</span><strong className="bhs-home__story-count">02/10</strong></div>
        <div className="bhs-home__story-main"><h3>11.3 Group 2</h3><p>Welcome to a playful Halloween world filled with mysterious witches, pumpkins, friendly ghosts, and magical creatures!</p></div>
-      </aside><div className="bhs-home__stage"><img className="bss-motion__image" src="/assets/footer/halloween-brand-card.svg" alt="Illustration fixture" style={{width:'100%',height:'100%',objectFit:'contain'}} />
+      </aside><div className="bhs-home__stage"><PhotoTransitionStage photo={{id:"halloween-v4-fixture-photo",caption:"Artwork displayed without cropping"}} src={originalPhoto} alt="Halloween artwork fixture image" mode="fade" direction={1} />
        <div className="bhs-home__controls"><span className="bhs-home__counter">02 / 10</span><div className="bhs-home__progress"><span style={{width:'24%'}}/></div><button onClick={()=>setCount(v=>v+1)}>⏸</button></div>
       </div></div>
     </section>
