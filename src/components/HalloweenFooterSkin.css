@@ -7,18 +7,20 @@
 html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"][data-halloween-footer="true"],
 html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] {
   color:#f9ecff!important;
-  border-color:rgba(208,151,121,.50)!important;
-  background-color:#17162c!important;
+  border-color:rgba(235,151,86,.58)!important;
+  background-color:#18112e!important;
+  /* The midnight footer is a quiet connecting frame. The Halloween artwork
+     lives INSIDE the three information cards, not in the outer background. */
   background-image:
-    radial-gradient(ellipse 60% 62% at 0% 100%,rgba(182,104,92,.13),transparent 100%),
-    linear-gradient(100deg,rgba(11,12,29,.09),rgba(17,13,34,.11)),
-    url('/assets/footer/halloween-night-footer.svg')!important;
-  background-size:auto,auto,cover!important;
-  background-position:center center!important;
+    radial-gradient(ellipse 60% 90% at 3% 100%,rgba(228,113,70,.13),transparent 78%),
+    radial-gradient(ellipse 48% 78% at 94% 0%,rgba(150,92,183,.16),transparent 100%),
+    linear-gradient(116deg,#19132f 0%,#261735 52%,#15132c 100%)!important;
+  background-size:auto,auto,auto!important;
+  background-position:center!important;
   background-repeat:no-repeat!important;
-  box-shadow:0 15px 38px rgba(37,23,60,.17),
-    0 0 0 1px rgba(170,111,106,.07),
-    inset 0 1px 0 rgba(255,207,169,.16)!important;
+  box-shadow:0 16px 43px rgba(29,16,54,.24),
+    0 0 0 1px rgba(223,142,103,.15),
+    inset 0 1px 0 rgba(255,199,149,.32)!important;
   /* BRIAN's fixed global atmosphere has z-index:45 and previously painted
      floating ghosts directly ON TOP of the footer/cards. Place the canonical
      opaque footer above that decorative layer, never above site navigation. */
@@ -29,35 +31,57 @@ html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsi
 }
 html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"][data-halloween-footer="true"] .signature-footer-v50-main > section,
 html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-main > section {
-  border-color:rgba(227,210,211,.78)!important;
-  box-shadow:0 8px 22px rgba(10,12,28,.17),
+  border-color:rgba(213,160,152,.72)!important;
+  box-shadow:0 13px 29px rgba(15,11,36,.19),
+    0 0 0 1px rgba(255,255,255,.28),
     inset 0 1px rgba(255,255,255,.95)!important;
 }
 /* Keep all real institution logo image pixels original on a warm parchment. */
 html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"][data-halloween-footer="true"] .signature-footer-v50-brand,
 html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-brand {
-  background:linear-gradient(145deg,#fffcf8 0%,#fff9f2 65%,#fff5ed 100%)!important;
+  border-color:rgba(221,156,109,.72)!important;
+  background-color:#fff4e8!important;
+  background-image:
+    url('/assets/footer/halloween-brand-card.svg'),
+    linear-gradient(145deg,#fff8ee 0%,#ffe9d6 54%,#ffdfc7 100%)!important;
+  background-position:center,center!important;
+  background-size:100% 100%,cover!important;
+  background-repeat:no-repeat!important;
 }
 html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"][data-halloween-footer="true"] .signature-footer-v50-profile,
 html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-profile {
-  background:linear-gradient(145deg,#fffefd 0%,#fcf9ff 70%,#f7f1ff 100%)!important;
+  border-color:rgba(189,159,221,.74)!important;
+  background-color:#f5eafb!important;
+  background-image:
+    url('/assets/footer/halloween-profile-card.svg'),
+    linear-gradient(145deg,#fbf4ff 0%,#f1e4fb 55%,#eaddf7 100%)!important;
+  background-position:center,center!important;
+  background-size:100% 100%,cover!important;
+  background-repeat:no-repeat!important;
 }
 html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"][data-halloween-footer="true"] .signature-footer-v50-credentials,
 html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-credentials {
-  background:linear-gradient(145deg,#fffdf9 0%,#fffbf6 68%,#fff4e9 100%)!important;
+  border-color:rgba(228,164,109,.72)!important;
+  background-color:#fff2df!important;
+  background-image:
+    url('/assets/footer/halloween-credentials-card.svg'),
+    linear-gradient(145deg,#fff9ec 0%,#ffead7 53%,#ffe0c3 100%)!important;
+  background-position:center,center!important;
+  background-size:100% 100%,cover!important;
+  background-repeat:no-repeat!important;
 }
 html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .signature-footer-v50-profile h2,
 html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .signature-footer-v50-profile h2 {
-  color:#663388!important;
-  text-shadow:0 1px 0 rgba(255,255,255,.7)!important;
+  color:#4c2b76!important;
+  text-shadow:0 1px 0 rgba(255,255,255,.62)!important;
 }
 html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .signature-footer-v50-section-label,
 html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .signature-footer-v50-section-label {
-  color:#ab4b1b!important;
+  color:#b44c19!important;
 }
 html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .signature-footer-v50-language-badge,
 html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .signature-footer-v50-language-badge {
-  background:#7c48a0!important;
+  background:#6f368d!important;
   color:#fff!important;
   box-shadow:0 2px 10px rgba(119,58,156,.23)!important;
 }
@@ -71,7 +95,7 @@ html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .s
 }
 html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .signature-footer-v50-star,
 html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .signature-footer-v50-star {
-  color:#e98130!important;
+  color:#bc4f20!important;
   filter:drop-shadow(0 0 3px rgba(255,156,71,.18))!important;
 }
 /* Keep body text dark against pale cards, even with global dark theme. */
@@ -79,12 +103,12 @@ html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="tr
 html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .signature-footer-v50-credentials > ul > li,
 html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .signature-footer-v50-detail,
 html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .signature-footer-v50-credentials > ul > li {
-  color:#4f4561!important;
-  border-bottom-color:rgba(110,73,135,.15)!important;
+  color:#3c3147!important;
+  border-bottom-color:rgba(102,69,119,.16)!important;
 }
 html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .signature-footer-v50-brand::after,
 html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .signature-footer-v50-brand::after {
-  color:#8a567a!important;
+  color:#8b657a!important;
 }
 /* Replace ONLY the former pastel decorative landscape, never the signature. */
 html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .signature-footer-dashboard-landscape,
@@ -94,7 +118,7 @@ html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .s
 }
 html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .signature-footer-dashboard-signoff,
 html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .signature-footer-dashboard-signoff {
-  color:#e6c4aa!important;
+  color:#f3b57e!important;
   text-shadow:none!important;
 }
 html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] > .signature-footer-static-summary,
@@ -103,14 +127,14 @@ html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] > 
 }
 html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger,
 html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger {
-  background:rgba(40,32,61,.93)!important;
+  background:rgba(26,18,52,.95)!important;
   color:#fff7ee!important;
   border-color:rgba(230,166,111,.64)!important;
   box-shadow:0 3px 10px rgba(10,9,25,.18)!important;
 }
 html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger strong,
 html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger strong {
-  color:#ffd6a5!important;
+  color:#ffbf77!important;
 }
 html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger:hover,
 html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger:hover {
@@ -151,3 +175,30 @@ html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][da
 }
 /* The seasonal footer can still be deactivated by Admin: none of these
    rules match if the attribute is false. */
+
+/*
+ * Real card decoration is background artwork, never a top-layer pseudo-element.
+ * All real SVG/img logos, captions, headings, lists and Portfolio button remain
+ * in front of the illustration in the original semantic DOM.
+ */
+html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-brian-logo,
+html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-brian-logo,
+html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-affiliations img,
+html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-affiliations img {
+  filter:none!important;
+  opacity:1!important;
+}
+html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-detail,
+html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-detail,
+html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-credentials > ul > li,
+html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-credentials > ul > li {
+  text-shadow:0 1px 0 rgba(255,255,255,.4)!important;
+}
+@media (max-width:720px) {
+  html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-main > section,
+  html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-main > section {
+    background-size:100% 100%,cover!important;
+    background-position:center!important;
+    background-repeat:no-repeat!important;
+  }
+}
