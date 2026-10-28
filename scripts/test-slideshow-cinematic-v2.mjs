@@ -60,9 +60,11 @@ const exhibitionCSS = read('src/components/HomePublishedSlideshowExhibition.css'
 check(exhibitionCSS.includes('grid-template-columns:minmax(250px, 31%) minmax(0, 1fr)') &&
   exhibitionCSS.includes('flex-direction:column') && exhibitionCSS.includes('object-fit:contain!important'),
   'responsive exhibition presents the sidebar on the left without image cropping');
-check(home.includes('descriptionExpanded') && home.includes('aria-expanded={descriptionExpanded}') &&
+check(!home.includes('Read introduction') && !home.includes('Xem giới thiệu') &&
+  !home.includes('descriptionExpanded') &&
+  home.includes('<SlideshowLinkedText text={selected.description} />') &&
   homeRefinement.includes('-webkit-line-clamp:2'),
-  'long album description is initially clamped to two lines and expandable');
+  'album summary remains compact and linked, without the Read introduction control');
 check(home.includes("const img = new Image(); img.src = publicImage(item.image_path)"),
   'the next and previous homepage artwork are preloaded for fluid motion');
 console.log('BRIAN cinematic slideshow regression QA PASS');
