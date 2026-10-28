@@ -19,6 +19,7 @@ import '../../src/components/FooterPortfolio.css';
 import '../../src/components/HalloweenFooterSkin.css';
 import '../../src/components/HalloweenFooterRefinement.css';
 import '../../src/styles/HalloweenFullHomeV4.css';
+import './halloween-home-v4-fixture-only.css';
 
 const originalPhoto='/hero/media/hero-1793195941901-36cea510456f.webp';
 function Fixture(){
@@ -74,13 +75,14 @@ function Fixture(){
         <span>WEEKLY ENGLISH PRACTICE</span><h2>Hub bài tập theo tuần</h2><p>Cuộn để xem toàn bộ bài của từng khối và sắp xếp theo ABC hoặc ngày công bố.</p>
       </div><div className="bha-practice__published-count"><span>ĐÃ XUẤT BẢN</span><strong>65</strong></div></header>
       <div className="bha-grades bha-grades--folio">{[10,11,12].map((grade,i)=>
-        <article className={'bha-grade bha-grade--with-lessons bha-folio-grade bha-folio-grade--'+grade} key={grade}>
+        <article className={'bha-grade bha-grade--with-lessons bha-folio-grade bha-folio-grade--'+grade} key={grade} style={{'--accent':['#346ea8','#c78124','#168b7b'][i],'--soft':['#edf3f8','#fff4e6','#e9f6f1'][i]}}><div className="bha-folio-grade__rule" aria-hidden="true"/>
           <header className="bha-folio-grade__masthead"><span>KHỐI {grade}</span><small>{i===1?21:22} bài</small></header>
-          <div className="bha-grade-copy bha-folio-grade__copy"><h3>Tiếng Anh {grade}</h3><small>Term 1 | Grade {grade} | Week 15</small>
+          <div className="bha-grade-copy bha-folio-grade__copy"><p className="bha-folio-grade__kicker">✓ THEO TUẦN</p><h3>Tiếng Anh {grade}</h3><small>Term 1 | Grade {grade} | Week 15</small>
           <button onClick={()=>setCount(v=>v+1)}>Vào bài →</button></div>
-          <div className="bha-grade-recent">{[1,2,3,4,5].map(n=><div key={n} className="bha-grade-lesson">
+          <div className="bha-grade-art bha-folio-grade__art" aria-hidden="true"><span className="bha-folio-grade__serial">0{i+1}</span><b>{grade}</b><i/><i/></div>
+          <div className="bha-grade-recent" data-v4-simulated-injected-lesson-list>{[1,2,3,4,5].map(n=><article key={n} className="bha-grade-lesson">
             <span>Term 1 | Grade {grade} | Week {n.toString().padStart(2,'0')}</span>
-            <button onClick={()=>setCount(v=>v+1)}>▶</button></div>)}</div>
+            <button onClick={()=>setCount(v=>v+1)} aria-label={'Mở bài '+n}>▶</button></article>)}</div>
         </article>
       )}</div>
     </section>
@@ -93,7 +95,7 @@ function Fixture(){
       <div className="signature-footer-v50-affiliations"><img src="/footer-pek-logo.png" alt="Pétrus Ký"/><img src="/footer-cambridge-logo.png" alt="Cambridge"/></div></section>
     <section className="signature-footer-v50-profile"><span className="signature-footer-v50-language-badge">VI</span>
       <h2>NGUYỄN ANH TUẤN (MR.)</h2><ul className="signature-footer-v50-details">
-        {['Trường Trung – Tiểu học Pétrus Ký','Tổ trưởng chuyên môn tiếng Anh','0339 270798','Trung tâm khảo thí VN070','Giám khảo vấn đáp Cambridge'].map(x=><li className="signature-footer-v50-detail" key={x}>{x}</li>)}</ul></section>
+        {['Trường Trung – Tiểu học Pétrus Ký','Tổ trưởng chuyên môn tiếng Anh','0339 270798','Trung tâm khảo thí VN070','Giám khảo vấn đáp Cambridge'].map((x,i)=><li className={'signature-footer-v50-detail detail-'+['school','role','phone','centre','examiner'][i]} key={x}><span className="signature-footer-v50-detail-icon" aria-hidden="true"/><span>{x}</span></li>)}</ul></section>
     <section className="signature-footer-v50-credentials"><span className="signature-footer-v50-section-label">HỌC VẤN & CHỨNG CHỈ CHUYÊN MÔN</span>
       <ul>{['Cử nhân Ngôn ngữ Anh','Văn bằng sau đại học chuyên ngành Quản lý giáo dục','Thạc sĩ Giảng dạy tiếng Anh','Thạc sĩ Quản lý giáo dục','Thạc sĩ Ngôn ngữ Anh'].map(x=><li key={x}><span className="signature-footer-v50-star">★</span><span>{x}</span></li>)}</ul>
     </section>
