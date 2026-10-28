@@ -45,10 +45,18 @@ assert.match(nav, /id: 'attendance'[^\n]*#\/attendance/);
 assert.match(nav, /aria-modal="true"/);
 assert.match(shell, /<GlobalGuestNavigationHub[^\n]*mobile=\{mobile\}/);
 
-assert.match(page, /data-demo-only="true"/);
-assert.doesNotMatch(page, /\b(?:supabase|fetch|axios|XMLHttpRequest|localStorage|sessionStorage)\b/);
+assert.match(page, /data-real-public-data="true"/);
+assert.match(page, /\.from\('bes_guest_preview_feed'\)/);
+assert.match(page, /\.from\('custom_game_platforms'\)/);
+assert.match(page, /\.eq\('status','approved'\)/);
+assert.doesNotMatch(page, /\.from\('(?:lesson_check_activities|work_hub_items|bes_extra_attendance_sessions)'\)/);
+assert.doesNotMatch(page, /\b(?:XMLHttpRequest|localStorage|sessionStorage)\b/);
 assert.doesNotMatch(page, /<iframe|<form|<input|<textarea|<select/);
-assert.doesNotMatch(page, /gradebook-studio/);
+assert.match(page, /PRIVATE_APP_SLUGS/);
+assert.match(page, /'gradebook-studio'/);
+const navCss = read('src/components/GlobalGuestNavigationHub.css');
+assert.match(navCss, /\[data-guest-destination="apps"\] \{ order: 20 !important; \}/);
+assert.match(navCss, /\.brian-nav__primary:has\(> \[data-guest-destination\]\) > button:first-child \{ order: -10 !important; \}/);
 assert.match(spec, /Supabase RLS/);
 
-console.log('BRIAN Public Preview: policy, route gates, locked navigation, guest-only mock content — PASS');
+console.log('BRIAN Public Preview: route security, Home-first guest navigation and privacy-safe real public feeds — PASS');
