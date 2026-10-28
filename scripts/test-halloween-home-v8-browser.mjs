@@ -45,11 +45,11 @@ try{
   await page.goto(BASE+'/tests/fixtures/halloween-home-v8.html',{waitUntil:'networkidle'});
   await page.locator('#v4-hero').waitFor();
   const off=await state(page);
-  await page.screenshot({path:ART+'/'+label+'-original.png',fullPage:true,animations:'disabled'});
+  await page.screenshot({path:ART+'/'+label+'-original.png',fullPage:true,animations:'disabled',style:'[data-visual-qa-controls]{visibility:hidden!important}'});
   await page.locator('#v4-toggle').click();
   await sleep(400);
   const on=await state(page);
-  await page.screenshot({path:ART+'/'+label+'-halloween.png',fullPage:true,animations:'disabled'});
+  await page.screenshot({path:ART+'/'+label+'-halloween.png',fullPage:true,animations:'disabled',style:'[data-visual-qa-controls]{visibility:hidden!important}'});
   assert.equal(on.master,'on',label+' master enabled');
   assert.ok(on.art?.includes('halloween-v8-castle-art.avif'),label+' art lives in its own decorative layer');
   assert.equal(off.art,null,label+' OFF has no illustrated art DOM');
