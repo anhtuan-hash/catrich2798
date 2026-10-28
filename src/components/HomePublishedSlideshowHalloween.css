@@ -1,0 +1,319 @@
+/*
+ * BRIAN PHOTO STORY — HALLOWEEN EXHIBITION
+ * ALL selectors are scoped to the Halloween album's homepage slideshow root.
+ * The website navbar, Hero, other apps, and all non-Halloween albums are untouched.
+ */
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] {
+  --bhx-orange:#ff963d;
+  --bhx-gold:#ffcb75;
+  --bhx-lilac:#d4c5ff;
+  --bhx-text:#f5f1ff;
+  --bhx-edge:rgba(255,144,55,.68);
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  color:var(--bhx-text);
+  border:1px solid rgba(255,137,44,.5);
+  background-color:#0a0d24;
+  background-image:
+    linear-gradient(100deg,rgba(7,9,29,.51) 0%,rgba(10,10,32,.22) 49%,rgba(12,10,36,.23) 100%),
+    url('/assets/slideshow/halloween-night.svg');
+  background-position:center top;
+  background-repeat:no-repeat;
+  background-size:cover;
+  box-shadow:0 25px 55px rgba(19,12,51,.24), inset 0 1px rgba(255,175,86,.25);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"]::before {
+  content:none;
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"]::after {
+  content:"";
+  position:absolute;z-index:0;left:-10%;right:-10%;bottom:-42px;
+  height:clamp(85px,13vw,185px);
+  pointer-events:none;
+  background:
+    radial-gradient(ellipse 44% 48% at 8% 65%,rgba(154,68,203,.37),transparent 95%),
+    radial-gradient(ellipse 60% 68% at 81% 75%,rgba(83,52,186,.4),transparent 100%);
+  opacity:.68;
+  animation:bhx-fog 14s ease-in-out infinite alternate;
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] > :is(
+  .bhs-home__header,.bhs-home__albums,.bhs-home__exhibition,.bhs-home__footer) {
+  position:relative;z-index:1;
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__header {
+  margin-bottom:clamp(17px,2vw,25px);
+  gap:18px;
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__headline {
+  max-width:min(930px,100%);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__kicker {
+  color:#e4c0ff;
+  font-size:clamp(10px,.85vw,12px);
+  font-weight:880;
+  letter-spacing:.155em;
+  text-shadow:0 2px 9px rgba(155,63,245,.65);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__kicker i,
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__footer i {
+  background:#ff8a31;
+  box-shadow:0 0 10px #ff8a31;
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__headline h2 {
+  color:#ffac58;
+  font-family:Georgia,"Times New Roman",serif;
+  font-weight:800;
+  font-size:clamp(26px,2.9vw,42px);
+  letter-spacing:.015em;
+  line-height:1.17;
+  text-shadow:0 0 8px rgba(255,94,22,.5),0 0 25px rgba(255,100,16,.32),
+    0 3px 1px rgba(52,12,22,.92);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__headline h2::after {
+  content:" 🎃";
+  font-family:system-ui,sans-serif;font-size:.68em;text-shadow:none;
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__summary {
+  max-width:min(880px,100%);margin-top:10px;
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__summary p,
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__headline p {
+  color:#d5cdec;
+  font-size:clamp(12px,1.08vw,15px);
+  text-shadow:0 2px 7px rgba(2,3,17,.8);
+  line-height:1.65;
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bss-inline-link {
+  color:#ffbf66!important;
+  text-decoration-color:#ff9f51!important;
+  text-decoration-thickness:2px;
+  text-underline-offset:3px;
+  text-shadow:0 0 12px #e87b3f55;
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bss-inline-link:hover {
+  color:#fff0b8!important;
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bss-inline-link:focus-visible {
+  outline:3px solid #ffb963;
+  outline-offset:3px;background:rgba(66,20,72,.95);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__open {
+  color:#ffd28b;
+  background:linear-gradient(135deg,rgba(54,23,56,.9),rgba(19,15,37,.91));
+  border:1px solid #ff9c43;
+  border-radius:14px;
+  padding:13px clamp(12px,1.8vw,23px);
+  box-shadow:0 0 0 1px rgba(255,134,24,.15),0 0 19px rgba(255,108,22,.4),
+    inset 0 1px rgba(255,188,125,.3);
+  text-shadow:0 0 8px rgba(255,143,36,.35);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__open:hover {
+  color:#fff5d5;background:rgba(90,36,66,.95);border-color:#ffd080;
+  box-shadow:0 0 27px rgba(255,118,23,.6);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__albums button {
+  color:#e2d0ff;background:rgba(23,16,47,.75);
+  border-color:rgba(208,164,253,.34);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__albums button.is-active {
+  background:#4d285e;color:#ffca7d;border-color:#ffa04d;
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__exhibition {
+  gap:clamp(12px,1.75vw,23px);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__story-panel {
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(255,132,46,.6);
+  background:
+    radial-gradient(circle at 18% 94%,rgba(119,41,132,.25),transparent 55%),
+    linear-gradient(160deg,rgba(14,12,39,.96) 0%,rgba(27,14,52,.94) 75%,rgba(43,17,53,.95) 100%);
+  box-shadow:0 0 0 1px rgba(255,134,44,.10),inset 0 1px rgba(255,194,132,.16),
+    0 0 25px rgba(118,55,175,.22);
+  color:#ede5ff;
+  padding:clamp(17px,1.8vw,26px);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__story-panel::before {
+  content:"";
+  position:absolute;top:0;left:0;
+  width:clamp(70px,9vw,145px);height:clamp(70px,9vw,145px);
+  pointer-events:none;
+  opacity:.45;
+  background:url('/assets/slideshow/halloween-web.svg') top left / contain no-repeat;
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__story-top,
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__story-main {
+  position:relative;z-index:1;
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__story-top {
+  border-bottom:1px solid rgba(237,180,247,.3);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__story-kicker {
+  color:#ffae67;
+  text-shadow:0 0 9px rgba(255,117,52,.2);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__story-count {
+  color:#ff9c41;
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 0 14px rgba(255,107,34,.52);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__story-count i {
+  color:#bcade5;
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__story-navigation button {
+  color:#f0d9ff;
+  background:rgba(75,43,100,.5);
+  border-color:rgba(202,154,253,.48);
+  box-shadow:inset 0 1px rgba(255,255,255,.12);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__story-navigation button:hover {
+  background:rgba(158,69,119,.48);
+  color:#ffe4b4;
+  border-color:rgba(255,167,90,.77);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__story-main h3 {
+  color:#ffb76c;
+  text-shadow:0 0 12px rgba(255,116,38,.15);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__story-main p {
+  color:#e6dcf8;
+  line-height:1.75;
+  font-weight:480;
+  text-shadow:0 1px 4px rgba(3,2,18,.8);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__exhibition > .bhs-home__stage {
+  border:1px solid rgba(255,155,67,.85);
+  border-radius:clamp(13px,1.65vw,22px);
+  background:#050713;
+  box-shadow:0 0 0 2px rgba(255,128,31,.21),0 0 25px rgba(255,115,22,.43),
+    0 20px 55px rgba(2,2,20,.57);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__stage::before {
+  content:"";position:absolute;z-index:6;top:0;left:0;
+  pointer-events:none;
+  width:clamp(75px,8vw,130px);height:clamp(75px,8vw,130px);
+  background:url('/assets/slideshow/halloween-web.svg') top left / contain no-repeat;
+  opacity:.42;
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__stage::after {
+  content:"";position:absolute;z-index:6;top:0;right:0;
+  pointer-events:none;
+  width:clamp(75px,8vw,130px);height:clamp(75px,8vw,130px);
+  background:url('/assets/slideshow/halloween-web.svg') top left / contain no-repeat;
+  transform:scaleX(-1);opacity:.42;
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__halloween-ghost {
+  position:absolute;
+  top:12%;right:clamp(3px,.6vw,13px);
+  width:clamp(32px,3vw,47px);
+  aspect-ratio:120/135;
+  z-index:7;
+  pointer-events:none;
+  background:url('/assets/slideshow/halloween-ghost.svg') center / contain no-repeat;
+  opacity:.85;
+  filter:drop-shadow(0 0 12px rgba(170,130,251,.55));
+  animation:bhx-ghost-float 4.6s ease-in-out infinite;
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__stage > .bss-motion {
+  background:#070a1b;
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__arrow {
+  z-index:8;color:#ffe7c7;
+  border:1px solid rgba(255,157,79,.6);
+  background:rgba(23,12,40,.75);
+  box-shadow:0 0 12px rgba(255,98,36,.19);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__arrow:hover {
+  background:rgba(118,40,77,.82);
+  border-color:#ffbb69;
+  box-shadow:0 0 18px rgba(255,105,35,.48);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__controls {
+  z-index:8;
+  background:linear-gradient(180deg,rgba(9,7,26,.72),rgba(7,6,22,.96));
+  border-top:1px solid rgba(255,158,71,.18);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__counter {
+  color:#fff0df;
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__counter i {
+  color:#b9a5d9;
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__progress {
+  height:4px;background:rgba(194,176,229,.26);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__progress span {
+  background:linear-gradient(90deg,#ff7a29,#ffb245,#ffe28c);
+  box-shadow:0 0 10px rgba(255,143,36,.67);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__controls button {
+  background:rgba(129,85,135,.19);color:#ffe0c3;
+  border:1px solid rgba(255,154,90,.14);
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__controls button:hover {
+  background:rgba(226,117,77,.23);color:#fff;
+}
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__footer {
+  color:#c4afe1;
+  text-shadow:0 1px 4px rgba(6,3,25,.7);
+}
+/* The moon illustration remains in the section background. The artwork pixels
+   are never replaced, cropped, blurred, or covered by the Halloween artwork. */
+.app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bss-motion__image {
+  object-fit:contain!important;
+  object-position:center!important;
+}
+@keyframes bhx-ghost-float {
+  0%,100% {transform:translateY(0) rotate(-3deg)}
+  50% {transform:translateY(-10px) rotate(3deg)}
+}
+@keyframes bhx-fog {
+  0% {transform:translateX(-2%);opacity:.43}
+  100% {transform:translateX(2%);opacity:.73}
+}
+@media(max-width:860px) {
+  .app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] {
+    background-size:auto 100%;background-position:65% top;
+  }
+  .app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__header {
+    gap:12px;margin-bottom:15px;
+  }
+  .app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__story-panel {
+    min-height:0;padding:clamp(16px,2.6vw,24px);
+  }
+  .app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__story-main p {
+    font-size:clamp(12px,2vw,15px);
+  }
+}
+@media(max-width:520px) {
+  .app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] {
+    padding:13px;border-radius:18px;
+  }
+  .app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__headline h2 {
+    font-size:clamp(24px,6vw,31px);
+  }
+  .app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__kicker {
+    letter-spacing:.09em;font-size:9px;
+  }
+  .app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__open {
+    padding:10px 13px;min-height:42px;font-size:12px;
+  }
+  .app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__stage::before,
+  .app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__stage::after {
+    width:65px;height:65px;
+  }
+  .app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__halloween-ghost {
+    width:28px;top:8%;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  .app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"]::after,
+  .app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__halloween-ghost {
+    animation:none!important;
+  }
+  .app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__open,
+  .app-shell[data-route="home"] .bhs-home[data-halloween-theme="true"] .bhs-home__arrow {
+    transition:none!important;
+  }
+}
