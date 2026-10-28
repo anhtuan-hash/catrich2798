@@ -88,3 +88,22 @@
     scroll-snap-align: start;
   }
 }
+
+/* Public preview route rail — never blocks vertical page scrolling. */
+.brian-nav__guest-tab.is-locked { opacity: .9; }
+.brian-nav__guest-tab.is-locked:hover { opacity: 1; }
+.brian-nav__guest-tab.is-active { box-shadow: 0 2px 10px #3757a333, inset 0 0 0 1px #5579d133 !important; }
+.brian-guest-mobile-destinations { display: flex; align-items: center; width: 100%; gap: 7px; padding: 8px 12px; overflow-x: auto; background: #fffefc; box-shadow: 0 4px 12px #19385812; scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
+.brian-guest-mobile-destinations > button { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 5px; border: 1px solid #d6e4f5; padding: 10px 13px; border-radius: 13px; font-weight: 700; font-size: 13px; color: #405e7d; background: #f6faff; cursor: pointer; }
+.brian-guest-mobile-destinations > button.is-active { background: #e1edff; color: #2053a5; }
+.brian-guest-mobile-destinations .brian-nav__guest-lock { display: inline-grid; }
+.brian-guest-lock-backdrop { position: fixed; inset: 0; z-index: 2147482000; display: grid; place-items: center; padding: 20px; background: #081b38a8; }
+.brian-guest-lock-dialog { background: #fff; border-radius: 25px; padding: 32px; width: min(100%, 460px); box-shadow: 0 25px 90px #071e3f44; color: #203a57; text-align: center; }
+.brian-guest-lock-dialog__icon { display: grid; place-items: center; background: #e8f1ff; width: 70px; height: 70px; border-radius: 21px; margin: 0 auto 18px; }
+.brian-guest-lock-dialog__icon svg { fill: none; stroke: #2b67c9; stroke-width: 1.6; width: 34px; height: 34px; }
+.brian-guest-lock-dialog h2 { font-size: 23px; margin: 0 0 9px; }
+.brian-guest-lock-dialog p { color: #62778f; font-size: 15px; line-height: 1.65; margin: 0 0 24px; }
+.brian-guest-lock-dialog__actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.brian-guest-lock-dialog__actions button, .brian-guest-lock-dialog__actions a { display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 13px; min-height: 43px; padding: 11px 17px; font-weight: 720; font-size: 14px; text-decoration: none; background: #edf3fa; color: #27476f; cursor: pointer; }
+.brian-guest-lock-dialog__actions a { background: #2870e5; color: #fff; }
+@media(max-width:820px) { .brian-guest-mobile-destinations { position: relative; z-index: 4; } }
