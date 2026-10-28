@@ -246,6 +246,23 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
           </button>
         </div>
       </div>
+      {seasonalHome.enabled && isHalloweenAlbum(selected) && count > 1 ? (
+        <nav className="bhs-home__filmstrip" aria-label={en ? 'Choose Halloween artwork' : 'Chọn tranh Halloween'} data-halloween-filmstrip="true">
+          {photos.map((item, photoIndex) => (
+            <button
+              type="button"
+              className={'bhs-home__filmstrip-item' + (photoIndex === currentIndex ? ' is-active' : '')}
+              aria-label={en ? 'View artwork ' + (photoIndex + 1) : 'Xem tranh ' + (photoIndex + 1)}
+              aria-pressed={photoIndex === currentIndex}
+              key={item.id}
+              onClick={() => { setPlaying(false); setDirection(photoIndex > currentIndex ? 1 : -1); setIndex(photoIndex); }}
+            >
+              <img src={publicImage(item.image_path)} loading="lazy" alt="" decoding="async" />
+              <span>{String(photoIndex + 1).padStart(2, '0')}</span>
+            </button>
+          ))}
+        </nav>
+      ) : null}
       </div>
       <div className="bhs-home__footer">
         <span>{en ? 'A school story in pictures' : 'Những khoảnh khắc đáng nhớ của nhà trường'}</span>
