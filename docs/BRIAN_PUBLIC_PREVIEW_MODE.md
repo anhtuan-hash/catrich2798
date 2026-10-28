@@ -139,3 +139,27 @@ remain visible as locked navigation labels only, with no page or data access.
   work item descriptions. An admin-authorized release is a separate,
   irreversible publication decision; simply disabling mouse events does
   **not** safeguard data returned to a public browser.
+
+## Public detailed calendar (28 October 2026)
+
+The owner has requested that anonymous users can see the **actual detailed
+work calendar**, not aggregated daily placeholders. The read-only feed
+`public.bes_guest_preview_entries` now holds an individual public mirror
+of the 370 official imported schedule records (`schedule_event=true`),
+including a title, start/end timestamp, local date, safe note and venue.
+On the selected day, the existing BRIAN work planner shows each real event.
+Below it, a monthly chronological archive lists **all** imported schedule
+records so guests can browse by scrolling without needing to click dates.
+
+The mirror intentionally does **not** expose assignment identifiers,
+attachments, arbitrary metadata, internal feedback, meeting URLs,
+passcodes or long numeric contacts. A known contact/login pattern in the
+description or schedule note is replaced with a sign-in notice instead.
+This is a limited publication of the official school work schedule,
+not a blanket RLS grant over `work_hub_items`.
+
+Data is refreshed by the already-existing database job
+`bes_guest_preview_entries_5min`. Anonymous permission is SELECT on
+the curated table only. The UI still prevents all clicks/edits within
+the guest preview while allowing normal wheel, touch and keyboard scrolling.
+

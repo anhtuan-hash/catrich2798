@@ -92,12 +92,23 @@ assert.match(navCss, /\[data-guest-destination="apps"\] \{ order: 20 !important;
 assert.match(navCss, /\.brian-nav__primary:has\(> \[data-guest-destination\]\) > button:first-child \{ order: -10 !important; \}/);
 
 assert.match(page, /room_label,time_label,periods,difficulty,duration_minutes/);
-assert.match(page, /countWeight:/);
+assert.match(page, /start_time,end_time,refreshed_at/);
+assert.match(page, /function GuestScheduleArchive/);
+assert.match(page, /function GuestDashboard/);
+assert.match(page, /title:item.title/);
+assert.match(page, /date:item.start_time/);
+assert.match(page, /schedule_end_at:item.end_time/);
+assert.match(page, /schedule_location:item.room_label/);
+assert.match(page, /<GuestScheduleArchive entries=\{entries\}/);
+assert.doesNotMatch(page, /countWeight:/);
+assert.doesNotMatch(page, /title:\(Number\(item.total_count\)/);
 assert.doesNotMatch(page, /entries\.flatMap\(item=>/);
 assert.match(page, /brian-guest-full__extended-report/);
 assert.match(page, /brian-guest-full__classes/);
 assert.match(read('src/components/DashboardWorkPlanner.jsx'), /countWeight/);
 assert.match(pageStyle, /brian-guest-full__activity-grid \{ display:grid !important/);
+assert.match(pageStyle, /brian-guest-full__calendar-archive/);
+assert.match(pageStyle, /\.bwp-agenda \{max-height:none!important;overflow:visible!important/);
 assert.match(spec, /Supabase RLS/);
 
 console.log('BRIAN Public Preview: full-page read-only views, real public entries, native scrolling, private route gates — PASS');
