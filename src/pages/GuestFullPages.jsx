@@ -11,6 +11,7 @@ import { readLessonCheckHero } from '../utils/lessonCheckHeroCms.js';
 import WebAppsRedesign from './WebAppsRedesign.jsx';
 import DashboardWorkPlanner from '../components/DashboardWorkPlanner.jsx';
 import DashboardNewsHub from '../components/DashboardNewsHub.jsx';
+import GuestAttendanceStudio from '../components/GuestAttendanceStudio.jsx';
 import './LessonCheckStudio.css';
 import './LessonCheckApprovedMockupOne.css';
 import './LessonCheckHeroIndependent.css';
@@ -229,38 +230,9 @@ function GuestDashboard({entries,stats,hero,language}){
   </div>;
 }
 function GuestAttendance({language}){
-  const en=language==='en';
-  const summary=[
-    {Icon:CalendarDays,count:'03',vi:'Buổi học mẫu',english:'Sample sessions',tone:'blue'},
-    {Icon:CheckCircle2,count:'02',vi:'Buổi mẫu hoàn tất',english:'Sample completed',tone:'mint'},
-    {Icon:Users,count:'01',vi:'Buổi mẫu sắp tới',english:'Sample upcoming',tone:'orange'},
-  ];
-  const cards=[
-    {id:'01',vi:'Lịch điểm danh',english:'Attendance calendar'},
-    {id:'02',vi:'Điểm danh nhanh',english:'Quick attendance'},
-    {id:'03',vi:'Lịch sử minh họa',english:'Sample history'},
-  ];
-  return <div className="brian-guest-full__section brian-guest-full__attendance" data-demo-attendance="true">
-    <PublicHero section="attendance" language={language}/>
-    <div className="brian-guest-preview brian-guest-full__attendance-demo">
-      <div className="brian-guest-preview__summary-grid">
-        {summary.map(({Icon,count,vi,english,tone})=><div key={tone} className={'brian-guest-preview__metric is-'+tone}>
-          <Icon size={22}/><strong>{count}</strong><span>{en?english:vi}</span>
-        </div>)}
-      </div>
-      <section className="brian-guest-preview__section">
-        <div className="brian-guest-preview__section-head">
-          <h2>{en?'Attendance workspace preview':'Xem trước giao diện điểm danh'}</h2>
-          <p>{en?'No real classes, students or attendance records are loaded.':'Không tải danh sách lớp, học sinh hay lịch sử điểm danh thật.'}</p>
-        </div>
-        <div className="brian-guest-preview__attendance-grid">{cards.map((item)=>
-          <article key={item.id} className="brian-guest-preview__attendance-card">
-            <span>{item.id}</span><h3>{en?item.english:item.vi}</h3>
-            <p>{en?'View only · demo data':'Chỉ xem · dữ liệu mẫu'}</p><LockKeyhole size={18}/>
-          </article>)}</div>
-      </section>
-    </div>
-  </div>;
+  // Visually complete guest experience; no attendance tables or class records
+  // are fetched. All values live in a private, fixed front-end fixture.
+  return <GuestAttendanceStudio language={language}/>;
 }
 function PublicSignin({language}){
   const en=language==='en';
@@ -270,7 +242,7 @@ export default function GuestFullPages({route,language='vi'}){
   const section=ROUTE_SECTION[route]||'apps';
   const {status,stats,entries,games,hero}=usePublicReadonlyData(section);
   return <div className="brian-guest-full" data-real-public-data={section!=='attendance' ? "true" : undefined} data-demo-only={section==='attendance' ? "true" : undefined} data-guest-full-pages={section}>
-    <PublicPreviewBanner section={section} language={language}/>
+    {section !== 'attendance' && <PublicPreviewBanner section={section} language={language}/>}
     {status==='unavailable'&&<div className="brian-guest-full__unavailable" role="status">{language==='vi'?'Không tải được dữ liệu công khai. Vui lòng thử lại sau.':'Published data is unavailable.'}</div>}
     <GuestReadOnlyBoundary language={language}>
       {section==='apps'?<GuestApps games={games} language={language}/>:

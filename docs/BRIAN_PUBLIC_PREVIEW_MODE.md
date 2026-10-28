@@ -223,3 +223,31 @@ No source table permissions or signed-in app permissions were modified.
 
 This policy supersedes previous sections describing detailed guest
 Attendance or the separate Dashboard schedule archive.
+
+
+## Guest Attendance Studio visual upgrade (28 October 2026)
+
+Current guest `#/attendance` renders a complete **standalone, read-only
+attendance studio** using `src/components/GuestAttendanceStudio.jsx` and its
+scoped CSS, instead of three placeholder preview cards. It includes:
+
+- A designed attendance hero with date and subtle read-only marker (no
+  "dữ liệu mô phỏng", "dữ liệu mẫu", demo labels or explanatory subtitle).
+- Four KPI cards: active classes (18), today's sessions (6), weekly presence
+  rate (94%), items needing review (2).
+- A monthly calendar with session markers, six detailed day sessions, class
+  timetable and classroom information.
+- A quick-attendance panel with teacher context, class 11.1, a read-only
+  student roster, present/late/absent/excused status chips and a save affordance.
+- An eight-row history table and weekly report chart with class rankings.
+- **All classes use decimal-dot school naming** (e.g. `10.5`, `11.1`,
+  `11.3`, `12.2`), never letter naming such as `10A1` or `11A3`.
+- Responsive desktop/tablet/mobile bento layout and normal full-page scroll.
+
+No school attendance record is fetched by the guest page; the studio uses
+fixed, self-contained synthetic fixtures. Nothing mutates Supabase or any
+user data. Actual authenticated Attendance workspace and its permissions
+remain unchanged. The shared guest boundary also prevents clicks, form
+submission, keyboard activation and drag/drop without suppressing page
+scrolling. Keep all synthetic numbers and names private to this component,
+so guest rendering cannot accidentally import authenticated records.
