@@ -64,7 +64,32 @@ try {
     const st=getComputedStyle(el);return {visibility:st.visibility,opacity:st.opacity};
   });
   assert.equal(originalLandscape.visibility,'hidden','old pastel landscape does not leak into night background');
-  assert.match(themed.background,/halloween-night-footer[.]svg/,'Halloween art applied to actual footer');
+  assert.ok(!themed.background.includes('halloween-night-footer.svg'),
+    'large spooky illustration no longer covers outer footer');
+  assert.match(themed.background,/linear-gradient/,'outer frame uses quiet plum gradients');
+  const artCards=await page.locator('.signature-footer-v50-main > section').evaluateAll(nodes=>
+    nodes.map(node=>{
+      const css=getComputedStyle(node);
+      const rect=node.getBoundingClientRect();
+      return {className:node.className,image:css.backgroundImage,color:css.color,
+        rect:{width:rect.width,height:rect.height}};
+    }));
+  const expectedArt=['halloween-brand-card.svg','halloween-profile-card.svg','halloween-credentials-card.svg'];
+  artCards.forEach((card,i)=>{
+    assert.ok(card.image.includes(expectedArt[i]),
+      card.className+' has unique artwork INSIDE the card');
+    assert.ok(card.image.includes('linear-gradient('),
+      card.className+' artwork is layered on themed pastel gradient');
+    assert.ok(card.rect.width>140 && card.rect.height>160,
+      card.className+' remains usable and full size');
+  });
+  for(const filename of expectedArt){
+    const response=await page.request.get(BASE+'/assets/footer/'+filename);
+    assert.equal(response.status(),200,'locally bundled card illustration '+filename);
+    const svg=await response.text();
+    assert.ok(svg.includes('<svg') && !svg.includes('<script'),
+      'safe original SVG response '+filename);
+  }
   assert.ok(themedCard.background!==beforeCard.background,'profile card receives Halloween palette');
   assert.equal(await page.locator('.signature-footer-v50-main > section').count(),3,'all three original footer cards remain');
   for(const url of ['/brian-english-brand-logo.png','/footer-pek-logo.png','/footer-cambridge-logo.png']){
@@ -84,19 +109,26 @@ try {
   assert.equal((await get('.signature-footer-v50-profile')).background,beforeCard.background,
     'toggle OFF restores original card backgrounds');
   await toggle(true);
-  assert.match((await get(footer)).background,/halloween-night-footer[.]svg/,'toggle ON reapplies design');
+  assert.match((await get('.signature-footer-v50-brand')).background,/halloween-brand-card[.]svg/,'toggle ON reapplies embedded card artwork');
   console.log('✓ Elegant background and atmosphere safely behind all three cards');
   console.log('✓ Desktop ON/OFF: unchanged geometry, original logos, portfolio and Hero');
   await page.setViewportSize({width:390,height:844});
   const mobileFooter=await get(footer);
+  const mobileCardArtwork=await page.locator('.signature-footer-v50-main > section').evaluateAll(nodes=>
+    nodes.map(el=>getComputedStyle(el).backgroundImage));
+  assert.ok(mobileCardArtwork.every((background,i)=>background.includes(['halloween-brand-card.svg','halloween-profile-card.svg','halloween-credentials-card.svg'][i])),
+    'all three embedded Halloween illustrations remain in their own cards on mobile');
   assert.ok(mobileFooter.rect.width<=390,'mobile footer fits viewport');
-  assert.match(mobileFooter.background,/halloween-night-footer[.]svg/,'mobile footer uses same theme');
+  assert.match(mobileFooter.background,/linear-gradient/,'mobile footer uses same restrained frame');
   const first=await page.locator('.signature-footer-v50-main > section').first().boundingBox();
   const second=await page.locator('.signature-footer-v50-main > section').nth(1).boundingBox();
   assert.ok(first && second && second.y>first.y,'mobile footer cards remain vertically stacked');
   await toggle(false);
-  assert.ok(!(await get(footer)).background.includes('halloween-night-footer.svg'),
-    'mobile OFF restores original appearance');
+  assert.equal((await get(footer)).background,neutral.background,
+    'mobile OFF restores exact original frame gradient');
+  const restoredMobileCards=await page.locator('.signature-footer-v50-main > section').evaluateAll(nodes=>nodes.map(el=>getComputedStyle(el).backgroundImage));
+  assert.ok(restoredMobileCards.every((bg,i)=>!bg.includes(['halloween-brand-card.svg','halloween-profile-card.svg','halloween-credentials-card.svg'][i])),
+    'turning OFF removes card illustrations on mobile');
   console.log('✓ Mobile ON/OFF and responsive card stacking');
   console.log('BRIAN Halloween Footer browser QA PASS');
 } finally {if(browser)await browser.close();vite.kill('SIGTERM');}

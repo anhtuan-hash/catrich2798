@@ -33,7 +33,9 @@ ok(footer.includes('signature-footer-v50-brian-logo') &&
    footer.includes('FooterPortfolioDialog') &&
    footer.includes('bes-portfolio-footer-trigger'), 'existing official logos, portfolio and credential cards remain intact');
 ok(css.includes('[data-halloween-footer="true"]') &&
-   css.includes('halloween-night-footer.svg') &&
+   css.includes('halloween-brand-card.svg') &&
+   css.includes('halloween-profile-card.svg') &&
+   css.includes('halloween-credentials-card.svg') &&
    !css.includes('.brian-nav') &&
    !css.includes('main#bes-main-content') &&
    !css.includes(':root {'), 'CSS stays within Footer only; navigation and Hero untouched');
@@ -60,4 +62,35 @@ ok(css.includes('z-index:70!important') &&
    css.includes('overflow:hidden!important') &&
    css.includes('background-image:'),
   'seasonal footer is above global floating motifs and hides old pastel artwork without changing original footer');
+for (const [name,src] of [
+  ['brand','public/assets/footer/halloween-brand-card.svg'],
+  ['profile','public/assets/footer/halloween-profile-card.svg'],
+  ['credentials','public/assets/footer/halloween-credentials-card.svg'],
+]) {
+  const asset=read(src);
+  ok(asset.startsWith('<svg') && asset.includes('viewBox="0 0 480 320"') &&
+     !asset.includes('<rect width="480" height="320"') &&
+     !asset.includes('<script') && !asset.includes('http://www.w3.org/1999/xhtml'),
+     name+' artwork is a transparent, local, safe and responsive SVG');
+}
+const brandArt=read('public/assets/footer/halloween-brand-card.svg');
+const profileArt=read('public/assets/footer/halloween-profile-card.svg');
+const credentialsArt=read('public/assets/footer/halloween-credentials-card.svg');
+ok(brandArt.includes('Pumpkin and lamp') && brandArt.includes('sitting cat') &&
+   brandArt.includes('Corner web') === false && brandArt.includes('corner web'),
+   'logo card has genuine Halloween web, lantern, pumpkin and cat detail');
+ok(profileArt.includes('mini ghost') && profileArt.includes('bat silhouettes') === false &&
+   profileArt.includes('Tiny') === false && profileArt.includes('path'),
+   'profile card has independent lavender ghost and bat artwork');
+ok(credentialsArt.includes('Bottom-right art') && credentialsArt.includes('pumpkin') &&
+   credentialsArt.includes('cobweb') === false,
+   'credentials card has small warm pumpkin and lantern detail');
+ok(css.includes('url(\'/assets/footer/halloween-brand-card.svg\')') &&
+   css.includes('url(\'/assets/footer/halloween-profile-card.svg\')') &&
+   css.includes('url(\'/assets/footer/halloween-credentials-card.svg\')') &&
+   !css.includes("url('/assets/footer/halloween-night-footer.svg')"),
+   'Halloween decoration is painted INSIDE three cards, not on the dark frame');
+ok(read('docs/halloween-footer-integrated-cards-spec.md').includes('Admin-only RPC') &&
+   footer.includes('data-halloween-footer={seasonalFooter.enabled ? "true" : "false"}'),
+   'approved scope documented and existing Admin switch remains unchanged');
 console.log('BRIAN Halloween Footer QA PASS');

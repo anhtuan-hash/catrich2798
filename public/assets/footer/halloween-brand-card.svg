@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" preserveAspectRatio="none">
+<defs>
+ <radialGradient id="moon"><stop stop-color="#fff9cd" stop-opacity=".94"/><stop offset=".68" stop-color="#ffdf9c" stop-opacity=".57"/><stop offset="1" stop-color="#ffb261" stop-opacity="0"/></radialGradient>
+ <linearGradient id="ground" x2="0" y2="1"><stop stop-color="#bd5b65" stop-opacity=".17"/><stop offset="1" stop-color="#6d4069" stop-opacity=".35"/></linearGradient>
+ <linearGradient id="pumpkin" x2="0" y2="1"><stop stop-color="#ffc35e"/><stop offset="1" stop-color="#f58226"/></linearGradient>
+</defs>
+<!-- Copper corner web with delicate curves, safe outside central brand logo -->
+<g fill="none" stroke="#aa6f6b" stroke-width="1.5" stroke-opacity=".5"><path d="M0 0H124M0 0V116M0 0l103 103M0 0l120 51M0 0l57 115"/>
+<path d="M26 0Q26 26 0 26M52 0Q52 52 0 52M80 0Q80 80 0 80M110 0Q110 110 0 110"/><path d="M25 0Q25 15 15 15M51 0Q50 35 35 35M81 0Q78 55 55 55"/></g>
+<!-- Moon and bats in upper right, background only -->
+<circle cx="414" cy="63" r="70" fill="url(#moon)"/><circle cx="418" cy="64" r="37" fill="#ffe9a6" opacity=".5"/>
+<g fill="#59344f" opacity=".48"><path d="M362 63q-12-9-22 0l2 6q8-4 13 6l7-3 7 3q5-10 13-6l2-6q-10-9-22 0Z"/>
+<path d="M459 119q-8-5-16 0l2 4q6-3 10 4l4-2 4 2q4-7 10-4l2-4q-8-5-16 0Z"/></g>
+<g fill="#ffa959" opacity=".4"><path d="M166 42l2-8 2 8 8 2-8 2-2 8-2-8-8-2Z"/><circle cx="304" cy="42" r="2.2"/></g>
+<!-- Low silhouette is clipped to the bottom 15%, leaving logos intact -->
+<path d="M0 301Q65 282 123 296T258 291T480 299V320H0Z" fill="url(#ground)"/>
+<g stroke="#77506c" stroke-opacity=".44" stroke-width="2.2" stroke-linecap="round">
+<path d="M199 317v-32m13 32v-23m13 23v-26m13 26v-28m13 28v-30m13 30v-24m13 24v-33m13 33v-25"/>
+<path d="M198 304h97"/>
+</g>
+<!-- Pumpkin and lamp in lower left, dimensional but kept behind logo region -->
+<g transform="translate(30 250)" opacity=".75">
+ <path d="M18 25q-9-16-1-23l8 5q-7 8-2 18" fill="#5c7a48"/>
+ <path d="M24 18C-6 11-5 48 8 58q17 12 34-1C53 36 47 13 24 18Z" fill="url(#pumpkin)" stroke="#c96932" stroke-width="2.3"/>
+ <path d="M12 35l9-9 0 13Zm23-9 9 9-10 4Zm-19 18q9 13 23 0l-4-2-7 5-7-5Z" fill="#66364c"/>
+</g>
+<g transform="translate(97 257)" opacity=".55" stroke="#744263" stroke-width="2.1" fill="none">
+ <path d="M2 16h29v38H2Zm-2-1L16 0l17 15M16 0v-6M3 28h27M16 18v33"/>
+ <path d="M6 29h20v20H6Z" fill="#ffc77f" fill-opacity=".62" stroke="none"/>
+</g>
+<!-- Tiny sitting cat -->
+<g fill="#5e405b" opacity=".47"><path d="M411 312q-6-17 2-24l3-11 9 8 8-8 4 13q8 12 1 22Z"/><path d="M434 302q17-8 20-26 5-6 7 1 0 19-24 30Z"/></g>
+</svg>

@@ -10,6 +10,8 @@ on:
       - 'src/components/settings/SettingsLauncherHome.jsx'
       - 'supabase/migrations/*halloween_footer*'
       - 'public/assets/footer/halloween-night-footer.svg'
+      - 'public/assets/footer/halloween-*-card.svg'
+      - 'docs/halloween-footer-integrated-cards-spec.md'
       - 'scripts/test-halloween-footer*'
       - 'tests/fixtures/halloween-footer-test.*'
       - '.github/workflows/halloween-footer-admin-qa.yml'
