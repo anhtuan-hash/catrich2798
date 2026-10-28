@@ -56,6 +56,7 @@ import { installGlobalFontSystem } from './utils/globalFontSystem.js';
 import { installRegionalFontSystem } from './utils/globalRegionalFontSystem.js';
 import usePresentationMode from './hooks/usePresentationMode.js';
 import { withAttendanceReadOnlyAccess } from './utils/attendanceReadonlyAccess.js';
+import { isGuestPreviewRoute } from './utils/guestPreviewPolicy.js';
 
 runConfigurationMigrations();
 installGlobalMotionSystem();
@@ -118,6 +119,7 @@ const ContentTransferHub = lazy(() => import('./components/ContentTransferHub.js
 const TransferInboxBanner = lazy(() => import('./components/TransferInboxBanner.jsx'));
 const SyncQueueIndicator = lazy(() => import('./components/SyncQueueIndicator.jsx'));
 const WorkDashboard = lazy(() => import('./pages/WorkDashboard.jsx'));
+const GuestPreview = lazy(() => import('./pages/GuestPreview.jsx'));
 const BrianFocus = lazy(() => import('./components/BrianFocus/BrianFocus.jsx'));
 const BrianBoard = lazy(() => import('./components/BrianBoard/BrianBoard.jsx'));
 const BrianBombArena = lazy(() => import('./components/BrianBombArena/BrianBombArena.jsx'));
@@ -135,11 +137,10 @@ const QuestionBank = lazy(() => import('./pages/QuestionBank.jsx'));
 const QuestionBankPractice = lazy(() => import('./pages/QuestionBankPractice.jsx'));
 const ClassroomJoin = lazy(() => import('./pages/ClassroomJoin.jsx'));
 const BoardLiveJoin = lazy(() => import('./pages/BoardLiveJoin.jsx'));
-const PhotoSlideshow = lazy(() => import('./pages/PhotoSlideshow.jsx'));
 const QuestJoin = lazy(() => import('./features/questatlas/QuestJoin.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'tools', 'homeroom', 'attendance', 'homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'slideshow', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qb-practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
-const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'slideshow', 'qb-practice']);
+const ROUTES = ['home', 'apps', 'news', 'tools', 'homeroom', 'attendance', 'homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qb-practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
+const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'qb-practice']);
 
 function getInitialRoute() {
   const href = window.location.href || '';
@@ -165,7 +166,6 @@ const ROUTE_DESIGN_PROFILES = {
   'homeroom-portal': { accent: '#1F8F70', soft: '#DDF7ED', ink: '#0B382B' },
   'classroom-join': { accent: '#315FC4', soft: '#EAF0FF', ink: '#14213D' },
   'board-live': { accent: '#23835F', soft: '#E5F4E9', ink: '#1B4932' },
-  slideshow: { accent: '#9DCAFF', soft: '#182037', ink: '#F3F6FF' },
   library: { accent: '#6FBA7B', soft: '#E4F6E6', ink: '#17351D' },
   'resource-library': { accent: '#2878D0', soft: '#E7F2FF', ink: '#0D2947' },
   'knowledge-hub': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
@@ -215,6 +215,7 @@ function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const chromeSettings = useGlobalChromeSettings(currentUser);
   const [authReady, setAuthReady] = useState(false);
+  const [guestHomeNotice, setGuestHomeNotice] = useState(false);
   const [loadingState, setLoadingState] = useState({ active: false, label: '' });
   const [aiOperationState, setAiOperationState] = useState({ active: false, label: '', provider: '' });
   const aiOperationIdsRef = useRef(new Set());
@@ -355,12 +356,13 @@ function App() {
   const appVisibility = useAppVisibility(currentUser);
   const visibilityId = visibilityIdForRoute(currentRoute, selectedTool);
   const visibilityReady = !currentUser || isAdminRole(currentUser?.role) || appVisibility.ready;
-  const temporarilyHidden = currentRoute !== 'slideshow' && visibilityReady && isAppHiddenForUser(appVisibility.snapshot, currentUser, visibilityId);
+  const temporarilyHidden = visibilityReady && isAppHiddenForUser(appVisibility.snapshot, currentUser, visibilityId);
   const visibleForCurrentUser = (item) => !isAppHiddenForUser(appVisibility.snapshot, currentUser, `tool:${item.slug}`);
   const accessibleApps = APPS.filter(visibleForCurrentUser);
   const accessibleTools = SPECIAL_TOOLS.filter(visibleForCurrentUser);
 
   const requiresAuth = currentRoute === 'tool' || !PUBLIC_ROUTES.has(currentRoute);
+  const guestPreviewAllowed = !currentUser && isGuestPreviewRoute(currentRoute, selectedTool);
   const canAccessRoute = visibilityReady && !temporarilyHidden && (!requiresAuth || hasRouteAccess(
     currentRoute === 'attendance' ? withAttendanceReadOnlyAccess(currentUser) : currentUser,
     currentRoute,
@@ -368,10 +370,10 @@ function App() {
   ));
 
   useEffect(() => {
-    if (authReady && requiresAuth && !currentUser) {
+    if (authReady && requiresAuth && !currentUser && !guestPreviewAllowed) {
       window.location.hash = '#/login';
     }
-  }, [authReady, requiresAuth, currentUser]);
+  }, [authReady, requiresAuth, currentUser, guestPreviewAllowed]);
 
   useEffect(() => {
     if (authReady && currentUser && ['login', 'register'].includes(currentRoute)) {
@@ -380,6 +382,19 @@ function App() {
   }, [authReady, currentUser, currentRoute]);
 
   const setGlobalLoading = (active, label = '') => setLoadingState({ active, label: label || (language === 'vi' ? 'Đang tải...' : 'Loading...') });
+
+  // Existing public Home can be scrolled but must not be operated anonymously.
+  const guardGuestHomeInteraction = (event) => {
+    if (!authReady || currentUser || currentRoute !== 'home') return;
+    const node = event.target;
+    if (!(node instanceof Element)) return;
+    const action = node.closest('button, a, input, select, textarea, [role="button"], [contenteditable="true"]');
+    if (!action || action.closest('[data-guest-allow]')) return;
+    if (event.type === 'keydown' && !['Enter', ' '].includes(event.key) && !action.matches('input, select, textarea, [contenteditable="true"]')) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setGuestHomeNotice(true);
+  };
 
   // Quick Access is a desktop/web-only affordance. The mobile presentation owns
   // its own top bar, bottom navigation and drawer, so the desktop rail must not
@@ -391,8 +406,7 @@ function App() {
     && currentUser
     && canAccessRoute
     && currentRoute !== 'home'
-    && currentRoute !== 'slideshow'
-    && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'quest-join', 'slideshow'].includes(currentRoute)
+    && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'quest-join'].includes(currentRoute)
   );
 
   const context = {
@@ -485,7 +499,7 @@ function App() {
           '--active-app-ink': activeDesignProfile.ink,
         }}
       >
-        {!['homeroom-portal', 'classroom-join', 'board-live', 'slideshow'].includes(currentRoute) ? <div className="bes-top-chrome">
+        {!['homeroom-portal', 'classroom-join', 'board-live'].includes(currentRoute) ? <div className="bes-top-chrome">
           {currentRoute !== 'quest-join' && <>
             <Suspense fallback={null}>
               <StatusMenuBar route={currentRoute} {...context} />
@@ -510,7 +524,7 @@ function App() {
           </Suspense>
         )}
 
-        {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal', 'classroom-join', 'quest-join', 'slideshow'].includes(currentRoute) && (
+        {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal', 'classroom-join', 'quest-join'].includes(currentRoute) && (
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="command-palette" label={language === 'vi' ? 'tìm kiếm nhanh' : 'command palette'}>
               <GlobalCommandPalette
@@ -538,12 +552,12 @@ function App() {
           <Suspense fallback={null}>
           </Suspense>
         ) : null}
-        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'quest-join', 'slideshow'].includes(currentRoute) ? (
+        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'quest-join'].includes(currentRoute) ? (
           <Suspense fallback={null}>
             <TransferInboxBanner currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} language={language} />
           </Suspense>
         ) : null}
-        {currentUser && selectedTool?.slug !== 'questatlas' && !['homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'slideshow'].includes(currentRoute) ? (
+        {currentUser && selectedTool?.slug !== 'questatlas' && !['homeroom-portal', 'classroom-join', 'board-live', 'quest-join'].includes(currentRoute) ? (
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="shared-chatbot-drawer" label={language === 'vi' ? 'chatbot dùng chung' : 'shared chatbot'}>
               <SharedChatbotDrawer currentUser={currentUser} language={language} />
@@ -551,7 +565,7 @@ function App() {
           </Suspense>
         ) : null}
 
-        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'quest-join', 'slideshow'].includes(currentRoute) ? (
+        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'quest-join'].includes(currentRoute) ? (
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="global-brian-focus" label="Brian Focus">
               <BrianFocus currentUser={currentUser} language={language} performance={resolvedPerformance} />
@@ -571,7 +585,7 @@ function App() {
           </Suspense>
         ) : null}
 
-        {currentUser && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'quest-join', 'slideshow'].includes(currentRoute) ? (
+        {currentUser && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'quest-join'].includes(currentRoute) ? (
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="ttcm-approval-inbox" label={language === 'vi' ? 'duyệt quyền truy cập' : 'access approvals'}>
               <PermissionApprovalInbox currentUser={currentUser} language={language} />
@@ -579,10 +593,11 @@ function App() {
           </Suspense>
         ) : null}
 
-        <main id="bes-main-content" tabIndex={-1} key={`${currentRoute}:${selectedTool?.slug || 'root'}`} className="wp8-page-stage wp8-door-page" data-route={currentRoute}>
+        <main id="bes-main-content" tabIndex={-1} key={`${currentRoute}:${selectedTool?.slug || 'root'}`} className="wp8-page-stage wp8-door-page" data-route={currentRoute} onClickCapture={guardGuestHomeInteraction} onKeyDownCapture={guardGuestHomeInteraction} onSubmitCapture={guardGuestHomeInteraction} onChangeCapture={guardGuestHomeInteraction} onPasteCapture={guardGuestHomeInteraction} onBeforeInputCapture={guardGuestHomeInteraction}>
           <div className="bqa-content-safe-frame" data-quick-access-safe-frame={quickAccessEnabled ? 'true' : 'false'}>
           <Suspense fallback={<RouteFallback language={language} />}>
             {currentRoute === 'home' && (!currentUser || visibilityReady) && <Home {...context} />}
+            {authReady && guestPreviewAllowed && currentRoute !== 'home' && <GuestPreview route={currentRoute} language={language} />}
             {currentRoute === 'home' && currentUser && !visibilityReady ? <div className="windows-loader-wrap"><div className="windows-loader-card">{language === 'vi' ? 'Đang đồng bộ danh sách ứng dụng…' : 'Syncing app visibility…'}</div></div> : null}
             {requiresAuth && currentUser && !canAccessRoute && visibilityReady && <AccessDenied language={language} currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} temporarilyHidden={temporarilyHidden} />}
             {requiresAuth && currentUser && !visibilityReady ? <div className="windows-loader-wrap"><div className="windows-loader-card">{language === 'vi' ? 'Đang đồng bộ danh sách ứng dụng…' : 'Syncing app visibility…'}</div></div> : null}
@@ -598,7 +613,6 @@ function App() {
             {currentRoute === 'homeroom-portal' && <HomeroomPortal {...context} />}
             {currentRoute === 'classroom-join' && <ClassroomJoin />}
             {currentRoute === 'board-live' && <BoardLiveJoin />}
-            {currentRoute === 'slideshow' && <PhotoSlideshow {...context} />}
             {currentRoute === 'quest-join' && <QuestJoin />}
             {currentRoute === 'resources' && <Resources items={RESOURCE_ITEMS} {...context} />}
             {canAccessRoute && currentRoute === 'library' && currentUser && <Library {...context} />}
@@ -630,14 +644,27 @@ function App() {
           </div>
         </main>
 
-        {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal', 'classroom-join', 'quest-join', 'slideshow'].includes(currentRoute) && (
+        {guestHomeNotice && !currentUser && currentRoute === 'home' && (
+          <div className="brian-guest-lock-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setGuestHomeNotice(false); }}>
+            <section className="brian-guest-lock-dialog" role="dialog" aria-modal="true" aria-labelledby="guest-home-notice-title">
+              <h2 id="guest-home-notice-title">{language === 'vi' ? 'Chế độ xem trước' : 'Preview mode'}</h2>
+              <p>{language === 'vi' ? 'Bạn có thể xem và cuộn nội dung. Vui lòng đăng nhập để sử dụng các chức năng của BRIAN.' : 'You can browse and scroll the content. Sign in to use BRIAN features.'}</p>
+              <div className="brian-guest-lock-dialog__actions">
+                <button type="button" onClick={() => setGuestHomeNotice(false)}>{language === 'vi' ? 'Tiếp tục xem' : 'Keep browsing'}</button>
+                <a href="#/login" onClick={() => setGuestHomeNotice(false)}>{language === 'vi' ? 'Đăng nhập' : 'Sign in'}</a>
+              </div>
+            </section>
+          </div>
+        )}
+
+        {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal', 'classroom-join', 'quest-join'].includes(currentRoute) && (
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="global-autosave" label={language === 'vi' ? 'tự lưu' : 'autosave'}>
               <GlobalAutosave route={currentRoute} selectedTool={selectedTool} currentUser={currentUser} language={language} />
             </AppErrorBoundary>
           </Suspense>
         )}
-        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'dashboard', 'slideshow'].includes(currentRoute) ? <>
+        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'dashboard'].includes(currentRoute) ? <>
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="content-transfer" label={language === 'vi' ? 'gửi nội dung' : 'content transfer'}>
               <ContentTransferHub currentUser={currentUser} currentRoute={currentRoute} selectedTool={selectedTool} language={language} accent={activeDesignProfile.accent} appVisibility={appVisibility} />
@@ -647,7 +674,7 @@ function App() {
             <SyncQueueIndicator currentUser={currentUser} language={language} externalLauncher />
           </Suspense>
         </> : null}
-        {!['homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'slideshow'].includes(currentRoute) ? <Footer language={language} currentUser={currentUser} /> : null}
+        {!['homeroom-portal', 'classroom-join', 'board-live', 'quest-join'].includes(currentRoute) ? <Footer language={language} currentUser={currentUser} /> : null}
       </div>
     </>
   );
