@@ -20,7 +20,9 @@ assert.ok(skin.includes('.bha-hero.hero-cms')&&skin.includes('.bhs-home__stage')
 assert.ok((skin.match(/data-halloween-home-v4="on"/g)||[]).length>30,'all visual treatments gated by master ON');
 assert.ok(!skin.includes('localStorage'),'presentation must not persist data');
 assert.ok(skin.includes('prefers-reduced-motion:reduce'));
-assert.ok(gallery.includes("seasonalHome.enabled && isHalloweenAlbum(selected) ? 'fade' : selected.transition"),'avoid revealing half picture');
+assert.ok(gallery.includes('mode={selected.transition} direction={direction}'),'preserve album editor transition');
+const cinematic=read('src/components/PhotoTransitionStage.jsx');
+assert.ok(!cinematic.includes("inset(0 100% 0 0)"),'no sliced paintings during reveal transition');
 assert.ok(gallery.includes("loading={photoIndex < 4 ? 'eager' : 'lazy'}"),'early thumbnails get priority');
 assert.ok(gallery.includes('setIndex(photoIndex)'), 'filmstrip real click');
 assert.ok(master.includes("client.rpc('bes_set_halloween_home_enabled'"),'Admin-only backend RPC persists');
