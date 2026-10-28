@@ -26,7 +26,9 @@ const state=async page=>page.evaluate(()=>{
   imageFit: e('#v4-slideshow .bss-motion__image') ? css('#v4-slideshow .bss-motion__image').objectFit : null,
   dateLine:css('.bha-editorial-dateline').display,
   counts: e('#v4-clicks')?.textContent,
-  overflow: document.documentElement.scrollWidth>innerWidth+2
+  overflow: document.documentElement.scrollWidth>innerWidth+2,
+  geometry: Object.fromEntries([['nav','.bes-top-chrome'],['hero','#v4-hero'],['gallery','#v4-slideshow'],['practice','#v4-weekly'],['footer','footer']].map(([key,sel])=>{const r=e(sel).getBoundingClientRect();return [key,{top:Math.round(r.top),height:Math.round(r.height),bottom:Math.round(r.bottom),width:Math.round(r.width)}]})),
+  fullHeight: document.documentElement.scrollHeight
  };
 });
 const results=[];
@@ -78,7 +80,7 @@ try{
   assert.equal(restored.master,'off',label+' master disabled');
   assert.equal(restored.art,null,label+' art layer removed after OFF');
   assert.deepEqual(errors,[],label+' JS errors');
-  results.push({viewport:label,size:width+'x'+height,artwork:'AVIF loaded',galleryGap:on.galleryGap,sourcePhotoLoaded:on.imageNaturalWidth>0,fullRestoration:true,noOverflow:true});
+  results.push({viewport:label,size:width+'x'+height,artwork:'AVIF loaded',galleryGap:on.galleryGap,sourcePhotoLoaded:on.imageNaturalWidth>0,fullRestoration:true,noOverflow:true,geometry:on.geometry,fullHeight:on.fullHeight});
   console.log('PASS HALLOWEEN V8 '+JSON.stringify(results.at(-1)));
   await page.close();
  }
