@@ -273,3 +273,22 @@ jobs:
 
       - name: Build production bundle
         run: npm run build
+
+  slideshow-smoke:
+    name: Compile slideshow independently
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install
+        run: npm ci --ignore-scripts
+      - name: Verify slideshow contract
+        run: node scripts/test-brian-photo-slideshow.mjs
+      - name: Compile Vite app
+        run: npx vite build
