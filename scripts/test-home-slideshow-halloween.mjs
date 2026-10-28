@@ -11,10 +11,11 @@ const ghost = read('public/assets/slideshow/halloween-ghost.svg');
 const spec = read('docs/brian-photo-story-halloween-skin-spec.md');
 const test = (ok, name) => { assert.ok(ok, name); console.log('✓ ' + name); };
 
-test(viewer.includes('data-halloween-theme={isHalloweenAlbum(selected) ? "true" : "false"}') &&
+test(viewer.includes('data-halloween-theme={seasonalHome.enabled && isHalloweenAlbum(selected) ? "true" : "false"}') &&
   viewer.includes('function isHalloweenAlbum(album)') &&
   viewer.includes('/halloween/i.test('),
-  'Halloween activated per album only, never as site-wide class');
+  viewer.includes('useHalloweenHomeTheme()'),
+  'Halloween album skin requires both published Halloween album AND Admin master ON');
 test(viewer.includes(".eq('is_published', true)") &&
   viewer.includes("if (!selected || !photo) return null"),
   'unpublished Halloween albums remain entirely absent from homepage');
