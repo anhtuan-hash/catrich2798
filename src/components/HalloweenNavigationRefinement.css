@@ -136,3 +136,35 @@ html.bes-mobile-shell-active body #root .bes-mobile-shell[data-halloween-nav="tr
 @media(prefers-reduced-motion:reduce){
   html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > button {transition:none!important;}
 }
+
+/* BRIAN's legacy per-destination theme injects a very high-specificity
+   background-color after some route adapters mount. Pin one uniform seasonal
+   color with a selector stronger than those legacy rules — seasonal ON only. */
+html body #root#root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"][data-halloween-nav="true"] .brian-nav__primary > :is(
+ [data-nav-key='home'],[data-nav-key='apps'],.brian-nav__dashboard-tab,
+ .brian-nav__homeroom-tab,.brian-nav__gradebook-tab,.brian-nav__lesson-check-tab,
+ .brian-nav__reports-tab,.brian-nav__ttcm-tab,.brian-nav__attendance-tab
+) {
+  background-color:#fff8f0!important;
+  background-image:none!important;
+  background-attachment:initial!important;
+  color:#302638!important;
+  border-color:#e7d6ca!important;
+}
+html body #root#root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"][data-halloween-nav="true"] .brian-nav__primary > :is(
+ [data-nav-key='home'],[data-nav-key='apps'],.brian-nav__dashboard-tab,
+ .brian-nav__homeroom-tab,.brian-nav__gradebook-tab,.brian-nav__lesson-check-tab,
+ .brian-nav__reports-tab,.brian-nav__ttcm-tab,.brian-nav__attendance-tab
+):is(.is-active,.active,[aria-current='page'],[data-active='true']) {
+  background-color:#f4ad69!important;
+  background-image:none!important;
+  color:#2a1b2f!important;
+  border-color:#e9a05b!important;
+}
+html body #root#root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"][data-halloween-nav="true"] .brian-nav__primary > :is(
+ [data-nav-key='home'],[data-nav-key='apps'],.brian-nav__dashboard-tab,
+ .brian-nav__homeroom-tab,.brian-nav__gradebook-tab,.brian-nav__lesson-check-tab,
+ .brian-nav__reports-tab,.brian-nav__ttcm-tab,.brian-nav__attendance-tab
+):hover:not(.is-active):not(.active):not([aria-current='page']) {
+  background-color:#fff0df!important;
+}
