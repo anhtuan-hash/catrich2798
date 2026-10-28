@@ -42,5 +42,7 @@ import '../styles/HomeHeroCmsEditorDrawer.css';
 import '../styles/HalloweenFullHomeV4.css';
 // Mockup-fidelity seasonal presentation: loaded last and strictly Admin-gated.
 import '../styles/HalloweenFullHomeV5.css';
+// V6 visual repair: uses the real illustrated CMS hero source and fixes the 390px gallery gap.
+import '../styles/HalloweenFullHomeV6VisualRepair.css';
 
 export default HomeApproved;
