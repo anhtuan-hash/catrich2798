@@ -9,6 +9,7 @@ on:
       - 'src/styles/HalloweenMockupParityV7.css'
       - 'src/styles/HalloweenFullHomeV6VisualRepair.css'
       - 'scripts/test-halloween-home-v7*'
+      - 'scripts/test-halloween-home-v4.mjs'
       - 'tests/fixtures/halloween-home-v7*'
       - '.github/workflows/halloween-home-v7.yml'
   workflow_dispatch:
