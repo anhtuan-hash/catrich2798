@@ -4,6 +4,9 @@ on:
     paths:
       - 'src/utils/halloweenNavbarTheme.js'
       - 'src/components/HalloweenNavigationSkin.css'
+      - 'src/components/HalloweenNavigationRefinement.css'
+      - 'docs/brian-seasonal-chrome-v3-spec.md'
+      - 'scripts/test-halloween-chrome-v3.mjs'
       - 'src/components/GlobalFlatNavigation.jsx'
       - 'src/components/GlobalCompactNavigation.jsx'
       - 'src/components/mobile/MobileAppShell.jsx'
@@ -32,6 +35,8 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --ignore-scripts
+      - name: Halloween chrome V3 shared palette and rollback scope
+        run: node scripts/test-halloween-chrome-v3.mjs
       - name: Server authorization and scoped UI regression
         run: node scripts/test-halloween-navbar.mjs
       - name: Install Chromium
