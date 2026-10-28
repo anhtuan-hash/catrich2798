@@ -14,7 +14,7 @@ const mainFlag='data-halloween-home-v4="on"';
 assert.match(shell,/import '\.\.\/styles\/HalloweenFullHomeV5\.css';/);
 assert.ok((css.match(/data-halloween-home-v4="on"/g)||[]).length>=55,'All zone-specific overrides must use the Admin master switch');
 assert.ok(!/body\s*\{/.test(css),'Never globally recolor the original site');
-for (const part of ['.bha-hero.hero-cms','.bhs-home','.bha-practice.bha-practice--editorial-v3','.bha-folio-grade--10','.bha-folio-grade--11','.bha-folio-grade--12','> footer[data-app-shell-footer="true"]','.bes-mobile-home__premium-hero','.brian-nav']) {
+for (const part of ['.bha-hero.hero-cms','.bhs-home','.bha-practice.bha-practice--editorial-v3','.bha-folio-grade--10','.bha-folio-grade--11','.bha-folio-grade--12','> footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"]','.bes-mobile-home__premium-hero','.brian-nav']) {
  if(part!=='.brian-nav')assert.ok(css.includes(part),'Missing V5 zone '+part);
 }
 assert.ok(existsSync(new URL('../public/assets/home/halloween-v5-hero.svg',import.meta.url)));
