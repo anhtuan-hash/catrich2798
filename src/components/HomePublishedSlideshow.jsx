@@ -257,7 +257,7 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
               key={item.id}
               onClick={() => { setPlaying(false); setDirection(photoIndex > currentIndex ? 1 : -1); setIndex(photoIndex); }}
             >
-              <img src={publicImage(item.image_path)} loading="lazy" alt="" decoding="async" />
+              <img src={publicImage(item.image_path)} loading={photoIndex < 4 ? 'eager' : 'lazy'} alt="" decoding="async" />
               <span>{String(photoIndex + 1).padStart(2, '0')}</span>
             </button>
           ))}
