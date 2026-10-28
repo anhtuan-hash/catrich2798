@@ -1,0 +1,162 @@
+/* Homepage photo slideshow: isolated, public-only, zero DOM when unpublished. */
+.app-shell[data-route="home"] .bhs-home {
+  position:relative;
+  display:block;
+  width:100%;
+  margin:clamp(18px,3vw,32px) 0 clamp(20px,3vw,34px);
+  padding:clamp(16px,2.4vw,32px);
+  border:1px solid #d8e6f4;
+  border-radius:clamp(16px,2.2vw,27px);
+  background:linear-gradient(160deg,#f8fbff 0%,#eaf3ff 67%,#f8fbff 100%);
+  box-shadow:0 14px 46px rgba(33,79,137,.11),inset 0 1px rgba(255,255,255,.9);
+  color:#1a3c66;
+  min-width:0;
+  overflow:hidden;
+  isolation:isolate;
+}
+.app-shell[data-route="home"] .bhs-home::before {
+  content:""; position:absolute; width:390px; height:390px; border-radius:50%;
+  right:-180px; top:-220px; z-index:-1; pointer-events:none;
+  background:radial-gradient(circle,#8fbbfb39,transparent 70%);
+}
+.app-shell[data-route="home"] .bhs-home__header {
+  display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-end;
+  gap:18px; margin:0 0 20px;
+}
+.app-shell[data-route="home"] .bhs-home__headline { max-width:min(860px,100%); min-width:0; }
+.app-shell[data-route="home"] .bhs-home__kicker {
+  color:#2764a7; display:flex; gap:9px; align-items:center;
+  letter-spacing:.13em; font-size:11px; font-weight:850; margin-bottom:9px;
+}
+.app-shell[data-route="home"] .bhs-home__kicker i,
+.app-shell[data-route="home"] .bhs-home__footer i {
+  width:5px; height:5px; flex:none; background:#65b5bb; border-radius:50%;
+}
+.app-shell[data-route="home"] .bhs-home__headline h2 {
+  font-size:clamp(22px,2.65vw,36px); line-height:1.18;
+  font-weight:850; letter-spacing:-.035em; color:#173c71;
+  overflow-wrap:anywhere; margin:0;
+}
+.app-shell[data-route="home"] .bhs-home__headline p {
+  font-size:clamp(13px,1.35vw,16px); line-height:1.6;
+  color:#657d99; max-width:850px; margin:9px 0 0;
+}
+.app-shell[data-route="home"] .bhs-home__open {
+  min-height:43px; padding:10px 16px; display:inline-flex; justify-content:center; align-items:center;
+  gap:9px; border:1px solid #bad1eb; border-radius:12px; white-space:normal;
+  text-align:center; text-decoration:none; color:#1758ac; background:#fff;
+  font-size:13px; line-height:1.2; font-weight:800;
+  box-shadow:0 2px 8px #173e6c0d;
+  transition:transform .16s,border-color .16s,background .16s;
+}
+.app-shell[data-route="home"] .bhs-home__open:hover {
+  transform:translateY(-1px); background:#e8f3ff; border-color:#6ba5e2;
+}
+.app-shell[data-route="home"] .bhs-home__albums {
+  display:flex; gap:9px; overflow-x:auto; padding:1px 0 14px;
+  scrollbar-width:thin;
+}
+.app-shell[data-route="home"] .bhs-home__albums button {
+  flex:none; max-width:275px; padding:9px 14px; border-radius:999px;
+  border:1px solid #c8d9ee; background:#fff9; color:#4f6b8b;
+  font-size:12px; font-weight:760; cursor:pointer;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.app-shell[data-route="home"] .bhs-home__albums button.is-active {
+  color:#fff; border-color:#2368b8; background:#226ab6;
+}
+.app-shell[data-route="home"] .bhs-home__stage {
+  position:relative; width:100%; aspect-ratio:16/9; overflow:hidden;
+  border:1px solid #20334a35; border-radius:clamp(12px,1.6vw,19px);
+  background:#040814; color:#fff;
+  box-shadow:0 14px 42px rgba(10,29,61,.23);
+  touch-action:pan-y;
+  isolation:isolate;
+}
+.app-shell[data-route="home"] .bhs-home__photo {
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+}
+.app-shell[data-route="home"] .bhs-home__photo img {
+  width:100%; height:100%; object-fit:contain; display:block; user-select:none;
+}
+.app-shell[data-route="home"] .bhs-home__photo--fade { animation:bhs-fade .5s ease-out both; }
+.app-shell[data-route="home"] .bhs-home__photo--slide { animation:bhs-slide .55s ease-out both; }
+.app-shell[data-route="home"] .bhs-home__photo--zoom { animation:bhs-zoom .9s ease-out both; }
+@keyframes bhs-fade { from {opacity:0} to {opacity:1} }
+@keyframes bhs-slide { from {opacity:.25;transform:translateX(3%)} to {opacity:1;transform:none} }
+@keyframes bhs-zoom { from {opacity:.55;transform:scale(1.06)} to {opacity:1;transform:scale(1)} }
+.app-shell[data-route="home"] .bhs-home__caption {
+  position:absolute; bottom:72px; left:50%; transform:translateX(-50%);
+  max-width:90%; width:max-content; padding:10px 20px;
+  text-align:center; font-size:clamp(13px,1.5vw,19px); line-height:1.45;
+  font-weight:650; color:white; text-shadow:0 1px 6px #0008;
+  background:#07101cb8; border:1px solid #ffffff3b; border-radius:13px;
+  backdrop-filter:blur(9px);
+}
+.app-shell[data-route="home"] .bhs-home__arrow {
+  position:absolute; top:50%; transform:translateY(-50%);
+  display:grid; place-items:center; width:48px; height:48px;
+  border-radius:50%; border:1px solid #ffffff60; background:#091a2b90;
+  color:white; cursor:pointer; backdrop-filter:blur(10px);
+}
+.app-shell[data-route="home"] .bhs-home__arrow:hover { background:#183f6bc9; }
+.app-shell[data-route="home"] .bhs-home__arrow.is-previous { left:18px; }
+.app-shell[data-route="home"] .bhs-home__arrow.is-next { right:18px; }
+.app-shell[data-route="home"] .bhs-home__controls {
+  position:absolute; bottom:0; left:0; right:0;
+  display:flex; gap:17px; align-items:center;
+  min-height:60px; padding:8px 22px;
+  background:linear-gradient(0deg,#030811f0,#04101aaf);
+}
+.app-shell[data-route="home"] .bhs-home__counter {
+  font-size:12px; font-weight:800; letter-spacing:.07em;
+  color:white; white-space:nowrap; font-variant-numeric:tabular-nums;
+}
+.app-shell[data-route="home"] .bhs-home__counter i {color:#90a9c8;font-style:normal}
+.app-shell[data-route="home"] .bhs-home__progress {
+  height:3px; background:#ffffff4a; border-radius:10px; overflow:hidden; flex:1;
+}
+.app-shell[data-route="home"] .bhs-home__progress span {
+  display:block; width:100%; height:100%; background:linear-gradient(90deg,#a1d7ff,#95eddf);
+  transform-origin:left; animation:bhs-progress linear both;
+}
+@keyframes bhs-progress { from {transform:scaleX(0)} to {transform:scaleX(1)} }
+.app-shell[data-route="home"] .bhs-home__controls button {
+  display:grid; place-items:center; min-width:36px; min-height:36px;
+  border:0; border-radius:9px; background:#ffffff15; color:white; cursor:pointer;
+}
+.app-shell[data-route="home"] .bhs-home__controls button:hover {background:#ffffff40}
+.app-shell[data-route="home"] .bhs-home__footer {
+  display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
+  padding:13px 2px 0; color:#788da7;
+  font-size:11px; font-weight:650; letter-spacing:.02em;
+}
+.app-shell[data-route="home"] .bhs-home__footer span {display:inline-flex;align-items:center;gap:8px}
+.app-shell[data-route="home"] .bhs-home__stage:fullscreen {
+  width:100vw; height:100vh; border:0; border-radius:0;
+  aspect-ratio:auto;
+}
+.app-shell[data-route="home"] .bhs-home__stage:fullscreen .bhs-home__caption {
+  font-size:clamp(21px,3vw,39px); bottom:110px;
+}
+@media(max-width:720px) {
+  .app-shell[data-route="home"] .bhs-home {padding:12px; margin:14px 0 20px; border-radius:17px}
+  .app-shell[data-route="home"] .bhs-home__header {margin-bottom:13px;gap:12px}
+  .app-shell[data-route="home"] .bhs-home__kicker {font-size:9px;gap:6px;letter-spacing:.08em}
+  .app-shell[data-route="home"] .bhs-home__headline h2 {font-size:22px}
+  .app-shell[data-route="home"] .bhs-home__open {font-size:12px;min-height:39px;padding:8px 12px}
+  .app-shell[data-route="home"] .bhs-home__stage {aspect-ratio:4/3; border-radius:11px}
+  .app-shell[data-route="home"] .bhs-home__controls {min-height:49px;padding:6px 10px;gap:10px}
+  .app-shell[data-route="home"] .bhs-home__controls button {min-height:32px;min-width:32px}
+  .app-shell[data-route="home"] .bhs-home__arrow {width:36px;height:36px}
+  .app-shell[data-route="home"] .bhs-home__arrow.is-previous {left:7px}
+  .app-shell[data-route="home"] .bhs-home__arrow.is-next {right:7px}
+  .app-shell[data-route="home"] .bhs-home__caption {bottom:59px;padding:8px 10px;font-size:12px}
+  .app-shell[data-route="home"] .bhs-home__footer {font-size:10px}
+}
+@media(prefers-reduced-motion:reduce) {
+  .app-shell[data-route="home"] .bhs-home__photo,
+  .app-shell[data-route="home"] .bhs-home__progress span {animation:none!important}
+  .app-shell[data-route="home"] .bhs-home__open {transition:none!important}
+}

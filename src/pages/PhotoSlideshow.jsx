@@ -34,6 +34,14 @@ function slugify(text) {
 }
 const EMPTY_FORM = { title: '', description: '', slide_interval: 6, transition: 'fade', is_published: false };
 
+function announceSlideshowChange() {
+  // Same-tab event and cross-tab storage signal, never containing student data.
+  window.dispatchEvent(new Event('bes-slideshow-published-updated'));
+  try {
+    window.localStorage.setItem('bes-slideshow-published-revision', String(Date.now()));
+  } catch { /* Storage may be disabled by the browser. */ }
+}
+
 export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
   const en = language === 'en';
   const editorAllowed = Boolean(currentUser?.provider === 'supabase' && isDepartmentLeaderRole(currentUser?.role) && currentUser?.approved !== false);
@@ -173,6 +181,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
     const newSlug = result.data?.slug;
     setCreating(false);
     await refresh();
+    announceSlideshowChange();
     notify('Đã lưu album thành công.');
     if (newSlug) goAlbum(newSlug, true);
   });
@@ -200,6 +209,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
       setMessage('Đã tải ' + count + '/' + list.length + ' ảnh.');
     }
     await refresh();
+    announceSlideshowChange();
     if (firstError) throw firstError;
     notify('Đã tải lên ' + count + ' ảnh thành công.');
   });
@@ -207,6 +217,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
     const { error: e } = await supabase.from('bes_slideshow_slides').update({ caption: value.trim().slice(0, 300) }).eq('id', slide.id);
     if (e) throw e;
     await refresh();
+    announceSlideshowChange();
   });
   const removePhoto = slide => {
     if (!window.confirm('Xóa ảnh này khỏi album?')) return;
@@ -215,6 +226,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
       if (r.error) throw r.error;
       const storage = await supabase.storage.from(BUCKET).remove([slide.image_path]);
       await refresh();
+      announceSlideshowChange();
       if (storage.error) throw storage.error;
       notify('Đã xóa ảnh.');
     });
@@ -227,6 +239,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
     const b = await supabase.from('bes_slideshow_slides').update({ sort_order: slide.sort_order }).eq('id', other.id);
     if (b.error) throw b.error;
     await refresh();
+    announceSlideshowChange();
     notify('Đã đổi vị trí ảnh.');
   });
   const removeAlbum = () => {
@@ -239,7 +252,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
         const storage = await supabase.storage.from(BUCKET).remove(paths);
         if (storage.error) setError('Album đã xóa, nhưng có ảnh chưa dọn khỏi kho lưu trữ: ' + storage.error.message);
       }
-      setEditing(false); await refresh(); goAlbum('');
+      setEditing(false); await refresh(); announceSlideshowChange(); goAlbum('');
     });
   };
   const startCreate = () => { setCreating(true); setForm(EMPTY_FORM); setEditing(true); };
