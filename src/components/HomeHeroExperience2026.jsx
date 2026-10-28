@@ -25,7 +25,8 @@ import {
 import HomeHeroCmsEditor from './HomeHeroCmsEditor.jsx';
 import HomeHeroCmsPreviewDock from './HomeHeroCmsPreviewDock.jsx';
 
-const HERO_REMOTE_CHECK_KEY = 'bes-home-hero-remote-check-v1';
+// Invalidate the prior ten-minute visitor cache once after removing the published white Hero veil.
+const HERO_REMOTE_CHECK_KEY = 'bes-home-hero-remote-check-v2';
 const HERO_REMOTE_CHECK_TTL = 10 * 60 * 1000;
 
 const INFO_ICONS = {
