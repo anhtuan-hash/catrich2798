@@ -41,7 +41,6 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(true);
   const [direction, setDirection] = useState(1);
-  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const stageRef = useRef(null);
   const requestId = useRef(0);
@@ -108,7 +107,7 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
   const currentIndex = Math.min(index, Math.max(0, count - 1));
   const photo = photos[currentIndex] || null;
 
-  useEffect(() => { setIndex(0); setDescriptionExpanded(false); }, [selected?.id]);
+  useEffect(() => { setIndex(0); }, [selected?.id]);
   useEffect(() => {
     if (!count || !photo) return;
     const next = photos[(currentIndex + 1) % count];
@@ -164,12 +163,8 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
         <div className="bhs-home__headline">
           <div className="bhs-home__kicker"><Images size={15} /> BRIAN PHOTO STORY <i /> {en ? 'NOW SHOWING' : 'ĐANG TRÌNH CHIẾU'}</div>
           <h2>{selected.title}</h2>
-          {selected.description && <div className={'bhs-home__summary' + (descriptionExpanded ? ' is-expanded' : '')}>
+          {selected.description && <div className="bhs-home__summary">
             <p><SlideshowLinkedText text={selected.description} /></p>
-            <button type="button" aria-expanded={descriptionExpanded}
-              onClick={() => setDescriptionExpanded((old) => !old)}>
-              {descriptionExpanded ? (en ? 'Show less' : 'Thu gọn') : (en ? 'Read introduction' : 'Xem giới thiệu')}
-            </button>
           </div>}
         </div>
         <a href={'#/slideshow?album=' + encodeURIComponent(selected.slug)}
