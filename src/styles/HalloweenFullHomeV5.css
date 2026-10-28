@@ -273,6 +273,52 @@ html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] > foo
 html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger {
   color:#ffe0aa!important;border-color:#ffaf6a!important;
 }
+/* G01: all actual navbar destinations become moonlit violet, with a single
+ * brilliant orange selected pill. This is NOT the old light pastel nav. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ .bes-top-chrome .brian-nav[data-halloween-nav="true"] {
+  border:1px solid rgba(255,158,65,.62)!important;border-radius:24px!important;
+  background-color:#170d37!important;
+  background-image:linear-gradient(110deg,rgba(22,9,47,.91),rgba(53,18,82,.87)),url('/assets/navbar/halloween-navbar.svg')!important;
+  box-shadow:0 0 33px rgba(237,109,38,.23),0 11px 28px rgba(0,0,0,.44)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > :is(
+ [data-nav-key='home'],[data-nav-key='apps'],.brian-nav__dashboard-tab,.brian-nav__homeroom-tab,
+ .brian-nav__gradebook-tab,.brian-nav__lesson-check-tab,.brian-nav__reports-tab,.brian-nav__ttcm-tab,.brian-nav__attendance-tab
+) {
+  color:#f8eaff!important;background-color:#36204f!important;background-image:none!important;
+  border:1px solid rgba(179,110,211,.38)!important;border-radius:12px!important;
+  box-shadow:inset 0 1px rgba(240,194,255,.13)!important;
+  text-shadow:none!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > :is(
+ [data-nav-key='home'],[data-nav-key='apps'],.brian-nav__dashboard-tab,.brian-nav__homeroom-tab,
+ .brian-nav__gradebook-tab,.brian-nav__lesson-check-tab,.brian-nav__reports-tab,.brian-nav__ttcm-tab,.brian-nav__attendance-tab
+) :is(span,strong,.brian-nav__reports-copy,.brian-nav__reports-label) {
+  color:inherit!important;text-shadow:none!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > :is(
+ [data-nav-key='home'],[data-nav-key='apps'],.brian-nav__dashboard-tab,.brian-nav__homeroom-tab,
+ .brian-nav__gradebook-tab,.brian-nav__lesson-check-tab,.brian-nav__reports-tab,.brian-nav__ttcm-tab,.brian-nav__attendance-tab
+):is(.is-active,.active,[aria-current='page'],[data-active='true']) {
+  color:#281336!important;
+  background-color:#ffab47!important;background-image:linear-gradient(130deg,#ffd27c,#ff9235)!important;
+  border-color:#ffda96!important;
+  box-shadow:0 0 19px rgba(255,157,50,.67),0 4px 12px rgba(0,0,0,.23)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > button:hover:not(.is-active):not(.active):not([aria-current='page']) {
+  color:#fff8eb!important;background:#573275!important;border-color:#ffb869!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__brand {
+  color:#fff0e2!important;
+  filter:drop-shadow(0 0 7px rgba(242,122,61,.23));
+}
+
 /* Device parity with a real, accessible mobile seasonal hero and real hotspots. */
 html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-home {
   background:transparent!important;color:#fff5e8!important;
