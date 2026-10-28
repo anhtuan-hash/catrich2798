@@ -74,6 +74,35 @@ remain visible as locked navigation labels only, with no page or data access.
 7. Read-only guest previews have normal wheel/touch/keyboard scrolling.
    Only navigation and the explicit Sign in CTA can activate.
 
+## Full-page read-only guest experience — 28 October 2026
+
+- **Not a summary dashboard:** the GuestPreview route now delegates to `GuestFullPages`.
+  An anonymous visitor receives a vertically scrollable full-page representation.
+- **Apps:** render the genuine `WebAppsRedesign` launcher, including all public
+  registered apps and the already-approved games. PublicReadonly bypasses private
+  launcher preferences and removes the four-item-per-group clipping.
+- **Dashboard:** reuse the genuine `DashboardWorkPlanner` and `DashboardNewsHub`
+  with actual daily task *counts* and public news. Department tasks remain private:
+  titles, assignees, notes, and staff-only schedules are not broadcast.
+- **Assessment:** show all real activity cards from a curated public metadata copy
+  (141 on migration day) including published-safe thumbnail, title, grade, unit,
+  and focus. No iframe, question text, scores, permissions or answer key is exposed.
+- **Attendance:** render all real session summary rows (334 on migration day):
+  class label, subject, date, session status and total/present counts. Individual
+  student names, identities, presence records, teacher emails and attachments
+  never enter the guest feed.
+- **Guest interaction:** capture and cancel clicks, form submission, keyboard
+  activation, editing, dragging and paste *inside the page content only*.
+  Preserve wheel/trackpad/touch scroll, page scroll keys, and navigation outside
+  the read-only region; the explicit sign-in link remains active.
+- **Private destinations:** Homeroom and Gradebook remain login-gated, unchanged.
+- **Published-only read API:** `bes_guest_preview_entries` exposes only selected
+  harmless fields; RLS grants SELECT to anon and authenticated, no writes.
+  The source tables are not granted to anon. A restricted internal database
+  function refreshes the curated snapshot every five minutes.
+- **Not the same privilege as a signed-in teacher:** personal data, internal
+  work items, private documents and all editing functionality remain restricted.
+
 ## Verification acceptance criteria
 
 - Incognito anonymous direct navigation to all five preview destinations works.
