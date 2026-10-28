@@ -10,7 +10,7 @@ const gallery=read('src/components/HomePublishedSlideshow.jsx');
 const nav=read('src/components/GlobalCompactNavigation.jsx');
 const footer=read('src/components/Footer.jsx');
 assert.ok(home.includes("import '../styles/HalloweenIllustratedV8.css'"),'Home must load V8 last');
-for (const name of ['halloween-v8-castle-art.avif','halloween-v8-left-decor.avif','halloween-v8-gallery-ghost.avif','halloween-v8-footer-pumpkins.avif']) {
+for (const name of ['halloween-v8-castle-art.avif','halloween-v8-left-decor.avif','halloween-v8-gallery-ghost.avif','halloween-v8-footer-pumpkins.avif','halloween-v8-practice-scenery.avif']) {
  const p='public/assets/home/'+name,bin=b(p);
  assert.ok(bin.length>1000&&bin.length<500000,'reasonable asset '+name);
  assert.equal(bin.subarray(4,12).toString(),'ftypavif','decoded AVIF signature '+name);
