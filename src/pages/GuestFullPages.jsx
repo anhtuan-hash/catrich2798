@@ -174,10 +174,25 @@ function GuestAssessment({entries,stats,hero,language}){
           <div className="lcs-card-media-shade" aria-hidden="true"/>
           <div className="lcs-card-media-top"><span className={'lcs-focus-indicator is-'+(item.tag||'unclassified')}>{(item.tag||'ACTIVITY').toUpperCase()}</span></div>
         </div>
-        <div className="brian-guest-full__activity-copy"><small>GLOBAL SUCCESS {item.grade||''} · UNIT {item.unit_no??'—'}</small><h3>{item.title}</h3><p>{item.subtitle||'Global Success'}</p></div>
+        <div className="brian-guest-full__activity-copy"><small>GLOBAL SUCCESS {item.grade||''} · UNIT {item.unit_no??'—'}</small><h3>{item.title}</h3><p>{item.subtitle||'Global Success'}</p><div className="brian-guest-full__activity-meta">{item.difficulty&&<span>{item.difficulty}</span>}{item.duration_minutes&&<span>{item.duration_minutes} {en?'minutes':'phút'}</span>}<span>{item.tag||'Activity'}</span></div></div>
         <div className="brian-guest-full__locked"><LockKeyhole size={14}/>{en?'Sign in to open':'Đăng nhập để mở'}</div>
       </article>)}
     </div>
+    <section className="brian-guest-full__extended-report">
+      <header><BarChart3 size={20}/><h2>{en?'Actual activity coverage by grade':'Thống kê toàn bộ hoạt động theo khối'}</h2></header>
+      <div className="brian-guest-full__extended-grid">
+        {['10','11','12'].map(grade=>{
+          const subset=entries.filter(item=>String(item.grade)===grade);
+          const units=new Map();
+          subset.forEach(item=>{const key=String(item.unit_no??'—');units.set(key,(units.get(key)||0)+1);});
+          return <article key={grade} className="brian-guest-full__report-card">
+            <h3>{en?'Grade':'Khối'} {grade}</h3><strong>{subset.length} {en?'activities':'hoạt động'}</strong>
+            <div>{[...units.entries()].sort((a,b)=>Number(a[0])-Number(b[0])).map(([unit,count])=>
+              <p key={unit}><span>Unit {unit}</span><b>{count}</b></p>)}</div>
+          </article>;
+        })}
+      </div>
+    </section>
   </div>;
 }
 function GuestDashboard({entries,stats,hero,language}){
