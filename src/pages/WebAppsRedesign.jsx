@@ -2,6 +2,15 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import FlatAppIcon from '../components/FlatAppIcon.jsx';
 import '../styles/launcher-app-hub-v1167.css';
 import '../styles/apps-directory-redesign.css';
+// This launcher is used by BOTH the authenticated Apps route and the guest
+// read-only Apps route. Keep its complete visual layer on this component,
+// rather than relying on WebAppsAndroidDrawer (which guests never mount).
+import '../styles/apps-permission-request-material.css';
+import '../styles/apps-list-view.css';
+import '../styles/apps-performance-recovery.css';
+import '../styles/apps-google-material-list-v2.css';
+import '../styles/apps-editorial-five-column-v8.css';
+import '../styles/apps-grid-5x4-scroll.css';
 import { getAppDesignProfile } from '../data/designProfiles.js';
 import {
   DEFAULT_LAUNCHER_GROUPS,

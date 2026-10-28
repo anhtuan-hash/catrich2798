@@ -58,6 +58,23 @@ assert.match(page, /GuestAttendance/);
 assert.match(page, /\.from\('bes_guest_preview_entries'\)/);
 assert.match(appsPage, /publicReadonly \? group\.items : group\.items\.slice\(0, 4\)/);
 assert.match(appsPage, /data-public-readonly-apps/);
+// Regression: guest Apps mounts WebAppsRedesign directly, not AndroidDrawer.
+// It MUST own all the visual layers used by the authenticated route.
+for (const cssFile of [
+  'apps-permission-request-material.css',
+  'apps-list-view.css',
+  'apps-performance-recovery.css',
+  'apps-google-material-list-v2.css',
+  'apps-editorial-five-column-v8.css',
+  'apps-grid-5x4-scroll.css',
+]) {
+  assert.ok(appsPage.includes(`import '../styles/${cssFile}';`), `Missing shared Apps CSS: ${cssFile}`);
+}
+const editorialCss = read('src/styles/apps-editorial-five-column-v8.css');
+assert.match(editorialCss, /\.editorial-apps-hero/);
+assert.match(editorialCss, /\.editorial-app-card-icon svg/);
+const authAppsEntry = read('src/pages/WebAppsAndroidDrawer.jsx');
+assert.match(authAppsEntry, /WebAppsRedesign/);
 assert.match(page, /onClickCapture=\{inertAction\}/);
 assert.match(page, /onDragStartCapture=\{inertAction\}/);
 assert.doesNotMatch(page, /onWheelCapture|onTouchMoveCapture|onScrollCapture/);
