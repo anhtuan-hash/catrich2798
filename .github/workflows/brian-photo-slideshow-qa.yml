@@ -1,0 +1,29 @@
+name: Brian Photo Slideshow QA
+on:
+  pull_request:
+    paths:
+      - 'src/pages/PhotoSlideshow*'
+      - 'src/main.jsx'
+      - 'src/utils/permissions.js'
+      - 'src/data/appVisibilityRegistry.js'
+      - 'supabase/brian_photo_slideshow.sql'
+      - 'scripts/test-brian-photo-slideshow.mjs'
+      - '.github/workflows/brian-photo-slideshow-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  slideshow-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node scripts/test-brian-photo-slideshow.mjs
+      - run: npx vite build
