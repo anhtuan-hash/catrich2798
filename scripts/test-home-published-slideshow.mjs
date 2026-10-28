@@ -50,4 +50,11 @@ test(studio.includes("window.dispatchEvent(new Event('bes-slideshow-published-up
   'editing, publishing or unpublishing an album broadcasts a refresh signal');
 test((studio.match(/announceSlideshowChange\(\);/g) || []).length >= 6,
   'studio sends change events for album and photo mutations');
+test(viewer.includes('className="bhs-home__story-main"') && viewer.includes('className="bhs-home__story-count"') &&
+  viewer.includes('className="bhs-home__stage"'),
+  'artwork title, description, slide counter and photo player remain visible');
+test(!viewer.includes('className="bhs-home__story-meta"') &&
+  !viewer.includes('className="bhs-home__story-bottom"') &&
+  !viewer.includes('const effectLabel ='),
+  'redundant collection, slide interval and transition badges are removed from the information panel');
 console.log('BRIAN Home Published Slideshow QA PASS');
