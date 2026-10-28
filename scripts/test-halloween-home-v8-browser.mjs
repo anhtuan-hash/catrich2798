@@ -14,6 +14,7 @@ const state=async page=>page.evaluate(()=>{
   master:e('.app-shell')?.dataset.halloweenHomeV4,
   body:css('body').backgroundColor, shell:css('.app-shell').backgroundImage,
   hero:css('#v4-hero').backgroundImage,
+  art:e('.hero-cms__halloween-art')?css('.hero-cms__halloween-art').backgroundImage:null,
   heroRadius:css('#v4-hero').borderRadius,
   nav:css('.brian-nav').backgroundImage,
   activeNav:css('.brian-nav__primary button.is-active').backgroundImage,
@@ -50,8 +51,9 @@ try{
   const on=await state(page);
   await page.screenshot({path:ART+'/'+label+'-halloween.png',fullPage:true,animations:'disabled'});
   assert.equal(on.master,'on',label+' master enabled');
-  assert.ok(on.hero.includes('halloween-v8-castle-art.avif'),label+' real art in Hero');
-  assert.ok(on.hero.includes('linear-gradient'),label+' separate real text backdrop');
+  assert.ok(on.art?.includes('halloween-v8-castle-art.avif'),label+' art lives in its own decorative layer');
+  assert.equal(off.art,null,label+' OFF has no illustrated art DOM');
+  assert.ok(on.hero.includes('radial-gradient'),label+' seamless radial background behind real text');
   assert.ok(on.shell!==off.shell,label+' entire world recolored');
   assert.ok(on.nav!==off.nav,label+' navbar themed');
   assert.ok(on.galleryGap<100,label+' no enormous gallery spacer: '+on.galleryGap);
@@ -74,6 +76,7 @@ try{
     assert.equal(restored[prop],off[prop],label+' original restored: '+prop);
   }
   assert.equal(restored.master,'off',label+' master disabled');
+  assert.equal(restored.art,null,label+' art layer removed after OFF');
   assert.deepEqual(errors,[],label+' JS errors');
   results.push({viewport:label,size:width+'x'+height,artwork:'AVIF loaded',galleryGap:on.galleryGap,sourcePhotoLoaded:on.imageNaturalWidth>0,fullRestoration:true,noOverflow:true});
   console.log('PASS HALLOWEEN V8 '+JSON.stringify(results.at(-1)));
