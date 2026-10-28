@@ -20,7 +20,7 @@ html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] {
 }
 /* Current site-wide floating ghost/hat/spider layer is painted above real
    artwork at z=45. The V4 mockup uses integrated graphics, not stray motifs. */
-html[data-halloween-home-v4] .bes-halloween-atmosphere {
+html[data-halloween-home-v4="on"] body:has(.app-shell[data-route="home"][data-halloween-home-v4="on"]) .bes-halloween-atmosphere {
   opacity:0!important;
   visibility:hidden!important;
   pointer-events:none!important;
