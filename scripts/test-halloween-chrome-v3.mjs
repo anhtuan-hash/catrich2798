@@ -46,7 +46,7 @@ pass(navComponent.includes("import './HalloweenNavigationSkin.css';\nimport './H
   'new refinements load after existing seasonal styles, without replacing original baseline');
 pass(navTheme.includes('bes_set_halloween_navbar_enabled') &&
   footerTheme.includes('bes_set_halloween_footer_enabled') &&
-  footerComponent.includes('data-halloween-footer={seasonalHome.enabled && seasonalFooter.enabled ? "true" : "false"}'),
+  footerComponent.includes('data-halloween-footer={seasonalHome.enabled && (resolvedRoute === "home" || seasonalFooter.enabled) ? "true" : "false"}'),
   read('src/utils/halloweenHomeTheme.js').includes('bes_set_halloween_home_enabled'),
   'independent navbar/footer switches remain, now protected by whole-home master rollback');
 pass(spec.includes('WCAG AA') &&
