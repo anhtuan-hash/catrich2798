@@ -73,6 +73,14 @@ assert.match(page, /'gradebook-studio'/);
 const navCss = read('src/components/GlobalGuestNavigationHub.css');
 assert.match(navCss, /\[data-guest-destination="apps"\] \{ order: 20 !important; \}/);
 assert.match(navCss, /\.brian-nav__primary:has\(> \[data-guest-destination\]\) > button:first-child \{ order: -10 !important; \}/);
+
+assert.match(page, /room_label,time_label,periods,difficulty,duration_minutes/);
+assert.match(page, /countWeight:/);
+assert.doesNotMatch(page, /entries\.flatMap\(item=>/);
+assert.match(page, /brian-guest-full__extended-report/);
+assert.match(page, /brian-guest-full__classes/);
+assert.match(read('src/components/DashboardWorkPlanner.jsx'), /countWeight/);
+assert.match(pageStyle, /brian-guest-full__activity-grid \{ display:grid !important/);
 assert.match(spec, /Supabase RLS/);
 
 console.log('BRIAN Public Preview: full-page read-only views, real public entries, native scrolling, private route gates — PASS');
