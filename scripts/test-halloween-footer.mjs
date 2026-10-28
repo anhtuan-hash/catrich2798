@@ -25,8 +25,8 @@ ok(theme.includes("from(TABLE)") &&
    theme.includes('subscribeTable(') &&
    theme.includes('30000'), 'all-user public theme listener + Supabase RPC, error handling and realtime/polling');
 ok(footer.includes('useHalloweenFooterTheme()') &&
-   footer.includes('data-halloween-footer={seasonalFooter.enabled ? "true" : "false"}') &&
-   footer.includes("import './HalloweenFooterSkin.css'"), 'actual Footer adds opt-in Halloween class without changing existing DOM structure');
+   footer.includes('data-halloween-footer={seasonalHome.enabled && seasonalFooter.enabled ? "true" : "false"}') &&
+   footer.includes("import './HalloweenFooterSkin.css'"), 'Footer skin only applies when both master and child flags are ON, DOM structure unchanged');
 ok(footer.includes('signature-footer-v50-brian-logo') &&
    footer.includes('/footer-pek-logo.png') &&
    footer.includes('/footer-cambridge-logo.png') &&
@@ -91,6 +91,6 @@ ok(css.includes('url(\'/assets/footer/halloween-brand-card.svg\')') &&
    !css.includes("url('/assets/footer/halloween-night-footer.svg')"),
    'Halloween decoration is painted INSIDE three cards, not on the dark frame');
 ok(read('docs/halloween-footer-integrated-cards-spec.md').includes('Admin-only RPC') &&
-   footer.includes('data-halloween-footer={seasonalFooter.enabled ? "true" : "false"}'),
-   'approved scope documented and existing Admin switch remains unchanged');
+   footer.includes('data-halloween-footer={seasonalHome.enabled && seasonalFooter.enabled ? "true" : "false"}'),
+   'approved footer scope documented; the independent Admin switch now respects full-home master OFF');
 console.log('BRIAN Halloween Footer QA PASS');

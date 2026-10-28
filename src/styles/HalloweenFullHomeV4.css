@@ -1,0 +1,185 @@
+/*
+ * BRIAN HALLOWEEN HOME V4 — only when approved Admin master is ON.
+ * This file is imported by Home.jsx, never a global permanent CSS switch.
+ * No changes to CMS artwork or its own independent style controls.
+ * Every paint rule is gated on the canonical shell's data-halloween-home-v4.
+ */
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] {
+  --v4-night:#171327;
+  --v4-plum:#2b1c40;
+  --v4-amber:#f2a158;
+  --v4-cream:#fff8f0;
+  --v4-ink:#302638;
+  --v4-copper:rgba(201,145,104,.65);
+  color:#302638!important;
+  background-color:#eee8f0!important;
+  background-image:
+    radial-gradient(ellipse 56% 38% at 96% 17%,rgba(211,152,116,.19),transparent 100%),
+    radial-gradient(ellipse 48% 55% at 0% 84%,rgba(153,115,181,.13),transparent 100%),
+    linear-gradient(180deg,#f4f0f4 0%,#fff7ed 42%,#f7eef4 100%)!important;
+}
+/* Current site-wide floating ghost/hat/spider layer is painted above real
+   artwork at z=45. The V4 mockup uses integrated graphics, not stray motifs. */
+html[data-halloween-home-v4="on"] body:has(.app-shell[data-route="home"][data-halloween-home-v4="on"]) .bes-halloween-atmosphere {
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] main.wp8-page-stage {
+  background:transparent!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-home {
+  --ink:#302638;
+  --muted:#685e72;
+  --line:#e4cebe;
+  --blue:#b55e2a;
+  gap:clamp(17px,2.2vw,27px)!important;
+  color:#302638!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-editorial-dateline {
+  color:#8c583c!important;
+  border-color:rgba(187,139,101,.28)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-editorial-dateline > :is(span,strong) {
+  color:#805238!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-editorial-dateline i {
+  background:linear-gradient(90deg,#c58b69,#e7d3c0)!important;
+}
+
+/* G02 HERO — never alter image, CMS overlay, independent typography, or
+   built-in editor. Border/glow is solely OUTSIDE the Hero drawing. */
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms {
+  border:1px solid rgba(206,146,102,.76)!important;
+  border-radius:23px!important;
+  box-shadow:0 7px 23px rgba(94,49,69,.12),
+    0 0 0 1px rgba(255,244,225,.60)!important;
+  isolation:isolate;
+}
+/* Never override opacity/filter or the Admin's independent Hero image settings. */
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__edit:focus-visible {
+  outline:3px solid #d18c59!important;
+  outline-offset:3px!important;
+}
+
+/* G03 PHOTO STORY — sophisticated orange/violet framing, left explanation
+   and right original image preserved at contain. No extra text on art. */
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] {
+  border:1px solid rgba(238,150,68,.72)!important;
+  border-radius:23px!important;
+  box-shadow:0 16px 35px rgba(31,17,51,.18),
+    0 0 0 1px rgba(243,175,116,.15)!important;
+  --bhx-orange:#f2a158;
+  --bhx-lilac:#e0d1fd;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] .bhs-home__story-panel {
+  background:linear-gradient(145deg,rgba(25,16,44,.96),rgba(56,30,67,.96))!important;
+  border-color:rgba(238,166,101,.50)!important;
+  box-shadow:0 5px 22px rgba(7,6,25,.26)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] .bhs-home__stage {
+  border-color:rgba(244,168,94,.72)!important;
+  box-shadow:0 0 0 1px rgba(255,185,113,.16),0 10px 24px rgba(3,3,16,.35)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home .bss-motion__image {
+  object-fit:contain!important;
+  object-position:center!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__open:focus-visible,
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home button:focus-visible {
+  outline:3px solid #ffd39c!important;
+  outline-offset:3px!important;
+}
+
+/* G04 WEEKLY PRACTICE — warm editorial parchment with subtle web motif in
+   the far corner. 3 grades retain their semantic blue/orange/teal accents. */
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice.bha-practice--editorial-v3 {
+  position:relative;
+  background-color:#fff8ef!important;
+  background-image:
+    radial-gradient(ellipse 54% 38% at 100% 0%,rgba(236,180,120,.17),transparent 95%),
+    linear-gradient(142deg,#fffcf6,#fff7ef 62%,#f9f0f7)!important;
+  border:1px solid rgba(207,151,110,.60)!important;
+  border-radius:23px!important;
+  box-shadow:0 8px 25px rgba(74,44,68,.10)!important;
+  overflow:hidden!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice__editorial-copy > span {
+  color:#a35226!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice__editorial-copy h2 {
+  color:#302638!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice__editorial-copy p {
+  color:#685d70!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice__published-count strong {
+  color:#9e532e!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice__editorial-rule {
+  color:#a56b45!important;
+  opacity:.92!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade {
+  border:1px solid rgba(201,163,143,.52)!important;
+  border-radius:17px!important;
+  box-shadow:0 4px 15px rgba(57,39,56,.075)!important;
+  overflow:hidden!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade--10 {
+  background:linear-gradient(145deg,#fffdf9,#f4f4fb)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade--11 {
+  background:linear-gradient(145deg,#fffaf3,#fff0e1)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade--12 {
+  background:linear-gradient(145deg,#fbfffb,#eaf5f1)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade__masthead {
+  background:rgba(255,252,246,.73)!important;
+  border-bottom-color:rgba(193,155,129,.28)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grade-recent {
+  background:rgba(255,254,251,.84)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grade-lesson {
+  background:rgba(255,255,255,.95)!important;
+}
+/* Existing click targets, semantic grade accents, weekly data and counters
+   are never replaced. */
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice button:focus-visible {
+  outline:3px solid #d28c55!important;
+  outline-offset:3px!important;
+}
+
+/* G05 FOOTER is already its own canonical opt-in component. The master RPC
+   switches its existing data-halloween-footer flag through that component.
+   Do NOT paint another footer overlay or fake institution cards here. */
+
+/* Mobile content preserves original order and touch-safe click surfaces. */
+@media(max-width:780px){
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-home {
+    background:transparent!important;
+  }
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-home__premium-hero {
+    border-color:rgba(210,150,106,.6)!important;
+    box-shadow:0 6px 19px rgba(48,28,60,.11)!important;
+  }
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-home__practice {
+    background:linear-gradient(145deg,#fffaf2,#fbf1f8)!important;
+    border:1px solid rgba(208,149,112,.56)!important;
+    box-shadow:0 5px 17px rgba(60,34,60,.10)!important;
+  }
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-home__grade-card {
+    border-color:rgba(203,165,141,.5)!important;
+    box-shadow:0 3px 12px rgba(60,34,60,.09)!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-home *,
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-home * {
+    animation-duration:0.01ms!important;
+    transition-duration:0ms!important;
+  }
+}
+/* G07 OFF means all scoped rules vanish. Do not add OFF baseline overrides. */

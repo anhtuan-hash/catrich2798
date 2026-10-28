@@ -9,6 +9,7 @@ import { visibilityIdForRoute } from '../../data/appVisibilityRegistry.js';
 import { buildMobileNavigationModel, runMobileNavigationItem } from './mobileNavigation.js';
 import MobileTopBar from './MobileTopBar.jsx';
 import { useHalloweenNavbarTheme } from '../../utils/halloweenNavbarTheme.js';
+import { useHalloweenHomeTheme } from '../../utils/halloweenHomeTheme.js';
 import MobileBottomNavigation from './MobileBottomNavigation.jsx';
 import MobileMoreSheet from './MobileMoreSheet.jsx';
 import MobileAccountMenu from './MobileAccountMenu.jsx';
@@ -149,6 +150,7 @@ export default function MobileAppShell({
   route = 'home', selectedTool = null, language = 'vi', currentUser, onLogout, appVisibility,
 }) {
   const seasonalNavbar = useHalloweenNavbarTheme();
+  const seasonalHome = useHalloweenHomeTheme();
   const [moreOpen, setMoreOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -346,7 +348,7 @@ export default function MobileAppShell({
 
   return (
     <>
-      <div className="bes-mobile-shell" data-bes-mobile-shell="true" data-halloween-nav={seasonalNavbar.enabled ? "true" : "false"} data-route={route}>
+      <div className="bes-mobile-shell" data-bes-mobile-shell="true" data-halloween-nav={seasonalHome.enabled && seasonalNavbar.enabled ? "true" : "false"} data-route={route}>
         <MobileTopBar
           language={language}
           onHome={() => runMobileNavigationItem({ id: 'home', route: 'home', action: 'route', label: language === 'en' ? 'Home' : 'Trang chủ' })}

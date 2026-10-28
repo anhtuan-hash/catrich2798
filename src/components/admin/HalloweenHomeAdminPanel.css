@@ -1,0 +1,11 @@
+.halloween-home-admin{border-color:#ddc8e6!important;background:linear-gradient(120deg,#fffaf3,#f4ecfc)!important;}
+.halloween-home-admin__visual{position:relative;width:112px;height:108px;overflow:hidden;border-radius:16px;
+ background:radial-gradient(circle at 76% 24%,#85609c55,transparent 37%),linear-gradient(155deg,#20142f,#382142 60%,#191529);
+ border:1px solid #d8a079;box-shadow:0 5px 18px #321a4430;}
+.halloween-home-admin__moon{position:absolute;width:33px;height:33px;right:14px;top:10px;border-radius:50%;
+ background:#ffe7bb;box-shadow:0 0 24px #f5bf8e99;}
+.halloween-home-admin__caption{position:absolute;bottom:14px;left:9px;color:#fff2e1;font-size:10px;letter-spacing:.07em;font-weight:850}
+.halloween-home-admin__caption b{color:#ffb16a}
+.halloween-home-admin__parts{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0 8px}
+.halloween-home-admin__parts span{font-size:10px;color:#6b457b;border:1px solid #decbe0;border-radius:10px;background:#fffbf6;padding:4px 8px;font-weight:770}
+@media(max-width:720px){.halloween-home-admin__visual{width:74px;height:78px}.halloween-home-admin__caption{font-size:8px}.halloween-home-admin__moon{width:23px;height:23px}}
