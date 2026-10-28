@@ -18,8 +18,17 @@ try {
   assert.ok(ready,'fixture Vite server ready');
   browser=await chromium.launch({headless:true,args:['--no-sandbox']});
   const page=await browser.newPage({viewport:{width:1440,height:900}});
+  const pageErrors=[];
+  page.on('pageerror',e=>pageErrors.push(String(e)));
+  page.on('console',msg=>{if(msg.type()==='error')pageErrors.push(msg.text());});
   await page.goto(BASE+'/tests/fixtures/halloween-footer-test.html',{waitUntil:'domcontentloaded'});
-  await page.locator('footer[data-app-shell-footer="true"]').waitFor({state:'visible'});
+  await wait(1800);
+  const footerCount=await page.locator('footer[data-app-shell-footer="true"]').count();
+  const diagnostics=await page.evaluate(()=>({root:document.getElementById('root')?.innerHTML.slice(0,420),
+    body:document.body.innerHTML.slice(0,420),
+    footer:[...document.querySelectorAll('footer')].map(x=>({display:getComputedStyle(x).display,visibility:getComputedStyle(x).visibility,box:x.getBoundingClientRect().toJSON()}))}));
+  console.log('Footer browser fixture diagnostics',JSON.stringify({footerCount,pageErrors,diagnostics}));
+  await page.locator('footer[data-app-shell-footer="true"]').waitFor({state:'visible',timeout:5000});
   const get=async(selector)=>page.locator(selector).first().evaluate(el=>{
     const c=getComputedStyle(el),r=el.getBoundingClientRect();
     return {background:c.backgroundImage,backgroundColor:c.backgroundColor,color:c.color,
