@@ -212,7 +212,7 @@ function FilterIcon() {
 
 export default function GlobalCompactNavigation({
   route = 'home', language = 'vi', selectedTool = null, setLanguage,
-  currentUser, onLogout, fontScale = 100, setFontScale,
+  currentUser, onLogout, fontScale = 100, setFontScale, halloweenNavEnabled = false,
 }) {
   const t = copy[language] || copy.vi;
   const isAdmin = String(currentUser?.role || '').toLowerCase() === 'admin';
@@ -380,7 +380,7 @@ export default function GlobalCompactNavigation({
 
   return (
     <>
-      <nav ref={rootRef} className="brian-nav" aria-label={language === 'vi' ? 'Điều hướng chính' : 'Main navigation'}>
+      <nav ref={rootRef} className="brian-nav" data-halloween-nav={halloweenNavEnabled ? "true" : "false"} aria-label={language === 'vi' ? 'Điều hướng chính' : 'Main navigation'}>
         <button type="button" className="brian-nav__brand" onClick={(event) => openRoute('#/home', 'BE', event)}>
           <img src="/brian-english-brand-mark.png" alt="" aria-hidden="true" />
           <span>Brian English</span>
