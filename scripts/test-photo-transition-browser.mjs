@@ -53,7 +53,7 @@ try {
       label + ': artwork is a decoded image');
     assert.equal(geometry.fit, 'contain', label + ': image is not cropped by CSS cover');
     assert.ok(geometry.view.bottom <= geometry.controls.y - 2,
-      label + ': artwork sits above the transport controls, not beneath them');
+      label + ': artwork sits above the transport controls, not beneath them: ' + JSON.stringify(geometry));
     assert.ok(geometry.image.width <= geometry.view.width + 1 &&
       geometry.image.height <= geometry.view.height + 1 &&
       geometry.image.width > 0 && geometry.image.height > 0,
