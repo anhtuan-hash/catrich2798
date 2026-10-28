@@ -1,0 +1,42 @@
+name: Halloween V8 — art-first visual QA
+on:
+  pull_request:
+    paths:
+      - 'public/assets/home/halloween-v8-*'
+      - 'src/styles/HalloweenIllustratedV8.css'
+      - 'src/pages/Home.jsx'
+      - 'src/components/HomeHeroExperience2026.jsx'
+      - 'src/components/HomePublishedSlideshow.jsx'
+      - 'scripts/test-halloween-home-v8*'
+      - 'tests/fixtures/halloween-home-v8*'
+      - '.github/workflows/halloween-home-v8.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  illustrated-home:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Source, master switch and real artwork checks
+        run: node scripts/test-halloween-home-v8.mjs
+      - name: Legacy master / permissions guard
+        run: node scripts/test-halloween-home-v4.mjs
+      - name: Build full Vite application
+        run: npx vite build
+      - run: npx playwright install --with-deps chromium
+      - name: Compare Halloween ON / OFF at 6 viewport sizes
+        run: node scripts/test-halloween-home-v8-browser.mjs
+      - name: Upload reference visual regression screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: halloween-v8-six-viewports-before-after
+          path: artifacts/halloween-v8/
+          if-no-files-found: warn
