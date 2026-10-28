@@ -168,3 +168,58 @@ html body #root#root .app-shell[data-route] .bes-top-chrome .brian-nav[data-hall
 ):hover:not(.is-active):not(.active):not([aria-current='page']) {
   background-color:#fff0df!important;
 }
+
+/* V4 narrow-desktop fallback: iPad split-screen and narrow desktop browsers
+   may not mount MobileAppShell even at phone widths. Never silently hide
+   BRIAN destinations. The established mobile shell remains authoritative on
+   actual mobile devices. Seasonal-only and Home-only. */
+@media(max-width:820px){
+ html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ .bes-top-chrome .brian-nav[data-halloween-nav="true"] {
+   display:flex!important;
+   align-items:center!important;
+   gap:6px!important;
+   padding:7px 8px!important;
+   min-width:0!important;
+ }
+ html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__brand {
+   flex:0 0 auto!important;
+   min-width:28px!important;
+   max-width:38px!important;
+ }
+ html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary {
+   display:flex!important;
+   flex:1 1 0!important;
+   min-width:0!important;
+   max-width:100%!important;
+   overflow-x:auto!important;
+   overflow-y:hidden!important;
+   overscroll-behavior-x:contain!important;
+   touch-action:pan-x!important;
+   -webkit-overflow-scrolling:touch;
+   scroll-snap-type:x proximity;
+   scrollbar-width:thin!important;
+   scrollbar-color:#e2b68266 transparent!important;
+ }
+ html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > :is(button,a,[role="button"]) {
+   display:inline-flex!important;
+   flex:0 0 auto!important;
+   min-width:64px!important;
+   max-width:none!important;
+   height:40px!important;
+   min-height:40px!important;
+   padding:0 11px!important;
+   font-size:12px!important;
+   scroll-snap-align:start;
+ }
+ html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__login {
+   flex:0 0 auto!important;
+   min-width:0!important;
+   padding:7px 10px!important;
+   font-size:12px!important;
+ }
+}
