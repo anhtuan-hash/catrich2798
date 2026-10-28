@@ -184,13 +184,13 @@ function GuestDashboard({entries,stats,hero,language}){
   const en=language==='en';
   const now=new Date();
   // Reuse the genuine Dashboard planner and newsroom, fed only redacted day-level counts.
-  const timeline=useMemo(()=>entries.flatMap(item=>
-    Array.from({length:Math.min(Number(item.total_count)||0,50)},(_,i)=>({
-      id:item.entry_id+'-'+i,date:(item.entry_date||'')+'T12:00:00',
-      title:en?'Recorded activity (private details)':'Hoạt động đã ghi nhận (chi tiết riêng tư)',
-      description:en?'Sign in for details':'Đăng nhập để xem chi tiết',
+  const timeline=useMemo(()=>entries.filter(item=>item.entry_date).map(item=>({
+      id:item.entry_id,date:item.entry_date+'T12:00:00',
+      countWeight:Math.max(1,Number(item.total_count)||1),
+      title:(Number(item.total_count)||0)+' '+(en?'recorded work items':'công việc đã ghi nhận'),
+      description:en?'This date contains real internal records; details require a signed-in authorized account.':'Đây là số lượng công việc thật theo ngày. Nội dung nội bộ chỉ dành cho người được cấp quyền.',
       sourceLabel:'BRIAN',done:true,
-    }))),[entries,en]);
+    })),[entries,en]);
   return <div className="brian-guest-full__section brian-guest-full__dashboard gd-page">
     <PublicHero section="dashboard" hero={hero} language={language}/>
     <CountStrip section="dashboard" stats={stats} language={language}/>
