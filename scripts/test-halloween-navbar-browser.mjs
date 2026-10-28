@@ -65,6 +65,17 @@ try {
    assert.equal(item.bounds.height,40,item.text+' original pill height remains 40px');
  }
  console.log('✓ All '+pills.length+' Halloween navigation pills have flat opaque high contrast labels (min '+Math.min(...pills.map(p=>p.contrast))+':1)');
+ const rest = pills.filter(p=>p.text!=='Trang chủ');
+ assert.ok(rest.length>=8,'non-selected routes include the eight other main destinations');
+ assert.ok(rest.every(p=>p.background==='rgb(255, 248, 240)'),
+   'all eight resting destinations share one ivory background: '+JSON.stringify(rest.map(p=>({text:p.text,background:p.background}))));
+ const activePill=pills.find(p=>p.text==='Trang chủ');
+ assert.ok(activePill && activePill.background==='rgb(244, 173, 105)',
+   'only selected Trang chủ uses warm pumpkin-orange accent: '+JSON.stringify(activePill));
+ assert.ok(pills.every(p=>p.ink==='rgb(48, 38, 56)' || p.text==='Trang chủ'),
+   'every inactive route uses identical dark ink');
+ console.log('✓ Single ivory palette across '+rest.length+' resting tabs; one orange active accent');
+
  console.log('✓ Desktop navbar ON/OFF restores original without moving navbar or breaking click');
  await page.locator('#mobile-toggle').click();
  await page.setViewportSize({width:390,height:844});
