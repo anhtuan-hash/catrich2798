@@ -782,3 +782,79 @@ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] 
    mask-image:none!important;-webkit-mask-image:none!important;
  }
 }
+
+
+/*
+ * Reference-density pass at laptop 1024px — artwork/copy remains interactive.
+ * Preserve real photos and five visible lesson rows; scroll only when needed.
+ */
+@media (min-width:901px) and (max-width:1180px) {
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms {
+   height:365px!important;min-height:365px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
+   padding-top:20px!important;padding-bottom:20px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-home-published-slideshow="true"] {
+   padding:13px 17px 10px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__header {
+   margin-bottom:7px!important;min-height:0!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__headline h2 {
+   font-size:clamp(22px,2.5vw,29px)!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition > .bhs-home__stage {
+   height:clamp(235px,23vw,265px)!important;
+   min-height:235px!important;max-height:265px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip {
+   min-height:52px!important;max-height:57px!important;
+   padding:3px 0 4px!important;gap:7px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip-item {
+   height:45px!important;width:59px!important;flex-basis:59px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition > .bhs-home__story-panel {
+   min-height:0!important;padding:14px!important;
+   overflow:auto!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice.bha-practice--editorial-v3 {
+   padding:13px 17px 16px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice__editorial-header {
+   min-height:72px!important;max-height:90px!important;
+   padding:0 0 6px!important;margin-bottom:4px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade {
+   height:305px!important;min-height:305px!important;max-height:305px!important;
+   grid-template-rows:38px 100px minmax(0,1fr)!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade__masthead {
+   min-height:38px!important;max-height:38px!important;height:38px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade__art {
+   height:100px!important;max-height:100px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade .bha-grade-recent {
+   overflow-y:auto!important;overscroll-behavior:contain!important;
+   scrollbar-width:thin!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade .bha-grade-lesson {
+   min-height:28px!important;padding:2px 5px!important;
+ }
+ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] {
+   padding:8px 10px 6px!important;
+   min-height:0!important;
+ }
+ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .signature-footer-v50-main {
+   gap:10px!important;align-items:start!important;
+   padding:0!important;margin:0!important;
+ }
+ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .signature-footer-v50-main > section {
+   min-height:0!important;padding:10px 12px!important;
+ }
+ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .signature-footer-v50-main :is(.signature-footer-v50-detail,.signature-footer-v50-credentials li) {
+   line-height:1.28!important;margin-block:2px!important;
+ }
+}
