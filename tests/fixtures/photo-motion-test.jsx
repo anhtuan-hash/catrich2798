@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import PhotoTransitionStage from '../../src/components/PhotoTransitionStage.jsx';
+import SlideshowLinkedText from '../../src/components/SlideshowLinkedText.jsx';
 import '../../src/components/HomePublishedSlideshow.css';
 import '../../src/components/HomePublishedSlideshowRefinement.css';
 import '../../src/components/HomePublishedSlideshowExhibition.css';
@@ -34,6 +35,9 @@ function Fixture() {
     <div className={gallery ? 'bss-stage-controls' : 'bhs-home__controls'}><span>01 / 06</span></div>
   </div>;
   return <div className="app-shell" data-route={gallery ? 'slideshow' : 'home'}>
+    <p id="test-public-link" style={{ margin:'8px',fontSize:'15px',color:'#e5f4ff' }}>
+      <SlideshowLinkedText text="🎃 Vote here: https://qrvote.org/c/halloween-showcase-ry29 🎃" />
+    </p>
     <div style={{padding:'15px',display:'flex',gap:'10px',flexWrap:'wrap'}}>
       <select id="transition-mode" value={mode} onChange={(event) => setMode(event.target.value)}>
         {['fade','slide','zoom','reveal','blur'].map((item) => <option key={item} value={item}>{item}</option>)}
