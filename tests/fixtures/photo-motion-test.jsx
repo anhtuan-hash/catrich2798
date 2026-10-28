@@ -5,6 +5,7 @@ import SlideshowLinkedText from '../../src/components/SlideshowLinkedText.jsx';
 import '../../src/components/HomePublishedSlideshow.css';
 import '../../src/components/HomePublishedSlideshowRefinement.css';
 import '../../src/components/HomePublishedSlideshowExhibition.css';
+import '../../src/components/HomePublishedSlideshowHalloween.css';
 import '../../src/pages/PhotoSlideshow.css';
 import '../../src/pages/PhotoSlideshowGalleryV2.css';
 
@@ -28,6 +29,7 @@ function Fixture() {
   const [mode, setMode] = useState('fade');
   const [layout, setLayout] = useState('home');
   const [direction, setDirection] = useState(1);
+  const [halloween, setHalloween] = useState(true);
   const photo = { id: 'test-photo-' + index };
   const gallery = layout === 'gallery';
   const stage = <div className={gallery ? 'bss-stage' : 'bhs-home__stage'} style={{ width: 'min(900px, 100%)', margin: 0 }}>
@@ -38,6 +40,7 @@ function Fixture() {
     <p id="test-public-link" style={{ margin:'8px',fontSize:'15px',color:'#e5f4ff' }}>
       <SlideshowLinkedText text="🎃 Vote here: https://qrvote.org/c/halloween-showcase-ry29 🎃" />
     </p>
+    <header id="fixture-global-nav" style={{ backgroundColor:'#fafbfe',color:'#203045',padding:'8px' }}>BRIAN English Global Navigation (must not be themed)</header>
     <div style={{padding:'15px',display:'flex',gap:'10px',flexWrap:'wrap'}}>
       <select id="transition-mode" value={mode} onChange={(event) => setMode(event.target.value)}>
         {['fade','slide','zoom','reveal','blur'].map((item) => <option key={item} value={item}>{item}</option>)}
@@ -45,9 +48,11 @@ function Fixture() {
       <button id="next-photo" onClick={() => {setDirection(1);setIndex((i)=>(i+1)%art.length)}}>Next photo</button>
       <button id="previous-photo" onClick={() => {setDirection(-1);setIndex((i)=>(i-1+art.length)%art.length)}}>Previous photo</button>
       <button id="toggle-layout" onClick={() => setLayout((v)=>v==='home'?'gallery':'home')}>Switch layout</button>
+      <button id="toggle-halloween" onClick={() => setHalloween((v) => !v)}>Switch Halloween skin</button>
       <output id="current-index">{index}</output>
     </div>
-    <div className={gallery ? 'bss bss--gallery-view' : 'bhs-home'} style={{width:'min(920px,100%)',margin:'0 auto',padding:'10px'}}>
+    <div className={gallery ? 'bss bss--gallery-view' : 'bhs-home'} data-halloween-theme={halloween && !gallery ? 'true' : 'false'} style={{width:'min(920px,100%)',margin:'0 auto',padding:'10px'}}>
+      {!gallery && <div className="bhs-home__header"><div className="bhs-home__headline"><div className="bhs-home__kicker">BRIAN PHOTO STORY · ĐANG TRÌNH CHIẾU</div><h2>Halloween Showcase 2026</h2></div></div>}
       {gallery ? stage : <div className="bhs-home__exhibition" data-home-exhibition-layout="info-left-artwork-right">
         <aside className="bhs-home__story-panel">
           <div className="bhs-home__story-top">
@@ -60,10 +65,7 @@ function Fixture() {
             <h3>11.2 Group 1</h3>
             <p>Under a glowing full moon, a mysterious castle rises above a spooky graveyard. Flying bats, playful ghosts, a black cat and a smiling pumpkin bring this vibrant Halloween scene to life.</p>
           </div>
-          <div className="bhs-home__story-meta">
-            <div className="bhs-home__story-meta-item"><span><small>BỘ SƯU TẬP</small><strong>Halloween Showcase 2026</strong></span></div>
-            <div className="bhs-home__story-meta-item"><span><small>THỜI GIAN MỖI ẢNH</small><strong>6 giây</strong></span></div>
-          </div>
+      
         </aside>
         {stage}
       </div>}
