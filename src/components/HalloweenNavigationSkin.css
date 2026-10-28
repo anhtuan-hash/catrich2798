@@ -1,0 +1,109 @@
+/* BRIAN seasonal navbar skin.
+ * Selector opt-in ONLY: when Admin turns this off, baseline navbar CSS wins
+ * unchanged because data-halloween-nav is no longer true.
+ * No styling of Hero, content, sidebar, standalone Photo Story or page body.
+ */
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] {
+  --brian-nav-ink:#f6edff;
+  --brian-nav-muted:#d6c5f2;
+  --brian-nav-soft:rgba(108,55,138,.35);
+  --brian-nav-line:rgba(255,166,92,.55);
+  --brian-nav-accent:#ffa65b;
+  --brian-nav-surface:#160e31;
+  color:#f4eaff!important;
+  /* Keep original outer geometry: only change the pre-existing bottom border. */
+  border:0!important;
+  border-bottom:1px solid rgba(255,160,79,.61)!important;
+  background-color:#15102d!important;
+  background-image:
+    linear-gradient(90deg,rgba(17,9,40,.24),rgba(29,14,62,.07),rgba(22,10,36,.18)),
+    url('/assets/navbar/halloween-navbar.svg')!important;
+  background-size:cover!important;
+  background-position:center center!important;
+  background-repeat:no-repeat!important;
+  box-shadow:0 8px 27px rgba(45,20,82,.29),
+    0 0 0 1px rgba(255,137,41,.14),
+    inset 0 1px rgba(249,190,116,.17)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(1.2);
+  backdrop-filter:blur(18px) saturate(1.2);
+  isolation:isolate;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] > .brian-nav__brand {
+  color:#fff4e5!important;
+  text-shadow:0 1px 8px rgba(255,144,69,.29);
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] > .brian-nav__brand:hover {
+  background:rgba(137,86,153,.26)!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__brand > span {
+  color:#fff3eb!important;
+  text-shadow:0 1px 8px rgba(255,140,68,.24);
+}
+/* Keep existing pill dimensions and icon/status behavior exactly as-is.
+   Light pastel destinations stand out against the night-sky background. */
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > :is(button,a,[role='button']):is(.is-active,.active,[aria-current='page']) {
+  border-color:#ffad5e!important;
+  box-shadow:0 0 0 1px rgba(255,159,72,.22),0 2px 15px rgba(255,126,34,.27)!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > :is(button,a,[role='button']):focus-visible {
+  outline:3px solid #ffa958!important;
+  outline-offset:3px!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__login {
+  color:#ffe7cb!important;
+  background:rgba(70,25,79,.7)!important;
+  border:1px solid rgba(255,169,84,.55)!important;
+  box-shadow:0 0 15px rgba(255,117,33,.21)!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__account {
+  color:#f9e8fa!important;
+  background:rgba(24,16,56,.75)!important;
+  border:1px solid rgba(224,172,255,.39)!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__account > span {
+  background:#f29340!important;color:#211031!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__search {
+  background:rgba(26,18,54,.72)!important;
+  color:#efddff!important;
+  border-color:rgba(235,172,255,.33)!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__popover {
+  background:#1a1538!important;
+  border-color:rgba(245,161,93,.5)!important;
+  color:#f6efff!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__icon {
+  color:#ffdfbd!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__icon:hover {
+  background:rgba(154,78,120,.35)!important;
+}
+/* Mobile topbar receives only its background and warm border. Keep the logo,
+   touch targets, reports, TTCM, notification count and account controls. */
+html.bes-mobile-shell-active body #root .bes-mobile-shell[data-halloween-nav="true"] .bes-mobile-topbar.bes-mobile-topbar--compact {
+  background-color:#17102d!important;
+  background-image:linear-gradient(90deg,rgba(20,9,47,.21),rgba(32,12,49,.16)),
+    url('/assets/navbar/halloween-navbar.svg')!important;
+  background-size:auto,auto 130%!important;
+  background-repeat:no-repeat!important;
+  background-position:center,80% center!important;
+  border-bottom:1px solid rgba(255,146,62,.56)!important;
+  box-shadow:0 3px 19px rgba(49,19,73,.29)!important;
+}
+html.bes-mobile-shell-active body #root .bes-mobile-shell[data-halloween-nav="true"] .bes-mobile-topbar__menu {
+  background:rgba(80,43,93,.68)!important;
+  border-color:rgba(255,171,92,.54)!important;
+  color:#ffecd0!important;
+}
+html.bes-mobile-shell-active body #root .bes-mobile-shell[data-halloween-nav="true"] .bes-mobile-avatar-button {
+  background:rgba(80,43,93,.7)!important;
+  color:#fff0dc!important;
+  border:1px solid rgba(255,176,103,.42)!important;
+}
+@media(prefers-reduced-motion:reduce) {
+  html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] *,
+  html.bes-mobile-shell-active body #root .bes-mobile-shell[data-halloween-nav="true"] .bes-mobile-topbar * {
+    transition-duration:0s!important;
+  }
+}

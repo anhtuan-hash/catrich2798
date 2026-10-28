@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { FONT_SCALE_OPTIONS } from '../utils/fontScale.js';
 import { hasRouteAccess } from '../utils/permissions.js';
 import { launchRoute } from '../utils/navigation.js';
+import { useHalloweenNavbarTheme } from '../utils/halloweenNavbarTheme.js';
 import {
   markAllWorkHubNotificationsRead,
   markWorkHubNotificationRead,
@@ -215,6 +216,7 @@ export default function GlobalCompactNavigation({
   currentUser, onLogout, fontScale = 100, setFontScale,
 }) {
   const t = copy[language] || copy.vi;
+  const seasonalNavbar = useHalloweenNavbarTheme();
   const isAdmin = String(currentUser?.role || '').toLowerCase() === 'admin';
   const rootRef = useRef(null);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -380,7 +382,7 @@ export default function GlobalCompactNavigation({
 
   return (
     <>
-      <nav ref={rootRef} className="brian-nav" aria-label={language === 'vi' ? 'Điều hướng chính' : 'Main navigation'}>
+      <nav ref={rootRef} className="brian-nav" data-halloween-nav={seasonalNavbar.enabled ? "true" : "false"} aria-label={language === 'vi' ? 'Điều hướng chính' : 'Main navigation'}>
         <button type="button" className="brian-nav__brand" onClick={(event) => openRoute('#/home', 'BE', event)}>
           <img src="/brian-english-brand-mark.png" alt="" aria-hidden="true" />
           <span>Brian English</span>

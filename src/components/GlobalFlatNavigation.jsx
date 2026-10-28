@@ -54,6 +54,7 @@ import './DashboardTopChromeMockup.css';
 // Desktop primary destinations only: uniform text-only pastel pills.
 import './GlobalNavigationTextOnlyCompact.css';
 import './GlobalNavigationUtilityIcons.css';
+import './HalloweenNavigationSkin.css';
 
 export default function GlobalFlatNavigation(props) {
   const presentation = usePresentationMode();
