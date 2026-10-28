@@ -17,7 +17,7 @@ assert.match(story,/className="bhs-home__filmstrip"/);
 assert.match(story,/photos\.map\(\(item, photoIndex\)/);
 assert.match(story,/setIndex\(photoIndex\)/);
 assert.match(story,/aria-pressed=\{photoIndex === currentIndex\}/);
-assert.match(story,/loading="lazy"/);
+assert.match(story,/loading=\{photoIndex < 4 \? 'eager' : 'lazy'\}/);
 assert.match(hook,/bes_set_halloween_home_enabled/);
 assert.match(admin,/saveHalloweenHomeTheme\(!theme\.enabled\)/);
 for(const zone of ['.bha-home','.bha-hero.hero-cms','.bhs-home__filmstrip','.bha-practice.bha-practice--editorial-v3','.bha-grades--folio','> footer.footer'])assert.ok(skin.includes(zone),zone);
