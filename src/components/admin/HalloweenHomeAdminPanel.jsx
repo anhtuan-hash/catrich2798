@@ -6,8 +6,8 @@ import './HalloweenHomeAdminPanel.css';
 
 const COPY={
  vi:{
-  brow:'BRIAN SEASONAL DESIGN SYSTEM · V4', title:'Halloween toàn trang',
-  desc:'Một công tắc cho toàn bộ Trang chủ: thanh điều hướng, Hero, Photo Story, bài tập theo tuần và footer. Tắt để khôi phục giao diện nguyên bản; không thay đổi ảnh Hero do Admin đã công bố hoặc dữ liệu học sinh.',
+  brow:'BRIAN SEASONAL DESIGN SYSTEM · V5', title:'Halloween toàn trang',
+  desc:'Bật để chuyển toàn bộ Trang chủ sang thế giới Halloween màu tím đêm, ánh sáng bí ngô và tranh minh họa. Tắt để khôi phục nguyên vẹn giao diện gốc: thanh điều hướng, Hero, Photo Story, bài tập theo tuần và footer. Tắt để khôi phục giao diện nguyên bản; không thay đổi ảnh Hero do Admin đã công bố hoặc dữ liệu học sinh.',
   enabled:'Đang bật toàn trang',disabled:'Giao diện nguyên bản',
   syncing:'Đang đọc cấu hình',saving:'Đang lưu…',
   done:'Đã cập nhật Halloween toàn trang và đồng bộ thanh điều hướng + footer.',
@@ -16,8 +16,8 @@ const COPY={
   parts:['Điều hướng','Hero','Slideshow','Bài tập tuần','Footer'],
  },
  en:{
-  brow:'BRIAN SEASONAL DESIGN SYSTEM · V4',title:'Full-site Halloween',
-  desc:'One master switch for Home navigation, Hero, Photo Story, weekly practice and footer. OFF restores original styling, without changing Admin-published Hero media or classroom data.',
+  brow:'BRIAN SEASONAL DESIGN SYSTEM · V5',title:'Full-site Halloween',
+  desc:'Switch the entire Home into the illustrated Halloween world; OFF restores the original navigation, Hero, Photo Story, weekly practice and footer. OFF restores original styling, without changing Admin-published Hero media or classroom data.',
   enabled:'Full Halloween on',disabled:'Original appearance',
   syncing:'Loading settings',saving:'Saving…',
   done:'Whole-home Halloween, navbar and footer updated.',
@@ -56,7 +56,7 @@ export default function HalloweenHomeAdminPanel({currentUser,language='vi'}){
   <article className="settings-google-card halloween-navbar-admin halloween-home-admin" id="settings-halloween-home">
    <div className="halloween-home-admin__visual" aria-hidden="true">
      <span className="halloween-home-admin__moon" />
-     <span className="halloween-home-admin__caption">HALLOWEEN <b>V4</b></span>
+     <span className="halloween-home-admin__caption">HALLOWEEN <b>V5</b></span>
    </div>
    <div className="halloween-navbar-admin__copy">
      <span className="halloween-navbar-admin__eyebrow">🎃 {t.brow}</span>

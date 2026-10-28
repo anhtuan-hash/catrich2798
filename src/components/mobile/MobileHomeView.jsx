@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import MobileHeroAdminField from '../MobileHeroAdminField.jsx';
+import { useHalloweenHomeTheme } from '../../utils/halloweenHomeTheme.js';
 import { getCurrentUser, subscribeToAuthChanges } from '../../utils/auth.js';
 import { isDepartmentLeaderRole } from '../../utils/roles.js';
 import '../../styles/mobile/mobile-home.css';
@@ -157,6 +158,7 @@ export default function MobileHomeView({
   onOpenStatistics,
 }) {
   const vi = language !== 'en';
+  const seasonalHome = useHalloweenHomeTheme();
   const [openGrade, setOpenGrade] = useState(null);
   const [heroEditorUser, setHeroEditorUser] = useState(null);
   const [heroEditorOpen, setHeroEditorOpen] = useState(false);
@@ -232,6 +234,15 @@ export default function MobileHomeView({
     <main className="bes-mobile-home is-premium" data-bes-mobile-home="true" aria-label={vi ? 'Trang chủ Brian English' : 'Brian English home'}>
       <div className="bes-mobile-home__premium" data-mobile-home-premium>
         <section className="bes-mobile-home__premium-hero" data-mobile-home-hero aria-labelledby="mobile-home-premium-heading">
+          {seasonalHome.enabled ? <div className="bes-mobile-halloween-hero">
+            <span className="bes-mobile-halloween-hero__kicker">🎃 BRIAN ENGLISH • HALLOWEEN 2026</span>
+            <h1>Happy Halloween!</h1>
+            <p>{vi ? "Cùng khám phá lớp học tiếng Anh nhiệm màu." : "Discover a magical world of English learning."}</p>
+            <div className="bes-mobile-halloween-hero__actions">
+              <button type="button" onClick={onStart}>{vi ? "Bắt đầu ngay" : "Get started"}</button>
+              <button type="button" onClick={onOpenApps}>{vi ? "Khám phá ứng dụng" : "Explore apps"}</button>
+            </div>
+          </div> : null}
           <img
             className="bes-mobile-home__premium-hero-art"
             src="/mobile-home-premium-hero.webp"
@@ -268,7 +279,7 @@ export default function MobileHomeView({
             </button>
           ) : null}
           <div className="bes-mobile-home__sr-only">
-            <h1 id="mobile-home-premium-heading">{vi ? 'Học tốt hơn' : 'Learn better'}</h1>
+            <h1 id="mobile-home-premium-heading">{seasonalHome.enabled ? "Happy Halloween!" : vi ? 'Học tốt hơn' : 'Learn better'}</h1>
             <p>{vi ? 'Tiếng Anh mở ra nhiều cơ hội hơn.' : 'English opens more opportunities.'}</p>
           </div>
           <button

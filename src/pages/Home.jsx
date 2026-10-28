@@ -40,5 +40,7 @@ import '../styles/mobile/mobile-home-footer-flow-fix.css';
 // Final, tightly scoped drawer overrides must load after all legacy modal skins.
 import '../styles/HomeHeroCmsEditorDrawer.css';
 import '../styles/HalloweenFullHomeV4.css';
+// Mockup-fidelity seasonal presentation: loaded last and strictly Admin-gated.
+import '../styles/HalloweenFullHomeV5.css';
 
 export default HomeApproved;

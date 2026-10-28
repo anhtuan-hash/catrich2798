@@ -14,6 +14,7 @@ import {
   UsersRound,
 } from 'lucide-react';
 import { isDepartmentLeaderRole } from '../utils/roles.js';
+import { useHalloweenHomeTheme } from '../utils/halloweenHomeTheme.js';
 import {
   DEFAULT_HOME_HERO_CONFIG,
   HOME_HERO_EVENT,
@@ -213,6 +214,8 @@ export default function HomeHeroExperience2026({
   const [previewDevice, setPreviewDevice] = useState('desktop');
   const [editorOpen, setEditorOpen] = useState(false);
   const [loading, setLoading] = useState(!bootstrap.cached);
+  const seasonalHome = useHalloweenHomeTheme();
+  const halloweenOn = Boolean(seasonalHome.enabled);
 
   const canEdit = isDepartmentLeaderRole(currentUser?.role);
   const activeConfig = normalizeHomeHeroConfig(previewConfig || settings.published);
@@ -307,6 +310,7 @@ export default function HomeHeroExperience2026({
       <section
         className={`bha-hero hero-cms${loading ? ' is-loading' : ''}${activeConfig.animation.enabled ? ' has-animation' : ''}${activeConfig.animation.contentReveal ? ' has-reveal' : ''}${activeConfig.animation.buttonPulse ? ' has-button-pulse' : ''}${previewConfig ? ` is-preview is-preview-${previewDevice}` : ''}`}
         style={heroStyle}
+        data-halloween-hero-season={halloweenOn ? 'true' : 'false'}
         data-content-align={activeConfig.layout.contentAlign}
         data-vertical-align={activeConfig.layout.verticalAlign}
         aria-label={vi ? 'Hero trang chủ English Hub' : 'English Hub homepage Hero'}
@@ -320,13 +324,13 @@ export default function HomeHeroExperience2026({
           {activeConfig.badge.enabled ? (
             <span className="hero-cms__badge">
               {activeConfig.badge.logoUrl ? <img src={activeConfig.badge.logoUrl} alt="" loading="eager" decoding="async" /> : <i>B</i>}
-              <strong>{badgeText}</strong>
+              <strong>{halloweenOn ? 'BRIAN ENGLISH • HALLOWEEN 2026' : badgeText}</strong>
             </span>
           ) : null}
 
-          <h1>{headlineLines(headline).map((line) => <span key={line}>{line}</span>)}</h1>
-          {highlight ? <h2>{highlight}</h2> : null}
-          {description ? <p>{description}</p> : null}
+          <h1>{halloweenOn ? <><span>Happy</span><span>Halloween!</span></> : headlineLines(headline).map((line) => <span key={line}>{line}</span>)}</h1>
+          {halloweenOn ? <h2>Learn · Play · Create · Grow</h2> : highlight ? <h2>{highlight}</h2> : null}
+          {halloweenOn ? <p>{vi ? 'Khám phá không gian dạy học tiếng Anh nhiệm màu — sáng tạo, tương tác và truyền cảm hứng mỗi ngày cùng BRIAN.' : 'Step into a magical English classroom filled with creativity, interactive tools and inspiring learning experiences.'}</p> : description ? <p>{description}</p> : null}
 
           <div className="hero-cms__actions">
             {activeConfig.buttons.map((button) => <HeroButton key={button.id} button={button} language={language} onActivate={handleButton} />)}

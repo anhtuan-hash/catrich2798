@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 2300" preserveAspectRatio="xMidYMid slice">
+<defs><radialGradient id="fog"><stop stop-color="#a14ed3" stop-opacity=".34"/><stop offset="1" stop-color="#a14ed3" stop-opacity="0"/></radialGradient><radialGradient id="fire"><stop stop-color="#ff7b2e" stop-opacity=".45"/><stop offset="1" stop-color="#ff7b2e" stop-opacity="0"/></radialGradient><g id="web" fill="none" stroke="#f4b76a" stroke-width="2" opacity=".48"><path d="M0 0Q85 50 110 138M0 0Q29 97 110 138M0 0L110 138M0 0H172M0 0V188M0 0L186 88M20 32Q55 12 91 22M33 59Q70 39 119 46M50 92Q95 62 146 69M75 123Q119 98 164 105"/></g><g id="bat" fill="#120b24"><path d="M0 2Q-17-15-31 1Q-23-4-17 13Q-11 2-4 8L0 0L4 8Q11 2 17 13Q23-4 31 1Q17-15 0 2Z"/></g><g id="pumpkin"><ellipse rx="64" ry="51" fill="#fe762b"/><ellipse cx="-27" rx="27" ry="50" fill="#ffb04f" opacity=".55"/><ellipse cx="26" rx="29" ry="50" fill="#c64c24" opacity=".62"/><path d="M-14-9L-28-26L-38-8ZM11-10L28-26L39-8ZM-34 12Q0 46 35 12L14 15L3 27L-9 15Z" fill="#1c112b"/><path d="M0-48Q2-67 18-68" fill="none" stroke="#428142" stroke-width="9"/></g><g id="star" fill="#ffb76a"><path d="M0-6Q1 0 6 0Q1 1 0 6Q-1 1-6 0Q-1-1 0-6Z"/></g></defs>
+<rect width="1440" height="2300" fill="none"/>
+<ellipse cx="50" cy="280" rx="410" ry="420" fill="url(#fog)"/>
+<ellipse cx="1413" cy="630" rx="300" ry="455" fill="url(#fog)"/>
+<ellipse cx="300" cy="1460" rx="580" ry="350" fill="url(#fog)"/>
+<ellipse cx="1320" cy="1980" rx="450" ry="400" fill="url(#fire)"/>
+<g opacity=".8"><use href="#web" x="0" y="0"/><use href="#web" transform="translate(1440 0) scale(-1 1)"/><use href="#web" x="0" y="1010"/><use href="#web" transform="translate(1440 1500) scale(-1 1)"/><use href="#web" transform="translate(0 2260) scale(1 -1)"/></g>
+<path d="M0 2180Q195 2100 370 2190T800 2160T1440 2174V2300H0Z" fill="#0c0a20" opacity=".9"/>
+<path d="M40 2266V2023M40 2080L-12 2015M40 2130L115 2042M1410 2210V2030M1410 2100L1360 2040M1410 2140L1460 2060" fill="none" stroke="#171029" stroke-width="24" stroke-linecap="round"/>
+<g opacity=".9"><use href="#pumpkin" transform="translate(93 2213) scale(1.3)"/><use href="#pumpkin" transform="translate(1400 2168) scale(.9)"/><use href="#pumpkin" transform="translate(1300 2215) scale(.6)"/><use href="#pumpkin" transform="translate(55 1294) scale(.48)"/></g>
+<g opacity=".65"><use href="#bat" transform="translate(270 903) rotate(8) scale(1.3)"/><use href="#bat" transform="translate(1235 785) rotate(-11) scale(1.25)"/><use href="#bat" transform="translate(1260 1424) scale(.7)"/><use href="#bat" transform="translate(170 1688) scale(.8)"/></g>
+<g opacity=".72"><use href="#star" x="173" y="220"/><use href="#star" x="1270" y="310"/><use href="#star" x="110" y="740"/><use href="#star" x="1340" y="970"/><use href="#star" x="103" y="1544"/><use href="#star" x="1360" y="1770"/><use href="#star" x="840" y="2244"/></g>
+<!-- cemetery silhouettes between page regions -->
+<path d="M0 1605Q120 1565 230 1604V1658H0Z M1214 1630Q1317 1570 1440 1600V1675H1214Z" fill="#120e27" opacity=".75"/>
+<g fill="#1e1234" stroke="#563062" stroke-width="3" opacity=".83">
+ <path d="M38 1580V1547Q38 1518 65 1518Q92 1518 92 1547V1580Z"/><path d="M120 1584V1553Q120 1520 143 1520Q170 1520 170 1553V1584Z"/>
+ <path d="M1291 1600V1562Q1291 1530 1322 1530Q1353 1530 1353 1562V1600Z"/><path d="M1370 1600V1551Q1370 1527 1394 1527Q1415 1527 1415 1551V1600Z"/>
+</g>
+</svg>
