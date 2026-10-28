@@ -146,6 +146,7 @@ function MobileNotificationSheet({ open, currentUser, language, onClose }) {
 
 export default function MobileAppShell({
   route = 'home', selectedTool = null, language = 'vi', currentUser, onLogout, appVisibility,
+  halloweenNavEnabled = false,
 }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -344,7 +345,7 @@ export default function MobileAppShell({
 
   return (
     <>
-      <div className="bes-mobile-shell" data-bes-mobile-shell="true" data-route={route}>
+      <div className="bes-mobile-shell" data-bes-mobile-shell="true" data-halloween-nav={halloweenNavEnabled ? "true" : "false"} data-route={route}>
         <MobileTopBar
           language={language}
           onHome={() => runMobileNavigationItem({ id: 'home', route: 'home', action: 'route', label: language === 'en' ? 'Home' : 'Trang chủ' })}
