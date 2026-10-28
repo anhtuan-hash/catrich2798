@@ -56,6 +56,7 @@ import { installGlobalFontSystem } from './utils/globalFontSystem.js';
 import { installRegionalFontSystem } from './utils/globalRegionalFontSystem.js';
 import usePresentationMode from './hooks/usePresentationMode.js';
 import { withAttendanceReadOnlyAccess } from './utils/attendanceReadonlyAccess.js';
+import { isGuestPreviewRoute } from './utils/guestPreviewPolicy.js';
 
 runConfigurationMigrations();
 installGlobalMotionSystem();
@@ -118,6 +119,7 @@ const ContentTransferHub = lazy(() => import('./components/ContentTransferHub.js
 const TransferInboxBanner = lazy(() => import('./components/TransferInboxBanner.jsx'));
 const SyncQueueIndicator = lazy(() => import('./components/SyncQueueIndicator.jsx'));
 const WorkDashboard = lazy(() => import('./pages/WorkDashboard.jsx'));
+const GuestPreview = lazy(() => import('./pages/GuestPreview.jsx'));
 const BrianFocus = lazy(() => import('./components/BrianFocus/BrianFocus.jsx'));
 const BrianBoard = lazy(() => import('./components/BrianBoard/BrianBoard.jsx'));
 const BrianBombArena = lazy(() => import('./components/BrianBombArena/BrianBombArena.jsx'));
@@ -213,6 +215,7 @@ function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const chromeSettings = useGlobalChromeSettings(currentUser);
   const [authReady, setAuthReady] = useState(false);
+  const [guestHomeNotice, setGuestHomeNotice] = useState(false);
   const [loadingState, setLoadingState] = useState({ active: false, label: '' });
   const [aiOperationState, setAiOperationState] = useState({ active: false, label: '', provider: '' });
   const aiOperationIdsRef = useRef(new Set());
@@ -359,6 +362,7 @@ function App() {
   const accessibleTools = SPECIAL_TOOLS.filter(visibleForCurrentUser);
 
   const requiresAuth = currentRoute === 'tool' || !PUBLIC_ROUTES.has(currentRoute);
+  const guestPreviewAllowed = !currentUser && isGuestPreviewRoute(currentRoute, selectedTool);
   const canAccessRoute = visibilityReady && !temporarilyHidden && (!requiresAuth || hasRouteAccess(
     currentRoute === 'attendance' ? withAttendanceReadOnlyAccess(currentUser) : currentUser,
     currentRoute,
@@ -366,10 +370,10 @@ function App() {
   ));
 
   useEffect(() => {
-    if (authReady && requiresAuth && !currentUser) {
+    if (authReady && requiresAuth && !currentUser && !guestPreviewAllowed) {
       window.location.hash = '#/login';
     }
-  }, [authReady, requiresAuth, currentUser]);
+  }, [authReady, requiresAuth, currentUser, guestPreviewAllowed]);
 
   useEffect(() => {
     if (authReady && currentUser && ['login', 'register'].includes(currentRoute)) {
@@ -378,6 +382,19 @@ function App() {
   }, [authReady, currentUser, currentRoute]);
 
   const setGlobalLoading = (active, label = '') => setLoadingState({ active, label: label || (language === 'vi' ? 'Đang tải...' : 'Loading...') });
+
+  // Existing public Home can be scrolled but must not be operated anonymously.
+  const guardGuestHomeInteraction = (event) => {
+    if (!authReady || currentUser || currentRoute !== 'home') return;
+    const node = event.target;
+    if (!(node instanceof Element)) return;
+    const action = node.closest('button, a, input, select, textarea, [role="button"], [contenteditable="true"]');
+    if (!action || action.closest('[data-guest-allow]')) return;
+    if (event.type === 'keydown' && !['Enter', ' '].includes(event.key)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setGuestHomeNotice(true);
+  };
 
   // Quick Access is a desktop/web-only affordance. The mobile presentation owns
   // its own top bar, bottom navigation and drawer, so the desktop rail must not
@@ -576,10 +593,11 @@ function App() {
           </Suspense>
         ) : null}
 
-        <main id="bes-main-content" tabIndex={-1} key={`${currentRoute}:${selectedTool?.slug || 'root'}`} className="wp8-page-stage wp8-door-page" data-route={currentRoute}>
+        <main id="bes-main-content" tabIndex={-1} key={`${currentRoute}:${selectedTool?.slug || 'root'}`} className="wp8-page-stage wp8-door-page" data-route={currentRoute} onClickCapture={guardGuestHomeInteraction} onKeyDownCapture={guardGuestHomeInteraction} onSubmitCapture={guardGuestHomeInteraction}>
           <div className="bqa-content-safe-frame" data-quick-access-safe-frame={quickAccessEnabled ? 'true' : 'false'}>
           <Suspense fallback={<RouteFallback language={language} />}>
             {currentRoute === 'home' && (!currentUser || visibilityReady) && <Home {...context} />}
+            {authReady && guestPreviewAllowed && currentRoute !== 'home' && <GuestPreview route={currentRoute} language={language} />}
             {currentRoute === 'home' && currentUser && !visibilityReady ? <div className="windows-loader-wrap"><div className="windows-loader-card">{language === 'vi' ? 'Đang đồng bộ danh sách ứng dụng…' : 'Syncing app visibility…'}</div></div> : null}
             {requiresAuth && currentUser && !canAccessRoute && visibilityReady && <AccessDenied language={language} currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} temporarilyHidden={temporarilyHidden} />}
             {requiresAuth && currentUser && !visibilityReady ? <div className="windows-loader-wrap"><div className="windows-loader-card">{language === 'vi' ? 'Đang đồng bộ danh sách ứng dụng…' : 'Syncing app visibility…'}</div></div> : null}
@@ -625,6 +643,19 @@ function App() {
           </Suspense>
           </div>
         </main>
+
+        {guestHomeNotice && !currentUser && currentRoute === 'home' && (
+          <div className="brian-guest-lock-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setGuestHomeNotice(false); }}>
+            <section className="brian-guest-lock-dialog" role="dialog" aria-modal="true" aria-labelledby="guest-home-notice-title">
+              <h2 id="guest-home-notice-title">{language === 'vi' ? 'Chế độ xem trước' : 'Preview mode'}</h2>
+              <p>{language === 'vi' ? 'Bạn có thể xem và cuộn nội dung. Vui lòng đăng nhập để sử dụng các chức năng của BRIAN.' : 'You can browse and scroll the content. Sign in to use BRIAN features.'}</p>
+              <div className="brian-guest-lock-dialog__actions">
+                <button type="button" onClick={() => setGuestHomeNotice(false)}>{language === 'vi' ? 'Tiếp tục xem' : 'Keep browsing'}</button>
+                <a href="#/login" onClick={() => setGuestHomeNotice(false)}>{language === 'vi' ? 'Đăng nhập' : 'Sign in'}</a>
+              </div>
+            </section>
+          </div>
+        )}
 
         {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal', 'classroom-join', 'quest-join'].includes(currentRoute) && (
           <Suspense fallback={null}>
