@@ -1,0 +1,221 @@
+/*
+ * HALLOWEEN V6 — visual correction after direct production/user comparison.
+ * No mock data. OFF leaves Home, Admin Hero CMS, gallery, courses and Footer unchanged.
+ * This file intentionally loads last, strictly on the canonical seasonal Home flag.
+ */
+html:has(.app-shell[data-route="home"][data-halloween-home-v4="on"]),
+html:has(.app-shell[data-route="home"][data-halloween-home-v4="on"]) body {
+  background:#100820!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] {
+  background-color:#100820!important;
+  background-image:
+    radial-gradient(ellipse 65% 16% at 50% 38%,rgba(98,43,147,.64),transparent 100%),
+    radial-gradient(ellipse 46% 24% at 95% 65%,rgba(99,25,129,.42),transparent 100%),
+    url('/assets/home/halloween-v5-environment.svg'),
+    linear-gradient(180deg,#140a30,#1f0e42 36%,#160a34 70%,#0e0923)!important;
+  background-repeat:no-repeat,no-repeat,no-repeat,no-repeat!important;
+  background-size:cover,cover,100% 100%,cover!important;
+  color:#fff1e7!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] > main.wp8-page-stage,
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-home {
+  background:transparent!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-home {
+  gap:clamp(18px,2vw,26px)!important;
+  padding-top:14px!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-editorial-dateline {
+  padding:7px 0!important;
+  margin:0 0 5px!important;
+  border-color:#99568e55!important;
+}
+/* HERO: the original school-owned, photographic CMS artwork was a much higher
+ * fidelity illustration than the flat vector castle. Use the REAL published
+ * image rather than a newly imagined replacement. Keep the Admin's image source
+ * in the DOM and restore it exactly on OFF. */
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms {
+  min-height:clamp(455px,38vw,620px)!important;
+  border:2px solid rgba(255,166,80,.66)!important;
+  border-radius:28px!important;
+  background:#29134c!important;
+  background-image:
+    linear-gradient(90deg,rgba(19,8,38,.90) 0%,rgba(27,10,48,.87) 28%,rgba(43,16,62,.41) 53%,rgba(34,11,47,.06) 82%),
+    url('/hero/media/hero-1793195941901-36cea510456f.webp')!important;
+  background-position:center,center!important;
+  background-size:cover,cover!important;
+  box-shadow:0 16px 36px rgba(4,2,19,.58),0 0 0 3px #78389d55,0 0 26px #f68d4170!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__background {
+  /* Preserve original CMS element in markup for safe OFF; prevent its
+     arbitrary bright overlays from repainting the dark seasonal text field. */
+  opacity:0!important;visibility:hidden!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
+  width:min(56%,660px)!important;max-width:660px!important;
+  padding:clamp(23px,4vw,54px)!important;
+  background:transparent!important;
+  border:0!important;box-shadow:none!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1 {
+  font-size:clamp(4rem,7vw,8rem)!important;
+  font-weight:950!important;
+  letter-spacing:-.066em!important;
+  line-height:.92!important;
+  color:#fff3f8!important;
+  text-shadow:0 7px 22px rgba(8,3,25,.82)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1 span:last-child {
+  color:#ff9a3f!important;
+  text-shadow:0 4px 0 #85305a,0 7px 22px rgba(8,3,25,.7),0 0 24px rgba(244,120,55,.26)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__badge {
+  border-color:#ffae685c!important;
+  background:rgba(31,14,55,.7)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content > p {
+  color:#f6dcf5!important;
+  font-size:clamp(15px,1.35vw,18px)!important;
+  text-shadow:0 2px 10px #1b0b37!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__button.is-primary {
+  background:linear-gradient(110deg,#ffce72,#ff8a35)!important;
+  color:#32173e!important;
+  border-color:#ffdf9c!important;
+  box-shadow:0 0 23px rgba(255,141,54,.48)!important;
+}
+/* CRITICAL: V5 changed a legacy 390px ABSOLUTE before-element to RELATIVE
+ * without resetting height. It pushed gallery heading down hundreds of pixels.
+ * V6 removes that occupied height and restores compact Photo Story proportions. */
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-home-published-slideshow="true"] {
+  display:block!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  padding:clamp(17px,2vw,27px)!important;
+  margin:0!important;
+  border-radius:26px!important;
+  border:1px solid #d7875f9e!important;
+  background-image:
+    linear-gradient(115deg,rgba(17,7,39,.78),rgba(30,10,63,.32)),
+    url('/assets/slideshow/halloween-night.svg')!important;
+  background-size:cover!important;
+  background-position:center center!important;
+  box-shadow:0 16px 45px rgba(0,0,0,.44),0 0 24px rgba(128,39,184,.24)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-home-published-slideshow="true"]::before {
+  content:"✦  HALLOWEEN SHOWCASE 2026  ✦"!important;
+  display:block!important;
+  position:static!important;
+  width:auto!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  inset:auto!important;
+  margin:0 0 11px!important;
+  padding:0!important;
+  font-size:12px!important;
+  font-weight:900!important;
+  letter-spacing:.14em!important;
+  text-align:left!important;
+  line-height:1.45!important;
+  color:#ffc07b!important;
+  pointer-events:none!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__header {
+  position:relative!important;
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  padding:0!important;
+  margin:0 0 15px!important;
+  min-height:0!important;
+  transform:none!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__headline h2 {
+  font-family:BrianGesco,Inter,system-ui,sans-serif!important;
+  font-size:clamp(24px,2.3vw,34px)!important;
+  letter-spacing:-.03em!important;
+  color:#ffc178!important;
+  text-shadow:0 0 19px #ff913e53!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition {
+  position:relative!important;
+  margin:0!important;
+  align-items:stretch!important;
+  gap:clamp(12px,1.3vw,20px)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__story-panel {
+  background:linear-gradient(155deg,rgba(49,19,79,.98),rgba(28,12,48,.97))!important;
+  border:1px solid rgba(232,139,66,.6)!important;
+  box-shadow:inset 0 0 28px rgba(176,80,215,.12)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__stage {
+  background-color:#0b0822!important;
+  border:1px solid #b8687085!important;
+  box-shadow:0 0 22px #ff8e4140,0 8px 23px #0005!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__footer {
+  margin-top:9px!important;
+  color:#ecd3f5!important;
+}
+/* Practice/grades: remove large disconnected white spaces, bring the themed
+ * environment through the full page while maintaining every real lesson row. */
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice.bha-practice--editorial-v3 {
+  margin:0!important;
+  padding:clamp(19px,2.6vw,34px)!important;
+  border:1px solid #b77364b8!important;
+  border-radius:27px!important;
+  background-color:#210e40!important;
+  background-image:
+    linear-gradient(180deg,rgba(28,10,57,.72),rgba(28,10,56,.92)),
+    radial-gradient(circle at 92% 14%,#753d9e5f,transparent 34%),
+    url('/assets/home/halloween-v5-environment.svg')!important;
+  box-shadow:0 0 26px #7b2d9d33,0 16px 35px #0006!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice__editorial-header {
+  padding:0 0 13px!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade {
+  border-width:2px!important;
+  border-radius:18px!important;
+  box-shadow:0 0 19px var(--h5-card-glow),0 12px 23px #08041d66!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade__masthead {
+  min-height:47px!important;
+  box-shadow:inset 0 -2px #fff7!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade__masthead::after {
+  margin-left:auto!important;
+  filter:drop-shadow(0 1px 3px #0004);
+}
+/* Footer: the institutional logos and credentials are real user content.
+ * Theme only the container; never replace them with illustrations. */
+html body #root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"] {
+  margin-top:0!important;
+  border-radius:27px!important;
+  background:linear-gradient(165deg,#201037,#140c2f)!important;
+  border:1px solid #c57470ad!important;
+  box-shadow:0 0 28px #a450d340,0 12px 28px #06021b88!important;
+}
+html body #root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer[data-halloween-footer="true"] .signature-footer-v50-main > section {
+  border-radius:19px!important;
+  border:1px solid rgba(240,170,110,.63)!important;
+  box-shadow:0 0 19px #f39f5350!important;
+}
+/* Avoid expensive/uncontrolled motion, on reduced-motion devices stop it. */
+@media(max-width:900px){
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
+    width:min(72%,510px)!important;
+    padding:26px!important;
+  }
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms {min-height:390px!important;}
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1 {font-size:clamp(3.5rem,8vw,5rem)!important;}
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__header {gap:10px!important;}
+}
+@media(max-width:620px){
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {width:88%!important;}
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition {grid-template-columns:1fr!important;}
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__header {flex-wrap:wrap!important;}
+}
