@@ -75,7 +75,7 @@ create policy bss_editor_slides_insert on public.bes_slideshow_slides
   for insert to authenticated with check (
     public.bes_slideshow_is_editor() and
     split_part(image_path, '/', 1) = album_id::text and
-    image_path ~ '^[0-9a-f-]{36}/[0-9a-f-]{36}\\.(jpg|jpeg|png|webp|gif|avif)$'
+    image_path ~ '^[0-9a-f-]{36}/[0-9a-f-]{36}[.](jpg|jpeg|png|webp|gif|avif)$'
   );
 drop policy if exists bss_editor_slides_update on public.bes_slideshow_slides;
 create policy bss_editor_slides_update on public.bes_slideshow_slides
