@@ -384,7 +384,7 @@ export default function GlobalCompactNavigation({
 
   return (
     <>
-      <nav ref={rootRef} className="brian-nav" data-halloween-nav={seasonalHome.enabled && seasonalNavbar.enabled ? "true" : "false"} aria-label={language === 'vi' ? 'Điều hướng chính' : 'Main navigation'}>
+      <nav ref={rootRef} className="brian-nav" data-halloween-nav={seasonalHome.enabled && (route === "home" || seasonalNavbar.enabled) ? "true" : "false"} aria-label={language === 'vi' ? 'Điều hướng chính' : 'Main navigation'}>
         <button type="button" className="brian-nav__brand" onClick={(event) => openRoute('#/home', 'BE', event)}>
           <img src="/brian-english-brand-mark.png" alt="" aria-hidden="true" />
           <span>Brian English</span>
