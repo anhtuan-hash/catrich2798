@@ -9,14 +9,20 @@ const home = read('src/components/HomePublishedSlideshow.jsx');
 const schema = read('supabase/migrations/20261028080000_slideshow_cinematic_transitions.sql');
 const check = (value, message) => { assert.ok(value, message); console.log('✓ ' + message); };
 
-check(engine.includes("useLayoutEffect") && engine.includes('setOutgoing(previous || null)'),
+check(engine.includes('useLayoutEffect') && engine.includes('previous: old.current'),
   'previous photo stays mounted across a cross-image transition');
-check(engine.includes('bss-motion__layer--out') && engine.includes('bss-motion__layer--in'),
+check(engine.includes("layer(frames.previous, 'out')") && engine.includes("layer(frames.current, frames.previous ? 'in' : 'still')"),
   'two separate outgoing/incoming layers render simultaneously');
 for (const mode of ['fade', 'slide', 'zoom', 'reveal', 'blur']) {
   check(engine.includes(mode + ': ') && motionCSS.includes('.bss-motion--' + mode),
     mode + ' is supported by the transition engine and CSS');
 }
+check(engine.includes('incoming.animate(') && engine.includes('outgoing.animate('),
+  'both image layers actually animate using the browser Web Animations API');
+check(engine.includes('preload.decode().then(show, show)'),
+  'transition waits for the next image to decode before swapping layers');
+check(motionCSS.includes('data-animation="waapi"'),
+  'scripted animations cannot be masked by legacy CSS keyframes');
 check(motionCSS.includes('prefers-reduced-motion:reduce'),
   'transitions honor the OS reduced-motion preference');
 check(motionCSS.includes('object-fit:contain') && motionCSS.includes('bss-motion__ambient'),
@@ -44,4 +50,14 @@ check(gallery.includes("const [playing, setPlaying]") && gallery.includes('toggl
   'all legacy playback, fullscreen, sharing, QR and Admin editor actions remain');
 check(gallery.includes('announceSlideshowChange()') && home.includes(".eq('is_published', true)"),
   'public gallery remains governed by Supabase publication state');
+const homeRefinement = read('src/components/HomePublishedSlideshowRefinement.css');
+check(!home.includes('className="bhs-home__caption"') && home.includes('className="bhs-home__artwork-detail"'),
+  'the homepage never paints captions over the artwork');
+check(home.indexOf('className="bhs-home__artwork-detail"') > home.indexOf('className="bhs-home__stage"'),
+  'artwork description is located in the DOM after the image stage');
+check(home.includes('descriptionExpanded') && home.includes('aria-expanded={descriptionExpanded}') &&
+  homeRefinement.includes('-webkit-line-clamp:2'),
+  'long album description is initially clamped to two lines and expandable');
+check(home.includes("const img = new Image(); img.src = publicImage(item.image_path)"),
+  'the next and previous homepage artwork are preloaded for fluid motion');
 console.log('BRIAN cinematic slideshow regression QA PASS');
