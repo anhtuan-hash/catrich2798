@@ -18,6 +18,8 @@ const snapshot=async page=>page.evaluate(()=>{
   pageBg:s('.app-shell')?.backgroundImage,
   practiceBg:s('#v4-weekly')?.backgroundImage,
   navBg:s('.brian-nav')?.backgroundImage,
+  navInactive:s('[data-nav-key=apps]')?.backgroundColor,
+  navActive:s('[data-nav-key=home]')?.backgroundColor,
   footerBg:s('footer')?.backgroundImage,
   galleryBg:s('#v4-slideshow')?.backgroundImage,
   galleryFit:s('#v4-slideshow .bss-motion__image')?.objectFit,
@@ -51,6 +53,8 @@ try {
   await page.screenshot({path:folder+'/'+label+'-halloween.png',fullPage:true,animations:'disabled'});
   assert.equal(on.theme,'on',label+': master ON');
   assert.ok(on.heroBg?.includes('halloween-v5-hero.svg'),label+': illustrated hero');
+  assert.equal(on.navInactive,'rgb(54, 32, 79)',label+': all inactive nav pills use midnight violet');
+  assert.equal(on.navActive,'rgb(255, 171, 71)',label+': active route uses orange pill');
   assert.ok(on.pageBg?.includes('halloween-v5-environment.svg'),label+': entire home dark environmental background');
   assert.equal(on.mediaVisibility,'hidden',label+': original CMS art is temporarily replaced, not deleted');
   assert.equal(on.heroSource,baseline.heroSource,label+': original CMS source retained');
@@ -66,7 +70,7 @@ try {
   await page.locator('#v4-toggle').click();
   await pause(400);
   const off=await snapshot(page);
-  for(const prop of ['heroBg','pageBg','practiceBg','navBg','footerBg','galleryBg','grade10Border','grade11Border','grade12Border']){
+  for(const prop of ['heroBg','pageBg','practiceBg','navBg','footerBg','galleryBg','grade10Border','grade11Border','grade12Border','navInactive','navActive']){
     assert.equal(off[prop],baseline[prop],label+': OFF restores original '+prop);
   }
   assert.equal(off.mediaVisibility,baseline.mediaVisibility,label+': CMS media rendered again');
