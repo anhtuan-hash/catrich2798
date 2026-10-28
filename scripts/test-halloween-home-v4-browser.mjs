@@ -26,6 +26,8 @@ try{
    const errors=[];page.on('pageerror',e=>errors.push(String(e)));
    await page.goto(BASE+'/tests/fixtures/halloween-home-v4.html',{waitUntil:'networkidle'});
    await page.locator('#v4-hero').waitFor();
+   await page.locator('#v4-slideshow .bss-motion__image').waitFor({state:'visible',timeout:14000});
+   await page.waitForFunction(()=>{const img=document.querySelector('#v4-slideshow .bss-motion__image');return img && img.complete && img.naturalWidth>100 && img.naturalHeight>100;});
    const baseline=await page.evaluate(()=>{
      const style=s=>getComputedStyle(document.querySelector(s));
      return {
@@ -60,7 +62,9 @@ try{
        credentials:style('.signature-footer-v50-credentials').backgroundImage,
        practice:style('#v4-weekly').backgroundImage,
        slideshow:style('#v4-slideshow').backgroundImage,
-       slideshowFit:style('#v4-slideshow img').objectFit,
+       slideshowFit:style('#v4-slideshow .bss-motion__image').objectFit,
+       slideshowDecoded:document.querySelector('#v4-slideshow .bss-motion__image').naturalWidth>100,
+       slideshowImageVisible:(()=>{const im=document.querySelector('#v4-slideshow .bss-motion__image'),r=im.getBoundingClientRect();return r.width>100&&r.height>100;})(),
        globalStickerVisibility:style('#global-sticker-simulation').visibility,
        overflow:document.documentElement.scrollWidth>window.innerWidth+1,
        footerContent:document.querySelector('.signature-footer-v50-main')?.textContent,
@@ -72,7 +76,7 @@ try{
      label+' navbar has one ivory inactive tone and pumpkin selection');
    gate('G02',on.heroSrc===baseline.heroSrc && on.heroOpacity==='1' &&
      !on.hero.includes('halloween-night'),label+' original CMS Hero preserved, not covered by new veil');
-   gate('G03',on.slideshowFit==='contain' &&
+   gate('G03',on.slideshowDecoded && on.slideshowImageVisible && on.slideshowFit==='contain' &&
      on.slideshow.includes('halloween-night.svg'),
      label+' Photo Story poster remains contained and seasonal section framed');
    gate('G04',on.practice.includes('linear-gradient') &&
