@@ -7,6 +7,7 @@ import {
 import { supabase, isSupabaseConfigured } from '../utils/supabase.js';
 import { isDepartmentLeaderRole } from '../utils/roles.js';
 import PhotoTransitionStage from '../components/PhotoTransitionStage.jsx';
+import SlideshowLinkedText from '../components/SlideshowLinkedText.jsx';
 import './PhotoSlideshow.css';
 import './PhotoSlideshowGalleryV2.css';
 
@@ -286,7 +287,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
       <div className="bss-intro">
         <span className="bss-eyebrow"><span className="bss-live-dot"/> PUBLIC VIEWING · NO LOGIN REQUIRED</span>
         <h1>{selected && !creating ? selected.title : t.title}</h1>
-        <p>{selected && !creating ? selected.description || t.subtitle : t.subtitle}</p>
+        <p><SlideshowLinkedText text={selected && !creating ? selected.description || t.subtitle : t.subtitle} /></p>
       </div>
       {error && <p className="bss-alert" role="alert">{error} <button onClick={() => { setLoading(true); void refresh(); }}><RefreshCw size={14}/> {en ? "Retry" : "Thử lại"}</button></p>}
       {message && <p className="bss-notice" role="status"><Check size={17}/>{message}</p>}
@@ -399,7 +400,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
             <div className="bss-gallery-sidebar-number">{String(index + 1).padStart(2,'0')}<span> / {String(ordered.length).padStart(2,'0')}</span></div>
             <div className="bss-gallery-caption-detail" aria-live="polite" aria-atomic="true">
               <h2>{active?.caption?.split('|')[0]?.trim() || selected.title}</h2>
-              <p>{active?.caption?.split('|').slice(1).join('|').trim() || active?.caption || (en ? 'A moment worth remembering.' : 'Một khoảnh khắc đáng nhớ.')}</p>
+              <p><SlideshowLinkedText text={active?.caption?.split('|').slice(1).join('|').trim() || active?.caption || (en ? 'A moment worth remembering.' : 'Một khoảnh khắc đáng nhớ.')} /></p>
             </div>
             <div className="bss-gallery-side-nav">
               <button type="button" onClick={previousPhoto} disabled={ordered.length < 2} aria-label={en ? 'Previous artwork' : 'Ảnh trước'}><ChevronLeft size={20}/></button>
@@ -412,7 +413,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
             </div>
             <div className="bss-gallery-side-note">
               <span>BRIAN PHOTO STORY</span>
-              <p>{selected.description || (en ? 'Every image holds a story.' : 'Mỗi tác phẩm là một câu chuyện.')}</p>
+              <p><SlideshowLinkedText text={selected.description || (en ? 'Every image holds a story.' : 'Mỗi tác phẩm là một câu chuyện.')} /></p>
             </div>
           </aside>
         </div>
