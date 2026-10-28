@@ -142,7 +142,7 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
   if (!selected || !photo) return null;
 
   return (
-    <section className="bhs-home" data-home-published-slideshow="true" aria-label={en ? 'Published photo slideshow' : 'Trình chiếu ảnh đã công bố'}>
+    <section className="bhs-home" data-guest-allow="slideshow-viewer" data-home-published-slideshow="true" aria-label={en ? 'Published photo slideshow' : 'Trình chiếu ảnh đã công bố'}>
       <header className="bhs-home__header">
         <div className="bhs-home__headline">
           <div className="bhs-home__kicker"><Images size={15} /> BRIAN PHOTO STORY <i /> {en ? 'NOW SHOWING' : 'ĐANG TRÌNH CHIẾU'}</div>
