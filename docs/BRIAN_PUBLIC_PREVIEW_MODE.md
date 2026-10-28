@@ -54,6 +54,8 @@ remain visible as locked navigation labels only, with no page or data access.
 
 ## Security invariants
 
+- Supabase RLS remains mandatory for every guest-facing table; only curated aggregate values and explicitly published hero records are readable by anon.
+
 1. All guest reads use only `bes_guest_preview_feed`, the published hero tables,
    the allowlisted app registry, and the approved-games public RLS slice. The
    protected work/attendance/lesson-check source tables are queried only by a
