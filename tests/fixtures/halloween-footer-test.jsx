@@ -6,6 +6,7 @@ import '../../src/components/FooterIntegrity.css';
 import '../../src/components/FooterDashboardMockup.css';
 import '../../src/components/FooterPortfolio.css';
 import '../../src/components/HalloweenFooterSkin.css';
+import '../../src/components/HalloweenFooterRefinement.css';
 
 function Fixture() {
   const [dialog,setDialog]=useState(false);
