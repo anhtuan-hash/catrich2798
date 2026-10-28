@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Expand, Images, Maxim
 import { isSupabaseConfigured, supabase } from '../utils/supabase.js';
 import PhotoTransitionStage from './PhotoTransitionStage.jsx';
 import './HomePublishedSlideshow.css';
+import './HomePublishedSlideshowRefinement.css';
 
 const BUCKET = 'brian-slideshows';
 const CHANGE_EVENT = 'bes-slideshow-published-updated';
@@ -38,6 +39,7 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(true);
   const [direction, setDirection] = useState(1);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const stageRef = useRef(null);
   const requestId = useRef(0);
@@ -104,11 +106,17 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
   const currentIndex = Math.min(index, Math.max(0, count - 1));
   const photo = photos[currentIndex] || null;
 
-  useEffect(() => { setIndex(0); }, [selected?.id]);
+  useEffect(() => { setIndex(0); setDescriptionExpanded(false); }, [selected?.id]);
+  useEffect(() => {
+    if (!count || !photo) return;
+    const next = photos[(currentIndex + 1) % count];
+    const previous = photos[(currentIndex - 1 + count) % count];
+    [next, previous].forEach((item) => { if (item?.image_path) { const img = new Image(); img.src = publicImage(item.image_path); } });
+  }, [selected?.id, currentIndex, count]);
   useEffect(() => {
     if (!playing || count < 2 || !selected || document.visibilityState === 'hidden') return undefined;
     const delay = Math.min(30000, Math.max(2000, Number(selected.slide_interval || 6) * 1000));
-    const timer = window.setTimeout(() => setIndex((old) => (old + 1) % count), delay);
+    const timer = window.setTimeout(() => { setDirection(1); setIndex((old) => (old + 1) % count); }, delay);
     return () => window.clearTimeout(timer);
   }, [playing, selected?.id, selected?.slide_interval, currentIndex, count]);
 
@@ -149,7 +157,13 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
         <div className="bhs-home__headline">
           <div className="bhs-home__kicker"><Images size={15} /> BRIAN PHOTO STORY <i /> {en ? 'NOW SHOWING' : 'ĐANG TRÌNH CHIẾU'}</div>
           <h2>{selected.title}</h2>
-          {selected.description && <p>{selected.description}</p>}
+          {selected.description && <div className={'bhs-home__summary' + (descriptionExpanded ? ' is-expanded' : '')}>
+            <p>{selected.description}</p>
+            <button type="button" aria-expanded={descriptionExpanded}
+              onClick={() => setDescriptionExpanded((old) => !old)}>
+              {descriptionExpanded ? (en ? 'Show less' : 'Thu gọn') : (en ? 'Read introduction' : 'Xem giới thiệu')}
+            </button>
+          </div>}
         </div>
         <a href={'#/slideshow?album=' + encodeURIComponent(selected.slug)}
           className="bhs-home__open">
@@ -177,7 +191,6 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
         <PhotoTransitionStage photo={photo} src={publicImage(photo.image_path)}
           alt={photo.caption || (en ? 'Gallery photo ' : 'Ảnh số ') + (currentIndex + 1)}
           mode={selected.transition} direction={direction} />
-        {photo.caption && <div className="bhs-home__caption">{photo.caption}</div>}
         {count > 1 && <>
           <button type="button" className="bhs-home__arrow is-previous" onClick={previous}
             aria-label={en ? 'Previous photo' : 'Ảnh trước'}><ChevronLeft size={26} /></button>
@@ -203,6 +216,16 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
           </button>
         </div>
       </div>
+      {photo.caption && <div className="bhs-home__artwork-detail" aria-live="polite" aria-atomic="true">
+        <div className="bhs-home__artwork-index">
+          <span>{en ? 'CURRENT ARTWORK' : 'TÁC PHẨM ĐANG XEM'}</span>
+          <strong>{String(currentIndex + 1).padStart(2, '0')} <i>/</i> {String(count).padStart(2, '0')}</strong>
+        </div>
+        <div className="bhs-home__artwork-copy">
+          <strong>{photo.caption.includes('|') ? photo.caption.split('|')[0].trim() : (en ? 'Artwork story' : 'Câu chuyện tác phẩm')}</strong>
+          <p>{photo.caption.includes('|') ? photo.caption.split('|').slice(1).join('|').trim() : photo.caption}</p>
+        </div>
+      </div>}
       <div className="bhs-home__footer">
         <span>{en ? 'A school story in pictures' : 'Những khoảnh khắc đáng nhớ của nhà trường'}</span>
         <span>{count} {en ? 'photos' : 'ảnh'} <i /> {en ? 'Public gallery' : 'Album công khai'}</span>

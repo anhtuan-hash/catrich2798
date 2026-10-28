@@ -1,4 +1,9 @@
 /* Shared cinematic engine — both images overlap during real two-way transitions. */
+/* Web Animations API owns the timing on modern browsers. Prevent old CSS
+   keyframes from competing with the scripted two-photo transition. */
+.bss-motion[data-animation="waapi"] .bss-motion__layer--in,
+.bss-motion[data-animation="waapi"] .bss-motion__layer--out { animation:none!important; }
+
 .bss-motion { position:absolute; inset:0; overflow:hidden; isolation:isolate; background:#050c18; pointer-events:none; }
 .bss-motion__layer {
   position:absolute; inset:0; display:grid; place-items:center; isolation:isolate;

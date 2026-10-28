@@ -1,50 +1,143 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import './PhotoTransitionStage.css';
 
-const DURATION = { fade: 900, slide: 850, zoom: 1100, reveal: 980, blur: 1050 };
-const VALID = new Set(Object.keys(DURATION));
+const DURATIONS = { fade: 1100, slide: 1150, zoom: 1500, reveal: 1250, blur: 1350 };
+const MODES = new Set(Object.keys(DURATIONS));
+const EASING = 'cubic-bezier(.22,.76,.16,1)';
+
+function transitionFrames(mode, direction) {
+  const sign = direction < 0 ? -1 : 1;
+  switch (mode) {
+    case 'slide':
+      return {
+        incoming: [
+          { opacity: .72, transform: 'translateX(' + (sign * 18) + '%) scale(1.035)' },
+          { opacity: 1, transform: 'translateX(0) scale(1)' },
+        ],
+        outgoing: [
+          { opacity: 1, transform: 'translateX(0) scale(1)' },
+          { opacity: .2, transform: 'translateX(' + (-sign * 13) + '%) scale(.96)' },
+        ],
+      };
+    case 'zoom':
+      return {
+        incoming: [{ opacity: .18, transform: 'scale(.88)' }, { opacity: 1, transform: 'scale(1)' }],
+        outgoing: [{ opacity: 1, transform: 'scale(1)' }, { opacity: .12, transform: 'scale(1.16)' }],
+      };
+    case 'reveal':
+      return {
+        incoming: [
+          { clipPath: sign > 0 ? 'inset(0 100% 0 0)' : 'inset(0 0 0 100%)', opacity: .92 },
+          { clipPath: 'inset(0 0 0 0)', opacity: 1 },
+        ],
+        outgoing: [{ opacity: 1, transform: 'scale(1)' }, { opacity: .45, transform: 'scale(.95)' }],
+      };
+    case 'blur':
+      return {
+        incoming: [
+          { opacity: .16, filter: 'blur(22px) brightness(1.4)', transform: 'scale(1.07)' },
+          { opacity: 1, filter: 'blur(0px) brightness(1)', transform: 'scale(1)' },
+        ],
+        outgoing: [
+          { opacity: 1, filter: 'blur(0px)' },
+          { opacity: .1, filter: 'blur(14px)' },
+        ],
+      };
+    default:
+      return {
+        incoming: [{ opacity: 0, transform: 'scale(1.035)' }, { opacity: 1, transform: 'scale(1)' }],
+        outgoing: [{ opacity: 1 }, { opacity: .08 }],
+      };
+  }
+}
 
 /**
- * Reuses one cinematic, truly overlapping two-frame transition for both the
- * public Home player and the full-screen Photo Story gallery.
- *
- * The outgoing image remains mounted for the entire exit animation. Unlike
- * an animation on a keyed single image, there is never an empty/black frame.
+ * Decoded-image, two-layer transition engine shared by public Home and Gallery.
+ * The old image stays visible until the next one is ready, and both layers are
+ * animated via Web Animations API (CSS keyframes remain as a fallback).
  */
 export default function PhotoTransitionStage({ photo, src, alt = '', mode = 'fade', direction = 1 }) {
-  const normalized = VALID.has(mode) ? mode : 'fade';
-  const incoming = photo && src ? { id: photo.id, src, alt } : null;
-  const currentRef = useRef(incoming);
-  const [outgoing, setOutgoing] = useState(null);
-  const [sequence, setSequence] = useState(0);
+  const effect = MODES.has(mode) ? mode : 'fade';
+  const item = photo?.id && src ? { id: photo.id, src, alt } : null;
+  const [frames, setFrames] = useState(() => ({ current: item, previous: null, token: 0 }));
+  const currentLayer = useRef(null);
+  const previousLayer = useRef(null);
+  const webAnimationsAvailable = typeof Element !== 'undefined' && typeof Element.prototype.animate === 'function';
+
+  // Decode first, then replace the stage: no image flash even on a cold cache.
+  useEffect(() => {
+    if (!item) {
+      setFrames((old) => old.current ? { current: null, previous: null, token: old.token + 1 } : old);
+      return undefined;
+    }
+    let cancelled = false;
+    const show = () => {
+      if (cancelled) return;
+      setFrames((old) => {
+        if (old.current?.id === item.id && old.current?.src === item.src) return old;
+        return { current: item, previous: old.current, token: old.token + 1 };
+      });
+    };
+    const preload = new Image();
+    preload.src = item.src;
+    if (typeof preload.decode === 'function') {
+      void preload.decode().then(show, show);
+    } else if (preload.complete) {
+      show();
+    } else {
+      preload.onload = show;
+      preload.onerror = show;
+    }
+    return () => { cancelled = true; preload.onload = null; preload.onerror = null; };
+  }, [item?.id, item?.src]);
 
   useLayoutEffect(() => {
-    const previous = currentRef.current;
-    if (previous?.id === incoming?.id && previous?.src === incoming?.src) return;
-    currentRef.current = incoming;
-    setOutgoing(previous || null);
-    setSequence((old) => old + 1);
-  }, [incoming?.id, incoming?.src]);
+    if (!frames.previous) return undefined;
+    const duration = DURATIONS[effect];
+    const reducedMotion = typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const clear = () => setFrames((old) => old.token === frames.token
+      ? { ...old, previous: null } : old);
+    if (reducedMotion) {
+      clear();
+      return undefined;
+    }
+    const incoming = currentLayer.current;
+    const outgoing = previousLayer.current;
+    const animations = [];
+    if (webAnimationsAvailable && incoming && outgoing) {
+      const sequence = transitionFrames(effect, direction);
+      animations.push(incoming.animate(sequence.incoming, {
+        duration, easing: EASING, fill: 'both',
+      }));
+      animations.push(outgoing.animate(sequence.outgoing, {
+        duration, easing: EASING, fill: 'both',
+      }));
+    }
+    const timer = window.setTimeout(clear, duration + 80);
+    return () => {
+      window.clearTimeout(timer);
+      animations.forEach((animation) => animation.cancel());
+    };
+  }, [frames.token, frames.previous?.id, effect, direction, webAnimationsAvailable]);
 
-  useEffect(() => {
-    if (!outgoing) return undefined;
-    const timer = window.setTimeout(() => setOutgoing(null), DURATION[normalized] + 60);
-    return () => window.clearTimeout(timer);
-  }, [outgoing, normalized, sequence]);
+  if (!frames.current) return null;
 
-  if (!incoming) return null;
-  return (
-    <div className={'bss-motion bss-motion--' + normalized + (direction < 0 ? ' bss-motion--reverse' : '')}
-      data-transition={normalized} style={{ '--bss-motion-duration': DURATION[normalized] + 'ms' }}>
-      {outgoing && <div key={'out-' + outgoing.id + '-' + sequence} className="bss-motion__layer bss-motion__layer--out"
-        aria-hidden="true">
-        <div className="bss-motion__ambient" style={{ backgroundImage: 'url("' + outgoing.src + '")' }} />
-        <img className="bss-motion__image" src={outgoing.src} alt="" draggable="false" />
-      </div>}
-      <div key={'in-' + incoming.id + '-' + sequence} className={'bss-motion__layer ' + (sequence ? 'bss-motion__layer--in' : 'bss-motion__layer--still')}>
-        <div className="bss-motion__ambient" style={{ backgroundImage: 'url("' + incoming.src + '")' }} aria-hidden="true" />
-        <img className="bss-motion__image" src={incoming.src} alt={incoming.alt} draggable="false" />
-      </div>
-    </div>
-  );
+  const layer = (value, type) => <div
+    key={type + ':' + value.id + ':' + frames.token}
+    className={'bss-motion__layer bss-motion__layer--' + type}
+    ref={type === 'in' ? currentLayer : previousLayer}
+    aria-hidden={type === 'out' ? 'true' : undefined}>
+    <div className="bss-motion__ambient" style={{ backgroundImage: 'url("' + value.src + '")' }} aria-hidden="true" />
+    <img className="bss-motion__image" src={value.src} alt={type === 'out' ? '' : (value.alt || alt)} draggable="false" />
+  </div>;
+
+  return <div className={'bss-motion bss-motion--' + effect + (direction < 0 ? ' bss-motion--reverse' : '')}
+    data-transition={effect}
+    data-animation={webAnimationsAvailable ? 'waapi' : 'css'}
+    data-motion-token={frames.token}
+    style={{ '--bss-motion-duration': DURATIONS[effect] + 'ms' }}>
+    {frames.previous && layer(frames.previous, 'out')}
+    {layer(frames.current, frames.previous ? 'in' : 'still')}
+  </div>;
 }
