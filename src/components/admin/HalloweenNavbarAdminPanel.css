@@ -1,0 +1,40 @@
+.halloween-navbar-admin {
+  position:relative;grid-column:1/-1;display:grid;
+  grid-template-columns:112px minmax(0,1fr) auto;
+  gap:19px;align-items:center;min-width:0;overflow:hidden;
+  padding:21px!important;border-radius:20px!important;
+  background:linear-gradient(110deg,#fdfaff,#f7f6ff 55%,#fff6ea)!important;
+  border:1px solid #dfd9ef!important;box-shadow:0 8px 25px #27134b0a!important;
+}
+.halloween-navbar-admin__illustration {
+  width:112px;height:88px;border-radius:15px;
+  background:linear-gradient(135deg,rgba(7,9,25,.14),rgba(21,14,43,.05)),
+    url('/assets/navbar/halloween-navbar.svg') 90% 50% / auto 130% no-repeat,#1c123b;
+  box-shadow:0 3px 16px #20103525;pointer-events:none;
+}
+.halloween-navbar-admin__copy {min-width:0}
+.halloween-navbar-admin__eyebrow {color:#8555a5;font-size:10px;font-weight:840;letter-spacing:.11em}
+.halloween-navbar-admin__copy h2 {color:#30223d;font-size:clamp(16px,1.6vw,20px);margin:6px 0;font-weight:850}
+.halloween-navbar-admin__copy p {color:#665b74;line-height:1.55;font-size:13px;max-width:720px;margin:0 0 9px}
+.halloween-navbar-admin__copy small {font-size:11px;color:#826e97}
+.halloween-navbar-admin__action {display:flex;align-items:center;gap:12px;min-width:150px;justify-content:flex-end}
+.halloween-navbar-admin__action>span {color:#654a7b;font-size:12px;font-weight:750;white-space:nowrap}
+.halloween-navbar-admin__switch {position:relative;flex:0 0 56px;width:56px;height:33px;
+  border-radius:999px;border:2px solid #aaa2b4;background:#e7e3eb;cursor:pointer;padding:0;transition:background .18s}
+.halloween-navbar-admin__switch>span {position:absolute;top:6px;left:6px;width:17px;height:17px;
+  border-radius:50%;background:#777080;transition:transform .18s}
+.halloween-navbar-admin__switch.is-on {background:#ed7b31;border-color:#ed7b31}
+.halloween-navbar-admin__switch.is-on>span {background:white;transform:translateX(23px)}
+.halloween-navbar-admin__switch:focus-visible {outline:3px solid #b77bef;outline-offset:3px}
+.halloween-navbar-admin__switch:disabled {opacity:.45;cursor:not-allowed}
+.halloween-navbar-admin__feedback {grid-column:1/-1;font-size:12px;margin:0;padding:8px 12px;border-radius:10px}
+.halloween-navbar-admin__feedback.is-error {color:#9e2525;background:#ffeded}
+.halloween-navbar-admin__feedback.is-success {color:#186443;background:#ecfff3}
+@media(max-width:720px){
+  .halloween-navbar-admin {grid-template-columns:74px 1fr;gap:12px;padding:16px!important}
+  .halloween-navbar-admin__illustration {width:74px;height:74px}
+  .halloween-navbar-admin__action {grid-column:1/-1;justify-content:space-between}
+}
+@media(prefers-reduced-motion:reduce){
+  .halloween-navbar-admin__switch,.halloween-navbar-admin__switch>span {transition:none}
+}
