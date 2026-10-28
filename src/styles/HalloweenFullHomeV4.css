@@ -56,12 +56,7 @@ html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-
     0 0 0 1px rgba(255,244,225,.60)!important;
   isolation:isolate;
 }
-/* The screen-size-responsive CMS asset is itself NOT filtered or tinted.
-   A white wash here would recreate the earlier washed-out image regression. */
-html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__background,
-html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__media {
-  opacity:1;
-}
+/* Never override opacity/filter or the Admin's independent Hero image settings. */
 html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__edit:focus-visible {
   outline:3px solid #d18c59!important;
   outline-offset:3px!important;
