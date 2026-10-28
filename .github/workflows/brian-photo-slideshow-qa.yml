@@ -26,4 +26,4 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: node scripts/test-brian-photo-slideshow.mjs
-      - run: npx vite build
+      - run: node scripts/build-brian-vercel-release.mjs
