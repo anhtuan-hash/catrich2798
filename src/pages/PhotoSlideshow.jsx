@@ -6,7 +6,9 @@ import {
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../utils/supabase.js';
 import { isDepartmentLeaderRole } from '../utils/roles.js';
+import PhotoTransitionStage from '../components/PhotoTransitionStage.jsx';
 import './PhotoSlideshow.css';
+import './PhotoSlideshowGalleryV2.css';
 
 const BUCKET = 'brian-slideshows';
 const TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']);
@@ -57,6 +59,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
   const [error, setError] = useState('');
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(true);
+  const [direction, setDirection] = useState(1);
   const [qr, setQr] = useState('');
   const [fullscreen, setFullscreen] = useState(false);
   const stageRef = useRef(null);
@@ -108,10 +111,15 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
       is_published: selected.is_published
     });
   }, [selected?.id, selected?.updated_at, creating]);
-  useEffect(() => { setIndex(0); }, [selected?.id]);
+  useEffect(() => { setIndex(0); setDirection(1); }, [selected?.id]);
+  useEffect(() => {
+    if (ordered.length < 2) return;
+    const neighbors = [ordered[(index + 1) % ordered.length], ordered[(index - 1 + ordered.length) % ordered.length]];
+    neighbors.forEach((slide) => { if (slide?.image_path) { const image = new Image(); image.src = imageUrl(slide.image_path); } });
+  }, [selected?.id, index, ordered.length]);
   useEffect(() => {
     if (!selected || !playing || editing || ordered.length < 2) return undefined;
-    const timeout = window.setTimeout(() => setIndex(v => (v + 1) % ordered.length), selected.slide_interval * 1000);
+    const timeout = window.setTimeout(() => { setDirection(1); setIndex(v => (v + 1) % ordered.length); }, selected.slide_interval * 1000);
     return () => window.clearTimeout(timeout);
   }, [selected?.id, selected?.slide_interval, ordered.length, playing, editing, index]);
   useEffect(() => {
@@ -123,14 +131,17 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
     if (!selected || editing) return undefined;
     const onKey = e => {
       if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '')) return;
-      if (e.key === 'ArrowRight') { e.preventDefault(); setIndex(v => (v + 1) % Math.max(ordered.length, 1)); }
-      if (e.key === 'ArrowLeft') { e.preventDefault(); setIndex(v => (v - 1 + ordered.length) % Math.max(ordered.length, 1)); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); setDirection(1); setIndex(v => (v + 1) % Math.max(ordered.length, 1)); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); setDirection(-1); setIndex(v => (v - 1 + ordered.length) % Math.max(ordered.length, 1)); }
       if (e.code === 'Space') { e.preventDefault(); setPlaying(v => !v); }
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [selected?.id, ordered.length, editing]);
 
+  const previousPhoto = () => { if (ordered.length > 1) { setDirection(-1); setIndex(v => (v - 1 + ordered.length) % ordered.length); } };
+  const nextPhoto = () => { if (ordered.length > 1) { setDirection(1); setIndex(v => (v + 1) % ordered.length); } };
+  const choosePhoto = (photoIndex) => { setDirection(photoIndex < index ? -1 : 1); setIndex(photoIndex); };
   const goAlbum = (value, keepEditor = false) => {
     preserveEditorOnNavigation.current = keepEditor;
     window.location.hash = '#/slideshow' + (value ? '?album=' + encodeURIComponent(value) : '');
@@ -258,7 +269,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
   const startCreate = () => { setCreating(true); setForm(EMPTY_FORM); setEditing(true); };
   const publicAlbums = albums.filter(a => a.is_published || editorAllowed);
 
-  return <div className="bss">
+  return <div className={'bss' + (selected && !editing ? ' bss--gallery-view' : '')}>
     <div className="bss-ambient" aria-hidden="true"/>
     <header className="bss-header">
       <button type="button" className="bss-brand" onClick={() => { setEditing(false); setCreating(false); goAlbum(''); }}>
@@ -292,7 +303,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
             <label>{en ? "Album title" : "Tên album"}<input value={form.title} maxLength={120} onChange={e => setForm(v => ({ ...v, title:e.target.value }))} placeholder={en ? "E.g. Halloween Showcase 2026" : "Ví dụ: Halloween Showcase 2026"}/></label>
             <label>{en ? "Slide duration" : "Thời gian chuyển ảnh"}<select value={form.slide_interval} onChange={e => setForm(v => ({ ...v, slide_interval:Number(e.target.value) }))}>{[2,3,4,5,6,8,10,12,15,20,30].map(n => <option key={n} value={n}>{n} {en ? "seconds" : "giây"}</option>)}</select></label>
             <label className="wide">{en ? "Description" : "Mô tả"}<textarea rows={2} maxLength={500} value={form.description} onChange={e => setForm(v => ({ ...v, description:e.target.value }))} placeholder={en ? "Introduce this gallery…" : "Một chút giới thiệu về bộ ảnh…"}/></label>
-            <label>{en ? "Transition effect" : "Hiệu ứng chuyển ảnh"}<select value={form.transition} onChange={e => setForm(v => ({ ...v, transition:e.target.value }))}><option value="fade">Dissolve / Fade</option><option value="slide">Slide</option><option value="zoom">Cinema Zoom</option></select></label>
+            <label>{en ? "Transition effect" : "Hiệu ứng chuyển ảnh"}<select value={form.transition} onChange={e => setForm(v => ({ ...v, transition:e.target.value }))}><option value="fade">Dissolve / Fade</option><option value="slide">Slide</option><option value="zoom">Cinema Zoom</option><option value="reveal">Silk Reveal</option><option value="blur">Dreamy Focus</option></select></label>
             <label className="bss-toggle"><input type="checkbox" checked={form.is_published} onChange={e => setForm(v => ({ ...v, is_published:e.target.checked }))}/><span>{form.is_published ? <Eye size={17}/> : <EyeOff size={17}/>} {form.is_published ? (en ? "Visible to everyone" : "Cho phép xem công khai") : (en ? "Not published" : "Chưa xuất bản")}</span></label>
           </div>
           <div className="bss-form-actions"><button disabled={busy} className="bss-action" onClick={save}><Save size={17}/> {busy ? (en ? 'Saving…' : 'Đang lưu…') : (en ? 'Save album' : 'Lưu album')}</button>{!creating && <button disabled={busy} className="bss-danger" onClick={removeAlbum}><Trash2 size={16}/> {en ? "Delete album" : "Xóa album"}</button>}</div>
@@ -314,15 +325,98 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
       </> : null}
 
       {!loading && !editing && slug && !selected ? <div className="bss-state"><EyeOff size={32}/><h2>{en ? "This album is unavailable or unpublished." : "Album không tồn tại hoặc chưa được xuất bản."}</h2><button onClick={() => goAlbum('')}>{en ? "Browse galleries" : "Xem bộ sưu tập"}</button></div> : null}
-      {!loading && !editing && selected ? <section className="bss-viewer-area">
-        <div className="bss-viewer-top"><button className="bss-back" onClick={() => goAlbum('')}><ArrowLeft size={18}/> {t.albums}</button><span>{ordered.length} PHOTOS <i/> {selected.is_published ? 'PUBLIC GALLERY' : 'DRAFT PREVIEW'}</span><div className="bss-share-actions"><button onClick={copy} title={t.copy}><Copy size={16}/> {t.copy}</button><button onClick={showQR} title={t.qr}><QrCode size={17}/> QR</button></div></div>
-        <div className="bss-stage" ref={stageRef} onTouchStart={e => { touchRef.current = e.touches[0]?.clientX || 0; }} onTouchEnd={e => { if (touchRef.current === null) return; const dx = e.changedTouches[0]?.clientX - touchRef.current; if (Math.abs(dx) > 55 && ordered.length > 1) setIndex(v => (v + (dx < 0 ? 1 : ordered.length - 1)) % ordered.length); touchRef.current = null; }}>
-          {active ? <div className={'bss-frame effect-' + selected.transition} key={active.id}><img className="bss-active-image" src={imageUrl(active.image_path)} alt={active.caption || 'Ảnh ' + (index + 1)}/>{active.caption && <div className="bss-caption">{active.caption}</div>}</div> : <div className="bss-empty-photos"><Images size={42}/><p>{en ? "This album has no photos yet." : "Album chưa có ảnh."}</p></div>}
-          {ordered.length > 1 && <><button className="bss-stage-prev" onClick={() => setIndex(v => (v - 1 + ordered.length) % ordered.length)} aria-label={en ? "Previous photo" : "Ảnh trước"}><ChevronLeft size={27}/></button><button className="bss-stage-next" onClick={() => setIndex(v => (v + 1) % ordered.length)} aria-label={en ? "Next photo" : "Ảnh sau"}><ChevronRight size={27}/></button></>}
-          <div className="bss-stage-controls"><span>{ordered.length ? index + 1 : 0} <em>/</em> {ordered.length}</span><div className="bss-progress-track"><i key={active?.id || 'none'} style={{ animationDuration: selected.slide_interval + 's', animationPlayState: playing ? 'running' : 'paused' }}/></div><button onClick={() => setPlaying(v => !v)} title={playing ? t.pause : t.play}>{playing ? <Pause size={18}/> : <Play size={18}/>}</button><button onClick={toggleFullscreen} title={fullscreen ? t.exit : t.fullscreen}>{fullscreen ? <Expand size={18}/> : <Maximize2 size={18}/>}</button></div>
+      {!loading && !editing && selected ? <section className="bss-viewer-area" aria-label={en ? 'Photo exhibition' : 'Không gian triển lãm ảnh'}>
+        <div className="bss-viewer-top">
+          <button type="button" className="bss-back" onClick={() => goAlbum('')}><ArrowLeft size={17}/>{en ? 'All collections' : 'Tất cả bộ ảnh'}</button>
+          <span className="bss-viewer-live"><span className="bss-live-dot" />{selected.is_published ? (en ? 'PUBLIC EXHIBITION' : 'TRIỂN LÃM CÔNG KHAI') : (en ? 'PRIVATE PREVIEW' : 'XEM TRƯỚC BẢN NHÁP')}</span>
+          <div className="bss-share-actions">
+            <button type="button" onClick={copy} title={t.copy}><Copy size={16}/><span>{t.copy}</span></button>
+            <button type="button" onClick={showQR} title={t.qr}><QrCode size={17}/><span>QR</span></button>
+          </div>
         </div>
-        {ordered.length > 1 && <div className="bss-filmstrip" aria-label={en ? "Photo thumbnails" : "Chọn ảnh"}>{ordered.map((s, i) => <button key={s.id} aria-label={'Ảnh ' + (i + 1)} aria-current={i === index} onClick={() => setIndex(i)} className={i === index ? 'active' : ''}><img src={imageUrl(s.image_path)} loading="lazy" alt=""/><span>{i + 1}</span></button>)}</div>}
-        <p className="bss-keyboard-tip">{en ? "← → Next / previous · Space Play / pause · TV / Laptop / Phone" : "← → Chuyển ảnh · Space Phát / Tạm dừng · TV / Laptop / Điện thoại"}</p>
+        <div className="bss-gallery-layout">
+          <div className="bss-gallery-main">
+            <div className="bss-stage" ref={stageRef}
+              onTouchStart={e => { touchRef.current = e.touches[0]?.clientX ?? null; }}
+              onTouchEnd={e => {
+                if (touchRef.current === null) return;
+                const dx = (e.changedTouches[0]?.clientX ?? touchRef.current) - touchRef.current;
+                touchRef.current = null;
+                if (Math.abs(dx) > 55 && ordered.length > 1) { if (dx < 0) nextPhoto(); else previousPhoto(); }
+              }}>
+              {active ? <PhotoTransitionStage photo={active} src={imageUrl(active.image_path)}
+                alt={active.caption || (en ? 'Artwork ' : 'Tác phẩm số ') + (index + 1)}
+                mode={selected.transition} direction={direction} />
+                : <div className="bss-empty-photos"><Images size={42}/><p>{en ? 'This collection has no photos yet.' : 'Bộ ảnh chưa có tác phẩm.'}</p></div>}
+              <div className="bss-stage-curator" aria-hidden="true">
+                <span>BRIAN <i/> PHOTO STORIES</span>
+                <span>{String(index + 1).padStart(2,'0')} / {String(ordered.length).padStart(2,'0')}</span>
+              </div>
+              {ordered.length > 1 && <>
+                <button type="button" className="bss-stage-prev" onClick={previousPhoto}
+                  aria-label={en ? 'Previous artwork' : 'Tác phẩm trước'}><ChevronLeft size={27}/></button>
+                <button type="button" className="bss-stage-next" onClick={nextPhoto}
+                  aria-label={en ? 'Next artwork' : 'Tác phẩm tiếp theo'}><ChevronRight size={27}/></button>
+              </>}
+              <div className="bss-stage-controls">
+                <span className="bss-stage-counter">{String(index + 1).padStart(2, '0')} <em>/</em> {String(ordered.length).padStart(2,'0')}</span>
+                <div className="bss-progress-track" aria-label={en ? 'Slideshow progress' : 'Tiến độ trình chiếu'}>
+                  <i key={active?.id || 'none'}
+                    style={{ animationDuration: selected.slide_interval + 's',
+                      animationPlayState: playing && ordered.length > 1 ? 'running' : 'paused' }}/>
+                </div>
+                {ordered.length > 1 && <button type="button" onClick={() => setPlaying(v => !v)}
+                  aria-label={playing ? t.pause : t.play} title={playing ? t.pause : t.play}>
+                  {playing ? <Pause size={18}/> : <Play size={18}/>}
+                </button>}
+                <button type="button" onClick={toggleFullscreen}
+                  aria-label={fullscreen ? t.exit : t.fullscreen} title={fullscreen ? t.exit : t.fullscreen}>
+                  {fullscreen ? <Expand size={19}/> : <Maximize2 size={19}/>}
+                </button>
+              </div>
+            </div>
+            {ordered.length > 1 && <div className="bss-filmstrip-area">
+              <div className="bss-filmstrip-head">
+                <span>{en ? 'Explore the collection' : 'Khám phá bộ sưu tập'}</span>
+                <span>{ordered.length} {en ? 'artworks' : 'tác phẩm'}</span>
+              </div>
+              <div className="bss-filmstrip" aria-label={en ? 'Photo thumbnails' : 'Chọn tác phẩm'}>
+                {ordered.map((slide, i) => <button type="button" key={slide.id}
+                  aria-label={(en ? 'Artwork ' : 'Tác phẩm ') + (i + 1)}
+                  aria-current={i === index ? 'true' : undefined}
+                  onClick={() => choosePhoto(i)} className={i === index ? 'active' : ''}>
+                  <img src={imageUrl(slide.image_path)} loading="lazy" alt="" />
+                  <span>{String(i + 1).padStart(2,'0')}</span>
+                </button>)}
+              </div>
+            </div>}
+          </div>
+          <aside className="bss-gallery-sidebar">
+            <div className="bss-gallery-sidebar-top">
+              <span>{en ? 'FEATURED ARTWORK' : 'TÁC PHẨM ĐANG XEM'}</span>
+              <span className="bss-gallery-sparkle">✦</span>
+            </div>
+            <div className="bss-gallery-sidebar-number">{String(index + 1).padStart(2,'0')}<span> / {String(ordered.length).padStart(2,'0')}</span></div>
+            <div className="bss-gallery-caption-detail" aria-live="polite" aria-atomic="true">
+              <h2>{active?.caption?.split('|')[0]?.trim() || selected.title}</h2>
+              <p>{active?.caption?.split('|').slice(1).join('|').trim() || active?.caption || (en ? 'A moment worth remembering.' : 'Một khoảnh khắc đáng nhớ.')}</p>
+            </div>
+            <div className="bss-gallery-side-nav">
+              <button type="button" onClick={previousPhoto} disabled={ordered.length < 2} aria-label={en ? 'Previous artwork' : 'Ảnh trước'}><ChevronLeft size={20}/></button>
+              <div><strong>{en ? 'Discover the story' : 'Khám phá câu chuyện'}</strong><small>{en ? 'Navigate between artworks' : 'Chuyển giữa các tác phẩm'}</small></div>
+              <button type="button" onClick={nextPhoto} disabled={ordered.length < 2} aria-label={en ? 'Next artwork' : 'Ảnh tiếp theo'}><ChevronRight size={20}/></button>
+            </div>
+            <div className="bss-gallery-side-details">
+              <div><span>{en ? 'TRANSITION' : 'HIỆU ỨNG'}</span><strong>{{fade:'Dissolve',slide:'Glide',zoom:'Cinema Zoom',reveal:'Silk Reveal',blur:'Dreamy Focus'}[selected.transition] || 'Dissolve'}</strong></div>
+              <div><span>{en ? 'INTERVAL' : 'THỜI GIAN'}</span><strong>{selected.slide_interval}s</strong></div>
+            </div>
+            <div className="bss-gallery-side-note">
+              <span>BRIAN PHOTO STORY</span>
+              <p>{selected.description || (en ? 'Every image holds a story.' : 'Mỗi tác phẩm là một câu chuyện.')}</p>
+            </div>
+          </aside>
+        </div>
+        <p className="bss-keyboard-tip">{en ? '← / → Navigate · Space Play or pause · Fullscreen for presentation' : '← / → Chuyển ảnh · Space Phát hoặc dừng · Toàn màn hình để trình chiếu'}</p>
       </section> : null}
     </div>
     <footer className="bss-footer"><span>BRIAN ENGLISH STUDIO</span><span>Made for moments that matter · Public slideshow</span></footer>

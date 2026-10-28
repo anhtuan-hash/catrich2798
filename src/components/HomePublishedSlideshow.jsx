@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Expand, Images, Maximize2, Pause, Play } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '../utils/supabase.js';
+import PhotoTransitionStage from './PhotoTransitionStage.jsx';
 import './HomePublishedSlideshow.css';
 
 const BUCKET = 'brian-slideshows';
@@ -36,6 +37,7 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
   const [albumId, setAlbumId] = useState('');
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(true);
+  const [direction, setDirection] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const stageRef = useRef(null);
   const requestId = useRef(0);
@@ -119,8 +121,8 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
     if (!selected) return undefined;
     const key = (event) => {
       if (document.fullscreenElement !== stageRef.current) return;
-      if (event.key === 'ArrowRight' && count > 1) { event.preventDefault(); setIndex((old) => (old + 1) % count); }
-      if (event.key === 'ArrowLeft' && count > 1) { event.preventDefault(); setIndex((old) => (old - 1 + count) % count); }
+      if (event.key === 'ArrowRight' && count > 1) { event.preventDefault(); setDirection(1); setIndex((old) => (old + 1) % count); }
+      if (event.key === 'ArrowLeft' && count > 1) { event.preventDefault(); setDirection(-1); setIndex((old) => (old - 1 + count) % count); }
       if (event.code === 'Space') { event.preventDefault(); setPlaying((old) => !old); }
     };
     document.addEventListener('keydown', key);
@@ -135,9 +137,9 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
       console.warn('[HomeSlideshow] Fullscreen unavailable', error);
     }
   };
-  const changeAlbum = (id) => { setAlbumId(id); setIndex(0); setPlaying(true); };
-  const previous = () => setIndex((old) => (old - 1 + count) % count);
-  const next = () => setIndex((old) => (old + 1) % count);
+  const changeAlbum = (id) => { setAlbumId(id); setDirection(1); setIndex(0); setPlaying(true); };
+  const previous = () => { setDirection(-1); setIndex((old) => (old - 1 + count) % count); };
+  const next = () => { setDirection(1); setIndex((old) => (old + 1) % count); };
 
   if (!selected || !photo) return null;
 
@@ -172,11 +174,9 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
             if (delta < 0) next(); else previous();
           }
         }}>
-        <div className={'bhs-home__photo bhs-home__photo--' + selected.transition} key={photo.id}>
-          <img src={publicImage(photo.image_path)}
-            alt={photo.caption || (en ? 'Gallery photo ' : 'Ảnh số ') + (currentIndex + 1)}
-            draggable="false" />
-        </div>
+        <PhotoTransitionStage photo={photo} src={publicImage(photo.image_path)}
+          alt={photo.caption || (en ? 'Gallery photo ' : 'Ảnh số ') + (currentIndex + 1)}
+          mode={selected.transition} direction={direction} />
         {photo.caption && <div className="bhs-home__caption">{photo.caption}</div>}
         {count > 1 && <>
           <button type="button" className="bhs-home__arrow is-previous" onClick={previous}
