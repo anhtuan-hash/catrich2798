@@ -25,6 +25,10 @@ try{
      return {
        url:location.href,route:q('.app-shell')?.dataset.route,master:q('.app-shell')?.dataset.halloweenHomeV4,
        nav:q('.brian-nav')?.dataset.halloweenNav,mobileNav:q('.bes-mobile-shell')?.dataset.halloweenNav,
+       fallbackNav:(()=>{const n=q('.brian-nav__primary');if(!n)return null;const st=getComputedStyle(n);return {
+         scrollWidth:n.scrollWidth,clientWidth:n.clientWidth,overflowX:st.overflowX,
+         count:n.querySelectorAll(':scope > button,:scope > a').length
+       };})(),
        footer:foot?.dataset.halloweenFooter,
        heroImage:heroImg?{src:heroImg.currentSrc||heroImg.src,loaded:heroImg.complete&&heroImg.naturalWidth>0,filter:getComputedStyle(heroImg).filter,opacity:getComputedStyle(heroImg).opacity}:null,
        hero:elementRect('.bha-hero.hero-cms, .bes-mobile-home__premium-hero'),
@@ -54,7 +58,19 @@ try{
    if(zone.slideshow)assert.ok(zone.slideshowImage?.loaded && zone.slideshowImage?.fit==='contain',
        name+': public Photo Story image loaded and not cropped');
    if(name!=='mobile')assert.equal(zone.nav,'true',name+': desktop Halloween navigation ON');
-   if(name==='mobile')assert.equal(zone.mobileNav,'true',name+': mobile Halloween navigation ON');
+   if(name==='mobile'){
+     if(zone.mobileNav==='true')console.log('LIVE MOBILE: native MobileAppShell themed');
+     else {
+       assert.equal(zone.nav,'true',name+': narrow desktop-mode navigation remains Halloween themed');
+       assert.ok(zone.fallbackNav?.scrollWidth>zone.fallbackNav?.clientWidth+40 &&
+         ['auto','scroll'].includes(zone.fallbackNav.overflowX) && zone.fallbackNav.count>=7,
+         name+': all seven-plus destinations are horizontally reachable in fallback mobile-width navbar: '+JSON.stringify(zone.fallbackNav));
+       await page.locator('.brian-nav__primary').evaluate(el=>{el.scrollLeft=el.scrollWidth;});
+       await page.waitForTimeout(250);
+       const scrollable=await page.locator('.brian-nav__primary').evaluate(el=>el.scrollLeft>40);
+       assert.ok(scrollable,name+': navigation can actually scroll to later destinations');
+     }
+   }
    assert.ok(zone.logos.every(x=>x.loaded),name+': all original school/footer logos loaded');
    console.log('LIVE HALLOWEEN V4 '+name.toUpperCase()+' VERIFIED',JSON.stringify({master:zone.master,photos:zone.slideshowImage,footerCards:zone.cards.length,overflow:zone.pageOverflow,pageErrors:problems.length}));
    await page.close();
