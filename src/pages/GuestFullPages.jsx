@@ -11,6 +11,7 @@ import { readLessonCheckHero } from '../utils/lessonCheckHeroCms.js';
 import WebAppsRedesign from './WebAppsRedesign.jsx';
 import DashboardWorkPlanner from '../components/DashboardWorkPlanner.jsx';
 import DashboardNewsHub from '../components/DashboardNewsHub.jsx';
+import GuestAttendanceRealCalendar from '../components/GuestAttendanceRealCalendar.jsx';
 import './LessonCheckStudio.css';
 import './LessonCheckApprovedMockupOne.css';
 import './LessonCheckHeroIndependent.css';
@@ -59,10 +60,10 @@ function GuestReadOnlyBoundary({children,language='vi'}) {
 }
 
 function usePublicReadonlyData(section) {
-  const [state,setState]=useState({status:'loading',stats:[],entries:[],games:[],hero:null});
+  const [state,setState]=useState({status:'loading',stats:[],entries:[],games:[],hero:null,classes:[]});
   useEffect(()=>{
     let alive=true;
-    setState({status:'loading',stats:[],entries:[],games:[],hero:null});
+    setState({status:'loading',stats:[],entries:[],games:[],hero:null,classes:[]});
     async function load(){
       if(!isSupabaseConfigured||!supabase) {
         if(alive)setState(p=>({...p,status:'unavailable'}));return;
@@ -72,10 +73,10 @@ function usePublicReadonlyData(section) {
           const {data,error}=await supabase.from('custom_game_platforms')
             .select('id,label,icon,status').eq('status','approved').order('label').limit(100);
           if(error)throw error;
-          if(alive)setState({status:'ready',stats:[],entries:[],games:data||[],hero:null});
+          if(alive)setState({status:'ready',stats:[],entries:[],games:data||[],hero:null,classes:[]});
           return;
         }
-        const [stat,detail,hero] = await Promise.all([
+        const [stat,detail,hero,schedule] = await Promise.all([
           supabase.from('bes_guest_preview_feed')
             .select('section,entry_key,kind,label,count_value,item_date,refreshed_at').eq('section',section).limit(150),
           supabase.from('bes_guest_preview_entries')
@@ -83,10 +84,14 @@ function usePublicReadonlyData(section) {
             .eq('section',section).order('entry_date',{ascending:false,nullsFirst:false}).limit(1000),
           section==='dashboard'?readDashboardHero({includeDraft:false}):
             section==='assessment'?readLessonCheckHero({includeDraft:false}):Promise.resolve(null),
+          section==='attendance'?supabase.from('bes_guest_attendance_schedule')
+            .select('class_ref,class_name,class_type,subject,room,weekdays,time_range,grade_level,active')
+            .eq('active',true).order('class_name').limit(200):Promise.resolve({data:[],error:null}),
         ]);
         if(stat.error)throw stat.error;
         if(detail.error)throw detail.error;
-        if(alive)setState({status:'ready',stats:stat.data||[],entries:detail.data||[],games:[],hero:hero?.published||null});
+        if(schedule?.error)throw schedule.error;
+        if(alive)setState({status:'ready',stats:stat.data||[],entries:detail.data||[],games:[],hero:hero?.published||null,classes:schedule?.data||[]});
       }catch(error){
         if(alive)setState(p=>({...p,status:'unavailable'}));
       }
@@ -271,7 +276,7 @@ function GuestDashboard({entries,stats,hero,language}){
     <DashboardNewsHub language={language}/>
   </div>;
 }
-function GuestAttendance({entries,stats,language}){
+function GuestAttendance({entries,stats,classes,language}){
   const en=language==='en';
   const total=(n)=>Number(n||0).toLocaleString('vi-VN');
   const grouped=useMemo(()=>{
@@ -282,10 +287,11 @@ function GuestAttendance({entries,stats,language}){
   return <div className="brian-guest-full__section brian-guest-full__attendance">
     <PublicHero section="attendance" language={language}/>
     <CountStrip section="attendance" stats={stats} language={language}/>
-    <div className="brian-guest-full__attendance-tabs">
+    <div className="brian-guest-full__attendance-tabs" aria-label={en?'Read-only attendance sections':'Các phần xem trước điểm danh'}>
       {[[CalendarDays,en?'Calendar':'Lịch điểm danh'],[ClipboardCheck,en?'Quick attendance':'Điểm danh nhanh'],[List,en?'History':'Lịch sử'],[BarChart3,en?'Reports':'Báo cáo']].map(([Icon,label],i)=>
-        <button type="button" key={label} className={i===2?'is-active':''}><Icon size={17}/>{label}</button>)}
+        <span key={label} className={i===0?'is-active':''}><Icon size={17}/>{label}</span>)}
     </div>
+    <GuestAttendanceRealCalendar sessions={entries} classes={classes} language={language} />
     <div className="brian-guest-full__attendance-stats"><div><h2>{en?'Recorded attendance history':'Lịch sử điểm danh thực tế'}</h2><p>{en?'The entire list is visible; student identities and individual statuses are not published.':'Hiển thị toàn bộ các buổi đã ghi nhận, không công khai danh sách và trạng thái cá nhân của học sinh.'}</p></div><span>{entries.length} {en?'sessions':'buổi'}</span></div>
     <div className="brian-guest-full__history-layout">
       <section className="brian-guest-full__history-list">
@@ -335,7 +341,7 @@ function PublicSignin({language}){
 }
 export default function GuestFullPages({route,language='vi'}){
   const section=ROUTE_SECTION[route]||'apps';
-  const {status,stats,entries,games,hero}=usePublicReadonlyData(section);
+  const {status,stats,entries,games,hero,classes}=usePublicReadonlyData(section);
   return <div className="brian-guest-full" data-real-public-data="true" data-guest-full-pages={section}>
     <PublicPreviewBanner section={section} language={language}/>
     {status==='unavailable'&&<div className="brian-guest-full__unavailable" role="status">{language==='vi'?'Không tải được dữ liệu công khai. Vui lòng thử lại sau.':'Published data is unavailable.'}</div>}
@@ -343,7 +349,7 @@ export default function GuestFullPages({route,language='vi'}){
       {section==='apps'?<GuestApps games={games} language={language}/>:
       section==='dashboard'?<GuestDashboard entries={entries} stats={stats} hero={hero} language={language}/>:
       section==='assessment'?<GuestAssessment entries={entries} stats={stats} hero={hero} language={language}/>:
-      <GuestAttendance entries={entries} stats={stats} language={language}/>}
+      <GuestAttendance entries={entries} stats={stats} classes={classes} language={language}/>}
     </GuestReadOnlyBoundary>
     <PublicSignin language={language}/>
   </div>;
