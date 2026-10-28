@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client';
 import '../../src/components/GlobalCompactNavigation.css';
 import '../../src/components/GlobalNavigationPastelPalette.css';
 import '../../src/components/GlobalNavigationTextOnlyCompact.css';
+import '../../src/components/GlobalNavigationUtilityIcons.css';
+import '../../src/components/DashboardTopChromeMockup.css';
 import '../../src/styles/mobile/mobile-compact-topbar.css';
 import '../../src/components/HalloweenNavigationSkin.css';
 
@@ -33,6 +35,12 @@ function Fixture() {
           <button data-nav-key="home" className="is-active" onClick={() => setClicks((v) => v+1)}>Trang chủ</button>
           <button data-nav-key="apps" onClick={() => setClicks((v) => v+1)}>Ứng dụng</button>
           <button className="brian-nav__dashboard-tab" onClick={() => setClicks((v) => v+1)}>Dashboard</button>
+          <button className="brian-nav__homeroom-tab" onClick={() => setClicks((v) => v+1)}>Chủ nhiệm</button>
+          <button className="brian-nav__gradebook-tab" onClick={() => setClicks((v) => v+1)}>Sổ điểm</button>
+          <button className="brian-nav__lesson-check-tab" onClick={() => setClicks((v) => v+1)}>Kiểm tra</button>
+          <button className="brian-nav__attendance-tab" onClick={() => setClicks((v) => v+1)}>Điểm danh</button>
+          <button className="brian-nav__reports-tab" onClick={() => setClicks((v) => v+1)}><span className="brian-nav__reports-copy"><span className="brian-nav__reports-label">Báo cáo</span></span></button>
+          <button className="brian-nav__ttcm-tab" onClick={() => setClicks((v) => v+1)}><span>TTCM</span><b className="brian-nav__ttcm-badge">2</b></button>
         </div>
         <button className="brian-nav__login" onClick={() => setClicks((v) => v+1)}>Đăng nhập</button>
       </nav>
