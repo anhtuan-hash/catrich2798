@@ -57,4 +57,8 @@ test(!viewer.includes('className="bhs-home__story-meta"') &&
   !viewer.includes('className="bhs-home__story-bottom"') &&
   !viewer.includes('const effectLabel ='),
   'redundant collection, slide interval and transition badges are removed from the information panel');
+test(!viewer.includes('Xem giới thiệu') && !viewer.includes('Read introduction') &&
+  !viewer.includes('descriptionExpanded') &&
+  viewer.includes('<SlideshowLinkedText text={selected.description} />'),
+  'removed Read introduction button without removing album text or clickable voting URLs');
 console.log('BRIAN Home Published Slideshow QA PASS');
