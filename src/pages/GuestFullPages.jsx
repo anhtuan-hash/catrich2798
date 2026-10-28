@@ -235,7 +235,7 @@ function GuestAttendance({entries,stats,language}){
         <header><CalendarDays size={20}/>{en?'Attendance sessions':'Các buổi điểm danh'}</header>
         {entries.map((item,index)=><article key={item.entry_id} className="brian-guest-full__history-row">
           <span className="brian-guest-full__history-number">{index+1}</span>
-          <div><strong>{item.title}</strong><small>{item.subtitle||'English'} · {item.entry_date||'—'}</small></div>
+          <div><strong>{item.title}</strong><small>{item.subtitle||'English'} · {item.entry_date||'—'}</small><small>{item.time_label||'—'}{item.room_label?' · '+item.room_label:''}{item.periods?' · '+item.periods+(en?' periods':' tiết'):''}</small></div>
           <span className={'brian-guest-full__history-status '+(item.status==='cancelled'?'cancelled':'complete')}>
             {item.status==='cancelled'?(en?'Cancelled':'Đã hủy'):(en?'Completed':'Đã chốt')}</span>
           <strong className="brian-guest-full__history-count">{item.status==='cancelled'?'—':total(item.present_count)+'/'+total(item.total_count)}</strong>
@@ -246,6 +246,30 @@ function GuestAttendance({entries,stats,language}){
         <div className="brian-guest-full__history-days">{grouped.map(([day,count])=><div key={day}><time>{day}</time><strong>{count}</strong></div>)}</div>
       </aside>
     </div>
+    <section className="brian-guest-full__extended-report" aria-label={en?'Recorded attendance reports':'Báo cáo điểm danh thực tế'}>
+      <header><BarChart3 size={20}/><h2>{en?'Recorded monthly attendance reports':'Báo cáo điểm danh theo tháng'}</h2></header>
+      <div className="brian-guest-full__extended-grid">
+        {[...new Set(entries.map(item=>item.entry_date?.slice(0,7)).filter(Boolean))].sort().reverse().map(month=>{
+          const items=entries.filter(item=>item.entry_date?.startsWith(month));
+          const completed=items.filter(item=>item.status==='completed');
+          return <article className="brian-guest-full__report-card" key={month}>
+            <h3>{month}</h3><strong>{items.length} {en?'sessions':'buổi'}</strong>
+            <p><span>{en?'Completed':'Hoàn tất'}</span><b>{completed.length}</b></p>
+            <p><span>{en?'Cancelled':'Đã hủy'}</span><b>{items.length-completed.length}</b></p>
+            <p><span>{en?'Recorded presence':'Lượt có mặt'}</span><b>{total(completed.reduce((sum,item)=>sum+Number(item.present_count||0),0))}</b></p>
+          </article>;
+        })}
+      </div>
+    </section>
+    <section className="brian-guest-full__extended-report" aria-label={en?'Recorded classes':'Thống kê lớp đã điểm danh'}>
+      <header><Users size={20}/><h2>{en?'Classes in attendance records':'Danh sách lớp có dữ liệu điểm danh'}</h2></header>
+      <div className="brian-guest-full__classes">
+        {[...new Map(entries.map(item=>[item.title,item.title])).keys()].sort((a,b)=>a.localeCompare(b,'vi')).map(name=>{
+          const items=entries.filter(item=>item.title===name);
+          return <article key={name}><strong>{name}</strong><span>{items.length} {en?'sessions':'buổi'}</span><small>{items[0]?.subtitle||''}</small></article>;
+        })}
+      </div>
+    </section>
   </div>;
 }
 function PublicSignin({language}){
