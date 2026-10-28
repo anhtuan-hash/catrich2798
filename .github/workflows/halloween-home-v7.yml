@@ -1,0 +1,39 @@
+name: Halloween V7 — reference layout and single-switch parity
+on:
+  pull_request:
+    paths:
+      - 'src/pages/Home.jsx'
+      - 'src/components/GlobalCompactNavigation.jsx'
+      - 'src/components/Footer.jsx'
+      - 'src/components/HomePublishedSlideshow.jsx'
+      - 'src/styles/HalloweenMockupParityV7.css'
+      - 'src/styles/HalloweenFullHomeV6VisualRepair.css'
+      - 'scripts/test-halloween-home-v7*'
+      - 'tests/fixtures/halloween-home-v7*'
+      - '.github/workflows/halloween-home-v7.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  render-reference:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node scripts/test-halloween-home-v4.mjs
+      - run: node scripts/test-halloween-home-v7.mjs
+      - run: npx vite build
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/test-halloween-home-v7-browser.mjs
+      - name: Archive original vs V7 at three viewports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: halloween-v7-visual-reference-comparison
+          path: artifacts/halloween-v7/
+          if-no-files-found: warn
