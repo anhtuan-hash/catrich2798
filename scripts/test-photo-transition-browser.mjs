@@ -28,6 +28,24 @@ try {
   await page.goto(BASE + '/tests/fixtures/photo-motion-test.html', { waitUntil: 'networkidle' });
   await page.locator('.bss-motion__layer--still').waitFor();
   console.log('✓ Actual React PhotoTransitionStage rendered in Chromium');
+  const vote = page.locator('#test-public-link a');
+  assert.equal(await vote.count(), 1, 'public QRvote URL renders as a real anchor');
+  assert.equal(await vote.getAttribute('href'), 'https://qrvote.org/c/halloween-showcase-ry29',
+    'public QRvote href is the correct clean destination');
+  assert.equal(await vote.getAttribute('target'), '_blank',
+    'public QRvote opens a new tab, preserving homepage slideshow');
+  assert.equal(await vote.getAttribute('rel'), 'noopener noreferrer',
+    'public vote link does not expose window opener');
+  await page.route('https://qrvote.org/**', (route) =>
+    route.fulfill({ status:200, contentType:'text/html', body:'<title>Voting</title><p>Safe test</p>' }));
+  const popupPromise = page.waitForEvent('popup');
+  await vote.click();
+  const opened = await popupPromise;
+  await opened.waitForLoadState('domcontentloaded');
+  assert.equal(new URL(opened.url()).pathname, '/c/halloween-showcase-ry29',
+    'real user click opens the external QRvote page');
+  await opened.close();
+  console.log('✓ Public voting hyperlink can actually be clicked in Chromium');
 
   async function assertWholeArtwork(label) {
     const geometry = await page.evaluate(() => {
