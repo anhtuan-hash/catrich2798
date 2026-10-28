@@ -53,7 +53,7 @@ try{
   assert.equal(on.master,'on',label+' master enabled');
   assert.ok(on.art?.includes('halloween-v8-castle-art.avif'),label+' art lives in its own decorative layer');
   assert.equal(off.art,null,label+' OFF has no illustrated art DOM');
-  assert.ok(on.hero.includes('radial-gradient'),label+' seamless radial background behind real text');
+  assert.ok(on.hero.includes('gradient('),label+' seamless tonal backdrop behind real text (radial desktop / linear mobile)');
   assert.ok(on.shell!==off.shell,label+' entire world recolored');
   assert.ok(on.nav!==off.nav,label+' navbar themed');
   assert.ok(on.galleryGap<100,label+' no enormous gallery spacer: '+on.galleryGap);
