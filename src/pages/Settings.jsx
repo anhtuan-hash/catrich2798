@@ -507,7 +507,7 @@ export default function Settings({
             {activeModule === 'navigation' && isDepartmentLeaderRole(currentUser?.role) && matches('hệ thống', 'system', 'toàn hệ thống', 'hiển thị', 'display', 'sidebar', 'action dock', 'tin vắn', 'newswire') ? (
               <GlobalChromeSettingsPanel currentUser={currentUser} language={language} />
             ) : null}
-            {activeModule === 'navigation' && isAdminRole(currentUser?.role) && matches('halloween','điều hướng','navigation','giao diện','theme','nền','mùa lễ','seasonal') ? (
+            {activeModule === 'navigation' && isAdminRole(currentUser?.role) && matches('halloween','điều hướng','navigation','footer','chân trang','giao diện','theme','nền','mùa lễ','seasonal') ? (
               <HalloweenNavbarAdminPanel currentUser={currentUser} language={language} />
               <HalloweenFooterAdminPanel currentUser={currentUser} language={language} />
             ) : null}
