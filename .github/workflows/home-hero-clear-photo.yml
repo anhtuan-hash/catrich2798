@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'public/hero/hero-current.json'
+      - 'src/components/HomeHeroExperience2026.jsx'
       - 'scripts/test-home-hero-no-glass.mjs'
       - '.github/workflows/home-hero-clear-photo.yml'
   workflow_dispatch:
