@@ -767,3 +767,18 @@ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] 
   -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 24%)!important;
  }
 }
+
+
+/* Last visual audit: avoid the vertical matte seam visible between text and
+ * hero castle. Blend artwork into the SAME purple sky with a gradient matte
+ * over the image, not a hard-cut edge. */
+@media(min-width:621px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-art {
+   background-image:
+     linear-gradient(90deg,#2b1049 0%,rgba(43,16,73,.98) 17%,rgba(43,16,73,.78) 31%,rgba(43,16,73,.24) 59%,transparent 75%),
+     url('/assets/home/halloween-v8-castle-art.avif')!important;
+   background-size:100% 100%,cover!important;
+   background-position:center,center center!important;
+   mask-image:none!important;-webkit-mask-image:none!important;
+ }
+}
