@@ -7,35 +7,44 @@
 html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"][data-halloween-footer="true"],
 html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] {
   color:#f9ecff!important;
-  border-color:rgba(255,145,70,.63)!important;
-  background-color:#17112d!important;
-  background-image:linear-gradient(108deg,rgba(8,9,25,.24),rgba(23,10,46,.09) 63%,rgba(20,8,40,.28)),
+  border-color:rgba(208,151,121,.50)!important;
+  background-color:#17162c!important;
+  background-image:
+    radial-gradient(ellipse 60% 62% at 0% 100%,rgba(182,104,92,.13),transparent 100%),
+    linear-gradient(100deg,rgba(11,12,29,.09),rgba(17,13,34,.11)),
     url('/assets/footer/halloween-night-footer.svg')!important;
-  background-size:cover!important;
+  background-size:auto,auto,cover!important;
   background-position:center center!important;
   background-repeat:no-repeat!important;
-  box-shadow:0 18px 46px rgba(29,12,63,.33),
-    0 0 20px rgba(232,109,30,.14),
-    inset 0 1px 0 rgba(255,175,87,.27)!important;
+  box-shadow:0 15px 38px rgba(37,23,60,.17),
+    0 0 0 1px rgba(170,111,106,.07),
+    inset 0 1px 0 rgba(255,207,169,.16)!important;
+  /* BRIAN's fixed global atmosphere has z-index:45 and previously painted
+     floating ghosts directly ON TOP of the footer/cards. Place the canonical
+     opaque footer above that decorative layer, never above site navigation. */
+  position:relative!important;
+  z-index:70!important;
+  isolation:isolate!important;
+  overflow:hidden!important;
 }
 html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"][data-halloween-footer="true"] .signature-footer-v50-main > section,
 html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-main > section {
-  border-color:rgba(255,173,90,.53)!important;
-  box-shadow:0 12px 28px rgba(6,5,27,.38),
-    inset 0 1px rgba(255,255,255,.75)!important;
+  border-color:rgba(227,210,211,.78)!important;
+  box-shadow:0 8px 22px rgba(10,12,28,.17),
+    inset 0 1px rgba(255,255,255,.95)!important;
 }
 /* Keep all real institution logo image pixels original on a warm parchment. */
 html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"][data-halloween-footer="true"] .signature-footer-v50-brand,
 html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-brand {
-  background:linear-gradient(156deg,#fffaf2 0%,#fcf0e8 60%,#fce4d7 100%)!important;
+  background:linear-gradient(145deg,#fffcf8 0%,#fff9f2 65%,#fff5ed 100%)!important;
 }
 html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"][data-halloween-footer="true"] .signature-footer-v50-profile,
 html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-profile {
-  background:linear-gradient(150deg,#f8f1ff 0%,#f5edff 60%,#ecdcff 100%)!important;
+  background:linear-gradient(145deg,#fffefd 0%,#fcf9ff 70%,#f7f1ff 100%)!important;
 }
 html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"][data-halloween-footer="true"] .signature-footer-v50-credentials,
 html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-credentials {
-  background:linear-gradient(150deg,#fff7e8 0%,#fff2df 55%,#ffe5cb 100%)!important;
+  background:linear-gradient(145deg,#fffdf9 0%,#fffbf6 68%,#fff4e9 100%)!important;
 }
 html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .signature-footer-v50-profile h2,
 html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .signature-footer-v50-profile h2 {
@@ -81,11 +90,12 @@ html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .s
 html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .signature-footer-dashboard-landscape,
 html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .signature-footer-dashboard-landscape {
   opacity:0!important;
+  visibility:hidden!important;
 }
 html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .signature-footer-dashboard-signoff,
 html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .signature-footer-dashboard-signoff {
-  color:#ffcd82!important;
-  text-shadow:0 0 8px rgba(250,137,48,.35)!important;
+  color:#e6c4aa!important;
+  text-shadow:none!important;
 }
 html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] > .signature-footer-static-summary,
 html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] > .signature-footer-static-summary {
@@ -93,18 +103,18 @@ html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] > 
 }
 html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger,
 html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger {
-  background:rgba(51,22,69,.9)!important;
-  color:#f6e6ff!important;
-  border-color:#f3a25d!important;
-  box-shadow:0 0 11px rgba(255,133,41,.24)!important;
+  background:rgba(40,32,61,.93)!important;
+  color:#fff7ee!important;
+  border-color:rgba(230,166,111,.64)!important;
+  box-shadow:0 3px 10px rgba(10,9,25,.18)!important;
 }
 html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger strong,
 html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger strong {
-  color:#ffcb83!important;
+  color:#ffd6a5!important;
 }
 html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger:hover,
 html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger:hover {
-  background:#632e62!important;
+  background:#514063!important;
 }
 html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger:focus-visible,
 html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger:focus-visible {
@@ -116,3 +126,28 @@ html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .b
     transition:none!important;
   }
 }
+
+/* Elegant Halloween footer, not a second Halloween illustration gallery:
+ * leave the three original content cards and their logos fully readable.
+ * The fixed global motif layer remains behind this one isolated footer. */
+html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-expanded-panel,
+html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-expanded-panel {
+  position:relative!important;
+  z-index:2!important;
+}
+html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-main,
+html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-main {
+  position:relative!important;
+  z-index:3!important;
+}
+html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-dashboard-artwork,
+html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-dashboard-artwork {
+  pointer-events:none!important;
+}
+html body #root .app-shell.metro-clean-system > footer[data-app-shell-footer="true"][data-halloween-footer="true"] > .signature-footer-static-summary,
+html body #root .app-shell[data-route] > footer[data-app-shell-footer="true"][data-halloween-footer="true"] > .signature-footer-static-summary {
+  position:relative!important;
+  z-index:4!important;
+}
+/* The seasonal footer can still be deactivated by Admin: none of these
+   rules match if the attribute is false. */

@@ -50,4 +50,14 @@ ok(settings.includes('<HalloweenNavbarAdminPanel') &&
    settings.includes("'footer','chân trang'"), 'two independent switches side-by-side in Admin Settings > Navigation');
 ok(navbar.includes("bes_set_halloween_navbar_enabled") &&
    navbar.includes("'halloween_enabled,updated_at'"),'unchanged previous Halloween navigation toggle');
+const svg=read('public/assets/footer/halloween-night-footer.svg');
+ok(svg.includes('Fine, low-opacity corner webs') &&
+  svg.includes('Discreet Halloween silhouette') &&
+  !svg.includes('pumpkin') && !svg.includes('<ellipse cx="240"'),
+  'refined footer artwork is restrained, no giant pumpkins, no busy central silhouettes');
+ok(css.includes('z-index:70!important') &&
+   css.includes('visibility:hidden!important') &&
+   css.includes('overflow:hidden!important') &&
+   css.includes('background-image:'),
+  'seasonal footer is above global floating motifs and hides old pastel artwork without changing original footer');
 console.log('BRIAN Halloween Footer QA PASS');
