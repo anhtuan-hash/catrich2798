@@ -107,3 +107,103 @@ html.bes-mobile-shell-active body #root .bes-mobile-shell[data-halloween-nav="tr
     transition-duration:0s!important;
   }
 }
+
+/* HALLOWEEN ACCESSIBILITY REFINEMENT
+ * Previous seasonal header mixed transparent/grey glossy pills with blue copy;
+ * on a dark backdrop the text lost contrast. Each primary route is now a
+ * SOLID ivory surface with deep-ink text, without changing pill geometry.
+ * This applies only when the Admin seasonal-navbar switch is enabled.
+ */
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > :is(
+  [data-nav-key='home'],
+  [data-nav-key='apps'],
+  .brian-nav__dashboard-tab,
+  .brian-nav__homeroom-tab,
+  .brian-nav__gradebook-tab,
+  .brian-nav__lesson-check-tab,
+  .brian-nav__reports-tab,
+  .brian-nav__ttcm-tab,
+  .brian-nav__attendance-tab,
+  button:not(.brian-nav__icon):not(.brian-nav__utility-slot button)
+) {
+  --nav-pastel-ink:#242036;
+  --nav-pastel-surface:#fffaf3;
+  --nav-pastel-hover:#ffffff;
+  --nav-pastel-active:#ffd6a0;
+  --nav-pastel-border:#f1dcc6;
+  --nav-accent:#352136;
+  color:#242036!important;
+  background-color:#fffaf3!important;
+  background-image:none!important;
+  border-color:#f1dcc6!important;
+  text-shadow:none!important;
+  filter:none!important;
+  box-shadow:0 2px 7px rgba(4,3,17,.19),inset 0 1px rgba(255,255,255,.88)!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > :is(
+  [data-nav-key='home'],
+  [data-nav-key='apps'],
+  .brian-nav__dashboard-tab,
+  .brian-nav__homeroom-tab,
+  .brian-nav__gradebook-tab,
+  .brian-nav__lesson-check-tab,
+  .brian-nav__reports-tab,
+  .brian-nav__ttcm-tab,
+  .brian-nav__attendance-tab
+) :is(.brian-nav__reports-copy,.brian-nav__reports-label,span:not(.brian-nav__ttcm-badge):not(.brian-nav__reports-countdown),strong) {
+  color:#242036!important;
+  text-shadow:none!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > :is(
+  [data-nav-key='home'],
+  [data-nav-key='apps'],
+  .brian-nav__dashboard-tab,
+  .brian-nav__homeroom-tab,
+  .brian-nav__gradebook-tab,
+  .brian-nav__lesson-check-tab,
+  .brian-nav__reports-tab,
+  .brian-nav__ttcm-tab,
+  .brian-nav__attendance-tab
+):is(.is-active,.active,[aria-current='page']) {
+  --nav-pastel-active:#ffcc8d;
+  color:#311d28!important;
+  background-color:#ffcc8d!important;
+  background-image:none!important;
+  border-color:#ffb464!important;
+  box-shadow:0 0 0 2px rgba(255,164,78,.28),0 3px 14px rgba(255,112,28,.23)!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > :is(
+  [data-nav-key='home'],
+  [data-nav-key='apps'],
+  .brian-nav__dashboard-tab,
+  .brian-nav__homeroom-tab,
+  .brian-nav__gradebook-tab,
+  .brian-nav__lesson-check-tab,
+  .brian-nav__reports-tab,
+  .brian-nav__ttcm-tab,
+  .brian-nav__attendance-tab
+):is(:hover,:focus-visible):not(:disabled) {
+  color:#211a2c!important;
+  background-color:#fff0d8!important;
+  background-image:none!important;
+  border-color:#ffbb7a!important;
+  box-shadow:0 4px 12px rgba(3,2,16,.23)!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > :is(
+  [data-nav-key='home'],
+  [data-nav-key='apps'],
+  .brian-nav__dashboard-tab,
+  .brian-nav__homeroom-tab,
+  .brian-nav__gradebook-tab,
+  .brian-nav__lesson-check-tab,
+  .brian-nav__reports-tab,
+  .brian-nav__ttcm-tab,
+  .brian-nav__attendance-tab
+):focus-visible {
+  outline:3px solid #ffc17d!important;
+  outline-offset:3px!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__brand img {
+  background-color:#fffdf5!important;
+  box-shadow:0 0 0 1px rgba(255,211,168,.65),0 2px 9px rgba(3,2,18,.15)!important;
+}
