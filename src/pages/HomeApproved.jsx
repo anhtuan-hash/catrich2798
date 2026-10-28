@@ -13,6 +13,7 @@ import { isDepartmentLeaderRole } from '../utils/roles.js';
 import { listPublicWeeklyPractices } from '../utils/weeklyPractice.js';
 import usePresentationMode from '../hooks/usePresentationMode.js';
 import HomeHeroExperience2026 from '../components/HomeHeroExperience2026.jsx';
+import HomePublishedSlideshow from '../components/HomePublishedSlideshow.jsx';
 import MobileHomeView from '../components/mobile/MobileHomeView.jsx';
 import './HomeApproved.css';
 import './HomePracticeIntegration.css';
@@ -286,6 +287,7 @@ export default function HomeApproved({ currentUser, language = 'vi', appVisibili
         practiceLoading={practiceLoading}
         practiceError={practiceError}
         canManagePractice={canManagePractice}
+        homeSlideshow={<HomePublishedSlideshow language={language} />}
         onStart={(event) => launch(currentUser ? `#/${firstRoute}` : '#/login', 'GO', '#1a73e8', currentUser, event?.currentTarget)}
         onOpenApps={(event) => launch('#/apps', 'AP', '#1a73e8', currentUser, event?.currentTarget)}
         onOpenTool={(item, event) => launch(item.target, item.id.toUpperCase().slice(0, 2), item.accent, currentUser, event?.currentTarget)}
@@ -315,6 +317,7 @@ export default function HomeApproved({ currentUser, language = 'vi', appVisibili
           onStart={(event) => launch(currentUser ? `#/${firstRoute}` : '#/login', 'GO', '#1a73e8', currentUser, event.currentTarget)}
           onGuide={(event) => launch('#/apps', 'AP', '#1a73e8', currentUser, event.currentTarget)}
         />
+        <HomePublishedSlideshow language={language} />
         <section className="bha-tools"><header><h2>{t.tools}</h2><button type="button" onClick={(event) => launch('#/apps', 'AP', '#1a73e8', currentUser, event.currentTarget)}>{t.all}<ArrowRight size={15} /></button></header>
           <div>{tools.map((item) => <ToolCard key={item.id} item={item} currentUser={currentUser} language={language} />)}</div>
         </section>
