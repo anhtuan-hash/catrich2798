@@ -4,6 +4,7 @@ import { changeCurrentPassword } from '../utils/auth.js';
 import GlobalMotionAdminPanel from '../components/admin/GlobalMotionAdminPanel.jsx';
 import GlobalChromeSettingsPanel from '../components/admin/GlobalChromeSettingsPanel.jsx';
 import HalloweenNavbarAdminPanel from '../components/admin/HalloweenNavbarAdminPanel.jsx';
+import HalloweenFooterAdminPanel from '../components/admin/HalloweenFooterAdminPanel.jsx';
 import { isAdminRole, isDepartmentLeaderRole } from '../utils/roles.js';
 import '../styles/SettingsGoogleM3.css';
 import '../styles/SettingsLauncher2.css';
@@ -508,6 +509,7 @@ export default function Settings({
             ) : null}
             {activeModule === 'navigation' && isAdminRole(currentUser?.role) && matches('halloween','điều hướng','navigation','giao diện','theme','nền','mùa lễ','seasonal') ? (
               <HalloweenNavbarAdminPanel currentUser={currentUser} language={language} />
+              <HalloweenFooterAdminPanel currentUser={currentUser} language={language} />
             ) : null}
 
             {activeModule === 'data' && matches('hệ thống', 'system', 'hiệu năng', 'performance', 'cache', 'ngôn ngữ') ? (
