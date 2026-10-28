@@ -11,6 +11,7 @@ function Fixture() {
   const [dialog,setDialog]=useState(false);
   return <div className="app-shell metro-clean-system" data-route="home">
     <section id="hero-unmodified" style={{padding:20,backgroundColor:'rgb(245, 248, 252)',color:'rgb(22, 48, 72)'}}>BRIAN Home Hero must remain unchanged</section>
+    <div id="global-halloween-motif-test" className="bes-halloween-atmosphere" style={{position:'fixed',inset:0,zIndex:45,pointerEvents:'none',opacity:.2}}><span style={{position:'absolute',left:'30%',bottom:20,fontSize:80}}>👻</span></div>
     <footer className="footer footer-v10 signature-footer-v75 signature-footer-v50 signature-footer-collapsible signature-footer-dashboard-global signature-footer-v50-vi"
       data-app-shell-footer="true" data-footer-mode="full" data-footer-route="home" data-halloween-footer="false">
       <div className="signature-footer-expanded-panel">
