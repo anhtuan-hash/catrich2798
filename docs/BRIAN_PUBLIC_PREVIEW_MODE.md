@@ -195,3 +195,31 @@ before the historical session list, not just counts or history.
   restricted public timetable every five minutes; it does not expose source
   table credentials or mutation access.
 
+
+
+## Guest preview policy changed (28 October 2026) — current authoritative behavior
+
+**Owner-directed rollback:** The Dashboard guest view MUST NOT render the separate
+"Toàn bộ lịch làm việc chi tiết" archive or its
+"LỊCH LÀM VIỆC THỰC TẾ · CHỈ XEM" heading, explanatory paragraph, or
+370-entry monthly archive. The ordinary Dashboard work planner remains
+visible as before.
+
+The anonymous Attendance page **must use mock/sample data only**, restoring
+the original public demo: 03 sample sessions, 02 sample completed sessions,
+01 sample upcoming session, and three static cards (Lịch điểm danh,
+Điểm danh nhanh, Lịch sử minh họa). These are clearly labeled as illustrative,
+scroll freely, and have no operable controls. Authenticated Attendance remains
+unchanged, with the real schedule and history available to authorized staff.
+
+**Guest data access rollback:** The anonymous Attendance route must not call
+`bes_guest_attendance_schedule` or fetch attendance sections from
+`bes_guest_preview_entries` and `bes_guest_preview_feed`.
+Postgres grants/RLS have been changed to deny anonymous SELECT on
+`bes_guest_attendance_schedule` and filter the other two public preview
+tables to `section <> 'attendance'` for the `anon` role. Other sections
+(Assessment and Dashboard) retain their existing published reads.
+No source table permissions or signed-in app permissions were modified.
+
+This policy supersedes previous sections describing detailed guest
+Attendance or the separate Dashboard schedule archive.
