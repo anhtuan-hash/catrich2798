@@ -65,6 +65,29 @@ try {
       geometry.natural.width + '×' + geometry.natural.height + ')');
   }
 
+  async function assertHomeComposition(layout) {
+    const rect = await page.evaluate(() => {
+      const info = document.querySelector('.bhs-home__story-panel');
+      const artwork = document.querySelector('.bhs-home__exhibition > .bhs-home__stage');
+      if (!info || !artwork) return null;
+      const r = (element) => {
+        const box = element.getBoundingClientRect();
+        return { x:box.x, y:box.y, right:box.right, bottom:box.bottom, width:box.width, height:box.height };
+      };
+      return { info:r(info), artwork:r(artwork) };
+    });
+    assert.ok(rect, layout + ': information panel and stage both render');
+    if (layout === 'desktop') {
+      assert.ok(rect.info.right < rect.artwork.x && Math.abs(rect.info.y - rect.artwork.y) < 3,
+        layout + ': text is truly LEFT of the image: ' + JSON.stringify(rect));
+    } else {
+      assert.ok(rect.artwork.bottom < rect.info.y,
+        layout + ': phone shows artwork before information without horizontal overflow: ' + JSON.stringify(rect));
+    }
+    console.log('✓ Approved slideshow layout: ' + layout);
+  }
+  await assertHomeComposition('desktop');
+
   const modeValues = ['fade', 'slide', 'zoom', 'reveal', 'blur'];
   for (const mode of modeValues) {
     await page.locator('#transition-mode').selectOption(mode);
@@ -102,8 +125,10 @@ try {
   await page.locator('#toggle-layout').click();
   await page.locator('.bhs-home__stage .bss-motion__layer--still').waitFor();
   await assertWholeArtwork('homepage mobile portrait');
+  await assertHomeComposition('mobile');
   await page.setViewportSize({ width: 1200, height: 800 });
   await assertWholeArtwork('homepage desktop portrait');
+  await assertHomeComposition('desktop');
 
   await page.locator('#transition-mode').selectOption('slide');
   await page.locator('#previous-photo').click();
