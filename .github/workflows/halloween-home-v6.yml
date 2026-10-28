@@ -1,0 +1,37 @@
+name: Halloween V6 — production visual-gap repair
+on:
+  pull_request:
+    paths:
+      - 'src/styles/HalloweenFullHomeV6VisualRepair.css'
+      - 'src/pages/Home.jsx'
+      - 'scripts/test-halloween-home-v6-browser.mjs'
+      - 'tests/fixtures/halloween-home-v6*'
+      - '.github/workflows/halloween-home-v6.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  visual-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Assert original Home still works
+        run: node scripts/test-halloween-home-v4.mjs
+      - name: Compile complete real website
+        run: npx vite build
+      - run: npx playwright install --with-deps chromium
+      - name: Capture original and repaired site at desktop, tablet and mobile
+        run: node scripts/test-halloween-home-v6-browser.mjs
+      - name: Save comparison screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: halloween-v6-original-and-repaired
+          path: artifacts/halloween-v6/
+          if-no-files-found: warn
