@@ -42,7 +42,7 @@ try {
  // dark-blue illegible labels in a dark Halloween navigation bar.
  await page.setViewportSize({width:1680,height:920});
  const pills = await page.locator('.brian-nav__primary > button').evaluateAll(nodes=>{
-   const rgb=value=>(value.match(/[\\d.]+/g)||[]).slice(0,3).map(Number);
+   const rgb=value=>(value.match(/[0-9]+(?:[.][0-9]+)?/g)||[]).slice(0,3).map(Number);
    const luminance=colors=>{
      const [r,g,b]=colors.map(v=>{
        const s=v/255; return s<=0.04045?s/12.92:Math.pow((s+0.055)/1.055,2.4);
