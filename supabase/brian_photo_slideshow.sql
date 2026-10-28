@@ -88,7 +88,7 @@ drop policy if exists bss_editor_slides_delete on public.bes_slideshow_slides;
 create policy bss_editor_slides_delete on public.bes_slideshow_slides
   for delete to authenticated using (public.bes_slideshow_is_editor());
 
-grant select on public.bes_slideshow_albums, public.bes_slideshow_slides to anon;
+-- Least privilege: anonymous visitors can read published rows, but cannot mutate metadata.\nrevoke insert, update, delete on public.bes_slideshow_albums, public.bes_slideshow_slides from public, anon;\ngrant select on public.bes_slideshow_albums, public.bes_slideshow_slides to anon;
 grant select, insert, update, delete on public.bes_slideshow_albums, public.bes_slideshow_slides to authenticated;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
