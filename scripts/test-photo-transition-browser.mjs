@@ -29,6 +29,42 @@ try {
   await page.locator('.bss-motion__layer--still').waitFor();
   console.log('✓ Actual React PhotoTransitionStage rendered in Chromium');
 
+  async function assertWholeArtwork(label) {
+    const geometry = await page.evaluate(() => {
+      const stage = document.querySelector('.bhs-home__stage, .bss-stage');
+      const view = stage?.querySelector('.bss-motion');
+      const img = view?.querySelector('.bss-motion__layer--still .bss-motion__image');
+      const controls = stage?.querySelector('.bhs-home__controls, .bss-stage-controls');
+      if (!stage || !view || !img || !controls) return null;
+      const r = (node) => { const rect = node.getBoundingClientRect(); return {
+        x:rect.x,y:rect.y,right:rect.right,bottom:rect.bottom,width:rect.width,height:rect.height
+      }; };
+      const viewBox = r(view), imageBox = r(img);
+      const natural = { width:img.naturalWidth, height:img.naturalHeight };
+      const scale = Math.min(imageBox.width/natural.width, imageBox.height/natural.height);
+      return {
+        stage:r(stage),view:viewBox,controls:r(controls),image:imageBox,
+        fit:getComputedStyle(img).objectFit,natural,
+        painted:{width:natural.width*scale,height:natural.height*scale},
+      };
+    });
+    assert.ok(geometry, label + ': artwork and control bar exist');
+    assert.ok(geometry.natural.width && geometry.natural.height,
+      label + ': artwork is a decoded image');
+    assert.equal(geometry.fit, 'contain', label + ': image is not cropped by CSS cover');
+    assert.ok(geometry.view.bottom <= geometry.controls.y - 2,
+      label + ': artwork sits above the transport controls, not beneath them');
+    assert.ok(geometry.image.width <= geometry.view.width + 1 &&
+      geometry.image.height <= geometry.view.height + 1 &&
+      geometry.image.width > 0 && geometry.image.height > 0,
+      label + ': image element stays inside safe viewport');
+    assert.ok(geometry.painted.width <= geometry.view.width + 1 &&
+      geometry.painted.height <= geometry.view.height + 1,
+      label + ': portrait and landscape image content fits without clipping');
+    console.log('✓ Whole uncropped artwork: ' + label + ' (' +
+      geometry.natural.width + '×' + geometry.natural.height + ')');
+  }
+
   const modeValues = ['fade', 'slide', 'zoom', 'reveal', 'blur'];
   for (const mode of modeValues) {
     await page.locator('#transition-mode').selectOption(mode);
@@ -50,8 +86,24 @@ try {
     assert.notEqual(first, second, mode + ' must visibly animate computed styles over time');
     await page.waitForFunction(() => !document.querySelector('.bss-motion__layer--out'),
       { timeout: 4000 });
+    await assertWholeArtwork('home ' + mode);
     console.log('✓ Real Chromium motion detected: ' + mode);
   }
+
+  // Test gallery and mobile breakpoints independently of the home layout.
+  await page.locator('#toggle-layout').click();
+  await page.locator('.bss-stage .bss-motion__layer--still').waitFor();
+  await assertWholeArtwork('full gallery desktop');
+  await page.locator('#previous-photo').click();
+  await page.waitForFunction(() => !document.querySelector('.bss-motion__layer--out'), { timeout: 4000 });
+  await assertWholeArtwork('full gallery portrait artwork');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await assertWholeArtwork('full gallery mobile portrait');
+  await page.locator('#toggle-layout').click();
+  await page.locator('.bhs-home__stage .bss-motion__layer--still').waitFor();
+  await assertWholeArtwork('homepage mobile portrait');
+  await page.setViewportSize({ width: 1200, height: 800 });
+  await assertWholeArtwork('homepage desktop portrait');
 
   await page.locator('#transition-mode').selectOption('slide');
   await page.locator('#previous-photo').click();
