@@ -156,3 +156,7 @@
 .brian-guest-full__calendar-tags {display:flex;flex-wrap:wrap;gap:7px;margin-top:11px;}
 .brian-guest-full__calendar-tags span {display:inline-flex;gap:5px;align-items:center;padding:5px 9px;background:#eff5fc;border-radius:9px;color:#476b8e;font-size:11px;font-weight:700;line-height:1.35;}
 @media(max-width:650px){.brian-guest-full__calendar-archive-title{flex-direction:column;align-items:flex-start;}.brian-guest-full__calendar-event{grid-template-columns:1fr;gap:8px;}.brian-guest-full__calendar-time{border-right:0;border-bottom:1px solid #e7eef7;padding:0 0 8px;display:flex;align-items:center;gap:10px;}.brian-guest-full__calendar-month h3{font-size:16px;}}
+
+/* The guest attendance section rail is descriptive only (no dead click targets). */
+.brian-guest-full__attendance-tabs>span {display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border:1px solid #d9e6f6;background:#fff;color:#486a8a;border-radius:15px;font-weight:750;}
+.brian-guest-full__attendance-tabs>span.is-active {background:#276ce0;color:#fff;border-color:#276ce0;}

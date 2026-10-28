@@ -163,3 +163,35 @@ Data is refreshed by the already-existing database job
 the curated table only. The UI still prevents all clicks/edits within
 the guest preview while allowing normal wheel, touch and keyboard scrolling.
 
+
+## Actual attendance calendar for anonymous visitors (28 October 2026)
+
+The anonymous `#/attendance` page must display the real **Lịch điểm danh**
+before the historical session list, not just counts or history.
+
+- A separate RLS-protected, SELECT-only public snapshot
+  `bes_guest_attendance_schedule` contains **active class timetable metadata**
+  (name, class type, subject, classroom, weekdays, teaching time, grade).
+  Source: `bes_extra_classes` (28 active rows at deployment).
+- The actual completed/cancelled session data comes from the existing
+  `bes_guest_preview_entries` attendance feed (334 at deployment).
+- `GuestAttendanceRealCalendar` reuses the canonical
+  `isExtraClassScheduledOnDate` schedule engine, matches each class and date
+  with its real recorded session, and distinguishes:
+  **completed**, **cancelled**, **past unrecorded**, and **future scheduled**.
+- The calendar displays chronological months (from recorded session history
+  through the next month), with a seven-day calendar grid and a fully visible
+  day-by-day timetable below **each** month: class name, subject,
+  time, room, session status and aggregate counts where confirmed.
+- **All details are in page flow.** No click is necessary to select a date,
+  change month, or expand entries; normal mouse wheel, trackpad, keyboard and
+  touch scrolling work. Guest interactions remain disabled at the shared
+  read-only boundary.
+- The source tables `bes_extra_classes` and
+  `bes_extra_attendance_sessions` remain protected by their existing
+  policies. Anonymous visitors are **not** granted class roster/student
+  records, teacher contact details, individual attendance or notes.
+- The private job `bes_guest_attendance_schedule_5min` refreshes the
+  restricted public timetable every five minutes; it does not expose source
+  table credentials or mutation access.
+
