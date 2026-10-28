@@ -60,6 +60,10 @@ try{
   assert.ok(on.practice!==off.practice,label+' practice themed');
   assert.ok(on.footer!==off.footer,label+' footer themed');
   assert.equal(on.dateLine,'none',label+' remove extraneous dateline');
+  if (on.overflow) {
+    const offenders=await page.evaluate(() => [...document.querySelectorAll('body *')].map(el=>({tag:el.tagName,cls:String(el.className||'').slice(0,95),r:el.getBoundingClientRect()})).filter(x=>x.r.width>0&&(x.r.right>innerWidth+3||x.r.left< -3)).slice(0,18).map(x=>({tag:x.tag,cls:x.cls,left:Math.round(x.r.left),right:Math.round(x.r.right),width:Math.round(x.r.width)})));
+    console.log('OVERFLOW DEBUG '+label+' scrollWidth='+await page.evaluate(()=>document.documentElement.scrollWidth)+' '+JSON.stringify(offenders));
+  }
   assert.ok(!on.overflow,label+' no horizontal overflow');
   await page.locator('#v4-weekly .bha-grade-lesson button').first().click();
   const clicks=await page.locator('#v4-clicks').textContent();
