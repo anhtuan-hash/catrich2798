@@ -1,0 +1,31 @@
+name: BRIAN Home Published Slideshow QA
+on:
+  pull_request:
+    paths:
+      - 'src/components/HomePublishedSlideshow*'
+      - 'src/pages/HomeApproved.jsx'
+      - 'src/components/mobile/MobileHomeView.jsx'
+      - 'src/pages/PhotoSlideshow.jsx'
+      - 'scripts/test-home-published-slideshow.mjs'
+      - '.github/workflows/home-published-slideshow-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  home-slideshow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install
+        run: npm ci --ignore-scripts
+      - name: Slideshow publication regression
+        run: node scripts/test-home-published-slideshow.mjs
+      - name: Build with actual Vercel production release gates
+        run: node scripts/build-brian-vercel-release.mjs
