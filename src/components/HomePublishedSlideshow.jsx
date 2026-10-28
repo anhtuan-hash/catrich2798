@@ -6,6 +6,7 @@ import SlideshowLinkedText from './SlideshowLinkedText.jsx';
 import './HomePublishedSlideshow.css';
 import './HomePublishedSlideshowRefinement.css';
 import './HomePublishedSlideshowExhibition.css';
+import './HomePublishedSlideshowHalloween.css';
 
 const BUCKET = 'brian-slideshows';
 const CHANGE_EVENT = 'bes-slideshow-published-updated';
@@ -15,6 +16,11 @@ const RECHECK_MS = 15000;
 function publicImage(path) {
   if (!path) return '';
   return supabase.storage.from(BUCKET).getPublicUrl(path).data?.publicUrl || '';
+}
+
+/** Skin activation is album-scoped, not a site-wide Halloween theme. */
+function isHalloweenAlbum(album) {
+  return /halloween/i.test(String(album?.slug || '') + ' ' + String(album?.title || ''));
 }
 
 function orderedGallery(albums, slides) {
@@ -158,7 +164,7 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
   if (!selected || !photo) return null;
 
   return (
-    <section className="bhs-home" data-guest-allow="slideshow-viewer" data-home-published-slideshow="true" aria-label={en ? 'Published photo slideshow' : 'Trình chiếu ảnh đã công bố'}>
+    <section className="bhs-home" data-halloween-theme={isHalloweenAlbum(selected) ? "true" : "false"} data-guest-allow="slideshow-viewer" data-home-published-slideshow="true" aria-label={en ? 'Published photo slideshow' : 'Trình chiếu ảnh đã công bố'}>
       <header className="bhs-home__header">
         <div className="bhs-home__headline">
           <div className="bhs-home__kicker"><Images size={15} /> BRIAN PHOTO STORY <i /> {en ? 'NOW SHOWING' : 'ĐANG TRÌNH CHIẾU'}</div>
@@ -209,6 +215,7 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
             if (delta < 0) next(); else previous();
           }
         }}>
+        {isHalloweenAlbum(selected) && <span className="bhs-home__halloween-ghost" aria-hidden="true" />}
         <PhotoTransitionStage photo={photo} src={publicImage(photo.image_path)}
           alt={photo.caption || (en ? 'Gallery photo ' : 'Ảnh số ') + (currentIndex + 1)}
           mode={selected.transition} direction={direction} />
