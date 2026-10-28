@@ -36,7 +36,7 @@ pass(nav.includes("{mobile ? <MobileAppShell {...props} /> : <Navigation {...pro
  desktop.includes('useHalloweenNavbarTheme()') && mobile.includes('useHalloweenNavbarTheme()'),
  'original navigation split remains unchanged; both active shells read the public theme');
 pass(desktop.includes('data-halloween-nav={seasonalNavbar.enabled ? "true" : "false"}') &&
- mobile.includes('data-halloween-nav={halloweenNavEnabled ? "true" : "false"}'),
+ mobile.includes('data-halloween-nav={seasonalNavbar.enabled ? "true" : "false"}'),
  'theme attribute is placed on navigation surfaces only');
 pass(settings.includes('HalloweenNavbarAdminPanel') &&
  settings.includes("isAdminRole(currentUser?.role)") &&
