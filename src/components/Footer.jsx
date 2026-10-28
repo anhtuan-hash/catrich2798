@@ -5,6 +5,8 @@ import './FooterAuthCards.css';
 import './FooterIntegrity.css';
 import './FooterDashboardMockup.css';
 import './FooterPortfolio.css';
+import './HalloweenFooterSkin.css';
+import { useHalloweenFooterTheme } from '../utils/halloweenFooterTheme.js';
 
 const ENGLISH_DETAILS = {
   language: 'EN',
@@ -236,6 +238,7 @@ function DetailRow({ type, children }) {
 
 export default function Footer({ language, route = '' }) {
   const isVi = language === 'vi';
+  const seasonalFooter = useHalloweenFooterTheme();
   const resolvedRoute = route || (typeof document !== 'undefined' ? (document.querySelector('.app-shell')?.dataset?.route || '') : '');
   const content = isVi ? VIETNAMESE_DETAILS : ENGLISH_DETAILS;
   const [portfolioOpen, setPortfolioOpen] = React.useState(false);
@@ -251,6 +254,7 @@ export default function Footer({ language, route = '' }) {
       className={`footer footer-v10 signature-footer-v75 signature-footer-v50 signature-footer-collapsible signature-footer-dashboard-global ${isVi ? 'signature-footer-v50-vi' : 'signature-footer-v50-en'}`}
       aria-label={isVi ? 'Thông tin English Hub' : 'English Hub information'}
       data-app-shell-footer="true"
+      data-halloween-footer={seasonalFooter.enabled ? "true" : "false"}
       data-footer-mode="full"
       data-footer-route={resolvedRoute || undefined}
     >

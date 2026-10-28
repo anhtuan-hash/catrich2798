@@ -6,7 +6,7 @@ const footerCss = fs.readFileSync(new URL('../src/components/FooterAuthCards.css
 const disclosureCss = fs.readFileSync(new URL('../src/components/FooterCompactDisclosure.css', import.meta.url), 'utf8');
 const integrityCss = fs.readFileSync(new URL('../src/components/FooterIntegrity.css', import.meta.url), 'utf8');
 
-const summaryIndex = footerSource.indexOf('className="signature-footer-static-summary"');
+const summaryIndex = footerSource.indexOf('className="signature-footer-static-summary signature-footer-static-summary--attribution-only"');
 const expandedPanelIndex = footerSource.indexOf('className="signature-footer-expanded-panel"');
 
 const checks = [

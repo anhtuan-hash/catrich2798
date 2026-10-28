@@ -5,7 +5,7 @@ import { isDepartmentLeaderRole } from '../../utils/roles.js';
 const TILES = [
   {id:'account',vi:'Tài khoản',en:'Account',desc:'Hồ sơ và mật khẩu',sub:'Profile and password',icon:UserRound,tone:'blue',keys:'người dùng hồ sơ mật khẩu password profile'},
   {id:'appearance',vi:'Giao diện',en:'Appearance',desc:'Font chữ, ngôn ngữ, hiệu ứng',sub:'Fonts, language and motion',icon:Palette,tone:'pink',keys:'font chữ kiểu chữ typography phông chữ theme chữ chủ đề ngôn ngữ hiệu ứng preset motion animation'},
-  {id:'navigation',vi:'Điều hướng',en:'Navigation',desc:'Thanh điều hướng và chủ đề',sub:'Navigation and themes',icon:Compass,tone:'indigo',keys:'sidebar dock newswire hiển thị chung halloween nền chủ đề mùa lễ',manager:true},
+  {id:'navigation',vi:'Điều hướng',en:'Navigation',desc:'Điều hướng, footer và chủ đề',sub:'Navigation, footer and themes',icon:Compass,tone:'indigo',keys:'sidebar dock newswire footer chân trang hiển thị chung halloween nền chủ đề mùa lễ',manager:true},
   {id:'hero',vi:'Hero',en:'Hero',desc:'Ảnh nền từng ứng dụng',sub:'App backgrounds',icon:Layers3,tone:'violet',keys:'dashboard chủ nhiệm sổ điểm kiểm tra nền'},
   {id:'apps',vi:'Ứng dụng',en:'Apps',desc:'Kho ứng dụng',sub:'Application directory',icon:Grid2X2,tone:'green',keys:'ứng dụng app catalog launcher'},
   {id:'permissions',vi:'Phân quyền',en:'Permissions',desc:'Quản trị và truy cập',sub:'Access management',icon:ShieldCheck,tone:'orange',keys:'admin ttcm quyền truy cập role',admin:true},

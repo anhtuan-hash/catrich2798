@@ -1,0 +1,8 @@
+.halloween-footer-admin .halloween-navbar-admin__illustration {
+  background:
+    linear-gradient(120deg,rgba(17,9,34,.12),rgba(36,15,64,.12)),
+    url('/assets/footer/halloween-night-footer.svg') center center / cover no-repeat,#18102d;
+}
+.halloween-footer-admin .halloween-navbar-admin__switch.is-on {
+  background:#ed7b31;border-color:#ed7b31;
+}
