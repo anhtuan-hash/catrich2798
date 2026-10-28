@@ -30,6 +30,7 @@ import GlobalDashboardFooterBridge from './GlobalDashboardFooterBridge.jsx';
 import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
 import GlobalWeeklyPracticeBridge from './GlobalWeeklyPracticeBridge.jsx';
 import GlobalEditorialAuthorityRuntime from './GlobalEditorialAuthorityRuntime.jsx';
+import { useHalloweenNavbarTheme } from '../utils/halloweenNavbarTheme.js';
 
 // Shared utilities. Motion Library v2 owns general motion. Metro Sweep remains
 // owned by GlobalPageLaunchEffect for compositor-only Windows 8 app launching.
@@ -54,9 +55,11 @@ import './DashboardTopChromeMockup.css';
 // Desktop primary destinations only: uniform text-only pastel pills.
 import './GlobalNavigationTextOnlyCompact.css';
 import './GlobalNavigationUtilityIcons.css';
+import './HalloweenNavigationSkin.css';
 
 export default function GlobalFlatNavigation(props) {
   const presentation = usePresentationMode();
+  const seasonalNavbar = useHalloweenNavbarTheme();
   const mobile = presentation.presentationMode === 'mobile';
   const forcedMobile = mobile && presentation.override === 'mobile' && presentation.deviceClass !== 'phone';
   const returnLabel = props.language === 'en' ? 'Desktop' : 'Máy tính';
@@ -130,7 +133,7 @@ export default function GlobalFlatNavigation(props) {
   return (
     <>
       <GlobalNativeTextScaleReset />
-      {mobile ? <MobileAppShell {...props} /> : <Navigation {...props} />}
+      {mobile ? <MobileAppShell {...props} halloweenNavEnabled={seasonalNavbar.enabled} /> : <Navigation {...props} halloweenNavEnabled={seasonalNavbar.enabled} />}
       {forcedMobile ? (
         <button
           type="button"
