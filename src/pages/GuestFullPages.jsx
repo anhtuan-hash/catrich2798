@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight, BookOpen, CalendarDays, CheckCircle2, ClipboardCheck, Eye,
   FolderOpen, Gamepad2, GraduationCap, Grid2X2, Layers3, List, LockKeyhole,
-  MonitorPlay, Search, ShieldCheck, Users, BarChart3,
+  MonitorPlay, Search, ShieldCheck, Users, BarChart3, MapPin, Clock3,
 } from 'lucide-react';
 import { APPS } from '../data/apps.js';
 import { supabase, isSupabaseConfigured } from '../utils/supabase.js';
@@ -79,7 +79,7 @@ function usePublicReadonlyData(section) {
           supabase.from('bes_guest_preview_feed')
             .select('section,entry_key,kind,label,count_value,item_date,refreshed_at').eq('section',section).limit(150),
           supabase.from('bes_guest_preview_entries')
-            .select('section,entry_id,title,subtitle,tag,grade,unit_no,image_url,entry_date,status,total_count,present_count,room_label,time_label,periods,difficulty,duration_minutes,refreshed_at')
+            .select('section,entry_id,title,subtitle,tag,grade,unit_no,image_url,entry_date,status,total_count,present_count,room_label,time_label,periods,difficulty,duration_minutes,start_time,end_time,refreshed_at')
             .eq('section',section).order('entry_date',{ascending:false,nullsFirst:false}).limit(1000),
           section==='dashboard'?readDashboardHero({includeDraft:false}):
             section==='assessment'?readLessonCheckHero({includeDraft:false}):Promise.resolve(null),
@@ -195,22 +195,79 @@ function GuestAssessment({entries,stats,hero,language}){
     </section>
   </div>;
 }
+function GuestScheduleArchive({ entries, language }) {
+  const en = language === 'en';
+  const sorted = useMemo(() => [...entries].filter((item) => item.start_time)
+    .sort((a, b) => Date.parse(a.start_time) - Date.parse(b.start_time)), [entries]);
+  const groups = useMemo(() => {
+    const map = new Map();
+    sorted.forEach((item) => {
+      const month = (item.entry_date || '').slice(0, 7);
+      if (!map.has(month)) map.set(month, []);
+      map.get(month).push(item);
+    });
+    return [...map.entries()].sort((a, b) => b[0].localeCompare(a[0]));
+  }, [sorted]);
+  const fmt = (value, options) => new Intl.DateTimeFormat(en ? 'en-US' : 'vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh', ...options,
+  }).format(new Date(value));
+  return <section className="brian-guest-full__calendar-archive" aria-label={en ? 'Complete published work calendar' : 'Lịch làm việc chi tiết công khai'}>
+    <header className="brian-guest-full__calendar-archive-title">
+      <div><span><CalendarDays size={17}/> {en ? 'REAL SCHEDULE · READ ONLY' : 'LỊCH LÀM VIỆC THỰC TẾ · CHỈ XEM'}</span>
+        <h2>{en ? 'Complete work schedule' : 'Toàn bộ lịch làm việc chi tiết'}</h2>
+        <p>{en ? 'All official published work-plan entries, with their actual titles, dates, times, places and safe descriptions. Scroll freely to browse.' :
+          'Hiển thị từng công việc từ kế hoạch làm việc thực tế: tiêu đề, ngày giờ, địa điểm và ghi chú được phép công khai. Kéo xuống để xem toàn bộ.'}</p>
+      </div>
+      <strong>{sorted.length} {en ? 'events' : 'sự kiện'}</strong>
+    </header>
+    <div className="brian-guest-full__calendar-months">
+      {groups.map(([month, items]) => <section key={month} className="brian-guest-full__calendar-month">
+        <h3><CalendarDays size={18}/>{new Intl.DateTimeFormat(en ? 'en-US' : 'vi-VN', {month:'long', year:'numeric', timeZone:'UTC'}).format(new Date(month + '-01T12:00:00Z'))}<span>{items.length} {en ? 'events':'công việc'}</span></h3>
+        <div className="brian-guest-full__calendar-events">
+          {items.map((item) => <article className="brian-guest-full__calendar-event" key={item.entry_id}>
+            <div className="brian-guest-full__calendar-time">
+              <strong>{fmt(item.start_time,{day:'2-digit',month:'2-digit'})}</strong>
+              <span>{item.time_label || fmt(item.start_time,{hour:'2-digit',minute:'2-digit'})}</span>
+            </div>
+            <div className="brian-guest-full__calendar-details">
+              <h4>{item.title}</h4>
+              {item.subtitle ? <p>{item.subtitle}</p> : null}
+              <div className="brian-guest-full__calendar-tags">
+                {item.room_label ? <span><MapPin size={13}/>{item.room_label}</span> : null}
+                <span><Clock3 size={13}/>{item.time_label || fmt(item.start_time,{hour:'2-digit',minute:'2-digit'})}</span>
+                <span><CheckCircle2 size={13}/>{item.status === 'completed' || item.status === 'approved' ? (en?'Completed':'Hoàn tất'):(en?'Scheduled':'Đã lên lịch')}</span>
+              </div>
+            </div>
+          </article>)}
+        </div>
+      </section>)}
+    </div>
+  </section>;
+}
 function GuestDashboard({entries,stats,hero,language}){
   const en=language==='en';
   const now=new Date();
-  // Reuse the genuine Dashboard planner and newsroom, fed only redacted day-level counts.
-  const timeline=useMemo(()=>entries.filter(item=>item.entry_date).map(item=>({
-      id:item.entry_id,date:item.entry_date+'T12:00:00',
-      countWeight:Math.max(1,Number(item.total_count)||1),
-      title:(Number(item.total_count)||0)+' '+(en?'recorded work items':'công việc đã ghi nhận'),
-      description:en?'This date contains real internal records; details require a signed-in authorized account.':'Đây là số lượng công việc thật theo ngày. Nội dung nội bộ chỉ dành cho người được cấp quyền.',
-      sourceLabel:'BRIAN',done:true,
-    })),[entries,en]);
+  // Each entry is a real, date-specific official schedule item from the curated
+  // read-only public feed. Never synthesize placeholder work records.
+  const timeline=useMemo(()=>entries.filter(item=>item.start_time).map(item=>({
+    id:item.entry_id,
+    date:item.start_time,
+    title:item.title,
+    description:item.subtitle||'',
+    sourceLabel: en?'Official work schedule':'Lịch làm việc',
+    priority:'normal',
+    done:['completed','approved','archived'].includes(item.status),
+    raw:{metadata:{
+      schedule_end_at:item.end_time||null,
+      schedule_location:item.room_label||'',
+    }},
+  })),[entries,en]);
   return <div className="brian-guest-full__section brian-guest-full__dashboard gd-page">
     <PublicHero section="dashboard" hero={hero} language={language}/>
     <CountStrip section="dashboard" stats={stats} language={language}/>
     <DashboardWorkPlanner timeline={timeline} now={now} language={language} loading={false}
       coverage={{start:now.toISOString(),end:now.toISOString()}} onOpenFull={()=>{}} onOpenItem={()=>{}}/>
+    <GuestScheduleArchive entries={entries} language={language}/>
     <DashboardNewsHub language={language}/>
   </div>;
 }
