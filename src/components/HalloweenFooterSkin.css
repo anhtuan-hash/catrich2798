@@ -1,0 +1,118 @@
+/*
+ * Footer seasonal skin. All selectors require data-halloween-footer=true.
+ * These are paint-only overrides; card geometry, school logos, portfolio
+ * dialogs, navigation and slideshow business logic remain unchanged.
+ * Off = zero selectors match = original stylesheet behavior.
+ */
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"][data-halloween-footer="true"],
+html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] {
+  color:#f9ecff!important;
+  border-color:rgba(255,145,70,.63)!important;
+  background-color:#17112d!important;
+  background-image:linear-gradient(108deg,rgba(8,9,25,.24),rgba(23,10,46,.09) 63%,rgba(20,8,40,.28)),
+    url('/assets/footer/halloween-night-footer.svg')!important;
+  background-size:cover!important;
+  background-position:center center!important;
+  background-repeat:no-repeat!important;
+  box-shadow:0 18px 46px rgba(29,12,63,.33),
+    0 0 20px rgba(232,109,30,.14),
+    inset 0 1px 0 rgba(255,175,87,.27)!important;
+}
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"][data-halloween-footer="true"] .signature-footer-v50-main > section,
+html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-main > section {
+  border-color:rgba(255,173,90,.53)!important;
+  box-shadow:0 12px 28px rgba(6,5,27,.38),
+    inset 0 1px rgba(255,255,255,.75)!important;
+}
+/* Keep all real institution logo image pixels original on a warm parchment. */
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"][data-halloween-footer="true"] .signature-footer-v50-brand,
+html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-brand {
+  background:linear-gradient(156deg,#fffaf2 0%,#fcf0e8 60%,#fce4d7 100%)!important;
+}
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"][data-halloween-footer="true"] .signature-footer-v50-profile,
+html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-profile {
+  background:linear-gradient(150deg,#f8f1ff 0%,#f5edff 60%,#ecdcff 100%)!important;
+}
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"][data-halloween-footer="true"] .signature-footer-v50-credentials,
+html body #root .app-shell[data-route] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-credentials {
+  background:linear-gradient(150deg,#fff7e8 0%,#fff2df 55%,#ffe5cb 100%)!important;
+}
+html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .signature-footer-v50-profile h2,
+html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .signature-footer-v50-profile h2 {
+  color:#663388!important;
+  text-shadow:0 1px 0 rgba(255,255,255,.7)!important;
+}
+html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .signature-footer-v50-section-label,
+html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .signature-footer-v50-section-label {
+  color:#ab4b1b!important;
+}
+html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .signature-footer-v50-language-badge,
+html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .signature-footer-v50-language-badge {
+  background:#7c48a0!important;
+  color:#fff!important;
+  box-shadow:0 2px 10px rgba(119,58,156,.23)!important;
+}
+html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .signature-footer-v50-detail-icon,
+html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .signature-footer-v50-detail-icon {
+  background:#ebdcff!important;
+}
+html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .signature-footer-v50-detail-icon::after,
+html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .signature-footer-v50-detail-icon::after {
+  color:#72369c!important;
+}
+html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .signature-footer-v50-star,
+html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .signature-footer-v50-star {
+  color:#e98130!important;
+  filter:drop-shadow(0 0 3px rgba(255,156,71,.18))!important;
+}
+/* Keep body text dark against pale cards, even with global dark theme. */
+html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .signature-footer-v50-detail,
+html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .signature-footer-v50-credentials > ul > li,
+html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .signature-footer-v50-detail,
+html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .signature-footer-v50-credentials > ul > li {
+  color:#4f4561!important;
+  border-bottom-color:rgba(110,73,135,.15)!important;
+}
+html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .signature-footer-v50-brand::after,
+html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .signature-footer-v50-brand::after {
+  color:#8a567a!important;
+}
+/* Replace ONLY the former pastel decorative landscape, never the signature. */
+html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .signature-footer-dashboard-landscape,
+html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .signature-footer-dashboard-landscape {
+  opacity:0!important;
+}
+html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .signature-footer-dashboard-signoff,
+html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .signature-footer-dashboard-signoff {
+  color:#ffcd82!important;
+  text-shadow:0 0 8px rgba(250,137,48,.35)!important;
+}
+html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] > .signature-footer-static-summary,
+html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] > .signature-footer-static-summary {
+  border-top-color:rgba(255,169,92,.25)!important;
+}
+html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger,
+html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger {
+  background:rgba(51,22,69,.9)!important;
+  color:#f6e6ff!important;
+  border-color:#f3a25d!important;
+  box-shadow:0 0 11px rgba(255,133,41,.24)!important;
+}
+html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger strong,
+html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger strong {
+  color:#ffcb83!important;
+}
+html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger:hover,
+html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger:hover {
+  background:#632e62!important;
+}
+html body #root .app-shell.metro-clean-system > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger:focus-visible,
+html body #root .app-shell[data-route] > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger:focus-visible {
+  outline:3px solid #ffb05a!important;
+  outline-offset:3px!important;
+}
+@media(prefers-reduced-motion:reduce) {
+  html body #root .app-shell > footer[data-halloween-footer="true"] .bes-portfolio-footer-trigger {
+    transition:none!important;
+  }
+}
