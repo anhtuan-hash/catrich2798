@@ -79,7 +79,7 @@ function usePublicReadonlyData(section) {
           supabase.from('bes_guest_preview_feed')
             .select('section,entry_key,kind,label,count_value,item_date,refreshed_at').eq('section',section).limit(150),
           supabase.from('bes_guest_preview_entries')
-            .select('section,entry_id,title,subtitle,tag,grade,unit_no,image_url,entry_date,status,total_count,present_count,refreshed_at')
+            .select('section,entry_id,title,subtitle,tag,grade,unit_no,image_url,entry_date,status,total_count,present_count,room_label,time_label,periods,difficulty,duration_minutes,refreshed_at')
             .eq('section',section).order('entry_date',{ascending:false,nullsFirst:false}).limit(1000),
           section==='dashboard'?readDashboardHero({includeDraft:false}):
             section==='assessment'?readLessonCheckHero({includeDraft:false}):Promise.resolve(null),
