@@ -276,7 +276,7 @@ function GuestDashboard({entries,stats,hero,language}){
     <DashboardNewsHub language={language}/>
   </div>;
 }
-function GuestAttendance({entries,stats,classes,language}){
+function GuestAttendance({entries,stats,classes,language,status='ready'}){
   const en=language==='en';
   const total=(n)=>Number(n||0).toLocaleString('vi-VN');
   const grouped=useMemo(()=>{
@@ -291,7 +291,7 @@ function GuestAttendance({entries,stats,classes,language}){
       {[[CalendarDays,en?'Calendar':'Lịch điểm danh'],[ClipboardCheck,en?'Quick attendance':'Điểm danh nhanh'],[List,en?'History':'Lịch sử'],[BarChart3,en?'Reports':'Báo cáo']].map(([Icon,label],i)=>
         <span key={label} className={i===0?'is-active':''}><Icon size={17}/>{label}</span>)}
     </div>
-    <GuestAttendanceRealCalendar sessions={entries} classes={classes} language={language} />
+    <GuestAttendanceRealCalendar sessions={entries} classes={classes} language={language} loading={status==='loading'} unavailable={status==='unavailable'}/>
     <div className="brian-guest-full__attendance-stats"><div><h2>{en?'Recorded attendance history':'Lịch sử điểm danh thực tế'}</h2><p>{en?'The entire list is visible; student identities and individual statuses are not published.':'Hiển thị toàn bộ các buổi đã ghi nhận, không công khai danh sách và trạng thái cá nhân của học sinh.'}</p></div><span>{entries.length} {en?'sessions':'buổi'}</span></div>
     <div className="brian-guest-full__history-layout">
       <section className="brian-guest-full__history-list">
@@ -349,7 +349,7 @@ export default function GuestFullPages({route,language='vi'}){
       {section==='apps'?<GuestApps games={games} language={language}/>:
       section==='dashboard'?<GuestDashboard entries={entries} stats={stats} hero={hero} language={language}/>:
       section==='assessment'?<GuestAssessment entries={entries} stats={stats} hero={hero} language={language}/>:
-      <GuestAttendance entries={entries} stats={stats} classes={classes} language={language}/>}
+      <GuestAttendance entries={entries} stats={stats} classes={classes} status={status} language={language}/>}
     </GuestReadOnlyBoundary>
     <PublicSignin language={language}/>
   </div>;
