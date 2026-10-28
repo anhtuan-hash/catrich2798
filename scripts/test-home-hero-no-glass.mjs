@@ -15,7 +15,9 @@ assert.equal(published.config.background.blur,0,'original background picture is 
 assert.ok(published.config.background.url.startsWith('/hero/media/'),'original static published asset preserved');
 assert.ok(renderer.includes('activeConfig.overlay.enabled ? <div className="hero-cms__overlay" /> : null'),
   'renderer respects Admin overlay setting; disabling overlay does not break editor');
-assert.ok(renderer.includes('bes-home-hero-remote-check-v2'),\n  'one-time previous 10-minute public Hero cache is invalidated on refresh');\nassert.ok(renderer.includes('HomeHeroCmsEditor') && renderer.includes('previewConfig || settings.published'),
+assert.ok(renderer.includes('bes-home-hero-remote-check-v2'),
+  'one-time previous 10-minute public Hero cache is invalidated on refresh');
+assert.ok(renderer.includes('HomeHeroCmsEditor') && renderer.includes('previewConfig || settings.published'),
   'editable Hero and preview remain intact');
 assert.ok(style.includes('opacity:var(--media-opacity,1)') && style.includes('filter:brightness(var(--media-brightness,1)) blur(var(--media-blur,0))'),
   'background rendering still follows independently configured source media');
