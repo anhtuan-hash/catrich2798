@@ -29,7 +29,7 @@ function Fixture(){
  const [active,setActive]=useState(false),[count,setCount]=useState(0),[portfolio,setPortfolio]=useState(false);
  useEffect(()=>{document.documentElement.dataset.halloweenHomeV4=active?'on':'off';},[active]);
  return <div className="app-shell metro-clean-system" data-route="home" data-halloween-home-v4={active?'on':'off'}>
-  <div style={{height:45}}/>
+
   <div className="bes-top-chrome" style={{position:'relative',zIndex:80,maxWidth:1460,margin:'auto'}}>
    <nav className="brian-nav" data-halloween-nav={active?'true':'false'}>
     <button className="brian-nav__brand" onClick={()=>setCount(v=>v+1)}>BRIAN English</button>
@@ -114,7 +114,7 @@ function Fixture(){
    </div>
   </footer>
   {portfolio&&<div className="bes-portfolio-backdrop"><section className="bes-portfolio-dialog" role="dialog"><button className="bes-portfolio-dialog-close" onClick={()=>setPortfolio(false)}>Close</button></section></div>}
-  <div style={{padding:16,position:'fixed',bottom:8,left:8,zIndex:100,background:'#fff',borderRadius:10,boxShadow:'0 2px 9px #2224'}}>
+  <div data-visual-qa-controls="true" style={{padding:16,position:'fixed',bottom:8,left:8,zIndex:100,background:'#fff',borderRadius:10,boxShadow:'0 2px 9px #2224'}}>
     <button id="v4-toggle" onClick={()=>setActive(v=>!v)}>{active?'HALLOWEEN ON → Turn OFF':'HALLOWEEN OFF → Turn ON'}</button>
     <output id="v4-clicks">{count}</output>
   </div>
