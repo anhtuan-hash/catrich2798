@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import PhotoTransitionStage from '../../src/components/PhotoTransitionStage.jsx';
 import '../../src/components/HomePublishedSlideshow.css';
 import '../../src/components/HomePublishedSlideshowRefinement.css';
+import '../../src/components/HomePublishedSlideshowExhibition.css';
 import '../../src/pages/PhotoSlideshow.css';
 import '../../src/pages/PhotoSlideshowGalleryV2.css';
 
@@ -43,7 +44,25 @@ function Fixture() {
       <output id="current-index">{index}</output>
     </div>
     <div className={gallery ? 'bss bss--gallery-view' : 'bhs-home'} style={{width:'min(920px,100%)',margin:'0 auto',padding:'10px'}}>
-      {stage}
+      {gallery ? stage : <div className="bhs-home__exhibition" data-home-exhibition-layout="info-left-artwork-right">
+        <aside className="bhs-home__story-panel">
+          <div className="bhs-home__story-top">
+            <span className="bhs-home__story-kicker">TÁC PHẨM ĐANG XEM</span>
+            <div className="bhs-home__story-count-row">
+              <strong className="bhs-home__story-count">{String(index + 1).padStart(2, '0')} / 06</strong>
+            </div>
+          </div>
+          <div className="bhs-home__story-main">
+            <h3>11.2 Group 1</h3>
+            <p>Under a glowing full moon, a mysterious castle rises above a spooky graveyard. Flying bats, playful ghosts, a black cat and a smiling pumpkin bring this vibrant Halloween scene to life.</p>
+          </div>
+          <div className="bhs-home__story-meta">
+            <div className="bhs-home__story-meta-item"><span><small>BỘ SƯU TẬP</small><strong>Halloween Showcase 2026</strong></span></div>
+            <div className="bhs-home__story-meta-item"><span><small>THỜI GIAN MỖI ẢNH</small><strong>6 giây</strong></span></div>
+          </div>
+        </aside>
+        {stage}
+      </div>}
     </div>
   </div>;
 }
