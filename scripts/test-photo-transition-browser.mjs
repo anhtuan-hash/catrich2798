@@ -106,6 +106,44 @@ try {
   }
   await assertHomeComposition('desktop');
 
+  // Halloween artwork is confined to this published slideshow. Neither the
+  // site's global navigation nor a non-Halloween album receives the new skin.
+  const sceneResponse = await page.request.get(BASE + '/assets/slideshow/halloween-night.svg');
+  assert.equal(sceneResponse.status(), 200, 'local moon/castle illustration is bundled in public assets');
+  assert.match(await sceneResponse.text(), /<svg/, 'background is a valid SVG document');
+  const skin = await page.evaluate(() => {
+    const section = document.querySelector('.bhs-home');
+    const card = document.querySelector('.bhs-home__story-panel');
+    const nav = document.getElementById('fixture-global-nav');
+    const title = document.querySelector('.bhs-home__headline h2');
+    return {
+      theme:section?.dataset.halloweenTheme,
+      background:getComputedStyle(section).backgroundImage,
+      cardBackground:getComputedStyle(card).backgroundImage,
+      navBackground:getComputedStyle(nav).backgroundColor,
+      titleColor:getComputedStyle(title).color,
+    };
+  });
+  assert.equal(skin.theme,'true','fixture initially selects Halloween album');
+  assert.match(skin.background,/halloween-night[.]svg/,'Halloween scenery is drawn in the slideshow section');
+  assert.equal(skin.navBackground,'rgb(250, 251, 254)',
+    'global BRIAN navigation is never recolored by slideshow theme');
+  await page.locator('#toggle-halloween').click();
+  const neutral = await page.evaluate(() => {
+    const section = document.querySelector('.bhs-home');
+    return { theme:section?.dataset.halloweenTheme,
+      background:getComputedStyle(section).backgroundImage,
+      nav:getComputedStyle(document.getElementById('fixture-global-nav')).backgroundColor };
+  });
+  assert.equal(neutral.theme,'false','the album switch removes Halloween skin');
+  assert.ok(!neutral.background.includes('halloween-night.svg'),
+    'non-Halloween gallery uses unchanged default design');
+  assert.equal(neutral.nav,'rgb(250, 251, 254)',
+    'global navigation is unaffected when Halloween is toggled');
+  await page.locator('#toggle-halloween').click();
+  await assertWholeArtwork('Halloween theme art-fit remains uncropped');
+  console.log('✓ Halloween visual skin limited to slideshow; global site is unchanged');
+
   const modeValues = ['fade', 'slide', 'zoom', 'reveal', 'blur'];
   for (const mode of modeValues) {
     await page.locator('#transition-mode').selectOption(mode);
