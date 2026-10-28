@@ -91,6 +91,6 @@ ok(css.includes('url(\'/assets/footer/halloween-brand-card.svg\')') &&
    !css.includes("url('/assets/footer/halloween-night-footer.svg')"),
    'Halloween decoration is painted INSIDE three cards, not on the dark frame');
 ok(read('docs/halloween-footer-integrated-cards-spec.md').includes('Admin-only RPC') &&
-   footer.includes('data-halloween-footer={seasonalFooter.enabled ? "true" : "false"}'),
+   footer.includes('data-halloween-footer={seasonalHome.enabled && seasonalFooter.enabled ? "true" : "false"}'),
    'approved footer scope documented; the independent Admin switch now respects full-home master OFF');
 console.log('BRIAN Halloween Footer QA PASS');
