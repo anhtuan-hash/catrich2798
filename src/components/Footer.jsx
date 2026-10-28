@@ -6,6 +6,7 @@ import './FooterIntegrity.css';
 import './FooterDashboardMockup.css';
 import './FooterPortfolio.css';
 import './HalloweenFooterSkin.css';
+import './HalloweenFooterRefinement.css';
 import { useHalloweenFooterTheme } from '../utils/halloweenFooterTheme.js';
 
 const ENGLISH_DETAILS = {
