@@ -85,8 +85,27 @@ export default function PhotoJudgingPage({token}) {
             <div className="bj-artwork-nav"><button disabled={busy||position===0} onClick={()=>navigate(position-1)}><ChevronLeft size={18}/> Trước</button><span>Không hiển thị tên lớp và nhóm</span><button disabled={busy||position===data.slides.length-1} onClick={()=>navigate(position+1)}>Tiếp <ChevronRight size={18}/></button></div>
             <div className="bj-thumbs">{data.slides.map((s,i)=><button key={s.id} disabled={busy} className={position===i?'active':''} onClick={()=>navigate(i)} title={'Tác phẩm '+(i+1)}>{i+1}{saved[s.id]&&<CheckCircle2 size={10}/>}</button>)}</div>
           </section>
-          <section className="bj-score-form"><span className="bj-kicker">RUBRIC · INDEPENDENT EVALUATION</span><h2>Phiếu chấm điểm</h2><p>Mỗi tiêu chí từ 0 đến 10, bước 0,5. Điểm quy đổi tự động theo trọng số.</p>
-            {rubric.map(r=><label className="bj-criterion" key={r.id}><span>{r.label} <small>{r.weight}%</small></span><select disabled={readonly||busy} value={draft.criteria?.[r.id]??''} onChange={e=>edit(r.id,Number(e.target.value))}><option value="" disabled>Chọn điểm</option>{Array.from({length:21},(_,i)=><option value={i/2} key={i}>{(i/2).toFixed(1)} / 10</option>)}</select></label>)}
+          <section className="bj-score-form"><span className="bj-kicker">RUBRIC · INDEPENDENT EVALUATION</span><h2>Phiếu chấm điểm</h2><p>Chạm chọn nhanh điểm từ 1 đến 10 dưới mỗi tiêu chí. Tổng điểm tự quy đổi theo trọng số.</p>
+            {rubric.map(r=><div className="bj-criterion" key={r.id}>
+              <div className="bj-criterion-heading">
+                <span id={'bj-criterion-'+r.id}>{r.label}</span>
+                <span className="bj-criterion-weight">{r.weight}%</span>
+              </div>
+              <div className="bj-score-scale" role="group" aria-labelledby={'bj-criterion-'+r.id}>
+                {Array.from({length:10},(_,i)=>i+1).map(value=><button
+                  type="button"
+                  key={value}
+                  className={'bj-score-chip'+(draft.criteria?.[r.id]===value?' is-selected':'')}
+                  aria-pressed={draft.criteria?.[r.id]===value}
+                  aria-label={r.label+': '+value+' / 10'}
+                  disabled={readonly||busy}
+                  onClick={()=>edit(r.id,value)}
+                >{value}</button>)}
+              </div>
+              {(typeof draft.criteria?.[r.id]==='number' && (!Number.isInteger(draft.criteria[r.id]) || draft.criteria[r.id]===0))
+                ? <span className="bj-score-legacy">Điểm đã lưu trước đó: {draft.criteria[r.id].toFixed(1)}/10. Chọn số mới nếu muốn thay đổi.</span>
+                : null}
+            </div>)}
             <label className="bj-note">Nhận xét (không bắt buộc)<textarea disabled={readonly||busy} maxLength={800} value={draft.comment||''} onChange={e=>edit('comment',e.target.value)} placeholder="Ghi chú đánh giá tác phẩm…"/></label>
             <div className="bj-total"><span>TỔNG ĐIỂM</span><strong>{total===null?'—':total.toFixed(2)} <small>/ 100</small></strong></div>
             <button className="bj-primary" disabled={readonly||busy||!complete} onClick={()=>saveCurrent()}><Save size={17}/>{busy?'Đang lưu…':saved[current.id]?'Đã lưu · Lưu lại':'Lưu điểm tác phẩm'}</button>
