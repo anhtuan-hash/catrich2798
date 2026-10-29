@@ -1884,3 +1884,61 @@ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-hallo
   top:auto!important;bottom:7%!important;left:8%!important;
  }
 }
+
+
+/* V9.1: role-controlled navigation may be injected inside .brian-nav__utility-slot.
+   The previous > button selector missed these, leaving pastel buttons in dark mode. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .bes-top-chrome nav.brian-nav[data-halloween-nav="true"] .brian-nav__primary :is(button,a):not(.is-active):not([aria-current="page"]) {
+  background:#30184e!important;background-image:none!important;
+  color:#faebff!important;border:1px solid #76508a91!important;
+  border-radius:12px!important;text-shadow:none!important;
+  box-shadow:inset 0 1px #ffffff18!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .bes-top-chrome nav.brian-nav[data-halloween-nav="true"] .brian-nav__primary :is(button.is-active,a.is-active,button[aria-current="page"],a[aria-current="page"]) {
+  background:linear-gradient(125deg,#ffe19b,#ffb74e 45%,#ff8731)!important;
+  color:#271134!important;border:1px solid #ffcf80!important;
+  box-shadow:0 0 15px #ff922e99,0 4px 10px #0006!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .bes-top-chrome nav.brian-nav[data-halloween-nav="true"] .brian-nav__primary :is(button,a):hover {
+  filter:brightness(1.12)!important;transform:translateY(-1px)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .bes-top-chrome nav.brian-nav[data-halloween-nav="true"] .brian-nav__primary :is(button,a):focus-visible {
+  outline:2px solid #ffe9b3!important;outline-offset:2px!important;
+}
+/* Reference-rich scenery — use REAL preloaded V9 transparent/WebP assets.
+   Apply a gradient to blend edges into one Halloween landscape. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms::before {
+  background-image:url('/assets/home/v9/halloween-tree-left.webp')!important;
+  background-position:left center!important;background-size:contain!important;
+  background-repeat:no-repeat!important;
+  mask-image:linear-gradient(90deg,#000 33%,transparent 100%)!important;
+  -webkit-mask-image:linear-gradient(90deg,#000 33%,transparent 100%)!important;
+  width:clamp(130px,18%,245px)!important;opacity:.91!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice.bha-practice--editorial-v3 {
+  background-image:
+   linear-gradient(180deg,#200b43b0 0%,#1e0b40ac 40%,#19072d99 100%),
+   url('/assets/home/v9/halloween-cemetery-world.webp'),
+   radial-gradient(ellipse at 48% 45%,#512075,#160727 80%)!important;
+  background-repeat:no-repeat!important;
+  background-size:cover,65% auto,cover!important;
+  background-position:center,center 2%,center!important;
+}
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] {
+  background-image:
+   linear-gradient(180deg,#1d0935dd,#100623f6),
+   url('/assets/home/v9/halloween-footer-scene.webp')!important;
+  background-size:cover,26% auto!important;
+  background-position:center,center bottom!important;
+  background-repeat:no-repeat!important;
+}
+@media (max-width:860px) {
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice.bha-practice--editorial-v3 {
+   background-size:cover,97% auto,cover!important;
+ }
+}
+@media (prefers-reduced-motion:reduce) {
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .bes-top-chrome nav.brian-nav[data-halloween-nav="true"] .brian-nav__primary :is(button,a):hover {
+   transform:none!important;
+ }
+}
