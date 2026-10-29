@@ -11,9 +11,11 @@ on:
       - 'src/components/GlobalEditorialAuthorityRuntime.jsx'
       - 'public/assets/home/v11/**'
       - 'public/assets/home/v12/**'
+      - 'public/assets/home/v13/**'
       - 'scripts/test-halloween-home-v10*'
       - 'scripts/test-halloween-home-v11-app-browser.mjs'
       - 'scripts/test-halloween-home-v12-live-browser.mjs'
+      - 'scripts/test-halloween-home-v13-density-browser.mjs'
       - 'tests/fixtures/halloween-home-v10*'
       - '.github/workflows/halloween-home-v10.yml'
   workflow_dispatch:
@@ -41,6 +43,7 @@ jobs:
           VITE_SUPABASE_URL: https://brian-fixture.invalid
           VITE_SUPABASE_ANON_KEY: fixture-anon-key
       - run: node scripts/test-halloween-home-v12-live-browser.mjs
+      - run: node scripts/test-halloween-home-v13-density-browser.mjs
       - name: Preserve ON / OFF screenshots for real comparison
         if: always()
         uses: actions/upload-artifact@v4
@@ -49,4 +52,5 @@ jobs:
           path: |
             artifacts/halloween-v10/
             artifacts/halloween-v12/
+            artifacts/halloween-v13/
           if-no-files-found: warn
