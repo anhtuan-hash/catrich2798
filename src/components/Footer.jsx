@@ -262,7 +262,6 @@ export default function Footer({ language, route = '' }) {
       data-footer-mode="full"
       data-footer-route={resolvedRoute || undefined}
     >
-      {seasonalHome.enabled && resolvedRoute === 'home' ? <HalloweenScene zone="footer" /> : null}
       <div id="english-hub-footer-details" className="signature-footer-expanded-panel">
         <div className="signature-footer-v50-main">
           <section className="signature-footer-v50-brand" aria-label="English Hub, Pétrus Ký and Cambridge Assessment English">
@@ -320,6 +319,7 @@ export default function Footer({ language, route = '' }) {
           <span className="bes-portfolio-footer-trigger-icon" aria-hidden="true">↗</span>
         </button>
       </div>
+      {seasonalHome.enabled && resolvedRoute === 'home' ? <HalloweenScene zone="footer" /> : null}
     </footer>
     {portfolioOpen && createPortal(
       <FooterPortfolioDialog isVi={isVi} onClose={closePortfolio} />,
