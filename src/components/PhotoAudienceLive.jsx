@@ -42,7 +42,7 @@ function PhotoAudienceLive({ language='vi',albumId,screenUrl='',canEdit=false,on
       window.removeEventListener('resize',measure);
       document.removeEventListener('fullscreenchange',onFull);
     };
-  },[]);
+  },[currentUrl]);
 
   const scale=isFull?Math.min(width/DESKTOP_WIDTH,window.innerHeight/DESKTOP_HEIGHT):width/DESKTOP_WIDTH;
   const frameHeight=Math.round(DESKTOP_HEIGHT*scale);
@@ -96,7 +96,7 @@ function PhotoAudienceLive({ language='vi',albumId,screenUrl='',canEdit=false,on
         <Link2 size={14}/>{en?'Paste the QRvote link here':'Dán link Live View khán giả tại đây'}
       </label>
       <div className="bss-audience-config-row">
-        <input id={'bss-audience-url-'+albumId} type="url" spellCheck={false}
+        <input id={'bss-audience-url-'+albumId} type="text" inputMode="url" spellCheck={false}
           placeholder="https://qrvote.org/c/.../screen" value={draft}
           onChange={event=>{setDraft(event.target.value);setFeedback('');}}
           aria-label={en?'QRvote screen URL':'Liên kết màn hình bình chọn QRvote'}/>
