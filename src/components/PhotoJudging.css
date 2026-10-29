@@ -63,9 +63,17 @@
 .bj-thumbs button{border-radius:9px;width:33px;height:33px;border:1px solid #365374;background:#1b324b;color:#d9ebff;position:relative}
 .bj-thumbs button.active{border-color:#63e1c1;background:#28554f}.bj-thumbs button svg{position:absolute;top:-5px;right:-4px;color:#7cdbb0;background:#132337;border-radius:50%}
 .bj-score-form h2{font-size:25px}.bj-score-form>p{margin-bottom:16px}
-.bj-criterion{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid #ffffff1c}
-.bj-criterion>span{font-size:14px;font-weight:700}.bj-criterion small{display:block;color:#9cb9d0;font-size:12px;margin-top:5px}
-.bj-score-form select{width:130px}
+.bj-criterion{display:block;padding:13px 0 15px;border-bottom:1px solid #ffffff25}
+.bj-criterion-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 11px}
+.bj-criterion-heading>span:first-child{font-size:14px;font-weight:750;line-height:1.45;color:#f2f7ff}
+.bj-criterion-weight{font-size:12px;font-weight:650;color:#aac4dd;white-space:nowrap}
+.bj-score-scale{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px;width:100%}
+.bj-score-form .bj-score-chip{display:grid;place-items:center;min-width:0;width:100%;min-height:38px;padding:0 2px;border:1px solid #46617f;border-radius:9px;background:linear-gradient(180deg,#172941,#0d1c31);color:#e6f1ff;font:700 13px/1 inherit;line-height:1;appearance:none;-webkit-appearance:none;cursor:pointer;transition:background-color .17s ease,border-color .17s ease,box-shadow .17s ease,transform .17s ease}
+.bj-score-form .bj-score-chip:hover:not(:disabled):not(.is-selected){background:#25435e;border-color:#8bb0d2;transform:translateY(-1px)}
+.bj-score-form .bj-score-chip.is-selected{background:linear-gradient(145deg,#a2ffe7,#57dfcb);border-color:#6df5da;color:#062c35;font-weight:850;box-shadow:0 0 0 1px #50efc766,0 0 15px #42dcc858}
+.bj-score-form .bj-score-chip:focus-visible{outline:3px solid #f4d37d;outline-offset:2px;position:relative;z-index:1}
+.bj-score-form .bj-score-chip:disabled{cursor:default}
+.bj-score-legacy{display:block;margin-top:9px;color:#b9ccde;font-size:11px;line-height:1.5}
 .bj-note{display:block;color:#acc7de;font-size:12px;margin-top:19px}
 .bj-note textarea{display:block;width:100%;margin:9px 0 15px;min-height:74px;resize:vertical}
 .bj-total{background:#1e3a4c;border:1px solid #3a817b;border-radius:15px;padding:16px;text-align:center;margin:14px 0}
@@ -94,4 +102,14 @@
   .bj-row-link{flex-wrap:wrap}
   .bj-row-link input{flex-basis:100%}
   .bj-judge .bj-copy-link span{display:inline}
+}
+
+/* Five columns on narrow phones keep each score button finger-sized. */
+@media(max-width:560px){
+  .bj-score-scale{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+  .bj-score-form .bj-score-chip{min-height:43px;font-size:14px}
+}
+@media(prefers-reduced-motion:reduce){
+  .bj-score-form .bj-score-chip{transition:none}
+  .bj-score-form .bj-score-chip:hover:not(:disabled):not(.is-selected){transform:none}
 }
