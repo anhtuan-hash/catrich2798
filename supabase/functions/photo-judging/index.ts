@@ -95,14 +95,14 @@ async function handle(req:Request, body:any) {
       return send({token,...(await dashboard(session))});
     } else if (action === "admin:revoke") {
       if (session.status === "closed") throw new Error("Phiên đã khóa.");
-      assertResult(await db.from("bes_judging_invites").update({revoked_at:new Date().toISOString()}).eq("id",required(body.inviteId)).eq("session_id",session.id).select("id").single());
+      const revokeJudge=assertResult(await db.from("bes_judging_invites").select("id,submitted_at").eq("id",required(body.inviteId)).eq("session_id",session.id).single());
+      if(revokeJudge.submitted_at) throw new Error("Không thể thu hồi phiếu đã nộp nhằm bảo đảm tính công bằng.");
+      assertResult(await db.from("bes_judging_invites").update({revoked_at:new Date().toISOString()}).eq("id",revokeJudge.id).eq("session_id",session.id).select("id").single());
     } else if (action === "admin:open") {
       if (session.status !== "draft") throw new Error("Phiên đã mở hoặc kết thúc.");
       if (!album.is_published) throw new Error("Chỉ mở chấm khi album đã công khai.");
       const slides = assertResult(await db.from("bes_slideshow_slides").select("id,image_path,sort_order,created_at").eq("album_id",albumId).order("sort_order").order("created_at"));
       if (!slides.length) throw new Error("Album chưa có tác phẩm.");
-      const count=assertResult(await db.from("bes_judging_invites").select("id",{count:"exact",head:true}).eq("session_id",session.id).is("revoked_at",null));
-      if (!count && !session) throw new Error("Chưa có giám khảo.");
       const countCheck=await db.from("bes_judging_invites").select("id",{count:"exact",head:true}).eq("session_id",session.id).is("revoked_at",null);
       if ((countCheck.count||0)<1) throw new Error("Hãy tạo ít nhất một giám khảo.");
       validRubric(session.rubric);
