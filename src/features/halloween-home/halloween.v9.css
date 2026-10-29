@@ -1472,7 +1472,10 @@ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] 
   border-color:#a761ad90!important;
   box-shadow:0 7px 23px #080219a8,0 0 20px #ad4de43d!important;
 }
-html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .bes-top-chrome nav.brian-nav[data-halloween-nav="true"],
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .bes-top-chrome nav.brian-nav[data-halloween-nav="true"] {
+  background:linear-gradient(110deg,#1d0c38ee,#361459df)!important;
+  background-image:linear-gradient(110deg,#1d0c38ee,#361459df)!important;
+}
 html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .bes-top-chrome .brian-nav__primary {
   background:transparent!important;
   background-image:none!important;
