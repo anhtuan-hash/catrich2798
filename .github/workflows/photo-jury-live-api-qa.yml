@@ -6,6 +6,8 @@ on:
       - 'supabase/functions/photo-judging/**'
       - 'supabase/migrations/*photo_story_live_jury.sql'
       - 'scripts/test-photo-jury-live.mjs'
+      - 'scripts/test-photo-jury-ranking.mjs'
+      - 'src/utils/photoJuryRanking.js'
       - '.github/workflows/photo-jury-live-api-qa.yml'
   workflow_dispatch:
 permissions:
