@@ -1752,3 +1752,50 @@ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] 
   animation:none!important;
  }
 }
+
+
+/* Reuse precise portions of the already committed reference WebP to create
+   high-resolution decorative layers. These sprites contain ART ONLY; the
+   "65", class names, logos and photo player are still live React components. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade--11::before {
+  background-image:url('/assets/home/halloween-v9-hero-right.webp')!important;
+  background-repeat:no-repeat!important;
+  background-size:285px 165px!important;
+  background-position:-117px -107px!important;
+  mask-image:radial-gradient(ellipse at 49% 49%,#000 39%,transparent 79%)!important;
+  -webkit-mask-image:radial-gradient(ellipse at 49% 49%,#000 39%,transparent 79%)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice.bha-practice--editorial-v3::after {
+  width:126px!important;
+  height:125px!important;
+  left:-28px!important;
+  bottom:-10px!important;
+  background-image:url('/assets/home/halloween-v9-hero-right.webp')!important;
+  background-size:640px 370px!important;
+  background-position:-266px -233px!important;
+  background-repeat:no-repeat!important;
+  filter:drop-shadow(0 0 15px #ff8b4170)!important;
+  mask-image:radial-gradient(ellipse 74% 77% at 54% 57%,#000 30%,transparent 82%)!important;
+  -webkit-mask-image:radial-gradient(ellipse 74% 77% at 54% 57%,#000 30%,transparent 82%)!important;
+  clip-path:none!important;
+}
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"]
+ > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"]::before {
+  background-image:url('/assets/home/halloween-v9-hero-right.webp')!important;
+  background-size:640px 370px!important;
+  background-position:-266px -233px!important;
+  background-repeat:no-repeat!important;
+  clip-path:none!important;
+  mask-image:radial-gradient(ellipse 73% 72% at 50% 54%,#000 29%,transparent 82%)!important;
+  -webkit-mask-image:radial-gradient(ellipse 73% 72% at 50% 54%,#000 29%,transparent 82%)!important;
+}
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"]
+ > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"]::after {
+  background-image:url('/assets/home/halloween-v9-hero-right.webp')!important;
+  background-size:640px 370px!important;
+  background-position:-400px -175px!important;
+  background-repeat:no-repeat!important;
+  clip-path:none!important;
+  mask-image:radial-gradient(ellipse 72% 77% at 47% 50%,#000 28%,transparent 81%)!important;
+  -webkit-mask-image:radial-gradient(ellipse 72% 77% at 47% 50%,#000 28%,transparent 81%)!important;
+}
