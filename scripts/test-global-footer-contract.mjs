@@ -8,16 +8,21 @@ const integrityCss = fs.readFileSync(new URL('../src/components/FooterIntegrity.
 
 const summaryIndex = footerSource.indexOf('className="signature-footer-static-summary signature-footer-static-summary--attribution-only"');
 const expandedPanelIndex = footerSource.indexOf('className="signature-footer-expanded-panel"');
+const footerMounts = mainSource.match(/<Footer\b[^>]*\/>/g) || [];
 
 const checks = [
   {
     name: 'Footer is rendered for every route',
-    ok: mainSource.includes('<Footer language={language} currentUser={currentUser} />')
+    ok: footerMounts.some((mount) => /language=\{language\}/.test(mount) && /currentUser=\{currentUser\}/.test(mount))
       && !mainSource.includes("!['homeroom-portal', 'dashboard'].includes(currentRoute) ? <Footer"),
   },
   {
     name: 'App shell contains one canonical Footer mount',
-    ok: (mainSource.match(/<Footer language=\{language\} currentUser=\{currentUser\} \/>/g) || []).length === 1,
+    ok: footerMounts.length === 1,
+  },
+  {
+    name: 'Footer receives the current route during navigation',
+    ok: footerMounts.some((mount) => /route=\{currentRoute\}/.test(mount)),
   },
   {
     name: 'Approved card design is global, not login/register scoped',
