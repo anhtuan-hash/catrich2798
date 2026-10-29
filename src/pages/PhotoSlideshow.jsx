@@ -16,6 +16,7 @@ import SlideshowLinkedText from '../components/SlideshowLinkedText.jsx';
 import './PhotoSlideshow.css';
 import './PhotoSlideshowGalleryV2.css';
 import './PhotoSlideshowFestival.css';
+import './PhotoSlideshowDualLive.css';
 
 const BUCKET = 'brian-slideshows';
 const TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']);
