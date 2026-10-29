@@ -9,10 +9,12 @@ import { isDepartmentLeaderRole, isAdminRole } from '../utils/roles.js';
 import PhotoJudgingAdmin from '../components/PhotoJudgingAdmin.jsx';
 import PhotoJudgingPage from '../components/PhotoJudgingPage.jsx';
 import PhotoJuryLive from '../components/PhotoJuryLive.jsx';
+import PhotoAudienceLive from '../components/PhotoAudienceLive.jsx';
 import PhotoTransitionStage from '../components/PhotoTransitionStage.jsx';
 import SlideshowLinkedText from '../components/SlideshowLinkedText.jsx';
 import './PhotoSlideshow.css';
 import './PhotoSlideshowGalleryV2.css';
+import './PhotoSlideshowFestival.css';
 
 const BUCKET = 'brian-slideshows';
 const TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']);
@@ -341,7 +343,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
             <button type="button" onClick={showQR} title={t.qr}><QrCode size={17}/><span>QR</span></button>
           </div>
         </div>
-        <div className={'bss-gallery-layout'+(selected.is_published?' bss-gallery-layout--with-jury':'')}>
+        <div className={'bss-gallery-layout'+(selected.is_published?' bss-gallery-layout--with-jury':'')+(selected.is_published && selected.slug==='halloween-showcase-2026-73hb72'?' bss-gallery-layout--festival':'')}>
           <div className="bss-gallery-main">
             <div className="bss-stage" ref={stageRef}
               onTouchStart={e => { touchRef.current = e.touches[0]?.clientX ?? null; }}
@@ -422,7 +424,13 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
               <p><SlideshowLinkedText text={selected.description || (en ? 'Every image holds a story.' : 'Mỗi tác phẩm là một câu chuyện.')} /></p>
             </div>
           </aside>
-          {selected.is_published && <PhotoJuryLive albumId={selected.id} slideId={active?.id} photoNumber={index+1} slides={ordered.map(item=>({id:item.id,caption:item.caption,imageUrl:imageUrl(item.image_path)}))} language={language}/>}
+          {selected.is_published && (selected.slug==='halloween-showcase-2026-73hb72'
+            ? <div className="bss-festival-live-stack">
+                <PhotoJuryLive albumId={selected.id} slideId={active?.id} photoNumber={index+1} slides={ordered.map(item=>({id:item.id,caption:item.caption,imageUrl:imageUrl(item.image_path)}))} language={language}/>
+                <PhotoAudienceLive language={language}/>
+              </div>
+            : <PhotoJuryLive albumId={selected.id} slideId={active?.id} photoNumber={index+1} slides={ordered.map(item=>({id:item.id,caption:item.caption,imageUrl:imageUrl(item.image_path)}))} language={language}/>
+          )}
         </div>
         <p className="bss-keyboard-tip">{en ? '← / → Navigate · Space Play or pause · Fullscreen for presentation' : '← / → Chuyển ảnh · Space Phát hoặc dừng · Toàn màn hình để trình chiếu'}</p>
       </section> : null}
