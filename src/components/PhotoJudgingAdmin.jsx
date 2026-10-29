@@ -6,7 +6,6 @@ import './PhotoJudging.css';
 const API = supabaseUrl + '/functions/v1/photo-judging';
 const linkFor = token => window.location.origin + window.location.pathname + '#/slideshow?judge=' + token;
 const csvEscape = v => '"' + String(v ?? '').replace(/"/g,'""') + '"';
-export const weightedTotal = (criteria, rubric) => rubric.reduce((total,r)=>total+(Number(criteria?.[r.id])||0)*r.weight/10,0);
 
 export async function photoJudgingRequest(payload, admin = false) {
   const headers = {'Content-Type':'application/json','apikey':supabaseAnonKey};
