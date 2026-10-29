@@ -27,7 +27,7 @@ try {
  let ready=false;for(let i=0;i<100;i++){if(server.exitCode!==null)throw Error(stderr);try{if((await fetch(BASE)).ok){ready=true;break}}catch{}await sleep(200)}
  assert.ok(ready,'built application should start');
  browser=await chromium.launch({headless:true,args:['--no-sandbox'],...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH}:{})});
- for(const [width,height] of [[1024,768],[768,1024],[390,844],[360,800]]){
+ for(const [width,height] of [[1536,960],[1440,900],[1024,768],[768,1024],[390,844],[360,800]]){
   const page=await browser.newPage({viewport:{width,height}});const errors=[];
   page.on('pageerror',error=>errors.push(error.message));
   await page.addInitScript(()=>localStorage.setItem('bes-halloween-home-master-v4',JSON.stringify({enabled:true,updatedAt:'2026-10-29T00:00:00Z'})));
