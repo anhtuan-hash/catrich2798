@@ -52,6 +52,23 @@ try{
   await sleep(400);
   const on=await state(page);
   await page.screenshot({path:ART+'/'+label+'-halloween.png',fullPage:true,animations:'disabled',style:'[data-visual-qa-controls]{visibility:hidden!important}'});
+  if (label !== 'mobile' && label !== 'small-mobile') {
+    const typography=await page.evaluate(()=>{
+      const hero=document.querySelector('#v4-hero'),h=hero?.querySelector('h1');
+      const spans=[...h?.querySelectorAll('span')||[]];
+      return {
+        parts:spans.map(x=>x.textContent.trim()),
+        lines:spans.map(x=>x.getClientRects().length),
+        nowrap:spans.map(x=>getComputedStyle(x).whiteSpace),
+        bounds:spans.map(x=>({right:x.getBoundingClientRect().right,width:x.getBoundingClientRect().width})),
+        heroRight:hero?.getBoundingClientRect().right
+      };
+    });
+    assert.deepEqual(typography.parts,['Happy','Halloween!'],label+' correct two-line heading');
+    assert.deepEqual(typography.lines,[1,1],label+' no broken Halloween letters');
+    assert.ok(typography.nowrap.every(x=>x==='nowrap'),label+' heading explicitly unbreakable');
+    assert.ok(typography.bounds[1].right<=typography.heroRight+2,label+' text stays in Hero frame');
+  }
   assert.equal(on.master,'on',label+' master enabled');
   assert.ok(on.art?.includes('halloween-v8-castle-art.avif'),label+' art lives in its own decorative layer');
   assert.equal(off.art,null,label+' OFF has no illustrated art DOM');
