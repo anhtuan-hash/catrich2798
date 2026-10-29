@@ -102,7 +102,7 @@ export default function PhotoJudgingPage({token}) {
                   onClick={()=>edit(r.id,value)}
                 >{value}</button>)}
               </div>
-              {typeof draft.criteria?.[r.id]==='number' && !Number.isInteger(draft.criteria[r.id]) || draft.criteria?.[r.id]===0
+              {(typeof draft.criteria?.[r.id]==='number' && (!Number.isInteger(draft.criteria[r.id]) || draft.criteria[r.id]===0))
                 ? <span className="bj-score-legacy">Điểm đã lưu trước đó: {draft.criteria[r.id].toFixed(1)}/10. Chọn số mới nếu muốn thay đổi.</span>
                 : null}
             </div>)}
