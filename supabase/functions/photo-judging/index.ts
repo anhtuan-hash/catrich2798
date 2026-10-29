@@ -91,8 +91,60 @@ async function dashboard(session: any) {
   for (const score of scores as any[]) counts[score.invite_id] = (counts[score.invite_id] || 0) + 1;
   return { session, judges: judges.map(({token_ciphertext,...j}:any)=>({...j,has_copyable_link:!!token_ciphertext,progress:counts[j.id]||0})),scores };
 }
+// Public endpoint returns anonymous aggregates only; never tokens, judge IDs, names,
+ // private drafts, notes or raw judge-level scores.
+async function publicLiveJury(body: any) {
+  const albumId = required(body.albumId);
+  if (!/^[0-9a-f-]{36}$/i.test(albumId)) throw new Error("Album không hợp lệ.");
+  const album = assertResult(await db.from("bes_slideshow_albums")
+    .select("id,is_published").eq("id",albumId).maybeSingle());
+  if (!album?.is_published) return send({state:"unavailable",enabled:false});
+  const session = assertResult(await db.from("bes_judging_sessions")
+    .select("id,status,rubric,public_live_enabled").eq("album_id",albumId).maybeSingle());
+  if (!session) return send({state:"unavailable",enabled:false});
+  if (!session.public_live_enabled) return send({state:"hidden",enabled:false});
+  const judges = assertResult(await db.from("bes_judging_invites")
+    .select("id,submitted_at,last_seen_at").eq("session_id",session.id).is("revoked_at",null));
+  const now = Date.now();
+  const working = judges.filter((j:any)=>!j.submitted_at && j.last_seen_at &&
+    now-Date.parse(j.last_seen_at) < 10*60*1000).length;
+  const submitted = judges.filter((j:any)=>!!j.submitted_at);
+  const submittedIds = submitted.map((j:any)=>j.id);
+  const scores = submittedIds.length ? assertResult(await db.from("bes_judging_scores")
+    .select("invite_id,slide_id,criteria,total").in("invite_id",submittedIds)) : [];
+  const bySlide: Record<string, any[]> = {};
+  for (const score of scores as any[]) (bySlide[score.slide_id] ||= []).push(score);
+  const MIN_PUBLIC_SUBMISSIONS = 3;
+  const round = (value:number) => Math.round(value*100)/100;
+  const artworks = Object.entries(bySlide).map(([slideId, entries])=>{
+    const eligible = entries.length >= MIN_PUBLIC_SUBMISSIONS;
+    return {
+      slideId,
+      submittedCount:entries.length,
+      average:eligible ? round(entries.reduce((sum,row)=>sum+Number(row.total),0)/entries.length) : null,
+      criteria:eligible ? (session.rubric as any[]).map(c=>({
+        id:c.id,
+        label:c.label,
+        weight:c.weight,
+        average:round(entries.reduce((sum,row)=>sum+Number(row.criteria?.[c.id]||0),0)/entries.length)
+      })) : []
+    };
+  });
+  return send({
+    state:session.status,
+    enabled:true,
+    judgeCount:judges.length,
+    workingCount:working,
+    submittedCount:submitted.length,
+    minimumSubmissions:MIN_PUBLIC_SUBMISSIONS,
+    artworks,
+    rubric:(session.rubric as any[]).map(c=>({id:c.id,label:c.label,weight:c.weight})),
+    refreshedAt:new Date().toISOString()
+  });
+}
 async function handle(req:Request, body:any) {
   const action = required(body.action);
+  if (action === "public:live") return publicLiveJury(body);
   if (action.startsWith("admin:")) {
     await requireAdmin(req);
     const albumId = required(body.albumId);
@@ -105,6 +157,13 @@ async function handle(req:Request, body:any) {
     }
     if (!session) throw new Error("Chưa tạo hội đồng giám khảo.");
     if (action === "admin:load") return send({ album, ...(await dashboard(session)) });
+    if (action === "admin:visibility") {
+      if (typeof body.enabled !== "boolean") throw new Error("Chế độ hiển thị không hợp lệ.");
+      assertResult(await db.from("bes_judging_sessions")
+        .update({public_live_enabled:body.enabled,updated_at:new Date().toISOString()})
+        .eq("id",session.id).select("id").single());
+      return send({album,...(await dashboard(await getSession(albumId)))});
+    }
     if (action === "admin:link") {
       const inviteId=required(body.inviteId);
       const judge=assertResult(await db.from("bes_judging_invites")

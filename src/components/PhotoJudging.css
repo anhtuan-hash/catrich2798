@@ -113,3 +113,13 @@
   .bj-score-form .bj-score-chip{transition:none}
   .bj-score-form .bj-score-chip:hover:not(:disabled):not(.is-selected){transform:none}
 }
+
+/* Admin-only public live-aggregation switch */
+.bj-live-toggle{display:flex;align-items:center;justify-content:space-between;gap:18px;background:#123047;border:1px solid #44778d80;border-radius:15px;padding:14px 16px;margin:19px 0}
+.bj-live-toggle>div{display:grid;gap:5px;min-width:0}
+.bj-live-toggle strong{font-weight:800;font-size:14px;color:#e8f8ff}
+.bj-live-toggle small{color:#aac5d5;line-height:1.5;font-size:12px}
+.bj-live-toggle button{flex:0 0 auto;border:1px solid #7c8b9c;border-radius:99px;background:#20304a;color:#cbd7e7;font-weight:750;font-size:12px;padding:10px 17px;min-width:95px}
+.bj-live-toggle button.is-on{background:#1b756b;border-color:#70e2c8;color:#e4fffa}
+.bj-live-toggle button:focus-visible{outline:2px solid #8fe5df;outline-offset:3px}
+@media(max-width:540px){.bj-live-toggle{flex-direction:column;align-items:stretch}.bj-live-toggle button{align-self:flex-start}}

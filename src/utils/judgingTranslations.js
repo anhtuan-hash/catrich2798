@@ -41,5 +41,7 @@ export const JUDGING_UI_EN = Object.freeze({
   "Hoàn thành phiếu chấm": "Complete your scorecard",
   "Nộp phiếu chấm": "Submit scorecard",
   "Chưa có tác phẩm. Vui lòng liên hệ ban tổ chức.": "No artworks available. Please contact the organizer.",
+  "Live Jury trên trang triển lãm công khai": "Live Jury on the public gallery",
+  "Chỉ tổng hợp phiếu đã nộp, giấu danh tính và điểm riêng. Điểm trung bình hiện từ 3 phiếu hợp lệ trở lên.": "Only submitted ballots are aggregated, with individual judges and scores hidden. Averages appear after at least 3 eligible ballots.",
   "Ghi chú đánh giá tác phẩm…": "Artwork evaluation notes…"
 });
