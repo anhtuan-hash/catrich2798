@@ -4,7 +4,7 @@ const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const home=read('src/pages/Home.jsx'),css=read('src/features/halloween-home/halloween.v10-art-direction.css');
 const hero=read('src/components/HomeHeroExperience2026.jsx'),nav=read('src/components/GlobalCompactNavigation.jsx');
 assert.ok(home.includes("import '../features/halloween-home/halloween.v10-art-direction.css'"));
-assert.ok(css.includes('/assets/home/v11/halloween-hero-world.webp')&&css.includes('/assets/home/v11/halloween-practice-world.webp'));
+assert.ok(css.includes('/assets/home/v12/halloween-hero-world.webp')&&css.includes('/assets/home/v12/halloween-environment.webp'));
 assert.ok(css.includes('backdrop-filter:none!important'), 'no rectangular blur across the hero artwork');
 assert.ok(hero.includes('<span>Happy</span><span>Halloween!</span>'));
 assert.ok(css.includes('white-space:nowrap!important'));

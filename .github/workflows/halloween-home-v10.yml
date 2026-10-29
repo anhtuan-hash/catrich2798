@@ -5,10 +5,14 @@ on:
       - 'src/features/halloween-home/halloween.v10-art-direction.css'
       - 'src/pages/Home.jsx'
       - 'src/components/HomeHeroExperience2026.jsx'
+      - 'src/components/HomePublishedSlideshow.jsx'
+      - 'src/main.jsx'
       - 'src/components/GlobalEditorialAuthorityRuntime.jsx'
       - 'public/assets/home/v11/**'
+      - 'public/assets/home/v12/**'
       - 'scripts/test-halloween-home-v10*'
       - 'scripts/test-halloween-home-v11-app-browser.mjs'
+      - 'scripts/test-halloween-home-v12-live-browser.mjs'
       - 'tests/fixtures/halloween-home-v10*'
       - '.github/workflows/halloween-home-v10.yml'
   workflow_dispatch:
@@ -30,10 +34,18 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: node scripts/test-halloween-home-v10-browser.mjs
       - run: node scripts/test-halloween-home-v11-app-browser.mjs
+      - name: Build with intercepted test backend
+        run: npx vite build
+        env:
+          VITE_SUPABASE_URL: https://brian-fixture.invalid
+          VITE_SUPABASE_ANON_KEY: fixture-anon-key
+      - run: node scripts/test-halloween-home-v12-live-browser.mjs
       - name: Preserve ON / OFF screenshots for real comparison
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: halloween-v10-art-first-visual-QA
-          path: artifacts/halloween-v10/
+          path: |
+            artifacts/halloween-v10/
+            artifacts/halloween-v12/
           if-no-files-found: warn

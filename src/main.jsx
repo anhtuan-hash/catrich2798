@@ -502,6 +502,7 @@ function App() {
           '--active-app-ink': activeDesignProfile.ink,
         }}
       >
+        {currentRoute === 'home' ? <div className="halloween-home-scene" aria-hidden="true" style={{ display: 'none' }} /> : null}
         {!['homeroom-portal', 'classroom-join', 'board-live', 'slideshow'].includes(currentRoute) ? <div className="bes-top-chrome">
           {currentRoute !== 'quest-join' && <>
             <Suspense fallback={null}>

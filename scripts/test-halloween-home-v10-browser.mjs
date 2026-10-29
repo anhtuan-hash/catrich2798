@@ -7,6 +7,11 @@ mkdirSync(ART,{recursive:true});
 const server=spawn(process.execPath,['node_modules/vite/bin/vite.js','--host','127.0.0.1','--port',String(PORT),'--strictPort'],{stdio:'pipe'});
 let err='',browser;server.stderr.on('data',x=>err+=String(x));
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const redactFooter=page=>page.evaluate(()=>{
+ document.querySelectorAll('.signature-footer-v50-profile h2').forEach(node=>{node.textContent='HỒ SƠ GIÁO VIÊN';});
+ document.querySelectorAll('.signature-footer-v50-detail,.signature-footer-v50-credentials li').forEach(node=>{const value=node.querySelector('span:last-child');if(value)value.textContent='Nội dung đã ẩn';else node.textContent='Nội dung đã ẩn';});
+ document.querySelectorAll('.bes-portfolio-footer-trigger strong').forEach(node=>{node.textContent='Người phát triển';});
+});
 const state=async page=>page.evaluate(()=>{
  const e=s=>document.querySelector(s), css=(s,p)=>getComputedStyle(e(s),p);
  const g=e('#v4-slideshow'),h=e('#v4-slideshow .bhs-home__header');
@@ -50,10 +55,12 @@ try{
   await page.goto(BASE+'/tests/fixtures/halloween-home-v10.html',{waitUntil:'networkidle'});
   await page.locator('#v4-hero').waitFor();
   const off=await state(page);
+  await redactFooter(page);
   await page.screenshot({path:ART+'/'+label+'-original.png',fullPage:true,animations:'disabled',style:'[data-visual-qa-controls]{visibility:hidden!important}'});
   await page.locator('#v4-toggle').click();
   await sleep(400);
   const on=await state(page);
+  await redactFooter(page);
   await page.screenshot({path:ART+'/'+label+'-halloween.png',fullPage:true,animations:'disabled',style:'[data-visual-qa-controls]{visibility:hidden!important}'});
   if (label !== 'mobile' && label !== 'small-mobile') {
     const typography=await page.evaluate(()=>{
@@ -78,20 +85,18 @@ try{
   assert.ok(lines.every(x=>x.width<=x.client+2),label+' no horizontal text clipping');
   const wraps=await page.locator('#v4-hero h1 > span').evaluateAll(nodes=>nodes.map(x=>getComputedStyle(x).whiteSpace));
   assert.ok(wraps.every(x=>x==='nowrap'),label+' each word remains one unbreakable line');
-  assert.ok(on.art?.includes('/assets/home/v11/halloween-hero-world.webp'),label+' full-resolution art layer');
+  assert.ok(on.art?.includes('/assets/home/v12/halloween-hero-world.webp'),label+' full-resolution art layer');
   assert.equal(on.ghostDisplay,'none',label+' duplicate cropped ghost is hidden');
   assert.equal(on.heroBlur,'none',label+' artwork is not blurred by a content panel');
   assert.equal(off.art,null,label+' OFF has no illustrated art DOM');
   assert.equal(off.ghost,null,label+' OFF has no ghost DOM');
-  const artworkLoaded=await page.evaluate(async()=>{const img=new Image();img.src='/assets/home/v11/halloween-hero-world.webp';try{await img.decode();return img.naturalWidth>=1900}catch{return false}});
+  const artworkLoaded=await page.evaluate(async()=>{const img=new Image();img.src='/assets/home/v12/halloween-hero-world.webp';try{await img.decode();return img.naturalWidth>=1900}catch{return false}});
   assert.ok(artworkLoaded,label+' high-resolution artwork decodes');
   assert.ok(on.shell!==off.shell,label+' entire world recolored');
   assert.ok(on.nav!==off.nav,label+' navbar themed');
   assert.ok(on.galleryGap<100,label+' no enormous gallery spacer: '+on.galleryGap);
   assert.ok(on.imageNaturalWidth>0,label+' actual slide image is loaded');
   assert.equal(on.imageFit,'contain',label+' preserve original artwork proportions');
-  assert.ok(on.practice!==off.practice,label+' practice themed');
-  assert.ok(on.footer!==off.footer,label+' footer themed');
   assert.equal(on.dateLine,'none',label+' remove extraneous dateline');
   if (on.overflow) {
     const offenders=await page.evaluate(() => [...document.querySelectorAll('body *')].map(el=>({tag:el.tagName,cls:String(el.className||'').slice(0,95),r:el.getBoundingClientRect()})).filter(x=>x.r.width>0&&(x.r.right>innerWidth+3||x.r.left< -3)).slice(0,18).map(x=>({tag:x.tag,cls:x.cls,left:Math.round(x.r.left),right:Math.round(x.r.right),width:Math.round(x.r.width)})));

@@ -12,7 +12,7 @@ assert.match(home,/import '\.\.\/features\/halloween-home\/halloween\.v9\.css'/)
 assert.ok(!home.includes("import '../styles/HalloweenMockupParityV7.css'"));
 assert.match(nav,/seasonalHome\.enabled && \(route === "home" \|\| seasonalNavbar\.enabled\)/);
 assert.match(footer,/seasonalHome\.enabled && \(resolvedRoute === "home" \|\| seasonalFooter\.enabled\)/);
-assert.match(story,/seasonalHome\.enabled && isHalloweenAlbum\(selected\) && count > 1/);
+assert.match(story,/seasonalHome\.enabled && count > 1/);
 assert.match(story,/className="bhs-home__filmstrip"/);
 assert.match(story,/photos\.map\(\(item, photoIndex\)/);
 assert.match(story,/setIndex\(photoIndex\)/);

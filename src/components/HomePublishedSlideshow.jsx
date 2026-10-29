@@ -246,8 +246,8 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
           </button>
         </div>
       </div>
-      {seasonalHome.enabled && isHalloweenAlbum(selected) && count > 1 ? (
-        <nav className="bhs-home__filmstrip" aria-label={en ? 'Choose Halloween artwork' : 'Chọn tranh Halloween'} data-halloween-filmstrip="true">
+      {seasonalHome.enabled && count > 1 ? (
+        <nav className="bhs-home__filmstrip" aria-label={en ? 'Choose gallery artwork' : 'Chọn ảnh trong album'} data-halloween-filmstrip="true">
           {photos.map((item, photoIndex) => (
             <button
               type="button"

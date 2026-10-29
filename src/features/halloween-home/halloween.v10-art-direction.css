@@ -6,7 +6,17 @@ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] 
   --hw-gold:#ffd487;
   --hw-pumpkin:#ff9c41;
   --hw-night:#14062b;
+  --hw-grid-gap:clamp(12px,1.2vw,18px);
+  position:relative!important;
+  isolation:isolate!important;
   background:#16062e!important;
+}
+/* A single decorative layer spans the live page and footer. Keeping it as a
+ * component honors the site's flat outer-canvas contract on every other page. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .halloween-home-scene {
+  display:block!important;position:absolute!important;z-index:-1!important;
+  inset:0!important;pointer-events:none!important;
+  background:#16062e url('/assets/home/v12/halloween-environment.webp') center top / 100% 100% no-repeat!important;
 }
 html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .bes-top-chrome {
   position:relative!important;left:auto!important;right:auto!important;
@@ -25,7 +35,7 @@ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] 
   display:none!important;
 }
 html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-home {
-  width:min(1460px,calc(100% - 24px))!important;
+  width:100%!important;
   max-width:none!important;margin:0 auto!important;
 }
 /* One full-resolution, art-only illustration avoids joining a blurred crop to
@@ -45,7 +55,7 @@ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] 
 html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-art {
   display:block!important;position:absolute!important;z-index:1!important;
   inset:0!important;width:100%!important;height:100%!important;
-  background:url('/assets/home/v11/halloween-hero-world.webp') center center / cover no-repeat!important;
+  background:url('/assets/home/v12/halloween-hero-world.webp') center center / cover no-repeat!important;
   mask-image:none!important;-webkit-mask-image:none!important;
   filter:none!important;pointer-events:none!important;
 }
@@ -108,8 +118,7 @@ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] 
 /* Gallery remains a live component, and published art stays fully visible. */
 html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-home-published-slideshow="true"] {
   margin-top:0!important;border-radius:18px!important;
-  background:linear-gradient(100deg,#19082ee8,#1b0938ed 60%,#150628d9),
-    url('/assets/home/v11/halloween-practice-world.webp') center / cover no-repeat!important;
+  background:linear-gradient(100deg,#19082ee8,#1b0938e8 60%,#150628df)!important;
   border:1px solid #bf6acb8d!important;
 }
 html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-home-published-slideshow="true"]::after {
@@ -118,17 +127,28 @@ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] 
   background-repeat:no-repeat!important;mask-image:none!important;-webkit-mask-image:none!important;
   pointer-events:none!important;
 }
+/* A seasonal panel can contain any published album. Keep its real caption and
+ * controls readable even when the album is not named Halloween. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home :is(.bhs-home__kicker,.bhs-home__story-kicker) {
+  color:#e9c5ff!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home :is(.bhs-home__summary p,.bhs-home__story-main p) {
+  color:#f1e6ff!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home .bhs-home__story-main h3 {
+  color:#ffc078!important;
+}
 html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__stage .bss-motion__image {
   object-fit:contain!important;width:100%!important;height:100%!important;
 }
 html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition > .bhs-home__stage {
   background:#0e0c1a!important;border:1px solid #bc6ce19d!important;
 }
-/* A separate seamless landscape wraps the real grade cards and footer. */
+/* One shared grid keeps the lesson cards and real footer cards aligned. */
 html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice.bha-practice--editorial-v3 {
-  margin-top:0!important;border-radius:0!important;
-  background:linear-gradient(180deg,#16062a26,#16062a24),
-    url('/assets/home/v11/halloween-practice-world.webp') center / cover no-repeat!important;
+  margin:0!important;padding:24px 0 16px!important;
+  border:0!important;border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;
 }
 html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice.bha-practice--editorial-v3::before,
 html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice.bha-practice--editorial-v3::after {
@@ -137,6 +157,11 @@ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] 
 html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade {
   min-width:0!important;
   box-shadow:0 0 19px var(--h9-grade-glow),0 9px 24px #050116a2!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio {
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:var(--hw-grid-gap)!important;width:100%!important;
+  margin:0!important;padding:0!important;
 }
 html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade::before {
   background-size:contain!important;background-position:center!important;
@@ -152,10 +177,28 @@ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] 
 html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade--12::before {
   background-image:url('/assets/home/v11/halloween-witch-hat.webp')!important;
 }
-html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"] {
-  background:linear-gradient(180deg,#17072ec9,#10051e98),
-    url('/assets/home/v11/halloween-practice-world.webp') center bottom / cover no-repeat!important;
-  border-radius:0 0 22px 22px!important;
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-halloween-footer="true"][data-footer-mode="full"] {
+  width:var(--bes-unified-stage-width)!important;
+  max-width:var(--bes-unified-stage-width)!important;
+  margin:0 auto 18px!important;padding:0 0 38px!important;
+  border:0!important;border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;
+}
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"][data-quick-access-layout="true"][data-quick-access-safe-mode="reserve"] > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-halloween-footer="true"][data-footer-mode="full"] {
+  width:calc(var(--bes-unified-stage-width) - var(--bqa-content-safe-shift,0px))!important;
+  max-width:calc(var(--bes-unified-stage-width) - var(--bqa-content-safe-shift,0px))!important;
+  translate:calc(var(--bqa-content-safe-shift,0px) / 2) 0!important;
+}
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-halloween-footer="true"][data-footer-mode="full"] .signature-footer-v50-main {
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:var(--hw-grid-gap)!important;width:100%!important;margin:0!important;padding:0!important;
+}
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-halloween-footer="true"][data-footer-mode="full"] .signature-footer-v50-main > section {
+  grid-column:auto!important;min-width:0!important;max-width:100%!important;
+  overflow:visible!important;
+}
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-halloween-footer="true"][data-footer-mode="full"] .signature-footer-v50-credentials {
+  padding-right:clamp(12px,1.7vw,24px)!important;
 }
 html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"]::before,
 html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"]::after {
@@ -173,6 +216,13 @@ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-hallo
   }
 }
 @media(max-width:900px) {
+  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .halloween-home-scene {
+    background-size:auto 100%!important;
+  }
+  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio,
+  html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-halloween-footer="true"][data-footer-mode="full"] .signature-footer-v50-main {
+    grid-template-columns:minmax(0,1fr)!important;gap:15px!important;
+  }
   html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-sign {
     display:none!important;
   }
@@ -185,7 +235,7 @@ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-hallo
 }
 @media(max-width:620px) {
   html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms {
-    height:510px!important;min-height:510px!important;
+    height:600px!important;min-height:600px!important;
   }
   html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
     width:100%!important;max-width:100%!important;padding:25px 20px!important;
@@ -203,8 +253,8 @@ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-hallo
     min-height:42px!important;height:auto!important;padding:9px 13px!important;
   }
   html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-art {
-    background-image:linear-gradient(180deg,#170628 0%,#170628e6 28%,#17062800 65%),url('/assets/home/v11/halloween-hero-world.webp')!important;
-    background-position:center,61% bottom!important;background-size:cover,auto 72%!important;
+    background-image:linear-gradient(180deg,#170628 0%,#170628e6 28%,#17062800 65%),url('/assets/home/v12/halloween-hero-world.webp')!important;
+    background-position:center,54% bottom!important;background-size:cover,auto 60%!important;
     background-repeat:no-repeat!important;
   }
 }
