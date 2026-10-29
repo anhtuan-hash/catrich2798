@@ -239,3 +239,105 @@ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] 
    animation:none!important;transition:none!important;
  }
 }
+
+
+/* Gallery: showcase art stays real and fully visible; seasonal characters
+ * decorate only the margin, never the painting or live controls. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] {
+  position:relative!important;isolation:isolate!important;
+  overflow:hidden!important;
+  background:linear-gradient(132deg,#1a082f 0%,#2a0b47 55%,#160725 100%)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"]::after {
+  content:none!important;display:none!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] > :not(.halloween-scene) {
+  position:relative!important;z-index:5!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] .halloween-scene--gallery {
+  z-index:2!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] .halloween-scene__gallery-ghost {
+  bottom:-18px!important;right:-22px!important;
+  width:clamp(82px,12vw,132px)!important;
+  height:clamp(125px,18vw,194px)!important;
+  object-fit:cover!important;object-position:center!important;
+  z-index:4!important;
+  -webkit-mask-image:radial-gradient(ellipse 66% 74% at 50% 49%,#000 50%,transparent 94%)!important;
+  mask-image:radial-gradient(ellipse 66% 74% at 50% 49%,#000 50%,transparent 94%)!important;
+  filter:drop-shadow(0 6px 17px #a83df26b)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] .halloween-scene__gallery-lanterns {
+  left:0!important;top:0!important;
+  width:clamp(60px,8vw,105px)!important;height:36%!important;
+  object-fit:contain!important;object-position:top left!important;
+  z-index:3!important;
+  filter:drop-shadow(0 0 12px #ff9b4e5a)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] .halloween-scene__ambient {
+  position:absolute!important;inset:0!important;
+  z-index:1!important;pointer-events:none!important;
+  background:radial-gradient(ellipse 40% 40% at 8% 95%,rgba(202,57,200,.23),transparent 75%)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__stage .bhs-home__halloween-ghost {
+  display:none!important;
+}
+/* Footer: real school logos and teacher credentials remain on true DOM cards.
+ * The environment and candles sit behind the cards and around the margins. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] {
+  position:relative!important;isolation:isolate!important;
+  background:linear-gradient(180deg,#200b38,#120627 72%,#0c061b)!important;
+  border-radius:0 0 22px 22px!important;
+  border-color:#a75a846f!important;
+  overflow:hidden!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"]::before,
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"]::after {
+  content:none!important;display:none!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] > :not(.halloween-scene) {
+  position:relative!important;z-index:5!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .halloween-scene--footer {
+  z-index:1!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .halloween-scene__night {
+  position:absolute!important;inset:0!important;
+  background:radial-gradient(ellipse 50% 30% at 50% 89%,#612b653c,transparent),linear-gradient(180deg,#250b43,#120526)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .halloween-scene__footer-left-pumpkin {
+  bottom:-25px!important;left:-16px!important;
+  width:clamp(90px,13vw,155px)!important;
+  height:clamp(100px,13vw,155px)!important;
+  object-fit:contain!important;
+  filter:drop-shadow(0 0 24px #ffa04178)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .halloween-scene__footer-cat {
+  left:3%!important;bottom:7%!important;
+  width:clamp(58px,7vw,100px)!important;height:43%!important;
+  object-fit:contain!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .halloween-scene__footer-right-tree {
+  right:-15px!important;top:0!important;
+  width:clamp(95px,16vw,195px)!important;
+  height:100%!important;object-fit:contain!important;
+  object-position:top right!important;opacity:.62!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .halloween-scene__footer-lanterns {
+  right:0!important;bottom:0!important;
+  width:clamp(58px,8vw,115px)!important;height:45%!important;
+  object-fit:contain!important;object-position:right bottom!important;
+  filter:drop-shadow(0 0 13px #ff9b4b61)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .halloween-scene__ambient {
+  position:absolute!important;inset:0!important;
+  background:linear-gradient(0deg,rgba(17,5,31,.26),transparent 40%)!important;
+}
+@media(max-width:620px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] .halloween-scene__gallery-ghost {
+   right:-26px!important;bottom:10px!important;width:87px!important;height:126px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .halloween-scene__footer-cat {
+   width:51px!important;
+ }
+}
