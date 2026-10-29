@@ -3,7 +3,7 @@ import { Activity, Award, Clock3, ShieldCheck, UsersRound } from 'lucide-react';
 import { photoJudgingRequest } from './PhotoJudgingAdmin.jsx';
 import './PhotoJuryLive.css';
 
-const POLL_MS = 12000;
+const POLL_MS = 5000;
 const average = value => typeof value === 'number' && Number.isFinite(value)
   ? value.toFixed(1) : '—';
 
@@ -36,24 +36,24 @@ export default function PhotoJuryLive({albumId,slideId,photoNumber,language='vi'
   const artwork=useMemo(()=>snapshot?.artworks?.find(a=>a.slideId===slideId),
     [snapshot,slideId]);
   if(!snapshot || !snapshot.enabled) return null;
-  const currentVotes=artwork?.submittedCount??0;
-  const ready=typeof artwork?.average==='number' && currentVotes>=3;
+  const currentVotes=artwork?.scoredCount??0;
+  const ready=typeof artwork?.average==='number' && currentVotes>=1;
   const all=snapshot.judgeCount||0;
   const ratio=all?Math.min(100,Math.round(snapshot.submittedCount*100/all)):0;
   const phrase=en?{
-    headline:'LIVE · JURY SCORING',refresh:'Updates every 12s',working:'Judges evaluating',
-    submitted:'Submitted scorecards',progress:'Completed',artwork:'THIS ARTWORK',
+    headline:'LIVE · JURY SCORING',refresh:'Updates every 5s',working:'Judges evaluating',
+    submitted:'Submitted scorecards',progress:'Completed',artwork:'Scored this artwork',
     criteria:'CRITERION AVERAGES',average:'AVERAGE SCORE',waiting:'Awaiting official scorecards',
-    before:'Public averages appear after at least 3 submitted scorecards.',
-    pending:'Provisional score · submitted ballots only',outof:'out of',
+    before:'Scores appear as soon as a judge saves this artwork.',
+    pending:'Live provisional average · saved scores, not final',outof:'out of',
     final:'Final results',offline:'Connection interrupted · showing last available data'
   }:{
-    headline:'LIVE · ĐIỂM GIÁM KHẢO',refresh:'Cập nhật mỗi 12 giây',working:'Đang chấm',
-    submitted:'Phiếu đã nộp',progress:'Hoàn tất',artwork:'TÁC PHẨM ĐANG XEM',
+    headline:'LIVE · ĐIỂM GIÁM KHẢO',refresh:'Cập nhật mỗi 5 giây',working:'Đang chấm',
+    submitted:'Phiếu đã nộp',progress:'Hoàn tất',artwork:'Đã chấm tác phẩm',
     criteria:'ĐIỂM TRUNG BÌNH THEO TIÊU CHÍ',average:'ĐIỂM TRUNG BÌNH',
-    waiting:'Đang tổng hợp điểm chính thức',
-    before:'Điểm công khai khi có ít nhất 3 phiếu đã nộp.',
-    pending:'Điểm tạm tính · chỉ từ phiếu đã nộp',outof:'trên',
+    waiting:'Đang chờ lượt chấm đầu tiên',
+    before:'Điểm sẽ hiện ngay khi giám khảo lưu tác phẩm này.',
+    pending:'Điểm tạm tính từ các lượt đã lưu · chưa chốt',outof:'trên',
     final:'Kết quả đã khóa',offline:'Mất kết nối · hiển thị dữ liệu gần nhất'
   };
   const ordered = snapshot.rubric||[];
@@ -77,8 +77,8 @@ export default function PhotoJuryLive({albumId,slideId,photoNumber,language='vi'
       </div>
       <div className="bss-jury-metric">
         <Clock3 size={21} aria-hidden="true"/>
-        <strong>{String(photoNumber).padStart(2,'0')}</strong>
-        <span>{phrase.artwork}</span>
+        <strong>{currentVotes}<small> / {all}</small></strong>
+        <span>{phrase.artwork} #{String(photoNumber).padStart(2,'0')}</span>
       </div>
     </div>
     <div className="bss-jury-section-title"><span>{phrase.criteria}</span><Award size={15} aria-hidden="true"/></div>
@@ -100,8 +100,8 @@ export default function PhotoJuryLive({albumId,slideId,photoNumber,language='vi'
       })}
     </div>
     <div className="bss-jury-score">
-      <span>{phrase.average} {ready?'':'· '+currentVotes+'/'+Math.max(3,snapshot.minimumSubmissions)}</span>
-      {ready?<div className="bss-jury-score-value">{average(artwork.average)}<small> / 100</small></div>:
+      <span>{phrase.average} · {currentVotes}/{all} {en?'scored':'đã chấm'}</span>
+      {ready?<div className="bss-jury-score-value" aria-live="polite">{average(artwork.average)}<small> / 100</small></div>:
         <div className="bss-jury-awaiting"><Activity size={18} aria-hidden="true"/> {phrase.waiting}</div>}
       <p>{ready ? (snapshot.state==='closed'?phrase.final:phrase.pending) : phrase.before}</p>
     </div>
