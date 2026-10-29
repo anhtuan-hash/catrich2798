@@ -21,6 +21,8 @@ const state=async page=>page.evaluate(()=>{
   ghost:e('[data-seasonal-art="hero"] .halloween-scene__reader')?.getAttribute('src')??null,
   ghostLoaded:e('[data-seasonal-art="hero"] .halloween-scene__reader')?.naturalWidth??0,
   practiceScene:!!e('[data-seasonal-art="practice"]'),
+  galleryScene:!!e('[data-seasonal-art="gallery"]'),
+  footerScene:!!e('[data-seasonal-art="footer"]'),
   heroRadius:css('#v4-hero').borderRadius,
   nav:css('.brian-nav').backgroundImage,
   activeNav:css('.brian-nav__primary button.is-active').backgroundImage,
@@ -81,11 +83,15 @@ try{
   assert.equal(on.titleSplit,2,label+' two independent heading spans');
   assert.ok(!on.titleClipped,label+' Halloween headline is not clipped');
   assert.ok(on.practiceScene,label+' Practice has its own independent environment');
+  assert.ok(on.galleryScene,label+' real Gallery scene mounted');
+  assert.ok(on.footerScene,label+' real Footer scene mounted');
   assert.ok(on.ghost?.includes('/assets/home/v9/halloween-ghost-reader.webp'),label+' independent ghost layer');
   assert.ok(on.ghostLoaded>0,label+' ghost image decodes');
   assert.equal(off.art,null,label+' OFF has no illustrated art DOM');
   assert.equal(off.ghost,null,label+' OFF has no ghost DOM');
   assert.equal(off.practiceScene,false,label+' OFF has no practice art');
+  assert.equal(off.galleryScene,false,label+' OFF has no gallery scene');
+  assert.equal(off.footerScene,false,label+' OFF has no footer scene');
   assert.ok(on.hero.includes('gradient('),label+' seamless tonal backdrop behind real text (radial desktop / linear mobile)');
   assert.ok(on.shell!==off.shell,label+' entire world recolored');
   assert.ok(on.nav!==off.nav,label+' navbar themed');
@@ -112,6 +118,8 @@ try{
   assert.equal(restored.art,null,label+' art layer removed after OFF');
   assert.equal(restored.ghost,null,label+' ghost layer removed after OFF');
   assert.equal(restored.practiceScene,false,label+' practice scene removed after OFF');
+  assert.equal(restored.galleryScene,false,label+' gallery scene removed after OFF');
+  assert.equal(restored.footerScene,false,label+' footer scene removed after OFF');
   assert.deepEqual(errors,[],label+' JS errors');
   results.push({viewport:label,size:width+'x'+height,artwork:'AVIF loaded',galleryGap:on.galleryGap,sourcePhotoLoaded:on.imageNaturalWidth>0,fullRestoration:true,noOverflow:true,geometry:on.geometry,fullHeight:on.fullHeight});
   console.log('PASS HALLOWEEN V8 '+JSON.stringify(results.at(-1)));
