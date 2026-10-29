@@ -341,3 +341,34 @@ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] 
    width:51px!important;
  }
 }
+
+
+/*
+ * V10 visual review correction — preserve the scene's ORIGINAL aspect ratio.
+ * Old 72%-wide image zoomed/cropped the ghost and introduced a purple patch.
+ * Hero artwork is now displayed at ~1:1 native size at the 1024px reference.
+ * Do not stack a second cropped ghost over the same ghost already in the art.
+ */
+@media(min-width:901px) {
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--hero .halloween-scene__world {
+   inset:0 0 0 43%!important;
+   left:43%!important;right:0!important;top:0!important;bottom:0!important;
+   width:57%!important;height:100%!important;
+   object-fit:fill!important;object-position:center!important;
+   -webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 9%)!important;
+   mask-image:linear-gradient(90deg,transparent 0%,#000 9%)!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--hero .halloween-scene__reader {
+   display:none!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--hero .halloween-scene__ambient {
+   background:
+     linear-gradient(90deg,rgba(24,7,44,.45) 0%,rgba(24,7,44,.15) 25%,transparent 44%),
+     linear-gradient(180deg,transparent 85%,rgba(20,6,33,.31) 100%)!important;
+ }
+}
+@media(max-width:900px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--hero .halloween-scene__reader {
+   display:none!important;
+ }
+}
