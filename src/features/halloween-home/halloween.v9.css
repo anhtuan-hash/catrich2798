@@ -1700,3 +1700,55 @@ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] 
   color:#fff2ff!important;
   -webkit-text-fill-color:#fff2ff!important;
 }
+
+
+/* The reading ghost is a separate DOM artwork layer cropped from the SAME
+ * approved-reference WebP. No screenshot controls, logo, or button is used. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-ghost {
+  display:block!important;
+  position:absolute!important;
+  z-index:3!important;
+  left:41.5%!important;
+  top:43px!important;
+  width:176px!important;
+  height:220px!important;
+  background-image:url('/assets/home/halloween-v9-hero-right.webp')!important;
+  background-repeat:no-repeat!important;
+  background-position:-41px -31px!important;
+  background-size:640px 370px!important;
+  pointer-events:none!important;
+  mask-image:radial-gradient(ellipse 73% 75% at 59% 49%,#000 33%,rgba(0,0,0,.94) 47%,transparent 88%)!important;
+  -webkit-mask-image:radial-gradient(ellipse 73% 75% at 59% 49%,#000 33%,rgba(0,0,0,.94) 47%,transparent 88%)!important;
+  filter:drop-shadow(0 4px 18px rgba(255,190,119,.24))!important;
+  animation:h9-ghost-float 7s ease-in-out infinite alternate;
+}
+@keyframes h9-ghost-float {
+  from{transform:translate3d(0,0,0)}
+  to{transform:translate3d(0,-6px,0)}
+}
+@media(min-width:1181px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-ghost {
+  left:42%!important;
+  top:11%!important;
+  transform:scale(1.08);
+  transform-origin:top left;
+ }
+}
+@media(max-width:900px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-ghost {
+  left:58%!important;top:23%!important;
+  transform:scale(.8);
+  transform-origin:top left;
+ }
+}
+@media(max-width:620px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-ghost {
+  top:auto!important;bottom:8%!important;left:7%!important;
+  transform:scale(.82);
+ }
+}
+@media(prefers-reduced-motion:reduce) {
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-ghost {
+  animation:none!important;
+ }
+}
