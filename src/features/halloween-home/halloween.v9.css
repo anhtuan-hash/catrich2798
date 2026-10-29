@@ -1674,3 +1674,29 @@ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] 
   -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 25%)!important;
  }
 }
+
+
+/* V9 QA: the former 42%-width graveyard backdrop created a visibly boxed
+ * blurry patch directly behind "Weekly English Practice". Stretch the scene
+ * across its entire section and blend both lateral edges into one night sky. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice.bha-practice--editorial-v3 {
+  background-image:
+    linear-gradient(90deg,#1b0a37f5 0%,#1c0a38a8 13%,#1b08345c 50%,#190832a8 87%,#17072bf0 100%),
+    linear-gradient(180deg,rgba(24,8,47,.10) 0%,rgba(20,6,42,.2) 35%,rgba(18,5,38,.92) 100%),
+    url('/assets/home/halloween-v8-practice-scenery.avif'),
+    radial-gradient(ellipse at 48% 22%,#5b2072,#17072e 82%)!important;
+  background-repeat:no-repeat!important;
+  background-size:100% 100%,100% 100%,100% auto,100% 100%!important;
+  background-position:center,center,center top,center!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1 > span:last-child {
+  color:#ffa33f!important;
+  -webkit-text-fill-color:#ffa33f!important;
+  background-image:none!important;
+  text-shadow:0 3px 0 #622044,0 5px 15px #090313bd!important;
+  filter:drop-shadow(0 0 10px #ff9a3d3b)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1 > span:first-child {
+  color:#fff2ff!important;
+  -webkit-text-fill-color:#fff2ff!important;
+}
