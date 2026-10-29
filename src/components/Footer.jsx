@@ -269,6 +269,12 @@ export default function Footer({ language, route = '' }) {
               src="/brian-english-brand-logo.png"
               alt="English Hub"
             />
+            {seasonalHome.enabled && seasonalFooter.enabled ? (
+              <div className="signature-footer-h11-brand-copy">
+                <strong>BRIAN ENGLISH</strong>
+                <span>{isVi ? 'Learn Today, Brighter Tomorrows — Đồng hành trên hành trình học tiếng Anh sáng tạo.' : 'Learn Today, Brighter Tomorrows — A creative and inspiring English journey.'}</span>
+              </div>
+            ) : null}
             <div className="signature-footer-v50-affiliations">
               <img src="/footer-pek-logo.png" alt="Pétrus Ký School" />
               <span className="signature-footer-v50-logo-divider" aria-hidden="true" />
@@ -317,6 +323,12 @@ export default function Footer({ language, route = '' }) {
           <strong>Nguyễn Anh Tuấn</strong>
           <span className="bes-portfolio-footer-trigger-icon" aria-hidden="true">↗</span>
         </button>
+        {seasonalHome.enabled && seasonalFooter.enabled ? (
+          <>
+            <span className="signature-footer-h11-slogan">✦ Teach Better Together ✦</span>
+            <span className="signature-footer-h11-year">BRIAN ENGLISH © {new Date().getFullYear()} 🎃</span>
+          </>
+        ) : null}
       </div>
     </footer>
     {portfolioOpen && createPortal(
