@@ -3,13 +3,13 @@ import {readFileSync,statSync} from 'node:fs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const b=p=>readFileSync(new URL('../'+p,import.meta.url));
 const home=read('src/pages/Home.jsx');
-const skin=read('src/styles/HalloweenIllustratedV8.css');
+const skin=read('src/features/halloween-home/halloween.v9.css');
 const master=read('src/utils/halloweenHomeTheme.js');
 const hero=read('src/components/HomeHeroExperience2026.jsx');
 const gallery=read('src/components/HomePublishedSlideshow.jsx');
 const nav=read('src/components/GlobalCompactNavigation.jsx');
 const footer=read('src/components/Footer.jsx');
-assert.ok(home.includes("import '../styles/HalloweenIllustratedV8.css'"),'Home must load V8 last');
+assert.ok(home.includes("import '../features/halloween-home/halloween.v9.css'"),'Home must load V9 consolidated source');
 for (const name of ['halloween-v8-castle-art.avif','halloween-v8-left-decor.avif','halloween-v8-gallery-ghost.avif','halloween-v8-footer-pumpkins.avif','halloween-v8-practice-scenery.avif']) {
  const p='public/assets/home/'+name,bin=b(p);
  assert.ok(bin.length>1000&&bin.length<500000,'reasonable asset '+name);
