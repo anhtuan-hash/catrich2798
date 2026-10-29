@@ -1,0 +1,149 @@
+/* Approved Halloween 2026: one-screen 2-column dashboard.
+ * The right column contains two equal 16:9 LANDSCAPE cards, not 3 columns.
+ * Only the live Halloween public viewer is affected.
+ */
+@media(min-width:1180px) and (min-height:650px) {
+  .bss.bss--festival-screen {
+    height:100dvh;min-height:0;max-height:100dvh;overflow:hidden;
+    display:flex;flex-direction:column;
+  }
+  .bss--festival-screen .bss-ambient {pointer-events:none}
+  .bss--festival-screen .bss-header {
+    flex:0 0 61px;height:61px;min-height:61px;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:5px clamp(12px,1.7vw,30px);gap:20px;
+  }
+  .bss--festival-screen .bss-brand {flex:0 0 auto}
+  .bss--festival-screen .bss-header-actions {flex:0 0 auto;margin-left:0}
+  .bss--festival-screen .bss-header-actions .bss-pill {padding:7px 10px;min-height:35px}
+  .bss--festival-screen .bss-festival-header-title {
+    flex:1;min-width:0;display:flex;gap:14px;align-items:center;justify-content:center;
+    white-space:nowrap;
+  }
+  .bss--festival-screen .bss-festival-header-title strong {
+    font-size:clamp(19px,2.2vw,34px);font-weight:700;line-height:1.15;
+    text-overflow:ellipsis;overflow:hidden;color:#eef5ff;
+  }
+  .bss--festival-screen .bss-festival-header-title a {
+    flex:0 0 auto;color:#95e9f4;font-size:11px;text-decoration:underline;
+  }
+  .bss--festival-screen .bss-container {
+    display:flex;flex-direction:column;flex:1 1 auto;min-height:0;
+    padding:8px clamp(10px,1vw,20px) 9px;
+    width:100%;max-width:none;min-height:0;
+  }
+  .bss--festival-screen .bss-intro,
+  .bss--festival-screen .bss-viewer-top,
+  .bss--festival-screen .bss-keyboard-tip,
+  .bss--festival-screen .bss-footer {display:none}
+  .bss--festival-screen .bss-viewer-area {flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+  .bss--festival-screen .bss-gallery-layout.bss-gallery-layout--festival {
+    flex:1 1 auto;min-height:0;height:100%;
+    display:grid;grid-template-columns:minmax(0,1.29fr) minmax(0,1fr);
+    grid-template-rows:minmax(0,1fr);gap:clamp(8px,.75vw,14px);align-items:stretch;
+  }
+  .bss--festival-screen .bss-gallery-layout--festival > .bss-gallery-main{
+    min-height:0;display:flex;flex-direction:column;gap:9px;
+  }
+  .bss--festival-screen .bss-gallery-layout--festival .bss-stage {
+    flex:1 1 auto;min-height:0;height:auto;aspect-ratio:auto;width:100%;
+    border-radius:15px;
+  }
+  .bss--festival-screen .bss-gallery-layout--festival .bss-stage-controls {height:52px}
+  .bss--festival-screen .bss-gallery-layout--festival .bss-stage-curator {padding:11px 16px}
+  .bss--festival-screen .bss-filmstrip-area{flex:0 0 clamp(71px,10vh,98px);min-height:0;padding:0}
+  .bss--festival-screen .bss-filmstrip-head {display:none}
+  .bss--festival-screen .bss-filmstrip {height:100%;min-height:0;padding:3px 1px 5px;overflow-y:hidden}
+  .bss--festival-screen .bss-filmstrip button {
+    height:100%;aspect-ratio:1.3;flex:0 0 auto;max-width:120px;
+  }
+  .bss--festival-screen .bss-gallery-layout--festival > .bss-festival-live-stack {
+    grid-column:2;grid-row:1;display:flex;flex-direction:column;
+    gap:clamp(7px,.65vw,12px);align-items:stretch;min-width:0;min-height:0;
+    justify-content:flex-start;
+  }
+  .bss--festival-screen .bss-festival-live-stack > .bss-jury-live,
+  .bss--festival-screen .bss-festival-live-stack > .bss-audience-panel {
+    flex:0 0 auto;width:100%;min-width:0;
+    height:auto;aspect-ratio:16 / 9;min-height:0;max-height:none;
+    overflow:hidden;border-radius:15px;
+    padding:clamp(7px,.7vw,12px);gap:6px;
+  }
+
+  /* Judge panel must display ALL six classes OR all 18 groups at once. */
+  .bss--festival-screen .bss-festival-live-stack > .bss-jury-live {
+    display:flex;flex-direction:column;
+  }
+  .bss--festival-screen .bss-jury-head {flex:0 0 auto;min-height:22px}
+  .bss--festival-screen .bss-jury-headline {font-size:clamp(10px,.85vw,13px)}
+  .bss--festival-screen .bss-jury-refresh {font-size:10px}
+  .bss--festival-screen .bss-jury-rank-current,
+  .bss--festival-screen .bss-jury-rank-counter,
+  .bss--festival-screen .bss-jury-rank-disclaimer,
+  .bss--festival-screen .bss-jury-footer {display:none}
+  .bss--festival-screen .bss-jury-rank-toolbar {flex:0 0 auto;min-height:32px}
+  .bss--festival-screen .bss-jury-rank-title strong{font-size:12px}
+  .bss--festival-screen .bss-jury-rank-tabs button{padding:5px 12px}
+  .bss--festival-screen .bss-jury-rank-list,
+  .bss--festival-screen .bss-festival-live-stack .bss-jury-rank-list{
+    flex:1 1 auto;display:grid;min-height:0;max-height:none;width:100%;
+    overflow:hidden;grid-template-columns:repeat(2,minmax(0,1fr));
+    grid-template-rows:repeat(3,minmax(0,1fr));gap:5px;padding:0;
+  }
+  .bss--festival-screen .bss-jury-rank-list.is-groups,
+  .bss--festival-screen .bss-festival-live-stack .bss-jury-rank-list.is-groups{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    grid-template-rows:repeat(6,minmax(0,1fr));gap:3px;
+  }
+  .bss--festival-screen .bss-jury-rank-row,
+  .bss--festival-screen .bss-festival-live-stack .bss-jury-rank-row{
+    min-height:0;height:100%;padding:4px 6px;gap:5px;overflow:hidden;
+  }
+  .bss--festival-screen .bss-jury-rank-position{
+    width:25px;min-width:25px;height:25px;font-size:11px;border-radius:7px;
+  }
+  .bss--festival-screen .bss-jury-rank-row-label{display:block;min-width:0}
+  .bss--festival-screen .bss-jury-rank-row-label strong{
+    display:block;font-size:clamp(10px,.74vw,12px);white-space:nowrap;
+    text-overflow:ellipsis;overflow:hidden;
+  }
+  .bss--festival-screen .bss-jury-rank-row-label small{font-size:9px;margin-top:1px}
+  .bss--festival-screen .bss-jury-rank-row-main{gap:4px}
+  .bss--festival-screen .bss-jury-rank-row-score{min-width:32px;font-size:clamp(11px,.88vw,15px)}
+  .bss--festival-screen .bss-jury-rank-list.is-groups .bss-jury-rank-thumb{display:none}
+  .bss--festival-screen .bss-jury-rank-list.is-groups .bss-jury-rank-row-label small{display:none}
+  .bss--festival-screen .bss-jury-rank-list.is-groups .bss-jury-rank-position{
+    width:21px;min-width:21px;height:21px;font-size:9px;
+  }
+  .bss--festival-screen .bss-jury-rank-list.is-groups .bss-jury-rank-row-score{min-width:29px;font-size:11px}
+
+  /* True 16:9 audience panel: full original QRvote content letterboxed. */
+  .bss--festival-screen .bss-audience-panel{display:flex;flex-direction:column}
+  .bss--festival-screen .bss-audience-heading{flex:0 0 27px;min-height:0;gap:5px}
+  .bss--festival-screen .bss-audience-title{font-size:clamp(10px,.85vw,13px)}
+  .bss--festival-screen .bss-audience-actions button,
+  .bss--festival-screen .bss-audience-actions a{padding:5px 7px}
+  .bss--festival-screen .bss-audience-viewport{
+    flex:1 1 auto;min-height:0;height:auto;border-radius:9px;
+  }
+  .bss--festival-screen .bss-audience-foot{display:none}
+  .bss--festival-screen .bss-audience-config{
+    position:absolute;top:31px;left:9px;right:9px;z-index:10;
+    box-shadow:0 10px 35px rgba(0,0,0,.65);
+  }
+}
+@media(max-width:1179px), (max-height:649px) {
+  .bss--gallery-view .bss-gallery-layout.bss-gallery-layout--festival{
+    grid-template-columns:minmax(0,1fr);
+  }
+  .bss--gallery-view .bss-gallery-layout--festival>.bss-festival-live-stack{
+    grid-column:1;display:flex;flex-direction:column;
+  }
+  .bss--gallery-view .bss-festival-live-stack>.bss-jury-live,
+  .bss--gallery-view .bss-festival-live-stack>.bss-audience-panel{
+    height:auto;aspect-ratio:16 / 9;
+  }
+  .bss--gallery-view .bss-festival-live-stack .bss-jury-rank-list{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}

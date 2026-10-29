@@ -20,11 +20,11 @@ yes(component.includes('requestFullscreen?.()') && component.includes('ResizeObs
 yes(component.includes('referrerPolicy="strict-origin-when-cross-origin"'), 'privacy-conscious referrer');
 yes(css.includes('.bss-audience-viewport iframe')&&css.includes('transform-origin:0 0'), 'native page scaled without external DOM changes');
 yes(gallery.includes('selected.id === HALLOWEEN_ALBUM_ID') && gallery.includes('selected.audience_screen_url'), 'approved album uses stable ID and configured screen URL');
-yes(gallery.includes('<PhotoAudienceLive language={language} albumId={selected.id}')&&gallery.includes('screenUrl={selected.audience_screen_url'), 'editable external live screen shown below Jury Live');
+yes(gallery.includes('<PhotoAudienceLive compact={festivalScreen} language={language} albumId={selected.id}')&&gallery.includes('screenUrl={selected.audience_screen_url'), 'editable external live screen shown below Jury Live');
 yes(gallery.includes('<PhotoJuryLive albumId={selected.id}') && jury.includes("POLL_MS=5000"), 'existing realtime anonymous jury remains active');
 yes(gallery.includes('bss-gallery-layout--festival'), 'scoped dashboard layout');
-yes(festival.includes('grid-template-columns:minmax(0,1.52fr)') && festival.includes('.bss-festival-live-stack'), 'three columns including stacked jury and external screen');
-yes(festival.includes('@media(max-width:1250px)') && festival.includes('@media(max-width:780px)'), 'adaptive tablet/mobile layout');
-yes(festival.includes('.bss-jury-rank-list')&&festival.includes('overflow:auto'), 'jury standings scroll without displacing QRvote');
+yes(gallery.includes("import './PhotoSlideshowDualLive.css'") && read('src/pages/PhotoSlideshowDualLive.css').includes('grid-template-columns:minmax(0,1.29fr) minmax(0,1fr)'), 'landscape layout uses two columns with stacked live cards');
+yes(read('src/pages/PhotoSlideshowDualLive.css').includes('@media(max-width:1179px)') && festival.includes('@media(max-width:780px)'), 'responsive tablet/mobile fallback');
+yes(read('src/pages/PhotoSlideshowDualLive.css').includes('grid-template-rows:repeat(6,minmax(0,1fr))') && read('src/pages/PhotoSlideshowDualLive.css').includes('overflow:hidden'), 'all 18 ranked groups fit a card without scrolling');
 yes(!/qrvote/i.test(read('supabase/functions/photo-judging/index.ts')), 'judge API remains independent from QRvote');
 console.log('Brian Halloween native QRvote + Jury + artwork dashboard QA PASS');
