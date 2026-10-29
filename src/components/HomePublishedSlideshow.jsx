@@ -168,7 +168,6 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
 
   return (
     <section className="bhs-home" data-halloween-theme={seasonalHome.enabled && isHalloweenAlbum(selected) ? "true" : "false"} data-guest-allow="slideshow-viewer" data-home-published-slideshow="true" aria-label={en ? 'Published photo slideshow' : 'Trình chiếu ảnh đã công bố'}>
-      {seasonalHome.enabled && isHalloweenAlbum(selected) ? <HalloweenScene zone="gallery" /> : null}
       <header className="bhs-home__header">
         <div className="bhs-home__headline">
           <div className="bhs-home__kicker"><Images size={15} /> BRIAN PHOTO STORY <i /> {en ? 'NOW SHOWING' : 'ĐANG TRÌNH CHIẾU'}</div>
@@ -270,6 +269,7 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
         <span>{en ? 'A school story in pictures' : 'Những khoảnh khắc đáng nhớ của nhà trường'}</span>
         <span>{count} {en ? 'photos' : 'ảnh'} <i /> {en ? 'Public gallery' : 'Album công khai'}</span>
       </div>
+      {seasonalHome.enabled && isHalloweenAlbum(selected) ? <HalloweenScene zone="gallery" /> : null}
     </section>
   );
 }
