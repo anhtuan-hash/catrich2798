@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useRef, useState } from 'react';
-import { Check, ExternalLink, Link2, Maximize2, MonitorPlay, Save } from 'lucide-react';
+import { Check, ExternalLink, Link2, Maximize2, MonitorPlay, Save, Settings2, X } from 'lucide-react';
 import { supabase } from '../utils/supabase.js';
 import { DEFAULT_HALLOWEEN_SCREEN, HALLOWEEN_ALBUM_ID, normalizeAudienceScreenUrl } from '../utils/photoAudienceScreen.js';
 import './PhotoAudienceLive.css';
@@ -7,7 +7,7 @@ import './PhotoAudienceLive.css';
 const DESKTOP_WIDTH=1440;
 const DESKTOP_HEIGHT=920;
 
-function PhotoAudienceLive({ language='vi',albumId,screenUrl='',canEdit=false,onSaved }) {
+function PhotoAudienceLive({ language='vi',albumId,screenUrl='',canEdit=false,onSaved,compact=false }) {
   const en=language==='en';
   const suggested=albumId===HALLOWEEN_ALBUM_ID?DEFAULT_HALLOWEEN_SCREEN:'';
   const initial=screenUrl || suggested;
@@ -15,6 +15,8 @@ function PhotoAudienceLive({ language='vi',albumId,screenUrl='',canEdit=false,on
   const [draft,setDraft]=useState(initial);
   const [currentUrl,setCurrentUrl]=useState(initial);
   const [width,setWidth]=useState(560);
+  const [height,setHeight]=useState(400);
+  const [showConfig,setShowConfig]=useState(false);
   const [isFull,setIsFull]=useState(false);
   const [saving,setSaving]=useState(false);
   const [feedback,setFeedback]=useState('');
@@ -31,6 +33,8 @@ function PhotoAudienceLive({ language='vi',albumId,screenUrl='',canEdit=false,on
       const next=Math.max(1,Math.round(node.getBoundingClientRect().width));
       return current===next?current:next;
     });
+    const sizeHeight=Math.max(1,Math.round(node.getBoundingClientRect().height));
+    setHeight(current=>current===sizeHeight?current:sizeHeight);
     measure();
     const observer=typeof ResizeObserver==='function'?new ResizeObserver(measure):null;
     observer?.observe(node);
@@ -44,7 +48,10 @@ function PhotoAudienceLive({ language='vi',albumId,screenUrl='',canEdit=false,on
     };
   },[currentUrl]);
 
-  const scale=isFull?Math.min(width/DESKTOP_WIDTH,window.innerHeight/DESKTOP_HEIGHT):width/DESKTOP_WIDTH;
+  // Letterbox the UNMODIFIED original QRvote screen, never crop its contents.
+  const scale=(compact || isFull)
+    ? Math.min(width/DESKTOP_WIDTH,height/DESKTOP_HEIGHT)
+    : width/DESKTOP_WIDTH;
   const frameHeight=Math.round(DESKTOP_HEIGHT*scale);
 
   const save=async event=>{
@@ -64,6 +71,7 @@ function PhotoAudienceLive({ language='vi',albumId,screenUrl='',canEdit=false,on
       setCurrentUrl(result.data.audience_screen_url);
       setDraft(result.data.audience_screen_url);
       setFeedback(en?'Screen link saved for all viewers.':'Đã lưu link cho tất cả người xem.');
+      if(compact)setShowConfig(false);
       await onSaved?.();
     }catch(error){setFeedback((en?'Could not save: ':'Không thể lưu: ')+(error.message||String(error)));}
     finally{setSaving(false);}
@@ -78,7 +86,7 @@ function PhotoAudienceLive({ language='vi',albumId,screenUrl='',canEdit=false,on
     }
   };
 
-  return <section className="bss-audience-panel" aria-label={en?'Live audience voting screen':'Khung bình chọn khán giả trực tiếp'}>
+  return <section className={'bss-audience-panel'+(compact?' bss-audience-panel--compact':'')} aria-label={en?'Live audience voting screen':'Khung bình chọn khán giả trực tiếp'}>
     <header className="bss-audience-heading">
       <div className="bss-audience-title">
         <span className="bss-audience-pulse"/>
@@ -86,12 +94,16 @@ function PhotoAudienceLive({ language='vi',albumId,screenUrl='',canEdit=false,on
         <small>QRvote</small>
       </div>
       <div className="bss-audience-actions">
+        {canEdit && compact && <button type="button" onClick={()=>setShowConfig(v=>!v)}
+          title={en?'Configure QRvote link':'Dán link QRvote'} aria-label={en?'Configure QRvote link':'Cấu hình QRvote'} aria-expanded={showConfig}>
+          {showConfig?<X size={15}/>:<Settings2 size={15}/>}
+        </button>}
         {currentUrl&&<button type="button" onClick={maximize} title={en?'Expand screen':'Phóng to màn hình'} aria-label={en?'Expand QRvote screen':'Phóng to màn hình QRvote'}><Maximize2 size={15}/></button>}
         {currentUrl&&<a href={currentUrl} target="_blank" rel="noopener noreferrer"><ExternalLink size={15}/><span>{en?'Original screen':'Mở QRvote'}</span></a>}
       </div>
     </header>
 
-    {canEdit&&<form className="bss-audience-config" onSubmit={save}>
+    {canEdit&&(!compact||showConfig)&&<form className="bss-audience-config" onSubmit={save}>
       <label htmlFor={'bss-audience-url-'+albumId}>
         <Link2 size={14}/>{en?'Paste the QRvote link here':'Dán link Live View khán giả tại đây'}
       </label>
@@ -105,10 +117,15 @@ function PhotoAudienceLive({ language='vi',albumId,screenUrl='',canEdit=false,on
       {feedback&&<p role="status" className="bss-audience-feedback"><Check size={13}/>{feedback}</p>}
     </form>}
 
-    {currentUrl?<div className="bss-audience-viewport" ref={viewportRef} style={isFull?undefined:{height:frameHeight+'px'}}>
-      <iframe title={en?'Original QRvote voting results':'Màn hình kết quả QRvote gốc'}
-        src={currentUrl} loading="eager" allowFullScreen referrerPolicy="strict-origin-when-cross-origin"
-        style={{width:DESKTOP_WIDTH+'px',height:DESKTOP_HEIGHT+'px',transform:'scale('+scale+')'}}/>
+    {currentUrl?<div className="bss-audience-viewport" ref={viewportRef} style={compact||isFull?undefined:{height:frameHeight+'px'}}>
+      <div className="bss-audience-framed" style={{
+        width:Math.round(DESKTOP_WIDTH*scale)+'px',
+        height:Math.round(DESKTOP_HEIGHT*scale)+'px'
+      }}>
+        <iframe title={en?'Original QRvote voting results':'Màn hình kết quả QRvote gốc'}
+          src={currentUrl} loading="eager" allowFullScreen referrerPolicy="strict-origin-when-cross-origin"
+          style={{width:DESKTOP_WIDTH+'px',height:DESKTOP_HEIGHT+'px',transform:'scale('+scale+')'}}/>
+      </div>
     </div>:<div className="bss-audience-placeholder" role="status">
       <MonitorPlay size={29}/>
       <strong>{en?'Audience screen is ready':'Đã tạo khung Live View khán giả'}</strong>
