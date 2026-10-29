@@ -276,9 +276,9 @@ export default function Footer({ language, route = '' }) {
               </div>
             ) : null}
             <div className="signature-footer-v50-affiliations">
-              <img src="/footer-pek-logo.png" alt="Pétrus Ký School" />
+              <img src="/assets/home/official/footer-pek-transparent.svg" alt="Pétrus Ký School" />
               <span className="signature-footer-v50-logo-divider" aria-hidden="true" />
-              <img src="/footer-cambridge-logo.png" alt="Cambridge Assessment English" />
+              <img src="/assets/home/official/footer-cambridge-transparent.svg" alt="Cambridge Assessment English" />
             </div>
           </section>
 
