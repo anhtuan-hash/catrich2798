@@ -1,0 +1,71 @@
+/* BRIAN Live Jury · isolated public aggregation panel */
+.bss--gallery-view .bss-jury-live{
+  min-width:0;display:flex;flex-direction:column;gap:18px;position:relative;
+  border:1px solid rgba(142,211,238,.26);border-radius:18px;padding:18px;
+  color:#e7f4ff;background:
+  radial-gradient(ellipse at 95% 0,rgba(58,149,193,.12),transparent 56%),
+  linear-gradient(165deg,#0c1b31,#071326 80%);
+  box-shadow:inset 0 1px 0 #ffffff13,0 18px 50px #01091670;
+}
+.bss-jury-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.bss-jury-headline{display:flex;align-items:center;gap:7px;color:#c5f6ed;font-size:10px;letter-spacing:.12em;font-weight:850}
+.bss-jury-pulse{display:block;width:7px;height:7px;background:#47e7b8;box-shadow:0 0 14px #4cdbb6;border-radius:50%;animation:bss-jury-pulse 2.8s ease-in-out infinite}
+@keyframes bss-jury-pulse{50%{opacity:.45;box-shadow:0 0 5px #4cdbb6}}
+.bss-jury-refresh{color:#809ebc;font-size:10px}
+.bss-jury-overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:14px 4px;background:rgba(4,14,31,.58);border-radius:12px;border:1px solid #45648455}
+.bss-jury-metric{min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:7px;text-align:center;padding:0 6px}
+.bss-jury-metric+.bss-jury-metric{border-left:1px solid #ffffff1b}
+.bss-jury-metric>svg{color:#74a4be}
+.bss-jury-metric>strong{font-size:19px;font-weight:820;font-variant-numeric:tabular-nums;color:#f2f8ff}
+.bss-jury-metric>strong small{font-size:12px;color:#9db8cc;font-weight:600}
+.bss-jury-metric>span{font-size:10px;color:#8faac5;line-height:1.35;overflow-wrap:anywhere}
+.bss-jury-ring{width:52px;height:52px;flex:none;border-radius:50%;display:grid;place-items:center;
+  background:conic-gradient(#55d7d9 0 var(--jury-progress),#21344d var(--jury-progress) 100%);position:relative}
+.bss-jury-ring::before{content:"";position:absolute;inset:7px;border-radius:50%;background:#10243b}
+.bss-jury-ring>span{z-index:1;position:relative;font-weight:850;font-size:12px;color:#d1f6ff;font-variant-numeric:tabular-nums}
+.bss-jury-section-title{display:flex;align-items:center;justify-content:space-between;color:#85cbe1;letter-spacing:.12em;font-size:10px;font-weight:850;gap:8px}
+.bss-jury-section-title svg{color:#70bdd0}
+.bss-jury-criteria{display:flex;flex-direction:column;gap:5px;min-width:0}
+.bss-jury-criterion{display:grid;grid-template-columns:28px minmax(0,1.05fr) minmax(62px,.9fr) 33px;gap:8px;align-items:center;background:#06162b99;padding:10px 8px;border-radius:11px;min-width:0}
+.bss-jury-criterion-icon{width:27px;height:29px;border-radius:8px;display:grid;place-items:center;color:#f3c68e;background:#d8973440;font-size:17px}
+.bss-jury-criterion:nth-child(2) .bss-jury-criterion-icon{color:#f8919c;background:#b23d5740}
+.bss-jury-criterion:nth-child(3) .bss-jury-criterion-icon{color:#ffd48a;background:#9e7a3840}
+.bss-jury-criterion:nth-child(4) .bss-jury-criterion-icon{color:#d2a4fc;background:#8d5eb740}
+.bss-jury-criterion-body{display:flex;flex-direction:column;gap:5px;min-width:0}
+.bss-jury-criterion-body strong{font-size:11px;line-height:1.35;font-weight:760;overflow-wrap:anywhere}
+.bss-jury-criterion-body small{font-size:10px;color:#829ab6}
+.bss-jury-bars{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:2px;height:29px;min-width:0}
+.bss-jury-bars>span{min-width:0;border-radius:3px;background:#374c64;opacity:.8}
+.bss-jury-bars>span.is-lit{background:linear-gradient(180deg,#63e4db,#47bfe8);box-shadow:0 0 9px #4bdcdb36;opacity:1}
+.bss-jury-criterion-value{font-size:14px;text-align:right;font-weight:820;color:#f2f9ff;font-variant-numeric:tabular-nums}
+.bss-jury-score{border:1px solid #50dbc271;border-radius:13px;padding:17px 15px;
+  background:linear-gradient(120deg,#154346d9,#0e3138b8)}
+.bss-jury-score>span{color:#b3e7df;letter-spacing:.095em;font-size:10px;font-weight:850}
+.bss-jury-score-value{font-size:clamp(32px,3vw,48px);font-weight:850;letter-spacing:-.045em;color:#64e8b8;font-variant-numeric:tabular-nums;margin-top:12px}
+.bss-jury-score-value small{font-size:17px;font-weight:650;color:#b2d5db;letter-spacing:0}
+.bss-jury-score p{margin:8px 0 0;color:#a1c8ca;font-size:11px;line-height:1.65}
+.bss-jury-awaiting{display:flex;align-items:center;gap:9px;color:#b8f3e2;font-size:15px;font-weight:700;min-height:54px}
+.bss-jury-footer{margin-top:auto;display:flex;align-items:flex-start;gap:7px;color:#829fb8;font-size:10px;line-height:1.5}
+.bss-jury-footer svg{flex:0 0 14px;color:#5bd7bd}
+.bss-jury-error{color:#f5c7b2;font-size:10px}
+@media(max-width:1320px){
+ .bss--gallery-view .bss-gallery-layout.bss-gallery-layout--with-jury{grid-template-columns:minmax(0,1fr) clamp(245px,24vw,325px)}
+ .bss--gallery-view .bss-gallery-layout--with-jury>.bss-jury-live{grid-column:1/-1}
+ .bss--gallery-view .bss-gallery-layout--with-jury>.bss-jury-live .bss-jury-criteria{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(min-width:1321px){
+ .bss--gallery-view .bss-gallery-layout.bss-gallery-layout--with-jury{
+   grid-template-columns:minmax(0,1.65fr) minmax(230px,.67fr) minmax(315px,.94fr);gap:14px;
+ }
+ .bss--gallery-view .bss-gallery-layout--with-jury .bss-stage{aspect-ratio:1.42}
+ .bss--gallery-view .bss-gallery-layout--with-jury .bss-jury-live{align-self:stretch}
+ .bss--gallery-view .bss-gallery-layout--with-jury .bss-gallery-sidebar{padding:19px}
+ .bss--gallery-view .bss-gallery-layout--with-jury .bss-gallery-sidebar-number{font-size:clamp(48px,4vw,68px)}
+ .bss--gallery-view .bss-gallery-layout--with-jury .bss-gallery-caption-detail p{font-size:12px}
+}
+@media(max-width:780px){
+ .bss--gallery-view .bss-gallery-layout.bss-gallery-layout--with-jury{grid-template-columns:minmax(0,1fr)}
+ .bss--gallery-view .bss-gallery-layout--with-jury>.bss-jury-live{grid-column:auto}
+ .bss--gallery-view .bss-gallery-layout--with-jury>.bss-jury-live .bss-jury-criteria{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){.bss-jury-pulse{animation:none}}
