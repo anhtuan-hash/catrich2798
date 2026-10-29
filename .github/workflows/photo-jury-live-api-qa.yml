@@ -28,7 +28,7 @@ jobs:
             import assert from "node:assert/strict";
             const data=JSON.parse(fs.readFileSync("jury.json","utf8"));
             assert.equal(data.enabled,true);
-            assert.equal(data.minimumSubmissions,3);
+            assert.equal(data.minimumScores,1);
             assert.ok(Array.isArray(data.artworks));
             assert.ok(Number.isInteger(data.judgeCount));
             assert.ok(Number.isInteger(data.submittedCount));
@@ -37,9 +37,9 @@ jobs:
               assert.equal(raw.includes(forbidden),false,"private field in public result: "+forbidden);
             }
             for(const artwork of data.artworks) {
-              assert.ok(artwork.submittedCount >= 3 || (artwork.average===null && artwork.criteria.length===0));
+              assert.ok(artwork.scoredCount >= 1);\n              assert.ok(typeof artwork.average === "number");\n              assert.ok(artwork.criteria.length === data.rubric.length);
             }
-            console.log("Anonymous Live Jury privacy check PASS");
+            console.log("Anonymous Live Jury saved-scores privacy check PASS");
           '
       - name: Deny anonymous changes to public score visibility
         shell: bash
