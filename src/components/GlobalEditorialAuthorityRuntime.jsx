@@ -221,6 +221,13 @@ function styleRunner(runner, glow) {
 
 function styleColoredSurface(button, config, hovered = false) {
   if (!config.surface) return;
+  // Inline pastel surfaces otherwise override the Halloween Home stylesheet,
+  // including after an Admin changes the master switch while the page is open.
+  if (button.closest('.app-shell[data-route="home"][data-halloween-home-v4="on"]')) {
+    ['background', 'background-image', 'color', 'border-color', 'box-shadow', 'text-shadow']
+      .forEach((property) => button.style.removeProperty(property));
+    return;
+  }
   const set = (name, value) => button.style.setProperty(name, value, 'important');
   const active = button.classList.contains('is-active');
   const surface = active ? config.activeSurface : hovered ? config.hoverSurface : config.surface;
@@ -407,7 +414,12 @@ export default function GlobalEditorialAuthorityRuntime() {
 
     const rootObserver = new MutationObserver(() => bindAllMotionTargets());
     const root = document.getElementById('root');
-    if (root) rootObserver.observe(root, { childList: true, subtree: true });
+    if (root) rootObserver.observe(root, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['data-halloween-home-v4'],
+    });
 
     observer.observe(document.head, { childList: true });
     window.addEventListener('hashchange', promote);

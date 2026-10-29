@@ -4,7 +4,10 @@ on:
     paths:
       - 'src/features/halloween-home/halloween.v10-art-direction.css'
       - 'src/pages/Home.jsx'
+      - 'src/components/GlobalEditorialAuthorityRuntime.jsx'
+      - 'public/assets/home/v11/**'
       - 'scripts/test-halloween-home-v10*'
+      - 'scripts/test-halloween-home-v11-app-browser.mjs'
       - 'tests/fixtures/halloween-home-v10*'
       - '.github/workflows/halloween-home-v10.yml'
   workflow_dispatch:
@@ -25,6 +28,7 @@ jobs:
       - run: npx vite build
       - run: npx playwright install --with-deps chromium
       - run: node scripts/test-halloween-home-v10-browser.mjs
+      - run: node scripts/test-halloween-home-v11-app-browser.mjs
       - name: Preserve ON / OFF screenshots for real comparison
         if: always()
         uses: actions/upload-artifact@v4

@@ -16,6 +16,8 @@ const state=async page=>page.evaluate(()=>{
   hero:css('#v4-hero').backgroundImage,
   art:e('.hero-cms__halloween-art')?css('.hero-cms__halloween-art').backgroundImage:null,
   ghost:e('.hero-cms__halloween-ghost')?css('.hero-cms__halloween-ghost').backgroundImage:null,
+  ghostDisplay:e('.hero-cms__halloween-ghost')?css('.hero-cms__halloween-ghost').display:null,
+  heroBlur:css('.hero-cms__content').backdropFilter,
   heroRadius:css('#v4-hero').borderRadius,
   nav:css('.brian-nav').backgroundImage,
   activeNav:css('.brian-nav__primary button.is-active').backgroundImage,
@@ -37,15 +39,15 @@ try{
  let ok=false;
  for(let i=0;i<100;i++){
   if(server.exitCode!==null)throw Error(err);
-  try{const r=await fetch(BASE+'/tests/fixtures/halloween-home-v8.html');if(r.ok){ok=true;break}}catch{}
+  try{const r=await fetch(BASE+'/tests/fixtures/halloween-home-v10.html');if(r.ok){ok=true;break}}catch{}
   await sleep(250);
  }
- assert.ok(ok,'V8 fixture should start');
- browser=await chromium.launch({headless:true,args:['--no-sandbox']});
- for(const [label,width,height] of [['desktop',1440,900],['laptop',1280,800],['reference',1024,768],['tablet',768,1024],['mobile',390,844],['small-mobile',360,800]]){
+ assert.ok(ok,'V10 fixture should start');
+ browser=await chromium.launch({headless:true,args:['--no-sandbox'],...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ? {executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH} : {})});
+ for(const [label,width,height] of [['wide',1536,960],['desktop',1440,900],['laptop',1280,800],['reference',1024,768],['tablet',768,1024],['mobile',390,844],['small-mobile',360,800]]){
   const page=await browser.newPage({viewport:{width,height},deviceScaleFactor:1});
   const errors=[];page.on('pageerror',e=>errors.push(String(e)));
-  await page.goto(BASE+'/tests/fixtures/halloween-home-v8.html',{waitUntil:'networkidle'});
+  await page.goto(BASE+'/tests/fixtures/halloween-home-v10.html',{waitUntil:'networkidle'});
   await page.locator('#v4-hero').waitFor();
   const off=await state(page);
   await page.screenshot({path:ART+'/'+label+'-original.png',fullPage:true,animations:'disabled',style:'[data-visual-qa-controls]{visibility:hidden!important}'});
@@ -76,11 +78,13 @@ try{
   assert.ok(lines.every(x=>x.width<=x.client+2),label+' no horizontal text clipping');
   const wraps=await page.locator('#v4-hero h1 > span').evaluateAll(nodes=>nodes.map(x=>getComputedStyle(x).whiteSpace));
   assert.ok(wraps.every(x=>x==='nowrap'),label+' each word remains one unbreakable line');
-  assert.ok(on.art?.includes('/assets/home/v9/halloween-hero-world.webp'),label+' real art layer');
-  assert.ok(on.ghost?.includes('/assets/home/v9/halloween-ghost-reader.webp'),label+' independently composited character');
+  assert.ok(on.art?.includes('/assets/home/v11/halloween-hero-world.webp'),label+' full-resolution art layer');
+  assert.equal(on.ghostDisplay,'none',label+' duplicate cropped ghost is hidden');
+  assert.equal(on.heroBlur,'none',label+' artwork is not blurred by a content panel');
   assert.equal(off.art,null,label+' OFF has no illustrated art DOM');
   assert.equal(off.ghost,null,label+' OFF has no ghost DOM');
-  assert.ok(on.hero.includes('gradient('),label+' seamless tonal backdrop behind real text (radial desktop / linear mobile)');
+  const artworkLoaded=await page.evaluate(async()=>{const img=new Image();img.src='/assets/home/v11/halloween-hero-world.webp';try{await img.decode();return img.naturalWidth>=1900}catch{return false}});
+  assert.ok(artworkLoaded,label+' high-resolution artwork decodes');
   assert.ok(on.shell!==off.shell,label+' entire world recolored');
   assert.ok(on.nav!==off.nav,label+' navbar themed');
   assert.ok(on.galleryGap<100,label+' no enormous gallery spacer: '+on.galleryGap);
@@ -106,12 +110,12 @@ try{
   assert.equal(restored.art,null,label+' art layer removed after OFF');
   assert.equal(restored.ghost,null,label+' ghost layer removed after OFF');
   assert.deepEqual(errors,[],label+' JS errors');
-  results.push({viewport:label,size:width+'x'+height,artwork:'AVIF loaded',galleryGap:on.galleryGap,sourcePhotoLoaded:on.imageNaturalWidth>0,fullRestoration:true,noOverflow:true,geometry:on.geometry,fullHeight:on.fullHeight});
+  results.push({viewport:label,size:width+'x'+height,artwork:'WebP decoded',galleryGap:on.galleryGap,fixturePhotoLoaded:on.imageNaturalWidth>0,fullRestoration:true,noOverflow:true,geometry:on.geometry,fullHeight:on.fullHeight});
   console.log('PASS HALLOWEEN V10 '+JSON.stringify(results.at(-1)));
   await page.close();
  }
  const page=await browser.newPage({viewport:{width:1024,height:768},reducedMotion:'reduce'});
- await page.goto(BASE+'/tests/fixtures/halloween-home-v8.html',{waitUntil:'networkidle'});
+ await page.goto(BASE+'/tests/fixtures/halloween-home-v10.html',{waitUntil:'networkidle'});
  await page.locator('#v4-toggle').click();
  const animation=await page.locator('#v4-hero').evaluate(el=>getComputedStyle(el,'::after').animationName);
  assert.equal(animation,'none','reduced-motion stops ambient animation');
