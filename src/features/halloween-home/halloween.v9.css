@@ -1,0 +1,1652 @@
+/* Migrated from src/styles/HalloweenFullHomeV6VisualRepair.css, single V9 source. */
+/*
+ * HALLOWEEN V6 — visual correction after direct production/user comparison.
+ * No mock data. OFF leaves Home, Admin Hero CMS, gallery, courses and Footer unchanged.
+ * This file intentionally loads last, strictly on the canonical seasonal Home flag.
+ */
+html:has(.app-shell[data-route="home"][data-halloween-home-v4="on"]),
+html:has(.app-shell[data-route="home"][data-halloween-home-v4="on"]) body {
+  background:#100820!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] {
+  background-color:#100820!important;
+  background-image:
+    radial-gradient(ellipse 65% 16% at 50% 38%,rgba(98,43,147,.64),transparent 100%),
+    radial-gradient(ellipse 46% 24% at 95% 65%,rgba(99,25,129,.42),transparent 100%),
+    url('/assets/home/halloween-v5-environment.svg'),
+    linear-gradient(180deg,#140a30,#1f0e42 36%,#160a34 70%,#0e0923)!important;
+  background-repeat:no-repeat,no-repeat,no-repeat,no-repeat!important;
+  background-size:cover,cover,100% 100%,cover!important;
+  color:#fff1e7!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] > main.wp8-page-stage,
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-home {
+  background:transparent!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-home {
+  gap:clamp(18px,2vw,26px)!important;
+  padding-top:14px!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-editorial-dateline {
+  padding:7px 0!important;
+  margin:0 0 5px!important;
+  border-color:#99568e55!important;
+}
+/* HERO: the original school-owned, photographic CMS artwork was a much higher
+ * fidelity illustration than the flat vector castle. Use the REAL published
+ * image rather than a newly imagined replacement. Keep the Admin's image source
+ * in the DOM and restore it exactly on OFF. */
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms {
+  min-height:clamp(455px,38vw,620px)!important;
+  border:2px solid rgba(255,166,80,.66)!important;
+  border-radius:28px!important;
+  background:#29134c!important;
+  background-image:
+    linear-gradient(90deg,rgba(19,8,38,.90) 0%,rgba(27,10,48,.87) 28%,rgba(43,16,62,.41) 53%,rgba(34,11,47,.06) 82%),
+    url('/hero/media/hero-1793195941901-36cea510456f.webp')!important;
+  background-position:center,center!important;
+  background-size:cover,cover!important;
+  box-shadow:0 16px 36px rgba(4,2,19,.58),0 0 0 3px #78389d55,0 0 26px #f68d4170!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__background {
+  /* Preserve original CMS element in markup for safe OFF; prevent its
+     arbitrary bright overlays from repainting the dark seasonal text field. */
+  opacity:0!important;visibility:hidden!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
+  width:min(56%,660px)!important;max-width:660px!important;
+  padding:clamp(23px,4vw,54px)!important;
+  background:transparent!important;
+  border:0!important;box-shadow:none!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1 {
+  font-size:clamp(4rem,7vw,8rem)!important;
+  font-weight:950!important;
+  letter-spacing:-.066em!important;
+  line-height:.92!important;
+  color:#fff3f8!important;
+  text-shadow:0 7px 22px rgba(8,3,25,.82)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1 span:last-child {
+  color:#ff9a3f!important;
+  text-shadow:0 4px 0 #85305a,0 7px 22px rgba(8,3,25,.7),0 0 24px rgba(244,120,55,.26)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__badge {
+  border-color:#ffae685c!important;
+  background:rgba(31,14,55,.7)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content > p {
+  color:#f6dcf5!important;
+  font-size:clamp(15px,1.35vw,18px)!important;
+  text-shadow:0 2px 10px #1b0b37!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__button.is-primary {
+  background:linear-gradient(110deg,#ffce72,#ff8a35)!important;
+  color:#32173e!important;
+  border-color:#ffdf9c!important;
+  box-shadow:0 0 23px rgba(255,141,54,.48)!important;
+}
+/* CRITICAL: V5 changed a legacy 390px ABSOLUTE before-element to RELATIVE
+ * without resetting height. It pushed gallery heading down hundreds of pixels.
+ * V6 removes that occupied height and restores compact Photo Story proportions. */
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-home-published-slideshow="true"] {
+  display:block!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  padding:clamp(17px,2vw,27px)!important;
+  margin:0!important;
+  border-radius:26px!important;
+  border:1px solid #d7875f9e!important;
+  background-image:
+    linear-gradient(115deg,rgba(17,7,39,.78),rgba(30,10,63,.32)),
+    url('/assets/slideshow/halloween-night.svg')!important;
+  background-size:cover!important;
+  background-position:center center!important;
+  box-shadow:0 16px 45px rgba(0,0,0,.44),0 0 24px rgba(128,39,184,.24)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-home-published-slideshow="true"]::before {
+  content:"✦  HALLOWEEN SHOWCASE 2026  ✦"!important;
+  display:block!important;
+  position:static!important;
+  width:auto!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  inset:auto!important;
+  margin:0 0 11px!important;
+  padding:0!important;
+  font-size:12px!important;
+  font-weight:900!important;
+  letter-spacing:.14em!important;
+  text-align:left!important;
+  line-height:1.45!important;
+  color:#ffc07b!important;
+  pointer-events:none!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__header {
+  position:relative!important;
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  padding:0!important;
+  margin:0 0 15px!important;
+  min-height:0!important;
+  transform:none!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__headline h2 {
+  font-family:BrianGesco,Inter,system-ui,sans-serif!important;
+  font-size:clamp(24px,2.3vw,34px)!important;
+  letter-spacing:-.03em!important;
+  color:#ffc178!important;
+  text-shadow:0 0 19px #ff913e53!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition {
+  position:relative!important;
+  margin:0!important;
+  align-items:stretch!important;
+  gap:clamp(12px,1.3vw,20px)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__story-panel {
+  background:linear-gradient(155deg,rgba(49,19,79,.98),rgba(28,12,48,.97))!important;
+  border:1px solid rgba(232,139,66,.6)!important;
+  box-shadow:inset 0 0 28px rgba(176,80,215,.12)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__stage {
+  background-color:#0b0822!important;
+  border:1px solid #b8687085!important;
+  box-shadow:0 0 22px #ff8e4140,0 8px 23px #0005!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__footer {
+  margin-top:9px!important;
+  color:#ecd3f5!important;
+}
+/* Practice/grades: remove large disconnected white spaces, bring the themed
+ * environment through the full page while maintaining every real lesson row. */
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice.bha-practice--editorial-v3 {
+  margin:0!important;
+  padding:clamp(19px,2.6vw,34px)!important;
+  border:1px solid #b77364b8!important;
+  border-radius:27px!important;
+  background-color:#210e40!important;
+  background-image:
+    linear-gradient(180deg,rgba(28,10,57,.72),rgba(28,10,56,.92)),
+    radial-gradient(circle at 92% 14%,#753d9e5f,transparent 34%),
+    url('/assets/home/halloween-v5-environment.svg')!important;
+  box-shadow:0 0 26px #7b2d9d33,0 16px 35px #0006!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice__editorial-header {
+  padding:0 0 13px!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade {
+  border-width:2px!important;
+  border-radius:18px!important;
+  box-shadow:0 0 19px var(--h5-card-glow),0 12px 23px #08041d66!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade__masthead {
+  min-height:47px!important;
+  box-shadow:inset 0 -2px #fff7!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade__masthead::after {
+  margin-left:auto!important;
+  filter:drop-shadow(0 1px 3px #0004);
+}
+/* Footer: the institutional logos and credentials are real user content.
+ * Theme only the container; never replace them with illustrations. */
+html body #root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"] {
+  margin-top:0!important;
+  border-radius:27px!important;
+  background:linear-gradient(165deg,#201037,#140c2f)!important;
+  border:1px solid #c57470ad!important;
+  box-shadow:0 0 28px #a450d340,0 12px 28px #06021b88!important;
+}
+html body #root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer[data-halloween-footer="true"] .signature-footer-v50-main > section {
+  border-radius:19px!important;
+  border:1px solid rgba(240,170,110,.63)!important;
+  box-shadow:0 0 19px #f39f5350!important;
+}
+/* Avoid expensive/uncontrolled motion, on reduced-motion devices stop it. */
+@media(max-width:900px){
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
+    width:min(72%,510px)!important;
+    padding:26px!important;
+  }
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms {min-height:390px!important;}
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1 {font-size:clamp(3.5rem,8vw,5rem)!important;}
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__header {gap:10px!important;}
+}
+@media(max-width:620px){
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {width:88%!important;}
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition {grid-template-columns:1fr!important;}
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__header {flex-wrap:wrap!important;}
+}
+
+
+/* Migrated from src/styles/HalloweenMockupParityV7.css, single V9 source. */
+/*
+ * Halloween V7 — layout parity corrections based on the APPROVED 1024x1536
+ * reference supplied by the site owner, NOT a stylistic guess.
+ *
+ * Every selector is strictly scoped to the live Home and the validated
+ * Admin master theme flag. OFF restores the original interface without
+ * deleting CMS media, student works, learning items, or account data.
+ *
+ * Art direction note: this stylesheet improves composition. It is NOT a
+ * substitute for the original layered high-resolution illustration.
+ */
+html[data-halloween-home-v4="on"] body:has(.app-shell[data-route="home"]) {
+  background:#100521!important;
+  background-image:radial-gradient(ellipse at 56% 35%,#401465 0,#1b093c 45%,#100521 100%)!important;
+}
+html[data-halloween-home-v4="on"] body:has(.app-shell[data-route="home"]) #root {
+  background:#100521!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] {
+  --h7-night:#140728;
+  --h7-purple:#321058;
+  --h7-orange:#ff9f42;
+  --h7-gold:#ffd278;
+  --h7-lilac:#ecd6ff;
+  background:linear-gradient(180deg,#17062d,#200844 43%,#1c093b 69%,#0e0622)!important;
+  box-shadow:none!important;
+  color:#fff4e9!important;
+  padding-bottom:0!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] > main.wp8-page-stage {
+  max-width:none!important;
+  width:100%!important;
+  padding:0!important;
+  margin:0!important;
+  background:transparent!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-home {
+  width:min(1480px,calc(100% - 28px))!important;
+  max-width:none!important;
+  margin:auto!important;
+  padding:0!important;
+  gap:0!important;
+  background:transparent!important;
+  color:#fff1eb!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-editorial-dateline {
+  display:none!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-top {
+  gap:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  margin:0!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-top-chrome,
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .bes-top-chrome {
+  margin-top:5px!important;
+  margin-bottom:0!important;
+  width:min(1480px,calc(100% - 28px))!important;
+  background:rgba(20,6,37,.83)!important;
+  border:1px solid #ba6d7b7a!important;
+  border-radius:22px!important;
+  box-shadow:0 9px 24px #0007,0 0 20px #ab4bd240!important;
+  backdrop-filter:blur(20px) saturate(1.4)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-top-chrome .brian-nav[data-halloween-nav="true"] {
+  background:linear-gradient(110deg,#1b092ee8,#32124de8)!important;
+  background-image:linear-gradient(110deg,#1b092ee8,#32124de8)!important;
+  border-radius:21px!important;
+  border:0!important;
+  box-shadow:none!important;
+  min-height:50px!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > button {
+  background:#352052!important;
+  color:#ffefff!important;
+  border-color:#674677!important;
+  border-radius:12px!important;
+  box-shadow:inset 0 1px #ffffff19!important;
+  min-height:35px!important;
+  font-weight:770!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > button.is-active {
+  background:linear-gradient(130deg,#ffce75,#ff8c36)!important;
+  color:#2a103e!important;
+  border-color:#ffb15e!important;
+  box-shadow:0 0 19px #ff923dbd,0 0 7px #ff923dbd!important;
+  font-weight:880!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms {
+  margin-top:0!important;
+  height:clamp(385px,37vw,585px)!important;
+  min-height:clamp(385px,37vw,585px)!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:inset 0 -8px 18px #1a0627cc!important;
+  background-position:center,right center!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
+  padding:clamp(24px,4vw,57px)!important;
+  width:min(57%,720px)!important;
+  max-width:720px!important;
+  border:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1 {
+  font-size:clamp(3.5rem,7.4vw,7rem)!important;
+  line-height:.93!important;
+  max-width:680px!important;
+  font-weight:900!important;
+  text-shadow:0 4px 20px #120426a9!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h2 {
+  font-size:clamp(1.1rem,1.5vw,1.55rem)!important;
+  margin-top:12px!important;
+  color:#ffdc8d!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content > p {
+  max-width:525px!important;
+  color:#f5e5ff!important;
+  font-size:clamp(.96rem,1.22vw,1.14rem)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__actions {
+  display:flex!important;align-items:center!important;gap:10px!important;flex-wrap:wrap!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__actions .hero-cms__button {
+  min-height:46px!important;padding:10px 19px!important;border-radius:999px!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-home-published-slideshow="true"] {
+  margin:0!important;
+  padding:22px clamp(19px,3vw,37px) 16px!important;
+  border:1px solid #ec9a6480!important;
+  border-radius:23px!important;
+  min-height:0!important;
+  background-color:#15062b!important;
+  box-shadow:0 2px 22px #9a35da35,inset 0 0 0 1px #ffffff14!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-home-published-slideshow="true"]::before {
+  display:none!important;
+  content:none!important;
+  height:0!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__header {
+  margin:0 0 18px!important;
+  min-height:0!important;
+  align-items:center!important;
+  flex-wrap:wrap!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__headline h2 {
+  font-family:BrianGesco,Inter,sans-serif!important;
+  color:#ffb459!important;
+  font-size:clamp(25px,2.25vw,37px)!important;
+  font-weight:900!important;
+  line-height:1.15!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition {
+  display:grid!important;
+  grid-template-columns:minmax(250px,35%) minmax(0,1fr)!important;
+  grid-template-rows:minmax(0,1fr) auto!important;
+  column-gap:clamp(13px,1.8vw,23px)!important;
+  row-gap:10px!important;
+  align-items:stretch!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition > .bhs-home__story-panel {
+  grid-column:1!important;
+  grid-row:1 / 3!important;
+  align-self:stretch!important;
+  background:linear-gradient(150deg,#3c1462,#25103e)!important;
+  border:1px solid #da8d688f!important;
+  border-radius:20px!important;
+  padding:clamp(19px,2vw,30px)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition > .bhs-home__stage {
+  grid-column:2!important;
+  grid-row:1!important;
+  height:clamp(245px,26vw,420px)!important;
+  min-height:0!important;
+  aspect-ratio:auto!important;
+  width:100%!important;
+  align-self:stretch!important;
+  overflow:hidden!important;
+  border-radius:18px!important;
+  background:#0a071e!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip {
+  grid-column:2!important;
+  grid-row:2!important;
+  display:flex!important;
+  gap:8px!important;
+  overflow-x:auto!important;
+  scrollbar-width:thin;
+  scrollbar-color:#dc884a transparent;
+  padding:4px 0 7px!important;
+  min-width:0!important;
+  min-height:69px!important;
+  background:rgba(8,3,22,.4)!important;
+  border-radius:13px!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip-item {
+  position:relative!important;flex:0 0 73px!important;
+  width:73px!important;height:61px!important;
+  display:block!important;overflow:hidden!important;
+  padding:0!important;border-radius:9px!important;
+  border:2px solid #77509a!important;
+  background:#1d133c!important;
+  box-shadow:0 3px 9px #0008!important;
+  cursor:pointer!important;
+  transition:transform .15s ease,border-color .15s ease!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip-item:hover {
+  border-color:#ffb759!important;transform:translateY(-2px)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip-item.is-active {
+  border-color:#ffc274!important;
+  box-shadow:0 0 0 2px #f29b3b75,0 0 12px #ffa43caa!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip-item img {
+  width:100%!important;height:100%!important;
+  object-fit:cover!important;object-position:center!important;
+  display:block!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip-item > span {
+  position:absolute;right:2px;bottom:2px;
+  background:#1d0d3bdc!important;color:#ffda93!important;
+  border-radius:4px!important;font-size:9px!important;font-weight:850!important;
+  padding:1px 3px!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__footer {
+  padding-top:8px!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice.bha-practice--editorial-v3 {
+  margin:0!important;
+  padding:24px clamp(19px,2.7vw,36px) 23px!important;
+  border:1px solid #c7738580!important;
+  border-radius:0!important;
+  background-image:
+    linear-gradient(180deg,rgba(15,6,35,.25),rgba(20,6,40,.67)),
+    url('/assets/home/halloween-v5-environment.svg')!important;
+  background-size:cover!important;
+  background-position:center!important;
+  box-shadow:inset 0 1px #ffffff18!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice__editorial-copy > span {
+  color:#ffb45a!important;
+  font-size:clamp(.8rem,1vw,1rem)!important;
+  font-weight:900!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice__editorial-copy h2 {
+  color:#fff0eb!important;
+  font-size:clamp(1.4rem,2vw,2rem)!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice__editorial-copy p {
+  color:#f8ddf2!important;
+  font-size:.85rem!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade {
+  border-radius:18px!important;
+  border-width:2px!important;
+  box-shadow:0 0 27px var(--h5-card-glow),0 9px 19px #0005!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade .bha-folio-grade__masthead {
+  min-height:49px!important;
+  font-size:12px!important;
+}
+html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade:hover {
+  transform:translateY(-3px)!important;
+}
+html body #root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"] {
+  margin-top:0!important;
+  border-radius:0!important;
+  border-color:#ab5b7b88!important;
+  background:linear-gradient(180deg,#1d0a39,#0e0625)!important;
+}
+html body #root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .signature-footer-v50-main > section {
+  box-shadow:0 0 22px #ffab5659,0 4px 11px #0005!important;
+  border:1px solid #e4a87cbd!important;
+}
+@media(max-width:860px){
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition {
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-rows:auto auto auto!important;
+  }
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition > .bhs-home__stage {
+    grid-column:1!important;grid-row:1!important;
+    height:clamp(220px,57vw,390px)!important;
+  }
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip {
+    grid-column:1!important;grid-row:2!important;
+  }
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition > .bhs-home__story-panel {
+    grid-column:1!important;grid-row:3!important;
+  }
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
+    width:73%!important;
+  }
+}
+@media(max-width:580px){
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-home {
+    width:calc(100% - 16px)!important;
+  }
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
+    width:92%!important;padding:26px!important;
+  }
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms {
+    height:430px!important;min-height:430px!important;
+    background-position:center,67% center!important;
+  }
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1 {
+    font-size:clamp(3rem,13.6vw,5.1rem)!important;
+  }
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice {
+    padding-left:14px!important;padding-right:14px!important;
+  }
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip-item {
+    flex-basis:61px!important;width:61px!important;height:54px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  html body #root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip-item {
+    transition:none!important;transform:none!important;
+  }
+}
+
+
+/* Migrated from src/styles/HalloweenIllustratedV8.css, single V9 source. */
+/*
+ * HALLOWEEN V8 — ART-FIRST reconstruction on the real Brian homepage.
+ * The owner-supplied premium mockup is the art reference. Two independent
+ * optimized AVIF illustration crops carry the actual detail (rather than
+ * repeating a flat geometry SVG). Functional HTML remains real.
+ *
+ * This CSS has no persistent side effects; OFF restores default styles.
+ */
+@media (min-width:900px) {
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .bes-top-chrome {
+   position:sticky!important;
+   top:6px!important;left:auto!important;right:auto!important;bottom:auto!important;
+   transform:none!important;
+   margin:7px auto -4px!important;
+   width:min(1460px,calc(100vw - 24px))!important;
+   z-index:1900!important;
+   border-radius:999px!important;
+   border:1px solid rgba(248,150,76,.55)!important;
+   background:linear-gradient(118deg,#180b34f5,#351056e8)!important;
+   box-shadow:0 8px 29px #0703189c,0 0 18px #fc87353b!important;
+   overflow:visible!important;
+   backdrop-filter:blur(18px) saturate(1.3)!important;
+ }
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+  > .bes-top-chrome .brian-nav[data-halloween-nav="true"] {
+  background:linear-gradient(110deg,#190a36f2,#30104bdf)!important;
+  --nav-item-text:#fff2f8;
+  --nav-item-hover-bg:#583074;
+  --nav-item-active-bg:#ffae46;
+  --nav-item-active-text:#21132f;
+  box-shadow:inset 0 1px #ffffff1c!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ > .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__brand,
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ > .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__brand > span {
+ color:#fff1fc!important;text-shadow:0 0 15px #bf68da33!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ > .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > :is(button,a,[role='button']) {
+  --nav-item-text:#fff2f9!important;
+  --nav-item-hover-bg:#572d79!important;
+  --nav-item-active-bg:#ffae4b!important;
+  --nav-item-active-text:#271034!important;
+  background:#352052!important;
+  background-image:none!important;
+  color:#fff0ff!important;
+  border:1px solid #734a9677!important;
+  border-radius:13px!important;
+  box-shadow:inset 0 1px #ffffff20!important;
+  text-shadow:none!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ > .bes-top-chrome .brian-nav[data-halloween-nav="true"] .brian-nav__primary > :is(button.is-active,button.active,button[aria-current="page"],a.is-active,a.active,a[aria-current="page"]) {
+  background:linear-gradient(125deg,#ffe18d,#ff8d36)!important;
+  color:#291239!important;
+  border:1px solid #ffda83!important;
+  box-shadow:0 0 18px #ffa64ec9,0 4px 12px #0005!important;
+  text-shadow:none!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ > .bes-top-chrome .brian-nav[data-halloween-nav="true"] :is(.brian-nav__icon,.brian-nav__account) {
+  background:#2d1449!important;color:#fff3ee!important;
+  border:1px solid #855ba17c!important;border-radius:15px!important;
+}
+/* Full height midnight world; eliminate the bright canvas visible in earlier
+ * screenshots even if the old editorial CSS was parsed after theme CSS. */
+html:has(.app-shell[data-route="home"][data-halloween-home-v4="on"]),
+html:has(.app-shell[data-route="home"][data-halloween-home-v4="on"]) body,
+html body #root:has(.app-shell[data-route="home"][data-halloween-home-v4="on"]) {
+  background-color:#0d0622!important;
+  background-image:radial-gradient(ellipse at 50% 46%,#42155b 0,#1b0b3b 43%,#0d0622 90%)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] {
+  background:
+    radial-gradient(ellipse 52% 13% at 38% 33%,rgba(142,56,204,.25),transparent),
+    radial-gradient(ellipse 56% 18% at 75% 82%,rgba(255,114,35,.07),transparent),
+    linear-gradient(180deg,#0d0622 0,#200a45 30%,#180834 70%,#0d0622 100%)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-home {
+  width:min(1460px,calc(100vw - 24px))!important;
+  margin:0 auto!important;padding:0!important;gap:0!important;
+}
+/* Artwork panel and character illustration are genuine separate references
+ * taken from the user's approved target, NOT a screenshot of the live UI. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms {
+  position:relative!important;
+  min-height:clamp(400px,39.5vw,610px)!important;
+  height:clamp(400px,39.5vw,610px)!important;
+  background-color:#1f0a40!important;
+  background-image:
+    linear-gradient(90deg,#180b35 0%,#240c44e8 20%,#32164e4d 45%,transparent 59%),
+    url('/assets/home/halloween-v8-castle-art.avif'),
+    linear-gradient(130deg,#2b0d51 6%,#3a1768 46%,#17072f 100%)!important;
+  background-size:100% 100%, 64% 100%,100% 100%!important;
+  background-position:center,right center,center!important;
+  background-repeat:no-repeat!important;
+  border:none!important;
+  border-radius:0 0 5px 5px!important;
+  overflow:hidden!important;
+  isolation:isolate!important;
+  box-shadow:inset 0 -11px 15px #11072199,0 11px 19px #0803156e!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms::before {
+ content:"";display:block;position:absolute;inset:0 auto 0 0!important;
+ width:clamp(80px,14%,195px)!important;height:100%!important;
+ pointer-events:none!important;z-index:2!important;
+ background-image:url('/assets/home/halloween-v8-left-decor.avif')!important;
+ background-size:100% 100%!important;background-repeat:no-repeat!important;
+ opacity:.95!important;
+ mask-image:linear-gradient(90deg,#000 35%,transparent 100%);
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms::after {
+  content:"";position:absolute;z-index:2;pointer-events:none;
+  inset:0 0 0 auto;
+  width:65%;height:100%;
+  background:radial-gradient(ellipse 52% 40% at 57% 29%,rgba(255,197,94,.13),transparent 95%);
+  animation:h8-moon-breathe 8s ease-in-out infinite alternate;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__background,
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__overlay {
+  visibility:hidden!important;opacity:0!important;pointer-events:none!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
+  position:relative;z-index:4!important;
+  width:min(48%,630px)!important;max-width:630px!important;
+  padding:clamp(24px,4.6vw,60px) clamp(20px,5.5vw,75px)!important;
+  background:transparent!important;box-shadow:none!important;border:none!important;
+  align-items:flex-start!important;text-align:left!important;justify-content:center!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1 {
+  font-family:"Comic Sans MS","Trebuchet MS",BrianGesco,system-ui,sans-serif!important;
+  font-size:clamp(3.9rem,6.8vw,7.9rem)!important;
+  font-weight:900!important;letter-spacing:-.068em!important;
+  line-height:.92!important;
+  text-shadow:0 3px 0 #4a1963,0 7px 20px #12071ed6!important;
+  margin:16px 0 4px!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1 span:last-child {
+  color:#ff9d34!important;
+  text-shadow:0 3px 0 #ac3d2e,0 7px 22px #10031eda,0 0 16px #ffb25a65!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__badge {
+  padding:5px 12px!important;
+  color:#ffe7d1!important;
+  background:#240d487a!important;
+  border:1px solid #dd7daa68!important;
+  border-radius:999px!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content > p {
+  max-width:470px!important;line-height:1.55!important;
+  color:#fbddf9!important;
+  font-size:clamp(.88rem,1.15vw,1.05rem)!important;
+  text-shadow:0 2px 9px #0009!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h2 {
+  color:#ffe09d!important;letter-spacing:.02em!important;
+  font-size:clamp(1rem,1.5vw,1.55rem)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__button.is-primary {
+  color:#2b1737!important;
+  background:linear-gradient(115deg,#ffe08a,#ff9134)!important;
+  box-shadow:0 0 17px #ffa55d93,0 7px 13px #0005!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__button:not(.is-primary) {
+  background:#2a0f4ed9!important;color:#fff0f9!important;
+  border-color:#d988e39e!important;
+}
+/* Photo Story: compact, layered frame with real images and a permanently
+ * visible, uncut paper artwork, regardless of preview transition timing. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-home-published-slideshow="true"] {
+  position:relative!important;
+  padding:19px clamp(20px,3vw,38px) 15px!important;
+  border-radius:18px!important;
+  border:1px solid #b75ba2d6!important;
+  margin:-1px 0 0!important;
+  background-image:
+     radial-gradient(circle at 7% 80%,#8c1cae44,transparent 22%),
+     radial-gradient(circle at 93% 22%,#ffaa4740,transparent 32%),
+     linear-gradient(95deg,#200b42ed,#120727ef),
+     url('/assets/slideshow/halloween-night.svg')!important;
+  background-size:cover!important;
+  box-shadow:0 0 17px #9f3fa27a,inset 0 0 13px #b053b41a!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-home-published-slideshow="true"]::before {
+  content:none!important;display:none!important;height:0!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__header {
+  margin:0 0 12px!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition {
+  align-items:stretch!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition > .bhs-home__stage {
+  height:clamp(285px,29vw,455px)!important;
+  min-height:285px!important;
+  border:1px solid #c76ec9aa!important;
+  box-shadow:0 0 20px #c654e744,0 11px 24px #050114a3!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__stage > .bss-motion {
+  position:absolute!important;inset:0!important;
+  width:100%!important;height:100%!important;
+  pointer-events:none!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__stage :is(.bss-motion__layer,.bss-motion__image) {
+  width:100%!important;height:100%!important;
+  transform:none;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__stage .bss-motion__image {
+  object-fit:contain!important;object-position:center!important;
+  image-rendering:auto!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__story-panel {
+  background:linear-gradient(145deg,#49156bfa,#29103df9)!important;
+  border:1px solid #ad4cc6b5!important;
+  box-shadow:inset 0 1px #ffe9f433,0 0 16px #a44bff35!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__story-count {
+  color:#ffb056!important;font-size:clamp(2.5rem,4.2vw,3.6rem)!important;
+  font-weight:950!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip-item {
+  width:clamp(58px,6vw,90px)!important;height:clamp(52px,5vw,74px)!important;
+  flex-basis:clamp(58px,6vw,90px)!important;
+  border-radius:10px!important;
+  box-shadow:0 0 0 1px #ffffff1c,0 4px 12px #0009!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip-item.is-active {
+  border-color:#ffc572!important;box-shadow:0 0 0 2px #ffaa67a0,0 0 16px #ffad6699!important;
+}
+/* Seasonally themed grade zone: rich contrast without replacing real lesson
+ * rows or turning the 3 cards into non-functional illustrations. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice.bha-practice--editorial-v3 {
+  position:relative;
+  isolation:isolate;
+  background-image:
+    radial-gradient(ellipse at 50% 12%,rgba(180,60,224,.23),transparent 65%),
+    linear-gradient(180deg,#210a44 0%,#130625 74%,#16092d 100%),
+    url('/assets/home/halloween-v5-environment.svg')!important;
+  background-size:cover!important;
+  border-radius:0!important;
+  margin-top:0!important;padding-top:26px!important;
+  border-color:#943e7cba!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice.bha-practice--editorial-v3::before {
+  content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;
+  background-image:
+    url('/assets/footer/halloween-night-footer.svg'),
+    radial-gradient(circle at 65% 25%,rgba(255,158,55,.16),transparent 30%);
+  background-position:center bottom,center;
+  background-size:100% auto,cover;
+  background-repeat:no-repeat;
+  opacity:.53;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice__editorial-header {
+  position:relative;z-index:3!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice__editorial-copy h2 {
+  color:#ffbf70!important;
+  text-shadow:0 0 11px #f886446c!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade {
+  overflow:visible!important;
+  border-radius:18px!important;
+  box-shadow:0 0 23px var(--h5-card-glow),0 12px 19px #0009!important;
+  transition:transform .18s ease,box-shadow .18s ease!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade:hover {
+  transform:translateY(-4px)!important;
+  box-shadow:0 0 36px var(--h5-card-glow),0 13px 26px #000a!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade__masthead {
+  border-radius:15px 15px 0 0!important;
+  background-image:linear-gradient(115deg,#ffffff29,#ffffff00)!important;
+  position:relative!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade--10 {
+  --h5-card-glow:#377afe8b;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade--11 {
+  --h5-card-glow:#ff8b3e96;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade--12 {
+  --h5-card-glow:#11c6aa93;
+}
+/* Footer keeps official brand, profile and certification records. The art
+ * wraps AROUND cards, never becomes fake logos, names or credentials. */
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"]
+ > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"] {
+  position:relative!important;
+  border-radius:0 0 20px 20px!important;
+  border:1px solid #863a8b94!important;
+  background-image:
+   linear-gradient(180deg,#200a3cdd,#100520ed),
+   url('/assets/footer/halloween-night-footer.svg')!important;
+  background-size:cover!important;background-position:center bottom!important;
+  box-shadow:inset 0 0 26px #911ccc41,0 15px 30px #05021199!important;
+}
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"]
+ > footer[data-halloween-footer="true"] .signature-footer-v50-main > section {
+  background-color:#fff1e4!important;
+  border:1px solid #efbf93!important;
+  border-radius:18px!important;
+  box-shadow:0 0 18px #ff96395b!important;
+}
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"]
+ > footer[data-halloween-footer="true"] .signature-footer-v50-main > section:nth-child(2) {
+  background-color:#f4eaff!important;
+}
+/* Real responsive art direction: castle remains on the right, rather than
+ * scaling the entire desktop scene under CTA text. */
+@media(max-width:1040px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms {
+  min-height:390px!important;height:390px!important;
+  background-size:100% 100%,64% 100%,cover!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
+  width:49%!important;padding:22px 25px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1 {
+  font-size:clamp(3.5rem,7.4vw,5.9rem)!important;
+ }
+}
+@media(max-width:860px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-home {width:calc(100% - 18px)!important;}
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition > .bhs-home__stage {
+  height:clamp(235px,57vw,420px)!important;
+ }
+}
+@media(max-width:620px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms {
+  height:520px!important;min-height:520px!important;
+  background-image:
+   linear-gradient(180deg,#18092be0 2%,#23094598 49%,#220b38c5 100%),
+   url('/assets/home/halloween-v8-castle-art.avif')!important;
+  background-position:center,65% bottom!important;
+  background-size:cover,auto 68%!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms::before {
+  width:25%!important;opacity:.7!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
+  align-items:flex-start!important;justify-content:flex-start!important;
+  padding:32px 22px!important;width:100%!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1 {
+  font-size:clamp(3.4rem,15vw,4.8rem)!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content > p {
+  font-size:13px!important;max-width:380px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-home__premium-hero {
+  background-image:linear-gradient(180deg,#160832de,#19082e99),url('/assets/home/halloween-v8-castle-art.avif')!important;
+  background-size:cover!important;background-position:66% center!important;
+  border-color:#ee9b6489!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition > .bhs-home__stage {
+  min-height:220px!important;height:290px!important;
+ }
+}
+@keyframes h8-moon-breathe {
+ from {opacity:.48;transform:translateX(-4px)}
+ to {opacity:.87;transform:translateX(4px)}
+}
+@media(prefers-reduced-motion:reduce) {
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms::after {animation:none!important;}
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade {transition:none!important;transform:none!important;}
+}
+
+
+/* Accessibility and real readable lesson lists: legacy editorial whites must
+ * never override ink contrast inside our intentionally bright learning cards. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade {
+  min-width:0!important;max-width:100%!important;
+  box-sizing:border-box!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade__masthead {
+  box-sizing:border-box!important;min-width:0!important;max-width:100%!important;
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  gap:8px!important;white-space:nowrap!important;padding:9px 12px!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade__masthead > span {
+  display:inline-flex!important;min-width:0!important;flex:1 1 auto!important;
+  color:#27163a!important;font-weight:900!important;letter-spacing:.035em!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade__masthead > small {
+  flex:0 0 auto!important;color:#2c2445!important;font-weight:850!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade .bha-grade-lesson {
+  background:rgba(255,255,255,.88)!important;
+  border:1px solid #dae0eb!important;
+  color:#244263!important;
+  border-radius:10px!important;
+  min-height:36px!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade .bha-grade-lesson > :is(span,strong,p) {
+  color:#274467!important;
+  font-size:clamp(11px,.85vw,13px)!important;
+  font-weight:720!important;
+  opacity:1!important;
+  line-height:1.3!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade .bha-grade-copy :is(h3,small,p) {
+  color:#173956!important;opacity:1!important;
+}
+/* At the reference 1024px viewport, THREE cards must fit; all child
+ * columns need zero as minimum to defeat the old 300px media rule. */
+@media(min-width:901px) and (max-width:1180px) {
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio {
+   display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+   gap:clamp(10px,1.2vw,15px)!important;
+   width:100%!important;min-width:0!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade {
+   width:100%!important;min-width:0!important;max-width:100%!important;
+   grid-template-columns:minmax(0,1fr) minmax(0,27%)!important;
+   grid-template-rows:auto minmax(0,1fr) auto!important;
+   overflow:hidden!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade__masthead {
+   grid-column:1/-1!important;width:100%!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade__art {
+   width:100%!important;min-width:0!important;max-width:100%!important;
+   overflow:hidden!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade__art b {
+   font-size:clamp(3.9rem,6.7vw,5.5rem)!important;right:3px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade .bha-grade-copy {
+   min-width:0!important;padding:12px 4px 9px 12px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade .bha-grade-recent {
+   grid-column:1/-1!important;min-width:0!important;padding:8px!important;
+ }
+}
+@media(max-width:900px) {
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio {
+   display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+   gap:15px!important;width:100%!important;min-width:0!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade {
+   width:100%!important;max-width:100%!important;min-width:0!important;
+   grid-template-columns:minmax(0,1fr) minmax(0,26%)!important;
+   overflow:hidden!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade .bha-grade-recent {
+   grid-column:1/-1!important;
+ }
+}
+
+
+/* Original-reference decorative cutouts, NOT HTML screenshots. The photograph
+ * player, lesson buttons and logo/credential cards remain real interactive UI. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-home-published-slideshow="true"]::after {
+  content:""!important;
+  display:block!important;
+  position:absolute!important;
+  z-index:8!important;
+  width:clamp(105px,12vw,162px)!important;
+  height:clamp(140px,17vw,216px)!important;
+  left:auto!important;top:auto!important;
+  right:-12px!important;bottom:2px!important;
+  background:url('/assets/home/halloween-v8-gallery-ghost.avif') center / contain no-repeat!important;
+  opacity:.92!important;
+  mask-image:radial-gradient(ellipse 73% 80% at 54% 45%,#000 43%,transparent 89%)!important;
+  pointer-events:none!important;
+  transform:none!important;
+  animation:h8-friendly-ghost 6.4s ease-in-out infinite alternate!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ .bha-practice.bha-practice--editorial-v3::after {
+  content:""!important;display:block!important;
+  position:absolute!important;z-index:3!important;
+  width:clamp(104px,11vw,153px)!important;
+  height:clamp(100px,10vw,135px)!important;
+  left:-16px!important;right:auto!important;top:auto!important;bottom:-11px!important;
+  background:url('/assets/home/halloween-v8-footer-pumpkins.avif') center / contain no-repeat!important;
+  mask-image:linear-gradient(90deg,#000 69%,transparent 100%)!important;
+  opacity:.91!important;filter:drop-shadow(0 0 12px #ff8d4b3f)!important;
+  pointer-events:none!important;
+}
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"]
+ > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"]::before,
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"]
+ > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"]::after {
+  content:""!important;display:block!important;
+  position:absolute!important;
+  z-index:3!important;pointer-events:none!important;
+  bottom:0!important;top:auto!important;
+  width:clamp(110px,16vw,200px)!important;
+  height:clamp(115px,16vw,205px)!important;
+  opacity:.90!important;
+  background:url('/assets/home/halloween-v8-footer-pumpkins.avif') center bottom / contain no-repeat!important;
+  mask-image:radial-gradient(ellipse at 50% 69%,#000 58%,transparent 92%)!important;
+}
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"]
+ > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"]::before {
+  left:-14px!important;right:auto!important;
+}
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"]
+ > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"]::after {
+  right:-14px!important;left:auto!important;transform:scaleX(-1)!important;
+}
+@keyframes h8-friendly-ghost {
+  0%{transform:translateY(0);opacity:.85}
+  100%{transform:translateY(-7px);opacity:.99}
+}
+@media(max-width:860px) {
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-home-published-slideshow="true"]::after {
+  width:98px!important;height:130px!important;bottom:8px!important;right:-10px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice.bha-practice--editorial-v3::after {
+  width:95px!important;height:92px!important;
+ }
+}
+@media(prefers-reduced-motion:reduce) {
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-home-published-slideshow="true"]::after {animation:none!important;}
+}
+
+
+/* Reference layout at 1024px: keep the entire four-section story near the
+ * intended proportions. Real lessons remain readable, reachable and uncropped. */
+@media(min-width:901px) and (max-width:1180px) {
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+   .bha-practice.bha-practice--editorial-v3 {
+   padding:16px 19px 18px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+   .bha-practice__editorial-header {
+   display:grid!important;
+   grid-template-columns:minmax(0,1fr) 142px!important;
+   grid-template-rows:auto!important;
+   align-items:center!important;
+   gap:10px!important;
+   padding:0 0 11px!important;
+   min-height:90px!important;
+   margin-bottom:6px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+   .bha-practice__editorial-copy {
+   min-width:0!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+   .bha-practice__published-count {
+   margin:0!important;
+   min-height:70px!important;
+   width:130px!important;
+   min-width:130px!important;
+   justify-self:end!important;
+   padding:7px 13px!important;
+   border:1px solid #be6b929e!important;
+   border-radius:13px!important;
+   background:#3a1955bb!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+   .bha-grades--folio > .bha-folio-grade {
+   min-height:300px!important;
+   grid-template-rows:40px 112px minmax(0,1fr)!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+   .bha-folio-grade__masthead {
+   min-height:40px!important;height:40px!important;
+   padding:7px 9px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+   .bha-folio-grade .bha-grade-copy {
+   grid-row:2!important;align-self:stretch!important;
+   padding:10px 4px 2px 10px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+   .bha-folio-grade__art {
+   grid-row:2!important;min-height:0!important;height:112px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+   .bha-folio-grade .bha-grade-recent {
+   grid-row:3!important;
+   padding:4px 8px 7px!important;
+   margin:0!important;
+   overflow-y:auto!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+   .bha-folio-grade .bha-grade-lesson {
+   min-height:31px!important;
+   padding:3px 6px!important;
+   margin:2px 0!important;
+ }
+ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"]
+   > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-main {
+   display:grid!important;
+   grid-template-columns:repeat(3,minmax(0,1fr))!important;
+   align-items:stretch!important;
+   gap:12px!important;
+ }
+ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"]
+   > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-main > section {
+   grid-column:auto!important;grid-row:auto!important;
+   min-width:0!important;max-width:100%!important;
+   width:auto!important;min-height:0!important;
+   padding:12px!important;
+ }
+ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"]
+   > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"] .signature-footer-v50-main :is(.signature-footer-v50-detail,.signature-footer-v50-credentials li) {
+   min-height:0!important;font-size:11px!important;line-height:1.38!important;
+ }
+}
+
+
+/* Illustrated bento detail: real cartoon artworks rather than Unicode emoji.
+ * Icons are decoration only; grades and counts remain accessible text. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade::before {
+  content:""!important;display:block!important;
+  position:absolute!important;z-index:7!important;
+  pointer-events:none!important;
+  width:clamp(47px,5.6vw,78px)!important;
+  height:clamp(54px,6.4vw,89px)!important;
+  top:-12px!important;right:clamp(25px,3.2vw,48px)!important;
+  background-repeat:no-repeat!important;background-position:center!important;
+  background-size:cover!important;
+  mask-image:radial-gradient(ellipse at 55% 45%,#000 44%,transparent 84%)!important;
+  filter:drop-shadow(0 0 12px #ffe5b55e)!important;
+  animation:h8-friendly-ghost 7s ease-in-out infinite alternate!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade--10::before {
+  background-image:url('/assets/home/halloween-v8-gallery-ghost.avif')!important;
+  filter:hue-rotate(28deg) drop-shadow(0 0 12px #3c8bff83)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade--11::before {
+  width:clamp(59px,6vw,87px)!important;
+  height:clamp(52px,5.5vw,79px)!important;
+  background-image:url('/assets/home/halloween-v8-footer-pumpkins.avif')!important;
+  filter:drop-shadow(0 0 13px #ff902e9c)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade--12::before {
+  background-image:url('/assets/home/halloween-v8-gallery-ghost.avif')!important;
+  filter:hue-rotate(90deg) drop-shadow(0 0 10px #16cabb83)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice__published-count {
+  border:1px solid #b46b4bb8!important;
+  color:#ffdbac!important;
+  background-color:#542437!important;
+  background-image:
+    linear-gradient(90deg,#12091b52,transparent 20%,#ffe3ab1b 51%,#10061b47),
+    repeating-linear-gradient(0deg,#7d3c31 0px,#67302d 10px,#57212b 12px,#7b403a 20px)!important;
+  border-radius:9px!important;
+  box-shadow:inset 0 2px #ffce8b40,0 8px 17px #09021d9c,0 0 14px #f8a05235!important;
+  transform:rotate(-.6deg);
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice__published-count > :is(span,small) {
+  color:#ffe1bf!important;text-shadow:0 2px 6px #180715!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice__published-count strong {
+  color:#ffe2a3!important;
+  text-shadow:0 2px 0 #4c2233,0 0 18px #ffb25c81!important;
+}
+@media(min-width:901px) and (max-width:1180px) {
+  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade::before {
+    top:1px!important;right:65px!important;width:44px!important;height:51px!important;
+  }
+}
+@media(max-width:900px) {
+  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade::before {
+    top:6px!important;right:85px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade::before {animation:none!important}
+}
+
+
+/* V8 visual inspection fix: artistic cutouts must not reveal pixels from the
+ * source mockup's original logo/card boxes. Crop to the pumpkins ONLY. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ .bha-practice.bha-practice--editorial-v3::after {
+  left:-41px!important;bottom:-17px!important;
+  clip-path:ellipse(50% 38% at 44% 76%)!important;
+  mask-image:radial-gradient(ellipse at 42% 76%,#000 45%,transparent 83%)!important;
+  width:130px!important;height:128px!important;
+}
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"]
+ > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"]::before,
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"]
+ > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"]::after {
+  bottom:-19px!important;
+  width:148px!important;height:150px!important;
+  clip-path:ellipse(49% 37% at 44% 78%)!important;
+  mask-image:radial-gradient(ellipse at 44% 77%,#000 45%,transparent 82%)!important;
+}
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"]
+ > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"]::before {left:-34px!important;}
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"]
+ > footer.footer[data-app-shell-footer="true"][data-halloween-footer="true"]::after {right:-34px!important;}
+
+
+/* The central skyline and glowing pumpkin are a separate crop of the approved
+ * illustration; real total and lesson names remain HTML above this scenery. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ .bha-practice.bha-practice--editorial-v3 {
+ background-image:
+   linear-gradient(90deg,#210b42ed 0%,#250a46aa 24%,#18083230 50%,#260944aa 79%,#190733e6 100%),
+   url('/assets/home/halloween-v8-practice-scenery.avif'),
+   linear-gradient(180deg,#251047,#10051f)!important;
+ background-repeat:no-repeat!important;
+ background-size:cover,42% auto,cover!important;
+ background-position:center,center 5%,center!important;
+}
+@media(max-width:860px) {
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ .bha-practice.bha-practice--editorial-v3 {
+   background-size:cover,95% auto,cover!important;
+   background-position:center,center 0%,center!important;
+ }
+}
+
+
+/* Storybook lettering remains accessible real text, not pixels inside art. */
+@media(min-width:901px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ .hero-cms__content {padding-left:clamp(58px,7.25vw,116px)!important;}
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ .hero-cms__content h1 span:first-child {
+ display:block!important;transform:rotate(-3deg)!important;transform-origin:left center!important;
+ text-shadow:0 4px 0 #552568,0 7px 18px #080319ad!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"]
+ .hero-cms__content h1 span:last-child {
+ display:block!important;transform:rotate(-.9deg)!important;transform-origin:left center!important;
+}
+@media(max-width:900px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
+ padding-left:24px!important;
+ }
+}
+
+
+/* Seam-free two-layer Hero compositing. The reference illustration is a real
+ * decorative DOM layer, never a frozen screenshot of React text/buttons.
+ * OFF omits the layer entirely. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms {
+  background-image:
+    radial-gradient(ellipse 75% 87% at 63% 46%,#461a5e 0%,#251047 63%,#16082e 100%)!important;
+  background-size:cover!important;background-repeat:no-repeat!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-art {
+  position:absolute!important;
+  z-index:1!important;
+  display:block!important;inset:0 0 0 auto!important;
+  width:75%!important;height:100%!important;
+  pointer-events:none!important;
+  background-image:url('/assets/home/halloween-v8-castle-art.avif')!important;
+  background-size:cover!important;background-position:center center!important;
+  background-repeat:no-repeat!important;
+  mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.25) 13%,#000 34%)!important;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.25) 13%,#000 34%)!important;
+}
+@media(max-width:620px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms {
+  background-image:linear-gradient(180deg,#1d0b3d,#371358 58%,#200c39)!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-art {
+  top:auto!important;right:0!important;left:0!important;bottom:0!important;
+  width:100%!important;height:70%!important;
+  background-size:cover!important;background-position:center!important;
+  mask-image:linear-gradient(180deg,transparent 0%,#000 24%)!important;
+  -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 24%)!important;
+ }
+}
+
+
+/* Last visual audit: avoid the vertical matte seam visible between text and
+ * hero castle. Blend artwork into the SAME purple sky with a gradient matte
+ * over the image, not a hard-cut edge. */
+@media(min-width:621px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-art {
+   background-image:
+     linear-gradient(90deg,#2b1049 0%,rgba(43,16,73,.98) 17%,rgba(43,16,73,.78) 31%,rgba(43,16,73,.24) 59%,transparent 75%),
+     url('/assets/home/halloween-v8-castle-art.avif')!important;
+   background-size:100% 100%,cover!important;
+   background-position:center,center center!important;
+   mask-image:none!important;-webkit-mask-image:none!important;
+ }
+}
+
+
+/*
+ * Reference-density pass at laptop 1024px — artwork/copy remains interactive.
+ * Preserve real photos and five visible lesson rows; scroll only when needed.
+ */
+@media (min-width:901px) and (max-width:1180px) {
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms {
+   height:365px!important;min-height:365px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
+   padding-top:20px!important;padding-bottom:20px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-home-published-slideshow="true"] {
+   padding:13px 17px 10px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__header {
+   margin-bottom:7px!important;min-height:0!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__headline h2 {
+   font-size:clamp(22px,2.5vw,29px)!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition > .bhs-home__stage {
+   height:clamp(235px,23vw,265px)!important;
+   min-height:235px!important;max-height:265px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip {
+   min-height:52px!important;max-height:57px!important;
+   padding:3px 0 4px!important;gap:7px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip-item {
+   height:45px!important;width:59px!important;flex-basis:59px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition > .bhs-home__story-panel {
+   min-height:0!important;padding:14px!important;
+   overflow:auto!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice.bha-practice--editorial-v3 {
+   padding:13px 17px 16px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice__editorial-header {
+   min-height:72px!important;max-height:90px!important;
+   padding:0 0 6px!important;margin-bottom:4px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade {
+   height:305px!important;min-height:305px!important;max-height:305px!important;
+   grid-template-rows:38px 100px minmax(0,1fr)!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade__masthead {
+   min-height:38px!important;max-height:38px!important;height:38px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade__art {
+   height:100px!important;max-height:100px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade .bha-grade-recent {
+   overflow-y:auto!important;overscroll-behavior:contain!important;
+   scrollbar-width:thin!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade .bha-grade-lesson {
+   min-height:28px!important;padding:2px 5px!important;
+ }
+ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] {
+   padding:8px 10px 6px!important;
+   min-height:0!important;
+ }
+ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .signature-footer-v50-main {
+   gap:10px!important;align-items:start!important;
+   padding:0!important;margin:0!important;
+ }
+ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .signature-footer-v50-main > section {
+   min-height:0!important;padding:10px 12px!important;
+ }
+ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .signature-footer-v50-main :is(.signature-footer-v50-detail,.signature-footer-v50-credentials li) {
+   line-height:1.28!important;margin-block:2px!important;
+ }
+}
+
+
+/* Final visual review at 1024px:
+ * - give the book-reading ghost actual visible space next to typography
+ * - avoid the lesson heading/button colliding with the first recent row
+ * - leave room for all five recent exercises without losing scrolling.
+ */
+@media(min-width:901px) and (max-width:1180px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-art{
+   width:65%!important;
+   background-image:
+     linear-gradient(90deg,#2b1049 0%,rgba(43,16,73,.75) 11%,transparent 27%),
+     url('/assets/home/halloween-v8-castle-art.avif')!important;
+   background-position:center,right center!important;
+   background-size:100% 100%,cover!important;
+   mask-image:none!important;-webkit-mask-image:none!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1{
+   font-size:clamp(3.7rem,6.3vw,4.7rem)!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade{
+   height:340px!important;min-height:340px!important;max-height:340px!important;
+   grid-template-rows:38px 116px minmax(0,1fr)!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade .bha-grade-copy{
+   min-height:0!important;max-height:116px!important;
+   overflow:hidden!important;grid-row:2!important;
+   padding:9px 6px 5px 12px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade__art{
+   height:116px!important;max-height:116px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade .bha-grade-recent{
+   grid-row:3!important;min-height:0!important;max-height:none!important;
+   overflow-y:auto!important;
+ }
+}
+
+
+/* V9 FIXES */
+
+/*
+ * V9 final-style parity corrections. All seasonal declarations are gated by
+ * Home's authoritative data-halloween-home-v4="on" flag. This does NOT
+ * overwrite published lesson/hero/photo records.
+ */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] {
+  --h9-ink:#16072a;
+  --h9-dark:#1a0834;
+  --h9-plum:#300f55;
+  --h9-pumpkin:#ff9f3d;
+  --h9-gold:#ffdc89;
+  --h9-ghost:#fff1fc;
+  --h9-shadow:0 10px 32px #0a031b99;
+  background-color:#120521!important;
+}
+/* Replace the pale editorial navigation pills; use the live, role-gated
+   buttons already mounted by GlobalCompactNavigation. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .bes-top-chrome {
+  background:linear-gradient(120deg,#16072bf5,#291044ef)!important;
+  border-color:#a761ad90!important;
+  box-shadow:0 7px 23px #080219a8,0 0 20px #ad4de43d!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .bes-top-chrome nav.brian-nav[data-halloween-nav="true"],
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .bes-top-chrome .brian-nav__primary {
+  background:transparent!important;
+  background-image:none!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .bes-top-chrome nav.brian-nav[data-halloween-nav="true"] .brian-nav__primary > button:not(.is-active) {
+  background:#2e174b!important;
+  background-image:none!important;
+  border:1px solid #79599b77!important;
+  color:#fceeff!important;
+  box-shadow:inset 0 1px #ffffff19!important;
+  border-radius:12px!important;
+  text-shadow:none!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .bes-top-chrome nav.brian-nav[data-halloween-nav="true"] .brian-nav__primary > button.is-active {
+  background:linear-gradient(125deg,#ffdf88 0%,#ffad4e 45%,#ff873a 100%)!important;
+  border:1px solid #ffcf7a!important;
+  border-radius:12px!important;
+  color:#2c1038!important;
+  box-shadow:0 0 20px #ff913da8,0 4px 11px #0007!important;
+  font-weight:850!important;text-shadow:none!important;
+}
+/* Responsive storybook type: each span is an independent, unbreakable LINE.
+   The old typography wrapped Halloween! into Hallowee + n! on real 1024px. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
+  width:min(57%,620px)!important;
+  max-width:620px!important;
+  padding-left:clamp(26px,5vw,74px)!important;
+  padding-right:14px!important;
+  box-sizing:border-box!important;
+  overflow:visible!important;
+  align-self:stretch!important;
+  justify-content:center!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1 {
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  max-width:none!important;
+  width:max-content!important;
+  min-width:0!important;
+  font-family:"Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif!important;
+  font-weight:1000!important;
+  font-size:clamp(49px,6.05vw,85px)!important;
+  line-height:.94!important;
+  letter-spacing:-.06em!important;
+  word-break:keep-all!important;
+  overflow-wrap:normal!important;
+  text-wrap:nowrap!important;
+  margin:12px 0 7px!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1 > span {
+  display:block!important;
+  width:max-content!important;
+  max-width:none!important;
+  white-space:nowrap!important;
+  overflow-wrap:normal!important;
+  word-break:normal!important;
+  flex:0 0 auto!important;
+  font-size:inherit!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1 > span:last-child {
+  background:linear-gradient(180deg,#ffe16f 0%,#ffaf40 25%,#ff872f 75%,#ff7637 100%)!important;
+  color:#ff9d3b!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  -webkit-text-fill-color:transparent!important;
+  filter:drop-shadow(0 3px 0 #69234a) drop-shadow(0 5px 10px #0005)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content > p {
+  color:#fff0fd!important;
+  font-size:clamp(12px,1.3vw,17px)!important;
+  line-height:1.45!important;
+  max-width:460px!important;
+  text-shadow:0 1px 8px #180825b7!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h2 {
+  font-size:clamp(14px,1.55vw,20px)!important;
+  letter-spacing:.012em!important;
+  line-height:1.3!important;
+  color:#ffde99!important;
+}
+/* Prevent layout clipping the original published school painting, including
+   when the author chose cinematic zoom/reveal in CMS. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__stage .bss-motion,
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__stage .bss-motion__layer {
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__stage .bss-motion__image {
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+  object-position:center!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__story-panel {
+  border-radius:18px!important;
+  background:radial-gradient(ellipse at 40% 15%,#64228333,transparent 68%),linear-gradient(145deg,#39135d,#1f0a3c)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip {
+  padding-block:5px!important;
+  scrollbar-color:#ffa95b #16082f!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip-item.is-active {
+  transform:translateY(-1px)!important;
+  box-shadow:0 0 0 2px #ffc96b,0 0 16px #ffa858bd!important;
+}
+/* The three functional grade cards remain clean white for readability, but
+   receive reference-like colored illuminated frames and a continuous night. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio {
+  position:relative!important;
+  isolation:isolate;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade {
+  border:2px solid var(--h9-grade-glow,#8186ea)!important;
+  box-shadow:0 0 4px var(--h9-grade-glow),0 0 23px color-mix(in srgb,var(--h9-grade-glow) 54%,transparent),0 12px 30px #060314aa!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade--10 {--h9-grade-glow:#467aff;}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade--11 {--h9-grade-glow:#ffa23f;}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade--12 {--h9-grade-glow:#0fcbb4;}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade .bha-grade-lesson {
+  transition:background .15s ease,transform .15s ease!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade .bha-grade-lesson:hover {
+  transform:translateX(2px)!important;
+  background:#fff!important;
+}
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] {
+  background-color:#130629!important;
+  box-shadow:inset 0 1px 0 #ffd9b222,0 10px 27px #040217!important;
+}
+/* Precise 1024 reference grid: do not stretch title or move grade 12 outside. */
+@media(min-width:901px) and (max-width:1180px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
+   width:53%!important;max-width:53%!important;
+   padding-left:clamp(38px,6vw,66px)!important;
+   padding-right:0!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1 {
+   font-size:clamp(52px,5.65vw,63px)!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__exhibition > .bhs-home__stage {
+   min-height:0!important;
+ }
+}
+@media(max-width:900px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
+   width:72%!important;max-width:72%!important;
+   padding-left:24px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1 {
+   font-size:clamp(43px,6.65vw,57px)!important;
+ }
+}
+@media(max-width:620px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
+   width:100%!important;max-width:100%!important;
+   padding:26px 20px!important;
+   justify-content:flex-start!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1 {
+   font-size:clamp(39px,10.15vw,53px)!important;
+   margin:6px 0!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content > p {
+   max-width:min(330px,91%)!important;
+   font-size:13px!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-folio-grade .bha-grade-lesson,
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip-item {
+   transition:none!important;
+   transform:none!important;
+ }
+}
