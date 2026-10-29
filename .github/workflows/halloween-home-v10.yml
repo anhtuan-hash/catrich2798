@@ -6,6 +6,7 @@ on:
       - 'src/pages/Home.jsx'
       - 'src/components/HomeHeroExperience2026.jsx'
       - 'src/components/HomePublishedSlideshow.jsx'
+      - 'src/components/mobile/MobileHomeView.jsx'
       - 'src/main.jsx'
       - 'src/components/GlobalEditorialAuthorityRuntime.jsx'
       - 'public/assets/home/v11/**'

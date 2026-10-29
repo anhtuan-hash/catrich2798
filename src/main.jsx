@@ -496,6 +496,7 @@ function App() {
         data-app-version={APP_VERSION}
         data-burs="comfortable"
         data-quick-access-layout={quickAccessEnabled ? 'true' : 'false'}
+        data-halloween-mobile-guest={currentRoute === 'home' && !currentUser ? 'true' : undefined}
         style={{
           '--active-app-accent': activeDesignProfile.accent,
           '--active-app-soft': activeDesignProfile.soft,

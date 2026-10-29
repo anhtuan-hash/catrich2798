@@ -263,3 +263,97 @@ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-hallo
     animation:none!important;
   }
 }
+
+/* Phone and portrait-tablet presentation use their own React Home. Keep its
+ * real navigation and grade controls, and give the illustrated Hero enough
+ * height below the mobile chrome instead of clipping its live buttons. */
+html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] {
+  --hw-mobile-header-space:80px;
+  --hw-mobile-card-inset:31px;
+}
+html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"][data-halloween-mobile-guest="true"] {
+  --hw-mobile-header-space:136px;
+}
+html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .brian-guest-mobile-destinations {
+  background:#24103f!important;border-bottom:1px solid #b2759b80!important;
+}
+html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .brian-guest-mobile-destinations > button {
+  background:#341a4d!important;border-color:#89619a!important;color:#fff0ff!important;
+}
+html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .brian-guest-mobile-destinations > button.is-active {
+  background:linear-gradient(120deg,#ffdf88,#ff9d42)!important;
+  border-color:#ffc57a!important;color:#30103a!important;
+}
+html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .brian-guest-mobile-destinations > button span {
+  color:inherit!important;
+}
+html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-home.is-premium {
+  padding-top:var(--hw-mobile-header-space)!important;
+  padding-bottom:16px!important;background:transparent!important;
+}
+html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-home__premium-hero {
+  height:580px!important;min-height:580px!important;max-height:none!important;
+  aspect-ratio:auto!important;
+  background-color:#19082f!important;
+  background-image:linear-gradient(180deg,#19082f 0%,#19082fdf 39%,#19082f00 78%),url('/assets/home/v12/halloween-hero-world.webp')!important;
+  background-position:center,54% bottom!important;
+  background-size:100% 100%,auto 62%!important;background-repeat:no-repeat!important;
+}
+html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-halloween-hero {
+  box-sizing:border-box!important;width:100%!important;min-height:100%!important;
+  justify-content:flex-start!important;padding:24px 20px!important;background:transparent!important;
+}
+html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-halloween-hero h1 {
+  margin:12px 0!important;font-size:clamp(40px,10.4vw,58px)!important;line-height:.96!important;
+}
+html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-halloween-hero h1 span {
+  display:block!important;white-space:nowrap!important;color:#fff1ff!important;
+}
+html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-halloween-hero h1 span:last-child {
+  color:#ffa448!important;
+}
+html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-halloween-hero__motto {
+  color:#ffd883!important;font-size:14px!important;letter-spacing:.02em!important;
+}
+html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-halloween-hero__actions button {
+  min-height:44px!important;max-width:100%!important;
+}
+html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-home__grade-grid {
+  grid-template-columns:minmax(0,1fr)!important;gap:12px!important;
+}
+html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-home.is-premium .bes-mobile-home__grade-card {
+  height:120px!important;min-height:120px!important;
+}
+html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-home__grade-label {
+  left:96px!important;top:21px!important;font-size:12px!important;
+}
+html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-home__grade-count {
+  left:96px!important;right:auto!important;top:48px!important;font-size:13px!important;
+}
+html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-home.is-premium .bes-mobile-home__grade-number {
+  left:20px!important;top:35px!important;font-size:55px!important;
+}
+html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-home.is-premium .bes-mobile-home__grade-icon {
+  right:72px!important;top:40px!important;
+}
+html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-home.is-premium .bes-mobile-home__grade-arrow {
+  right:14px!important;top:37px!important;bottom:auto!important;
+}
+html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-home__motivation {
+  display:none!important;
+}
+html.bes-mobile-home-premium-active body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-halloween-footer="true"][data-footer-mode="full"] {
+  width:calc(var(--bes-unified-stage-width) - var(--hw-mobile-card-inset) - var(--hw-mobile-card-inset))!important;
+  max-width:calc(var(--bes-unified-stage-width) - var(--hw-mobile-card-inset) - var(--hw-mobile-card-inset))!important;
+  padding-bottom:calc(80px + env(safe-area-inset-bottom))!important;
+}
+@media(min-width:600px) {
+  html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] {
+    --hw-mobile-card-inset:39px;
+  }
+}
+@media(max-width:359px) {
+  html.bes-mobile-home-premium-active body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] {
+    --hw-mobile-card-inset:27px;
+  }
+}

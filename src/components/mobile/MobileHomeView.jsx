@@ -236,11 +236,12 @@ export default function MobileHomeView({
         <section className="bes-mobile-home__premium-hero" data-mobile-home-hero aria-labelledby="mobile-home-premium-heading">
           {seasonalHome.enabled ? <div className="bes-mobile-halloween-hero">
             <span className="bes-mobile-halloween-hero__kicker">🎃 BRIAN ENGLISH • HALLOWEEN 2026</span>
-            <h1>Happy Halloween!</h1>
+            <h1><span>Happy</span><span>Halloween!</span></h1>
+            <strong className="bes-mobile-halloween-hero__motto">Learn · Play · Create · Grow</strong>
             <p>{vi ? "Cùng khám phá lớp học tiếng Anh nhiệm màu." : "Discover a magical world of English learning."}</p>
             <div className="bes-mobile-halloween-hero__actions">
               <button type="button" onClick={onStart}>{vi ? "Bắt đầu ngay" : "Get started"}</button>
-              <button type="button" onClick={onOpenApps}>{vi ? "Khám phá ứng dụng" : "Explore apps"}</button>
+              <button type="button" onClick={onOpenApps}>{vi ? "Xem hướng dẫn" : "View guide"}</button>
             </div>
           </div> : null}
           <img
