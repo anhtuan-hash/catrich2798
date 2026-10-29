@@ -1660,10 +1660,11 @@ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-hallo
 html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-art {
  background-image:url('/assets/home/halloween-v9-hero-right.webp')!important;
  background-repeat:no-repeat!important;
- background-size:cover!important;
+ /* Crop the mockup's old baked title pixels off the left 11% of the artwork. */
+ background-size:113% 100%!important;
  background-position:right center!important;
- mask-image:linear-gradient(90deg,transparent 0%,transparent 7%,#000 27%)!important;
- -webkit-mask-image:linear-gradient(90deg,transparent 0%,transparent 7%,#000 27%)!important;
+ mask-image:linear-gradient(90deg,transparent 0%,transparent 11%,#000 37%)!important;
+ -webkit-mask-image:linear-gradient(90deg,transparent 0%,transparent 11%,#000 37%)!important;
 }
 @media(max-width:620px){
  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-art {
