@@ -52,6 +52,18 @@ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] 
 html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-ghost {
   display:none!important;
 }
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-sign {
+  position:absolute!important;z-index:3!important;right:1%!important;top:7%!important;
+  width:clamp(112px,13%,200px)!important;aspect-ratio:1!important;
+  display:flex!important;flex-direction:column!important;justify-content:space-evenly!important;
+  align-items:center!important;box-sizing:border-box!important;
+  padding:clamp(19px,2.4vw,34px) 4px clamp(16px,2vw,28px)!important;
+  background:url('/assets/home/v11/halloween-wooden-sign.webp') center / contain no-repeat!important;
+  color:#ffd06f!important;text-align:center!important;text-transform:uppercase!important;
+  font:900 clamp(8px,1.05vw,15px)/1 "Trebuchet MS",system-ui,sans-serif!important;
+  text-shadow:0 1px 4px #4c180b,0 0 7px #fd8a38!important;
+  pointer-events:none!important;
+}
 html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
   position:relative!important;z-index:5!important;
   width:min(47%,650px)!important;max-width:650px!important;
@@ -161,6 +173,9 @@ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-hallo
   }
 }
 @media(max-width:900px) {
+  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-sign {
+    display:none!important;
+  }
   html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content {
     width:62%!important;padding-left:24px!important;
   }

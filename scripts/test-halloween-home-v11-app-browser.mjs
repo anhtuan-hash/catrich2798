@@ -14,7 +14,9 @@ const snapshot=page=>page.evaluate(()=>{
  const hero=document.querySelector('.bha-hero.hero-cms');
  const spacer=document.querySelector('[data-bes-pinned-hub-spacer="true"]');
  const rect=el=>el ? ({top:el.getBoundingClientRect().top,bottom:el.getBoundingClientRect().bottom,height:el.getBoundingClientRect().height}) : null;
+ const sign=hero?.querySelector('.hero-cms__halloween-sign');
  return {master:shell?.dataset.halloweenHomeV4,homeBackground:home&&getComputedStyle(home).backgroundImage,
+  signDisplay:sign&&getComputedStyle(sign).display,signText:sign?.textContent,
   heroSeason:hero?.dataset.halloweenHeroSeason,heroBlur:hero&&getComputedStyle(hero.querySelector('.hero-cms__content')).backdropFilter,
   spacer:rect(spacer),nav:rect(document.querySelector('.bes-top-chrome')),hero:rect(hero),
   title:[...hero?.querySelectorAll('h1 > span')||[]].map(el=>el.textContent),
@@ -33,13 +35,15 @@ try {
   const on=await snapshot(page);
   assert.equal(on.master,'on');assert.equal(on.heroSeason,'true');
   assert.deepEqual(on.title,['Happy','Halloween!']);assert.equal(on.heroBlur,'none');
+  assert.equal(on.signText,'Same ClassroomBrighterFutures');
+  assert.equal(on.signDisplay,width>900?'flex':'none');
   assert.equal(on.spacer?.height,0,'seasonal navigation does not leave an extra spacer');
   assert.ok(on.hero.top-on.nav.bottom<20,'hero follows nav without a large empty gap');
   assert.ok(/255, (2[01][0-9]|1[0-9][0-9]), (1[0-9][0-9]|[0-9]{1,2})/.test(on.homeBackground),`active navigation should be orange: ${on.homeBackground}`);
   assert.ok(!on.overflow,'no horizontal overflow on actual app');
   await page.evaluate(()=>window.dispatchEvent(new CustomEvent('bes-halloween-home-master-updated',{detail:{enabled:false,verified:false,updatedAt:'2026-10-29T00:01:00Z'}})));
   await page.waitForFunction(()=>document.querySelector('.app-shell')?.dataset.halloweenHomeV4==='off');await page.waitForTimeout(100);
-  const off=await snapshot(page);assert.equal(off.heroSeason,'false');assert.notEqual(off.homeBackground,on.homeBackground);
+  const off=await snapshot(page);assert.equal(off.heroSeason,'false');assert.equal(off.signDisplay,null);assert.notEqual(off.homeBackground,on.homeBackground);
   assert.ok(off.spacer?.height>0,'original fixed-nav spacer returns when OFF');
   await page.evaluate(()=>window.dispatchEvent(new CustomEvent('bes-halloween-home-master-updated',{detail:{enabled:true,verified:false,updatedAt:'2026-10-29T00:02:00Z'}})));
   await page.waitForFunction(()=>document.querySelector('.app-shell')?.dataset.halloweenHomeV4==='on');await page.waitForTimeout(100);

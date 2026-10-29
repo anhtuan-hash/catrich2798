@@ -4,6 +4,7 @@ on:
     paths:
       - 'src/features/halloween-home/halloween.v10-art-direction.css'
       - 'src/pages/Home.jsx'
+      - 'src/components/HomeHeroExperience2026.jsx'
       - 'src/components/GlobalEditorialAuthorityRuntime.jsx'
       - 'public/assets/home/v11/**'
       - 'scripts/test-halloween-home-v10*'
