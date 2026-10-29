@@ -47,7 +47,7 @@ export default function JudgingAdmin({album, slides=[]}) {
     return()=>{live=false;};
   },[refresh]);
   useEffect(()=>{
-    if(!data || data.session.status==='closed') return;
+    if(!data || data.session.status!=='open') return;
     const interval=setInterval(()=>{refresh().catch(()=>{});},10000);
     return()=>clearInterval(interval);
   },[data?.session?.status,refresh]);
@@ -113,7 +113,7 @@ export default function JudgingAdmin({album, slides=[]}) {
           <div className="bj-avatar"><UsersRound size={18}/></div>
           <div className="bj-judge-info"><strong>{j.full_name}</strong><small>{j.revoked_at?'Đã thu hồi':j.submitted_at?'Đã nộp phiếu':j.progress+' / '+photoCount+' tác phẩm'} · {j.last_seen_at?'Đã truy cập':'Chưa truy cập'}</small></div>
           {!j.revoked_at&&!j.submitted_at&&session.status!=='closed'&&<button disabled={busy} title="Cấp liên kết mới, vô hiệu hóa link cũ" onClick={()=>window.confirm('Cấp lại link và vô hiệu hóa link trước đó?')&&run('admin:reissue',{inviteId:j.id})}><KeyRound size={16}/><span>Cấp lại</span></button>}
-          {!j.revoked_at&&session.status!=='closed'&&<button disabled={busy} title="Thu hồi quyền chấm" onClick={()=>window.confirm('Thu hồi quyền truy cập giám khảo này?')&&run('admin:revoke',{inviteId:j.id})}><ShieldOff size={16}/></button>}
+          {!j.revoked_at&&!j.submitted_at&&session.status!=='closed'&&<button disabled={busy} title="Thu hồi quyền chấm" onClick={()=>window.confirm('Thu hồi quyền truy cập giám khảo này?')&&run('admin:revoke',{inviteId:j.id})}><ShieldOff size={16}/></button>}
         </div>)}</div>
       </div>
       <div className="bj-controls">
