@@ -642,7 +642,7 @@ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] 
   background-color:#1f0a40!important;
   background-image:
     linear-gradient(90deg,#180b35 0%,#240c44e8 20%,#32164e4d 45%,transparent 59%),
-    url('/assets/home/halloween-v8-castle-art.avif'),
+    url('/assets/home/halloween-v9-hero-right.webp'),
     linear-gradient(130deg,#2b0d51 6%,#3a1768 46%,#17072f 100%)!important;
   background-size:100% 100%, 64% 100%,100% 100%!important;
   background-position:center,right center,center!important;
@@ -884,7 +884,7 @@ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-hallo
   height:520px!important;min-height:520px!important;
   background-image:
    linear-gradient(180deg,#18092be0 2%,#23094598 49%,#220b38c5 100%),
-   url('/assets/home/halloween-v8-castle-art.avif')!important;
+   url('/assets/home/halloween-v9-hero-right.webp')!important;
   background-position:center,65% bottom!important;
   background-size:cover,auto 68%!important;
  }
@@ -902,7 +902,7 @@ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-hallo
   font-size:13px!important;max-width:380px!important;
  }
  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bes-mobile-home__premium-hero {
-  background-image:linear-gradient(180deg,#160832de,#19082e99),url('/assets/home/halloween-v8-castle-art.avif')!important;
+  background-image:linear-gradient(180deg,#160832de,#19082e99),url('/assets/home/halloween-v9-hero-right.webp')!important;
   background-size:cover!important;background-position:66% center!important;
   border-color:#ee9b6489!important;
  }
@@ -1300,7 +1300,7 @@ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] 
   display:block!important;inset:0 0 0 auto!important;
   width:75%!important;height:100%!important;
   pointer-events:none!important;
-  background-image:url('/assets/home/halloween-v8-castle-art.avif')!important;
+  background-image:url('/assets/home/halloween-v9-hero-right.webp')!important;
   background-size:cover!important;background-position:center center!important;
   background-repeat:no-repeat!important;
   mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.25) 13%,#000 34%)!important;
@@ -1327,7 +1327,7 @@ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] 
  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-art {
    background-image:
      linear-gradient(90deg,#2b1049 0%,rgba(43,16,73,.98) 17%,rgba(43,16,73,.78) 31%,rgba(43,16,73,.24) 59%,transparent 75%),
-     url('/assets/home/halloween-v8-castle-art.avif')!important;
+     url('/assets/home/halloween-v9-hero-right.webp')!important;
    background-size:100% 100%,cover!important;
    background-position:center,center center!important;
    mask-image:none!important;-webkit-mask-image:none!important;
@@ -1421,7 +1421,7 @@ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] 
    width:65%!important;
    background-image:
      linear-gradient(90deg,#2b1049 0%,rgba(43,16,73,.75) 11%,transparent 27%),
-     url('/assets/home/halloween-v8-castle-art.avif')!important;
+     url('/assets/home/halloween-v9-hero-right.webp')!important;
    background-position:center,right center!important;
    background-size:100% 100%,cover!important;
    mask-image:none!important;-webkit-mask-image:none!important;
@@ -1651,5 +1651,25 @@ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-hallo
  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__filmstrip-item {
    transition:none!important;
    transform:none!important;
+ }
+}
+
+/* Real WebP source from the approved reference replaces the 3 KB AVIF. The
+   first pixels on this crop overlap baked mockup typography, so the left
+   side of the image is alpha-feathered; the headline is genuine HTML. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-art {
+ background-image:url('/assets/home/halloween-v9-hero-right.webp')!important;
+ background-repeat:no-repeat!important;
+ background-size:cover!important;
+ background-position:right center!important;
+ mask-image:linear-gradient(90deg,transparent 0%,transparent 7%,#000 27%)!important;
+ -webkit-mask-image:linear-gradient(90deg,transparent 0%,transparent 7%,#000 27%)!important;
+}
+@media(max-width:620px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-art {
+  height:65%!important;
+  background-position:56% bottom!important;
+  mask-image:linear-gradient(180deg,transparent 0%,#000 25%)!important;
+  -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 25%)!important;
  }
 }
