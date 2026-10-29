@@ -3,9 +3,11 @@ on:
   pull_request:
     paths:
       - 'src/features/halloween-home/**'
+      - 'public/assets/home/v9/**'
       - 'src/pages/Home.jsx'
       - 'src/components/HomeHeroExperience2026.jsx'
       - 'scripts/test-halloween-home-v8*'
+      - 'scripts/test-halloween-home-v9*'
       - 'scripts/test-halloween-home-v7*'
       - 'tests/fixtures/halloween-home-v8*'
       - '.github/workflows/halloween-v9-reference.yml'
@@ -29,6 +31,7 @@ jobs:
           node scripts/test-halloween-home-v5.mjs
           node scripts/test-halloween-home-v7.mjs
           node scripts/test-halloween-home-v8.mjs
+          node scripts/test-halloween-home-v9.mjs
       - name: Compile the actual Vite application
         run: npx vite build
       - name: Install Chromium for real browser screenshot
