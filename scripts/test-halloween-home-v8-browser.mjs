@@ -70,7 +70,7 @@ try{
     assert.ok(typography.bounds[1].right<=typography.heroRight+2,label+' text stays in Hero frame');
   }
   assert.equal(on.master,'on',label+' master enabled');
-  assert.ok(on.art?.includes('halloween-v8-castle-art.avif'),label+' art lives in its own decorative layer');
+  assert.ok(on.art?.includes('halloween-v9-hero-right.webp'),label+' art lives in its own decorative layer');
   assert.equal(off.art,null,label+' OFF has no illustrated art DOM');
   assert.ok(on.hero.includes('gradient('),label+' seamless tonal backdrop behind real text (radial desktop / linear mobile)');
   assert.ok(on.shell!==off.shell,label+' entire world recolored');
