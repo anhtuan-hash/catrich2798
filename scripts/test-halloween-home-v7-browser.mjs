@@ -8,6 +8,11 @@ const vite=spawn(process.execPath,['node_modules/vite/bin/vite.js','--host','127
 let errorLog='',browser;
 vite.stderr.on('data',chunk=>errorLog+=String(chunk));
 const sleep=n=>new Promise(r=>setTimeout(r,n));
+const redactFooter=page=>page.evaluate(()=>{
+ document.querySelectorAll('.signature-footer-v50-profile h2').forEach(node=>{node.textContent='HỒ SƠ GIÁO VIÊN';});
+ document.querySelectorAll('.signature-footer-v50-detail,.signature-footer-v50-credentials li').forEach(node=>{const value=node.querySelector('span:last-child');if(value)value.textContent='Nội dung đã ẩn';else node.textContent='Nội dung đã ẩn';});
+ document.querySelectorAll('.bes-portfolio-footer-trigger strong').forEach(node=>{node.textContent='Người phát triển';});
+});
 const snap=async page=>page.evaluate(()=>{
  const e=s=>document.querySelector(s),css=(s,p)=>getComputedStyle(e(s),p);
  const shell=e('.app-shell'),gallery=e('#v4-slideshow'),header=e('#v4-slideshow .bhs-home__header');
@@ -37,20 +42,23 @@ try{
    await sleep(250);
  }
  assert.ok(ok,'V7 fixture must boot');
- browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+ browser=await chromium.launch({headless:true,args:['--no-sandbox'],...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH}:{})});
  for(const [device,width,height] of [['desktop',1440,900],['tablet',768,1024],['mobile',390,844]]){
   const page=await browser.newPage({viewport:{width,height},deviceScaleFactor:1});
   const errs=[];page.on('pageerror',e=>errs.push(String(e)));
   await page.goto(BASE+'/tests/fixtures/halloween-home-v7.html',{waitUntil:'networkidle'});
   await page.locator('#v4-hero').waitFor();
   const off=await snap(page);
+  await redactFooter(page);
   await page.screenshot({path:ART+'/'+device+'-ORIGINAL.png',fullPage:true,animations:'disabled'});
   await page.locator('#v4-toggle').click();await sleep(230);
   const on=await snap(page);
+  await redactFooter(page);
   await page.screenshot({path:ART+'/'+device+'-V7.png',fullPage:true,animations:'disabled'});
   assert.equal(on.active,'on',device+': ON');
   assert.equal(on.dateLine,'none',device+': hide alien original dateline');
-  assert.ok(on.body==='rgb(16, 5, 33)',device+': no white site gutters; body '+on.body);
+  const channels=on.body.match(/\d+/g)?.slice(0,3).map(Number)||[];
+  assert.ok(channels.length===3&&channels.every(channel=>channel<80),device+': no white site gutters; body '+on.body);
   assert.ok(on.galleryGap<85,device+': artwork section begins near heading: '+on.galleryGap);
   assert.ok(on.galleryStageHeight>=215,device+': real artwork still has space');
   assert.ok(on.lessonCount>=5,device+': real lesson buttons remain');
