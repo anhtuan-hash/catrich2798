@@ -5,7 +5,9 @@ import {
   Settings2, Trash2, UploadCloud, X
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../utils/supabase.js';
-import { isDepartmentLeaderRole } from '../utils/roles.js';
+import { isDepartmentLeaderRole, isAdminRole } from '../utils/roles.js';
+import PhotoJudgingAdmin from '../components/PhotoJudgingAdmin.jsx';
+import PhotoJudgingPage from '../components/PhotoJudgingPage.jsx';
 import PhotoTransitionStage from '../components/PhotoTransitionStage.jsx';
 import SlideshowLinkedText from '../components/SlideshowLinkedText.jsx';
 import './PhotoSlideshow.css';
@@ -269,6 +271,8 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
   };
   const startCreate = () => { setCreating(true); setForm(EMPTY_FORM); setEditing(true); };
   const publicAlbums = albums.filter(a => a.is_published || editorAllowed);
+  const judgeToken = new URLSearchParams(window.location.hash.split('?')[1] || '').get('judge');
+  if (judgeToken) return <PhotoJudgingPage token={judgeToken}/>;
 
   return <div className={'bss' + (selected && !editing ? ' bss--gallery-view' : '')}>
     <div className="bss-ambient" aria-hidden="true"/>
@@ -300,6 +304,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
             <div className="bss-album-meta"><b>{a.title}</b><span>{a.is_published ? t.published : t.draft} · {slides.filter(s => s.album_id === a.id).length} ảnh</span></div>
           </button>)}
         </div> : <>
+          {!creating && selected && isAdminRole(currentUser?.role) && <PhotoJudgingAdmin album={selected} slides={ordered}/>}
           <div className="bss-form-grid">
             <label>{en ? "Album title" : "Tên album"}<input value={form.title} maxLength={120} onChange={e => setForm(v => ({ ...v, title:e.target.value }))} placeholder={en ? "E.g. Halloween Showcase 2026" : "Ví dụ: Halloween Showcase 2026"}/></label>
             <label>{en ? "Slide duration" : "Thời gian chuyển ảnh"}<select value={form.slide_interval} onChange={e => setForm(v => ({ ...v, slide_interval:Number(e.target.value) }))}>{[2,3,4,5,6,8,10,12,15,20,30].map(n => <option key={n} value={n}>{n} {en ? "seconds" : "giây"}</option>)}</select></label>
