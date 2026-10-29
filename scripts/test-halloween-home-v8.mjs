@@ -30,5 +30,5 @@ assert.ok(master.includes("client.rpc('bes_set_halloween_home_enabled'"),'Admin-
 assert.ok(nav.includes('seasonalHome.enabled && (route === "home" || seasonalNavbar.enabled)'),'Navbar master on Home');
 assert.ok(footer.includes('seasonalHome.enabled && (resolvedRoute === "home" || seasonalFooter.enabled)'),'Footer master on Home');
 assert.ok(hero.includes('Turn your English classroom into a world of creativity'));
-assert.ok(hero.includes('hero-cms__halloween-art')&&skin.includes('.hero-cms__halloween-art'),'separate illustration layer controlled by seasonal boolean');
+assert.ok(hero.includes('<HalloweenScene zone="hero" />') && read('src/features/halloween-home/HalloweenScene.jsx').includes('halloween-hero-world'),'separate art-only React layers controlled by seasonal boolean');
 console.log('PASS Halloween V8 SOURCE: optimized reference illustration assets, all 5 regions, actual data, original restored and Admin master gating');
