@@ -14,6 +14,37 @@ async function digest(token: string) {
 function newToken() {
   return Array.from(crypto.getRandomValues(new Uint8Array(32)), b => b.toString(16).padStart(2,"0")).join("");
 }
+// Server-only, purpose-separated encryption for durable admin retrieval.
+// Rotating SUPABASE_SERVICE_ROLE_KEY requires migrating encrypted links first.
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
+let cipherKeyPromise: Promise<CryptoKey> | undefined;
+function cipherKey(): Promise<CryptoKey> {
+  if (!SECRET) throw new Error("Không thể sử dụng khóa bảo vệ liên kết.");
+  cipherKeyPromise ||= crypto.subtle.digest("SHA-256", encoder.encode("BRIAN/PHOTO-JUDGING/LINKS/v1:" + SECRET))
+    .then(key => crypto.subtle.importKey("raw", key, {name:"AES-GCM"}, false, ["encrypt","decrypt"]));
+  return cipherKeyPromise;
+}
+function b64(bytes: Uint8Array) { return btoa(String.fromCharCode(...bytes)); }
+function unb64(text: string) { return Uint8Array.from(atob(text), c => c.charCodeAt(0)); }
+async function encryptJudgeLink(token: string, inviteId: string) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const sealed = await crypto.subtle.encrypt(
+    {name:"AES-GCM",iv,additionalData:encoder.encode(inviteId)},
+    await cipherKey(), encoder.encode(token)
+  );
+  return {token_ciphertext:b64(new Uint8Array(sealed)),token_iv:b64(iv)};
+}
+async function decryptJudgeLink(judge: {id:string,token_hash:string,token_ciphertext:string|null,token_iv:string|null}) {
+  if (!judge.token_ciphertext || !judge.token_iv) throw new Error("Liên kết cũ chưa thể truy xuất. Vui lòng cấp lại liên kết sau khi xác nhận với giám khảo.");
+  const plain = await crypto.subtle.decrypt(
+    {name:"AES-GCM",iv:unb64(judge.token_iv),additionalData:encoder.encode(judge.id)},
+    await cipherKey(), unb64(judge.token_ciphertext)
+  );
+  const token = decoder.decode(plain);
+  if (await digest(token) !== judge.token_hash) throw new Error("Không thể xác minh liên kết giám khảo.");
+  return token;
+}
 function assertResult<T>(result: {data:T,error: {message:string}|null}):T {
   if (result.error) throw new Error(result.error.message);
   return result.data;
@@ -53,12 +84,12 @@ async function getSession(albumId: string) {
   return session;
 }
 async function dashboard(session: any) {
-  const judges = assertResult(await db.from("bes_judging_invites").select("id,full_name,revoked_at,submitted_at,last_seen_at,created_at").eq("session_id",session.id).order("created_at"));
+  const judges = assertResult(await db.from("bes_judging_invites").select("id,full_name,revoked_at,submitted_at,last_seen_at,created_at,token_ciphertext").eq("session_id",session.id).order("created_at"));
   const ids = judges.map((j:any)=>j.id);
   const scores = ids.length ? assertResult(await db.from("bes_judging_scores").select("invite_id,slide_id,criteria,total,comment,updated_at").in("invite_id",ids)) : [];
   const counts:Record<string,number> = {};
   for (const score of scores as any[]) counts[score.invite_id] = (counts[score.invite_id] || 0) + 1;
-  return { session, judges: judges.map((j:any)=>({...j,progress:counts[j.id]||0})),scores };
+  return { session, judges: judges.map(({token_ciphertext,...j}:any)=>({...j,has_copyable_link:!!token_ciphertext,progress:counts[j.id]||0})),scores };
 }
 async function handle(req:Request, body:any) {
   const action = required(body.action);
@@ -74,6 +105,14 @@ async function handle(req:Request, body:any) {
     }
     if (!session) throw new Error("Chưa tạo hội đồng giám khảo.");
     if (action === "admin:load") return send({ album, ...(await dashboard(session)) });
+    if (action === "admin:link") {
+      const inviteId=required(body.inviteId);
+      const judge=assertResult(await db.from("bes_judging_invites")
+        .select("id,token_hash,token_ciphertext,token_iv,revoked_at")
+        .eq("id",inviteId).eq("session_id",session.id).maybeSingle());
+      if (!judge || judge.revoked_at) throw new Error("Liên kết giám khảo không tồn tại hoặc đã bị thu hồi.");
+      return send({inviteId,token:await decryptJudgeLink(judge)});
+    }
     if (action === "admin:rubric") {
       if (session.status !== "draft") throw new Error("Rubric đã khóa sau khi mở chấm.");
       const rubric = validRubric(body.rubric);
@@ -83,16 +122,19 @@ async function handle(req:Request, body:any) {
       const full_name = required(body.fullName);
       if (full_name.length < 2 || full_name.length > 120) throw new Error("Họ tên giám khảo phải dài 2–120 ký tự.");
       const token = newToken();
-      assertResult(await db.from("bes_judging_invites").insert({session_id:session.id,full_name,token_hash:await digest(token)}).select("id").single());
-      return send({token, ...(await dashboard(await getSession(albumId)))});
+      const inviteId = crypto.randomUUID();
+      const sealed = await encryptJudgeLink(token,inviteId);
+      assertResult(await db.from("bes_judging_invites").insert({id:inviteId,session_id:session.id,full_name,token_hash:await digest(token),...sealed}).select("id").single());
+      return send({token,inviteId,...(await dashboard(await getSession(albumId)))});
     } else if (action === "admin:reissue") {
       const inviteId=required(body.inviteId);
       const judge=assertResult(await db.from("bes_judging_invites").select("id,submitted_at").eq("id",inviteId).eq("session_id",session.id).maybeSingle());
       if (!judge) throw new Error("Giám khảo không tồn tại.");
       if (session.status === "closed" || judge.submitted_at) throw new Error("Không thể cấp lại liên kết sau khi hoàn tất.");
       const token=newToken();
-      assertResult(await db.from("bes_judging_invites").update({token_hash:await digest(token),revoked_at:null}).eq("id",inviteId).eq("session_id",session.id).select("id").single());
-      return send({token,...(await dashboard(session))});
+      const sealed=await encryptJudgeLink(token,inviteId);
+      assertResult(await db.from("bes_judging_invites").update({token_hash:await digest(token),...sealed,revoked_at:null}).eq("id",inviteId).eq("session_id",session.id).select("id").single());
+      return send({token,inviteId,...(await dashboard(session))});
     } else if (action === "admin:revoke") {
       if (session.status === "closed") throw new Error("Phiên đã khóa.");
       const revokeJudge=assertResult(await db.from("bes_judging_invites").select("id,submitted_at").eq("id",required(body.inviteId)).eq("session_id",session.id).single());

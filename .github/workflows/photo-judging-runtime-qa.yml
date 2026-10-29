@@ -4,6 +4,7 @@ on:
     paths:
       - 'supabase/functions/photo-judging/**'
       - 'supabase/migrations/*photo_story_judging.sql'
+      - 'supabase/migrations/*photo_judging_encrypted_links.sql'
       - 'src/components/PhotoJudging*'
       - '.github/workflows/photo-judging-runtime-qa.yml'
   workflow_dispatch:
@@ -37,6 +38,18 @@ jobs:
             -d '{"action":"admin:load","albumId":"00000000-0000-0000-0000-000000000000"}' "$base")"
           test "$http" = '403' || { cat "$bodyfile"; exit 1; }
           grep -q 'error' "$bodyfile"
+      - name: Verify copying a link without Admin auth is forbidden
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://xpkbgqdlfonsinriggmj.supabase.co/functions/v1/photo-judging'
+          bodyfile="$(mktemp)"
+          http="$(curl --max-time 25 --silent --show-error --output "$bodyfile" --write-out '%{http_code}' \
+            -X POST -H 'Content-Type: application/json' \
+            -d '{"action":"admin:link","albumId":"00000000-0000-0000-0000-000000000000","inviteId":"00000000-0000-0000-0000-000000000000"}' "$base")"
+          test "$http" = '403' || { cat "$bodyfile"; exit 1; }
+          grep -q 'error' "$bodyfile"
+          ! grep -q '"token":' "$bodyfile"
       - name: Verify function rejects GET
         shell: bash
         run: |

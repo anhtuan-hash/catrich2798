@@ -78,3 +78,20 @@
 .bj-submit h3{margin:0 0 7px}.bj-submit button{white-space:nowrap}
 @media(max-width:850px){.bj-guest-grid{grid-template-columns:1fr}.bj-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.bj-submit{flex-direction:column;align-items:stretch}.bj-add{flex-wrap:wrap}.bj-add input{flex-basis:100%}.bj-artwork-frame{min-height:380px}}
 @media(max-width:540px){.bj-panel{padding:14px}.bj-judge{flex-wrap:wrap}.bj-judge button span{display:none}.bj-rubric-row input[type=number]{width:58px}.bj-guest-main{padding-inline:12px}.bj-artwork,.bj-score-form{padding:12px}.bj-artwork-nav>span{display:none}.bj-score-form select{width:110px}}
+
+/* Each juror owns their own link control and optional read-only preview. */
+.bj-judge-entry{border-radius:13px;overflow:hidden;background:#0d1a30;border:1px solid #ffffff1b}
+.bj-judge-entry>.bj-judge{border:0;border-radius:0;background:transparent}
+.bj-judge .bj-copy-link{border-color:#448c92;background:#123b45;color:#bff8e8;font-weight:750}
+.bj-judge .bj-copy-link:hover:not(:disabled){background:#17636a;border-color:#66d8bb}
+.bj-judge .bj-copy-link span{white-space:nowrap}
+.bj-row-link{display:flex;align-items:center;gap:11px;border-top:1px solid #39747e66;background:#10353c;padding:11px 13px}
+.bj-row-link input{flex:1;min-width:0;background:#0d2531;color:#e6fbf7;font-size:12px}
+.bj-row-link a{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-size:12px;color:#9eeedf;text-decoration:none}
+.bj-row-link a:hover{text-decoration:underline}
+@media(max-width:680px){
+  .bj-judge-entry>.bj-judge{flex-wrap:wrap}
+  .bj-row-link{flex-wrap:wrap}
+  .bj-row-link input{flex-basis:100%}
+  .bj-judge .bj-copy-link span{display:inline}
+}
