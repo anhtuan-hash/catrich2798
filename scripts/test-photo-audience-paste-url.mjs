@@ -25,7 +25,7 @@ for(const invalid of [
   '',
 ])assert.throws(()=>normalizeAudienceScreenUrl(invalid),Error);
 assert.match(page,/selected\.id === HALLOWEEN_ALBUM_ID/,'use real album ID instead of mistyped slug');
-assert.ok(page.includes('audienceEnabled &&') && page.includes('<PhotoAudienceLive'),'viewer shows frame');
+assert.ok(page.includes('selected.is_published && (audienceEnabled') && page.includes('<PhotoAudienceLive'),'viewer shows frame');
 assert.ok(page.includes('canEdit={editorAllowed && isAdminRole(currentUser?.role)}'),'only admin sees edit controls');
 assert.ok(audience.includes("from('bes_slideshow_albums')") && audience.includes('.update({audience_screen_url:normalized'),'saved for whole album');
 assert.ok(audience.includes('onSaved?.()'),'update album data after save');
