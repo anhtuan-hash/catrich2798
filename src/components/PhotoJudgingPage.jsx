@@ -24,7 +24,7 @@ export default function PhotoJudgingPage({token}) {
   const current=data?.slides?.[position];
   const rubric=data?.rubric||[];
   const draft=drafts[current?.id]||{criteria:{},comment:''};
-  const complete=rubric.length>0&&rubric.every(r=>typeof draft.criteria?.[r.id]==='number');
+  const complete=isComplete(draft.criteria,rubric);
   const scoredCount=data?.slides?.filter(s=>saved[s.id]).length||0;
   const total=useMemo(()=>complete?weightedTotal(draft.criteria,rubric):null,[complete,draft.criteria,rubric]);
   const readonly=!!(data?.submitted || data?.status!=='open');
