@@ -33,6 +33,7 @@ export const JUDGING_UI_EN = Object.freeze({
   "Không hiển thị tên lớp và nhóm": "Class and group identities are hidden",
   "Phiếu chấm điểm": "Scoring sheet",
   "Mỗi tiêu chí từ 0 đến 10, bước 0,5. Điểm quy đổi tự động theo trọng số.": "Each criterion is scored 0–10 in 0.5 increments, weighted automatically.",
+  "Chạm chọn nhanh điểm từ 1 đến 10 dưới mỗi tiêu chí. Tổng điểm tự quy đổi theo trọng số.": "Tap a score from 1 to 10 below each criterion. The total is weighted automatically.",
   "Chọn điểm": "Select score",
   "Nhận xét (không bắt buộc)": "Comment (optional)",
   "TỔNG ĐIỂM": "TOTAL SCORE",
