@@ -39,7 +39,7 @@ revoke all on public.bes_judging_sessions, public.bes_judging_invites, public.be
 grant all on public.bes_judging_sessions, public.bes_judging_invites, public.bes_judging_scores to service_role;
 -- Lock image inventory once judging opens. Keep submitted results auditable.
 create or replace function public.bes_judging_protect_inventory()
-returns trigger language plpgsql security invoker set search_path = ''
+returns trigger language plpgsql security definer set search_path = ''
 as $$
 begin
   if tg_table_name = 'bes_slideshow_albums' then
@@ -54,7 +54,7 @@ begin
   return old;
 end;
 $$;
-revoke all on function public.bes_judging_protect_inventory() from public;
+revoke all on function public.bes_judging_protect_inventory() from public, anon, authenticated;
 drop trigger if exists bes_judging_slide_guard on public.bes_slideshow_slides;
 create trigger bes_judging_slide_guard before update or delete on public.bes_slideshow_slides
 for each row execute function public.bes_judging_protect_inventory();
