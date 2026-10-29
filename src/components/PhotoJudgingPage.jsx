@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Award, CheckCircle2, ChevronLeft, ChevronRight, Expand, Save, ShieldCheck } from 'lucide-react';
-import { photoJudgingRequest, weightedTotal } from './PhotoJudgingAdmin.jsx';
+import { photoJudgingRequest } from './PhotoJudgingAdmin.jsx';
+import { weightedTotal, isComplete } from '../utils/judgingMath.js';
 import './PhotoJudging.css';
 
 export default function PhotoJudgingPage({token}) {
