@@ -10,6 +10,7 @@ import PhotoJudgingAdmin from '../components/PhotoJudgingAdmin.jsx';
 import PhotoJudgingPage from '../components/PhotoJudgingPage.jsx';
 import PhotoJuryLive from '../components/PhotoJuryLive.jsx';
 import PhotoAudienceLive from '../components/PhotoAudienceLive.jsx';
+import { HALLOWEEN_ALBUM_ID } from '../utils/photoAudienceScreen.js';
 import PhotoTransitionStage from '../components/PhotoTransitionStage.jsx';
 import SlideshowLinkedText from '../components/SlideshowLinkedText.jsx';
 import './PhotoSlideshow.css';
@@ -274,6 +275,8 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
   };
   const startCreate = () => { setCreating(true); setForm(EMPTY_FORM); setEditing(true); };
   const publicAlbums = albums.filter(a => a.is_published || editorAllowed);
+  const audienceEnabled = Boolean(selected?.is_published &&
+    (selected.id === HALLOWEEN_ALBUM_ID || selected.audience_screen_url));
   const judgeToken = new URLSearchParams(window.location.hash.split('?')[1] || '').get('judge');
   if (judgeToken) return <PhotoJudgingPage token={judgeToken}/>;
 
@@ -343,7 +346,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
             <button type="button" onClick={showQR} title={t.qr}><QrCode size={17}/><span>QR</span></button>
           </div>
         </div>
-        <div className={'bss-gallery-layout'+(selected.is_published?' bss-gallery-layout--with-jury':'')+(selected.is_published && selected.slug==='halloween-showcase-2026-73hb72'?' bss-gallery-layout--festival':'')}>
+        <div className={'bss-gallery-layout'+(selected.is_published?' bss-gallery-layout--with-jury':'')+(audienceEnabled?' bss-gallery-layout--festival':'')}>
           <div className="bss-gallery-main">
             <div className="bss-stage" ref={stageRef}
               onTouchStart={e => { touchRef.current = e.touches[0]?.clientX ?? null; }}
@@ -424,10 +427,10 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
               <p><SlideshowLinkedText text={selected.description || (en ? 'Every image holds a story.' : 'Mỗi tác phẩm là một câu chuyện.')} /></p>
             </div>
           </aside>
-          {selected.is_published && (selected.slug==='halloween-showcase-2026-73hb72'
+          {selected.is_published && (audienceEnabled
             ? <div className="bss-festival-live-stack">
                 <PhotoJuryLive albumId={selected.id} slideId={active?.id} photoNumber={index+1} slides={ordered.map(item=>({id:item.id,caption:item.caption,imageUrl:imageUrl(item.image_path)}))} language={language}/>
-                <PhotoAudienceLive language={language}/>
+                <PhotoAudienceLive language={language} albumId={selected.id} screenUrl={selected.audience_screen_url||''} canEdit={editorAllowed && isAdminRole(currentUser?.role)} onSaved={refresh}/>
               </div>
             : <PhotoJuryLive albumId={selected.id} slideId={active?.id} photoNumber={index+1} slides={ordered.map(item=>({id:item.id,caption:item.caption,imageUrl:imageUrl(item.image_path)}))} language={language}/>
           )}
