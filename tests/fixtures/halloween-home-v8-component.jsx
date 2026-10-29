@@ -23,6 +23,7 @@ import '../../src/components/HalloweenFooterSkin.css';
 import '../../src/components/HalloweenFooterRefinement.css';
 import '../../src/styles/HalloweenFullHomeV4.css';
 import './halloween-home-v4-fixture-only.css';
+import HalloweenScene from '../../src/features/halloween-home/HalloweenScene.jsx';
 
 const originalPhoto='/hero/media/hero-1793195941901-36cea510456f.webp';
 function Fixture(){
@@ -53,7 +54,7 @@ function Fixture(){
       <div className="hero-cms__background">
         <img src={originalPhoto} alt="Original CMS published Halloween Hero picture" className="hero-cms__media" style={{width:'100%',height:'100%',objectFit:'cover',objectPosition:'70% 50%'}} />
       </div>
-      {active ? <><div className="hero-cms__halloween-art" aria-hidden="true" /><div className="hero-cms__halloween-ghost" aria-hidden="true" /></> : null}
+      {active ? <HalloweenScene zone="hero" /> : null}
       <div className="hero-cms__content">
         <span className="hero-cms__badge">{active?'BRIAN ENGLISH · HALLOWEEN 2026':'BRIAN ENGLISH'}</span>
         <h1>{active?<><span>Happy</span><span>Halloween!</span></>:'Không gian dạy học thông minh'}</h1>
