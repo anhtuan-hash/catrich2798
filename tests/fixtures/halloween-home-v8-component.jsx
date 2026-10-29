@@ -79,7 +79,7 @@ function Fixture(){
       </nav>}
       </div>
     </section>
-    <section className="bha-practice bha-practice--editorial-v3" id="v4-weekly">
+    <section className="bha-practice bha-practice--editorial-v3" id="v4-weekly">{active ? <HalloweenScene zone="practice" /> : null}
       <header className="bha-practice__editorial-header"><div className="bha-practice__editorial-copy">
         <span>WEEKLY ENGLISH PRACTICE</span><h2>Hub bài tập theo tuần</h2><p>Cuộn để xem toàn bộ bài của từng khối và sắp xếp theo ABC hoặc ngày công bố.</p>
       </div><div className="bha-practice__published-count"><span>ĐÃ XUẤT BẢN</span><strong>65</strong></div></header>
