@@ -63,7 +63,6 @@ function Fixture(){
       </div>
     </section>
     <section className="bhs-home" data-halloween-theme={active?'true':'false'} data-home-published-slideshow="true" data-guest-allow="slideshow-viewer" id="v4-slideshow">
-      {active ? <HalloweenScene zone="gallery" /> : null}
       <header className="bhs-home__header"><div className="bhs-home__headline">
        <div className="bhs-home__kicker">BRIAN PHOTO STORY · ĐANG TRÌNH CHIẾU</div>
        <h2>Halloween Showcase 2026</h2><p>Step into a world of spooky imagination and creativity!</p></div>
@@ -79,6 +78,7 @@ function Fixture(){
        {[originalPhoto,'/hero/media/hero-1793195849950-20a5e8a480a8.jpg','/hero/media/hero-1789370455474-d4260ba6896f.png'].map((src,i)=><button type="button" className={'bhs-home__filmstrip-item'+(i===0?' is-active':'')} key={src} aria-label={'Fixture artwork '+(i+1)} onClick={()=>setCount(v=>v+1)}><img src={src} alt="" loading="eager" /><span>{i+1}</span></button>)}
       </nav>}
       </div>
+      {active ? <HalloweenScene zone="gallery" /> : null}
     </section>
     <section className="bha-practice bha-practice--editorial-v3" id="v4-weekly">{active ? <HalloweenScene zone="practice" /> : null}
       <header className="bha-practice__editorial-header"><div className="bha-practice__editorial-copy">
@@ -100,7 +100,6 @@ function Fixture(){
   </main>
   <footer className="footer footer-v10 signature-footer-v75 signature-footer-v50 signature-footer-collapsible signature-footer-dashboard-global signature-footer-v50-vi"
      data-app-shell-footer="true" data-footer-mode="full" data-footer-route="home" data-halloween-footer={active?'true':'false'}>
-   {active ? <HalloweenScene zone="footer" /> : null}
    <div className="signature-footer-expanded-panel"><div className="signature-footer-v50-main">
     <section className="signature-footer-v50-brand"><img className="signature-footer-v50-brian-logo" src="/brian-english-brand-logo.png" alt="Brian logo"/>
       <div className="signature-footer-v50-affiliations"><img src="/footer-pek-logo.png" alt="Pétrus Ký"/><img src="/footer-cambridge-logo.png" alt="Cambridge"/></div></section>
@@ -115,6 +114,7 @@ function Fixture(){
    <div className="signature-footer-static-summary signature-footer-static-summary--attribution-only">
      <button className="bes-portfolio-footer-trigger" onClick={()=>setPortfolio(true)}>Designed & Developed by <strong>Nguyễn Anh Tuấn</strong></button>
    </div>
+   {active ? <HalloweenScene zone="footer" /> : null}
   </footer>
   {portfolio&&<div className="bes-portfolio-backdrop"><section className="bes-portfolio-dialog" role="dialog"><button className="bes-portfolio-dialog-close" onClick={()=>setPortfolio(false)}>Close</button></section></div>}
   <div data-visual-qa-controls="true" style={{padding:16,position:'fixed',bottom:8,left:8,zIndex:100,background:'#fff',borderRadius:10,boxShadow:'0 2px 9px #2224'}}>
