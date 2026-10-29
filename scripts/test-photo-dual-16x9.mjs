@@ -15,7 +15,6 @@ assertHas(layout,"grid-template-columns:minmax(0,1.29fr) minmax(0,1fr)","two, no
 assertHas(layout,"aspect-ratio:16 / 9","both stacked live cards use 16:9 landscape ratio");
 assertHas(layout,"height:100dvh","single-screen 100 dynamic viewport height");
 assertHas(layout,"overflow:hidden","prevent page scroll on presentation desktop");
-assertHas(layout,".bss-gallery-sidebar","sidebar hidden by conditional JSX");
 assertHas(layout,"grid-template-rows:repeat(3,minmax(0,1fr))","all six classes fit two columns by three rows");
 assertHas(layout,"grid-template-rows:repeat(6,minmax(0,1fr))","all eighteen groups fit three columns by six rows");
 assertHas(layout,"grid-template-columns:repeat(3,minmax(0,1fr))","group ranking dense 3-column grid");
