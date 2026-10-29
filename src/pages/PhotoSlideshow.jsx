@@ -422,7 +422,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
               <p><SlideshowLinkedText text={selected.description || (en ? 'Every image holds a story.' : 'Mỗi tác phẩm là một câu chuyện.')} /></p>
             </div>
           </aside>
-          {selected.is_published && <PhotoJuryLive albumId={selected.id} slideId={active?.id} photoNumber={index+1} language={language}/>}
+          {selected.is_published && <PhotoJuryLive albumId={selected.id} slideId={active?.id} photoNumber={index+1} slides={ordered.map(item=>({id:item.id,caption:item.caption,imageUrl:imageUrl(item.image_path)}))} language={language}/>}
         </div>
         <p className="bss-keyboard-tip">{en ? '← / → Navigate · Space Play or pause · Fullscreen for presentation' : '← / → Chuyển ảnh · Space Phát hoặc dừng · Toàn màn hình để trình chiếu'}</p>
       </section> : null}

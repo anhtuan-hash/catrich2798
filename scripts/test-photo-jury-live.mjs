@@ -16,10 +16,10 @@ check(api.includes('minimumScores:1') && !api.includes('MIN_PUBLIC_SUBMISSIONS')
 check(api.includes('scoredCount:entries.length') && api.includes('average:round(entries.reduce') && api.includes('criteria:(session.rubric'), 'per-artwork score and category averages include saved scores');
 check(!/return send\(\{[^}]*judges:/.test(api.slice(api.indexOf('async function publicLiveJury'),api.indexOf('async function handle'))), 'public API does not return judge rows');
 check(api.includes('if (action === "admin:visibility")') && api.includes('await requireAdmin(req)'), 'visibility updates restricted to admin');
-check(live.includes("action:'public:live'") && live.includes('POLL_MS = 5000'), 'polls server every 5 seconds');
-check(live.includes("find(a=>a.slideId===slideId)"), 'jury summary follows currently displayed artwork');
-check(live.includes('if(!snapshot || !snapshot.enabled) return null'), 'visibility toggle hides public panel');
-check(live.includes("currentVotes>=1") && live.includes("ready?artwork.criteria.find"), 'UI displays average after the first saved judge score');
+check(live.includes("action:'public:live'") && live.includes('POLL_MS=5000'), 'polls server every 5 seconds');
+check(live.includes('entry.slideId===slideId') && live.includes('entry.name===current?.className'), 'leaderboard highlights currently displayed artwork and class');
+check(live.includes('if(!snapshot || !snapshot.enabled)return null'), 'visibility toggle hides public panel');
+check(live.includes('buildJuryRankings(slides,snapshot?.artworks||[])') && live.includes('displayScore(current?.score)'), 'UI displays saved-score averages and rankings without three-judge gate');
 check(!live.includes('full_name') && !live.includes('invite_id') && !live.includes('token_hash'), 'guest panel contains no judge identities or tokens');
 check(gallery.includes('PhotoJuryLive albumId={selected.id} slideId={active?.id}') && gallery.includes('selected.is_published'), 'public slideshow panel linked to active artwork');
 check(css.includes(':has(> .bss-jury-live)') && css.includes('grid-template-columns:minmax(0,1.65fr)'), 'three-column layout only when jury panel visible');

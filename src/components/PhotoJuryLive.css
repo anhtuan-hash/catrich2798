@@ -69,3 +69,46 @@
  .bss--gallery-view .bss-gallery-layout--with-jury>.bss-jury-live .bss-jury-criteria{grid-template-columns:1fr}
 }
 @media(prefers-reduced-motion:reduce){.bss-jury-pulse{animation:none}}
+
+/* QRvote-style school/group rankings, using only the submitted-to-server score averages */
+.bss--gallery-view .bss-jury-rankings{gap:12px}
+.bss-jury-rank-current{display:flex;align-items:center;justify-content:space-between;gap:10px;border-radius:13px;border:1px solid #4fddbc73;padding:13px 12px;background:linear-gradient(120deg,#124146,#0e2a40)}
+.bss-jury-rank-current-text{min-width:0;display:flex;flex-direction:column;gap:5px}
+.bss-jury-rank-current-text>span{font-size:10px;color:#9bd2d5;letter-spacing:.08em;font-weight:800}
+.bss-jury-rank-current-text strong{font-size:15px;line-height:1.25;color:#f0fcfb;overflow-wrap:anywhere}
+.bss-jury-rank-current-text small{font-size:11px;color:#b3d1d9}
+.bss-jury-rank-current-score{display:flex;align-items:baseline;gap:3px;flex-shrink:0}
+.bss-jury-rank-current-score strong{font-size:clamp(26px,2.7vw,39px);font-weight:850;letter-spacing:-.055em;color:#71f0c2;font-variant-numeric:tabular-nums}
+.bss-jury-rank-current-score small{font-size:11px;color:#adcbd4}
+.bss-jury-rank-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.bss-jury-rank-title{display:flex;align-items:center;gap:7px;color:#89dce8}
+.bss-jury-rank-title svg{color:#efc076;flex:none}
+.bss-jury-rank-title strong{font-size:13px;font-weight:820;letter-spacing:.015em}
+.bss-jury-rank-tabs{display:flex;padding:3px;background:#081529;border:1px solid #3b5674;border-radius:11px}
+.bss-jury-rank-tabs button{background:transparent;color:#9eb5c9;border:none;padding:7px 10px;border-radius:8px;font-size:11px;font-weight:800;white-space:nowrap;cursor:pointer}
+.bss-jury-rank-tabs button.active{background:#245e65;color:#d2fff2;box-shadow:inset 0 0 0 1px #6ee8ca60}
+.bss-jury-rank-tabs button:focus-visible{outline:2px solid #d1f0fb;outline-offset:2px}
+.bss-jury-rank-counter{display:flex;justify-content:space-between;gap:12px;font-size:10px;color:#88a8bd}
+.bss-jury-rank-list{display:flex;flex-direction:column;gap:6px;min-width:0;max-height:550px;overflow-y:auto;overflow-x:hidden;scrollbar-color:#476784 transparent;scrollbar-width:thin;padding-right:2px}
+.bss-jury-rank-row{display:flex;align-items:center;gap:8px;border:1px solid #2b496247;border-radius:11px;padding:9px;background:linear-gradient(105deg,rgba(19,40,58,.9),rgba(11,23,41,.93));min-width:0;transition:border-color .15s,background-color .15s}
+.bss-jury-rank-row.is-current{background:linear-gradient(110deg,#194a50,#122c46);border-color:#6de7c8ad;box-shadow:inset 3px 0 #65e6c7}
+.bss-jury-rank-row.is-unscored{opacity:.66}
+.bss-jury-rank-position{display:grid;place-items:center;width:28px;min-width:28px;height:28px;border-radius:9px;background:#243c53;color:#d9e9f7;font-size:13px;font-variant-numeric:tabular-nums;font-weight:850}
+.bss-jury-rank-position.is-top{background:#3e3a35;color:#f4d299}
+.bss-jury-rank-row:nth-child(1) .bss-jury-rank-position.is-top{background:#80602b;color:#fff2b8}
+.bss-jury-rank-thumb{width:31px;height:34px;object-fit:cover;border-radius:7px;flex:none;border:1px solid #d9dfe84d}
+.bss-jury-rank-row-main{display:flex;flex-direction:column;gap:8px;flex:1;min-width:0}
+.bss-jury-rank-row-label{display:flex;justify-content:space-between;gap:8px;align-items:baseline;min-width:0}
+.bss-jury-rank-row-label strong{font-size:11px;color:#f4f8ff;font-weight:780;overflow-wrap:anywhere;line-height:1.4}
+.bss-jury-rank-row-label small{font-size:9px;color:#99b2c8;white-space:nowrap}
+.bss-jury-rank-track{height:6px;overflow:hidden;background:#2f4154;border-radius:99px}
+.bss-jury-rank-track span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#3cbed4,#75f0be);transition:width .35s ease}
+.bss-jury-rank-row-score{min-width:38px;text-align:right;color:#e2faf4;font-size:15px;font-weight:850;font-variant-numeric:tabular-nums}
+.bss-jury-rank-row.is-current .bss-jury-rank-row-score{color:#7cf2bf}
+.bss-jury-rank-empty{padding:30px 12px;text-align:center;display:grid;justify-items:center;gap:12px;color:#92b1c7;font-size:13px}
+.bss-jury-rank-disclaimer{font-size:10px;line-height:1.55;color:#a2b9ca;margin:1px 0 0}
+.bss--gallery-view .bss-jury-rankings .bss-jury-footer{margin-top:auto}
+@media(max-width:1420px){.bss-jury-rank-row-label{display:block}.bss-jury-rank-row-label small{display:block;margin-top:2px}}
+@media(max-width:780px){.bss-jury-rank-list{max-height:445px}.bss-jury-rank-row-label{display:flex;gap:8px}.bss-jury-rank-row-label small{display:block}}
+@media(max-width:390px){.bss-jury-rank-toolbar{align-items:stretch}.bss-jury-rank-tabs{width:100%}.bss-jury-rank-tabs button{flex:1}}
+@media(prefers-reduced-motion:reduce){.bss-jury-rank-row,.bss-jury-rank-track span{transition:none}}
