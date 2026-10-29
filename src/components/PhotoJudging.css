@@ -68,7 +68,7 @@
 .bj-criterion-heading>span:first-child{font-size:14px;font-weight:750;line-height:1.45;color:#f2f7ff}
 .bj-criterion-weight{font-size:12px;font-weight:650;color:#aac4dd;white-space:nowrap}
 .bj-score-scale{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px;width:100%}
-.bj-score-form .bj-score-chip{display:grid;place-items:center;min-width:0;width:100%;min-height:38px;padding:0 2px;border:1px solid #46617f;border-radius:9px;background:linear-gradient(180deg,#172941,#0d1c31);color:#e6f1ff;font:700 13px/1 inherit;line-height:1;appearance:none;-webkit-appearance:none;cursor:pointer;transition:background-color .17s ease,border-color .17s ease,box-shadow .17s ease,transform .17s ease}
+.bj-score-form .bj-score-chip{display:grid;place-items:center;min-width:0;width:100%;min-height:38px;padding:0 2px;border:1px solid #46617f;border-radius:9px;background:linear-gradient(180deg,#172941,#0d1c31);color:#e6f1ff;font-family:inherit;font-size:13px;font-weight:700;line-height:1;appearance:none;-webkit-appearance:none;cursor:pointer;transition:background-color .17s ease,border-color .17s ease,box-shadow .17s ease,transform .17s ease}
 .bj-score-form .bj-score-chip:hover:not(:disabled):not(.is-selected){background:#25435e;border-color:#8bb0d2;transform:translateY(-1px)}
 .bj-score-form .bj-score-chip.is-selected{background:linear-gradient(145deg,#a2ffe7,#57dfcb);border-color:#6df5da;color:#062c35;font-weight:850;box-shadow:0 0 0 1px #50efc766,0 0 15px #42dcc858}
 .bj-score-form .bj-score-chip:focus-visible{outline:3px solid #f4d37d;outline-offset:2px;position:relative;z-index:1}
