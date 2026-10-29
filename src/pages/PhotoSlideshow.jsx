@@ -277,16 +277,21 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
   const publicAlbums = albums.filter(a => a.is_published || editorAllowed);
   const audienceEnabled = Boolean(selected?.is_published &&
     (selected.id === HALLOWEEN_ALBUM_ID || selected.audience_screen_url));
+  const festivalScreen = Boolean(selected && !editing && !creating && audienceEnabled);
   const judgeToken = new URLSearchParams(window.location.hash.split('?')[1] || '').get('judge');
   if (judgeToken) return <PhotoJudgingPage token={judgeToken}/>;
 
-  return <div className={'bss' + (selected && !editing ? ' bss--gallery-view' : '')}>
+  return <div className={'bss' + (selected && !editing ? ' bss--gallery-view' : '') + (festivalScreen ? ' bss--festival-screen' : '')}>
     <div className="bss-ambient" aria-hidden="true"/>
     <header className="bss-header">
       <button type="button" className="bss-brand" onClick={() => { setEditing(false); setCreating(false); goAlbum(''); }}>
         <span className="bss-brand-icon"><Camera size={22}/></span>
         <span><strong>BRIAN <em>PHOTO STORY</em></strong><small>THE SCHOOL SLIDESHOW STUDIO</small></span>
       </button>
+      {festivalScreen && <div className="bss-festival-header-title" title={selected.title}>
+        <strong>{selected.title}</strong>
+        <a href="https://qrvote.org/c/halloween-showcase-ry29" target="_blank" rel="noopener noreferrer">{en?'Vote':'Bình chọn'}</a>
+      </div>}
       <div className="bss-header-actions">
         {editorAllowed && <button className="bss-pill" onClick={() => { setEditing(v => !v); setCreating(false); }}><Settings2 size={17}/> {editing ? t.done : t.manage}</button>}
         <a className="bss-pill muted" href="#/home"><ArrowLeft size={16}/> {en ? 'Home' : 'Trang chủ'}</a>
@@ -403,7 +408,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
               </div>
             </div>}
           </div>
-          <aside className="bss-gallery-sidebar">
+          {!audienceEnabled && <aside className="bss-gallery-sidebar">
             <div className="bss-gallery-sidebar-top">
               <span>{en ? 'FEATURED ARTWORK' : 'TÁC PHẨM ĐANG XEM'}</span>
               <span className="bss-gallery-sparkle">✦</span>
@@ -426,11 +431,11 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
               <span>BRIAN PHOTO STORY</span>
               <p><SlideshowLinkedText text={selected.description || (en ? 'Every image holds a story.' : 'Mỗi tác phẩm là một câu chuyện.')} /></p>
             </div>
-          </aside>
+          </aside>}
           {selected.is_published && (audienceEnabled
             ? <div className="bss-festival-live-stack">
                 <PhotoJuryLive albumId={selected.id} slideId={active?.id} photoNumber={index+1} slides={ordered.map(item=>({id:item.id,caption:item.caption,imageUrl:imageUrl(item.image_path)}))} language={language}/>
-                <PhotoAudienceLive language={language} albumId={selected.id} screenUrl={selected.audience_screen_url||''} canEdit={editorAllowed && isAdminRole(currentUser?.role)} onSaved={refresh}/>
+                <PhotoAudienceLive compact={festivalScreen} language={language} albumId={selected.id} screenUrl={selected.audience_screen_url||''} canEdit={editorAllowed && isAdminRole(currentUser?.role)} onSaved={refresh}/>
               </div>
             : <PhotoJuryLive albumId={selected.id} slideId={active?.id} photoNumber={index+1} slides={ordered.map(item=>({id:item.id,caption:item.caption,imageUrl:imageUrl(item.image_path)}))} language={language}/>
           )}
