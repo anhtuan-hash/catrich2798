@@ -4,6 +4,7 @@ on:
     paths:
       - 'supabase/functions/photo-judging/**'
       - 'supabase/migrations/*photo_story_judging.sql'
+      - 'supabase/migrations/*photo_judging_encrypted_links.sql'
       - 'src/components/PhotoJudging*'
       - '.github/workflows/photo-judging-runtime-qa.yml'
   workflow_dispatch:
