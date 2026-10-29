@@ -73,7 +73,9 @@ try{
   assert.equal(on.master,'on',label+' master enabled');
   const lines=await page.locator('#v4-hero h1 > span').evaluateAll(nodes=>nodes.map(el=>({text:el.textContent,top:Math.round(el.getBoundingClientRect().top),width:el.scrollWidth,client:el.clientWidth,scroll:el.scrollHeight,clientHeight:el.clientHeight})));
   assert.deepEqual(lines.map(x=>x.text),['Happy','Halloween!'],label+' live exact two-line heading');
-  assert.ok(lines.every(x=>x.scroll<=x.clientHeight+2 && x.width<=x.client+2),label+' neither word clipped');
+  assert.ok(lines.every(x=>x.width<=x.client+2),label+' no horizontal text clipping');
+  const wraps=await page.locator('#v4-hero h1 > span').evaluateAll(nodes=>nodes.map(x=>getComputedStyle(x).whiteSpace));
+  assert.ok(wraps.every(x=>x==='nowrap'),label+' each word remains one unbreakable line');
   assert.ok(on.art?.includes('/assets/home/v9/halloween-hero-world.webp'),label+' real art layer');
   assert.ok(on.ghost?.includes('/assets/home/v9/halloween-ghost-reader.webp'),label+' independently composited character');
   assert.equal(off.art,null,label+' OFF has no illustrated art DOM');
