@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+const home=read('src/pages/Home.jsx'),css=read('src/features/halloween-home/halloween.v10-art-direction.css');
+const hero=read('src/components/HomeHeroExperience2026.jsx'),nav=read('src/components/GlobalCompactNavigation.jsx');
+assert.ok(home.includes("import '../features/halloween-home/halloween.v10-art-direction.css'"));
+assert.ok(css.includes('halloween-hero-world.webp')&&css.includes('halloween-ghost-reader.webp'));
+assert.ok(hero.includes('<span>Happy</span><span>Halloween!</span>'));
+assert.ok(css.includes('white-space:nowrap!important'));
+assert.ok(css.includes('position:relative!important;left:auto!important;right:auto!important;'));
+assert.ok(css.includes('pointer-events:none!important'));
+assert.ok(nav.includes('seasonalHome.enabled && (route === "home" || seasonalNavbar.enabled)'));
+assert.ok(css.includes('@media(max-width:620px)'));
+assert.ok(css.includes('prefers-reduced-motion:reduce'));
+for(const sel of ['.bha-hero.hero-cms','.bhs-home[data-home-published-slideshow="true"]','.bha-practice.bha-practice--editorial-v3','> footer.footer[data-halloween-footer="true"]']) assert.ok(css.includes(sel),sel);
+const rules=css.split('}').filter(s=>s.includes('{'));
+assert.ok(rules.every(s=>s.includes('data-halloween-home-v4="on"')), 'every CSS rule must be seasonal-scoped');
+console.log('PASS V10 art-first source safety, 2-line typography and reversible scoped CSS');
