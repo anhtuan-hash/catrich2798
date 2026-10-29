@@ -1,3 +1,4 @@
+import HalloweenScene from '../features/halloween-home/HalloweenScene.jsx';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight,
@@ -320,7 +321,7 @@ export default function HomeHeroExperience2026({
           {activeConfig.overlay.enabled ? <div className="hero-cms__overlay" /> : null}
         </div>
 
-        {halloweenOn ? <><div className="hero-cms__halloween-art" aria-hidden="true" /><div className="hero-cms__halloween-ghost" aria-hidden="true" /></> : null}
+        {halloweenOn ? <HalloweenScene zone="hero" /> : null}
         <div className="hero-cms__content">
           {activeConfig.badge.enabled ? (
             <span className="hero-cms__badge">
