@@ -1,3 +1,4 @@
+import HalloweenScene from '../features/halloween-home/HalloweenScene.jsx';
 import React from 'react';
 import { createPortal } from 'react-dom';
 import './FooterCompactDisclosure.css';
@@ -261,6 +262,7 @@ export default function Footer({ language, route = '' }) {
       data-footer-mode="full"
       data-footer-route={resolvedRoute || undefined}
     >
+      {seasonalHome.enabled && resolvedRoute === 'home' ? <HalloweenScene zone="footer" /> : null}
       <div id="english-hub-footer-details" className="signature-footer-expanded-panel">
         <div className="signature-footer-v50-main">
           <section className="signature-footer-v50-brand" aria-label="English Hub, Pétrus Ký and Cambridge Assessment English">
