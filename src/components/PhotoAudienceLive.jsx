@@ -1,71 +1,123 @@
 import React, { memo, useEffect, useRef, useState } from 'react';
-import { ExternalLink, Maximize2, MonitorPlay } from 'lucide-react';
+import { Check, ExternalLink, Link2, Maximize2, MonitorPlay, Save } from 'lucide-react';
+import { supabase } from '../utils/supabase.js';
+import { DEFAULT_HALLOWEEN_SCREEN, HALLOWEEN_ALBUM_ID, normalizeAudienceScreenUrl } from '../utils/photoAudienceScreen.js';
 import './PhotoAudienceLive.css';
 
-// This is a third-party page, not a copy or a recreation of QRvote's results.
-// We deliberately preserve its URL, scripts, QR code, rankings and refresh cycle.
-export const HALLOWEEN_QRVOTE_SCREEN = 'https://qrvote.org/c/halloween-showcase-ry29/screen';
-const DESKTOP_WIDTH = 1440;
-const DESKTOP_HEIGHT = 920;
+const DESKTOP_WIDTH=1440;
+const DESKTOP_HEIGHT=920;
 
-function PhotoAudienceLive({language='vi'}) {
+function PhotoAudienceLive({ language='vi',albumId,screenUrl='',canEdit=false,onSaved }) {
   const en=language==='en';
+  const suggested=albumId===HALLOWEEN_ALBUM_ID?DEFAULT_HALLOWEEN_SCREEN:'';
+  const initial=screenUrl || suggested;
   const viewportRef=useRef(null);
+  const [draft,setDraft]=useState(initial);
+  const [currentUrl,setCurrentUrl]=useState(initial);
   const [width,setWidth]=useState(560);
-  const [fullscreen,setFullscreen]=useState(false);
+  const [isFull,setIsFull]=useState(false);
+  const [saving,setSaving]=useState(false);
+  const [feedback,setFeedback]=useState('');
+
+  useEffect(()=>{
+    const next=screenUrl || (albumId===HALLOWEEN_ALBUM_ID?DEFAULT_HALLOWEEN_SCREEN:'');
+    setDraft(next);setCurrentUrl(next);
+  },[albumId,screenUrl]);
 
   useEffect(()=>{
     const node=viewportRef.current;
     if(!node)return undefined;
     const measure=()=>setWidth(current=>{
       const next=Math.max(1,Math.round(node.getBoundingClientRect().width));
-      return next===current?current:next;
+      return current===next?current:next;
     });
     measure();
     const observer=typeof ResizeObserver==='function'?new ResizeObserver(measure):null;
     observer?.observe(node);
     window.addEventListener('resize',measure);
-    const onFullscreen=()=>{setFullscreen(document.fullscreenElement===node);measure();};
-    document.addEventListener('fullscreenchange',onFullscreen);
-    return()=>{observer?.disconnect();window.removeEventListener('resize',measure);document.removeEventListener('fullscreenchange',onFullscreen);};
+    const onFull=()=>{setIsFull(document.fullscreenElement===node);measure();};
+    document.addEventListener('fullscreenchange',onFull);
+    return()=>{
+      observer?.disconnect();
+      window.removeEventListener('resize',measure);
+      document.removeEventListener('fullscreenchange',onFull);
+    };
   },[]);
 
-  const scale=fullscreen
-    ? Math.min(width/DESKTOP_WIDTH,window.innerHeight/DESKTOP_HEIGHT)
-    : width/DESKTOP_WIDTH;
+  const scale=isFull?Math.min(width/DESKTOP_WIDTH,window.innerHeight/DESKTOP_HEIGHT):width/DESKTOP_WIDTH;
   const frameHeight=Math.round(DESKTOP_HEIGHT*scale);
 
-  const maximize=async()=>{
-    try {
-      if(document.fullscreenElement===viewportRef.current)await document.exitFullscreen();
-      else await viewportRef.current?.requestFullscreen?.();
-    }catch{window.open(HALLOWEEN_QRVOTE_SCREEN,'_blank','noopener,noreferrer');}
+  const save=async event=>{
+    event.preventDefault();
+    if(!canEdit||saving||!albumId)return;
+    let normalized;
+    try{normalized=normalizeAudienceScreenUrl(draft);}
+    catch(error){setFeedback(error.message);return;}
+    setSaving(true);setFeedback('');
+    try{
+      const result=await supabase.from('bes_slideshow_albums')
+        .update({audience_screen_url:normalized,updated_at:new Date().toISOString()})
+        .eq('id',albumId)
+        .select('id,audience_screen_url')
+        .single();
+      if(result.error)throw result.error;
+      setCurrentUrl(result.data.audience_screen_url);
+      setDraft(result.data.audience_screen_url);
+      setFeedback(en?'Screen link saved for all viewers.':'Đã lưu link cho tất cả người xem.');
+      await onSaved?.();
+    }catch(error){setFeedback((en?'Could not save: ':'Không thể lưu: ')+(error.message||String(error)));}
+    finally{setSaving(false);}
   };
 
-  return <section className="bss-audience-panel" aria-label={en?'Live audience voting on QRvote':'Bình chọn khán giả trực tiếp từ QRvote'}>
+  const maximize=async()=>{
+    try{
+      if(document.fullscreenElement===viewportRef.current)await document.exitFullscreen();
+      else await viewportRef.current?.requestFullscreen?.();
+    }catch{
+      if(currentUrl)window.open(currentUrl,'_blank','noopener,noreferrer');
+    }
+  };
+
+  return <section className="bss-audience-panel" aria-label={en?'Live audience voting screen':'Khung bình chọn khán giả trực tiếp'}>
     <header className="bss-audience-heading">
-      <div className="bss-audience-title"><span className="bss-audience-pulse"/><strong>{en?'LIVE · AUDIENCE VOTING':'LIVE · BÌNH CHỌN KHÁN GIẢ'}</strong><small>QRvote</small></div>
+      <div className="bss-audience-title">
+        <span className="bss-audience-pulse"/>
+        <strong>{en?'LIVE · AUDIENCE VOTING':'LIVE · BÌNH CHỌN KHÁN GIẢ'}</strong>
+        <small>QRvote</small>
+      </div>
       <div className="bss-audience-actions">
-        <button type="button" onClick={maximize} title={en?'Expand original screen':'Phóng to màn hình gốc'} aria-label={en?'Expand QRvote screen':'Phóng to màn hình QRvote'}><Maximize2 size={15}/></button>
-        <a href={HALLOWEEN_QRVOTE_SCREEN} target="_blank" rel="noopener noreferrer" aria-label={en?'Open original QRvote scoreboard in new tab':'Mở màn hình QRvote gốc trong tab mới'}><ExternalLink size={15}/><span>{en?'Original screen':'Mở màn hình gốc'}</span></a>
+        {currentUrl&&<button type="button" onClick={maximize} title={en?'Expand screen':'Phóng to màn hình'} aria-label={en?'Expand QRvote screen':'Phóng to màn hình QRvote'}><Maximize2 size={15}/></button>}
+        {currentUrl&&<a href={currentUrl} target="_blank" rel="noopener noreferrer"><ExternalLink size={15}/><span>{en?'Original screen':'Mở QRvote'}</span></a>}
       </div>
     </header>
-    <div className="bss-audience-viewport" ref={viewportRef} style={fullscreen?undefined:{height:frameHeight+'px'}}>
-      <iframe
-        title={en?'QRvote Halloween Showcase 2026 live voting screen':'Màn hình bình chọn QRvote Halloween Showcase 2026'}
-        src={HALLOWEEN_QRVOTE_SCREEN}
-        loading="eager"
-        allowFullScreen
-        referrerPolicy="strict-origin-when-cross-origin"
-        style={{width:DESKTOP_WIDTH+'px',height:DESKTOP_HEIGHT+'px',transform:'scale('+scale+')'}}
-      />
-    </div>
+
+    {canEdit&&<form className="bss-audience-config" onSubmit={save}>
+      <label htmlFor={'bss-audience-url-'+albumId}>
+        <Link2 size={14}/>{en?'Paste the QRvote link here':'Dán link Live View khán giả tại đây'}
+      </label>
+      <div className="bss-audience-config-row">
+        <input id={'bss-audience-url-'+albumId} type="url" spellCheck={false}
+          placeholder="https://qrvote.org/c/.../screen" value={draft}
+          onChange={event=>{setDraft(event.target.value);setFeedback('');}}
+          aria-label={en?'QRvote screen URL':'Liên kết màn hình bình chọn QRvote'}/>
+        <button type="submit" disabled={saving||!draft.trim()}><Save size={14}/>{saving?(en?'Saving…':'Đang lưu…'):(en?'Save & display':'Lưu & hiển thị')}</button>
+      </div>
+      {feedback&&<p role="status" className="bss-audience-feedback"><Check size={13}/>{feedback}</p>}
+    </form>}
+
+    {currentUrl?<div className="bss-audience-viewport" ref={viewportRef} style={isFull?undefined:{height:frameHeight+'px'}}>
+      <iframe title={en?'Original QRvote voting results':'Màn hình kết quả QRvote gốc'}
+        src={currentUrl} loading="eager" allowFullScreen referrerPolicy="strict-origin-when-cross-origin"
+        style={{width:DESKTOP_WIDTH+'px',height:DESKTOP_HEIGHT+'px',transform:'scale('+scale+')'}}/>
+    </div>:<div className="bss-audience-placeholder" role="status">
+      <MonitorPlay size={29}/>
+      <strong>{en?'Audience screen is ready':'Đã tạo khung Live View khán giả'}</strong>
+      <span>{en?'The admin can paste and save a QRvote link above.':'Admin dán link QRvote vào ô phía trên rồi nhấn Lưu & hiển thị.'}</span>
+    </div>}
     <div className="bss-audience-foot">
       <MonitorPlay size={14} aria-hidden="true"/>
-      <span>{en
-        ? 'Live third-party screen, unchanged. If embedding is blocked, open the original.'
-        : 'Màn hình QRvote gốc, không chỉnh sửa. Nếu bị chặn nhúng, mở liên kết gốc.'}</span>
-      <a href={HALLOWEEN_QRVOTE_SCREEN} target="_blank" rel="noopener noreferrer">{en?'Open QRvote':'Mở QRvote'} <ExternalLink size={12}/></a>
+      <span>{en?'QRvote retains control. If embedding is blocked, use Open QRvote.':'QRvote kiểm soát việc nhúng. Nếu khung trắng hoặc bị chặn, hãy nhấn Mở QRvote.'}</span>
+      {currentUrl&&<a href={currentUrl} target="_blank" rel="noopener noreferrer">{en?'Open original':'Màn hình gốc'} <ExternalLink size={12}/></a>}
     </div>
   </section>;
 }
