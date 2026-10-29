@@ -20,13 +20,14 @@ const snapshot=page=>page.evaluate(()=>{
   heroSeason:hero?.dataset.halloweenHeroSeason,heroBlur:hero&&getComputedStyle(hero.querySelector('.hero-cms__content')).backdropFilter,
   spacer:rect(spacer),nav:rect(document.querySelector('.bes-top-chrome')),hero:rect(hero),
   title:[...hero?.querySelectorAll('h1 > span')||[]].map(el=>el.textContent),
+  buttons:[...hero?.querySelectorAll('.hero-cms__button')||[]].map(rect),
   overflow:document.documentElement.scrollWidth>innerWidth+2};
 });
 try {
  let ready=false;for(let i=0;i<100;i++){if(server.exitCode!==null)throw Error(stderr);try{if((await fetch(BASE)).ok){ready=true;break}}catch{}await sleep(200)}
  assert.ok(ready,'built application should start');
  browser=await chromium.launch({headless:true,args:['--no-sandbox'],...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH}:{})});
- for(const [width,height] of [[1024,768],[390,844]]){
+ for(const [width,height] of [[1024,768],[768,1024],[390,844],[360,800]]){
   const page=await browser.newPage({viewport:{width,height}});const errors=[];
   page.on('pageerror',error=>errors.push(error.message));
   await page.addInitScript(()=>localStorage.setItem('bes-halloween-home-master-v4',JSON.stringify({enabled:true,updatedAt:'2026-10-29T00:00:00Z'})));
@@ -35,6 +36,8 @@ try {
   const on=await snapshot(page);
   assert.equal(on.master,'on');assert.equal(on.heroSeason,'true');
   assert.deepEqual(on.title,['Happy','Halloween!']);assert.equal(on.heroBlur,'none');
+  assert.equal(on.buttons.length,2,'both live hero buttons exist');
+  assert.ok(on.buttons.every(button=>button.height>=38&&button.height<=64&&button.top>=on.hero.top&&button.bottom<=on.hero.bottom+1),'hero buttons are usable and not clipped');
   assert.equal(on.signText,'Same ClassroomBrighterFutures');
   assert.equal(on.signDisplay,width>900?'flex':'none');
   assert.equal(on.spacer?.height,0,'seasonal navigation does not leave an extra spacer');

@@ -194,6 +194,14 @@ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-hallo
   html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content h1 {
     font-size:clamp(39px,10vw,51px)!important;
   }
+  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__actions {
+    display:flex!important;flex-flow:row wrap!important;align-items:center!important;
+    width:100%!important;gap:8px!important;
+  }
+  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__button {
+    flex:0 1 auto!important;min-width:0!important;max-width:100%!important;
+    min-height:42px!important;height:auto!important;padding:9px 13px!important;
+  }
   html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-art {
     background-image:linear-gradient(180deg,#170628 0%,#170628e6 28%,#17062800 65%),url('/assets/home/v11/halloween-hero-world.webp')!important;
     background-position:center,61% bottom!important;background-size:cover,auto 72%!important;
