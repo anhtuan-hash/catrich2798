@@ -37,7 +37,9 @@ jobs:
               assert.equal(raw.includes(forbidden),false,"private field in public result: "+forbidden);
             }
             for(const artwork of data.artworks) {
-              assert.ok(artwork.scoredCount >= 1);\n              assert.ok(typeof artwork.average === "number");\n              assert.ok(artwork.criteria.length === data.rubric.length);
+              assert.ok(artwork.scoredCount >= 1);
+              assert.ok(typeof artwork.average === "number");
+              assert.ok(artwork.criteria.length === data.rubric.length);
             }
             console.log("Anonymous Live Jury saved-scores privacy check PASS");
           '
