@@ -63,6 +63,7 @@ function Fixture(){
       </div>
     </section>
     <section className="bhs-home" data-halloween-theme={active?'true':'false'} data-home-published-slideshow="true" data-guest-allow="slideshow-viewer" id="v4-slideshow">
+      {active ? <HalloweenScene zone="gallery" /> : null}
       <header className="bhs-home__header"><div className="bhs-home__headline">
        <div className="bhs-home__kicker">BRIAN PHOTO STORY · ĐANG TRÌNH CHIẾU</div>
        <h2>Halloween Showcase 2026</h2><p>Step into a world of spooky imagination and creativity!</p></div>
@@ -99,6 +100,7 @@ function Fixture(){
   </main>
   <footer className="footer footer-v10 signature-footer-v75 signature-footer-v50 signature-footer-collapsible signature-footer-dashboard-global signature-footer-v50-vi"
      data-app-shell-footer="true" data-footer-mode="full" data-footer-route="home" data-halloween-footer={active?'true':'false'}>
+   {active ? <HalloweenScene zone="footer" /> : null}
    <div className="signature-footer-expanded-panel"><div className="signature-footer-v50-main">
     <section className="signature-footer-v50-brand"><img className="signature-footer-v50-brian-logo" src="/brian-english-brand-logo.png" alt="Brian logo"/>
       <div className="signature-footer-v50-affiliations"><img src="/footer-pek-logo.png" alt="Pétrus Ký"/><img src="/footer-cambridge-logo.png" alt="Cambridge"/></div></section>
