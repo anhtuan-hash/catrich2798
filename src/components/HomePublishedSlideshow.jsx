@@ -1,3 +1,4 @@
+import HalloweenScene from '../features/halloween-home/HalloweenScene.jsx';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Expand, Images, Maximize2, Pause, Play } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '../utils/supabase.js';
@@ -167,6 +168,7 @@ export default function HomePublishedSlideshow({ language = 'vi' }) {
 
   return (
     <section className="bhs-home" data-halloween-theme={seasonalHome.enabled && isHalloweenAlbum(selected) ? "true" : "false"} data-guest-allow="slideshow-viewer" data-home-published-slideshow="true" aria-label={en ? 'Published photo slideshow' : 'Trình chiếu ảnh đã công bố'}>
+      {seasonalHome.enabled && isHalloweenAlbum(selected) ? <HalloweenScene zone="gallery" /> : null}
       <header className="bhs-home__header">
         <div className="bhs-home__headline">
           <div className="bhs-home__kicker"><Images size={15} /> BRIAN PHOTO STORY <i /> {en ? 'NOW SHOWING' : 'ĐANG TRÌNH CHIẾU'}</div>
