@@ -1,0 +1,34 @@
+name: Halloween V10 — art-first scene QA
+on:
+  pull_request:
+    paths:
+      - 'src/features/halloween-home/halloween.v10-art-direction.css'
+      - 'src/pages/Home.jsx'
+      - 'scripts/test-halloween-home-v10*'
+      - 'tests/fixtures/halloween-home-v10*'
+      - '.github/workflows/halloween-home-v10.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  art-first:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node scripts/test-halloween-home-v10.mjs
+      - run: npx vite build
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/test-halloween-home-v10-browser.mjs
+      - name: Preserve ON / OFF screenshots for real comparison
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: halloween-v10-art-first-visual-QA
+          path: artifacts/halloween-v10/
+          if-no-files-found: warn
