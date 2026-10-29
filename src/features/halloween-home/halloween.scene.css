@@ -372,3 +372,39 @@ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] 
    display:none!important;
  }
 }
+
+
+/* Art-director's reference-viewport spacing. This corrects the actual
+ * screenshot gaps (nav +20, gallery +20, footer +30) without hiding rows. */
+@media(min-width:901px) and (max-width:1180px) {
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .bes-top-chrome {
+   min-height:46px!important;height:auto!important;
+   padding-top:0!important;padding-bottom:0!important;
+   margin-top:4px!important;
+   margin-bottom:0!important;
+   border-radius:999px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .bes-top-chrome nav.brian-nav[data-halloween-nav="true"] {
+   min-height:44px!important;height:auto!important;
+   padding-block:3px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .bes-top-chrome .brian-nav__primary > button {
+   min-height:33px!important;
+   padding-block:5px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] {
+   padding-top:10px!important;padding-bottom:7px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] .bhs-home__header {
+   margin-bottom:5px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] .bhs-home__exhibition > .bhs-home__stage {
+   min-height:230px!important;height:230px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] .bhs-home__filmstrip {
+   padding-block:2px!important;min-height:49px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] {
+   padding-top:6px!important;padding-bottom:4px!important;
+ }
+}
