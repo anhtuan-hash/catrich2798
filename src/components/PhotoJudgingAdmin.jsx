@@ -130,6 +130,17 @@ export default function JudgingAdmin({album, slides=[]}) {
           {session.status==='draft'&&<button disabled={busy||weights!==100||rubric.some(c=>!c.label.trim())} onClick={()=>run('admin:rubric',{rubric})}>Lưu rubric</button>}
         </div>
       </div>
+      <div className="bj-live-toggle">
+        <div>
+          <strong>Live Jury trên trang triển lãm công khai</strong>
+          <small>Chỉ tổng hợp phiếu đã nộp, giấu danh tính và điểm riêng. Điểm trung bình hiện từ 3 phiếu hợp lệ trở lên.</small>
+        </div>
+        <button type="button" role="switch" aria-checked={session.public_live_enabled!==false}
+          disabled={busy} className={session.public_live_enabled!==false?'is-on':''}
+          onClick={()=>run('admin:visibility',{enabled:session.public_live_enabled===false})}>
+          {session.public_live_enabled!==false?'Đang bật':'Đang tắt'}
+        </button>
+      </div>
       <div className="bj-box">
         <h4><UsersRound size={18}/> Danh sách giám khảo</h4>
         {session.status!=='closed'&&<div className="bj-add">
