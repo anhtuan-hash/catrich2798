@@ -16,6 +16,8 @@
   background:#faf2e4;min-height:0;border:1px solid #ecb58757;border-radius:11px}
 .bss-audience-viewport iframe{position:absolute;inset:0 auto auto 0;display:block;border:0;
   transform-origin:0 0;background:#fff7e8}
+.bss-audience-framed{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);overflow:hidden}
+.bss-audience-panel{position:relative}
 .bss-audience-viewport:fullscreen{border:0;border-radius:0;width:100vw;height:100vh;background:#0b1628;
   display:grid;place-items:start}
 .bss-audience-foot{display:flex;align-items:flex-start;gap:7px;color:#91a6bf;font-size:10px;line-height:1.45}
