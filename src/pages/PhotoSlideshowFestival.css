@@ -1,0 +1,59 @@
+/* Halloween Showcase 2026 / approved triple-live dashboard.
+   Non-Halloween galleries keep the existing layout without overrides. */
+.bss--gallery-view .bss-gallery-layout.bss-gallery-layout--festival{
+  grid-template-columns:minmax(0,1.52fr) minmax(220px,.70fr) minmax(390px,1.44fr);
+  gap:14px;align-items:start;
+}
+.bss--gallery-view .bss-gallery-layout--festival>.bss-gallery-main{min-width:0}
+.bss--gallery-view .bss-gallery-layout--festival>.bss-gallery-sidebar{min-width:0;min-height:560px;align-self:stretch;padding:clamp(13px,1.35vw,21px)}
+.bss--gallery-view .bss-gallery-layout--festival .bss-stage{aspect-ratio:1.37;min-height:300px}
+.bss--gallery-view .bss-gallery-layout--festival .bss-gallery-sidebar-number{font-size:clamp(42px,4vw,66px)}
+.bss--gallery-view .bss-gallery-layout--festival .bss-gallery-caption-detail{padding:20px 0 14px}
+.bss--gallery-view .bss-gallery-layout--festival .bss-gallery-caption-detail p{font-size:12px;line-height:1.65}
+.bss-festival-live-stack{display:flex;min-width:0;flex-direction:column;gap:12px;align-self:start}
+.bss--gallery-view .bss-festival-live-stack>.bss-jury-live{height:clamp(360px,41vh,425px);min-height:0;overflow:hidden;gap:8px;padding:13px}
+.bss--gallery-view .bss-festival-live-stack .bss-jury-rank-current{padding:9px 10px}
+.bss--gallery-view .bss-festival-live-stack .bss-jury-rank-current-text strong{font-size:13px}
+.bss--gallery-view .bss-festival-live-stack .bss-jury-rank-current-score strong{font-size:30px}
+.bss--gallery-view .bss-festival-live-stack .bss-jury-rank-toolbar{gap:6px}
+.bss--gallery-view .bss-festival-live-stack .bss-jury-rank-list{
+  flex:1;min-height:0;max-height:none;overflow:auto;display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;
+  gap:5px;padding-right:3px;
+}
+.bss--gallery-view .bss-festival-live-stack .bss-jury-rank-row{padding:6px;gap:5px;min-width:0}
+.bss--gallery-view .bss-festival-live-stack .bss-jury-rank-position{height:25px;min-width:24px;width:24px;font-size:11px}
+.bss--gallery-view .bss-festival-live-stack .bss-jury-rank-thumb{width:23px;height:26px}
+.bss--gallery-view .bss-festival-live-stack .bss-jury-rank-row-label{display:block}
+.bss--gallery-view .bss-festival-live-stack .bss-jury-rank-row-label strong{font-size:10px}
+.bss--gallery-view .bss-festival-live-stack .bss-jury-rank-row-label small{font-size:9px}
+.bss--gallery-view .bss-festival-live-stack .bss-jury-rank-row-score{font-size:13px;min-width:31px}
+.bss--gallery-view .bss-festival-live-stack .bss-jury-rank-row-main{gap:4px}
+.bss--gallery-view .bss-festival-live-stack .bss-jury-rank-track{height:4px}
+.bss--gallery-view .bss-festival-live-stack .bss-jury-rank-disclaimer{font-size:9px;line-height:1.4}
+.bss--gallery-view .bss-festival-live-stack .bss-jury-footer{font-size:9px}
+@media(max-width:1250px){
+ .bss--gallery-view .bss-gallery-layout.bss-gallery-layout--festival{
+   grid-template-columns:minmax(0,1fr) minmax(220px,.40fr);
+ }
+ .bss--gallery-view .bss-gallery-layout--festival>.bss-gallery-sidebar{min-height:0}
+ .bss--gallery-view .bss-gallery-layout--festival .bss-festival-live-stack{
+   grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;
+ }
+ .bss--gallery-view .bss-gallery-layout--festival .bss-festival-live-stack>.bss-jury-live{height:430px}
+ .bss--gallery-view .bss-gallery-layout--festival .bss-festival-live-stack .bss-jury-rank-list{
+   grid-template-columns:1fr;
+ }
+}
+@media(max-width:780px){
+ .bss--gallery-view .bss-gallery-layout.bss-gallery-layout--festival{grid-template-columns:1fr;gap:12px}
+ .bss--gallery-view .bss-gallery-layout--festival>.bss-gallery-sidebar{min-height:0;align-self:auto}
+ .bss--gallery-view .bss-gallery-layout--festival .bss-festival-live-stack{
+   grid-column:auto;display:flex;flex-direction:column;
+ }
+ .bss--gallery-view .bss-gallery-layout--festival .bss-festival-live-stack>.bss-jury-live{height:420px}
+ .bss--gallery-view .bss-gallery-layout--festival .bss-festival-live-stack .bss-jury-rank-list{
+   grid-template-columns:1fr;
+ }
+ .bss--gallery-view .bss-gallery-layout--festival .bss-stage{aspect-ratio:4/3}
+}

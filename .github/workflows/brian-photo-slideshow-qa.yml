@@ -12,6 +12,9 @@ on:
       - 'scripts/test-photo-jury-ranking.mjs'
       - 'src/utils/photoJuryRanking.js'
       - 'src/components/PhotoJuryLive*'
+      - 'src/components/PhotoAudienceLive*'
+      - 'src/pages/PhotoSlideshowFestival.css'
+      - 'scripts/test-photo-audience-live.mjs'
       - 'supabase/migrations/*photo_story_live_jury.sql'
       - 'scripts/test-photo-judging-quick-scores.mjs'
       - 'scripts/test-photo-judging-copy-links.mjs'
@@ -42,6 +45,7 @@ jobs:
       - run: node scripts/test-photo-judging.mjs
       - run: node scripts/test-photo-jury-live.mjs
       - run: node scripts/test-photo-jury-ranking.mjs
+      - run: node scripts/test-photo-audience-live.mjs
       - run: node scripts/test-photo-judging-quick-scores.mjs
       - run: node scripts/test-photo-judging-copy-links.mjs
       - run: node scripts/build-brian-vercel-release.mjs
