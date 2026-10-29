@@ -1,5 +1,6 @@
 import { assessmentText } from './assessmentBilingual.js';
 import { LEGACY_SITE_EN } from './legacySiteTranslations.js';
+import { JUDGING_UI_EN } from './judgingTranslations.js';
 
 const COUNT_TERMS = Object.freeze({
   'học sinh':'students', 'giáo viên':'teachers', 'lớp':'classes',
@@ -47,6 +48,7 @@ const DYNAMIC_UI = [
 // Returning null tells the caller to preserve the original content untouched.
 export function lookupLegacyUiEnglish(source) {
   if (!source || typeof source !== 'string') return null;
+  if (Object.hasOwn(JUDGING_UI_EN, source)) return JUDGING_UI_EN[source];
   if (Object.hasOwn(LEGACY_SITE_EN, source)) return LEGACY_SITE_EN[source];
   // JSX source contains HTML entities; browser DOM exposes decoded text.
   // Do not decode via innerHTML: this is a pure, safe string lookup.
