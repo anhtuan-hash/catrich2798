@@ -50,5 +50,30 @@ export default function HalloweenScene({ zone }) {
     );
   }
 
+
+  if (zone === 'gallery') {
+    return (
+      <div className="halloween-scene halloween-scene--gallery" aria-hidden="true" data-seasonal-art="gallery">
+        <div className="halloween-scene__night" />
+        <Art name="halloween-gallery-ghost" className="gallery-ghost" />
+        <Art name="halloween-hanging-lanterns" className="gallery-lanterns" />
+        <div className="halloween-scene__ambient" />
+      </div>
+    );
+  }
+
+  if (zone === 'footer') {
+    return (
+      <div className="halloween-scene halloween-scene--footer" aria-hidden="true" data-seasonal-art="footer">
+        <div className="halloween-scene__night" />
+        <Art name="halloween-pumpkin-main" className="footer-left-pumpkin" />
+        <Art name="halloween-black-cat" className="footer-cat" />
+        <Art name="halloween-tree-right" className="footer-right-tree" />
+        <Art name="halloween-hanging-lanterns" className="footer-lanterns" />
+        <div className="halloween-scene__ambient" />
+      </div>
+    );
+  }
+
   return null;
 }
