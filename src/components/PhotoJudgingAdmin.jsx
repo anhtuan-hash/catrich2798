@@ -31,7 +31,7 @@ export default function JudgingAdmin({album, slides=[]}) {
   const [data,setData]=useState(null);
   const [name,setName]=useState('');
   const [rubric,setRubric]=useState([]);
-  const [link,setLink]=useState('');
+  const [linkPreview,setLinkPreview]=useState(null);
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
   const [notice,setNotice]=useState('');
@@ -41,7 +41,7 @@ export default function JudgingAdmin({album, slides=[]}) {
   },[album.id]);
   useEffect(()=>{
     let live=true;
-    setData(null);setError('');setLink('');
+    setData(null);setError('');setLinkPreview(null);
     refresh().catch(e=>{if(live)setError(e.message);});
     return()=>{live=false;};
   },[refresh]);
@@ -55,10 +55,41 @@ export default function JudgingAdmin({album, slides=[]}) {
     try {
       const result=await photoJudgingRequest({action,albumId:album.id,...values},true);
       setData(result);setRubric(result.session.rubric);
-      if(result.token){setLink(linkFor(result.token));setNotice('Đường liên kết mới chỉ hiển thị tại đây. Hãy sao chép để gửi cho giám khảo.');}
+      if(result.token && result.inviteId) {
+        // Keep newly issued link attached to the corresponding judge, never a shared link panel.
+        setLinkPreview({inviteId:result.inviteId,url:linkFor(result.token)});
+        setNotice('Liên kết đã được tạo cho giám khảo. Nhấn Sao chép link ngay trên dòng tên để chia sẻ.');
+      } else if(action==='admin:revoke') setLinkPreview(null);
       else setNotice('Đã cập nhật dữ liệu thành công.');
       if(action==='admin:create')setName('');
     } catch(e){setError(e.message);} finally {setBusy(false);}
+  }
+  async function copyJudgeLink(judge) {
+    if (busy || judge.revoked_at) return;
+    const legacy=!judge.has_copyable_link;
+    if (legacy && (judge.submitted_at || data?.session.status==='closed')) {
+      setError('Liên kết cũ không thể khôi phục sau khi giám khảo đã nộp hoặc phiên chấm đã khóa.');
+      return;
+    }
+    if (legacy && !window.confirm(
+      'Liên kết của '+judge.full_name+' được tạo trước khi hệ thống hỗ trợ sao chép lại. '+
+      'Để có nút sao chép, cần cấp link mới và vô hiệu hóa link cũ. Điểm đã lưu vẫn được giữ nguyên. Tiếp tục?'
+    )) return;
+    setBusy(true);setError('');setNotice('');
+    try {
+      const result=await photoJudgingRequest({
+        action:legacy?'admin:reissue':'admin:link',albumId:album.id,inviteId:judge.id
+      },true);
+      if(legacy) {setData(result);setRubric(result.session.rubric);}
+      const url=linkFor(result.token);
+      setLinkPreview({inviteId:judge.id,url});
+      try {
+        await navigator.clipboard.writeText(url);
+        setNotice('Đã sao chép đúng liên kết của '+judge.full_name+'.');
+      } catch {
+        setNotice('Đã mở đường link ngay dưới tên '+judge.full_name+'. Hãy chọn và sao chép thủ công.');
+      }
+    } catch(e) {setError(e.message);} finally {setBusy(false);}
   }
   const session=data?.session;
   const judges=(data?.judges||[]).filter(j=>!j.revoked_at);
@@ -105,14 +136,26 @@ export default function JudgingAdmin({album, slides=[]}) {
           <input value={name} maxLength={120} onChange={e=>setName(e.target.value)} placeholder="Nhập họ và tên giám khảo" aria-label="Họ và tên giám khảo"/>
           <button disabled={busy||name.trim().length<2} onClick={()=>run('admin:create',{fullName:name.trim()})}><Plus size={16}/> Tạo liên kết</button>
         </div>}
-        {link&&<div className="bj-link"><label>Liên kết mới cấp — sao chép ngay (không lưu token gốc trên máy chủ)</label><input readOnly value={link} onFocus={e=>e.target.select()}/>
-          <div className="bj-inline"><button onClick={()=>navigator.clipboard.writeText(link).then(()=>setNotice('Đã sao chép liên kết.')).catch(()=>setError('Không thể sao chép. Hãy chọn và sao chép thủ công.'))}><ClipboardCopy size={15}/> Sao chép</button><a href={link} target="_blank" rel="noopener noreferrer"><ExternalLink size={15}/> Xem trang chấm</a></div>
-        </div>}
-        <div className="bj-judges">{data.judges.map(j=><div className="bj-judge" key={j.id}>
-          <div className="bj-avatar"><UsersRound size={18}/></div>
-          <div className="bj-judge-info"><strong>{j.full_name}</strong><small>{j.revoked_at?'Đã thu hồi':j.submitted_at?'Đã nộp phiếu':j.progress+' / '+photoCount+' tác phẩm'} · {j.last_seen_at?'Đã truy cập':'Chưa truy cập'}</small></div>
-          {!j.revoked_at&&!j.submitted_at&&session.status!=='closed'&&<button disabled={busy} title="Cấp liên kết mới, vô hiệu hóa link cũ" onClick={()=>window.confirm('Cấp lại link và vô hiệu hóa link trước đó?')&&run('admin:reissue',{inviteId:j.id})}><KeyRound size={16}/><span>Cấp lại</span></button>}
-          {!j.revoked_at&&!j.submitted_at&&session.status!=='closed'&&<button disabled={busy} title="Thu hồi quyền chấm" onClick={()=>window.confirm('Thu hồi quyền truy cập giám khảo này?')&&run('admin:revoke',{inviteId:j.id})}><ShieldOff size={16}/></button>}
+        
+        <div className="bj-judges">{data.judges.map(j=><div className="bj-judge-entry" key={j.id}>
+          <div className="bj-judge">
+            <div className="bj-avatar"><UsersRound size={18}/></div>
+            <div className="bj-judge-info"><strong>{j.full_name}</strong><small>{j.revoked_at?'Đã thu hồi':j.submitted_at?'Đã nộp phiếu':j.progress+' / '+photoCount+' tác phẩm'} · {j.last_seen_at?'Đã truy cập':'Chưa truy cập'}</small></div>
+            {!j.revoked_at&&<button
+              type="button"
+              className="bj-copy-link"
+              disabled={busy || (!j.has_copyable_link&&(!!j.submitted_at||session.status==='closed'))}
+              title="Sao chép link"
+              aria-label={'Sao chép link của '+j.full_name}
+              onClick={()=>copyJudgeLink(j)}
+            ><ClipboardCopy size={16}/><span>Sao chép link</span></button>}
+            {!j.revoked_at&&!j.submitted_at&&session.status!=='closed'&&<button disabled={busy} title="Cấp liên kết mới, vô hiệu hóa link cũ" onClick={()=>window.confirm('Cấp lại link và vô hiệu hóa link trước đó?')&&run('admin:reissue',{inviteId:j.id})}><KeyRound size={16}/><span>Cấp lại</span></button>}
+            {!j.revoked_at&&!j.submitted_at&&session.status!=='closed'&&<button disabled={busy} title="Thu hồi quyền chấm" onClick={()=>window.confirm('Thu hồi quyền truy cập giám khảo này?')&&run('admin:revoke',{inviteId:j.id})}><ShieldOff size={16}/></button>}
+          </div>
+          {linkPreview?.inviteId===j.id&&!j.revoked_at&&<div className="bj-row-link">
+            <input readOnly aria-label={'Link của '+j.full_name} value={linkPreview.url} onFocus={e=>e.target.select()}/>
+            <a href={linkPreview.url} target="_blank" rel="noopener noreferrer"><ExternalLink size={15}/> Xem trang chấm</a>
+          </div>}
         </div>)}</div>
       </div>
       <div className="bj-controls">
