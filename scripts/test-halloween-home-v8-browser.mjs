@@ -15,6 +15,7 @@ const state=async page=>page.evaluate(()=>{
   body:css('body').backgroundColor, shell:css('.app-shell').backgroundImage,
   hero:css('#v4-hero').backgroundImage,
   art:e('.hero-cms__halloween-art')?css('.hero-cms__halloween-art').backgroundImage:null,
+  ghost:e('.hero-cms__halloween-ghost')?css('.hero-cms__halloween-ghost').backgroundImage:null,
   heroRadius:css('#v4-hero').borderRadius,
   nav:css('.brian-nav').backgroundImage,
   activeNav:css('.brian-nav__primary button.is-active').backgroundImage,
@@ -70,8 +71,10 @@ try{
     assert.ok(typography.bounds[1].right<=typography.heroRight+2,label+' text stays in Hero frame');
   }
   assert.equal(on.master,'on',label+' master enabled');
-  assert.ok(on.art?.includes('halloween-v9-hero-right.webp'),label+' art lives in its own decorative layer');
+  assert.ok(on.art?.includes('/assets/home/v9/halloween-hero-world.webp'),label+' full-resolution V9 storybook art is the live decorative Hero layer');
+  assert.ok(on.ghost?.includes('/assets/home/v9/halloween-ghost-reader.webp'),label+' V9 storybook reading ghost has an independent foreground layer');
   assert.equal(off.art,null,label+' OFF has no illustrated art DOM');
+  assert.equal(off.ghost,null,label+' OFF has no ghost DOM');
   assert.ok(on.hero.includes('gradient('),label+' seamless tonal backdrop behind real text (radial desktop / linear mobile)');
   assert.ok(on.shell!==off.shell,label+' entire world recolored');
   assert.ok(on.nav!==off.nav,label+' navbar themed');
@@ -96,6 +99,7 @@ try{
   }
   assert.equal(restored.master,'off',label+' master disabled');
   assert.equal(restored.art,null,label+' art layer removed after OFF');
+  assert.equal(restored.ghost,null,label+' ghost layer removed after OFF');
   assert.deepEqual(errors,[],label+' JS errors');
   results.push({viewport:label,size:width+'x'+height,artwork:'AVIF loaded',galleryGap:on.galleryGap,sourcePhotoLoaded:on.imageNaturalWidth>0,fullRestoration:true,noOverflow:true,geometry:on.geometry,fullHeight:on.fullHeight});
   console.log('PASS HALLOWEEN V8 '+JSON.stringify(results.at(-1)));
