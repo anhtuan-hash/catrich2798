@@ -1,3 +1,4 @@
+import HalloweenScene from '../features/halloween-home/HalloweenScene.jsx';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight,
@@ -320,6 +321,7 @@ export default function HomeHeroExperience2026({
           {activeConfig.overlay.enabled ? <div className="hero-cms__overlay" /> : null}
         </div>
 
+        {halloweenOn ? <HalloweenScene zone="hero" /> : null}
         <div className="hero-cms__content">
           {activeConfig.badge.enabled ? (
             <span className="hero-cms__badge">
@@ -330,7 +332,7 @@ export default function HomeHeroExperience2026({
 
           <h1>{halloweenOn ? <><span>Happy</span><span>Halloween!</span></> : headlineLines(headline).map((line) => <span key={line}>{line}</span>)}</h1>
           {halloweenOn ? <h2>Learn · Play · Create · Grow</h2> : highlight ? <h2>{highlight}</h2> : null}
-          {halloweenOn ? <p>{vi ? 'Khám phá không gian dạy học tiếng Anh nhiệm màu — sáng tạo, tương tác và truyền cảm hứng mỗi ngày cùng BRIAN.' : 'Step into a magical English classroom filled with creativity, interactive tools and inspiring learning experiences.'}</p> : description ? <p>{description}</p> : null}
+          {halloweenOn ? <p>{vi ? 'Khám phá không gian dạy học tiếng Anh đầy sáng tạo, tương tác và truyền cảm hứng mỗi ngày cùng BRIAN.' : 'Turn your English classroom into a world of creativity, curiosity and confidence. Explore interactive tools, fun activities and real learning experiences with BRIAN.'}</p> : description ? <p>{description}</p> : null}
 
           <div className="hero-cms__actions">
             {activeConfig.buttons.map((button) => <HeroButton key={button.id} button={button} language={language} onActivate={handleButton} />)}

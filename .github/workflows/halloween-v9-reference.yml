@@ -1,0 +1,47 @@
+name: Halloween V9 — visual parity and functional safety
+on:
+  pull_request:
+    paths:
+      - 'src/features/halloween-home/**'
+      - 'public/assets/home/v9/**'
+      - 'src/pages/Home.jsx'
+      - 'src/components/HomeHeroExperience2026.jsx'
+      - 'scripts/test-halloween-home-v8*'
+      - 'scripts/test-halloween-home-v9*'
+      - 'scripts/test-halloween-home-v7*'
+      - 'tests/fixtures/halloween-home-v8*'
+      - '.github/workflows/halloween-v9-reference.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  visual-parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Legacy permissions and admin master ON/OFF
+        run: |
+          node scripts/test-halloween-home-v4.mjs
+          node scripts/test-halloween-home-v5.mjs
+          node scripts/test-halloween-home-v7.mjs
+          node scripts/test-halloween-home-v8.mjs
+          node scripts/test-halloween-home-v9.mjs
+      - name: Compile the actual Vite application
+        run: npx vite build
+      - name: Install Chromium for real browser screenshot
+        run: npx playwright install --with-deps chromium
+      - name: Six viewports — typography, full image, no overflow, OFF restores
+        run: node scripts/test-halloween-home-v8-browser.mjs
+      - name: Upload visual proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: halloween-v9-reference-qa
+          path: artifacts/halloween-v8/
+          if-no-files-found: warn

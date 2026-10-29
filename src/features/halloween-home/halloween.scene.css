@@ -1,0 +1,434 @@
+/*
+ * V10 Art-First scene composition. Dedicated component system, not a cascade
+ * of screenshot-background fixes. The Home master switch is authoritative.
+ * Content is genuine React; all scene layers are decorative and non-clickable.
+ */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms {
+  position:relative!important;
+  isolation:isolate!important;
+  overflow:hidden!important;
+  background:#18092e!important;
+  background-image:radial-gradient(ellipse at 65% 30%,#4d2472,#221040 58%,#140724)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene {
+  position:absolute!important;
+  display:block!important;
+  inset:0!important;
+  height:100%!important;
+  width:100%!important;
+  overflow:hidden!important;
+  pointer-events:none!important;
+  user-select:none!important;
+  z-index:2!important;
+  isolation:isolate!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene img {
+  position:absolute!important;
+  display:block!important;
+  border:0!important;
+  box-shadow:none!important;
+  pointer-events:none!important;
+  max-width:none!important;
+  image-rendering:auto!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--hero .halloween-scene__night {
+  position:absolute!important;inset:0!important;
+  background:
+    radial-gradient(ellipse at 74% 23%,rgba(251,188,90,.20),transparent 37%),
+    radial-gradient(ellipse at 50% 85%,rgba(131,44,177,.23),transparent 53%),
+    linear-gradient(90deg,#1c0936 0%,#261046 50%,#1a0a2e 100%)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--hero .halloween-scene__world {
+  inset:0 0 0 auto!important;
+  width:70%!important;height:100%!important;
+  object-fit:cover!important;object-position:right center!important;
+  z-index:1!important;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.15) 7%,#000 32%)!important;
+  mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.15) 7%,#000 32%)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--hero .halloween-scene__reader {
+  top:12%!important;left:45.5%!important;
+  width:clamp(142px,17vw,192px)!important;
+  height:clamp(175px,21vw,236px)!important;
+  object-fit:contain!important;
+  z-index:4!important;
+  filter:drop-shadow(0 13px 18px #1203299c) drop-shadow(0 0 11px #ffbe6b65)!important;
+  -webkit-mask-image:radial-gradient(ellipse 64% 75% at 52% 53%,#000 62%,transparent 95%)!important;
+  mask-image:radial-gradient(ellipse 64% 75% at 52% 53%,#000 62%,transparent 95%)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--hero .halloween-scene__left-tree {
+  left:-27px!important;top:-22px!important;
+  height:64%!important;width:18%!important;
+  object-fit:contain!important;object-position:top left!important;
+  z-index:3!important;opacity:.93!important;
+  -webkit-mask-image:linear-gradient(90deg,#000 55%,transparent 100%)!important;
+  mask-image:linear-gradient(90deg,#000 55%,transparent 100%)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--hero .halloween-scene__right-tree {
+  top:-15px!important;right:-18px!important;
+  width:19%!important;height:58%!important;
+  object-fit:contain!important;object-position:top right!important;
+  z-index:3!important;opacity:.89!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--hero .halloween-scene__lanterns {
+  left:4%!important;top:1%!important;
+  width:min(7.5%,88px)!important;height:37%!important;
+  object-fit:contain!important;object-position:top center!important;
+  filter:drop-shadow(0 0 18px #ff9b498a)!important;
+  z-index:4!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--hero .halloween-scene__ambient {
+  position:absolute!important;
+  inset:0!important;z-index:5!important;
+  background:
+    linear-gradient(90deg,rgba(22,5,46,.56) 0,rgba(22,5,46,.26) 28%,transparent 49%),
+    linear-gradient(180deg,transparent 79%,rgba(19,5,38,.28) 94%,#130526 100%)!important;
+  pointer-events:none!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-art,
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-ghost {
+  display:none!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms::before,
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms::after {
+  display:none!important;content:none!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms .hero-cms__content {
+  position:relative!important;
+  z-index:8!important;
+  width:49%!important;
+  max-width:49%!important;
+  box-sizing:border-box!important;
+  padding-left:clamp(35px,8vw,122px)!important;
+  padding-right:0!important;
+  overflow:visible!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms .hero-cms__content h1 {
+  font-family:"Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif!important;
+  font-size:clamp(50px,6.25vw,82px)!important;
+  font-weight:900!important;
+  letter-spacing:-.055em!important;
+  line-height:.92!important;
+  display:flex!important;flex-direction:column!important;
+  align-items:flex-start!important;
+  white-space:nowrap!important;
+  width:max-content!important;
+  text-wrap:nowrap!important;
+  max-width:none!important;
+  margin-block:10px 8px!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms .hero-cms__content h1 span {
+  white-space:nowrap!important;
+  display:block!important;
+  width:max-content!important;
+  word-break:keep-all!important;
+  overflow-wrap:normal!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__content > p {
+  width:min(410px,96%)!important;
+  max-width:410px!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice.bha-practice--editorial-v3 {
+  position:relative!important;
+  isolation:isolate!important;
+  background:radial-gradient(ellipse 65% 50% at 48% 10%,#4a1467 0%,#250b48 45%,#120528 100%)!important;
+  border:0!important;
+  border-left:1px solid #995a83a0!important;
+  border-right:1px solid #995a83a0!important;
+  overflow:hidden!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice.bha-practice--editorial-v3::before {
+  display:none!important;content:none!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice.bha-practice--editorial-v3 > :not(.halloween-scene) {
+  position:relative!important;z-index:5!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--practice {
+  z-index:1!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--practice .halloween-scene__night {
+  position:absolute!important;inset:0!important;
+  background:linear-gradient(180deg,#22104177,#31104a99 28%,#17062f 96%)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--practice .halloween-scene__cemetery {
+  top:0!important;left:-4%!important;
+  width:62%!important;height:min(155px,25%)!important;
+  object-fit:cover!important;object-position:left top!important;
+  z-index:2!important;opacity:.9!important;
+  /* Explicitly mask away baked lettering and the number 65 in old crop. */
+  clip-path:inset(0 35% 21% 0)!important;
+  -webkit-mask-image:linear-gradient(90deg,#000 15%,#000 53%,transparent 73%)!important;
+  mask-image:linear-gradient(90deg,#000 15%,#000 53%,transparent 73%)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--practice .halloween-scene__practice-tree-left {
+  bottom:-4%!important;left:-6%!important;
+  width:18%!important;height:46%!important;
+  object-fit:contain!important;object-position:left bottom!important;
+  opacity:.72!important;z-index:3!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--practice .halloween-scene__practice-tree-right {
+  bottom:0!important;right:-6%!important;
+  width:18%!important;height:43%!important;
+  object-fit:contain!important;object-position:right bottom!important;
+  opacity:.74!important;z-index:3!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--practice .halloween-scene__practice-pumpkin {
+  top:11%!important;left:54%!important;
+  width:clamp(62px,9vw,118px)!important;
+  height:clamp(63px,10vw,120px)!important;
+  object-fit:contain!important;z-index:3!important;
+  filter:drop-shadow(0 0 20px #ff8b3c83)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--practice .halloween-scene__ambient {
+  position:absolute!important;inset:0!important;
+  background:linear-gradient(180deg,transparent 12%,#1808297a 34%,transparent 58%)!important;
+  z-index:4!important;
+}
+@media(min-width:901px) and (max-width:1180px){
+  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms .hero-cms__content {
+    width:51%!important;max-width:51%!important;
+    padding-left:clamp(55px,8.5vw,95px)!important;
+  }
+  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms .hero-cms__content h1 {
+    font-size:clamp(53px,5.9vw,65px)!important;
+  }
+  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--hero .halloween-scene__world {
+    width:72%!important;
+  }
+  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--hero .halloween-scene__reader {
+    left:45%!important;top:12%!important;
+    width:clamp(145px,16vw,175px)!important;
+  }
+}
+@media(max-width:900px){
+  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms .hero-cms__content {
+    width:62%!important;max-width:62%!important;
+    padding-left:22px!important;
+  }
+  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms .hero-cms__content h1 {
+    font-size:clamp(43px,6.5vw,58px)!important;
+  }
+}
+@media(max-width:620px){
+  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms .hero-cms__content {
+    width:100%!important;max-width:100%!important;
+    padding:21px!important;
+    justify-content:flex-start!important;
+  }
+  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-hero.hero-cms .hero-cms__content h1 {
+    font-size:clamp(40px,10.3vw,54px)!important;
+    margin-top:6px!important;
+  }
+  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--hero .halloween-scene__world {
+    width:100%!important;height:71%!important;
+    inset:auto 0 0 0!important;
+    object-position:65% center!important;
+    -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 24%)!important;
+    mask-image:linear-gradient(180deg,transparent 0%,#000 24%)!important;
+  }
+  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--hero .halloween-scene__reader {
+    top:auto!important;bottom:11%!important;left:54%!important;
+    width:125px!important;height:156px!important;
+  }
+  html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--hero .halloween-scene__lanterns {
+    left:6%!important;top:51%!important;width:62px!important;height:130px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene * {
+   animation:none!important;transition:none!important;
+ }
+}
+
+
+/* Gallery: showcase art stays real and fully visible; seasonal characters
+ * decorate only the margin, never the painting or live controls. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] {
+  position:relative!important;isolation:isolate!important;
+  overflow:hidden!important;
+  background:linear-gradient(132deg,#1a082f 0%,#2a0b47 55%,#160725 100%)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"]::after {
+  content:none!important;display:none!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] > :not(.halloween-scene) {
+  position:relative!important;z-index:5!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] .halloween-scene--gallery {
+  z-index:2!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] .halloween-scene__gallery-ghost {
+  bottom:-18px!important;right:-22px!important;
+  width:clamp(82px,12vw,132px)!important;
+  height:clamp(125px,18vw,194px)!important;
+  object-fit:cover!important;object-position:center!important;
+  z-index:4!important;
+  -webkit-mask-image:radial-gradient(ellipse 66% 74% at 50% 49%,#000 50%,transparent 94%)!important;
+  mask-image:radial-gradient(ellipse 66% 74% at 50% 49%,#000 50%,transparent 94%)!important;
+  filter:drop-shadow(0 6px 17px #a83df26b)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] .halloween-scene__gallery-lanterns {
+  left:0!important;top:0!important;
+  width:clamp(60px,8vw,105px)!important;height:36%!important;
+  object-fit:contain!important;object-position:top left!important;
+  z-index:3!important;
+  filter:drop-shadow(0 0 12px #ff9b4e5a)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] .halloween-scene__ambient {
+  position:absolute!important;inset:0!important;
+  z-index:1!important;pointer-events:none!important;
+  background:radial-gradient(ellipse 40% 40% at 8% 95%,rgba(202,57,200,.23),transparent 75%)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home__stage .bhs-home__halloween-ghost {
+  display:none!important;
+}
+/* Footer: real school logos and teacher credentials remain on true DOM cards.
+ * The environment and candles sit behind the cards and around the margins. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] {
+  position:relative!important;isolation:isolate!important;
+  background:linear-gradient(180deg,#200b38,#120627 72%,#0c061b)!important;
+  border-radius:0 0 22px 22px!important;
+  border-color:#a75a846f!important;
+  overflow:hidden!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"]::before,
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"]::after {
+  content:none!important;display:none!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] > :not(.halloween-scene) {
+  position:relative!important;z-index:5!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .halloween-scene--footer {
+  z-index:1!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .halloween-scene__night {
+  position:absolute!important;inset:0!important;
+  background:radial-gradient(ellipse 50% 30% at 50% 89%,#612b653c,transparent),linear-gradient(180deg,#250b43,#120526)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .halloween-scene__footer-left-pumpkin {
+  bottom:-25px!important;left:-16px!important;
+  width:clamp(90px,13vw,155px)!important;
+  height:clamp(100px,13vw,155px)!important;
+  object-fit:contain!important;
+  filter:drop-shadow(0 0 24px #ffa04178)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .halloween-scene__footer-cat {
+  left:3%!important;bottom:7%!important;
+  width:clamp(58px,7vw,100px)!important;height:43%!important;
+  object-fit:contain!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .halloween-scene__footer-right-tree {
+  right:-15px!important;top:0!important;
+  width:clamp(95px,16vw,195px)!important;
+  height:100%!important;object-fit:contain!important;
+  object-position:top right!important;opacity:.62!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .halloween-scene__footer-lanterns {
+  right:0!important;bottom:0!important;
+  width:clamp(58px,8vw,115px)!important;height:45%!important;
+  object-fit:contain!important;object-position:right bottom!important;
+  filter:drop-shadow(0 0 13px #ff9b4b61)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .halloween-scene__ambient {
+  position:absolute!important;inset:0!important;
+  background:linear-gradient(0deg,rgba(17,5,31,.26),transparent 40%)!important;
+}
+@media(max-width:620px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] .halloween-scene__gallery-ghost {
+   right:-26px!important;bottom:10px!important;width:87px!important;height:126px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] .halloween-scene__footer-cat {
+   width:51px!important;
+ }
+}
+
+
+/*
+ * V10 visual review correction — preserve the scene's ORIGINAL aspect ratio.
+ * Old 72%-wide image zoomed/cropped the ghost and introduced a purple patch.
+ * Hero artwork is now displayed at ~1:1 native size at the 1024px reference.
+ * Do not stack a second cropped ghost over the same ghost already in the art.
+ */
+@media(min-width:901px) {
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--hero .halloween-scene__world {
+   inset:0 0 0 43%!important;
+   left:43%!important;right:0!important;top:0!important;bottom:0!important;
+   width:57%!important;height:100%!important;
+   object-fit:fill!important;object-position:center!important;
+   -webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 9%)!important;
+   mask-image:linear-gradient(90deg,transparent 0%,#000 9%)!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--hero .halloween-scene__reader {
+   display:none!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--hero .halloween-scene__ambient {
+   background:
+     linear-gradient(90deg,rgba(24,7,44,.45) 0%,rgba(24,7,44,.15) 25%,transparent 44%),
+     linear-gradient(180deg,transparent 85%,rgba(20,6,33,.31) 100%)!important;
+ }
+}
+@media(max-width:900px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .halloween-scene--hero .halloween-scene__reader {
+   display:none!important;
+ }
+}
+
+
+/* Art-director's reference-viewport spacing. This corrects the actual
+ * screenshot gaps (nav +20, gallery +20, footer +30) without hiding rows. */
+@media(min-width:901px) and (max-width:1180px) {
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .bes-top-chrome {
+   min-height:46px!important;height:auto!important;
+   padding-top:0!important;padding-bottom:0!important;
+   margin-top:4px!important;
+   margin-bottom:0!important;
+   border-radius:999px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .bes-top-chrome nav.brian-nav[data-halloween-nav="true"] {
+   min-height:44px!important;height:auto!important;
+   padding-block:3px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > .bes-top-chrome .brian-nav__primary > button {
+   min-height:33px!important;
+   padding-block:5px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] {
+   padding-top:10px!important;padding-bottom:7px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] .bhs-home__header {
+   margin-bottom:5px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] .bhs-home__exhibition > .bhs-home__stage {
+   min-height:230px!important;height:230px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] .bhs-home__filmstrip {
+   padding-block:2px!important;min-height:49px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"] {
+   padding-top:6px!important;padding-bottom:4px!important;
+ }
+}
+
+
+/* Gallery must never place decoration on top of the title, artwork or buttons. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] .halloween-scene__gallery-lanterns {
+  top:23%!important;left:-29px!important;
+  width:69px!important;height:132px!important;
+  object-position:center!important;
+  opacity:.81!important;
+  -webkit-mask-image:linear-gradient(90deg,#000 0%,#000 49%,transparent 97%)!important;
+  mask-image:linear-gradient(90deg,#000 0%,#000 49%,transparent 97%)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] .halloween-scene__gallery-ghost {
+  bottom:7px!important;right:-5px!important;
+  width:111px!important;height:154px!important;
+  opacity:.90!important;
+}
+@media(max-width:620px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] .halloween-scene__gallery-lanterns {
+   left:-32px!important;width:51px!important;height:106px!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-halloween-theme="true"] .halloween-scene__gallery-ghost {
+   right:-5px!important;bottom:9px!important;width:80px!important;height:116px!important;
+ }
+}

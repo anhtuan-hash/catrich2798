@@ -42,5 +42,8 @@ import '../styles/HomeHeroCmsEditorDrawer.css';
 import '../styles/HalloweenFullHomeV4.css';
 // Mockup-fidelity seasonal presentation: loaded last and strictly Admin-gated.
 import '../styles/HalloweenFullHomeV5.css';
+// Consolidated seasonal presentation V9. Original Home CSS is untouched when OFF.
+import '../features/halloween-home/halloween.v9.css';
+import '../features/halloween-home/halloween.scene.css';
 
 export default HomeApproved;

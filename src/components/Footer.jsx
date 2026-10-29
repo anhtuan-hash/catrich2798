@@ -1,3 +1,4 @@
+import HalloweenScene from '../features/halloween-home/HalloweenScene.jsx';
 import React from 'react';
 import { createPortal } from 'react-dom';
 import './FooterCompactDisclosure.css';
@@ -257,7 +258,7 @@ export default function Footer({ language, route = '' }) {
       className={`footer footer-v10 signature-footer-v75 signature-footer-v50 signature-footer-collapsible signature-footer-dashboard-global ${isVi ? 'signature-footer-v50-vi' : 'signature-footer-v50-en'}`}
       aria-label={isVi ? 'Thông tin English Hub' : 'English Hub information'}
       data-app-shell-footer="true"
-      data-halloween-footer={seasonalHome.enabled && seasonalFooter.enabled ? "true" : "false"}
+      data-halloween-footer={seasonalHome.enabled && (resolvedRoute === "home" || seasonalFooter.enabled) ? "true" : "false"}
       data-footer-mode="full"
       data-footer-route={resolvedRoute || undefined}
     >
@@ -318,6 +319,7 @@ export default function Footer({ language, route = '' }) {
           <span className="bes-portfolio-footer-trigger-icon" aria-hidden="true">↗</span>
         </button>
       </div>
+      {seasonalHome.enabled && resolvedRoute === 'home' ? <HalloweenScene zone="footer" /> : null}
     </footer>
     {portfolioOpen && createPortal(
       <FooterPortfolioDialog isVi={isVi} onClose={closePortfolio} />,

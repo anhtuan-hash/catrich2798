@@ -348,7 +348,7 @@ export default function MobileAppShell({
 
   return (
     <>
-      <div className="bes-mobile-shell" data-bes-mobile-shell="true" data-halloween-nav={seasonalHome.enabled && seasonalNavbar.enabled ? "true" : "false"} data-route={route}>
+      <div className="bes-mobile-shell" data-bes-mobile-shell="true" data-halloween-nav={seasonalHome.enabled && (route === "home" || seasonalNavbar.enabled) ? "true" : "false"} data-route={route}>
         <MobileTopBar
           language={language}
           onHome={() => runMobileNavigationItem({ id: 'home', route: 'home', action: 'route', label: language === 'en' ? 'Home' : 'Trang chủ' })}

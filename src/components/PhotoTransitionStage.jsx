@@ -29,8 +29,8 @@ function transitionFrames(mode, direction) {
     case 'reveal':
       return {
         incoming: [
-          { clipPath: sign > 0 ? 'inset(0 100% 0 0)' : 'inset(0 0 0 100%)', opacity: 1 },
-          { clipPath: 'inset(0 0 0 0)', opacity: 1 },
+          { opacity: .38, transform: 'translateX(' + (sign * 1.5) + '%) scale(.992)' },
+          { opacity: 1, transform: 'translateX(0) scale(1)' },
         ],
         outgoing: [{ opacity: 1 }, { opacity: .45 }],
       };

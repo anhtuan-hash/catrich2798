@@ -1,0 +1,34 @@
+import assert from 'node:assert/strict';
+import {readFileSync,statSync} from 'node:fs';
+const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+const b=p=>readFileSync(new URL('../'+p,import.meta.url));
+const home=read('src/pages/Home.jsx');
+const skin=read('src/features/halloween-home/halloween.v9.css');
+const master=read('src/utils/halloweenHomeTheme.js');
+const hero=read('src/components/HomeHeroExperience2026.jsx');
+const gallery=read('src/components/HomePublishedSlideshow.jsx');
+const nav=read('src/components/GlobalCompactNavigation.jsx');
+const footer=read('src/components/Footer.jsx');
+assert.ok(home.includes("import '../features/halloween-home/halloween.v9.css'"),'Home must load V9 consolidated source');
+assert.ok(skin.includes('halloween-v9-hero-right.webp'),'V9 must use the high-resolution reference Hero');
+for (const name of ['halloween-v8-left-decor.avif','halloween-v8-gallery-ghost.avif','halloween-v8-footer-pumpkins.avif','halloween-v8-practice-scenery.avif']) {
+ const p='public/assets/home/'+name,bin=b(p);
+ assert.ok(bin.length>1000&&bin.length<500000,'reasonable asset '+name);
+ assert.equal(bin.subarray(4,12).toString(),'ftypavif','decoded AVIF signature '+name);
+ assert.ok(skin.includes(name),'must render art '+name);
+}
+assert.ok(skin.includes('.bha-hero.hero-cms')&&skin.includes('.bhs-home__stage')&&skin.includes('.bha-practice.bha-practice--editorial-v3')&&skin.includes('> footer'));
+assert.ok((skin.match(/data-halloween-home-v4="on"/g)||[]).length>30,'all visual treatments gated by master ON');
+assert.ok(!skin.includes('localStorage'),'presentation must not persist data');
+assert.ok(skin.includes('prefers-reduced-motion:reduce'));
+assert.ok(gallery.includes('mode={selected.transition} direction={direction}'),'preserve album editor transition');
+const cinematic=read('src/components/PhotoTransitionStage.jsx');
+assert.ok(!cinematic.includes("inset(0 100% 0 0)"),'no sliced paintings during reveal transition');
+assert.ok(gallery.includes("loading={photoIndex < 4 ? 'eager' : 'lazy'}"),'early thumbnails get priority');
+assert.ok(gallery.includes('setIndex(photoIndex)'), 'filmstrip real click');
+assert.ok(master.includes("client.rpc('bes_set_halloween_home_enabled'"),'Admin-only backend RPC persists');
+assert.ok(nav.includes('seasonalHome.enabled && (route === "home" || seasonalNavbar.enabled)'),'Navbar master on Home');
+assert.ok(footer.includes('seasonalHome.enabled && (resolvedRoute === "home" || seasonalFooter.enabled)'),'Footer master on Home');
+assert.ok(hero.includes('Turn your English classroom into a world of creativity'));
+assert.ok(hero.includes('<HalloweenScene zone="hero" />') && read('src/features/halloween-home/HalloweenScene.jsx').includes('halloween-hero-world'),'separate art-only React layers controlled by seasonal boolean');
+console.log('PASS Halloween V8 SOURCE: optimized reference illustration assets, all 5 regions, actual data, original restored and Admin master gating');

@@ -1,3 +1,5 @@
+import HalloweenScene from '../features/halloween-home/HalloweenScene.jsx';
+import { useHalloweenHomeTheme } from '../utils/halloweenHomeTheme.js';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight, BarChart3, Check, ClipboardClock, FileCheck2, Files,
@@ -234,6 +236,7 @@ function roleCanManagePractice(role) {
 export default function HomeApproved({ currentUser, language = 'vi', appVisibility }) {
   const t = TEXT[language] || TEXT.vi;
   const presentation = usePresentationMode();
+  const seasonalHome = useHalloweenHomeTheme();
   const visibilitySnapshot = appVisibility?.snapshot;
   const firstRoute = currentUser ? getFirstAllowedRoute(currentUser) : 'login';
   const [practiceItems, setPracticeItems] = useState([]);
@@ -324,6 +327,7 @@ export default function HomeApproved({ currentUser, language = 'vi', appVisibili
       </div>
 
       <section className="bha-practice bha-practice--editorial-v3">
+        {seasonalHome.enabled ? <HalloweenScene zone="practice" /> : null}
         <header className="bha-practice__editorial-header">
           <div className="bha-practice__editorial-copy">
             <span><ClipboardClock size={17} />{t.practice}</span>

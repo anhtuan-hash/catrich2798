@@ -1,0 +1,44 @@
+name: Halloween V10 — Art First Production Candidate
+on:
+  pull_request:
+    paths:
+      - 'src/features/halloween-home/**'
+      - 'src/components/HomeHeroExperience2026.jsx'
+      - 'src/pages/HomeApproved.jsx'
+      - 'src/pages/Home.jsx'
+      - 'scripts/test-halloween-home-v10.mjs'
+      - 'scripts/test-halloween-home-v8-browser.mjs'
+      - 'tests/fixtures/halloween-home-v8*'
+      - '.github/workflows/halloween-home-v10.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  visual-and-functional:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: V10 layered artwork, permissions and CMS gates
+        run: node scripts/test-halloween-home-v10.mjs
+      - name: V9 assets and legacy functionality
+        run: node scripts/test-halloween-home-v9.mjs
+      - name: Original Home switch and RLS regression
+        run: node scripts/test-halloween-home-v4.mjs
+      - name: Compile real app
+        run: npx vite build
+      - run: npx playwright install --with-deps chromium
+      - name: Screenshot six viewports and exact OFF restoration
+        run: node scripts/test-halloween-home-v8-browser.mjs
+      - name: Save screenshots for owner's visual comparison
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: halloween-v10-art-first-six-viewport-qa
+          path: artifacts/halloween-v8/
+          if-no-files-found: warn
