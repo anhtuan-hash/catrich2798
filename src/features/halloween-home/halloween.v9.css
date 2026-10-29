@@ -1799,3 +1799,88 @@ html body #root#root .app-shell.metro-clean-system[data-route="home"][data-hallo
   mask-image:radial-gradient(ellipse 72% 77% at 47% 50%,#000 28%,transparent 81%)!important;
   -webkit-mask-image:radial-gradient(ellipse 72% 77% at 47% 50%,#000 28%,transparent 81%)!important;
 }
+
+
+/* High-resolution V9 artwork final compositing: all image URLs below point
+ * to actual separately versioned WebP assets, not a screenshot pretending to
+ * be functional text, buttons or a gallery. */
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-art {
+  background-image:url('/assets/home/v9/halloween-hero-world.webp')!important;
+  background-size:auto 100%!important;
+  background-position:right center!important;
+  background-repeat:no-repeat!important;
+  mask-image:linear-gradient(90deg,transparent 0%,transparent 14%,#000 37%)!important;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,transparent 14%,#000 37%)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-ghost {
+  left:41%!important;top:40px!important;
+  width:186px!important;height:216px!important;
+  background-image:url('/assets/home/v9/halloween-ghost-reader.webp')!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  background-size:contain!important;
+  mask-image:none!important;-webkit-mask-image:none!important;
+  filter:drop-shadow(0 5px 16px #ffaf6670)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bhs-home[data-home-published-slideshow="true"]::after {
+  background-image:url('/assets/home/v9/halloween-gallery-ghost.webp')!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  background-size:contain!important;
+  mask-image:radial-gradient(ellipse at 53% 45%,#000 56%,transparent 96%)!important;
+  -webkit-mask-image:radial-gradient(ellipse at 53% 45%,#000 56%,transparent 96%)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade--10::before {
+  background-image:url('/assets/home/v9/halloween-ghost-reader.webp')!important;
+  background-size:contain!important;
+  background-position:center!important;
+  filter:drop-shadow(0 0 10px #80adff85)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade--11::before {
+  background-image:url('/assets/home/v9/halloween-grade11-pumpkin.webp')!important;
+  background-size:contain!important;
+  background-position:center!important;
+  filter:drop-shadow(0 0 11px #ffb04c99)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-grades--folio > .bha-folio-grade--12::before {
+  background-image:url('/assets/home/v9/halloween-grade12-witchhat.webp')!important;
+  background-size:contain!important;
+  background-position:center!important;
+  filter:drop-shadow(0 0 10px #15cbcc88)!important;
+}
+html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .bha-practice.bha-practice--editorial-v3::after {
+  background-image:url('/assets/home/v9/halloween-pumpkin-main.webp')!important;
+  background-size:contain!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  mask-image:radial-gradient(ellipse at 50% 50%,#000 44%,transparent 88%)!important;
+  -webkit-mask-image:radial-gradient(ellipse at 50% 50%,#000 44%,transparent 88%)!important;
+}
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"]::before {
+  background-image:url('/assets/home/v9/halloween-pumpkin-main.webp')!important;
+  background-size:contain!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  mask-image:radial-gradient(ellipse at 50% 50%,#000 40%,transparent 87%)!important;
+  -webkit-mask-image:radial-gradient(ellipse at 50% 50%,#000 40%,transparent 87%)!important;
+}
+html body #root#root .app-shell.metro-clean-system[data-route="home"][data-halloween-home-v4="on"] > footer.footer[data-halloween-footer="true"]::after {
+  background-image:url('/assets/home/v9/halloween-hanging-lanterns.webp')!important;
+  background-size:contain!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  mask-image:radial-gradient(ellipse at 50% 50%,#000 42%,transparent 86%)!important;
+  -webkit-mask-image:radial-gradient(ellipse at 50% 50%,#000 42%,transparent 86%)!important;
+}
+@media(max-width:620px){
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-art {
+  height:70%!important; background-size:auto 100%!important;
+  background-position:61% bottom!important;
+  mask-image:linear-gradient(180deg,transparent 0%,#000 32%)!important;
+  -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 32%)!important;
+ }
+ html body #root#root .app-shell[data-route="home"][data-halloween-home-v4="on"] .hero-cms__halloween-ghost {
+  width:148px!important;height:177px!important;
+  top:auto!important;bottom:7%!important;left:8%!important;
+ }
+}
