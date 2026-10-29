@@ -8,6 +8,8 @@ on:
       - 'supabase/functions/photo-judging/**'
       - 'supabase/migrations/*photo_story_judging.sql'
       - 'scripts/test-photo-judging.mjs'
+      - 'scripts/test-photo-judging-copy-links.mjs'
+      - 'supabase/migrations/*photo_judging_encrypted_links.sql'
       - 'src/main.jsx'
       - 'src/utils/permissions.js'
       - 'src/data/appVisibilityRegistry.js'
@@ -32,4 +34,5 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: node scripts/test-brian-photo-slideshow.mjs
       - run: node scripts/test-photo-judging.mjs
+      - run: node scripts/test-photo-judging-copy-links.mjs
       - run: node scripts/build-brian-vercel-release.mjs
