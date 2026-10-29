@@ -108,35 +108,34 @@ async function publicLiveJury(body: any) {
   const now = Date.now();
   const working = judges.filter((j:any)=>!j.submitted_at && j.last_seen_at &&
     now-Date.parse(j.last_seen_at) < 10*60*1000).length;
+  // The public live board uses every SAVED score, even while the judge's
+  // 18-artwork scorecard remains unsubmitted. Never expose identities or drafts
+  // that have not reached the server. Revoked judges are excluded.
   const submitted = judges.filter((j:any)=>!!j.submitted_at);
-  const submittedIds = submitted.map((j:any)=>j.id);
-  const scores = submittedIds.length ? assertResult(await db.from("bes_judging_scores")
-    .select("invite_id,slide_id,criteria,total").in("invite_id",submittedIds)) : [];
+  const activeIds = judges.map((j:any)=>j.id);
+  const scores = activeIds.length ? assertResult(await db.from("bes_judging_scores")
+    .select("slide_id,criteria,total").in("invite_id",activeIds)) : [];
   const bySlide: Record<string, any[]> = {};
   for (const score of scores as any[]) (bySlide[score.slide_id] ||= []).push(score);
-  const MIN_PUBLIC_SUBMISSIONS = 3;
   const round = (value:number) => Math.round(value*100)/100;
-  const artworks = Object.entries(bySlide).map(([slideId, entries])=>{
-    const eligible = entries.length >= MIN_PUBLIC_SUBMISSIONS;
-    return {
-      slideId,
-      submittedCount:entries.length,
-      average:eligible ? round(entries.reduce((sum,row)=>sum+Number(row.total),0)/entries.length) : null,
-      criteria:eligible ? (session.rubric as any[]).map(c=>({
-        id:c.id,
-        label:c.label,
-        weight:c.weight,
-        average:round(entries.reduce((sum,row)=>sum+Number(row.criteria?.[c.id]||0),0)/entries.length)
-      })) : []
-    };
-  });
+  const artworks = Object.entries(bySlide).map(([slideId, entries])=>({
+    slideId,
+    scoredCount:entries.length,
+    average:round(entries.reduce((sum,row)=>sum+Number(row.total),0)/entries.length),
+    criteria:(session.rubric as any[]).map(c=>({
+      id:c.id,
+      label:c.label,
+      weight:c.weight,
+      average:round(entries.reduce((sum,row)=>sum+Number(row.criteria?.[c.id]||0),0)/entries.length)
+    }))
+  }));
   return send({
     state:session.status,
     enabled:true,
     judgeCount:judges.length,
     workingCount:working,
     submittedCount:submitted.length,
-    minimumSubmissions:MIN_PUBLIC_SUBMISSIONS,
+    minimumScores:1,
     artworks,
     rubric:(session.rubric as any[]).map(c=>({id:c.id,label:c.label,weight:c.weight})),
     refreshedAt:new Date().toISOString()
