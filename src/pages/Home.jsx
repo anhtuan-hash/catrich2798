@@ -45,5 +45,7 @@ import '../styles/HalloweenFullHomeV5.css';
 // Consolidated seasonal presentation V9. Original Home CSS is untouched when OFF.
 import '../features/halloween-home/halloween.v9.css';
 import '../features/halloween-home/halloween.v10-art-direction.css';
+// Approved 2026-10-29: final connected Weekly Practice + footer design.
+import '../features/halloween-home/halloween.v11-weekly-footer-polish.css';
 
 export default HomeApproved;
