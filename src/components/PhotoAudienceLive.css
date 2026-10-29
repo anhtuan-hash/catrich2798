@@ -23,3 +23,21 @@
 .bss-audience-foot span{flex:1;min-width:0}
 .bss-audience-foot a{display:flex;gap:4px;align-items:center;white-space:nowrap;color:#bee8f7;text-decoration:underline}
 @media(max-width:680px){.bss-audience-title{font-size:10px}.bss-audience-foot{flex-wrap:wrap}.bss-audience-foot a{margin-left:auto}}
+
+/* Paste URL directly while viewing the gallery (admin only). */
+.bss-audience-config{display:grid;gap:8px;background:#102b3a;border:1px solid #5ad2bf62;border-radius:11px;padding:11px;min-width:0}
+.bss-audience-config label{display:flex;align-items:center;gap:6px;color:#b8f6e3;font-size:11px;font-weight:800;line-height:1.5}
+.bss-audience-config-row{display:flex;gap:6px;min-width:0}
+.bss-audience-config input{min-width:0;flex:1;color:#eaf8fd;background:#081929;border:1px solid #547b88;border-radius:9px;font-size:11px;padding:9px 10px}
+.bss-audience-config input::placeholder{color:#829db2}
+.bss-audience-config button{display:flex;align-items:center;gap:5px;justify-content:center;flex:none;border:1px solid #77edc9;border-radius:9px;background:#1b7267;color:#ecfff8;font-size:11px;font-weight:800;padding:9px 10px;cursor:pointer}
+.bss-audience-config button:hover:not(:disabled){background:#268d79}
+.bss-audience-config button:disabled{opacity:.54;cursor:wait}
+.bss-audience-config :focus-visible{outline:2px solid #9aeddf;outline-offset:2px}
+.bss-audience-feedback{display:flex;align-items:center;gap:6px;margin:0;font-size:11px;line-height:1.5;color:#b0f3df}
+.bss-audience-feedback svg{flex:none}
+.bss-audience-placeholder{min-height:250px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;padding:20px;background:#091c2a;border:1px dashed #72e5ce88;border-radius:12px;color:#afcede}
+.bss-audience-placeholder>svg{color:#76dccb}
+.bss-audience-placeholder strong{color:#eaf7ff;font-size:15px}
+.bss-audience-placeholder span{max-width:290px;font-size:12px;line-height:1.7}
+@media(max-width:510px){.bss-audience-config-row{flex-wrap:wrap}.bss-audience-config-row input{flex-basis:100%}.bss-audience-config button{width:100%}}
