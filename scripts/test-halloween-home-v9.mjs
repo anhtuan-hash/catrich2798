@@ -27,13 +27,17 @@ for(const older of ['HalloweenFullHomeV6VisualRepair.css','HalloweenMockupParity
  assert.ok(!home.includes("import '../styles/"+older+"'"),'obsolete stacked CSS should be unmounted '+older);
 }
 assert.ok(html.includes('<span>Happy</span><span>Halloween!</span>'), 'independent title lines');
-assert.ok(html.includes('hero-cms__halloween-ghost'),'separate foreground ghost');
+const scene=read('src/features/halloween-home/HalloweenScene.jsx');
+const sceneCss=read('src/features/halloween-home/halloween.scene.css');
+assert.ok(html.includes('<HalloweenScene zone="hero" />'),'Hero uses art-first React layers');
+assert.ok(scene.includes('halloween-ghost-reader') && scene.includes('halloween-hero-world'),'real layered art with independent character');
+assert.ok(sceneCss.includes('.halloween-scene__reader'),'dedicated responsive scene CSS');
 assert.ok(html.includes('Khám phá không gian dạy học tiếng Anh'),'respect Vietnamese locale');
 assert.ok(css.includes('white-space:nowrap!important'),'do not break the title');
 for(const image of ['halloween-hero-world.webp','halloween-ghost-reader.webp','halloween-gallery-ghost.webp','halloween-pumpkin-main.webp','halloween-hanging-lanterns.webp']){
  assert.ok(css.includes('/assets/home/v9/'+image),'art must be integrated in live CSS '+image);
 }
-assert.ok(css.includes('data-halloween-home-v4="on"'),'ON only, no residual OFF styles');
+assert.ok(css.includes('data-halloween-home-v4="on"') && sceneCss.includes('data-halloween-home-v4="on"'),'ON only, no residual OFF styles');
 assert.ok(gallery.includes('setIndex(photoIndex)'),'real gallery thumbnails still interactive');
 assert.ok(gallery.includes('mode={selected.transition}'),'album transition remains author-controlled');
 console.log('PASS Halloween V9 source: 16 valid WebP assets, scoped styles, two-line Hero, locale, real content');
