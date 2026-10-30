@@ -20,8 +20,8 @@ assertHas(layout,"grid-template-rows:repeat(6,minmax(0,1fr))","all eighteen grou
 assertHas(layout,"grid-template-columns:repeat(3,minmax(0,1fr))","group ranking dense 3-column grid");
 assertHas(jury,"setMode('groups')","original full group ranking toggle preserved");
 assertHas(jury,"POLL_MS=5000","judge live updates still every five seconds");
-assertHas(audience,"Math.min(width/DESKTOP_WIDTH,height/DESKTOP_HEIGHT)","whole original QRvote screen fits both dimensions");
-assertHas(audience,"left:'0px'","iframe is never cropped");
+assertHas(audience,"Math.min(width/QRVOTE_DESKTOP_WIDTH,height/QRVOTE_DESKTOP_HEIGHT)","desktop QRvote 1920×1080 screen fits both dimensions");
+assertHas(audience,"left:0,top:0","iframe is never cropped");
 assertHas(layout,"calc(88.89dvh - 102px)","card width capped to available viewport height");
 assertHas(audience,"className=\"bss-audience-framed\"","original remote page displayed centered as a full iframe");
 assertHas(audience,"!compact||showConfig","admin link editor collapses to maximize visible QRvote area");

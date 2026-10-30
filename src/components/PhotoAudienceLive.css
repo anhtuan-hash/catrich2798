@@ -47,3 +47,17 @@
 /* Preserve the whole provider screen with a subtle frame and centered letterbox. */
 .bss-audience-viewport{box-shadow:inset 0 0 0 1px #f7dabc4d}
 .bss-audience-framed{box-shadow:0 0 0 1px #ccaf9166,0 8px 32px #00000035}
+
+/* Use a genuinely desktop-sized cross-origin browsing context. Without
+   max-width:none the global responsive iframe rule can silently clamp the
+   actual iframe to the ~600px panel and trigger QRvote's mobile breakpoint.
+   Transform affects only presentation size, not the document's inner viewport. */
+.bss-audience-viewport > .bss-audience-framed > iframe {
+  width:1920px !important;
+  min-width:1920px !important;
+  max-width:none !important;
+  height:1080px !important;
+  min-height:1080px !important;
+  max-height:none !important;
+  box-sizing:border-box;
+}

@@ -4,8 +4,12 @@ import { supabase } from '../utils/supabase.js';
 import { DEFAULT_HALLOWEEN_SCREEN, HALLOWEEN_ALBUM_ID, normalizeAudienceScreenUrl } from '../utils/photoAudienceScreen.js';
 import './PhotoAudienceLive.css';
 
-const DESKTOP_WIDTH=1440;
-const DESKTOP_HEIGHT=920;
+// QRvote's native desktop screen requires a wide inner browsing context.
+// Explicit <iframe> width/height attributes AND a max-width override are
+// essential: BRIAN's responsive rules can otherwise clamp an iframe to its
+// narrow 16:9 parent and make QRvote switch to its mobile one-column layout.
+export const QRVOTE_DESKTOP_WIDTH=1920;
+export const QRVOTE_DESKTOP_HEIGHT=1080;
 
 function PhotoAudienceLive({ language='vi',albumId,screenUrl='',canEdit=false,onSaved,compact=false }) {
   const en=language==='en';
@@ -52,9 +56,9 @@ function PhotoAudienceLive({ language='vi',albumId,screenUrl='',canEdit=false,on
   // Preserve 100% of the original QRvote screen. Cropping a cross-origin
   // layout is unreliable because QRvote controls its own responsive breakpoints.
   const scale=(compact || isFull)
-    ? Math.min(width/DESKTOP_WIDTH,height/DESKTOP_HEIGHT)
-    : width/DESKTOP_WIDTH;
-  const frameHeight=Math.round(DESKTOP_HEIGHT*scale);
+    ? Math.min(width/QRVOTE_DESKTOP_WIDTH,height/QRVOTE_DESKTOP_HEIGHT)
+    : width/QRVOTE_DESKTOP_WIDTH;
+  const frameHeight=Math.round(QRVOTE_DESKTOP_HEIGHT*scale);
 
   const save=async event=>{
     event.preventDefault();
@@ -120,16 +124,23 @@ function PhotoAudienceLive({ language='vi',albumId,screenUrl='',canEdit=false,on
 
     {currentUrl?<div className="bss-audience-viewport" ref={viewportRef} style={compact||isFull?undefined:{height:frameHeight+'px'}}>
       <div className="bss-audience-framed" style={{
-        width:Math.round(DESKTOP_WIDTH*scale)+'px',
-        height:Math.round(DESKTOP_HEIGHT*scale)+'px'
+        width:Math.round(QRVOTE_DESKTOP_WIDTH*scale)+'px',
+        height:Math.round(QRVOTE_DESKTOP_HEIGHT*scale)+'px'
       }}>
-        <iframe title={en?'Original QRvote voting results':'Màn hình kết quả QRvote gốc'}
+        <iframe title={en?'Original QRvote desktop voting results':'Màn hình kết quả QRvote bản PC gốc'}
           src={currentUrl} loading="eager" allowFullScreen referrerPolicy="strict-origin-when-cross-origin"
+          width={QRVOTE_DESKTOP_WIDTH} height={QRVOTE_DESKTOP_HEIGHT}
           style={{
-            width:DESKTOP_WIDTH+'px',
-            height:DESKTOP_HEIGHT+'px',
-            left:'0px',
-            top:'0px',
+            width:QRVOTE_DESKTOP_WIDTH+'px',
+            minWidth:QRVOTE_DESKTOP_WIDTH+'px',
+            maxWidth:'none',
+            height:QRVOTE_DESKTOP_HEIGHT+'px',
+            minHeight:QRVOTE_DESKTOP_HEIGHT+'px',
+            maxHeight:'none',
+            position:'absolute',
+            left:0,top:0,
+            display:'block',
+            transformOrigin:'top left',
             transform:'scale('+scale+')'
           }}/>
       </div>
