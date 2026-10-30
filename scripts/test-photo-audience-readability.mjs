@@ -9,7 +9,7 @@ pass(!a.includes("displayMode==='top'") && !a.includes('RANKING_PAGES'),'Unrelia
 pass(a.includes('const scale=(compact || isFull)'),'Original QRvote full view is the only default view');
 pass(a.includes('DESKTOP_WIDTH=1440') && a.includes('DESKTOP_HEIGHT=920'),'Original screen dimensions preserved');
 pass(a.includes("src={currentUrl}") && a.includes('referrerPolicy="strict-origin-when-cross-origin"'),'External QRvote page URL never altered');
-pass(a.includes('aria-pressed={displayMode===item.id}'),'Focus mode buttons accessible');
+pass(a.includes('title={en?\'Original QRvote voting results\':\'Màn hình kết quả QRvote gốc\'}') || a.includes('Màn hình kết quả QRvote gốc'),'Original QRvote iframe retains accessible title');
 pass(a.includes('setHeight(current=>current===nextHeight?current:nextHeight)'),'Viewport height re-measured after resize');
 pass(a.includes('Math.min(width/DESKTOP_WIDTH,height/DESKTOP_HEIGHT)'),'Whole QRvote screen fits without clipping or stretching');
 pass(a.includes("left:'0px'") && a.includes("top:'0px'"),'No horizontal or vertical iframe cropping');
