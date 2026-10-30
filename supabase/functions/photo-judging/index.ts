@@ -193,6 +193,16 @@ async function handle(req:Request, body:any) {
       const sealed=await encryptJudgeLink(token,inviteId);
       assertResult(await db.from("bes_judging_invites").update({token_hash:await digest(token),...sealed,revoked_at:null}).eq("id",inviteId).eq("session_id",session.id).select("id").single());
       return send({token,inviteId,...(await dashboard(session))});
+    } else if (action === "admin:reset-scores") {
+      // Only authenticated Admins reach this branch. The RPC atomically clears
+      // scores and reopens this judge's ballot, but refuses a closed session.
+      if (session.status !== "open") throw new Error("Chỉ có thể mở chấm lại khi phiên chấm đang mở.");
+      const inviteId = required(body.inviteId);
+      if (!/^[0-9a-f-]{36}$/i.test(inviteId)) throw new Error("Giám khảo không hợp lệ.");
+      const resetCount = assertResult(await db.rpc("bes_judging_reset_scores", {
+        p_session_id:session.id,p_invite_id:inviteId
+      }));
+      return send({album,resetCount,...(await dashboard(await getSession(albumId)))});
     } else if (action === "admin:revoke") {
       if (session.status === "closed") throw new Error("Phiên đã khóa.");
       const revokeJudge=assertResult(await db.from("bes_judging_invites").select("id,submitted_at").eq("id",required(body.inviteId)).eq("session_id",session.id).single());
