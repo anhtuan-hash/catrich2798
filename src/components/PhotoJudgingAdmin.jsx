@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Award, CheckCircle2, ClipboardCopy, Download, ExternalLink, KeyRound, Lock, Plus, RefreshCw, ShieldOff, Trophy, UsersRound } from 'lucide-react';
+import { Award, CheckCircle2, ClipboardCopy, Download, ExternalLink, KeyRound, Lock, Plus, RefreshCw, ShieldOff, Trash2, Trophy, UsersRound } from 'lucide-react';
 import { supabase, supabaseAnonKey, supabaseUrl } from '../utils/supabase.js';
 import './PhotoJudging.css';
 
@@ -60,7 +60,9 @@ export default function JudgingAdmin({album, slides=[]}) {
         setLinkPreview({inviteId:result.inviteId,url:linkFor(result.token)});
         setNotice('Liên kết đã được tạo cho giám khảo. Nhấn Sao chép link ngay trên dòng tên để chia sẻ.');
       } else if(action==='admin:revoke') setLinkPreview(null);
-      else setNotice('Đã cập nhật dữ liệu thành công.');
+      else if(action==='admin:reset-scores') {
+        setNotice('Đã xóa '+Number(result.resetCount||0)+' điểm của giám khảo. Phiếu được mở lại; giám khảo hãy tải lại trang bằng liên kết cũ để chấm từ đầu.');
+      } else setNotice('Đã cập nhật dữ liệu thành công.');
       if(action==='admin:create')setName('');
     } catch(e){setError(e.message);} finally {setBusy(false);}
   }
@@ -160,6 +162,18 @@ export default function JudgingAdmin({album, slides=[]}) {
               aria-label={'Sao chép link của '+j.full_name}
               onClick={()=>copyJudgeLink(j)}
             ><ClipboardCopy size={16}/><span>Sao chép link</span></button>}
+            {session.status==='open'&&!j.revoked_at&&(j.progress>0||j.submitted_at)&&<button
+              type="button"
+              className="bj-reset-scores"
+              disabled={busy}
+              title={'Xóa toàn bộ điểm của '+j.full_name+' và cho phép chấm lại'}
+              aria-label={'Xóa điểm để '+j.full_name+' chấm lại'}
+              onClick={()=>{
+                if(window.confirm('Xóa toàn bộ '+j.progress+' điểm đã lưu của giám khảo '+j.full_name+' và mở lại phiếu chấm?\\n\\nThao tác này KHÔNG THỂ hoàn tác. Giám khảo sử dụng liên kết cũ nhưng cần tải lại trang trước khi chấm từ đầu. Điểm của các giám khảo khác được giữ nguyên.')){
+                  void run('admin:reset-scores',{inviteId:j.id});
+                }
+              }}
+            ><Trash2 size={16}/><span>Chấm lại</span></button>}
             {!j.revoked_at&&!j.submitted_at&&session.status!=='closed'&&<button disabled={busy} title="Cấp liên kết mới, vô hiệu hóa link cũ" onClick={()=>window.confirm('Cấp lại link và vô hiệu hóa link trước đó?')&&run('admin:reissue',{inviteId:j.id})}><KeyRound size={16}/><span>Cấp lại</span></button>}
             {!j.revoked_at&&!j.submitted_at&&session.status!=='closed'&&<button disabled={busy} title="Thu hồi quyền chấm" onClick={()=>window.confirm('Thu hồi quyền truy cập giám khảo này?')&&run('admin:revoke',{inviteId:j.id})}><ShieldOff size={16}/></button>}
           </div>
