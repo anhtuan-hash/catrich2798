@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Award, BookOpenText, CheckCircle2, ChevronLeft, ChevronRight, Expand, House, Save, ShieldCheck } from 'lucide-react';
+import { Award, BookOpenText, CheckCircle2, ChevronLeft, ChevronRight, Expand, House, Pause, Play, Save, ShieldCheck } from 'lucide-react';
 import { photoJudgingRequest } from './PhotoJudgingAdmin.jsx';
 import { weightedTotal, isComplete } from '../utils/judgingMath.js';
 import { getJudgeArtworkVietnamese } from '../utils/photoJudgingDescriptions.js';
 import './PhotoJudging.css';
+import './PhotoJudgingHalloween.css';
 
 export default function PhotoJudgingPage({token}) {
   const [data,setData]=useState(null),[drafts,setDrafts]=useState({});
@@ -11,6 +12,8 @@ export default function PhotoJudgingPage({token}) {
   const [error,setError]=useState(''),[message,setMessage]=useState('');
   const [saved,setSaved]=useState({});
   const imageRef=useRef(null);
+  const [atmospherePaused,setAtmospherePaused]=useState(false);
+  const halloweenTheme=/halloween/i.test(data?.title||'');
   const load=useCallback(async()=>{
     const result=await photoJudgingRequest({action:'judge:load',token});
     setData(result);
@@ -70,16 +73,23 @@ export default function PhotoJudgingPage({token}) {
       setMessage('Đã nộp phiếu chấm thành công.');
     }catch(e){setError(e.message);}finally{setBusy(false);}
   }
-  return <div className="bj-guest">
+  return <div className={'bj-guest'+(halloweenTheme?' bj-guest--halloween':'')+(atmospherePaused?' bj-atmosphere-paused':'')}>
+    {halloweenTheme&&<div className="bj-halloween-atmosphere" aria-hidden="true"><span/><span/></div>}
     <header className="bj-guest-header">
       <div className="bj-guest-identity">
         <div className="bj-guest-mark"><Award size={25}/></div>
         <div><strong>BRIAN <em>JUDGING STUDIO</em></strong><small>THE SCHOOL ARTWORK COMPETITION</small></div>
       </div>
+      <div className="bj-guest-actions">
+      {halloweenTheme&&<button type="button" className="bj-atmosphere-toggle" aria-pressed={atmospherePaused} onClick={()=>setAtmospherePaused(v=>!v)} title={atmospherePaused?'Bật chuyển động nền':'Tắt chuyển động nền'}>
+        {atmospherePaused?<Play size={15} aria-hidden="true"/>:<Pause size={15} aria-hidden="true"/>}
+        <span>{atmospherePaused?'Bật hiệu ứng':'Tắt hiệu ứng'}</span>
+      </button>}
       <a className="bj-guest-home" href="https://esl-brian.vercel.app" target="_blank" rel="noopener noreferrer" aria-label="Trang chủ" title="Trang chủ">
         <House size={17} aria-hidden="true"/>
         <span>Trang chủ</span>
       </a>
+      </div>
     </header>
     {!data?<div className="bj-guest-loading">{error?<div className="bj-error" role="alert">{error}</div>:'Đang xác thực liên kết giám khảo…'}</div>:
       <main className="bj-guest-main">
