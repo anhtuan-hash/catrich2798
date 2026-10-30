@@ -6,10 +6,11 @@ import './HalloweenShowcaseHome.css';
 const BUCKET = 'brian-slideshows';
 const ACCEPTED = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif']);
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
-const bannerPath = albumId => albumId + '/event-home-banner.webp';
+const bannerPath = albumId => albumId + '/event-home-banner.jpg';
 
-// Normalize every accepted format to one browser-friendly public storage key.
-// Keep imagery crisp for a 16:9 projector while avoiding very large uploads.
+// Save all accepted banner formats as an optimized JPEG, which works on Safari,
+// Chromium and Firefox. The path stays fixed so every viewer sees the same
+// banner and authenticated editors can replace it without changing metadata.
 async function optimizeBanner(file) {
   let source;
   let objectUrl;
@@ -34,10 +35,28 @@ async function optimizeBanner(file) {
     canvas.height = Math.max(1, Math.round(originalHeight * scale));
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('Cannot prepare image on this browser.');
+    // Canvas JPEG output has no alpha channel; use a neutral backdrop for PNG
+    // banners containing transparent areas instead of accidental black pixels.
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
-    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.88));
-    if (!blob || blob.type !== 'image/webp') throw new Error('Your browser cannot export WEBP images.');
-    return blob;
+
+    let blob = null;
+    if (typeof canvas.toBlob === 'function') {
+      blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
+    }
+    if (blob?.type === 'image/jpeg' && blob.size > 0) return blob;
+
+    // Some older Safari builds lack toBlob or return an unexpected type.
+    // toDataURL('image/jpeg') provides a compatible fallback on those versions.
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+    if (!dataUrl.startsWith('data:image/jpeg;base64,')) {
+      throw new Error('This browser could not convert the image to JPEG.');
+    }
+    const binary = atob(dataUrl.split(',')[1]);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+    return new Blob([bytes], { type: 'image/jpeg' });
   } finally {
     source?.close?.();
     if (objectUrl) URL.revokeObjectURL(objectUrl);
@@ -72,7 +91,7 @@ export default function HalloweenShowcaseHome({ albumId, canManage = false, lang
       // every device, without altering album metadata or slideshow artworks.
       const optimized = await optimizeBanner(file);
       const result = await supabase.storage.from(BUCKET).upload(path, optimized, {
-        upsert: true, contentType: 'image/webp', cacheControl: '60'
+        upsert: true, contentType: 'image/jpeg', cacheControl: '60'
       });
       if (result.error) throw result.error;
       setImageState('loading');
