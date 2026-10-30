@@ -96,6 +96,8 @@ export default function SlideshowYouTubePlaylist({ albumId, language = 'vi' }) {
   const [repeat, setRepeat] = useState(saved.repeat);
   const [shuffle, setShuffle] = useState(saved.shuffle);
   const [opened, setOpened] = useState(false);
+  const [docked, setDocked] = useState(false);
+  const playerVisible = opened || docked;
   const [compact, setCompact] = useState(false);
   const [input, setInput] = useState('');
   const [active, setActive] = useState(0);
@@ -125,7 +127,7 @@ export default function SlideshowYouTubePlaylist({ albumId, language = 'vi' }) {
     setActive(nextIndex);
     setNotice('');
     autoPlayRef.current = true;
-    if (!opened) { setOpened(true); return; }
+    if (!playerVisible) { setOpened(true); setDocked(false); return; }
     if (playerRef.current?.loadVideoById) {
       loadedRef.current = item.videoId;
       playerRef.current.loadVideoById(item.videoId);
@@ -153,7 +155,7 @@ export default function SlideshowYouTubePlaylist({ albumId, language = 'vi' }) {
   nextRef.current = advance;
 
   useEffect(() => {
-    if (!opened || tracks.length === 0 || !hostRef.current) return undefined;
+    if (!playerVisible || tracks.length === 0 || !hostRef.current) return undefined;
     let cancelled = false;
     loadYouTubeApi().then(YT => {
       if (cancelled || !hostRef.current) return;
@@ -199,24 +201,24 @@ export default function SlideshowYouTubePlaylist({ albumId, language = 'vi' }) {
       autoPlayRef.current = false;
       setIsPlaying(false);
     };
-  }, [opened, tracks.length > 0]);
+  }, [playerVisible, tracks.length > 0]);
 
   useEffect(() => {
     const item = tracks[active];
-    if (!opened || !item || !playerRef.current || loadedRef.current === item.videoId) return;
+    if (!playerVisible || !item || !playerRef.current || loadedRef.current === item.videoId) return;
     loadedRef.current = item.videoId;
     if (autoPlayRef.current) playerRef.current.loadVideoById(item.videoId);
     else playerRef.current.cueVideoById(item.videoId);
-  }, [tracks, active, opened]);
+  }, [tracks, active, playerVisible]);
 
   useEffect(() => {
-    if (opened && playerRef.current?.setVolume) playerRef.current.setVolume(volume);
-  }, [opened, volume]);
+    if (playerVisible && playerRef.current?.setVolume) playerRef.current.setVolume(volume);
+  }, [playerVisible, volume]);
 
   useEffect(() => {
     if (!opened) return undefined;
     const onKey = event => {
-      if (event.key === 'Escape') { event.stopPropagation(); setOpened(false); }
+      if (event.key === 'Escape') { event.stopPropagation(); setDocked(tracksRef.current.length > 0); setOpened(false); setCompact(false); }
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
@@ -278,29 +280,61 @@ export default function SlideshowYouTubePlaylist({ albumId, language = 'vi' }) {
     else if (from < activeRef.current && to >= activeRef.current) { activeRef.current -= 1; setActive(activeRef.current); }
     else if (from > activeRef.current && to <= activeRef.current) { activeRef.current += 1; setActive(activeRef.current); }
   };
-  const closePlayer = () => { setOpened(false); setCompact(false); };
+  // Dock the SAME mounted YouTube iframe: changing only CSS layout must never
+  // destroy or recreate the player, otherwise music restarts from the beginning.
+  const closePlayer = () => {
+    setDocked(tracksRef.current.length > 0);
+    setOpened(false);
+    setCompact(false);
+  };
+  const reopenPlayer = () => { setOpened(true); setDocked(false); setCompact(false); };
+  const stopAndDismiss = () => {
+    autoPlayRef.current = false;
+    try { playerRef.current?.stopVideo?.(); } catch { /* Already stopped. */ }
+    setIsPlaying(false);
+    setDocked(false);
+    setOpened(false);
+    setCompact(false);
+  };
   const current = tracks[active] || null;
 
   return <>
     <button type="button" className={'bss-pill bss-music-trigger' + (isPlaying ? ' is-playing' : '')}
       title={en ? 'YouTube music playlist' : 'Danh sách nhạc YouTube'}
-      aria-expanded={opened} onClick={() => setOpened(value => !value)}>
+      aria-expanded={opened} onClick={() => { if (opened) closePlayer(); else reopenPlayer(); }}>
       <Music2 size={17}/><span>{en ? 'Music' : 'Nhạc YouTube'}</span>
       {isPlaying && <span className="bss-music-signal" aria-hidden="true"/>}
     </button>
-    {opened && createPortal(
-      <aside className={'bss-music-panel' + (compact ? ' is-compact' : '')}
-        role="dialog" aria-label={en ? 'YouTube music playlist' : 'Danh sách nhạc YouTube'}
+    {playerVisible && createPortal(
+      <aside className={'bss-music-panel' + (compact && !docked ? ' is-compact' : '') + (docked ? ' is-docked' : '')}
+        role={docked ? 'region' : 'dialog'} aria-label={en ? 'YouTube music playlist' : 'Danh sách nhạc YouTube'}
         onKeyDown={event => { if (['Space', 'ArrowLeft', 'ArrowRight'].includes(event.code)) event.stopPropagation(); }}>
         <div className="bss-music-heading">
           <span className="bss-music-heading-icon"><Music2 size={18}/></span>
           <div><strong>{en ? 'Showcase soundtrack' : 'Nhạc nền Showcase'}</strong><small>YOUTUBE PLAYLIST · {tracks.length} {en ? 'TRACKS' : 'BÀI'}</small></div>
-          <button type="button" onClick={() => setCompact(v => !v)} title={compact ? (en ? 'Expand list' : 'Mở danh sách') : (en ? 'Minimize list' : 'Thu gọn danh sách')}
-            aria-label={compact ? (en ? 'Expand list' : 'Mở danh sách') : (en ? 'Minimize list' : 'Thu gọn danh sách')}>
-            {compact ? <ChevronUp size={19}/> : <ChevronDown size={19}/>}
-          </button>
-          <button type="button" onClick={closePlayer} title={en ? 'Close and stop music' : 'Đóng và dừng nhạc'}
-            aria-label={en ? 'Close and stop music' : 'Đóng và dừng nhạc'}><X size={19}/></button>
+          {docked ? <>
+            <button type="button" onClick={reopenPlayer}
+              title={en ? 'Open full playlist' : 'Mở lại danh sách nhạc'}
+              aria-label={en ? 'Open full playlist' : 'Mở lại danh sách nhạc'}>
+              <ChevronUp size={19}/>
+            </button>
+            <button type="button" onClick={stopAndDismiss}
+              title={en ? 'Stop music and close dock' : 'Dừng nhạc và ẩn dock'}
+              aria-label={en ? 'Stop music and close dock' : 'Dừng nhạc và ẩn dock'}>
+              <X size={19}/>
+            </button>
+          </> : <>
+            <button type="button" onClick={() => setCompact(v => !v)}
+              title={compact ? (en ? 'Expand list' : 'Mở danh sách') : (en ? 'Minimize list' : 'Thu gọn danh sách')}
+              aria-label={compact ? (en ? 'Expand list' : 'Mở danh sách') : (en ? 'Minimize list' : 'Thu gọn danh sách')}>
+              {compact ? <ChevronUp size={19}/> : <ChevronDown size={19}/>}
+            </button>
+            <button type="button" onClick={closePlayer}
+              title={en ? 'Dock player; keep music playing' : 'Thu xuống dock; nhạc vẫn phát'}
+              aria-label={en ? 'Dock player; keep music playing' : 'Thu xuống dock; nhạc vẫn phát'}>
+              <X size={19}/>
+            </button>
+          </>}
         </div>
         <div className="bss-music-video">
           {tracks.length ? <div className="bss-music-youtube-host" ref={hostRef}/> :
@@ -331,7 +365,7 @@ export default function SlideshowYouTubePlaylist({ albumId, language = 'vi' }) {
               aria-label={en ? 'Music volume' : 'Âm lượng nhạc'}/>
           </label>
         </div>
-        {!compact && <>
+        {!compact && !docked && <>
           <div className="bss-music-add">
             <label htmlFor="bss-music-links">{en ? 'Paste YouTube video links' : 'Dán link YouTube (mỗi dòng một link; có thể thêm Tên bài | Link)'}</label>
             <textarea id="bss-music-links" rows={2} value={input} onChange={e => setInput(e.target.value)}
@@ -359,10 +393,10 @@ export default function SlideshowYouTubePlaylist({ albumId, language = 'vi' }) {
             {!tracks.length && <li className="bss-music-list-placeholder">{en ? 'No songs yet.' : 'Chưa có bài hát nào.'}</li>}
           </ol>
           <p className="bss-music-note">{en
-            ? 'Saved on this browser for this album. Music starts after you press Play. Closing pauses playback.'
-            : 'Danh sách lưu trên trình duyệt này theo album. Nhấn Phát để nghe; đóng bảng sẽ dừng nhạc.'}</p>
+            ? 'Saved on this browser for this album. Music starts after you press Play. Closing moves the player to the bottom dock without stopping music.'
+            : 'Danh sách lưu trên trình duyệt này theo album. Nhấn Phát để nghe; nhấn X để thu xuống dock và tiếp tục nghe.'}</p>
         </>}
-        {notice && <p className="bss-music-notice" role="status">{notice}</p>}
+        {notice && !docked && <p className="bss-music-notice" role="status">{notice}</p>}
       </aside>, document.body)}
   </>;
 }
