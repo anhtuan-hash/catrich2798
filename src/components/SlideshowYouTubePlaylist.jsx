@@ -290,7 +290,8 @@ export default function SlideshowYouTubePlaylist({ albumId, language = 'vi' }) {
     </button>
     {opened && createPortal(
       <aside className={'bss-music-panel' + (compact ? ' is-compact' : '')}
-        role="dialog" aria-label={en ? 'YouTube music playlist' : 'Danh sách nhạc YouTube'}>
+        role="dialog" aria-label={en ? 'YouTube music playlist' : 'Danh sách nhạc YouTube'}
+        onKeyDown={event => { if (['Space', 'ArrowLeft', 'ArrowRight'].includes(event.code)) event.stopPropagation(); }}>
         <div className="bss-music-heading">
           <span className="bss-music-heading-icon"><Music2 size={18}/></span>
           <div><strong>{en ? 'Showcase soundtrack' : 'Nhạc nền Showcase'}</strong><small>YOUTUBE PLAYLIST · {tracks.length} {en ? 'TRACKS' : 'BÀI'}</small></div>
