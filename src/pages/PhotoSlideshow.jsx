@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ArrowLeft, ArrowRight, Camera, Check, ChevronLeft, ChevronRight, Copy, Expand,
   Eye, EyeOff, Images, Maximize2, Pause, Play, Plus, QrCode, RefreshCw, Save,
-  Settings2, Trash2, UploadCloud, Video, GraduationCap, X
+  Settings2, Trash2, UploadCloud, Video, GraduationCap, House, X
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../utils/supabase.js';
 import { isDepartmentLeaderRole, isAdminRole } from '../utils/roles.js';
@@ -15,6 +15,7 @@ import PhotoTransitionStage from '../components/PhotoTransitionStage.jsx';
 import SlideshowLinkedText from '../components/SlideshowLinkedText.jsx';
 import SlideshowYouTubePlaylist from '../components/SlideshowYouTubePlaylist.jsx';
 import SlideshowInteractiveHtml from '../components/SlideshowInteractiveHtml.jsx';
+import HalloweenShowcaseHome from '../components/HalloweenShowcaseHome.jsx';
 import './PhotoSlideshow.css';
 import './PhotoSlideshowGalleryV2.css';
 import './PhotoSlideshowFestival.css';
@@ -30,6 +31,12 @@ function readSlug() {
   try {
     return String(new URLSearchParams((window.location.hash.split('?')[1] || '')).get('album') || '');
   } catch { return ''; }
+}
+function readEventHome() {
+  try {
+    const query = new URLSearchParams(window.location.hash.split('?')[1] || '');
+    return query.get('view') === 'home';
+  } catch { return false; }
 }
 function shareUrl(slug) {
   const url = new URL(window.location.href);
@@ -64,6 +71,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
   const [albums, setAlbums] = useState([]);
   const [slides, setSlides] = useState([]);
   const [slug, setSlug] = useState(readSlug);
+  const [showEventHome, setShowEventHome] = useState(readEventHome);
   const [editing, setEditing] = useState(false);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -110,7 +118,8 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
 
   useEffect(() => {
     const onHash = () => {
-      setSlug(readSlug()); setIndex(0); setPlaying(true);
+      setSlug(readSlug()); setShowEventHome(readEventHome());
+      setIndex(0); setPlaying(true);
       setEditing(preserveEditorOnNavigation.current);
       preserveEditorOnNavigation.current = false;
     };
@@ -156,6 +165,11 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
   const previousPhoto = () => { if (ordered.length > 1) { setDirection(-1); setIndex(v => (v - 1 + ordered.length) % ordered.length); } };
   const nextPhoto = () => { if (ordered.length > 1) { setDirection(1); setIndex(v => (v + 1) % ordered.length); } };
   const choosePhoto = (photoIndex) => { setDirection(photoIndex < index ? -1 : 1); setIndex(photoIndex); };
+  const goEventHome = (show) => {
+    if (!selected) return;
+    const newHash = '#/slideshow?album=' + encodeURIComponent(selected.slug) + (show ? '&view=home' : '');
+    if (window.location.hash !== newHash) window.location.hash = newHash;
+  };
   const goAlbum = (value, keepEditor = false) => {
     preserveEditorOnNavigation.current = keepEditor;
     window.location.hash = '#/slideshow' + (value ? '?album=' + encodeURIComponent(value) : '');
@@ -293,10 +307,11 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
   const audienceEnabled = Boolean(selected?.is_published &&
     (selected.id === HALLOWEEN_ALBUM_ID || selected.audience_screen_url));
   const festivalScreen = Boolean(selected && !editing && !creating && audienceEnabled);
+  const showingEventHome = Boolean(festivalScreen && selected?.id === HALLOWEEN_ALBUM_ID && showEventHome);
   const judgeToken = new URLSearchParams(window.location.hash.split('?')[1] || '').get('judge');
   if (judgeToken) return <PhotoJudgingPage token={judgeToken}/>;
 
-  return <div className={'bss' + (selected && !editing ? ' bss--gallery-view' : '') + (festivalScreen ? ' bss--festival-screen' : '') + (festivalScreen && selected.id === HALLOWEEN_ALBUM_ID ? ' bss--halloween-theme' : '')}>
+  return <div className={'bss' + (selected && !editing ? ' bss--gallery-view' : '') + (festivalScreen ? ' bss--festival-screen' : '') + (festivalScreen && selected.id === HALLOWEEN_ALBUM_ID ? ' bss--halloween-theme' : '')+(showingEventHome ? ' bss--event-home' : '')}>
     <div className="bss-ambient" aria-hidden="true"/>
     <header className="bss-header">
       <button type="button" className="bss-brand" onClick={() => { setEditing(false); setCreating(false); goAlbum(''); }}>
@@ -329,7 +344,18 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
           </a>}
         </>}
         {editorAllowed && <button className="bss-pill" onClick={() => { setEditing(v => !v); setCreating(false); }}><Settings2 size={17}/> {editing ? t.done : t.manage}</button>}
-        <a className="bss-pill muted" href="#/home"><ArrowLeft size={16}/> {en ? 'Home' : 'Trang chủ'}</a>
+        {festivalScreen && selected?.id === HALLOWEEN_ALBUM_ID
+          ? <>
+              <button type="button" className={'bss-pill bss-halloween-event-home-button'+(showingEventHome?' is-active':'')}
+                onClick={() => goEventHome(!showingEventHome)} aria-current={showingEventHome ? 'page' : undefined}>
+                {showingEventHome ? <Images size={16}/> : <House size={16}/>}
+                <span>{showingEventHome ? (en ? 'Exhibition' : 'Triển lãm') : (en ? 'Event home' : 'Trang chủ')}</span>
+              </button>
+              <a className="bss-pill muted bss-brian-home-link" href="#/home" title={en ? 'BRIAN homepage' : 'Trang chủ BRIAN'}>
+                <ArrowLeft size={15}/><span>BRIAN</span>
+              </a>
+            </>
+          : <a className="bss-pill muted" href="#/home"><ArrowLeft size={16}/> {en ? 'Home' : 'Trang chủ'}</a>}
       </div>
     </header>
 
@@ -377,7 +403,10 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
       </> : null}
 
       {!loading && !editing && slug && !selected ? <div className="bss-state"><EyeOff size={32}/><h2>{en ? "This album is unavailable or unpublished." : "Album không tồn tại hoặc chưa được xuất bản."}</h2><button onClick={() => goAlbum('')}>{en ? "Browse galleries" : "Xem bộ sưu tập"}</button></div> : null}
-      {!loading && !editing && selected ? <section className="bss-viewer-area" aria-label={en ? 'Photo exhibition' : 'Không gian triển lãm ảnh'}>
+      {!loading && !editing && showingEventHome && <HalloweenShowcaseHome
+        albumId={selected.id} canManage={editorAllowed} language={language}
+        onOpenShowcase={() => goEventHome(false)} />}
+      {!loading && !editing && selected && !showingEventHome ? <section className="bss-viewer-area" aria-label={en ? 'Photo exhibition' : 'Không gian triển lãm ảnh'}>
         <div className="bss-viewer-top">
           <button type="button" className="bss-back" onClick={() => goAlbum('')}><ArrowLeft size={17}/>{en ? 'All collections' : 'Tất cả bộ ảnh'}</button>
           <span className="bss-viewer-live"><span className="bss-live-dot" />{selected.is_published ? (en ? 'PUBLIC EXHIBITION' : 'TRIỂN LÃM CÔNG KHAI') : (en ? 'PRIVATE PREVIEW' : 'XEM TRƯỚC BẢN NHÁP')}</span>
