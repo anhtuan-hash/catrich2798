@@ -65,16 +65,69 @@ async function optimizeBanner(file) {
 
 export default function HalloweenShowcaseHome({ albumId, canManage = false, language = 'vi', onOpenShowcase }) {
   const en = language === 'en';
-  const [version, setVersion] = useState(() => Date.now());
+  // Metadata lives in Supabase for every user; no browser-local banner state.
+  const [bannerRecord, setBannerRecord] = useState(null);
   const [imageState, setImageState] = useState('loading');
+  const revisionRef = useRef(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(() => typeof document !== 'undefined' && document.fullscreenElement === document.documentElement);
   const [notice, setNotice] = useState('');
   const fileRef = useRef(null);
   const path = bannerPath(albumId);
-  const publicUrl = supabase.storage.from(BUCKET).getPublicUrl(path).data?.publicUrl;
-  const bannerUrl = publicUrl ? publicUrl + (publicUrl.includes('?') ? '&' : '?') + 'v=' + version : '';
-  useEffect(() => { setImageState('loading'); setNotice(''); setVersion(Date.now()); }, [albumId]);
+  const publicUrl = bannerRecord?.banner_path
+    ? supabase.storage.from(BUCKET).getPublicUrl(bannerRecord.banner_path).data?.publicUrl : '';
+  // A shared revision invalidates CDN/browser cache only when an editor publishes.
+  const bannerUrl = publicUrl
+    ? publicUrl + (publicUrl.includes('?') ? '&' : '?') + 'v=' + encodeURIComponent(bannerRecord.revision)
+    : '';
+
+  useEffect(() => {
+    let live = true;
+    let inFlight = false;
+    revisionRef.current = null;
+    setBannerRecord(null);
+    setImageState('loading');
+    setNotice('');
+
+    const refreshSharedBanner = async () => {
+      if (!live || inFlight) return;
+      inFlight = true;
+      try {
+        const { data, error } = await supabase
+          .from('bes_slideshow_event_banners')
+          .select('banner_path,revision')
+          .eq('album_id', albumId)
+          .maybeSingle();
+        if (error) throw error;
+        if (!live) return;
+        const revision = data?.revision || 'missing';
+        if (revisionRef.current !== revision) {
+          revisionRef.current = revision;
+          setBannerRecord(data || null);
+          setImageState(data ? 'loading' : 'missing');
+        }
+      } catch (error) {
+        // Preserve any currently visible banner on transient connectivity issues.
+        if (live) console.warn('[BRIAN Showcase] banner sync unavailable:', error?.message || error);
+      } finally { inFlight = false; }
+    };
+
+    void refreshSharedBanner();
+    // Polling covers public visitors who have not authenticated for Realtime.
+    const timer = window.setInterval(() => { void refreshSharedBanner(); }, 12000);
+    const onFocus = () => { void refreshSharedBanner(); };
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') void refreshSharedBanner();
+    };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      live = false;
+      window.clearInterval(timer);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [albumId]);
   useEffect(() => {
     const syncFullscreen = () => setIsFullscreen(document.fullscreenElement === document.documentElement);
     document.addEventListener('fullscreenchange', syncFullscreen);
@@ -112,9 +165,22 @@ export default function HalloweenShowcaseHome({ albumId, canManage = false, lang
         upsert: true, contentType: 'image/jpeg', cacheControl: '60'
       });
       if (result.error) throw result.error;
+      // Publish the new revision after the upload has completed; every account
+      // sees the same storage object and picks up the revision within 12s.
+      const revision = String(Date.now()) + '-' + crypto.randomUUID();
+      const { error: syncError } = await supabase
+        .from('bes_slideshow_event_banners')
+        .upsert({
+          album_id: albumId,
+          banner_path: path,
+          revision,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'album_id' });
+      if (syncError) throw new Error((en ? 'Image saved but sync failed: ' : 'Ảnh đã lưu nhưng chưa đồng bộ: ') + syncError.message);
+      revisionRef.current = revision;
+      setBannerRecord({ banner_path: path, revision });
       setImageState('loading');
-      setVersion(Date.now());
-      setNotice(en ? 'Banner published. Visitors can see it on this homepage.' : 'Banner đã đăng thành công và hiển thị công khai trên trang chủ sự kiện.');
+      setNotice(en ? 'Banner published for all accounts and public visitors.' : 'Banner đã được lưu đồng bộ và hiển thị cho tất cả tài khoản, kể cả khách chưa đăng nhập.');
     } catch (error) {
       setNotice((en ? 'Upload failed: ' : 'Không thể đăng banner: ') + (error?.message || String(error)));
     } finally { setIsUploading(false); }
@@ -128,9 +194,15 @@ export default function HalloweenShowcaseHome({ albumId, canManage = false, lang
     try {
       const result = await supabase.storage.from(BUCKET).remove([path]);
       if (result.error) throw result.error;
+      const { error: syncError } = await supabase
+        .from('bes_slideshow_event_banners')
+        .delete()
+        .eq('album_id', albumId);
+      if (syncError) throw new Error((en ? 'Image removed but sync failed: ' : 'Đã gỡ ảnh nhưng chưa đồng bộ: ') + syncError.message);
+      revisionRef.current = 'missing';
+      setBannerRecord(null);
       setImageState('missing');
-      setVersion(Date.now());
-      setNotice(en ? 'Banner removed.' : 'Đã gỡ banner.');
+      setNotice(en ? 'Banner removed for everyone.' : 'Banner đã được gỡ trên mọi tài khoản.');
     } catch (error) {
       setNotice((en ? 'Could not remove banner: ' : 'Không thể gỡ banner: ') + (error?.message || String(error)));
     } finally { setIsUploading(false); }
