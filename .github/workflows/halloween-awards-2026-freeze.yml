@@ -3,8 +3,9 @@ on:
   workflow_dispatch:
   schedule:
     # The authoritative cutoff is QRvote 15:15 ICT (08:15 UTC).
-    # GitHub scheduling is best-effort; the BRIAN awards screen also retries.
-    - cron: '15-30 8 30 10 *'
+    # Runs every 5 minutes on event day to honor editable BRIAN closing / announcement times.
+    # Scheduling is best-effort; the BRIAN awards screen also polls every 5 seconds.
+    - cron: '*/5 * 30 10 *'
 jobs:
   freeze-after-qrvote:
     if: github.event_name == 'workflow_dispatch' || github.event.schedule != ''
