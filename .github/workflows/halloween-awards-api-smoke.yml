@@ -1,0 +1,31 @@
+name: Halloween Awards API live smoke check
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/halloween-awards-api-smoke.yml'
+  workflow_dispatch:
+jobs:
+  check-real-api:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: POST public awards status without credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --show-error --silent --retry 2 --retry-delay 2 \
+            --max-time 25 \
+            'https://xpkbgqdlfonsinriggmj.supabase.co/functions/v1/photo-awards' \
+            -H 'Content-Type: application/json' \
+            -d '{"albumId":"e1fc3295-2c5d-4e05-8538-b9a7aeef5a67","action":"status"}' > response.json
+          python3 - <<'PY'
+          import json
+          with open('response.json',encoding='utf-8') as file:
+              response=json.load(file)
+          print('API state:',response.get('status'))
+          assert response.get('status') in ('pending','frozen','published'),response
+          assert response.get('cutoffAt')=='2026-10-30T08:15:00.000Z',response
+          assert 'rows' not in response or response['status']=='published'
+          print('Halloween Awards API public security and cutoff: PASS')
+          PY
