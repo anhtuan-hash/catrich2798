@@ -208,12 +208,12 @@
   z-index:2;
   margin:0;
   padding:0;
-  width:200px;
-  height:200px;
-  min-width:200px;
-  min-height:200px;
-  max-width:200px;
-  max-height:200px;
+  width:202px;
+  height:202px;
+  min-width:202px;
+  min-height:202px;
+  max-width:202px;
+  max-height:202px;
   border:1px solid #ebbb73;
   border-radius:11px;
   overflow:hidden;
@@ -267,11 +267,11 @@
   .bss-music-panel.is-docked .bss-music-volume{flex-basis:70px;width:70px;min-width:55px;margin-left:1px}
   .bss-music-panel.is-docked .bss-music-video{
     order:unset;
-    width:200px;
-    height:200px;
-    min-width:200px;
-    min-height:200px;
-    max-height:200px;
+    width:202px;
+    height:202px;
+    min-width:202px;
+    min-height:202px;
+    max-height:202px;
     margin:0;
     right:0;
     bottom:calc(100% + 8px);
