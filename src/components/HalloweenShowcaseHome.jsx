@@ -6,7 +6,43 @@ import './HalloweenShowcaseHome.css';
 const BUCKET = 'brian-slideshows';
 const ACCEPTED = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif']);
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
-const bannerPath = albumId => albumId + '/event-home-banner';
+const bannerPath = albumId => albumId + '/event-home-banner.webp';
+
+// Normalize every accepted format to one browser-friendly public storage key.
+// Keep imagery crisp for a 16:9 projector while avoiding very large uploads.
+async function optimizeBanner(file) {
+  let source;
+  let objectUrl;
+  try {
+    if (typeof createImageBitmap === 'function') {
+      source = await createImageBitmap(file);
+    } else {
+      objectUrl = URL.createObjectURL(file);
+      source = await new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Cannot decode the selected image.'));
+        img.src = objectUrl;
+      });
+    }
+    const originalWidth = source.width || source.naturalWidth;
+    const originalHeight = source.height || source.naturalHeight;
+    if (!originalWidth || !originalHeight) throw new Error('Invalid image dimensions.');
+    const scale = Math.min(1, 2560 / originalWidth, 1600 / originalHeight);
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(originalWidth * scale));
+    canvas.height = Math.max(1, Math.round(originalHeight * scale));
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Cannot prepare image on this browser.');
+    ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.88));
+    if (!blob || blob.type !== 'image/webp') throw new Error('Your browser cannot export WEBP images.');
+    return blob;
+  } finally {
+    source?.close?.();
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+  }
+}
 
 export default function HalloweenShowcaseHome({ albumId, canManage = false, language = 'vi', onOpenShowcase }) {
   const en = language === 'en';
@@ -34,8 +70,9 @@ export default function HalloweenShowcaseHome({ albumId, canManage = false, lang
     try {
       // The fixed per-album storage key makes one shared banner accessible on
       // every device, without altering album metadata or slideshow artworks.
-      const result = await supabase.storage.from(BUCKET).upload(path, file, {
-        upsert: true, contentType: file.type, cacheControl: '60'
+      const optimized = await optimizeBanner(file);
+      const result = await supabase.storage.from(BUCKET).upload(path, optimized, {
+        upsert: true, contentType: 'image/webp', cacheControl: '60'
       });
       if (result.error) throw result.error;
       setImageState('loading');
