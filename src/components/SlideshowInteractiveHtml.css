@@ -69,3 +69,10 @@
   .bss-html-foot{font-size:9px}
   .bss-html-trigger span{display:none}
 }
+
+/* Persisted BRIAN HTML library: distinguish cloud migration from browser-only files. */
+.bss-html-toolbar-actions .bss-html-cloud-save{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #94dbbe;background:linear-gradient(125deg,#214e48,#244260);border-radius:10px;padding:8px 10px;color:#d1ffe9;font-size:11px;font-weight:800;white-space:nowrap}
+.bss-html-cloud-save:hover:not(:disabled){background:linear-gradient(125deg,#2e6960,#315374);box-shadow:0 0 15px #73e0bd36}
+.bss-html-file-chip .lucide-cloud{color:#99efca}
+.bss-html-file-chip .lucide-hard-drive{color:#e6ba80}
+@media(max-width:620px){.bss-html-toolbar-actions .bss-html-cloud-save{padding:8px}.bss-html-toolbar-actions .bss-html-cloud-save span{display:none}}
