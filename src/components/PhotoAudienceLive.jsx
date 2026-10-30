@@ -6,13 +6,6 @@ import './PhotoAudienceLive.css';
 
 const DESKTOP_WIDTH=1440;
 const DESKTOP_HEIGHT=920;
-// Crops of the original, unmodified QRvote /screen iframe.
-// These are presentation viewports, NOT a replacement for the source data.
-// "Toàn bộ" always restores the entire native page for verification.
-const RANKING_PAGES=[
-  {left:510,top:62,width:900,height:435},
-  {left:510,top:485,width:900,height:430}
-];
 
 function PhotoAudienceLive({ language='vi',albumId,screenUrl='',canEdit=false,onSaved,compact=false }) {
   const en=language==='en';
@@ -24,7 +17,6 @@ function PhotoAudienceLive({ language='vi',albumId,screenUrl='',canEdit=false,on
   const [width,setWidth]=useState(560);
   const [height,setHeight]=useState(400);
   const [showConfig,setShowConfig]=useState(false);
-  const [displayMode,setDisplayMode]=useState(compact?'top':'all');
   const [isFull,setIsFull]=useState(false);
   const [saving,setSaving]=useState(false);
   const [feedback,setFeedback]=useState('');
@@ -57,15 +49,12 @@ function PhotoAudienceLive({ language='vi',albumId,screenUrl='',canEdit=false,on
     };
   },[currentUrl]);
 
-  const crop=displayMode==='top'?RANKING_PAGES[0]:displayMode==='bottom'?RANKING_PAGES[1]:null;
-  // "All" preserves the entire official screen. Focus modes magnify the
-  // original browser viewport: no alteration to QRvote data, markup or styles.
-  const logicalWidth=crop?.width??DESKTOP_WIDTH;
-  const logicalHeight=crop?.height??DESKTOP_HEIGHT;
+  // Preserve 100% of the original QRvote screen. Cropping a cross-origin
+  // layout is unreliable because QRvote controls its own responsive breakpoints.
   const scale=(compact || isFull)
-    ? Math.min(width/logicalWidth,height/logicalHeight)
-    : width/logicalWidth;
-  const frameHeight=Math.round(logicalHeight*scale);
+    ? Math.min(width/DESKTOP_WIDTH,height/DESKTOP_HEIGHT)
+    : width/DESKTOP_WIDTH;
+  const frameHeight=Math.round(DESKTOP_HEIGHT*scale);
 
   const save=async event=>{
     event.preventDefault();
@@ -115,17 +104,6 @@ function PhotoAudienceLive({ language='vi',albumId,screenUrl='',canEdit=false,on
         {currentUrl&&<a href={currentUrl} target="_blank" rel="noopener noreferrer"><ExternalLink size={15}/><span>{en?'Original screen':'Mở QRvote'}</span></a>}
       </div>
     </header>
-    {compact&&currentUrl&&<div className="bss-audience-display-tabs" role="group" aria-label={en?'Voting screen zoom':'Chế độ xem QRvote'}>
-      {[
-        {id:'top',vi:'Hạng 1–5',en:'Top 1–5'},
-        {id:'bottom',vi:'Hạng 6–10',en:'Ranks 6–10'},
-        {id:'all',vi:'Toàn bộ',en:'Full screen'}
-      ].map(item=><button key={item.id} type="button"
-        className={displayMode===item.id?'active':''} aria-pressed={displayMode===item.id}
-        onClick={()=>setDisplayMode(item.id)}>{en?item.en:item.vi}</button>)}
-      <span>{en?'Original QRvote screen':'Nguồn: QRvote gốc'}</span>
-    </div>}
-
     {canEdit&&(!compact||showConfig)&&<form className="bss-audience-config" onSubmit={save}>
       <label htmlFor={'bss-audience-url-'+albumId}>
         <Link2 size={14}/>{en?'Paste the QRvote link here':'Dán link Live View khán giả tại đây'}
@@ -142,16 +120,16 @@ function PhotoAudienceLive({ language='vi',albumId,screenUrl='',canEdit=false,on
 
     {currentUrl?<div className="bss-audience-viewport" ref={viewportRef} style={compact||isFull?undefined:{height:frameHeight+'px'}}>
       <div className="bss-audience-framed" style={{
-        width:Math.round(logicalWidth*scale)+'px',
-        height:Math.round(logicalHeight*scale)+'px'
+        width:Math.round(DESKTOP_WIDTH*scale)+'px',
+        height:Math.round(DESKTOP_HEIGHT*scale)+'px'
       }}>
         <iframe title={en?'Original QRvote voting results':'Màn hình kết quả QRvote gốc'}
           src={currentUrl} loading="eager" allowFullScreen referrerPolicy="strict-origin-when-cross-origin"
           style={{
             width:DESKTOP_WIDTH+'px',
             height:DESKTOP_HEIGHT+'px',
-            left:crop?(-crop.left*scale)+'px':'0px',
-            top:crop?(-crop.top*scale)+'px':'0px',
+            left:'0px',
+            top:'0px',
             transform:'scale('+scale+')'
           }}/>
       </div>
