@@ -119,6 +119,20 @@ export default function WorldExplorerAdmin({ currentUser, onClose, language = 'v
       setMessage('Bài đã được phê duyệt. Hệ thống sẽ xuất bản lúc 07:00 vào ngày đã chọn.');
     });
   }
+  async function publishToday() {
+    await run(async () => {
+      const { data, error } = await supabase.rpc('world_explorer_publish_today');
+      if (error) throw error;
+      if (data?.published) {
+        setMessage(tr('Đã công bố một bài đã duyệt cho hôm nay.', 'An approved story has been published for today.'));
+        window.dispatchEvent(new CustomEvent('bes-world-explorer-updated'));
+      } else if (data?.reason === 'already_published_today') {
+        setMessage(tr('Hôm nay đã có bài được công bố.', 'A story has already been published today.'));
+      } else {
+        setMessage(tr('Chưa có bài đã duyệt đến hạn xuất bản.', 'No approved story is due for publication.'));
+      }
+    });
+  }
   async function reject(article) {
     await run(async () => {
       const { error } = await supabase.from('world_explorer_articles')
@@ -150,7 +164,7 @@ export default function WorldExplorerAdmin({ currentUser, onClose, language = 'v
         {message ? <p className="we-admin-message" role="status">{message}</p> : null}
         <div className="we-admin-body">
           {tab === 'queue' ? <>
-            <div className="we-admin-toolbar"><strong>{tr("Hàng chờ nội dung","Editorial queue")}</strong><button type="button" onClick={reset}><Plus size={16}/> {tr('Tạo bài viết', 'New story')}</button><button type="button" onClick={() => run(refresh)}><RefreshCw size={16}/> Làm mới</button></div>
+            <div className="we-admin-toolbar"><strong>{tr("Hàng chờ nội dung","Editorial queue")}</strong><button type="button" onClick={reset}><Plus size={16}/> {tr('Tạo bài viết', 'New story')}</button>{list.some((a) => a.status === 'approved') ? <button type="button" disabled={busy} onClick={publishToday}><CheckCircle2 size={16} />{tr('Công bố bài đã duyệt', 'Publish approved story')}</button> : null}<button type="button" onClick={() => run(refresh)}><RefreshCw size={16}/> Làm mới</button></div>
             {list.length ? <div className="we-admin-list">{list.map((a) => <article key={a.id}><div><small>{a.scheduled_date || 'Chưa xếp lịch'} · <b>{a.status}</b></small><h3>{a.title_en || 'Untitled'}</h3><p>{a.title_vi}</p></div><div className="we-admin-actions"><button type="button" onClick={() => edit(a)}>{tr("Chi tiết / Sửa","View / Edit")}</button>{a.status !== 'approved' && a.status !== 'published' ? <button type="button" disabled={busy} onClick={() => approve(a)}><CheckCircle2 size={15}/> Duyệt</button> : null}{a.status !== 'rejected' && a.status !== 'published' ? <button type="button" disabled={busy} onClick={() => reject(a)}>Từ chối</button> : null}</div></article>)}</div> : <p className="we-admin-hint">{tr("Chưa có bài. Tạo bài đầu tiên và duyệt trước khi xuất bản.","No stories yet. Create and approve the first story before publishing.")}</p>}
           </> : null}
           {tab === 'editor' ? <form className="we-form" onSubmit={(event) => { event.preventDefault(); save('in_review'); }}>
