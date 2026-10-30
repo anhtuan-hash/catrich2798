@@ -52,7 +52,7 @@ function Reader({ article, onClose, language, panelRef }) {
           <h4>ENGLISH</h4>
           <p className="we-content">{article.body_en}</p>
         </section>
-        <section className="we-article-language we-article-language--vi" lang="vi" aria-label="Bản dịch tiếng Việt">
+        <section className="we-article-language we-article-language--vi" lang="vi" aria-label={vi ? 'Bản dịch tiếng Việt' : 'Vietnamese translation'}>
           <h4>{vi ? 'TIẾNG VIỆT' : 'VIETNAMESE'}</h4>
           <p className="we-content">{article.body_vi}</p>
         </section>
