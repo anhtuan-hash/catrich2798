@@ -1,9 +1,10 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.57.4';
 
-/** Halloween 2026 — live/manual or scheduled results, 50% jury + 50% QRvote. */
+/** Halloween 2026 — preview never locks data; official results use 70% jury + 30% QRvote. */
 const ALBUM='e1fc3295-2c5d-4e05-8538-b9a7aeef5a67';
 const SCHEDULED_CUTOFF='2026-10-30T08:15:00.000Z';
 const QRVOTE_SLUG='halloween-showcase-ry29';
+const DEFAULT_ANNOUNCE_AT='2026-10-30T08:20:00.000Z';
 const db=createClient(Deno.env.get('SUPABASE_URL')||'',Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'',{
  auth:{persistSession:false,autoRefreshToken:false}
 });
@@ -31,6 +32,34 @@ async function requireAdmin(request:Request){
  if(error||!user)throw new Error('Phiên đăng nhập không hợp lệ.');
  const profile=result(await db.from('profiles').select('role,approved').eq('id',user.id).maybeSingle());
  if(!profile||profile.role!=='admin'||profile.approved!==true)throw new Error('Chỉ Admin BRIAN được công bố giải thưởng.');
+ return user;
+}
+async function schedule(){
+ const row=result(await db.from('bes_halloween_awards_schedule_2026')
+  .select('vote_close_at,announce_at,updated_at').eq('album_id',ALBUM).maybeSingle());
+ return {
+  voteCloseAt:row?.vote_close_at||SCHEDULED_CUTOFF,
+  announceAt:row?.announce_at||DEFAULT_ANNOUNCE_AT,
+  updatedAt:row?.updated_at||null,
+  providerManaged:true
+ };
+}
+async function saveSchedule(body:any,userId:string){
+ const existing=await stored();
+ if(existing)throw new Error('Kết quả đã chốt, không thể thay đổi lịch.');
+ const close=String(body.voteCloseAt||''),announce=String(body.announceAt||'');
+ const valid=(v:string)=>/^2026-10-30T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|\+07:00|\+00:00)$/.test(v)&&Number.isFinite(Date.parse(v));
+ if(!valid(close)||!valid(announce))throw new Error('Chỉ cho phép thiết lập lịch trong ngày 30/10/2026.');
+ const closeMs=Date.parse(close),announceMs=Date.parse(announce);
+ const start=Date.parse('2026-10-29T17:00:00Z');
+ const end=Date.parse('2026-10-30T17:00:00Z');
+ if(closeMs<start||closeMs>=end||announceMs<closeMs||announceMs>=end)throw new Error('Giờ công bố không được sớm hơn giờ kết thúc bình chọn, cùng ngày 30/10.');
+ const saved=result(await db.from('bes_halloween_awards_schedule_2026')
+  .upsert({album_id:ALBUM,vote_close_at:new Date(closeMs).toISOString(),
+    announce_at:new Date(announceMs).toISOString(),updated_at:new Date().toISOString(),updated_by:userId},
+   {onConflict:'album_id'})
+  .select('vote_close_at,announce_at,updated_at').single());
+ return {voteCloseAt:saved.vote_close_at,announceAt:saved.announce_at,updatedAt:saved.updated_at,providerManaged:true};
 }
 async function stored(){
  return result(await db.from('bes_halloween_awards_2026').select('*').eq('album_id',ALBUM).maybeSingle());
@@ -100,8 +129,8 @@ async function readLiveRanking(requireQrClosed=false){
    ...identity,slideId:slide.id,artworkNumber:index+1,
    imageUrl:db.storage.from('brian-slideshows').getPublicUrl(slide.image_path).data.publicUrl,
    scoredCount:scores.length,juryScore:round(jury),
-   juryWeighted:round(jury*.5),audienceVotes,audienceScore:round(audience),
-   audienceWeighted:round(audience*.5),finalScore:round((jury+audience)*.5)
+   juryWeighted:round(jury*.7),audienceVotes,audienceScore:round(audience),
+   audienceWeighted:round(audience*.3),finalScore:round(jury*.7+audience*.3)
   };
  }).sort((a,b)=>b.finalScore-a.finalScore||b.juryScore-a.juryScore||
   b.audienceVotes-a.audienceVotes||a.artworkNumber-b.artworkNumber)
@@ -111,7 +140,8 @@ async function readLiveRanking(requireQrClosed=false){
   rows,capturedAt,judgeCount:contributors.size,
   activeJudgeCount:activeJudges.length,savedScoreCount:savedScores.length,
   voteCount:[...votes.values()].reduce((a,b)=>a+b,0),
-  voteStatus:String(source.campaign.status||'unknown')
+  voteStatus:String(source.campaign.status||'unknown'),
+  providerCloseAt:source.campaign.closesAt?new Date(source.campaign.closesAt).toISOString():null
  };
 }
 type Live=Awaited<ReturnType<typeof readLiveRanking>>;
@@ -130,12 +160,18 @@ async function insertSnapshot(live:Live){
  }
  return insertion.data;
 }
-async function autoFreeze(){
+async function autoFreeze(settings:any){
  const previous=await stored();
  if(previous)return previous;
- if(Date.now()<Date.parse(SCHEDULED_CUTOFF))return null;
+ if(Date.now()<Date.parse(settings.voteCloseAt))return null;
  const live=await readLiveRanking(true);
  return insertSnapshot(live);
+}
+async function autoAnnounce(settings:any){
+ const saved=await autoFreeze(settings);
+ if(!saved)return null;
+ if(Date.now()<Date.parse(settings.announceAt))return saved;
+ return publish(saved);
 }
 async function publish(record:any){
  if(!record)throw new Error('Không có kết quả để công bố.');
@@ -152,47 +188,58 @@ Deno.serve(async request=>{
  try{
   const body=await request.json();
   const action=String(body.action||'');
-  if(body.albumId!==ALBUM||!['status','admin:status','admin:preview','admin:publish','admin:publish-now'].includes(action)){
-   return reply({error:'Yêu cầu không hợp lệ.'},400);
-  }
+  const allowed=['status','admin:status','admin:preview','admin:publish-now','admin:publish','admin:schedule'];
+  if(body.albumId!==ALBUM||!allowed.includes(action))return reply({error:'Yêu cầu không hợp lệ.'},400);
   const elevated=action.startsWith('admin:');
-  if(elevated)await requireAdmin(request);
-  let saved:any;
-  let preview:Live|null=null;
-  if(action==='admin:preview'){
-   saved=await stored();
-   if(!saved)preview=await readLiveRanking(false);
-  }else if(action==='admin:publish-now'){
-   saved=await stored();
-   if(!saved)saved=await insertSnapshot(await readLiveRanking(false));
+  const who=elevated?await requireAdmin(request):null;
+  const settings=action==='admin:schedule'
+   ?await saveSchedule(body,who!.id)
+   :await schedule();
+  // A legacy "publish-now" request is now deliberately only a read-only preview.
+  // It can never write a frozen result or make an announcement.
+  if(action==='admin:preview'||action==='admin:publish-now'){
+   const saved=await stored();
+   if(!saved){
+    const live=await readLiveRanking(false);
+    return reply({status:'preview',...settings,capturedAt:live.capturedAt,
+     serverNow:new Date().toISOString(),weights:{jury:70,audience:30},
+     judgeCount:live.judgeCount,activeJudgeCount:live.activeJudgeCount,
+     savedScoreCount:live.savedScoreCount,voteCount:live.voteCount,
+     voteStatus:live.voteStatus,providerCloseAt:live.providerCloseAt,rows:live.rows});
+   }
+   return reply({status:saved.status,...settings,capturedAt:saved.cutoff_at,
+    serverNow:new Date().toISOString(),weights:{jury:70,audience:30},
+    judgeCount:saved.judge_count,voteCount:saved.vote_count,
+    savedScoreCount:saved.snapshot.reduce((sum:number,row:any)=>sum+(row.scoredCount||0),0),
+    publishedAt:saved.published_at||null,rows:saved.snapshot});
+  }
+  let saved:any=null;
+  let scheduleError:string|null=null;
+  try{
+   saved=await autoAnnounce(settings);
+  }catch(error){
+   scheduleError=error instanceof Error?error.message:'Chưa thể chốt kết quả.';
+  }
+  if(action==='admin:publish'){
+   if(Date.now()<Date.parse(settings.announceAt))throw new Error('Chưa đến giờ công bố đã cài đặt.');
+   if(!saved)throw new Error(scheduleError||'Chưa thể xác minh kết quả QRvote sau giờ đóng.');
    saved=await publish(saved);
-  }else{
-   saved=await autoFreeze();
-   if(action==='admin:publish')saved=await publish(saved);
   }
-  if(preview){
-   return reply({
-    status:'preview',cutoffAt:SCHEDULED_CUTOFF,capturedAt:preview.capturedAt,
-    serverNow:new Date().toISOString(),weights:{jury:50,audience:50},
-    judgeCount:preview.judgeCount,activeJudgeCount:preview.activeJudgeCount,
-    savedScoreCount:preview.savedScoreCount,voteCount:preview.voteCount,
-    voteStatus:preview.voteStatus,rows:preview.rows
-   });
-  }
-  const show=Boolean(saved&&(saved.status==='published'||elevated));
+  const visible=Boolean(saved&&(saved.status==='published'||elevated));
   return reply({
-   status:saved?.status||'pending',cutoffAt:SCHEDULED_CUTOFF,
-   capturedAt:saved?.cutoff_at||null,serverNow:new Date().toISOString(),
-   weights:{jury:50,audience:50},publishedAt:saved?.published_at||null,
-   judgeCount:show?saved.judge_count:undefined,
-   voteCount:show?saved.vote_count:undefined,
-   savedScoreCount:show?saved.snapshot.reduce((n:number,r:any)=>n+(r.scoredCount||0),0):undefined,
-   rows:show?saved.snapshot:undefined
+   status:saved?.status||'pending',...settings,serverNow:new Date().toISOString(),
+   capturedAt:saved?.cutoff_at||null,weights:{jury:70,audience:30},
+   publishedAt:saved?.published_at||null,
+   pendingReason:scheduleError,
+   judgeCount:visible?saved.judge_count:undefined,
+   voteCount:visible?saved.vote_count:undefined,
+   savedScoreCount:visible?saved.snapshot.reduce((n:number,r:any)=>n+(r.scoredCount||0),0):undefined,
+   rows:visible?saved.snapshot:undefined
   });
  }catch(error){
   const message=error instanceof Error?error.message:'Không thể tổng hợp kết quả.';
   console.error('photo-awards',message);
-  return reply({error:message,status:'unavailable',cutoffAt:SCHEDULED_CUTOFF},
-   /Admin|đăng nhập|Phiên đăng nhập/.test(message)?403:503);
+  return reply({error:message,status:'unavailable'},
+   /Admin|đăng nhập|Phiên đăng nhập/.test(message)?403:400);
  }
 });
