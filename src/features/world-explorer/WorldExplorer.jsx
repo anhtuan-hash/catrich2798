@@ -132,7 +132,7 @@ export default function WorldExplorer({ currentUser, language = 'vi' }) {
     const frame = requestAnimationFrame(() => {
       readerRef.current?.focus({ preventScroll: true });
       readerRef.current?.scrollIntoView({
-        behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+        behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ? 'auto' : 'smooth',
         block: 'start',
       });
     });
@@ -143,6 +143,10 @@ export default function WorldExplorer({ currentUser, language = 'vi' }) {
     setSelected(null);
     requestAnimationFrame(() => readButtonRef.current?.focus({ preventScroll: true }));
   }, []);
+  const closeAdmin = useCallback(() => {
+    setAdminOpen(false);
+    load().catch(() => {});
+  }, [load]);
   if (!enabled && !isAdmin) return null;
   if (error && !isAdmin) return null; // Keep existing homepage unchanged on backend failures.
   const featured = articles[0];
@@ -190,7 +194,7 @@ export default function WorldExplorer({ currentUser, language = 'vi' }) {
         </section>
       ) : null}
       <div className="we-bottom"><span>LEARN · DISCOVER · GROW</span><span>{vi ? 'Tri thức không biên giới' : 'Knowledge without borders'} ✿</span></div>
-      {adminOpen && isAdmin ? <Suspense fallback={null}><WorldExplorerAdmin currentUser={currentUser} language={language} onClose={() => { setAdminOpen(false); load().catch(() => {}); }} /></Suspense> : null}
+      {adminOpen && isAdmin ? <Suspense fallback={null}><WorldExplorerAdmin currentUser={currentUser} language={language} onClose={closeAdmin} /></Suspense> : null}
     </section>
   );
 }
