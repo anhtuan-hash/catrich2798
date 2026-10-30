@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Award, BookOpenText, CheckCircle2, ChevronLeft, ChevronRight, Expand, Save, ShieldCheck } from 'lucide-react';
+import { Award, BookOpenText, CheckCircle2, ChevronLeft, ChevronRight, Expand, House, Save, ShieldCheck } from 'lucide-react';
 import { photoJudgingRequest } from './PhotoJudgingAdmin.jsx';
 import { weightedTotal, isComplete } from '../utils/judgingMath.js';
 import { getJudgeArtworkVietnamese } from '../utils/photoJudgingDescriptions.js';
@@ -71,7 +71,16 @@ export default function PhotoJudgingPage({token}) {
     }catch(e){setError(e.message);}finally{setBusy(false);}
   }
   return <div className="bj-guest">
-    <header className="bj-guest-header"><div className="bj-guest-mark"><Award size={25}/></div><div><strong>BRIAN <em>JUDGING STUDIO</em></strong><small>THE SCHOOL ARTWORK COMPETITION</small></div></header>
+    <header className="bj-guest-header">
+      <div className="bj-guest-identity">
+        <div className="bj-guest-mark"><Award size={25}/></div>
+        <div><strong>BRIAN <em>JUDGING STUDIO</em></strong><small>THE SCHOOL ARTWORK COMPETITION</small></div>
+      </div>
+      <a className="bj-guest-home" href="https://esl-brian.vercel.app" target="_blank" rel="noopener noreferrer" aria-label="Mở trang chủ BRIAN trong thẻ mới" title="Mở trang chủ BRIAN (thẻ mới)">
+        <House size={17} aria-hidden="true"/>
+        <span>Trang chủ</span>
+      </a>
+    </header>
     {!data?<div className="bj-guest-loading">{error?<div className="bj-error" role="alert">{error}</div>:'Đang xác thực liên kết giám khảo…'}</div>:
       <main className="bj-guest-main">
         <div className="bj-guest-title"><span className="bj-kicker">PRIVATE JUDGING · NO LOGIN REQUIRED</span><h1>{data.title}</h1><p>Giám khảo: <strong>{data.fullName}</strong></p></div>
