@@ -12,6 +12,7 @@ export const JUDGING_UI_EN = Object.freeze({
   "Liên kết mới cấp — sao chép ngay (không lưu token gốc trên máy chủ)": "New judge link — copy now (raw token is not stored on the server)",
   "Xem trang chấm": "Open judging page",
   "Cấp lại": "Reissue link",
+  "Chấm lại": "Reset scores",
   "Sao chép link": "Copy link",
   "Mở phiên chấm chính thức": "Open official judging",
   "Khóa và chốt kết quả": "Lock and finalize results",
