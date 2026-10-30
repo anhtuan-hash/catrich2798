@@ -48,7 +48,7 @@ async function saveSchedule(body:any,userId:string){
  const existing=await stored();
  if(existing)throw new Error('Kết quả đã chốt, không thể thay đổi lịch.');
  const close=String(body.voteCloseAt||''),announce=String(body.announceAt||'');
- const valid=(v:string)=>/^2026-10-30T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|\+07:00|\+00:00)$/.test(v)&&Number.isFinite(Date.parse(v));
+ const valid=(v:string)=>/^2026-10-(?:29|30)T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|\+07:00|\+00:00)$/.test(v)&&Number.isFinite(Date.parse(v));
  if(!valid(close)||!valid(announce))throw new Error('Chỉ cho phép thiết lập lịch trong ngày 30/10/2026.');
  const closeMs=Date.parse(close),announceMs=Date.parse(announce);
  const start=Date.parse('2026-10-29T17:00:00Z');
@@ -201,13 +201,13 @@ Deno.serve(async request=>{
    const saved=await stored();
    if(!saved){
     const live=await readLiveRanking(false);
-    return reply({status:'preview',...settings,capturedAt:live.capturedAt,
+    return reply({status:'preview',...settings,cutoffAt:settings.voteCloseAt,capturedAt:live.capturedAt,
      serverNow:new Date().toISOString(),weights:{jury:70,audience:30},
      judgeCount:live.judgeCount,activeJudgeCount:live.activeJudgeCount,
      savedScoreCount:live.savedScoreCount,voteCount:live.voteCount,
      voteStatus:live.voteStatus,providerCloseAt:live.providerCloseAt,rows:live.rows});
    }
-   return reply({status:saved.status,...settings,capturedAt:saved.cutoff_at,
+   return reply({status:saved.status,...settings,cutoffAt:settings.voteCloseAt,capturedAt:saved.cutoff_at,
     serverNow:new Date().toISOString(),weights:{jury:70,audience:30},
     judgeCount:saved.judge_count,voteCount:saved.vote_count,
     savedScoreCount:saved.snapshot.reduce((sum:number,row:any)=>sum+(row.scoredCount||0),0),
@@ -227,7 +227,7 @@ Deno.serve(async request=>{
   }
   const visible=Boolean(saved&&(saved.status==='published'||elevated));
   return reply({
-   status:saved?.status||'pending',...settings,serverNow:new Date().toISOString(),
+   status:saved?.status||'pending',...settings,cutoffAt:settings.voteCloseAt,serverNow:new Date().toISOString(),
    capturedAt:saved?.cutoff_at||null,weights:{jury:70,audience:30},
    publishedAt:saved?.published_at||null,
    pendingReason:scheduleError,
