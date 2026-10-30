@@ -1,6 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.57.4';
 
-/** Halloween 2026 — preview never locks data; official results use 70% jury + 30% QRvote. */
+/** Halloween 2026 — preview never locks data; official results use 80% jury + 20% QRvote. */
 const ALBUM='e1fc3295-2c5d-4e05-8538-b9a7aeef5a67';
 const SCHEDULED_CUTOFF='2026-10-30T08:15:00.000Z';
 const QRVOTE_SLUG='halloween-showcase-ry29';
@@ -129,8 +129,8 @@ async function readLiveRanking(requireQrClosed=false){
    ...identity,slideId:slide.id,artworkNumber:index+1,
    imageUrl:db.storage.from('brian-slideshows').getPublicUrl(slide.image_path).data.publicUrl,
    scoredCount:scores.length,juryScore:round(jury),
-   juryWeighted:round(jury*.7),audienceVotes,audienceScore:round(audience),
-   audienceWeighted:round(audience*.3),finalScore:round(jury*.7+audience*.3)
+   juryWeighted:round(jury*.8),audienceVotes,audienceScore:round(audience),
+   audienceWeighted:round(audience*.2),finalScore:round(jury*.8+audience*.2)
   };
  }).sort((a,b)=>b.finalScore-a.finalScore||b.juryScore-a.juryScore||
   b.audienceVotes-a.audienceVotes||a.artworkNumber-b.artworkNumber)
@@ -202,13 +202,13 @@ Deno.serve(async request=>{
    if(!saved){
     const live=await readLiveRanking(false);
     return reply({status:'preview',...settings,cutoffAt:settings.voteCloseAt,capturedAt:live.capturedAt,
-     serverNow:new Date().toISOString(),weights:{jury:70,audience:30},
+     serverNow:new Date().toISOString(),weights:{jury:80,audience:20},
      judgeCount:live.judgeCount,activeJudgeCount:live.activeJudgeCount,
      savedScoreCount:live.savedScoreCount,voteCount:live.voteCount,
      voteStatus:live.voteStatus,providerCloseAt:live.providerCloseAt,rows:live.rows});
    }
    return reply({status:saved.status,...settings,cutoffAt:settings.voteCloseAt,capturedAt:saved.cutoff_at,
-    serverNow:new Date().toISOString(),weights:{jury:70,audience:30},
+    serverNow:new Date().toISOString(),weights:{jury:80,audience:20},
     judgeCount:saved.judge_count,voteCount:saved.vote_count,
     savedScoreCount:saved.snapshot.reduce((sum:number,row:any)=>sum+(row.scoredCount||0),0),
     publishedAt:saved.published_at||null,rows:saved.snapshot});
@@ -228,7 +228,7 @@ Deno.serve(async request=>{
   const visible=Boolean(saved&&(saved.status==='published'||elevated));
   return reply({
    status:saved?.status||'pending',...settings,cutoffAt:settings.voteCloseAt,serverNow:new Date().toISOString(),
-   capturedAt:saved?.cutoff_at||null,weights:{jury:70,audience:30},
+   capturedAt:saved?.cutoff_at||null,weights:{jury:80,audience:20},
    publishedAt:saved?.published_at||null,
    pendingReason:scheduleError,
    judgeCount:visible?saved.judge_count:undefined,
