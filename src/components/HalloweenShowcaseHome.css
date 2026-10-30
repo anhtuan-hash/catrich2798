@@ -1,0 +1,95 @@
+/* Halloween 2026 event welcome page: shares header and cinematic backdrop. */
+.bss--halloween-theme.bss--event-home .bss-container{
+  width:100%;max-width:none;flex:1 1 auto;min-height:0;
+  padding:clamp(8px,1.2vh,16px) 0 0;display:flex;flex-direction:column;
+}
+.bss--halloween-theme.bss--event-home .bss-intro{display:none}
+.bss--halloween-theme.bss--event-home .bss-footer{display:none}
+.bss-event-home{
+  display:flex;flex-direction:column;gap:11px;
+  flex:1 1 auto;min-height:0;width:100%;
+  padding:clamp(13px,1.3vw,22px);
+  border:1px solid #e9b967;border-radius:20px;
+  background:linear-gradient(155deg,#160e28f4,#241431f1 60%,#151027ed);
+  box-shadow:0 0 0 3px #31182b8a,0 12px 36px #06031294,0 0 23px #e49b383d;
+}
+.bss-event-home-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-shrink:0;color:#ffdb9b}
+.bss-event-home-eyebrow,.bss-event-home-caption{font-size:11px;letter-spacing:.14em;font-weight:800}
+.bss-event-home-eyebrow{display:inline-flex;align-items:center;gap:9px}
+.bss-event-home-caption{color:#c9a8b9}
+.bss-event-home-stage{
+  position:relative;flex:1 1 auto;min-height:240px;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;border-radius:15px;border:1px solid #e6b66589;
+  background:radial-gradient(ellipse at 50% 26%,#8860a65c,transparent 58%),
+    linear-gradient(140deg,#291b47,#0d0c25 76%);
+}
+.bss-event-home-stage.has-banner::before{
+  content:"";position:absolute;inset:-22px;z-index:0;
+  background:radial-gradient(ellipse at center,#ecb76730,transparent 70%);
+}
+.bss-event-home-banner{
+  z-index:1;position:relative;display:block;
+  width:100%;height:100%;min-height:0;
+  object-fit:contain;object-position:center;
+}
+.bss-event-home-placeholder{
+  position:relative;z-index:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;
+  gap:14px;padding:30px 20px;color:#ffe1a3;
+}
+.bss-event-home-placeholder-icon{
+  width:78px;height:78px;display:grid;place-items:center;
+  border-radius:24px;background:#f7ca7921;border:1px solid #f8c37871;
+}
+.bss-event-home-overline{font-size:11px;letter-spacing:.25em;font-weight:800;color:#f7b974}
+.bss-event-home-placeholder h1{
+  margin:0;font:700 clamp(34px,5.6vw,88px)/1.08 Georgia,"Times New Roman",serif;
+  text-shadow:0 3px 22px #f4a54159;
+}
+.bss-event-home-placeholder p{margin:0;max-width:570px;font-size:clamp(13px,1.2vw,18px);line-height:1.6;color:#e4cedf}
+.bss-event-home-placeholder small{color:#e9c490;font-size:12px}
+.bss-event-home-actions{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:16px;flex-shrink:0;min-height:61px;
+}
+.bss-event-home-description{display:flex;flex-direction:column;gap:5px;min-width:0}
+.bss-event-home-description strong{font-size:13px;color:#ffe4ae;letter-spacing:.13em}
+.bss-event-home-description span{font-size:12px;color:#c7b3c9}
+.bss-event-home-buttons{display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-end;gap:9px}
+.bss-event-home-upload,.bss-event-home-enter,.bss-event-home-remove{
+  min-height:42px;padding:9px 15px;display:inline-flex;align-items:center;
+  justify-content:center;gap:8px;border-radius:12px;
+  font:800 12px/1.25 inherit;cursor:pointer;white-space:nowrap;
+  transition:background .2s,transform .2s,border-color .2s;
+}
+.bss-event-home-upload{position:relative;background:#392347;border:1px solid #e2b171;color:#ffe1af}
+.bss-event-home-upload:hover{background:#53304f}
+.bss-event-home-upload input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.bss-event-home-upload.is-busy{opacity:.6;pointer-events:none}
+.bss-event-home-enter{border:1px solid #ffe3a7;background:linear-gradient(130deg,#ffe5a8,#f7b75d);color:#2b1732}
+.bss-event-home-enter:hover{background:#ffe0a0;transform:translateY(-1px)}
+.bss-event-home-remove{padding:9px 12px;border:1px solid #d98999;background:#4a263d;color:#ffd4db}
+.bss-event-home-remove:hover{background:#69324a}
+.bss-event-home-status{margin:0;color:#ffdc9d;font-size:12px;flex-shrink:0}
+.bss-event-home-spin{animation:bss-event-spin 1s linear infinite}
+@keyframes bss-event-spin{to{transform:rotate(360deg)}}
+.bss-event-home-upload:focus-within,.bss-event-home-enter:focus-visible,
+.bss-event-home-remove:focus-visible{outline:3px solid #ffe28b;outline-offset:3px}
+@media(max-width:850px){
+  .bss-event-home-actions{flex-direction:column;align-items:stretch;gap:12px}
+  .bss-event-home-buttons{justify-content:flex-start}
+  .bss-event-home-placeholder h1{font-size:clamp(34px,7vw,64px)}
+}
+@media(max-width:600px){
+  .bss-event-home{padding:12px;border-radius:16px}
+  .bss-event-home-caption{display:none}
+  .bss-event-home-placeholder{padding:25px 13px}
+  .bss-event-home-placeholder-icon{height:58px;width:58px}
+  .bss-event-home-actions{padding:4px 0}
+  .bss-event-home-buttons{flex-wrap:wrap}
+}
+@media(prefers-reduced-motion:reduce){
+  .bss-event-home-spin{animation:none}
+  .bss-event-home-enter{transition:none}
+}
