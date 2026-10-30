@@ -65,12 +65,12 @@ export default function PhotoAwards({albumId,onClose,canPublish=false,language='
    <div className="brian-awards-actions">
     <span className="brian-awards-rule">70% JURY <i>+</i> 30% AUDIENCE</span>
     <button type="button" onClick={()=>refresh().catch(e=>setError(e.message))} aria-label="Cập nhật"><RefreshCw size={17}/></button>
-    <button type="button" onClick={onClose} aria-label="Đóng màn hình trao giải"><X size={22}/></button>
+    <button type="button" onClick={onClose} aria-label={en?'Close awards presentation':'Đóng màn hình trao giải'}><X size={22}/></button>
    </div>
   </header>
   <main className="brian-awards-main">
    <div className="brian-awards-heading">
-    <div className="brian-awards-eyebrow"><span>✦</span> PÉTRUS KÝ SCHOOL · 30.10.2026 <span>✦</span></div>
+    <div className="brian-awards-eyebrow"><span>✦</span> {en?'PÉTRUS KÝ SCHOOL · 30.10.2026':'TRƯỜNG TRUNG – TIỂU HỌC PÉTRUS KÝ · 30.10.2026'} <span>✦</span></div>
     <h1>HALLOWEEN <em>AWARDS</em></h1>
     <p>{en?'Celebrating creativity, imagination and teamwork':'Vinh danh những tác phẩm sáng tạo xuất sắc nhất'}</p>
    </div>
@@ -79,7 +79,7 @@ export default function PhotoAwards({albumId,onClose,canPublish=false,language='
     <div className="brian-awards-clock">{until(now)}</div>
     <small>15:15 · 30/10/2026 · Asia/Ho_Chi_Minh</small>
    </div>}
-   {readyAt&&!data&&<div className="brian-awards-wait"><RefreshCw size={27}/><strong>Đang xác minh kết quả từ QRvote và giám khảo…</strong></div>}
+   {readyAt&&!data&&<div className="brian-awards-wait"><RefreshCw size={27}/><strong>{en?'Verifying final QRvote and jury scores…':'Đang xác minh kết quả từ QRvote và giám khảo…'}</strong></div>}
    {readyAt&&isFrozen&&<div className="brian-awards-wait">
     <LockKeyhole size={28}/>
     <strong>{canPublish?'Đã chốt 18 nhóm — sẵn sàng công bố':'Kết quả đã chốt — đang chờ Ban tổ chức công bố'}</strong>
@@ -98,7 +98,7 @@ export default function PhotoAwards({albumId,onClose,canPublish=false,language='
        {shown?<><img src={row.imageUrl} alt={'Tranh '+row.label}/><strong>{row.label}</strong>
        <span>{Number(row.finalScore).toFixed(2)} <small>/100</small></span>
        <small>Giám khảo {Number(row.juryScore).toFixed(2)} · Khán giả {row.audienceVotes.toLocaleString('vi-VN')} phiếu</small></>
-       :<><LockKeyhole size={25}/><strong>CHƯA TIẾT LỘ</strong><small>THE WINNER WILL BE REVEALED</small></>}
+       :<><LockKeyhole size={25}/><strong>{en?'NOT REVEALED':'CHƯA TIẾT LỘ'}</strong><small>THE WINNER WILL BE REVEALED</small></>}
       </div>
       <div className="brian-awards-plinth">{item.rank}</div>
      </section>;
@@ -106,8 +106,8 @@ export default function PhotoAwards({albumId,onClose,canPublish=false,language='
    </div>}
    {readyAt&&isPublished&&<div className="brian-awards-finish"><CheckCircle2 size={18}/>
     {revealed>=3?'OFFICIAL TOP 3 · FINAL RESULT':'THE GRAND REVEAL · '+revealed+'/3'}</div>}
-   {canPublish&&isPublished&&revealed<3&&<button type="button" className="brian-awards-primary" onClick={()=>setRevealed(x=>Math.min(x+1,3))}><Award size={20}/>CÔNG BỐ GIẢI TIẾP THEO</button>}
-   {canPublish&&isPublished&&revealed===3&&<button type="button" className="brian-awards-secondary" onClick={()=>setRevealed(0)}>Trình chiếu lại từ đầu</button>}
+   {canPublish&&isPublished&&revealed<3&&<button type="button" className="brian-awards-primary" onClick={()=>setRevealed(x=>Math.min(x+1,3))}><Award size={20}/>{en?'REVEAL NEXT PRIZE':'CÔNG BỐ GIẢI TIẾP THEO'}</button>}
+   {canPublish&&isPublished&&revealed===3&&<button type="button" className="brian-awards-secondary" onClick={()=>setRevealed(0)}>{en?'Replay ceremony':'Trình chiếu lại từ đầu'}</button>}
    {canPublish&&rows.length===18&&<div className="brian-awards-audit">
     <button type="button" onClick={()=>setShowAudit(x=>!x)}><ShieldCheck size={16}/>{showAudit?'Ẩn bảng kiểm tra':'Kiểm tra bảng điểm 18 nhóm'}</button>
     {showAudit&&<div className="brian-awards-audit-list">
