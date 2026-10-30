@@ -87,7 +87,7 @@ export default function PhotoJudgingPage({token}) {
             {current.description&&<aside className="bj-artwork-story" aria-label="Mô tả tác phẩm song ngữ">
               <div className="bj-artwork-story-heading">
                 <BookOpenText size={17} aria-hidden="true"/>
-                <strong>MÔ TẢ &amp; THÔNG ĐIỆP TÁC PHẨM</strong>
+                <strong>MÔ TẢ & THÔNG ĐIỆP TÁC PHẨM</strong>
                 <span>EN / VI</span>
               </div>
               <div className="bj-artwork-story-body">
