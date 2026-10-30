@@ -14,6 +14,7 @@ import { HALLOWEEN_ALBUM_ID } from '../utils/photoAudienceScreen.js';
 import PhotoTransitionStage from '../components/PhotoTransitionStage.jsx';
 import SlideshowLinkedText from '../components/SlideshowLinkedText.jsx';
 import SlideshowYouTubePlaylist from '../components/SlideshowYouTubePlaylist.jsx';
+import SlideshowInteractiveHtml from '../components/SlideshowInteractiveHtml.jsx';
 import './PhotoSlideshow.css';
 import './PhotoSlideshowGalleryV2.css';
 import './PhotoSlideshowFestival.css';
@@ -297,6 +298,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
       </div>}
       <div className="bss-header-actions">
         {festivalScreen && selected?.id === HALLOWEEN_ALBUM_ID && <SlideshowYouTubePlaylist key={selected.id} albumId={selected.id} language={language}/>}
+        {festivalScreen && selected?.id === HALLOWEEN_ALBUM_ID && <SlideshowInteractiveHtml key={'html-'+selected.id} albumId={selected.id} language={language}/>}
         {editorAllowed && <button className="bss-pill" onClick={() => { setEditing(v => !v); setCreating(false); }}><Settings2 size={17}/> {editing ? t.done : t.manage}</button>}
         <a className="bss-pill muted" href="#/home"><ArrowLeft size={16}/> {en ? 'Home' : 'Trang chủ'}</a>
       </div>
