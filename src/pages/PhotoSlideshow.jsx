@@ -17,6 +17,7 @@ import './PhotoSlideshow.css';
 import './PhotoSlideshowGalleryV2.css';
 import './PhotoSlideshowFestival.css';
 import './PhotoSlideshowDualLive.css';
+import './PhotoSlideshowHalloween.css';
 
 const BUCKET = 'brian-slideshows';
 const TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']);
@@ -282,7 +283,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
   const judgeToken = new URLSearchParams(window.location.hash.split('?')[1] || '').get('judge');
   if (judgeToken) return <PhotoJudgingPage token={judgeToken}/>;
 
-  return <div className={'bss' + (selected && !editing ? ' bss--gallery-view' : '') + (festivalScreen ? ' bss--festival-screen' : '')}>
+  return <div className={'bss' + (selected && !editing ? ' bss--gallery-view' : '') + (festivalScreen ? ' bss--festival-screen' : '') + (festivalScreen && selected.id === HALLOWEEN_ALBUM_ID ? ' bss--halloween-theme' : '')}>
     <div className="bss-ambient" aria-hidden="true"/>
     <header className="bss-header">
       <button type="button" className="bss-brand" onClick={() => { setEditing(false); setCreating(false); goAlbum(''); }}>

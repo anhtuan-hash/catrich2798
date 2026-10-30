@@ -1,0 +1,100 @@
+/* Halloween album only. Decorative layers preserve the approved dashboard geometry. */
+.bss.bss--gallery-view.bss--halloween-theme {
+  --gallery-accent:#ffc779;
+  --gallery-line:#ffad644d;
+  background:
+    radial-gradient(ellipse at 0% 42%,#f56c263d,transparent 48%),
+    radial-gradient(ellipse at 100% 12%,#a24cff59,transparent 55%),
+    linear-gradient(#1a082e66,#13091f55),
+    url('/assets/slideshow/halloween-night.svg') center / cover no-repeat,
+    #160b29;
+}
+.bss--halloween-theme .bss-ambient {
+  inset:0;height:100%;opacity:.7;z-index:-1;
+  background:
+    url('/assets/slideshow/halloween-web.svg') left top / 155px auto no-repeat,
+    url('/assets/slideshow/halloween-web.svg') right bottom / 180px auto no-repeat;
+}
+.bss.bss--halloween-theme .bss-header {
+  border-bottom-color:#ffad6470;
+  background:linear-gradient(100deg,#29103aee,#462046d9 55%,#261238eb);
+  box-shadow:0 3px 25px #ed7d2626,inset 0 1px #ffd48a22;
+}
+.bss--halloween-theme .bss-brand-icon {
+  color:#36142c;background:linear-gradient(135deg,#ffe6a2,#ff9a45);
+  box-shadow:0 0 22px #ff9b4545;
+}
+.bss--halloween-theme .bss-brand em,
+.bss--halloween-theme .bss-festival-header-title a {color:#ffd394}
+.bss--halloween-theme .bss-festival-header-title strong {
+  color:#ffe1a8;text-shadow:0 2px 14px #ff7c3752;
+}
+.bss--halloween-theme .bss-header .bss-pill {
+  background:#291335c9;border-color:#e9ac7a66;color:#fff0db;
+}
+.bss.bss--halloween-theme .bss-stage {
+  border-color:#e9a05da6;
+  background:
+    linear-gradient(#160c2580,#160c2573),
+    url('/assets/slideshow/halloween-night.svg') center / cover no-repeat,
+    #160c25;
+  box-shadow:0 0 0 1px #ffb95c20,0 0 26px #f7752830,0 15px 40px #09021166;
+}
+.bss--halloween-theme .bss-stage-curator {
+  color:#ffe4ba;background:linear-gradient(#281335d9,transparent);
+}
+.bss--halloween-theme .bss-stage-curator i {background:#ffc76b}
+.bss--halloween-theme .bss-stage-controls {
+  background:linear-gradient(0deg,#281035f5,#281035c4 75%,transparent);
+}
+.bss--halloween-theme .bss-stage-controls button,
+.bss--halloween-theme .bss-stage-prev,
+.bss--halloween-theme .bss-stage-next {
+  background:#351641d9;border-color:#f3bd8170;color:#fff3dc;
+}
+.bss--halloween-theme .bss-progress-track i {background:linear-gradient(90deg,#ff934c,#fbd584)}
+.bss.bss--halloween-theme .bss-festival-live-stack>.bss-jury-live {
+  border-color:#b989ef99;
+  background:
+    radial-gradient(ellipse at 100% 0%,#a765e739,transparent 65%),
+    linear-gradient(145deg,#301540f2,#1a112df5);
+  box-shadow:inset 0 1px #e0baff30,0 0 24px #a65bdf26;
+}
+.bss.bss--halloween-theme .bss-festival-live-stack>.bss-audience-panel {
+  border-color:#ffb568aa;
+  background:
+    radial-gradient(ellipse at 90% 0%,#ffad4a38,transparent 65%),
+    linear-gradient(145deg,#3c1e36f2,#22112ff5);
+  box-shadow:inset 0 1px #ffddab30,0 0 24px #ff8b302b;
+}
+.bss--halloween-theme .bss-jury-headline,
+.bss--halloween-theme .bss-audience-title,
+.bss--halloween-theme .bss-jury-rank-title strong {color:#ffe0b2}
+.bss--halloween-theme .bss-jury-refresh {color:#c9aedf}
+.bss.bss--halloween-theme .bss-jury-rank-row {
+  background:#170f29d9;border-color:#bd8cdf30;
+}
+.bss--halloween-theme .bss-jury-rank-row-label strong {color:#eee0f9}
+.bss--halloween-theme .bss-jury-rank-position {background:#482553;color:#ffe3b3}
+.bss--halloween-theme .bss-jury-rank-track {background:#54335d}
+.bss--halloween-theme .bss-filmstrip button.active {
+  border-color:#ffb65e;box-shadow:0 0 0 2px #ffb65e30,0 0 18px #ff943c55;
+}
+/* Small, non-interactive motifs stay in the stage's existing safe side margins. */
+.bss--halloween-theme .bss-stage::before,
+.bss--halloween-theme .bss-stage::after {
+  content:"";position:absolute;z-index:1;pointer-events:none;
+  background-repeat:no-repeat;background-position:center;background-size:contain;
+}
+.bss--halloween-theme .bss-stage::before {
+  left:5px;bottom:65px;width:52px;height:64px;
+  background-image:url('/assets/home/v9/halloween-pumpkin-main.webp');
+}
+.bss--halloween-theme .bss-stage::after {
+  top:48px;right:4px;width:52px;height:65px;opacity:.85;
+  background-image:url('/assets/slideshow/halloween-ghost.svg');
+}
+@media(max-width:780px) {
+  .bss--halloween-theme .bss-stage::before,
+  .bss--halloween-theme .bss-stage::after {width:32px;height:44px}
+}
