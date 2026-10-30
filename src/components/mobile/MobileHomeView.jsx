@@ -151,6 +151,7 @@ export default function MobileHomeView({
   practiceError = '',
   canManagePractice = false,
   homeSlideshow = null,
+  worldExplorer = null,
   onStart,
   onOpenApps,
   onOpenPractice,
@@ -298,6 +299,7 @@ export default function MobileHomeView({
         </section>
 
         {homeSlideshow}
+        {worldExplorer}
 
         {heroEditorOpen && canEditHero ? (
           <div
