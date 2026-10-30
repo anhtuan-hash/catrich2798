@@ -255,3 +255,217 @@ html body #root .app-shell[data-route="slideshow"] main#bes-main-content > .bqa-
 @media(max-width:540px){
   .bss--halloween-theme .bss-header .bss-brian-home-link{min-width:36px}
 }
+
+
+/* FULL-VIEWPORT EVENT HOME — use the whole presentation canvas while
+   retaining the existing main header and a compact bottom action dock.
+   Keep the poster's original aspect ratio; never crop school logo/text/date. */
+.bss.bss--gallery-view.bss--festival-screen.bss--halloween-theme.bss--event-home{
+  display:flex;
+  flex-direction:column;
+  height:100dvh;
+  min-height:0;
+  max-height:100dvh;
+  overflow:hidden;
+  padding:clamp(6px,.8dvh,10px) clamp(6px,.8vw,14px) clamp(6px,.8dvh,10px);
+  background-size:cover;
+}
+.bss.bss--event-home.bss--halloween-theme .bss-header{
+  z-index:5;
+  flex:0 0 56px;
+  height:56px;
+  min-height:56px;
+  padding:5px 11px;
+  gap:8px;
+  border-radius:13px;
+}
+.bss.bss--event-home .bss-brand{gap:7px}
+.bss.bss--event-home .bss-brand small{display:none}
+.bss.bss--event-home .bss-brand-icon{width:34px;height:34px;flex:0 0 34px}
+.bss.bss--event-home .bss-festival-header-title{gap:8px}
+.bss.bss--event-home .bss-festival-header-title strong{
+  font-size:clamp(19px,2.15vw,34px);
+}
+.bss.bss--event-home .bss-header-actions{gap:5px}
+.bss.bss--event-home .bss-header .bss-pill{padding:7px 8px;min-height:33px}
+.bss.bss--halloween-theme.bss--event-home .bss-container{
+  flex:1 1 auto;
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  max-width:none;
+  min-height:0;
+  overflow:hidden;
+  padding:7px 0 0;
+}
+.bss--event-home .bss-event-home{
+  position:relative;
+  display:flex;
+  flex:1 1 auto;
+  min-height:0;
+  gap:0;
+  padding:0;
+  border:0;
+  border-radius:12px;
+  overflow:hidden;
+  background:transparent;
+  box-shadow:0 0 0 1px #f3ba668c,0 8px 35px #09031999;
+}
+.bss--event-home .bss-event-home-top{display:none}
+.bss--event-home .bss-event-home-stage{
+  position:relative;
+  flex:1 1 auto;
+  width:100%;
+  height:100%;
+  min-height:0;
+  border:0;
+  border-radius:12px;
+  overflow:hidden;
+  background:linear-gradient(135deg,#261735,#100d29);
+}
+.bss--event-home .bss-event-home-stage.has-banner::before{
+  content:"";
+  position:absolute;
+  z-index:0;
+  inset:-22px;
+  background-image:var(--bss-home-banner-image);
+  background-size:cover;
+  background-position:center;
+  filter:blur(23px) brightness(.53) saturate(1.15);
+  opacity:.9;
+  pointer-events:none;
+}
+.bss--event-home .bss-event-home-banner{
+  position:absolute;
+  z-index:1;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  object-position:center;
+}
+.bss--event-home .bss-event-home-actions{
+  position:absolute;
+  z-index:4;
+  left:0;
+  right:0;
+  bottom:0;
+  min-height:62px;
+  display:flex;
+  flex-direction:row;
+  flex-wrap:nowrap;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding:13px clamp(12px,1.5vw,25px);
+  border-radius:0 0 12px 12px;
+  background:linear-gradient(0deg,#130d26f2,#130d26de 58%,#130d2600);
+  pointer-events:none;
+}
+.bss--event-home .bss-event-home-actions>*{pointer-events:auto}
+.bss--event-home .bss-event-home-description strong{font-size:11px}
+.bss--event-home .bss-event-home-description span{font-size:10px}
+.bss--event-home .bss-event-home-buttons{
+  display:flex;
+  align-items:center;
+  flex-direction:row;
+  flex-wrap:nowrap;
+  justify-content:flex-end;
+  gap:8px;
+  min-width:0;
+}
+.bss--event-home .bss-event-home-upload,
+.bss--event-home .bss-event-home-remove,
+.bss--event-home .bss-event-home-enter,
+.bss--event-home .bss-event-home-fullscreen{
+  flex:0 0 auto;
+  min-height:39px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  padding:9px 12px;
+  border-radius:10px;
+  font-family:inherit;
+  font-size:11px;
+  line-height:1.2;
+  font-weight:800;
+  white-space:nowrap;
+  cursor:pointer;
+}
+.bss--event-home .bss-event-home-fullscreen{
+  color:#ffe1ac;
+  background:#291b3fcc;
+  border:1px solid #eabb78ab;
+}
+.bss--event-home .bss-event-home-fullscreen:hover{background:#4b2b52}
+.bss--event-home .bss-event-home-fullscreen:focus-visible{
+  outline:3px solid #ffe28b;
+  outline-offset:3px;
+}
+.bss--event-home .bss-event-home-status{
+  position:absolute;
+  z-index:5;
+  bottom:72px;
+  left:clamp(12px,1.5vw,25px);
+  right:clamp(12px,1.5vw,25px);
+  width:max-content;
+  max-width:calc(100% - 28px);
+  padding:8px 12px;
+  border:1px solid #f4cb8a85;
+  border-radius:9px;
+  color:#ffe5b8;
+  background:#28172de9;
+  box-shadow:0 6px 16px #05031286;
+}
+@media(max-width:1179px){
+  .bss.bss--gallery-view.bss--festival-screen.bss--halloween-theme.bss--event-home{
+    padding:7px 9px 8px;
+    height:100dvh;
+    min-height:0;
+    max-height:100dvh;
+    background-position:center;
+  }
+  .bss.bss--event-home.bss--halloween-theme .bss-header{
+    flex:0 0 auto;
+    height:auto;
+    min-height:55px;
+    gap:7px;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+  .bss.bss--halloween-theme.bss--event-home .bss-container{
+    flex:1 1 auto;
+    min-height:0;
+    padding:7px 0 0;
+  }
+  .bss--event-home .bss-festival-header-title strong{font-size:clamp(19px,3vw,30px)}
+  .bss--event-home .bss-header-actions{flex-wrap:wrap}
+}
+@media(max-width:720px){
+  .bss.bss--event-home .bss-event-home-description{display:none}
+  .bss--event-home .bss-event-home-actions{
+    flex-direction:row;
+    justify-content:center;
+    align-items:center;
+    padding:9px 8px;
+    min-height:54px;
+  }
+  .bss--event-home .bss-event-home-buttons{
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:5px;
+  }
+  .bss--event-home .bss-event-home-upload,
+  .bss--event-home .bss-event-home-enter,
+  .bss--event-home .bss-event-home-fullscreen{
+    padding:8px 9px;
+    min-height:35px;
+    font-size:10px;
+  }
+}
+@media(max-width:440px){
+  .bss--event-home .bss-event-home-fullscreen span{display:none}
+  .bss--event-home .bss-event-home-upload span{font-size:10px}
+  .bss--event-home .bss-event-home-stage{border-radius:8px}
+}
