@@ -1,6 +1,6 @@
 /* Let the approved scene reach both screen edges; other routes keep their normal frame. */
-.app-shell[data-route="slideshow"] #bes-main-content:has(.bss--halloween-theme),
-.app-shell[data-route="slideshow"] .bqa-content-safe-frame:has(.bss--halloween-theme) {
+html body #root .app-shell[data-route="slideshow"] main#bes-main-content:has(.bss--halloween-theme),
+html body #root .app-shell[data-route="slideshow"] main#bes-main-content > .bqa-content-safe-frame:has(.bss--halloween-theme) {
   width:100%!important;max-width:none!important;margin-inline:0!important;padding:0!important;
 }
 /* Approved cinematic Halloween mockup, isolated to the public showcase.
@@ -40,6 +40,7 @@
 .bss--halloween-theme .bss-brand em,
 .bss--halloween-theme .bss-festival-header-title a {color:#ffda99}
 .bss--halloween-theme .bss-festival-header-title strong {
+  --bes-global-font-family:Georgia,"Times New Roman",serif;
   font-family:Georgia,"Times New Roman",serif;
   font-size:clamp(24px,2.7vw,44px);font-weight:700;
   color:#ffe2a2;letter-spacing:-.035em;
