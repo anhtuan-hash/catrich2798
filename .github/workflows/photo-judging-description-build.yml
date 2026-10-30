@@ -1,0 +1,33 @@
+name: Photo judging descriptions - build verification
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/components/PhotoJudgingPage.jsx'
+      - 'src/components/PhotoJudging.css'
+      - 'src/utils/photoJudgingDescriptions.js'
+      - 'src/utils/judgingTranslations.js'
+      - 'supabase/functions/photo-judging/index.ts'
+      - 'scripts/test-photo-judging-descriptions.mjs'
+      - 'package.json'
+      - '.github/workflows/photo-judging-description-build.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Test 18 translated artwork descriptions
+        run: node scripts/test-photo-judging-descriptions.mjs
+      - name: Validate build and global i18n
+        run: npm run build
