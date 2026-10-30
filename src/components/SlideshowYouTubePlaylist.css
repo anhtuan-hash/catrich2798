@@ -45,7 +45,7 @@
 .bss-music-volume input{width:100%;min-width:0;accent-color:#f9b858;height:15px}
 .bss-music-add{display:flex;flex-direction:column;gap:7px;padding:10px 13px;border-bottom:1px solid #f2b76c26;flex-shrink:0}
 .bss-music-add label{font-size:11px;font-weight:700;color:#efceab}
-.bss-music-add textarea{width:100%;min-height:57px;resize:vertical;font:11px/1.5 inherit;padding:8px 9px;outline:none;border-radius:9px;background:#090918;border:1px solid #927a83;color:#fff2dc}
+.bss-music-add textarea{width:100%;min-height:57px;resize:vertical;font-family:inherit;font-size:11px;line-height:1.5;padding:8px 9px;outline:none;border-radius:9px;background:#090918;border:1px solid #927a83;color:#fff2dc}
 .bss-music-add textarea:focus{border-color:#ffc779;box-shadow:0 0 0 2px #e4ae5729}
 .bss-music-add button{display:inline-flex;justify-content:center;align-items:center;gap:6px;align-self:flex-end;border:1px solid #fbd393;background:#4b2a43;border-radius:9px;padding:7px 11px;font-size:11px;font-weight:700}
 .bss-music-add button:hover{background:#6d3947}
