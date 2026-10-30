@@ -24,3 +24,24 @@
 .brian-awards-details-note{margin:0;padding:15px 23px 18px;color:#cfc1d9;font-size:12px;line-height:1.65;border-top:1px solid #e7bc6942}
 .brian-awards-table-coming{font-size:12px;color:#d8bc8f;text-align:center;margin:3px 0 12px}
 @media(max-width:760px){.brian-awards-details{margin:12px auto;border-radius:13px}.brian-awards-details-header{padding:15px 12px}.brian-awards-details-stats>span{min-width:96px;flex:1}.brian-awards-details-stats strong{font-size:17px}.brian-awards-details-note{padding:12px;font-size:11px}}
+
+/* 2026 event timings: second-accurate live clocks, schedule panel, safe preview. */
+.brian-awards-countdowns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;width:min(940px,100%);margin:8px auto 4px}
+.brian-awards-countdown{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:9px 15px;text-align:center;border:1px solid #f2c88475;border-radius:17px;padding:14px 18px;background:linear-gradient(115deg,#28203ccf,#1a142ccf);box-shadow:inset 0 0 0 1px #ffffff0b}
+.brian-awards-countdown>svg{color:#ffcc79}
+.brian-awards-countdown>span{font-weight:850;font-size:11px;letter-spacing:.13em;color:#f4d8af}
+.brian-awards-countdown>strong{width:100%;font-variant-numeric:tabular-nums;font-size:clamp(28px,3.2vw,44px);letter-spacing:.13em;color:#ffdb8c;line-height:1.2;text-shadow:0 2px 22px #ffc77e33}
+.brian-awards-countdown>small{font-size:11px;color:#c9b7dc}
+.brian-awards-settings-wrap{width:min(940px,100%);text-align:center}
+.brian-awards-settings-wrap>.brian-awards-secondary{display:inline-flex;align-items:center;justify-content:center;gap:9px}
+.brian-awards-schedule{display:grid;grid-template-columns:1fr 1fr auto;align-items:end;gap:13px;text-align:left;padding:17px;margin-top:12px;border:1px solid #f0c58e73;border-radius:16px;background:#211a33f5}
+.brian-awards-schedule label{display:flex;flex-direction:column;gap:8px;color:#f3dec3;font-size:12px;font-weight:750}
+.brian-awards-schedule input{width:100%;min-height:44px;background:#110e23;color:#fff1df;border:1px solid #baa18799;border-radius:11px;padding:9px;font:600 13px Inter,system-ui,sans-serif;color-scheme:dark}
+.brian-awards-save{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 15px;min-height:44px;background:#f6d496;color:#211426;border:0;border-radius:11px;font-size:12px;font-weight:850;cursor:pointer}
+.brian-awards-save:disabled{opacity:.55;cursor:not-allowed}
+.brian-awards-schedule p{grid-column:1/-1;margin:0;color:#cfc1d9;line-height:1.65;font-size:12px}
+.brian-awards-schedule a{color:#ffda91;text-decoration:underline;text-underline-offset:3px}
+.brian-awards-schedule .brian-awards-schedule-warning{color:#ffd29a}
+.brian-awards-preview-ribbon{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:10px 0;padding:12px 18px;background:#5b312be8;border:1px solid #ffc57e;border-radius:14px;color:#ffe5ae;font-size:clamp(11px,1.3vw,15px);font-weight:900;letter-spacing:.07em;text-align:center}
+.brian-awards-preview-ribbon button{border:1px solid #ffe2ad;color:#fff0cb;background:#1e1732;border-radius:9px;padding:8px 12px;cursor:pointer;font-weight:800}
+@media(max-width:760px){.brian-awards-countdowns{gap:6px}.brian-awards-countdown{padding:10px 5px;gap:6px}.brian-awards-countdown>span{font-size:9px}.brian-awards-countdown>strong{font-size:23px;letter-spacing:.05em}.brian-awards-countdown>small{font-size:9px}.brian-awards-schedule{grid-template-columns:1fr;padding:12px}.brian-awards-schedule p{grid-column:auto}}
