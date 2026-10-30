@@ -10,6 +10,7 @@ export const JUDGING_UI_EN = Object.freeze({
   "Lưu rubric": "Save rubric",
   "Danh sách giám khảo": "Judges",
   "MÔ TẢ & THÔNG ĐIỆP TÁC PHẨM": "ARTWORK DESCRIPTION & MESSAGE",
+  "Mô tả tác phẩm song ngữ": "Bilingual artwork description",
   "BẢN DỊCH TIẾNG VIỆT": "VIETNAMESE TRANSLATION",
   "ORIGINAL DESCRIPTION · ENGLISH": "ORIGINAL DESCRIPTION · ENGLISH",
   "Liên kết mới cấp — sao chép ngay (không lưu token gốc trên máy chủ)": "New judge link — copy now (raw token is not stored on the server)",
