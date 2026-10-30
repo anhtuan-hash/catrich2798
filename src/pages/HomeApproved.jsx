@@ -16,6 +16,7 @@ import usePresentationMode from '../hooks/usePresentationMode.js';
 import HomeHeroExperience2026 from '../components/HomeHeroExperience2026.jsx';
 import HomePublishedSlideshow from '../components/HomePublishedSlideshow.jsx';
 import MobileHomeView from '../components/mobile/MobileHomeView.jsx';
+import WorldExplorer from '../features/world-explorer/WorldExplorer.jsx';
 import './HomeApproved.css';
 import './HomePracticeIntegration.css';
 import './HomePracticeByGrade.css';
@@ -290,6 +291,7 @@ export default function HomeApproved({ currentUser, language = 'vi', appVisibili
         practiceError={practiceError}
         canManagePractice={canManagePractice}
         homeSlideshow={<HomePublishedSlideshow language={language} />}
+        worldExplorer={<WorldExplorer currentUser={currentUser} language={language} />}
         onStart={(event) => launch(currentUser ? `#/${firstRoute}` : '#/login', 'GO', '#1a73e8', currentUser, event?.currentTarget)}
         onOpenApps={(event) => launch('#/apps', 'AP', '#1a73e8', currentUser, event?.currentTarget)}
         onOpenTool={(item, event) => launch(item.target, item.id.toUpperCase().slice(0, 2), item.accent, currentUser, event?.currentTarget)}
@@ -324,6 +326,8 @@ export default function HomeApproved({ currentUser, language = 'vi', appVisibili
           <div>{tools.map((item) => <ToolCard key={item.id} item={item} currentUser={currentUser} language={language} />)}</div>
         </section>
       </div>
+
+      <WorldExplorer currentUser={currentUser} language={language} />
 
       <section className="bha-practice bha-practice--editorial-v3">
         <header className="bha-practice__editorial-header">
