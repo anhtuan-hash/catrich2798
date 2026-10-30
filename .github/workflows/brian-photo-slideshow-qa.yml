@@ -16,6 +16,7 @@ on:
       - 'src/pages/PhotoSlideshowFestival.css'
       - 'scripts/test-photo-audience-live.mjs'
       - 'scripts/test-photo-dual-16x9.mjs'
+      - 'scripts/test-photo-audience-readability.mjs'
       - 'src/pages/PhotoSlideshowDualLive.css'
       - 'scripts/test-photo-audience-paste-url.mjs'
       - 'src/utils/photoAudienceScreen.js'
@@ -52,6 +53,7 @@ jobs:
       - run: node scripts/test-photo-jury-ranking.mjs
       - run: node scripts/test-photo-audience-live.mjs
       - run: node scripts/test-photo-dual-16x9.mjs
+      - run: node scripts/test-photo-audience-readability.mjs
       - run: node scripts/test-photo-audience-paste-url.mjs
       - run: node scripts/test-photo-judging-quick-scores.mjs
       - run: node scripts/test-photo-judging-copy-links.mjs

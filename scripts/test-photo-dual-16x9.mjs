@@ -20,7 +20,12 @@ assertHas(layout,"grid-template-rows:repeat(6,minmax(0,1fr))","all eighteen grou
 assertHas(layout,"grid-template-columns:repeat(3,minmax(0,1fr))","group ranking dense 3-column grid");
 assertHas(jury,"setMode('groups')","original full group ranking toggle preserved");
 assertHas(jury,"POLL_MS=5000","judge live updates still every five seconds");
-assertHas(audience,"Math.min(width/DESKTOP_WIDTH,height/DESKTOP_HEIGHT)","uncropped fit to both iframe viewport dimensions");
+assertHas(audience,"Math.min(width/logicalWidth,height/logicalHeight)","source viewport fits both dimensions");
+assertHas(audience,"displayMode==='top'","focused top rankings mode");
+assertHas(audience,"displayMode==='bottom'","focused lower rankings mode");
+assertHas(audience,"{id:'all',vi:'Toàn bộ'","all-original view always available");
+assertHas(audience,"left:crop?(-crop.left*scale)","focused original iframe without changing provider markup");
+assertHas(layout,"calc(88.89dvh - 102px)","card width capped to available viewport height");
 assertHas(audience,"className=\"bss-audience-framed\"","original remote page displayed centered as a full iframe");
 assertHas(audience,"!compact||showConfig","admin link editor collapses to maximize visible QRvote area");
 assertHas(audience,"src={currentUrl}","live QRvote page remains original, no copied content");

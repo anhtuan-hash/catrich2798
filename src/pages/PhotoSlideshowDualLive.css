@@ -147,3 +147,59 @@
     grid-template-columns:repeat(2,minmax(0,1fr));
   }
 }
+
+/* Readability pass for the actual presentation viewport.
+   Reserve enough height for TWO full landscape cards, and allocate the remaining
+   width to the artwork; do not shrink the audience screen to a center stripe. */
+@media(min-width:1180px) and (min-height:650px){
+ .bss--festival-screen .bss-gallery-layout.bss-gallery-layout--festival{
+   grid-template-columns:minmax(0,1fr) minmax(0,min(47vw,calc(88.89dvh - 102px)));
+   column-gap:clamp(9px,.7vw,13px);
+ }
+ .bss--festival-screen .bss-festival-live-stack{
+   justify-content:flex-start;
+   gap:clamp(8px,.55vw,12px);
+ }
+ .bss--festival-screen .bss-festival-live-stack>.bss-jury-live,
+ .bss--festival-screen .bss-festival-live-stack>.bss-audience-panel{
+   border:1px solid #518ba58c;box-shadow:0 12px 35px #020a1666,inset 0 1px #ffffff15;
+   border-radius:16px;
+ }
+ .bss--festival-screen .bss-festival-live-stack>.bss-jury-live{
+   background:radial-gradient(ellipse at 80% -10%,#28647f41,transparent 64%),linear-gradient(160deg,#11243b,#09182c);
+ }
+ .bss--festival-screen .bss-festival-live-stack>.bss-audience-panel{
+   background:radial-gradient(ellipse at 90% -20%,#edbd6040,transparent 61%),linear-gradient(150deg,#10243a,#091728);
+ }
+ .bss--festival-screen .bss-audience-heading{height:27px}
+ .bss--festival-screen .bss-audience-display-tabs{height:30px}
+ .bss--festival-screen .bss-jury-rank-list:not(.is-groups) .bss-jury-rank-row{
+   padding:8px 10px;border:1px solid #3d658470;
+ }
+ .bss--festival-screen .bss-jury-rank-list:not(.is-groups) .bss-jury-rank-position{
+   min-width:32px;width:32px;height:32px;font-size:14px;
+ }
+ .bss--festival-screen .bss-jury-rank-list:not(.is-groups) .bss-jury-rank-row-label strong{
+   font-size:clamp(12px,.9vw,15px);line-height:1.4;
+ }
+ .bss--festival-screen .bss-jury-rank-list:not(.is-groups) .bss-jury-rank-row-label small{
+   font-size:10px;color:#acc8dd;
+ }
+ .bss--festival-screen .bss-jury-rank-list:not(.is-groups) .bss-jury-rank-row-score{
+   font-size:clamp(15px,1.2vw,19px);color:#d4fff1;
+ }
+ .bss--festival-screen .bss-jury-rank-list:not(.is-groups) .bss-jury-rank-track{height:6px}
+ .bss--festival-screen .bss-jury-rank-list.is-groups .bss-jury-rank-row{
+   padding:4px 5px;gap:4px;
+ }
+ .bss--festival-screen .bss-stage{border-color:#53758b96}
+}
+/* At presentation sizes, independent controls stay operable and readable. */
+@media(min-width:1180px) and (max-height:750px){
+ .bss--festival-screen .bss-audience-heading{height:24px;flex-basis:24px}
+ .bss--festival-screen .bss-audience-display-tabs{height:25px}
+ .bss--festival-screen .bss-jury-rank-list:not(.is-groups) .bss-jury-rank-position{
+   min-width:26px;width:26px;height:26px;font-size:12px;
+ }
+ .bss--festival-screen .bss-jury-rank-list:not(.is-groups) .bss-jury-rank-row{padding:4px 6px}
+}
