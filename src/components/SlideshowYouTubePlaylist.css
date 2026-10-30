@@ -72,3 +72,59 @@
   .bss-music-trigger span:not(.bss-music-signal){display:none}
 }
 @media(prefers-reduced-motion:reduce){.bss-music-signal{animation:none}}
+
+/* Persistent mini-player dock. YouTube's viewport stays visible at >=200x200
+   and its iframe is NOT remounted when the user closes the full playlist. */
+.bss-music-panel.is-docked{
+  top:auto;bottom:max(10px,env(safe-area-inset-bottom));left:50%;right:auto;
+  transform:translateX(-50%);
+  width:min(715px,calc(100vw - 22px));height:226px;
+  max-height:none;min-height:0;
+  display:grid;grid-template-columns:minmax(300px,300px) minmax(0,1fr);
+  grid-template-rows:64px 62px minmax(0,1fr);
+  border-radius:16px;
+  background:linear-gradient(120deg,#170f27,#311a36 95%);
+  box-shadow:0 14px 42px #050318db,0 0 0 2px #e0a35b4d,0 0 23px #f8a7525a;
+}
+.bss-music-panel.is-docked .bss-music-heading{
+  grid-column:2;grid-row:1;min-width:0;
+  gap:7px;padding:9px 10px;border-bottom:1px solid #f0b46c2b;
+}
+.bss-music-panel.is-docked .bss-music-heading-icon{width:30px;height:30px;flex:0 0 30px}
+.bss-music-panel.is-docked .bss-music-heading strong{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bss-music-panel.is-docked .bss-music-heading small{font-size:8px;letter-spacing:.04em}
+.bss-music-panel.is-docked .bss-music-heading>button{flex-shrink:0;width:27px;height:27px}
+.bss-music-panel.is-docked .bss-music-video{
+  grid-column:1;grid-row:1 / 4;
+  margin:9px;width:calc(100% - 18px);height:206px;min-height:206px;
+  border-radius:10px;
+}
+.bss-music-panel.is-docked .bss-music-now{grid-column:2;grid-row:2;padding:8px 10px 5px}
+.bss-music-panel.is-docked .bss-music-now-title{font-size:12px}
+.bss-music-panel.is-docked .bss-music-controls{
+  grid-column:2;grid-row:3;justify-content:flex-start;flex-wrap:wrap;gap:5px;
+  align-content:flex-start;border:0;padding:12px 9px;
+}
+.bss-music-panel.is-docked .bss-music-controls>button:first-child,
+.bss-music-panel.is-docked .bss-music-controls>button:nth-of-type(5){display:none}
+.bss-music-panel.is-docked .bss-music-controls>.bss-music-play{height:35px;width:41px}
+.bss-music-panel.is-docked .bss-music-volume{margin-left:8px;max-width:135px}
+.bss-music-panel.is-docked .bss-music-add,
+.bss-music-panel.is-docked .bss-music-list-head,
+.bss-music-panel.is-docked .bss-music-list,
+.bss-music-panel.is-docked .bss-music-note,
+.bss-music-panel.is-docked .bss-music-notice{display:none}
+@media(max-width:620px){
+  .bss-music-panel.is-docked{
+    left:50%;right:auto;top:auto;bottom:max(8px,env(safe-area-inset-bottom));
+    width:calc(100vw - 16px);height:auto;max-height:calc(100dvh - 18px);
+    display:flex;flex-direction:column;
+  }
+  .bss-music-panel.is-docked .bss-music-heading{order:0;min-height:49px;padding:7px 9px}
+  .bss-music-panel.is-docked .bss-music-video{
+    order:1;width:calc(100% - 18px);height:206px;min-height:206px;margin:7px 9px 2px;
+  }
+  .bss-music-panel.is-docked .bss-music-now{order:2;padding:5px 10px 0}
+  .bss-music-panel.is-docked .bss-music-controls{order:3;padding:7px 10px 9px}
+  .bss-music-panel.is-docked .bss-music-controls .bss-music-volume{margin-left:auto}
+}
