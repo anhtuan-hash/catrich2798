@@ -10,6 +10,16 @@ const STORAGE_PREFIX = 'brian-slideshow-youtube-v1:';
 const MAX_TRACKS = 80;
 let youtubeApiPromise;
 
+function formatPlaybackTime(seconds) {
+  const total = Math.max(0, Math.floor(Number.isFinite(seconds) ? seconds : 0));
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const remaining = String(total % 60).padStart(2, '0');
+  return hours > 0
+    ? hours + ':' + String(minutes).padStart(2, '0') + ':' + remaining
+    : minutes + ':' + remaining;
+}
+
 export function extractYouTubeId(value) {
   try {
     let text = String(value || '').trim();
@@ -102,9 +112,12 @@ export default function SlideshowYouTubePlaylist({ albumId, language = 'vi' }) {
   const [input, setInput] = useState('');
   const [active, setActive] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackTime, setPlaybackTime] = useState({ current: 0, duration: 0 });
+  const [seekPreview, setSeekPreview] = useState(null);
   const [notice, setNotice] = useState('');
   const hostRef = useRef(null);
   const playerRef = useRef(null);
+  const seekPreviewRef = useRef(null);
   const loadedRef = useRef('');
   const autoPlayRef = useRef(false);
   const tracksRef = useRef(tracks);
@@ -126,6 +139,9 @@ export default function SlideshowYouTubePlaylist({ albumId, language = 'vi' }) {
     activeRef.current = nextIndex;
     setActive(nextIndex);
     setNotice('');
+    setPlaybackTime({ current: 0, duration: 0 });
+    seekPreviewRef.current = null;
+    setSeekPreview(null);
     autoPlayRef.current = true;
     if (!playerVisible) { setOpened(true); setDocked(false); return; }
     if (playerRef.current?.loadVideoById) {
@@ -215,6 +231,45 @@ export default function SlideshowYouTubePlaylist({ albumId, language = 'vi' }) {
     if (playerVisible && playerRef.current?.setVolume) playerRef.current.setVolume(volume);
   }, [playerVisible, volume]);
 
+  // Poll the YouTube IFrame Player API for actual current time and duration.
+  // The same player stays mounted when the panel is collapsed into the dock.
+  useEffect(() => {
+    if (!playerVisible || !tracks.length) return undefined;
+    const syncProgress = () => {
+      const player = playerRef.current;
+      if (!player?.getCurrentTime || !player?.getDuration) return;
+      try {
+        const duration = Number(player.getDuration());
+        const seconds = Number(player.getCurrentTime());
+        if (!Number.isFinite(duration) || duration <= 0) return;
+        const next = {
+          current: Number.isFinite(seconds) ? Math.max(0, Math.min(seconds, duration)) : 0,
+          duration
+        };
+        setPlaybackTime(previous =>
+          Math.abs(previous.current - next.current) < 0.3 &&
+          Math.abs(previous.duration - next.duration) < 0.3 ? previous : next);
+      } catch { /* Player not ready or video does not support seeking. */ }
+    };
+    syncProgress();
+    const ticker = window.setInterval(syncProgress, 400);
+    return () => window.clearInterval(ticker);
+  }, [playerVisible, tracks.length > 0]);
+
+  const commitSeek = value => {
+    const duration = playbackTime.duration;
+    const target = Number(value);
+    if (Number.isFinite(target) && duration > 0 && playerRef.current?.seekTo) {
+      const seconds = Math.max(0, Math.min(target, duration));
+      try {
+        playerRef.current.seekTo(seconds, true);
+        setPlaybackTime(previous => ({ ...previous, current: seconds }));
+      } catch { /* Some live streams cannot seek. */ }
+    }
+    seekPreviewRef.current = null;
+    setSeekPreview(null);
+  };
+
   useEffect(() => {
     if (!opened) return undefined;
     const onKey = event => {
@@ -299,6 +354,9 @@ export default function SlideshowYouTubePlaylist({ albumId, language = 'vi' }) {
     setDocked(false);
     setOpened(false);
     setCompact(false);
+    setPlaybackTime({ current: 0, duration: 0 });
+    seekPreviewRef.current = null;
+    setSeekPreview(null);
   };
   const current = tracks[active] || null;
 
@@ -368,6 +426,43 @@ export default function SlideshowYouTubePlaylist({ albumId, language = 'vi' }) {
             <Volume2 size={16}/><input type="range" min="0" max="100" value={volume} onChange={e => setVolume(Number(e.target.value))}
               aria-label={en ? 'Music volume' : 'Âm lượng nhạc'}/>
           </label>
+        </div>
+        <div className="bss-music-seek" aria-label={en ? 'Video timeline' : 'Thanh thời gian video'}>
+          <span className="bss-music-timestamp" aria-hidden="true">
+            {formatPlaybackTime(seekPreview ?? playbackTime.current)}
+          </span>
+          <input type="range" min="0" max={Math.max(1, playbackTime.duration)}
+            step="0.5"
+            value={Math.max(0, Math.min(seekPreview ?? playbackTime.current, Math.max(1, playbackTime.duration)))}
+            style={{ '--bss-seek-progress': playbackTime.duration > 0
+              ? (100 * (seekPreview ?? playbackTime.current) / playbackTime.duration) + '%'
+              : '0%' }}
+            disabled={playbackTime.duration <= 0}
+            onChange={event => {
+              const next = Number(event.target.value);
+              seekPreviewRef.current = next;
+              setSeekPreview(next);
+            }}
+            onPointerUp={event => commitSeek(event.currentTarget.value)}
+            onPointerCancel={() => {
+              seekPreviewRef.current = null;
+              setSeekPreview(null);
+            }}
+            onKeyUp={event => {
+              if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'].includes(event.key)) {
+                commitSeek(event.currentTarget.value);
+              }
+            }}
+            onBlur={() => {
+              if (seekPreviewRef.current !== null) commitSeek(seekPreviewRef.current);
+            }}
+            aria-label={en ? 'Seek video playback position' : 'Kéo để tua đến thời gian mong muốn'}
+            aria-valuetext={formatPlaybackTime(seekPreview ?? playbackTime.current) + ' / ' + formatPlaybackTime(playbackTime.duration)}
+            title={en ? 'Drag to seek' : 'Kéo để tua video'}
+          />
+          <span className="bss-music-timestamp" aria-hidden="true">
+            {formatPlaybackTime(playbackTime.duration)}
+          </span>
         </div>
         {!compact && !docked && <>
           <div className="bss-music-add">
