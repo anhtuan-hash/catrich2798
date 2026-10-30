@@ -1,0 +1,26 @@
+name: Halloween awards 2026 - close snapshot backup
+on:
+  workflow_dispatch:
+  schedule:
+    # The authoritative cutoff is QRvote 15:15 ICT (08:15 UTC).
+    # GitHub scheduling is best-effort; the BRIAN awards screen also retries.
+    - cron: '15-30 8 30 10 *'
+jobs:
+  freeze-after-qrvote:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check event year
+        id: year
+        run: |
+          if [ "$(date -u +%Y)" = '2026' ]; then echo "enabled=true" >> "$GITHUB_OUTPUT"; fi
+      - name: Request verified public finalization
+        if: steps.year.outputs.enabled == 'true'
+        env:
+          AWARDS_API: https://xpkbgqdlfonsinriggmj.supabase.co/functions/v1/photo-awards
+        run: |
+          curl --fail-with-body --show-error --silent --max-time 24 \
+            --request POST "$AWARDS_API" \
+            --header 'Content-Type: application/json' \
+            --data '{"albumId":"e1fc3295-2c5d-4e05-8538-b9a7aeef5a67","action":"status"}'
