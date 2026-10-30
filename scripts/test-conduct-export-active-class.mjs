@@ -17,8 +17,9 @@ assert.ok(
 );
 
 assert.ok(
-  hero.includes('className={`hr-campus-hero ${subjectMode ? \'is-subject\' : \'is-homeroom\'}`}')
-    && hero.includes('data-workspace-id={workspace?.id || \'\'}'),
+  hero.includes('className={`hr-campus-hero ')
+    && hero.includes("subjectMode ? 'is-subject' : 'is-homeroom'")
+    && hero.includes("data-workspace-id={workspace?.id || ''}"),
   'The current Homeroom hero must expose the active workspace id.',
 );
 assert.ok(
