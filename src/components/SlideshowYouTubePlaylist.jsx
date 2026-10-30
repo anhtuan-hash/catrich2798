@@ -227,7 +227,11 @@ export default function SlideshowYouTubePlaylist({ albumId, language = 'vi' }) {
   const togglePlay = () => {
     if (!tracks.length) { setNotice(en ? 'Add a YouTube link first.' : 'Hãy thêm link YouTube trước.'); return; }
     if (isPlaying) { autoPlayRef.current = false; playerRef.current?.pauseVideo?.(); setIsPlaying(false); }
-    else playAt(activeRef.current);
+    else if (playerRef.current?.playVideo && loadedRef.current === tracksRef.current[activeRef.current]?.videoId) {
+      // Resume from the paused timestamp, not from the start of the song.
+      autoPlayRef.current = true;
+      playerRef.current.playVideo();
+    } else playAt(activeRef.current);
   };
   const addTracks = () => {
     const parsed = parseYouTubeLinks(input);
