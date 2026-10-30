@@ -1,100 +1,163 @@
-/* Halloween album only. Decorative layers preserve the approved dashboard geometry. */
+/* Let the approved scene reach both screen edges; other routes keep their normal frame. */
+.app-shell[data-route="slideshow"] #bes-main-content:has(.bss--halloween-theme),
+.app-shell[data-route="slideshow"] .bqa-content-safe-frame:has(.bss--halloween-theme) {
+  width:100%!important;max-width:none!important;margin-inline:0!important;padding:0!important;
+}
+/* Approved cinematic Halloween mockup, isolated to the public showcase.
+   Artwork, jury data and the original audience iframe remain live DOM content. */
 .bss.bss--gallery-view.bss--halloween-theme {
-  --gallery-accent:#ffc779;
-  --gallery-line:#ffad644d;
-  background:
-    radial-gradient(ellipse at 0% 42%,#f56c263d,transparent 48%),
-    radial-gradient(ellipse at 100% 12%,#a24cff59,transparent 55%),
-    linear-gradient(#1a082e66,#13091f55),
-    url('/assets/slideshow/halloween-night.svg') center / cover no-repeat,
-    #160b29;
+  --gallery-accent:#ffd383;
+  --gallery-line:#dba75080;
+  --scene-top:clamp(56px,10dvh,112px);
+  --scene-bottom:clamp(24px,5dvh,56px);
+  --scene-side:clamp(24px,4.5vw,88px);
+  --scene-header:64px;
+  background:#11102c url('/assets/slideshow/halloween-cinematic-2026.webp') center / 100% 100% no-repeat;
+  padding:var(--scene-top) var(--scene-side) var(--scene-bottom);
 }
-.bss--halloween-theme .bss-ambient {
-  inset:0;height:100%;opacity:.7;z-index:-1;
-  background:
-    url('/assets/slideshow/halloween-web.svg') left top / 155px auto no-repeat,
-    url('/assets/slideshow/halloween-web.svg') right bottom / 180px auto no-repeat;
-}
+.bss--halloween-theme .bss-ambient {display:none}
 .bss.bss--halloween-theme .bss-header {
-  border-bottom-color:#ffad6470;
-  background:linear-gradient(100deg,#29103aee,#462046d9 55%,#261238eb);
-  box-shadow:0 3px 25px #ed7d2626,inset 0 1px #ffd48a22;
+  position:relative;
+  min-width:0;min-height:var(--scene-header);
+  border:1px solid #e6b452;border-radius:17px;
+  padding:8px 18px;gap:16px;
+  background:linear-gradient(180deg,#171027f5,#130e22f2);
+  box-shadow:0 0 0 3px #120b2680,inset 0 0 0 3px #d69a3d15,
+    0 0 19px #f59d3840,0 8px 25px #06031266;
+  backdrop-filter:none;
+}
+.bss--halloween-theme .bss-header::after {
+  content:"";position:absolute;bottom:-2px;left:24%;right:24%;height:2px;
+  background:linear-gradient(90deg,transparent,#ffc864,transparent);
+  box-shadow:0 0 10px #ffb641;pointer-events:none;
 }
 .bss--halloween-theme .bss-brand-icon {
-  color:#36142c;background:linear-gradient(135deg,#ffe6a2,#ff9a45);
-  box-shadow:0 0 22px #ff9b4545;
+  color:#39201e;background:linear-gradient(140deg,#ffe8ad,#ffad42);
+  border:1px solid #ffdc83;box-shadow:0 0 20px #ff9d4538;
 }
+.bss--halloween-theme .bss-brand strong {font-size:12px;letter-spacing:.1em}
+.bss--halloween-theme .bss-brand small {font-size:7px;color:#bfb3d3}
 .bss--halloween-theme .bss-brand em,
-.bss--halloween-theme .bss-festival-header-title a {color:#ffd394}
+.bss--halloween-theme .bss-festival-header-title a {color:#ffda99}
 .bss--halloween-theme .bss-festival-header-title strong {
-  color:#ffe1a8;text-shadow:0 2px 14px #ff7c3752;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(24px,2.7vw,44px);font-weight:700;
+  color:#ffe2a2;letter-spacing:-.035em;
+  text-shadow:0 2px 2px #5f2e12,0 0 14px #ffad4e55;
 }
 .bss--halloween-theme .bss-header .bss-pill {
-  background:#291335c9;border-color:#e9ac7a66;color:#fff0db;
+  background:#150e27d9;border-color:#dfae62c7;color:#fff1d7;
+  font-size:12px;
+}
+.bss--halloween-theme .bss-header .bss-pill:hover {background:#4c2834}
+.bss.bss--halloween-theme .bss-stage,
+.bss.bss--halloween-theme .bss-festival-live-stack>.bss-jury-live,
+.bss.bss--halloween-theme .bss-festival-live-stack>.bss-audience-panel {
+  border:1px solid #eab654;border-radius:18px;
+  box-shadow:0 0 0 3px #27153599,inset 0 0 0 2px #eaba5520,
+    0 0 16px #fca64030,0 10px 30px #07031466;
 }
 .bss.bss--halloween-theme .bss-stage {
-  border-color:#e9a05da6;
   background:
-    linear-gradient(#160c2580,#160c2573),
-    url('/assets/slideshow/halloween-night.svg') center / cover no-repeat,
-    #160c25;
-  box-shadow:0 0 0 1px #ffb95c20,0 0 26px #f7752830,0 15px 40px #09021166;
+    radial-gradient(ellipse at 100% 40%,#49437d50,transparent 65%),
+    linear-gradient(135deg,#0e0c20ed,#19112ced);
 }
 .bss--halloween-theme .bss-stage-curator {
-  color:#ffe4ba;background:linear-gradient(#281335d9,transparent);
+  color:#ffdfa8;background:linear-gradient(#1d1329ec,transparent);
 }
-.bss--halloween-theme .bss-stage-curator i {background:#ffc76b}
+.bss--halloween-theme .bss-stage-curator i {background:#ffcb74}
 .bss--halloween-theme .bss-stage-controls {
-  background:linear-gradient(0deg,#281035f5,#281035c4 75%,transparent);
+  background:linear-gradient(0deg,#20102cf5,#1e132ae6 80%,transparent);
 }
 .bss--halloween-theme .bss-stage-controls button,
 .bss--halloween-theme .bss-stage-prev,
 .bss--halloween-theme .bss-stage-next {
-  background:#351641d9;border-color:#f3bd8170;color:#fff3dc;
+  background:#2b123ce6;border-color:#efbf70b3;color:#fff2d5;
 }
-.bss--halloween-theme .bss-progress-track i {background:linear-gradient(90deg,#ff934c,#fbd584)}
+.bss--halloween-theme .bss-stage-controls button:hover,
+.bss--halloween-theme .bss-stage-prev:hover,
+.bss--halloween-theme .bss-stage-next:hover {
+  background:#633347;border-color:#ffe2a3;
+}
+.bss--halloween-theme .bss-progress-track i {
+  background:linear-gradient(90deg,#ff8b35,#ffe083);
+  box-shadow:0 0 8px #ffb65240;
+}
 .bss.bss--halloween-theme .bss-festival-live-stack>.bss-jury-live {
-  border-color:#b989ef99;
-  background:
-    radial-gradient(ellipse at 100% 0%,#a765e739,transparent 65%),
-    linear-gradient(145deg,#301540f2,#1a112df5);
-  box-shadow:inset 0 1px #e0baff30,0 0 24px #a65bdf26;
+  background:radial-gradient(ellipse at 85% 0%,#54337469,transparent 65%),
+    linear-gradient(150deg,#17112bee,#0e1026f5);
 }
 .bss.bss--halloween-theme .bss-festival-live-stack>.bss-audience-panel {
-  border-color:#ffb568aa;
-  background:
-    radial-gradient(ellipse at 90% 0%,#ffad4a38,transparent 65%),
-    linear-gradient(145deg,#3c1e36f2,#22112ff5);
-  box-shadow:inset 0 1px #ffddab30,0 0 24px #ff8b302b;
+  background:radial-gradient(ellipse at 80% 0%,#9b522a55,transparent 62%),
+    linear-gradient(150deg,#31192dee,#19102bf5);
 }
 .bss--halloween-theme .bss-jury-headline,
 .bss--halloween-theme .bss-audience-title,
-.bss--halloween-theme .bss-jury-rank-title strong {color:#ffe0b2}
-.bss--halloween-theme .bss-jury-refresh {color:#c9aedf}
+.bss--halloween-theme .bss-jury-rank-title strong {color:#ffe5b6}
+.bss--halloween-theme .bss-jury-refresh {color:#c4b3d8}
 .bss.bss--halloween-theme .bss-jury-rank-row {
-  background:#170f29d9;border-color:#bd8cdf30;
+  background:#100e23e6;border-color:#7867a24d;
 }
-.bss--halloween-theme .bss-jury-rank-row-label strong {color:#eee0f9}
-.bss--halloween-theme .bss-jury-rank-position {background:#482553;color:#ffe3b3}
-.bss--halloween-theme .bss-jury-rank-track {background:#54335d}
+.bss--halloween-theme .bss-jury-rank-row-label strong {color:#f3eafa}
+.bss--halloween-theme .bss-jury-rank-position {background:#3b1e49;color:#ffe1a1}
+.bss--halloween-theme .bss-jury-rank-track {background:#493054}
+.bss--halloween-theme .bss-filmstrip {
+  border:1px solid #ca974b8c;border-radius:15px;
+  background:#120d25e0;box-shadow:0 0 14px #f4a33720;
+}
 .bss--halloween-theme .bss-filmstrip button.active {
-  border-color:#ffb65e;box-shadow:0 0 0 2px #ffb65e30,0 0 18px #ff943c55;
+  border-color:#ffcf78;box-shadow:0 0 0 2px #ffcf7830,0 0 15px #ffb14260;
 }
-/* Small, non-interactive motifs stay in the stage's existing safe side margins. */
-.bss--halloween-theme .bss-stage::before,
-.bss--halloween-theme .bss-stage::after {
-  content:"";position:absolute;z-index:1;pointer-events:none;
-  background-repeat:no-repeat;background-position:center;background-size:contain;
+.bss--halloween-theme .bss-filmstrip button {opacity:.85}
+/* Preserve a single screen and fit both true 16:9 panels into its available height. */
+@media(min-width:1180px) and (min-height:650px) {
+  .bss.bss--festival-screen.bss--halloween-theme .bss-header {
+    flex:0 0 var(--scene-header);height:var(--scene-header);
+    min-height:var(--scene-header);
+  }
+  .bss.bss--halloween-theme .bss-container {
+    padding:12px 0 0;width:100%;max-width:none;
+  }
+  .bss--halloween-theme .bss-gallery-layout.bss-gallery-layout--festival {
+    grid-template-columns:minmax(0,1fr) minmax(0,min(49%,calc((100dvh - var(--scene-top) - var(--scene-bottom) - var(--scene-header) - 24px)*8/9)));
+    gap:12px;
+  }
+  .bss--halloween-theme .bss-gallery-layout--festival>.bss-festival-live-stack {gap:10px}
+  .bss--halloween-theme .bss-gallery-layout--festival>.bss-gallery-main {gap:8px}
+  .bss--halloween-theme .bss-filmstrip-area {flex-basis:clamp(60px,8.5dvh,90px)}
+  .bss--halloween-theme .bss-filmstrip {padding:5px}
+  .bss--halloween-theme .bss-festival-live-stack>.bss-jury-live,
+  .bss--halloween-theme .bss-festival-live-stack>.bss-audience-panel {padding:10px}
+  .bss--halloween-theme .bss-stage {
+    --bss-gallery-safe-top:38px;
+    --bss-gallery-safe-side:46px;
+    --bss-gallery-safe-bottom:58px;
+  }
+  .bss--halloween-theme .bss-stage-prev {left:8px;width:36px;height:36px}
+  .bss--halloween-theme .bss-stage-next {right:8px;width:36px;height:36px}
+  .bss--halloween-theme .bss-stage:fullscreen {
+    --bss-gallery-safe-top:58px;--bss-gallery-safe-side:78px;--bss-gallery-safe-bottom:100px;
+  }
 }
-.bss--halloween-theme .bss-stage::before {
-  left:5px;bottom:65px;width:52px;height:64px;
-  background-image:url('/assets/home/v9/halloween-pumpkin-main.webp');
+@media(min-width:1180px) and (max-width:1450px) {
+  .bss--halloween-theme .bss-brand {gap:8px}
+  .bss--halloween-theme .bss-brand strong {font-size:10px}
+  .bss--halloween-theme .bss-brand-icon {width:34px;height:34px}
+  .bss--halloween-theme .bss-header .bss-pill {font-size:11px;padding:7px 8px}
+  .bss--halloween-theme .bss-festival-header-title {gap:8px}
+  .bss--halloween-theme .bss-festival-header-title strong {font-size:clamp(23px,2.4vw,34px)}
 }
-.bss--halloween-theme .bss-stage::after {
-  top:48px;right:4px;width:52px;height:65px;opacity:.85;
-  background-image:url('/assets/slideshow/halloween-ghost.svg');
+@media(max-width:1179px), (max-height:649px) {
+  .bss.bss--halloween-theme {padding:65px 20px 35px;background-size:auto 100%;background-position:top center}
+  .bss.bss--halloween-theme .bss-container {width:100%;padding:14px 0}
+  .bss.bss--halloween-theme .bss-header {flex-wrap:wrap;justify-content:center}
+  .bss--halloween-theme .bss-festival-header-title {text-align:center}
+  .bss--halloween-theme .bss-festival-header-title strong {display:block;font-size:28px}
+  .bss--halloween-theme .bss-festival-header-title a {font-size:12px}
 }
-@media(max-width:780px) {
-  .bss--halloween-theme .bss-stage::before,
-  .bss--halloween-theme .bss-stage::after {width:32px;height:44px}
+@media(max-width:600px) {
+  .bss.bss--halloween-theme {padding:52px 10px 25px;background-size:auto 100dvh;background-repeat:repeat-y}
+  .bss--halloween-theme .bss-header-actions {justify-content:center}
+  .bss--halloween-theme .bss-festival-header-title {order:3;flex:0 0 100%}
+  .bss--halloween-theme .bss-festival-header-title strong {font-size:25px}
 }
