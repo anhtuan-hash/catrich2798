@@ -222,3 +222,36 @@ html body #root .app-shell[data-route="slideshow"] main#bes-main-content > .bqa-
     padding:8px 9px;
   }
 }
+
+
+/* Event homepage and the BRIAN site remain distinct destinations. */
+.bss--halloween-theme .bss-header .bss-halloween-event-home-button{
+  flex:0 0 auto;
+  white-space:nowrap;
+  border-color:#f4c776b0;
+  background:linear-gradient(120deg,#382044,#251530);
+  color:#ffe0a0;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+.bss--halloween-theme .bss-header .bss-halloween-event-home-button:hover,
+.bss--halloween-theme .bss-header .bss-halloween-event-home-button.is-active{
+  background:linear-gradient(120deg,#62374c,#3b2450);
+  border-color:#ffdf95;
+  box-shadow:0 0 13px #f9a54b45;
+}
+.bss--halloween-theme .bss-header .bss-brian-home-link{
+  flex:0 0 auto;
+  white-space:nowrap;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+}
+@media(min-width:1180px) and (max-width:1599px){
+  .bss--halloween-theme .bss-header .bss-brian-home-link{min-width:32px;padding:7px 8px}
+  .bss--halloween-theme .bss-header .bss-brian-home-link span{display:none}
+}
+@media(max-width:540px){
+  .bss--halloween-theme .bss-header .bss-brian-home-link{min-width:36px}
+}
