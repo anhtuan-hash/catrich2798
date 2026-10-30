@@ -9,6 +9,7 @@ import './HalloweenFooterSkin.css';
 import './HalloweenFooterRefinement.css';
 import { useHalloweenFooterTheme } from '../utils/halloweenFooterTheme.js';
 import { useHalloweenHomeTheme } from '../utils/halloweenHomeTheme.js';
+import { useNovemberHomeTheme } from '../utils/novemberHomeTheme.js';
 
 const ENGLISH_DETAILS = {
   language: 'EN',
@@ -242,6 +243,7 @@ export default function Footer({ language, route = '' }) {
   const isVi = language === 'vi';
   const seasonalFooter = useHalloweenFooterTheme();
   const seasonalHome = useHalloweenHomeTheme();
+  const november = useNovemberHomeTheme();
   const resolvedRoute = route || (typeof document !== 'undefined' ? (document.querySelector('.app-shell')?.dataset?.route || '') : '');
   const content = isVi ? VIETNAMESE_DETAILS : ENGLISH_DETAILS;
   const [portfolioOpen, setPortfolioOpen] = React.useState(false);
@@ -283,6 +285,7 @@ export default function Footer({ language, route = '' }) {
           </section>
 
           <section className="signature-footer-v50-profile">
+            {november.enabled && resolvedRoute === 'home' && november.avatarUrl ? <img className="november-footer-avatar" src={november.avatarUrl} alt={content.name} loading="lazy" decoding="async" /> : null}
             <span className="signature-footer-v50-language-badge">{content.language}</span>
             <h2>{content.name}</h2>
             <ul className="signature-footer-v50-details">

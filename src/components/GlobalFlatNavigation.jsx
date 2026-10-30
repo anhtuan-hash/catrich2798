@@ -3,6 +3,7 @@ import Navigation from './GlobalCompactNavigation.jsx';
 import MobileAppShell from './mobile/MobileAppShell.jsx';
 import usePresentationMode from '../hooks/usePresentationMode.js';
 import {useHalloweenHomeTheme} from '../utils/halloweenHomeTheme.js';
+import { useNovemberHomeTheme } from '../utils/novemberHomeTheme.js';
 import { writePresentationOverride } from '../device/presentationMode.js';
 import GlobalWindowsPhone8Loading from './GlobalWindowsPhone8Loading.jsx';
 import GlobalPageLaunchEffect from './GlobalPageLaunchEffect.jsx';
@@ -61,6 +62,15 @@ import './HalloweenNavigationRefinement.css';
 export default function GlobalFlatNavigation(props) {
   const presentation = usePresentationMode();
   const seasonalHome = useHalloweenHomeTheme();
+  const november = useNovemberHomeTheme();
+  useEffect(() => {
+    const root = document.documentElement;
+    const shell = document.querySelector('.app-shell');
+    const active = november.enabled && props.route === 'home';
+    root.dataset.novemberHome = active ? 'on' : 'off';
+    if (shell) shell.dataset.novemberHome = active ? 'on' : 'off';
+    return () => { delete root.dataset.novemberHome; if (shell) delete shell.dataset.novemberHome; };
+  }, [november.enabled, props.route]);
   useEffect(() => {
     const root = document.documentElement;
     const shell = document.querySelector('.app-shell');

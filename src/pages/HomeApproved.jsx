@@ -11,6 +11,7 @@ import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
 import { isDepartmentLeaderRole } from '../utils/roles.js';
 import { listPublicWeeklyPractices } from '../utils/weeklyPractice.js';
+import { useNovemberHomeTheme } from '../utils/novemberHomeTheme.js';
 import usePresentationMode from '../hooks/usePresentationMode.js';
 import HomeHeroExperience2026 from '../components/HomeHeroExperience2026.jsx';
 import HomePublishedSlideshow from '../components/HomePublishedSlideshow.jsx';
@@ -232,6 +233,7 @@ function roleCanManagePractice(role) {
 }
 
 export default function HomeApproved({ currentUser, language = 'vi', appVisibility }) {
+  const november = useNovemberHomeTheme();
   const t = TEXT[language] || TEXT.vi;
   const presentation = usePresentationMode();
   const visibilitySnapshot = appVisibility?.snapshot;
@@ -276,7 +278,7 @@ export default function HomeApproved({ currentUser, language = 'vi', appVisibili
     12: practiceItems.filter((item) => inferGrade(item) === 12),
   }), [practiceItems]);
 
-  if (presentation.presentationMode === 'mobile') {
+  if (presentation.presentationMode === 'mobile' && !november.enabled) {
     return (
       <MobileHomeView
         t={t}

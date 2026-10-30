@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { isDepartmentLeaderRole } from '../utils/roles.js';
 import { useHalloweenHomeTheme } from '../utils/halloweenHomeTheme.js';
+import { useNovemberHomeTheme } from '../utils/novemberHomeTheme.js';
 import {
   DEFAULT_HOME_HERO_CONFIG,
   HOME_HERO_EVENT,
@@ -216,6 +217,7 @@ export default function HomeHeroExperience2026({
   const [loading, setLoading] = useState(!bootstrap.cached);
   const seasonalHome = useHalloweenHomeTheme();
   const halloweenOn = Boolean(seasonalHome.enabled);
+  const november = useNovemberHomeTheme();
 
   const canEdit = isDepartmentLeaderRole(currentUser?.role);
   const activeConfig = normalizeHomeHeroConfig(previewConfig || settings.published);
@@ -328,19 +330,22 @@ export default function HomeHeroExperience2026({
           </div>
         </> : null}
         <div className="hero-cms__content">
-          {activeConfig.badge.enabled ? (
+          {november.enabled || activeConfig.badge.enabled ? (
             <span className="hero-cms__badge">
               {activeConfig.badge.logoUrl ? <img src={activeConfig.badge.logoUrl} alt="" loading="eager" decoding="async" /> : <i>B</i>}
-              <strong>{halloweenOn ? 'BRIAN ENGLISH • HALLOWEEN 2026' : badgeText}</strong>
+              <strong>{november.enabled ? 'BRIAN ENGLISH' : halloweenOn ? 'BRIAN ENGLISH • HALLOWEEN 2026' : badgeText}</strong>
             </span>
           ) : null}
 
-          <h1>{halloweenOn ? <><span>Happy</span><span>Halloween!</span></> : headlineLines(headline).map((line) => <span key={line}>{line}</span>)}</h1>
-          {halloweenOn ? <h2>Learn · Play · Create · Grow</h2> : highlight ? <h2>{highlight}</h2> : null}
-          {halloweenOn ? <p>{vi ? 'Khám phá không gian dạy học tiếng Anh đầy sáng tạo, tương tác và truyền cảm hứng mỗi ngày cùng BRIAN.' : 'Turn your English classroom into a world of creativity, curiosity and confidence. Explore interactive tools, fun activities and real learning experiences with BRIAN.'}</p> : description ? <p>{description}</p> : null}
+          <h1>{november.enabled ? <><span>{vi ? 'Tri ân' : 'Thank you'}</span><span>20/11</span></> : halloweenOn ? <><span>Happy</span><span>Halloween!</span></> : headlineLines(headline).map((line) => <span key={line}>{line}</span>)}</h1>
+          {!november.enabled && (halloweenOn ? <h2>Learn · Play · Create · Grow</h2> : highlight ? <h2>{highlight}</h2> : null)}
+          {november.enabled ? <p>{vi ? 'Những người truyền cảm hứng' : 'To the teachers who inspire us'}<br />{vi ? 'luôn làm thế giới trở nên tốt đẹp hơn' : 'and make the world a brighter place'} <span aria-hidden="true">♥</span></p> : halloweenOn ? <p>{vi ? 'Khám phá không gian dạy học tiếng Anh đầy sáng tạo, tương tác và truyền cảm hứng mỗi ngày cùng BRIAN.' : 'Turn your English classroom into a world of creativity, curiosity and confidence. Explore interactive tools, fun activities and real learning experiences with BRIAN.'}</p> : description ? <p>{description}</p> : null}
 
           <div className="hero-cms__actions">
-            {activeConfig.buttons.map((button) => <HeroButton key={button.id} button={button} language={language} onActivate={handleButton} />)}
+            {november.enabled ? <>
+              <button type="button" className="hero-cms__button is-primary" onClick={onStart}><Rocket size={18} /><span>{vi ? 'Bắt đầu ngay' : 'Get started'}</span><ArrowRight size={17} /></button>
+              <button type="button" className="hero-cms__button is-secondary" onClick={onGuide}><Play size={18} /><span>{vi ? 'Xem hướng dẫn' : 'View guide'}</span></button>
+            </> : activeConfig.buttons.map((button) => <HeroButton key={button.id} button={button} language={language} onActivate={handleButton} />)}
           </div>
 
           {visibleInfoItems.length ? (

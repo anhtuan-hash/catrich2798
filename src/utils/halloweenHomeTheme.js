@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getRuntimeClient, subscribeTable } from '../services/runtime/core.js';
+import { useNovemberHomeTheme } from './novemberHomeTheme.js';
 
 const TABLE = 'bes_navigation_theme_settings';
 const KEY = 'bes-halloween-home-master-v4';
@@ -69,6 +70,7 @@ export async function saveHalloweenHomeTheme(enabled){
   }catch(error){return {ok:false,error:error?.message||'Không lưu được chủ đề.'};}
 }
 export function useHalloweenHomeTheme(){
+  const november = useNovemberHomeTheme();
   const [settings,setSettings]=useState(getHalloweenHomeTheme);
   useEffect(()=>{
     if(typeof window==='undefined')return undefined;
@@ -82,6 +84,8 @@ export function useHalloweenHomeTheme(){
       refresh();
     };
     const onVisibility=()=>{if(!document.hidden)refresh();};
+    const onNovemberSaved=e=>publish(false,e.detail?.updatedAt,true);
+    window.addEventListener('bes-november-home-confirmed',onNovemberSaved);
     window.addEventListener(EVENT,sync);
     window.addEventListener('storage',onStorage);
     window.addEventListener('focus',refresh);
@@ -101,11 +105,12 @@ export function useHalloweenHomeTheme(){
     return ()=>{
       active=false;unsubscribe?.();window.clearInterval(poll);
       window.removeEventListener(EVENT,sync);
+      window.removeEventListener('bes-november-home-confirmed',onNovemberSaved);
       window.removeEventListener('storage',onStorage);
       window.removeEventListener('focus',refresh);
       window.removeEventListener('online',refresh);
       document.removeEventListener('visibilitychange',onVisibility);
     };
   },[]);
-  return settings;
+  return {...settings,enabled:settings.enabled && !november.enabled};
 }

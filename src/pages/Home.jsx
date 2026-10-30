@@ -48,4 +48,5 @@ import '../features/halloween-home/halloween.v10-art-direction.css';
 // Approved 2026-10-29: final connected Weekly Practice + footer design.
 import '../features/halloween-home/halloween.v11-weekly-footer-polish.css';
 
+import '../features/november-home/november-home.css';
 export default HomeApproved;
