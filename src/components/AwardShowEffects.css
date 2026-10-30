@@ -1,0 +1,45 @@
+/* Halloween Awards: noninteractive visual stage, GPU-accelerated celebration effects. */
+.brian-awards-fx{position:fixed;inset:0;z-index:40;pointer-events:none;overflow:hidden;contain:layout paint;opacity:1}
+.brian-awards-fx--idle{visibility:hidden}
+.brian-awards-fx-spotlight{position:absolute;top:-22vh;width:54vw;height:112vh;opacity:0;filter:blur(5px);transform-origin:top center;mix-blend-mode:screen}
+.brian-awards-fx-spotlight--left{left:-11vw;background:conic-gradient(from 153deg at 50% 0%,transparent 0deg,#ffba5170 10deg,transparent 25deg);transform:rotate(-10deg)}
+.brian-awards-fx-spotlight--right{right:-11vw;background:conic-gradient(from 195deg at 50% 0%,transparent 0deg,#c38bff73 10deg,transparent 25deg);transform:rotate(10deg)}
+.brian-awards-fx--suspense .brian-awards-fx-spotlight,.brian-awards-fx--burst .brian-awards-fx-spotlight{opacity:.75;animation:brianFxSpotlight 1.6s ease-in-out infinite alternate}
+.brian-awards-fx--burst .brian-awards-fx-spotlight{animation-duration:.8s;opacity:1}
+.brian-awards-fx-spotlight--right{animation-delay:-.7s!important}
+.brian-awards-fx-smoke{position:absolute;bottom:-15vh;width:95vw;height:40vh;background:radial-gradient(ellipse at center,#a86bc45c 0%,#482c6040 35%,transparent 72%);filter:blur(30px);opacity:0}
+.brian-awards-fx-smoke--left{left:-43vw}
+.brian-awards-fx-smoke--right{right:-43vw}
+.brian-awards-fx--suspense .brian-awards-fx-smoke,.brian-awards-fx--burst .brian-awards-fx-smoke{opacity:.8;animation:brianFxSmoke 5s ease-in-out infinite alternate}
+.brian-awards-fx-smoke--right{animation-delay:-2.5s!important}
+.brian-awards-fx-suspense{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;background:radial-gradient(ellipse,#160e25cb 0%,#090616ee 74%);text-align:center;animation:brianFxDimIn .26s ease both}
+.brian-awards-fx-suspense span{font-size:clamp(14px,2vw,30px);font-weight:900;letter-spacing:.22em;color:#ffe3ae;text-shadow:0 0 20px #ffc36785}
+.brian-awards-fx-suspense strong{font:900 clamp(130px,26vw,360px)/1 Georgia,'Times New Roman',serif;color:#ffe5a5;text-shadow:0 0 24px #ffc25f,0 0 85px #f8794c,0 12px 0 #562e48;animation:brianFxNumber .7s cubic-bezier(.18,1.6,.35,1) both}
+.brian-awards-fx-suspense small{color:#e3cde7;letter-spacing:.16em;font-size:clamp(10px,1.1vw,14px)}
+.brian-awards-fx-flash{position:absolute;inset:0;background:radial-gradient(ellipse,#fffbea 0%,#ffd17aab 34%,transparent 73%);animation:brianFxFlash .9s ease-out both}
+.brian-awards-fx-congrats{position:absolute;top:8%;width:100%;display:flex;justify-content:center;animation:brianFxCongratulate 2.4s ease-out both}
+.brian-awards-fx-congrats span{font:900 clamp(15px,3vw,41px) Georgia,serif;letter-spacing:.11em;color:#fff5d2;text-align:center;text-shadow:0 0 16px #ffc05d,0 0 39px #ff8c43,0 3px 5px #1b0b20}
+.brian-awards-fx-firework{position:absolute;width:0;height:0;animation:brianFxFireworkAppear .6s ease-out both;animation-delay:var(--burst-delay)}
+.brian-awards-fx-firework i{position:absolute;width:clamp(3px,.45vw,7px);height:clamp(12px,2.1vw,28px);border-radius:100px;background:hsl(var(--hue) 100% 72%);box-shadow:0 0 13px 4px hsl(var(--hue) 100% 63% / .8);opacity:0;transform:rotate(var(--angle)) translateY(0);animation:brianFxSpark 1.2s cubic-bezier(.12,.56,.33,1) forwards;animation-delay:var(--burst-delay)}
+.brian-awards-fx-confetti{position:absolute;top:-8vh;width:clamp(5px,.65vw,10px);height:clamp(10px,1.25vw,18px);border-radius:2px;box-shadow:0 0 8px #fff8;animation:brianFxConfetti var(--fall-duration) ease-in var(--fall-delay) both}
+.brian-awards-overlay.is-awaiting-reveal .brian-awards-podium{filter:brightness(.45);transition:filter .3s ease}
+.brian-awards-overlay.is-celebrating .brian-awards-podium{animation:brianFxStageImpact .65s cubic-bezier(.2,.95,.25,1) both}
+.brian-awards-prize.is-revealed.is-headliner .brian-awards-winner{position:relative;z-index:1;animation:brianFxWinnerReveal 1.25s cubic-bezier(.16,1.3,.3,1) both;box-shadow:0 0 0 2px #ffe1a7,0 0 42px #ffc96795,0 20px 65px #0008}
+.brian-awards-prize.is-revealed.is-headliner .brian-awards-medal{animation:brianFxMedalBounce 1.4s cubic-bezier(.18,1.4,.28,1) both;filter:drop-shadow(0 0 23px #ffce74)}
+.brian-awards-prize.is-revealed.is-headliner .brian-awards-plinth{animation:brianFxPlinthLift 1.1s cubic-bezier(.18,1.3,.24,1) both;box-shadow:0 0 45px #ffc86786}
+.brian-awards-audio-toggle{display:inline-flex;gap:8px;align-items:center;justify-content:center;min-height:39px;padding:8px 15px;border:1px solid #b68d61;background:#2d2341;color:#ffe1b9;border-radius:11px;cursor:pointer;font:750 12px Inter,system-ui,sans-serif}
+.brian-awards-audio-note{font-size:11px;color:#d7bdd5;margin:-5px 0 7px;text-align:center}
+@keyframes brianFxSpotlight{from{transform:rotate(-14deg) scale(.9)}to{transform:rotate(14deg) scale(1.15)}}
+@keyframes brianFxSmoke{from{transform:translateX(-9vw) scale(.8)}to{transform:translateX(12vw) scale(1.2)}}
+@keyframes brianFxDimIn{from{opacity:0}to{opacity:1}}
+@keyframes brianFxNumber{0%{transform:scale(2.4) rotate(-16deg);opacity:0;filter:blur(16px)}60%{transform:scale(.85) rotate(3deg);opacity:1;filter:blur(0)}100%{transform:scale(1) rotate(0);opacity:1}}
+@keyframes brianFxFlash{0%{opacity:0}9%{opacity:.92}22%{opacity:.17}33%{opacity:.7}100%{opacity:0}}
+@keyframes brianFxCongratulate{0%{opacity:0;transform:translateY(-60px) scale(1.4);filter:blur(12px)}20%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}85%{opacity:1}100%{opacity:0;transform:translateY(-15px)}}
+@keyframes brianFxSpark{0%{opacity:0;transform:rotate(var(--angle)) translateY(0) scale(.2)}15%{opacity:1}75%{opacity:.95}100%{opacity:0;transform:rotate(var(--angle)) translateY(clamp(-140px,-15vw,-70px)) scale(.5)}}
+@keyframes brianFxFireworkAppear{0%{opacity:0}20%,85%{opacity:1}100%{opacity:0}}
+@keyframes brianFxConfetti{0%{opacity:0;transform:translate3d(0,0,0) rotate(0)}8%{opacity:1}90%{opacity:1}100%{opacity:0;transform:translate3d(8vw,112vh,0) rotate(var(--twirl))}}
+@keyframes brianFxStageImpact{0%,30%{transform:translateY(0)}42%{transform:translateY(9px)}58%{transform:translateY(-5px)}100%{transform:translateY(0)}}
+@keyframes brianFxWinnerReveal{0%{opacity:0;transform:translateY(90px) scale(.5) rotate(-7deg);filter:blur(12px)}45%{opacity:1;transform:translateY(-18px) scale(1.08) rotate(3deg);filter:blur(0)}70%{transform:translateY(8px) scale(.97) rotate(-1deg)}100%{transform:translateY(0) scale(1) rotate(0)}}
+@keyframes brianFxMedalBounce{0%{transform:translateY(-100px) scale(1.8) rotate(-30deg);opacity:0}65%{transform:translateY(12px) rotate(9deg);opacity:1}100%{transform:translateY(0) rotate(0)}}
+@keyframes brianFxPlinthLift{0%{transform:translateY(70px);opacity:0}100%{transform:translateY(0);opacity:1}}
+@media(prefers-reduced-motion:reduce){.brian-awards-fx *,.brian-awards-overlay.is-celebrating .brian-awards-podium,.brian-awards-prize.is-revealed.is-headliner .brian-awards-winner,.brian-awards-prize.is-revealed.is-headliner .brian-awards-medal,.brian-awards-prize.is-revealed.is-headliner .brian-awards-plinth{animation:none!important;transition:none!important}.brian-awards-fx-suspense strong{filter:none}.brian-awards-fx--burst .brian-awards-fx-confetti,.brian-awards-fx--burst .brian-awards-fx-firework{display:none}}

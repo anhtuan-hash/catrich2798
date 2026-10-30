@@ -1,7 +1,8 @@
-import React,{useCallback,useEffect,useState} from 'react';
-import {Award,CheckCircle2,Clock3,Crown,Eye,LockKeyhole,RefreshCw,Save,Settings2,ShieldCheck,Trophy,X} from 'lucide-react';
+import React,{useCallback,useEffect,useRef,useState} from 'react';
+import {Award,CheckCircle2,Clock3,Crown,Eye,LockKeyhole,RefreshCw,Save,Settings2,ShieldCheck,Trophy,Volume2,VolumeX,X} from 'lucide-react';
 import {supabase,supabaseAnonKey,supabaseUrl} from '../utils/supabase.js';
 import './PhotoAwards.css';
+import AwardShowEffects,{playAwardRevealSound} from './AwardShowEffects.jsx';
 
 const DEFAULT_CLOSE='2026-10-30T08:15:00Z';
 const DEFAULT_ANNOUNCE='2026-10-30T08:20:00Z';
@@ -111,6 +112,47 @@ export default function PhotoAwards({albumId,onClose,canPublish=false,language='
  const [settingsMessage,setSettingsMessage]=useState('');
  const [revealed,setRevealed]=useState(3);
  const [showPreviewTable,setShowPreviewTable]=useState(false);
+ const [ceremonyPhase,setCeremonyPhase]=useState('idle');
+ const [countdown,setCountdown]=useState(3);
+ const [highlightRank,setHighlightRank]=useState(null);
+ const [effectId,setEffectId]=useState(0);
+ const [soundEnabled,setSoundEnabled]=useState(true);
+ const ceremonyTimers=useRef([]);
+ const stopSound=useRef(null);
+ const resetEffects=useCallback(()=>{
+  ceremonyTimers.current.forEach(window.clearTimeout);
+  ceremonyTimers.current=[];
+  stopSound.current?.();
+  stopSound.current=null;
+  setCeremonyPhase('idle');
+  setHighlightRank(null);
+ },[]);
+ useEffect(()=>()=>{ceremonyTimers.current.forEach(window.clearTimeout);stopSound.current?.();},[]);
+ const scheduleEffect=(callback,delay)=>{
+  const timer=window.setTimeout(callback,delay);
+  ceremonyTimers.current.push(timer);
+ };
+ const revealNext=()=>{
+  if(ceremonyPhase==='suspense'||revealed>=3)return;
+  const nextRank=REVEAL_ORDER[revealed];
+  resetEffects();
+  setCountdown(3);
+  setCeremonyPhase('suspense');
+  stopSound.current=playAwardRevealSound(nextRank,soundEnabled);
+  scheduleEffect(()=>setCountdown(2),720);
+  scheduleEffect(()=>setCountdown(1),1440);
+  scheduleEffect(()=>{
+   setRevealed(current=>Math.min(current+1,3));
+   setHighlightRank(nextRank);
+   setCeremonyPhase('burst');
+   setEffectId(current=>current+1);
+  },2200);
+  scheduleEffect(()=>setCeremonyPhase('idle'),5900);
+ };
+ const replayCeremony=()=>{
+  resetEffects();
+  setRevealed(0);
+ };
  const refresh=useCallback(async()=>{
   const current=await request(albumId,canPublish?'admin:preview':'status',canPublish);
   setData(current);setServerOffset(Date.parse(current.serverNow||new Date().toISOString())-Date.now());setError('');
@@ -141,7 +183,7 @@ export default function PhotoAwards({albumId,onClose,canPublish=false,language='
  },[albumId,canPublish,onClose]);
  const previewNow=()=>{
   if(!canPublish||!Array.isArray(data?.rows)||data.rows.length!==18)return;
-  setPreviewCeremony(true);setRevealed(1);setShowPreviewTable(false);
+  replayCeremony();setPreviewCeremony(true);setShowPreviewTable(false);
  };
  const openSettings=()=>{
   setVoteDraft(vnLocal(data?.voteCloseAt||DEFAULT_CLOSE));
@@ -172,8 +214,9 @@ export default function PhotoAwards({albumId,onClose,canPublish=false,language='
  const voteCloseAt=data?.voteCloseAt||DEFAULT_CLOSE;
  const announceAt=data?.announceAt||DEFAULT_ANNOUNCE;
  const showFullTable=isCeremony&&revealed>=3;
- return <div className="brian-awards-overlay" role="dialog" aria-modal="true" aria-label="Halloween Awards 2026">
+ return <div className={"brian-awards-overlay"+(ceremonyPhase==="suspense"?" is-awaiting-reveal":"")+(ceremonyPhase==="burst"?" is-celebrating":"")} role="dialog" aria-modal="true" aria-label="Halloween Awards 2026">
   <div className="brian-awards-stars" aria-hidden="true"/>
+  <AwardShowEffects phase={ceremonyPhase} count={countdown} rank={highlightRank} burstKey={effectId}/>
   <header className="brian-awards-topbar">
    <div className="brian-awards-brand"><Trophy size={23}/><div><strong>BRIAN ENGLISH</strong><small>HALLOWEEN SHOWCASE 2026 · AWARDS</small></div></div>
    <div className="brian-awards-actions">
@@ -251,13 +294,13 @@ export default function PhotoAwards({albumId,onClose,canPublish=false,language='
     </section>}
    {isPreview&&previewCeremony&&<div className="brian-awards-preview-ribbon">
     <Eye size={19}/>{en?'LIVE PREVIEW · NOT OFFICIAL · SCORES MAY CHANGE':'XEM THỬ · CHƯA CÔNG BỐ CHÍNH THỨC · ĐIỂM CÓ THỂ THAY ĐỔI'}
-    <button type="button" onClick={()=>{setPreviewCeremony(false);setRevealed(3);}}>{en?'Exit preview':'Thoát xem thử'}</button>
+    <button type="button" onClick={()=>{resetEffects();setPreviewCeremony(false);setRevealed(3);}}>{en?'Exit preview':'Thoát xem thử'}</button>
    </div>}
    {isCeremony&&<div className="brian-awards-podium" aria-live="polite">
     {prizes.map(prize=>{
      const winner=rows.find(row=>row.rank===prize.rank);
      const shown=Boolean(winner&&visibleRanks.includes(prize.rank));
-     return <section className={'brian-awards-prize brian-awards-prize-'+prize.rank+(shown?' is-revealed':'')} key={prize.rank}>
+     return <section className={'brian-awards-prize brian-awards-prize-'+prize.rank+(shown?' is-revealed':'')+(highlightRank===prize.rank&&ceremonyPhase==='burst'?' is-headliner':'')} key={prize.rank}>
       <div className="brian-awards-medal" aria-hidden="true">{prize.medal}</div>
       <div className="brian-awards-rank-label">{prize.word}<small>{prize.vi}</small></div>
       <div className="brian-awards-winner">
@@ -275,11 +318,19 @@ export default function PhotoAwards({albumId,onClose,canPublish=false,language='
     {isPreview?'LIVE PREVIEW · NOT OFFICIAL':revealed>=3?'OFFICIAL TOP 3 · FINAL RESULTS':'THE GRAND REVEAL · '+revealed+'/3'}
    </div>}
    {canPublish&&isCeremony&&revealed<3&&<button type="button" className="brian-awards-primary"
-    onClick={()=>setRevealed(value=>Math.min(value+1,3))}><Award size={20}/>
+    disabled={ceremonyPhase==='suspense'} onClick={revealNext}><Award size={20}/>
     {en?'REVEAL NEXT PRIZE':'CÔNG BỐ GIẢI TIẾP THEO'}
    </button>}
    {canPublish&&isCeremony&&revealed>=3&&<button type="button" className="brian-awards-secondary"
-    onClick={()=>setRevealed(0)}>{en?'Replay ceremony':'Trình chiếu lại từ đầu'}</button>}
+    onClick={replayCeremony}>{en?'Replay ceremony':'Trình chiếu lại từ đầu'}</button>}
+   {canPublish&&isCeremony&&<button type="button" className="brian-awards-audio-toggle"
+    onClick={()=>setSoundEnabled(current=>!current)} aria-pressed={soundEnabled}>
+    {soundEnabled?<Volume2 size={17}/>:<VolumeX size={17}/>}
+    {soundEnabled?(en?'Sound on · Tap to mute':'Âm thanh bật · Nhấn để tắt'):(en?'Sound muted · Tap to enable':'Đã tắt âm thanh · Nhấn để bật')}
+   </button>}
+   {canPublish&&isCeremony&&<p className="brian-awards-audio-note">
+    {en?'When presenting, share your browser tab with audio enabled.':'Khi trình chiếu qua Meet, hãy bật chia sẻ âm thanh của thẻ trình duyệt.'}
+   </p>}
    {canPublish&&isPreview&&showPreviewTable&&rows.length===18&&
     <DetailedRanking en={en} preview rows={rows} capturedAt={data.capturedAt}
      judgeCount={data.judgeCount} savedScoreCount={data.savedScoreCount} voteCount={data.voteCount}/>}
