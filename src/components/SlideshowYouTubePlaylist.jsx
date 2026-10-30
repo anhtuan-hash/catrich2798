@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Music2, Play, Pause, SkipBack, SkipForward, Plus, Trash2,
-  Repeat, Shuffle, ChevronDown, ChevronUp, Volume2, X, ListMusic
+  Repeat, Shuffle, ChevronDown, ChevronUp, Volume2, X, ListMusic, Pencil, ArrowUp, ArrowDown
 } from 'lucide-react';
 import './SlideshowYouTubePlaylist.css';
 
@@ -259,6 +259,25 @@ export default function SlideshowYouTubePlaylist({ albumId, language = 'vi' }) {
     }
     setNotice((en ? 'Removed: ' : 'Đã xoá: ') + removed.title);
   };
+  const renameTrack = position => {
+    const old = tracks[position];
+    if (!old) return;
+    const result = window.prompt(en ? 'Track name:' : 'Tên bài hát:', old.title);
+    if (result === null) return;
+    const name = result.trim().slice(0, 90);
+    if (!name) return;
+    setTracks(items => items.map((item, index) => index === position ? { ...item, title: name } : item));
+  };
+  const moveTrack = (from, to) => {
+    if (to < 0 || to >= tracks.length) return;
+    const next = [...tracks];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    setTracks(next);
+    if (activeRef.current === from) { activeRef.current = to; setActive(to); }
+    else if (from < activeRef.current && to >= activeRef.current) { activeRef.current -= 1; setActive(activeRef.current); }
+    else if (from > activeRef.current && to <= activeRef.current) { activeRef.current += 1; setActive(activeRef.current); }
+  };
   const closePlayer = () => { setOpened(false); setCompact(false); };
   const current = tracks[active] || null;
 
@@ -313,7 +332,7 @@ export default function SlideshowYouTubePlaylist({ albumId, language = 'vi' }) {
         </div>
         {!compact && <>
           <div className="bss-music-add">
-            <label htmlFor="bss-music-links">{en ? 'Paste YouTube video links' : 'Dán link video YouTube (mỗi link một dòng)'}</label>
+            <label htmlFor="bss-music-links">{en ? 'Paste YouTube video links' : 'Dán link YouTube (mỗi dòng một link; có thể thêm Tên bài | Link)'}</label>
             <textarea id="bss-music-links" rows={2} value={input} onChange={e => setInput(e.target.value)}
               placeholder={'https://youtu.be/xxxxxxxxxxx\nhttps://www.youtube.com/watch?v=xxxxxxxxxxx'}/>
             <button type="button" onClick={addTracks} disabled={!input.trim() || tracks.length >= MAX_TRACKS}>
@@ -327,6 +346,12 @@ export default function SlideshowYouTubePlaylist({ albumId, language = 'vi' }) {
                 aria-label={(en ? 'Play ' : 'Phát ') + track.title}>
                 <span>{String(position + 1).padStart(2, '0')}</span><strong title={track.title}>{track.title}</strong>
               </button>
+              <button type="button" className="bss-music-remove" disabled={position === 0} onClick={() => moveTrack(position, position - 1)}
+                title={en ? 'Move up' : 'Đưa lên'} aria-label={(en ? 'Move up ' : 'Đưa lên ') + track.title}><ArrowUp size={14}/></button>
+              <button type="button" className="bss-music-remove" disabled={position === tracks.length - 1} onClick={() => moveTrack(position, position + 1)}
+                title={en ? 'Move down' : 'Đưa xuống'} aria-label={(en ? 'Move down ' : 'Đưa xuống ') + track.title}><ArrowDown size={14}/></button>
+              <button type="button" className="bss-music-remove" onClick={() => renameTrack(position)}
+                title={en ? 'Rename' : 'Đổi tên bài hát'} aria-label={(en ? 'Rename ' : 'Đổi tên ') + track.title}><Pencil size={14}/></button>
               <button type="button" className="bss-music-remove" onClick={() => removeTrack(position)}
                 title={en ? 'Remove' : 'Xoá bài hát'} aria-label={(en ? 'Remove ' : 'Xoá ') + track.title}><Trash2 size={15}/></button>
             </li>)}
