@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { CalendarDays, CheckCircle2, Plus, RefreshCw, Save, ShieldCheck, X } from 'lucide-react';
 import { supabase } from '../../utils/supabase.js';
 import { isAdminRole } from '../../utils/roles.js';
@@ -44,6 +45,8 @@ export default function WorldExplorerAdmin({ currentUser, onClose, language = 'v
   const [message, setMessage] = useState('');
   const [tab, setTab] = useState('queue');
   const canManage = isAdminRole(currentUser?.role);
+  const drawerRef = useRef(null);
+  const closeRef = useRef(null);
   const refresh = useCallback(async () => {
     const [articles, settings] = await Promise.all([
       supabase.from('world_explorer_articles').select('*').order('created_at', { ascending: false }).limit(100),
@@ -55,12 +58,39 @@ export default function WorldExplorerAdmin({ currentUser, onClose, language = 'v
   }, []);
   useEffect(() => { if (canManage) refresh().catch((e) => setMessage(e.message)); }, [canManage, refresh]);
   useEffect(() => {
+    if (!canManage) return undefined;
+    const priorFocus = document.activeElement;
     const previous = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    const closeOnEscape = (event) => { if (event.key === 'Escape') onClose(); };
-    document.addEventListener('keydown', closeOnEscape);
-    return () => { document.body.style.overflow = previous; document.removeEventListener('keydown', closeOnEscape); };
-  }, [onClose]);
+    closeRef.current?.focus({ preventScroll: true });
+    const onDrawerKeys = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const controls = Array.from(drawerRef.current?.querySelectorAll(
+        'button:not([disabled]), a[href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ) || []).filter((element) => element.getClientRects().length > 0);
+      if (!controls.length) return;
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', onDrawerKeys);
+    return () => {
+      document.body.style.overflow = previous;
+      document.removeEventListener('keydown', onDrawerKeys);
+      if (priorFocus?.isConnected) priorFocus.focus?.({ preventScroll: true });
+    };
+  }, [canManage, onClose]);
   if (!canManage) return null;
   function edit(article) { setDraft({ ...empty, ...article }); setWords(serializeWords(article.vocabulary)); setTab('editor'); setMessage(''); }
   function reset() { setDraft({ ...empty }); setWords(''); setTab('editor'); setMessage(''); }
@@ -149,12 +179,12 @@ export default function WorldExplorerAdmin({ currentUser, onClose, language = 'v
       setMessage(!enabled ? 'Đã bật World Explorer công khai.' : 'Đã ẩn World Explorer khỏi khách truy cập.');
     });
   }
-  return (
-    <div className="we-overlay we-admin-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <div className="we-admin" role="dialog" aria-modal="true" aria-label="World Explorer Administration">
+  return createPortal(
+    <div className="we-drawer-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }} data-world-explorer-drawer-backdrop>
+      <aside className="we-admin we-admin-drawer" ref={drawerRef} role="dialog" aria-modal="true" aria-labelledby="we-admin-drawer-title" data-world-explorer-admin-drawer>
         <header className="we-admin-header">
-          <div><span>BRIAN ENGLISH · CONTENT MANAGEMENT</span><h2><ShieldCheck size={24}/> World Explorer Studio</h2><p>{tr("Biên tập · Kiểm duyệt · Lên lịch bài viết hằng ngày","Edit · Review · Schedule daily stories")}</p></div>
-          <button type="button" className="we-close" aria-label="Đóng" onClick={onClose}><X size={20}/></button>
+          <div><span>BRIAN ENGLISH · CONTENT MANAGEMENT</span><h2 id="we-admin-drawer-title"><ShieldCheck size={24}/> World Explorer Studio</h2><p>{tr("Biên tập · Kiểm duyệt · Lên lịch bài viết hằng ngày","Edit · Review · Schedule daily stories")}</p></div>
+          <button type="button" className="we-close" ref={closeRef} aria-label={tr('Đóng bảng quản lý', 'Close management drawer')} onClick={onClose}><X size={20}/></button>
         </header>
         <nav className="we-tabs" aria-label="World Explorer management">
           <button type="button" className={tab === 'queue' ? 'active' : ''} onClick={() => setTab('queue')}>Danh sách ({list.length})</button>
@@ -181,7 +211,8 @@ export default function WorldExplorerAdmin({ currentUser, onClose, language = 'v
           </form> : null}
           {tab === 'settings' ? <div className="we-admin-settings"><strong>{tr("Hiển thị trên trang chủ","Homepage visibility")}</strong><p>{enabled ? 'Đang công khai World Explorer.' : 'Đang ẩn World Explorer đối với khách truy cập.'}</p><button type="button" disabled={busy} onClick={toggle}>{enabled ? 'Tắt chuyên mục' : 'Bật chuyên mục'}</button><p><b>{tr("Lịch xuất bản:","Publishing schedule:")}</b> 07:00 mỗi ngày (Asia/Ho_Chi_Minh). Chỉ bài được Admin duyệt trước và có ngày lên lịch phù hợp mới được xuất bản.</p><p>{tr("Để tránh lộ nội dung nháp, dữ liệu quản trị được bảo vệ bằng RLS ở Supabase.","Draft articles are protected by Supabase row-level security.")}</p></div> : null}
         </div>
-      </div>
-    </div>
+      </aside>
+    </div>,
+    document.body,
   );
 }

@@ -6,6 +6,7 @@ on:
       - 'src/pages/HomeApproved.jsx'
       - 'src/components/mobile/MobileHomeView.jsx'
       - '.github/workflows/world-explorer-compile.yml'
+      - 'scripts/test-world-explorer-inline-drawer.mjs'
   push:
     branches:
       - feat/world-explorer-20261030
@@ -25,5 +26,7 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Verify World Explorer drawer and reader behavior contracts
+        run: node scripts/test-world-explorer-inline-drawer.mjs
       - name: Compile the production bundle directly
         run: npx vite build
