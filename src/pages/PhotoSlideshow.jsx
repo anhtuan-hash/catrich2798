@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ArrowLeft, ArrowRight, Camera, Check, ChevronLeft, ChevronRight, Copy, Expand,
   Eye, EyeOff, Images, Maximize2, Pause, Play, Plus, QrCode, RefreshCw, Save,
-  Settings2, Trash2, UploadCloud, X
+  Settings2, Trash2, UploadCloud, Video, GraduationCap, X
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../utils/supabase.js';
 import { isDepartmentLeaderRole, isAdminRole } from '../utils/roles.js';
@@ -307,6 +307,24 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
       <div className="bss-header-actions">
         {festivalScreen && selected?.id === HALLOWEEN_ALBUM_ID && <SlideshowYouTubePlaylist key={selected.id} albumId={selected.id} language={language}/>}
         {festivalScreen && selected?.id === HALLOWEEN_ALBUM_ID && <SlideshowInteractiveHtml key={'html-'+selected.id} albumId={selected.id} language={language} canManage={editorAllowed}/>}
+        {festivalScreen && selected?.id === HALLOWEEN_ALBUM_ID && <>
+          <a className="bss-pill bss-halloween-quick-link bss-halloween-meeting"
+            href="https://meet.google.com/meet/pgv-devx-kms"
+            target="_blank" rel="noopener noreferrer"
+            title={en ? 'Open meeting in a new tab' : 'Mở phòng họp trong thẻ mới'}
+            aria-label={en ? 'Open Google Meet room' : 'Mở phòng họp Google Meet'}>
+            <Video size={16} aria-hidden="true"/>
+            <span>{en ? 'Meeting' : 'Phòng họp'}</span>
+          </a>
+          <a className="bss-pill bss-halloween-quick-link bss-halloween-wayground"
+            href="https://wayground.com/activity/admin/quiz/start_new/6ad8d73e6d3353e073a85551?selection=teacher-paced"
+            target="_blank" rel="noopener noreferrer"
+            title={en ? 'Open Wayground teacher-paced activity in a new tab' : 'Mở hoạt động Wayground chế độ giáo viên điều khiển trong thẻ mới'}
+            aria-label={en ? 'Open Wayground' : 'Mở Wayground'}>
+            <GraduationCap size={16} aria-hidden="true"/>
+            <span>Wayground</span>
+          </a>
+        </>}
         {editorAllowed && <button className="bss-pill" onClick={() => { setEditing(v => !v); setCreating(false); }}><Settings2 size={17}/> {editing ? t.done : t.manage}</button>}
         <a className="bss-pill muted" href="#/home"><ArrowLeft size={16}/> {en ? 'Home' : 'Trang chủ'}</a>
       </div>
