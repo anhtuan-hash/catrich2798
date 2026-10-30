@@ -25,7 +25,8 @@ jobs:
               response=json.load(file)
           print('API state:',response.get('status'))
           assert response.get('status') in ('pending','frozen','published'),response
-          assert response.get('cutoffAt')=='2026-10-30T08:15:00.000Z',response
+          from datetime import datetime
+          assert datetime.fromisoformat(response['cutoffAt'].replace('Z','+00:00'))==datetime.fromisoformat('2026-10-30T08:15:00+00:00'),response
           assert response.get('weights')=={'jury':70,'audience':30},response
           assert 'rows' not in response or response['status']=='published'
           assert response.get('voteCloseAt'),response
