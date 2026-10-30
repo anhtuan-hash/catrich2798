@@ -169,7 +169,7 @@ export default function JudgingAdmin({album, slides=[]}) {
               title={'Xóa toàn bộ điểm của '+j.full_name+' và cho phép chấm lại'}
               aria-label={'Xóa điểm để '+j.full_name+' chấm lại'}
               onClick={()=>{
-                if(window.confirm('Xóa toàn bộ '+j.progress+' điểm đã lưu của giám khảo '+j.full_name+' và mở lại phiếu chấm?\\n\\nThao tác này KHÔNG THỂ hoàn tác. Giám khảo sử dụng liên kết cũ nhưng cần tải lại trang trước khi chấm từ đầu. Điểm của các giám khảo khác được giữ nguyên.')){
+                if(window.confirm('Xóa toàn bộ '+j.progress+' điểm đã lưu của giám khảo '+j.full_name+' và mở lại phiếu chấm?\n\nThao tác này KHÔNG THỂ hoàn tác. Giám khảo sử dụng liên kết cũ nhưng cần tải lại trang trước khi chấm từ đầu. Điểm của các giám khảo khác được giữ nguyên.')){
                   void run('admin:reset-scores',{inviteId:j.id});
                 }
               }}
