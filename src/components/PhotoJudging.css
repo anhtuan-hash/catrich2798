@@ -128,3 +128,31 @@
 .bj-judge .bj-reset-scores{border-color:#ac6472;background:#432431;color:#ffcad0;font-weight:750;white-space:nowrap}
 .bj-judge .bj-reset-scores:hover:not(:disabled){background:#623044;border-color:#f29caa}
 .bj-judge .bj-reset-scores:focus-visible{outline:2px solid #ffb5bd;outline-offset:2px}
+
+
+/* Blind-judging artwork description: EN original + reviewed Vietnamese translation. */
+.bj-artwork-story{
+  margin-top:14px;padding:14px 16px 16px;border-radius:14px;
+  border:1px solid rgba(103,224,200,.35);
+  background:linear-gradient(135deg,rgba(16,60,75,.75),rgba(18,37,61,.96));
+  color:#e7f6fc;
+}
+.bj-artwork-story-heading{display:flex;align-items:center;gap:9px;padding-bottom:12px;border-bottom:1px solid rgba(153,220,216,.18)}
+.bj-artwork-story-heading svg{color:#75e4ce;flex-shrink:0}
+.bj-artwork-story-heading strong{font-size:12px;letter-spacing:.07em;line-height:1.4}
+.bj-artwork-story-heading>span{margin-left:auto;white-space:nowrap;color:#75e4ce;font-size:10px;font-weight:800;letter-spacing:.08em}
+.bj-artwork-story-body{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding-top:13px}
+.bj-artwork-story-language{min-width:0}
+.bj-artwork-story-language+.bj-artwork-story-language{border-left:1px solid rgba(153,220,216,.2);padding-left:16px}
+.bj-artwork-story-language>span{display:block;margin-bottom:7px;color:#87cfc7;font-size:10px;font-weight:850;letter-spacing:.1em}
+.bj-artwork-story-language p{margin:0;color:#eff8fc;font-size:13px;line-height:1.65;overflow-wrap:break-word}
+.bj-artwork-story-language[lang="vi"] p{color:#c5e9e2}
+@media(max-width:850px){
+  .bj-artwork-story-body{grid-template-columns:1fr;gap:12px}
+  .bj-artwork-story-language+.bj-artwork-story-language{border-left:0;border-top:1px solid rgba(153,220,216,.2);padding:12px 0 0}
+}
+@media(max-width:540px){
+  .bj-artwork-story{padding:12px}
+  .bj-artwork-story-heading strong{font-size:11px}
+  .bj-artwork-story-language p{font-size:13px;line-height:1.6}
+}
