@@ -268,11 +268,19 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
     if (!selected || !window.confirm('Xóa toàn bộ album và ảnh bên trong? Hành động này không thể hoàn tác.')) return;
     void run(async () => {
       const paths = ordered.map(x => x.image_path);
+      const htmlRows = await supabase.from('bes_slideshow_html_files')
+        .select('storage_path').eq('album_id', selected.id);
+      if (htmlRows.error) throw htmlRows.error;
+      const htmlPaths = (htmlRows.data || []).map(x => x.storage_path);
       const r = await supabase.from('bes_slideshow_albums').delete().eq('id', selected.id);
       if (r.error) throw r.error;
       if (paths.length) {
         const storage = await supabase.storage.from(BUCKET).remove(paths);
         if (storage.error) setError('Album đã xóa, nhưng có ảnh chưa dọn khỏi kho lưu trữ: ' + storage.error.message);
+      }
+      if (htmlPaths.length) {
+        const htmlStorage = await supabase.storage.from('brian-slideshow-html').remove(htmlPaths);
+        if (htmlStorage.error) setError('Album đã xóa, nhưng còn file HTML chưa được dọn: ' + htmlStorage.error.message);
       }
       setEditing(false); await refresh(); announceSlideshowChange(); goAlbum('');
     });
