@@ -7,7 +7,7 @@ import './PhotoAudienceLive.css';
 const DESKTOP_WIDTH=1440;
 const DESKTOP_HEIGHT=920;
 // Crops of the original, unmodified QRvote /screen iframe.
-// These are presentation viewports, NOT re-rendered or scraped results.
+// These are presentation viewports, NOT a replacement for the source data.
 // "Toàn bộ" always restores the entire native page for verification.
 const RANKING_PAGES=[
   {left:510,top:62,width:900,height:435},
