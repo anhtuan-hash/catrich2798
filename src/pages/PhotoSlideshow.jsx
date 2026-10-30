@@ -298,7 +298,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
       </div>}
       <div className="bss-header-actions">
         {festivalScreen && selected?.id === HALLOWEEN_ALBUM_ID && <SlideshowYouTubePlaylist key={selected.id} albumId={selected.id} language={language}/>}
-        {festivalScreen && selected?.id === HALLOWEEN_ALBUM_ID && <SlideshowInteractiveHtml key={'html-'+selected.id} albumId={selected.id} language={language}/>}
+        {festivalScreen && selected?.id === HALLOWEEN_ALBUM_ID && <SlideshowInteractiveHtml key={'html-'+selected.id} albumId={selected.id} language={language} canManage={editorAllowed}/>}
         {editorAllowed && <button className="bss-pill" onClick={() => { setEditing(v => !v); setCreating(false); }}><Settings2 size={17}/> {editing ? t.done : t.manage}</button>}
         <a className="bss-pill muted" href="#/home"><ArrowLeft size={16}/> {en ? 'Home' : 'Trang chủ'}</a>
       </div>
