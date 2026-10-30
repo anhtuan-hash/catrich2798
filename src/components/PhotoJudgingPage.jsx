@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Award, CheckCircle2, ChevronLeft, ChevronRight, Expand, Save, ShieldCheck } from 'lucide-react';
+import { Award, BookOpenText, CheckCircle2, ChevronLeft, ChevronRight, Expand, Save, ShieldCheck } from 'lucide-react';
 import { photoJudgingRequest } from './PhotoJudgingAdmin.jsx';
 import { weightedTotal, isComplete } from '../utils/judgingMath.js';
+import { getJudgeArtworkVietnamese } from '../utils/photoJudgingDescriptions.js';
 import './PhotoJudging.css';
 
 export default function PhotoJudgingPage({token}) {
@@ -22,6 +23,7 @@ export default function PhotoJudgingPage({token}) {
   },[token]);
   useEffect(()=>{load().catch(e=>setError(e.message));},[load]);
   const current=data?.slides?.[position];
+  const descriptionVi=getJudgeArtworkVietnamese(current?.id,current?.description);
   const rubric=data?.rubric||[];
   const draft=drafts[current?.id]||{criteria:{},comment:''};
   const complete=isComplete(draft.criteria,rubric);
@@ -82,6 +84,23 @@ export default function PhotoJudgingPage({token}) {
         {current&&<div className="bj-guest-grid">
           <section className="bj-artwork"><div className="bj-artwork-top"><strong>TÁC PHẨM {String(position+1).padStart(2,'0')} / {data.slides.length}</strong><button onClick={()=>imageRef.current?.requestFullscreen?.().catch(()=>{})}><Expand size={17}/> Phóng to</button></div>
             <div ref={imageRef} className="bj-artwork-frame"><img src={current.imageUrl} alt={'Tác phẩm dự thi số '+(position+1)}/></div>
+            {current.description&&<aside className="bj-artwork-story" aria-label="Mô tả tác phẩm song ngữ">
+              <div className="bj-artwork-story-heading">
+                <BookOpenText size={17} aria-hidden="true"/>
+                <strong>MÔ TẢ &amp; THÔNG ĐIỆP TÁC PHẨM</strong>
+                <span>EN / VI</span>
+              </div>
+              <div className="bj-artwork-story-body">
+                <div className="bj-artwork-story-language" lang="en">
+                  <span>ORIGINAL DESCRIPTION · ENGLISH</span>
+                  <p>{current.description}</p>
+                </div>
+                <div className="bj-artwork-story-language" lang="vi">
+                  <span>BẢN DỊCH TIẾNG VIỆT</span>
+                  <p>{descriptionVi||'Bản dịch tiếng Việt chưa được cập nhật cho mô tả này.'}</p>
+                </div>
+              </div>
+            </aside>}
             <div className="bj-artwork-nav"><button disabled={busy||position===0} onClick={()=>navigate(position-1)}><ChevronLeft size={18}/> Trước</button><span>Không hiển thị tên lớp và nhóm</span><button disabled={busy||position===data.slides.length-1} onClick={()=>navigate(position+1)}>Tiếp <ChevronRight size={18}/></button></div>
             <div className="bj-thumbs">{data.slides.map((s,i)=><button key={s.id} disabled={busy} className={position===i?'active':''} onClick={()=>navigate(i)} title={'Tác phẩm '+(i+1)}>{i+1}{saved[s.id]&&<CheckCircle2 size={10}/>}</button>)}</div>
           </section>
