@@ -65,6 +65,15 @@ async function getJudge(token: string) {
   if (!judge || judge.revoked_at) throw new Error("Liên kết đã hết hiệu lực hoặc bị thu hồi.");
   return judge;
 }
+// Artwork captions contain a private "class/group | description" prefix.
+ // Judge endpoints must return ONLY the description after the separator.
+function anonymousArtworkDescription(caption: unknown) {
+  const raw = required(caption);
+  const separator = raw.indexOf("|");
+  // If the identity/description boundary is unknown, do not risk leaking a group.
+  return separator < 0 ? "" : raw.slice(separator + 1).trim().slice(0, 300);
+}
+
 function validRubric(input: unknown) {
   if (!Array.isArray(input) || input.length < 2 || input.length > 8) throw new Error("Rubric cần 2–8 tiêu chí.");
   const ids = new Set<string>();
@@ -233,8 +242,23 @@ async function handle(req:Request, body:any) {
     const album:any = assertResult(await db.from("bes_slideshow_albums").select("title").eq("id",session.album_id).single());
     if (action === "judge:load") {
       const scores = assertResult(await db.from("bes_judging_scores").select("slide_id,criteria,total,comment").eq("invite_id",judge.id));
+      const slideIds = (session.snapshot as any[]).map(s => s.id);
+      const slidesWithCaptions = slideIds.length ? assertResult(await db.from("bes_slideshow_slides")
+        .select("id,caption").eq("album_id",session.album_id).in("id",slideIds)) : [];
+      const descriptions = new Map((slidesWithCaptions as any[]).map(s => [
+        s.id, anonymousArtworkDescription(s.caption)
+      ]));
       await db.from("bes_judging_invites").update({last_seen_at:new Date().toISOString()}).eq("id",judge.id);
-      return send({title:album.title,fullName:judge.full_name,status:session.status,submitted:!!judge.submitted_at,rubric:session.rubric,slides:session.snapshot.map((s:any)=>({id:s.id,imageUrl:db.storage.from("brian-slideshows").getPublicUrl(s.image_path).data.publicUrl})),scores});
+      return send({
+        title:album.title,fullName:judge.full_name,status:session.status,
+        submitted:!!judge.submitted_at,rubric:session.rubric,
+        slides:session.snapshot.map((s:any)=>({
+          id:s.id,
+          imageUrl:db.storage.from("brian-slideshows").getPublicUrl(s.image_path).data.publicUrl,
+          description:descriptions.get(s.id) || ""
+        })),
+        scores
+      });
     }
     if (session.status !== "open" || judge.submitted_at) throw new Error("Phiếu chấm đã khóa hoặc phiên chưa mở.");
     if (action === "judge:save") {
