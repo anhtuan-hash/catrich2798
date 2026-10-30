@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowRight, ImagePlus, MonitorPlay, RefreshCw, Trash2, UploadCloud } from 'lucide-react';
+import { ArrowRight, ImagePlus, Maximize2, Minimize2, MonitorPlay, RefreshCw, Trash2, UploadCloud } from 'lucide-react';
 import { supabase } from '../utils/supabase.js';
 import './HalloweenShowcaseHome.css';
 
@@ -68,12 +68,30 @@ export default function HalloweenShowcaseHome({ albumId, canManage = false, lang
   const [version, setVersion] = useState(() => Date.now());
   const [imageState, setImageState] = useState('loading');
   const [isUploading, setIsUploading] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(() => typeof document !== 'undefined' && document.fullscreenElement === document.documentElement);
   const [notice, setNotice] = useState('');
   const fileRef = useRef(null);
   const path = bannerPath(albumId);
   const publicUrl = supabase.storage.from(BUCKET).getPublicUrl(path).data?.publicUrl;
   const bannerUrl = publicUrl ? publicUrl + (publicUrl.includes('?') ? '&' : '?') + 'v=' + version : '';
   useEffect(() => { setImageState('loading'); setNotice(''); setVersion(Date.now()); }, [albumId]);
+  useEffect(() => {
+    const syncFullscreen = () => setIsFullscreen(document.fullscreenElement === document.documentElement);
+    document.addEventListener('fullscreenchange', syncFullscreen);
+    return () => document.removeEventListener('fullscreenchange', syncFullscreen);
+  }, []);
+
+  const toggleFullscreen = async () => {
+    try {
+      // Fullscreen <html>, rather than the image, preserves the header, the
+      // bottom controls AND body-mounted YouTube/HTML dialog portals.
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await document.documentElement.requestFullscreen();
+    } catch {
+      setNotice(en ? 'Fullscreen is unavailable in this browser.' : 'Trình duyệt không cho phép mở toàn màn hình.');
+    }
+  };
+
 
   const uploadBanner = async files => {
     const file = files?.[0];
@@ -124,7 +142,8 @@ export default function HalloweenShowcaseHome({ albumId, canManage = false, lang
         <span className="bss-event-home-eyebrow"><span className="bss-live-dot"/> BRIAN ENGLISH · HALLOWEEN 2026</span>
         <span className="bss-event-home-caption">{en ? 'OFFICIAL EVENT HOMEPAGE' : 'TRANG CHỦ SỰ KIỆN'}</span>
       </div>
-      <div className={'bss-event-home-stage' + (imageState === 'ready' ? ' has-banner' : '')}>
+      <div className={'bss-event-home-stage' + (imageState === 'ready' ? ' has-banner' : '')}
+        style={imageState === 'ready' ? { '--bss-home-banner-image': 'url("' + bannerUrl + '")' } : undefined}>
         {bannerUrl && imageState !== 'missing' &&
           <img className="bss-event-home-banner"
             src={bannerUrl}
@@ -149,6 +168,13 @@ export default function HalloweenShowcaseHome({ albumId, canManage = false, lang
           <span>{en ? 'The School Artwork Competition' : 'Triển lãm tranh và cuộc thi nghệ thuật học đường'}</span>
         </div>
         <div className="bss-event-home-buttons">
+          <button type="button" className="bss-event-home-fullscreen"
+            onClick={() => { void toggleFullscreen(); }}
+            aria-label={isFullscreen ? (en ? 'Exit fullscreen' : 'Thoát toàn màn hình') : (en ? 'Fullscreen with all controls' : 'Toàn màn hình có thanh chức năng')}
+            title={isFullscreen ? (en ? 'Exit fullscreen (Esc)' : 'Thoát toàn màn hình (Esc)') : (en ? 'Fullscreen' : 'Toàn màn hình')}>
+            {isFullscreen ? <Minimize2 size={17}/> : <Maximize2 size={17}/>}
+            <span>{isFullscreen ? (en ? 'Exit fullscreen' : 'Thu nhỏ') : (en ? 'Fullscreen' : 'Toàn màn hình')}</span>
+          </button>
           {canManage && <>
             <label className={'bss-event-home-upload' + (isUploading ? ' is-busy' : '')}>
               {isUploading ? <RefreshCw size={17} className="bss-event-home-spin"/> : <UploadCloud size={17}/>}
