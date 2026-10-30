@@ -3,9 +3,11 @@ import { createPortal } from 'react-dom';
 import {
   Code2, Upload, X, Maximize2, Minimize2, ChevronLeft, ChevronRight,
   Play, Trash2, PanelBottomClose, PanelBottomOpen, FileCode2, RotateCcw,
-  MonitorPlay, ShieldCheck, AlertCircle
+  MonitorPlay, ShieldCheck, AlertCircle, CloudUpload, Cloud, HardDrive
 } from 'lucide-react';
 import './SlideshowInteractiveHtml.css';
+import { isSupabaseConfigured } from '../utils/supabase.js';
+import { listCloudHtmlFiles, uploadCloudHtmlFile, downloadCloudHtmlFile, deleteCloudHtmlFile } from './slideshowHtmlCloud.js';
 
 const DB_NAME = 'brian-slideshow-interactive-html-v1';
 const STORE = 'html-files';
@@ -69,10 +71,11 @@ async function deleteRecord(id) {
 
 /**
  * A self-contained interactive HTML file runner for the showcase.
- * Files stay on this browser in IndexedDB, never uploaded to the public site.
+ * Cloud files are private Supabase objects exposed to public viewers only for published albums.
+ * Older browser-only files can be explicitly migrated by approved managers.
  * Sandbox intentionally omits allow-same-origin, top-navigation and popups.
  */
-export default function SlideshowInteractiveHtml({ albumId, language = 'vi' }) {
+export default function SlideshowInteractiveHtml({ albumId, language = 'vi', canManage = false }) {
   const en = language === 'en';
   const [open, setOpen] = useState(false);
   const [minimized, setMinimized] = useState(false);
@@ -83,6 +86,8 @@ export default function SlideshowInteractiveHtml({ albumId, language = 'vi' }) {
   const [notice, setNotice] = useState('');
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
+  const [cloudHtml, setCloudHtml] = useState({});
+  const [cloudBusy, setCloudBusy] = useState(false);
   const panelRef = useRef(null);
   const uploadRef = useRef(null);
   const filesRef = useRef(files);
@@ -92,19 +97,27 @@ export default function SlideshowInteractiveHtml({ albumId, language = 'vi' }) {
 
   useEffect(() => {
     let active = true;
-    readAlbum(albumId).then(items => {
+    setLoading(true);
+    setCloudHtml({});
+    async function loadFiles() {
+      const warnings = [];
+      const [browserFiles, webFiles] = await Promise.all([
+        readAlbum(albumId).then(items => items.map(item => ({ ...item, scope: 'local' })))
+          .catch(() => { warnings.push(en ? 'Browser-only collection unavailable.' : 'Không đọc được file lưu trên thiết bị.'); return []; }),
+        isSupabaseConfigured ? listCloudHtmlFiles(albumId)
+          .catch(error => { warnings.push((en ? 'Cloud: ' : 'Kho web: ') + (error.message || error)); return []; })
+          : Promise.resolve([])
+      ]);
       if (!active) return;
-      setFiles(items);
-      setCurrentId(items[0]?.id || null);
+      const combined = [...webFiles, ...browserFiles];
+      setFiles(combined);
+      setCurrentId(combined[0]?.id || null);
+      setNotice(warnings.join(' · '));
       setLoading(false);
-    }).catch(() => {
-      if (!active) return;
-      setNotice(en ? 'Browser storage is unavailable; files will stay until this page closes.' :
-        'Trình duyệt không cho lưu file; dữ liệu chỉ tồn tại trong phiên này.');
-      setLoading(false);
-    });
+    }
+    void loadFiles();
     return () => { active = false; };
-  }, [albumId]);
+  }, [albumId, canManage]);
 
   useEffect(() => {
     const syncFullscreen = () => setIsFullscreen(document.fullscreenElement === panelRef.current);
@@ -126,6 +139,35 @@ export default function SlideshowInteractiveHtml({ albumId, language = 'vi' }) {
 
   const activeIndex = files.findIndex(item => item.id === currentId);
   const active = files[activeIndex] || files[0] || null;
+
+  useEffect(() => {
+    if (!active?.storagePath || cloudHtml[active.id] !== undefined) return undefined;
+    let activeRequest = true;
+    downloadCloudHtmlFile(active).then(html => {
+      if (activeRequest) setCloudHtml(old => ({ ...old, [active.id]: html }));
+    }).catch(error => {
+      if (activeRequest) {
+        setCloudHtml(old => ({ ...old, [active.id]: null }));
+        setNotice((en ? 'Cannot load web file: ' : 'Không mở được file trên web: ') + (error.message || error));
+      }
+    });
+    return () => { activeRequest = false; };
+  }, [active?.id, active?.storagePath, cloudHtml[active?.id], en]);
+
+  const saveLocalFile = async item => {
+    if (!item?.html || !canManage || !isSupabaseConfigured || cloudBusy) return;
+    setCloudBusy(true);
+    try {
+      const saved = await uploadCloudHtmlFile({ albumId, name: item.name, html: item.html, size: item.size });
+      try { await deleteRecord(item.id); } catch { /* Duplicate local copy may remain until browser cleanup. */ }
+      setCloudHtml(old => ({ ...old, [saved.id]: item.html }));
+      setFiles(old => old.map(file => file.id === item.id ? saved : file));
+      setCurrentId(saved.id);
+      setNotice(en ? 'Saved on BRIAN website. It will be available on other devices.' : 'Đã lưu file lên website BRIAN. Có thể mở từ thiết bị khác.');
+    } catch (error) {
+      setNotice((en ? 'Web save failed: ' : 'Lưu lên web thất bại: ') + (error.message || error));
+    } finally { setCloudBusy(false); }
+  };
 
   const importFiles = async fileList => {
     const candidates = Array.from(fileList || []);
@@ -151,16 +193,34 @@ export default function SlideshowInteractiveHtml({ albumId, language = 'vi' }) {
         errors.push(file.name + ': ' + (error?.message || (en ? 'Read error' : 'Không đọc được')));
       }
     }
-    if (accepted.length) {
-      try { await writeRecords(accepted); }
-      catch { errors.push(en ? 'Could not save to this browser; files remain available this session.' :
-        'Không lưu được vào trình duyệt; file vẫn dùng được trong phiên hiện tại.'); }
-      setFiles(old => [...old, ...accepted]);
-      setCurrentId(accepted[0].id);
+    const uploaded = [];
+    const local = [];
+    for (const record of accepted) {
+      if (canManage && isSupabaseConfigured) {
+        try {
+          const saved = await uploadCloudHtmlFile({ albumId, name: record.name, html: record.html, size: record.size });
+          uploaded.push(saved);
+          setCloudHtml(old => ({ ...old, [saved.id]: record.html }));
+        } catch (error) {
+          errors.push(record.name + ': ' + (error.message || error));
+        }
+      } else {
+        local.push({ ...record, scope: 'local' });
+      }
+    }
+    if (local.length) {
+      try { await writeRecords(local); }
+      catch { errors.push(en ? 'Could not persist browser-only files.' : 'Không thể lưu file trên trình duyệt.'); }
+    }
+    const added = [...uploaded, ...local];
+    if (added.length) {
+      setFiles(old => [...old, ...added]);
+      setCurrentId(added[0].id);
       setReloadKey(v => v + 1);
     }
     setNotice(errors.length ? errors.join(' · ') : (en ? 'Added ' : 'Đã thêm ') +
-      (errors.length ? '' : accepted.length + (en ? ' HTML file(s).' : ' file HTML.')));
+      (errors.length ? '' : added.length + (en ? ' HTML file(s).' : ' file HTML.') +
+        (uploaded.length ? (en ? ' Saved on BRIAN website.' : ' Đã lưu lên website BRIAN.') : '')));
     setImporting(false);
   };
 
@@ -173,11 +233,18 @@ export default function SlideshowInteractiveHtml({ albumId, language = 'vi' }) {
   };
 
   const remove = async item => {
-    if (!item || !window.confirm(en ? 'Remove this HTML file from your browser?' :
-      'Xóa file HTML này khỏi trình duyệt?')) return;
-    try { await deleteRecord(item.id); }
-    catch { setNotice(en ? 'Browser save unavailable; removing from this session.' :
-      'Không thể cập nhật bộ nhớ, file chỉ được xóa trong phiên hiện tại.'); }
+    if (!item || (item.storagePath && !canManage)) return;
+    if (!window.confirm(item.storagePath
+      ? (en ? 'Permanently delete this HTML file from the website?' : 'Xóa vĩnh viễn file HTML này khỏi website?')
+      : (en ? 'Remove this HTML file from this browser?' : 'Xóa file HTML này khỏi trình duyệt?'))) return;
+    try {
+      if (item.storagePath) await deleteCloudHtmlFile(item);
+      else await deleteRecord(item.id);
+    } catch (error) {
+      setNotice((en ? 'Cannot delete file: ' : 'Không xóa được file: ') + (error.message || error));
+      return;
+    }
+    setCloudHtml(old => { const next = { ...old }; delete next[item.id]; return next; });
     const next = files.filter(f => f.id !== item.id);
     setFiles(next);
     if (currentId === item.id) {
@@ -221,12 +288,18 @@ export default function SlideshowInteractiveHtml({ albumId, language = 'vi' }) {
           <span className="bss-html-logo"><Code2 size={20}/></span>
           <div className="bss-html-heading">
             <strong>{en ? 'Interactive HTML Studio' : 'HTML Interactive Studio'}</strong>
-            <small>BRIAN · {files.length} {en ? 'FILES' : 'FILE'} · {en ? 'LOCAL COLLECTION' : 'BỘ SƯU TẬP CỤC BỘ'}</small>
+            <small>BRIAN · {files.length} {en ? 'FILES' : 'FILE'} · {en ? 'WEB LIBRARY + DEVICE' : 'KHO WEB + THIẾT BỊ'}</small>
           </div>
           <div className="bss-html-toolbar-actions">
+            {canManage && active && !active.storagePath && <button type="button"
+              className="bss-html-cloud-save" disabled={cloudBusy}
+              title={en ? 'Save this browser-only file to the website' : 'Lưu file từ trình duyệt lên website'}
+              onClick={() => { void saveLocalFile(active); }}>
+              <CloudUpload size={16}/><span>{en ? 'Save to web' : 'Lưu lên web'}</span>
+            </button>}
             <label className="bss-html-upload" title={en ? 'Upload HTML files' : 'Tải lên file HTML'}>
               <Upload size={16}/><span>{en ? 'Upload HTML' : 'Tải HTML'}</span>
-              <input ref={uploadRef} type="file" accept=".html,.htm,text/html" multiple disabled={importing}
+              <input ref={uploadRef} type="file" accept=".html,.htm,text/html" multiple disabled={importing || cloudBusy}
                 onChange={event => { const chosen = event.target.files; void importFiles(chosen); event.target.value = ''; }}/>
             </label>
             <button type="button" className="bss-html-square" onClick={() => setMinimized(v => !v)}
@@ -264,14 +337,21 @@ export default function SlideshowInteractiveHtml({ albumId, language = 'vi' }) {
             </div>
           </div>
           <div className="bss-html-stage">
-            {active ? <iframe
-              key={active.id + '-' + reloadKey}
-              title={active.name}
-              sandbox="allow-scripts allow-forms allow-modals allow-pointer-lock allow-downloads"
-              allow="autoplay; fullscreen"
-              referrerPolicy="no-referrer"
-              srcDoc={active.html}
-            /> : <div className="bss-html-empty">
+            {active ? (active.storagePath && cloudHtml[active.id] === undefined
+              ? <div className="bss-html-empty"><Cloud size={33}/><h3>{en ? 'Loading HTML from BRIAN…' : 'Đang mở file từ website BRIAN…'}</h3></div>
+              : active.storagePath && cloudHtml[active.id] === null
+                ? <div className="bss-html-empty"><AlertCircle size={32}/><h3>{en ? 'Could not load the web file' : 'Không tải được file trên web'}</h3>
+                    <button type="button" className="bss-html-empty-cta"
+                      onClick={() => setCloudHtml(old => { const next = { ...old }; delete next[active.id]; return next; })}>
+                      <RotateCcw size={16}/>{en ? 'Try again' : 'Thử lại'}</button></div>
+                : <iframe
+                    key={active.id + '-' + reloadKey}
+                    title={active.name}
+                    sandbox="allow-scripts allow-forms allow-modals allow-pointer-lock allow-downloads"
+                    allow="autoplay; fullscreen"
+                    referrerPolicy="no-referrer"
+                    srcDoc={active.storagePath ? cloudHtml[active.id] : active.html}
+                  />) : <div className="bss-html-empty">
               <span className="bss-html-empty-icon"><FileCode2 size={37}/></span>
               <h3>{loading ? (en ? 'Loading saved files…' : 'Đang tải file đã lưu…') :
                 (en ? 'Run your HTML activities here' : 'Trình chiếu hoạt động HTML ngay tại đây')}</h3>
@@ -280,23 +360,22 @@ export default function SlideshowInteractiveHtml({ albumId, language = 'vi' }) {
               <button type="button" className="bss-html-empty-cta" onClick={() => uploadRef.current?.click()}>
                 <Upload size={16}/>{en ? 'Choose HTML files' : 'Chọn file HTML'}
               </button>
-              <small><ShieldCheck size={14}/>{en ? 'Files stay on this device. HTML is isolated from BRIAN.' :
-                'File lưu trên thiết bị này; nội dung HTML được cách ly khỏi BRIAN.'}</small>
+              <small><ShieldCheck size={14}/>{canManage ? (en ? 'Managers save HTML to the BRIAN website; activities remain sandboxed.' : 'Tài khoản quản lý lưu HTML lên web; trò chơi vẫn chạy cách ly.') : (en ? 'Local uploads stay on this device. Published web files can be opened by everyone.' : 'File tải lên của khách chỉ lưu trên máy này; file web đã công bố có thể mở trên mọi máy.')}</small>
             </div>}
           </div>
           {!!files.length && <div className="bss-html-filebar">
             {files.map((file, index) => <div key={file.id} className={'bss-html-file-chip' + (file.id === active?.id ? ' is-active' : '')}>
               <button type="button" onClick={() => pick(index)} title={file.name}>
-                <FileCode2 size={14}/><span>{file.name}</span>
+                {file.storagePath ? <Cloud size={14}/> : <HardDrive size={14}/>}<span>{file.name}</span>
               </button>
-              <button type="button" className="bss-html-file-delete" onClick={() => { void remove(file); }}
-                title={en ? 'Remove file' : 'Xóa file'} aria-label={(en ? 'Remove ' : 'Xóa ') + file.name}><Trash2 size={13}/></button>
+              {(!file.storagePath || canManage) && <button type="button" className="bss-html-file-delete" onClick={() => { void remove(file); }}
+                title={en ? 'Remove file' : 'Xóa file'} aria-label={(en ? 'Remove ' : 'Xóa ') + file.name}><Trash2 size={13}/></button>}
             </div>)}
           </div>}
           <div className="bss-html-foot">
             <span><ShieldCheck size={13}/>{en
-              ? 'Sandboxed · HTML files stored locally · Standalone HTML recommended'
-              : 'Chạy cách ly · File lưu trên trình duyệt · Nên dùng HTML độc lập'}</span>
+              ? 'Sandboxed · Published web files available across devices · Local files marked with drive icon'
+              : 'Chạy cách ly · File trên web dùng được nhiều thiết bị · File trên máy có biểu tượng ổ đĩa'}</span>
             {notice && <span className="bss-html-notice" role="status"><AlertCircle size={13}/>{notice}</span>}
           </div>
         </div>
