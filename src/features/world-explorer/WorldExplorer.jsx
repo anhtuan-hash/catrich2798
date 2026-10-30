@@ -46,10 +46,10 @@ function Reader({ article, onClose, language }) {
           <p className="we-content" lang="en">{article.body_en}</p>
           <div className="we-bilingual-divider">BẢN DỊCH TIẾNG VIỆT</div>
           <p className="we-content" lang="vi">{article.body_vi}</p>
-          {article.fact_en ? <div className="we-fact"><strong>Did you know? · Bạn có biết?</strong><p lang="en">{article.fact_en}</p><p lang="vi">{article.fact_vi}</p></div> : null}
-          {vocabulary.length ? <div className="we-words"><strong>Word Bank · Góc từ vựng</strong><div>{vocabulary.map((v, i) => <span key={i}><b>{v.word}</b> — {v.meaning}</span>)}</div></div> : null}
+          {article.fact_en ? <div className="we-fact"><strong >{language === 'en' ? 'Did you know?' : 'Bạn có biết?'}</strong><p lang="en">{article.fact_en}</p><p lang="vi">{article.fact_vi}</p></div> : null}
+          {vocabulary.length ? <div className="we-words"><strong>{language === 'en' ? 'Word Bank' : 'Góc từ vựng'}</strong><div>{vocabulary.map((v, i) => <span key={i}><b>{v.word}</b> — {v.meaning}</span>)}</div></div> : null}
           <footer className="we-sources">
-            <strong>Source · Nguồn tham khảo</strong>
+            <strong>{language === 'en' ? 'Source' : 'Nguồn tham khảo'}</strong>
             {article.source_url ? <a href={article.source_url} target="_blank" rel="noopener noreferrer">{article.source_title || article.source_url}</a> : null}
             {article.image_credit ? <small>{article.image_credit}</small> : null}
           </footer>
@@ -128,7 +128,7 @@ export default function WorldExplorer({ currentUser, language = 'vi' }) {
       <div className="we-bottom"><span>LEARN · DISCOVER · GROW</span><span>{vi ? 'Tri thức không biên giới' : 'Knowledge without borders'} ✿</span></div>
       {selected ? <Reader article={selected} language={language} onClose={closeReader} /> : null}
       {archive ? <div className="we-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setArchive(false); }}><div className="we-archive" role="dialog" aria-modal="true" aria-label="World Explorer Archive"><button type="button" className="we-close" onClick={() => setArchive(false)} aria-label="Close"><X/></button><h2>{vi ? 'Kho khám phá' : 'Discovery Archive'}</h2><div className="we-archive-list">{articles.map((a) => <button type="button" key={a.id} onClick={() => { setArchive(false); setSelected(a); }}><span>{publicationDate(a.publication_date, language)}</span><strong>{a.title_en}</strong><small>{a.title_vi}</small><ArrowRight size={16}/></button>)}</div><button type="button" className="we-back" onClick={() => setArchive(false)}><ArrowLeft size={16}/>{vi ? 'Quay lại' : 'Back'}</button></div></div> : null}
-      {adminOpen && isAdmin ? <Suspense fallback={null}><WorldExplorerAdmin currentUser={currentUser} onClose={() => { setAdminOpen(false); load().catch(() => {}); }} /></Suspense> : null}
+      {adminOpen && isAdmin ? <Suspense fallback={null}><WorldExplorerAdmin currentUser={currentUser} language={language} onClose={() => { setAdminOpen(false); load().catch(() => {}); }} /></Suspense> : null}
     </section>
   );
 }
