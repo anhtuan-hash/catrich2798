@@ -58,6 +58,9 @@ function announceSlideshowChange() {
 export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
   const en = language === 'en';
   const editorAllowed = Boolean(currentUser?.provider === 'supabase' && isDepartmentLeaderRole(currentUser?.role) && currentUser?.approved !== false);
+  // Show presenter-only shortcut solely to authenticated BRIAN accounts.
+  // Main.jsx supplies currentUser from the live Supabase auth session; public guests have null.
+  const isLoggedIn = Boolean(currentUser?.id && currentUser?.provider === 'supabase');
   const [albums, setAlbums] = useState([]);
   const [slides, setSlides] = useState([]);
   const [slug, setSlug] = useState(readSlug);
@@ -316,14 +319,14 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
             <Video size={16} aria-hidden="true"/>
             <span>{en ? 'Meeting' : 'Phòng họp'}</span>
           </a>
-          <a className="bss-pill bss-halloween-quick-link bss-halloween-wayground"
+          {isLoggedIn && <a className="bss-pill bss-halloween-quick-link bss-halloween-wayground"
             href="https://wayground.com/activity/admin/quiz/start_new/6ad8d73e6d3353e073a85551?selection=teacher-paced"
             target="_blank" rel="noopener noreferrer"
             title={en ? 'Open Wayground teacher-paced activity in a new tab' : 'Mở hoạt động Wayground chế độ giáo viên điều khiển trong thẻ mới'}
             aria-label={en ? 'Open Wayground' : 'Mở Wayground'}>
             <GraduationCap size={16} aria-hidden="true"/>
             <span>Wayground</span>
-          </a>
+          </a>}
         </>}
         {editorAllowed && <button className="bss-pill" onClick={() => { setEditing(v => !v); setCreating(false); }}><Settings2 size={17}/> {editing ? t.done : t.manage}</button>}
         <a className="bss-pill muted" href="#/home"><ArrowLeft size={16}/> {en ? 'Home' : 'Trang chủ'}</a>
