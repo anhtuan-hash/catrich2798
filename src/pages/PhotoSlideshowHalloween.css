@@ -162,3 +162,63 @@ html body #root .app-shell[data-route="slideshow"] main#bes-main-content > .bqa-
   .bss--halloween-theme .bss-festival-header-title {order:3;flex:0 0 100%}
   .bss--halloween-theme .bss-festival-header-title strong {font-size:25px}
 }
+
+
+/* Halloween presentation shortcuts: keep all navigation actions on one
+   compact, accessible header without changing the competition layout. */
+.bss--halloween-theme .bss-header-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  flex-wrap:nowrap;
+  gap:6px;
+  min-width:0;
+}
+.bss--halloween-theme .bss-header .bss-halloween-quick-link{
+  white-space:nowrap;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  flex:0 0 auto;
+  color:#ffe5b6;
+  border-color:#e6b765ad;
+  background:linear-gradient(135deg,#2b183c,#17112b);
+}
+.bss--halloween-theme .bss-header .bss-halloween-quick-link:hover{
+  background:linear-gradient(135deg,#583452,#302047);
+  border-color:#ffdd94;
+  box-shadow:0 0 13px #f7b95848;
+}
+.bss--halloween-theme .bss-header .bss-halloween-meeting svg{color:#8cf0df}
+.bss--halloween-theme .bss-header .bss-halloween-wayground svg{color:#ffcf81}
+.bss--halloween-theme .bss-header .bss-halloween-quick-link:focus-visible{
+  outline:3px solid #ffdd94;
+  outline-offset:3px;
+}
+@media(min-width:1180px) and (max-width:1600px){
+  .bss--halloween-theme .bss-header{gap:9px;padding-inline:10px}
+  .bss--halloween-theme .bss-header-actions{gap:5px}
+  .bss--halloween-theme .bss-header .bss-pill{
+    gap:5px;
+    font-size:10px;
+    padding:7px 8px;
+  }
+  .bss--halloween-theme .bss-festival-header-title{gap:7px}
+  .bss--halloween-theme .bss-festival-header-title strong{
+    font-size:clamp(21px,2.3vw,35px);
+  }
+}
+@media(max-width:1179px){
+  .bss--halloween-theme .bss-header-actions{
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:7px;
+    width:100%;
+  }
+}
+@media(max-width:420px){
+  .bss--halloween-theme .bss-header .bss-halloween-quick-link{
+    font-size:10px;
+    padding:8px 9px;
+  }
+}
