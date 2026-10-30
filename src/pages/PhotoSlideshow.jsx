@@ -2,13 +2,14 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ArrowLeft, ArrowRight, Camera, Check, ChevronLeft, ChevronRight, Copy, Expand,
   Eye, EyeOff, Images, Maximize2, Pause, Play, Plus, QrCode, RefreshCw, Save,
-  Settings2, Trash2, UploadCloud, Video, GraduationCap, House, X
+  Settings2, Trash2, UploadCloud, Video, GraduationCap, House, Trophy, X
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../utils/supabase.js';
 import { isDepartmentLeaderRole, isAdminRole } from '../utils/roles.js';
 import PhotoJudgingAdmin from '../components/PhotoJudgingAdmin.jsx';
 import PhotoJudgingPage from '../components/PhotoJudgingPage.jsx';
 import PhotoJuryLive from '../components/PhotoJuryLive.jsx';
+import PhotoAwards from '../components/PhotoAwards.jsx';
 import PhotoAudienceLive from '../components/PhotoAudienceLive.jsx';
 import { HALLOWEEN_ALBUM_ID } from '../utils/photoAudienceScreen.js';
 import PhotoTransitionStage from '../components/PhotoTransitionStage.jsx';
@@ -84,6 +85,8 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
   const [direction, setDirection] = useState(1);
   const [qr, setQr] = useState('');
   const [fullscreen, setFullscreen] = useState(false);
+  const [awardsOpen, setAwardsOpen] = useState(false);
+  const closeAwards = useCallback(() => setAwardsOpen(false), []);
   const stageRef = useRef(null);
   const touchRef = useRef(null);
   const preserveEditorOnNavigation = useRef(false);
@@ -343,6 +346,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
             <span>Wayground</span>
           </a>}
         </>}
+        {festivalScreen && selected?.id === HALLOWEEN_ALBUM_ID && <button type="button" className="bss-pill bss-halloween-awards-link" onClick={() => setAwardsOpen(true)} title={en ? 'Halloween Awards 2026' : 'Tổng kết và trao giải Halloween'}><Trophy size={17}/><span>{en ? 'Awards' : 'Trao giải'}</span></button>}
         {editorAllowed && <button className="bss-pill" onClick={() => { setEditing(v => !v); setCreating(false); }}><Settings2 size={17}/> {editing ? t.done : t.manage}</button>}
         {festivalScreen && selected?.id === HALLOWEEN_ALBUM_ID
           ? <>
@@ -508,6 +512,7 @@ export default function PhotoSlideshow({ currentUser, language = 'vi' }) {
       </section> : null}
     </div>
     <footer className="bss-footer"><span>BRIAN ENGLISH STUDIO</span><span>Made for moments that matter · Public slideshow</span></footer>
+    {awardsOpen && selected?.id === HALLOWEEN_ALBUM_ID && <PhotoAwards albumId={selected.id} language={language} canPublish={Boolean(isLoggedIn && isAdminRole(currentUser?.role))} onClose={closeAwards}/>}
     {qr && <div className="bss-qr-backdrop" role="presentation" onMouseDown={() => setQr('')}><div className="bss-qr-dialog" role="dialog" aria-modal="true" aria-label="QR slideshow" onMouseDown={e => e.stopPropagation()}><button className="bss-qr-close" onClick={() => setQr('')}><X size={20}/></button><div className="bss-qr-symbol"><QrCode size={24}/></div><h2>{en ? "Scan to view the gallery" : "Quét mã để xem ảnh"}</h2><p>{en ? "No login needed · Opens on any device" : "Không cần đăng nhập · Mở trực tiếp trên mọi thiết bị"}</p><img src={qr} alt="Mã QR liên kết trình chiếu"/><button className="bss-action" onClick={copy}><Copy size={16}/> {t.copy}</button></div></div>}
   </div>;
 }
