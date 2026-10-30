@@ -76,7 +76,7 @@ export default function PhotoJudgingPage({token}) {
         <div className="bj-guest-mark"><Award size={25}/></div>
         <div><strong>BRIAN <em>JUDGING STUDIO</em></strong><small>THE SCHOOL ARTWORK COMPETITION</small></div>
       </div>
-      <a className="bj-guest-home" href="https://esl-brian.vercel.app" target="_blank" rel="noopener noreferrer" aria-label="Mở trang chủ BRIAN trong thẻ mới" title="Mở trang chủ BRIAN (thẻ mới)">
+      <a className="bj-guest-home" href="https://esl-brian.vercel.app" target="_blank" rel="noopener noreferrer" aria-label="Trang chủ" title="Trang chủ">
         <House size={17} aria-hidden="true"/>
         <span>Trang chủ</span>
       </a>
