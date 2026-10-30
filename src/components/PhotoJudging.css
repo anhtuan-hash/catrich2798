@@ -123,3 +123,8 @@
 .bj-live-toggle button.is-on{background:#1b756b;border-color:#70e2c8;color:#e4fffa}
 .bj-live-toggle button:focus-visible{outline:2px solid #8fe5df;outline-offset:3px}
 @media(max-width:540px){.bj-live-toggle{flex-direction:column;align-items:stretch}.bj-live-toggle button{align-self:flex-start}}
+
+/* Per-judge reset is intentionally distinct from revoking a judge or deleting an album. */
+.bj-judge .bj-reset-scores{border-color:#ac6472;background:#432431;color:#ffcad0;font-weight:750;white-space:nowrap}
+.bj-judge .bj-reset-scores:hover:not(:disabled){background:#623044;border-color:#f29caa}
+.bj-judge .bj-reset-scores:focus-visible{outline:2px solid #ffb5bd;outline-offset:2px}
