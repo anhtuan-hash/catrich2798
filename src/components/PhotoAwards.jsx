@@ -53,7 +53,7 @@ function DetailedRanking({rows,en,preview=false,capturedAt,judgeCount,savedScore
    <div>
     <span className="brian-awards-details-kicker">{preview?'LIVE DATA · PREVIEW':'OFFICIAL FINAL RESULTS'}</span>
     <h2>{en?'Full scoring breakdown — 18 groups':'Bảng điểm chi tiết — 18 nhóm'}</h2>
-    <p>{en?'Jury 70% + Audience 30%':'Giám khảo 70% + Khán giả 30%'} · {formatTime(capturedAt)}</p>
+    <p>{en?'Jury 80% + Audience 20%':'Giám khảo 80% + Khán giả 20%'} · {formatTime(capturedAt)}</p>
    </div>
    <div className="brian-awards-details-stats">
     <span><strong>{judgeCount??0}</strong>{en?'judges scored':'giám khảo có điểm'}</span>
@@ -68,10 +68,10 @@ function DetailedRanking({rows,en,preview=false,capturedAt,judgeCount,savedScore
      <th scope="col">{en?'Class · Group':'Lớp · Nhóm'}</th>
      <th scope="col">{en?'Jury scores':'Lượt GK'}</th>
      <th scope="col">{en?'Jury /100':'GK /100'}</th>
-     <th scope="col">{en?'Jury 70%':'GK 70%'}</th>
+     <th scope="col">{en?'Jury 80%':'GK 80%'}</th>
      <th scope="col">{en?'Votes':'Phiếu KH'}</th>
      <th scope="col">{en?'Audience /100':'KH /100'}</th>
-     <th scope="col">{en?'Audience 30%':'KH 30%'}</th>
+     <th scope="col">{en?'Audience 20%':'KH 20%'}</th>
      <th scope="col">{en?'Final /100':'Tổng /100'}</th>
     </tr></thead>
     <tbody>
@@ -80,10 +80,10 @@ function DetailedRanking({rows,en,preview=false,capturedAt,judgeCount,savedScore
       <td className="brian-awards-table-group">{item.label}</td>
       <td>{formatNumber(item.scoredCount)}</td>
       <td>{formatPoint(item.juryScore)}</td>
-      <td>{formatPoint(item.juryWeighted??Number(item.juryScore)*.7)}</td>
+      <td>{formatPoint(item.juryWeighted??Number(item.juryScore)*.8)}</td>
       <td>{formatNumber(item.audienceVotes)}</td>
       <td>{formatPoint(item.audienceScore)}</td>
-      <td>{formatPoint(item.audienceWeighted??Number(item.audienceScore)*.3)}</td>
+      <td>{formatPoint(item.audienceWeighted??Number(item.audienceScore)*.2)}</td>
       <td className="brian-awards-table-final">{formatPoint(item.finalScore)}</td>
      </tr>)}
     </tbody>
@@ -177,7 +177,7 @@ export default function PhotoAwards({albumId,onClose,canPublish=false,language='
   <header className="brian-awards-topbar">
    <div className="brian-awards-brand"><Trophy size={23}/><div><strong>BRIAN ENGLISH</strong><small>HALLOWEEN SHOWCASE 2026 · AWARDS</small></div></div>
    <div className="brian-awards-actions">
-    <span className="brian-awards-rule">70% JURY <i>+</i> 30% AUDIENCE</span>
+    <span className="brian-awards-rule">80% JURY <i>+</i> 20% AUDIENCE</span>
     <button type="button" onClick={()=>refresh().catch(error=>setError(error.message))}
      aria-label={en?'Refresh results':'Cập nhật kết quả'}><RefreshCw size={17}/></button>
     <button type="button" onClick={onClose}
@@ -297,7 +297,7 @@ export default function PhotoAwards({albumId,onClose,canPublish=false,language='
   </main>
   <footer className="brian-awards-footer">
    <span>BRIAN PHOTO STORY · HALLOWEEN SHOWCASE 2026</span>
-   <span>70% JURY + 30% AUDIENCE · 30 OCT 2026</span>
+   <span>80% JURY + 20% AUDIENCE · 30 OCT 2026</span>
   </footer>
  </div>;
 }
