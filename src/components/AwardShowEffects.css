@@ -19,7 +19,7 @@
 .brian-awards-fx-flash{position:absolute;inset:0;background:radial-gradient(ellipse,#fffbea 0%,#ffd17aab 34%,transparent 73%);animation:brianFxFlash .9s ease-out both}
 .brian-awards-fx-congrats{position:absolute;top:8%;width:100%;display:flex;justify-content:center;animation:brianFxCongratulate 2.4s ease-out both}
 .brian-awards-fx-congrats span{font:900 clamp(15px,3vw,41px) Georgia,serif;letter-spacing:.11em;color:#fff5d2;text-align:center;text-shadow:0 0 16px #ffc05d,0 0 39px #ff8c43,0 3px 5px #1b0b20}
-.brian-awards-fx-firework{position:absolute;width:0;height:0;animation:brianFxFireworkAppear .6s ease-out both;animation-delay:var(--burst-delay)}
+.brian-awards-fx-firework{position:absolute;width:0;height:0;animation:brianFxFireworkAppear 1.45s ease-out both;animation-delay:var(--burst-delay)}
 .brian-awards-fx-firework i{position:absolute;width:clamp(3px,.45vw,7px);height:clamp(12px,2.1vw,28px);border-radius:100px;background:hsl(var(--hue) 100% 72%);box-shadow:0 0 13px 4px hsl(var(--hue) 100% 63% / .8);opacity:0;transform:rotate(var(--angle)) translateY(0);animation:brianFxSpark 1.2s cubic-bezier(.12,.56,.33,1) forwards;animation-delay:var(--burst-delay)}
 .brian-awards-fx-confetti{position:absolute;top:-8vh;width:clamp(5px,.65vw,10px);height:clamp(10px,1.25vw,18px);border-radius:2px;box-shadow:0 0 8px #fff8;animation:brianFxConfetti var(--fall-duration) ease-in var(--fall-delay) both}
 .brian-awards-overlay.is-awaiting-reveal .brian-awards-podium{filter:brightness(.45);transition:filter .3s ease}

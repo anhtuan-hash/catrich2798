@@ -213,7 +213,7 @@ export default function PhotoAwards({albumId,onClose,canPublish=false,language='
  const realNow=now+serverOffset;
  const voteCloseAt=data?.voteCloseAt||DEFAULT_CLOSE;
  const announceAt=data?.announceAt||DEFAULT_ANNOUNCE;
- const showFullTable=isCeremony&&revealed>=3;
+ const showFullTable=isCeremony&&revealed>=3&&ceremonyPhase==='idle';
  return <div className={"brian-awards-overlay"+(ceremonyPhase==="suspense"?" is-awaiting-reveal":"")+(ceremonyPhase==="burst"?" is-celebrating":"")} role="dialog" aria-modal="true" aria-label="Halloween Awards 2026">
   <div className="brian-awards-stars" aria-hidden="true"/>
   <AwardShowEffects phase={ceremonyPhase} count={countdown} rank={highlightRank} burstKey={effectId}/>
@@ -324,7 +324,7 @@ export default function PhotoAwards({albumId,onClose,canPublish=false,language='
    {canPublish&&isCeremony&&revealed>=3&&<button type="button" className="brian-awards-secondary"
     onClick={replayCeremony}>{en?'Replay ceremony':'Trình chiếu lại từ đầu'}</button>}
    {canPublish&&isCeremony&&<button type="button" className="brian-awards-audio-toggle"
-    onClick={()=>setSoundEnabled(current=>!current)} aria-pressed={soundEnabled}>
+    onClick={()=>{if(soundEnabled){stopSound.current?.();stopSound.current=null;}setSoundEnabled(current=>!current);}} aria-pressed={soundEnabled}>
     {soundEnabled?<Volume2 size={17}/>:<VolumeX size={17}/>}
     {soundEnabled?(en?'Sound on · Tap to mute':'Âm thanh bật · Nhấn để tắt'):(en?'Sound muted · Tap to enable':'Đã tắt âm thanh · Nhấn để bật')}
    </button>}
