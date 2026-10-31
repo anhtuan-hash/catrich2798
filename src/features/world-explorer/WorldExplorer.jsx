@@ -24,6 +24,14 @@ function publicationDate(value, language) {
   }).format(new Date(Date.UTC(y, m - 1, d, 5)));
 }
 
+function publicationTimestamp(value, language) {
+  if (!value) return '';
+  return new Intl.DateTimeFormat(language === 'en' ? 'en-GB' : 'vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  }).format(new Date(value));
+}
+
 function Reader({ article, onClose, language, panelRef }) {
   if (!article) return null;
   const vi = language !== 'en';
@@ -39,7 +47,7 @@ function Reader({ article, onClose, language, panelRef }) {
     >
       <div className="we-expanded-heading">
         <div>
-          <span className="we-kicker"><BookOpen size={16} aria-hidden="true" /> {vi ? 'BÀI KHÁM PHÁ ĐẦY ĐỦ' : 'FULL DISCOVERY'} · {publicationDate(article.publication_date, language)}</span>
+          <span className="we-kicker"><BookOpen size={16} aria-hidden="true" /> {vi ? 'BÀI KHÁM PHÁ ĐẦY ĐỦ' : 'FULL DISCOVERY'} · {publicationTimestamp(article.published_at, language) || publicationDate(article.publication_date, language)}</span>
           <h3 id="we-expanded-title" lang="en">{article.title_en}</h3>
           <p lang="vi" className="we-expanded-subtitle">{article.title_vi}</p>
         </div>
@@ -78,7 +86,10 @@ function Reader({ article, onClose, language, panelRef }) {
 
       <footer className="we-sources">
         <strong>{vi ? 'Nguồn tham khảo' : 'Sources & credits'}</strong>
-        {article.source_url ? <a href={article.source_url} target="_blank" rel="noopener noreferrer">{article.source_title || article.source_url}</a> : null}
+        {article.source_url ? <a href={article.source_url} target="_blank" rel="noopener noreferrer">{vi ? 'English source · ' : ''}{article.source_title || article.source_url}</a> : null}
+        {article.source_url_vi ? <a href={article.source_url_vi} target="_blank" rel="noopener noreferrer">{vi ? 'Nguồn tiếng Việt (Wikipedia)' : 'Vietnamese source (Wikipedia)'}</a> : null}
+        {article.content_license ? <small>{vi ? 'Nội dung' : 'Content'}: {article.content_license} · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">License</a></small> : null}
+        {article.image_license ? <small>{vi ? 'Giấy phép ảnh' : 'Image license'}: {article.image_license}</small> : null}
         {article.image_credit ? <small>{article.image_credit}</small> : null}
       </footer>
       <div className="we-reader-end">
@@ -107,8 +118,8 @@ export default function WorldExplorer({ currentUser, language = 'vi' }) {
     const [settings, publications] = await Promise.all([
       supabase.from('world_explorer_settings').select('enabled').eq('id', 1).maybeSingle(),
       supabase.from('world_explorer_publications')
-        .select('id,slug,category,title_en,title_vi,intro_en,intro_vi,body_en,body_vi,fact_en,fact_vi,image_url,image_alt_en,image_credit,source_title,source_url,vocabulary,publication_date')
-        .eq('is_visible', true).order('publication_date', { ascending: false }).limit(30),
+        .select('id,slug,category,title_en,title_vi,intro_en,intro_vi,body_en,body_vi,fact_en,fact_vi,image_url,image_alt_en,image_credit,image_license,source_title,source_url,source_url_vi,content_license,vocabulary,publication_date,published_at')
+        .eq('is_visible', true).order('published_at', { ascending: false }).limit(120),
     ]);
     if (settings.error || publications.error) {
       setError(settings.error?.message || publications.error?.message || 'Unavailable');
@@ -156,7 +167,7 @@ export default function WorldExplorer({ currentUser, language = 'vi' }) {
     <section className="we-wrap" aria-labelledby="we-heading" data-brian-world-explorer>
       <div className="we-decoration we-decoration--left" aria-hidden="true">✿</div>
       <div className="we-masthead">
-        <div><span className="we-kicker"><Globe2 size={16} /> BRIAN ENGLISH · DAILY DISCOVERY</span><h2 id="we-heading">World Explorer <span>✦</span></h2><p>{vi ? 'Mỗi ngày, một góc nhìn mới về thế giới.' : 'Discover something new about our world every day.'}</p></div>
+        <div><span className="we-kicker"><Globe2 size={16} /> BRIAN ENGLISH · HOURLY DISCOVERY</span><h2 id="we-heading">World Explorer <span>✦</span></h2><p>{vi ? 'Mỗi giờ, một kiến thức mới về thế giới.' : 'Discover something new about our world every hour.'}</p></div>
         <div className="we-masthead-actions">
           {isAdmin ? <button type="button" className="we-admin-btn" onClick={() => setAdminOpen(true)}><Settings2 size={16} /> {vi ? 'Quản lý' : 'Manage'}</button> : null}
           {articles.length > 1 ? <button type="button" className="we-archive-btn" onClick={() => setArchive((value) => !value)} aria-expanded={archive} aria-controls="we-archive-list"><BookOpen size={16} /> {vi ? 'Kho khám phá' : 'Discoveries'} <ArrowRight size={15} /></button> : null}
@@ -171,14 +182,14 @@ export default function WorldExplorer({ currentUser, language = 'vi' }) {
             {november.enabled ? <span className="november-discovery-caption" aria-hidden="true">Explore the world<br />Grow every day</span> : null}
           </div>
           <div className="we-copy">
-            <span className="we-label"><CalendarDays size={14} /> {publicationDate(featured.publication_date, language)} · {CATEGORIES[featured.category]?.[vi ? 1 : 0] || 'World Culture'}</span>
+            <span className="we-label"><CalendarDays size={14} /> {publicationTimestamp(featured.published_at, language) || publicationDate(featured.publication_date, language)} · {CATEGORIES[featured.category]?.[vi ? 1 : 0] || 'World Culture'}</span>
             <h3 lang="en">{featured.title_en}</h3>
             <p className="we-translation" lang="vi">{featured.title_vi}</p>
             <p className="we-teaser" lang={vi ? 'vi' : 'en'}>{vi ? featured.intro_vi : featured.intro_en}</p>
             <button type="button" ref={readButtonRef} className="we-read-btn" onClick={() => setSelected((current) => current?.id === featured.id ? null : featured)} aria-expanded={selected?.id === featured.id} aria-controls="we-expanded-story">{selected?.id === featured.id ? (vi ? 'Thu gọn bài viết' : 'Collapse story') : (vi ? 'Khám phá ngay' : 'Read discovery')} {selected?.id === featured.id ? <ChevronUp size={17} /> : <ArrowRight size={17} />}</button>
           </div>
         </div>
-      ) : <div className="we-empty"><div className="we-art"><Globe2 size={54}/></div><div><strong>{vi ? 'Chuyến khám phá đầu tiên đang được chuẩn bị' : 'Our first discovery is being prepared'}</strong><p>{vi ? 'Các bài viết đều được kiểm chứng và duyệt trước khi xuất bản.' : 'Every story is verified and reviewed before publication.'}</p></div></div>}
+      ) : <div className="we-empty"><div className="we-art"><Globe2 size={54}/></div><div><strong>{vi ? 'Chuyến khám phá đầu tiên đang được chuẩn bị' : 'Our first discovery is being prepared'}</strong><p>{vi ? 'Hệ thống đang tìm bài song ngữ có ảnh và nguồn hợp lệ.' : 'We are finding a bilingual illustrated story with usable sources.'}</p></div></div>}
       {loading ? <span className="we-loading" aria-live="polite">{vi ? 'Đang tải khám phá...' : 'Loading discoveries...'}</span> : null}
       {selected ? <Reader article={selected} language={language} onClose={closeReader} panelRef={readerRef} /> : null}
       {archive ? (
@@ -189,7 +200,7 @@ export default function WorldExplorer({ currentUser, language = 'vi' }) {
           </div>
           <div className="we-archive-list">{articles.map((item) => (
             <button type="button" key={item.id} onClick={() => { setArchive(false); setSelected(item); }}>
-              <span>{publicationDate(item.publication_date, language)}</span>
+              <span>{publicationTimestamp(item.published_at, language) || publicationDate(item.publication_date, language)}</span>
               <strong>{item.title_en}</strong>
               <small>{item.title_vi}</small>
               <ArrowRight size={17} aria-hidden="true" />
