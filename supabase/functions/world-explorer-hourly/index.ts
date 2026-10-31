@@ -172,7 +172,7 @@ Deno.serve(async (request: Request) => {
         const story = await makeStory(candidate);
         if (!story || usedSources.has(story.source_url)) continue;
         const { data: result, error: writeError } = await supabase.rpc('world_explorer_auto_ingest', { p_payload: story });
-        if (writeError) throw writeError;
+        if (writeError) throw new Error('ingest: ' + JSON.stringify(writeError));
         if (result?.published === true) return Response.json({ published: true, title: story.title_en, hour: slot });
         if (result?.reason === 'slot_already_published' || result?.reason === 'disabled') return Response.json(result);
       } catch (error) {
