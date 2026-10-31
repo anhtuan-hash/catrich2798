@@ -1,7 +1,7 @@
 -- BRIAN World Explorer: hourly, no-review, freely licensed bilingual publications.
 -- Keep the original reviewed-post paths for historical articles; automatic posts
 -- use a separate service-role-only atomic ingestion path.
-create extension if not exists pg_net with schema extensions;
+create extension if not exists pg_net;
 
 alter table public.world_explorer_settings
   add column if not exists auto_publish_hourly boolean not null default true;
