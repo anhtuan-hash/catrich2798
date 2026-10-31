@@ -164,6 +164,7 @@ Deno.serve(async (request: Request) => {
 
     const possibilities = await candidates(slot);
     let examined = 0;
+    const failed: { title: string; reason: string }[] = [];
     for (const candidate of possibilities) {
       if (examined >= 18) break;
       examined++;
@@ -180,11 +181,12 @@ Deno.serve(async (request: Request) => {
           console.warn('Wikimedia rate limited; skipping this hour');
           return Response.json({ published: false, reason: 'upstream_rate_limited' }, { status: 503 });
         }
+        failed.push({ title: candidate.title, reason: message.slice(0, 180) });
         console.warn('Skipping incomplete or unusable topic:', candidate.title, message.slice(0, 250));
       }
     }
     console.warn('No bilingual licensed illustrated topic available after', examined, 'attempts');
-    return Response.json({ published: false, reason: 'no_qualified_content', examined }, { status: 503 });
+    return Response.json({ published: false, reason: 'no_qualified_content', examined, failures: failed.slice(-5) }, { status: 503 });
   } catch (error) {
     console.error('World Explorer hourly failed:', String(error).slice(0, 750));
     return Response.json({ published: false, error: 'hourly_ingest_failed' }, { status: 500 });
