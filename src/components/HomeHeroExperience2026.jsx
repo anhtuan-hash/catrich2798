@@ -337,9 +337,12 @@ export default function HomeHeroExperience2026({
             </span>
           ) : null}
 
-          <h1>{november.enabled ? <><span>{vi ? 'Tri ân' : 'Thank you'}</span><span>20/11</span></> : halloweenOn ? <><span>Happy</span><span>Halloween!</span></> : headlineLines(headline).map((line) => <span key={line}>{line}</span>)}</h1>
+          <h1>{november.enabled ? <><span>{vi ? 'Tri ân' : 'Thank you'}</span><span className="november-hero-teachers">{vi ? 'Thầy cô' : 'Teachers'}</span><span className="november-hero-date">20/11</span></> : halloweenOn ? <><span>Happy</span><span>Halloween!</span></> : headlineLines(headline).map((line) => <span key={line}>{line}</span>)}</h1>
           {!november.enabled && (halloweenOn ? <h2>Learn · Play · Create · Grow</h2> : highlight ? <h2>{highlight}</h2> : null)}
-          {november.enabled ? <p>{vi ? 'Những người truyền cảm hứng' : 'To the teachers who inspire us'}<br />{vi ? 'luôn làm thế giới trở nên tốt đẹp hơn' : 'and make the world a brighter place'} <span aria-hidden="true">♥</span></p> : halloweenOn ? <p>{vi ? 'Khám phá không gian dạy học tiếng Anh đầy sáng tạo, tương tác và truyền cảm hứng mỗi ngày cùng BRIAN.' : 'Turn your English classroom into a world of creativity, curiosity and confidence. Explore interactive tools, fun activities and real learning experiences with BRIAN.'}</p> : description ? <p>{description}</p> : null}
+          {november.enabled ? <>
+            <p className="november-hero-poem">{vi ? 'Những người thắp sáng ước mơ,' : 'To those who light our dreams,'}<br />{vi ? 'dẫn lối tri thức và luôn tin tưởng' : 'guide our learning and always believe'}<br />{vi ? 'vào chúng ta.' : 'in us.'}</p>
+            <p className="november-hero-dedication">{vi ? <>{'Cùng '}<strong>BRIAN ENGLISH</strong>{' lan tỏa lòng biết ơn đến những người thầy, người cô – những người đã và đang làm nên những thế hệ tương lai.'}</> : <>Join <strong>BRIAN ENGLISH</strong> in celebrating the teachers who inspire us and shape brighter futures.</>}</p>
+          </> : halloweenOn ? <p>{vi ? 'Khám phá không gian dạy học tiếng Anh đầy sáng tạo, tương tác và truyền cảm hứng mỗi ngày cùng BRIAN.' : 'Turn your English classroom into a world of creativity, curiosity and confidence. Explore interactive tools, fun activities and real learning experiences with BRIAN.'}</p> : description ? <p>{description}</p> : null}
 
           <div className="hero-cms__actions">
             {november.enabled ? <>

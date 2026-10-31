@@ -2,6 +2,7 @@ import React, { Suspense, lazy, useCallback, useEffect, useRef, useState } from 
 import { ArrowLeft, ArrowRight, BookOpen, CalendarDays, ChevronUp, Globe2, Settings2 } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '../../utils/supabase.js';
 import { isAdminRole } from '../../utils/roles.js';
+import { useNovemberHomeTheme } from '../../utils/novemberHomeTheme.js';
 import './world-explorer.css';
 
 const WorldExplorerAdmin = lazy(() => import('./WorldExplorerAdmin.jsx'));
@@ -89,6 +90,7 @@ function Reader({ article, onClose, language, panelRef }) {
 }
 
 export default function WorldExplorer({ currentUser, language = 'vi' }) {
+  const november = useNovemberHomeTheme();
   const vi = language !== 'en';
   const isAdmin = isAdminRole(currentUser?.role);
   const [enabled, setEnabled] = useState(true);
@@ -162,9 +164,11 @@ export default function WorldExplorer({ currentUser, language = 'vi' }) {
       </div>
       {!enabled ? <p className="we-disabled">{vi ? 'World Explorer đang tắt với khách truy cập.' : 'World Explorer is hidden from visitors.'}</p> : featured ? (
         <div className="we-featured">
+          {november.enabled ? <img className="november-discovery-postcard" src="/assets/home/november/discover-world-postcard.webp" alt="" aria-hidden="true" loading="lazy" decoding="async" /> : null}
           <div className="we-picture">
             {featured.image_url ? <img src={featured.image_url} alt={featured.image_alt_en || featured.title_en} loading="lazy" decoding="async" /> : <div className="we-art"><Globe2 size={82} aria-hidden="true" /><span>DISCOVER THE WORLD</span></div>}
             <span className="we-picture-tape" aria-hidden="true" />
+            {november.enabled ? <span className="november-discovery-caption" aria-hidden="true">Explore the world<br />Grow every day</span> : null}
           </div>
           <div className="we-copy">
             <span className="we-label"><CalendarDays size={14} /> {publicationDate(featured.publication_date, language)} · {CATEGORIES[featured.category]?.[vi ? 1 : 0] || 'World Culture'}</span>

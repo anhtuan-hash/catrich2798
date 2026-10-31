@@ -282,10 +282,11 @@ export default function Footer({ language, route = '' }) {
               <span className="signature-footer-v50-logo-divider" aria-hidden="true" />
               <img src="/footer-cambridge-logo.png" alt="Cambridge Assessment English" />
             </div>
+            {november.enabled && resolvedRoute === 'home' ? <p className="november-footer-motto">Better Learners · Brighter Futures</p> : null}
           </section>
 
           <section className="signature-footer-v50-profile">
-            {november.enabled && resolvedRoute === 'home' && november.avatarUrl ? <img className="november-footer-avatar" src={november.avatarUrl} alt={content.name} loading="lazy" decoding="async" /> : null}
+            {november.enabled && resolvedRoute === 'home' ? (november.avatarUrl ? <img className="november-footer-avatar" src={november.avatarUrl} alt={content.name} loading="lazy" decoding="async" /> : <span className="november-footer-avatar november-footer-avatar--placeholder" aria-hidden="true"><svg viewBox="0 0 64 64" fill="currentColor"><circle cx="32" cy="22" r="12" /><path d="M9 59v-7a23 23 0 0 1 46 0v7Z" /></svg></span>) : null}
             <span className="signature-footer-v50-language-badge">{content.language}</span>
             <h2>{content.name}</h2>
             <ul className="signature-footer-v50-details">
