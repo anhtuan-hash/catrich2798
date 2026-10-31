@@ -27,7 +27,7 @@ assert.match(handler, /world_explorer_auto_ingest/);
 assert.match(handler, /new Set\(\(previous/);
 assert.match(handler, /commons\.wikimedia\.org/);
 assert.match(handler, /getImage\(en\.pageimage\)/);
-assert.match(handler, /wikiApi\('vi\.wikipedia\.org'/);
+assert.match(handler, /getPage\('vi\.wikipedia\.org'/);
 assert.match(handler, /image_license: image\.license/);
 assert.match(handler, /source_url_vi: article_vi/);
 assert.match(handler, /no_qualified_content/);
