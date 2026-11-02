@@ -1,0 +1,34 @@
+name: Dashboard Scrapbook
+on:
+  pull_request:
+    paths:
+      - 'src/utils/dashboardScrapbookTheme.js'
+      - 'src/features/dashboard-scrapbook/**'
+      - 'src/components/admin/DashboardScrapbookAdminPanel.*'
+      - 'src/components/GlobalFlatNavigation.jsx'
+      - 'src/components/GlobalCompactNavigation.jsx'
+      - 'src/components/mobile/MobileAppShell.jsx'
+      - 'src/components/Footer.jsx'
+      - 'src/pages/Settings.jsx'
+      - 'public/assets/dashboard-scrapbook/**'
+      - 'supabase/migrations/*dashboard_scrapbook*'
+      - 'scripts/test-dashboard-scrapbook.mjs'
+      - '.github/workflows/dashboard-scrapbook.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Server-confirmed switching and scoped assets
+        run: node --test scripts/test-dashboard-scrapbook.mjs scripts/test-november-theme.mjs
+      - name: Existing Hero, navigation and footer
+        run: node --test scripts/test-dashboard-minimal-hero.mjs scripts/test-dashboard-hero-name-lines.mjs scripts/test-global-dashboard-footer-v13.mjs scripts/test-halloween-navbar.mjs scripts/test-halloween-footer.mjs scripts/test-halloween-home-v4.mjs

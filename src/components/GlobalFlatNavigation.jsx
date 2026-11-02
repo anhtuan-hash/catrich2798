@@ -4,6 +4,7 @@ import MobileAppShell from './mobile/MobileAppShell.jsx';
 import usePresentationMode from '../hooks/usePresentationMode.js';
 import {useHalloweenHomeTheme} from '../utils/halloweenHomeTheme.js';
 import { useNovemberHomeTheme } from '../utils/novemberHomeTheme.js';
+import { useDashboardScrapbookTheme } from '../utils/dashboardScrapbookTheme.js';
 import { writePresentationOverride } from '../device/presentationMode.js';
 import GlobalWindowsPhone8Loading from './GlobalWindowsPhone8Loading.jsx';
 import GlobalPageLaunchEffect from './GlobalPageLaunchEffect.jsx';
@@ -58,11 +59,24 @@ import './GlobalNavigationTextOnlyCompact.css';
 import './GlobalNavigationUtilityIcons.css';
 import './HalloweenNavigationSkin.css';
 import './HalloweenNavigationRefinement.css';
+import '../features/dashboard-scrapbook/dashboard-scrapbook.css';
 
 export default function GlobalFlatNavigation(props) {
   const presentation = usePresentationMode();
   const seasonalHome = useHalloweenHomeTheme();
   const november = useNovemberHomeTheme();
+  const scrapbook = useDashboardScrapbookTheme();
+  useEffect(() => {
+    const root = document.documentElement;
+    const shell = document.querySelector('.app-shell');
+    const active = scrapbook.enabled && props.route === 'dashboard';
+    root.dataset.dashboardScrapbook = active ? 'on' : 'off';
+    if (shell) shell.dataset.dashboardScrapbook = active ? 'on' : 'off';
+    return () => {
+      delete root.dataset.dashboardScrapbook;
+      if (shell) delete shell.dataset.dashboardScrapbook;
+    };
+  }, [scrapbook.enabled, props.route]);
   useEffect(() => {
     const root = document.documentElement;
     const shell = document.querySelector('.app-shell');

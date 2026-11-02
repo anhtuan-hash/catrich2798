@@ -4,6 +4,7 @@ import { hasRouteAccess } from '../utils/permissions.js';
 import { launchRoute } from '../utils/navigation.js';
 import { useHalloweenNavbarTheme } from '../utils/halloweenNavbarTheme.js';
 import { useHalloweenHomeTheme } from '../utils/halloweenHomeTheme.js';
+import { useDashboardScrapbookTheme } from '../utils/dashboardScrapbookTheme.js';
 import {
   markAllWorkHubNotificationsRead,
   markWorkHubNotificationRead,
@@ -218,7 +219,9 @@ export default function GlobalCompactNavigation({
 }) {
   const t = copy[language] || copy.vi;
   const seasonalNavbar = useHalloweenNavbarTheme();
-  const seasonalHome = useHalloweenHomeTheme();
+  const halloweenHome = useHalloweenHomeTheme();
+  const scrapbook = useDashboardScrapbookTheme();
+  const seasonalHome = { ...halloweenHome, enabled: halloweenHome.enabled && !(scrapbook.enabled && route === 'dashboard') };
   const isAdmin = String(currentUser?.role || '').toLowerCase() === 'admin';
   const rootRef = useRef(null);
   const [accountOpen, setAccountOpen] = useState(false);
