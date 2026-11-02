@@ -50,9 +50,17 @@ Kiểm tra hình ảnh cần thực hiện trên trình duyệt tại 1440, 1024
 bộ lọc/tìm kiếm, đổi kênh tin tức, mở bài đọc và footer. Xác nhận bàn phím,
 reduced motion, chuyển route và OFF khôi phục bố cục ban đầu.
 
-Trong phiên triển khai này, kiểm tra trình duyệt trực tiếp chưa thực hiện được
-do môi trường trình duyệt không khởi động. Migration chưa được chạy trên
-database production; không coi việc build thành công là đã triển khai database.
+Migration đã được áp dụng vào production `catrich27` (`xpkbgqdlfonsinriggmj`)
+ngày 03/11/2026. Đã kiểm tra RPC bằng vai trò `authenticated`: Admin đã duyệt
+bật/tắt thành công; thiếu danh tính hoặc tài khoản thường bị từ chối.
+Các thay đổi thử nghiệm đã rollback, giữ Dashboard OFF và giữ nguyên cấu hình
+Trang chủ. Đọc cột mới qua REST bằng publishable key cũng thành công.
+
+Thẻ quản trị dùng grid bên trong để không bị CSS flex của Settings portal ghi đè,
+và thích ứng theo chiều rộng drawer. Khi máy chủ phục hồi, thông báo lỗi tải cũ
+được xóa. Kiểm thử trình duyệt dùng component thật với máy chủ giả lập:
+`node scripts/test-dashboard-scrapbook-admin-browser.mjs`, chạy trong GitHub
+Actions vì Chromium của môi trường cục bộ không khởi động được.
 
 Bản build production và các bài kiểm tra theme/Halloween liên quan đã qua.
 `scripts/test-dashboard-hero-cms.mjs` cũ vẫn thất bại ở yêu cầu
