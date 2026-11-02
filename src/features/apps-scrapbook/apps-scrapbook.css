@@ -1,0 +1,337 @@
+/* Opt-in Apps presentation. Removing the attribute restores the original cascade.
+   Root specificity matches the site's global font and legacy appearance authorities.
+   Existing app cards, permissions, filters and launcher controls remain interactive. */
+@font-face { font-family: AppsPaperBrush; src: url('/assets/fonts/caveat-bold.ttf') format('truetype'); font-weight: 700; font-display: swap; }
+@font-face { font-family: AppsPaperHand; src: url('/assets/fonts/patrick-hand.ttf') format('truetype'); font-display: swap; }
+
+html[data-apps-scrapbook="on"] body { background: #eefaff !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] {
+  --as-ink: #103653;
+  --as-grain: url('/assets/dashboard-scrapbook/paper-grain.svg');
+  --as-shadow: 0 5px 8px #28536b20, 0 1px 3px #50412b24;
+  --as-tear: polygon(0 2%,3% 0,7% 1.5%,11% .5%,15% 2%,19% 0,23% 1%,27% 0,31% 2%,36% .5%,40% 1.5%,44% 0,48% 1%,52% .2%,57% 1.5%,61% 0,65% 2%,70% .5%,74% 1%,79% 0,84% 1.5%,89% .4%,94% 1.6%,98% 0,100% 2%,99.5% 16%,100% 28%,99.6% 40%,100% 54%,99.5% 67%,100% 80%,99.7% 94%,100% 99%,96% 98%,91% 100%,87% 98.5%,82% 99.5%,77% 98%,72% 100%,67% 99%,62% 100%,57% 98%,52% 99%,47% 98.7%,42% 100%,37% 99%,32% 100%,27% 98%,22% 99%,17% 98.5%,12% 100%,7% 99%,3% 100%,0 98%,.5% 85%,0 72%,.4% 59%,0 45%,.5% 32%,0 18%);
+  color: var(--as-ink) !important;
+  background: var(--as-grain), radial-gradient(ellipse at 0 40%, #cdefff80, transparent 60%), #eefaff !important;
+  overflow-x: clip !important;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"]::before, html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"]::after { display: none !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #bes-main-content { background: transparent !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .apps-directory-native {
+  --ed8-ink: var(--as-ink); --ed8-body: #43576b; --ed8-warm: #ba312f;
+  background: transparent !important; min-height: 0 !important;
+  padding: 12px 0 30px !important; color: var(--as-ink) !important;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] :is(button, a, input, select):focus-visible {
+  outline: 3px solid #1263a7 !important; outline-offset: 3px !important;
+}
+
+/* Paper navigation retains the shared dimensions, dropdowns and fixed hub. */
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] > .bes-top-chrome { background: transparent !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .brian-nav {
+  background: var(--as-grain), #fffcf7 !important;
+  border: 1px solid #fff !important; border-radius: 9px 12px 8px 13px !important;
+  box-shadow: var(--as-shadow), 0 4px 0 3px #c9e9f180 !important; backdrop-filter: none !important;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .brian-nav__brand > span { color: #143f66 !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .brian-nav__primary > button {
+  background-image: var(--as-grain) !important;
+  border: 1px solid #fffaf0 !important; border-radius: 9px 12px 8px 11px !important;
+  box-shadow: 0 2px 3px #36526b2e !important;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .brian-nav__primary > button:is(.active, .is-active, [aria-current=page]) {
+  outline: 1px dashed #669b75 !important; outline-offset: -4px !important;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .brian-nav__account { background: #fffcf7 !important; color: #233f5e !important; }
+
+/* Blue and coral paper spread. All decorative layers ignore pointer events. */
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero {
+  position: relative !important; isolation: isolate; overflow: visible !important;
+  width: min(1480px, calc(100% - 48px)) !important; max-width: 1480px !important;
+  margin: 14px auto 34px !important; padding: 38px 34px 34px !important;
+  min-height: 440px !important; display: grid !important;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr) !important;
+  align-items: center !important; gap: 14px !important;
+  border: 0 !important; border-radius: 0 !important; background: transparent !important;
+  box-shadow: none !important; filter: drop-shadow(0 5px 3px #436b7325);
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero::before {
+  content: '' !important; position: absolute !important; inset: 0 -8px !important;
+  width: auto !important; height: auto !important; border-radius: 0 !important;
+  background: var(--as-grain), linear-gradient(104deg, #a9e3ec 0%, #b0e8f5 64%, #f9cdd3 64.2%, #ffd4d8 100%) !important;
+  clip-path: var(--as-tear); transform: rotate(-.6deg); z-index: -2 !important;
+  pointer-events: none; opacity: 1 !important;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero::after {
+  content: '' !important; position: absolute !important; inset: 8px -16px -11px !important;
+  width: auto !important; height: auto !important; border-radius: 0 !important;
+  background: var(--as-grain), linear-gradient(115deg, #f8d9e9 0 7%, #fff0b2 7% 32%, #d8f0fa 32% 68%, #f4dde9 68% 92%, #ffedab 92%) !important;
+  clip-path: var(--as-tear); transform: rotate(1deg); z-index: -3 !important;
+  pointer-events: none; opacity: 1 !important;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero-copy { z-index: 2 !important; min-width: 0 !important; max-width: none !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-eyebrow {
+  position: relative !important; display: table !important; margin: 0 0 22px !important;
+  padding: 12px 18px !important; border: 1px solid #eccda5 !important;
+  background: var(--as-grain), #fff8e8 !important; color: #183d5b !important;
+  border-radius: 4px 8px 5px 6px; box-shadow: var(--as-shadow), 0 0 0 4px #fffcf5;
+  font-size: 12px !important; font-weight: 800 !important; letter-spacing: .04em !important;
+  transform: rotate(-3deg);
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-eyebrow::before {
+  content: ''; position: absolute; left: -4px; top: -18px;
+  width: 15px; height: 46px; border: 3px solid #dc6d80; border-radius: 12px;
+  box-shadow: inset 0 0 0 1px #ffedf2, 1px 2px 2px #5f4f5c40;
+  transform: rotate(-19deg); pointer-events: none;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero h1 {
+  position: relative !important; isolation: isolate; max-width: none !important;
+  margin: 0 !important; padding: 7px 8px 15px !important;
+  font-size: clamp(39px, 4.45vw, 68px) !important; font-weight: 850 !important;
+  line-height: 1.06 !important; letter-spacing: -.055em !important; color: #103d5c !important;
+  text-wrap: initial !important; transform: rotate(-2deg); text-shadow: 0 2px 0 #fff;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero h1::before {
+  content: ''; position: absolute; inset: 0 -4px; z-index: -1; pointer-events: none;
+  background: var(--as-grain), #fff9ed; clip-path: var(--as-tear);
+  transform: rotate(.8deg); filter: drop-shadow(0 4px 2px #73532c28);
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero h1 em { color: #cf4546 !important; font-style: normal !important; font-weight: 850 !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-subtitle-line {
+  --bes-global-font-family: AppsPaperBrush, cursive;
+  font-family: AppsPaperBrush, cursive !important; font-size: 1.12em !important;
+  font-weight: 700 !important; letter-spacing: -.045em !important;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-lede { display: none !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero-actions { gap: 12px !important; margin-top: 26px !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero-actions button {
+  min-height: 44px !important; min-width: 0 !important; padding: 10px 16px !important;
+  border: 2px solid #fffdf8 !important; border-radius: 12px 9px 13px 10px !important;
+  background: var(--as-grain), #fffaf0 !important; color: #163b5d !important;
+  font-size: 13px !important; box-shadow: var(--as-shadow) !important;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero-actions button.is-primary { background: var(--as-grain), #114b70 !important; color: white !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero-actions button:hover { filter: brightness(.97); }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-filter-chips { gap: 8px !important; margin-top: 18px !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-filter-chips button {
+  min-height: 40px !important; padding: 8px 12px !important; gap: 6px !important;
+  border: 1px solid #fefbf3 !important; border-radius: 15px 12px 16px 13px !important;
+  background: var(--as-grain), #fffaf3 !important; color: #264766 !important;
+  box-shadow: var(--as-shadow) !important; font-size: 11px !important;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-filter-chips button.is-active { background: var(--as-grain), #e4f1ff !important; box-shadow: var(--as-shadow), inset 0 0 0 1px #8cbbdb !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero-side {
+  min-width: 0 !important; min-height: 350px !important; gap: 10px !important;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr) !important;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-illustration {
+  align-self: stretch !important; min-height: 300px !important;
+  width: 100% !important; position: relative !important;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-illustration > *, html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-illustration::before { display: none !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-illustration::after {
+  content: ''; position: absolute; inset: -8px -18px -12px -24px;
+  background: url('/assets/apps-scrapbook/teacher-toolkit.webp') center bottom/contain no-repeat;
+  pointer-events: none;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stats { gap: 18px !important; position: relative; z-index: 1; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat {
+  position: relative !important; min-height: 101px !important; padding: 17px 13px !important;
+  grid-template-columns: 46px minmax(0, 1fr) 13px !important; gap: 11px !important;
+  background: var(--as-grain), #fffaf4 !important; border: 3px solid #fffdf9 !important;
+  border-radius: 14px 10px 16px 9px !important; box-shadow: var(--as-shadow) !important;
+  transform: rotate(1.4deg);
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat:nth-child(2) { transform: rotate(-1.3deg); }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat::after {
+  content: ''; position: absolute; width: 52px; height: 15px; right: -8px; top: -8px;
+  background: repeating-linear-gradient(90deg,#fff6 0 1px,#f2b2cead 1px 6px);
+  transform: rotate(13deg); pointer-events: none;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat:first-child::after { background-color: #f4d28b; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat-icon { width: 46px !important; height: 46px !important; background: #e4f3ff !important; color: #1162b0 !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat.is-pinned .editorial-apps-stat-icon { background: #ddf2d9 !important; color: #29824c !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat.is-nav .editorial-apps-stat-icon { background: #f0e4ff !important; color: #8044c0 !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat-copy strong { font-size: 38px !important; color: #123658 !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat-copy small { font-size: 11px !important; color: #244361 !important; line-height: 1.35 !important; }
+
+/* The native grid on a stitched paper sheet, with a different torn strip per card. */
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid.apps-directory-list-native {
+  position: relative !important; isolation: isolate;
+  width: min(1480px, calc(100% - 48px)) !important; max-width: 1480px !important;
+  padding: 30px !important; margin: 0 auto 32px !important;
+  gap: 16px !important; grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  grid-auto-rows: minmax(212px, auto) !important;
+  background: var(--as-grain), #fffdf7 !important;
+  border: 2px solid #fff !important; border-radius: 23px 17px 22px 27px !important;
+  outline: 1px dashed #d3c7b5; outline-offset: -13px; box-shadow: var(--as-shadow);
+  max-height: none !important; overflow: visible !important; scroll-margin-top: 100px;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid::before {
+  content: ''; position: absolute; z-index: 2; left: 19px; top: -18px;
+  width: 17px; height: 53px; border: 3px solid #e5718e; border-radius: 12px;
+  box-shadow: inset 0 0 0 1px #ffe7e9, 1px 2px 3px #6b445d33;
+  transform: rotate(32deg); pointer-events: none;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid::after {
+  content: ''; position: absolute; right: -9px; bottom: -6px; width: 85px; height: 28px;
+  background: repeating-linear-gradient(0deg,#fff6 0 1px,transparent 1px 7px), repeating-linear-gradient(90deg,#fff6 0 1px,#f0c371aa 1px 7px);
+  transform: rotate(-32deg); pointer-events: none;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > .editorial-app-card {
+  --as-edge: #f4cddf;
+  min-height: 212px !important; height: auto !important; max-height: none !important;
+  background: var(--as-grain), #fffcf8 !important; border: 1px solid #eaddce !important;
+  border-radius: 19px 18px 13px 16px !important; overflow: hidden !important;
+  box-shadow: 0 4px 5px #74624b22, 0 1px 2px #71644a18 !important;
+  transition: box-shadow .18s, border-color .18s;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > .editorial-app-card:nth-child(5n+2) { --as-edge: #bce5ce; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > .editorial-app-card:nth-child(5n+3) { --as-edge: #f8d8af; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > .editorial-app-card:nth-child(5n+4) { --as-edge: #bce2f4; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > .editorial-app-card:nth-child(5n+5) { --as-edge: #fae39e; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > .editorial-app-card:nth-child(7n) { --as-edge: #dfc9f0; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > .editorial-app-card::before {
+  content: ''; position: absolute !important; inset: auto -2px -2px !important;
+  height: 18px !important; background: var(--as-grain), var(--as-edge) !important;
+  opacity: 1 !important; pointer-events: none; transform: rotate(-2deg);
+  clip-path: polygon(0 28%,6% 23%,11% 37%,16% 15%,23% 29%,29% 18%,35% 30%,41% 10%,48% 24%,55% 13%,61% 25%,68% 8%,75% 20%,82% 0,88% 15%,94% 4%,100% 12%,100% 100%,0 100%);
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > .editorial-app-card:hover { border-color: #a6cddc !important; box-shadow: 0 6px 12px #54778d30 !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid .editorial-app-card-main {
+  min-height: 212px !important; height: 100% !important; padding: 15px 16px 20px !important;
+  background: transparent !important; color: var(--as-ink) !important;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid .editorial-app-card-top { height: 40px !important; min-height: 40px !important; margin-bottom: 9px !important; gap: 6px !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid .editorial-app-card-icon {
+  width: 40px !important; height: 40px !important; flex-basis: 40px !important;
+  border: 2px solid #ffffff80; border-radius: 11px !important;
+  box-shadow: 0 3px 5px #254d6b30, inset 0 1px 2px #ffffff70 !important;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid .editorial-app-card-title { color: #123453 !important; font-size: 14.5px !important; font-weight: 800 !important; overflow-wrap: anywhere; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid .editorial-app-card-description { color: #4e5c70 !important; font-size: 11.8px !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid .editorial-app-card-cta { color: #b52428 !important; font-size: 12px !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-app-card-favorite { font-size: 25px !important; color: #8695a8 !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-app-card-favorite.is-pinned { color: #d78a05 !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-app-card-badge { font-size: 10px !important; padding: 4px 7px !important; min-height: 22px !important; }
+/* Locked requests and edit actions get real space, never overlap the paper CTA. */
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > .editorial-app-card.is-locked .editorial-app-card-main { height: auto !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid .editorial-app-card-permission { position: static !important; padding: 0 10px 24px !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .is-launcher-edit-mode #apps-directory-grid { grid-auto-rows: auto !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .is-launcher-edit-mode #apps-directory-grid .editorial-app-card-main { height: auto !important; min-height: 212px !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-app-card-admin { position: relative; padding-bottom: 24px !important; background: #fff9ed !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .launcher-admin-panel { background: #fffcf7 !important; color: #193d5e !important; }
+
+/* Existing footer content on three layered notebook leaves. */
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] > footer.footer[data-app-shell-footer=true] {
+  position: relative !important; max-width: 1480px !important; width: calc(100% - 48px) !important;
+  padding: 0 12px 50px !important; margin: 8px auto 0 !important; overflow: visible !important;
+  background: transparent !important; border: 0 !important; box-shadow: none !important;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-expanded-panel { background: transparent !important; padding: 0 !important; border: 0 !important; overflow: visible !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-main { display: grid !important; gap: 30px !important; grid-template-columns: .86fr 1.08fr 1.12fr !important; padding: 0 !important; overflow: visible !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-main > section {
+  --as-backing: #f6d4e2; --as-leaf: #fffaf3; position: relative !important;
+  isolation: isolate; overflow: visible !important; min-width: 0 !important;
+  background: var(--as-grain), var(--as-leaf) !important;
+  border: 4px solid #fffdf7 !important; border-radius: 9px 12px 8px 15px !important;
+  padding: 24px 18px !important; min-height: 280px !important;
+  box-shadow: var(--as-shadow) !important; color: var(--as-ink) !important;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-main > section::before {
+  content: '' !important; display: block !important; position: absolute !important; inset: -12px -10px !important;
+  background: var(--as-grain), var(--as-backing) !important; clip-path: var(--as-tear);
+  transform: rotate(-1.8deg) !important; z-index: -2 !important; pointer-events: none;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-main > section::after {
+  content: '' !important; display: block !important; position: absolute !important; inset: 0 !important;
+  background: var(--as-grain), var(--as-leaf) !important; clip-path: var(--as-tear);
+  z-index: -1 !important; pointer-events: none;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-main > .signature-footer-v50-profile { --as-backing: #d3c7ee; --as-leaf: #f1fbec; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-main > .signature-footer-v50-credentials { --as-backing: #facbd1; --as-leaf: #fff9eb; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-brand { outline: 1px dashed #d1bba6 !important; outline-offset: -11px !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-brian-logo { max-height: 108px !important; object-fit: contain; position: relative; z-index: 1; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-affiliations { border-top: 1px dashed #d3bca2 !important; padding-top: 12px !important; margin-top: 14px !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .apps-scrapbook-footer-motto { font-size: 13px !important; font-style: italic; text-align: center; color: #244266 !important; margin: 14px 0 0 !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-profile h2 { font-size: 19px !important; color: #226940 !important; line-height: 1.35 !important; margin: 9px 0 12px !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-language-badge { background: #28794a !important; color: white !important; border-radius: 9px !important; box-shadow: var(--as-shadow); }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-detail { font-size: 13px !important; color: #234361 !important; border-bottom: 1px solid #d3dfcb !important; padding: 7px 0 !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-detail-icon { background: #dbefd9 !important; color: #298354 !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-section-label { color: #b33122 !important; font-size: 17px !important; font-weight: 800 !important; line-height: 1.35 !important; border-bottom: 1px dashed #d7b792 !important; padding-bottom: 12px !important; margin-bottom: 8px !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-credentials li { color: #294361 !important; font-size: 13px !important; line-height: 1.5 !important; border-bottom: 1px solid #e6d8bf !important; padding: 7px 0 !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-star { color: #dc910b !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-dashboard-artwork { position: relative !important; inset: auto !important; height: 34px !important; margin-top: 20px !important; pointer-events: none !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-dashboard-landscape { display: none !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-dashboard-signoff {
+  display: block !important; position: absolute !important; inset: 4px 7px auto auto !important;
+  --bes-global-font-family: AppsPaperBrush, cursive;
+  font-family: AppsPaperBrush, cursive !important; font-size: 24px !important;
+  color: #185d9b !important; background: var(--as-grain), #e3f6fd !important;
+  padding: 4px 19px !important; transform: rotate(-4deg) !important; clip-path: var(--as-tear);
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] > .footer > .signature-footer-static-summary { background: transparent !important; border: 0 !important; margin-top: 8px !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .bes-portfolio-footer-trigger { background: var(--as-grain), #fffdf5 !important; border: 1px solid #bbd8e9 !important; box-shadow: var(--as-shadow) !important; border-radius: 28px !important; padding: 11px 20px !important; color: #145b9b !important; }
+
+/* Touch layouts retain every filter, statistic, permission request and edit action. */
+@media (max-width: 1150px) {
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero { padding: 32px 24px !important; min-height: 400px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero-side { grid-template-columns: minmax(0, 1fr) minmax(160px, 1fr) !important; gap: 6px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat { grid-template-columns: 36px minmax(0, 1fr) 10px !important; padding: 14px 10px !important; gap: 8px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat-icon { width: 36px !important; height: 36px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat-copy strong { font-size: 32px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid { padding: 24px 20px !important; gap: 12px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid .editorial-app-card-main { padding: 12px 12px 20px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-main { gap: 22px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-main > section { padding: 20px 13px !important; }
+}
+@media (max-width: 900px) {
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero { grid-template-columns: minmax(0, 1fr) !important; gap: 18px !important; padding: 32px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero::before { background: var(--as-grain), linear-gradient(164deg, #b3e8f1 0 62%, #fbd2d9 62.2%) !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero-copy { max-width: 650px !important; width: 100% !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero h1 { font-size: clamp(40px, 6.3vw, 58px) !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero-side { min-height: 220px !important; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr) !important; gap: 22px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-illustration { min-height: 220px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-illustration::after { inset: -8px 0; background-position: center; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stats { gap: 12px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat { min-height: 70px !important; padding: 10px 15px !important; grid-template-columns: 40px minmax(0, 1fr) 14px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat-copy { display: flex !important; align-items: center; gap: 12px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid.apps-directory-list-native { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-main { grid-template-columns: minmax(0, 1fr) !important; gap: 30px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-main > section { min-height: 0 !important; padding: 24px !important; }
+}
+@media (max-width: 600px) {
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero { width: calc(100% - 28px) !important; padding: 26px 18px !important; margin-top: 12px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-eyebrow { font-size: 10px !important; padding: 10px 13px !important; margin-bottom: 20px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero h1 { font-size: clamp(30px, 8.6vw, 49px) !important; padding: 8px 4px 14px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero-actions { gap: 9px !important; margin-top: 21px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero-actions button { padding: 9px 12px !important; font-size: 12px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-filter-chips { gap: 7px !important; margin-top: 14px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-filter-chips button { padding: 9px 10px !important; min-height: 44px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero-side { grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr) !important; gap: 6px !important; min-height: 235px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-illustration { min-height: 200px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-illustration::after { inset: 0 -7px 0 -15px; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat { padding: 10px 8px !important; gap: 7px !important; grid-template-columns: 30px minmax(0, 1fr) 10px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat-icon { width: 30px !important; height: 30px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat-icon svg { width: 17px !important; height: 17px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat-copy { display: grid !important; gap: 4px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat-copy strong { font-size: 26px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat-copy small { font-size: 10px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid.apps-directory-list-native { width: calc(100% - 24px) !important; padding: 23px 12px !important; gap: 11px !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; outline-offset: -6px; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid .editorial-app-card-main { padding: 12px 10px 20px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid .editorial-app-card-title { font-size: 13px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid .editorial-app-card-description { font-size: 11px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid .editorial-app-card-icon { width: 34px !important; height: 34px !important; flex-basis: 34px !important; border-radius: 10px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-app-card-top-actions { gap: 3px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-app-card-badge { max-width: 66px !important; font-size: 8px !important; padding: 3px 5px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] > footer.footer[data-app-shell-footer=true] { width: calc(100% - 34px) !important; padding: 0 8px 35px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-dashboard-signoff { font-size: 22px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .bes-portfolio-footer-trigger { padding: 10px 12px !important; font-size: 11px !important; }
+}
+@media (max-width: 359px) {
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid.apps-directory-list-native { grid-template-columns: minmax(0, 1fr) !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero-side { grid-template-columns: minmax(0, 1fr) !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-illustration { min-height: 190px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] :is(.editorial-app-card, .editorial-apps-stat, .editorial-apps-filter-chips button) { transition: none !important; }
+}

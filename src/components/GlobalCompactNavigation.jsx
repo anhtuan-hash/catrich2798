@@ -5,6 +5,7 @@ import { launchRoute } from '../utils/navigation.js';
 import { useHalloweenNavbarTheme } from '../utils/halloweenNavbarTheme.js';
 import { useHalloweenHomeTheme } from '../utils/halloweenHomeTheme.js';
 import { useDashboardScrapbookTheme } from '../utils/dashboardScrapbookTheme.js';
+import { useAppsScrapbookTheme } from '../utils/appsScrapbookTheme.js';
 import {
   markAllWorkHubNotificationsRead,
   markWorkHubNotificationRead,
@@ -221,7 +222,8 @@ export default function GlobalCompactNavigation({
   const seasonalNavbar = useHalloweenNavbarTheme();
   const halloweenHome = useHalloweenHomeTheme();
   const scrapbook = useDashboardScrapbookTheme();
-  const seasonalHome = { ...halloweenHome, enabled: halloweenHome.enabled && !(scrapbook.enabled && route === 'dashboard') };
+  const appsScrapbook = useAppsScrapbookTheme();
+  const seasonalHome = { ...halloweenHome, enabled: halloweenHome.enabled && !(scrapbook.enabled && route === 'dashboard') && !(appsScrapbook.enabled && route === 'apps') };
   const isAdmin = String(currentUser?.role || '').toLowerCase() === 'admin';
   const rootRef = useRef(null);
   const [accountOpen, setAccountOpen] = useState(false);

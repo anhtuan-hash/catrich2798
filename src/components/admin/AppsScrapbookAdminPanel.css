@@ -1,0 +1,133 @@
+/* Settings owns the outer card's flex layout; its portal rules must not
+   collapse the component's inner grid. Container sizing also covers drawers. */
+#settings-apps-scrapbook {
+  container: apps-scrapbook-card / inline-size;
+  box-sizing: border-box;
+  min-width: 0 !important;
+  width: 100% !important;
+  gap: 16px !important;
+  padding: 24px !important;
+  background: #f3fbff !important;
+  border: 1px solid #c8e2e9 !important;
+  border-radius: 20px !important;
+  color: #263c51 !important;
+}
+#settings-apps-scrapbook .apps-scrapbook-admin__layout {
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr) 52px;
+  align-items: start;
+  gap: 22px;
+  min-width: 0;
+}
+#settings-apps-scrapbook .apps-scrapbook-admin__preview {
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  width: 148px;
+  min-height: 220px;
+  padding: 15px 10px;
+  background: url('/assets/apps-scrapbook/teacher-toolkit.webp') center 12px/120px auto no-repeat, linear-gradient(135deg, #c7effa, #ffe0e6);
+  border: 6px solid #fffdf6;
+  box-shadow: 3px 5px 0 #bbe5d3, -3px -5px 0 #f0c8d7;
+  color: #244b6e;
+  transform: rotate(-2deg);
+}
+#settings-apps-scrapbook .apps-scrapbook-admin__preview::before {
+  content: '';
+  position: absolute;
+  top: -13px;
+  left: 35px;
+  width: 64px;
+  height: 24px;
+  background: repeating-linear-gradient(90deg, #d79f7566 0 4px, #fff6 4px 5px);
+  transform: rotate(8deg);
+}
+#settings-apps-scrapbook .apps-scrapbook-admin__preview span { font-size: 15px; font-style: italic; }
+#settings-apps-scrapbook .apps-scrapbook-admin__preview b { font-size: 20px; }
+#settings-apps-scrapbook .apps-scrapbook-admin__preview i { font-size: 10px; margin-top: 9px; }
+#settings-apps-scrapbook .apps-scrapbook-admin__copy { min-width: 0; }
+#settings-apps-scrapbook .apps-scrapbook-admin__copy h2 {
+  margin: 6px 0 10px !important;
+  font-size: 19px !important;
+  line-height: 1.35 !important;
+  color: #263c51 !important;
+}
+#settings-apps-scrapbook .apps-scrapbook-admin__copy p {
+  margin: 8px 0 !important;
+  font-size: 14px !important;
+  line-height: 1.55 !important;
+  color: #53616a !important;
+}
+#settings-apps-scrapbook .apps-scrapbook-admin__copy > small {
+  display: block;
+  color: #745a40;
+  font-size: 11px !important;
+  line-height: 1.5;
+}
+#settings-apps-scrapbook .apps-scrapbook-admin__status {
+  display: block;
+  color: #24674d;
+  margin: 12px 0 6px;
+  font-size: 14px !important;
+}
+#settings-apps-scrapbook .apps-scrapbook-admin__switch {
+  box-sizing: border-box;
+  position: relative;
+  width: 52px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 20px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  cursor: pointer;
+}
+#settings-apps-scrapbook .apps-scrapbook-admin__switch::before {
+  content: '';
+  position: absolute;
+  inset: 7px 0;
+  border-radius: 20px;
+  background: #788a8a;
+}
+#settings-apps-scrapbook .apps-scrapbook-admin__switch > span {
+  position: absolute;
+  top: 11px;
+  left: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: white;
+  transition: transform .2s;
+}
+#settings-apps-scrapbook .apps-scrapbook-admin__switch[aria-checked=true]::before { background: #24704f; }
+#settings-apps-scrapbook .apps-scrapbook-admin__switch[aria-checked=true] > span { transform: translateX(22px); }
+#settings-apps-scrapbook .apps-scrapbook-admin__switch:disabled { opacity: .5; cursor: not-allowed; }
+#settings-apps-scrapbook :is(.apps-scrapbook-admin__switch, .apps-scrapbook-admin__retry):focus-visible { outline: 3px solid #2763a0 !important; outline-offset: 3px; }
+#settings-apps-scrapbook .apps-scrapbook-admin__feedback { margin: 0 !important; color: #24674d; font-size: 14px !important; overflow-wrap: anywhere; }
+#settings-apps-scrapbook .apps-scrapbook-admin__feedback.is-error { color: #a02e29; }
+#settings-apps-scrapbook .apps-scrapbook-admin__retry {
+  align-self: start;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #cdbb9f;
+  border-radius: 10px;
+  background: #fffdf8;
+  color: #264e71;
+  font: inherit;
+  cursor: pointer;
+}
+@container apps-scrapbook-card (max-width: 600px) {
+  #settings-apps-scrapbook .apps-scrapbook-admin__layout { grid-template-columns: minmax(0, 1fr) 52px; gap: 14px; }
+  #settings-apps-scrapbook .apps-scrapbook-admin__preview { display: none; }
+}
+@media (max-width: 650px) {
+  #settings-apps-scrapbook { padding: 18px !important; }
+  #settings-apps-scrapbook .apps-scrapbook-admin__layout { grid-template-columns: minmax(0, 1fr) 52px; gap: 14px; }
+  #settings-apps-scrapbook .apps-scrapbook-admin__preview { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #settings-apps-scrapbook .apps-scrapbook-admin__switch > span { transition: none; }
+}
