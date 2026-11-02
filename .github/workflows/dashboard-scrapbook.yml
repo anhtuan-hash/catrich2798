@@ -13,6 +13,8 @@ on:
       - 'public/assets/dashboard-scrapbook/**'
       - 'supabase/migrations/*dashboard_scrapbook*'
       - 'scripts/test-dashboard-scrapbook.mjs'
+      - 'scripts/test-dashboard-scrapbook-admin-browser.mjs'
+      - 'tests/fixtures/dashboard-scrapbook-admin.*'
       - '.github/workflows/dashboard-scrapbook.yml'
   workflow_dispatch:
 permissions:
@@ -32,3 +34,12 @@ jobs:
         run: node --test scripts/test-dashboard-scrapbook.mjs scripts/test-november-theme.mjs
       - name: Existing Hero, navigation and footer
         run: node --test scripts/test-dashboard-minimal-hero.mjs scripts/test-dashboard-hero-name-lines.mjs scripts/test-global-dashboard-footer-v13.mjs scripts/test-halloween-navbar.mjs scripts/test-halloween-footer.mjs scripts/test-halloween-home-v4.mjs
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+      - name: Admin drawer layout and migration recovery
+        run: node scripts/test-dashboard-scrapbook-admin-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dashboard-scrapbook-admin
+          path: test-results/dashboard-scrapbook-admin/

@@ -1,9 +1,133 @@
-.dashboard-scrapbook-admin{display:grid;grid-template-columns:180px minmax(0,1fr) 52px;gap:24px;align-items:start;padding:24px!important;background:#fffaf2!important;border:1px solid #e6d3b9!important;border-radius:20px!important}
-.dashboard-scrapbook-admin__preview{position:relative;display:flex;flex-direction:column;justify-content:end;min-height:185px;padding:15px 12px;background:linear-gradient(0deg,#ffedcf 5%,#fff4e4aa 55%,transparent),url('/hero/media/hero-1793195941901-36cea510456f.webp') 65% center/cover;border:6px solid #fffdf6;box-shadow:3px 5px 0 #c6d8cf,-3px -5px 0 #e8d0b4;color:#244b6e;transform:rotate(-2deg)}
-.dashboard-scrapbook-admin__preview::before{content:'';position:absolute;top:-13px;left:50px;width:64px;height:24px;background:repeating-linear-gradient(90deg,#d79f7566 0 4px,#fff6 4px 5px);transform:rotate(8deg)}
-.dashboard-scrapbook-admin__preview span{font-size:15px;font-style:italic}.dashboard-scrapbook-admin__preview b{font-size:24px}.dashboard-scrapbook-admin__preview i{font-size:10px;margin-top:9px}
-.dashboard-scrapbook-admin__copy h2{margin:6px 0 10px!important}.dashboard-scrapbook-admin__copy p{line-height:1.55}.dashboard-scrapbook-admin__copy>small{display:block;color:#745a40;font-size:11px}.dashboard-scrapbook-admin__status{display:block;color:#24674d;margin:12px 0}
-.dashboard-scrapbook-admin__switch{width:52px;height:30px;border:0;border-radius:20px;background:#788a8a;padding:4px;cursor:pointer}.dashboard-scrapbook-admin__switch>span{display:block;width:22px;height:22px;border-radius:50%;background:white;transition:transform .2s}.dashboard-scrapbook-admin__switch[aria-checked=true]{background:#24704f}.dashboard-scrapbook-admin__switch[aria-checked=true]>span{transform:translateX(22px)}.dashboard-scrapbook-admin__switch:disabled{opacity:.5;cursor:not-allowed}.dashboard-scrapbook-admin__switch:focus-visible{outline:3px solid #2763a0;outline-offset:4px}
-.dashboard-scrapbook-admin__feedback{grid-column:1/-1;margin:0;color:#24674d;overflow-wrap:anywhere}.dashboard-scrapbook-admin__feedback.is-error{color:#a02e29}.dashboard-scrapbook-admin__retry{grid-column:2;justify-self:start}
-@media(max-width:650px){.dashboard-scrapbook-admin{grid-template-columns:minmax(0,1fr) 52px}.dashboard-scrapbook-admin__preview{display:none}.dashboard-scrapbook-admin__retry{grid-column:1}}
-@media(prefers-reduced-motion:reduce){.dashboard-scrapbook-admin__switch>span{transition:none}}
+/* Settings owns the outer card's flex layout; its portal rules must not
+   collapse the component's inner grid. Container sizing also covers drawers. */
+#settings-dashboard-scrapbook {
+  container: dashboard-scrapbook-card / inline-size;
+  box-sizing: border-box;
+  min-width: 0 !important;
+  width: 100% !important;
+  gap: 16px !important;
+  padding: 24px !important;
+  background: #fffaf2 !important;
+  border: 1px solid #e6d3b9 !important;
+  border-radius: 20px !important;
+  color: #263c51 !important;
+}
+#settings-dashboard-scrapbook .dashboard-scrapbook-admin__layout {
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr) 52px;
+  align-items: start;
+  gap: 22px;
+  min-width: 0;
+}
+#settings-dashboard-scrapbook .dashboard-scrapbook-admin__preview {
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  width: 148px;
+  min-height: 180px;
+  padding: 15px 10px;
+  background: linear-gradient(0deg, #ffedcf 5%, #fff4e4aa 55%, transparent), url('/hero/media/hero-1793195941901-36cea510456f.webp') 65% center/cover;
+  border: 6px solid #fffdf6;
+  box-shadow: 3px 5px 0 #c6d8cf, -3px -5px 0 #e8d0b4;
+  color: #244b6e;
+  transform: rotate(-2deg);
+}
+#settings-dashboard-scrapbook .dashboard-scrapbook-admin__preview::before {
+  content: '';
+  position: absolute;
+  top: -13px;
+  left: 35px;
+  width: 64px;
+  height: 24px;
+  background: repeating-linear-gradient(90deg, #d79f7566 0 4px, #fff6 4px 5px);
+  transform: rotate(8deg);
+}
+#settings-dashboard-scrapbook .dashboard-scrapbook-admin__preview span { font-size: 15px; font-style: italic; }
+#settings-dashboard-scrapbook .dashboard-scrapbook-admin__preview b { font-size: 20px; }
+#settings-dashboard-scrapbook .dashboard-scrapbook-admin__preview i { font-size: 10px; margin-top: 9px; }
+#settings-dashboard-scrapbook .dashboard-scrapbook-admin__copy { min-width: 0; }
+#settings-dashboard-scrapbook .dashboard-scrapbook-admin__copy h2 {
+  margin: 6px 0 10px !important;
+  font-size: 19px !important;
+  line-height: 1.35 !important;
+  color: #263c51 !important;
+}
+#settings-dashboard-scrapbook .dashboard-scrapbook-admin__copy p {
+  margin: 8px 0 !important;
+  font-size: 14px !important;
+  line-height: 1.55 !important;
+  color: #53616a !important;
+}
+#settings-dashboard-scrapbook .dashboard-scrapbook-admin__copy > small {
+  display: block;
+  color: #745a40;
+  font-size: 11px !important;
+  line-height: 1.5;
+}
+#settings-dashboard-scrapbook .dashboard-scrapbook-admin__status {
+  display: block;
+  color: #24674d;
+  margin: 12px 0 6px;
+  font-size: 14px !important;
+}
+#settings-dashboard-scrapbook .dashboard-scrapbook-admin__switch {
+  box-sizing: border-box;
+  position: relative;
+  width: 52px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 20px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  cursor: pointer;
+}
+#settings-dashboard-scrapbook .dashboard-scrapbook-admin__switch::before {
+  content: '';
+  position: absolute;
+  inset: 7px 0;
+  border-radius: 20px;
+  background: #788a8a;
+}
+#settings-dashboard-scrapbook .dashboard-scrapbook-admin__switch > span {
+  position: absolute;
+  top: 11px;
+  left: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: white;
+  transition: transform .2s;
+}
+#settings-dashboard-scrapbook .dashboard-scrapbook-admin__switch[aria-checked=true]::before { background: #24704f; }
+#settings-dashboard-scrapbook .dashboard-scrapbook-admin__switch[aria-checked=true] > span { transform: translateX(22px); }
+#settings-dashboard-scrapbook .dashboard-scrapbook-admin__switch:disabled { opacity: .5; cursor: not-allowed; }
+#settings-dashboard-scrapbook :is(.dashboard-scrapbook-admin__switch, .dashboard-scrapbook-admin__retry):focus-visible { outline: 3px solid #2763a0 !important; outline-offset: 3px; }
+#settings-dashboard-scrapbook .dashboard-scrapbook-admin__feedback { margin: 0 !important; color: #24674d; font-size: 14px !important; overflow-wrap: anywhere; }
+#settings-dashboard-scrapbook .dashboard-scrapbook-admin__feedback.is-error { color: #a02e29; }
+#settings-dashboard-scrapbook .dashboard-scrapbook-admin__retry {
+  align-self: start;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #cdbb9f;
+  border-radius: 10px;
+  background: #fffdf8;
+  color: #264e71;
+  font: inherit;
+  cursor: pointer;
+}
+@container dashboard-scrapbook-card (max-width: 600px) {
+  #settings-dashboard-scrapbook .dashboard-scrapbook-admin__layout { grid-template-columns: minmax(0, 1fr) 52px; gap: 14px; }
+  #settings-dashboard-scrapbook .dashboard-scrapbook-admin__preview { display: none; }
+}
+@media (max-width: 650px) {
+  #settings-dashboard-scrapbook { padding: 18px !important; }
+  #settings-dashboard-scrapbook .dashboard-scrapbook-admin__layout { grid-template-columns: minmax(0, 1fr) 52px; gap: 14px; }
+  #settings-dashboard-scrapbook .dashboard-scrapbook-admin__preview { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #settings-dashboard-scrapbook .dashboard-scrapbook-admin__switch > span { transition: none; }
+}

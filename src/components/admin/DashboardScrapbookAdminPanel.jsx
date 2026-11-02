@@ -13,27 +13,33 @@ export default function DashboardScrapbookAdminPanel({ currentUser, language = '
     if (!admin) return undefined;
     let active = true;
     loadDashboardScrapbookTheme().then(result => {
-      if (active && !result.ok) setFeedback({ error: true, text: result.error });
+      if (active && !result.ok) setFeedback({ error: true, source: 'load', text: result.error });
     });
     return () => { active = false; };
   }, [admin]);
+  useEffect(() => {
+    if (theme.verified) setFeedback(previous => previous?.source === 'load' ? null : previous);
+  }, [theme.verified]);
   if (!admin) return null;
-  const run = async action => {
+  const run = async (action, reloading = false) => {
     if (busy) return;
     setBusy(true); setFeedback(null);
     try {
       const result = await action();
-      setFeedback({ error: !result.ok, text: result.ok
-        ? (en ? 'Dashboard appearance saved for everyone.' : 'Đã lưu giao diện Dashboard cho mọi tài khoản.')
+      setFeedback({ error: !result.ok, source: reloading ? 'load' : 'save', text: result.ok
+        ? (reloading
+          ? (en ? 'Settings refreshed.' : 'Đã tải lại cấu hình.')
+          : (en ? 'Dashboard appearance saved for everyone.' : 'Đã lưu giao diện Dashboard cho mọi tài khoản.'))
         : result.error });
     } catch (error) { setFeedback({ error: true, text: error.message }); }
     finally { setBusy(false); }
   };
-  return <article className="settings-google-card dashboard-scrapbook-admin" id="settings-dashboard-scrapbook">
+  return <article className="settings-google-card dashboard-scrapbook-admin" id="settings-dashboard-scrapbook" aria-labelledby="dashboard-scrapbook-heading" aria-busy={busy}>
+    <div className="dashboard-scrapbook-admin__layout">
     <div className="dashboard-scrapbook-admin__preview" aria-hidden="true"><span>November</span><b>Dashboard</b><i>paper · plans · inspiration</i></div>
     <div className="dashboard-scrapbook-admin__copy">
       <small>BRIAN ENGLISH · LAYERED PAPER COLLAGE</small>
-      <h2>{en ? 'November Dashboard · Scrapbook' : 'Dashboard tháng 11 · Scrapbook'}</h2>
+      <h2 id="dashboard-scrapbook-heading">{en ? 'November Dashboard · Scrapbook' : 'Dashboard tháng 11 · Scrapbook'}</h2>
       <p>{en ? 'Warm paper, torn edges, pastel layers and handwritten greetings. Covers navigation, the greeting, work planner, news and footer on Dashboard.' : 'Nền giấy sáng, mép xé, nhiều lớp pastel và lời chào viết tay. Áp dụng cho điều hướng, lời chào, lịch làm việc, tin tức và footer trên Dashboard.'}</p>
       <p>{en ? 'Turn off to restore the original Dashboard. Your schedule, articles and published Hero remain unchanged. Independent of the Home theme.' : 'Tắt để khôi phục Dashboard gốc. Giữ nguyên lịch làm việc, tin tức và Hero đã công bố. Hoạt động độc lập với chủ đề Trang chủ.'}</p>
       <strong className="dashboard-scrapbook-admin__status" aria-live="polite">{busy ? (en ? 'Saving…' : 'Đang lưu…') : !theme.verified ? (en ? 'Waiting for server settings' : 'Đang chờ cấu hình máy chủ') : theme.enabled ? (en ? 'Scrapbook enabled' : 'Đang bật Scrapbook') : (en ? 'Original Dashboard' : 'Dashboard nguyên bản')}</strong>
@@ -43,7 +49,8 @@ export default function DashboardScrapbookAdminPanel({ currentUser, language = '
       aria-label={en ? 'November Dashboard Scrapbook' : 'Dashboard tháng 11 Scrapbook'}
       aria-checked={theme.enabled} disabled={busy || !theme.verified}
       onClick={() => run(() => saveDashboardScrapbookTheme(!theme.enabled))}><span /></button>
+    </div>
     {feedback && <p className={`dashboard-scrapbook-admin__feedback${feedback.error ? ' is-error' : ''}`} role={feedback.error ? 'alert' : 'status'}>{feedback.text}</p>}
-    {(!theme.verified || feedback?.error) && <button type="button" className="dashboard-scrapbook-admin__retry" disabled={busy} onClick={() => run(loadDashboardScrapbookTheme)}>{en ? 'Reload settings' : 'Tải lại cấu hình'}</button>}
+    {(!theme.verified || feedback?.error) && <button type="button" className="dashboard-scrapbook-admin__retry" disabled={busy} onClick={() => run(loadDashboardScrapbookTheme, true)}>{en ? 'Reload settings' : 'Tải lại cấu hình'}</button>}
   </article>;
 }
