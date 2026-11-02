@@ -10,6 +10,7 @@ import './HalloweenFooterRefinement.css';
 import { useHalloweenFooterTheme } from '../utils/halloweenFooterTheme.js';
 import { useHalloweenHomeTheme } from '../utils/halloweenHomeTheme.js';
 import { useNovemberHomeTheme } from '../utils/novemberHomeTheme.js';
+import { useDashboardScrapbookTheme } from '../utils/dashboardScrapbookTheme.js';
 
 const ENGLISH_DETAILS = {
   language: 'EN',
@@ -242,9 +243,12 @@ function DetailRow({ type, children }) {
 export default function Footer({ language, route = '' }) {
   const isVi = language === 'vi';
   const seasonalFooter = useHalloweenFooterTheme();
-  const seasonalHome = useHalloweenHomeTheme();
+  const halloweenHome = useHalloweenHomeTheme();
   const november = useNovemberHomeTheme();
+  const scrapbook = useDashboardScrapbookTheme();
   const resolvedRoute = route || (typeof document !== 'undefined' ? (document.querySelector('.app-shell')?.dataset?.route || '') : '');
+  const scrapbookActive = scrapbook.enabled && resolvedRoute === 'dashboard';
+  const seasonalHome = { ...halloweenHome, enabled: halloweenHome.enabled && !scrapbookActive };
   const content = isVi ? VIETNAMESE_DETAILS : ENGLISH_DETAILS;
   const [portfolioOpen, setPortfolioOpen] = React.useState(false);
   const portfolioTriggerRef = React.useRef(null);
@@ -283,6 +287,7 @@ export default function Footer({ language, route = '' }) {
               <img src="/footer-cambridge-logo.png" alt="Cambridge Assessment English" />
             </div>
             {november.enabled && resolvedRoute === 'home' ? <p className="november-footer-motto">Better Learners · Brighter Futures</p> : null}
+            {scrapbookActive ? <p className="dashboard-scrapbook-footer-motto">Better Learners · Brighter Futures</p> : null}
           </section>
 
           <section className="signature-footer-v50-profile">
