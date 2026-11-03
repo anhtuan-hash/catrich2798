@@ -267,7 +267,11 @@
   #ttcm-scrapbook .ttcm-reader-list-copy span { font-size: clamp(21px, 1.7vw, 27px); }
   #ttcm-scrapbook .ttcm-reader-card h3 { font-size: clamp(15px, 1.2vw, 19px); line-height: 1.3; }
   #ttcm-scrapbook .ttcm-reader-card p { font-size: 13px; }
-  #ttcm-scrapbook .ttcm-reader-filter-chips button { font-size: 12px; }
+  #ttcm-scrapbook .ttcm-reader-filter-chips { flex-wrap: wrap; gap: 5px; padding-inline: 12px; }
+  #ttcm-scrapbook .ttcm-reader-filter-chips button { padding-inline: 8px; gap: 5px; font-size: 12px; }
+  #ttcm-scrapbook .ttcm-reader-list-tools .ttcm-reader-sort { min-width: 94px; }
+  #ttcm-scrapbook .ttcm-reader-list-tools .ttcm-reader-mark-all-quiet { width: 32px; }
+  #ttcm-scrapbook .ttcm-reader-list-tools .ttcm-reader-search { width: clamp(108px, 9vw, 150px); }
   #ttcm-scrapbook .ttcm-reader-message { font-size: clamp(14px, 1.02vw, 17px); }
   #ttcm-scrapbook .ttcm-reader-response-preview article b { font-size: 14px; }
   #ttcm-scrapbook .ttcm-reader-response-preview article p { font-size: 12.5px; }

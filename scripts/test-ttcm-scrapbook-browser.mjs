@@ -111,6 +111,8 @@ try {
   await expect(toggle).toHaveAttribute('aria-checked','true'); denySave = false;
   await page.locator('.ttcm-reader-card').first().click();
   await expect(channel.locator('.ttcm-reader-detail h2')).toHaveText(titles[0]);
+  const chips = channel.locator('.ttcm-reader-filter-chips');
+  assert.ok(await chips.evaluate(el => el.scrollWidth <= el.clientWidth + 1), 'all desktop mailbox filters fit');
   await page.screenshot({path:join(screenshots,'trao-doi.png')});
   await channel.getByRole('button',{name:'Tạo nội dung'}).click();
   const draft = channel.getByPlaceholder('Nhập tiêu đề ngắn gọn');
