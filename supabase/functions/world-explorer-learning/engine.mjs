@@ -104,7 +104,11 @@ export function buildLearningPack(input){
   if(t>=3)break;
   let quoted=excerpt(s.text,160),truth=t!==1;
   if(!truth){
-   const w=term(s);const replacement=keywords.find(x=>x!==w&&x.length===w.length)||keywords.find(x=>x!==w&&x.length>=5);
+   const w=term(s);
+   const lexical=LEXICON.find(x=>x[0]===w);
+   const replacement=(lexical&&LEXICON.find(x=>x[0]!==w&&x[2]===lexical[2]&&
+     x[0].endsWith('s')===w.endsWith('s')&&!wordIn(body,x[0]))?.[0])
+     ||keywords.find(x=>x!==w&&x.length===w.length)||keywords.find(x=>x!==w&&x.length>=5);
    if(!replacement)continue;
    quoted=blank(quoted,w).replace('________',replacement);
    if(body.includes(quoted))continue;
