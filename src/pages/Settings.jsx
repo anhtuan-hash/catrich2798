@@ -10,6 +10,7 @@ import NovemberHomeAdminPanel from '../components/admin/NovemberHomeAdminPanel.j
 import DashboardScrapbookAdminPanel from '../components/admin/DashboardScrapbookAdminPanel.jsx';
 import AppsScrapbookAdminPanel from '../components/admin/AppsScrapbookAdminPanel.jsx';
 import AttendanceScrapbookAdminPanel from '../components/admin/AttendanceScrapbookAdminPanel.jsx';
+import GradebookScrapbookAdminPanel from '../components/admin/GradebookScrapbookAdminPanel.jsx';
 import { isAdminRole, isDepartmentLeaderRole } from '../utils/roles.js';
 import '../styles/SettingsGoogleM3.css';
 import '../styles/SettingsLauncher2.css';
@@ -512,10 +513,11 @@ export default function Settings({
             {activeModule === 'navigation' && isDepartmentLeaderRole(currentUser?.role) && matches('hệ thống', 'system', 'toàn hệ thống', 'hiển thị', 'display', 'sidebar', 'action dock', 'tin vắn', 'newswire') ? (
               <GlobalChromeSettingsPanel currentUser={currentUser} language={language} />
             ) : null}
-            {activeModule === 'navigation' && isAdminRole(currentUser?.role) && matches('điểm danh','attendance','ứng dụng','apps','dashboard','scrapbook','20/11','tháng 11','tri ân','november','halloween','toàn trang','full home','điều hướng','navigation','footer','chân trang','giao diện','theme','nền','mùa lễ','seasonal') ? (
+            {activeModule === 'navigation' && isAdminRole(currentUser?.role) && matches('sổ điểm','gradebook','điểm danh','attendance','ứng dụng','apps','dashboard','scrapbook','20/11','tháng 11','tri ân','november','halloween','toàn trang','full home','điều hướng','navigation','footer','chân trang','giao diện','theme','nền','mùa lễ','seasonal') ? (
               <>
                 <AppsScrapbookAdminPanel currentUser={currentUser} language={language} />
                 <AttendanceScrapbookAdminPanel currentUser={currentUser} language={language} />
+                <GradebookScrapbookAdminPanel currentUser={currentUser} language={language} />
                 <DashboardScrapbookAdminPanel currentUser={currentUser} language={language} />
                 <NovemberHomeAdminPanel currentUser={currentUser} language={language} />
                 <HalloweenHomeAdminPanel currentUser={currentUser} language={language} />
