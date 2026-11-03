@@ -81,7 +81,6 @@ export default function GlobalNavigationConceptV2({
   if (!navHost || !primaryHost) return null;
 
   const tabs = [
-    { id: 'home', label: vi ? 'Trang chủ' : 'Home', icon: 'home', active: route === 'home', target: '#/home' },
     access.work ? { id: 'work', label: vi ? 'Công việc' : 'Work', icon: 'work', active: route === 'work-hub', target: '#/work-hub' } : null,
     access.homeroom ? { id: 'homeroom', label: vi ? 'Lớp học' : 'Classes', icon: 'homeroom', active: route === 'homeroom', target: '#/homeroom' } : null,
     { id: 'personnel', label: vi ? 'Nhân sự' : 'Personnel', icon: 'personnel', active: route === 'tool' && selectedTool?.slug === 'brian-team', target: '#/tool/brian-team' },
