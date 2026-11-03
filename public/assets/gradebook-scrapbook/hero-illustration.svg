@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="360" viewBox="0 0 760 360" role="img" aria-label="Scrapbook of English books, London postcard, camera and coffee">
+<defs>
+ <filter id="s" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="2" dy="6" stdDeviation="5" flood-color="#674431" flood-opacity=".31"/></filter>
+ <filter id="s2"><feDropShadow dx="1" dy="3" stdDeviation="2" flood-color="#614c39" flood-opacity=".25"/></filter>
+ <pattern id="grid" width="18" height="18" patternUnits="userSpaceOnUse"><path d="M18 0H0V18" fill="none" stroke="#c8afac" stroke-width=".7" opacity=".55"/></pattern>
+ <pattern id="dots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r="1" fill="#8b735b" opacity=".25"/></pattern>
+ <linearGradient id="blue" x2=".8" y2="1"><stop stop-color="#3180c3"/><stop offset="1" stop-color="#153d78"/></linearGradient>
+ <linearGradient id="red" x2="0" y2="1"><stop stop-color="#d7707a"/><stop offset="1" stop-color="#943c54"/></linearGradient>
+ <linearGradient id="cup" x2="0" y2="1"><stop stop-color="#fffdf6"/><stop offset="1" stop-color="#e4cfb2"/></linearGradient>
+ </defs>
+ <!-- layered ripped cardstock -->
+ <g opacity=".98" filter="url(#s)">
+  <path d="M115 51 260 19 406 53 554 30 738 70 718 320 563 341 410 311 252 335 112 301Z" fill="#f7c7dc" transform="rotate(-5 414 170)"/>
+  <path d="M164 66 640 37 735 91 696 320 180 315Z" fill="#fff6e6" stroke="#e8ceb8" stroke-width="2"/>
+  <path d="M165 68 640 40 737 89 698 317 182 316Z" fill="url(#grid)" opacity=".65"/>
+  <path d="m416 31 255-2 34 288-242 15z" fill="#fcde86" transform="rotate(8 548 180)" opacity=".95"/>
+ </g>
+ <!-- green leaf sprigs behind -->
+ <g fill="#628f52" stroke="#3f7850" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" filter="url(#s2)">
+ <path d="M160 267q56-52 45-146" fill="none"/>
+ <path d="M201 158q-49-3-40-47 42 3 40 47M204 178q39-40 60-18-26 30-60 18M184 224q-50-5-51-44 48 2 51 44M196 196q35-7 47 22-30 11-47-22" />
+ <path d="M667 263q45-98 30-165" fill="none"/>
+ <path d="M700 153q-28-34-8-62 27 26 8 62M694 192q39-38 57-14-25 31-57 14M683 230q-40-10-33-47 37 8 33 47"/>
+ </g>
+ <!-- polaroid London postcard -->
+ <g transform="translate(447 12) rotate(-9 120 133)" filter="url(#s)">
+  <rect width="255" height="270" rx="4" fill="#fdf9ea" stroke="#b99e80" stroke-width="2"/>
+  <rect x="13" y="13" width="229" height="215" fill="#9ac7e4"/>
+  <path d="M13 92Q77 24 131 76T242 53V13H13Z" fill="#b5dcf4"/>
+  <path d="M13 170Q86 142 138 160T242 138v90H13Z" fill="#e7cfa1"/>
+  <g fill="#b9a08a"><path d="M15 164h70v64H15zM91 153h23v75H91zM117 172h66v56h-66zM186 160h55v68h-55z"/></g>
+  <g fill="#866f67" stroke="#7a6153" stroke-width="2">
+   <path d="M20 222v-59l14-14 13 14v59M49 222v-48l14-12 12 12v48M91 228v-66l9-17 9 17v66M123 228v-52l12-12 14 12v52"/>
+  </g>
+  <g stroke="#5e5148" stroke-width="2" fill="#e0bd83">
+   <path d="M164 228V94h25v134Z"/><path d="m161 94 15-22 16 22Z"/><rect x="166" y="90" width="21" height="25" rx="2" fill="#eee1ba"/>
+   <path d="M176 72V49m-6 0h12"/><circle cx="176" cy="103" r="7" fill="#f8edc9"/>
+   <path d="M174 125h3m-3 22h3m-3 22h3"/>
+  </g>
+  <g fill="#f8f3eb" opacity=".9"><path d="M38 43q29-27 57 0-13 10-31 5-15 6-26-5M132 29q24-17 37 0-15 10-37 0"/></g>
+  <path d="M16 241q107 8 225 0" fill="none" stroke="#d4bfab" stroke-width="2"/>
+  <text x="28" y="257" font-family="Georgia,serif" font-style="italic" font-size="12" fill="#936c50">Greetings from London!</text>
+ </g>
+ <!-- color books -->
+ <g filter="url(#s)" transform="rotate(10 352 190)">
+  <path d="M226 145q14-12 35-11l136-11q19 2 24 12l-2 50q-4 9-25 12l-135 12q-22-1-29-11Z" fill="#9e4962" stroke="#693949" stroke-width="3"/>
+  <path d="m239 178 177-16-1 20-168 15Z" fill="#f5dfbc" stroke="#9b785f" stroke-width="2"/>
+  <path d="M221 97q15-12 39-10l150-12q22 3 24 17l-2 56-194 15q-17-1-21-13Z" fill="url(#blue)" stroke="#244776" stroke-width="4"/>
+  <path d="m227 140 201-14-4 20-193 15Z" fill="#f2e6c8" stroke="#ad8b6c" stroke-width="2"/>
+  <path d="M230 102 421 89" stroke="#8ccdeb" stroke-width="3"/>
+  <text x="302" y="132" font-family="Georgia,serif" font-size="23" fill="white" font-weight="bold">ENGLISH</text>
+  <path d="M246 202q17-9 41-9l119-8q22 6 26 15l-4 36-172 15q-23-3-25-13Z" fill="#e9b457" stroke="#98733d" stroke-width="3"/>
+  <path d="m243 231 177-12-1 16-171 13Z" fill="#fff2d8"/>
+ </g>
+ <!-- Union Jack washi sticker -->
+ <g transform="translate(205 29) rotate(-17 61 45)" filter="url(#s2)">
+  <rect width="117" height="82" rx="5" fill="#faf5e9" stroke="#f6d7ce" stroke-width="6"/>
+  <rect x="6" y="6" width="105" height="70" fill="#254d9b"/>
+  <path d="M6 7 110 75m0-68L6 75" stroke="white" stroke-width="18"/>
+  <path d="M6 7 110 75m0-68L6 75" stroke="#dc374c" stroke-width="8"/>
+  <path d="M59 6v70M6 41h105" stroke="white" stroke-width="24"/>
+  <path d="M59 6v70M6 41h105" stroke="#d5334a" stroke-width="11"/>
+ </g>
+ <!-- retro camera -->
+ <g transform="translate(373 190) rotate(5 88 62)" filter="url(#s)">
+  <rect x="12" y="12" width="165" height="111" rx="11" fill="#e9d8bf" stroke="#755c4f" stroke-width="5"/>
+  <path d="M36 11 48 0h53l11 12Z" fill="#675e59"/><rect x="21" y="24" width="148" height="89" rx="6" fill="#9d9488" stroke="#ede0cd" stroke-width="6"/>
+  <rect x="30" y="31" width="130" height="73" rx="3" fill="#cab6a1"/>
+  <circle cx="90" cy="69" r="42" fill="#ede1cb" stroke="#695b57" stroke-width="7"/>
+  <circle cx="90" cy="69" r="30" fill="#393c3c" stroke="#b9b3a1" stroke-width="7"/><circle cx="90" cy="69" r="21" fill="#184456"/><circle cx="90" cy="69" r="12" fill="#122635"/><ellipse cx="85" cy="61" rx="8" ry="5" fill="#76aac1" opacity=".8"/>
+  <circle cx="41" cy="42" r="8" fill="#eff3e8" stroke="#665e57" stroke-width="3"/>
+  <rect x="125" y="34" width="28" height="9" rx="3" fill="#504d4a"/><path d="M136 9V0h20v9" fill="#dfc3a0" stroke="#6f5d51" stroke-width="2"/>
+ </g>
+ <!-- cup / latte -->
+ <g transform="translate(594 212) rotate(7 67 44)" filter="url(#s)">
+  <path d="M28 35h112l-11 81q-46 25-90-1Z" fill="url(#cup)" stroke="#8b7c68" stroke-width="4"/>
+  <path d="M132 54q44-14 41 16-3 28-40 20" fill="none" stroke="#f8f3e5" stroke-width="17"/>
+  <path d="M132 54q44-14 41 16-3 28-40 20" fill="none" stroke="#809db0" stroke-width="5"/>
+  <ellipse cx="84" cy="35" rx="57" ry="24" fill="#fefaf0" stroke="#bca088" stroke-width="4"/>
+  <ellipse cx="84" cy="37" rx="46" ry="16" fill="#9b532d"/>
+  <path d="M55 37q24-25 29-3 20-22 33-4-5 17-33 23-28-4-29-16Z" fill="none" stroke="#f9ecd6" stroke-width="6" stroke-linecap="round"/>
+ </g>
+ <!-- decorative pencil star and flight -->
+ <path d="m173 54 6-19 8 18 20-1-15 12 6 18-19-11-16 12 4-19-14-11Z" fill="#ffd765" stroke="#fff7df" stroke-width="4" filter="url(#s2)"/>
+ <path d="M522 310q49 25 85-7 34-29 56-12" fill="none" stroke="#4c8eac" stroke-width="2" stroke-dasharray="6 7" opacity=".7"/>
+ <g fill="#fef1de" stroke="#e7818e" stroke-width="3"><path d="m311 30q-15-20-22-2-8 15 23 37 29-25 20-40-11-13-21 5Z"/></g>
+ <path d="M472 19 539 7 538 28 470 40Z" fill="#f9d883" opacity=".7" transform="rotate(11 500 22)"/>
+ <path d="M615 315 705 323 691 346 611 338Z" fill="#b0d8b5" opacity=".7" transform="rotate(-8 660 330)"/>
+</svg>
