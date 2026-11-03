@@ -35,19 +35,19 @@ const LEXICON=[
  ['community','cộng đồng','n'],['society','xã hội','n'],['museum','bảo tàng','n'],['festival','lễ hội','n']
 ];
 const RULES=[
- [/\b(?:is|was|were|are) designed to\\b/i,'be designed to + V','được thiết kế để'],
- [/\b(?:is|was|were|are) equipped with\\b/i,'be equipped with + N','được trang bị'],
- [/\ballow(?:s|ed|ing)?\s+\\w+\s+to\\b/i,'allow + O + to V','cho phép ai làm gì'],
- [/\bdespite\\b/i,'despite + noun/V-ing','mặc dù, bất chấp'],
- [/\balthough\\b/i,'although + clause','mặc dù (theo sau là mệnh đề)'],
- [/\bbecause\\b/i,'because + clause','bởi vì'],
- [/\bhowever\\b/i,'however','tuy nhiên'],
- [/\btherefore\\b/i,'therefore','vì vậy'],
- [/\bin order to\\b/i,'in order to + V','để, nhằm mục đích'],
- [/\bas a result\\b/i,'as a result','kết quả là'],
- [/\b(?:is|was|were|are) (?:created|discovered|founded|launched|built|developed|invented)\\b/i,'passive voice: be + V3','thể bị động'],
- [/\b(?:is|was|were|are) located in\\b/i,'be located in','tọa lạc tại'],
- [/\b(?:more|less|larger|smaller|higher|lower)\s+than\\b/i,'comparative + than','so sánh hơn'],
+ [/\b(?:is|was|were|are) designed to\b/i,'be designed to + V','được thiết kế để'],
+ [/\b(?:is|was|were|are) equipped with\b/i,'be equipped with + N','được trang bị'],
+ [/\ballow(?:s|ed|ing)?\s+\w+\s+to\b/i,'allow + O + to V','cho phép ai làm gì'],
+ [/\bdespite\b/i,'despite + noun/V-ing','mặc dù, bất chấp'],
+ [/\balthough\b/i,'although + clause','mặc dù (theo sau là mệnh đề)'],
+ [/\bbecause\b/i,'because + clause','bởi vì'],
+ [/\bhowever\b/i,'however','tuy nhiên'],
+ [/\btherefore\b/i,'therefore','vì vậy'],
+ [/\bin order to\b/i,'in order to + V','để, nhằm mục đích'],
+ [/\bas a result\b/i,'as a result','kết quả là'],
+ [/\b(?:is|was|were|are) (?:created|discovered|founded|launched|built|developed|invented)\b/i,'passive voice: be + V3','thể bị động'],
+ [/\b(?:is|was|were|are) located in\b/i,'be located in','tọa lạc tại'],
+ [/\b(?:more|less|larger|smaller|higher|lower)\s+than\b/i,'comparative + than','so sánh hơn'],
  [/\b(?:which|who|whose)\s+[a-z]+/i,'relative clause','mệnh đề quan hệ']
 ];
 const STOP=new Set('about above after again against along also although always among another around because before being between both could during each either enough every first following from further have having into itself just later little many might more most much must never only other over same several since some still such than that their them there these they this those through under until very were what when where which while whose will with within would'.split(' '));
@@ -59,7 +59,7 @@ function sentencesOf(body){
  const out=[];
  for(const [p,paragraph] of String(body||'').split(/\n+/).entries()){
   for(const str of paragraph.split(/(?<=[.!?])\s+(?=[A-Z“"(\[])/u)){
-   const s=str.replace(/\s+/g,' ').trim();
+   const s=str.trim();
    if(s.length>=60&&s.length<=360&&s.split(' ').length>=10&&!/\[\d+\]/.test(s))out.push({text:s,paragraph_id:p+1,sentence_id:out.length+1});
   }
  }
