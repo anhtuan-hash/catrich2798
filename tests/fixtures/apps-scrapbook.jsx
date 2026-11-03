@@ -31,7 +31,7 @@ function Fixture() {
     window.appsFixture = { setRoute, setUser, setSettings, setLanguage };
   }, []);
   return <>
-    <div className="app-shell" data-route={route}>
+    <div className="app-shell metro-shell metro-clean-system" data-route={route}>
       <main id="bes-main-content">
         <WebAppsRedesign apps={apps} language={language} currentUser={user} setLanguage={setLanguage} publicReadonly={!user} />
       </main>

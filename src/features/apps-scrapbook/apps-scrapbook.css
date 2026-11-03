@@ -2,7 +2,6 @@
    Root specificity matches the site's global font and legacy appearance authorities.
    Existing app cards, permissions, filters and launcher controls remain interactive. */
 @font-face { font-family: AppsPaperBrush; src: url('/assets/fonts/caveat-bold.ttf') format('truetype'); font-weight: 700; font-display: swap; }
-@font-face { font-family: AppsPaperHand; src: url('/assets/fonts/patrick-hand.ttf') format('truetype'); font-display: swap; }
 
 html[data-apps-scrapbook="on"] body { background: #eefaff !important; }
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] {
@@ -55,19 +54,12 @@ html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .ed
   box-shadow: none !important; filter: drop-shadow(0 5px 3px #436b7325);
 }
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero::before {
-  content: '' !important; position: absolute !important; inset: 0 -8px !important;
+  content: '' !important; position: absolute !important; inset: -13px -18px -15px !important;
   width: auto !important; height: auto !important; border-radius: 0 !important;
-  background: var(--as-grain), linear-gradient(104deg, #a9e3ec 0%, #b0e8f5 64%, #f9cdd3 64.2%, #ffd4d8 100%) !important;
-  clip-path: var(--as-tear); transform: rotate(-.6deg); z-index: -2 !important;
-  pointer-events: none; opacity: 1 !important;
+  background: url('/assets/apps-scrapbook/paper-spread.svg') center/100% 100% no-repeat !important;
+  z-index: -2 !important; pointer-events: none; opacity: 1 !important;
 }
-html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero::after {
-  content: '' !important; position: absolute !important; inset: 8px -16px -11px !important;
-  width: auto !important; height: auto !important; border-radius: 0 !important;
-  background: var(--as-grain), linear-gradient(115deg, #f8d9e9 0 7%, #fff0b2 7% 32%, #d8f0fa 32% 68%, #f4dde9 68% 92%, #ffedab 92%) !important;
-  clip-path: var(--as-tear); transform: rotate(1deg); z-index: -3 !important;
-  pointer-events: none; opacity: 1 !important;
-}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero::after { display: none !important; }
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero-copy { z-index: 2 !important; min-width: 0 !important; max-width: none !important; }
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-eyebrow {
   position: relative !important; display: table !important; margin: 0 0 22px !important;
@@ -84,7 +76,7 @@ html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .ed
   transform: rotate(-19deg); pointer-events: none;
 }
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero h1 {
-  position: relative !important; isolation: isolate; max-width: none !important;
+  position: relative !important; isolation: isolate; width: fit-content !important; max-width: 100% !important;
   margin: 0 !important; padding: 7px 8px 15px !important;
   font-size: clamp(39px, 4.45vw, 68px) !important; font-weight: 850 !important;
   line-height: 1.06 !important; letter-spacing: -.055em !important; color: #103d5c !important;
@@ -100,6 +92,10 @@ html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .ed
   --bes-global-font-family: AppsPaperBrush, cursive;
   font-family: AppsPaperBrush, cursive !important; font-size: 1.12em !important;
   font-weight: 700 !important; letter-spacing: -.045em !important;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-subtitle-line::after {
+  content: ''; display: inline-block; width: .49em; height: .62em; margin-left: .07em; vertical-align: top;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 38'%3E%3Cpath d='M15 33C11 24 1 14 5 7c3-6 11-3 12 4 5-9 12-7 12-1 0 6-8 15-14 23Z' fill='%23fff9ed' stroke='%23da626e' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-lede { display: none !important; }
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero-actions { gap: 12px !important; margin-top: 26px !important; }
@@ -124,7 +120,7 @@ html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .ed
   grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr) !important;
 }
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-illustration {
-  align-self: stretch !important; min-height: 300px !important;
+  display: block !important; align-self: stretch !important; min-height: 300px !important;
   width: 100% !important; position: relative !important;
 }
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-illustration > *, html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-illustration::before { display: none !important; }
@@ -133,7 +129,7 @@ html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .ed
   background: url('/assets/apps-scrapbook/teacher-toolkit.webp') center bottom/contain no-repeat;
   pointer-events: none;
 }
-html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stats { gap: 18px !important; position: relative; z-index: 1; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stats { display: grid !important; grid-template-columns: minmax(0, 1fr) !important; gap: 18px !important; min-width: 0; position: relative; z-index: 1; }
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat {
   position: relative !important; min-height: 101px !important; padding: 17px 13px !important;
   grid-template-columns: 46px minmax(0, 1fr) 13px !important; gap: 11px !important;
@@ -163,7 +159,7 @@ html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #ap
   grid-auto-rows: minmax(212px, auto) !important;
   background: var(--as-grain), #fffdf7 !important;
   border: 2px solid #fff !important; border-radius: 23px 17px 22px 27px !important;
-  outline: 1px dashed #d3c7b5; outline-offset: -13px; box-shadow: var(--as-shadow);
+  outline: 1px dashed #c6b69e !important; outline-offset: -13px !important; box-shadow: var(--as-shadow);
   max-height: none !important; overflow: visible !important; scroll-margin-top: 100px;
 }
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid::before {
@@ -258,6 +254,33 @@ html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .si
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-brand { outline: 1px dashed #d1bba6 !important; outline-offset: -11px !important; }
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-brian-logo { max-height: 108px !important; object-fit: contain; position: relative; z-index: 1; }
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-affiliations { border-top: 1px dashed #d3bca2 !important; padding-top: 12px !important; margin-top: 14px !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-brand {
+  display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-brian-logo { width: auto !important; max-width: 90% !important; height: 92px !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-affiliations {
+  display: flex !important; width: 100% !important; max-width: 260px !important;
+  align-items: center !important; justify-content: center !important; gap: 16px !important;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-affiliations > img {
+  display: block !important; width: auto !important; height: 72px !important;
+  max-height: 72px !important; max-width: 42% !important; object-fit: contain !important;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-affiliations::after {
+  content: ''; position: absolute; left: -20px; bottom: -13px; width: 46px; height: 85px;
+  background: url('/assets/dashboard-scrapbook/botanical.svg') center/contain no-repeat;
+  transform: rotate(-12deg); pointer-events: none;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-profile h2::before {
+  content: ''; position: absolute; top: -15px; right: 16px; width: 14px; height: 44px;
+  border: 3px solid #a686bc; border-radius: 14px; box-shadow: inset 0 0 0 1px #fff, 1px 2px 2px #5b447735;
+  transform: rotate(20deg); pointer-events: none;
+}
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-section-label::after {
+  content: ''; position: absolute; top: -13px; right: 0; width: 73px; height: 22px;
+  background: repeating-linear-gradient(40deg, #fff6 0 2px, #eaba69aa 2px 8px);
+  transform: rotate(17deg); pointer-events: none;
+}
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .apps-scrapbook-footer-motto { font-size: 13px !important; font-style: italic; text-align: center; color: #244266 !important; margin: 14px 0 0 !important; }
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-profile h2 { font-size: 19px !important; color: #226940 !important; line-height: 1.35 !important; margin: 9px 0 12px !important; }
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-language-badge { background: #28794a !important; color: white !important; border-radius: 9px !important; box-shadow: var(--as-shadow); }
@@ -292,7 +315,7 @@ html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .be
 }
 @media (max-width: 900px) {
   html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero { grid-template-columns: minmax(0, 1fr) !important; gap: 18px !important; padding: 32px !important; }
-  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero::before { background: var(--as-grain), linear-gradient(164deg, #b3e8f1 0 62%, #fbd2d9 62.2%) !important; }
+
   html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero-copy { max-width: 650px !important; width: 100% !important; }
   html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero h1 { font-size: clamp(40px, 6.3vw, 58px) !important; }
   html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-hero-side { min-height: 220px !important; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr) !important; gap: 22px !important; }

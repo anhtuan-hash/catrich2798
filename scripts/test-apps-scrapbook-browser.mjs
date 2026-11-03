@@ -83,6 +83,11 @@ try {
   const desktop = await grid.evaluate(el => ({ columns: getComputedStyle(el).gridTemplateColumns.split(' ').length, background: getComputedStyle(el).backgroundImage }));
   assert.equal(desktop.columns, 5);
   assert.match(desktop.background, /paper-grain/);
+  const logos = await page.locator('.signature-footer-v50-affiliations > img').evaluateAll(images => images.map(image => {
+    const rect = image.getBoundingClientRect();
+    return { top: rect.top, left: rect.left, right: rect.right, height: rect.height };
+  }));
+  assert.ok(logos.length === 2 && logos[0].right < logos[1].left && Math.abs(logos[0].top - logos[1].top) < 5 && logos.every(logo => logo.height <= 80 && logo.height > 20), 'affiliation logos share a compact horizontal row');
   const approved = grid.locator('.external-approved-app');
   assert.match(await approved.evaluate(el => getComputedStyle(el).backgroundImage), /paper-grain/);
   await approved.getByRole('button').click();
@@ -145,9 +150,16 @@ try {
       const hero = document.querySelector('.editorial-apps-hero').getBoundingClientRect();
       const grid = document.querySelector('#apps-directory-grid').getBoundingClientRect();
       const stats = [...document.querySelectorAll('.editorial-apps-stat')].map(el => el.getBoundingClientRect());
-      return { overflow: document.documentElement.scrollWidth > innerWidth + 1, separated: hero.bottom <= grid.top, statsFit: stats.every(r => r.left >= 0 && r.right <= innerWidth) };
+      const art = document.querySelector('.editorial-apps-illustration');
+      const artRect = art.getBoundingClientRect();
+      return {
+        overflow: document.documentElement.scrollWidth > innerWidth + 1,
+        separated: hero.bottom <= grid.top,
+        statsFit: stats.every(r => r.left >= 0 && r.right <= innerWidth) && stats[0].bottom < stats[1].top && stats[1].bottom < stats[2].top,
+        artVisible: artRect.width >= 90 && artRect.height >= 150 && getComputedStyle(art, '::after').backgroundImage.includes('teacher-toolkit.webp'),
+      };
     });
-    assert.deepEqual(dimensions, { overflow: false, separated: true, statsFit: true }, String(width));
+    assert.deepEqual(dimensions, { overflow: false, separated: true, statsFit: true, artVisible: true }, String(width));
     await page.screenshot({ path: output + '/on-' + width + '.png', fullPage: true });
   }
   await page.setViewportSize({ width: 390, height: 844 });
