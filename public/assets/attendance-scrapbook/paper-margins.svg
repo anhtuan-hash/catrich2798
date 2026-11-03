@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500" preserveAspectRatio="none">
+  <defs>
+    <filter id="fibres" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".48" numOctaves="3" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+    <pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse">
+      <rect width="100" height="100" filter="url(#fibres)" opacity=".24"/>
+    </pattern>
+    <path id="left" d="M-4 74l12 7 8-2 8 10 7-1 11 12 12 2 8 9 9 2 8 11-2 15 5 8-5 15 4 13-8 19 2 10-7 14 2 11-9 13 2 12-10 10-1 12-8 14 2 9-7 12 3 11-9 11 1 14-10 8-6 15-13 10z"/>
+    <path id="right" d="M1204 95l-16 8-9-1-12 7-5-2-12 10-8-1-13 8-12 1-12 12 1 9-6 10 3 14-5 11 5 16-2 12 7 14-1 12 7 10-2 12 6 11-2 15 9 12-2 14 6 9-1 13 9 12 1 15 7 8-1 14 13 8 6 13 13 6z"/>
+  </defs>
+  <g stroke="#fff8ef" stroke-width="3" stroke-linejoin="round">
+    <use href="#left" fill="#c5b9e7" transform="translate(9 11)"/>
+    <use href="#left" fill="#f5bfd7"/>
+    <use href="#right" fill="#c8b9ee" transform="translate(-7 10)"/>
+    <use href="#right" fill="#f8cbdf"/>
+  </g>
+  <g fill="url(#grain)"><use href="#left"/><use href="#right"/></g>
+</svg>

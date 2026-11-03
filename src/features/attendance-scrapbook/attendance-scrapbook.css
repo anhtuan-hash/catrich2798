@@ -4,7 +4,12 @@ html[data-attendance-scrapbook="on"] {
   --roll-paper: var(--roll-grain), repeating-linear-gradient(0deg, transparent 0 26px, #779ec312 26px 27px), #fffaf5;
   --roll-shadow: 0 4px 8px #344f7427, 0 1px 2px #714b3426;
 }
-html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] { background: url('/assets/attendance-scrapbook/hills.svg') center bottom/100% 100px no-repeat, var(--roll-grain), linear-gradient(145deg,#b4e9fc,#e5f7ff 45%,#cef1ff) !important; padding-bottom:65px !important; color:#183453; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] {
+  background: url('/assets/attendance-scrapbook/hills.svg') center bottom / 100% 100px no-repeat,
+    url('/assets/attendance-scrapbook/paper-margins.svg') center 55px / 100% clamp(360px, 45vw, 620px) no-repeat,
+    var(--roll-grain), linear-gradient(130deg, #93dcf8, #c4ebfa 53%, #b4e6f9) !important;
+  padding-bottom: 65px !important; color: #183453;
+}
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(#bes-main-content,.attendance-workspace-page,.attendance-standalone-root,.attendance-shell.is-standalone,.attendance-content) { background:transparent !important; }
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-shell.is-standalone { box-shadow:none !important; border:0 !important; }
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-topbar { background: url('/assets/attendance-scrapbook/sky.svg') center/cover !important; padding:15px clamp(13px,2vw,32px) !important; min-height:82px !important; border:0 !important; }
@@ -79,8 +84,8 @@ html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbo
   background: var(--roll-grain), var(--as-leaf) !important; clip-path: polygon(0 1%,8% 0,16% 1.3%,27% 0,43% 1%,54% 0,72% 1%,86% 0,100% 1%,99.5% 51%,100% 99%,88% 100%,74% 99%,65% 100%,54% 99%,40% 100%,26% 99%,14% 100%,0 99%,.5% 47%);
   z-index: -1 !important; pointer-events: none;
 }
-html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-main > .signature-footer-v50-profile { --as-backing: #d3c7ee; --as-leaf: #f1fbec; }
-html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-main > .signature-footer-v50-credentials { --as-backing: #facbd1; --as-leaf: #fff9eb; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-main > .signature-footer-v50-profile { --as-backing: #cde5b1; --as-leaf: #f1fbec; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-main > .signature-footer-v50-credentials { --as-backing: #f6cf99; --as-leaf: #fff9eb; }
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-brand { outline: 1px dashed #d1bba6 !important; outline-offset: -11px !important; }
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-brian-logo { max-height: 108px !important; object-fit: contain; position: relative; z-index: 1; }
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-affiliations { border-top: 1px dashed #d3bca2 !important; padding-top: 12px !important; margin-top: 14px !important; }
@@ -246,7 +251,38 @@ html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbo
 }
 
 /* Roll call: blue ruled register, green/yellow/red decisions and a photo sticker. */
-html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-rollcall { min-width: 0 !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-rollcall {
+  min-width: 0 !important;
+  container: roll-register / inline-size;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-quick-layout { background: transparent !important; }
+/* Align the register by the space inside the page, including when its side list collapses. */
+@container roll-register (min-width: 610px) {
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.attendance-roster-head, .att-m3-roster-entry > label) {
+    display: grid !important;
+    grid-template-columns: 32px minmax(120px, 1fr) minmax(74px, .4fr) minmax(210px, .95fr) !important;
+    grid-template-rows: auto !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 4px 10px !important;
+    box-sizing: border-box !important;
+  }
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-roster-head {
+    min-height: 34px !important;
+  }
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-roster-head::before { content: 'STT'; }
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-m3-roster-entry > label { min-height: 46px !important; }
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-m3-attendance-status {
+    grid-area: 1 / 4 !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-m3-attendance-status button {
+    min-height: 32px !important;
+    border: 1px solid #cddbef !important;
+    border-radius: 18px !important;
+  }
+}
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-session-controls > label,
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-m3-period-field { background: var(--roll-grain), #f2f6fd !important; border-color: #cbd9e7 !important; }
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-m3-roster-entry { background: #fffdfa !important; border-bottom: 1px solid #d5e2f0 !important; }

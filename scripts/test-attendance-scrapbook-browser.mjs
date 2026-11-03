@@ -91,6 +91,13 @@ try {
     await expect(page.locator('.awu-feature-tile')).toHaveCount(6);
     assert.ok(await page.locator('.awu-feature-tile').evaluateAll(tiles=>tiles.every(t=>{const r=t.getBoundingClientRect();return r.left>=-1 && r.right<=innerWidth+1;})), 'six accessible destinations at '+width);
     assert.match(await heroImage(),/sky.svg/);
+    if (width === 1280) {
+      await expect(page.locator('.attendance-roster-head')).toBeVisible();
+      const row = page.locator('.att-m3-roster-entry').first();
+      const [name, statuses] = await Promise.all([row.locator('label b').boundingBox(), row.getByRole('group').boundingBox()]);
+      assert.ok(name && statuses && statuses.x >= name.x + name.width && statuses.y < name.y + name.height,
+        'all three status controls align with the student on a laptop');
+    }
     await snap('01-roll-call',width);
 
     await go('calendar');
