@@ -78,3 +78,11 @@
 @media(max-width:980px){.we-expanded-reader .wel-learning-cards{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:720px){.we-expanded-reader .wel-overview,.we-expanded-reader .wel-practice{padding:12px}.we-expanded-reader .wel-word-heading,.we-expanded-reader .wel-word-row{grid-template-columns:minmax(78px,.7fr) minmax(90px,1fr);gap:7px}.we-expanded-reader .wel-word-heading>*:last-child,.we-expanded-reader .wel-word-row>*:last-child{grid-column:1/-1;display:block;-webkit-line-clamp:unset}.we-expanded-reader .wel-options{grid-template-columns:1fr}.we-expanded-reader .wel-tabs button{flex:1 1 auto}.we-expanded-reader .wel-question{padding:13px}.we-expanded-reader .wel-question h5{font-size:15px}.we-expanded-reader .wel-metrics{width:100%}.we-expanded-reader .wel-match-list label{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.we-expanded-reader .wel-root *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* Native reader heading shortcuts, visually aligned with approved scrapbook mockup. */
+.we-expanded-reader .we-learning-heading-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;min-width:0}
+.we-expanded-reader .we-learning-heading-actions button{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:9px 12px;border-radius:10px;font-size:12px;font-weight:800;white-space:nowrap}
+.we-expanded-reader .we-learning-jump{background:#ede2ff;color:#62409c;border:1px solid #d7c0f3}
+.we-expanded-reader .we-learning-next{background:#e6f2ff;color:#2467a6;border:1px solid #b8d8ef}
+.we-expanded-reader .we-learning-heading-actions .we-collapse-button{position:static;margin:0}
+@media(max-width:720px){.we-expanded-reader .we-learning-heading-actions{justify-content:flex-start;width:100%}.we-expanded-reader .we-learning-heading-actions button{flex:1 1 auto}}
