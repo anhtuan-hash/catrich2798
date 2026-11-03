@@ -1,0 +1,446 @@
+/* Brian English · Gradebook Scrapbook 2026
+   Purely presentational: all selectors require the verified server-owned ON scope.
+   Default/OFF preserves every original Gradebook, navigation and footer style. */
+html[data-gradebook-scrapbook="on"] {
+  --gb-paper-grain: url('/assets/dashboard-scrapbook/paper-grain.svg');
+  --gb-paper-white: #fffaf2;
+  --gb-kraft: #ca905d;
+  --gb-ink: #173b6c;
+  --gb-pencil: "Segoe Print", "Comic Sans MS", "Trebuchet MS", system-ui, sans-serif;
+  --gb-paper-shadow: 0 4px 0 #d0b49b,0 12px 24px #745b4930;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] {
+  background: var(--gb-paper-grain),radial-gradient(circle at 89% 11%,#fff6da 0,transparent 45%),
+    radial-gradient(circle at 7% 67%,#fae7e0 0,transparent 47%),#f3e8dc !important;
+  color:#243a55 !important;
+  padding-bottom:42px !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] :is(#bes-main-content,.wp8-page-stage) {
+  background:transparent !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] > .bes-top-chrome {
+  background:var(--gb-paper-grain),#fffaf3 !important;
+  border:1px solid #e4cfb9 !important;
+  border-radius:30px 25px 31px 26px !important;
+  box-shadow:0 3px 0 #e5c8ad,0 8px 16px #86634e28 !important;
+  padding:5px 10px !important;
+  width:min(1540px,calc(100% - 28px)) !important;
+  max-width:1540px !important;
+  margin:11px auto 17px !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] .brian-nav {
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] .brian-nav__brand > span {
+  color:#193f70 !important;
+  font-family:var(--gb-pencil) !important;
+  font-weight:800 !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] .brian-nav__primary > button {
+  border:1px solid #ffffff99 !important;
+  border-radius:13px 16px 11px 15px !important;
+  box-shadow:0 2px 0 #bca99966,0 4px 7px #75594418 !important;
+  padding:7px 10px !important;
+  font-weight:800 !important;
+  min-height:34px !important;
+  height:auto !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] .brian-nav__primary > button[data-nav-key="gradebook"] {
+  background:#ffe29e !important;color:#a24b16 !important;
+  transform:rotate(-2deg);border-bottom:3px solid #f3b556 !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] .brian-nav__account {
+  background:#fff9ee !important;color:#203d63 !important;border-radius:16px !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio {
+  width:min(1460px,calc(100% - 32px)) !important;
+  max-width:1460px !important;
+  margin:0 auto 26px !important;
+  padding:4px 0 15px !important;
+  color:#193b69 !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-shell.gbmac-hero-canvas.gbmac-hero-refined.gbmac-hero-command {
+  background:repeating-linear-gradient(-18deg,#ffffff10 0 2px,transparent 2px 10px),
+   linear-gradient(115deg,#c98d59,#d69a68 45%,#dfae7a) !important;
+  border:8px solid #f7e9d4 !important;
+  border-radius:12px 20px 14px 20px !important;
+  min-height:308px !important;
+  margin:0 0 20px !important;
+  box-shadow:0 2px 0 #a76e48,0 11px 18px #8d5e3b4d !important;
+  overflow:hidden !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command::before {
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.25;z-index:1;
+  background:var(--gb-paper-grain),radial-gradient(#fff5e5 1px,transparent 2px) 0 0/24px 24px;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command::after {
+  content:"";position:absolute;z-index:4;pointer-events:none;left:-4px;right:-4px;bottom:-2px;height:13px;
+  background:#f7e9d4;clip-path:polygon(0 40%,3% 55%,6% 32%,10% 55%,14% 22%,17% 53%,22% 28%,28% 46%,33% 21%,39% 54%,44% 30%,50% 55%,57% 24%,63% 54%,68% 23%,74% 55%,80% 32%,86% 59%,91% 29%,96% 55%,100% 29%,100% 100%,0 100%);
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-hero-media {
+  background:url('/assets/gradebook-scrapbook/hero-illustration.svg') right center / auto 105% no-repeat !important;
+  opacity:1 !important;z-index:1 !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-hero-media::after {
+  background:linear-gradient(90deg,#d6a06dd4 0,transparent 43%) !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-hero-media :is(img,video,.gbmac-hero-default-art) {
+  display:none !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-hero-content {
+  width:min(490px,calc(100% - 24px)) !important;
+  max-width:490px !important;
+  margin:18px 0 20px 24px !important;
+  padding:14px 16px 12px !important;
+  gap:10px !important;
+  border:0 !important;
+  border-radius:7px 18px 8px 12px !important;
+  box-shadow:5px 6px 0 #a069465e !important;
+  background:linear-gradient(110deg,#fff7e9f2,#fff2e5e8 68%,#fff8edbb) !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  transform:rotate(-1deg);
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-hero-content::before {
+  content:"";position:absolute;top:-14px;left:33%;width:96px;height:22px;
+  background:repeating-linear-gradient(90deg,#ffffff4c 0 4px,transparent 4px 9px),#f6aabcbb;
+  transform:rotate(-7deg);box-shadow:0 1px 2px #74513833;pointer-events:none;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-shell-icon,
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-hero-divider {
+  display:none !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-shell-head {
+  padding:0 !important;
+  background:transparent !important; border:0 !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-hero-eyebrow {
+  font-size:11px !important;font-weight:900 !important;letter-spacing:.06em !important;
+  color:#24466b !important;background:#fffdfa !important;
+  display:inline-block !important;padding:4px 10px !important;
+  transform:rotate(-2deg);box-shadow:2px 2px #b79070;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-shell-title h1 {
+  color:#103e76 !important;font-family:var(--gb-pencil) !important;
+  font-size:clamp(42px,5vw,59px) !important;font-weight:900 !important;
+  letter-spacing:-.065em !important;text-shadow:3px 4px #ffffffb7 !important;
+  line-height:1.17 !important;margin:3px 0 0 !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-hero-meta {
+  display:flex !important;gap:5px !important;flex-wrap:wrap !important;
+  align-items:center !important;justify-content:center !important;
+  background:#ffc5d4 !important;color:#563343 !important;
+  min-height:24px !important;padding:3px 12px !important;
+  box-shadow:2px 3px #d39aa6 !important;transform:rotate(-2deg);
+  border-radius:2px 9px 3px 8px !important;font-size:12px !important;font-weight:800 !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-meta-dot {
+  width:4px !important;height:4px !important;background:#8a5b6d !important;opacity:1 !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-shell-selectors {
+  display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:9px !important;padding:4px 0 !important;margin:0 !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-shell-selectors label {
+  border:1px solid #e6d3c1 !important;border-radius:12px 9px 11px 10px !important;
+  background:#fffdf8 !important;min-height:53px !important;
+  box-shadow:2px 3px #b99b81a8 !important;padding:6px 9px !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-shell-selectors label > span {
+  color:#294563 !important;font-size:11px !important;font-weight:850 !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-shell-selectors select {
+  color:#152d4b !important;font-size:13px !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-shell-utilities {
+  gap:7px !important;flex-wrap:wrap !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-shell-utilities button {
+  min-height:34px !important; padding:6px 10px !important;
+  border:1px solid #9fbad4 !important;border-radius:18px !important;
+  background:#eef7ff !important;color:#1d59a0 !important;
+  box-shadow:2px 3px 0 #bdccdb !important;font-size:12px !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-hero-save-state {
+  border:1px solid #a2ce9b !important;border-radius:18px !important;
+  background:#d3f1ce !important;color:#296840 !important;font-size:12px !important;
+  padding:6px 11px !important;min-height:30px !important;box-shadow:2px 3px #a0b794;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-hero-save-state.is-unsaved {
+  background:#fff3be !important;color:#89531d !important;border-color:#e1b96e !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-hero-edit {
+  top:10px !important;right:10px !important;
+  background:#fff5dcdd !important;color:#85522c !important;
+}
+/* Notebook tabs: every score category remains the original real button. */
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac {
+  --mac-text:#253652;--mac-muted:#645a60;--mac-line:#e6d1bf;
+  --mac-blue:#2462bd;gap:14px !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-tabs {
+  display:grid !important;grid-template-columns:repeat(7,minmax(0,1fr)) !important;
+  gap:7px !important;padding:10px 14px !important;
+  background:var(--gb-paper-grain),#fffaf2 !important;
+  border:0 !important;border-radius:14px 10px 16px 12px !important;
+  box-shadow:var(--gb-paper-shadow) !important;overflow:visible !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-tabs button {
+  min-width:0 !important;min-height:44px !important;
+  padding:8px 3px !important;color:#294469 !important;
+  border:1px dashed #ffffffaa !important;
+  border-radius:13px 16px 12px 15px !important;
+  font:800 clamp(12px,1.25vw,17px)/1.3 var(--gb-pencil) !important;
+  box-shadow:2px 4px 0 #d1b5a777 !important;
+  transform:rotate(-1.3deg);white-space:normal !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-tabs button:nth-child(2n) {
+  transform:rotate(1.7deg);
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-tabs button[data-tone="blue"] {background:#c9e1ff !important;}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-tabs button[data-tone="red"] {background:#ffd2dd !important;}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-tabs button[data-tone="yellow"] {background:#ffe8a6 !important;}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-tabs button[data-tone="green"] {background:#c9eee5 !important;}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-tabs button[data-tone="purple"] {background:#e8d9ff !important;}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-tabs button[data-tone="orange"] {background:#ffcbd7 !important;}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-tabs button[data-tone="cyan"] {background:#d0efff !important;}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-tabs button.is-selected,
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-tabs button[data-tone].is-selected {
+  color:white !important;background:#1f68c8 !important;
+  box-shadow:inset 0 0 0 1px #bed6ff,0 3px 0 #184c96,0 4px 7px #3b6aa44d !important;
+  border:2px dashed #d4e7ff !important;transform:translateY(-1px) rotate(-1deg) !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-workspace {
+  position:relative !important;overflow:visible !important;
+  background:var(--gb-paper-grain),repeating-linear-gradient(0deg,transparent 0 30px,#7ea4be14 30px 31px),#fffaf5 !important;
+  border:1px solid #ebd9c8 !important;
+  border-radius:12px 18px 11px 15px !important;
+  box-shadow:0 4px 0 #dfcbb6,0 13px 20px #6b503b29 !important;
+  margin-left:14px !important;padding:0 0 0 16px !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-workspace::before {
+  content:"";pointer-events:none;position:absolute;z-index:3;
+  left:-23px;top:17px;bottom:13px;width:24px;
+  background:radial-gradient(circle at 19px 18px,#f7ede0 0 7px,#907a6d 7.5px 8.5px,transparent 9px) 0 0/24px 54px repeat-y;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-workspace::after {
+  content:"";position:absolute;left:-29px;top:-12px;width:50px;height:45px;
+  border:6px solid #444f51;border-radius:3px 3px 6px 6px;transform:rotate(-8deg);
+  box-shadow:2px 3px #e2e0d6;pointer-events:none;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-workspace-heading {
+  border:0 !important;border-bottom:1px dashed #d9c7b8 !important;
+  padding:21px 20px 11px !important;gap:9px !important;min-width:0;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-workspace-heading h2 {
+  display:inline-block !important;color:#422f2f !important;
+  font-family:var(--gb-pencil) !important;font-weight:900 !important;
+  background:#ffe49f !important;padding:4px 18px !important;
+  transform:rotate(-2deg);box-shadow:3px 3px #d5ad63 !important;
+  border-radius:4px !important;font-size:24px !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-workspace-heading p {
+  color:#364766 !important;font-size:13px !important;font-weight:680 !important;
+  margin:12px 0 0 !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-save-state {
+  background:#d9f6d5 !important;color:#21693b !important;
+  border-color:#b1d7aa !important;box-shadow:2px 3px #a0bf96a8 !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-toolbar {
+  gap:8px !important;border-bottom:0 !important;padding:10px 17px !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio :is(.gbmac-search,.gbmac-sort) {
+  background:#fffdfa !important;border:1px solid #cdbfb6 !important;
+  border-radius:10px !important;box-shadow:1px 2px #cdbcb2 !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-toggle {
+  color:#243b62 !important;font-weight:730 !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-shortcut-hint {
+  background:#fff9ef !important;border:0 !important;
+  box-shadow:0 2px #d6ba9e !important; margin:0 18px 10px !important;
+  border-radius:11px !important;padding:8px 13px !important;
+  font-size:12px !important;color:#1e4274 !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-table-actions {
+  padding:6px 17px 10px !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac :is(.gbmac-save,.gbmac-add-column) {
+  background:#d5eaff !important;color:#1854a8 !important;border:1px solid #a5c6ee !important;
+  border-radius:20px !important;box-shadow:1px 3px #b4c8da !important;font-weight:800 !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac .gbmac-save:disabled {
+  background:#d8d7d4 !important;color:#676e71 !important;border-color:#c9c5bf !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac :is(.gbmac-outline,.gbmac-undo) {
+  background:#fffdf8 !important;color:#1c58a3 !important;border-color:#a7c7e7 !important;
+  border-radius:20px !important;box-shadow:1px 2px #c2d2de !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-table-viewport {
+  border:1px solid #e3d1c0 !important;border-radius:9px !important;
+  background:#fffaf7 !important;margin:0 15px !important;
+  max-width:calc(100% - 30px) !important;
+  scrollbar-color:#dbb989 #f9eee1;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-table {
+  background:#fffaf4 !important;color:#27314a !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-table th {
+  background:#ffe9b4 !important;color:#403834 !important;
+  border-color:#eedac4 !important;font-size:12px !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-table th.gbmac-pin-name {
+  background:#dfe3ff !important;color:#1e345e !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-table th.gbmac-attempt:nth-child(5n+1) {background:#ffe9c7 !important;}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-table th.gbmac-attempt:nth-child(5n+2) {background:#d9f2ec !important;}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-table th.gbmac-attempt:nth-child(5n+3) {background:#eddff8 !important;}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-table td {
+  background:#fff9f1 !important;border-color:#eadacc !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-table tbody tr:nth-child(even) td {
+  background:#fdf4ec !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-table tbody td.gbmac-pin-name {
+  background:#f6f2ee !important;color:#133c79 !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-table tbody td.gbmac-pin-index {
+  background:#ffeab6 !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-table :is(input,.hr-grade-input) {
+  background:#fffdfa !important;border:1px solid #d9c7ba !important;
+  border-radius:9px !important;box-shadow:inset 0 1px 3px #5f4a3122 !important;
+  color:#1c2634 !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-table :is(input,.hr-grade-input):focus {
+  outline:2px solid #327aca !important;outline-offset:1px !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-table-footer {
+  border:0 !important;padding:12px 19px !important;background:transparent !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-table-footer span {
+  color:#79516b !important;font-weight:700 !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-more {
+  background:var(--gb-paper-grain),#fffcf6 !important;
+  border:0 !important;border-radius:15px !important;color:#16478b !important;
+  box-shadow:0 4px 0 #d9c4aa,0 8px 15px #795f4830 !important;
+  font-weight:800 !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio :is(.gradebook-studio-create,.gradebook-assignment-note,.gradebook-lifecycle-banner,.gradebook-studio-empty) {
+  background:var(--gb-paper-grain),#fffaf2 !important;border:1px solid #dbc1a4 !important;
+  box-shadow:var(--gb-paper-shadow) !important;color:#294365 !important;
+}
+/* Three scrapbook footer cards, still the existing live footer content. */
+html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] > footer.footer {
+  background:transparent !important;border:0 !important;box-shadow:none !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] .signature-footer-expanded-panel {
+  background:transparent !important;border:0 !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] .signature-footer-v50-main {
+  display:grid !important;grid-template-columns:1fr 1.1fr 1.2fr !important;
+  gap:20px !important;align-items:stretch !important;
+  width:min(1450px,calc(100% - 28px)) !important;margin:0 auto !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] .signature-footer-v50-main > section {
+  position:relative !important;background:var(--gb-paper-grain),#fffaf2 !important;
+  border:5px solid #fffdf5 !important;border-radius:9px 16px 13px 10px !important;
+  box-shadow:3px 6px 0 #b9a28188,0 13px 18px #68503831 !important;
+  min-width:0 !important;transform:rotate(-1deg);
+}
+html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] .signature-footer-v50-main > section:nth-child(2) {
+  background:var(--gb-paper-grain),#edf5df !important;transform:rotate(1deg);
+}
+html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] .signature-footer-v50-main > section:nth-child(3) {
+  background:var(--gb-paper-grain),#fff0dc !important;transform:rotate(-.8deg);
+}
+html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] .signature-footer-v50-main > section::before {
+  content:"";position:absolute;z-index:3;pointer-events:none;top:-15px;left:35%;
+  width:85px;height:22px;background:#b6d9efaa;transform:rotate(9deg);
+}
+html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] .signature-footer-v50-main > section:nth-child(2)::before {
+  background:#f6d67eab;transform:rotate(-10deg);
+}
+html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] .signature-footer-v50-main > section:nth-child(3)::before {
+  background:#f1b0b8bc;transform:rotate(7deg);
+}
+html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] :is(.signature-footer-v50-profile h2,.signature-footer-v50-section-label) {
+  color:#185a3c !important;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] .gradebook-scrapbook-footer-motto {
+  margin:12px 0 2px !important;color:#365173 !important;
+  text-align:center;font:italic 700 13px/1.4 var(--gb-pencil);
+}
+html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] .signature-footer-v50-brand::after {
+  content:"❀  ✿";position:absolute;bottom:4px;left:9px;
+  color:#e5a45d;font-size:28px;pointer-events:none;
+}
+html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio :is(button,select,input,textarea):focus-visible,
+html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] .brian-nav :is(button,a):focus-visible {
+  outline:3px solid #245ec1 !important;outline-offset:2px !important;
+}
+@media(max-width:1000px) {
+  html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-hero-media {
+    background-position:110% center !important;background-size:auto 95% !important;
+  }
+  html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-tabs {
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  }
+  html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] .signature-footer-v50-main {
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+  html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] .signature-footer-v50-main > section:first-child {
+    grid-column:1 / -1;
+  }
+}
+@media(max-width:650px) {
+  html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio {
+    width:calc(100% - 18px) !important;
+  }
+  html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-shell.gbmac-hero-canvas.gbmac-hero-refined.gbmac-hero-command {
+    min-height:0 !important;
+  }
+  html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-hero-content {
+    margin:13px auto 18px !important;width:calc(100% - 26px) !important;
+    transform:none;max-width:none !important;
+  }
+  html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-hero-media {
+    opacity:.22 !important;background-size:cover !important;
+  }
+  html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-hero-command .gbmac-shell-title h1 {
+    font-size:43px !important;
+  }
+  html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-tabs {
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:9px !important;
+  }
+  html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-workspace {
+    margin-left:9px !important;padding-left:9px !important;
+  }
+  html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-table-viewport {
+    margin:0 7px !important;max-width:calc(100% - 14px) !important;
+  }
+  html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-workspace-heading {
+    align-items:flex-start !important;flex-wrap:wrap !important;
+  }
+  html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] .signature-footer-v50-main {
+    display:grid !important;grid-template-columns:minmax(0,1fr) !important;
+  }
+  html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] .signature-footer-v50-main > section:first-child {
+    grid-column:auto;
+  }
+}
+@media print {
+  html[data-gradebook-scrapbook="on"] body #root#root .app-shell[data-route="tool"][data-tool="gradebook-studio"] {background:#fff !important;}
+  html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio .gbmac-workspace {box-shadow:none !important;}
+  html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio :is(.gbmac-workspace::before,.gbmac-workspace::after) {display:none !important;}
+}
+@media(prefers-reduced-motion:reduce) {
+  html[data-gradebook-scrapbook="on"] body #root#root .gbmac-studio * {
+    animation-duration:.01ms !important;transition-duration:.01ms !important;
+  }
+}
