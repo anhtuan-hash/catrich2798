@@ -270,7 +270,7 @@ html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbo
   html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-roster-head {
     min-height: 34px !important;
   }
-  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-roster-head::before { content: 'STT'; }
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-roster-head::before { content: none !important; display: none !important; }
   html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-m3-roster-entry > label { min-height: 46px !important; }
   html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-m3-attendance-status {
     grid-area: 1 / 4 !important;
@@ -468,4 +468,44 @@ html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbo
 }
 @media (prefers-reduced-motion: reduce) {
   html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.awu-feature-tile,.awu-feature-tile__art,.attendance-manage-class-tile) { transition: none !important; }
+}
+
+
+/* Register header: four real columns match the student rows. No generated STT
+   that could collide with the first student heading at browser font scaling. */
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-roster-head {
+  grid-template-rows: auto !important;
+  align-items: center !important;
+  min-height: 42px !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-roster-head::before {
+  content: none !important;
+  display: none !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-roster-head > span {
+  min-width: 0 !important;
+  position: static !important;
+  display: block !important;
+  align-self: center !important;
+  margin: 0 !important;
+  line-height: 1.35 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  letter-spacing: .025em !important;
+}
+@container roll-register (min-width: 610px) {
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-roster-head {
+    grid-template-columns: 32px minmax(120px, 1fr) minmax(74px, .4fr) minmax(210px, .95fr) !important;
+  }
+}
+@container roll-register (max-width: 609px) {
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-roster-head {
+    grid-template-columns: 32px minmax(0, 1fr) minmax(65px, .5fr) !important;
+    gap: 7px !important;
+    padding: 8px !important;
+  }
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-roster-head > span:last-child {
+    display: none !important; /* status switches are stacked below the student on narrow screens */
+  }
 }
