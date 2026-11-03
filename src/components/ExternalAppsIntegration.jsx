@@ -39,7 +39,7 @@ function tone(value = '') {
   return TONES[hash % TONES.length];
 }
 
-function WebsiteAppCard({ app, onOpen, language = 'vi' }) {
+export function WebsiteAppCard({ app, onOpen, language = 'vi' }) {
   const htmlApp = app.sourceType === EXTERNAL_APP_SOURCE_HTML;
   const group = GROUPS[app.groupId] || null;
   const accent = app.accent || group?.accent || tone(app.externalUrl || app.fileName || app.title);

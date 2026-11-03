@@ -136,7 +136,7 @@ export function AppsDirectoryHero({ language, isAdmin, editMode, saving, visible
     <header className="editorial-apps-hero">
       <div className="editorial-apps-hero-copy">
         <p className="editorial-apps-eyebrow">BRIAN ENGLISH · APP DIRECTORY</p>
-        <h1>{vi ? <>Kho <em>ứng dụng</em><br />dành cho giáo viên</> : <>Teacher <em>app</em><br />directory</>}</h1>
+        <h1>{vi ? <><span className="editorial-apps-title-line">Kho <em>ứng dụng</em></span><br /><span className="editorial-apps-subtitle-line">dành cho giáo viên</span></> : <><span className="editorial-apps-title-line">Teacher <em>app</em></span><br /><span className="editorial-apps-subtitle-line">directory</span></>}</h1>
         <p className="editorial-apps-lede">
           {vi
             ? 'Khám phá và sử dụng các ứng dụng học tập hữu ích dành riêng cho giáo viên Brian English.'

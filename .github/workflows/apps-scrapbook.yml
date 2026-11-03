@@ -1,0 +1,45 @@
+name: Apps Scrapbook
+on:
+  pull_request:
+    paths:
+      - 'src/utils/appsScrapbookTheme.js'
+      - 'src/features/apps-scrapbook/**'
+      - 'src/components/admin/AppsScrapbookAdminPanel.*'
+      - 'src/components/GlobalFlatNavigation.jsx'
+      - 'src/components/GlobalCompactNavigation.jsx'
+      - 'src/components/mobile/MobileAppShell.jsx'
+      - 'src/components/Footer.jsx'
+      - 'src/pages/Settings.jsx'
+      - 'src/pages/appsDirectoryComponents.jsx'
+      - 'public/assets/apps-scrapbook/**'
+      - 'supabase/migrations/*apps_scrapbook*'
+      - 'scripts/test-apps-scrapbook*'
+      - 'tests/fixtures/apps-scrapbook.*'
+      - '.github/workflows/apps-scrapbook.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Server-confirmed switching and theme isolation
+        run: node --test scripts/test-apps-scrapbook.mjs scripts/test-dashboard-scrapbook.mjs scripts/test-november-theme.mjs
+      - name: Existing navigation and footer contracts
+        run: node --test scripts/test-global-dashboard-footer-v13.mjs scripts/test-halloween-navbar.mjs scripts/test-halloween-footer.mjs scripts/test-halloween-home-v4.mjs
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+      - name: Apps, admin toggle and responsive layout
+        run: node scripts/test-apps-scrapbook-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: apps-scrapbook
+          path: test-results/apps-scrapbook/

@@ -11,6 +11,7 @@ import MobileTopBar from './MobileTopBar.jsx';
 import { useHalloweenNavbarTheme } from '../../utils/halloweenNavbarTheme.js';
 import { useHalloweenHomeTheme } from '../../utils/halloweenHomeTheme.js';
 import { useDashboardScrapbookTheme } from '../../utils/dashboardScrapbookTheme.js';
+import { useAppsScrapbookTheme } from '../../utils/appsScrapbookTheme.js';
 import MobileBottomNavigation from './MobileBottomNavigation.jsx';
 import MobileMoreSheet from './MobileMoreSheet.jsx';
 import MobileAccountMenu from './MobileAccountMenu.jsx';
@@ -153,7 +154,8 @@ export default function MobileAppShell({
   const seasonalNavbar = useHalloweenNavbarTheme();
   const halloweenHome = useHalloweenHomeTheme();
   const scrapbook = useDashboardScrapbookTheme();
-  const seasonalHome = { ...halloweenHome, enabled: halloweenHome.enabled && !(scrapbook.enabled && route === 'dashboard') };
+  const appsScrapbook = useAppsScrapbookTheme();
+  const seasonalHome = { ...halloweenHome, enabled: halloweenHome.enabled && !(scrapbook.enabled && route === 'dashboard') && !(appsScrapbook.enabled && route === 'apps') };
   const [moreOpen, setMoreOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
