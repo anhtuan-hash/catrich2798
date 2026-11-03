@@ -280,9 +280,6 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
   const [proofPreviewUrl, setProofPreviewUrl] = useState('');
   const [historyProofUrl, setHistoryProofUrl] = useState('');
   const [historyProofLoading, setHistoryProofLoading] = useState(false);
-  const [historyProofError, setHistoryProofError] = useState('');
-  const [historyProofOpen, setHistoryProofOpen] = useState(false);
-  const [historyProofRefreshKey, setHistoryProofRefreshKey] = useState(0);
   const fileRef = useRef(null);
   const proofInputRef = useRef(null);
 
@@ -1555,12 +1552,9 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
 
   const selectedSession = combinedHistorySessions.find((session) => String(session.id) === String(selectedSessionId)) || calendarSessions.find((session) => String(session.id) === String(selectedSessionId));
 
-  // A proof is private. Refresh its short-lived signed link when the session
-  // changes or when the viewer opens/retries; never expose a public bucket URL.
   useEffect(() => {
     let cancelled = false;
     setHistoryProofUrl('');
-    setHistoryProofError('');
     if (!client || view !== 'history' || !canAccessAttendanceView('history') || !selectedSession?.proof_path) {
       setHistoryProofLoading(false);
       return undefined;
@@ -1569,41 +1563,15 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
     client.storage.from(ATTENDANCE_PROOF_BUCKET).createSignedUrl(selectedSession.proof_path, 300)
       .then(({ data, error: signedUrlError }) => {
         if (cancelled) return;
-        if (signedUrlError || !data?.signedUrl) {
-          setHistoryProofError(signedUrlError?.message || 'Không thể mở ảnh đã lưu. Vui lòng thử tải lại.');
+        setHistoryProofLoading(false);
+        if (signedUrlError) {
+          setHistoryProofUrl('');
           return;
         }
-        setHistoryProofUrl(data.signedUrl);
-      })
-      .catch((proofError) => {
-        if (!cancelled) setHistoryProofError(proofError?.message || 'Không thể kết nối để tải ảnh.');
-      })
-      .finally(() => {
-        if (!cancelled) setHistoryProofLoading(false);
+        setHistoryProofUrl(data?.signedUrl || '');
       });
     return () => { cancelled = true; };
-  }, [view, selectedSession?.id, selectedSession?.proof_path, currentUser?.permissions, systemRole, historyProofRefreshKey]);
-
-  useEffect(() => { setHistoryProofOpen(false); }, [view, selectedSession?.id]);
-
-  useEffect(() => {
-    if (!historyProofOpen) return undefined;
-    const onKeyDown = (event) => {
-      if (event.key === 'Escape') setHistoryProofOpen(false);
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [historyProofOpen]);
-
-  function openHistoryProof() {
-    if (!selectedSession?.proof_path || !canAccessAttendanceView('history')) return;
-    setHistoryProofOpen(true);
-    setHistoryProofRefreshKey((value) => value + 1);
-  }
-
-  function retryHistoryProof() {
-    setHistoryProofRefreshKey((value) => value + 1);
-  }
+  }, [view, selectedSession?.id, selectedSession?.proof_path, currentUser?.permissions, systemRole]);
 
   const selectedAbsentRecords = records.filter((record) => record.status === ATTENDANCE_STATUS.ABSENT);
   const selectedLateRecords = records.filter((record) => record.status === ATTENDANCE_STATUS.LATE);
@@ -1870,7 +1838,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
                 <div className="ahv3__hero">
                   <div className="ahv3__hero-copy"><span className={`att-m3-status-chip is-${selectedSession.session_status === 'cancelled' ? 'cancelled' : 'completed'}`}>{selectedSession.session_status === 'cancelled' ? 'Đã hủy' : 'Đã điểm danh'}</span><h2>{selectedSession.class_name}</h2><div className="ahv3__hero-chips"><span className={`ahv3__type is-${selectedSession.class_type}`}>{historyClassTypeLabel(selectedSession)}</span><span className="att-m3-period-chip">{selectedSession.session_status === 'cancelled' ? '0 tiết' : `${String(selectedSession.lesson_periods || 1).replace('.', ',')} tiết`}</span><span>{formatDate(selectedSession.attendance_date)}</span><span>{selectedSession.teaching_room || 'Chưa ghi phòng'}</span></div></div>
                   <div className="ahv3__hero-art" aria-hidden="true"><span className="is-leaf is-leaf-1" /><span className="is-leaf is-leaf-2" /><span className="is-book is-book-1" /><span className="is-book is-book-2" /><span className="is-book is-book-3" /></div>
-                  <div className="ahv3__actions">{selectedSession.proof_path ? <button type="button" className="ahv3__view-photo" onClick={openHistoryProof}><Icon name="camera" size={16} /> Xem ảnh đã chụp</button> : null}{canAccessAttendanceView('report') && !isSupplementalHistorySession(selectedSession) ? <button type="button" className="ahv3__report-button" onClick={() => { if (selectedSession.attendance_date) setReportMonth(selectedSession.attendance_date.slice(0, 7)); setView('report'); }}>Xem báo cáo tháng</button> : null}{canDeleteAttendanceHistory ? <button type="button" className="ahv3__delete-button" disabled={busy} onClick={() => deleteAttendanceSession(selectedSession)}><Icon name="trash" size={17} />Đưa vào Kho lưu trữ</button> : null}</div>
+                  <div className="ahv3__actions">{selectedSession.proof_path ? <a className="ahv3__view-photo" href={historyProofUrl || undefined} target="_blank" rel="noopener noreferrer" aria-disabled={!historyProofUrl} onClick={(event) => { if (!historyProofUrl) { event.preventDefault(); setError(historyProofLoading ? 'Ảnh đang được tải, vui lòng thử lại.' : 'Chưa thể tải ảnh minh chứng lúc này.'); } }}><Icon name="camera" size={16} />{historyProofLoading ? 'Đang tải ảnh…' : 'Xem ảnh đã chụp'}</a> : null}{canAccessAttendanceView('report') && !isSupplementalHistorySession(selectedSession) ? <button type="button" className="ahv3__report-button" onClick={() => { if (selectedSession.attendance_date) setReportMonth(selectedSession.attendance_date.slice(0, 7)); setView('report'); }}>Xem báo cáo tháng</button> : null}{canDeleteAttendanceHistory ? <button type="button" className="ahv3__delete-button" disabled={busy} onClick={() => deleteAttendanceSession(selectedSession)}><Icon name="trash" size={17} />Đưa vào Kho lưu trữ</button> : null}</div>
                 </div>
 
                 <h3 className="ahv3__section-title is-info"><span aria-hidden="true"><Icon name="calendar" size={14} /></span>Thông tin buổi học</h3>
@@ -1883,7 +1851,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
                   <article><span className="ahv3__info-icon is-purple" aria-hidden="true"><Icon name="periods" size={19} /></span><div><span>Số tiết</span><b>{selectedSession.session_status === 'cancelled' ? '0 tiết' : `${String(selectedSession.lesson_periods || 1).replace('.', ',')} tiết`}</b></div></article>
                 </div>
 
-                {selectedSession.proof_path ? <section className="ahv3__proof"><header><div><span className="ahv3__proof-icon" aria-hidden="true"><Icon name="camera" size={18} /></span><div><strong>Minh chứng hình ảnh</strong><small>Chỉ người có quyền xem Lịch sử mới mở được ảnh.</small></div></div><button type="button" onClick={openHistoryProof}>Xem ảnh lớn</button></header>{historyProofLoading ? <div className="ahv3__proof-loading" role="status">Đang tải ảnh minh chứng…</div> : historyProofUrl && !historyProofError ? <button className="ahv3__proof-image" type="button" onClick={openHistoryProof} aria-label="Xem ảnh minh chứng toàn màn hình"><img src={historyProofUrl} alt={`Minh chứng điểm danh ${selectedSession.class_name} ngày ${formatDate(selectedSession.attendance_date)}`} onError={() => setHistoryProofError('Không thể hiển thị ảnh. Vui lòng tải lại.')} /></button> : <div className="ahv3__proof-loading" role="status"><span>{historyProofError || 'Không thể tải ảnh minh chứng lúc này.'}</span><button type="button" onClick={retryHistoryProof}>Thử lại</button></div>}</section> : null}
+                {selectedSession.proof_path ? <section className="ahv3__proof"><header><div><span className="ahv3__proof-icon" aria-hidden="true"><Icon name="camera" size={18} /></span><div><strong>Minh chứng hình ảnh</strong><small>Ảnh được lưu riêng tư và chỉ mở bằng liên kết tạm thời.</small></div></div>{historyProofUrl ? <a href={historyProofUrl} target="_blank" rel="noreferrer">Mở ảnh lớn</a> : null}</header>{historyProofLoading ? <div className="ahv3__proof-loading">Đang tải ảnh minh chứng…</div> : historyProofUrl ? <a className="ahv3__proof-image" href={historyProofUrl} target="_blank" rel="noreferrer"><img src={historyProofUrl} alt={`Minh chứng điểm danh ${selectedSession.class_name} ngày ${formatDate(selectedSession.attendance_date)}`} /></a> : <div className="ahv3__proof-loading">Không thể tải ảnh minh chứng lúc này.</div>}</section> : null}
 
                 <section className="ahv3__audit-actor-panel" aria-label="Nhật ký người thao tác">
                   <header className="ahv3__audit-actor-panel__head">
@@ -1952,29 +1920,5 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
       </div>, document.body,
     ) : null;
 
-  const proofViewer = historyProofOpen && selectedSession?.proof_path && canAccessAttendanceView('history')
-    ? createPortal(
-      <div className="ahv3__proof-lightbox" data-global-motion-isolate="true" role="presentation"
-        onMouseDown={(event) => { if (event.target === event.currentTarget) setHistoryProofOpen(false); }}>
-        <section className="ahv3__proof-dialog" role="dialog" aria-modal="true"
-          aria-label={`Ảnh minh chứng điểm danh ${selectedSession.class_name}`}>
-          <header>
-            <div><strong>Ảnh minh chứng điểm danh</strong><span>{selectedSession.class_name} · {formatDate(selectedSession.attendance_date)}</span></div>
-            <button type="button" autoFocus onClick={() => setHistoryProofOpen(false)} aria-label="Đóng ảnh">×</button>
-          </header>
-          <div className="ahv3__proof-dialog-body">
-            {historyProofLoading ? <p role="status">Đang tải ảnh đã lưu…</p>
-              : historyProofUrl && !historyProofError ? <img src={historyProofUrl} alt={`Ảnh điểm danh ${selectedSession.class_name} ngày ${formatDate(selectedSession.attendance_date)}`}
-                onError={() => setHistoryProofError('Không thể hiển thị ảnh. Liên kết có thể đã hết hạn.')} />
-              : <div className="ahv3__proof-dialog-error" role="alert"><p>{historyProofError || 'Chưa thể mở ảnh minh chứng.'}</p><button type="button" onClick={retryHistoryProof}>Tải lại ảnh</button></div>}
-          </div>
-          <footer>
-            <span>Ảnh được lưu riêng tư trong hệ thống.</span>
-            {historyProofUrl && !historyProofError ? <a href={historyProofUrl} target="_blank" rel="noreferrer">Mở ảnh trong tab mới</a> : null}
-          </footer>
-        </section>
-      </div>, document.body,
-    ) : null;
-
-  return <>{tab}{overlay}{proofViewer}</>;
+  return <>{tab}{overlay}</>;
 }
