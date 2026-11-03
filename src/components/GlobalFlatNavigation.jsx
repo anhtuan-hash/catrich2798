@@ -7,6 +7,7 @@ import { useNovemberHomeTheme } from '../utils/novemberHomeTheme.js';
 import { useDashboardScrapbookTheme } from '../utils/dashboardScrapbookTheme.js';
 import { useAppsScrapbookScope } from '../utils/appsScrapbookTheme.js';
 import { useAttendanceScrapbookScope } from '../utils/attendanceScrapbookTheme.js';
+import { useGradebookScrapbookScope } from '../utils/gradebookScrapbookTheme.js';
 import { writePresentationOverride } from '../device/presentationMode.js';
 import GlobalWindowsPhone8Loading from './GlobalWindowsPhone8Loading.jsx';
 import GlobalPageLaunchEffect from './GlobalPageLaunchEffect.jsx';
@@ -64,6 +65,7 @@ import './HalloweenNavigationRefinement.css';
 import '../features/dashboard-scrapbook/dashboard-scrapbook.css';
 import '../features/apps-scrapbook/apps-scrapbook.css';
 import '../features/attendance-scrapbook/attendance-scrapbook.css';
+import '../features/gradebook-scrapbook/gradebook-scrapbook.css';
 
 export default function GlobalFlatNavigation(props) {
   const presentation = usePresentationMode();
@@ -72,6 +74,7 @@ export default function GlobalFlatNavigation(props) {
   const scrapbook = useDashboardScrapbookTheme();
   useAppsScrapbookScope(props.route);
   useAttendanceScrapbookScope(props.route);
+  useGradebookScrapbookScope(props.route, props.selectedTool?.slug);
   useEffect(() => {
     const root = document.documentElement;
     const shell = document.querySelector('.app-shell');
