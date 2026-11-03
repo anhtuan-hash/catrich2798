@@ -5,7 +5,7 @@ const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const body=[
 'The James Webb Space Telescope is designed to conduct infrared astronomy, and the telescope is equipped with advanced instruments.',
 'The largest telescope observes distant galaxies and the atmosphere of exoplanets, allowing scientists to conduct important research in cosmology.',
-'The Webb was launched in 2021 and arrived in 2022, while the telescope operates in a solar orbit around the Sun.',
+'The Webb was launched in 2021 on a scientific mission to observe the solar system. It arrived in 2022 and started observations in a solar orbit around the Sun.',
 'The resolution of infrared images is important because wavelengths of the visible spectrum are different from infrared wavelengths.',
 'Researchers study the formation of stars in the universe with a spacecraft and a satellite.'
 ].join('\n');
