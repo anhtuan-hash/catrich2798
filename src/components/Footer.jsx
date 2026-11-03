@@ -13,6 +13,7 @@ import { useNovemberHomeTheme } from '../utils/novemberHomeTheme.js';
 import { useDashboardScrapbookTheme } from '../utils/dashboardScrapbookTheme.js';
 import { useAppsScrapbookTheme } from '../utils/appsScrapbookTheme.js';
 import { useAttendanceScrapbookTheme } from '../utils/attendanceScrapbookTheme.js';
+import { useGradebookScrapbookTheme } from '../utils/gradebookScrapbookTheme.js';
 
 const ENGLISH_DETAILS = {
   language: 'EN',
@@ -250,11 +251,13 @@ export default function Footer({ language, route = '' }) {
   const scrapbook = useDashboardScrapbookTheme();
   const appsScrapbook = useAppsScrapbookTheme();
   const attendanceScrapbook = useAttendanceScrapbookTheme();
+  const gradebookScrapbook = useGradebookScrapbookTheme();
   const resolvedRoute = route || (typeof document !== 'undefined' ? (document.querySelector('.app-shell')?.dataset?.route || '') : '');
   const scrapbookActive = scrapbook.enabled && resolvedRoute === 'dashboard';
   const appsScrapbookActive = appsScrapbook.enabled && resolvedRoute === 'apps';
   const attendanceScrapbookActive = attendanceScrapbook.enabled && resolvedRoute === 'attendance';
-  const seasonalHome = { ...halloweenHome, enabled: halloweenHome.enabled && !scrapbookActive && !appsScrapbookActive && !attendanceScrapbookActive };
+  const gradebookScrapbookActive = gradebookScrapbook.enabled && resolvedRoute === 'tool' && typeof document !== 'undefined' && document.querySelector('.app-shell')?.dataset.tool === 'gradebook-studio';
+  const seasonalHome = { ...halloweenHome, enabled: halloweenHome.enabled && !scrapbookActive && !appsScrapbookActive && !attendanceScrapbookActive && !gradebookScrapbookActive };
   const content = isVi ? VIETNAMESE_DETAILS : ENGLISH_DETAILS;
   const [portfolioOpen, setPortfolioOpen] = React.useState(false);
   const portfolioTriggerRef = React.useRef(null);
@@ -296,6 +299,7 @@ export default function Footer({ language, route = '' }) {
             {scrapbookActive ? <p className="dashboard-scrapbook-footer-motto">Better Learners · Brighter Futures</p> : null}
             {appsScrapbookActive ? <p className="apps-scrapbook-footer-motto">Better Learners · Brighter Futures</p> : null}
             {attendanceScrapbookActive ? <p className="attendance-scrapbook-footer-motto">Better Learners · Brighter Futures</p> : null}
+            {gradebookScrapbookActive ? <p className="gradebook-scrapbook-footer-motto">Better Learners · Brighter Futures</p> : null}
           </section>
 
           <section className="signature-footer-v50-profile">
