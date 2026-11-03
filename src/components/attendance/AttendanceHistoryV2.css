@@ -2320,3 +2320,136 @@
     order: 10;
   }
 }
+
+
+/* Attendance proof replay: clear photo affordance in each saved session. */
+.ahv3__shell .ahv3__card-photo-icon {
+  display: inline-grid;
+  flex: 0 0 22px;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  background: #e4f4ee;
+  color: #15835a;
+}
+.ahv3__shell .ahv3__actions .ahv3__view-photo,
+.ahv3__shell .ahv3__proof header > button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  min-height: 34px;
+  border: 1px solid #a8dbc6;
+  border-radius: 10px;
+  background: #ddf7ea;
+  color: #126443;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ahv3__shell .ahv3__actions .ahv3__view-photo:hover,
+.ahv3__shell .ahv3__proof header > button:hover { background: #c6efdc; }
+.ahv3__shell .ahv3__proof-image {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  text-align: left;
+  cursor: zoom-in;
+}
+.ahv3__shell .ahv3__proof-loading { gap: 8px; padding: 12px; text-align: center; }
+.ahv3__shell .ahv3__proof-loading button {
+  padding: 6px 11px;
+  border: 1px solid #b7cdec;
+  border-radius: 8px;
+  background: #fff;
+  color: #2055a1;
+  cursor: pointer;
+}
+.ahv3__proof-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483500;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(14, 25, 43, .82);
+  backdrop-filter: blur(5px);
+}
+.ahv3__proof-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(1080px, 100%);
+  max-height: min(92dvh, 1000px);
+  overflow: hidden;
+  border: 1px solid #dae6f5;
+  border-radius: 18px;
+  background: #fff;
+  color: #203550;
+  box-shadow: 0 28px 70px rgba(0,0,0,.32);
+}
+.ahv3__proof-dialog > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 13px 18px;
+  border-bottom: 1px solid #e4eaf2;
+}
+.ahv3__proof-dialog > header > div { display: grid; gap: 4px; min-width: 0; }
+.ahv3__proof-dialog > header strong { font-size: 16px; }
+.ahv3__proof-dialog > header span { font-size: 12px; color: #60738e; }
+.ahv3__proof-dialog > header button {
+  flex: 0 0 37px;
+  width: 37px;
+  height: 37px;
+  border: 0;
+  border-radius: 10px;
+  background: #eff4fa;
+  color: #233d5b;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+.ahv3__proof-dialog-body {
+  display: grid;
+  min-height: 150px;
+  overflow: auto;
+  place-items: center;
+  padding: 14px;
+  background: #eef3fa;
+}
+.ahv3__proof-dialog-body img {
+  display: block;
+  max-width: 100%;
+  max-height: 75dvh;
+  object-fit: contain;
+  border-radius: 5px;
+}
+.ahv3__proof-dialog-error { display: grid; justify-items: center; gap: 12px; text-align: center; }
+.ahv3__proof-dialog-error p { margin: 0; color: #9c3838; }
+.ahv3__proof-dialog-error button {
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 10px;
+  background: #2269b3;
+  color: #fff;
+  cursor: pointer;
+}
+.ahv3__proof-dialog > footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 18px;
+  font-size: 12px;
+  color: #718096;
+}
+.ahv3__proof-dialog > footer a { color: #1657a4; font-weight: 750; }
+@media (max-width: 600px) {
+  .ahv3__proof-lightbox { padding: 8px; }
+  .ahv3__proof-dialog { max-height: 96dvh; border-radius: 12px; }
+  .ahv3__proof-dialog > footer { flex-wrap: wrap; }
+}
