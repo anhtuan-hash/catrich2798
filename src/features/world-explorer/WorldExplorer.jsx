@@ -33,7 +33,7 @@ function publicationTimestamp(value, language) {
   }).format(new Date(value));
 }
 
-function Reader({ article, onClose, language, panelRef, currentUser, learningEnabled }) {
+function Reader({ article, onClose, language, panelRef, currentUser, learningEnabled, onNext }) {
   if (!article) return null;
   const vi = language !== 'en';
   const vocabulary = Array.isArray(article.vocabulary) ? article.vocabulary : [];
@@ -52,9 +52,13 @@ function Reader({ article, onClose, language, panelRef, currentUser, learningEna
           <h3 id="we-expanded-title" lang="en">{article.title_en}</h3>
           <p lang="vi" className="we-expanded-subtitle">{article.title_vi}</p>
         </div>
-        <button type="button" className="we-collapse-button" onClick={onClose} aria-label={vi ? 'Thu gọn bài viết' : 'Collapse article'}>
-          <ChevronUp size={17} aria-hidden="true" /> {vi ? 'Thu gọn' : 'Collapse'}
-        </button>
+        <div className="we-learning-heading-actions">
+          {learningEnabled ? <button type="button" className="we-learning-jump" onClick={() => document.getElementById('we-reading-practice')?.scrollIntoView({ behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ? 'auto' : 'smooth', block: 'start' })}>{vi ? 'Luyện tập ngay' : 'Practice Now'}</button> : null}
+          {onNext ? <button type="button" className="we-learning-next" onClick={onNext}>{vi ? 'Bài kế tiếp' : 'Next discovery'}</button> : null}
+          <button type="button" className="we-collapse-button" onClick={onClose} aria-label={vi ? 'Thu gọn bài viết' : 'Collapse article'}>
+            <ChevronUp size={17} aria-hidden="true" /> {vi ? 'Thu gọn' : 'Collapse'}
+          </button>
+        </div>
       </div>
 
       <div className="we-article-columns">
@@ -195,7 +199,7 @@ export default function WorldExplorer({ currentUser, language = 'vi' }) {
         </div>
       ) : <div className="we-empty"><div className="we-art"><Globe2 size={54}/></div><div><strong>{vi ? 'Chuyến khám phá đầu tiên đang được chuẩn bị' : 'Our first discovery is being prepared'}</strong><p>{vi ? 'Hệ thống đang tìm bài song ngữ có ảnh và nguồn hợp lệ.' : 'We are finding a bilingual illustrated story with usable sources.'}</p></div></div>}
       {loading ? <span className="we-loading" aria-live="polite">{vi ? 'Đang tải khám phá...' : 'Loading discoveries...'}</span> : null}
-      {selected ? <Reader article={selected} language={language} learningEnabled={learningEnabled} currentUser={currentUser} onClose={closeReader} panelRef={readerRef} /> : null}
+      {selected ? <Reader article={selected} language={language} learningEnabled={learningEnabled} currentUser={currentUser} onClose={closeReader} panelRef={readerRef} onNext={articles.length > 1 ? () => { const currentIndex = articles.findIndex(item => item.id === selected.id); setSelected(articles[(currentIndex + 1) % articles.length]); } : null} /> : null}
       {archive ? (
         <section className="we-archive-inline" id="we-archive-list" aria-label={vi ? 'Kho khám phá' : 'Discovery archive'} data-world-explorer-inline-archive>
           <div className="we-archive-heading">
