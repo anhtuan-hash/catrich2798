@@ -133,3 +133,14 @@ html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbo
 
 
 @media(max-width:800px){html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-main{grid-template-columns:minmax(0,1fr)!important;gap:25px!important;} html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-main>section{min-height:0!important;}}
+
+/* Keep every destination in the responsive grid, including phones where the base deck scrolls sideways. */
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-deck { grid-auto-flow:row!important;grid-auto-columns:auto!important;scroll-snap-type:none!important;overflow:visible!important;box-sizing:border-box!important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.awu-feature-tile,.attendance-manage-class-tile)::after {
+ content:''!important;pointer-events:none;position:absolute!important;inset:auto 0 0!important;height:6px!important;background:#fffdf7!important;
+ clip-path:polygon(0 42%,5% 17%,10% 60%,15% 29%,20% 70%,26% 32%,32% 56%,37% 18%,43% 53%,49% 23%,55% 65%,61% 28%,67% 55%,74% 16%,80% 57%,87% 30%,93% 62%,100% 25%,100% 100%,0 100%);
+}
+@media(min-width:801px){
+ html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-class-list::after {content:'';display:block;flex:0 0 87px;width:138px;height:87px;margin:14px auto 2px;background:url('/assets/attendance-scrapbook/books.svg') center/contain no-repeat;pointer-events:none;}
+ html[data-attendance-scrapbook="on"] #bes-supplemental-learning-admin .bes-supplemental-empty-state {background:url('/assets/attendance-scrapbook/books.svg') left 10px bottom 8px/95px auto no-repeat,var(--roll-paper)!important;padding-inline:105px!important;}
+}
