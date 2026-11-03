@@ -3,6 +3,7 @@ import { mkdtemp, mkdir, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { build } from 'vite';
+import react from '@vitejs/plugin-react';
 import { chromium, expect } from '@playwright/test';
 
 const base = 'http://ttcm.test';
@@ -33,7 +34,7 @@ try {
   await build({
     configFile: false, publicDir: false, logLevel: 'error',
     define: { 'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(api), 'import.meta.env.VITE_SUPABASE_ANON_KEY': '"qa-placeholder"' },
-    plugins: [{ name: 'isolated-channel-session', enforce: 'pre', transform(source, id) {
+    plugins: [react(), { name: 'isolated-channel-session', enforce: 'pre', transform(source, id) {
       if (!id.endsWith('/src/services/runtime/core.js')) return;
       return source.slice(0, source.indexOf('export async function bootRuntimeCore')) + `
         export function getRuntimeState(){return {ready:true, session:{user:{id:'fixture'}}, profile:{role:'admin'}}}
@@ -146,7 +147,16 @@ try {
   await phone.getByRole('button',{name:/Tất cả/}).first().click();
   await phone.locator('.ttcm-reader-card').first().click();
   await expect(phone.locator('.ttcm-reader-detail h2')).toBeVisible();
-  await phone.screenshot({path:join(screenshots,'dien-thoai.png')});
+  const mobileDetail = phone.locator('.ttcm-reader-detail');
+  await expect(mobileDetail).toHaveCSS('opacity','1');
+  const bounds = await mobileDetail.boundingBox();
+  assert.ok(bounds.y < 2 && bounds.height >= 840, 'mobile reading surface fills the viewport');
+  await phone.screenshot({path:join(screenshots,'dien-thoai.png'),animations:'disabled'});
+  await mobileDetail.getByRole('button',{name:'Phản hồi / hoàn thành'}).click();
+  const response = phone.locator('.ttcm-m3-response-dialog');
+  await response.locator('textarea').fill('Phản hồi đang soạn');
+  await expect(response.locator('textarea')).toHaveValue('Phản hồi đang soạn');
+  await response.getByRole('button',{name:'Đóng'}).click();
   await phone.locator('.ttcm-reader-back').click();
   await expect(phone.locator('.ttcm-reader-card').first()).toBeVisible();
   assert.ok(await phone.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
