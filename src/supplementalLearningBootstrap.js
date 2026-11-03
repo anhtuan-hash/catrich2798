@@ -22,6 +22,7 @@ let observer = null;
 let classQuery = '';
 let selectedClassId = '';
 let creatingClass = false;
+let returnAttendanceHash = '#/attendance';
 
 const canManage = () => canManageSupplementalLearning(runtime || {});
 const today = () => new Date().toISOString().slice(0, 10);
@@ -54,6 +55,7 @@ async function reload({ keepSelection = true } = {}) {
 let routeRestoreQueued = false;
 function shouldRestoreSupplementalRoute() {
   return Boolean(document.querySelector('.attendance-shell.is-standalone'))
+    && window.location.hash.split('?')[0] === '#/attendance'
     && new URLSearchParams(window.location.hash.split('?')[1] || '').get('tab') === 'supplemental';
 }
 function restoreSupplementalRoute() {
@@ -86,7 +88,8 @@ function ensureLauncher() {
 
 function openPanel() {
   if (!canManage()) return;
-  if (document.querySelector('.attendance-shell.is-standalone') && window.location.hash.startsWith('#/attendance')) {
+  if (document.querySelector('.attendance-shell.is-standalone') && window.location.hash.split('?')[0] === '#/attendance') {
+    if (!shouldRestoreSupplementalRoute()) returnAttendanceHash = window.location.hash;
     window.history.replaceState(null, '', '#/attendance?tab=supplemental');
   }
   let host = document.getElementById(HOST_ID);
@@ -94,7 +97,17 @@ function openPanel() {
   renderPanel();
   void reload();
 }
-function closePanel() { document.getElementById(HOST_ID)?.remove(); selectedClassId = ''; creatingClass = false; }
+function closePanel() {
+  const host = document.getElementById(HOST_ID);
+  // A pending observer can otherwise reopen the editor from its old deep link.
+  if (host && shouldRestoreSupplementalRoute()) {
+    window.history.replaceState(null, '', returnAttendanceHash);
+  }
+  host?.remove();
+  returnAttendanceHash = '#/attendance';
+  selectedClassId = '';
+  creatingClass = false;
+}
 
 function emptyClass() {
   return { id: '', className: '', subject: '', gradeLevel: '', room: '', startDate: today(), endDate: plusMonths(), weekdays: [2], startTime: '16:40', endTime: '17:15', note: '', active: true, teachers: [], members: [] };

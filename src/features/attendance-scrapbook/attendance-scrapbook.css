@@ -222,7 +222,7 @@ html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbo
 
 /* Notebook boards. Nine-slice edges stay small on long rosters and reports. */
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.attendance-class-list,.attendance-rollcall,.attendance-daily-overview,.ahv3__list,.ahv3__detail,.attendance-manage-detail-hero,.attendance-manage-detail-info-strip,.attendance-manage-detail-roster-card,.att-report-m3,.stud-att),
-html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin :is(.bes-supplemental-class-home,.bes-supplemental-editor-card) {
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin :is(.bes-supplemental-class-home,.bes-supplemental-editor-card) {
   border: 10px solid transparent !important;
   border-image: var(--roll-frame) 16 / 11px / 2px round !important;
   background-clip: padding-box !important; box-shadow: 0 5px 8px #4a52672b !important;
@@ -232,7 +232,7 @@ html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbo
   border: 0 !important; border-radius: 9px 5px 8px 5px !important;
 }
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.attendance-tabs,.attendance-content) :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea),
-html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea) {
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea) {
   background-color: #fffcf8 !important; border-color: #beccdf !important;
   color: #193955 !important;
 }
@@ -257,7 +257,7 @@ html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbo
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .ahv3__hero-art::after,
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-profile h2::before,
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-section-label::after,
-html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin .bes-supplemental-empty-state::after {
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-empty-state::after {
   content: ''; display:block; pointer-events:none;
   background-image: var(--roll-stickers) !important; background-repeat:no-repeat !important;
   background-size:400% 300% !important; background-color:transparent !important;
@@ -309,7 +309,7 @@ html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbo
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .ahv3__hero { position:relative; border:2px solid #fffaf4 !important; box-shadow:0 3px 5px #71657528 !important; }
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .ahv3__hero::before,
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-manage-detail-hero::before,
-html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin .bes-supplemental-class-form > section:first-child::before {
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-class-form > section:first-child::before {
   content:'';position:absolute;z-index:1;top:-3px;left:43%;width:21px;height:24px;
   pointer-events:none;transform:rotate(18deg);
   background:radial-gradient(ellipse at 50% 24%,#ffa9ad 0 18%,#ec6473 22% 36%,transparent 39%),
@@ -330,22 +330,53 @@ html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbo
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-report-m3__metrics>.is-purple { --paper-metric:#eee8fb; }
 
 /* Supplemental uses a separate DOM host even when mounted inline in Attendance. */
-html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin.bes-supplemental-workspace-host,
-html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin .bes-supplemental-dialog.bes-supplemental-admin-workspace,
-html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin .bes-supplemental-main { background:transparent !important; }
-html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin .bes-supplemental-header { background:var(--roll-strip) !important; border-radius:11px !important; color:#173655 !important; }
-html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin .bes-supplemental-class-form > section:first-child { position:relative; }
-html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin .bes-supplemental-class-form > section:nth-child(2) { background-color:#e9f3ff !important; }
-html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin .bes-supplemental-students-card { background-color:#ffecf2 !important; }
-html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin .bes-supplemental-empty-state { position:relative; background:var(--roll-paper) !important; }
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin.bes-supplemental-workspace-host,
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-dialog.bes-supplemental-admin-workspace,
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-main { background:transparent !important; }
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-header { background:var(--roll-strip) !important; border-radius:11px !important; color:#173655 !important; }
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-class-form > section:first-child { position:relative; }
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-class-form > section:nth-child(2) { background-color:#e9f3ff !important; }
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-students-card { background-color:#ffecf2 !important; }
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-empty-state { position:relative; background:var(--roll-paper) !important; }
 @media(min-width:801px) {
-  html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin .bes-supplemental-empty-state { min-height:195px; padding-inline:115px !important; }
-  html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin .bes-supplemental-empty-state::before, html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin .bes-supplemental-empty-state::after {
+  html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-empty-state { min-height:195px; padding-inline:115px !important; }
+  html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-empty-state::before, html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-empty-state::after {
     content:''; position:absolute;bottom:8px;width:88px;height:88px;pointer-events:none;
     background:var(--roll-stickers) 0 100% / 400% 300% no-repeat !important;
   }
-  html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin .bes-supplemental-empty-state::before { left:4px; }
-  html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin .bes-supplemental-empty-state::after { right:4px; background-position:33.3333% 100% !important; }
+  html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-empty-state::before { left:4px; }
+  html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-empty-state::after { right:4px; background-position:33.3333% 100% !important; }
+}
+
+/* The supplemental bridge mounts these sections inside the live workspace. */
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-class-form {
+  display: grid !important;
+  gap: 14px !important;
+}
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-savebar {
+  position: static !important;
+  grid-row: 1;
+  flex-wrap: wrap;
+  background: var(--roll-paper) !important;
+  border-color: #d9cfcc !important;
+  box-shadow: var(--roll-shadow);
+}
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-editor-card {
+  --page-tint: #fff9f2;
+  background: radial-gradient(circle at 6px 15px, #ad9d99 0 2px, #e3d9d1 3px, transparent 4px) left top / 14px 33px repeat-y,
+    var(--roll-grain), repeating-linear-gradient(0deg, transparent 0 25px, #849ac118 25px 26px), var(--page-tint) !important;
+  padding-inline-start: clamp(20px, 2vw, 30px) !important;
+}
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-class-form > section:nth-child(2) { --page-tint: #eef6ff; }
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-editor-card:is(.is-disabled, .bes-supplemental-students-card) { --page-tint: #fff0f4; }
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-class-toolbar {
+  background: var(--roll-paper) !important;
+  border-color: #e8d6c6 !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .bes-supplemental-admin-open .attendance-tabs > button.is-active:not(.bes-supplemental-nav-tab) {
+  color: #273c58 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 /* The public demonstration uses a different renderer. Keep its read-only labels. */
@@ -369,10 +400,10 @@ html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbo
   html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-deck { padding:10px 5px !important; }
   html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile { min-height:151px !important; padding:10px 9px 45px !important; }
   html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile__art { width:68px !important; height:50px !important; }
-  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-class-list::after, html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin .bes-supplemental-empty-state::after { display:none; }
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-class-list::after, html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-empty-state::after { display:none; }
   html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-m3-proof-card {padding-inline-end:12px !important;}
   html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-m3-proof-card::after {display:none;}
-  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.attendance-rollcall,.ahv3__detail,.att-report-m3,.stud-att),html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin .bes-supplemental-editor-card {border-width:5px !important;border-image-width:6px !important;}
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.attendance-rollcall,.ahv3__detail,.att-report-m3,.stud-att),html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-editor-card {border-width:5px !important;border-image-width:6px !important;}
 }
 @media print {
   html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-profile h2::before,html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-section-label::after,

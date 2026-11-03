@@ -123,6 +123,9 @@ try {
     await host.locator('[data-action=create-class]').click();
     const className=host.locator('[name=className]');
     await expect(className).toBeVisible();
+    const actions = host.locator('.bes-supplemental-savebar');
+    const [saveBar, firstField] = await Promise.all([actions.boundingBox(), className.boundingBox()]);
+    assert.ok(saveBar && firstField && saveBar.y + saveBar.height <= firstField.y, 'save actions sit above the fields at '+width);
     await className.fill('Lớp đang soạn');
     await flip(false);
     await expect(className).toHaveValue('Lớp đang soạn');
@@ -131,7 +134,11 @@ try {
     await snap('07-supplemental-form',width);
 
     await go('history');
+    await expect(host).toHaveCount(0);
+    await expect(page).toHaveURL(/#\/attendance\?tab=history$/);
     const session=page.locator('.ahv3__items > button').first();
+    const closeSheet = page.getByRole('button', {name:'Đóng chi tiết', exact:true});
+    if (width === 390 && await closeSheet.isVisible()) await closeSheet.click();
     await expect(session).toBeVisible();
     await session.click();
     await expect(page.locator('.ahv3__info-grid')).toBeVisible();
