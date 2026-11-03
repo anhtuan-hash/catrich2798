@@ -6,6 +6,7 @@ import { useNovemberHomeTheme } from '../../utils/novemberHomeTheme.js';
 import './world-explorer.css';
 
 const WorldExplorerAdmin = lazy(() => import('./WorldExplorerAdmin.jsx'));
+const WorldExplorerLearning = lazy(() => import('./WorldExplorerLearning.jsx'));
 const CATEGORIES = {
   culture: ['Culture & Traditions', 'Văn hóa & Truyền thống'],
   history: ['World History', 'Lịch sử thế giới'],
@@ -32,10 +33,20 @@ function publicationTimestamp(value, language) {
   }).format(new Date(value));
 }
 
-function Reader({ article, onClose, language, panelRef }) {
+function Reader({ article, onClose, language, panelRef, currentUser }) {
+  const [evidenceQuote, setEvidenceQuote] = useState('');
   if (!article) return null;
   const vi = language !== 'en';
   const vocabulary = Array.isArray(article.vocabulary) ? article.vocabulary : [];
+  const english = String(article.body_en || '');
+  const highlightAt = evidenceQuote ? english.indexOf(evidenceQuote) : -1;
+  const onEvidence = (quote) => {
+    if (!quote || !english.includes(quote)) return;
+    setEvidenceQuote(quote);
+    requestAnimationFrame(() => document.getElementById('we-english-reading')?.scrollIntoView({
+      block: 'start', behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ? 'auto' : 'smooth',
+    }));
+  };
   return (
     <article
       ref={panelRef}
@@ -57,15 +68,22 @@ function Reader({ article, onClose, language, panelRef }) {
       </div>
 
       <div className="we-article-columns">
-        <section className="we-article-language" lang="en" aria-label="English article">
+        <section className="we-article-language" id="we-english-reading" lang="en" aria-label="English article">
           <h4>ENGLISH</h4>
-          <p className="we-content">{article.body_en}</p>
+          <p className="we-content">{highlightAt < 0 ? article.body_en : <>
+            {english.slice(0, highlightAt)}<mark className="we-evidence-highlight">{evidenceQuote}</mark>
+            {english.slice(highlightAt + evidenceQuote.length)}
+          </>}</p>
         </section>
         <section className="we-article-language we-article-language--vi" lang="vi" aria-label={vi ? 'Bản dịch tiếng Việt' : 'Vietnamese translation'}>
           <h4>{vi ? 'TIẾNG VIỆT' : 'VIETNAMESE'}</h4>
           <p className="we-content">{article.body_vi}</p>
         </section>
       </div>
+
+      <Suspense fallback={<p className="we-learn-state" role="status">{vi ? 'Đang chuẩn bị bài luyện tập…' : 'Loading learning activities…'}</p>}>
+        <WorldExplorerLearning article={article} language={language} currentUser={currentUser} onEvidence={onEvidence} />
+      </Suspense>
 
       {article.fact_en ? (
         <section className="we-fact">
@@ -191,7 +209,7 @@ export default function WorldExplorer({ currentUser, language = 'vi' }) {
         </div>
       ) : <div className="we-empty"><div className="we-art"><Globe2 size={54}/></div><div><strong>{vi ? 'Chuyến khám phá đầu tiên đang được chuẩn bị' : 'Our first discovery is being prepared'}</strong><p>{vi ? 'Hệ thống đang tìm bài song ngữ có ảnh và nguồn hợp lệ.' : 'We are finding a bilingual illustrated story with usable sources.'}</p></div></div>}
       {loading ? <span className="we-loading" aria-live="polite">{vi ? 'Đang tải khám phá...' : 'Loading discoveries...'}</span> : null}
-      {selected ? <Reader article={selected} language={language} onClose={closeReader} panelRef={readerRef} /> : null}
+      {selected ? <Reader article={selected} key={selected.id} language={language} currentUser={currentUser} onClose={closeReader} panelRef={readerRef} /> : null}
       {archive ? (
         <section className="we-archive-inline" id="we-archive-list" aria-label={vi ? 'Kho khám phá' : 'Discovery archive'} data-world-explorer-inline-archive>
           <div className="we-archive-heading">
