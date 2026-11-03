@@ -37,7 +37,16 @@ export function buildWorldExplorerPack(article){
  for(const [name,meaning,re] of GRAMMAR){const s=sentences.find(v=>re.test(v.sentence));if(s)grammar.push({id:'g'+grammar.length,pattern:name,meaning,example:s.sentence,evidence:evidence(s)});}
  const questions=[];
  // True claims only: exactly quoted, not unsupported False statements.
- for(const s of sentences.slice(0,2))questions.push(q('true_false','This sentence appears in the reading:\n“'+s.sentence+'”','true',[{id:'true',text:'True'},{id:'false',text:'False'}],evidence(s),h,questions.length));
+ if(sentences[0])questions.push(q('true_false','This sentence appears in the reading:\n“'+sentences[0].sentence+'”','true',[{id:'true',text:'True'},{id:'false',text:'False'}],evidence(sentences[0]),h,questions.length));
+ // A false item is a modified quotation, never a claim that outside information is false.
+ const falseSource=sentences.find(s=>vocabulary.some(v=>pattern(v.word).test(s.sentence)&&vocabulary.some(w=>w.lemma!==v.lemma&&!pattern(w.word).test(s.sentence))));
+ if(falseSource){
+  const target=vocabulary.find(v=>pattern(v.word).test(falseSource.sentence)&&vocabulary.some(w=>w.lemma!==v.lemma&&!pattern(w.word).test(falseSource.sentence)));
+  const replacement=vocabulary.find(w=>w.lemma!==target.lemma&&!pattern(w.word).test(falseSource.sentence));
+  const altered=falseSource.sentence.replace(pattern(target.word),replacement.word);
+  if(!body.includes(altered))questions.push(q('true_false','This exact sentence appears in the reading:\n“'+altered+'”','false',[{id:'true',text:'True'},{id:'false',text:'False'}],evidence(falseSource),h,questions.length,
+   {explanation_vi:'Đây là câu đã thay đổi một từ. Dẫn chứng hiển thị câu gốc trong bài.',explanation_en:'One word was changed; the evidence shows the original sentence.'}));
+ }
  for(const v of vocabulary){
   if(questions.filter(x=>x.type==='single_choice').length>=4)break;
   const other=vocabulary.filter(x=>x.lemma!==v.lemma&&!pattern(x.word).test(v.example));if(other.length<3)continue;
@@ -47,8 +56,9 @@ export function buildWorldExplorerPack(article){
   questions.push(q('single_choice','Which word completes this exact sentence from the reading?\n“'+v.example.slice(0,m.index)+'______'+v.example.slice(m.index+m[0].length)+'”',v.word,
    ordered.map((x,i)=>({id:'o'+i,text:x})),v.evidence,h,questions.length,{explanation_vi:'Từ “'+v.word+'” xuất hiện ở vị trí được lược bỏ trong bài.'}));
  }
- if(vocabulary.length>=4){
-  const four=vocabulary.slice(0,4);
+ const uniqueMeanings=new Set(),four=[];
+ for(const item of vocabulary)if(!uniqueMeanings.has(item.meaning)){uniqueMeanings.add(item.meaning);four.push(item);if(four.length===4)break;}
+ if(four.length===4){
   questions.push(q('matching','Match each English word with its Vietnamese meaning.',four.map(x=>({word:x.word,meaning:x.meaning})),
    four.map(x=>({id:x.id,text:x.word,meaning:x.meaning})),four.map(x=>x.evidence),h,questions.length));
  }
