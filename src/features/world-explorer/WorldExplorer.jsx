@@ -33,7 +33,7 @@ function publicationTimestamp(value, language) {
   }).format(new Date(value));
 }
 
-function Reader({ article, onClose, language, panelRef, currentUser }) {
+function Reader({ article, onClose, language, panelRef, currentUser, learningEnabled }) {
   if (!article) return null;
   const vi = language !== 'en';
   const vocabulary = Array.isArray(article.vocabulary) ? article.vocabulary : [];
@@ -85,7 +85,7 @@ function Reader({ article, onClose, language, panelRef, currentUser }) {
         </section>
       ) : null}
 
-      <WorldExplorerLearning article={article} currentUser={currentUser} language={language} />
+      {learningEnabled ? <WorldExplorerLearning article={article} currentUser={currentUser} language={language} /> : null}
       <footer className="we-sources">
         <strong>{vi ? 'Nguồn tham khảo' : 'Sources & credits'}</strong>
         {article.source_url ? <a href={article.source_url} target="_blank" rel="noopener noreferrer">{vi ? 'English source · ' : ''}{article.source_title || article.source_url}</a> : null}
@@ -107,6 +107,7 @@ export default function WorldExplorer({ currentUser, language = 'vi' }) {
   const vi = language !== 'en';
   const isAdmin = isAdminRole(currentUser?.role);
   const [enabled, setEnabled] = useState(true);
+  const [learningEnabled, setLearningEnabled] = useState(true);
   const [articles, setArticles] = useState([]);
   const [selected, setSelected] = useState(null);
   const readerRef = useRef(null);
@@ -118,7 +119,7 @@ export default function WorldExplorer({ currentUser, language = 'vi' }) {
   const load = useCallback(async () => {
     if (!isSupabaseConfigured) { setLoading(false); setError('Not configured'); return; }
     const [settings, publications] = await Promise.all([
-      supabase.from('world_explorer_settings').select('enabled').eq('id', 1).maybeSingle(),
+      supabase.from('world_explorer_settings').select('enabled,learning_enabled').eq('id', 1).maybeSingle(),
       supabase.from('world_explorer_publications')
         .select('id,slug,category,title_en,title_vi,intro_en,intro_vi,body_en,body_vi,fact_en,fact_vi,image_url,image_alt_en,image_credit,image_license,source_title,source_url,source_url_vi,content_license,vocabulary,publication_date,published_at')
         .eq('is_visible', true).order('published_at', { ascending: false }).limit(120),
@@ -127,6 +128,7 @@ export default function WorldExplorer({ currentUser, language = 'vi' }) {
       setError(settings.error?.message || publications.error?.message || 'Unavailable');
     } else {
       setEnabled(settings.data?.enabled !== false);
+      setLearningEnabled(settings.data?.learning_enabled !== false);
       setArticles(publications.data || []);
       setError('');
     }
@@ -193,7 +195,7 @@ export default function WorldExplorer({ currentUser, language = 'vi' }) {
         </div>
       ) : <div className="we-empty"><div className="we-art"><Globe2 size={54}/></div><div><strong>{vi ? 'Chuyến khám phá đầu tiên đang được chuẩn bị' : 'Our first discovery is being prepared'}</strong><p>{vi ? 'Hệ thống đang tìm bài song ngữ có ảnh và nguồn hợp lệ.' : 'We are finding a bilingual illustrated story with usable sources.'}</p></div></div>}
       {loading ? <span className="we-loading" aria-live="polite">{vi ? 'Đang tải khám phá...' : 'Loading discoveries...'}</span> : null}
-      {selected ? <Reader article={selected} language={language} currentUser={currentUser} onClose={closeReader} panelRef={readerRef} /> : null}
+      {selected ? <Reader article={selected} language={language} learningEnabled={learningEnabled} currentUser={currentUser} onClose={closeReader} panelRef={readerRef} /> : null}
       {archive ? (
         <section className="we-archive-inline" id="we-archive-list" aria-label={vi ? 'Kho khám phá' : 'Discovery archive'} data-world-explorer-inline-archive>
           <div className="we-archive-heading">
