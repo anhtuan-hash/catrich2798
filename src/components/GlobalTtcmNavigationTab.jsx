@@ -454,7 +454,11 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
   const feedNeedle = feedQuery.trim().toLowerCase();
   const filteredItems = useMemo(() => {
     const visible = items.filter((item) => {
-      if (filter === 'unread' && !(userIsAssignee(item, currentUser?.id) && !readIds.has(String(item.id)))) return false;
+      if (filter === 'unread') {
+        // Keep the open message in the reader while marking it read. Leaving it updates the unread list.
+        const id = String(item.id);
+        if (!userIsAssignee(item, currentUser?.id) || (readIds.has(id) && id !== selectedItemId)) return false;
+      }
       if (filter === 'action' && !isActionItem(item)) return false;
       if (filter === 'due') { const due = item.due_at ? new Date(item.due_at).getTime() : 0; if (!(due && due >= Date.now() && !isDoneItem(item))) return false; }
       if (filter === 'done' && !isDoneItem(item)) return false;
@@ -466,7 +470,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
       const rightTime = new Date(right.created_at || right.updated_at || 0).getTime() || 0;
       return feedSort === 'oldest' ? leftTime - rightTime : rightTime - leftTime;
     });
-  }, [currentUser?.id, feedNeedle, feedSort, filter, items, readIds]);
+  }, [currentUser?.id, feedNeedle, feedSort, filter, items, readIds, selectedItemId]);
 
   const selectedItem = useMemo(() => selectedItemId ? filteredItems.find((item) => String(item.id) === String(selectedItemId)) || null : null, [filteredItems, selectedItemId]);
   const editingAttachments = useMemo(() => {

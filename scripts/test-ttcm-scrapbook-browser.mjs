@@ -144,7 +144,7 @@ try {
   await expect(phone.locator('#ttcm-scrapbook')).toBeVisible();
   await expect(phone.getByRole('button',{name:'Lịch sử & File GV'})).toHaveCount(0);
   await expect(phone.getByRole('button',{name:'Tạo nội dung'})).toHaveCount(0);
-  await phone.getByRole('button',{name:/Tất cả/}).first().click();
+  await expect(phone.getByRole('button',{name:/Chưa đọc/}).first()).toHaveAttribute('aria-pressed','true');
   await phone.locator('.ttcm-reader-card').first().click();
   await expect(phone.locator('.ttcm-reader-detail h2')).toBeVisible();
   const mobileDetail = phone.locator('.ttcm-reader-detail');
@@ -158,6 +158,7 @@ try {
   await expect(response.locator('textarea')).toHaveValue('Phản hồi đang soạn');
   await response.getByRole('button',{name:'Đóng'}).click();
   await phone.locator('.ttcm-reader-back').click();
+  await expect(phone.locator('.ttcm-reader-card').filter({hasText:titles[0]})).toHaveCount(0);
   await expect(phone.locator('.ttcm-reader-card').first()).toBeVisible();
   assert.ok(await phone.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   assert.deepEqual(errors,[]);
