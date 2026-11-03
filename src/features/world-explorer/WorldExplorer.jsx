@@ -4,6 +4,7 @@ import { isSupabaseConfigured, supabase } from '../../utils/supabase.js';
 import { isAdminRole } from '../../utils/roles.js';
 import { useNovemberHomeTheme } from '../../utils/novemberHomeTheme.js';
 import './world-explorer.css';
+import WorldExplorerLearning from './WorldExplorerLearning.jsx';
 
 const WorldExplorerAdmin = lazy(() => import('./WorldExplorerAdmin.jsx'));
 const CATEGORIES = {
@@ -32,7 +33,7 @@ function publicationTimestamp(value, language) {
   }).format(new Date(value));
 }
 
-function Reader({ article, onClose, language, panelRef }) {
+function Reader({ article, onClose, language, panelRef, currentUser }) {
   if (!article) return null;
   const vi = language !== 'en';
   const vocabulary = Array.isArray(article.vocabulary) ? article.vocabulary : [];
@@ -84,6 +85,7 @@ function Reader({ article, onClose, language, panelRef }) {
         </section>
       ) : null}
 
+      <WorldExplorerLearning article={article} currentUser={currentUser} language={language} />
       <footer className="we-sources">
         <strong>{vi ? 'Nguồn tham khảo' : 'Sources & credits'}</strong>
         {article.source_url ? <a href={article.source_url} target="_blank" rel="noopener noreferrer">{vi ? 'English source · ' : ''}{article.source_title || article.source_url}</a> : null}
@@ -191,7 +193,7 @@ export default function WorldExplorer({ currentUser, language = 'vi' }) {
         </div>
       ) : <div className="we-empty"><div className="we-art"><Globe2 size={54}/></div><div><strong>{vi ? 'Chuyến khám phá đầu tiên đang được chuẩn bị' : 'Our first discovery is being prepared'}</strong><p>{vi ? 'Hệ thống đang tìm bài song ngữ có ảnh và nguồn hợp lệ.' : 'We are finding a bilingual illustrated story with usable sources.'}</p></div></div>}
       {loading ? <span className="we-loading" aria-live="polite">{vi ? 'Đang tải khám phá...' : 'Loading discoveries...'}</span> : null}
-      {selected ? <Reader article={selected} language={language} onClose={closeReader} panelRef={readerRef} /> : null}
+      {selected ? <Reader article={selected} language={language} currentUser={currentUser} onClose={closeReader} panelRef={readerRef} /> : null}
       {archive ? (
         <section className="we-archive-inline" id="we-archive-list" aria-label={vi ? 'Kho khám phá' : 'Discovery archive'} data-world-explorer-inline-archive>
           <div className="we-archive-heading">
