@@ -1,0 +1,27 @@
+name: World Explorer Learning V1
+on:
+  pull_request:
+    paths:
+      - 'src/features/world-explorer/**'
+      - 'supabase/functions/world-explorer-learning/**'
+      - 'supabase/migrations/*world_explorer_learning*'
+      - 'scripts/test-world-explorer-learning.mjs'
+      - '.github/workflows/world-explorer-learning.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node scripts/test-world-explorer-learning.mjs
+      - run: node scripts/test-world-explorer-hourly-auto.mjs
+      - run: node scripts/test-world-explorer-inline-drawer.mjs
+      - run: npx vite build

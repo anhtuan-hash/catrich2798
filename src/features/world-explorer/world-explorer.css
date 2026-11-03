@@ -414,3 +414,14 @@
 .we-switch.is-on span{transform:translateX(19px)}
 .we-switch:disabled{opacity:.5;cursor:wait}
 @media(max-width:750px){.we-admin-metrics{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.we-admin-metrics>div{padding:11px}.we-admin-metrics strong{font-size:21px}.we-admin-metrics span{font-size:10px}.we-admin-post-thumb{width:60px;height:60px;flex-basis:60px}.we-dashboard-status{padding:13px}.we-auto-setting{padding:13px}}
+
+/* Learning Studio evidence stays inside the existing expanded, inline reader. */
+.we-article-language#we-english-reading { scroll-margin-top: 126px; }
+.we-article-language .we-evidence-highlight {
+  padding: 2px 3px;
+  border-radius: 3px;
+  background: #fff0a7;
+  color: #1b3752;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}

@@ -19,6 +19,9 @@ export default function WorldExplorerAdmin({ currentUser, language = 'vi', onClo
   const admin = isAdminRole(currentUser?.role);
   const [enabled, setEnabled] = useState(true);
   const [autoHourly, setAutoHourly] = useState(true);
+  const [learningEnabled, setLearningEnabled] = useState(false);
+  const [autoLearning, setAutoLearning] = useState(true);
+  const [learningPacks, setLearningPacks] = useState([]);
   const [published, setPublished] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -28,17 +31,23 @@ export default function WorldExplorerAdmin({ currentUser, language = 'vi', onClo
   const closeRef = useRef(null);
 
   const refresh = useCallback(async () => {
-    const [settings, articles] = await Promise.all([
-      supabase.from('world_explorer_settings').select('enabled,auto_publish_hourly').eq('id', 1).single(),
+    const [settings, articles, packs] = await Promise.all([
+      supabase.from('world_explorer_settings').select('enabled,auto_publish_hourly,learning_enabled,auto_generate_learning').eq('id', 1).single(),
       supabase.from('world_explorer_publications')
         .select('id,title_en,title_vi,published_at,image_url,source_url,source_kind,publication_date,is_visible')
         .order('published_at', { ascending: false }).limit(100),
+      supabase.from('world_explorer_learning_packs')
+        .select('id,publication_id,version,status,question_count,quality_score,published_at')
+        .order('created_at', { ascending: false }).limit(120),
     ]);
     if (settings.error || articles.error) {
       throw new Error(settings.error?.message || articles.error?.message || 'Database unavailable');
     }
     setEnabled(settings.data?.enabled === true);
     setAutoHourly(settings.data?.auto_publish_hourly === true);
+    setLearningEnabled(settings.data?.learning_enabled === true);
+    setAutoLearning(settings.data?.auto_generate_learning !== false);
+    setLearningPacks(packs.error ? [] : packs.data || []);
     setPublished(articles.data || []);
   }, []);
 
@@ -98,6 +107,17 @@ export default function WorldExplorerAdmin({ currentUser, language = 'vi', onClo
     finally { setBusy(false); }
   }
 
+  async function regenerate(publicationId) {
+    if (busy) return;
+    setBusy(true); setError(''); setMessage('');
+    try {
+      const {error:regenerationError}=await supabase.rpc('we_queue_learning_regeneration',{p_publication_id:publicationId});
+      if (regenerationError) throw regenerationError;
+      await refresh();
+      setMessage(t('Đã đưa học liệu vào hàng đợi xử lý.', 'Learning pack queued for regeneration.'));
+    } catch(err) { setError(err?.message || 'Unable to queue regeneration'); }
+    finally { setBusy(false); }
+  }
   if (!admin) return null;
   const publishedToday = published.filter((item) =>
     new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(item.published_at)) ===
@@ -119,6 +139,7 @@ export default function WorldExplorerAdmin({ currentUser, language = 'vi', onClo
         <nav className="we-tabs" aria-label="World Explorer management">
           <button type="button" className={tab === 'dashboard' ? 'active' : ''} onClick={() => setTab('dashboard')}><Activity size={15} /> {t('Tổng quan', 'Overview')}</button>
           <button type="button" className={tab === 'published' ? 'active' : ''} onClick={() => setTab('published')}><CalendarClock size={15} /> {t('Bài đã đăng', 'Published stories')}</button>
+          <button type="button" className={tab === 'learning' ? 'active' : ''} onClick={() => setTab('learning')}><ShieldCheck size={15} /> {t('Học liệu', 'Learning Packs')}</button>
           <button type="button" className={tab === 'settings' ? 'active' : ''} onClick={() => setTab('settings')}><Settings2 size={15} /> {t('Cài đặt', 'Settings')}</button>
         </nav>
         {error ? <p className="we-admin-message" role="alert">{error}</p> : null}
@@ -158,6 +179,31 @@ export default function WorldExplorerAdmin({ currentUser, language = 'vi', onClo
               </article>
             ))}</div> : <p className="we-admin-hint">{t('Chưa có bài nào được công bố.', 'No published articles yet.')}</p>}
           </> : null}
+          {tab === 'learning' ? <div className="we-admin-settings">
+            <strong>{t('Quản lý học liệu từ bài đọc', 'Source-grounded learning pack management')}</strong>
+            <div className="we-admin-metrics">
+              <div><strong>{learningPacks.filter(p=>p.status==='ready').length}</strong><span>{t('Sẵn sàng', 'Ready')}</span></div>
+              <div><strong>{learningPacks.filter(p=>p.status==='needs_review').length}</strong><span>{t('Cần rà soát', 'Needs review')}</span></div>
+              <div><strong>{learningPacks.filter(p=>p.status==='failed').length}</strong><span>{t('Lỗi', 'Failed')}</span></div>
+            </div>
+            <p className="we-admin-hint">{t('Chỉ học liệu được xác minh có dẫn chứng mới được công bố. Tạo lại không thay đổi các lượt làm bài trước.', 'Only evidence-verified packs are published. Regeneration preserves prior attempts.')}</p>
+            <div className="we-admin-list">
+              {published.slice(0,35).map(article=>{
+                const pack=learningPacks.find(p=>p.publication_id===article.id);
+                return <article key={article.id} className="we-learning-admin-row">
+                  <div className="we-admin-post-title">
+                    <small>{vnDateTime(article.published_at,language)}</small>
+                    <h3>{article.title_en}</h3>
+                    <p>{pack ? t('Trạng thái: ','Status: ')+pack.status+' · '+pack.question_count+t(' câu · phiên bản ',' questions · version ')+pack.version
+                      :t('Chưa tạo học liệu','No learning pack yet')}</p>
+                  </div>
+                  <button type="button" disabled={busy} onClick={()=>regenerate(article.id)}>
+                    <RefreshCw size={15}/>{t('Tạo lại', 'Regenerate')}
+                  </button>
+                </article>;
+              })}
+            </div>
+          </div> : null}
           {tab === 'settings' ? <div className="we-admin-settings">
             <strong>{t('Cài đặt xuất bản', 'Publishing settings')}</strong>
             <div className="we-auto-setting">
@@ -167,6 +213,19 @@ export default function WorldExplorerAdmin({ currentUser, language = 'vi', onClo
             <div className="we-auto-setting">
               <div><b>{t('Hiển thị chuyên mục trên trang chủ', 'Show on public homepage')}</b><p>{t('Tắt để ẩn World Explorer với khách truy cập mà không xóa dữ liệu.', 'Hide the homepage section without removing published stories.')}</p></div>
               <button type="button" className={enabled ? 'we-switch is-on' : 'we-switch'} role="switch" aria-checked={enabled} aria-label={t('Hiển thị World Explorer', 'Show World Explorer')} disabled={busy} onClick={() => updateSetting('enabled', !enabled)}><span /></button>
+            </div>
+            <strong>{t('Cài đặt Learning Studio', 'Learning Studio Settings')}</strong>
+            <div className="we-auto-setting">
+              <div><b>{t('Bật phần học và Reading Practice', 'Enable Learning & Reading Practice')}</b><p>{t('Chỉ hiển thị bộ học liệu đã vượt qua kiểm tra nội dung.', 'Display only verified learning packs.')}</p></div>
+              <button type="button" className={learningEnabled ? 'we-switch is-on' : 'we-switch'} role="switch"
+                aria-checked={learningEnabled} aria-label={t('Bật học liệu', 'Enable learning')}
+                disabled={busy} onClick={()=>updateSetting('learning_enabled',!learningEnabled)}><span /></button>
+            </div>
+            <div className="we-auto-setting">
+              <div><b>{t('Tự động tạo học liệu cho bài mới', 'Auto-generate learning packs')}</b><p>{t('Bộ xử lý độc lập với lịch đăng bài. Không bắt buộc gọi AI trả phí.', 'Independent learning worker; no paid AI required.')}</p></div>
+              <button type="button" className={autoLearning ? 'we-switch is-on' : 'we-switch'} role="switch"
+                aria-checked={autoLearning} aria-label={t('Tự động tạo học liệu', 'Automatic learning generation')}
+                disabled={busy} onClick={()=>updateSetting('auto_generate_learning',!autoLearning)}><span /></button>
             </div>
             <div className="we-admin-info"><strong>{t('Nguồn sử dụng', 'Sources')}</strong><p>English Wikipedia · Vietnamese Wikipedia · Wikimedia Commons</p><p>{t('Nội dung CC BY-SA 4.0; ảnh có giấy phép CC BY/CC BY-SA/CC0 hoặc thuộc phạm vi công cộng. Tác giả và giấy phép hiển thị trong từng bài.', 'Text CC BY-SA 4.0; imagery must have an applicable CC BY, CC BY-SA, CC0 or public-domain license. Credits are shown with every story.')}</p></div>
           </div> : null}
