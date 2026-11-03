@@ -19,6 +19,7 @@ export default function WorldExplorerAdmin({ currentUser, language = 'vi', onClo
   const admin = isAdminRole(currentUser?.role);
   const [enabled, setEnabled] = useState(true);
   const [autoHourly, setAutoHourly] = useState(true);
+  const [learningEnabled, setLearningEnabled] = useState(true);
   const [published, setPublished] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -29,7 +30,7 @@ export default function WorldExplorerAdmin({ currentUser, language = 'vi', onClo
 
   const refresh = useCallback(async () => {
     const [settings, articles] = await Promise.all([
-      supabase.from('world_explorer_settings').select('enabled,auto_publish_hourly').eq('id', 1).single(),
+      supabase.from('world_explorer_settings').select('enabled,auto_publish_hourly,learning_enabled').eq('id', 1).single(),
       supabase.from('world_explorer_publications')
         .select('id,title_en,title_vi,published_at,image_url,source_url,source_kind,publication_date,is_visible')
         .order('published_at', { ascending: false }).limit(100),
@@ -39,6 +40,7 @@ export default function WorldExplorerAdmin({ currentUser, language = 'vi', onClo
     }
     setEnabled(settings.data?.enabled === true);
     setAutoHourly(settings.data?.auto_publish_hourly === true);
+    setLearningEnabled(settings.data?.learning_enabled !== false);
     setPublished(articles.data || []);
   }, []);
 
@@ -167,6 +169,10 @@ export default function WorldExplorerAdmin({ currentUser, language = 'vi', onClo
             <div className="we-auto-setting">
               <div><b>{t('Hiển thị chuyên mục trên trang chủ', 'Show on public homepage')}</b><p>{t('Tắt để ẩn World Explorer với khách truy cập mà không xóa dữ liệu.', 'Hide the homepage section without removing published stories.')}</p></div>
               <button type="button" className={enabled ? 'we-switch is-on' : 'we-switch'} role="switch" aria-checked={enabled} aria-label={t('Hiển thị World Explorer', 'Show World Explorer')} disabled={busy} onClick={() => updateSetting('enabled', !enabled)}><span /></button>
+            </div>
+            <div className="we-auto-setting">
+              <div><b>{t('Bật học từ vựng, cấu trúc và luyện đọc','Enable vocabulary, grammar and reading practice')}</b><p>{t('Tắt chỉ ẩn bộ học liệu tương tác, vẫn giữ bài đọc Anh–Việt và mọi dữ liệu đã lưu.', 'Turn off interactive learning without deleting bilingual articles or saved progress.')}</p></div>
+              <button type="button" className={learningEnabled ? 'we-switch is-on' : 'we-switch'} role="switch" aria-checked={learningEnabled} aria-label={t('Bật bộ học liệu tương tác', 'Enable interactive learning')} disabled={busy} onClick={() => updateSetting('learning_enabled', !learningEnabled)}><span /></button>
             </div>
             <div className="we-admin-info"><strong>{t('Nguồn sử dụng', 'Sources')}</strong><p>English Wikipedia · Vietnamese Wikipedia · Wikimedia Commons</p><p>{t('Nội dung CC BY-SA 4.0; ảnh có giấy phép CC BY/CC BY-SA/CC0 hoặc thuộc phạm vi công cộng. Tác giả và giấy phép hiển thị trong từng bài.', 'Text CC BY-SA 4.0; imagery must have an applicable CC BY, CC BY-SA, CC0 or public-domain license. Credits are shown with every story.')}</p></div>
           </div> : null}
