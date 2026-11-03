@@ -398,8 +398,7 @@ export default function GlobalCompactNavigation({
         </button>
 
         <div className="brian-nav__primary" aria-label={language === 'vi' ? 'Khu vực chính' : 'Primary areas'}>
-          <button type="button" className={route === 'home' ? 'is-active' : ''} onClick={(event) => openRoute('#/home', t.home, event)}>{t.home}</button>
-          {canShowApps ? <button type="button" className={route === 'apps' ? 'is-active' : ''} onClick={(event) => openRoute('#/apps', t.apps, event)}>{t.apps}</button> : null}
+          {canShowApps ? <button type="button" data-nav-key="apps" className={route === 'apps' ? 'is-active' : ''} onClick={(event) => openRoute('#/apps', t.apps, event)}>{t.apps}</button> : null}
           {currentUser ? (
             <>
               <div className="brian-nav__utility-slot brian-nav__utility-reports" data-nav-key="reports">
