@@ -232,3 +232,31 @@
     grid-template-columns:34px minmax(0,1fr) 64px!important;
   }
 }
+
+
+/* Four semantic register headers must occupy the same tracks as student rows.
+   Theme-specific container styles may refine the tracks without overlaps. */
+.attendance-shell .attendance-roster-head::before { content: none !important; display: none !important; }
+.attendance-shell .attendance-roster-head > span {
+  min-width: 0;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (min-width: 761px) {
+  .attendance-shell .attendance-roster-head {
+    grid-template-columns: 42px minmax(0, 1fr) minmax(166px, 178px) 54px !important;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+}
+@media (max-width: 760px) {
+  .attendance-shell .attendance-roster-head {
+    grid-template-columns: 34px minmax(0, 1fr) 64px !important;
+    gap: 8px;
+    padding: 8px !important;
+  }
+  .attendance-shell .attendance-roster-head > span:last-child { display: none; }
+}
