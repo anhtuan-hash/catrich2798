@@ -1,24 +1,38 @@
-import React,{useState} from 'react';
+import React,{useEffect,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import '../../src/index.css';
-import {AttendanceFeatureDeck} from '../../src/components/attendance/AttendanceWorkspaceUI.jsx';
-import '../../src/pages/AttendanceWorkspace.css';
-import '../../src/pages/AttendanceWorkspaceHero.css';
+import '../../src/styles/GlobalFontSystem.css';
+import AttendanceWorkspace from '../../src/pages/AttendanceWorkspace.jsx';
+import GuestAttendanceStudio from '../../src/components/GuestAttendanceStudio.jsx';
+import Footer from '../../src/components/Footer.jsx';
+import Navigation from '../../src/components/GlobalCompactNavigation.jsx';
 import Panel from '../../src/components/admin/AttendanceScrapbookAdminPanel.jsx';
+import {getRuntimeState} from '../../src/services/runtime/core.js';
 import {useAttendanceScrapbookScope} from '../../src/utils/attendanceScrapbookTheme.js';
+import '../../src/supplementalLearningRouteBootstrap.js';
+import '../../src/attendancePostConfirmEditBootstrap.js';
+import '../../src/styles/GlobalLayout16x9Authority.css';
+import '../../src/components/GlobalNavigationPastelPalette.css';
+import '../../src/components/GlobalNavigationTextOnlyCompact.css';
 import '../../src/features/attendance-scrapbook/attendance-scrapbook.css';
-const sections={quick:'attendance-rollcall',calendar:'attendance-daily-overview',manage:'attendance-manage-detail-roster-card',history:'ahv3__detail',report:'att-report-m3'};
+import '../../src/styles/SettingsLauncherPortalCompat.css';
+
 function Fixture(){
- const [view,go]=useState('quick'),[route,setRoute]=useState('attendance');
- useAttendanceScrapbookScope(route);
- return <div className="app-shell metro-clean-system" data-route={route}>
- <Panel currentUser={{provider:'supabase',role:'admin',approved:true}}/>
- <button onClick={()=>setRoute(route==='attendance'?'home':'attendance')}>Change route</button>
- <div className="attendance-workspace-page"><section className="attendance-shell is-standalone">
- <header className="attendance-topbar"><div className="attendance-title"><strong>Điểm danh lớp phụ đạo &amp; bồi dưỡng</strong></div></header>
- <AttendanceFeatureDeck items={Object.keys(sections).map(tab=>({tab}))} showSupplemental activeView={view} onNavigate={go}/>
- <article data-view={view} className={sections[view]}><label>Ghi chú<input defaultValue=""/></label></article>
- </section></div>{view==='supplemental'&&<div id="bes-supplemental-learning-admin"><div className="bes-supplemental-editor-card">Tạo lớp học bổ sung</div></div>}
- </div>
+  const [route,setRoute]=useState('attendance');
+  const [settings,showSettings]=useState(false);
+  const {profile}=getRuntimeState();
+  const guest=profile.role==='guest';
+  useAttendanceScrapbookScope(route);
+  useEffect(()=>{ window.attendanceFixture={setRoute,showSettings}; },[]);
+  return <>
+    <div className="app-shell metro-shell metro-clean-system" data-route={route}>
+      <div className="bes-top-chrome"><Navigation route={route} language="vi" currentUser={guest?null:profile}/></div>
+      <main id="bes-main-content">
+        {route==='attendance' && (guest?<GuestAttendanceStudio language="vi"/>:<AttendanceWorkspace currentUser={profile}/>)}
+      </main>
+      <Footer language="vi" route={route}/>
+    </div>
+    {settings && <div className="settings-launcher-portal"><div className="settings-launcher-drawer"><div className="settings-launcher-drawer-body"><Panel currentUser={profile}/></div></div></div>}
+  </>;
 }
 createRoot(document.getElementById('root')).render(<Fixture/>);

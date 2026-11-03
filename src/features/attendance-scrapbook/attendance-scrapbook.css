@@ -4,7 +4,12 @@ html[data-attendance-scrapbook="on"] {
   --roll-paper: var(--roll-grain), repeating-linear-gradient(0deg, transparent 0 26px, #779ec312 26px 27px), #fffaf5;
   --roll-shadow: 0 4px 8px #344f7427, 0 1px 2px #714b3426;
 }
-html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] { background: url('/assets/attendance-scrapbook/hills.svg') center bottom/100% 100px no-repeat, var(--roll-grain), linear-gradient(145deg,#b4e9fc,#e5f7ff 45%,#cef1ff) !important; padding-bottom:65px !important; color:#183453; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] {
+  background: url('/assets/attendance-scrapbook/hills.svg') center bottom / 100% 100px no-repeat,
+    url('/assets/attendance-scrapbook/paper-margins.svg') center 55px / 100% clamp(360px, 45vw, 620px) no-repeat,
+    var(--roll-grain), linear-gradient(130deg, #93dcf8, #c4ebfa 53%, #b4e6f9) !important;
+  padding-bottom: 65px !important; color: #183453;
+}
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(#bes-main-content,.attendance-workspace-page,.attendance-standalone-root,.attendance-shell.is-standalone,.attendance-content) { background:transparent !important; }
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-shell.is-standalone { box-shadow:none !important; border:0 !important; }
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-topbar { background: url('/assets/attendance-scrapbook/sky.svg') center/cover !important; padding:15px clamp(13px,2vw,32px) !important; min-height:82px !important; border:0 !important; }
@@ -79,8 +84,8 @@ html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbo
   background: var(--roll-grain), var(--as-leaf) !important; clip-path: polygon(0 1%,8% 0,16% 1.3%,27% 0,43% 1%,54% 0,72% 1%,86% 0,100% 1%,99.5% 51%,100% 99%,88% 100%,74% 99%,65% 100%,54% 99%,40% 100%,26% 99%,14% 100%,0 99%,.5% 47%);
   z-index: -1 !important; pointer-events: none;
 }
-html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-main > .signature-footer-v50-profile { --as-backing: #d3c7ee; --as-leaf: #f1fbec; }
-html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-main > .signature-footer-v50-credentials { --as-backing: #facbd1; --as-leaf: #fff9eb; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-main > .signature-footer-v50-profile { --as-backing: #cde5b1; --as-leaf: #f1fbec; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-main > .signature-footer-v50-credentials { --as-backing: #f6cf99; --as-leaf: #fff9eb; }
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-brand { outline: 1px dashed #d1bba6 !important; outline-offset: -11px !important; }
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-brian-logo { max-height: 108px !important; object-fit: contain; position: relative; z-index: 1; }
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-affiliations { border-top: 1px dashed #d3bca2 !important; padding-top: 12px !important; margin-top: 14px !important; }
@@ -143,4 +148,324 @@ html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbo
 @media(min-width:801px){
  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-class-list::after {content:'';display:block;flex:0 0 87px;width:138px;height:87px;margin:14px auto 2px;background:url('/assets/attendance-scrapbook/books.svg') center/contain no-repeat;pointer-events:none;}
  html[data-attendance-scrapbook="on"] #bes-supplemental-learning-admin .bes-supplemental-empty-state {background:url('/assets/attendance-scrapbook/books.svg') left 10px bottom 8px/95px auto no-repeat,var(--roll-paper)!important;padding-inline:105px!important;}
+}
+
+/* The surface edge and gummed paper decorations use no hit targets.
+   All labels, class lists, counts and form fields still come from each view. */
+html[data-attendance-scrapbook="on"] {
+  --roll-stickers: url('/assets/attendance-scrapbook/classroom-stickers.webp');
+  --roll-frame: url('/assets/attendance-scrapbook/notebook-rim.svg');
+  --roll-ink: #153453;
+  --roll-line: #b9cce1;
+  --roll-strip: var(--roll-grain), linear-gradient(94deg, #dcecff, #e8eeff 68%, #dcecff);
+  --roll-tape: repeating-linear-gradient(90deg, #fff4 0 1px, transparent 1px 6px), #f5cf76;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-content { padding: clamp(10px, 1.5vw, 22px) !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-topbar {
+  position: relative !important; isolation: isolate; border-radius: 0 !important;
+  background-color: transparent !important; background-size: 100% 100% !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-title {
+  display: flex !important; align-items: center !important; gap: 12px !important;
+  width: fit-content !important; padding: 8px 45px 9px 14px !important;
+  border: 5px solid transparent !important;
+  border-image: var(--roll-frame) 14 / 6px / 2px round !important;
+  background-clip: padding-box !important; transform: rotate(-.55deg);
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-title::before {
+  inset: -8px auto auto -18px !important; width: 49px !important;
+  height: 15px !important; transform: rotate(-24deg);
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-title::after {
+  content: ''; position: absolute; pointer-events: none; right: 1px; top: 50%;
+  transform: translateY(-50%); width: 37px; height: 36px;
+  background: url('/assets/attendance-scrapbook/heart.svg') center/contain no-repeat;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-title > span:first-child {
+  background: #edf6ff !important; color: #2178ce !important; border-radius: 10px !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-title strong { color: #153352 !important; line-height: 1.22 !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-top-actions .attendance-icon-button {
+  background: var(--roll-grain), #fffdf9 !important; border: 2px solid #fff !important;
+  color: #235788 !important; border-radius: 50% !important; box-shadow: var(--roll-shadow) !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-tabs {
+  --attendance-tab-height: 40px; padding: 3px 10px !important;
+  border: 1px solid #d4e1f0 !important; background: var(--roll-grain), #fcfbff !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-tabs > button {
+  background: transparent !important; color: #273c58 !important;
+  border: 0 !important; border-radius: 4px !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-tabs > button.is-active {
+  color: #075eb6 !important; background: #edf6ff !important;
+  box-shadow: inset 0 -3px #328af6 !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-tabs > button.is-active .attendance-icon { color: currentColor !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-shell.bes-supplemental-admin-open .awu-feature-tile.is-supplemental {
+  outline: 2px solid #bd4c79 !important; outline-offset: -4px;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-shell.bes-supplemental-admin-open .awu-feature-tile.is-current:not(.is-supplemental) { outline: none !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-deck {
+  border: 7px solid transparent !important;
+  border-image: var(--roll-frame) 16 / 9px / 2px round !important;
+  background-clip: padding-box !important; gap: clamp(9px, 1vw, 15px) !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile {
+  padding: 12px 12px 49px !important; min-height: clamp(165px, 14.4vw, 210px) !important;
+  box-shadow: 0 2px 0 var(--sheet), 0 5px 7px #3c476a30 !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile__icon {
+  color: var(--awu-tile-accent) !important; background: transparent !important;
+  box-shadow: none !important; width: 28px !important; height: 28px !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile__icon svg { width: 26px !important; height: 26px !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile__title { font-size: clamp(14px, 1.23vw, 19px) !important; line-height:1.22 !important; margin:7px 0 4px !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile__description { font-size: clamp(11px, .92vw, 14px) !important; line-height: 1.4 !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile__art { width: clamp(70px, 6.8vw, 104px) !important; height: clamp(52px, 5.1vw, 80px) !important; right: 4px !important; bottom: -3px !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile__arrow { width:24px !important;height:24px !important;background:#fffdf5 !important;color:var(--awu-tile-accent) !important; }
+
+/* Notebook boards. Nine-slice edges stay small on long rosters and reports. */
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.attendance-class-list,.attendance-rollcall,.attendance-daily-overview,.ahv3__list,.ahv3__detail,.attendance-manage-detail-hero,.attendance-manage-detail-info-strip,.attendance-manage-detail-roster-card,.att-report-m3,.stud-att),
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin :is(.bes-supplemental-class-home,.bes-supplemental-editor-card) {
+  border: 10px solid transparent !important;
+  border-image: var(--roll-frame) 16 / 11px / 2px round !important;
+  background-clip: padding-box !important; box-shadow: 0 5px 8px #4a52672b !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.attendance-manage-list-heading,.ahv3__section-title,.attendance-daily-table-header,.attendance-roster-head,.att-report-m3__section-head) {
+  background: var(--roll-strip) !important; color: #18456c !important;
+  border: 0 !important; border-radius: 9px 5px 8px 5px !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.attendance-tabs,.attendance-content) :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea),
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea) {
+  background-color: #fffcf8 !important; border-color: #beccdf !important;
+  color: #193955 !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.attendance-class-list > div:last-child > button,.ahv3__items > button,.attendance-daily-class-row) {
+  background-color: #fffdfb !important; background-image: var(--roll-grain) !important;
+  border-radius: 11px 8px 12px 9px !important; box-shadow: 0 2px 4px #39537324 !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.attendance-class-list,.ahv3__items) button:is(.is-active,.active,[aria-selected=true]) {
+  background-color: #e8f4ff !important; border-color: #88b7e6 !important;
+  box-shadow: inset 4px 0 #3389db, 0 2px 4px #39537324 !important;
+}
+
+/* Roll call: blue ruled register, green/yellow/red decisions and a photo sticker. */
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-rollcall {
+  min-width: 0 !important;
+  container: roll-register / inline-size;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-quick-layout { background: transparent !important; }
+/* Align the register by the space inside the page, including when its side list collapses. */
+@container roll-register (min-width: 610px) {
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.attendance-roster-head, .att-m3-roster-entry > label) {
+    display: grid !important;
+    grid-template-columns: 32px minmax(120px, 1fr) minmax(74px, .4fr) minmax(210px, .95fr) !important;
+    grid-template-rows: auto !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 4px 10px !important;
+    box-sizing: border-box !important;
+  }
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-roster-head {
+    min-height: 34px !important;
+  }
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-roster-head::before { content: 'STT'; }
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-m3-roster-entry > label { min-height: 46px !important; }
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-m3-attendance-status {
+    grid-area: 1 / 4 !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-m3-attendance-status button {
+    min-height: 32px !important;
+    border: 1px solid #cddbef !important;
+    border-radius: 18px !important;
+  }
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-session-controls > label,
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-m3-period-field { background: var(--roll-grain), #f2f6fd !important; border-color: #cbd9e7 !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-m3-roster-entry { background: #fffdfa !important; border-bottom: 1px solid #d5e2f0 !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-m3-roster-entry:nth-child(even) { background: #f5f8ff !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-m3-proof-card { position:relative; padding-inline-end:65px !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-m3-proof-card::after,
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-manage-tile-grid:not(.is-list) .attendance-manage-tile__topline::after,
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .ahv3__hero-art::after,
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-profile h2::before,
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-section-label::after,
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-empty-state::after {
+  content: ''; display:block; pointer-events:none;
+  background-image: var(--roll-stickers) !important; background-repeat:no-repeat !important;
+  background-size:400% 300% !important; background-color:transparent !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-m3-proof-card::after { position:absolute; right:9px; bottom:8px; width:46px;height:46px; background-position:33.3333% 100%; transform:rotate(6deg); }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-class-list::after {
+  background: var(--roll-stickers) 0 100% / 400% 300% no-repeat !important;
+  width:110px !important; height:110px !important; flex-basis:110px !important;
+  margin:12px 0 0 !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-class-list.is-collapsed::after { display:none; }
+
+/* Day plan: each floor keeps its own label and every status remains legible. */
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-daily-compact-toolbar {
+  background: var(--roll-paper) !important; border: 2px solid #fffaf2 !important;
+  border-radius: 12px !important; box-shadow: var(--roll-shadow) !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-daily-floor-card { background: var(--roll-paper) !important; border-color:#e5d8c9 !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-daily-class-row { min-height: 56px !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-daily-class-row__status { box-shadow: inset 0 0 0 1px #ffffffa0; }
+
+/* The class card's subject (including a fallback) selects an illustrated sticker. */
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-manage-class-tile {
+  --subject-position:100% 0%; min-width:0 !important;
+  background: var(--roll-grain), repeating-linear-gradient(0deg,transparent 0 24px,#879eba16 24px 25px), linear-gradient(125deg,var(--manage-soft,#f4f8ff),#fffaf6 70%) !important;
+  border-radius: 13px 9px 12px 8px !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-manage-class-tile.is-subject-geography { --subject-position: 0% 0%; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-manage-class-tile.is-subject-chemistry { --subject-position: 33.3333% 0%; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-manage-class-tile.is-subject-history { --subject-position: 66.6667% 0%; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-manage-class-tile.is-subject-biology { --subject-position: 0% 50%; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-manage-class-tile.is-subject-english { --subject-position: 33.3333% 50%; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-manage-class-tile:is(.is-subject-math,.is-subject-casio) { --subject-position: 66.6667% 50%; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-manage-class-tile.is-subject-physics { --subject-position: 100% 50%; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-manage-tile-grid:not(.is-list) .attendance-manage-tile__topline { justify-content:flex-start !important; padding-right:44px; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-manage-tile-grid:not(.is-list) .attendance-manage-tile__topline::after {
+  position:absolute;right:7px;top:8px;width:42px;height:42px;
+  background-position:var(--subject-position);transform:rotate(4deg);
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-manage-tile__meta { border-top:1px dashed #c6cdda !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-manage-detail-hero__art { opacity:.13 !important; pointer-events:none; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.attendance-manage-detail-info-item,.attendance-manage-detail-quick-stat,.att-report-m3__export-meta > label) { background:var(--roll-grain),#fffdf7 !important; border-color:#d1ddeb !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-member-table-head,
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-report-m3__table-wrap thead th { background:var(--roll-strip) !important;color:#223e62 !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-member-table .attendance-member-edit-row:nth-child(even),
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-report-m3__table-wrap tbody tr:nth-child(even) td { background-color:#f2f6ff !important; }
+
+/* The post-confirmation bridge keeps hidden fields for its existing action handler. */
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .bes-history-post-confirm-bridge > [hidden] { display: none !important; }
+
+/* History: a session summary is a pinned sheet; its figures are still live. */
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .ahv3__hero { position:relative; border:2px solid #fffaf4 !important; box-shadow:0 3px 5px #71657528 !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .ahv3__hero::before,
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-manage-detail-hero::before,
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-class-form > section:first-child::before {
+  content:'';position:absolute;z-index:1;top:-3px;left:43%;width:21px;height:24px;
+  pointer-events:none;transform:rotate(18deg);
+  background:radial-gradient(ellipse at 50% 24%,#ffa9ad 0 18%,#ec6473 22% 36%,transparent 39%),
+    radial-gradient(ellipse at 51% 52%,#ea5b71 0 31%,#be4154 34% 46%,transparent 49%),
+    linear-gradient(92deg,transparent 46%,#7b7774 47% 52%,transparent 53%);
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .ahv3__hero-art { position:relative !important; background:transparent !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .ahv3__hero-art > * { visibility:hidden; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .ahv3__hero-art::after { position:absolute; inset:0; margin:auto; width: min(90%,88px); aspect-ratio:1; background-position:66.6667% 100%; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .ahv3__info-grid > article,
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.ahv3__audit-actor-panel,.ahv3__late-section,.ahv3__absent-section,.ahv3__note,.ahv3__lock) {background:var(--roll-grain),#fffdfa !important; border-color:#d0dbe9 !important;}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .ahv3__stat-grid { --paper-metric:#e7f2ff; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .ahv3__stat-grid > article,
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-report-m3__metrics > article { background:var(--roll-grain),var(--paper-metric,#e7f2ff) !important; box-shadow:var(--roll-shadow) !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.ahv3__stat-grid>.is-present,.ahv3__rate-card,.att-report-m3__metrics>.is-green) { --paper-metric:#e1f4e3; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.ahv3__stat-grid>.is-late,.att-report-m3__metrics>.is-amber) { --paper-metric:#fff0d8; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .ahv3__stat-grid>.is-absent { --paper-metric:#ffe3e9; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-report-m3__metrics>.is-purple { --paper-metric:#eee8fb; }
+
+/* Supplemental uses a separate DOM host even when mounted inline in Attendance. */
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin.bes-supplemental-workspace-host,
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-dialog.bes-supplemental-admin-workspace,
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-main { background:transparent !important; }
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-header { background:var(--roll-strip) !important; border-radius:11px !important; color:#173655 !important; }
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-class-form > section:first-child { position:relative; }
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-class-form > section:nth-child(2) { background-color:#e9f3ff !important; }
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-students-card { background-color:#ffecf2 !important; }
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-empty-state { position:relative; background:var(--roll-paper) !important; }
+@media(min-width:801px) {
+  html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-empty-state { min-height:195px; padding-inline:115px !important; }
+  html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-empty-state::before, html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-empty-state::after {
+    content:''; position:absolute;bottom:8px;width:88px;height:88px;pointer-events:none;
+    background:var(--roll-stickers) 0 100% / 400% 300% no-repeat !important;
+  }
+  html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-empty-state::before { left:4px; }
+  html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-empty-state::after { right:4px; background-position:33.3333% 100% !important; }
+}
+
+/* The supplemental bridge mounts these sections inside the live workspace. */
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-class-form {
+  display: grid !important;
+  gap: 14px !important;
+}
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-savebar {
+  position: static !important;
+  grid-row: 1;
+  flex-wrap: wrap;
+  background: var(--roll-paper) !important;
+  border-color: #d9cfcc !important;
+  box-shadow: var(--roll-shadow);
+}
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-editor-card {
+  --page-tint: #fff9f2;
+  background: radial-gradient(circle at 6px 15px, #ad9d99 0 2px, #e3d9d1 3px, transparent 4px) left top / 14px 33px repeat-y,
+    var(--roll-grain), repeating-linear-gradient(0deg, transparent 0 25px, #849ac118 25px 26px), var(--page-tint) !important;
+  padding-inline-start: clamp(20px, 2vw, 30px) !important;
+}
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-class-form > section:nth-child(2) { --page-tint: #eef6ff; }
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-editor-card:is(.is-disabled, .bes-supplemental-students-card) { --page-tint: #fff0f4; }
+html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-class-toolbar {
+  background: var(--roll-paper) !important;
+  border-color: #e8d6c6 !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .bes-supplemental-admin-open .attendance-tabs > button.is-active:not(.bes-supplemental-nav-tab) {
+  color: #273c58 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* The public demonstration uses a different renderer. Keep its read-only labels. */
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .brian-guest-attendance-studio .gas-hero { background: url('/assets/attendance-scrapbook/sky.svg') center/cover !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .gas-hero-main { padding:15px 20px !important; background:var(--roll-paper) !important; border-radius:10px 6px 12px 7px; box-shadow:var(--roll-shadow); }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.gas-panel,.gas-tabs,.gas-stat,.gas-session,.gas-report-tile) { background:var(--roll-paper) !important; border-color:#e9ddcb !important; box-shadow:var(--roll-shadow) !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .gas-section-head { background:var(--roll-strip) !important; border-radius:8px; padding:8px; }
+
+/* Three footer leaves share the scale and binding of the rest of the page. */
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-profile h2::before,
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-section-label::after {
+  inset:-10px 0 auto auto !important;width:45px !important;height:45px !important;
+  border:0 !important;border-radius:0 !important;box-shadow:none !important;
+  background-position:100% 100% !important;transform:rotate(9deg);pointer-events:none;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-section-label::after { background-position:100% 0% !important; }
+@media(max-width:600px) {
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-title { padding:7px 12px !important; transform:none; }
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-title::after { display:none; }
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-content { padding:8px !important; }
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-deck { padding:10px 5px !important; }
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile { min-height:151px !important; padding:10px 9px 45px !important; }
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile__art { width:68px !important; height:50px !important; }
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-class-list::after, html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-empty-state::after { display:none; }
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-m3-proof-card {padding-inline-end:12px !important;}
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-m3-proof-card::after {display:none;}
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.attendance-rollcall,.ahv3__detail,.att-report-m3,.stud-att),html[data-attendance-scrapbook="on"] body #root #bes-supplemental-learning-admin .bes-supplemental-editor-card {border-width:5px !important;border-image-width:6px !important;}
+}
+@media print {
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-profile h2::before,html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-section-label::after,
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-m3-proof-card::after,html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-class-list::after { display:none !important; }
+}
+
+/* The activity strip and post-confirmation controls are mounted by attendance's
+   existing bridges, independently of the React register. */
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] #bes-supplemental-activity-filter {
+  background: var(--roll-paper) !important; border: 1px solid #ddd6d4 !important;
+  border-radius: 10px 7px 11px 9px !important; box-shadow: var(--roll-shadow) !important;
+  color: #254367 !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] #bes-supplemental-activity-filter [data-activity-filter]:not(.is-active) {
+  color: #244263 !important; background-color: #fffdf9 !important; border-color: #c6d5e3 !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] #bes-supplemental-activity-filter [data-activity-filter].is-active {
+  color: white !important; background: #176ac3 !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .bes-post-confirm-edit-card {
+  background: var(--roll-grain), #e8f5e7 !important;
+  border: 1px solid #c9e2ca !important; border-radius: 9px !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.awu-feature-tile,.awu-feature-tile__art,.attendance-manage-class-tile) { transition: none !important; }
 }
