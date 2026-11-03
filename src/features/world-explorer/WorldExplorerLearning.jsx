@@ -110,7 +110,7 @@ export default function WorldExplorerLearning({article,language='vi',currentUser
      current.options.filter(o=>o.kind==='term').length)return;
   setBusy(true);setError('');
   try{
-   const activeAttempt=await createAttempt();
+   const activeAttempt=reviewIds?null:await createAttempt();
    const {data,error:rpcError}=await supabase.rpc('we_submit_learning_answer',{
     p_question_id:current.id,p_answer:answer,p_attempt_id:activeAttempt
    });
@@ -160,7 +160,7 @@ export default function WorldExplorerLearning({article,language='vi',currentUser
     if(e)throw e;setBookmark(false);
    }else{
     const {error:e}=await supabase.from('world_explorer_bookmarks')
-     .upsert({publication_id:article.id,user_id:currentUser.id},{onConflict:'user_id,publication_id'});
+     .insert({publication_id:article.id,user_id:currentUser.id});
     if(e)throw e;setBookmark(true);
    }
    setSavedMessage('');
