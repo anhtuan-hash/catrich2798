@@ -2453,3 +2453,40 @@
   .ahv3__proof-dialog { max-height: 96dvh; border-radius: 12px; }
   .ahv3__proof-dialog > footer { flex-wrap: wrap; }
 }
+
+
+/* Photo action adds a third control. Keep actions in their own natural row
+   instead of the old absolute top-right overlay that could cover the title. */
+.ahv3__shell .ahv3__hero {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  align-items: start !important;
+  gap: 10px !important;
+}
+.ahv3__shell .ahv3__hero-copy {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  padding-right: 0 !important;
+}
+.ahv3__shell .ahv3__actions {
+  position: relative !important;
+  inset: auto !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  display: flex !important;
+  justify-content: flex-start !important;
+  flex-wrap: wrap !important;
+  max-width: 100% !important;
+  gap: 7px !important;
+}
+.ahv3__shell .ahv3__hero-art {
+  opacity: .20 !important;
+}
+.ahv3__shell .ahv3__actions .ahv3__view-photo {
+  position: relative;
+  z-index: 1;
+  font-size: 11px !important;
+  line-height: 1.25 !important;
+}
