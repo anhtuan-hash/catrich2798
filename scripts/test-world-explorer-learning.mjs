@@ -14,6 +14,12 @@ assert.equal(pack.status,'ready');
 assert.ok(pack.vocabulary.length>=4,'verified vocabulary from text');
 assert.ok(pack.grammar.length>=2,'verified grammar from text');
 const types=new Set(pack.questions.map(x=>x.type));
+const trueFalse=pack.questions.filter(x=>x.type==='true_false');
+assert.ok(trueFalse.some(x=>x.answer==='true'),'source-quoted true item');
+assert.ok(trueFalse.some(x=>x.answer==='false'),'source-verifiable altered-quote false item');
+for(const q of pack.questions.filter(x=>x.type==='matching')){
+ assert.equal(new Set(q.answer.map(x=>x.meaning)).size,q.answer.length,'all matching meanings must be distinct');
+}
 for(const type of ['true_false','single_choice','matching','gap_fill','short_answer']){
  assert.ok(types.has(type),'must create '+type+' for sufficiently rich fixture');
 }
