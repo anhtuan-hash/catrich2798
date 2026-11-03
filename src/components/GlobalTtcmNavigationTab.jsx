@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { getRuntimeClient, subscribeTable } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
@@ -25,6 +25,8 @@ import './GlobalTtcmPersonnel.css';
 import './GlobalTtcmTeacherHistory.css';
 import './GlobalTtcmTeacherReaderV2.css';
 import './GlobalTtcmColorfulScheduleV2.css';
+import { useTtcmScrapbookTheme } from '../features/ttcm-scrapbook/theme.js';
+import '../features/ttcm-scrapbook/ttcm-scrapbook.css';
 
 const WORK_ITEM_COLUMNS = 'id,title,description,item_type,status,priority,visibility,owner_id,created_by,assignee_ids,watcher_ids,due_at,attachments,metadata,source_module,created_at,updated_at,submitted_at,reviewed_at,completed_at';
 const LOCAL_FEED_PREFIX = 'bes-ttcm-feed-v1';
@@ -218,6 +220,34 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
   const systemRole = normalizeSystemRole(currentUser?.role, SYSTEM_ROLES.GUEST);
   const allowed = Boolean(currentUser && [SYSTEM_ROLES.ADMIN, SYSTEM_ROLES.DEPARTMENT_HEAD, SYSTEM_ROLES.TEACHER].includes(systemRole));
   const manager = isDepartmentLeaderRole(currentUser?.role);
+  const scrapbook = useTtcmScrapbookTheme(open && allowed);
+
+  // Keep the real desktop navigation visible above the paper sheet, including on scrolled routes.
+  useLayoutEffect(() => {
+    if (!open || !scrapbook.enabled || !host) return undefined;
+    const layer = rootRef.current?.parentElement;
+    const nav = host.closest('.brian-nav');
+    if (!layer || !nav) return undefined;
+    const position = () => {
+      const { top, bottom, height } = nav.getBoundingClientRect();
+      const edge = height && top < 96 ? Math.max(0, Math.min(bottom, 140)) : 0;
+      layer.style.setProperty('--ttcm-nav-edge', edge + 'px');
+    };
+    const closeOnNav = event => {
+      if (!host.contains(event.target) && event.target.closest('button, a')) setOpen(false);
+    };
+    position();
+    const observer = new ResizeObserver(position);
+    observer.observe(nav);
+    window.addEventListener('resize', position);
+    nav.addEventListener('click', closeOnNav);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', position);
+      nav.removeEventListener('click', closeOnNav);
+      layer.style.removeProperty('--ttcm-nav-edge');
+    };
+  }, [host, open, scrapbook.enabled]);
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
@@ -424,7 +454,11 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
   const feedNeedle = feedQuery.trim().toLowerCase();
   const filteredItems = useMemo(() => {
     const visible = items.filter((item) => {
-      if (filter === 'unread' && !(userIsAssignee(item, currentUser?.id) && !readIds.has(String(item.id)))) return false;
+      if (filter === 'unread') {
+        // Keep the open message in the reader while marking it read. Leaving it updates the unread list.
+        const id = String(item.id);
+        if (!userIsAssignee(item, currentUser?.id) || (readIds.has(id) && id !== selectedItemId)) return false;
+      }
       if (filter === 'action' && !isActionItem(item)) return false;
       if (filter === 'due') { const due = item.due_at ? new Date(item.due_at).getTime() : 0; if (!(due && due >= Date.now() && !isDoneItem(item))) return false; }
       if (filter === 'done' && !isDoneItem(item)) return false;
@@ -436,7 +470,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
       const rightTime = new Date(right.created_at || right.updated_at || 0).getTime() || 0;
       return feedSort === 'oldest' ? leftTime - rightTime : rightTime - leftTime;
     });
-  }, [currentUser?.id, feedNeedle, feedSort, filter, items, readIds]);
+  }, [currentUser?.id, feedNeedle, feedSort, filter, items, readIds, selectedItemId]);
 
   const selectedItem = useMemo(() => selectedItemId ? filteredItems.find((item) => String(item.id) === String(selectedItemId)) || null : null, [filteredItems, selectedItemId]);
   const editingAttachments = useMemo(() => {
@@ -657,7 +691,8 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
   const canActOnSelected = Boolean(selectedItem && userIsAssignee(selectedItem, currentUser?.id) && isActionItem(selectedItem));
 
   const panel = open && typeof document !== 'undefined' ? createPortal(
-    <div className="ttcm-m3-layer" data-global-motion-isolate="true" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !composeOpen) setOpen(false); }}>
+    <div id={scrapbook.enabled ? 'ttcm-scrapbook' : undefined} className="ttcm-m3-layer" data-global-motion-isolate="true" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !composeOpen) setOpen(false); }}>
+      {scrapbook.enabled && <div className="ttcm-paper-frame" aria-hidden="true" />}
       <section ref={rootRef} className="ttcm-m3-shell ttcm-reader-shell" role="dialog" aria-modal="true" aria-label="Kênh TTCM">
         <header className="ttcm-m3-topbar">
           <div className="ttcm-m3-title"><span className="ttcm-m3-title-icon"><Icon name="campaign" size={22} /></span><div><strong>Kênh TTCM</strong><small>{manager ? 'Điều hành và giao tiếp với tổ chuyên môn' : 'Thông báo, tài liệu và yêu cầu từ TTCM'}</small></div></div>

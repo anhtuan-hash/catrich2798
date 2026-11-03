@@ -1,0 +1,426 @@
+/* The ID exists only on the open, server-enabled portal. Some of the original
+   TTCM and phone styles are important, so the paper layer overrides them here. */
+#ttcm-scrapbook {
+  --ink: #172f59;
+  --line: #dacabc;
+  --paper: #fffaf3;
+  --grain: url('/assets/ttcm-scrapbook/fibre.webp');
+  --sheet: var(--grain), linear-gradient(120deg, #fffdf8, #fbf3ea);
+  --lift: 0 2px 2px #7f6b5930, 0 5px 11px #8a70591a, inset 0 0 0 2px #ffffffb3;
+  --gutter: clamp(14px, 3.5vw, 62px);
+  --foot: clamp(22px, 5.7vh, 64px);
+  box-sizing: border-box;
+  font-family: var(--bes-global-font-family, system-ui, sans-serif);
+  isolation: isolate;
+  place-items: stretch !important;
+  padding: clamp(13px, 2.4vh, 26px) var(--gutter) var(--foot) !important;
+  background: var(--grain), linear-gradient(142deg,#efdfd1 2%,#dce6fc 20%,#c3dcf4 57%,#f2dec9 91%) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+#ttcm-scrapbook .ttcm-paper-frame,
+#ttcm-scrapbook .ttcm-paper-frame::before,
+#ttcm-scrapbook .ttcm-paper-frame::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+#ttcm-scrapbook .ttcm-paper-frame {
+  background:
+    url('/assets/ttcm-scrapbook/binding.webp') left top / var(--gutter) min(100%, 760px) no-repeat,
+    url('/assets/ttcm-scrapbook/deckle.webp') left bottom / auto var(--foot) repeat-x;
+}
+#ttcm-scrapbook .ttcm-paper-frame::before {
+  content: '';
+  transform: rotate(180deg);
+  background:
+    url('/assets/ttcm-scrapbook/binding.webp') left 12% / var(--gutter) 75% no-repeat,
+    url('/assets/ttcm-scrapbook/deckle.webp') center bottom / 460px 38px repeat-x;
+}
+#ttcm-scrapbook .ttcm-paper-frame::after {
+  content: '';
+  z-index: 3;
+  background:
+    url('/assets/ttcm-scrapbook/field-books.webp') left bottom / clamp(64px, 7.5vw, 133px) auto no-repeat,
+    url('/assets/ttcm-scrapbook/pencil-cup.webp') right bottom / clamp(65px, 7.3vw, 128px) auto no-repeat,
+    url('/assets/ttcm-scrapbook/pencil.webp') 40% 99% / clamp(95px, 13vw, 215px) auto no-repeat;
+}
+#ttcm-scrapbook .ttcm-m3-shell {
+  z-index: 1;
+  box-sizing: border-box;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid #cbb9a8 !important;
+  border-radius: 25px 32px 24px 20px / 20px 23px 21px 30px !important;
+  background: var(--sheet) !important;
+  box-shadow: -6px 5px 0 #e9dac6, 5px 8px 0 #f7eddf, 0 12px 16px #7968574a !important;
+  color: var(--ink);
+}
+#ttcm-scrapbook .ttcm-m3-topbar {
+  overflow: visible !important;
+  z-index: 2;
+  min-height: clamp(76px, 10vh, 104px) !important;
+  padding: 12px clamp(16px, 2vw, 32px) !important;
+  border: 0 !important;
+  background: var(--sheet) !important;
+}
+#ttcm-scrapbook .ttcm-m3-topbar::before {
+  content: '' !important;
+  display: block !important;
+  inset: auto 0 -6px !important;
+  width: auto !important;
+  height: 9px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  transform: none !important;
+  opacity: 1 !important;
+  background: url('/assets/ttcm-scrapbook/paper-edge.svg') left top / 128px 9px repeat-x !important;
+}
+#ttcm-scrapbook .ttcm-m3-topbar::after {
+  content: '' !important;
+  display: block !important;
+  inset: -11% 21% auto auto !important;
+  width: min(46%, 660px) !important;
+  height: 125% !important;
+  background: url('/assets/ttcm-scrapbook/masthead.webp') center / contain no-repeat !important;
+  opacity: 1 !important;
+  transform: none !important;
+  filter: drop-shadow(0 2px 2px #8c796126) !important;
+  pointer-events: none;
+}
+#ttcm-scrapbook .ttcm-m3-title > div::before {
+  content: 'KÊNH CHUYÊN MÔN' !important;
+  color: #3f5880 !important;
+  font-size: 10px !important;
+  letter-spacing: .17em !important;
+}
+#ttcm-scrapbook .ttcm-m3-title strong {
+  color: var(--ink) !important;
+  -webkit-text-fill-color: var(--ink) !important;
+  font-size: clamp(25px, 2.25vw, 36px) !important;
+  letter-spacing: -.035em !important;
+}
+#ttcm-scrapbook .ttcm-m3-title small { color: #405577 !important; font-size: clamp(12px, 1vw, 15px) !important; }
+#ttcm-scrapbook .ttcm-m3-title > div::before { font-family: inherit; }
+#ttcm-scrapbook .ttcm-m3-title-icon,
+#ttcm-scrapbook .ttcm-reader-card-icon {
+  color: #155bb5 !important;
+  background: var(--grain), linear-gradient(140deg, #f6fbff, #dbeaff) !important;
+  border: 1px solid #b9cfec !important;
+  border-radius: 14px !important;
+  box-shadow: var(--lift) !important;
+}
+#ttcm-scrapbook .ttcm-m3-title-icon { outline: 1px dashed #89a9d1; outline-offset: -5px; }
+#ttcm-scrapbook .ttcm-m3-icon-button,
+#ttcm-scrapbook .ttcm-reader-secondary {
+  background: var(--sheet) !important;
+  border: 1px solid #cbbcb0 !important;
+  color: #234572 !important;
+  box-shadow: var(--lift) !important;
+}
+#ttcm-scrapbook .ttcm-m3-filled-button,
+#ttcm-scrapbook .ttcm-reader-primary:not(.is-done),
+#ttcm-scrapbook .work-schedule-embedded-actions .is-upload {
+  background: var(--grain), linear-gradient(155deg, #1777d7, #174cb5) !important;
+  color: #fff !important;
+  border: 1px solid #1450a7 !important;
+  box-shadow: inset 0 0 0 2px #ffffff46, 0 3px 5px #284e8f29 !important;
+}
+#ttcm-scrapbook .ttcm-reader-toolbar {
+  min-height: 62px !important;
+  padding: 9px 18px !important;
+  background: var(--grain), #faf4ee !important;
+  border-bottom: 1px solid var(--line) !important;
+}
+#ttcm-scrapbook .ttcm-m3-workspace-tabs { height: auto !important; align-items: center !important; gap: 9px !important; }
+#ttcm-scrapbook .ttcm-m3-workspace-tabs button {
+  --tab-bg: #e8f2ff;
+  --tab-ink: #144f9d;
+  --tab-active: #185cbd;
+  position: relative;
+  min-height: 44px !important;
+  height: auto !important;
+  padding: 10px clamp(12px, 1.45vw, 24px) !important;
+  color: var(--tab-ink) !important;
+  -webkit-text-fill-color: currentColor !important;
+  background: var(--grain), var(--tab-bg) !important;
+  border: 1px solid color-mix(in srgb, var(--tab-ink) 30%, white) !important;
+  border-radius: 13px !important;
+  box-shadow: var(--lift) !important;
+  font-size: clamp(12px, 1.03vw, 16px) !important;
+  font-weight: 750 !important;
+}
+#ttcm-scrapbook .ttcm-m3-workspace-tabs button:nth-child(2) { --tab-bg: #f0edff; --tab-ink: #374ba4; --tab-active: #245dd0; }
+#ttcm-scrapbook .ttcm-m3-workspace-tabs button:nth-child(3) { --tab-bg: #e6f6f2; --tab-ink: #076c74; --tab-active: #05747c; }
+#ttcm-scrapbook .ttcm-m3-workspace-tabs button:nth-child(4) { --tab-bg: #f2eaff; --tab-ink: #6040a1; --tab-active: #714cad; }
+#ttcm-scrapbook .ttcm-m3-workspace-tabs button::after { display: none !important; }
+#ttcm-scrapbook .ttcm-m3-workspace-tabs button.is-selected {
+  background: var(--grain), var(--tab-active) !important;
+  color: #fff !important;
+  outline: 1px dashed #ffffffad;
+  outline-offset: -5px;
+}
+#ttcm-scrapbook :is(button, [role=button], input, select, textarea):focus-visible {
+  outline: 3px solid #1556a8 !important;
+  outline-offset: 2px !important;
+}
+
+/* Both reading panes keep their independent scroll areas and action bar. */
+#ttcm-scrapbook :is(.ttcm-reader-workspace, .ttcm-m3-schedule-view, .ttcm-m3-personnel-view, .ttcm-history-view) {
+  min-width: 0;
+  min-height: 0;
+  background: var(--grain), #f2e9de !important;
+}
+#ttcm-scrapbook :is(.ttcm-reader-list, .ttcm-reader-detail, .ttcm-history-toolbar, .ttcm-history-panel,
+  .work-schedule-daily-main, .work-schedule-daily-sidebar > section, .work-schedule-controls, .pgt-metrics, .pgt-table-card,
+  .gpl-teacher-hero-card, .gpl-teacher-progress-card, .gpl-teacher-secondary > section,
+  .ttcm-m3-compose, .ttcm-m3-response-dialog, .ttcm-m3-file-viewer, .pgt-drawer) {
+  border: 1px solid var(--line) !important;
+  border-radius: 19px !important;
+  background: var(--sheet) !important;
+  box-shadow: var(--lift) !important;
+}
+#ttcm-scrapbook :is(.ttcm-reader-list-head, .ttcm-reader-filter-chips, .ttcm-reader-list-scroll,
+  .ttcm-reader-detail-head, .ttcm-reader-detail-scroll, .ttcm-reader-detail-footer) {
+  background: transparent !important;
+}
+#ttcm-scrapbook .ttcm-reader-list-head { gap: 10px; min-height: 74px; }
+#ttcm-scrapbook .ttcm-reader-list-tools .ttcm-reader-search { width: clamp(115px, 11vw, 190px); min-width: 0; }
+#ttcm-scrapbook :is(.ttcm-reader-search, .ttcm-reader-sort, .ttcm-reader-filter-chips button,
+  .pgt-search, .pgt-filter-chips button, .pgt-filter-button, .ttcm-history-filter-chip, .ttcm-history-field select) {
+  background: var(--grain), #fffdf9 !important;
+  border-color: #d6c9bb !important;
+  color: var(--ink);
+  box-shadow: 0 2px 3px #8f796020 !important;
+}
+#ttcm-scrapbook :is(.ttcm-reader-filter-chips button.is-selected, .pgt-filter-chips button.is-active, .ttcm-history-filter-chip.is-selected) {
+  background: var(--grain), #e2efff !important;
+  border-color: #427fc2 !important;
+  color: #103e85 !important;
+}
+#ttcm-scrapbook .ttcm-reader-card {
+  background: var(--sheet) !important;
+  border: 1px solid #d4c6b7 !important;
+  border-radius: 15px !important;
+  box-shadow: var(--lift) !important;
+  min-height: 96px;
+}
+#ttcm-scrapbook .ttcm-reader-card.is-selected {
+  background: var(--grain), linear-gradient(120deg,#e1f0ff,#f4f8ff) !important;
+  border-color: #5794d8 !important;
+  box-shadow: inset 0 0 0 2px #88bbe7, 0 4px 0 #ccdef1 !important;
+}
+#ttcm-scrapbook .ttcm-reader-card.is-selected::before {
+  content: '';
+  position: absolute;
+  inset: 6px auto auto 8px;
+  width: 8px;
+  height: 20px;
+  border: 2px solid #ba4861;
+  border-radius: 8px;
+  background: none;
+  transform: rotate(20deg);
+  pointer-events: none;
+}
+#ttcm-scrapbook .ttcm-reader-card:is(.is-task, .is-resource) .ttcm-reader-card-icon {
+  color: #a45b06 !important;
+  background: var(--grain), #ffedd4 !important;
+  border-color: #edcb9a !important;
+}
+#ttcm-scrapbook .ttcm-reader-detail-card {
+  border: 1px dashed #c5b9a9 !important;
+  border-radius: 16px !important;
+  background: var(--sheet) !important;
+  box-shadow: none !important;
+  overflow: visible;
+}
+#ttcm-scrapbook .ttcm-reader-detail-card::before {
+  inset: 7px 10px auto auto;
+  width: clamp(60px, 9vw, 146px);
+  height: clamp(86px, 12vw, 182px);
+  background: url('/assets/ttcm-scrapbook/checklist.webp') right top / contain no-repeat;
+  opacity: 1;
+}
+#ttcm-scrapbook .ttcm-reader-detail-card::after { content: none; }
+#ttcm-scrapbook .ttcm-reader-detail-card > :is(.ttcm-reader-detail-meta, h2, .ttcm-reader-message) {
+  max-width: calc(100% - clamp(62px, 9vw, 146px));
+  overflow-wrap: anywhere;
+}
+#ttcm-scrapbook .ttcm-reader-detail h2, #ttcm-scrapbook .ttcm-reader-card h3 { color: var(--ink); }
+#ttcm-scrapbook .ttcm-reader-detail h2::after {
+  content: ''; display: block; width: 82px; height: 4px; margin: 6px 0;
+  background: #e9b246; border-radius: 70% 25%; transform: rotate(-2deg);
+}
+#ttcm-scrapbook :is(.ttcm-reader-response-preview article, .ttcm-reader-file-row, .ttcm-history-event-card) {
+  background: var(--grain), #f5f0f7 !important;
+  border: 1px solid #dfd3de !important;
+  box-shadow: var(--lift);
+}
+#ttcm-scrapbook .ttcm-reader-detail-footer { border-top: 1px dashed #cdbda9; }
+#ttcm-scrapbook .ttcm-reader-manager-footer { flex-wrap: wrap; }
+
+@media (min-width: 761px) {
+  #ttcm-scrapbook .ttcm-reader-list-copy span { font-size: clamp(21px, 1.7vw, 27px); }
+  #ttcm-scrapbook .ttcm-reader-card h3 { font-size: clamp(15px, 1.2vw, 19px); line-height: 1.3; }
+  #ttcm-scrapbook .ttcm-reader-card p { font-size: 13px; }
+  #ttcm-scrapbook .ttcm-reader-filter-chips { flex-wrap: wrap; gap: 5px; padding-inline: 12px; }
+  #ttcm-scrapbook .ttcm-reader-filter-chips button { padding-inline: 8px; gap: 5px; font-size: 12px; }
+  #ttcm-scrapbook .ttcm-reader-list-tools .ttcm-reader-sort { min-width: 94px; }
+  #ttcm-scrapbook .ttcm-reader-list-tools .ttcm-reader-mark-all-quiet { width: 32px; }
+  #ttcm-scrapbook .ttcm-reader-list-tools .ttcm-reader-search { width: clamp(108px, 9vw, 150px); }
+  #ttcm-scrapbook .ttcm-reader-message { font-size: clamp(14px, 1.02vw, 17px); }
+  #ttcm-scrapbook .ttcm-reader-response-preview article b { font-size: 14px; }
+  #ttcm-scrapbook .ttcm-reader-response-preview article p { font-size: 12.5px; }
+  #ttcm-scrapbook .ttcm-reader-response-preview article time { font-size: 11px; }
+  #ttcm-scrapbook .ttcm-reader-response-preview > header strong { font-size: 16px; }
+}
+
+/* Daily schedule and its existing category colours. */
+#ttcm-scrapbook .ttcm-m3-schedule-host .work-schedule-center {
+  margin: 0 !important;
+  padding: 10px !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+#ttcm-scrapbook .work-schedule-center::before { content: none !important; }
+#ttcm-scrapbook .work-schedule-daily-shell { padding: 10px 0 0 !important; background: transparent !important; }
+#ttcm-scrapbook .work-schedule-daily-main { padding: 12px !important; }
+#ttcm-scrapbook .work-schedule-controls { overflow: visible !important; }
+#ttcm-scrapbook .work-schedule-daily-card {
+  background: var(--grain), linear-gradient(100deg, color-mix(in srgb, var(--row, #769fd8) 15%, #fffaf4), #fffaf6) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--lift) !important;
+}
+#ttcm-scrapbook .work-schedule-daily-sidebar > .work-schedule-daily-quote {
+  background: var(--grain), #f4eff8 !important;
+  border-style: dashed !important;
+}
+#ttcm-scrapbook .work-schedule-daily-next-item { background: var(--grain), #fffaf3 !important; border-color: var(--line) !important; }
+#ttcm-scrapbook .work-schedule-daily-summary-grid article { box-shadow: var(--lift) !important; }
+#ttcm-scrapbook .work-schedule-category-filters button { background-image: var(--grain) !important; }
+
+/* Staff directory, the teacher's own profile, and the manager's file history. */
+#ttcm-scrapbook .ttcm-m3-personnel-view { padding: 12px !important; }
+#ttcm-scrapbook .pgt-root { margin: 0; }
+#ttcm-scrapbook .pgt-metrics { padding: 12px; gap: 10px; margin: 0 0 12px; }
+#ttcm-scrapbook :is(.pgt-metric, .ttcm-history-stat) {
+  --tint: #eaf1ff;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--tint) 65%, #a39592) !important;
+  background: var(--grain), linear-gradient(125deg, var(--tint), #fffaf5) !important;
+  box-shadow: var(--lift) !important;
+  outline: 1px dashed color-mix(in srgb, var(--tint) 66%, #888199);
+  outline-offset: -5px;
+}
+#ttcm-scrapbook :is(.pgt-metric.is-amber, .ttcm-history-stat.is-content) { --tint: #ffedd3; }
+#ttcm-scrapbook :is(.pgt-metric.is-purple, .ttcm-history-stat.is-files) { --tint: #f0e6ff; }
+#ttcm-scrapbook :is(.pgt-metric.is-green, .ttcm-history-stat.is-latest) { --tint: #e0f3df; }
+#ttcm-scrapbook .pgt-metric:last-child { --tint: #ffe7f0; }
+#ttcm-scrapbook :is(.pgt-metric > span, .ttcm-history-stat-icon) {
+  box-shadow: var(--lift) !important;
+  border: 1px solid #fff9;
+}
+#ttcm-scrapbook .pgt-toolbar { position: relative; background: var(--grain), #fcf7f0; }
+#ttcm-scrapbook .pgt-table-head,
+#ttcm-scrapbook .ttcm-history-table th { background: var(--grain), #e7edfb !important; color: #334d73 !important; }
+#ttcm-scrapbook :is(.pgt-row, .ttcm-history-table td) { background: var(--grain), #fffcf8 !important; border-color: #e5d9ca; }
+#ttcm-scrapbook .pgt-row:nth-child(even) { background-color: #faf4eb !important; }
+#ttcm-scrapbook .pgt-row:is(:hover, .is-selected) { background: var(--grain), #eaf2ff !important; }
+#ttcm-scrapbook :is(.pgt-pagination, .ttcm-history-files) { background: transparent; }
+#ttcm-scrapbook .pgt-advanced-filter-panel:not([hidden]) {
+  position: absolute; z-index: 8; right: 12px; top: calc(100% - 5px);
+  max-width: calc(100% - 24px); padding: 13px;
+  border: 1px solid var(--line); border-radius: 13px; background: var(--sheet); box-shadow: var(--lift);
+}
+#ttcm-scrapbook .pgt-advanced-filter-options { display: flex; flex-wrap: wrap; gap: 6px; }
+#ttcm-scrapbook .pgt-advanced-filter-option { color: var(--ink); background: #edf3ff; border: 1px solid #bfd0ec; border-radius: 8px; padding: 5px 9px; }
+#ttcm-scrapbook .ttcm-history-panel > header { background: var(--grain), #f4eef9 !important; }
+#ttcm-scrapbook .ttcm-history-empty { background: var(--grain), #fff9ef !important; border-style: dashed !important; }
+#ttcm-scrapbook :is(.ttcm-m3-field input:not([type=file]), .ttcm-m3-field textarea) { background: #fffdf9; }
+
+/* Scope the desktop chrome to the lifetime of the sheet. Mobile keeps its full-height reader. */
+@media (min-width: 901px) {
+  #ttcm-scrapbook { top: var(--ttcm-nav-edge, 0px) !important; }
+  body:has(> #ttcm-scrapbook) #root .app-shell .bes-top-chrome .brian-nav {
+    background: url('/assets/ttcm-scrapbook/fibre.webp'), #fffaf3 !important;
+    border-color: #dbcbb9 !important;
+    box-shadow: 0 3px 7px #79685233 !important;
+  }
+  body:has(> #ttcm-scrapbook) :is(.bbd-board-fab, .bfc-bubble, .bba-bubble, .bes-approval-fab, .bes-kira-chat-launcher) {
+    --sticker: #fae5c9;
+    background: url('/assets/ttcm-scrapbook/fibre.webp'), var(--sticker) !important;
+    border: 2px solid #fff9ee !important;
+    outline: 1px dashed currentColor; outline-offset: -5px;
+    box-shadow: 0 3px 7px #74635244 !important;
+  }
+  body:has(> #ttcm-scrapbook) .bbd-board-fab { --sticker: #d9f2e4; }
+  body:has(> #ttcm-scrapbook) .bfc-bubble { --sticker: #ede3ff; }
+  body:has(> #ttcm-scrapbook) .bba-bubble { --sticker: #ffe1e9; }
+  #ttcm-scrapbook .ttcm-reader-detail { grid-template-rows: minmax(0, 1fr) auto; }
+  #ttcm-scrapbook .ttcm-reader-detail-scroll { grid-row: 1; overflow: auto; display: block; }
+  #ttcm-scrapbook .ttcm-reader-detail-card { min-height: 100%; }
+  #ttcm-scrapbook .ttcm-reader-detail-footer { grid-row: 2; }
+}
+@media (min-width: 761px) and (max-width: 900px) {
+  #ttcm-scrapbook .ttcm-reader-workspace { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+  #ttcm-scrapbook .ttcm-reader-detail { position: relative; inset: auto; display: flex; flex-direction: column; }
+  #ttcm-scrapbook .ttcm-reader-detail-scroll { flex: 1; }
+  #ttcm-scrapbook .ttcm-reader-detail-head { display: none; }
+}
+@media (max-width: 1100px) {
+  #ttcm-scrapbook .ttcm-m3-topbar::after { width: 34% !important; right: 22% !important; }
+  #ttcm-scrapbook .pgt-metrics { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  #ttcm-scrapbook .ttcm-reader-detail-card::before { display: none; }
+  #ttcm-scrapbook .ttcm-reader-detail-card > :is(.ttcm-reader-detail-meta, h2, .ttcm-reader-message) { max-width: 100%; }
+}
+@media (max-width: 760px) {
+  #ttcm-scrapbook { inset: 0 !important; padding: 0 !important; }
+  #ttcm-scrapbook .ttcm-paper-frame { display: none; }
+  #ttcm-scrapbook .ttcm-m3-shell { border: 0 !important; border-radius: 0 !important; box-shadow: none !important; }
+  #ttcm-scrapbook .ttcm-m3-topbar { padding: max(10px,env(safe-area-inset-top)) 10px 8px 60px !important; min-height: 66px !important; }
+  #ttcm-scrapbook .ttcm-m3-topbar::after { display: none !important; }
+  #ttcm-scrapbook .ttcm-m3-title strong { font-size: 21px !important; }
+  #ttcm-scrapbook .ttcm-m3-title > div::before { font-size: 8px !important; }
+  #ttcm-scrapbook .ttcm-reader-toolbar { min-height: 54px !important; padding: 5px 7px !important; overflow-x: auto !important; }
+  #ttcm-scrapbook .ttcm-m3-workspace-tabs { display: flex !important; width: max-content !important; gap: 5px !important; }
+  #ttcm-scrapbook .ttcm-m3-workspace-tabs button { flex: none; padding: 7px 10px !important; font-size: 12px !important; }
+  #ttcm-scrapbook .ttcm-reader-workspace { padding: 5px !important; }
+  /* The mobile reader occupies the available viewport; replies and file previews open above it. */
+  #ttcm-scrapbook .ttcm-reader-shell[data-mobile-detail-open="true"]::before,
+  #ttcm-scrapbook .ttcm-reader-shell[data-mobile-detail-open="true"] .ttcm-reader-detail::before { content: none; }
+  #ttcm-scrapbook .ttcm-reader-shell[data-mobile-detail-open="true"] .ttcm-reader-detail {
+    inset: 0 !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    min-height: 0 !important;
+    padding-top: env(safe-area-inset-top);
+    border-radius: 0 !important;
+    background: var(--grain), var(--paper) !important;
+    opacity: 1 !important;
+    animation: none !important;
+  }
+  #ttcm-scrapbook .ttcm-m3-compose-layer { z-index: 100 !important; }
+  #ttcm-scrapbook .ttcm-reader-list-head { min-height: auto; }
+  #ttcm-scrapbook .ttcm-reader-list-tools .ttcm-reader-search { width: auto; flex: 1; }
+  #ttcm-scrapbook .ttcm-reader-card { min-height: 78px; }
+  #ttcm-scrapbook .pgt-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; padding: 8px; }
+  #ttcm-scrapbook .pgt-metric { min-height: 82px; padding: 10px; gap: 8px; }
+  #ttcm-scrapbook .pgt-metric > span { width: 32px; height: 32px; }
+  #ttcm-scrapbook .ttcm-m3-personnel-view { padding: 6px !important; }
+}
+@media (max-height: 550px) and (min-width: 761px) {
+  #ttcm-scrapbook { padding: 5px 12px 9px !important; }
+  #ttcm-scrapbook .ttcm-paper-frame::after { display: none; }
+  #ttcm-scrapbook .ttcm-m3-topbar { min-height: 60px !important; padding-block: 6px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #ttcm-scrapbook .ttcm-m3-shell { animation: none !important; }
+}
+@media print {
+  #ttcm-scrapbook .ttcm-paper-frame { display: none; }
+}
