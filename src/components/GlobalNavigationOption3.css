@@ -212,21 +212,21 @@ html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button.is-ac
 }
 
 /* Home */
-html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button:first-child {
+html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button[data-nav-key='home'] {
   --hub-tab-accent: #1a73e8;
   --hub-tab-soft: #e8f0fe;
   --hub-tab-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='10' fill='%23E8F0FE'/%3E%3Cpath d='M16 7 7 14v11h6v-7h6v7h6V14z' fill='%231A73E8'/%3E%3C/svg%3E");
 }
 
 /* Apps — always the second native destination when available. */
-html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button:nth-child(2) {
+html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button[data-nav-key='apps'] {
   --hub-tab-accent: #188038;
   --hub-tab-soft: #e6f4ea;
   --hub-tab-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='10' fill='%23E6F4EA'/%3E%3Cpath d='M8 8h6v6H8zm10 0h6v6h-6zM8 18h6v6H8zm10 0h6v6h-6z' fill='%23188038'/%3E%3C/svg%3E");
 }
 
 /* Admin — third native destination for administrator accounts. */
-html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button:nth-child(3) {
+html body .app-shell[data-route] .brian-nav > .brian-nav__primary > button[data-nav-key='admin'] {
   --hub-tab-accent: #c5221f;
   --hub-tab-soft: #fce8e6;
   --hub-tab-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='10' fill='%23FCE8E6'/%3E%3Cpath d='M16 6 24 9v6c0 5-3.4 9-8 11-4.6-2-8-6-8-11V9zm0 5-4 2v3c0 2.7 1.7 5 4 6.4 2.3-1.4 4-3.7 4-6.4v-3z' fill='%23C5221F'/%3E%3C/svg%3E");
