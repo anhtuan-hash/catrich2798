@@ -150,6 +150,11 @@ try {
     await session.click();
     await expect(page.locator('.ahv3__info-grid')).toBeVisible();
     await expect(page.locator('.ahv3__detail')).toContainText('Buổi học minh họa.');
+    if (width === 1280) {
+      const bridge = page.locator('.bes-history-post-confirm-bridge');
+      await expect(bridge.getByRole('button', {name:'Điều chỉnh điểm danh'})).toBeVisible();
+      await expect(bridge.locator('.attendance-class-list[hidden]')).toBeHidden();
+    }
     await snap('08-history',width);
     await page.evaluate(()=>window.attendanceFixture.setRoute('home'));
     await expect(page.locator('html')).toHaveAttribute('data-attendance-scrapbook','off');

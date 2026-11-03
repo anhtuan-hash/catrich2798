@@ -341,6 +341,9 @@ html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbo
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-member-table .attendance-member-edit-row:nth-child(even),
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .att-report-m3__table-wrap tbody tr:nth-child(even) td { background-color:#f2f6ff !important; }
 
+/* The post-confirmation bridge keeps hidden fields for its existing action handler. */
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .bes-history-post-confirm-bridge > [hidden] { display: none !important; }
+
 /* History: a session summary is a pinned sheet; its figures are still live. */
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .ahv3__hero { position:relative; border:2px solid #fffaf4 !important; box-shadow:0 3px 5px #71657528 !important; }
 html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .ahv3__hero::before,

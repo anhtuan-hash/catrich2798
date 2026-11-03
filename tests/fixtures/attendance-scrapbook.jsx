@@ -10,6 +10,7 @@ import Panel from '../../src/components/admin/AttendanceScrapbookAdminPanel.jsx'
 import {getRuntimeState} from '../../src/services/runtime/core.js';
 import {useAttendanceScrapbookScope} from '../../src/utils/attendanceScrapbookTheme.js';
 import '../../src/supplementalLearningRouteBootstrap.js';
+import '../../src/attendancePostConfirmEditBootstrap.js';
 import '../../src/styles/GlobalLayout16x9Authority.css';
 import '../../src/components/GlobalNavigationPastelPalette.css';
 import '../../src/components/GlobalNavigationTextOnlyCompact.css';

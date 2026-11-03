@@ -68,6 +68,10 @@ const client={
       window.attendanceServer.enabled=args.p_enabled;window.attendanceServer.revision++;
       return {data:[themeRow()]};
     }
+    if (name === 'bes_get_extra_attendance_edit_access') {
+      const allowed = role === 'admin' && sessions.some(session => session.id === args.p_session_id);
+      return {data:{allowed, bypass:allowed, reason:allowed ? 'admin_bypass' : 'edit_window_expired', server_now:new Date().toISOString()}};
+    }
     if(name.startsWith('bes_list_')||name.startsWith('bes_get_'))return {data:[]};
     throw Error('Unexpected mutation in read-only attendance fixture: '+name);
   }
