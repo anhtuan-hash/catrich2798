@@ -1,33 +1,18 @@
 import assert from 'node:assert/strict';
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { spawn } from 'node:child_process';
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
+import { build, preview } from 'vite';
 import { chromium, expect } from '@playwright/test';
 
 const base = 'http://127.0.0.1:5199';
-const vite = spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', '5199', '--strictPort'], { stdio: 'pipe', env: { ...process.env, VITE_SUPABASE_URL: '', VITE_SUPABASE_ANON_KEY: '' } });
-let browser, page, log = '';
-vite.stderr.on('data', chunk => { log += String(chunk); });
+const outDir = mkdtempSync(join(tmpdir(), 'apps-scrapbook-browser-'));
 const output = 'test-results/apps-scrapbook';
 mkdirSync(output, { recursive: true });
-try {
-  let ready = false;
-  for (let i = 0; i < 80; i++) {
-    if (vite.exitCode !== null) throw new Error(log);
-    try { if ((await fetch(base + '/tests/fixtures/apps-scrapbook.html')).ok) { ready = true; break; } } catch {}
-    await new Promise(resolve => setTimeout(resolve, 250));
-  }
-  assert.ok(ready, 'fixture server is ready');
-  browser = await chromium.launch({ headless: true });
-  page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-  const errors = [];
-  page.on('pageerror', error => errors.push(error.message));
-  await page.addInitScript(() => {
-    window.appsServer = { missing: true, enabled: false, reject: false, revision: 1 };
-    window.open = url => { window.lastOpenedApp = url; };
-  });
-  // Test-only transport: real components, store, scope hook and launcher logic.
-  // No test identity or mock is shipped in the production application.
-  await page.route('**/src/services/runtime/core.js*', route => route.fulfill({ contentType: 'text/javascript', body: `
+let browser, page, server;
+// Bundle the actual directory, footer and Settings card exactly as a release.
+// Replace only their database transport, and only for this fixture build.
+const fixtureRuntime = `
     const row = () => ({ apps_scrapbook_enabled: window.appsServer.enabled, dashboard_scrapbook_enabled: true,
       halloween_home_enabled: false, halloween_footer_enabled: false, november_home_enabled: true,
       november_avatar_url: '', updated_at: new Date(1793600000000 + window.appsServer.revision * 1000).toISOString() });
@@ -47,8 +32,29 @@ try {
       };
       return () => {};
     };
-  ` }));
+  `;
+try {
+  await build({
+    mode: 'test',
+    logLevel: 'warn',
+    define: { 'import.meta.env.VITE_SUPABASE_URL': "''", 'import.meta.env.VITE_SUPABASE_ANON_KEY': "''" },
+    plugins: [{ name: 'apps-fixture-runtime', enforce: 'pre', transform(_source, id) {
+      if (id.endsWith('/src/services/runtime/core.js')) return fixtureRuntime;
+    } }],
+    build: { outDir, emptyOutDir: true, rollupOptions: { input: resolve('tests/fixtures/apps-scrapbook.html') } },
+  });
+  server = await preview({ logLevel: 'warn', build: { outDir }, preview: { host: '127.0.0.1', port: 5199, strictPort: true } });
+  browser = await chromium.launch({ headless: true });
+  page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+  const errors = [];
+  page.on('pageerror', error => { errors.push(error.message); console.error(error.stack); });
+  page.on('requestfailed', request => console.error('Request failed:', request.url(), request.failure()?.errorText));
+  await page.addInitScript(() => {
+    window.appsServer = { missing: true, enabled: false, reject: false, revision: 1 };
+    window.open = url => { window.lastOpenedApp = url; };
+  });
   await page.goto(base + '/tests/fixtures/apps-scrapbook.html', { waitUntil: 'networkidle' });
+  assert.deepEqual(errors, [], 'fixture mounted without module or render errors');
   const card = page.locator('#settings-apps-scrapbook');
   const toggle = card.getByRole('switch');
   const shell = page.locator('.app-shell');
@@ -77,12 +83,18 @@ try {
   const desktop = await grid.evaluate(el => ({ columns: getComputedStyle(el).gridTemplateColumns.split(' ').length, background: getComputedStyle(el).backgroundImage }));
   assert.equal(desktop.columns, 5);
   assert.match(desktop.background, /paper-grain/);
+  const approved = grid.locator('.external-approved-app');
+  assert.match(await approved.evaluate(el => getComputedStyle(el).backgroundImage), /paper-grain/);
+  await approved.getByRole('button').click();
+  assert.equal(await page.evaluate(() => window.lastApprovedApp), 'approved-worksheet');
+  await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({ path: output + '/desktop-on.png', fullPage: true });
 
   // Existing app filters, launch and edit/pin/save operate on the same cards.
   const hero = page.locator('.editorial-apps-hero');
   const pinnedBefore = await grid.locator('[data-app-pinned=true]').count();
   await hero.locator('.editorial-apps-stat.is-pinned').click();
+  await expect(approved).toBeHidden();
   await expect(grid.locator('.editorial-app-card:visible')).toHaveCount(pinnedBefore);
   await hero.getByRole('button', { name: 'Dùng chung', exact: true }).click();
   await expect(grid.locator('.editorial-app-card:visible')).toHaveCount(1);
@@ -159,5 +171,5 @@ try {
   if (page) { await page.screenshot({ path: output + '/failure.png', fullPage: true }); writeFileSync(output + '/failure.html', await page.content()); }
   throw error;
 } finally {
-  await browser?.close(); vite.kill('SIGTERM');
+  await browser?.close(); await server?.close(); rmSync(outDir, { recursive: true, force: true });
 }

@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { createPortal } from 'react-dom';
 import '../../src/index.css';
 import '../../src/styles/GlobalFontSystem.css';
+import '../../src/styles/GlobalLayout16x9Authority.css';
 import { APPS } from '../../src/data/apps.js';
 import WebAppsRedesign from '../../src/pages/WebAppsRedesign.jsx';
+import { WebsiteAppCard } from '../../src/components/ExternalAppsIntegration.jsx';
 import Footer from '../../src/components/Footer.jsx';
 import { useAppsScrapbookScope } from '../../src/utils/appsScrapbookTheme.js';
 import AppsScrapbookAdminPanel from '../../src/components/admin/AppsScrapbookAdminPanel.jsx';
@@ -21,8 +24,12 @@ function Fixture() {
   const [user, setUser] = useState(admin);
   const [settings, setSettings] = useState(true);
   const [language, setLanguage] = useState('vi');
+  const [grid, setGrid] = useState(null);
   useAppsScrapbookScope(route);
-  useEffect(() => { window.appsFixture = { setRoute, setUser, setSettings, setLanguage }; }, []);
+  useEffect(() => {
+    setGrid(document.getElementById('apps-directory-grid'));
+    window.appsFixture = { setRoute, setUser, setSettings, setLanguage };
+  }, []);
   return <>
     <div className="app-shell" data-route={route}>
       <main id="bes-main-content">
@@ -30,6 +37,7 @@ function Fixture() {
       </main>
       <Footer language={language} route={route} />
     </div>
+    {user && grid && createPortal(<WebsiteAppCard app={{ id: 'approved-worksheet', title: 'Trợ lí tạo Worksheet', icon: 'WEB', sourceType: 'url' }} language={language} onOpen={app => { window.lastApprovedApp = app.id; }} />, grid)}
     {settings && <div className="settings-launcher-portal"><div className="settings-launcher-drawer">
       <header className="settings-launcher-drawer-header"><div><small>BRIAN ENGLISH · SETTINGS</small><strong>Điều hướng</strong></div></header>
       <div className="settings-launcher-drawer-body"><AppsScrapbookAdminPanel currentUser={user} language={language} /></div>

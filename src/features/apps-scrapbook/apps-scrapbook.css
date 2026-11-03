@@ -177,7 +177,7 @@ html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #ap
   background: repeating-linear-gradient(0deg,#fff6 0 1px,transparent 1px 7px), repeating-linear-gradient(90deg,#fff6 0 1px,#f0c371aa 1px 7px);
   transform: rotate(-32deg); pointer-events: none;
 }
-html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > .editorial-app-card {
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > :is(.editorial-app-card, .external-approved-app) {
   --as-edge: #f4cddf;
   min-height: 212px !important; height: auto !important; max-height: none !important;
   background: var(--as-grain), #fffcf8 !important; border: 1px solid #eaddce !important;
@@ -185,19 +185,19 @@ html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #ap
   box-shadow: 0 4px 5px #74624b22, 0 1px 2px #71644a18 !important;
   transition: box-shadow .18s, border-color .18s;
 }
-html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > .editorial-app-card:nth-child(5n+2) { --as-edge: #bce5ce; }
-html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > .editorial-app-card:nth-child(5n+3) { --as-edge: #f8d8af; }
-html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > .editorial-app-card:nth-child(5n+4) { --as-edge: #bce2f4; }
-html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > .editorial-app-card:nth-child(5n+5) { --as-edge: #fae39e; }
-html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > .editorial-app-card:nth-child(7n) { --as-edge: #dfc9f0; }
-html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > .editorial-app-card::before {
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > :is(.editorial-app-card, .external-approved-app):nth-child(5n+2) { --as-edge: #bce5ce; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > :is(.editorial-app-card, .external-approved-app):nth-child(5n+3) { --as-edge: #f8d8af; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > :is(.editorial-app-card, .external-approved-app):nth-child(5n+4) { --as-edge: #bce2f4; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > :is(.editorial-app-card, .external-approved-app):nth-child(5n+5) { --as-edge: #fae39e; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > :is(.editorial-app-card, .external-approved-app):nth-child(7n) { --as-edge: #dfc9f0; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > :is(.editorial-app-card, .external-approved-app)::before {
   content: ''; position: absolute !important; inset: auto -2px -2px !important;
   height: 18px !important; background: var(--as-grain), var(--as-edge) !important;
   opacity: 1 !important; pointer-events: none; transform: rotate(-2deg);
   clip-path: polygon(0 28%,6% 23%,11% 37%,16% 15%,23% 29%,29% 18%,35% 30%,41% 10%,48% 24%,55% 13%,61% 25%,68% 8%,75% 20%,82% 0,88% 15%,94% 4%,100% 12%,100% 100%,0 100%);
 }
-html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > .editorial-app-card:hover { border-color: #a6cddc !important; box-shadow: 0 6px 12px #54778d30 !important; }
-html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid .editorial-app-card-main {
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > :is(.editorial-app-card, .external-approved-app):hover { border-color: #a6cddc !important; box-shadow: 0 6px 12px #54778d30 !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid :is(.editorial-app-card-main, .external-approved-app > .apps-list-open) {
   min-height: 212px !important; height: 100% !important; padding: 15px 16px 20px !important;
   background: transparent !important; color: var(--as-ink) !important;
 }
@@ -213,11 +213,17 @@ html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #ap
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-app-card-favorite { font-size: 25px !important; color: #8695a8 !important; }
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-app-card-favorite.is-pinned { color: #d78a05 !important; }
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-app-card-badge { font-size: 10px !important; padding: 4px 7px !important; min-height: 22px !important; }
+/* The TTCM website/HTML cards are portalled into this grid after it mounts. */
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid .external-approved-app .apps-list-copy > strong { color: #123453 !important; -webkit-text-fill-color: #123453 !important; font-weight: 800 !important; overflow-wrap: anywhere; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid .external-approved-app .apps-list-copy > small { color: #4e5c70 !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid .external-approved-app .apps-list-primary-action { color: #b52428 !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid .external-approved-app > .apps-list-open { max-height: none !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .apps-directory-native:is([data-hero-filter=pinned], [data-hero-filter=shared], [data-hero-filter=featured], [data-hero-filter=nav]) #apps-directory-grid > .external-approved-app { display: none !important; }
 /* Locked requests and edit actions get real space, never overlap the paper CTA. */
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid > .editorial-app-card.is-locked .editorial-app-card-main { height: auto !important; }
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid .editorial-app-card-permission { position: static !important; padding: 0 10px 24px !important; }
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .is-launcher-edit-mode #apps-directory-grid { grid-auto-rows: auto !important; }
-html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .is-launcher-edit-mode #apps-directory-grid .editorial-app-card-main { height: auto !important; min-height: 212px !important; }
+html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .is-launcher-edit-mode #apps-directory-grid :is(.editorial-app-card-main, .external-approved-app > .apps-list-open) { height: auto !important; min-height: 212px !important; }
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-app-card-admin { position: relative; padding-bottom: 24px !important; background: #fff9ed !important; }
 html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .launcher-admin-panel { background: #fffcf7 !important; color: #193d5e !important; }
 
@@ -280,7 +286,7 @@ html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .be
   html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat-icon { width: 36px !important; height: 36px !important; }
   html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat-copy strong { font-size: 32px !important; }
   html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid { padding: 24px 20px !important; gap: 12px !important; }
-  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid .editorial-app-card-main { padding: 12px 12px 20px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid :is(.editorial-app-card-main, .external-approved-app > .apps-list-open) { padding: 12px 12px 20px !important; }
   html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-main { gap: 22px !important; }
   html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .signature-footer-v50-main > section { padding: 20px 13px !important; }
 }
@@ -317,7 +323,7 @@ html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .be
   html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat-copy strong { font-size: 26px !important; }
   html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] .editorial-apps-stat-copy small { font-size: 10px !important; }
   html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid.apps-directory-list-native { width: calc(100% - 24px) !important; padding: 23px 12px !important; gap: 11px !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; outline-offset: -6px; }
-  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid .editorial-app-card-main { padding: 12px 10px 20px !important; }
+  html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid :is(.editorial-app-card-main, .external-approved-app > .apps-list-open) { padding: 12px 10px 20px !important; }
   html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid .editorial-app-card-title { font-size: 13px !important; }
   html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid .editorial-app-card-description { font-size: 11px !important; }
   html body #root#root .app-shell[data-route="apps"][data-apps-scrapbook="on"] #apps-directory-grid .editorial-app-card-icon { width: 34px !important; height: 34px !important; flex-basis: 34px !important; border-radius: 10px !important; }
