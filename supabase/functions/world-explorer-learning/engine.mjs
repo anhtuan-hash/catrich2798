@@ -66,7 +66,7 @@ function sentencesOf(body){
  return out;
 }
 function evidence(s){return {exact_quote:s.text,paragraph_id:s.paragraph_id,sentence_id:s.sentence_id,verification_status:'exact_text'};}
-function excerpt(s,max=190){if(s.length<=max)return s;const pos=s.slice(0,max).lastIndexOf(' ');return s.slice(0,Math.max(85,pos))+'…';}
+function excerpt(s,max=190){if(s.length<=max)return s;const pos=s.slice(0,max).lastIndexOf(' ');return s.slice(0,Math.max(85,pos));}
 function wordIn(s,w){return new RegExp('\\b'+w+'\\b','i').test(s);}
 function blank(s,w){return s.replace(new RegExp('\\b'+w+'\\b','i'),'________');}
 function term(s){const tokens=[...new Set(vocabTokens(s.text))];return tokens.find(t=>LEXICON.some(x=>x[0]===t))||tokens.find(t=>t.length>=7)||tokens[0];}
