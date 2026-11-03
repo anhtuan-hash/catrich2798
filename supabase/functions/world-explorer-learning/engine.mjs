@@ -52,7 +52,7 @@ const RULES=[
 ];
 const STOP=new Set('about above after again against along also although always among another around because before being between both could during each either enough every first following from further have having into itself just later little many might more most much must never only other over same several since some still such than that their them there these they this those through under until very were what when where which while whose will with within would'.split(' '));
 const MONTH='(?:January|February|March|April|May|June|July|August|September|October|November|December)';
-const DATE_PATTERN=new RegExp('\\b(?:\d{1,2}\s+'+MONTH+'\s+\d{4}|'+MONTH+'\s+\d{1,2},?\s+\d{4})\\b','gi');
+const DATE_PATTERN=new RegExp('\\b(?:\\d{1,2}\\s+'+MONTH+'\\s+\\d{4}|'+MONTH+'\\s+\\d{1,2},?\\s+\\d{4})\\b','gi');
 function normalize(value){return String(value||'').trim().replace(/\s+/g,' ').replace(/[.,!?;:]+$/,'').normalize('NFKC').toLowerCase();}
 function vocabTokens(value){return (value.match(/[A-Za-z][A-Za-z'-]{3,}/g)||[]).map(v=>v.toLowerCase()).filter(v=>v.length>=5&&!STOP.has(v));}
 function sentencesOf(body){
