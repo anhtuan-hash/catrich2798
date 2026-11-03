@@ -73,8 +73,8 @@ html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='butto
 
 /* All generated line icons use one exact size and live in the flex flow. */
 html body .app-shell[data-route] .brian-nav__primary > :is(
-  button:not([class*='brian-nav__']):first-child,
-  button:not([class*='brian-nav__']):nth-of-type(2),
+  button[data-nav-key='home'],
+  button[data-nav-key='apps'],
   .brian-nav__dashboard-tab,
   .brian-nav__homeroom-tab,
   .brian-nav__gradebook-tab,
@@ -129,8 +129,8 @@ html body .app-shell[data-route] .brian-nav__primary > button[aria-current='page
 html body .app-shell[data-route] .brian-nav__primary > a.is-active,
 html body .app-shell[data-route] .brian-nav__primary > a.active,
 html body .app-shell[data-route] .brian-nav__primary > a[aria-current='page'],
-html body .app-shell[data-route='home'] .brian-nav__primary > button:not([class*='brian-nav__']):first-child,
-html body .app-shell[data-route='apps'] .brian-nav__primary > button:not([class*='brian-nav__']):nth-of-type(2) {
+html body .app-shell[data-route='home'] .brian-nav__primary > button[data-nav-key='home'],
+html body .app-shell[data-route='apps'] .brian-nav__primary > button[data-nav-key='apps'] {
   min-height: 52px !important;
   height: 52px !important;
   max-height: 52px !important;
@@ -298,8 +298,8 @@ html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='butto
     font-size: 8.8px !important;
   }
   html body .app-shell[data-route] .brian-nav__primary > :is(
-    button:not([class*='brian-nav__']):first-child,
-    button:not([class*='brian-nav__']):nth-of-type(2),
+    button[data-nav-key='home'],
+    button[data-nav-key='apps'],
     .brian-nav__dashboard-tab,
     .brian-nav__homeroom-tab,
     .brian-nav__gradebook-tab,
