@@ -1,0 +1,146 @@
+/* Enabled only for the standalone attendance route. Existing status colours, permissions and actions belong to the workspace. */
+html[data-attendance-scrapbook="on"] {
+  --roll-grain: url('/assets/dashboard-scrapbook/paper-grain.svg');
+  --roll-paper: var(--roll-grain), repeating-linear-gradient(0deg, transparent 0 26px, #779ec312 26px 27px), #fffaf5;
+  --roll-shadow: 0 4px 8px #344f7427, 0 1px 2px #714b3426;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] { background: url('/assets/attendance-scrapbook/hills.svg') center bottom/100% 100px no-repeat, var(--roll-grain), linear-gradient(145deg,#b4e9fc,#e5f7ff 45%,#cef1ff) !important; padding-bottom:65px !important; color:#183453; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(#bes-main-content,.attendance-workspace-page,.attendance-standalone-root,.attendance-shell.is-standalone,.attendance-content) { background:transparent !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-shell.is-standalone { box-shadow:none !important; border:0 !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-topbar { background: url('/assets/attendance-scrapbook/sky.svg') center/cover !important; padding:15px clamp(13px,2vw,32px) !important; min-height:82px !important; border:0 !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-title { position:relative; max-width:85%; padding:12px 18px !important; color:#123862 !important; background:var(--roll-paper) !important; border-radius:6px 14px 8px 11px; box-shadow:var(--roll-shadow); }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-title :is(small,strong) {color:#173e6c !important}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-title::before, html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile::before, html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-manage-class-tile::before {content:'' !important; position:absolute !important; inset:-3px 12px auto auto !important; width:42px !important;height:13px !important; background:repeating-linear-gradient(90deg,#fff4 0 1px,transparent 1px 5px),#f9d67b !important; transform:rotate(16deg); z-index:2; pointer-events:none; border-radius:1px !important;}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-tabs {background:var(--roll-grain),#fffdfafa !important;border-radius:11px 9px 12px 7px!important;box-shadow:var(--roll-shadow)!important;}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-tabs button.is-active {color:#075cb7!important;box-shadow:inset 0 -3px #268af2!important;}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-deck { display:grid!important; grid-template-columns:repeat(6,minmax(0,1fr))!important; gap:clamp(8px,1.1vw,18px)!important; padding:17px 12px!important; background:var(--roll-paper)!important;border-radius:12px!important; box-shadow:var(--roll-shadow)!important;}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile {--sheet:#cee9ff;position:relative!important; min-width:0!important; min-height:174px!important; padding:14px 13px 53px!important; border:3px solid #fffaf4!important; background:var(--roll-grain),linear-gradient(145deg,#ffffff55,transparent 68%),var(--sheet)!important; border-radius:15px 10px 18px 9px!important;box-shadow:0 3px 0 var(--sheet),var(--roll-shadow)!important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile.is-calendar {--sheet:#e6d9fc} html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile.is-manage {--sheet:#ffe1cc} html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile.is-history {--sheet:#d0f2e4} html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile.is-supplemental {--sheet:#fcd6e6} html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile.is-report {--sheet:#ffe9af}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile:is(.is-quick,.is-calendar,.is-supplemental)::before {width:10px!important;height:29px!important;border:2px solid var(--awu-tile-accent)!important;border-radius:8px!important;background:transparent!important;transform:rotate(-28deg);top:2px!important;}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile__description {max-width:100%!important;color:#364b69!important;}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile__title {color:#15345a!important;}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile__art {display:block!important;width:79px!important;height:62px!important;right:2px!important;bottom:0!important;opacity:1!important;filter:drop-shadow(1px 2px 1px #776b7a44);}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile.is-current {outline:2px solid var(--awu-tile-accent)!important;outline-offset:-4px;}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.attendance-class-list,.attendance-rollcall,.attendance-daily-overview,.attendance-manage-overview-toolbar,.attendance-manage-detail-hero,.attendance-manage-detail-info-strip,.attendance-manage-detail-roster-card,.ahv3__list,.ahv3__detail,.att-report-m3,.stud-att,.attendance-archive), html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin :is(.bes-supplemental-class-toolbar,.bes-supplemental-class-home,.bes-supplemental-editor-card,.bes-supplemental-class-card) {
+ background:var(--roll-paper)!important; border:3px solid #fffdf8!important; border-radius:13px 9px 16px 10px!important; box-shadow:0 4px 0 #f0c9d7,0 7px 0 #f9e4ec,var(--roll-shadow)!important; color:#173655!important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.attendance-class-list,.ahv3__list,.attendance-daily-overview,.attendance-manage-detail-roster-card), html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin .bes-supplemental-editor-card { background:radial-gradient(circle at 7px 14px,#ab9e97 0 2px,#e5d8c9 3px,transparent 4px) left top/13px 33px repeat-y,var(--roll-paper)!important;padding-left:17px!important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.ahv3__hero,.ahv3__audit-actor-panel,.att-report-m3__toolbar,.attendance-manage-list-heading,.attendance-daily-table-header,.attendance-session-controls,.att-m3-proof-card,.attendance-confirm-bar,.attendance-daily-floor-group,.att-report-m3__surface) {background:var(--roll-grain),#fffdf9!important;border-color:#d1ddec!important;box-shadow:var(--roll-shadow)!important;border-radius:11px!important;}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-manage-class-tile {position:relative!important;background:var(--roll-paper)!important;border:2px solid #fffef9!important;border-radius:13px 9px 14px 9px!important;box-shadow:0 4px 0 #dbcaed,var(--roll-shadow)!important;}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-manage-class-tile:nth-child(3n+1){box-shadow:0 4px 0 #bfdff2,var(--roll-shadow)!important;} html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-manage-class-tile:nth-child(3n+2){box-shadow:0 4px 0 #bcdfd3,var(--roll-shadow)!important;}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-manage-class-tile::before{right:35%!important;transform:rotate(-4deg)}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.att-report-m3__metrics>article,.att-report-m3__teacher-track>*,.ahv3__stat-grid>*,.attendance-daily-class-row,.att-m3-roster-entry){background-image:var(--roll-grain)!important;border-radius:10px!important;}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.attendance-tabs,.attendance-content) :is(button,a,input,select,textarea):focus-visible, html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin :focus-visible {outline:3px solid #175ca6!important;outline-offset:2px;}
+html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin .bes-supplemental-dialog {background:var(--roll-grain),#e5f6ff!important;color:#173655!important;} html[data-attendance-scrapbook="on"] body #bes-supplemental-learning-admin .bes-supplemental-empty-state{background:var(--roll-paper)!important;border:1px dashed #aebcda!important;}
+@media(min-width:1000px){html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-manage-tile-grid:not(.is-list){grid-template-columns:repeat(3,minmax(0,1fr))!important;}}
+@media(max-width:960px){html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-deck{grid-template-columns:repeat(3,minmax(0,1fr))!important;}}
+@media(max-width:560px){html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-deck{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;} html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-tile{min-height:157px!important;} html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-title{max-width:calc(100% - 48px);padding:9px!important;} html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-title strong{font-size:17px!important;}}
+@media print {html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] {background:white!important;padding-bottom:0!important;} }
+/* Paper navigation retains the shared dimensions, dropdowns and fixed hub. */
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] > .bes-top-chrome { background: transparent !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .brian-nav {
+  background: var(--roll-grain), #fffcf7 !important;
+  border: 1px solid #fff !important; border-radius: 9px 12px 8px 13px !important;
+  box-shadow: var(--roll-shadow), 0 4px 0 3px #c9e9f180 !important; backdrop-filter: none !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .brian-nav__brand > span { color: #143f66 !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .brian-nav__primary > button {
+  background-image: var(--roll-grain) !important;
+  border: 1px solid #fffaf0 !important; border-radius: 9px 12px 8px 11px !important;
+  box-shadow: 0 2px 3px #36526b2e !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .brian-nav__primary > button:is(.active, .is-active, [aria-current=page]) {
+  outline: 1px dashed #669b75 !important; outline-offset: -4px !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .brian-nav__account { background: #fffcf7 !important; color: #233f5e !important; }
+
+/* Existing footer content on three layered notebook leaves. */
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] > footer.footer[data-app-shell-footer=true] {
+  position: relative !important; max-width: 1480px !important; width: calc(100% - 48px) !important;
+  padding: 0 12px 50px !important; margin: 8px auto 0 !important; overflow: visible !important;
+  background: transparent !important; border: 0 !important; box-shadow: none !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-expanded-panel { background: transparent !important; padding: 0 !important; border: 0 !important; overflow: visible !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-main { display: grid !important; gap: 30px !important; grid-template-columns: .86fr 1.08fr 1.12fr !important; padding: 0 !important; overflow: visible !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-main > section {
+  --as-backing: #f6d4e2; --as-leaf: #fffaf3; position: relative !important;
+  isolation: isolate; overflow: visible !important; min-width: 0 !important;
+  background: var(--roll-grain), var(--as-leaf) !important;
+  border: 4px solid #fffdf7 !important; border-radius: 9px 12px 8px 15px !important;
+  padding: 24px 18px !important; min-height: 280px !important;
+  box-shadow: var(--roll-shadow) !important; color: #173655 !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-main > section::before {
+  content: '' !important; display: block !important; position: absolute !important; inset: -12px -10px !important;
+  background: var(--roll-grain), var(--as-backing) !important; clip-path: polygon(0 1%,8% 0,16% 1.3%,27% 0,43% 1%,54% 0,72% 1%,86% 0,100% 1%,99.5% 51%,100% 99%,88% 100%,74% 99%,65% 100%,54% 99%,40% 100%,26% 99%,14% 100%,0 99%,.5% 47%);
+  transform: rotate(-1.8deg) !important; z-index: -2 !important; pointer-events: none;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-main > section::after {
+  content: '' !important; display: block !important; position: absolute !important; inset: 0 !important;
+  background: var(--roll-grain), var(--as-leaf) !important; clip-path: polygon(0 1%,8% 0,16% 1.3%,27% 0,43% 1%,54% 0,72% 1%,86% 0,100% 1%,99.5% 51%,100% 99%,88% 100%,74% 99%,65% 100%,54% 99%,40% 100%,26% 99%,14% 100%,0 99%,.5% 47%);
+  z-index: -1 !important; pointer-events: none;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-main > .signature-footer-v50-profile { --as-backing: #d3c7ee; --as-leaf: #f1fbec; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-main > .signature-footer-v50-credentials { --as-backing: #facbd1; --as-leaf: #fff9eb; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-brand { outline: 1px dashed #d1bba6 !important; outline-offset: -11px !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-brian-logo { max-height: 108px !important; object-fit: contain; position: relative; z-index: 1; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-affiliations { border-top: 1px dashed #d3bca2 !important; padding-top: 12px !important; margin-top: 14px !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-brand {
+  display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-brian-logo { width: auto !important; max-width: 90% !important; height: 92px !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-affiliations {
+  display: flex !important; width: 100% !important; max-width: 260px !important;
+  align-items: center !important; justify-content: center !important; gap: 16px !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-affiliations > img {
+  display: block !important; width: auto !important; height: 72px !important;
+  max-height: 72px !important; max-width: 42% !important; object-fit: contain !important;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-affiliations::after {
+  content: ''; position: absolute; left: -20px; bottom: -13px; width: 46px; height: 85px;
+  background: url('/assets/dashboard-scrapbook/botanical.svg') center/contain no-repeat;
+  transform: rotate(-12deg); pointer-events: none;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-profile h2::before {
+  content: ''; position: absolute; top: -15px; right: 16px; width: 14px; height: 44px;
+  border: 3px solid #a686bc; border-radius: 14px; box-shadow: inset 0 0 0 1px #fff, 1px 2px 2px #5b447735;
+  transform: rotate(20deg); pointer-events: none;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-section-label::after {
+  content: ''; position: absolute; top: -13px; right: 0; width: 73px; height: 22px;
+  background: repeating-linear-gradient(40deg, #fff6 0 2px, #eaba69aa 2px 8px);
+  transform: rotate(17deg); pointer-events: none;
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-scrapbook-footer-motto { font-size: 13px !important; font-style: italic; text-align: center; color: #244266 !important; margin: 14px 0 0 !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-profile h2 { font-size: 19px !important; color: #226940 !important; line-height: 1.35 !important; margin: 9px 0 12px !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-language-badge { background: #28794a !important; color: white !important; border-radius: 9px !important; box-shadow: var(--roll-shadow); }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-detail { font-size: 13px !important; color: #234361 !important; border-bottom: 1px solid #d3dfcb !important; padding: 7px 0 !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-detail-icon { background: #dbefd9 !important; color: #298354 !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-section-label { color: #b33122 !important; font-size: 17px !important; font-weight: 800 !important; line-height: 1.35 !important; border-bottom: 1px dashed #d7b792 !important; padding-bottom: 12px !important; margin-bottom: 8px !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-credentials li { color: #294361 !important; font-size: 13px !important; line-height: 1.5 !important; border-bottom: 1px solid #e6d8bf !important; padding: 7px 0 !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-star { color: #dc910b !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-dashboard-artwork { position: relative !important; inset: auto !important; height: 34px !important; margin-top: 20px !important; pointer-events: none !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-dashboard-landscape { display: none !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-dashboard-signoff {
+  display: block !important; position: absolute !important; inset: 4px 7px auto auto !important;
+  --bes-global-font-family: AppsPaperBrush, cursive;
+  font-family: AppsPaperBrush, cursive !important; font-size: 24px !important;
+  color: #185d9b !important; background: var(--roll-grain), #e3f6fd !important;
+  padding: 4px 19px !important; transform: rotate(-4deg) !important; clip-path: polygon(0 1%,8% 0,16% 1.3%,27% 0,43% 1%,54% 0,72% 1%,86% 0,100% 1%,99.5% 51%,100% 99%,88% 100%,74% 99%,65% 100%,54% 99%,40% 100%,26% 99%,14% 100%,0 99%,.5% 47%);
+}
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] > .footer > .signature-footer-static-summary { background: transparent !important; border: 0 !important; margin-top: 8px !important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .bes-portfolio-footer-trigger { background: var(--roll-grain), #fffdf5 !important; border: 1px solid #bbd8e9 !important; box-shadow: var(--roll-shadow) !important; border-radius: 28px !important; padding: 11px 20px !important; color: #145b9b !important; }
+
+
+@media(max-width:800px){html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-main{grid-template-columns:minmax(0,1fr)!important;gap:25px!important;} html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .signature-footer-v50-main>section{min-height:0!important;}}
+
+/* Keep every destination in the responsive grid, including phones where the base deck scrolls sideways. */
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .awu-feature-deck { grid-auto-flow:row!important;grid-auto-columns:auto!important;scroll-snap-type:none!important;overflow:visible!important;box-sizing:border-box!important; }
+html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] :is(.awu-feature-tile,.attendance-manage-class-tile)::after {
+ content:''!important;pointer-events:none;position:absolute!important;inset:auto 0 0!important;height:6px!important;background:#fffdf7!important;
+ clip-path:polygon(0 42%,5% 17%,10% 60%,15% 29%,20% 70%,26% 32%,32% 56%,37% 18%,43% 53%,49% 23%,55% 65%,61% 28%,67% 55%,74% 16%,80% 57%,87% 30%,93% 62%,100% 25%,100% 100%,0 100%);
+}
+@media(min-width:801px){
+ html body #root#root .app-shell[data-route="attendance"][data-attendance-scrapbook="on"] .attendance-class-list::after {content:'';display:block;flex:0 0 87px;width:138px;height:87px;margin:14px auto 2px;background:url('/assets/attendance-scrapbook/books.svg') center/contain no-repeat;pointer-events:none;}
+ html[data-attendance-scrapbook="on"] #bes-supplemental-learning-admin .bes-supplemental-empty-state {background:url('/assets/attendance-scrapbook/books.svg') left 10px bottom 8px/95px auto no-repeat,var(--roll-paper)!important;padding-inline:105px!important;}
+}

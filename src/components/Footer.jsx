@@ -12,6 +12,7 @@ import { useHalloweenHomeTheme } from '../utils/halloweenHomeTheme.js';
 import { useNovemberHomeTheme } from '../utils/novemberHomeTheme.js';
 import { useDashboardScrapbookTheme } from '../utils/dashboardScrapbookTheme.js';
 import { useAppsScrapbookTheme } from '../utils/appsScrapbookTheme.js';
+import { useAttendanceScrapbookTheme } from '../utils/attendanceScrapbookTheme.js';
 
 const ENGLISH_DETAILS = {
   language: 'EN',
@@ -248,10 +249,12 @@ export default function Footer({ language, route = '' }) {
   const november = useNovemberHomeTheme();
   const scrapbook = useDashboardScrapbookTheme();
   const appsScrapbook = useAppsScrapbookTheme();
+  const attendanceScrapbook = useAttendanceScrapbookTheme();
   const resolvedRoute = route || (typeof document !== 'undefined' ? (document.querySelector('.app-shell')?.dataset?.route || '') : '');
   const scrapbookActive = scrapbook.enabled && resolvedRoute === 'dashboard';
   const appsScrapbookActive = appsScrapbook.enabled && resolvedRoute === 'apps';
-  const seasonalHome = { ...halloweenHome, enabled: halloweenHome.enabled && !scrapbookActive && !appsScrapbookActive };
+  const attendanceScrapbookActive = attendanceScrapbook.enabled && resolvedRoute === 'attendance';
+  const seasonalHome = { ...halloweenHome, enabled: halloweenHome.enabled && !scrapbookActive && !appsScrapbookActive && !attendanceScrapbookActive };
   const content = isVi ? VIETNAMESE_DETAILS : ENGLISH_DETAILS;
   const [portfolioOpen, setPortfolioOpen] = React.useState(false);
   const portfolioTriggerRef = React.useRef(null);
@@ -292,6 +295,7 @@ export default function Footer({ language, route = '' }) {
             {november.enabled && resolvedRoute === 'home' ? <p className="november-footer-motto">Better Learners · Brighter Futures</p> : null}
             {scrapbookActive ? <p className="dashboard-scrapbook-footer-motto">Better Learners · Brighter Futures</p> : null}
             {appsScrapbookActive ? <p className="apps-scrapbook-footer-motto">Better Learners · Brighter Futures</p> : null}
+            {attendanceScrapbookActive ? <p className="attendance-scrapbook-footer-motto">Better Learners · Brighter Futures</p> : null}
           </section>
 
           <section className="signature-footer-v50-profile">

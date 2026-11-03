@@ -6,6 +6,7 @@ import {useHalloweenHomeTheme} from '../utils/halloweenHomeTheme.js';
 import { useNovemberHomeTheme } from '../utils/novemberHomeTheme.js';
 import { useDashboardScrapbookTheme } from '../utils/dashboardScrapbookTheme.js';
 import { useAppsScrapbookScope } from '../utils/appsScrapbookTheme.js';
+import { useAttendanceScrapbookScope } from '../utils/attendanceScrapbookTheme.js';
 import { writePresentationOverride } from '../device/presentationMode.js';
 import GlobalWindowsPhone8Loading from './GlobalWindowsPhone8Loading.jsx';
 import GlobalPageLaunchEffect from './GlobalPageLaunchEffect.jsx';
@@ -62,6 +63,7 @@ import './HalloweenNavigationSkin.css';
 import './HalloweenNavigationRefinement.css';
 import '../features/dashboard-scrapbook/dashboard-scrapbook.css';
 import '../features/apps-scrapbook/apps-scrapbook.css';
+import '../features/attendance-scrapbook/attendance-scrapbook.css';
 
 export default function GlobalFlatNavigation(props) {
   const presentation = usePresentationMode();
@@ -69,6 +71,7 @@ export default function GlobalFlatNavigation(props) {
   const november = useNovemberHomeTheme();
   const scrapbook = useDashboardScrapbookTheme();
   useAppsScrapbookScope(props.route);
+  useAttendanceScrapbookScope(props.route);
   useEffect(() => {
     const root = document.documentElement;
     const shell = document.querySelector('.app-shell');

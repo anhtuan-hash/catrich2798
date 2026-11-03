@@ -1,0 +1,45 @@
+name: Attendance Scrapbook
+on:
+  pull_request:
+    paths:
+      - 'src/utils/attendanceScrapbookTheme.js'
+      - 'src/features/attendance-scrapbook/**'
+      - 'src/components/admin/AttendanceScrapbookAdminPanel.*'
+      - 'src/components/GlobalFlatNavigation.jsx'
+      - 'src/components/GlobalCompactNavigation.jsx'
+      - 'src/components/mobile/MobileAppShell.jsx'
+      - 'src/components/Footer.jsx'
+      - 'src/pages/Settings.jsx'
+      - 'src/components/attendance/AttendanceWorkspaceUI.jsx'
+      - 'public/assets/attendance-scrapbook/**'
+      - 'supabase/migrations/*attendance_scrapbook*'
+      - 'scripts/test-attendance-scrapbook*'
+      - 'tests/fixtures/attendance-scrapbook.*'
+      - '.github/workflows/attendance-scrapbook.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Server-confirmed switching and theme isolation
+        run: node --test scripts/test-attendance-scrapbook.mjs scripts/test-dashboard-scrapbook.mjs scripts/test-november-theme.mjs
+      - name: Existing navigation and footer contracts
+        run: node --test scripts/test-global-dashboard-footer-v13.mjs scripts/test-halloween-navbar.mjs scripts/test-halloween-footer.mjs scripts/test-halloween-home-v4.mjs
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+      - name: Attendance, admin toggle and responsive layout
+        run: node scripts/test-attendance-scrapbook-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: attendance-scrapbook
+          path: test-results/attendance-scrapbook/
