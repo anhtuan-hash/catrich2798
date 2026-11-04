@@ -108,6 +108,7 @@ const HomeroomPortal = lazy(() => import('./pages/HomeroomPortal.jsx'));
 const StatusMenuBar = lazy(() => import('./components/StatusMenuBar.jsx'));
 const GlobalCommandPalette = lazy(() => import('./components/GlobalCommandPalette.jsx'));
 const GlobalQuickAccessRail = lazy(() => import('./components/GlobalQuickAccessRail.jsx'));
+const SmartBubbleDock = lazy(() => import('./components/SmartBubbleDock.jsx'));
 const SharedChatbotDrawer = lazy(() => import('./components/SharedChatbotDrawer.jsx'));
 const PermissionApprovalInbox = lazy(() => import('./components/PermissionApprovalInbox.jsx'));
 const GlobalAutosave = lazy(() => import('./components/GlobalAutosave.jsx'));
@@ -570,6 +571,13 @@ function App() {
           </Suspense>
         ) : null}
 
+        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'slideshow'].includes(currentRoute) ? (
+          <Suspense fallback={null}>
+            <AppErrorBoundary compact scope="smart-bubble-dock" label="Smart Bubble Dock">
+              <SmartBubbleDock currentUser={currentUser} language={language} />
+            </AppErrorBoundary>
+          </Suspense>
+        ) : null}
         {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'quest-join', 'slideshow'].includes(currentRoute) ? (
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="global-brian-focus" label="Brian Focus">
