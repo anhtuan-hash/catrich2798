@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { CheckCircle2, ChevronRight, FileCode2, Globe2 } from 'lucide-react';
 import { canManageAiWebsites } from '../utils/aiWebsiteSettings.js';
 import { EXTERNAL_APP_SOURCE_HTML, loadExternalWebApps, subscribeExternalWebApps } from '../utils/externalWebApps.js';
-import ExternalAppHero from './ExternalAppHero.jsx';
 import './ExternalWebApps.css';
 import './ExternalAppApprovalRestore.css';
 import './ApprovedExternalAppsList.css';
@@ -238,7 +237,6 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
         <Suspense fallback={null}>
           <ExternalWebAppViewer
             app={dedicatedApp}
-            introContent={<ExternalAppHero app={dedicatedApp} language={language} />}
             explorerId="external-app-runtime"
             onClose={() => { window.location.hash = '#/apps'; }}
           />
