@@ -134,7 +134,23 @@ try {
   assert.equal(await grid.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length),6);
   await expect(page.locator('.lcs5-bento-tile.is-favorites .lcs5-bento-count')).toHaveText('2');
   await expect(cards.first().locator('.lcs-card-thumbnail-image')).toHaveAttribute('src','/qa-art/0.svg');
+  const desktopLayout = await page.evaluate(() => {
+    const style = (selector,pseudo) => getComputedStyle(document.querySelector(selector),pseudo).backgroundImage;
+    const ctas = [...document.querySelectorAll('.lcs-assessment-launchers > button')];
+    const card = document.querySelector('.lcs-arcade-card');
+    const actions = card.querySelector('.lcs-arcade-card-actions').getBoundingClientRect();
+    const preview = card.querySelector('.lcs5-card-toolbar').getBoundingClientRect();
+    return {
+      cork:style('.app-shell'), globe:style('footer.signature-footer-v50','::before'),
+      ctaTops:ctas.map(button=>Math.round(button.getBoundingClientRect().top)),
+      separateActions:actions.bottom <= preview.top || actions.right <= preview.left || preview.right <= actions.left,
+    };
+  });
   await page.screenshot({path:join(screenshots,'desktop-scrapbook.png'),fullPage:true});
+  assert.match(desktopLayout.cork, /cork\.webp/);
+  assert.match(desktopLayout.globe, /footer-globe\.webp/);
+  assert.equal(new Set(desktopLayout.ctaTops).size,1,'hero actions fit a single desktop row');
+  assert.ok(desktopLayout.separateActions,'card actions leave the preview and queue buttons uncovered');
 
   const next=library.locator('.lcs-pagination-compact button').filter({hasText:/^2$/});
   await next.click();await expect(cards).toHaveCount(3);

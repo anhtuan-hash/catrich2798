@@ -1,19 +1,20 @@
 /* Only the shell of the enabled Assessment route owns these papers. The library,
    its published thumbnails and its dialogs are the original interactive views. */
-html body #root .app-shell[data-assessment-scrapbook="on"][data-tool="lesson-check-studio"] {
+html body #root#root .app-shell[data-assessment-scrapbook="on"][data-tool="lesson-check-studio"] {
   --as-ink: #183454;
   --as-blue: #114f92;
   --as-grain: url('/assets/ttcm-scrapbook/fibre.webp');
   --as-rim: url('/assets/attendance-scrapbook/notebook-rim.svg');
   --as-cork: url('/assets/assessment-scrapbook/cork.webp');
   --as-hero: url('/assets/assessment-scrapbook/assessment-banner.webp');
+  --as-board: linear-gradient(#fff5e94a,#fff0de35), var(--as-cork) center top / 175px 175px repeat;
   --as-leaf: var(--as-grain), linear-gradient(115deg,#fffdf8,#fff6ee);
   --as-lift: 0 2px 2px #75472838, 0 5px 10px #59392627;
   --as-torn: polygon(0 5%,4% 3%,7% 5%,11% 1%,15% 3%,21% 1%,26% 3%,32% 1%,39% 2%,46% 0,54% 2%,62% 0,68% 3%,75% 1%,80% 3%,87% 1%,94% 4%,99.5% 2%,100% 33%,99.5% 67%,100% 96%,96% 98%,91% 96%,84% 100%,76% 97%,67% 100%,59% 97%,51% 99%,43% 97%,34% 100%,25% 97%,17% 100%,9% 97%,4% 99%,0 96%,.4% 60%);
   color: var(--as-ink);
-  background: linear-gradient(#fff5e94a,#fff0de35), var(--as-cork) center top / 175px 175px repeat !important;
+  background: var(--as-board) !important;
 
-  & #bes-main-content { background: transparent !important; }
+  & main#bes-main-content, & #bes-main-content > .bqa-content-safe-frame { background: transparent !important; }
   & .lcs-page--library {
     box-sizing: border-box; width: min(100%,1720px) !important; max-width: none !important;
     margin: 0 auto !important; padding: 3px clamp(12px,2.2vw,38px) 10px !important;
@@ -54,9 +55,9 @@ html body #root .app-shell[data-assessment-scrapbook="on"][data-tool="lesson-che
   & .lcs-hero-statline { gap: 5px !important; margin: 4px 0 !important; }
   & .lcs-hero-statline > span { background: var(--as-leaf) !important; border: 1px solid #bbbac8 !important; color: #193f44 !important; border-radius: 9px !important; box-shadow: 0 2px 2px #74607b2b !important; }
   & .lcs-hero-statline .is-grammar { color:#503880 !important; }
-  & .lcs-assessment-launchers { display: flex !important; flex-wrap: wrap !important; gap: 6px !important; width: 100% !important; margin-top: 6px !important; }
+  & .lcs-assessment-launchers { display: flex !important; flex-flow: row wrap !important; justify-content:flex-start !important; align-items:center !important; gap:6px !important; width:100% !important; max-width:none !important; margin:6px 0 0 !important; }
   & .lcs-assessment-launchers > button, & .lcs-a4-launcher > button {
-    width: auto !important; min-width: 0 !important; min-height: 34px !important; height: auto !important;
+    flex: 0 0 auto !important; width: auto !important; min-width: 0 !important; min-height: 34px !important; height: auto !important;
     display: inline-flex !important; align-items:center !important; justify-content:center !important;
     gap: 6px !important; padding: 6px clamp(8px,1vw,17px) !important; margin: 0 !important;
     background: var(--as-leaf) !important; color: #173969 !important; border: 2px solid #fffaf2 !important;
@@ -141,7 +142,7 @@ html body #root .app-shell[data-assessment-scrapbook="on"][data-tool="lesson-che
   & .lcs-arcade-grid:not(.lcs5-list-view) .lcs-card-media { width:100% !important; min-height:0 !important; height:auto !important; aspect-ratio:3 / 1 !important; border-radius:7px 8px 6px 9px !important; }
   & .lcs-card-media.has-static-thumbnail img { width:100% !important; height:100% !important; object-fit:cover !important; }
   & .lcs-card-media.has-no-thumbnail { background:var(--as-grain),linear-gradient(125deg,#d1e6e9,#ebe4ff) !important; }
-  & .lcs-arcade-card .lcs-arcade-card-copy { display:flex !important; flex-direction:column !important; align-items:stretch !important; gap:4px !important; padding:5px 2px 0 !important; }
+  & .lcs-arcade-card .lcs-arcade-card-copy { height:auto !important; min-height:0 !important; flex:1 0 auto !important; display:flex !important; flex-direction:column !important; align-items:stretch !important; gap:4px !important; padding:5px 2px 0 !important; }
   & .lcs-arcade-card .lcs-arcade-titleline { display:flex !important; flex-wrap:wrap; align-items:flex-start !important; gap:4px !important; width:100%; }
   & .lcs-arcade-titlecopy { min-width:0 !important; flex:1 1 104px !important; }
   & .lcs-arcade-titlecopy h3 { margin:0 !important; color:#152d4d !important; font-size:clamp(13px,.88vw,16px) !important; line-height:1.21 !important; overflow-wrap:anywhere; }
@@ -183,18 +184,20 @@ html body #root .app-shell[data-assessment-scrapbook="on"][data-tool="lesson-che
     padding:10px clamp(28px,5.5vw,96px) 5px !important; border:0 !important;
     background:transparent !important; box-shadow:none !important; color:var(--as-ink) !important;
   }
-  & .signature-footer-expanded-panel { padding:0 !important; border:0 !important; background:transparent !important; }
+  & #english-hub-footer-details.signature-footer-expanded-panel { padding:0 !important; border:0 !important; background:transparent !important; }
   & .signature-footer-v50-main {
     display:grid !important; grid-template-columns:minmax(165px,.87fr) minmax(0,1.7fr) minmax(0,1.25fr) !important;
     align-items:stretch !important; gap:12px !important; width:100% !important; max-width:none !important; margin:0 !important;
   }
-  & .signature-footer-v50-main > section {
-    --foot-leaf:#fff9f3; position:relative !important; min-width:0 !important; min-height:0 !important; margin:0 !important;
+  & #english-hub-footer-details .signature-footer-v50-main > section {
+    position:relative !important; min-width:0 !important; min-height:0 !important; margin:0 !important;
     padding:9px 14px !important; border:6px solid transparent !important; border-image:var(--as-rim) 15 / 8px / 2px round !important;
-    background:var(--as-grain),var(--foot-leaf) !important; color:#1b3856 !important; box-shadow:0 4px 0 #edc6d3,var(--as-lift) !important; border-radius:9px !important;
+    background:var(--as-grain),var(--foot-leaf,#fff9f3) !important; color:#1b3856 !important; box-shadow:0 4px 0 #edc6d3,var(--as-lift) !important; border-radius:9px !important;
   }
   & .signature-footer-v50-main > .signature-footer-v50-profile { --foot-leaf:#edf7e5; }
   & .signature-footer-v50-main > .signature-footer-v50-credentials { --foot-leaf:#fff3df; }
+  & .signature-footer-v50-brand::after { content:none !important; display:none !important; }
+  & .signature-footer-v50-logo-divider { height:26px !important; }
   & .signature-footer-v50-brand { display:flex !important; flex-wrap:wrap !important; flex-direction:row !important; align-content:center !important; align-items:center !important; justify-content:center !important; gap:5px !important; }
   & .signature-footer-v50-brian-logo { width:auto !important; height:48px !important; max-width:37% !important; object-fit:contain !important; }
   & .signature-footer-v50-affiliations { display:flex !important; gap:5px !important; justify-content:center; align-items:center; width:auto !important; padding:0 !important; margin:0 !important; }
@@ -235,10 +238,25 @@ html body #root .app-shell[data-assessment-scrapbook="on"][data-tool="lesson-che
     & .lcs-arcade-results-head > span { grid-area:3/1/4/4; width:fit-content; padding:4px 8px; background:var(--as-leaf); color:#51493b; font-size:12px; border-radius:6px; }
     & .lcs-arcade-pagination-controls { grid-area:3/10/4/-1; justify-self:end; }
     & .lcs-arcade-grid:not(.lcs5-list-view) { grid-template-columns:repeat(6,minmax(0,1fr)) !important; align-self:stretch; }
-    & .lcs-arcade-grid:not(.lcs5-list-view) .lcs-arcade-card-copy { display:grid !important; grid-template-columns:minmax(0,1fr) auto; align-content:start !important; }
-    & .lcs-arcade-grid:not(.lcs5-list-view) .lcs-arcade-card-copy > * { grid-column:1/-1; }
-    & .lcs-arcade-grid:not(.lcs5-list-view) .lcs-arcade-card-tags { width:fit-content !important; grid-column:1; grid-row:auto; }
-    & .lcs-arcade-grid:not(.lcs5-list-view) .lcs5-card-toolbar { grid-column:2; grid-row:auto; justify-content:flex-end; align-self:center; }
+    & .lcs-arcade-grid:not(.lcs5-list-view) .lcs-arcade-card-copy {
+      display:grid !important; grid-template-columns:minmax(0,1fr) auto; grid-auto-rows:max-content !important;
+      align-content:start !important; gap:2px 3px !important;
+    }
+    & .lcs-arcade-grid:not(.lcs5-list-view) .lcs-arcade-card-copy > * { grid-column:1/-1; min-width:0; }
+    & .lcs5-card-bulk-check { grid-row:1; }
+    & .lcs-arcade-grid:not(.lcs5-list-view) .lcs-arcade-titleline {
+      grid-row:2; display:grid !important; grid-template-columns:minmax(0,1fr) auto;
+      align-items:start !important; min-height:0 !important; height:auto !important;
+    }
+    & .lcs-arcade-grid:not(.lcs5-list-view) .lcs-arcade-titlecopy h3 { min-height:0 !important; }
+    & .lcs-arcade-grid:not(.lcs5-list-view) .lcs-arcade-card-actions {
+      display:grid !important; grid-template-columns:repeat(2,25px); grid-auto-rows:25px;
+      position:static !important; align-self:start; height:auto !important; flex:none !important;
+    }
+    & .lcs-arcade-grid:not(.lcs5-list-view) .lcs-arcade-meta { grid-row:3; min-height:0 !important; }
+    & .lcs5-usage-tag { grid-row:4; }
+    & .lcs-arcade-grid:not(.lcs5-list-view) .lcs-arcade-card-tags { grid-area:5/1; width:100% !important; min-height:0 !important; height:auto !important; margin:0 !important; align-self:center; }
+    & .lcs-arcade-grid:not(.lcs5-list-view) .lcs5-card-toolbar { grid-area:5/2; position:static !important; margin:0 !important; align-self:center; }
     & .signature-footer-v50-profile { display:grid !important; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:3px 8px; }
     & .signature-footer-v50-profile > ul { grid-column:1/-1; display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1px 7px !important; }
   }
