@@ -55,12 +55,35 @@ check('Unread badges are derived from real owner counters, never an invented num
  assert.match(controller, /Number\.parseInt/);
  assert.doesNotMatch(controller, /setBadge\(3\)/);
 });
-check('Adaptive geometry leaves an anchor slot and handles missing approval launcher', () => {
- for(let slot=1;slot<=7;slot++) assert.ok(styles.includes(' + ' + slot + ' * ('), 'missing offset slot ' + slot);
- assert.match(styles, /body:not\(:has\(\.bes-approval-root\)\)/);
+check('Each mounted launcher receives a contiguous role-aware slot', () => {
+ assert.match(controller, /const SLOT_ENTRIES =/);
+ assert.match(controller, /syncVisibleSlots/);
+ assert.match(controller, /MutationObserver/);
+ assert.match(controller, /--bes-smart-slot/);
+ assert.match(controller, /--bes-smart-count/);
+ assert.match(controller, /if \(!button && !reserved\) return/);
+ assert.match(styles, /var\(--bes-smart-slot, 1\)/);
+ assert.match(styles, /--bes-smart-step/);
+ assert.match(styles, /\.bes-kira-chat-root:not\(\.is-open\)/);
+ assert.match(styles, /\.bes-kira-chat-launcher\.bes-smart-managed/);
+ assert.match(styles, /position: relative !important/);
  assert.match(styles, /@media \(max-width: 680px\)/);
  assert.match(styles, /@media \(max-height: 540px\)/);
- assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
  assert.match(styles, /safe-area-inset-bottom/);
+});
+check('Sequential motion runs in both directions and leaves no overlap', () => {
+ assert.match(controller, /setClosing\(true\)/);
+ assert.match(controller, /setClosing\(false\)/);
+ assert.match(styles, /data-bes-smart-bubble-dock="closing"/);
+ assert.match(styles, /data-bes-smart-bubble-dock="expanded"/);
+ assert.match(styles, /46ms/);
+ assert.match(styles, /40ms/);
+ assert.match(styles, /translate3d\(0, 14px, 0\)/);
+ assert.match(styles, /translate3d\(0, 12px, 0\)/);
+ assert.match(styles, /opacity: 0 !important/);
+ assert.match(styles, /opacity: 1 !important/);
+ assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
+ assert.match(styles, /html\[data-motion-bubble="none"\]/);
+ assert.match(styles, /bes-smart-bubble-dock__hint/);
 });
 console.log('PASS: Smart Bubble Dock layout/state/owner regression contracts.');
