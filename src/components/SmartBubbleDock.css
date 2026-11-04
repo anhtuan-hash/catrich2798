@@ -85,7 +85,7 @@ html[data-bes-smart-bubble-dock] body .bes-smart-bubble-dock {
 .bes-smart-bubble-dock__pin {
   position: absolute;
   right: calc(100% + 13px);
-  bottom: 5px;
+  bottom: calc(7 * (var(--bes-floating-diameter) + var(--bes-floating-gap)) + 5px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -104,6 +104,9 @@ html[data-bes-smart-bubble-dock] body .bes-smart-bubble-dock {
   pointer-events: auto;
   white-space: nowrap;
   backdrop-filter: blur(6px);
+}
+html[data-bes-smart-bubble-dock] body:not(:has(.bes-approval-root)) .bes-smart-bubble-dock__pin {
+  bottom: calc(6 * (var(--bes-floating-diameter) + var(--bes-floating-gap)) + 5px);
 }
 .bes-smart-bubble-dock.is-pinned .bes-smart-bubble-dock__pin {
   color: #216b60;
