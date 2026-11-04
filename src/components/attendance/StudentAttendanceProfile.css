@@ -1,0 +1,443 @@
+/*
+ * Brian English · Student Attendance Profile
+ * Dedicated in-flow page, no overlay, dialog, trapped scroll or modal backdrop.
+ * Scoped collage system respects real attendance values and current permissions.
+ */
+.stud-att-profile {
+  --sap-ink:#193a69;
+  --sap-blue:#2765b9;
+  --sap-paper:#fffefa;
+  --sap-line:#d7e5f5;
+  --sap-shadow:0 9px 23px rgba(42,70,106,.12),0 2px 4px rgba(38,65,106,.045);
+  position:relative;
+  isolation:isolate;
+  display:block;
+  box-sizing:border-box;
+  width:100%;
+  min-width:0;
+  margin:0 auto;
+  padding:14px clamp(9px,1.5vw,26px) 36px;
+  color:var(--sap-ink);
+  font-family:inherit;
+  background:
+    linear-gradient(125deg,transparent 91%,#dcd1f655 91.2%,transparent 91.5%) 0 0/110px 110px,
+    radial-gradient(circle at 3% 16%,#ffe5f03a,transparent 21%),
+    radial-gradient(circle at 94% 8%,#cbeaff82,transparent 31%),
+    linear-gradient(148deg,#f2f9ff,#fffaf3 57%,#f5f1ff);
+  border-radius:22px;
+}
+.stud-att-profile,.stud-att-profile *{box-sizing:border-box}
+.stud-att-profile :is(button,input){font:inherit}
+.stud-att-profile button{cursor:pointer}
+.stud-att-profile :is(button,input):focus-visible{outline:3px solid #3179d5;outline-offset:3px}
+.stud-att-profile :is(p,h1,h2,h3){margin:0}
+.stud-att-profile .sap-backline{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin:0 0 20px;padding:0 5px;
+}
+.stud-att-profile .sap-back{
+  display:inline-flex;align-items:center;gap:10px;min-height:38px;padding:9px 16px;
+  border:1px solid #d8e5f6;border-radius:12px;
+  color:#1d5bad;background:linear-gradient(120deg,#fffefa,#f1f7ff);
+  box-shadow:0 3px 10px #28558b18;
+  font-size:13px;font-weight:800;
+}
+.stud-att-profile .sap-back:hover{border-color:#a3c7f2;background:#eaf4ff}
+.stud-att-profile .sap-backline__crumb{
+  display:flex;align-items:center;gap:7px;max-width:50%;
+  font-size:10px;font-weight:800;letter-spacing:.1em;color:#7892b1;white-space:nowrap;
+}
+
+/* Layered torn-paper identity, washi tape, perforations and a copper clip. */
+.stud-att-profile .sap-paper-head{
+  position:relative;isolation:isolate;
+  display:flex;align-items:center;gap:23px;
+  min-width:0;min-height:159px;
+  padding:27px 34px 28px;
+  margin:3px 7px 22px;
+}
+.stud-att-profile .sap-paper-head::before{
+  content:"";position:absolute;z-index:-2;inset:-8px -10px -5px;
+  background:linear-gradient(108deg,#fffdf8 0%,#fffcf3 63%,#fff7ea 100%);
+  clip-path:polygon(0% 8%,2% 3%,6% 5%,11% 1%,16% 4%,22% 2%,28% 5%,35% 2%,41% 4%,47% 0%,53% 5%,59% 3%,65% 6%,72% 2%,79% 4%,86% 1%,92% 4%,97% 2%,100% 7%,99% 92%,94% 97%,87% 94%,80% 100%,73% 95%,66% 99%,57% 96%,51% 100%,42% 95%,34% 99%,26% 96%,19% 100%,11% 96%,5% 99%,0 94%);
+  filter:drop-shadow(0 9px 10px #485e8233);
+}
+.stud-att-profile .sap-paper-head::after{
+  content:"";position:absolute;z-index:-3;
+  inset:-23px -19px 26px 38%;
+  background:
+    linear-gradient(90deg,#cdbbe166 1px,transparent 1px) 0 0/26px 26px,
+    linear-gradient(#cdbbe166 1px,transparent 1px) 0 0/26px 26px,
+    #e8dff7;
+  clip-path:polygon(2% 2%,99% 0%,97% 96%,6% 100%,0% 93%);
+  transform:rotate(-2deg);opacity:.72;
+}
+.stud-att-profile .sap-head-tape{
+  position:absolute;z-index:3;
+  width:109px;height:25px;
+  left:47%;top:-21px;
+  transform:rotate(-8deg);
+  background:repeating-linear-gradient(120deg,#f4a9c8ae 0 9px,#fbe2edb9 9px 18px);
+  box-shadow:0 2px 5px #9e57721c;
+  clip-path:polygon(0 8%,100% 0%,98% 96%,2% 100%);
+  pointer-events:none;
+}
+.stud-att-profile .sap-head-clip{
+  position:absolute;z-index:3;right:29px;top:-21px;
+  width:37px;height:40px;border:4px solid #ca9851;border-bottom:0;
+  border-radius:16px 16px 0 0;transform:rotate(15deg);
+  box-shadow:1px 0 0 #ffeecc;pointer-events:none;
+}
+.stud-att-profile .sap-avatar{
+  display:grid;place-items:center;
+  flex:0 0 114px;width:114px;height:114px;
+  border:6px solid #fff;border-radius:50%;
+  background:linear-gradient(145deg,#d5e8ff,#f5e5ff);
+  box-shadow:0 7px 14px #41658b35,0 0 0 2px #d8e3f4;
+}
+.stud-att-profile .sap-avatar__ring{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  width:94px;height:94px;border-radius:50%;
+  background:radial-gradient(circle at 35% 23%,#fffdfd,#d8eafa 83%);
+  color:#3466b1;
+}
+.stud-att-profile .sap-avatar__ring b{font-size:26px;letter-spacing:.02em;line-height:1}
+.stud-att-profile .sap-identity{flex:1 1 420px;min-width:0}
+.stud-att-profile .sap-eyebrow{
+  display:flex;align-items:center;gap:7px;
+  margin-bottom:7px;color:#6586a6;letter-spacing:.16em;font-size:10px;font-weight:900;
+}
+.stud-att-profile .sap-identity h1{
+  color:#153865;font-size:clamp(24px,2.2vw,34px);line-height:1.23;
+  font-weight:900;letter-spacing:-.035em;overflow-wrap:anywhere;
+}
+.stud-att-profile .sap-identity h1:focus{outline:none}
+.stud-att-profile .sap-identity__meta{
+  display:flex;flex-wrap:wrap;align-items:center;
+  gap:11px;margin-top:16px;color:#345c8e;font-size:12px;font-weight:650;
+}
+.stud-att-profile .sap-identity__meta>span{
+  display:inline-flex;align-items:center;gap:7px;
+  min-width:0;padding-right:13px;border-right:1px solid #d3d4d8;
+}
+.stud-att-profile .sap-identity__meta>span:last-child{border:0}
+.stud-att-profile .sap-identity__meta strong{max-width:230px;overflow-wrap:anywhere}
+.stud-att-profile .sap-head-actions{
+  display:grid;gap:15px;justify-items:end;flex:0 0 auto;align-self:center;
+}
+.stud-att-profile .sap-month{
+  display:flex;align-items:center;gap:7px;
+  color:#496b96;font-size:11px;font-weight:850;
+}
+.stud-att-profile .sap-month input{
+  width:156px;min-height:35px;max-width:100%;
+  padding:7px 9px;border:1px solid #c9dcf8;border-radius:10px;
+  color:#214a87;background:#f7fbff;font-size:12px;font-weight:800;
+}
+.stud-att-profile .sap-status{
+  display:inline-flex;justify-content:center;align-items:center;gap:9px;
+  padding:12px 17px;border-radius:999px;
+  font-size:15px;font-weight:900;white-space:nowrap;line-height:1.1;
+  color:#ad2d60;border:1px solid #f6adcc;
+  background:linear-gradient(135deg,#ffebf1,#ffdae5);
+  box-shadow:0 5px 12px #cf57713c;
+}
+.stud-att-profile .sap-status.is-good{color:#11794e;background:linear-gradient(135deg,#ecfff4,#c7f4d9);border-color:#a2ddbd}
+.stud-att-profile .sap-status.is-watch{color:#936105;background:linear-gradient(135deg,#fffae9,#ffe9b8);border-color:#f0d48a}
+.stud-att-profile .sap-status.is-unknown{color:#5d7089;background:linear-gradient(135deg,#fff,#ecf0f7);border-color:#d1d9e7}
+
+.stud-att-profile .sap-layout{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(226px,257px);
+  gap:19px;align-items:start;min-width:0;
+}
+.stud-att-profile .sap-primary{display:grid;gap:18px;min-width:0}
+.stud-att-profile .sap-metrics{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;
+  min-width:0;
+}
+.stud-att-profile .sap-metric{
+  position:relative;isolation:isolate;
+  display:flex;align-items:center;gap:13px;min-width:0;min-height:115px;
+  padding:18px 15px 15px;
+  background:linear-gradient(137deg,#f7fbff,#e8f2ff);
+  border:1px solid #d4e8ff;border-radius:17px;
+  box-shadow:var(--sap-shadow);
+}
+.stud-att-profile .sap-metric::after{
+  content:"";position:absolute;z-index:-1;
+  width:96px;height:96px;right:-24px;bottom:-37px;
+  border:14px solid currentColor;opacity:.07;border-radius:50%;pointer-events:none;
+}
+.stud-att-profile .sap-metric::before{
+  content:"";position:absolute;inset:auto 0 -7px;
+  height:11px;
+  background:inherit;
+  clip-path:polygon(0 0,8% 85%,18% 0,28% 80%,38% 0,48% 85%,58% 0,68% 85%,78% 0,88% 85%,100% 0);
+  opacity:.65;pointer-events:none;
+}
+.stud-att-profile .sap-metric__perforation{
+  position:absolute;left:13px;top:7px;width:80px;height:10px;
+  background:radial-gradient(circle,#dbe3ee 3px,transparent 3.5px) left center/19px 10px repeat-x;
+}
+.stud-att-profile .sap-metric__icon{
+  display:grid;place-items:center;flex:0 0 48px;width:48px;height:48px;
+  border:2px solid #fff;border-radius:15px;
+  color:#3176c6;background:#ffffffe3;box-shadow:0 4px 9px #225a9621;
+  transform:rotate(-6deg);
+}
+.stud-att-profile .sap-metric>div{display:grid;gap:5px;min-width:0}
+.stud-att-profile .sap-metric>div strong{
+  color:#20558d;font-size:clamp(23px,2.2vw,33px);
+  font-weight:950;line-height:1.1;letter-spacing:-.035em;white-space:nowrap;
+}
+.stud-att-profile .sap-metric>div>span{font-size:12px;color:#34547a;font-weight:800;line-height:1.3}
+.stud-att-profile .sap-metric.is-green{color:#15936a;background:linear-gradient(132deg,#effff7,#d8f7e8);border-color:#bbe9d4}
+.stud-att-profile .sap-metric.is-green .sap-metric__icon{color:#16885c}
+.stud-att-profile .sap-metric.is-green strong{color:#0d855d}
+.stud-att-profile .sap-metric.is-peach{color:#d26e41;background:linear-gradient(125deg,#fff8ec,#ffe7ce);border-color:#f5dac0}
+.stud-att-profile .sap-metric.is-peach .sap-metric__icon{color:#cc614f}
+.stud-att-profile .sap-metric.is-peach strong{color:#bd5533}
+.stud-att-profile .sap-metric.is-purple{color:#8e5fd0;background:linear-gradient(129deg,#f8f3ff,#e9ddff);border-color:#e1d0fa}
+.stud-att-profile .sap-metric.is-purple .sap-metric__icon{color:#7c54bf}
+.stud-att-profile .sap-metric.is-purple strong{color:#7132bf}
+
+.stud-att-profile .sap-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;min-width:0}
+.stud-att-profile .sap-paper-card{
+  position:relative;isolation:isolate;
+  min-width:0;padding:23px 17px 19px;
+  border:1px solid #e1e8f3;border-radius:20px;
+  background:linear-gradient(142deg,#fffefd,#fbfcff);
+  box-shadow:var(--sap-shadow);
+}
+.stud-att-profile .sap-paper-card::after{
+  content:"";z-index:-1;position:absolute;inset:0;border-radius:inherit;
+  background:radial-gradient(circle at 92% 4%,#e7deff26,transparent 40%);
+  pointer-events:none;
+}
+.stud-att-profile .sap-ribbon{
+  position:relative;display:inline-flex;align-items:center;gap:8px;
+  max-width:100%;min-height:37px;
+  margin:-14px 0 15px -3px;padding:7px 16px;
+  color:#194a8a;font-size:clamp(14px,1.25vw,18px);font-weight:900;line-height:1.35;
+  background:linear-gradient(95deg,#e4eeff,#f1f7ff);
+  box-shadow:2px 3px 5px #254e8714;
+  clip-path:polygon(0 10%,7% 3%,22% 6%,35% 2%,48% 7%,67% 0%,83% 6%,100% 2%,98% 91%,75% 98%,56% 92%,36% 100%,15% 94%,0 100%);
+}
+.stud-att-profile .sap-ribbon.is-purple{background:linear-gradient(95deg,#eee1ff,#f6f0ff)}
+.stud-att-profile .sap-trend{display:flex;gap:10px;align-items:stretch;height:205px;padding:8px 7px 7px 1px}
+.stud-att-profile .sap-trend__ticks{flex:0 0 40px;display:flex;flex-direction:column;justify-content:space-between;color:#587090;font-size:11px;padding:0 0 24px}
+.stud-att-profile .sap-trend__plot{position:relative;flex:1;min-width:0;padding-bottom:24px}
+.stud-att-profile .sap-trend__grid{position:absolute;inset:0 0 24px;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
+.stud-att-profile .sap-trend__grid span{height:1px;width:100%;border-top:1px dashed #ccdaf0}
+.stud-att-profile .sap-trend__grid span:last-child{border-top:1px solid #a7bfdd}
+.stud-att-profile .sap-trend__columns{display:flex;align-items:flex-end;justify-content:space-around;gap:11px;height:100%;padding:13px 8px 24px;overflow-x:auto;scrollbar-width:thin}
+.stud-att-profile .sap-trend__column{
+  position:relative;display:flex;flex:1 0 45px;flex-direction:column;
+  align-items:center;justify-content:flex-end;max-width:80px;min-width:37px;
+  height:100%;padding:0 0 0;
+}
+.stud-att-profile .sap-trend__column b{position:absolute;bottom:calc(100% + 3px);font-size:11px;color:#205cc6;white-space:nowrap}
+.stud-att-profile .sap-trend__bar{
+  display:block;width:min(56%,44px);min-height:0;
+  border-radius:10px 10px 2px 2px;background:linear-gradient(#c6dfff,#82b6fb);
+  box-shadow:inset 0 2px 2px #ffffffa0;
+}
+.stud-att-profile .sap-trend__zero{position:absolute;bottom:-1px;width:34px;height:5px;border-radius:8px;background:#b7d4f9}
+.stud-att-profile .sap-trend__column small{
+  position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);
+  font-size:10px;color:#7185a1;white-space:nowrap;
+}
+.stud-att-profile .sap-subject-list{display:grid;gap:18px;padding:9px 4px}
+.stud-att-profile .sap-subject{display:grid;gap:9px}
+.stud-att-profile .sap-subject__heading{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.stud-att-profile .sap-subject__heading strong{font-size:13px;color:#204d8e}
+.stud-att-profile .sap-subject__heading span{font-size:11px;color:#6b80a4}
+.stud-att-profile .sap-subject__track{width:100%;height:10px;border-radius:999px;background:#e5edf6;overflow:hidden}
+.stud-att-profile .sap-subject__track span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#91c8ee,#226be2)}
+.stud-att-profile .sap-empty{display:grid;place-items:center;gap:12px;text-align:center;min-height:130px;color:#70839d;font-size:12px}
+.stud-att-profile .sap-empty p{max-width:330px;line-height:1.6}
+
+.stud-att-profile .sap-absence{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:14px 18px;border:1px solid #f6d0d9;border-radius:13px;
+  color:#99405d;background:linear-gradient(102deg,#fff0f4,#ffe8ef 60%,#fff6f6);
+  box-shadow:0 4px 10px #a14c6820;font-size:12px;line-height:1.5;
+}
+.stud-att-profile .sap-absence strong{font-size:13px;color:#ad315a}
+.stud-att-profile .sap-absence>span:not(:last-child)::after{content:"·";margin-left:10px;color:#d89aae}
+.stud-att-profile .sap-absence span{color:#36557a}
+.stud-att-profile .sap-absence b{color:#173d67}
+.stud-att-profile .sap-history{padding:20px 17px 17px}
+.stud-att-profile .sap-history__scroll{
+  max-width:100%;overflow-x:auto;scrollbar-width:thin;
+  border:1px solid #e4e8f0;border-radius:14px;background:#fff;
+}
+.stud-att-profile .sap-history table{
+  width:100%;border-collapse:collapse;min-width:730px;
+  font-size:12px;color:#284b76;text-align:left;
+}
+.stud-att-profile .sap-history th{
+  padding:12px 13px;border-bottom:1px solid #e7e1da;
+  background:#f8f5f0;color:#53657c;
+  font-size:10px;font-weight:900;letter-spacing:.045em;white-space:nowrap;
+}
+.stud-att-profile .sap-history td{
+  padding:15px 13px;border-bottom:1px solid #edf0f5;
+  vertical-align:middle;line-height:1.5;
+}
+.stud-att-profile .sap-history tbody tr:last-child td{border-bottom:none}
+.stud-att-profile .sap-history tr:nth-child(even) td{background:#fafcff}
+.stud-att-profile .sap-history td strong{display:block;font-size:12px;color:#193e77}
+.stud-att-profile .sap-history td small{display:block;font-size:11px;color:#788ca6;margin-top:4px}
+.stud-att-profile .sap-history td time{white-space:nowrap;color:#315b98;font-weight:750}
+.stud-att-profile .sap-att-status{
+  display:inline-flex;gap:6px;align-items:center;
+  border-radius:999px;padding:5px 10px;
+  border:1px solid #a4dfc0;background:#e7f8ee;color:#0e754a;
+  font-size:11px;font-weight:850;white-space:nowrap;
+}
+.stud-att-profile .sap-att-status.is-absent{border-color:#f6bbc9;background:#ffe8ee;color:#a83358}
+.stud-att-profile .sap-att-status.is-late{border-color:#f2d08b;background:#fff2d5;color:#a36b0e}
+.stud-att-profile .sap-history__empty{min-height:120px}
+
+.stud-att-profile .sap-aside{display:grid;gap:17px;min-width:0}
+.stud-att-profile .sap-note{
+  position:relative;isolation:isolate;
+  min-height:206px;padding:25px 21px 22px;
+  border:1px solid #cee4c6;border-radius:18px;
+  background:linear-gradient(160deg,#f7fff1,#ebf8ea);
+  box-shadow:var(--sap-shadow);
+}
+.stud-att-profile .sap-note::after{
+  content:"";position:absolute;z-index:-1;left:-6px;right:-7px;bottom:-9px;height:14px;
+  background:#dcefd9;
+  clip-path:polygon(0 0,12% 100%,20% 0,32% 92%,45% 0,55% 100%,70% 0,85% 90%,100% 0);
+}
+.stud-att-profile .sap-note__pin{
+  position:absolute;right:27px;top:-12px;
+  width:22px;height:22px;border-radius:50%;
+  background:radial-gradient(circle at 32% 28%,#ffe3ee,#d97da6 65%,#b65c88);
+  box-shadow:2px 5px 7px #7457744d;transform:rotate(18deg);
+}
+.stud-att-profile .sap-note__pin::after{content:"";position:absolute;left:9px;top:19px;width:3px;height:19px;background:#8c7089;transform:rotate(18deg)}
+.stud-att-profile .sap-note h2{
+  display:flex;align-items:center;gap:9px;
+  padding:7px 10px;margin:-7px 0 13px -9px;
+  width:max-content;max-width:100%;background:#fff5d7;color:#244b7a;
+  clip-path:polygon(0 12%,100% 0,99% 96%,0 100%);
+  font-size:17px;font-weight:900;
+}
+.stud-att-profile .sap-note h2 svg{color:#c38825}
+.stud-att-profile .sap-note p{font-size:12px;line-height:1.75;color:#334c6a}
+.stud-att-profile .sap-note__meta{display:flex;gap:8px;align-items:center;color:#3b745c;margin-top:15px;font-size:11px;font-weight:800}
+
+.stud-att-profile .sap-export{
+  display:grid;gap:10px;padding:16px 12px;
+  border:1px solid #dce6f3;border-radius:19px;
+  background:linear-gradient(160deg,#fffffe,#f8fbff);
+  box-shadow:var(--sap-shadow);
+}
+.stud-att-profile .sap-export h2{display:flex;align-items:center;gap:7px;padding:2px 5px 7px;color:#345884;font-size:13px;font-weight:900}
+.stud-att-profile .sap-export button{
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  width:100%;min-height:43px;padding:9px 10px;
+  border:1px solid #bfd2ef;border-radius:11px;
+  color:#215cba;background:linear-gradient(#fff,#f9fbff);
+  font-size:12px;font-weight:850;text-align:center;
+}
+.stud-att-profile .sap-export button:hover{background:#edf4ff;border-color:#75a5e6}
+.stud-att-profile .sap-export button.sap-export__primary{
+  color:white;border-color:#1760d6;
+  background:linear-gradient(115deg,#3699fa,#166ce7 70%,#1151bc);
+  box-shadow:0 6px 14px #316bcd31;
+}
+.stud-att-profile .sap-export button.sap-export__primary:hover{filter:brightness(1.04)}
+.stud-att-profile .sap-export__privacy,.stud-att-profile .sap-share-status{
+  font-size:10px;line-height:1.55;color:#6a809d;text-align:center;padding:2px 5px;
+}
+.stud-att-profile .sap-share-status{color:#2f7f66}
+.stud-att-profile .sap-decoration{position:relative;display:grid;place-items:center;height:110px;color:#739bbf;opacity:.75}
+.stud-att-profile .sap-decoration svg{filter:drop-shadow(0 5px 6px #305d902c);transform:rotate(-9deg)}
+.stud-att-profile .sap-decoration__leaf{
+  position:absolute;top:2px;left:34%;width:15px;height:30px;
+  border-radius:0 100% 0 100%;transform:rotate(45deg);background:#80b9a0;
+}
+.stud-att-profile .sap-decoration__paper{
+  position:absolute;z-index:-1;bottom:14px;left:22%;width:55%;height:11px;background:#f8d5d9;
+  transform:rotate(6deg);border-radius:2px;
+}
+.stud-att-profile .sap-updating{
+  position:sticky;bottom:12px;z-index:2;width:max-content;max-width:90%;
+  margin:16px auto;padding:11px 17px;border:1px solid #b8d2ef;
+  border-radius:999px;background:#fff;color:#2c639f;
+  box-shadow:0 8px 20px #17447436;font-size:12px;font-weight:850;
+}
+
+/* Hide internal attendance report navigation only while this profile subpage
+   is active; the application's real global navigation remains untouched. */
+.att-report-m3:has(> .stud-att-profile) > .att-report-m3__mode{display:none!important}
+.attendance-shell:has(.stud-att-profile) > .attendance-topbar,
+.attendance-shell:has(.stud-att-profile) > .attendance-tabs {display:none!important}
+.attendance-shell:has(.stud-att-profile) .attendance-content > .awu-feature-deck,
+.attendance-shell:has(.stud-att-profile) .attendance-content > .awu-app-hero {display:none!important}
+.attendance-shell:has(.stud-att-profile) .attendance-content{padding-top:12px!important}
+.attendance-workspace-page .attendance-shell:has(.stud-att-profile) .att-report-m3{max-height:none!important;overflow:visible!important}
+.attendance-workspace-page .attendance-shell:has(.stud-att-profile) .stud-att-profile{height:auto!important;max-height:none!important;overflow:visible!important}
+
+/* Large laptop / small monitor */
+@media(max-width:1270px){
+  .stud-att-profile .sap-layout{grid-template-columns:minmax(0,1fr) 230px;gap:13px}
+  .stud-att-profile .sap-metric{padding:16px 11px;gap:7px}
+  .stud-att-profile .sap-metric__icon{flex-basis:40px;width:40px;height:40px}
+  .stud-att-profile .sap-head-actions{justify-items:start}
+  .stud-att-profile .sap-paper-head{padding:23px}
+}
+@media(max-width:1070px){
+  .stud-att-profile .sap-paper-head{flex-wrap:wrap;gap:17px}
+  .stud-att-profile .sap-head-actions{width:100%;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  .stud-att-profile .sap-layout{grid-template-columns:1fr}
+  .stud-att-profile .sap-aside{grid-template-columns:1fr 1fr;align-items:start}
+  .stud-att-profile .sap-decoration{display:none}
+}
+@media(max-width:750px){
+  .stud-att-profile{padding:9px 7px 25px;border-radius:13px}
+  .stud-att-profile .sap-backline__crumb{display:none}
+  .stud-att-profile .sap-paper-head{margin:8px 4px 23px;padding:20px 15px;gap:12px}
+  .stud-att-profile .sap-avatar{flex-basis:72px;width:72px;height:72px;border-width:4px}
+  .stud-att-profile .sap-avatar__ring{width:60px;height:60px}
+  .stud-att-profile .sap-avatar__ring b{font-size:17px}
+  .stud-att-profile .sap-avatar__ring svg{width:19px}
+  .stud-att-profile .sap-identity{flex-basis:calc(100% - 90px)}
+  .stud-att-profile .sap-identity h1{font-size:24px}
+  .stud-att-profile .sap-identity__meta{gap:7px;margin-top:9px;font-size:11px}
+  .stud-att-profile .sap-identity__meta>span{border:0;padding-right:0}
+  .stud-att-profile .sap-head-actions{width:100%;justify-content:flex-start}
+  .stud-att-profile .sap-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .stud-att-profile .sap-metric{min-height:90px}
+  .stud-att-profile .sap-charts{grid-template-columns:1fr}
+  .stud-att-profile .sap-aside{grid-template-columns:1fr}
+  .stud-att-profile .sap-history__scroll{overflow-x:auto}
+}
+@media(max-width:420px){
+  .stud-att-profile .sap-metric__icon{flex-basis:38px;width:38px;height:38px}
+  .stud-att-profile .sap-metric>div strong{font-size:22px}
+  .stud-att-profile .sap-metric>div>span{font-size:11px}
+  .stud-att-profile .sap-status{font-size:12px;padding:9px 11px}
+  .stud-att-profile .sap-month{flex-wrap:wrap}
+  .stud-att-profile .sap-month input{width:146px}
+  .stud-att-profile .sap-ribbon{font-size:14px}
+}
+/* Print and saved PDF use the existing report exporters, not a screenshot of
+   the UI. Browser print mode remains legible if invoked manually. */
+@media print {
+  .stud-att-profile{background:#fff!important;box-shadow:none!important;padding:0!important}
+  .stud-att-profile .sap-backline,.stud-att-profile .sap-export,.stud-att-profile .sap-decoration{display:none!important}
+  .stud-att-profile .sap-layout{grid-template-columns:1fr!important}
+  .stud-att-profile :is(.sap-paper-head,.sap-paper-card,.sap-metric,.sap-note){box-shadow:none!important;break-inside:avoid}
+  .stud-att-profile .sap-history__scroll{overflow:visible}
+  .stud-att-profile .sap-history table{min-width:0}
+}
+@media(prefers-reduced-motion:reduce){
+  .stud-att-profile *, .stud-att-profile *::before, .stud-att-profile *::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+}
