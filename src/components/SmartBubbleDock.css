@@ -1,0 +1,242 @@
+/* Smart Bubble Dock v1 — presentation only; all 7 original launchers retain ownership. */
+html[data-bes-smart-bubble-dock] {
+  --bes-floating-diameter: 50px;
+  --bes-floating-gap: 9px;
+  --bes-floating-edge: max(19px, env(safe-area-inset-right, 0px));
+  --bes-floating-bottom: max(19px, env(safe-area-inset-bottom, 0px));
+}
+html[data-bes-smart-bubble-dock] body .bes-smart-bubble-dock {
+  position: fixed !important;
+  z-index: 2147483021;
+  right: var(--bes-floating-edge) !important;
+  bottom: var(--bes-floating-bottom) !important;
+  width: var(--bes-floating-diameter);
+  height: var(--bes-floating-diameter);
+  pointer-events: none;
+  isolation: isolate;
+  font-family: Inter, "Google Sans", system-ui, sans-serif;
+}
+.bes-smart-bubble-dock,
+.bes-smart-bubble-dock * { box-sizing: border-box; }
+.bes-smart-bubble-dock__anchor {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  width: 100%; height: 100%;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid #c9c3fb;
+  background: linear-gradient(145deg, #f7f4ff 0%, #e0d9ff 54%, #cadbff 100%);
+  color: #4b53bf;
+  box-shadow: 0 6px 22px #555bc04d, 0 0 0 5px #e9e7ff99, inset 0 1px 2px #fff;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .23s ease, box-shadow .23s ease;
+}
+.bes-smart-bubble-dock__anchor:hover,
+.bes-smart-bubble-dock__anchor:focus-visible {
+  box-shadow: 0 10px 27px #555bc05c, 0 0 0 6px #e9e7ffb0, inset 0 1px 2px #fff;
+  transform: translateY(-2px);
+}
+.bes-smart-bubble-dock__anchor:focus-visible,
+.bes-smart-bubble-dock__pin:focus-visible {
+  outline: 3px solid #215da8;
+  outline-offset: 4px;
+}
+.bes-smart-bubble-dock__spark {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  color: #7559cf;
+  pointer-events: none;
+}
+.bes-smart-bubble-dock__online {
+  position: absolute;
+  right: -2px;
+  bottom: -1px;
+  width: 13px;
+  height: 13px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #24ad79;
+  box-shadow: 0 2px 7px #24396844;
+  pointer-events: none;
+}
+.bes-smart-bubble-dock__badge {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  display: grid;
+  place-items: center;
+  min-width: 23px; height: 23px;
+  padding: 0 4px;
+  border-radius: 999px;
+  border: 2px solid #fff;
+  background: #db405d;
+  box-shadow: 0 2px 8px #9c35544d;
+  color: #fff;
+  font: 800 11px/1 Inter, system-ui, sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.bes-smart-bubble-dock__pin {
+  position: absolute;
+  right: calc(100% + 13px);
+  bottom: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: max-content;
+  min-height: 38px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid #d1bfe8;
+  background: #fff8ffed;
+  box-shadow: 0 6px 18px #6753863b;
+  color: #64498d;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  pointer-events: auto;
+  white-space: nowrap;
+  backdrop-filter: blur(6px);
+}
+.bes-smart-bubble-dock.is-pinned .bes-smart-bubble-dock__pin {
+  color: #216b60;
+  border-color: #a4d7c7;
+  background: #ebfff7;
+}
+.bes-smart-bubble-dock__hint {
+  position: absolute;
+  bottom: calc(100% + 13px);
+  right: 0;
+  width: max-content;
+  max-width: 180px;
+  padding: 8px 11px;
+  border-radius: 12px;
+  border: 1px solid #dfd0f4;
+  background: #fffafb;
+  color: #51376f;
+  box-shadow: 0 6px 18px #58458028;
+  font-size: 12px;
+  font-weight: 750;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(5px);
+  transition: opacity .17s ease, transform .17s ease;
+  pointer-events: none;
+}
+.bes-smart-bubble-dock__anchor:is(:hover,:focus-visible) ~ .bes-smart-bubble-dock__hint,
+.bes-smart-bubble-dock:has(.bes-smart-bubble-dock__anchor:hover) .bes-smart-bubble-dock__hint {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* One vertical column. Reserve slot zero for the new anchor, shift original
+   launchers upward by exactly one step. Original order and role gates are kept. */
+html[data-bes-smart-bubble-dock] body .bes-kira-chat-root .bes-kira-chat-launcher {
+  bottom: calc(var(--bes-floating-bottom) + 1 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
+}
+html[data-bes-smart-bubble-dock] body .bes-approval-root .bes-approval-fab {
+  bottom: calc(var(--bes-floating-bottom) + 2 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
+}
+html[data-bes-smart-bubble-dock] body .bfc-bubble {
+  bottom: calc(var(--bes-floating-bottom) + 3 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
+}
+html[data-bes-smart-bubble-dock] body .bbd-board-fab {
+  bottom: calc(var(--bes-floating-bottom) + 4 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
+}
+html[data-bes-smart-bubble-dock] body .bba-bubble {
+  bottom: calc(var(--bes-floating-bottom) + 5 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
+}
+html[data-bes-smart-bubble-dock] body .bff-bubble {
+  bottom: calc(var(--bes-floating-bottom) + 6 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
+}
+html[data-bes-smart-bubble-dock] body .bit-launcher {
+  bottom: calc(var(--bes-floating-bottom) + 7 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
+}
+/* Teacher/non-reviewer: the approval launcher's original slot is absent. */
+html[data-bes-smart-bubble-dock] body:not(:has(.bes-approval-root)) .bfc-bubble {
+  bottom: calc(var(--bes-floating-bottom) + 2 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
+}
+html[data-bes-smart-bubble-dock] body:not(:has(.bes-approval-root)) .bbd-board-fab {
+  bottom: calc(var(--bes-floating-bottom) + 3 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
+}
+html[data-bes-smart-bubble-dock] body:not(:has(.bes-approval-root)) .bba-bubble {
+  bottom: calc(var(--bes-floating-bottom) + 4 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
+}
+html[data-bes-smart-bubble-dock] body:not(:has(.bes-approval-root)) .bff-bubble {
+  bottom: calc(var(--bes-floating-bottom) + 5 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
+}
+html[data-bes-smart-bubble-dock] body:not(:has(.bes-approval-root)) .bit-launcher {
+  bottom: calc(var(--bes-floating-bottom) + 6 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
+}
+/* Preserve each feature's own trigger; only its interactivity/visibility changes. */
+html[data-bes-smart-bubble-dock] body :is(
+  .bit-launcher, .bff-bubble, .bba-bubble, .bbd-board-fab, .bfc-bubble,
+  .bes-approval-root .bes-approval-fab, .bes-kira-chat-root .bes-kira-chat-launcher
+) {
+  width: var(--bes-floating-diameter) !important;
+  height: var(--bes-floating-diameter) !important;
+  min-width: var(--bes-floating-diameter) !important;
+  min-height: var(--bes-floating-diameter) !important;
+  right: var(--bes-floating-edge) !important;
+  transition: opacity .22s ease, transform .22s ease, box-shadow .22s ease !important;
+}
+html[data-bes-smart-bubble-dock="collapsed"] body :is(
+  .bit-launcher, .bff-bubble, .bba-bubble, .bbd-board-fab, .bfc-bubble,
+  .bes-approval-root .bes-approval-fab, .bes-kira-chat-root .bes-kira-chat-launcher
+) {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transform: translateX(22px) scale(.82) !important;
+}
+html[data-bes-smart-bubble-dock="expanded"] body :is(
+  .bit-launcher, .bff-bubble, .bba-bubble, .bbd-board-fab, .bfc-bubble,
+  .bes-approval-root .bes-approval-fab, .bes-kira-chat-root .bes-kira-chat-launcher
+) {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+/* On phones use tap, never require hover. Keep the full stack within the viewport. */
+@media (max-width: 680px) {
+  html[data-bes-smart-bubble-dock] {
+    --bes-floating-diameter: 46px;
+    --bes-floating-gap: 7px;
+    --bes-floating-edge: max(12px, env(safe-area-inset-right, 0px));
+    --bes-floating-bottom: max(13px, env(safe-area-inset-bottom, 0px));
+  }
+}
+@media (max-height: 540px) {
+  html[data-bes-smart-bubble-dock] {
+    --bes-floating-diameter: 40px;
+    --bes-floating-gap: 4px;
+    --bes-floating-edge: max(9px, env(safe-area-inset-right, 0px));
+    --bes-floating-bottom: max(9px, env(safe-area-inset-bottom, 0px));
+  }
+}
+@media (max-height: 360px) {
+  html[data-bes-smart-bubble-dock] {
+    --bes-floating-diameter: 35px;
+    --bes-floating-gap: 3px;
+    --bes-floating-bottom: max(7px, env(safe-area-inset-bottom, 0px));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bes-smart-bubble-dock *, html[data-bes-smart-bubble-dock] body :is(
+    .bit-launcher, .bff-bubble, .bba-bubble, .bbd-board-fab, .bfc-bubble,
+    .bes-approval-root .bes-approval-fab, .bes-kira-chat-root .bes-kira-chat-launcher
+  ) { transition: none !important; animation: none !important; }
+}
+@media (forced-colors: active) {
+  .bes-smart-bubble-dock__anchor, .bes-smart-bubble-dock__pin {
+    background: ButtonFace; color: ButtonText; border: 2px solid ButtonText;
+  }
+  .bes-smart-bubble-dock__online { border: 2px solid ButtonText; }
+}
