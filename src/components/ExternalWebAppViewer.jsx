@@ -5,6 +5,7 @@ import {
   isValidExternalHtml,
   normalizeExternalAppEmbedConfig,
   safeExternalWebAppUrl,
+  standaloneAuthAppUrl,
 } from '../utils/externalWebApps.js';
 import './ExternalWebApps.css';
 import './ExternalWebAppViewerCrop.css';
@@ -45,17 +46,8 @@ export default function ExternalWebAppViewer({ app, onClose, explorerId = '', la
   const config = normalizeExternalAppEmbedConfig(app?.embedConfig, sourceUrl);
   const url = htmlApp ? '' : (safeExternalWebAppUrl(config.embedUrl) || sourceUrl);
   const ready = htmlApp ? isValidExternalHtml(htmlContent) : Boolean(url);
-  // Google OAuth on Interactive Learning must run as a first-party browser
-  // navigation; an embedded cross-origin iframe cannot own its login flow.
-  const externalGoogleLogin = !htmlApp && (() => {
-    try {
-      const hostname = new URL(sourceUrl || url).hostname.toLowerCase();
-      return hostname === 'interactivelearning.app' || hostname.endsWith('.interactivelearning.app');
-    } catch {
-      return false;
-    }
-  })();
-  const [frameRevision, setFrameRevision] = useState(0);
+  const standaloneUrl = standaloneAuthAppUrl(app || {});
+  const externalGoogleLogin = Boolean(standaloneUrl);
   const [layout, setLayout] = useState(() => readBrianLayout(null));
 
   useEffect(() => {
@@ -163,7 +155,7 @@ export default function ExternalWebAppViewer({ app, onClose, explorerId = '', la
           {!htmlApp && url ? (
             <a
               className="bes-ext-runtime-open-external"
-              href={url}
+              href={standaloneUrl || url}
               target="_blank"
               rel="noopener noreferrer"
               title={vi ? "Mở website trong tab mới nếu nhà cung cấp không hỗ trợ iframe" : "Open in a new tab if the provider blocks embedding"}
@@ -212,28 +204,24 @@ export default function ExternalWebAppViewer({ app, onClose, explorerId = '', la
           <div className="bes-ext-external-auth-help" role="note">
             <span className="bes-ext-external-auth-help-text">
               {vi
-                ? 'Google không hỗ trợ đăng nhập trong khung nhúng. Hãy đăng nhập ở tab riêng; nếu Brian chưa nhận phiên, tiếp tục dùng tab đó.'
-                : 'Google sign-in is unavailable inside this embedded frame. Sign in in a separate tab; if the session is not shared, continue there.'}
+                ? 'Đây chỉ là chế độ xem nhúng. Google Sign-in trong khung có thể báo 403. Để đăng nhập, hãy mở Interactive Learning ở tab riêng và sử dụng tại đó.'
+                : 'This is an embedded preview only. Google sign-in inside the frame may return 403. For account features, open Interactive Learning in a separate tab and continue there.'}
             </span>
             <div className="bes-ext-external-auth-help-actions">
               <a
-                href="https://interactivelearning.app/?ui=en"
+                href={standaloneUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={vi ? 'Đăng nhập Interactive Learning trong tab mới' : 'Sign in to Interactive Learning in a new tab'}
               >
-                {vi ? 'Đăng nhập ở tab riêng' : 'Sign in in new tab'} <span aria-hidden="true">↗</span>
+                {vi ? 'Mở để đăng nhập và sử dụng' : 'Open to sign in and use'} <span aria-hidden="true">↗</span>
               </a>
-              <button type="button" onClick={() => setFrameRevision((number) => number + 1)}>
-                {vi ? 'Tải lại khung' : 'Reload frame'}
-              </button>
             </div>
           </div>
         ) : null}
 
         {htmlApp ? (
           <iframe
-            key={`html-${app?.id || 'app'}-${frameRevision}`}
             className="bes-ext-runtime-frame"
             srcDoc={htmlContent}
             title={app.title || app.name}
@@ -243,14 +231,11 @@ export default function ExternalWebAppViewer({ app, onClose, explorerId = '', la
           />
         ) : (
           <iframe
-            key={`url-${app?.id || 'app'}-${frameRevision}`}
             className="bes-ext-runtime-frame"
             src={url}
             title={app.title || app.name}
             allow="clipboard-read; clipboard-write; microphone; camera; fullscreen; geolocation"
-            sandbox={externalGoogleLogin
-              ? 'allow-forms allow-modals allow-presentation allow-same-origin allow-scripts allow-downloads allow-popups allow-popups-to-escape-sandbox'
-              : 'allow-forms allow-modals allow-presentation allow-same-origin allow-scripts allow-downloads'}
+            sandbox="allow-forms allow-modals allow-presentation allow-same-origin allow-scripts allow-downloads"
             referrerPolicy="strict-origin-when-cross-origin"
           />
         )}

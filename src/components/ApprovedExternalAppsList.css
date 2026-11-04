@@ -332,3 +332,43 @@ html[lang='en'] .apps-directory-native .external-approved-app .apps-list-primary
     padding: 5px !important;
   }
 }
+
+/* Interactive Learning requires first-party Google login. Its primary card
+   action opens the approved origin in a separate browser tab. The secondary
+   preview remains available for public games that do not need authentication. */
+.apps-directory-native .external-approved-app[data-standalone-auth='true'] > a.apps-list-open {
+  text-decoration: none !important;
+  cursor: pointer !important;
+}
+.apps-directory-native .external-approved-app[data-standalone-auth='true'] .apps-list-primary-action {
+  margin-top: auto !important;
+  padding-right: 130px !important;
+}
+.apps-directory-native .external-approved-app[data-standalone-auth='true'] .apps-list-primary-action b::after {
+  content: 'Mở ngoài Brian' !important;
+}
+html[lang='en'] .apps-directory-native .external-approved-app[data-standalone-auth='true'] .apps-list-primary-action b::after {
+  content: 'Open in new tab' !important;
+}
+.apps-directory-native .external-approved-app .external-approved-embed-preview {
+  position: absolute !important;
+  z-index: 5 !important;
+  right: 12px !important;
+  bottom: 10px !important;
+  min-height: 30px !important;
+  padding: 4px 10px !important;
+  border: 1px solid #c8d9ed !important;
+  border-radius: 9px !important;
+  background: #f4f9ff !important;
+  color: #224f79 !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+}
+.apps-directory-native .external-approved-app .external-approved-embed-preview:hover,
+.apps-directory-native .external-approved-app .external-approved-embed-preview:focus-visible {
+  background: #e4f2ff !important;
+  outline: 2px solid #a5caff !important;
+  outline-offset: 1px !important;
+}

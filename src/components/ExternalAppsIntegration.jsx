@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CheckCircle2, ChevronRight, FileCode2, Globe2 } from 'lucide-react';
 import { canManageAiWebsites } from '../utils/aiWebsiteSettings.js';
-import { EXTERNAL_APP_SOURCE_HTML, loadExternalWebApps, subscribeExternalWebApps } from '../utils/externalWebApps.js';
+import { EXTERNAL_APP_SOURCE_HTML, loadExternalWebApps, standaloneAuthAppUrl, subscribeExternalWebApps } from '../utils/externalWebApps.js';
 import './ExternalWebApps.css';
 import './ExternalAppApprovalRestore.css';
 import './ApprovedExternalAppsList.css';
@@ -40,6 +40,8 @@ function tone(value = '') {
 
 export function WebsiteAppCard({ app, onOpen, language = 'vi' }) {
   const htmlApp = app.sourceType === EXTERNAL_APP_SOURCE_HTML;
+  const standaloneUrl = standaloneAuthAppUrl(app);
+  const OpenControl = standaloneUrl ? 'a' : 'button';
   const group = GROUPS[app.groupId] || null;
   const accent = app.accent || group?.accent || tone(app.externalUrl || app.fileName || app.title);
   const appTitle = app.title || (language === 'vi' ? 'Ứng dụng đã duyệt' : 'Approved application');
@@ -57,12 +59,20 @@ export function WebsiteAppCard({ app, onOpen, language = 'vi' }) {
       data-app-title={app.title || ''}
       data-app-group={app.groupId || ''}
       data-app-source={app.sourceType || 'url'}
+      data-standalone-auth={standaloneUrl ? 'true' : undefined}
     >
-      <button
-        type="button"
+      <OpenControl
+        type={standaloneUrl ? undefined : 'button'}
+        href={standaloneUrl || undefined}
+        target={standaloneUrl ? '_blank' : undefined}
+        rel={standaloneUrl ? 'noopener noreferrer' : undefined}
         className="apps-list-open"
-        onClick={() => onOpen(app)}
-        aria-label={`${language === 'vi' ? 'Mở' : 'Open'}: ${appTitle}`}
+        onClick={standaloneUrl ? undefined : () => onOpen(app)}
+        aria-label={standaloneUrl
+          ? (language === 'vi'
+            ? `Mở ${appTitle} trong tab riêng để đăng nhập`
+            : `Open ${appTitle} in a separate tab to sign in`)
+          : `${language === 'vi' ? 'Mở' : 'Open'}: ${appTitle}`}
       >
         <span className="apps-list-icon external-approved-list-icon" aria-hidden="true">
           {app.icon ? <span className="external-approved-icon-glyph">{app.icon}</span> : (htmlApp ? <FileCode2 /> : <Globe2 />)}
@@ -80,7 +90,19 @@ export function WebsiteAppCard({ app, onOpen, language = 'vi' }) {
           <b>{language === 'vi' ? 'Mở' : 'Open'}</b>
           <ChevronRight />
         </span>
-      </button>
+      </OpenControl>
+      {standaloneUrl ? (
+        <button
+          type="button"
+          className="external-approved-embed-preview"
+          onClick={() => onOpen(app)}
+          title={language === 'vi'
+            ? 'Xem trò chơi công khai trong Brian (không đăng nhập Google)'
+            : 'Preview public activities in Brian without Google sign-in'}
+        >
+          {language === 'vi' ? 'Xem trong Brian' : 'Preview in Brian'}
+        </button>
+      ) : null}
     </article>
   );
 }

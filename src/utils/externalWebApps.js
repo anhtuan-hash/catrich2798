@@ -42,6 +42,28 @@ export function safeExternalWebAppUrl(value) {
   }
 }
 
+// OAuth providers must be launched as a first-party browser page rather than
+// relying on a third-party iframe to share Google session cookies.
+// Limited to the verified Interactive Learning host; all other approved URLs
+// retain their usual Brian embedded experience.
+export function standaloneAuthAppUrl(app = {}) {
+  if (app.sourceType === EXTERNAL_APP_SOURCE_HTML || app.htmlContent) return '';
+  const source = safeExternalWebAppUrl(
+    app.externalUrl || app.url || app.embedUrl || app.embedConfig?.embedUrl,
+  );
+  if (!source) return '';
+  try {
+    const url = new URL(source);
+    const host = url.hostname.toLowerCase();
+    if (host !== 'interactivelearning.app' && host !== 'www.interactivelearning.app') return '';
+    url.searchParams.delete('incrustar');
+    url.searchParams.delete('embed');
+    return url.toString();
+  } catch {
+    return '';
+  }
+}
+
 export function withEmbedModeParam(value) {
   const safe = safeExternalWebAppUrl(value);
   if (!safe) return '';
