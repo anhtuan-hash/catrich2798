@@ -14,8 +14,8 @@ import './AttendanceHistoryIphoneViewportFix.css';
  * and action handlers. The legacy overlay stays available for older event
  * integrations, but normal access is now an inline page, not a modal.
  */
-export default function AttendanceWorkspace({currentUser}) {
+export default function AttendanceWorkspace({currentUser, language='vi'}) {
   return <div className="attendance-workspace-page">
-    <GlobalAttendanceReadOnlyNavigationTab currentUser={currentUser} standalone />
+    <GlobalAttendanceReadOnlyNavigationTab currentUser={currentUser} language={language} standalone />
   </div>;
 }
