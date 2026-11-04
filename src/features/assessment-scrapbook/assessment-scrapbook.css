@@ -104,10 +104,23 @@ html body #root#root .app-shell[data-assessment-scrapbook="on"][data-tool="lesso
 
   /* Die-cut library sheet. Its controls retain tab order and native actions. */
   & #lcs5-activity-library {
+    position:relative;
     padding:12px clamp(12px,1.55vw,26px) 14px !important; margin:0 !important; min-width:0;
     border:9px solid transparent !important; border-image:var(--as-rim) 15 / 12px / 3px round !important;
     background:var(--as-leaf) !important; box-shadow:0 4px 0 #e1b9c9,0 7px 0 #f5dbe6,var(--as-lift) !important;
     border-radius:10px !important; overflow:visible !important;
+  }
+  & #lcs5-activity-library::before, & #lcs5-activity-library::after {
+    content:''; position:absolute; display:block; pointer-events:none;
+  }
+  & #lcs5-activity-library::before {
+    inset:2px auto 3px -14px; width:16px;
+    background:url('/assets/ttcm-scrapbook/binding.webp') left top / 100% 370px repeat-y;
+  }
+  & #lcs5-activity-library::after {
+    inset:auto 0 -12px; height:16px;
+    background:url('/assets/ttcm-scrapbook/deckle.webp') left bottom / 240px 100% repeat-x;
+    filter:hue-rotate(68deg);
   }
   & :is(.lcs-arcade-nav,.lcs5-command-tools,.lcs-arcade-filterbar,.lcs-arcade-results-head) {
     min-width:0 !important; min-height:0 !important; margin:0 0 7px !important; padding:4px 0 !important;
@@ -166,15 +179,24 @@ html body #root#root .app-shell[data-assessment-scrapbook="on"][data-tool="lesso
     border: 2px solid #fff8ef !important; box-shadow: var(--as-lift) !important;
   }
   & .brian-nav__primary > button {
-    color: #173750 !important; background: var(--as-grain),var(--tab-paper,#f1e7d3) !important;
+    color: var(--tab-ink,#173750) !important; background: var(--as-grain),var(--tab-paper,#f1e7d3) !important;
     border: 1px solid #fffaf2 !important; border-radius: 15px 12px 16px 10px !important;
     box-shadow: 0 2px 2px #5a46312b !important;
   }
-  & .brian-nav__primary > button:nth-child(6n+2) { --tab-paper:#d9efd1; }
-  & .brian-nav__primary > button:nth-child(6n+3) { --tab-paper:#e5d7f7; }
-  & .brian-nav__primary > button:nth-child(6n+4) { --tab-paper:#ffe0e4; }
-  & .brian-nav__primary > button:nth-child(6n+5) { --tab-paper:#ffe2bd; }
-  & .brian-nav__primary > button:nth-child(6n) { --tab-paper:#d6eafb; }
+  & .brian-nav__primary > [data-nav-key="apps"] { --tab-paper:#ddefcc; --tab-ink:#29643d; --tab-mark:0%; }
+  & .brian-nav__primary > [data-nav-key="dashboard"] { --tab-paper:#e5d9fa; --tab-ink:#513588; --tab-mark:20%; }
+  & .brian-nav__primary > [data-nav-key="homeroom"] { --tab-paper:#ffe0e6; --tab-ink:#8e3351; --tab-mark:40%; }
+  & .brian-nav__primary > [data-nav-key="gradebook"] { --tab-paper:#ffe5c9; --tab-ink:#884b20; --tab-mark:60%; }
+  & .brian-nav__primary > [data-nav-key="lesson-check"] { --tab-paper:#dce9ff; --tab-mark:80%; }
+  & .brian-nav__primary > [data-nav-key="attendance"] { --tab-paper:#d6eefa; --tab-ink:#255b7d; --tab-mark:100%; }
+  @media (min-width:1100px) {
+    & .brian-nav__primary > button:is([data-nav-key="apps"],[data-nav-key="dashboard"],[data-nav-key="homeroom"],[data-nav-key="gradebook"],[data-nav-key="lesson-check"],[data-nav-key="attendance"])::before {
+      content:'' !important; display:block !important; position:static !important; flex:0 0 15px !important;
+      width:15px !important; height:15px !important; margin:0 3px 0 0 !important; opacity:1 !important;
+      background:currentColor !important; mask:url('/assets/assessment-scrapbook/navigation.svg') var(--tab-mark) center / 600% 100% no-repeat;
+      pointer-events:none;
+    }
+  }
   & .brian-nav__primary > .brian-nav__lesson-check-tab.is-active {
     background: var(--as-grain),#1556a9 !important; color: white !important;
     outline: 1px dashed #fff9 !important; outline-offset:-4px;
@@ -250,13 +272,13 @@ html body #root#root .app-shell[data-assessment-scrapbook="on"][data-tool="lesso
     }
     & .lcs-arcade-grid:not(.lcs5-list-view) .lcs-arcade-titlecopy h3 { min-height:0 !important; }
     & .lcs-arcade-grid:not(.lcs5-list-view) .lcs-arcade-card-actions {
-      display:grid !important; grid-template-columns:repeat(2,25px); grid-auto-rows:25px;
+      display:grid !important; grid-template-columns:repeat(3,25px); grid-auto-rows:25px;
       position:static !important; align-self:start; height:auto !important; flex:none !important;
     }
-    & .lcs-arcade-grid:not(.lcs5-list-view) .lcs-arcade-meta { grid-row:3; min-height:0 !important; }
+    & .lcs-arcade-grid:not(.lcs5-list-view) .lcs-arcade-meta { grid-area:3/1; min-height:0 !important; }
     & .lcs5-usage-tag { grid-row:4; }
-    & .lcs-arcade-grid:not(.lcs5-list-view) .lcs-arcade-card-tags { grid-area:5/1; width:100% !important; min-height:0 !important; height:auto !important; margin:0 !important; align-self:center; }
-    & .lcs-arcade-grid:not(.lcs5-list-view) .lcs5-card-toolbar { grid-area:5/2; position:static !important; margin:0 !important; align-self:center; }
+    & .lcs-arcade-grid:not(.lcs5-list-view) .lcs-arcade-card-tags { grid-area:3/2; width:auto !important; max-width:100% !important; justify-content:flex-end; min-height:0 !important; height:auto !important; margin:0 !important; align-self:center; }
+    & .lcs-arcade-grid:not(.lcs5-list-view) .lcs5-card-toolbar { grid-area:5/1/6/-1; justify-content:flex-end; position:static !important; margin:0 !important; align-self:center; }
     & .signature-footer-v50-profile { display:grid !important; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:3px 8px; }
     & .signature-footer-v50-profile > ul { grid-column:1/-1; display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1px 7px !important; }
   }
@@ -285,6 +307,7 @@ html body #root#root .app-shell[data-assessment-scrapbook="on"][data-tool="lesso
     & .lcs5-bento-copy small { font-size:11px !important; white-space:normal !important; }
     & .lcs-a4-launcher { padding:5px 8px !important; border-radius:11px !important; gap:5px !important; }
     & #lcs5-activity-library { padding:8px !important; border-width:5px !important; }
+    & #lcs5-activity-library::before { width:8px; left:-7px; }
     & .lcs-filter-quick-search { flex:1 1 100% !important; min-width:0 !important; max-width:none !important; }
     & .lcs-arcade-grid:not(.lcs5-list-view) { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
     & .lcs-arcade-card-actions button { min-width:32px !important; width:32px !important; min-height:32px !important; height:32px !important; }
