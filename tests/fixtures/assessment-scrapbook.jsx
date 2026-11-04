@@ -10,6 +10,7 @@ import AssessmentTab from '../../src/components/GlobalLessonCheckNavigationTab.j
 import AttendanceTab from '../../src/components/GlobalAttendanceNavigationTab.jsx';
 import Footer from '../../src/components/Footer.jsx';
 import Studio from '../../src/pages/LessonCheckStudio.jsx';
+import GuestFullPages from '../../src/pages/GuestFullPages.jsx';
 import Setting from '../../src/features/assessment-scrapbook/AssessmentScrapbookSetting.jsx';
 import { useAssessmentScrapbookActive } from '../../src/features/assessment-scrapbook/theme.js';
 import '../../src/styles/GlobalLayout16x9Authority.css';
@@ -30,14 +31,14 @@ function Fixture() {
   const [slug, setSlug] = useState(tool.slug);
   const route = slug ? 'tool' : 'home';
   const active = useAssessmentScrapbookActive(route, slug);
-  const props = { route, language, currentUser:user, assessmentScrapbookActive:active, selectedTool:slug ? {...tool,slug} : null };
+  const props = { route, language, currentUser:role === 'guest' ? null : user, assessmentScrapbookActive:active, selectedTool:slug ? {...tool,slug} : null };
   React.useEffect(() => { window.assessmentFixture = {setSlug}; }, []);
   return <div className="app-shell metro-shell metro-clean-system" data-route={route} data-tool={slug || 'home'} data-assessment-scrapbook={active ? 'on' : undefined}>
     <div className="bes-top-chrome"><Navigation {...props}/></div>
     <DashboardTab {...props}/><HomeroomTab {...props}/><GradebookTab {...props}/><AssessmentTab {...props}/><AttendanceTab {...props}/>
     <main id="bes-main-content" className="wp8-page-stage wp8-door-page" data-route={route}>
       <div className="bqa-content-safe-frame" data-quick-access-safe-frame="false">
-        {slug === tool.slug && <Studio language={language} currentUser={user}/>}
+        {slug === tool.slug && (role === 'guest' ? <GuestFullPages route="tool" language={language}/> : <Studio language={language} currentUser={user}/>)}
       </div>
     </main>
     <Footer language={language} route={route} currentUser={user} assessmentScrapbookActive={active}/>

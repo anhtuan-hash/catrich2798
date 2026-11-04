@@ -6,6 +6,7 @@ on:
       - 'public/assets/assessment-scrapbook/**'
       - 'src/utils/createScrapbookTheme.js'
       - 'src/pages/LessonCheckStudio.jsx'
+      - 'src/pages/GuestFullPages.jsx'
       - 'src/components/lessonCheck/**'
       - 'src/pages/Settings.jsx'
       - 'src/main.jsx'
