@@ -10,27 +10,31 @@ import './StudentAttendanceProfile.css';
 
 const activityNames = {remedial:'Phụ đạo',gifted:'Bồi dưỡng',supplemental:'Học bổ sung'};
 const statusNames = {present:'Có mặt',late:'Đi trễ',absent:'Vắng'};
+const statusNamesEn = {present:'Present',late:'Late',absent:'Absent'};
 const alertNames = {good:'Tốt',watch:'Cần theo dõi',danger:'Cần quan tâm',unknown:'Chưa có dữ liệu'};
-const num = value => Number(value || 0).toLocaleString('vi-VN',{maximumFractionDigits:2});
-const pct = value => value == null ? '—' : (100 * value).toFixed(1).replace('.',',') + '%';
-const humanDate = value => {
+const alertNamesEn = {good:'Excellent',watch:'Keep an eye on',danger:'Needs attention',unknown:'No data'};
+const num = (value,language='vi') => Number(value || 0).toLocaleString(language==='en'?'en-US':'vi-VN',{maximumFractionDigits:2});
+const pct = (value,language='vi') => value == null ? '—' : (100 * value).toFixed(1).replace('.',language==='en'?'.':',') + '%';
+const humanDate = (value,language='vi') => {
   const m=String(value||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  return m ? m[3]+'/'+m[2]+'/'+m[1] : (value || '—');
+  return m ? (language==='en'?value:m[3]+'/'+m[2]+'/'+m[1]) : (value || '—');
 };
-const monthLabel = value => {
+const monthLabel = (value,language='vi') => {
   const m=String(value||'').match(/^(\d{4})-(\d{2})$/);
-  return m ? 'Tháng '+Number(m[2])+'/'+m[1] : 'Kỳ báo cáo';
+  if(!m)return language==='en'?'Reporting period':'Kỳ báo cáo';
+  if(language==='en')return new Intl.DateTimeFormat('en-US',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(Date.UTC(Number(m[1]),Number(m[2])-1,1)));
+  return 'Tháng '+Number(m[2])+'/'+m[1];
 };
 function initials(value) {
   const words=String(value||'').trim().split(/\s+/).filter(Boolean);
   return words.length ? words.slice(-2).map(w=>w[0]).join('').toLocaleUpperCase('vi') : 'HS';
 }
 
-function TrendPaperChart({points=[]}) {
+function TrendPaperChart({points=[],language='vi'}) {
   if (!points.length) return <div className="sap-empty"><TrendingUp size={24}/><p>Chưa có dữ liệu chuyên cần để hiển thị xu hướng.</p></div>;
   const ticks=[100,80,60,40,20,0];
   return <div className="sap-trend" role="img"
-    aria-label={'Xu hướng chuyên cần: '+points.map(p=>monthLabel(p.month)+': '+pct(p.total?p.present/p.total:null)).join('; ')}>
+    aria-label={(language==='en'?'Attendance trend: ':'Xu hướng chuyên cần: ')+points.map(p=>monthLabel(p.month,language)+': '+pct(p.total?p.present/p.total:null,language)).join('; ')}>
     <div className="sap-trend__ticks">{ticks.map(t=><span key={t}>{t}%</span>)}</div>
     <div className="sap-trend__plot">
       <div className="sap-trend__grid" aria-hidden="true">{ticks.map(t=><span key={t}/>)}</div>
@@ -38,7 +42,7 @@ function TrendPaperChart({points=[]}) {
         {points.map(point=>{
           const ratio=point.total?Math.max(0,Math.min(100,point.present/point.total*100)):0;
           return <div className="sap-trend__column" key={point.month}>
-            <b style={{bottom:`calc(${ratio}% + 7px)`}}>{pct(point.total ? point.present/point.total : null)}</b>
+            <b style={{bottom:`calc(${ratio}% + 7px)`}}>{pct(point.total ? point.present/point.total : null,language)}</b>
             <div className="sap-trend__bar" style={{height:ratio+'%'}}/>
             {ratio===0 ? <i className="sap-trend__zero" aria-hidden="true"/>:null}
             <small>{point.month.slice(5)}/{point.month.slice(0,4)}</small>
@@ -48,13 +52,13 @@ function TrendPaperChart({points=[]}) {
     </div>
   </div>;
 }
-function SubjectPaperChart({rows=[]}) {
+function SubjectPaperChart({rows=[],language='vi'}) {
   if (!rows.length) return <div className="sap-empty"><BookOpen size={24}/><p>Chưa có môn học trong kỳ được chọn.</p></div>;
   return <div className="sap-subject-list">{rows.map(row=>{
     const percentage=row.total ? Math.max(0,Math.min(100,row.present/row.total*100)) : 0;
     return <div className="sap-subject" key={row.subject}>
-      <div className="sap-subject__heading"><strong>{row.subject}</strong><span>{num(row.present)}/{num(row.total)} tiết · {pct(row.total?row.present/row.total:null)}</span></div>
-      <div className="sap-subject__track" role="progressbar" aria-label={'Chuyên cần môn '+row.subject} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentage}><span style={{width:percentage+'%'}}/></div>
+      <div className="sap-subject__heading"><strong>{row.subject}</strong><span>{num(row.present,language)}/{num(row.total,language)} {language==='en'?'periods':'tiết'} · {pct(row.total?row.present/row.total:null,language)}</span></div>
+      <div className="sap-subject__track" role="progressbar" aria-label={(language==='en'?'Attendance in ':'Chuyên cần môn ')+row.subject} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentage}><span style={{width:percentage+'%'}}/></div>
     </div>;
   })}</div>;
 }
@@ -66,35 +70,38 @@ function Metric({tone,icon:Icon,value,label}) {
   </article>;
 }
 export default function StudentAttendanceProfile({
-  student, from, to, loading=false, onBack, onMonthChange, onExcel, onPdf,
+  student, from, to, loading=false, onBack, onMonthChange, onExcel, onPdf, language='vi',
 }) {
   const headingRef=useRef(null);
   const [shareStatus,setShareStatus]=useState('');
   const month=String(from||'').slice(0,7);
+  const en=language==='en';
   useEffect(()=>{headingRef.current?.focus({preventScroll:true});},[]);
   const total=Number(student.totalPeriods||0), present=Number(student.presentPeriods||0);
   const absent=Number(student.absentPeriods||0),percent=student.rate;
   const description=total
     ? (absent>0
-        ? 'Trong kỳ, học sinh vắng '+num(absent)+'/'+num(total)+' tiết. Hãy kiểm tra lý do và phối hợp hỗ trợ việc tham gia học tập.'
-        : 'Học sinh có mặt đủ số tiết được ghi nhận trong kỳ báo cáo.')
-    : 'Chưa ghi nhận tiết học đã chốt cho học sinh trong kỳ báo cáo này.';
-  const shareText='BÁO CÁO CHUYÊN CẦN CÁ NHÂN\n'+student.name+
-    '\nLớp: '+(student.schoolClass||'—')+'\nKỳ: '+monthLabel(month)+
-    '\nTổng tiết: '+num(total)+'\nCó mặt: '+num(present)+
-    '\nVắng: '+num(absent)+'\nChuyên cần: '+pct(percent);
+        ? (en
+          ? 'The student missed '+num(absent,language)+' of '+num(total,language)+' periods in this period. Review the recorded reason and follow up where appropriate.'
+          : 'Trong kỳ, học sinh vắng '+num(absent)+'/'+num(total)+' tiết. Hãy kiểm tra lý do và phối hợp hỗ trợ việc tham gia học tập.')
+        : (en ? 'The student attended every confirmed period in this reporting period.' : 'Học sinh có mặt đủ số tiết được ghi nhận trong kỳ báo cáo.'))
+    : (en ? 'No confirmed attendance periods have been recorded for this student in the selected period.' : 'Chưa ghi nhận tiết học đã chốt cho học sinh trong kỳ báo cáo này.');
+  const shareText=(en?'STUDENT ATTENDANCE REPORT':'BÁO CÁO CHUYÊN CẦN CÁ NHÂN')+'\n'+student.name+
+    '\n'+(en?'Class: ':'Lớp: ')+(student.schoolClass||'—')+'\n'+(en?'Period: ':'Kỳ: ')+monthLabel(month,language)+
+    '\n'+(en?'Total periods: ':'Tổng tiết: ')+num(total,language)+'\n'+(en?'Present: ':'Có mặt: ')+num(present,language)+
+    '\n'+(en?'Absent: ':'Vắng: ')+num(absent,language)+'\n'+(en?'Attendance rate: ':'Chuyên cần: ')+pct(percent,language);
   async function share() {
     setShareStatus('');
     try {
       if (navigator.share) {
-        await navigator.share({title:'Báo cáo chuyên cần cá nhân',text:shareText});
+        await navigator.share({title:en?'Student attendance report':'Báo cáo chuyên cần cá nhân',text:shareText});
         return;
       }
       if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
       await navigator.clipboard.writeText(shareText);
-      setShareStatus('Đã sao chép bản tóm tắt vào bộ nhớ tạm. Chưa tạo liên kết công khai.');
+      setShareStatus(en?'Summary copied. No public link was created.':'Đã sao chép bản tóm tắt vào bộ nhớ tạm. Chưa tạo liên kết công khai.');
     } catch(error) {
-      if (error?.name!=='AbortError') setShareStatus('Không thể chia sẻ trên trình duyệt này. Bạn có thể xuất Excel hoặc PDF.');
+      if (error?.name!=='AbortError') setShareStatus(en?'Sharing is unavailable in this browser. You can export to Excel or PDF.':'Không thể chia sẻ trên trình duyệt này. Bạn có thể xuất Excel hoặc PDF.');
     }
   }
   return <main className="stud-att-profile" data-student-attendance-profile aria-label={'Hồ sơ chuyên cần '+student.name}>
@@ -118,7 +125,7 @@ export default function StudentAttendanceProfile({
       </div>
       <div className="sap-head-actions">
         <label className="sap-month"><CalendarDays size={17}/><span>Kỳ báo cáo</span><input aria-label="Chọn tháng báo cáo cá nhân" type="month" value={month} onChange={event=>onMonthChange?.(event.target.value)}/></label>
-        <span className={'sap-status is-'+student.alert}>{student.alert==='good'?<BadgeCheck size={19}/>:<ShieldAlert size={19}/>} {alertNames[student.alert]||'Chưa có dữ liệu'}</span>
+        <span className={'sap-status is-'+student.alert}>{student.alert==='good'?<BadgeCheck size={19}/>:<ShieldAlert size={19}/>} {(en?alertNamesEn:alertNames)[student.alert]||(en?'No data':'Chưa có dữ liệu')}</span>
       </div>
       <span className="sap-head-clip" aria-hidden="true"/>
     </div>
@@ -126,21 +133,21 @@ export default function StudentAttendanceProfile({
     <div className="sap-layout">
       <div className="sap-primary">
         <section className="sap-metrics" aria-label="Thống kê chuyên cần của học sinh">
-          <Metric tone="blue" icon={CalendarDays} value={num(total)} label="Tổng tiết"/>
-          <Metric tone="green" icon={CheckCircle2} value={num(present)} label="Có mặt"/>
-          <Metric tone="peach" icon={XCircle} value={num(absent)} label="Vắng"/>
-          <Metric tone="purple" icon={TrendingUp} value={pct(percent)} label="Tỷ lệ chuyên cần"/>
+          <Metric tone="blue" icon={CalendarDays} value={num(total,language)} label={en?'Total periods':'Tổng tiết'}/>
+          <Metric tone="green" icon={CheckCircle2} value={num(present,language)} label={en?'Present':'Có mặt'}/>
+          <Metric tone="peach" icon={XCircle} value={num(absent,language)} label={en?'Absent':'Vắng'}/>
+          <Metric tone="purple" icon={TrendingUp} value={pct(percent,language)} label={en?'Attendance rate':'Tỷ lệ chuyên cần'}/>
         </section>
         <div className="sap-charts">
-          <section className="sap-paper-card"><h2 className="sap-ribbon is-blue"><TrendingUp size={20}/> Xu hướng chuyên cần theo tháng</h2><TrendPaperChart points={student.monthRows}/></section>
-          <section className="sap-paper-card"><h2 className="sap-ribbon is-purple"><BookOpen size={20}/> Chuyên cần theo môn học</h2><SubjectPaperChart rows={student.subjectRows}/></section>
+          <section className="sap-paper-card"><h2 className="sap-ribbon is-blue"><TrendingUp size={20}/> Xu hướng chuyên cần theo tháng</h2><TrendPaperChart points={student.monthRows} language={language}/></section>
+          <section className="sap-paper-card"><h2 className="sap-ribbon is-purple"><BookOpen size={20}/> Chuyên cần theo môn học</h2><SubjectPaperChart rows={student.subjectRows} language={language}/></section>
         </div>
         <section className="sap-absence" aria-label="Phân loại vắng học">
           <ShieldAlert size={20}/>
           <strong>Phân loại vắng:</strong>
-          <span>Có phép: <b>{student.excusedCount||0}</b> lượt</span>
-          <span>Không phép: <b>{student.unexcusedCount||0}</b> lượt</span>
-          <span>Đi trễ: <b>{student.lateCount||0}</b> lượt</span>
+          <span>Có phép: <b>{num(student.excusedCount||0,language)}</b> lượt</span>
+          <span>Không phép: <b>{num(student.unexcusedCount||0,language)}</b> lượt</span>
+          <span>Đi trễ: <b>{num(student.lateCount||0,language)}</b> lượt</span>
         </section>
         <section className="sap-paper-card sap-history" aria-labelledby="sap-history-title">
           <h2 className="sap-ribbon is-blue" id="sap-history-title"><CalendarDays size={20}/> Chi tiết buổi học</h2>
@@ -148,11 +155,11 @@ export default function StudentAttendanceProfile({
             <table>
               <thead><tr><th>Ngày</th><th>Lớp / Môn học</th><th>Giáo viên</th><th>Tiết</th><th>Trạng thái</th><th>Lý do / Ghi chú</th></tr></thead>
               <tbody>{student.details.map((row,index)=><tr key={row.sessionId+'-'+index}>
-                <td><time dateTime={row.date}>{humanDate(row.date)}</time></td>
+                <td><time dateTime={row.date}>{humanDate(row.date,language)}</time></td>
                 <td><strong>{row.className||'—'}</strong><small>{row.subject||'—'} · {activityNames[row.activityType]||'Lớp học'}</small></td>
                 <td>{row.teacher||'—'}</td>
-                <td>{num(row.periods)}</td>
-                <td><span className={'sap-att-status is-'+row.status}>{row.status==='absent'?<XCircle size={14}/>:row.status==='late'?<Clock3 size={14}/>:<CheckCircle2 size={14}/>} {statusNames[row.status]||'—'}</span></td>
+                <td>{num(row.periods,language)}</td>
+                <td><span className={'sap-att-status is-'+row.status}>{row.status==='absent'?<XCircle size={14}/>:row.status==='late'?<Clock3 size={14}/>:<CheckCircle2 size={14}/>} {(en?statusNamesEn:statusNames)[row.status]||'—'}</span></td>
                 <td>{row.status==='absent'?(absenceReasonLabel(row.absenceReason)||'Chưa rõ lý do'):'—'}{row.absenceNote ? <small>{row.absenceNote}</small>:null}</td>
               </tr>)}</tbody>
             </table>
@@ -164,7 +171,7 @@ export default function StudentAttendanceProfile({
           <span className="sap-note__pin" aria-hidden="true"/>
           <h2><Lightbulb size={22}/> Tổng quan</h2>
           <p>{description}</p>
-          <div className="sap-note__meta"><UsersRound size={16}/> {num(student.sessionCount||0)} buổi đã ghi nhận</div>
+          <div className="sap-note__meta"><UsersRound size={16}/> {num(student.sessionCount||0,language)} {en?'confirmed sessions':'buổi đã ghi nhận'}</div>
         </section>
         <section className="sap-export" aria-label="Xuất báo cáo cá nhân">
           <h2><Download size={17}/> Công cụ báo cáo</h2>
