@@ -97,7 +97,7 @@ function automaticRemarks(report) {
   return `Trong kỳ báo cáo có ${report.metrics.completedSessions} buổi đã dạy, tổng ${String(report.metrics.totalPeriods).replace('.', ',')} tiết; tỷ lệ chuyên cần đạt ${attendance}.${cancelled}`;
 }
 
-export default function AttendanceMonthlyReport({ client, classes = [], month, onMonthChange, onError, includeSupplemental = false }) {
+export default function AttendanceMonthlyReport({ client, classes = [], month, onMonthChange, onError, includeSupplemental = false, language = 'vi' }) {
   const [mode, setMode] = useState('month');
   const [date, setDate] = useState(vietnamDateString());
   const [sessions, setSessions] = useState([]);
@@ -251,7 +251,7 @@ export default function AttendanceMonthlyReport({ client, classes = [], month, o
       <button type="button" className={reportDimension === "teacher" ? "is-active" : ""} aria-pressed={reportDimension === "teacher"} onClick={() => setReportDimension("teacher")}>Theo giáo viên</button>
       <button type="button" className={reportDimension === "student" ? "is-active" : ""} aria-pressed={reportDimension === "student"} onClick={() => setReportDimension("student")}>Theo học sinh</button>
     </div>
-    {reportDimension === "student" ? <StudentAttendanceReport client={client} month={month} includeSupplemental={includeSupplemental} activityType={activityType} reporterName={reporterName} reporterTitle={reporterTitle} onReporterNameChange={updateReporterName} onReporterTitleChange={updateReporterTitle} onError={onError} /> : <>
+    {reportDimension === "student" ? <StudentAttendanceReport client={client} language={language} month={month} includeSupplemental={includeSupplemental} activityType={activityType} reporterName={reporterName} reporterTitle={reporterTitle} onReporterNameChange={updateReporterName} onReporterTitleChange={updateReporterTitle} onError={onError} /> : <>
     <header className="att-report-m3__toolbar">
       <AttendancePanelHeading className="att-report-m3__hero-copy" icon="report" iconClassName="att-report-m3__hero-icon" eyebrow="BÁO CÁO GIÁO VIÊN"
         title="Báo cáo điểm danh" description="Thống kê ngày và tháng, bao gồm giờ dạy, phòng học và lịch sử điều chỉnh." />
