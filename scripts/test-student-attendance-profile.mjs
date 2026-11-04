@@ -13,7 +13,7 @@ function check(name, callback) { callback(); console.log('✓ '+name); }
 
 check('Student View uses a full-page profile instead of the old modal', () => {
   assert.match(report, /import StudentAttendanceProfile/);
-  assert.match(report, /<StudentAttendanceProfile student=\{selected\}/);
+  assert.match(report, /<StudentAttendanceProfile[^>]*student=\{selected\}/);
   assert.match(report, /onClick=\{\(\)=>openProfile\(s\)\}/);
   assert.doesNotMatch(report, /stud-att__overlay/);
   assert.doesNotMatch(report, /stud-att__dialog/);
