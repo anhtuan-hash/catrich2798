@@ -85,7 +85,7 @@ html[data-bes-smart-bubble-dock] body .bes-smart-bubble-dock {
 .bes-smart-bubble-dock__pin {
   position: absolute;
   right: calc(100% + 13px);
-  bottom: calc(7 * (var(--bes-floating-diameter) + var(--bes-floating-gap)) + 5px);
+  bottom: 5px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -104,9 +104,6 @@ html[data-bes-smart-bubble-dock] body .bes-smart-bubble-dock {
   pointer-events: auto;
   white-space: nowrap;
   backdrop-filter: blur(6px);
-}
-html[data-bes-smart-bubble-dock] body:not(:has(.bes-approval-root)) .bes-smart-bubble-dock__pin {
-  bottom: calc(6 * (var(--bes-floating-diameter) + var(--bes-floating-gap)) + 5px);
 }
 .bes-smart-bubble-dock.is-pinned .bes-smart-bubble-dock__pin {
   color: #216b60;
@@ -139,75 +136,95 @@ html[data-bes-smart-bubble-dock] body:not(:has(.bes-approval-root)) .bes-smart-b
   transform: translateY(0);
 }
 
-/* One vertical column. Reserve slot zero for the new anchor, shift original
-   launchers upward by exactly one step. Original order and role gates are kept. */
-html[data-bes-smart-bubble-dock] body .bes-kira-chat-root .bes-kira-chat-launcher {
-  bottom: calc(var(--bes-floating-bottom) + 1 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
+
+/* The hint must not overlap the lowest action or the anchor while expanded. */
+html[data-bes-smart-bubble-dock="expanded"] .bes-smart-bubble-dock__hint,
+html[data-bes-smart-bubble-dock="closing"] .bes-smart-bubble-dock__hint {
+  opacity: 0 !important;
+  visibility: hidden !important;
 }
-html[data-bes-smart-bubble-dock] body .bes-approval-root .bes-approval-fab {
-  bottom: calc(var(--bes-floating-bottom) + 2 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
+
+/* One measured slot grid. The observer assigns --bes-smart-slot = 1..N to
+   ACTUALLY mounted buttons; gaps, role changes and remounts cannot overlap. */
+html[data-bes-smart-bubble-dock] {
+  --bes-smart-step: calc(var(--bes-floating-diameter) + var(--bes-floating-gap));
 }
-html[data-bes-smart-bubble-dock] body .bfc-bubble {
-  bottom: calc(var(--bes-floating-bottom) + 3 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
+/* Chat's launcher is RELATIVE to its own fixed root (with transform), so move
+   that fixed root, not the child. This prevents a nested containing-block bug. */
+html[data-bes-smart-bubble-dock] body .bes-kira-chat-root:not(.is-open) {
+  right: var(--bes-floating-edge) !important;
+  bottom: calc(var(--bes-floating-bottom) + var(--bes-smart-slot, 1) * var(--bes-smart-step)) !important;
 }
-html[data-bes-smart-bubble-dock] body .bbd-board-fab {
-  bottom: calc(var(--bes-floating-bottom) + 4 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
+html[data-bes-smart-bubble-dock] body .bes-kira-chat-root .bes-kira-chat-launcher.bes-smart-managed {
+  position: relative !important;
+  right: auto !important;
+  bottom: auto !important;
 }
-html[data-bes-smart-bubble-dock] body .bba-bubble {
-  bottom: calc(var(--bes-floating-bottom) + 5 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
-}
-html[data-bes-smart-bubble-dock] body .bff-bubble {
-  bottom: calc(var(--bes-floating-bottom) + 6 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
-}
-html[data-bes-smart-bubble-dock] body .bit-launcher {
-  bottom: calc(var(--bes-floating-bottom) + 7 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
-}
-/* Teacher/non-reviewer: the approval launcher's original slot is absent. */
-html[data-bes-smart-bubble-dock] body:not(:has(.bes-approval-root)) .bfc-bubble {
-  bottom: calc(var(--bes-floating-bottom) + 2 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
-}
-html[data-bes-smart-bubble-dock] body:not(:has(.bes-approval-root)) .bbd-board-fab {
-  bottom: calc(var(--bes-floating-bottom) + 3 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
-}
-html[data-bes-smart-bubble-dock] body:not(:has(.bes-approval-root)) .bba-bubble {
-  bottom: calc(var(--bes-floating-bottom) + 4 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
-}
-html[data-bes-smart-bubble-dock] body:not(:has(.bes-approval-root)) .bff-bubble {
-  bottom: calc(var(--bes-floating-bottom) + 5 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
-}
-html[data-bes-smart-bubble-dock] body:not(:has(.bes-approval-root)) .bit-launcher {
-  bottom: calc(var(--bes-floating-bottom) + 6 * (var(--bes-floating-diameter) + var(--bes-floating-gap))) !important;
-}
-/* Preserve each feature's own trigger; only its interactivity/visibility changes. */
+/* Every other original feature launcher is a viewport-fixed element. */
 html[data-bes-smart-bubble-dock] body :is(
-  .bit-launcher, .bff-bubble, .bba-bubble, .bbd-board-fab, .bfc-bubble,
-  .bes-approval-root .bes-approval-fab, .bes-kira-chat-root .bes-kira-chat-launcher
-) {
+  .bit-launcher, .bff-bubble, .bba-bubble, .bbd-board-fab,
+  .bfc-bubble, .bes-approval-root .bes-approval-fab
+).bes-smart-managed {
+  position: fixed !important;
+  right: var(--bes-floating-edge) !important;
+  bottom: calc(var(--bes-floating-bottom) + var(--bes-smart-slot, 1) * var(--bes-smart-step)) !important;
+}
+/* All launchers share exact geometry, including those owned by portals. */
+html[data-bes-smart-bubble-dock] body .bes-smart-managed {
+  box-sizing: border-box !important;
   width: var(--bes-floating-diameter) !important;
   height: var(--bes-floating-diameter) !important;
   min-width: var(--bes-floating-diameter) !important;
   min-height: var(--bes-floating-diameter) !important;
-  right: var(--bes-floating-edge) !important;
-  transition: opacity .22s ease, transform .22s ease, box-shadow .22s ease !important;
-}
-html[data-bes-smart-bubble-dock="collapsed"] body :is(
-  .bit-launcher, .bff-bubble, .bba-bubble, .bbd-board-fab, .bfc-bubble,
-  .bes-approval-root .bes-approval-fab, .bes-kira-chat-root .bes-kira-chat-launcher
-) {
+  max-width: var(--bes-floating-diameter) !important;
+  max-height: var(--bes-floating-diameter) !important;
+  margin: 0 !important;
+  flex-shrink: 0 !important;
+  transform-origin: center center !important;
   opacity: 0 !important;
   visibility: hidden !important;
   pointer-events: none !important;
-  transform: translateX(22px) scale(.82) !important;
+  transform: translate3d(0, 14px, 0) scale(.84) !important;
+  transition-property: opacity, transform, visibility !important;
+  transition-duration: 270ms, 330ms, 0s !important;
+  transition-timing-function: ease-out, cubic-bezier(.18,.72,.24,1), linear !important;
+  transition-delay: 0s, 0s, 330ms !important;
 }
-html[data-bes-smart-bubble-dock="expanded"] body :is(
-  .bit-launcher, .bff-bubble, .bba-bubble, .bbd-board-fab, .bfc-bubble,
-  .bes-approval-root .bes-approval-fab, .bes-kira-chat-root .bes-kira-chat-launcher
-) {
+/* Open from bottom to top: 46ms between adjacent bubbles. */
+html[data-bes-smart-bubble-dock="expanded"] body .bes-smart-managed {
   opacity: 1 !important;
   visibility: visible !important;
   pointer-events: auto !important;
+  transform: translate3d(0, 0, 0) scale(1) !important;
+  transition-delay:
+    calc((var(--bes-smart-slot, 1) - 1) * 46ms),
+    calc((var(--bes-smart-slot, 1) - 1) * 46ms),
+    0s !important;
 }
-/* On phones use tap, never require hover. Keep the full stack within the viewport. */
+/* Close in reverse order: highest slot disappears first. Keep visibility
+   during the exit transition; JS switches to "collapsed" once it finishes. */
+html[data-bes-smart-bubble-dock="closing"] body .bes-smart-managed {
+  opacity: 0 !important;
+  visibility: visible !important;
+  pointer-events: none !important;
+  transform: translate3d(0, 12px, 0) scale(.86) !important;
+  transition-delay:
+    calc((var(--bes-smart-count, 7) - var(--bes-smart-slot, 1)) * 40ms),
+    calc((var(--bes-smart-count, 7) - var(--bes-smart-slot, 1)) * 40ms),
+    0s !important;
+}
+html[data-bes-smart-bubble-dock="expanded"] body .bes-smart-managed:hover {
+  transform: translate3d(0, -2px, 0) scale(1.025) !important;
+}
+/* Transparent helper tips stay attached to their OWN button; do not create
+   another fixed column or an extra overlapping hint. */
+html[data-bes-smart-bubble-dock] .bes-smart-bubble-dock__pin {
+  z-index: 2;
+}
+html[data-bes-smart-bubble-dock] .bes-smart-bubble-dock__anchor {
+  z-index: 1;
+}
+/* Phone: tapping the anchor works without hover; keep the column in view. */
 @media (max-width: 680px) {
   html[data-bes-smart-bubble-dock] {
     --bes-floating-diameter: 46px;
@@ -226,20 +243,28 @@ html[data-bes-smart-bubble-dock="expanded"] body :is(
 }
 @media (max-height: 360px) {
   html[data-bes-smart-bubble-dock] {
-    --bes-floating-diameter: 35px;
+    --bes-floating-diameter: 31px;
     --bes-floating-gap: 3px;
-    --bes-floating-bottom: max(7px, env(safe-area-inset-bottom, 0px));
+    --bes-floating-bottom: max(6px, env(safe-area-inset-bottom, 0px));
   }
 }
+/* Honor OS and in-app reduced-motion settings. */
 @media (prefers-reduced-motion: reduce) {
-  .bes-smart-bubble-dock *, html[data-bes-smart-bubble-dock] body :is(
-    .bit-launcher, .bff-bubble, .bba-bubble, .bbd-board-fab, .bfc-bubble,
-    .bes-approval-root .bes-approval-fab, .bes-kira-chat-root .bes-kira-chat-launcher
-  ) { transition: none !important; animation: none !important; }
+  .bes-smart-bubble-dock *,
+  html[data-bes-smart-bubble-dock] body .bes-smart-managed {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+html[data-motion-bubble="none"] body .bes-smart-managed {
+  animation: none !important;
+  transition: none !important;
 }
 @media (forced-colors: active) {
   .bes-smart-bubble-dock__anchor, .bes-smart-bubble-dock__pin {
-    background: ButtonFace; color: ButtonText; border: 2px solid ButtonText;
+    background: ButtonFace;
+    color: ButtonText;
+    border: 2px solid ButtonText;
   }
   .bes-smart-bubble-dock__online { border: 2px solid ButtonText; }
 }
