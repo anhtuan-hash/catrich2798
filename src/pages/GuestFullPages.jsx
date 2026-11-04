@@ -22,6 +22,7 @@ import '../styles/teacher-dashboard-calendar-split.css';
 import '../styles/teacher-dashboard-editorial-hero.css';
 import './GuestFullPages.css';
 import './GuestPreview.css';
+import '../features/assessment-scrapbook/assessment-scrapbook.css';
 
 const PRIVATE_TOOLS = new Set(['gradebook-studio', 'brian-team', 'sync-doctor', 'student-support', 'data-governance']);
 const PUBLIC_APPS = APPS.filter((item) => !PRIVATE_TOOLS.has(item.slug));

@@ -72,6 +72,10 @@ try {
       if (table === 'lesson_check_list_activities') data=activities;
       if (table === 'lesson_check_workspace_state') data=[{favorites,recent_ids:[activities[2].id]}];
       if (table === 'lesson_check_hero_public') data=[{published_config:{backgroundType:'image',backgroundUrl:published,showMascot:false}}];
+      if (table === 'bes_guest_preview_entries') {
+        data=activities.map(a=>({section:'assessment',entry_id:a.id,title:a.title,grade:a.grade,unit_no:a.unit_no,tag:a.focus_area,image_url:a.thumbnail_url}));
+      }
+      if (table === 'bes_guest_preview_feed') data=[{section:'assessment',kind:'metric',entry_key:'all',count_value:activities.length}];
       if (table === 'lesson_check_set_favorite') {
         const body=request.postDataJSON();
         favorites=favorites.filter(id=>id!==body.p_activity);
@@ -200,6 +204,21 @@ try {
   await mobile.keyboard.press('Escape');
   const restricted=await open('settings&role=teacher',390);
   await expect(restricted.locator('#settings-assessment-scrapbook button[role=switch]')).toHaveCount(0);
+  const guest=await open('role=guest');
+  const publicHero=guest.locator('.hero-assessment');
+  await expect(guest.locator('[data-guest-read-only=true]')).toBeVisible();
+  await expect(guest.locator('.brian-guest-full__activity-card')).toHaveCount(activities.length);
+  await expect(guest.locator('.lcs-arcade-create')).toHaveCount(0);
+  const publicBackground=()=>publicHero.evaluate(el=>getComputedStyle(el).backgroundImage);
+  assert.match(await publicBackground(),/assessment-banner\.webp/);
+  await guest.locator('.brian-guest-full__actionstrip button').first().click();
+  await expect(guest.getByRole('dialog')).toHaveCount(0);
+  await guest.screenshot({path:join(screenshots,'guest-scrapbook.png'),fullPage:true});
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-checked','false');
+  await guest.evaluate(data=>window.dispatchEvent(new CustomEvent('qa:bes_navigation_theme_settings',{detail:{new:data}})),row());
+  await expect(guest.locator('.app-shell')).not.toHaveAttribute('data-assessment-scrapbook','on');
+  assert.match(await publicBackground(),/assessment-fixture\.svg/);
   assert.deepEqual(errors,[]);
   console.log('PASS: real Assessment library on desktop/phone, CMS restoration, switching, drafts, permissions, pagination, search and queue.');
 } finally {
