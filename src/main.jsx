@@ -1,5 +1,6 @@
 import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { useAssessmentScrapbookActive } from './features/assessment-scrapbook/theme.js';
 import './index.css';
 import './styles/v1093.css';
 import './styles/v1095.css';
@@ -356,6 +357,7 @@ function App() {
   const toolSlug = route.startsWith('tool/') ? route.replace('tool/', '') : '';
   const selectedTool = allTools.find((item) => item.slug === toolSlug);
   const currentRoute = ROUTES.includes(route) ? route : selectedTool ? 'tool' : 'home';
+  const assessmentScrapbookActive = useAssessmentScrapbookActive(currentRoute, selectedTool?.slug);
   const appVisibility = useAppVisibility(currentUser);
   const visibilityId = visibilityIdForRoute(currentRoute, selectedTool);
   const visibilityReady = !currentUser || isAdminRole(currentUser?.role) || appVisibility.ready;
@@ -490,6 +492,7 @@ function App() {
         className="app-shell metro-shell metro-clean-system"
         data-route={currentRoute}
         data-tool={selectedTool?.slug || currentRoute}
+        data-assessment-scrapbook={assessmentScrapbookActive ? 'on' : undefined}
         data-performance={resolvedPerformance}
         data-intensity={themeIntensity}
         data-tile-border={tileBorder}
@@ -511,7 +514,7 @@ function App() {
               <StatusMenuBar route={currentRoute} {...context} />
             </Suspense>
             <AppErrorBoundary compact scope="global-navigation" label={language === 'vi' ? 'thanh điều hướng' : 'navigation'}>
-              <GlobalFlatNavigation route={currentRoute} selectedTool={selectedTool} chromeSettings={chromeSettings} onLogout={async () => { await logoutUser(); setCurrentUser(null); window.location.hash = '#/login'; }} {...context} />
+              <GlobalFlatNavigation route={currentRoute} assessmentScrapbookActive={assessmentScrapbookActive} selectedTool={selectedTool} chromeSettings={chromeSettings} onLogout={async () => { await logoutUser(); setCurrentUser(null); window.location.hash = '#/login'; }} {...context} />
             </AppErrorBoundary>
           </>}
         </div> : null}
@@ -688,7 +691,7 @@ function App() {
             <SyncQueueIndicator currentUser={currentUser} language={language} externalLauncher />
           </Suspense>
         </> : null}
-        {!['homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'slideshow'].includes(currentRoute) ? <Footer language={language} route={currentRoute} currentUser={currentUser} /> : null}
+        {!['homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'slideshow'].includes(currentRoute) ? <Footer language={language} route={currentRoute} assessmentScrapbookActive={assessmentScrapbookActive} currentUser={currentUser} /> : null}
       </div>
     </>
   );

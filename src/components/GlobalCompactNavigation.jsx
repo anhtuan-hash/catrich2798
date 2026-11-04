@@ -216,7 +216,7 @@ function FilterIcon() {
 }
 
 export default function GlobalCompactNavigation({
-  route = 'home', language = 'vi', selectedTool = null, setLanguage,
+  assessmentScrapbookActive = false, route = 'home', language = 'vi', selectedTool = null, setLanguage,
   currentUser, onLogout, fontScale = 100, setFontScale,
 }) {
   const t = copy[language] || copy.vi;
@@ -225,7 +225,7 @@ export default function GlobalCompactNavigation({
   const scrapbook = useDashboardScrapbookTheme();
   const appsScrapbook = useAppsScrapbookTheme();
   const attendanceScrapbook = useAttendanceScrapbookTheme();
-  const seasonalHome = { ...halloweenHome, enabled: halloweenHome.enabled && !(scrapbook.enabled && route === 'dashboard') && !(appsScrapbook.enabled && route === 'apps') && !(attendanceScrapbook.enabled && route === 'attendance') };
+  const seasonalHome = { ...halloweenHome, enabled: halloweenHome.enabled && !assessmentScrapbookActive && !(scrapbook.enabled && route === 'dashboard') && !(appsScrapbook.enabled && route === 'apps') && !(attendanceScrapbook.enabled && route === 'attendance') };
   const isAdmin = String(currentUser?.role || '').toLowerCase() === 'admin';
   const rootRef = useRef(null);
   const [accountOpen, setAccountOpen] = useState(false);

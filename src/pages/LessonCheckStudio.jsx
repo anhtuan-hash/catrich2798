@@ -86,6 +86,7 @@ import './LessonCheckHeroIndependent.css';
 // Route-local width parity with Homeroom and Dashboard; loaded last.
 import './LessonCheckAlignAppGutters.css';
 import './LessonCheckHeroCompact.css';
+import '../features/assessment-scrapbook/assessment-scrapbook.css';
 
 const TYPE_OPTIONS = [
   { value: 'quiz', vi: 'Trắc nghiệm', en: 'Quiz' },

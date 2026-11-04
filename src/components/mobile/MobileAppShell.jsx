@@ -150,14 +150,14 @@ function MobileNotificationSheet({ open, currentUser, language, onClose }) {
 }
 
 export default function MobileAppShell({
-  route = 'home', selectedTool = null, language = 'vi', currentUser, onLogout, appVisibility,
+  assessmentScrapbookActive = false, route = 'home', selectedTool = null, language = 'vi', currentUser, onLogout, appVisibility,
 }) {
   const seasonalNavbar = useHalloweenNavbarTheme();
   const halloweenHome = useHalloweenHomeTheme();
   const scrapbook = useDashboardScrapbookTheme();
   const appsScrapbook = useAppsScrapbookTheme();
   const attendanceScrapbook = useAttendanceScrapbookTheme();
-  const seasonalHome = { ...halloweenHome, enabled: halloweenHome.enabled && !(scrapbook.enabled && route === 'dashboard') && !(appsScrapbook.enabled && route === 'apps') && !(attendanceScrapbook.enabled && route === 'attendance') };
+  const seasonalHome = { ...halloweenHome, enabled: halloweenHome.enabled && !assessmentScrapbookActive && !(scrapbook.enabled && route === 'dashboard') && !(appsScrapbook.enabled && route === 'apps') && !(attendanceScrapbook.enabled && route === 'attendance') };
   const [moreOpen, setMoreOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
