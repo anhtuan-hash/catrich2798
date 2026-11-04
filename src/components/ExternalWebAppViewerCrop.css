@@ -225,3 +225,79 @@ html body #bes-main-content .bes-ext-runtime-toolbar .bes-ext-runtime-close {
     display: none;
   }
 }
+
+/* Inform users where a third-party Google account must be authenticated.
+   Only shown for the provider known to redirect OAuth inside the iframe. */
+#bes-main-content .bes-ext-external-auth-help {
+  position: relative;
+  z-index: 39;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  padding: 9px 14px;
+  border-bottom: 1px solid #d7e8fa;
+  background: #f3f9ff;
+  color: #25415e;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.4;
+}
+#bes-main-content .bes-ext-external-auth-help-text {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+#bes-main-content .bes-ext-external-auth-help-actions {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+#bes-main-content .bes-ext-external-auth-help-actions a,
+#bes-main-content .bes-ext-external-auth-help-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 32px;
+  padding: 5px 10px;
+  border: 1px solid #c6d9ed;
+  border-radius: 9px;
+  background: #fff;
+  color: #174a7d;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 760;
+  text-decoration: none;
+  cursor: pointer;
+}
+#bes-main-content .bes-ext-external-auth-help-actions a {
+  border-color: #1662a3;
+  background: #1662a3;
+  color: #fff;
+}
+#bes-main-content .bes-ext-external-auth-help-actions a:hover {
+  background: #0c4779;
+}
+#bes-main-content .bes-ext-external-auth-help-actions button:hover {
+  background: #eaf2fa;
+}
+#bes-main-content .bes-ext-external-auth-help-actions :focus-visible {
+  outline: 3px solid #8dbff2;
+  outline-offset: 2px;
+}
+@media (max-width: 700px) {
+  #bes-main-content .bes-ext-external-auth-help {
+    padding: 8px;
+  }
+  #bes-main-content .bes-ext-external-auth-help-actions {
+    width: 100%;
+  }
+  #bes-main-content .bes-ext-external-auth-help-actions a,
+  #bes-main-content .bes-ext-external-auth-help-actions button {
+    flex: 1 1 auto;
+  }
+}
