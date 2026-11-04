@@ -120,6 +120,15 @@ export default function StudentAttendanceReport({client, month, onError, include
   const [profileIdentity,setProfileIdentity] = useState(null);
   const reportScrollY = useRef(0);
   const [checked,setChecked] = useState([]);
+  // A refreshed browser tab has no in-memory student identity. Discard only
+  // the stale profile URL marker; never infer a pupil from a public URL.
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.location.hash.startsWith('#/attendance')) return;
+    const params=new URLSearchParams(window.location.hash.split('?')[1] || '');
+    if (params.get('profile') !== '1') return;
+    params.delete('profile');
+    window.history.replaceState(null,'','#/attendance?'+params.toString());
+  }, []);
   useEffect(()=>{setCategory(activityType);},[activityType]);
   useEffect(()=>{setFrom(monthStart(month));setTo(monthEnd(month));},[month]);
   useEffect(()=>{
