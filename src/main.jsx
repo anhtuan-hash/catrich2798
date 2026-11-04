@@ -1,3 +1,4 @@
+import { loginScrapbook } from './features/login-scrapbook/theme.js';
 import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { useAssessmentScrapbookActive } from './features/assessment-scrapbook/theme.js';
@@ -358,6 +359,7 @@ function App() {
   const selectedTool = allTools.find((item) => item.slug === toolSlug);
   const currentRoute = ROUTES.includes(route) ? route : selectedTool ? 'tool' : 'home';
   const assessmentScrapbookActive = useAssessmentScrapbookActive(currentRoute, selectedTool?.slug);
+  const loginScrapbookActive = loginScrapbook.useTheme(currentRoute === 'login').enabled;
   const appVisibility = useAppVisibility(currentUser);
   const visibilityId = visibilityIdForRoute(currentRoute, selectedTool);
   const visibilityReady = !currentUser || isAdminRole(currentUser?.role) || appVisibility.ready;
@@ -492,6 +494,7 @@ function App() {
         className="app-shell metro-shell metro-clean-system"
         data-route={currentRoute}
         data-tool={selectedTool?.slug || currentRoute}
+        data-login-scrapbook={loginScrapbookActive ? 'on' : undefined}
         data-assessment-scrapbook={assessmentScrapbookActive ? 'on' : undefined}
         data-performance={resolvedPerformance}
         data-intensity={themeIntensity}
@@ -652,7 +655,7 @@ function App() {
             {canAccessRoute && currentRoute === 'trash' && currentUser && <TrashCenter {...context} />}
             {currentRoute === 'contact' && <Contact {...context} />}
             {canAccessRoute && currentRoute === 'settings' && currentUser && <Settings {...context} />}
-            {currentRoute === 'login' && <AuthPage mode="login" onLogin={(u) => { setCurrentUser(u); window.location.hash = `#/${getFirstAllowedRoute(u)}`; }} {...context} />}
+            {currentRoute === 'login' && <AuthPage scrapbookActive={loginScrapbookActive} mode="login" onLogin={(u) => { setCurrentUser(u); window.location.hash = `#/${getFirstAllowedRoute(u)}`; }} {...context} />}
             {currentRoute === 'register' && <AuthPage mode="register" onLogin={(u) => { if (u) { setCurrentUser(u); window.location.hash = `#/${getFirstAllowedRoute(u)}`; } }} {...context} />}
             {canAccessRoute && currentRoute === 'admin' && currentUser && <AdminPage {...context} />}
             {currentRoute === 'setup' && <SupabaseSetup {...context} />}
@@ -691,7 +694,7 @@ function App() {
             <SyncQueueIndicator currentUser={currentUser} language={language} externalLauncher />
           </Suspense>
         </> : null}
-        {!['homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'slideshow'].includes(currentRoute) ? <Footer language={language} route={currentRoute} assessmentScrapbookActive={assessmentScrapbookActive} currentUser={currentUser} /> : null}
+        {!['homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'slideshow'].includes(currentRoute) ? <Footer language={language} loginScrapbookActive={loginScrapbookActive} route={currentRoute} assessmentScrapbookActive={assessmentScrapbookActive} currentUser={currentUser} /> : null}
       </div>
     </>
   );

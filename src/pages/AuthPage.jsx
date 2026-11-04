@@ -1,3 +1,5 @@
+import { LoginPaperMasthead, LoginPaperEditorial } from '../features/login-scrapbook/LoginPaperArtwork.jsx';
+import '../features/login-scrapbook/login-paper.css';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   consumeAuthNotice,
@@ -211,7 +213,7 @@ function AuthVisualPanel({ language, title, recoveryMode, isRegister, configured
   );
 }
 
-export default function AuthPage({ mode = 'login', language, onLogin, setGlobalLoading }) {
+export default function AuthPage({ mode = 'login', language, onLogin, setGlobalLoading, scrapbookActive = false }) {
   const isRegister = mode === 'register';
   const configured = isAuthConfigured();
   const [form, setForm] = useState({ name: '', school: '', email: '', password: '', confirm: '' });
@@ -418,7 +420,8 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
   };
 
   return (
-    <div className="page auth-page auth-page-v51 auth-google-page">
+    <div className="page auth-page auth-page-v51 auth-google-page" data-login-paper={scrapbookActive ? "on" : undefined}>
+      {scrapbookActive && <LoginPaperMasthead language={language} />}
       <div className="auth-aurora-field" aria-hidden="true">
         <span className="auth-aurora auth-aurora-one" />
         <span className="auth-aurora auth-aurora-two" />
@@ -426,15 +429,15 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
         <span className="auth-aurora-glow" />
       </div>
       <section className="auth-google-stage">
-        <AuthVisualPanel
+        {scrapbookActive ? <LoginPaperEditorial language={language} /> : <AuthVisualPanel
           language={language}
           title={title}
           recoveryMode={recoveryMode}
           isRegister={isRegister}
           configured={configured}
-        />
+        />}
 
-        <form className="auth-google-form" onSubmit={submit}>
+        <form className="auth-google-form" id="teacher-login-form" onSubmit={submit} aria-label={title}>
           <header className="auth-google-form-header">
             <span className="auth-google-form-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24">
@@ -554,8 +557,8 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
             )}
           </div>
 
-          {msg ? <div className="auth-message auth-google-message is-error">{msg}</div> : null}
-          {okMsg ? <div className="auth-message success-message auth-google-message is-success">{okMsg}</div> : null}
+          {msg ? <div role="alert" className="auth-message auth-google-message is-error">{msg}</div> : null}
+          {okMsg ? <div role="status" className="auth-message success-message auth-google-message is-success">{okMsg}</div> : null}
 
           <button
             className="auth-google-submit"
