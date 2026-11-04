@@ -122,10 +122,13 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
     const findHosts = () => {
       if (stopped) return true;
       const scope = document.querySelector('.metro-clean-system[data-route="apps"]') || document;
-      const hero = scope.querySelector('.apps-directory-actions')
+      // The current Scrapbook App Directory uses editorial-apps-hero-actions.
+      // Retain the legacy anchors for older launcher layouts.
+      const hero = scope.querySelector('.editorial-apps-hero-actions')
+        || scope.querySelector('.apps-directory-actions')
         || scope.querySelector('.apps-directory-hero-copy')
         || scope.querySelector('.flat-apps-hero-copy')
-        || document.querySelector('.apps-directory-actions, .apps-directory-hero-copy, .flat-apps-hero-copy');
+        || document.querySelector('.editorial-apps-hero-actions, .apps-directory-actions, .apps-directory-hero-copy, .flat-apps-hero-copy');
       const grid = scope.querySelector('#apps-directory-grid')
         || scope.querySelector('.apps-directory-list-native')
         || scope.querySelector('.apps-directory-grid-native')
@@ -207,7 +210,7 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
         <div className="external-app-integration-actions">
           <button type="button" className="launcher-add-external-app" onClick={() => setDialog(true)}>
             <span aria-hidden="true">⇧</span>
-            <span>{manager ? 'Gửi / duyệt ứng dụng' : 'Gửi ứng dụng cho TTCM'}</span>
+            <span>{manager ? 'Thêm / duyệt ứng dụng' : 'Gửi ứng dụng website'}</span>
             {manager && pending ? <b>{pending}</b> : null}
           </button>
         </div>,
