@@ -10,6 +10,36 @@ const BUBBLES = [
   '.bes-kira-chat-root .bes-kira-chat-launcher',
 ].join(', ');
 const PREFIX = 'bes-smart-bubble-dock-pin-v1:';
+const SLOT_ENTRIES = [
+  { selector: '.bes-kira-chat-root .bes-kira-chat-launcher', container: '.bes-kira-chat-root' },
+  { selector: '.bes-approval-root .bes-approval-fab', reserve: '.bes-approval-root' },
+  { selector: '.bfc-bubble' },
+  { selector: '.bbd-board-fab' },
+  { selector: '.bba-bubble' },
+  { selector: '.bff-bubble' },
+  { selector: '.bit-launcher' },
+];
+function syncVisibleSlots() {
+  let slot = 1;
+  SLOT_ENTRIES.forEach(entry => {
+    const button = document.querySelector(entry.selector);
+    const container = entry.container ? document.querySelector(entry.container) : null;
+    const reserved = entry.reserve ? document.querySelector(entry.reserve) : null;
+    if (!button && !reserved) return;
+    if (button) {
+      button.classList.add('bes-smart-managed');
+      if (button.dataset.besSmartSlot !== String(slot)) {
+        button.dataset.besSmartSlot = String(slot);
+        button.style.setProperty('--bes-smart-slot', String(slot));
+      }
+    }
+    if (container && container.style.getPropertyValue('--bes-smart-slot') !== String(slot)) {
+      container.style.setProperty('--bes-smart-slot', String(slot));
+    }
+    slot++;
+  });
+  document.documentElement.style.setProperty('--bes-smart-count', String(slot - 1));
+}
 const isElement = value => typeof Element !== 'undefined' && value instanceof Element;
 function readPin(userId) {
   try { return window.localStorage.getItem(PREFIX + userId) === '1'; }
@@ -33,14 +63,30 @@ export default function SmartBubbleDock({ currentUser, language = 'vi' }) {
   const [pinned, setPinned] = useState(() => readPin(userId));
   const [expanded, setExpanded] = useState(() => readPin(userId));
   const [badge, setBadge] = useState(0);
+  const [closing, setClosing] = useState(false);
   const rootRef = useRef(null);
   const triggerRef = useRef(null);
   const closeTimer = useRef(null);
+  const exitTimer = useRef(null);
   const pinnedRef = useRef(pinned);
   pinnedRef.current = pinned;
   const clearTimer = useCallback(() => {
     if (closeTimer.current !== null) window.clearTimeout(closeTimer.current);
     closeTimer.current = null;
+  }, []);
+  const collapse = useCallback(() => {
+    if (pinnedRef.current) return;
+    if (exitTimer.current !== null) window.clearTimeout(exitTimer.current);
+    const focused = document.activeElement;
+    if (isElement(focused) && focused.matches(BUBBLES)) {
+      triggerRef.current?.focus({ preventScroll: true });
+    }
+    setExpanded(false);
+    setClosing(true);
+    exitTimer.current = window.setTimeout(() => {
+      setClosing(false);
+      exitTimer.current = null;
+    }, 620);
   }, []);
   const planCollapse = useCallback((delay = 5000) => {
     clearTimer();
@@ -52,23 +98,47 @@ export default function SmartBubbleDock({ currentUser, language = 'vi' }) {
         planCollapse(2500);
         return;
       }
-      setExpanded(false);
+      collapse();
     }, delay);
-  }, [clearTimer]);
+  }, [clearTimer, collapse]);
   const openDock = useCallback(() => {
+    if (exitTimer.current !== null) window.clearTimeout(exitTimer.current);
+    exitTimer.current = null;
+    setClosing(false);
     setExpanded(true);
     planCollapse(5000);
   }, [planCollapse]);
 
   useLayoutEffect(() => {
-    document.documentElement.dataset.besSmartBubbleDock = expanded ? 'expanded' : 'collapsed';
+    document.documentElement.dataset.besSmartBubbleDock = expanded ? 'expanded' : (closing ? 'closing' : 'collapsed');
     return () => { delete document.documentElement.dataset.besSmartBubbleDock; };
-  }, [expanded]);
+  }, [expanded, closing]);
   useEffect(() => {
     const saved = readPin(userId);
     pinnedRef.current = saved;
-    setPinned(saved); setExpanded(saved); clearTimer();
+    setPinned(saved); setExpanded(saved); setClosing(false); clearTimer();
+    if (exitTimer.current !== null) window.clearTimeout(exitTimer.current);
   }, [userId, clearTimer]);
+  useLayoutEffect(() => {
+    // Portaled owner buttons are managed visually, never replaced or clicked.
+    let frame = null;
+    const schedule = () => {
+      if (frame !== null) return;
+      frame = window.requestAnimationFrame(() => { frame = null; syncVisibleSlots(); });
+    };
+    syncVisibleSlots();
+    const observer = new MutationObserver(schedule);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      observer.disconnect();
+      if (frame !== null) window.cancelAnimationFrame(frame);
+      document.documentElement.style.removeProperty('--bes-smart-count');
+    };
+  }, []);
+  useEffect(() => () => {
+    clearTimer();
+    if (exitTimer.current !== null) window.clearTimeout(exitTimer.current);
+  }, [clearTimer]);
   useEffect(() => {
     const update = () => setBadge(readBadge());
     update();
@@ -102,14 +172,14 @@ export default function SmartBubbleDock({ currentUser, language = 'vi' }) {
       if (pinnedRef.current || !isElement(event.target)) return;
       if (rootRef.current?.contains(event.target)) return;
       if (event.target.closest(BUBBLES)) { planCollapse(1200); return; }
-      clearTimer(); setExpanded(false);
+      clearTimer(); collapse();
     };
     const onScroll = () => {
-      if (!pinnedRef.current) { clearTimer(); setExpanded(false); }
+      if (!pinnedRef.current) { clearTimer(); collapse(); }
     };
     const onKeyDown = event => {
       if (event.key !== 'Escape') return;
-      clearTimer(); setExpanded(false);
+      clearTimer(); collapse();
       const active = document.activeElement;
       if (isElement(active) && (rootRef.current?.contains(active) || active.matches(BUBBLES))) {
         triggerRef.current?.focus({ preventScroll: true });
@@ -130,11 +200,14 @@ export default function SmartBubbleDock({ currentUser, language = 'vi' }) {
       window.removeEventListener('scroll', onScroll, true);
       clearTimer();
     };
-  }, [openDock, planCollapse, clearTimer]);
+  }, [openDock, planCollapse, clearTimer, collapse]);
   const togglePin = () => {
     const next = !pinned;
     pinnedRef.current = next; setPinned(next);
-    writePin(userId, next); setExpanded(true);
+    writePin(userId, next);
+    if (exitTimer.current !== null) window.clearTimeout(exitTimer.current);
+    exitTimer.current = null;
+    setClosing(false); setExpanded(true);
     if (next) clearTimer(); else planCollapse(5000);
   };
   const label = expanded ? (vi ? 'Thu gọn công cụ' : 'Collapse tools') :
@@ -156,8 +229,8 @@ export default function SmartBubbleDock({ currentUser, language = 'vi' }) {
         title={label} aria-label={label} aria-expanded={expanded}
         onClick={() => {
           clearTimer();
-          setExpanded(value => !value);
-          if (!expanded) planCollapse(5000);
+          if (expanded) collapse();
+          else openDock();
         }}>
         <LayoutGrid size={24} strokeWidth={2} aria-hidden="true"/>
         <Sparkles size={13} className="bes-smart-bubble-dock__spark" aria-hidden="true"/>
