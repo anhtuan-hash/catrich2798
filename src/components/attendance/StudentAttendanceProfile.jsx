@@ -38,7 +38,7 @@ function TrendPaperChart({points=[]}) {
         {points.map(point=>{
           const ratio=point.total?Math.max(0,Math.min(100,point.present/point.total*100)):0;
           return <div className="sap-trend__column" key={point.month}>
-            <b>{pct(point.total ? point.present/point.total : null)}</b>
+            <b style={{bottom:`calc(${ratio}% + 7px)`}}>{pct(point.total ? point.present/point.total : null)}</b>
             <div className="sap-trend__bar" style={{height:ratio+'%'}}/>
             {ratio===0 ? <i className="sap-trend__zero" aria-hidden="true"/>:null}
             <small>{point.month.slice(5)}/{point.month.slice(0,4)}</small>
