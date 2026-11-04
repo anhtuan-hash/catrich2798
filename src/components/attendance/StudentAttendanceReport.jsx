@@ -99,7 +99,7 @@ function SubjectChart({rows}) {
   </div>;
 }
 
-export default function StudentAttendanceReport({client, month, onError, includeSupplemental=true, activityType='all', reporterName='', reporterTitle='', onReporterNameChange, onReporterTitleChange}) {
+export default function StudentAttendanceReport({client, month, onError, includeSupplemental=true, activityType='all', reporterName='', reporterTitle='', onReporterNameChange, onReporterTitleChange, language='vi'}) {
   const [from,setFrom] = useState(()=>monthStart(month));
   const [to,setTo] = useState(()=>monthEnd(month));
   const [category,setCategory] = useState(activityType);
@@ -236,7 +236,7 @@ export default function StudentAttendanceReport({client, month, onError, include
   };
 
   return selectedStudent && selected
-    ? <StudentAttendanceProfile student={selected} from={from} to={to} loading={loading}
+    ? <StudentAttendanceProfile language={language} student={selected} from={from} to={to} loading={loading}
         onBack={closeProfile} onMonthChange={changeProfileMonth}
         onExcel={individualExcel} onPdf={individualPdf}/>
     : <section className="stud-att">
