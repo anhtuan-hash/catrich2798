@@ -170,7 +170,7 @@ html[data-bes-smart-bubble-dock] body :is(
   bottom: calc(var(--bes-floating-bottom) + var(--bes-smart-slot, 1) * var(--bes-smart-step)) !important;
 }
 /* All launchers share exact geometry, including those owned by portals. */
-html[data-bes-smart-bubble-dock] body .bes-smart-managed {
+html[data-bes-smart-bubble-dock] body .bes-smart-managed[data-bes-smart-slot] {
   box-sizing: border-box !important;
   width: var(--bes-floating-diameter) !important;
   height: var(--bes-floating-diameter) !important;
@@ -191,7 +191,7 @@ html[data-bes-smart-bubble-dock] body .bes-smart-managed {
   transition-delay: 0s, 0s, 330ms !important;
 }
 /* Open from bottom to top: 46ms between adjacent bubbles. */
-html[data-bes-smart-bubble-dock="expanded"] body .bes-smart-managed {
+html[data-bes-smart-bubble-dock="expanded"] body .bes-smart-managed[data-bes-smart-slot] {
   opacity: 1 !important;
   visibility: visible !important;
   pointer-events: auto !important;
@@ -203,7 +203,7 @@ html[data-bes-smart-bubble-dock="expanded"] body .bes-smart-managed {
 }
 /* Close in reverse order: highest slot disappears first. Keep visibility
    during the exit transition; JS switches to "collapsed" once it finishes. */
-html[data-bes-smart-bubble-dock="closing"] body .bes-smart-managed {
+html[data-bes-smart-bubble-dock="closing"] body .bes-smart-managed[data-bes-smart-slot] {
   opacity: 0 !important;
   visibility: visible !important;
   pointer-events: none !important;
@@ -213,7 +213,7 @@ html[data-bes-smart-bubble-dock="closing"] body .bes-smart-managed {
     calc((var(--bes-smart-count, 7) - var(--bes-smart-slot, 1)) * 40ms),
     0s !important;
 }
-html[data-bes-smart-bubble-dock="expanded"] body .bes-smart-managed:hover {
+html[data-bes-smart-bubble-dock="expanded"] body .bes-smart-managed[data-bes-smart-slot]:hover {
   transform: translate3d(0, -2px, 0) scale(1.025) !important;
 }
 /* Transparent helper tips stay attached to their OWN button; do not create
