@@ -33,7 +33,8 @@ function sourceTypeOf(app = {}) {
     : 'url';
 }
 
-export default function ExternalWebAppViewer({ app, onClose, explorerId = '' }) {
+export default function ExternalWebAppViewer({ app, onClose, explorerId = '', language = 'vi' }) {
+  const vi = language !== 'en';
   const viewerRef = useRef(null);
   const [portalHost, setPortalHost] = useState(null);
   const [nativeFullscreen, setNativeFullscreen] = useState(false);
@@ -143,7 +144,7 @@ export default function ExternalWebAppViewer({ app, onClose, explorerId = '' }) 
         <header className="bes-ext-runtime-toolbar">
           <button type="button" className="bes-ext-runtime-back" onClick={onClose}>
             <span aria-hidden="true">←</span>
-            <span>Kho ứng dụng</span>
+            <span>{vi ? 'Kho ứng dụng' : 'Apps'}</span>
           </button>
           <strong className="bes-ext-runtime-app-title" title={app.title || app.name}>
             {app.title || app.name}
@@ -154,9 +155,9 @@ export default function ExternalWebAppViewer({ app, onClose, explorerId = '' }) 
               href={url}
               target="_blank"
               rel="noopener noreferrer"
-              title="Mở website trong tab mới nếu nhà cung cấp không hỗ trợ iframe"
+              title={vi ? "Mở website trong tab mới nếu nhà cung cấp không hỗ trợ iframe" : "Open in a new tab if the provider blocks embedding"}
             >
-              <span>Mở tab mới</span>
+              <span>{vi ? 'Mở tab mới' : 'Open in new tab'}</span>
               <span aria-hidden="true">↗</span>
             </a>
           ) : null}
@@ -165,8 +166,8 @@ export default function ExternalWebAppViewer({ app, onClose, explorerId = '' }) 
               <button
                 type="button"
                 className="bes-ext-native-fullscreen-toggle"
-                aria-label={nativeFullscreen ? 'Thoát toàn màn hình' : 'Mở toàn màn hình'}
-                title={nativeFullscreen ? 'Thoát toàn màn hình' : 'Mở toàn màn hình'}
+                aria-label={nativeFullscreen ? (vi ? 'Thoát toàn màn hình' : 'Exit fullscreen') : (vi ? 'Mở toàn màn hình' : 'Enter fullscreen')}
+                title={nativeFullscreen ? (vi ? 'Thoát toàn màn hình' : 'Exit fullscreen') : (vi ? 'Mở toàn màn hình' : 'Enter fullscreen')}
                 onClick={toggleNativeFullscreen}
               >
                 {nativeFullscreen ? (
@@ -183,8 +184,8 @@ export default function ExternalWebAppViewer({ app, onClose, explorerId = '' }) 
             <button
               type="button"
               className="bes-ext-runtime-close"
-              aria-label="Đóng ứng dụng"
-              title="Đóng ứng dụng"
+              aria-label={vi ? 'Đóng ứng dụng' : 'Close app'}
+              title={vi ? 'Đóng ứng dụng' : 'Close app'}
               onClick={onClose}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">

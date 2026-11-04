@@ -237,6 +237,7 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
         <Suspense fallback={null}>
           <ExternalWebAppViewer
             app={dedicatedApp}
+            language={language}
             explorerId="external-app-runtime"
             onClose={() => { window.location.hash = '#/apps'; }}
           />
