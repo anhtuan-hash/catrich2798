@@ -94,14 +94,14 @@ try {
     }
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'horizontal overflow at '+w);
     await page.screenshot({path:join(output,'login-'+w+'.png'),fullPage:true,animations:'disabled'});
-    console.log('Geometry',w,JSON.stringify(await page.locator('.auth-google-form,.auth-google-form-header,.auth-google-submit,.auth-google-secondary,.signature-footer-v50,.signature-footer-v50-main').evaluateAll(nodes=>nodes.map(n=>({class:n.className,x:n.getBoundingClientRect().x,y:n.getBoundingClientRect().y,w:n.getBoundingClientRect().width,h:n.getBoundingClientRect().height})))));
+    console.log('Geometry',w,JSON.stringify(await page.locator('.app-shell,main,.bqa-content-safe-frame,.auth-google-page,.login-paper-masthead,.auth-google-stage,.auth-google-form,.auth-google-form-header,.auth-google-submit,.auth-google-secondary,.signature-footer-v50,.signature-footer-v50-main,.signature-footer-v50-credentials').evaluateAll(nodes=>nodes.map(n=>({class:n.className,x:n.getBoundingClientRect().x,y:n.getBoundingClientRect().y,w:n.getBoundingClientRect().width,h:n.getBoundingClientRect().height})))));
     await page.locator('.login-paper-jump').click();
     await expect(id).toBeFocused();
     await pw.fill('qa-dummy-only');
-    await form.getByRole('button',{name:/Hiện mật khẩu|Show password/}).click();
+    await form.getByRole('button',{name:/^(Hiện mật khẩu|Show password)$/}).click();
     await expect(pw).toHaveAttribute('type','text');
     await expect(pw).toHaveValue('qa-dummy-only');
-    await form.getByRole('button',{name:/Ẩn mật khẩu|Hide password/}).click();
+    await form.getByRole('button',{name:/^(Ẩn mật khẩu|Hide password)$/}).click();
     await expect(pw).toHaveAttribute('type','password');
     await page.close();
   }
