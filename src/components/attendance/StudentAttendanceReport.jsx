@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AttendancePanelHeading } from './AttendanceWorkspaceUI.jsx';
 import { normalizeSupplementalReportData, absenceReasonLabel } from '../../utils/attendanceReport.js';
 import { buildStudentAttendanceReport } from '../../utils/studentAttendanceReport.js';
 import { downloadStudentAttendanceExcel, printStudentAttendancePdf } from '../../utils/studentAttendanceExport.js';
+import StudentAttendanceProfile from './StudentAttendanceProfile.jsx';
 import './StudentAttendanceReport.css';
 import './StudentAttendanceReportTheme.css';
 
@@ -116,6 +117,8 @@ export default function StudentAttendanceReport({client, month, onError, include
   const [error,setError] = useState('');
   const [refreshKey,setRefreshKey] = useState(0);
   const [selectedStudent,setSelectedStudent] = useState('');
+  const [profileIdentity,setProfileIdentity] = useState(null);
+  const reportScrollY = useRef(0);
   const [checked,setChecked] = useState([]);
   useEffect(()=>{setCategory(activityType);},[activityType]);
   useEffect(()=>{setFrom(monthStart(month));setTo(monthEnd(month));},[month]);
@@ -147,15 +150,87 @@ export default function StudentAttendanceReport({client, month, onError, include
     return values;
   },[result.students,sorting]);
   useEffect(()=>{setChecked([]);},[category,classId,schoolClass,grade,subject,teacher,search,warning,from,to,refreshKey]);
-  const selected = students.find(s=>s.key===selectedStudent)||null;
+  const emptyProfile = profileIdentity ? {
+    ...profileIdentity, sessionCount:0, totalPeriods:0, presentPeriods:0, absentPeriods:0,
+    excusedCount:0, unexcusedCount:0, lateCount:0, rate:null, alert:'unknown',
+    monthRows:[], subjectRows:[], details:[],
+  } : null;
+  const selected = selectedStudent
+    ? (loading ? emptyProfile : (students.find(s=>s.key===selectedStudent) || emptyProfile))
+    : null;
+  useEffect(() => {
+    if (!selectedStudent) return undefined;
+    const closeOnHistory = () => {
+      const params=new URLSearchParams(window.location.hash.split('?')[1] || '');
+      if (params.get('profile') !== '1') {
+        setSelectedStudent('');
+        setProfileIdentity(null);
+        window.requestAnimationFrame(() => window.scrollTo({top:reportScrollY.current,behavior:'instant'}));
+      }
+    };
+    window.addEventListener('popstate',closeOnHistory);
+    window.addEventListener('hashchange',closeOnHistory);
+    return () => {
+      window.removeEventListener('popstate',closeOnHistory);
+      window.removeEventListener('hashchange',closeOnHistory);
+    };
+  }, [selectedStudent]);
+  function openProfile(student) {
+    reportScrollY.current=window.scrollY || 0;
+    setProfileIdentity({
+      key:student.key,name:student.name,studentCode:student.studentCode,
+      schoolClass:student.schoolClass,
+    });
+    setSelectedStudent(student.key);
+    if (window.location.hash.startsWith('#/attendance')) {
+      const params=new URLSearchParams(window.location.hash.split('?')[1] || '');
+      params.set('tab','report');
+      params.set('profile','1');
+      window.history.pushState({...window.history.state, attendanceStudentProfile:true},'', '#/attendance?'+params.toString());
+    }
+    window.requestAnimationFrame(() => window.scrollTo({top:0,behavior:'instant'}));
+  }
+  function closeProfile() {
+    setSelectedStudent('');
+    setProfileIdentity(null);
+    if (window.location.hash.startsWith('#/attendance')) {
+      const params=new URLSearchParams(window.location.hash.split('?')[1] || '');
+      if (params.get('profile') === '1') {
+        params.delete('profile');
+        window.history.replaceState(window.history.state,'','#/attendance?'+params.toString());
+      }
+    }
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => window.scrollTo({top:reportScrollY.current,behavior:'instant'}));
+    });
+  }
+  function changeProfileMonth(value) {
+    if (!/^\d{4}-\d{2}$/.test(value)) return;
+    setFrom(monthStart(value));
+    setTo(monthEnd(value));
+  }
   const exportStudents = checked.length ? students.filter(s=>checked.includes(s.key)) : students;
   const params = {from,to,activityType:category,reporterName,reporterTitle};
   const chooseAll = (checkedValue)=>setChecked(checkedValue?students.map(s=>s.key):[]);
   const doExcel = ()=>{try{downloadStudentAttendanceExcel(exportStudents,params);}catch(e){onError?.(e.message);}};
   const doPdf = async ()=>{try{await printStudentAttendancePdf(exportStudents,params);}catch(e){onError?.(e.message);}};
   const options = (data,selector)=>data.map(s=><option key={selector(s)} value={selector(s)}>{selector(s)}</option>);
+  const individualExcel = () => {
+    if (!selected || loading) return;
+    try { downloadStudentAttendanceExcel([selected],params); }
+    catch (error) { onError?.(error?.message || 'Không xuất được Excel cá nhân.'); }
+  };
+  const individualPdf = async () => {
+    if (!selected || loading) return;
+    try { await printStudentAttendancePdf([selected],params); }
+    catch (error) { onError?.(error?.message || 'Không xuất được PDF cá nhân.'); }
+  };
 
-  return <section className="stud-att">
+  return selectedStudent && selected
+    ? <StudentAttendanceProfile student={selected} from={from} to={to} loading={loading}
+        onBack={closeProfile} onMonthChange={changeProfileMonth}
+        onExcel={individualExcel} onPdf={individualPdf}/>
+    : <section className="stud-att">
     <AttendancePanelHeading className="stud-att__intro" icon="users" iconClassName="stud-att__hero-icon" eyebrow="BÁO CÁO HỌC SINH" title="Chuyên cần theo học sinh"
       description="Theo dõi tiết có mặt, đi trễ và vắng trên những buổi đã chốt."
       aside={<div className="stud-att__actions"><button type="button" disabled={loading||!exportStudents.length} onClick={doExcel}><StudentReportIcon name="excel" size={16}/> Xuất Excel</button><button type="button" className="stud-att__primary" disabled={loading||!exportStudents.length} onClick={doPdf}><StudentReportIcon name="pdf" size={16}/> In / Lưu PDF</button></div>} />
@@ -202,21 +277,12 @@ export default function StudentAttendanceReport({client, month, onError, include
           <td><b>{s.name}</b><small>{s.studentCode||'Chưa có mã'}</small></td><td>{s.schoolClass||'—'}</td><td>{s.classCount}</td><td>{s.sessionCount}</td><td>{s.totalPeriods}</td><td>{s.presentPeriods}</td><td>{s.absentPeriods}</td><td>{s.lateCount}</td>
           <td><div className="stud-att__rate"><b>{rate(s.rate)}</b><span><i style={{width:((s.rate||0)*100)+'%'}} /></span></div></td>
           <td><span className={'stud-att__level is-'+s.alert}>{categoryText[s.alert]}</span></td>
-          <td><button className="stud-att__detail-btn" onClick={()=>setSelectedStudent(s.key)}>Xem</button></td>
+          <td><button type="button" className="stud-att__detail-btn" onClick={()=>openProfile(s)} aria-label={'Xem hồ sơ chuyên cần của '+s.name}>Xem</button></td>
         </tr>)}
         {!students.length?<tr><td colSpan={12} className="stud-att__empty">Chưa có học sinh có dữ liệu điểm danh đã chốt phù hợp bộ lọc.</td></tr>:null}
       </tbody></table></div>
       <p className="stud-att__footnote">Chỉ tổng hợp học sinh có bản ghi điểm danh hợp lệ. Buổi bị hủy hoặc chưa chốt không tính là vắng. Đi trễ vẫn tính là có mặt. Số liệu chỉ phản ánh mức độ tham gia, không đánh giá kết quả học tập. Học sinh thiếu mã được đối chiếu bằng họ tên và lớp hành chính; nên bổ sung mã HS để tránh nhầm lẫn. {checked.length?'Đang chọn '+checked.length+' học sinh để xuất.':'Không chọn riêng: xuất toàn bộ danh sách đang lọc.'}</p>
     </React.Fragment>:null}
-    {selected?<div className="stud-att__overlay" role="presentation" onClick={()=>setSelectedStudent('')}>
-      <section role="dialog" aria-modal="true" aria-label={'Báo cáo '+selected.name} className="stud-att__dialog" onClick={e=>e.stopPropagation()}>
-        <header><div><span className="stud-att__eyebrow">HỒ SƠ CHUYÊN CẦN</span><h2>{selected.name}</h2><p>{selected.studentCode||'Chưa có mã'} · Lớp {selected.schoolClass||'—'}</p></div><button onClick={()=>setSelectedStudent('')} aria-label="Đóng báo cáo học sinh">✕</button></header>
-        <div className="stud-att__metrics"><article><strong>{selected.totalPeriods}</strong><span>Tổng tiết</span></article><article><strong>{selected.presentPeriods}</strong><span>Có mặt</span></article><article><strong>{selected.absentPeriods}</strong><span>Vắng</span></article><article><strong>{rate(selected.rate)}</strong><span>Chuyên cần</span></article></div>
-        <p><span className={'stud-att__level is-'+selected.alert}>{categoryText[selected.alert]}</span> · Vắng có phép: {selected.excusedCount} · Không phép: {selected.unexcusedCount} · Đi trễ: {selected.lateCount}</p>
-        <div className="stud-att__charts"><div><h3>Xu hướng chuyên cần theo tháng</h3><TrendChart points={selected.monthRows}/></div><div><h3>Tham gia theo môn học</h3><SubjectChart rows={selected.subjectRows}/></div></div>
-        <h3>Chi tiết buổi học</h3>
-        <div className="stud-att__table-wrap"><table><thead><tr><th>Ngày</th><th>Lớp / môn</th><th>Giáo viên</th><th>Tiết</th><th>Trạng thái</th><th>Lý do / ghi chú</th></tr></thead><tbody>{selected.details.map(d=><tr key={d.sessionId}><td>{d.date}</td><td><b>{d.className}</b><small>{d.subject} · {activityText[d.activityType]}</small></td><td>{d.teacher||'—'}</td><td>{d.periods}</td><td>{statusText[d.status]}</td><td>{d.status === 'absent' ? absenceReasonLabel(d.absenceReason) : '—'} {d.absenceNote}</td></tr>)}</tbody></table></div>
-        <footer><button onClick={()=>downloadStudentAttendanceExcel([selected],params)}>Xuất Excel cá nhân</button><button className="stud-att__primary" onClick={async ()=>{try{await printStudentAttendancePdf([selected],params);}catch(e){onError?.(e.message);}}}>In / Lưu PDF cá nhân</button></footer>
-      </section></div>:null}
+
   </section>;
 }
