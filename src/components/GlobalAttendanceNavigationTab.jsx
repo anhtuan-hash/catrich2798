@@ -213,7 +213,7 @@ function normalizeSupplementalHistorySessions(rows = []) {
   });
 }
 
-export default function GlobalAttendanceNavigationTab({ currentUser, standalone = false }) {
+export default function GlobalAttendanceNavigationTab({ currentUser, standalone = false, language = 'vi' }) {
   const runtime = useRuntimeCore();
   const client = getRuntimeClient();
   const today = vietnamDateString();
@@ -1781,7 +1781,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
             />
           ) : null}
 
-          {!loading && canAccessAttendanceView('report') && view === 'report' ? <AttendanceMonthlyReport client={client} classes={classes} includeSupplemental={canSeeSupplementalHistory} month={reportMonth} onMonthChange={setReportMonth} onError={setError} /> : null}
+          {!loading && canAccessAttendanceView('report') && view === 'report' ? <AttendanceMonthlyReport client={client} language={language} classes={classes} includeSupplemental={canSeeSupplementalHistory} month={reportMonth} onMonthChange={setReportMonth} onError={setError} /> : null}
 
           {canOpenArchive && view === 'archive' ? <AttendanceArchivePanel
             items={canUseAttendanceHistoryArchive ? archiveItems : []}
