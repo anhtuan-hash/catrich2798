@@ -1,3 +1,5 @@
+import { LoginPaperMasthead, LoginPaperEditorial } from '../features/login-scrapbook/LoginPaperArtwork.jsx';
+import '../features/login-scrapbook/login-paper.css';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   consumeAuthNotice,
@@ -211,7 +213,7 @@ function AuthVisualPanel({ language, title, recoveryMode, isRegister, configured
   );
 }
 
-export default function AuthPage({ mode = 'login', language, onLogin, setGlobalLoading }) {
+export default function AuthPage({ mode = 'login', language, onLogin, setGlobalLoading, scrapbookActive = false }) {
   const isRegister = mode === 'register';
   const configured = isAuthConfigured();
   const [form, setForm] = useState({ name: '', school: '', email: '', password: '', confirm: '' });
@@ -418,7 +420,8 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
   };
 
   return (
-    <div className="page auth-page auth-page-v51 auth-google-page">
+    <div className="page auth-page auth-page-v51 auth-google-page" data-login-paper={scrapbookActive ? "on" : undefined}>
+      {scrapbookActive && <LoginPaperMasthead language={language} />}
       <div className="auth-aurora-field" aria-hidden="true">
         <span className="auth-aurora auth-aurora-one" />
         <span className="auth-aurora auth-aurora-two" />
@@ -426,15 +429,15 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
         <span className="auth-aurora-glow" />
       </div>
       <section className="auth-google-stage">
-        <AuthVisualPanel
+        {scrapbookActive ? <LoginPaperEditorial language={language} /> : <AuthVisualPanel
           language={language}
           title={title}
           recoveryMode={recoveryMode}
           isRegister={isRegister}
           configured={configured}
-        />
+        />}
 
-        <form className="auth-google-form" onSubmit={submit}>
+        <form className="auth-google-form" id="teacher-login-form" onSubmit={submit} aria-label={title}>
           <header className="auth-google-form-header">
             <span className="auth-google-form-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24">
@@ -464,11 +467,12 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
           <div className="auth-google-fields">
             {!recoveryMode && isRegister && (
               <>
-                <label className="auth-google-field">
+                <label className="auth-google-field" htmlFor="auth-name">
                   <span>{language === 'vi' ? 'Họ và tên' : 'Full name'}</span>
                   <div>
                     <i aria-hidden="true">A</i>
                     <input
+                      id="auth-name"
                       value={form.name}
                       onChange={(event) => setForm({ ...form, name: event.target.value })}
                       autoComplete="name"
@@ -477,11 +481,12 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
                   </div>
                 </label>
 
-                <label className="auth-google-field">
+                <label className="auth-google-field" htmlFor="auth-school">
                   <span>{language === 'vi' ? 'Trường / Trung tâm' : 'School / Center'}</span>
                   <div>
                     <i aria-hidden="true">S</i>
                     <input
+                      id="auth-school"
                       value={form.school}
                       onChange={(event) => setForm({ ...form, school: event.target.value })}
                       autoComplete="organization"
@@ -493,11 +498,12 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
             )}
 
             {!recoveryMode && (
-              <label className="auth-google-field">
+              <label className="auth-google-field" htmlFor="auth-email">
                 <span>Email</span>
                 <div>
                   <i aria-hidden="true">@</i>
                   <input
+                    id="auth-email"
                     type="email"
                     value={form.email}
                     onChange={(event) => setForm({ ...form, email: event.target.value })}
@@ -508,16 +514,17 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
               </label>
             )}
 
-            <label className="auth-google-field">
+            <label className="auth-google-field" htmlFor="auth-password">
               <span className="auth-google-label-row">
                 <b>{recoveryMode ? (language === 'vi' ? 'Mật khẩu mới' : 'New password') : (language === 'vi' ? 'Mật khẩu' : 'Password')}</b>
                 {!isRegister && !recoveryMode && configured && (
-                  <button type="button" onClick={resetPassword}>{language === 'vi' ? 'Quên mật khẩu?' : 'Forgot password?'}</button>
+                  <button type="button" aria-label={language === 'vi' ? 'Quên mật khẩu?' : 'Forgot password?'} onClick={resetPassword}>{language === 'vi' ? 'Quên mật khẩu?' : 'Forgot password?'}</button>
                 )}
               </span>
               <div>
                 <i aria-hidden="true">•</i>
                 <input
+                  id="auth-password"
                   type={showPassword ? 'text' : 'password'}
                   value={form.password}
                   onChange={(event) => setForm({ ...form, password: event.target.value })}
@@ -538,11 +545,12 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
             </label>
 
             {(isRegister || recoveryMode) && (
-              <label className="auth-google-field">
+              <label className="auth-google-field" htmlFor="auth-confirm">
                 <span>{language === 'vi' ? 'Xác nhận mật khẩu' : 'Confirm password'}</span>
                 <div>
                   <i aria-hidden="true">✓</i>
                   <input
+                    id="auth-confirm"
                     type="password"
                     value={form.confirm}
                     onChange={(event) => setForm({ ...form, confirm: event.target.value })}
@@ -554,8 +562,8 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
             )}
           </div>
 
-          {msg ? <div className="auth-message auth-google-message is-error">{msg}</div> : null}
-          {okMsg ? <div className="auth-message success-message auth-google-message is-success">{okMsg}</div> : null}
+          {msg ? <div role="alert" className="auth-message auth-google-message is-error">{msg}</div> : null}
+          {okMsg ? <div role="status" className="auth-message success-message auth-google-message is-success">{okMsg}</div> : null}
 
           <button
             className="auth-google-submit"
@@ -591,7 +599,12 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
                 disabled={googleLoading || submitLoading}
                 onClick={signInGoogle}
               >
-                <span className="auth-google-google-mark" aria-hidden="true">G</span>
+                {scrapbookActive ? <svg className="login-paper-google-mark" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.39-.18-2.05H12v3.88h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.9-1.75 2.98-4.33 2.98-7.36Z" />
+                  <path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.61-2.41l-3.24-2.51c-.9.6-2.04.96-3.37.96-2.6 0-4.8-1.76-5.59-4.12H3.07v2.59A10 10 0 0 0 12 22Z" />
+                  <path fill="#FBBC05" d="M6.41 13.92a6 6 0 0 1 0-3.84V7.49H3.07a10 10 0 0 0 0 9.02l3.34-2.59Z" />
+                  <path fill="#EA4335" d="M12 5.96c1.47 0 2.79.5 3.82 1.5l2.87-2.87A9.6 9.6 0 0 0 12 2a10 10 0 0 0-8.93 5.49l3.34 2.59A5.99 5.99 0 0 1 12 5.96Z" />
+                </svg> : <span className="auth-google-google-mark" aria-hidden="true">G</span>}
                 <span>
                   {googleLoading
                     ? (language === 'vi' ? 'Đang mở Google...' : 'Opening Google...')
