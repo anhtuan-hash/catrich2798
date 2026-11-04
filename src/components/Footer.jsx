@@ -243,7 +243,7 @@ function DetailRow({ type, children }) {
   );
 }
 
-export default function Footer({ language, route = '' }) {
+export default function Footer({ language, route = '', assessmentScrapbookActive = false }) {
   const isVi = language === 'vi';
   const seasonalFooter = useHalloweenFooterTheme();
   const halloweenHome = useHalloweenHomeTheme();
@@ -257,7 +257,7 @@ export default function Footer({ language, route = '' }) {
   const appsScrapbookActive = appsScrapbook.enabled && resolvedRoute === 'apps';
   const attendanceScrapbookActive = attendanceScrapbook.enabled && resolvedRoute === 'attendance';
   const gradebookScrapbookActive = gradebookScrapbook.enabled && resolvedRoute === 'tool' && typeof document !== 'undefined' && document.querySelector('.app-shell')?.dataset.tool === 'gradebook-studio';
-  const seasonalHome = { ...halloweenHome, enabled: halloweenHome.enabled && !scrapbookActive && !appsScrapbookActive && !attendanceScrapbookActive && !gradebookScrapbookActive };
+  const seasonalHome = { ...halloweenHome, enabled: halloweenHome.enabled && !scrapbookActive && !appsScrapbookActive && !attendanceScrapbookActive && !gradebookScrapbookActive && !assessmentScrapbookActive };
   const content = isVi ? VIETNAMESE_DETAILS : ENGLISH_DETAILS;
   const [portfolioOpen, setPortfolioOpen] = React.useState(false);
   const portfolioTriggerRef = React.useRef(null);
@@ -299,6 +299,7 @@ export default function Footer({ language, route = '' }) {
             {scrapbookActive ? <p className="dashboard-scrapbook-footer-motto">Better Learners · Brighter Futures</p> : null}
             {appsScrapbookActive ? <p className="apps-scrapbook-footer-motto">Better Learners · Brighter Futures</p> : null}
             {attendanceScrapbookActive ? <p className="attendance-scrapbook-footer-motto">Better Learners · Brighter Futures</p> : null}
+            {assessmentScrapbookActive && <p className="assessment-paper-motto">Better Learners · Brighter Futures</p>}
             {gradebookScrapbookActive ? <p className="gradebook-scrapbook-footer-motto">Better Learners · Brighter Futures</p> : null}
           </section>
 

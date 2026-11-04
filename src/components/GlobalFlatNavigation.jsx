@@ -97,14 +97,14 @@ export default function GlobalFlatNavigation(props) {
   useEffect(() => {
     const root = document.documentElement;
     const shell = document.querySelector('.app-shell');
-    const active = Boolean(seasonalHome.enabled);
+    const active = Boolean(seasonalHome.enabled && !props.assessmentScrapbookActive);
     root.dataset.halloweenHomeV4 = active ? 'on' : 'off';
     if (shell) shell.dataset.halloweenHomeV4 = active ? 'on' : 'off';
     return () => {
       delete root.dataset.halloweenHomeV4;
       if (shell) delete shell.dataset.halloweenHomeV4;
     };
-  }, [seasonalHome.enabled]);
+  }, [seasonalHome.enabled, props.assessmentScrapbookActive]);
   const mobile = presentation.presentationMode === 'mobile';
   const forcedMobile = mobile && presentation.override === 'mobile' && presentation.deviceClass !== 'phone';
   const returnLabel = props.language === 'en' ? 'Desktop' : 'Máy tính';

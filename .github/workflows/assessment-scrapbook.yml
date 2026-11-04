@@ -1,0 +1,43 @@
+name: Assessment Scrapbook
+on:
+  pull_request:
+    paths:
+      - 'src/features/assessment-scrapbook/**'
+      - 'public/assets/assessment-scrapbook/**'
+      - 'src/utils/createScrapbookTheme.js'
+      - 'src/pages/LessonCheckStudio.jsx'
+      - 'src/components/lessonCheck/**'
+      - 'src/pages/Settings.jsx'
+      - 'src/main.jsx'
+      - 'src/components/GlobalFlatNavigation.jsx'
+      - 'src/components/GlobalCompactNavigation.jsx'
+      - 'src/components/mobile/MobileAppShell.jsx'
+      - 'src/components/Footer.jsx'
+      - 'supabase/migrations/*assessment_scrapbook*'
+      - 'scripts/test-assessment-scrapbook-browser.mjs'
+      - 'tests/fixtures/assessment-scrapbook.jsx'
+      - '.github/workflows/assessment-scrapbook.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  studio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Assessment permissions, workspace and shared navigation
+        run: node --test tests/assessment-4-1-security.test.mjs tests/assessment-5-contract.test.mjs tests/assessment-5-1-reliability.test.mjs scripts/test-halloween-navbar.mjs scripts/test-halloween-footer.mjs scripts/test-halloween-home-v4.mjs
+      - run: npx playwright install --with-deps chromium
+      - name: Live components with a synthetic library and admin switch
+        run: node scripts/test-assessment-scrapbook-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: assessment-scrapbook-screens
+          path: test-results/assessment-scrapbook/
