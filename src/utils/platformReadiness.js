@@ -86,13 +86,16 @@ export function runAccessibilityAudit() {
 
 export function runPerformanceAudit() {
   const metrics = getWebVitalsSnapshot();
-  const lcp = Number(metrics.lcp || 0);
-  const cls = Number(metrics.cls || 0);
-  const inp = Number(metrics.inp || 0);
+  const lcp = metrics.lcp == null ? null : Number(metrics.lcp);
+  const cls = metrics.cls == null ? null : Number(metrics.cls);
+  const inp = metrics.inp == null ? null : Number(metrics.inp);
+  // The web-vitals callbacks implement the official algorithms; their values
+  // here remain current-page observations, never population p75 certification.
+  const status = metrics.cwvStatus === 'unavailable' ? 'Algorithm unavailable in this browser.' : 'Single-page observation; not p75.';
   const checks = [
-    result('lcp', 'Largest Contentful Paint', !lcp ? 'info' : lcp <= 2500 ? 'pass' : lcp <= 4000 ? 'warn' : 'fail', lcp ? `${lcp} ms` : 'Collecting data…', 'performance'),
-    result('cls', 'Cumulative Layout Shift', cls <= 0.1 ? 'pass' : cls <= 0.25 ? 'warn' : 'fail', String(cls || 0), 'performance'),
-    result('inp', 'Interaction to Next Paint', !inp ? 'info' : inp <= 200 ? 'pass' : inp <= 500 ? 'warn' : 'fail', inp ? `${inp} ms` : 'Waiting for user interaction…', 'performance'),
+    result('lcp', 'Largest Contentful Paint', lcp == null ? 'info' : lcp <= 2500 ? 'pass' : lcp <= 4000 ? 'warn' : 'fail', lcp == null ? 'Awaiting LCP · ' + status : `${lcp} ms · ${status}`, 'performance'),
+    result('cls', 'Cumulative Layout Shift', cls == null ? 'info' : cls <= 0.1 ? 'pass' : cls <= 0.25 ? 'warn' : 'fail', cls == null ? 'Awaiting CLS · ' + status : `${cls} · ${status}`, 'performance'),
+    result('inp', 'Interaction to Next Paint', inp == null ? 'info' : inp <= 200 ? 'pass' : inp <= 500 ? 'warn' : 'fail', inp == null ? 'Awaiting INP interaction · ' + status : `${inp} ms · ${status}`, 'performance'),
     result('long-tasks', 'Long tasks', Number(metrics.longTasks || 0) <= 3 ? 'pass' : 'warn', `${metrics.longTasks || 0} tasks · ${metrics.longTaskTime || 0} ms`, 'performance'),
     result('resources', 'Loaded resources', Number(metrics.resources?.count || 0) <= 180 ? 'pass' : 'warn', `${metrics.resources?.count || 0} resources`, 'performance'),
     result('transfer', 'Transferred resources', Number(metrics.resources?.transferSize || 0) <= 5 * 1024 * 1024 ? 'pass' : 'warn', `${Math.round(Number(metrics.resources?.transferSize || 0) / 1024)} KB`, 'performance'),
