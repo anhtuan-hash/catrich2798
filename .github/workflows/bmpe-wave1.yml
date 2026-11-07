@@ -1,0 +1,82 @@
+name: BMPE Wave 0-1 Cross-Browser QA
+
+on:
+  push:
+    branches: [perf/bmpe-wave0-wave1-20261107]
+  pull_request:
+    paths:
+      - 'src/styles/v1159.css'
+      - 'src/styles/GlobalMotionSystem.css'
+      - 'tests/bmpe-css-contract.test.mjs'
+      - 'tests/e2e/bmpe-css-computed.spec.js'
+      - 'scripts/bmpe-motion-audit.mjs'
+      - 'playwright.bmpe.config.js'
+      - '.github/workflows/bmpe-wave1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Check syntax and existing motion contracts
+        run: |
+          node --check scripts/bmpe-motion-audit.mjs
+          node --check tests/bmpe-css-contract.test.mjs
+          node --test tests/bmpe-css-contract.test.mjs tests/sitewide-smoothness-contract.test.mjs tests/performance-smoothing-contract.test.mjs
+      - name: Collect static CSS/route inventory (not an FPS result)
+        run: node scripts/bmpe-motion-audit.mjs > bmpe-source-audit.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bmpe-static-inventory
+          path: bmpe-source-audit.json
+          retention-days: 14
+
+  cascade-browsers:
+    needs: source-contract
+    name: ${{ matrix.project }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, project: bmpe-chromium, browser: chromium }
+          - { os: ubuntu-latest, project: bmpe-webkit, browser: webkit }
+          - { os: macos-latest, project: bmpe-webkit, browser: webkit }
+          - { os: windows-latest, project: bmpe-edge, browser: msedge }
+          - { os: windows-latest, project: bmpe-firefox, browser: firefox }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Install browser engine on runner
+        shell: bash
+        run: |
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            npx playwright install --with-deps ${{ matrix.browser }}
+          else
+            npx playwright install ${{ matrix.browser }}
+          fi
+      - name: Validate CSS computed styles
+        run: npx playwright test --config=playwright.bmpe.config.js --project=${{ matrix.project }}
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bmpe-fail-${{ matrix.project }}-${{ matrix.os }}
+          path: reports/playwright-bmpe
+          if-no-files-found: ignore
+          retention-days: 14
