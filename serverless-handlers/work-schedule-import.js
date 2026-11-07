@@ -6,8 +6,12 @@ import {
   scheduleRowsFromGrid,
 } from '../src/utils/workScheduleImport.js';
 import { buildScheduleImportPlan } from '../src/utils/workScheduleImportPlan.js';
+import { detectScheduleEvent } from '../src/utils/scheduleEventDetection.mjs';
 
 const MAX_EVENTS = 600;
+const EXISTING_PAGE_SIZE = 500;
+const EXISTING_SCAN_LIMIT = 5000;
+const WRITE_BATCH_SIZE = 20;
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
 const SCHEDULE_COLUMNS = 'id,title,description,item_type,status,priority,visibility,owner_id,created_by,assignee_ids,watcher_ids,due_at,source_module,metadata,created_at,updated_at';
 const EXCLUDED_PROFILE_ROLES = new Set(['student', 'learner', 'pupil', 'parent', 'guardian', 'guest']);
@@ -44,7 +48,7 @@ function withTimeout(promise, ms = 20000) {
 }
 
 export function isScheduleImportLeader(profile = {}) {
-  if (profile.approved === false) return false;
+  if (profile.approved !== true) return false;
   return isDepartmentLeaderRole(profile.role);
 }
 
@@ -75,8 +79,8 @@ async function authenticate(req) {
       .eq('id', authData.user.id)
       .maybeSingle(),
   );
-  if (profileError && !missingRelation(profileError)) {
-    throw Object.assign(new Error(profileError.message), { status: 403 });
+  if (profileError || !profileData || profileData.approved !== true) {
+    throw Object.assign(new Error('Tài khoản chưa được phê duyệt hoặc không thể kiểm tra quyền nhập lịch.'), { status: 403 });
   }
 
   let assignedRole = '';
@@ -95,8 +99,8 @@ async function authenticate(req) {
     id: authData.user.id,
     email: authData.user.email || '',
     full_name: authData.user.user_metadata?.full_name || '',
-    approved: true,
-    role: authData.user.user_metadata?.role || 'teacher',
+    approved: profileData.approved === true,
+    role: profileData.role || 'teacher',
     ...(profileData || {}),
     ...(assignedRole ? { role: assignedRole } : {}),
   };
@@ -134,19 +138,28 @@ function parseRows(payload) {
   throw Object.assign(new Error('Cần gửi rows hoặc nội dung csv để nhập lịch.'), { status: 400 });
 }
 
+// The existing calendar is stored under BOTH item_type='schedule' and
+// historical item_type='task' with metadata.schedule_event=true. Check both,
+// including after a browser-side network failure, before adding any new rows.
 async function loadExistingItems(db) {
-  let result = await withTimeout(
-    db.from('work_hub_items')
-      .select(SCHEDULE_COLUMNS)
-      .eq('item_type', WORK_SCHEDULE_ITEM_TYPE)
-      .order('due_at', { ascending: true })
-      .limit(1500),
-  );
-  if (result.error) {
-    result = await withTimeout(db.from('work_hub_items').select(SCHEDULE_COLUMNS).limit(1500));
+  async function scan(itemType, requireScheduleFlag) {
+    const results = [];
+    for (let offset = 0; offset < EXISTING_SCAN_LIMIT; offset += EXISTING_PAGE_SIZE) {
+      let query = db.from('work_hub_items').select(SCHEDULE_COLUMNS).eq('item_type', itemType);
+      if (requireScheduleFlag) query = query.contains('metadata', { schedule_event: true });
+      const { data, error } = await withTimeout(
+        query.order('id', { ascending: true }).range(offset, offset + EXISTING_PAGE_SIZE - 1),
+      );
+      if (error) throw Object.assign(new Error('Không xác minh được lịch đã lưu: ' + error.message), { status: 503 });
+      results.push(...(data || []));
+      if ((data || []).length < EXISTING_PAGE_SIZE) return results;
+    }
+    throw Object.assign(new Error('Quá nhiều lịch đã lưu để kiểm tra trùng an toàn.'), { status: 409 });
   }
-  if (result.error) throw new Error(result.error.message);
-  return (result.data || []).filter((item) => item?.item_type === WORK_SCHEDULE_ITEM_TYPE || item?.metadata?.schedule_event === true);
+  const [typed, legacy] = await Promise.all([scan(WORK_SCHEDULE_ITEM_TYPE, false), scan('task', true)]);
+  return [...new Map([...typed, ...legacy]
+    .filter((item) => item?.id && (item.item_type === WORK_SCHEDULE_ITEM_TYPE || item.metadata?.schedule_event === true))
+    .map((item) => [item.id, item])).values()];
 }
 
 async function loadAssigneeIds(db, userId) {
@@ -161,8 +174,8 @@ async function loadAssigneeIds(db, userId) {
 
 async function insertInBatches(db, payloads) {
   const created = [];
-  for (let index = 0; index < payloads.length; index += 50) {
-    const batch = payloads.slice(index, index + 50);
+  for (let index = 0; index < payloads.length; index += WRITE_BATCH_SIZE) {
+    const batch = payloads.slice(index, index + WRITE_BATCH_SIZE);
     const { data, error } = await withTimeout(db.from('work_hub_items').insert(batch).select(SCHEDULE_COLUMNS));
     if (error) throw error;
     created.push(...(data || []));
@@ -206,7 +219,7 @@ async function recordImportRun(db, session, details) {
     metadata: { api_version: 1, imported_at: details.importedAt },
   };
   try {
-    const { error } = await withTimeout(db.from('audit_events').insert(payload), 10000);
+    const { error } = await withTimeout(db.from('audit_events').insert(payload), 2500);
     if (error && !missingRelation(error)) console.warn('[work-schedule-import] audit insert failed', error.message);
   } catch (error) {
     console.warn('[work-schedule-import] audit insert failed', error?.message || error);
@@ -247,10 +260,30 @@ export default async function handler(req, res) {
       importedAt,
     });
 
-    const createPayloads = plan.create.map((entry) => entry.payload || entry);
+    const selectedCandidates = new Set(
+      Array.isArray(payload.eventCandidateFingerprints)
+        ? payload.eventCandidateFingerprints.filter((value) => typeof value === 'string').slice(0, MAX_EVENTS)
+        : [],
+    );
+    const decorate = (entry) => {
+      const row = entry.row;
+      const data = entry.payload || entry;
+      const detection = row && selectedCandidates.has(row.fingerprint) ? detectScheduleEvent(row) : null;
+      return {
+        ...data,
+        metadata: {
+          ...data.metadata,
+          schedule_has_explicit_time: row?.timeKnown === true,
+          schedule_has_explicit_end_time: row?.endTimeKnown === true,
+          ...(detection ? { schedule_event_detection: detection } : {}),
+        },
+      };
+    };
+    const createPayloads = plan.create.map(decorate);
+    const updates = plan.update.map((entry) => ({ ...entry, payload: decorate(entry) }));
     const [created, updated] = await Promise.all([
       insertInBatches(session.db, createPayloads),
-      updateOwnedRows(session.db, plan.update),
+      updateOwnedRows(session.db, updates),
     ]);
 
     const stats = {
