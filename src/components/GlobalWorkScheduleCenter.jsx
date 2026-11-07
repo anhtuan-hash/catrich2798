@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import readXlsxFile from 'read-excel-file/browser';
 import { getRuntimeClient, subscribeTable } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
+import { getAccessToken } from '../utils/resourceLibrary.js';
+import { SCHEDULE_IMPORT_BATCH_SIZE, previewScheduleImport, submitScheduleImportBatch } from '../utils/scheduleImportTransport.mjs';
 import { emitAutomationEvent } from '../utils/automationEngine.js';
 import { recordAuditEvent } from '../utils/collaborationGovernance.js';
 import { isLeader, uid } from '../pages/v1093/shared.js';
@@ -93,33 +95,6 @@ async function loadScheduleWeekFromServer(client, window) {
   }
   return eligibleScheduleWeekRows(list, window, true);
 }
-// An import that completed its SQL insert but stalled on posters may have
-// committed the whole file already. Check current Supabase rows, not merely
-// the 15-minute in-memory calendar cache, before offering to reimport.
-async function fetchServerScheduleFingerprints(client, parsedRows) {
-  if (!client) throw new Error('Cần kết nối Supabase trước khi nhập lịch.');
-  const dates = parsedRows.map((row) => new Date(row.startAt).getTime()).filter(Number.isFinite);
-  if (!dates.length) return new Set();
-  const start = new Date(Math.min(...dates) - 86400000).toISOString();
-  const end = new Date(Math.max(...dates) + 86400000).toISOString();
-  const fingerprints = new Set();
-  for (let index = 0; index < 5000; index += 500) {
-    const { data, error } = await client.from('work_hub_items')
-      .select('metadata')
-      .eq('item_type', WORK_SCHEDULE_ITEM_TYPE)
-      .gte('due_at', start).lte('due_at', end)
-      .order('due_at', { ascending: true })
-      .range(index, index + 499);
-    if (error) throw new Error('Không xác minh được hoạt động đã lưu: ' + error.message);
-    for (const item of data || []) {
-      if (item?.metadata?.schedule_fingerprint)
-        fingerprints.add(item.metadata.schedule_fingerprint);
-    }
-    if ((data || []).length < 500) return fingerprints;
-  }
-  throw new Error('Quá nhiều hoạt động trong khoảng thời gian đã chọn; không thể xác minh trùng an toàn.');
-}
-
 const SCHEDULE_CACHE_KEY = 'bes-system-work-schedule-cache-v1';
 const SCHEDULE_SYNC_KEY = 'bes-system-work-schedule-sync-v1';
 const SCHEDULE_CACHE_MAX_AGE = 15 * 60 * 1000;
@@ -852,7 +827,12 @@ export default function GlobalWorkScheduleCenter({
       if (!parsed.ok) throw new Error(parsed.message);
       if (!client || !runtime.ready || !runtime.session)
         throw new Error('Cần kết nối Supabase để kiểm tra trùng trước khi nhập lịch.');
-      const serverFingerprints = await fetchServerScheduleFingerprints(client, parsed.validRows);
+      const accessToken = await getAccessToken();
+      const serverFingerprints = await previewScheduleImport({
+        accessToken,
+        fileName: file.name,
+        rows: parsed.validRows,
+      });
       const rows = parsed.validRows.map((row) => ({
         ...row,
         duplicate: serverFingerprints.has(row.fingerprint),
@@ -885,52 +865,50 @@ export default function GlobalWorkScheduleCenter({
     setError('');
     setNotice('');
     const importId = uid('schedule-import');
-    const recipients = assigneeIds.length ? assigneeIds : [currentUser.id];
-    const payloads = rows.map((row) => {
-      const payload = eventPayload(row, currentUser, recipients);
-      return {
-        ...payload,
-        metadata: {
-          ...payload.metadata,
-          schedule_import_id: importId,
-          schedule_source_file: importPreview.fileName,
-          schedule_source_row: row.sourceRow,
-          schedule_has_explicit_time: row.timeKnown === true,
-          schedule_has_explicit_end_time: row.endTimeKnown === true,
-          ...(autoDetectEvents && candidateSelection.has(row.fingerprint) && detectScheduleEvent(row)
-            ? { schedule_event_detection: detectScheduleEvent(row) }
-            : {}),
-          schedule_imported_at: new Date().toISOString(),
-        },
-      };
-    });
     const created = [];
+    const updated = [];
+    let serverSkipped = 0;
     try {
-      for (let index = 0; index < payloads.length; index += 50) {
+      // Same-origin API batches avoid large direct browser-to-Supabase POSTs.
+      // The server checks existing schedule and legacy task rows before writes.
+      const accessToken = await getAccessToken();
+      if (!accessToken) throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+      for (let index = 0; index < rows.length; index += SCHEDULE_IMPORT_BATCH_SIZE) {
+        const batchRows = rows.slice(index, index + SCHEDULE_IMPORT_BATCH_SIZE);
         setImportStage((language === 'en' ? 'Saving ' : 'Đang lưu ') +
-          Math.min(index + 50, payloads.length) + '/' + payloads.length +
+          Math.min(index + batchRows.length, rows.length) + '/' + rows.length +
           (language === 'en' ? ' activities…' : ' hoạt động…'));
-        const { data, error: insertError } = await client.from('work_hub_items')
-          .insert(payloads.slice(index, index + 50)).select(SCHEDULE_COLUMNS);
-        if (insertError) throw insertError;
-        created.push(...(data || []));
+        const result = await submitScheduleImportBatch({
+          accessToken,
+          fileName: importPreview.fileName,
+          rows: batchRows,
+          eventCandidateFingerprints: autoDetectEvents
+            ? batchRows.filter((row) => candidateSelection.has(row.fingerprint)).map((row) => row.fingerprint)
+            : [],
+        });
+        if (!Array.isArray(result.createdItems) || !Array.isArray(result.updatedItems)) {
+          throw new Error('Thiếu danh sách các hoạt động đã lưu. Hãy kiểm tra lịch trước khi tải lại.');
+        }
+        created.push(...result.createdItems);
+        updated.push(...result.updatedItems);
+        serverSkipped += Number(result.stats.unchanged || 0);
       }
     } catch (importError) {
-      if (created.length) {
+      if (created.length || updated.length) {
         setItems((current) => {
-          const next = mergeScheduleItems(current, created);
+          const next = mergeScheduleItems(current, [...created, ...updated]);
           writeCachedSchedule(next);
           writeScheduleSyncStamp();
           return next;
         });
         window.dispatchEvent(new CustomEvent(SCHEDULE_UPDATE_EVENT, {
-          detail: { importId, count: created.length, localApplied: true },
+          detail: { importId, count: created.length + updated.length, localApplied: true },
         }));
       }
-      const partial = created.length
-        ? ' Đã xác nhận lưu ' + created.length + '/' + payloads.length +
-          ' hoạt động; hãy kiểm tra lịch trước khi nhập lại.'
-        : ' Hãy kiểm tra lịch trước khi tải lại file để tránh tạo trùng.';
+      const partial = created.length || updated.length
+        ? ' Đã xác nhận lưu ' + (created.length + updated.length) + '/' + rows.length +
+          ' hoạt động. Hãy làm mới và kiểm tra lịch trước khi nhập lại.'
+        : importError.uncertainCommit ? '' : ' Vui lòng kiểm tra kết nối và thử lại.';
       setError((importError.message || 'Không thể nhập lịch làm việc.') + partial);
       setImportStage('');
       setBusy(false);
@@ -940,13 +918,13 @@ export default function GlobalWorkScheduleCenter({
     // Primary operation ends here. Do NOT await poster generation, draft
     // creation, audit logs or automation before confirming the import.
     setItems((current) => {
-      const next = mergeScheduleItems(current, created);
+      const next = mergeScheduleItems(current, [...created, ...updated]);
       writeCachedSchedule(next);
       writeScheduleSyncStamp();
       return next;
     });
     window.dispatchEvent(new CustomEvent(SCHEDULE_UPDATE_EVENT, {
-      detail: { importId, count: created.length, localApplied: true },
+      detail: { importId, count: created.length + updated.length, localApplied: true },
     }));
     window.dispatchEvent(new CustomEvent('bes-global-notification', {
       detail: {
@@ -960,7 +938,7 @@ export default function GlobalWorkScheduleCenter({
     }));
     const suggestionCount = created.filter((item) => item.metadata?.schedule_event_detection).length;
     const sourceFile = importPreview.fileName;
-    const duplicated = importPreview.rows.filter((row) => row.duplicate).length;
+    const duplicated = importPreview.rows.filter((row) => row.duplicate).length + serverSkipped;
     const invalid = importPreview.invalidRows.length;
     setImportPreview(null);
     setImportOpen(false);
@@ -968,10 +946,11 @@ export default function GlobalWorkScheduleCenter({
     setBusy(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
     setNotice(language === 'en'
-      ? 'Saved ' + created.length + ' activities. ' + suggestionCount +
-        ' event candidates detected; drafts and posters are processed separately.'
-      : 'Đã lưu ' + created.length + ' hoạt động vào lịch chung. Nhận diện ' +
-        suggestionCount + ' ứng viên; bản nháp/poster được xử lý riêng.');
+      ? 'Added ' + created.length + ', updated ' + updated.length + ', skipped ' + serverSkipped +
+        ' existing rows. ' + suggestionCount + ' event candidates detected.'
+      : 'Đã thêm ' + created.length + ', cập nhật ' + updated.length +
+        ', bỏ qua ' + serverSkipped + ' dòng đã có. Nhận diện ' + suggestionCount +
+        ' ứng viên; bản nháp/poster được xử lý riêng.');
 
     // Supplementary calls cannot turn a successful save into an import error.
     void Promise.allSettled([
