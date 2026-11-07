@@ -28,11 +28,16 @@ export default function BrianPerformanceMonitor({ language = 'vi' }) {
   const [running, setRunning] = useState(false);
   const [report, setReport] = useState(null);
   const sampler = useRef(null);
+  const mounted = useRef(false);
 
-  useEffect(() => () => {
-    // Stop and release observers/rAF when the settings drawer unmounts.
-    sampler.current?.stop();
-    sampler.current = null;
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      // Stop and release observers/rAF without setting state after unmount.
+      mounted.current = false;
+      sampler.current?.stop();
+      sampler.current = null;
+    };
   }, []);
 
   const start = () => {
@@ -40,20 +45,24 @@ export default function BrianPerformanceMonitor({ language = 'vi' }) {
     setReport(null);
     setRunning(true);
     const motion = getGlobalMotionConfig();
-    const snapshot = getWebVitalsSnapshot();
     sampler.current = startMotionDiagnosticCapture({
       durationMs: 8500,
       onComplete: (result) => {
+        if (!mounted.current) return;
+        const snapshot = getWebVitalsSnapshot();
         setReport({
           ...result,
           motionPreset: motion.preset,
           motionSpeed: motion.speed,
           viewportBand: window.innerWidth <= 680 ? 'phone' : window.innerWidth <= 1100 ? 'tablet' : 'desktop',
           // These are NOT certified p75 Core Web Vitals. Keep the labels honest.
-          browserSessionPaintDiagnostics: {
-            lcpLatestMs: snapshot.lcp,
-            clsUnwindowedSumEstimate: snapshot.cls,
-            maxEventDurationEstimateMs: snapshot.inp,
+          officialCoreWebVitalsSinglePage: {
+            lcpMs: snapshot.lcp,
+            cls: snapshot.cls,
+            inpMs: snapshot.inp,
+            algorithm: snapshot.library,
+            availability: snapshot.cwvStatus,
+            populationP75: false,
           },
         });
         setRunning(false);
