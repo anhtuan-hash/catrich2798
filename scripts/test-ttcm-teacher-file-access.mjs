@@ -30,7 +30,7 @@ assert.match(migration, /OLD\.encrypted_password IS DISTINCT FROM NEW\.encrypted
 assert.match(stream, /await requireApprovedUser\(req/);
 assert.match(stream, /await assertAccessAndFile\(context, itemId, fileId\)/,
   'File access must verify user rights and attachment ownership.');
-assert.match(delivery, /fetchWorkHubAttachmentBlob\(attachment, \{ itemId, disposition: 'attachment' \} \)/,
+assert.match(delivery, /fetchWorkHubAttachmentBlob\(attachment, \{ itemId, disposition: 'attachment' \}\s*\)/,
   'Single file downloads must continue using the authenticated file stream.');
 assert.match(workHub, /await import\('jszip'\)/);
 assert.match(workHub, /await fetchWorkHubAttachmentBlob\(\{ \.\.\.attachment, item_id: item\.id \}/,
