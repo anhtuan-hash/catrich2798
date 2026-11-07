@@ -42,7 +42,8 @@ test('micro interaction transitions remain enabled without a global disable', as
   });
   expect(style.properties).toContain('transform');
   expect(style.duration).toBeGreaterThan(0);
-  await expect(page.locator('.ttcm-m3-shell')).toHaveCSS('border-radius', '28px');
+  // The *last* TTCM skin override in v1159.css intentionally uses 24px.
+  await expect(page.locator('.ttcm-m3-shell')).toHaveCSS('border-radius', '24px');
 });
 
 test('user-selected no-motion and OS reduced-motion remain available', async ({ page }) => {
