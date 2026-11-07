@@ -212,6 +212,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
   const [selectedRecipients, setSelectedRecipients] = useState([]);
   const [recipientQuery, setRecipientQuery] = useState('');
   const [busy, setBusy] = useState(false);
+  const [downloadAllBusyId, setDownloadAllBusyId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -638,8 +639,58 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
   }
   async function downloadAttachment(item, attachment) { markRead(item.id); setError(''); const result = await downloadWorkHubAttachment({ ...attachment, item_id: item.id }, { itemId: item.id, fileName: attachment.name }); if (!result.ok) setError(result.message || 'Không thể tải tệp về máy.'); }
   async function downloadAllAttachments(item) {
-    const attachments = Array.isArray(item?.attachments) ? item.attachments : []; if (!attachments.length) return; markRead(item.id);
-    for (const attachment of attachments) { const result = await downloadWorkHubAttachment({ ...attachment, item_id: item.id }, { itemId: item.id, fileName: attachment.name }); if (!result.ok) { setError(result.message || `Không thể tải ${attachment.name || 'tệp'}.`); break; } await new Promise((resolve) => window.setTimeout(resolve, 180)); }
+    const attachments = Array.isArray(item?.attachments) ? item.attachments : [];
+    if (!attachments.length || downloadAllBusyId) return;
+    markRead(item.id);
+    setError('');
+    setNotice('');
+    setDownloadAllBusyId(String(item.id));
+    try {
+      // A single ZIP avoids browser-level automatic multiple-download blocking.
+      // Each file still passes through its original authenticated Work Hub API.
+      const { default: JSZip } = await import('jszip');
+      const zip = new JSZip();
+      const usedNames = new Set();
+      let totalBytes = 0;
+      for (let index = 0; index < attachments.length; index += 1) {
+        const attachment = attachments[index];
+        const original = String(attachment.name || `tai-lieu-${index + 1}`).replace(/[\\/\\\\]/g, '_').slice(0, 150);
+        const dot = original.lastIndexOf('.');
+        const stem = dot > 0 ? original.slice(0, dot) : original;
+        const extension = dot > 0 ? original.slice(dot) : '';
+        let fileName = original;
+        let suffix = 2;
+        while (usedNames.has(fileName.toLocaleLowerCase())) {
+          fileName = `${stem} (${suffix++})${extension}`;
+        }
+        usedNames.add(fileName.toLocaleLowerCase());
+        const blob = await fetchWorkHubAttachmentBlob({ ...attachment, item_id: item.id }, {
+          itemId: item.id, disposition: 'attachment',
+        });
+        totalBytes += blob.size;
+        if (totalBytes > 150 * 1024 * 1024) {
+          throw new Error('Bộ tệp vượt quá 150 MB để tạo ZIP trong trình duyệt. Vui lòng tải từng tệp.');
+        }
+        zip.file(fileName, blob);
+      }
+      const archive = await zip.generateAsync({
+        type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 3 },
+      });
+      const url = URL.createObjectURL(archive);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `TTCM-tai-lieu-${String(item.id).slice(0, 8)}.zip`;
+      anchor.style.display = 'none';
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 10000);
+      setNotice(`Đã chuẩn bị ${attachments.length} tệp trong một bản ZIP.`);
+    } catch (downloadError) {
+      setError(downloadError?.message || 'Không thể tải toàn bộ tệp về máy.');
+    } finally {
+      setDownloadAllBusyId('');
+    }
   }
   async function editAttachment(item, attachment) {
     markRead(item.id); setError(''); const popup = window.open('', '_blank', 'noopener,noreferrer');
@@ -780,7 +831,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
 
                       {selectedAttachments.length ? (
                         <section className="ttcm-reader-files">
-                          <header><div><strong>Tệp đính kèm ({selectedAttachments.length})</strong><small>Tài liệu gắn với nội dung này</small></div><button type="button" onClick={() => downloadAllAttachments(selectedItem)}><Icon name="download" size={17} />Tải tất cả</button></header>
+                          <header><div><strong>Tệp đính kèm ({selectedAttachments.length})</strong><small>Tài liệu gắn với nội dung này</small></div><button type="button" disabled={Boolean(downloadAllBusyId)} onClick={() => downloadAllAttachments(selectedItem)}><Icon name="download" size={17} />{downloadAllBusyId === String(selectedItem.id) ? 'Đang tạo ZIP…' : 'Tải ZIP'}</button></header>
                           <div>
                             {selectedAttachments.map((attachment, index) => {
                               const ext = getWorkHubAttachmentExtension(attachment); const meta = [ext ? ext.toUpperCase() : 'FILE', formatFileSize(attachment.size)].filter(Boolean).join(' · ');
