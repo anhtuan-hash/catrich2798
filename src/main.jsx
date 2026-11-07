@@ -115,6 +115,7 @@ const PermissionApprovalInbox = lazy(() => import('./components/PermissionApprov
 const GlobalAutosave = lazy(() => import('./components/GlobalAutosave.jsx'));
 const GlobalRuntimeGuard = lazy(() => import('./components/GlobalRuntimeGuard.jsx'));
 const AdminMfaSecurity = lazy(() => import('./components/AdminMfaSecurity.jsx'));
+const TeacherFirstLoginPasswordGate = lazy(() => import('./components/TeacherFirstLoginPasswordGate.jsx'));
 const TrashCenter = lazy(() => import('./pages/TrashCenter.jsx'));
 const SystemHealthCenter = lazy(() => import('./pages/SystemHealthCenter.jsx'));
 const ContentTransferHub = lazy(() => import('./components/ContentTransferHub.jsx'));
@@ -557,8 +558,11 @@ function App() {
             </AppErrorBoundary>
           </Suspense>
         )}
-        {currentUser ? (
+        {currentUser?.provider === 'supabase' ? (
           <Suspense fallback={null}>
+            <AppErrorBoundary compact scope="teacher-first-login-password" label="đổi mật khẩu lần đầu">
+              <TeacherFirstLoginPasswordGate currentUser={currentUser} language={language} />
+            </AppErrorBoundary>
           </Suspense>
         ) : null}
         {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'quest-join', 'slideshow'].includes(currentRoute) ? (
