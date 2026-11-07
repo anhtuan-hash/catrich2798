@@ -66,7 +66,7 @@ jobs:
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - name: Browser-smoke the real anonymous Brian app (not authenticated UAT)
-        run: npx playwright test --config=playwright.config.js --project=chromium-desktop tests/e2e/bmpe-public-smoke.spec.js
+        run: npx playwright test --config=playwright.config.js --project=chromium-desktop tests/e2e/bmpe-public-smoke.spec.js tests/e2e/bmpe-admin-monitor.spec.js
       - name: Attach guest screenshots and errors
         if: always()
         uses: actions/upload-artifact@v4
