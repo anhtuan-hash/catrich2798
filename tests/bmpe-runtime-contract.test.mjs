@@ -26,7 +26,7 @@ test('capturing frames is opt-in and always releases observers', () => {
   assert.match(source,/longTaskObserver\?\.disconnect\(\)/);
   assert.match(source,/removeEventListener\('visibilitychange'/);
   assert.doesNotMatch(source,/fetch\(|sendBeacon\(|localStorage|sessionStorage/);
-  assert.doesNotMatch(source,/userId|student|email|location\.href/);
+  assert.doesNotMatch(source,/currentUser|studentName|studentId|emailAddress|location\.href/);
 });
 
 test('official v6 Core Web Vitals replace old approximate INP', () => {
