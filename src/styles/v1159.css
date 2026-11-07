@@ -1,44 +1,13 @@
-html,
-body {
-  scroll-behavior: auto !important;
-}
+/* Brian Motion & Performance Engine — Wave 1 (2026-11-07).
+   The former global "retire motion" rules overrode all Admin motion presets
+   by forcing animation/transition to none (including view transitions and
+   generic button hover). They are intentionally removed here.
 
-/* Retire motion globally while preserving static layout.
-   Brian Newswire and the two app shells own their deliberate launch animation. */
-body,
-html body :not(#brian-motion-retired-a#brian-motion-retired-b):not(.brian-newswire):not(.brian-newswire *):not(.attendance-shell):not(.ttcm-m3-shell),
-html body :not(#brian-motion-retired-a#brian-motion-retired-b):not(.brian-newswire):not(.brian-newswire *):not(.attendance-shell):not(.ttcm-m3-shell)::before,
-html body :not(#brian-motion-retired-a#brian-motion-retired-b):not(.brian-newswire):not(.brian-newswire *):not(.attendance-shell):not(.ttcm-m3-shell)::after {
-  animation: none !important;
-  animation-name: none !important;
-  animation-duration: 0s !important;
-  animation-delay: 0s !important;
-  animation-iteration-count: 1 !important;
-  transition: none !important;
-  transition-property: none !important;
-  transition-duration: 0s !important;
-  transition-delay: 0s !important;
-  scroll-behavior: auto !important;
-  will-change: auto !important;
-}
-
-::view-transition-old(root),
-::view-transition-new(root),
-::view-transition-group(root),
-::view-transition-image-pair(root) {
-  animation: none !important;
-  mix-blend-mode: normal !important;
-}
-
-html body :not(#brian-motion-retired-a#brian-motion-retired-b):not(.brian-newswire):not(.brian-newswire *):is(
-  button,
-  a,
-  [role='button'],
-  [role='link'],
-  [tabindex]
-):is(:hover, :active, :focus, :focus-visible) {
-  transform: none !important;
-}
+   Motion opt-outs belong to the existing Global Motion Library v2 slots
+   and to @media (prefers-reduced-motion: reduce), not to a blanket body rule.
+   The component-specific legacy transforms below remain unchanged pending
+   before/after visual verification for their individual owners.
+   TTCM workspace skin and geometry rules below are preserved verbatim. */
 
 html body button:active,
 html body .button:active,
