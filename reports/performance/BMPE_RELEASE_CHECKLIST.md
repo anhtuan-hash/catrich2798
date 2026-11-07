@@ -9,6 +9,8 @@ Waves 2–5 PR: https://github.com/anhtuan-hash/catrich2798/pull/1400
 - Wave 3 includes a new static Vite build manifest for raw/gzip/brotli assets and lazy diagnostics; equal-environment before/after CPU/paint traces remain required.
 - Wave 4 adds session-local opt-in rAF/Long Task monitoring to Admin Motion settings and upgrades official LCP/INP/CLS measurement to web-vitals 6.2.3. A single browser session is not a representative p75 distribution.
 - Production data and role parity remain **NOT VERIFIED**.
+- Legacy Admin route test was stale: it asserted `#settings-admin-merge-host` (retired by native Settings Launcher v2). Updated to require current `.settings-launcher-v2` and the Admin-only Permissions tile instead.
+- Vercel Hobby function budget was 13/12 on baseline. Refactored the client-error-report endpoint to a shared gateway while retaining the original POST/Origin/rate-limit handler; tests must verify Vercel rewrite and 12-source budget.
 - Legacy Critical E2E failed on main (baseline SHA 497da8086e1503de9097eefa4d0c26147ca0bd2e); main's unrelated dashboard editorial gate also failed. Do not mask.
 - Attendance class management contract previously assumed useState(false), whereas current source restores the session. The assertion was updated without changing the attendance application state.
 - No production deploy is authorized by the presence of previews or by a successful Vite build alone.
