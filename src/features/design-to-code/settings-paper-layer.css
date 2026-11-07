@@ -281,7 +281,7 @@
 html[data-theme="dark"] .sl2.brian-paper-settings {
   color:#203653;--sl-ink:#203653;--sl-muted:#61758d;--sl-line:#dec8ab
 }
-@media(max-width:1180px){
+@media(max-width:1020px){
   .sl2.brian-paper-settings .sl2-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
   .sl2.brian-paper-settings .sl2-widgets{grid-template-columns:repeat(2,minmax(0,1fr))}
   .sl2.brian-paper-settings .sl2-quick{grid-column:1/-1;min-height:148px;height:auto}
