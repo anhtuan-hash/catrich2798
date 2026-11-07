@@ -1,0 +1,33 @@
+name: BMPE Wave 2 Dock Runtime Safety
+
+on:
+  push:
+    branches: [perf/bmpe-wave2-dock-20261107]
+  pull_request:
+    paths:
+      - 'src/components/SmartBubbleDock.jsx'
+      - 'src/components/SmartBubbleDock.css'
+      - 'tests/bmpe-dock-contract.test.mjs'
+      - '.github/workflows/bmpe-wave2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dock-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Validate observer, exit and badge contracts
+        run: node --test tests/bmpe-dock-contract.test.mjs
+      - name: Preserve existing seven-launcher business behavior
+        run: node scripts/test-smart-bubble-dock.mjs
+      - name: Preserve shared motion and animation owners
+        run: node scripts/test-unified-bubble-motion.mjs

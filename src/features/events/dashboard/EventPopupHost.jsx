@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { BellRing, CalendarDays, Clock3, Copy, ExternalLink, Eye, Image as ImageIcon, MapPin, Monitor, X, Check, BellOff, GraduationCap, ArrowRight, Sparkles, Video, Info } from 'lucide-react';
 import { eligibleEvents, getEventPosterUrl, shouldAutoShow, recordEventInteraction } from '../services/eventService.js';
-import { supabase } from '../../../utils/supabase.js';
+import { supabase, isSupabaseConfigured } from '../../../utils/supabase.js';
 import { getAuthSessionIdentity, eventLoginStorageKey, eventLoginSessionMarker, canAutoShowEvent } from '../utils/eventLoginSession.mjs';
 import EventPosterViewer from './EventPosterViewer.jsx';
 import { getGlobalMotionConfig, GLOBAL_MOTION_EVENT } from '../../../utils/globalMotionSystem.js';
@@ -53,7 +53,10 @@ export default function EventPopupHost({currentUser}) {
     };
   },[event?.id,event?.version]);
   useEffect(()=>{
-    if(!userId)return undefined;
+    // Offline demo has no live event store or Auth session. Guard *before*
+    // evaluating both promises to avoid a rejected promise escaping when
+    // supabase.auth is unavailable.
+    if(!userId || !isSupabaseConfigured || !supabase) return undefined;
     let active=true;
     async function load(){
       try {

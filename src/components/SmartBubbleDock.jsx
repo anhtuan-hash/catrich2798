@@ -38,9 +38,16 @@ function syncVisibleSlots() {
     }
     slot++;
   });
-  document.documentElement.style.setProperty('--bes-smart-count', String(slot - 1));
+  const nextCount = String(slot - 1);
+  if (document.documentElement.style.getPropertyValue('--bes-smart-count') !== nextCount) {
+    document.documentElement.style.setProperty('--bes-smart-count', nextCount);
+  }
 }
 const isElement = value => typeof Element !== 'undefined' && value instanceof Element;
+const DOCK_MOUNT_SELECTOR = BUBBLES + ', .bes-approval-root, .bes-kira-chat-root';
+function affectsDockMount(node) {
+  return isElement(node) && (node.matches(DOCK_MOUNT_SELECTOR) || Boolean(node.querySelector(DOCK_MOUNT_SELECTOR)));
+}
 function readPin(userId) {
   try { return window.localStorage.getItem(PREFIX + userId) === '1'; }
   catch { return false; }
@@ -69,13 +76,17 @@ export default function SmartBubbleDock({ currentUser, language = 'vi' }) {
   const closeTimer = useRef(null);
   const exitTimer = useRef(null);
   const pinnedRef = useRef(pinned);
+  const expandedRef = useRef(expanded);
   pinnedRef.current = pinned;
+  expandedRef.current = expanded;
   const clearTimer = useCallback(() => {
     if (closeTimer.current !== null) window.clearTimeout(closeTimer.current);
     closeTimer.current = null;
   }, []);
   const collapse = useCallback(() => {
-    if (pinnedRef.current) return;
+    // Repeated scroll/pointer events must not keep restarting the exit timer.
+    if (pinnedRef.current || !expandedRef.current) return;
+    expandedRef.current = false;
     if (exitTimer.current !== null) window.clearTimeout(exitTimer.current);
     const focused = document.activeElement;
     if (isElement(focused) && focused.matches(BUBBLES)) {
@@ -105,6 +116,7 @@ export default function SmartBubbleDock({ currentUser, language = 'vi' }) {
     if (exitTimer.current !== null) window.clearTimeout(exitTimer.current);
     exitTimer.current = null;
     setClosing(false);
+    expandedRef.current = true;
     setExpanded(true);
     planCollapse(5000);
   }, [planCollapse]);
@@ -116,6 +128,7 @@ export default function SmartBubbleDock({ currentUser, language = 'vi' }) {
   useEffect(() => {
     const saved = readPin(userId);
     pinnedRef.current = saved;
+    expandedRef.current = saved;
     setPinned(saved); setExpanded(saved); setClosing(false); clearTimer();
     if (exitTimer.current !== null) window.clearTimeout(exitTimer.current);
   }, [userId, clearTimer]);
@@ -127,7 +140,17 @@ export default function SmartBubbleDock({ currentUser, language = 'vi' }) {
       frame = window.requestAnimationFrame(() => { frame = null; syncVisibleSlots(); });
     };
     syncVisibleSlots();
-    const observer = new MutationObserver(schedule);
+    // The old observer ran seven global selector queries for *every* unrelated
+    // DOM mutation (e.g. score entry or attendance list changes). Observe all
+    // subtree mounts, but schedule work only when a launcher owner is involved.
+    const observer = new MutationObserver((records) => {
+      for (const record of records) {
+        if ([...record.addedNodes, ...record.removedNodes].some(affectsDockMount)) {
+          schedule();
+          break;
+        }
+      }
+    });
     observer.observe(document.body, { childList: true, subtree: true });
     return () => {
       observer.disconnect();
@@ -141,12 +164,27 @@ export default function SmartBubbleDock({ currentUser, language = 'vi' }) {
   }, [clearTimer]);
   useEffect(() => {
     const update = () => setBadge(readBadge());
-    update();
-    const timer = window.setInterval(update, 3500);
+    let timer = null;
+    const stop = () => {
+      if (timer !== null) window.clearInterval(timer);
+      timer = null;
+    };
+    const start = () => {
+      if (timer !== null || document.hidden) return;
+      update();
+      timer = window.setInterval(update, 3500);
+    };
+    const onVisibilityChange = () => {
+      if (document.hidden) stop();
+      else start();
+    };
+    start();
+    document.addEventListener('visibilitychange', onVisibilityChange);
     window.addEventListener('bes-global-notification', update);
     window.addEventListener('bes:notification', update);
     return () => {
-      window.clearInterval(timer);
+      stop();
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       window.removeEventListener('bes-global-notification', update);
       window.removeEventListener('bes:notification', update);
     };
@@ -207,7 +245,7 @@ export default function SmartBubbleDock({ currentUser, language = 'vi' }) {
     writePin(userId, next);
     if (exitTimer.current !== null) window.clearTimeout(exitTimer.current);
     exitTimer.current = null;
-    setClosing(false); setExpanded(true);
+    setClosing(false); expandedRef.current = true; setExpanded(true);
     if (next) clearTimer(); else planCollapse(5000);
   };
   const label = expanded ? (vi ? 'Thu gọn công cụ' : 'Collapse tools') :

@@ -15,7 +15,9 @@ for (const token of [
 ]) assert.ok(main.includes(token), 'Public classroom route contract missing: ' + token);
 
 assert.ok(main.includes("PUBLIC_ROUTES = new Set") && main.includes("'classroom-join'"), 'Classroom Join must be public.');
-assert.ok(main.includes("!['homeroom-portal', 'classroom-join'].includes(currentRoute) ? <div className=\"bes-top-chrome\">"), 'Public classroom route must not render authenticated chrome.');
+// The public-route exclusion list expanded to include board-live and
+// slideshow. Verify the entire current exclusion list, not a retired literal.
+assert.match(main, /!\['homeroom-portal', 'classroom-join', 'board-live', 'slideshow'\]\.includes\(currentRoute\) \? <div className="bes-top-chrome">/, 'Public classroom route must not render authenticated chrome.');
 assert.ok(join.includes("className=\"classroom-join-page\""), 'Classroom Join page root missing.');
 assert.ok(join.includes("className=\"cj-card cj-form\""), 'Classroom Join form contract missing.');
 assert.ok(join.includes("classroom_join_session"), 'Classroom Join RPC wiring missing.');
