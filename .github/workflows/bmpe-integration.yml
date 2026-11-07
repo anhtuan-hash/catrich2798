@@ -1,0 +1,117 @@
+name: BMPE Waves 2-5 Integration and Quality Gates
+
+on:
+  push:
+    branches: [perf/bmpe-wave2-dock-20261107]
+  pull_request:
+    paths:
+      - 'src/performance/**'
+      - 'src/components/admin/BrianPerformanceMonitor*'
+      - 'src/pages/Settings.jsx'
+      - 'src/utils/webVitals.js'
+      - 'src/utils/globalMotionSystem.js'
+      - 'src/utils/platformReadiness.js'
+      - 'scripts/bmpe-*.mjs'
+      - 'tests/bmpe-*.mjs'
+      - 'tests/e2e/bmpe-*.spec.js'
+      - '.github/workflows/bmpe-integration.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Validate scripts, source contracts, and native launcher ownership
+        run: |
+          node --check src/performance/motionDiagnostics.js
+          node --check scripts/bmpe-bundle-inventory.mjs
+          node --check scripts/bmpe-release-gate.mjs
+          node --test tests/bmpe-css-contract.test.mjs tests/bmpe-dock-contract.test.mjs tests/bmpe-runtime-contract.test.mjs
+          node scripts/test-smart-bubble-dock.mjs
+          node scripts/test-unified-bubble-motion.mjs
+          node scripts/test-attendance-manage-two-step-tiles.mjs
+      - name: Compile production Vite application
+        run: npm run build
+      - name: Record measured output sizes — no performance claims
+        run: node scripts/bmpe-bundle-inventory.mjs > bmpe-bundle.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bmpe-vite-bundle-inventory
+          path: bmpe-bundle.json
+          retention-days: 14
+
+  guest-smoke:
+    needs: source-and-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Browser-smoke the real anonymous Brian app (not authenticated UAT)
+        run: npx playwright test --config=playwright.config.js --project=chromium-desktop tests/e2e/bmpe-public-smoke.spec.js
+      - name: Attach guest screenshots and errors
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bmpe-public-smoke
+          path: |
+            reports/bmpe-guest-*.png
+            reports/playwright
+            test-results
+          retention-days: 14
+          if-no-files-found: ignore
+
+  browser-cascade:
+    needs: source-and-build
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 22
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, project: bmpe-chromium, browser: chromium }
+          - { os: macos-latest, project: bmpe-webkit, browser: webkit }
+          - { os: windows-latest, project: bmpe-edge, browser: msedge }
+          - { os: windows-latest, project: bmpe-firefox, browser: firefox }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Install supported browser
+        shell: bash
+        run: |
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            npx playwright install --with-deps ${{ matrix.browser }}
+          else
+            npx playwright install ${{ matrix.browser }}
+          fi
+      - run: npx playwright test --config=playwright.bmpe.config.js --project=${{ matrix.project }}
+      - name: Browser failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bmpe-cascade-fail-${{ matrix.project }}-${{ matrix.os }}
+          path: |
+            reports/playwright-bmpe
+            test-results
+          retention-days: 14
+          if-no-files-found: ignore

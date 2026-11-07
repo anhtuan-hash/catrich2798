@@ -59,3 +59,11 @@ test('only Admin Motion settings can lazy-mount the diagnostic monitor', () => {
   assert.match(monitor,/mounted\.current = false/);
   assert.doesNotMatch(monitor,/fetch\(|sendBeacon\(/);
 });
+
+test('dynamic motion observer ignores unrelated leaf nodes but retains real entrants', () => {
+  const runtime=read('src/utils/globalMotionSystem.js');
+  assert.match(runtime,/const MOTION_ENTRANT_SELECTOR/);
+  assert.match(runtime,/function containsMotionEntrant\(/);
+  assert.match(runtime,/if \(containsMotionEntrant\(node\)\) pending\.add\(node\)/);
+  assert.match(runtime,/const LIST_SELECTOR/);
+});
