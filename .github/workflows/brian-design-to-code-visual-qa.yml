@@ -26,6 +26,26 @@ jobs:
       - run: npm ci
       - name: Install Chromium dependencies
         run: npx playwright install --with-deps chromium
+      - name: Diagnose Vite fixture startup
+        run: |
+          set -euo pipefail
+          npx vite . --config vite.config.js --host 127.0.0.1 --port 4173 --strictPort > /tmp/brian-vite-fixture.log 2>&1 &
+          vite_pid=$!
+          trap 'kill "$vite_pid" 2>/dev/null || true' EXIT
+          ready=0
+          for i in $(seq 1 35); do
+            if curl --max-time 3 -fsS http://127.0.0.1:4173/tools/design-to-code/fixtures/settings-paper.html > /tmp/brian-fixture.html; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            cat /tmp/brian-vite-fixture.log
+            exit 1
+          fi
+          grep -q settings-paper-fixture.jsx /tmp/brian-fixture.html
+          echo "Vite fixture HTTP: READY"
       - name: Validate Paper visual lab and interactions
         run: npx playwright test -c tools/design-to-code/playwright.config.mjs
       - name: Compile production React app
