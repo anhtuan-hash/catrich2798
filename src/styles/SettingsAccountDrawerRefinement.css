@@ -20,6 +20,7 @@ html body .settings-launcher-portal[data-module="account"] .settings-v65-account
   display: grid !important;
   grid-template-columns: minmax(0,1fr) !important;
   align-content: start !important;
+  container-type: inline-size;
   gap: 18px !important;
   max-width: 100% !important;
   min-width: 0 !important;
