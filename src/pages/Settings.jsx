@@ -23,6 +23,7 @@ import SettingsLauncherHome, { SETTINGS_LAUNCHER_TILES } from '../components/set
 const SettingsTeacherManagement = lazy(() => import('../components/settings/SettingsTeacherManagement.jsx'));
 const EventManagerPage = lazy(() => import('../features/events/admin/EventManagerPage.jsx'));
 const GlobalFontAdminPanel = lazy(() => import('../components/admin/GlobalFontAdminPanel.jsx'));
+const BrianPerformanceMonitor = lazy(() => import('../components/admin/BrianPerformanceMonitor.jsx'));
 const RegionalFontAdminPanel = lazy(() => import('../components/admin/RegionalFontAdminPanel.jsx'));
 
 const ICON_PATHS = {
@@ -386,6 +387,11 @@ export default function Settings({
                         <section className="settings-appearance-panel" role="tabpanel" hidden={appearanceTab !== 'motion'}>
                           <div className="settings-motion-admin-hub">
                             <GlobalMotionAdminPanel currentUser={currentUser} language={language} onDirtyChange={setMotionDirty} />
+                             {appearanceTab === 'motion' ? (
+                               <Suspense fallback={<p className="settings-launcher-loading">{vi ? 'Đang tải bộ đo chuyển động…' : 'Loading motion lab…'}</p>}>
+                                 <BrianPerformanceMonitor language={language} />
+                               </Suspense>
+                             ) : null}
                           </div>
                         </section>
                       </Suspense>
