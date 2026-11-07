@@ -56,3 +56,33 @@ export async function submitScheduleImportBatch({
   }
   return data;
 }
+
+/** Read-only duplicate review; safe to retry without creating activities. */
+export async function previewScheduleImport({
+  accessToken,
+  fileName,
+  rows,
+  request = globalThis.fetch,
+}) {
+  if (!accessToken) throw new Error('Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.');
+  if (!Array.isArray(rows) || !rows.length) throw new Error('Không có hoạt động hợp lệ để kiểm tra.');
+  if (rows.length > 600) throw new Error('Tệp lịch vượt quá giới hạn 600 hoạt động.');
+  let response;
+  try {
+    response = await request(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify({ mode: 'preview', fileName, rows, source: 'ttcm-calendar' }),
+      cache: 'no-store',
+    });
+  } catch {
+    throw new Error('Không thể kiểm tra trùng với máy chủ. Chưa có hoạt động nào được ghi; vui lòng thử lại khi có kết nối.');
+  }
+  let data;
+  try { data = await response.json(); }
+  catch { throw new Error('Máy chủ không trả về kết quả kiểm tra lịch hợp lệ. Chưa nhập dữ liệu.'); }
+  if (!response.ok || data?.ok !== true || data.mode !== 'preview' || !Array.isArray(data.duplicateFingerprints)) {
+    throw new Error(data?.message || 'Không thể xác minh dữ liệu lịch trước khi tải lên.');
+  }
+  return new Set(data.duplicateFingerprints);
+}
