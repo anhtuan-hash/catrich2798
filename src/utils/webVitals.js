@@ -1,8 +1,15 @@
+// Brian Motion & Performance Engine — browser-session measurements.
+// Core Web Vitals use Google's official web-vitals library, not max event
+// duration or unwindowed layout-shift sums. No network telemetry is sent.
 const STORAGE_KEY = 'bes-web-vitals-v1095';
 const METRICS_EVENT = 'bes-performance-metrics';
+const PAGE_TOKEN = `bmpe-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 const metrics = {
+  pageToken: PAGE_TOKEN,
+  library: 'web-vitals/6.2.3',
+  cwvStatus: 'pending',
   lcp: null,
-  cls: 0,
+  cls: null,
   inp: null,
   longTasks: 0,
   longTaskTime: 0,
@@ -35,28 +42,34 @@ function observe(type, callback, options = {}) {
   }
 }
 
+async function collectCertifiedAlgorithms() {
+  try {
+    // Defer until after app bootstrap: buffered PerformanceObserver entries
+    // still cover the initial load. Each result is ONE PAGE, NOT site-wide p75.
+    const { onLCP, onCLS, onINP } = await import('web-vitals');
+    const record = (name) => (metric) => {
+      if (!metric || !Number.isFinite(metric.value)) return;
+      metrics[name] = round(metric.value, name === 'cls' ? 3 : 1);
+      metrics.cwvStatus = 'active';
+      publish();
+    };
+    onLCP(record('lcp'), { reportAllChanges: true });
+    onCLS(record('cls'), { reportAllChanges: true });
+    onINP(record('inp'), { reportAllChanges: true });
+    metrics.cwvStatus = 'active';
+    publish();
+  } catch {
+    // Do not impersonate official INP with a max EventTiming.duration proxy.
+    metrics.cwvStatus = 'unavailable';
+    publish();
+  }
+}
+
 export function collectWebVitals() {
   if (typeof window === 'undefined' || window.__besWebVitalsStarted) return;
   window.__besWebVitalsStarted = true;
 
-  observe('largest-contentful-paint', (entries) => {
-    const last = entries.at(-1);
-    if (last) metrics.lcp = round(last.startTime);
-    publish();
-  });
-
-  observe('layout-shift', (entries) => {
-    entries.forEach((entry) => { if (!entry.hadRecentInput) metrics.cls += entry.value; });
-    metrics.cls = round(metrics.cls, 3);
-    publish();
-  });
-
-  observe('event', (entries) => {
-    const candidates = entries.filter((entry) => Number(entry.duration || 0) > 0);
-    if (!candidates.length) return;
-    metrics.inp = round(Math.max(metrics.inp || 0, ...candidates.map((entry) => entry.duration)));
-    publish();
-  }, { durationThreshold: 40 });
+  void collectCertifiedAlgorithms();
 
   observe('longtask', (entries) => {
     metrics.longTasks += entries.length;
@@ -92,7 +105,8 @@ export function getWebVitalsSnapshot() {
   if (typeof window === 'undefined') return { ...metrics };
   try {
     const saved = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '{}');
-    return { ...metrics, ...(saved || {}) };
+    // Never show older sessions as if they were metrics for this page.
+    return saved?.pageToken === PAGE_TOKEN ? { ...metrics, ...saved } : { ...metrics };
   } catch {
     return { ...metrics };
   }
