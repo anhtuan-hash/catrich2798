@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import readXlsxFile from 'read-excel-file/browser';
 import { getRuntimeClient, subscribeTable } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
+import { getAccessToken } from '../utils/resourceLibrary.js';
+import { SCHEDULE_IMPORT_BATCH_SIZE, submitScheduleImportBatch } from '../utils/scheduleImportTransport.mjs';
 import { emitAutomationEvent } from '../utils/automationEngine.js';
 import { recordAuditEvent } from '../utils/collaborationGovernance.js';
 import { isLeader, uid } from '../pages/v1093/shared.js';
@@ -905,32 +907,49 @@ export default function GlobalWorkScheduleCenter({
       };
     });
     const created = [];
+    const updated = [];
+    let serverSkipped = 0;
     try {
-      for (let index = 0; index < payloads.length; index += 50) {
+      // Same-origin API batches avoid large direct browser-to-Supabase POSTs.
+      // The server checks existing schedule and legacy task rows before writes.
+      const accessToken = await getAccessToken();
+      if (!accessToken) throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+      for (let index = 0; index < rows.length; index += SCHEDULE_IMPORT_BATCH_SIZE) {
+        const batchRows = rows.slice(index, index + SCHEDULE_IMPORT_BATCH_SIZE);
         setImportStage((language === 'en' ? 'Saving ' : 'Đang lưu ') +
-          Math.min(index + 50, payloads.length) + '/' + payloads.length +
+          Math.min(index + batchRows.length, rows.length) + '/' + rows.length +
           (language === 'en' ? ' activities…' : ' hoạt động…'));
-        const { data, error: insertError } = await client.from('work_hub_items')
-          .insert(payloads.slice(index, index + 50)).select(SCHEDULE_COLUMNS);
-        if (insertError) throw insertError;
-        created.push(...(data || []));
+        const result = await submitScheduleImportBatch({
+          accessToken,
+          fileName: importPreview.fileName,
+          rows: batchRows,
+          eventCandidateFingerprints: autoDetectEvents
+            ? batchRows.filter((row) => candidateSelection.has(row.fingerprint)).map((row) => row.fingerprint)
+            : [],
+        });
+        if (!Array.isArray(result.createdItems) || !Array.isArray(result.updatedItems)) {
+          throw new Error('Thiếu danh sách các hoạt động đã lưu. Hãy kiểm tra lịch trước khi tải lại.');
+        }
+        created.push(...result.createdItems);
+        updated.push(...result.updatedItems);
+        serverSkipped += Number(result.stats.unchanged || 0);
       }
     } catch (importError) {
-      if (created.length) {
+      if (created.length || updated.length) {
         setItems((current) => {
-          const next = mergeScheduleItems(current, created);
+          const next = mergeScheduleItems(current, [...created, ...updated]);
           writeCachedSchedule(next);
           writeScheduleSyncStamp();
           return next;
         });
         window.dispatchEvent(new CustomEvent(SCHEDULE_UPDATE_EVENT, {
-          detail: { importId, count: created.length, localApplied: true },
+          detail: { importId, count: created.length + updated.length, localApplied: true },
         }));
       }
-      const partial = created.length
-        ? ' Đã xác nhận lưu ' + created.length + '/' + payloads.length +
-          ' hoạt động; hãy kiểm tra lịch trước khi nhập lại.'
-        : ' Hãy kiểm tra lịch trước khi tải lại file để tránh tạo trùng.';
+      const partial = created.length || updated.length
+        ? ' Đã xác nhận lưu ' + (created.length + updated.length) + '/' + rows.length +
+          ' hoạt động. Hãy làm mới và kiểm tra lịch trước khi nhập lại.'
+        : importError.uncertainCommit ? '' : ' Vui lòng kiểm tra kết nối và thử lại.';
       setError((importError.message || 'Không thể nhập lịch làm việc.') + partial);
       setImportStage('');
       setBusy(false);
@@ -940,13 +959,13 @@ export default function GlobalWorkScheduleCenter({
     // Primary operation ends here. Do NOT await poster generation, draft
     // creation, audit logs or automation before confirming the import.
     setItems((current) => {
-      const next = mergeScheduleItems(current, created);
+      const next = mergeScheduleItems(current, [...created, ...updated]);
       writeCachedSchedule(next);
       writeScheduleSyncStamp();
       return next;
     });
     window.dispatchEvent(new CustomEvent(SCHEDULE_UPDATE_EVENT, {
-      detail: { importId, count: created.length, localApplied: true },
+      detail: { importId, count: created.length + updated.length, localApplied: true },
     }));
     window.dispatchEvent(new CustomEvent('bes-global-notification', {
       detail: {
@@ -960,7 +979,7 @@ export default function GlobalWorkScheduleCenter({
     }));
     const suggestionCount = created.filter((item) => item.metadata?.schedule_event_detection).length;
     const sourceFile = importPreview.fileName;
-    const duplicated = importPreview.rows.filter((row) => row.duplicate).length;
+    const duplicated = importPreview.rows.filter((row) => row.duplicate).length + serverSkipped;
     const invalid = importPreview.invalidRows.length;
     setImportPreview(null);
     setImportOpen(false);
@@ -968,10 +987,11 @@ export default function GlobalWorkScheduleCenter({
     setBusy(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
     setNotice(language === 'en'
-      ? 'Saved ' + created.length + ' activities. ' + suggestionCount +
-        ' event candidates detected; drafts and posters are processed separately.'
-      : 'Đã lưu ' + created.length + ' hoạt động vào lịch chung. Nhận diện ' +
-        suggestionCount + ' ứng viên; bản nháp/poster được xử lý riêng.');
+      ? 'Added ' + created.length + ', updated ' + updated.length + ', skipped ' + serverSkipped +
+        ' existing rows. ' + suggestionCount + ' event candidates detected.'
+      : 'Đã thêm ' + created.length + ', cập nhật ' + updated.length +
+        ', bỏ qua ' + serverSkipped + ' dòng đã có. Nhận diện ' + suggestionCount +
+        ' ứng viên; bản nháp/poster được xử lý riêng.');
 
     // Supplementary calls cannot turn a successful save into an import error.
     void Promise.allSettled([
