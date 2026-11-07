@@ -3,6 +3,11 @@ on:
   pull_request:
     paths:
       - "src/utils/auth.js"
+      - "src/main.jsx"
+      - "src/components/TeacherFirstLoginPasswordGate.jsx"
+      - "src/components/TeacherFirstLoginPasswordGate.css"
+      - "src/components/GlobalTtcmNavigationTab.jsx"
+      - "scripts/test-ttcm-teacher-file-access.mjs"
       - "src/pages/AuthPage.jsx"
       - "api/teacher-accounts.js"
       - "server/api/_security.js"
@@ -15,6 +20,11 @@ on:
     branches: [main]
     paths:
       - "src/utils/auth.js"
+      - "src/main.jsx"
+      - "src/components/TeacherFirstLoginPasswordGate.jsx"
+      - "src/components/TeacherFirstLoginPasswordGate.css"
+      - "src/components/GlobalTtcmNavigationTab.jsx"
+      - "scripts/test-ttcm-teacher-file-access.mjs"
       - "api/teacher-accounts.js"
       - "server/api/_security.js"
       - "supabase/functions/teacher-accounts/index.ts"
@@ -35,6 +45,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run test:auth-security
+      - run: node scripts/test-ttcm-teacher-file-access.mjs
       # The legacy smoke suite has pre-existing imports of retired modules;
       # it remains reported by the repository's broader CI workflow.
       - run: npm run build
