@@ -311,6 +311,8 @@ export default async function handler(req, res) {
       stats,
       invalidRows: parsed.invalidRows.slice(0, 100),
       items: [...created, ...updated],
+      createdItems: created,
+      updatedItems: updated,
       message: `Đã thêm ${stats.added}, cập nhật ${stats.updated}, giữ nguyên ${stats.unchanged} hoạt động.`,
     });
   } catch (error) {
