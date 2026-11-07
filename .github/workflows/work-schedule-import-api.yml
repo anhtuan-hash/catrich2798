@@ -10,6 +10,9 @@ on:
       - 'src/utils/workScheduleImport.js'
       - 'src/utils/workScheduleImportPlan.js'
       - 'src/components/GlobalWorkScheduleCenter.jsx'
+      - 'src/utils/scheduleImportTransport.mjs'
+      - 'tests/unit/ttcm-schedule-network-recovery.test.mjs'
+      - 'scripts/test-schedule-import-fast-ack.mjs'
       - 'tests/unit/work-schedule-import-api.test.mjs'
       - '.github/workflows/work-schedule-import-api.yml'
   pull_request:
@@ -19,6 +22,9 @@ on:
       - 'src/utils/workScheduleImport.js'
       - 'src/utils/workScheduleImportPlan.js'
       - 'src/components/GlobalWorkScheduleCenter.jsx'
+      - 'src/utils/scheduleImportTransport.mjs'
+      - 'tests/unit/ttcm-schedule-network-recovery.test.mjs'
+      - 'scripts/test-schedule-import-fast-ack.mjs'
       - 'tests/unit/work-schedule-import-api.test.mjs'
       - '.github/workflows/work-schedule-import-api.yml'
 
@@ -40,6 +46,10 @@ jobs:
         run: npm ci
       - name: Unit tests
         run: node --test tests/unit/work-schedule-import-api.test.mjs
+      - name: TTCM legacy schedule recovery and transport tests
+        run: node --test tests/unit/ttcm-schedule-network-recovery.test.mjs
+      - name: Import acknowledgment regression
+        run: node scripts/test-schedule-import-fast-ack.mjs
       - name: Vercel Hobby function budget
         run: node scripts/test-vercel-hobby-function-budget.mjs
       - name: Production build
