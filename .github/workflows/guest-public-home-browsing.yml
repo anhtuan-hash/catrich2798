@@ -1,0 +1,38 @@
+name: Guest Public Home Browsing
+on:
+  pull_request:
+    paths:
+      - 'src/pages/HomeApproved.jsx'
+      - 'src/features/world-explorer/WorldExplorer.jsx'
+      - 'src/components/HomeHeroExperience2026.jsx'
+      - 'src/components/mobile/MobileHomeView.jsx'
+      - 'src/utils/guestPreviewPolicy.js'
+      - 'scripts/test-guest-home-public-interactions.mjs'
+      - '.github/workflows/guest-public-home-browsing.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/pages/HomeApproved.jsx'
+      - 'src/features/world-explorer/WorldExplorer.jsx'
+      - 'src/components/HomeHeroExperience2026.jsx'
+      - 'src/components/mobile/MobileHomeView.jsx'
+      - 'scripts/test-guest-home-public-interactions.mjs'
+permissions:
+  contents: read
+jobs:
+  guest-home:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Guest published browsing and access boundaries
+        run: node scripts/test-guest-home-public-interactions.mjs
+      - name: Full guest preview and privacy contracts
+        run: node scripts/test-brian-public-preview.mjs
+      - name: Compile front end
+        run: npx vite build
