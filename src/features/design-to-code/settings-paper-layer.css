@@ -139,6 +139,7 @@
 }
 .sl2.brian-paper-settings .sl2-sync > strong{color:#187a57;font-size:19px}
 .sl2.brian-paper-settings .sl2-sync > small{font-size:11px;line-height:1.45}
+.sl2.brian-paper-settings .sl2-quick {grid-column:auto;height:176px;min-height:176px}
 .sl2.brian-paper-settings .sl2-quick > div{gap:7px}
 .sl2.brian-paper-settings .sl2-quick>div button{
   min-height:66px!important;
@@ -177,6 +178,7 @@
 .sl2.brian-paper-settings .sl2-switch button{font-family:system-ui,sans-serif}
 .sl2.brian-paper-settings .sl2-switch button.on{background:#2866b9!important}
 .sl2.brian-paper-settings .sl2-grid{
+  grid-template-columns:repeat(5,minmax(0,1fr));
   gap:19px 14px;
 }
 .sl2.brian-paper-settings .sl2-tile{
