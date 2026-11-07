@@ -119,7 +119,10 @@ export async function eventAnalytics(eventId) {
   return {recipients:recipients.length,shown:unique('first_shown_at'),details:unique('detail_viewed_at'),acknowledged:unique('acknowledged_at')};
 }
 export async function eligibleEvents(userId) {
-  if(!userId)return [];
+  // No backend means the offline demo has no server-delivered events.
+  // This read-only discovery should not create an unhandled rejected Promise
+  // before the host's Promise.all has attached its error handlers.
+  if(!userId || !isSupabaseConfigured || !supabase) return [];
   const c=client();
   const {data:recipientRows,error:rErr}=await c.from('bes_event_recipients').select('event_id').eq('user_id',userId).limit(100);
   fail(rErr);

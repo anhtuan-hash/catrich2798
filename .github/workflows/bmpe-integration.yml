@@ -36,7 +36,7 @@ jobs:
           node --check src/performance/motionDiagnostics.js
           node --check scripts/bmpe-bundle-inventory.mjs
           node --check scripts/bmpe-release-gate.mjs
-          node --test tests/bmpe-css-contract.test.mjs tests/bmpe-dock-contract.test.mjs tests/bmpe-runtime-contract.test.mjs
+          node --test tests/bmpe-css-contract.test.mjs tests/bmpe-dock-contract.test.mjs tests/bmpe-runtime-contract.test.mjs tests/bmpe-event-offline-contract.test.mjs
           node scripts/test-smart-bubble-dock.mjs
           node scripts/test-unified-bubble-motion.mjs
           node scripts/test-attendance-manage-two-step-tiles.mjs
