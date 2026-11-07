@@ -141,7 +141,7 @@ function parseRows(payload) {
 // The existing calendar is stored under BOTH item_type='schedule' and
 // historical item_type='task' with metadata.schedule_event=true. Check both,
 // including after a browser-side network failure, before adding any new rows.
-async function loadExistingItems(db) {
+export async function loadExistingItems(db) {
   async function scan(itemType, requireScheduleFlag) {
     const results = [];
     for (let offset = 0; offset < EXISTING_SCAN_LIMIT; offset += EXISTING_PAGE_SIZE) {
@@ -279,6 +279,17 @@ export default async function handler(req, res) {
         },
       };
     };
+    // Preview is read-only. The client may retry it safely and can show the
+    // exact source rows already present in both modern and legacy calendars.
+    if (payload.mode === 'preview') {
+      return json(res, 200, {
+        ok: true,
+        mode: 'preview',
+        duplicateFingerprints: [...new Set(plan.unchanged.map((entry) => entry.row?.fingerprint).filter(Boolean))],
+        stats: plan.stats,
+      });
+    }
+
     const createPayloads = plan.create.map(decorate);
     const updates = plan.update.map((entry) => ({ ...entry, payload: decorate(entry) }));
     const [created, updated] = await Promise.all([
