@@ -110,20 +110,22 @@ export default function TtcmAssignmentEventPopup({ currentUser, language = 'vi' 
     if (!userId || !runtime.ready || !runtime.session) return undefined;
     const startup = window.setTimeout(scan, 600);
     const onRealtime = (payload) => {
-      const row = payload?.new;
-      if (payload?.eventType !== 'INSERT'
-        || row?.notification_type !== 'work_item_assigned'
-        || String(row?.user_id || '') !== userId) return;
+      const row = payload?.new || payload?.old;
+      if (String(row?.user_id || '') !== userId) return;
+      // Acknowledgement in another tab must dismiss a stale local popup.
+      if (payload?.eventType === 'DELETE' || row?.read_at) {
+        setQueue((current) => current.filter((entry) => entry.notificationId !== String(row.id)));
+        return;
+      }
+      if (payload?.eventType !== 'INSERT' || row?.notification_type !== 'work_item_assigned') return;
       window.setTimeout(scan, 700);
     };
     const unsubscribe = subscribeWorkHubNotifications(userId, onRealtime);
     const onFocus = () => { if (document.visibilityState === 'visible') scan(); };
     window.addEventListener('focus', onFocus);
     document.addEventListener('visibilitychange', onFocus);
-    const interval = window.setInterval(onFocus, 180000);
     return () => {
       window.clearTimeout(startup);
-      window.clearInterval(interval);
       unsubscribe();
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onFocus);
@@ -139,7 +141,7 @@ export default function TtcmAssignmentEventPopup({ currentUser, language = 'vi' 
     return () => observer.disconnect();
   }, []);
 
-  const active = officialEventOpen ? null : queue[0] || null;
+  const active = officialEventOpen ? null : (queue[0]?.item?.assignee_ids?.map(String).includes(userId) ? queue[0] : null);
   useEffect(() => {
     if (!active) return undefined;
     const frame = window.requestAnimationFrame(() => closeRef.current?.focus());
