@@ -8,6 +8,8 @@ const legacy = read('src/styles/v1159.css');
 const motion = read('src/styles/GlobalMotionSystem.css');
 const runtime = read('src/utils/globalMotionSystem.js');
 const bootstrap = read('src/main.jsx');
+const navigation = read('src/components/GlobalFlatNavigation.jsx');
+const filterGuard = read('src/components/GlobalCriticalJankGuard.css');
 
 test('unscoped legacy animation/transition kill-switch is gone', () => {
   assert.doesNotMatch(legacy, /brian-motion-retired-a/);
@@ -39,4 +41,11 @@ test('unmodified role and route bootstrap remains wired', () => {
   assert.match(bootstrap, /hasRouteAccess/);
   assert.match(bootstrap, /const Home = lazy/);
   assert.match(bootstrap, /const SmartBubbleDock = lazy/);
+});
+
+test('balanced device profile does not force-delete glass or ambient filters', () => {
+  assert.match(navigation, /GlobalCriticalJankGuard\.css/);
+  assert.doesNotMatch(filterGuard, /backdrop-filter:\s*none\s*!important/);
+  assert.doesNotMatch(filterGuard, /\bfilter:\s*none\s*!important/);
+  assert.match(filterGuard, /background-attachment:\s*scroll\s*!important/);
 });
