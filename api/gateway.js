@@ -1,4 +1,5 @@
 import briefingWeather from '../serverless-handlers/_briefing-weather.js';
+import clientErrorReport from '../serverless-handlers/_client-error-report.js';
 import checkEmbed from '../serverless-handlers/_check-embed.js';
 import googleDriveHomeroomBackup from '../serverless-handlers/_google-drive-homeroom-backup.js';
 import weeklyPracticeDriveAction from '../serverless-handlers/_weekly-practice-drive-action.js';
@@ -13,6 +14,7 @@ import questatlasLive from '../serverless-handlers/_questatlas-live.js';
 
 const handlers = Object.freeze({
   'briefing-weather': briefingWeather,
+  'client-error-report': clientErrorReport,
   'check-embed': checkEmbed,
   'google-drive-homeroom-backup': googleDriveHomeroomBackup,
   'weekly-practice-drive-action': weeklyPracticeDriveAction,

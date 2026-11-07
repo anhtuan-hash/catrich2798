@@ -8,6 +8,10 @@
       "destination": "https://raw.githubusercontent.com/notofonts/noto-fonts/main/hinted/ttf/NotoSans/NotoSans-Regular.ttf"
     },
     {
+      "source": "/api/client-error-report",
+      "destination": "/api/gateway?handler=client-error-report"
+    },
+    {
       "source": "/api/briefing-weather",
       "destination": "/api/gateway?handler=briefing-weather"
     },
