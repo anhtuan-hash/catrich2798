@@ -5,6 +5,9 @@ on:
   pull_request:
     paths:
       - 'src/components/GlobalTtcmNavigationTab.jsx'
+      - 'src/components/TtcmAssignmentEventPopup.jsx'
+      - 'src/utils/ttcmAssignmentEvents.mjs'
+      - 'scripts/test-ttcm-assignment-events.mjs'
       - 'src/components/GlobalTtcmTeacherReaderV2.css'
       - 'scripts/test-ttcm-reader-two-column-ui.mjs'
       - '.github/workflows/ttcm-reader-ui.yml'
@@ -25,5 +28,7 @@ jobs:
         run: npm ci
       - name: TTCM reader two-column contract
         run: node scripts/test-ttcm-reader-two-column-ui.mjs
+      - name: TTCM assignment events recipient isolation
+        run: node scripts/test-ttcm-assignment-events.mjs
       - name: Production build
         run: npm run build
