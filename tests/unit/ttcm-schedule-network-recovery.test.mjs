@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { buildScheduleImportPlan } from '../../src/utils/workScheduleImportPlan.js';
-import { loadExistingItems, isScheduleImportLeader } from '../../serverless-handlers/work-schedule-import.js';
+import { loadExistingItems, isScheduleImportLeader, safeScheduleStoragePayload } from '../../serverless-handlers/work-schedule-import.js';
 import { SCHEDULE_IMPORT_BATCH_SIZE, previewScheduleImport, submitScheduleImportBatch } from '../../src/utils/scheduleImportTransport.mjs';
 
 const fingerprint = '2026-11-09T09:00|hop to chuyen mon|phong 201';
@@ -72,6 +72,27 @@ test('server-side roles must require an explicitly approved leader', () => {
   assert.equal(isScheduleImportLeader({ role: 'ttcm', approved: true }), true);
   assert.equal(isScheduleImportLeader({ role: 'admin' }), false);
   assert.equal(isScheduleImportLeader({ role: 'teacher', approved: true }), false);
+});
+
+test('server-imported calendars stay read-only and never trigger assignment fanout', () => {
+  const payload = safeScheduleStoragePayload({
+    item_type: 'schedule',
+    assignee_ids: ['teacher-a', 'teacher-b'],
+    metadata: {
+      schedule_fingerprint: fingerprint,
+      schedule_notify_all: true,
+      notify_assignee: true,
+      connected_modules: ['notifications', 'ttcm', 'dashboard'],
+    },
+  });
+  assert.equal(payload.item_type, 'task');
+  assert.equal(payload.metadata.schedule_event, true);
+  assert.equal(payload.metadata.schedule_only, true);
+  assert.equal(payload.metadata.schedule_notify_all, false);
+  assert.equal(payload.metadata.notify_assignee, false);
+  assert.equal(payload.metadata.assignment_mode, 'calendar_visibility');
+  assert.deepEqual(payload.metadata.schedule_viewer_ids, ['teacher-a', 'teacher-b']);
+  assert.deepEqual(payload.metadata.connected_modules, ['ttcm', 'dashboard']);
 });
 
 test('read-only preview returns known fingerprints and never sends import mode', async () => {
