@@ -17,7 +17,8 @@ export default defineConfig({
     colorScheme: 'light',
   },
   webServer: {
-    command: 'npx vite --host 127.0.0.1 --port 4173 --strictPort',
+    command: 'npx vite . --config vite.config.js --host 127.0.0.1 --port 4173 --strictPort',
+    cwd: process.cwd(),
     url: 'http://127.0.0.1:4173/',
     reuseExistingServer: !process.env.CI,
     timeout: 45000,
