@@ -172,6 +172,36 @@ async function loadAssigneeIds(db, userId) {
   return [...new Set(ids)];
 }
 
+/**
+ * Match the browser compatibility adapter's schedule isolation contract.
+ * Imported calendars are NOT actionable Work Hub tasks, and must not
+ * accidentally fan out task notifications to every assignee.
+ */
+export function safeScheduleStoragePayload(payload) {
+  const viewers = Array.isArray(payload?.assignee_ids) ? payload.assignee_ids.filter(Boolean) : [];
+  const modules = Array.isArray(payload?.metadata?.connected_modules)
+    ? payload.metadata.connected_modules.filter((name) => String(name).toLowerCase() !== 'notifications')
+    : ['ttcm', 'dashboard', 'automation'];
+  return {
+    ...payload,
+    item_type: 'task',
+    metadata: {
+      ...(payload?.metadata || {}),
+      schedule_event: true,
+      schedule_only: true,
+      schedule_storage_type: 'task',
+      schedule_requested_type: WORK_SCHEDULE_ITEM_TYPE,
+      schedule_notify_all: false,
+      notify_assignee: false,
+      connected_modules: modules,
+      assignment_scope: null,
+      assignment_batch_id: null,
+      assignment_mode: 'calendar_visibility',
+      schedule_viewer_ids: viewers,
+    },
+  };
+}
+
 async function insertInBatches(db, payloads) {
   const created = [];
   for (let index = 0; index < payloads.length; index += WRITE_BATCH_SIZE) {
@@ -290,8 +320,10 @@ export default async function handler(req, res) {
       });
     }
 
-    const createPayloads = plan.create.map(decorate);
-    const updates = plan.update.map((entry) => ({ ...entry, payload: decorate(entry) }));
+    const createPayloads = plan.create.map((entry) => safeScheduleStoragePayload(decorate(entry)));
+    const updates = plan.update.map((entry) => ({
+      ...entry, payload: safeScheduleStoragePayload(decorate(entry)),
+    }));
     const [created, updated] = await Promise.all([
       insertInBatches(session.db, createPayloads),
       updateOwnedRows(session.db, updates),
