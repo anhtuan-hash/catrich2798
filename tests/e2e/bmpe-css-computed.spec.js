@@ -4,15 +4,18 @@ import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 
 const source = (path) => readFileSync(new URL('../../' + path, import.meta.url), 'utf8');
-const combinedCss = source('src/styles/v1159.css') + '\n' + source('src/styles/GlobalMotionSystem.css');
+const combinedCss = source('src/styles/v1159.css') + '\n' + source('src/components/GlobalCriticalJankGuard.css') + '\n' + source('src/styles/GlobalMotionSystem.css');
 
 async function mountProbe(page, { pagePreset = 'editorial-rise', interaction = 'soft-press' } = {}) {
   await page.setContent(`<!doctype html>
-<html lang="vi" data-motion-mode="editorial-calm"
+<html lang="vi" data-performance="balanced" data-motion-mode="editorial-calm"
  data-motion-page="${pagePreset}" data-motion-interaction="${interaction}"
  style="--gm-slow:285ms;--gm-fast:135ms;--gm-ease:cubic-bezier(.22,1,.36,1);--gm-ease-emphasized:cubic-bezier(.22,1,.36,1)">
-<head><meta charset="utf-8"><style>${combinedCss}</style></head>
+<head><meta charset="utf-8"><style>
+  .bes-top-chrome { filter: brightness(.96); backdrop-filter: blur(10px); }
+</style><style>${combinedCss}</style></head>
 <body>
+  <div class="app-shell" data-route="home"><header class="bes-top-chrome">Navigation</header></div>
   <main id="bes-main-content"><h1>Brian English</h1></main>
   <button id="bmpe-button" type="button">Open</button>
   <section class="ttcm-m3-shell"><div class="ttcm-m3-toolbar">TTCM</div></section>
@@ -55,4 +58,19 @@ test('user-selected no-motion and OS reduced-motion remain available', async ({ 
   });
   const reduced = await page.locator('#bes-main-content').evaluate((node) => getComputedStyle(node).animationName);
   expect(reduced).toBe('none');
+});
+
+test('balanced profile preserves premium navigation filters', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await mountProbe(page);
+  const glass = await page.locator('.bes-top-chrome').evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      filter: style.filter,
+      backdropFilter: style.backdropFilter,
+      supportsBackdrop: CSS.supports('backdrop-filter', 'blur(10px)'),
+    };
+  });
+  expect(glass.filter).toContain('brightness');
+  if (glass.supportsBackdrop) expect(glass.backdropFilter).toContain('blur');
 });
