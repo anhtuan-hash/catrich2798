@@ -48,6 +48,12 @@ jobs:
           echo "Vite fixture HTTP: READY"
       - name: Validate Paper visual lab and interactions
         run: npx playwright test -c tools/design-to-code/playwright.config.mjs
+      - name: Capture visual layout diagnostics and JSON
+        run: |
+          node tools/design-to-code/cli.mjs capture \
+            --url http://127.0.0.1:4173/tools/design-to-code/fixtures/settings-paper.html \
+            --width 1145 --height 1374 \
+            --out artifacts/design-to-code
       - name: Compile production React app
         run: npx vite build
       - name: Upload layout screenshots and diagnostics
