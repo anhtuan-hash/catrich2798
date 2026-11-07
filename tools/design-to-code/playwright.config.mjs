@@ -20,7 +20,7 @@ export default defineConfig({
     command: 'npx vite . --config vite.config.js --host 127.0.0.1 --port 4173 --strictPort',
     cwd: process.cwd(),
     url: 'http://127.0.0.1:4173/',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
     timeout: 45000,
   },
   projects: [
