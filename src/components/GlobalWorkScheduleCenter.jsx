@@ -4,7 +4,7 @@ import readXlsxFile from 'read-excel-file/browser';
 import { getRuntimeClient, subscribeTable } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
 import { getAccessToken } from '../utils/resourceLibrary.js';
-import { SCHEDULE_IMPORT_BATCH_SIZE, submitScheduleImportBatch } from '../utils/scheduleImportTransport.mjs';
+import { SCHEDULE_IMPORT_BATCH_SIZE, previewScheduleImport, submitScheduleImportBatch } from '../utils/scheduleImportTransport.mjs';
 import { emitAutomationEvent } from '../utils/automationEngine.js';
 import { recordAuditEvent } from '../utils/collaborationGovernance.js';
 import { isLeader, uid } from '../pages/v1093/shared.js';
@@ -95,33 +95,6 @@ async function loadScheduleWeekFromServer(client, window) {
   }
   return eligibleScheduleWeekRows(list, window, true);
 }
-// An import that completed its SQL insert but stalled on posters may have
-// committed the whole file already. Check current Supabase rows, not merely
-// the 15-minute in-memory calendar cache, before offering to reimport.
-async function fetchServerScheduleFingerprints(client, parsedRows) {
-  if (!client) throw new Error('Cần kết nối Supabase trước khi nhập lịch.');
-  const dates = parsedRows.map((row) => new Date(row.startAt).getTime()).filter(Number.isFinite);
-  if (!dates.length) return new Set();
-  const start = new Date(Math.min(...dates) - 86400000).toISOString();
-  const end = new Date(Math.max(...dates) + 86400000).toISOString();
-  const fingerprints = new Set();
-  for (let index = 0; index < 5000; index += 500) {
-    const { data, error } = await client.from('work_hub_items')
-      .select('metadata')
-      .eq('item_type', WORK_SCHEDULE_ITEM_TYPE)
-      .gte('due_at', start).lte('due_at', end)
-      .order('due_at', { ascending: true })
-      .range(index, index + 499);
-    if (error) throw new Error('Không xác minh được hoạt động đã lưu: ' + error.message);
-    for (const item of data || []) {
-      if (item?.metadata?.schedule_fingerprint)
-        fingerprints.add(item.metadata.schedule_fingerprint);
-    }
-    if ((data || []).length < 500) return fingerprints;
-  }
-  throw new Error('Quá nhiều hoạt động trong khoảng thời gian đã chọn; không thể xác minh trùng an toàn.');
-}
-
 const SCHEDULE_CACHE_KEY = 'bes-system-work-schedule-cache-v1';
 const SCHEDULE_SYNC_KEY = 'bes-system-work-schedule-sync-v1';
 const SCHEDULE_CACHE_MAX_AGE = 15 * 60 * 1000;
@@ -854,7 +827,12 @@ export default function GlobalWorkScheduleCenter({
       if (!parsed.ok) throw new Error(parsed.message);
       if (!client || !runtime.ready || !runtime.session)
         throw new Error('Cần kết nối Supabase để kiểm tra trùng trước khi nhập lịch.');
-      const serverFingerprints = await fetchServerScheduleFingerprints(client, parsed.validRows);
+      const accessToken = await getAccessToken();
+      const serverFingerprints = await previewScheduleImport({
+        accessToken,
+        fileName: file.name,
+        rows: parsed.validRows,
+      });
       const rows = parsed.validRows.map((row) => ({
         ...row,
         duplicate: serverFingerprints.has(row.fingerprint),
@@ -887,25 +865,6 @@ export default function GlobalWorkScheduleCenter({
     setError('');
     setNotice('');
     const importId = uid('schedule-import');
-    const recipients = assigneeIds.length ? assigneeIds : [currentUser.id];
-    const payloads = rows.map((row) => {
-      const payload = eventPayload(row, currentUser, recipients);
-      return {
-        ...payload,
-        metadata: {
-          ...payload.metadata,
-          schedule_import_id: importId,
-          schedule_source_file: importPreview.fileName,
-          schedule_source_row: row.sourceRow,
-          schedule_has_explicit_time: row.timeKnown === true,
-          schedule_has_explicit_end_time: row.endTimeKnown === true,
-          ...(autoDetectEvents && candidateSelection.has(row.fingerprint) && detectScheduleEvent(row)
-            ? { schedule_event_detection: detectScheduleEvent(row) }
-            : {}),
-          schedule_imported_at: new Date().toISOString(),
-        },
-      };
-    });
     const created = [];
     const updated = [];
     let serverSkipped = 0;
