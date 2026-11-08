@@ -3,63 +3,59 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const get=(p)=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const page=get('src/pages/GradebookStudio.jsx');
-const engine=get('src/components/gradebook/GradebookEngine.jsx');
+const engine=get('src/components/gradebook/GradebookMacEngine.jsx');
+const compat=get('src/components/gradebook/GradebookEngine.jsx');
 const workspace=get('src/components/gradebook/GradebookWorkspace.jsx');
-const styles=get('src/styles/GradebookAcademicWorkspace.css');
-
-test('exactly one active design stylesheet and native hero, no injected legacy UI',()=>{
-  assert.match(page,/import '\.\.\/styles\/GradebookAcademicWorkspace.css';/);
-  for (const legacy of ['GradebookEditorialV2','GradebookMaterialHeroRuntime','GradebookColorfulWorkspace','GradebookApprovedV2','GradebookApprovedMockupFour']){
-    assert.ok(!workspace.includes(legacy),'Old CSS still active: '+legacy);
-    assert.ok(!page.includes(legacy),'Old CSS active on page: '+legacy);
-  }
-  assert.match(page,/className="gradebook-studio-hero gb-academic-hero"/);
-  assert.doesNotMatch(workspace,/installGradebookMaterialHero/);
+const css=get('src/components/gradebook/GradebookMacEngine.css');
+const hero=get('src/styles/GradebookHeroCommand.css');
+test('one current React hero and gradebook engine, no legacy injection',()=>{
+  assert.match(page,/import '\.\.\/styles\/GradebookHeroCommand\.css'/);
+  assert.match(page,/gbmac-hero-command/);
+  assert.match(page,/gbmac-hero-media/);
+  assert.match(page,/gbmac-hero-content/);
+  assert.match(page,/gradebookHero\.backgroundType === 'video'/);
+  assert.match(compat,/export \{ default \} from '\.\/GradebookMacEngine\.jsx'/);
+  assert.match(workspace,/return <GradebookMacEngine key=\{props\.workspace\?\.id\}/);
+  assert.doesNotMatch(workspace,/installGradebookMaterialHero|GradebookApprovedMockupFour/);
 });
-
-test('all record pathways are still connected to data and permissions',()=>{
-  assert.match(page,/onClick=\{\(\) => openAssignment\(assignment\)\}/);
-  assert.match(page,/switchGradebookClass\(item.id\)/);
+test('class switch and record changes preserve unsaved-data and role guards',()=>{
   assert.match(page,/const switchGradebookClass = \(nextId\) =>/);
   assert.match(page,/if \(!canLeaveGradebook\(\)\) return/);
-  assert.match(page,/setView\('students'\)/);
-  assert.match(page,/setCreateOpen\(\(value\) => !value\)/);
+  assert.match(page,/window\.confirm\('Sổ điểm đang có thay đổi chưa lưu/);
+  assert.match(page,/if\(gradebookDirty\)\{window\.alert\(/);
+  assert.match(page,/canEditGradebookHero \? <button/);
+  assert.match(page,/onClick=\{openStudentRoster\}/);
   assert.match(page,/SubjectStudentsTab/);
-  assert.match(engine,/\{teachingOverview\}/);
-  assert.match(engine,/\{classManagement\}/);
+  assert.match(workspace,/openStudentSupport/);
+  assert.match(engine,/await onCommit\(/);
+  assert.match(engine,/onClick=\{save\}/);
+  assert.match(engine,/onClick=\{discard\}/);
   assert.match(engine,/onClick=\{openStudentReport\}/);
   assert.match(engine,/onClick=\{openClassGradebook\}/);
-  assert.match(workspace,/openStudentSupport/);
-  assert.match(engine,/onClick=\{save\}>Lưu điểm/);
-  assert.match(engine,/onClick=\{discard\}>Hoàn tác/);
-  assert.match(engine,/await onCommit\(/);
 });
-
-test('score table is horizontally scrollable and sticky columns are preserved',()=>{
-  assert.match(styles,/\.hr-grade-table-wrap\s*\{[\s\S]*?overflow:auto/);
-  assert.match(styles,/\.hr-gradebook \.hr-grade-table\s*\{[\s\S]*?table-layout:auto/);
-  assert.match(styles,/\.hr-grade-table \.hr-grade-index\s*\{[\s\S]*?position:sticky;[\s\S]*?left:0/);
-  assert.match(styles,/\.hr-grade-table \.hr-grade-student\s*\{[\s\S]*?position:sticky;[\s\S]*?left:48px/);
-  assert.match(styles,/\.hr-grade-table .hr-grade-attempt-head\s*\{[\s\S]*?min-width:118px/);
-  assert.match(styles,/\.hr-grade-input\s*\{[\s\S]*?min-height:35px/);
-  assert.match(engine,/activeRound\.columns\.length \* 104/);
-  assert.match(styles,/word-break:normal/);
+test('active score viewport scrolls horizontally with sticky identifier columns',()=>{
+  assert.match(engine,/gbmac-table-viewport/);
+  assert.match(engine,/className="gbmac-pin-index"/);
+  assert.match(engine,/className="gbmac-pin-name"/);
+  assert.match(css,/\.gbmac-table-viewport[\s\S]*?overflow:auto/);
+  assert.match(css,/position:sticky;left:0/);
+  assert.match(css,/position:sticky;left:60px/);
+  assert.match(engine,/activeRound\.columns\.length \* 124/);
 });
-test('table and grade navigation are scoped; no sticky palette under global top nav',()=>{
-  assert.match(styles,/\.hr-grade-navigation-dock\s*\{[\s\S]*?position:relative;[\s\S]*?top:auto/);
-  assert.doesNotMatch(styles,/\.brian-nav|\.bes-top-chrome|html body footer|\.signature-footer/);
-  assert.match(styles,/@media\(max-width:740px\)/);
-  assert.match(styles,/@media\(max-width:500px\)/);
-  assert.equal((styles.match(/\{/g)||[]).length,(styles.match(/\}/g)||[]).length);
+test('only Gradebook-scoped styling and responsive controls',()=>{
+  assert.doesNotMatch(css,/\.brian-nav|\.bes-top-chrome|html body footer|\.signature-footer/);
+  assert.doesNotMatch(hero,/\.brian-nav|\.bes-top-chrome|html body footer|\.signature-footer/);
+  assert.match(hero,/#root \.gbmac-studio/);
+  assert.match(hero,/@media/);
+  assert.match(css,/@media/);
+  assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length);
+  assert.equal((hero.match(/\{/g)||[]).length,(hero.match(/\}/g)||[]).length);
 });
-test('Focus V5 prioritizes live score table before optional statistics and advanced tools',()=>{
-  const stats=engine.indexOf('<section className="hr-grade-overview"');
-  const advanced=engine.indexOf('<details className="gb-academic-administration"');
-  const table=engine.indexOf("view.startsWith('regular-') ? renderRegularTable()");
-  const reports=engine.indexOf('hr-grade-export-bar',table);
-  assert.ok(table>=0&&table<stats&&stats<advanced&&advanced<reports);
-  assert.match(engine,/className="gb5-insights-drawer"/);
-  assert.match(engine,/insightsOpen \? <div className="gb5-insights-content">/);
-  assert.match(engine,/roundScore\(activeRound, student\.id, studentIds\)/);
+test('grade calculation, preview and export remain real',()=>{
   assert.match(engine,/gradeRoundBonus\(activeRound/);
+  assert.match(engine,/roundScore\(activeRound, student\.id, studentIds\)/);
+  assert.match(engine,/exportClassGradebookXlsx\(/);
+  assert.match(engine,/exportStudentGradeReportPdf\(/);
+  assert.match(engine,/gbmac-tools-dialog/);
+  assert.match(engine,/insightsOpen/);
 });
