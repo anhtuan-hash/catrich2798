@@ -46,7 +46,15 @@ test('main features and protected embedded preview remain intact', () => {
   assert.match(app, /useGlobalChromeSettings\(currentUser\)/);
   assert.match(app, /chromeSettings\.showActionDock/);
   assert.match(lesson, /function ActivityCardPreview\(/);
-  assert.match(lesson, /<ActivityFrame embed=\{embed\}/);
+  // The card is a lazy protected thumbnail. An iframe mounts only for the
+  // approved embedded preview and the teaching mode, never inside each card.
+  assert.match(lesson, /function ActivityFrame\(\{ embed, title, className = '' \}\)/);
+  assert.match(lesson, /if \(!embed \|\| !\['url', 'html'\]\.includes\(embed\.kind\)\) return null/);
+  assert.match(lesson, /<ActivityFrame embed=\{parsedDraft\}/);
+  assert.match(lesson, /<ActivityFrame embed=\{teachingEmbed\}/);
+  assert.match(lesson, /if \(canLoad\) onOpen\?\.\(\)/);
+  assert.match(lesson, /else if \(activity\.requestStatus !== 'pending'\) onRequest\?\.\(\)/);
+  assert.match(lesson, /sandbox: 'allow-scripts allow-forms/);
   assert.ok(lesson.includes('listLessonCheckActivities()'));
 
 });
