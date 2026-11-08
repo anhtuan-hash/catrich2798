@@ -3,44 +3,45 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const get=(p)=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
-const engine=get('src/components/gradebook/GradebookEngine.jsx');
-const css=get('src/styles/GradebookAcademicWorkspace.css');
-const start=engine.indexOf('function GradebookNavigationPalette(');
-const end=engine.indexOf('export default function HomeroomLearningGradebook',start);
-const nav=engine.slice(start,end);
+const engine=get('src/components/gradebook/GradebookMacEngine.jsx');
+const page=get('src/pages/GradebookStudio.jsx');
+const css=get('src/components/gradebook/GradebookMacEngine.css');
 
-test('two semesters and all seven grading tabs are permanently rendered',()=>{
-  assert.match(nav,/SEMESTERS\.map\(/);
-  assert.match(nav,/VIEWS\.map\(/);
+test('two semesters and all seven score views remain available',()=>{
+  assert.match(engine,/const SEMESTERS = \[/);
+  assert.match(engine,/const VIEWS = \[/);
   for(const label of ['Học kỳ I','Học kỳ II','TX · Đợt 1','TX · Đợt 2','TX · Đợt 3','TX · Đợt 4','Giữa kỳ','Cuối kỳ','Tổng hợp'])
-    assert.ok(engine.includes(label),label);
-  assert.match(nav,/className="hr-grade-navigation-dock is-always-visible"/);
-  assert.match(nav,/aria-pressed=\{semesterId === semester\.id\}/);
-  assert.match(nav,/aria-pressed=\{view === item\.id\}/);
+    assert.ok(engine.includes(label),'Missing semester or score view: '+label);
+  assert.match(page,/value=\{selectedSemester\}/);
+  assert.match(page,/setSelectedSemester\(event\.target\.value\)/);
+  assert.match(engine,/VIEWS\.filter\(item=>item\.id!=='mock'\)\.map/);
+  assert.match(engine,/aria-pressed=\{view===item\.id\}/);
+  assert.match(engine,/onClick=\{\(\)=>changeView\(item\.id\)\}/);
+  assert.match(engine,/className="gbmac-tabs"/);
 });
-test('no collapsing mechanism remains in the live Gradebook palette',()=>{
-  for(const token of [
-    'setPreference','readHomeroomGradeNavigationPreference',
-    'writeHomeroomGradeNavigationPreference','HOMEROOM_NAV_PALETTE_IDLE_MS',
-    'createHomeroomNavigationScrollTracker','updateHomeroomNavigationScrollTracker',
-    'hr-grade-navigation-launcher','hr-grade-navigation-options',
-    'collapse(true)','scrollY','setTimeout','aria-hidden','inert=',
-  ]) assert.ok(!nav.includes(token),token+' should not be in GradebookNavigationPalette');
-  assert.ok(!engine.includes('hr-grade-navigation-launcher'));
+
+test('active score tabs stay mounted; no timer-based palette collapse',()=>{
+  const start=engine.indexOf('<nav className="gbmac-tabs"');
+  const end=engine.indexOf('</nav>',start);
+  assert.ok(start>=0&&end>start);
+  const nav=engine.slice(start,end);
+  assert.doesNotMatch(nav,/setTimeout|scrollY|collapse\(|inert=|aria-hidden|hr-grade-navigation-launcher/);
+  assert.match(nav,/VIEWS\.filter/);
+  assert.doesNotMatch(engine,/hr-grade-navigation-launcher/);
 });
-test('status and save action always remain, with original save handler',()=>{
-  assert.match(nav,/dirty \? 'Có thay đổi chưa lưu' : 'Dữ liệu đã lưu'/);
-  assert.match(nav,/onClick=\{onSave\}>Lưu bảng điểm/);
-  assert.match(nav,/disabled=\{!dirty\}/);
-  assert.match(nav,/onClick=\{onDiscard\}>Hoàn tác/);
-  assert.match(nav,/onClick=\{\(\) => onSemesterChange\(semester.id\)\}/);
-  assert.match(nav,/onClick=\{\(\) => onViewChange\(item.id\)\}/);
+
+test('saved/unsaved state and explicit save/undo stay associated with current data',()=>{
+  assert.match(engine,/className="gbmac-save-state" role="status" aria-live="polite"/);
+  assert.match(engine,/dirty\?'Có thay đổi chưa lưu':'Đã lưu'/);
+  assert.match(engine,/onClick=\{save\} disabled=\{!dirty\|\|savePending\}/);
+  assert.match(engine,/onClick=\{discard\}/);
+  assert.match(engine,/await onCommit\(/);
+  assert.match(engine,/if \(!dirty \|\| savePending\) return/);
 });
-test('responsive palette wraps, not horizontally clips or hides buttons',()=>{
-  assert.match(css,/Permanent grade navigation:/);
-  assert.match(css,/\.hr-grade-navigation-dock\.is-always-visible \.hr-grade-views\s*\{[\s\S]*?flex-wrap:wrap;[\s\S]*?overflow:visible/);
-  assert.match(css,/\.hr-grade-navigation-dock\.is-always-visible > \.hr-grade-navigation\s*\{[\s\S]*?visibility:visible/);
-  assert.match(css,/@media\(max-width:740px\)/);
+
+test('responsive tabs preserve scroll accessibility and do not alter global chrome',()=>{
+  assert.match(css,/\.gbmac-tabs\{display:flex;overflow-x:auto/);
+  assert.match(css,/@media/);
   assert.doesNotMatch(css,/\.brian-nav|\.bes-top-chrome|html body footer|\.signature-footer/);
   assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length);
 });

@@ -51,5 +51,6 @@ assert.match(selected, /fastPreferredHomeroom/);
 assert.match(selected, /rememberAssignedHomeroom/);
 assert.match(workspace, /fastPreferredHomeroom\(currentUser\)/);
 assert.match(workspace, /listFastHomeroomCatalog\(currentUser\)/);
-assert.match(workspace, /useState\(\(\) => getInitialWorkspace\(/, 'Do not deserialize class payload each render');
+assert.match(workspace, /useState\(\(\) => applyCatalogClassType\(getInitialWorkspace\(currentUser, initialWorkspaceId\)/, 'Workspace payload hydration must run once in the useState initializer');
+assert.match(workspace, /homeroomSessionCache\.get\(snapshotKey\(user, workspaceId\)\)/, 'Hydration must use the account-scoped snapshot cache');
 console.log('Homeroom instant-entry and account isolation checks passed.');
