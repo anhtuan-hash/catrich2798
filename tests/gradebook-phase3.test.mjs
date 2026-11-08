@@ -123,18 +123,16 @@ test('progress PDF builds a valid actual PDF with Vietnamese font from repositor
   assert.equal(pdf.getPageCount(),1);
   assert.ok(pdf.getTitle().includes('Nguyễn Minh An'));
 });
-test('engine preserves original score tables, Save/Undo, permanent tabs and passes phase3 handlers',()=>{
-  const engine=readFileSync(new URL('../src/components/gradebook/GradebookEngine.jsx',import.meta.url),'utf8');
-  const tools=readFileSync(new URL('../src/components/gradebook/GradebookProductivityPanel.jsx',import.meta.url),'utf8');
-  assert.match(engine,/onSaveRubric=\{recordRubric\}/);
-  assert.match(engine,/onRestoreHistory=\{restoreHistory\}/);
-  assert.match(engine,/rubricRecords:source.rubricRecords/);
-  assert.match(engine,/restoredFrom:restoreMeta\?\.sourceId/);
-  assert.match(engine,/await onCommit\(/);
-  assert.match(engine,/onClick=\{save\}>Lưu điểm/);
-  assert.match(engine,/onClick=\{discard\}>Hoàn tác/);
-  assert.match(tools,/GradebookPhase3Panel/);
-  assert.match(tools,/label:'Phiếu tiến bộ'/);
-  assert.match(tools,/label:'Rubric'/);
-  assert.match(tools,/label:'Khôi phục'/);
+test('live editor passes rubric/history handlers and retains score, save, export and audit',()=>{
+ const engine=readFileSync(new URL('../src/components/gradebook/GradebookMacEngine.jsx',import.meta.url),'utf8');
+ const panel=readFileSync(new URL('../src/components/gradebook/GradebookProductivityPanel.jsx',import.meta.url),'utf8');
+ for(const token of [
+  'onSaveRubric={recordRubric}', 'onRestoreHistory={restoreHistory}',
+  'rubricRecords:source.rubricRecords','restoredFrom:restoreMeta?.sourceId',
+  'await onCommit(', 'onClick={save}', 'onClick={discard}',
+  'onClick={openClassGradebook}', 'onClick={openStudentReport}',
+  'roundScore(activeRound, student.id, studentIds)'
+ ])assert.ok(engine.includes(token),'Rubric/history/score action missing '+token);
+ for(const token of ['GradebookPhase3Panel',"label:'Phiếu tiến bộ'","label:'Rubric'","label:'Khôi phục'"])
+  assert.ok(panel.includes(token),'Phase3 tool missing '+token);
 });

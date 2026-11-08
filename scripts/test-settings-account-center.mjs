@@ -8,7 +8,11 @@ const settings = read('src/pages/Settings.jsx');
 const account = read('src/components/UsernameAccountCenter.jsx');
 const accountCss = read('src/components/UsernameAccountCenter.css');
 
-assert.match(settings, /settings-google-hero/, 'Settings hero must remain');
+// The approved Settings Launcher v2 replaced the legacy hero class.
+assert.match(settings, /settings-launcher-v2/, 'Current Settings v2 page must remain');
+const launcher = read('src/components/settings/SettingsLauncherHome.jsx');
+assert.match(launcher, /sl2-heading/, 'Settings launcher must retain its native hero heading');
+assert.match(launcher, /sl2-tile-open/, 'Settings launcher must retain interactive app tiles');
 assert.match(settings, /settings-notifications/, 'Notification settings must remain');
 assert.match(settings, /changeCurrentPassword/, 'Existing password flow must remain');
 

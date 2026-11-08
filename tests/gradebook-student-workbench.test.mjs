@@ -6,8 +6,8 @@ import {
 } from '../src/utils/gradebookStudentView.js';
 
 const file=(p)=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
-const eng=file('src/components/gradebook/GradebookEngine.jsx');
-const css=file('src/styles/GradebookAcademicWorkspace.css');
+const eng=file('src/components/gradebook/GradebookMacEngine.jsx');
+const css=file('src/components/gradebook/GradebookMacEngine.css');
 const page=file('src/pages/GradebookStudio.jsx');
 const students=[
  {id:'1',fullName:'Nguyễn Trần Lâm Anh',code:'CP-00017'},
@@ -51,46 +51,51 @@ test('missing scores distinguish zero from blanks and keep full list unmodified'
  assert.equal(filtered('regular-0').length,3);
 });
 
-test('UI has real controls and resets ephemeral filters on class change',()=>{
- assert.match(eng,/filterGradebookStudentView/);
- assert.match(eng,/const \[studentQuery, setStudentQuery\] = useState\(''\)/);
- assert.match(eng,/const \[missingOnly, setMissingOnly\] = useState\(false\)/);
- assert.match(eng,/const \[focusMode, setFocusMode\] = useState\(false\)/);
- assert.match(eng,/setStudentQuery\(''\);[\s\S]*setMissingOnly\(false\);[\s\S]*setFocusMode\(false\)/);
- assert.match(eng,/aria-label="Tìm học sinh theo tên hoặc mã"/);
- assert.match(eng,/className="gb-roster-missing"/);
- assert.match(eng,/role="status" aria-live="polite"/);
- assert.match(eng,/className="gb-roster-focus" aria-pressed=\{focusMode\}/);
- assert.equal((eng.match(/visibleStudents\.map/g)||[]).length,3);
- assert.match(eng,/originalStudentPosition\.get\(student\.id\)/);
+test('live controls clear only ephemeral search/missing/focus settings on class change',()=>{
+  for(const token of [
+    "filterGradebookStudentView",
+    "const [studentQuery, setStudentQuery] = useState('')",
+    "const [missingOnly, setMissingOnly] = useState(false)",
+    "const [focusMode, setFocusMode] = useState(false)",
+    "setStudentQuery('');", "setMissingOnly(false);", "setFocusMode(false);",
+    'aria-label="Tìm theo tên hoặc mã học sinh"',
+    'className="gbmac-toggle"','role="status" aria-live="polite"',
+    'originalStudentPosition.get(student.id)'
+  ])assert.ok(eng.includes(token),'Student control missing '+token);
 });
 
-test('full roster remains source of truth for calculations, export and save',()=>{
- assert.match(eng,/const studentIds = useMemo\(\(\) => students\.map\(\(student\) => student\.id\)/);
- assert.match(eng,/students\.filter\(\(student\) => roundScore\(activeRound, student\.id, studentIds\)/);
- assert.match(eng,/gradeRoundBonus\(activeRound, student\.id, studentIds\)/);
- assert.match(eng,/await onCommit\(/);
- assert.match(eng,/\{students\.map\(\(student\) => <option key=\{student\.id\}/);
- assert.match(eng,/onClick=\{openClassGradebook\}/);
- assert.match(eng,/onClick=\{openStudentReport\}/);
- assert.match(page,/src="\/gradebook-material3-hero\.svg"/);
+test('all students, not filtered rows, remain the score/export source of truth',()=>{
+  for(const token of [
+    'const studentIds = useMemo(', 'students.filter((student) => roundScore(activeRound',
+    'gradeRoundBonus(activeRound', 'await onCommit(',
+    'onClick={openClassGradebook}', 'onClick={openStudentReport}',
+    'exportClassGradebookXlsx(', 'exportStudentGradeReportPdf(',
+  ])assert.ok(eng.includes(token),'Grade source/export missing '+token);
+  assert.match(page,/gbmac-hero-command/);
 });
 
-test('keyboard shortcuts preserve native caret and allow jumping between cells',()=>{
- assert.match(eng,/event\.altKey && \['ArrowLeft', 'ArrowRight'\]\.includes\(event\.key\)/);
- assert.match(eng,/\['Enter', 'ArrowDown', 'ArrowUp'\]/);
- assert.match(eng,/querySelector\('input\.hr-grade-input:not\(:disabled\)'\)/);
- assert.match(eng,/event\.preventDefault\(\)/);
- assert.match(eng,/target\.select\(\)/);
+test('keyboard and next-empty focus protect editable inputs and do not modify scores',()=>{
+  for(const token of [
+    "event.key === '/'", "event.key.toLowerCase() === 's'",
+    "event.metaKey || event.ctrlKey || event.altKey || isEditing",
+    "target?.closest?.('input, textarea, select, [contenteditable=\"true\"]')",
+    "scoreTableRef.current?.querySelectorAll",
+    "onClick={focusNextEmptyScore}",
+    'next.focus()', 'next.select()', 'next.scrollIntoView('
+  ])assert.ok(eng.includes(token),'Keyboard/focus path missing '+token);
+  const start=eng.indexOf('const focusNextEmptyScore = () =>'),end=eng.indexOf('const openMissionSection = ',start);
+  assert.ok(start>=0&&end>start);
+  assert.doesNotMatch(eng.slice(start,end),/updateRegularScore|onCommit\(/);
 });
 
-test('workbench is accessible and focus mode hides only supporting panels',()=>{
- assert.match(css,/Gradebook Workbench/);
- assert.match(css,/\.gb-roster-search input\s*\{/);
- assert.match(css,/\.gb-roster-missing input\s*\{/);
- assert.match(css,/\.gb-roster-progress-track/);
- assert.match(css,/\.hr-gradebook\.gb-is-focused > \.gb-academic-administration/);
- assert.match(css,/\.hr-gradebook\.gb-is-focused > \.gb-prod/);
- assert.doesNotMatch(css,/(?:\.brian-nav|\.bes-top-chrome|\.signature-footer|html body footer)/);
- assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length);
+test('active workbench is accessible, locally styled, responsive and keyboard safe',()=>{
+  assert.match(css,/\.gbmac-search\{/);
+  assert.match(css,/\.gbmac-toggle\{/);
+  assert.match(css,/\.gbmac-sort\{/);
+  assert.match(css,/\.gbmac-table-viewport[\s\S]*?overflow:auto/);
+  assert.match(css,/@media\(max-width:760px\)/);
+  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
+  assert.doesNotMatch(css,/\.brian-nav|\.bes-top-chrome|\.signature-footer|html body footer/);
+  assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length);
 });
+

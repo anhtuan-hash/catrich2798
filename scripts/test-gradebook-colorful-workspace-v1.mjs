@@ -1,48 +1,51 @@
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
-const workspace=await readFile(new URL('../src/components/gradebook/GradebookWorkspace.jsx',import.meta.url),'utf8');
-const engine=await readFile(new URL('../src/components/gradebook/GradebookEngine.jsx',import.meta.url),'utf8');
-const page=await readFile(new URL('../src/pages/GradebookStudio.jsx',import.meta.url),'utf8');
-const css=await readFile(new URL('../src/styles/GradebookAcademicWorkspace.css',import.meta.url),'utf8');
+import { readFile } from 'node:fs/promises';
 
-for(const token of [
-  'gradebook-student-support',
-  'Hỗ trợ &amp; tra cứu học sinh',
-  'gradebook-student-support-icon',
-  '<GradebookEngine key={props.workspace?.id} {...props} />'
-]) assert.ok(workspace.includes(token),'Student support or gradebook engine missing: '+token);
-assert.ok(page.includes('switchGradebookClass(item.id)'), 'Navigation must use safe class switch');
-assert.ok(!workspace.includes('GradebookColorfulWorkspace.css?inline'),'Legacy mockup must no longer be mounted');
+// Retained CI step name for compatibility. Real Gradebook owner is the Mac
+// engine and the v4 hero, not the retired colorful academic workspace.
+const read=(file)=>readFile(new URL('../'+file,import.meta.url),'utf8');
+const [workspace, engine, page, css, hero] = await Promise.all([
+  read('src/components/gradebook/GradebookWorkspace.jsx'),
+  read('src/components/gradebook/GradebookMacEngine.jsx'),
+  read('src/pages/GradebookStudio.jsx'),
+  read('src/components/gradebook/GradebookMacEngine.css'),
+  read('src/styles/GradebookHeroCommand.css'),
+]);
 
-for(const token of [
-  'function GradebookUiIcon({ type })',
-  'hr-grade-title-icon',
-  'hr-grade-overview-icon',
-  'GradebookUiIcon type="students"',
-  'GradebookUiIcon type="document"',
-  'GradebookUiIcon type="bars"',
-  'GradebookUiIcon type="check"',
-  'hr-grade-export-icon',
-  'GradebookUiIcon type="excel"',
-  'hr-grade-panel-icon',
-  'hr-grade-table-wrap',
-  'gbv2-save-strip',
-]) assert.ok(engine.includes(token),'Gradebook functional structure missing: '+token);
+// Student support lives in the existing specialist area, not a cloned panel.
+assert.match(workspace,/className="gbmac-support-tools"/);
+assert.match(workspace,/openStudentSupport/);
+assert.match(workspace,/buildStudentSupportHash\(/);
+assert.match(workspace,/students\.map\(\(student\) =>/);
+assert.match(workspace,/return <GradebookMacEngine key=\{props\.workspace\?\.id\}/);
+assert.doesNotMatch(workspace,/GradebookColorfulWorkspace\.css\?inline|installGradebookMaterialHero/);
 
-for(const token of [
-  '.gb-academic-hero',
-  '.hr-grade-overview article',
-  '.hr-grade-table-wrap',
-  '.hr-grade-table .hr-grade-index',
-  '.hr-grade-table .hr-grade-student',
-  '.hr-grade-export-bar',
-  '.gbv2-support-extra',
-  'overflow:auto',
-  'position:sticky',
-  'table-layout:auto'
-]) assert.ok(css.includes(token),'Academic Workspace CSS rule missing: '+token);
-assert.ok(page.includes("import '../styles/GradebookAcademicWorkspace.css';"),'Route must own design');
-assert.ok(css.includes('var(--bes-global-font-family'),'Must honor global typeface');
-assert.ok(!css.includes('signature-footer'),'Footer must not be restyled');
-assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length,'Academic Workspace stylesheet braces');
-console.log('PASS: Gradebook support, scoring grid and responsive Academic Workspace preserved.');
+// Class selection always uses the safe dirty-state guard.
+assert.match(page,/const switchGradebookClass = \(nextId\) =>/);
+assert.match(page,/if \(!canLeaveGradebook\(\)\) return/);
+assert.match(page,/onChange=\{\(event\)=>switchGradebookClass\(event\.target\.value\)\}/);
+assert.match(page,/onClick=\{openStudentRoster\}/);
+assert.match(page,/onClick=\{\(\)=>setCreateOpen\(value=>!value\)\}/);
+
+// The single active engine still owns save/undo, real PDF/XLSX and a full
+// eight-view score workflow with typed inputs.
+for (const token of [
+ 'function GradebookUiIcon({ type })',
+ 'gbmac-workspace', 'gbmac-toolbar', 'gbmac-primary-actions',
+ 'gbmac-table-viewport', 'gbmac-pin-index', 'gbmac-pin-name',
+ "id: 'regular-0'", "id: 'midterm'", "id: 'final'", "id: 'summary'",
+ 'onClick={save}', 'onClick={discard}', 'onClick={openStudentReport}',
+ 'onClick={openClassGradebook}', 'exportClassGradebookXlsx(',
+ 'exportStudentGradeReportPdf(', 'await onCommit(', '{supportPanel}',
+]) assert.ok(engine.includes(token),'Live Gradebook workflow missing: '+token);
+
+assert.match(engine,/import '\.\/GradebookMacEngine\.css'/);
+assert.match(css,/\.gbmac-table-viewport[\s\S]*?overflow:auto/);
+assert.match(css,/position:sticky;left:0/);
+assert.match(css,/position:sticky;left:60px/);
+assert.match(hero,/gbmac-hero-media/);
+assert.match(hero,/backdrop-filter: blur\(11px\)/);
+assert.ok(!css.includes('signature-footer'),'Gradebook styling must not affect the sitewide footer');
+assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length,'Active engine CSS braces');
+assert.equal((hero.match(/\{/g)||[]).length,(hero.match(/\}/g)||[]).length,'Hero CSS braces');
+console.log('PASS: live Gradebook v4 support, export, scoring grid and sticky columns preserved.');

@@ -6,7 +6,9 @@ const style=read('src/styles/homeroom-4-loading.css');
 const nav=read('src/components/homeroom/HomeroomNavigationPalette.jsx');
 const overview=read('src/components/homeroom/HomeroomOverviewCompactTab.jsx');
 const report=read('src/components/homeroom/HomeroomOperationsCenter.jsx');
-assert.match(page,/import React, \{ lazy, Suspense, useEffect, useRef, useState \} from 'react'/);
+// useLayoutEffect is intentionally imported to synchronize layout before paint.
+assert.match(page,/import React, \{ lazy, Suspense, useEffect, useLayoutEffect, useRef, useState \} from 'react'/);
+assert.match(page,/useLayoutEffect\(/);
 const heavy=[
   ['HomeroomConductTab',"../components/HomeroomConductTab.jsx"],
   ['StudentRecordsTab',"../components/homeroom/StudentRecordsTab.jsx"],

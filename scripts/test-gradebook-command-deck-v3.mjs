@@ -50,16 +50,19 @@ assert.deepEqual(selectVisibleMockExams(exams,'e2'),[exams[1]]);
 assert.deepEqual(selectVisibleMockExams(exams),exams);
 assert.equal(exams.length,2); // no persistence mutation
 
+// Historic V3 deck checks are evaluated against the current Mac owner.
+// Keep all the numeric scores, CSV escaping, zero and non-mutation tests above.
 const root=(p)=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
-const engine=root('src/components/gradebook/GradebookEngine.jsx');
+const engine=root('src/components/gradebook/GradebookMacEngine.jsx');
+const compat=root('src/components/gradebook/GradebookEngine.jsx');
 const mock=root('src/components/gradebook/GradebookMockExams.jsx');
 const studio=root('src/pages/GradebookStudio.jsx');
 const workspace=root('src/components/gradebook/GradebookWorkspace.jsx');
 const deck=root('src/components/gradebook/GradebookProgressDeck.jsx');
-const css=root('src/components/gradebook/GradebookProgressDeck.css');
+const css=root('src/components/gradebook/GradebookMacEngine.css');
 const mockCss=root('src/components/gradebook/GradebookMockExams.css');
-assert.match(engine,/<GradebookProgressDeck/);
-assert.match(engine,/onShowMissing=\{\(sectionId\) =>/);
+assert.match(compat,/GradebookMacEngine\.jsx/);
+assert.match(engine,/summarizeGradebookProgress\(/);
 assert.match(engine,/ref=\{studentSearchRef\}/);
 assert.match(engine,/event\.key === '\/'/);
 assert.match(engine,/event\.key\.toLowerCase\(\) === 's'/);
@@ -76,9 +79,13 @@ assert.match(mock,/onClick=\{downloadTemplate\}/);
 assert.match(mock,/displayedExams\.map/);
 assert.match(mock,/input\.gb-mock-score:not\(:disabled\)/);
 assert.match(mockCss,/gb-mock-view-controls/);
-assert.match(css,/gb3-deck-tile\.is-coral/);
-assert.match(css,/@media\(max-width:430px\)/);
 assert.match(engine,/roundScore\(activeRound, student\.id, studentIds\)/);
 assert.match(engine,/gradeRoundBonus\(activeRound/);
+assert.match(engine,/onClick=\{save\}/);
+assert.match(engine,/onClick=\{discard\}/);
+assert.match(engine,/onClick=\{openStudentReport\}/);
+assert.match(engine,/onClick=\{openClassGradebook\}/);
+assert.match(css,/\.gbmac-table-viewport/);
+assert.match(css,/@media\(max-width:760px\)/);
 assert.doesNotMatch(root('src/utils/gradebookProgressDeck.js'),/mockExamScoreNumber|mockExams/);
-console.log('PASS Gradebook V3: 6-component coverage, zero, no averages, UI shortcuts, safe navigation and mock focus');
+console.log('PASS Gradebook V3 compatibility: independent numerical/CSV zero-score tests, live Mac scoreboard, shortcuts, and export.');

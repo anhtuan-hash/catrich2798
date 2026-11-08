@@ -216,6 +216,14 @@ const DRAWER_SELECTOR = '[class*="drawer"],[class*="sheet"],[data-drawer]';
 const POPOVER_SELECTOR = '[role="menu"],[role="listbox"],[role="tooltip"],[class*="popover"],[class*="dropdown"],[class*="menu-popover"]';
 const LIST_SELECTOR = '[data-motion-list-item],.app-card,.student-card,.report-card,.dashboard-card,.summary-card,[class*="list-item"],[role="row"]';
 const MOTION_ISOLATION_SELECTOR = '[data-global-motion-isolate="true"]';
+const MOTION_ENTRANT_SELECTOR = [MODAL_SELECTOR, DRAWER_SELECTOR, POPOVER_SELECTOR, TAB_PANEL_SELECTOR, LIST_SELECTOR].join(',');
+function containsMotionEntrant(node) {
+  if (node?.nodeType !== 1 || isMotionIsolated(node)) return false;
+  if (node.matches?.(MOTION_ENTRANT_SELECTOR)) return true;
+  if (!node.childElementCount) return false;
+  return Boolean(node.querySelector?.(MOTION_ENTRANT_SELECTOR));
+}
+
 
 let installed = false;
 let realtimeUnsubscribe = null;
@@ -619,7 +627,11 @@ function installMutationMotionObserver() {
   };
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
-      if (mutation.type === 'childList') mutation.addedNodes.forEach((node) => { if (node?.nodeType === 1) pending.add(node); });
+      if (mutation.type === 'childList') mutation.addedNodes.forEach((node) => {
+        // Most dynamic gradebook/attendance inserts are unrelated to motion.
+        // Avoid five selector scans in collectEntrants() for every added leaf.
+        if (containsMotionEntrant(node)) pending.add(node);
+      });
       // Preserve programmatic tab activation, but never repeatedly read computed
       // styles synchronously within a burst of React class/style updates.
       if (mutation.type === 'attributes'

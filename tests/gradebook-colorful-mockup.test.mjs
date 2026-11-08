@@ -3,47 +3,40 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const page=read('src/pages/GradebookStudio.jsx');
-const eng=read('src/components/gradebook/GradebookEngine.jsx');
+const eng=read('src/components/gradebook/GradebookMacEngine.jsx');
 const product=read('src/components/gradebook/GradebookProductivityPanel.jsx');
 const css=read('src/styles/GradebookAcademicWorkspace.css');
 const pc=read('src/components/gradebook/GradebookProductivityPanel.css');
 const art=read('public/gradebook-material3-hero.svg');
 
-test('approved colorful Material 3 design uses a crisp SVG asset and route-only visual styles',()=>{
-  assert.match(page,/src="\/gradebook-material3-hero\.svg"/);
-  assert.match(art,/<svg[^>]*viewBox="0 0 620 265"/);
-  assert.match(art,/<linearGradient/);
-  assert.match(art,/>A\+</);
-  assert.match(art,/#104DAE/); // graduation cap
-  assert.match(css,/BRIAN COLORFUL MATERIAL 3 · Approved visual revision/);
-  assert.match(css,/background:linear-gradient\(112deg,#e5f4ff,#d3eaff\)!important/);
-  assert.match(css,/background:linear-gradient\(112deg,#e4fff1,#d3f6e7\)!important/);
-  assert.match(css,/background:linear-gradient\(112deg,#f3eaff,#e6dbff\)!important/);
-  assert.match(css,/background:linear-gradient\(112deg,#fff5df,#ffe9c4\)!important/);
-  assert.doesNotMatch(css+pc,/(?:\.brian-nav|\.bes-top-chrome|\.signature-footer|html body footer)/);
+test('native media hero is composed and limited to Gradebook route',()=>{
+  const live=read('src/styles/GradebookHeroCommand.css');
+  assert.match(page,/gbmac-hero-command/);
+  assert.match(page,/gbmac-hero-default-art/);
+  assert.match(page,/gbmac-art-chip is-blue/);
+  assert.match(page,/gradebookHero\.backgroundType === 'video'/);
+  assert.match(page,/onPreview=\{setGradebookHeroPreview\}/);
+  assert.match(live,/backdrop-filter: blur\(11px\)/);
+  assert.doesNotMatch(live+pc,/\.brian-nav|\.bes-top-chrome|\.signature-footer|html body footer/);
 });
 
-test('live KPIs retain real figures and completion progress is based on class data',()=>{
-  assert.match(eng,/\{totalRegularColumns\}/);
-  assert.match(eng,/\{students\.length\}/);
-  assert.match(eng,/\{subjectEntries\.length\}/);
-  assert.match(eng,/\{completedFourRounds\}\/\{students\.length\}/);
-  assert.match(eng,/--gb-completion/);
-  assert.match(eng,/Math\.round\(completedFourRounds \/ students\.length \* 100\)/);
-  assert.match(css,/--gb-completion,0%/);
-  for(const tone of ['blue','green','purple','yellow'])assert.match(eng,new RegExp('className="tone-'+tone+'"'));
+test('live KPIs use real roster, completed score rounds and active coverage',()=>{
+  for(const token of ['totalRegularColumns','completedFourRounds','activeRoundCoverage','students.length','gradeRoundBonus(activeRound'])
+    assert.ok(eng.includes(token),token);
+  assert.match(eng,/roundScore\(activeRound, student\.id, studentIds\)/);
+  assert.match(eng,/const studentIds = useMemo/);
 });
 
-test('editable score columns get tonal styling by index, no scoring logic is replaced',()=>{
-  assert.match(eng,/activeRound\.columns\.map\(\(column, columnIndex\) => <th/);
-  assert.match(eng,/gb-m3-attempt--\$\{columnIndex % 4\}/);
-  assert.match(eng,/activeRound\.columns\.map\(\(column, columnIndex\) => <td/);
-  assert.match(eng,/gb-m3-score-cell--\$\{columnIndex % 4\}/);
-  assert.match(eng,/onChange=\{\(value\) => updateRegularScore\(student\.id, column\.id, value\)\}/);
+test('editable score columns retain semantic tones, real scoring and save',()=>{
+  const current=read('src/components/gradebook/GradebookMacEngine.css');
+  for(const tone of ['blue','red','yellow','green','purple','orange','cyan'])
+    assert.ok(current.includes('.gbmac-tabs button[data-tone="'+tone+'"]'),tone);
+  assert.match(eng,/activeRound\.columns\.map/);
+  assert.match(eng,/updateRegularScore\(student\.id/);
   assert.match(eng,/gradeRoundBonus\(activeRound/);
   assert.match(eng,/roundScore\(activeRound, student\.id, studentIds\)/);
   assert.match(eng,/await onCommit\(/);
-  assert.match(eng,/onClick=\{save\}>Lưu điểm/);
+  assert.match(eng,/onClick=\{save\}/);
   assert.match(eng,/onClick=\{openClassGradebook\}/);
   assert.match(eng,/onClick=\{openStudentReport\}/);
 });

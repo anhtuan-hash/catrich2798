@@ -1,0 +1,61 @@
+name: BMPE Wave 3 - Main vs Candidate Bundle Evidence
+on:
+  push:
+    branches: [perf/bmpe-wave2-dock-20261107]
+    paths:
+      - 'scripts/bmpe-bundle-inventory.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'src/**'
+      - '.github/workflows/bmpe-wave3-a-b-bundle.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  bundle-a-b:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - name: Checkout current candidate
+        uses: actions/checkout@v4
+        with:
+          path: candidate
+      - name: Checkout production main baseline
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: baseline
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            baseline/package-lock.json
+            candidate/package-lock.json
+      - name: Install exact dependencies and build main Vite bundle
+        shell: bash
+        run: |
+          cd baseline
+          npm ci --ignore-scripts
+          npx --no-install vite build
+          BMPE_REPORT_SHA="$(git rev-parse HEAD)" node ../candidate/scripts/bmpe-bundle-inventory.mjs > ../baseline-build.json
+      - name: Install exact dependencies and build candidate Vite bundle
+        shell: bash
+        run: |
+          cd candidate
+          npm ci --ignore-scripts
+          npx --no-install vite build
+          BMPE_REPORT_SHA="$(git rev-parse HEAD)" node scripts/bmpe-bundle-inventory.mjs --baseline ../baseline-build.json > ../candidate-build.json
+      - name: Assert report compares actual SHA values and same environment
+        run: |
+          node --input-type=module -e "import fs from 'node:fs'; const a=JSON.parse(fs.readFileSync('baseline-build.json'));const b=JSON.parse(fs.readFileSync('candidate-build.json'));if(a.commit===b.commit||a.commit==='local-unverified'||!b.comparison||b.comparison.baselineCommit!==a.commit||a.environment!==b.environment)throw new Error('Unreliable A/B comparison');console.log('MAIN:',a.commit,'CANDIDATE:',b.commit,'INITIAL GZIP DELTA:',b.comparison.initialGzipChangePct,'%');"
+      - name: Retain both reproducible manifests
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bmpe-wave3-main-candidate-bundle-evidence
+          path: |
+            baseline-build.json
+            candidate-build.json
+          if-no-files-found: ignore
+          retention-days: 14

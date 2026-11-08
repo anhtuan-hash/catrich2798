@@ -101,20 +101,18 @@ test('no AI, no API upload from pure data helpers',()=>{
   const code=readFileSync(new URL('../src/utils/gradebookProductivity.js',import.meta.url),'utf8');
   assert.doesNotMatch(code,/\bfetch\s*\(|\bopenai\b|\bllm\b|\baxios\b/i);
 });
-test('real editor still owns original save, undo, score and PDF logic',()=>{
-  const engine=readFileSync(new URL('../src/components/gradebook/GradebookEngine.jsx',import.meta.url),'utf8');
-  const panel=readFileSync(new URL('../src/components/gradebook/GradebookProductivityPanel.jsx',import.meta.url),'utf8');
-  assert.match(engine,/gradeRoundBonus\(activeRound/);
-  assert.match(engine,/roundScore\(activeRound, student\.id, studentIds\)/);
-  assert.match(engine,/await onCommit\(/);
-  assert.match(engine,/onClick=\{save\}>Lưu điểm/);
-  assert.match(engine,/onClick=\{discard\}>Hoàn tác/);
-  assert.match(engine,/GradebookProductivityPanel/);
-  assert.match(engine,/onPaste=\{applyPaste\}/);
-  assert.match(engine,/gradebookAuditChanges\(workspace.learningGradebook/);
-  assert.match(panel,/window.confirm/);
-  assert.match(panel,/onSetIntervention/);
-  assert.match(panel,/gradebookQualityReport/);
-  assert.match(panel,/onSetAlertSettings/);
-  assert.match(panel,/maxLength=\{1200\}/);
+test('real editor keeps original paste, save, undo, score, quality and PDF pathways',()=>{
+ const engine=readFileSync(new URL('../src/components/gradebook/GradebookMacEngine.jsx',import.meta.url),'utf8');
+ const panel=readFileSync(new URL('../src/components/gradebook/GradebookProductivityPanel.jsx',import.meta.url),'utf8');
+ for(const token of [
+  'gradeRoundBonus(activeRound','roundScore(activeRound, student.id, studentIds)',
+  'await onCommit(', 'onClick={save}', 'onClick={discard}',
+  'GradebookProductivityPanel','onPaste={applyPaste}',
+  'gradebookAuditChanges(workspace.learningGradebook',
+  'onClick={openStudentReport}','exportStudentGradeReportPdf('
+ ])assert.ok(engine.includes(token),'Current score action missing '+token);
+ for(const token of [
+  'window.confirm','onSetIntervention','gradebookQualityReport',
+  'onSetAlertSettings','maxLength={1200}'
+ ])assert.ok(panel.includes(token),'Productivity safety missing '+token);
 });

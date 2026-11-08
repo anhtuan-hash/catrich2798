@@ -1,48 +1,35 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-
-const load=(path)=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
+const load=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const page=load('src/pages/GradebookStudio.jsx');
-const engine=load('src/components/gradebook/GradebookEngine.jsx');
-const spectrum=load('src/styles/GradebookSpectrumV4.css');
-const original=load('src/styles/GradebookAcademicWorkspace.css');
-
-assert.match(page,/import '..\/styles\/GradebookAcademicWorkspace.css';\s*import '..\/styles\/GradebookSpectrumV4.css';/);
-assert.ok(page.includes('gradebook-studio gb4-spectrum gb5-focus gb4-palette-${visualPalette}'), 'Spectrum V4 palette is still applied under Focus V5');
-assert.match(page,/bes-gradebook-spectrum-v4:/);
-assert.match(page,/localStorage\.setItem/);
-assert.match(page,/\['electric','coral','orbit'\]/);
-for (const name of ['electric','coral','orbit']) assert.ok(page.includes("id:'"+name+"'"),'missing palette '+name);
-assert.match(page,/role="group" aria-label="Chọn bảng màu Sổ điểm"/);
-assert.match(page,/aria-pressed=\{visualPalette === palette\.id\}/);
-assert.match(page,/onClick=\{\(\) => setVisualPalette\(palette\.id\)\}/);
-assert.match(page,/gradebookDirty \? 'Có thay đổi chưa lưu' : 'Đồng bộ an toàn'/);
-assert.match(page,/\{studentCount\} học sinh/);
-assert.match(page,/switchGradebookClass\(item\.id\)/);
-assert.match(page,/onClick=\{openStudentRoster\}/);
-assert.match(page,/requestGradebookAction\('entry'\)/);
-assert.match(page,/requestGradebookAction\('summary'\)/);
-assert.match(page,/requestGradebookAction\('pdf'\)/);
-assert.match(engine,/VIEWS\.map\(/);
-assert.match(engine,/onClick=\{\(\) => onViewChange\(item\.id\)\}/);
-assert.match(engine,/className="gb4-view-icon"/);
-assert.match(engine,/gradeRoundBonus\(activeRound/);
-assert.match(engine,/roundScore\(activeRound, student\.id, studentIds\)/);
-assert.match(engine,/mockExams: normalizeMockExams\(source\.mockExams\)/);
-assert.match(engine,/onBulkPaste=\{bulkPasteMockExam\} onSetLock=\{setMockExamLock\}/);
-assert.match(engine,/dirty \? 'Có thay đổi chưa lưu' : 'Dữ liệu đã lưu'/);
-for (const token of [
-  '.gb4-spectrum', '.gb4-palette-coral','.gb4-palette-orbit','.gb4-palette-selector',
-  '.gb4-hero-signals','.gb-academic-class-list button.is-active',
-  '.gb4-view-icon','.hr-grade-views button.active','.hr-grade-table tbody tr:focus-within',
-  '.hr-grade-input:focus','.gb-mock-hero','.gb-mock-score:focus',
-  '@media(max-width:850px)','@media(max-width:540px)',
-  '@media(prefers-reduced-motion:reduce)',
-]) assert.ok(spectrum.includes(token), 'design missing '+token);
-assert.match(spectrum,/#root \.gradebook-studio\.gb4-spectrum/);
-assert.doesNotMatch(spectrum,/\.brian-nav|\.bes-top-chrome|\.signature-footer|html body footer|#root\s*\{/);
-assert.equal((spectrum.match(/\{/g)||[]).length,(spectrum.match(/\}/g)||[]).length,'CSS balance');
-assert.ok(spectrum.length >= 12000, 'design layer should be comprehensive and substantial');
-assert.ok(original.includes('overflow:auto') && original.includes('position:sticky'),'frozen table and overflow must remain');
-assert.doesNotMatch(spectrum,/animation:\s*(?:infinite|.+infinite)/);
-console.log('PASS gradebook Spectrum V4: scoped high-contrast palettes, navigable score tabs, save status, responsive, accessibility, legacy grade math');
+const engine=load('src/components/gradebook/GradebookMacEngine.jsx');
+const css=load('src/components/gradebook/GradebookMacEngine.css');
+const hero=load('src/styles/GradebookHeroCommand.css');
+// Historical Spectrum V4 no longer owns the Gradebook. The current Mac
+// Gradebook has seven semantic tones and a configurable image/video Hero.
+for(const token of [
+  "import '../styles/GradebookHeroCommand.css'",'gbmac-hero-command',
+  "gradebookHero.backgroundType === 'video'",'onPreview={setGradebookHeroPreview}',
+  'onClick={openStudentRoster}','const switchGradebookClass = (nextId) =>',
+  'if (!canLeaveGradebook()) return',
+])assert.ok(page.includes(token),'Current Gradebook route missing '+token);
+for(const token of [
+  'const VIEWS = [','VIEWS.filter(item=>item.id!==\'mock\').map',
+  'aria-pressed={view===item.id}','onClick={()=>changeView(item.id)}',
+  'gradeRoundBonus(activeRound','roundScore(activeRound, student.id, studentIds)',
+  'mockExams: normalizeMockExams(source.mockExams)',
+  'onBulkPaste={bulkPasteMockExam} onSetLock={setMockExamLock}',
+  'onClick={save}','onClick={discard}',
+])assert.ok(engine.includes(token),'Current Gradebook operation missing '+token);
+for(const tone of ['blue','red','yellow','green','purple','orange','cyan'])
+  assert.ok(css.includes('.gbmac-tabs button[data-tone="'+tone+'"]'),'Semantic tone missing '+tone);
+for(const t of [
+  '.gbmac-tabs button.is-selected','.gbmac-table tbody tr:hover td',
+  '@media(max-width:760px)','@media(prefers-reduced-motion:reduce)'
+])assert.ok(css.includes(t),'Current Gradebook CSS missing '+t);
+assert.match(hero,/backdrop-filter: blur\(11px\)/);
+assert.doesNotMatch(css,/\.brian-nav|\.bes-top-chrome|\.signature-footer|html body footer|#root\s*\{/);
+assert.doesNotMatch(hero,/\.brian-nav|\.bes-top-chrome|\.signature-footer|html body footer/);
+assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length);
+assert.equal((hero.match(/\{/g)||[]).length,(hero.match(/\}/g)||[]).length);
+console.log('PASS Gradebook Spectrum continuity: semantic tones, actual scoring, reduced motion, media and accessibility');
