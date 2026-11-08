@@ -25,11 +25,14 @@ test('current media Hero has responsive real artwork and no baked bitmap require
 test('native Header controls invoke grade operations with current class guards',()=>{
   assert.match(page,/from 'lucide-react'/);
   for(const token of [
-    "requestGradebookAction('entry')","requestGradebookAction('summary')",
-    "requestGradebookAction('pdf')",'onClick={openStudentRoster}',
+    'const requestGradebookAction = (action) =>',
+    'setGradebookAction((current) => ({ action, workspaceId, seq:',
+    'onClick={openStudentRoster}',
     'const openStudentRoster = () =>','if (!canLeaveGradebook()) return',
     'onClick={()=>setCreateOpen(value=>!value)}','gbmac-shell-selectors',
   ])assert.ok(page.includes(token),'Current header action missing '+token);
+  const live=read('src/components/gradebook/GradebookMacEngine.jsx');
+  for(const name of ['onClick={openClassGradebook}','onClick={openStudentReport}','VIEWS.filter(item=>item.id'])assert.ok(live.includes(name),'Live Gradebook action missing '+name);
 });
 
 test('One cohesive themed route, readable hierarchy and responsive interactions',()=>{
