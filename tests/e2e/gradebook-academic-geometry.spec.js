@@ -3,13 +3,13 @@ import { readFileSync } from 'node:fs';
 // Offline CSS geometry regression for the ACTUAL GradebookMacEngine styles.
 // This is not authenticated application UAT or visual-baseline approval.
 const css=readFileSync(new URL('../../src/components/gradebook/GradebookMacEngine.css',import.meta.url),'utf8');
-const fixture=(n=42)=>\`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+const fixture=(n=42)=>`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>
 html,body{margin:0;background:#f5f8fc;font:14px Arial}#root{width:100%;max-width:100%;padding:8px;box-sizing:border-box}
-\${css}</style></head><body><div id="root"><main class="gbmac">
+${css}</style></head><body><div id="root"><main class="gbmac">
 <div class="gbmac-workspace"><div class="gbmac-table-viewport">
 <table class="gbmac-table" style="min-width:5900px"><thead><tr><th class="gbmac-pin-index">STT</th><th class="gbmac-pin-name">Học sinh</th>
-\${Array.from({length:n},(_,i)=>'<th class="gbmac-attempt">Lần '+(i+1)+'</th>').join('')}</tr></thead>
-<tbody>\${Array.from({length:4},(_,i)=>'<tr><td class="gbmac-pin-index">'+(i+1)+'</td><td class="gbmac-pin-name"><b>Nguyễn Trần Lâm Anh</b><small>CP-000123</small></td>'+Array.from({length:n},()=>'<td data-gbmac-score><input class="hr-grade-input" aria-label="Điểm"></td>').join('')+'</tr>').join('')}</tbody></table></div></div></main></div></body></html>\`;
+${Array.from({length:n},(_,i)=>'<th class="gbmac-attempt">Lần '+(i+1)+'</th>').join('')}</tr></thead>
+<tbody>${Array.from({length:4},(_,i)=>'<tr><td class="gbmac-pin-index">'+(i+1)+'</td><td class="gbmac-pin-name"><b>Nguyễn Trần Lâm Anh</b><small>CP-000123</small></td>'+Array.from({length:n},()=>'<td data-gbmac-score><input class="hr-grade-input" aria-label="Điểm"></td>').join('')+'</tr>').join('')}</tbody></table></div></div></main></div></body></html>`;
 
 for(const width of [390,620,980,1440]){
  test('Live Mac score table with 42 columns remains scrollable at '+width+'px',async({page})=>{
