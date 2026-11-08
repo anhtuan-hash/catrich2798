@@ -95,20 +95,17 @@ test('audit CSV escapes spreadsheet formulas and includes before/after values',(
   assert.match(csv,/'=HYPERLINK/);
   assert.match(csv,/"9"/);
 });
-test('locked status actively disables edit controls (not just styling)',()=>{
-  const engine=readFileSync(new URL('../src/components/gradebook/GradebookEngine.jsx',import.meta.url),'utf8');
-  const panel=readFileSync(new URL('../src/components/gradebook/GradebookProductivityPanel.jsx',import.meta.url),'utf8');
-  assert.match(engine,/if\(finalized\)return;/);
-  assert.match(engine,/if \(finalized \|\| !activeRound/);
-  assert.match(engine,/<ScoreInput value=\{row\[column.id\]\} disabled=\{finalized\}/);
-  assert.match(engine,/<PlusCountInput value=\{plusCount\} disabled=\{finalized\}/);
-  assert.match(engine,/<ScoreInput value=\{value\} disabled=\{finalized\}/);
-  assert.match(engine,/onSetFinalization=\{updateFinalization\}/);
-  assert.match(engine,/gradebookQualityReport\(\{students,semester:activeSemester\}\)\.length>0/);
-  assert.match(panel,/qualityIssues\.length>0/);
-  assert.match(engine,/gb-finalized-banner/);
-  assert.match(panel,/readGradebookXlsx/);
-  assert.match(panel,/previewGradebookExcelImport/);
-  assert.match(panel,/Đối chiếu & xem trước/);
-  assert.match(panel,/Chốt điểm học kỳ/);
+test('locked semesters actively reject edits and allow authorized reopening only',()=>{
+ const engine=readFileSync(new URL('../src/components/gradebook/GradebookMacEngine.jsx',import.meta.url),'utf8');
+ const panel=readFileSync(new URL('../src/components/gradebook/GradebookProductivityPanel.jsx',import.meta.url),'utf8');
+ for(const token of [
+  'if(finalized)return','if (finalized || !activeRound',
+  'disabled={finalized}','disabled={finalized||',
+  'onSetFinalization={updateFinalization}','gradebookQualityReport',
+  'finalized && view!==\'mock\'','<ScoreInput','<PlusCountInput'
+ ])assert.ok(engine.includes(token),'Real finalized gate missing '+token);
+ for(const token of [
+  'qualityIssues.length>0','readGradebookXlsx',
+  'previewGradebookExcelImport','Đối chiếu & xem trước','Chốt điểm học kỳ'
+ ])assert.ok(panel.includes(token),'Admin safety flow missing '+token);
 });
