@@ -50,7 +50,7 @@ const totals = (rows)=> ({
 });
 const report = {
   schema: 'bmpe-vite-bundle-inventory-v1',
-  commit: process.env.GITHUB_SHA || 'local-unverified',
+  commit: process.env.BMPE_REPORT_SHA || process.env.GITHUB_SHA || 'local-unverified',
   capturedAt: new Date().toISOString(),
   environment: process.env.CI ? 'ci' : 'local',
   note: 'Build asset sizes only; not hardware FPS or official RUM Web Vitals.',
