@@ -100,9 +100,9 @@ const before = { subjects:{ english:{ mockExams: [{id:'x1',label:'Lần 1',locke
 const after = { subjects:{ english:{ mockExams: [{id:'x1',label:'Lần 1',locked:true,scores:{a:'7'}}], semesters:{} } } };
 assert.ok(gradebookAuditChanges(before,after).some(x=>x.field==='locked' && x.kind==='mock-exam'));
 
-const engine = readFileSync(new URL('../src/components/gradebook/GradebookEngine.jsx', import.meta.url), 'utf8');
+const engine = readFileSync(new URL('../src/components/gradebook/GradebookMacEngine.jsx', import.meta.url), 'utf8');
 const ui = readFileSync(new URL('../src/components/gradebook/GradebookMockExams.jsx', import.meta.url), 'utf8');
-assert.match(engine,/if \(exam && !exam.locked\)/);
+assert.match(engine,/if \(exam && !exam.locked && studentIds.includes\(studentId\)\)/);
 assert.match(engine,/if \(!exam \|\| exam.locked\) return;/);
 assert.match(engine,/onBulkPaste=\{bulkPasteMockExam\} onSetLock=\{setMockExamLock\}/);
 assert.match(ui,/previewMockExamPaste/);

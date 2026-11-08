@@ -36,7 +36,7 @@ assert.match(csv,/Thi thử lần 1 \(2026-10-12\)/);
 assert.match(csv,/"0"/);
 assert.match(csv,/"'=EVIL\(\)"/);
 assert.doesNotMatch(csv,/Điểm trung bình|Điểm cộng/);
-const engine=readFileSync(new URL('../src/components/gradebook/GradebookEngine.jsx',import.meta.url),'utf8');
+const engine=readFileSync(new URL('../src/components/gradebook/GradebookMacEngine.jsx',import.meta.url),'utf8');
 assert.match(engine,/isGrade12Class\(workspace\.classProfile\)/);
 assert.match(engine,/view === 'mock'/);
 assert.match(engine,/mockExams: normalizeMockExams\(source\.mockExams\)/);
