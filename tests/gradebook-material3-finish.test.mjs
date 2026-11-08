@@ -30,7 +30,11 @@ test('small roster defaults fully visible and resets on class change',()=>{
   assert.match(editor,/useState\(\(\) => students\.length <= 45\)/);
   assert.match(editor,/setShowFullRoster\(students\.length <= 45\)/);
   assert.match(editor,/\[workspace\.id, students\.length\]/);
-  assert.match(editor,/onClick=\{\(\)=>setShowFullRoster/);
+  // Current Mac engine shows every filtered roster row; a legacy expand button
+  // is no longer required to reveal students and is not a current UI control.
+  assert.match(editor,/const visibleStudents = useMemo\(/);
+  assert.doesNotMatch(editor,/visibleStudents\.slice\(0,\s*45\)/);
+  assert.match(editor,/visibleStudents\.map\(/);
   assert.match(current,/\.gbmac-table-viewport[\s\S]*?overflow:auto/);
   assert.match(current,/position:sticky;left:60px/);
 });
