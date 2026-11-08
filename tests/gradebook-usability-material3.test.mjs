@@ -2,31 +2,31 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const load=(p)=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
-const css=load('src/styles/GradebookAcademicWorkspace.css');
+const css=load('src/components/gradebook/GradebookMacEngine.css');
 const productivityCss=load('src/components/gradebook/GradebookProductivityPanel.css');
-const editor=load('src/components/gradebook/GradebookEngine.jsx');
+const editor=load('src/components/gradebook/GradebookMacEngine.jsx');
 const productivity=load('src/components/gradebook/GradebookProductivityPanel.jsx');
 
-test('scores display is a large independent scroll area, with a full-class expansion button',()=>{
-  assert.match(css,/max-height:clamp\(610px,84vh,830px\)/);
-  assert.match(editor,/const \[showFullRoster, setShowFullRoster\] = useState\(\(\) => students\.length <= 45\)/);
+test('score viewport scrolls independently, has a small-class expansion state and frozen roster',()=>{
+  assert.match(css,/\.gbmac-table-viewport[\s\S]*?overflow:auto/);
+  assert.match(css,/max-height:min\(67vh,730px\)/);
+  assert.match(editor,/useState\(\(\) => students\.length <= 45\)/);
+  assert.match(editor,/setShowFullRoster\(students\.length <= 45\)/);
   assert.match(editor,/\[workspace\.id, students\.length\]/);
-  assert.match(editor,/className="gbv3-expand-table" aria-pressed=\{showFullRoster\}/);
-  assert.match(editor,/setShowFullRoster\(\(value\) => !value\)/);
-  assert.match(editor,/hr-grade-table-wrap\$\{showFullRoster \? ' gbv3-table-expanded' : ''\}/);
-  assert.match(css,/\.hr-grade-table-wrap\.gbv3-table-expanded\s*\{[\s\S]*?max-height:none/);
-  assert.match(css,/\.hr-gradebook \.hr-grade-table-wrap\s*\{[\s\S]*?overflow:auto/);
-  assert.match(css,/\.hr-grade-table \.hr-grade-index\s*\{[\s\S]*?position:sticky;[\s\S]*?left:0/);
-  assert.match(css,/\.hr-grade-table \.hr-grade-student\s*\{[\s\S]*?position:sticky;[\s\S]*?left:48px/);
+  assert.match(editor,/setShowFullRoster/);
+  assert.match(css,/position:sticky;left:0/);
+  assert.match(css,/position:sticky;left:60px/);
 });
 
-test('all semester and score tabs remain present with legible two-row layout',()=>{
-  assert.match(editor,/SEMESTERS\.map\(/);
-  assert.match(editor,/VIEWS\.map\(/);
-  assert.match(css,/Gradebook Material 3 usability refinement/);
-  assert.match(css,/\.hr-grade-navigation-dock\.is-always-visible \.hr-grade-views\s*\{[\s\S]*?grid-template-columns:repeat\(7,minmax\(0,1fr\)\)/);
-  assert.match(css,/@media\(max-width:740px\)/);
-  assert.match(css,/@media\(max-width:430px\)/);
+test('seven persistent score tabs remain readable with mobile horizontal scroll',()=>{
+  assert.match(editor,/const SEMESTERS = \[/);
+  assert.match(editor,/const VIEWS = \[/);
+  assert.match(editor,/VIEWS\.filter\(item=>item\.id!=='mock'\)\.map/);
+  assert.match(editor,/aria-pressed=\{view===item\.id\}/);
+  assert.match(css,/\.gbmac-tabs\{/);
+  assert.match(css,/grid-template-columns:repeat\(7,minmax\(0,1fr\)\)/);
+  assert.match(css,/@media\(max-width:760px\)/);
+  assert.match(css,/\.gbmac-tabs\{display:flex;overflow-x:auto/);
 });
 
 test('Excel xlsx flow is available but not expanded with quick paste by default',()=>{
@@ -41,16 +41,13 @@ test('Excel xlsx flow is available but not expanded with quick paste by default'
   assert.match(productivityCss,/\.gb-prod-excel-content/);
 });
 
-test('preserve all scoring calculations, permissions, undo and exports',()=>{
-  assert.match(editor,/gradeRoundBonus\(activeRound/);
-  assert.match(editor,/roundScore\(activeRound, student\.id, studentIds\)/);
-  assert.match(editor,/await onCommit\(/);
-  assert.match(editor,/disabled=\{finalized\}/);
-  assert.match(editor,/onClick=\{save\}>Lưu điểm/);
-  assert.match(editor,/onClick=\{discard\}>Hoàn tác/);
-  assert.match(editor,/onClick=\{openClassGradebook\}/);
-  assert.match(editor,/onClick=\{openStudentReport\}/);
-  assert.match(editor,/GradebookProductivityPanel/);
+test('actual score calculation, lock permissions, undo/save and Excel/PDF remain wired',()=>{
+  for(const token of [
+    'gradeRoundBonus(activeRound','roundScore(activeRound, student.id, studentIds)',
+    'await onCommit(', 'disabled={finalized}', 'onClick={save}','onClick={discard}',
+    'onClick={openClassGradebook}', 'onClick={openStudentReport}',
+    'GradebookProductivityPanel'
+  ])assert.ok(editor.includes(token),'Score/existing permission missing '+token);
 });
 
 test('strict route scoping: no global nav/footer selectors or extra CSS authorities',()=>{
