@@ -1,23 +1,54 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-const page=await readFile(new URL('../src/pages/GradebookStudio.jsx',import.meta.url),'utf8');
-const workspace=await readFile(new URL('../src/components/gradebook/GradebookWorkspace.jsx',import.meta.url),'utf8');
-const engine=await readFile(new URL('../src/components/gradebook/GradebookEngine.jsx',import.meta.url),'utf8');
-const css=await readFile(new URL('../src/styles/GradebookAcademicWorkspace.css',import.meta.url),'utf8');
-for (const token of [
-  'gb-academic-hero','gb-academic-class-list','gb-academic-actions',
-  'gb-academic-primary','switchGradebookClass(item.id)',
-  'requestGradebookAction(\'entry\')',
-  'requestGradebookAction(\'summary\')',
-  'requestGradebookAction(\'pdf\')',
-]) assert.ok(page.includes(token), 'Missing native Gradebook feature: '+token);
-assert.ok(page.includes("window.confirm('Sổ điểm đang có thay đổi chưa lưu"), 'Guard class changes when scores are unsaved');
-assert.ok(!workspace.includes('installGradebookMaterialHero'),'DOM-observed legacy hero must not be mounted');
-assert.ok(!workspace.includes('GradebookApprovedMockupFour'),'Legacy CSS must be inactive');
-assert.ok(engine.includes('className="gb-academic-administration"'),'Class tools remain available');
-assert.ok(engine.includes('onClick={openStudentReport}'),'PDF export preserved');
-assert.ok(css.includes('font-family:var(--bes-global-font-family'),'Global font must be inherited');
-assert.ok(css.includes('overflow:auto')&&css.includes('position:sticky'),'Table must scroll with frozen identification columns');
-const opens=(css.match(/\{/g)||[]).length, closes=(css.match(/\}/g)||[]).length;
-assert.equal(opens,closes,'Gradebook stylesheet braces must be balanced');
-console.log('PASS: Native Academic Workspace hero, preserved shortcuts and scoped styling.');
+
+// "Colorful Hero V1" is a historical test name. The active Gradebook UI is
+// GradebookMacEngine + the full-bleed Gradebook Hero Command (v4).
+// Assert current live functionality; do not recreate retired gb-academic UI.
+const read = (path) => readFile(new URL('../' + path, import.meta.url), 'utf8');
+const [page, workspace, compatibility, engine, css, engineCss] = await Promise.all([
+  read('src/pages/GradebookStudio.jsx'),
+  read('src/components/gradebook/GradebookWorkspace.jsx'),
+  read('src/components/gradebook/GradebookEngine.jsx'),
+  read('src/components/gradebook/GradebookMacEngine.jsx'),
+  read('src/styles/GradebookHeroCommand.css'),
+  read('src/components/gradebook/GradebookMacEngine.css'),
+]);
+
+for (const marker of [
+  'gbmac-hero-command', 'gbmac-hero-content', 'gbmac-hero-media',
+  'gbmac-shell-selectors', 'gbmac-shell-utilities', 'gbmac-hero-edit',
+  'gbmac-hero-save-state', 'gbmac-hero-default-art',
+]) assert.ok(page.includes(marker), 'Current native Gradebook Hero missing: ' + marker);
+assert.match(page, /import '\.\.\/styles\/GradebookHeroCommand\.css'/);
+assert.match(page, /canEditGradebookHero \? <button/);
+assert.match(page, /onClick=\{\(\)=>setGradebookHeroEditorOpen\(true\)\}/);
+assert.match(page, /gradebookHero\.backgroundType === 'video'/);
+assert.match(page, /onPreview=\{setGradebookHeroPreview\}/);
+assert.match(page, /onChange=\{\(event\)=>switchGradebookClass\(event\.target\.value\)\}/);
+assert.match(page, /activeClasses\.map\(item=>/);
+assert.match(page, /if \(!canLeaveGradebook\(\)\) return/);
+assert.match(page, /window\.confirm\('Sổ điểm đang có thay đổi chưa lưu/);
+assert.match(page, /if\(gradebookDirty\)\{window\.alert\(/);
+assert.match(page, /onClick=\{openStudentRoster\}/);
+assert.match(page, /onClick=\{\(\)=>setCreateOpen\(value=>!value\)\}/);
+
+assert.match(workspace, /return <GradebookMacEngine key=\{props\.workspace\?\.id\}/);
+assert.match(compatibility, /export \{ default \} from '\.\/GradebookMacEngine\.jsx'/);
+assert.doesNotMatch(workspace, /installGradebookMaterialHero|GradebookApprovedMockupFour/);
+
+// Functional pathways remain on the current engine: score commit/undo, XLSX,
+// per-student PDF, score table, frozen index and student columns.
+for (const marker of [
+  'await onCommit(', 'onClick={save}', 'onClick={discard}',
+  'exportClassGradebookXlsx(', 'exportStudentGradeReportPdf(',
+  'onClick={openStudentReport}', 'onClick={openClassGradebook}',
+  'gbmac-table-viewport', 'gbmac-pin-index', 'gbmac-pin-name',
+]) assert.ok(engine.includes(marker), 'Active Gradebook engine missing: ' + marker);
+assert.match(engineCss, /\.gbmac-table-viewport[\s\S]*?overflow:auto/);
+assert.match(engineCss, /position:sticky;left:0/);
+assert.match(engineCss, /position:sticky;left:60px/);
+assert.match(css, /backdrop-filter: blur\(11px\)/);
+assert.match(css, /gbmac-hero-media/);
+assert.match(css, /object-fit: var\(--gbmac-hero-fit/);
+assert.equal((css.match(/\{/g) || []).length, (css.match(/\}/g) || []).length);
+console.log('PASS: native Gradebook v4 full-bleed hero, live score, export, CSS and permissions.');
