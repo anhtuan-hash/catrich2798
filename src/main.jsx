@@ -124,6 +124,7 @@ const SyncQueueIndicator = lazy(() => import('./components/SyncQueueIndicator.js
 const WorkDashboard = lazy(() => import('./pages/WorkDashboard.jsx'));
 const GuestPreview = lazy(() => import('./pages/GuestPreview.jsx'));
 const BrianFocus = lazy(() => import('./components/BrianFocus/BrianFocus.jsx'));
+const TtcmAssignmentEventPopup = lazy(() => import('./components/TtcmAssignmentEventPopup.jsx'));
 const BrianBoard = lazy(() => import('./components/BrianBoard/BrianBoard.jsx'));
 const BrianBombArena = lazy(() => import('./components/BrianBombArena/BrianBombArena.jsx'));
 const BrianFamilyFeud = lazy(() => import('./components/BrianFamilyFeud/BrianFamilyFeud.jsx'));
@@ -519,6 +520,14 @@ function App() {
             </AppErrorBoundary>
           </>}
         </div> : null}
+
+        {currentUser && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'slideshow'].includes(currentRoute) ? (
+          <Suspense fallback={null}>
+            <AppErrorBoundary compact scope="ttcm-assignment-event" label="TTCM assignment notification">
+              <TtcmAssignmentEventPopup currentUser={currentUser} language={language} />
+            </AppErrorBoundary>
+          </Suspense>
+        ) : null}
 
         {quickAccessEnabled && (
           <Suspense fallback={null}>
