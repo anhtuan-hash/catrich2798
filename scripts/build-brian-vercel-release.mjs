@@ -4,6 +4,8 @@ import {resolve} from 'node:path';
 // Vercel builds the app with a short, auditable command; the legacy full
 // regression suite remains in GitHub Actions instead of blocking static bundling.
 const checks=[
+  ['node',['scripts/test-vercel-hobby-function-budget.mjs']],
+  ['node',['scripts/test-client-error-telemetry.mjs']],
   ['node',['scripts/test-report-proofreading.mjs']],
   ['node',['scripts/test-editorial-app-heroes.mjs']],
   ['npm',['run','version:sync']],
