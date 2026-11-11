@@ -93,6 +93,7 @@ try {
       await expect(item).toHaveAccessibleName(/\S/);
     }
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'horizontal overflow at '+w);
+    await expect.poll(()=>page.locator('.login-paper-masthead').evaluate(n=>n.getBoundingClientRect().y)).toBe(0);
     await page.screenshot({path:join(output,'login-'+w+'.png'),fullPage:true,animations:'disabled'});
     console.log('Geometry',w,JSON.stringify(await page.locator('.app-shell,main,.bqa-content-safe-frame,.auth-google-page,.login-paper-masthead,.auth-google-stage,.auth-google-form,.auth-google-form-header,.auth-google-submit,.auth-google-secondary,.signature-footer-v50,.signature-footer-v50-main,.signature-footer-v50-credentials').evaluateAll(nodes=>nodes.map(n=>({class:n.className,x:n.getBoundingClientRect().x,y:n.getBoundingClientRect().y,w:n.getBoundingClientRect().width,h:n.getBoundingClientRect().height})))));
     await page.locator('.login-paper-jump').click();
@@ -152,6 +153,15 @@ try {
   await expect(english.form.getByRole('heading',{name:'Teacher sign in'})).toBeVisible();
   await expect(english.form.getByRole('button',{name:'Continue with Google'})).toBeVisible();
   await english.page.screenshot({path:join(output,'login-en.png'),fullPage:true,animations:'disabled'});
+  await english.form.locator('input[autocomplete=username]').fill('unfinished-user');
+  enabled=false;
+  await english.page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+  await expect(english.page.locator('.login-paper-masthead')).toHaveCount(0);
+  await expect(english.form.locator('input[autocomplete=username]')).toHaveValue('unfinished-user');
+  enabled=true;
+  await english.page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+  await expect(english.page.locator('.login-paper-masthead')).toBeVisible();
+  await expect(english.form.locator('input[autocomplete=username]')).toHaveValue('unfinished-user');
   enabled=false;
   const original=await open(1122,900);
   await expect(original.page.locator('.app-shell')).not.toHaveAttribute('data-login-scrapbook','on');

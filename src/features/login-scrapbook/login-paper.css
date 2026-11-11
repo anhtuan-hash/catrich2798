@@ -13,6 +13,7 @@ html body #root#root#root .app-shell[data-login-scrapbook="on"] {
   background: #b6daf3 url('/assets/login-scrapbook/sky.webp') repeat !important;
 }
 html body #root#root#root .app-shell[data-login-scrapbook="on"] > .bes-top-chrome,
+html body #root#root#root .app-shell[data-login-scrapbook="on"] [data-bes-pinned-hub-spacer="true"],
 html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-aurora-field,
 html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-page-footer { display: none !important; }
 html body #root#root#root .app-shell[data-login-scrapbook="on"] :is(.wp8-page-stage, .bqa-content-safe-frame, .auth-google-page) {
