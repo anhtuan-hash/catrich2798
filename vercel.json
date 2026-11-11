@@ -4,6 +4,10 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/api/client-error-report",
+      "destination": "/api/gateway?handler=client-error-report"
+    },
+    {
       "source": "/bes-fonts/brian-personal-font.ttf",
       "destination": "https://raw.githubusercontent.com/notofonts/noto-fonts/main/hinted/ttf/NotoSans/NotoSans-Regular.ttf"
     },

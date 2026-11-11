@@ -1,0 +1,263 @@
+/* Reference canvas: 1122 × 1402. Artwork has an EMPTY notebook and footer;
+   controls and footer copy are live content. Each band grows with its content.
+   Repeated #root beats the legacy font/layout locks, only while this flag is on. */
+html:has(.app-shell[data-login-scrapbook="on"]) { background: #b5d7ef; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] {
+  --lp-ink: #092655;
+  --bes-layout-top-gap: 0px;
+  display: block !important; gap: 0 !important;
+  container-type: inline-size;
+  width: 100% !important; max-width: 1440px !important;
+  min-height: 100vh !important; margin: 0 auto !important; padding: 0 !important;
+  color: var(--lp-ink) !important;
+  background: #b6daf3 url('/assets/login-scrapbook/sky.webp') repeat !important;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] > .bes-top-chrome,
+html body #root#root#root .app-shell[data-login-scrapbook="on"] [data-bes-pinned-hub-spacer="true"],
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-aurora-field,
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-page-footer { display: none !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] :is(.wp8-page-stage, .bqa-content-safe-frame, .auth-google-page) {
+  width: 100% !important; max-width: none !important; min-height: 0 !important;
+  display: block !important; gap: 0 !important;
+  margin-block: 0 !important; padding-block: 0 !important;
+  margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important;
+  background: transparent !important; box-shadow: none !important;
+  overflow: visible !important; transform: none !important;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] :is(.auth-google-page, .signature-footer-v50) * {
+  font-family: 'Trebuchet MS', 'Segoe UI', Arial, sans-serif !important;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .login-paper-masthead {
+  position: relative !important; display: block !important; height: 8.0214cqw !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important;
+  background: url('/assets/login-scrapbook/masthead.webp') center / 100% 100% no-repeat;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .login-paper-brand {
+  position: absolute; left: 4.4563%; top: 0; width: 26.738%; height: 100%; display: block;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .login-paper-brand img { display: block; width: 100%; height: 100%; object-fit: contain; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .login-paper-jump {
+  position: absolute; left: 77.63%; top: 22%; width: 14.62%; height: 55%;
+  display: flex; align-items: center; justify-content: center; gap: 1cqw;
+  padding: 0; border: 0; border-radius: 3cqw; background: transparent; box-shadow: none;
+  color: white; font-size: 1.51cqw; font-weight: 700; cursor: pointer;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .login-paper-jump svg { width: 2cqw; height: 2cqw; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-stage {
+  position: relative !important; display: grid !important;
+  grid-template-columns: 64.08% 27.9% 8.02% !important; align-items: start !important;
+  gap: 0 !important; width: 100% !important; max-width: none !important;
+  min-height: 79.4118cqw !important; margin: 0 !important; padding: 0 !important;
+  background: url('/assets/login-scrapbook/spread.webp') center top / 100% 100% no-repeat !important;
+  border: 0 !important; box-shadow: none !important; border-radius: 0 !important;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .login-paper-editorial { grid-column: 1; min-width: 0; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .login-paper-accessible-copy {
+  position: absolute !important; width: 1px !important; height: 1px !important;
+  padding: 0 !important; margin: -1px !important; clip-path: inset(50%) !important;
+  overflow: hidden !important; white-space: nowrap !important;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-form {
+  grid-column: 2 !important; align-self: start !important; position: relative !important;
+  display: flex !important; flex-direction: column !important; gap: 0 !important;
+  width: 100% !important; max-width: none !important; min-width: 0 !important;
+  margin: 9.18cqw 0 13.8cqw !important; padding: 0 !important;
+  border: 0 !important; border-radius: 0 !important; background: transparent !important;
+  box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+  overflow: visible !important; color: var(--lp-ink) !important; text-align: left !important;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-form::before,
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-form::after { display: none !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-form-header {
+  display: grid !important; grid-template-columns: 4.72cqw minmax(0,1fr) !important;
+  align-items: start !important; gap: 1cqw !important; margin: 0 0 3.5cqw !important; padding: 0 !important;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-form-icon {
+  width: 4.72cqw !important; height: 4.72cqw !important; margin-top: .45cqw;
+  border-radius: 36% 44% 38% 40% !important; transform: rotate(-7deg);
+  border: 2px solid #eef8ff !important; background: #d6eafb !important; color: #0057d4 !important;
+  box-shadow: 0 .25cqw .4cqw #17325430 !important;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-form-icon svg { width: 2.3cqw !important; height: 2.3cqw !important; transform: rotate(7deg); }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-form-kicker {
+  display: block !important; font-size: 1.02cqw !important; line-height: 1.4 !important;
+  letter-spacing: .02em !important; font-weight: 800 !important; color: #0045a0 !important; -webkit-text-fill-color: currentColor !important;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-form-header h2 {
+  margin: .35cqw 0 .5cqw !important; font-size: 1.86cqw !important; line-height: 1.2 !important;
+  letter-spacing: -.02em !important; font-weight: 800 !important; color: var(--lp-ink) !important; -webkit-text-fill-color: currentColor !important;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-form-header p {
+  margin: 0 !important; font-size: 1.19cqw !important; line-height: 1.5 !important;
+  color: #38314a !important; -webkit-text-fill-color: currentColor !important;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-fields { display: grid !important; gap: 1.05cqw !important; margin: 0 !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-field {
+  display: flex !important; flex-direction: column !important; gap: .6cqw !important;
+  margin: 0 !important; color: #17192d !important; font-size: 1.24cqw !important; font-weight: 700 !important;
+  line-height: 1.25 !important;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-label-row { display: flex !important; justify-content: space-between !important; align-items: center !important; gap: .5cqw !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-label-row button {
+  font-size: 1.15cqw !important; font-weight: 700 !important; background: none !important; box-shadow: none !important;
+  border: 0 !important; padding: 0 !important; min-height: 0 !important; color: #0056ea !important; -webkit-text-fill-color: currentColor !important;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-field > div {
+  display: flex !important; align-items: center !important; gap: .85cqw !important;
+  min-height: 4.05cqw !important; padding: .55cqw 1cqw !important; border: 1px solid #cdbeb4 !important;
+  border-radius: 1.3cqw !important; background: #fffaf775 !important;
+  box-shadow: inset 0 1px 0 #fff, 0 .18cqw .23cqw #694b2e24 !important;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-field > div:focus-within { outline: 2px solid #0766bd !important; outline-offset: 2px !important; background: #fffcf8 !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-field i {
+  display: grid !important; place-items: center !important; flex: 0 0 2.5cqw !important;
+  width: 2.5cqw !important; height: 2.5cqw !important; border-radius: .8cqw !important;
+  background: #e7ddd280 !important; color: #463c3d !important; font-size: 1.3cqw !important; font-style: normal !important;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-field input {
+  width: 100% !important; min-width: 0 !important; height: auto !important; min-height: 0 !important;
+  margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important;
+  background: transparent !important; box-shadow: none !important; outline: none !important;
+  font-size: 1.19cqw !important; font-weight: 600 !important; line-height: 1.5 !important;
+  color: var(--lp-ink) !important; -webkit-text-fill-color: currentColor !important;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-field input::placeholder { color: #18305c !important; opacity: 1 !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .bes-username-login-hint {
+  display: block !important; margin: .1cqw 0 0 !important; font-size: 1.1cqw !important;
+  font-weight: 400 !important; line-height: 1.4 !important; color: #40323c !important;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-password-toggle {
+  padding: .6cqw .8cqw !important; min-height: 0 !important; border: 0 !important; border-radius: .65cqw !important;
+  background: #eaddd2 !important; font-size: 1.13cqw !important; color: #362e2d !important; -webkit-text-fill-color: currentColor !important;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-submit {
+  position: relative !important; display: flex !important; justify-content: space-between !important; align-items: center !important;
+  min-height: 4.63cqw !important; padding: .8cqw 2.7cqw !important; margin: 1.6cqw -.25cqw 0 !important;
+  width: calc(100% + .5cqw) !important; border: .22cqw solid #0766a1 !important; border-radius: 3cqw !important;
+  background: linear-gradient(115deg,#007ec2,#00499e 55%,#003b81) !important;
+  box-shadow: 0 .3cqw .4cqw #18283d45, inset 0 0 0 .14cqw #b6dcec !important;
+  color: #fff !important; -webkit-text-fill-color: #fff !important;
+  font-size: 1.65cqw !important; font-weight: 800 !important; line-height: 1.25 !important;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-submit::after { content: ''; position: absolute; inset: .32cqw; border: 1px dashed #f8faf1cf; border-radius: inherit; pointer-events: none; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-submit-arrow { font-size: 2.4cqw !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-submit:disabled { opacity: .65 !important; cursor: progress !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-divider { display: flex !important; align-items: center !important; gap: 1cqw !important; margin: 1.8cqw 0 1.6cqw !important; color: #594a51 !important; font-size: 1.15cqw !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-divider::before,
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-divider::after { content: ''; flex: 1; height: 1px !important; background: #bca693 !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-google-button {
+  display: flex !important; align-items: center !important; justify-content: center !important; gap: 1.5cqw !important;
+  min-height: 3.9cqw !important; margin: 0 !important; padding: .65cqw 1cqw !important;
+  border: 1px solid #cdb6a4 !important; border-radius: 1.2cqw !important; background: #fffaf575 !important;
+  box-shadow: 0 .18cqw .25cqw #694b2e25, inset 0 1px 0 white !important;
+  color: var(--lp-ink) !important; -webkit-text-fill-color: currentColor !important; font-size: 1.38cqw !important; font-weight: 700 !important;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-google-mark { width: 2.3cqw !important; height: 2.3cqw !important; font-size: 2.5cqw !important; line-height: 1 !important; background: conic-gradient(#4285f4 0 25%, #34a853 25% 50%, #fbbc05 50% 70%, #ea4335 70% 100%) !important; background-clip: text !important; -webkit-background-clip: text !important; color: transparent !important; -webkit-text-fill-color: transparent !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-google-note { display: block !important; margin: .9cqw 0 0 !important; padding: 0 .4cqw !important; text-align: center !important; font-size: 1.12cqw !important; line-height: 1.45 !important; color: #514152 !important; -webkit-text-fill-color: currentColor !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-secondary { display: block !important; width: 100% !important; min-height: 0 !important; margin: 1.7cqw 0 1.35cqw !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; font-size: 1.3cqw !important; line-height: 1.5 !important; color: #0056e3 !important; -webkit-text-fill-color: currentColor !important; text-align: center !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-security-note { display: flex !important; gap: 1.2cqw !important; margin: 0 !important; padding: 1.2cqw .4cqw 0 !important; border-top: 1px solid #cbb9a4 !important; color: #3d3437 !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-security-note svg { width: 1.8cqw !important; height: 1.8cqw !important; flex: 0 0 1.8cqw !important; color: #24752e !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-security-note small { font-size: 1.09cqw !important; line-height: 1.4 !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] :is(.auth-google-message,.auth-google-notice) { margin: 1cqw 0 0 !important; font-size: 1.2cqw !important; line-height: 1.45 !important; padding: 1cqw !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] :is(button,a):focus-visible { outline: 3px solid #1766b0 !important; outline-offset: 3px !important; }
+
+/* Shared footer retains selectable, localized information and portfolio button. */
+html body #root#root#root .app-shell[data-login-scrapbook="on"] > footer.signature-footer-v50 {
+  position: relative !important; display: block !important; width: 100% !important; max-width: none !important;
+  min-height: 37.5223cqw !important; margin: 0 !important; padding: 0 !important;
+  border: 0 !important; border-radius: 0 !important; box-shadow: none !important;
+  background: url('/assets/login-scrapbook/footer.webp') center / 100% 100% no-repeat !important;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-dashboard-artwork { display: none !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] #english-hub-footer-details { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] #english-hub-footer-details .signature-footer-v50-main { display: grid !important; grid-template-columns: 28.3% 32.6% 35.4% !important; gap: 1% !important; width: 100% !important; min-height: 29.6cqw !important; padding: 2.5cqw 0 0 4.3% !important; margin: 0 !important; align-items: start !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] #english-hub-footer-details .signature-footer-v50-main > section { grid-column: auto !important; grid-row: auto !important; display: flex !important; flex-direction: column !important; width: 100% !important; min-width: 0 !important; min-height: 0 !important; height: auto !important; margin: 0 !important; padding: 0 1.8cqw !important; background: transparent !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; transform: none !important; overflow: visible !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] #english-hub-footer-details .signature-footer-v50-main > section::before,
+html body #root#root#root .app-shell[data-login-scrapbook="on"] #english-hub-footer-details .signature-footer-v50-main > section::after { display: none !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] #english-hub-footer-details .signature-footer-v50-brand { align-items: center !important; padding-top: 1.2cqw !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-brian-logo { width: 14.2cqw !important; height: 9.6cqw !important; max-height: none !important; object-fit: contain !important; margin: 0 0 1.3cqw !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-affiliations { padding: 1.15cqw 1cqw 0 !important; gap: 2.8cqw !important; margin: 0 !important; width: 100% !important; border-top: 1px solid #decbba !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-affiliations img { height: 6.15cqw !important; width: auto !important; mix-blend-mode: multiply; max-width: 8cqw !important; object-fit: contain !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-logo-divider { height: 5.8cqw !important; background: #dbbdab !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .login-paper-motto { margin: 1.4cqw 0 0 !important; color: #243863 !important; font-size: 1.18cqw !important; font-style: italic !important; white-space: nowrap; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-language-badge { align-self: flex-start !important; min-width: 3.1cqw !important; height: 2.4cqw !important; padding: .2cqw .7cqw !important; margin: 0 0 .55cqw !important; border-radius: .7cqw !important; background: #007c3d !important; color: white !important; font-size: 1.25cqw !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-profile h2 { margin: 0 0 .7cqw !important; padding: 0 !important; font-size: 1.55cqw !important; line-height: 1.25 !important; color: #006736 !important; font-weight: 800 !important; letter-spacing: -.025em !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-details { gap: 0 !important; margin: 0 !important; padding: 0 !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-detail { display: grid !important; grid-template-columns: 2.1cqw minmax(0,1fr) !important; gap: .8cqw !important; align-items: start !important; min-height: 0 !important; padding: .45cqw 0 !important; margin: 0 !important; font-size: 1.16cqw !important; line-height: 1.25 !important; color: var(--lp-ink) !important; border-bottom: 1px solid #d8dac35c !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-detail-icon { width: 2.1cqw !important; height: 2.1cqw !important; background: #d4e3bc !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-detail-icon::after { font-size: 1.2cqw !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-section-label { font-size: 1.23cqw !important; font-weight: 800 !important; text-transform: uppercase !important; color: #8b1827 !important; padding: .5cqw .1cqw !important; margin: 0 0 1.2cqw !important; line-height: 1.4 !important; background: none !important; border: 0 !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-credentials ul { display: grid !important; grid-template-columns: minmax(0,1fr) !important; gap: 0 !important; margin: 0 !important; padding: 0 !important; list-style: none !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-credentials li { display: grid !important; grid-template-columns: 1.8cqw minmax(0,1fr) !important; gap: .7cqw !important; margin: 0 !important; padding: .55cqw 0 !important; font-size: 1.16cqw !important; line-height: 1.35 !important; color: var(--lp-ink) !important; border-bottom: 1px solid #dfbda35c !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-star { font-size: 1.8cqw !important; color: #eca400 !important; line-height: 1 !important; text-shadow: 0 1px white; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] :is(.signature-footer-v50-credentials li,.signature-footer-v50-credentials li > span,.signature-footer-v50-detail > span) {
+  min-width: 0 !important; white-space: normal !important; overflow-wrap: anywhere !important; text-overflow: clip !important; overflow: visible !important;
+}
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-static-summary--attribution-only { display: flex !important; align-items: center !important; justify-content: center !important; margin: .8cqw auto 0 !important; padding: 0 !important; min-height: 4cqw !important; width: 30.5cqw !important; border: 0 !important; background: none !important; box-shadow: none !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .bes-portfolio-footer-trigger { display: flex !important; align-items: center !important; justify-content: center !important; gap: .6cqw !important; width: 100% !important; min-height: 3.8cqw !important; padding: .3cqw !important; margin: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; font-size: 1.1cqw !important; color: #312d2a !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .bes-portfolio-footer-trigger strong { color: #0056d7 !important; }
+
+@media (max-width: 900px) {
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .login-paper-masthead { height: 78px !important; background-size: auto 100%; background-position: center; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .login-paper-brand { left: 0; width: 240px; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .login-paper-jump { left: auto; right: 12px; top: 20px; width: 110px; height: 40px; gap: 7px; font-size: 14px; background: #004f99; border: 1px dashed #dbeafa; outline: 3px solid #00558f; border-radius: 22px; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .login-paper-jump svg { width: 18px; height: 18px; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-stage { display: flex !important; flex-direction: column !important; min-height: 0 !important; background: none !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .login-paper-editorial { display: block; width: min(100%,630px); height: auto; aspect-ratio: 630/290; background: url('/assets/login-scrapbook/mobile-hero.webp') center / contain no-repeat; margin: 0 auto; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-form {
+    width: min(100%,470px) !important; margin: 0 auto !important; padding: 145px 56px 100px 36px !important;
+    background: url('/assets/login-scrapbook/notebook.webp') center / 100% 100% no-repeat !important;
+  }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-form-header { grid-template-columns: 42px minmax(0,1fr) !important; gap: 10px !important; margin-bottom: 24px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-form-icon { width: 42px !important; height: 42px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-form-icon svg { width: 24px !important; height: 24px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-form-kicker { font-size: 10px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-form-header h2 { font-size: 21px !important; margin: 5px 0 8px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-form-header p { font-size: 13px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-fields { gap: 18px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-field { font-size: 14px !important; gap: 8px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-label-row button { font-size: 13px !important; min-height: 32px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-field > div { min-height: 48px !important; padding: 7px 10px !important; gap: 9px !important; border-radius: 12px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-field input { font-size: 16px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-field i { width: 24px !important; height: 28px !important; flex-basis: 24px !important; font-size: 14px !important; border-radius: 8px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .bes-username-login-hint { font-size: 12px !important; margin-top: 2px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-password-toggle { font-size: 13px !important; padding: 8px !important; border-radius: 7px !important; min-height: 32px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-submit { width: 100% !important; min-height: 50px !important; margin: 22px 0 0 !important; padding: 12px 25px !important; border-radius: 26px !important; font-size: 17px !important; border-width: 2px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-submit::after { inset: 4px; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-submit-arrow { font-size: 26px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-divider { font-size: 13px !important; gap: 12px !important; margin: 22px 0 !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-google-button { font-size: 15px !important; min-height: 46px !important; padding: 10px !important; border-radius: 12px !important; gap: 16px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-google-mark { font-size: 26px !important; width: 26px !important; height: 26px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-google-note { font-size: 12px !important; margin: 10px 0 0 !important; padding: 0 !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-secondary { font-size: 14px !important; padding: 10px 0 !important; margin: 12px 0 8px !important; min-height: 44px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-security-note { gap: 10px !important; padding: 14px 0 0 !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-security-note svg { width: 20px !important; height: 20px !important; flex-basis: 20px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-security-note small { font-size: 12px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] :is(.auth-google-message,.auth-google-notice) { font-size: 14px !important; padding: 12px !important; margin: 12px 0 0 !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] > footer.signature-footer-v50 { background: none !important; padding: 0 20px 25px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] #english-hub-footer-details .signature-footer-v50-main { display: grid !important; grid-template-columns: 1fr !important; gap: 20px !important; width: min(100%,440px) !important; min-height: 0 !important; margin: 0 auto !important; padding: 0 !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] #english-hub-footer-details .signature-footer-v50-main > section { padding: 25px !important; background: #fff5e6 !important; border: 3px solid #fffaf2 !important; border-radius: 12px 16px 11px 18px !important; box-shadow: 3px 5px 0 #e7cbb9, 0 8px 18px #345b7733 !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] #english-hub-footer-details .signature-footer-v50-main > section.signature-footer-v50-profile { background: #eff5e8 !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-brian-logo { width: 155px !important; height: 110px !important; margin: 0 auto 15px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-affiliations { gap: 30px !important; padding-top: 15px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-affiliations img { height: 70px !important; max-width: 90px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-logo-divider { height: 60px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .login-paper-motto { font-size: 13px !important; margin-top: 16px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-language-badge { min-width: 34px !important; height: 27px !important; font-size: 14px !important; padding: 5px 8px !important; border-radius: 7px !important; margin-bottom: 8px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-profile h2 { font-size: 19px !important; margin-bottom: 10px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-detail { grid-template-columns: 24px 1fr !important; gap: 9px !important; padding: 8px 0 !important; font-size: 13px !important; line-height: 1.4 !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-detail-icon { width: 24px !important; height: 24px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-detail-icon::after { font-size: 14px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-section-label { font-size: 15px !important; padding: 0 !important; margin: 0 0 12px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-credentials li { grid-template-columns: 22px 1fr !important; gap: 8px !important; padding: 9px 0 !important; font-size: 13px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-v50-star { font-size: 21px !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .signature-footer-static-summary--attribution-only { width: min(100%,360px) !important; margin: 22px auto 0 !important; padding: 0 !important; }
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .bes-portfolio-footer-trigger { min-height: 44px !important; font-size: 11px !important; padding: 10px !important; gap: 5px !important; background: #fff6e5 !important; border-radius: 25px !important; border: 1px dashed #cbaa89 !important; }
+}
+
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-divider::before,
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-divider::after { position: static !important; inset: auto !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .auth-google-divider span { padding: 0 !important; background: none !important; color: #594a51 !important; font-size: inherit !important; }
+html body #root#root#root .app-shell[data-login-scrapbook="on"] .login-paper-google-mark { width: 2.3cqw; height: 2.3cqw; flex: none; }
+@media (max-width: 900px) {
+  html body #root#root#root .app-shell[data-login-scrapbook="on"] .login-paper-google-mark { width: 26px; height: 26px; }
+}

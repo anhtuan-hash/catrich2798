@@ -1,3 +1,4 @@
+import LoginScrapbookSetting from '../features/login-scrapbook/LoginScrapbookSetting.jsx';
 import React, { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { changeCurrentPassword } from '../utils/auth.js';
@@ -527,11 +528,12 @@ export default function Settings({
             {activeModule === 'navigation' && isDepartmentLeaderRole(currentUser?.role) && matches('hệ thống', 'system', 'toàn hệ thống', 'hiển thị', 'display', 'sidebar', 'action dock', 'tin vắn', 'newswire') ? (
               <GlobalChromeSettingsPanel currentUser={currentUser} language={language} />
             ) : null}
-            {activeModule === 'navigation' && isAdminRole(currentUser?.role) && matches('kiểm tra','đánh giá','assessment','lesson check','ttcm','kênh chuyên môn','tổ chuyên môn','department channel','sổ điểm','gradebook','điểm danh','attendance','ứng dụng','apps','dashboard','scrapbook','20/11','tháng 11','tri ân','november','halloween','toàn trang','full home','điều hướng','navigation','footer','chân trang','giao diện','theme','nền','mùa lễ','seasonal') ? (
+            {activeModule === 'navigation' && isAdminRole(currentUser?.role) && matches('đăng nhập','login','kiểm tra','đánh giá','assessment','lesson check','ttcm','kênh chuyên môn','tổ chuyên môn','department channel','sổ điểm','gradebook','điểm danh','attendance','ứng dụng','apps','dashboard','scrapbook','20/11','tháng 11','tri ân','november','halloween','toàn trang','full home','điều hướng','navigation','footer','chân trang','giao diện','theme','nền','mùa lễ','seasonal') ? (
               <>
                 <AppsScrapbookAdminPanel currentUser={currentUser} language={language} />
                 <AttendanceScrapbookAdminPanel currentUser={currentUser} language={language} />
                 {currentUser?.provider === 'supabase' && currentUser.approved === true && <TtcmScrapbookSetting language={language} />}
+                <LoginScrapbookSetting currentUser={currentUser} language={language} />
                 <AssessmentScrapbookSetting currentUser={currentUser} language={language} />
                 <GradebookScrapbookAdminPanel currentUser={currentUser} language={language} />
                 <DashboardScrapbookAdminPanel currentUser={currentUser} language={language} />
