@@ -19,6 +19,7 @@ import '../styles/SettingsGoogleM3.css';
 import '../styles/SettingsLauncher2.css';
 import '../styles/SettingsLauncherDrawerRedesign.css';
 import '../styles/SettingsLauncherPortalCompat.css';
+import '../styles/SettingsAccountDrawerRefinement.css';
 import SettingsLauncherHome, { SETTINGS_LAUNCHER_TILES } from '../components/settings/SettingsLauncherHome.jsx';
 const SettingsTeacherManagement = lazy(() => import('../components/settings/SettingsTeacherManagement.jsx'));
 const EventManagerPage = lazy(() => import('../features/events/admin/EventManagerPage.jsx'));
@@ -449,12 +450,23 @@ export default function Settings({
               </div>
               <form className="settings-v65-password-form settings-google-password-form" onSubmit={submitPasswordChange}>
                 <div className="settings-google-password-title"><M3Icon name="shield" /><div><strong>{vi ? 'Đổi mật khẩu' : 'Change password'}</strong><small>{vi ? 'Mật khẩu mới cần ít nhất 8 ký tự.' : 'Use at least 8 characters.'}</small></div></div>
-                <input type="password" placeholder={vi ? 'Mật khẩu hiện tại' : 'Current password'} value={passwordForm.current} onChange={(event) => setPasswordForm((current) => ({ ...current, current: event.target.value }))} />
-                <input type="password" placeholder={vi ? 'Mật khẩu mới' : 'New password'} value={passwordForm.next} onChange={(event) => setPasswordForm((current) => ({ ...current, next: event.target.value }))} />
-                <input type="password" placeholder={vi ? 'Xác nhận mật khẩu mới' : 'Confirm new password'} value={passwordForm.confirm} onChange={(event) => setPasswordForm((current) => ({ ...current, confirm: event.target.value }))} />
-                <button type="submit" disabled={passwordStatus.loading}>{passwordStatus.loading ? (vi ? 'Đang lưu…' : 'Saving…') : (vi ? 'Cập nhật mật khẩu' : 'Update password')}</button>
+                <div className="settings-account-password-grid">
+                  <label>
+                    <span>{vi ? 'Mật khẩu hiện tại' : 'Current password'}</span>
+                    <input type="password" autoComplete="current-password" value={passwordForm.current} onChange={(event) => setPasswordForm((current) => ({ ...current, current: event.target.value }))} required disabled={passwordStatus.loading || !canChangePassword} />
+                  </label>
+                  <label>
+                    <span>{vi ? 'Mật khẩu mới' : 'New password'}</span>
+                    <input type="password" autoComplete="new-password" minLength={8} value={passwordForm.next} onChange={(event) => setPasswordForm((current) => ({ ...current, next: event.target.value }))} required disabled={passwordStatus.loading || !canChangePassword} />
+                  </label>
+                  <label>
+                    <span>{vi ? 'Xác nhận mật khẩu mới' : 'Confirm new password'}</span>
+                    <input type="password" autoComplete="new-password" minLength={8} value={passwordForm.confirm} onChange={(event) => setPasswordForm((current) => ({ ...current, confirm: event.target.value }))} required disabled={passwordStatus.loading || !canChangePassword} />
+                  </label>
+                </div>
+                <button type="submit" disabled={passwordStatus.loading || !canChangePassword}>{passwordStatus.loading ? (vi ? 'Đang lưu…' : 'Saving…') : (vi ? 'Cập nhật mật khẩu' : 'Update password')}</button>
               </form>
-              {passwordStatus.message ? <p className={`settings-google-inline-message ${passwordStatus.ok ? 'is-ok' : 'is-error'}`}>{passwordStatus.message}</p> : null}
+              {passwordStatus.message ? <p role="status" aria-live="polite" className={`settings-google-inline-message ${passwordStatus.ok ? 'is-ok' : 'is-error'}`}>{passwordStatus.message}</p> : null}
             </section>
           ) : null}
 

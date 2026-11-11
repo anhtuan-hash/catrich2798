@@ -240,7 +240,7 @@ export default function MobileHomeView({
             <h1><span>Happy</span><span>Halloween!</span></h1>
             <strong className="bes-mobile-halloween-hero__motto">Learn · Play · Create · Grow</strong>
             <p>{vi ? "Cùng khám phá lớp học tiếng Anh nhiệm màu." : "Discover a magical world of English learning."}</p>
-            <div className="bes-mobile-halloween-hero__actions">
+            <div className="bes-mobile-halloween-hero__actions" data-guest-allow="public-home-navigation">
               <button type="button" onClick={onStart}>{vi ? "Bắt đầu ngay" : "Get started"}</button>
               <button type="button" onClick={onOpenApps}>{vi ? "Xem hướng dẫn" : "View guide"}</button>
             </div>
@@ -286,13 +286,13 @@ export default function MobileHomeView({
           </div>
           <button
             type="button"
-            className="bes-mobile-home__hero-hotspot is-start"
+            className="bes-mobile-home__hero-hotspot is-start" data-guest-allow="public-home-navigation"
             aria-label={vi ? 'Bắt đầu' : 'Start'}
             onClick={onStart}
           />
           <button
             type="button"
-            className="bes-mobile-home__hero-hotspot is-guide"
+            className="bes-mobile-home__hero-hotspot is-guide" data-guest-allow="public-home-navigation"
             aria-label={vi ? 'Xem ngay' : 'View now'}
             onClick={onOpenApps}
           />
@@ -364,7 +364,7 @@ export default function MobileHomeView({
           </div>
         ) : null}
 
-        <section className="bes-mobile-home__quick-actions" data-mobile-home-quick-actions aria-label={vi ? 'Truy cập nhanh' : 'Quick actions'}>
+        <section className="bes-mobile-home__quick-actions" data-guest-allow="public-home-navigation" data-mobile-home-quick-actions aria-label={vi ? 'Truy cập nhanh' : 'Quick actions'}>
           {quickActions.map(({ id, label, Icon, tone, action }) => (
             <button key={id} type="button" className={`is-${tone}`} aria-label={label} onClick={action}>
               <span aria-hidden="true"><Icon size={29} strokeWidth={2.1} /></span>
@@ -377,6 +377,7 @@ export default function MobileHomeView({
           ref={practiceRef}
           className="bes-mobile-home__section bes-mobile-home__practice is-premium"
           data-mobile-home-practice
+          data-guest-allow="public-weekly-practice"
           id="weekly-practice"
           aria-labelledby="mobile-weekly-practice-title"
         >

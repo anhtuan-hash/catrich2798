@@ -23,7 +23,7 @@ import './HomePracticeByGrade.css';
 import './HomePracticeFinalFix.css';
 
 const ALL_APPS = [...APPS, ...GAME_APPS, ...SPECIAL_TOOLS];
-const isPublicTarget = (target) => ['#/home', '#/resources', '#/contact', '#/login', '#/register', '#/setup'].includes(target);
+const isPublicTarget = (target) => ['#/home', '#/resources', '#/contact', '#/login', '#/register', '#/apps', '#/dashboard', '#/attendance', '#/tool/lesson-check-studio'].includes(target);
 const findApp = (slug) => ALL_APPS.find((item) => item.slug === slug);
 const appTarget = (slug, fallback = '#/apps') => {
   const app = findApp(slug);
@@ -184,7 +184,7 @@ function ToolCard({ item, currentUser, language }) {
   const Icon = item.Icon;
   const vi = language === 'vi';
   return (
-    <button type="button" className="bha-tool" style={{ '--accent': item.accent, '--soft': item.soft }}
+    <button type="button" className="bha-tool" data-guest-allow="public-home-navigation" style={{ '--accent': item.accent, '--soft': item.soft }}
       onClick={(event) => launch(item.target, item.id.toUpperCase().slice(0, 2), item.accent, currentUser, event.currentTarget)}>
       <span className="bha-tool-icon"><Icon size={27} strokeWidth={2.15} /></span>
       <span><strong>{vi ? item.title : item.titleEn}</strong><small>{vi ? item.description : item.descriptionEn}</small></span>
@@ -322,14 +322,14 @@ export default function HomeApproved({ currentUser, language = 'vi', appVisibili
           onGuide={(event) => launch('#/apps', 'AP', '#1a73e8', currentUser, event.currentTarget)}
         />
         <HomePublishedSlideshow language={language} />
-        <section className="bha-tools"><header><h2>{t.tools}</h2><button type="button" onClick={(event) => launch('#/apps', 'AP', '#1a73e8', currentUser, event.currentTarget)}>{t.all}<ArrowRight size={15} /></button></header>
+        <section className="bha-tools"><header><h2>{t.tools}</h2><button type="button" data-guest-allow="public-home-navigation" onClick={(event) => launch('#/apps', 'AP', '#1a73e8', currentUser, event.currentTarget)}>{t.all}<ArrowRight size={15} /></button></header>
           <div>{tools.map((item) => <ToolCard key={item.id} item={item} currentUser={currentUser} language={language} />)}</div>
         </section>
       </div>
 
       <WorldExplorer currentUser={currentUser} language={language} />
 
-      <section className="bha-practice bha-practice--editorial-v3">
+      <section className="bha-practice bha-practice--editorial-v3" data-guest-allow="public-weekly-practice">
         <header className="bha-practice__editorial-header">
           <div className="bha-practice__editorial-copy">
             <span><ClipboardClock size={17} />{t.practice}</span>

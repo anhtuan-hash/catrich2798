@@ -117,6 +117,8 @@ try {
 
   await id.fill('gv001');
   await pw.fill('qa-dummy-only');
+  await expect(id).toHaveAttribute('type','text');
+  assert.equal(await form.evaluate(f=>f.checkValidity()),true,'username must pass native form validation');
   await pw.press('Enter');
   await expect.poll(()=>calls.password.length).toBe(1);
   assert.deepEqual(calls.password[0],{grant:'password',email:'gv001@accounts.brianenglish.studio'});

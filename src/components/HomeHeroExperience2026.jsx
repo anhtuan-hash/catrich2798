@@ -344,7 +344,7 @@ export default function HomeHeroExperience2026({
             <p className="november-hero-dedication">{vi ? <>{'Cùng '}<strong>BRIAN ENGLISH</strong>{' lan tỏa lòng biết ơn đến những người thầy, người cô – những người đã và đang làm nên những thế hệ tương lai.'}</> : <>Join <strong>BRIAN ENGLISH</strong> in celebrating the teachers who inspire us and shape brighter futures.</>}</p>
           </> : halloweenOn ? <p>{vi ? 'Khám phá không gian dạy học tiếng Anh đầy sáng tạo, tương tác và truyền cảm hứng mỗi ngày cùng BRIAN.' : 'Turn your English classroom into a world of creativity, curiosity and confidence. Explore interactive tools, fun activities and real learning experiences with BRIAN.'}</p> : description ? <p>{description}</p> : null}
 
-          <div className="hero-cms__actions">
+          <div className="hero-cms__actions" data-guest-allow="public-home-navigation">
             {november.enabled ? <>
               <button type="button" className="hero-cms__button is-primary" onClick={onStart}><Rocket size={18} /><span>{vi ? 'Bắt đầu ngay' : 'Get started'}</span><ArrowRight size={17} /></button>
               <button type="button" className="hero-cms__button is-secondary" onClick={onGuide}><Play size={18} /><span>{vi ? 'Xem hướng dẫn' : 'View guide'}</span></button>

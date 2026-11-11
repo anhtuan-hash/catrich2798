@@ -1,0 +1,35 @@
+name: Settings Account Drawer Layout
+on:
+  pull_request:
+    paths:
+      - 'src/pages/Settings.jsx'
+      - 'src/styles/SettingsAccountDrawerRefinement.css'
+      - 'src/components/GlobalUserProfileSettingsBridge.jsx'
+      - 'src/components/UsernameAccountCenter.jsx'
+      - 'scripts/test-settings-account-drawer-layout.mjs'
+      - '.github/workflows/settings-account-drawer-layout.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/pages/Settings.jsx'
+      - 'src/styles/SettingsAccountDrawerRefinement.css'
+      - 'scripts/test-settings-account-drawer-layout.mjs'
+
+permissions:
+  contents: read
+
+jobs:
+  account-layout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Check portal and account layout contracts
+        run: node scripts/test-settings-account-drawer-layout.mjs
+      - name: Compile front-end
+        run: npx vite build

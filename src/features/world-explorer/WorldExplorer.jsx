@@ -172,7 +172,7 @@ export default function WorldExplorer({ currentUser, language = 'vi' }) {
   if (error && !isAdmin) return null; // Keep existing homepage unchanged on backend failures.
   const featured = articles[0];
   return (
-    <section className="we-wrap" aria-labelledby="we-heading" data-brian-world-explorer>
+    <section className="we-wrap" aria-labelledby="we-heading" data-brian-world-explorer data-guest-allow="published-world-explorer">
       <div className="we-decoration we-decoration--left" aria-hidden="true">✿</div>
       <div className="we-masthead">
         <div><span className="we-kicker"><Globe2 size={16} /> BRIAN ENGLISH · HOURLY DISCOVERY</span><h2 id="we-heading">World Explorer <span>✦</span></h2><p>{vi ? 'Mỗi giờ, một kiến thức mới về thế giới.' : 'Discover something new about our world every hour.'}</p></div>

@@ -499,18 +499,32 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
 
             {!recoveryMode && (
               <label className="auth-google-field" htmlFor="auth-email">
-                <span>Email</span>
+                <span>{isRegister ? 'Email' : (language === 'vi' ? 'Tên đăng nhập hoặc email' : 'Username or email')}</span>
                 <div>
                   <i aria-hidden="true">@</i>
                   <input
                     id="auth-email"
-                    type="email"
+                    type={isRegister ? 'email' : 'text'}
                     value={form.email}
                     onChange={(event) => setForm({ ...form, email: event.target.value })}
-                    autoComplete="email"
-                    placeholder={language === 'vi' ? 'ten@truong.edu.vn' : 'name@school.edu'}
+                    autoComplete={isRegister ? 'email' : 'username'}
+                    inputMode={isRegister ? 'email' : 'text'}
+                    dir="ltr"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    aria-describedby={isRegister ? undefined : 'auth-username-hint'}
+                    placeholder={isRegister
+                      ? (language === 'vi' ? 'ten@truong.edu.vn' : 'name@school.edu')
+                      : (language === 'vi' ? 'Tên đăng nhập hoặc email' : 'Username or email')}
                   />
                 </div>
+                {!isRegister && (
+                  <small id="auth-username-hint" className="bes-username-login-hint">
+                    {language === 'vi'
+                      ? 'Tài khoản do Admin cấp chỉ cần nhập tên đăng nhập, ví dụ: gv001.'
+                      : 'For Admin-created accounts, enter only the username, for example: gv001.'}
+                  </small>
+                )}
               </label>
             )}
 
