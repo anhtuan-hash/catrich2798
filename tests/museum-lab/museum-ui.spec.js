@@ -197,3 +197,71 @@ test('student can send a real raster poster through the private artwork API work
  expect(received.filename).toBe('my-original-poster.png');
  expect(received.png).toMatch(/^data:image\/png;base64,/);
 });
+
+
+test('approved exhibition mockup opens with hero, accurate metrics and 3D-first immersive visitor',async({page})=>{
+ await page.getByTestId('qa-exhibition').click();
+ const detail=page.getByTestId('museum-exhibition-detail');
+ await expect(detail).toBeVisible();
+ await expect(detail.getByRole('heading',{name:'Our Planet, Our Future — 3D Demo'})).toBeVisible();
+ await expect(detail.getByRole('tab',{name:'Không gian triển lãm'})).toHaveAttribute('aria-selected','true');
+ const viewer=page.getByTestId('museum-visitor');
+ await expect(viewer).toBeVisible();
+ await expect(viewer.locator('.bml-3d-stage')).toBeVisible();
+ await expect(viewer.locator('.bml-scene-mode-float button.is-active')).toHaveText('3D');
+ await expect(detail.locator('.bml-exh-metric')).toHaveCount(4);
+ await expect(detail.getByText('Phòng triển lãm')).toBeVisible();
+ await expect(detail.getByText('Lượt xem')).toBeVisible();
+ await expect(detail.getByText('Chưa triển khai thống kê')).toBeVisible();
+ await expect(detail.getByText('86',{exact:true})).toHaveCount(0);
+});
+test('exhibition visitor mode, information panel and back navigation work as shown in mockup',async({page})=>{
+ await page.getByTestId('qa-exhibition').click();
+ const detail=page.getByTestId('museum-exhibition-detail');
+ await detail.getByRole('button',{name:'2D',exact:true}).click();
+ await expect(detail.locator('.bml-museum-room')).toBeVisible();
+ await expect(detail.locator('.bml-art-card')).toHaveCount(3);
+ await detail.getByRole('button',{name:'3D',exact:true}).click();
+ await expect(detail.locator('.bml-3d-stage')).toBeVisible();
+ await detail.getByRole('tab',{name:'Thông tin & hoạt động'}).click();
+ await expect(detail.getByRole('heading',{name:'Danh sách phòng & tác phẩm'})).toBeVisible();
+ await expect(detail.getByText('One Minute for Nature')).toBeVisible();
+ await detail.getByRole('tab',{name:'Không gian triển lãm'}).click();
+ await expect(detail.locator('.bml-3d-stage')).toBeVisible();
+});
+test('exhibition options download the actual exhibit content, not invented analytics',async({page})=>{
+ await page.getByTestId('qa-exhibition').click();
+ const detail=page.getByTestId('museum-exhibition-detail');
+ await detail.getByRole('button',{name:'Tùy chọn'}).click();
+ const dl=page.waitForEvent('download');
+ await detail.getByRole('menuitem',{name:'Tải nội dung (.txt)'}).click();
+ const file=await dl;
+ expect(file.suggestedFilename()).toBe('BRIAN_Museum_Exhibition_Summary.txt');
+ const txt=fs.readFileSync(await file.path(),'utf8');
+ expect(txt).toContain('Our Planet, Our Future');
+ expect(txt).toContain('One Minute for Nature');
+ expect(txt).toContain('DEMO');
+});
+test('desktop two-column Museum Lab shell follows approved sidebar dimensions',async({page,isMobile})=>{
+ if(isMobile)return;
+ await page.getByTestId('qa-exhibition-layout').click();
+ const shell=page.getByTestId('museum-layout-shell');
+ await expect(shell).toBeVisible();
+ const sidebar=await shell.locator('.bml-sidebar').boundingBox();
+ const panel=await shell.locator('.bml-main-panel').boundingBox();
+ expect(sidebar.width).toBeGreaterThan(150);
+ expect(sidebar.width).toBeLessThan(260);
+ expect(panel.x).toBeGreaterThanOrEqual(sidebar.x+sidebar.width-3);
+ expect(panel.width).toBeGreaterThan(sidebar.width*2);
+});
+test('mobile approved mockup keeps a readable 3D visitor without horizontal overflow',async({page,isMobile})=>{
+ if(!isMobile)return;
+ await page.getByTestId('qa-exhibition-layout').click();
+ const detail=page.getByTestId('museum-exhibition-detail');
+ await expect(detail.locator('.bml-exh-hero')).toBeVisible();
+ await expect(detail.locator('.bml-3d-stage')).toBeVisible();
+ const sizes=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:window.innerWidth}));
+ expect(sizes.scroll).toBeLessThanOrEqual(sizes.width+4);
+ await detail.getByRole('button',{name:'2D',exact:true}).click();
+ await expect(detail.locator('.bml-art-card')).toHaveCount(3);
+});

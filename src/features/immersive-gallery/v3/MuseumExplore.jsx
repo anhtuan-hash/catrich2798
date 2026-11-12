@@ -3,6 +3,7 @@ import {ArrowLeft,ArrowRight,CheckCircle2,ChevronRight,ClipboardList,Eye,Info,La
 import {LESSON_KITS} from './museumData.js';
 import {staffRequest,DEMO_GALLERY} from './museumApi.js';
 import MuseumScene from './MuseumScene.jsx';
+import MuseumExhibitionDetail from './MuseumExhibitionDetail.jsx';
 import {KitCard} from './MuseumDashboard.jsx';
 const tr=(l,vi,en)=>l==='en'?en:vi;
 export function MuseumTemplates({language='vi',onCreate,onDemo}){
@@ -16,31 +17,67 @@ export function MuseumTemplates({language='vi',onCreate,onDemo}){
   </section>
  </div>;
 }
-export function MuseumGallery({language='vi',onDemo,query=''}){
+const exhibitionFromHash=()=>{
+ if(typeof window==='undefined')return '';
+ try{return new URLSearchParams(window.location.hash.split('?')[1]||'').get('exhibition')||'';}
+ catch{return '';}
+};
+const setExhibitionHash=key=>{
+ if(typeof window==='undefined')return;
+ const current=window.location.hash.split('?')[0]||'#/tool/immersive-gallery';
+ const url=current+(key?'?exhibition='+encodeURIComponent(key):'');
+ window.history.replaceState(null,'',url);
+};
+export function MuseumGallery({language='vi',onDemo,query='',onNavigate,data}){
  const [galleries,setGalleries]=useState([]),[selected,setSelected]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
- useEffect(()=>{let live=true;import('../galleryData.js').then(async({getGalleryEnabled,listExhibitions})=>{const enabled=await getGalleryEnabled();return enabled?listExhibitions():[];}).then(items=>{if(live)setGalleries(items||[]);}).catch(e=>{if(live)setError(e.message);});
- return()=>{live=false;};},[]);
- const enter=async item=>{setBusy(true);setError('');
-  try{const {getExhibition}=await import('../galleryData.js');setSelected(await getExhibition(item.id));}catch(e){setError(e.message);}finally{setBusy(false);}
+ useEffect(()=>{
+  let active=true;
+  import('../galleryData.js').then(async({getGalleryEnabled,listExhibitions})=>{
+   const enabled=await getGalleryEnabled();return enabled?listExhibitions():[];
+  }).then(items=>{if(active)setGalleries(items||[]);})
+    .catch(e=>{if(active)setError(e.message);});
+  const initial=exhibitionFromHash();
+  if(initial){
+   if(initial==='demo')setSelected(DEMO_GALLERY);
+   else import('../galleryData.js').then(({getExhibition})=>getExhibition(initial))
+     .then(item=>{if(active)setSelected(item);})
+     .catch(e=>{if(active)setError(e.message);});
+  }
+  return()=>{active=false;};
+ },[]);
+ const enter=async item=>{
+  setBusy(true);setError('');
+  try{
+   const {getExhibition}=await import('../galleryData.js');
+   const full=await getExhibition(item.id);
+   setSelected(full);setExhibitionHash(full.slug||full.id);
+  }catch(e){setError(e.message);}
+  finally{setBusy(false);}
  };
- if(selected)return <MuseumScene gallery={selected} language={language} onBack={()=>setSelected(null)}/>;
+ const leave=()=>{setSelected(null);setExhibitionHash('');};
+ if(selected)return <MuseumExhibitionDetail gallery={selected} language={language}
+  isDemo={selected.id===DEMO_GALLERY.id} data={data} onBack={leave} onNavigate={onNavigate}/>;
  return <div className="bml-screen" data-testid="museum-showcase">
   <div><div className="bml-overline">MUSEUM SHOWCASE</div><h1>{tr(language,'Triển lãm của chúng ta','Our exhibitions')}</h1>
-   <p>{tr(language,'Khám phá những bảo tàng được phê duyệt và bản demo dành cho giáo viên.','Explore approved exhibitions or a sample museum.')}</p></div>
+   <p>{tr(language,'Khám phá các bảo tàng đã được phê duyệt, hoặc trải nghiệm phòng mẫu.','Explore approved museums or try a curated sample.')}</p></div>
   {error?<div className="bml-banner bml-danger-banner" role="alert"><ShieldAlert size={19}/>{error}</div>:null}
   <div className="bml-gallery-grid">
-   <button type="button" className="bml-gallery-card" onClick={onDemo}>
+   <button type="button" className="bml-gallery-card" onClick={()=>{setSelected(DEMO_GALLERY);setExhibitionHash('demo');}}>
     <div className="bml-card-photo"><span className="bml-gallery-badge">DEMO · SAMPLE</span><Landmark strokeWidth={1.2}/></div>
     <div className="bml-card-caption"><strong>{tr(language,'Khám phá thế giới','Explore the World')}</strong>
-      <small>{tr(language,'8 hiện vật mẫu · 3 phòng · không dùng dữ liệu học sinh','8 sample exhibits · 3 rooms · no student data')}</small>
-      <span>{tr(language,'Tham quan 2D / 3D','Visit in 2D / 3D')} <ArrowRight size={16}/></span></div></button>
-   {galleries.filter(g=>(g.title+' '+(g.summary||'')).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())).map(g=><button type="button" className="bml-gallery-card" key={g.id} onClick={()=>enter(g)} disabled={busy}>
+     <small>{tr(language,'8 hiện vật mẫu · 3 phòng · không dùng dữ liệu học sinh','8 sample exhibits · 3 rooms · no student data')}</small>
+     <span>{tr(language,'Tham quan 2D / 3D','Visit in 2D / 3D')} <ArrowRight size={16}/></span></div>
+   </button>
+   {galleries.filter(g=>(g.title+' '+(g.summary||'')).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())).map(g=>
+    <button type="button" className="bml-gallery-card" key={g.id} onClick={()=>enter(g)} disabled={busy}>
      <div className="bml-card-photo"><span className="bml-gallery-badge">{g.status?.toUpperCase()||'EXHIBITION'}</span><Leaf strokeWidth={1.35}/></div>
      <div className="bml-card-caption"><strong>{g.title}</strong><small>{g.summary}</small>
-       <span>{tr(language,'Mở triển lãm','Open exhibition')} <ArrowRight size={16}/></span></div>
+      <span>{tr(language,'Mở triển lãm','Open exhibition')} <ArrowRight size={16}/></span></div>
     </button>)}
   </div>
-  {!galleries.length?<div className="bml-banner bml-info-banner"><Info size={18}/>{tr(language,'Chưa có triển lãm thật được xuất bản. Bản demo có thể xem ngay, nhưng không thay thế minh chứng học sinh.','No student exhibitions have been published yet. The demo is available but is not real learning evidence.')}</div>:null}
+  {!galleries.length?<div className="bml-banner bml-info-banner"><Info size={18}/>{tr(language,
+   'Chưa có triển lãm thật được xuất bản. Bản demo có thể xem ngay, nhưng không thay thế minh chứng học sinh.',
+   'No real student museums have been published yet. The demo is available but is not learning evidence.')}</div>:null}
  </div>;
 }
 export function MuseumSettings({data,onRefresh,language='vi'}){

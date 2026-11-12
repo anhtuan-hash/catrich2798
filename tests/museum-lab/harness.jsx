@@ -7,10 +7,12 @@ import MuseumLiveStudent from '../../src/features/immersive-gallery/v3/MuseumLiv
 import {LIVE_STAGES,summarizeResponses} from '../../src/features/immersive-gallery/v3/liveLesson.js';
 import MuseumLabStudent from '../../src/features/immersive-gallery/v3/MuseumLabStudent.jsx';
 import MuseumScene from '../../src/features/immersive-gallery/v3/MuseumScene.jsx';
+import MuseumExhibitionDetail from '../../src/features/immersive-gallery/v3/MuseumExhibitionDetail.jsx';
 import MuseumEvidence from '../../src/features/immersive-gallery/v3/MuseumEvidence.jsx';
 import {LessonWizard} from '../../src/features/immersive-gallery/v3/MuseumLessonFlow.jsx';
 import {DEMO_GALLERY} from '../../src/features/immersive-gallery/v3/museumApi.js';
 import '../../src/features/immersive-gallery/v3/museumLab.css';
+import '../../src/features/immersive-gallery/v3/museumExhibition.css';
 const synthetic={
  profile:{id:'teacher-synthetic',role:'teacher',school:'SYNTHETIC SCHOOL'},
  creatorSettings:{enabled:false,upload_enabled:false},
@@ -49,7 +51,7 @@ function Harness(){
  return <div style={{fontFamily:'Roboto,Arial,sans-serif'}}>
   <div style={{display:'flex',gap:8,padding:10,background:'#e6f0ff',flexWrap:'wrap'}} data-testid="qa-harness">
    <strong>QA ONLY · ALL DATA SYNTHETIC</strong>
-   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
+   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
   </div>
   <div className="bml">
    {screen==='dashboard'?<MuseumDashboard data={synthetic} onNavigate={setScreen} onCreate={()=>setScreen('wizard')} onDemo={()=>setScreen('scene')}/>:null}
@@ -61,6 +63,15 @@ function Harness(){
    {screen==='scene'?<MuseumScene gallery={DEMO_GALLERY} language="vi" onBack={()=>setScreen('dashboard')}/>:null}
    {screen==='evidence'?<MuseumEvidence data={{...synthetic,rubrics:[]}} language="vi"
      currentUser={{name:'Demo Teacher'}} onDemo={()=>setScreen('scene')}/>:null}
+   {screen==='exhibition'?<MuseumExhibitionDetail gallery={DEMO_GALLERY} isDemo language="vi"
+     data={synthetic} onBack={()=>setScreen('dashboard')} onNavigate={setScreen}/>:null}
+   {screen==='exhibition-layout'?<div className="bml bml-app-layout bml-is-exhibition" data-testid="museum-layout-shell">
+      <aside className="bml-sidebar"><div className="bml-brand">BRIAN Museum Lab</div>
+       <nav className="bml-nav"><button type="button">Dạy trực tiếp</button><button type="button" className="is-active">Triển lãm</button></nav></aside>
+      <div className="bml-main-panel"><header className="bml-appbar">Museum Lab</header>
+       <main className="bml-page"><MuseumExhibitionDetail gallery={DEMO_GALLERY} isDemo language="vi"
+         data={synthetic} onBack={()=>setScreen('dashboard')} onNavigate={setScreen}/></main></div>
+    </div>:null}
    {screen==='wizard'?<LessonWizard data={synthetic} language="vi" onExit={()=>setScreen('dashboard')}
     onCompleted={async()=>{}} onSettings={()=>setScreen('dashboard')}/>:null}
   </div>

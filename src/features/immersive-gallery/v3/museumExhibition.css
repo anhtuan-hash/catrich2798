@@ -1,0 +1,195 @@
+/* BRIAN Museum Lab V3.2 — approved exhibition mockup implementation.
+   Strictly scoped to Museum Lab. Existing Brian global navigation remains unchanged. */
+.bml.bml-app-layout{
+ display:grid;grid-template-columns:210px minmax(0,1fr);
+ width:100%;max-width:1540px;min-height:790px;margin:0 auto;
+ background:#f8fbff;border:1px solid #e2eaf6;border-radius:21px;
+ box-shadow:0 10px 35px rgba(47,82,136,.055);overflow:clip;
+}
+.bml.bml-app-layout>.bml-sidebar{
+ grid-column:1;grid-row:1;min-width:0;height:auto;min-height:0;
+ border-right:1px solid #e3eaf4;background:linear-gradient(180deg,#fff 0%,#f5f9ff 83%,#edf5ff 100%);
+ padding:24px 12px 19px;align-self:stretch;
+}
+.bml.bml-app-layout>.bml-main-panel{
+ grid-column:2;grid-row:1;min-width:0;width:100%;background:#f9fbff;
+}
+.bml.bml-app-layout .bml-brand{gap:10px;padding:9px 10px 22px}
+.bml.bml-app-layout .bml-brand strong{font-size:15px;color:#213954;white-space:nowrap;letter-spacing:-.025em}
+.bml.bml-app-layout .bml-brand small{font-size:10px;color:#8b9ab0}
+.bml.bml-app-layout .bml-nav{gap:5px}
+.bml.bml-app-layout .bml-nav button{min-height:45px;border-radius:14px;padding:10px 14px;gap:13px;font-size:13px}
+.bml.bml-app-layout .bml-nav button.is-active{background:linear-gradient(100deg,#d9e8ff,#d1e2ff);color:#0b57d0}
+.bml.bml-app-layout .bml-nav-label{font-size:10px;color:#7289a3;padding-left:13px}
+.bml.bml-app-layout .bml-nav-divider{margin:6px 11px}
+.bml.bml-app-layout .bml-sidebar-footer{background:#e9f4ff;color:#47729c;font-size:11px;margin-top:23px}
+.bml.bml-app-layout .bml-appbar{height:62px;gap:12px;background:rgba(255,255,255,.92);padding:8px 19px}
+.bml.bml-app-layout .bml-page{padding:21px clamp(16px,2.2vw,32px) 32px;max-width:none}
+.bml.bml-app-layout .bml-user-avatar{width:36px;height:36px}
+.bml.bml-app-layout .bml-search{max-width:430px}
+.bml.bml-app-layout.bml-is-exhibition .bml-search{display:none}
+.bml.bml-app-layout.bml-is-exhibition .bml-appbar-actions{margin-left:auto}
+.bml.bml-app-layout.bml-is-exhibition .bml-appbar .bml-icon-btn{width:39px;height:39px}
+.bml.bml-app-layout .bml-appbar-title{display:block;font-size:13px;color:#526a86}
+.bml.bml-app-layout.is-menu-open{grid-template-columns:minmax(0,1fr)}
+.bml.bml-app-layout.is-menu-open>.bml-sidebar{display:none}
+.bml.bml-app-layout.is-menu-open>.bml-main-panel{grid-column:1}
+/* Museum exhibition detail */
+.bml .bml-exhibition-detail{gap:17px;padding:0}
+.bml .bml-exh-breadcrumbs{display:flex;align-items:center;gap:9px;flex-wrap:wrap;color:#8795a7;font-size:12px;padding:3px 4px}
+.bml .bml-exh-breadcrumbs button{display:flex;align-items:center;gap:7px;border:0;background:none;padding:3px 0;color:#5278a6;font-size:12px;cursor:pointer}
+.bml .bml-exh-breadcrumbs button:hover{text-decoration:underline}
+.bml .bml-exh-breadcrumbs strong{color:#314961;max-width:320px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.bml .bml-exh-hero{min-height:169px;display:flex;align-items:center;border-radius:20px;position:relative;isolation:isolate;overflow:hidden;
+ background:linear-gradient(112deg,#eef7ff 1%,#dceeff 59%,#d9d6ff 100%);border:1px solid #e2ecfa}
+.bml .bml-exh-hero:after{content:"";position:absolute;width:70%;height:165%;border-radius:50%;background:#fff7;
+ top:-113%;right:-17%;transform:rotate(16deg);z-index:-1}
+.bml .bml-exh-hero-copy{position:relative;z-index:2;padding:25px clamp(18px,3vw,35px);max-width:min(72%,680px);width:100%}
+.bml .bml-exh-hero-copy .bml-overline{color:#1d6bc1;font-size:11px}
+.bml .bml-exh-hero-copy h1{font-size:clamp(25px,3.3vw,38px);letter-spacing:-.045em;font-weight:820;line-height:1.12;color:#1d3652;margin:7px 0 5px;overflow-wrap:anywhere}
+.bml .bml-exh-hero-copy p{color:#485e77;font-size:clamp(12px,1.08vw,15px);line-height:1.48;margin:5px 0 15px;max-width:590px}
+.bml .bml-exh-hero-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;font-size:12px}
+.bml .bml-exh-hero-meta small{font-size:11px;color:#71809a}
+.bml .bml-exh-status{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:30px;font-size:12px;font-weight:780;background:#e9f3ff;color:#2a69b2}
+.bml .bml-exh-status.is-published{background:#d9f6e7;color:#167a48}
+.bml .bml-exh-status.is-demo{background:#f1e8ff;color:#7546b2}
+.bml .bml-exh-hero-visual{position:absolute;inset:0 0 0 auto;width:min(46%,445px);overflow:hidden;z-index:1;pointer-events:none}
+.bml .bml-exh-hero-visual .bml-hero-art{width:100%;height:110%;right:0;bottom:-4px;object-fit:cover;opacity:.97}
+.bml .bml-exh-museum-frame{background:#fff;border:1px solid #e2eaf6;border-radius:20px;box-shadow:0 4px 18px rgba(56,91,150,.065);overflow:visible;min-width:0;position:relative}
+.bml .bml-exh-toolbar{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap;padding:13px 16px;border-bottom:1px solid #e7edf5}
+.bml .bml-exh-section-tabs{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.bml .bml-exh-section-tabs button{display:inline-flex;align-items:center;gap:8px;min-height:39px;border:0;border-radius:22px;padding:9px 15px;background:transparent;color:#687c94;font-size:13px;font-weight:740;white-space:nowrap}
+.bml .bml-exh-section-tabs button:hover{background:#f2f6fc}
+.bml .bml-exh-section-tabs button.is-active{color:#0b57d0;background:#dceaff;box-shadow:inset 0 0 0 1px #bad4fb}
+.bml .bml-exh-toolbar-actions{display:flex;align-items:center;gap:8px}
+.bml .bml-exh-round-action{height:36px;width:36px;display:grid;place-items:center;border:1px solid #e1e9f4;border-radius:50%;color:#526e90;background:#fff;padding:0;box-shadow:0 2px 5px #5078a00c}
+.bml .bml-exh-round-action:hover{color:#0b57d0;background:#eef5ff;border-color:#b8d1fa}
+.bml .bml-exh-more-wrap{position:relative}
+.bml .bml-exh-menu{position:absolute;right:0;top:43px;background:white;border:1px solid #dae6f5;border-radius:13px;padding:7px;z-index:15;min-width:195px;box-shadow:0 14px 36px #344c7726}
+.bml .bml-exh-menu button{display:flex;gap:9px;align-items:center;width:100%;background:transparent;border:0;border-radius:9px;padding:10px 9px;text-align:left;font-size:12px;color:#405670}
+.bml .bml-exh-menu button:hover{background:#eef5ff;color:#0b57d0}
+.bml .bml-exh-notice{margin:8px 16px;display:flex;align-items:center;gap:9px;background:#e7f6ec;color:#286449;border-radius:12px;padding:10px 12px;font-size:12px}
+.bml .bml-exh-notice button{margin-left:auto;border:0;background:transparent;color:inherit;display:grid;place-items:center}
+.bml .bml-scene-compact{border:0;border-radius:0;box-shadow:none;overflow:visible}
+.bml .bml-scene-compact .bml-room-tabs{background:#fff;padding:9px 16px;border-top:0;border-bottom:1px solid #eef2f8;gap:6px;min-height:48px}
+.bml .bml-scene-compact .bml-room-tabs button{min-height:32px;border:1px solid #d8e5f5;background:#eff5ff;border-radius:20px;padding:6px 11px;font-weight:620;color:#527294;font-size:12px}
+.bml .bml-scene-compact .bml-room-tabs button.is-active{background:#e0edff;color:#095cce;border-color:#bed8ff;font-weight:790}
+.bml .bml-scene-compact .bml-3d-stage{position:relative;padding:10px 11px 0;background:#fff}
+.bml .bml-scene-compact .bml-3d-stage .big-webgl-shell{height:clamp(360px,43vw,565px);min-height:360px;border-radius:12px;overflow:hidden}
+.bml .bml-scene-compact .bml-3d-caption{bottom:20px;left:22px;border:1px solid #e5ebf4;border-radius:25px;background:#fffefaed;padding:9px 12px;font-size:11px;box-shadow:0 4px 14px #26314b18;max-width:calc(100% - 40px)}
+.bml .bml-scene-mode-float{position:absolute;right:22px;top:19px;z-index:7;display:flex;gap:3px;background:#fff;border:1px solid #e1eaf5;border-radius:30px;padding:3px;box-shadow:0 4px 16px #344d7f25}
+.bml .bml-scene-mode-float button{display:flex;gap:6px;align-items:center;padding:8px 12px;border:0;border-radius:23px;background:#fff;color:#526b88;white-space:nowrap;font-size:12px;font-weight:760}
+.bml .bml-scene-mode-float button.is-active{color:white;background:#0b57d0;box-shadow:0 2px 6px #0a4ec148}
+.bml .bml-scene-compact .bml-museum-room{position:relative;margin:10px;border-radius:12px;padding:66px 22px 25px}
+.bml .bml-scene-compact .bml-scene-footer{padding:14px 16px;background:#fff;border-radius:0 0 20px 20px;color:#73859a}
+.bml .bml-scene-compact .bml-scene-footer>span{font-size:12px}
+.bml .bml-scene-compact .bml-scene-footer button{border-color:#e0e8f4;color:#6881a3;font-weight:700}
+.bml .bml-exh-info-panel{display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,.82fr);gap:24px;min-height:360px;padding:28px}
+.bml .bml-exh-info-panel h2{margin:10px 0;font-size:24px;color:#284566}
+.bml .bml-exh-info-panel h3{margin:0 0 15px;font-size:18px}
+.bml .bml-exh-info-panel p{color:#5a718b;line-height:1.65}
+.bml .bml-exh-info-privacy{display:flex;align-items:start;gap:9px;padding:14px;background:#eff7ff;border-radius:12px;color:#47719b;font-size:12px}
+.bml .bml-exh-info-privacy svg{flex:none}
+.bml .bml-exh-room-listing{border-bottom:1px solid #e5edf6;padding:10px 0;color:#344d6b}
+.bml .bml-exh-room-listing strong{display:block;font-size:13px}
+.bml .bml-exh-room-listing small{display:block;margin-top:2px}
+.bml .bml-exh-room-listing ul{margin:9px 0 8px;padding-left:20px;font-size:12px;color:#627991;line-height:1.7}
+.bml .bml-exh-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.bml .bml-exh-metric{display:flex;align-items:center;gap:12px;padding:16px;min-width:0;border-radius:17px;border:1px solid #e1e9f5;background:#fff;min-height:88px;box-shadow:0 2px 10px #244b8220}
+.bml .bml-exh-metric-icon{display:grid;place-items:center;height:43px;width:43px;border-radius:14px;flex:none}
+.bml .bml-exh-metric strong{display:block;font-size:25px;line-height:1.08;letter-spacing:-.035em;color:#173c79}
+.bml .bml-exh-metric span:not(.bml-exh-metric-icon){display:block;font-size:12px;color:#5e6f84;margin-top:3px;font-weight:620}
+.bml .bml-exh-metric small{font-size:10px;color:#8192a4;display:block;margin-top:3px}
+.bml .bml-exh-metric-blue{background:linear-gradient(110deg,#f0f6ff,#e8f1ff)}.bml .bml-exh-metric-blue .bml-exh-metric-icon{background:#dbeafe;color:#125bc2}
+.bml .bml-exh-metric-green{background:linear-gradient(110deg,#f1fcf9,#e8f9f1)}.bml .bml-exh-metric-green .bml-exh-metric-icon{background:#d5f5e4;color:#1a9a6a}
+.bml .bml-exh-metric-violet{background:linear-gradient(110deg,#f8f4ff,#f0e8fd)}.bml .bml-exh-metric-violet .bml-exh-metric-icon{background:#ece0ff;color:#8b53d3}
+.bml .bml-exh-metric-amber{background:linear-gradient(110deg,#fffaf4,#fff2e3)}.bml .bml-exh-metric-amber .bml-exh-metric-icon{background:#fff0d6;color:#dd9017}
+.bml .bml-exh-overview-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.bml .bml-exh-overview-card{border:1px solid #e3eaf5;border-radius:18px;padding:18px;box-shadow:0 4px 16px #1c457017;display:flex;flex-direction:column;gap:12px;min-width:0;min-height:200px}
+.bml .bml-exh-overview-lesson{background:linear-gradient(138deg,#f8fbff,#eff5ff)}
+.bml .bml-exh-overview-progress{background:linear-gradient(138deg,#f5fdfa,#e8fbf5)}
+.bml .bml-exh-overview-competition{background:linear-gradient(138deg,#fcf9ff,#f0eafd)}
+.bml .bml-exh-card-heading{display:flex;align-items:center;gap:10px}
+.bml .bml-exh-card-heading svg{color:#1e65c0;flex:none}
+.bml .bml-exh-overview-progress .bml-exh-card-heading svg{color:#168b65}
+.bml .bml-exh-overview-competition .bml-exh-card-heading svg{color:#7c4cbb}
+.bml .bml-exh-card-heading h3{font-size:14px;margin:0;color:#24405d}
+.bml .bml-exh-linked-lesson{display:flex;justify-content:space-between;align-items:center;gap:9px;width:100%;padding:10px 12px;border:0;border-radius:13px;background:#dfebff;color:#0b57d0;font-size:12px;font-weight:800;text-align:left}
+.bml .bml-exh-overview-card p{font-size:12px;line-height:1.55;color:#5b6e89;margin:0}
+.bml .bml-exh-text-link{display:flex;align-items:center;gap:7px;align-self:start;padding:5px 0;border:0;background:none;color:#0b57d0;font-size:12px;font-weight:760;margin-top:auto}
+.bml .bml-exh-card-scope{font-size:10px;color:#708e8a;line-height:1.4;margin-top:-8px}
+.bml .bml-exh-progress-rows{display:grid;gap:2px}
+.bml .bml-exh-progress-rows>div{display:flex;gap:9px;align-items:center;border-bottom:1px solid #dcefe9;padding:7px 1px;font-size:12px}
+.bml .bml-exh-progress-rows>div:last-child{border-bottom:0}
+.bml .bml-exh-progress-rows>div svg{color:#2b9e7b;flex:none}
+.bml .bml-exh-progress-rows>div span{flex:1;color:#46675e}
+.bml .bml-exh-progress-rows>div strong{color:#2b6653;font-variant-numeric:tabular-nums}
+.bml .bml-exh-competition-action{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;align-self:start;margin-top:auto;background:#e7dcff;border:1px solid #dec8ff;border-radius:13px;color:#7950ba;font-size:12px;font-weight:750}
+.bml .bml-exh-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;color:#5b7cad;font-size:12px;padding:8px 4px 0}
+.bml .bml-exh-footer>span{display:flex;align-items:center;gap:7px}
+.bml .bml-exh-footer>span:last-child{font-style:italic;font-weight:750;color:#1768d1}
+.bml .bml-exh-museum-frame:fullscreen{background:#fff;overflow:auto;padding:8px}
+.bml .bml-exh-museum-frame:fullscreen .bml-scene-compact .big-webgl-shell{height:calc(100vh - 220px);min-height:350px}
+.bml .bml-exh-museum-frame:fullscreen .bml-scene-compact .bml-museum-room{min-height:calc(100vh - 260px)}
+/* Fully stacked controls only at intentionally narrow screens. */
+@media(max-width:1180px){
+ .bml.bml-app-layout{grid-template-columns:191px minmax(0,1fr)}
+ .bml .bml-exh-overview-grid{gap:10px}
+ .bml .bml-exh-overview-card{padding:14px}
+ .bml .bml-exh-metric{padding:13px;gap:10px}
+}
+@media(max-width:930px){
+ .bml .bml-exh-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .bml .bml-exh-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .bml .bml-exh-overview-competition{grid-column:1/-1}
+ .bml .bml-exh-hero-copy{max-width:79%}
+}
+@media(max-width:830px){
+ .bml.bml-app-layout{display:grid;grid-template-columns:minmax(0,1fr);border-radius:14px}
+ .bml.bml-app-layout>.bml-sidebar{grid-row:1;grid-column:1;border-right:0;border-bottom:1px solid #e5edf7;min-height:0;padding:3px 10px}
+ .bml.bml-app-layout>.bml-main-panel{grid-row:2;grid-column:1;min-width:0}
+ .bml.bml-app-layout .bml-sidebar:not(.is-open) .bml-brand,
+ .bml.bml-app-layout .bml-sidebar:not(.is-open) .bml-nav{display:none}
+ .bml.bml-app-layout .bml-sidebar.is-open .bml-nav{display:flex;flex-direction:row;overflow-x:auto}
+ .bml.bml-app-layout .bml-sidebar.is-open .bml-nav button{width:auto;flex:none}
+ .bml.bml-app-layout .bml-sidebar-footer{display:none}
+ .bml.bml-app-layout.is-menu-open{grid-template-columns:1fr}
+ .bml.bml-app-layout.is-menu-open>.bml-sidebar{display:block}
+ .bml.bml-app-layout.is-menu-open>.bml-main-panel{grid-row:2}
+ .bml.bml-app-layout .bml-appbar{height:55px}
+}
+@media(max-width:630px){
+ .bml.bml-app-layout .bml-page{padding:14px 11px 22px}
+ .bml .bml-exh-breadcrumbs{font-size:11px}
+ .bml .bml-exh-breadcrumbs strong{max-width:180px}
+ .bml .bml-exh-hero{min-height:190px}
+ .bml .bml-exh-hero-copy{max-width:97%;padding:20px 17px}
+ .bml .bml-exh-hero-copy h1{font-size:27px}
+ .bml .bml-exh-hero-copy p{max-width:77%;font-size:12px}
+ .bml .bml-exh-hero-visual{width:53%;opacity:.47}
+ .bml .bml-exh-toolbar{padding:9px;gap:7px}
+ .bml .bml-exh-section-tabs{width:100%;gap:4px}
+ .bml .bml-exh-section-tabs button{padding:8px 10px;font-size:11px}
+ .bml .bml-exh-toolbar-actions{margin-left:auto}
+ .bml .bml-scene-compact .bml-3d-stage{padding:7px}
+ .bml .bml-scene-compact .bml-3d-stage .big-webgl-shell{height:410px;min-height:380px}
+ .bml .bml-scene-compact .bml-room-tabs{padding:8px}
+ .bml .bml-scene-compact .bml-3d-caption{position:static;max-width:none;margin-top:6px;box-shadow:none;border-radius:10px}
+ .bml .bml-scene-mode-float{right:12px;top:12px}
+ .bml .bml-scene-mode-float button{font-size:11px;padding:8px 10px}
+ .bml .bml-exh-info-panel{grid-template-columns:1fr;padding:19px}
+ .bml .bml-exh-overview-grid{grid-template-columns:1fr}
+ .bml .bml-exh-overview-competition{grid-column:auto}
+ .bml .bml-exh-metric{min-height:78px}
+ .bml .bml-exh-metric strong{font-size:22px}
+ .bml .bml-exh-metric-icon{height:37px;width:37px}
+ .bml .bml-exh-metric-icon svg{width:21px}
+ .bml .bml-exh-footer{flex-wrap:wrap}
+}
+@media print{
+ .bml .bml-exh-toolbar-actions,.bml .bml-exh-section-tabs{display:none}
+ .bml .bml-exh-hero,.bml .bml-exh-overview-grid{break-inside:avoid}
+}
+@media(prefers-reduced-motion:reduce){
+ .bml .bml-exhibition-detail *{scroll-behavior:auto!important;transition:none!important}
+}
