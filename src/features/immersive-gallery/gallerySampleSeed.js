@@ -31,3 +31,37 @@ export async function seedDemoGallery(user) {
  }
  return doc;
 }
+
+/**
+ * Browsable, local-only 3D exhibition for release acceptance.
+ * It never inserts rows, signs URLs, contacts Storage, or implies real pupil authorship.
+ */
+export function buildLocalGalleryDemo() {
+ const rooms=SAMPLES.map(([template,title,items],i)=>({
+  id:'local-demo-room-'+i,
+  exhibition_id:'local-demo',
+  template_key:template,
+  title,
+  sort_order:i,
+  exhibits:items.map(([name,description,kind],k)=>({
+   id:'local-demo-exhibit-'+i+'-'+k,
+   room_id:'local-demo-room-'+i,
+   title:name,
+   description,
+   kind,
+   status:'published',
+   submitted_by:null,
+   asset_id:null,
+   external_url:null,
+   model_key:kind==='model'?(k===0?'globe':'book'):null,
+   transform:{...DEFAULT_TRANSFORM,position:[(k-(items.length-1)/2)*3,2,-7.72]},
+   alt_text:'',
+   transcript:'',
+  })),
+ }));
+ return {
+  id:'local-demo',slug:'local-demo',title:'Our Planet, Our Future — 3D Demo',
+  summary:'An original interactive exhibition with eight fictional educational exhibits. No student records or media are used.',
+  status:'published',visibility:'private',accept_submissions:false,rooms,
+ };
+}
