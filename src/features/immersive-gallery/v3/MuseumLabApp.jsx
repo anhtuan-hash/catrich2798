@@ -26,7 +26,11 @@ export default function MuseumLabApp({currentUser,language='vi'}){
   try{const data=await staffRequest('dashboard');setStaff(data);setError('');return data;}
   catch(e){setError(e.message);return null;}finally{setLoading(false);}
  },[]);
- useEffect(()=>{let live=true;refresh();return()=>{live=false;};},[refresh,currentUser?.id]);
+ useEffect(()=>{refresh();},[refresh,currentUser?.id]);
+ useEffect(()=>{
+  const timer=window.setInterval(()=>{if(!document.hidden)refresh();},45000);
+  return()=>window.clearInterval(timer);
+ },[refresh]);
  const navigate=(id,extra)=>{
   setTab(id);setMenuOpen(false);setNotice('');
   if(id==='submissions'&&extra)setReviewId(extra);
@@ -60,6 +64,7 @@ export default function MuseumLabApp({currentUser,language='vi'}){
       value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){navigate('lessons');}}}
       placeholder={tr(language,'Tìm bài học, triển lãm…','Search lessons and museums…')}/></label>
     <div className="bml-appbar-actions">
+     <button className="bml-icon-btn" type="button" onClick={()=>refresh()} aria-label={tr(language,'Làm mới dữ liệu','Refresh data')}><RefreshCw size={20}/></button>
      <button className="bml-icon-btn" type="button" onClick={()=>setHelp(true)} aria-label={tr(language,'Trợ giúp','Help')}><CircleHelp size={22}/></button>
      <button className="bml-icon-btn" type="button" onClick={()=>navigate('submissions')} aria-label={tr(language,'Bài nộp chờ duyệt','Pending reviews')}><Bell size={21}/></button>
      <button className="bml-icon-btn" type="button" onClick={()=>{window.location.hash='#/apps';}} aria-label={tr(language,'Ứng dụng Brian','Brian apps')}><Grid2X2 size={21}/></button>
