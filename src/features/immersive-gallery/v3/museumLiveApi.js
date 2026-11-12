@@ -65,8 +65,17 @@ export async function imageToCanvasPng(file){
   if(!ctx)throw new Error('Trình duyệt không thể xử lý ảnh.');
   ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
   ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
-  const png=canvas.toDataURL('image/png');
-  if(png.length>3800000)throw new Error('Ảnh sau xử lý vẫn quá lớn. Hãy chọn ảnh khác.');
+  let png=canvas.toDataURL('image/png');
+  // Lower resolution automatically for complex posters on classroom Wi-Fi.
+  while(png.length>3800000&&canvas.width>450&&canvas.height>280){
+   canvas.width=Math.max(1,Math.round(canvas.width*.76));
+   canvas.height=Math.max(1,Math.round(canvas.height*.76));
+   const next=canvas.getContext('2d',{alpha:false});
+   next.fillStyle='#fff';next.fillRect(0,0,canvas.width,canvas.height);
+   next.drawImage(bitmap,0,0,canvas.width,canvas.height);
+   png=canvas.toDataURL('image/png');
+  }
+  if(png.length>3800000)throw new Error('Ảnh quá phức tạp để tải an toàn. Hãy thử ảnh JPG khác.');
   return png;
  }finally{bitmap.close?.();}
 }
