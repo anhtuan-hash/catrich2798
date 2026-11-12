@@ -5,9 +5,9 @@ import {PREPARED_COLLECTIONS,preparedGallery} from './museumPreparedCollections.
 import {staffRequest,DEMO_GALLERY} from './museumApi.js';
 import MuseumScene from './MuseumScene.jsx';
 import MuseumExhibitionDetail from './MuseumExhibitionDetail.jsx';
-import {KitCard} from './MuseumDashboard.jsx';
+import {KitCover} from './MuseumDashboard.jsx';
 const tr=(l,vi,en)=>l==='en'?en:vi;
-export function MuseumTemplates({language='vi',onCreate,onDemo}){
+export function MuseumTemplates({language='vi',onCreate}){
  const kit=LESSON_KITS[0];
  return <div className="bml-screen"><div><div className="bml-overline">ENGLISH 11 · GLOBAL SUCCESS UNIT 5</div>
   <h1>{tr(language,'Kế hoạch bài dạy','Teaching plan')}</h1>
