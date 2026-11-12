@@ -26,7 +26,7 @@ test('original artwork and privacy-respecting media fallback stay available',()=
 });
 test('keyboard exit and accessible dialog focus handling are available',()=>{
  assert.match(museum,/event.key==='Escape'/);
- assert.match(museum,/event.key==='Tab'/);
+ assert.match(museum,/event.key!=='Tab'/);
  assert.match(museum,/aria-modal="true"/);
  assert.match(museum,/closeRef.current\?\.focus/);
  assert.match(viewer,/aria-pressed=\{spin\}/);
