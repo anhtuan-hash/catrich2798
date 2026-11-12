@@ -40,7 +40,9 @@ function ArtworkImage({assetId,imageUrl}) {
   return()=>{alive=false;if(created)created.dispose();};
  },[assetId,imageUrl]);
  if(!texture)return <mesh position={[0,0,0.083]}><planeGeometry args={[1.3,0.8]}/><meshStandardMaterial color="#e2d4c7"/></mesh>;
- return <mesh position={[0,0,0.083]}><planeGeometry args={[1.3,0.9]}/><meshBasicMaterial map={texture} toneMapped={false} side={THREE.DoubleSide}/></mesh>;
+ const width=texture.image?.width||1,height=texture.image?.height||1,aspect=width/height;
+ const size=aspect>1.36/1.12?[1.36,1.36/aspect]:[1.12*aspect,1.12];
+ return <mesh position={[0,0,0.083]}><planeGeometry args={size}/><meshBasicMaterial map={texture} toneMapped={false} side={THREE.DoubleSide}/></mesh>;
 }
 function PaperArtwork({exhibit,onSelect,isSelected}) {
  const transform=useMemo(()=>normalizeTransform(exhibit.transform||{}),[exhibit.transform]);
