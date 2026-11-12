@@ -79,7 +79,7 @@ function SchoolPineSeal({position=[-5.72,4.85,-7.89],size=1.1,rotation=[0,0,0]})
   ctx.font='bold 27px Arial';ctx.fillText('THE PIONEERS',270,467,310);
  },[512,512],[]);
  return <group position={position} rotation={rotation}>
-  <mesh><cylinderGeometry args={[size*.53,size*.53,.065,40]} rotation={[Math.PI/2,0,0]}/>
+  <mesh rotation={[Math.PI/2,0,0]}><cylinderGeometry args={[size*.53,size*.53,.065,40]}/>
    <meshStandardMaterial color="#E9CD82" metalness={.56} roughness={.29}/></mesh>
   {map?<mesh position={[0,0,.046]}>
    <planeGeometry args={[size,size]}/>
@@ -173,7 +173,7 @@ export function PekMuseumArchitecture({template='classic',lite=false}){
   <Typography text="PÉTRUS KÝ" subtitle="DISCOVERY MUSEUM • THE PIONEERS"
    position={[0,5.16,-7.93]} size={[8.6,.71]} type="banner"/>
   <SchoolPineSeal position={[-5.72,5.08,-7.93]} size={1.02}/>
-  <mesh position={[5.71,5.07,-7.99]}><cylinderGeometry args={[.52,.52,.08,32]} rotation={[Math.PI/2,0,0]}/>
+  <mesh position={[5.71,5.07,-7.99]} rotation={[Math.PI/2,0,0]}><cylinderGeometry args={[.52,.52,.08,32]}/>
    <meshStandardMaterial color="#E4C46B" metalness={.52} roughness={.39}/></mesh>
   <Typography text="PEK" subtitle="2008" position={[5.71,5.07,-7.91]} size={[.92,.72]} type="gold"/>
   {/* Architecture echoes the photographed teal-yellow-white campus facades. */}
