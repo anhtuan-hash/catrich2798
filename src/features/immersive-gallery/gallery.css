@@ -1,0 +1,84 @@
+/* BRIAN Living Exhibition — Layered Paper × Museum Architecture.
+   All styles scoped to .big-gallery or prefixed .big- to avoid legacy regressions. */
+.big-gallery{--big-ink:#252d32;--big-paper:#fffdf8;--big-line:#d5d6cf;--big-clay:#aa715d;--big-sage:#628e83;--big-pale:#f1eee7;color:var(--big-ink);font-family:inherit;max-width:1480px;margin:0 auto;padding:28px clamp(16px,3vw,44px) 70px}
+.big-gallery *{box-sizing:border-box}
+.big-gallery button,.big-gallery input,.big-gallery select,.big-gallery textarea{font:inherit}
+.big-gallery button,.big-gallery a{touch-action:manipulation}
+.big-gallery button{cursor:pointer;border:1px solid #a7b9b1;color:#223b36;background:#fffdf8;border-radius:12px;padding:10px 15px;font-weight:650}
+.big-gallery button:hover{background:#e8f2ee}
+.big-gallery button:disabled{opacity:.5;cursor:not-allowed}
+.big-gallery button:focus-visible,.big-gallery a:focus-visible,.big-gallery input:focus-visible,.big-gallery textarea:focus-visible,.big-gallery select:focus-visible{outline:3px solid #7fbaa8;outline-offset:2px}
+.big-gallery h1,.big-gallery h2,.big-gallery h3,.big-gallery p{margin-top:0}
+.big-gallery h2{font-size:clamp(23px,2.6vw,36px);letter-spacing:-.025em}
+.big-gallery small{color:#657570}
+.big-hero{position:relative;background:#f5f0e7;padding:clamp(24px,4vw,56px);border:1px solid #dad5ca;border-radius:24px;box-shadow:0 9px 0 #e6e2d7,0 15px 38px #565d5510;margin-bottom:38px;overflow:hidden}
+.big-hero:before,.big-hero:after{content:'';position:absolute;pointer-events:none;border:20px solid #d8e3d7;border-radius:180px;opacity:.46;right:-26px;top:-65px;width:250px;height:240px}
+.big-hero:after{width:140px;height:140px;border-width:12px;top:78px;right:120px;border-color:#e4c8b9}
+.big-hero>*{position:relative;z-index:1}
+.big-hero small,.big-eyebrow{font-size:11px;letter-spacing:.19em;text-transform:uppercase;color:#6f796f;font-weight:800}
+.big-hero h1{font-weight:800;font-size:clamp(32px,5.4vw,68px);letter-spacing:-.05em;line-height:1.08;margin:12px 0}
+.big-hero h1 span{color:#9f705b}
+.big-hero p{font-size:16px;max-width:670px;line-height:1.8;color:#51645e}
+.big-hero button,.big-gallery button[type=submit]{background:#315f55;color:white;border:0}
+.big-catalog-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:23px}
+.big-section-heading,.big-viewer-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap;margin:20px 0}
+.big-catalog-card{background:#fffdf8;border:1px solid #dbd8d0;border-radius:19px;overflow:hidden;box-shadow:5px 6px 0 #eae6dd;min-height:320px}
+.big-catalog-card>div:last-child{padding:22px}
+.big-card-art{height:170px;display:grid;place-items:center;background:radial-gradient(ellipse at 60% 30%,#faf6e6 0,#d2b5a1 90%)}
+.big-card-art.tone-1{background:radial-gradient(ellipse at 40% 30%,#f2fbf1,#89afa4)}
+.big-card-art.tone-2{background:radial-gradient(ellipse at 40% 30%,#eff3fb,#8b9db9)}
+.big-card-art span{font-size:75px;color:#fffdf8;text-shadow:3px 3px 0 #ffffff60}
+.big-catalog-card h3{margin:9px 0;font-size:22px}
+.big-catalog-card p{color:#60706a;font-size:14px;min-height:50px}
+.big-catalog-card button{width:100%}
+.big-paper{padding:clamp(15px,2.4vw,27px);border:1px solid #d7d8d0;border-radius:18px;background:#fffdf8;box-shadow:4px 5px 0 #ebe9e2;margin:14px 0}
+.big-alert{padding:12px 16px;border-left:4px solid #ba8a68;background:#fff5e9;border-radius:8px;margin:12px 0;white-space:pre-wrap}
+.big-back{margin-bottom:10px}
+.big-viewer-head h2{margin:0 0 6px}
+.big-viewer-head p{max-width:650px;color:#64766e}
+.big-controls{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.big-controls select{border:1px solid var(--big-line);border-radius:8px;padding:7px;background:#fff}
+.big-room-nav{display:flex;gap:10px;overflow:auto;padding:7px 2px 15px;scrollbar-width:thin}
+.big-room-nav button{white-space:nowrap}
+.big-gallery .big-room-nav button.active,.big-gallery .big-row-btn.active{background:#365f56;color:white}
+.big-visit-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(230px,290px);gap:17px;align-items:start}
+.big-scene-viewport{min-width:0;position:relative}
+.big-webgl-shell{position:relative;width:100%;height:clamp(350px,48vw,620px);border:1px solid #d3d6cf;border-radius:18px;background:#e8eee8;overflow:hidden;isolation:isolate}
+.big-webgl-shell canvas{width:100%;height:100%;display:block;touch-action:none;outline-offset:-3px}
+.big-scene-help{font-size:12px;color:#60746c;text-align:center;padding:9px}
+.big-scene-hud{position:absolute;left:15px;top:15px;background:#fffdf8d9;border:1px solid #dadbd4;border-radius:6px;padding:5px 8px;font-size:11px}
+.big-canvas-error,.big-canvas-loading{position:absolute;inset:0;display:grid;place-items:center;padding:25px;background:#f3f1e9;color:#8d4d3f;text-align:center}
+.big-touch-pad{position:absolute;bottom:12px;left:12px;display:none;gap:3px;grid-template-columns:repeat(4,48px)}
+.big-touch-pad button{background:#fffdf8c9;border:1px solid #d3d9d1;padding:8px;min-width:44px;min-height:44px}
+.big-exhibit-list{background:var(--big-paper);border-radius:16px;border:1px solid #dadbd4;padding:17px;max-height:640px;overflow:auto}
+.big-exhibit-list h3{font-size:17px}
+.big-exhibit-list button,.big-row-btn{display:block!important;text-align:left;width:100%;margin:7px 0;background:#f7f8f2!important;border-color:#e0e4dc!important}
+.big-exhibit-list button b,.big-row-btn b{display:block}
+.big-exhibit-list button small,.big-row-btn small{display:block;line-height:1.45;margin-top:5px}
+.big-detail-shade{position:fixed;inset:0;background:#1e3035a6;z-index:9000;display:flex;justify-content:flex-end;align-items:stretch}
+.big-detail-panel{background:#fffdf8;color:#252d32;width:min(540px,100%);padding:28px;overflow:auto;box-shadow:-15px 0 50px #0002;position:relative}
+.big-detail-panel h2{margin:13px 0 21px;font-size:30px}
+.big-close{position:absolute;right:18px;top:18px;font-size:27px!important;padding:0!important;min-width:44px;height:44px;background:white;border:1px solid #ddd}
+.big-media{display:block;max-width:100%;max-height:460px;object-fit:contain;border-radius:9px}
+.big-description{white-space:pre-wrap;line-height:1.8;color:#53615d}
+.big-model-note{min-height:190px;background:#e7f0ee;display:flex;gap:14px;align-items:center;justify-content:center;font-size:85px}
+.big-model-note small{font-size:13px;width:160px}
+.big-studio-columns{display:grid;grid-template-columns:minmax(280px,420px) minmax(0,1fr);gap:19px}
+.big-studio label{display:block;font-size:13px;font-weight:650;margin-bottom:11px}
+.big-studio input:not([type=checkbox]):not([type=file]),.big-studio textarea,.big-studio select,.big-gallery form input,.big-gallery form textarea,.big-gallery form select{display:block;width:100%;border:1px solid #d1d7d0;border-radius:10px;padding:10px 12px;background:#fff;min-height:40px;margin-top:5px}
+.big-studio form>button,.big-studio .big-controls button{margin-top:10px}
+.big-studio .big-paper h3{font-size:19px;margin-bottom:15px}
+.big-studio .big-row-btn{padding:12px}
+.big-meta{margin:12px 0 22px}
+.big-meta h3{font-size:24px}
+.big-meta h3 span{display:inline-block;font-size:12px;letter-spacing:.1em;border-radius:5px;background:#e4f0eb;color:#427569;padding:5px 9px}
+.big-editor-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px}
+.big-editor-preview .big-webgl-shell{height:350px}
+.big-transform{border:1px dashed #a6b8b0;margin-top:20px;padding:15px;border-radius:12px;background:#f6f8f3}
+.big-transform .big-editor-grid input{max-width:130px}
+.big-review{margin:15px 0;border-bottom:1px solid #d9ddd5;padding-bottom:20px}
+.big-review .big-media{max-height:220px}
+.big-viewer .big-paper form{max-width:600px}
+@media(max-width:880px){.big-visit-layout,.big-studio-columns{grid-template-columns:1fr}.big-exhibit-list{max-height:330px}.big-touch-pad{display:grid}.big-gallery{padding-left:14px;padding-right:14px}.big-webgl-shell{height:min(65vh,520px)}}
+@media(max-width:520px){.big-hero{padding:24px 18px}.big-hero:before{width:140px;height:140px}.big-room-nav button{font-size:12px}.big-webgl-shell{height:380px}.big-detail-panel{padding:18px}.big-viewer-head{display:block}.big-controls{margin-top:12px}}
+@media(prefers-reduced-motion:reduce){.big-gallery *{animation-duration:.01ms!important;transition-duration:.01ms!important}}

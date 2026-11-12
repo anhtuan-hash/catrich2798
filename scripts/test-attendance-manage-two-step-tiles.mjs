@@ -22,8 +22,10 @@ assert.doesNotMatch(navigation, /<div className="attendance-management-grid"><as
 assert.doesNotMatch(workspace, /MutationObserver|querySelector|innerHTML/,
   'Two-step class management must remain direct React, not a DOM runtime overlay.');
 
-assert.match(workspace, /const \[manageDetailOpen,\s*setManageDetailOpen\]\s*=\s*useState\(false\)/,
-  'Manage workspace must own an explicit overview/detail state.');
+assert.match(workspace, /const \[manageDetailOpen,\s*setManageDetailOpen\]\s*=\s*useState\(/,
+  'Manage workspace must own an explicit overview/detail state, including restored sessions.');
+assert.match(workspace, /readManageSession\(stateScope\)/,
+  'Manage workspace must safely restore its previous detail session when available.');
 assert.match(workspace, /const \[manageClassQuery,\s*setManageClassQuery\]/,
   'Manage overview must have its own class search state.');
 assert.match(workspace, /const \[manageTypeFilter,\s*setManageTypeFilter\]/,

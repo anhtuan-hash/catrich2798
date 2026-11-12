@@ -1,5 +1,13 @@
 export const APPS = [
   {
+    slug: 'immersive-gallery', icon: 'IG', tone: 'mint', group: 'Creative Learning', groupVi: 'Sáng tạo & trưng bày',
+    title: 'BRIAN Immersive Gallery 3D', titleVi: 'Phòng triển lãm tương tác 3D',
+    desc: 'Visit and curate immersive student exhibitions with live Supabase moderation.',
+    descVi: 'Tham quan, tạo triển lãm và duyệt tác phẩm học sinh trong không gian 3D.',
+    status: '3D · Museum · School-only by default', statusVi: 'Bảo tàng 3D · Phân quyền · Dữ liệu thật',
+    api: false, featured: true, hideable: false,
+  },
+  {
     slug: 'sync-doctor', icon: 'SD', tone: 'blue', group: 'Operations', groupVi: 'Vận hành & dữ liệu',
     title: 'Brian Sync Doctor', titleVi: 'Sync Doctor · Chẩn đoán đồng bộ',
     desc: 'Read-only integrity checks across authorized class rosters, homeroom, gradebook and assessment sources.',

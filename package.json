@@ -185,7 +185,10 @@
     "idb": "^8.0.3",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
-    "qrcode": "^1.5.4"
+    "qrcode": "^1.5.4",
+    "three": "0.187.0",
+    "@react-three/fiber": "9.8.2",
+    "@react-three/drei": "10.7.9"
   },
   "description": "Brian English Studio — non-AI teaching, management and offline workflow suite.",
   "engines": {

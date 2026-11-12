@@ -1,0 +1,69 @@
+name: BRIAN Gallery isolated QA (no production services)
+on:
+  pull_request:
+    paths:
+      - 'src/features/immersive-gallery/**'
+      - 'supabase/migrations/20261112140000_brian_immersive_gallery_r1.sql'
+      - 'scripts/gallery-local-postgres-qa.sh'
+      - 'tests/gallery/**'
+      - '.github/workflows/gallery-qa-isolated.yml'
+      - 'package*.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    name: Synthetic WebGL and GLB browser QA
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: node scripts/test-immersive-gallery.mjs
+      - run: npx playwright install --with-deps chromium
+      - name: Run browser QA on synthetic fixtures (no Supabase credentials)
+        run: npx playwright test --config tests/gallery/playwright.config.mjs
+      - name: Publish synthetic screenshots and failure traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gallery-synthetic-qa
+          path: artifacts/gallery
+          if-no-files-found: ignore
+          retention-days: 5
+  postgres:
+    name: Real RLS on disposable PostgreSQL
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: gallery-only-synthetic
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Isolated SQL security exercise (no cloud connection)
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: gallery-only-synthetic
+          PGDATABASE: postgres
+        run: bash scripts/gallery-local-postgres-qa.sh

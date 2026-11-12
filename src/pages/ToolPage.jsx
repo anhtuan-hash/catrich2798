@@ -12,6 +12,7 @@ const GradebookStudio = lazy(() => import('./GradebookStudio.jsx'));
 const SyncDoctor = lazy(() => import('./SyncDoctor.jsx'));
 const LessonCheckStudio = lazy(() => import('./LessonCheckStudio.jsx'));
 const QuestAtlas = lazy(() => import('../features/questatlas/QuestAtlas.jsx'));
+const ImmersiveGallery = lazy(() => import('../features/immersive-gallery/GalleryApp.jsx'));
 
 function ToolFallback({ language = 'vi' }) {
   return <div className="page narrow"><section className="panel empty-state"><h1>{language === 'vi' ? 'Đang mở công cụ...' : 'Opening tool...'}</h1><p>{language === 'vi' ? 'Đang tải đúng mô-đun cần dùng để giao diện nhẹ hơn.' : 'Loading only the module you need for a lighter interface.'}</p></section></div>;
@@ -58,6 +59,7 @@ export default function ToolPage(props) {
   if (tool?.slug === 'sync-doctor') return renderLazy(SyncDoctor, props);
   if (tool?.slug === 'lesson-check-studio') return renderLazy(LessonCheckStudio, props);
   if (tool?.slug === 'questatlas') return renderLazy(QuestAtlas, props);
+  if (tool?.slug === 'immersive-gallery') return renderLazy(ImmersiveGallery, props);
   if (tool?.slug === 'textlab-activities') return renderLazy(TextLabActivities, props);
   if (tool?.slug === 'thpt-practice-hub') return renderLazy(THPTPracticeHub, props);
   if (tool?.slug === 'brian-team') return renderLazy(BrianTeamPortal, props);
