@@ -70,3 +70,11 @@ test('publication remains atomic via SQL RPC',()=>{
  const data=fs.readFileSync('src/features/immersive-gallery/galleryData.js','utf8');
  assert.match(data,/\.rpc\('gallery_publish_exhibition'/);
 });
+
+test('post-create Gallery table grants explicitly exclude TRUNCATE and DELETE',()=>{
+ const sql=fs.readFileSync('supabase/migrations/20261112144500_brian_immersive_gallery_r1_privilege_hardening.sql','utf8');
+ assert.match(sql,/revoke all privileges on table[\s\S]*public\.gallery_settings[\s\S]*public\.gallery_exhibits[\s\S]*from public, anon, authenticated/);
+ assert.match(sql,/grant select, update on table public\.gallery_settings to authenticated/);
+ assert.match(sql,/grant select, insert on table public\.gallery_assets to authenticated/);
+ assert.doesNotMatch(sql,/grant[^;]*(?:delete|truncate)[^;]*to authenticated/i);
+});

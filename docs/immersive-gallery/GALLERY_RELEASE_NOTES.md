@@ -27,3 +27,10 @@ Release 1 user acceptance is not complete. R3F/Three/Drei and three curated orig
 
 ## R1 validation update · 2026-11-12
 Browser 12/12 synthetic Playwright checks PASS (desktop, mobile, tablet), original GLB inspection rendered in Chromium, PostgreSQL 16 synthetic RLS checks PASS including canonical school scoping and foreign media ownership. These are not live Supabase staging or authenticated Brian acceptance. Read `GALLERY_QA_REPORT.md` before any merge. The PR remains draft and feature OFF.
+
+## Production database phase 1 verified — 12 November 2026
+- User authorized production deployment; the Gallery R1 schema migration has **actually been applied** to Supabase project `xpkbgqdlfonsinriggmj`, followed by the separate least-privilege hardening migration.
+- Database verification: five Gallery tables, all with RLS; 13 Gallery table policies; private bucket `brian-gallery-private`; zero exhibitions and exhibits; `gallery_settings.enabled=false`.
+- **Important discovered issue:** Supabase's initial table privileges gave `authenticated` unnecessary DELETE/TRUNCATE capabilities even though RLS was ON. An immediate second migration removed these; a post-migration `has_table_privilege` query now verifies DELETE=false and TRUNCATE=false on all five tables and anon SELECT=false. Keep this second migration after the schema migration.
+- Frontend production release is **not yet confirmed** by this phase. The 3D feature remains hidden while the feature flag is OFF. Independent browser and PostgreSQL synthetic QA passed; live authenticated user/Storage acceptance is not yet complete.
+- The student-submission control is deliberately unavailable in Studio until Brian supports a verified learner login; it must not be presented as a working capability. `learning_learners` has no linked `learner_user_id` in the current production database.
