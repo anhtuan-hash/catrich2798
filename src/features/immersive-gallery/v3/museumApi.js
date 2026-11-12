@@ -13,7 +13,9 @@ export async function staffRequest(action,body){
   },...(body?{body:JSON.stringify(body)}:{})
  });
  const value=await response.json().catch(()=>({error:'Không nhận được phản hồi từ máy chủ.'}));
- if(!response.ok)throw new Error(value.error||'Không thể thực hiện yêu cầu.');
+ if(!response.ok||value.error)throw new Error(value.error||'Không thể thực hiện yêu cầu.');
+ if(action==='dashboard'&&(!value.profile||!Array.isArray(value.assignments)||!Array.isArray(value.groups)))
+  throw new Error('Phản hồi phiên quản lý không hợp lệ.');
  return value;
 }
 export async function guestRequest(action,method='GET',body,csrf=''){
@@ -26,7 +28,11 @@ export async function guestRequest(action,method='GET',body,csrf=''){
   ...(body?{body:JSON.stringify(body)}:{})
  });
  const value=await response.json().catch(()=>({error:'Không nhận được phản hồi từ máy chủ.'}));
- if(!response.ok)throw Object.assign(new Error(value.error||'Không thể thực hiện yêu cầu.'),{status:response.status});
+ if(!response.ok||value.error)throw Object.assign(new Error(value.error||'Không thể thực hiện yêu cầu.'),{status:response.status});
+ if(action==='me'&&(!value.assignment||!value.csrf||!value.groupLabel))
+  throw new Error('Không xác minh được phiên nhóm. Hãy nhập lại mã Creator Pass.');
+ if(action==='draft'&&(!value.draft||!Number.isInteger(value.version)))
+  throw new Error('Bản nháp nhận được không hợp lệ.');
  return value;
 }
 export const fmtDate=x=>x?new Date(x).toLocaleDateString('vi-VN'):'—';
