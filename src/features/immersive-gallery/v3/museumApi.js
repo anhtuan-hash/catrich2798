@@ -1,7 +1,8 @@
-import {supabase} from '../../../utils/supabase.js';
-import {buildLocalGalleryDemo} from '../gallerySampleSeed.js';
-export const DEMO_GALLERY=buildLocalGalleryDemo();
+import {DEMO_GALLERY} from './museumDemo.js';
+export {DEMO_GALLERY};
 export async function staffRequest(action,body){
+ const {supabase}=await import('../../../utils/supabase.js');
+ if(!supabase)throw new Error('Brian chưa cấu hình kết nối tài khoản.');
  const {data:{session},error}=await supabase.auth.getSession();
  if(error||!session?.access_token)throw new Error('Bạn cần đăng nhập bằng tài khoản Brian được duyệt.');
  const response=await fetch('/api/gallery-staff?operation='+encodeURIComponent(action),{
