@@ -148,10 +148,8 @@ export default function Exhibit360Viewer({exhibit,language='vi'}){
  const [view,setView]=useState('3d'),[spin,setSpin]=useState(false);
  const [yaw,setYaw]=useState(0),[reset,setReset]=useState(0);
  const [loadError,setLoadError]=useState(false);
- const [reduceMotion,setReduceMotion]=useState(false);
  useEffect(()=>{
   setSupportsWebGL(canRenderWebGL());
-  setReduceMotion(!!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches);
  },[]);
  useEffect(()=>{
   let active=true;
@@ -178,7 +176,7 @@ export default function Exhibit360Viewer({exhibit,language='vi'}){
   </div>
   <div className="bml-exhibit-360-stage" data-testid="exhibit-360-stage">
    {inspect3D?<Suspense fallback={<p>{tr('Đang tải góc nhìn 360°…','Preparing 360° view…')}</p>}>
-    <OrbitStage exhibit={exhibit} url={resolvedUrl} spin={spin&&!reduceMotion}
+    <OrbitStage exhibit={exhibit} url={resolvedUrl} spin={spin}
      yaw={yaw} reset={reset} onImageError={onImageError}/>
    </Suspense>:exhibit?.kind==='image'&&resolvedUrl
     ?<img className="bml-exhibit-original-image" src={resolvedUrl} loading="lazy"
