@@ -368,3 +368,42 @@ test('three English lessons expose eighteen group projects and a navigable 3D ar
  await detail.getByTestId('museum-artwork-inspector').getByRole('button',{name:/Đóng|Close/}).click();
  await expect(detail.getByTestId('museum-artwork-inspector')).toHaveCount(0);
 });
+
+
+test('school poster artworks have actual topic illustration pixels, not text-only placeholders',async({page})=>{
+ await page.getByTestId('qa-prepared').click();
+ const school=page.getByTestId('museum-lessons').locator('.bml-lesson-block').nth(1);
+ await school.getByRole('button',{name:/Triển lãm 3D|3D exhibition/}).click();
+ const detail=page.getByTestId('museum-exhibition-detail');
+ await detail.getByRole('button',{name:'2D',exact:true}).click();
+ const frames=detail.locator('.bml-art-card img');
+ await expect(frames).toHaveCount(3);
+ const sample=await frames.first().evaluate(async(img)=>{
+  await img.decode();
+  const canvas=document.createElement('canvas');canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  ctx.drawImage(img,0,0);
+  const data=ctx.getImageData(64,230,760,380).data;
+  const palette=new Set();let saturated=0;
+  for(let i=0;i<data.length;i+=4*44){
+   const r=data[i],g=data[i+1],b=data[i+2];
+   palette.add([r>>4,g>>4,b>>4].join('.'));
+   if(Math.max(r,g,b)-Math.min(r,g,b)>42)saturated++;
+  }
+  return {width:img.naturalWidth,height:img.naturalHeight,palette:palette.size,saturated};
+ });
+ expect(sample.width).toBeGreaterThanOrEqual(1000);
+ expect(sample.height).toBeGreaterThanOrEqual(700);
+ expect(sample.palette).toBeGreaterThan(30);
+ expect(sample.saturated).toBeGreaterThan(100);
+ const one=await frames.first().getAttribute('src');
+ const two=await frames.nth(1).getAttribute('src');
+ expect(one).not.toBe(two);
+ await detail.locator('.bml-art-card').first().click();
+ const viewer=detail.getByTestId('exhibit-360-viewer');
+ await viewer.getByRole('button',{name:/Xem 2D|2D original/}).click();
+ const original=viewer.locator('img.bml-exhibit-original-image');
+ await expect(original).toBeVisible();
+ const resolution=await original.evaluate(async img=>{await img.decode();return img.naturalWidth;});
+ expect(resolution).toBeGreaterThanOrEqual(1000);
+});
