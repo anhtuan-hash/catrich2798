@@ -165,7 +165,7 @@ test('group receives teacher stage, cannot answer a closed task and submits only
  });
  await page.getByTestId('qa-student-live').click();
  await expect(page.getByTestId('student-live-activity')).toBeVisible();
- await expect(page.getByText('Chờ giáo viên mở hoạt động')).toBeVisible();
+ await expect(page.getByText('Chờ giáo viên mở hoạt động').first()).toBeVisible();
  await expect(page.getByRole('button',{name:/Gửi câu trả lời/})).toHaveCount(0);
  open=true;
  await expect(page.getByRole('button',{name:/A\. Switch off unused lights/})).toBeVisible({timeout:14000});
