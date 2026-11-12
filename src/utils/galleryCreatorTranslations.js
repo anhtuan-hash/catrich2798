@@ -70,5 +70,13 @@ export const GALLERY_CREATOR_EN = Object.freeze({
   "Mã lời mời": "Invitation code",
   "Nhập mã riêng của nhóm": "Enter your private group code",
   "Danh sách phòng": "Room list",
-  "Đang mở Creator Pass…": "Opening Creator Pass…"
+  "Đang mở Creator Pass…": "Opening Creator Pass…",
+  "Nhận xét để chỉnh sửa": "Feedback for revision",
+  "Giáo viên:": "Teacher:",
+  "TTCM:": "Department head:",
+  "Danh sách hiện vật 2D": "Exhibit list (2D)",
+  "Phòng chưa có hiện vật.": "This room has no exhibits yet.",
+  "Sơ đồ phòng nhìn từ trên xuống": "Room plan · top view",
+  "Vị trí sẽ cập nhật trong phòng 3D": "Placement also updates in 3D",
+  "Sơ đồ hiện vật trong phòng": "Room exhibit layout"
 });
