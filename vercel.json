@@ -144,6 +144,14 @@
       "destination": "/api/gateway?handler=gallery-staff"
     },
     {
+      "source": "/api/museum-live",
+      "destination": "/api/gateway?handler=museum-live"
+    },
+    {
+      "source": "/api/museum-artwork",
+      "destination": "/api/gateway?handler=museum-artwork"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },
