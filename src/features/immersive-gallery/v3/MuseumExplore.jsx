@@ -17,7 +17,7 @@ export function MuseumTemplates({language='vi',onCreate,onDemo}){
   </section>
  </div>;
 }
-export function MuseumGallery({language='vi',onDemo}){
+export function MuseumGallery({language='vi',onDemo,query=''}){
  const [galleries,setGalleries]=useState([]),[selected,setSelected]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  useEffect(()=>{let live=true;getGalleryEnabled().then(enabled=>enabled?listExhibitions():[]).then(items=>{if(live)setGalleries(items||[]);}).catch(e=>{if(live)setError(e.message);});
  return()=>{live=false;};},[]);
@@ -35,7 +35,7 @@ export function MuseumGallery({language='vi',onDemo}){
     <div className="bml-card-caption"><strong>{tr(language,'Khám phá thế giới','Explore the World')}</strong>
       <small>{tr(language,'8 hiện vật mẫu · 3 phòng · không dùng dữ liệu học sinh','8 sample exhibits · 3 rooms · no student data')}</small>
       <span>{tr(language,'Tham quan 2D / 3D','Visit in 2D / 3D')} <ArrowRight size={16}/></span></div></button>
-   {galleries.map(g=><button type="button" className="bml-gallery-card" key={g.id} onClick={()=>enter(g)} disabled={busy}>
+   {galleries.filter(g=>(g.title+' '+(g.summary||'')).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())).map(g=><button type="button" className="bml-gallery-card" key={g.id} onClick={()=>enter(g)} disabled={busy}>
      <div className="bml-card-photo"><span className="bml-gallery-badge">{g.status?.toUpperCase()||'EXHIBITION'}</span><Leaf strokeWidth={1.35}/></div>
      <div className="bml-card-caption"><strong>{g.title}</strong><small>{g.summary}</small>
        <span>{tr(language,'Mở triển lãm','Open exhibition')} <ArrowRight size={16}/></span></div>
