@@ -10,6 +10,7 @@ on:
       - "src/main.jsx"
       - "src/data/apps.js"
       - "scripts/test-museum-lab-v3.mjs"
+      - "tests/museum-lab/**"
       - ".github/workflows/museum-lab-v3.yml"
   workflow_dispatch:
 permissions:
@@ -33,3 +34,25 @@ jobs:
         run: node scripts/audit-site-language.mjs
       - name: Vite build
         run: npx vite build
+
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Verify teacher dashboard, student entry, wizard and gallery on desktop/mobile
+        run: npx playwright test --config tests/museum-lab/playwright.config.mjs
+      - name: Preserve failure screenshots and traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: museum-lab-v3-browser
+          path: artifacts/museum-lab
+          if-no-files-found: ignore
+          retention-days: 5
