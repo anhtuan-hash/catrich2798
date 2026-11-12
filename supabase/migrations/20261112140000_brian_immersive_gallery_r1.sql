@@ -154,13 +154,45 @@ create policy gallery_exhibits_update on public.gallery_exhibits for update to a
  with check(exists(select 1 from public.gallery_rooms r join public.gallery_exhibitions g on g.id=r.exhibition_id where r.id=room_id and
  (g.owner_id=(select auth.uid()) or exists(select 1 from public.profiles p where p.id=(select auth.uid()) and p.role='admin' and p.approved=true))));
 
+-- Asset access must follow the exhibition's current visibility and publication policy.
+-- A published exhibit alone must never disclose an asset from a private/unpublished gallery.
 create policy gallery_assets_select on public.gallery_assets for select to authenticated using (
  uploader_id=(select auth.uid()) or
- exists(select 1 from public.gallery_exhibits e where e.asset_id=id and
- (e.status='published' or e.status='submitted' or e.status='approved'))
+ exists (
+   select 1
+   from public.gallery_exhibits e
+   join public.gallery_rooms r on r.id=e.room_id
+   join public.gallery_exhibitions g on g.id=r.exhibition_id
+   where e.asset_id=gallery_assets.id and (
+     g.owner_id=(select auth.uid())
+     or exists (
+       select 1 from public.profiles p
+       where p.id=(select auth.uid()) and p.role='admin' and p.approved=true
+     )
+     or (
+       e.status='published' and g.status='published'
+       and (g.starts_at is null or g.starts_at<=now())
+       and (g.ends_at is null or g.ends_at>=now())
+       and exists(select 1 from public.gallery_settings s where s.id=true and s.enabled=true)
+       and (
+         g.visibility='public'
+         or (
+           g.visibility='school' and exists (
+             select 1 from public.profiles viewer
+             join public.profiles owner on owner.id=g.owner_id
+             where viewer.id=(select auth.uid())
+               and viewer.approved=true and length(trim(viewer.school))>0
+               and viewer.school=owner.school
+           )
+         )
+       )
+     )
+   )
+ )
 );
 create policy gallery_assets_insert on public.gallery_assets for insert to authenticated with check (
  uploader_id=(select auth.uid()) and split_part(path,'/',1)=(select auth.uid())::text
+ and exists(select 1 from public.profiles p where p.id=(select auth.uid()) and p.approved=true)
 );
 create policy gallery_assets_update on public.gallery_assets for update to authenticated
  using(uploader_id=(select auth.uid())) with check(uploader_id=(select auth.uid()));
@@ -171,7 +203,8 @@ insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
  array['image/png','image/jpeg','image/webp','image/avif','audio/mpeg','audio/mp4','audio/ogg','audio/wav','application/pdf'])
  on conflict(id) do nothing;
 create policy gallery_storage_insert on storage.objects for insert to authenticated
- with check(bucket_id='brian-gallery-private' and (storage.foldername(name))[1]=(select auth.uid())::text);
+ with check(bucket_id='brian-gallery-private' and (storage.foldername(name))[1]=(select auth.uid())::text
+ and exists(select 1 from public.profiles p where p.id=(select auth.uid()) and p.approved=true));
 create policy gallery_storage_select on storage.objects for select to authenticated
  using(bucket_id='brian-gallery-private' and
  ((storage.foldername(name))[1]=(select auth.uid())::text or
@@ -179,7 +212,7 @@ create policy gallery_storage_select on storage.objects for select to authentica
 
 -- Prevent metadata spoofing and bypass of moderation via direct API calls.
 create or replace function public.gallery_lock_exhibit_identity() returns trigger
-language plpgsql security invoker set search_path = '' as $
+language plpgsql security invoker set search_path = '' as $gallery_lock$
 begin
  if new.submitted_by is distinct from old.submitted_by then raise exception 'submitted_by is immutable'; end if;
  if new.room_id is distinct from old.room_id then raise exception 'room_id is immutable'; end if;
@@ -187,7 +220,7 @@ begin
    select 1 from public.profiles p where p.id=auth.uid() and p.role='admin' and p.approved=true
  ) then raise exception 'Only admin may publish exhibits'; end if;
  return new;
-end; $;
+end; $gallery_lock$;
 revoke all on function public.gallery_lock_exhibit_identity() from public,anon,authenticated;
 drop trigger if exists gallery_immutable_exhibit on public.gallery_exhibits;
 create trigger gallery_immutable_exhibit before update on public.gallery_exhibits
