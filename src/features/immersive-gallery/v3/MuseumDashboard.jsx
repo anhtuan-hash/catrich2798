@@ -41,7 +41,7 @@ export function KitCard({kit,onClick,selected=false,language='vi'}){
  const tr=(vi,en)=>language==='en'?en:vi;
  return <button type="button" className={'bml-kit-card '+(selected?'is-selected':'')} onClick={()=>onClick(kit)}>
   <KitCover kit={kit}/><span className="bml-kit-details"><strong>{kit.title}</strong><small>{kit.subtitle}</small>
-   <span>{tr('Chọn mẫu','Use template')} <ChevronRight size={16}/></span></span>
+   <span>{tr('Mở kế hoạch','Open lesson plan')} <ChevronRight size={16}/></span></span>
  </button>;
 }
 export default function MuseumDashboard({data,onNavigate,onCreate,onDemo,language='vi'}){
@@ -64,7 +64,7 @@ export default function MuseumDashboard({data,onNavigate,onCreate,onDemo,languag
   <div className="bml-quick-actions">
    <button type="button" className="bml-quick-card" onClick={onCreate}>
     <span className="bml-quick-icon bml-blue"><BookOpen size={25}/></span><span><strong>{tr('Tạo bài học mới','Create a lesson')}</strong>
-      <small>{tr('Chọn mẫu, giao nhiệm vụ, phát QR','Choose template, assign, share QR')}</small></span><Plus size={19}/></button>
+      <small>{tr('Một kế hoạch Unit 5, giao nhóm và phát QR','Unit 5 lesson, groups and QR access')}</small></span><Plus size={19}/></button>
    <button type="button" className="bml-quick-card" onClick={()=>onNavigate('submissions')}>
     <span className="bml-quick-icon bml-purple"><Users size={25}/></span><span><strong>{tr('Xem bài nộp','Review submissions')}</strong>
       <small>{tr('Theo dõi tiến độ và đánh giá','Track progress and evaluate')}</small></span><ArrowRight size={19}/></button>
@@ -88,14 +88,14 @@ export default function MuseumDashboard({data,onNavigate,onCreate,onDemo,languag
       <td>{fmtDate(a.deadline_at)}</td>
      </tr>;})}</tbody>
    </table></div>:<div className="bml-empty bml-empty-slim"><BookOpen size={31}/><strong>{tr('Chưa có bài học nào','No lessons yet')}</strong>
-     <p>{tr('Bắt đầu với một chủ đề mẫu. Chỉ ba bước để giao nhiệm vụ cho nhóm.','Choose a ready-made lesson kit and create your first group project in three steps.')}</p>
+     <p>{tr('Bắt đầu với Our Climate Action Museum, Tiếng Anh 11 Unit 5. Ba bước để giao nhiệm vụ cho nhóm.','Start with Our Climate Action Museum, English 11 Unit 5, then assign groups in three steps.')}</p>
      <button className="bml-primary" type="button" onClick={onCreate}><Plus size={17}/>{tr('Tạo bài học đầu tiên','Create your first lesson')}</button>
    </div>}
   </section>
   <div className="bml-bottom-grid">
-   <section className="bml-surface"><div className="bml-section-head"><h2>{tr('Mẫu bài học nổi bật','Featured lesson kits')}</h2>
-      <button className="bml-text-btn" onClick={()=>onNavigate('templates')}>{tr('Thư viện mẫu','Templates')} <ChevronRight size={17}/></button></div>
-      <div className="bml-mini-kits">{LESSON_KITS.slice(0,2).map(k=><KitCard key={k.id} kit={k} language={language} onClick={()=>onCreate(k.id)}/>)}</div>
+   <section className="bml-surface"><div className="bml-section-head"><h2>{tr('Kế hoạch bài dạy','Teaching plan')}</h2>
+      <button className="bml-text-btn" onClick={()=>onNavigate('templates')}>{tr('Xem kế hoạch','View plan')} <ChevronRight size={17}/></button></div>
+      <div className="bml-mini-kits">{LESSON_KITS.map(k=><KitCard key={k.id} kit={k} language={language} onClick={()=>onCreate(k.id)}/>)}</div>
    </section>
    <section className="bml-surface bml-demo-teaser"><div className="bml-overline">{tr('TRÌNH DIỄN HỘI THI','COMPETITION PREVIEW')}</div>
     <h2>{tr('Xem bảo tàng mẫu 3D','Visit the sample 3D museum')}</h2>
