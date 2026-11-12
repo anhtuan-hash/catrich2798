@@ -12,6 +12,7 @@ on:
       - 'scripts/test-museum-live-v31.mjs'
       - 'scripts/museum-v31-postgres-qa.sh'
       - 'scripts/test-pek-museum-v33.mjs'
+      - 'scripts/test-museum-artwork-360-v34.mjs'
       - 'supabase/migrations/*museum_approved_artwork*'
       - '.github/workflows/museum-v31.yml'
   workflow_dispatch:
@@ -32,6 +33,8 @@ jobs:
         run: node --test scripts/test-museum-live-v31.mjs
       - name: School-inspired 3D hall, authentic identity and backwards compatibility
         run: node --test scripts/test-pek-museum-v33.mjs
+      - name: Artwork 360 orbit, original media and accessibility contract
+        run: node --test scripts/test-museum-artwork-360-v34.mjs
       - name: Node backend syntax
         run: |
           node --check serverless-handlers/museum-live.js
