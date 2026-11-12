@@ -177,6 +177,22 @@ create policy gallery_storage_select on storage.objects for select to authentica
  ((storage.foldername(name))[1]=(select auth.uid())::text or
  exists(select 1 from public.gallery_assets a where a.path=name)));
 
+-- Prevent metadata spoofing and bypass of moderation via direct API calls.
+create or replace function public.gallery_lock_exhibit_identity() returns trigger
+language plpgsql security invoker set search_path = '' as $
+begin
+ if new.submitted_by is distinct from old.submitted_by then raise exception 'submitted_by is immutable'; end if;
+ if new.room_id is distinct from old.room_id then raise exception 'room_id is immutable'; end if;
+ if new.status='published' and old.status<>'published' and not exists(
+   select 1 from public.profiles p where p.id=auth.uid() and p.role='admin' and p.approved=true
+ ) then raise exception 'Only admin may publish exhibits'; end if;
+ return new;
+end; $;
+revoke all on function public.gallery_lock_exhibit_identity() from public,anon,authenticated;
+drop trigger if exists gallery_immutable_exhibit on public.gallery_exhibits;
+create trigger gallery_immutable_exhibit before update on public.gallery_exhibits
+ for each row execute function public.gallery_lock_exhibit_identity();
+
 commit;
 
 -- SECURITY REVIEW REQUIRED BEFORE APPLYING:

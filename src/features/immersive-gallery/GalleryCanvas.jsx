@@ -35,6 +35,7 @@ function roomGeometry(template,exhibits,selectedId){
  box(out,0,5.93,0,4,0.04,5,'#fdfdf8');
  if(template==='culture'){for(const x of [-5,5])box(out,x,3,-8.75,0.3,5.8,0.45,theme.accent);}
  if(template==='lab'){for(const x of [-3,3]){box(out,x,0.3,-3,1.6,0.6,1.7,'#eef2f6');box(out,x,0.65,-3,1.7,0.12,1.8,theme.accent);}}
+ if(template==='lobby'){for(const x of [-4,0,4]){box(out,x,2.35,-8.77,2.5,4.7,0.55,'#b09d86');box(out,x,2.2,-8.43,1.7,3.6,0.08,'#556e68');}box(out,0,5.5,-5,6,0.25,0.75,'#f8f7f0');}
  for(const e of exhibits.slice(0,30)){
   const p=e.transform?.position||[0,2,-7.72],s=e.transform?.scale||[1,1,1];
   const x=p[0],y=p[1],z=p[2],w=1.6*s[0],h=1.3*s[1];

@@ -14,8 +14,8 @@ export default function GalleryAdminToggle({currentUser,language='vi'}) {
  };
  return <section aria-label="Gallery feature settings" style={{padding:'18px 22px',margin:'14px 0',background:'#f7f8f2',border:'1px solid #cbd9cf',borderRadius:16}}>
   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:16,flexWrap:'wrap'}}>
-   <div><small style={{letterSpacing:2,color:'#637970'}}>BRIAN MUSEUM · FEATURE FLAG</small><h3 style={{margin:'4px 0'}}>Immersive Gallery 3D</h3><p style={{margin:0,color:'#526b60'}}>Mặc định tắt. Chỉ bật sau khi kiểm tra migration, phân quyền và nội dung.</p></div>
-   <div style={{display:'flex',alignItems:'center',gap:12}}><b>{ready?(enabled?'ON':'OFF'):'…'}</b><button type="button" disabled={!ready||busy} onClick={change}>{busy?'Đang lưu…':enabled?'Tắt Gallery':'Bật Gallery'}</button>{enabled?<a href="#/tool/immersive-gallery">Vào Gallery</a>:null}</div>
+   <div><small style={{letterSpacing:2,color:'#637970'}}>BRIAN MUSEUM · FEATURE FLAG</small><h3 style={{margin:'4px 0'}}>Immersive Gallery 3D</h3><p style={{margin:0,color:'#526b60'}}>{language==='en'?'Disabled by default. Enable only after migration, access control and content review.':'Mặc định tắt. Chỉ bật sau khi kiểm tra migration, phân quyền và nội dung.'}</p></div>
+   <div style={{display:'flex',alignItems:'center',gap:12}}><b>{ready?(enabled?'ON':'OFF'):'…'}</b><button type="button" disabled={!ready||busy} onClick={change}>{busy?'Đang lưu…':enabled?'Tắt Gallery':'Bật Gallery'}</button>{enabled?<a href="#/tool/immersive-gallery">{language==='en'?'Open Gallery':'Vào Gallery'}</a>:null}</div>
   </div>
   {msg?<p role="status" style={{marginTop:10}}>{msg}</p>:null}
  </section>;
