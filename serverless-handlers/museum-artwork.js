@@ -52,7 +52,7 @@ export default async function museumArtwork(req,res){
    throw fail(423,'Bản nộp đã khóa, không thể sửa ảnh.');
   const live=await query(admin.from('museum_live_sessions').select('status,stage_index,stage_open')
    .eq('assignment_id',ctx.assignment.id).maybeSingle());
-  if(live && (live.status!=='active'||!live.stage_open||live.stage_index<6||live.stage_index>9))
+  if(!live||live.status!=='active'||!live.stage_open||![6,8].includes(live.stage_index))
    throw fail(423,'Giáo viên chưa mở hoạt động tải ảnh.');
   if(op==='upload'){
    requireMethod(req,'POST');
