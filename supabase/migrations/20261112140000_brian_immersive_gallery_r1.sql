@@ -216,15 +216,41 @@ language plpgsql security invoker set search_path = '' as $gallery_lock$
 begin
  if new.submitted_by is distinct from old.submitted_by then raise exception 'submitted_by is immutable'; end if;
  if new.room_id is distinct from old.room_id then raise exception 'room_id is immutable'; end if;
- if new.status='published' and old.status<>'published' and not exists(
-   select 1 from public.profiles p where p.id=auth.uid() and p.role='admin' and p.approved=true
- ) then raise exception 'Only admin may publish exhibits'; end if;
+ if new.status is distinct from old.status and new.status in ('approved','rejected') then
+   if new.reviewed_by is distinct from auth.uid() or new.reviewed_at is null
+   then raise exception 'Review actor and timestamp are required'; end if;
+ end if;
+ if new.status='published' and old.status<>'published' then
+   if old.status<>'approved' then
+     raise exception 'Only approved exhibits may be published'; end if;
+   if not exists(
+     select 1 from public.profiles p where p.id=auth.uid() and p.role='admin' and p.approved=true
+   ) then raise exception 'Only admin may publish exhibits'; end if;
+ end if;
  return new;
 end; $gallery_lock$;
 revoke all on function public.gallery_lock_exhibit_identity() from public,anon,authenticated;
 drop trigger if exists gallery_immutable_exhibit on public.gallery_exhibits;
 create trigger gallery_immutable_exhibit before update on public.gallery_exhibits
  for each row execute function public.gallery_lock_exhibit_identity();
+
+-- A direct REST UPDATE must not publish an empty exhibition.
+create or replace function public.gallery_publish_guard() returns trigger
+language plpgsql security invoker set search_path = '' as $gallery_publish_guard$
+begin
+ if new.status='published' and old.status<>'published' then
+   if not exists (
+     select 1 from public.gallery_rooms r
+       join public.gallery_exhibits e on e.room_id=r.id
+     where r.exhibition_id=old.id and e.status='published'
+   ) then raise exception 'Publish requires at least one approved, published exhibit in a room'; end if;
+ end if;
+ return new;
+end; $gallery_publish_guard$;
+revoke all on function public.gallery_publish_guard() from public,anon,authenticated;
+drop trigger if exists gallery_publish_guard_trigger on public.gallery_exhibitions;
+create trigger gallery_publish_guard_trigger before update on public.gallery_exhibitions
+ for each row execute function public.gallery_publish_guard();
 
 commit;
 
