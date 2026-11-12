@@ -89,29 +89,23 @@ export default async function galleryStaff(req,res){
     throw fail(400,'Hạn nộp phải nằm trong 1 giờ đến 120 ngày.');
    const title=clean(body.title,140),classScope=clean(body.classScope,120);
    if(title.length<3||classScope.length<2)throw fail(400,'Cần nhập chủ đề và lớp.');
-   const assignment=await query(admin.from('gcp_assignments').insert({
-    created_by:ctx.user.id,reviewer_id:reviewerId,
-    title,class_scope:classScope,school_scope:ctx.profile.school,
-    brief:clean(body.brief,5000),deadline_at:deadline.toISOString(),
-    max_rooms:3,max_exhibits:12,max_visibility:'school',status:'active'
-   }).select().single());
-   const invitations=[];
-   for(let i=1;i<=count;i++){
-    const label='Nhóm '+String(i).padStart(2,'0');
-    const group=await query(admin.from('gcp_groups').insert({
-     assignment_id:assignment.id,label
-    }).select('id,label').single());
-    await query(admin.from('gcp_drafts').insert({group_id:group.id}));
-    const handle=randomSecret(15),secret=randomSecret(24);
-    await query(admin.from('gcp_invites').insert({
-     group_id:group.id,handle,secret_hash:digest('invite:'+secret),
-     expires_at:deadline.toISOString()
-    }));
-    invitations.push({groupId:group.id,label,handle,groupSecret:secret});
-   }
-   // Secrets are returned ONCE; only keyed HMACs remain in the database.
-   return send(res,201,{assignment:{id:assignment.id,title:assignment.title,deadline_at:assignment.deadline_at},
-    invitations});
+   const enabled=await settings(admin);
+   if(!enabled.enabled)throw fail(423,'Creator Pass chưa được bật.');
+   const tokens=Array.from({length:count},()=>{
+    const handle=randomSecret(15),groupSecret=randomSecret(24);
+    return {handle,groupSecret,secret_hash:digest('invite:'+groupSecret)};
+   });
+   const created=await query(admin.rpc('gcp_staff_issue_assignment',{
+    p_teacher:ctx.user.id,p_reviewer:reviewerId,p_school:ctx.profile.school,
+    p_class:classScope,p_title:title,p_brief:clean(body.brief,5000),
+    p_deadline:deadline.toISOString(),
+    p_tokens:tokens.map(x=>({handle:x.handle,secret_hash:x.secret_hash}))
+   }));
+   const invitations=created.groups.map(g=>({
+    ...g,groupSecret:tokens.find(t=>t.handle===g.handle)?.groupSecret
+   }));
+   // Secrets are returned ONCE; all group rows created in one transaction.
+   return send(res,201,{assignment:created.assignment,invitations});
   }
 
   if(operation==='rotate-invite'){
