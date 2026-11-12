@@ -47,3 +47,58 @@ test('mobile viewport keeps task controls within the page width',async({page,isM
  expect(width).toBeLessThanOrEqual(windowWidth+4);
  await expect(page.getByRole('button',{name:/Vào không gian sáng tạo/})).toBeVisible();
 });
+
+
+test('student can complete five English STEAM steps, autosave and submit without a student account',async({page})=>{
+ let version=0,groupState='editing',draft={title:'',summary:'',rooms:[]},saves=0,submissions=0;
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  const input=route.request().postDataJSON?.()||{};
+  const response={};
+  if(op==='me')Object.assign(response,{groupLabel:'Nhóm Demo',groupState,csrf:'qa-csrf-only',
+    assignment:{title:'Synthetic Climate Action Museum',brief:'Build a school climate museum in English.',
+      class_scope:'11-DEMO',deadline_at:new Date(Date.now()+86400000).toISOString(),max_rooms:3,max_exhibits:12}});
+  else if(op==='draft')Object.assign(response,{draft,version,updated_at:new Date().toISOString()});
+  else if(op==='save'){
+   if(input.expectedVersion!==version)return route.fulfill({status:409,contentType:'application/json',body:JSON.stringify({error:'stale'})});
+   draft=input.draft;version++;saves++;Object.assign(response,{ok:true,version});
+  }else if(op==='submit'){
+   if(input.expectedVersion!==version)return route.fulfill({status:409,contentType:'application/json',body:JSON.stringify({error:'stale'})});
+   groupState='submitted';submissions++;Object.assign(response,{ok:true,reviewId:'synthetic-review',status:'submitted'});
+  }else Object.assign(response,{error:'unsupported op'});
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(response)});
+ });
+ await page.getByTestId('qa-student').click();
+ await expect(page.getByTestId('museum-student-wizard')).toBeVisible();
+ await expect(page.getByText('Synthetic Climate Action Museum')).toBeVisible();
+ await page.getByLabel('Vấn đề mà nhóm em chọn').fill('Plastic waste is harmful because it can pollute the environment.');
+ await page.getByRole('button',{name:/Tiếp tục/}).click();
+ await page.getByLabel('Bằng chứng hoặc quan sát bằng tiếng Anh').fill('According to our classroom scenario, plastic packaging is used every day.');
+ await page.getByLabel('Nguồn dữ liệu/ tài liệu').fill('Synthetic classroom scenario (not a measured dataset).');
+ await page.getByLabel('Giải pháp nhóm đề xuất bằng tiếng Anh').fill('We recommend reusable bottles because they can reduce waste.');
+ await page.getByRole('button',{name:/Tiếp tục/}).click();
+ await page.getByLabel('Tên triển lãm').fill('Our Climate Museum');
+ await page.getByLabel('Thông điệp mở đầu').fill('A greener school starts with small changes.');
+ await page.getByRole('button',{name:/Tiếp tục/}).click();
+ await page.getByLabel('Phản hồi thực tế từ bạn học (tiếng Anh)').fill('Our synthetic peer asked for a clearer solution.');
+ await page.getByLabel('Nhóm đã cải tiến điểm gì? (tiếng Anh)').fill('We added a simple example.');
+ await page.getByRole('checkbox',{name:/Nhóm đã xem và thử nghiệm/}).check();
+ await page.getByRole('button',{name:/Tiếp tục/}).click();
+ await page.getByLabel('Điều nhóm em học được (tiếng Anh)').fill('We learned to justify a solution using clear English.');
+ await page.getByText('Bài đang được xem xét.').count(); // no hidden admission flow
+ await expect.poll(()=>saves,{timeout:15000}).toBeGreaterThan(0);
+ await expect(page.getByText('Đã lưu',{exact:true})).toBeVisible();
+ await page.getByRole('button',{name:/Nộp để giáo viên duyệt/}).click();
+ await expect(page.getByText('Bài đang được xem xét. Nhóm sẽ sửa lại nếu có yêu cầu.')).toBeVisible();
+ expect(submissions).toBe(1);
+ expect(draft.learning.tested).toBe(true);
+ expect(draft.rooms[0].exhibits.map(x=>x.title)).toEqual(['The Problem','The Evidence','Our Solution']);
+});
+test('malformed guest API responses never unlock the student editor',async({page})=>{
+ await page.route('**/api/gallery-guest?**',route=>route.fulfill({
+  status:200,contentType:'text/html',body:'<!doctype html><h1>SPA fallback</h1>'
+ }));
+ await page.getByTestId('qa-student').click();
+ await expect(page.getByTestId('museum-student-entry')).toBeVisible();
+ await expect(page.getByTestId('museum-student-wizard')).toHaveCount(0);
+});
