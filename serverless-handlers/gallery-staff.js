@@ -49,14 +49,44 @@ export default async function galleryStaff(req,res){
    const reviews=groupIds.length?await query(admin.from('gcp_reviews')
      .select('id,group_id,version,state,teacher_note,ttcm_note,approved_by,approved_at,submitted_at,snapshot_hash,snapshot')
      .in('group_id',groupIds).order('submitted_at',{ascending:false}).limit(500)):[];
+   const rubrics=groupIds.length?await query(admin.from('gcp_rubric_scores')
+     .select('review_id,teacher_id,scores,feedback,updated_at')
+     .in('review_id',reviews.map(r=>r.id)).limit(500)):[];
    const reviewerCandidates=ctx.role==='admin'?await query(admin.from('profiles')
     .select('id,full_name,role').eq('school',ctx.profile.school).eq('approved',true).limit(100)):
     grants.length?await query(admin.from('profiles').select('id,full_name,role')
      .in('id',grants.map(g=>g.reviewer_id)).eq('approved',true)):[];
    return send(res,200,{profile:{role:ctx.profile.role,school:ctx.profile.school,id:ctx.user.id},
     creatorSettings:await settings(admin),reviewerCandidates,
-    reviewers:grants,
+    reviewers:grants,rubrics,
     assignments,groups,reviews});
+  }
+
+  if(operation==='grade-rubric'){
+   requireMethod(req,'POST');guardOrigin(req);
+   const body=guardBody(req,3800);
+   const scoped=await loadScopedReview(ctx,body.reviewId);
+   if(scoped.assignment.created_by!==ctx.user.id)
+     throw fail(403,'Chỉ giáo viên phụ trách được chấm rubric.');
+   if(!['submitted','ttcm_review'].includes(scoped.review.state))
+     throw fail(423,'Chỉ chấm khi bản nộp đang trong quá trình duyệt.');
+   const ceilings={english:40,evidence:20,reasoning:15,design:15,revision:10};
+   const raw=body.scores;
+   if(!raw||typeof raw!=='object'||Array.isArray(raw)||
+       Object.keys(raw).length!==5||
+       Object.keys(ceilings).some(key=>!Number.isInteger(raw[key])||raw[key]<0||raw[key]>ceilings[key]))
+      throw fail(400,'Điểm rubric phải đủ năm tiêu chí và không vượt điểm tối đa.');
+   const feedback=clean(body.feedback,2000);
+   await query(admin.from('gcp_rubric_scores').upsert({
+    review_id:scoped.review.id,teacher_id:ctx.user.id,
+    scores:raw,feedback,updated_at:new Date().toISOString()
+   },{onConflict:'review_id'}));
+   await query(admin.from('gcp_review_events').insert({
+    review_id:scoped.review.id,actor_type:'teacher',actor_id:ctx.user.id,
+    action:'rubric_scored',from_state:scoped.review.state,to_state:scoped.review.state,
+    note:'Rubric '+Object.values(raw).reduce((n,v)=>n+v,0)+'/100'
+   }));
+   return send(res,200,{ok:true,total:Object.values(raw).reduce((n,v)=>n+v,0)});
   }
 
   if(operation==='grant-reviewer'){
