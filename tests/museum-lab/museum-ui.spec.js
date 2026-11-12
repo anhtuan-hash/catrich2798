@@ -265,3 +265,33 @@ test('mobile approved mockup keeps a readable 3D visitor without horizontal over
  await detail.getByRole('button',{name:'2D',exact:true}).click();
  await expect(detail.locator('.bml-art-card')).toHaveCount(3);
 });
+
+test('PEK school gallery is a real 3D environment with a readable school-edition identity',async({page})=>{
+ await page.getByTestId('qa-exhibition').click();
+ const viewer=page.getByTestId('museum-visitor');
+ await expect(viewer.locator('.bml-3d-stage')).toBeVisible();
+ const hall=page.getByTestId('pek-discovery-hall');
+ await expect(hall).toBeVisible();
+ await expect(hall).toHaveAttribute('aria-label',/Pétrus Ký/);
+ await expect(hall.getByText('PÉTRUS KÝ · DISCOVERY HALL')).toBeVisible();
+ const close=hall.getByRole('button',{name:'Đến gần tranh'});
+ await expect(close).toBeVisible();
+ await close.click();
+ await hall.getByRole('button',{name:'Toàn cảnh'}).click();
+ await expect(viewer.locator('.bml-scene-mode-float .is-active')).toHaveText('3D');
+ await expect(viewer.locator('.bml-room-tabs button')).toHaveCount(3);
+ const full=page.getByTestId('museum-exhibition-frame');
+ await expect(full).toBeVisible();
+});
+test('PEK gallery 3D school edition remains optional and original 2D artwork descriptions work',async({page})=>{
+ await page.getByTestId('qa-exhibition').click();
+ const detail=page.getByTestId('museum-exhibition-detail');
+ await detail.getByRole('button',{name:'2D',exact:true}).click();
+ await expect(detail.getByTestId('pek-discovery-hall')).toHaveCount(0);
+ await expect(detail.locator('.bml-art-card')).toHaveCount(3);
+ await detail.locator('.bml-art-card').first().click();
+ await expect(detail.getByRole('dialog',{name:'Our Planet, Our Future'})).toBeVisible();
+ await detail.getByRole('button',{name:'Đã hiểu'}).click();
+ await detail.getByRole('button',{name:'3D',exact:true}).click();
+ await expect(detail.getByTestId('pek-discovery-hall')).toBeVisible();
+});
