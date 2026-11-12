@@ -55,6 +55,12 @@ export default function MuseumDashboard({data,onNavigate,onCreate,onDemo,languag
     <p>{tr('Hôm nay, thầy/cô muốn sáng tạo điều gì?','What would you like to create with your class today?')}</p>
    </div><MuseumHeroArt/>
   </div>
+  <section className="bml-surface bml-live-entry" style={{background:'linear-gradient(110deg,#e6f1ff,#f3f8ff)',borderColor:'#bfd4f7',display:'flex',alignItems:'center',justifyContent:'space-between',gap:18,flexWrap:'wrap'}}>
+   <div><div className="bml-overline">{tr('DẠY TRỰC TIẾP KHÔNG CẦN POWERPOINT','LIVE TEACHING · NO POWERPOINT')}</div>
+    <h2>{tr('Bắt đầu tiết học cùng BRIAN Museum Lab','Teach your next lesson inside Museum Lab')}</h2>
+    <p>{tr('11 hoạt động · 2 tiết · khảo sát tức thời · sáng tạo triển lãm 3D','11 stages · two periods · live survey · real 3D student museums')}</p></div>
+   <button type="button" className="bml-primary" onClick={()=>onNavigate('live')}><Presentation size={19}/>{tr('Bắt đầu giảng dạy','Start teaching')}<ArrowRight size={17}/></button>
+  </section>
   <div className="bml-quick-actions">
    <button type="button" className="bml-quick-card" onClick={onCreate}>
     <span className="bml-quick-icon bml-blue"><BookOpen size={25}/></span><span><strong>{tr('Tạo bài học mới','Create a lesson')}</strong>
