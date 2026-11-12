@@ -5,6 +5,9 @@ export PGHOST=127.0.0.1 PGPORT=5432 PGUSER=postgres PGDATABASE=postgres
 p(){ psql -X -v ON_ERROR_STOP=1 -q "$@"; }
 bash scripts/museum-v31-postgres-qa.sh >/tmp/museum-v31-base.log 2>&1 || { tail -80 /tmp/museum-v31-base.log; exit 1; }
 p -f supabase/migrations/20261112230000_museum_learning_evidence_v33.sql
+# Reproduce Supabase default ALL grants before validating the corrective migration.
+p -c 'grant all on public.museum_survey_snapshots,public.museum_checkpoints,public.museum_peer_pairs,public.museum_peer_reviews to service_role;'
+p -f supabase/migrations/20261112231000_museum_evidence_explicit_service_privileges.sql
 p <<'SQL'
 do $$
 declare s uuid; frozen jsonb; n integer; denied boolean; first_doc jsonb;
