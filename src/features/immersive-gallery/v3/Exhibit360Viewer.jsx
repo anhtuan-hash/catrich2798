@@ -142,7 +142,17 @@ function OrbitStage({exhibit,url,spin,yaw,reset,onImageError}){
 }
 export default function Exhibit360Viewer({exhibit,language='vi'}){
  const tr=(vi,en)=>language==='en'?en:vi;
- const imageUrl=safeText(exhibit?.image_url,3000),assetId=exhibit?.asset_id;
+ // An encoded 1024px artwork is usually far longer than 3,000 characters.
+ // Never pass a truncated data URL to THREE.TextureLoader or the original 2D view.
+ const rawImageUrl=typeof exhibit?.image_url==='string'?exhibit.image_url:'';
+ const imageUrl=rawImageUrl.length<=4000000&&(
+  rawImageUrl.startsWith('data:image/png;base64,')||
+  rawImageUrl.startsWith('data:image/jpeg;base64,')||
+  rawImageUrl.startsWith('https://')||
+  rawImageUrl.startsWith('/')||
+  rawImageUrl.startsWith('blob:')
+ )?rawImageUrl:'';
+ const assetId=exhibit?.asset_id;
  const [resolvedUrl,setResolvedUrl]=useState(imageUrl);
  const [supportsWebGL,setSupportsWebGL]=useState(null);
  const [view,setView]=useState('3d'),[spin,setSpin]=useState(false);
