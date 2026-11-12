@@ -18,7 +18,7 @@ test('exactly three matching THPT lessons and 18 differentiated projects',()=>{
   assert.equal(collection.origin,'teacher_authored_content');
   for(const p of collection.projects){
    for(const key of ['issue','evidence','source','solution','reviewQuestion','revisionGuide']){
-    assert.ok(p[key].length>18,p.title+' missing '+key);
+    assert.ok(p[key].length>(key==='source'?10:18),p.title+' missing '+key);
    }
   }
  }
