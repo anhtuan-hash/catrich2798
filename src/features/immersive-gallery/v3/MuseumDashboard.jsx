@@ -1,5 +1,5 @@
 import React from 'react';
-import {ArrowRight,BookOpen,CheckCheck,ChevronRight,ClipboardList,FileText,Leaf,Plus,School,ShieldCheck,Sparkles,Users,Waves,Landmark} from 'lucide-react';
+import {ArrowRight,BookOpen,CheckCheck,ChevronRight,ClipboardList,FileText,Leaf,Plus,School,ShieldCheck,Sparkles,Users,Waves,Landmark ,Presentation} from 'lucide-react';
 import {LESSON_KITS,progressOfGroup} from './museumData.js';
 import {fmtDate} from './museumApi.js';
 const kitIcons={leaf:Leaf,waves:Waves,school:School};
