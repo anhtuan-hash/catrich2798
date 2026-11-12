@@ -306,3 +306,39 @@ test('PEK gallery 3D school edition remains optional and original 2D artwork des
  await detail.getByRole('button',{name:'3D',exact:true}).click();
  await expect(detail.getByTestId('pek-discovery-hall')).toBeVisible();
 });
+
+
+test('clicking a museum work opens a genuine interactive 360 orbit and original 2D fallback',async({page})=>{
+ await page.getByTestId('qa-scene').click();
+ const first=page.locator('.bml-art-card').first();
+ await expect(first).toBeVisible();
+ await first.click();
+ const inspector=page.getByTestId('museum-artwork-inspector');
+ await expect(inspector).toBeVisible();
+ const viewer=page.getByTestId('exhibit-360-viewer');
+ await expect(viewer).toBeVisible();
+ await expect(viewer.getByRole('button',{name:/Xem 360°|360° view/})).toBeVisible();
+ await expect(viewer.getByText(/không phải ảnh panorama 360°|not a 360° panorama/)).toBeVisible();
+ if(await viewer.locator('canvas').count()){
+  const spin=viewer.getByRole('button',{name:/Tự xoay|Auto rotate/});
+  await spin.click();
+  await expect(viewer.getByRole('button',{name:/Dừng xoay|Pause/})).toHaveAttribute('aria-pressed','true');
+  await viewer.getByRole('button',{name:/Đặt lại|Reset/}).click();
+  await expect(viewer.getByRole('button',{name:/Tự xoay|Auto rotate/})).toHaveAttribute('aria-pressed','false');
+ }
+ await viewer.getByRole('button',{name:/Xem 2D|2D original/}).click();
+ await expect(viewer.getByRole('button',{name:/Xem 2D|2D original/})).toHaveAttribute('aria-pressed','true');
+ await page.keyboard.press('Escape');
+ await expect(inspector).toHaveCount(0);
+ await expect(page.getByTestId('museum-visitor')).toBeVisible();
+});
+test('artwork inspector remains within mobile viewport and has a working close action',async({page,isMobile})=>{
+ if(!isMobile)return;
+ await page.getByTestId('qa-scene').click();
+ await page.locator('.bml-art-card').first().click();
+ await expect(page.getByTestId('exhibit-360-viewer')).toBeVisible();
+ const viewport=await page.evaluate(()=>({screen:window.innerWidth,document:document.documentElement.scrollWidth}));
+ expect(viewport.document).toBeLessThanOrEqual(viewport.screen+4);
+ await page.getByTestId('museum-artwork-inspector').getByRole('button',{name:/Đóng|Close/}).click();
+ await expect(page.getByTestId('museum-artwork-inspector')).toHaveCount(0);
+});
