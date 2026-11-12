@@ -34,3 +34,9 @@ Browser 12/12 synthetic Playwright checks PASS (desktop, mobile, tablet), origin
 - **Important discovered issue:** Supabase's initial table privileges gave `authenticated` unnecessary DELETE/TRUNCATE capabilities even though RLS was ON. An immediate second migration removed these; a post-migration `has_table_privilege` query now verifies DELETE=false and TRUNCATE=false on all five tables and anon SELECT=false. Keep this second migration after the schema migration.
 - Frontend production release is **not yet confirmed** by this phase. The 3D feature remains hidden while the feature flag is OFF. Independent browser and PostgreSQL synthetic QA passed; live authenticated user/Storage acceptance is not yet complete.
 - The student-submission control is deliberately unavailable in Studio until Brian supports a verified learner login; it must not be presented as a working capability. `learning_learners` has no linked `learner_user_id` in the current production database.
+
+## Original local museum after production release
+- Add an always-available, clearly labeled **DEMO** visitor card after Gallery is enabled.
+- The demonstration has exactly three thematic rooms, eight original educational exhibits and two curated GLB models; it is generated entirely in the browser.
+- No student data, Supabase inserts, Storage uploads or published user submissions are created by visiting the demo.
+- Real cloud-backed Studio remains controlled by RLS, with student direct submissions still held until verified learner authentication.

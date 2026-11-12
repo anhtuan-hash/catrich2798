@@ -78,3 +78,13 @@ test('post-create Gallery table grants explicitly exclude TRUNCATE and DELETE',(
  assert.match(sql,/grant select, insert on table public\.gallery_assets to authenticated/);
  assert.doesNotMatch(sql,/grant[^;]*(?:delete|truncate)[^;]*to authenticated/i);
 });
+
+test('release includes a privacy-safe 3D local demo with no cloud seed side effect',()=>{
+ const fixture=fs.readFileSync('src/features/immersive-gallery/gallerySampleSeed.js','utf8');
+ const app=fs.readFileSync('src/features/immersive-gallery/GalleryApp.jsx','utf8');
+ assert.match(fixture,/export function buildLocalGalleryDemo\(/);
+ assert.match(fixture,/id:'local-demo'/);
+ assert.match(fixture,/status:'published',visibility:'private',accept_submissions:false/);
+ assert.match(app,/data-testid="gallery-original-demo"/);
+ assert.match(app,/setGallery\(buildLocalGalleryDemo\(\)\)/);
+});
