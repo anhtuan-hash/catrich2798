@@ -16,6 +16,7 @@ export function normalizeGuestDraft(input,limits={max_rooms:3,max_exhibits:12}){
   // V3 pedagogical evidence is explicitly allowlisted; never accept arbitrary
   // fields/HTML or user identities. Backward compatible with V2 drafts.
   theme:['classic','culture','lab'].includes(input.theme)?input.theme:'classic',
+  artworks:Object.fromEntries(['issue','evidence','solution'].map(k=>[k,/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(input.artworks?.[k]))?input.artworks[k]:null])),
   learning:Object.fromEntries(
    ['issue','audience','source','evidence','solution','feedback','improvement','reflection','tested']
     .map(k=>[k,k==='tested'?input.learning?.tested===true:
