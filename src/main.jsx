@@ -35,6 +35,7 @@ import PermissionRequestButton from './components/PermissionRequestButton.jsx';
 import { initializeAuthSession, logoutUser, subscribeToAuthChanges } from './utils/auth.js';
 import { getActiveAiConfig, getAiConfigs, getAiProvider, getProviderSummary, setAiStorageUser } from './utils/aiProviders.js';
 import { getFirstAllowedRoute, getRoutePermissionId, getPermissionItem, hasRouteAccess } from './utils/permissions.js';
+import { useGalleryFlag } from './features/immersive-gallery/useGalleryFlag.js';
 import { applyPerformanceAttributes, getStoredPerformanceMode, resolvePerformanceMode } from './utils/performanceProfile.js';
 import { setLibraryStorageUser } from './utils/library.js';
 import { recordAppUsage } from './utils/appUsage.js';
@@ -219,6 +220,7 @@ function App() {
   const [aiProvider, setAiProviderState] = useState(() => getAiProvider());
   const [providerConfigs, setProviderConfigs] = useState(() => getAiConfigs());
   const [currentUser, setCurrentUser] = useState(null);
+  const galleryEnabled = useGalleryFlag(currentUser);
   const chromeSettings = useGlobalChromeSettings(currentUser);
   const [authReady, setAuthReady] = useState(false);
   const [guestHomeNotice, setGuestHomeNotice] = useState(false);
@@ -366,7 +368,7 @@ function App() {
   const visibilityReady = !currentUser || isAdminRole(currentUser?.role) || appVisibility.ready;
   const temporarilyHidden = currentRoute !== 'slideshow' && visibilityReady && isAppHiddenForUser(appVisibility.snapshot, currentUser, visibilityId);
   const visibleForCurrentUser = (item) => !isAppHiddenForUser(appVisibility.snapshot, currentUser, `tool:${item.slug}`);
-  const accessibleApps = APPS.filter(visibleForCurrentUser);
+  const accessibleApps = APPS.filter(item => visibleForCurrentUser(item) && (item.slug !== 'immersive-gallery' || galleryEnabled));
   const accessibleTools = SPECIAL_TOOLS.filter(visibleForCurrentUser);
 
   const requiresAuth = currentRoute === 'tool' || !PUBLIC_ROUTES.has(currentRoute);
