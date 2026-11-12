@@ -274,6 +274,13 @@ test('PEK school gallery is a real 3D environment with a readable school-edition
  await expect(hall).toBeVisible();
  await expect(hall).toHaveAttribute('aria-label',/Pétrus Ký/);
  await expect(hall.getByText('PÉTRUS KÝ · BẢO TÀNG KHÁM PHÁ')).toBeVisible();
+ const webgl=hall.locator('canvas');
+ if(await webgl.isVisible().catch(()=>false)){
+  fs.mkdirSync('artifacts/museum-lab',{recursive:true});
+  await page.waitForTimeout(650);
+  await hall.screenshot({path:'artifacts/museum-lab/pek-hall-'+(page.viewportSize()?.width||'screen')+'.png',
+   animations:'disabled',timeout:10000});
+ }
  const close=hall.getByRole('button',{name:'Đến gần tranh'});
  await expect(close).toBeVisible();
  await close.click();
