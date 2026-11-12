@@ -2,11 +2,13 @@ import React,{useMemo,useState} from 'react';
 import {ArrowRight,Award,BookOpen,CheckCircle2,Circle,ClipboardCheck,Download,FileArchive,FileCheck2,FileDown,FileText,Info,Presentation,Printer,ShieldCheck,Star,UploadCloud} from 'lucide-react';
 import {buildProgressCsv} from './museumData.js';
 import {p1Document,p2Document} from './museumDossier.js';
+import {buildWordDraft,buildCompetitionZip,saveBlob} from './museumDocx.js';
 import {saveTextFile,fmtDate} from './museumApi.js';
 const tr=(l,vi,en)=>l==='en'?en:vi;
 export default function MuseumEvidence({data,currentUser,onDemo,language='vi'}){
  const assignments=data?.assignments||[],reviews=data?.reviews||[],rubrics=data?.rubrics||[];
  const [assignmentId,setAssignmentId]=useState(assignments[0]?.id||'');
+ const [exportBusy,setExportBusy]=useState(false),[exportError,setExportError]=useState('');
  const selected=assignments.find(a=>a.id===assignmentId)||assignments[0];
  const [fields,setFields]=useState({
   teacher:currentUser?.full_name||currentUser?.name||'',
@@ -27,10 +29,21 @@ export default function MuseumEvidence({data,currentUser,onDemo,language='vi'}){
   {label:'Minh chứng lớp học thật',done:false,desc:'Cần bổ sung ảnh, video, phiếu học tập và bản sửa được phép chia sẻ'}
  ];
  const completed=checklist.filter(c=>c.done).length;
- const downloadDoc=(part)=>{
-  const filename='TiengAnh_THPT_'+(fields.teacher.trim().replace(/\s+/g,'-')||'Giao-vien')+'_STEM_'+part+'.doc';
-  const content=part==='P1'?p1Document(fields,selected):p2Document(fields,selected);
-  saveTextFile(filename,'application/msword;charset=utf-8',content);
+ const downloadDoc=async(part)=>{
+  setExportBusy(true);setExportError('');
+  try{
+   const filename='TiengAnh_THPT_'+(fields.teacher.trim().replace(/\s+/g,'-')||'Giao-vien')+'_STEM_'+part+'.docx';
+   const content=part==='P1'?p1Document(fields,selected):p2Document(fields,selected);
+   const output=await buildWordDraft(content);
+   saveBlob(output,filename);
+  }catch(e){setExportError(e.message);}finally{setExportBusy(false);}
+ };
+ const downloadZip=async()=>{
+  setExportBusy(true);setExportError('');
+  try{
+   const output=await buildCompetitionZip(p1Document(fields,selected),p2Document(fields,selected),checklist);
+   saveBlob(output,'BRIAN_MuseumLab_BAN_NHAP_HO_SO_HOI_THI.zip');
+  }catch(e){setExportError(e.message);}finally{setExportBusy(false);}
  };
  return <div className="bml-screen" data-testid="museum-evidence-studio">
   <div className="bml-heading-actions"><div><div className="bml-overline">{tr(language,'HỒ SƠ HỘI THI 2026–2027','COMPETITION DOSSIER')}</div>
@@ -51,10 +64,12 @@ export default function MuseumEvidence({data,currentUser,onDemo,language='vi'}){
     <label className="bml-full-field">{tr(language,'Bài học được chọn','Selected lesson')}<select value={selected?.id||''} onChange={e=>setAssignmentId(e.target.value)}>
      {assignments.length?assignments.map(a=><option key={a.id} value={a.id}>{a.title} · {a.class_scope}</option>):<option value="">{tr(language,'Chưa có bài học thật','No real lessons yet')}</option>}
     </select></label>
-    <button type="button" className="bml-primary" onClick={()=>downloadDoc('P1')}><FileDown size={19}/>{tr(language,'Xuất Phần 1 · Word','Export Part 1 · Word')}</button>
-    <button type="button" className="bml-primary" onClick={()=>downloadDoc('P2')}><FileDown size={19}/>{tr(language,'Xuất Phần 2 · Word','Export Part 2 · Word')}</button>
+    <button type="button" className="bml-primary" disabled={exportBusy} onClick={()=>downloadDoc('P1')}><FileDown size={19}/>{tr(language,'Xuất Phần 1 · Word','Export Part 1 · Word')}</button>
+    <button type="button" className="bml-primary" disabled={exportBusy} onClick={()=>downloadDoc('P2')}><FileDown size={19}/>{tr(language,'Xuất Phần 2 · Word','Export Part 2 · Word')}</button>
+    <button type="button" className="bml-outline" disabled={exportBusy} onClick={downloadZip}><FileArchive size={18}/>{tr(language,'Tải ZIP hồ sơ nháp P1/P2','Download P1/P2 draft ZIP')}</button>
+    {exportError?<div className="bml-banner bml-danger-banner" role="alert">{exportError}</div>:null}
     <button type="button" className="bml-outline" onClick={()=>saveTextFile('BRIAN_MuseumLab_TienDo.csv','text/csv;charset=utf-8',buildProgressCsv(data))}><Download size={18}/>{tr(language,'Tải bảng tiến độ CSV','Download progress CSV')}</button>
-    <small>{tr(language,'Hồ sơ chính thức phải đáp ứng cấu trúc P1/P2 và học liệu P2 không quá 50 MB. Bản V3 chưa tự đóng ZIP hoặc xác nhận dung lượng học liệu.','The official dossier requires P1/P2 folders and supporting P2 assets under 50 MB. This screen does not yet package a final ZIP.')}</small>
+    <small>{tr(language,'ZIP chỉ gồm hai bản nháp DOCX và danh sách minh chứng còn thiếu. Giáo viên phải bổ sung học liệu thật, kiểm tra giới hạn dung lượng trước khi nộp.','ZIP includes two editable DOCX drafts and a missing-evidence checklist. Add authentic teaching materials and verify the official file-size limit before submission.')}</small>
    </aside>
   </div>
   <section className="bml-surface"><div className="bml-section-head"><h2>{tr(language,'Thông tin cần giáo viên xác nhận','Teacher-verified dossier details')}</h2></div>
