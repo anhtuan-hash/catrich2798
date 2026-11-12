@@ -54,3 +54,19 @@ test('catalog does not create server-side student events, scores or invented gra
  assert.match(galleryUi,/data-testid=\{'museum-collection-'\+c.key\}/);
  assert.match(app,/openCollection/);
 });
+
+
+test('Green Campus first group displays three static pre-rendered AVIF artworks',()=>{
+ const first=preparedGallery('school-11').rooms[0].exhibits;
+ const expected=['problem','evidence','solution'];
+ assert.equal(first.length,3);
+ first.forEach((art,i)=>{
+  const path='/museum/artwork/green-campus-0'+(i+1)+'-'+expected[i]+'.avif';
+  assert.equal(art.kind,'image');
+  assert.equal(art.image_url,path);
+  const contents=fs.readFileSync('public'+path);
+  assert.ok(contents.length>30000,'Artwork must contain a full-resolution image');
+  assert.equal(contents.toString('ascii',4,12),'ftypavif');
+ });
+ assert.equal(new Set(first.map(e=>e.image_url)).size,3);
+});

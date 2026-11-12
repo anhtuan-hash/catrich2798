@@ -31,7 +31,16 @@ const definitions=[
 const cache=new Map();
 // Lazy media creation: illustrated canvases are drawn when the user enters a
 // collection and are cached for room changes. No external URLs or image calls.
+// Pre-rendered poster assets are uploaded to the repository and served directly.
+// No browser-side drawing or external image generation is needed for this curated room.
+const finishedPosterAssets=Object.freeze({
+ 'school-11:0:0':'/museum/artwork/green-campus-01-problem.avif',
+ 'school-11:0:1':'/museum/artwork/green-campus-02-evidence.avif',
+ 'school-11:0:2':'/museum/artwork/green-campus-03-solution.avif'
+});
 function poster(def,p,part,idx){
+ const finished=finishedPosterAssets[def.key+':'+idx+':'+part];
+ if(finished)return finished;
  if(typeof document==='undefined')return '';
  const key=def.key+'-'+idx+'-'+part;
  if(cache.has(key))return cache.get(key);

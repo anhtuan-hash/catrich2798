@@ -378,6 +378,17 @@ test('school poster artworks have actual topic illustration pixels, not text-onl
  await detail.getByRole('button',{name:'2D',exact:true}).click();
  const frames=detail.locator('.bml-art-card img');
  await expect(frames).toHaveCount(3);
+ for(const [i,stage] of ['problem','evidence','solution'].entries()){
+  await expect(frames.nth(i)).toHaveAttribute('src',
+   '/museum/artwork/green-campus-0'+(i+1)+'-'+stage+'.avif');
+  const status=await frames.nth(i).evaluate(async img=>{
+   await img.decode();
+   return {complete:img.complete,width:img.naturalWidth,height:img.naturalHeight};
+  });
+  expect(status.complete).toBe(true);
+  expect(status.width).toBe(1024);
+  expect(status.height).toBe(768);
+ }
  const sample=await frames.first().evaluate(async(img)=>{
   await img.decode();
   const canvas=document.createElement('canvas');canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;
