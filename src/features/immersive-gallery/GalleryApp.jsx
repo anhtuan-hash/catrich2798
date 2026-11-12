@@ -3,7 +3,8 @@ import {getGalleryEnabled,listExhibitions,getExhibition,createExhibition,updateE
 import {ROOM_TEMPLATES,ROOM_KEYS,DEFAULT_TRANSFORM,normalizeTransform,slugify,QUALITY,safeVideoUrl} from './sceneTemplates.js';
 import {seedDemoGallery} from './gallerySampleSeed.js';
 import './gallery.css';
-const Canvas=lazy(()=>import('./GalleryCanvas.jsx'));
+const Canvas=lazy(()=>import('./GalleryCanvasR3F.jsx'));
+const GalleryModelInspector=lazy(()=>import('./GalleryModelInspector.jsx'));
 const txt=(lang,vi,en)=>lang==='en'?en:vi;
 function Notice({text}){return text?<div className="big-alert" role="status">{text}</div>:null;}
 function Media({exhibit,language}) {
@@ -15,7 +16,7 @@ function Media({exhibit,language}) {
  if(exhibit.kind==='audio')return url?<audio controls preload="none" src={url}/>:<p>{txt(language,"Đang tải âm thanh…","Loading audio…")}</p>;
  if(exhibit.kind==='pdf')return url?<a href={url} target="_blank" rel="noreferrer">{txt(language,'Mở tài liệu PDF được cấp quyền','Open authorized PDF')}</a>:<p>{txt(language,"Đang tải tài liệu…","Loading document…")}</p>;
  if(exhibit.kind==='video'){const url=safeVideoUrl(exhibit.external_url);return url?<iframe loading="lazy" width="100%" height="260" src={url} sandbox="allow-scripts allow-same-origin allow-presentation" referrerPolicy="strict-origin-when-cross-origin" allow="encrypted-media; picture-in-picture" title={exhibit.title}/>:<p>{txt(language,"Video URL không hợp lệ.","Invalid video URL.")}</p>;}
- if(exhibit.kind==='model')return <div className="big-model-note" role="img" aria-label="Curated model preview">{exhibit.model_key==='globe'?'◉':exhibit.model_key==='book'?'▤':'◇'} <small>{txt(language,'Mô hình 3D hình học có sẵn; GLB importer cần kiểm tra bổ sung','Curated procedural 3D object; GLB importer not yet enabled')}</small></div>;
+ if(exhibit.kind==='model')return <Suspense fallback={<p>Preparing model inspector…</p>}><GalleryModelInspector modelKey={exhibit.model_key||'pedestal'} language={language}/></Suspense>;
  return null;
 }
 function Details({item,language,onClose}) {

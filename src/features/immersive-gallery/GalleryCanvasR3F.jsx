@@ -118,14 +118,15 @@ function CameraWalker({held,paused,onPosition,teleport}) {
    };
    const up=()=>{drag.current=null;};
    const blur=()=>held.current.clear();
+   const wake=()=>invalidate();
    window.addEventListener('keydown',keyDown);
    window.addEventListener('keyup',keyUp);
-   window.addEventListener('blur',blur);
+   window.addEventListener('blur',blur);window.addEventListener('big-gallery-animate',wake);
    canvas.addEventListener('pointerdown',down);
    canvas.addEventListener('pointermove',move);
    canvas.addEventListener('pointerup',up);
    canvas.addEventListener('pointercancel',up);
-   return()=>{held.current.clear();document.body.style.cursor='';window.removeEventListener('keydown',keyDown);window.removeEventListener('keyup',keyUp);window.removeEventListener('blur',blur);canvas.removeEventListener('pointerdown',down);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerup',up);canvas.removeEventListener('pointercancel',up);};
+   return()=>{held.current.clear();document.body.style.cursor='';window.removeEventListener('keydown',keyDown);window.removeEventListener('keyup',keyUp);window.removeEventListener('blur',blur);window.removeEventListener('big-gallery-animate',wake);canvas.removeEventListener('pointerdown',down);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerup',up);canvas.removeEventListener('pointercancel',up);};
  },[gl,camera,invalidate,held,paused]);
  useFrame((_,delta)=>{
    if(paused)return;
@@ -162,7 +163,7 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
  },[]);
  useEffect(()=>{held.current.clear();},[selectedId,template]);
  const onPosition=(x,z)=>{setPos([+x.toFixed(1),+z.toFixed(1)]);};
- const hold=(key,down)=>{if(down)held.current.add(key);else held.current.delete(key);};
+ const hold=(key,down)=>{if(down)held.current.add(key);else held.current.delete(key);window.dispatchEvent(new Event('big-gallery-animate'));};
  const onTeleport=point=>{setTeleport([...point]);};
  return <div className="big-webgl-shell">
   {supported===false?<div role="alert" className="big-canvas-error">{language==='en'?'WebGL unavailable. Use the 2D exhibit list.':'Thiết bị không hỗ trợ WebGL. Hãy sử dụng danh sách hiện vật 2D.'}</div>:supported===null?<div className="big-canvas-loading">Preparing 3D exhibition…</div>:<Suspense fallback={<div className="big-canvas-loading">Loading original 3D art…</div>}>

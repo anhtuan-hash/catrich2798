@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import {createCuratedGlb,CURATED_GLB_KEYS} from '../src/features/immersive-gallery/curatedGlb.js';
 import {ROOM_TEMPLATES,ROOM_KEYS,normalizeTransform,validTransform,validSlug,slugify,safeVideoUrl,validateExhibition,validateExhibit,useLiteQuality} from '../src/features/immersive-gallery/sceneTemplates.js';
 test('three unique room templates are available',()=>{assert.deepEqual(ROOM_KEYS,['classic','culture','lab']);for(const r of ROOM_KEYS)assert.ok(ROOM_TEMPLATES[r].wall);});
 test('valid gallery slug strict validation',()=>{assert.equal(validSlug('climate-exhibit'),true);for(const s of ['','bad space','../admin','A','!','-a','a/../../x'])assert.equal(validSlug(s),false);});
@@ -35,4 +36,37 @@ test('private assets require active visibility check and a publish guard',()=>{
  assert.match(p,/s\.enabled=true/);
  assert.match(sql,/Only approved exhibits may be published/);
  assert.match(sql,/gallery_publish_guard_trigger/);
+});
+
+test('all three curated GLB 2.0 models have valid binary structure',()=>{
+ for(const key of CURATED_GLB_KEYS){
+  const array=createCuratedGlb(key),v=new DataView(array),bytes=new Uint8Array(array);
+  assert.equal(v.getUint32(0,true),0x46546c67);
+  assert.equal(v.getUint32(4,true),2);
+  assert.equal(v.getUint32(8,true),array.byteLength);
+  const jlen=v.getUint32(12,true);
+  assert.equal(v.getUint32(16,true),0x4e4f534a);
+  const json=JSON.parse(new TextDecoder().decode(bytes.subarray(20,20+jlen)));
+  assert.equal(json.asset.version,'2.0');
+  assert.equal(json.meshes.length,1);
+  const offset=20+jlen;
+  assert.equal(v.getUint32(offset+4,true),0x004e4942);
+  assert.equal(v.getUint32(offset,true),json.buffers[0].byteLength);
+ }
+});
+test('curated GLB rejects untrusted model names',()=>assert.throws(()=>createCuratedGlb('https://evil.test/malicious.glb')));
+test('gallery uses lazy-loaded R3F engine and model inspection',()=>{
+ const app=fs.readFileSync('src/features/immersive-gallery/GalleryApp.jsx','utf8');
+ assert.match(app,/lazy\(\(\)=>import\('\.\/GalleryCanvasR3F\.jsx'\)\)/);
+ assert.match(app,/lazy\(\(\)=>import\('\.\/GalleryModelInspector\.jsx'\)\)/);
+ const scene=fs.readFileSync('src/features/immersive-gallery/GalleryCanvasR3F.jsx','utf8');
+ assert.match(scene,/@react-three\/fiber/);
+ assert.match(scene,/GLTFLoader/);
+});
+test('publication remains atomic via SQL RPC',()=>{
+ const sql=fs.readFileSync('supabase/migrations/20261112140000_brian_immersive_gallery_r1.sql','utf8');
+ assert.match(sql,/gallery_publish_exhibition\(p_exhibition_id uuid\)/);
+ assert.match(sql,/security invoker/);
+ const data=fs.readFileSync('src/features/immersive-gallery/galleryData.js','utf8');
+ assert.match(data,/\.rpc\('gallery_publish_exhibition'/);
 });
