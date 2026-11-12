@@ -6,8 +6,15 @@ import {normalizeGuestDraft} from '../src/features/immersive-gallery/creatorPass
 
 test('new student workflow has exactly five coherent STEAM steps',()=>{
  assert.deepEqual(STEPS.map(s=>s.key),['understand','plan','create','test','submit']);
- assert.equal(LESSON_KITS.length,3);
- assert.ok(LESSON_KITS.some(k=>k.id==='climate'));
+ assert.equal(LESSON_KITS.length,1);
+ assert.equal(LESSON_KITS[0].id,'climate');
+ assert.equal(LESSON_KITS[0].title,'Our Climate Action Museum');
+ assert.match(LESSON_KITS[0].subtitle,/Unit 5: Global Warming/);
+ assert.match(LESSON_KITS[0].challenge,/everyday activities on global warming/);
+ assert.match(LESSON_KITS[0].brief,/group-priority choice/);
+ assert.match(LESSON_KITS[0].brief,/25–40 words/);
+ assert.match(LESSON_KITS[0].brief,/peer feedback|feedback/);
+ assert.doesNotMatch(LESSON_KITS.map(x=>x.title).join(' '),/Protecting Marine Life|Sustainable School/);
 });
 test('auto-layout yields three readable text exhibits without exposed geometric controls',()=>{
  const d=emptyStudio();

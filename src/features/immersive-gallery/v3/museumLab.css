@@ -343,3 +343,30 @@
  .bml .bml-sidebar.is-open .bml-nav{display:flex}
  .bml .bml-sidebar.is-open .bml-nav-divider{display:block}
 }
+
+/* Unit 5: a single curriculum-aligned climate lesson plan. */
+.bml .bml-single-lesson{display:flex;align-items:center;gap:24px;padding:18px;border:1px solid #cddfd5;border-radius:18px;background:linear-gradient(120deg,#f5faf6,#fdfdf8);margin-top:17px}
+.bml .bml-single-lesson>.bml-kit-cover{flex:0 0 220px;min-height:166px}
+.bml .bml-single-lesson-copy{flex:1;min-width:0}
+.bml .bml-single-lesson-copy h3{font-size:clamp(20px,2.3vw,29px);margin:5px 0 2px;color:#1b4d44}
+.bml .bml-single-lesson-copy p{font-size:13px;line-height:1.55;color:#506860;margin:5px 0 10px}
+.bml .bml-single-lesson-copy>strong{color:#205d53;font-size:13px}
+.bml .bml-single-lesson-copy .bml-single-lesson-question{font-size:16px;font-weight:700;line-height:1.45;color:#1a5548;margin:6px 0 10px}
+.bml .bml-single-outcomes,.bml .bml-single-flow{margin-top:21px}
+.bml .bml-single-outcomes h3,.bml .bml-single-flow h3{font-size:16px;font-weight:750;color:#2b4d45;margin:0 0 12px}
+.bml .bml-single-outcome-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.bml .bml-single-outcome-grid p{margin:0;padding:13px;border:1px solid #d9e7df;border-radius:13px;background:#fcfffd;display:flex;flex-direction:column;gap:7px;min-width:0}
+.bml .bml-single-outcome-grid b{color:#1d6654;font-size:12px;line-height:1.4}
+.bml .bml-single-outcome-grid span{font-size:12px;color:#526962;line-height:1.5}
+.bml .bml-single-period-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.bml .bml-single-period{border:1px solid #d9e7df;border-radius:14px;background:#fff;overflow:hidden}
+.bml .bml-single-period h4{background:#e6f4ed;color:#20614f;padding:11px 14px;margin:0;font-size:13px}
+.bml .bml-single-period ol{list-style:none;margin:0;padding:9px 13px 13px}
+.bml .bml-single-period li{display:flex;align-items:flex-start;gap:10px;padding:6px 0}
+.bml .bml-single-period li>span{background:#edf6ed;border-radius:8px;color:#246850;padding:5px 7px;font-size:11px;font-weight:800;flex:none}
+.bml .bml-single-period li>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.bml .bml-single-period li strong{font-size:12px;color:#29473d;line-height:1.4}
+.bml .bml-single-period li small{font-size:11px;color:#668077;line-height:1.4}
+.bml .bml-single-lesson-note{font-size:12px;color:#617870;margin:15px 0 0;line-height:1.6}
+@media(max-width:850px){.bml .bml-single-outcome-grid{grid-template-columns:1fr}.bml .bml-single-lesson{align-items:stretch;flex-direction:column}.bml .bml-single-lesson>.bml-kit-cover{flex:auto;min-height:130px}}
+@media(max-width:620px){.bml .bml-single-period-grid{grid-template-columns:1fr}.bml .bml-single-lesson{gap:12px;padding:12px}.bml .bml-single-period li{padding:7px 0}}

@@ -24,7 +24,15 @@ test('the no-account entry is an understandable, keyboard-accessible form',async
 test('teacher lesson wizard has three steps and fails closed if Creator Pass is OFF',async({page})=>{
  await page.getByTestId('qa-wizard').click();
  await expect(page.getByTestId('museum-lesson-wizard')).toBeVisible();
- await expect(page.getByText('Chọn mẫu bài học')).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Kế hoạch bài dạy'})).toBeVisible();
+ const plan=page.getByTestId('museum-single-unit5-plan');
+ await expect(plan).toBeVisible();
+ await expect(plan.getByRole('heading',{name:'Our Climate Action Museum'})).toBeVisible();
+ await expect(plan).toContainText('Global Warming');
+ await expect(page.locator('.bml-single-period')).toHaveCount(2);
+ await expect(page.locator('.bml-single-period li')).toHaveCount(11);
+ await expect(page.getByText('Protecting Marine Life',{exact:true})).toHaveCount(0);
+ await expect(page.getByText('Sustainable School',{exact:true})).toHaveCount(0);
  await page.getByRole('button',{name:/Tiếp tục/}).click();
  await expect(page.getByText('Thiết lập lớp và nhóm')).toBeVisible();
  await page.getByPlaceholder('11A3').fill('11A3');
