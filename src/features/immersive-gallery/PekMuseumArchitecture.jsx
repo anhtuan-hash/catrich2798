@@ -223,7 +223,7 @@ export function PekMuseumArchitecture({template='classic',lite=false}){
    <ringGeometry args={[.78,.83,40]}/>
    <meshBasicMaterial color={C.pine} side={THREE.DoubleSide}/></mesh>
   {/* Two handcrafted school-inspired display objects, outside the art sightline. */}
-  {!compact?<><BookSculpture x={-4.2} z={-6.1}/><SculpturePine x={4.2} z={-6.1}/></>:null}
+  <BookSculpture x={-4.2} z={-6.1}/><SculpturePine x={4.2} z={-6.1}/>
   {/* Simple, non-blocking visual pools mark the three student exhibit bays. */}
   {[-3,0,3].map(x=><group key={'bay-'+x}>
    <mesh position={[x,.61,-7.88]}><boxGeometry args={[2.67,.10,.23]}/>
