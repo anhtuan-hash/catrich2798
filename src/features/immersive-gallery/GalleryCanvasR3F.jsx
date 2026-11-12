@@ -4,6 +4,8 @@ import {Canvas,useFrame,useThree} from '@react-three/fiber';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {ROOM_TEMPLATES,normalizeTransform,useLiteQuality} from './sceneTemplates.js';
 import {createCuratedGlb,CURATED_GLB_KEYS} from './curatedGlb.js';
+import {PekMuseumArchitecture,ExhibitWallLabel} from './PekMuseumArchitecture.jsx';
+import './pekMuseum.css';
 // Cloud media service is imported on demand to prevent eager auth/bootstrap cycles.
 
 // Only bundled, original GLBs are loaded. No URL or user-supplied binary is parsed.
@@ -26,7 +28,7 @@ function CuratedModel({modelKey='globe',scale=1}) {
   return scene?<primitive object={scene} scale={scale}/>:<mesh scale={0.4}><octahedronGeometry/><meshStandardMaterial color="#a3b6ae"/></mesh>;
 }
 export {CuratedModel};
-function ArtworkImage({assetId,imageUrl}) {
+function ArtworkImage({assetId,imageUrl,schoolEdition=false}) {
  const [texture,setTexture]=useState(null);
  useEffect(()=>{
   if(!assetId&&!imageUrl)return undefined;let alive=true,created=null;
@@ -39,30 +41,35 @@ function ArtworkImage({assetId,imageUrl}) {
   }).catch(()=>{if(alive)setTexture(null);});
   return()=>{alive=false;if(created)created.dispose();};
  },[assetId,imageUrl]);
- if(!texture)return <mesh position={[0,0,0.083]}><planeGeometry args={[1.62,1.17]}/><meshStandardMaterial color="#e2d4c7"/></mesh>;
+ if(!texture)return <mesh position={[0,0,.083]}><planeGeometry args={schoolEdition?[2.1,1.46]:[1.62,1.17]}/><meshStandardMaterial color="#D9EDE2" roughness={.95}/></mesh>;
  const width=texture.image?.width||1,height=texture.image?.height||1,aspect=width/height;
- const size=aspect>1.36/1.12?[1.65,1.65/aspect]:[1.36*aspect,1.36];
+ const maxWidth=schoolEdition?2.11:1.65,maxHeight=schoolEdition?1.62:1.36;
+ const size=aspect>maxWidth/maxHeight?[maxWidth,maxWidth/aspect]:[maxHeight*aspect,maxHeight];
  return <mesh position={[0,0,0.083]}><planeGeometry args={size}/><meshBasicMaterial map={texture} toneMapped={false} side={THREE.DoubleSide}/></mesh>;
 }
-function PaperArtwork({exhibit,onSelect,isSelected}) {
+function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,index=0}) {
  const transform=useMemo(()=>normalizeTransform(exhibit.transform||{}),[exhibit.transform]);
  return <group position={transform.position} rotation={transform.rotation} scale={transform.scale}
   onClick={e=>{e.stopPropagation();onSelect?.(exhibit.id);}}
   onPointerOver={e=>{e.stopPropagation();document.body.style.cursor='pointer';}}
   onPointerOut={()=>{document.body.style.cursor='';}}>
-  <mesh><boxGeometry args={[2.04,1.70,0.10]}/><meshStandardMaterial color={isSelected?'#e4aa64':'#ae856e'} roughness={0.82}/></mesh>
-  <mesh position={[0,0,0.052]}><boxGeometry args={[1.86,1.52,0.025]}/><meshStandardMaterial color="#fff9ee" roughness={0.9}/></mesh>
+  <mesh><boxGeometry args={schoolEdition?[2.45,1.95,.11]:[2.04,1.70,.10]}/>
+   <meshStandardMaterial color={schoolEdition?(isSelected?'#F6D477':'#B69B62'):(isSelected?'#e4aa64':'#ae856e')} roughness={.63} metalness={schoolEdition?.19:0}/></mesh>
+  <mesh position={[0,0,.058]}><boxGeometry args={schoolEdition?[2.29,1.80,.025]:[1.86,1.52,.025]}/>
+   <meshStandardMaterial color="#fffdf5" roughness={.89}/></mesh>
   {exhibit.kind==='model'
    ?<group position={[0,0,0.45]}><CuratedModel modelKey={exhibit.model_key||'pedestal'} scale={0.63}/></group>
    :exhibit.kind==='image'
-    ?<ArtworkImage assetId={exhibit.asset_id} imageUrl={exhibit.image_url}/>
+    ?<ArtworkImage assetId={exhibit.asset_id} imageUrl={exhibit.image_url} schoolEdition={schoolEdition}/>
     :<group><mesh position={[0,0.22,0.083]}><boxGeometry args={[1.06,0.12,0.02]}/><meshStandardMaterial color="#93afa7"/></mesh>
       <mesh position={[0,-0.04,0.085]}><boxGeometry args={[0.9,0.05,0.02]}/><meshStandardMaterial color="#d7c3b3"/></mesh>
       <mesh position={[0,-0.20,0.085]}><boxGeometry args={[1.02,0.05,0.02]}/><meshStandardMaterial color="#d7c3b3"/></mesh></group>}
+  {schoolEdition?<ExhibitWallLabel title={exhibit.title} index={index}/>:null}
  </group>;
 }
-function Walls({template,onTeleport}) {
- const theme=ROOM_TEMPLATES[template]||ROOM_TEMPLATES.classic;
+function Walls({template,onTeleport,schoolEdition=false,lite=false}) {
+ const original=ROOM_TEMPLATES[template]||ROOM_TEMPLATES.classic;
+ const theme=schoolEdition?{...original,wall:'#E5F3EB',floor:'#DFE5DC',ceiling:'#F8FCF7',accent:'#138F86'}:original;
  const culture=template==='culture',lab=template==='lab',lobby=template==='lobby';
  return <group>
   <mesh position={[0,-0.08,0]} rotation={[-Math.PI/2,0,0]} receiveShadow onClick={e=>{
@@ -73,6 +80,7 @@ function Walls({template,onTeleport}) {
   <mesh position={[0,3,-9]}><planeGeometry args={[14,6]}/><meshStandardMaterial color={theme.wall} side={THREE.DoubleSide}/></mesh>
   <mesh position={[-7,3,0]} rotation={[0,Math.PI/2,0]}><planeGeometry args={[18,6]}/><meshStandardMaterial color={theme.wall} side={THREE.DoubleSide}/></mesh>
   <mesh position={[7,3,0]} rotation={[0,-Math.PI/2,0]}><planeGeometry args={[18,6]}/><meshStandardMaterial color={theme.wall} side={THREE.DoubleSide}/></mesh>
+  {schoolEdition?<PekMuseumArchitecture template={template} lite={lite}/>:<group>
   {[-6,-3,0,3,6].map(x=><group key={x}>
    <mesh position={[x,0.2,-8.87]}><boxGeometry args={[0.13,0.4,0.2]}/><meshStandardMaterial color={theme.accent}/></mesh>
    <mesh position={[x,5.78,-8.87]}><boxGeometry args={[0.13,0.2,0.2]}/><meshStandardMaterial color="#ffffff"/></mesh>
@@ -106,6 +114,7 @@ function Walls({template,onTeleport}) {
    </group>)}
   </group>)}
   <mesh position={[0,5.96,-1.5]}><boxGeometry args={[4.3,0.08,5.5]}/><meshStandardMaterial color="#fdfbf2" emissive="#fffbea" emissiveIntensity={0.08}/></mesh>
+  </group>}
  </group>;
 }
 const MOVE_KEYS=new Set(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright','shift']);
@@ -161,17 +170,19 @@ function CameraWalker({held,paused,onPosition,teleport}) {
  });
  return null;
 }
-function Room({template,exhibits,onSelect,selectedId,onTeleport}) {
- return <><color attach="background" args={['#f2f0e9']}/><ambientLight intensity={1.1}/>
-  <hemisphereLight args={['#ffffff','#b7afa3',1.0]}/>
-  <directionalLight position={[1,7,3]} intensity={1.15}/>
-  <Walls template={template} onTeleport={onTeleport}/>
-  {exhibits.slice(0,30).map(e=><PaperArtwork key={e.id} exhibit={e} onSelect={onSelect} isSelected={selectedId===e.id}/>)}
+function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=false,lite=false}) {
+ return <><color attach="background" args={[schoolEdition?'#EBF5F0':'#f2f0e9']}/>
+  <ambientLight intensity={schoolEdition?1.25:1.1}/>
+  <hemisphereLight args={['#FFFFFF',schoolEdition?'#9CAD9D':'#B7AFA3',1.1]}/>
+  <directionalLight position={[1,7,3]} color={schoolEdition?'#FFF7E4':'#FFFFFF'} intensity={1.15}/>
+  <Walls template={template} onTeleport={onTeleport} schoolEdition={schoolEdition} lite={lite}/>
+  {exhibits.slice(0,30).map((e,i)=><PaperArtwork key={e.id} exhibit={e} index={i} schoolEdition={schoolEdition}
+   onSelect={onSelect} isSelected={selectedId===e.id}/>)}
  </>;
 }
-export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelect,selectedId='',quality='auto',language='vi'}) {
+export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelect,selectedId='',quality='auto',language='vi',schoolEdition=false}) {
  const held=useRef(new Set());
- const [teleport,setTeleport]=useState(null),[pos,setPos]=useState([0,5]),[supported,setSupported]=useState(null);
+ const [teleport,setTeleport]=useState(null),[pos,setPos]=useState([0,schoolEdition?-1.6:5]),[supported,setSupported]=useState(null);
  const mode=useLiteQuality(quality);
  useEffect(()=>{
    let ok=false;
@@ -183,15 +194,21 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
  const onPosition=(x,z)=>{setPos([+x.toFixed(1),+z.toFixed(1)]);};
  const hold=(key,down)=>{if(down)held.current.add(key);else held.current.delete(key);window.dispatchEvent(new Event('big-gallery-animate'));};
  const onTeleport=point=>{setTeleport([...point]);};
- return <div className="big-webgl-shell">
+ return <div className={'big-webgl-shell '+(schoolEdition?'big-pek-museum':'')} data-testid={schoolEdition?'pek-discovery-hall':undefined}
+  aria-label={schoolEdition?(language==='en'?'Pétrus Ký-inspired Discovery Museum 3D':'Bảo tàng 3D lấy cảm hứng từ Trường Pétrus Ký'):undefined}>
   {supported===false?<div role="alert" className="big-canvas-error">{language==='en'?'WebGL unavailable. Use the 2D exhibit list.':'Thiết bị không hỗ trợ WebGL. Hãy sử dụng danh sách hiện vật 2D.'}</div>:supported===null?<div className="big-canvas-loading">Preparing 3D exhibition…</div>:<Suspense fallback={<div className="big-canvas-loading">Loading original 3D art…</div>}>
-   <Canvas camera={{position:[0,1.7,4.7],fov:61,near:0.08,far:55}} dpr={mode==='lite'?1:mode==='high'?[1,1.75]:[1,1.35]}
+   <Canvas camera={{position:[0,1.77,schoolEdition?-1.6:4.7],fov:schoolEdition?59:61,near:0.08,far:55}} dpr={mode==='lite'?1:mode==='high'?[1,1.75]:[1,1.35]}
     frameloop="demand" gl={{antialias:mode!=='lite',powerPreference:'low-power',alpha:false}} onCreated={({gl})=>{gl.setClearColor('#f2f0e9');}}>
-    <Room template={template} exhibits={exhibits} onSelect={onSelect} selectedId={selectedId} onTeleport={onTeleport}/>
+    <Room template={template} exhibits={exhibits} onSelect={onSelect} selectedId={selectedId} onTeleport={onTeleport}
+     schoolEdition={schoolEdition} lite={mode==='lite'}/>
     <CameraWalker held={held} paused={!!selectedId} teleport={teleport} onPosition={onPosition}/>
    </Canvas>
   </Suspense>}
-  <div className="big-scene-hud" aria-hidden="true">{pos[0]}, {pos[1]} · R3F</div>
+  {schoolEdition?<div className="big-pek-tools" role="group" aria-label={language==='en'?'Museum viewpoints':'Góc tham quan bảo tàng'}>
+   <div className="big-pek-edition-mark"><span className="big-pek-dot"/> PÉTRUS KÝ · DISCOVERY HALL</div>
+   <button type="button" onClick={()=>onTeleport([0,-4.45])}>{language==='en'?'See the artwork':'Đến gần tranh'}</button>
+   <button type="button" onClick={()=>onTeleport([0,1.55])}>{language==='en'?'Full room view':'Toàn cảnh'}</button>
+  </div>:<div className="big-scene-hud" aria-hidden="true">{pos[0]}, {pos[1]} · R3F</div>}
   <div className="big-touch-pad" aria-label="Mobile navigation">
    {[['↑','w'],['←','a'],['↓','s'],['→','d']].map(([text,key])=><button key={key} type="button" onPointerDown={e=>{e.preventDefault();hold(key,true);}}
      onPointerUp={()=>hold(key,false)} onPointerCancel={()=>hold(key,false)} onPointerLeave={()=>hold(key,false)}>{text}</button>)}
