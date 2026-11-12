@@ -213,17 +213,17 @@ export function PekMuseumArchitecture({template='classic',lite=false}){
   {[-2.62,2.62].map(x=><mesh key={x} position={[x,-.048,-3.0]}>
    <boxGeometry args={[.055,.016,10.2]}/>
    <meshStandardMaterial color={C.gold} roughness={.57}/></mesh>)}
-  <mesh position={[0,-.043,-2.1]} rotation={[-Math.PI/2,0,0]}>
+  <mesh position={[0,-.043,-4.5]} rotation={[-Math.PI/2,0,0]}>
    <circleGeometry args={[1.24,40]}/>
    <meshStandardMaterial color="#CEE7D9" roughness={.68}/></mesh>
-  <mesh position={[0,-.037,-2.1]} rotation={[-Math.PI/2,0,0]}>
+  <mesh position={[0,-.037,-4.5]} rotation={[-Math.PI/2,0,0]}>
    <ringGeometry args={[1.08,1.18,40]}/>
    <meshBasicMaterial color={C.gold} side={THREE.DoubleSide}/></mesh>
-  <mesh position={[0,-.034,-2.1]} rotation={[-Math.PI/2,0,0]}>
+  <mesh position={[0,-.034,-4.5]} rotation={[-Math.PI/2,0,0]}>
    <ringGeometry args={[.78,.83,40]}/>
    <meshBasicMaterial color={C.pine} side={THREE.DoubleSide}/></mesh>
   {/* Two handcrafted school-inspired display objects, outside the art sightline. */}
-  {!compact?<><BookSculpture x={-5.25} z={-2.65}/><SculpturePine x={5.25} z={-2.65}/></>:null}
+  {!compact?<><BookSculpture x={-5.3} z={-5.6}/><SculpturePine x={5.3} z={-5.6}/></>:null}
   {/* Simple, non-blocking visual pools mark the three student exhibit bays. */}
   {[-3,0,3].map(x=><group key={'bay-'+x}>
    <mesh position={[x,.61,-7.88]}><boxGeometry args={[2.67,.10,.23]}/>
