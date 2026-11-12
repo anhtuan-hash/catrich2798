@@ -11,6 +11,8 @@ import questionBank from '../serverless-handlers/_question-bank.js';
 import youtubeSearch from '../serverless-handlers/_youtube-search.js';
 import questatlasLive from '../serverless-handlers/_questatlas-live.js';
 import clientErrorReport from '../serverless-handlers/_client-error-report.js';
+import galleryGuest from '../serverless-handlers/gallery-guest.js';
+import galleryStaff from '../serverless-handlers/gallery-staff.js';
 
 const handlers = Object.freeze({
   'briefing-weather': briefingWeather,
@@ -26,6 +28,8 @@ const handlers = Object.freeze({
   'youtube-search': youtubeSearch,
   'questatlas-live': questatlasLive,
   'client-error-report': clientErrorReport,
+  'gallery-guest': galleryGuest,
+  'gallery-staff': galleryStaff,
 });
 
 export default async function gateway(req, res) {
