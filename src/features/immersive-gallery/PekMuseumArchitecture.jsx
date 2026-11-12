@@ -95,9 +95,9 @@ function SculpturePine({x=5.5,z=0}){
    <meshStandardMaterial color="#D0AF68" metalness={.48} roughness={.34}/></mesh>
   <mesh position={[0,1.19,0]}><cylinderGeometry args={[.10,.13,1.18,12]}/>
    <meshStandardMaterial color="#8D623F" roughness={.79}/></mesh>
-  {[0,1,2,3].map(i=><mesh key={i} position={[0,1.3+i*.33,0]}>
-   <coneGeometry args={[.54-i*.10,.75-i*.06,7]}/>
-   <meshStandardMaterial color={i%2===0?'#217B5D':'#33957B'} roughness={.82} flatShading/>
+  {[0,1,2,3,4,5].map(i=><mesh key={i} position={[0,1.25+i*.24,0]}>
+   <coneGeometry args={[.54-i*.068,.57-i*.03,12]}/>
+   <meshPhysicalMaterial color={i%2===0?'#226E51':'#348C6D'} metalness={.07} roughness={.62} clearcoat={.16}/>
   </mesh>)}
   <mesh position={[0,2.57,0]}><sphereGeometry args={[.11,12,8]}/>
    <meshStandardMaterial color="#E5BE55" emissive="#BC8C26" emissiveIntensity={.22}/></mesh>
@@ -168,14 +168,14 @@ export function PekMuseumArchitecture({template='classic',lite=false}){
      <meshStandardMaterial color={C.gold} roughness={.56}/></mesh>
    </group>)}
   {/* Actual name in typography, warm-gold border, and an original pine reinterpretation. */}
-  <mesh position={[0,5.17,-8.02]}><boxGeometry args={[8.8,.84,.12]}/>
+  <mesh position={[0,4.72,-8.02]}><boxGeometry args={[8.8,.84,.12]}/>
    <meshStandardMaterial color="#F4D775" metalness={.18} roughness={.49}/></mesh>
   <Typography text="PÉTRUS KÝ" subtitle="DISCOVERY MUSEUM • THE PIONEERS"
-   position={[0,5.16,-7.93]} size={[8.6,.71]} type="banner"/>
-  <SchoolPineSeal position={[-5.72,5.08,-7.93]} size={1.02}/>
-  <mesh position={[5.71,5.07,-7.99]} rotation={[Math.PI/2,0,0]}><cylinderGeometry args={[.52,.52,.08,32]}/>
+   position={[0,4.70,-7.93]} size={[8.6,.71]} type="banner"/>
+  <SchoolPineSeal position={[-5.72,4.72,-7.93]} size={1.02}/>
+  <mesh position={[5.71,4.72,-7.99]} rotation={[Math.PI/2,0,0]}><cylinderGeometry args={[.52,.52,.08,32]}/>
    <meshStandardMaterial color="#E4C46B" metalness={.52} roughness={.39}/></mesh>
-  <Typography text="PEK" subtitle="2008" position={[5.71,5.07,-7.91]} size={[.92,.72]} type="gold"/>
+  <Typography text="PEK" subtitle="2008" position={[5.71,4.72,-7.91]} size={[.92,.72]} type="gold"/>
   {/* Architecture echoes the photographed teal-yellow-white campus facades. */}
   {[-5.95,5.95].map(x=><group key={'yellow-'+x}>
    <mesh position={[x,3,-8.76]}><boxGeometry args={[1.48,5.72,.09]}/>
@@ -223,7 +223,7 @@ export function PekMuseumArchitecture({template='classic',lite=false}){
    <ringGeometry args={[.78,.83,40]}/>
    <meshBasicMaterial color={C.pine} side={THREE.DoubleSide}/></mesh>
   {/* Two handcrafted school-inspired display objects, outside the art sightline. */}
-  {!compact?<><BookSculpture x={-5.3} z={-5.6}/><SculpturePine x={5.3} z={-5.6}/></>:null}
+  {!compact?<><BookSculpture x={-4.2} z={-6.1}/><SculpturePine x={4.2} z={-6.1}/></>:null}
   {/* Simple, non-blocking visual pools mark the three student exhibit bays. */}
   {[-3,0,3].map(x=><group key={'bay-'+x}>
    <mesh position={[x,.61,-7.88]}><boxGeometry args={[2.67,.10,.23]}/>
@@ -234,6 +234,51 @@ export function PekMuseumArchitecture({template='classic',lite=false}){
     <meshStandardMaterial color="#E3CB85" emissive="#B89D48" emissiveIntensity={.13}/></mesh>
   </group>)}
  </group>;
+}
+// Informational text exhibits receive ORIGINAL typography graphics, never a
+// fabricated student photograph. Actual uploaded images always take precedence.
+export function TextExhibitPoster({title,index=0,schoolEdition=true}){
+ const heading=limited(title||'EXHIBIT');
+ const palette=[
+  {bg:'#166D62',light:'#3A9C89',highlight:'#E6CB76',ink:'#FDFBF2'},
+  {bg:'#F5E1A4',light:'#F1CC62',highlight:'#197565',ink:'#23534E'},
+  {bg:'#D8EAE0',light:'#A4CABC',highlight:'#CF9964',ink:'#214C48'}
+ ][Math.abs(index)%3];
+ const map=useCanvasTexture((ctx,w,h)=>{
+  const g=ctx.createLinearGradient(0,0,w,h);g.addColorStop(0,palette.bg);g.addColorStop(1,palette.light);
+  ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+  ctx.fillStyle=palette.highlight;ctx.globalAlpha=.26;
+  for(let i=0;i<5;i++){ctx.beginPath();ctx.arc(w*.82-i*10,h*.30-i*14,110+i*15,0,Math.PI*2);ctx.fill();}
+  ctx.globalAlpha=1;
+  // An original graphic earth/leaf device composed entirely of basic shapes.
+  ctx.fillStyle=palette.highlight;ctx.beginPath();ctx.arc(w*.79,h*.38,94,0,Math.PI*2);ctx.fill();
+  ctx.save();ctx.translate(w*.79,h*.38);ctx.fillStyle=palette.bg;
+  ctx.beginPath();ctx.moveTo(-51,-37);ctx.bezierCurveTo(-94,-27,-78,35,-28,45);
+  ctx.bezierCurveTo(6,57,37,15,17,-17);ctx.bezierCurveTo(-4,-48,-19,-44,-51,-37);ctx.fill();
+  ctx.beginPath();ctx.moveTo(18,-75);ctx.bezierCurveTo(87,-57,88,37,43,72);
+  ctx.bezierCurveTo(62,23,26,12,18,-15);ctx.closePath();ctx.fill();ctx.restore();
+  ctx.strokeStyle=palette.ink;ctx.globalAlpha=.42;ctx.lineWidth=3;
+  ctx.strokeRect(26,25,w-52,h-50);ctx.globalAlpha=1;
+  ctx.fillStyle=palette.ink;ctx.textAlign='left';ctx.textBaseline='top';
+  ctx.font='bold 23px Arial,sans-serif';
+  ctx.fillText('ENGLISH DISCOVERY / '+String(index+1).padStart(2,'0'),48,48,w-90);
+  ctx.fillStyle=palette.ink;ctx.font='bold 58px Arial,sans-serif';
+  // Render only provided title text, using two carefully clamped readable lines.
+  const words=heading.split(/\s+/).filter(Boolean),lines=[];let current='';
+  for(const word of words){
+   const candidate=current?current+' '+word:word;
+   if(ctx.measureText(candidate).width>510&&current){lines.push(current);current=word;}
+   else current=candidate;
+  }
+  if(current)lines.push(current);
+  for(let i=0;i<Math.min(3,lines.length);i++)ctx.fillText(lines[i],48,185+i*66,535);
+  ctx.font='bold 21px Arial,sans-serif';ctx.fillText('TEXT EXHIBIT · ORIGINAL GRAPHIC LABEL',48,h-63,w-90);
+ },[640,500],[heading,index]);
+ if(!map)return null;
+ return <mesh position={[0,0,.084]}>
+  <planeGeometry args={schoolEdition?[2.13,1.60]:[1.43,1.10]}/>
+  <meshBasicMaterial map={map} toneMapped={false} side={THREE.DoubleSide}/>
+ </mesh>;
 }
 export function ExhibitWallLabel({title,index=0}){
  const safe=limited(title||'STUDENT ARTWORK');
