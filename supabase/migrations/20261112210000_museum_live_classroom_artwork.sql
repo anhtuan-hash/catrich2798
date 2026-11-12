@@ -63,6 +63,6 @@ revoke all on public.museum_live_sessions,public.museum_live_responses,
  public.museum_artwork_assets,public.museum_learning_events from public,anon,authenticated;
 grant all on public.museum_live_sessions,public.museum_live_responses,
  public.museum_artwork_assets,public.museum_learning_events to service_role;
--- No browser or guest JWT may read Storage objects. Only server-side privileged access.
-revoke all on storage.objects from anon;
+-- This private bucket has NO storage.objects policies for anon or authenticated.
+-- Do not revoke global storage.objects grants: other Brian modules depend on them.
 commit;
