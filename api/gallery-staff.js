@@ -49,8 +49,12 @@ export default async function galleryStaff(req,res){
    const reviews=groupIds.length?await query(admin.from('gcp_reviews')
      .select('id,group_id,version,state,teacher_note,ttcm_note,approved_by,approved_at,submitted_at,snapshot_hash,snapshot')
      .in('group_id',groupIds).order('submitted_at',{ascending:false}).limit(500)):[];
+   const reviewerCandidates=ctx.role==='admin'?await query(admin.from('profiles')
+    .select('id,full_name,role').eq('school',ctx.profile.school).eq('approved',true).limit(100)):
+    grants.length?await query(admin.from('profiles').select('id,full_name,role')
+     .in('id',grants.map(g=>g.reviewer_id)).eq('approved',true)):[];
    return send(res,200,{profile:{role:ctx.profile.role,school:ctx.profile.school,id:ctx.user.id},
-    creatorSettings:await settings(admin),
+    creatorSettings:await settings(admin),reviewerCandidates,
     reviewers:grants,
     assignments,groups,reviews});
   }
