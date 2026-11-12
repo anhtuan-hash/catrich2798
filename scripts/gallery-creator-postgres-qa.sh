@@ -57,14 +57,14 @@ begin
 end $$;
 select public.gcp_guest_submit('bbbbbbbb-1111-4111-8111-111111111111',1);
 -- A repeated request must return the existing review without extra rows.
-do $
+do $gcp_retry$
 declare r1 uuid; r2 uuid;
 begin
  select id into r1 from public.gcp_reviews where group_id='bbbbbbbb-1111-4111-8111-111111111111';
  r2:=public.gcp_guest_submit('bbbbbbbb-1111-4111-8111-111111111111',1);
  if r1 is distinct from r2 or (select count(*) from public.gcp_reviews where group_id='bbbbbbbb-1111-4111-8111-111111111111')<>1
  then raise exception 'Repeated submission created a duplicate';end if;
-end $;
+end $gcp_retry$;
 reset role;
 SQL
 echo "[gcp] Testing teacher/TTCM separation, locked review, and publication"
@@ -103,7 +103,7 @@ end $$;
 SQL
 echo "[gcp] Validate atomic issuance and exact group count"
 p <<'SQL'
-do $
+do $gcp_atomic_test$
 declare issued jsonb; duplicate_failed boolean:=false;
 begin
  issued:=public.gcp_staff_issue_assignment(
@@ -127,6 +127,6 @@ begin
  if not duplicate_failed then raise exception 'Duplicate invite must roll back entire issuance';end if;
  if exists(select 1 from public.gcp_assignments where title='Should roll back')
   then raise exception 'Atomic issuance left partial assignment';end if;
-end $;
+end $gcp_atomic_test$;
 SQL
 echo "[gcp] PASSED: no student accounts, two-stage approval, permission checks and atomic publication"
