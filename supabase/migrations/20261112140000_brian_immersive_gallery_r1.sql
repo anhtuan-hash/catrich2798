@@ -17,6 +17,7 @@ create table if not exists public.gallery_exhibitions (
  visibility text not null default 'private' check(visibility in ('private','school','public')),
  status text not null default 'draft' check(status in ('draft','published','archived')),
  owner_id uuid not null references auth.users(id),
+ school_scope text not null default '' check(length(school_scope)<=180),
  accept_submissions boolean not null default false,
  published_at timestamptz,
  starts_at timestamptz,
@@ -107,8 +108,9 @@ create policy gallery_exhibitions_select on public.gallery_exhibitions for selec
    visibility='public' or
    (
     visibility='school' and
-    exists(select 1 from public.profiles viewer join public.profiles owner on owner.id=owner_id
-      where viewer.id=(select auth.uid()) and length(trim(viewer.school))>0 and viewer.school=owner.school and viewer.approved=true)
+    exists(select 1 from public.profiles viewer
+      where viewer.id=(select auth.uid()) and length(trim(viewer.school))>0
+      and viewer.school=school_scope and viewer.approved=true)
    )
   )
  )
@@ -148,9 +150,9 @@ create policy gallery_exhibits_insert on public.gallery_exhibits for insert to a
   or (status='submitted' and exists(select 1 from public.gallery_rooms r join public.gallery_exhibitions g on g.id=r.exhibition_id
     where r.id=room_id and g.status='published' and g.accept_submissions=true
     and exists(select 1 from public.gallery_settings s where s.id=true and s.enabled=true)
-    and exists(select 1 from public.profiles student join public.profiles owner on owner.id=g.owner_id
+    and exists(select 1 from public.profiles student
       where student.id=(select auth.uid()) and student.role='student' and student.approved=true
-        and length(trim(student.school))>0 and student.school=owner.school)))
+        and length(trim(student.school))>0 and student.school=g.school_scope)))
  ));
 create policy gallery_exhibits_update on public.gallery_exhibits for update to authenticated
  using(exists(select 1 from public.gallery_rooms r join public.gallery_exhibitions g on g.id=r.exhibition_id where r.id=room_id and
@@ -183,10 +185,9 @@ create policy gallery_assets_select on public.gallery_assets for select to authe
          or (
            g.visibility='school' and exists (
              select 1 from public.profiles viewer
-             join public.profiles owner on owner.id=g.owner_id
              where viewer.id=(select auth.uid())
                and viewer.approved=true and length(trim(viewer.school))>0
-               and viewer.school=owner.school
+               and viewer.school=g.school_scope
            )
          )
        )
@@ -210,6 +211,31 @@ create policy gallery_storage_select on storage.objects for select to authentica
  using(bucket_id='brian-gallery-private' and
  ((storage.foldername(name))[1]=(select auth.uid())::text or
  exists(select 1 from public.gallery_assets a where a.path=name)));
+
+-- Brian profile RLS only permits ordinary users to read their own profiles.
+-- Snapshot the owner school on insert and forbid user modification.
+create or replace function public.gallery_set_canonical_school() returns trigger
+language plpgsql security invoker set search_path = '' as $gallery_school$
+declare owner_school text;
+begin
+ if tg_op='INSERT' then
+   select trim(p.school) into owner_school
+   from public.profiles p where p.id=auth.uid() and p.approved=true;
+   if owner_school is null then raise exception 'Approved owner profile required'; end if;
+   new.school_scope:=left(owner_school,180);
+ elsif tg_op='UPDATE' then
+   if new.school_scope is distinct from old.school_scope then
+     raise exception 'School scope is immutable'; end if;
+   if new.owner_id is distinct from old.owner_id then
+     raise exception 'Exhibition owner is immutable'; end if;
+ end if;
+ return new;
+end;
+$gallery_school$;
+revoke all on function public.gallery_set_canonical_school() from public,anon,authenticated;
+drop trigger if exists gallery_canonical_school on public.gallery_exhibitions;
+create trigger gallery_canonical_school before insert or update on public.gallery_exhibitions
+for each row execute function public.gallery_set_canonical_school();
 
 -- Prevent metadata spoofing and bypass of moderation via direct API calls.
 create or replace function public.gallery_lock_exhibit_identity() returns trigger

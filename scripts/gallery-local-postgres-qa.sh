@@ -23,7 +23,9 @@ create table public.profiles(
 );
 alter table public.profiles enable row level security;
 grant select on public.profiles to authenticated;
-create policy synthetic_profile_read on public.profiles for select to authenticated using(true);
+-- Match the real Brian ordinary-user profile SELECT rule.
+create policy synthetic_profile_read on public.profiles for select to authenticated
+ using(id=(select auth.uid()));
 create table storage.buckets(
   id text primary key,
   name text not null,
@@ -77,6 +79,15 @@ do $$ begin
  then raise exception 'Owner cannot read own draft';end if;
 end $$;
 SQL
+echo "[gallery-sql] Verify immutable school scope from canonical owner profile"
+p <<'SQL'
+set role authenticated;
+select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false);
+do $ begin
+ if (select school_scope from public.gallery_exhibitions where slug='synthetic-climate')<>'SCHOOL-A'
+ then raise exception 'Canonical school scope mismatch';end if;
+end $;
+SQL
 echo "[gallery-sql] Seed foreign uploader and verify cross-account asset reference guard"
 p <<'SQL'
 insert into public.gallery_assets(id,uploader_id,path,kind,mime_type,byte_size) values
@@ -118,6 +129,10 @@ denied "insert into public.gallery_exhibits(room_id,title,kind,asset_id,submitte
  '22222222-2222-4222-8222-222222222222' 'Teacher attaches another uploader protected asset'
 denied "update public.gallery_assets set path='22222222-2222-4222-8222-222222222222/reassigned.png' where id='dddddddd-dddd-4ddd-8ddd-dddddddddddd';" \
  '22222222-2222-4222-8222-222222222222' 'Changing approved asset metadata'
+denied "update public.gallery_exhibitions set school_scope='SCHOOL-B' where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';" \
+ '22222222-2222-4222-8222-222222222222' 'Forged school scope'
+denied "update public.gallery_exhibitions set owner_id='33333333-3333-4333-8333-333333333333' where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';" \
+ '22222222-2222-4222-8222-222222222222' 'Forged exhibition owner'
 echo "[gallery-sql] Admin enables Gallery and atomically publishes"
 p <<'SQL'
 set role authenticated;

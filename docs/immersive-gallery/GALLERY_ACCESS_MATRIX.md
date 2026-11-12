@@ -15,3 +15,7 @@
 **Do not interpret this table as security sign-off.** Migration has not been applied. Staging accounts and RLS negative tests are prerequisites to activation.
 
 The draft migration uses owner/auth.uid checks, canonical database profile.role and approved status for writers, no anon grants, private Storage with signed URLs, and immutable submission identity trigger. Security review must verify existing `profiles` SELECT RLS visibility for same-school tests; the policy is deliberately fail-closed on missing school identity.
+
+## Canonical school scope correction
+
+Read-only production inspection found that `public.profiles` SELECT policy only exposes the viewer's own profile to non-admins. Previous owner-profile joins could incorrectly fail. The proposed migration now captures immutable `gallery_exhibitions.school_scope` on insert using a SECURITY INVOKER trigger and the creating owner's canonical profile. It prevents later changes to the owner or school scope. The synthetic test fixture now uses restrictive `profiles` reads and explicitly attempts owner/school-scope tampering. This remains pending re-run against disposable PostgreSQL and has not been applied to Supabase.
