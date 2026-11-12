@@ -1,0 +1,35 @@
+name: BRIAN Gallery Creator Pass Security Gate
+on:
+  pull_request:
+    paths:
+      - "api/gallery-guest.js"
+      - "api/gallery-staff.js"
+      - "api/_galleryCreator.js"
+      - "src/features/immersive-gallery/**"
+      - "src/main.jsx"
+      - "supabase/migrations/*gallery_creator_pass*"
+      - "scripts/test-gallery-creator-pass.mjs"
+      - ".github/workflows/gallery-creator-pass.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  accountless-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Accountless validation / server-only permission checks
+        run: node --test scripts/test-gallery-creator-pass.mjs
+      - name: Server-side syntax checks
+        run: |
+          node --check api/_galleryCreator.js
+          node --check api/gallery-guest.js
+          node --check api/gallery-staff.js
+      - name: Browser bundle compilation
+        run: npx vite build
