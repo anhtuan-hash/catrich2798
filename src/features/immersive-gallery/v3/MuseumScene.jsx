@@ -50,7 +50,7 @@ export default function MuseumScene({gallery,onBack,language='vi',embedded=false
     </div>:null}
     <Suspense fallback={<div className="bml-empty"><Box size={32}/>{tr('Đang dựng bảo tàng 3D…','Preparing 3D museum…')}</div>}>
      <GalleryCanvas key={room.id} template={room.template_key} exhibits={exhibits} selectedId={selectedId||''}
-      onSelect={id=>setSelectedId(id)} quality="balanced" language={language} schoolEdition/>
+      onSelect={id=>setSelectedId(id)} quality="auto" language={language} schoolEdition/>
     </Suspense>
     <div className="bml-3d-caption"><Info size={15}/>{tr('Dùng WASD hoặc nút trên điện thoại để di chuyển. Chạm vào hiện vật để xem nội dung.','Use WASD or touch controls. Select any exhibit to read it.')}</div>
    </div>:<div className="bml-museum-room">
