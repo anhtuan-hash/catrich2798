@@ -13,7 +13,7 @@ test('original museum renders GLB-ready WebGL and switches all three room templa
  await page.goto('/tests/gallery/harness.html');
  await expect(page.getByRole('heading',{name:'Brian Gallery 3D'})).toBeVisible();
  await page.waitForTimeout(1300);
- const renderError=await page.locator('[data-qa-render-failure]').textContent().catch(()=>null);
+ const renderError=await page.locator('[data-qa-render-failure]').evaluateAll(nodes=>nodes[0]?.textContent||null);
  if(renderError)throw new Error('React 3D canvas crashed: '+renderError);
  await expect(page.locator('.big-webgl-shell canvas')).toBeVisible({timeout:15000});
  await expect(page.locator('.big-scene-hud')).toContainText('R3F');
