@@ -8,14 +8,26 @@ import MuseumExhibitionDetail from './MuseumExhibitionDetail.jsx';
 import {KitCard} from './MuseumDashboard.jsx';
 const tr=(l,vi,en)=>l==='en'?en:vi;
 export function MuseumTemplates({language='vi',onCreate,onDemo}){
- return <div className="bml-screen"><div><div className="bml-overline">LESSON LIBRARY</div><h1>{tr(language,'Thư viện mẫu bài học','Lesson kit library')}</h1>
-  <p>{tr(language,'Chọn một tình huống thực tế; nền tảng hướng dẫn tạo bài học trong ba bước.','Choose a real-world learning problem and start in three easy steps.')}</p></div>
-  <div className="bml-templates-grid">{LESSON_KITS.map(k=><KitCard key={k.id} kit={k} language={language} onClick={()=>onCreate(k.id)}/>)}</div>
-  <div className="bml-banner bml-info-banner"><Info size={19}/>{tr(language,'Các mẫu là đề xuất phục vụ thiết kế bài học; giáo viên cần đối chiếu SGK và yêu cầu cần đạt của môn Tiếng Anh trước khi dạy.','These are teaching design suggestions. Verify their match to the official English curriculum before classroom delivery.')}</div>
-  <section className="bml-surface"><h2>{tr(language,'Thử bảo tàng mẫu trước','Explore the museum sample')}</h2>
-   <p>{tr(language,'Dữ liệu mô phỏng gốc, không có bài nộp của học sinh thật.','Original synthetic demo, with no real student submissions.')}</p>
-   <button className="bml-outline" type="button" onClick={onDemo}><Eye size={18}/>{tr(language,'Tham quan bản demo','Open sample museum')}</button>
-  </section>
+ const kit=LESSON_KITS[0];
+ return <div className="bml-screen"><div><div className="bml-overline">ENGLISH 11 · GLOBAL SUCCESS UNIT 5</div>
+  <h1>{tr(language,'Kế hoạch bài dạy','Teaching plan')}</h1>
+  <p>{tr(language,'Một chủ đề dạy học số trong hai tiết, bám sát Unit 5: Global Warming.',
+   'One focused two-period digital lesson aligned with Unit 5: Global Warming.')}</p></div>
+  <div className="bml-single-lesson">
+   <KitCover kit={kit} size="large"/>
+   <div className="bml-single-lesson-copy">
+    <span className="bml-overline">OUR CLIMATE ACTION MUSEUM</span>
+    <h3>{kit.title}</h3><p>{kit.subtitle}</p>
+    <strong>{tr(language,'Câu hỏi định hướng','Driving question')}</strong>
+    <p className="bml-single-lesson-question">{kit.challenge}</p><p>{kit.goal}</p>
+    <div className="bml-chips"><span>English 11 · Unit 5</span><span>2 × 45 min</span><span>11 {tr(language,'hoạt động','activities')}</span></div>
+    <button type="button" className="bml-primary" onClick={()=>onCreate('climate')}>
+     {tr(language,'Tạo bài học từ kế hoạch này','Create lesson from this plan')} <ArrowRight size={17}/></button>
+   </div>
+  </div>
+  <div className="bml-banner bml-info-banner"><Info size={19}/>{tr(language,
+    'Mỗi nhóm thực hiện khảo sát ưu tiên thật, viết ba thuyết minh tiếng Anh, tải poster và biểu đồ, thử nghiệm – cải tiến rồi tham quan gallery 3D.',
+    'Groups conduct a real priority survey, write three English captions, upload an original poster and chart, test and revise, then visit the 3D gallery.')}</div>
  </div>;
 }
 const exhibitionFromHash=()=>{
