@@ -17,16 +17,16 @@ export function reviewMuseum(review){
   }))
  };
 }
-export default function MuseumScene({gallery,onBack,language='vi',embedded=false}){
- const [activeRoom,setActiveRoom]=useState(0),[threeD,setThreeD]=useState(false),[selectedId,setSelectedId]=useState(null);
+export default function MuseumScene({gallery,onBack,language='vi',embedded=false,compact=false,initial3D=false}){
+ const [activeRoom,setActiveRoom]=useState(0),[threeD,setThreeD]=useState(initial3D),[selectedId,setSelectedId]=useState(null);
  const rooms=gallery?.rooms||[];
  const room=rooms[Math.min(activeRoom,Math.max(0,rooms.length-1))];
  const exhibits=useMemo(()=>room?.exhibits||[],[room]);
  const selected=exhibits.find(e=>e.id===selectedId);
  const tr=(vi,en)=>language==='en'?en:vi;
  const changeRoom=n=>{setActiveRoom(n);setSelectedId(null);};
- return <section className={'bml-scene '+(embedded?'bml-scene-embedded':'')} data-testid="museum-visitor">
-  <header className="bml-scene-header">
+ return <section className={'bml-scene '+(embedded?'bml-scene-embedded ':'')+(compact?'bml-scene-compact':'')} data-testid="museum-visitor">
+  {!compact?<header className="bml-scene-header">
    <div className="bml-scene-title">
     {onBack?<button type="button" className="bml-icon-btn" onClick={onBack} aria-label={tr('Quay lại','Back')}><ArrowLeft size={20}/></button>:null}
     <div><div className="bml-overline">{tr('TRIỂN LÃM TƯƠNG TÁC','INTERACTIVE EXHIBITION')}</div>
@@ -37,19 +37,27 @@ export default function MuseumScene({gallery,onBack,language='vi',embedded=false
     <button type="button" className={!threeD?'is-active':''} onClick={()=>setThreeD(false)}><LayoutGrid size={16}/> 2D</button>
     <button type="button" className={threeD?'is-active':''} onClick={()=>setThreeD(true)}><Box size={16}/> 3D</button>
    </div>
-  </header>
+  </header>:null}
   {rooms.length?<>
    <nav className="bml-room-tabs" aria-label={tr('Các phòng trưng bày','Exhibition rooms')}>
     {rooms.map((r,i)=><button type="button" key={r.id||i} className={i===activeRoom?'is-active':''} onClick={()=>changeRoom(i)}>
       {String(i+1).padStart(2,'0')} · {r.title}</button>)}
    </nav>
    {threeD?<div className="bml-3d-stage">
+    {compact?<div className="bml-scene-mode-float" aria-label={tr('Chế độ xem','View mode')}>
+     <button type="button" aria-pressed={!threeD} onClick={()=>setThreeD(false)}><LayoutGrid size={16}/> 2D</button>
+     <button type="button" aria-pressed={threeD} className="is-active" onClick={()=>setThreeD(true)}><Box size={16}/> 3D</button>
+    </div>:null}
     <Suspense fallback={<div className="bml-empty"><Box size={32}/>{tr('Đang dựng bảo tàng 3D…','Preparing 3D museum…')}</div>}>
      <GalleryCanvas key={room.id} template={room.template_key} exhibits={exhibits} selectedId={selectedId||''}
       onSelect={id=>setSelectedId(id)} quality="balanced" language={language}/>
     </Suspense>
     <div className="bml-3d-caption"><Info size={15}/>{tr('Dùng WASD hoặc nút trên điện thoại để di chuyển. Chạm vào hiện vật để xem nội dung.','Use WASD or touch controls. Select any exhibit to read it.')}</div>
    </div>:<div className="bml-museum-room">
+    {compact?<div className="bml-scene-mode-float" aria-label={tr('Chế độ xem','View mode')}>
+     <button type="button" className="is-active" aria-pressed={!threeD} onClick={()=>setThreeD(false)}><LayoutGrid size={16}/> 2D</button>
+     <button type="button" aria-pressed={threeD} onClick={()=>setThreeD(true)}><Box size={16}/> 3D</button>
+    </div>:null}
     <div className="bml-room-mast"><div className="bml-floor-label">{tr('BẢO TÀNG SỐ','DIGITAL MUSEUM')}</div><h3>{clean(room.title,140)}</h3>
      <p>{tr('Đọc nội dung triển lãm bằng tiếng Anh. Chuyển sang 3D để tham quan không gian.','Read the English exhibit labels or explore the immersive 3D view.')}</p></div>
     <div className="bml-art-grid">{exhibits.map((e,i)=><button type="button" className="bml-art-card" key={e.id||i} onClick={()=>setSelectedId(e.id)}>
