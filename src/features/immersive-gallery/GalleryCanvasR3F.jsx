@@ -205,7 +205,7 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
    </Canvas>
   </Suspense>}
   {schoolEdition?<div className="big-pek-tools" role="group" aria-label={language==='en'?'Museum viewpoints':'Góc tham quan bảo tàng'}>
-   <div className="big-pek-edition-mark"><span className="big-pek-dot"/> PÉTRUS KÝ · DISCOVERY HALL</div>
+   <div className="big-pek-edition-mark"><span className="big-pek-dot"/> {language==='en'?'PÉTRUS KÝ · DISCOVERY HALL':'PÉTRUS KÝ · BẢO TÀNG KHÁM PHÁ'}</div>
    <button type="button" onClick={()=>onTeleport([0,-4.45])}>{language==='en'?'See the artwork':'Đến gần tranh'}</button>
    <button type="button" onClick={()=>onTeleport([0,1.55])}>{language==='en'?'Full room view':'Toàn cảnh'}</button>
   </div>:<div className="big-scene-hud" aria-hidden="true">{pos[0]}, {pos[1]} · R3F</div>}
