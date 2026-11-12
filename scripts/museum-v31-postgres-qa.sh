@@ -4,13 +4,7 @@ set -euo pipefail
 export PGHOST=127.0.0.1 PGPORT=5432 PGUSER=postgres PGDATABASE=postgres
 p(){ psql -X -v ON_ERROR_STOP=1 -q "$@"; }
 bash scripts/gallery-creator-postgres-qa.sh >/tmp/museum-r1-v2.log 2>&1 || { tail -80 /tmp/museum-r1-v2.log; exit 1; }
-p <<'SQL'
-create schema if not exists storage;
-create table storage.buckets(
- id text primary key,name text not null,public boolean not null default false,
- file_size_limit bigint,allowed_mime_types text[]
-);
-SQL
+# Gallery R1 fixture already creates storage.buckets; preserve its schema.
 p -f supabase/migrations/20261112210000_museum_live_classroom_artwork.sql
 p -f supabase/migrations/20261112212000_museum_approved_artwork_publication.sql
 p <<'SQL'
