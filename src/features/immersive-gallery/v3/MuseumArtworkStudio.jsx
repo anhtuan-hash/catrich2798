@@ -17,7 +17,7 @@ export default function MuseumArtworkStudio({studio,update,csrf,disabled=false,u
   try{
    if(!uploadEnabled)throw new Error(t('Tải ảnh chưa được giáo viên/nhà trường bật sau nghiệm thu.','Image uploading is awaiting school authorization.'));
    const png=await imageToCanvasPng(file);
-   const out=await artGuest('upload','POST',{png,filename:file.name},csrf);
+   const out=await artGuest('upload','POST',{png,filename:file.name,replaceId:studio.artworks?.[key]||null},csrf);
    update(d=>({...d,artworks:{...(d.artworks||{}),[key]:out.asset.id}}));
    await refresh();
    setNotice(t('Đã tải tranh lên kho riêng tư và sẵn sàng treo trong phòng 3D.','Artwork is privately stored and ready for the 3D wall.'));
