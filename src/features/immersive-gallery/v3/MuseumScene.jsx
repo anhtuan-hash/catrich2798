@@ -54,7 +54,8 @@ export default function MuseumScene({gallery,onBack,language='vi',embedded=false
      <p>{tr('Đọc nội dung triển lãm bằng tiếng Anh. Chuyển sang 3D để tham quan không gian.','Read the English exhibit labels or explore the immersive 3D view.')}</p></div>
     <div className="bml-art-grid">{exhibits.map((e,i)=><button type="button" className="bml-art-card" key={e.id||i} onClick={()=>setSelectedId(e.id)}>
      <div className={'bml-art-graphic bml-art-'+(i%3)} aria-hidden="true">
-      {e.kind==='model'?<Box size={47} strokeWidth={1.25}/>:i%3===0?<div className="bml-planet-art">🌍</div>:i%3===1?<div className="bml-bars-art"><i/><i/><i/><i/></div>:<div className="bml-sun-art">☀</div>}
+      {e.kind==='image'&&e.image_url?<img src={e.image_url} alt={e.alt_text||e.title||'Artwork'} style={{width:'100%',height:'100%',objectFit:'contain'}} loading="lazy" referrerPolicy="no-referrer"/>:
+       e.kind==='model'?<Box size={47} strokeWidth={1.25}/>:i%3===0?<div className="bml-planet-art">🌍</div>:i%3===1?<div className="bml-bars-art"><i/><i/><i/><i/></div>:<div className="bml-sun-art">☀</div>}
      </div><div className="bml-art-body"><small>{tr('HIỆN VẬT','EXHIBIT')} {String(i+1).padStart(2,'0')}</small><strong>{clean(e.title,120)}</strong>
      <p>{clean(e.description,165)||tr('Chưa có thuyết minh.','No description yet.')}</p><span>{tr('Khám phá','Explore')} <ArrowRight size={15}/></span></div>
     </button>)}</div>
