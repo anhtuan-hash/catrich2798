@@ -273,7 +273,7 @@ test('PEK school gallery is a real 3D environment with a readable school-edition
  const hall=page.getByTestId('pek-discovery-hall');
  await expect(hall).toBeVisible();
  await expect(hall).toHaveAttribute('aria-label',/Pétrus Ký/);
- await expect(hall.getByText('PÉTRUS KÝ · DISCOVERY HALL')).toBeVisible();
+ await expect(hall.getByText('PÉTRUS KÝ · BẢO TÀNG KHÁM PHÁ')).toBeVisible();
  const close=hall.getByRole('button',{name:'Đến gần tranh'});
  await expect(close).toBeVisible();
  await close.click();
