@@ -185,7 +185,7 @@ export default function MuseumLabStudent({language='vi'}){
        {field(T(language,'Mô tả bằng tiếng Anh','English description'),l[key],v=>changeLearning(key,v),{rows:3,disabled:locked})}
       </details>)}
      <MuseumArtworkStudio studio={studio} update={edit} csrf={session.csrf} language={language}
-      disabled={locked||stageIndex!==6&&!(!liveRunning&&false)||busy} uploadEnabled={session.uploadEnabled===true} onAssets={setArtAssets}/>
+      disabled={locked||(liveRunning&&![6,8].includes(stageIndex))||busy} uploadEnabled={session.uploadEnabled===true} onAssets={setArtAssets}/>
      <button type="button" className="bml-outline" onClick={()=>setPreview(v=>!v)}><Eye size={19}/>{preview?T(language,'Đóng xem trước','Close preview'):T(language,'Xem trước bảo tàng 2D/3D','Preview 2D / 3D museum')}</button>
      {preview?<MuseumScene language={language} embedded gallery={{title:studio.title||'Our English Museum',summary:studio.summary,rooms:[{id:'draft-room',title:room.title,template_key:room.template_key,
         exhibits:room.exhibits.map((e,i)=>({...e,id:'draft-exhibit-'+i,status:'published',
