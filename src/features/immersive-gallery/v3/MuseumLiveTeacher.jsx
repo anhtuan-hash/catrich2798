@@ -6,7 +6,7 @@ import MuseumScene from './MuseumScene.jsx';
 import './museumLive.css';
 const t=(lang,vi,en)=>lang==='en'?en:vi;
 const link=typeof window!=='undefined'?window.location.origin+window.location.pathname+'#/gallery-create':'/#/gallery-create';
-export default function MuseumLiveTeacher({data,language='vi',initialAssignment,onBack}){
+export default function MuseumLiveTeacher({data,language='vi',initialAssignment,onBack,transport=liveStaff}){
  const assignments=(data?.assignments||[]).filter(a=>a.created_by===data?.profile?.id||data?.profile?.role==='admin');
  const [assignmentId,setAssignmentId]=useState(initialAssignment||assignments[0]?.id||'');
  const [state,setState]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
@@ -15,10 +15,10 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  const stageRef=useRef(null),activeRef=useRef(true);
  const refresh=useCallback(async()=>{
   if(!assignmentId)return;
-  try{const response=await liveStaff('state',null,{assignmentId});
+  try{const response=await transport('state',null,{assignmentId});
     if(activeRef.current){setState(response);setError('');}
   }catch(e){if(activeRef.current)setError(e.message);}
- },[assignmentId]);
+ },[assignmentId,transport]);
  useEffect(()=>{activeRef.current=true;refresh();const id=window.setInterval(()=>{refresh();setTime(Date.now());},3000);
   return()=>{activeRef.current=false;window.clearInterval(id);};},[refresh]);
  useEffect(()=>{if(!showQr)return;let active=true;import('qrcode').then(({default:QR})=>QR.toDataURL(link,{width:220,margin:2})).then(url=>{if(active)setQr(url);}).catch(()=>{});
@@ -32,7 +32,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
   if(action==='end'&&!window.confirm(t(language,'Kết thúc tiết học? Học sinh sẽ không thể tiếp tục thao tác trong phiên này.','End this lesson? Student tasks will be locked.')))return;
   setBusy(true);setError('');
   try{const payload=action==='start'?{assignmentId}:{assignmentId,action,version:session?.version};
-    const out=await liveStaff(action==='start'?'start':'control',payload);
+    const out=await transport(action==='start'?'start':'control',payload);
     if(out.session)setState(prev=>({...prev,session:out.session}));
     await refresh();
   }catch(e){setError(e.message);await refresh();}
@@ -40,7 +40,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  };
  const spotlightGroup=async groupId=>{
   setBusy(true);setError('');
-  try{const r=await liveStaff('group-gallery',null,{assignmentId,groupId});
+  try{const r=await transport('group-gallery',null,{assignmentId,groupId});
    if(!r?.draft?.rooms?.length)throw new Error('Nhóm chưa có bản triển lãm.');
    const urls=new Map((r.artworks||[]).map(a=>[a.id,a.image_url]));
    const gallery={...r.draft,rooms:r.draft.rooms.map((room,i)=>({
