@@ -80,8 +80,13 @@ export default async function galleryGuest(req,res){
   if(operation==='me'){
    requireMethod(req,'GET');const ctx=await guestContext(req,admin);
    const {group,assignment,session}=ctx;
+   const latest=await query(admin.from('gcp_reviews')
+     .select('state,teacher_note,ttcm_note').eq('group_id',group.id)
+     .order('submitted_at',{ascending:false}).limit(1).maybeSingle());
+   const feedback=latest&&['changes_requested','rejected'].includes(latest.state)
+     ?{state:latest.state,teacher:latest.teacher_note,ttcm:latest.ttcm_note}:null;
    return send(res,200,{
-    groupLabel:group.label,groupState:group.state,csrf:session.csrf_token,
+    groupLabel:group.label,groupState:group.state,csrf:session.csrf_token,feedback,
     assignment:{title:assignment.title,brief:assignment.brief,class_scope:assignment.class_scope,
      deadline_at:assignment.deadline_at,max_rooms:assignment.max_rooms,max_exhibits:assignment.max_exhibits}
    });
