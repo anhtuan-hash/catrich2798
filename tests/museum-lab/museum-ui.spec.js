@@ -1,6 +1,9 @@
 import {test,expect} from '@playwright/test';
 test.beforeEach(async({page})=>{
- await page.goto('/tests/museum-lab/v3.html');
+ page.on('pageerror',error=>console.error('[museum-browser-pageerror]',String(error)));
+ page.on('console',msg=>{if(msg.type()==='error')console.error('[museum-browser-console]',msg.text());});
+ const response=await page.goto('/tests/museum-lab/v3.html');
+ console.log('[museum-browser-nav]',response?.status(),await page.title());
  await expect(page.getByTestId('qa-harness')).toBeVisible();
 });
 test('approved Google-inspired dashboard has clear actions and real-label synthetic progress',async({page})=>{
