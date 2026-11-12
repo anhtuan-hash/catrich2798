@@ -136,6 +136,14 @@
       "destination": "/api/gateway?handler=questatlas-live"
     },
     {
+      "source": "/api/gallery-guest",
+      "destination": "/api/gateway?handler=gallery-guest"
+    },
+    {
+      "source": "/api/gallery-staff",
+      "destination": "/api/gateway?handler=gallery-staff"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },

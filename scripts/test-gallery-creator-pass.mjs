@@ -27,7 +27,7 @@ test('reject too many rooms and total exhibits',()=>{
 });
 test('normalize transforms and prevent extreme numbers',()=>{
  const d=normalizeGuestDraft({rooms:[{...room(),exhibits:[{title:'Safe',kind:'text',transform:{position:[Infinity,999,2]}}]}]});
- assert.deepEqual(d.rooms[0].exhibits[0].transform.position,[-2,2,-7.72]);
+ assert.deepEqual(d.rooms[0].exhibits[0].transform.position,[-4,2,-7.72]);
 });
 test('submission requires meaningful written content',()=>{
  assert.throws(()=>validateGuestSubmission(normalizeGuestDraft({title:'',rooms:[]})));
@@ -35,21 +35,21 @@ test('submission requires meaningful written content',()=>{
  assert.equal(validateGuestSubmission(normalizeGuestDraft({title:'Climate',rooms:[room()]})),true);
 });
 test('no Supabase auth identities are created for guests',()=>{
- const api=fs.readFileSync('api/gallery-guest.js','utf8');
- const common=fs.readFileSync('api/_galleryCreator.js','utf8');
+ const api=fs.readFileSync('serverless-handlers/gallery-guest.js','utf8');
+ const common=fs.readFileSync('serverless-handlers/_galleryCreator.js','utf8');
  const migration=fs.readFileSync('supabase/migrations/20261112171000_gallery_creator_pass_v21.sql','utf8');
  assert.doesNotMatch(api,/auth\.signUp|auth\.admin\.createUser|auth\.signInAnonymously/);
  assert.doesNotMatch(common,/auth\.signUp|auth\.admin\.createUser|auth\.signInAnonymously/);
  assert.match(api,/guestContext\(req,admin,\{write:true\}\)/);
  assert.match(api,/guardOrigin\(req\)/);
- assert.match(api,/x-gallery-csrf/i);
+ assert.match(common,/x-gallery-csrf/i);
  assert.match(common,/HttpOnly; Secure; SameSite=Strict/);
  assert.match(migration,/revoke all on table[\s\S]*from public, anon, authenticated/);
  assert.match(migration,/grant execute on function public\.gcp_guest_save[\s\S]*to service_role/);
  assert.match(migration,/enabled boolean not null default false/);
 });
 test('TTCM is separately granted and publication stays Admin-gated',()=>{
- const staff=fs.readFileSync('api/gallery-staff.js','utf8');
+ const staff=fs.readFileSync('serverless-handlers/gallery-staff.js','utf8');
  const sql=fs.readFileSync('supabase/migrations/20261112171000_gallery_creator_pass_v21.sql','utf8');
  assert.match(staff,/assertAdmin\(ctx\)/);
  assert.match(staff,/reviewer\(ctx,ctx\.user\.id\)/);

@@ -2,9 +2,9 @@ name: BRIAN Gallery Creator Pass Security Gate
 on:
   pull_request:
     paths:
-      - "api/gallery-guest.js"
-      - "api/gallery-staff.js"
-      - "api/_galleryCreator.js"
+      - "serverless-handlers/gallery-guest.js"
+      - "serverless-handlers/gallery-staff.js"
+      - "serverless-handlers/_galleryCreator.js"
       - "src/features/immersive-gallery/**"
       - "src/main.jsx"
       - "supabase/migrations/*gallery_creator_pass*"
