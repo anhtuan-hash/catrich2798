@@ -85,7 +85,8 @@ alter table public.gallery_assets enable row level security;
 alter table public.gallery_exhibits enable row level security;
 revoke all on public.gallery_settings,public.gallery_exhibitions,public.gallery_rooms,public.gallery_assets,public.gallery_exhibits from anon;
 grant select,update on public.gallery_settings to authenticated;
-grant select,insert,update on public.gallery_exhibitions,public.gallery_rooms,public.gallery_exhibits,public.gallery_assets to authenticated;
+grant select,insert,update on public.gallery_exhibitions,public.gallery_rooms,public.gallery_exhibits to authenticated;
+grant select,insert on public.gallery_assets to authenticated;
 
 -- Only canonical server-managed profile.role may authorize administrative operations.
 create policy gallery_settings_select on public.gallery_settings for select to authenticated using (true);
@@ -145,8 +146,11 @@ create policy gallery_exhibits_insert on public.gallery_exhibits for insert to a
    (status='draft' and exists(select 1 from public.gallery_rooms r join public.gallery_exhibitions g on g.id=r.exhibition_id
      where r.id=room_id and (g.owner_id=(select auth.uid()) or exists(select 1 from public.profiles p where p.id=(select auth.uid()) and p.role='admin' and p.approved=true))))
   or (status='submitted' and exists(select 1 from public.gallery_rooms r join public.gallery_exhibitions g on g.id=r.exhibition_id
-    where r.id=room_id and g.status='published' and g.accept_submissions=true and
-    exists(select 1 from public.profiles p where p.id=(select auth.uid()) and p.role='student' and p.approved=true)))
+    where r.id=room_id and g.status='published' and g.accept_submissions=true
+    and exists(select 1 from public.gallery_settings s where s.id=true and s.enabled=true)
+    and exists(select 1 from public.profiles student join public.profiles owner on owner.id=g.owner_id
+      where student.id=(select auth.uid()) and student.role='student' and student.approved=true
+        and length(trim(student.school))>0 and student.school=owner.school)))
  ));
 create policy gallery_exhibits_update on public.gallery_exhibits for update to authenticated
  using(exists(select 1 from public.gallery_rooms r join public.gallery_exhibitions g on g.id=r.exhibition_id where r.id=room_id and
@@ -194,9 +198,6 @@ create policy gallery_assets_insert on public.gallery_assets for insert to authe
  uploader_id=(select auth.uid()) and split_part(path,'/',1)=(select auth.uid())::text
  and exists(select 1 from public.profiles p where p.id=(select auth.uid()) and p.approved=true)
 );
-create policy gallery_assets_update on public.gallery_assets for update to authenticated
- using(uploader_id=(select auth.uid())) with check(uploader_id=(select auth.uid()));
-
 -- Keep media in a private bucket; signed URLs are short lived and RLS checks matter.
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
  values ('brian-gallery-private','brian-gallery-private',false,12582912,
@@ -216,6 +217,11 @@ language plpgsql security invoker set search_path = '' as $gallery_lock$
 begin
  if new.submitted_by is distinct from old.submitted_by then raise exception 'submitted_by is immutable'; end if;
  if new.room_id is distinct from old.room_id then raise exception 'room_id is immutable'; end if;
+ if old.status in ('approved','published') and old.status = new.status
+   and row(new.title,new.description,new.kind,new.asset_id,new.external_url,new.model_key,new.alt_text,new.transcript,new.transform)
+     is distinct from row(old.title,old.description,old.kind,old.asset_id,old.external_url,old.model_key,old.alt_text,old.transcript,old.transform)
+ then raise exception 'Approved or published exhibits must return to draft before editing'; end if;
+
  if new.status is distinct from old.status and new.status in ('approved','rejected') then
    if new.reviewed_by is distinct from auth.uid() or new.reviewed_at is null
    then raise exception 'Review actor and timestamp are required'; end if;
@@ -251,6 +257,34 @@ revoke all on function public.gallery_publish_guard() from public,anon,authentic
 drop trigger if exists gallery_publish_guard_trigger on public.gallery_exhibitions;
 create trigger gallery_publish_guard_trigger before update on public.gallery_exhibitions
  for each row execute function public.gallery_publish_guard();
+
+-- Atomic publication is a single transaction; no half-published gallery.
+create or replace function public.gallery_publish_exhibition(p_exhibition_id uuid)
+returns public.gallery_exhibitions
+language plpgsql security invoker set search_path = '' as $gallery_atomic_publish$
+declare result public.gallery_exhibitions;
+begin
+ if not exists(
+   select 1 from public.profiles p where p.id=auth.uid() and p.role='admin' and p.approved=true
+ ) then raise exception 'Only approved Admin may publish a Gallery'; end if;
+ if not exists(
+   select 1 from public.gallery_rooms r join public.gallery_exhibits e on e.room_id=r.id
+   where r.exhibition_id=p_exhibition_id and e.status in ('approved','published')
+ ) then raise exception 'Cannot publish an empty or unapproved exhibition'; end if;
+ update public.gallery_exhibits set status='published', updated_at=now()
+ where id in(
+   select e.id from public.gallery_exhibits e
+   join public.gallery_rooms r on r.id=e.room_id
+   where r.exhibition_id=p_exhibition_id and e.status='approved'
+ );
+ update public.gallery_exhibitions set status='published', published_at=now(), updated_at=now()
+ where id=p_exhibition_id returning * into result;
+ if not found then raise exception 'Exhibition not found or not accessible'; end if;
+ return result;
+end;
+$gallery_atomic_publish$;
+revoke all on function public.gallery_publish_exhibition(uuid) from public,anon;
+grant execute on function public.gallery_publish_exhibition(uuid) to authenticated;
 
 commit;
 

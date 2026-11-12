@@ -55,9 +55,7 @@ export async function publishExhibition(id,user){
   const approved=full.rooms.flatMap(r=>r.exhibits).filter(e=>e.status==='approved'||e.status==='published');
   if(!approved.length)throw new Error('Cần ít nhất một hiện vật đã được duyệt.');
   for(const e of approved){const errors=validateExhibit(e);if(errors.length)throw new Error('Hiện vật '+e.title+': '+errors.join(', '));}
-  const ids=approved.filter(e=>e.status==='approved').map(e=>e.id);
-  if(ids.length)check(await client().from('gallery_exhibits').update({status:'published'}).in('id',ids));
-  return check(await client().from('gallery_exhibitions').update({status:'published',published_at:new Date().toISOString()}).eq('id',id).select().single());
+  return check(await client().rpc('gallery_publish_exhibition',{p_exhibition_id:id}));
 }
 export async function unpublishExhibition(id,user){
   requireUser(user);if(user.role!=='admin')throw new Error('Chỉ Admin có quyền gỡ xuất bản.');
