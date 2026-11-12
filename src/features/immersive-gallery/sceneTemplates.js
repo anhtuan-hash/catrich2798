@@ -27,7 +27,7 @@ export function slugify(value) { return String(value||'').normalize('NFD').repla
 export function safeVideoUrl(value) {
   try { const u=new URL(String(value)); if(u.protocol!=='https:') return '';
     if(u.hostname==='www.youtube.com'||u.hostname==='youtube.com') { const id=u.searchParams.get('v'); return /^[\w-]{11}$/.test(id||'')?'https://www.youtube-nocookie.com/embed/'+id:''; }
-    if(u.hostname==='www.youtube-nocookie.com' && /^\\/embed\\/[\\w-]{11}$/.test(u.pathname)) return 'https://www.youtube-nocookie.com'+u.pathname;
+    if(u.hostname==='www.youtube-nocookie.com' && /^\/embed\/[A-Za-z0-9_-]{11}$/.test(u.pathname)) return 'https://www.youtube-nocookie.com'+u.pathname;
     if(u.hostname==='youtu.be') {const id=u.pathname.slice(1);return /^[\w-]{11}$/.test(id)?'https://www.youtube-nocookie.com/embed/'+id:'';}
     return '';
   }catch{return '';}
