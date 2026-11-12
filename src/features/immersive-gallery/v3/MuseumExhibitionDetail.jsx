@@ -1,6 +1,7 @@
 import React,{useMemo,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,Award,BarChart3,BookOpen,CheckCircle2,ChevronRight,Clock3,Copy,Download,Eye,FileText,FolderOpen,Home,Images,Info,Landmark,Layers3,Maximize2,MoreHorizontal,Presentation,Share2,ShieldCheck,Users,X} from 'lucide-react';
 import MuseumScene from './MuseumScene.jsx';
+import './museumExhibition.css';
 import {MuseumHeroArt} from './MuseumDashboard.jsx';
 import {saveTextFile} from './museumApi.js';
 const t=(lang,vi,en)=>lang==='en'?en:vi;
