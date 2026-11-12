@@ -286,6 +286,26 @@ $gallery_atomic_publish$;
 revoke all on function public.gallery_publish_exhibition(uuid) from public,anon;
 grant execute on function public.gallery_publish_exhibition(uuid) to authenticated;
 
+-- Referencing an asset must not transfer a protected file into another owner's draft.
+-- A foreign-key check bypasses RLS; this explicit owner guard closes that channel.
+create or replace function public.gallery_guard_asset_reference() returns trigger
+language plpgsql security invoker set search_path = '' as $gallery_asset_guard$
+begin
+ if new.asset_id is null then return new; end if;
+ if tg_op='UPDATE' and new.asset_id is not distinct from old.asset_id then return new; end if;
+ if not exists(
+   select 1 from public.gallery_assets a
+   where a.id=new.asset_id and a.uploader_id=auth.uid()
+ ) then raise exception 'Cannot attach an asset uploaded by another account'; end if;
+ return new;
+end;
+$gallery_asset_guard$;
+revoke all on function public.gallery_guard_asset_reference() from public,anon,authenticated;
+drop trigger if exists gallery_asset_owner_trigger on public.gallery_exhibits;
+create trigger gallery_asset_owner_trigger
+before insert or update of asset_id on public.gallery_exhibits
+for each row execute function public.gallery_guard_asset_reference();
+
 commit;
 
 -- SECURITY REVIEW REQUIRED BEFORE APPLYING:

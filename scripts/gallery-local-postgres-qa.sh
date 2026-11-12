@@ -77,6 +77,12 @@ do $$ begin
  then raise exception 'Owner cannot read own draft';end if;
 end $$;
 SQL
+echo "[gallery-sql] Seed foreign uploader and verify cross-account asset reference guard"
+p <<'SQL'
+insert into public.gallery_assets(id,uploader_id,path,kind,mime_type,byte_size) values
+ ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee','11111111-1111-4111-8111-111111111111',
+  '11111111-1111-4111-8111-111111111111/admin-only.png','image','image/png',135);
+SQL
 echo "[gallery-sql] Unrelated teacher cannot read or modify private draft"
 p <<'SQL'
 set role authenticated;
@@ -108,6 +114,10 @@ denied() {
 denied "select public.gallery_publish_exhibition('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');"  '22222222-2222-4222-8222-222222222222' 'Teacher unauthorized publish'
 denied "update public.gallery_exhibits set description='tampered' where id='cccccccc-cccc-4ccc-8ccc-cccccccccccc';"  '22222222-2222-4222-8222-222222222222' 'Edit after approval without returning to draft'
 denied "update public.gallery_exhibits set submitted_by='33333333-3333-4333-8333-333333333333' where id='cccccccc-cccc-4ccc-8ccc-cccccccccccc';"  '22222222-2222-4222-8222-222222222222' 'Reassign immutable submitter'
+denied "insert into public.gallery_exhibits(room_id,title,kind,asset_id,submitted_by,status) values('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','Forged foreign image','image','eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee','22222222-2222-4222-8222-222222222222','draft');" \
+ '22222222-2222-4222-8222-222222222222' 'Teacher attaches another uploader protected asset'
+denied "update public.gallery_assets set path='22222222-2222-4222-8222-222222222222/reassigned.png' where id='dddddddd-dddd-4ddd-8ddd-dddddddddddd';" \
+ '22222222-2222-4222-8222-222222222222' 'Changing approved asset metadata'
 echo "[gallery-sql] Admin enables Gallery and atomically publishes"
 p <<'SQL'
 set role authenticated;
