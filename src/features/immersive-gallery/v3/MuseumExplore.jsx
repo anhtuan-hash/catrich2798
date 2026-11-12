@@ -4,7 +4,6 @@ import {LESSON_KITS} from './museumData.js';
 import {staffRequest,DEMO_GALLERY} from './museumApi.js';
 import MuseumScene from './MuseumScene.jsx';
 import {KitCard} from './MuseumDashboard.jsx';
-import {getExhibition,getGalleryEnabled,listExhibitions} from '../galleryData.js';
 const tr=(l,vi,en)=>l==='en'?en:vi;
 export function MuseumTemplates({language='vi',onCreate,onDemo}){
  return <div className="bml-screen"><div><div className="bml-overline">LESSON LIBRARY</div><h1>{tr(language,'Thư viện mẫu bài học','Lesson kit library')}</h1>
@@ -19,10 +18,10 @@ export function MuseumTemplates({language='vi',onCreate,onDemo}){
 }
 export function MuseumGallery({language='vi',onDemo,query=''}){
  const [galleries,setGalleries]=useState([]),[selected,setSelected]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
- useEffect(()=>{let live=true;getGalleryEnabled().then(enabled=>enabled?listExhibitions():[]).then(items=>{if(live)setGalleries(items||[]);}).catch(e=>{if(live)setError(e.message);});
+ useEffect(()=>{let live=true;import('../galleryData.js').then(async({getGalleryEnabled,listExhibitions})=>{const enabled=await getGalleryEnabled();return enabled?listExhibitions():[];}).then(items=>{if(live)setGalleries(items||[]);}).catch(e=>{if(live)setError(e.message);});
  return()=>{live=false;};},[]);
  const enter=async item=>{setBusy(true);setError('');
-  try{setSelected(await getExhibition(item.id));}catch(e){setError(e.message);}finally{setBusy(false);}
+  try{const {getExhibition}=await import('../galleryData.js');setSelected(await getExhibition(item.id));}catch(e){setError(e.message);}finally{setBusy(false);}
  };
  if(selected)return <MuseumScene gallery={selected} language={language} onBack={()=>setSelected(null)}/>;
  return <div className="bml-screen" data-testid="museum-showcase">
