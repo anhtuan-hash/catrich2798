@@ -1,6 +1,7 @@
 import React,{useEffect,useState} from 'react';
 import {ArrowLeft,ArrowRight,CheckCircle2,ChevronRight,ClipboardList,Eye,Info,Landmark,LockKeyhole,Settings2,Shield,ShieldAlert,ShieldCheck,Users,BookOpen,Plus,Leaf} from 'lucide-react';
 import {LESSON_KITS} from './museumData.js';
+import {PREPARED_COLLECTIONS,preparedGallery} from './museumPreparedCollections.js';
 import {staffRequest,DEMO_GALLERY} from './museumApi.js';
 import MuseumScene from './MuseumScene.jsx';
 import MuseumExhibitionDetail from './MuseumExhibitionDetail.jsx';
@@ -39,7 +40,9 @@ export function MuseumGallery({language='vi',onDemo,query='',onNavigate,data}){
   const initial=exhibitionFromHash();
   if(initial){
    if(initial==='demo')setSelected(DEMO_GALLERY);
-   else import('../galleryData.js').then(({getExhibition})=>getExhibition(initial))
+   else if(initial.startsWith('collection-')&&PREPARED_COLLECTIONS.some(c=>'collection-'+c.key===initial)){
+    setSelected(preparedGallery(initial.slice('collection-'.length)));
+   }else import('../galleryData.js').then(({getExhibition})=>getExhibition(initial))
      .then(item=>{if(active)setSelected(item);})
      .catch(e=>{if(active)setError(e.message);});
   }
@@ -59,15 +62,17 @@ export function MuseumGallery({language='vi',onDemo,query='',onNavigate,data}){
   isDemo={selected.id===DEMO_GALLERY.id} data={data} onBack={leave} onNavigate={onNavigate}/>;
  return <div className="bml-screen" data-testid="museum-showcase">
   <div><div className="bml-overline">MUSEUM SHOWCASE</div><h1>{tr(language,'Triển lãm của chúng ta','Our exhibitions')}</h1>
-   <p>{tr(language,'Khám phá các bảo tàng đã được phê duyệt, hoặc trải nghiệm phòng mẫu.','Explore approved museums or try a curated sample.')}</p></div>
+   <p>{tr(language,'Khám phá các dự án tiếng Anh qua không gian bảo tàng 3D.','Explore English projects in interactive 3D museums.')}</p></div>
   {error?<div className="bml-banner bml-danger-banner" role="alert"><ShieldAlert size={19}/>{error}</div>:null}
   <div className="bml-gallery-grid">
-   <button type="button" className="bml-gallery-card" onClick={()=>{setSelected(DEMO_GALLERY);setExhibitionHash('demo');}}>
-    <div className="bml-card-photo"><span className="bml-gallery-badge">DEMO · SAMPLE</span><Landmark strokeWidth={1.2}/></div>
-    <div className="bml-card-caption"><strong>{tr(language,'Khám phá thế giới','Explore the World')}</strong>
-     <small>{tr(language,'8 hiện vật mẫu · 3 phòng · không dùng dữ liệu học sinh','8 sample exhibits · 3 rooms · no student data')}</small>
-     <span>{tr(language,'Tham quan 2D / 3D','Visit in 2D / 3D')} <ArrowRight size={16}/></span></div>
-   </button>
+   {PREPARED_COLLECTIONS.filter(c=>(c.title+' '+c.classScope).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())).map(c=>
+    <button type="button" className="bml-gallery-card" key={c.key} data-testid={'museum-collection-'+c.key}
+      onClick={()=>{setSelected(preparedGallery(c.key));setExhibitionHash('collection-'+c.key);}}>
+     <div className="bml-card-photo"><span className="bml-gallery-badge">{c.classScope} · ENGLISH STEAM</span><Landmark strokeWidth={1.2}/></div>
+     <div className="bml-card-caption"><strong>{c.title}</strong>
+      <small>{c.groupCount} {tr(language,'nhóm','groups')} · {c.groupCount*3} {tr(language,'tác phẩm','exhibits')}</small>
+      <span>{tr(language,'Tham quan bảo tàng 3D','Explore 3D museum')} <ArrowRight size={16}/></span></div>
+    </button>)}
    {galleries.filter(g=>(g.title+' '+(g.summary||'')).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())).map(g=>
     <button type="button" className="bml-gallery-card" key={g.id} onClick={()=>enter(g)} disabled={busy}>
      <div className="bml-card-photo"><span className="bml-gallery-badge">{g.status?.toUpperCase()||'EXHIBITION'}</span><Leaf strokeWidth={1.35}/></div>
@@ -76,8 +81,8 @@ export function MuseumGallery({language='vi',onDemo,query='',onNavigate,data}){
     </button>)}
   </div>
   {!galleries.length?<div className="bml-banner bml-info-banner"><Info size={18}/>{tr(language,
-   'Chưa có triển lãm thật được xuất bản. Bản demo có thể xem ngay, nhưng không thay thế minh chứng học sinh.',
-   'No real student museums have been published yet. The demo is available but is not learning evidence.')}</div>:null}
+   'Các bộ sưu tập bài học đã sẵn sàng. Bài nộp được duyệt sẽ xuất hiện khi được công bố.',
+   'Lesson collections are ready. Approved submissions will appear when published.')}</div>:null}
  </div>;
 }
 export function MuseumSettings({data,onRefresh,language='vi'}){
