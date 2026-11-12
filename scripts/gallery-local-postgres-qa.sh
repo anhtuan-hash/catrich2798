@@ -83,10 +83,10 @@ echo "[gallery-sql] Verify immutable school scope from canonical owner profile"
 p <<'SQL'
 set role authenticated;
 select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false);
-do $ begin
+do $gallery_school_assert$ begin
  if (select school_scope from public.gallery_exhibitions where slug='synthetic-climate')<>'SCHOOL-A'
  then raise exception 'Canonical school scope mismatch';end if;
-end $;
+end $gallery_school_assert$;
 SQL
 echo "[gallery-sql] Seed foreign uploader and verify cross-account asset reference guard"
 p <<'SQL'
