@@ -49,7 +49,9 @@ function roomGeometry(template,exhibits,selectedId){
 }
 function shader(gl,type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s)||'WebGL shader error');return s;}
 export default function GalleryCanvas({template='classic',exhibits=[],selectedId='',onSelect,quality='auto',language='vi',resetKey=0}){
- const node=useRef(null),state=useRef(null),[error,setError]=useState(''),[coords,setCoords]=useState({x:0,z:5}),[view,setView]=useState(false);
+ const node=useRef(null),state=useRef(null),callback=useRef(onSelect),paused=useRef(!!selectedId),[error,setError]=useState(''),[coords,setCoords]=useState({x:0,z:5}),[view,setView]=useState(false);
+ useEffect(()=>{callback.current=onSelect;},[onSelect]);
+ useEffect(()=>{paused.current=!!selectedId;if(paused.current)state.current?.keys.clear();},[selectedId]);
  const mode=useLiteQuality(quality);
  useEffect(()=>{
   const canvas=node.current;if(!canvas)return undefined;
@@ -65,7 +67,7 @@ export default function GalleryCanvas({template='classic',exhibits=[],selectedId
    program=gl.createProgram();gl.attachShader(program,vertex);gl.attachShader(program,fragment);gl.linkProgram(program);
    if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program)||'WebGL link error');
    buffer=gl.createBuffer();gl.useProgram(program);
-   const geometry=roomGeometry(template,exhibits,selectedId);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,geometry,gl.STATIC_DRAW);
+   const geometry=roomGeometry(template,exhibits,'');gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,geometry,gl.STATIC_DRAW);
    const pos=gl.getAttribLocation(program,'aPosition'),col=gl.getAttribLocation(program,'aColor');
    gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,3,gl.FLOAT,false,24,0);
    gl.enableVertexAttribArray(col);gl.vertexAttribPointer(col,3,gl.FLOAT,false,24,12);
@@ -94,11 +96,11 @@ export default function GalleryCanvas({template='classic',exhibits=[],selectedId
     }
     raf=requestAnimationFrame(update);
    };
-   const keydown=e=>{if(e.target?.closest?.('input,textarea,select,[contenteditable]'))return;if(['w','a','s','d','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Shift'].includes(e.key)){keys.add(e.key);dirty=true;if(e.key.startsWith('Arrow'))e.preventDefault();}};
+   const keydown=e=>{if(paused.current||e.target?.closest?.('input,textarea,select,[contenteditable]'))return;if(['w','a','s','d','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Shift'].includes(e.key)){keys.add(e.key);dirty=true;if(e.key.startsWith('Arrow'))e.preventDefault();}};
    const keyup=e=>{keys.delete(e.key);};
    const down=e=>{if(e.button!==0&&e.pointerType==='mouse')return;drag=true;moved=false;lastPoint=[e.clientX,e.clientY];canvas.setPointerCapture?.(e.pointerId);};
    const move=e=>{if(!drag||!lastPoint)return;const dx=e.clientX-lastPoint[0],dy=e.clientY-lastPoint[1];if(Math.abs(dx)+Math.abs(dy)>2)moved=true;camera.yaw+=dx*0.006;camera.pitch=Math.max(-.55,Math.min(.55,camera.pitch-dy*.003));lastPoint=[e.clientX,e.clientY];dirty=true;};
-   const up=e=>{if(!drag)return;drag=false;if(!moved){const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*canvas.width/r.width,y=(e.clientY-r.top)*canvas.height/r.height;const closest=points.map(p=>({id:p.id,d:Math.hypot(p.point[0]-x,p.point[1]-y)})).sort((a,b)=>a.d-b.d)[0];if(closest?.d<75)onSelect?.(closest.id);}};
+   const up=e=>{if(!drag)return;drag=false;if(!moved){const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*canvas.width/r.width,y=(e.clientY-r.top)*canvas.height/r.height;const closest=points.map(p=>({id:p.id,d:Math.hypot(p.point[0]-x,p.point[1]-y)})).sort((a,b)=>a.d-b.d)[0];if(closest?.d<75)callback.current?.(closest.id);}};
    const wheel=e=>{e.preventDefault();camera.z=Math.max(-7,Math.min(8,camera.z+Math.sign(e.deltaY)*.35));dirty=true;};
    const mark=()=>{dirty=true;};const resize=new ResizeObserver(mark);resize.observe(canvas);
    window.addEventListener('keydown',keydown);window.addEventListener('keyup',keyup);canvas.addEventListener('pointerdown',down);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);canvas.addEventListener('wheel',wheel,{passive:false});
@@ -106,7 +108,7 @@ export default function GalleryCanvas({template='classic',exhibits=[],selectedId
    raf=requestAnimationFrame(update);setView(true);
    return()=>{dead=true;cancelAnimationFrame(raf);resize.disconnect();window.removeEventListener('blur',onBlur);window.removeEventListener('keydown',keydown);window.removeEventListener('keyup',keyup);canvas.removeEventListener('pointerdown',down);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerup',up);canvas.removeEventListener('pointercancel',up);canvas.removeEventListener('wheel',wheel);canvas.removeEventListener('webglcontextlost',lost);keys.clear();gl.deleteBuffer(buffer);gl.deleteProgram(program);gl.deleteShader(vertex);gl.deleteShader(fragment);state.current=null;};
   }catch(e){setError(e.message);try{gl.deleteBuffer(buffer);gl.deleteProgram(program);gl.deleteShader(vertex);gl.deleteShader(fragment);}catch{};return()=>canvas.removeEventListener('webglcontextlost',lost);}
- },[template,exhibits,selectedId,mode,resetKey,onSelect]);
+ },[template,exhibits,mode,resetKey]);
  const pad=(key,down)=>{const s=state.current;if(!s)return;if(down)s.keys.add(key);else s.keys.delete(key);};
  return <div className="big-webgl-shell" aria-label={language==='vi'?'Phòng triển lãm ba chiều':'3D exhibition room'}>
    {error?<div className="big-canvas-error" role="alert">{error}</div>:<canvas ref={node} aria-label={language==='vi'?'Kéo để nhìn xung quanh, WASD để di chuyển, nhấn hiện vật để xem':'Drag to look, WASD to walk, select an exhibit'} />}

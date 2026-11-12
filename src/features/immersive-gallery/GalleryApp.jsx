@@ -1,6 +1,7 @@
-import React,{Suspense,lazy,useCallback,useEffect,useMemo,useState} from 'react';
+import React,{Suspense,lazy,useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {getGalleryEnabled,listExhibitions,getExhibition,createExhibition,updateExhibition,publishExhibition,unpublishExhibition,createRoom,createExhibit,updateExhibit,reviewExhibit,uploadGalleryAsset,getGalleryAssetUrl} from './galleryData.js';
 import {ROOM_TEMPLATES,ROOM_KEYS,DEFAULT_TRANSFORM,normalizeTransform,slugify,QUALITY,safeVideoUrl} from './sceneTemplates.js';
+import {seedDemoGallery} from './gallerySampleSeed.js';
 import './gallery.css';
 const Canvas=lazy(()=>import('./GalleryCanvas.jsx'));
 const txt=(lang,vi,en)=>lang==='en'?en:vi;
@@ -18,10 +19,24 @@ function Media({exhibit,language}) {
  return null;
 }
 function Details({item,language,onClose}) {
- useEffect(()=>{if(!item)return undefined;const key=e=>{if(e.key==='Escape')onClose?.();};document.addEventListener('keydown',key);return()=>document.removeEventListener('keydown',key);},[item,onClose]);
+ const panel=useRef(null);
+ useEffect(()=>{if(!item)return undefined;
+   const origin=document.activeElement;
+   const focusables=()=>[...panel.current?.querySelectorAll('button,a[href],input,textarea,select,[tabindex]:not([tabindex="-1"])')||[]].filter(el=>!el.disabled);
+   const key=e=>{
+     if(e.key==='Escape'){e.preventDefault();onClose?.();}
+     if(e.key==='Tab'){const all=focusables();if(!all.length)return;
+       const first=all[0],last=all[all.length-1];
+       if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+       else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}
+   };
+   panel.current?.querySelector('button')?.focus();
+   document.addEventListener('keydown',key);
+   return()=>{document.removeEventListener('keydown',key);origin?.focus?.();};
+ },[item,onClose]);
  if(!item)return null;
  return <div className="big-detail-shade" onMouseDown={e=>{if(e.target===e.currentTarget)onClose?.();}}>
-  <section role="dialog" aria-modal="true" aria-label={item.title} className="big-detail-panel">
+  <section ref={panel} role="dialog" aria-modal="true" aria-label={item.title} className="big-detail-panel">
    <button type="button" className="big-close" onClick={onClose} aria-label="Close">×</button>
    <small className="big-eyebrow">{item.kind?.toUpperCase()} • BRIAN LIVING EXHIBITION</small><h2>{item.title}</h2>
    <Media exhibit={item} language={language}/><p className="big-description">{item.description}</p>
@@ -75,6 +90,8 @@ function Studio({language,currentUser,onBack,onUpdated,galleries}) {
  const open=async galleryId=>{setBusy(true);setError('');try{const doc=await getExhibition(galleryId);setGallery(doc);setId(doc.id);setRoomId(doc.rooms?.[0]?.id||'');setEditing(null);}catch(e){setError(e.message);}finally{setBusy(false);}};
  const refresh=async()=>{if(id)await open(id);await onUpdated();};
  const create=async e=>{e.preventDefault();setBusy(true);setError('');try{const doc=await createExhibition(newGallery,currentUser);await onUpdated();await open(doc.id);}catch(e){setError(e.message);}finally{setBusy(false);}};
+ const seed=async()=>{if(currentUser.role!=='admin'||!window.confirm('Tạo 8 tác phẩm mẫu không chứa dữ liệu học sinh thật?'))return;
+    setBusy(true);setError('');try{const sample=await seedDemoGallery(currentUser);await onUpdated();await open(sample.id);}catch(e){setError(e.message);}finally{setBusy(false);}};
  const addRoom=async e=>{e.preventDefault();setBusy(true);setError('');try{await createRoom(id,newRoom.template_key,newRoom.title,gallery.rooms.length,currentUser);await refresh();setNewRoom({title:'',template_key:'classic'});}catch(e){setError(e.message);}finally{setBusy(false);}};
  const addArtwork=async e=>{e.preventDefault();setBusy(true);setError('');try{let asset_id=null;if(['image','audio','pdf'].includes(newArtwork.kind)){if(!newArtwork.file)throw new Error('Cần chọn tệp trước khi lưu.');const a=await uploadGalleryAsset(newArtwork.file,newArtwork.kind,currentUser);asset_id=a.id;}
   const count=gallery.rooms.find(r=>r.id===roomId)?.exhibits?.length||0;
@@ -89,8 +106,8 @@ function Studio({language,currentUser,onBack,onUpdated,galleries}) {
  return <section className="big-studio">
  <div className="big-viewer-head"><div><button type="button" onClick={()=>{if(id){setId(null);setGallery(null);}else onBack();}}>← {txt(language,'Quay lại','Back')}</button><h2>Exhibition Studio</h2><p>{txt(language,'Biên tập nội dung bằng dữ liệu thực của Brian','Cloud-backed exhibition authoring')}</p></div>{gallery?<div className="big-controls"><button type="button" onClick={()=>setMode('editor')}>Studio</button><button type="button" onClick={()=>setMode('moderation')}>Duyệt bài ({pending.length})</button></div>:null}</div>
  <Notice text={error}/>
- {!gallery?<div className="big-studio-columns"><form className="big-paper" onSubmit={create}><h3>{txt(language,'Tạo triển lãm mới','New exhibition')}</h3><label>{txt(language,"Tiêu đề","Title")}<input required maxLength={140} value={newGallery.title} onChange={e=>setNewGallery({...newGallery,title:e.target.value,slug:slugify(e.target.value)})}/></label><label>Slug<input required value={newGallery.slug} onChange={e=>setNewGallery({...newGallery,slug:e.target.value})}/></label><label>{txt(language,"Mô tả","Description")}<textarea rows={4} value={newGallery.summary} onChange={e=>setNewGallery({...newGallery,summary:e.target.value})}/></label><label>{txt(language,"Phạm vi","Visibility")}<select value={newGallery.visibility} onChange={e=>setNewGallery({...newGallery,visibility:e.target.value})}><option value="private">Private</option><option value="school">School</option><option value="public">Public (requires admin approval)</option></select></label><button type="submit" disabled={busy}>{txt(language,"Tạo bản nháp","Create draft")}</button></form>
- <div className="big-paper"><h3>{txt(language,"Triển lãm hiện có","Existing exhibitions")}</h3>{galleries.filter(g=>currentUser.role==='admin'||g.owner_id===currentUser.id).map(g=><button type="button" className="big-row-btn" key={g.id} onClick={()=>open(g.id)}><b>{g.title}</b><small>{g.status} · {g.visibility}</small></button>)}</div></div>:
+ {!gallery?<><div className="big-controls">{currentUser.role==='admin'?<button type="button" disabled={busy} onClick={seed}>+ {txt(language,'Tạo triển lãm mẫu (8 tác phẩm gốc)','Create sample exhibition (8 original works)')}</button>:null}</div><div className="big-studio-columns"><form className="big-paper" onSubmit={create}><h3>{txt(language,'Tạo triển lãm mới','New exhibition')}</h3><label>{txt(language,"Tiêu đề","Title")}<input required maxLength={140} value={newGallery.title} onChange={e=>setNewGallery({...newGallery,title:e.target.value,slug:slugify(e.target.value)})}/></label><label>Slug<input required value={newGallery.slug} onChange={e=>setNewGallery({...newGallery,slug:e.target.value})}/></label><label>{txt(language,"Mô tả","Description")}<textarea rows={4} value={newGallery.summary} onChange={e=>setNewGallery({...newGallery,summary:e.target.value})}/></label><label>{txt(language,"Phạm vi","Visibility")}<select value={newGallery.visibility} onChange={e=>setNewGallery({...newGallery,visibility:e.target.value})}><option value="private">Private</option><option value="school">School</option><option value="public">Public (requires admin approval)</option></select></label><button type="submit" disabled={busy}>{txt(language,"Tạo bản nháp","Create draft")}</button></form>
+ <div className="big-paper"><h3>{txt(language,"Triển lãm hiện có","Existing exhibitions")}</h3>{galleries.filter(g=>currentUser.role==='admin'||g.owner_id===currentUser.id).map(g=><button type="button" className="big-row-btn" key={g.id} onClick={()=>open(g.id)}><b>{g.title}</b><small>{g.status} · {g.visibility}</small></button>)}</div></div></>:
  <><div className="big-paper big-meta"><h3>{gallery.title} <span>{gallery.status}</span></h3><div className="big-editor-grid"><label>{txt(language,"Tên","Name")}<input value={gallery.title} onChange={e=>setGallery({...gallery,title:e.target.value})}/></label><label>{txt(language,"Mô tả","Description")}<input value={gallery.summary||''} onChange={e=>setGallery({...gallery,summary:e.target.value})}/></label><label>{txt(language,"Phạm vi","Visibility")}<select value={gallery.visibility} onChange={e=>setGallery({...gallery,visibility:e.target.value})}><option value="private">Private</option><option value="school">School</option><option value="public">Public</option></select></label><label><input type="checkbox" checked={!!gallery.accept_submissions} onChange={e=>setGallery({...gallery,accept_submissions:e.target.checked})}/> {txt(language,"Cho học sinh gửi bài","Allow student submissions")}</label></div><div className="big-controls"><button disabled={busy} onClick={async()=>{try{await updateExhibition(id,gallery,currentUser);await refresh();}catch(e){setError(e.message);}}}>{txt(language,"Lưu thông tin","Save details")}</button>{currentUser.role==='admin'?(gallery.status==='published'?<button disabled={busy} onClick={()=>publish(false)}>{txt(language,"Gỡ xuất bản","Unpublish")}</button>:<button disabled={busy} onClick={()=>publish(true)}>{txt(language,"Duyệt & xuất bản","Review & publish")}</button>):<span>{txt(language,"Admin phê duyệt xuất bản","Admin approval required")}</span>}</div></div>
  {mode==='moderation'?<div className="big-paper"><h3>Hàng chờ duyệt — {pending.length}</h3>{pending.length?pending.map(e=><div className="big-review" key={e.id}><h4>{e.title}</h4><p>{e.description}</p><Media exhibit={e} language={language}/><textarea value={reviewNote} placeholder={txt(language,"Ghi chú xét duyệt (tuỳ chọn)","Review note (optional)")} onChange={ev=>setReviewNote(ev.target.value)}/><div className="big-controls"><button disabled={busy} onClick={()=>review(e,'approved')}>{txt(language,"Phê duyệt","Approve")}</button><button disabled={busy} onClick={()=>review(e,'rejected')}>{txt(language,"Từ chối","Reject")}</button></div></div>):<p>{txt(language,"Không có bài chờ duyệt.","No submissions pending.")}</p>}</div>:
  <div className="big-studio-columns">
