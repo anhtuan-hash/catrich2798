@@ -4,7 +4,7 @@
 - Feature branch: `feature/brian-immersive-gallery-r1`.
 - Vercel project `catrich2798` belongs to a **Hobby** team (verified via connected project context).
 - First working Preview for commit `f6238f0`: READY, HTTP 200 from deployment host, Vite bundling passed. This confirms the **SPA build**, not the logged-in Gallery UI.
-- `scripts/build-brian-vercel-release.mjs` invokes `scripts/test-immersive-gallery.mjs`, a suite containing **16 static/logic tests** (validation, URLs, three templates, feature hiding, schema contract and module lazy loading). The READY preview passed its release-build gate.
+- `scripts/build-brian-vercel-release.mjs` invokes `scripts/test-immersive-gallery.mjs`, a suite containing **18 static/logic tests** (validation, URLs, three templates, feature hiding, schema contract and module lazy loading). The READY preview passed its release-build gate.
 - Full-site i18n audit is included in that release build; initial failing snapshots were corrected on the branch.
 
 ## Tests not yet executed

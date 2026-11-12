@@ -19,3 +19,20 @@ test('module is lazy-loaded in ToolPage only',()=>{const s=fs.readFileSync('src/
 test('gallery is disabled by default in the SQL migration',()=>{const s=fs.readFileSync('supabase/migrations/20261112140000_brian_immersive_gallery_r1.sql','utf8');assert.match(s,/values \(true, false\)/);assert.match(s,/enable row level security/);assert.match(s,/revoke all .* from anon/);assert.match(s,/gallery_storage_select/);assert.match(s,/gallery_immutable_exhibit/);});
 test('feature is hidden from Brian apps until flag is enabled',()=>{const s=fs.readFileSync('src/main.jsx','utf8');assert.match(s,/galleryEnabled/);assert.match(s,/item.slug !== 'immersive-gallery' \|\| galleryEnabled/);});
 console.log('Gallery R1 static/contract tests complete. Database RLS and Playwright tests require staging data and are NOT asserted by this suite.');
+
+test('migration uses valid named SQL dollar quoting',()=>{
+ const sql=fs.readFileSync('supabase/migrations/20261112140000_brian_immersive_gallery_r1.sql','utf8');
+ assert.match(sql,/as \$gallery_lock\$/);
+ assert.match(sql,/end; \$gallery_lock\$;/);
+ assert.match(sql,/as \$gallery_publish_guard\$/);
+ assert.match(sql,/end; \$gallery_publish_guard\$;/);
+});
+test('private assets require active visibility check and a publish guard',()=>{
+ const sql=fs.readFileSync('supabase/migrations/20261112140000_brian_immersive_gallery_r1.sql','utf8');
+ const p=sql.slice(sql.indexOf('create policy gallery_assets_select'),sql.indexOf('create policy gallery_assets_insert'));
+ assert.match(p,/g\.visibility='school'/);
+ assert.match(p,/g\.status='published'/);
+ assert.match(p,/s\.enabled=true/);
+ assert.match(sql,/Only approved exhibits may be published/);
+ assert.match(sql,/gallery_publish_guard_trigger/);
+});
