@@ -136,6 +136,14 @@
       "destination": "/api/gateway?handler=questatlas-live"
     },
     {
+      "source": "/api/gallery-guest/live",
+      "destination": "/api/gateway?handler=museum-live"
+    },
+    {
+      "source": "/api/gallery-guest/artwork",
+      "destination": "/api/gateway?handler=museum-artwork"
+    },
+    {
       "source": "/api/gallery-guest",
       "destination": "/api/gateway?handler=gallery-guest"
     },
