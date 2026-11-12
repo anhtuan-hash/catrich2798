@@ -1,4 +1,7 @@
 -- Additive V3.3: private immutable classroom evidence. No demo or student data seeded.
+-- Existing sessions retain their original survey meaning; new sessions use priorities.
+alter table public.museum_live_sessions add column evidence_version integer not null default 0 check(evidence_version in (0,1));
+alter table public.museum_live_sessions alter column evidence_version set default 1;
 create table public.museum_survey_snapshots (
  id uuid primary key default gen_random_uuid(),
  session_id uuid not null unique references public.museum_live_sessions(id) on delete cascade,
@@ -79,7 +82,7 @@ begin
  select * into s from public.museum_live_sessions where id=p_session for update;
  select * into snap from public.museum_survey_snapshots where session_id=p_session;
  if snap.id is not null then return to_jsonb(snap); end if;
- if s.id is null or s.version<>p_version or s.status<>'active' or s.stage_index<>2 then raise exception 'Survey state changed'; end if;
+ if s.id is null or s.version<>p_version or s.status<>'active' or s.stage_index<>2 or s.evidence_version<>1 then raise exception 'Survey state changed'; end if;
  if p_counts is not null then
   if exists(select 1 from public.museum_live_responses where session_id=p_session and stage_index=2) then raise exception 'Cannot mix paper tally with online votes'; end if;
   c:=p_counts;

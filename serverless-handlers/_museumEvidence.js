@@ -5,11 +5,11 @@ export async function checkpointGallery(admin,checkpoint,groupLabel){
  const ids=[...new Set((checkpoint.doc?.rooms||[]).flatMap(r=>(r.exhibits||[]).map(e=>e.asset_id)).filter(Boolean))];
  const assets=ids.length?await query(admin.from('museum_artwork_assets').select('id,storage_path,original_name').eq('group_id',checkpoint.group_id).in('id',ids)):[];
  const artworks=await Promise.all(assets.map(async a=>{
-  const {data,error}=await admin.storage.from('museum-artwork-private').createSignedUrl(a.storage_path,300);
+  const {data,error}=await admin.storage.from('museum-artwork-private').createSignedUrl(a.storage_path,600);
   if(error||!data?.signedUrl)throw fail(503,'Không thể mở ảnh minh chứng.');
   return {id:a.id,image_url:data.signedUrl,original_name:a.original_name};
  }));
- return {draft:checkpoint.doc,version:checkpoint.version,checkpointId:checkpoint.id,createdAt:checkpoint.created_at,groupLabel,artworks,expiresSeconds:300};
+ return {draft:checkpoint.doc,version:checkpoint.version,checkpointId:checkpoint.id,createdAt:checkpoint.created_at,groupLabel,artworks,expiresSeconds:600};
 }
 export async function feedbackFor(admin,sessionId,groupId){
  if(!sessionId)return [];

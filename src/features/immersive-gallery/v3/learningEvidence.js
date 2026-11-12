@@ -26,7 +26,7 @@ export function surveySummary(snapshot){
 export function surveyCitation(snapshot){const s=surveySummary(snapshot);return s?
  `In-class group-priority survey (N=${s.n} group votes; ${s.source==='paper'?'paper tally entered by teacher':'online group votes'}; ${s.created_at}). ${s.options.map(o=>`${o.label}: ${o.count}/${s.n} (${o.percent}%)`).join('; ')}. These are group choices, not individual habits or measured emission reductions.`:'';}
 export function changedExhibits(before,after){return ART_KEYS.filter(k=>
- before?.learning?.[k]!==after?.learning?.[k]||before?.artworks?.[k]!==after?.artworks?.[k]||
+ (k==='evidence'&&before?.learning?.source!==after?.learning?.source)||before?.learning?.[k]!==after?.learning?.[k]||before?.artworks?.[k]!==after?.artworks?.[k]||
  JSON.stringify(before?.artMeta?.[k]||{})!==JSON.stringify(after?.artMeta?.[k]||{}));}
 export function evidenceMissing(doc){
  const l=doc?.learning||{},missing=[];

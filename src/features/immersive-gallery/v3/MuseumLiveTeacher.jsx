@@ -21,14 +21,14 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  const refresh=useCallback(async()=>{
   if(!assignmentId)return;
   try{const response=await transport('state',null,{assignmentId});
-    if(activeRef.current){setState(response);setError('');}
+    if(activeRef.current){setState(response);}
   }catch(e){if(activeRef.current)setError(e.message);}
  },[assignmentId,transport]);
  useEffect(()=>{activeRef.current=true;refresh();const id=window.setInterval(()=>{refresh();setTime(Date.now());},3000);
   return()=>{activeRef.current=false;window.clearInterval(id);};},[refresh]);
  useEffect(()=>{if(!showQr)return;let active=true;import('qrcode').then(({default:QR})=>QR.toDataURL(link,{width:220,margin:2})).then(url=>{if(active)setQr(url);}).catch(()=>{});
   return()=>{active=false;};},[showQr]);
- const session=state?.session,stage=session?.stage,groups=state?.groups||[],result=state?.result;
+ const session=state?.session,stage=session?.stage,groups=state?.groups||[],result=session?.stageIndex===2&&state?.survey?state.survey:state?.result;
  const currentIndex=session?.stageIndex??0,minute=LIVE_STAGES[currentIndex]?.minutes||0;
  const elapsed=(session?.elapsedSeconds||0)+(session?.status==='active'&&session?.stageStartedAt?Math.max(0,Math.floor((time-Date.parse(session.stageStartedAt))/1000)):0);
  const remaining=Math.max(0,minute*60-elapsed);
@@ -129,7 +129,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
      <button className="bml-text-btn" disabled={session.status==='ended'} onClick={()=>act('end')}><Check size={17}/>{t(language,'Kết thúc bài dạy','End lesson')}</button>
      <span className="bml-live-help">{state?.needHelp||0} {t(language,'nhóm cần trợ giúp','groups requesting help')}</span>
     </div>
-    {currentIndex===2?<div className="bml-evidence-controls">
+    {currentIndex===2&&session.evidenceVersion!==0?<div className="bml-evidence-controls">
      {state?.survey?<><strong>Đã chốt · N={state.survey.n} lượt nhóm · {state.survey.source}</strong><p>{state.survey.created_at}</p><button className="bml-outline" onClick={()=>{const a=document.createElement('a');a.href=surveyChartPng(state.survey);a.download='Class-group-priority-survey.png';a.click();}}>{t(language,'Tải biểu đồ PNG','Download chart PNG')}</button></>:<>
      <label><input type="checkbox" checked={paper} onChange={e=>setPaper(e.target.checked)}/> {t(language,'Nhập kiểm phiếu giấy (chỉ khi chưa có phiếu trực tuyến)','Enter paper tally (only with no online votes)')}</label>
      {paper?<><div className="bml-field-grid">{stage.options.map((label,i)=><label key={label}>{label}<input type="number" min="0" max="1000" value={tally[i]} onChange={e=>setTally(v=>v.map((x,j)=>i===j?e.target.value:x))}/></label>)}</div><label>{t(language,'Nguồn phiếu và thời điểm','Paper source and time')}<input value={tallyNote} maxLength={500} onChange={e=>setTallyNote(e.target.value)}/></label></>:null}

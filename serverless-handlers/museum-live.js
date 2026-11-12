@@ -15,6 +15,7 @@ async function scopedStaff(ctx,assignmentId){
 async function getSession(admin,assignmentId){
  return query(admin.from('museum_live_sessions').select('*').eq('assignment_id',assignmentId).maybeSingle());
 }
+const legacySurvey={...liveStage(2),question:'Which action do you currently take at least three days a week?',options:['Walk or cycle when possible','Switch off unused lights','Avoid food waste','None of these'],sentence:'Legacy group-device responses; do not interpret as individual habits or as the new priority survey.',teaching:'This session predates the group-priority protocol. Start a new lesson to use frozen priority evidence.'};
 function publicStage(stage,revealed=false,staff=false){
  if(!stage)return null;
  return {
@@ -30,7 +31,7 @@ function stateOf(s,{staff=false}={}){
  return {id:s.id,assignmentId:s.assignment_id,status:s.status,stageIndex:s.stage_index,
   stageOpen:s.stage_open,revealed:s.revealed,version:s.version,
   stageStartedAt:s.stage_started_at,elapsedSeconds:s.elapsed_seconds,updatedAt:s.updated_at,
-  stage:publicStage(liveStage(s.stage_index),s.revealed,staff)};
+  evidenceVersion:s.evidence_version,stage:publicStage(s.evidence_version===0&&s.stage_index===2?legacySurvey:liveStage(s.stage_index),s.revealed,staff)};
 }
 async function groupGallery(admin,groupId){
  const group=await query(admin.from('gcp_groups').select('id,label,assignment_id').eq('id',groupId).single());
@@ -63,12 +64,14 @@ export default async function museumLive(req,res){
     const helps=await query(admin.from('museum_learning_events').select('group_id,created_at')
       .eq('session_id',session.id).eq('action','need_help').eq('stage_index',session.stage_index).limit(40));
     return send(res,200,{session:stateOf(session,{staff:true}),stageCount:LIVE_STAGES.length,
-     result:summarizeResponses(session.stage_index,responses.map(r=>({value:r.value}))),
+     result:(()=>{const r=summarizeResponses(session.stage_index,responses);if(session.evidence_version===0&&session.stage_index===2)r.options=r.options.map((o,i)=>({...o,label:legacySurvey.options[i]}));return r;})(),
      groups:grp,needHelp:helps.length,survey:await surveyFor(admin,session.id),feedback:await feedbackFor(admin,session.id),responses:await query(admin.from('museum_live_responses').select('group_id,value,created_at').eq('session_id',session.id).eq('stage_index',session.stage_index))});
    }
    if(op==='freeze-survey'){
     requireMethod(req,'POST');guardOrigin(req);const body=guardBody(req,2000);
     if(!session)throw fail(404,'Chưa bắt đầu tiết học.');
+    if(session.evidence_version===0)throw fail(423,'Phiên cũ dùng câu hỏi khác. Hãy tạo bài học mới để khảo sát ưu tiên nhóm.');
+    if(!Number.isInteger(body.version))throw fail(400,'Thiếu phiên bản khảo sát.');
     if(body.counts!==undefined&&(!Array.isArray(body.counts)||body.counts.length!==4||body.counts.some(v=>!Number.isInteger(v)||v<0)||!String(body.note||'').trim()))throw fail(400,'Nhập đủ bốn số nguyên và ghi nguồn phiếu giấy.');
     const survey=await query(admin.rpc('museum_freeze_survey',{p_session:session.id,p_version:body.version,p_counts:body.counts??null,p_note:clean(body.note,500)}));
     return send(res,200,{survey});
@@ -114,7 +117,7 @@ export default async function museumLive(req,res){
     const action=String(body.action||''),now=new Date().toISOString();
     const update={updated_at:now,version:session.version+1};
     if(action==='next'||action==='previous'){
-     if(action==='next'&&session.stage_index===2&&!await surveyFor(admin,session.id))throw fail(423,'Hãy chốt khảo sát trực tuyến hoặc nhập kiểm phiếu giấy trước khi chuyển hoạt động.');
+     if(action==='next'&&session.evidence_version!==0&&session.stage_index===2&&!await surveyFor(admin,session.id))throw fail(423,'Hãy chốt khảo sát trực tuyến hoặc nhập kiểm phiếu giấy trước khi chuyển hoạt động.');
      const index=session.stage_index+(action==='next'?1:-1);
      if(index<0||index>=LIVE_STAGES.length)throw fail(400,'Hết nội dung bài dạy.');
      Object.assign(update,{stage_index:index,stage_open:false,revealed:false,stage_started_at:now,elapsed_seconds:0});
