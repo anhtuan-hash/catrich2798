@@ -91,6 +91,7 @@ export function submissionMissing(studio){
   ['solution','Đề xuất giải pháp bằng tiếng Anh'],
   ['feedback','Ghi phản hồi thử nghiệm từ bạn học'],
   ['improvement','Ghi điều nhóm đã điều chỉnh'],
+  ['tested','Xác nhận nhóm đã thử nghiệm'],
   ['reflection','Viết phản ánh học tập bằng tiếng Anh']
  ];
  return required.filter(([key])=>!String(key==='title'?d.title:v[key]||'').trim()).map(([,label])=>label);
