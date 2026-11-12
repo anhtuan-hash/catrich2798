@@ -12,12 +12,12 @@ const NOTES={
  published:{label:'Đã công bố',kind:'green'},
  rejected:{label:'Đã từ chối',kind:'red'}
 };
-export function Submissions({data,onRefresh,initialReview,onNavigate,language='vi'}){
+export function Submissions({data,onRefresh,initialReview,onNavigate,query='',language='vi'}){
  const [filter,setFilter]=useState('all'),[selectedId,setSelectedId]=useState(initialReview||null),
   [note,setNote]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),
   [success,setSuccess]=useState(''),[preview,setPreview]=useState(false),[scores,setScores]=useState({});
  const groups=data?.groups||[],assignments=data?.assignments||[],reviews=data?.reviews||[];
- const mine=useMemo(()=>reviews.filter(r=>filter==='all'||r.state===filter),[reviews,filter]);
+ const mine=useMemo(()=>reviews.filter(r=>{const g=groups.find(x=>x.id===r.group_id),a=assignments.find(x=>x.id===g?.assignment_id);return (filter==='all'||r.state===filter)&&((r.snapshot?.title||'')+' '+(g?.label||'')+' '+(a?.class_scope||'')).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase());}),[reviews,filter,query,groups,assignments]);
  const selected=reviews.find(r=>r.id===selectedId);
  const group=groups.find(g=>g.id===selected?.group_id);
  const assignment=assignments.find(a=>a.id===group?.assignment_id);
