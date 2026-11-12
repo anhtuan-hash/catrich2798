@@ -56,6 +56,15 @@ begin
  end;
 end $$;
 select public.gcp_guest_submit('bbbbbbbb-1111-4111-8111-111111111111',1);
+-- A repeated request must return the existing review without extra rows.
+do $
+declare r1 uuid; r2 uuid;
+begin
+ select id into r1 from public.gcp_reviews where group_id='bbbbbbbb-1111-4111-8111-111111111111';
+ r2:=public.gcp_guest_submit('bbbbbbbb-1111-4111-8111-111111111111',1);
+ if r1 is distinct from r2 or (select count(*) from public.gcp_reviews where group_id='bbbbbbbb-1111-4111-8111-111111111111')<>1
+ then raise exception 'Repeated submission created a duplicate';end if;
+end $;
 reset role;
 SQL
 echo "[gcp] Testing teacher/TTCM separation, locked review, and publication"
@@ -80,6 +89,8 @@ begin
   raise exception 'OUTCOME: teacher published without admin';
  exception when others then if sqlerrm like 'OUTCOME:%' then raise;end if;end;
  published:=public.gcp_admin_publish(r,'11111111-1111-4111-8111-111111111111');
+ if published is distinct from public.gcp_admin_publish(r,'11111111-1111-4111-8111-111111111111')
+ then raise exception 'Published version cannot be retried idempotently';end if;
  if published is null then raise exception 'Publication did not return exhibition';end if;
  if (select status from public.gallery_exhibitions where id=published)<>'published'
    then raise exception 'R1 gallery did not publish';end if;
@@ -89,5 +100,33 @@ begin
    then raise exception 'Publication link missing';end if;
  if (select count(*) from auth.users)<>6 then raise exception 'Guest created an auth user';end if;
 end $$;
+SQL
+echo "[gcp] Validate atomic issuance and exact group count"
+p <<'SQL'
+do $
+declare issued jsonb; duplicate_failed boolean:=false;
+begin
+ issued:=public.gcp_staff_issue_assignment(
+  '22222222-2222-4222-8222-222222222222',
+  '33333333-3333-4333-8333-333333333333',
+  'SCHOOL-A','11.6','Another student exhibition','Learning English',
+  now()+interval '3 days',
+  '[{"handle":"test-atomic-12345678","secret_hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},{"handle":"test-atomic-87654321","secret_hash":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}]'::jsonb);
+ if pg_catalog.jsonb_array_length(issued->'groups')<>2
+  then raise exception 'Atomic issue group count mismatch';end if;
+ if (select count(*) from public.gcp_groups where assignment_id=(issued->'assignment'->>'id')::uuid)<>2
+  then raise exception 'Atomic issue persisted incorrect groups';end if;
+ begin
+  perform public.gcp_staff_issue_assignment(
+   '22222222-2222-4222-8222-222222222222',
+   '33333333-3333-4333-8333-333333333333',
+   'SCHOOL-A','11.6','Should roll back','Learning English',
+   now()+interval '3 days',
+   '[{"handle":"test-roll-back-12345","secret_hash":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"},{"handle":"test-atomic-12345678","secret_hash":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}]'::jsonb);
+ exception when unique_violation then duplicate_failed:=true;end;
+ if not duplicate_failed then raise exception 'Duplicate invite must roll back entire issuance';end if;
+ if exists(select 1 from public.gcp_assignments where title='Should roll back')
+  then raise exception 'Atomic issuance left partial assignment';end if;
+end $;
 SQL
 echo "[gcp] PASSED: no student accounts, two-stage approval, permission checks and atomic publication"
