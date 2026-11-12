@@ -4,7 +4,7 @@ import {Canvas,useFrame,useThree} from '@react-three/fiber';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {ROOM_TEMPLATES,normalizeTransform,useLiteQuality} from './sceneTemplates.js';
 import {createCuratedGlb,CURATED_GLB_KEYS} from './curatedGlb.js';
-import {PekMuseumArchitecture,ExhibitWallLabel} from './PekMuseumArchitecture.jsx';
+import {PekMuseumArchitecture,ExhibitWallLabel,TextExhibitPoster} from './PekMuseumArchitecture.jsx';
 import './pekMuseum.css';
 // Cloud media service is imported on demand to prevent eager auth/bootstrap cycles.
 
@@ -61,7 +61,8 @@ function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,index=0})
    ?<group position={[0,0,0.45]}><CuratedModel modelKey={exhibit.model_key||'pedestal'} scale={0.63}/></group>
    :exhibit.kind==='image'
     ?<ArtworkImage assetId={exhibit.asset_id} imageUrl={exhibit.image_url} schoolEdition={schoolEdition}/>
-    :<group><mesh position={[0,0.22,0.083]}><boxGeometry args={[1.06,0.12,0.02]}/><meshStandardMaterial color="#93afa7"/></mesh>
+    :schoolEdition?<TextExhibitPoster title={exhibit.title} index={index}/>:
+    <group><mesh position={[0,0.22,0.083]}><boxGeometry args={[1.06,0.12,0.02]}/><meshStandardMaterial color="#93afa7"/></mesh>
       <mesh position={[0,-0.04,0.085]}><boxGeometry args={[0.9,0.05,0.02]}/><meshStandardMaterial color="#d7c3b3"/></mesh>
       <mesh position={[0,-0.20,0.085]}><boxGeometry args={[1.02,0.05,0.02]}/><meshStandardMaterial color="#d7c3b3"/></mesh></group>}
   {schoolEdition?<ExhibitWallLabel title={exhibit.title} index={index}/>:null}
@@ -192,7 +193,9 @@ function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=fa
 }
 export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelect,selectedId='',quality='auto',language='vi',schoolEdition=false}) {
  const held=useRef(new Set());
- const [teleport,setTeleport]=useState(null),[pos,setPos]=useState([0,schoolEdition?-1.6:5]),[supported,setSupported]=useState(null);
+ const narrow=typeof window!=='undefined'&&window.matchMedia?.('(max-width:700px)').matches;
+ const startingZ=schoolEdition?(narrow?2.5:-1.6):4.7;
+ const [teleport,setTeleport]=useState(null),[pos,setPos]=useState([0,startingZ]),[supported,setSupported]=useState(null);
  const mode=useLiteQuality(quality);
  useEffect(()=>{
    let ok=false;
@@ -207,7 +210,7 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
  return <div className={'big-webgl-shell '+(schoolEdition?'big-pek-museum':'')} data-testid={schoolEdition?'pek-discovery-hall':undefined}
   aria-label={schoolEdition?(language==='en'?'Pétrus Ký-inspired Discovery Museum 3D':'Bảo tàng 3D lấy cảm hứng từ Trường Pétrus Ký'):undefined}>
   {supported===false?<div role="alert" className="big-canvas-error">{language==='en'?'WebGL unavailable. Use the 2D exhibit list.':'Thiết bị không hỗ trợ WebGL. Hãy sử dụng danh sách hiện vật 2D.'}</div>:supported===null?<div className="big-canvas-loading">Preparing 3D exhibition…</div>:<Suspense fallback={<div className="big-canvas-loading">Loading original 3D art…</div>}>
-   <Canvas camera={{position:[0,1.77,schoolEdition?-1.6:4.7],fov:schoolEdition?59:61,near:0.08,far:55}} dpr={mode==='lite'?1:mode==='high'?[1,1.75]:[1,1.35]}
+   <Canvas camera={{position:[0,1.77,startingZ],fov:schoolEdition?59:61,near:0.08,far:55}} dpr={mode==='lite'?1:mode==='high'?[1,1.75]:[1,1.35]}
     frameloop="demand" gl={{antialias:mode!=='lite',powerPreference:'low-power',alpha:false}} onCreated={({gl})=>{gl.setClearColor('#f2f0e9');}}>
     <Room template={template} exhibits={exhibits} onSelect={onSelect} selectedId={selectedId} onTeleport={onTeleport}
      schoolEdition={schoolEdition} lite={mode==='lite'}/>
