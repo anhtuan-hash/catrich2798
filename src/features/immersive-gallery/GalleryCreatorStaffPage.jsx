@@ -21,7 +21,7 @@ const joinUrl=handle=>window.location.origin+window.location.pathname+'#/gallery
 function OneTimeCodes({invitations,onClose}){
  const [qr,setQr]=useState({});
  useEffect(()=>{let active=true;import('qrcode').then(({default:QRCode})=>Promise.all(invitations.map(async x=>[x.groupId,await QRCode.toDataURL(joinUrl(x.handle),{margin:1,width:192})])))
-  .then(items=>{if(active)setQr(Object.fromEntries(items));})).catch(()=>{});return()=>{active=false;};},[invitations]);
+  .then(items=>{if(active)setQr(Object.fromEntries(items));}).catch(()=>{});return()=>{active=false;};},[invitations]);
  return <section className="gcp-note"><div className="gcp-room-head"><div><small>ONE-TIME DELIVERY</small><h2>Mã truy cập dành riêng cho từng nhóm</h2></div><button onClick={onClose}>Đóng</button></div>
   <p>Chỉ hiển thị mã bí mật một lần. Hãy lưu vào phiếu giao nhóm an toàn. QR chỉ chứa đường dẫn/mã mời, không chứa mã bí mật.</p>
   <div className="gcp-exhibits">{invitations.map(x=><article className="gcp-exhibit-card" key={x.groupId}>
