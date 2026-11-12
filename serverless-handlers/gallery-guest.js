@@ -107,7 +107,7 @@ export default async function galleryGuest(req,res){
    const doc=normalizeGuestDraft(body.draft,ctx.assignment);
    const live=await query(admin.from('museum_live_sessions')
      .select('status,stage_index,stage_open').eq('assignment_id',ctx.assignment.id).maybeSingle());
-   if(live&&(!live.stage_open||live.status!=='active'||![3,4,6,7,8,9].includes(live.stage_index)))
+   if(live&&(!live.stage_open||live.status!=='active'||![3,4,6,7,8,9,10].includes(live.stage_index)))
      throw fail(423,'Giáo viên chưa mở hoạt động chỉnh sửa sản phẩm.');
    const ids=[...new Set([
     ...Object.values(doc.artworks||{}).filter(Boolean),
