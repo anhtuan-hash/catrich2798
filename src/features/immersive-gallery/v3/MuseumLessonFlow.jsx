@@ -93,9 +93,9 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi',i
   </section></>}
  </div>;
 }
-export function LessonsList({data,onCreate,onReview,onRefresh,language='vi'}){
+export function LessonsList({data,onCreate,onReview,onRefresh,query='',language='vi'}){
  const [selected,setSelected]=useState(null),[invites,setInvites]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
- const assignments=data?.assignments||[],groups=data?.groups||[],reviews=data?.reviews||[];
+ const allAssignments=data?.assignments||[],assignments=allAssignments.filter(a=>(a.title+' '+a.class_scope).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())),groups=data?.groups||[],reviews=data?.reviews||[];
  const rotate=async groupId=>{if(!window.confirm(tr(language,'Mã cũ sẽ bị thu hồi. Bạn muốn cấp mã mới?','The old code will be revoked. Generate a new one?')))return;
   setBusy(true);setError('');
   try{const out=await staffRequest('rotate-invite',{groupId});setInvites([{groupId:out.groupId,label:'Mã cấp lại',handle:out.handle,groupSecret:out.groupSecret}]);await onRefresh();}
