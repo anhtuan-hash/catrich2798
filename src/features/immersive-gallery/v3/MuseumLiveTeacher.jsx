@@ -25,7 +25,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
   return()=>{active=false;};},[showQr]);
  const session=state?.session,stage=session?.stage,groups=state?.groups||[],result=state?.result;
  const currentIndex=session?.stageIndex??0,minute=LIVE_STAGES[currentIndex]?.minutes||0;
- const elapsed=session?.stageStartedAt?Math.floor((time-Date.parse(session.stageStartedAt))/1000):0;
+ const elapsed=(session?.elapsedSeconds||0)+(session?.status==='active'&&session?.stageStartedAt?Math.max(0,Math.floor((time-Date.parse(session.stageStartedAt))/1000)):0);
  const remaining=Math.max(0,minute*60-elapsed);
  const act=async(action)=>{
   if(!assignmentId||busy)return;
