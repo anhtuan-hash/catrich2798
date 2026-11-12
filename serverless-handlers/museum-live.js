@@ -27,7 +27,7 @@ function stateOf(s,{staff=false}={}){
  if(!s)return {status:'not_started',stage:null,stageIndex:-1,stageOpen:false};
  return {id:s.id,assignmentId:s.assignment_id,status:s.status,stageIndex:s.stage_index,
   stageOpen:s.stage_open,revealed:s.revealed,version:s.version,
-  stageStartedAt:s.stage_started_at,updatedAt:s.updated_at,
+  stageStartedAt:s.stage_started_at,elapsedSeconds:s.elapsed_seconds,updatedAt:s.updated_at,
   stage:publicStage(liveStage(s.stage_index),s.revealed,staff)};
 }
 async function groupGallery(admin,groupId){
@@ -96,12 +96,15 @@ export default async function museumLive(req,res){
     if(action==='next'||action==='previous'){
      const index=session.stage_index+(action==='next'?1:-1);
      if(index<0||index>=LIVE_STAGES.length)throw fail(400,'Hết nội dung bài dạy.');
-     Object.assign(update,{stage_index:index,stage_open:false,revealed:false,stage_started_at:now});
+     Object.assign(update,{stage_index:index,stage_open:false,revealed:false,stage_started_at:now,elapsed_seconds:0});
     }else if(action==='open'){if(session.status!=='active')throw fail(423,'Hãy tiếp tục bài dạy.');update.stage_open=true;}
     else if(action==='close')update.stage_open=false;
     else if(action==='reveal')update.revealed=true;
-    else if(action==='pause'){update.status='paused';update.stage_open=false;}
-    else if(action==='resume')update.status='active';
+    else if(action==='pause'){
+     update.status='paused';update.stage_open=false;
+     update.elapsed_seconds=Math.min(7200,(session.elapsed_seconds||0)+Math.max(0,Math.floor((Date.now()-Date.parse(session.stage_started_at))/1000)));
+    }
+    else if(action==='resume'){update.status='active';update.stage_started_at=now;}
     else if(action==='end'){update.status='ended';update.stage_open=false;}
     else throw fail(400,'Lệnh giảng dạy không hợp lệ.');
     const changed=await query(admin.from('museum_live_sessions').update(update)
