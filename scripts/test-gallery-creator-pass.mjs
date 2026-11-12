@@ -61,6 +61,10 @@ test('public guest route stays isolated from legacy Brian route guards',()=>{
  const main=fs.readFileSync('src/main.jsx','utf8');
  assert.match(main,/PUBLIC_ROUTES = new Set\([\s\S]*'gallery-create'/);
  assert.match(main,/currentRoute === 'gallery-create' && <GalleryCreatorGuestPage/);
- assert.match(main,/import\('\.\/features\/immersive-gallery\/GalleryCreatorGuestPage\.jsx'\)/);
+ assert.match(main,/import\('\.\/features\/immersive-gallery\/v3\/MuseumLabStudent\.jsx'\)/);
+ const student=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLabStudent.jsx','utf8');
+ assert.match(student,/guestRequest\('me'\)/);
+ assert.match(student,/guestRequest\('submit'/);
+ assert.doesNotMatch(student,/auth\.signUp|auth\.admin\.createUser|signInAnonymously/);
 });
 console.log('Creator Pass security contract and input validation completed.');

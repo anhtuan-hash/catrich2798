@@ -13,6 +13,14 @@ export function normalizeGuestDraft(input,limits={max_rooms:3,max_exhibits:12}){
  const result={
   title:clean(input.title,140),
   summary:clean(input.summary,1200),
+  // V3 pedagogical evidence is explicitly allowlisted; never accept arbitrary
+  // fields/HTML or user identities. Backward compatible with V2 drafts.
+  theme:['classic','culture','lab'].includes(input.theme)?input.theme:'classic',
+  learning:Object.fromEntries(
+   ['issue','audience','source','evidence','solution','feedback','improvement','reflection','tested']
+    .map(k=>[k,k==='tested'?input.learning?.tested===true:
+      clean(input.learning?.[k],['issue','evidence','solution'].includes(k)?2500:1200)])
+  ),
   rooms:rooms.map((room,ri)=>{
    if(!GCP_ROOM_TEMPLATES.includes(room?.template_key))throw new Error('Loại phòng không được cho phép.');
    const exhibits=Array.isArray(room.exhibits)?room.exhibits:[];

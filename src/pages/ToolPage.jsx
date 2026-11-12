@@ -12,7 +12,7 @@ const GradebookStudio = lazy(() => import('./GradebookStudio.jsx'));
 const SyncDoctor = lazy(() => import('./SyncDoctor.jsx'));
 const LessonCheckStudio = lazy(() => import('./LessonCheckStudio.jsx'));
 const QuestAtlas = lazy(() => import('../features/questatlas/QuestAtlas.jsx'));
-const ImmersiveGallery = lazy(() => import('../features/immersive-gallery/GalleryApp.jsx'));
+const ImmersiveGallery = lazy(() => import('../features/immersive-gallery/v3/MuseumLabApp.jsx'));
 
 function ToolFallback({ language = 'vi' }) {
   return <div className="page narrow"><section className="panel empty-state"><h1>{language === 'vi' ? 'Đang mở công cụ...' : 'Opening tool...'}</h1><p>{language === 'vi' ? 'Đang tải đúng mô-đun cần dùng để giao diện nhẹ hơn.' : 'Loading only the module you need for a lighter interface.'}</p></section></div>;

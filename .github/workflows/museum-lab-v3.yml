@@ -1,0 +1,58 @@
+name: BRIAN Museum Lab V3 Acceptance
+on:
+  pull_request:
+    paths:
+      - "src/features/immersive-gallery/v3/**"
+      - "src/features/immersive-gallery/creatorPassPolicy.js"
+      - "serverless-handlers/gallery-staff.js"
+      - "supabase/migrations/*museum_lab_v3*"
+      - "src/pages/ToolPage.jsx"
+      - "src/main.jsx"
+      - "src/data/apps.js"
+      - "scripts/test-museum-lab-v3.mjs"
+      - "tests/museum-lab/**"
+      - ".github/workflows/museum-lab-v3.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  usability-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Museum V3 data, security and workflow contracts
+        run: node --test scripts/test-museum-lab-v3.mjs
+      - name: Server handler syntax
+        run: node --check serverless-handlers/gallery-staff.js
+      - name: Whole-site translated interface audit
+        run: node scripts/audit-site-language.mjs
+      - name: Vite build
+        run: npx vite build
+
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Verify teacher dashboard, student entry, wizard and gallery on desktop/mobile
+        run: npx playwright test --config tests/museum-lab/playwright.config.mjs
+      - name: Preserve failure screenshots and traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: museum-lab-v3-browser
+          path: artifacts/museum-lab
+          if-no-files-found: ignore
+          retention-days: 5
