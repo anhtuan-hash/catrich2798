@@ -103,6 +103,7 @@ const ResourceLibrary = lazy(() => import('./pages/ResourceLibrary.jsx'));
 const NewsReader = lazy(() => import('./pages/NewsReader.jsx'));
 const QAHealthCheck = lazy(() => import('./pages/QAHealthCheck.jsx'));
 const AuthPage = lazy(() => import('./pages/AuthPage.jsx'));
+const GalleryCreatorGuestPage = lazy(() => import('./features/immersive-gallery/GalleryCreatorGuestPage.jsx'));
 const AdminPage = lazy(() => import('./pages/AdminPage.jsx'));
 const SupabaseSetup = lazy(() => import('./pages/SupabaseSetup.jsx'));
 const HomeroomWorkspace = lazy(() => import('./pages/HomeroomWorkspace.jsx'));
@@ -145,8 +146,8 @@ const BoardLiveJoin = lazy(() => import('./pages/BoardLiveJoin.jsx'));
 const PhotoSlideshow = lazy(() => import('./pages/PhotoSlideshow.jsx'));
 const QuestJoin = lazy(() => import('./features/questatlas/QuestJoin.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'tools', 'homeroom', 'attendance', 'homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'slideshow', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qb-practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
-const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'slideshow', 'qb-practice']);
+const ROUTES = ['home', 'apps', 'news', 'tools', 'homeroom', 'attendance', 'homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'slideshow', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qb-practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'gallery-create', 'setup'];
+const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'slideshow', 'qb-practice', 'gallery-create']);
 
 function getInitialRoute() {
   const href = window.location.href || '';
@@ -514,7 +515,7 @@ function App() {
         }}
       >
         {currentRoute === 'home' ? <div className="halloween-home-scene" aria-hidden="true" style={{ display: 'none' }} /> : null}
-        {!['homeroom-portal', 'classroom-join', 'board-live', 'slideshow'].includes(currentRoute) ? <div className="bes-top-chrome">
+        {!['homeroom-portal', 'classroom-join', 'board-live', 'slideshow', 'gallery-create'].includes(currentRoute) ? <div className="bes-top-chrome">
           {currentRoute !== 'quest-join' && <>
             <Suspense fallback={null}>
               <StatusMenuBar route={currentRoute} {...context} />
@@ -622,6 +623,7 @@ function App() {
           <div className="bqa-content-safe-frame" data-quick-access-safe-frame={quickAccessEnabled ? 'true' : 'false'}>
           <Suspense fallback={<RouteFallback language={language} />}>
             {currentRoute === 'home' && (!currentUser || visibilityReady) && <Home {...context} />}
+            {currentRoute === 'gallery-create' && <GalleryCreatorGuestPage />}
             {authReady && guestPreviewAllowed && currentRoute !== 'home' && <GuestPreview route={currentRoute} language={language} />}
             {currentRoute === 'home' && currentUser && !visibilityReady ? <div className="windows-loader-wrap"><div className="windows-loader-card">{language === 'vi' ? 'Đang đồng bộ danh sách ứng dụng…' : 'Syncing app visibility…'}</div></div> : null}
             {requiresAuth && currentUser && !canAccessRoute && visibilityReady && <AccessDenied language={language} currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} temporarilyHidden={temporarilyHidden} />}
@@ -700,7 +702,7 @@ function App() {
             <SyncQueueIndicator currentUser={currentUser} language={language} externalLauncher />
           </Suspense>
         </> : null}
-        {!['homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'slideshow'].includes(currentRoute) ? <Footer language={language} loginScrapbookActive={loginScrapbookActive} route={currentRoute} assessmentScrapbookActive={assessmentScrapbookActive} currentUser={currentUser} /> : null}
+        {!['homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'slideshow', 'gallery-create'].includes(currentRoute) ? <Footer language={language} loginScrapbookActive={loginScrapbookActive} route={currentRoute} assessmentScrapbookActive={assessmentScrapbookActive} currentUser={currentUser} /> : null}
       </div>
     </>
   );
