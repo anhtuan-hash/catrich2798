@@ -1,10 +1,11 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookOpen,CalendarDays,Check,CheckCircle2,ChevronRight,ClipboardList,Copy,Download,ExternalLink,KeyRound,LockKeyhole,Plus,Printer,QrCode,RefreshCw,ShieldAlert,Users} from 'lucide-react';
 import {LESSON_KITS,progressOfGroup} from './museumData.js';
+import {LIVE_STAGES,LIVE_TOTAL_MINUTES} from './liveLesson.js';
 import {preparedCollectionFor} from './museumPreparedCollections.js';
 import './museumPrepared.css';
 import {staffRequest,joinUrl,fmtDate,fmtTime,saveTextFile} from './museumApi.js';
-import {KitCover,KitCard} from './MuseumDashboard.jsx';
+import {KitCover} from './MuseumDashboard.jsx';
 const tr=(language,vi,en)=>language==='en'?en:vi;
 const defaultDeadline=()=>new Date(Date.now()+7*86400000).toISOString().slice(0,16);
 function Notice({error,success}){return error?<div className="bml-banner bml-danger-banner" role="alert"><ShieldAlert size={19}/>{error}</div>:success?<div className="bml-banner bml-success-banner" role="status"><CheckCircle2 size={18}/>{success}</div>:null;}
@@ -30,9 +31,9 @@ export function OneTimeInvites({invitations,onClose,language='vi'}){
    <button type="button" className="bml-outline" onClick={onClose}>{tr(language,'Đã lưu mã · Đóng','Codes saved · Close')}</button></div>
  </section>;
 }
-export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi',initialKit='climate'}){
- const [step,setStep]=useState(0),[selectedKit,setSelectedKit]=useState(initialKit);
- const kit=LESSON_KITS.find(k=>k.id===selectedKit)||LESSON_KITS[0];
+export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'}){
+ const [step,setStep]=useState(0);
+ const kit=LESSON_KITS[0];
  const validReviewers=(data?.reviewers||[]).filter(r=>r.active&&r.can_publish&&r.reviewer_id!==data?.profile?.id);
  const [form,setForm]=useState({classScope:'',groupCount:6,deadlineAt:defaultDeadline(),title:'',brief:'',reviewerId:''});
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[invites,setInvites]=useState(null);
@@ -51,14 +52,46 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi',i
   <div className="bml-heading-line"><button className="bml-icon-btn" type="button" onClick={onExit} aria-label="Back"><ArrowLeft size={21}/></button>
    <div><span className="bml-overline">{tr(language,'TẠO BÀI HỌC','CREATE LESSON')}</span><h1>{tr(language,'Tạo bài học mới','Create a new lesson')}</h1></div></div>
   {invites?<OneTimeInvites invitations={invites} language={language} onClose={onExit}/>:<>
-  <div className="bml-wizard-progress">{['Chọn chủ đề','Lớp & nhóm','Giao nhiệm vụ'].map((label,i)=><div className={'bml-wizard-step '+(i<=step?'is-active':'')} key={label}>
-   <span>{i<step?<Check size={16}/>:i+1}</span><strong>{tr(language,label,['Choose topic','Class & groups','Issue assignment'][i])}</strong></div>)}</div>
+  <div className="bml-wizard-progress">{['Kế hoạch bài dạy','Lớp & nhóm','Giao nhiệm vụ'].map((label,i)=><div className={'bml-wizard-step '+(i<=step?'is-active':'')} key={label}>
+   <span>{i<step?<Check size={16}/>:i+1}</span><strong>{tr(language,label,['Lesson plan','Class & groups','Issue assignment'][i])}</strong></div>)}</div>
   <section className="bml-surface bml-wizard-card">
-   {step===0?<><h2>{tr(language,'Chọn mẫu bài học','Choose a lesson template')}</h2>
-    <p>{tr(language,'Mỗi mẫu có sẵn đề bài tiếng Anh, mục tiêu và quy trình hai tiết.','Each kit includes an English driving question, objectives and a two-period lesson flow.')}</p>
-    <div className="bml-templates-grid">{LESSON_KITS.map(k=><KitCard key={k.id} kit={k} language={language} selected={selectedKit===k.id} onClick={x=>setSelectedKit(x.id)}/>)}</div>
-    <div className="bml-kit-detail"><KitCover kit={kit} size="large"/><div><span className="bml-overline">DRIVING QUESTION</span><h3>{kit.challenge}</h3><p>{kit.goal}</p>
-      <div className="bml-chips"><span>English · THPT</span><span>{'2 × 45 min'}</span><span>STEAM learning</span></div></div></div>
+   {step===0?<><h2>{tr(language,'Kế hoạch bài dạy','Lesson plan')}</h2>
+    <p>{tr(language,
+     'Một chủ đề duy nhất theo Kế hoạch bài dạy hai tiết: Tiếng Anh 11, Global Success, Unit 5 – Global Warming.',
+     'One focused two-period lesson: English 11, Global Success, Unit 5 – Global Warming.')}</p>
+    <div className="bml-single-lesson" data-testid="museum-single-unit5-plan">
+     <KitCover kit={kit} size="large"/>
+     <div className="bml-single-lesson-copy">
+      <span className="bml-overline">OUR CLIMATE ACTION MUSEUM</span>
+      <h3>{kit.title}</h3><p>{kit.subtitle}</p>
+      <strong>{tr(language,'Câu hỏi định hướng','Driving question')}</strong>
+      <p className="bml-single-lesson-question">{kit.challenge}</p>
+      <p>{kit.goal}</p>
+      <div className="bml-chips"><span>English 11 · Unit 5</span><span>2 × 45 min</span><span>11 {tr(language,'hoạt động','activities')}</span><span>STEAM learning</span></div>
+     </div>
+    </div>
+    <section className="bml-single-outcomes" aria-label={tr(language,'Sản phẩm học tập','Learning products')}>
+     <h3>{tr(language,'Sản phẩm học sinh cần hoàn thành','Expected student work')}</h3>
+     <div className="bml-single-outcome-grid">
+      <p><b>01 · The Problem – The Evidence – Our Solution</b><span>{tr(language,'Ba lời thuyết minh tiếng Anh, mỗi phần khoảng 25–40 từ.','Three English exhibit captions, approximately 25–40 words each.')}</span></p>
+      <p><b>02 · Group-priority survey</b><span>{tr(language,'Biểu đồ từ phiếu lớp thật, số nhóm N, số đếm, phần trăm và giới hạn.','A genuine group-vote chart with N, counts, percentages and limitations.')}</span></p>
+      <p><b>03 · Artwork & learning process</b><span>{tr(language,'Poster/ảnh gốc, phòng 3D, phản hồi chéo, bản cải tiến và phần trình bày 45–60 giây.','Original poster, 3D gallery, peer feedback, documented revision and a 45–60-second pitch.')}</span></p>
+     </div>
+    </section>
+    <section className="bml-single-flow" aria-label={tr(language,'Tiến trình hai tiết','Two-period teaching sequence')}>
+     <h3>{tr(language,'Tiến trình 11 hoạt động','11-activity lesson sequence')} · {LIVE_TOTAL_MINUTES} {tr(language,'phút','minutes')}</h3>
+     <div className="bml-single-period-grid">{[1,2].map(period=><div key={period} className="bml-single-period">
+      <h4>{tr(language,'Tiết','Period')} {period} · 45 {tr(language,'phút','minutes')}</h4>
+      <ol>{LIVE_STAGES.map((activity,i)=>({activity,i})).filter(x=>x.activity.period===period).map(({activity,i})=>
+       <li key={activity.id}><span>{String(i+1).padStart(2,'0')}</span><div>
+        <strong>{language==='en'?activity.title:activity.vi}</strong>
+        <small>{activity.minutes} {tr(language,'phút','min')} · {activity.title}</small>
+       </div></li>)}</ol>
+     </div>)}</div>
+    </section>
+    <p className="bml-single-lesson-note">{tr(language,
+      'Tạo bài học mới không thay đổi các bài đã giao. Dữ liệu khảo sát, phản hồi và kết quả học sinh chỉ có khi lớp thực sự thực hiện.',
+      'Creating this lesson does not alter existing assignments. Survey responses, peer feedback and student results are recorded only after classroom activity.')}</p>
    </>:null}
    {step===1?<><h2>{tr(language,'Thiết lập lớp và nhóm','Set class and groups')}</h2><p>{tr(language,'Chỉ điền những thông tin cần thiết. Mỗi nhóm sẽ nhận một Creator Pass riêng.','Only essential information is required. Every group gets its own Creator Pass.')}</p>
     <div className="bml-field-grid">
