@@ -16,6 +16,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState}){
  };
  useEffect(()=>{refresh();const id=window.setInterval(refresh,3500);return()=>window.clearInterval(id);},[]);
  const session=data?.session,stage=session?.stage,stageIndex=session?.stageIndex;
+ useEffect(()=>{setSelected(null);setQuiz({});setWritten('');setPeer(null);},[stageIndex]);
  const posted=sent[session?.id+'-'+stageIndex]===true;
  const canRespond=stage&&['vote','quiz','peer','exit'].includes(stage.kind);
  const submit=async()=>{
