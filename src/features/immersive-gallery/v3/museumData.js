@@ -1,25 +1,18 @@
 import {normalizeArtMeta,surveySummary} from './learningEvidence.js';
 // BRIAN Museum Lab V3 — deterministic learning content and validation.
 // No network calls, identities, third-party model endpoints, or invented assessment data.
+// The single new-lesson plan follows the contest teaching plan for
+// English 11 Global Success Unit 5. Existing assignments are stored
+// separately and remain untouched when older selectable kits are retired.
 export const LESSON_KITS = Object.freeze([
- {id:'climate',title:'Climate Action Museum',subtitle:'Unit 5 · Global Warming · Tiếng Anh 11',
-  topic:'Global warming',accent:'green',icon:'leaf',theme:'classic',
-  challenge:'How can our school take practical action against environmental problems?',
-  brief:'Create an English exhibition with three clear sections: The Problem, The Evidence and Our Solution. Explain your source, test your prototype with a classmate and revise your English.',
-  prompt:'Design an interactive English museum that persuades visitors to take one realistic environmental action.',
-  sample:'Our Planet, Our Future',goal:'Describe a problem, explain reliable evidence and propose a realistic action.'},
- {id:'marine',title:'Protecting Marine Life',subtitle:'Environment · English communication',
-  topic:'Marine conservation',accent:'cyan',icon:'waves',theme:'culture',
-  challenge:'How can visitors learn to reduce plastic waste reaching the ocean?',
-  brief:'Explain a marine problem, show one credible source and propose an action school communities can take. Create and test an English-language exhibition.',
-  prompt:'Tell a clear evidence-based story about protecting marine life.',
-  sample:'Oceans Without Plastic',goal:'Use evidence and persuasive English to raise environmental awareness.'},
- {id:'school',title:'Sustainable School',subtitle:'School life · Problem solving',
-  topic:'Sustainability',accent:'amber',icon:'school',theme:'lab',
-  challenge:'What small change could make our school more sustainable?',
-  brief:'Investigate one daily school issue, explain evidence, make a prototype exhibition and invite feedback. All final visitor-facing text must be in English.',
-  prompt:'Introduce a practical school sustainability idea to an international visitor.',
-  sample:'A Greener School',goal:'Make a proposal using cause-effect and persuasive language.'}
+ {id:'climate',title:'Our Climate Action Museum',
+  subtitle:'Tiếng Anh 11 · Global Success · Unit 5: Global Warming',
+  topic:'Global warming · Unit 5',accent:'green',icon:'leaf',theme:'classic',
+  challenge:'How can our school reduce the impact of everyday activities on global warming?',
+  brief:'Our Climate Action Museum — a two-period English STEAM project (2 × 45 minutes). As a group, investigate ONE realistic school climate action and record your group-priority choice in the live anonymous survey. Report the actual number of participating groups (N), the count and percentage; do not describe group choices as individual habits or measured emission reductions. Write three English exhibit labels (about 25–40 words each): The Problem, The Evidence and Our Solution. Name a credible source, add an original image or poster and your confirmed survey chart, and prepare a 3D museum. Test your exhibition with another group, record their feedback and one specific before/after improvement, then present a 45–60 second English pitch and answer the exit-ticket question. Protect image rights and personal data.',
+  prompt:'In our group-priority survey, X out of N groups selected ... (Y%). One limitation is ... . We recommend ... because ... .',
+  sample:'Our Climate Action Museum',
+  goal:'Investigate one school climate action, interpret an authentic group survey, write evidence-based English labels, design and test a 3D exhibition, and improve it after peer feedback.'}
 ]);
 export const RUBRIC = Object.freeze([
  {key:'english',label:'Giao tiếp tiếng Anh',en:'English communication',max:40,help:'Tính rõ ràng, độ chính xác và diễn đạt có mục đích'},
