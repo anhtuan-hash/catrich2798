@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { getUsers, isAuthConfigured, repairCurrentAdminDatabaseRole, syncMissingProfilesFromAuth, updateUserApproval, updateUserPermissions, updateUserRole } from '../utils/auth.js';
+import GalleryAdminToggle from '../features/immersive-gallery/GalleryAdminToggle.jsx';
 import { getPermissionRequests, PERMISSION_REQUESTS_EVENT, updatePermissionRequestStatus } from '../utils/permissionRequests.js';
 import {
   ALL_PERMISSION_IDS,
@@ -390,6 +391,7 @@ export default function AdminPage({ language, currentUser }) {
             onSync={syncAuthProfiles}
           />
 
+          <GalleryAdminToggle currentUser={currentUser} language={language} />
           <section className="admin-v41-summary-strip">
             <SummaryCard
               tone="blue"
