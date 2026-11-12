@@ -8,6 +8,12 @@ const examples=[
  {id:'art-book',title:'Language Heritage',kind:'model',model_key:'book',description:'An original curated GLB book.',transform:{position:[0,2,-7.72],rotation:[0,0,0],scale:[1,1,1]}},
  {id:'art-globe',title:'Planet Model',kind:'model',model_key:'globe',description:'An original curated GLB globe.',transform:{position:[2.7,2,-7.72],rotation:[0,0,0],scale:[1,1,1]}},
 ];
+class QARenderBoundary extends React.Component {
+ constructor(props){super(props);this.state={message:''};}
+ static getDerivedStateFromError(error){return{message:String(error?.stack||error?.message||error)};}
+ componentDidCatch(error){console.error('[GALLERY-RENDER-ERROR]',error);}
+ render(){return this.state.message?<pre data-qa-render-failure role="alert" style={{whiteSpace:'pre-wrap',color:'#9b3333'}}>{this.state.message}</pre>:this.props.children;}
+}
 function Harness(){
  const [room,setRoom]=useState('classic'),[quality,setQuality]=useState('balanced'),[selected,setSelected]=useState('');
  return <main className="big-gallery" data-qa-gallery-harness="synthetic-only">
@@ -20,8 +26,8 @@ function Harness(){
   <p id="qa-status" role="status">Room: {room}; quality: {quality}; selected: {selected||'none'}</p>
   <div style={{margin:'18px auto',maxWidth:1000}}>
    <Suspense fallback={<div role="status">Loading renderer…</div>}>
-     <GalleryCanvas key={room} template={room} exhibits={examples} quality={quality} selectedId={selected}
-       onSelect={setSelected} language="en"/>
+     <QARenderBoundary key={room}><GalleryCanvas template={room} exhibits={examples} quality={quality} selectedId={selected}
+       onSelect={setSelected} language="en"/></QARenderBoundary>
    </Suspense>
   </div>
   <div className="big-controls"><button id="qa-inspect" onClick={()=>setSelected('art-globe')}>Inspect curated GLB</button><button id="qa-close" onClick={()=>setSelected('')}>Close exhibit</button></div>

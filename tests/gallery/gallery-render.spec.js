@@ -3,11 +3,19 @@ import path from 'node:path';
 import {test,expect} from '@playwright/test';
 const output='artifacts/gallery/screenshots';
 test.beforeAll(()=>fs.mkdirSync(output,{recursive:true}));
+test.beforeEach(async({page})=>{
+ page.on('pageerror',error=>console.error('[gallery browser pageerror]',String(error.stack||error.message||error)));
+ page.on('console',msg=>{if(msg.type()==='error')console.error('[gallery browser console]',msg.text());});
+ page.on('requestfailed',req=>console.error('[gallery failed request]',req.url(),req.failure()?.errorText));
+});
 test('original museum renders GLB-ready WebGL and switches all three room templates',async({page},testInfo)=>{
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
  await page.goto('/tests/gallery/harness.html');
  await expect(page.getByRole('heading',{name:'Brian Gallery 3D'})).toBeVisible();
- await expect(page.locator('.big-webgl-shell canvas')).toBeVisible({timeout:30000});
+ await page.waitForTimeout(1300);
+ const renderError=await page.locator('[data-qa-render-failure]').textContent().catch(()=>null);
+ if(renderError)throw new Error('React 3D canvas crashed: '+renderError);
+ await expect(page.locator('.big-webgl-shell canvas')).toBeVisible({timeout:15000});
  await expect(page.locator('.big-scene-hud')).toContainText('R3F');
  for(const key of ['classic','culture','lab']){
    await page.locator('#qa-'+key).click();

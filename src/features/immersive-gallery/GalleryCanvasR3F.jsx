@@ -157,7 +157,7 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
  const mode=useLiteQuality(quality);
  useEffect(()=>{
    let ok=false;
-   try {const c=document.createElement('canvas');const ctx=c.getContext('webgl2')||c.getContext('webgl');ok=!!ctx;ctx?.getExtension('WEBGL_lose_context')?.loseContext();}
+   try {const c=document.createElement('canvas');const ctx=c.getContext('webgl2')||c.getContext('webgl');ok=!!ctx;}
    catch {ok=false;}
    setSupported(ok);
  },[]);
