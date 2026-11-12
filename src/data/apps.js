@@ -1,10 +1,10 @@
 export const APPS = [
   {
     slug: 'immersive-gallery', icon: 'IG', tone: 'mint', group: 'Creative Learning', groupVi: 'Sáng tạo & trưng bày',
-    title: 'BRIAN Immersive Gallery 3D', titleVi: 'Phòng triển lãm tương tác 3D',
-    desc: 'Visit and curate immersive student exhibitions with live Supabase moderation.',
-    descVi: 'Tham quan, tạo triển lãm và duyệt tác phẩm học sinh trong không gian 3D.',
-    status: '3D · Museum · School-only by default', statusVi: 'Bảo tàng 3D · Phân quyền · Dữ liệu thật',
+    title: 'BRIAN Museum Lab V3', titleVi: 'BRIAN Museum Lab · Bảo tàng số',
+    desc: 'Run English STEAM lessons, create accountless group museums, review and showcase student exhibitions.',
+    descVi: 'Tạo bài học STEM/STEAM Tiếng Anh, học sinh làm bảo tàng 3D không cần tài khoản, giáo viên và TTCM duyệt.',
+    status: 'Material 3 · STEAM · Accountless', statusVi: 'Dễ dùng · Bảo tàng 3D · Không cần tài khoản học sinh',
     api: false, featured: true, hideable: false,
   },
   {
