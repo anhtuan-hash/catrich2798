@@ -37,7 +37,7 @@ export default function MuseumLabApp({currentUser,language='vi'}){
  const activePage=NAV.find(n=>n.id===tab);
  const initials=String(currentUser?.full_name||currentUser?.name||currentUser?.email||'B').trim().slice(0,1).toUpperCase();
  const primary=NAV.slice(0,4),secondary=NAV.slice(4);
- return <div className="bml bml-app-layout" data-testid="brian-museum-lab-v3">
+ return <div className={'bml bml-app-layout '+(menuOpen?'is-menu-open':'')} data-testid="brian-museum-lab-v3">
   <aside className={'bml-sidebar '+(menuOpen?'is-open':'')}>
    <div className="bml-brand"><span className="bml-brand-icon"><Landmark size={23}/></span>
     <div><strong>BRIAN Museum Lab</strong><small>V3.0 · Learn by creating</small></div></div>
