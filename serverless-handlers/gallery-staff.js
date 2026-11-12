@@ -185,6 +185,24 @@ export default async function galleryStaff(req,res){
    return send(res,200,{ok:true,exhibitionId});
   }
 
+  if(operation==='artwork-settings'){
+   requireMethod(req,'POST');guardOrigin(req);assertAdmin(ctx);
+   const body=guardBody(req,1000),enable=body.enabled===true;
+   if(enable){
+    const feature=await settings(admin);
+    if(!feature.enabled)throw fail(423,'Cần bật Creator Pass trước.');
+    const {data:bucket,error:storageError}=await admin.storage.getBucket('museum-artwork-private');
+    if(storageError||!bucket||bucket.public)throw fail(503,'Kho ảnh riêng tư chưa sẵn sàng.');
+    const grants=await query(admin.from('gcp_reviewer_grants').select('reviewer_id')
+      .eq('active',true).eq('school_scope',ctx.profile.school).limit(1));
+    if(!grants.length)throw fail(423,'Chưa có TTCM được ủy quyền ở trường.');
+   }
+   const updated=await query(admin.from('gcp_settings').update({
+    upload_enabled:enable,updated_at:new Date().toISOString()
+   }).eq('id',true).select('enabled,upload_enabled').single());
+   return send(res,200,{settings:updated});
+  }
+
   if(operation==='feature-settings'){
    requireMethod(req,'POST');guardOrigin(req);assertAdmin(ctx);
    const body=guardBody(req,1000);
