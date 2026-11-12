@@ -20,17 +20,23 @@ export default async function galleryGuest(req,res){
    const config=await settings(admin);
    if(!config.enabled)throw fail(423,'Creator Pass chưa được mở.');
    const ip=ipHash(req),since=new Date(Date.now()-15*60*1000).toISOString();
-   const {count,error:limitError}=await admin.from('gcp_redeem_attempts').select('id',{head:true,count:'exact'})
-      .eq('ip_hash',ip).gte('occurred_at',since);
-   if(limitError)throw fail(503,'Hệ thống xác thực tạm thời gián đoạn.');
-   if(count>=10)throw fail(429,'Quá nhiều lần thử. Hãy liên hệ giáo viên.');
+   const handleHash=digest('handle:'+handle);
+   const [ipWindow,handleWindow]=await Promise.all([
+    admin.from('gcp_redeem_attempts').select('id',{head:true,count:'exact'})
+      .eq('ip_hash',ip).gte('occurred_at',since),
+    admin.from('gcp_redeem_attempts').select('id',{head:true,count:'exact'})
+      .eq('handle_hash',handleHash).gte('occurred_at',since)
+   ]);
+   if(ipWindow.error||handleWindow.error)throw fail(503,'Hệ thống xác thực tạm thời gián đoạn.');
+   if(ipWindow.count>=10||handleWindow.count>=20)
+    throw fail(429,'Quá nhiều lần thử. Hãy liên hệ giáo viên.');
    const invite=await query(admin.from('gcp_invites').select('*').eq('handle',handle).maybeSingle());
    const now=Date.now();
    const valid=invite&&!invite.revoked_at&&Date.parse(invite.expires_at)>now&&
     (!invite.locked_until||Date.parse(invite.locked_until)<now)&&
     safeEqual(invite.secret_hash,digest('invite:'+secret));
    await query(admin.from('gcp_redeem_attempts').insert({
-    ip_hash:ip,handle_hash:digest('handle:'+handle),succeeded:Boolean(valid)
+    ip_hash:ip,handle_hash:handleHash,succeeded:Boolean(valid)
    }));
    if(!valid){
     if(invite&&!invite.revoked_at){
