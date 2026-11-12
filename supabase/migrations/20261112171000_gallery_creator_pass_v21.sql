@@ -265,7 +265,7 @@ end; $$;
 create function public.gcp_staff_issue_assignment(
  p_teacher uuid,p_reviewer uuid,p_school text,p_class text,p_title text,
  p_brief text,p_deadline timestamptz,p_tokens jsonb
-) returns jsonb language plpgsql security definer set search_path = '' as $
+) returns jsonb language plpgsql security definer set search_path = '' as $gcp_issue$
 declare a public.gcp_assignments; gid uuid; token jsonb;
  issued jsonb:='[]'::jsonb; seq integer:=0; label text;
 begin
@@ -306,7 +306,7 @@ begin
  return pg_catalog.jsonb_build_object('assignment',
   pg_catalog.jsonb_build_object('id',a.id,'title',a.title,'deadline_at',a.deadline_at),
   'groups',issued);
-end; $;
+end; $gcp_issue$;
 
 revoke all on function public.gcp_staff_issue_assignment(uuid,uuid,text,text,text,text,timestamptz,jsonb)
 from public,anon,authenticated;
