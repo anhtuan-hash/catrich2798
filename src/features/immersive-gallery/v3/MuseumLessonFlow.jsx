@@ -56,7 +56,7 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi',i
     <p>{tr(language,'Mỗi mẫu có sẵn đề bài tiếng Anh, mục tiêu và quy trình hai tiết.','Each kit includes an English driving question, objectives and a two-period lesson flow.')}</p>
     <div className="bml-templates-grid">{LESSON_KITS.map(k=><KitCard key={k.id} kit={k} language={language} selected={selectedKit===k.id} onClick={x=>setSelectedKit(x.id)}/>)}</div>
     <div className="bml-kit-detail"><KitCover kit={kit} size="large"/><div><span className="bml-overline">DRIVING QUESTION</span><h3>{kit.challenge}</h3><p>{kit.goal}</p>
-      <div className="bml-chips"><span>English · THPT</span><span>2 × 45 min</span><span>STEAM learning</span></div></div></div>
+      <div className="bml-chips"><span>English · THPT</span><span>{'2 × 45 min'}</span><span>STEAM learning</span></div></div></div>
    </>:null}
    {step===1?<><h2>{tr(language,'Thiết lập lớp và nhóm','Set class and groups')}</h2><p>{tr(language,'Chỉ điền những thông tin cần thiết. Mỗi nhóm sẽ nhận một Creator Pass riêng.','Only essential information is required. Every group gets its own Creator Pass.')}</p>
     <div className="bml-field-grid">
