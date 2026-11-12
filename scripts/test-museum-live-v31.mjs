@@ -18,7 +18,7 @@ function chunk(type,payload){
 }
 function fixture(){
  const ihdr=Buffer.alloc(13);ihdr.writeUInt32BE(2,0);ihdr.writeUInt32BE(2,4);ihdr[8]=8;ihdr[9]=6;
- const pixels=Buffer.from([0,255,0,0,255,0,255,0,255,0,0,0,255,255,255,255,255,0,0,0,255]);
+ const pixels=Buffer.from([0,255,0,0,255,0,255,0,255,0,0,0,255,255,255,255,255,255]);
  const chunks=[chunk('IHDR',ihdr),chunk('tEXt',Buffer.from('Author\u0000Synthetic Private Name')),chunk('IDAT',deflateSync(pixels)),chunk('IEND',Buffer.alloc(0))];
  return Buffer.concat([SIGNATURE,...chunks]);
 }
