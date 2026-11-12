@@ -1,0 +1,17 @@
+/* Original BRIAN Museum Lab project collection; scoped to lessons. */
+.bml .bml-prepared-lesson-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto}
+.bml .bml-prepared-visit{background:#e5f3ee;border-color:#a7cebe;color:#165b48}
+.bml .bml-prepared-projects{padding:16px 18px 20px;border-top:1px solid #e1e9ee;background:linear-gradient(180deg,#fbfdfc,#f2f8f5);width:100%}
+.bml .bml-prepared-projects-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.bml .bml-prepared-projects-heading h3{font-size:17px;font-weight:750;margin:0;color:#264f48}
+.bml .bml-prepared-projects-heading span{font-size:12px;color:#527d70}
+.bml .bml-prepared-project-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.bml .bml-prepared-project{min-width:0;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:8px;border:1px solid #cdded4;border-radius:15px;background:white;padding:15px;transition:transform .15s,border-color .15s,box-shadow .15s}
+.bml .bml-prepared-project:hover{border-color:#4f9d83;box-shadow:0 6px 20px #164c291a;transform:translateY(-1px)}
+.bml .bml-prepared-project small{font-size:11px;color:#398071;font-weight:800;letter-spacing:.02em}
+.bml .bml-prepared-project strong{font-size:16px;line-height:1.3;color:#234a46}
+.bml .bml-prepared-project span{font-size:12px;color:#607670;line-height:1.6}
+.bml .bml-prepared-project em{font-size:12px;font-style:normal;font-weight:800;color:#176b56;display:flex;gap:6px;align-items:center;margin-top:auto}
+@media(max-width:1000px){.bml .bml-prepared-project-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.bml .bml-prepared-lesson-actions{width:100%;margin-left:0}.bml .bml-prepared-lesson-actions button{flex:1}.bml .bml-prepared-project-grid{grid-template-columns:1fr}.bml .bml-prepared-projects{padding:14px}}
+@media(prefers-reduced-motion:reduce){.bml .bml-prepared-project{transition:none}.bml .bml-prepared-project:hover{transform:none}}
