@@ -67,7 +67,7 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'})
       <strong>{tr(language,'Câu hỏi định hướng','Driving question')}</strong>
       <p className="bml-single-lesson-question">{kit.challenge}</p>
       <p>{kit.goal}</p>
-      <div className="bml-chips"><span>English 11 · Unit 5</span><span>2 × 45 min</span><span>11 {tr(language,'hoạt động','activities')}</span><span>STEAM learning</span></div>
+      <div className="bml-chips"><span>English 11 · Unit 5</span><span>{'2 × 45 min'}</span><span>11 {tr(language,'hoạt động','activities')}</span><span>STEAM learning</span></div>
      </div>
     </div>
     <section className="bml-single-outcomes" aria-label={tr(language,'Sản phẩm học tập','Learning products')}>
