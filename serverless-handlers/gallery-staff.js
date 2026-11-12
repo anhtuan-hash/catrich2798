@@ -1,8 +1,58 @@
 // Staff-only Creator Pass controls; every action verifies Supabase Auth + canonical profile.
+import {createHash} from 'node:crypto';
 import {
  db,digest,randomSecret,fail,send,handleError,guardOrigin,guardBody,query,
  settings,staffContext,assertStaff,assertAdmin,reviewer,uid,clean,requireMethod
 } from './_galleryCreator.js';
+
+// Copy approved private art into R1's still-private bucket before atomic promotion.
+// The SQL publication RPC verifies each link and the immutable TTCM snapshot hash.
+async function stageApprovedArt(ctx,scoped){
+ const {review,group,assignment}=scoped,admin=ctx.admin;
+ if(review.state==='published')return;
+ if(review.state!=='approved_locked'||group.state!=='approved_locked')
+  throw fail(423,'Bản triển lãm chưa được TTCM duyệt cuối.');
+ const ids=[...new Set((review.snapshot?.rooms||[]).flatMap(room=>(room.exhibits||[]))
+  .filter(piece=>piece.kind==='image').map(piece=>piece.asset_id))];
+ if(ids.length>6)throw fail(400,'Vượt số lượng ảnh đã được duyệt.');
+ for(const id of ids){
+  if(!uid(id))throw fail(400,'Ảnh trong bản duyệt không hợp lệ.');
+  const existing=await query(admin.from('museum_publication_asset_links')
+   .select('gallery_asset_id').eq('review_id',review.id).eq('source_asset_id',id).maybeSingle());
+  if(existing)continue;
+  const src=await query(admin.from('museum_artwork_assets')
+   .select('id,storage_path,bytes,sha256,mime,status,group_id')
+   .eq('id',id).eq('group_id',group.id).eq('status','private_ready').single());
+  if(src.mime!=='image/png'||src.bytes>3200000)throw fail(400,'Ảnh nguồn không hợp lệ.');
+  const downloaded=await admin.storage.from('museum-artwork-private').download(src.storage_path);
+  if(downloaded.error||!downloaded.data)throw fail(503,'Không tải được ảnh đã được kiểm tra.');
+  const buffer=Buffer.from(await downloaded.data.arrayBuffer());
+  if(buffer.length!==src.bytes||createHash('sha256').update(buffer).digest('hex')!==src.sha256)
+   throw fail(503,'Ảnh nguồn bị thay đổi so với bản kiểm chứng.');
+  const target=assignment.created_by+'/museum-approved/'+review.id+'/'+id+'.png';
+  let galleryAsset=await query(admin.from('gallery_assets').select('id')
+   .eq('path',target).maybeSingle());
+  if(!galleryAsset){
+   const uploaded=await admin.storage.from('brian-gallery-private').upload(target,buffer,{
+    contentType:'image/png',cacheControl:'private, max-age=120',upsert:false
+   });
+   if(uploaded.error){
+    // On a failed prior attempt, only re-use existing object if hash matches.
+    const previous=await admin.storage.from('brian-gallery-private').download(target);
+    if(previous.error||!previous.data)throw fail(503,'Không thể chuyển ảnh đã duyệt.');
+    const bytes=Buffer.from(await previous.data.arrayBuffer());
+    if(createHash('sha256').update(bytes).digest('hex')!==src.sha256)throw fail(409,'Ảnh xuất bản trùng tên nhưng không giống nội dung.');
+   }
+   galleryAsset=await query(admin.from('gallery_assets').insert({
+    uploader_id:assignment.created_by,path:target,kind:'image',
+    mime_type:'image/png',byte_size:buffer.length
+   }).select('id').single());
+  }
+  await query(admin.from('museum_publication_asset_links').insert({
+   review_id:review.id,source_asset_id:id,gallery_asset_id:galleryAsset.id
+  }));
+ }
+}
 
 async function loadScopedReview(ctx,reviewId){
  if(!uid(reviewId))throw fail(400,'Mã hồ sơ không hợp lệ.');
@@ -177,6 +227,7 @@ export default async function galleryStaff(req,res){
    const body=guardBody(req,1000);
    const scoped=await loadScopedReview(ctx,body.reviewId);
    await reviewer(ctx,scoped.assignment.reviewer_id,{publish:true});
+   await stageApprovedArt(ctx,scoped);
    // R1's existing publication trigger requires an actual approved Admin.
    // This function uses a privileged, single-transaction promotion of a frozen snapshot.
    const exhibitionId=await query(admin.rpc('gcp_admin_publish',{
