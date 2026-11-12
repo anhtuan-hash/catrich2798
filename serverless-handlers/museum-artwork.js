@@ -62,6 +62,8 @@ export default async function museumArtwork(req,res){
    const replace=replaceId?current.find(a=>a.id===replaceId):null;
    if(body.replaceId&&!replace)throw fail(403,'Không thể thay ảnh ngoài nhóm.');
    if(current.length>=6&&!replace)throw fail(423,'Tối đa 6 tranh ảnh mỗi nhóm.');
+   const total=await admin.from('museum_artwork_assets').select('id',{head:true,count:'exact'}).eq('group_id',ctx.group.id);
+   if(total.error||total.count>=30)throw fail(423,'Tối đa 30 phiên bản ảnh mỗi nhóm để giữ minh chứng.');
    let image;
    try{image=canonicalArtworkPng(body.png);}catch(e){throw fail(400,e.message);}
    const name=clean(body.filename||'Student artwork',150);
@@ -85,7 +87,7 @@ export default async function museumArtwork(req,res){
     await query(admin.from('museum_artwork_assets').update({
      status:'removed',removed_at:new Date().toISOString()
     }).eq('id',replace.id).eq('group_id',ctx.group.id));
-    await admin.storage.from(BUCKET).remove([old.storage_path]).catch(()=>{});
+    // Retain private bytes for immutable before/after checkpoints.
    }
    const [asset]=await signed(ctx,[{id:assetId,original_name:name,bytes:image.bytes,width:image.width,height:image.height}]);
    return send(res,201,{asset});
@@ -96,8 +98,7 @@ export default async function museumArtwork(req,res){
    const asset=await query(admin.from('museum_artwork_assets').select('storage_path,id')
     .eq('id',body.assetId).eq('group_id',ctx.group.id).eq('status','private_ready').maybeSingle());
    if(!asset)throw fail(404,'Ảnh đã xóa hoặc không thuộc nhóm.');
-   const removed=await admin.storage.from(BUCKET).remove([asset.storage_path]);
-   if(removed.error)throw fail(503,'Không thể xóa ảnh.');
+   // Hide from active drafts; retain private checkpoint evidence.
    await query(admin.from('museum_artwork_assets').update({
     status:'removed',removed_at:new Date().toISOString()
    }).eq('id',body.assetId).eq('group_id',ctx.group.id));

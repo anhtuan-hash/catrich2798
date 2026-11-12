@@ -2,6 +2,8 @@ import React,{Suspense,useCallback,useEffect,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronLeft,ChevronRight,CircleHelp,ClipboardCheck,Cloud,CloudAlert,CloudUpload,Eye,FileText,Info,KeyRound,Landmark,Leaf,Lightbulb,LockKeyhole,MessageSquare,RefreshCw,Send,ShieldCheck,Sparkles,Users,X} from 'lucide-react';
 import {emptyStudio,documentFromStudio,normalizeStudio,STEPS,submissionMissing} from './museumData.js';
 import {guestRequest,fmtTime} from './museumApi.js';
+import {liveGuest} from './museumLiveApi.js';
+import {wordCount,evidenceMissing,changedExhibits} from './learningEvidence.js';
 import MuseumScene from './MuseumScene.jsx';
 import MuseumLiveStudent from './MuseumLiveStudent.jsx';
 import MuseumArtworkStudio from './MuseumArtworkStudio.jsx';
@@ -43,6 +45,8 @@ export default function MuseumLabStudent({language='vi'}){
  const [saveState,setSaveState]=useState('saved'),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [step,setStep]=useState(0),[preview,setPreview]=useState(false),[conflict,setConflict]=useState(false);
  const [liveInfo,setLiveInfo]=useState(null),[artAssets,setArtAssets]=useState([]);
+ const [history,setHistory]=useState([]);
+ const viewHistory=async()=>{try{setHistory((await liveGuest('history')).checkpoints||[]);}catch(e){setError(e.message);}};
  const documentRef=useRef(studio),versionRef=useRef(0),csrfRef=useRef(''),savingRef=useRef(false),dirtyRef=useRef(false);
  const groupLocked=session&&!['issued','editing','changes_requested'].includes(session.groupState);
  const liveRunning=liveInfo&&liveInfo.status!=='not_started';
@@ -53,7 +57,7 @@ export default function MuseumLabStudent({language='vi'}){
  useEffect(()=>{
   if(!liveRunning)return;
   if(stageIndex===3||stageIndex===4)setStep(1);
-  else if(stageIndex===6)setStep(2);
+  else if(stageIndex===6||stageIndex===8)setStep(2);
   else if(stageIndex>=7&&stageIndex<=9)setStep(3);
   else if(stageIndex===10)setStep(4);
  },[stageIndex,liveRunning]);
@@ -113,6 +117,7 @@ export default function MuseumLabStudent({language='vi'}){
   try{
    if(studio.legacy)throw new Error('Cần kiểm tra bản nháp cũ trước khi nộp.');
    const missing=submissionMissing(documentRef.current);
+   if(liveRunning&&documentRef.current.survey)missing.push(...evidenceMissing(documentFromStudio(documentRef.current)));
    if(missing.length)throw new Error(T(language,'Cần hoàn thành: ','Please complete: ')+missing.join(' · '));
    if(savingRef.current)throw new Error(T(language,'Đang lưu. Hãy thử lại sau khi thấy Đã lưu.','Saving. Please submit once the draft is saved.'));
    if(dirtyRef.current){const n=await save();if(n===null)throw new Error(T(language,'Chưa lưu được bản nháp.','Draft has not been saved.'));}
@@ -162,6 +167,9 @@ export default function MuseumLabStudent({language='vi'}){
       disabled:locked,limit:1200,placeholder:'Students, teachers and families'})}
     </>:null}
     {step===1?<><p>{T(language,'Lên câu chuyện triển lãm gồm ba phần: Vấn đề – Bằng chứng – Giải pháp.','Plan your story around Problem, Evidence, and Solution.')}</p>
+     {field('Vấn đề bằng tiếng Anh / Problem in English',l.issue,v=>changeLearning('issue',v),{rows:3,disabled:locked})}
+     {field('Vai trò nhóm / Group roles',l.roles,v=>changeLearning('roles',v),{rows:2,disabled:locked,placeholder:'Editor: member A; data checker: B; designer: C; presenter: D (use initials or roles, no full names)'})}
+     {field('Tính khả thi / Feasibility',l.feasibility,v=>changeLearning('feasibility',v),{rows:2,disabled:locked,placeholder:'Who will do it? Resources? One limitation?'})}
      <div className="bml-storyboard">{['The Problem','The Evidence','Our Solution'].map((title,i)=><div key={title} className={'bml-storyboard-card '+([l.issue,l.evidence,l.solution][i]?'is-filled':'')}>
       <span>{i+1}</span><strong>{title}</strong><small>{[l.issue,l.evidence,l.solution][i]?T(language,'Đã có nội dung','Content added'):T(language,'Chưa hoàn thành','Not written')}</small></div>)}</div>
      {field(T(language,'Bằng chứng hoặc quan sát bằng tiếng Anh','Evidence in English'),l.evidence,v=>changeLearning('evidence',v),{
@@ -183,6 +191,7 @@ export default function MuseumLabStudent({language='vi'}){
      {['issue','evidence','solution'].map((key,i)=><details key={key} className="bml-student-exhibit" open={i===0}>
        <summary>{i+1}. {['The Problem','The Evidence','Our Solution'][i]}</summary>
        {field(T(language,'Mô tả bằng tiếng Anh','English description'),l[key],v=>changeLearning(key,v),{rows:3,disabled:locked})}
+       <small className="bml-word-count">{wordCount(l[key])} words · Suggested: 25–40</small>
       </details>)}
      <MuseumArtworkStudio studio={studio} update={edit} csrf={session.csrf} language={language}
       disabled={locked||(liveRunning&&![6,8].includes(stageIndex))||busy} uploadEnabled={session.uploadEnabled===true} onAssets={setArtAssets}/>
@@ -192,6 +201,7 @@ export default function MuseumLabStudent({language='vi'}){
          image_url:artAssets.find(x=>x.id===e.asset_id)?.image_url||''}))}]}}/>:null}
     </>:null}
     {step===3?<><p>{T(language,'Mời một bạn hoặc nhóm khác đọc thử triển lãm. Ghi nhận điều họ hiểu, rồi cải tiến nội dung.','Invite a classmate or group to test the exhibition, note their feedback, then improve your draft.')}</p>
+     <button className="bml-outline" onClick={viewHistory}>{T(language,'Xem bản thiết kế / Trước–sau','View storyboard / before and after')}</button><div className="bml-history">{history.map(c=><article key={c.checkpointId}><strong>v{c.version} · {new Date(c.createdAt).toLocaleString()}</strong>{['issue','evidence','solution'].map(k=><p key={k}><b>{k}: </b>{c.draft?.learning?.[k]}</p>)}{c.artworks?.map(a=><img key={a.id} src={a.image_url} alt={a.original_name} style={{maxWidth:180}}/>)}</article>)}</div>
      <div className="bml-step-hint"><MessageSquare size={21}/><div><strong>{T(language,'Câu hỏi gợi ý cho người xem','Ask your peer')}</strong>
       <p>“What is the problem?” · “Is the evidence clear?” · “What action should we take?”</p></div></div>
      {field(T(language,'Phản hồi thực tế từ bạn học (tiếng Anh)','Actual peer feedback (English)'),l.feedback,v=>changeLearning('feedback',v),{

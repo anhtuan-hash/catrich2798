@@ -126,7 +126,7 @@ test('contest ZIP contains P1, P2 and explicit missing-evidence notice, never fa
  const download=await downloadPromise;
  expect(download.suggestedFilename()).toMatch(/\.zip$/);
  const zip=await JSZip.loadAsync(fs.readFileSync(await download.path()));
- const first=zip.file('P1/Tong_quan.docx'),second=zip.file('P2/Ke_hoach_day_hoc.docx');
+ const first=zip.file('P1/TiengAnh_THPT_Demo-Teacher_STEM_P1.docx'),second=zip.file('P2/TiengAnh_THPT_Demo-Teacher_STEM_P2.docx');
  expect(first).toBeTruthy();expect(second).toBeTruthy();
  const nested=await JSZip.loadAsync(await second.async('uint8array'));
  const doc=await nested.file('word/document.xml').async('string');
@@ -406,4 +406,33 @@ test('school poster artworks have actual topic illustration pixels, not text-onl
  await expect(original).toBeVisible();
  const resolution=await original.evaluate(async img=>{await img.decode();return img.naturalWidth;});
  expect(resolution).toBeGreaterThanOrEqual(1000);
+});
+
+test('peer response submits structured learning, clarification and clarity score',async({page})=>{
+ let received=null;
+ await page.route('**/api/gallery-guest/live?**',route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  if(op==='respond'){received=route.request().postDataJSON();return route.fulfill({json:{ok:true}});}
+  return route.fulfill({json:{session:{id:'qa-peer',status:'active',stageIndex:7,stageOpen:true,stage:{kind:'peer',period:2,title:'Peer Gallery Walk',question:'What did you learn?',sentence:'I learned … .'}}}});
+ });
+ await page.getByTestId('qa-student-live').click();
+ await page.getByLabel('I learned …',{exact:true}).fill('I learned why unused lights waste energy.');
+ await page.getByLabel('The message would be clearer if …',{exact:true}).fill('Please explain who will switch the lights off.');
+ await page.getByRole('combobox').selectOption('3');
+ await page.getByRole('button',{name:/Gửi câu trả lời của nhóm/}).click();
+ await expect(page.getByText('Đã ghi nhận một lượt của nhóm')).toBeVisible();
+ expect(received.value.rating).toBe(3);expect(received.value.clarify).toContain('who');
+});
+test('frozen survey chart uploads real computed PNG instead of an empty evidence label',async({page})=>{
+ let received=null;
+ const snapshot={id:'qa-snapshot',counts:[1,2,0,1],n:4,source:'online',created_at:'2026-11-13T01:00:00Z',options:[{label:'Walking',count:1},{label:'Lights',count:2},{label:'Food',count:0},{label:'Other',count:1}]};
+ await page.route('**/api/gallery-guest/live?**',r=>r.fulfill({json:{snapshot}}));
+ await page.route('**/api/gallery-guest/artwork?**',r=>{
+  if(new URL(r.request().url()).searchParams.get('operation')==='upload'){received=r.request().postDataJSON();return r.fulfill({json:{asset:{id:'aaaaaaaa-1111-4111-8111-111111111111'}}});}
+  return r.fulfill({json:{assets:[]}});
+ });
+ await page.getByTestId('qa-artwork').click();
+ await page.getByRole('button',{name:/Gắn biểu đồ khảo sát/}).click();
+ await expect(page.getByText('Đã gắn biểu đồ thật.',{exact:false})).toBeVisible();
+ expect(received.png).toMatch(/^data:image\/png;base64,/);expect(received.png.length).toBeGreaterThan(2000);
 });
