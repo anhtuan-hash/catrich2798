@@ -33,3 +33,30 @@ jobs:
           node --check api/gallery-staff.js
       - name: Browser bundle compilation
         run: npx vite build
+
+  postgres-rpc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 6
+    env:
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+      - name: Execute old Gallery R1 and new Creator Pass RLS / approval / publication
+        run: bash scripts/gallery-creator-postgres-qa.sh
