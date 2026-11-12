@@ -104,6 +104,19 @@ export default async function galleryGuest(req,res){
    const body=guardBody(req,100000);
    if(!Number.isInteger(body.expectedVersion)||body.expectedVersion<0)throw fail(400,'Phiên bản không hợp lệ.');
    const doc=normalizeGuestDraft(body.draft,ctx.assignment);
+   const live=await query(admin.from('museum_live_sessions')
+     .select('status,stage_index,stage_open').eq('assignment_id',ctx.assignment.id).maybeSingle());
+   if(live&&(!live.stage_open||live.status!=='active'||![3,4,6,8,9].includes(live.stage_index)))
+     throw fail(423,'Giáo viên chưa mở hoạt động chỉnh sửa sản phẩm.');
+   const ids=[...new Set([
+    ...Object.values(doc.artworks||{}).filter(Boolean),
+    ...doc.rooms.flatMap(r=>r.exhibits||[]).map(e=>e.kind==='image'?e.asset_id:null).filter(Boolean)
+   ])];
+   if(ids.length){
+    const own=await query(admin.from('museum_artwork_assets').select('id')
+     .eq('group_id',ctx.group.id).eq('status','private_ready').in('id',ids));
+    if(own.length!==ids.length)throw fail(403,'Tranh ảnh không thuộc nhóm hoặc đã bị xóa.');
+   }
    const version=await query(admin.rpc('gcp_guest_save',{
     p_group:ctx.group.id,p_expected:body.expectedVersion,p_doc:doc
    }));
@@ -116,7 +129,14 @@ export default async function galleryGuest(req,res){
    if(!Number.isInteger(body.expectedVersion)||body.expectedVersion<0)throw fail(400,'Phiên bản không hợp lệ.');
    const d=await query(admin.from('gcp_drafts').select('doc,version').eq('group_id',ctx.group.id).single());
    if(d.version!==body.expectedVersion)throw fail(409,'Bản nháp đã có thay đổi mới.');
-   validateGuestSubmission(normalizeGuestDraft(d.doc,ctx.assignment));
+   const doc=normalizeGuestDraft(d.doc,ctx.assignment);
+   const live=await query(admin.from('museum_live_sessions')
+    .select('status,stage_index,stage_open').eq('assignment_id',ctx.assignment.id).maybeSingle());
+   if(live && (live.status!=='active'||!live.stage_open||live.stage_index!==10))
+    throw fail(423,'Hãy đợi giáo viên mở hoạt động nộp bài.');
+   if(live&&!doc.rooms.some(r=>r.exhibits.some(e=>e.kind==='image')))
+    throw fail(400,'Bảo tàng của nhóm cần tối thiểu một tranh hoặc poster đã tải lên.');
+   validateGuestSubmission(doc);
    const reviewId=await query(admin.rpc('gcp_guest_submit',{
     p_group:ctx.group.id,p_expected:body.expectedVersion
    }));
