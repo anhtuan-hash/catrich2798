@@ -87,6 +87,7 @@ export default async function galleryGuest(req,res){
      ?{state:latest.state,teacher:latest.teacher_note,ttcm:latest.ttcm_note}:null;
    return send(res,200,{
     groupLabel:group.label,groupState:group.state,csrf:session.csrf_token,feedback,
+    uploadEnabled:(await settings(admin)).upload_enabled===true,
     assignment:{title:assignment.title,brief:assignment.brief,class_scope:assignment.class_scope,
      deadline_at:assignment.deadline_at,max_rooms:assignment.max_rooms,max_exhibits:assignment.max_exhibits}
    });
@@ -106,7 +107,7 @@ export default async function galleryGuest(req,res){
    const doc=normalizeGuestDraft(body.draft,ctx.assignment);
    const live=await query(admin.from('museum_live_sessions')
      .select('status,stage_index,stage_open').eq('assignment_id',ctx.assignment.id).maybeSingle());
-   if(live&&(!live.stage_open||live.status!=='active'||![3,4,6,8,9].includes(live.stage_index)))
+   if(live&&(!live.stage_open||live.status!=='active'||![3,4,6,7,8,9].includes(live.stage_index)))
      throw fail(423,'Giáo viên chưa mở hoạt động chỉnh sửa sản phẩm.');
    const ids=[...new Set([
     ...Object.values(doc.artworks||{}).filter(Boolean),
