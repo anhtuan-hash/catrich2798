@@ -31,7 +31,7 @@ test('3-room exhibition shows useful 2D exhibits without requiring WebGL',async(
  await page.getByTestId('qa-scene').click();
  await expect(page.getByTestId('museum-visitor')).toBeVisible();
  await expect(page.getByText('Our Planet, Our Future — 3D Demo')).toBeVisible();
- await expect(page.getByText('Student Creations',{exact:true})).toBeVisible();
+ await expect(page.getByText('Student Creations',{exact:true}).first()).toBeVisible();
  await expect(page.getByText('Our Planet, Our Future',{exact:true}).first()).toBeVisible();
  await page.getByRole('button',{name:/Culture Pavilion|Explore the World/}).first().click();
  await expect(page.getByText('Greetings Across Cultures')).toBeVisible();
