@@ -4,7 +4,7 @@ import {Canvas,useFrame,useThree} from '@react-three/fiber';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {ROOM_TEMPLATES,normalizeTransform,useLiteQuality} from './sceneTemplates.js';
 import {createCuratedGlb,CURATED_GLB_KEYS} from './curatedGlb.js';
-import {getGalleryAssetUrl} from './galleryData.js';
+// Cloud media service is imported on demand to prevent eager auth/bootstrap cycles.
 
 // Only bundled, original GLBs are loaded. No URL or user-supplied binary is parsed.
 function CuratedModel({modelKey='globe',scale=1}) {
@@ -30,7 +30,7 @@ function ArtworkImage({assetId}) {
  const [texture,setTexture]=useState(null);
  useEffect(()=>{
   if(!assetId)return undefined;let alive=true,created=null;
-  getGalleryAssetUrl(assetId).then(url=>{
+  import('./galleryData.js').then(({getGalleryAssetUrl})=>getGalleryAssetUrl(assetId)).then(url=>{
     if(!alive)return;
     new THREE.TextureLoader().load(url,t=>{
       created=t;t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=2;
