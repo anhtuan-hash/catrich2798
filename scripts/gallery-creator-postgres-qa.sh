@@ -60,12 +60,18 @@ select public.gcp_guest_submit('bbbbbbbb-1111-4111-8111-111111111111',1);
 do $gcp_retry$
 declare r1 uuid; r2 uuid;
 begin
- select id into r1 from public.gcp_reviews where group_id='bbbbbbbb-1111-4111-8111-111111111111';
+ -- Synthetic service_role intentionally has RLS enforced; compare RPC return
+ -- values without relying on a direct table SELECT invisible under RLS.
+ r1:=public.gcp_guest_submit('bbbbbbbb-1111-4111-8111-111111111111',1);
  r2:=public.gcp_guest_submit('bbbbbbbb-1111-4111-8111-111111111111',1);
- if r1 is distinct from r2 or (select count(*) from public.gcp_reviews where group_id='bbbbbbbb-1111-4111-8111-111111111111')<>1
- then raise exception 'Repeated submission created a duplicate';end if;
+ if r1 is null or r1 is distinct from r2
+ then raise exception 'Repeated submission returned a different review';end if;
 end $gcp_retry$;
 reset role;
+do $gcp_exactly_one$ begin
+ if (select count(*) from public.gcp_reviews where group_id='bbbbbbbb-1111-4111-8111-111111111111')<>1
+ then raise exception 'Repeated submission created duplicate reviews';end if;
+end $gcp_exactly_one$;
 SQL
 echo "[gcp] Testing teacher/TTCM separation, locked review, and publication"
 p <<'SQL'
