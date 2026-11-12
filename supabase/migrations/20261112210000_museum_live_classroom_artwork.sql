@@ -12,6 +12,7 @@ create table public.museum_live_sessions(
  revealed boolean not null default false,
  started_at timestamptz not null default now(),
  stage_started_at timestamptz not null default now(),
+ elapsed_seconds integer not null default 0 check(elapsed_seconds between 0 and 7200),
  updated_at timestamptz not null default now(),
  version integer not null default 0 check(version>=0)
 );
