@@ -16,7 +16,10 @@ test('guest document is strict allowlist and cannot sneak executable data',()=>{
  assert.equal(validateGuestSubmission(d),true);
 });
 test('reject unsafe guest media and model keys',()=>{
- for(const kind of ['image','audio','video','pdf','html']){
+ // A verified group-scoped UUID is now permitted for image exhibits.
+ // Other media and unregistered image URLs remain forbidden.
+ assert.throws(()=>normalizeGuestDraft({rooms:[room('image')]}),/Ảnh chưa được lưu an toàn/);
+ for(const kind of ['audio','video','pdf','html']){
  assert.throws(()=>normalizeGuestDraft({rooms:[room(kind)]}),/Chỉ cho phép/);
  }
  assert.throws(()=>normalizeGuestDraft({rooms:[{...room('model'),exhibits:[{title:'x',kind:'model',model_key:'https://evil.example/foo.glb'}]}]}),/chưa được duyệt/);

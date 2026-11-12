@@ -1,6 +1,7 @@
 import React,{useCallback,useEffect,useMemo,useState} from 'react';
-import {ArrowRight,Award,Bell,BookOpen,CheckCircle2,ChevronRight,CircleHelp,ClipboardCheck,FileCheck2,Grid2X2,House,Landmark,Library,Menu,Plus,RefreshCw,Search,Settings2,ShieldAlert,Sparkles,Users,X} from 'lucide-react';
+import {ArrowRight,Award,Bell,BookOpen,CheckCircle2,ChevronRight,CircleHelp,ClipboardCheck,FileCheck2,Grid2X2,House,Landmark,Library,Menu,Plus,RefreshCw,Search,Settings2,ShieldAlert,Sparkles,Users,X ,Presentation} from 'lucide-react';
 import MuseumDashboard from './MuseumDashboard.jsx';
+import MuseumLiveTeacher from './MuseumLiveTeacher.jsx';
 import {LessonWizard,LessonsList} from './MuseumLessonFlow.jsx';
 import {Submissions} from './MuseumReview.jsx';
 import {MuseumTemplates,MuseumGallery,MuseumSettings} from './MuseumExplore.jsx';
@@ -9,6 +10,7 @@ import MuseumScene from './MuseumScene.jsx';
 import {DEMO_GALLERY,staffRequest} from './museumApi.js';
 import './museumLab.css';
 const NAV=[
+ {id:'live',icon:Presentation,vi:'Dạy trực tiếp',en:'Teach Live'},
  {id:'home',icon:House,vi:'Trang chủ',en:'Home'},
  {id:'lessons',icon:BookOpen,vi:'Bài học',en:'Lessons'},
  {id:'submissions',icon:ClipboardCheck,vi:'Bài nộp',en:'Submissions'},
@@ -40,7 +42,7 @@ export default function MuseumLabApp({currentUser,language='vi'}){
  const pending=staff?.reviews?.filter(r=>['submitted','ttcm_review'].includes(r.state)).length||0;
  const activePage=NAV.find(n=>n.id===tab);
  const initials=String(currentUser?.full_name||currentUser?.name||currentUser?.email||'B').trim().slice(0,1).toUpperCase();
- const primary=NAV.slice(0,4),secondary=NAV.slice(4);
+ const primary=NAV.slice(0,5),secondary=NAV.slice(5);
  return <div className={'bml bml-app-layout '+(menuOpen?'is-menu-open':'')} data-testid="brian-museum-lab-v3">
   <aside className={'bml-sidebar '+(menuOpen?'is-open':'')}>
    <div className="bml-brand"><span className="bml-brand-icon"><Landmark size={23}/></span>
@@ -77,6 +79,7 @@ export default function MuseumLabApp({currentUser,language='vi'}){
        <button type="button" className="bml-outline" onClick={()=>{setLoading(true);refresh();}}><RefreshCw size={17}/>{tr(language,'Thử lại','Retry')}</button></div></div>:null}
     {loading?<div className="bml-empty bml-surface" role="status"><RefreshCw size={27}/>{tr(language,'Đang tải bài học và phân quyền…','Loading lessons and permissions…')}</div>:
     tab==='home'?<MuseumDashboard language={language} data={staff} onNavigate={navigate} onCreate={create} onDemo={demo}/>:
+    tab==='live'?<MuseumLiveTeacher data={staff} language={language} onBack={()=>navigate('home')}/>:
     tab==='wizard'?<LessonWizard language={language} data={staff} initialKit={kit} onExit={()=>navigate('lessons')}
       onSettings={()=>navigate('settings')} onCompleted={refresh}/>:
     tab==='lessons'?<LessonsList language={language} data={staff} query={query}

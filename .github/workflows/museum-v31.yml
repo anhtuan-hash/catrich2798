@@ -1,0 +1,81 @@
+name: Museum Lab V3.1 Teaching & Artwork Acceptance
+on:
+  pull_request:
+    paths:
+      - 'src/features/immersive-gallery/**'
+      - 'serverless-handlers/museum-*.js'
+      - 'serverless-handlers/_museumPng.js'
+      - 'serverless-handlers/gallery-guest.js'
+      - 'api/gateway.js'
+      - 'vercel.json'
+      - 'supabase/migrations/*museum_live*'
+      - 'scripts/test-museum-live-v31.mjs'
+      - 'scripts/museum-v31-postgres-qa.sh'
+      - 'supabase/migrations/*museum_approved_artwork*'
+      - '.github/workflows/museum-v31.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  policy-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Image sanitizer, survey integrity and live authorization policy
+        run: node --test scripts/test-museum-live-v31.mjs
+      - name: Node backend syntax
+        run: |
+          node --check serverless-handlers/museum-live.js
+          node --check serverless-handlers/museum-artwork.js
+          node --check serverless-handlers/_museumPng.js
+          node --check serverless-handlers/gallery-guest.js
+      - name: Site-wide localization audit
+        run: node scripts/audit-site-language.mjs
+      - name: Compile complete Brian Vite frontend
+        run: npx vite build
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: V3 baseline desktop/mobile regression
+        run: npx playwright test --config tests/museum-lab/playwright.config.mjs
+
+  postgres:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 6
+    env:
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Postgres client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+      - name: Run private upload schema and TTCM-approved image publication
+        run: bash scripts/museum-v31-postgres-qa.sh

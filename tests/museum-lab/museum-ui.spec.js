@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import JSZip from 'jszip';
 import {test,expect} from '@playwright/test';
 test.beforeEach(async({page})=>{
- page.on('pageerror',error=>console.error('[museum-browser-pageerror]',String(error)));
+ page.on('pageerror',error=>console.error('[museum-browser-pageerror]',error.stack||String(error)));
  page.on('console',msg=>{if(msg.type()==='error')console.error('[museum-browser-console]',msg.text());});
  const response=await page.goto('/tests/museum-lab/v3.html');
  console.log('[museum-browser-nav]',response?.status(),await page.title());
@@ -133,4 +133,67 @@ test('contest ZIP contains P1, P2 and explicit missing-evidence notice, never fa
  expect(doc).toContain('KẾ HOẠCH DẠY HỌC');
  const manifest=await zip.file('P2/CAN_BO_SUNG_MINH_CHUNG.txt').async('string');
  expect(manifest).toContain('Không dùng dữ liệu demo làm minh chứng.');
+});
+
+test('teacher controls 11 live lesson stages without a PowerPoint or automatic transitions',async({page})=>{
+ await page.getByTestId('qa-teacher-live').click();
+ await expect(page.getByTestId('museum-teacher-live')).toBeVisible();
+ await page.getByRole('button',{name:/Bắt đầu buổi dạy/}).click();
+ await expect(page.getByText('Climate Detective')).toBeVisible();
+ await page.getByRole('button',{name:/Mở cho học sinh/}).click();
+ await expect(page.getByText('ĐANG MỞ HOẠT ĐỘNG')).toBeVisible();
+ await page.getByRole('button',{name:/Hiện giải thích/}).click();
+ await expect(page.getByText('This is a warm-up vote',{exact:false})).toBeVisible();
+ await page.getByRole('button',{name:/Hoạt động tiếp/}).click();
+ await expect(page.getByText('Language Mini-Lesson')).toBeVisible();
+ await expect(page.getByText('HOẠT ĐỘNG CHƯA MỞ')).toBeVisible();
+});
+test('group receives teacher stage, cannot answer a closed task and submits only once when released',async({page})=>{
+ let open=false,posts=0,last=null;
+ await page.route('**/api/gallery-guest/live?**',async route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  if(op==='state')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   groupLabel:'Nhóm Demo',session:{
+    id:'qa-group-session',status:'active',stageIndex:0,stageOpen:open,revealed:false,
+    stage:{kind:'vote',period:1,title:'Climate Detective',question:'Which action helps?',
+     options:['Switch off unused lights','Waste food'],sentence:'We recommend …'}
+   }})});
+  if(op==='respond'){posts++;last=route.request().postDataJSON();return route.fulfill({
+   status:201,contentType:'application/json',body:JSON.stringify({ok:true})
+  });}
+  return route.fulfill({status:200,contentType:'application/json',body:'{"ok":true}'});
+ });
+ await page.getByTestId('qa-student-live').click();
+ await expect(page.getByTestId('student-live-activity')).toBeVisible();
+ await expect(page.getByText('Chờ giáo viên mở hoạt động').first()).toBeVisible();
+ await expect(page.getByRole('button',{name:/Gửi câu trả lời/})).toHaveCount(0);
+ open=true;
+ await expect(page.getByRole('button',{name:/A\. Switch off unused lights/})).toBeVisible({timeout:14000});
+ await page.getByRole('button',{name:/A\. Switch off unused lights/}).click();
+ await page.getByRole('button',{name:/Gửi câu trả lời của nhóm/}).click();
+ await expect(page.getByText('Đã ghi nhận một lượt của nhóm')).toBeVisible();
+ expect(posts).toBe(1);expect(last.value).toBe(0);
+});
+test('student can send a real raster poster through the private artwork API workflow',async({page})=>{
+ let received=null,assets=[];
+ await page.route('**/api/gallery-guest/artwork?**',async route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  if(op==='upload'){
+   received=route.request().postDataJSON();
+   assets=[{id:'aaaaaaaa-1111-4111-8111-111111111111',image_url:received.png,original_name:received.filename}];
+   return route.fulfill({status:201,contentType:'application/json',body:JSON.stringify({asset:assets[0]})});
+  }
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({assets})});
+ });
+ await page.getByTestId('qa-artwork').click();
+ await expect(page.getByTestId('museum-artwork-studio')).toBeVisible();
+ const image=await page.evaluate(()=>{
+  const canvas=document.createElement('canvas');canvas.width=64;canvas.height=64;
+  const ctx=canvas.getContext('2d');ctx.fillStyle='#2563eb';ctx.fillRect(0,0,64,64);
+  ctx.fillStyle='#fff';ctx.fillRect(7,20,50,20);return canvas.toDataURL('image/png').split(',')[1];
+ });
+ await page.locator('input[type="file"]').first().setInputFiles({name:'my-original-poster.png',mimeType:'image/png',buffer:Buffer.from(image,'base64')});
+ await expect(page.getByText('Đã tải tranh lên kho riêng tư')).toBeVisible({timeout:15000});
+ expect(received.filename).toBe('my-original-poster.png');
+ expect(received.png).toMatch(/^data:image\/png;base64,/);
 });

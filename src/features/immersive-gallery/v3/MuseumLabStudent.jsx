@@ -3,6 +3,8 @@ import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronLeft,ChevronRigh
 import {emptyStudio,documentFromStudio,normalizeStudio,STEPS,submissionMissing} from './museumData.js';
 import {guestRequest,fmtTime} from './museumApi.js';
 import MuseumScene from './MuseumScene.jsx';
+import MuseumLiveStudent from './MuseumLiveStudent.jsx';
+import MuseumArtworkStudio from './MuseumArtworkStudio.jsx';
 import './museumLab.css';
 const T=(lang,vi,en)=>lang==='en'?en:vi;
 const getHandle=()=>{
@@ -40,8 +42,21 @@ export default function MuseumLabStudent({language='vi'}){
  const [version,setVersion]=useState(0),[dirty,setDirty]=useState(false),[busy,setBusy]=useState(false);
  const [saveState,setSaveState]=useState('saved'),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [step,setStep]=useState(0),[preview,setPreview]=useState(false),[conflict,setConflict]=useState(false);
+ const [liveInfo,setLiveInfo]=useState(null),[artAssets,setArtAssets]=useState([]);
  const documentRef=useRef(studio),versionRef=useRef(0),csrfRef=useRef(''),savingRef=useRef(false),dirtyRef=useRef(false);
- const locked=session&&!['issued','editing','changes_requested'].includes(session.groupState);
+ const groupLocked=session&&!['issued','editing','changes_requested'].includes(session.groupState);
+ const liveRunning=liveInfo&&liveInfo.status!=='not_started';
+ const stageIndex=liveInfo?.stageIndex??-1;
+ const maxStudentStep=!liveRunning?4:stageIndex<3?-1:stageIndex<6?1:stageIndex===6?2:stageIndex<10?3:4;
+ const stageEditAllowed=!liveRunning||liveInfo.status==='active'&&liveInfo.stageOpen&&[3,4,6,7,8,9,10].includes(stageIndex);
+ const locked=groupLocked||!stageEditAllowed;
+ useEffect(()=>{
+  if(!liveRunning)return;
+  if(stageIndex===3||stageIndex===4)setStep(1);
+  else if(stageIndex===6)setStep(2);
+  else if(stageIndex>=7&&stageIndex<=9)setStep(3);
+  else if(stageIndex===10)setStep(4);
+ },[stageIndex,liveRunning]);
  const load=useCallback(async()=>{
   const me=await guestRequest('me');const d=await guestRequest('draft');
   const parsed=normalizeStudio(d.draft);
@@ -115,13 +130,14 @@ export default function MuseumLabStudent({language='vi'}){
       saveState==='saving'?<><CloudUpload size={16}/>{T(language,'Đang lưu…','Saving…')}</>:<><CloudAlert size={16}/>{T(language,'Cần xử lý','Action needed')}</>}</span>
     <button type="button" className="bml-outline" onClick={logout}>{T(language,'Thoát','Exit')}</button></div></header>
   <div className="bml-student-content">
+   <MuseumLiveStudent csrf={session.csrf} language={language} onState={setLiveInfo}/>
    <div className="bml-student-heading"><span className="bml-overline">{T(language,'DỰ ÁN TIẾNG ANH · BẢO TÀNG SỐ','ENGLISH PROJECT · DIGITAL MUSEUM')}</span>
     <h1>{session.assignment.title}</h1><p>{session.assignment.brief||T(language,'Tạo triển lãm tiếng Anh từ ý tưởng của nhóm em.','Create an English exhibition from your group’s ideas.')}</p>
     <small><Info size={15}/>{T(language,'Hạn nộp','Due')} {fmtTime(session.assignment.deadline_at)} · {T(language,'Tự lưu theo mã nhóm','Autosaved to this group pass')}</small></div>
    {session.feedback?<div className="bml-banner bml-warning-banner" role="status"><MessageSquare size={20}/><div><strong>{T(language,'Nhận xét để chỉnh sửa','Feedback for revision')}</strong>
       {session.feedback.teacher?<p>{T(language,'Giáo viên','Teacher')}: {session.feedback.teacher}</p>:null}
       {session.feedback.ttcm?<p>TTCM: {session.feedback.ttcm}</p>:null}</div></div>:null}
-   {locked?<div className="bml-banner bml-success-banner"><LockKeyhole size={20}/><div><strong>{T(language,'Bản nộp đã khóa chỉnh sửa','Submission is locked')}</strong>
+   {groupLocked?<div className="bml-banner bml-success-banner"><LockKeyhole size={20}/><div><strong>{T(language,'Bản nộp đã khóa chỉnh sửa','Submission is locked')}</strong>
       <p>{session.groupState==='published'?T(language,'Triển lãm đã được công bố.','Your museum has been published.') :
       session.groupState==='approved_locked'?T(language,'TTCM đã duyệt bản nộp.','The reviewer approved this version.') :
       T(language,'Bài đang được xem xét. Nhóm sẽ sửa lại nếu có yêu cầu.','Your submission is being reviewed. You can revise if it is returned.')}</p></div></div>:null}
@@ -130,8 +146,11 @@ export default function MuseumLabStudent({language='vi'}){
      <button type="button" className="bml-outline" disabled={locked} onClick={()=>edit(d=>({...d,legacy:false,legacyOriginal:null}))}>{T(language,'Tôi đã kiểm tra · Chuyển sang mẫu mới','Reviewed · Convert to V3')}</button>
     </div></div>:null}
    <nav className="bml-student-steps" aria-label={T(language,'Các bước thực hiện','Project steps')}>{STEPS.map((s,i)=><button type="button" key={s.key}
-     onClick={()=>{setStep(i);setPreview(false);}} className={i===step?'is-active':i<step?'is-complete':''}>
+     disabled={maxStudentStep<0||i>maxStudentStep}
+     onClick={()=>{if(i<=maxStudentStep){setStep(i);setPreview(false);}}} className={i===step?'is-active':i<step?'is-complete':''}>
      <span>{i<step?<Check size={17}/>:i+1}</span><small>{T(language,s.vi,s.en)}</small></button>)}</nav>
+   {liveRunning&&(maxStudentStep<0||!liveInfo.stageOpen)?<div className="bml-banner bml-warning-banner" role="status">
+    {T(language,'Đang chờ giáo viên mở nhiệm vụ thực hành.','Waiting for teacher to release group practice.')}</div>:null}
    <div className="bml-student-stage"><div className="bml-student-task bml-surface"><div className="bml-overline">{T(language,'BƯỚC','STEP')} {step+1} / 5</div>
     <h2>{T(language,STEPS[step].vi,STEPS[step].en)}</h2>
     {step===0?<><p>{T(language,'Đọc đề bài. Chọn một vấn đề môi trường thực tế mà người xem cần hiểu.','Read the assignment. Choose one real-world environmental issue your visitors should understand.')}</p>
@@ -165,9 +184,12 @@ export default function MuseumLabStudent({language='vi'}){
        <summary>{i+1}. {['The Problem','The Evidence','Our Solution'][i]}</summary>
        {field(T(language,'Mô tả bằng tiếng Anh','English description'),l[key],v=>changeLearning(key,v),{rows:3,disabled:locked})}
       </details>)}
+     <MuseumArtworkStudio studio={studio} update={edit} csrf={session.csrf} language={language}
+      disabled={locked||(liveRunning&&![6,8].includes(stageIndex))||busy} uploadEnabled={session.uploadEnabled===true} onAssets={setArtAssets}/>
      <button type="button" className="bml-outline" onClick={()=>setPreview(v=>!v)}><Eye size={19}/>{preview?T(language,'Đóng xem trước','Close preview'):T(language,'Xem trước bảo tàng 2D/3D','Preview 2D / 3D museum')}</button>
      {preview?<MuseumScene language={language} embedded gallery={{title:studio.title||'Our English Museum',summary:studio.summary,rooms:[{id:'draft-room',title:room.title,template_key:room.template_key,
-        exhibits:room.exhibits.map((e,i)=>({...e,id:'draft-exhibit-'+i,status:'published'}))}]}}/>:null}
+        exhibits:room.exhibits.map((e,i)=>({...e,id:'draft-exhibit-'+i,status:'published',
+         image_url:artAssets.find(x=>x.id===e.asset_id)?.image_url||''}))}]}}/>:null}
     </>:null}
     {step===3?<><p>{T(language,'Mời một bạn hoặc nhóm khác đọc thử triển lãm. Ghi nhận điều họ hiểu, rồi cải tiến nội dung.','Invite a classmate or group to test the exhibition, note their feedback, then improve your draft.')}</p>
      <div className="bml-step-hint"><MessageSquare size={21}/><div><strong>{T(language,'Câu hỏi gợi ý cho người xem','Ask your peer')}</strong>
@@ -192,7 +214,7 @@ export default function MuseumLabStudent({language='vi'}){
        [!!l.reflection,'Phản ánh học tập','Learning reflection']
       ].map(([ok,vi,en],i)=><div key={i} className={ok?'is-done':'is-pending'}><span>{ok?<Check size={16}/>:i+1}</span>{T(language,vi,en)}</div>)}
      </div>
-     <button type="button" disabled={busy||locked||studio.legacy||conflict||saveState==='saving'} className="bml-primary bml-full-button"
+     <button type="button" disabled={busy||locked||studio.legacy||conflict||saveState==='saving'||(liveRunning&&stageIndex!==10)} className="bml-primary bml-full-button"
       onClick={submit}><Send size={19}/>{busy?T(language,'Đang nộp bài…','Submitting…'):T(language,'Nộp để giáo viên duyệt','Submit for teacher review')}</button>
     </>:null}
     {error?<div className="bml-banner bml-danger-banner" role="alert"><CloudAlert size={19}/>{error}
@@ -201,7 +223,7 @@ export default function MuseumLabStudent({language='vi'}){
     <footer className="bml-student-bottom">
      <button type="button" className="bml-outline" disabled={step===0} onClick={()=>{setStep(s=>Math.max(0,s-1));setPreview(false);}}><ChevronLeft size={18}/>{T(language,'Quay lại','Previous')}</button>
      <div><button type="button" className="bml-text-btn" disabled={!dirty||busy||conflict||locked} onClick={()=>save()}><Cloud size={17}/>{T(language,'Lưu ngay','Save now')}</button>
-      {step<4?<button type="button" className="bml-primary" onClick={()=>{setStep(s=>Math.min(4,s+1));setPreview(false);}}>
+      {step<4?<button type="button" disabled={step>=maxStudentStep} className="bml-primary" onClick={()=>{setStep(s=>Math.min(maxStudentStep,4,s+1));setPreview(false);}}>
        {T(language,'Tiếp tục','Continue')} <ChevronRight size={18}/></button>:null}</div>
     </footer>
    </div>

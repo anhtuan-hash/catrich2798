@@ -16,6 +16,7 @@ export function normalizeGuestDraft(input,limits={max_rooms:3,max_exhibits:12}){
   // V3 pedagogical evidence is explicitly allowlisted; never accept arbitrary
   // fields/HTML or user identities. Backward compatible with V2 drafts.
   theme:['classic','culture','lab'].includes(input.theme)?input.theme:'classic',
+  artworks:Object.fromEntries(['issue','evidence','solution'].map(k=>[k,/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(input.artworks?.[k]))?input.artworks[k]:null])),
   learning:Object.fromEntries(
    ['issue','audience','source','evidence','solution','feedback','improvement','reflection','tested']
     .map(k=>[k,k==='tested'?input.learning?.tested===true:
@@ -30,8 +31,9 @@ export function normalizeGuestDraft(input,limits={max_rooms:3,max_exhibits:12}){
     title:clean(room.title||'Phòng '+(ri+1),120),
     template_key:room.template_key,
     exhibits:exhibits.map((exhibit,ei)=>{
-     if(!['text','model'].includes(exhibit?.kind))throw new Error('Chỉ cho phép nội dung văn bản và mô hình 3D được kiểm duyệt trong đợt thử nghiệm.');
+     if(!['text','model','image'].includes(exhibit?.kind))throw new Error('Chỉ cho phép tranh ảnh và nội dung đã kiểm tra.');
      if(exhibit.kind==='model'&&!GCP_MODELS.includes(exhibit.model_key))throw new Error('Mô hình 3D chưa được duyệt.');
+     if(exhibit.kind==='image'&&!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(exhibit.asset_id)))throw new Error('Ảnh chưa được lưu an toàn.');
      const t=exhibit.transform||{};
      const coords=(arr,fallback,min,max)=>{
       if(!Array.isArray(arr)||arr.length!==3||arr.some(v=>typeof v!=='number'||!Number.isFinite(v)||v<min||v>max))
@@ -43,6 +45,7 @@ export function normalizeGuestDraft(input,limits={max_rooms:3,max_exhibits:12}){
       description:clean(exhibit.description,5000),
       kind:exhibit.kind,
       model_key:exhibit.kind==='model'?exhibit.model_key:null,
+      asset_id:exhibit.kind==='image'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(exhibit.asset_id))?exhibit.asset_id:null,
       transform:{
        position:coords(t.position,[(ei%5-2)*2,2,-7.72],-8,8),
        rotation:coords(t.rotation,[0,0,0],-6.28319,6.28319),

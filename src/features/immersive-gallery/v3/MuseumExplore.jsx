@@ -71,8 +71,19 @@ export function MuseumSettings({data,onRefresh,language='vi'}){
     {isAdmin?<button type="button" className={data.creatorSettings?.enabled?'bml-outline':'bml-primary'} disabled={busy} onClick={toggle}>
      {data.creatorSettings?.enabled?tr(language,'Tạm khóa Creator Pass','Disable Creator Pass'):tr(language,'Bật Creator Pass sau nghiệm thu','Enable Creator Pass after QA')}</button>:
      <div className="bml-banner bml-info-banner"><Shield size={18}/>{tr(language,'Chỉ Admin được phép thay đổi quyền kích hoạt.','Only an Admin can change this switch.')}</div>}
-    <div className="bml-switch-row"><div><strong>{tr(language,'Tải tệp học sinh','Student media uploads')}</strong><small>{tr(language,'Chờ kiểm tra tệp/EXIF/quarantine an toàn','Waiting for safe file scanning and quarantine')}</small></div>
-     <span className="bml-pill-off">OFF</span></div>
+    <div className="bml-switch-row"><div><strong>{tr(language,'Tải tranh ảnh vào bảo tàng 3D','Student artwork uploads to 3D')}</strong>
+      <small>{tr(language,'JPG / PNG / WebP → PNG đã tái mã hóa, kho ảnh riêng tư và kiểm tra quyền nhóm','JPG / PNG / WebP → re-encoded PNG; private storage and group permissions')}</small></div>
+     <span className={data?.creatorSettings?.upload_enabled?'bml-pill-on':'bml-pill-off'}>{data?.creatorSettings?.upload_enabled?'ON':'OFF'}</span></div>
+    {isAdmin?<button type="button" className="bml-outline" disabled={busy||!data?.creatorSettings?.enabled}
+      onClick={()=>{
+       const enable=!data?.creatorSettings?.upload_enabled;
+       if(enable&&!window.confirm(tr(language,
+         'Chỉ bật sau khi đã kiểm thử tải ảnh thật, quyền nhóm và thiết bị học sinh. Bạn xác nhận mở tải ảnh?',
+         'Only enable after genuine media, group-scope and student-device QA. Confirm enable?')))return;
+       act('artwork-settings',{enabled:enable});
+      }}>{data?.creatorSettings?.upload_enabled?
+        tr(language,'Tắt tải tranh ảnh học sinh','Disable artwork uploads'):
+        tr(language,'Cho phép tải tranh ảnh sau nghiệm thu','Enable artwork uploads after QA')}</button>:null}
    </section>
    <section className="bml-surface"><div className="bml-eval-heading"><ShieldCheck size={21}/><h2>{tr(language,'Ủy quyền TTCM','Delegate department reviewer')}</h2></div>
     <p>{tr(language,'Cán bộ TTCM dùng tài khoản Brian hiện có. Người giao nhiệm vụ không được tự duyệt cuối bài của mình.','A staff member uses an existing Brian account. The assigning teacher cannot approve their own work.')}</p>
