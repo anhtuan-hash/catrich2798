@@ -118,9 +118,19 @@ function Walls({template,onTeleport,schoolEdition=false,lite=false}) {
  </group>;
 }
 const MOVE_KEYS=new Set(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright','shift']);
-function CameraWalker({held,paused,onPosition,teleport}) {
+function CameraWalker({held,paused,onPosition,teleport,schoolEdition=false}) {
  const {camera,gl,invalidate}=useThree();
  const yaw=useRef(0),pitch=useRef(0),drag=useRef(null);
+ useEffect(()=>{
+  // R3F default cameras look at the scene origin; a closer camera can then face
+  // AWAY from the actual art wall. Set a known school-gallery orientation.
+  if(!schoolEdition)return;
+  yaw.current=0;pitch.current=-.025;
+  camera.rotation.order='YXZ';
+  camera.rotation.set(pitch.current,yaw.current,0);
+  camera.updateMatrixWorld();
+  invalidate();
+ },[camera,invalidate,schoolEdition]);
  useEffect(()=>{
   if(teleport?.length===2){camera.position.set(teleport[0],1.7,teleport[1]);invalidate();}
  },[camera,invalidate,teleport]);
@@ -201,7 +211,7 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
     frameloop="demand" gl={{antialias:mode!=='lite',powerPreference:'low-power',alpha:false}} onCreated={({gl})=>{gl.setClearColor('#f2f0e9');}}>
     <Room template={template} exhibits={exhibits} onSelect={onSelect} selectedId={selectedId} onTeleport={onTeleport}
      schoolEdition={schoolEdition} lite={mode==='lite'}/>
-    <CameraWalker held={held} paused={!!selectedId} teleport={teleport} onPosition={onPosition}/>
+    <CameraWalker held={held} paused={!!selectedId} teleport={teleport} onPosition={onPosition} schoolEdition={schoolEdition}/>
    </Canvas>
   </Suspense>}
   {schoolEdition?<div className="big-pek-tools" role="group" aria-label={language==='en'?'Museum viewpoints':'Góc tham quan bảo tàng'}>
