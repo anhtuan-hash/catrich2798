@@ -189,6 +189,13 @@ declare g public.gcp_groups; a public.gcp_assignments; d public.gcp_drafts; revi
 begin
  select * into g from public.gcp_groups where id=p_group for update;
  if not found then raise exception 'group_missing'; end if;
+ -- A repeated HTTP submit after an uncertain network response returns the
+ -- already-created review, rather than issuing a duplicate or error.
+ if g.state='submitted' then
+   select id into review_id from public.gcp_reviews
+    where group_id=p_group and version=p_expected and state='submitted';
+   if review_id is not null then return review_id;end if;
+ end if;
  select * into a from public.gcp_assignments where id=g.assignment_id;
  if g.state not in ('editing','changes_requested') or
     a.status<>'active' or a.deadline_at < now() or
@@ -314,7 +321,7 @@ returns uuid language plpgsql security definer set search_path = '' as $$
 declare rev public.gcp_reviews; g public.gcp_groups; a public.gcp_assignments;
 d public.gcp_drafts; new_exhibition uuid; new_room uuid; room jsonb;
 piece jsonb; idx integer:=0; item_idx integer; created_item uuid;
-title text; model text;
+title text; model text; total_items integer:=0;
 begin
  select * into rev from public.gcp_reviews where id=p_review for update;
  if not found then raise exception 'review_missing'; end if;
@@ -357,7 +364,7 @@ begin
    returning id into new_room;
    item_idx:=0;
    for piece in select value from pg_catalog.jsonb_array_elements(room->'exhibits') loop
-     if item_idx>=a.max_exhibits then raise exception 'too_many_exhibits'; end if;
+     if total_items>=a.max_exhibits then raise exception 'too_many_exhibits'; end if;
      if piece->>'kind' not in ('text','model') then raise exception 'media_not_cleared'; end if;
      model:=case when piece->>'kind'='model' then piece->>'model_key' else null end;
      if model is not null and model not in ('pedestal','globe','book') then raise exception 'bad_model'; end if;
@@ -368,6 +375,7 @@ begin
        '{"position":[0,2,-7.72],"rotation":[0,0,0],"scale":[1,1,1]}'::jsonb),'draft')
      returning id into created_item;
      item_idx:=item_idx+1;
+     total_items:=total_items+1;
    end loop;
    idx:=idx+1;
  end loop;
