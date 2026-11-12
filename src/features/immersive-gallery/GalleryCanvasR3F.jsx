@@ -26,11 +26,11 @@ function CuratedModel({modelKey='globe',scale=1}) {
   return scene?<primitive object={scene} scale={scale}/>:<mesh scale={0.4}><octahedronGeometry/><meshStandardMaterial color="#a3b6ae"/></mesh>;
 }
 export {CuratedModel};
-function ArtworkImage({assetId}) {
+function ArtworkImage({assetId,imageUrl}) {
  const [texture,setTexture]=useState(null);
  useEffect(()=>{
-  if(!assetId)return undefined;let alive=true,created=null;
-  import('./galleryData.js').then(({getGalleryAssetUrl})=>getGalleryAssetUrl(assetId)).then(url=>{
+  if(!assetId&&!imageUrl)return undefined;let alive=true,created=null;
+  (imageUrl?Promise.resolve(imageUrl):import('./galleryData.js').then(({getGalleryAssetUrl})=>getGalleryAssetUrl(assetId))).then(url=>{
     if(!alive)return;
     new THREE.TextureLoader().load(url,t=>{
       created=t;t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=2;
@@ -38,7 +38,7 @@ function ArtworkImage({assetId}) {
     },undefined,()=>{if(alive)setTexture(null);});
   }).catch(()=>{if(alive)setTexture(null);});
   return()=>{alive=false;if(created)created.dispose();};
- },[assetId]);
+ },[assetId,imageUrl]);
  if(!texture)return <mesh position={[0,0,0.083]}><planeGeometry args={[1.3,0.8]}/><meshStandardMaterial color="#e2d4c7"/></mesh>;
  return <mesh position={[0,0,0.083]}><planeGeometry args={[1.3,0.9]}/><meshBasicMaterial map={texture} toneMapped={false} side={THREE.DoubleSide}/></mesh>;
 }
@@ -53,7 +53,7 @@ function PaperArtwork({exhibit,onSelect,isSelected}) {
   {exhibit.kind==='model'
    ?<group position={[0,0,0.45]}><CuratedModel modelKey={exhibit.model_key||'pedestal'} scale={0.63}/></group>
    :exhibit.kind==='image'
-    ?<ArtworkImage assetId={exhibit.asset_id}/>
+    ?<ArtworkImage assetId={exhibit.asset_id} imageUrl={exhibit.image_url}/>
     :<group><mesh position={[0,0.22,0.083]}><boxGeometry args={[1.06,0.12,0.02]}/><meshStandardMaterial color="#93afa7"/></mesh>
       <mesh position={[0,-0.04,0.085]}><boxGeometry args={[0.9,0.05,0.02]}/><meshStandardMaterial color="#d7c3b3"/></mesh>
       <mesh position={[0,-0.20,0.085]}><boxGeometry args={[1.02,0.05,0.02]}/><meshStandardMaterial color="#d7c3b3"/></mesh></group>}
