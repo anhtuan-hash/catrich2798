@@ -19,3 +19,6 @@ The draft migration uses owner/auth.uid checks, canonical database profile.role 
 ## Canonical school scope correction
 
 Read-only production inspection found that `public.profiles` SELECT policy only exposes the viewer's own profile to non-admins. Previous owner-profile joins could incorrectly fail. The proposed migration now captures immutable `gallery_exhibitions.school_scope` on insert using a SECURITY INVOKER trigger and the creating owner's canonical profile. It prevents later changes to the owner or school scope. The synthetic test fixture now uses restrictive `profiles` reads and explicitly attempts owner/school-scope tampering. This remains pending re-run against disposable PostgreSQL and has not been applied to Supabase.
+
+## 2026-11-12 addendum
+The disposable PostgreSQL job now reproduces the self-only `profiles` SELECT policy, verifies immutable school scope, and passes negative attempts to forge the owner and scope. See [RLS CI run 43182872719](https://github.com/anhtuan-hash/catrich2798/actions/runs/43182872719). This does not certify live Supabase.

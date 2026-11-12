@@ -7,7 +7,7 @@
 - `src/pages/AdminPage.jsx` — admin flag panel.
 - `src/features/immersive-gallery/*` — viewer, Studio, WebGL rooms, moderation, validation, local fixture seeder.
 - `supabase/migrations/20261112140000_brian_immersive_gallery_r1.sql` — proposed private schema and RLS; NOT APPLIED.
-- `scripts/test-immersive-gallery.mjs` + release-build hook — 22 deterministic unit/contract checks.
+- `scripts/test-immersive-gallery.mjs` + release-build hook — 22 deterministic unit/contract checks, passed in GitHub Actions.
 
 ## Rollout: do NOT execute before explicit approval
 1. Review branch diff and reconcile school/student identity policy with Brian's canonical auth.
@@ -24,3 +24,6 @@
 
 ## Precise limitations
 Release 1 user acceptance is not complete. R3F/Three/Drei and three curated original binary GLBs are integrated, and disposable PostgreSQL RLS has passed. School/student account compatibility, live Supabase staging, authenticated browser QA and actual performance metrics remain unverified. No production migrations or deployment were authorized or performed.
+
+## R1 validation update · 2026-11-12
+Browser 12/12 synthetic Playwright checks PASS (desktop, mobile, tablet), original GLB inspection rendered in Chromium, PostgreSQL 16 synthetic RLS checks PASS including canonical school scoping and foreign media ownership. These are not live Supabase staging or authenticated Brian acceptance. Read `GALLERY_QA_REPORT.md` before any merge. The PR remains draft and feature OFF.

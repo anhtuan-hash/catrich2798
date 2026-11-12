@@ -22,3 +22,6 @@ Read-only schema inspection on 2026-11-12 confirmed `public.profiles.role` check
 
 ## API safety
 The SQL must be reviewed on staging; RLS assertions against admin, teacher owner, unrelated teacher, school member, student and anonymous are NOT complete. Direct API mutations must fail closed. No production merge, production migration or public feature activation is authorized by this branch.
+
+## Actual production profile RLS reconciliation
+The real Brian `profiles` SELECT policy for ordinary users is self-only. An earlier draft compared a visitor's school to the owner's inaccessible profile row and was unsafe for correctness. The revised migration adds `gallery_exhibitions.school_scope` populated on INSERT by a SECURITY INVOKER trigger reading only the creator's approved canonical profile. It prevents subsequent mutations to `school_scope` and `owner_id`, and all school-view, media and student-submission policies compare against this immutable scope. The disposable PostgreSQL RLS harness now reproduces the restrictive `profiles` rule and passed. No changes were applied to Brian's existing profile table.
