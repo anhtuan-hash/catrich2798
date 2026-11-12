@@ -253,6 +253,59 @@ begin
  return next_state;
 end; $$;
 
+
+-- Atomic assignment/group issuance: a failed insert cannot strand partly created groups.
+create function public.gcp_staff_issue_assignment(
+ p_teacher uuid,p_reviewer uuid,p_school text,p_class text,p_title text,
+ p_brief text,p_deadline timestamptz,p_tokens jsonb
+) returns jsonb language plpgsql security definer set search_path = '' as $
+declare a public.gcp_assignments; gid uuid; token jsonb;
+ issued jsonb:='[]'::jsonb; seq integer:=0; label text;
+begin
+ if jsonb_typeof(p_tokens)<>'array' or jsonb_array_length(p_tokens) not between 1 and 12
+   or pg_column_size(p_tokens)>12000 then raise exception 'invalid_group_count';end if;
+ if p_deadline<now()+interval '1 hour' or p_deadline>now()+interval '120 days'
+   then raise exception 'invalid_deadline';end if;
+ if not (select enabled from public.gcp_settings where id=true) then
+   raise exception 'creator_pass_disabled';end if;
+ if not exists(select 1 from public.profiles p where p.id=p_teacher
+     and p.approved=true and p.school=p_school
+     and lower(p.role) in ('admin','teacher','department_head','ttcm','department-head','to_truong'))
+    or not exists(select 1 from public.gcp_reviewer_grants g
+       join public.profiles p on p.id=g.reviewer_id
+       where g.reviewer_id=p_reviewer and g.school_scope=p_school
+       and g.can_publish and g.active and p.approved and p.school=p_school)
+    or p_teacher=p_reviewer then raise exception 'assignment_authority_denied';end if;
+ insert into public.gcp_assignments(created_by,reviewer_id,school_scope,
+  class_scope,title,brief,deadline_at)
+ values(p_teacher,p_reviewer,p_school,p_class,p_title,p_brief,p_deadline)
+ returning * into a;
+ for token in select value from pg_catalog.jsonb_array_elements(p_tokens)
+ loop
+   if length(coalesce(token->>'handle','')) not between 16 and 80
+     or length(coalesce(token->>'secret_hash',''))<>64
+     then raise exception 'invalid_group_token';end if;
+   seq:=seq+1;
+   label:='Nhóm '||lpad(seq::text,2,'0');
+   insert into public.gcp_groups(assignment_id,label)
+   values(a.id,label) returning id into gid;
+   insert into public.gcp_drafts(group_id)values(gid);
+   insert into public.gcp_invites(group_id,handle,secret_hash,expires_at)
+   values(gid,token->>'handle',token->>'secret_hash',p_deadline);
+   issued:=issued||pg_catalog.jsonb_build_array(
+     pg_catalog.jsonb_build_object('groupId',gid,'label',label,'handle',token->>'handle')
+   );
+ end loop;
+ return pg_catalog.jsonb_build_object('assignment',
+  pg_catalog.jsonb_build_object('id',a.id,'title',a.title,'deadline_at',a.deadline_at),
+  'groups',issued);
+end; $;
+
+revoke all on function public.gcp_staff_issue_assignment(uuid,uuid,text,text,text,text,timestamptz,jsonb)
+from public,anon,authenticated;
+grant execute on function public.gcp_staff_issue_assignment(uuid,uuid,text,text,text,text,timestamptz,jsonb)
+to service_role;
+
 -- Privileged admin publication. The TTCM's final approval is mandatory;
 -- native Gallery trigger still requires a genuine Admin to publish. Do not
 -- disable or weaken native Gallery triggers to bypass this requirement.
@@ -271,6 +324,11 @@ begin
  if not exists(select 1 from public.profiles p where p.id=p_admin and
    p.role='admin' and p.approved=true and trim(p.school)=a.school_scope) then
    raise exception 'admin_required'; end if;
+ if rev.state='published' and g.state='published' then
+   select exhibition_id into new_exhibition from public.gcp_publication_links
+     where group_id=g.id and snapshot_hash=rev.snapshot_hash and review_id=rev.id;
+   if new_exhibition is not null then return new_exhibition;end if;
+ end if;
  if rev.state<>'approved_locked' or g.state<>'approved_locked' or
     rev.version<>d.version or
     rev.snapshot_hash<>encode(extensions.digest(convert_to(d.doc::text,'UTF8'),'sha256'),'hex') or
