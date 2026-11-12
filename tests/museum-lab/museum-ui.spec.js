@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import JSZip from 'jszip';
 import {test,expect} from '@playwright/test';
 test.beforeEach(async({page})=>{
  page.on('pageerror',error=>console.error('[museum-browser-pageerror]',String(error)));
@@ -101,4 +103,34 @@ test('malformed guest API responses never unlock the student editor',async({page
  await page.getByTestId('qa-student').click();
  await expect(page.getByTestId('museum-student-entry')).toBeVisible();
  await expect(page.getByTestId('museum-student-wizard')).toHaveCount(0);
+});
+
+test('competition dossier downloads valid editable OOXML DOCX with actual P1 content',async({page})=>{
+ await page.getByTestId('qa-evidence').click();
+ await expect(page.getByTestId('museum-evidence-studio')).toBeVisible();
+ const downloadPromise=page.waitForEvent('download');
+ await page.getByRole('button',{name:/Xuất Phần 1/}).click();
+ const download=await downloadPromise;
+ expect(download.suggestedFilename()).toMatch(/P1\.docx$/);
+ const zip=await JSZip.loadAsync(fs.readFileSync(await download.path()));
+ const doc=await zip.file('word/document.xml').async('string');
+ expect(doc).toContain('<w:document');
+ expect(doc).toContain('PHẦN 1');
+ expect(doc).toContain('Demo Teacher');
+ expect(zip.file('[Content_Types].xml')).toBeTruthy();
+});
+test('contest ZIP contains P1, P2 and explicit missing-evidence notice, never fabricated exhibits',async({page})=>{
+ await page.getByTestId('qa-evidence').click();
+ const downloadPromise=page.waitForEvent('download');
+ await page.getByRole('button',{name:/Tải ZIP hồ sơ nháp/}).click();
+ const download=await downloadPromise;
+ expect(download.suggestedFilename()).toMatch(/\.zip$/);
+ const zip=await JSZip.loadAsync(fs.readFileSync(await download.path()));
+ const first=zip.file('P1/Tong_quan.docx'),second=zip.file('P2/Ke_hoach_day_hoc.docx');
+ expect(first).toBeTruthy();expect(second).toBeTruthy();
+ const nested=await JSZip.loadAsync(await second.async('uint8array'));
+ const doc=await nested.file('word/document.xml').async('string');
+ expect(doc).toContain('KẾ HOẠCH DẠY HỌC');
+ const manifest=await zip.file('P2/CAN_BO_SUNG_MINH_CHUNG.txt').async('string');
+ expect(manifest).toContain('Không dùng dữ liệu demo làm minh chứng.');
 });
