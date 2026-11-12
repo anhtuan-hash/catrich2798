@@ -49,7 +49,7 @@ export default async function galleryStaff(req,res){
    const reviews=groupIds.length?await query(admin.from('gcp_reviews')
      .select('id,group_id,version,state,teacher_note,ttcm_note,approved_by,approved_at,submitted_at,snapshot_hash,snapshot')
      .in('group_id',groupIds).order('submitted_at',{ascending:false}).limit(500)):[];
-   const rubrics=groupIds.length?await query(admin.from('gcp_rubric_scores')
+   const rubrics=reviews.length?await query(admin.from('gcp_rubric_scores')
      .select('review_id,teacher_id,scores,feedback,updated_at')
      .in('review_id',reviews.map(r=>r.id)).limit(500)):[];
    const reviewerCandidates=ctx.role==='admin'?await query(admin.from('profiles')
