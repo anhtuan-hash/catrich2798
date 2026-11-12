@@ -77,6 +77,8 @@ export async function guestContext(req,admin,{write=false}={}){
  const sess=await query(admin.from('gcp_sessions')
   .select('token_hash,group_id,csrf_token,expires_at,revoked_at').eq('token_hash',digest('session:'+token)).maybeSingle());
  if(!sess||sess.revoked_at||sess.expires_at<=now)throw fail(401,'Phiên làm việc đã hết hạn.');
+ const feature=await settings(admin);
+ if(!feature.enabled)throw fail(423,'Creator Pass hiện đang khóa.');
  const group=await query(admin.from('gcp_groups').select('*').eq('id',sess.group_id).single());
  const assignment=await query(admin.from('gcp_assignments').select('*').eq('id',group.assignment_id).single());
  const invite=await query(admin.from('gcp_invites').select('revoked_at,expires_at')
