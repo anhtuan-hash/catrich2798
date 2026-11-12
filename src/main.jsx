@@ -103,7 +103,7 @@ const ResourceLibrary = lazy(() => import('./pages/ResourceLibrary.jsx'));
 const NewsReader = lazy(() => import('./pages/NewsReader.jsx'));
 const QAHealthCheck = lazy(() => import('./pages/QAHealthCheck.jsx'));
 const AuthPage = lazy(() => import('./pages/AuthPage.jsx'));
-const GalleryCreatorGuestPage = lazy(() => import('./features/immersive-gallery/GalleryCreatorGuestPage.jsx'));
+const GalleryCreatorGuestPage = lazy(() => import('./features/immersive-gallery/v3/MuseumLabStudent.jsx'));
 const AdminPage = lazy(() => import('./pages/AdminPage.jsx'));
 const SupabaseSetup = lazy(() => import('./pages/SupabaseSetup.jsx'));
 const HomeroomWorkspace = lazy(() => import('./pages/HomeroomWorkspace.jsx'));
