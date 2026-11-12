@@ -28,9 +28,9 @@ jobs:
         run: node --test scripts/test-gallery-creator-pass.mjs
       - name: Server-side syntax checks
         run: |
-          node --check api/_galleryCreator.js
-          node --check api/gallery-guest.js
-          node --check api/gallery-staff.js
+          node --check serverless-handlers/_galleryCreator.js
+          node --check serverless-handlers/gallery-guest.js
+          node --check serverless-handlers/gallery-staff.js
       - name: Browser bundle compilation
         run: npx vite build
 
