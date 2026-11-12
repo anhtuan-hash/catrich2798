@@ -1,3 +1,4 @@
+import {drawMuseumArtwork} from './museumIllustrationCanvas.js';
 // Original teacher-authored environmental English project collection.
 // This catalog is NOT a student submission/grade/audit event. Never write it to
 // live reviews, rubric scores, student identities, participation or statistics.
@@ -28,49 +29,27 @@ const definitions=[
  ]}
 ];
 const cache=new Map();
-const crop=s=>String(s??'').slice(0,320);
-function drawLines(c,text,y,size,color,maxLines=4){
- c.font='500 '+size+'px Arial,sans-serif';c.fillStyle=color;c.textAlign='left';c.textBaseline='top';
- let line='',count=0;
- for(const word of String(text).split(/\s+/)){
-  const next=(line+' '+word).trim();
-  if(c.measureText(next).width>900&&line){
-   c.fillText(line,60,y+count*(size+15),900);
-   line=word;count++;
-   if(count>=maxLines)return;
-  }else line=next;
- }
- if(line&&count<maxLines)c.fillText(line,60,y+count*(size+15),900);
-}
+// Lazy media creation: illustrated canvases are drawn when the user enters a
+// collection and are cached for room changes. No external URLs or image calls.
 function poster(def,p,part,idx){
  if(typeof document==='undefined')return '';
- const cacheKey=def.key+'-'+idx+'-'+part;
- if(cache.has(cacheKey))return cache.get(cacheKey);
+ const key=def.key+'-'+idx+'-'+part;
+ if(cache.has(key))return cache.get(key);
+ const canvas=document.createElement('canvas');
+ canvas.width=1024;canvas.height=768;
+ const ctx=canvas.getContext('2d');
+ if(!ctx)return '';
  try{
-  const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=768;
-  const c=canvas.getContext('2d');if(!c)return '';
-  const [dark,accent,light]=def.palette;
-  c.fillStyle='#fcfbf6';c.fillRect(0,0,1024,768);
-  c.fillStyle=dark;c.fillRect(0,0,1024,173);
-  c.fillStyle=accent;c.fillRect(0,173,1024,14);
-  c.fillStyle=light;c.fillRect(0,702,1024,66);
-  c.strokeStyle='rgba(255,255,255,0.22)';c.lineWidth=5;
-  for(let k=0;k<5;k++){c.beginPath();c.arc(924,96,60+k*32,0,Math.PI*2);c.stroke();}
-  c.fillStyle='white';c.font='bold 27px Arial';c.fillText('BRIAN ENGLISH  /  DISCOVERY MUSEUM',56,50,900);
-  c.font='bold 50px Arial';c.fillText(p[1],56,103,900);
-  c.fillStyle=dark;c.font='bold 23px Arial';c.fillText(def.scope+'  ·  '+p[0].toUpperCase(),58,222,900);
-  c.fillStyle=accent;c.fillRect(58,259,144,7);
-  c.fillStyle=dark;c.font='bold 50px Arial';
-  c.fillText(['THE PROBLEM','THE EVIDENCE','OUR SOLUTION'][part],58,303,900);
-  drawLines(c,p[part===0?2:part===1?3:5],398,34,dark,4);
-  c.fillStyle=accent;c.fillRect(58,621,13,56);
-  drawLines(c,part===1?'REFERENCE: '+p[4]:part===2?'REVIEW QUESTION: '+p[6]:
-   'ENGLISH · SCIENCE · DESIGN · COMMUNITY',86,629,21,dark,2);
-  c.fillStyle=dark;c.font='bold 18px Arial';
-  c.fillText('PÉTRUS KÝ · DISCOVER / CREATE / SHARE',58,735,800);
-  c.textAlign='right';c.fillText((part+1)+'/3',965,735,150);
-  const url=canvas.toDataURL('image/png');cache.set(cacheKey,url);return url;
- }catch{return '';}
+  drawMuseumArtwork(ctx,def,p,part,idx);
+  const url=canvas.toDataURL('image/png');
+  if(!url.startsWith('data:image/png;base64,'))return '';
+  cache.set(key,url);
+  return url;
+ }catch(error){
+  // A failed canvas should not turn the rest of the visitor experience blank.
+  if(typeof console!=='undefined')console.warn('[Museum illustrations] Could not prepare poster',def.key,idx,part,error);
+  return '';
+ }
 }
 export const PREPARED_COLLECTIONS=Object.freeze(definitions.map(def=>Object.freeze({
  key:def.key,title:def.title,classScope:def.scope,
