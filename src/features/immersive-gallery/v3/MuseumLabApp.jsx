@@ -7,6 +7,7 @@ import {Submissions} from './MuseumReview.jsx';
 import {MuseumTemplates,MuseumGallery,MuseumSettings} from './MuseumExplore.jsx';
 import MuseumEvidence from './MuseumEvidence.jsx';
 import MuseumScene from './MuseumScene.jsx';
+import MuseumExhibitionDetail from './MuseumExhibitionDetail.jsx';
 import {DEMO_GALLERY,staffRequest} from './museumApi.js';
 import './museumLab.css';
 const NAV=[
@@ -20,8 +21,13 @@ const NAV=[
  {id:'settings',icon:Settings2,vi:'Cài đặt',en:'Settings'}
 ];
 const tr=(language,vi,en)=>language==='en'?en:vi;
+const initialMuseumTab=()=>{
+ if(typeof window==='undefined')return 'home';
+ try{return new URLSearchParams(window.location.hash.split('?')[1]||'').has('exhibition')?'gallery':'home';}
+ catch{return 'home';}
+};
 export default function MuseumLabApp({currentUser,language='vi'}){
- const [tab,setTab]=useState('home'),[kit,setKit]=useState('climate'),[staff,setStaff]=useState(null);
+ const [tab,setTab]=useState(initialMuseumTab),[kit,setKit]=useState('climate'),[staff,setStaff]=useState(null);
  const [loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [query,setQuery]=useState(''),[reviewId,setReviewId]=useState(null),[help,setHelp]=useState(false),[menuOpen,setMenuOpen]=useState(false);
  const refresh=useCallback(async()=>{
@@ -34,6 +40,9 @@ export default function MuseumLabApp({currentUser,language='vi'}){
   return()=>window.clearInterval(timer);
  },[refresh]);
  const navigate=(id,extra)=>{
+  if(typeof window!=='undefined'&&id!=='gallery'&&id!=='demo'&&window.location.hash.includes('?exhibition=')){
+   window.history.replaceState(null,'',window.location.hash.split('?')[0]);
+  }
   setTab(id);setMenuOpen(false);setNotice('');
   if(id==='submissions'&&extra)setReviewId(extra);
  };
@@ -43,7 +52,7 @@ export default function MuseumLabApp({currentUser,language='vi'}){
  const activePage=NAV.find(n=>n.id===tab);
  const initials=String(currentUser?.full_name||currentUser?.name||currentUser?.email||'B').trim().slice(0,1).toUpperCase();
  const primary=NAV.slice(0,5),secondary=NAV.slice(5);
- return <div className={'bml bml-app-layout '+(menuOpen?'is-menu-open':'')} data-testid="brian-museum-lab-v3">
+ return <div className={'bml bml-app-layout '+(['gallery','demo'].includes(tab)?'bml-is-exhibition ':'')+(menuOpen?'is-menu-open':'')} data-testid="brian-museum-lab-v3">
   <aside className={'bml-sidebar '+(menuOpen?'is-open':'')}>
    <div className="bml-brand"><span className="bml-brand-icon"><Landmark size={23}/></span>
     <div><strong>BRIAN Museum Lab</strong><small>V3.0 · Learn by creating</small></div></div>
@@ -86,10 +95,9 @@ export default function MuseumLabApp({currentUser,language='vi'}){
       onCreate={()=>create()} onReview={id=>navigate('submissions',id)} onRefresh={refresh}/>:
     tab==='submissions'?<Submissions key={reviewId||'normal'} language={language} data={staff} query={query}
       initialReview={reviewId} onNavigate={navigate} onRefresh={refresh}/>:
-    tab==='gallery'?<MuseumGallery language={language} query={query} onDemo={demo}/>:
-    tab==='demo'?<div className="bml-screen"><div className="bml-banner bml-info-banner"><Sparkles size={19}/>
-       {tr(language,'Bản xem trước sử dụng nội dung mô phỏng gốc. Không phải minh chứng lớp học thật.','This is an original synthetic demo, not real student evidence.')}</div>
-      <MuseumScene gallery={DEMO_GALLERY} language={language} onBack={()=>navigate('gallery')}/></div>:
+    tab==='gallery'?<MuseumGallery language={language} query={query} data={staff} onNavigate={navigate} onDemo={demo}/>:
+    tab==='demo'?<MuseumExhibitionDetail gallery={DEMO_GALLERY} language={language} data={staff} isDemo
+      onNavigate={navigate} onBack={()=>navigate('gallery')}/>:
     tab==='templates'?<MuseumTemplates language={language} onCreate={create} onDemo={demo}/>:
     tab==='evidence'?<MuseumEvidence language={language} data={staff||{assignments:[],groups:[],reviews:[],rubrics:[]}}
       currentUser={currentUser} onDemo={demo}/>:
