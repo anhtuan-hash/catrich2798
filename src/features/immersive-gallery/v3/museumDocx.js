@@ -1,3 +1,5 @@
+import {contestBasename} from './learningEvidence.js';
+import {LESSON_RESOURCES,OFFLINE_GUIDE} from './lessonResources.js';
 // Generate actual Office Open XML documents, without synthesizing school evidence.
 const escapeXml=v=>String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&apos;");
 const p=(v,style='Normal')=>'<w:p><w:pPr><w:pStyle w:val="'+style+'"/></w:pPr><w:r><w:t xml:space="preserve">'+escapeXml(v)+'</w:t></w:r></w:p>';
@@ -51,16 +53,20 @@ export async function buildWordDraft(html){
  zip.file('word/styles.xml',styles);
  return zip.generateAsync({type:'blob',compression:'DEFLATE'});
 }
-export async function buildCompetitionZip(first,second,checklist){
+export async function buildCompetitionZip(first,second,checklist,teacherName){
  const {default:JSZip}=await import('jszip');
  const zip=new JSZip();
  const [a,b]=await Promise.all([buildWordDraft(first),buildWordDraft(second)]);
- zip.file('P1/Tong_quan.docx',a);
- zip.file('P2/Ke_hoach_day_hoc.docx',b);
+ zip.file('P1/'+contestBasename(teacherName)+'P1.docx',await a.arrayBuffer());
+ zip.file('P2/'+contestBasename(teacherName)+'P2.docx',await b.arrayBuffer());
+ zip.file('P2/Hoc_lieu/Learning_cards.txt',LESSON_RESOURCES.map(c=>[c.title,c.text,c.task,c.source,c.url||''].join('\n')).join('\n\n'));
+ zip.file('P2/Hoc_lieu/Offline_fallback.txt',OFFLINE_GUIDE);
  const instructions='BẢN NHÁP - cần xác nhận trước khi nộp.\nChỉ đính kèm học liệu và minh chứng lớp học có thật, được phép sử dụng.\nKhông dùng dữ liệu demo làm minh chứng.\n\n'+
  checklist.map(c=>(c.done?'[x] ':'[ ] ')+c.label+' - '+c.desc).join('\n');
  zip.file('P2/CAN_BO_SUNG_MINH_CHUNG.txt',instructions);
- return zip.generateAsync({type:'blob',compression:'DEFLATE'});
+ const result=await zip.generateAsync({type:'blob',compression:'DEFLATE'});
+ if(result.size>50*1024*1024)throw new Error('Hồ sơ vượt giới hạn 50 MB.');
+ return result;
 }
 export function saveBlob(blob,filename){
  const url=URL.createObjectURL(blob),a=document.createElement('a');

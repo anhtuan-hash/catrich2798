@@ -1,3 +1,5 @@
+import {surveyFor,feedbackFor} from './_museumEvidence.js';
+import {evidenceMissing,changedExhibits} from '../src/features/immersive-gallery/v3/learningEvidence.js';
 // Accountless guest endpoint. Authenticated Brian access is never granted here.
 // The only cookie is an opaque, short-lived, group-scoped capability.
 import {
@@ -106,9 +108,10 @@ export default async function galleryGuest(req,res){
    if(!Number.isInteger(body.expectedVersion)||body.expectedVersion<0)throw fail(400,'Phiên bản không hợp lệ.');
    const doc=normalizeGuestDraft(body.draft,ctx.assignment);
    const live=await query(admin.from('museum_live_sessions')
-     .select('status,stage_index,stage_open').eq('assignment_id',ctx.assignment.id).maybeSingle());
+     .select('id,status,stage_index,stage_open').eq('assignment_id',ctx.assignment.id).maybeSingle());
    if(live&&(!live.stage_open||live.status!=='active'||![3,4,6,7,8,9,10].includes(live.stage_index)))
      throw fail(423,'Giáo viên chưa mở hoạt động chỉnh sửa sản phẩm.');
+   if(doc.survey){const frozen=await surveyFor(admin,live?.id);if(!frozen||frozen.id!==doc.survey.id)throw fail(400,'Biểu đồ không thuộc khảo sát của lớp.');doc.survey=frozen;}
    const ids=[...new Set([
     ...Object.values(doc.artworks||{}).filter(Boolean),
     ...doc.rooms.flatMap(r=>r.exhibits||[]).map(e=>e.kind==='image'?e.asset_id:null).filter(Boolean)
@@ -132,11 +135,20 @@ export default async function galleryGuest(req,res){
    if(d.version!==body.expectedVersion)throw fail(409,'Bản nháp đã có thay đổi mới.');
    const doc=normalizeGuestDraft(d.doc,ctx.assignment);
    const live=await query(admin.from('museum_live_sessions')
-    .select('status,stage_index,stage_open').eq('assignment_id',ctx.assignment.id).maybeSingle());
+    .select('id,status,stage_index,stage_open').eq('assignment_id',ctx.assignment.id).maybeSingle());
    if(live && (live.status!=='active'||!live.stage_open||live.stage_index!==10))
     throw fail(423,'Hãy đợi giáo viên mở hoạt động nộp bài.');
    if(live&&!doc.rooms.some(r=>r.exhibits.some(e=>e.kind==='image')))
     throw fail(400,'Bảo tàng của nhóm cần tối thiểu một tranh hoặc poster đã tải lên.');
+   if(live&&await surveyFor(admin,live.id)){
+    const missing=evidenceMissing(doc);
+    if(missing.length)throw fail(400,'Cần hoàn thành: '+missing.join(' · '));
+    const feedback=await feedbackFor(admin,live.id,ctx.group.id);
+    if(!feedback.length)throw fail(400,'Chưa có phản hồi thực tế từ nhóm được phân công.');
+    const checkpoints=await query(admin.from('museum_checkpoints').select('kind,doc').eq('session_id',live.id).eq('group_id',ctx.group.id));
+    const before=checkpoints.find(c=>c.kind==='before'),after=checkpoints.find(c=>c.kind==='after');
+    if(!before||!after||!changedExhibits(before.doc,after.doc).length)throw fail(400,'Cần lưu thay đổi ít nhất một thẻ hoặc ảnh ở hoạt động Cải tiến trước khi chuyển sang Báo cáo.');
+   }
    validateGuestSubmission(doc);
    const reviewId=await query(admin.rpc('gcp_guest_submit',{
     p_group:ctx.group.id,p_expected:body.expectedVersion

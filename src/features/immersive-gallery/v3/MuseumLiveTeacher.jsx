@@ -2,6 +2,9 @@ import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronLeft,ChevronRight,Clock3,Eye,Fullscreen,HelpCircle,Lock,MonitorPlay,Pause,Play,Presentation,Printer,QrCode,RefreshCcw,ShieldCheck,Users,X} from 'lucide-react';
 import {LIVE_STAGES,LIVE_PERIOD_MINUTES,LIVE_TOTAL_MINUTES} from './liveLesson.js';
 import {liveStaff} from './museumLiveApi.js';
+import LessonResources from './LessonResources.jsx';
+import {surveyChartPng} from './surveyChart.js';
+import {saveBlob} from './museumDocx.js';
 import MuseumScene from './MuseumScene.jsx';
 import './museumLive.css';
 const t=(lang,vi,en)=>lang==='en'?en:vi;
@@ -12,18 +15,20 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  const [state,setState]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [showNotes,setShowNotes]=useState(false),[showQr,setShowQr]=useState(false),[qr,setQr]=useState('');
  const [spotlight,setSpotlight]=useState(null),[time,setTime]=useState(Date.now());
+ const [paper,setPaper]=useState(false),[tally,setTally]=useState(['','','','']),[tallyNote,setTallyNote]=useState('');
+ const freeze=async()=>{setBusy(true);setError('');try{await transport('freeze-survey',{assignmentId,version:state.session.version,...(paper?{counts:tally.map(v=>v===''?null:Number(v)),note:tallyNote}:{})});await refresh();}catch(e){setError(e.message);}finally{setBusy(false);}};
  const stageRef=useRef(null),activeRef=useRef(true);
  const refresh=useCallback(async()=>{
   if(!assignmentId)return;
   try{const response=await transport('state',null,{assignmentId});
-    if(activeRef.current){setState(response);setError('');}
+    if(activeRef.current){setState(response);}
   }catch(e){if(activeRef.current)setError(e.message);}
  },[assignmentId,transport]);
  useEffect(()=>{activeRef.current=true;refresh();const id=window.setInterval(()=>{refresh();setTime(Date.now());},3000);
   return()=>{activeRef.current=false;window.clearInterval(id);};},[refresh]);
  useEffect(()=>{if(!showQr)return;let active=true;import('qrcode').then(({default:QR})=>QR.toDataURL(link,{width:220,margin:2})).then(url=>{if(active)setQr(url);}).catch(()=>{});
   return()=>{active=false;};},[showQr]);
- const session=state?.session,stage=session?.stage,groups=state?.groups||[],result=state?.result;
+ const session=state?.session,stage=session?.stage,groups=state?.groups||[],result=session?.stageIndex===2&&state?.survey?state.survey:state?.result;
  const currentIndex=session?.stageIndex??0,minute=LIVE_STAGES[currentIndex]?.minutes||0;
  const elapsed=(session?.elapsedSeconds||0)+(session?.status==='active'&&session?.stageStartedAt?Math.max(0,Math.floor((time-Date.parse(session.stageStartedAt))/1000)):0);
  const remaining=Math.max(0,minute*60-elapsed);
@@ -35,7 +40,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
     const out=await transport(action==='start'?'start':'control',payload);
     if(out.session)setState(prev=>({...prev,session:out.session}));
     await refresh();
-  }catch(e){setError(e.message);await refresh();}
+  }catch(e){setError(e.message);}
   finally{setBusy(false);}
  };
  const spotlightGroup=async groupId=>{
@@ -89,7 +94,8 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
      {stage?.kind==='quiz'?<div className="bml-live-quiz">
        {stage.questions?.map((q,i)=><div key={i}><strong>Q{i+1}. {q.q}</strong>
         <p>{q.choices.join('   ·   ')}</p>
-        {session.revealed?<small>{t(language,'Đáp án','Answer')}: {String.fromCharCode(65+q.answer)}</small>:null}</div>)}</div>:null}
+        {session.revealed?<small>{t(language,'Đáp án','Answer')}: {String.fromCharCode(65+q.answer)} · {q.explanation}</small>:null}</div>)}</div>:null}
+     <LessonResources stageIndex={currentIndex} language={language} teacher/>
      <div className="bml-live-sentence">{stage?.sentence}</div>
      {stage?.kind==='vote'&&session.revealed&&result?<div className="bml-live-chart">
        <strong>{t(language,'KẾT QUẢ THỰC TẾ','LIVE RESULTS')} · N = {result.n} {t(language,'thiết bị nhóm','group devices')}</strong>
@@ -123,6 +129,14 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
      <button className="bml-text-btn" disabled={session.status==='ended'} onClick={()=>act('end')}><Check size={17}/>{t(language,'Kết thúc bài dạy','End lesson')}</button>
      <span className="bml-live-help">{state?.needHelp||0} {t(language,'nhóm cần trợ giúp','groups requesting help')}</span>
     </div>
+    {currentIndex===2&&session.evidenceVersion!==0?<div className="bml-evidence-controls">
+     {state?.survey?<><strong>Đã chốt · N={state.survey.n} lượt nhóm · {state.survey.source}</strong><p>{state.survey.created_at}</p><button className="bml-outline" onClick={()=>{const a=document.createElement('a');a.href=surveyChartPng(state.survey);a.download='Class-group-priority-survey.png';a.click();}}>{t(language,'Tải biểu đồ PNG','Download chart PNG')}</button></>:<>
+     <label><input type="checkbox" checked={paper} onChange={e=>setPaper(e.target.checked)}/> {t(language,'Nhập kiểm phiếu giấy (chỉ khi chưa có phiếu trực tuyến)','Enter paper tally (only with no online votes)')}</label>
+     {paper?<><div className="bml-field-grid">{stage.options.map((label,i)=><label key={label}>{label}<input type="number" min="0" max="1000" value={tally[i]} onChange={e=>setTally(v=>v.map((x,j)=>i===j?e.target.value:x))}/></label>)}</div><label>{t(language,'Nguồn phiếu và thời điểm','Paper source and time')}<input value={tallyNote} maxLength={500} onChange={e=>setTallyNote(e.target.value)}/></label></>:null}
+     <button className="bml-primary" disabled={busy} onClick={freeze}>{t(language,'Chốt số liệu khảo sát / Freeze survey','Freeze survey')}</button><p>{t(language,'Số liệu đã chốt không sửa. N là số nhóm; không suy ra thói quen cá nhân.','Frozen counts cannot change. N counts groups, not individual habits.')}</p></>}
+    </div>:null}
+    {currentIndex>=7&&state?.feedback?.length?<details open><summary>Phản hồi chéo đã lưu · {state.feedback.length}</summary>{state.feedback.map(r=><article key={r.from_group}><strong>{groups.find(g=>g.id===r.from_group)?.label} → {groups.find(g=>g.id===r.to_group)?.label} · {r.rating}/4</strong><p>{r.learned}</p><p>{r.clarify}</p></article>)}</details>:null}
+    {currentIndex===10?<div>{state?.responses?.map(r=><p key={r.group_id}><strong>{groups.find(g=>g.id===r.group_id)?.label}: </strong>{String(r.value)}</p>)}</div>:null}
     {showNotes?<div className="bml-live-notes"><h3>{t(language,'GHI CHÚ RIÊNG CỦA GIÁO VIÊN','TEACHER-ONLY NOTES')}</h3>
      <p>{stage?.teaching}</p><strong>{t(language,'Kết luận/điều cần lưu ý','Expected learning')}:</strong><p>{stage?.expected}</p></div>:null}
     {showQr?<div className="bml-live-qr"><div><strong>{t(language,'Học sinh truy cập Student Creator','Students open the Creator Studio')}</strong>

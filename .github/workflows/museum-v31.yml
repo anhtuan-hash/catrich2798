@@ -15,6 +15,9 @@ on:
       - 'scripts/test-museum-artwork-360-v34.mjs'
       - 'scripts/test-museum-prepared-portfolio-v35.mjs'
       - 'supabase/migrations/*museum_approved_artwork*'
+      - 'supabase/migrations/*museum_learning_evidence*'
+      - 'serverless-handlers/_museumEvidence.js'
+      - 'scripts/*museum*evidence*'
       - '.github/workflows/museum-v31.yml'
   workflow_dispatch:
 permissions:
@@ -38,6 +41,8 @@ jobs:
         run: node --test scripts/test-museum-artwork-360-v34.mjs
       - name: Classroom portfolios, content integrity, no fabricated submission records
         run: node --test scripts/test-museum-prepared-portfolio-v35.mjs
+      - name: Learning evidence invariants
+        run: node --test scripts/test-museum-learning-evidence.mjs
       - name: Node backend syntax
         run: |
           node --check serverless-handlers/museum-live.js
@@ -87,4 +92,4 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y postgresql-client
       - name: Run private upload schema and TTCM-approved image publication
-        run: bash scripts/museum-v31-postgres-qa.sh
+        run: bash scripts/museum-evidence-postgres-qa.sh

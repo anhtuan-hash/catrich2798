@@ -1,6 +1,8 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import {CheckCircle2,Image as ImageIcon,ImagePlus,Info,Lock,RefreshCcw,Trash2,UploadCloud} from 'lucide-react';
-import {artGuest,imageToCanvasPng} from './museumLiveApi.js';
+import {artGuest,liveGuest,imageToCanvasPng} from './museumLiveApi.js';
+import {surveyChartPng} from './surveyChart.js';
+import {surveyCitation,normalizeArtMeta} from './learningEvidence.js';
 import './museumLive.css';
 const LABELS=[['issue','The Problem'],['evidence','The Evidence'],['solution','Our Solution']];
 export default function MuseumArtworkStudio({studio,update,csrf,disabled=false,uploadEnabled=false,language='vi',onAssets}){
@@ -23,6 +25,14 @@ export default function MuseumArtworkStudio({studio,update,csrf,disabled=false,u
    setNotice(t('Đã tải tranh lên kho riêng tư và sẵn sàng treo trong phòng 3D.','Artwork is privately stored and ready for the 3D wall.'));
   }catch(e){setError(e.message);}finally{setBusySlot(null);}
  };
+ const pinSurvey=async()=>{
+  setBusySlot('evidence');setError('');
+  try{const {snapshot}=await liveGuest('results');const png=surveyChartPng(snapshot);
+   const out=await artGuest('upload','POST',{png,filename:'Class group priority survey.png',replaceId:studio.artworks?.evidence||null},csrf);
+   update(d=>({...d,survey:snapshot,artworks:{...d.artworks,evidence:out.asset.id},artMeta:{...normalizeArtMeta(d.artMeta),evidence:{alt:'Bar chart showing '+snapshot.n+' group priority votes. '+snapshot.options.map(o=>o.label+': '+o.count).join('; '),source:surveyCitation(snapshot),rights:'Original class survey chart; group totals only.'}}}));
+   await refresh();setNotice(t('Đã gắn biểu đồ thật. Nhóm tự viết phần diễn giải bằng tiếng Anh.','Frozen chart attached. Write your own English interpretation.'));
+  }catch(e){setError(e.message);}finally{setBusySlot(null);}
+ };
  const remove=async(key)=>{
   const id=studio.artworks?.[key];if(!id||!window.confirm(t('Xóa tranh này khỏi nhóm?','Delete this group artwork?')))return;
   setBusySlot(key);setError('');
@@ -38,6 +48,7 @@ export default function MuseumArtworkStudio({studio,update,csrf,disabled=false,u
    <button type="button" className="bml-icon-btn" onClick={refresh} title={t('Cập nhật ảnh','Refresh art')}><RefreshCcw size={20}/></button></div>
   {!uploadEnabled?<div className="bml-banner bml-warning-banner"><Lock size={20}/>
    {t('Chức năng tải ảnh đang được giữ khóa tới khi hoàn tất kiểm thử và Admin bật quyền tải ảnh.','Image upload remains locked until media QA and Admin approval.')}</div>:null}
+  <button type="button" className="bml-primary" disabled={disabled||!uploadEnabled||!!busySlot} onClick={pinSurvey}>{t('Gắn biểu đồ khảo sát đã chốt vào Evidence','Attach frozen survey chart to Evidence')}</button>
   <div className="bml-student-artwork-grid">{LABELS.map(([key,label])=>{
    const id=studio.artworks?.[key],asset=lookup.get(id),loading=busySlot===key;
    return <div className="bml-artwork-slot" key={key}>
@@ -45,11 +56,12 @@ export default function MuseumArtworkStudio({studio,update,csrf,disabled=false,u
     {asset?.image_url?<img src={asset.image_url} alt={label+' — '+asset.original_name} referrerPolicy="no-referrer" loading="lazy"/>:
       <div className="bml-artwork-missing"><ImageIcon size={29}/>{t('Chưa tải tranh','No image yet')}</div>}
     <span className="bml-artwork-caption">{asset?.original_name||t('Tranh do nhóm tự tạo hoặc được phép sử dụng','Your own art or licensed material')}</span>
-    <label aria-disabled={disabled||!uploadEnabled||loading}><UploadCloud size={17}/> {loading?t('Đang xử lý…','Processing…'):asset?t('Thay tranh','Replace art'):t('Tải tranh lên','Upload art')}
-      <input type="file" accept="image/jpeg,image/png,image/webp" disabled={disabled||!uploadEnabled||loading}
+    <label aria-disabled={disabled||!uploadEnabled||!!busySlot}><UploadCloud size={17}/> {loading?t('Đang xử lý…','Processing…'):asset?t('Thay tranh','Replace art'):t('Tải tranh lên','Upload art')}
+      <input type="file" accept="image/jpeg,image/png,image/webp" disabled={disabled||!uploadEnabled||!!busySlot}
        onChange={e=>{const file=e.currentTarget.files?.[0];e.currentTarget.value='';if(file)upload(key,file);}}/>
     </label>
-    {id&&asset?<button type="button" className="bml-outline" disabled={disabled||loading} onClick={()=>remove(key)}>
+    {id?<div className="bml-art-meta">{[['alt','Mô tả ảnh / Alt text'],['source','Nguồn ảnh / Source'],['rights','Quyền sử dụng / Permission']].map(([f,label])=><label key={f}>{label}<input maxLength={f==='alt'?500:f==='source'?600:300} disabled={disabled} value={studio.artMeta?.[key]?.[f]||''} onChange={e=>{const value=e.target.value;update(d=>({...d,artMeta:{...normalizeArtMeta(d.artMeta),[key]:{...normalizeArtMeta(d.artMeta)[key],[f]:value}}}));}}/></label>)}</div>:null}
+    {id&&asset?<button type="button" className="bml-outline" disabled={disabled||!!busySlot} onClick={()=>remove(key)}>
       <Trash2 size={16}/>{t('Xóa ảnh','Remove image')}</button>:null}
    </div>;})}</div>
   <div className="bml-banner bml-info-banner"><Info size={17}/>{t(

@@ -1,3 +1,4 @@
+import {normalizeArtMeta,surveySummary} from './v3/learningEvidence.js';
 // BRIAN Gallery Creator Pass — pure allowlist validation for untrusted guest documents.
 // The server revalidates on EVERY save/submit. Browser validation is only UX.
 export const GCP_ROOM_TEMPLATES = Object.freeze(['classic','culture','lab']);
@@ -11,14 +12,14 @@ export function normalizeGuestDraft(input,limits={max_rooms:3,max_exhibits:12}){
  if(rooms.length>maxRooms)throw new Error('Vượt số phòng cho phép.');
  let count=0;
  const result={
-  title:clean(input.title,140),
+  title:clean(input.title,140),artMeta:normalizeArtMeta(input.artMeta),survey:surveySummary(input.survey),
   summary:clean(input.summary,1200),
   // V3 pedagogical evidence is explicitly allowlisted; never accept arbitrary
   // fields/HTML or user identities. Backward compatible with V2 drafts.
   theme:['classic','culture','lab'].includes(input.theme)?input.theme:'classic',
   artworks:Object.fromEntries(['issue','evidence','solution'].map(k=>[k,/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(input.artworks?.[k]))?input.artworks[k]:null])),
   learning:Object.fromEntries(
-   ['issue','audience','source','evidence','solution','feedback','improvement','reflection','tested']
+   ['issue','audience','source','evidence','solution','feedback','improvement','reflection','tested','roles','feasibility']
     .map(k=>[k,k==='tested'?input.learning?.tested===true:
       clean(input.learning?.[k],['issue','evidence','solution'].includes(k)?2500:1200)])
   ),
@@ -42,7 +43,7 @@ export function normalizeGuestDraft(input,limits={max_rooms:3,max_exhibits:12}){
      };
      return {
       title:clean(exhibit.title||'Hiện vật '+(ei+1),160),
-      description:clean(exhibit.description,5000),
+      description:clean(exhibit.description,5000),alt_text:clean(exhibit.alt_text,500),
       kind:exhibit.kind,
       model_key:exhibit.kind==='model'?exhibit.model_key:null,
       asset_id:exhibit.kind==='image'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(exhibit.asset_id))?exhibit.asset_id:null,

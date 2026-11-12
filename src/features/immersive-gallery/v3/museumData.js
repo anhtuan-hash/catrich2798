@@ -1,3 +1,4 @@
+import {normalizeArtMeta,surveySummary} from './learningEvidence.js';
 // BRIAN Museum Lab V3 — deterministic learning content and validation.
 // No network calls, identities, third-party model endpoints, or invented assessment data.
 export const LESSON_KITS = Object.freeze([
@@ -35,7 +36,7 @@ export const STEPS = Object.freeze([
  {key:'submit',vi:'Nộp bài',en:'Submit'}
 ]);
 const cap=(value,max)=>String(value??'').replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,max);
-export const emptyLearning=()=>({issue:'',audience:'',source:'',evidence:'',solution:'',feedback:'',improvement:'',reflection:'',tested:false});
+export const emptyLearning=()=>({issue:'',audience:'',source:'',evidence:'',solution:'',feedback:'',improvement:'',reflection:'',tested:false,roles:'',feasibility:''});
 export const emptyStudio=()=>({title:'',summary:'',theme:'classic',learning:emptyLearning(),artworks:{issue:null,evidence:null,solution:null},rooms:[]});
 export function normalizeStudio(raw){
  const input=raw && typeof raw==='object'?raw:{};
@@ -50,7 +51,7 @@ export function normalizeStudio(raw){
  const learning={};
  for(const key of Object.keys(emptyLearning()))learning[key]=key==='tested'?stored.tested===true:cap(stored[key]??fallback[key]??'',key==='evidence'||key==='issue'||key==='solution'?2500:1200);
  return {
-  title:cap(input.title,140),
+  title:cap(input.title,140),artMeta:normalizeArtMeta(input.artMeta),survey:surveySummary(input.survey),
   summary:cap(input.summary,1200),
   theme:['classic','culture','lab'].includes(input.theme)?input.theme:(original[0]?.template_key||'classic'),
   learning,artworks:Object.fromEntries(['issue','evidence','solution'].map(key=>[key,/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(input.artworks?.[key]))?input.artworks[key]:null])),legacy,legacyOriginal:legacy?input:null
@@ -68,8 +69,10 @@ export function documentFromStudio(studio){
   description: cap([
    body,
    i===1&&v.source?'Source: '+v.source:'',
-   i===2&&v.improvement?'After peer testing: '+v.improvement:''
+   i===2&&v.improvement?'After peer testing: '+v.improvement:'',
+   d.artworks[['issue','evidence','solution'][i]]?'Image source: '+d.artMeta[['issue','evidence','solution'][i]].source+' · Rights: '+d.artMeta[['issue','evidence','solution'][i]].rights:''
   ].filter(Boolean).join('\n\n'),5000),
+  alt_text:d.artMeta[['issue','evidence','solution'][i]].alt,
   kind:d.artworks[['issue','evidence','solution'][i]]?'image':'text',
   asset_id:d.artworks[['issue','evidence','solution'][i]]||null,model_key:null,
   transform:{position:[(i-1)*3,2,-7.72],rotation:[0,0,0],scale:[1,1,1]}
@@ -78,7 +81,7 @@ export function documentFromStudio(studio){
   title:d.title,
   summary:d.summary,
   theme:d.theme,
-  learning:v,artworks:d.artworks,
+  learning:v,artworks:d.artworks,artMeta:d.artMeta,survey:d.survey,
   rooms:[{title:d.title||'Our English Museum',template_key:d.theme,exhibits:descriptions}]
  };
 }
