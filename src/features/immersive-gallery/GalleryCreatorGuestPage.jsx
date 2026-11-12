@@ -113,6 +113,10 @@ export default function GalleryCreatorGuestPage(){
   <div className="gcp-content">
    <section className="gcp-brief"><b>Đề bài của giáo viên</b><p>{session.assignment.brief||'Hãy tạo một bảo tàng tiếng Anh bằng nội dung do nhóm tự thực hiện.'}</p>
     <small>Hạn nộp: {new Date(session.assignment.deadline_at).toLocaleString('vi-VN')} · Tối đa {session.assignment.max_rooms} phòng, {session.assignment.max_exhibits} hiện vật</small></section>
+   {session.feedback?<section className="gcp-note" role="status"><h2>Nhận xét để chỉnh sửa</h2>
+    {session.feedback.teacher?<p><b>Giáo viên:</b> {session.feedback.teacher}</p>:null}
+    {session.feedback.ttcm?<p><b>TTCM:</b> {session.feedback.ttcm}</p>:null}
+   </section>:null}
    {!allowed?<div className="gcp-note"><h2>Bản triển lãm đã khóa chỉnh sửa</h2>
      <p>{session.groupState==='approved_locked'?'TTCM đã duyệt phiên bản đã nộp.':
       session.groupState==='published'?'Triển lãm đã được xuất bản.':
@@ -136,13 +140,27 @@ export default function GalleryCreatorGuestPage(){
        <div className="gcp-actions"><button type="button" onClick={()=>{setPreview(v=>!v);setListOnly(false);}}>{preview?'Trở lại biên tập':'Xem trước 3D'}</button>
         {allowed?<button type="button" className="gcp-danger" onClick={()=>{removeRoom(roomIndex);setRoomIndex(0);}}>Xóa phòng</button>:null}</div></div>
        {preview?<><div className="gcp-preview">
-         {listOnly?<div className="gcp-note">Chế độ xem 2D đang bật. Tất cả nội dung hiện vật vẫn có trong danh sách bên dưới.</div>:
+         {listOnly?<div className="gcp-note"><h3>Danh sách hiện vật 2D</h3>
+           {room.exhibits.length?room.exhibits.map((e,i)=><article key={i} className="gcp-exhibit-card">
+              <b>{e.title}</b><p>{e.description}</p>
+              {e.kind==='model'?<small>Mô hình: {e.model_key}</small>:null}
+             </article>):<p>Phòng chưa có hiện vật.</p>}
+          </div>:
           <Suspense fallback={<p>Đang mở phòng 3D…</p>}><GalleryCanvas template={room.template_key} exhibits={room3d.exhibits} quality="balanced" language="vi"/></Suspense>}</div>
          <button type="button" onClick={()=>setListOnly(v=>!v)}>Chuyển {listOnly?'3D':'2D'}</button></>:
         <>
          <label>Tên phòng<input disabled={!allowed} maxLength={120} value={room.title}
            onChange={e=>updateRoom(roomIndex,{title:e.target.value})}/></label>
          <h3>03 · Hiện vật trong phòng</h3>
+         <div className="gcp-plan">
+          <div className="gcp-plan-heading"><b>Sơ đồ phòng nhìn từ trên xuống</b><small>Vị trí sẽ cập nhật trong phòng 3D</small></div>
+          <div className="gcp-plan-floor" role="img" aria-label="Sơ đồ hiện vật trong phòng">
+           {room.exhibits.map((item,i)=><span key={i} className="gcp-plan-marker"
+              style={{left:((Math.max(-7,Math.min(7,item.transform?.position?.[0]||0))+7)/14*90+5)+'%',
+                top:((Math.max(-8,Math.min(8,item.transform?.position?.[2]||0))+8)/16*84+8)+'%'}}>
+             {i+1}</span>)}
+          </div>
+         </div>
          <div className="gcp-exhibits">{room.exhibits.map((item,i)=><article className="gcp-exhibit-card" key={i}>
           <div className="gcp-card-title"><b>Hiện vật {i+1}</b>{allowed?<button type="button" onClick={()=>updateRoom(roomIndex,{exhibits:room.exhibits.filter((_,n)=>n!==i)})}>Xóa</button>:null}</div>
           <label>Tựa đề<input disabled={!allowed} maxLength={160} value={item.title}
@@ -151,9 +169,21 @@ export default function GalleryCreatorGuestPage(){
              onChange={e=>updateExhibit(roomIndex,i,{description:e.target.value})}/></label>
           {item.kind==='model'?<label>Mô hình được duyệt<select disabled={!allowed} value={item.model_key||'globe'}
             onChange={e=>updateExhibit(roomIndex,i,{model_key:e.target.value})}>{GCP_MODELS.map(model=><option key={model}>{model}</option>)}</select></label>:null}
-          <div className="gcp-placement">Vị trí XYZ: {item.transform?.position?.join(' / ')} ·
-          <label>Trục X<input disabled={!allowed} type="number" step=".25" min="-6" max="6" value={item.transform?.position?.[0]??0}
-            onChange={e=>updateExhibit(roomIndex,i,{transform:{...item.transform,position:[Number(e.target.value),item.transform.position[1],item.transform.position[2]]}})}/></label></div>
+          <div className="gcp-placement">
+           {['position','rotation','scale'].map(axis=><fieldset className="gcp-axis-group" key={axis}><legend>{axis}</legend>
+            {['X','Y','Z'].map((letter,index)=><label key={letter}>{letter}
+             <input disabled={!allowed} type="number" step={axis==='rotation'?'0.1':'0.25'}
+              min={axis==='scale'?'.25':axis==='rotation'?'-6.28':'-8'}
+              max={axis==='scale'?'3':axis==='rotation'?'6.28':'8'}
+              value={item.transform?.[axis]?.[index]??(axis==='scale'?1:0)}
+              onChange={e=>{
+               const next=[...(item.transform?.[axis]||[0,0,0])];
+               next[index]=Number(e.target.value);
+               updateExhibit(roomIndex,i,{transform:{...item.transform,[axis]:next}});
+              }}/>
+            </label>)}
+           </fieldset>)}
+          </div>
          </article>)}</div>
          {allowed&&draft.rooms.reduce((n,r)=>n+r.exhibits.length,0)<session.assignment.max_exhibits?<div className="gcp-add-room">
           <button type="button" onClick={()=>updateRoom(roomIndex,{exhibits:[...room.exhibits,itemBase('text',room.exhibits.length)]})}>+ Văn bản / Poster bằng chữ</button>
