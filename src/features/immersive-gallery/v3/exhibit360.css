@@ -1,0 +1,33 @@
+/* Scoped artwork inspection: no changes to legacy Gallery R1 or app-wide dialogs. */
+.bml .bml-art-360-dialog{width:min(960px,100%);max-width:960px;max-height:min(92dvh,900px);padding:22px;overflow:auto}
+.bml .bml-art-360-dialog>header{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.bml .bml-art-360-dialog>h2{margin:8px 0 4px;font-size:clamp(20px,2.5vw,29px);line-height:1.18}
+.bml .bml-art-360-dialog .bml-article-copy{font-size:14px;line-height:1.65;margin:12px 0 15px}
+.bml .bml-exhibit-360{max-width:100%;min-width:0}
+.bml .bml-exhibit-360-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0}
+.bml .bml-exhibit-360-toolbar button,.bml .bml-exhibit-360-actions button{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid #ccdcd7;border-radius:999px;background:#fff;color:#26554e;padding:8px 13px;font-size:13px;font-weight:650;min-height:38px}
+.bml .bml-exhibit-360-toolbar button[aria-pressed=true]{background:#176f57;border-color:#176f57;color:#fff}
+.bml .bml-exhibit-360-toolbar button:disabled{opacity:.55;cursor:not-allowed}
+.bml .bml-exhibit-360-stage{height:clamp(250px,42vw,420px);position:relative;overflow:hidden;isolation:isolate;border:1px solid #c8dcd2;background:#e8efeb;border-radius:17px;display:grid;place-items:center}
+.bml .bml-exhibit-360-stage canvas{display:block;touch-action:none;cursor:grab}
+.bml .bml-exhibit-360-stage canvas:active{cursor:grabbing}
+.bml .bml-exhibit-360-stage .bml-exhibit-original-image{max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain}
+.bml .bml-exhibit-360-stage .bml-exhibit-2d-copy{padding:28px;text-align:center;overflow:auto;max-height:100%;color:#245249;white-space:pre-wrap}
+.bml .bml-exhibit-360-stage .bml-exhibit-2d-copy strong{font-size:22px}
+.bml .bml-exhibit-360-stage .bml-exhibit-2d-copy p{line-height:1.6;overflow-wrap:anywhere}
+.bml .bml-exhibit-360-wait{position:absolute;inset:0;background:#e8efeb;display:grid;place-items:center;font-weight:600;color:#286c5c}
+.bml .bml-exhibit-360-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:10px 0}
+.bml .bml-exhibit-360-help{font-size:13px;line-height:1.5;color:#236551;margin:10px 0 5px}
+.bml .bml-exhibit-360-disclaimer{font-size:12px;line-height:1.5;color:#6b7775;margin:3px 0 8px}
+.bml .bml-exhibit-360-error{padding:9px 11px;border-radius:9px;background:#fff1de;color:#8b4c12;font-size:12px}
+.bml .bml-art-360-dialog .bml-art-360-finish{margin-top:10px}
+@media(max-width:620px){
+ .bml .bml-art-360-dialog{padding:13px;border-radius:16px;max-height:94dvh}
+ .bml .bml-exhibit-360-stage{height:clamp(220px,52dvh,335px)}
+ .bml .bml-exhibit-360-toolbar{gap:5px}
+ .bml .bml-exhibit-360-toolbar button{padding:7px 9px;font-size:12px}
+ .bml .bml-exhibit-360-actions button{padding:7px 10px;font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){
+ .bml .bml-exhibit-360-stage,.bml .bml-exhibit-360-stage canvas{scroll-behavior:auto}
+}
