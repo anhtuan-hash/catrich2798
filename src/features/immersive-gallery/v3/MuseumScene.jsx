@@ -99,7 +99,7 @@ export default function MuseumScene({gallery,onBack,language='vi',embedded=false
   </>:<div className="bml-empty">{tr('Triển lãm chưa có phòng.','No rooms available.')}</div>}
   {selected?<div className="bml-modal-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)closeExhibit();}} role="presentation">
     <section className="bml-modal bml-art-dialog bml-art-360-dialog" ref={dialogRef} role="dialog" aria-modal="true"
-      aria-label={tr('Xem 360 độ: ','360 degree view: ')+clean(selected.title,140)} data-testid="museum-artwork-inspector">
+      aria-label={clean(selected.title,140)} data-testid="museum-artwork-inspector">
      <header><span className="bml-overline">{tr('THAM QUAN HIỆN VẬT 360°','360° EXHIBIT INSPECTION')}</span>
       <button type="button" className="bml-icon-btn" ref={closeRef} aria-label={tr('Đóng','Close')} onClick={closeExhibit}>✕</button></header>
      <h2>{clean(selected.title,160)}</h2>
@@ -108,7 +108,7 @@ export default function MuseumScene({gallery,onBack,language='vi',embedded=false
      </Suspense>
      <p className="bml-article-copy">{clean(selected.description,2500)||tr('Chưa có thuyết minh.','No description yet.')}</p>
      {selected.kind==='model'?<p><Box size={17}/> {tr('Mô hình 3D được tuyển chọn.','Curated 3D object.')}</p>:null}
-     <button type="button" className="bml-primary bml-art-360-finish" onClick={closeExhibit}>{tr('Quay lại phòng tranh','Back to gallery')}</button>
+     <button type="button" className="bml-primary bml-art-360-finish" onClick={closeExhibit}>{tr('Đã hiểu','Got it')}</button>
     </section>
    </div>:null}
  </section>;
