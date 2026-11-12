@@ -57,7 +57,11 @@ export default async function museumArtwork(req,res){
   if(op==='upload'){
    requireMethod(req,'POST');
    const body=guardBody(req,4050000);
-   const current=await list(ctx);if(current.length>=6)throw fail(423,'Tối đa 6 tranh ảnh mỗi nhóm.');
+   const current=await list(ctx);
+   const replaceId=uid(body.replaceId)?body.replaceId:null;
+   const replace=replaceId?current.find(a=>a.id===replaceId):null;
+   if(body.replaceId&&!replace)throw fail(403,'Không thể thay ảnh ngoài nhóm.');
+   if(current.length>=6&&!replace)throw fail(423,'Tối đa 6 tranh ảnh mỗi nhóm.');
    let image;
    try{image=canonicalArtworkPng(body.png);}catch(e){throw fail(400,e.message);}
    const name=clean(body.filename||'Student artwork',150);
@@ -74,6 +78,14 @@ export default async function museumArtwork(req,res){
     }));
    }catch(e){
     await admin.storage.from(BUCKET).remove([storagePath]);throw e;
+   }
+   if(replace){
+    const old=await query(admin.from('museum_artwork_assets').select('storage_path')
+     .eq('id',replace.id).eq('group_id',ctx.group.id).eq('status','private_ready').single());
+    await query(admin.from('museum_artwork_assets').update({
+     status:'removed',removed_at:new Date().toISOString()
+    }).eq('id',replace.id).eq('group_id',ctx.group.id));
+    await admin.storage.from(BUCKET).remove([old.storage_path]).catch(()=>{});
    }
    const [asset]=await signed(ctx,[{id:assetId,original_name:name,bytes:image.bytes,width:image.width,height:image.height}]);
    return send(res,201,{asset});
