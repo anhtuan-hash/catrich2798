@@ -1,5 +1,6 @@
 import React,{Suspense,lazy,useMemo,useState} from 'react';
 import {ArrowLeft,ArrowRight,Box,ChevronLeft,ChevronRight,Eye,FileText,Info,LayoutGrid,MapPin,Maximize2,PanelRightClose} from 'lucide-react';
+import '../gallery.css';
 const GalleryCanvas=lazy(()=>import('../GalleryCanvasR3F.jsx'));
 const clean=(x,n=180)=>String(x??'').slice(0,n);
 export function reviewMuseum(review){
