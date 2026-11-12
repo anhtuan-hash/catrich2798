@@ -330,3 +330,16 @@
 @media(max-width:560px){.bml{border:0;border-radius:0}.bml .bml-page{padding:13px}.bml .bml-welcome{min-height:156px;padding:17px}.bml .bml-welcome-copy{max-width:76%}.bml .bml-hero-art{width:53%;opacity:.58}.bml .bml-welcome h1{font-size:25px}.bml .bml-welcome p{font-size:12px}.bml .bml-search{height:38px;margin:0;max-width:none}.bml .bml-quick-actions,.bml .bml-bottom-grid,.bml .bml-mini-kits,.bml .bml-templates-grid,.bml .bml-field-grid{grid-template-columns:1fr}.bml .bml-quick-card:last-child{grid-column:auto}.bml .bml-surface{padding:16px}.bml .bml-wizard-step{gap:5px}.bml .bml-wizard-step strong{font-size:11px}.bml .bml-kit-detail{flex-direction:column;align-items:stretch}.bml .bml-kit-cover-large{min-width:auto}.bml .bml-scene-header{flex-direction:column}.bml .bml-room-tabs{padding:9px 12px}.bml .bml-scene-footer{flex-direction:column}.bml .bml-scene-footer>div{width:100%;justify-content:space-between}.bml .bml-museum-room{padding:12px}.bml .bml-art-grid,.bml .bml-storyboard{grid-template-columns:1fr}.bml .bml-student-bar{align-items:start;flex-direction:column}.bml .bml-student-steps{gap:2px}.bml .bml-student-steps button small{font-size:10px}.bml .bml-student-steps button>span{width:28px;height:28px}.bml .bml-student-task{padding:18px}.bml .bml-review-grid{grid-template-columns:1fr}.bml .bml-3d-caption{position:static;margin-top:5px}.bml .bml-appbar-actions .bml-icon-btn{display:none}}
 @media print{.bml .bml-sidebar,.bml .bml-appbar,.bml .bml-nav,.bml .bml-screen:not(:has(.bml-qr-sheet)),.bml button{display:none!important}.bml .bml-qr-sheet,.bml .bml-qr-card{box-shadow:none!important}.bml .bml-qr-card{break-inside:avoid}.bml .bml-qr-grid{grid-template-columns:repeat(2,1fr)}}
 @media(prefers-reduced-motion:reduce){.bml *, .bml *:before,.bml *:after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+
+@media(min-width:831px){
+ .bml.bml-app-layout.is-menu-open{grid-template-columns:minmax(0,1fr)}
+ .bml.bml-app-layout.is-menu-open>.bml-sidebar{display:none}
+}
+@media(max-width:830px){
+ .bml .bml-sidebar:not(.is-open) .bml-nav,
+ .bml .bml-sidebar:not(.is-open) .bml-nav-divider,
+ .bml .bml-sidebar:not(.is-open) .bml-nav-label{display:none}
+ .bml .bml-sidebar:not(.is-open){padding:0;border:0}
+ .bml .bml-sidebar.is-open .bml-nav{display:flex}
+ .bml .bml-sidebar.is-open .bml-nav-divider{display:block}
+}
