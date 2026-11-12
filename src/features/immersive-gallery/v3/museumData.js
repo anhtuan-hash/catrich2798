@@ -36,7 +36,7 @@ export const STEPS = Object.freeze([
 ]);
 const cap=(value,max)=>String(value??'').replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,max);
 export const emptyLearning=()=>({issue:'',audience:'',source:'',evidence:'',solution:'',feedback:'',improvement:'',reflection:'',tested:false});
-export const emptyStudio=()=>({title:'',summary:'',theme:'classic',learning:emptyLearning(),rooms:[]});
+export const emptyStudio=()=>({title:'',summary:'',theme:'classic',learning:emptyLearning(),artworks:{issue:null,evidence:null,solution:null},rooms:[]});
 export function normalizeStudio(raw){
  const input=raw && typeof raw==='object'?raw:{};
  const stored=input.learning && typeof input.learning==='object'?input.learning:{};
@@ -53,7 +53,7 @@ export function normalizeStudio(raw){
   title:cap(input.title,140),
   summary:cap(input.summary,1200),
   theme:['classic','culture','lab'].includes(input.theme)?input.theme:(original[0]?.template_key||'classic'),
-  learning,legacy,legacyOriginal:legacy?input:null
+  learning,artworks:Object.fromEntries(['issue','evidence','solution'].map(key=>[key,/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(input.artworks?.[key]))?input.artworks[key]:null])),legacy,legacyOriginal:legacy?input:null
  };
 }
 export function documentFromStudio(studio){
@@ -70,14 +70,15 @@ export function documentFromStudio(studio){
    i===1&&v.source?'Source: '+v.source:'',
    i===2&&v.improvement?'After peer testing: '+v.improvement:''
   ].filter(Boolean).join('\n\n'),5000),
-  kind:'text',model_key:null,
+  kind:d.artworks[['issue','evidence','solution'][i]]?'image':'text',
+  asset_id:d.artworks[['issue','evidence','solution'][i]]||null,model_key:null,
   transform:{position:[(i-1)*3,2,-7.72],rotation:[0,0,0],scale:[1,1,1]}
  }));
  return {
   title:d.title,
   summary:d.summary,
   theme:d.theme,
-  learning:v,
+  learning:v,artworks:d.artworks,
   rooms:[{title:d.title||'Our English Museum',template_key:d.theme,exhibits:descriptions}]
  };
 }
