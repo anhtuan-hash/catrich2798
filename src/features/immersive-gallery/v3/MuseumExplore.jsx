@@ -20,7 +20,7 @@ export function MuseumTemplates({language='vi',onCreate}){
     <h3>{kit.title}</h3><p>{kit.subtitle}</p>
     <strong>{tr(language,'Câu hỏi định hướng','Driving question')}</strong>
     <p className="bml-single-lesson-question">{kit.challenge}</p><p>{kit.goal}</p>
-    <div className="bml-chips"><span>English 11 · Unit 5</span><span>2 × 45 min</span><span>11 {tr(language,'hoạt động','activities')}</span></div>
+    <div className="bml-chips"><span>English 11 · Unit 5</span><span>{'2 × 45 min'}</span><span>11 {tr(language,'hoạt động','activities')}</span></div>
     <button type="button" className="bml-primary" onClick={()=>onCreate('climate')}>
      {tr(language,'Tạo bài học từ kế hoạch này','Create lesson from this plan')} <ArrowRight size={17}/></button>
    </div>
