@@ -39,9 +39,9 @@ function ArtworkImage({assetId,imageUrl}) {
   }).catch(()=>{if(alive)setTexture(null);});
   return()=>{alive=false;if(created)created.dispose();};
  },[assetId,imageUrl]);
- if(!texture)return <mesh position={[0,0,0.083]}><planeGeometry args={[1.3,0.8]}/><meshStandardMaterial color="#e2d4c7"/></mesh>;
+ if(!texture)return <mesh position={[0,0,0.083]}><planeGeometry args={[1.62,1.17]}/><meshStandardMaterial color="#e2d4c7"/></mesh>;
  const width=texture.image?.width||1,height=texture.image?.height||1,aspect=width/height;
- const size=aspect>1.36/1.12?[1.36,1.36/aspect]:[1.12*aspect,1.12];
+ const size=aspect>1.36/1.12?[1.65,1.65/aspect]:[1.36*aspect,1.36];
  return <mesh position={[0,0,0.083]}><planeGeometry args={size}/><meshBasicMaterial map={texture} toneMapped={false} side={THREE.DoubleSide}/></mesh>;
 }
 function PaperArtwork({exhibit,onSelect,isSelected}) {
@@ -50,8 +50,8 @@ function PaperArtwork({exhibit,onSelect,isSelected}) {
   onClick={e=>{e.stopPropagation();onSelect?.(exhibit.id);}}
   onPointerOver={e=>{e.stopPropagation();document.body.style.cursor='pointer';}}
   onPointerOut={()=>{document.body.style.cursor='';}}>
-  <mesh><boxGeometry args={[1.72,1.45,0.09]}/><meshStandardMaterial color={isSelected?'#e4aa64':'#ae856e'} roughness={0.82}/></mesh>
-  <mesh position={[0,0,0.052]}><boxGeometry args={[1.56,1.30,0.025]}/><meshStandardMaterial color="#fff9ee" roughness={0.9}/></mesh>
+  <mesh><boxGeometry args={[2.04,1.70,0.10]}/><meshStandardMaterial color={isSelected?'#e4aa64':'#ae856e'} roughness={0.82}/></mesh>
+  <mesh position={[0,0,0.052]}><boxGeometry args={[1.86,1.52,0.025]}/><meshStandardMaterial color="#fff9ee" roughness={0.9}/></mesh>
   {exhibit.kind==='model'
    ?<group position={[0,0,0.45]}><CuratedModel modelKey={exhibit.model_key||'pedestal'} scale={0.63}/></group>
    :exhibit.kind==='image'
@@ -67,7 +67,7 @@ function Walls({template,onTeleport}) {
  return <group>
   <mesh position={[0,-0.08,0]} rotation={[-Math.PI/2,0,0]} receiveShadow onClick={e=>{
     e.stopPropagation();onTeleport?.([Math.max(-5.9,Math.min(5.9,e.point.x)),Math.max(-7.4,Math.min(7.4,e.point.z))]);}}>
-   <planeGeometry args={[14,18]}/><meshStandardMaterial color={theme.floor} roughness={0.94}/>
+   <planeGeometry args={[14,18]}/><meshStandardMaterial color={theme.floor} roughness={0.84} metalness={0.025}/>
   </mesh>
   <mesh position={[0,6,0]} rotation={[Math.PI/2,0,0]}><planeGeometry args={[14,18]}/><meshStandardMaterial color={theme.ceiling} roughness={1}/></mesh>
   <mesh position={[0,3,-9]}><planeGeometry args={[14,6]}/><meshStandardMaterial color={theme.wall} side={THREE.DoubleSide}/></mesh>
@@ -89,6 +89,22 @@ function Walls({template,onTeleport}) {
    <mesh position={[x,2.4,-8.78]}><boxGeometry args={[2.4,4.7,0.43]}/><meshStandardMaterial color="#bca995"/></mesh>
    <mesh position={[x,2.25,-8.44]}><boxGeometry args={[1.7,3.7,0.07]}/><meshStandardMaterial color="#627b73"/></mesh>
   </group>):null}
+  {/* Museum-grade ceiling coves, baseboards, track lights and discreet floor seams. */}
+  <mesh position={[0,5.76,-8.86]}><boxGeometry args={[13.9,0.075,0.12]}/><meshStandardMaterial color="#fafdf9" roughness={0.7}/></mesh>
+  <mesh position={[0,0.18,-8.87]}><boxGeometry args={[13.9,0.21,0.09]}/><meshStandardMaterial color="#fbfff9" roughness={0.72}/></mesh>
+  {[-6.93,6.93].map(x=><group key={'side-'+x}>
+   <mesh position={[x,0.18,0]}><boxGeometry args={[0.085,0.2,17.8]}/><meshStandardMaterial color="#f9fcf8"/></mesh>
+   <mesh position={[x,5.72,0]}><boxGeometry args={[0.085,0.11,17.8]}/><meshStandardMaterial color="#f9fcf8"/></mesh>
+  </group>)}
+  {[-5.5,-1.5,2.5,6.5].map(z=><mesh key={'floor-'+z} position={[0,-0.072,z]}>
+   <boxGeometry args={[13.8,0.008,0.018]}/><meshBasicMaterial color="#ffffff" transparent opacity={0.31}/></mesh>)}
+  {[-3.8,3.8].map(x=><group key={'track-'+x}>
+   <mesh position={[x,5.88,-1.8]}><boxGeometry args={[0.065,0.048,12.5]}/><meshStandardMaterial color="#9ba4a4" metalness={0.68} roughness={0.34}/></mesh>
+   {[-6.2,-2.4,1.4,5.2].map(z=><group key={'light-'+z}>
+    <mesh position={[x,5.75,z]}><cylinderGeometry args={[0.14,0.19,0.25,12]}/><meshStandardMaterial color="#fefcf6" emissive="#fff4dc" emissiveIntensity={0.2}/></mesh>
+    <mesh position={[x,5.59,z]} rotation={[-Math.PI/2,0,0]}><circleGeometry args={[0.17,16]}/><meshBasicMaterial color="#fff9e9"/></mesh>
+   </group>)}
+  </group>)}
   <mesh position={[0,5.96,-1.5]}><boxGeometry args={[4.3,0.08,5.5]}/><meshStandardMaterial color="#fdfbf2" emissive="#fffbea" emissiveIntensity={0.08}/></mesh>
  </group>;
 }
@@ -146,9 +162,9 @@ function CameraWalker({held,paused,onPosition,teleport}) {
  return null;
 }
 function Room({template,exhibits,onSelect,selectedId,onTeleport}) {
- return <><color attach="background" args={['#f2f0e9']}/><ambientLight intensity={1.3}/>
+ return <><color attach="background" args={['#f2f0e9']}/><ambientLight intensity={1.1}/>
   <hemisphereLight args={['#ffffff','#b7afa3',1.0]}/>
-  <directionalLight position={[1,6,3]} intensity={1.35}/>
+  <directionalLight position={[1,7,3]} intensity={1.15}/>
   <Walls template={template} onTeleport={onTeleport}/>
   {exhibits.slice(0,30).map(e=><PaperArtwork key={e.id} exhibit={e} onSelect={onSelect} isSelected={selectedId===e.id}/>)}
  </>;
@@ -169,7 +185,7 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
  const onTeleport=point=>{setTeleport([...point]);};
  return <div className="big-webgl-shell">
   {supported===false?<div role="alert" className="big-canvas-error">{language==='en'?'WebGL unavailable. Use the 2D exhibit list.':'Thiết bị không hỗ trợ WebGL. Hãy sử dụng danh sách hiện vật 2D.'}</div>:supported===null?<div className="big-canvas-loading">Preparing 3D exhibition…</div>:<Suspense fallback={<div className="big-canvas-loading">Loading original 3D art…</div>}>
-   <Canvas camera={{position:[0,1.7,5],fov:66,near:0.08,far:55}} dpr={mode==='lite'?1:mode==='high'?[1,1.75]:[1,1.35]}
+   <Canvas camera={{position:[0,1.7,4.7],fov:61,near:0.08,far:55}} dpr={mode==='lite'?1:mode==='high'?[1,1.75]:[1,1.35]}
     frameloop="demand" gl={{antialias:mode!=='lite',powerPreference:'low-power',alpha:false}} onCreated={({gl})=>{gl.setClearColor('#f2f0e9');}}>
     <Room template={template} exhibits={exhibits} onSelect={onSelect} selectedId={selectedId} onTeleport={onTeleport}/>
     <CameraWalker held={held} paused={!!selectedId} teleport={teleport} onPosition={onPosition}/>
