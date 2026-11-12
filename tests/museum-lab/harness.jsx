@@ -16,7 +16,7 @@ const synthetic={
  creatorSettings:{enabled:false,upload_enabled:false},
  reviewers:[{reviewer_id:'reviewer-synthetic',active:true,can_publish:true}],
  reviewerCandidates:[{id:'reviewer-synthetic',full_name:'Authorized Review Demo',role:'teacher'}],
- assignments:[{id:'lesson-synthetic',title:'Synthetic Climate Action Museum',class_scope:'11-DEMO',deadline_at:'2026-11-25T17:00:00Z'}],
+ assignments:[{id:'lesson-synthetic',created_by:'teacher-synthetic',title:'Synthetic Climate Action Museum',class_scope:'11-DEMO',deadline_at:'2026-11-25T17:00:00Z'}],
  groups:[
   {id:'group-1',assignment_id:'lesson-synthetic',state:'submitted',label:'Demo Group 1'},
   {id:'group-2',assignment_id:'lesson-synthetic',state:'editing',label:'Demo Group 2'}
