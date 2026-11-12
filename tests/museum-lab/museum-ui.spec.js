@@ -273,7 +273,11 @@ test('PEK school gallery is a real 3D environment with a readable school-edition
  const hall=page.getByTestId('pek-discovery-hall');
  await expect(hall).toBeVisible();
  await expect(hall).toHaveAttribute('aria-label',/Pétrus Ký/);
- await expect(hall.getByText('PÉTRUS KÝ · BẢO TÀNG KHÁM PHÁ')).toBeVisible();
+ if((page.viewportSize()?.width||0)<700){
+  await expect(hall.getByText('PéK',{exact:true})).toBeVisible();
+ }else{
+  await expect(hall.getByText('PÉTRUS KÝ · BẢO TÀNG KHÁM PHÁ')).toBeVisible();
+ }
  const webgl=hall.locator('canvas');
  if(await webgl.isVisible().catch(()=>false)){
   fs.mkdirSync('artifacts/museum-lab',{recursive:true});
