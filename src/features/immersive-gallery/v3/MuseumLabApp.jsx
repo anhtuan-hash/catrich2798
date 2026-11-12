@@ -16,7 +16,7 @@ const NAV=[
  {id:'lessons',icon:BookOpen,vi:'Bài học',en:'Lessons'},
  {id:'submissions',icon:ClipboardCheck,vi:'Bài nộp',en:'Submissions'},
  {id:'gallery',icon:Landmark,vi:'Triển lãm',en:'Exhibitions'},
- {id:'templates',icon:Library,vi:'Thư viện mẫu',en:'Lesson library'},
+ {id:'templates',icon:Library,vi:'Kế hoạch bài dạy',en:'Teaching plan'},
  {id:'evidence',icon:Award,vi:'Hồ sơ dự thi',en:'Competition dossier'},
  {id:'settings',icon:Settings2,vi:'Cài đặt',en:'Settings'}
 ];
@@ -27,7 +27,7 @@ const initialMuseumTab=()=>{
  catch{return 'home';}
 };
 export default function MuseumLabApp({currentUser,language='vi'}){
- const [tab,setTab]=useState(initialMuseumTab),[kit,setKit]=useState('climate'),[staff,setStaff]=useState(null);
+ const [tab,setTab]=useState(initialMuseumTab),[staff,setStaff]=useState(null);
  const [loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [query,setQuery]=useState(''),[reviewId,setReviewId]=useState(null),[help,setHelp]=useState(false),[menuOpen,setMenuOpen]=useState(false);
  const refresh=useCallback(async()=>{
@@ -46,7 +46,7 @@ export default function MuseumLabApp({currentUser,language='vi'}){
   setTab(id);setMenuOpen(false);setNotice('');
   if(id==='submissions'&&extra)setReviewId(extra);
  };
- const create=(kitId='climate')=>{setKit(kitId);navigate('wizard');};
+ const create=()=>navigate('wizard');
  const demo=()=>navigate('demo');
  const openCollection=key=>{
   if(typeof window!=='undefined'){
@@ -96,7 +96,7 @@ export default function MuseumLabApp({currentUser,language='vi'}){
     {loading?<div className="bml-empty bml-surface" role="status"><RefreshCw size={27}/>{tr(language,'Đang tải bài học và phân quyền…','Loading lessons and permissions…')}</div>:
     tab==='home'?<MuseumDashboard language={language} data={staff} onNavigate={navigate} onCreate={create} onDemo={demo}/>:
     tab==='live'?<MuseumLiveTeacher data={staff} language={language} onBack={()=>navigate('home')}/>:
-    tab==='wizard'?<LessonWizard language={language} data={staff} initialKit={kit} onExit={()=>navigate('lessons')}
+    tab==='wizard'?<LessonWizard language={language} data={staff} onExit={()=>navigate('lessons')}
       onSettings={()=>navigate('settings')} onCompleted={refresh}/>:
     tab==='lessons'?<LessonsList language={language} data={staff} query={query}
       onCreate={()=>create()} onReview={id=>navigate('submissions',id)} onOpenCollection={openCollection} onRefresh={refresh}/>:
