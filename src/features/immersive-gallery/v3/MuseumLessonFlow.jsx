@@ -1,6 +1,8 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookOpen,CalendarDays,Check,CheckCircle2,ChevronRight,ClipboardList,Copy,Download,ExternalLink,KeyRound,LockKeyhole,Plus,Printer,QrCode,RefreshCw,ShieldAlert,Users} from 'lucide-react';
 import {LESSON_KITS,progressOfGroup} from './museumData.js';
+import {preparedCollectionFor} from './museumPreparedCollections.js';
+import './museumPrepared.css';
 import {staffRequest,joinUrl,fmtDate,fmtTime,saveTextFile} from './museumApi.js';
 import {KitCover,KitCard} from './MuseumDashboard.jsx';
 const tr=(language,vi,en)=>language==='en'?en:vi;
@@ -93,7 +95,7 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi',i
   </section></>}
  </div>;
 }
-export function LessonsList({data,onCreate,onReview,onRefresh,query='',language='vi'}){
+export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,query='',language='vi'}){
  const [selected,setSelected]=useState(null),[invites,setInvites]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const allAssignments=data?.assignments||[],assignments=allAssignments.filter(a=>(a.title+' '+a.class_scope).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())),groups=data?.groups||[],reviews=data?.reviews||[];
  const rotate=async groupId=>{if(!window.confirm(tr(language,'Mã cũ sẽ bị thu hồi. Bạn muốn cấp mã mới?','The old code will be revoked. Generate a new one?')))return;
@@ -108,12 +110,17 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
   {invites?<OneTimeInvites invitations={invites} onClose={()=>setInvites(null)} language={language}/>:null}
   {assignments.length?<div className="bml-lesson-list">{assignments.map(a=>{
    const mine=groups.filter(g=>g.assignment_id===a.id),done=mine.filter(g=>['submitted','ttcm_review','approved_locked','published'].includes(g.state)).length;
+   const collection=preparedCollectionFor(a);
    return <article className="bml-lesson-block bml-surface" key={a.id}>
     <div className="bml-lesson-summary"><span className="bml-table-icon"><BookOpen size={22}/></span>
      <div><span className="bml-overline">{a.class_scope} · {tr(language,'Hạn','Due')} {fmtDate(a.deadline_at)}</span>
       <h2>{a.title}</h2><p>{done}/{mine.length} {tr(language,'nhóm đã nộp','groups submitted')}</p></div>
-     <button type="button" className="bml-outline" onClick={()=>setSelected(selected===a.id?null:a.id)}>
-       {selected===a.id?tr(language,'Thu gọn','Collapse'):tr(language,'Xem các nhóm','View groups')} <ChevronRight size={17}/></button></div>
+     <div className="bml-prepared-lesson-actions">
+      {collection?<button type="button" className="bml-outline bml-prepared-visit" onClick={()=>onOpenCollection?.(collection.key)}>
+       <BookOpen size={17}/>{tr(language,'Triển lãm 3D','3D exhibition')} <ArrowRight size={15}/></button>:null}
+      <button type="button" className="bml-outline" onClick={()=>setSelected(selected===a.id?null:a.id)}>
+       {selected===a.id?tr(language,'Thu gọn','Collapse'):tr(language,'Xem các nhóm','View groups')} <ChevronRight size={17}/></button>
+     </div></div>
     <div className="bml-progress bml-progress-wide"><div style={{width:(mine.length?100*done/mine.length:0)+'%'}}/></div>
     {selected===a.id?<div className="bml-group-list">{mine.map(g=>{
       const state=progressOfGroup(g.state);const review=reviews.find(r=>r.group_id===g.id);
@@ -122,7 +129,17 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
        {review?<button type="button" className="bml-text-btn" onClick={()=>onReview(review.id)}>{tr(language,'Xem bài','Review')} <ArrowRight size={16}/></button>:null}
        {['issued','editing','changes_requested'].includes(g.state)&&a.created_by===data?.profile?.id?
        <button type="button" disabled={busy} className="bml-quiet-btn" onClick={()=>rotate(g.id)}><KeyRound size={16}/>{tr(language,'Cấp lại mã','Reset code')}</button>:null}
-      </div>;})}</div>:null}
+      </div>;})}
+      {collection?<div className="bml-prepared-projects" data-testid={'lesson-portfolio-'+collection.key}>
+       <div className="bml-prepared-projects-heading"><h3>{tr(language,'Dự án và tác phẩm','Projects and artwork')}</h3>
+        <span>{collection.groupCount} {tr(language,'nhóm','groups')} · {collection.groupCount*3} {tr(language,'tác phẩm','exhibits')}</span></div>
+       <div className="bml-prepared-project-grid">{collection.projects.map(p=>
+        <button type="button" key={p.id} className="bml-prepared-project" onClick={()=>onOpenCollection?.(collection.key)}>
+         <small>{p.label}</small><strong>{p.title}</strong>
+         <span>{p.solution}</span>
+         <em>{tr(language,'Xem tác phẩm trong bảo tàng','View in 3D museum')} <ArrowRight size={15}/></em>
+        </button>)}</div>
+      </div>:null}</div>:null}
    </article>;
   })}</div>:<div className="bml-empty bml-surface"><BookOpen size={36}/><h2>{tr(language,'Chưa có bài học','No lessons assigned yet')}</h2>
     <p>{tr(language,'Tạo bài học đầu tiên từ một mẫu có sẵn.','Create your first lesson from a curated template.')}</p>

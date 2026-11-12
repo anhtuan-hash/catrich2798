@@ -9,7 +9,8 @@ import MuseumLabStudent from '../../src/features/immersive-gallery/v3/MuseumLabS
 import MuseumScene from '../../src/features/immersive-gallery/v3/MuseumScene.jsx';
 import MuseumExhibitionDetail from '../../src/features/immersive-gallery/v3/MuseumExhibitionDetail.jsx';
 import MuseumEvidence from '../../src/features/immersive-gallery/v3/MuseumEvidence.jsx';
-import {LessonWizard} from '../../src/features/immersive-gallery/v3/MuseumLessonFlow.jsx';
+import {LessonWizard,LessonsList} from '../../src/features/immersive-gallery/v3/MuseumLessonFlow.jsx';
+import {PREPARED_COLLECTIONS,preparedGallery} from '../../src/features/immersive-gallery/v3/museumPreparedCollections.js';
 import {DEMO_GALLERY} from '../../src/features/immersive-gallery/v3/museumApi.js';
 import '../../src/features/immersive-gallery/v3/museumLab.css';
 import '../../src/features/immersive-gallery/v3/museumExhibition.css';
@@ -23,6 +24,15 @@ const synthetic={
   {id:'group-1',assignment_id:'lesson-synthetic',state:'submitted',label:'Demo Group 1'},
   {id:'group-2',assignment_id:'lesson-synthetic',state:'editing',label:'Demo Group 2'}
  ],
+ reviews:[]
+};
+const preparedQa={
+ ...synthetic,
+ assignments:PREPARED_COLLECTIONS.map((c,i)=>({id:'prepared-lesson-'+i,title:c.title,class_scope:c.classScope,
+  created_by:'teacher-synthetic',deadline_at:'2026-11-19T17:00:00Z'})),
+ groups:PREPARED_COLLECTIONS.flatMap((c,i)=>c.projects.map((p,n)=>({
+  id:c.key+'-qa-'+n,assignment_id:'prepared-lesson-'+i,state:'issued',label:'Nhóm '+(n+1)
+ }))),
  reviews:[]
 };
 let liveSession=null;
@@ -48,10 +58,11 @@ const demoTeacherApi=async(action,body)=>{
 };
 function Harness(){
  const [screen,setScreen]=useState('dashboard');
+ const [preparedKey,setPreparedKey]=useState('marine-12');
  return <div style={{fontFamily:'Roboto,Arial,sans-serif'}}>
   <div style={{display:'flex',gap:8,padding:10,background:'#e6f0ff',flexWrap:'wrap'}} data-testid="qa-harness">
    <strong>QA ONLY · ALL DATA SYNTHETIC</strong>
-   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
+   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
   </div>
   <div className="bml">
    {screen==='dashboard'?<MuseumDashboard data={synthetic} onNavigate={setScreen} onCreate={()=>setScreen('wizard')} onDemo={()=>setScreen('scene')}/>:null}
@@ -61,6 +72,10 @@ function Harness(){
    {screen==='artwork'?<MuseumArtworkStudio studio={{artworks:{issue:null,evidence:null,solution:null}}}
      csrf="qa-secret" language="vi" uploadEnabled={true} update={()=>{}}/>:null}
    {screen==='scene'?<MuseumScene gallery={DEMO_GALLERY} language="vi" onBack={()=>setScreen('dashboard')}/>:null}
+   {screen==='prepared'?<LessonsList data={preparedQa} language="vi" onCreate={()=>{}} onReview={()=>{}}
+     onRefresh={async()=>{}} onOpenCollection={key=>{setPreparedKey(key);setScreen('prepared-gallery');}}/>:null}
+   {screen==='prepared-gallery'?<MuseumExhibitionDetail gallery={preparedGallery(preparedKey)} language="vi"
+     data={preparedQa} onBack={()=>setScreen('prepared')} onNavigate={setScreen}/>:null}
    {screen==='evidence'?<MuseumEvidence data={{...synthetic,rubrics:[]}} language="vi"
      currentUser={{name:'Demo Teacher'}} onDemo={()=>setScreen('scene')}/>:null}
    {screen==='exhibition'?<MuseumExhibitionDetail gallery={DEMO_GALLERY} isDemo language="vi"

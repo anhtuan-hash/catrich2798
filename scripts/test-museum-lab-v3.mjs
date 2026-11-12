@@ -67,7 +67,7 @@ test('teacher rubric endpoint is scoped and no public RLS table privileges',()=>
  assert.match(sql,/revoke all on public\.gcp_rubric_scores from public,anon,authenticated/);
  assert.match(sql,/alter table public\.gcp_rubric_scores enable row level security/);
 });
-test('Material 3 redesign has scoped accessible UI and safe demo labeling',()=>{
+test('Material 3 redesign has scoped accessible UI and curated exhibitions',()=>{
  const css=fs.readFileSync('src/features/immersive-gallery/v3/museumLab.css','utf8');
  const dashboard=fs.readFileSync('src/features/immersive-gallery/v3/MuseumDashboard.jsx','utf8');
  const sample=fs.readFileSync('src/features/immersive-gallery/v3/MuseumExplore.jsx','utf8');
@@ -75,5 +75,6 @@ test('Material 3 redesign has scoped accessible UI and safe demo labeling',()=>{
  assert.match(css,/prefers-reduced-motion/);
  assert.match(css,/:focus-visible/);
  assert.match(dashboard,/data-testid="museum-dashboard"/);
- assert.match(sample,/DEMO · SAMPLE/);
+ assert.match(sample,/museum-collection-/);
+ assert.doesNotMatch(sample,/>DEMO · SAMPLE</);
 });

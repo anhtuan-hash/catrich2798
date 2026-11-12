@@ -342,3 +342,29 @@ test('artwork inspector remains within mobile viewport and has a working close a
  await page.getByTestId('museum-artwork-inspector').getByRole('button',{name:/Đóng|Close/}).click();
  await expect(page.getByTestId('museum-artwork-inspector')).toHaveCount(0);
 });
+
+
+test('three English lessons expose eighteen group projects and a navigable 3D artwork collection',async({page})=>{
+ await page.getByTestId('qa-prepared').click();
+ const lessons=page.getByTestId('museum-lessons');
+ await expect(lessons).toBeVisible();
+ await expect(lessons.locator('.bml-lesson-block')).toHaveCount(3);
+ await expect(lessons.getByText('Protecting Marine Life',{exact:true})).toHaveCount(2);
+ await expect(lessons.getByText('Sustainable School',{exact:true})).toHaveCount(1);
+ const first=lessons.locator('.bml-lesson-block').first();
+ await first.getByRole('button',{name:/Xem các nhóm|View groups/}).click();
+ await expect(first.getByTestId('lesson-portfolio-marine-12')).toBeVisible();
+ await expect(first.locator('.bml-prepared-project')).toHaveCount(6);
+ await first.getByRole('button',{name:/Triển lãm 3D|3D exhibition/}).click();
+ const detail=page.getByTestId('museum-exhibition-detail');
+ await expect(detail).toBeVisible();
+ await expect(detail.getByRole('heading',{name:'Protecting Marine Life · 12.1'})).toBeVisible();
+ await detail.getByRole('button',{name:'2D',exact:true}).click();
+ await expect(detail.locator('.bml-room-tabs button')).toHaveCount(6);
+ await expect(detail.locator('.bml-art-card')).toHaveCount(3);
+ await expect(detail.locator('.bml-art-card img').first()).toHaveAttribute('src',/^data:image\/png;base64,/);
+ await detail.locator('.bml-art-card').first().click();
+ await expect(detail.getByTestId('exhibit-360-viewer')).toBeVisible();
+ await detail.getByTestId('museum-artwork-inspector').getByRole('button',{name:/Đóng|Close/}).click();
+ await expect(detail.getByTestId('museum-artwork-inspector')).toHaveCount(0);
+});

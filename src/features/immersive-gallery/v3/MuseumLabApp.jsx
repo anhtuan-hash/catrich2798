@@ -48,6 +48,13 @@ export default function MuseumLabApp({currentUser,language='vi'}){
  };
  const create=(kitId='climate')=>{setKit(kitId);navigate('wizard');};
  const demo=()=>navigate('demo');
+ const openCollection=key=>{
+  if(typeof window!=='undefined'){
+   const hash=window.location.hash.split('?')[0]||'#/tool/immersive-gallery';
+   window.history.replaceState(null,'',hash+'?exhibition=collection-'+encodeURIComponent(key));
+  }
+  navigate('gallery');
+ };
  const pending=staff?.reviews?.filter(r=>['submitted','ttcm_review'].includes(r.state)).length||0;
  const activePage=NAV.find(n=>n.id===tab);
  const initials=String(currentUser?.full_name||currentUser?.name||currentUser?.email||'B').trim().slice(0,1).toUpperCase();
@@ -92,7 +99,7 @@ export default function MuseumLabApp({currentUser,language='vi'}){
     tab==='wizard'?<LessonWizard language={language} data={staff} initialKit={kit} onExit={()=>navigate('lessons')}
       onSettings={()=>navigate('settings')} onCompleted={refresh}/>:
     tab==='lessons'?<LessonsList language={language} data={staff} query={query}
-      onCreate={()=>create()} onReview={id=>navigate('submissions',id)} onRefresh={refresh}/>:
+      onCreate={()=>create()} onReview={id=>navigate('submissions',id)} onOpenCollection={openCollection} onRefresh={refresh}/>:
     tab==='submissions'?<Submissions key={reviewId||'normal'} language={language} data={staff} query={query}
       initialReview={reviewId} onNavigate={navigate} onRefresh={refresh}/>:
     tab==='gallery'?<MuseumGallery language={language} query={query} data={staff} onNavigate={navigate} onDemo={demo}/>:
