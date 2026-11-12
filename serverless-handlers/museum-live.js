@@ -178,7 +178,7 @@ export default async function museumLive(req,res){
   }
   if(op==='results'){
    requireMethod(req,'GET');
-   if(session.stage_index!==2||(!session.revealed&&session.stage_open))
+   if(session.stage_index<2||(session.stage_index===2&&!session.revealed&&session.stage_open))
     throw fail(423,'Giáo viên chưa công bố biểu đồ khảo sát.');
    const results=await query(admin.from('museum_live_responses').select('value')
     .eq('session_id',session.id).eq('stage_index',2).limit(100));
