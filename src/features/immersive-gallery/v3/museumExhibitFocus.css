@@ -81,9 +81,19 @@
 }
 .bml .bml-museum-cinema .bml-v5-focus-back:focus-visible{outline:3px solid #F1C66E;outline-offset:2px}
 @media(max-width:700px){
- .bml .bml-v5-plaque-copy{width:275px;height:335px;padding:12px 13px}
- .bml .bml-v5-plaque-copy h2{font-size:23px}
- .bml .bml-v5-plaque-scroll{font-size:12px}
+ /* This copy is projected from the actual 3D plaque position by Drei Html.
+    Its 195x244px footprint stays inside the gold world-space board at 390px,
+    rather than inheriting the desktop perspective's 0.2px CSS3D width. */
+ .bml .bml-v5-plaque-copy{
+  width:205px;height:257px;padding:8px 9px;
+  transform:scale(.83);transform-origin:center;
+ }
+ .bml .bml-v5-plaque-eyebrow{font-size:8px;margin-bottom:4px}
+ .bml .bml-v5-plaque-copy h2{font-size:19px;margin-bottom:5px}
+ .bml .bml-v5-plaque-rule{margin-bottom:5px}
+ .bml .bml-v5-plaque-scroll{font-size:11px;line-height:1.35}
+ .bml .bml-v5-plaque-source{font-size:10px}
+ .bml .bml-v5-back{min-height:34px;font-size:11px;margin-top:5px;padding:7px 10px}
  .bml .bml-museum-cinema .bml-v5-focus-status{left:9px;top:60px;max-width:62%;font-size:11px}
  .bml .bml-museum-cinema .bml-v5-focus-back{left:auto;right:9px;bottom:79px;padding:10px 12px}
 }
