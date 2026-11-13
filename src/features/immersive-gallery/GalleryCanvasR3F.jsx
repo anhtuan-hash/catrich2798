@@ -37,7 +37,12 @@ function ArtworkImage({assetId,imageUrl,schoolEdition=false,cinemaEdition=false}
     if(!alive)return;
     new THREE.TextureLoader().load(url,t=>{
       created=t;t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=2;
-      if(alive)setTexture(t);else t.dispose();
+      if(alive){
+       setTexture(t);
+       // Private photo URL is never sent to telemetry/logs; signal only that
+       // WebGL has decoded the actual student artwork texture for visual QA.
+       document.dispatchEvent(new Event('bml:museum-texture-ready'));
+     }else t.dispose();
     },undefined,()=>{if(alive)setTexture(null);});
   }).catch(()=>{if(alive)setTexture(null);});
   return()=>{alive=false;if(created)created.dispose();};
