@@ -102,7 +102,9 @@ test('Assessment Core V7 uses the canonical global Dashboard footer', async ({ p
   await expect(footer).toHaveClass(/signature-footer-dashboard-global/);
   await expect(footer.locator('.signature-footer-expanded-panel')).toBeVisible();
   await expect(footer.locator('.signature-footer-static-summary')).toBeVisible();
-  await expect(footer.getByText(/English Hub v/i)).toBeVisible();
+  // Current global footer uses a working portfolio trigger, not the retired "English Hub v" version stamp.
+  await expect(footer.locator('.bes-portfolio-footer-trigger')).toBeVisible();
+  await expect(footer.locator('.signature-footer-v50-brand')).toBeVisible();
 });
 
 test('Assessment Core V7 hero is product graphics only', async ({ page }) => {
