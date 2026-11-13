@@ -190,11 +190,17 @@ test('Student Creator displays an official competition ribbon with both supplied
  for(const label of ['BÀI DỰ THI','HỘI THI THIẾT KẾ CHỦ ĐỀ DẠY HỌC STEM\/STEAM','NĂM HỌC 2026–2027','Chủ đề dạy học số – Môn Tiếng Anh THPT','Thạc sĩ Nguyễn Anh Tuấn','Trường Trung - Tiểu học Pétrus Ký']){
   assert.ok(ribbon.includes(label),'Missing competition text: '+label);
  }
- for(const file of ['public/museum/branding/hcmc-department-education.png','public/museum/branding/petrus-ky-school.png']){
-  const bytes=fs.readFileSync(file);
-  assert.ok(bytes.length>1000,'Missing supplied original logo '+file);
-  assert.equal(bytes.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
- }
+ const officialDepartment=fs.readFileSync('public/museum/branding/hcmc-department-education-original.jpg');
+ const officialSchool=fs.readFileSync('public/museum/branding/petrus-ky-original.png');
+ assert.equal(officialDepartment.length,38788,'Department logo must be the exact supplied JPG');
+ assert.equal(officialSchool.length,1055354,'School logo must be the exact supplied transparent PNG');
+ assert.equal(officialDepartment.subarray(0,3).toString('hex'),'ffd8ff');
+ assert.equal(officialSchool.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
+ assert.match(ribbon,/hcmc-department-education-original\.jpg/);
+ assert.match(ribbon,/petrus-ky-original\.png/);
+ assert.doesNotMatch(ribbon,/BookOpen|Globe2|bml-competition-accent/);
+ assert.match(css,/overflow:visible/);
+ assert.match(css,/height:auto/);
  assert.match(css,/max-height:800px/);
  assert.match(css,/max-width:560px/);
  assert.match(css,/bml-student-canvas16/);
