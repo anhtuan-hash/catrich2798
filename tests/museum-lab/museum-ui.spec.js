@@ -65,8 +65,8 @@ test('dashboard competition banner preserves original logos and readable credits
  const images=banner.locator('img');
  await expect(images).toHaveCount(2);
  await expect.poll(()=>images.evaluateAll(imgs=>imgs.every(img=>img.complete&&img.naturalWidth>=299))).toBe(true);
- await expect(images.nth(0)).toHaveAttribute('src','/assets/museum-paper/hcmc-education-original.jpg');
- await expect(images.nth(1)).toHaveAttribute('src','/assets/museum-paper/petrus-ky-original.png');
+ await expect(images.nth(0)).toHaveAttribute('src','/museum/branding/hcmc-department-education-original.jpg');
+ await expect(images.nth(1)).toHaveAttribute('src','/museum/branding/petrus-ky-original.png');
  const validateLayout=async()=>{
   const errors=await banner.evaluate(el=>{
    const outer=el.getBoundingClientRect();
@@ -144,6 +144,27 @@ test('English-only group workspace shows no Vietnamese UI in all five project st
  await expect(competition.getByText('BÀI DỰ THI')).toBeVisible();
  await expect(competition.locator('img')).toHaveCount(2);
  for(const img of await competition.locator('img').all())await expect(img).toHaveJSProperty('complete',true);
+ // Verify original-resolution source logos and all six lines of official credits.
+ const originalViewport=page.viewportSize();
+ for(const viewport of [{width:1536,height:960},{width:1366,height:768},{width:1024,height:768},{width:390,height:844}]){
+  await page.setViewportSize(viewport);
+  const result=await competition.evaluate(root=>{
+   const outer=root.getBoundingClientRect();
+   const parts=Array.from(root.querySelectorAll('.bml-competition-award,.bml-competition-copy h2,.bml-competition-year,.bml-competition-field,.bml-competition-author,.bml-competition-school'));
+   const rects=parts.map(el=>el.getBoundingClientRect());
+   return {
+    visible:rects.length===6&&rects.every(r=>r.height>0&&r.top>=outer.top-1&&r.bottom<=outer.bottom+1&&r.left>=outer.left-1&&r.right<=outer.right+1),
+    nonOverlapping:rects.every((r,i)=>i===0||r.top>=rects[i-1].bottom-1),
+    logos:Array.from(root.querySelectorAll('img')).map(img=>({loaded:img.complete&&img.naturalWidth>0,width:img.naturalWidth,height:img.naturalHeight})),
+    scrollFree:root.scrollHeight<=root.clientHeight+2
+   };
+  });
+  expect(result.visible,'Credits must remain inside ribbon at '+viewport.width+'px').toBe(true);
+  expect(result.nonOverlapping,'No credit rows may overlap at '+viewport.width+'px').toBe(true);
+  expect(result.scrollFree,'Ribbon must not clip content at '+viewport.width+'px').toBe(true);
+  expect(result.logos).toEqual([{loaded:true,width:299,height:300},{loaded:true,width:1682,height:2048}]);
+ }
+ if(originalViewport)await page.setViewportSize(originalViewport);
 
  await expect(app.getByText('Group 01')).toBeVisible();
  for(let step=0;step<5;step++){
@@ -1217,4 +1238,492 @@ test('V5.2 fullscreen groups tool stays inside projection surface and supports s
  await expect(board.getByRole('heading',{name:'Group 03'})).toBeVisible();
  await panel.getByRole('button',{name:'Close presenter panel'}).click();
  await expect(panel).toHaveCount(0);
+});
+
+
+test('Project pages scroll inside the 16:9 workbench without overlapping labels or losing navigation',async({page,isMobile},testInfo)=>{
+ if(isMobile)return;
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  if(op==='me')return route.fulfill({json:{
+   groupLabel:'Nhóm 01',groupState:'editing',csrf:'layout-regression',
+   assignment:{title:'Our Climate Action Museum',brief:'Investigate ONE school environmental issue, prepare evidence and solutions.',
+    class_scope:'11.3',deadline_at:new Date(Date.now()+86400000).toISOString()}
+  }});
+  return route.fulfill({json:{draft:{title:'Our Climate Action Museum',summary:'A classroom action museum',rooms:[],
+   learning:{issue:'The classroom stays illuminated after students leave.',
+    roles:'Data checker verifies the class survey. Editor explains the evidence. Designer prepares exhibit captions.',
+    feasibility:'Teacher and student monitor confirm a room is unoccupied.',
+    evidence:'Four groups selected switching off unused lights. We do not claim electricity savings without measurements.',
+    source:'Classroom survey and NASA Space Place https://spaceplace.nasa.gov/',
+    solution:'Assign a monitor, check before breaks, and record results in a log.',
+    feedback:'Visitors understand the action but want concrete classroom steps.',
+    improvement:'We revised the caption with a two-person check.',
+    reflection:'We used evidence before recommending action.',tested:true}
+   },version:5}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>route.fulfill({json:{session:null,survey:null}}));
+ for(const viewport of [{width:1366,height:768},{width:1536,height:960}]){
+  await page.setViewportSize(viewport);
+  await page.goto('/tests/museum-lab/v3.html');
+  await page.getByTestId('qa-student-en').click();
+  const app=page.getByTestId('museum-student-wizard');
+  const scroll=app.getByTestId('student-task-scroll');
+  const footer=app.locator('.bml-student-bottom');
+  await expect(scroll).toBeVisible();
+  await app.locator('.bml-student-steps button').nth(1).click();
+  await expect(page.getByLabel('Group roles')).toBeVisible();
+  const before=await scroll.evaluate(el=>({
+   overflow:getComputedStyle(el).overflowY,
+   width:el.clientWidth,client:el.clientHeight,height:el.scrollHeight
+  }));
+  expect(['auto','scroll']).toContain(before.overflow);
+  expect(before.client).toBeGreaterThan(110);
+  const fields=await app.locator('.bml-student-task-scroll > label.bml-full-field').evaluateAll(labels=>
+    labels.map(label=>{
+     const box=label.getBoundingClientRect(),field=label.querySelector('textarea,input')?.getBoundingClientRect();
+     return {top:box.top,bottom:box.bottom,inputTop:field?.top,inputBottom:field?.bottom};
+    })
+  );
+  expect(fields.length).toBeGreaterThanOrEqual(3);
+  for(let i=0;i<fields.length;i++){
+   expect(fields[i].inputTop).toBeGreaterThanOrEqual(fields[i].top+8);
+   expect(fields[i].inputBottom).toBeLessThanOrEqual(fields[i].bottom+2);
+   if(i>0)expect(fields[i].top).toBeGreaterThanOrEqual(fields[i-1].bottom-1);
+  }
+  // Page 2 contains a storyboard, long evidence and the final solution. It
+  // must remain accessible inside the form, not underneath its fixed footer.
+  await app.locator('.bml-student-subpages button').nth(1).click();
+  await expect(page.getByLabel('Proposed solution in English')).toBeVisible();
+  await expect.poll(()=>scroll.evaluate(el=>el.scrollHeight>el.clientHeight+10)).toBe(true);
+  const footerBefore=await footer.boundingBox();
+  await scroll.evaluate(el=>{el.scrollTop=el.scrollHeight;});
+  await expect.poll(()=>scroll.evaluate(el=>el.scrollTop)).toBeGreaterThan(5);
+  await page.getByLabel('Proposed solution in English').scrollIntoViewIfNeeded();
+  const footerAfter=await footer.boundingBox();
+  expect(Math.abs(footerBefore.y-footerAfter.y)).toBeLessThanOrEqual(2);
+  expect(footerAfter.y+footerAfter.height).toBeLessThanOrEqual(viewport.height+2);
+  await expect(footer.getByRole('button',{name:'Continue'})).toBeInViewport();
+  await expect(page.getByLabel('Proposed solution in English')).toBeInViewport();
+  // Moving to Create must reset scroll, not open in the middle of a page.
+  await app.locator('.bml-student-steps button').nth(2).click();
+  await expect.poll(()=>scroll.evaluate(el=>el.scrollTop)).toBe(0);
+  await app.locator('.bml-student-subpages button').nth(1).click();
+  await expect(app.locator('.bml-student-exhibit').first()).toBeVisible();
+  await expect(footer).toBeInViewport();
+  await page.screenshot({path:testInfo.outputPath('student-step-scroll-'+viewport.width+'.png'),fullPage:false});
+ }
+});
+
+test('V5.3 exhibit inspector displays actual source, group survey and revision only when the object is selected',async({page})=>{
+ await page.getByTestId('qa-v53-evidence-en').click();
+ const museum=page.getByTestId('museum-visitor');
+ await expect(museum).toBeVisible();
+ await expect(museum.getByTestId('museum-artwork-inspector')).toHaveCount(0);
+ await museum.locator('.bml-art-card').nth(1).click();
+ const inspector=page.getByTestId('museum-artwork-inspector');
+ await expect(inspector).toBeVisible();
+ const lens=inspector.getByTestId('museum-exhibit-evidence');
+ await expect(lens).toContainText('Source named by the group');
+ await expect(lens).toContainText('NASA greenhouse effect educational overview');
+ await expect(lens).toContainText('N=10 groups');
+ await expect(lens).toContainText('Switching off unused lights');
+ await expect(lens).toContainText('4/10 (40%)');
+ await expect(lens).toContainText('Group choices are not measurements');
+ await expect(inspector.locator('audio,video')).toHaveCount(0);
+ await inspector.getByRole('button',{name:'Close'}).click();
+ await expect(inspector).toHaveCount(0);
+ await museum.locator('.bml-art-card').nth(2).click();
+ const solution=page.getByTestId('museum-artwork-inspector').getByTestId('museum-exhibit-evidence');
+ await expect(solution).toContainText('Added teacher permission and safety exception.');
+ await expect(solution).not.toContainText('N=10 groups');
+});
+
+test('V5.3 teacher selects one group and compares its actual saved Before/After versions',async({page})=>{
+ await page.getByTestId('qa-teacher-live-ten-en').click();
+ await page.getByRole('button',{name:/Start lesson/}).click();
+ const board=page.getByTestId('museum-class-command');
+ await board.getByRole('button',{name:/Group 02/}).click();
+ await board.getByRole('button',{name:'Compare Before / After'}).click();
+ const dialog=page.getByTestId('museum-teacher-compare-dialog');
+ await expect(dialog).toBeVisible();
+ const diff=dialog.getByTestId('museum-before-after');
+ await expect(diff.getByRole('heading',{name:'Before & After'})).toBeVisible();
+ await expect(diff).toContainText('Our school wastes energy.');
+ await expect(diff).toContainText('Unused equipment stays on after the bell.');
+ await expect(diff).toContainText('3 revised exhibits');
+ await diff.getByRole('tab',{name:/Our Solution/}).click();
+ await expect(diff).toContainText('Switch off everything');
+ await expect(diff).toContainText('Student monitor consults the teacher');
+ await expect(diff).toContainText('A peer asked about devices');
+ await dialog.getByRole('button',{name:'Close comparison'}).click();
+ await expect(dialog).toHaveCount(0);
+});
+
+test('V5.3 student can reorder 3 storyboard exhibits with touch-safe arrow buttons and autosave visitor order',async({page})=>{
+ let stored={title:'',summary:'',rooms:[]},version=0,saves=0;
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  if(op==='me')return route.fulfill({json:{groupLabel:'Nhóm 01',groupState:'editing',csrf:'v53-test-csrf',
+   uploadEnabled:false,assignment:{title:'Our Climate Action Museum',brief:'Climate school action',
+   class_scope:'11.3',deadline_at:new Date(Date.now()+86400000).toISOString()}}});
+  if(op==='draft')return route.fulfill({json:{draft:stored,version}});
+  if(op==='save'){const input=route.request().postDataJSON();stored=input.draft;version++;saves++;
+   return route.fulfill({json:{ok:true,version}});}
+  return route.fulfill({json:{ok:true}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>route.fulfill({json:{session:null,survey:null}}));
+ await page.getByTestId('qa-student-en').click();
+ const app=page.getByTestId('museum-student-wizard');
+ await app.locator('.bml-student-steps button').nth(1).click();
+ await app.locator('.bml-student-subpages button').nth(1).click();
+ const titles=app.locator('.bml-storyboard-card strong');
+ await expect(titles).toHaveText(['The Problem','The Evidence','Our Solution']);
+ await app.getByRole('button',{name:'Move Our Solution earlier'}).click();
+ await expect(titles).toHaveText(['The Problem','Our Solution','The Evidence']);
+ await expect.poll(()=>saves,{timeout:12000}).toBeGreaterThan(0);
+ expect(stored.storyboardOrder).toEqual(['issue','solution','evidence']);
+ expect(stored.rooms[0].exhibits.map(x=>x.title)).toEqual(['The Problem','Our Solution','The Evidence']);
+});
+
+test('Student Creator V6 layered-paper skin stays readable and interactive across 16:9 screens',async({page,isMobile},testInfo)=>{
+ if(isMobile)return;
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const operation=new URL(route.request().url()).searchParams.get('operation');
+  return route.fulfill({json:operation==='me'?{
+   groupLabel:'Nhóm 01',groupState:'editing',csrf:'paper-v6-qa',
+   assignment:{title:'Our Climate Action Museum',brief:'Build a digital exhibition about an evidence-based school climate action.',
+    class_scope:'11.3',deadline_at:new Date(Date.now()+86400000).toISOString()}
+  }:{draft:{title:'Lights Off, Future On',summary:'Our school energy initiative.',rooms:[],
+   learning:{issue:'Unused lights and fans waste energy in empty classrooms.',
+    evidence:'Four groups chose switching off lights during a classroom survey.',
+    solution:'Create a practical two-person check at the end of each lesson.',
+    source:'Class survey and NASA Space Place',
+    feedback:'Visitors requested a more explicit classroom action.',
+    improvement:'We improved the handover protocol and caption.',
+    reflection:'Our English project became clearer when we distinguished survey preferences from measured savings.'}},
+   version:6}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>route.fulfill({json:{session:null,survey:null}}));
+ for(const viewport of [{width:1536,height:960},{width:1366,height:768}]){
+  await page.setViewportSize(viewport);
+  await page.goto('/tests/museum-lab/v3.html');
+  await page.getByTestId('qa-student-en').click();
+  const app=page.getByTestId('museum-student-wizard');
+  await expect(app).toBeVisible();
+  const ribbon=app.getByTestId('museum-competition-ribbon');
+  await expect(ribbon).toBeVisible();
+  await expect(ribbon).toContainText('Thạc sĩ Nguyễn Anh Tuấn');
+  const logos=await ribbon.locator('img').evaluateAll(images=>images.map(x=>({complete:x.complete,width:x.naturalWidth,height:x.naturalHeight})));
+  expect(logos).toEqual([{complete:true,width:299,height:300},{complete:true,width:1682,height:2048}]);
+  const colors=await app.evaluate(root=>{
+   const css=x=>getComputedStyle(root.querySelector(x));
+   return {
+    toolBackground:css('.bml-student-toolrail').backgroundImage,
+    focusRadius:parseFloat(css('.bml-student-focus').borderTopLeftRadius),
+    notebookRadius:parseFloat(css('.bml-student-primary').borderTopLeftRadius),
+    cardBackground:css('.bml-student-project-card').backgroundImage,
+    stepMarker:css('.bml-student-task > .bml-overline').backgroundColor,
+    scrollMode:css('.bml-student-task-scroll').overflowY,
+    submitFooterPosition:css('.bml-student-bottom').position,
+   };
+  });
+  expect(colors.toolBackground).toContain('gradient');
+  expect(colors.cardBackground).toContain('gradient');
+  expect(colors.focusRadius).toBeGreaterThanOrEqual(14);
+  expect(colors.notebookRadius).toBeGreaterThanOrEqual(14);
+  expect(colors.stepMarker).not.toBe('rgba(0, 0, 0, 0)');
+  expect(colors.scrollMode).toBe('auto');
+  expect(colors.submitFooterPosition).toBe('relative');
+  await app.locator('.bml-student-steps button').nth(4).click();
+  const panel=app.getByTestId('student-task-scroll');
+  await expect(app.getByText('Submission checklist')).toBeVisible();
+  await expect(app.getByRole('button',{name:'Submit for Admin review'})).toBeVisible();
+  await panel.evaluate(el=>{el.scrollTop=el.scrollHeight;});
+  const footer=app.locator('.bml-student-bottom');
+  await expect(footer).toBeInViewport();
+  const footerBox=await footer.boundingBox();
+  expect(footerBox.y+footerBox.height).toBeLessThanOrEqual(viewport.height+2);
+  const sizes=await app.evaluate(el=>({scrollWidth:el.scrollWidth,clientWidth:el.clientWidth}));
+  expect(sizes.scrollWidth).toBeLessThanOrEqual(sizes.clientWidth+3);
+  await page.screenshot({path:testInfo.outputPath('student-v6-paper-'+viewport.width+'.png'),fullPage:false});
+ }
+});
+
+test('Student Creator 2D Paper exhibit displays actual uploaded photos and remains interactive',async({page,isMobile},testInfo)=>{
+ if(isMobile)return;
+ await page.addInitScript(()=>{
+  window.__museumTextureReady=0;
+  document.addEventListener('bml:museum-texture-ready',()=>{window.__museumTextureReady++;});
+ });
+ await page.setViewportSize({width:1536,height:960});
+ const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAYCAIAAAB8wupbAAAAR0lEQVR4nGPkjXZlIAUwkaSaLhoY/3++QJIGFgYGhitRtWiiOsuaGRgY1Fvfo4nfrBYchJ4e1TBSNJCcvBmvL7YnScMg9DQAQV4OGRjRfFEAAAAASUVORK5CYII=';
+ const assetIds=['aaa00000-0000-4000-8000-000000000001','aaa00000-0000-4000-8000-000000000002','aaa00000-0000-4000-8000-000000000003'];
+ const artNames=['uploaded-classroom.png','uploaded-survey.png','uploaded-switch.png'];
+ const uploaded=assetIds.map((id,i)=>({id,original_name:artNames[i],image_url:png,width:1,height:1}));
+ const titles=['The Problem','The Evidence','Our Solution'];
+ let listCalls=0;
+ await page.route('**/api/gallery-guest/artwork?**',async route=>{
+  listCalls++;
+  return route.fulfill({json:{assets:uploaded,expiresSeconds:90}});
+ });
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const operation=new URL(route.request().url()).searchParams.get('operation');
+  if(operation==='me')return route.fulfill({json:{
+   groupLabel:'Nhóm 01',groupState:'editing',csrf:'qa-private-2d',
+   assignment:{title:'Our Climate Action Museum',brief:'Build a school exhibition in English.',class_scope:'11.3',
+    deadline_at:new Date(Date.now()+86400000).toISOString()}
+  }});
+  if(operation==='draft')return route.fulfill({json:{version:3,draft:{
+   title:'Lights Off, Future On',summary:'An energy use gallery about our school.',
+   artworks:{issue:assetIds[0],evidence:assetIds[1],solution:assetIds[2]},
+   artMeta:{issue:{alt:'Actual classroom image'},evidence:{alt:'Actual class survey image'},solution:{alt:'Actual action photo'}},
+   learning:{issue:'Problem',evidence:'Survey',solution:'Action'},
+   rooms:[{title:'Lights Off, Future On',template_key:'classic',exhibits:titles.map((title,i)=>({
+    title,description:'Student-written exhibit description '+(i+1)+'.',kind:'image',asset_id:assetIds[i]
+   }))}]
+  }}});
+  return route.fulfill({json:{ok:true,version:3}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>route.fulfill({json:{session:null,survey:null}}));
+ await page.goto('/tests/museum-lab/v3.html');
+ await page.getByTestId('qa-student-en').click();
+ const app=page.getByTestId('museum-student-wizard');
+ await expect(app).toBeVisible();
+ await app.getByRole('button',{name:'Preview 2D/3D museum'}).click();
+ const viewer=app.getByTestId('museum-visitor');
+ await expect(viewer).toBeVisible();
+ await expect(viewer).toHaveAttribute('data-museum-mode','cinema');
+ await expect(viewer.locator('.bml-cinema-hud')).toBeVisible();
+ await expect(viewer.locator('.bml-cinema-hud').getByRole('button',{name:'3D',exact:true})).toHaveAttribute('aria-pressed','true');
+ await expect(viewer.locator('.bml-cinema-hud').getByRole('button',{name:'Fullscreen'})).toBeVisible();
+ const cinemaGeometry=await viewer.evaluate(el=>{
+  const r=el.getBoundingClientRect(),canvas=el.querySelector('.bml-3d-stage');
+  const s=canvas?.getBoundingClientRect();
+  return {width:r.width,height:r.height,sceneWidth:s?.width,sceneHeight:s?.height,
+   headerCount:el.querySelectorAll('.bml-scene-header').length,
+   roomBar:!!el.querySelector('.bml-room-tabs:not([hidden])')};
+ });
+ expect(cinemaGeometry.width/1536).toBeGreaterThan(.95);
+ expect(cinemaGeometry.height/960).toBeGreaterThan(.87);
+ expect(cinemaGeometry.sceneWidth/cinemaGeometry.width).toBeGreaterThan(.96);
+ expect(cinemaGeometry.sceneHeight/cinemaGeometry.height).toBeGreaterThan(.88);
+ expect(cinemaGeometry.headerCount).toBe(0);
+ expect(cinemaGeometry.roomBar).toBe(false);
+ await viewer.locator('.bml-cinema-hud').getByRole('button',{name:'2D',exact:true}).click();
+ await expect(viewer.getByTestId('museum-paper-2d-room')).toBeVisible();
+ const cards=viewer.locator('.bml-paper-art-card');
+ await expect(cards).toHaveCount(3);
+ const images=cards.locator('img');
+ await expect(images).toHaveCount(3);
+ await expect.poll(()=>listCalls).toBeGreaterThanOrEqual(1);
+ await expect.poll(()=>images.evaluateAll(items=>items.every(img=>img.complete&&img.naturalWidth>0))).toBe(true);
+ expect(await images.evaluateAll(items=>items.map(img=>img.getAttribute('alt'))))
+  .toEqual(['Actual classroom image','Actual class survey image','Actual action photo']);
+ for(let i=0;i<3;i++)await expect(cards.nth(i)).toContainText(titles[i]);
+ await expect(viewer.locator('.bml-paper-photo-placeholder')).toHaveCount(0);
+ await expect(viewer.getByRole('button',{name:'2D',exact:true})).toHaveAttribute('aria-pressed','true');
+ // Portrait student posters must be fully visible, not cut down to a
+ // landscape object-fit:cover thumbnail. The 2D viewer must scroll internally.
+ const posterLayout=await images.evaluateAll(items=>items.map(img=>{
+  const photo=img.closest('.bml-paper-art-photo'),rect=photo.getBoundingClientRect();
+  return {fit:getComputedStyle(img).objectFit,ratio:rect.width/rect.height};
+ }));
+ expect(posterLayout.every(x=>x.fit==='contain'&&x.ratio>.65&&x.ratio<.85)).toBe(true);
+ await expect(viewer.getByRole('button',{name:'View full original poster: The Problem'})).toBeVisible();
+ await viewer.getByRole('button',{name:'View full original poster: The Problem'}).click();
+ const original=page.getByTestId('museum-original-poster-dialog');
+ await expect(original).toBeVisible();
+ await expect(original.getByTestId('museum-original-poster')).toHaveJSProperty('naturalWidth',16);
+ expect(await original.locator('img').evaluate(el=>getComputedStyle(el).objectFit)).toBe('contain');
+ await page.keyboard.press('Escape');
+ await expect(original).toHaveCount(0);
+ const scrolling=await viewer.getByTestId('museum-paper-2d-room').evaluate(el=>({
+  overflow:getComputedStyle(el).overflowY,
+  hasScroll:el.scrollHeight>el.clientHeight,
+  total:el.scrollHeight,
+  visible:el.clientHeight
+ }));
+ expect(scrolling.overflow).toBe('auto');
+ if(scrolling.hasScroll){
+  await viewer.getByTestId('museum-paper-2d-room').evaluate(el=>{el.scrollTop=el.scrollHeight;});
+  expect(await viewer.getByTestId('museum-paper-2d-room').evaluate(el=>el.scrollTop)).toBeGreaterThan(0);
+  await viewer.getByTestId('museum-paper-2d-room').evaluate(el=>{el.scrollTop=0;});
+ }
+ const dimensions=await cards.evaluateAll(items=>items.map(x=>({
+  height:x.getBoundingClientRect().height,visual:x.querySelector('.bml-paper-art-photo').getBoundingClientRect().height
+ })));
+ expect(dimensions.every(x=>x.height>250&&x.visual>120)).toBe(true);
+ await page.screenshot({path:testInfo.outputPath('museum-paper-2d-uploaded-photos.png'),fullPage:false});
+ await viewer.getByRole('button',{name:'Explore exhibit 1: The Problem'}).click();
+ await expect(page.getByTestId('museum-artwork-inspector')).toBeVisible();
+ await page.keyboard.press('Escape');
+ await expect(page.getByTestId('museum-artwork-inspector')).toHaveCount(0);
+ await viewer.getByRole('button',{name:'3D',exact:true}).click();
+ await expect(viewer.locator('.bml-3d-stage')).toBeVisible();
+ const museumShell=viewer.locator('.bml-3d-stage>.big-webgl-shell');
+ await expect(museumShell).toBeVisible();
+ const stageSize=await museumShell.evaluate(el=>{
+  const area=el.closest('.bml-3d-stage').getBoundingClientRect();
+  const shell=el.getBoundingClientRect();
+  return {stageH:area.height,shellH:shell.height,stageW:area.width,shellW:shell.width};
+ });
+ expect(stageSize.shellH).toBeGreaterThan(420);
+ expect(stageSize.shellH/stageSize.stageH).toBeGreaterThan(.9);
+ expect(stageSize.shellW/stageSize.stageW).toBeGreaterThan(.95);
+ // Resize to common classroom 16:9: WebGL viewport should still fill the
+ // remaining preview space without losing its footer or the modal close action.
+ await page.setViewportSize({width:1280,height:720});
+ const compactStage=await museumShell.evaluate(el=>({
+  shell:el.getBoundingClientRect().height,stage:el.closest('.bml-3d-stage').getBoundingClientRect().height
+ }));
+ expect(compactStage.shell).toBeGreaterThan(270);
+ expect(compactStage.shell/compactStage.stage).toBeGreaterThan(.88);
+ // VIS-01 geometry contract across the two most common presentation sizes.
+ for(const viewport of [{width:1536,height:864},{width:1366,height:768},{width:1920,height:1080}]){
+  await page.setViewportSize(viewport);
+  const metrics=await viewer.evaluate(el=>{
+   const canvas=el.querySelector('.bml-cinema-stage');
+   const root=el.getBoundingClientRect(),stage=canvas?.getBoundingClientRect();
+   return {w:root.width,h:root.height,sw:stage?.width,sh:stage?.height};
+  });
+  expect(metrics.w/viewport.width).toBeGreaterThan(.95);
+  expect(metrics.h/viewport.height).toBeGreaterThan(.87);
+  expect(metrics.sw/metrics.w).toBeGreaterThan(.96);
+  expect(metrics.sh/metrics.h).toBeGreaterThan(.88);
+  await expect.poll(()=>page.evaluate(()=>window.__museumTextureReady||0),{timeout:15000}).toBeGreaterThanOrEqual(3);
+  await page.screenshot({path:testInfo.outputPath('museum-v4-cinema-'+viewport.width+'x'+viewport.height+'.png'),fullPage:false});
+ }
+ // Fullscreen toggles an actual browser Fullscreen API request where permitted,
+ // or a CSS fallback; both grow the same real scene, not a stretched bitmap.
+ const fullscreen=viewer.getByRole('button',{name:'Fullscreen',exact:true});
+ await fullscreen.click();
+ await expect(viewer.getByRole('button',{name:'Exit fullscreen'})).toBeVisible();
+ await viewer.getByRole('button',{name:'Exit fullscreen'}).click();
+ await expect(viewer.getByRole('button',{name:'Fullscreen'})).toBeVisible();
+ await viewer.getByRole('button',{name:'Museum information'}).click();
+ await expect(viewer.getByTestId('museum-cinema-info')).toBeVisible();
+ await viewer.getByRole('button',{name:'Close information'}).click();
+ await expect(viewer.getByTestId('museum-cinema-info')).toHaveCount(0);
+ await viewer.getByRole('button',{name:'2D',exact:true}).click();
+ await expect(cards).toHaveCount(3);
+ await viewer.getByRole('button',{name:'Close museum preview'}).click();
+ await expect(viewer).toHaveCount(0);
+});
+
+test('V5.4 Speaking Studio requires user microphone action, rehearses group text locally, and deletes the clip',async({page})=>{
+ await page.getByTestId('qa-v54-speaking-en').click();
+ const studio=page.getByTestId('museum-speaking-studio');
+ await expect(studio).toBeVisible();
+ await expect(studio).toContainText('ACTIVITY 10 · PRESENT AND DISCUSS');
+ await expect(studio).toContainText('Four of ten groups selected reducing unnecessary lighting.');
+ await expect(studio).toContainText('No audio is automatically uploaded');
+ await expect(studio.locator('audio')).toHaveCount(0);
+ await page.evaluate(()=>{
+  window.__micStarts=0;window.__micStops=0;
+  const getUserMedia=async()=>{
+   window.__micStarts++;
+   return {getTracks:()=>[{stop:()=>{window.__micStops++;}}]};
+  };
+  Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia}});
+  class MockRecorder{
+   constructor(){this.state='inactive';this.mimeType='audio/webm';}
+   static isTypeSupported(type){return type.startsWith('audio/webm');}
+   start(){this.state='recording';}
+   stop(){this.state='inactive';this.ondataavailable?.({data:new Blob(['locally recorded audio'],{type:this.mimeType})});this.onstop?.();}
+  }
+  window.MediaRecorder=MockRecorder;
+ });
+ expect(await page.evaluate(()=>window.__micStarts)).toBe(0);
+ await studio.getByRole('button',{name:'Start local recording'}).click();
+ await expect(studio.getByRole('button',{name:'Stop recording'})).toBeVisible();
+ expect(await page.evaluate(()=>window.__micStarts)).toBe(1);
+ await studio.getByRole('button',{name:'Stop recording'}).click();
+ await expect(studio.locator('audio')).toHaveCount(1);
+ expect(await page.evaluate(()=>window.__micStops)).toBeGreaterThanOrEqual(1);
+ await studio.getByRole('button',{name:'Delete recording'}).click();
+ await expect(studio.locator('audio')).toHaveCount(0);
+ await studio.getByRole('button',{name:'Close Speaking Studio'}).click();
+ await expect(studio).toHaveCount(0);
+});
+
+test('Student Creator Group 01: 100% draft but missing sources opens Submit and guides real attribution before Admin review',async({page})=>{
+ const assetIds=['c78d4bba-2808-4efe-9ac7-f904bc3b1001','c78d4bba-2808-4efe-9ac7-f904bc3b1002','c78d4bba-2808-4efe-9ac7-f904bc3b1003'];
+ const keys=['issue','evidence','solution'];
+ const survey={id:'sample-frozen-vote',session_id:'sample-class',counts:[1,2,3,4],source:'online',created_at:'2026-11-13T10:00:00Z'};
+ let state='editing',version=13,saves=0,submits=0;
+ let draft={
+  title:'Lights Off, Future On',summary:'A classroom climate action museum.',
+  survey,artworks:Object.fromEntries(keys.map((k,i)=>[k,assetIds[i]])),
+  artMeta:Object.fromEntries(keys.map(k=>[k,{alt:'Student caption describing '+k,
+   source:'',rights:'Group declared classroom use permission'}])),
+  learning:{issue:'Unused classroom equipment remains on.',
+   evidence:'Four out of ten groups selected unused lighting as a priority.',
+   source:'Group-priority survey, ten participating groups.',
+   solution:'Ask a teacher to approve a switch-checking routine.',
+   roles:'English editor; source checker; poster designer; presenter.',
+   feasibility:'A teacher confirms which lights and devices are safe to turn off.',
+   feedback:'A peer asked for a clearer safety rule.',
+   improvement:'The group added an approval step.',
+   reflection:'Our English recommendations are now more precise.',
+   tested:true}
+ };
+ const assets=assetIds.map((id,i)=>({id,original_name:'original-'+keys[i]+'.png',image_url:''}));
+ await page.route('**/api/gallery-guest/artwork?**',route=>route.fulfill({json:{assets,expiresSeconds:90}}));
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const operation=new URL(route.request().url()).searchParams.get('operation');
+  if(operation==='me')return route.fulfill({json:{groupLabel:'Nhóm 01',groupState:state,csrf:'qa-submit-csrf',
+    uploadEnabled:true,assignment:{title:'Our Climate Action Museum',brief:'Sourced class climate action.',class_scope:'11.3',
+     deadline_at:new Date(Date.now()+86400000).toISOString()}}});
+  if(operation==='draft')return route.fulfill({json:{draft,version}});
+  if(operation==='save'){
+   const body=route.request().postDataJSON();saves++;version++;draft=body.draft;
+   return route.fulfill({json:{ok:true,version}});
+  }
+  if(operation==='submit'){
+   const allSources=keys.every(k=>Boolean(draft.artMeta?.[k]?.source?.trim()));
+   if(!allSources)return route.fulfill({status:400,json:{error:'Complete missing image source attributions.'}});
+   const body=route.request().postDataJSON();
+   if(body.expectedVersion!==version)return route.fulfill({status:409,json:{error:'Version changed.'}});
+   state='submitted';submits++;
+   return route.fulfill({json:{ok:true,status:'submitted',reviewId:'review-qa-submitted'}});
+  }
+  return route.fulfill({json:{ok:true}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>route.fulfill({json:{
+  session:{id:'qa-live-11',status:'active',stageIndex:10,stageOpen:true,stage:{
+   id:'exit-ticket',title:'Exit Ticket',kind:'exit',period:2,minutes:3,
+   question:'What environmental action will you take, and why?',sentence:'I will … because …',options:[]
+  },media:{query:'',videos:[],voiceEnabled:false}},
+  submitted:true,survey
+ }}));
+ await page.getByTestId('qa-student-en').click();
+ const app=page.getByTestId('museum-student-wizard');
+ await expect(app.getByTestId('museum-submit-summary')).toContainText('3 requirements to complete');
+ await expect(app.getByTestId('museum-submit-shortcut')).toBeVisible();
+ // Top step 5 must switch away from Exit Ticket into the actual submission pane.
+ await app.getByTestId('student-tab-live').click();
+ await app.locator('.bml-student-steps button').nth(4).click();
+ await expect(app.getByTestId('student-tab-studio')).toHaveAttribute('aria-pressed','true');
+ const checks=app.getByTestId('museum-submission-checks');
+ await expect(checks).toContainText('The Problem: name the actual image creator or source');
+ await expect(checks).toContainText('The Evidence: name the actual image creator or source');
+ await expect(checks).toContainText('Our Solution: name the actual image creator or source');
+ await checks.getByRole('button',{name:'Add missing image sources (3)'}).click();
+ const media=app.getByTestId('museum-artwork-studio');
+ await expect(media).toBeVisible();
+ await expect(media.locator('.bml-artwork-source-required')).toHaveCount(3);
+ for(let i=0;i<3;i++){
+  await media.locator('.bml-artwork-slot').nth(i).locator('label').filter({hasText:'Image source'}).locator('input')
+   .fill('Real creator named for '+keys[i]);
+ }
+ await expect(media.locator('.bml-artwork-source-required')).toHaveCount(0);
+ await app.locator('.bml-student-detail-head button').last().click();
+ await app.locator('.bml-student-steps button').nth(4).click();
+ await expect(app.getByTestId('museum-submission-checks')).toContainText('All draft checks passed');
+ await expect.poll(()=>saves,{timeout:12000}).toBeGreaterThan(0);
+ await expect(app.locator('.bml-save-indicator')).toContainText('Saved');
+ await app.getByRole('button',{name:'Submit for Admin review'}).click();
+ await expect.poll(()=>submits,{timeout:12000}).toBe(1);
+ await expect(app).toContainText('Submission is locked');
 });

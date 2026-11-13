@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import {LESSON_KITS,RUBRIC,STEPS,emptyStudio,normalizeStudio,documentFromStudio,submissionMissing,scoreRubric,buildProgressCsv} from '../src/features/immersive-gallery/v3/museumData.js';
 import {normalizeGuestDraft} from '../src/features/immersive-gallery/creatorPassPolicy.js';
 import {canSaveMuseumDraft,canSubmitMuseumProject} from '../src/features/immersive-gallery/v3/museumSubmissionPolicy.js';
+import {buildStudentMuseumPreview} from '../src/features/immersive-gallery/v3/museumPreviewImages.js';
 
 test('new student workflow has exactly five coherent STEAM steps',()=>{
  assert.deepEqual(STEPS.map(s=>s.key),['understand','plan','create','test','submit']);
@@ -190,12 +191,92 @@ test('Student Creator displays an official competition ribbon with both supplied
  for(const label of ['BÀI DỰ THI','HỘI THI THIẾT KẾ CHỦ ĐỀ DẠY HỌC STEM\/STEAM','NĂM HỌC 2026–2027','Chủ đề dạy học số – Môn Tiếng Anh THPT','Thạc sĩ Nguyễn Anh Tuấn','Trường Trung - Tiểu học Pétrus Ký']){
   assert.ok(ribbon.includes(label),'Missing competition text: '+label);
  }
- for(const file of ['public/museum/branding/hcmc-department-education.png','public/museum/branding/petrus-ky-school.png']){
-  const bytes=fs.readFileSync(file);
-  assert.ok(bytes.length>1000,'Missing supplied original logo '+file);
-  assert.equal(bytes.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
- }
+ const officialDepartment=fs.readFileSync('public/museum/branding/hcmc-department-education-original.jpg');
+ const officialSchool=fs.readFileSync('public/museum/branding/petrus-ky-original.png');
+ assert.equal(officialDepartment.length,38788,'Department logo must be the exact supplied JPG');
+ assert.equal(officialSchool.length,1055354,'School logo must be the exact supplied transparent PNG');
+ assert.equal(officialDepartment.subarray(0,3).toString('hex'),'ffd8ff');
+ assert.equal(officialSchool.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
+ assert.match(ribbon,/hcmc-department-education-original\.jpg/);
+ assert.match(ribbon,/petrus-ky-original\.png/);
+ assert.doesNotMatch(ribbon,/BookOpen|Globe2|bml-competition-accent/);
+ assert.match(css,/overflow:visible/);
+ assert.match(css,/height:auto/);
  assert.match(css,/max-height:800px/);
  assert.match(css,/max-width:560px/);
  assert.match(css,/bml-student-canvas16/);
+});
+
+test('private Student Creator 2D/3D preview resolves exactly the group uploaded images by slot',()=>{
+ const d=emptyStudio();
+ d.title='Lights Off, Future On';
+ d.artworks={issue:'aaa00000-0000-4000-8000-000000000001',evidence:'aaa00000-0000-4000-8000-000000000002',solution:'aaa00000-0000-4000-8000-000000000003'};
+ d.artMeta={issue:{alt:'Classroom photo by group'},evidence:{alt:'Survey image'},solution:{alt:'Light switch photo'}};
+ const assets=[
+  {id:'aaa00000-0000-4000-8000-000000000001',image_url:'https://private.invalid/one.png?signature=qa',original_name:'room.png'},
+  {id:'aaa00000-0000-4000-8000-000000000002',image_url:'https://private.invalid/two.png?signature=qa',original_name:'chart.png'},
+  {id:'aaa00000-0000-4000-8000-000000000003',image_url:'https://private.invalid/three.png?signature=qa',original_name:'switch.png'}
+ ];
+ const x=buildStudentMuseumPreview(d,assets);
+ assert.equal(x.rooms.length,1);
+ assert.equal(x.rooms[0].exhibits.length,3);
+ assert.deepEqual(x.rooms[0].exhibits.map(e=>e.image_url),assets.map(a=>a.image_url));
+ assert.ok(x.rooms[0].exhibits.every(e=>e.kind==='image'));
+ assert.equal(x.rooms[0].exhibits[0].alt_text,'Classroom photo by group');
+ assert.equal(x.rooms[0].exhibits[2].image_original_name,'switch.png');
+ const missing=buildStudentMuseumPreview(d,[assets[0]]);
+ assert.equal(missing.rooms[0].exhibits[1].image_url,'');
+ assert.equal(missing.rooms[0].exhibits[2].image_url,'');
+ assert.equal(missing.rooms[0].exhibits[1].asset_id,'aaa00000-0000-4000-8000-000000000002');
+ assert.ok(!JSON.stringify(missing).includes('unsplash.com'));
+ assert.ok(!JSON.stringify(missing).includes('pexels.com'));
+ // A stale exhibit asset_id takes precedence over slot id to avoid substituting
+ // an unrelated image. No image is displayed until a matching private asset is signed.
+ d.rooms=[{title:'Legacy preview room',exhibits:[
+  {title:'The Problem',description:'Legacy',asset_id:'historical-image'},
+  {title:'The Evidence',description:'Legacy'},
+  {title:'Our Solution',description:'Legacy'}
+ ]}];
+ const noSubstitution=buildStudentMuseumPreview(d,assets);
+ assert.equal(noSubstitution.rooms[0].exhibits[0].image_url,'');
+});
+test('Paper 2D exhibition uses real image URLs and cannot fabricate stock evidence',()=>{
+ const scene=fs.readFileSync('src/features/immersive-gallery/v3/MuseumScene.jsx','utf8');
+ const student=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLabStudent.jsx','utf8');
+ const styles=fs.readFileSync('src/features/immersive-gallery/v3/museumPaper2D.css','utf8');
+ assert.match(scene,/museum-2d-exhibits/);
+ assert.match(scene,/exhibit\?\.image_url/);
+ assert.match(scene,/onError=\{\(\)=>setFailed\(true\)\}/);
+ assert.match(scene,/No group image uploaded/);
+ assert.match(student,/buildStudentMuseumPreview\(studio,artAssets\)/);
+ assert.match(student,/artGuest\('list'\)/);
+ assert.match(student,/55000/);
+ assert.match(styles,/bml-paper-art-card/);
+ assert.match(styles,/bml-museum-preview-window/);
+});
+
+test('published school exhibitions stay visible when browser catalogue reads fail',()=>{
+ const server=fs.readFileSync('serverless-handlers/gallery-staff.js','utf8');
+ const gallery=fs.readFileSync('src/features/immersive-gallery/v3/MuseumExplore.jsx','utf8');
+ const app=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLabApp.jsx','utf8');
+ assert.match(server,/operation==='showcase-state'/);
+ assert.match(server,/galleryEnabled,publishedGalleries/);
+ assert.match(server,/\.eq\('school_scope',ctx\.profile\.school\)\.eq\('status','published'\)/);
+ assert.match(server,/\.in\('visibility',\['school','public'\]\)/);
+ assert.match(server,/Date\.parse\(g\.starts_at\)/);
+ assert.match(server,/Date\.parse\(g\.ends_at\)/);
+ assert.match(gallery,/Array\.isArray\(archive\.publishedGalleries\)/);
+ assert.match(gallery,/directError&&!published\.length/);
+ assert.match(gallery,/new Map\(\)/);
+ assert.match(gallery,/item\.status!=='archived'/);
+ assert.match(app,/if\(id==='gallery'&&id!==tab\)setQuery\(''\)/);
+});
+
+test('published exhibits hydrate their original private images before 2D/3D viewing',()=>{
+ const galleryData=fs.readFileSync('src/features/immersive-gallery/galleryData.js','utf8');
+ assert.match(galleryData,/exhibits\.filter\(e=>e\.kind==='image'&&e\.asset_id\)/);
+ assert.match(galleryData,/Promise\.allSettled\(imageIds\.map\(id=>getGalleryAssetUrl\(id\)\)\)/);
+ assert.match(galleryData,/image_url:e\.kind==='image'\?/);
+ assert.match(galleryData,/imageUrls\.get\(e\.asset_id\)/);
+ assert.match(galleryData,/createSignedUrl\(row\.path,120\)/);
 });

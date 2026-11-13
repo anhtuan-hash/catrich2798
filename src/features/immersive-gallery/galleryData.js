@@ -32,7 +32,14 @@ export async function getExhibition(slugOrId){
   const rooms=check(await client().from('gallery_rooms').select('*').eq('exhibition_id',exhibit.id).order('sort_order'))||[];
   let exhibits=[];
   if(rooms.length) exhibits=check(await client().from('gallery_exhibits').select('*').in('room_id',rooms.map(r=>r.id)).order('created_at'))||[];
-  return {...exhibit,rooms:rooms.map(r=>({...r,exhibits:exhibits.filter(e=>e.room_id===r.id)}))};
+  // Published museum posters reside in the private Gallery storage bucket.
+  // An asset_id alone is not an image: request time-limited, RLS-authorized
+  // URLs before handing exhibits to the visitor's 2D/3D scene.
+  const imageIds=[...new Set(exhibits.filter(e=>e.kind==='image'&&e.asset_id).map(e=>e.asset_id))];
+  const signed=await Promise.allSettled(imageIds.map(id=>getGalleryAssetUrl(id)));
+  const imageUrls=new Map(imageIds.map((id,index)=>[id,signed[index].status==='fulfilled'?signed[index].value:'']));
+  return {...exhibit,rooms:rooms.map(r=>({...r,exhibits:exhibits.filter(e=>e.room_id===r.id)
+   .map(e=>({...e,image_url:e.kind==='image'?(imageUrls.get(e.asset_id)||''):(e.image_url||'')}))}))};
 }
 export async function createExhibition(input,user){
   requireUser(user);

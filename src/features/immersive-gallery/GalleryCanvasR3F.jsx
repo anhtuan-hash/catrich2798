@@ -5,6 +5,7 @@ import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {ROOM_TEMPLATES,normalizeTransform,useLiteQuality} from './sceneTemplates.js';
 import {createCuratedGlb,CURATED_GLB_KEYS} from './curatedGlb.js';
 import {PekMuseumArchitecture,ExhibitWallLabel,TextExhibitPoster} from './PekMuseumArchitecture.jsx';
+import PekDiscoveryHallV4 from './PekDiscoveryHallV4.jsx';
 import './pekMuseum.css';
 // Cloud media service is imported on demand to prevent eager auth/bootstrap cycles.
 
@@ -28,7 +29,7 @@ function CuratedModel({modelKey='globe',scale=1}) {
   return scene?<primitive object={scene} scale={scale}/>:<mesh scale={0.4}><octahedronGeometry/><meshStandardMaterial color="#a3b6ae"/></mesh>;
 }
 export {CuratedModel};
-function ArtworkImage({assetId,imageUrl,schoolEdition=false}) {
+function ArtworkImage({assetId,imageUrl,schoolEdition=false,cinemaEdition=false}) {
  const [texture,setTexture]=useState(null);
  useEffect(()=>{
   if(!assetId&&!imageUrl)return undefined;let alive=true,created=null;
@@ -36,39 +37,48 @@ function ArtworkImage({assetId,imageUrl,schoolEdition=false}) {
     if(!alive)return;
     new THREE.TextureLoader().load(url,t=>{
       created=t;t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=2;
-      if(alive)setTexture(t);else t.dispose();
+      if(alive){
+       setTexture(t);
+       // Private photo URL is never sent to telemetry/logs; signal only that
+       // WebGL has decoded the actual student artwork texture for visual QA.
+       document.dispatchEvent(new Event('bml:museum-texture-ready'));
+     }else t.dispose();
     },undefined,()=>{if(alive)setTexture(null);});
   }).catch(()=>{if(alive)setTexture(null);});
   return()=>{alive=false;if(created)created.dispose();};
  },[assetId,imageUrl]);
- if(!texture)return <mesh position={[0,0,.083]}><planeGeometry args={schoolEdition?[2.1,1.46]:[1.62,1.17]}/><meshStandardMaterial color="#D9EDE2" roughness={.95}/></mesh>;
+ if(!texture)return <mesh position={[0,0,.087]}>
+  <planeGeometry args={cinemaEdition?[2.25,3.03]:schoolEdition?[2.1,1.46]:[1.62,1.17]}/>
+  <meshStandardMaterial color="#E4E9DF" roughness={.95}/></mesh>;
  const width=texture.image?.width||1,height=texture.image?.height||1,aspect=width/height;
- const maxWidth=schoolEdition?2.11:1.65,maxHeight=schoolEdition?1.62:1.36;
+ const maxWidth=cinemaEdition?2.26:schoolEdition?2.11:1.65,maxHeight=cinemaEdition?3.03:schoolEdition?1.62:1.36;
  const size=aspect>maxWidth/maxHeight?[maxWidth,maxWidth/aspect]:[maxHeight*aspect,maxHeight];
- return <mesh position={[0,0,0.083]}><planeGeometry args={size}/><meshBasicMaterial map={texture} toneMapped={false} side={THREE.DoubleSide}/></mesh>;
+ return <mesh position={[0,0,cinemaEdition ? .096 : .083]}><planeGeometry args={size}/><meshBasicMaterial map={texture} toneMapped={false} side={THREE.DoubleSide}/></mesh>;
 }
-function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,index=0}) {
+function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdition=false,index=0}) {
  const transform=useMemo(()=>normalizeTransform(exhibit.transform||{}),[exhibit.transform]);
- return <group position={transform.position} rotation={transform.rotation} scale={transform.scale}
+ const position=cinemaEdition?
+  [Math.max(-3.2,Math.min(3.2,transform.position[0])),2.45,-7.68]:transform.position;
+ return <group position={position} rotation={transform.rotation} scale={transform.scale}
   onClick={e=>{e.stopPropagation();onSelect?.(exhibit.id);}}
   onPointerOver={e=>{e.stopPropagation();document.body.style.cursor='pointer';}}
   onPointerOut={()=>{document.body.style.cursor='';}}>
-  <mesh><boxGeometry args={schoolEdition?[2.45,1.95,.11]:[2.04,1.70,.10]}/>
+  <mesh><boxGeometry args={cinemaEdition?[2.63,3.41,.12]:schoolEdition?[2.45,1.95,.11]:[2.04,1.70,.10]}/>
    <meshStandardMaterial color={schoolEdition?(isSelected?'#F6D477':'#B69B62'):(isSelected?'#e4aa64':'#ae856e')} roughness={.63} metalness={schoolEdition?.19:0}/></mesh>
-  <mesh position={[0,0,.058]}><boxGeometry args={schoolEdition?[2.29,1.80,.025]:[1.86,1.52,.025]}/>
+  <mesh position={[0,0,.058]}><boxGeometry args={cinemaEdition?[2.46,3.22,.025]:schoolEdition?[2.29,1.80,.025]:[1.86,1.52,.025]}/>
    <meshStandardMaterial color="#fffdf5" roughness={.89}/></mesh>
   {exhibit.kind==='model'
    ?<group position={[0,0,0.45]}><CuratedModel modelKey={exhibit.model_key||'pedestal'} scale={0.63}/></group>
    :exhibit.kind==='image'
-    ?<ArtworkImage assetId={exhibit.asset_id} imageUrl={exhibit.image_url} schoolEdition={schoolEdition}/>
+    ?<ArtworkImage assetId={exhibit.asset_id} imageUrl={exhibit.image_url} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition}/>
     :schoolEdition?<TextExhibitPoster title={exhibit.title} index={index}/>:
     <group><mesh position={[0,0.22,0.083]}><boxGeometry args={[1.06,0.12,0.02]}/><meshStandardMaterial color="#93afa7"/></mesh>
       <mesh position={[0,-0.04,0.085]}><boxGeometry args={[0.9,0.05,0.02]}/><meshStandardMaterial color="#d7c3b3"/></mesh>
       <mesh position={[0,-0.20,0.085]}><boxGeometry args={[1.02,0.05,0.02]}/><meshStandardMaterial color="#d7c3b3"/></mesh></group>}
-  {schoolEdition?<ExhibitWallLabel title={exhibit.title} index={index}/>:null}
+  {schoolEdition?<group position={[0,cinemaEdition?-.54:0,0]}><ExhibitWallLabel title={exhibit.title} index={index}/></group>:null}
  </group>;
 }
-function Walls({template,onTeleport,schoolEdition=false,lite=false}) {
+function Walls({template,onTeleport,schoolEdition=false,cinemaEdition=false,lite=false}) {
  const original=ROOM_TEMPLATES[template]||ROOM_TEMPLATES.classic;
  const theme=schoolEdition?{...original,wall:'#E5F3EB',floor:'#DFE5DC',ceiling:'#F8FCF7',accent:'#138F86'}:original;
  const culture=template==='culture',lab=template==='lab',lobby=template==='lobby';
@@ -81,7 +91,7 @@ function Walls({template,onTeleport,schoolEdition=false,lite=false}) {
   <mesh position={[0,3,-9]}><planeGeometry args={[14,6]}/><meshStandardMaterial color={theme.wall} side={THREE.DoubleSide}/></mesh>
   <mesh position={[-7,3,0]} rotation={[0,Math.PI/2,0]}><planeGeometry args={[18,6]}/><meshStandardMaterial color={theme.wall} side={THREE.DoubleSide}/></mesh>
   <mesh position={[7,3,0]} rotation={[0,-Math.PI/2,0]}><planeGeometry args={[18,6]}/><meshStandardMaterial color={theme.wall} side={THREE.DoubleSide}/></mesh>
-  {schoolEdition?<PekMuseumArchitecture template={template} lite={lite}/>:<group>
+  {schoolEdition?(cinemaEdition?<PekDiscoveryHallV4 lite={lite}/>:<PekMuseumArchitecture template={template} lite={lite}/>):<group>
   {[-6,-3,0,3,6].map(x=><group key={x}>
    <mesh position={[x,0.2,-8.87]}><boxGeometry args={[0.13,0.4,0.2]}/><meshStandardMaterial color={theme.accent}/></mesh>
    <mesh position={[x,5.78,-8.87]}><boxGeometry args={[0.13,0.2,0.2]}/><meshStandardMaterial color="#ffffff"/></mesh>
@@ -119,14 +129,14 @@ function Walls({template,onTeleport,schoolEdition=false,lite=false}) {
  </group>;
 }
 const MOVE_KEYS=new Set(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright','shift']);
-function CameraWalker({held,paused,onPosition,teleport,schoolEdition=false}) {
+function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=false,cinemaEdition=false}) {
  const {camera,gl,invalidate}=useThree();
- const yaw=useRef(0),pitch=useRef(0),drag=useRef(null);
+ const yaw=useRef(0),pitch=useRef(0),drag=useRef(null),tween=useRef(null);
  useEffect(()=>{
   // R3F default cameras look at the scene origin; a closer camera can then face
   // AWAY from the actual art wall. Set a known school-gallery orientation.
   if(!schoolEdition)return;
-  yaw.current=0;pitch.current=-.025;
+  yaw.current=0;pitch.current=cinemaEdition?.075:-.025;
   camera.rotation.order='YXZ';
   camera.rotation.set(pitch.current,yaw.current,0);
   camera.updateMatrixWorld();
@@ -138,17 +148,27 @@ function CameraWalker({held,paused,onPosition,teleport,schoolEdition=false}) {
  useEffect(()=>{
    if(paused)held.current.clear();
  },[paused,held]);
+ // Viewpoint transitions are camera movement, not CSS resizing.
+ useEffect(()=>{
+  if(!cinemaEdition||!viewPreset)return;
+  const destination=viewPreset.type==='artwork'?
+   [viewPreset.x??0,1.95,-3.56]:[0,1.96,viewPreset.type==='room'?2.3:1.3];
+  const reduce=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  tween.current={from:camera.position.clone(),to:new THREE.Vector3(...destination),
+   elapsed:0,duration:reduce?0:(viewPreset.type==='artwork'?.62:.82)};
+  invalidate();
+ },[camera,invalidate,cinemaEdition,viewPreset?.id]);
  useEffect(()=>{
    const canvas=gl.domElement;
    const keyDown=e=>{
      const node=e.target;
      if(node?.closest?.('input,textarea,select,[contenteditable="true"],[role="dialog"]'))return;
      const key=String(e.key).toLowerCase();
-     if(MOVE_KEYS.has(key)&&!paused){held.current.add(key);invalidate();if(key.startsWith('arrow'))e.preventDefault();}
+     if(MOVE_KEYS.has(key)&&!paused){tween.current=null;held.current.add(key);invalidate();if(key.startsWith('arrow'))e.preventDefault();}
    };
    const keyUp=e=>{held.current.delete(String(e.key).toLowerCase());};
    const down=e=>{if(e.button!==0)return;drag.current=[e.clientX,e.clientY];canvas.setPointerCapture?.(e.pointerId);};
-   const move=e=>{if(!drag.current||paused)return;const [x,y]=drag.current;
+   const move=e=>{if(!drag.current||paused)return;tween.current=null;const [x,y]=drag.current;
      yaw.current-=Math.max(-60,Math.min(60,e.clientX-x))*0.005;
      pitch.current=Math.max(-0.62,Math.min(0.62,pitch.current-(e.clientY-y)*0.003));
      camera.rotation.order='YXZ';camera.rotation.y=yaw.current;camera.rotation.x=pitch.current;
@@ -168,6 +188,16 @@ function CameraWalker({held,paused,onPosition,teleport,schoolEdition=false}) {
  },[gl,camera,invalidate,held,paused]);
  useFrame((_,delta)=>{
    if(paused)return;
+   if(tween.current){
+    const t=tween.current;
+    t.elapsed+=Math.min(delta,.09);
+    const ratio=t.duration===0?1:Math.min(1,t.elapsed/t.duration);
+    const ease=ratio*ratio*(3-2*ratio);
+    camera.position.lerpVectors(t.from,t.to,ease);
+    if(cinemaEdition){yaw.current=0;pitch.current=.075;camera.rotation.set(pitch.current,yaw.current,0,'YXZ');}
+    if(ratio>=1)tween.current=null;
+    else invalidate();
+   }
    const keys=held.current;
    const forward=Number(keys.has('w')||keys.has('arrowup'))-Number(keys.has('s')||keys.has('arrowdown'));
    const sideways=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft'));
@@ -181,21 +211,43 @@ function CameraWalker({held,paused,onPosition,teleport,schoolEdition=false}) {
  });
  return null;
 }
-function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=false,lite=false}) {
+// R3F owns the canvas pixel dimensions; this observer keeps the perspective
+// matrix synchronized with resized modal/fullscreen containers. Never stretch
+// the CSS image of the canvas to simulate a larger room.
+function CameraResizeSync(){
+ const {camera,gl,invalidate}=useThree();
+ useEffect(()=>{
+  const parent=gl.domElement.parentElement;
+  if(!parent||typeof ResizeObserver==='undefined')return;
+  const sync=()=>{
+   const width=parent.clientWidth,height=parent.clientHeight;
+   if(width>0&&height>0&&'aspect'in camera){
+    camera.aspect=width/height;
+    camera.updateProjectionMatrix();
+    invalidate();
+   }
+  };
+  const observer=new ResizeObserver(sync);
+  observer.observe(parent);sync();
+  return()=>observer.disconnect();
+ },[camera,gl,invalidate]);
+ return null;
+}
+function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=false,cinemaEdition=false,lite=false}) {
  return <><color attach="background" args={[schoolEdition?'#EBF5F0':'#f2f0e9']}/>
   <ambientLight intensity={schoolEdition?1.25:1.1}/>
   <hemisphereLight args={['#FFFFFF',schoolEdition?'#9CAD9D':'#B7AFA3',1.1]}/>
   <directionalLight position={[1,7,3]} color={schoolEdition?'#FFF7E4':'#FFFFFF'} intensity={1.15}/>
-  <Walls template={template} onTeleport={onTeleport} schoolEdition={schoolEdition} lite={lite}/>
-  {exhibits.slice(0,30).map((e,i)=><PaperArtwork key={e.id} exhibit={e} index={i} schoolEdition={schoolEdition}
+  <Walls template={template} onTeleport={onTeleport} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} lite={lite}/>
+  {exhibits.slice(0,30).map((e,i)=><PaperArtwork key={e.id} exhibit={e} index={i} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition}
    onSelect={onSelect} isSelected={selectedId===e.id}/>)}
  </>;
 }
-export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelect,selectedId='',quality='auto',language='vi',schoolEdition=false}) {
+export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelect,selectedId='',quality='auto',language='vi',schoolEdition=false,cinemaEdition=false}) {
  const held=useRef(new Set());
  const narrow=typeof window!=='undefined'&&window.matchMedia?.('(max-width:700px)').matches;
- const startingZ=schoolEdition?(narrow?2.5:-1.6):4.7;
- const [teleport,setTeleport]=useState(null),[pos,setPos]=useState([0,startingZ]),[supported,setSupported]=useState(null);
+ const startingZ=cinemaEdition?(narrow?2.2:1.3):schoolEdition?(narrow?2.5:-1.6):4.7;
+ const [teleport,setTeleport]=useState(null),[viewPreset,setViewPreset]=useState(null),[pos,setPos]=useState([0,startingZ]),[supported,setSupported]=useState(null);
  const mode=useLiteQuality(quality);
  useEffect(()=>{
    let ok=false;
@@ -206,15 +258,20 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
  useEffect(()=>{held.current.clear();},[selectedId,template]);
  const onPosition=(x,z)=>{setPos([+x.toFixed(1),+z.toFixed(1)]);};
  const hold=(key,down)=>{if(down)held.current.add(key);else held.current.delete(key);window.dispatchEvent(new Event('big-gallery-animate'));};
- const onTeleport=point=>{setTeleport([...point]);};
- return <div className={'big-webgl-shell '+(schoolEdition?'big-pek-museum':'')} data-testid={schoolEdition?'pek-discovery-hall':undefined}
+ const onTeleport=point=>{
+  if(cinemaEdition){
+   setViewPreset({type:point[1]<-3?'artwork':'room',x:point[0],id:Date.now()+Math.random()});
+  }else setTeleport([...point]);
+ };
+ return <div className={'big-webgl-shell '+(schoolEdition?'big-pek-museum ':'')+(cinemaEdition?'big-pek-v4':'')} data-testid={schoolEdition?'pek-discovery-hall':undefined}
   aria-label={schoolEdition?(language==='en'?'Pétrus Ký-inspired Discovery Museum 3D':'Bảo tàng 3D lấy cảm hứng từ Trường Pétrus Ký'):undefined}>
   {supported===false?<div role="alert" className="big-canvas-error">{language==='en'?'WebGL unavailable. Use the 2D exhibit list.':'Thiết bị không hỗ trợ WebGL. Hãy sử dụng danh sách hiện vật 2D.'}</div>:supported===null?<div className="big-canvas-loading">Preparing 3D exhibition…</div>:<Suspense fallback={<div className="big-canvas-loading">Loading original 3D art…</div>}>
-   <Canvas camera={{position:[0,1.77,startingZ],fov:schoolEdition?59:61,near:0.08,far:55}} dpr={mode==='lite'?1:mode==='high'?[1,1.75]:[1,1.35]}
+   <Canvas camera={{position:[0,cinemaEdition?1.92:1.77,startingZ],fov:cinemaEdition?55:schoolEdition?59:61,near:0.08,far:55}} dpr={mode==='lite'?1:mode==='high'?[1,1.75]:[1,1.35]}
     frameloop="demand" gl={{antialias:mode!=='lite',powerPreference:'low-power',alpha:false}} onCreated={({gl})=>{gl.setClearColor('#f2f0e9');}}>
+    <CameraResizeSync/>
     <Room template={template} exhibits={exhibits} onSelect={onSelect} selectedId={selectedId} onTeleport={onTeleport}
-     schoolEdition={schoolEdition} lite={mode==='lite'}/>
-    <CameraWalker held={held} paused={!!selectedId} teleport={teleport} onPosition={onPosition} schoolEdition={schoolEdition}/>
+     schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} lite={mode==='lite'}/>
+    <CameraWalker held={held} paused={!!selectedId} teleport={teleport} onPosition={onPosition} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} viewPreset={viewPreset}/>
    </Canvas>
   </Suspense>}
   {schoolEdition?<div className="big-pek-tools" role="group" aria-label={language==='en'?'Museum viewpoints':'Góc tham quan bảo tàng'}>

@@ -16,3 +16,7 @@
 .bml-peer-review-form textarea,.bml-peer-review-form select{width:100%;min-height:77px;padding:9px;border:1px solid #bfd1c8;background:#fff;border-radius:8px;color:#213e39;font:inherit}
 .bml-peer-review-form select{min-height:39px}.bml-peer-review-form small{font-size:.72rem;line-height:1.4;color:#61736c}
 @media(max-width:750px){.bml-peer-review-body{grid-template-columns:1fr}.bml-peer-gallery{min-height:230px}.bml-peer-live{padding:11px}.bml-peer-head,.bml-peer-own{flex-wrap:wrap}}
+
+/* V5.3: exhibit-specific feedback remains optional and readable on 16:9 screens. */
+.bml-peer-exhibit-focus{display:inline-flex;align-items:center;align-self:flex-start;padding:4px 9px;border:1px solid #b9d6c7;border-radius:11px;background:#e8f4eb;color:#226a53;font-size:11px;font-weight:800}
+.bml .bml-peer-review-form select:focus-visible{outline:3px solid #2572a6;outline-offset:2px}

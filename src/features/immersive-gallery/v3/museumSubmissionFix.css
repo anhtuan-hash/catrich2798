@@ -1,0 +1,20 @@
+/* Submission route must remain visible inside the fixed 16:9 student canvas. */
+.bml.bml-student-canvas16 .bml-student-project-card{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#b1cfc2 transparent}
+.bml.bml-student-canvas16 .bml-student-submit-summary{display:flex;flex-direction:column;gap:3px;padding:8px 10px;background:#f0f7ec;border:1px solid #c8e1d0;border-radius:11px;min-width:0;flex:none}
+.bml.bml-student-canvas16 .bml-student-submit-summary strong{color:#285e53;font-size:clamp(11px,.9vw,13px);line-height:1.3}
+.bml.bml-student-canvas16 .bml-student-submit-summary small{color:#5b766d;font-size:10px;line-height:1.35}
+.bml.bml-student-canvas16 .bml-student-submit-shortcut{display:flex;align-items:center;justify-content:center;gap:7px;min-height:38px;min-width:0;width:100%;padding:8px 10px;border:1px solid #236a59;border-radius:10px;background:#236a59;color:#fff;font-size:12px;font-weight:850;cursor:pointer;flex:none;box-shadow:0 2px 6px #24594229}
+.bml.bml-student-canvas16 .bml-student-submit-shortcut:hover{background:#185b4c}
+.bml.bml-student-canvas16 .bml-student-submit-shortcut:focus-visible{outline:3px solid #246fa2;outline-offset:2px}
+.bml.bml-student-canvas16 .bml-student-submission-readiness{display:flex;flex-direction:column;gap:8px;padding:12px 13px;background:#f3f9f3;border:1px solid #bfd9c6;border-radius:13px;margin:9px 0}
+.bml.bml-student-canvas16 .bml-student-submission-head{display:flex;justify-content:space-between;align-items:center;gap:9px;flex-wrap:wrap}
+.bml.bml-student-canvas16 .bml-student-submission-head strong{font-size:13px;color:#245a4c}
+.bml.bml-student-canvas16 .bml-student-submission-head span{color:#ad5b3f;font-weight:800;font-size:11px}
+.bml.bml-student-canvas16 .bml-student-submission-readiness p{font-size:12px;margin:0;color:#526d64}
+.bml.bml-student-canvas16 .bml-student-submission-readiness ul{padding:0 0 0 19px;margin:0;max-height:185px;overflow-y:auto;scrollbar-width:thin;font-size:12px;line-height:1.6;color:#7e4238}
+.bml.bml-student-canvas16 .bml-student-submission-readiness li{padding:2px 0}
+.bml.bml-student-canvas16 .bml-student-submission-readiness button{align-self:flex-start;display:flex;gap:7px;align-items:center;white-space:normal;font-size:12px}
+.bml.bml-student-canvas16 .bml-student-submission-window{color:#a34839!important;font-weight:700}
+.bml .bml-artwork-source-required{margin:6px 0 0;padding:8px 10px;border:1px solid #e8c8af;border-radius:9px;background:#fff4e6;color:#90502f;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+@media(max-width:800px){.bml.bml-student-canvas16 .bml-student-submit-summary{padding:6px 8px}.bml.bml-student-canvas16 .bml-student-submit-shortcut{min-height:34px}.bml.bml-student-canvas16 .bml-student-project-card{overflow-y:auto}}
+@media(prefers-reduced-motion:reduce){.bml.bml-student-canvas16 .bml-student-submit-shortcut{transition:none!important}}

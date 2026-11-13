@@ -26,8 +26,9 @@ test('school hall is a 3D exhibition environment with actual framed artworks and
 });
 test('default Gallery R1 remains supported without school architecture',()=>{
  assert.match(canvas,/schoolEdition=false/);
- assert.match(canvas,/schoolEdition\?<PekMuseumArchitecture/);
- assert.match(visitor,/schoolEdition\/>/);
+ assert.match(canvas,/cinemaEdition\?<PekDiscoveryHallV4/);
+ assert.match(canvas,/:<PekMuseumArchitecture/);
+ assert.match(visitor,/schoolEdition cinemaEdition=\{cinema\}/);
 });
 test('accessible close-up and full-room views without changing gallery data',()=>{
  assert.match(canvas,/Đến gần tranh/);
@@ -35,4 +36,17 @@ test('accessible close-up and full-room views without changing gallery data',()=
  assert.match(css,/big-pek-tools/);
  assert.match(css,/@media\(max-width:700px\)/);
  assert.doesNotMatch(architecture,/fetch\(|https?:\/\/|localStorage|sessionStorage/);
+});
+
+test('V4 Museum Cinema geometry is real Three.js scene content, not an image-background mockup',()=>{
+ const hall=fs.readFileSync('src/features/immersive-gallery/PekDiscoveryHallV4.jsx','utf8');
+ const cinema=fs.readFileSync('src/features/immersive-gallery/v3/museumCinemaPreview.css','utf8');
+ for(const motif of ['Skylight','WindowBays','MuseumFurniture','SchoolCrest',
+  'spotLight','torusGeometry','sphereGeometry','meshStandardMaterial','useTexture']){
+  assert.ok(hall.includes(motif),'Missing V4 feature: '+motif);
+ }
+ assert.match(hall,/petrus-ky-original\.png/);
+ assert.doesNotMatch(hall,/mockup\.(png|jpg)|backgroundImage|stock-photo/);
+ assert.match(cinema,/bml-museum-cinema/);
+ assert.match(cinema,/height:100%/);
 });

@@ -91,9 +91,23 @@ export default async function galleryStaff(req,res){
    const archivedGalleries=ctx.role==='admin'?await query(admin.from('gallery_exhibitions')
     .select('id,title,summary,status').eq('school_scope',ctx.profile.school)
     .eq('status','archived').order('updated_at',{ascending:false}).limit(100)):[];
+   // Provide an authorized, server-side published catalogue so a transient
+   // browser settings or Data API read issue does not hide published work.
+   const gallerySettings=await query(admin.from('gallery_settings')
+    .select('enabled').eq('id',true).maybeSingle());
+   const galleryEnabled=gallerySettings?.enabled===true;
+   const schoolPublications=galleryEnabled?await query(admin.from('gallery_exhibitions')
+    .select('id,slug,title,summary,visibility,status,owner_id,accept_submissions,created_at,updated_at,starts_at,ends_at')
+    .eq('school_scope',ctx.profile.school).eq('status','published')
+    .in('visibility',['school','public']).order('updated_at',{ascending:false}).limit(100)):[];
+   const now=Date.now();
+   const publishedGalleries=schoolPublications.filter(g=>
+    (!g.starts_at||Date.parse(g.starts_at)<=now)&&
+    (!g.ends_at||Date.parse(g.ends_at)>=now)
+   ).map(({starts_at,ends_at,...g})=>g);
    return send(res,200,{
     hiddenCollections:hidden.filter(x=>x.item_kind==='collection').map(x=>x.item_key),
-    archivedGalleries
+    archivedGalleries,galleryEnabled,publishedGalleries
    });
   }
   if(operation==='archive-exhibition'||operation==='restore-exhibition'){

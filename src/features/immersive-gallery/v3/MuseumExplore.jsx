@@ -49,8 +49,24 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
  const [showArchived,setShowArchived]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const pull=async()=>{
   const api=await import('../galleryData.js');
-  const [enabled,archive]=await Promise.all([api.getGalleryEnabled(),staffRequest('showcase-state')]);
-  const items=enabled?await api.listExhibitions():[];
+  const [clientEnabled,archive]=await Promise.all([api.getGalleryEnabled(),staffRequest('showcase-state')]);
+  // The staff endpoint reads the authoritative school catalogue and respects
+  // gallery enablement, visibility, schedule and published status server-side.
+  // Keep legacy client results (including own drafts) for backwards compatibility.
+  const enabled=typeof archive.galleryEnabled==='boolean'?archive.galleryEnabled:clientEnabled;
+  let direct=[],directError=null;
+  if(enabled){
+   try{direct=await api.listExhibitions();}
+   catch(error){directError=error;}
+  }
+  const published=enabled&&Array.isArray(archive.publishedGalleries)?archive.publishedGalleries:[];
+  if(directError&&!published.length)throw directError;
+  const unique=new Map();
+  for(const item of [...direct,...published]){
+   if(item?.id&&item.status!=='archived')unique.set(item.id,item);
+  }
+  const items=[...unique.values()].sort((a,b)=>
+   new Date(b.updated_at||0).getTime()-new Date(a.updated_at||0).getTime());
   return {api,items,archive};
  };
  useEffect(()=>{
