@@ -33,6 +33,7 @@ on:
       - 'scripts/museum-v31-postgres-qa.sh'
       - 'scripts/test-pek-museum-v33.mjs'
       - 'scripts/test-museum-artwork-360-v34.mjs'
+      - 'scripts/test-museum-focus-v5.mjs'
       - 'scripts/test-museum-prepared-portfolio-v35.mjs'
       - 'supabase/migrations/*museum_approved_artwork*'
       - 'supabase/migrations/*museum_learning_evidence*'
@@ -79,6 +80,8 @@ jobs:
         run: node --test scripts/test-pek-museum-v33.mjs
       - name: Artwork 360 orbit, original media and accessibility contract
         run: node --test scripts/test-museum-artwork-360-v34.mjs
+      - name: V5 one-mesh focus reducer, exact wall return, privacy and content integrity
+        run: node --test scripts/test-museum-focus-v5.mjs
       - name: Classroom portfolios, content integrity, no fabricated submission records
         run: node --test scripts/test-museum-prepared-portfolio-v35.mjs
       - name: Learning evidence invariants
