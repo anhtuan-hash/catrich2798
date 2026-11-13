@@ -21,17 +21,9 @@ export default function MuseumPaperHeader({language='vi',tab='home',onNavigate,p
  const tr=(vi,en)=>language==='en'?en:vi;
  const active=['home','wizard'].includes(tab)?'lessons':tab==='demo'?'gallery':tab;
  return <header className="bml-paper-header">
-  {tab==='home' && <MuseumCompetitionRibbon variant="dashboard"/>}
-  {tab==='home'?<div className="bml-paper-hero">
-   <img className="bml-paper-hero-image" src="/assets/museum-paper/hero.webp" width="2172" height="724" alt="" fetchPriority="high"/>
-   <div className="bml-paper-hero-copy">
-    <div className="bml-paper-wordmark"><Landmark aria-hidden="true"/><strong>BRIAN Museum Lab</strong></div>
-    <span className="bml-paper-ribbon">{tr('Bảo tàng số trong lớp học','A digital museum in your classroom')}</span>
-    <h1>{tr('Chào mừng trở lại!','Welcome back!')}</h1>
-    <p>{tr('Hôm nay, thầy/cô muốn sáng tạo điều gì?','What would you like to create today?')}</p>
-   </div>
-   <span className="bml-paper-building-label" aria-hidden="true">BRIAN<br/>MUSEUM LAB</span>
-  </div>:<div className="bml-paper-compact-brand"><Landmark aria-hidden="true"/><strong>BRIAN Museum Lab</strong><span>{tr('Bảo tàng số trong lớp học','A digital museum in your classroom')}</span></div>}
+  {/* Keep the official competition masthead present across every Museum Lab tab.
+      The former welcome hero and redundant compact brand are intentionally removed. */}
+  <MuseumCompetitionRibbon variant="dashboard"/>
   <nav className="bml-paper-nav" aria-label={tr('Điều hướng Museum Lab','Museum Lab navigation')}>
    {PRIMARY.map(([id,Icon,vi,en])=><button type="button" key={id} onClick={()=>onNavigate(id)}
     className={active===id?'is-active':''} aria-current={active===id?'page':undefined}>
