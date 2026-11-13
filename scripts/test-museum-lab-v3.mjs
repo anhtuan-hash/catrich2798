@@ -122,3 +122,25 @@ test('Exit Tickets and museum submissions are counted separately',()=>{
  assert.match(liveStudent,/student-live-completed/);
  assert.match(liveStudent,/Your group Exit Ticket was recorded/);
 });
+
+test('Museum Lab hides date and clock metadata on every student and teacher screen',()=>{
+ const read=name=>fs.readFileSync('src/features/immersive-gallery/v3/'+name,'utf8');
+ const dashboard=read('MuseumDashboard.jsx'), review=read('MuseumReview.jsx');
+ const lessons=read('MuseumLessonFlow.jsx'), student=read('MuseumLabStudent.jsx');
+ const liveStudent=read('MuseumLiveStudent.jsx'),liveTeacher=read('MuseumLiveTeacher.jsx');
+ const exhibition=read('MuseumExhibitionDetail.jsx');
+ assert.doesNotMatch(dashboard,/fmtDate\(|a\.deadline_at/);
+ assert.doesNotMatch(review,/fmtDate\(|fmtTime\(|r\.submitted_at|selected\.submitted_at/);
+ assert.doesNotMatch(lessons,/fmtDate\(|fmtTime\(|datetime-local|form\.deadlineAt/);
+ assert.match(lessons,/accessWindow/);
+ assert.match(lessons,/deadlineForWindow/);
+ assert.match(lessons,/deadlineAt:deadlineForWindow/);
+ assert.doesNotMatch(student,/fmtTime\(|new Date\(c\.createdAt\)|session\.assignment\.deadline_at/);
+ assert.match(student,/Version.*c\.version/);
+ assert.doesNotMatch(liveStudent,/new Date\(r\.created_at\)/);
+ assert.doesNotMatch(liveTeacher,/\{state\.survey\.created_at\}/);
+ assert.doesNotMatch(exhibition,/dateLabel|toLocaleDateString/);
+ // State/audit timestamps are intentionally retained by the backend and exports.
+ const server=fs.readFileSync('serverless-handlers/gallery-guest.js','utf8');
+ assert.match(server,/assignment\.deadline_at/);
+});

@@ -1,14 +1,14 @@
 import React,{useEffect,useMemo,useState} from 'react';
-import {ArrowLeft,ArrowRight,BookOpen,CalendarDays,Check,CheckCircle2,ChevronRight,ClipboardList,Copy,Download,ExternalLink,KeyRound,LockKeyhole,Plus,Printer,QrCode,RefreshCw,ShieldAlert,Trash2,Users} from 'lucide-react';
+import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronRight,ClipboardList,Copy,Download,ExternalLink,KeyRound,LockKeyhole,Plus,Printer,QrCode,RefreshCw,ShieldAlert,Trash2,Users} from 'lucide-react';
 import {LESSON_KITS,progressOfGroup} from './museumData.js';
 import {englishSystemGroupLabel} from './museumApi.js';
 import {LIVE_STAGES,LIVE_TOTAL_MINUTES} from './liveLesson.js';
 import {preparedCollectionFor} from './museumPreparedCollections.js';
 import './museumPrepared.css';
-import {staffRequest,joinUrl,fmtDate,fmtTime,saveTextFile} from './museumApi.js';
+import {staffRequest,joinUrl,saveTextFile} from './museumApi.js';
 import {KitCover} from './MuseumDashboard.jsx';
 const tr=(language,vi,en)=>language==='en'?en:vi;
-const defaultDeadline=()=>new Date(Date.now()+7*86400000).toISOString().slice(0,16);
+const deadlineForWindow=accessWindow=>new Date(Date.now()+({standard:7,extended:30,term:90}[accessWindow]||7)*86400000).toISOString();
 function Notice({error,success}){return error?<div className="bml-banner bml-danger-banner" role="alert"><ShieldAlert size={19}/>{error}</div>:success?<div className="bml-banner bml-success-banner" role="status"><CheckCircle2 size={18}/>{success}</div>:null;}
 export function OneTimeInvites({invitations,onClose,language='vi'}){
  const [qr,setQr]=useState({});
@@ -36,14 +36,14 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'})
  const [step,setStep]=useState(0);
  const kit=LESSON_KITS[0];
  const isAdmin=data?.profile?.role==='admin';
- const [form,setForm]=useState({classScope:'',groupCount:6,deadlineAt:defaultDeadline(),title:'',brief:''});
+ const [form,setForm]=useState({classScope:'',groupCount:6,accessWindow:'standard',title:'',brief:''});
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[invites,setInvites]=useState(null);
  const title=form.title||kit.title,brief=form.brief||kit.brief;
  const issue=async()=>{
   setError('');setBusy(true);
   try{
    const payload={title,classScope:form.classScope.trim(),brief,groupCount:Number(form.groupCount),
-    deadlineAt:new Date(form.deadlineAt).toISOString()};
+    deadlineAt:deadlineForWindow(form.accessWindow)};
    const r=await staffRequest('create-assignment',payload);setInvites(r.invitations);
    await onCompleted();
   }catch(e){setError(e.message);}finally{setBusy(false);}
@@ -97,7 +97,11 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'})
     <div className="bml-field-grid">
      <label>{tr(language,'Lớp học','Class')}<input autoFocus required maxLength={120} placeholder="11A3" value={form.classScope} onChange={e=>setForm(v=>({...v,classScope:e.target.value}))}/></label>
      <label>{tr(language,'Số nhóm','Number of groups')}<select value={form.groupCount} onChange={e=>setForm(v=>({...v,groupCount:Number(e.target.value)}))}>{Array.from({length:12},(_,i)=><option key={i+1} value={i+1}>{i+1} {tr(language,'nhóm','groups')}</option>)}</select></label>
-     <label>{tr(language,'Hạn nộp','Deadline')}<input type="datetime-local" required value={form.deadlineAt} onChange={e=>setForm(v=>({...v,deadlineAt:e.target.value}))}/></label>
+     <label>{tr(language,'Quyền truy cập bài','Submission access')}<select value={form.accessWindow} onChange={e=>setForm(v=>({...v,accessWindow:e.target.value}))}>
+      <option value="standard">{tr(language,'Tiêu chuẩn','Standard')}</option>
+      <option value="extended">{tr(language,'Mở rộng','Extended')}</option>
+      <option value="term">{tr(language,'Cả học kỳ','Full term')}</option>
+     </select></label>
     </div>
     <div className="bml-banner bml-info-banner"><CheckCircle2 size={19}/>{tr(language,
       'Admin trực tiếp giao nhiệm vụ, duyệt bài và công bố. Không cần phân công giáo viên/TTCM.',
@@ -112,7 +116,7 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'})
     <label className="bml-full-field">{tr(language,'Nhiệm vụ của học sinh','Student assignment')}<textarea rows={5} maxLength={5000} value={brief} onChange={e=>setForm(v=>({...v,brief:e.target.value}))}/></label>
     <div className="bml-wizard-summary"><div><BookOpen size={21}/><span>{kit.title}</span></div>
      <div><Users size={21}/><span>{form.groupCount} {tr(language,'nhóm','groups')} · {form.classScope}</span></div>
-     <div><CalendarDays size={21}/><span>{tr(language,'Hạn','Due')} {fmtTime(form.deadlineAt)}</span></div></div>
+</div>
     {!data?.creatorSettings?.enabled?<div className="bml-banner bml-warning-banner"><LockKeyhole size={20}/><span>{tr(language,'Creator Pass đang tắt. Admin cần bật sau khi nghiệm thu trước khi giao bài thật.','Creator Pass is OFF. An administrator must enable it after acceptance.')}</span>
       <button type="button" className="bml-text-btn" onClick={onSettings}>{tr(language,'Cài đặt','Settings')}</button></div>:null}
    </>:null}
@@ -160,7 +164,7 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
    const collection=preparedCollectionFor(a);
    return <article className="bml-lesson-block bml-surface" key={a.id}>
     <div className="bml-lesson-summary"><span className="bml-table-icon"><BookOpen size={22}/></span>
-     <div><span className="bml-overline">{a.class_scope} · {tr(language,'Hạn','Due')} {fmtDate(a.deadline_at)}</span>
+     <div><span className="bml-overline">{a.class_scope}</span>
       <h2>{a.title}</h2><p>Exit Tickets: {exitCount}/{mine.length} · {tr(language,'Sản phẩm bảo tàng','Museum projects')}: {done}/{mine.length}</p></div>
      <div className="bml-prepared-lesson-actions">
       {collection?<button type="button" className="bml-outline bml-prepared-visit" onClick={()=>onOpenCollection?.(collection.key)}>
