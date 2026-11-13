@@ -49,7 +49,7 @@ function OverviewCards({data,onNavigate,language}){
 export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onNavigate,data,isDemo=false,onDelete=null,busy=false,startInCinema=false}){
  const [section,setSection]=useState('space'),[moreOpen,setMoreOpen]=useState(false),[notice,setNotice]=useState('');
  const [cinemaOpen,setCinemaOpen]=useState(Boolean(startInCinema));
- const viewerRef=useRef(null);
+ const enterCinemaRef=useRef(null);
  const rooms=useMemo(()=>Array.isArray(gallery?.rooms)?gallery.rooms:[],[gallery?.rooms]);
  const exhibitCount=rooms.reduce((total,room)=>total+(room.exhibits?.length||0),0);
  const visibleStatus=gallery?.status==='published'&&!isDemo;
@@ -84,11 +84,16 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
  // creators. Keep the management page mounted underneath for information,
  // sharing and returning to the Exhibition catalogue.
  const openCinema=()=>{setSection('space');setMoreOpen(false);setCinemaOpen(true);};
+ const closeCinema=()=>{setCinemaOpen(false);
+  window.requestAnimationFrame?.(()=>enterCinemaRef.current?.focus?.());};
  useEffect(()=>{
   if(!cinemaOpen||typeof document==='undefined')return undefined;
   const oldOverflow=document.body.style.overflow;
   document.body.style.overflow='hidden';
-  return()=>{document.body.style.overflow=oldOverflow;};
+  const frame=window.requestAnimationFrame?.(()=>{
+   document.querySelector('[data-testid="museum-teacher-cinema-portal"] .bml-cinema-close')?.focus?.();
+  });
+  return()=>{if(frame!=null)window.cancelAnimationFrame?.(frame);document.body.style.overflow=oldOverflow;};
  },[cinemaOpen]);
  return <>
  <div className="bml-exhibition-detail bml-screen" data-testid="museum-exhibition-detail">
@@ -112,7 +117,7 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
    </div>
    <div className="bml-exh-hero-visual"><MuseumHeroArt/></div>
   </section>
-  <section className="bml-exh-museum-frame" ref={viewerRef} data-testid="museum-exhibition-frame">
+  <section className="bml-exh-museum-frame" data-testid="museum-exhibition-frame">
    <div className="bml-exh-toolbar">
     <div className="bml-exh-section-tabs" role="tablist" aria-label={t(language,'Nội dung triển lãm','Exhibition sections')}>
      <button type="button" role="tab" aria-selected={section==='space'} className={section==='space'?'is-active':''}
@@ -137,7 +142,7 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
    </div>
    {notice?<div className="bml-exh-notice" role="status"><CheckCircle2 size={16}/>{notice}<button aria-label="Close" onClick={()=>setNotice('')}><X size={16}/></button></div>:null}
    {section==='space'?<div role="tabpanel">
-     {!cinemaOpen?<><button type="button" className="bml-exh-enter-cinema" onClick={openCinema}>
+     {!cinemaOpen?<><button ref={enterCinemaRef} type="button" className="bml-exh-enter-cinema" onClick={openCinema}>
       <Maximize2 size={18}/>{t(language,'Tham quan bảo tàng toàn màn hình','Open full-screen museum')}
      </button><MuseumScene gallery={gallery} language={language} compact initial3D/></>:null}
     </div>:<div className="bml-exh-info-panel" role="tabpanel">
@@ -171,7 +176,7 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
    <div className="bml-review-cinema-overlay" role="dialog" aria-modal="true"
     aria-label={t(language,'Tham quan triển lãm toàn màn hình','Full-screen museum exhibition')}>
     <MuseumScene gallery={gallery} language={language} embedded cinema initial3D
-     onClose={()=>setCinemaOpen(false)}/>
+     onClose={closeCinema}/>
    </div>
   </div>,document.body):null}
  </>;
