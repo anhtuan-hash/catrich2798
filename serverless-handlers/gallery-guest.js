@@ -107,7 +107,9 @@ export default async function galleryGuest(req,res){
   }
 
   if(operation==='logout'){
-   requireMethod(req,'POST');const ctx=await guestContext(req,admin,{write:true});
+   requireMethod(req,'POST');guardOrigin(req);
+   const ctx=await guestContext(req,admin);
+   if(!safeEqual(req.headers['x-gallery-csrf'],ctx.session.csrf_token))throw fail(403,'CSRF verification failed.');
    await query(admin.from('gcp_sessions').update({revoked_at:new Date().toISOString()})
     .eq('token_hash',ctx.session.token_hash));
    clearCookie(res);
