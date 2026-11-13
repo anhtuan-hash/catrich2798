@@ -58,13 +58,11 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
  const focusBack=()=>dispatchFocus({type:'BACK'});
  const changeTo2D=()=>{dispatchFocus({type:'RESET'});setInfoOpen(false);setThreeD(false);};
  const changeTo3D=()=>{setInfoOpen(false);setThreeD(true);};
- const focusBackButtonRef=useRef(null),lastFocusPhase=useRef('idle');
+ const lastFocusPhase=useRef('idle');
  const cinemaRef=useRef(null),cinemaOpenerRef=useRef(null),[infoOpen,setInfoOpen]=useState(false);
  useEffect(()=>{
   if(!cinema)return;
-  if(focus.phase==='focused'&&lastFocusPhase.current!=='focused'){
-   focusBackButtonRef.current?.focus({preventScroll:true});
-  }else if(focus.phase==='idle'&&lastFocusPhase.current!=='idle'){
+  if(focus.phase==='idle'&&lastFocusPhase.current!=='idle'){
    if(openerRef.current?.isConnected)openerRef.current.focus({preventScroll:true});
    else cinemaRef.current?.querySelector('.bml-cinema-mode-group button')?.focus({preventScroll:true});
   }
@@ -288,11 +286,6 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
        'The complete original poster is displayed without cropping or distortion.')}</p>
     </section>
    </div>:null}
-  {cinema&&threeD&&isFocus?<button type="button" className="bml-v5-focus-back"
-   ref={focusBackButtonRef} data-testid="museum-back-to-wall-hud" aria-label="Back to wall"
-   disabled={focus.phase!=='focused'} onClick={focusBack}>
-   <span aria-hidden="true">←</span> Back to wall
-  </button>:null}
   {cinema&&threeD&&isFocus?<div className="bml-v5-focus-status" role="status" aria-live="polite"
    data-testid="museum-focus-status">
    {focus.phase==='focused'?focusBoard?.title+' is now displayed in the room.':
