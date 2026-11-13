@@ -55,6 +55,23 @@ async function stageApprovedArt(ctx,scoped){
  }
 }
 
+// Keep the catalogue independent of browser-side Supabase queries. Both the
+// already loaded staff dashboard and the exhibition view share this scope.
+async function publishedSchoolCatalog(ctx){
+ const admin=ctx.admin;
+ const enabled=await query(admin.from('gallery_settings').select('enabled')
+  .eq('id',true).maybeSingle());
+ if(enabled?.enabled!==true)return [];
+ const rows=await query(admin.from('gallery_exhibitions')
+  .select('id,slug,title,summary,visibility,status,owner_id,accept_submissions,created_at,updated_at,starts_at,ends_at')
+  .eq('school_scope',ctx.profile.school).eq('status','published')
+  .in('visibility',['school','public']).order('updated_at',{ascending:false}).limit(100));
+ const now=Date.now();
+ return rows.filter(g=>(!g.starts_at||Date.parse(g.starts_at)<=now)&&
+  (!g.ends_at||Date.parse(g.ends_at)>=now))
+  .map(({starts_at,ends_at,...row})=>row);
+}
+
 async function loadScopedReview(ctx,reviewId){
  if(!uid(reviewId))throw fail(400,'Mã hồ sơ không hợp lệ.');
  const review=await query(ctx.admin.from('gcp_reviews').select('*').eq('id',reviewId).maybeSingle());
@@ -93,23 +110,46 @@ export default async function galleryStaff(req,res){
     .eq('status','archived').order('updated_at',{ascending:false}).limit(100)):[];
    // Provide an authorized, server-side published catalogue so a transient
    // browser settings or Data API read issue does not hide published work.
-   const gallerySettings=await query(admin.from('gallery_settings')
-    .select('enabled').eq('id',true).maybeSingle());
-   const galleryEnabled=gallerySettings?.enabled===true;
-   const schoolPublications=galleryEnabled?await query(admin.from('gallery_exhibitions')
-    .select('id,slug,title,summary,visibility,status,owner_id,accept_submissions,created_at,updated_at,starts_at,ends_at')
-    .eq('school_scope',ctx.profile.school).eq('status','published')
-    .in('visibility',['school','public']).order('updated_at',{ascending:false}).limit(100)):[];
-   const now=Date.now();
-   const publishedGalleries=schoolPublications.filter(g=>
-    (!g.starts_at||Date.parse(g.starts_at)<=now)&&
-    (!g.ends_at||Date.parse(g.ends_at)>=now)
-   ).map(({starts_at,ends_at,...g})=>g);
+   const galleryEnabled=(await query(admin.from('gallery_settings')
+    .select('enabled').eq('id',true).maybeSingle()))?.enabled===true;
+   const publishedGalleries=galleryEnabled?await publishedSchoolCatalog(ctx):[];
    return send(res,200,{
     hiddenCollections:hidden.filter(x=>x.item_kind==='collection').map(x=>x.item_key),
     archivedGalleries,galleryEnabled,publishedGalleries
    });
   }
+  if(operation==='showcase-exhibition'){
+   requireMethod(req,'POST');guardOrigin(req);
+   const body=guardBody(req,1100),id=String(body.id||'');
+   if(!uid(id))throw fail(400,'Invalid exhibition identifier.');
+   // No draft, archived, other-school or time-locked gallery leaves this API.
+   const eligible=await publishedSchoolCatalog(ctx);
+   if(!eligible.some(g=>g.id===id))throw fail(404,'Published exhibition unavailable.');
+   const exhibition=await query(admin.from('gallery_exhibitions').select('*')
+    .eq('id',id).eq('school_scope',ctx.profile.school).eq('status','published').single());
+   const rooms=await query(admin.from('gallery_rooms').select('*')
+    .eq('exhibition_id',id).order('sort_order'));
+   const roomIds=rooms.map(r=>r.id);
+   const exhibits=roomIds.length?await query(admin.from('gallery_exhibits').select('*')
+    .in('room_id',roomIds).eq('status','published').order('created_at')):[];
+   const assetIds=[...new Set(exhibits.filter(e=>e.kind==='image'&&uid(e.asset_id))
+    .map(e=>e.asset_id))];
+   const assets=assetIds.length?await query(admin.from('gallery_assets')
+    .select('id,path').in('id',assetIds)):[];
+   // Private storage remains private; signed URLs are restricted to this
+   // authenticated, same-school published catalogue and expire automatically.
+   const signed=await Promise.all(assets.map(async asset=>{
+    const result=await admin.storage.from('brian-gallery-private')
+     .createSignedUrl(asset.path,600);
+    return [asset.id,result.error?'':(result.data?.signedUrl||'')];
+   }));
+   const links=new Map(signed);
+   const hydrated=rooms.map(room=>({...room,
+    exhibits:exhibits.filter(e=>e.room_id===room.id).map(e=>({...e,
+     image_url:e.kind==='image'?(links.get(e.asset_id)||''):''}))}));
+   return send(res,200,{gallery:{...exhibition,rooms:hydrated}});
+  }
+
   if(operation==='archive-exhibition'||operation==='restore-exhibition'){
    requireMethod(req,'POST');guardOrigin(req);assertAdmin(ctx);
    const body=guardBody(req,1500);
@@ -161,7 +201,8 @@ export default async function galleryStaff(req,res){
    return send(res,200,{profile:{role:ctx.profile.role,school:ctx.profile.school,id:ctx.user.id},
     creatorSettings:await settings(admin),reviewerCandidates,
     reviewers:grants,rubrics,
-    assignments,groups,reviews,exitTickets});
+    assignments,groups,reviews,exitTickets,
+    publishedGalleries:await publishedSchoolCatalog(ctx)});
   }
 
   if(operation==='grade-rubric'){

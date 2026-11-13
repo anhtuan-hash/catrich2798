@@ -280,3 +280,28 @@ test('published exhibits hydrate their original private images before 2D/3D view
  assert.match(galleryData,/imageUrls\.get\(e\.asset_id\)/);
  assert.match(galleryData,/createSignedUrl\(row\.path,120\)/);
 });
+
+test('published exhibition catalogue remains dashboard-backed and private posters are served only to authorized school staff',()=>{
+ const staff=fs.readFileSync('serverless-handlers/gallery-staff.js','utf8');
+ const gallery=fs.readFileSync('src/features/immersive-gallery/v3/MuseumExplore.jsx','utf8');
+ const app=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLabApp.jsx','utf8');
+ assert.match(staff,/async function publishedSchoolCatalog\(ctx\)/);
+ assert.match(staff,/\.eq\('school_scope',ctx\.profile\.school\)\.eq\('status','published'\)/);
+ assert.match(staff,/\.in\('visibility',\['school','public'\]\)/);
+ assert.match(staff,/publishedGalleries:await publishedSchoolCatalog\(ctx\)/);
+ assert.match(staff,/operation==='showcase-exhibition'/);
+ assert.match(staff,/guardOrigin\(req\)/);
+ assert.match(staff,/eligible\.some\(g=>g\.id===id\)/);
+ assert.match(staff,/\.eq\('status','published'\)\.order\('created_at'\)/);
+ assert.match(staff,/\.createSignedUrl\(asset\.path,600\)/);
+ assert.match(gallery,/data\?\.publishedGalleries/);
+ assert.match(gallery,/const inventory=new Map\(\)/);
+ assert.match(gallery,/transport\('showcase-exhibition',\{id:item\.id\}\)/);
+ assert.match(gallery,/museum-showcase-published-count/);
+ assert.match(gallery,/museum-published-panel/);
+ assert.match(gallery,/publishedInView\.map\(g=>/);
+ const paper=fs.readFileSync('src/features/immersive-gallery/v3/museumPaper.css','utf8');
+ assert.match(paper,/\.bml-published-panel/);
+ assert.match(paper,/\.bml-published-entry/);
+ assert.match(app,/onRefresh=\{refresh\} transport=\{transport\}/);
+});

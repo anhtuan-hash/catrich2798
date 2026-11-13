@@ -163,3 +163,31 @@ html body #root#root#root .app-shell[data-tool="immersive-gallery"]:has(.bml-pap
 }
 @media(prefers-reduced-motion:reduce){.bml-paper *{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 @media print{.bml-paper .bml-paper-header{display:none}.bml.bml-app-layout.bml-paper{background:white;padding:0}.bml-paper .bml-surface{box-shadow:none;background:white}}
+
+/* Published museum rooms use their own visible Paper panel, independent of the
+   legacy gallery grid. This prevents a missing/hidden grid from erasing work. */
+.bml-paper .bml-published-panel{
+ display:flex;flex-direction:column;gap:13px;min-width:0;
+ padding:17px clamp(14px,2vw,24px) 22px;
+ border:8px solid transparent;border-image:var(--museum-rim) 12 / 8px / 3px round;
+ border-radius:22px;background:var(--museum-grain),#fff8e7;
+ box-shadow:var(--museum-lift);
+}
+.bml-paper .bml-published-heading{display:flex;align-items:center;gap:9px;color:#173a76}
+.bml-paper .bml-published-heading strong{font-size:clamp(16px,1.5vw,21px)}
+.bml-paper .bml-published-heading>span{margin-left:auto;padding:4px 11px;border-radius:99px;background:#e0f4e5;color:#1a6951;font-weight:750;font-size:12px}
+.bml-paper .bml-published-items{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:13px;min-width:0}
+.bml-paper .bml-published-entry{
+ display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:8px;
+ min-height:154px;padding:16px 17px;border:1px solid #b8d7d7;
+ border-radius:15px;background:#f7fffb;color:#15386c;
+ box-shadow:0 4px 10px #2759691a;transition:transform .15s,box-shadow .15s;
+}
+.bml-paper .bml-published-entry:hover{transform:translateY(-2px);box-shadow:0 6px 14px #27596929}
+.bml-paper .bml-published-entry:focus-visible{outline:3px solid #315ab1;outline-offset:3px}
+.bml-paper .bml-published-entry>strong{font-size:17px;line-height:1.3;overflow-wrap:anywhere}
+.bml-paper .bml-published-entry>small{color:#4d6379;font-size:12px;line-height:1.45;overflow-wrap:anywhere}
+.bml-paper .bml-published-status{display:inline-flex;align-items:center;gap:6px;border-radius:99px;background:#ddf3e4;color:#216b4b;padding:5px 9px;font-size:11px;font-weight:750}
+.bml-paper .bml-published-open{display:inline-flex;align-items:center;gap:7px;margin-top:auto;color:#1c53af;font-weight:750;font-size:12px}
+@media(max-width:600px){.bml-paper .bml-published-entry{min-height:125px}}
+@media(prefers-reduced-motion:reduce){.bml-paper .bml-published-entry{transition:none}}

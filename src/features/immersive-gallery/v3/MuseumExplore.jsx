@@ -41,15 +41,15 @@ const setExhibitionHash=key=>{
  const url=current+(key?'?exhibition='+encodeURIComponent(key):'');
  window.history.replaceState(null,'',url);
 };
-export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefresh,data}){
+export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefresh,data,transport=staffRequest}){
  const isAdmin=data?.profile?.role==='admin';
- const [galleries,setGalleries]=useState([]),[selected,setSelected]=useState(null);
+ const [galleries,setGalleries]=useState(()=>data?.publishedGalleries||[]),[selected,setSelected]=useState(null);
  const [showcase,setShowcase]=useState({hiddenCollections:[],archivedGalleries:[]});
  const [busy,setBusy]=useState(false),[loading,setLoading]=useState(true);
  const [showArchived,setShowArchived]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const pull=async()=>{
   const api=await import('../galleryData.js');
-  const [clientEnabled,archive]=await Promise.all([api.getGalleryEnabled(),staffRequest('showcase-state')]);
+  const [clientEnabled,archive]=await Promise.all([api.getGalleryEnabled(),transport('showcase-state')]);
   // The staff endpoint reads the authoritative school catalogue and respects
   // gallery enablement, visibility, schedule and published status server-side.
   // Keep legacy client results (including own drafts) for backwards compatibility.
@@ -83,8 +83,14 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
      if(PREPARED_COLLECTIONS.some(c=>c.key===key)&&!archive.hiddenCollections.includes(key))setSelected(preparedGallery(key));
      else if(initial)setError('This exhibition has been removed from the showcase.');
     }else if(initial){
-     try{const full=await api.getExhibition(initial);if(active)setSelected(full);}
-     catch{if(active)setError('This exhibition is unavailable or has been archived.');}
+     try{
+      const match=items.find(g=>g.id===initial||g.slug===initial)||
+       (data?.publishedGalleries||[]).find(g=>g.id===initial||g.slug===initial);
+      const full=match?.status==='published'
+       ?(await transport('showcase-exhibition',{id:match.id})).gallery
+       :await api.getExhibition(initial);
+      if(active)setSelected(full);
+     }catch(e){if(active)setError(e.message||'This exhibition is unavailable.');}
     }
    }catch(e){if(active)setError(e.message);}
    finally{if(active)setLoading(false);}
@@ -99,8 +105,11 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
   if(busy)return;
   setBusy(true);setError('');
   try{
-   const {getExhibition}=await import('../galleryData.js');
-   const full=await getExhibition(item.id);
+   // Resolve published exhibitions and their privately signed artwork through
+   // the staff server, not a second browser Supabase Data API roundtrip.
+   const full=item.status==='published'
+    ?(await transport('showcase-exhibition',{id:item.id})).gallery
+    :await (await import('../galleryData.js')).getExhibition(item.id);
    setSelected(full);setExhibitionHash(full.slug||full.id);
   }catch(e){setError(e.message);}
   finally{setBusy(false);}
@@ -111,7 +120,7 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
   if(archive&&!window.confirm('Delete exhibition "'+title+'"? It will be removed from the showcase but student work, scores and learning evidence will be preserved. You can restore it from Archived.'))return;
   setBusy(true);setError('');setNotice('');
   try{
-   await staffRequest(archive?'archive-exhibition':'restore-exhibition',{kind,key});
+   await transport(archive?'archive-exhibition':'restore-exhibition',{kind,key});
    leave();await reload();await onRefresh?.();
    setNotice(archive?'Exhibition removed from the showcase. You can restore it under Archived.':'Exhibition restored.');
   }catch(e){setError(e.message);}
@@ -119,7 +128,15 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
  };
  const visiblePrepared=PREPARED_COLLECTIONS.filter(c=>!showcase.hiddenCollections.includes(c.key)&&
   (c.title+' '+c.classScope).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
- const visibleGalleries=galleries.filter(g=>(g.title+' '+(g.summary||'')).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
+ // Retain server catalogue from dashboard even when a separate reload fails.
+ const inventory=new Map();
+ for(const g of [...(data?.publishedGalleries||[]),...galleries]){
+  if(g?.id&&g.status!=='archived')inventory.set(g.id,g);
+ }
+ const visibleGalleries=[...inventory.values()].filter(g=>
+  (g.title+' '+(g.summary||'')).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
+ const publishedCount=[...inventory.values()].filter(g=>g.status==='published').length;
+ const publishedInView=visibleGalleries.filter(g=>g.status==='published');
  const archivedCollections=PREPARED_COLLECTIONS.filter(c=>showcase.hiddenCollections.includes(c.key));
  const archivedItems=[...archivedCollections.map(c=>({kind:'collection',key:c.key,title:c.title,label:c.classScope+' · ENGLISH STEAM'})),
   ...showcase.archivedGalleries.map(g=>({kind:'gallery',key:g.id,title:g.title,label:'Student exhibition'}))];
@@ -132,7 +149,10 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
  return <div className="bml-screen" data-testid="museum-showcase">
   <div className="bml-heading-actions"><div><div className="bml-overline">MUSEUM SHOWCASE</div>
    <h1>{tr(language,'Triển lãm của chúng ta','Our exhibitions')}</h1>
-   <p>{tr(language,'Khám phá các dự án tiếng Anh qua không gian bảo tàng 3D.','Explore English projects in interactive 3D museums.')}</p></div>
+   <p>{tr(language,'Khám phá các dự án tiếng Anh qua không gian bảo tàng 3D.','Explore English projects in interactive 3D museums.')}</p>
+   <small data-testid="museum-showcase-published-count" className="bml-overline">
+    {publishedCount} published exhibitions
+   </small></div>
    {isAdmin?<button className="bml-outline" type="button" aria-pressed={showArchived} disabled={busy||loading}
     onClick={()=>{setShowArchived(v=>!v);setNotice('');}}>
     <Archive size={17}/>{showArchived?'Back to exhibitions':'Archived'} ({archivedItems.length})
@@ -140,6 +160,19 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
   </div>
   {error?<div className="bml-banner bml-danger-banner" role="alert"><ShieldAlert size={19}/>{error}</div>:null}
   {notice?<div className="bml-banner bml-success-banner" role="status"><CheckCircle2 size={18}/>{notice}</div>:null}
+  {!showArchived&&publishedInView.length?<section className="bml-published-panel" data-testid="museum-published-panel">
+   <div className="bml-published-heading">
+    <Landmark size={20}/><strong>Published exhibitions</strong><span>{publishedInView.length} live</span>
+   </div>
+   <div className="bml-published-items">
+    {publishedInView.map(g=><button type="button" key={g.id} className="bml-published-entry"
+     disabled={busy} onClick={()=>enter(g)}>
+     <span className="bml-published-status"><CheckCircle2 size={15}/> Published</span>
+     <strong>{g.title}</strong><small>{g.summary||'Student museum project'}</small>
+     <span className="bml-published-open">Open 3D exhibition <ArrowRight size={16}/></span>
+    </button>)}
+   </div>
+  </section>:null}
   {loading?<div className="bml-empty bml-surface" role="status">Loading exhibitions…</div>:
   showArchived&&isAdmin?<div className="bml-gallery-grid" data-testid="museum-archived-exhibitions">
    {archivedItems.map(item=><article key={item.kind+':'+item.key} className="bml-gallery-card bml-gallery-card--managed">
@@ -164,7 +197,7 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
       aria-label={'Delete exhibition: '+c.title} title="Delete exhibition"
       onClick={()=>changeArchive('collection',c.key,c.title,true)}><Trash2 size={17}/></button>:null}
     </article>)}
-   {visibleGalleries.map(g=><article className="bml-gallery-card bml-gallery-card--managed" key={g.id}>
+   {visibleGalleries.filter(g=>g.status!=='published').map(g=><article className="bml-gallery-card bml-gallery-card--managed" key={g.id}>
      <button type="button" className="bml-gallery-card-open" disabled={busy} onClick={()=>enter(g)}>
       <div className="bml-card-photo"><span className="bml-gallery-badge">{g.status?.toUpperCase()||'EXHIBITION'}</span><Leaf strokeWidth={1.35}/></div>
       <div className="bml-card-caption"><strong>{g.title}</strong><small>{g.summary}</small>
@@ -176,7 +209,10 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
     </article>)}
   </div>}
   {!showArchived&&!visibleGalleries.length&&!visiblePrepared.length&&!loading?
-   <div className="bml-banner bml-info-banner"><Info size={18}/>No exhibitions match this view.</div>:null}
+   <div className="bml-banner bml-info-banner"><Info size={18}/>
+    <span>No exhibitions match this view. Please refresh if you have published work.</span>
+    <button type="button" className="bml-outline" onClick={()=>reload().catch(e=>setError(e.message))}>Reload exhibitions</button>
+   </div>:null}
  </div>;
 }
 export function MuseumSettings({data,onRefresh,language='vi'}){
