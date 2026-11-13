@@ -316,7 +316,8 @@ test('teacher gallery uses the same 2D/3D cinema component as student preview',(
  assert.match(teacher,/useState\(Boolean\(startInCinema\)\)/);
  assert.match(teacher,/createPortal\(/);
  assert.match(teacher,/cinema initial3D/);
- assert.match(teacher,/onClose=\{\(\)=>setCinemaOpen\(false\)\}/);
+ assert.match(teacher,/onClose=\{closeCinema\}/);
+ assert.match(teacher,/enterCinemaRef\.current\?\.focus/);
  assert.match(gallery,/language=\{language\} startInCinema/);
  assert.match(student,/embedded cinema initial3D gallery=\{previewGallery\}/);
  assert.match(css,/\.bml\.bml-teacher-cinema-portal/);
