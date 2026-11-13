@@ -59,6 +59,41 @@ test('mobile viewport keeps task controls within the page width',async({page,isM
 });
 
 
+test('Student Focus is touch-friendly and keeps an unsent group vote when switching to the studio',async({page})=>{
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  const body=op==='me'?{groupLabel:'Nhóm Demo',groupState:'editing',csrf:'synthetic-csrf',
+   assignment:{title:'Synthetic Climate Action Museum',brief:'Design a class exhibit.',
+    class_scope:'11-DEMO',deadline_at:new Date(Date.now()+86400000).toISOString()}}:
+   {draft:{title:'',summary:'',rooms:[]},version:0};
+  await route.fulfill({json:body});
+ });
+ await page.route('**/api/gallery-guest/live?**',async route=>{
+  await route.fulfill({json:{session:{id:'student-focus-qa',status:'active',stageIndex:0,stageOpen:true,
+   stage:{id:'climate-detective',kind:'vote',period:1,title:'Climate Detective',
+    question:'Which action helps?',sentence:'I think … because …',
+    options:['Switch off unused lights','Reduce food waste']}},
+   survey:null,feedback:[],submitted:false}});
+ });
+ await page.getByTestId('qa-student').click();
+ const liveTab=page.getByTestId('student-tab-live');
+ const studioTab=page.getByTestId('student-tab-studio');
+ await expect(page.getByTestId('student-focus-switch')).toBeVisible();
+ await expect(liveTab).toHaveAttribute('aria-pressed','true',{timeout:10000});
+ const choice=page.getByRole('button',{name:/A\\. Switch off unused lights/});
+ await expect(choice).toBeVisible();
+ await choice.click();
+ await expect(choice).toHaveAttribute('aria-pressed','true');
+ await studioTab.click();
+ await expect(page.getByTestId('student-live-activity')).toBeHidden();
+ await expect(page.getByLabel('Vấn đề mà nhóm em chọn')).toBeVisible();
+ await liveTab.click();
+ await expect(choice).toBeVisible();
+ await expect(choice).toHaveAttribute('aria-pressed','true');
+ const dims=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:window.innerWidth}));
+ expect(dims.scroll).toBeLessThanOrEqual(dims.width+4);
+});
+
 test('student can complete five English STEAM steps, autosave and submit without a student account',async({page})=>{
  let version=0,groupState='editing',draft={title:'',summary:'',rooms:[]},saves=0,submissions=0;
  await page.route('**/api/gallery-guest?**',async route=>{
