@@ -987,8 +987,17 @@ test('approved paper collage renders all eleven live stages with separated title
    await expect(video).toHaveAttribute('data-video-id',i===1?'SN5-DnOHQmE':'TUinL0C_zgE');
    await expect(video.locator('iframe')).toHaveAttribute('src',new RegExp('youtube-nocookie\\.com/embed/'+(i===1?'SN5-DnOHQmE':'TUinL0C_zgE')));
    await expect(screen.getByTestId('museum-curriculum-switch')).toContainText('NASA VIDEO');
-   await screen.getByRole('button',{name:i===1?'3 language questions':'Evidence and design tasks'}).click();
-   await expect(video).toHaveCount(0);
+   if(i===3){
+    await screen.getByRole('button',{name:'3 video questions'}).click();
+    await expect(video).toHaveCount(0);
+    await expect(screen.getByTestId('museum-live-video-questions').locator(':scope > div')).toHaveCount(3);
+    await expect(screen).toContainText('What does global warming mean in NASA');
+    await screen.getByRole('button',{name:'Design tasks'}).click();
+   }else{
+    await screen.getByRole('button',{name:'3 language questions'}).click();
+    await expect(video).toHaveCount(0);
+    await expect(screen.getByTestId('museum-live-video-questions').locator(':scope > div')).toHaveCount(3);
+   }
   }else{
    await expect(screen.getByTestId('museum-curriculum-video')).toHaveCount(0);
   }
