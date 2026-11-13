@@ -2026,8 +2026,10 @@ test('V5 Cinema physically detaches the SAME 3D artwork, displays only real evid
   await page.screenshot({path:testInfo.outputPath('museum-v5-focused-'+vp.width+'x'+vp.height+'.png'),fullPage:false});
  }
  await page.setViewportSize({width:1536,height:864});
- await expect(viewer.getByTestId('museum-back-to-wall-hud')).toBeEnabled();
- await viewer.getByTestId('museum-back-to-wall-hud').click();
+ // Only the world-anchored plaque has a Back action; no duplicate floating HUD.
+ await expect(viewer.getByRole('button',{name:'Back to wall'})).toHaveCount(1);
+ await expect(viewer.getByTestId('museum-back-to-wall')).toBeEnabled();
+ await viewer.getByTestId('museum-back-to-wall').click();
  await expect(board).toHaveCount(0,{timeout:12000});
  await expect.poll(()=>page.evaluate(()=>{
   const q=window.__bmlMuseumFocusQA;return Math.abs(q.artworks[1].world[2]-q.artworks[1].wall[2]);
