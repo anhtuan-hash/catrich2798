@@ -1350,7 +1350,7 @@ test('Student Creator V6 layered-paper skin stays readable and interactive acros
 test('Student Creator 2D Paper exhibit displays actual uploaded photos and remains interactive',async({page,isMobile},testInfo)=>{
  if(isMobile)return;
  await page.setViewportSize({width:1536,height:960});
- const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLttAAAAABJRU5ErkJggg==';
+ const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGN0m5bHwMDAxMDAwMDAAAAPegFOmdI+tQAAAABJRU5ErkJggg==';
  const assetIds=['aaa00000-0000-4000-8000-000000000001','aaa00000-0000-4000-8000-000000000002','aaa00000-0000-4000-8000-000000000003'];
  const artNames=['uploaded-classroom.png','uploaded-survey.png','uploaded-switch.png'];
  const uploaded=assetIds.map((id,i)=>({id,original_name:artNames[i],image_url:png,width:1,height:1}));
