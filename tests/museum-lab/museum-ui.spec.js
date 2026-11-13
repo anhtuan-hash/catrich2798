@@ -1744,13 +1744,32 @@ test('Published school exhibition renders from the already loaded dashboard and 
  const detail=page.getByTestId('museum-exhibition-detail');
  await expect(detail).toBeVisible();
  await expect(detail).toContainText('Synthetic Published Group 01');
- await expect(detail).toContainText('The Problem');
- await expect(detail).toContainText('The Evidence');
- await expect(detail).toContainText('Our Solution');
- await detail.getByRole('button',{name:'2D',exact:true}).click();
- const cards=detail.locator('[data-testid="museum-2d-exhibits"] img');
+ const teacherCinema=page.getByTestId('museum-teacher-cinema-portal');
+ await expect(teacherCinema).toBeVisible();
+ const visitor=teacherCinema.getByTestId('museum-visitor');
+ await expect(visitor).toHaveAttribute('data-museum-mode','cinema');
+ await expect(teacherCinema.getByTestId('museum-cinema-hud')).toBeVisible();
+ const viewport=page.viewportSize();
+ const bounds=await visitor.boundingBox();
+ expect(bounds.width).toBeGreaterThan(viewport.width*.93);
+ expect(bounds.height).toBeGreaterThan(viewport.height*.93);
+ // Teacher uses the same cinema HUD and poster layer as the student.
+ await teacherCinema.getByRole('button',{name:'2D',exact:true}).click();
+ const cards=teacherCinema.locator('[data-testid="museum-2d-exhibits"] img');
  await expect(cards).toHaveCount(3);
  await expect(cards.first()).toHaveJSProperty('complete',true);
+ await expect(visitor).toContainText('The Problem');
+ await expect(visitor).toContainText('The Evidence');
+ await expect(visitor).toContainText('Our Solution');
+ await teacherCinema.getByRole('button',{name:'3D',exact:true}).click();
+ await expect(visitor.locator('.bml-3d-stage')).toBeVisible();
+ await teacherCinema.getByRole('button',{name:'Close museum preview'}).click();
+ await expect(teacherCinema).toHaveCount(0);
+ await expect(detail).toBeVisible();
+ await expect(page.locator('body')).not.toHaveCSS('overflow','hidden');
+ await detail.getByRole('button',{name:'Open full-screen museum'}).first().click();
+ await expect(page.getByTestId('museum-teacher-cinema-portal')).toBeVisible();
+ await page.getByTestId('museum-teacher-cinema-portal').getByRole('button',{name:'Close museum preview'}).click();
 });
 test('Published cards survive a failure of the separate showcase catalogue request',async({page})=>{
  await page.getByTestId('qa-dashboard-published-fail-en').click();
