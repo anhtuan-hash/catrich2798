@@ -132,6 +132,12 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
    dispatchFocus({type:'PREPARED'});
   }
  },[focus.phase,focus.roomId,room?.id,focusedExhibit?.id]);
+ // The physical artwork already reached its end pose when the Canvas emitted
+ // EXTRACT_COMPLETE. Presentation mounts the board in the same scene; do not
+ // require an extra stationary render-loop tween to declare focus ready.
+ useEffect(()=>{
+  if(focus.phase==='presenting')dispatchFocus({type:'PRESENT_COMPLETE'});
+ },[focus.phase]);
  const selectedIndex=exhibits.findIndex(e=>e.id===selectedId);
  const insight=selected?exhibitInsights(gallery,selected,selectedIndex):null;
  const tr=(vi,en)=>language==='en'?en:vi;
