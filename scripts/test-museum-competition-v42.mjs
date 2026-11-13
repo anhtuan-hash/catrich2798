@@ -13,7 +13,7 @@ test('two-period 90-minute curriculum is retained and all eleven stages have rea
  }
 });
 test('six extra short group challenges require an English reason and never assert class data',()=>{
- assert.deepEqual(MICRO_STAGE_INDEXES.sort((a,b)=>a-b),[3,4,5,6,8,9]);
+ assert.deepEqual([...MICRO_STAGE_INDEXES].sort((a,b)=>a-b),[3,4,5,6,8,9]);
  for(const idx of MICRO_STAGE_INDEXES){
   const task=MICRO_CHALLENGES[idx];
   assert.equal(task.options.length,3);
