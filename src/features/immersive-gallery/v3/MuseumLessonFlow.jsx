@@ -129,9 +129,15 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
  const isAdmin=data?.profile?.role==='admin';
  const archiveAssignment=async assignment=>{
   if(!isAdmin||busy)return;
-  if(!window.confirm(tr(language,
-   'Xóa bài học “'+assignment.title+'” của lớp '+assignment.class_scope+' khỏi danh sách hoạt động? Mã nhóm sẽ bị thu hồi, nhưng dữ liệu gốc được lưu trong lịch sử. Bài đã công bố không thể xóa.',
-   'Remove “'+assignment.title+'” ('+assignment.class_scope+') from active lessons? Group access will be revoked; historical evidence is preserved. Published lessons cannot be removed.')))return;
+  const publishedCount=(data?.groups||[]).filter(g=>g.assignment_id===assignment.id&&g.state==='published').length;
+  const label='“'+assignment.title+'” · '+assignment.class_scope;
+  const confirmation=publishedCount?tr(language,
+   'Bài học '+label+' có '+publishedCount+' triển lãm đã công bố. Bạn muốn xóa BÀI HỌC khỏi danh sách đang hoạt động? Mã nhóm sẽ bị thu hồi, nhưng '+publishedCount+' triển lãm vẫn còn trong mục Triển lãm. Nội dung và lịch sử học sinh được giữ lại.',
+   'Lesson '+label+' has '+publishedCount+' published exhibition(s). Remove this LESSON from active lessons and revoke group passes? The published exhibitions remain visible in the Gallery, and student work and history are preserved.'):
+   tr(language,
+    'Xóa bài học '+label+' khỏi danh sách hoạt động và thu hồi mã nhóm? Bài học được lưu trữ an toàn, không xóa vĩnh viễn dữ liệu và lịch sử học sinh.',
+    'Remove lesson '+label+' from active lessons and revoke group passes? Student work and history will remain safely archived.');
+  if(!window.confirm(confirmation))return;
   setBusy(true);setError('');
   try{await staffRequest('archive-assignment',{assignmentId:assignment.id});setSelected(null);await onRefresh();}
   catch(e){setError(e.message);}finally{setBusy(false);}

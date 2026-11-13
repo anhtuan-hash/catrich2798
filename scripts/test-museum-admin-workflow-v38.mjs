@@ -52,3 +52,16 @@ test('client roles have no database-execute grants for management RPCs',()=>{
  assert.match(sql,/to service_role/);
  assert.match(api,/assertAdmin\(ctx\)/);
 });
+
+test('published lessons are archiveable while 3D exhibitions and frozen reviews remain untouched',()=>{
+ const upgrade=read('supabase/migrations/20261113020000_museum_archive_published_lessons.sql');
+ assert.match(upgrade,/create or replace function public\.gcp_admin_archive_assignment/);
+ assert.match(upgrade,/update public\.gcp_assignments set status='closed',archived_at=now\(\),archived_by=p_actor/);
+ assert.match(upgrade,/update public\.gcp_sessions set revoked_at=now\(\)/);
+ assert.match(upgrade,/update public\.gcp_invites set revoked_at=now\(\)/);
+ assert.doesNotMatch(upgrade,/published_assignment_immutable/);
+ assert.doesNotMatch(upgrade,/\bdelete\s+from\s+public\.(?:gallery_|gcp_)/i);
+ assert.match(upgrade,/grant execute on function public\.gcp_admin_archive_assignment\(uuid,uuid\) to service_role/);
+ assert.match(wizard,/triển lãm vẫn còn trong mục Triển lãm/);
+ assert.match(wizard,/published exhibitions remain visible in the Gallery/i);
+});
