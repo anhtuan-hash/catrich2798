@@ -52,14 +52,14 @@ export function poseWithinTolerance(a,b,epsilon=1e-3){
 // uses the combined bounds + aspect to fit all objects with a safety margin.
 export function museumFocusLayout(aspect=16/9){
  const portrait=aspect<.88,tablet=aspect<1.38;
- const art=portrait?[-.85,3.16,-3.60]:[-1.69,2.41,-3.52];
- const plaque=portrait?[.76,1.12,-3.30]:[1.69,2.35,-3.43];
+ const art=portrait?[-.85,3.16,-3.60]:[-1.69,2.32,-3.52];
+ const plaque=portrait?[.76,1.12,-3.30]:[1.69,2.20,-3.43];
  const cameraZ=portrait?5.5:tablet?3.25:1.35;
  const fov=portrait?69:tablet?63:55;
  return {art,plaque,
-  pedestal:[art[0],.35,art[2]-.04],
-  camera:[0,portrait?2.35:2.06,cameraZ],lookAt:[0,portrait?2.38:2.29,-3.45],
-  fov,plaqueWidth:portrait?2.55:2.58,plaqueHeight:portrait?2.34:3.03};
+  pedestal:[art[0],portrait?.35:.26,art[2]-.04],
+  camera:[0,portrait?2.35:2.06,cameraZ],lookAt:[0,portrait?2.38:2.54,-3.45],
+  fov,plaqueWidth:portrait?2.55:2.58,plaqueHeight:portrait?2.34:1.95};
 }
 // Conservative perspective-fit recommendation based on combined XY bounds.
 // Bounding box is in world-space and camera faces the negative Z direction.
