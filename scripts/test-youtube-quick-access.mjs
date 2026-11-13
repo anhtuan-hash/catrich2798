@@ -115,8 +115,8 @@ for (const token of [
   'https://www.youtube.com/results?',
   'ytInitialData',
   'videoRenderer',
-  "source = 'youtube-html'",
-  "source = 'youtube-html-fallback'",
+  "source: 'youtube-html'",
+  "source: 'youtube-html-fallback'",
 ]) {
   assert.ok(searchHandler.includes(token), `YouTube search API contract missing: ${token}`);
 }

@@ -972,7 +972,7 @@ test('Student Studio can watch a teacher-selected video and save source-based En
  await lab.getByRole('button',{name:/Xem tại đây/}).click();
  await expect(page.getByTestId('museum-youtube-player').locator('iframe')).toHaveCount(1);
  await lab.getByRole('button',{name:/Tìm video/}).click();
- await expect(lab.getByText('Tìm kiếm YouTube trong ứng dụng cần cấu hình',{exact:false})).toBeVisible();
+ await expect(lab.getByText('Chưa có YouTube API key và tìm kiếm dự phòng không khả dụng.',{exact:true})).toBeVisible();
  const mini=page.getByTestId('museum-micro-challenge');
  await expect(mini.getByText('Evidence Detective')).toBeVisible();
  await mini.getByRole('button',{name:/A.*A dated observation/}).click();

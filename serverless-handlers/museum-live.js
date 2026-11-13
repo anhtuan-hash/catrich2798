@@ -76,7 +76,7 @@ export default async function museumLive(req,res){
    }
    if(op==='video-search'){
     requireMethod(req,'GET');
-    if(!session||session.status==='ended')throw fail(423,'Hãy bắt đầu buổi học trước khi tìm video.');
+    // Authenticated teacher may search before the lesson starts.
     if(!searchThrottle('teacher-'+ctx.user.id))throw fail(429,'Hãy chờ trước khi tìm thêm video.');
     const q=mediaText(req.query?.q,120);
     return send(res,200,await searchVideos(q,{teacher:true}));
