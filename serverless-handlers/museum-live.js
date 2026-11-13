@@ -4,6 +4,8 @@ import {db,fail,send,handleError,guardOrigin,guardBody,guestContext,staffContext
 import {LIVE_STAGES,liveStage,validResponse,summarizeResponses} from '../src/features/immersive-gallery/v3/liveLesson.js';
 import {surveyFor,checkpointGallery,feedbackFor} from './_museumEvidence.js';
 import {validatePeer} from '../src/features/immersive-gallery/v3/learningEvidence.js';
+import {MICRO_CHALLENGES,validMicroAnswer,videoTaskFor} from '../src/features/immersive-gallery/v3/museumLiveExtensions.js';
+import {searchVideos,mediaText,mediaId,mediaBoardUpdate,mediaTask,searchThrottle,safeRefinement} from './_museumLiveMedia.js';
 const canRespond=stage=>['vote','quiz','exit','peer'].includes(stage?.kind);
 async function scopedStaff(ctx,assignmentId){
  if(!uid(assignmentId))throw fail(400,'Lớp học không hợp lệ.');
@@ -31,7 +33,8 @@ function stateOf(s,{staff=false}={}){
  return {id:s.id,assignmentId:s.assignment_id,status:s.status,stageIndex:s.stage_index,
   stageOpen:s.stage_open,revealed:s.revealed,version:s.version,
   stageStartedAt:s.stage_started_at,elapsedSeconds:s.elapsed_seconds,updatedAt:s.updated_at,
-  evidenceVersion:s.evidence_version,stage:publicStage(s.evidence_version===0&&s.stage_index===2?legacySurvey:liveStage(s.stage_index),s.revealed,staff)};
+  evidenceVersion:s.evidence_version,media:mediaTask(s),
+  stage:publicStage(s.evidence_version===0&&s.stage_index===2?legacySurvey:liveStage(s.stage_index),s.revealed,staff)};
 }
 async function groupGallery(admin,groupId){
  const group=await query(admin.from('gcp_groups').select('id,label,assignment_id').eq('id',groupId).single());
@@ -63,9 +66,52 @@ export default async function museumLive(req,res){
       .eq('session_id',session.id).eq('stage_index',session.stage_index).limit(30));
     const helps=await query(admin.from('museum_learning_events').select('group_id,created_at')
       .eq('session_id',session.id).eq('action','need_help').eq('stage_index',session.stage_index).limit(40));
+    const micro=MICRO_CHALLENGES[session.stage_index]?await query(admin.from('museum_live_micro_responses')
+     .select('group_id,choice,reason,submitted_at').eq('session_id',session.id)
+     .eq('stage_index',session.stage_index).limit(50)):[];
     return send(res,200,{session:stateOf(session,{staff:true}),stageCount:LIVE_STAGES.length,
+     microResponses:micro.length,microResults:micro,
      result:(()=>{const r=summarizeResponses(session.stage_index,responses);if(session.evidence_version===0&&session.stage_index===2)r.options=r.options.map((o,i)=>({...o,label:legacySurvey.options[i]}));return r;})(),
      groups:grp,needHelp:helps.length,survey:await surveyFor(admin,session.id),feedback:await feedbackFor(admin,session.id),responses:await query(admin.from('museum_live_responses').select('group_id,value,created_at').eq('session_id',session.id).eq('stage_index',session.stage_index))});
+   }
+   if(op==='video-search'){
+    requireMethod(req,'GET');
+    if(!session||session.status==='ended')throw fail(423,'Hãy bắt đầu buổi học trước khi tìm video.');
+    if(!searchThrottle('teacher-'+ctx.user.id))throw fail(429,'Hãy chờ trước khi tìm thêm video.');
+    const q=mediaText(req.query?.q,120);
+    return send(res,200,await searchVideos(q,{teacher:true}));
+   }
+   if(['media-task','media-add','media-remove'].includes(op)){
+    requireMethod(req,'POST');guardOrigin(req);
+    const body=guardBody(req,1800);
+    if(!session||session.status==='ended')throw fail(423,'Buổi dạy chưa hoạt động.');
+    if(!Number.isInteger(body.version)||body.version!==session.version)
+     throw fail(409,'Phiên dạy vừa thay đổi. Hãy cập nhật rồi thử lại.');
+    const index=Number(body.stageIndex);
+    if(!Number.isInteger(index)||index<0||index>=LIVE_STAGES.length)throw fail(400,'Hoạt động không hợp lệ.');
+    let patch={};
+    const current=videoTaskFor(session.media_board,index);
+    if(op==='media-task'){
+     const q=mediaText(body.query,120),instruction=mediaText(body.instruction,350);
+     if(q&&q.length<6)throw fail(400,'Từ khóa cần có ít nhất 6 ký tự.');
+     patch={query:q,instruction};
+    }else{
+     const id=mediaId(body.videoId||body.url);
+     if(!id)throw fail(400,'Chỉ chấp nhận liên kết video YouTube hợp lệ.');
+     if(op==='media-add'){
+      const title=mediaText(body.title,160)||'YouTube research video';
+      const channel=mediaText(body.channel,120);
+      const entries=current.videos.filter(v=>v.id!==id);
+      if(entries.length>=6)throw fail(400,'Mỗi hoạt động tối đa sáu video được chọn.');
+      patch={videos:[...entries,{id,title,channel}]};
+     }else patch={videos:current.videos.filter(v=>v.id!==id)};
+    }
+    const board=mediaBoardUpdate(session,index,patch);
+    const changed=await query(admin.from('museum_live_sessions').update({
+     media_board:board,version:session.version+1,updated_at:new Date().toISOString()
+    }).eq('id',session.id).eq('version',session.version).select('*').maybeSingle());
+    if(!changed)throw fail(409,'Có một cập nhật khác. Hãy tải lại.');
+    return send(res,200,{ok:true,media:videoTaskFor(board,index),session:stateOf(changed,{staff:true})});
    }
    if(op==='freeze-survey'){
     requireMethod(req,'POST');guardOrigin(req);const body=guardBody(req,2000);
@@ -151,13 +197,25 @@ export default async function museumLive(req,res){
    return send(res,404,{error:'Không tìm thấy chức năng giáo viên.'});
   }
   // Guest: no registered student account. Cookie is one group capability.
-  const writing=['respond','need-help'].includes(op);
+  const writing=['respond','need-help','micro-submit'].includes(op);
   const ctx=await guestContext(req,admin,{write:writing});
   const session=await getSession(admin,ctx.assignment.id);
   if(op==='state'){
    requireMethod(req,'GET');
-   return send(res,200,{session:stateOf(session),groupLabel:ctx.group.label,
+   const micro=session&&MICRO_CHALLENGES[session.stage_index]?await query(admin.from('museum_live_micro_responses')
+    .select('choice,reason,submitted_at').eq('session_id',session.id)
+    .eq('group_id',ctx.group.id).eq('stage_index',session.stage_index).maybeSingle()):null;
+   return send(res,200,{session:stateOf(session),micro,groupLabel:ctx.group.label,
     submitted:session?Boolean(await query(admin.from(session.stage_index===7?'museum_peer_reviews':'museum_live_responses').select('session_id').eq('session_id',session.id).eq(session.stage_index===7?'from_group':'group_id',ctx.group.id).match(session.stage_index===7?{}:{stage_index:session.stage_index}).maybeSingle())):false,assignmentTitle:ctx.assignment.title,survey:await surveyFor(admin,session?.id),feedback:await feedbackFor(admin,session?.id,ctx.group.id)});
+  }
+  if(op==='video-search'){
+   requireMethod(req,'GET');
+   if(!session||session.status!=='active'||!session.stage_open)throw fail(423,'Hoạt động chưa mở.');
+   const task=mediaTask(session);
+   if(!task.query)throw fail(423,'Giáo viên chưa giao nhiệm vụ tìm video.');
+   if(!searchThrottle('group-'+ctx.group.id))throw fail(429,'Nhóm đã tìm quá nhiều lần. Hãy chờ một phút.');
+   const suffix=safeRefinement(req.query?.refine);
+   return send(res,200,await searchVideos(task.query+(suffix?' '+suffix:'')));
   }
   if(op==='history'){
    requireMethod(req,'GET');
@@ -173,6 +231,20 @@ export default async function museumLive(req,res){
   if(!session||session.status!=='active'||!session.stage_open)
    throw fail(423,'Chờ giáo viên mở hoạt động.');
   const stage=liveStage(session.stage_index);
+  if(op==='micro-submit'){
+   requireMethod(req,'POST');const body=guardBody(req,1300);
+   if(!validMicroAnswer(session.stage_index,body))throw fail(400,'Hãy chọn một câu và giải thích bằng tiếng Anh (12–450 ký tự).');
+   const existing=await query(admin.from('museum_live_micro_responses').select('id')
+    .eq('session_id',session.id).eq('group_id',ctx.group.id)
+    .eq('stage_index',session.stage_index).maybeSingle());
+   if(existing)return send(res,200,{ok:true,alreadySubmitted:true});
+   const {error:insertError}=await admin.from('museum_live_micro_responses').insert({
+    session_id:session.id,group_id:ctx.group.id,stage_index:session.stage_index,
+    choice:body.choice,reason:body.reason.trim()
+   });
+   if(insertError&&insertError.code!=='23505')throw fail(503,'Không thể lưu hoạt động kiểm tra nhanh.');
+   return send(res,insertError?200:201,{ok:true,alreadySubmitted:insertError?.code==='23505'});
+  }
   if(op==='respond'){
    requireMethod(req,'POST');const body=guardBody(req,3000);
    if(session.stage_index===7){
