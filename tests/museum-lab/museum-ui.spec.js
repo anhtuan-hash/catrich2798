@@ -564,3 +564,70 @@ test('paper live presenter avoids horizontally clipped text on a narrow MacBook 
   expect(r.left,r.text+' clipped on left').toBeLessThanOrEqual(4);
  }
 });
+
+
+test('Teacher Live has real stage motion control, readable voiceover, research library and persistent curated videos',async({page})=>{
+ await page.getByTestId('qa-teacher-live').click();
+ await page.getByRole('button',{name:/Bắt đầu buổi dạy/}).click();
+ const stage=page.getByTestId('museum-live-paper-stage');
+ await expect(stage).toHaveAttribute('data-motion','on');
+ await page.getByRole('button',{name:'Motion ON'}).click();
+ await expect(stage).toHaveAttribute('data-motion','off');
+ await page.getByRole('button',{name:'Motion OFF'}).click();
+ await expect(stage).toHaveAttribute('data-motion','on');
+ await page.getByRole('button',{name:'Voiceover'}).click();
+ await expect(page.getByTestId('museum-voiceover')).toBeVisible();
+ await expect(page.getByText('Welcome to our Climate Action Museum.',{exact:false})).not.toBeVisible();
+ await page.getByText('Xem kịch bản lời dẫn').click();
+ await expect(page.getByText('Welcome to our Climate Action Museum.',{exact:false})).toBeVisible();
+ await page.getByRole('button',{name:/Kho tư liệu/}).click();
+ await expect(page.getByTestId('museum-research-library')).toBeVisible();
+ await expect(page.getByRole('link',{name:/NASA/})).toBeVisible();
+ await page.getByRole('button',{name:'Video Lab'}).click();
+ const lab=page.getByTestId('museum-video-lab');
+ await expect(lab).toBeVisible();
+ await lab.getByLabel('Student research search topic').fill('global warming causes for students');
+ await lab.getByRole('button',{name:/Giao nhiệm vụ video/}).click();
+ await expect(lab.getByText('Đã lưu nhiệm vụ video cho tiết học.')).toBeVisible();
+ await lab.getByPlaceholder('https://www.youtube.com/watch?v=…').fill('https://youtu.be/jNQXAC9IVRw');
+ await lab.getByPlaceholder('Teacher-curated climate video').fill('Teacher-selected classroom video');
+ await lab.getByRole('button',{name:/Thêm vào kho học liệu/}).click();
+ await expect(lab.getByText('Teacher-selected classroom video')).toBeVisible();
+ await expect(lab.getByText('VIDEO GIÁO VIÊN ĐÃ CHỌN',{exact:false})).toBeVisible();
+});
+
+test('Student Studio can watch a teacher-selected video and save source-based English reasoning by group',async({page})=>{
+ let microPosts=0,record=null;
+ await page.route('https://www.youtube-nocookie.com/**',r=>r.fulfill({status:200,contentType:'text/html',body:'<html><body>Video host test</body></html>'}));
+ await page.route('**/api/gallery-guest/live?**',async route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  if(op==='state')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   session:{id:'qa-comp-session',status:'active',stageIndex:3,stageOpen:true,revealed:false,
+    media:{query:'NASA climate change school',instruction:'Find a checkable scientific source.',
+     videos:[{id:'jNQXAC9IVRw',title:'Teacher-selected classroom video',channel:'Chosen source'}]},
+    stage:{id:'problem-evidence-solution',kind:'group',period:1,title:'Problem · Evidence · Solution',
+     question:'How can our school reduce one environmental problem?',sentence:'One problem is…'}
+   },micro:null,survey:null,feedback:[]})});
+  if(op==='micro-submit'){microPosts++;record=route.request().postDataJSON();
+   return route.fulfill({status:201,contentType:'application/json',body:'{"ok":true}'});}
+  if(op==='video-search')return route.fulfill({status:200,contentType:'application/json',
+   body:'{"available":false,"results":[],"reason":"youtube_api_key_not_configured"}'});
+  return route.fulfill({status:404,body:'{"error":"Unexpected operation"}'});
+ });
+ await page.getByTestId('qa-student-live').click();
+ await expect(page.getByTestId('student-live-activity')).toBeVisible();
+ const lab=page.getByTestId('museum-video-lab');
+ await expect(lab.getByText('Teacher-selected classroom video')).toBeVisible();
+ await lab.getByRole('button',{name:/Xem tại đây/}).click();
+ await expect(page.getByTestId('museum-youtube-player').locator('iframe')).toHaveCount(1);
+ await lab.getByRole('button',{name:/Tìm video/}).click();
+ await expect(lab.getByText('Tìm kiếm YouTube trong ứng dụng cần cấu hình',{exact:false})).toBeVisible();
+ const mini=page.getByTestId('museum-micro-challenge');
+ await expect(mini.getByText('Evidence Detective')).toBeVisible();
+ await mini.getByRole('button',{name:/A.*A dated observation/}).click();
+ await mini.getByPlaceholder('We chose this because …').fill('A dated observation gives a checkable source and context.');
+ await mini.getByRole('button',{name:/Gửi lập luận của nhóm/}).click();
+ await expect(mini.getByText('Đã ghi nhận lựa chọn và lập luận',{exact:false})).toBeVisible();
+ expect(microPosts).toBe(1);expect(record.choice).toBe(0);
+ expect(record.reason).toContain('checkable source');
+});
