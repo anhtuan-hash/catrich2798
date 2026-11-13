@@ -144,8 +144,6 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
      <div className="bml-live-spotlight-top"><strong>{t(language,'TRÌNH CHIẾU NHÓM','GROUP SPOTLIGHT')} · {spotlight.groupLabel}</strong>
       <button type="button" onClick={()=>setSpotlight(null)}><X size={18}/>{t(language,'Đóng','Close')}</button></div>
      <MuseumScene gallery={spotlight.gallery} language={language} embedded/>
-    </div>:stageVideo?<div className="bml-live-video-stage" data-testid="museum-projector-video">
-     <MuseumVideoFrame id={stageVideo.id} title={stageVideo.title} language={language} onClose={()=>setStageVideo(null)}/>
     </div>:<div className="bml-live-slide" key={currentIndex} data-testid="museum-live-slide">
      <div className="bml-paper-stage-intro">
       <MuseumLivePaperArt variant={['artwork','peer','present','exit'].includes(stage?.kind)?'studio':stage?.kind==='quiz'?'gallery':'climate'}/>
@@ -174,6 +172,11 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
       {result.questions?.map((q,i)=><p key={i}>Q{i+1}: {q.correct}/{result.n} {t(language,'nhóm chọn đúng','groups correct')} ({q.percent}%)</p>)}</div>:null}
      {session.revealed?<div className="bml-live-explanation"><CheckCircle2 size={20}/>{stage?.expected}</div>:null}
     </div>}
+    {stageVideo?<div className="bml-presenter-video-modal" role="dialog" aria-label="YouTube projector" aria-modal="false"
+     data-testid="museum-projector-video" onMouseDown={e=>{if(e.target===e.currentTarget)setStageVideo(null);}}>
+     <div className="bml-live-video-stage"><MuseumVideoFrame id={stageVideo.id} title={stageVideo.title}
+      language={language} onClose={()=>setStageVideo(null)}/></div>
+    </div>:null}
     <div className="bml-live-bottom">
      <span className="bml-paper-clock"><Clock3 size={23}/>{String(Math.floor(remaining/60)).padStart(2,'0')}:{String(remaining%60).padStart(2,'0')}</span>
      <span className={'bml-paper-status '+(session.stageOpen?'is-open':'is-closed')}><span className="bml-paper-status-dot"/>{session.stageOpen?t(language,'ĐANG MỞ HOẠT ĐỘNG','TASK OPEN'):t(language,'HOẠT ĐỘNG CHƯA MỞ','TASK CLOSED')}</span>
@@ -184,9 +187,9 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
     busy={busy} activeTool={activeTool} motionOn={motionOn} focusMode={presenterFocus} needHelp={state?.needHelp||0}
     onAction={act} onTool={togglePresenterTool} onMotion={()=>setMotionOn(v=>!v)}
     onFocus={()=>setPresenterFocus(v=>!v)} onExit={fullscreen} onRefresh={refresh}/>
-   {isFullscreen&&activeTool?<div className="bml-presenter-panel-layer" data-testid="museum-fullscreen-panel-layer" onMouseDown={e=>{if(e.target===e.currentTarget)setActiveTool(null);}}>
+   {isFullscreen&&activeTool?<div className={'bml-presenter-panel-layer'+(activeTool==='qr'?' is-qr':'')} data-testid="museum-fullscreen-panel-layer" onMouseDown={e=>{if(e.target===e.currentTarget)setActiveTool(null);}}>
     <aside role="dialog" aria-label={t(language,'Công cụ trình chiếu','Presenter tools')} aria-modal="false"
-     className="bml-presenter-panel" data-testid="museum-fullscreen-panel" data-active-tool={activeTool}>
+     className={'bml-presenter-panel'+(activeTool==='qr'?' is-modal':'')} data-testid="museum-fullscreen-panel" data-active-tool={activeTool}>
      <header className="bml-presenter-panel-header"><div><small>BRIAN TEACHER LIVE</small>
       <h2>{({
        voice:'English Voiceover',video:'Video Research Studio',resources:t(language,'Kho tư liệu','Research library'),
