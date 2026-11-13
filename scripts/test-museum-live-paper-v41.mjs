@@ -16,10 +16,10 @@ test('all eleven lesson stages render inside one shared paper shell without repl
  assert.match(component,/data-stage-index=\{currentIndex\}/);
  assert.match(component,/stage\?\.kind==='vote'/);
  assert.match(component,/stage\?\.kind==='quiz'/);
- assert.match(component,/!\\['vote','quiz'\\]\\.includes\\(stage\\.kind\\)/);
- assert.match(styles,/\\.bml-live-screen--paper:fullscreen/);
- assert.match(styles,/\\.bml-live-slide\\{[\\s\\S]*overflow-x:hidden;overflow-y:auto/);
- assert.match(styles,/\\.bml-live-bottom\\{[\\s\\S]*display:grid/);
+ assert.match(component,/!\['vote','quiz'\]\.includes\(stage\.kind\)/);
+ assert.match(styles,/\.bml-live-screen--paper:fullscreen/);
+ assert.match(styles,/\.bml-live-slide\{[\s\S]*overflow-x:hidden;overflow-y:auto/);
+ assert.match(styles,/\.bml-live-bottom\{[\s\S]*display:grid/);
 });
 test('each non-quiz, non-vote stage has its own distinct plan; no fake research results',()=>{
  const specialized=LIVE_STAGES.filter(s=>!['vote','quiz'].includes(s.kind));
@@ -28,26 +28,26 @@ test('each non-quiz, non-vote stage has its own distinct plan; no fake research 
  }
  assert.equal(specialized.length,8);
  assert.doesNotMatch(cards,/(?:75%|180 g|45 g|students saved|survey found)/i);
- assert.match(component,/surveyChartPng\\(state\\.survey\\)/);
- assert.match(component,/state\\?\\.survey/);
+ assert.match(component,/surveyChartPng\(state\.survey\)/);
+ assert.match(component,/state\?\.survey/);
 });
 test('teacher resources are not placed over the screen and original controls still work',()=>{
- assert.match(component,/showResources\\?<div className="bml-paper-resource-drawer"/);
+ assert.match(component,/showResources\?<div className="bml-paper-resource-drawer"/);
  assert.match(component,/setShowResources/);
  assert.match(component,/onClick=\{fullscreen\}/);
- assert.match(component,/onClick=\{\(\)=>act\\('next'\\)\}/);
- assert.match(component,/onClick=\{\(\)=>act\\('previous'\\)\}/);
- assert.match(component,/onClick=\{\(\)=>act\\('pause'\\)\}/);
+ assert.match(component,/onClick=\{\(\)=>act\('next'\)\}/);
+ assert.match(component,/onClick=\{\(\)=>act\('previous'\)\}/);
+ assert.match(component,/onClick=\{\(\)=>act\('pause'\)\}/);
  assert.match(component,/onClick=\{freeze\}/);
- assert.match(component,/showNotes\\?<div className="bml-live-notes"/);
- assert.match(component,/session\\.stageOpen/);
- assert.doesNotMatch(styles,/\\.bml-appbar|\\.bml-sidebar|\\.brian-(?:navbar|header)/);
+ assert.match(component,/showNotes\?<div className="bml-live-notes"/);
+ assert.match(component,/session\.stageOpen/);
+ assert.doesNotMatch(styles,/\.bml-appbar|\.bml-sidebar|\.brian-(?:navbar|header)/);
 });
 test('paper art is vector, accessible decoration, not a remote fetch or screen-image overlay',()=>{
  assert.match(art,/<svg className="bml-paper-illustration"/);
  assert.match(art,/aria-hidden="true"/);
  assert.match(art,/<path /);
  assert.match(art,/<circle /);
- assert.doesNotMatch(art,/fetch\\(|https?:\\/\\//);
+ assert.doesNotMatch(art,/fetch\(|https?:\/\//);
  assert.match(styles,/prefers-reduced-motion/);
 });
