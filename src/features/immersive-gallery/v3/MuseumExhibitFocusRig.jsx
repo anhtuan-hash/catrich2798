@@ -1,4 +1,4 @@
-import React,{useEffect,useRef,useState} from 'react';
+import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {Html} from '@react-three/drei';
 import {useFrame,useThree} from '@react-three/fiber';
 import * as THREE from 'three';
@@ -42,10 +42,30 @@ function PlaqueText({board,onBack,phase}){
  </div>;
 }
 
+function MuseumFocusSpotlight({position,aim,lite=false,index=0}){
+ const target=useMemo(()=>{
+  const object=new THREE.Object3D();
+  object.position.set(...aim);
+  return object;
+ },[...aim]);
+ return <>
+  <primitive object={target}/>
+  <mesh position={position}>
+   <cylinderGeometry args={[.13,.18,.22,16]}/>
+   <meshStandardMaterial color="#C4A160" metalness={.64} roughness={.34}/>
+  </mesh>
+  <mesh position={[position[0],position[1]-.127,position[2]]} rotation={[-Math.PI/2,0,0]}>
+   <circleGeometry args={[.135,16]}/><meshBasicMaterial color="#FFE8BB"/>
+  </mesh>
+  {!lite||index===1?<spotLight position={[position[0],position[1]-.18,position[2]]}
+   target={target} color="#FFF1D1" angle={.41} penumbra={.78}
+   intensity={lite?1.65:1.24} distance={6.8} decay={2}/>:null}
+ </>;
+}
 /** This stage holds only a plinth, physical board and light, never a copy of the poster. */
 export default function MuseumExhibitFocusRig({focus,board,onBack,lite=false}){
  const {size,invalidate}=useThree();
- const stage=useRef(null),boardGroup=useRef(null);
+ const stage=useRef(null),boardGroup=useRef(null),pedestalGroup=useRef(null);
  const active=focus?.phase!=='idle'&&focus?.phase!=='error';
  const layout=focusLayout(size.width,size.height);
  const motion=useRef(0);
@@ -58,17 +78,21 @@ export default function MuseumExhibitFocusRig({focus,board,onBack,lite=false}){
   const step=reduced?1:clampDelta(delta)/duration;
   motion.current=Math.max(0,Math.min(1,motion.current+(desired>motion.current?step:-step)));
   const p=smoothstep(motion.current);
-  stage.current.position.y=-.32*(1-p);
-  stage.current.scale.setScalar(Math.max(.001,p));
+  stage.current.position.y=0;
+  stage.current.scale.setScalar(1);
   stage.current.visible=p>.002;
-  if(boardGroup.current)boardGroup.current.position.y=layout.board[1]-.24*(1-p);
+  if(pedestalGroup.current)pedestalGroup.current.scale.y=Math.max(.001,p);
+  if(boardGroup.current){
+   boardGroup.current.position.y=layout.board[1]-.24*(1-p);
+   boardGroup.current.scale.setScalar(Math.max(.001,p));
+  }
   if(Math.abs(motion.current-desired)>.0001)invalidate();
  });
  useEffect(()=>{if(active)invalidate();else motion.current=0;},[active,focus?.phase,invalidate]);
  if(!active)return null;
  return <group ref={stage} name="MuseumV5FocusStage" userData={{focusStage:true}}>
   {/* Museum stone podium: foreground physical mesh, NOT a second artwork. */}
-  <group position={[layout.artwork[0],0,layout.artwork[2]]}>
+  <group ref={pedestalGroup} position={[layout.artwork[0],0,layout.artwork[2]]}>
    <mesh position={[0,.24,-.08]} castShadow receiveShadow>
     <boxGeometry args={[2.89,.48,.93]}/>
     <meshStandardMaterial color="#E8E0D1" metalness={.08} roughness={.67}/>
@@ -94,20 +118,11 @@ export default function MuseumExhibitFocusRig({focus,board,onBack,lite=false}){
     <meshBasicMaterial color="#C8A34B" side={THREE.DoubleSide} depthWrite={false}/>
    </mesh>
   </group>
-  {/* Three warm museum lamps with real light cones */}
-  {[-.74,0,.74].map((offset,i)=><group key={i}
-   position={[layout.artwork[0]+offset,5.13,layout.artwork[2]-.35]}>
-   <mesh position={[0,0,0]}>
-    <cylinderGeometry args={[.13,.18,.22,16]}/>
-    <meshStandardMaterial color="#C4A160" metalness={.64} roughness={.34}/>
-   </mesh>
-   <mesh position={[0,-.125,0]}>
-    <circleGeometry args={[.135,16]}/>
-    <meshBasicMaterial color="#FFE8BB"/>
-   </mesh>
-   {!lite||i===1?<spotLight position={[0,-.22,.22]} color="#FFF1D1"
-    angle={.45} penumbra={.85} intensity={lite?1.7:1.25} distance={6} decay={2}/>:null}
-  </group>)}
+  {/* Three real warm spotlights aimed at the original artwork's focus pose. */}
+  {[-.74,0,.74].map((offset,i)=><MuseumFocusSpotlight key={i} index={i}
+   position={[layout.artwork[0]+offset,5.28,layout.artwork[2]-.10]}
+   aim={[layout.artwork[0]+offset*.32,2.40,layout.artwork[2]+.17]}
+   lite={lite}/>)}
   {/* Physical freestanding plaque and support stand. No fullscreen HTML panel. */}
   <group ref={boardGroup} position={layout.board} name="MuseumV5PhysicalInformationBoard">
    <mesh castShadow receiveShadow>
