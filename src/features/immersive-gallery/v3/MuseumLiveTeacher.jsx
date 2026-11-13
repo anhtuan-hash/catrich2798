@@ -171,7 +171,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
     </div>:null}
     {showVoiceover?<div className="bml-comp-panel"><MuseumVoiceover stage={stage} language={language}/></div>:null}
     {showVideoLab?<div className="bml-comp-panel"><MuseumVideoLab mode="teacher" stage={stage}
-      stageIndex={currentIndex} media={session.media} assignmentId={assignmentId}
+      stageIndex={currentIndex} media={session.media} assignmentId={assignmentId} transport={transport}
       version={session.version} language={language} onProject={setStageVideo}
       onSaved={async out=>{if(out.session)setState(prev=>({...prev,session:out.session}));await refresh();}}/></div>:null}
     {showNotes?<div className="bml-live-notes"><h3>{t(language,'GHI CHÚ RIÊNG CỦA GIÁO VIÊN','TEACHER-ONLY NOTES')}</h3>
