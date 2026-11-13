@@ -162,10 +162,10 @@ export default function MuseumStudentVoiceGuide({cue}){
     </label>
     <label>Reading speed
      <select aria-label="Narration speed" value={rate} onChange={changeRate}>
-      <option value={.85}>0.85×</option>
-      <option value={.92}>0.92×</option>
-      <option value={1}>1×</option>
-      <option value={1.08}>1.08×</option>
+      <option value={.85}>{'0.85×'}</option>
+      <option value={.92}>{'0.92×'}</option>
+      <option value={1}>{'1×'}</option>
+      <option value={1.08}>{'1.08×'}</option>
      </select>
     </label>
     <small>The narrator uses only voices identified as English (United States). Browser audio may need one tap to start.</small>
