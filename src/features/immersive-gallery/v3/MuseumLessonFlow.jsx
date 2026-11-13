@@ -287,6 +287,7 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
          <span>{p.solution}</span>
          <em>{tr(language,'Xem tác phẩm trong bảo tàng','View in 3D museum')} <ArrowRight size={15}/></em>
         </button>)}</div>
+      </div>:null}
       </div></>:null}
    </article>;
   })}</div>:<div className="bml-empty bml-surface"><BookOpen size={36}/><h2>{tr(language,'Chưa có bài học','No lessons assigned yet')}</h2>
