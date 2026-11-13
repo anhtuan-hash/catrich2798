@@ -668,8 +668,12 @@ test('fullscreen presenter keeps primary and research tools inside the actual fu
  await expect(panel).toBeVisible();
  await expect(panel.getByTestId('museum-voiceover')).toBeVisible();
  await expect(panel.getByLabel('American English voice')).toBeVisible();
- await expect(panel.getByLabel('American English voice').locator('option')).toHaveCount(1);
- await expect(panel.getByLabel('American English voice').locator('option')).toContainText('Samantha');
+ const voiceOptions=panel.getByLabel('American English voice').locator('option');
+ await expect(voiceOptions).toHaveCount(1);
+ const choice=await voiceOptions.first().innerText();
+ expect(choice.includes('Samantha · en-US')||choice.includes('Chưa tìm thấy giọng en-US'),
+  'Only an available en-US system voice or a clear no-US-voice message is permitted').toBe(true);
+ expect(choice).not.toContain('British');
  await dock.getByRole('button',{name:'Video Lab'}).click();
  const videoLab=panel.getByTestId('museum-video-lab');
  await expect(videoLab).toBeVisible();
