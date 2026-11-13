@@ -638,3 +638,37 @@
  .bml-student-editorial .bml-guest-illustration h1{font-size:25px}
  .bml-student-editorial .bml-guest-benefits{margin-top:9px}
 }
+
+/* Student Creator Pass entry: show the exact competition artwork already used
+   on the teacher's Immersive Gallery. Leave the two-column login card intact. */
+.bml.bml-student-shell.bml-student-editorial.bml-student-login-with-ribbon{
+ --museum-grain:url('/assets/dashboard-scrapbook/paper-grain.svg');
+ --museum-rim:url('/assets/museum-paper/paper-rim.svg');
+ --museum-lift:0 5px 0 #578eaf24,0 9px 15px #245b7830;
+ display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;
+ gap:clamp(18px,2vw,28px);
+ min-height:100svh;max-width:100%;box-sizing:border-box;
+ padding:clamp(14px,2vw,27px) clamp(12px,3vw,46px) clamp(26px,3vw,42px);
+ overflow-x:clip;
+}
+.bml.bml-student-login-with-ribbon .bml-guest-competition-wrap{
+ display:block;flex:0 0 auto;min-width:0;max-width:1400px;width:100%;
+ margin:0 auto;padding:0;background:transparent;
+}
+.bml.bml-student-login-with-ribbon .bml-guest-competition-wrap>.bml-competition-ribbon--dashboard{
+ width:100%;max-width:100%;min-width:0;margin:0!important;
+ box-sizing:border-box;
+}
+.bml.bml-student-login-with-ribbon>.bml-guest-entry{
+ flex:0 0 auto;margin:0 auto;max-width:1050px;width:100%;
+}
+/* On narrow screens retain the existing form-first layout and place the
+   responsive contest masthead above it without introducing side scrolling. */
+@media(max-width:760px){
+ .bml.bml-student-shell.bml-student-editorial.bml-student-login-with-ribbon{
+  gap:14px;padding:10px 11px 28px;
+ }
+ .bml.bml-student-login-with-ribbon>.bml-guest-entry{
+  margin:0 auto;width:100%;max-width:600px;
+ }
+}

@@ -23,6 +23,8 @@ import './museumStudentEditorial.css';
 import './museumStudentScrollFix.css';
 import './museumStudentScrapbookV6.css';
 import './museumSubmissionFix.css';
+import './museumDashboardBanner.css';
+
 const T=(lang,vi,en)=>lang==='en'?en:vi;
 const getHandle=()=>{
  try{const raw=new URLSearchParams(window.location.hash.split('?')[1]||'').get('invite')||'';return raw.match(/^[A-Za-z0-9_-]{16,80}/)?.[0]||raw.slice(0,80);}catch{return '';}
@@ -189,7 +191,12 @@ export default function MuseumLabStudent({language='en'}){
    await load();setNotice(T(language,'Bài đã nộp. Giáo viên sẽ kiểm tra và chuyển TTCM duyệt.','Submitted for Admin review. You can revise if the submission is returned.'));
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
- if(!session)return <div className="bml bml-student-shell bml-student-editorial" lang={language}><GuestEntry onRedeem={redeem} busy={busy} error={error} language={language}/></div>;
+ if(!session)return <div className="bml bml-student-shell bml-student-editorial bml-student-login-with-ribbon" lang={language}>
+  <div className="bml-paper bml-guest-competition-wrap" data-testid="museum-login-competition-banner">
+   <MuseumCompetitionRibbon variant="dashboard"/>
+  </div>
+  <GuestEntry onRedeem={redeem} busy={busy} error={error} language={language}/>
+ </div>;
  const l=studio.learning,doc=documentFromStudio(studio),room=doc.rooms[0];
  const exhibitStatus=()=>[l.issue,l.evidence,l.solution].filter(Boolean).length;
  const progressChecks=[!!studio.title,!!l.issue,!!l.evidence,!!l.solution,!!l.source,!!l.feedback,!!l.improvement,!!l.tested,!!l.reflection];
