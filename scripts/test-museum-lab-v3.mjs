@@ -232,7 +232,11 @@ test('private Student Creator 2D/3D preview resolves exactly the group uploaded 
  assert.ok(!JSON.stringify(missing).includes('pexels.com'));
  // A stale exhibit asset_id takes precedence over slot id to avoid substituting
  // an unrelated image. No image is displayed until a matching private asset is signed.
- d.rooms[0].exhibits[0].asset_id='historical-image';
+ d.rooms=[{title:'Legacy preview room',exhibits:[
+  {title:'The Problem',description:'Legacy',asset_id:'historical-image'},
+  {title:'The Evidence',description:'Legacy'},
+  {title:'Our Solution',description:'Legacy'}
+ ]}];
  const noSubstitution=buildStudentMuseumPreview(d,assets);
  assert.equal(noSubstitution.rooms[0].exhibits[0].image_url,'');
 });
