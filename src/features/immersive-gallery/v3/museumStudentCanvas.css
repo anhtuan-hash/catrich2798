@@ -1,0 +1,351 @@
+/* BRIAN Museum Lab · Student Canvas 16:9 v4.5.
+   Applies ONLY to the private student guest workspace; Teacher Live and the
+   system navigation retain their pre-existing styles and behaviour. */
+.bml.bml-student-canvas16{
+ --sc-ink:#153d65;--sc-teal:#248781;--sc-blue:#1566cb;
+ --sc-paper:#fffdf7;--sc-border:#d8e5e9;--sc-shadow:0 4px 0 #dce7eb,0 12px 24px #1d46611a;
+ position:fixed!important;inset:0!important;z-index:1100;
+ display:flex;flex-direction:column;
+ width:100vw!important;max-width:100vw!important;
+ height:100dvh!important;max-height:100dvh!important;min-height:0!important;
+ border:0!important;border-radius:0!important;overflow:hidden!important;
+ background:
+  radial-gradient(circle at 1% 83%,#c4e7d6 0,transparent 21%),
+  radial-gradient(circle at 99% 1%,#c6e5fb 0,transparent 25%),
+  repeating-linear-gradient(132deg,#f2f7f7,#f2f7f7 32px,#f3f8fc 32px,#f3f8fc 68px);
+ color:var(--sc-ink);
+}
+.bml-student-canvas16 .bml-student-bar{
+ flex:0 0 58px;min-height:58px;max-height:58px;
+ padding:8px clamp(14px,2vw,34px);
+ border-bottom:2px solid #d5e7e6;z-index:5;
+ background:linear-gradient(120deg,#fffdf6,#fdfdfb 55%,#eaf5ff);
+ box-shadow:0 2px 9px #304d5b14;
+}
+.bml-student-canvas16 .bml-brand{min-width:0}
+.bml-student-canvas16 .bml-brand strong{color:#133b68}
+.bml-student-canvas16 .bml-student-content{
+ flex:1 1 auto;min-width:0;min-height:0;
+ display:grid;grid-template-rows:86px minmax(0,1fr);
+ width:100%;max-width:100%;padding:12px 16px 16px;gap:12px;overflow:hidden;
+}
+.bml-student-canvas16 .bml-student-focus{
+ min-width:0;min-height:0;max-height:none;
+ display:grid;grid-template-columns:minmax(190px,25%) minmax(0,1fr);
+ gap:14px;align-items:center;padding:9px 19px;
+ border:1px solid #d9e4e6;border-radius:20px;
+ margin:0;background:linear-gradient(108deg,#fffefa,#f8fffb);
+ box-shadow:0 4px 0 #dee8e5,0 5px 18px #1b466218;
+}
+.bml-student-canvas16 .bml-student-focus:before{width:90px;height:90px;right:8%;top:-70px;opacity:.26}
+.bml-student-canvas16 .bml-student-focus-head{gap:2px}
+.bml-student-canvas16 .bml-student-focus-head>strong{font-size:clamp(15px,1.45vw,24px);line-height:1.2}
+.bml-student-canvas16 .bml-student-focus-stage{font-size:clamp(10px,.83vw,13px);max-height:19px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.bml-student-canvas16 .bml-student-focus-kicker{font-size:10px}
+.bml-student-canvas16 .bml-student-steps{
+ display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:center;
+ margin:0;padding:0;gap:4px;overflow:visible;
+}
+.bml-student-canvas16 .bml-student-steps button{min-width:0;min-height:62px;gap:2px;padding:2px;color:#50667a}
+.bml-student-canvas16 .bml-student-steps button:before{top:9px;height:3px}
+.bml-student-canvas16 .bml-student-steps button>span{
+ margin-top:4px;width:29px;height:29px;font-size:13px;border:2px solid #cad8e4;position:relative;z-index:1;
+}
+.bml-student-canvas16 .bml-student-steps button.is-active>span{background:#1569d6;border-color:#1569d6}
+.bml-student-canvas16 .bml-student-steps button small{font-size:clamp(9px,.78vw,12px);max-width:100%;line-height:1.2}
+.bml-student-canvas16 .bml-student-workbench{
+ display:grid;grid-template-columns:minmax(185px,20%) minmax(0,1fr) minmax(225px,26%);
+ gap:13px;min-height:0;height:100%;min-width:0;
+}
+.bml-student-canvas16 .bml-student-toolrail,
+.bml-student-canvas16 .bml-student-project-card,
+.bml-student-canvas16 .bml-student-projectrail>.bml-student-guide,
+.bml-student-canvas16 .bml-student-primary{
+ min-width:0;border:1px solid var(--sc-border);border-radius:19px;
+ box-shadow:var(--sc-shadow);background:var(--sc-paper);
+}
+.bml-student-canvas16 .bml-student-toolrail{
+ display:flex;flex-direction:column;gap:10px;min-height:0;
+ padding:clamp(11px,1.25vw,18px);overflow:hidden;
+}
+.bml-student-canvas16 .bml-student-paper-note{
+ flex:0 0 auto;display:grid;gap:7px;padding:12px;
+ border-radius:13px;background:linear-gradient(134deg,#fff3e7,#f8fefa);
+ border:1px solid #eadfd0;min-height:0;max-height:29%;overflow:hidden;
+}
+.bml-student-canvas16 .bml-student-note-kicker{display:flex;align-items:center;gap:7px;color:#0e70af;font-size:11px;font-weight:850;letter-spacing:.055em}
+.bml-student-canvas16 .bml-student-paper-note>strong{font-size:clamp(15px,1.2vw,19px);line-height:1.25;color:#173e66}
+.bml-student-canvas16 .bml-student-paper-note p{font-size:clamp(11px,.89vw,13px);line-height:1.4;margin:0;
+ display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.bml-student-canvas16 .bml-student-paper-note small{color:#477d79;font-size:10px;font-weight:750}
+.bml-student-canvas16 .bml-student-view-tabs{display:grid;grid-template-columns:1fr;gap:8px}
+.bml-student-canvas16 .bml-student-view-tabs button,
+.bml-student-canvas16 .bml-student-view-tabs button.is-active{
+ min-height:52px;padding:10px;flex-direction:row;align-items:center;
+ box-shadow:none;transform:none;border-radius:12px;
+}
+.bml-student-canvas16 .bml-student-view-tabs button strong{font-size:clamp(11px,.95vw,14px)}
+.bml-student-canvas16 .bml-student-view-tabs button small{font-size:10px}
+.bml-student-canvas16 .bml-student-rail-label{
+ font-weight:850;letter-spacing:.08em;font-size:10px;color:#7d6b51;
+ margin-top:2px;padding:1px 0 2px;
+}
+.bml-student-canvas16 .bml-student-rail-tools{display:grid;gap:7px;min-height:0}
+.bml-student-canvas16 .bml-student-rail-tools button{
+ display:flex;align-items:center;gap:8px;min-height:37px;width:100%;
+ padding:7px 10px;min-width:0;cursor:pointer;
+ border:1px solid #d8e4e7;border-radius:11px;
+ background:linear-gradient(110deg,#fff,#f8fafb);color:#164b7d;
+ text-align:left;font-size:clamp(10px,.88vw,13px);font-weight:750;
+}
+.bml-student-canvas16 .bml-student-rail-tools button:hover{border-color:#78b5bc;background:#e8f7f5}
+.bml-student-canvas16 .bml-student-rail-footer{
+ display:flex;align-items:center;gap:7px;font-size:10px;color:#497f67;line-height:1.4;margin-top:auto;
+}
+.bml-student-canvas16 .bml-student-rail-footer svg{flex:none}
+.bml-student-canvas16 .bml-student-primary{min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.bml-student-canvas16 .bml-student-primary>.bml-student-pane{height:100%;min-height:0;min-width:0;overflow:hidden}
+.bml-student-canvas16 .bml-student-pane[hidden]{display:none!important}
+.bml-student-canvas16 .bml-student-stage{
+ width:100%;height:100%;min-height:0;display:block;margin:0;overflow:hidden;
+}
+.bml-student-canvas16 .bml-student-task.bml-surface{
+ height:100%;min-height:0;max-height:100%;display:flex;flex-direction:column;
+ overflow:hidden;border:0;border-radius:17px;box-shadow:none;
+ background:linear-gradient(150deg,#fffdf8,#ffffff);
+ padding:clamp(14px,1.6vw,23px);
+}
+.bml-student-canvas16 .bml-student-task>.bml-overline{color:#207ca4;font-size:11px}
+.bml-student-canvas16 .bml-student-task>h2{
+ margin:3px 0 7px;font-size:clamp(19px,1.7vw,28px);
+ line-height:1.16;color:#153d6a;
+}
+.bml-student-canvas16 .bml-student-task>p{font-size:clamp(12px,.95vw,15px);line-height:1.4;margin:0 0 8px}
+.bml-student-canvas16 .bml-student-task>.bml-step-hint{padding:10px;margin:9px 0;flex:none}
+.bml-student-canvas16 .bml-student-task>.bml-step-hint p{margin:0;font-size:12px}
+.bml-student-canvas16 .bml-student-task>.bml-full-field{margin:6px 0;min-height:0}
+.bml-student-canvas16 .bml-student-task label,
+.bml-student-canvas16 .bml-live-student label{font-size:clamp(11px,.96vw,14px);line-height:1.35;font-weight:750;color:#285073}
+.bml-student-canvas16 .bml-student-task textarea,
+.bml-student-canvas16 .bml-live-student textarea{height:clamp(55px,9vh,90px);min-height:45px;max-height:90px;resize:none;padding:9px 12px}
+.bml-student-canvas16 .bml-student-task input:not([type=checkbox]){min-height:38px;padding:8px 12px}
+.bml-student-canvas16 .bml-student-task .bml-checkbox-row{margin:8px 0;align-items:center}
+.bml-student-canvas16 .bml-student-task .bml-checkbox-row input{flex:none}
+.bml-student-canvas16 .bml-student-task .bml-student-bottom{
+ flex:none;margin-top:auto;padding-top:11px;border-top:1px dashed #d9e6e5;
+}
+.bml-student-canvas16 .bml-student-bottom button{min-height:42px}
+.bml-student-canvas16 .bml-student-task .bml-history{display:none}
+.bml-student-canvas16 .bml-student-task .bml-submit-check{gap:4px;margin:8px 0}
+.bml-student-canvas16 .bml-student-task .bml-submit-check>div{padding:6px 9px}
+.bml-student-canvas16 .bml-student-task .bml-storyboard{margin:6px 0;gap:7px}
+.bml-student-canvas16 .bml-storyboard-card{padding:7px;gap:3px}
+.bml-student-canvas16 .bml-student-exhibit{padding:6px 9px;margin:5px 0}
+.bml-student-canvas16 .bml-student-exhibit label{margin:5px 0}
+.bml-student-canvas16 .bml-student-exhibit textarea{height:55px}
+.bml-student-canvas16 .bml-theme-choices{gap:6px;margin:3px 0}
+.bml-student-canvas16 .bml-theme-choices button{min-height:42px;padding:7px 9px}
+.bml-student-canvas16 .bml-exhibit-progress{margin:8px 0;padding:8px}
+.bml-student-canvas16 .bml-student-task .bml-banner{font-size:12px;padding:9px;margin:6px 0}
+.bml-student-canvas16 .bml-student-subpages{
+ display:flex;gap:6px;align-items:center;margin:6px 0 10px;flex:0 0 auto;
+}
+.bml-student-canvas16 .bml-student-subpages button{
+ border:1px solid #c7d9e7;border-radius:20px;background:#f4f9ff;padding:6px 11px;
+ font-size:12px;color:#225d8d;font-weight:800;cursor:pointer;
+}
+.bml-student-canvas16 .bml-student-subpages button[aria-current=page]{
+ background:#156ed4;color:white;border-color:#156ed4;
+}
+.bml-student-canvas16 .bml-student-subpages small{margin-left:auto;color:#7a8b96}
+.bml-student-canvas16 .bml-student-projectrail{
+ display:flex;flex-direction:column;gap:13px;min-height:0;min-width:0;overflow:hidden;
+}
+.bml-student-canvas16 .bml-student-project-card{
+ display:flex;flex-direction:column;gap:9px;min-height:0;flex:1 1 auto;overflow:hidden;
+ padding:clamp(13px,1.4vw,20px);
+ background:linear-gradient(143deg,#fff7f4,#fffefa 47%,#faf8f3);
+}
+.bml-student-canvas16 .bml-student-project-ribbon{
+ display:flex;align-items:center;gap:8px;color:#a34443;font-size:clamp(12px,1.04vw,16px);
+ font-weight:850;padding:8px 10px;background:linear-gradient(110deg,#ffdfd6,#ffecec);border-radius:9px;
+}
+.bml-student-canvas16 .bml-student-heading{padding:0;max-width:100%;overflow:hidden}
+.bml-student-canvas16 .bml-student-heading>span.bml-overline{display:none}
+.bml-student-canvas16 .bml-student-heading h1{
+ font-size:clamp(18px,1.55vw,27px);font-weight:750;color:#213f65;
+ margin:3px 0;line-height:1.23;letter-spacing:-.02em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.bml-student-canvas16 .bml-student-heading>p{
+ font-size:clamp(10px,.83vw,13px);line-height:1.42;color:#587084;margin:4px 0;
+ display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+}
+.bml-student-canvas16 .bml-student-heading>small{
+ font-size:10px;color:#748795;line-height:1.3;overflow:hidden;
+ display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
+}
+.bml-student-canvas16 .bml-student-project-art{
+ display:flex;align-items:center;gap:12px;min-height:66px;
+ background:radial-gradient(circle at 95% 4%,#cfedf3,transparent 55%),linear-gradient(120deg,#dfefe7,#e6f6ff);
+ border:1px solid #cfe3d9;border-radius:13px;padding:12px;
+}
+.bml-student-canvas16 .bml-student-project-art span{font-size:36px}
+.bml-student-canvas16 .bml-student-project-art strong{
+ font-size:clamp(13px,1vw,17px);line-height:1.25;color:#275c67;overflow-wrap:anywhere;
+}
+.bml-student-canvas16 .bml-student-project-meter{
+ display:grid;grid-template-columns:1fr auto;align-items:center;gap:7px;font-size:12px;margin-top:2px;
+}
+.bml-student-canvas16 .bml-student-project-meter strong{color:#3a5570}
+.bml-student-canvas16 .bml-student-project-meter span{font-size:17px;color:#1a765a;font-weight:850}
+.bml-student-canvas16 .bml-student-project-meter>div{grid-column:1/-1;background:#e8ebef;border-radius:999px;height:11px;overflow:hidden}
+.bml-student-canvas16 .bml-student-project-meter i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#6bc69f,#1ba67d);transition:width .2s}
+.bml-student-canvas16 .bml-student-project-preview{display:flex;justify-content:center;align-items:center;gap:7px;min-height:38px;font-size:12px}
+.bml-student-canvas16 .bml-student-real-data-note{font-size:10px;color:#70848f;line-height:1.4}
+.bml-student-canvas16 .bml-student-projectrail>.bml-student-guide{
+ flex:0 1 auto;max-height:32%;min-height:0;overflow:hidden;padding:14px;order:initial;
+ background:linear-gradient(145deg,#f2fbff,#fffef9);
+}
+.bml-student-canvas16 .bml-student-guide .bml-guide-circle{width:31px;height:31px;border-radius:9px}
+.bml-student-canvas16 .bml-student-guide .bml-guide-circle svg{width:18px}
+.bml-student-canvas16 .bml-student-guide h3{font-size:14px;margin:5px 0}
+.bml-student-canvas16 .bml-student-guide p{font-size:11px;line-height:1.35;margin:3px 0;
+ display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.bml-student-canvas16 .bml-student-guide .bml-english-chip{
+ font-size:10px;padding:4px 7px;margin:3px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.bml-student-canvas16 .bml-student-guide .bml-guide-divider,
+.bml-student-canvas16 .bml-student-guide>strong,
+.bml-student-canvas16 .bml-student-guide>strong+p{display:none}
+.bml-student-canvas16 .bml-student-pane>.bml-live-student{
+ height:100%;min-height:0;max-height:100%;overflow:hidden;display:flex;flex-direction:column;
+ gap:12px;border:0;box-shadow:none;border-radius:17px;padding:clamp(14px,1.7vw,23px);
+}
+.bml-student-canvas16 .bml-live-student-header{flex:0 0 auto}
+.bml-student-canvas16 .bml-live-student-question{flex:0 0 auto;padding:12px 14px}
+.bml-student-canvas16 .bml-live-student-question h2{font-size:clamp(20px,1.7vw,27px)}
+.bml-student-canvas16 .bml-live-student-question p{font-size:clamp(12px,1vw,16px);line-height:1.42}
+.bml-student-canvas16 .bml-live-student .bml-live-response-options{gap:7px}
+.bml-student-canvas16 .bml-live-student .bml-live-response-options button{
+ min-height:45px;font-size:clamp(12px,1.01vw,16px);padding:8px 12px;
+}
+.bml-student-canvas16 .bml-live-student .bml-live-response-form>div{gap:6px;padding:10px}
+.bml-student-canvas16 .bml-live-student .bml-live-actions{flex:none;margin-top:auto;position:static;padding:0;background:transparent}
+.bml-student-canvas16 .bml-live-student .bml-live-actions button{min-height:45px;font-size:13px}
+.bml-student-canvas16 .bml-live-student .bml-live-response-form textarea{height:70px}
+.bml-student-canvas16 .bml-live-student .bml-live-survey{min-height:0;max-height:100px;overflow:hidden;font-size:11px}
+.bml-student-canvas16 .bml-student-support{display:none}
+.bml-student-canvas16 .bml-student-quiz-page-controls{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.bml-student-canvas16 .bml-student-quiz-page-controls button{min-height:38px;padding:6px 12px;border:1px solid #c8dae5;border-radius:10px;background:#f3f8ff;color:#20558b;font-weight:750}
+.bml-student-canvas16 .bml-student-detail-overlay{
+ position:fixed;z-index:1200;inset:0;display:grid;place-items:center;padding:clamp(10px,3vw,28px);
+ background:rgba(12,32,59,.7);backdrop-filter:blur(3px);
+}
+.bml-student-canvas16 .bml-student-detail-window{
+ width:min(1200px,96vw);height:min(780px,93dvh);min-height:0;
+ background:linear-gradient(135deg,#fffdf7,#f6fbff);border:4px solid #f3f1e5;
+ border-radius:20px;box-shadow:0 20px 80px #0b253d8a;
+ display:flex;flex-direction:column;overflow:hidden;padding:14px;
+}
+.bml-student-canvas16 .bml-student-detail-head{
+ display:flex;flex:none;align-items:center;justify-content:space-between;gap:12px;
+ border-bottom:1px solid #d9e3e6;padding:0 0 10px;margin-bottom:11px;font-size:16px;
+}
+.bml-student-canvas16 .bml-student-detail-window>.bml-scene,
+.bml-student-canvas16 .bml-student-detail-window>.bml-museum-scene{flex:1;min-height:0;overflow:hidden}
+.bml-student-canvas16 .bml-student-tool-content{
+ flex:1;min-height:0;display:grid;align-content:start;gap:12px;
+}
+.bml-student-canvas16 .bml-student-tool-content .bml-resource-hub{min-height:0}
+.bml-student-canvas16 .bml-student-tool-content .bml-voiceover{width:100%}
+.bml-student-canvas16 .bml-student-stage .bml-student-subpages{display:flex}
+.bml-student-canvas16 button:focus-visible{outline:3px solid #e7a639;outline-offset:2px}
+@media(max-height:750px) and (min-width:1000px){
+ .bml-student-canvas16 .bml-student-content{grid-template-rows:72px minmax(0,1fr);gap:9px;padding:9px 11px 12px}
+ .bml-student-canvas16 .bml-student-bar{flex-basis:52px;min-height:52px;max-height:52px}
+ .bml-student-canvas16 .bml-student-workbench{gap:9px}
+ .bml-student-canvas16 .bml-student-toolrail{gap:6px;padding:10px}
+ .bml-student-canvas16 .bml-student-paper-note{padding:8px;gap:3px}
+ .bml-student-canvas16 .bml-student-rail-tools{gap:4px}
+ .bml-student-canvas16 .bml-student-rail-tools button{min-height:32px;padding:6px 8px}
+ .bml-student-canvas16 .bml-student-task.bml-surface{padding:12px 15px}
+ .bml-student-canvas16 .bml-student-task textarea{max-height:69px}
+ .bml-student-canvas16 .bml-student-project-card{padding:12px;gap:6px}
+ .bml-student-canvas16 .bml-student-projectrail>.bml-student-guide{padding:10px}
+}
+@media(max-width:999px){
+ .bml.bml-student-canvas16{position:relative!important;height:auto!important;max-height:none!important;min-height:100svh!important;overflow:visible!important}
+ .bml-student-canvas16 .bml-student-content{display:block;overflow:visible;min-height:0;height:auto;padding:12px}
+ .bml-student-canvas16 .bml-student-focus{display:block;padding:13px;margin-bottom:13px}
+ .bml-student-canvas16 .bml-student-steps{display:flex;overflow-x:auto;margin-top:12px}
+ .bml-student-canvas16 .bml-student-steps button{flex:0 0 115px}
+ .bml-student-canvas16 .bml-student-workbench{display:flex;flex-direction:column;height:auto;min-height:0}
+ .bml-student-canvas16 .bml-student-toolrail{display:block;padding:13px}
+ .bml-student-canvas16 .bml-student-paper-note{max-height:none;margin-bottom:10px}
+ .bml-student-canvas16 .bml-student-view-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .bml-student-canvas16 .bml-student-rail-tools{grid-template-columns:repeat(auto-fit,minmax(120px,1fr));margin-top:9px}
+ .bml-student-canvas16 .bml-student-rail-footer{margin-top:10px}
+ .bml-student-canvas16 .bml-student-primary{min-height:480px;height:auto;overflow:visible}
+ .bml-student-canvas16 .bml-student-primary>.bml-student-pane{height:auto;overflow:visible}
+ .bml-student-canvas16 .bml-student-stage{height:auto;overflow:visible}
+ .bml-student-canvas16 .bml-student-task.bml-surface{height:auto;max-height:none;overflow:visible}
+ .bml-student-canvas16 .bml-student-pane>.bml-live-student{height:auto;max-height:none;overflow:visible}
+ .bml-student-canvas16 .bml-student-projectrail{flex-direction:row;overflow:visible}
+ .bml-student-canvas16 .bml-student-project-card{flex:2;min-height:250px}
+ .bml-student-canvas16 .bml-student-projectrail>.bml-student-guide{flex:1;max-height:none}
+}
+@media(max-width:620px){
+ .bml-student-canvas16 .bml-student-projectrail{flex-direction:column}
+ .bml-student-canvas16 .bml-student-steps button{flex-basis:104px}
+ .bml-student-canvas16 .bml-student-rail-tools{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .bml-student-canvas16 .bml-student-focus-head>strong{font-size:18px}
+ .bml-student-canvas16 .bml-student-projectrail>.bml-student-guide{display:none}
+ .bml-student-canvas16 .bml-student-workbench{gap:10px}
+}
+@media(prefers-reduced-motion:reduce){
+ .bml-student-canvas16 *, .bml-student-canvas16 *:before,.bml-student-canvas16 *:after{animation:none!important;transition:none!important}
+}
+
+/* Separate creative tools preserve every control while the 16:9 lesson stays fixed. */
+.bml-student-canvas16 .bml-student-artwork-dialog,
+.bml-student-canvas16 .bml-student-history-dialog{
+ flex:1 1 auto;min-height:0;min-width:0;overflow-y:auto;overscroll-behavior:contain;
+ padding:5px 8px 12px;scrollbar-width:thin;
+}
+.bml-student-canvas16 .bml-student-history-dialog{display:grid;align-content:start;gap:11px}
+.bml-student-canvas16 .bml-student-history-dialog article{
+ background:#fff;border:1px solid #d7e8e8;padding:12px 14px;border-radius:13px;
+}
+.bml-student-canvas16 .bml-student-history-dialog article p{line-height:1.55;overflow-wrap:anywhere}
+.bml-student-canvas16 .bml-student-history-dialog article img{max-height:170px;object-fit:contain}
+.bml-student-canvas16 .bml-student-detail-window>.bml-student-tool-content{
+ min-height:0;overflow-y:auto;overscroll-behavior:contain;align-content:start;
+ padding:6px 8px 14px;scrollbar-width:thin;
+}
+.bml-student-canvas16 .bml-student-compact-links{
+ display:flex;flex-wrap:wrap;gap:8px;min-height:0;
+}
+.bml-student-canvas16 .bml-student-compact-links button{min-height:35px;display:flex;align-items:center;gap:7px}
+.bml-student-canvas16 .bml-student-tool-content .bml-video-lab{min-width:0}
+.bml-student-canvas16 .bml-student-tool-content .bml-resource-hub{max-width:100%}
+.bml-student-canvas16 .bml-student-tool-content .bml-video-embed{max-height:52dvh}
+.bml-student-canvas16 .bml-student-tool-content .bml-resource-hub-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+.bml-student-canvas16 .bml-student-detail-window .bml-museum-room{min-height:0}
+@media(max-width:760px){
+ .bml-student-canvas16 .bml-student-tool-content .bml-resource-hub-list{grid-template-columns:1fr}
+ .bml-student-canvas16 .bml-student-detail-window{height:96dvh;width:98vw;padding:9px}
+}
+
+/* Hidden live quiz pages must remain truly hidden despite card display rules. */
+.bml-student-canvas16 [hidden]{display:none!important}
+.bml-student-canvas16 .bml-student-primary>.bml-student-pane:not([hidden]){
+ display:flex;flex-direction:column;min-height:0;
+}
+.bml-student-canvas16 .bml-student-pane>.bml-student-stage{
+ flex:1 1 auto;height:auto;min-height:0;
+}
+.bml-student-canvas16 .bml-student-pane>.bml-banner{flex:0 0 auto;margin:4px 7px;padding:8px 11px;font-size:11px}
+@media(max-width:999px){
+ .bml-student-canvas16 .bml-student-bar{min-height:58px;max-height:none;height:auto;flex-basis:auto}
+ .bml-student-canvas16 .bml-student-pane>.bml-student-stage{height:auto;min-height:0}
+}
