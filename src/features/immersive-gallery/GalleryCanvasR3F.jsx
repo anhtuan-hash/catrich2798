@@ -32,30 +32,42 @@ function CuratedModel({modelKey='globe',scale=1}) {
 }
 export {CuratedModel};
 function ArtworkImage({assetId,imageUrl,schoolEdition=false,cinemaEdition=false}) {
- const [texture,setTexture]=useState(null);
+ const [texture,setTexture]=useState(null),live=useRef(null);
  useEffect(()=>{
-  if(!assetId&&!imageUrl)return undefined;let alive=true,created=null;
-  (imageUrl?Promise.resolve(imageUrl):import('./galleryData.js').then(({getGalleryAssetUrl})=>getGalleryAssetUrl(assetId))).then(url=>{
-    if(!alive)return;
+  let active=true;
+  if(cinemaEdition&&!imageUrl){
+   const old=live.current;live.current=null;setTexture(null);old?.dispose();
+   return undefined;
+  }
+  if(!assetId&&!imageUrl)return undefined;
+  // In private Cinema, only the authorized short-lived signed URL is used.
+  // The previous *decoded* GPU texture remains visible while a new signed URL
+  // loads; failures never replace the original picture with fabricated media.
+  (imageUrl?Promise.resolve(imageUrl):import('./galleryData.js').then(({getGalleryAssetUrl})=>getGalleryAssetUrl(assetId)))
+   .then(url=>{
+    if(!active||!url)return;
     new THREE.TextureLoader().load(url,t=>{
-      created=t;t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=2;
-      if(alive){
-       setTexture(t);
-       // Private photo URL is never sent to telemetry/logs; signal only that
-       // WebGL has decoded the actual student artwork texture for visual QA.
-       document.dispatchEvent(new Event('bml:museum-texture-ready'));
-     }else t.dispose();
-    },undefined,()=>{if(alive)setTexture(null);});
-  }).catch(()=>{if(alive)setTexture(null);});
-  return()=>{alive=false;if(created)created.dispose();};
- },[assetId,imageUrl]);
+     t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=2;
+     if(!active){t.dispose();return;}
+     const old=live.current;live.current=t;
+     setTexture(t);
+     if(old&&old!==t)old.dispose();
+     document.dispatchEvent(new Event('bml:museum-texture-ready'));
+    },undefined,()=>{/* keep last authorized decoded texture, no false replacement */});
+   }).catch(()=>{/* 2D remains available if signed URL cannot be renewed */});
+  return()=>{active=false;};
+ },[assetId,imageUrl,cinemaEdition]);
+ useEffect(()=>()=>{live.current?.dispose();live.current=null;},[]);
  if(!texture)return <mesh position={[0,0,.087]}>
   <planeGeometry args={cinemaEdition?[2.25,3.03]:schoolEdition?[2.1,1.46]:[1.62,1.17]}/>
   <meshStandardMaterial color="#E4E9DF" roughness={.95}/></mesh>;
  const width=texture.image?.width||1,height=texture.image?.height||1,aspect=width/height;
  const maxWidth=cinemaEdition?2.26:schoolEdition?2.11:1.65,maxHeight=cinemaEdition?3.03:schoolEdition?1.62:1.36;
  const size=aspect>maxWidth/maxHeight?[maxWidth,maxWidth/aspect]:[maxHeight*aspect,maxHeight];
- return <mesh position={[0,0,cinemaEdition ? .096 : .083]}><planeGeometry args={size}/><meshBasicMaterial map={texture} toneMapped={false} side={THREE.DoubleSide}/></mesh>;
+ return <mesh position={[0,0,cinemaEdition?.096:.083]}>
+  <planeGeometry args={size}/>
+  <meshBasicMaterial map={texture} toneMapped={false} side={THREE.DoubleSide}/>
+ </mesh>;
 }
 function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdition=false,index=0,
  focus=FOCUS_IDLE,onFocusPhaseChange}) {
