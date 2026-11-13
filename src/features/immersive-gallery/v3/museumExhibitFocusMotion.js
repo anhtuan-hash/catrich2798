@@ -38,11 +38,11 @@ export const smoothstep=t=>{
 export const clampDelta=delta=>Math.min(.05,Math.max(0,Number(delta)||0));
 export const FOCUS_POSITIONS=Object.freeze({
  desktop:{artwork:[-1.70,2.47,-3.56],board:[1.58,2.33,-3.51],camera:[0,2.18,2.05],
-  look:[0,2.28,-3.55],artworkScale:1},
+  look:[0,2.28,-3.55],artworkScale:1,boardScale:1,pedestalScale:1},
  tablet:{artwork:[-1.35,2.41,-4.0],board:[1.37,2.3,-3.94],camera:[0,2.13,2.9],
-  look:[0,2.25,-3.94],artworkScale:.85},
- mobile:{artwork:[-.67,2.48,-4.05],board:[.60,2.05,-3.65],camera:[0,2.23,4.70],
-  look:[0,2.29,-3.85],artworkScale:.66}
+  look:[0,2.25,-3.94],artworkScale:.85,boardScale:.84,pedestalScale:.88},
+ mobile:{artwork:[-1.05,2.48,-4.05],board:[1.05,2.05,-3.80],camera:[0,2.23,4.70],
+  look:[0,2.29,-3.85],artworkScale:.66,boardScale:.62,pedestalScale:.73}
 });
 export function focusLayout(width=1536,height=864){
  const w=Number(width)||1536,h=Number(height)||864;
