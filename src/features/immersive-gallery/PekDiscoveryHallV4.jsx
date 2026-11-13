@@ -38,7 +38,7 @@ function DisplayLettering({main,sub,position,size=[8.5,.69],light=false}){
 }
 function SchoolCrest(){
  const crest=useTexture('/museum/branding/petrus-ky-original.png');
- useEffect(()=>{crest.colorSpace=THREE.SRGBColorSpace;crest.anisotropy=4;},[crest]);
+ useEffect(()=>{crest.colorSpace=THREE.SRGBColorSpace;crest.anisotropy=4;crest.needsUpdate=true;},[crest]);
  return <group position={[-5.38,4.75,-8.002]}>
   <mesh position={[0,0,-.025]}>
    <boxGeometry args={[.91,1.05,.10]}/>
@@ -184,6 +184,19 @@ function MuseumFurniture({lite}){
   </group>
  </group>;
 }
+function ArtworkSpotlight({x,lite}){
+ const target=useMemo(()=>{
+  const value=new THREE.Object3D();
+  value.position.set(x,2.34,-7.78);
+  return value;
+ },[x]);
+ return <group>
+  <primitive object={target}/>
+  <spotLight position={[x,5.22,-6.75]} target={target}
+   color="#FFF3DA" intensity={lite?1.1:2.15}
+   angle={.36} penumbra={.84} distance={7.3} decay={2}/>
+ </group>;
+}
 export default function PekDiscoveryHallV4({lite=false}){
  return <group name="PekDiscoveryHallV4">
   {/* Walls, banners and lighting all exist in world-space. */}
@@ -227,13 +240,12 @@ export default function PekDiscoveryHallV4({lite=false}){
    <ringGeometry args={[.83,.90,56]}/>
    <meshBasicMaterial color={INK} side={THREE.DoubleSide}/>
   </mesh>
-  {!lite?[-3.15,-1.1,1.1,3.15].map(x=><group key={x}>
+  {!lite?[-3.15,3.15].map(x=><group key={x}>
    <mesh position={[x,5.60,-6.72]}>
     <cylinderGeometry args={[.13,.15,.20,16]}/>
     <meshStandardMaterial color="#C8B58E" metalness={.38} roughness={.45}/>
    </mesh>
-   <spotLight position={[x,5.48,-6.68]} target-position={[x,2.4,-7.79]}
-    color="#FFF1D8" intensity={1.35} angle={.43} penumbra={.8} distance={7} decay={2}/>
+   <pointLight position={[x,5.48,-6.68]} color="#FFF1D8" intensity={.34} distance={4.4} decay={2}/>
   </group>):null}
   <MuseumFurniture lite={lite}/>
   {/* Each bay gets a real plinth and warm indirect light. */}
@@ -244,8 +256,7 @@ export default function PekDiscoveryHallV4({lite=false}){
     <meshStandardMaterial color="#CDAF62" metalness={.46} roughness={.36}/></mesh>
    <mesh position={[x,4.1,-7.84]}><boxGeometry args={[1.85,.045,.03]}/>
     <meshBasicMaterial color="#FFF4CD"/></mesh>
-   <spotLight position={[x,5.30,-6.94]} color="#FFF3DA" intensity={lite?1.0:2.3}
-    angle={.34} penumbra={.75} distance={7} decay={2}/>
+   <ArtworkSpotlight x={x} lite={lite}/>
   </group>)}
  </group>;
 }
