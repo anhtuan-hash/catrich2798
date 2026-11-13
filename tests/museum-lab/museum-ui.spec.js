@@ -34,6 +34,11 @@ test('English-only teacher, lesson wizard, reviews and dossier show translated U
  await expect(page.getByRole('heading',{name:'Teacher Live'})).toBeVisible();
  await expect(page.getByRole('button',{name:/Start lesson/})).toBeVisible();
  await assertOnlyEnglish();
+ await page.getByRole('button',{name:/Start lesson/}).click();
+ await expect(page.getByTestId('museum-live-slide')).toBeVisible();
+ await expect(page.getByText('Climate Detective')).toBeVisible();
+ await expect(page.locator('.bml-live-vietnamese')).toHaveCount(0);
+ await assertOnlyEnglish();
  await page.getByTestId('qa-wizard-en').click();
  await expect(page.getByRole('heading',{name:'Create a new lesson'})).toBeVisible();
  await assertOnlyEnglish();
