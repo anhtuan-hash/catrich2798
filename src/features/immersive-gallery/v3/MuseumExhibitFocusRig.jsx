@@ -7,7 +7,10 @@ import {excerptSentences} from './museumExhibitFocusData.js';
 
 function PlaqueText({board,onBack,phase}){
  const [expanded,setExpanded]=useState(false);
+ const backButton=useRef(null);
  useEffect(()=>setExpanded(false),[board?.title,board?.description]);
+ // Focus the single actionable Back control on the real, world-anchored plaque.
+ useEffect(()=>{if(phase==='focused')backButton.current?.focus({preventScroll:true});},[phase]);
  const {excerpt,hasMore}=excerptSentences(board?.description||'',365);
  return <div className="bml-v5-plaque-copy" data-testid="museum-focus-stage"
   data-focus-phase={phase} role="region" aria-label="Exhibit information in the 3D museum"
@@ -37,7 +40,7 @@ function PlaqueText({board,onBack,phase}){
     <small>{board.survey.caveat}</small>
    </div>:null}
   </div>
-  <button type="button" className="bml-v5-back" data-testid="museum-back-to-wall"
+  <button ref={backButton} type="button" className="bml-v5-back" data-testid="museum-back-to-wall"
    disabled={phase!=='focused'} onClick={onBack}>
    <span aria-hidden="true">←</span> Back to wall
   </button>
