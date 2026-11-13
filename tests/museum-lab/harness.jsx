@@ -39,6 +39,26 @@ const preparedQa={
  reviews:[]
 };
 const demoDashboardApi=async()=>synthetic;
+const publishedQaItem={
+ id:'11111111-1111-4111-8111-111111111111',
+ slug:'qa-published-group-01',title:'Synthetic Published Group 01',
+ summary:'The Problem, The Evidence and Our Solution',status:'published',
+ visibility:'school',owner_id:'teacher-synthetic',updated_at:'2026-11-13T10:00:00Z'
+};
+const publishedQaDashboard={...synthetic,publishedGalleries:[publishedQaItem]};
+const qaPoster="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='240'%20height='320'%3E%3Crect%20width='240'%20height='320'%20fill='%23d5f5e7'/%3E%3C/svg%3E";
+const publishedQaTransport=async(action)=>{
+ if(action==='dashboard')return publishedQaDashboard;
+ if(action==='showcase-state')return {hiddenCollections:[],archivedGalleries:[],
+  galleryEnabled:true,publishedGalleries:[publishedQaItem]};
+ if(action==='showcase-exhibition')return {gallery:{...publishedQaItem,
+  rooms:[{id:'qa-room-01',title:'Climate Action Room',sort_order:0,template_key:'classic',
+   exhibits:['The Problem','The Evidence','Our Solution'].map((title,i)=>({
+    id:'qa-exhibit-'+i,title,kind:'image',description:'Classroom energy project.',
+    status:'published',asset_id:'qa-asset-'+i,image_url:qaPoster
+   }))}]}};
+ return demoDashboardApi();
+};
 const tenGroups=Array.from({length:10},(_,i)=>({
  id:'g'+(i+1),assignment_id:'lesson-synthetic',state:i===0?'submitted':'editing',
  label:'Nhóm '+String(i+1).padStart(2,'0')
@@ -136,10 +156,12 @@ function Harness(){
  return <div style={{fontFamily:'Roboto,Arial,sans-serif'}}>
   <div style={{display:'flex',gap:8,padding:10,background:'#e6f0ff',flexWrap:'wrap'}} data-testid="qa-harness">
    <strong>QA ONLY · ALL DATA SYNTHETIC</strong>
-   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','published-lesson','dashboard-en','student-en','teacher-live-en','teacher-live-ten-en','v53-evidence-en','v54-speaking-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
+   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','published-lesson','dashboard-en','dashboard-published-en','student-en','teacher-live-en','teacher-live-ten-en','v53-evidence-en','v54-speaking-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
   </div>
   <div className={normalized==='dashboard'?'':'bml'}>
    {normalized==='dashboard'?<MuseumLabApp language={uiLanguage} currentUser={{id:'teacher-synthetic',name:'Demo Teacher'}} transport={demoDashboardApi}/>:null}
+   {normalized==='dashboard-published'?<MuseumLabApp language={uiLanguage}
+    currentUser={{id:'teacher-synthetic',name:'Synthetic Teacher'}} transport={publishedQaTransport}/>:null}
    {normalized==='student'?<MuseumLabStudent language={uiLanguage}/>:null}
    {normalized==='admin-review'?<Submissions data={submittedQa} language={uiLanguage} onNavigate={setScreen} onRefresh={async()=>{}}/>:null}
    {normalized==='published-lesson'?<LessonsList
