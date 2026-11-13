@@ -535,3 +535,106 @@
 }
 .bml-student-editorial .bml-editorial-submitted-note svg{flex:none;color:#2e7059}
 .bml-student-editorial .bml-student-project-art strong{overflow-wrap:anywhere}
+
+
+/* The invitation/passcode page uses the same print-oriented system. */
+.bml.bml-student-shell.bml-student-editorial:not(.bml-student-canvas16){
+ min-height:100svh;
+ background:#f1eee7;
+ color:#263e47;border:0;border-radius:0;
+ font-family:"Avenir Next",Inter,"Segoe UI",Arial,sans-serif;
+}
+.bml-student-editorial .bml-guest-entry{
+ width:min(1050px,calc(100% - 48px));
+ max-width:1050px;min-height:min(570px,calc(100svh - 80px));
+ margin:clamp(22px,6vh,60px) auto;
+ border-radius:8px;border:1px solid #d8d9d0;
+ box-shadow:8px 8px 0 #d9e0d8,0 20px 54px rgba(31,63,57,.08);
+ grid-template-columns:1fr .92fr;overflow:hidden;
+ background:#fffdf7;
+}
+.bml-student-editorial .bml-guest-illustration{
+ background:#28494d;color:#fff9eb;
+ padding:clamp(34px,4vw,60px);
+ display:flex;justify-content:center;gap:14px;
+}
+.bml-student-editorial .bml-guest-overline{
+ color:#f4e2ba;letter-spacing:.07em;font-size:15px;
+ font-weight:800;gap:11px;
+}
+.bml-student-editorial .bml-guest-overline svg{color:#f3d393}
+.bml-student-editorial .bml-guest-globe{
+ height:170px;max-width:260px;width:100%;
+ border:1px solid #75948c;margin:6px 0;display:flex;position:relative;
+ align-items:center;justify-content:center;
+ border-radius:4px;background:rgba(255,255,255,.04);
+ filter:none;color:#edd59d;
+}
+.bml-student-editorial .bml-guest-globe:before,
+.bml-student-editorial .bml-guest-globe:after{
+ content:"";position:absolute;left:12px;right:12px;
+ border-top:1px solid rgba(245,225,187,.22);
+}
+.bml-student-editorial .bml-guest-globe:before{top:14px}
+.bml-student-editorial .bml-guest-globe:after{bottom:14px}
+.bml-student-editorial .bml-guest-globe>svg:last-child{
+ position:absolute;bottom:21px;right:33px;
+ color:#a8c9b0;
+}
+.bml-student-editorial .bml-guest-illustration h1{
+ font-family:Georgia,"Iowan Old Style",serif;
+ color:#fff9eb;font-weight:600;
+ font-size:clamp(31px,3vw,43px);line-height:1.12;letter-spacing:-.03em;
+ margin:4px 0;
+}
+.bml-student-editorial .bml-guest-illustration p{
+ color:#dae9df;font-size:14px;line-height:1.65;
+}
+.bml-student-editorial .bml-guest-benefits{gap:9px}
+.bml-student-editorial .bml-guest-benefits span{
+ border:1px solid #74948d;color:#f9f6e9;
+ border-radius:3px;background:transparent;
+ padding:7px 11px;font-size:11px;font-weight:750;
+}
+.bml-student-editorial .bml-guest-form{
+ padding:clamp(32px,3.4vw,57px);
+ background:#fffdf7;gap:3px;
+}
+.bml-student-editorial .bml-guest-form>.bml-overline{
+ color:#a5654d;letter-spacing:.14em;font-weight:900;font-size:10px;
+}
+.bml-student-editorial .bml-guest-form h2{
+ color:#283e45;font-family:Georgia,serif;
+ font-size:clamp(28px,2vw,34px);font-weight:600;letter-spacing:-.03em;
+}
+.bml-student-editorial .bml-guest-form>p{
+ color:#52665e;font-size:13px;line-height:1.58;margin:4px 0 16px;
+}
+.bml-student-editorial .bml-guest-form label{
+ color:#365952;font-weight:750;font-size:12px;
+}
+.bml-student-editorial .bml-guest-form input{
+ border-radius:4px;border:1px solid #c6d5c9;
+ background:#fffefa;color:#243b3f;
+ min-height:45px;font-size:16px;padding:9px 12px;
+}
+.bml-student-editorial .bml-guest-form button.bml-primary{
+ border-radius:4px;background:#2c6b60;border:1px solid #2c6b60;
+ box-shadow:0 3px 0 #b5cbb8;min-height:49px;
+ font-weight:800;
+}
+.bml-student-editorial .bml-guest-form .bml-privacy{
+ color:#50685c;font-size:11px;line-height:1.55;
+}
+@media(max-width:760px){
+ .bml-student-editorial .bml-guest-entry{
+  width:calc(100% - 22px);min-height:0;
+  grid-template-columns:1fr;display:flex;flex-direction:column;
+  margin:12px auto;border-radius:7px;
+ }
+ .bml-student-editorial .bml-guest-form{order:1;padding:25px 22px}
+ .bml-student-editorial .bml-guest-illustration{order:2;padding:22px;gap:7px}
+ .bml-student-editorial .bml-guest-globe{display:none}
+ .bml-student-editorial .bml-guest-illustration h1{font-size:25px}
+ .bml-student-editorial .bml-guest-benefits{margin-top:9px}
+}
