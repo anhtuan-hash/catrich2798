@@ -394,8 +394,11 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
     frameloop="demand" gl={{antialias:mode!=='lite',powerPreference:'low-power',alpha:false}} onCreated={({gl})=>{gl.setClearColor('#f2f0e9');}}>
     <CameraResizeSync/>
     <Room template={template} exhibits={exhibits} onSelect={onSelect} selectedId={selectedId} onTeleport={onTeleport}
+     focus={focus} focusBoard={focusBoard} onFocusBack={onFocusBack} onFocusPhaseChange={onFocusPhaseChange}
      schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} lite={mode==='lite'}/>
-    <CameraWalker held={held} paused={!!selectedId} teleport={teleport} onPosition={onPosition} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} viewPreset={viewPreset}/>
+    <MuseumFocusCameraRig focus={cinemaEdition?focus:FOCUS_IDLE}/>
+    <CameraWalker held={held} paused={!!selectedId||(cinemaEdition&&focus.phase!=='idle')}
+     teleport={teleport} onPosition={onPosition} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} viewPreset={viewPreset}/>
    </Canvas>
   </Suspense>}
   {schoolEdition?<div className="big-pek-tools" role="group" aria-label={language==='en'?'Museum viewpoints':'Góc tham quan bảo tàng'}>
@@ -405,6 +408,12 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
    <button type="button" onClick={()=>onTeleport([0,-4.45])}>{language==='en'?'See the artwork':'Đến gần tranh'}</button>
    <button type="button" onClick={()=>onTeleport([0,1.55])}>{language==='en'?'Full room view':'Toàn cảnh'}</button>
   </div>:<div className="big-scene-hud" aria-hidden="true">{pos[0]}, {pos[1]} · R3F</div>}
+  {cinemaEdition?<div className="bml-v5-artwork-access" role="group" aria-label="Select a museum exhibit">
+   {exhibits.slice(0,30).map((e,i)=><button type="button" key={e.id||i}
+    disabled={focus.phase!=='idle'} onClick={()=>onSelect?.(e.id)}
+    aria-label={'Inspect '+String(e.title||'exhibit')} title={e.title}>
+    {String(i+1).padStart(2,'0')}</button>)}
+  </div>:null}
   <div className="big-touch-pad" aria-label="Mobile navigation">
    {[['↑','w'],['←','a'],['↓','s'],['→','d']].map(([text,key])=><button key={key} type="button" onPointerDown={e=>{e.preventDefault();hold(key,true);}}
      onPointerUp={()=>hold(key,false)} onPointerCancel={()=>hold(key,false)} onPointerLeave={()=>hold(key,false)}>{text}</button>)}
