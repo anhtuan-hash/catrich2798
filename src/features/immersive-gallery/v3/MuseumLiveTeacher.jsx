@@ -13,6 +13,7 @@ import MuseumVoiceover from './MuseumVoiceover.jsx';
 import MuseumResourceHub from './MuseumResourceHub.jsx';
 import MuseumVideoLab,{MuseumVideoFrame} from './MuseumVideoLab.jsx';
 import MuseumFullscreenDock from './MuseumFullscreenDock.jsx';
+import MuseumClassroomCommandCenter from './MuseumClassroomCommandCenter.jsx';
 import {MICRO_CHALLENGES} from './museumLiveExtensions.js';
 import './museumLive.css';
 import './museumLivePaper.css';
@@ -235,9 +236,10 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
        <strong>{t(language,'Học sinh mở Student Creator','Students enter Creator Studio')}</strong>
        {qr?<img src={qr} width="200" height="200" alt="Student Creator QR"/>:null}
        <p>{link}</p><small>{t(language,'QR chỉ mở trang vào lớp. Mã nhóm được phát riêng.','The QR only opens the entry page. Group passcodes are distributed separately.')}</small></section>:null}
-      {activeTool==='groups'?<div className="bml-presenter-group-grid">{groups.map(g=><button key={g.id}
-       type="button" disabled={busy} onClick={async()=>{await spotlightGroup(g.id);setActiveTool(null);}}>
-        <Users size={17}/><span>{g.label}<small>{g.state}</small></span><Presentation size={17}/></button>)}</div>:null}
+      {activeTool==='groups'?<MuseumClassroomCommandCenter compact groups={groups} responses={state?.responses||[]} feedback={state?.feedback||[]}
+      microResults={state?.microResults||[]} helpGroups={state?.helpGroups||[]}
+      session={session} busy={busy} onRefresh={refresh}
+      onSpotlight={async groupId=>{await spotlightGroup(groupId);setActiveTool(null);}}/>:null}
       {activeTool==='survey'?<section className="bml-presenter-note">
        {currentIndex!==2?<p>{t(language,'Khảo sát trực tiếp thực hiện tại hoạt động 3/11.','The live class survey is at activity 3/11.')}</p>:
        state?.survey?<><strong>{t(language,'ĐÃ CHỐT KHẢO SÁT','SURVEY FROZEN')} · N={state.survey.n}</strong>
@@ -300,7 +302,8 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
      {paper?<><div className="bml-field-grid">{stage.options.map((label,i)=><label key={label}>{label}<input type="number" min="0" max="1000" value={tally[i]} onChange={e=>setTally(v=>v.map((x,j)=>i===j?e.target.value:x))}/></label>)}</div><label>{t(language,'Nguồn phiếu giấy','Paper ballot source')}<input value={tallyNote} maxLength={500} onChange={e=>setTallyNote(e.target.value)}/></label></>:null}
      <button className="bml-primary" disabled={busy} onClick={freeze}>{t(language,'Chốt số liệu khảo sát / Freeze survey','Freeze survey')}</button><p>{t(language,'Số liệu đã chốt không sửa. N là số nhóm; không suy ra thói quen cá nhân.','Frozen counts cannot change. N counts groups, not individual habits.')}</p></>}
     </div>:null}
-    {currentIndex>=7&&state?.feedback?.length?<details open><summary>{t(language,'Phản hồi chéo đã lưu','Saved peer feedback')} · {state.feedback.length}</summary>{state.feedback.map(r=><article key={r.from_group}><strong>{groups.find(g=>g.id===r.from_group)?.label} → {groups.find(g=>g.id===r.to_group)?.label} · {r.rating}/4</strong><p>{r.learned}</p><p>{r.clarify}</p></article>)}</details>:null}
+    {currentIndex>=7&&state?.feedback?.length?<p className="bml-cc-compact-summary">
+     <CheckCircle2 size={16}/>{state.feedback.length} peer reviews recorded. Select a group in Classroom Command Center to read individual feedback.</p>:null}
     {currentIndex===10?<div>{state?.responses?.map(r=><p key={r.group_id}><strong>{groups.find(g=>g.id===r.group_id)?.label}: </strong>{String(r.value)}</p>)}</div>:null}
     {MICRO_CHALLENGES[currentIndex]?<div className="bml-live-micro-summary"><ShieldCheck size={17}/>
      {state?.microResponses||0} {t(language,'nhóm đã nộp câu hỏi tư duy nhanh. Câu trả lời được lưu làm minh chứng quá trình.','groups submitted a thinking challenge. Responses are saved as learning-process evidence.')}</div>:null}
@@ -319,11 +322,11 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
      <p>{link}</p><small>{t(language,'QR chỉ dẫn đến trang vào lớp. Mã bí mật từng nhóm phải được phát riêng.','QR opens the entry page only. Private group passcodes must be distributed separately.')}</small></div>
      {qr?<img src={qr} alt="QR Student Creator" width="170" height="170"/>:null}</div>:null}
    </div>
-   <section className="bml-surface bml-live-groups"><div className="bml-section-head"><div><h2>{t(language,'Nhóm học tập','Class groups')}</h2>
-    <p>{t(language,'Chọn nhóm để trình chiếu bản nháp trong lớp mà không công bố ra ngoài.','Spotlight a private group draft in class without publishing it.')}</p></div></div>
-    <div className="bml-live-group-list">{groups.map(g=><button type="button" key={g.id} disabled={busy} onClick={()=>spotlightGroup(g.id)}>
-     <Users size={17}/>{g.label}<small>{g.state}</small><Presentation size={15}/></button>)}</div>
-   </section>
+   <div id="museum-class-command" className="bml-cc-workspace" data-testid="museum-class-command-workspace">
+    <MuseumClassroomCommandCenter groups={groups} responses={state?.responses||[]} feedback={state?.feedback||[]}
+      microResults={state?.microResults||[]} helpGroups={state?.helpGroups||[]}
+      session={session} busy={busy} onRefresh={refresh} onSpotlight={spotlightGroup}/>
+   </div>
   </div>:null}
  </div>;
 }

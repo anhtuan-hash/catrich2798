@@ -77,7 +77,7 @@ test('English-only teacher, lesson wizard, reviews and dossier show translated U
  await assertOnlyEnglish();
  await page.getByRole('button',{name:/Start lesson/}).click();
  await expect(page.getByTestId('museum-live-slide')).toBeVisible();
- await expect(page.getByText('Climate Detective')).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Climate Detective',exact:true})).toBeVisible();
  await expect(page.locator('.bml-live-vietnamese')).toHaveCount(0);
  await assertOnlyEnglish();
  await page.getByTestId('qa-wizard-en').click();
@@ -546,7 +546,7 @@ test('teacher controls 11 live lesson stages without a PowerPoint or automatic t
  await page.getByTestId('qa-teacher-live').click();
  await expect(page.getByTestId('museum-teacher-live')).toBeVisible();
  await page.getByRole('button',{name:/Bắt đầu buổi dạy/}).click();
- await expect(page.getByText('Climate Detective')).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Climate Detective',exact:true})).toBeVisible();
  // Students can respond as soon as Admin starts; no extra Open action.
  await expect(page.getByText('ĐANG MỞ HOẠT ĐỘNG')).toBeVisible();
  await expect(page.getByRole('button',{name:/Khóa hoạt động/})).toBeVisible();
@@ -554,7 +554,7 @@ test('teacher controls 11 live lesson stages without a PowerPoint or automatic t
  await page.getByRole('button',{name:/Hiện giải thích/}).click();
  await expect(page.getByText('This is a warm-up vote',{exact:false})).toBeVisible();
  await page.getByRole('button',{name:/Hoạt động tiếp/}).click();
- await expect(page.getByText('Language Mini-Lesson')).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Language Mini-Lesson',exact:true})).toBeVisible();
  await expect(page.getByText('ĐANG MỞ HOẠT ĐỘNG')).toBeVisible();
  await page.getByRole('button',{name:/Khóa hoạt động/}).click();
  await expect(page.getByText('HOẠT ĐỘNG CHƯA MỞ')).toBeVisible();
@@ -1101,7 +1101,7 @@ test('fullscreen presenter keeps primary and research tools inside the actual fu
  await dock.getByRole('button',{name:/Kho tư liệu/}).click();
  await expect(panel.getByTestId('museum-research-library')).toBeVisible();
  await dock.getByRole('button',{name:/Nhóm/}).click();
- await expect(panel.getByText('Demo Group 1')).toBeVisible();
+ await expect(panel.locator('.bml-cc-group').getByText('Demo Group 1')).toBeVisible();
  await dock.getByRole('button',{name:'QR'}).click();
  await expect(panel.getByAltText('Student Creator QR')).toBeVisible();
  await dock.getByRole('button',{name:/Tập trung/}).click();
@@ -1130,4 +1130,57 @@ test('fullscreen can switch lesson stages and open presenter explanation without
  await dock.getByRole('button',{name:'Voiceover'}).click();
  await expect(panel).toHaveAttribute('data-active-tool','voice');
  await dock.getByRole('button',{name:/Thoát/}).click();
+});
+
+test('V5.2 command center shows ten groups and filters peer feedback without long page lists',async({page})=>{
+ await page.setViewportSize({width:1440,height:900});
+ await page.getByTestId('qa-teacher-live-ten-en').click();
+ await page.getByRole('button',{name:/Start lesson/}).click();
+ const board=page.getByTestId('museum-class-command');
+ await expect(board).toBeVisible();
+ await expect(board.locator('.bml-cc-group')).toHaveCount(10);
+ await expect(board.getByText('Classroom Command Center')).toBeVisible();
+ await expect(board.getByText('Activity responses')).toBeVisible();
+ await expect(board.getByText('Need help')).toBeVisible();
+ await board.getByRole('button',{name:/Group 02/}).click();
+ await expect(board.getByRole('heading',{name:'Group 02'})).toBeVisible();
+ await expect(board.getByRole('tab',{name:'Received (2)'})).toBeVisible();
+ await expect(board.getByText('The marked crossing makes the safety concern visible')).toBeVisible();
+ await board.getByRole('tab',{name:'Sent (1)'}).click();
+ await expect(board.getByText('The canteen exhibit explains why personal meal records')).toBeVisible();
+ await board.getByRole('button',{name:/Group 07/}).click();
+ await expect(board.getByRole('tab',{name:'Received (1)'})).toBeVisible();
+ const geometry=await board.evaluate(el=>{
+  const r=el.getBoundingClientRect();
+  return {ratio:r.height/r.width,overflow:el.scrollWidth>el.clientWidth+3};
+ });
+ expect(geometry.ratio).toBeGreaterThan(.5);
+ expect(geometry.ratio).toBeLessThan(.73);
+ expect(geometry.overflow).toBe(false);
+ await board.getByRole('button',{name:/Spotlight Group 07/}).click();
+ await expect(page.getByText('GROUP SPOTLIGHT')).toBeVisible();
+});
+
+test('V5.2 fullscreen groups tool stays inside projection surface and supports selected group',async({page})=>{
+ await page.setViewportSize({width:1366,height:768});
+ await page.getByTestId('qa-teacher-live-ten-en').click();
+ await page.getByRole('button',{name:/Start lesson/}).click();
+ await page.getByRole('button',{name:/Fullscreen/}).click();
+ await expect.poll(()=>page.evaluate(()=>Boolean(document.fullscreenElement))).toBe(true);
+ const dock=page.getByTestId('museum-fullscreen-toolbar');
+ await dock.getByRole('button',{name:'Groups'}).click();
+ const panel=page.getByTestId('museum-fullscreen-panel');
+ await expect(panel).toBeVisible();
+ const board=panel.getByTestId('museum-class-command');
+ await expect(board.locator('.bml-cc-group')).toHaveCount(10);
+ await expect.poll(async()=>panel.evaluate(el=>{
+  const r=el.getBoundingClientRect(),full=document.fullscreenElement.getBoundingClientRect();
+  return r.left>=full.left-2&&r.right<=full.right+2&&r.top>=full.top-2&&r.bottom<=full.bottom+2;
+ })).toBe(true);
+ const bounds=await panel.evaluate(el=>({widthRatio:el.getBoundingClientRect().width/document.fullscreenElement.getBoundingClientRect().width}));
+ expect(bounds.widthRatio).toBeGreaterThan(.8);
+ await board.getByRole('button',{name:/Group 03/}).click();
+ await expect(board.getByRole('heading',{name:'Group 03'})).toBeVisible();
+ await panel.getByRole('button',{name:'Close presenter panel'}).click();
+ await expect(panel).toHaveCount(0);
 });
