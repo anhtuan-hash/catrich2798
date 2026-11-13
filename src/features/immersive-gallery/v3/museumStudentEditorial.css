@@ -527,3 +527,11 @@
   animation:none!important;transition:none!important;
  }
 }
+
+.bml-student-editorial .bml-editorial-submitted-note{
+ display:flex;align-items:center;gap:9px;
+ background:#edf5ed;color:#345f52;border-color:#c2d8c7;
+ font-weight:730;
+}
+.bml-student-editorial .bml-editorial-submitted-note svg{flex:none;color:#2e7059}
+.bml-student-editorial .bml-student-project-art strong{overflow-wrap:anywhere}
