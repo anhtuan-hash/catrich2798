@@ -238,3 +238,5 @@
  .bml .bml-scene.bml-paper-2d.is-2d .bml-art-card.bml-paper-art-card:hover,
  .bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-card:hover .bml-paper-art-photo img{transform:none}
 }
+
+/* CI regression marker: uploaded originals, 2D visitor and evidence lens coexist. */
