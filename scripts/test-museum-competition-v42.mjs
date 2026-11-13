@@ -64,7 +64,7 @@ test('student thinking evidence is write-gated and private; client cannot mutate
  assert.match(server,/if\(op==='micro-submit'\)/);
  assert.match(server,/validMicroAnswer\(session\.stage_index,body\)/);
  assert.match(server,/group_id:ctx\.group\.id/);
- assert.match(server,/microResponses,teacherMediaBoard:session\.media_board\|\|\{\},livePeerFeedback:await peerRoomsEvidence\(admin,session\.id\),media/);
+ assert.match(server,/microResponses,teacherMediaBoard:session\.media_board\|\|\{\},livePeerFeedback:await peerRoomsEvidence\(admin,session\.id\),presentationProvenance:provenance,media/);
  assert.match(server,/\.eq\('group_id',ctx\.group\.id\)/);
  assert.match(sql,/unique\(session_id,group_id,stage_index\)/);
  assert.match(sql,/enable row level security/);
