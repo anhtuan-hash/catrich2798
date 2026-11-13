@@ -542,7 +542,7 @@ test('approved paper collage renders all eleven live stages with separated title
   });
   if(i<names.length-1)await page.getByRole('button',{name:/Hoạt động tiếp/}).click();
  }
- await page.getByRole('button',{name:/Tư liệu hoạt động/}).click();
+ await page.getByRole('button',{name:/Kho tư liệu/}).click();
  await expect(page.getByTestId('museum-live-resources')).toBeVisible();
  await expect(page.getByTestId('museum-live-paper-stage').locator('.bml-learning-resources')).toHaveCount(0);
 });
