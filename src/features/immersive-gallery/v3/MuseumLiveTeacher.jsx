@@ -1,5 +1,5 @@
 import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
-import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronLeft,ChevronRight,Clock3,Eye,Fullscreen,HelpCircle,Lock,MonitorPlay,Pause,Play,Presentation,Printer,QrCode,RefreshCcw,ShieldCheck,Users,X,Film,Volume2,Sparkles} from 'lucide-react';
+import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronLeft,ChevronRight,Clock3,Eye,Fullscreen,HelpCircle,Lock,MonitorPlay,Pause,Play,Presentation,Printer,QrCode,RefreshCcw,ShieldCheck,Users,X,Film,Volume2,Sparkles,Minimize2} from 'lucide-react';
 import {LIVE_STAGES,LIVE_PERIOD_MINUTES,LIVE_TOTAL_MINUTES} from './liveLesson.js';
 import {liveStaff} from './museumLiveApi.js';
 import LessonResources from './LessonResources.jsx';
@@ -11,10 +11,12 @@ import MuseumLivePaperCards from './MuseumLivePaperCards.jsx';
 import MuseumVoiceover from './MuseumVoiceover.jsx';
 import MuseumResourceHub from './MuseumResourceHub.jsx';
 import MuseumVideoLab,{MuseumVideoFrame} from './MuseumVideoLab.jsx';
+import MuseumFullscreenDock from './MuseumFullscreenDock.jsx';
 import {MICRO_CHALLENGES} from './museumLiveExtensions.js';
 import './museumLive.css';
 import './museumLivePaper.css';
 import './museumLiveCompetition.css';
+import './museumLivePresenter.css';
 const t=(lang,vi,en)=>lang==='en'?en:vi;
 const link=typeof window!=='undefined'?window.location.origin+window.location.pathname+'#/gallery-create':'/#/gallery-create';
 export default function MuseumLiveTeacher({data,language='vi',initialAssignment,onBack,transport=liveStaff}){
@@ -24,10 +26,20 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  const [showNotes,setShowNotes]=useState(false),[showResources,setShowResources]=useState(false),[showQr,setShowQr]=useState(false),[qr,setQr]=useState('');
  const [showVoiceover,setShowVoiceover]=useState(false),[showVideoLab,setShowVideoLab]=useState(false);
  const [motionOn,setMotionOn]=useState(true),[stageVideo,setStageVideo]=useState(null);
+ const [isFullscreen,setIsFullscreen]=useState(false),[activeTool,setActiveTool]=useState(null),[presenterFocus,setPresenterFocus]=useState(false);
  const [spotlight,setSpotlight]=useState(null),[time,setTime]=useState(Date.now());
  const [paper,setPaper]=useState(false),[tally,setTally]=useState(['','','','']),[tallyNote,setTallyNote]=useState('');
  const freeze=async()=>{setBusy(true);setError('');try{await transport('freeze-survey',{assignmentId,version:state.session.version,...(paper?{counts:tally.map(v=>v===''?null:Number(v)),note:tallyNote}:{})});await refresh();}catch(e){setError(e.message);}finally{setBusy(false);}};
  const stageRef=useRef(null),activeRef=useRef(true);
+ useEffect(()=>{
+  const sync=()=>{
+   const active=document.fullscreenElement===stageRef.current;
+   setIsFullscreen(active);
+   if(!active)setActiveTool(null);
+  };
+  document.addEventListener('fullscreenchange',sync);
+  return()=>document.removeEventListener('fullscreenchange',sync);
+ },[]);
  const refresh=useCallback(async()=>{
   if(!assignmentId)return;
   try{const response=await transport('state',null,{assignmentId});
@@ -67,7 +79,41 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
    setSpotlight({gallery,groupLabel:r.groupLabel});
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
- const fullscreen=()=>{if(document.fullscreenElement)document.exitFullscreen?.();else stageRef.current?.requestFullscreen?.();};
+ const fullscreen=async()=>{
+  try{
+   if(document.fullscreenElement===stageRef.current)await document.exitFullscreen?.();
+   else if(document.fullscreenElement)await document.exitFullscreen?.();
+   else if(stageRef.current?.requestFullscreen)await stageRef.current.requestFullscreen();
+   else setError(t(language,'Trình duyệt không hỗ trợ chế độ toàn màn hình.','Fullscreen mode is unavailable in this browser.'));
+  }catch(e){setError(t(language,'Không thể mở toàn màn hình. Hãy cho phép chế độ toàn màn hình trên trình duyệt.','Fullscreen was blocked. Please enable it in your browser.'));}
+ };
+ const togglePresenterTool=key=>{
+  if(key==='qr')setShowQr(true);
+  setActiveTool(current=>current===key?null:key);
+ };
+ useEffect(()=>{
+  if(!isFullscreen)return;
+  const handle=e=>{
+   if(e.altKey||e.ctrlKey||e.metaKey||e.isComposing||e.repeat)return;
+   const target=e.target,tag=target?.tagName?.toLowerCase();
+   if(['input','textarea','select'].includes(tag)||target?.isContentEditable)return;
+   if(tag==='button'&&e.key===' ')return;
+   const key=e.key.toLowerCase();
+   if(key==='escape'&&activeTool){e.preventDefault();setActiveTool(null);return;}
+   if(key==='arrowright'&&currentIndex<10){e.preventDefault();act('next');}
+   else if(key==='arrowleft'&&currentIndex>0){e.preventDefault();act('previous');}
+   else if(key==='v'){e.preventDefault();togglePresenterTool('voice');}
+   else if(key==='r'){e.preventDefault();togglePresenterTool('resources');}
+   else if(key==='y'){e.preventDefault();togglePresenterTool('video');}
+   else if(key==='f'){e.preventDefault();fullscreen();}
+   else if(key===' '){e.preventDefault();act(session?.status==='paused'?'resume':'pause');}
+  };
+  window.addEventListener('keydown',handle);
+  return()=>window.removeEventListener('keydown',handle);
+ },[isFullscreen,activeTool,busy,currentIndex,session?.version,session?.status]);
+ useEffect(()=>{
+  if(isFullscreen&&activeTool==='qr'&&!qr)setShowQr(true);
+ },[isFullscreen,activeTool,qr]);
  return <div className="bml-live-teacher" data-testid="museum-teacher-live">
   <header className="bml-heading-actions">
    <div><div className="bml-overline">{t(language,'DẠY HỌC TRỰC TIẾP · THAY THẾ POWERPOINT','LIVE CLASSROOM · TEACH WITHOUT POWERPOINT')}</div>
@@ -87,17 +133,17 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
    <button type="button" disabled={busy} onClick={()=>act('start')} className="bml-primary"><Play size={19}/>{t(language,'Bắt đầu buổi dạy','Start lesson')}</button>
   </div>:null}
   {session?<div className="bml-live-workspace bml-live-paper-workspace">
-   <div className={'bml-live-screen bml-live-screen--paper'+(motionOn?' bml-motion-on':'')} ref={stageRef}
+   <div className="bml-presenter-surface" ref={stageRef} data-testid="museum-fullscreen-surface">
+   <div className={'bml-live-screen bml-live-screen--paper'+(motionOn?' bml-motion-on':'')}
     data-motion={motionOn?'on':'off'} data-testid="museum-live-paper-stage"
     data-stage-index={currentIndex} data-stage-kind={stage?.kind||'unknown'}>
     <div className="bml-live-topbar"><span className="bml-live-brand"><span className="bml-live-dot"/> BRIAN MUSEUM LAB · TEACHER LIVE</span>
-     <div className="bml-paper-progress"><span>{t(language,'TIẾT','PERIOD')} {stage?.period}/2</span><span>{t(language,'HOẠT ĐỘNG','ACTIVITY')} {currentIndex+1}/11</span></div></div>
+     <div className="bml-paper-progress"><span>{t(language,'TIẾT','PERIOD')} {stage?.period}/2</span><span>{t(language,'HOẠT ĐỘNG','ACTIVITY')} {currentIndex+1}/11</span></div>
+     {isFullscreen?<button className="bml-presenter-exit" type="button" onClick={fullscreen}><Minimize2 size={18}/>{t(language,'Thoát toàn màn hình','Exit fullscreen')}</button>:null}</div>
     {spotlight?<div className="bml-live-spotlight">
      <div className="bml-live-spotlight-top"><strong>{t(language,'TRÌNH CHIẾU NHÓM','GROUP SPOTLIGHT')} · {spotlight.groupLabel}</strong>
       <button type="button" onClick={()=>setSpotlight(null)}><X size={18}/>{t(language,'Đóng','Close')}</button></div>
      <MuseumScene gallery={spotlight.gallery} language={language} embedded/>
-    </div>:stageVideo?<div className="bml-live-video-stage" data-testid="museum-projector-video">
-     <MuseumVideoFrame id={stageVideo.id} title={stageVideo.title} language={language} onClose={()=>setStageVideo(null)}/>
     </div>:<div className="bml-live-slide" key={currentIndex} data-testid="museum-live-slide">
      <div className="bml-paper-stage-intro">
       <MuseumLivePaperArt variant={['artwork','peer','present','exit'].includes(stage?.kind)?'studio':stage?.kind==='quiz'?'gallery':'climate'}/>
@@ -126,11 +172,84 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
       {result.questions?.map((q,i)=><p key={i}>Q{i+1}: {q.correct}/{result.n} {t(language,'nhóm chọn đúng','groups correct')} ({q.percent}%)</p>)}</div>:null}
      {session.revealed?<div className="bml-live-explanation"><CheckCircle2 size={20}/>{stage?.expected}</div>:null}
     </div>}
+    {stageVideo?<div className="bml-presenter-video-modal" role="dialog" aria-label="YouTube projector" aria-modal="false"
+     data-testid="museum-projector-video" onMouseDown={e=>{if(e.target===e.currentTarget)setStageVideo(null);}}>
+     <div className="bml-live-video-stage"><MuseumVideoFrame id={stageVideo.id} title={stageVideo.title}
+      language={language} onClose={()=>setStageVideo(null)}/></div>
+    </div>:null}
     <div className="bml-live-bottom">
      <span className="bml-paper-clock"><Clock3 size={23}/>{String(Math.floor(remaining/60)).padStart(2,'0')}:{String(remaining%60).padStart(2,'0')}</span>
      <span className={'bml-paper-status '+(session.stageOpen?'is-open':'is-closed')}><span className="bml-paper-status-dot"/>{session.stageOpen?t(language,'ĐANG MỞ HOẠT ĐỘNG','TASK OPEN'):t(language,'HOẠT ĐỘNG CHƯA MỞ','TASK CLOSED')}</span>
      <span className="bml-paper-responses"><Users size={20}/>{result?.n??0} {t(language,'nhóm trả lời','group responses')}</span>
     </div>
+   </div>
+   <MuseumFullscreenDock language={language} session={session} currentIndex={currentIndex}
+    busy={busy} activeTool={activeTool} motionOn={motionOn} focusMode={presenterFocus} needHelp={state?.needHelp||0}
+    onAction={act} onTool={togglePresenterTool} onMotion={()=>setMotionOn(v=>!v)}
+    onFocus={()=>setPresenterFocus(v=>!v)} onExit={fullscreen} onRefresh={refresh}/>
+   {isFullscreen&&activeTool?<div className={'bml-presenter-panel-layer'+(activeTool==='qr'?' is-qr':'')} data-testid="museum-fullscreen-panel-layer" onMouseDown={e=>{if(e.target===e.currentTarget)setActiveTool(null);}}>
+    <aside role="dialog" aria-label={t(language,'Công cụ trình chiếu','Presenter tools')} aria-modal="false"
+     className={'bml-presenter-panel'+(activeTool==='qr'?' is-modal':'')} data-testid="museum-fullscreen-panel" data-active-tool={activeTool}>
+     <header className="bml-presenter-panel-header"><div><small>BRIAN TEACHER LIVE</small>
+      <h2>{({
+       voice:'English Voiceover',video:'Video Research Studio',resources:t(language,'Kho tư liệu','Research library'),
+       notes:t(language,'Ghi chú giảng dạy','Teaching notes'),qr:'Creator Pass · QR',
+       groups:t(language,'Nhóm học tập','Class groups'),explain:t(language,'Giải thích hoạt động','Explanation'),
+       survey:t(language,'Khảo sát và minh chứng','Survey and evidence'),tools:t(language,'Bộ công cụ giảng dạy','Teaching tools')
+      })[activeTool]}</h2></div>
+      <button type="button" className="bml-presenter-close" aria-label="Close presenter panel" onClick={()=>setActiveTool(null)}><X size={22}/></button>
+     </header>
+     <div className="bml-presenter-panel-scroll">
+      {activeTool==='voice'?<MuseumVoiceover stage={stage} language={language}/>:null}
+      {activeTool==='resources'?<><MuseumResourceHub stage={stage} language={language}/><LessonResources stageIndex={currentIndex} language={language} teacher/></>:null}
+      {activeTool==='video'?<MuseumVideoLab mode="teacher" stage={stage} stageIndex={currentIndex}
+       media={session.media} assignmentId={assignmentId} transport={transport} version={session.version}
+       language={language} onProject={video=>{setStageVideo(video);setActiveTool(null);}}
+       onSaved={async out=>{if(out.session)setState(prev=>({...prev,session:out.session}));await refresh();}}/>:null}
+      {activeTool==='notes'?<section className="bml-presenter-note"><h3>{stage?.title}</h3>
+       <p>{stage?.teaching}</p><strong>{t(language,'Kết quả mong đợi','Expected learning')}</strong><p>{stage?.expected}</p></section>:null}
+      {activeTool==='explain'?<section className="bml-presenter-note"><h3>{stage?.title}</h3><p>{stage?.expected}</p>
+       <button type="button" className="bml-primary" onClick={()=>act('reveal')} disabled={busy||session.revealed}>
+        <Eye size={17}/>{session.revealed?t(language,'Đã hiển thị giải thích','Explanation revealed'):t(language,'Hiện giải thích cho lớp','Reveal to class')}</button></section>:null}
+      {activeTool==='qr'?<section className="bml-presenter-note bml-presenter-qr">
+       <strong>{t(language,'Học sinh mở Student Creator','Students enter Creator Studio')}</strong>
+       {qr?<img src={qr} width="200" height="200" alt="Student Creator QR"/>:null}
+       <p>{link}</p><small>{t(language,'QR chỉ mở trang vào lớp. Mã nhóm được phát riêng.','The QR only opens the entry page. Group passcodes are distributed separately.')}</small></section>:null}
+      {activeTool==='groups'?<div className="bml-presenter-group-grid">{groups.map(g=><button key={g.id}
+       type="button" disabled={busy} onClick={async()=>{await spotlightGroup(g.id);setActiveTool(null);}}>
+        <Users size={17}/><span>{g.label}<small>{g.state}</small></span><Presentation size={17}/></button>)}</div>:null}
+      {activeTool==='survey'?<section className="bml-presenter-note">
+       {currentIndex!==2?<p>{t(language,'Khảo sát trực tiếp thực hiện tại hoạt động 3/11.','The live class survey is at activity 3/11.')}</p>:
+       state?.survey?<><strong>{t(language,'ĐÃ CHỐT KHẢO SÁT','SURVEY FROZEN')} · N={state.survey.n}</strong>
+        <p>{t(language,'N là số nhóm, không phải số học sinh.','N counts groups, not students.')}</p>
+        <button type="button" className="bml-outline" onClick={()=>{const a=document.createElement('a');a.href=surveyChartPng(state.survey);a.download='Class-group-priority-survey.png';a.click();}}>
+         {t(language,'Tải biểu đồ PNG','Download chart')}</button></>:
+       <><label><input type="checkbox" checked={paper} onChange={e=>setPaper(e.target.checked)}/>
+        {t(language,'Nhập kiểm phiếu giấy khi không có phiếu online','Enter paper tally if no online votes')}</label>
+        {paper?<><div className="bml-field-grid">{stage.options.map((option,i)=><label key={option}>{option}<input type="number"
+         min="0" max="1000" value={tally[i]} onChange={e=>setTally(v=>v.map((x,j)=>i===j?e.target.value:x))}/></label>)}</div>
+         <label>{t(language,'Nguồn và thời điểm','Source and time')}<input value={tallyNote} maxLength={500} onChange={e=>setTallyNote(e.target.value)}/></label></>:null}
+        <button className="bml-primary" type="button" disabled={busy} onClick={freeze}>{t(language,'Chốt số liệu khảo sát','Freeze survey')}</button>
+        <p>{t(language,'Số liệu đã chốt không sửa; không suy ra thói quen cá nhân.','Frozen figures cannot be edited; no individual habits are inferred.')}</p></>}
+       {currentIndex>=7&&state?.feedback?.length?<p>{state.feedback.length} {t(language,'phản hồi chéo đã lưu','saved peer responses')}</p>:null}
+      </section>:null}
+      {activeTool==='tools'?<div className="bml-presenter-all-tools">
+       {[
+        ['voice','Voiceover'],['video','Video Lab'],['resources',t(language,'Kho tư liệu','Research library')],
+        ['notes',t(language,'Ghi chú','Notes')],['qr','QR'],['groups',t(language,'Nhóm học tập','Groups')],
+        ['explain',t(language,'Hiện giải thích','Explanation')],['survey',t(language,'Khảo sát / minh chứng','Survey / evidence')]
+       ].map(([key,label])=><button type="button" className="bml-outline" key={key} onClick={()=>togglePresenterTool(key)}>
+        <ChevronRight size={16}/>{label}</button>)}
+       <button type="button" className="bml-outline" onClick={()=>setMotionOn(v=>!v)}><Sparkles size={16}/>{motionOn?'Motion OFF':'Motion ON'}</button>
+       <button type="button" className="bml-outline" disabled={busy} onClick={()=>act(session.status==='paused'?'resume':'pause')}>
+        {session.status==='paused'?t(language,'Tiếp tục','Resume'):t(language,'Tạm dừng','Pause')}</button>
+       <button type="button" className="bml-outline" onClick={refresh}><RefreshCcw size={16}/>{t(language,'Cập nhật','Refresh')}</button>
+       <button type="button" className="bml-outline" disabled={busy||session.status==='ended'} onClick={()=>act('end')}>
+        <Check size={16}/>{t(language,'Kết thúc bài dạy','End lesson')}</button>
+      </div>:null}
+     </div>
+    </aside>
+   </div>:null}
    </div>
    <div className="bml-live-controls bml-live-controls--paper bml-surface">
     <div className="bml-live-control-line">
@@ -165,18 +284,18 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
     {currentIndex===10?<div>{state?.responses?.map(r=><p key={r.group_id}><strong>{groups.find(g=>g.id===r.group_id)?.label}: </strong>{String(r.value)}</p>)}</div>:null}
     {MICRO_CHALLENGES[currentIndex]?<div className="bml-live-micro-summary"><ShieldCheck size={17}/>
      {state?.microResponses||0} nhóm đã nộp câu hỏi tư duy nhanh. Câu trả lời được lưu làm minh chứng quá trình.</div>:null}
-    {showResources?<div className="bml-paper-resource-drawer" data-testid="museum-live-resources">
+    {!isFullscreen&&showResources?<div className="bml-paper-resource-drawer" data-testid="museum-live-resources">
      <MuseumResourceHub stage={stage} language={language}/>
      <LessonResources stageIndex={currentIndex} language={language} teacher/>
     </div>:null}
-    {showVoiceover?<div className="bml-comp-panel"><MuseumVoiceover stage={stage} language={language}/></div>:null}
-    {showVideoLab?<div className="bml-comp-panel"><MuseumVideoLab mode="teacher" stage={stage}
+    {!isFullscreen&&showVoiceover?<div className="bml-comp-panel"><MuseumVoiceover stage={stage} language={language}/></div>:null}
+    {!isFullscreen&&showVideoLab?<div className="bml-comp-panel"><MuseumVideoLab mode="teacher" stage={stage}
       stageIndex={currentIndex} media={session.media} assignmentId={assignmentId} transport={transport}
       version={session.version} language={language} onProject={setStageVideo}
       onSaved={async out=>{if(out.session)setState(prev=>({...prev,session:out.session}));await refresh();}}/></div>:null}
-    {showNotes?<div className="bml-live-notes"><h3>{t(language,'GHI CHÚ RIÊNG CỦA GIÁO VIÊN','TEACHER-ONLY NOTES')}</h3>
+    {!isFullscreen&&showNotes?<div className="bml-live-notes"><h3>{t(language,'GHI CHÚ RIÊNG CỦA GIÁO VIÊN','TEACHER-ONLY NOTES')}</h3>
      <p>{stage?.teaching}</p><strong>{t(language,'Kết luận/điều cần lưu ý','Expected learning')}:</strong><p>{stage?.expected}</p></div>:null}
-    {showQr?<div className="bml-live-qr"><div><strong>{t(language,'Học sinh truy cập Student Creator','Students open the Creator Studio')}</strong>
+    {!isFullscreen&&showQr?<div className="bml-live-qr"><div><strong>{t(language,'Học sinh truy cập Student Creator','Students open the Creator Studio')}</strong>
      <p>{link}</p><small>{t(language,'QR chỉ dẫn đến trang vào lớp. Mã bí mật từng nhóm phải được phát riêng.','QR opens the entry page only. Private group passcodes must be distributed separately.')}</small></div>
      {qr?<img src={qr} alt="QR Student Creator" width="170" height="170"/>:null}</div>:null}
    </div>

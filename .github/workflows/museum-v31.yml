@@ -17,6 +17,7 @@ on:
       - 'scripts/test-museum-live-v31.mjs'
       - 'scripts/test-museum-live-paper-v41.mjs'
       - 'scripts/test-museum-competition-v42.mjs'
+      - 'scripts/test-museum-live-fullscreen-v43.mjs'
       - 'serverless-handlers/_museumLiveMedia.js'
       - 'supabase/migrations/*museum_live_competition*'
       - 'scripts/museum-v31-postgres-qa.sh'
@@ -48,6 +49,8 @@ jobs:
         run: node --test scripts/test-museum-live-paper-v41.mjs
       - name: Contest Live v4.2 voiceover, source library, safe video and group challenge contracts
         run: node --test scripts/test-museum-competition-v42.mjs
+      - name: Fullscreen teaching dock and en-US voice strictness
+        run: node --test scripts/test-museum-live-fullscreen-v43.mjs
       - name: School-inspired 3D hall, authentic identity and backwards compatibility
         run: node --test scripts/test-pek-museum-v33.mjs
       - name: Artwork 360 orbit, original media and accessibility contract
