@@ -4,8 +4,9 @@ import {db,fail,send,handleError,guardOrigin,guardBody,guestContext,staffContext
 import {LIVE_STAGES,liveStage,validResponse,summarizeResponses} from '../src/features/immersive-gallery/v3/liveLesson.js';
 import {surveyFor,checkpointGallery,feedbackFor} from './_museumEvidence.js';
 import {validatePeer} from '../src/features/immersive-gallery/v3/learningEvidence.js';
-import {MICRO_CHALLENGES,validMicroAnswer,videoTaskFor} from '../src/features/immersive-gallery/v3/museumLiveExtensions.js';
+import {MICRO_CHALLENGES,validMicroAnswer,videoTaskFor,curriculumMediaBoard} from '../src/features/immersive-gallery/v3/museumLiveExtensions.js';
 import {searchVideos,mediaText,mediaId,mediaBoardUpdate,mediaTask,searchThrottle,safeRefinement} from './_museumLiveMedia.js';
+import {handleLivePeer,peerRoomsEvidence} from './_museumLivePeer.js';
 const canRespond=stage=>['vote','quiz','exit','peer'].includes(stage?.kind);
 async function scopedStaff(ctx,assignmentId){
  if(!uid(assignmentId))throw fail(400,'Lớp học không hợp lệ.');
@@ -106,7 +107,7 @@ export default async function museumLive(req,res){
       const channel=mediaText(body.channel,120);
       const entries=current.videos.filter(v=>v.id!==id);
       if(entries.length>=6)throw fail(400,'Mỗi hoạt động tối đa sáu video được chọn.');
-      patch={videos:[...entries,{id,title,channel}]};
+      patch={videos:[...entries,{id,title,channel}],...(body.instruction?{instruction:mediaText(body.instruction,350)}:{})};
      }else patch={videos:current.videos.filter(v=>v.id!==id)};
     }
     const board=mediaBoardUpdate(session,index,patch);
@@ -138,7 +139,7 @@ export default async function museumLive(req,res){
     const assets=assetIds.length?await query(admin.from('museum_artwork_assets').select('id,group_id,storage_path,original_name,bytes,sha256').eq('assignment_id',assignment.id).in('id',assetIds)):[];
     const media=await Promise.all(assets.map(async({storage_path,...a})=>{const {data,error}=await admin.storage.from('museum-artwork-private').createSignedUrl(storage_path,600);if(error)throw fail(503,'Không thể xuất ảnh.');return {...a,url:data.signedUrl};}));
     return send(res,200,{format:'museum-evidence-v33',exported_at:new Date().toISOString(),assignment:{id:assignment.id,title:assignment.title,class_scope:assignment.class_scope},session:stateOf(session,{staff:true}),groups,survey:await surveyFor(admin,session.id),checkpoints,feedback:await feedbackFor(admin,session.id),
-     responses,microResponses,teacherMediaBoard:session.media_board||{},media});
+     responses,microResponses,teacherMediaBoard:session.media_board||{},livePeerFeedback:await peerRoomsEvidence(admin,session.id),media});
    }
    if(op==='start'){
     requireMethod(req,'POST');guardOrigin(req);guardBody(req,1000);
@@ -148,7 +149,7 @@ export default async function museumLive(req,res){
      const created=await query(admin.from('museum_live_sessions').insert({
       assignment_id:assignment.id,owner_id:assignment.created_by,
       school_scope:assignment.school_scope,status:'active',stage_index:0,stage_open:true,
-      started_at:now,stage_started_at:now
+      started_at:now,stage_started_at:now,media_board:curriculumMediaBoard()
      }).select('*').single());
      await query(admin.from('museum_learning_events').insert({
       session_id:created.id,actor_role:'teacher',action:'lesson_started',stage_index:0
@@ -204,7 +205,7 @@ export default async function museumLive(req,res){
    return send(res,404,{error:'Không tìm thấy chức năng giáo viên.'});
   }
   // Guest: no registered student account. Cookie is one group capability.
-  const writing=['respond','need-help','micro-submit'].includes(op);
+  const writing=['respond','need-help','micro-submit','peer-room-toggle','peer-room-review'].includes(op);
   const ctx=await guestContext(req,admin,{write:writing});
   const session=await getSession(admin,ctx.assignment.id);
   if(op==='state'){
@@ -235,6 +236,8 @@ export default async function museumLive(req,res){
    if(!snapshot)throw fail(423,'Giáo viên chưa chốt khảo sát.');
    return send(res,200,{results:snapshot,snapshot,source:snapshot.source});
   }
+  if(['peer-rooms','peer-room-toggle','peer-room-view','peer-room-review'].includes(op))
+   return handleLivePeer({op,req,res,admin,ctx,session});
   if(!session||session.status!=='active'||!session.stage_open)
    throw fail(423,'Chờ giáo viên mở hoạt động.');
   const stage=liveStage(session.stage_index);

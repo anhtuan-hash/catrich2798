@@ -26,6 +26,26 @@ export const VIDEO_TASK_SUGGESTIONS=Object.freeze({
  'present':'student presentation climate solution English',
  'exit-ticket':'one climate action students can take today'
 });
+// Curriculum-backed clips from official NASA channels; concise excerpts belong
+// in the language/evidence phases, not in the gallery building or peer feedback phase.
+// Never add videos to all 11 activities: the 90-minute teaching schedule is fixed.
+export const MUSEUM_CURRICULUM_VIDEOS=Object.freeze({
+ 1:Object.freeze({
+  id:'SN5-DnOHQmE',title:'What Is the Greenhouse Effect?',channel:'NASA Space Place',
+  source:'https://www.youtube.com/watch?v=SN5-DnOHQmE',
+  prompt:'Watch a selected segment. Name one greenhouse gas and explain its effect using because / therefore.',
+  timing:'Play a short teacher-selected excerpt during Activity 2, not the entire video if time is limited.'
+ }),
+ 3:Object.freeze({
+  id:'TUinL0C_zgE',title:'Is Climate Change the Same as Global Warming? — We Asked a NASA Expert',channel:'NASA',
+  source:'https://www.youtube.com/watch?v=TUinL0C_zgE',
+  prompt:'Distinguish a scientific explanation from the group-priority class survey. Cite NASA accurately.',
+  timing:'Show a brief teacher-selected excerpt at the start of Activity 4 for source verification.'
+ })
+});
+export const curriculumMediaBoard=()=>Object.fromEntries(Object.entries(MUSEUM_CURRICULUM_VIDEOS).map(([index,v])=>[
+ index,{query:'',instruction:v.prompt,videos:[{id:v.id,title:v.title,channel:v.channel}],voiceEnabled:false}
+]));
 // Each formative challenge requires a group choice AND an English explanation.
 // The choices are teaching examples, never purported observations from the class.
 export const MICRO_CHALLENGES=Object.freeze({

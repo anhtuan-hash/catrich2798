@@ -1,6 +1,6 @@
 import React,{useEffect,useState} from 'react';
 import {BookOpen,Check,ExternalLink,Film,Link2,Play,RefreshCcw,Search,Send,ShieldCheck,Trash2,Video,X} from 'lucide-react';
-import {extractYouTubeVideoId,VIDEO_TASK_SUGGESTIONS} from './museumLiveExtensions.js';
+import {extractYouTubeVideoId,VIDEO_TASK_SUGGESTIONS,MUSEUM_CURRICULUM_VIDEOS} from './museumLiveExtensions.js';
 import {liveStaff,liveGuest} from './museumLiveApi.js';
 const tr=(lang,vi,en)=>lang==='en'?en:vi;
 export function MuseumVideoFrame({id,title,onClose,language='vi'}){
@@ -79,6 +79,7 @@ export default function MuseumVideoLab({mode='student',stage,stageIndex,media,as
   save('media-add',{videoId:id,title:manualTitle||'Teacher-selected video',channel:''});
  };
  const suggestion=VIDEO_TASK_SUGGESTIONS[stage?.id]||'climate change school action';
+ const curated=MUSEUM_CURRICULUM_VIDEOS[stageIndex];
  if(!teacher&&!task.query&&!videos.length)return null;
  return <section className="bml-video-lab" data-testid="museum-video-lab">
   <header className="bml-video-lab-header">
@@ -86,6 +87,16 @@ export default function MuseumVideoLab({mode='student',stage,stageIndex,media,as
     <h3>{tr(language,'Khám phá video theo nhiệm vụ','Research videos for this learning task')}</h3>
     <p>{tr(language,'Xem trực tiếp trong bài học, ghi nguồn và kiểm chứng trước khi sử dụng.','Watch here, cite the original creator and verify claims before using them.')}</p></div>
   </header>
+  {teacher&&curated?<div className="bml-video-curated">
+    <div className="bml-video-kicker"><ShieldCheck size={16}/> VERIFIED LESSON CLIP · NASA</div>
+    <strong>{curated.title}</strong><p>{curated.prompt}</p><small>{curated.timing}</small>
+    <div className="bml-video-actions">
+     <button type="button" className="bml-primary" disabled={busy||videos.some(v=>v.id===curated.id)}
+      onClick={()=>save('media-add',{videoId:curated.id,title:curated.title,channel:curated.channel,instruction:curated.prompt})}>
+      <Check size={16}/>{videos.some(v=>v.id===curated.id)?'Assigned to this activity':'Assign verified NASA clip'}</button>
+     <a target="_blank" rel="noopener noreferrer" href={curated.source}>Check original NASA video</a>
+    </div>
+   </div>:null}
   {teacher?<div className="bml-video-teacher-form">
    <label>{tr(language,'Từ khóa tìm kiếm giao cho học sinh','Student research search topic')}
     <input maxLength={120} value={query} placeholder={suggestion} onChange={e=>setQuery(e.target.value)}/></label>

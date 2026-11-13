@@ -7,6 +7,7 @@ import {stageMediaTools} from './museumLiveExtensions.js';
 import {wordCount,evidenceMissing,changedExhibits} from './learningEvidence.js';
 import MuseumScene from './MuseumScene.jsx';
 import MuseumLiveStudent from './MuseumLiveStudent.jsx';
+import MuseumLivePeerFeedback from './MuseumLivePeerFeedback.jsx';
 import MuseumArtworkStudio from './MuseumArtworkStudio.jsx';
 import './museumLab.css';
 import './museumStudentFocus.css';
@@ -309,6 +310,11 @@ export default function MuseumLabStudent({language='en'}){
      </div>:null}
     </>:null}
     {step===3?<><p>{T(language,'Mời một bạn hoặc nhóm khác đọc thử triển lãm. Ghi nhận điều họ hiểu, rồi cải tiến nội dung.','Invite a classmate or group to test the exhibition, note their feedback, then improve your draft.')}</p>
+      <MuseumLivePeerFeedback csrf={session.csrf} liveInfo={liveInfo} locked={locked||conflict}
+       saveState={saveState} onUseFeedback={r=>edit(d=>({...d,learning:{...d.learning,
+        feedback:'From '+englishSystemGroupLabel(r.fromGroup)+': '+r.learned+' | Suggested improvement: '+r.clarify,
+        tested:true
+       }}))}/>
      <button type="button" className="bml-outline" onClick={()=>{setHistoryOpen(true);viewHistory();}}>
       {T(language,'Xem bản thiết kế / Trước–sau','View storyboard / before and after')}</button>
      <div className="bml-step-hint"><MessageSquare size={21}/><div><strong>{T(language,'Câu hỏi gợi ý cho người xem','Ask your peer')}</strong>
