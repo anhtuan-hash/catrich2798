@@ -148,7 +148,13 @@ export default function MuseumExhibitFocusRig({focus,board,onBack,lite=false}){
     <cylinderGeometry args={[.48,.59,.12,28]}/>
     <meshStandardMaterial color="#C8A34B" metalness={.48} roughness={.4}/>
    </mesh>
-   <Html transform center position={[0,0,.114]} distanceFactor={3.1} occlude={false}>
+   {/* Keep the accessible DOM attached to this SAME physical plaque.
+       CSS3D transform collapses its DOM text to subpixel sizes in portrait
+       WebGL contexts. Two-dimensional Drei positioning is still projected
+       from the plaque's true world position; no modal or fixed overlay. */}
+   <Html transform={size.width>=650} center position={[0,0,.114]}
+    distanceFactor={size.width>=650?3.1:undefined} occlude={false}
+    style={{pointerEvents:'auto'}}>
     <PlaqueText board={board} phase={focus.phase} onBack={onBack}/>
    </Html>
   </group>
