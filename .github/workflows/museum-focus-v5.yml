@@ -20,7 +20,7 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Focus reducer, wall pose, data confidentiality (9 tests)
+      - name: Focus reducer, slow-frame timing, wall pose, data confidentiality
         run: node --test scripts/test-museum-focus-v5.mjs
       - name: Actual Vite bundle with real R3F/Three components
         run: npx vite build
@@ -36,7 +36,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
       - name: Real clicked artwork, UUID, world-space movement, board and Back
-        run: npx playwright test --config tests/museum-lab/playwright.config.mjs --project=material-desktop --grep "V5 Cinema physically"
+        run: npx playwright test --config tests/museum-lab/playwright.config.mjs --project=material-desktop --grep "V5 Cinema"
       - name: Preserve actual WebGL screenshots and traces
         if: always()
         uses: actions/upload-artifact@v4
