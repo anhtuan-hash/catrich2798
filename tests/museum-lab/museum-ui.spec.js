@@ -258,7 +258,7 @@ test('competition dossier downloads valid editable OOXML DOCX with actual P1 con
  const zip=await JSZip.loadAsync(fs.readFileSync(await download.path()));
  const doc=await zip.file('word/document.xml').async('string');
  expect(doc).toContain('<w:document');
- expect(doc).toContain('PHẦN 1');
+ expect(doc).toContain('PART 1');
  expect(doc).toContain('Demo Teacher');
  expect(zip.file('[Content_Types].xml')).toBeTruthy();
 });
@@ -273,9 +273,9 @@ test('contest ZIP contains P1, P2 and explicit missing-evidence notice, never fa
  expect(first).toBeTruthy();expect(second).toBeTruthy();
  const nested=await JSZip.loadAsync(await second.async('uint8array'));
  const doc=await nested.file('word/document.xml').async('string');
- expect(doc).toContain('KẾ HOẠCH DẠY HỌC');
- const manifest=await zip.file('P2/CAN_BO_SUNG_MINH_CHUNG.txt').async('string');
- expect(manifest).toContain('Không dùng dữ liệu demo làm minh chứng.');
+ expect(doc).toContain('TEACHING PLAN');
+ const manifest=await zip.file('P2/REQUIRED_EVIDENCE_CHECKLIST.txt').async('string');
+ expect(manifest).toContain('Never use demonstration data as evidence.');
 });
 
 test('teacher controls 11 live lesson stages without a PowerPoint or automatic transitions',async({page})=>{
