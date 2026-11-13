@@ -160,7 +160,7 @@ test('student US voiceover starts once for each opened live activity and support
    stageIndex,stage:{id:stageIds[stageIndex],kind:'recap',title:'Voice Test Stage '+(stageIndex+1),
     period:1,question:'Explain your thinking.',sentence:'Write an English sentence.'}},survey:null,submitted:false}});
  });
- await page.getByTestId('qa-student-en').click();
+ // addInitScript must run on a document navigation, not only a SPA view switch.\n await page.reload({waitUntil:'domcontentloaded'});\n await page.getByTestId('qa-student-en').click();
  const app=page.getByTestId('museum-student-wizard');
  const voice=app.getByTestId('student-auto-voice');
  await expect(voice).toBeVisible();
