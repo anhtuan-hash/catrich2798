@@ -490,6 +490,19 @@ function App() {
     });
   }, [currentRoute, selectedTool?.slug, currentUser?.id, currentUser?.email, canAccessRoute]);
 
+  // The student Creator Pass is a deliberately isolated, public, group-scoped
+  // application. Never nest it in the authenticated Brian shell: global
+  // overlays, floating docks and 16:9 layout transforms must not intercept
+  // the student's click, pointer, keyboard or touch events.
+  // All hooks above continue running in their original order.
+  if (currentRoute === 'gallery-create') {
+    return (
+      <Suspense fallback={<div role="status" style={{padding:24}}>Opening Student Creator…</div>}>
+        <GalleryCreatorGuestPage />
+      </Suspense>
+    );
+  }
+
   return (
     <>
       <Suspense fallback={null}><GlobalAccessibilityAnnouncer /></Suspense>
