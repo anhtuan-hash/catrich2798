@@ -7,6 +7,7 @@ import {
 import {PREPARED_COLLECTIONS} from '../src/features/immersive-gallery/v3/museumPreparedCollections.js';
 import {encryptGroupPasscode,decryptGroupPasscode} from './_galleryPasscodes.js';
 import {createQuickAccessVerifier} from './_galleryQuickAccess.js';
+import {canGradeReviewState} from './_museumRubricPolicy.js';
 
 // Copy approved private art into R1's still-private bucket before atomic promotion.
 // The SQL publication RPC verifies each link and the immutable TTCM snapshot hash.
@@ -315,8 +316,10 @@ export default async function galleryStaff(req,res){
    const scoped=await loadScopedReview(ctx,body.reviewId);
    if(scoped.assignment.created_by!==ctx.user.id&&ctx.role!=='admin')
     throw fail(403,'Chỉ Admin hoặc người tạo bài được chấm rubric.');
-   if(!['submitted','ttcm_review'].includes(scoped.review.state))
-     throw fail(423,'Chỉ chấm khi bản nộp đang trong quá trình duyệt.');
+   // A published/approved museum is immutable to students, but Admin can
+   // record or revise the independent teaching rubric without unpublishing it.
+   if(!canGradeReviewState(scoped.review.state))
+     throw fail(423,'The submission cannot be graded in its current state.');
    const ceilings={english:40,evidence:20,reasoning:15,design:15,revision:10};
    const raw=body.scores;
    if(!raw||typeof raw!=='object'||Array.isArray(raw)||
