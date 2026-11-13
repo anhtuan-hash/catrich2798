@@ -29,7 +29,7 @@ test('file opens without network, navigates frozen lessons, submissions and live
  await page.getByRole('button',{name:'Evidence records',exact:true}).click();
  await page.getByText('Activity responses (1)',{exact:true}).click();
  await expect(page.getByText('answer: QA recorded response',{exact:true})).toBeVisible();
- await expect(page.getByText('SYNTHETIC QA ONLY',{exact:true})).toBeVisible();
+ await expect(page.getByText(/^Source note:.*SYNTHETIC QA ONLY/)).toBeVisible();
  expect(await page.evaluate(()=>JSON.parse(document.getElementById('museum-frozen-payload').textContent).snapshot.live['qa-lesson'].session.stageIndex)).toBe(0);
  await page.screenshot({path:info.outputPath('offline-evidence.png'),fullPage:true});
  expect(errors).toEqual([]);expect(requests).toEqual([]);
