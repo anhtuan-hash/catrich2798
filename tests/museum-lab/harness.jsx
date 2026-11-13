@@ -10,12 +10,13 @@ import MuseumScene from '../../src/features/immersive-gallery/v3/MuseumScene.jsx
 import MuseumExhibitionDetail from '../../src/features/immersive-gallery/v3/MuseumExhibitionDetail.jsx';
 import MuseumEvidence from '../../src/features/immersive-gallery/v3/MuseumEvidence.jsx';
 import {LessonWizard,LessonsList} from '../../src/features/immersive-gallery/v3/MuseumLessonFlow.jsx';
+import {Submissions} from '../../src/features/immersive-gallery/v3/MuseumReview.jsx';
 import {PREPARED_COLLECTIONS,preparedGallery} from '../../src/features/immersive-gallery/v3/museumPreparedCollections.js';
 import {DEMO_GALLERY} from '../../src/features/immersive-gallery/v3/museumApi.js';
 import '../../src/features/immersive-gallery/v3/museumLab.css';
 import '../../src/features/immersive-gallery/v3/museumExhibition.css';
 const synthetic={
- profile:{id:'teacher-synthetic',role:'teacher',school:'SYNTHETIC SCHOOL'},
+ profile:{id:'teacher-synthetic',role:'admin',school:'SYNTHETIC SCHOOL'},
  creatorSettings:{enabled:false,upload_enabled:false},
  reviewers:[{reviewer_id:'reviewer-synthetic',active:true,can_publish:true}],
  reviewerCandidates:[{id:'reviewer-synthetic',full_name:'Authorized Review Demo',role:'teacher'}],
@@ -34,6 +35,14 @@ const preparedQa={
   id:c.key+'-qa-'+n,assignment_id:'prepared-lesson-'+i,state:'issued',label:'Nhóm '+(n+1)
  }))),
  reviews:[]
+};
+const submittedQa={
+ ...synthetic,
+ reviews:[{id:'review-qa-1',group_id:'group-1',version:1,state:'submitted',
+  submitted_at:'2026-11-13T00:00:00Z',snapshot:{title:'Group climate work',
+   learning:{issue:'A school climate issue',evidence:'A credible source',solution:'A practical solution'},
+   rooms:[{title:'The climate hall',exhibits:[{title:'Our Problem',description:'Energy waste can contribute to emissions.'}]}]}}],
+ rubrics:[]
 };
 let liveSession=null;
 const demoTeacherApi=async(action,body)=>{
@@ -62,11 +71,12 @@ function Harness(){
  return <div style={{fontFamily:'Roboto,Arial,sans-serif'}}>
   <div style={{display:'flex',gap:8,padding:10,background:'#e6f0ff',flexWrap:'wrap'}} data-testid="qa-harness">
    <strong>QA ONLY · ALL DATA SYNTHETIC</strong>
-   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
+   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
   </div>
   <div className="bml">
    {screen==='dashboard'?<MuseumDashboard data={synthetic} onNavigate={setScreen} onCreate={()=>setScreen('wizard')} onDemo={()=>setScreen('scene')}/>:null}
    {screen==='student'?<MuseumLabStudent language="vi"/>:null}
+   {screen==='admin-review'?<Submissions data={submittedQa} language="vi" onNavigate={setScreen} onRefresh={async()=>{}}/>:null}
    {screen==='teacher-live'?<MuseumLiveTeacher data={synthetic} language="vi" transport={demoTeacherApi}/>:null}
    {screen==='student-live'?<MuseumLiveStudent csrf="qa-secret" language="vi"/>:null}
    {screen==='artwork'?<MuseumArtworkStudio studio={{artworks:{issue:null,evidence:null,solution:null}}}
