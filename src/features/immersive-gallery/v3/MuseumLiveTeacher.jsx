@@ -216,6 +216,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
         onClick={()=>setCurriculumMode('task')}><BookOpen size={16}/>{currentIndex===1?(legacyActivityTwo?'3 language questions':'3 video questions'):'Design tasks'}</button>
       </div>
      </div>:null}
+     {!showingCurriculumVideo&&legacyActivityTwo?<p className="bml-curriculum-legacy-notice" role="status">This lesson began with the original 3 language questions. Existing group answers are preserved; the revised NASA video quiz applies to new teaching sessions.</p>:null}
      {!showingCurriculumVideo?<div className="bml-paper-question-sheet"><div className="bml-live-question">{showingVideoCheck?'What did NASA explain about global warming and climate change?':stage?.question}</div></div>:null}
      {showingCurriculumVideo?<MuseumCurriculumStageVideo video={curriculumVideo} stageIndex={currentIndex}
       language={language} onContinue={()=>setCurriculumMode(currentIndex===3?'check':'task')}/>:null}
