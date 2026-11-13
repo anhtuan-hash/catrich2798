@@ -120,6 +120,35 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
     {survey&&stageIndex>=3?<button className="bml-outline" type="button" onClick={()=>setActiveTool('survey')}><Users size={16}/>Class Survey</button>:null}
    </div>:null}
    {data?.feedback?.length?<div className="bml-live-survey"><h3>{t(language,'Phản hồi dành cho nhóm / Feedback received','Feedback received')}</h3>{data.feedback.map(r=><article key={r.from_group}><p>{r.learned}</p><p>{r.clarify}</p><small>Clarity: {r.rating}/4 · {new Date(r.created_at).toLocaleString()}</small></article>)}</div>:null}
+   {compact&&peer?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true">
+    <div className="bml-student-detail-window">
+     <div className="bml-student-detail-head"><strong>{peerLabel||'Peer Gallery Walk'}</strong>
+      <button className="bml-outline" type="button" onClick={()=>setPeer(null)}>Close</button></div>
+     <MuseumScene gallery={peer} language={language} embedded/>
+    </div></div>:null}
+   {compact&&activeTool?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label="Learning tools">
+    <div className="bml-student-detail-window">
+     <div className="bml-student-detail-head">
+      <strong>{({materials:'Lesson Materials',research:'Research Library',voice:'American English Voiceover',video:'Video Lab',micro:'English Thinking Lab',survey:'Real Class Survey'})[activeTool]}</strong>
+      <button className="bml-outline" type="button" onClick={()=>setActiveTool(null)}>{t(language,'Đóng','Close')}</button>
+     </div>
+     <div className="bml-student-tool-content" data-testid="student-tool-panel">
+      {activeTool==='materials'?<LessonResources stageIndex={stageIndex} language={language}/>:null}
+      {activeTool==='research'?<MuseumResourceHub stage={stage} language={language}/>:null}
+      {activeTool==='voice'?<MuseumVoiceover stage={stage} language={language} compact/>:null}
+      {activeTool==='video'?(session.media&&(session.media.query||session.media.videos?.length)?
+       <MuseumVideoLab mode="student" stage={stage} stageIndex={stageIndex} media={session.media} language={language} csrf={csrf}/>:
+       <p>{t(language,'Giáo viên chưa giao video cho hoạt động này.','No video assigned yet.')}</p>):null}
+      {activeTool==='micro'?(MICRO_CHALLENGES[stageIndex]?
+       <MuseumMicroChallenge key={session.id+'-'+stageIndex} stageIndex={stageIndex} existing={data?.micro} csrf={csrf} language={language}/>:
+       <p>{t(language,'Chưa có câu hỏi bổ sung.','No additional challenge.')}</p>):null}
+      {activeTool==='survey'?<div className="bml-live-survey">
+       {survey?<><strong>REAL CLASS SURVEY · N={survey.n} group devices</strong>
+        {survey.options?.map((o,i)=><p key={i}>{o.label}: {o.count}/{survey.n} ({o.percent}%)</p>)}</>:
+        <p>{t(language,'Chưa có dữ liệu khảo sát.','No survey data yet.')}</p>}
+      </div>:null}
+     </div>
+    </div></div>:null}
    {error?<div role="alert" className="bml-banner bml-danger-banner">{error}</div>:null}
  </section>;
 }
