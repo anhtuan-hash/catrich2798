@@ -981,6 +981,17 @@ test('approved paper collage renders all eleven live stages with separated title
  for(let i=0;i<names.length;i++){
   await expect(screen).toHaveAttribute('data-stage-index',String(i));
   await expect(screen.getByRole('heading',{name:names[i],exact:true})).toBeVisible();
+  if(i===1||i===3){
+   const video=screen.getByTestId('museum-curriculum-video');
+   await expect(video).toBeVisible();
+   await expect(video).toHaveAttribute('data-video-id',i===1?'SN5-DnOHQmE':'TUinL0C_zgE');
+   await expect(video.locator('iframe')).toHaveAttribute('src',new RegExp('youtube-nocookie\\.com/embed/'+(i===1?'SN5-DnOHQmE':'TUinL0C_zgE')));
+   await expect(screen.getByTestId('museum-curriculum-switch')).toContainText('NASA VIDEO');
+   await screen.getByRole('button',{name:i===1?'3 language questions':'Evidence and design tasks'}).click();
+   await expect(video).toHaveCount(0);
+  }else{
+   await expect(screen.getByTestId('museum-curriculum-video')).toHaveCount(0);
+  }
   await expect(screen.locator('.bml-paper-question-sheet')).toHaveCount(1);
   await expect(screen.locator('.bml-paper-illustration')).toHaveCount(1);
   await expect(screen.locator('.bml-live-bottom')).toBeVisible();
