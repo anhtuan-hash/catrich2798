@@ -90,3 +90,30 @@
 @media(prefers-reduced-motion:reduce){
  .bml .bml-v5-plaque-copy *{transition:none!important;animation:none!important}
 }
+
+/* Keyboard/touch access to the same R3F original artwork meshes. These controls
+   dispatch selection only; they never create a 2D poster copy or second Canvas. */
+.bml .bml-museum-cinema .bml-v5-artwork-access,
+.bml .big-pek-v4 .bml-v5-artwork-access{
+ position:absolute;bottom:74px;left:17px;z-index:69;
+ display:flex;align-items:center;gap:6px;
+ padding:5px;border:1px solid #D4DECC;
+ border-radius:999px;background:#FFFCF2E8;
+ box-shadow:0 4px 17px #1C393635;
+ backdrop-filter:blur(8px);
+}
+.bml .big-pek-v4 .bml-v5-artwork-access button{
+ display:grid;place-items:center;min-height:37px;min-width:37px;
+ border-radius:100%;padding:6px;
+ border:1px solid #B8CBAF;background:#FCFFF8;color:#245747;
+ font:800 12px/1 system-ui,sans-serif;cursor:pointer;
+}
+.bml .big-pek-v4 .bml-v5-artwork-access button:hover:not(:disabled){background:#CDE7D6}
+.bml .big-pek-v4 .bml-v5-artwork-access button:focus-visible{
+ outline:3px solid #D8B456;outline-offset:3px;
+}
+.bml .big-pek-v4 .bml-v5-artwork-access button:disabled{opacity:.36;cursor:default}
+@media(max-width:700px){
+ .bml .big-pek-v4 .bml-v5-artwork-access{bottom:123px;left:8px;padding:4px}
+ .bml .big-pek-v4 .bml-v5-artwork-access button{min-height:42px;min-width:42px}
+}
