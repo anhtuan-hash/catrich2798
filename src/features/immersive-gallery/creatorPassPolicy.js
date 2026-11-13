@@ -1,4 +1,5 @@
 import {normalizeArtMeta,surveySummary} from './v3/learningEvidence.js';
+import {normalizeStoryboardOrder} from './v3/museumData.js';
 // BRIAN Gallery Creator Pass — pure allowlist validation for untrusted guest documents.
 // The server revalidates on EVERY save/submit. Browser validation is only UX.
 export const GCP_ROOM_TEMPLATES = Object.freeze(['classic','culture','lab']);
@@ -17,6 +18,7 @@ export function normalizeGuestDraft(input,limits={max_rooms:3,max_exhibits:12}){
   // V3 pedagogical evidence is explicitly allowlisted; never accept arbitrary
   // fields/HTML or user identities. Backward compatible with V2 drafts.
   theme:['classic','culture','lab'].includes(input.theme)?input.theme:'classic',
+  storyboardOrder:normalizeStoryboardOrder(input.storyboardOrder),
   artworks:Object.fromEntries(['issue','evidence','solution'].map(k=>[k,/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(input.artworks?.[k]))?input.artworks[k]:null])),
   learning:Object.fromEntries(
    ['issue','audience','source','evidence','solution','feedback','improvement','reflection','tested','roles','feasibility']

@@ -3,13 +3,15 @@
 import {fail,send,guardBody,requireMethod,query,uid} from './_galleryCreator.js';
 import {checkpointGallery} from './_museumEvidence.js';
 import {validatePeer} from '../src/features/immersive-gallery/v3/learningEvidence.js';
+import {exhibitField} from '../src/features/immersive-gallery/v3/museumExhibitInsights.js';
 
+const allowedFocus=new Set(['issue','evidence','solution']);
 const inPeerStage=s=>Boolean(s&&s.status==='active'&&s.stage_open===true&&s.stage_index>=7&&s.stage_index<=9);
 const requirePeerStage=s=>{if(!inPeerStage(s))throw fail(423,'Peer feedback is available only during the open Test, Revise or Present activity.');};
 const roomIdOf=x=>{const id=String(x||'');if(!uid(id))throw fail(400,'Invalid feedback room.');return id;};
 export async function peerRoomsEvidence(admin,sessionId){
  const rooms=await query(admin.from('museum_peer_live_rooms').select('id,session_id,owner_group_id,draft_version,is_open,created_at').eq('session_id',sessionId));
- const reviews=rooms.length?await query(admin.from('museum_peer_live_feedback').select('room_id,from_group_id,learned,clarify,rating,created_at').in('room_id',rooms.map(r=>r.id))):[];
+ const reviews=rooms.length?await query(admin.from('museum_peer_live_feedback').select('room_id,from_group_id,learned,clarify,rating,target_exhibit,created_at').in('room_id',rooms.map(r=>r.id))):[];
  return {rooms,reviews};
 }
 export async function handleLivePeer({op,req,res,admin,ctx,session}){
@@ -22,7 +24,7 @@ export async function handleLivePeer({op,req,res,admin,ctx,session}){
   const owners=await query(admin.from('gcp_groups').select('id,label').eq('assignment_id',ctx.assignment.id).limit(100));
   const labels=new Map(owners.map(g=>[g.id,g.label]));
   const reviews=rows.length?await query(admin.from('museum_peer_live_feedback')
-   .select('room_id,from_group_id,learned,clarify,rating,created_at')
+   .select('room_id,from_group_id,learned,clarify,rating,target_exhibit,created_at')
    .in('room_id',rows.map(r=>r.id)).limit(500)):[];
   const mine=rows.find(r=>r.owner_group_id===ctx.group.id);
   return send(res,200,{
@@ -37,7 +39,7 @@ export async function handleLivePeer({op,req,res,admin,ctx,session}){
     responses:reviews.filter(v=>v.room_id===mine.id).length}:null,
    received:mine?reviews.filter(v=>v.room_id===mine.id).map(v=>({
     fromGroup:labels.get(v.from_group_id)||'Class group',
-    learned:v.learned,clarify:v.clarify,rating:v.rating,createdAt:v.created_at
+    learned:v.learned,clarify:v.clarify,rating:v.rating,targetExhibit:v.target_exhibit||null,createdAt:v.created_at
    })):[]
   });
  }
@@ -86,13 +88,19 @@ export async function handleLivePeer({op,req,res,admin,ctx,session}){
   requireMethod(req,'POST');requirePeerStage(session);
   const body=guardBody(req,2500),roomId=roomIdOf(body.roomId);
   if(!validatePeer(body.value))throw fail(400,'Provide two English comments of 10–400 characters and a clarity score from 1–4.');
-  const room=await query(admin.from('museum_peer_live_rooms').select('id,owner_group_id,is_open')
+  const room=await query(admin.from('museum_peer_live_rooms').select('id,owner_group_id,is_open,draft_snapshot')
    .eq('id',roomId).eq('session_id',session.id).maybeSingle());
   if(!room?.is_open||room.owner_group_id===ctx.group.id)throw fail(423,'This room is closed or belongs to your group.');
+  const focus=body.value.targetExhibit===undefined||body.value.targetExhibit===null||body.value.targetExhibit===''?
+   null:String(body.value.targetExhibit);
+  if(focus&&!allowedFocus.has(focus))throw fail(400,'Choose a valid exhibit to review.');
+  if(focus&&!(room.draft_snapshot?.rooms||[]).flatMap(r=>r.exhibits||[])
+    .some((ex,i)=>exhibitField(i,ex.title)===focus))
+   throw fail(400,'That exhibit is not part of this classroom gallery.');
   const ins=await admin.from('museum_peer_live_feedback').insert({
    room_id:roomId,from_group_id:ctx.group.id,
    learned:body.value.learned.trim(),clarify:body.value.clarify.trim(),
-   rating:body.value.rating
+   rating:body.value.rating,target_exhibit:focus
   });
   if(ins.error&&ins.error.code!=='23505')throw fail(503,'Could not save this feedback.');
   return send(res,ins.error?200:201,{ok:true,alreadySubmitted:ins.error?.code==='23505'});

@@ -30,7 +30,21 @@ export const STEPS = Object.freeze([
 ]);
 const cap=(value,max)=>String(value??'').replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,max);
 export const emptyLearning=()=>({issue:'',audience:'',source:'',evidence:'',solution:'',feedback:'',improvement:'',reflection:'',tested:false,roles:'',feasibility:''});
-export const emptyStudio=()=>({title:'',summary:'',theme:'classic',learning:emptyLearning(),artworks:{issue:null,evidence:null,solution:null},rooms:[]});
+export const DEFAULT_STORYBOARD_ORDER=Object.freeze(['issue','evidence','solution']);
+export function normalizeStoryboardOrder(value){
+ const keys=Array.isArray(value)?value:[];
+ return keys.length===3&&new Set(keys).size===3&&keys.every(k=>DEFAULT_STORYBOARD_ORDER.includes(k))?
+  [...keys]:[...DEFAULT_STORYBOARD_ORDER];
+}
+export function moveStoryboardCard(order,key,offset){
+ const result=normalizeStoryboardOrder(order);
+ const from=result.indexOf(key),to=from+offset;
+ if(from<0||to<0||to>=result.length)return result;
+ result.splice(from,1);
+ result.splice(to,0,key);
+ return result;
+}
+export const emptyStudio=()=>({title:'',summary:'',theme:'classic',storyboardOrder:[...DEFAULT_STORYBOARD_ORDER],learning:emptyLearning(),artworks:{issue:null,evidence:null,solution:null},rooms:[]});
 export function normalizeStudio(raw){
  const input=raw && typeof raw==='object'?raw:{};
  const stored=input.learning && typeof input.learning==='object'?input.learning:{};
@@ -46,34 +60,37 @@ export function normalizeStudio(raw){
  return {
   title:cap(input.title,140),artMeta:normalizeArtMeta(input.artMeta),survey:surveySummary(input.survey),
   summary:cap(input.summary,1200),
+  storyboardOrder:normalizeStoryboardOrder(input.storyboardOrder),
   theme:['classic','culture','lab'].includes(input.theme)?input.theme:(original[0]?.template_key||'classic'),
   learning,artworks:Object.fromEntries(['issue','evidence','solution'].map(key=>[key,/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(input.artworks?.[key]))?input.artworks[key]:null])),legacy,legacyOriginal:legacy?input:null
  };
 }
 export function documentFromStudio(studio){
  const d=normalizeStudio(studio),v=d.learning;
- const entries=[
-  ['The Problem',v.issue],
-  ['The Evidence',v.evidence],
-  ['Our Solution',v.solution]
- ];
- const descriptions=entries.map(([title,body],i)=>({
-  title,
-  description: cap([
-   body,
-   i===1&&v.source?'Source: '+v.source:'',
-   i===2&&v.improvement?'After peer testing: '+v.improvement:'',
-   d.artworks[['issue','evidence','solution'][i]]?'Image source: '+d.artMeta[['issue','evidence','solution'][i]].source+' · Rights: '+d.artMeta[['issue','evidence','solution'][i]].rights:''
-  ].filter(Boolean).join('\n\n'),5000),
-  alt_text:d.artMeta[['issue','evidence','solution'][i]].alt,
-  kind:d.artworks[['issue','evidence','solution'][i]]?'image':'text',
-  asset_id:d.artworks[['issue','evidence','solution'][i]]||null,model_key:null,
-  transform:{position:[(i-1)*3,2,-7.72],rotation:[0,0,0],scale:[1,1,1]}
- }));
+ const entryByKey={
+  issue:['The Problem',v.issue],
+  evidence:['The Evidence',v.evidence],
+  solution:['Our Solution',v.solution]
+ };
+ const descriptions=d.storyboardOrder.map((key,i)=>{
+  const [title,body]=entryByKey[key],imageId=d.artworks[key],meta=d.artMeta[key];
+  return {
+   title,
+   description:cap([
+    body,
+    key==='evidence'&&v.source?'Source: '+v.source:'',
+    key==='solution'&&v.improvement?'After peer testing: '+v.improvement:'',
+    imageId?'Image source: '+meta.source+' · Rights: '+meta.rights:''
+   ].filter(Boolean).join('\n\n'),5000),
+   alt_text:meta.alt,
+   kind:imageId?'image':'text',asset_id:imageId||null,model_key:null,
+   transform:{position:[(i-1)*3,2,-7.72],rotation:[0,0,0],scale:[1,1,1]}
+  };
+ });
  return {
   title:d.title,
   summary:d.summary,
-  theme:d.theme,
+  theme:d.theme,storyboardOrder:d.storyboardOrder,
   learning:v,artworks:d.artworks,artMeta:d.artMeta,survey:d.survey,
   rooms:[{title:d.title||'Our English Museum',template_key:d.theme,exhibits:descriptions}]
  };

@@ -1281,6 +1281,76 @@ test('Project pages scroll inside the 16:9 workbench without overlapping labels 
  }
 });
 
+test('V5.3 exhibit inspector displays actual source, group survey and revision only when the object is selected',async({page})=>{
+ await page.getByTestId('qa-v53-evidence-en').click();
+ const museum=page.getByTestId('museum-visitor');
+ await expect(museum).toBeVisible();
+ await expect(museum.getByTestId('museum-artwork-inspector')).toHaveCount(0);
+ await museum.locator('.bml-art-card').nth(1).click();
+ const inspector=page.getByTestId('museum-artwork-inspector');
+ await expect(inspector).toBeVisible();
+ const lens=inspector.getByTestId('museum-exhibit-evidence');
+ await expect(lens).toContainText('Source named by the group');
+ await expect(lens).toContainText('NASA greenhouse effect educational overview');
+ await expect(lens).toContainText('N=10 groups');
+ await expect(lens).toContainText('Switching off unused lights');
+ await expect(lens).toContainText('4/10 (40%)');
+ await expect(lens).toContainText('Group choices are not measurements');
+ await expect(inspector.locator('audio,video')).toHaveCount(0);
+ await inspector.getByRole('button',{name:'Close'}).click();
+ await expect(inspector).toHaveCount(0);
+ await museum.locator('.bml-art-card').nth(2).click();
+ const solution=page.getByTestId('museum-artwork-inspector').getByTestId('museum-exhibit-evidence');
+ await expect(solution).toContainText('Added teacher permission and safety exception.');
+ await expect(solution).not.toContainText('N=10 groups');
+});
+
+test('V5.3 teacher selects one group and compares its actual saved Before/After versions',async({page})=>{
+ await page.getByTestId('qa-teacher-live-ten-en').click();
+ await page.getByRole('button',{name:/Start lesson/}).click();
+ const board=page.getByTestId('museum-class-command');
+ await board.getByRole('button',{name:/Group 02/}).click();
+ await board.getByRole('button',{name:'Compare Before / After'}).click();
+ const dialog=page.getByTestId('museum-teacher-compare-dialog');
+ await expect(dialog).toBeVisible();
+ const diff=dialog.getByTestId('museum-before-after');
+ await expect(diff.getByRole('heading',{name:'Before & After'})).toBeVisible();
+ await expect(diff).toContainText('Our school wastes energy.');
+ await expect(diff).toContainText('Unused equipment stays on after the bell.');
+ await expect(diff).toContainText('3 revised exhibits');
+ await diff.getByRole('tab',{name:/Our Solution/}).click();
+ await expect(diff).toContainText('Switch off everything');
+ await expect(diff).toContainText('Student monitor consults the teacher');
+ await expect(diff).toContainText('A peer asked about devices');
+ await dialog.getByRole('button',{name:'Close comparison'}).click();
+ await expect(dialog).toHaveCount(0);
+});
+
+test('V5.3 student can reorder 3 storyboard exhibits with touch-safe arrow buttons and autosave visitor order',async({page})=>{
+ let stored={title:'',summary:'',rooms:[]},version=0,saves=0;
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  if(op==='me')return route.fulfill({json:{groupLabel:'Nhóm 01',groupState:'editing',csrf:'v53-test-csrf',
+   uploadEnabled:false,assignment:{title:'Our Climate Action Museum',brief:'Climate school action',
+   class_scope:'11.3',deadline_at:new Date(Date.now()+86400000).toISOString()}}});
+  if(op==='draft')return route.fulfill({json:{draft:stored,version}});
+  if(op==='save'){const input=route.request().postDataJSON();stored=input.draft;version++;saves++;
+   return route.fulfill({json:{ok:true,version}});}
+  return route.fulfill({json:{ok:true}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>route.fulfill({json:{session:null,survey:null}}));
+ await page.getByTestId('qa-student-en').click();
+ const app=page.getByTestId('museum-student-wizard');
+ await app.locator('.bml-student-steps button').nth(1).click();
+ await app.locator('.bml-student-subpages button').nth(1).click();
+ const titles=app.locator('.bml-storyboard-card strong');
+ await expect(titles).toHaveText(['The Problem','The Evidence','Our Solution']);
+ await app.getByRole('button',{name:'Move Our Solution earlier'}).click();
+ await expect(titles).toHaveText(['The Problem','Our Solution','The Evidence']);
+ await expect.poll(()=>saves,{timeout:12000}).toBeGreaterThan(0);
+ expect(stored.storyboardOrder).toEqual(['issue','solution','evidence']);
+ expect(stored.rooms[0].exhibits.map(x=>x.title)).toEqual(['The Problem','Our Solution','The Evidence']);
+});
 
 test('Student Creator V6 layered-paper skin stays readable and interactive across 16:9 screens',async({page,isMobile},testInfo)=>{
  if(isMobile)return;

@@ -194,6 +194,22 @@ export default async function museumLive(req,res){
     }));
     return send(res,200,{session:stateOf(changed,{staff:true})});
    }
+   if(op==='checkpoint-compare'){
+    requireMethod(req,'GET');
+    if(!session)throw fail(404,'No live lesson session for this class.');
+    const groupId=String(req.query?.groupId||'');
+    if(!uid(groupId))throw fail(400,'Invalid class group.');
+    const group=await query(admin.from('gcp_groups').select('id,label,assignment_id').eq('id',groupId).single());
+    if(group.assignment_id!==assignment.id)throw fail(403,'This group is outside your class.');
+    const checkpoints=await query(admin.from('museum_checkpoints').select('*')
+     .eq('session_id',session.id).eq('group_id',groupId).in('kind',['before','after'])
+     .order('created_at',{ascending:false}).limit(12));
+    const before=checkpoints.find(c=>c.kind==='before')||null;
+    const after=checkpoints.find(c=>c.kind==='after')||null;
+    return send(res,200,{groupLabel:group.label,
+     before:before?await checkpointGallery(admin,before,group.label):null,
+     after:after?await checkpointGallery(admin,after,group.label):null});
+   }
    if(op==='group-gallery'){
     requireMethod(req,'GET');
     const groupId=String(req.query?.groupId||'');

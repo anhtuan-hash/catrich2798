@@ -96,7 +96,29 @@ const demoTeacherApi=async(action,body)=>{
  if(action==='group-gallery')return {draft:{title:'Synthetic Group',rooms:[]},artworks:[],groupLabel:'Demo group'};
  throw new Error('Unexpected mocked operation');
 };
+const v53QaGallery={
+ title:'School Climate Workshop',summary:'Group choices and practical safety decisions',
+ learning:{issue:'Unused lights remain on after class',source:'NASA greenhouse effect educational overview',
+  evidence:'Four out of ten groups prioritised unused lighting.',
+  solution:'Teachers approve shutdown equipment lists.',improvement:'Added teacher permission and safety exception.'},
+ survey:{id:'synthetic-survey',session_id:'synthetic',counts:[2,4,3,1],source:'online',created_at:'2026-11-13T00:00:00Z'},
+ rooms:[{id:'qa-room',title:'Climate Hall',template_key:'classic',exhibits:[
+  {id:'qa-problem',title:'The Problem',kind:'text',description:'Lights sometimes remain on in empty classrooms.'},
+  {id:'qa-evidence',title:'The Evidence',kind:'text',description:'Four group votes support choosing lighting as a focus.\\n\\nSource: NASA greenhouse effect educational overview'},
+  {id:'qa-solution',title:'Our Solution',kind:'text',description:'A student monitor checks with the teacher before switching off equipment.'}
+ ]}]
+};
+const v53Before={kind:'before',version:1,checkpointId:'before-qa',artworks:[],draft:{
+ title:'School Climate Workshop',learning:{issue:'Our school wastes energy.',evidence:'Survey results',source:'Class group votes',
+  solution:'Switch off everything'},artworks:{},rooms:[]}};
+const v53After={kind:'after',version:3,checkpointId:'after-qa',artworks:[],draft:{
+ title:'School Climate Workshop',learning:{issue:'Unused equipment stays on after the bell.',
+  evidence:'Four of ten groups selected lighting.',source:'Named group-priority survey',
+  solution:'Student monitor consults the teacher before changing switches.',
+  feedback:'A peer asked about devices that must remain on.',improvement:'Added staff approval.'},
+  artworks:{},rooms:[]}};
 const tenTeacherApi=async(action,body,query)=>{
+ if(action==='checkpoint-compare')return {groupLabel:'Nhóm 02',before:v53Before,after:v53After};
  if(action==='group-gallery')return {draft:DEMO_GALLERY,artworks:[],groupLabel:
   'Nhóm '+String(tenGroups.findIndex(g=>g.id===query?.groupId)+1).padStart(2,'0')};
  const base=await demoTeacherApi(action,body,query);
@@ -113,7 +135,7 @@ function Harness(){
  return <div style={{fontFamily:'Roboto,Arial,sans-serif'}}>
   <div style={{display:'flex',gap:8,padding:10,background:'#e6f0ff',flexWrap:'wrap'}} data-testid="qa-harness">
    <strong>QA ONLY · ALL DATA SYNTHETIC</strong>
-   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','published-lesson','dashboard-en','student-en','teacher-live-en','teacher-live-ten-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
+   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','published-lesson','dashboard-en','student-en','teacher-live-en','teacher-live-ten-en','v53-evidence-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
   </div>
   <div className={normalized==='dashboard'?'':'bml'}>
    {normalized==='dashboard'?<MuseumLabApp language={uiLanguage} currentUser={{id:'teacher-synthetic',name:'Demo Teacher'}} transport={demoDashboardApi}/>:null}
@@ -129,6 +151,7 @@ function Harness(){
    {normalized==='artwork'?<MuseumArtworkStudio studio={{artworks:{issue:null,evidence:null,solution:null}}}
      csrf="qa-secret" language={uiLanguage} uploadEnabled={true} update={()=>{}}/>:null}
    {normalized==='scene'?<MuseumScene gallery={DEMO_GALLERY} language={uiLanguage} onBack={()=>setScreen('dashboard')}/>:null}
+   {normalized==='v53-evidence'?<MuseumScene gallery={v53QaGallery} language={uiLanguage}/>:null}
    {normalized==='prepared'?<LessonsList data={preparedQa} language={uiLanguage} onCreate={()=>{}} onReview={()=>{}}
      onRefresh={async()=>{}} onOpenCollection={key=>{setPreparedKey(key);setScreen('prepared-gallery');}}/>:null}
    {normalized==='prepared-gallery'?<MuseumExhibitionDetail gallery={preparedGallery(preparedKey)} language={uiLanguage}

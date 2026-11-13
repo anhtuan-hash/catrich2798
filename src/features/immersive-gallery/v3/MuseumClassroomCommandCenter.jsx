@@ -1,5 +1,6 @@
 import React,{useEffect,useMemo,useState} from 'react';
-import {AlertTriangle,CheckCircle2,Eye,Hand,MessageSquareText,MonitorPlay,RefreshCw,ShieldCheck,Users} from 'lucide-react';
+import {AlertTriangle,ArrowLeftRight,CheckCircle2,Eye,Hand,MessageSquareText,MonitorPlay,RefreshCw,ShieldCheck,Users,X} from 'lucide-react';
+import MuseumBeforeAfter from './MuseumBeforeAfter.jsx';
 import {englishSystemGroupLabel} from './museumApi.js';
 import {classroomSummary} from './museumCommandCenter.js';
 import './museumCommandCenter.css';
@@ -22,12 +23,20 @@ function ReviewCard({review,otherLabel}){
 }
 export default function MuseumClassroomCommandCenter({
  groups=[],responses=[],feedback=[],microResults=[],helpGroups=[],
- session,compact=false,busy=false,onRefresh,onSpotlight
+ session,compact=false,busy=false,onRefresh,onSpotlight,onCompare
 }){
  const model=useMemo(()=>classroomSummary({groups,responses,feedback,microResults,helpGroups}),
   [groups,responses,feedback,microResults,helpGroups]);
  const [selectedId,setSelectedId]=useState(null),[tab,setTab]=useState('received');
  const [qualityOpen,setQualityOpen]=useState(false);
+ const [compareData,setCompareData]=useState(null),[compareBusy,setCompareBusy]=useState(false),[compareError,setCompareError]=useState('');
+ const openComparison=async groupId=>{
+  if(compareBusy||!onCompare)return;
+  setCompareBusy(true);setCompareError('');
+  try{setCompareData(await onCompare(groupId));}
+  catch(error){setCompareError(error.message||'Unable to load saved checkpoints.');}
+  finally{setCompareBusy(false);}
+ };
  useEffect(()=>{
   if(!model.groups.some(g=>g.id===selectedId))setSelectedId(model.groups[0]?.id||null);
  },[selectedId,model.groups]);
@@ -87,6 +96,10 @@ export default function MuseumClassroomCommandCenter({
       disabled={busy} aria-label={'Spotlight '+safeLabel(selected.label)+' private museum'}>
       <MonitorPlay size={16}/>Spotlight</button>
     </div>
+    {onCompare?<button type="button" className="bml-cc-compare-launch"
+     disabled={compareBusy} onClick={()=>openComparison(selected.id)}>
+     <ArrowLeftRight size={15}/>{compareBusy?'Opening saved versions…':'Compare Before / After'}</button>:null}
+    {compareError?<p className="bml-cc-compare-error" role="alert">{compareError}</p>:null}
     <div className="bml-cc-tabs" role="tablist" aria-label="Group peer feedback">
      <button type="button" role="tab" aria-selected={tab==='received'} onClick={()=>setTab('received')}>
       Received ({selected.reviewsReceived.length})</button>
@@ -114,5 +127,10 @@ export default function MuseumClassroomCommandCenter({
     {' · '+w.count+' instance'+(w.count===1?'':'s')}. {w.excerpt}</p>)}
    <small>Advisory only: review context before editing. No student grade or submission is changed.</small>
   </div>:null}
+  {compareData?<div className="bml-cc-compare-overlay" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)setCompareData(null);}}>
+   <section className="bml-cc-compare-dialog" role="dialog" aria-modal="true" aria-label="Compare saved exhibit revisions" data-testid="museum-teacher-compare-dialog">
+    <header><strong>Group exhibit development</strong><button type="button" className="bml-cc-compare-close" onClick={()=>setCompareData(null)} aria-label="Close comparison"><X size={18}/>Close</button></header>
+    <MuseumBeforeAfter before={compareData.before} after={compareData.after} groupLabel={safeLabel(compareData.groupLabel)}/>
+   </section></div>:null}
  </section>;
 }

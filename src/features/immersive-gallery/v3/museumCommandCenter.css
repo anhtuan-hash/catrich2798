@@ -87,3 +87,21 @@
  .bml .bml-cc-footer{flex-wrap:wrap}
 }
 @media(prefers-reduced-motion:reduce){.bml .bml-class-command *{transition:none!important;animation:none!important}}
+
+/* V5.3 saved checkpoint comparison opens inside either Teacher Live or fullscreen. */
+.bml .bml-cc-compare-launch{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+ padding:8px 11px;margin-top:9px;min-height:33px;border-radius:10px;
+ border:1px solid #b7d5c7;background:#eaf7ed;color:#206453;font-weight:800;font-size:11px;cursor:pointer}
+.bml .bml-cc-compare-launch:disabled{opacity:.52;cursor:not-allowed}
+.bml .bml-cc-compare-error{font-size:11px;color:#a54639;margin:5px 0}
+.bml .bml-cc-compare-overlay{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;
+ background:rgba(8,32,36,.76);padding:clamp(9px,2.5vw,24px);box-sizing:border-box}
+.bml .bml-cc-compare-dialog{display:flex;flex-direction:column;max-height:93dvh;width:min(1100px,98vw);
+ border:1px solid #b9d6cd;background:#fffefa;border-radius:17px;overflow:hidden;box-shadow:0 16px 50px #001b2b65;color:#244a46}
+.bml .bml-cc-compare-dialog>header{display:flex;justify-content:space-between;align-items:center;gap:15px;
+ padding:11px 16px;border-bottom:1px solid #dae6dc;background:#f2f7f1;flex:0 0 auto;font-size:14px}
+.bml .bml-cc-compare-close{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;background:#fff;
+ border:1px solid #bfd5cc;color:#285a51;border-radius:9px;font-size:12px;cursor:pointer}
+.bml .bml-cc-compare-dialog .bml-before-after{overflow-y:auto;min-height:0;border:0;border-radius:0;scrollbar-width:thin}
+.bml .bml-cc-compare-close:focus-visible,.bml .bml-cc-compare-launch:focus-visible{outline:3px solid #2572a6;outline-offset:2px}
+@media(max-width:760px){.bml .bml-cc-compare-dialog{width:99vw;max-height:96dvh}}

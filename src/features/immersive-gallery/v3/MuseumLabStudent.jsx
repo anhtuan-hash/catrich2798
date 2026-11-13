@@ -1,12 +1,14 @@
 import React,{Suspense,useCallback,useEffect,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronLeft,ChevronRight,CircleHelp,ClipboardCheck,Cloud,CloudAlert,CloudUpload,Eye,FileText,Info,KeyRound,Landmark,Leaf,Lightbulb,LockKeyhole,MessageSquare,RefreshCw,Send,ShieldCheck,Sparkles,Users,X} from 'lucide-react';
-import {emptyStudio,documentFromStudio,normalizeStudio,STEPS,submissionMissing} from './museumData.js';
+import {emptyStudio,documentFromStudio,normalizeStudio,STEPS,submissionMissing,moveStoryboardCard} from './museumData.js';
 import {guestRequest,englishSystemGroupLabel} from './museumApi.js';
 import {liveGuest} from './museumLiveApi.js';
 import {stageMediaTools} from './museumLiveExtensions.js';
 import {wordCount,evidenceMissing,changedExhibits} from './learningEvidence.js';
 import {canSaveMuseumDraft,canSubmitMuseumProject} from './museumSubmissionPolicy.js';
 import MuseumScene from './MuseumScene.jsx';
+import MuseumBeforeAfter from './MuseumBeforeAfter.jsx';
+import {EXHIBIT_FIELDS} from './museumExhibitInsights.js';
 import MuseumLiveStudent from './MuseumLiveStudent.jsx';
 import MuseumLivePeerFeedback from './MuseumLivePeerFeedback.jsx';
 import MuseumArtworkStudio from './MuseumArtworkStudio.jsx';
@@ -71,6 +73,7 @@ export default function MuseumLabStudent({language='en'}){
  },[]);
  const viewHistory=async()=>{try{setHistory((await liveGuest('history')).checkpoints||[]);}catch(e){setError(e.message);}};
  const documentRef=useRef(studio),versionRef=useRef(0),csrfRef=useRef(''),savingRef=useRef(false),dirtyRef=useRef(false);
+ const dragStoryboard=useRef(null);
  const groupLocked=session&&!['issued','editing','changes_requested'].includes(session.groupState);
  const liveRunning=liveInfo&&liveInfo.status!=='not_started';
  const stageIndex=liveInfo?.stageIndex??-1;
@@ -270,8 +273,26 @@ export default function MuseumLabStudent({language='en'}){
      {field(T(language,'Tính khả thi / Feasibility','Feasibility'),l.feasibility,v=>changeLearning('feasibility',v),{rows:2,disabled:locked,placeholder:'Who will do it? Resources? One limitation?'})}
     </>:null}
     {step===1&&studioSubstep===1?<><p>{T(language,'Bổ sung dẫn chứng có nguồn và một giải pháp khả thi.','Add sourced evidence and one feasible solution.')}</p>
-     <div className="bml-storyboard">{['The Problem','The Evidence','Our Solution'].map((title,i)=><div key={title} className={'bml-storyboard-card '+([l.issue,l.evidence,l.solution][i]?'is-filled':'')}>
-      <span>{i+1}</span><strong>{title}</strong><small>{[l.issue,l.evidence,l.solution][i]?T(language,'Đã có nội dung','Content added'):T(language,'Chưa hoàn thành','Not written')}</small></div>)}</div>
+     <div className="bml-storyboard" role="list" aria-label="Arrange your exhibition visitor route">
+      {studio.storyboardOrder.map((key,i)=>{
+       const title=EXHIBIT_FIELDS.find(item=>item.key===key)?.label||'Exhibit';
+       return <article key={key} className={'bml-storyboard-card '+(l[key]?'is-filled':'')}
+        role="listitem" draggable={!locked} onDragStart={()=>{dragStoryboard.current=key;}}
+        onDragOver={e=>{if(!locked)e.preventDefault();}}
+        onDrop={e=>{e.preventDefault();if(!locked&&dragStoryboard.current&&dragStoryboard.current!==key)
+         edit(d=>({...d,storyboardOrder:moveStoryboardCard(d.storyboardOrder,dragStoryboard.current,i-d.storyboardOrder.indexOf(dragStoryboard.current))}));
+         dragStoryboard.current=null;}} onDragEnd={()=>{dragStoryboard.current=null;}}>
+        <span>{i+1}</span><strong>{title}</strong>
+        <small>{l[key]?T(language,'Đã có nội dung','Content added'):T(language,'Chưa hoàn thành','Not written')}</small>
+        <div className="bml-storyboard-move">
+         <button type="button" disabled={locked||i===0} aria-label={'Move '+title+' earlier'}
+           onClick={()=>edit(d=>({...d,storyboardOrder:moveStoryboardCard(d.storyboardOrder,key,-1)}))}><ChevronLeft size={17}/></button>
+         <button type="button" disabled={locked||i===2} aria-label={'Move '+title+' later'}
+           onClick={()=>edit(d=>({...d,storyboardOrder:moveStoryboardCard(d.storyboardOrder,key,1)}))}><ChevronRight size={17}/></button>
+        </div>
+       </article>;
+      })}
+     </div>
      {field(T(language,'Bằng chứng hoặc quan sát bằng tiếng Anh','Evidence in English'),l.evidence,v=>changeLearning('evidence',v),{
       rows:4,disabled:locked,placeholder:'According to the information from …, …'})}
      {field(T(language,'Nguồn dữ liệu/ tài liệu','Source / citation'),l.source,v=>changeLearning('source',v),{
@@ -279,7 +300,7 @@ export default function MuseumLabStudent({language='en'}){
      {field(T(language,'Giải pháp nhóm đề xuất bằng tiếng Anh','Proposed solution in English'),l.solution,v=>changeLearning('solution',v),{
       rows:4,disabled:locked,placeholder:'We suggest … because … Our school can …'})}
     </>:null}
-    {step===2&&studioSubstep===0?<><p>{T(language,'Không cần kéo thả, đặt tọa độ hay dựng mô hình. Ứng dụng tự sắp xếp ba hiện vật.','No dragging, coordinates or 3D modeling. Your three exhibits are arranged automatically.')}</p>
+    {step===2&&studioSubstep===0?<><p>{T(language,'Không cần kéo thả, đặt tọa độ hay dựng mô hình. Ứng dụng tự sắp xếp ba hiện vật.','Your three exhibits follow the visitor route arranged in Plan. You may keep the recommended order. No 3D modeling is required.')}</p>
      {field(T(language,'Tên triển lãm','Exhibition title'),studio.title,v=>edit(d=>({...d,title:v})),{disabled:locked,limit:140,placeholder:'Climate Action Museum'})}
      {field(T(language,'Thông điệp mở đầu','Welcome message'),studio.summary,v=>edit(d=>({...d,summary:v})),{rows:2,disabled:locked,limit:1200,placeholder:'Small actions can make a big difference.'})}
      <label className="bml-full-field">{T(language,'Phong cách bảo tàng','Museum style')}
@@ -290,8 +311,8 @@ export default function MuseumLabStudent({language='en'}){
     {step===2&&studioSubstep===1?<><p>{T(language,'Kiểm tra lời giới thiệu của ba hiện vật bằng tiếng Anh.','Review the English captions for three exhibits.')}</p>
      <div className="bml-exhibit-progress"><strong>{exhibitStatus()}/3 {T(language,'hiện vật có nội dung','exhibits have content')}</strong>
        <span>{T(language,'Tự động xây dựng từ các thẻ ý tưởng ở bước trước.','Generated from your earlier English evidence cards.')}</span></div>
-     {['issue','evidence','solution'].map((key,i)=><details key={key} className="bml-student-exhibit" open={i===0}>
-       <summary>{i+1}. {['The Problem','The Evidence','Our Solution'][i]}</summary>
+     {studio.storyboardOrder.map((key,i)=><details key={key} className="bml-student-exhibit" open={i===0}>
+       <summary>{i+1}. {EXHIBIT_FIELDS.find(x=>x.key===key)?.label||'Exhibit'}</summary>
        {field(T(language,'Mô tả bằng tiếng Anh','English description'),l[key],v=>changeLearning(key,v),{rows:3,disabled:locked})}
        <small className="bml-word-count">{wordCount(l[key])} words · Suggested: 25–40</small>
       </details>)}
@@ -323,7 +344,7 @@ export default function MuseumLabStudent({language='en'}){
     {step===3?<><p>{T(language,'Mời một bạn hoặc nhóm khác đọc thử triển lãm. Ghi nhận điều họ hiểu, rồi cải tiến nội dung.','Invite a classmate or group to test the exhibition, note their feedback, then improve your draft.')}</p>
       <MuseumLivePeerFeedback csrf={session.csrf} liveInfo={liveInfo} locked={locked||conflict}
        saveState={saveState} onUseFeedback={r=>edit(d=>({...d,learning:{...d.learning,
-        feedback:'From '+englishSystemGroupLabel(r.fromGroup)+': '+r.learned+' | Suggested improvement: '+r.clarify,
+        feedback:'From '+englishSystemGroupLabel(r.fromGroup)+' on '+(EXHIBIT_FIELDS.find(x=>x.key===r.targetExhibit)?.label||'the exhibition')+': '+r.learned+' | Suggested improvement: '+r.clarify,
         tested:true
        }}))}/>
      <button type="button" className="bml-outline" onClick={()=>{setHistoryOpen(true);viewHistory();}}>
@@ -399,11 +420,15 @@ export default function MuseumLabStudent({language='en'}){
     <div className="bml-student-detail-head"><strong>{T(language,'Bản thiết kế trước và sau','Storyboard history')}</strong>
      <button type="button" className="bml-outline" onClick={()=>setHistoryOpen(false)}><X size={17}/>{T(language,'Đóng','Close')}</button></div>
     <div className="bml-student-history-dialog">
-     {history.length===0?<p>{T(language,'Chưa có mốc lịch sử nào.','No saved checkpoints yet.')}</p>:history.map(c=><article key={c.checkpointId}>
-      <strong>{T(language,'Phiên bản','Version')} {c.version}</strong>
-      {['issue','evidence','solution'].map(k=><p key={k}><b>{k}: </b>{c.draft?.learning?.[k]}</p>)}
-      {c.artworks?.map(a=><img key={a.id} src={a.image_url} alt={a.original_name} style={{maxWidth:180}}/>)}
-     </article>)}
+     <MuseumBeforeAfter
+      before={history.find(c=>c.kind==='before')||null}
+      after={history.find(c=>c.kind==='after')||null}
+      groupLabel={language==='en'?englishSystemGroupLabel(session.groupLabel):session.groupLabel}/>
+     {history.length>0?<details className="bml-history-versions"><summary>Saved checkpoint details ({history.length})</summary>
+      {history.map(c=><article key={c.checkpointId}><strong>{c.kind||'Checkpoint'} · Version {c.version}</strong>
+       {['issue','evidence','solution'].map(k=><p key={k}><b>{k}: </b>{c.draft?.learning?.[k]||'Not recorded'}</p>)}
+      </article>)}</details>:null}
+
     </div>
    </div></div>:null}
   {projectPreview?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label={T(language,'Xem bảo tàng của nhóm','Preview group museum')}>
