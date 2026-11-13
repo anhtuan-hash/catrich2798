@@ -34,6 +34,9 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
   if(typeof window!=='undefined'&&id!=='gallery'&&id!=='demo'&&window.location.hash.includes('?exhibition=')){
    window.history.replaceState(null,'',window.location.hash.split('?')[0]);
   }
+  // A lesson/submission search must never silently hide newly published
+  // exhibitions when navigating to a different Museum Lab tab.
+  if(id==='gallery'&&id!==tab)setQuery('');
   setTab(id);
   if(id==='submissions'&&extra)setReviewId(extra);
  };
