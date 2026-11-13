@@ -31,7 +31,7 @@ export default function MuseumMicroChallenge({stageIndex,existing,csrf,language=
   </label>
   {!submitted?<button className="bml-primary" type="button" disabled={busy||!validMicroAnswer(stageIndex,{choice,reason})}
    onClick={send}><Send size={16}/>{language==='en'?'Submit group reasoning':'Gửi lập luận của nhóm'}</button>:<>
-   <p className="bml-micro-success" role="status"><CheckCircle2 size={18}/>Đã ghi nhận lựa chọn và lập luận bằng tiếng Anh của nhóm.</p>
+   <p className="bml-micro-success" role="status"><CheckCircle2 size={18}/>{language==='en'?'Your group choice and English reasoning were saved.':'Đã ghi nhận lựa chọn và lập luận bằng tiếng Anh của nhóm.'}</p>
    <p className="bml-micro-feedback"><ShieldCheck size={17}/>{choice===task.answer?
     'Good reasoning checkpoint. Your explanation is saved; the teacher will review it.':
     'Compare your choice with the source and discuss why another option may be more reliable. Your original response is preserved.'}</p>
