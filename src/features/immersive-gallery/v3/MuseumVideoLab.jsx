@@ -24,12 +24,13 @@ export default function MuseumVideoLab({mode='student',stage,stageIndex,media,as
  const [query,setQuery]=useState(task.query||''),[instruction,setInstruction]=useState(task.instruction||'');
  const [refine,setRefine]=useState(''),[manualUrl,setManualUrl]=useState(''),[manualTitle,setManualTitle]=useState('');
  const [results,setResults]=useState([]),[selected,setSelected]=useState(null);
- const [busy,setBusy]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState('');
- const [searchAvailable,setSearchAvailable]=useState(null);
+ const [saving,setSaving]=useState(false),[searching,setSearching]=useState(false);
+ const busy=saving||searching;
+ const [message,setMessage]=useState(''),[error,setError]=useState('');
  useEffect(()=>{setQuery(task.query||'');setInstruction(task.instruction||'');setResults([]);setSelected(null);setError('');},[stageIndex,task.query,task.instruction]);
  const save=async(action,payload)=>{
   if(busy)return;
-  setBusy(true);setError('');setMessage('');
+  setSaving(true);setError('');setMessage('');
   try{
    const request=expectedVersion=>transport(action,{assignmentId,stageIndex,version:expectedVersion,...payload});
    let out;
@@ -46,22 +47,31 @@ export default function MuseumVideoLab({mode='student',stage,stageIndex,media,as
     action==='media-add'?'YouTube video assigned to the current activity.':
     'Video removed from the current activity.');
    if(action==='media-add'){setManualUrl('');setManualTitle('');}
-  }catch(e){setError(e.message);}finally{setBusy(false);}
+  }catch(e){setError(e.message);}finally{setSaving(false);}
  };
  const search=async()=>{
-  if(busy)return;
-  setBusy(true);setError('');setMessage('');setResults([]);
+  if(searching)return;
+  setSearching(true);setError('');setMessage('');setResults([]);
   try{
    const res=teacher?
-    await transport('video-search',null,{assignmentId,q:query}):
+    await transport('video-search',null,{assignmentId,q:query.trim()}):
     await liveGuest('video-search','GET',null,csrf,{refine});
-   setSearchAvailable(res.available===true);
    setResults(res.results||[]);
-   if(!res.available)setMessage(tr(language,
-    'Tìm kiếm YouTube trong ứng dụng cần cấu hình YOUTUBE_API_KEY trên Vercel. Video giáo viên đã chọn vẫn xem trực tiếp được.',
-    'In-app YouTube search requires YOUTUBE_API_KEY on Vercel. Teacher-approved videos remain playable here.'));
-   else if(!res.results?.length)setMessage(tr(language,'Chưa tìm được video phù hợp. Hãy điều chỉnh từ khóa.','No matching videos found. Adjust your keywords.'));
-  }catch(e){setError(e.message);}finally{setBusy(false);}
+   if(!res.available){
+    const reasons={
+     invalid_query:tr(language,'Nhập ít nhất 4 ký tự để tìm kiếm.','Enter at least 4 characters to search.'),
+     youtube_api_key_not_configured:tr(language,'Chưa có YouTube API key và tìm kiếm dự phòng không khả dụng.','YouTube API key is missing and backup search is unavailable.'),
+     youtube_quota_exceeded:tr(language,'Đã hết hạn mức YouTube API và tìm kiếm dự phòng không khả dụng.','YouTube API quota has been reached and backup search is unavailable.'),
+     youtube_api_forbidden:tr(language,'YouTube API từ chối truy cập. Kiểm tra giới hạn API key trong Google Cloud.','YouTube API access was denied. Check the API key restrictions in Google Cloud.'),
+     youtube_api_key_invalid:tr(language,'YouTube từ chối khóa API. Kiểm tra cấu hình trong Google Cloud.','YouTube rejected the API key. Check your Google Cloud configuration.')
+    };
+    setError(reasons[res.reason]||tr(language,'Không thể tìm video lúc này. Hãy thử lại hoặc thêm liên kết YouTube.','YouTube search is unavailable. Try again or add a YouTube URL manually.'));
+   }else if(!res.results?.length){
+    setMessage(tr(language,'Chưa có kết quả phù hợp. Hãy thử từ khóa rộng hơn.','No matching videos found. Try broader search terms.'));
+   }else if(res.source?.includes('fallback')||res.source==='youtube-html'){
+    setMessage(tr(language,'Đang sử dụng tìm kiếm YouTube dự phòng.','Using backup YouTube search.'));
+   }
+  }catch(e){setError(e.message||'YouTube search failed.');}finally{setSearching(false);}
  };
  const addManual=()=>{
   const id=extractYouTubeVideoId(manualUrl);
@@ -86,7 +96,7 @@ export default function MuseumVideoLab({mode='student',stage,stageIndex,media,as
     <button type="button" className="bml-primary" disabled={busy||query.trim().length<6}
      onClick={()=>save('media-task',{query:query.trim(),instruction:instruction.trim()})}><Check size={17}/>Assign research task</button>
     {task.query?<button type="button" className="bml-outline" disabled={busy} onClick={()=>save('media-task',{query:'',instruction:''})}>Clear research task</button>:null}
-    <button type="button" className="bml-outline" disabled={busy||query.trim().length<4} onClick={search}><Search size={17}/>{tr(language,'Tìm video trên YouTube','Search YouTube videos')}</button>
+    <button type="button" className="bml-outline" disabled={searching||query.trim().length<4} onClick={search}><Search size={17}/>{searching?'Searching…':tr(language,'Tìm video trên YouTube','Search YouTube videos')}</button>
    </div>
    <div className="bml-video-manual"><label>{tr(language,'Hoặc chọn trước một video YouTube phù hợp','Or select a suitable YouTube video in advance')}
     <input maxLength={250} value={manualUrl} placeholder="https://www.youtube.com/watch?v=…" onChange={e=>setManualUrl(e.target.value)}/></label>
@@ -101,7 +111,7 @@ export default function MuseumVideoLab({mode='student',stage,stageIndex,media,as
    {task.instruction?<p lang="en">{task.instruction}</p>:null}
    {task.query?<div className="bml-video-student-search"><label>{tr(language,'Tìm thêm trong chủ đề (tối đa 32 ký tự)','Refine the topic (32 characters max)')}
     <input value={refine} maxLength={32} placeholder="causes · student actions…" onChange={e=>setRefine(e.target.value)}/></label>
-    <button className="bml-primary" disabled={busy} onClick={search}><Search size={16}/>{tr(language,'Tìm video','Search videos')}</button></div>:null}
+    <button type="button" className="bml-primary" disabled={searching} onClick={search}><Search size={16}/>{searching?'Searching…':tr(language,'Tìm video','Search videos')}</button></div>:null}
   </div>}
   {videos.length?<div className="bml-video-approved">
    <div className="bml-video-kicker"><Check size={16}/> {tr(language,'VIDEO GIÁO VIÊN ĐÃ CHỌN','TEACHER-SELECTED VIDEOS')} · {videos.length}</div>

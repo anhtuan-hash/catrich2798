@@ -49,6 +49,8 @@ jobs:
         run: node --test scripts/test-museum-live-paper-v41.mjs
       - name: Contest Live v4.2 voiceover, source library, safe video and group challenge contracts
         run: node --test scripts/test-museum-competition-v42.mjs
+      - name: YouTube search API, fallback, error and UI regression
+        run: node --test scripts/test-museum-youtube-search-fix.mjs
       - name: Fullscreen teaching dock and en-US voice strictness
         run: node --test scripts/test-museum-live-fullscreen-v43.mjs
       - name: Stage-scoped assigned videos and opt-in student narration
@@ -67,6 +69,7 @@ jobs:
         run: |
           node --check serverless-handlers/museum-live.js
           node --check serverless-handlers/_museumLiveMedia.js
+          node --check serverless-handlers/_youtube-search.js
           node --check serverless-handlers/museum-artwork.js
           node --check serverless-handlers/_museumPng.js
           node --check serverless-handlers/gallery-guest.js

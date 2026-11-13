@@ -50,9 +50,11 @@ test('school-scoped video search uses Google API server-only and never HTML scra
  assert.match(server,/if\(!task\.query\)throw fail\(423/);
  assert.match(server,/searchThrottle\('group-'\+ctx\.group\.id\)/);
  assert.match(server,/if\(\['media-task','media-add','media-remove','media-voice'\]\.includes\(op\)\)/);
- assert.match(helper,/process\.env\.YOUTUBE_API_KEY/);
- assert.match(helper,/videoEmbeddable:'true'/);
- assert.match(helper,/safeSearch:'strict'/);
+ const catalog=load('serverless-handlers/_youtube-search.js');
+ assert.match(helper,/searchYoutubeCatalog\(/);
+ assert.match(catalog,/process\.env\.YOUTUBE_API_KEY/);
+ assert.match(catalog,/params\.set\('videoEmbeddable', 'true'\)/);
+ assert.match(catalog,/params\.set\('safeSearch', 'strict'\)/);
  assert.doesNotMatch(helper,/youtube\.com\/results|ytInitialData|VITE_YOUTUBE_API_KEY/);
  assert.match(server,/version:session\.version\+1/);
 });

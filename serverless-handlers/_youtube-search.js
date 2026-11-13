@@ -157,7 +157,7 @@ async function searchYoutubeHtml(query, limit) {
   return collectVideoRenderers(data, limit);
 }
 
-async function searchYoutubeDataApi(query, limit, key) {
+async function searchYoutubeDataApi(query, limit, key, options = {}) {
   const params = new URLSearchParams({
     part: 'snippet',
     type: 'video',
@@ -166,6 +166,8 @@ async function searchYoutubeDataApi(query, limit, key) {
     safeSearch: 'moderate',
     key,
   });
+  if (options.embeddable) params.set('videoEmbeddable', 'true');
+  if (options.strict) params.set('safeSearch', 'strict');
 
   const response = await fetch(`https://www.googleapis.com/youtube/v3/search?${params.toString()}`, {
     headers: { accept: 'application/json' },
@@ -194,6 +196,51 @@ async function searchYoutubeDataApi(query, limit, key) {
     .filter(Boolean);
 }
 
+
+/** Shared server-only search used by both gallery and standalone YouTube tools. */
+export async function searchYoutubeCatalog(query, limit = 12, options = {}) {
+  const key = youtubeApiKey();
+  if (!key) {
+    try {
+      return { source: 'youtube-html', results: await searchYoutubeHtml(query, limit) };
+    } catch (error) {
+      error.code = 'youtube_api_key_not_configured';
+      throw error;
+    }
+  }
+  try {
+    const results = await searchYoutubeDataApi(query, limit, key, options);
+    if (results.length) return { source: 'youtube-data-api', results };
+    try {
+      const fallback = await searchYoutubeHtml(query, limit);
+      if (fallback.length) return { source: 'youtube-html-fallback', results: fallback };
+    } catch {
+      // An empty API result is valid even if the backup is unreachable.
+    }
+    return { source: 'youtube-data-api', results };
+  } catch (apiError) {
+    try {
+      return { source: 'youtube-html-fallback', results: await searchYoutubeHtml(query, limit) };
+    } catch {
+      const reason = apiError?.quotaExceeded
+        ? 'youtube_quota_exceeded'
+        : apiError?.status === 403
+          ? 'youtube_api_forbidden'
+          : apiError?.status === 400
+            ? 'youtube_api_key_invalid'
+            : 'youtube_search_unavailable';
+      const error = new Error(
+        reason === 'youtube_quota_exceeded' ? 'YouTube API quota was exhausted and backup search is unavailable.'
+          : reason === 'youtube_api_forbidden' ? 'YouTube API access is restricted and backup search is unavailable.'
+            : reason === 'youtube_api_key_invalid' ? 'YouTube rejected the API credentials and backup search is unavailable.'
+              : 'YouTube search is temporarily unavailable.'
+      );
+      error.code = reason;
+      throw error;
+    }
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
@@ -210,35 +257,15 @@ export default async function handler(req, res) {
   }
 
   const limit = safeLimit(req.query?.limit);
-  const key = youtubeApiKey();
-  let source = 'youtube-html';
 
   try {
-    let results = [];
-
-    if (key) {
-      try {
-        results = await searchYoutubeDataApi(query, limit, key);
-        source = 'youtube-data-api';
-      } catch {
-        results = await searchYoutubeHtml(query, limit);
-        source = 'youtube-html-fallback';
-      }
-    } else {
-      results = await searchYoutubeHtml(query, limit);
-    }
-
+    const { source, results } = await searchYoutubeCatalog(query, limit);
     res.setHeader('Cache-Control', 's-maxage=180, stale-while-revalidate=600');
-    return res.status(200).json({
-      ok: true,
-      query,
-      source,
-      results,
-    });
+    return res.status(200).json({ ok: true, query, source, results });
   } catch (error) {
     return res.status(502).json({
       ok: false,
-      code: 'youtube_search_unavailable',
+      code: error?.code || 'youtube_search_unavailable',
       error: error?.name === 'TimeoutError'
         ? 'YouTube search timed out.'
         : cleanText(error?.message || error, 220),
