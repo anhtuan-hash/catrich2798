@@ -7,6 +7,8 @@ import {preparedCollectionFor} from './museumPreparedCollections.js';
 import './museumPrepared.css';
 import {staffRequest,joinUrl,saveTextFile} from './museumApi.js';
 import {KitCover} from './MuseumDashboard.jsx';
+import MuseumGroupQr from './MuseumGroupQr.jsx';
+import './museumLessonQr.css';
 const tr=(language,vi,en)=>language==='en'?en:vi;
 const deadlineForWindow=accessWindow=>new Date(Date.now()+({standard:7,extended:30,term:90}[accessWindow]||7)*86400000).toISOString();
 function Notice({error,success}){return error?<div className="bml-banner bml-danger-banner" role="alert"><ShieldAlert size={19}/>{error}</div>:success?<div className="bml-banner bml-success-banner" role="status"><CheckCircle2 size={18}/>{success}</div>:null;}
@@ -130,7 +132,7 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'})
  </div>;
 }
 export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,query='',language='vi'}){
- const [selected,setSelected]=useState(null),[invites,setInvites]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ const [selected,setSelected]=useState('__auto__'),[invites,setInvites]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const isAdmin=data?.profile?.role==='admin';
  const archiveAssignment=async assignment=>{
   if(!isAdmin||busy)return;
@@ -162,6 +164,7 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
    const mine=groups.filter(g=>g.assignment_id===a.id),done=mine.filter(g=>['submitted','ttcm_review','approved_locked','published'].includes(g.state)).length;
    const exitCount=mine.filter(g=>exitTickets.some(t=>t.group_id===g.id)).length;
    const collection=preparedCollectionFor(a);
+   const expanded=selected===a.id||(selected==='__auto__'&&a.id===assignments[0]?.id);
    return <article className="bml-lesson-block bml-surface" key={a.id}>
     <div className="bml-lesson-summary"><span className="bml-table-icon"><BookOpen size={22}/></span>
      <div><span className="bml-overline">{a.class_scope}</span>
@@ -169,27 +172,36 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
      <div className="bml-prepared-lesson-actions">
       {collection?<button type="button" className="bml-outline bml-prepared-visit" onClick={()=>onOpenCollection?.(collection.key)}>
        <BookOpen size={17}/>{tr(language,'Triển lãm 3D','3D exhibition')} <ArrowRight size={15}/></button>:null}
-      <button type="button" className="bml-outline" onClick={()=>setSelected(selected===a.id?null:a.id)}>
-       {selected===a.id?tr(language,'Thu gọn','Collapse'):tr(language,'Xem các nhóm','View groups')} <ChevronRight size={17}/></button>
+      <button type="button" className="bml-outline" onClick={()=>setSelected(expanded?null:a.id)}>
+       {expanded?tr(language,'Thu gọn','Collapse'):tr(language,'Xem các nhóm','View groups')} <ChevronRight size={17}/></button>
       {isAdmin?<button type="button" disabled={busy} className="bml-danger bml-archive-btn"
         onClick={()=>archiveAssignment(a)} aria-label={tr(language,'Xóa bài học '+a.title,'Remove lesson '+a.title)}>
        <Trash2 size={17}/>{tr(language,'Xóa bài học','Delete lesson')}</button>:null}
      </div></div>
     <div className="bml-progress bml-progress-wide"><div style={{width:(mine.length?100*done/mine.length:0)+'%'}}/></div>
-    {selected===a.id?<div className="bml-group-list">{mine.map(g=>{
+    {expanded?<div className="bml-group-list bml-lesson-qr-grid" data-testid="museum-group-qr-grid">{mine.map(g=>{
       const state=progressOfGroup(g.state,language);const review=reviews.find(r=>r.group_id===g.id);
       const ticket=exitTickets.find(t=>t.group_id===g.id);
       const exitAnswer=ticket?(typeof ticket.value==='string'?ticket.value:JSON.stringify(ticket.value)):null;
-      return <div className="bml-group-row" key={g.id}><span className="bml-group-avatar"><Users size={18}/></span>
-       <div><strong>{language==='en'?englishSystemGroupLabel(g.label):g.label}</strong>
-        <small>{tr(language,'Sản phẩm bảo tàng','Museum project')}: {state.label}</small>
-        <small>{ticket?tr(language,'Exit Ticket: Đã nộp','Exit Ticket: Submitted'):tr(language,'Exit Ticket: Chưa nộp','Exit Ticket: Not submitted')}</small>
-        {ticket?<details><summary>{tr(language,'Xem câu trả lời Exit Ticket','View Exit Ticket response')}</summary><p>{exitAnswer?.slice(0,2000)}</p></details>:null}
-       </div><span className="bml-progress-small"><i style={{width:state.pct+'%'}}/></span>
-       {review?<button type="button" className="bml-text-btn" onClick={()=>onReview(review.id)}>{tr(language,'Xem bài','Review')} <ArrowRight size={16}/></button>:null}
-       {['issued','editing','changes_requested'].includes(g.state)&&a.created_by===data?.profile?.id?
-       <button type="button" disabled={busy} className="bml-quiet-btn" onClick={()=>rotate(g.id)}><KeyRound size={16}/>{tr(language,'Cấp lại mã','Reset code')}</button>:null}
-      </div>;})}
+      const groupLabel=language==='en'?englishSystemGroupLabel(g.label):g.label;
+      const canRotate=isAdmin&&['issued','editing','changes_requested'].includes(g.state)&&a.created_by===data?.profile?.id;
+      return <article className="bml-lesson-qr-card" key={g.id} data-testid="museum-group-qr-card">
+       <div className="bml-lesson-qr-details">
+        <span className="bml-group-avatar"><Users size={19}/></span>
+        <div className="bml-lesson-qr-copy"><strong>{groupLabel}</strong>
+         <small>{tr(language,'Sản phẩm bảo tàng','Museum project')}: {state.label}</small>
+         <small>{ticket?tr(language,'Exit Ticket: Đã nộp','Exit Ticket: Submitted'):tr(language,'Exit Ticket: Chưa nộp','Exit Ticket: Not submitted')}</small>
+         <span className="bml-progress-small"><i style={{width:state.pct+'%'}}/></span>
+         {ticket?<details className="bml-lesson-qr-ticket"><summary>{tr(language,'Xem câu trả lời Exit Ticket','View Exit Ticket response')}</summary><p>{exitAnswer?.slice(0,2000)}</p></details>:null}
+         <div className="bml-lesson-qr-actions">
+          {review?<button type="button" className="bml-qr-review-btn" onClick={()=>onReview(review.id)}>{tr(language,'Xem bài','Review')} <ArrowRight size={15}/></button>:null}
+          {canRotate?<button type="button" disabled={busy} className="bml-quiet-btn" onClick={()=>rotate(g.id)}><KeyRound size={15}/>{tr(language,'Cấp lại mã','Reset code')}</button>:null}
+         </div>
+        </div>
+       </div>
+       <MuseumGroupQr handle={g.invite_handle} groupLabel={groupLabel}
+        expiresAt={g.invite_expires_at} revoked={g.invite_revoked} language={language}/>
+      </article>;})}
       {collection?<div className="bml-prepared-projects" data-testid={'lesson-portfolio-'+collection.key}>
        <div className="bml-prepared-projects-heading"><h3>{tr(language,'Dự án và tác phẩm','Projects and artwork')}</h3>
         <span>{collection.groupCount} {tr(language,'nhóm','groups')} · {collection.groupCount*3} {tr(language,'tác phẩm','exhibits')}</span></div>

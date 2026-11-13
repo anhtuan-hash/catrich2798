@@ -185,6 +185,16 @@ export default async function galleryStaff(req,res){
    const groups=ids.length?await query(admin.from('gcp_groups').select('*')
      .in('assignment_id',ids).limit(500)):[];
    const groupIds=groups.map(g=>g.id);
+   // Only authorized staff can recover invitation *handles*. Never return
+   // secret hashes, one-time private passcodes, or guest session tokens.
+   const inviteRows=groupIds.length?await query(admin.from('gcp_invites')
+     .select('group_id,handle,expires_at,revoked_at').in('group_id',groupIds).limit(500)):[];
+   const inviteByGroup=new Map(inviteRows.map(inv=>[inv.group_id,inv]));
+   const visibleGroups=groups.map(group=>{
+    const invite=inviteByGroup.get(group.id);
+    return {...group,invite_handle:invite?.handle||null,
+     invite_expires_at:invite?.expires_at||null,invite_revoked:Boolean(invite?.revoked_at)};
+   });
    // A completed Exit Ticket is a live answer, never a submitted museum.
    const exitTickets=groupIds.length?await query(admin.from('museum_live_responses')
      .select('group_id,value,created_at').in('group_id',groupIds).eq('stage_index',10).limit(500)):[];
@@ -201,7 +211,7 @@ export default async function galleryStaff(req,res){
    return send(res,200,{profile:{role:ctx.profile.role,school:ctx.profile.school,id:ctx.user.id},
     creatorSettings:await settings(admin),reviewerCandidates,
     reviewers:grants,rubrics,
-    assignments,groups,reviews,exitTickets,
+    assignments,groups:visibleGroups,reviews,exitTickets,
     publishedGalleries:await publishedSchoolCatalog(ctx)});
   }
 
