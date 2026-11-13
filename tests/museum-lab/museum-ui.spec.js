@@ -586,7 +586,7 @@ test('Teacher Live has real stage motion control, readable voiceover, research l
  await page.getByRole('button',{name:'Video Lab'}).click();
  const lab=page.getByTestId('museum-video-lab');
  await expect(lab).toBeVisible();
- await lab.getByLabel('Student research search topic').fill('global warming causes for students');
+ await lab.getByPlaceholder('school climate actions reducing carbon footprint').fill('global warming causes for students');
  await lab.getByRole('button',{name:/Giao nhiệm vụ video/}).click();
  await expect(lab.getByText('Đã lưu nhiệm vụ video cho tiết học.')).toBeVisible();
  await lab.getByPlaceholder('https://www.youtube.com/watch?v=…').fill('https://youtu.be/jNQXAC9IVRw');
