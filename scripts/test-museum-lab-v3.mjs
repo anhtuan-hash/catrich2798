@@ -245,7 +245,7 @@ test('Paper 2D exhibition uses real image URLs and cannot fabricate stock eviden
  const student=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLabStudent.jsx','utf8');
  const styles=fs.readFileSync('src/features/immersive-gallery/v3/museumPaper2D.css','utf8');
  assert.match(scene,/museum-2d-exhibits/);
- assert.match(scene,/exhibit\\?\.image_url/);
+ assert.match(scene,/exhibit\?\.image_url/);
  assert.match(scene,/onError=\{\(\)=>setFailed\(true\)\}/);
  assert.match(scene,/No group image uploaded/);
  assert.match(student,/buildStudentMuseumPreview\(studio,artAssets\)/);
