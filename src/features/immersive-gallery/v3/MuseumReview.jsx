@@ -1,5 +1,5 @@
 import React,{useEffect,useMemo,useState} from 'react';
-import {ArrowLeft,ArrowRight,BookOpen,CheckCircle2,ClipboardCheck,Clock3,Eye,FileText,MessageCircle,ShieldAlert,ShieldCheck,Star,Trash2,Users} from 'lucide-react';
+import { LockKeyhole,ArrowLeft,ArrowRight,BookOpen,CheckCircle2,ClipboardCheck,Clock3,Eye,FileText,MessageCircle,ShieldAlert,ShieldCheck,Star,Trash2,Users} from 'lucide-react';
 import {RUBRIC,progressOfGroup,scoreRubric} from './museumData.js';
 import {englishSystemGroupLabel} from './museumApi.js';
 import {staffRequest} from './museumApi.js';
@@ -40,9 +40,10 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,query='',la
  const rubric=data?.rubrics?.find(r=>r.review_id===selectedId);
  const initialScores=selected?Object.fromEntries(RUBRIC.map(c=>[c.key,Number(scores[selectedId]?.[c.key]??rubric?.scores?.[c.key]??0)])):{};
  const isAdmin=data?.profile?.role==='admin';
- const canTeach=selected&&isAdmin;
- const canReview=selected&&isAdmin;
- const canPublish=selected&&isAdmin;
+ const frozen=Boolean(assignment?.content_frozen_at);
+ const canTeach=selected&&isAdmin&&!frozen;
+ const canReview=selected&&isAdmin&&!frozen;
+ const canPublish=selected&&isAdmin&&!frozen;
  const decide=async action=>{
   setBusy(true);setError('');setSuccess('');
   try{
@@ -52,7 +53,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,query='',la
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
  const archiveReview=async()=>{
-  if(!selected||!isAdmin||busy)return;
+  if(!selected||!isAdmin||busy||frozen)return;
   if(!window.confirm(tr(language,
    'Xóa bài nộp “'+(selected.snapshot?.title||'')+'” khỏi danh sách duyệt? Bài gốc và nhật ký được lưu; nhóm có thể chỉnh sửa và nộp bản mới. Bài đã duyệt/công bố không thể xóa.',
    'Remove “'+(selected.snapshot?.title||'')+'” from the review queue? Original evidence and audit are preserved; a new draft version can be submitted. Approved/published submissions are protected.')))return;
@@ -102,6 +103,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,query='',la
     </button>;
    })}</div>}
   {selected?<section className="bml-review-detail bml-surface">
+   {frozen?<div className="bml-banner bml-success-banner" role="status"><LockKeyhole size={18}/> Finalized lesson · Read-only review. Grading, approval and deletion are locked.</div>:null}
     <div className="bml-section-head"><div><span className="bml-overline">{tr(language,'BẢN NỘP','SUBMISSION')} · v{selected.version}</span>
      <h2>{selected.snapshot?.title||tr(language,'Bản nháp','Draft')}</h2>
      <p>{language==='en'?englishSystemGroupLabel(group?.label):group?.label} · {assignment?.class_scope}</p></div>
@@ -143,7 +145,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,query='',la
          <button type="button" className="bml-outline" disabled={busy||!note.trim()} onClick={()=>decide('return')}><MessageCircle size={17}/>{tr(language,'Yêu cầu chỉnh sửa','Request changes')}</button>
          <button type="button" className="bml-danger" disabled={busy||!note.trim()} onClick={()=>decide('reject')}>{tr(language,'Từ chối','Reject')}</button>
         </>:null}
-        {isAdmin&&!['approved_locked','published'].includes(selected.state)?<button type="button" className="bml-danger bml-archive-btn"
+        {isAdmin&&!frozen&&!['approved_locked','published'].includes(selected.state)?<button type="button" className="bml-danger bml-archive-btn"
          disabled={busy} onClick={archiveReview}><Trash2 size={17}/>{tr(language,'Xóa bài nộp','Delete submission')}</button>:null}
         {canPublish&&selected.state==='approved_locked'?<button type="button" disabled={busy}
           className="bml-primary" onClick={()=>decide('publish')}><ShieldCheck size={17}/>{tr(language,'Admin công bố bản đã duyệt','Admin publishes approved version')}</button>:null}
