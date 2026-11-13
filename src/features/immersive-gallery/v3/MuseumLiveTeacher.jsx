@@ -31,6 +31,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  const assignmentIds=assignments.map(a=>a.id);
  const savedPreference=useRef(loadPresenterRecovery(typeof window!=='undefined'?window.sessionStorage:null,assignmentIds));
  const [assignmentId,setAssignmentId]=useState(initialAssignment||savedPreference.current?.assignmentId||assignments[0]?.id||'');
+ const readOnly=Boolean(assignments.find(a=>a.id===assignmentId)?.content_frozen_at);
  const [state,setState]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [showNotes,setShowNotes]=useState(false),[showResources,setShowResources]=useState(false),[showQr,setShowQr]=useState(false),[qr,setQr]=useState('');
  const [showVoiceover,setShowVoiceover]=useState(false),[showVideoLab,setShowVideoLab]=useState(false);
@@ -39,7 +40,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  const [isFullscreen,setIsFullscreen]=useState(false),[activeTool,setActiveTool]=useState(null),[presenterFocus,setPresenterFocus]=useState(false);
  const [spotlight,setSpotlight]=useState(null),[time,setTime]=useState(Date.now());
  const [paper,setPaper]=useState(false),[tally,setTally]=useState(['','','','']),[tallyNote,setTallyNote]=useState('');
- const freeze=async()=>{setBusy(true);setError('');try{await transport('freeze-survey',{assignmentId,version:state.session.version,...(paper?{counts:tally.map(v=>v===''?null:Number(v)),note:tallyNote}:{})});await refresh();}catch(e){setError(e.message);}finally{setBusy(false);}};
+ const freeze=async()=>{if(readOnly)return;setBusy(true);setError('');try{await transport('freeze-survey',{assignmentId,version:state.session.version,...(paper?{counts:tally.map(v=>v===''?null:Number(v)),note:tallyNote}:{})});await refresh();}catch(e){setError(e.message);}finally{setBusy(false);}};
  const stageRef=useRef(null),activeRef=useRef(true);
  useEffect(()=>{
   const sync=()=>{
@@ -91,7 +92,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  const elapsed=(session?.elapsedSeconds||0)+(session?.status==='active'&&session?.stageStartedAt?Math.max(0,Math.floor((time-Date.parse(session.stageStartedAt))/1000)):0);
  const remaining=Math.max(0,minute*60-elapsed);
  const act=async(action)=>{
-  if(!assignmentId||busy)return;
+  if(!assignmentId||busy||readOnly)return;
   if(action==='end'&&!window.confirm(t(language,'Kết thúc tiết học? Học sinh sẽ không thể tiếp tục thao tác trong phiên này.','End this lesson? Student tasks will be locked.')))return;
   setBusy(true);setError('');
   try{const payload=action==='start'?{assignmentId}:{assignmentId,action,version:session?.version};
@@ -103,7 +104,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  };
  // Voiceover scripts are teacher resources until explicitly shared for the open stage.
  const shareNarration=async()=>{
-  if(busy||!session||session.status==='ended')return;
+  if(readOnly||busy||!session||session.status==='ended')return;
   setBusy(true);setError('');
   try{
    const send=version=>transport('media-voice',{assignmentId,stageIndex:currentIndex,version,enabled:!session.media?.voiceEnabled});
@@ -180,12 +181,13 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
     {!assignments.length?<option value="">{t(language,'Chưa có bài học được giao','No lesson assigned')}</option>:null}
     {assignments.map(a=><option value={a.id} key={a.id}>{a.title} · {a.class_scope}</option>)}
    </select></label>
+  {readOnly?<div role="status" className="bml-banner bml-success-banner">Completed lesson · View only. Playback, lesson content, QR codes and evidence remain available; live controls cannot change saved data.</div>:null}
   {error?<div role="alert" className="bml-banner bml-danger-banner">{error}</div>:null}
   {!assignments.length?<div className="bml-empty bml-surface"><BookOpen size={26}/>{t(language,'Hãy tạo bài học và mã nhóm trước khi mở Teacher Live.','Create a lesson and group passes first.')}</div>:null}
   {assignmentId&&!session?<div className="bml-surface bml-live-start">
    <MonitorPlay size={42}/><h2>{t(language,'Bắt đầu dạy trực tiếp','Start live teaching')}</h2>
    <p>{t(language,'Bài học có 11 hoạt động trong 90 phút (45 + 45). Nhấn Bắt đầu để học sinh vào hoạt động đầu tiên ngay; mỗi lần chuyển hoạt động, phần tương tác tiếp theo cũng tự mở.','The lesson has 11 stages over 90 minutes (45 + 45). Starting the lesson immediately opens the first student activity; advancing opens the next activity automatically.')}</p>
-   <button type="button" disabled={busy} onClick={()=>act('start')} className="bml-primary"><Play size={19}/>{t(language,'Bắt đầu buổi dạy','Start lesson')}</button>
+   <button type="button" disabled={busy||readOnly} onClick={()=>act('start')} className="bml-primary"><Play size={19}/>{t(language,'Bắt đầu buổi dạy','Start lesson')}</button>
   </div>:null}
   {session?<div className="bml-live-workspace bml-live-paper-workspace">
    <div className="bml-presenter-surface" ref={stageRef} data-testid="museum-fullscreen-surface">
