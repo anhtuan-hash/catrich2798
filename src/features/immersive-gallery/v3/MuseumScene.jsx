@@ -1,9 +1,10 @@
 import React,{Suspense,lazy,useEffect,useMemo,useRef,useState} from 'react';
-import {ArrowLeft,ArrowRight,Box,ChevronLeft,ChevronRight,Eye,FileText,Info,LayoutGrid,MapPin,Maximize2,PanelRightClose,Image as ImageIcon,Leaf,Globe2} from 'lucide-react';
+import {ArrowLeft,ArrowRight,Box,ChevronLeft,ChevronRight,Eye,FileText,Info,LayoutGrid,MapPin,Maximize2,Minimize2,X,Image as ImageIcon,Leaf,Globe2} from 'lucide-react';
 import '../gallery.css';
 import {exhibitInsights,exhibitField} from './museumExhibitInsights.js';
 import './museumExhibitLens.css';
 import './museumPaper2D.css';
+import './museumCinemaPreview.css';
 const GalleryCanvas=lazy(()=>import('../GalleryCanvasR3F.jsx'));
 const Exhibit360Viewer=lazy(()=>import('./Exhibit360Viewer.jsx'));
 const clean=(x,n=180)=>String(x??'').slice(0,n);
@@ -45,8 +46,39 @@ export function reviewMuseum(review,assets=[]){
   }))
  };
 }
-export default function MuseumScene({gallery,onBack,language='vi',embedded=false,compact=false,initial3D=false,onExhibitSelect}){
- const [activeRoom,setActiveRoom]=useState(0),[threeD,setThreeD]=useState(initial3D),[selectedId,setSelectedId]=useState(null);
+export default function MuseumScene({gallery,onBack,onClose,language='vi',embedded=false,compact=false,initial3D=false,onExhibitSelect,cinema=false}){
+ const [activeRoom,setActiveRoom]=useState(0),[threeD,setThreeD]=useState(cinema||initial3D),[selectedId,setSelectedId]=useState(null);
+ const cinemaRef=useRef(null),[infoOpen,setInfoOpen]=useState(false);
+ const [isFullscreen,setIsFullscreen]=useState(false),[fallbackFullscreen,setFallbackFullscreen]=useState(false);
+ const leaveCinema=()=>{
+  if(document.fullscreenElement===cinemaRef.current)document.exitFullscreen?.().catch(()=>{});
+  setFallbackFullscreen(false);onClose?.();
+ };
+ const toggleFullscreen=async()=>{
+  if(document.fullscreenElement===cinemaRef.current){
+   try{await document.exitFullscreen?.();}catch{setFallbackFullscreen(false);}
+   return;
+  }
+  if(fallbackFullscreen){setFallbackFullscreen(false);return;}
+  try{
+   if(typeof cinemaRef.current?.requestFullscreen!=='function')throw Error('Fullscreen unavailable');
+   await cinemaRef.current.requestFullscreen();
+  }catch{setFallbackFullscreen(true);}
+ };
+ useEffect(()=>{
+  if(!cinema)return undefined;
+  const onFullscreen=()=>setIsFullscreen(document.fullscreenElement===cinemaRef.current);
+  const onEscape=event=>{
+   if(event.key!=='Escape')return;
+   if(infoOpen){setInfoOpen(false);return;}
+   if(!selectedId&&!fullPosterId&&!document.fullscreenElement){
+    event.preventDefault();leaveCinema();
+   }
+  };
+  document.addEventListener('fullscreenchange',onFullscreen);
+  document.addEventListener('keydown',onEscape);
+  return()=>{document.removeEventListener('fullscreenchange',onFullscreen);document.removeEventListener('keydown',onEscape);};
+ },[cinema,onClose,selectedId,fullPosterId,infoOpen]);
  const [fullPosterId,setFullPosterId]=useState(null);
  const posterCloseRef=useRef(null),posterOpenerRef=useRef(null);
  const dialogRef=useRef(null),closeRef=useRef(null),openerRef=useRef(null);
@@ -99,8 +131,9 @@ export default function MuseumScene({gallery,onBack,language='vi',embedded=false
   return()=>document.removeEventListener('keydown',handleKeys);
  },[selected?.id]);
  const changeRoom=n=>{setActiveRoom(n);setSelectedId(null);setFullPosterId(null);};
- return <section className={'bml-scene bml-paper-2d '+(!threeD?'is-2d ':'')+(embedded?'bml-scene-embedded ':'')+(compact?'bml-scene-compact':'')} data-testid="museum-visitor">
-  {!compact?<header className="bml-scene-header">
+ return <section ref={cinemaRef} className={'bml-scene bml-paper-2d '+(!threeD?'is-2d ':'')+(embedded?'bml-scene-embedded ':'')+(compact?'bml-scene-compact ':'')+(cinema?'bml-museum-cinema ':'')+(fallbackFullscreen?'is-fallback-fullscreen':'')}
+  data-testid="museum-visitor" data-museum-mode={cinema?'cinema':'classic'}>
+  {!compact&&!cinema?<header className="bml-scene-header">
    <div className="bml-scene-title">
     {onBack?<button type="button" className="bml-icon-btn" onClick={onBack} aria-label={tr('Quay lại','Back')}><ArrowLeft size={20}/></button>:null}
     <div><div className="bml-overline">{tr('TRIỂN LÃM TƯƠNG TÁC','INTERACTIVE EXHIBITION')}</div>
