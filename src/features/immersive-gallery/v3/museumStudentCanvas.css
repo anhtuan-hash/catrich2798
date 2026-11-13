@@ -305,3 +305,33 @@
 @media(prefers-reduced-motion:reduce){
  .bml-student-canvas16 *, .bml-student-canvas16 *:before,.bml-student-canvas16 *:after{animation:none!important;transition:none!important}
 }
+
+/* Separate creative tools preserve every control while the 16:9 lesson stays fixed. */
+.bml-student-canvas16 .bml-student-artwork-dialog,
+.bml-student-canvas16 .bml-student-history-dialog{
+ flex:1 1 auto;min-height:0;min-width:0;overflow-y:auto;overscroll-behavior:contain;
+ padding:5px 8px 12px;scrollbar-width:thin;
+}
+.bml-student-canvas16 .bml-student-history-dialog{display:grid;align-content:start;gap:11px}
+.bml-student-canvas16 .bml-student-history-dialog article{
+ background:#fff;border:1px solid #d7e8e8;padding:12px 14px;border-radius:13px;
+}
+.bml-student-canvas16 .bml-student-history-dialog article p{line-height:1.55;overflow-wrap:anywhere}
+.bml-student-canvas16 .bml-student-history-dialog article img{max-height:170px;object-fit:contain}
+.bml-student-canvas16 .bml-student-detail-window>.bml-student-tool-content{
+ min-height:0;overflow-y:auto;overscroll-behavior:contain;align-content:start;
+ padding:6px 8px 14px;scrollbar-width:thin;
+}
+.bml-student-canvas16 .bml-student-compact-links{
+ display:flex;flex-wrap:wrap;gap:8px;min-height:0;
+}
+.bml-student-canvas16 .bml-student-compact-links button{min-height:35px;display:flex;align-items:center;gap:7px}
+.bml-student-canvas16 .bml-student-tool-content .bml-video-lab{min-width:0}
+.bml-student-canvas16 .bml-student-tool-content .bml-resource-hub{max-width:100%}
+.bml-student-canvas16 .bml-student-tool-content .bml-video-embed{max-height:52dvh}
+.bml-student-canvas16 .bml-student-tool-content .bml-resource-hub-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+.bml-student-canvas16 .bml-student-detail-window .bml-museum-room{min-height:0}
+@media(max-width:760px){
+ .bml-student-canvas16 .bml-student-tool-content .bml-resource-hub-list{grid-template-columns:1fr}
+ .bml-student-canvas16 .bml-student-detail-window{height:96dvh;width:98vw;padding:9px}
+}
