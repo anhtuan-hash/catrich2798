@@ -143,6 +143,11 @@
 .bml-student-editorial .bml-student-paper-note>strong{
  color:#254f4e;
 }
+/* Never crop long lesson instructions: the left rail can scroll independently. */
+.bml-student-editorial .bml-student-paper-note{max-height:none;flex:0 0 auto}
+.bml-student-editorial .bml-student-paper-note p{
+ display:block;-webkit-line-clamp:unset;max-height:none;overflow:visible;
+}
 .bml-student-editorial .bml-student-paper-note p{color:#4e6760}
 .bml-student-editorial .bml-student-view-tabs{gap:8px}
 .bml-student-editorial .bml-student-view-tabs button,
@@ -223,9 +228,11 @@
  margin:6px 0 8px;
 }
 .bml-student-editorial .bml-student-task>h2:after{
- content:"✦";display:inline-block;margin-left:10px;
- color:#d5a668;font:normal 18px Georgia,serif;
- vertical-align:middle;transform:rotate(12deg);
+ content:"";display:inline-block;margin-left:10px;
+ width:13px;height:13px;vertical-align:middle;
+ background:#d5a668;
+ clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%);
+ transform:rotate(12deg);
 }
 .bml-student-editorial .bml-student-subpages{
  gap:8px;margin-top:1px;
