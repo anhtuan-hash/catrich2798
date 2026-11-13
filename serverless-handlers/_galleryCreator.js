@@ -88,7 +88,7 @@ export async function guestContext(req,admin,{write=false}={}){
   guardOrigin(req);
   if(!safeEqual(req.headers['x-gallery-csrf'],sess.csrf_token))throw fail(403,'CSRF không hợp lệ.');
   const config=await settings(admin);
-  if(!config.enabled||assignment.status!=='active'||assignment.deadline_at<=now)
+  if(!config.enabled||assignment.archived_at||assignment.status!=='active'||assignment.deadline_at<=now)
    throw fail(423,'Nhiệm vụ đang đóng.');
  }
  return {session:sess,group,assignment};
