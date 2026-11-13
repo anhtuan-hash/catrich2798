@@ -52,8 +52,10 @@ export default async function museumArtwork(req,res){
    throw fail(423,'Bản nộp đã khóa, không thể sửa ảnh.');
   const live=await query(admin.from('museum_live_sessions').select('status,stage_index,stage_open')
    .eq('assignment_id',ctx.assignment.id).maybeSingle());
-  if(!live||live.status!=='active'||!live.stage_open||![6,8].includes(live.stage_index))
-   throw fail(423,'Giáo viên chưa mở hoạt động tải ảnh.');
+  // Group artwork can be created at any active stage. Keep group ownership,
+  // private storage, PNG sanitization, and upload quotas unchanged.
+  if(!live||live.status!=='active')
+   throw fail(423,'Artwork upload is available only during an active lesson.');
   if(op==='upload'){
    requireMethod(req,'POST');
    const body=guardBody(req,4050000);

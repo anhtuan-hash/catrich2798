@@ -160,6 +160,90 @@ test('Student Focus is touch-friendly and keeps an unsent group vote when switch
  expect(dims.scroll).toBeLessThanOrEqual(dims.width+4);
 });
 
+test('realistic Group 01 Stage 1 permits vote, help, all group project steps and autosave',async({page,isMobile})=>{
+ if(!isMobile)await page.setViewportSize({width:1366,height:768});
+ let version=0,saves=0,posts=0,helps=0,draft={title:'',summary:'',rooms:[]};
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  const input=route.request().postDataJSON?.()||{};
+  if(op==='me')return route.fulfill({json:{groupLabel:'Nhóm 01',groupState:'issued',csrf:'qa-csrf',
+   uploadEnabled:true,assignment:{title:'Our Climate Action Museum',
+    brief:'Create an authentic class exhibition.',class_scope:'11.3',
+    deadline_at:new Date(Date.now()+86400000).toISOString(),max_rooms:3,max_exhibits:12}}});
+  if(op==='draft')return route.fulfill({json:{draft,version}});
+  if(op==='save'){
+   expect(input.expectedVersion).toBe(version);
+   draft=input.draft;version++;saves++;
+   return route.fulfill({json:{ok:true,version}});
+  }
+  return route.fulfill({json:{ok:true}});
+ });
+ await page.route('**/api/gallery-guest/live?**',async route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  if(op==='respond'){
+   expect(route.request().postDataJSON()?.value).toBe(1);posts++;
+   return route.fulfill({json:{ok:true,stageIndex:0,unit:'one group device'},status:201});
+  }
+  if(op==='need-help'){helps++;return route.fulfill({json:{ok:true}});}
+  return route.fulfill({json:{
+   session:{id:'stage-one-interactive',status:'active',stageIndex:0,stageOpen:true,
+    stage:{kind:'vote',id:'climate-detective',period:1,title:'Climate Detective',
+     question:'Which everyday school action could best reduce our environmental impact?',
+     options:['Walking or cycling when possible','Switching off unused lights','Reducing food waste','I am not sure yet'],
+     sentence:'I think … because …'}},
+   survey:null,submitted:posts>0
+  }});
+ });
+ await page.getByTestId('qa-student-en').click();
+ const app=page.getByTestId('museum-student-wizard');
+ await expect(app).toBeVisible();
+ await expect(page.getByTestId('student-tab-live')).toHaveAttribute('aria-pressed','true',{timeout:12000});
+ const vote=page.getByRole('button',{name:/B\. Switching off unused lights/});
+ await expect(vote).toBeVisible();
+ await expect(vote).toBeEnabled();
+ await vote.scrollIntoViewIfNeeded();
+ await expect(vote).toBeInViewport();
+ const hit=await vote.evaluate(el=>{
+  const rect=el.getBoundingClientRect(),top=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);
+  return Boolean(top&&(top===el||el.contains(top)));
+ });
+ expect(hit).toBe(true);
+ const submit=page.getByRole('button',{name:'Submit group response'});
+ await expect(submit).toBeDisabled();
+ await expect(page.getByTestId('student-vote-guidance')).toContainText('Select A, B, C or D');
+ await vote.click();
+ await expect(vote).toHaveAttribute('aria-pressed','true');
+ await expect(page.getByTestId('student-vote-guidance')).toContainText('Option B selected');
+ await expect(submit).toBeEnabled();
+ await submit.click();
+ await expect(page.getByTestId('student-action-notice')).toContainText('Your group response was saved');
+ expect(posts).toBe(1);
+ await page.getByRole('button',{name:'Need help'}).click();
+ await expect(page.getByTestId('student-action-notice')).toContainText('Help request sent');
+ expect(helps).toBe(1);
+ await page.getByTestId('student-tab-studio').click();
+ await expect(page.getByTestId('student-tab-studio')).toHaveAttribute('aria-pressed','true');
+ await expect(app.locator('.bml-student-steps button')).toHaveCount(5);
+ for(let i=0;i<5;i++)await expect(app.locator('.bml-student-steps button').nth(i)).toBeEnabled();
+ const problem=page.getByLabel('Describe your problem');
+ await expect(problem).toBeEnabled();
+ await problem.fill('Unused lights waste electricity at our school.');
+ await expect.poll(()=>saves,{timeout:12000}).toBeGreaterThan(0);
+ await app.locator('.bml-student-steps button').nth(1).click();
+ await expect(page.getByLabel('Group roles')).toBeEnabled();
+ await page.getByLabel('Group roles').fill('Data checker: A; editor: B');
+ await expect.poll(()=>saves,{timeout:12000}).toBeGreaterThan(1);
+ await app.locator('.bml-student-steps button').nth(2).click();
+ await expect(page.getByLabel('Exhibition title')).toBeEnabled();
+ await app.locator('.bml-student-steps button').nth(3).click();
+ await expect(page.getByLabel('Actual peer feedback (English)')).toBeEnabled();
+ await app.locator('.bml-student-steps button').nth(4).click();
+ await expect(page.getByLabel('Our learning reflection (English)')).toBeEnabled();
+ // Final submission must still wait for the teacher's Exit Ticket stage.
+ await expect(page.getByRole('button',{name:'Submit for Admin review'})).toBeDisabled();
+ await page.getByTestId('student-tab-live').click();
+ await expect(page.getByTestId('student-vote-guidance')).toContainText('already submitted');
+});
 test('student canvas keeps 16:9 activity, navigation and project panels on one desktop viewport',async({page})=>{
  await page.setViewportSize({width:1366,height:768});
  await page.route('**/api/gallery-guest?**',async route=>{
