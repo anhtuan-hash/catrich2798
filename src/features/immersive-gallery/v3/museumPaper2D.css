@@ -1,0 +1,246 @@
+/* BRIAN Museum Lab — Paper Scrapbook 2D Museum, release 7.
+   Real exhibit images only. Shapes and decorations are CSS, never evidence.
+   Scoped to 2D so the immersive 3D canvas is untouched. */
+.bml .bml-scene.bml-paper-2d.is-2d{
+ --paper-ink:#234e47;--paper-accent:#2d6755;--paper-border:#e3dccd;
+ background:linear-gradient(126deg,#fffcf5,#faf8ed);
+ color:#244a43;border:0;border-radius:0;overflow:visible;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-scene-header{
+ position:relative;align-items:center;gap:20px;
+ border:1px solid #e6ddcd;border-radius:21px 21px 15px 15px;
+ padding:17px 24px 16px;isolation:isolate;
+ background:
+  radial-gradient(ellipse at 80% 12%,#c6d9c49f,transparent 28%),
+  linear-gradient(125deg,#fffdf7,#f9f4e8 80%,#eef3e9);
+ box-shadow:0 3px 0 #e9e1cf,0 7px 20px #29473916;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-scene-header:before{
+ content:"";position:absolute;left:28px;top:-6px;width:91px;height:15px;
+ transform:rotate(-4deg);pointer-events:none;
+ background:#e6c898bb;
+ clip-path:polygon(0 7%,100% 0,96% 96%,2% 100%);
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-scene-title h2,
+.bml .bml-scene.bml-paper-2d.is-2d .bml-room-mast h3{
+ font-family:"Iowan Old Style",Georgia,serif;font-weight:750;
+ color:#234f46;letter-spacing:-.035em;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-scene-title h2{font-size:clamp(21px,2.0vw,30px)}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-scene-title p{
+ font-size:clamp(12px,1.0vw,14px);line-height:1.45;color:#52695c;max-width:680px;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-scene-title .bml-overline{
+ display:inline-block;position:relative;padding:4px 11px 3px;
+ background:#e4e8d1;color:#386454;
+ border-radius:11px 4px 13px 6px;font-size:10px;letter-spacing:.1em;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-scene-switch{
+ background:#e9ece7;box-shadow:inset 0 1px 3px #254b3715;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-scene-switch button.is-active,
+.bml .bml-scene.bml-paper-2d.is-2d .bml-scene-mode-float button.is-active{
+ background:linear-gradient(112deg,#2b7661,#205c51);
+ color:#fffdf5;box-shadow:0 3px 0 #b2ccba;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-scene-mode-float{
+ top:17px;right:18px;border:1px solid #dbdacf;
+ background:#f7f8f3;
+ box-shadow:0 3px 10px #284b3b18;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-scene-mode-float button{
+ color:#4b675e;font-weight:800;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-room-tabs{
+ position:relative;display:flex;gap:9px;padding:10px 18px;
+ border-color:#e8e4d9;
+ background:linear-gradient(180deg,#faf8ef,#fffcf5);
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-room-tabs button{
+ background:#f5f6ed;color:#46675a;font-size:12px;font-weight:760;
+ border:1px solid #d2dacb;border-radius:13px 9px 12px 8px;
+ box-shadow:1px 2px 0 #ebede0;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-room-tabs button.is-active{
+ background:linear-gradient(118deg,#e8f3e1,#e1eedc);
+ color:#205c4a;border-color:#92bca4;box-shadow:0 3px 0 #c9d9c6;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-museum-room,
+.bml .bml-scene.bml-paper-2d.is-2d.bml-scene-compact .bml-museum-room{
+ margin:9px 0 0;min-height:0;
+ padding:18px 18px 20px;
+ border:0;border-radius:0;
+ background:
+  radial-gradient(ellipse at 96% 4%,#e1eee5a9,transparent 30%),
+  radial-gradient(ellipse at 3% 90%,#e5ecdab0,transparent 32%),
+  repeating-linear-gradient(110deg,transparent 0 29px,#d9d9cb0b 29px 30px),
+  linear-gradient(180deg,#f8faf4,#f0f5ef 75%,#f5f6ed);
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-room-mast{
+ position:relative;margin:0 auto 15px;max-width:800px;
+ text-align:center;min-height:81px;padding:2px 16px 7px;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-floor-label{
+ display:inline-flex;gap:8px;align-items:center;justify-content:center;
+ padding:4px 19px;background:#dfe9d7;color:#2d614f;
+ border-radius:50% 8% 41% 9%/16% 11% 25% 12%;
+ letter-spacing:.15em;font-size:11px;font-weight:860;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-room-mast h3{
+ margin:4px 0 5px;font-size:clamp(22px,2vw,28px);line-height:1.18;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-room-mast p{
+ font-size:clamp(11px,.94vw,13px);line-height:1.35;color:#68786c;margin:0;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-art-grid.bml-paper-art-grid{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:clamp(10px,1.2vw,17px);align-items:stretch;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-art-card.bml-paper-art-card{
+ min-width:0;min-height:330px;
+ display:flex;flex-direction:column;align-items:stretch;
+ overflow:hidden;text-align:left;
+ padding:7px;border:1px solid #e9e1d2;
+ border-radius:21px 17px 24px 19px;
+ background:#fffcf5;color:#29453f;
+ box-shadow:0 3px 0 #e3dfd0,0 7px 16px #2a4c3e1b;
+ transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-art-card.bml-paper-art-card:hover{
+ transform:translateY(-3px) rotate(-.25deg);
+ box-shadow:0 5px 0 #d6e2d5,0 13px 25px #2a4c3e22;
+ border-color:#a2cbb1;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-art-card.bml-paper-art-card:focus-visible{
+ outline:3px solid #3e9b7a;outline-offset:3px;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-photo{
+ height:clamp(142px,16vw,208px);width:100%;min-height:0;
+ display:grid;place-items:center;position:relative;overflow:hidden;
+ border-radius:15px 12px 15px 11px;
+ background:#dae9d9;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-photo--1{background:#dae9ed}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-photo--2{background:#f5eac9}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-photo img{
+ display:block;width:100%;height:100%;object-fit:cover;
+ object-position:center;background:transparent;transition:transform .28s ease;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-card--1 .bml-paper-art-photo img{
+ /* Evidence posters/charts must remain fully visible; never crop survey labels. */
+ object-fit:contain;background:#f6f6ef;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-card:hover .bml-paper-art-photo img{
+ transform:scale(1.025);
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-paper-photo-placeholder{
+ display:flex;flex-direction:column;align-items:center;
+ justify-content:center;gap:11px;text-align:center;
+ padding:12px 20px;color:#507a6c;font-size:12px;font-weight:700;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-paper-photo-placeholder svg{
+ background:#fcfff9c9;padding:7px;box-sizing:content-box;
+ border:1px dashed #9ebfa7;border-radius:16px;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-art-body.bml-paper-art-body{
+ flex:1 1 auto;min-height:0;display:flex;flex-direction:column;
+ padding:12px 13px 9px;gap:5px;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-body small{
+ align-self:flex-start;padding:3px 10px;border-radius:8px 4px 9px 4px;
+ background:#e6edda;color:#386a57;
+ font-size:10px;font-weight:870;letter-spacing:.08em;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-card--2 .bml-paper-art-body small{
+ background:#f5e9bf;color:#7e6742;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-body strong{
+ font-family:"Iowan Old Style",Georgia,serif;color:#27534a;
+ font-size:clamp(19px,1.7vw,25px);font-weight:750;letter-spacing:-.03em;
+ line-height:1.19;margin:2px 0 0;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-body p{
+ font-size:clamp(12px,1vw,14px);line-height:1.5;
+ color:#495b53;margin:5px 0 12px;
+ height:auto;min-height:0;max-height:none;
+ overflow:visible;display:block;
+ overflow-wrap:anywhere;white-space:pre-line;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-body .bml-paper-art-explore{
+ display:inline-flex;gap:9px;align-items:center;justify-content:center;
+ align-self:flex-start;margin-top:auto;
+ padding:8px 15px;min-height:35px;
+ border-radius:30px 10px 30px 12px;
+ background:linear-gradient(115deg,#366d55,#265849);
+ color:#fffefa;font-weight:850;font-size:13px;
+ box-shadow:0 3px 0 #c7d9c9,0 5px 10px #1a45341a;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-scene-footer{
+ border-top:1px solid #e9e0d2;
+ background:linear-gradient(165deg,#fffdf6,#f8f5e9);
+ color:#4e7465;min-height:54px;padding:11px 18px;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-scene-footer button{
+ background:#fffdf8;border:1px solid #d4dfcf;
+ color:#517368;border-radius:23px 12px 23px 12px;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-scene-footer button:not(:disabled):hover{
+ border-color:#83b5a0;background:#edf7ed;color:#245d50;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-scene-footer button:disabled{opacity:.47}
+/* Student modal receives the exact paper frame of the approved mockup */
+.bml .bml-student-detail-overlay.bml-museum-preview-overlay{
+ background:rgba(20,48,47,.72);backdrop-filter:blur(5px);
+}
+.bml .bml-student-detail-window.bml-museum-preview-window{
+ display:flex;flex-direction:column;min-height:0;max-height:calc(100dvh - 36px);
+ background:linear-gradient(125deg,#fffdf6,#f7f4ea);
+ border:1px solid #d1cfbe;border-radius:22px 20px 18px 21px;
+ box-shadow:0 15px 0 #d3d7c745,0 30px 75px #1b2c2b55;
+ overflow:hidden;
+}
+.bml .bml-museum-preview-window>.bml-student-detail-head{
+ position:relative;flex:0 0 auto;background:linear-gradient(113deg,#fffdf3,#f4f6e9);
+ border-bottom:1px solid #e5dfd0;padding:12px 20px;
+}
+.bml .bml-museum-preview-window>.bml-student-detail-head:after{
+ content:"";position:absolute;left:0;right:0;bottom:-9px;height:10px;
+ background:#fffdf4;
+ clip-path:polygon(0 0,3% 60%,7% 9%,11% 70%,15% 5%,19% 65%,23% 10%,27% 70%,31% 8%,35% 62%,39% 6%,43% 67%,47% 5%,51% 70%,55% 8%,59% 58%,63% 10%,67% 65%,71% 6%,75% 60%,79% 10%,83% 61%,87% 8%,91% 58%,95% 11%,100% 58%,100% 0);
+ z-index:2;pointer-events:none;
+}
+.bml .bml-museum-preview-window>.bml-scene.bml-paper-2d{
+ overflow-y:auto;overflow-x:hidden;min-height:0;flex:1 1 auto;
+ scrollbar-width:thin;scrollbar-color:#8da99a #f6f3e9;
+ scrollbar-gutter:stable;
+}
+.bml .bml-museum-preview-window>.bml-scene.bml-paper-2d:focus-visible{outline:2px solid #4b9176}
+.bml .bml-museum-preview-window .bml-scene-header{margin:12px 13px 0}
+.bml .bml-museum-preview-window .bml-room-tabs{margin:0}
+@media(max-width:1100px){
+ .bml .bml-scene.bml-paper-2d.is-2d .bml-art-grid.bml-paper-art-grid{gap:10px}
+ .bml .bml-scene.bml-paper-2d.is-2d .bml-art-card.bml-paper-art-card{min-height:300px}
+ .bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-photo{height:clamp(130px,17vw,170px)}
+ .bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-body strong{font-size:19px}
+}
+@media(max-width:790px){
+ .bml .bml-scene.bml-paper-2d.is-2d .bml-art-grid.bml-paper-art-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .bml .bml-scene.bml-paper-2d.is-2d .bml-scene-header{flex-wrap:wrap}
+ .bml .bml-scene.bml-paper-2d.is-2d .bml-scene-mode-float{top:12px;right:10px}
+ .bml .bml-scene.bml-paper-2d.is-2d .bml-museum-room{padding:64px 12px 15px}
+}
+@media(max-width:550px){
+ .bml .bml-scene.bml-paper-2d.is-2d .bml-art-grid.bml-paper-art-grid{grid-template-columns:1fr}
+ .bml .bml-scene.bml-paper-2d.is-2d .bml-art-card.bml-paper-art-card{min-height:0}
+ .bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-photo{height:210px}
+ .bml .bml-museum-preview-window>.bml-student-detail-head{padding:9px 11px}
+ .bml .bml-scene.bml-paper-2d.is-2d .bml-scene-footer{flex-wrap:wrap}
+}
+@media(prefers-reduced-motion:reduce){
+ .bml .bml-scene.bml-paper-2d.is-2d .bml-art-card.bml-paper-art-card,
+ .bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-photo img{transition:none}
+ .bml .bml-scene.bml-paper-2d.is-2d .bml-art-card.bml-paper-art-card:hover,
+ .bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-card:hover .bml-paper-art-photo img{transform:none}
+}
+
+/* CI regression marker: uploaded originals, 2D visitor and evidence lens coexist. */
