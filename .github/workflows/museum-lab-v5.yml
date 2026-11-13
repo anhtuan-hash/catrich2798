@@ -1,0 +1,50 @@
+name: BRIAN Museum Lab V5 In-Scene Reveal
+on:
+  pull_request:
+    paths:
+      - "src/features/immersive-gallery/**"
+      - "tests/museum-lab/**"
+      - "scripts/test-museum-focus-motion.mjs"
+      - "scripts/test-museum-artwork-360-v34.mjs"
+      - ".github/workflows/museum-lab-v5.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  focused-unit-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: V5 focus state, reversible transforms, evidence and privacy
+        run: node --test scripts/test-museum-focus-motion.mjs
+      - name: Legacy orbit inspector compatibility
+        run: node --test scripts/test-museum-artwork-360-v34.mjs
+      - name: Build real R3F scene
+        run: npx vite build
+  actual-webgl:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 23
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Actual browser 3D artwork raycast, animated return, and viewport screenshots
+        run: npx playwright test --config tests/museum-lab/playwright.config.mjs --grep "Student Creator 2D Paper exhibit displays actual uploaded photos"
+      - name: Upload unmodified browser evidence and Playwright traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: museum-v5-actual-webgl
+          path: artifacts/museum-lab
+          if-no-files-found: ignore
+          retention-days: 7
