@@ -1,4 +1,4 @@
-import {LIVE_STAGES,summarizeResponses} from '../liveLesson.js';
+import {LIVE_STAGES,sessionStage,summarizeResponses} from '../liveLesson.js';
 import {BLOCKED_WRITE,clone,deepFreeze,SNAPSHOT_FORMAT} from './snapshot.js';
 export function createOfflineRuntime(input){
  if(input?.format!==SNAPSHOT_FORMAT)throw new Error('Unsupported Museum archive format.');
@@ -9,7 +9,16 @@ export function createOfflineRuntime(input){
   const saved=snapshot.live[id]||{session:null};
   const evidence=snapshot.evidence[id];
   const state=presentation.get(id)||{index:Math.max(0,saved.session?.stageIndex||0),revealed:!!saved.session?.revealed,status:'paused'};
-  const stage=LIVE_STAGES[state.index],responses=(evidence?.responses||[]).filter(r=>r.stage_index===state.index);
+  const historicalSession={media_board:{lessonQuestionVersion:saved.session?.questionVersion??2}};
+  const currentStage=saved.session?.stageIndex===state.index?saved.session?.stage:null;
+  let stage=currentStage||sessionStage(historicalSession,state.index);
+  // Preserve the old survey meaning as well as the old language quiz key.
+  if(!currentStage&&state.index===2&&saved.session?.evidenceVersion===0)stage={...stage,
+   question:'Which action do you currently take at least three days a week?',
+   options:['Walk or cycle when possible','Switch off unused lights','Avoid food waste','None of these'],
+   sentence:'Legacy group-device responses; do not interpret as individual habits or as the new priority survey.',
+   teaching:'This session predates the group-priority protocol.'};
+  const responses=(evidence?.responses||[]).filter(r=>r.stage_index===state.index);
   const media=evidence?.teacherMediaBoard?.[state.index]||
    (saved.session?.stageIndex===state.index?saved.session?.media:null)||{query:'',instruction:'',videos:[],voiceEnabled:false};
   return {...clone(saved),groups:clone(saved.groups||snapshot.staff.groups.filter(g=>g.assignment_id===id)),
@@ -17,7 +26,7 @@ export function createOfflineRuntime(input){
     assignmentId:id,stageIndex:state.index,stage:clone(stage),status:state.status,
     revealed:state.revealed,stageOpen:false,stageStartedAt:null,elapsedSeconds:0,version:0,media:clone(media)},
    survey:clone(evidence?.survey||saved.survey||null),
-   result:saved.session?.stageIndex===state.index?saved.result:summarizeResponses(state.index,responses),
+   result:saved.session?.stageIndex===state.index&&saved.result?saved.result:summarizeResponses(state.index,responses,stage),
    responses,feedback:clone(evidence?.feedback||saved.feedback||[]),
    microResults:clone((evidence?.microResponses||[]).filter(r=>r.stage_index===state.index))};
  };

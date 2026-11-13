@@ -57,3 +57,13 @@ test('image bytes are embedded before signed capabilities are stripped; failed d
   await assert.rejects(captureMuseum({...fakeOptions(f),fetcher:async()=>new Response('',{status:403})}),/could not be downloaded/);
  }finally{globalThis.FileReader=original;}
 });
+test('historical sessions retain their original quiz answer key and survey meaning',async()=>{
+ const f=fixture();f.live['qa-lesson'].session.questionVersion=1;f.live['qa-lesson'].session.evidenceVersion=0;
+ f.evidence['qa-lesson'].responses=[{group_id:'qa-group',stage_index:1,value:[0,1,1]}];
+ const rt=createOfflineRuntime(f);
+ const quiz=await rt.liveStaff('control',{assignmentId:'qa-lesson',action:'next'});
+ assert.equal(quiz.session.stage.questions[0].answer,0);assert.equal(quiz.result.questions[0].correct,1);
+ const survey=await rt.liveStaff('control',{assignmentId:'qa-lesson',action:'next'});
+ assert.match(survey.session.stage.question,/three days a week/);
+ assert.equal(JSON.stringify(rt.snapshot),JSON.stringify(f));
+});
