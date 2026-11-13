@@ -161,7 +161,7 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
   <Notice error={error}/>
   {invites?<OneTimeInvites invitations={invites} onClose={()=>setInvites(null)} language={language}/>:null}
   {assignments.length?<div className="bml-lesson-list">{assignments.map(a=>{
-   const mine=groups.filter(g=>g.assignment_id===a.id),done=mine.filter(g=>['submitted','ttcm_review','approved_locked','published'].includes(g.state)).length;
+   const mine=groups.filter(g=>g.assignment_id===a.id).sort((left,right)=>String(left.label||'').localeCompare(String(right.label||''),undefined,{numeric:true})),done=mine.filter(g=>['submitted','ttcm_review','approved_locked','published'].includes(g.state)).length;
    const exitCount=mine.filter(g=>exitTickets.some(t=>t.group_id===g.id)).length;
    const collection=preparedCollectionFor(a);
    const expanded=selected===a.id||(selected==='__auto__'&&a.id===assignments[0]?.id);

@@ -1,6 +1,6 @@
 /* The QR-enabled lesson cards are scoped exclusively to Museum Lab.
    Global Brian navigation, its ribbon, and the shared footer are untouched. */
-.bml .bml-lesson-qr-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding-top:22px}
+.bml .bml-group-list.bml-lesson-qr-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding-top:22px}
 .bml .bml-lesson-qr-card{min-width:0;min-height:165px;display:grid;grid-template-columns:minmax(0,1fr) 134px;gap:12px;align-items:stretch;padding:14px;background:linear-gradient(145deg,#fffefe,#fbfaff);border:1px solid #dee1ef;border-radius:16px;box-shadow:0 2px 0 #b8bbcf3b,0 4px 10px #283e6320;color:#17335f}
 .bml .bml-lesson-qr-details{min-width:0;display:flex;align-items:flex-start;gap:9px}
 .bml .bml-lesson-qr-details>.bml-group-avatar{width:35px;height:35px;border-radius:11px;flex-shrink:0}
@@ -25,6 +25,6 @@
 .bml .bml-lesson-qr-copy-link{display:flex;align-items:center;justify-content:center;gap:4px;min-height:27px;padding:4px 8px;border:1px solid #d4ddf0;border-radius:15px;background:#f5f8ff;color:#264c90;font-size:10px;font-weight:700}
 .bml .bml-lesson-qr-copy-link:hover{background:#e9f0ff}
 .bml .bml-lesson-qr-grid>.bml-prepared-projects{grid-column:1/-1}
-@media(max-width:780px){.bml .bml-lesson-qr-grid{grid-template-columns:1fr}.bml .bml-lesson-qr-card{grid-template-columns:minmax(0,1fr) 134px}}
+@media(max-width:780px){.bml .bml-group-list.bml-lesson-qr-grid{grid-template-columns:1fr}.bml .bml-lesson-qr-card{grid-template-columns:minmax(0,1fr) 134px}}
 @media(max-width:430px){.bml .bml-lesson-qr-card{grid-template-columns:minmax(0,1fr) 110px;padding:10px;gap:7px}.bml .bml-lesson-qr-image{width:108px;height:108px}.bml .bml-lesson-qr-details{gap:6px}.bml .bml-lesson-qr-details>.bml-group-avatar{width:28px;height:28px}.bml .bml-lesson-qr-copy>strong{font-size:14px}}
 @media print{.bml .bml-lesson-qr-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.bml .bml-lesson-qr-card{break-inside:avoid;box-shadow:none}.bml .bml-lesson-qr-copy-link{display:none}}
