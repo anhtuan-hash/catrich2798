@@ -143,7 +143,8 @@ function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdi
    };
    window.__bmlMuseumFocusQA.camera={
     position:camera.position.toArray().map(x=>+x.toFixed(4)),
-    quaternion:camera.quaternion.toArray().map(x=>+x.toFixed(5))
+    quaternion:camera.quaternion.toArray().map(x=>+x.toFixed(5)),
+    forward:camera.getWorldDirection(new THREE.Vector3()).toArray().map(x=>+x.toFixed(5))
    };
   }
  });
