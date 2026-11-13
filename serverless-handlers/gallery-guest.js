@@ -92,7 +92,10 @@ export default async function galleryGuest(req,res){
    const active=await admin.from('gcp_sessions').select('token_hash',{head:true,count:'exact'})
     .eq('group_id',group.id).is('revoked_at',null).gt('expires_at',new Date().toISOString());
    if(active.error)throw fail(503,'Không thể tạo phiên.');
-   if(active.count>=(assignment.content_frozen_at?20:3))throw fail(429,'Too many active devices. Try again later.');
+   if(!assignment.content_frozen_at&&active.count>=3)
+    throw fail(429,'Nhóm đã có ba thiết bị đang hoạt động. Hãy nhờ giáo viên làm mới mã.');
+   if(assignment.content_frozen_at&&active.count>=20)
+    throw fail(429,'Too many read-only devices. Try again later.');
    const token=randomSecret(32),csrf=randomSecret(24);
    const expires=assignment.content_frozen_at?now+12*60*60*1000:
     Math.min(now+12*60*60*1000,Date.parse(invite.expires_at),Date.parse(assignment.deadline_at));
