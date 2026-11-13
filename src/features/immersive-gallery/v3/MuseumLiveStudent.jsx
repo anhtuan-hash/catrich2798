@@ -80,6 +80,8 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
    <span className="bml-question-eyebrow">READ · THINK · RESPOND</span>
    <h2>{stage?.title}</h2>
    <p>{stage?.question}</p>
+   {curriculumClip&&session.stageOpen&&session.status==='active'?<button type="button" className="bml-student-video-cta" data-testid="student-curriculum-watch"
+     onClick={()=>setActiveTool('curriculum')}><Film size={17}/> Watch NASA clip · {curriculumClip.title}</button>:null}
   </div>
   {!session.stageOpen||session.status!=='active'?<div className="bml-banner bml-info-banner"><Lock size={18}/>{t(language,'Chờ giáo viên mở hoạt động tiếp theo.','Wait for your teacher to open this task.')}</div>:<>
     {stage.kind==='vote'?<div className="bml-live-response-options">{stage.options.map((o,i)=><button type="button" key={i} disabled={posted||busy}
@@ -87,7 +89,9 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
       <span className="bml-option-letter" aria-hidden="true">{String.fromCharCode(65+i)}.</span>
       <span className="bml-option-copy" aria-hidden="true">{o}</span>
      </button>)}</div>:null}
-    {stage.kind==='quiz'?<div className="bml-live-response-form">{stage.questions.map((q,i)=><div key={i} hidden={compact&&quizPage!==i}>
+    {responseQuestions?<div className="bml-live-response-form" data-testid="student-video-questions">
+     {isVideoCheck?<p className="bml-video-question-intro">NASA VIDEO CHECK · Answer three questions before continuing your group design.</p>:null}
+     {responseQuestions.map((q,i)=><div key={i} hidden={compact&&quizPage!==i}>
      <strong>Q{i+1}. {q.q}</strong><div className="bml-live-response-options">{q.choices.map((v,j)=><button type="button" key={j} disabled={posted||busy}
       aria-pressed={quiz[i]===j} aria-label={String.fromCharCode(65+j)+'. '+v} className={quiz[i]===j?'is-chosen':''} onClick={()=>setQuiz(prev=>({...prev,[i]:j}))}>
        <span className="bml-option-letter" aria-hidden="true">{String.fromCharCode(65+j)}.</span>
@@ -126,7 +130,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
     {!compact&&MICRO_CHALLENGES[stageIndex]?<MuseumMicroChallenge key={session.id+'-'+stageIndex}
      stageIndex={stageIndex} existing={data?.micro} csrf={csrf} language={language}/>:null}
     {['group','recap','artwork','present'].includes(stage.kind)?<p className="bml-live-student-status">
-      {t(language,'Hãy thực hiện nhiệm vụ bên dưới theo hướng dẫn của giáo viên.','Continue with your group work below as instructed by your teacher.')}</p>:null}
+      {t(language,'Hãy thực hiện nhiệm vụ bên dưới theo hướng dẫn của giáo viên.','After the NASA video check, continue with the Problem–Evidence–Solution canvas.')}</p>:null}
     {!compact&&survey&&stageIndex>=3?<div className="bml-live-survey"><strong>{t(language,'KẾT QUẢ KHẢO SÁT LỚP','CLASS SURVEY')} · N={survey.n} {t(language,'thiết bị nhóm','group devices')}</strong>
       {survey.options?.map((o,i)=><p key={i}>{o.label}: {o.count}/{survey.n} ({o.percent}%)</p>)}</div>:null}
    </>}
@@ -160,7 +164,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
    {compact&&activeTool&&(activeTool!=='video'||hasVideo)&&(activeTool!=='voice'||hasVoice)?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label="Learning tools">
     <div className="bml-student-detail-window">
      <div className="bml-student-detail-head">
-      <strong>{({materials:'Lesson Materials',research:'Research Library',voice:'American English Voiceover',video:'Video Lab',micro:'English Thinking Lab',survey:'Class Survey'})[activeTool]}</strong>
+      <strong>{({materials:'Lesson Materials',research:'Research Library',voice:'American English Voiceover',video:'Video Lab',curriculum:'Watch NASA lesson video',micro:'English Thinking Lab',survey:'Class Survey'})[activeTool]}</strong>
       <button className="bml-outline" type="button" onClick={()=>setActiveTool(null)}>{t(language,'Đóng','Close')}</button>
      </div>
      <div className="bml-student-tool-content" data-testid="student-tool-panel">
