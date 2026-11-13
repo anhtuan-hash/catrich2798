@@ -118,7 +118,7 @@ test('Exit Tickets and museum submissions are counted separately',()=>{
  const liveStudent=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLiveStudent.jsx','utf8');
  assert.match(api,/from\('museum_live_responses'\)/);
  assert.match(api,/eq\('stage_index',10\)/);
- assert.match(api,/assignments,groups,reviews,exitTickets/);
+ assert.match(api,/assignments:visibleAssignments,groups:visibleGroups,reviews,exitTickets/);
  assert.match(lessons,/Exit Tickets: /);
  assert.match(lessons,/ticket\.value/);
  assert.match(liveStudent,/student-live-completed/);
@@ -331,7 +331,7 @@ test('student creator login reuses official dashboard competition ribbon without
  assert.match(student,/if\(!session\)return/);
  assert.match(student,/museum-login-competition-banner/);
  assert.match(student,/<MuseumCompetitionRibbon variant="dashboard"\/>/);
- assert.match(student,/<GuestEntry onRedeem=\{redeem\} busy=\{busy\} error=\{error\} language=\{language\}\/>/);
+ assert.match(student,/<GuestEntry onRedeem=\{redeem\} busy=\{busy\} error=\{error\} language=\{language\} onResetError=\{\(\)=>setError\(''\)\}\/>/);
  assert.match(student,/import '\.\/museumDashboardBanner\.css'/);
  assert.match(entryCss,/\.bml\.bml-student-shell\.bml-student-editorial\.bml-student-login-with-ribbon/);
  assert.match(entryCss,/\.bml-guest-competition-wrap/);
