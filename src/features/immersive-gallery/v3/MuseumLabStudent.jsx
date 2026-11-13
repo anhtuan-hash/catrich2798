@@ -20,8 +20,8 @@ function GuestEntry({onRedeem,busy,error,language}){
  const [handle,setHandle]=useState(getHandle),[secret,setSecret]=useState('');
  return <div className="bml-guest-entry" data-testid="museum-student-entry">
   <div className="bml-guest-illustration"><div className="bml-guest-overline"><Landmark size={27}/><b>BRIAN Museum Lab</b></div>
-   <div className="bml-guest-globe" aria-hidden="true">🌍</div>
-   <h1>{T(language,'Bảo tàng của nhóm em bắt đầu tại đây.','Your group museum starts here.')}</h1>
+   <div className="bml-guest-globe" aria-hidden="true"><Landmark size={82}/><Leaf size={35}/></div>
+   <h1>{T(language,'Bảo tàng của nhóm em bắt đầu tại đây.','Build a museum from your evidence.')}</h1>
    <p>{T(language,'Khám phá vấn đề · Viết bằng tiếng Anh · Trưng bày 3D','Explore an issue · Write in English · Create in 3D')}</p>
    <div className="bml-guest-benefits"><span><Check size={16}/>{T(language,'Không tạo tài khoản','No account needed')}</span>
     <span><Check size={16}/>{T(language,'Tự động lưu bài','Automatic saving')}</span></div>
@@ -153,7 +153,7 @@ export default function MuseumLabStudent({language='en'}){
    await load();setNotice(T(language,'Bài đã nộp. Giáo viên sẽ kiểm tra và chuyển TTCM duyệt.','Submitted for Admin review. You can revise if the submission is returned.'));
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
- if(!session)return <div className="bml bml-student-shell" lang={language}><GuestEntry onRedeem={redeem} busy={busy} error={error} language={language}/></div>;
+ if(!session)return <div className="bml bml-student-shell bml-student-editorial" lang={language}><GuestEntry onRedeem={redeem} busy={busy} error={error} language={language}/></div>;
  const l=studio.learning,doc=documentFromStudio(studio),room=doc.rooms[0];
  const exhibitStatus=()=>[l.issue,l.evidence,l.solution].filter(Boolean).length;
  const progressChecks=[!!studio.title,!!l.issue,!!l.evidence,!!l.solution,!!l.source,!!l.feedback,!!l.improvement,!!l.tested,!!l.reflection];
