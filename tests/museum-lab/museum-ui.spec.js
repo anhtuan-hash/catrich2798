@@ -1231,6 +1231,7 @@ test('Project pages scroll inside the 16:9 workbench without overlapping labels 
  await page.route('**/api/gallery-guest/live?**',route=>route.fulfill({json:{session:null,survey:null}}));
  for(const viewport of [{width:1366,height:768},{width:1536,height:960}]){
   await page.setViewportSize(viewport);
+  await page.goto('/tests/museum-lab/v3.html');
   await page.getByTestId('qa-student-en').click();
   const app=page.getByTestId('museum-student-wizard');
   const scroll=app.getByTestId('student-task-scroll');
