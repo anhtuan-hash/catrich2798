@@ -83,7 +83,7 @@
 }
 .bml-student-editorial .bml-student-steps{gap:2px;padding:0}
 .bml-student-editorial .bml-student-steps button{
- min-height:60px;padding:3px 2px;gap:2px;color:#758580;
+ min-height:60px;padding:3px 2px;gap:2px;color:#576e66;
 }
 .bml-student-editorial .bml-student-steps button:before{
  height:1px;background:#c5d0c9;top:17px;
@@ -343,11 +343,11 @@
  -webkit-line-clamp:3;margin:3px 0;
 }
 .bml-student-editorial .bml-student-heading>p{
- color:#697b76;font-size:clamp(11px,.82vw,13px);
+ color:#526960;font-size:clamp(11px,.85vw,13px);
  line-height:1.42;-webkit-line-clamp:3;
 }
 .bml-student-editorial .bml-student-heading>small{
- color:#789089;font-size:10px;line-height:1.35;
+ color:#536b62;font-size:11px;line-height:1.35;
 }
 .bml-student-editorial .bml-student-project-art{
  background:#e8efe7;border:1px solid #d6e2d6;
@@ -382,7 +382,7 @@
  font-weight:760;font-size:12px;box-shadow:none;
  background:transparent;border:1px solid #c0d1c5;
 }
-.bml-student-editorial .bml-student-real-data-note{font-size:10px;color:#788781}
+.bml-student-editorial .bml-student-real-data-note{font-size:10px;color:#536b62}
 .bml-student-editorial .bml-student-projectrail>.bml-student-guide{
  background:#f6f0e2;border:1px solid #e0d6c0;
  padding:14px;flex:0 1 auto;max-height:31%;
@@ -398,7 +398,7 @@
  margin:5px 0;font-weight:600;
 }
 .bml-student-editorial .bml-student-guide p{
- color:#6a7469;line-height:1.32;font-size:11px;
+ color:#52675b;line-height:1.4;font-size:11px;
  -webkit-line-clamp:2;margin:4px 0;
 }
 .bml-student-editorial .bml-student-guide .bml-english-chip{
