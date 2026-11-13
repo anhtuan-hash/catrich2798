@@ -1070,3 +1070,58 @@ test('fullscreen can switch lesson stages and open presenter explanation without
  await expect(panel).toHaveAttribute('data-active-tool','voice');
  await dock.getByRole('button',{name:/Thoát/}).click();
 });
+
+test('V5.2 command center shows ten groups and filters peer feedback without long page lists',async({page})=>{
+ await page.setViewportSize({width:1440,height:900});
+ await page.getByTestId('qa-teacher-live-ten-en').click();
+ await page.getByRole('button',{name:/Start lesson/}).click();
+ const board=page.getByTestId('museum-class-command');
+ await expect(board).toBeVisible();
+ await expect(board.locator('.bml-cc-group')).toHaveCount(10);
+ await expect(board.getByText('Classroom Command Center')).toBeVisible();
+ await expect(board.getByText('Activity responses')).toBeVisible();
+ await expect(board.getByText('Need help')).toBeVisible();
+ await board.getByRole('button',{name:/Group 02/}).click();
+ await expect(board.getByRole('heading',{name:'Group 02'})).toBeVisible();
+ await expect(board.getByRole('tab',{name:'Received (2)'})).toBeVisible();
+ await expect(board.getByText('The marked crossing makes the safety concern visible')).toBeVisible();
+ await board.getByRole('tab',{name:'Sent (1)'}).click();
+ await expect(board.getByText('The canteen exhibit explains why personal meal records')).toBeVisible();
+ await board.getByRole('button',{name:/Group 07/}).click();
+ await expect(board.getByRole('tab',{name:'Received (1)'})).toBeVisible();
+ const geometry=await board.evaluate(el=>{
+  const r=el.getBoundingClientRect();
+  return {ratio:r.height/r.width,overflow:el.scrollWidth>el.clientWidth+3};
+ });
+ expect(geometry.ratio).toBeGreaterThan(.5);
+ expect(geometry.ratio).toBeLessThan(.73);
+ expect(geometry.overflow).toBe(false);
+ await board.getByRole('button',{name:/Spotlight Group 07/}).click();
+ await expect(page.getByText('GROUP SPOTLIGHT')).toBeVisible();
+});
+
+test('V5.2 fullscreen groups tool stays inside projection surface and supports selected group',async({page})=>{
+ await page.setViewportSize({width:1366,height:768});
+ await page.getByTestId('qa-teacher-live-ten-en').click();
+ await page.getByRole('button',{name:/Start lesson/}).click();
+ await page.getByRole('button',{name:/Fullscreen/}).click();
+ await expect.poll(()=>page.evaluate(()=>Boolean(document.fullscreenElement))).toBe(true);
+ const dock=page.getByTestId('museum-fullscreen-toolbar');
+ await dock.getByRole('button',{name:'Groups'}).click();
+ const panel=page.getByTestId('museum-fullscreen-panel');
+ await expect(panel).toBeVisible();
+ const board=panel.getByTestId('museum-class-command');
+ await expect(board.locator('.bml-cc-group')).toHaveCount(10);
+ const bounds=await panel.evaluate(el=>{
+  const r=el.getBoundingClientRect();
+  return {widthRatio:r.width/window.innerWidth,inside:r.right<=window.innerWidth+2,
+   vertical:r.bottom<=window.innerHeight+2};
+ });
+ expect(bounds.widthRatio).toBeGreaterThan(.8);
+ expect(bounds.inside).toBe(true);
+ expect(bounds.vertical).toBe(true);
+ await board.getByRole('button',{name:/Group 03/}).click();
+ await expect(board.getByRole('heading',{name:'Group 03'})).toBeVisible();
+ await panel.getByRole('button',{name:'Close presenter panel'}).click();
+ await expect(panel).toHaveCount(0);
+});
