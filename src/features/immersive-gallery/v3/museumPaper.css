@@ -1,0 +1,165 @@
+/* Museum-only paper layer. No selectors target Brian's global navigation. */
+@font-face{font-family:MuseumHand;src:url('/assets/museum-paper/dancing-script.ttf') format('truetype');font-display:swap;font-weight:700}
+.bml.bml-app-layout.bml-paper{--bml-text:#102b58;--bml-muted:#536684;--bml-primary:#1742ab;--bml-radius:18px;--museum-grain:url('/assets/dashboard-scrapbook/paper-grain.svg');--museum-rim:url('/assets/museum-paper/paper-rim.svg');--museum-lift:0 5px 0 #578eaf24,0 9px 15px #245b7830;display:block;background:var(--museum-grain),#b2e3fa;border:0;border-radius:16px;overflow:clip;min-height:0;color:var(--bml-text);padding:0 0 18px}
+.bml-paper :is(h1,h2,h3,h4){color:#102b58}
+.bml.bml-app-layout.bml-paper>.bml-main-panel{width:100%;background:transparent;grid-column:1;grid-row:1}
+.bml.bml-app-layout.bml-paper .bml-page{padding:0 clamp(14px,2.2vw,30px) 10px;max-width:1560px}
+.bml-paper .bml-paper-header{padding:0 clamp(14px,2.2vw,30px);width:100%;max-width:1560px;margin:auto}
+.bml-paper .bml-paper-hero{position:relative;isolation:isolate;margin:0 calc(-1 * clamp(14px,2.2vw,30px));aspect-ratio:4.2/1;display:flex;align-items:center}
+.bml-paper .bml-paper-hero-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1}
+.bml-paper .bml-paper-hero-copy{width:50%;padding:15px 2.5% 20px 5%;text-align:center}
+.bml-paper .bml-paper-wordmark{display:flex;gap:10px;align-items:center;justify-content:center;color:#102b58;font-size:clamp(19px,2.35vw,34px);font-weight:850;line-height:1.2}
+.bml-paper .bml-paper-wordmark svg{flex:none;width:clamp(32px,4vw,58px);height:clamp(32px,4vw,58px);stroke:#b85a13;fill:#ffdfa3;filter:drop-shadow(0 2px 0 white) drop-shadow(0 3px 2px #8f583f44);transform:rotate(-7deg)}
+.bml-paper .bml-paper-ribbon{display:inline-block;background:linear-gradient(170deg,#ff779a,#d92e67);padding:6px 20px;margin:6px 0 5px;color:#fff;font-size:clamp(12px,1.35vw,20px);font-weight:750;box-shadow:0 3px 0 #b63d5d30;clip-path:polygon(2% 0,100% 0,97% 50%,100% 100%,0 100%,3% 48%);transform:rotate(-1deg)}
+.bml-paper .bml-paper-hero h1{font-family:MuseumHand,'Segoe Print',cursive;font-weight:700;font-size:clamp(31px,4.3vw,62px);line-height:1.1;letter-spacing:-.035em;margin:2px -5% 0;color:#102b58;transform:rotate(-3deg)}
+.bml-paper .bml-paper-hero p{font-size:clamp(12px,1.45vw,20px);line-height:1.45;color:#14366b;margin:12px auto 0;max-width:95%}
+.bml-paper .bml-paper-building-label{position:absolute;left:63.5%;top:33.5%;width:10%;text-align:center;font-size:clamp(10px,1.1vw,17px);font-weight:900;white-space:nowrap;line-height:1.02;color:#132b64;transform:rotate(-.5deg)}
+.bml-paper .bml-paper-compact-brand{display:flex;align-items:center;gap:12px;padding:22px 4px;color:#15386c;font-size:22px}
+.bml-paper .bml-paper-compact-brand>span{font-size:14px;margin-left:auto;color:#35577a}
+.bml-paper .bml-paper-nav{position:relative;display:grid;grid-template-columns:1fr 1fr 1fr 1.35fr;gap:10px;background:var(--museum-grain),#fff4df;border:10px solid transparent;border-image:var(--museum-rim) 12 / 10px / 3px round;border-radius:22px;box-shadow:var(--museum-lift);padding:10px 16px;margin:0 0 14px;isolation:isolate}
+.bml-paper .bml-paper-nav::before{content:'';position:absolute;inset:2px;border:2px dashed #a387d4;border-radius:16px;z-index:-1;pointer-events:none}
+.bml-paper .bml-paper-nav button{min-width:0;min-height:64px;border:0;background:transparent;color:#143467;display:flex;align-items:center;justify-content:center;gap:12px;font-weight:800;font-size:clamp(16px,1.75vw,25px);padding:7px 12px;border-radius:14px;position:relative;line-height:1.25;transition:background .15s,transform .15s}
+.bml-paper .bml-paper-nav button+button::before{content:'';position:absolute;left:-6px;height:40px;border-left:1px solid #475b9a66}
+.bml-paper .bml-paper-nav button>svg{width:39px;height:39px;flex:none;stroke:#5347bf;filter:drop-shadow(1px 2px 0 #fff)}
+.bml-paper .bml-paper-nav button:hover{background:#fff2bf}
+.bml-paper .bml-paper-nav button.is-active{background:var(--museum-grain),#ffe483;box-shadow:0 3px 1px #aa761c26;transform:rotate(-1deg);color:#163a9a}
+.bml-paper .bml-paper-nav button.is-active::after{content:'';position:absolute;bottom:3px;left:37%;right:15%;height:3px;background:#efac29;border-radius:60%;transform:rotate(2deg)}
+.bml-paper .bml-paper-count{font-size:12px;border-radius:99px;background:#b53167;color:white;padding:2px 7px;min-width:22px}
+.bml-paper .bml-paper-toolbar{display:flex;align-items:center;gap:12px;margin:8px 0 19px;flex-wrap:wrap}
+.bml-paper .bml-paper-tools{display:flex;gap:4px;flex-wrap:wrap}
+.bml-paper .bml-paper-tools button{display:flex;align-items:center;gap:6px;padding:8px 10px;min-height:38px;border:1px solid #ffffffb0;border-radius:12px;background:#f4fbffb5;color:#27466f;font-size:12px;font-weight:650}
+.bml-paper .bml-paper-tools button:hover,.bml-paper .bml-paper-tools button.is-active{background:#fff7db;border-color:#d4bc76;color:#143467}
+.bml-paper .bml-paper-search{display:flex;align-items:center;gap:8px;margin-left:auto;max-width:260px;flex:1;min-width:170px;border:1px solid #fff;background:#f4fbffe6;border-radius:12px;padding:0 10px;height:38px;color:#385479}
+.bml-paper .bml-paper-search input{width:100%;min-width:0;border:0;background:transparent;color:#15386c;outline-offset:2px;font-size:13px}
+.bml-paper .bml-paper-search input::placeholder{color:#526986}
+.bml-paper .bml-paper-search button{border:0;background:transparent;color:#2d4d77;min-width:30px;height:34px}
+.bml-paper .bml-paper-utilities{display:flex;gap:5px}
+.bml-paper .bml-paper-utilities button{display:grid;place-items:center;width:38px;height:38px;border:1px solid #fff;background:#f4fbffe6;border-radius:12px;color:#27466f}
+.bml-paper .bml-paper-utilities button:hover{background:#fff7db}
+.bml-paper .bml-dashboard{gap:28px}
+.bml-paper .bml-quick-actions{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:22px}
+.bml-paper .bml-quick-card{min-height:112px;border:8px solid transparent;border-image:var(--museum-rim) 12 / 8px / 3px round;border-radius:23px;background:var(--museum-grain),#fce0ee;box-shadow:var(--museum-lift);padding:15px 12px;gap:14px;color:#132e62;transition:transform .15s,box-shadow .15s}
+.bml-paper .bml-quick-card.bml-quick-submissions{background-color:#e9dfff}
+.bml-paper .bml-quick-card.bml-quick-gallery{background-color:#d8f1e6;grid-column:auto}
+.bml-paper .bml-quick-card:hover{transform:translateY(-3px) rotate(-.5deg);box-shadow:0 6px 0 #578eaf24,0 12px 18px #245b783b}
+.bml-paper .bml-quick-card strong{font-size:clamp(16px,1.4vw,20px);line-height:1.25;color:#15336b}
+.bml-paper .bml-quick-card small{font-size:12px;color:#304e76;line-height:1.45}
+.bml-paper .bml-quick-icon{height:64px;width:64px;border:4px solid #fffdf6;border-radius:10px;background:var(--museum-grain),#fff3bd;box-shadow:2px 4px 0 #bda56566,0 5px 8px #4b3e7424;transform:rotate(-9deg);color:#7157bd}
+.bml-paper .bml-quick-icon svg{width:42px;height:42px;stroke-width:1.65;filter:drop-shadow(1px 2px 0 #fff)}
+.bml-paper .bml-quick-card.bml-quick-submissions .bml-quick-icon{background-color:#ffe186;color:#8b55cd;transform:rotate(7deg)}
+.bml-paper .bml-quick-card.bml-quick-gallery .bml-quick-icon{background-color:#e4f6ff;color:#2b956a;transform:rotate(-6deg);border-color:#ffc76d}
+.bml-paper .bml-quick-card>svg:last-child{width:34px;height:34px;padding:7px;background:#fff;border-radius:50%;box-shadow:0 3px 4px #31456820;color:#263983}
+.bml-paper .bml-surface{background:var(--museum-grain),#fffaf1;border-color:#fef9ed;box-shadow:0 4px 0 #578eaf1a,0 7px 15px #245b7820}
+.bml-paper .bml-paper-recents{position:relative;border:10px solid transparent;border-image:var(--museum-rim) 12 / 10px / 4px round;border-radius:24px;padding:16px 22px 23px;box-shadow:var(--museum-lift);isolation:isolate}
+.bml-paper .bml-paper-recents::before{content:'';position:absolute;inset:4px;border:2px dashed #ad8bcf;border-radius:20px;pointer-events:none;z-index:-1}
+.bml-paper .bml-paper-recents::after{content:'';position:absolute;right:17px;top:-17px;width:18px;height:28px;border-radius:8px 8px 6px 6px;background:linear-gradient(90deg,#ec4b80,#ff9bbd,#e83f76);border:3px solid white;transform:rotate(25deg);box-shadow:0 4px 3px #a9395850;pointer-events:none}
+.bml-paper .bml-paper-recents .bml-section-head{align-items:center;margin:0 0 12px;gap:12px}
+.bml-paper .bml-paper-section-title{display:flex;align-items:center;background:var(--museum-grain),#ffe69a;padding:3px 24px 3px 0;border-radius:9px 35% 15px 8px;box-shadow:0 3px 2px #b6924b33;transform:rotate(-1deg);margin-top:-28px}
+.bml-paper .bml-paper-section-title img{width:72px;height:72px;margin:-6px 12px -4px -8px;transform:rotate(-7deg)}
+.bml-paper .bml-paper-section-title h2{font-size:clamp(21px,2.15vw,31px);color:#17366a}
+.bml-paper .bml-paper-recents .bml-text-btn{background:var(--museum-grain),#fff0bc;color:#24449e;border-radius:7px;min-height:39px;padding:7px 14px;transform:rotate(-2deg)}
+.bml-paper .bml-paper-recents .bml-table{font-size:14px;color:#163360}
+.bml-paper .bml-paper-recents .bml-table th{background:#f2e5ccaa;color:#39445d;font-size:12px;padding:9px 12px}
+.bml-paper .bml-paper-recents .bml-table td{border-bottom:1px solid #dfd0b8aa;padding:13px 12px}
+.bml-paper .bml-paper-recents .bml-lesson-link{color:#153467;gap:13px}
+.bml-paper .bml-paper-recents .bml-lesson-link strong{font-size:15px}
+.bml-paper .bml-paper-recents .bml-table small{color:#3c547c;font-size:12px}
+.bml-paper .bml-paper-recents .bml-class-tag{background:#cfddff;border-radius:99px;color:#2343ac;white-space:nowrap}
+.bml-paper .bml-paper-recents .bml-progress{max-width:175px;min-width:100px;background:#d3dced}
+.bml-paper .bml-paper-recents .bml-progress div{background:#1db74f}
+.bml-paper .bml-paper-deadline{display:inline-flex;align-items:center;gap:9px;white-space:nowrap}
+.bml-paper .bml-primary{background:#2149ac}
+.bml-paper .bml-primary:hover{background:#173887}
+.bml-paper :is(button,a,input,select,textarea,[tabindex]):focus-visible{outline:3px solid #2a4eac;outline-offset:3px}
+.bml-paper.bml-is-exhibition{grid-template-columns:minmax(0,1fr)}
+
+/* The reference's handwritten greeting is decorative; body text follows Brian's font setting. */
+html body #root#root#root .bml-paper .bml-paper-hero h1{font-family:MuseumHand,'Segoe Print',cursive!important}
+
+/* Continue the Museum paper palette through the existing shared footer only. */
+html body #root#root#root .app-shell[data-tool="immersive-gallery"]:has(.bml-paper){
+ background:url('/assets/dashboard-scrapbook/paper-grain.svg'),#b2e3fa !important;
+ & > footer.signature-footer-v50{--museum-rim:url('/assets/museum-paper/paper-rim.svg');position:relative!important;max-width:1540px!important;width:var(--bes-unified-stage-width,100%)!important;margin:0 auto!important;padding:12px clamp(14px,2.2vw,30px) 25px!important;border:0!important;background:transparent!important;box-shadow:none!important;color:#143467!important;}
+ & #english-hub-footer-details{padding:0!important;background:transparent!important;border:0!important;}
+ & .signature-footer-v50-main{display:grid!important;grid-template-columns:1fr 1fr 1.18fr!important;gap:24px!important;align-items:stretch!important;width:100%!important;max-width:none!important;margin:0!important;}
+ & #english-hub-footer-details .signature-footer-v50-main>section{background:url('/assets/dashboard-scrapbook/paper-grain.svg'),var(--museum-footer-paper,#fffaf5)!important;border:9px solid transparent!important;border-image:var(--museum-rim) 12 / 9px / 3px round!important;border-radius:21px!important;padding:22px 19px!important;min-width:0!important;min-height:0!important;margin:0!important;box-shadow:0 5px 0 #578eaf24,0 9px 15px #245b7829!important;}
+ & .signature-footer-v50-main>.signature-footer-v50-profile{--museum-footer-paper:#ece2ff;}
+ & .signature-footer-v50-main>.signature-footer-v50-credentials{--museum-footer-paper:#fff1d5;}
+ & .signature-footer-v50-brand{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;align-content:center!important;align-items:center!important;justify-content:center!important;gap:14px!important;}
+ & .signature-footer-v50-brand::after{content:'Better Learners · Brighter Futures'!important;display:block!important;position:static!important;flex-basis:100%;width:auto!important;height:auto!important;background:none!important;color:#163a70!important;font:italic 14px/1.4 Georgia,serif!important;text-align:center;}
+ & .signature-footer-v50-brian-logo{width:110px!important;height:130px!important;max-height:none!important;max-width:38%!important;object-fit:contain!important;}
+ & .signature-footer-v50-affiliations{display:flex!important;align-items:center!important;justify-content:center!important;gap:10px!important;width:auto!important;padding:0!important;margin:0!important;flex:1;}
+ & .signature-footer-v50-affiliations img{height:64px!important;width:auto!important;max-width:65px!important;object-fit:contain!important;}
+ & .signature-footer-v50-logo-divider{height:50px!important;}
+ & .signature-footer-v50-language-badge{display:none!important;}
+ & .signature-footer-v50-profile h2{background:#ffe391!important;color:#15366c!important;padding:8px 10px!important;font-size:clamp(16px,1.4vw,22px)!important;line-height:1.3!important;margin:0 0 12px!important;transform:rotate(-1deg);box-shadow:0 3px 0 #c5a94b24;}
+ & .signature-footer-v50-main ul{padding:0!important;margin:0!important;}
+ & .signature-footer-v50-main li{font-size:13px!important;line-height:1.5!important;color:#223d68!important;padding:4px 0!important;min-height:0!important;}
+ & .signature-footer-v50-section-label{display:block!important;font-size:clamp(14px,1.3vw,19px)!important;color:#a83225!important;margin:0 0 12px!important;line-height:1.35!important;}
+ & .signature-footer-v50-star{color:#e6a014!important;}
+ & .signature-footer-v50::before,& .signature-footer-v50::after,& .signature-footer-dashboard-landscape{display:none!important;}
+ & .signature-footer-dashboard-artwork{display:flex!important;justify-content:flex-end!important;position:relative!important;inset:auto!important;height:auto!important;padding:15px 0 0!important;pointer-events:none;}
+ & .signature-footer-dashboard-signoff{position:static!important;display:block!important;width:auto!important;padding:4px 15px!important;background:#fff9ec!important;box-shadow:0 3px 5px #3e719d22!important;border:2px solid white!important;transform:rotate(-2deg);color:#143467!important;font:700 22px/1.3 MuseumHand,cursive!important;}
+ & .signature-footer-static-summary{background:transparent!important;padding:15px 0 0!important;margin:0 auto!important;min-height:0!important;}
+ & .bes-portfolio-footer-trigger{background:#fff9ec!important;color:#163a70!important;border:3px solid white!important;border-radius:14px!important;box-shadow:0 4px 8px #3e719d22!important;}
+}
+@media(min-width:1560px){.bml-paper .bml-paper-hero h1{font-size:62px}}
+@media(max-width:1100px){
+ .bml-paper .bml-quick-actions{gap:15px}
+ .bml-paper .bml-quick-card{gap:9px;padding:13px 8px}
+ .bml-paper .bml-quick-icon{width:49px;height:56px}
+ .bml-paper .bml-quick-icon svg{width:33px;height:33px}
+ .bml-paper .bml-quick-card>svg:last-child{width:28px;height:28px;padding:5px}
+ .bml-paper .bml-paper-nav{gap:8px;padding:8px}
+ .bml-paper .bml-paper-nav button{gap:9px;padding:6px}
+ .bml-paper .bml-paper-nav button>svg{width:31px;height:31px}
+ html body #root#root#root .app-shell[data-tool="immersive-gallery"]:has(.bml-paper) .signature-footer-v50-main{gap:16px!important;grid-template-columns:1fr 1fr!important}
+ html body #root#root#root .app-shell[data-tool="immersive-gallery"]:has(.bml-paper) .signature-footer-v50-credentials{grid-column:1/-1}
+}
+@media(max-width:760px){
+ .bml-paper .bml-paper-hero{aspect-ratio:auto;min-height:280px;overflow:hidden}
+ .bml-paper .bml-paper-hero-image{object-fit:cover;object-position:58% center;opacity:.75}
+ .bml-paper .bml-paper-hero-copy{width:65%;margin:18px 0 18px 3%;padding:20px 10px;background:#fff7e9ed;border:5px solid #fffdf4;border-radius:25% 8% 18% 9%;box-shadow:0 5px 12px #23557824}
+ .bml-paper .bml-paper-wordmark{font-size:20px;gap:6px}
+ .bml-paper .bml-paper-wordmark svg{width:32px;height:32px}
+ .bml-paper .bml-paper-hero h1{font-size:44px;letter-spacing:-.03em;margin:9px 0}
+ .bml-paper .bml-paper-hero p{font-size:14px;max-width:290px}
+ .bml-paper .bml-paper-ribbon{font-size:13px;padding:6px 12px}
+ .bml-paper .bml-paper-building-label{display:none}
+ .bml-paper .bml-paper-nav{grid-template-columns:1fr 1fr;padding:5px;gap:6px}
+ .bml-paper .bml-paper-nav button{min-height:55px;font-size:16px;gap:9px;padding:8px 10px}
+ .bml-paper .bml-paper-nav button+button::before{display:none}
+ .bml-paper .bml-paper-nav button>svg{width:27px;height:27px}
+ .bml-paper .bml-paper-toolbar{gap:8px;margin-bottom:22px}
+ .bml-paper .bml-paper-tools{width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+ .bml-paper .bml-paper-tools button{justify-content:center;flex-direction:column;gap:3px;font-size:11px;line-height:1.3;padding:7px 3px;min-height:49px}
+ .bml-paper .bml-paper-search{max-width:none;margin-left:0;height:42px}
+ .bml-paper .bml-paper-utilities button{width:42px;height:42px}
+ .bml-paper .bml-quick-actions{grid-template-columns:1fr;gap:17px}
+ .bml-paper .bml-quick-card{min-height:96px;padding:12px 17px;gap:18px}
+ .bml-paper .bml-quick-icon{width:59px;height:59px}
+ .bml-paper .bml-quick-card strong{font-size:20px}
+ .bml-paper .bml-quick-card small{font-size:13px}
+ .bml-paper .bml-quick-card>svg:last-child{width:33px;height:33px}
+ .bml-paper .bml-dashboard{gap:32px}
+ .bml-paper .bml-paper-recents{padding:12px 9px 17px}
+ .bml-paper .bml-paper-section-title{padding:3px 15px 3px 0}
+ .bml-paper .bml-paper-section-title img{height:51px;width:51px;margin-left:-5px;margin-right:7px}
+ .bml-paper .bml-paper-section-title h2{font-size:22px}
+ .bml-paper .bml-paper-recents .bml-text-btn{margin-left:auto;font-size:12px;min-height:36px}
+ .bml-paper .bml-paper-recents .bml-table{min-width:730px}
+ .bml-paper .bml-paper-recents .bml-responsive-table:focus-visible{outline-offset:-3px}
+ .bml-paper .bml-paper-compact-brand{font-size:19px;flex-wrap:wrap;padding:18px 2px}
+ .bml-paper .bml-paper-compact-brand>span{width:100%;margin:0;font-size:13px}
+ html body #root#root#root .app-shell[data-tool="immersive-gallery"]:has(.bml-paper) .signature-footer-v50-main{grid-template-columns:1fr!important;gap:20px!important}
+ html body #root#root#root .app-shell[data-tool="immersive-gallery"]:has(.bml-paper) .signature-footer-v50-credentials{grid-column:auto}
+}
+@media(max-width:430px){
+ .bml-paper .bml-paper-hero-copy{width:82%;margin-left:4%;padding:20px 8px}
+ .bml-paper .bml-paper-hero h1{font-size:43px}
+ .bml-paper .bml-paper-hero-image{object-position:65% center}
+ .bml-paper .bml-paper-nav button{font-size:14px;padding:8px 4px;gap:7px}
+ .bml-paper .bml-quick-card strong{font-size:18px}
+}
+@media(prefers-reduced-motion:reduce){.bml-paper *{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+@media print{.bml-paper .bml-paper-header{display:none}.bml.bml-app-layout.bml-paper{background:white;padding:0}.bml-paper .bml-surface{box-shadow:none;background:white}}

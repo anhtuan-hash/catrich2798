@@ -1,6 +1,6 @@
 import React,{useState} from 'react';
 import {createRoot} from 'react-dom/client';
-import MuseumDashboard from '../../src/features/immersive-gallery/v3/MuseumDashboard.jsx';
+import MuseumLabApp from '../../src/features/immersive-gallery/v3/MuseumLabApp.jsx';
 import MuseumLiveTeacher from '../../src/features/immersive-gallery/v3/MuseumLiveTeacher.jsx';
 import MuseumArtworkStudio from '../../src/features/immersive-gallery/v3/MuseumArtworkStudio.jsx';
 import MuseumLiveStudent from '../../src/features/immersive-gallery/v3/MuseumLiveStudent.jsx';
@@ -37,6 +37,7 @@ const preparedQa={
  }))),
  reviews:[]
 };
+const demoDashboardApi=async()=>synthetic;
 const submittedQa={
  ...synthetic,
  reviews:[{id:'review-qa-1',group_id:'group-1',version:1,state:'submitted',
@@ -91,8 +92,8 @@ function Harness(){
    <strong>QA ONLY · ALL DATA SYNTHETIC</strong>
    {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','published-lesson','dashboard-en','student-en','teacher-live-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
   </div>
-  <div className="bml">
-   {normalized==='dashboard'?<MuseumDashboard data={synthetic} onNavigate={setScreen} onCreate={()=>setScreen('wizard')} onDemo={()=>setScreen('scene')} language={uiLanguage}/>:null}
+  <div className={normalized==='dashboard'?'':'bml'}>
+   {normalized==='dashboard'?<MuseumLabApp language={uiLanguage} currentUser={{id:'teacher-synthetic',name:'Demo Teacher'}} transport={demoDashboardApi}/>:null}
    {normalized==='student'?<MuseumLabStudent language={uiLanguage}/>:null}
    {normalized==='admin-review'?<Submissions data={submittedQa} language={uiLanguage} onNavigate={setScreen} onRefresh={async()=>{}}/>:null}
    {normalized==='published-lesson'?<LessonsList

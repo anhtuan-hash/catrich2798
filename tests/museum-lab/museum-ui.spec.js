@@ -8,11 +8,52 @@ test.beforeEach(async({page})=>{
  console.log('[museum-browser-nav]',response?.status(),await page.title());
  await expect(page.getByTestId('qa-harness')).toBeVisible();
 });
-test('approved Google-inspired dashboard has clear actions and real-label synthetic progress',async({page})=>{
+test('paper dashboard has clear actions and real-label synthetic progress',async({page})=>{
  await expect(page.getByTestId('museum-dashboard')).toBeVisible();
  await expect(page.getByText('Chào mừng trở lại!')).toBeVisible();
  await expect(page.getByText('Synthetic Climate Action Museum')).toBeVisible();
  await expect(page.getByRole('button',{name:/Tạo bài học mới/})).toBeVisible();
+});
+test('paper dashboard preserves the current English interface',async({page})=>{
+ await page.getByTestId('qa-dashboard-en').click();
+ await expect(page.getByRole('heading',{name:'Welcome back!',exact:true})).toBeVisible();
+ const app=page.getByTestId('brian-museum-lab-v3');
+ await expect(app).toHaveAttribute('lang','en');
+ await expect(app.getByRole('navigation',{name:'Museum Lab navigation'}).getByRole('button')).toHaveCount(4);
+ await expect(app.getByRole('button',{name:/Create a lesson/})).toBeVisible();
+ await expect(app).toContainText('Exit Tickets:');
+ await expect(app).not.toContainText('Chào mừng');
+});
+test('paper navigation reaches real screens and search keeps the lesson filter',async({page})=>{
+ const nav=page.getByRole('navigation',{name:'Điều hướng Museum Lab',exact:true});
+ await expect(nav.getByRole('button')).toHaveCount(4);
+ await nav.getByRole('button',{name:'Kế hoạch bài dạy',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Tạo bài học từ kế hoạch này'})).toBeVisible();
+ await nav.getByRole('button',{name:'Bài nộp',exact:true}).click();
+ await expect(nav.getByRole('button',{name:'Bài nộp',exact:true})).toHaveAttribute('aria-current','page');
+ await nav.getByRole('button',{name:'Triển lãm',exact:true}).click();
+ await expect(nav.getByRole('button',{name:'Triển lãm',exact:true})).toHaveAttribute('aria-current','page');
+ await page.getByRole('button',{name:'Tổng quan',exact:true}).click();
+ await page.getByLabel('Tìm bài học',{exact:true}).fill('no matching lesson');
+ await page.getByRole('button',{name:'Tìm kiếm',exact:true}).click();
+ await expect(page.getByText('Synthetic Climate Action Museum',{exact:true})).toHaveCount(0);
+ await page.getByLabel('Tìm bài học',{exact:true}).fill('Synthetic');
+ await expect(page.getByText('Synthetic Climate Action Museum',{exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Tổng quan',exact:true}).click();
+ await page.getByRole('button',{name:'Trợ giúp',exact:true}).click();
+ await expect(page.getByRole('dialog',{name:'Hướng dẫn Museum Lab'})).toBeVisible();
+});
+test('paper dashboard fits the viewport and its decorative assets load',async({page},testInfo)=>{
+ const hero=page.locator('.bml-paper-hero-image');
+ await expect(hero).toBeVisible();
+ await expect.poll(()=>hero.evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+ await expect(page.locator('.bml-bottom-grid')).toHaveCount(0);
+ await expect(page.getByText('DẠY TRỰC TIẾP KHÔNG CẦN POWERPOINT')).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'Dạy trực tiếp',exact:true})).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
+ await page.screenshot({path:testInfo.outputPath('museum-paper-dashboard.png'),fullPage:true});
+ await page.getByRole('button',{name:/Tạo bài học mới/}).click();
+ await expect(page.getByTestId('museum-lesson-wizard')).toBeVisible();
 });
 test('English-only student route shows only English access, privacy and passcode instructions',async({page})=>{
  await page.getByTestId('qa-student-en').click();
@@ -817,6 +858,19 @@ test('frozen survey chart uploads real computed PNG instead of an empty evidence
  expect(received.png).toMatch(/^data:image\/png;base64,/);expect(received.png.length).toBeGreaterThan(2000);
 });
 
+test('paper footer integrates with existing site styles without page overflow',async({page},testInfo)=>{
+ await page.goto('/tests/museum-lab/paper.html');
+ await expect(page.getByTestId('museum-dashboard')).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Chào mừng trở lại!'})).toBeVisible();
+ const footer=page.locator('footer[data-app-shell-footer]');
+ await expect(footer).toBeVisible();
+ await expect(footer.locator('.signature-footer-v50-main>section')).toHaveCount(3);
+ await expect(footer.getByRole('heading',{name:'NGUYỄN ANH TUẤN (MR.)',exact:true})).toBeVisible();
+ await page.evaluate(()=>document.fonts.ready);
+ await expect(page.locator('.bml-paper-hero h1')).toHaveCSS('font-family',/MuseumHand/);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
+ await page.screenshot({path:testInfo.outputPath('museum-paper-footer.png'),fullPage:true});
+});
 
 test('Admin directly manages assignments and submitted work without delegating a reviewer',async({page})=>{
  await page.getByTestId('qa-wizard').click();
