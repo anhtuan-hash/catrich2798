@@ -81,10 +81,10 @@ export default function MuseumExhibitFocusRig({focus,board,onBack,lite=false}){
   stage.current.position.y=0;
   stage.current.scale.setScalar(1);
   stage.current.visible=p>.002;
-  if(pedestalGroup.current)pedestalGroup.current.scale.y=Math.max(.001,p);
+  if(pedestalGroup.current)pedestalGroup.current.scale.set(layout.pedestalScale||1,Math.max(.001,p),layout.pedestalScale||1);
   if(boardGroup.current){
    boardGroup.current.position.y=layout.board[1]-.24*(1-p);
-   boardGroup.current.scale.setScalar(Math.max(.001,p));
+   boardGroup.current.scale.setScalar(Math.max(.001,p*(layout.boardScale||1)));
   }
   if(Math.abs(motion.current-desired)>.0001)invalidate();
  });
