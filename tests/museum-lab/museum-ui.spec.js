@@ -14,6 +14,27 @@ test('approved Google-inspired dashboard has clear actions and real-label synthe
  await expect(page.getByText('Synthetic Climate Action Museum')).toBeVisible();
  await expect(page.getByRole('button',{name:/Tạo bài học mới/})).toBeVisible();
 });
+test('English-only student route shows only English access, privacy and passcode instructions',async({page})=>{
+ await page.getByTestId('qa-student-en').click();
+ const entry=page.getByTestId('museum-student-entry');
+ await expect(entry).toBeVisible();
+ await expect(entry.getByRole('heading',{name:'Start creating'})).toBeVisible();
+ await expect(entry.getByText('No account needed')).toBeVisible();
+ await expect(entry.getByLabel('Invitation code')).toBeVisible();
+ await expect(entry.getByLabel('Private group passcode')).toBeVisible();
+ expect((await entry.innerText())).not.toMatch(/[à-ỹÀ-ỸđĐ]/u);
+});
+test('English-only teacher, lesson wizard, reviews and dossier show translated UI',async({page})=>{
+ await page.getByTestId('qa-teacher-live-en').click();
+ await expect(page.getByRole('heading',{name:'Teacher Live'})).toBeVisible();
+ await expect(page.getByRole('button',{name:/Start lesson/})).toBeVisible();
+ await page.getByTestId('qa-wizard-en').click();
+ await expect(page.getByRole('heading',{name:'Create a new lesson'})).toBeVisible();
+ await page.getByTestId('qa-admin-review-en').click();
+ await expect(page.getByRole('heading',{name:'Student submissions'})).toBeVisible();
+ await page.getByTestId('qa-evidence-en').click();
+ await expect(page.getByText('Section 1: Teacher and school context')).toBeVisible();
+});
 test('the no-account entry is an understandable, keyboard-accessible form',async({page})=>{
  await page.getByTestId('qa-student').click();
  await expect(page.getByTestId('museum-student-entry')).toBeVisible();
