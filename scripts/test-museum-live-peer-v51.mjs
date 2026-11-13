@@ -26,7 +26,7 @@ test('only two verified NASA clips are planned; both have a teaching purpose',()
 
 test('new lessons use curricular placements; existing sessions keep their own media choices',()=>{
  const api=read('serverless-handlers/museum-live.js');
- assert.match(api,/media_board:curriculumMediaBoard\(\)/);
+ assert.match(api,/media_board:\{\.\.\.curriculumMediaBoard\(\),lessonQuestionVersion:VIDEO_QUESTION_VERSION\}/);
  assert.match(api,/if\(!session\)\{/);
  assert.match(api,/mediaBoardUpdate\(session,index,patch\)/);
  assert.match(api,/videoTaskFor\(session\.media_board,index\)/);
