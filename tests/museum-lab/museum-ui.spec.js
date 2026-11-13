@@ -1481,3 +1481,39 @@ test('Student Creator 2D Paper exhibit displays actual uploaded photos and remai
  await viewer.getByRole('button',{name:'2D',exact:true}).click();
  await expect(cards).toHaveCount(3);
 });
+
+test('V5.4 Speaking Studio requires user microphone action, rehearses group text locally, and deletes the clip',async({page})=>{
+ await page.getByTestId('qa-v54-speaking-en').click();
+ const studio=page.getByTestId('museum-speaking-studio');
+ await expect(studio).toBeVisible();
+ await expect(studio).toContainText('ACTIVITY 10 · PRESENT AND DISCUSS');
+ await expect(studio).toContainText('Four of ten groups selected reducing unnecessary lighting.');
+ await expect(studio).toContainText('No audio is automatically uploaded');
+ await expect(studio.locator('audio')).toHaveCount(0);
+ await page.evaluate(()=>{
+  window.__micStarts=0;window.__micStops=0;
+  const getUserMedia=async()=>{
+   window.__micStarts++;
+   return {getTracks:()=>[{stop:()=>{window.__micStops++;}}]};
+  };
+  Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia}});
+  class MockRecorder{
+   constructor(){this.state='inactive';this.mimeType='audio/webm';}
+   static isTypeSupported(type){return type.startsWith('audio/webm');}
+   start(){this.state='recording';}
+   stop(){this.state='inactive';this.ondataavailable?.({data:new Blob(['locally recorded audio'],{type:this.mimeType})});this.onstop?.();}
+  }
+  window.MediaRecorder=MockRecorder;
+ });
+ expect(await page.evaluate(()=>window.__micStarts)).toBe(0);
+ await studio.getByRole('button',{name:'Start local recording'}).click();
+ await expect(studio.getByRole('button',{name:'Stop recording'})).toBeVisible();
+ expect(await page.evaluate(()=>window.__micStarts)).toBe(1);
+ await studio.getByRole('button',{name:'Stop recording'}).click();
+ await expect(studio.locator('audio')).toHaveCount(1);
+ expect(await page.evaluate(()=>window.__micStops)).toBeGreaterThanOrEqual(1);
+ await studio.getByRole('button',{name:'Delete recording'}).click();
+ await expect(studio.locator('audio')).toHaveCount(0);
+ await studio.getByRole('button',{name:'Close Speaking Studio'}).click();
+ await expect(studio).toHaveCount(0);
+});

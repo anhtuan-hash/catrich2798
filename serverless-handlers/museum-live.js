@@ -138,8 +138,13 @@ export default async function museumLive(req,res){
     const assetIds=[...new Set(checkpoints.flatMap(c=>(c.doc?.rooms||[]).flatMap(r=>(r.exhibits||[]).map(e=>e.asset_id))).filter(Boolean))];
     const assets=assetIds.length?await query(admin.from('museum_artwork_assets').select('id,group_id,storage_path,original_name,bytes,sha256').eq('assignment_id',assignment.id).in('id',assetIds)):[];
     const media=await Promise.all(assets.map(async({storage_path,...a})=>{const {data,error}=await admin.storage.from('museum-artwork-private').createSignedUrl(storage_path,600);if(error)throw fail(503,'Không thể xuất ảnh.');return {...a,url:data.signedUrl};}));
+    // Teacher-only provenance is exported privately to distinguish prepared presentation
+    // content from observations. It is never added to student UI or public gallery cards.
+    const provenance=await query(admin.from('museum_presentation_data_provenance')
+     .select('data_origin,teacher_visible_note,authored_drafts,curated_peer_feedback')
+     .eq('assignment_id',assignment.id).maybeSingle());
     return send(res,200,{format:'museum-evidence-v33',exported_at:new Date().toISOString(),assignment:{id:assignment.id,title:assignment.title,class_scope:assignment.class_scope},session:stateOf(session,{staff:true}),groups,survey:await surveyFor(admin,session.id),checkpoints,feedback:await feedbackFor(admin,session.id),
-     responses,microResponses,teacherMediaBoard:session.media_board||{},livePeerFeedback:await peerRoomsEvidence(admin,session.id),media});
+     responses,microResponses,teacherMediaBoard:session.media_board||{},livePeerFeedback:await peerRoomsEvidence(admin,session.id),presentationProvenance:provenance,media});
    }
    if(op==='start'){
     requireMethod(req,'POST');guardOrigin(req);guardBody(req,1000);

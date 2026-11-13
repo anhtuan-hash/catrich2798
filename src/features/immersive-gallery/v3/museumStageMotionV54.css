@@ -1,0 +1,34 @@
+/* V5.4 meaningful per-activity entrance cues. Strictly visual: no autoplay audio/video.
+   Stage-specific reveal is only on teacher's projection layer when Motion ON. */
+.bml .bml-live-screen--paper.bml-motion-on[data-stage-id="climate-detective"] .bml-live-choices>div{animation:bml-v54-choice-in .48s ease both}
+.bml .bml-live-screen--paper.bml-motion-on[data-stage-id="climate-detective"] .bml-live-choices>div:nth-child(2){animation-delay:.12s}
+.bml .bml-live-screen--paper.bml-motion-on[data-stage-id="climate-detective"] .bml-live-choices>div:nth-child(3){animation-delay:.24s}
+.bml .bml-live-screen--paper.bml-motion-on[data-stage-id="climate-detective"] .bml-live-choices>div:nth-child(4){animation-delay:.36s}
+.bml .bml-live-screen--paper.bml-motion-on[data-stage-id="language-mini-lesson"] .bml-live-quiz>div{animation:bml-v54-language-in .44s ease both}
+.bml .bml-live-screen--paper.bml-motion-on[data-stage-id="language-mini-lesson"] .bml-live-quiz>div:nth-child(2){animation-delay:.14s}
+.bml .bml-live-screen--paper.bml-motion-on[data-stage-id="language-mini-lesson"] .bml-live-quiz>div:nth-child(3){animation-delay:.28s}
+.bml .bml-live-screen--paper.bml-motion-on[data-stage-id="classroom-survey"] .bml-live-choices>div{animation:bml-v54-vote-in .52s ease-out both}
+.bml .bml-live-screen--paper.bml-motion-on[data-stage-id="classroom-survey"] .bml-live-chart .bml-live-bar i{transform-origin:left;animation:bml-v54-chart-grow .8s ease-out both}
+.bml .bml-live-screen--paper.bml-motion-on[data-stage-id="problem-evidence-solution"] .bml-paper-task{animation:bml-v54-reason-in .42s ease both}
+.bml .bml-live-screen--paper.bml-motion-on[data-stage-id="storyboard"] .bml-paper-task{animation:bml-v54-storyboard-in .52s ease both}
+.bml .bml-live-screen--paper.bml-motion-on[data-stage-id="recap"] .bml-paper-task{animation:bml-v54-recap-in .45s ease both}
+.bml .bml-live-screen--paper.bml-motion-on[data-stage-id="artwork-studio"] .bml-paper-task{animation:bml-v54-artwork-in .56s ease both}
+.bml .bml-live-screen--paper.bml-motion-on[data-stage-id="peer-gallery-walk"] .bml-paper-task{animation:bml-v54-peer-in .48s ease both}
+.bml .bml-live-screen--paper.bml-motion-on[data-stage-id="revise"] .bml-paper-task{animation:bml-v54-revision-in .52s ease both}
+.bml .bml-live-screen--paper.bml-motion-on[data-stage-id="present"] .bml-paper-task{animation:bml-v54-present-in .5s ease both}
+.bml .bml-live-screen--paper.bml-motion-on[data-stage-id="exit-ticket"] .bml-paper-task{animation:bml-v54-exit-in .55s ease both}
+.bml .bml-live-screen--paper.bml-motion-on .bml-paper-task:nth-child(2){animation-delay:.15s}
+.bml .bml-live-screen--paper.bml-motion-on .bml-paper-task:nth-child(3){animation-delay:.3s}
+@keyframes bml-v54-choice-in{from{opacity:.35;transform:translateX(-24px)}to{opacity:1;transform:translateX(0)}}
+@keyframes bml-v54-language-in{from{opacity:.4;transform:translateY(18px) skewY(-1deg)}to{opacity:1;transform:translateY(0) skewY(0)}}
+@keyframes bml-v54-vote-in{from{opacity:.4;transform:scaleX(.94)}to{opacity:1;transform:scaleX(1)}}
+@keyframes bml-v54-chart-grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes bml-v54-reason-in{from{opacity:.35;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bml-v54-storyboard-in{from{opacity:.45;transform:rotate(-2deg) translateY(13px)}to{opacity:1;transform:rotate(0) translateY(0)}}
+@keyframes bml-v54-recap-in{from{opacity:.2;filter:blur(2px)}to{opacity:1;filter:blur(0)}}
+@keyframes bml-v54-artwork-in{from{opacity:.5;transform:scale(.93)}to{opacity:1;transform:scale(1)}}
+@keyframes bml-v54-peer-in{from{opacity:.45;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes bml-v54-revision-in{from{opacity:.45;clip-path:inset(0 35% 0 0)}to{opacity:1;clip-path:inset(0 0 0 0)}}
+@keyframes bml-v54-present-in{from{opacity:.4;transform:translateY(22px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes bml-v54-exit-in{from{opacity:.25;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.bml .bml-live-screen--paper.bml-motion-on [class*="bml-"]{animation:none!important;transition:none!important}}

@@ -10,6 +10,7 @@ import MuseumLabStudent from '../../src/features/immersive-gallery/v3/MuseumLabS
 import MuseumScene from '../../src/features/immersive-gallery/v3/MuseumScene.jsx';
 import MuseumExhibitionDetail from '../../src/features/immersive-gallery/v3/MuseumExhibitionDetail.jsx';
 import MuseumEvidence from '../../src/features/immersive-gallery/v3/MuseumEvidence.jsx';
+import MuseumSpeakingStudio from '../../src/features/immersive-gallery/v3/MuseumSpeakingStudio.jsx';
 import {LessonWizard,LessonsList} from '../../src/features/immersive-gallery/v3/MuseumLessonFlow.jsx';
 import {Submissions} from '../../src/features/immersive-gallery/v3/MuseumReview.jsx';
 import {PREPARED_COLLECTIONS,preparedGallery} from '../../src/features/immersive-gallery/v3/museumPreparedCollections.js';
@@ -135,7 +136,7 @@ function Harness(){
  return <div style={{fontFamily:'Roboto,Arial,sans-serif'}}>
   <div style={{display:'flex',gap:8,padding:10,background:'#e6f0ff',flexWrap:'wrap'}} data-testid="qa-harness">
    <strong>QA ONLY · ALL DATA SYNTHETIC</strong>
-   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','published-lesson','dashboard-en','student-en','teacher-live-en','teacher-live-ten-en','v53-evidence-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
+   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','published-lesson','dashboard-en','student-en','teacher-live-en','teacher-live-ten-en','v53-evidence-en','v54-speaking-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
   </div>
   <div className={normalized==='dashboard'?'':'bml'}>
    {normalized==='dashboard'?<MuseumLabApp language={uiLanguage} currentUser={{id:'teacher-synthetic',name:'Demo Teacher'}} transport={demoDashboardApi}/>:null}
@@ -152,6 +153,11 @@ function Harness(){
      csrf="qa-secret" language={uiLanguage} uploadEnabled={true} update={()=>{}}/>:null}
    {normalized==='scene'?<MuseumScene gallery={DEMO_GALLERY} language={uiLanguage} onBack={()=>setScreen('dashboard')}/>:null}
    {normalized==='v53-evidence'?<MuseumScene gallery={v53QaGallery} language={uiLanguage}/>:null}
+   {normalized==='v54-speaking'?<MuseumSpeakingStudio enabled learning={{
+    issue:'Unused classroom lights after the final bell',
+    evidence:'Four of ten groups selected reducing unnecessary lighting.',
+    solution:'A teacher-approved monitor checklist'
+   }} onClose={()=>setScreen('dashboard')}/>:null}
    {normalized==='prepared'?<LessonsList data={preparedQa} language={uiLanguage} onCreate={()=>{}} onReview={()=>{}}
      onRefresh={async()=>{}} onOpenCollection={key=>{setPreparedKey(key);setScreen('prepared-gallery');}}/>:null}
    {normalized==='prepared-gallery'?<MuseumExhibitionDetail gallery={preparedGallery(preparedKey)} language={uiLanguage}
