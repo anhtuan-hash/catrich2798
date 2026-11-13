@@ -72,7 +72,7 @@
 }
 .bml .bml-museum-cinema .bml-v5-focus-status[hidden]{display:none}
 .bml .bml-museum-cinema .bml-v5-focus-back{
- position:absolute;left:20px;bottom:75px;z-index:69;
+ position:absolute;right:clamp(18px,15vw,300px);bottom:13%;z-index:69;
  border:1px solid #C9B58E;border-radius:99px;
  color:#235F4D;background:#FFFCF2F5;
  padding:12px 17px;font-weight:800;
@@ -85,7 +85,7 @@
  .bml .bml-v5-plaque-copy h2{font-size:23px}
  .bml .bml-v5-plaque-scroll{font-size:12px}
  .bml .bml-museum-cinema .bml-v5-focus-status{left:9px;top:60px;max-width:62%;font-size:11px}
- .bml .bml-museum-cinema .bml-v5-focus-back{left:9px;bottom:79px;padding:10px 12px}
+ .bml .bml-museum-cinema .bml-v5-focus-back{left:auto;right:9px;bottom:79px;padding:10px 12px}
 }
 @media(prefers-reduced-motion:reduce){
  .bml .bml-v5-plaque-copy *{transition:none!important;animation:none!important}
