@@ -80,7 +80,7 @@ test('Student Focus is touch-friendly and keeps an unsent group vote when switch
  const studioTab=page.getByTestId('student-tab-studio');
  await expect(page.getByTestId('student-focus-switch')).toBeVisible();
  await expect(liveTab).toHaveAttribute('aria-pressed','true',{timeout:10000});
- const choice=page.getByRole('button',{name:/A\\. Switch off unused lights/});
+ const choice=page.getByRole('button',{name:/A\. Switch off unused lights/});
  await expect(choice).toBeVisible();
  await choice.click();
  await expect(choice).toHaveAttribute('aria-pressed','true');
