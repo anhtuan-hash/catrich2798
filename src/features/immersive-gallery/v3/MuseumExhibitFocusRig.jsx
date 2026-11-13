@@ -20,13 +20,6 @@ function PlaqueText({board,onBack,phase}){
    <p data-testid="museum-focus-description">{expanded?board?.description:excerpt}</p>
    {hasMore?<button type="button" className="bml-v5-details" aria-expanded={expanded}
     onClick={()=>setExpanded(v=>!v)}>{expanded?'Read less':'Read more'}</button>:null}
-   {board?.survey?<div className="bml-v5-survey">
-    <strong>Group-priority survey · N={board.survey.n} groups</strong>
-    {board.survey.options.map((opt,i)=><div key={i}>
-     <span>{opt.label}</span><b>{opt.count}/{board.survey.n} ({opt.percent}%)</b>
-    </div>)}
-    <small>{board.survey.caveat}</small>
-   </div>:null}
    {board?.improvement?<p><strong>After peer testing:</strong> {board.improvement}</p>:null}
    <div className="bml-v5-plaque-source" data-testid="museum-focus-source">
     <strong>Source</strong>
@@ -34,6 +27,15 @@ function PlaqueText({board,onBack,phase}){
    </div>
    {board?.imageSource?<p className="bml-v5-attribution">Image source: {board.imageSource}
     {board?.imageRights?' · Rights: '+board.imageRights:''}</p>:null}
+   {/* Keep the authentic citation visible before the optional longer tally.
+       The complete group survey remains scrollable below, never omitted. */}
+   {board?.survey?<div className="bml-v5-survey">
+    <strong>Group-priority survey · N={board.survey.n} groups</strong>
+    {board.survey.options.map((opt,i)=><div key={i}>
+     <span>{opt.label}</span><b>{opt.count}/{board.survey.n} ({opt.percent}%)</b>
+    </div>)}
+    <small>{board.survey.caveat}</small>
+   </div>:null}
   </div>
   <button type="button" className="bml-v5-back" data-testid="museum-back-to-wall"
    disabled={phase!=='focused'} onClick={onBack}>
