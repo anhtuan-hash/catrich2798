@@ -2,6 +2,7 @@ import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronLeft,ChevronRight,Clock3,Eye,Fullscreen,HelpCircle,Lock,MonitorPlay,Pause,Play,Presentation,Printer,QrCode,RefreshCcw,ShieldCheck,Users,X,Film,Volume2,Sparkles,Minimize2} from 'lucide-react';
 import {LIVE_STAGES,LIVE_PERIOD_MINUTES,LIVE_TOTAL_MINUTES} from './liveLesson.js';
 import {liveStaff} from './museumLiveApi.js';
+import {englishSystemGroupLabel} from './museumApi.js';
 import LessonResources from './LessonResources.jsx';
 import {surveyChartPng} from './surveyChart.js';
 import {saveBlob} from './museumDocx.js';
@@ -50,7 +51,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
   return()=>{activeRef.current=false;window.clearInterval(id);};},[refresh]);
  useEffect(()=>{if(!showQr)return;let active=true;import('qrcode').then(({default:QR})=>QR.toDataURL(link,{width:220,margin:2})).then(url=>{if(active)setQr(url);}).catch(()=>{});
   return()=>{active=false;};},[showQr]);
- const session=state?.session,stage=session?.stage,groups=state?.groups||[],result=session?.stageIndex===2&&state?.survey?state.survey:state?.result;
+ const session=state?.session,stage=session?.stage,groups=(state?.groups||[]).map(g=>({...g,label:language==='en'?englishSystemGroupLabel(g.label):g.label})),result=session?.stageIndex===2&&state?.survey?state.survey:state?.result;
  const currentIndex=session?.stageIndex??0,minute=LIVE_STAGES[currentIndex]?.minutes||0;
  useEffect(()=>{setStageVideo(null);},[assignmentId,currentIndex]);
  const elapsed=(session?.elapsedSeconds||0)+(session?.status==='active'&&session?.stageStartedAt?Math.max(0,Math.floor((time-Date.parse(session.stageStartedAt))/1000)):0);
@@ -76,7 +77,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
      ...e,id:'class-exhibit-'+i+'-'+j,image_url:urls.get(e.asset_id)||'',status:'published'
     }))
    }))};
-   setSpotlight({gallery,groupLabel:r.groupLabel});
+   setSpotlight({gallery,groupLabel:language==='en'?englishSystemGroupLabel(r.groupLabel):r.groupLabel});
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
  const fullscreen=async()=>{

@@ -112,7 +112,7 @@ export function buildProgressCsv(data,language='vi'){
  const rows=[];
  for(const a of data.assignments||[])for(const g of (data.groups||[]).filter(x=>x.assignment_id===a.id)){
   const rev=(data.reviews||[]).find(x=>x.group_id===g.id);
-  rows.push([a.title,a.class_scope,g.label,progressOfGroup(g.state,language).label,rev?.version??'',rev?.submitted_at??'']);
+  rows.push([a.title,a.class_scope,language==='en'?String(g.label||'').replace(/^Nhóm(?=\s|$)/i,'Group'):g.label,progressOfGroup(g.state,language).label,rev?.version??'',rev?.submitted_at??'']);
  }
  return '\ufeff'+[headers,...rows].map(row=>row.map(safeCsvCell).join(',')).join('\r\n');
 }

@@ -1,7 +1,7 @@
 import React,{Suspense,useCallback,useEffect,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronLeft,ChevronRight,CircleHelp,ClipboardCheck,Cloud,CloudAlert,CloudUpload,Eye,FileText,Info,KeyRound,Landmark,Leaf,Lightbulb,LockKeyhole,MessageSquare,RefreshCw,Send,ShieldCheck,Sparkles,Users,X} from 'lucide-react';
 import {emptyStudio,documentFromStudio,normalizeStudio,STEPS,submissionMissing} from './museumData.js';
-import {guestRequest,fmtTime} from './museumApi.js';
+import {guestRequest,fmtTime,englishSystemGroupLabel} from './museumApi.js';
 import {liveGuest} from './museumLiveApi.js';
 import {wordCount,evidenceMissing,changedExhibits} from './learningEvidence.js';
 import MuseumScene from './MuseumScene.jsx';
@@ -147,7 +147,7 @@ export default function MuseumLabStudent({language='en'}){
  const progressPercent=Math.round(100*progressChecks.filter(Boolean).length/progressChecks.length);
  return <main className="bml bml-student-shell bml-student-canvas16" data-testid="museum-student-wizard" lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
   <header className="bml-student-bar"><div className="bml-brand"><span className="bml-brand-icon"><Landmark size={23}/></span><span><strong>BRIAN Museum Lab</strong><small>Student Creator</small></span></div>
-   <div className="bml-student-right"><span className="bml-group-pill"><Users size={16}/>{session.groupLabel} · {session.assignment.class_scope}</span>
+   <div className="bml-student-right"><span className="bml-group-pill"><Users size={16}/>{language==='en'?englishSystemGroupLabel(session.groupLabel):session.groupLabel} · {session.assignment.class_scope}</span>
     <span className={'bml-save-indicator bml-save-'+saveState}>{saveState==='saved'?<><Cloud size={16}/>{T(language,'Đã lưu','Saved')}</>:
       saveState==='saving'?<><CloudUpload size={16}/>{T(language,'Đang lưu…','Saving…')}</>:<><CloudAlert size={16}/>{T(language,'Cần xử lý','Action needed')}</>}</span>
     <button type="button" className="bml-outline" onClick={logout}>{T(language,'Thoát','Exit')}</button></div></header>

@@ -59,13 +59,13 @@ export async function buildCompetitionZip(first,second,checklist,teacherName){
  const [a,b]=await Promise.all([buildWordDraft(first),buildWordDraft(second)]);
  zip.file('P1/'+contestBasename(teacherName)+'P1.docx',await a.arrayBuffer());
  zip.file('P2/'+contestBasename(teacherName)+'P2.docx',await b.arrayBuffer());
- zip.file('P2/Hoc_lieu/Learning_cards.txt',LESSON_RESOURCES.map(c=>[c.title,c.text,c.task,c.source,c.url||''].join('\n')).join('\n\n'));
- zip.file('P2/Hoc_lieu/Offline_fallback.txt',OFFLINE_GUIDE);
- const instructions='BẢN NHÁP - cần xác nhận trước khi nộp.\nChỉ đính kèm học liệu và minh chứng lớp học có thật, được phép sử dụng.\nKhông dùng dữ liệu demo làm minh chứng.\n\n'+
+ zip.file('P2/Learning_Materials/Learning_cards.txt',LESSON_RESOURCES.map(c=>[c.title,c.text,c.task,c.source,c.url||''].join('\n')).join('\n\n'));
+ zip.file('P2/Learning_Materials/Offline_fallback.txt',OFFLINE_GUIDE);
+ const instructions='DRAFT — teacher verification required before submission.\nInclude only authentic, licensed classroom materials and evidence.\nNever use demonstration data as evidence.\n\n'+
  checklist.map(c=>(c.done?'[x] ':'[ ] ')+c.label+' - '+c.desc).join('\n');
- zip.file('P2/CAN_BO_SUNG_MINH_CHUNG.txt',instructions);
+ zip.file('P2/REQUIRED_EVIDENCE_CHECKLIST.txt',instructions);
  const result=await zip.generateAsync({type:'blob',compression:'DEFLATE'});
- if(result.size>50*1024*1024)throw new Error('Hồ sơ vượt giới hạn 50 MB.');
+ if(result.size>50*1024*1024)throw new Error('The dossier exceeds the 50 MB limit.');
  return result;
 }
 export function saveBlob(blob,filename){
