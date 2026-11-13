@@ -61,30 +61,40 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
  if(peer&&!compact)return <section className="bml-live-student"><button className="bml-outline" type="button" onClick={()=>setPeer(null)}>{t(language,'← Trở về bài học','← Back to lesson')}</button>
   <strong>{t(language,'THAM QUAN CHÉO · CHỈ TRONG PHẠM VI LỚP','PEER REVIEW · CLASSROOM ONLY')}</strong>
   <MuseumScene gallery={peer} language={language} embedded/></section>;
- return <section className="bml-live-student" data-testid="student-live-activity">
+ return <section className="bml-live-student" data-testid="student-live-activity" data-stage-kind={stage?.kind||"unknown"}>
   <header className="bml-live-student-header"><strong>Teacher Live · {t(language,'Tiết','Period')} {stage?.period}/2 · {t(language,'Hoạt động','Stage')} {stageIndex+1}/11</strong>
    <span>{session.stageOpen?t(language,'Giáo viên đã mở hoạt động','Activity is open'):t(language,'Chờ giáo viên mở hoạt động','Waiting for teacher')}</span></header>
   <div className="bml-live-student-question">
+   <span className="bml-question-eyebrow">READ · THINK · RESPOND</span>
    <h2>{stage?.title}</h2>
    <p>{stage?.question}</p>
   </div>
   {!session.stageOpen||session.status!=='active'?<div className="bml-banner bml-info-banner"><Lock size={18}/>{t(language,'Chờ giáo viên mở hoạt động tiếp theo.','Wait for your teacher to open this task.')}</div>:<>
     {stage.kind==='vote'?<div className="bml-live-response-options">{stage.options.map((o,i)=><button type="button" key={i} disabled={posted||busy}
-     aria-pressed={selected===i} className={selected===i?'is-chosen':''} onClick={()=>{setSelected(i);setNotice('');}}>{String.fromCharCode(65+i)}. {o}</button>)}</div>:null}
+     aria-pressed={selected===i} aria-label={String.fromCharCode(65+i)+'. '+o} className={selected===i?'is-chosen':''} onClick={()=>{setSelected(i);setNotice('');}}>
+      <span className="bml-option-letter" aria-hidden="true">{String.fromCharCode(65+i)}.</span>
+      <span className="bml-option-copy" aria-hidden="true">{o}</span>
+     </button>)}</div>:null}
     {stage.kind==='quiz'?<div className="bml-live-response-form">{stage.questions.map((q,i)=><div key={i} hidden={compact&&quizPage!==i}>
      <strong>Q{i+1}. {q.q}</strong><div className="bml-live-response-options">{q.choices.map((v,j)=><button type="button" key={j} disabled={posted||busy}
-      aria-pressed={quiz[i]===j} className={quiz[i]===j?'is-chosen':''} onClick={()=>setQuiz(prev=>({...prev,[i]:j}))}>{String.fromCharCode(65+j)}. {v}</button>)}</div>{session.revealed?<p>{q.explanation}</p>:null}
+      aria-pressed={quiz[i]===j} aria-label={String.fromCharCode(65+j)+'. '+v} className={quiz[i]===j?'is-chosen':''} onClick={()=>setQuiz(prev=>({...prev,[i]:j}))}>
+       <span className="bml-option-letter" aria-hidden="true">{String.fromCharCode(65+j)}.</span>
+       <span className="bml-option-copy" aria-hidden="true">{v}</span>
+      </button>)}</div>{session.revealed?<p>{q.explanation}</p>:null}
     </div>)}
     {compact&&stage.questions.length>1?<div className="bml-student-quiz-page-controls">
-     <button type="button" disabled={quizPage===0} onClick={()=>setQuizPage(v=>v-1)}>←</button>
-     <strong>{quizPage+1}/{stage.questions.length} · {Object.keys(quiz).length} answered</strong>
-     <button type="button" disabled={quizPage===stage.questions.length-1} onClick={()=>setQuizPage(v=>v+1)}>→</button>
+     <button type="button" aria-label="Previous question" disabled={quizPage===0} onClick={()=>setQuizPage(v=>v-1)}>← <span>Previous</span></button>
+     <strong><small>QUESTION</small> {quizPage+1} of {stage.questions.length} <em>· {Object.keys(quiz).length} answered</em></strong>
+     <button type="button" aria-label="Next question" disabled={quizPage===stage.questions.length-1} onClick={()=>setQuizPage(v=>v+1)}><span>Next</span> →</button>
     </div>:null}</div>:null}
     {['peer','exit'].includes(stage.kind)?<div className="bml-live-response-form">
      {stage.kind==='peer'?<button type="button" className="bml-outline" onClick={visitPeer}><Eye size={17}/>{t(language,'Tham quan triển lãm nhóm khác (riêng tư)','Visit another group (private)')}</button>:null}
      {stage.kind==='peer'?<><strong>{peerLabel||t(language,'Nhóm được phân công sẽ hiện khi mở triển lãm.','Your assigned peer group will appear when the gallery opens.')}</strong>{[['learned','I learned …'],['clarify','The message would be clearer if …']].map(([key,label])=><label className="bml-full-field" key={key}>{label}<textarea rows={3} maxLength={400} disabled={posted} value={peerResponse[key]} onChange={e=>setPeerResponse(v=>({...v,[key]:e.target.value}))}/></label>)}<label>{t(language,'Clarity / Mức rõ ràng','Clarity')}<select value={peerResponse.rating} disabled={posted} onChange={e=>setPeerResponse(v=>({...v,rating:Number(e.target.value)}))}><option value={0}>{t(language,'Chọn mức','Choose a rating')}</option><option value={1}>1 · Unclear</option><option value={2}>2 · Partly clear</option><option value={3}>3 · Mostly clear</option><option value={4}>4 · Clear</option></select></label></>:<label className="bml-full-field">{t(language,'Trả lời bằng tiếng Anh','Write your response in English')}<textarea rows={3}
       maxLength={800} disabled={posted} placeholder={stage.sentence} value={written} onChange={e=>setWritten(e.target.value)}/></label>}
     </div>:null}
+    {stage.kind==='quiz'&&posted?<p className="bml-live-choice-note bml-editorial-submitted-note" role="status">
+     <CheckCircle2 size={17}/>{t(language,'Đã ghi nhận đáp án của nhóm. Giáo viên sẽ mở hoạt động tiếp theo.','Your group answers are recorded. Your teacher will guide the next activity.')}
+    </p>:null}
     {stage.kind==='vote'&&canRespond?<p className="bml-live-choice-note" role="status" data-testid="student-vote-guidance">
      {posted?t(language,'Nhóm đã nộp một lượt cho hoạt động này.','Your group has already submitted its vote for this activity.'):
       selected===null?t(language,'Chọn đáp án A, B, C hoặc D để bật nút gửi.','Select A, B, C or D to enable Submit group response.'):

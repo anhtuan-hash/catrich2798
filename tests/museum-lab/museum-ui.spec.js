@@ -320,6 +320,57 @@ test('realistic Group 01 Stage 1 permits vote, help, all group project steps and
  await page.getByTestId('student-tab-live').click();
  await expect(page.getByTestId('student-vote-guidance')).toContainText('already submitted');
 });
+test('Museum Field Journal Stage 2 is legible, clickable and contained on a 16:9 classroom screen',async({page,isMobile})=>{
+ if(!isMobile)await page.setViewportSize({width:1366,height:768});
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  return route.fulfill({json:op==='me'?{
+   groupLabel:'Nhóm 01',groupState:'editing',csrf:'qa-editorial',
+   assignment:{title:'Our Climate Action Museum',brief:'An authentic climate action project for school.',
+    class_scope:'11.3',deadline_at:new Date(Date.now()+86400000).toISOString()}
+  }:{draft:{title:'',summary:'',rooms:[]},version:0}});
+ });
+ await page.route('**/api/gallery-guest/live?**',async route=>route.fulfill({json:{
+  session:{id:'editorial-quiz',status:'active',stageIndex:1,stageOpen:true,
+   stage:{id:'language-mini-lesson',kind:'quiz',period:1,title:'Language Mini-Lesson',
+    question:'Practise evidence, cause and recommendation language.',
+    questions:[
+     {q:'Which sentence gives evidence?',choices:['This is nice.','According to our survey, four groups agreed.','Do it now.'],explanation:'Use evidence.'},
+     {q:'Which sentence shows a cause?',choices:['Because our lights stay on, we waste energy.','I am a student.','Good morning.'],explanation:'Because introduces a cause.'},
+     {q:'Which sentence makes a recommendation?',choices:['The sky is blue.','We recommend reusing water bottles.','He went home yesterday.'],explanation:'We recommend signals advice.'}
+    ]}},survey:null,submitted:false
+ }}));
+ await page.getByTestId('qa-student-en').click();
+ const root=page.getByTestId('museum-student-wizard');
+ await expect(root).toHaveClass(/bml-student-editorial/);
+ await expect(page.getByText('Your museum workshop')).toBeVisible();
+ await expect(page.getByTestId('student-tab-live')).toHaveAttribute('aria-pressed','true',{timeout:12000});
+ const firstChoice=page.getByRole('button',{name:'B. According to our survey, four groups agreed.'});
+ await firstChoice.scrollIntoViewIfNeeded();
+ await expect(firstChoice).toBeEnabled();
+ await firstChoice.click();
+ await expect(firstChoice).toHaveAttribute('aria-pressed','true');
+ await page.getByRole('button',{name:'Next question'}).click();
+ await expect(page.getByText('Which sentence shows a cause?')).toBeVisible();
+ await page.getByRole('button',{name:'Next question'}).click();
+ await expect(page.getByText('Which sentence makes a recommendation?')).toBeVisible();
+ await page.getByRole('button',{name:'B. We recommend reusing water bottles.'}).click();
+ await expect(page.getByRole('button',{name:'B. We recommend reusing water bottles.'})).toHaveAttribute('aria-pressed','true');
+ if(!isMobile){
+  const geometry=await root.evaluate(el=>{
+   const box=x=>{const r=el.querySelector(x).getBoundingClientRect();return {left:r.left,top:r.top,right:r.right,bottom:r.bottom};};
+   const side=box('.bml-student-toolrail'),main=box('.bml-student-primary'),project=box('.bml-student-projectrail');
+   return {side,main,project,viewportWidth:innerWidth,viewportHeight:innerHeight};
+  });
+  expect(geometry.side.right).toBeLessThan(geometry.main.left);
+  expect(geometry.main.right).toBeLessThan(geometry.project.left);
+  expect(geometry.main.bottom).toBeLessThanOrEqual(geometry.viewportHeight+1);
+  expect(geometry.project.bottom).toBeLessThanOrEqual(geometry.viewportHeight+1);
+  // The synthetic QA harness is longer than the viewport; only the fixed student canvas must fit.
+ }
+ await page.getByTestId('student-tab-studio').click();
+ await expect(page.getByLabel('Describe your problem')).toBeEnabled();
+});
 test('student canvas keeps 16:9 activity, navigation and project panels on one desktop viewport',async({page})=>{
  await page.setViewportSize({width:1366,height:768});
  await page.route('**/api/gallery-guest?**',async route=>{
