@@ -1574,7 +1574,16 @@ test('Student Creator 2D Paper exhibit displays actual uploaded photos and remai
  const evidenceBefore=beforeFocus.art.find(a=>a.index===1);
  expect(evidenceBefore).toBeTruthy();
  await page.mouse.click(evidenceBefore.screen.x,evidenceBefore.screen.y);
- await expect(viewer.getByTestId('museum-focus-state')).toHaveAttribute('data-phase','focused',{timeout:15000});
+ // Geometric-only debug: never logs a signed image URL, group key or student content.
+ for(let sample=0;sample<5;sample++){
+  await page.waitForTimeout(450);
+  const state=await viewer.getByTestId('museum-focus-state').getAttribute('data-phase');
+  const pose=await page.evaluate(()=>window.__brianMuseumV5QA?.());
+  console.log('V5_WORLD_QA',JSON.stringify({sample,state,
+   art:pose?.art?.find(a=>a.index===1)?.position,
+   camera:pose?.camera,rig:pose?.focusRigCount}));
+ }
+ await expect(viewer.getByTestId('museum-focus-state')).toHaveAttribute('data-phase','focused',{timeout:13000});
  await expect(viewer.getByTestId('museum-artwork-inspector')).toHaveCount(0);
  await expect(viewer.getByTestId('museum-focus-stage')).toHaveCount(1);
  const infoBoard=viewer.getByTestId('museum-focus-info-board');
