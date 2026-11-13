@@ -26,7 +26,7 @@ const initialMuseumTab=()=>{
  try{return new URLSearchParams(window.location.hash.split('?')[1]||'').has('exhibition')?'gallery':'home';}
  catch{return 'home';}
 };
-export default function MuseumLabApp({currentUser,language='vi'}){
+export default function MuseumLabApp({currentUser,language='en'}){
  const [tab,setTab]=useState(initialMuseumTab),[staff,setStaff]=useState(null);
  const [loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [query,setQuery]=useState(''),[reviewId,setReviewId]=useState(null),[help,setHelp]=useState(false),[menuOpen,setMenuOpen]=useState(false);
@@ -59,7 +59,7 @@ export default function MuseumLabApp({currentUser,language='vi'}){
  const activePage=NAV.find(n=>n.id===tab);
  const initials=String(currentUser?.full_name||currentUser?.name||currentUser?.email||'B').trim().slice(0,1).toUpperCase();
  const primary=NAV.slice(0,5),secondary=NAV.slice(5);
- return <div className={'bml bml-app-layout '+(['gallery','demo'].includes(tab)?'bml-is-exhibition ':'')+(menuOpen?'is-menu-open':'')} data-testid="brian-museum-lab-v3">
+ return <div className={'bml bml-app-layout '+(['gallery','demo'].includes(tab)?'bml-is-exhibition ':'')+(menuOpen?'is-menu-open':'')} data-testid="brian-museum-lab-v3" lang="en" data-ui-locale="en-US">
   <aside className={'bml-sidebar '+(menuOpen?'is-open':'')}>
    <div className="bml-brand"><span className="bml-brand-icon"><Landmark size={23}/></span>
     <div><strong>BRIAN Museum Lab</strong><small>V3.0 · Learn by creating</small></div></div>

@@ -6,7 +6,7 @@ import {normalizeArtMeta,surveySummary} from './learningEvidence.js';
 // separately and remain untouched when older selectable kits are retired.
 export const LESSON_KITS = Object.freeze([
  {id:'climate',title:'Our Climate Action Museum',
-  subtitle:'Tiếng Anh 11 · Global Success · Unit 5: Global Warming',
+  subtitle:'English 11 · Global Success · Unit 5: Global Warming',
   topic:'Global warming · Unit 5',accent:'green',icon:'leaf',theme:'classic',
   challenge:'How can our school reduce the impact of everyday activities on global warming?',
   brief:'Our Climate Action Museum — a two-period English STEAM project (2 × 45 minutes). As a group, investigate ONE realistic school climate action and record your group-priority choice in the live anonymous survey. Report the actual number of participating groups (N), the count and percentage; do not describe group choices as individual habits or measured emission reductions. Write three English exhibit labels (about 25–40 words each): The Problem, The Evidence and Our Solution. Name a credible source, add an original image or poster and your confirmed survey chart, and prepare a 3D museum. Test your exhibition with another group, record their feedback and one specific before/after improvement, then present a 45–60 second English pitch and answer the exit-ticket question. Protect image rights and personal data.',
@@ -15,11 +15,11 @@ export const LESSON_KITS = Object.freeze([
   goal:'Investigate one school climate action, interpret an authentic group survey, write evidence-based English labels, design and test a 3D exhibition, and improve it after peer feedback.'}
 ]);
 export const RUBRIC = Object.freeze([
- {key:'english',label:'Giao tiếp tiếng Anh',en:'English communication',max:40,help:'Tính rõ ràng, độ chính xác và diễn đạt có mục đích'},
- {key:'evidence',label:'Bằng chứng & nguồn',en:'Evidence & sources',max:20,help:'Dẫn nguồn minh bạch, không suy diễn dữ liệu'},
- {key:'reasoning',label:'Tư duy giải pháp',en:'Problem-solving',max:15,help:'Vấn đề, phương án và lý do lựa chọn'},
- {key:'design',label:'Thiết kế & trải nghiệm',en:'Prototype & usability',max:15,help:'Bố cục dễ hiểu, phù hợp người xem'},
- {key:'revision',label:'Thử nghiệm & cải tiến',en:'Testing & revision',max:10,help:'Có phản hồi và minh chứng điều chỉnh'}
+ {key:'english',label:'Giao tiếp tiếng Anh',en:'English communication',max:40,help:'Clear, accurate, purposeful English communication'},
+ {key:'evidence',label:'Bằng chứng & nguồn',en:'Evidence & sources',max:20,help:'Transparent citations without unsupported data claims'},
+ {key:'reasoning',label:'Tư duy giải pháp',en:'Problem-solving',max:15,help:'Problem, proposed solution and justification'},
+ {key:'design',label:'Thiết kế & trải nghiệm',en:'Prototype & usability',max:15,help:'Accessible layout and visitor-centered design'},
+ {key:'revision',label:'Thử nghiệm & cải tiến',en:'Testing & revision',max:10,help:'Documented feedback and evidence of revision'}
 ]);
 export const STEPS = Object.freeze([
  {key:'understand',vi:'Hiểu vấn đề',en:'Understand'},
@@ -78,41 +78,41 @@ export function documentFromStudio(studio){
   rooms:[{title:d.title||'Our English Museum',template_key:d.theme,exhibits:descriptions}]
  };
 }
-export function submissionMissing(studio){
+export function submissionMissing(studio,language='vi'){
  const d=normalizeStudio(studio),v=d.learning;
  const required=[
-  ['title','Đặt tên triển lãm'],
-  ['issue','Giải thích vấn đề bằng tiếng Anh'],
-  ['evidence','Viết một bằng chứng hoặc nhận định có nguồn'],
-  ['source','Ghi nguồn thông tin hoặc nêu rõ dữ liệu tình huống'],
-  ['solution','Đề xuất giải pháp bằng tiếng Anh'],
-  ['feedback','Ghi phản hồi thử nghiệm từ bạn học'],
-  ['improvement','Ghi điều nhóm đã điều chỉnh'],
-  ['tested','Xác nhận nhóm đã thử nghiệm'],
-  ['reflection','Viết phản ánh học tập bằng tiếng Anh']
+  ['title','Đặt tên triển lãm','Name your exhibition'],
+  ['issue','Giải thích vấn đề bằng tiếng Anh','Explain the problem in English'],
+  ['evidence','Viết một bằng chứng hoặc nhận định có nguồn','Write a sourced observation or evidence statement'],
+  ['source','Ghi nguồn thông tin hoặc nêu rõ dữ liệu tình huống','Cite the source or identify scenario data'],
+  ['solution','Đề xuất giải pháp bằng tiếng Anh','Propose a solution in English'],
+  ['feedback','Ghi phản hồi thử nghiệm từ bạn học','Record authentic peer feedback'],
+  ['improvement','Ghi điều nhóm đã điều chỉnh','Document what your group revised'],
+  ['tested','Xác nhận nhóm đã thử nghiệm','Confirm that your group tested the exhibit'],
+  ['reflection','Viết phản ánh học tập bằng tiếng Anh','Write a learning reflection in English']
  ];
- return required.filter(([key])=>!String(key==='title'?d.title:v[key]||'').trim()).map(([,label])=>label);
+ return required.filter(([key])=>!String(key==='title'?d.title:v[key]||'').trim()).map(([,vi,en])=>language==='en'?en:vi);
 }
-export function progressOfGroup(state){
- if(['published','approved_locked'].includes(state))return {label:'Đã duyệt',pct:100};
- if(state==='ttcm_review')return {label:'Chờ TTCM',pct:90};
- if(state==='submitted')return {label:'Đã nộp',pct:80};
- if(state==='changes_requested')return {label:'Cần sửa',pct:65};
- if(state==='rejected')return {label:'Từ chối',pct:100};
- if(state==='editing')return {label:'Đang thực hiện',pct:48};
- return {label:'Chưa bắt đầu',pct:5};
+export function progressOfGroup(state,language='vi'){
+ if(['published','approved_locked'].includes(state))return {label:language==='en'?'Approved':'Đã duyệt',pct:100};
+ if(state==='ttcm_review')return {label:language==='en'?'Awaiting department review':'Chờ TTCM',pct:90};
+ if(state==='submitted')return {label:language==='en'?'Submitted':'Đã nộp',pct:80};
+ if(state==='changes_requested')return {label:language==='en'?'Needs revision':'Cần sửa',pct:65};
+ if(state==='rejected')return {label:language==='en'?'Rejected':'Từ chối',pct:100};
+ if(state==='editing')return {label:language==='en'?'In progress':'Đang thực hiện',pct:48};
+ return {label:language==='en'?'Not started':'Chưa bắt đầu',pct:5};
 }
 export function safeCsvCell(value){
  const raw=String(value??'');
  const cleaned=/^[=+\-@\t\r]/.test(raw)?'\''+raw:raw;
  return '"'+cleaned.replaceAll('"','""')+'"';
 }
-export function buildProgressCsv(data){
- const headers=['Chủ đề','Lớp','Nhóm','Trạng thái','Phiên bản duyệt','Ngày nộp'];
+export function buildProgressCsv(data,language='vi'){
+ const headers=language==='en'?['Lesson','Class','Group','Status','Review version','Submitted on']:['Chủ đề','Lớp','Nhóm','Trạng thái','Phiên bản duyệt','Ngày nộp'];
  const rows=[];
  for(const a of data.assignments||[])for(const g of (data.groups||[]).filter(x=>x.assignment_id===a.id)){
   const rev=(data.reviews||[]).find(x=>x.group_id===g.id);
-  rows.push([a.title,a.class_scope,g.label,progressOfGroup(g.state).label,rev?.version??'',rev?.submitted_at??'']);
+  rows.push([a.title,a.class_scope,g.label,progressOfGroup(g.state,language).label,rev?.version??'',rev?.submitted_at??'']);
  }
  return '\ufeff'+[headers,...rows].map(row=>row.map(safeCsvCell).join(',')).join('\r\n');
 }

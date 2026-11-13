@@ -8,7 +8,7 @@ const t=(lang,vi,en)=>lang==='en'?en:vi;
 const short=(value,length=300)=>String(value??'').trim().slice(0,length);
 const dateLabel=value=>{
  if(!value||Number.isNaN(Date.parse(value)))return '';
- return new Date(value).toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'});
+ return new Date(value).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'});
 };
 function Metric({icon:Icon,value,label,subtitle,tone}){
  return <div className={'bml-exh-metric bml-exh-metric-'+tone}>

@@ -69,7 +69,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  const spotlightGroup=async groupId=>{
   setBusy(true);setError('');
   try{const r=await transport('group-gallery',null,{assignmentId,groupId});
-   if(!r?.draft?.rooms?.length)throw new Error('Nhóm chưa có bản triển lãm.');
+   if(!r?.draft?.rooms?.length)throw new Error(t(language,'Nhóm chưa có bản triển lãm.','This group has not created a museum draft yet.'));
    const urls=new Map((r.artworks||[]).map(a=>[a.id,a.image_url]));
    const gallery={...r.draft,rooms:r.draft.rooms.map((room,i)=>({
     ...room,id:'class-room-'+i,exhibits:room.exhibits.map((e,j)=>({
@@ -280,10 +280,10 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
      {paper?<><div className="bml-field-grid">{stage.options.map((label,i)=><label key={label}>{label}<input type="number" min="0" max="1000" value={tally[i]} onChange={e=>setTally(v=>v.map((x,j)=>i===j?e.target.value:x))}/></label>)}</div><label>{t(language,'Nguồn phiếu và thời điểm','Paper source and time')}<input value={tallyNote} maxLength={500} onChange={e=>setTallyNote(e.target.value)}/></label></>:null}
      <button className="bml-primary" disabled={busy} onClick={freeze}>{t(language,'Chốt số liệu khảo sát / Freeze survey','Freeze survey')}</button><p>{t(language,'Số liệu đã chốt không sửa. N là số nhóm; không suy ra thói quen cá nhân.','Frozen counts cannot change. N counts groups, not individual habits.')}</p></>}
     </div>:null}
-    {currentIndex>=7&&state?.feedback?.length?<details open><summary>Phản hồi chéo đã lưu · {state.feedback.length}</summary>{state.feedback.map(r=><article key={r.from_group}><strong>{groups.find(g=>g.id===r.from_group)?.label} → {groups.find(g=>g.id===r.to_group)?.label} · {r.rating}/4</strong><p>{r.learned}</p><p>{r.clarify}</p></article>)}</details>:null}
+    {currentIndex>=7&&state?.feedback?.length?<details open><summary>{t(language,'Phản hồi chéo đã lưu','Saved peer feedback')} · {state.feedback.length}</summary>{state.feedback.map(r=><article key={r.from_group}><strong>{groups.find(g=>g.id===r.from_group)?.label} → {groups.find(g=>g.id===r.to_group)?.label} · {r.rating}/4</strong><p>{r.learned}</p><p>{r.clarify}</p></article>)}</details>:null}
     {currentIndex===10?<div>{state?.responses?.map(r=><p key={r.group_id}><strong>{groups.find(g=>g.id===r.group_id)?.label}: </strong>{String(r.value)}</p>)}</div>:null}
     {MICRO_CHALLENGES[currentIndex]?<div className="bml-live-micro-summary"><ShieldCheck size={17}/>
-     {state?.microResponses||0} nhóm đã nộp câu hỏi tư duy nhanh. Câu trả lời được lưu làm minh chứng quá trình.</div>:null}
+     {state?.microResponses||0} {t(language,'nhóm đã nộp câu hỏi tư duy nhanh. Câu trả lời được lưu làm minh chứng quá trình.','groups submitted a thinking challenge. Responses are saved as learning-process evidence.')}</div>:null}
     {!isFullscreen&&showResources?<div className="bml-paper-resource-drawer" data-testid="museum-live-resources">
      <MuseumResourceHub stage={stage} language={language}/>
      <LessonResources stageIndex={currentIndex} language={language} teacher/>

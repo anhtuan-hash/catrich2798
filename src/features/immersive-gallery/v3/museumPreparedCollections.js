@@ -66,7 +66,7 @@ export const PREPARED_COLLECTIONS=Object.freeze(definitions.map(def=>Object.free
  // Source provenance: never insert into live learning evidence tables.
  origin:'teacher_authored_content',
  projects:Object.freeze(def.items.map((p,i)=>Object.freeze({
-  id:def.key+'-'+i,label:'Nhóm '+(i+1)+' · '+p[0],title:p[1],
+  id:def.key+'-'+i,label:'Group '+(i+1)+' · '+p[0],title:p[1],
   issue:p[2],evidence:p[3],source:p[4],solution:p[5],
   reviewQuestion:p[6],revisionGuide:p[7]
  })))
@@ -89,7 +89,7 @@ export function preparedGallery(key,groupIndex=null){
    ['Our Solution',p[5]+'\n\nPeer-review prompt: '+p[6]+'\n\nRevision guide: '+p[7]]
   ];
   return {id:roomId,exhibition_id:'collection-'+key,sort_order:idx,
-   title:'Nhóm '+(idx+1)+' · '+p[0],
+   title:'Group '+(idx+1)+' · '+p[0],
    template_key:['classic','culture','lab'][idx%3],
    exhibits:sections.map(([heading,body],part)=>{
     const url=poster(def,p,part,idx);

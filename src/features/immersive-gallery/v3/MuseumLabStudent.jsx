@@ -41,7 +41,7 @@ const field=(label,value,update,{rows=0,placeholder='',limit=2500,disabled=false
  {rows?<textarea rows={rows} maxLength={limit} disabled={disabled} required={required} placeholder={placeholder} value={value||''} onChange={e=>update(e.target.value)}/>:
  <input maxLength={limit} disabled={disabled} required={required} placeholder={placeholder} value={value||''} onChange={e=>update(e.target.value)}/>}
  </label>;
-export default function MuseumLabStudent({language='vi'}){
+export default function MuseumLabStudent({language='en'}){
  const [session,setSession]=useState(initialSession),[studio,setStudio]=useState(emptyStudio);
  const [version,setVersion]=useState(0),[dirty,setDirty]=useState(false),[busy,setBusy]=useState(false);
  const [saveState,setSaveState]=useState('saved'),[error,setError]=useState(''),[notice,setNotice]=useState('');
@@ -100,7 +100,7 @@ export default function MuseumLabStudent({language='vi'}){
   savingRef.current=true;setSaveState('saving');
   const snapshot=documentRef.current,raw=JSON.stringify(snapshot),expected=versionRef.current;
   try{
-   if(snapshot.legacy)throw new Error('Bản nháp cũ có nhiều phòng. Chưa thể tự chuyển đổi mà không kiểm tra nội dung.');
+   if(snapshot.legacy)throw new Error(T(language,'Bản nháp cũ có nhiều phòng. Chưa thể tự chuyển đổi mà không kiểm tra nội dung.','The legacy draft contains multiple rooms. Review the original content before converting it.'));
    const result=await guestRequest('save','PUT',{draft:documentFromStudio(snapshot),expectedVersion:expected},csrfRef.current);
    versionRef.current=result.version;setVersion(result.version);
    if(JSON.stringify(documentRef.current)===raw){dirtyRef.current=false;setDirty(false);setSaveState('saved');}
@@ -130,8 +130,8 @@ export default function MuseumLabStudent({language='vi'}){
  const submit=async()=>{
   setError('');setNotice('');setBusy(true);
   try{
-   if(studio.legacy)throw new Error('Cần kiểm tra bản nháp cũ trước khi nộp.');
-   const missing=submissionMissing(documentRef.current);
+   if(studio.legacy)throw new Error(T(language,'Cần kiểm tra bản nháp cũ trước khi nộp.','Review the legacy draft before submitting.'));
+   const missing=submissionMissing(documentRef.current,language);
    if(liveRunning&&documentRef.current.survey)missing.push(...evidenceMissing(documentFromStudio(documentRef.current)));
    if(missing.length)throw new Error(T(language,'Cần hoàn thành: ','Please complete: ')+missing.join(' · '));
    if(savingRef.current)throw new Error(T(language,'Đang lưu. Hãy thử lại sau khi thấy Đã lưu.','Saving. Please submit once the draft is saved.'));
@@ -140,12 +140,12 @@ export default function MuseumLabStudent({language='vi'}){
    await load();setNotice(T(language,'Bài đã nộp. Giáo viên sẽ kiểm tra và chuyển TTCM duyệt.','Submitted. Your teacher will review and forward it to the department reviewer.'));
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
- if(!session)return <div className="bml bml-student-shell"><GuestEntry onRedeem={redeem} busy={busy} error={error} language={language}/></div>;
+ if(!session)return <div className="bml bml-student-shell" lang={language}><GuestEntry onRedeem={redeem} busy={busy} error={error} language={language}/></div>;
  const l=studio.learning,doc=documentFromStudio(studio),room=doc.rooms[0];
  const exhibitStatus=()=>[l.issue,l.evidence,l.solution].filter(Boolean).length;
  const progressChecks=[!!studio.title,!!l.issue,!!l.evidence,!!l.solution,!!l.source,!!l.feedback,!!l.improvement,!!l.tested,!!l.reflection];
  const progressPercent=Math.round(100*progressChecks.filter(Boolean).length/progressChecks.length);
- return <main className="bml bml-student-shell bml-student-canvas16" data-testid="museum-student-wizard">
+ return <main className="bml bml-student-shell bml-student-canvas16" data-testid="museum-student-wizard" lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
   <header className="bml-student-bar"><div className="bml-brand"><span className="bml-brand-icon"><Landmark size={23}/></span><span><strong>BRIAN Museum Lab</strong><small>Student Creator</small></span></div>
    <div className="bml-student-right"><span className="bml-group-pill"><Users size={16}/>{session.groupLabel} · {session.assignment.class_scope}</span>
     <span className={'bml-save-indicator bml-save-'+saveState}>{saveState==='saved'?<><Cloud size={16}/>{T(language,'Đã lưu','Saved')}</>:
@@ -236,9 +236,9 @@ export default function MuseumLabStudent({language='vi'}){
       disabled:locked,limit:1200,placeholder:'Students, teachers and families'})}
     </>:null}
     {step===1&&studioSubstep===0?<><p>{T(language,'Lên câu chuyện triển lãm gồm ba phần: Vấn đề – Bằng chứng – Giải pháp.','Plan your story around Problem, Evidence, and Solution.')}</p>
-     {field('Vấn đề bằng tiếng Anh / Problem in English',l.issue,v=>changeLearning('issue',v),{rows:3,disabled:locked})}
-     {field('Vai trò nhóm / Group roles',l.roles,v=>changeLearning('roles',v),{rows:2,disabled:locked,placeholder:'Editor: member A; data checker: B; designer: C; presenter: D (use initials or roles, no full names)'})}
-     {field('Tính khả thi / Feasibility',l.feasibility,v=>changeLearning('feasibility',v),{rows:2,disabled:locked,placeholder:'Who will do it? Resources? One limitation?'})}
+     {field(T(language,'Vấn đề bằng tiếng Anh / Problem in English','Problem in English'),l.issue,v=>changeLearning('issue',v),{rows:3,disabled:locked})}
+     {field(T(language,'Vai trò nhóm / Group roles','Group roles'),l.roles,v=>changeLearning('roles',v),{rows:2,disabled:locked,placeholder:'Editor: member A; data checker: B; designer: C; presenter: D (use initials or roles, no full names)'})}
+     {field(T(language,'Tính khả thi / Feasibility','Feasibility'),l.feasibility,v=>changeLearning('feasibility',v),{rows:2,disabled:locked,placeholder:'Who will do it? Resources? One limitation?'})}
     </>:null}
     {step===1&&studioSubstep===1?<><p>{T(language,'Bổ sung dẫn chứng có nguồn và một giải pháp khả thi.','Add sourced evidence and one feasible solution.')}</p>
      <div className="bml-storyboard">{['The Problem','The Evidence','Our Solution'].map((title,i)=><div key={title} className={'bml-storyboard-card '+([l.issue,l.evidence,l.solution][i]?'is-filled':'')}>
