@@ -115,7 +115,9 @@
  outline:3px solid #3e9b7a;outline-offset:3px;
 }
 .bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-photo{
- height:clamp(142px,16vw,208px);width:100%;min-height:0;
+ /* Student posters have portrait layouts: preserve the entire artwork,
+    never crop its text or force it into a landscape thumbnail. */
+ width:100%;height:auto;min-height:0;aspect-ratio:3 / 4;
  display:grid;place-items:center;position:relative;overflow:hidden;
  border-radius:15px 12px 15px 11px;
  background:#dae9d9;
@@ -123,8 +125,8 @@
 .bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-photo--1{background:#dae9ed}
 .bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-photo--2{background:#f5eac9}
 .bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-photo img{
- display:block;width:100%;height:100%;object-fit:cover;
- object-position:center;background:transparent;transition:transform .28s ease;
+ display:block;width:100%;height:100%;object-fit:contain;
+ object-position:center;background:#f6f5ec;transition:transform .28s ease;
 }
 .bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-card--1 .bml-paper-art-photo img{
  /* Evidence posters/charts must remain fully visible; never crop survey labels. */
@@ -220,7 +222,7 @@
 @media(max-width:1100px){
  .bml .bml-scene.bml-paper-2d.is-2d .bml-art-grid.bml-paper-art-grid{gap:10px}
  .bml .bml-scene.bml-paper-2d.is-2d .bml-art-card.bml-paper-art-card{min-height:300px}
- .bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-photo{height:clamp(130px,17vw,170px)}
+ .bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-photo{height:auto;aspect-ratio:3 / 4}
  .bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-body strong{font-size:19px}
 }
 @media(max-width:790px){
@@ -232,7 +234,7 @@
 @media(max-width:550px){
  .bml .bml-scene.bml-paper-2d.is-2d .bml-art-grid.bml-paper-art-grid{grid-template-columns:1fr}
  .bml .bml-scene.bml-paper-2d.is-2d .bml-art-card.bml-paper-art-card{min-height:0}
- .bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-photo{height:210px}
+ .bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-photo{height:auto;aspect-ratio:3 / 4}
  .bml .bml-museum-preview-window>.bml-student-detail-head{padding:9px 11px}
  .bml .bml-scene.bml-paper-2d.is-2d .bml-scene-footer{flex-wrap:wrap}
 }
@@ -244,3 +246,163 @@
 }
 
 /* CI regression marker: uploaded originals, 2D visitor and evidence lens coexist. */
+
+/* Preview layout repair: canvas fills the available dialog instead of inheriting
+   the 340px height from the embedded legacy gallery. Works at 16:9 and 4:3. */
+.bml .bml-student-detail-overlay.bml-museum-preview-overlay{
+ padding:clamp(8px,1.5vmin,18px);
+}
+.bml .bml-student-detail-window.bml-museum-preview-window{
+ width:min(1480px,97vw);max-width:97vw;
+ height:min(920px,96dvh);max-height:96dvh;
+ padding:12px;
+ min-height:0;
+}
+.bml .bml-museum-preview-window>.bml-student-detail-head{
+ margin-bottom:8px;padding:7px 16px 11px;
+}
+.bml .bml-museum-preview-window>.bml-scene.bml-paper-2d.is-2d{
+ display:block;flex:1 1 auto;min-height:0;min-width:0;
+ overflow-y:auto;overflow-x:hidden;
+ overscroll-behavior:contain;
+ scrollbar-width:thin;scrollbar-color:#729989 #f2f3e8;
+}
+.bml .bml-museum-preview-window>.bml-scene.bml-paper-2d.is-2d .bml-art-card.bml-paper-art-card{
+ height:auto;min-height:0;
+}
+.bml .bml-museum-preview-window>.bml-scene.bml-paper-2d:not(.is-2d){
+ display:flex;flex-direction:column;flex:1 1 auto;
+ min-height:0;min-width:0;overflow:hidden;
+ background:#fff;
+}
+.bml .bml-museum-preview-window>.bml-scene.bml-paper-2d:not(.is-2d)>.bml-scene-header{
+ flex:0 0 auto;padding:10px 16px;
+}
+.bml .bml-museum-preview-window>.bml-scene.bml-paper-2d:not(.is-2d)>.bml-scene-header .bml-scene-title h2{
+ margin:3px 0;font-size:clamp(18px,1.8vw,23px);
+}
+.bml .bml-museum-preview-window>.bml-scene.bml-paper-2d:not(.is-2d)>.bml-scene-header .bml-scene-title p{
+ max-width:700px;line-height:1.35;
+}
+.bml .bml-museum-preview-window>.bml-scene.bml-paper-2d:not(.is-2d)>.bml-room-tabs{
+ flex:0 0 auto;min-height:45px;
+}
+.bml .bml-museum-preview-window>.bml-scene.bml-paper-2d:not(.is-2d)>.bml-3d-stage{
+ display:flex;flex-direction:column;flex:1 1 auto;
+ min-height:0;min-width:0;overflow:hidden;
+ padding:7px 9px 0;background:#fff;
+}
+.bml .bml-museum-preview-window>.bml-scene.bml-paper-2d:not(.is-2d)>.bml-3d-stage>.big-webgl-shell{
+ flex:1 1 auto;width:100%;height:100%;min-height:0;
+ max-height:100%;border-radius:13px;overflow:hidden;
+}
+.bml .bml-museum-preview-window>.bml-scene.bml-paper-2d:not(.is-2d)>.bml-3d-stage>.big-webgl-shell canvas{
+ width:100%;height:100%;display:block;
+}
+.bml .bml-museum-preview-window>.bml-scene.bml-paper-2d:not(.is-2d)>.bml-scene-footer{
+ flex:0 0 auto;min-height:48px;
+ padding:7px 13px;background:#fff;
+}
+.bml .bml-museum-preview-window>.bml-scene.bml-paper-2d:not(.is-2d) .bml-3d-caption{
+ position:absolute;bottom:14px;left:20px;
+ max-width:calc(100% - 40px);
+}
+/* Keep mobile viewers usable without creating a second page scroll. */
+@media(max-width:700px){
+ .bml .bml-student-detail-window.bml-museum-preview-window{
+  width:100%;max-width:100%;height:calc(100dvh - 16px);
+  max-height:calc(100dvh - 16px);padding:8px;
+ }
+ .bml .bml-museum-preview-window>.bml-scene.bml-paper-2d:not(.is-2d)>.bml-scene-header{
+  flex-wrap:wrap;gap:8px;
+ }
+ .bml .bml-museum-preview-window>.bml-scene.bml-paper-2d:not(.is-2d)>.bml-scene-header .bml-scene-title p{
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+ }
+ .bml .bml-museum-preview-window>.bml-scene.bml-paper-2d:not(.is-2d)>.bml-3d-stage{
+  padding:4px 2px 0;
+ }
+ .bml .bml-museum-preview-window>.bml-scene.bml-paper-2d:not(.is-2d) .bml-3d-caption{
+  left:10px;bottom:10px;font-size:11px;
+ }
+}
+
+/* Original-poster viewing is a distinct action from exhibit inspection.
+   The image itself retains its natural proportions at every size. */
+.bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-tile{
+ position:relative;min-width:0;display:flex;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-tile>.bml-paper-art-card{
+ display:flex;flex:1 1 auto;width:100%;height:100%;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-tile>.bml-paper-poster-zoom{
+ position:absolute;top:18px;right:18px;z-index:2;
+ display:inline-flex;align-items:center;gap:7px;
+ min-height:37px;padding:8px 12px;
+ border:1px solid #bed9c8;border-radius:999px;
+ background:#fffcf4f5;color:#1f594c;
+ font:750 12px/1.2 inherit;
+ box-shadow:0 2px 9px #183c3436;
+ cursor:zoom-in;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-tile>.bml-paper-poster-zoom:hover{
+ background:#1e6450;color:#fff;border-color:#1e6450;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-tile>.bml-paper-poster-zoom:focus-visible{
+ outline:3px solid #f0b54c;outline-offset:3px;
+}
+.bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-card:hover .bml-paper-art-photo img{
+ transform:none;
+}
+.bml .bml-modal-overlay.bml-paper-poster-overlay{
+ z-index:2200;padding:clamp(8px,2vw,22px);
+ background:#132e2bea;backdrop-filter:blur(7px);
+}
+.bml .bml-paper-poster-dialog{
+ width:min(1260px,98vw);height:min(940px,96dvh);
+ max-width:98vw;max-height:96dvh;
+ display:flex;flex-direction:column;min-height:0;
+ padding:clamp(10px,1.2vw,17px);gap:9px;
+ border:2px solid #ded4c1;border-radius:18px;
+ background:#fffdf6;box-shadow:0 20px 80px #071f1c99;
+}
+.bml .bml-paper-poster-dialog>header{
+ display:flex;gap:16px;align-items:center;justify-content:space-between;
+ min-height:51px;padding:4px 6px 8px;border-bottom:1px solid #e4dfd2;
+}
+.bml .bml-paper-poster-dialog>header>div{min-width:0;display:flex;flex-direction:column;gap:3px}
+.bml .bml-paper-poster-dialog>header small{
+ color:#3f7862;letter-spacing:.1em;font-size:10px;font-weight:800;
+}
+.bml .bml-paper-poster-dialog>header strong{
+ color:#254d43;font-size:clamp(15px,1.7vw,21px);overflow-wrap:anywhere;
+}
+.bml .bml-paper-poster-dialog .bml-paper-poster-close{
+ flex:none;padding:8px 14px;min-height:37px;cursor:pointer;
+ background:#e6f3e9;color:#236249;border:1px solid #b6d7c2;border-radius:20px;
+}
+.bml .bml-paper-poster-full-image{
+ flex:1 1 auto;min-height:0;min-width:0;
+ display:grid;place-items:center;overflow:auto;
+ border-radius:12px;border:1px solid #e3e1d7;background:#f2f0e8;
+}
+.bml .bml-paper-poster-full-image img{
+ display:block;width:100%;height:100%;
+ max-width:100%;max-height:100%;
+ object-fit:contain;object-position:center;
+}
+.bml .bml-paper-poster-dialog>p{
+ margin:2px 0;color:#5a756a;text-align:center;font-size:12px;
+}
+@media(max-width:700px){
+ .bml .bml-scene.bml-paper-2d.is-2d .bml-paper-art-tile>.bml-paper-poster-zoom{
+  padding:8px;min-height:34px;right:13px;top:13px;font-size:11px;
+ }
+ .bml .bml-paper-poster-dialog{
+  height:calc(100dvh - 16px);max-height:calc(100dvh - 16px);
+ }
+ .bml .bml-paper-poster-dialog>header{gap:8px}
+ .bml .bml-paper-poster-dialog .bml-paper-poster-close{
+  padding:7px 9px;font-size:12px;
+ }
+}

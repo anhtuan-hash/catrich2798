@@ -47,11 +47,29 @@ export function reviewMuseum(review,assets=[]){
 }
 export default function MuseumScene({gallery,onBack,language='vi',embedded=false,compact=false,initial3D=false,onExhibitSelect}){
  const [activeRoom,setActiveRoom]=useState(0),[threeD,setThreeD]=useState(initial3D),[selectedId,setSelectedId]=useState(null);
+ const [fullPosterId,setFullPosterId]=useState(null);
+ const posterCloseRef=useRef(null),posterOpenerRef=useRef(null);
  const dialogRef=useRef(null),closeRef=useRef(null),openerRef=useRef(null);
  const rooms=gallery?.rooms||[];
  const room=rooms[Math.min(activeRoom,Math.max(0,rooms.length-1))];
  const exhibits=useMemo(()=>room?.exhibits||[],[room]);
  const selected=exhibits.find(e=>e.id===selectedId);
+ const fullPoster=exhibits.find(e=>e.id===fullPosterId);
+ const openFullPoster=id=>{posterOpenerRef.current=document.activeElement;setFullPosterId(id);};
+ const closeFullPoster=()=>{
+  setFullPosterId(null);
+  Promise.resolve().then(()=>posterOpenerRef.current?.focus?.());
+ };
+ useEffect(()=>{
+  if(!fullPoster)return;
+  posterCloseRef.current?.focus?.();
+  const onKey=event=>{
+   if(event.key==='Escape'){event.preventDefault();event.stopPropagation();closeFullPoster();}
+   if(event.key==='Tab'){event.preventDefault();posterCloseRef.current?.focus?.();}
+  };
+  document.addEventListener('keydown',onKey,true);
+  return()=>document.removeEventListener('keydown',onKey,true);
+ },[fullPoster?.id]);
  const selectedIndex=exhibits.findIndex(e=>e.id===selectedId);
  const insight=selected?exhibitInsights(gallery,selected,selectedIndex):null;
  const tr=(vi,en)=>language==='en'?en:vi;
@@ -80,7 +98,7 @@ export default function MuseumScene({gallery,onBack,language='vi',embedded=false
   document.addEventListener('keydown',handleKeys);
   return()=>document.removeEventListener('keydown',handleKeys);
  },[selected?.id]);
- const changeRoom=n=>{setActiveRoom(n);setSelectedId(null);};
+ const changeRoom=n=>{setActiveRoom(n);setSelectedId(null);setFullPosterId(null);};
  return <section className={'bml-scene bml-paper-2d '+(!threeD?'is-2d ':'')+(embedded?'bml-scene-embedded ':'')+(compact?'bml-scene-compact':'')} data-testid="museum-visitor">
   {!compact?<header className="bml-scene-header">
    <div className="bml-scene-title">
@@ -120,17 +138,24 @@ export default function MuseumScene({gallery,onBack,language='vi',embedded=false
      <p>{tr('Đọc nội dung triển lãm bằng tiếng Anh. Chuyển sang 3D để tham quan không gian.','Read the English exhibit labels or explore the immersive 3D view.')}</p>
     </div>
     <div className="bml-art-grid bml-paper-art-grid" data-testid="museum-2d-exhibits">{exhibits.map((e,i)=>
-     <button type="button" className={'bml-art-card bml-paper-art-card bml-paper-art-card--'+i%3}
-      key={e.id||i} onClick={()=>openExhibit(e.id)}
-      aria-label={tr('Khám phá hiện vật ','Explore exhibit ')+(i+1)+': '+clean(e.title,120)}>
-      <ExhibitVisual exhibit={e} index={i} language={language}/>
-      <div className="bml-art-body bml-paper-art-body">
-       <small>{tr('HIỆN VẬT','EXHIBIT')} {String(i+1).padStart(2,'0')}</small>
-       <strong>{clean(e.title,120)}</strong>
-       <p>{clean(e.description,360)||tr('Chưa có thuyết minh.','No description yet.')}</p>
-       <span className="bml-paper-art-explore">{tr('Khám phá','Explore')} <ArrowRight size={17}/></span>
-      </div>
-     </button>)}</div>
+     <div className="bml-paper-art-tile" key={e.id||i}>
+      <button type="button" className={'bml-art-card bml-paper-art-card bml-paper-art-card--'+i%3}
+       onClick={()=>openExhibit(e.id)}
+       aria-label={tr('Khám phá hiện vật ','Explore exhibit ')+(i+1)+': '+clean(e.title,120)}>
+       <ExhibitVisual exhibit={e} index={i} language={language}/>
+       <div className="bml-art-body bml-paper-art-body">
+        <small>{tr('HIỆN VẬT','EXHIBIT')} {String(i+1).padStart(2,'0')}</small>
+        <strong>{clean(e.title,120)}</strong>
+        <p>{clean(e.description,360)||tr('Chưa có thuyết minh.','No description yet.')}</p>
+        <span className="bml-paper-art-explore">{tr('Khám phá','Explore')} <ArrowRight size={17}/></span>
+       </div>
+      </button>
+      {e.image_url?<button type="button" className="bml-paper-poster-zoom"
+        aria-label={tr('Xem toàn bộ poster: ','View full original poster: ')+clean(e.title,120)}
+        onClick={()=>openFullPoster(e.id)}>
+        <Maximize2 size={16}/>{tr('Xem toàn bộ poster','Full poster')}
+       </button>:null}
+     </div>)}</div>
     {!exhibits.length?<div className="bml-empty"><FileText size={28}/>{tr('Chưa có hiện vật trong phòng này.','No exhibits in this room.')}</div>:null}
    </div>}
    <footer className="bml-scene-footer">
@@ -139,6 +164,24 @@ export default function MuseumScene({gallery,onBack,language='vi',embedded=false
      <button type="button" disabled={activeRoom===rooms.length-1} onClick={()=>changeRoom(activeRoom+1)}>{tr('Phòng tiếp','Next room')} <ChevronRight size={18}/></button></div>
    </footer>
   </>:<div className="bml-empty">{tr('Triển lãm chưa có phòng.','No rooms available.')}</div>}
+  {fullPoster?<div className="bml-modal-overlay bml-paper-poster-overlay" role="presentation"
+   onMouseDown={event=>{if(event.target===event.currentTarget)closeFullPoster();}}>
+    <section role="dialog" aria-modal="true" aria-label={tr('Poster gốc: ','Original poster: ')+clean(fullPoster.title,140)}
+     className="bml-paper-poster-dialog" data-testid="museum-original-poster-dialog">
+     <header>
+      <div><small>{tr('ẢNH GỐC CỦA NHÓM HỌC SINH','ORIGINAL GROUP ARTWORK')}</small>
+       <strong>{clean(fullPoster.title,150)}</strong></div>
+      <button ref={posterCloseRef} type="button" className="bml-paper-poster-close"
+       onClick={closeFullPoster} aria-label={tr('Đóng poster','Close poster')}>✕ {tr('Đóng','Close')}</button>
+     </header>
+     <div className="bml-paper-poster-full-image">
+      <img src={fullPoster.image_url} alt={clean(fullPoster.alt_text||fullPoster.title,220)}
+       referrerPolicy="no-referrer" decoding="async" data-testid="museum-original-poster"/>
+     </div>
+     <p>{tr('Toàn bộ poster được hiển thị đúng tỷ lệ, không cắt xén.',
+       'The complete original poster is displayed without cropping or distortion.')}</p>
+    </section>
+   </div>:null}
   {selected?<div className="bml-modal-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)closeExhibit();}} role="presentation">
     <section className="bml-modal bml-art-dialog bml-art-360-dialog" ref={dialogRef} role="dialog" aria-modal="true"
       aria-label={clean(selected.title,140)} data-testid="museum-artwork-inspector">

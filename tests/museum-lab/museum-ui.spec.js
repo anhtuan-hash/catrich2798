@@ -1467,6 +1467,33 @@ test('Student Creator 2D Paper exhibit displays actual uploaded photos and remai
  for(let i=0;i<3;i++)await expect(cards.nth(i)).toContainText(titles[i]);
  await expect(viewer.locator('.bml-paper-photo-placeholder')).toHaveCount(0);
  await expect(viewer.getByRole('button',{name:'2D',exact:true})).toHaveAttribute('aria-pressed','true');
+ // Portrait student posters must be fully visible, not cut down to a
+ // landscape object-fit:cover thumbnail. The 2D viewer must scroll internally.
+ const posterLayout=await images.evaluateAll(items=>items.map(img=>{
+  const photo=img.closest('.bml-paper-art-photo'),rect=photo.getBoundingClientRect();
+  return {fit:getComputedStyle(img).objectFit,ratio:rect.width/rect.height};
+ }));
+ expect(posterLayout.every(x=>x.fit==='contain'&&x.ratio>.65&&x.ratio<.85)).toBe(true);
+ await expect(viewer.getByRole('button',{name:'View full original poster: The Problem'})).toBeVisible();
+ await viewer.getByRole('button',{name:'View full original poster: The Problem'}).click();
+ const original=page.getByTestId('museum-original-poster-dialog');
+ await expect(original).toBeVisible();
+ await expect(original.getByTestId('museum-original-poster')).toHaveJSProperty('naturalWidth',2);
+ expect(await original.locator('img').evaluate(el=>getComputedStyle(el).objectFit)).toBe('contain');
+ await page.keyboard.press('Escape');
+ await expect(original).toHaveCount(0);
+ const scrolling=await viewer.evaluate(el=>({
+  overflow:getComputedStyle(el).overflowY,
+  hasScroll:el.scrollHeight>el.clientHeight,
+  total:el.scrollHeight,
+  visible:el.clientHeight
+ }));
+ expect(scrolling.overflow).toBe('auto');
+ if(scrolling.hasScroll){
+  await viewer.evaluate(el=>{el.scrollTop=el.scrollHeight;});
+  expect(await viewer.evaluate(el=>el.scrollTop)).toBeGreaterThan(0);
+  await viewer.evaluate(el=>{el.scrollTop=0;});
+ }
  const dimensions=await cards.evaluateAll(items=>items.map(x=>({
   height:x.getBoundingClientRect().height,visual:x.querySelector('.bml-paper-art-photo').getBoundingClientRect().height
  })));
@@ -1478,6 +1505,24 @@ test('Student Creator 2D Paper exhibit displays actual uploaded photos and remai
  await expect(page.getByTestId('museum-artwork-inspector')).toHaveCount(0);
  await viewer.getByRole('button',{name:'3D',exact:true}).click();
  await expect(viewer.locator('.bml-3d-stage')).toBeVisible();
+ const museumShell=viewer.locator('.bml-3d-stage>.big-webgl-shell');
+ await expect(museumShell).toBeVisible();
+ const stageSize=await museumShell.evaluate(el=>{
+  const area=el.closest('.bml-3d-stage').getBoundingClientRect();
+  const shell=el.getBoundingClientRect();
+  return {stageH:area.height,shellH:shell.height,stageW:area.width,shellW:shell.width};
+ });
+ expect(stageSize.shellH).toBeGreaterThan(420);
+ expect(stageSize.shellH/stageSize.stageH).toBeGreaterThan(.9);
+ expect(stageSize.shellW/stageSize.stageW).toBeGreaterThan(.95);
+ // Resize to common classroom 16:9: WebGL viewport should still fill the
+ // remaining preview space without losing its footer or the modal close action.
+ await page.setViewportSize({width:1280,height:720});
+ const compactStage=await museumShell.evaluate(el=>({
+  shell:el.getBoundingClientRect().height,stage:el.closest('.bml-3d-stage').getBoundingClientRect().height
+ }));
+ expect(compactStage.shell).toBeGreaterThan(270);
+ expect(compactStage.shell/compactStage.stage).toBeGreaterThan(.88);
  await viewer.getByRole('button',{name:'2D',exact:true}).click();
  await expect(cards).toHaveCount(3);
 });
