@@ -124,7 +124,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
      stageIndex={stageIndex} existing={data?.micro} csrf={csrf} language={language}/>:null}
     {['group','recap','artwork','present'].includes(stage.kind)?<p className="bml-live-student-status">
       {t(language,'Hãy thực hiện nhiệm vụ bên dưới theo hướng dẫn của giáo viên.','Continue with your group work below as instructed by your teacher.')}</p>:null}
-    {!compact&&survey&&stageIndex>=3?<div className="bml-live-survey"><strong>{t(language,'KẾT QUẢ KHẢO SÁT LỚP','REAL CLASS SURVEY')} · N={survey.n} {t(language,'thiết bị nhóm','group devices')}</strong>
+    {!compact&&survey&&stageIndex>=3?<div className="bml-live-survey"><strong>{t(language,'KẾT QUẢ KHẢO SÁT LỚP','CLASS SURVEY')} · N={survey.n} {t(language,'thiết bị nhóm','group devices')}</strong>
       {survey.options?.map((o,i)=><p key={i}>{o.label}: {o.count}/{survey.n} ({o.percent}%)</p>)}</div>:null}
    </>}
    {!compact?<div className="bml-student-support" aria-label={t(language,'Hỗ trợ hoạt động','Activity support')}>
@@ -157,7 +157,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
    {compact&&activeTool&&(activeTool!=='video'||hasVideo)&&(activeTool!=='voice'||hasVoice)?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label="Learning tools">
     <div className="bml-student-detail-window">
      <div className="bml-student-detail-head">
-      <strong>{({materials:'Lesson Materials',research:'Research Library',voice:'American English Voiceover',video:'Video Lab',micro:'English Thinking Lab',survey:'Real Class Survey'})[activeTool]}</strong>
+      <strong>{({materials:'Lesson Materials',research:'Research Library',voice:'American English Voiceover',video:'Video Lab',micro:'English Thinking Lab',survey:'Class Survey'})[activeTool]}</strong>
       <button className="bml-outline" type="button" onClick={()=>setActiveTool(null)}>{t(language,'Đóng','Close')}</button>
      </div>
      <div className="bml-student-tool-content" data-testid="student-tool-panel">
@@ -171,7 +171,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
        <MuseumMicroChallenge key={session.id+'-'+stageIndex} stageIndex={stageIndex} existing={data?.micro} csrf={csrf} language={language}/>:
        <p>{t(language,'Chưa có câu hỏi bổ sung.','No additional challenge.')}</p>):null}
       {activeTool==='survey'?<div className="bml-live-survey">
-       {survey?<><strong>REAL CLASS SURVEY · N={survey.n} group devices</strong>
+       {survey?<><strong>CLASS SURVEY · N={survey.n} group devices</strong>
         {survey.options?.map((o,i)=><p key={i}>{o.label}: {o.count}/{survey.n} ({o.percent}%)</p>)}</>:
         <p>{t(language,'Chưa có dữ liệu khảo sát.','No survey data yet.')}</p>}
       </div>:null}
