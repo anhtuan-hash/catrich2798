@@ -9,7 +9,7 @@ export async function checkpointGallery(admin,checkpoint,groupLabel){
   if(error||!data?.signedUrl)throw fail(503,'Không thể mở ảnh minh chứng.');
   return {id:a.id,image_url:data.signedUrl,original_name:a.original_name};
  }));
- return {draft:checkpoint.doc,version:checkpoint.version,checkpointId:checkpoint.id,createdAt:checkpoint.created_at,groupLabel,artworks,expiresSeconds:600};
+ return {draft:checkpoint.doc,kind:checkpoint.kind||'unknown',version:checkpoint.version,checkpointId:checkpoint.id,createdAt:checkpoint.created_at,groupLabel,artworks,expiresSeconds:600};
 }
 export async function feedbackFor(admin,sessionId,groupId){
  if(!sessionId)return [];

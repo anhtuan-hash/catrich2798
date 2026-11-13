@@ -100,6 +100,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
    setSpotlight({gallery,groupLabel:language==='en'?englishSystemGroupLabel(r.groupLabel):r.groupLabel});
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
+ const compareGroup=async groupId=>transport('checkpoint-compare',null,{assignmentId,groupId});
  const fullscreen=async()=>{
   try{
    if(document.fullscreenElement===stageRef.current)await document.exitFullscreen?.();
@@ -239,7 +240,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
       {activeTool==='groups'?<MuseumClassroomCommandCenter compact groups={groups} responses={state?.responses||[]} feedback={state?.feedback||[]}
       microResults={state?.microResults||[]} helpGroups={state?.helpGroups||[]}
       session={session} busy={busy} onRefresh={refresh}
-      onSpotlight={async groupId=>{await spotlightGroup(groupId);setActiveTool(null);}}/>:null}
+      onSpotlight={async groupId=>{await spotlightGroup(groupId);setActiveTool(null);}} onCompare={compareGroup}/>:null}
       {activeTool==='survey'?<section className="bml-presenter-note">
        {currentIndex!==2?<p>{t(language,'Khảo sát trực tiếp thực hiện tại hoạt động 3/11.','The live class survey is at activity 3/11.')}</p>:
        state?.survey?<><strong>{t(language,'ĐÃ CHỐT KHẢO SÁT','SURVEY FROZEN')} · N={state.survey.n}</strong>
@@ -325,7 +326,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
    <div id="museum-class-command" className="bml-cc-workspace" data-testid="museum-class-command-workspace">
     <MuseumClassroomCommandCenter groups={groups} responses={state?.responses||[]} feedback={state?.feedback||[]}
       microResults={state?.microResults||[]} helpGroups={state?.helpGroups||[]}
-      session={session} busy={busy} onRefresh={refresh} onSpotlight={spotlightGroup}/>
+      session={session} busy={busy} onRefresh={refresh} onSpotlight={spotlightGroup} onCompare={compareGroup}/>
    </div>
   </div>:null}
  </div>;

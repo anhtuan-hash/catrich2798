@@ -2,10 +2,11 @@ import React,{useCallback,useEffect,useState} from 'react';
 import {CheckCircle2,Eye,MessageSquare,RefreshCw,Send,Users,X} from 'lucide-react';
 import {liveGuest} from './museumLiveApi.js';
 import MuseumScene from './MuseumScene.jsx';
+import {EXHIBIT_FIELDS,exhibitField} from './museumExhibitInsights.js';
 import {englishSystemGroupLabel} from './museumApi.js';
 import './museumLivePeer.css';
 
-const blank={learned:'',clarify:'',rating:0};
+const blank={learned:'',clarify:'',rating:0,targetExhibit:''};
 const canWrite=s=>s?.status==='active'&&s?.stageOpen===true&&s?.stageIndex>=7&&s?.stageIndex<=9;
 function normalizePreview(draft,artworks){
  const images=new Map((artworks||[]).map(a=>[a.id,a.image_url]));
@@ -78,6 +79,7 @@ export default function MuseumLivePeerFeedback({csrf,liveInfo,locked=false,saveS
   {data.received?.length?<div className="bml-peer-received"><strong>Feedback received · {data.received.length} groups</strong>
    {data.received.map((r,i)=><article key={r.createdAt+'-'+i}>
     <div><strong>{label(r.fromGroup)}</strong><span>Clarity {r.rating}/4</span></div>
+    <small className="bml-peer-exhibit-focus">{r.targetExhibit?'Focused on '+(EXHIBIT_FIELDS.find(x=>x.key===r.targetExhibit)?.label||'an exhibit'):'Whole exhibition'}</small>
     <p><b>What we learned:</b> {r.learned}</p>
     <p><b>What to improve:</b> {r.clarify}</p>
     {onUseFeedback?<button type="button" className="bml-outline" disabled={locked}
@@ -99,8 +101,17 @@ export default function MuseumLivePeerFeedback({csrf,liveInfo,locked=false,saveS
     <div className="bml-student-detail-head"><strong>{label(selected.ownerGroup)} · Peer review</strong>
      <button type="button" className="bml-outline" onClick={()=>{setSelected(null);setPreview(null);}}><X size={16}/>Close</button></div>
     <div className="bml-peer-review-body">
-     <div className="bml-peer-gallery"><MuseumScene gallery={preview} language="en" embedded/></div>
+     <div className="bml-peer-gallery"><MuseumScene gallery={preview} language="en" embedded onExhibitSelect={item=>{if(item.key)setResponse(v=>({...v,targetExhibit:item.key}));}}/></div>
      <form className="bml-peer-review-form" onSubmit={e=>{e.preventDefault();submit();}}>
+      <label>What are you reviewing?
+       <select value={response.targetExhibit} onChange={e=>setResponse(v=>({...v,targetExhibit:e.target.value}))}>
+        <option value="">Whole exhibition</option>
+        {EXHIBIT_FIELDS.filter(item=>(preview.rooms||[]).flatMap(r=>r.exhibits||[])
+         .some((ex,j)=>exhibitField(j,ex.title)===item.key)).map(item=>
+         <option key={item.key} value={item.key}>{item.label}</option>)}
+       </select>
+       <small>Choose an exhibit or click it in the gallery. Your comment will be linked to that part.</small>
+      </label>
       <label>What did you learn?<textarea required minLength={10} maxLength={400} value={response.learned}
        placeholder="We learned that ..." onChange={e=>setResponse(v=>({...v,learned:e.target.value}))}/></label>
       <label>What could be clearer?<textarea required minLength={10} maxLength={400} value={response.clarify}
@@ -110,7 +121,7 @@ export default function MuseumLivePeerFeedback({csrf,liveInfo,locked=false,saveS
        <option value={2}>2 · Partly clear</option><option value={3}>3 · Mostly clear</option>
        <option value={4}>4 · Clear</option></select></label>
       <button className="bml-primary" type="submit" disabled={busy||!ready||response.rating===0||response.learned.trim().length<10||response.clarify.trim().length<10}><Send size={16}/>Send feedback</button>
-      <small>One response per group per exhibition. Only classmates with a valid group pass can participate.</small>
+      <small>One response per group per exhibition. Only classmates with a valid group pass can participate. Exhibit focus is optional.</small>
      </form>
     </div>
    </div>

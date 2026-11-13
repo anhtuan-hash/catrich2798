@@ -1,6 +1,8 @@
 import React,{Suspense,lazy,useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,Box,ChevronLeft,ChevronRight,Eye,FileText,Info,LayoutGrid,MapPin,Maximize2,PanelRightClose} from 'lucide-react';
 import '../gallery.css';
+import {exhibitInsights,exhibitField} from './museumExhibitInsights.js';
+import './museumExhibitLens.css';
 const GalleryCanvas=lazy(()=>import('../GalleryCanvasR3F.jsx'));
 const Exhibit360Viewer=lazy(()=>import('./Exhibit360Viewer.jsx'));
 const clean=(x,n=180)=>String(x??'').slice(0,n);
@@ -18,15 +20,22 @@ export function reviewMuseum(review){
   }))
  };
 }
-export default function MuseumScene({gallery,onBack,language='vi',embedded=false,compact=false,initial3D=false}){
+export default function MuseumScene({gallery,onBack,language='vi',embedded=false,compact=false,initial3D=false,onExhibitSelect}){
  const [activeRoom,setActiveRoom]=useState(0),[threeD,setThreeD]=useState(initial3D),[selectedId,setSelectedId]=useState(null);
  const dialogRef=useRef(null),closeRef=useRef(null),openerRef=useRef(null);
  const rooms=gallery?.rooms||[];
  const room=rooms[Math.min(activeRoom,Math.max(0,rooms.length-1))];
  const exhibits=useMemo(()=>room?.exhibits||[],[room]);
  const selected=exhibits.find(e=>e.id===selectedId);
+ const selectedIndex=exhibits.findIndex(e=>e.id===selectedId);
+ const insight=selected?exhibitInsights(gallery,selected,selectedIndex):null;
  const tr=(vi,en)=>language==='en'?en:vi;
- const openExhibit=id=>{openerRef.current=document.activeElement;setSelectedId(id);};
+ const openExhibit=id=>{
+  openerRef.current=document.activeElement;
+  const index=exhibits.findIndex(e=>e.id===id);
+  if(index>=0)onExhibitSelect?.({index,key:exhibitField(index,exhibits[index]?.title),title:exhibits[index]?.title});
+  setSelectedId(id);
+ };
  const closeExhibit=()=>{
   setSelectedId(null);
   Promise.resolve().then(()=>openerRef.current?.focus?.());
@@ -106,7 +115,28 @@ export default function MuseumScene({gallery,onBack,language='vi',embedded=false
      <Suspense fallback={<div className="bml-empty">{tr('Đang mở tác phẩm…','Loading exhibit…')}</div>}>
       <Exhibit360Viewer key={selected.id} exhibit={selected} language={language}/>
      </Suspense>
-     <p className="bml-article-copy">{clean(selected.description,2500)||tr('Chưa có thuyết minh.','No description yet.')}</p>
+     <p className="bml-article-copy">{clean(insight?.message,2500)||tr('Chưa có thuyết minh.','No description yet.')}</p>
+     <section className="bml-exhibit-lens" aria-label="Exhibit evidence and context" data-testid="museum-exhibit-evidence">
+      <header><Info size={18}/><div><strong>{insight?.label||'Exhibit'} · Evidence & context</strong>
+       <small>Explore the source, limitations and revision where recorded.</small></div></header>
+      {insight?.source?<div className="bml-exhibit-lens-block">
+       <b>Source named by the group</b><p>{clean(insight.source,1200)}</p>
+       <small>Citation text is supplied by the creators; it is not independently verified by this app.</small></div>:null}
+      {insight?.survey?<div className="bml-exhibit-lens-block">
+       <b>Class group-priority survey · N={insight.survey.n} groups</b>
+       <div className="bml-exhibit-survey">
+        {insight.survey.options.map(option=><div key={option.label}>
+         <span>{option.label}</span><strong>{option.count}/{insight.survey.n} ({option.percent}%)</strong></div>)}
+       </div><small>Source: {insight.survey.source==='paper'?'teacher-entered paper tally':'online group votes'}. Group choices are not measurements of emissions or individual behaviour.</small>
+      </div>:null}
+      {insight?.improvement?<div className="bml-exhibit-lens-block">
+       <b>Change after peer testing</b><p>{clean(insight.improvement,1200)}</p></div>:null}
+      {insight?.imageSource?<div className="bml-exhibit-lens-block"><b>Image attribution</b>
+       <p>{clean(insight.imageSource,600)}</p>
+       {insight.imageRights?<small>Usage rights: {clean(insight.imageRights,300)}</small>:null}</div>:null}
+      {!insight?.source&&!insight?.survey&&!insight?.improvement&&!insight?.imageSource?
+       <p className="bml-exhibit-lens-empty">No additional citation or revision is recorded for this exhibit.</p>:null}
+     </section>
      {selected.kind==='model'?<p><Box size={17}/> {tr('Mô hình 3D được tuyển chọn.','Curated 3D object.')}</p>:null}
      <button type="button" className="bml-primary bml-art-360-finish" onClick={closeExhibit}>{tr('Đã hiểu','Got it')}</button>
     </section>

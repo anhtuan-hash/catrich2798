@@ -384,3 +384,16 @@
 .bml .bml-exh-delete-action{color:#ad362f!important;font-weight:700}
 .bml .bml-exh-delete-action:hover{background:#fff1ef!important}
 @media (max-width:660px){.bml .bml-exhibition-delete{width:40px;height:40px;right:9px;top:9px}}
+
+/* V5.3 storyboard: drag for pointer users, explicit move buttons for touch/keyboard. */
+.bml .bml-storyboard-card{min-width:0;cursor:grab;background:#fffdf8}
+.bml .bml-storyboard-card[draggable=false]{cursor:default}
+.bml .bml-storyboard-card:active{cursor:grabbing}
+.bml .bml-storyboard-move{display:flex;gap:5px;align-self:stretch;justify-content:flex-end;margin-top:auto;padding-top:5px}
+.bml .bml-storyboard-move button{display:inline-flex;align-items:center;justify-content:center;width:32px;height:29px;border:1px solid #bdd8cc;background:#eef9f2;color:#266e57;border-radius:8px;cursor:pointer}
+.bml .bml-storyboard-move button:disabled{opacity:.35;cursor:not-allowed}
+.bml .bml-storyboard-move button:focus-visible{outline:3px solid #2372a7;outline-offset:2px}
+.bml .bml-history-versions{padding:12px;border:1px solid #d4e0d8;border-radius:12px;background:#fafbf7}
+.bml .bml-history-versions summary{cursor:pointer;font-weight:800;color:#356453}
+.bml .bml-history-versions article{margin-top:10px;padding:8px 0;border-top:1px solid #dfe8df}
+.bml .bml-history-versions p{font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}
