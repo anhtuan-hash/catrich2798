@@ -349,3 +349,23 @@
  .bml-student-canvas16 .bml-student-bar{min-height:58px;max-height:none;height:auto;flex-basis:auto}
  .bml-student-canvas16 .bml-student-pane>.bml-student-stage{height:auto;min-height:0}
 }
+
+/* V4.7 student actions: accessible tap targets, visible selection and confirmations. */
+.bml-student-canvas16 .bml-student-view-tabs button,
+.bml-student-canvas16 .bml-student-steps button:not(:disabled),
+.bml-student-canvas16 .bml-student-rail-tools button,
+.bml-student-canvas16 .bml-live-response-options button:not(:disabled){
+ cursor:pointer;touch-action:manipulation;pointer-events:auto;
+}
+.bml-student-canvas16 .bml-live-response-options button:not(:disabled):hover{
+ border-color:#237fc6;background:#ecf7ff;box-shadow:0 3px 0 #b8d9ea;
+}
+.bml-student-canvas16 .bml-live-response-options button[aria-pressed=true]{
+ border-color:#138d83!important;background:#dcf8ed!important;color:#155f55!important;
+}
+.bml-student-canvas16 .bml-live-choice-note{
+ margin:0;flex:none;padding:8px 12px;border:1px solid #c4e5e0;
+ border-radius:10px;background:#f2fcf9;color:#175b63;font-size:12px;font-weight:700;
+}
+.bml-student-canvas16 .bml-student-action-notice{flex:none;margin:2px 0;padding:7px 12px;font-size:12px}
+.bml-student-canvas16 .bml-student-early-edit{font-size:11px;padding:7px 10px;margin:4px 7px}
