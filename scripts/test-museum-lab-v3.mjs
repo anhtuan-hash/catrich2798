@@ -298,5 +298,10 @@ test('published exhibition catalogue remains dashboard-backed and private poster
  assert.match(gallery,/const inventory=new Map\(\)/);
  assert.match(gallery,/transport\('showcase-exhibition',\{id:item\.id\}\)/);
  assert.match(gallery,/museum-showcase-published-count/);
+ assert.match(gallery,/museum-published-panel/);
+ assert.match(gallery,/publishedInView\.map\(g=>/);
+ const paper=fs.readFileSync('src/features/immersive-gallery/v3/museumPaper.css','utf8');
+ assert.match(paper,/\.bml-published-panel/);
+ assert.match(paper,/\.bml-published-entry/);
  assert.match(app,/onRefresh=\{refresh\} transport=\{transport\}/);
 });
