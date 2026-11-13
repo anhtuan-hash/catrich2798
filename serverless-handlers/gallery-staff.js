@@ -113,7 +113,7 @@ export default async function galleryStaff(req,res){
   }
 
   if(operation==='grade-rubric'){
-   requireMethod(req,'POST');guardOrigin(req);
+   requireMethod(req,'POST');guardOrigin(req);assertAdmin(ctx);
    const body=guardBody(req,3800);
    const scoped=await loadScopedReview(ctx,body.reviewId);
    if(scoped.assignment.created_by!==ctx.user.id&&ctx.role!=='admin')
@@ -220,7 +220,7 @@ export default async function galleryStaff(req,res){
   }
 
   if(operation==='rotate-invite'){
-   requireMethod(req,'POST');guardOrigin(req);
+   requireMethod(req,'POST');guardOrigin(req);assertAdmin(ctx);
    const body=guardBody(req,1000),{group,assignment}=await loadOwnGroup(ctx,body.groupId);
    if(!['issued','editing','changes_requested'].includes(group.state))
     throw fail(423,'Nhóm đã nộp, không thể thay mã tự do.');
