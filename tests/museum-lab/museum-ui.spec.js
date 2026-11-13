@@ -63,6 +63,13 @@ test('English-only group workspace shows no Vietnamese UI in all five project st
  const app=page.getByTestId('museum-student-wizard');
  await expect(app).toBeVisible();
  await expect(app).toHaveAttribute('lang','en');
+ const competition=app.getByTestId('museum-competition-ribbon');
+ await expect(competition).toBeVisible();
+ await expect(competition).toHaveAttribute('lang','vi');
+ await expect(competition.getByText('BÀI DỰ THI')).toBeVisible();
+ await expect(competition.locator('img')).toHaveCount(2);
+ for(const img of await competition.locator('img').all())await expect(img).toHaveJSProperty('complete',true);
+
  await expect(app.getByText('Group 01')).toBeVisible();
  for(let step=0;step<5;step++){
   await app.locator('.bml-student-steps button').nth(step).click();
@@ -70,11 +77,11 @@ test('English-only group workspace shows no Vietnamese UI in all five project st
   if(step===1||step===2){
    for(const index of step===1?[0,1]:[0,1,2]){
     await app.locator('.bml-student-subpages button').nth(index).click();
-    const visible=await app.innerText();
+    const visible=await app.locator('.bml-student-bar, .bml-student-content').allInnerTexts().then(items=>items.join(' '));
     expect(visible).not.toMatch(/[àáạảãăằắặẳẵâầấậẩẫèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃĂẰẮẶẲẴÂẦẤẬẨẪÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/u);
    }
   }
-  const visible=await app.innerText();
+  const visible=await app.locator('.bml-student-bar, .bml-student-content').allInnerTexts().then(items=>items.join(' '));
   expect(visible).not.toMatch(/[àáạảãăằắặẳẵâầấậẩẫèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃĂẰẮẶẲẴÂẦẤẬẨẪÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/u);
   const placeholders=await app.locator('input,textarea').evaluateAll(elements=>elements.map(x=>x.placeholder||'').join(' '));
   expect(placeholders).not.toMatch(/[àáạảãăằắặẳẵâầấậẩẫèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃĂẰẮẶẲẴÂẦẤẬẨẪÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/u);
