@@ -1,15 +1,15 @@
 import React,{useEffect,useState} from 'react';
-import {CheckCircle2,Eye,HelpCircle,Info,Lock,MessageCircle,RefreshCcw,Send,Users,BookOpen,Volume2} from 'lucide-react';
+import {CheckCircle2,Eye,HelpCircle,Info,Lock,MessageCircle,RefreshCcw,Send,Users,BookOpen,Volume2,Film} from 'lucide-react';
 import {liveGuest} from './museumLiveApi.js';
 import {englishSystemGroupLabel} from './museumApi.js';
 import LessonResources from './LessonResources.jsx';
 import {validatePeer} from './learningEvidence.js';
 import MuseumScene from './MuseumScene.jsx';
 import MuseumVoiceover from './MuseumVoiceover.jsx';
-import MuseumVideoLab from './MuseumVideoLab.jsx';
+import MuseumVideoLab,{MuseumVideoFrame} from './MuseumVideoLab.jsx';
 import MuseumResourceHub from './MuseumResourceHub.jsx';
 import MuseumMicroChallenge from './MuseumMicroChallenge.jsx';
-import {MICRO_CHALLENGES,stageMediaTools} from './museumLiveExtensions.js';
+import {MICRO_CHALLENGES,stageMediaTools,MUSEUM_CURRICULUM_VIDEOS} from './museumLiveExtensions.js';
 import './museumLive.css';
 import './museumLiveCompetition.css';
 import './museumStudentFocus.css';
@@ -30,12 +30,15 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
  useEffect(()=>{refresh();const id=window.setInterval(refresh,3500);return()=>window.clearInterval(id);},[]);
  const session=data?.session,stage=session?.stage,stageIndex=session?.stageIndex;
  const {video:hasVideo,voice:hasVoice}=stageMediaTools(session);
+ const curriculumClip=MUSEUM_CURRICULUM_VIDEOS[stageIndex]||null;
+ const responseQuestions=stage?.kind==='quiz'?stage.questions:(stage?.kind==='group'&&stage.videoQuestions?stage.videoQuestions:null);
+ const isVideoCheck=Boolean(stage?.kind==='group'&&stage.videoQuestions);
  useEffect(()=>{setSelected(null);setQuiz({});setWritten('');setPeer(null);setQuizPage(0);setActiveTool(null);setNotice('');},[stageIndex]);
  const posted=sent[session?.id+'-'+stageIndex]===true;
- const canRespond=stage&&['vote','quiz','peer','exit'].includes(stage.kind);
+ const canRespond=stage&&(['vote','quiz','peer','exit'].includes(stage.kind)||isVideoCheck);
  const submit=async()=>{
   if(busy||posted)return;
-  const value=stage.kind==='vote'?selected:stage.kind==='quiz'?stage.questions.map((_,i)=>quiz[i]??null):stage.kind==='peer'?peerResponse:written.trim();
+  const value=stage.kind==='vote'?selected:responseQuestions?responseQuestions.map((_,i)=>quiz[i]??null):stage.kind==='peer'?peerResponse:written.trim();
   setBusy(true);setError('');setNotice('');
   try{await liveGuest('respond','POST',{value},csrf);setSent(v=>({...v,[session.id+'-'+stageIndex]:true}));
    setNotice(t(language,'Đã lưu câu trả lời của nhóm.','Your group response was saved.'));}
@@ -89,19 +92,19 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
       aria-pressed={quiz[i]===j} aria-label={String.fromCharCode(65+j)+'. '+v} className={quiz[i]===j?'is-chosen':''} onClick={()=>setQuiz(prev=>({...prev,[i]:j}))}>
        <span className="bml-option-letter" aria-hidden="true">{String.fromCharCode(65+j)}.</span>
        <span className="bml-option-copy" aria-hidden="true">{v}</span>
-      </button>)}</div>{session.revealed?<p>{q.explanation}</p>:null}
+      </button>)}</div>{session.revealed?<p className="bml-quiz-revealed">Answer: {String.fromCharCode(65+q.answer)} · {q.explanation}</p>:null}
     </div>)}
-    {compact&&stage.questions.length>1?<div className="bml-student-quiz-page-controls">
+    {compact&&responseQuestions.length>1?<div className="bml-student-quiz-page-controls">
      <button type="button" aria-label="Previous question" disabled={quizPage===0} onClick={()=>setQuizPage(v=>v-1)}>← <span>Previous</span></button>
-     <strong><small>QUESTION</small> {quizPage+1} of {stage.questions.length} <em>· {Object.keys(quiz).length} answered</em></strong>
-     <button type="button" aria-label="Next question" disabled={quizPage===stage.questions.length-1} onClick={()=>setQuizPage(v=>v+1)}><span>Next</span> →</button>
+     <strong><small>QUESTION</small> {quizPage+1} of {responseQuestions.length} <em>· {Object.keys(quiz).length} answered</em></strong>
+     <button type="button" aria-label="Next question" disabled={quizPage===responseQuestions.length-1} onClick={()=>setQuizPage(v=>v+1)}><span>Next</span> →</button>
     </div>:null}</div>:null}
     {['peer','exit'].includes(stage.kind)?<div className="bml-live-response-form">
      {stage.kind==='peer'?<button type="button" className="bml-outline" onClick={visitPeer}><Eye size={17}/>{t(language,'Tham quan triển lãm nhóm khác (riêng tư)','Visit another group (private)')}</button>:null}
      {stage.kind==='peer'?<><strong>{peerLabel||t(language,'Nhóm được phân công sẽ hiện khi mở triển lãm.','Your assigned peer group will appear when the gallery opens.')}</strong>{[['learned','I learned …'],['clarify','The message would be clearer if …']].map(([key,label])=><label className="bml-full-field" key={key}>{label}<textarea rows={3} maxLength={400} disabled={posted} value={peerResponse[key]} onChange={e=>setPeerResponse(v=>({...v,[key]:e.target.value}))}/></label>)}<label>{t(language,'Clarity / Mức rõ ràng','Clarity')}<select value={peerResponse.rating} disabled={posted} onChange={e=>setPeerResponse(v=>({...v,rating:Number(e.target.value)}))}><option value={0}>{t(language,'Chọn mức','Choose a rating')}</option><option value={1}>1 · Unclear</option><option value={2}>2 · Partly clear</option><option value={3}>3 · Mostly clear</option><option value={4}>4 · Clear</option></select></label></>:<label className="bml-full-field">{t(language,'Trả lời bằng tiếng Anh','Write your response in English')}<textarea rows={3}
       maxLength={800} disabled={posted} placeholder={stage.sentence} value={written} onChange={e=>setWritten(e.target.value)}/></label>}
     </div>:null}
-    {stage.kind==='quiz'&&posted?<p className="bml-live-choice-note bml-editorial-submitted-note" role="status">
+    {responseQuestions&&posted?<p className="bml-live-choice-note bml-editorial-submitted-note" role="status">
      <CheckCircle2 size={17}/>{t(language,'Đã ghi nhận đáp án của nhóm. Giáo viên sẽ mở hoạt động tiếp theo.','Your group answers are recorded. Your teacher will guide the next activity.')}
     </p>:null}
     {stage.kind==='vote'&&canRespond?<p className="bml-live-choice-note" role="status" data-testid="student-vote-guidance">
@@ -111,7 +114,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
     </p>:null}
     {canRespond?<div className="bml-live-actions">
      <button type="button" className="bml-primary" disabled={busy||posted||(stage.kind==='vote'&&selected===null)||
-      (stage.kind==='quiz'&&stage.questions.some((_,i)=>!Number.isInteger(quiz[i])))||
+      (responseQuestions&&responseQuestions.some((_,i)=>!Number.isInteger(quiz[i])))||
       (stage.kind==='peer'&&!validatePeer(peerResponse))||(stage.kind==='exit'&&written.trim().length<10)} onClick={submit}>
       {posted?<CheckCircle2 size={18}/>:<Send size={17}/>}
       {posted?t(language,'Đã ghi nhận một lượt của nhóm','One group response recorded'):t(language,'Gửi câu trả lời của nhóm','Submit group response')}</button>
