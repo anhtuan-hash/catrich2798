@@ -61,7 +61,7 @@ test('information board faithfully retains group-authored facts and caveats',()=
  const raw={
   learning:{evidence:'Four of ten class groups prioritised switching off lights.',
    source:'NASA Space Place: The Greenhouse Effect'},
-  survey:{n:10,options:[{label:'Switch off unused lights',count:4,percent:40}],source:'paper'},
+  survey:{counts:[4,3,2,1],source:'paper'},
   artMeta:{evidence:{source:'Group photograph',rights:'Created by students'}}
  };
  const p=projectAuthorizedEvidence(raw);
@@ -70,10 +70,9 @@ test('information board faithfully retains group-authored facts and caveats',()=
  const board=buildExhibitFocusBoard({title:'The Evidence',description:'Group description'},insight,1);
  assert.equal(board.title,'The Evidence');
  assert.equal(board.source,'NASA Space Place: The Greenhouse Effect');
- if(board.evidence){
-  assert.equal(board.evidence.n,10);assert.equal(board.evidence.options[0].count,4);
-  assert.match(board.evidence.caveat,/not measured/);
- }
+ assert.ok(board.evidence);
+ assert.equal(board.evidence.n,10);assert.equal(board.evidence.options[0].count,4);
+ assert.match(board.evidence.caveat,/not measured/);
  assert.doesNotMatch(JSON.stringify(board),/https?:\/\/.*(token|signature|access_token)/i);
 });
 test('missing sources and survey remain absent and there are no invented timestamps',()=>{
