@@ -89,17 +89,17 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
       {posted?t(language,'Đã ghi nhận một lượt của nhóm','One group response recorded'):t(language,'Gửi câu trả lời của nhóm','Submit group response')}</button>
      <button type="button" className="bml-outline" onClick={help}><HelpCircle size={17}/>{t(language,'Nhờ giáo viên hỗ trợ','Need help')}</button>
     </div>:null}
-    {session.media&&(session.media.query||session.media.videos?.length)?<MuseumVideoLab
+    {!compact&&session.media&&(session.media.query||session.media.videos?.length)?<MuseumVideoLab
      mode="student" stage={stage} stageIndex={stageIndex} media={session.media}
      language={language} csrf={csrf}/>:null}
-    {MICRO_CHALLENGES[stageIndex]?<MuseumMicroChallenge key={session.id+'-'+stageIndex}
+    {!compact&&MICRO_CHALLENGES[stageIndex]?<MuseumMicroChallenge key={session.id+'-'+stageIndex}
      stageIndex={stageIndex} existing={data?.micro} csrf={csrf} language={language}/>:null}
     {['group','recap','artwork','present'].includes(stage.kind)?<p className="bml-live-student-status">
       {t(language,'Hãy thực hiện nhiệm vụ bên dưới theo hướng dẫn của giáo viên.','Continue with your group work below as instructed by your teacher.')}</p>:null}
-    {survey&&stageIndex>=3?<div className="bml-live-survey"><strong>{t(language,'KẾT QUẢ KHẢO SÁT LỚP','REAL CLASS SURVEY')} · N={survey.n} {t(language,'thiết bị nhóm','group devices')}</strong>
+    {!compact&&survey&&stageIndex>=3?<div className="bml-live-survey"><strong>{t(language,'KẾT QUẢ KHẢO SÁT LỚP','REAL CLASS SURVEY')} · N={survey.n} {t(language,'thiết bị nhóm','group devices')}</strong>
       {survey.options?.map((o,i)=><p key={i}>{o.label}: {o.count}/{survey.n} ({o.percent}%)</p>)}</div>:null}
    </>}
-   <div className="bml-student-support" aria-label={t(language,'Hỗ trợ hoạt động','Activity support')}>
+   {!compact?<div className="bml-student-support" aria-label={t(language,'Hỗ trợ hoạt động','Activity support')}>
     <div className="bml-step-hint"><Info size={19}/><span>{stage?.sentence}</span></div>
     <details className="bml-student-enrichment">
      <summary><BookOpen size={17}/>{t(language,'Hướng dẫn và tài liệu bài học','Lesson instructions and materials')}</summary>
@@ -113,7 +113,12 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
      <summary><Volume2 size={17}/>{t(language,'Nghe lời dẫn tiếng Anh','Listen to English voiceover')}</summary>
      <MuseumVoiceover stage={stage} language={language} compact/>
     </details>
-   </div>
+   </div>:null}
+   {compact?<div className="bml-student-compact-links">
+    {session.media&&(session.media.query||session.media.videos?.length)?<button className="bml-outline" type="button" onClick={()=>setActiveTool('video')}><Eye size={16}/>Video</button>:null}
+    {MICRO_CHALLENGES[stageIndex]?<button className="bml-outline" type="button" onClick={()=>setActiveTool('micro')}><BookOpen size={16}/>Thinking Lab</button>:null}
+    {survey&&stageIndex>=3?<button className="bml-outline" type="button" onClick={()=>setActiveTool('survey')}><Users size={16}/>Class Survey</button>:null}
+   </div>:null}
    {data?.feedback?.length?<div className="bml-live-survey"><h3>{t(language,'Phản hồi dành cho nhóm / Feedback received','Feedback received')}</h3>{data.feedback.map(r=><article key={r.from_group}><p>{r.learned}</p><p>{r.clarify}</p><small>Clarity: {r.rating}/4 · {new Date(r.created_at).toLocaleString()}</small></article>)}</div>:null}
    {error?<div role="alert" className="bml-banner bml-danger-banner">{error}</div>:null}
  </section>;
