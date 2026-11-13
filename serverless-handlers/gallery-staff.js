@@ -57,10 +57,10 @@ async function stageApprovedArt(ctx,scoped){
 async function loadScopedReview(ctx,reviewId){
  if(!uid(reviewId))throw fail(400,'Mã hồ sơ không hợp lệ.');
  const review=await query(ctx.admin.from('gcp_reviews').select('*').eq('id',reviewId).maybeSingle());
- if(!review)throw fail(404,'Không có hồ sơ.');
+ if(!review||review.archived_at)throw fail(404,'Không có hồ sơ.');
  const group=await query(ctx.admin.from('gcp_groups').select('*').eq('id',review.group_id).single());
  const assignment=await query(ctx.admin.from('gcp_assignments').select('*').eq('id',group.assignment_id).single());
- if(assignment.school_scope!==ctx.profile.school||
+ if(assignment.archived_at||assignment.school_scope!==ctx.profile.school||
     ![assignment.created_by,assignment.reviewer_id].includes(ctx.user.id)&&ctx.role!=='admin')
   throw fail(403,'Không có quyền xem hồ sơ này.');
  return {review,group,assignment};
@@ -70,7 +70,7 @@ async function loadOwnGroup(ctx,groupId){
  const group=await query(ctx.admin.from('gcp_groups').select('*').eq('id',groupId).maybeSingle());
  if(!group)throw fail(404,'Không có nhóm.');
  const assignment=await query(ctx.admin.from('gcp_assignments').select('*').eq('id',group.assignment_id).single());
- if(assignment.school_scope!==ctx.profile.school||
+ if(assignment.archived_at||assignment.school_scope!==ctx.profile.school||
    (assignment.created_by!==ctx.user.id&&ctx.role!=='admin'))throw fail(403,'Không phải giáo viên quản lý nhóm.');
  return {group,assignment};
 }
@@ -89,7 +89,7 @@ export default async function galleryStaff(req,res){
      .eq('active',true));
    const where=ctx.role==='admin'?null:ctx.user.id;
    let q=admin.from('gcp_assignments').select('*').eq('school_scope',ctx.profile.school)
-    .order('created_at',{ascending:false}).limit(100);
+    .is('archived_at',null).order('created_at',{ascending:false}).limit(100);
    if(where)q=q.or('created_by.eq.'+where+',reviewer_id.eq.'+where);
    const assignments=await query(q);
    const ids=assignments.map(x=>x.id);
@@ -98,7 +98,7 @@ export default async function galleryStaff(req,res){
    const groupIds=groups.map(g=>g.id);
    const reviews=groupIds.length?await query(admin.from('gcp_reviews')
      .select('id,group_id,version,state,teacher_note,ttcm_note,approved_by,approved_at,submitted_at,snapshot_hash,snapshot')
-     .in('group_id',groupIds).order('submitted_at',{ascending:false}).limit(500)):[];
+     .in('group_id',groupIds).is('archived_at',null).order('submitted_at',{ascending:false}).limit(500)):[];
    const rubrics=reviews.length?await query(admin.from('gcp_rubric_scores')
      .select('review_id,teacher_id,scores,feedback,updated_at')
      .in('review_id',reviews.map(r=>r.id)).limit(500)):[];
@@ -116,8 +116,8 @@ export default async function galleryStaff(req,res){
    requireMethod(req,'POST');guardOrigin(req);
    const body=guardBody(req,3800);
    const scoped=await loadScopedReview(ctx,body.reviewId);
-   if(scoped.assignment.created_by!==ctx.user.id)
-     throw fail(403,'Chỉ giáo viên phụ trách được chấm rubric.');
+   if(scoped.assignment.created_by!==ctx.user.id&&ctx.role!=='admin')
+    throw fail(403,'Chỉ Admin hoặc người tạo bài được chấm rubric.');
    if(!['submitted','ttcm_review'].includes(scoped.review.state))
      throw fail(423,'Chỉ chấm khi bản nộp đang trong quá trình duyệt.');
    const ceilings={english:40,evidence:20,reasoning:15,design:15,revision:10};
@@ -132,7 +132,7 @@ export default async function galleryStaff(req,res){
     scores:raw,feedback,updated_at:new Date().toISOString()
    },{onConflict:'review_id'}));
    await query(admin.from('gcp_review_events').insert({
-    review_id:scoped.review.id,actor_type:'teacher',actor_id:ctx.user.id,
+    review_id:scoped.review.id,actor_type:ctx.role==='admin'?'admin':'teacher',actor_id:ctx.user.id,
     action:'rubric_scored',from_state:scoped.review.state,to_state:scoped.review.state,
     note:'Rubric '+Object.values(raw).reduce((n,v)=>n+v,0)+'/100'
    }));
@@ -156,11 +156,9 @@ export default async function galleryStaff(req,res){
   }
 
   if(operation==='create-assignment'){
-   requireMethod(req,'POST');guardOrigin(req);
+   requireMethod(req,'POST');guardOrigin(req);assertAdmin(ctx);
    const body=guardBody(req,6000);
-   const reviewerId=String(body.reviewerId||'');
-   await reviewer(ctx,reviewerId,{publish:true});
-   if(reviewerId===ctx.user.id)throw fail(403,'Người ra đề không thể tự duyệt cuối.');
+   const reviewerId=ctx.user.id; // Admin alone assigns and approves.
    const count=Number(body.groupCount||0);
    if(!Number.isInteger(count)||count<1||count>12)throw fail(400,'Số nhóm phải từ 1 đến 12.');
    const deadline=new Date(body.deadlineAt),now=Date.now();
@@ -188,6 +186,39 @@ export default async function galleryStaff(req,res){
    return send(res,201,{assignment:created.assignment,invitations});
   }
 
+  if(operation==='admin-decision'){
+   requireMethod(req,'POST');guardOrigin(req);assertAdmin(ctx);
+   const body=guardBody(req,3500),action=String(body.action||'');
+   if(!['approve','return','reject'].includes(action))throw fail(400,'Quyết định không hợp lệ.');
+   await loadScopedReview(ctx,body.reviewId);
+   const state=await query(admin.rpc('gcp_admin_decide',{
+    p_review:body.reviewId,p_actor:ctx.user.id,p_action:action,p_note:clean(body.note,2000)
+   }));
+   return send(res,200,{ok:true,state});
+  }
+  if(operation==='archive-review'){
+   requireMethod(req,'POST');guardOrigin(req);assertAdmin(ctx);
+   const body=guardBody(req,1000);
+   await loadScopedReview(ctx,body.reviewId);
+   const state=await query(admin.rpc('gcp_admin_archive_review',{
+    p_review:body.reviewId,p_actor:ctx.user.id
+   }));
+   return send(res,200,{ok:true,state});
+  }
+  if(operation==='archive-assignment'){
+   requireMethod(req,'POST');guardOrigin(req);assertAdmin(ctx);
+   const body=guardBody(req,1000);
+   if(!uid(body.assignmentId))throw fail(400,'Mã bài học không hợp lệ.');
+   const assignment=await query(admin.from('gcp_assignments')
+    .select('id,school_scope,archived_at').eq('id',body.assignmentId).maybeSingle());
+   if(!assignment||assignment.archived_at||assignment.school_scope!==ctx.profile.school)
+    throw fail(404,'Không có bài học thuộc trường này.');
+   const state=await query(admin.rpc('gcp_admin_archive_assignment',{
+    p_assignment:body.assignmentId,p_actor:ctx.user.id
+   }));
+   return send(res,200,{ok:true,state});
+  }
+
   if(operation==='rotate-invite'){
    requireMethod(req,'POST');guardOrigin(req);
    const body=guardBody(req,1000),{group,assignment}=await loadOwnGroup(ctx,body.groupId);
@@ -205,28 +236,16 @@ export default async function galleryStaff(req,res){
   }
 
   if(operation==='decision'){
-   requireMethod(req,'POST');guardOrigin(req);
-   const body=guardBody(req,3500);
-   const action=String(body.action||'');
-   if(!['teacher_forward','teacher_return','ttcm_approve','ttcm_return','ttcm_reject'].includes(action))
-    throw fail(400,'Quyết định không hợp lệ.');
-   const {assignment}=await loadScopedReview(ctx,body.reviewId);
-   if(action.startsWith('ttcm_')) {
-    if(assignment.reviewer_id!==ctx.user.id)throw fail(403,'Không phải TTCM được phân công.');
-    await reviewer(ctx,ctx.user.id);
-   } else if(assignment.created_by!==ctx.user.id)throw fail(403,'Không phải giáo viên phụ trách.');
-   const state=await query(admin.rpc('gcp_review_decide',{
-    p_review:body.reviewId,p_actor:ctx.user.id,
-    p_action:action,p_note:clean(body.note,2000)
-   }));
-   return send(res,200,{ok:true,state});
+   requireMethod(req,'POST');guardOrigin(req);assertAdmin(ctx);
+   throw fail(410,'Quy trình TTCM đã kết thúc. Sử dụng Admin duyệt trực tiếp.');
   }
 
   if(operation==='publish'){
    requireMethod(req,'POST');guardOrigin(req);assertAdmin(ctx);
    const body=guardBody(req,1000);
    const scoped=await loadScopedReview(ctx,body.reviewId);
-   await reviewer(ctx,scoped.assignment.reviewer_id,{publish:true});
+   if(scoped.review.approved_by!==ctx.user.id)
+    await reviewer(ctx,scoped.assignment.reviewer_id,{publish:true});
    await stageApprovedArt(ctx,scoped);
    // R1's existing publication trigger requires an actual approved Admin.
    // This function uses a privileged, single-transaction promotion of a frozen snapshot.
@@ -244,9 +263,7 @@ export default async function galleryStaff(req,res){
     if(!feature.enabled)throw fail(423,'Cần bật Creator Pass trước.');
     const {data:bucket,error:storageError}=await admin.storage.getBucket('museum-artwork-private');
     if(storageError||!bucket||bucket.public)throw fail(503,'Kho ảnh riêng tư chưa sẵn sàng.');
-    const grants=await query(admin.from('gcp_reviewer_grants').select('reviewer_id')
-      .eq('active',true).eq('school_scope',ctx.profile.school).limit(1));
-    if(!grants.length)throw fail(423,'Chưa có TTCM được ủy quyền ở trường.');
+    // No reviewer delegation required to enable artwork uploads.
    }
    const updated=await query(admin.from('gcp_settings').update({
     upload_enabled:enable,updated_at:new Date().toISOString()
