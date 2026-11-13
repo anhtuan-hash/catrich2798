@@ -96,7 +96,7 @@ jobs:
         with:
           name: museum-browser-evidence
           path: |
-            artifacts/museum-lab/report
+            tests/museum-lab/artifacts/museum-lab/report
             test-results
           retention-days: 7
 
@@ -104,17 +104,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 16
     services:
-          - name: Upload Museum browser evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: museum-browser-evidence
-          path: |
-            artifacts/museum-lab/report
-            test-results
-          retention-days: 7
-
-  postgres:
+      postgres:
         image: postgres:16
         env:
           POSTGRES_PASSWORD: postgres
