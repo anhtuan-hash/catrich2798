@@ -44,7 +44,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  const refresh=useCallback(async()=>{
   if(!assignmentId)return;
   try{const response=await transport('state',null,{assignmentId});
-    if(activeRef.current){setState(response);}
+    if(activeRef.current){setState(response);setError('');}
   }catch(e){if(activeRef.current)setError(e.message);}
  },[assignmentId,transport]);
  useEffect(()=>{activeRef.current=true;refresh();const id=window.setInterval(()=>{refresh();setTime(Date.now());},3000);
