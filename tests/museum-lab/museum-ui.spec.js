@@ -1541,8 +1541,35 @@ test('Student Creator 2D Paper exhibit displays actual uploaded photos and remai
  }));
  expect(compactStage.shell).toBeGreaterThan(270);
  expect(compactStage.shell/compactStage.stage).toBeGreaterThan(.88);
+ // VIS-01 geometry contract across the two most common presentation sizes.
+ for(const viewport of [{width:1536,height:864},{width:1366,height:768},{width:1920,height:1080}]){
+  await page.setViewportSize(viewport);
+  const metrics=await viewer.evaluate(el=>{
+   const canvas=el.querySelector('.bml-cinema-stage');
+   const root=el.getBoundingClientRect(),stage=canvas?.getBoundingClientRect();
+   return {w:root.width,h:root.height,sw:stage?.width,sh:stage?.height};
+  });
+  expect(metrics.w/viewport.width).toBeGreaterThan(.95);
+  expect(metrics.h/viewport.height).toBeGreaterThan(.87);
+  expect(metrics.sw/metrics.w).toBeGreaterThan(.96);
+  expect(metrics.sh/metrics.h).toBeGreaterThan(.88);
+  await page.screenshot({path:testInfo.outputPath('museum-v4-cinema-'+viewport.width+'x'+viewport.height+'.png'),fullPage:false});
+ }
+ // Fullscreen toggles an actual browser Fullscreen API request where permitted,
+ // or a CSS fallback; both grow the same real scene, not a stretched bitmap.
+ const fullscreen=viewer.getByRole('button',{name:'Fullscreen',exact:true});
+ await fullscreen.click();
+ await expect(viewer.getByRole('button',{name:'Exit fullscreen'})).toBeVisible();
+ await viewer.getByRole('button',{name:'Exit fullscreen'}).click();
+ await expect(viewer.getByRole('button',{name:'Fullscreen'})).toBeVisible();
+ await viewer.getByRole('button',{name:'Museum information'}).click();
+ await expect(viewer.getByTestId('museum-cinema-info')).toBeVisible();
+ await viewer.getByRole('button',{name:'Close information'}).click();
+ await expect(viewer.getByTestId('museum-cinema-info')).toHaveCount(0);
  await viewer.getByRole('button',{name:'2D',exact:true}).click();
  await expect(cards).toHaveCount(3);
+ await viewer.getByRole('button',{name:'Close museum preview'}).click();
+ await expect(viewer).toHaveCount(0);
 });
 
 test('V5.4 Speaking Studio requires user microphone action, rehearses group text locally, and deletes the clip',async({page})=>{
