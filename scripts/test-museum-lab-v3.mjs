@@ -210,12 +210,12 @@ test('Student Creator displays an official competition ribbon with both supplied
 test('private Student Creator 2D/3D preview resolves exactly the group uploaded images by slot',()=>{
  const d=emptyStudio();
  d.title='Lights Off, Future On';
- d.artworks={issue:'photo-one',evidence:'chart-two',solution:'photo-three'};
+ d.artworks={issue:'aaa00000-0000-4000-8000-000000000001',evidence:'aaa00000-0000-4000-8000-000000000002',solution:'aaa00000-0000-4000-8000-000000000003'};
  d.artMeta={issue:{alt:'Classroom photo by group'},evidence:{alt:'Survey image'},solution:{alt:'Light switch photo'}};
  const assets=[
-  {id:'photo-one',image_url:'https://private.invalid/one.png?signature=qa',original_name:'room.png'},
-  {id:'chart-two',image_url:'https://private.invalid/two.png?signature=qa',original_name:'chart.png'},
-  {id:'photo-three',image_url:'https://private.invalid/three.png?signature=qa',original_name:'switch.png'}
+  {id:'aaa00000-0000-4000-8000-000000000001',image_url:'https://private.invalid/one.png?signature=qa',original_name:'room.png'},
+  {id:'aaa00000-0000-4000-8000-000000000002',image_url:'https://private.invalid/two.png?signature=qa',original_name:'chart.png'},
+  {id:'aaa00000-0000-4000-8000-000000000003',image_url:'https://private.invalid/three.png?signature=qa',original_name:'switch.png'}
  ];
  const x=buildStudentMuseumPreview(d,assets);
  assert.equal(x.rooms.length,1);
@@ -227,7 +227,7 @@ test('private Student Creator 2D/3D preview resolves exactly the group uploaded 
  const missing=buildStudentMuseumPreview(d,[assets[0]]);
  assert.equal(missing.rooms[0].exhibits[1].image_url,'');
  assert.equal(missing.rooms[0].exhibits[2].image_url,'');
- assert.equal(missing.rooms[0].exhibits[1].asset_id,'chart-two');
+ assert.equal(missing.rooms[0].exhibits[1].asset_id,'aaa00000-0000-4000-8000-000000000002');
  assert.ok(!JSON.stringify(missing).includes('unsplash.com'));
  assert.ok(!JSON.stringify(missing).includes('pexels.com'));
  // A stale exhibit asset_id takes precedence over slot id to avoid substituting
