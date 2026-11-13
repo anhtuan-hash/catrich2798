@@ -1,0 +1,134 @@
+/* BRIAN Museum Lab • contest paper ribbon
+   Scoped exclusively to the private Student Creator canvas. The global Brian
+   navbar, Teacher Live controls, writing tools and student steps are untouched. */
+.bml.bml-student-canvas16>.bml-competition-ribbon{
+ --award-ink:#143b45;
+ flex:0 0 clamp(132px,17.5dvh,202px);
+ height:clamp(132px,17.5dvh,202px);
+ width:100%;min-width:0;
+ isolation:isolate;position:relative;z-index:2;overflow:hidden;
+ display:grid;grid-template-columns:minmax(92px,13.5%) minmax(0,1fr) minmax(92px,13.5%);
+ align-items:center;gap:clamp(5px,1vw,19px);
+ padding:7px clamp(12px,2vw,33px);
+ background:
+  radial-gradient(circle at 3% 82%,rgba(121,166,112,.24),transparent 24%),
+  radial-gradient(circle at 99% 7%,rgba(223,113,88,.2),transparent 25%),
+  repeating-linear-gradient(30deg,transparent,transparent 10px,rgba(181,137,89,.025) 10px,rgba(181,137,89,.025) 12px),
+  linear-gradient(110deg,#f9f0da 0%,#fffdf3 24%,#fcf2de 55%,#fff9eb 77%,#f5edd9 100%);
+ border-bottom:2px solid #c7d0c6;
+ box-shadow:inset 0 -5px 0 rgba(218,206,176,.15),0 4px 14px rgba(42,60,59,.09);
+ font-family:"Avenir Next",Inter,"Segoe UI",Arial,sans-serif;
+}
+.bml.bml-student-canvas16>.bml-competition-ribbon:before{
+ content:"";position:absolute;z-index:-1;inset:7px clamp(7px,1.25vw,19px);
+ border:1.5px dashed rgba(187,99,79,.55);border-radius:32% 4% 25% 5%/8% 15% 12% 9%;
+ pointer-events:none;
+}
+.bml.bml-student-canvas16>.bml-competition-ribbon:after{
+ content:"";position:absolute;z-index:-2;left:14%;right:14%;top:9%;bottom:8%;
+ background:linear-gradient(98deg,#fef8e9,#fffefa 48%,#fff9e9);
+ box-shadow:1px 4px 13px rgba(91,76,44,.1);
+ clip-path:polygon(0 7%,14% 0,50% 4%,85% 0,100% 8%,99% 95%,65% 98%,25% 93%,0 100%);
+ pointer-events:none;
+}
+.bml.bml-student-canvas16 .bml-competition-decor{
+ position:absolute;z-index:-1;pointer-events:none;
+ width:22%;height:75%;top:13%;opacity:.8;
+ background:linear-gradient(135deg,#f6b17f,#ef8e70 42%,#eab6a2);
+ clip-path:polygon(0 4%,100% 13%,92% 92%,16% 100%,0 91%,10% 52%);
+ filter:drop-shadow(1px 3px 2px #aa705020);
+}
+.bml.bml-student-canvas16 .bml-competition-decor--left{left:-9%;transform:rotate(-6deg)}
+.bml.bml-student-canvas16 .bml-competition-decor--right{right:-9%;transform:rotate(6deg) scaleX(-1)}
+.bml.bml-student-canvas16 .bml-competition-seal{
+ position:relative;z-index:1;margin:0;
+ display:grid;place-items:center;justify-self:center;
+ width:min(100%,clamp(105px,10.2vw,154px));height:96%;
+ min-height:0;min-width:0;
+ border:2px solid rgba(217,170,90,.85);border-radius:49% 51% 48% 52%;
+ background:linear-gradient(145deg,#fffefa,#fff5dc);
+ box-shadow:0 5px 16px rgba(69,83,72,.16),0 0 0 5px rgba(255,253,244,.8);
+}
+.bml.bml-student-canvas16 .bml-competition-seal img{
+ display:block;max-width:96%;max-height:97%;
+ width:auto;height:auto;object-fit:contain;flex:none;filter:drop-shadow(0 1px 1px rgba(19,47,35,.09));
+}
+.bml.bml-student-canvas16 .bml-competition-seal--school{
+ border-color:#d6ae7d;background:linear-gradient(145deg,#f9fff2,#fffcf0);
+}
+.bml.bml-student-canvas16 .bml-competition-seal--school img{max-height:98%}
+.bml.bml-student-canvas16 .bml-competition-copy{
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ position:relative;z-index:2;min-width:0;width:100%;height:100%;
+ text-align:center;color:var(--award-ink);
+ gap:clamp(1px,.32dvh,5px);white-space:normal;
+}
+.bml.bml-student-canvas16 .bml-competition-award{
+ display:inline-flex;align-items:center;justify-content:center;gap:9px;
+ min-width:clamp(135px,14vw,205px);
+ padding:3px 17px 4px;
+ background:linear-gradient(100deg,#dd6855,#ba3645 52%,#dc6856);
+ color:#fff9ec;border:1px solid #aa594c;border-radius:3px;
+ font-size:clamp(11px,1.14vw,18px);font-weight:850;letter-spacing:.08em;
+ box-shadow:0 3px 0 #e7b59b,0 6px 9px rgba(63,57,49,.12);
+ line-height:1.15;
+}
+.bml.bml-student-canvas16 .bml-competition-award svg{width:clamp(10px,.95vw,15px);height:auto;fill:#ffd76b;color:#ffd76b}
+.bml.bml-student-canvas16 .bml-competition-copy h2{
+ margin:1px 0 0!important;
+ max-width:100%;font-family:"Avenir Next",Inter,"Segoe UI",Arial,sans-serif;
+ font-weight:900;font-size:clamp(13px,1.48vw,23px);
+ line-height:1.15;letter-spacing:-.025em;color:#123d48;
+ text-transform:uppercase;text-wrap:balance;
+}
+.bml.bml-student-canvas16 .bml-competition-year{
+ max-width:100%;padding:3px clamp(9px,2.1vw,27px);
+ font-size:clamp(11px,1.25vw,19px);line-height:1.18;font-weight:900;
+ color:#fffced;letter-spacing:.01em;
+ background:linear-gradient(95deg,#174e58,#176d67 47%,#164950);
+ box-shadow:0 3px 1px #b0c6bd;
+ clip-path:polygon(0 0,100% 0,98% 50%,100% 100%,0 100%,2% 50%);
+}
+.bml.bml-student-canvas16 .bml-competition-copy p{
+ margin:0!important;max-width:100%;
+ color:#16374d;line-height:1.2;
+ font-size:clamp(10px,.98vw,14px);font-weight:700;
+}
+.bml.bml-student-canvas16 .bml-competition-copy .bml-competition-author{
+ padding:2px clamp(12px,2.25vw,34px);background:linear-gradient(90deg,transparent,#ffe0a0 12%,#ffd687 50%,#ffe0a0 88%,transparent);
+}
+.bml.bml-student-canvas16 .bml-competition-copy .bml-competition-school{
+ font-style:italic;font-weight:750;
+}
+.bml.bml-student-canvas16 .bml-competition-accent{
+ position:absolute;z-index:-1;color:#bd7954;opacity:.8;pointer-events:none;
+}
+.bml.bml-student-canvas16 .bml-competition-accent--book{left:0;bottom:9%;transform:rotate(-14deg)}
+.bml.bml-student-canvas16 .bml-competition-accent--globe{right:0;bottom:10%;color:#347f7c;transform:rotate(14deg)}
+.bml.bml-student-canvas16 .bml-competition-accent--leaf{left:3%;top:10%;color:#5f956c;transform:rotate(-28deg)}
+@media(min-width:1000px) and (max-height:800px){
+ .bml.bml-student-canvas16>.bml-competition-ribbon{flex-basis:clamp(110px,15.8dvh,126px);height:clamp(110px,15.8dvh,126px);padding-block:4px}
+ .bml.bml-student-canvas16 .bml-competition-award{padding-block:2px;font-size:12px}
+ .bml.bml-student-canvas16 .bml-competition-copy h2{font-size:clamp(12px,1.22vw,17px)}
+ .bml.bml-student-canvas16 .bml-competition-year{font-size:clamp(10px,1.05vw,14px);padding-block:1px}
+ .bml.bml-student-canvas16 .bml-competition-copy p{font-size:clamp(9px,.86vw,11px)}
+ .bml.bml-student-canvas16 .bml-competition-accent{display:none}
+}
+@media(max-width:900px){
+ .bml.bml-student-canvas16>.bml-competition-ribbon{grid-template-columns:70px minmax(0,1fr) 70px;gap:5px;padding-inline:8px;flex-basis:clamp(128px,20dvh,165px);height:clamp(128px,20dvh,165px)}
+ .bml.bml-student-canvas16 .bml-competition-seal{width:68px;height:94%;box-shadow:0 3px 8px #253e4021,0 0 0 2px #fffaf4}
+ .bml.bml-student-canvas16 .bml-competition-copy h2{font-size:clamp(11px,1.65vw,15px)}
+ .bml.bml-student-canvas16 .bml-competition-year{font-size:clamp(10px,1.38vw,13px)}
+ .bml.bml-student-canvas16 .bml-competition-copy p{font-size:clamp(9px,1.27vw,11px)}
+ .bml.bml-student-canvas16 .bml-competition-accent{display:none}
+}
+@media(max-width:560px){
+ .bml.bml-student-canvas16>.bml-competition-ribbon{grid-template-columns:46px minmax(0,1fr) 46px;gap:3px;padding:5px;flex-basis:146px;height:146px}
+ .bml.bml-student-canvas16 .bml-competition-seal{width:45px;height:68px;border-width:1px}
+ .bml.bml-student-canvas16 .bml-competition-seal img{max-height:90%}
+ .bml.bml-student-canvas16 .bml-competition-copy{gap:3px}
+ .bml.bml-student-canvas16 .bml-competition-award{min-width:0;padding:2px 9px;font-size:10px}
+ .bml.bml-student-canvas16 .bml-competition-copy h2{font-size:10.5px;line-height:1.17}
+ .bml.bml-student-canvas16 .bml-competition-year{font-size:9.2px;padding:2px 5px}
+ .bml.bml-student-canvas16 .bml-competition-copy p{font-size:8.5px;line-height:1.18}
+}
