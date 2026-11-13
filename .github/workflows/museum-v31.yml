@@ -6,6 +6,11 @@ on:
       - 'serverless-handlers/museum-*.js'
       - 'serverless-handlers/_museumPng.js'
       - 'serverless-handlers/gallery-guest.js'
+      - 'serverless-handlers/gallery-staff.js'
+      - 'serverless-handlers/_galleryCreator.js'
+      - 'supabase/migrations/*museum_admin*'
+      - 'scripts/test-museum-admin-workflow-v38.mjs'
+      - 'scripts/museum-admin-postgres-qa.sh'
       - 'api/gateway.js'
       - 'vercel.json'
       - 'supabase/migrations/*museum_live*'
@@ -43,12 +48,16 @@ jobs:
         run: node --test scripts/test-museum-prepared-portfolio-v35.mjs
       - name: Learning evidence invariants
         run: node --test scripts/test-museum-learning-evidence.mjs
+      - name: Admin direct review and safe archive contracts
+        run: node --test scripts/test-museum-admin-workflow-v38.mjs
       - name: Node backend syntax
         run: |
           node --check serverless-handlers/museum-live.js
           node --check serverless-handlers/museum-artwork.js
           node --check serverless-handlers/_museumPng.js
           node --check serverless-handlers/gallery-guest.js
+          node --check serverless-handlers/gallery-staff.js
+          node --check serverless-handlers/_galleryCreator.js
       - name: Site-wide localization audit
         run: node scripts/audit-site-language.mjs
       - name: Compile complete Brian Vite frontend
@@ -92,4 +101,4 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y postgresql-client
       - name: Run private upload schema and TTCM-approved image publication
-        run: bash scripts/museum-evidence-postgres-qa.sh
+        run: bash scripts/museum-admin-postgres-qa.sh

@@ -52,7 +52,7 @@ export default async function galleryGuest(req,res){
    }
    const group=await query(admin.from('gcp_groups').select('*').eq('id',invite.group_id).single());
    const assignment=await query(admin.from('gcp_assignments').select('*').eq('id',group.assignment_id).single());
-   if(assignment.status!=='active'||Date.parse(assignment.deadline_at)<=now ||
+   if(assignment.archived_at||assignment.status!=='active'||Date.parse(assignment.deadline_at)<=now ||
       ['rejected','published'].includes(group.state))
     throw fail(423,'Nhiệm vụ đã đóng.');
    const active=await admin.from('gcp_sessions').select('token_hash',{head:true,count:'exact'})
@@ -84,7 +84,7 @@ export default async function galleryGuest(req,res){
    const {group,assignment,session}=ctx;
    const latest=await query(admin.from('gcp_reviews')
      .select('state,teacher_note,ttcm_note').eq('group_id',group.id)
-     .order('submitted_at',{ascending:false}).limit(1).maybeSingle());
+     .is('archived_at',null).order('submitted_at',{ascending:false}).limit(1).maybeSingle());
    const feedback=latest&&['changes_requested','rejected'].includes(latest.state)
      ?{state:latest.state,teacher:latest.teacher_note,ttcm:latest.ttcm_note}:null;
    return send(res,200,{

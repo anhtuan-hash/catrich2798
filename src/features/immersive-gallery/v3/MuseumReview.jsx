@@ -1,12 +1,12 @@
 import React,{useMemo,useState} from 'react';
-import {ArrowLeft,ArrowRight,BookOpen,CheckCircle2,ClipboardCheck,Clock3,Eye,FileText,MessageCircle,ShieldAlert,ShieldCheck,Star,Users} from 'lucide-react';
+import {ArrowLeft,ArrowRight,BookOpen,CheckCircle2,ClipboardCheck,Clock3,Eye,FileText,MessageCircle,ShieldAlert,ShieldCheck,Star,Trash2,Users} from 'lucide-react';
 import {RUBRIC,progressOfGroup,scoreRubric} from './museumData.js';
 import {staffRequest,fmtDate,fmtTime} from './museumApi.js';
 import MuseumScene,{reviewMuseum} from './MuseumScene.jsx';
 const tr=(lang,vi,en)=>lang==='en'?en:vi;
 const NOTES={
- submitted:{label:'Chờ giáo viên',kind:'yellow'},
- ttcm_review:{label:'Chờ TTCM',kind:'purple'},
+ submitted:{label:'Chờ Admin',kind:'yellow'},
+ ttcm_review:{label:'Chờ Admin',kind:'purple'},
  changes_requested:{label:'Cần chỉnh sửa',kind:'orange'},
  approved_locked:{label:'Đã duyệt',kind:'green'},
  published:{label:'Đã công bố',kind:'green'},
@@ -23,16 +23,27 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,query='',la
  const assignment=assignments.find(a=>a.id===group?.assignment_id);
  const rubric=data?.rubrics?.find(r=>r.review_id===selectedId);
  const initialScores=selected?Object.fromEntries(RUBRIC.map(c=>[c.key,Number(scores[selectedId]?.[c.key]??rubric?.scores?.[c.key]??0)])):{};
- const canTeach=selected&&assignment?.created_by===data.profile.id;
- const canReview=selected&&assignment?.reviewer_id===data.profile.id&&data.reviewers?.some(r=>r.reviewer_id===data.profile.id&&r.active);
- const canPublish=selected&&data.profile.role==='admin';
+ const isAdmin=data?.profile?.role==='admin';
+ const canTeach=selected&&isAdmin;
+ const canReview=selected&&isAdmin;
+ const canPublish=selected&&isAdmin;
  const decide=async action=>{
   setBusy(true);setError('');setSuccess('');
   try{
-   await staffRequest(action==='publish'?'publish':'decision',action==='publish'?{reviewId:selected.id}:{reviewId:selected.id,action,note});
+   await staffRequest(action==='publish'?'publish':'admin-decision',action==='publish'?{reviewId:selected.id}:{reviewId:selected.id,action,note});
    setSuccess(tr(language,'Đã lưu quyết định và nhật ký duyệt.','Review decision and audit log saved.'));
    setSelectedId(null);setPreview(false);setNote('');await onRefresh();
   }catch(e){setError(e.message);}finally{setBusy(false);}
+ };
+ const archiveReview=async()=>{
+  if(!selected||!isAdmin||busy)return;
+  if(!window.confirm(tr(language,
+   'Xóa bài nộp “'+(selected.snapshot?.title||'')+'” khỏi danh sách duyệt? Bài gốc và nhật ký được lưu; nhóm có thể chỉnh sửa và nộp bản mới. Bài đã duyệt/công bố không thể xóa.',
+   'Remove “'+(selected.snapshot?.title||'')+'” from the review queue? Original evidence and audit are preserved; a new draft version can be submitted. Approved/published submissions are protected.')))return;
+  setBusy(true);setError('');setSuccess('');
+  try{await staffRequest('archive-review',{reviewId:selected.id});setSelectedId(null);setPreview(false);await onRefresh();
+   setSuccess(tr(language,'Đã xóa bài nộp khỏi danh sách duyệt.','Submission removed from review queue.'));}
+  catch(e){setError(e.message);}finally{setBusy(false);}
  };
  const grade=async()=>{
   setBusy(true);setError('');setSuccess('');
@@ -46,12 +57,12 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,query='',la
  return <div className="bml-screen" data-testid="museum-review-desk">
   <div className="bml-heading-actions"><div><div className="bml-overline">{tr(language,'ĐÁNH GIÁ HỌC TẬP','LEARNING ASSESSMENT')}</div>
    <h1>{tr(language,'Bài nộp của học sinh','Student submissions')}</h1>
-   <p>{tr(language,'Xem sản phẩm, chấm rubric, phản hồi và chuyển TTCM duyệt.','Review, score and forward submissions for department approval.')}</p></div>
+   <p>{tr(language,'Admin xem sản phẩm, chấm rubric, duyệt trực tiếp hoặc yêu cầu chỉnh sửa.','Admin reviews, scores, approves or returns submissions directly.')}</p></div>
    <div className="bml-heading-meta"><Users size={19}/>{reviews.length} {tr(language,'hồ sơ','submissions')}</div></div>
   <div className="bml-tab-filter" aria-label={tr(language,'Lọc bài nộp','Filter submissions')}>
-   {[['all','Tất cả'],['submitted','Chờ giáo viên'],['ttcm_review','Chờ TTCM'],['changes_requested','Cần sửa'],['approved_locked','Đã duyệt']].map(([id,label])=>
+   {[['all','Tất cả'],['submitted','Chờ Admin'],['ttcm_review','Chờ Admin (cũ)'],['changes_requested','Cần sửa'],['approved_locked','Đã duyệt']].map(([id,label])=>
     <button type="button" key={id} onClick={()=>setFilter(id)} className={filter===id?'is-active':''}>{tr(language,label,
-    {all:'All',submitted:'Teacher review',ttcm_review:'Department review',changes_requested:'Needs revision',approved_locked:'Approved'}[id])}
+    {all:'All',submitted:'Admin review',ttcm_review:'Admin review (legacy)',changes_requested:'Needs revision',approved_locked:'Approved'}[id])}
       <span>{id==='all'?reviews.length:reviews.filter(r=>r.state===id).length}</span></button>)}
   </div>
   {error?<div className="bml-banner bml-danger-banner" role="alert"><ShieldAlert size={19}/>{error}</div>:null}
@@ -105,13 +116,13 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,query='',la
        {selected.ttcm_note?<p className="bml-note"><b>TTCM:</b> {selected.ttcm_note}</p>:null}
        <div className="bml-review-actions">
         {canTeach?<button type="button" className="bml-outline" disabled={busy} onClick={grade}><Star size={17}/>{tr(language,'Lưu điểm rubric','Save rubric')}</button>:null}
-        {canTeach&&selected.state==='submitted'?<>
-         <button type="button" className="bml-primary" disabled={busy} onClick={()=>decide('teacher_forward')}><ShieldCheck size={17}/>{tr(language,'Chuyển TTCM duyệt','Forward to reviewer')}</button>
-         <button type="button" className="bml-outline" disabled={busy||!note.trim()} onClick={()=>decide('teacher_return')}><MessageCircle size={17}/>{tr(language,'Yêu cầu chỉnh sửa','Request changes')}</button></>:null}
-        {canReview&&selected.state==='ttcm_review'?<>
-         <button type="button" className="bml-primary" disabled={busy} onClick={()=>decide('ttcm_approve')}><CheckCircle2 size={17}/>{tr(language,'Phê duyệt','Approve')}</button>
-         <button type="button" className="bml-outline" disabled={busy||!note.trim()} onClick={()=>decide('ttcm_return')}><MessageCircle size={17}/>{tr(language,'Trả lại nhóm','Return for revision')}</button>
-         <button type="button" className="bml-danger" disabled={busy||!note.trim()} onClick={()=>decide('ttcm_reject')}>{tr(language,'Từ chối','Reject')}</button></>:null}
+        {canReview&&['submitted','ttcm_review'].includes(selected.state)?<>
+         <button type="button" className="bml-primary" disabled={busy} onClick={()=>decide('approve')}><CheckCircle2 size={17}/>{tr(language,'Admin phê duyệt','Admin approve')}</button>
+         <button type="button" className="bml-outline" disabled={busy||!note.trim()} onClick={()=>decide('return')}><MessageCircle size={17}/>{tr(language,'Yêu cầu chỉnh sửa','Request changes')}</button>
+         <button type="button" className="bml-danger" disabled={busy||!note.trim()} onClick={()=>decide('reject')}>{tr(language,'Từ chối','Reject')}</button>
+        </>:null}
+        {isAdmin&&!['approved_locked','published'].includes(selected.state)?<button type="button" className="bml-danger bml-archive-btn"
+         disabled={busy} onClick={archiveReview}><Trash2 size={17}/>{tr(language,'Xóa bài nộp','Delete submission')}</button>:null}
         {canPublish&&selected.state==='approved_locked'?<button type="button" disabled={busy}
           className="bml-primary" onClick={()=>decide('publish')}><ShieldCheck size={17}/>{tr(language,'Admin công bố bản đã duyệt','Admin publishes approved version')}</button>:null}
        </div>

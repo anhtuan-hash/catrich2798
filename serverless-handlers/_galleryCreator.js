@@ -84,11 +84,12 @@ export async function guestContext(req,admin,{write=false}={}){
  const invite=await query(admin.from('gcp_invites').select('revoked_at,expires_at')
   .eq('group_id',group.id).maybeSingle());
  if(!invite||invite.revoked_at||invite.expires_at<=now)throw fail(401,'Mã nhóm đã bị thu hồi hoặc hết hạn.');
+ if(assignment.archived_at||assignment.status!=='active')throw fail(410,'Bài học đã được đóng.');
  if(write){
   guardOrigin(req);
   if(!safeEqual(req.headers['x-gallery-csrf'],sess.csrf_token))throw fail(403,'CSRF không hợp lệ.');
   const config=await settings(admin);
-  if(!config.enabled||assignment.status!=='active'||assignment.deadline_at<=now)
+  if(!config.enabled||assignment.archived_at||assignment.status!=='active'||assignment.deadline_at<=now)
    throw fail(423,'Nhiệm vụ đang đóng.');
  }
  return {session:sess,group,assignment};

@@ -99,9 +99,7 @@ export function MuseumGallery({language='vi',onDemo,query='',onNavigate,data}){
 }
 export function MuseumSettings({data,onRefresh,language='vi'}){
  const isAdmin=data?.profile?.role==='admin';
- const [chosen,setChosen]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
- const candidates=(data?.reviewerCandidates||[]).filter(p=>p.id!==data?.profile?.id);
- const allowed=(data?.reviewers||[]).filter(r=>r.active);
+ const [busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
  const act=async(action,body)=>{
   setBusy(true);setError('');setMessage('');
   try{await staffRequest(action,body);await onRefresh();setMessage(tr(language,'Đã lưu thay đổi trên máy chủ.','Server changes saved.'));}
@@ -109,7 +107,7 @@ export function MuseumSettings({data,onRefresh,language='vi'}){
  };
  const toggle=async()=>{
   const next=!data.creatorSettings?.enabled;
-  if(next&&!window.confirm(tr(language,'Chỉ bật Creator Pass sau khi kiểm thử và xác nhận người duyệt. Bạn có muốn bật không?','Enable Creator Pass only after verification and reviewer delegation. Continue?')))return;
+  if(next&&!window.confirm(tr(language,'Chỉ bật Creator Pass sau khi đã kiểm thử đăng nhập nhóm và phân quyền Admin. Bạn có muốn bật không?','Enable Creator Pass only after verifying group access and Admin permissions. Continue?')))return;
   if(!next&&!window.confirm(tr(language,'Tắt Creator Pass sẽ khóa truy cập phiên khách. Bạn muốn tiếp tục?','Disabling Creator Pass will block guest access. Continue?')))return;
   await act('feature-settings',{enabled:next});
  };
@@ -139,20 +137,17 @@ export function MuseumSettings({data,onRefresh,language='vi'}){
         tr(language,'Tắt tải tranh ảnh học sinh','Disable artwork uploads'):
         tr(language,'Cho phép tải tranh ảnh sau nghiệm thu','Enable artwork uploads after QA')}</button>:null}
    </section>
-   <section className="bml-surface"><div className="bml-eval-heading"><ShieldCheck size={21}/><h2>{tr(language,'Ủy quyền TTCM','Delegate department reviewer')}</h2></div>
-    <p>{tr(language,'Cán bộ TTCM dùng tài khoản Brian hiện có. Người giao nhiệm vụ không được tự duyệt cuối bài của mình.','A staff member uses an existing Brian account. The assigning teacher cannot approve their own work.')}</p>
-    <div className="bml-checklist">{allowed.map(g=><div className="bml-check-item" key={g.reviewer_id}><CheckCircle2 size={21}/>
-      <div><strong>{candidates.find(c=>c.id===g.reviewer_id)?.full_name||tr(language,'Cán bộ được ủy quyền','Delegated staff member')}</strong>
-       <small>{tr(language,'Đã cấp quyền duyệt cuối','Final approval delegated')}</small></div></div>)}
-      {!allowed.length?<div className="bml-banner bml-warning-banner"><ShieldAlert size={18}/>{tr(language,'Chưa có người được cấp quyền. Admin phải chỉ định một tài khoản đã được duyệt.','No reviewer delegated. An administrator must select an approved staff account.')}</div>:null}</div>
-    {isAdmin?<><label>{tr(language,'Chọn tài khoản nhân sự','Select staff account')}<select value={chosen} onChange={e=>setChosen(e.target.value)}>
-      <option value="">{tr(language,'Chọn người duyệt','Choose reviewer')}</option>
-      {candidates.map(p=><option key={p.id} value={p.id}>{p.full_name||p.role} · {p.role}</option>)}
-     </select></label>
-     <button type="button" className="bml-primary" disabled={busy||!chosen} onClick={()=>act('grant-reviewer',{reviewerId:chosen,canPublish:true})}>
-      <ShieldCheck size={17}/>{tr(language,'Cấp quyền duyệt chuyên môn','Grant review authority')}</button></>:null}
+   <section className="bml-surface"><div className="bml-eval-heading"><ShieldCheck size={21}/><h2>{tr(language,'Admin quản lý trực tiếp','Admin-controlled workflow')}</h2></div>
+    <p>{tr(language,
+      'Admin trực tiếp tạo bài học, giao mã nhóm, đọc và chấm bài nộp, yêu cầu sửa, phê duyệt và công bố triển lãm. Không cần phân công giáo viên hoặc người duyệt TTCM.',
+      'The Admin creates lessons, issues group passes, scores submissions, requests revisions, approves and publishes exhibitions directly. No teacher or department reviewer is assigned.')}</p>
+    <div className="bml-checklist">
+     <div className="bml-check-item"><CheckCircle2 size={21}/><div><strong>{tr(language,'1. Giao nhiệm vụ','1. Assign')}</strong><small>{tr(language,'Admin tạo bài và phát Creator Pass cho từng nhóm.','The Admin creates assignments and issues group passes.')}</small></div></div>
+     <div className="bml-check-item"><CheckCircle2 size={21}/><div><strong>{tr(language,'2. Duyệt bài nộp','2. Review')}</strong><small>{tr(language,'Admin chấm rubric, duyệt trực tiếp hoặc yêu cầu chỉnh sửa.','The Admin scores and directly approves or returns submissions.')}</small></div></div>
+     <div className="bml-check-item"><CheckCircle2 size={21}/><div><strong>{tr(language,'3. Công bố và quản lý','3. Publish and manage')}</strong><small>{tr(language,'Admin công bố bản đã duyệt và quản lý xóa khỏi danh sách an toàn.','The Admin publishes approved work and manages safe archive actions.')}</small></div></div>
+    </div>
    </section>
   </div>
-  <div className="bml-banner bml-info-banner"><Info size={18}/>{tr(language,'Quy trình công bố: học sinh nộp → giáo viên sơ duyệt → TTCM duyệt cuối → Admin xuất bản. Đây là quy trình nội bộ, không phải yêu cầu bắt buộc trong văn bản hội thi.','Publication: student → teacher → department reviewer → Admin. This internal workflow is not mandated by the contest notice.')}</div>
+  <div className="bml-banner bml-info-banner"><Info size={18}/>{tr(language,'Quy trình công bố: nhóm học sinh nộp → Admin kiểm tra/chấm rubric → Admin phê duyệt → Admin công bố. Các bản đã công bố được bảo vệ khỏi xóa nhầm.','Publication: student group submits → Admin reviews and scores → Admin approves → Admin publishes. Published versions are protected from accidental deletion.')}</div>
  </div>;
 }

@@ -8,7 +8,7 @@ const canRespond=stage=>['vote','quiz','exit','peer'].includes(stage?.kind);
 async function scopedStaff(ctx,assignmentId){
  if(!uid(assignmentId))throw fail(400,'Lớp học không hợp lệ.');
  const a=await query(ctx.admin.from('gcp_assignments').select('*').eq('id',assignmentId).single());
- if(a.school_scope!==ctx.profile.school||(a.created_by!==ctx.user.id&&ctx.role!=='admin'))
+ if(a.archived_at||a.school_scope!==ctx.profile.school||(a.created_by!==ctx.user.id&&ctx.role!=='admin'))
   throw fail(403,'Không phải giáo viên phụ trách.');
  return a;
 }
