@@ -67,6 +67,25 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
   }catch(e){setError(e.message);}
   finally{setBusy(false);}
  };
+ // Voiceover scripts are teacher resources until explicitly shared for the open stage.
+ const shareNarration=async()=>{
+  if(busy||!session||session.status==='ended')return;
+  setBusy(true);setError('');
+  try{
+   const send=version=>transport('media-voice',{assignmentId,stageIndex:currentIndex,version,enabled:!session.media?.voiceEnabled});
+   let out;
+   try{out=await send(session.version);}
+   catch(e){
+    if(e.status!==409)throw e;
+    const latest=await transport('state',null,{assignmentId});
+    if(latest.session?.stageIndex!==currentIndex)throw new Error('The activity changed. Reopen the narration tool.');
+    out=await send(latest.session.version);
+   }
+   if(out.session)setState(prev=>({...prev,session:out.session}));
+   await refresh();
+  }catch(e){setError(e.message);}
+  finally{setBusy(false);}
+ };
  const spotlightGroup=async groupId=>{
   setBusy(true);setError('');
   try{const r=await transport('group-gallery',null,{assignmentId,groupId});
@@ -201,7 +220,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
       <button type="button" className="bml-presenter-close" aria-label="Close presenter panel" onClick={()=>setActiveTool(null)}><X size={22}/></button>
      </header>
      <div className="bml-presenter-panel-scroll">
-      {activeTool==='voice'?<MuseumVoiceover stage={stage} language={language}/>:null}
+      {activeTool==='voice'?<MuseumVoiceover stage={stage} language={language} shareWithStudents={session.media?.voiceEnabled===true} onShareToggle={shareNarration}/>:null}
       {activeTool==='resources'?<><MuseumResourceHub stage={stage} language={language}/><LessonResources stageIndex={currentIndex} language={language} teacher/></>:null}
       {activeTool==='video'?<MuseumVideoLab mode="teacher" stage={stage} stageIndex={currentIndex}
        media={session.media} assignmentId={assignmentId} transport={transport} version={session.version}
@@ -289,7 +308,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
      <MuseumResourceHub stage={stage} language={language}/>
      <LessonResources stageIndex={currentIndex} language={language} teacher/>
     </div>:null}
-    {!isFullscreen&&showVoiceover?<div className="bml-comp-panel"><MuseumVoiceover stage={stage} language={language}/></div>:null}
+    {!isFullscreen&&showVoiceover?<div className="bml-comp-panel"><MuseumVoiceover stage={stage} language={language} shareWithStudents={session.media?.voiceEnabled===true} onShareToggle={shareNarration}/></div>:null}
     {!isFullscreen&&showVideoLab?<div className="bml-comp-panel"><MuseumVideoLab mode="teacher" stage={stage}
       stageIndex={currentIndex} media={session.media} assignmentId={assignmentId} transport={transport}
       version={session.version} language={language} onProject={setStageVideo}
