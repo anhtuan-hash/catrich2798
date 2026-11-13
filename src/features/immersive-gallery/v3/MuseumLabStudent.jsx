@@ -146,7 +146,7 @@ export default function MuseumLabStudent({language='vi'}){
    <section className="bml-student-focus" data-testid="student-focus-switch" aria-label={T(language,'Bảng điều khiển học sinh','Student workspace')}>
     <div className="bml-student-focus-head">
      <span className="bml-student-focus-kicker"><Sparkles size={16}/> STUDENT WORKSPACE</span>
-     <strong>{session.assignment.title}</strong>
+     <strong>{T(language,'Bảng hoạt động của nhóm','Group learning dashboard')}</strong>
      <span className="bml-student-focus-stage" role="status">
       <span className={liveRunning&&liveInfo?.stageOpen?'bml-focus-dot is-open':'bml-focus-dot'}/>
       {liveRunning?
