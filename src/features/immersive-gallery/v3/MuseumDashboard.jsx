@@ -47,7 +47,7 @@ export function KitCard({kit,onClick,selected=false,language='vi'}){
 export default function MuseumDashboard({data,onNavigate,onCreate,onDemo,language='vi'}){
  const tr=(vi,en)=>language==='en'?en:vi;
  const isAdmin=data?.profile?.role==='admin';
- const assignments=(data?.assignments||[]).slice(0,5),groups=data?.groups||[];
+ const assignments=(data?.assignments||[]).slice(0,5),groups=data?.groups||[],exitTickets=data?.exitTickets||[];
  const submitted=groups.filter(x=>['submitted','ttcm_review','approved_locked','published'].includes(x.state)).length;
  return <div className="bml-screen bml-dashboard" data-testid="museum-dashboard">
   <div className="bml-welcome">
@@ -81,11 +81,12 @@ export default function MuseumDashboard({data,onNavigate,onCreate,onDemo,languag
     <thead><tr><th>{tr('Tên bài học','Lesson')}</th><th>{tr('Lớp','Class')}</th><th>{tr('Số nhóm','Groups')}</th><th>{tr('Tiến độ','Progress')}</th><th>{tr('Hạn nộp','Deadline')}</th></tr></thead>
     <tbody>{assignments.map(a=>{
      const linked=groups.filter(g=>g.assignment_id===a.id),count=linked.filter(g=>['submitted','ttcm_review','approved_locked','published'].includes(g.state)).length;
+     const exitCount=linked.filter(g=>exitTickets.some(t=>t.group_id===g.id)).length;
      return <tr key={a.id}><td><button className="bml-lesson-link" type="button" onClick={()=>onNavigate('lessons',a.id)}><span className="bml-table-icon"><Leaf size={19}/></span>
       <span><strong>{a.title}</strong><small>{tr('Bài học tiếng Anh theo dự án','Project-based English')}</small></span></button></td>
       <td><span className="bml-class-tag">{a.class_scope}</span></td><td>{linked.length}</td>
       <td><div className="bml-progress"><div style={{width:(linked.length?count/linked.length*100:0)+'%'}}/></div>
-       <small>{tr('Đã nộp','Submitted')} {count}/{linked.length}</small></td>
+       <small>Exit Tickets: {exitCount}/{linked.length}</small><small>{tr('Sản phẩm bảo tàng','Museum projects')}: {count}/{linked.length}</small></td>
       <td>{fmtDate(a.deadline_at)}</td>
      </tr>;})}</tbody>
    </table></div>:<div className="bml-empty bml-empty-slim"><BookOpen size={31}/><strong>{tr('Chưa có bài học nào','No lessons yet')}</strong>
