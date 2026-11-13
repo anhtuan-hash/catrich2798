@@ -1280,3 +1280,68 @@ test('Project pages scroll inside the 16:9 workbench without overlapping labels 
   await page.screenshot({path:testInfo.outputPath('student-step-scroll-'+viewport.width+'.png'),fullPage:false});
  }
 });
+
+
+test('Student Creator V6 layered-paper skin stays readable and interactive across 16:9 screens',async({page,isMobile},testInfo)=>{
+ if(isMobile)return;
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const operation=new URL(route.request().url()).searchParams.get('operation');
+  return route.fulfill({json:operation==='me'?{
+   groupLabel:'Nhóm 01',groupState:'editing',csrf:'paper-v6-qa',
+   assignment:{title:'Our Climate Action Museum',brief:'Build a digital exhibition about an evidence-based school climate action.',
+    class_scope:'11.3',deadline_at:new Date(Date.now()+86400000).toISOString()}
+  }:{draft:{title:'Lights Off, Future On',summary:'Our school energy initiative.',rooms:[],
+   learning:{issue:'Unused lights and fans waste energy in empty classrooms.',
+    evidence:'Four groups chose switching off lights during a classroom survey.',
+    solution:'Create a practical two-person check at the end of each lesson.',
+    source:'Class survey and NASA Space Place',
+    feedback:'Visitors requested a more explicit classroom action.',
+    improvement:'We improved the handover protocol and caption.',
+    reflection:'Our English project became clearer when we distinguished survey preferences from measured savings.'}},
+   version:6}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>route.fulfill({json:{session:null,survey:null}}));
+ for(const viewport of [{width:1536,height:960},{width:1366,height:768}]){
+  await page.setViewportSize(viewport);
+  await page.goto('/tests/museum-lab/v3.html');
+  await page.getByTestId('qa-student-en').click();
+  const app=page.getByTestId('museum-student-wizard');
+  await expect(app).toBeVisible();
+  const ribbon=app.getByTestId('museum-competition-ribbon');
+  await expect(ribbon).toBeVisible();
+  await expect(ribbon).toContainText('Thạc sĩ Nguyễn Anh Tuấn');
+  const logos=await ribbon.locator('img').evaluateAll(images=>images.map(x=>({complete:x.complete,width:x.naturalWidth,height:x.naturalHeight})));
+  expect(logos).toEqual([{complete:true,width:299,height:300},{complete:true,width:1682,height:2048}]);
+  const colors=await app.evaluate(root=>{
+   const css=x=>getComputedStyle(root.querySelector(x));
+   return {
+    toolBackground:css('.bml-student-toolrail').backgroundImage,
+    focusRadius:parseFloat(css('.bml-student-focus').borderTopLeftRadius),
+    notebookRadius:parseFloat(css('.bml-student-primary').borderTopLeftRadius),
+    cardBackground:css('.bml-student-project-card').backgroundImage,
+    stepMarker:css('.bml-student-task > .bml-overline').backgroundColor,
+    scrollMode:css('.bml-student-task-scroll').overflowY,
+    submitFooterPosition:css('.bml-student-bottom').position,
+   };
+  });
+  expect(colors.toolBackground).toContain('gradient');
+  expect(colors.cardBackground).toContain('gradient');
+  expect(colors.focusRadius).toBeGreaterThanOrEqual(14);
+  expect(colors.notebookRadius).toBeGreaterThanOrEqual(14);
+  expect(colors.stepMarker).not.toBe('rgba(0, 0, 0, 0)');
+  expect(colors.scrollMode).toBe('auto');
+  expect(colors.submitFooterPosition).toBe('relative');
+  await app.locator('.bml-student-steps button').nth(4).click();
+  const panel=app.getByTestId('student-task-scroll');
+  await expect(app.getByText('Submission checklist')).toBeVisible();
+  await expect(app.getByRole('button',{name:'Submit for Admin review'})).toBeVisible();
+  await panel.evaluate(el=>{el.scrollTop=el.scrollHeight;});
+  const footer=app.locator('.bml-student-bottom');
+  await expect(footer).toBeInViewport();
+  const footerBox=await footer.boundingBox();
+  expect(footerBox.y+footerBox.height).toBeLessThanOrEqual(viewport.height+2);
+  const sizes=await app.evaluate(el=>({scrollWidth:el.scrollWidth,clientWidth:el.clientWidth}));
+  expect(sizes.scrollWidth).toBeLessThanOrEqual(sizes.clientWidth+3);
+  await page.screenshot({path:testInfo.outputPath('student-v6-paper-'+viewport.width+'.png'),fullPage:false});
+ }
+});
