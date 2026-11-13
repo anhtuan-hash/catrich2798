@@ -17,7 +17,7 @@ const schoolLogo='/museum/branding/petrus-ky-school.png';
 
 export default function MuseumCompetitionRibbon(){
  return <section className="bml-competition-ribbon" data-testid="museum-competition-ribbon"
-  lang="vi" aria-label="Bài dự thi hội thi thiết kế chủ đề dạy học số">
+  lang="vi" aria-label={awardLabel+" – "+contestName}>
   <div className="bml-competition-decor bml-competition-decor--left" aria-hidden="true"/>
   <div className="bml-competition-decor bml-competition-decor--right" aria-hidden="true"/>
   <figure className="bml-competition-seal bml-competition-seal--department">
