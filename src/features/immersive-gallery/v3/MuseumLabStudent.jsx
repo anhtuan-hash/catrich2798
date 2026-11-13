@@ -2,7 +2,8 @@ import React,{Suspense,useCallback,useEffect,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronLeft,ChevronRight,CircleHelp,ClipboardCheck,Cloud,CloudAlert,CloudUpload,Eye,FileText,Info,KeyRound,Landmark,Leaf,Lightbulb,LockKeyhole,MessageSquare,RefreshCw,Send,ShieldCheck,Sparkles,Users,X} from 'lucide-react';
 import {emptyStudio,documentFromStudio,normalizeStudio,STEPS,submissionMissing,moveStoryboardCard} from './museumData.js';
 import {guestRequest,englishSystemGroupLabel} from './museumApi.js';
-import {liveGuest} from './museumLiveApi.js';
+import {artGuest,liveGuest} from './museumLiveApi.js';
+import {buildStudentMuseumPreview} from './museumPreviewImages.js';
 import {stageMediaTools} from './museumLiveExtensions.js';
 import {wordCount,evidenceMissing,changedExhibits} from './learningEvidence.js';
 import {canSaveMuseumDraft,canSubmitMuseumProject} from './museumSubmissionPolicy.js';
@@ -60,6 +61,25 @@ export default function MuseumLabStudent({language='en'}){
  const [studioSubstep,setStudioSubstep]=useState(0),[historyOpen,setHistoryOpen]=useState(false);
  const [projectPreview,setProjectPreview]=useState(false),[studentTool,setStudentTool]=useState(null);
  const [artworkOpen,setArtworkOpen]=useState(false);
+ const previewGallery=buildStudentMuseumPreview(studio,artAssets);
+ // Uploaded media is private and its signed URLs expire after 90 seconds.
+ // Fetch real group assets at opening time (also after refresh/navigation),
+ // then renew them while the viewer is open. Never use invented stock photos.
+ useEffect(()=>{
+  if(!session?.csrf||(!preview&&!projectPreview))return undefined;
+  let active=true;
+  const refresh=async()=>{
+   try{
+    const result=await artGuest('list');
+    if(active)setArtAssets(result.assets||[]);
+   }catch(err){
+    if(active)setError(err.message||'Unable to load your private artwork.');
+   }
+  };
+  refresh();
+  const timer=window.setInterval(refresh,55000);
+  return()=>{active=false;window.clearInterval(timer);};
+ },[session?.csrf,preview,projectPreview]);
  // A copied group slip must not leave its secret in the browser URL.
  useEffect(()=>{
   try{
@@ -331,13 +351,11 @@ export default function MuseumLabStudent({language='en'}){
        </div>
       </div></div>:null}
      <button type="button" className="bml-outline" onClick={()=>setPreview(v=>!v)}><Eye size={19}/>{preview?T(language,'Đóng xem trước','Close preview'):T(language,'Xem trước bảo tàng 2D/3D','Preview 2D / 3D museum')}</button>
-     {preview?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label={T(language,'Xem trước bảo tàng','Museum preview')}>
-      <div className="bml-student-detail-window">
+     {preview?<div className="bml-student-detail-overlay bml-museum-preview-overlay" role="dialog" aria-modal="true" aria-label={T(language,'Xem trước bảo tàng','Museum preview')}>
+      <div className="bml-student-detail-window bml-museum-preview-window">
        <div className="bml-student-detail-head"><strong>{studio.title||'Our Climate Action Museum'}</strong>
         <button type="button" className="bml-outline" onClick={()=>setPreview(false)}><X size={17}/>{T(language,'Đóng','Close')}</button></div>
-       <MuseumScene language={language} embedded gallery={{title:studio.title||'Our English Museum',summary:studio.summary,rooms:[{id:'draft-room',title:room.title,template_key:room.template_key,
-        exhibits:room.exhibits.map((e,i)=>({...e,id:'draft-exhibit-'+i,status:'published',
-         image_url:artAssets.find(x=>x.id===e.asset_id)?.image_url||''}))}]}}/>
+       <MuseumScene language={language} embedded gallery={previewGallery}/>
       </div>
      </div>:null}
     </>:null}
@@ -431,11 +449,10 @@ export default function MuseumLabStudent({language='en'}){
 
     </div>
    </div></div>:null}
-  {projectPreview?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label={T(language,'Xem bảo tàng của nhóm','Preview group museum')}>
-   <div className="bml-student-detail-window">
+  {projectPreview?<div className="bml-student-detail-overlay bml-museum-preview-overlay" role="dialog" aria-modal="true" aria-label={T(language,'Xem bảo tàng của nhóm','Preview group museum')}>
+   <div className="bml-student-detail-window bml-museum-preview-window">
     <div className="bml-student-detail-head"><strong>{studio.title||'Our Climate Action Museum'}</strong><button type="button" className="bml-outline" onClick={()=>setProjectPreview(false)}><X size={18}/>{T(language,'Đóng','Close')}</button></div>
-    <MuseumScene language={language} embedded gallery={{title:studio.title||'Our English Museum',summary:studio.summary,rooms:[{id:'draft-room',title:room.title,template_key:room.template_key,
-     exhibits:room.exhibits.map((e,i)=>({...e,id:'draft-exhibit-'+i,status:'published',image_url:artAssets.find(x=>x.id===e.asset_id)?.image_url||''}))}]}}/>
+    <MuseumScene language={language} embedded gallery={previewGallery}/>
    </div></div>:null}
  </main>;
 }

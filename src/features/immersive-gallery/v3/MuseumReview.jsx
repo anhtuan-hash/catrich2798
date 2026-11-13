@@ -1,9 +1,10 @@
-import React,{useMemo,useState} from 'react';
+import React,{useEffect,useMemo,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookOpen,CheckCircle2,ClipboardCheck,Clock3,Eye,FileText,MessageCircle,ShieldAlert,ShieldCheck,Star,Trash2,Users} from 'lucide-react';
 import {RUBRIC,progressOfGroup,scoreRubric} from './museumData.js';
 import {englishSystemGroupLabel} from './museumApi.js';
 import {staffRequest} from './museumApi.js';
 import MuseumScene,{reviewMuseum} from './MuseumScene.jsx';
+import {artStaff} from './museumLiveApi.js';
 const tr=(lang,vi,en)=>lang==='en'?en:vi;
 const NOTES={
  submitted:{label:'Chờ Admin',kind:'yellow'},
@@ -17,10 +18,24 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,query='',la
  const [filter,setFilter]=useState('all'),[selectedId,setSelectedId]=useState(initialReview||null),
   [note,setNote]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),
   [success,setSuccess]=useState(''),[preview,setPreview]=useState(false),[scores,setScores]=useState({});
+ const [reviewArtAssets,setReviewArtAssets]=useState([]);
  const groups=data?.groups||[],assignments=data?.assignments||[],reviews=data?.reviews||[];
  const mine=useMemo(()=>reviews.filter(r=>{const g=groups.find(x=>x.id===r.group_id),a=assignments.find(x=>x.id===g?.assignment_id);return (filter==='all'||r.state===filter)&&((r.snapshot?.title||'')+' '+(g?.label||'')+' '+(a?.class_scope||'')).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase());}),[reviews,filter,query,groups,assignments]);
  const selected=reviews.find(r=>r.id===selectedId);
  const group=groups.find(g=>g.id===selected?.group_id);
+ // Teacher/admin art URLs are private and short-lived. Fetch when a submission
+ // preview opens and renew while it remains visible, without touching snapshots.
+ useEffect(()=>{
+  if(!preview||!selected?.group_id)return undefined;
+  let active=true;
+  const refresh=async()=>{
+   try{const assets=await artStaff(selected.group_id);if(active)setReviewArtAssets(assets);}
+   catch(e){if(active)setError(e.message||'Unable to load private student artwork.');}
+  };
+  refresh();
+  const timer=window.setInterval(refresh,55000);
+  return()=>{active=false;window.clearInterval(timer);};
+ },[preview,selected?.group_id]);
  const assignment=assignments.find(a=>a.id===group?.assignment_id);
  const rubric=data?.rubrics?.find(r=>r.review_id===selectedId);
  const initialScores=selected?Object.fromEntries(RUBRIC.map(c=>[c.key,Number(scores[selectedId]?.[c.key]??rubric?.scores?.[c.key]??0)])):{};
@@ -54,7 +69,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,query='',la
    await onRefresh();setSuccess(tr(language,'Đã lưu rubric: ','Rubric saved: ')+total+'/100');
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
- const open=r=>{setSelectedId(r.id);setNote('');setError('');setSuccess('');setPreview(false);setScores({});};
+ const open=r=>{setSelectedId(r.id);setNote('');setError('');setSuccess('');setPreview(false);setReviewArtAssets([]);setScores({});};
  return <div className="bml-screen" data-testid="museum-review-desk">
   <div className="bml-heading-actions"><div><div className="bml-overline">{tr(language,'ĐÁNH GIÁ HỌC TẬP','LEARNING ASSESSMENT')}</div>
    <h1>{tr(language,'Bài nộp của học sinh','Student submissions')}</h1>
@@ -92,7 +107,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,query='',la
      <div className="bml-review-preview">
       <div className="bml-review-preview-head"><h3>{tr(language,'Sản phẩm học sinh','Student exhibition')}</h3>
        <button type="button" className="bml-outline" onClick={()=>setPreview(v=>!v)}><Eye size={17}/>{preview?tr(language,'Đọc nội dung','Read content'):tr(language,'Xem bảo tàng 2D/3D','Preview museum')}</button></div>
-      {preview?<MuseumScene gallery={reviewMuseum(selected)} embedded language={language}/>:
+      {preview?<MuseumScene gallery={reviewMuseum(selected,reviewArtAssets)} embedded language={language}/>:
        <div className="bml-submission-content">
         {(selected.snapshot?.rooms||[]).map((room,i)=><article key={i}>
          <h4>{String(i+1).padStart(2,'0')} · {room.title}</h4>
