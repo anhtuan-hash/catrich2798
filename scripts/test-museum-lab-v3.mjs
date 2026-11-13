@@ -323,3 +323,15 @@ test('teacher gallery uses the same 2D/3D cinema component as student preview',(
  assert.match(css,/\.bml\.bml-teacher-cinema-portal/);
  assert.match(css,/z-index:9999/);
 });
+
+test('student creator login reuses official dashboard competition ribbon without changing redemption form',()=>{
+ const student=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLabStudent.jsx','utf8');
+ const entryCss=fs.readFileSync('src/features/immersive-gallery/v3/museumStudentEditorial.css','utf8');
+ assert.match(student,/if\(!session\)return/);
+ assert.match(student,/museum-login-competition-banner/);
+ assert.match(student,/<MuseumCompetitionRibbon variant="dashboard"\/>/);
+ assert.match(student,/<GuestEntry onRedeem=\{redeem\} busy=\{busy\} error=\{error\} language=\{language\}\/>/);
+ assert.match(student,/import '\.\/museumDashboardBanner\.css'/);
+ assert.match(entryCss,/\.bml\.bml-student-shell\.bml-student-editorial\.bml-student-login-with-ribbon/);
+ assert.match(entryCss,/\.bml-guest-competition-wrap/);
+});
