@@ -8,7 +8,9 @@ const settings = read('src/pages/Settings.jsx');
 const account = read('src/components/UsernameAccountCenter.jsx');
 const accountCss = read('src/components/UsernameAccountCenter.css');
 
-assert.match(settings, /settings-google-hero/, 'Settings hero must remain');
+assert.match(settings, /SettingsLauncherHome/, 'Current Settings launcher must remain');
+assert.match(settings, /activeModule === 'hero'/, 'Hero background settings shortcut must remain available');
+assert.match(settings, /settings-launcher-drawer/, 'Current Settings drawer must remain available');
 assert.match(settings, /settings-notifications/, 'Notification settings must remain');
 assert.match(settings, /changeCurrentPassword/, 'Existing password flow must remain');
 
