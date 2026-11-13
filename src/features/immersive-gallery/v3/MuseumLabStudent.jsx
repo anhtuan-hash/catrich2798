@@ -300,7 +300,6 @@ export default function MuseumLabStudent({language='vi'}){
        {T(language,'Tiếp tục','Continue')} <ChevronRight size={18}/></button>:null}</div>
     </footer>
    </div>
-</aside>
    </div>
    </div>
     </section>
