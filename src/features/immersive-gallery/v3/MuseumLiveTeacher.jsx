@@ -150,7 +150,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
       <MuseumLivePaperArt variant={['artwork','peer','present','exit'].includes(stage?.kind)?'studio':stage?.kind==='quiz'?'gallery':'climate'}/>
       <div className="bml-paper-stage-titles">
        <div className="bml-live-section">{stage?.period===1?'PERIOD 01 · INVESTIGATE & DESIGN':'PERIOD 02 · CREATE, TEST & IMPROVE'}</div>
-       <h2>{stage?.title}</h2>{language==='en'?null:<p className="bml-live-vietnamese">{stage?.vi}</p>
+       <h2>{stage?.title}</h2>{language==='en'?null:<p className="bml-live-vietnamese">{stage?.vi}</p>}
       </div>
      </div>
      <div className="bml-paper-question-sheet"><div className="bml-live-question">{stage?.question}</div></div>
