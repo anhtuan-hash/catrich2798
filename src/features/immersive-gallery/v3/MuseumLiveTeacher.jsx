@@ -1,5 +1,5 @@
 import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
-import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronLeft,ChevronRight,Clock3,Eye,Fullscreen,HelpCircle,Lock,MonitorPlay,Pause,Play,Presentation,Printer,QrCode,RefreshCcw,ShieldCheck,Users,X} from 'lucide-react';
+import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronLeft,ChevronRight,Clock3,Eye,Fullscreen,HelpCircle,Lock,MonitorPlay,Pause,Play,Presentation,Printer,QrCode,RefreshCcw,ShieldCheck,Users,X,Film,Volume2,Sparkles} from 'lucide-react';
 import {LIVE_STAGES,LIVE_PERIOD_MINUTES,LIVE_TOTAL_MINUTES} from './liveLesson.js';
 import {liveStaff} from './museumLiveApi.js';
 import LessonResources from './LessonResources.jsx';
@@ -8,8 +8,13 @@ import {saveBlob} from './museumDocx.js';
 import MuseumScene from './MuseumScene.jsx';
 import MuseumLivePaperArt from './MuseumLivePaperArt.jsx';
 import MuseumLivePaperCards from './MuseumLivePaperCards.jsx';
+import MuseumVoiceover from './MuseumVoiceover.jsx';
+import MuseumResourceHub from './MuseumResourceHub.jsx';
+import MuseumVideoLab,{MuseumVideoFrame} from './MuseumVideoLab.jsx';
+import {MICRO_CHALLENGES} from './museumLiveExtensions.js';
 import './museumLive.css';
 import './museumLivePaper.css';
+import './museumLiveCompetition.css';
 const t=(lang,vi,en)=>lang==='en'?en:vi;
 const link=typeof window!=='undefined'?window.location.origin+window.location.pathname+'#/gallery-create':'/#/gallery-create';
 export default function MuseumLiveTeacher({data,language='vi',initialAssignment,onBack,transport=liveStaff}){
@@ -17,6 +22,8 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  const [assignmentId,setAssignmentId]=useState(initialAssignment||assignments[0]?.id||'');
  const [state,setState]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [showNotes,setShowNotes]=useState(false),[showResources,setShowResources]=useState(false),[showQr,setShowQr]=useState(false),[qr,setQr]=useState('');
+ const [showVoiceover,setShowVoiceover]=useState(false),[showVideoLab,setShowVideoLab]=useState(false);
+ const [motionOn,setMotionOn]=useState(true),[stageVideo,setStageVideo]=useState(null);
  const [spotlight,setSpotlight]=useState(null),[time,setTime]=useState(Date.now());
  const [paper,setPaper]=useState(false),[tally,setTally]=useState(['','','','']),[tallyNote,setTallyNote]=useState('');
  const freeze=async()=>{setBusy(true);setError('');try{await transport('freeze-survey',{assignmentId,version:state.session.version,...(paper?{counts:tally.map(v=>v===''?null:Number(v)),note:tallyNote}:{})});await refresh();}catch(e){setError(e.message);}finally{setBusy(false);}};
@@ -33,6 +40,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
   return()=>{active=false;};},[showQr]);
  const session=state?.session,stage=session?.stage,groups=state?.groups||[],result=session?.stageIndex===2&&state?.survey?state.survey:state?.result;
  const currentIndex=session?.stageIndex??0,minute=LIVE_STAGES[currentIndex]?.minutes||0;
+ useEffect(()=>{setStageVideo(null);},[assignmentId,currentIndex]);
  const elapsed=(session?.elapsedSeconds||0)+(session?.status==='active'&&session?.stageStartedAt?Math.max(0,Math.floor((time-Date.parse(session.stageStartedAt))/1000)):0);
  const remaining=Math.max(0,minute*60-elapsed);
  const act=async(action)=>{
@@ -79,14 +87,18 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
    <button type="button" disabled={busy} onClick={()=>act('start')} className="bml-primary"><Play size={19}/>{t(language,'Bắt đầu buổi dạy','Start lesson')}</button>
   </div>:null}
   {session?<div className="bml-live-workspace bml-live-paper-workspace">
-   <div className="bml-live-screen bml-live-screen--paper" ref={stageRef} data-testid="museum-live-paper-stage" data-stage-index={currentIndex} data-stage-kind={stage?.kind||'unknown'}>
+   <div className={'bml-live-screen bml-live-screen--paper'+(motionOn?' bml-motion-on':'')} ref={stageRef}
+    data-motion={motionOn?'on':'off'} data-testid="museum-live-paper-stage"
+    data-stage-index={currentIndex} data-stage-kind={stage?.kind||'unknown'}>
     <div className="bml-live-topbar"><span className="bml-live-brand"><span className="bml-live-dot"/> BRIAN MUSEUM LAB · TEACHER LIVE</span>
      <div className="bml-paper-progress"><span>{t(language,'TIẾT','PERIOD')} {stage?.period}/2</span><span>{t(language,'HOẠT ĐỘNG','ACTIVITY')} {currentIndex+1}/11</span></div></div>
     {spotlight?<div className="bml-live-spotlight">
      <div className="bml-live-spotlight-top"><strong>{t(language,'TRÌNH CHIẾU NHÓM','GROUP SPOTLIGHT')} · {spotlight.groupLabel}</strong>
       <button type="button" onClick={()=>setSpotlight(null)}><X size={18}/>{t(language,'Đóng','Close')}</button></div>
      <MuseumScene gallery={spotlight.gallery} language={language} embedded/>
-    </div>:<div className="bml-live-slide" data-testid="museum-live-slide">
+    </div>:stageVideo?<div className="bml-live-video-stage" data-testid="museum-projector-video">
+     <MuseumVideoFrame id={stageVideo.id} title={stageVideo.title} onClose={()=>setStageVideo(null)}/>
+    </div>:<div className="bml-live-slide" key={currentIndex} data-testid="museum-live-slide">
      <div className="bml-paper-stage-intro">
       <MuseumLivePaperArt variant={['artwork','peer','present','exit'].includes(stage?.kind)?'studio':stage?.kind==='quiz'?'gallery':'climate'}/>
       <div className="bml-paper-stage-titles">
@@ -133,7 +145,10 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
     </div>
     <div className="bml-live-control-line">
      <button className="bml-text-btn" aria-expanded={showNotes} onClick={()=>setShowNotes(v=>!v)}><BookOpen size={17}/>{t(language,'Ghi chú giảng dạy','Teaching notes')}</button>
-     <button className="bml-text-btn" aria-expanded={showResources} onClick={()=>setShowResources(v=>!v)}><Presentation size={17}/>{t(language,'Tư liệu hoạt động','Activity resources')}</button>
+     <button className="bml-text-btn" aria-expanded={showResources} onClick={()=>setShowResources(v=>!v)}><BookOpen size={17}/>{t(language,'Kho tư liệu','Research library')}</button>
+     <button className="bml-text-btn" aria-expanded={showVoiceover} onClick={()=>setShowVoiceover(v=>!v)}><Volume2 size={17}/>Voiceover</button>
+     <button className="bml-text-btn" aria-expanded={showVideoLab} onClick={()=>setShowVideoLab(v=>!v)}><Film size={17}/>Video Lab</button>
+     <button className="bml-text-btn bml-live-motion-toggle" aria-pressed={motionOn} onClick={()=>setMotionOn(v=>!v)}><Sparkles size={17}/>{motionOn?'Motion ON':'Motion OFF'}</button>
      {session.status==='paused'?<button className="bml-text-btn" onClick={()=>act('resume')}><Play size={17}/>{t(language,'Tiếp tục','Resume')}</button>:
      <button className="bml-text-btn" onClick={()=>act('pause')} disabled={session.status==='ended'}><Pause size={17}/>{t(language,'Tạm dừng','Pause')}</button>}
      <button className="bml-text-btn" onClick={refresh}><RefreshCcw size={17}/>{t(language,'Cập nhật','Refresh')}</button>
@@ -148,7 +163,17 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
     </div>:null}
     {currentIndex>=7&&state?.feedback?.length?<details open><summary>Phản hồi chéo đã lưu · {state.feedback.length}</summary>{state.feedback.map(r=><article key={r.from_group}><strong>{groups.find(g=>g.id===r.from_group)?.label} → {groups.find(g=>g.id===r.to_group)?.label} · {r.rating}/4</strong><p>{r.learned}</p><p>{r.clarify}</p></article>)}</details>:null}
     {currentIndex===10?<div>{state?.responses?.map(r=><p key={r.group_id}><strong>{groups.find(g=>g.id===r.group_id)?.label}: </strong>{String(r.value)}</p>)}</div>:null}
-    {showResources?<div className="bml-paper-resource-drawer" data-testid="museum-live-resources"><LessonResources stageIndex={currentIndex} language={language} teacher/></div>:null}
+    {MICRO_CHALLENGES[currentIndex]?<div className="bml-live-micro-summary"><ShieldCheck size={17}/>
+     {state?.microResponses||0} nhóm đã nộp câu hỏi tư duy nhanh. Câu trả lời được lưu làm minh chứng quá trình.</div>:null}
+    {showResources?<div className="bml-paper-resource-drawer" data-testid="museum-live-resources">
+     <MuseumResourceHub stage={stage} language={language}/>
+     <LessonResources stageIndex={currentIndex} language={language} teacher/>
+    </div>:null}
+    {showVoiceover?<div className="bml-comp-panel"><MuseumVoiceover stage={stage} language={language}/></div>:null}
+    {showVideoLab?<div className="bml-comp-panel"><MuseumVideoLab mode="teacher" stage={stage}
+      stageIndex={currentIndex} media={session.media} assignmentId={assignmentId}
+      version={session.version} language={language} onProject={setStageVideo}
+      onSaved={async out=>{if(out.session)setState(prev=>({...prev,session:out.session}));await refresh();}}/></div>:null}
     {showNotes?<div className="bml-live-notes"><h3>{t(language,'GHI CHÚ RIÊNG CỦA GIÁO VIÊN','TEACHER-ONLY NOTES')}</h3>
      <p>{stage?.teaching}</p><strong>{t(language,'Kết luận/điều cần lưu ý','Expected learning')}:</strong><p>{stage?.expected}</p></div>:null}
     {showQr?<div className="bml-live-qr"><div><strong>{t(language,'Học sinh truy cập Student Creator','Students open the Creator Studio')}</strong>
