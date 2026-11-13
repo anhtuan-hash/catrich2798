@@ -161,7 +161,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
       <button className="bml-outline" type="button" onClick={()=>setPeer(null)}>Close</button></div>
      <MuseumScene gallery={peer} language={language} embedded/>
     </div></div>:null}
-   {compact&&activeTool&&(activeTool!=='video'||hasVideo)&&(activeTool!=='voice'||hasVoice)?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label="Learning tools">
+   {compact&&activeTool&&(activeTool!=='video'||hasVideo)&&(activeTool!=='voice'||hasVoice)&&(activeTool!=='curriculum'||curriculumClip)?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label="Learning tools">
     <div className="bml-student-detail-window">
      <div className="bml-student-detail-head">
       <strong>{({materials:'Lesson Materials',research:'Research Library',voice:'American English Voiceover',video:'Video Lab',curriculum:'Watch NASA lesson video',micro:'English Thinking Lab',survey:'Class Survey'})[activeTool]}</strong>
@@ -171,6 +171,8 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
       {activeTool==='materials'?<LessonResources stageIndex={stageIndex} language={language}/>:null}
       {activeTool==='research'?<MuseumResourceHub stage={stage} language={language}/>:null}
       {activeTool==='voice'&&hasVoice?<MuseumVoiceover stage={stage} language={language} compact/>:null}
+      {activeTool==='curriculum'&&curriculumClip?<MuseumVideoFrame id={curriculumClip.id} title={curriculumClip.title}
+       language={language} onClose={()=>setActiveTool(null)}/>:null}
       {activeTool==='video'?(hasVideo?
        <MuseumVideoLab mode="student" stage={stage} stageIndex={stageIndex} media={session.media} language={language} csrf={csrf}/>:
        <p>{t(language,'Giáo viên chưa giao video cho hoạt động này.','No video assigned yet.')}</p>):null}
@@ -183,6 +185,11 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
         <p>{t(language,'Chưa có dữ liệu khảo sát.','No survey data yet.')}</p>}
       </div>:null}
      </div>
+    </div></div>:null}
+   {!compact&&activeTool==='curriculum'&&curriculumClip?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label="NASA learning video">
+    <div className="bml-student-detail-window">
+     <div className="bml-student-detail-head"><strong>NASA LESSON VIDEO</strong><button type="button" className="bml-outline" onClick={()=>setActiveTool(null)}>Close</button></div>
+     <MuseumVideoFrame id={curriculumClip.id} title={curriculumClip.title} language={language} onClose={()=>setActiveTool(null)}/>
     </div></div>:null}
    {notice?<div role="status" data-testid="student-action-notice" className="bml-banner bml-success-banner bml-student-action-notice"><CheckCircle2 size={17}/>{notice}</div>:null}
     {error?<div role="alert" className="bml-banner bml-danger-banner">{error}</div>:null}
