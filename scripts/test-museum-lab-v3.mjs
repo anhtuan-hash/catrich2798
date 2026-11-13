@@ -335,3 +335,38 @@ test('student creator login reuses official dashboard competition ribbon without
  assert.match(entryCss,/\.bml\.bml-student-shell\.bml-student-editorial\.bml-student-login-with-ribbon/);
  assert.match(entryCss,/\.bml-guest-competition-wrap/);
 });
+
+test('student voice guidance is deterministic for 11 open activities and five project steps',async()=>{
+ const {studentNarrationCue,PROJECT_STEP_NARRATIONS}=await import('../src/features/immersive-gallery/v3/museumStudentNarration.js');
+ const {VOICEOVER_SCRIPTS}=await import('../src/features/immersive-gallery/v3/museumLiveExtensions.js');
+ const activities=Object.keys(VOICEOVER_SCRIPTS);
+ assert.equal(activities.length,11);
+ assert.equal(PROJECT_STEP_NARRATIONS.length,5);
+ for(let i=0;i<11;i++){
+  const stage={id:activities[i],title:'Activity '+(i+1),kind:'recap',sentence:''};
+  const liveInfo={id:'lesson-1',status:'active',stageOpen:true,stageIndex:i,stage};
+  const cue=studentNarrationCue({liveInfo,step:0,ready:true});
+  assert.equal(cue.key,'live:lesson-1:'+i+':'+activities[i]);
+  assert.equal(cue.text,VOICEOVER_SCRIPTS[activities[i]]);
+  assert.equal(studentNarrationCue({liveInfo:{...liveInfo,stageOpen:false},step:0}),null);
+  assert.equal(studentNarrationCue({liveInfo,step:0,ready:false}),null);
+ }
+ for(let i=0;i<5;i++){
+  const cue=studentNarrationCue({liveInfo:{status:'not_started'},step:i});
+  assert.equal(cue.key,'project:'+i);
+  assert.equal(cue.text,PROJECT_STEP_NARRATIONS[i]);
+  assert.ok(cue.text.length>100);
+ }
+ assert.equal(new Set(PROJECT_STEP_NARRATIONS).size,5);
+ assert.equal(studentNarrationCue({liveInfo:{status:'active',stageOpen:false},step:0}),null);
+ const component=fs.readFileSync('src/features/immersive-gallery/v3/MuseumStudentVoiceGuide.jsx','utf8');
+ const student=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLabStudent.jsx','utf8');
+ assert.match(component,/rankAmericanVoices/);
+ assert.match(component,/item.lang='en-US'/);
+ assert.match(component,/data-testid="student-auto-voice"/);
+ assert.match(component,/localStorage.setItem/);
+ assert.match(component,/lastCue.current===cueKey/);
+ assert.match(component,/Replay activity guidance/);
+ assert.match(student,/<MuseumStudentVoiceGuide cue=\{narrationCue\}\/>/);
+ assert.match(student,/setLiveReady\(true\)/);
+});
