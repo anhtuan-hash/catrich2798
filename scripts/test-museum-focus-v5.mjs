@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {FOCUS_IDLE,focusReducer,focusLayout,smoothstep,blendPose,nearlyEqualPose}
+import {FOCUS_IDLE,focusReducer,focusLayout,clampDelta,smoothstep,blendPose,nearlyEqualPose}
  from '../src/features/immersive-gallery/v3/museumExhibitFocusMotion.js';
 import {buildExhibitFocusBoard,excerptSentences} from '../src/features/immersive-gallery/v3/museumExhibitFocusData.js';
 
@@ -119,4 +119,13 @@ test('Source contracts preserve fallback only outside the Cinema 3D focus path',
  assert.match(rig,/data-testid="museum-back-to-wall"/);
  assert.doesNotMatch(rig,/<Canvas/);
  assert.doesNotMatch(rig,/dangerouslySetInnerHTML/);
+});
+
+test('V5 physical elapsed-time step remains bounded yet catches up on slow WebGL frames',()=>{
+ assert.equal(clampDelta(.016),.016);
+ assert.equal(clampDelta(.7),.25);
+ assert.equal(clampDelta(-4),0);
+ let progress=0;
+ for(let frame=0;frame<5;frame++)progress=Math.min(1,progress+clampDelta(.7)/1.03);
+ assert.equal(progress,1);
 });
