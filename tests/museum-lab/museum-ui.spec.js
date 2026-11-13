@@ -1796,9 +1796,9 @@ test('Published cards survive a failure of the separate showcase catalogue reque
 test('V5 Cinema physically detaches the SAME 3D artwork, displays only real evidence, and exactly restores wall pose',async({page,isMobile},testInfo)=>{
  if(isMobile)return;
  await page.setViewportSize({width:1536,height:864});
- const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAYCAIAAAB8wupbAAAAR0lEQVR4nGPkjXZlIAUwkaSaLhoY/3++QJIGFgYGhitRtWiiOsuaGRgY1Fvfo4nfrBYchJ4e1TBSNJCcvBmvL7YnScMg9DQAQV4OGRjRfFEAAAAASUVORK5CYII=';
+ const fixtures=["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAABICAIAAAA/EeF8AAAAn0lEQVR42u3asQ3DIBQFQBNlF6+QqVJQZQRXFB7GM2SDyHN4AReRUiAhKmOS3Gtc+sSDBn7YXsvQUy5DZ7m+P7eYTqc8U+xxhXqtLFu3lsl2i8qAgFof+0/Wx3zoj8fprjIgICAgICAgICAgICAgICAgICAgIKDiPXXpHlllQF+7qY9+OC897qoM6H9OWfsRB5X9yB46fbJJZbUEU3qV7CC8FbqF3hkNAAAAAElFTkSuQmCC","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAABICAIAAAA/EeF8AAAAoklEQVR42u3auw3CMBQF0BhR0WQPNskcDJBZGIA56DIGdSaIRENNgZTCkuXKH+DcJmWOfO3GfmFbl6GnHIbOcvx8no9rc8p4nntcoV4ri9atZqLdojIgoNrHfs90exX98f1yUhkQEBAQEBAQEBAQEBAQEBAQEBAQEFDynjp1j6wyoK/d1KUfzlOPuyoD+p9TVn/EQWU/soeaTzapLJdgSi+TN2I0FdmrYngQAAAAAElFTkSuQmCC","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAABICAIAAAA/EeF8AAAAo0lEQVR42u3aLQ7CQBAG0KWpQJH0OJjegJviuAGmF+AQOBJUZQUJYpNNMPtX3pjKvsw3Y3b38HxcQ0s1hMZq/Hym01qd8nofW5XQw8RUW/yCllMeoU9+eB4BGhUNv4NGWYCj7qq8p+ifMWj8woCAgICAgICAgICAgICAgICAgICAgoOI9denrKqrAd3ZTL2x0pKZq3FUZ0P5sWbJbVt5A/UN93mP+8aof4D4dIYiAo7FayCQAAAAASUVORK5CYII="];
  const ids=['aaa00000-0000-4000-8000-000000000001','aaa00000-0000-4000-8000-000000000002','aaa00000-0000-4000-8000-000000000003'];
- const uploaded=ids.map((id,i)=>({id,image_url:png,original_name:['problem.png','evidence.png','solution.png'][i]}));
+ const uploaded=ids.map((id,i)=>({id,image_url:fixtures[i],original_name:['problem.png','evidence.png','solution.png'][i]}));
  await page.addInitScript(()=>{
   window.__museumTextureReady=0;
   document.addEventListener('bml:museum-texture-ready',()=>{window.__museumTextureReady++;});
@@ -1901,9 +1901,9 @@ test('V5 Cinema mobile and reduced motion keeps physical plaque readable and ESC
  });
  await page.setViewportSize({width:390,height:844});
  await page.emulateMedia({reducedMotion:'reduce'});
- const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAYCAIAAAB8wupbAAAAR0lEQVR4nGPkjXZlIAUwkaSaLhoY/3++QJIGFgYGhitRtWiiOsuaGRgY1FBSNJCcvBmvL7YnScMg9DQAQV4OGRjRfFEAAAAASUVORK5CYII=';
+ const fixtures=["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAABICAIAAAA/EeF8AAAAn0lEQVR42u3asQ3DIBQFQBNlF6+QqVJQZQRXFB7GM2SDyHN4AReRUiAhKmOS3Gtc+sSDBn7YXsvQUy5DZ7m+P7eYTqc8U+xxhXqtLFu3lsl2i8qAgFof+0/Wx3zoj8fprjIgICAgICAgICAgICAgICAgICAgIKDiPXXpHlllQF+7qY9+OC897qoM6H9OWfsRB5X9yB46fbJJZbUEU3qV7CC8FbqF3hkNAAAAAElFTkSuQmCC","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAABICAIAAAA/EeF8AAAAoklEQVR42u3auw3CMBQF0BhR0WQPNskcDJBZGIA56DIGdSaIRENNgZTCkuXKH+DcJmWOfO3GfmFbl6GnHIbOcvx8no9rc8p4nntcoV4ri9atZqLdojIgoNrHfs90exX98f1yUhkQEBAQEBAQEBAQEBAQEBAQEBAQEFDynjp1j6wyoK/d1KUfzlOPuyoD+p9TVn/EQWU/soeaTzapLJdgSi+TN2I0FdmrYngQAAAAAElFTkSuQmCC","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAABICAIAAAA/EeF8AAAAo0lEQVR42u3aLQ7CQBAG0KWpQJH0OJjegJviuAGmF+AQOBJUZQUJYpNNMPtX3pjKvsw3Y3b38HxcQ0s1hMZq/Hym01qd8nofW5XQw8RUW/yCllMeoU9+eB4BGhUNv4NGWYCj7qq8p+ifMWj8woCAgICAgICAgICAgICAgICAgICAgoOI9denrKqrAd3ZTL2x0pKZq3FUZ0P5sWbJbVt5A/UN93mP+8aof4D4dIYiAo7FayCQAAAAASUVORK5CYII="];
  const ids=['aaa00000-0000-4000-8000-000000000001','aaa00000-0000-4000-8000-000000000002','aaa00000-0000-4000-8000-000000000003'];
- const images=ids.map((id,i)=>({id,original_name:'group-poster-'+i+'.png',image_url:png}));
+ const images=ids.map((id,i)=>({id,original_name:'group-poster-'+i+'.png',image_url:fixtures[i]}));
  await page.route('**/api/gallery-guest/artwork?**',route=>route.fulfill({json:{assets:images,expiresSeconds:90}}));
  await page.route('**/api/gallery-guest?**',route=>{
   const operation=new URL(route.request().url()).searchParams.get('operation');
