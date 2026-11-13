@@ -143,7 +143,7 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
   try{await staffRequest('archive-assignment',{assignmentId:assignment.id});setSelected(null);await onRefresh();}
   catch(e){setError(e.message);}finally{setBusy(false);}
  };
- const allAssignments=data?.assignments||[],assignments=allAssignments.filter(a=>(a.title+' '+a.class_scope).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())),groups=data?.groups||[],reviews=data?.reviews||[];
+ const allAssignments=data?.assignments||[],assignments=allAssignments.filter(a=>(a.title+' '+a.class_scope).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())),groups=data?.groups||[],reviews=data?.reviews||[],exitTickets=data?.exitTickets||[];
  const rotate=async groupId=>{if(!window.confirm(tr(language,'Mã cũ sẽ bị thu hồi. Bạn muốn cấp mã mới?','The old code will be revoked. Generate a new one?')))return;
   setBusy(true);setError('');
   try{const out=await staffRequest('rotate-invite',{groupId});setInvites([{groupId:out.groupId,label:tr(language,'Mã cấp lại','New invitation'),handle:out.handle,groupSecret:out.groupSecret}]);await onRefresh();}
@@ -156,11 +156,12 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
   {invites?<OneTimeInvites invitations={invites} onClose={()=>setInvites(null)} language={language}/>:null}
   {assignments.length?<div className="bml-lesson-list">{assignments.map(a=>{
    const mine=groups.filter(g=>g.assignment_id===a.id),done=mine.filter(g=>['submitted','ttcm_review','approved_locked','published'].includes(g.state)).length;
+   const exitCount=mine.filter(g=>exitTickets.some(t=>t.group_id===g.id)).length;
    const collection=preparedCollectionFor(a);
    return <article className="bml-lesson-block bml-surface" key={a.id}>
     <div className="bml-lesson-summary"><span className="bml-table-icon"><BookOpen size={22}/></span>
      <div><span className="bml-overline">{a.class_scope} · {tr(language,'Hạn','Due')} {fmtDate(a.deadline_at)}</span>
-      <h2>{a.title}</h2><p>{done}/{mine.length} {tr(language,'nhóm đã nộp','groups submitted')}</p></div>
+      <h2>{a.title}</h2><p>Exit Tickets: {exitCount}/{mine.length} · {tr(language,'Sản phẩm bảo tàng','Museum projects')}: {done}/{mine.length}</p></div>
      <div className="bml-prepared-lesson-actions">
       {collection?<button type="button" className="bml-outline bml-prepared-visit" onClick={()=>onOpenCollection?.(collection.key)}>
        <BookOpen size={17}/>{tr(language,'Triển lãm 3D','3D exhibition')} <ArrowRight size={15}/></button>:null}
@@ -173,8 +174,14 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
     <div className="bml-progress bml-progress-wide"><div style={{width:(mine.length?100*done/mine.length:0)+'%'}}/></div>
     {selected===a.id?<div className="bml-group-list">{mine.map(g=>{
       const state=progressOfGroup(g.state,language);const review=reviews.find(r=>r.group_id===g.id);
+      const ticket=exitTickets.find(t=>t.group_id===g.id);
+      const exitAnswer=ticket?(typeof ticket.value==='string'?ticket.value:JSON.stringify(ticket.value)):null;
       return <div className="bml-group-row" key={g.id}><span className="bml-group-avatar"><Users size={18}/></span>
-       <div><strong>{language==='en'?englishSystemGroupLabel(g.label):g.label}</strong><small>{state.label}</small></div><span className="bml-progress-small"><i style={{width:state.pct+'%'}}/></span>
+       <div><strong>{language==='en'?englishSystemGroupLabel(g.label):g.label}</strong>
+        <small>{tr(language,'Sản phẩm bảo tàng','Museum project')}: {state.label}</small>
+        <small>{ticket?tr(language,'Exit Ticket: Đã nộp','Exit Ticket: Submitted'):tr(language,'Exit Ticket: Chưa nộp','Exit Ticket: Not submitted')}</small>
+        {ticket?<details><summary>{tr(language,'Xem câu trả lời Exit Ticket','View Exit Ticket response')}</summary><p>{exitAnswer?.slice(0,2000)}</p></details>:null}
+       </div><span className="bml-progress-small"><i style={{width:state.pct+'%'}}/></span>
        {review?<button type="button" className="bml-text-btn" onClick={()=>onReview(review.id)}>{tr(language,'Xem bài','Review')} <ArrowRight size={16}/></button>:null}
        {['issued','editing','changes_requested'].includes(g.state)&&a.created_by===data?.profile?.id?
        <button type="button" disabled={busy} className="bml-quiet-btn" onClick={()=>rotate(g.id)}><KeyRound size={16}/>{tr(language,'Cấp lại mã','Reset code')}</button>:null}

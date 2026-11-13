@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {LESSON_KITS,RUBRIC,STEPS,emptyStudio,normalizeStudio,documentFromStudio,submissionMissing,scoreRubric,buildProgressCsv} from '../src/features/immersive-gallery/v3/museumData.js';
 import {normalizeGuestDraft} from '../src/features/immersive-gallery/creatorPassPolicy.js';
+import {canSaveMuseumDraft,canSubmitMuseumProject} from '../src/features/immersive-gallery/v3/museumSubmissionPolicy.js';
 
 test('new student workflow has exactly five coherent STEAM steps',()=>{
  assert.deepEqual(STEPS.map(s=>s.key),['understand','plan','create','test','submit']);
@@ -84,4 +85,40 @@ test('Material 3 redesign has scoped accessible UI and curated exhibitions',()=>
  assert.match(dashboard,/data-testid="museum-dashboard"/);
  assert.match(sample,/museum-collection-/);
  assert.doesNotMatch(sample,/>DEMO · SAMPLE</);
+});
+
+test('ended Teacher Live leaves a valid museum assignment writable',()=>{
+ assert.equal(canSaveMuseumDraft(null),true);
+ assert.equal(canSaveMuseumDraft({status:'not_started'}),true);
+ assert.equal(canSaveMuseumDraft({status:'active'}),true);
+ assert.equal(canSaveMuseumDraft({status:'ended'}),true);
+ assert.equal(canSaveMuseumDraft({status:'paused'}),false);
+ assert.equal(canSubmitMuseumProject(null),true);
+ assert.equal(canSubmitMuseumProject({status:'active',stage_index:10,stage_open:true}),true);
+ assert.equal(canSubmitMuseumProject({status:'active',stage_index:10,stage_open:false}),false);
+ assert.equal(canSubmitMuseumProject({status:'active',stage_index:9,stage_open:true}),false);
+ assert.equal(canSubmitMuseumProject({status:'ended',stage_index:10,stage_open:false}),true);
+ assert.equal(canSubmitMuseumProject({status:'ended',stageIndex:10,stageOpen:false}),true);
+ assert.equal(canSubmitMuseumProject({status:'paused',stage_index:10,stage_open:true}),false);
+ const backend=fs.readFileSync('serverless-handlers/gallery-guest.js','utf8');
+ const student=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLabStudent.jsx','utf8');
+ assert.match(backend,/canSaveMuseumDraft\(live\)/);
+ assert.match(backend,/canSubmitMuseumProject\(live\)/);
+ assert.match(student,/canSubmitMuseumProject\(liveInfo\)/);
+ assert.match(student,/Lesson completed/);
+ assert.match(backend,/guestContext\(req,admin,\{write:true\}\)/);
+ const artwork=fs.readFileSync('serverless-handlers/museum-artwork.js','utf8');
+ assert.match(artwork,/!canSaveMuseumDraft\(live\)/);
+});
+test('Exit Tickets and museum submissions are counted separately',()=>{
+ const api=fs.readFileSync('serverless-handlers/gallery-staff.js','utf8');
+ const lessons=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLessonFlow.jsx','utf8');
+ const liveStudent=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLiveStudent.jsx','utf8');
+ assert.match(api,/from\('museum_live_responses'\)/);
+ assert.match(api,/eq\('stage_index',10\)/);
+ assert.match(api,/assignments,groups,reviews,exitTickets/);
+ assert.match(lessons,/Exit Tickets: /);
+ assert.match(lessons,/ticket\.value/);
+ assert.match(liveStudent,/student-live-completed/);
+ assert.match(liveStudent,/Your group Exit Ticket was recorded/);
 });

@@ -2,6 +2,7 @@
 import {db,fail,send,handleError,guardBody,guestContext,staffContext,assertStaff,query,clean,uid,requireMethod} from './_galleryCreator.js';
 import {canonicalArtworkPng} from './_museumPng.js';
 import {randomUUID} from 'node:crypto';
+import {canSaveMuseumDraft} from '../src/features/immersive-gallery/v3/museumSubmissionPolicy.js';
 const BUCKET='museum-artwork-private';
 async function groupForStaff(ctx,id){
  if(!uid(id))throw fail(400,'Invalid group.');
@@ -54,8 +55,8 @@ export default async function museumArtwork(req,res){
    .eq('assignment_id',ctx.assignment.id).maybeSingle());
   // Group artwork can be created at any active stage. Keep group ownership,
   // private storage, PNG sanitization, and upload quotas unchanged.
-  if(!live||live.status!=='active')
-   throw fail(423,'Artwork upload is available only during an active lesson.');
+  if(!live||!canSaveMuseumDraft(live))
+   throw fail(423,'Artwork editing is unavailable while Teacher Live is paused.');
   if(op==='upload'){
    requireMethod(req,'POST');
    const body=guardBody(req,4050000);

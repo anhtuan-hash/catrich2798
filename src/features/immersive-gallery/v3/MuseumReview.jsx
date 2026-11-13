@@ -58,8 +58,8 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,query='',la
  return <div className="bml-screen" data-testid="museum-review-desk">
   <div className="bml-heading-actions"><div><div className="bml-overline">{tr(language,'ĐÁNH GIÁ HỌC TẬP','LEARNING ASSESSMENT')}</div>
    <h1>{tr(language,'Bài nộp của học sinh','Student submissions')}</h1>
-   <p>{tr(language,'Admin xem sản phẩm, chấm rubric, duyệt trực tiếp hoặc yêu cầu chỉnh sửa.','Admin reviews, scores, approves or returns submissions directly.')}</p></div>
-   <div className="bml-heading-meta"><Users size={19}/>{reviews.length} {tr(language,'hồ sơ','submissions')}</div></div>
+   <p>{tr(language,'Đây là bài nộp bảo tàng; Exit Ticket được xem riêng trong Bài học.','Museum project submissions appear here; Exit Tickets are available under Lessons.')}</p></div>
+   <div className="bml-heading-meta"><Users size={19}/>{reviews.length} {tr(language,'bảo tàng đã nộp','museum submissions')} · {data?.exitTickets?.length||0} Exit Tickets</div></div>
   <div className="bml-tab-filter" aria-label={tr(language,'Lọc bài nộp','Filter submissions')}>
    {[['all','Tất cả'],['submitted','Chờ Admin'],['ttcm_review','Chờ Admin (cũ)'],['changes_requested','Cần sửa'],['approved_locked','Đã duyệt']].map(([id,label])=>
     <button type="button" key={id} onClick={()=>setFilter(id)} className={filter===id?'is-active':''}>{tr(language,label,

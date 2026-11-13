@@ -96,6 +96,9 @@ export default async function galleryStaff(req,res){
    const groups=ids.length?await query(admin.from('gcp_groups').select('*')
      .in('assignment_id',ids).limit(500)):[];
    const groupIds=groups.map(g=>g.id);
+   // A completed Exit Ticket is a live answer, never a submitted museum.
+   const exitTickets=groupIds.length?await query(admin.from('museum_live_responses')
+     .select('group_id,value,created_at').in('group_id',groupIds).eq('stage_index',10).limit(500)):[];
    const reviews=groupIds.length?await query(admin.from('gcp_reviews')
      .select('id,group_id,version,state,teacher_note,ttcm_note,approved_by,approved_at,submitted_at,snapshot_hash,snapshot')
      .in('group_id',groupIds).is('archived_at',null).order('submitted_at',{ascending:false}).limit(500)):[];
@@ -109,7 +112,7 @@ export default async function galleryStaff(req,res){
    return send(res,200,{profile:{role:ctx.profile.role,school:ctx.profile.school,id:ctx.user.id},
     creatorSettings:await settings(admin),reviewerCandidates,
     reviewers:grants,rubrics,
-    assignments,groups,reviews});
+    assignments,groups,reviews,exitTickets});
   }
 
   if(operation==='grade-rubric'){
