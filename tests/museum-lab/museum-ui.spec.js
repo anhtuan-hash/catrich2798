@@ -1892,3 +1892,54 @@ test('V5 Cinema physically detaches the SAME 3D artwork, displays only real evid
  await expect(viewer.getByTestId('museum-2d-exhibits')).toBeVisible();
  await expect(viewer.getByTestId('museum-artwork-inspector')).toHaveCount(0);
 });
+
+
+test('V5 Cinema mobile and reduced motion keeps physical plaque readable and ESC restores room',async({page},testInfo)=>{
+ await page.setViewportSize({width:390,height:844});
+ await page.emulateMedia({reducedMotion:'reduce'});
+ const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAYCAIAAAB8wupbAAAAR0lEQVR4nGPkjXZlIAUwkaSaLhoY/3++QJIGFgYGhitRtWiiOsuaGRgY1FBSNJCcvBmvL7YnScMg9DQAQV4OGRjRfFEAAAAASUVORK5CYII=';
+ const ids=['aaa00000-0000-4000-8000-000000000001','aaa00000-0000-4000-8000-000000000002','aaa00000-0000-4000-8000-000000000003'];
+ const images=ids.map((id,i)=>({id,original_name:'group-poster-'+i+'.png',image_url:png}));
+ await page.route('**/api/gallery-guest/artwork?**',route=>route.fulfill({json:{assets:images,expiresSeconds:90}}));
+ await page.route('**/api/gallery-guest?**',route=>{
+  const operation=new URL(route.request().url()).searchParams.get('operation');
+  if(operation==='me')return route.fulfill({json:{groupLabel:'Group 01',groupState:'editing',csrf:'qa-v5-mobile',assignment:{title:'Our Climate Action Museum',
+    brief:'Build a museum in English.',class_scope:'11.3',deadline_at:new Date(Date.now()+86400000).toISOString()}}});
+  if(operation==='draft')return route.fulfill({json:{version:3,draft:{title:'Lights Off, Future On',
+    artworks:{issue:ids[0],evidence:ids[1],solution:ids[2]},
+    artMeta:{evidence:{alt:'Actual school survey poster',source:'Group 01 original'}},
+    learning:{issue:'Classroom fans remain running.',evidence:'Four of ten groups chose switching off lights.',
+     source:'NASA Space Place. The Greenhouse Effect.',solution:'The student monitor checks lights.'},
+    survey:{counts:[2,4,3,1],source:'paper'},
+    rooms:[{title:'Our Classroom',template_key:'classic',exhibits:['The Problem','The Evidence','Our Solution'].map((title,i)=>({
+     title,kind:'image',description:'Original student content '+i,asset_id:ids[i]
+    }))}]}}});
+  return route.fulfill({json:{ok:true,version:3}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>route.fulfill({json:{session:null,survey:null}}));
+ await page.goto('/tests/museum-lab/v3.html');
+ await page.getByTestId('qa-student-en').click();
+ await page.getByTestId('museum-student-wizard').getByRole('button',{name:'Preview 2D/3D museum'}).click();
+ const viewer=page.getByTestId('museum-visitor');
+ await expect(viewer).toHaveAttribute('data-museum-mode','cinema');
+ await expect(viewer.locator('canvas')).toHaveCount(1);
+ await viewer.getByRole('button',{name:'Inspect The Evidence'}).click();
+ const stage=viewer.getByTestId('museum-focus-stage');
+ await expect(stage).toHaveAttribute('data-focus-phase','focused',{timeout:18000});
+ await expect(stage).toContainText('Four of ten groups chose switching off lights.');
+ await expect(stage).toContainText('NASA Space Place. The Greenhouse Effect.');
+ await expect(page.getByTestId('museum-artwork-inspector')).toHaveCount(0);
+ const bounds=await stage.evaluate(el=>{
+  const r=el.getBoundingClientRect();
+  return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};
+ });
+ expect(bounds.width).toBeGreaterThan(40);
+ expect(bounds.left).toBeGreaterThanOrEqual(-5);
+ expect(bounds.right).toBeLessThanOrEqual(395);
+ await page.screenshot({path:testInfo.outputPath('museum-v5-focused-390x844-reduced.png'),fullPage:false});
+ await page.keyboard.press('Escape');
+ await expect(viewer.getByTestId('museum-focus-stage')).toHaveCount(0,{timeout:15000});
+ await viewer.getByRole('button',{name:'2D',exact:true}).click();
+ await expect(viewer.getByTestId('museum-2d-exhibits')).toBeVisible();
+ await expect(viewer.locator('canvas')).toHaveCount(0);
+});
