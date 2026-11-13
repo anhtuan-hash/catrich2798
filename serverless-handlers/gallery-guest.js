@@ -1,4 +1,5 @@
 import {surveyFor,feedbackFor} from './_museumEvidence.js';
+import {verifyQuickAccess} from './_galleryQuickAccess.js';
 import {evidenceMissing,changedExhibits} from '../src/features/immersive-gallery/v3/learningEvidence.js';
 import {canSaveMuseumDraft,canSubmitMuseumProject} from '../src/features/immersive-gallery/v3/museumSubmissionPolicy.js';
 // Accountless guest endpoint. Authenticated Brian access is never granted here.
@@ -13,13 +14,39 @@ export default async function galleryGuest(req,res){
  try {
   const operation=String(req.query?.operation||'');
   const admin=db();
+  if(operation==='invite-info'){
+   requireMethod(req,'GET');
+   const handle=String(req.query?.handle||'').trim();
+   if(!/^[A-Za-z0-9_-]{16,80}$/.test(handle))throw fail(404,'Invitation not available.');
+   const feature=await settings(admin);
+   if(!feature.enabled)throw fail(423,'Student Creator Pass is disabled.');
+   const invite=await query(admin.from('gcp_invites')
+    .select('group_id,expires_at,revoked_at').eq('handle',handle).maybeSingle());
+   if(!invite||invite.revoked_at||Date.parse(invite.expires_at)<=Date.now())throw fail(404,'Invitation not available.');
+   const group=await query(admin.from('gcp_groups').select('id,assignment_id,label,state').eq('id',invite.group_id).maybeSingle());
+   if(!group)throw fail(404,'Invitation not available.');
+   const assignment=await query(admin.from('gcp_assignments')
+    .select('id,title,class_scope,deadline_at,status,archived_at').eq('id',group.assignment_id).maybeSingle());
+   if(!assignment||assignment.archived_at||assignment.status!=='active'||
+      Date.parse(assignment.deadline_at)<=Date.now()||
+      ['rejected','published'].includes(group.state))throw fail(404,'Invitation not available.');
+   const quick=await query(admin.from('gcp_quick_access')
+    .select('enabled').eq('assignment_id',assignment.id).maybeSingle());
+   return send(res,200,{groupLabel:group.label,assignmentTitle:assignment.title,
+    classScope:assignment.class_scope,quickAccessEnabled:quick?.enabled===true});
+  }
+
   if(operation==='redeem'){
    requireMethod(req,'POST');guardOrigin(req);
    const body=guardBody(req,3000);
    const handle=String(body.handle||'').trim();
-   const secret=String(body.groupSecret||'');
-   if(!/^[A-Za-z0-9_-]{16,80}$/.test(handle)||secret.length<16||secret.length>128)
-    throw fail(401,'Mã nhóm không hợp lệ hoặc đã hết hạn.');
+   const quickMode=Object.prototype.hasOwnProperty.call(body,'classroomPassword');
+   if(quickMode&&Object.prototype.hasOwnProperty.call(body,'groupSecret'))
+    throw fail(400,'Select one sign-in method.');
+   const secret=quickMode?String(body.classroomPassword||''):String(body.groupSecret||'');
+   if(!/^[A-Za-z0-9_-]{16,80}$/.test(handle)||
+      (quickMode?(secret.length<6||secret.length>64):(secret.length<16||secret.length>128)))
+    throw fail(401,'The invitation or password is invalid.');
    const config=await settings(admin);
    if(!config.enabled)throw fail(423,'Creator Pass chưa được mở.');
    const ip=ipHash(req),since=new Date(Date.now()-15*60*1000).toISOString();
@@ -35,9 +62,13 @@ export default async function galleryGuest(req,res){
     throw fail(429,'Quá nhiều lần thử. Hãy liên hệ giáo viên.');
    const invite=await query(admin.from('gcp_invites').select('*').eq('handle',handle).maybeSingle());
    const now=Date.now();
-   const valid=invite&&!invite.revoked_at&&Date.parse(invite.expires_at)>now&&
-    (!invite.locked_until||Date.parse(invite.locked_until)<now)&&
-    safeEqual(invite.secret_hash,digest('invite:'+secret));
+   const group=invite?await query(admin.from('gcp_groups').select('*').eq('id',invite.group_id).maybeSingle()):null;
+   const assignment=group?await query(admin.from('gcp_assignments').select('*').eq('id',group.assignment_id).maybeSingle()):null;
+   const quick=quickMode&&assignment?await query(admin.from('gcp_quick_access')
+     .select('enabled,password_salt,password_hash').eq('assignment_id',assignment.id).maybeSingle()):null;
+   const correct=quickMode?verifyQuickAccess(secret,quick):Boolean(invite&&safeEqual(invite.secret_hash,digest('invite:'+secret)));
+   const valid=Boolean(invite&&group&&assignment&&!invite.revoked_at&&Date.parse(invite.expires_at)>now&&
+    (!invite.locked_until||Date.parse(invite.locked_until)<now)&&correct);
    await query(admin.from('gcp_redeem_attempts').insert({
     ip_hash:ip,handle_hash:handleHash,succeeded:Boolean(valid)
    }));
@@ -51,8 +82,6 @@ export default async function galleryGuest(req,res){
     }
     throw fail(401,'Mã nhóm không hợp lệ hoặc đã hết hạn.');
    }
-   const group=await query(admin.from('gcp_groups').select('*').eq('id',invite.group_id).single());
-   const assignment=await query(admin.from('gcp_assignments').select('*').eq('id',group.assignment_id).single());
    if(assignment.archived_at||assignment.status!=='active'||Date.parse(assignment.deadline_at)<=now ||
       ['rejected','published'].includes(group.state))
     throw fail(423,'Nhiệm vụ đã đóng.');
@@ -64,7 +93,7 @@ export default async function galleryGuest(req,res){
    const expires=Math.min(now+12*60*60*1000,Date.parse(invite.expires_at),Date.parse(assignment.deadline_at));
    await query(admin.from('gcp_sessions').insert({
     token_hash:digest('session:'+token),group_id:group.id,csrf_token:csrf,
-    expires_at:new Date(expires).toISOString()
+    auth_method:quickMode?'quick':'private',expires_at:new Date(expires).toISOString()
    }));
    // Reset attempt lock after a real successful redemption.
    await admin.from('gcp_invites').update({failed_attempts:0,locked_until:null}).eq('id',invite.id);

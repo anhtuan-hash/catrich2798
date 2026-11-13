@@ -92,7 +92,7 @@ export async function guestContext(req,admin,{write=false}={}){
  if(!token||token.length>128)throw fail(401,'Cần nhập mã nhóm để tiếp tục.');
  const now=new Date().toISOString();
  const sess=await query(admin.from('gcp_sessions')
-  .select('token_hash,group_id,csrf_token,expires_at,revoked_at').eq('token_hash',digest('session:'+token)).maybeSingle());
+  .select('token_hash,group_id,csrf_token,expires_at,revoked_at,auth_method').eq('token_hash',digest('session:'+token)).maybeSingle());
  if(!sess||sess.revoked_at||sess.expires_at<=now)throw fail(401,'Phiên làm việc đã hết hạn.');
  const feature=await settings(admin);
  if(!feature.enabled)throw fail(423,'Creator Pass hiện đang khóa.');
@@ -102,6 +102,11 @@ export async function guestContext(req,admin,{write=false}={}){
   .eq('group_id',group.id).maybeSingle());
  if(!invite||invite.revoked_at||invite.expires_at<=now)throw fail(401,'Mã nhóm đã bị thu hồi hoặc hết hạn.');
  if(assignment.archived_at||assignment.status!=='active')throw fail(410,'Bài học đã được đóng.');
+ if(sess.auth_method==='quick'){
+  const quick=await query(admin.from('gcp_quick_access').select('enabled')
+    .eq('assignment_id',assignment.id).maybeSingle());
+  if(!quick?.enabled)throw fail(401,'Classroom quick access is disabled. Sign in again with your private passcode.');
+ }
  if(write){
   guardOrigin(req);
   if(!safeEqual(req.headers['x-gallery-csrf'],sess.csrf_token))throw fail(403,'CSRF không hợp lệ.');

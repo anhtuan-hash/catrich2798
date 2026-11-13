@@ -6,6 +6,7 @@ import {
 } from './_galleryCreator.js';
 import {PREPARED_COLLECTIONS} from '../src/features/immersive-gallery/v3/museumPreparedCollections.js';
 import {encryptGroupPasscode,decryptGroupPasscode} from './_galleryPasscodes.js';
+import {createQuickAccessVerifier} from './_galleryQuickAccess.js';
 
 // Copy approved private art into R1's still-private bucket before atomic promotion.
 // The SQL publication RPC verifies each link and the immutable TTCM snapshot hash.
@@ -183,6 +184,10 @@ export default async function galleryStaff(req,res){
    if(where)q=q.or('created_by.eq.'+where+',reviewer_id.eq.'+where);
    const assignments=await query(q);
    const ids=assignments.map(x=>x.id);
+   const quickRows=ids.length?await query(admin.from('gcp_quick_access')
+    .select('assignment_id,enabled').in('assignment_id',ids).limit(100)):[];
+   const quickByAssignment=new Map(quickRows.map(x=>[x.assignment_id,x.enabled]));
+   const visibleAssignments=assignments.map(a=>({...a,quick_access_enabled:quickByAssignment.get(a.id)===true}));
    const groups=ids.length?await query(admin.from('gcp_groups').select('*')
      .in('assignment_id',ids).limit(500)):[];
    const groupIds=groups.map(g=>g.id);
@@ -213,8 +218,39 @@ export default async function galleryStaff(req,res){
    return send(res,200,{profile:{role:ctx.profile.role,school:ctx.profile.school,id:ctx.user.id},
     creatorSettings:await settings(admin),reviewerCandidates,
     reviewers:grants,rubrics,
-    assignments,groups:visibleGroups,reviews,exitTickets,
+    assignments:visibleAssignments,groups:visibleGroups,reviews,exitTickets,
     publishedGalleries:await publishedSchoolCatalog(ctx)});
+  }
+
+  // Enable only for an approved Admin's own active lesson. The default
+  // PEK123 verifier is a salted PBKDF2 hash; never stored or returned plaintext.
+  if(operation==='quick-access-setting'){
+   requireMethod(req,'POST');guardOrigin(req);assertAdmin(ctx);
+   const body=guardBody(req,1100),assignmentId=String(body.assignmentId||'');
+   if(!uid(assignmentId)||typeof body.enabled!=='boolean')throw fail(400,'Invalid classroom setting.');
+   const assignment=await query(admin.from('gcp_assignments')
+    .select('id,created_by,school_scope,archived_at,status')
+    .eq('id',assignmentId).maybeSingle());
+   if(!assignment||assignment.archived_at||assignment.status!=='active')
+    throw fail(404,'Active lesson not found.');
+   if(assignment.school_scope!==ctx.profile.school||assignment.created_by!==ctx.user.id)
+    throw fail(403,'Only the lesson owner may change classroom access.');
+   const enabled=body.enabled;
+   if(enabled){
+    const config=await settings(admin);
+    if(!config.enabled)throw fail(423,'Enable Student Creator Pass first.');
+    const verifier=createQuickAccessVerifier();
+    await query(admin.from('gcp_quick_access').upsert({
+     assignment_id:assignment.id,enabled:true,...verifier,updated_at:new Date().toISOString()
+    },{onConflict:'assignment_id'}));
+   }else{
+    await query(admin.from('gcp_quick_access').update({enabled:false,updated_at:new Date().toISOString()})
+     .eq('assignment_id',assignment.id));
+    const groupRows=await query(admin.from('gcp_groups').select('id').eq('assignment_id',assignment.id).limit(12));
+    if(groupRows.length)await query(admin.from('gcp_sessions').update({revoked_at:new Date().toISOString()})
+     .in('group_id',groupRows.map(x=>x.id)).eq('auth_method','quick').is('revoked_at',null));
+   }
+   return send(res,200,{assignmentId:assignment.id,enabled});
   }
 
   // Passcodes are never included in the regular dashboard or visible to staff.
