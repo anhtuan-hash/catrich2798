@@ -16,6 +16,10 @@ export function buildStudentMuseumPreview(studio,assets=[]){
   title:studio?.title||'Our English Museum',
   summary:studio?.summary||'',
   status:'private',origin:'student_draft',
+  // Display context comes from the same authorized student pass. These fields
+  // never include the short-lived image URLs and are not publicly published.
+  learning:studio?.learning||{},survey:studio?.survey||null,
+  artMeta:studio?.artMeta||{},
   rooms:[{
    id:'draft-room',title:room.title||studio?.title||'Our English Museum',
    template_key:room.template_key||studio?.theme||'classic',
