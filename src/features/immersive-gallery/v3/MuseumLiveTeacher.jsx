@@ -64,6 +64,10 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  const currentIndex=session?.stageIndex??0,minute=LIVE_STAGES[currentIndex]?.minutes||0;
  const curriculumVideo=MUSEUM_CURRICULUM_VIDEOS[currentIndex]||null;
  const showingCurriculumVideo=Boolean(curriculumVideo&&curriculumMode==='video');
+ const showingVideoCheck=currentIndex===3&&curriculumMode==='check';
+ const inVideoTaskMode=currentIndex===3&&curriculumMode==='task';
+ const quizQuestions=showingVideoCheck?stage?.videoQuestions:stage?.kind==='quiz'?stage?.questions:null;
+ const legacyActivityTwo=currentIndex===1&&session?.questionVersion!==2;
  const restoreKey=String(session?.id||'')+'/'+String(session?.stageIndex??'-');
  const hydratedKey=useRef('');
  useEffect(()=>{
@@ -207,27 +211,29 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
       <strong>NASA VIDEO · ACTIVITY {currentIndex+1}</strong>
       <div className="bml-curriculum-switch-actions" role="group" aria-label="Activity teaching view">
        <button type="button" aria-pressed={showingCurriculumVideo} onClick={()=>setCurriculumMode('video')}><Film size={16}/> Watch NASA clip</button>
-       <button type="button" aria-pressed={!showingCurriculumVideo} onClick={()=>setCurriculumMode('task')}><BookOpen size={16}/>{currentIndex===1?'3 language questions':'Evidence and design tasks'}</button>
+       {currentIndex===3?<button type="button" aria-pressed={showingVideoCheck} onClick={()=>setCurriculumMode('check')}><BookOpen size={16}/> 3 video questions</button>:null}
+       <button type="button" aria-pressed={currentIndex===3?inVideoTaskMode:!showingCurriculumVideo}
+        onClick={()=>setCurriculumMode('task')}><BookOpen size={16}/>{currentIndex===1?(legacyActivityTwo?'3 language questions':'3 video questions'):'Design tasks'}</button>
       </div>
      </div>:null}
-     {!showingCurriculumVideo?<div className="bml-paper-question-sheet"><div className="bml-live-question">{stage?.question}</div></div>:null}
+     {!showingCurriculumVideo?<div className="bml-paper-question-sheet"><div className="bml-live-question">{showingVideoCheck?'What did NASA explain about global warming and climate change?':stage?.question}</div></div>:null}
      {showingCurriculumVideo?<MuseumCurriculumStageVideo video={curriculumVideo} stageIndex={currentIndex}
-      language={language} onContinue={()=>setCurriculumMode('task')}/>:null}
+      language={language} onContinue={()=>setCurriculumMode(currentIndex===3?'check':'task')}/>:null}
      {stage?.kind==='vote'?<div className="bml-live-choices">
        {stage.options.map((opt,i)=><div key={opt}><b>{String.fromCharCode(65+i)}</b>{opt}
         {result&&session.revealed?<span>{result.options?.[i]?.count||0} / {result.n||0}</span>:null}</div>)}
       </div>:null}
-     {stage?.kind==='quiz'&&!showingCurriculumVideo?<div className="bml-live-quiz">
-       {stage.questions?.map((q,i)=><div key={i}><strong>Q{i+1}. {q.q}</strong>
+     {!showingCurriculumVideo&&quizQuestions&&!inVideoTaskMode?<div className="bml-live-quiz" data-testid="museum-live-video-questions">
+       {quizQuestions.map((q,i)=><div key={i}><strong>Q{i+1}. {q.q}</strong>
         <p>{q.choices.join('   ·   ')}</p>
         {session.revealed?<small>{t(language,'Đáp án','Answer')}: {String.fromCharCode(65+q.answer)} · {q.explanation}</small>:null}</div>)}</div>:null}
-     {stage&&!['vote','quiz'].includes(stage.kind)&&!showingCurriculumVideo?<MuseumLivePaperCards stage={stage}/>:null}
+     {stage&&!['vote','quiz'].includes(stage.kind)&&!showingCurriculumVideo&&!showingVideoCheck?<MuseumLivePaperCards stage={stage}/>:null}
      <div className="bml-live-sentence"><span>{stage?.sentence}</span></div>
      {stage?.kind==='vote'&&session.revealed&&result?<div className="bml-live-chart">
        <strong>{t(language,'KẾT QUẢ THỰC TẾ','LIVE RESULTS')} · N = {result.n} {t(language,'thiết bị nhóm','group devices')}</strong>
        {result.options?.map((o,i)=><div key={i}><span>{o.label}</span>
         <div className="bml-live-bar"><i style={{width:o.percent+'%'}}/></div><strong>{o.count} · {o.percent}%</strong></div>)}</div>:null}
-     {stage?.kind==='quiz'&&session.revealed&&result?<div className="bml-live-chart">
+     {quizQuestions&&!showingCurriculumVideo&&session.revealed&&result?.questions?<div className="bml-live-chart">
       <strong>{t(language,'KIỂM TRA HIỂU BÀI','CHECK FOR UNDERSTANDING')} · N = {result.n} {t(language,'nhóm','groups')}</strong>
       {result.questions?.map((q,i)=><p key={i}>Q{i+1}: {q.correct}/{result.n} {t(language,'nhóm chọn đúng','groups correct')} ({q.percent}%)</p>)}</div>:null}
      {session.revealed&&!showingCurriculumVideo?<div className="bml-live-explanation"><CheckCircle2 size={20}/>{stage?.expected}</div>:null}
