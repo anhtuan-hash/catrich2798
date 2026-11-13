@@ -1345,3 +1345,70 @@ test('Student Creator V6 layered-paper skin stays readable and interactive acros
   await page.screenshot({path:testInfo.outputPath('student-v6-paper-'+viewport.width+'.png'),fullPage:false});
  }
 });
+
+
+test('Student Creator 2D Paper exhibit displays actual uploaded photos and remains interactive',async({page,isMobile},testInfo)=>{
+ if(isMobile)return;
+ await page.setViewportSize({width:1536,height:960});
+ const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLttAAAAABJRU5ErkJggg==';
+ const assetIds=['aaa00000-0000-4000-8000-000000000001','aaa00000-0000-4000-8000-000000000002','aaa00000-0000-4000-8000-000000000003'];
+ const artNames=['uploaded-classroom.png','uploaded-survey.png','uploaded-switch.png'];
+ const uploaded=assetIds.map((id,i)=>({id,original_name:artNames[i],image_url:png,width:1,height:1}));
+ const titles=['The Problem','The Evidence','Our Solution'];
+ let listCalls=0;
+ await page.route('**/api/gallery-guest/artwork?**',async route=>{
+  listCalls++;
+  return route.fulfill({json:{assets:uploaded,expiresSeconds:90}});
+ });
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const operation=new URL(route.request().url()).searchParams.get('operation');
+  if(operation==='me')return route.fulfill({json:{
+   groupLabel:'Nhóm 01',groupState:'editing',csrf:'qa-private-2d',
+   assignment:{title:'Our Climate Action Museum',brief:'Build a school exhibition in English.',class_scope:'11.3',
+    deadline_at:new Date(Date.now()+86400000).toISOString()}
+  }});
+  if(operation==='draft')return route.fulfill({json:{version:3,draft:{
+   title:'Lights Off, Future On',summary:'An energy use gallery about our school.',
+   artworks:{issue:assetIds[0],evidence:assetIds[1],solution:assetIds[2]},
+   artMeta:{issue:{alt:'Actual classroom image'},evidence:{alt:'Actual class survey image'},solution:{alt:'Actual action photo'}},
+   learning:{issue:'Problem',evidence:'Survey',solution:'Action'},
+   rooms:[{title:'Lights Off, Future On',template_key:'classic',exhibits:titles.map((title,i)=>({
+    title,description:'Student-written exhibit description '+(i+1)+'.',kind:'image',asset_id:assetIds[i]
+   }))}]
+  }}});
+  return route.fulfill({json:{ok:true,version:3}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>route.fulfill({json:{session:null,survey:null}}));
+ await page.goto('/tests/museum-lab/v3.html');
+ await page.getByTestId('qa-student-en').click();
+ const app=page.getByTestId('museum-student-wizard');
+ await expect(app).toBeVisible();
+ await app.getByRole('button',{name:'Preview 2D/3D museum'}).click();
+ const viewer=app.getByTestId('museum-visitor');
+ await expect(viewer).toBeVisible();
+ await expect(viewer.getByTestId('museum-paper-2d-room')).toBeVisible();
+ const cards=viewer.locator('.bml-paper-art-card');
+ await expect(cards).toHaveCount(3);
+ const images=cards.locator('img');
+ await expect(images).toHaveCount(3);
+ await expect.poll(()=>listCalls).toBeGreaterThanOrEqual(1);
+ await expect.poll(()=>images.evaluateAll(items=>items.every(img=>img.complete&&img.naturalWidth>0))).toBe(true);
+ expect(await images.evaluateAll(items=>items.map(img=>img.getAttribute('alt'))))
+  .toEqual(['Actual classroom image','Actual class survey image','Actual action photo']);
+ for(let i=0;i<3;i++)await expect(cards.nth(i)).toContainText(titles[i]);
+ await expect(viewer.locator('.bml-paper-photo-placeholder')).toHaveCount(0);
+ await expect(viewer.getByRole('button',{name:'2D',exact:true})).toHaveAttribute('aria-pressed','true');
+ const dimensions=await cards.evaluateAll(items=>items.map(x=>({
+  height:x.getBoundingClientRect().height,visual:x.querySelector('.bml-paper-art-photo').getBoundingClientRect().height
+ })));
+ expect(dimensions.every(x=>x.height>250&&x.visual>120)).toBe(true);
+ await page.screenshot({path:testInfo.outputPath('museum-paper-2d-uploaded-photos.png'),fullPage:false});
+ await viewer.getByRole('button',{name:'Explore exhibit 1: The Problem'}).click();
+ await expect(page.getByTestId('museum-artwork-inspector')).toBeVisible();
+ await page.keyboard.press('Escape');
+ await expect(page.getByTestId('museum-artwork-inspector')).toHaveCount(0);
+ await viewer.getByRole('button',{name:'3D',exact:true}).click();
+ await expect(viewer.locator('.bml-3d-stage')).toBeVisible();
+ await viewer.getByRole('button',{name:'2D',exact:true}).click();
+ await expect(cards).toHaveCount(3);
+});
