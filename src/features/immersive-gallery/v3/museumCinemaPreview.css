@@ -221,3 +221,21 @@
  .bml .bml-museum-cinema *, .bml .bml-museum-cinema *:before,
  .bml .bml-museum-cinema *:after{animation:none!important;transition:none!important}
 }
+
+/* Same opt-in 16:9 presentation for authorized teacher review,
+   with artwork URLs still supplied only by artStaff. */
+.bml .bml-review-cinema-overlay{
+ position:fixed;inset:8px;z-index:2400;
+ display:flex;flex-direction:column;min-height:0;
+ width:calc(100vw - 16px);height:calc(100dvh - 16px);
+ background:#E7EDE5;border:1px solid #D4E0D2;border-radius:14px;
+ box-shadow:0 0 0 8px #102D2BD9,0 25px 90px #102D2B92;
+ overflow:hidden;
+}
+.bml .bml-review-cinema-overlay>.bml-scene.bml-museum-cinema{
+ flex:1 1 auto;min-height:0;min-width:0;width:100%;height:100%;
+}
+@media(max-width:600px){
+ .bml .bml-review-cinema-overlay{inset:4px;width:calc(100vw - 8px);
+ height:calc(100dvh - 8px);border-radius:9px}
+}
