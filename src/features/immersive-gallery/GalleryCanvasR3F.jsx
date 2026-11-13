@@ -450,8 +450,10 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
         if(!o.userData?.museumOriginalArtwork)return;
         const p=new THREE.Vector3(),q=new THREE.Quaternion(),s=new THREE.Vector3();
         o.getWorldPosition(p);o.getWorldQuaternion(q);o.getWorldScale(s);
+        const ndc=p.clone().project(camera),rect=gl.domElement.getBoundingClientRect();
         art.push({index:o.userData.exhibitIndex,uuid:o.uuid,position:p.toArray(),
-         quaternion:q.toArray(),scale:s.toArray()});
+         quaternion:q.toArray(),scale:s.toArray(),
+         screen:{x:rect.left+(ndc.x+1)*rect.width/2,y:rect.top+(1-ndc.y)*rect.height/2}});
        });
        const focus=scene.getObjectByName('MuseumV5FocusRig');
        return {originalArtworkCount:art.length,art,
