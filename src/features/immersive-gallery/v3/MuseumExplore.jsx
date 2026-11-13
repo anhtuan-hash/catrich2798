@@ -140,7 +140,7 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
  const archivedCollections=PREPARED_COLLECTIONS.filter(c=>showcase.hiddenCollections.includes(c.key));
  const archivedItems=[...archivedCollections.map(c=>({kind:'collection',key:c.key,title:c.title,label:c.classScope+' · ENGLISH STEAM'})),
   ...showcase.archivedGalleries.map(g=>({kind:'gallery',key:g.id,title:g.title,label:'Student exhibition'}))];
- if(selected)return <MuseumExhibitionDetail gallery={selected} language={language}
+ if(selected)return <MuseumExhibitionDetail gallery={selected} language={language} startInCinema
   isDemo={selected.id===DEMO_GALLERY.id} data={data} onBack={leave} onNavigate={onNavigate}
   onDelete={isAdmin&&selected.id!==DEMO_GALLERY.id?()=>changeArchive(
    String(selected.id||'').startsWith('collection-')?'collection':'gallery',
