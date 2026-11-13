@@ -13,12 +13,14 @@ import './museumLive.css';
 import './museumLiveCompetition.css';
 import './museumStudentFocus.css';
 const t=(language,vi,en)=>language==='en'?en:vi;
-export default function MuseumLiveStudent({csrf,language='vi',onState}){
+export default function MuseumLiveStudent({csrf,language='vi',onState,compact=false,toolRequest=null}){
  const [data,setData]=useState(null),[selected,setSelected]=useState(null);
  const [quiz,setQuiz]=useState({}),[written,setWritten]=useState('');
  const [sent,setSent]=useState({}),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const [peer,setPeer]=useState(null),[survey,setSurvey]=useState(null);
  const [peerResponse,setPeerResponse]=useState({learned:'',clarify:'',rating:0}),[peerLabel,setPeerLabel]=useState('');
+ const [activeTool,setActiveTool]=useState(null),[quizPage,setQuizPage]=useState(0);
+ useEffect(()=>{if(toolRequest?.name)setActiveTool(toolRequest.name);},[toolRequest?.key]);
  const refresh=async()=>{
   try{const d=await liveGuest('state');setData(d);setSurvey(d.survey);onState?.(d.session);
    if(d.submitted)setSent(v=>({...v,[d.session.id+'-'+d.session.stageIndex]:true}));
@@ -26,7 +28,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState}){
  };
  useEffect(()=>{refresh();const id=window.setInterval(refresh,3500);return()=>window.clearInterval(id);},[]);
  const session=data?.session,stage=session?.stage,stageIndex=session?.stageIndex;
- useEffect(()=>{setSelected(null);setQuiz({});setWritten('');setPeer(null);},[stageIndex]);
+ useEffect(()=>{setSelected(null);setQuiz({});setWritten('');setPeer(null);setQuizPage(0);setActiveTool(null);},[stageIndex]);
  const posted=sent[session?.id+'-'+stageIndex]===true;
  const canRespond=stage&&['vote','quiz','peer','exit'].includes(stage.kind);
  const submit=async()=>{
@@ -52,7 +54,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState}){
   <div className="bml-live-student-header"><strong>Teacher Live</strong><span>{t(language,'Đang chờ giáo viên bắt đầu bài dạy.','Waiting for your teacher to start the lesson.')}</span></div>
   <button type="button" className="bml-outline" onClick={refresh}><RefreshCcw size={16}/>{t(language,'Kiểm tra lại','Refresh')}</button>
  </section>;
- if(peer)return <section className="bml-live-student"><button className="bml-outline" type="button" onClick={()=>setPeer(null)}>{t(language,'← Trở về bài học','← Back to lesson')}</button>
+ if(peer&&!compact)return <section className="bml-live-student"><button className="bml-outline" type="button" onClick={()=>setPeer(null)}>{t(language,'← Trở về bài học','← Back to lesson')}</button>
   <strong>{t(language,'THAM QUAN CHÉO · CHỈ TRONG PHẠM VI LỚP','PEER REVIEW · CLASSROOM ONLY')}</strong>
   <MuseumScene gallery={peer} language={language} embedded/></section>;
  return <section className="bml-live-student" data-testid="student-live-activity">
@@ -65,10 +67,15 @@ export default function MuseumLiveStudent({csrf,language='vi',onState}){
   {!session.stageOpen||session.status!=='active'?<div className="bml-banner bml-info-banner"><Lock size={18}/>{t(language,'Chờ giáo viên mở hoạt động tiếp theo.','Wait for your teacher to open this task.')}</div>:<>
     {stage.kind==='vote'?<div className="bml-live-response-options">{stage.options.map((o,i)=><button type="button" key={i} disabled={posted||busy}
      aria-pressed={selected===i} className={selected===i?'is-chosen':''} onClick={()=>setSelected(i)}>{String.fromCharCode(65+i)}. {o}</button>)}</div>:null}
-    {stage.kind==='quiz'?<div className="bml-live-response-form">{stage.questions.map((q,i)=><div key={i}>
+    {stage.kind==='quiz'?<div className="bml-live-response-form">{stage.questions.map((q,i)=><div key={i} hidden={compact&&quizPage!==i}>
      <strong>Q{i+1}. {q.q}</strong><div className="bml-live-response-options">{q.choices.map((v,j)=><button type="button" key={j} disabled={posted||busy}
       aria-pressed={quiz[i]===j} className={quiz[i]===j?'is-chosen':''} onClick={()=>setQuiz(prev=>({...prev,[i]:j}))}>{String.fromCharCode(65+j)}. {v}</button>)}</div>{session.revealed?<p>{q.explanation}</p>:null}
-    </div>)}</div>:null}
+    </div>)}
+    {compact&&stage.questions.length>1?<div className="bml-student-quiz-page-controls">
+     <button type="button" disabled={quizPage===0} onClick={()=>setQuizPage(v=>v-1)}>←</button>
+     <strong>{quizPage+1}/{stage.questions.length} · {Object.keys(quiz).length} answered</strong>
+     <button type="button" disabled={quizPage===stage.questions.length-1} onClick={()=>setQuizPage(v=>v+1)}>→</button>
+    </div>:null}</div>:null}
     {['peer','exit'].includes(stage.kind)?<div className="bml-live-response-form">
      {stage.kind==='peer'?<button type="button" className="bml-outline" onClick={visitPeer}><Eye size={17}/>{t(language,'Tham quan triển lãm nhóm khác (riêng tư)','Visit another group (private)')}</button>:null}
      {stage.kind==='peer'?<><strong>{peerLabel||'Nhóm được phân công sẽ hiện khi mở triển lãm.'}</strong>{[['learned','I learned …'],['clarify','The message would be clearer if …']].map(([key,label])=><label className="bml-full-field" key={key}>{label}<textarea rows={3} maxLength={400} disabled={posted} value={peerResponse[key]} onChange={e=>setPeerResponse(v=>({...v,[key]:e.target.value}))}/></label>)}<label>{t(language,'Clarity / Mức rõ ràng','Clarity')}<select value={peerResponse.rating} disabled={posted} onChange={e=>setPeerResponse(v=>({...v,rating:Number(e.target.value)}))}><option value={0}>{t(language,'Chọn mức','Choose a rating')}</option><option value={1}>1 · Unclear</option><option value={2}>2 · Partly clear</option><option value={3}>3 · Mostly clear</option><option value={4}>4 · Clear</option></select></label></>:<label className="bml-full-field">{t(language,'Trả lời bằng tiếng Anh','Write your response in English')}<textarea rows={3}
