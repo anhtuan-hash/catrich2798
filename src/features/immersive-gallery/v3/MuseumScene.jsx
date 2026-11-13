@@ -49,11 +49,13 @@ export function reviewMuseum(review,assets=[]){
 export default function MuseumScene({gallery,onBack,onClose,language='vi',embedded=false,compact=false,initial3D=false,onExhibitSelect,cinema=false}){
  const [activeRoom,setActiveRoom]=useState(0),[threeD,setThreeD]=useState(cinema||initial3D),[selectedId,setSelectedId]=useState(null);
  const [fullPosterId,setFullPosterId]=useState(null);
- const cinemaRef=useRef(null),[infoOpen,setInfoOpen]=useState(false);
+ const cinemaRef=useRef(null),cinemaOpenerRef=useRef(null),[infoOpen,setInfoOpen]=useState(false);
+ useEffect(()=>{if(cinema)cinemaOpenerRef.current=document.activeElement;},[cinema]);
  const [isFullscreen,setIsFullscreen]=useState(false),[fallbackFullscreen,setFallbackFullscreen]=useState(false);
  const leaveCinema=()=>{
   if(document.fullscreenElement===cinemaRef.current)document.exitFullscreen?.().catch(()=>{});
   setFallbackFullscreen(false);onClose?.();
+  Promise.resolve().then(()=>cinemaOpenerRef.current?.focus?.());
  };
  const toggleFullscreen=async()=>{
   if(document.fullscreenElement===cinemaRef.current){
@@ -70,6 +72,15 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
   if(!cinema)return undefined;
   const onFullscreen=()=>setIsFullscreen(document.fullscreenElement===cinemaRef.current);
   const onEscape=event=>{
+   if(event.key==='Tab'&&!selectedId&&!fullPosterId){
+    const controls=[...(cinemaRef.current?.querySelectorAll('button:not(:disabled),a[href]')||[])]
+     .filter(el=>el.getClientRects().length>0&&getComputedStyle(el).visibility!=='hidden');
+    if(!controls.length)return;
+    const first=controls[0],last=controls[controls.length-1];
+    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+    return;
+   }
    if(event.key!=='Escape')return;
    if(infoOpen){setInfoOpen(false);return;}
    if(!selectedId&&!fullPosterId&&!document.fullscreenElement){
