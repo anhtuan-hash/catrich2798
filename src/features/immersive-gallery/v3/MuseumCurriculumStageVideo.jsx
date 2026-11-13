@@ -12,7 +12,7 @@ const VIDEO_GUIDANCE=Object.freeze({
    'Explain the greenhouse effect using because or therefore.',
    'Introduce the scientific source: “According to NASA, …”'
   ],
-  bridge:'After watching, open the three language questions. Groups submit their answers in the existing activity.'
+  bridge:'After watching, discuss the three NASA-based questions and submit one set of answers per group.'
  },
  3:{
   phase:'COMPARE · VERIFY · DESIGN',
@@ -21,7 +21,7 @@ const VIDEO_GUIDANCE=Object.freeze({
    'Separate NASA’s scientific explanation from our group-priority survey.',
    'Choose one feasible school action for the Problem–Evidence–Solution canvas.'
   ],
-  bridge:'The class survey shows group choices, not measured emissions or the habits of every student.'
+  bridge:'Answer the three video questions, then build the museum design. The survey records group priorities, not measured emissions.'
  }
 });
 export default function MuseumCurriculumStageVideo({video,stageIndex,language='en',onContinue}){
@@ -37,7 +37,7 @@ export default function MuseumCurriculumStageVideo({video,stageIndex,language='e
    <ol>{guidance?.steps?.map(step=><li key={step}>{step}</li>)}</ol>
    <div className="bml-curriculum-video-reminder"><ShieldCheck size={17} aria-hidden="true"/><p>{guidance?.bridge||video.prompt}</p></div>
    <button type="button" className="bml-curriculum-video-continue" onClick={onContinue}>
-    <BookOpen size={17} aria-hidden="true"/> {stageIndex===1?'Practise the 3 questions':'Open design tasks'} <ArrowRight size={17} aria-hidden="true"/>
+    <BookOpen size={17} aria-hidden="true"/> {stageIndex===1?'Answer 3 video questions':'Check understanding · 3 questions'} <ArrowRight size={17} aria-hidden="true"/>
    </button>
    <small>{video.timing}</small>
   </aside>
