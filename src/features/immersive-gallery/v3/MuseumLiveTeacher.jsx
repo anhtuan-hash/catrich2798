@@ -19,15 +19,19 @@ import './museumLive.css';
 import './museumLivePaper.css';
 import './museumLiveCompetition.css';
 import './museumLivePresenter.css';
+import './museumStageMotionV54.css';
+import {loadPresenterRecovery,savePresenterRecovery,shouldRestorePanel} from './museumPresenterRecovery.js';
 const t=(lang,vi,en)=>lang==='en'?en:vi;
 const link=typeof window!=='undefined'?window.location.origin+window.location.pathname+'#/gallery-create':'/#/gallery-create';
 export default function MuseumLiveTeacher({data,language='vi',initialAssignment,onBack,transport=liveStaff}){
  const assignments=(data?.assignments||[]).filter(a=>a.created_by===data?.profile?.id||data?.profile?.role==='admin');
- const [assignmentId,setAssignmentId]=useState(initialAssignment||assignments[0]?.id||'');
+ const assignmentIds=assignments.map(a=>a.id);
+ const savedPreference=useRef(loadPresenterRecovery(typeof window!=='undefined'?window.sessionStorage:null,assignmentIds));
+ const [assignmentId,setAssignmentId]=useState(initialAssignment||savedPreference.current?.assignmentId||assignments[0]?.id||'');
  const [state,setState]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [showNotes,setShowNotes]=useState(false),[showResources,setShowResources]=useState(false),[showQr,setShowQr]=useState(false),[qr,setQr]=useState('');
  const [showVoiceover,setShowVoiceover]=useState(false),[showVideoLab,setShowVideoLab]=useState(false);
- const [motionOn,setMotionOn]=useState(true),[stageVideo,setStageVideo]=useState(null);
+ const [motionOn,setMotionOn]=useState(savedPreference.current?.motionOn!==false),[stageVideo,setStageVideo]=useState(null);
  const [isFullscreen,setIsFullscreen]=useState(false),[activeTool,setActiveTool]=useState(null),[presenterFocus,setPresenterFocus]=useState(false);
  const [spotlight,setSpotlight]=useState(null),[time,setTime]=useState(Date.now());
  const [paper,setPaper]=useState(false),[tally,setTally]=useState(['','','','']),[tallyNote,setTallyNote]=useState('');
@@ -54,6 +58,25 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
   return()=>{active=false;};},[showQr]);
  const session=state?.session,stage=session?.stage,groups=(state?.groups||[]).map(g=>({...g,label:language==='en'?englishSystemGroupLabel(g.label):g.label})),result=session?.stageIndex===2&&state?.survey?state.survey:state?.result;
  const currentIndex=session?.stageIndex??0,minute=LIVE_STAGES[currentIndex]?.minutes||0;
+ const restoreKey=String(session?.id||'')+'/'+String(session?.stageIndex??'-');
+ const hydratedKey=useRef('');
+ useEffect(()=>{
+  if(!session?.id)return;
+  if(hydratedKey.current===restoreKey)return;
+  const saved=loadPresenterRecovery(window.sessionStorage,assignmentIds);
+  const same=shouldRestorePanel(saved,session)&&saved?.assignmentId===assignmentId;
+  setShowVoiceover(Boolean(same&&saved.showVoiceover&&session.media?.voiceEnabled));
+  setShowVideoLab(Boolean(same&&saved.showVideoLab&&(session.media?.videos||[]).length));
+  hydratedKey.current=restoreKey;
+ },[session?.id,session?.stageIndex,assignmentId]);
+ useEffect(()=>{
+  if(!session?.id||hydratedKey.current!==restoreKey)return;
+  savePresenterRecovery(window.sessionStorage,{
+   assignmentId,sessionId:session.id,stageIndex:currentIndex,motionOn,
+   panel:isFullscreen?activeTool:null,showVoiceover,showVideoLab
+  },assignmentIds);
+ },[session?.id,session?.stageIndex,assignmentId,motionOn,isFullscreen,activeTool,showVoiceover,showVideoLab]);
+
  useEffect(()=>{setStageVideo(null);},[assignmentId,currentIndex]);
  const elapsed=(session?.elapsedSeconds||0)+(session?.status==='active'&&session?.stageStartedAt?Math.max(0,Math.floor((time-Date.parse(session.stageStartedAt))/1000)):0);
  const remaining=Math.max(0,minute*60-elapsed);
@@ -158,7 +181,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
    <div className="bml-presenter-surface" ref={stageRef} data-testid="museum-fullscreen-surface">
    <div className={'bml-live-screen bml-live-screen--paper'+(motionOn?' bml-motion-on':'')}
     data-motion={motionOn?'on':'off'} data-testid="museum-live-paper-stage"
-    data-stage-index={currentIndex} data-stage-kind={stage?.kind||'unknown'}>
+    data-stage-index={currentIndex} data-stage-kind={stage?.kind||'unknown'} data-stage-id={stage?.id||'none'}>
     <div className="bml-live-topbar"><span className="bml-live-brand"><span className="bml-live-dot"/> BRIAN MUSEUM LAB · TEACHER LIVE</span>
      <div className="bml-paper-progress"><span>{t(language,'TIẾT','PERIOD')} {stage?.period}/2</span><span>{t(language,'HOẠT ĐỘNG','ACTIVITY')} {currentIndex+1}/11</span></div>
      {isFullscreen?<button className="bml-presenter-exit" type="button" onClick={fullscreen}><Minimize2 size={18}/>{t(language,'Thoát toàn màn hình','Exit fullscreen')}</button>:null}</div>

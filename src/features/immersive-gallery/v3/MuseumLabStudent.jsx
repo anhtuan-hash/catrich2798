@@ -14,6 +14,7 @@ import MuseumLiveStudent from './MuseumLiveStudent.jsx';
 import MuseumLivePeerFeedback from './MuseumLivePeerFeedback.jsx';
 import MuseumArtworkStudio from './MuseumArtworkStudio.jsx';
 import MuseumCompetitionRibbon from './MuseumCompetitionRibbon.jsx';
+import MuseumSpeakingStudio from './MuseumSpeakingStudio.jsx';
 import './museumLab.css';
 import './museumStudentFocus.css';
 import './museumStudentCanvas.css';
@@ -60,7 +61,7 @@ export default function MuseumLabStudent({language='en'}){
  const [history,setHistory]=useState([]),[studentView,setStudentView]=useState('studio');
  const [studioSubstep,setStudioSubstep]=useState(0),[historyOpen,setHistoryOpen]=useState(false);
  const [projectPreview,setProjectPreview]=useState(false),[studentTool,setStudentTool]=useState(null);
- const [artworkOpen,setArtworkOpen]=useState(false);
+ const [artworkOpen,setArtworkOpen]=useState(false),[speakingOpen,setSpeakingOpen]=useState(false);
  const previewGallery=buildStudentMuseumPreview(studio,artAssets);
  // Uploaded media is private and its signed URLs expire after 90 seconds.
  // Fetch real group assets at opening time (also after refresh/navigation),
@@ -360,6 +361,9 @@ export default function MuseumLabStudent({language='en'}){
      </div>:null}
     </>:null}
     {step===3?<><p>{T(language,'Mời một bạn hoặc nhóm khác đọc thử triển lãm. Ghi nhận điều họ hiểu, rồi cải tiến nội dung.','Invite a classmate or group to test the exhibition, note their feedback, then improve your draft.')}</p>
+      {liveRunning&&stageIndex===9&&liveInfo?.stageOpen?
+      <button type="button" className="bml-outline" data-testid="museum-open-speaking" onClick={()=>setSpeakingOpen(true)}>
+       <Sparkles size={18}/>English Speaking Studio · 45–60 seconds</button>:null}
       <MuseumLivePeerFeedback csrf={session.csrf} liveInfo={liveInfo} locked={locked||conflict}
        saveState={saveState} onUseFeedback={r=>edit(d=>({...d,learning:{...d.learning,
         feedback:'From '+englishSystemGroupLabel(r.fromGroup)+' on '+(EXHIBIT_FIELDS.find(x=>x.key===r.targetExhibit)?.label||'the exhibition')+': '+r.learned+' | Suggested improvement: '+r.clarify,
@@ -433,6 +437,7 @@ export default function MuseumLabStudent({language='en'}){
     </aside>
    </div>
   </div>
+  {speakingOpen&&stageIndex===9&&liveInfo?.stageOpen?<MuseumSpeakingStudio enabled={true} learning={studio.learning} onClose={()=>setSpeakingOpen(false)}/>:null}
   {historyOpen?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label={T(language,'Lịch sử thiết kế','Design history')}>
    <div className="bml-student-detail-window">
     <div className="bml-student-detail-head"><strong>{T(language,'Bản thiết kế trước và sau','Storyboard history')}</strong>
