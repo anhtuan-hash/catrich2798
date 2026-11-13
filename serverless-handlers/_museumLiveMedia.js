@@ -1,4 +1,5 @@
 import {extractYouTubeVideoId,videoTaskFor} from '../src/features/immersive-gallery/v3/museumLiveExtensions.js';
+import {searchYoutubeCatalog} from './_youtube-search.js';
 
 const mediaCache=new Map(),recentSearches=new Map();
 const validQuery=q=>String(q||'').replace(/[\u0000-\u001F\u007F<>]/g,'').replace(/\s+/g,' ').trim().slice(0,120);
@@ -21,29 +22,24 @@ export function searchThrottle(key){
  return true;
 }
 export async function searchVideos(rawQuery,{teacher=false}={}){
- const q=validQuery(rawQuery),key=String(process.env.YOUTUBE_API_KEY||'').trim();
- if(q.length<4)return {available:false,results:[],reason:'invalid_query'};
- if(!key)return {available:false,results:[],reason:'youtube_api_key_not_configured'};
- const cacheKey=q.toLowerCase(),found=mediaCache.get(cacheKey);
- if(found&&Date.now()-found.time<5*60_000)return {available:true,results:found.results,cached:true};
- const params=new URLSearchParams({
-  part:'snippet',q,type:'video',videoEmbeddable:'true',safeSearch:'strict',
-  maxResults:'6',videoDuration:'short',relevanceLanguage:'en',key
- });
- const response=await fetch('https://www.googleapis.com/youtube/v3/search?'+params,{
-  method:'GET',headers:{accept:'application/json'},signal:AbortSignal.timeout(7000)
- });
- if(!response.ok)return {available:false,results:[],reason:response.status===403?'youtube_quota_or_access':'youtube_search_unavailable'};
- const data=await response.json();
- const results=(Array.isArray(data.items)?data.items:[]).map(item=>{
-  const id=extractYouTubeVideoId(item?.id?.videoId);
-  if(!id)return null;
-  return {id,title:mediaText(item.snippet?.title,160)||'Video',
-   channel:mediaText(item.snippet?.channelTitle,120)};
- }).filter(Boolean);
- mediaCache.set(cacheKey,{time:Date.now(),results});
- if(mediaCache.size>100)mediaCache.delete(mediaCache.keys().next().value);
- return {available:true,results,cached:false};
+  const q=validQuery(rawQuery);
+  if(q.length<4)return {available:false,results:[],reason:'invalid_query'};
+  const cacheKey=q.toLowerCase(),found=mediaCache.get(cacheKey);
+  if(found&&Date.now()-found.time<5*60_000)
+    return {available:true,results:found.results,source:found.source,cached:true};
+  try{
+    const catalogue=await searchYoutubeCatalog(q,teacher?10:8,{embeddable:true,strict:true});
+    const results=catalogue.results.map(v=>({
+      id:extractYouTubeVideoId(v.videoId),
+      title:mediaText(v.title,160)||'YouTube video',
+      channel:mediaText(v.channelTitle,120)
+    })).filter(v=>v.id);
+    mediaCache.set(cacheKey,{time:Date.now(),results,source:catalogue.source});
+    if(mediaCache.size>100)mediaCache.delete(mediaCache.keys().next().value);
+    return {available:true,results,source:catalogue.source,cached:false};
+  }catch(error){
+    return {available:false,results:[],reason:error?.code||'youtube_search_unavailable'};
+  }
 }
 export const safeRefinement=value=>{
  const raw=mediaText(value,32);

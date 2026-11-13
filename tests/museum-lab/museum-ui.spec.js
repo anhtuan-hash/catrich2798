@@ -14,6 +14,16 @@ test('paper dashboard has clear actions and real-label synthetic progress',async
  await expect(page.getByText('Synthetic Climate Action Museum')).toBeVisible();
  await expect(page.getByRole('button',{name:/Tạo bài học mới/})).toBeVisible();
 });
+test('paper dashboard preserves the current English interface',async({page})=>{
+ await page.getByTestId('qa-dashboard-en').click();
+ await expect(page.getByRole('heading',{name:'Welcome back!',exact:true})).toBeVisible();
+ const app=page.getByTestId('brian-museum-lab-v3');
+ await expect(app).toHaveAttribute('lang','en');
+ await expect(app.getByRole('navigation',{name:'Museum Lab navigation'}).getByRole('button')).toHaveCount(4);
+ await expect(app.getByRole('button',{name:/Create a lesson/})).toBeVisible();
+ await expect(app).toContainText('Exit Tickets:');
+ await expect(app).not.toContainText('Chào mừng');
+});
 test('paper navigation reaches real screens and search keeps the lesson filter',async({page})=>{
  const nav=page.getByRole('navigation',{name:'Điều hướng Museum Lab',exact:true});
  await expect(nav.getByRole('button')).toHaveCount(4);
@@ -44,6 +54,72 @@ test('paper dashboard fits the viewport and its decorative assets load',async({p
  await page.screenshot({path:testInfo.outputPath('museum-paper-dashboard.png'),fullPage:true});
  await page.getByRole('button',{name:/Tạo bài học mới/}).click();
  await expect(page.getByTestId('museum-lesson-wizard')).toBeVisible();
+});
+test('English-only student route shows only English access, privacy and passcode instructions',async({page})=>{
+ await page.getByTestId('qa-student-en').click();
+ const entry=page.getByTestId('museum-student-entry');
+ await expect(entry).toBeVisible();
+ await expect(entry.getByRole('heading',{name:'Start creating'})).toBeVisible();
+ await expect(entry.getByText('No account needed')).toBeVisible();
+ await expect(entry.getByLabel('Invitation code')).toBeVisible();
+ await expect(entry.getByLabel('Private group passcode')).toBeVisible();
+ expect((await entry.innerText())).not.toMatch(/[àáạảãăằắặẳẵâầấậẩẫèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃĂẰẮẶẲẴÂẦẤẬẨẪÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/u);
+});
+test('English-only teacher, lesson wizard, reviews and dossier show translated UI',async({page})=>{
+ const assertOnlyEnglish=async()=>{
+  const visible=await page.locator('.bml').first().innerText();
+  expect(visible).not.toMatch(/[àáạảãăằắặẳẵâầấậẩẫèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃĂẰẮẶẲẴÂẦẤẬẨẪÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/u);
+ };
+
+ await page.getByTestId('qa-teacher-live-en').click();
+ await expect(page.getByRole('heading',{name:'Teacher Live'})).toBeVisible();
+ await expect(page.getByRole('button',{name:/Start lesson/})).toBeVisible();
+ await assertOnlyEnglish();
+ await page.getByRole('button',{name:/Start lesson/}).click();
+ await expect(page.getByTestId('museum-live-slide')).toBeVisible();
+ await expect(page.getByText('Climate Detective')).toBeVisible();
+ await expect(page.locator('.bml-live-vietnamese')).toHaveCount(0);
+ await assertOnlyEnglish();
+ await page.getByTestId('qa-wizard-en').click();
+ await expect(page.getByRole('heading',{name:'Create a new lesson'})).toBeVisible();
+ await assertOnlyEnglish();
+ await page.getByTestId('qa-admin-review-en').click();
+ await expect(page.getByRole('heading',{name:'Student submissions'})).toBeVisible();
+ await assertOnlyEnglish();
+ await page.getByTestId('qa-evidence-en').click();
+ await expect(page.getByText('Section 1: Teacher and school context')).toBeVisible();
+ await assertOnlyEnglish();
+});
+test('English-only group workspace shows no Vietnamese UI in all five project steps',async({page})=>{
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const operation=new URL(route.request().url()).searchParams.get('operation');
+  const body=operation==='me'?{groupLabel:'Nhóm 01',groupState:'editing',csrf:'english-only-qa',
+   assignment:{title:'Our Climate Action Museum',brief:'Investigate one school climate action using real evidence.',
+    class_scope:'11-DEMO',deadline_at:new Date(Date.now()+86400000).toISOString()}}:
+   {draft:{title:'',summary:'',rooms:[]},version:0};
+  await route.fulfill({json:body});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>route.fulfill({json:{session:null,survey:null}}));
+ await page.getByTestId('qa-student-en').click();
+ const app=page.getByTestId('museum-student-wizard');
+ await expect(app).toBeVisible();
+ await expect(app).toHaveAttribute('lang','en');
+ await expect(app.getByText('Group 01')).toBeVisible();
+ for(let step=0;step<5;step++){
+  await app.locator('.bml-student-steps button').nth(step).click();
+  await expect(app.locator('.bml-student-task')).toBeVisible();
+  if(step===1||step===2){
+   for(const index of step===1?[0,1]:[0,1,2]){
+    await app.locator('.bml-student-subpages button').nth(index).click();
+    const visible=await app.innerText();
+    expect(visible).not.toMatch(/[àáạảãăằắặẳẵâầấậẩẫèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃĂẰẮẶẲẴÂẦẤẬẨẪÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/u);
+   }
+  }
+  const visible=await app.innerText();
+  expect(visible).not.toMatch(/[àáạảãăằắặẳẵâầấậẩẫèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃĂẰẮẶẲẴÂẦẤẬẨẪÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/u);
+  const placeholders=await app.locator('input,textarea').evaluateAll(elements=>elements.map(x=>x.placeholder||'').join(' '));
+  expect(placeholders).not.toMatch(/[àáạảãăằắặẳẵâầấậẩẫèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃĂẰẮẶẲẴÂẦẤẬẨẪÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/u);
+ }
 });
 test('the no-account entry is an understandable, keyboard-accessible form',async({page})=>{
  await page.getByTestId('qa-student').click();
@@ -90,6 +166,82 @@ test('mobile viewport keeps task controls within the page width',async({page,isM
 });
 
 
+
+test('FULL BRIAN ENTRYPOINT: Group 01 can tap live answers and edit with no global shell interception',async({page,isMobile})=>{
+ // Unlike the isolated Museum harness, this loads the actual src/main.jsx entrypoint,
+ // which previously mounted floating Brian tools and transformed layout layers.
+ let posts=0,saves=0,version=0;
+ let draft={title:'',summary:'',rooms:[]};
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const operation=new URL(route.request().url()).searchParams.get('operation');
+  if(operation==='me')return route.fulfill({json:{
+   groupLabel:'Nhóm 01',groupState:'issued',csrf:'safe-synthetic-csrf',uploadEnabled:true,
+   assignment:{title:'Our Climate Action Museum',brief:'Original group project',class_scope:'11.3',
+    deadline_at:new Date(Date.now()+86400000).toISOString(),max_rooms:3,max_exhibits:12}
+  }});
+  if(operation==='draft')return route.fulfill({json:{draft,version}});
+  if(operation==='save'){
+   let input=route.request().postDataJSON();
+   expect(input.expectedVersion).toBe(version);
+   draft=input.draft;version++;saves++;
+   return route.fulfill({json:{version,ok:true}});
+  }
+  return route.fulfill({json:{ok:true}});
+ });
+ await page.route('**/api/gallery-guest/live?**',async route=>{
+  const operation=new URL(route.request().url()).searchParams.get('operation');
+  if(operation==='respond'){
+   expect(route.request().postDataJSON().value).toBe(1);posts++;
+   return route.fulfill({status:201,json:{ok:true}});
+  }
+  if(operation==='need-help')return route.fulfill({json:{ok:true}});
+  return route.fulfill({json:{session:{
+    id:'full-entry-stage-one',status:'active',stageIndex:0,stageOpen:true,
+    stage:{id:'climate-detective',kind:'vote',title:'Climate Detective',period:1,
+     question:'Which everyday school action could best reduce our environmental impact?',
+     options:['Walking or cycling when possible','Switching off unused lights','Reducing food waste','I am not sure yet'],
+     sentence:'I think … because …'}
+   },survey:null,submitted:posts>0}});
+ });
+ const res=await page.goto('/#/gallery-create?invite=synthetic-public-handle');
+ expect(res?.status()).toBe(200);
+ const root=page.getByTestId('museum-student-wizard');
+ await expect(root).toBeVisible({timeout:18000});
+ // The student page must be a direct fullscreen workspace, never a child of
+ // the authenticated/global application shell, chat, and floating tools.
+ await expect(page.locator('.app-shell')).toHaveCount(0);
+ await expect(page.locator('#bes-main-content')).toHaveCount(0);
+ await expect(page.getByTestId('student-tab-live')).toHaveAttribute('aria-pressed','true',{timeout:15000});
+ const option=page.getByRole('button',{name:/B\. Switching off unused lights/});
+ await expect(option).toBeEnabled();
+ await option.scrollIntoViewIfNeeded();
+ await expect(option).toBeInViewport();
+ const hit=await option.evaluate(el=>{
+  const r=el.getBoundingClientRect(),top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
+  return {hit:top===el||el.contains(top),element:top?.tagName};
+ });
+ expect(hit.hit).toBe(true);
+ const submit=page.getByRole('button',{name:'Submit group response'});
+ await expect(submit).toBeDisabled();
+ await option.click();
+ await expect(option).toHaveAttribute('aria-pressed','true');
+ await expect(submit).toBeEnabled();
+ await submit.click();
+ await expect(page.getByTestId('student-action-notice')).toContainText('Your group response was saved');
+ expect(posts).toBe(1);
+ await page.getByTestId('student-tab-studio').click();
+ await expect(page.getByLabel('Describe your problem')).toBeEnabled();
+ await page.getByLabel('Describe your problem').fill('Our school leaves unused lights switched on.');
+ await expect.poll(()=>saves,{timeout:16000}).toBeGreaterThan(0);
+ await page.locator('.bml-student-steps button').nth(2).click();
+ await expect(page.getByLabel('Exhibition title')).toBeEnabled();
+ if(!isMobile){
+  const box=await root.boundingBox();
+  expect(box.x).toBeLessThanOrEqual(2);
+  expect(box.width).toBeLessThanOrEqual(1442);
+ }
+});
+
 test('Student Focus is touch-friendly and keeps an unsent group vote when switching to the studio',async({page})=>{
  await page.route('**/api/gallery-guest?**',async route=>{
   const op=new URL(route.request().url()).searchParams.get('operation');
@@ -125,6 +277,141 @@ test('Student Focus is touch-friendly and keeps an unsent group vote when switch
  expect(dims.scroll).toBeLessThanOrEqual(dims.width+4);
 });
 
+test('realistic Group 01 Stage 1 permits vote, help, all group project steps and autosave',async({page,isMobile})=>{
+ if(!isMobile)await page.setViewportSize({width:1366,height:768});
+ let version=0,saves=0,posts=0,helps=0,draft={title:'',summary:'',rooms:[]};
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  const input=route.request().postDataJSON?.()||{};
+  if(op==='me')return route.fulfill({json:{groupLabel:'Nhóm 01',groupState:'issued',csrf:'qa-csrf',
+   uploadEnabled:true,assignment:{title:'Our Climate Action Museum',
+    brief:'Create an authentic class exhibition.',class_scope:'11.3',
+    deadline_at:new Date(Date.now()+86400000).toISOString(),max_rooms:3,max_exhibits:12}}});
+  if(op==='draft')return route.fulfill({json:{draft,version}});
+  if(op==='save'){
+   expect(input.expectedVersion).toBe(version);
+   draft=input.draft;version++;saves++;
+   return route.fulfill({json:{ok:true,version}});
+  }
+  return route.fulfill({json:{ok:true}});
+ });
+ await page.route('**/api/gallery-guest/live?**',async route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  if(op==='respond'){
+   expect(route.request().postDataJSON()?.value).toBe(1);posts++;
+   return route.fulfill({json:{ok:true,stageIndex:0,unit:'one group device'},status:201});
+  }
+  if(op==='need-help'){helps++;return route.fulfill({json:{ok:true}});}
+  return route.fulfill({json:{
+   session:{id:'stage-one-interactive',status:'active',stageIndex:0,stageOpen:true,
+    stage:{kind:'vote',id:'climate-detective',period:1,title:'Climate Detective',
+     question:'Which everyday school action could best reduce our environmental impact?',
+     options:['Walking or cycling when possible','Switching off unused lights','Reducing food waste','I am not sure yet'],
+     sentence:'I think … because …'}},
+   survey:null,submitted:posts>0
+  }});
+ });
+ await page.getByTestId('qa-student-en').click();
+ const app=page.getByTestId('museum-student-wizard');
+ await expect(app).toBeVisible();
+ await expect(page.getByTestId('student-tab-live')).toHaveAttribute('aria-pressed','true',{timeout:12000});
+ const vote=page.getByRole('button',{name:/B\. Switching off unused lights/});
+ await expect(vote).toBeVisible();
+ await expect(vote).toBeEnabled();
+ await vote.scrollIntoViewIfNeeded();
+ await expect(vote).toBeInViewport();
+ const hit=await vote.evaluate(el=>{
+  const rect=el.getBoundingClientRect(),top=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);
+  return Boolean(top&&(top===el||el.contains(top)));
+ });
+ expect(hit).toBe(true);
+ const submit=page.getByRole('button',{name:'Submit group response'});
+ await expect(submit).toBeDisabled();
+ await expect(page.getByTestId('student-vote-guidance')).toContainText('Select A, B, C or D');
+ await vote.click();
+ await expect(vote).toHaveAttribute('aria-pressed','true');
+ await expect(page.getByTestId('student-vote-guidance')).toContainText('Option B selected');
+ await expect(submit).toBeEnabled();
+ await submit.click();
+ await expect(page.getByTestId('student-action-notice')).toContainText('Your group response was saved');
+ expect(posts).toBe(1);
+ await page.getByRole('button',{name:'Need help'}).click();
+ await expect(page.getByTestId('student-action-notice')).toContainText('Help request sent');
+ expect(helps).toBe(1);
+ await page.getByTestId('student-tab-studio').click();
+ await expect(page.getByTestId('student-tab-studio')).toHaveAttribute('aria-pressed','true');
+ await expect(app.locator('.bml-student-steps button')).toHaveCount(5);
+ for(let i=0;i<5;i++)await expect(app.locator('.bml-student-steps button').nth(i)).toBeEnabled();
+ const problem=page.getByLabel('Describe your problem');
+ await expect(problem).toBeEnabled();
+ await problem.fill('Unused lights waste electricity at our school.');
+ await expect.poll(()=>saves,{timeout:12000}).toBeGreaterThan(0);
+ await app.locator('.bml-student-steps button').nth(1).click();
+ await expect(page.getByLabel('Group roles')).toBeEnabled();
+ await page.getByLabel('Group roles').fill('Data checker: A; editor: B');
+ await expect.poll(()=>saves,{timeout:12000}).toBeGreaterThan(1);
+ await app.locator('.bml-student-steps button').nth(2).click();
+ await expect(page.getByLabel('Exhibition title')).toBeEnabled();
+ await app.locator('.bml-student-steps button').nth(3).click();
+ await expect(page.getByLabel('Peer feedback (English)')).toBeEnabled();
+ await app.locator('.bml-student-steps button').nth(4).click();
+ await expect(page.getByLabel('Our learning reflection (English)')).toBeEnabled();
+ // Final submission must still wait for the teacher's Exit Ticket stage.
+ await expect(page.getByRole('button',{name:'Submit for Admin review'})).toBeDisabled();
+ await page.getByTestId('student-tab-live').click();
+ await expect(page.getByTestId('student-vote-guidance')).toContainText('already submitted');
+});
+test('Museum Field Journal Stage 2 is legible, clickable and contained on a 16:9 classroom screen',async({page,isMobile})=>{
+ if(!isMobile)await page.setViewportSize({width:1366,height:768});
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  return route.fulfill({json:op==='me'?{
+   groupLabel:'Nhóm 01',groupState:'editing',csrf:'qa-editorial',
+   assignment:{title:'Our Climate Action Museum',brief:'An authentic climate action project for school.',
+    class_scope:'11.3',deadline_at:new Date(Date.now()+86400000).toISOString()}
+  }:{draft:{title:'',summary:'',rooms:[]},version:0}});
+ });
+ await page.route('**/api/gallery-guest/live?**',async route=>route.fulfill({json:{
+  session:{id:'editorial-quiz',status:'active',stageIndex:1,stageOpen:true,
+   stage:{id:'language-mini-lesson',kind:'quiz',period:1,title:'Language Mini-Lesson',
+    question:'Practise evidence, cause and recommendation language.',
+    questions:[
+     {q:'Which sentence gives evidence?',choices:['This is nice.','According to our survey, four groups agreed.','Do it now.'],explanation:'Use evidence.'},
+     {q:'Which sentence shows a cause?',choices:['Because our lights stay on, we waste energy.','I am a student.','Good morning.'],explanation:'Because introduces a cause.'},
+     {q:'Which sentence makes a recommendation?',choices:['The sky is blue.','We recommend reusing water bottles.','He went home yesterday.'],explanation:'We recommend signals advice.'}
+    ]}},survey:null,submitted:false
+ }}));
+ await page.getByTestId('qa-student-en').click();
+ const root=page.getByTestId('museum-student-wizard');
+ await expect(root).toHaveClass(/bml-student-editorial/);
+ await expect(page.getByText('Your museum workshop')).toBeVisible();
+ await expect(page.getByTestId('student-tab-live')).toHaveAttribute('aria-pressed','true',{timeout:12000});
+ const firstChoice=page.getByRole('button',{name:'B. According to our survey, four groups agreed.'});
+ await firstChoice.scrollIntoViewIfNeeded();
+ await expect(firstChoice).toBeEnabled();
+ await firstChoice.click();
+ await expect(firstChoice).toHaveAttribute('aria-pressed','true');
+ await page.getByRole('button',{name:'Next question'}).click();
+ await expect(page.getByText('Which sentence shows a cause?')).toBeVisible();
+ await page.getByRole('button',{name:'Next question'}).click();
+ await expect(page.getByText('Which sentence makes a recommendation?')).toBeVisible();
+ await page.getByRole('button',{name:'B. We recommend reusing water bottles.'}).click();
+ await expect(page.getByRole('button',{name:'B. We recommend reusing water bottles.'})).toHaveAttribute('aria-pressed','true');
+ if(!isMobile){
+  const geometry=await root.evaluate(el=>{
+   const box=x=>{const r=el.querySelector(x).getBoundingClientRect();return {left:r.left,top:r.top,right:r.right,bottom:r.bottom};};
+   const side=box('.bml-student-toolrail'),main=box('.bml-student-primary'),project=box('.bml-student-projectrail');
+   return {side,main,project,viewportWidth:innerWidth,viewportHeight:innerHeight};
+  });
+  expect(geometry.side.right).toBeLessThan(geometry.main.left);
+  expect(geometry.main.right).toBeLessThan(geometry.project.left);
+  expect(geometry.main.bottom).toBeLessThanOrEqual(geometry.viewportHeight+1);
+  expect(geometry.project.bottom).toBeLessThanOrEqual(geometry.viewportHeight+1);
+  // The synthetic QA harness is longer than the viewport; only the fixed student canvas must fit.
+ }
+ await page.getByTestId('student-tab-studio').click();
+ await expect(page.getByLabel('Describe your problem')).toBeEnabled();
+});
 test('student canvas keeps 16:9 activity, navigation and project panels on one desktop viewport',async({page})=>{
  await page.setViewportSize({width:1366,height:768});
  await page.route('**/api/gallery-guest?**',async route=>{
@@ -228,7 +515,7 @@ test('competition dossier downloads valid editable OOXML DOCX with actual P1 con
  const zip=await JSZip.loadAsync(fs.readFileSync(await download.path()));
  const doc=await zip.file('word/document.xml').async('string');
  expect(doc).toContain('<w:document');
- expect(doc).toContain('PHẦN 1');
+ expect(doc).toContain('PART 1');
  expect(doc).toContain('Demo Teacher');
  expect(zip.file('[Content_Types].xml')).toBeTruthy();
 });
@@ -243,9 +530,9 @@ test('contest ZIP contains P1, P2 and explicit missing-evidence notice, never fa
  expect(first).toBeTruthy();expect(second).toBeTruthy();
  const nested=await JSZip.loadAsync(await second.async('uint8array'));
  const doc=await nested.file('word/document.xml').async('string');
- expect(doc).toContain('KẾ HOẠCH DẠY HỌC');
- const manifest=await zip.file('P2/CAN_BO_SUNG_MINH_CHUNG.txt').async('string');
- expect(manifest).toContain('Không dùng dữ liệu demo làm minh chứng.');
+ expect(doc).toContain('TEACHING PLAN');
+ const manifest=await zip.file('P2/REQUIRED_EVIDENCE_CHECKLIST.txt').async('string');
+ expect(manifest).toContain('Never use demonstration data as evidence.');
 });
 
 test('teacher controls 11 live lesson stages without a PowerPoint or automatic transitions',async({page})=>{
@@ -705,11 +992,11 @@ test('Teacher Live has real stage motion control, readable voiceover, research l
  const lab=page.getByTestId('museum-video-lab');
  await expect(lab).toBeVisible();
  await lab.getByPlaceholder('school climate actions reducing carbon footprint').fill('global warming causes for students');
- await lab.getByRole('button',{name:/Giao nhiệm vụ video/}).click();
- await expect(lab.getByText('Đã lưu nhiệm vụ video cho tiết học.')).toBeVisible();
+ await lab.getByRole('button',{name:'Assign research task'}).click();
+ await expect(lab.getByText('Research task assigned to the current activity.')).toBeVisible();
  await lab.getByPlaceholder('https://www.youtube.com/watch?v=…').fill('https://youtu.be/jNQXAC9IVRw');
  await lab.getByPlaceholder('Teacher-curated climate video').fill('Teacher-selected classroom video');
- await lab.getByRole('button',{name:/Thêm vào kho học liệu/}).click();
+ await lab.getByRole('button',{name:'Assign video to this activity'}).click();
  await expect(lab.getByText('Teacher-selected classroom video')).toBeVisible();
  await expect(lab.getByText('VIDEO GIÁO VIÊN ĐÃ CHỌN',{exact:false})).toBeVisible();
 });
@@ -739,7 +1026,7 @@ test('Student Studio can watch a teacher-selected video and save source-based En
  await lab.getByRole('button',{name:/Xem tại đây/}).click();
  await expect(page.getByTestId('museum-youtube-player').locator('iframe')).toHaveCount(1);
  await lab.getByRole('button',{name:/Tìm video/}).click();
- await expect(lab.getByText('Tìm kiếm YouTube trong ứng dụng cần cấu hình',{exact:false})).toBeVisible();
+ await expect(lab.getByText('Chưa có YouTube API key và tìm kiếm dự phòng không khả dụng.',{exact:true})).toBeVisible();
  const mini=page.getByTestId('museum-micro-challenge');
  await expect(mini.getByText('Evidence Detective')).toBeVisible();
  await mini.getByRole('button',{name:/A.*A dated observation/}).click();
@@ -797,7 +1084,7 @@ test('fullscreen presenter keeps primary and research tools inside the actual fu
  await expect(videoLab).toBeVisible();
  await videoLab.getByPlaceholder('https://www.youtube.com/watch?v=…').fill('https://youtu.be/jNQXAC9IVRw');
  await videoLab.getByPlaceholder('Teacher-curated climate video').fill('Classroom source video');
- await videoLab.getByRole('button',{name:/Thêm vào kho học liệu/}).click();
+ await videoLab.getByRole('button',{name:'Assign video to this activity'}).click();
  await videoLab.getByRole('button',{name:/Chiếu video/}).click();
  const videoModal=page.getByTestId('museum-projector-video');
  await expect(videoModal).toBeVisible();

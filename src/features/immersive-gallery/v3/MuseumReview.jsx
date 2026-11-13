@@ -1,7 +1,8 @@
 import React,{useMemo,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookOpen,CheckCircle2,ClipboardCheck,Clock3,Eye,FileText,MessageCircle,ShieldAlert,ShieldCheck,Star,Trash2,Users} from 'lucide-react';
 import {RUBRIC,progressOfGroup,scoreRubric} from './museumData.js';
-import {staffRequest,fmtDate,fmtTime} from './museumApi.js';
+import {englishSystemGroupLabel} from './museumApi.js';
+import {staffRequest} from './museumApi.js';
 import MuseumScene,{reviewMuseum} from './MuseumScene.jsx';
 const tr=(lang,vi,en)=>lang==='en'?en:vi;
 const NOTES={
@@ -57,8 +58,8 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,query='',la
  return <div className="bml-screen" data-testid="museum-review-desk">
   <div className="bml-heading-actions"><div><div className="bml-overline">{tr(language,'ĐÁNH GIÁ HỌC TẬP','LEARNING ASSESSMENT')}</div>
    <h1>{tr(language,'Bài nộp của học sinh','Student submissions')}</h1>
-   <p>{tr(language,'Admin xem sản phẩm, chấm rubric, duyệt trực tiếp hoặc yêu cầu chỉnh sửa.','Admin reviews, scores, approves or returns submissions directly.')}</p></div>
-   <div className="bml-heading-meta"><Users size={19}/>{reviews.length} {tr(language,'hồ sơ','submissions')}</div></div>
+   <p>{tr(language,'Đây là bài nộp bảo tàng; Exit Ticket được xem riêng trong Bài học.','Museum project submissions appear here; Exit Tickets are available under Lessons.')}</p></div>
+   <div className="bml-heading-meta"><Users size={19}/>{reviews.length} {tr(language,'bảo tàng đã nộp','museum submissions')} · {data?.exitTickets?.length||0} Exit Tickets</div></div>
   <div className="bml-tab-filter" aria-label={tr(language,'Lọc bài nộp','Filter submissions')}>
    {[['all','Tất cả'],['submitted','Chờ Admin'],['ttcm_review','Chờ Admin (cũ)'],['changes_requested','Cần sửa'],['approved_locked','Đã duyệt']].map(([id,label])=>
     <button type="button" key={id} onClick={()=>setFilter(id)} className={filter===id?'is-active':''}>{tr(language,label,
@@ -77,15 +78,15 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,query='',la
       <div className="bml-review-card-top"><span className="bml-group-avatar"><Users size={21}/></span>
        <span className={'bml-status-pill bml-status-'+status.kind}>{tr(language,status.label,{
         submitted:'Teacher review',ttcm_review:'Department review',changes_requested:'Needs revision',approved_locked:'Approved',published:'Published',rejected:'Rejected'}[r.state]||status.label)}</span></div>
-      <strong>{g?.label||'Nhóm'}</strong><span>{r.snapshot?.title||a?.title||'English museum'}</span>
-      <small>{a?.class_scope||''} · {tr(language,'Nộp','Submitted')} {fmtDate(r.submitted_at)}</small>
+      <strong>{language==='en'?englishSystemGroupLabel(g?.label||'Nhóm'):g?.label||'Nhóm'}</strong><span>{r.snapshot?.title||a?.title||'English museum'}</span>
+      <small>{a?.class_scope||''}</small>
       <span className="bml-review-card-link">{tr(language,'Xem chi tiết','Open submission')} <ArrowRight size={17}/></span>
     </button>;
    })}</div>}
   {selected?<section className="bml-review-detail bml-surface">
     <div className="bml-section-head"><div><span className="bml-overline">{tr(language,'BẢN NỘP','SUBMISSION')} · v{selected.version}</span>
      <h2>{selected.snapshot?.title||tr(language,'Bản nháp','Draft')}</h2>
-     <p>{group?.label} · {assignment?.class_scope} · {fmtTime(selected.submitted_at)}</p></div>
+     <p>{language==='en'?englishSystemGroupLabel(group?.label):group?.label} · {assignment?.class_scope}</p></div>
      <button type="button" className="bml-icon-btn" onClick={()=>setSelectedId(null)} aria-label="Close"><ArrowLeft size={21}/></button></div>
     <div className="bml-review-detail-layout">
      <div className="bml-review-preview">

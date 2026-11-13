@@ -1,6 +1,5 @@
 import React from 'react';
-import {ArrowRight,BookOpen,CalendarDays,ChevronRight,Image,Leaf,Plus,School,Users,Waves} from 'lucide-react';
-import {fmtDate} from './museumApi.js';
+import {ArrowRight,BookOpen,ChevronRight,Image,Leaf,Plus,School,Users,Waves} from 'lucide-react';
 const kitIcons={leaf:Leaf,waves:Waves,school:School};
 export function MuseumHeroArt(){
  return <svg aria-hidden="true" className="bml-hero-art" viewBox="0 0 520 230" preserveAspectRatio="xMidYMax meet">
@@ -46,7 +45,7 @@ export function KitCard({kit,onClick,selected=false,language='vi'}){
 export default function MuseumDashboard({data,onNavigate,onCreate,language='vi'}){
  const tr=(vi,en)=>language==='en'?en:vi;
  const isAdmin=data?.profile?.role==='admin';
- const assignments=(data?.assignments||[]).slice(0,5),groups=data?.groups||[];
+ const assignments=(data?.assignments||[]).slice(0,5),groups=data?.groups||[],exitTickets=data?.exitTickets||[];
  return <div className="bml-screen bml-dashboard" data-testid="museum-dashboard">
   <div className="bml-quick-actions">
    {isAdmin?<button type="button" className="bml-quick-card bml-quick-create" onClick={onCreate}>
@@ -63,15 +62,16 @@ export default function MuseumDashboard({data,onNavigate,onCreate,language='vi'}
    <div className="bml-section-head"><div className="bml-paper-section-title"><img src="/assets/attendance-scrapbook/books.svg" alt="" width="72" height="72"/><h2>{tr('Bài học gần đây','Recent lessons')}</h2></div>
     <button type="button" className="bml-text-btn" onClick={()=>onNavigate('lessons')}>{tr('Xem tất cả','View all')} <ChevronRight size={17}/></button></div>
    {assignments.length?<div className="bml-responsive-table" tabIndex={0} role="region" aria-label={tr('Bài học gần đây · cuộn ngang để xem đầy đủ','Recent lessons · scroll horizontally for all columns')}><table className="bml-table">
-    <thead><tr><th>{tr('Tên bài học','Lesson')}</th><th>{tr('Lớp','Class')}</th><th>{tr('Số nhóm','Groups')}</th><th>{tr('Tiến độ','Progress')}</th><th>{tr('Hạn nộp','Deadline')}</th></tr></thead>
+    <thead><tr><th>{tr('Tên bài học','Lesson')}</th><th>{tr('Lớp','Class')}</th><th>{tr('Số nhóm','Groups')}</th><th>{tr('Tiến độ','Progress')}</th></tr></thead>
     <tbody>{assignments.map(a=>{
      const linked=groups.filter(g=>g.assignment_id===a.id),count=linked.filter(g=>['submitted','ttcm_review','approved_locked','published'].includes(g.state)).length;
+     const exitCount=linked.filter(g=>exitTickets.some(t=>t.group_id===g.id)).length;
      return <tr key={a.id}><td><button className="bml-lesson-link" type="button" onClick={()=>onNavigate('lessons',a.id)}><span className="bml-table-icon"><Leaf size={19}/></span>
       <span><strong>{a.title}</strong><small>{tr('Bài học tiếng Anh theo dự án','Project-based English')}</small></span></button></td>
       <td><span className="bml-class-tag">{a.class_scope}</span></td><td>{linked.length}</td>
       <td><div className="bml-progress"><div style={{width:(linked.length?count/linked.length*100:0)+'%'}}/></div>
-       <small>{tr('Đã nộp','Submitted')} {count}/{linked.length}</small></td>
-      <td><span className="bml-paper-deadline"><CalendarDays size={18} aria-hidden="true"/>{fmtDate(a.deadline_at)}</span></td>
+       <small>Exit Tickets: {exitCount}/{linked.length}</small><small>{tr('Sản phẩm bảo tàng','Museum projects')}: {count}/{linked.length}</small></td>
+      
      </tr>;})}</tbody>
    </table></div>:<div className="bml-empty bml-empty-slim"><BookOpen size={31}/><strong>{tr('Chưa có bài học nào','No lessons yet')}</strong>
      <p>{tr('Bắt đầu với Our Climate Action Museum, Tiếng Anh 11 Unit 5. Ba bước để giao nhiệm vụ cho nhóm.','Start with Our Climate Action Museum, English 11 Unit 5, then assign groups in three steps.')}</p>

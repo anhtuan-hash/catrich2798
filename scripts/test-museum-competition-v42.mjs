@@ -38,7 +38,7 @@ test('YouTube IDs are strictly host allow-listed, no arbitrarily embeddable URL'
 test('media tasks are bounded, predictable and do not expose unrelated stage videos',()=>{
  const board={3:{query:'school energy',instruction:'Name one source',videos:[{id:'jNQXAC9IVRw',title:'Trusted reference',channel:'Educator'}]},
   5:{query:'another topic',videos:[{id:'not-video',title:'Bad'}]}};
- assert.deepEqual(videoTaskFor(board,3),{query:'school energy',instruction:'Name one source',videos:[{id:'jNQXAC9IVRw',title:'Trusted reference',channel:'Educator'}]});
+ assert.deepEqual(videoTaskFor(board,3),{query:'school energy',instruction:'Name one source',voiceEnabled:false,videos:[{id:'jNQXAC9IVRw',title:'Trusted reference',channel:'Educator'}]});
  assert.equal(videoTaskFor(board,2).videos.length,0);
  assert.equal(videoTaskFor(board,5).videos.length,0);
 });
@@ -49,10 +49,12 @@ test('school-scoped video search uses Google API server-only and never HTML scra
  assert.match(server,/if\(op==='video-search'\)/);
  assert.match(server,/if\(!task\.query\)throw fail\(423/);
  assert.match(server,/searchThrottle\('group-'\+ctx\.group\.id\)/);
- assert.match(server,/if\(\['media-task','media-add','media-remove'\]\.includes\(op\)\)/);
- assert.match(helper,/process\.env\.YOUTUBE_API_KEY/);
- assert.match(helper,/videoEmbeddable:'true'/);
- assert.match(helper,/safeSearch:'strict'/);
+ assert.match(server,/if\(\['media-task','media-add','media-remove','media-voice'\]\.includes\(op\)\)/);
+ const catalog=load('serverless-handlers/_youtube-search.js');
+ assert.match(helper,/searchYoutubeCatalog\(/);
+ assert.match(catalog,/process\.env\.YOUTUBE_API_KEY/);
+ assert.match(catalog,/params\.set\('videoEmbeddable', 'true'\)/);
+ assert.match(catalog,/params\.set\('safeSearch', 'strict'\)/);
  assert.doesNotMatch(helper,/youtube\.com\/results|ytInitialData|VITE_YOUTUBE_API_KEY/);
  assert.match(server,/version:session\.version\+1/);
 });
@@ -62,7 +64,7 @@ test('student thinking evidence is write-gated and private; client cannot mutate
  assert.match(server,/if\(op==='micro-submit'\)/);
  assert.match(server,/validMicroAnswer\(session\.stage_index,body\)/);
  assert.match(server,/group_id:ctx\.group\.id/);
- assert.match(server,/microResponses,teacherMediaBoard:session\.media_board\|\|\{\},media/);
+ assert.match(server,/microResponses,teacherMediaBoard:session\.media_board\|\|\{\},livePeerFeedback:await peerRoomsEvidence\(admin,session\.id\),media/);
  assert.match(server,/\.eq\('group_id',ctx\.group\.id\)/);
  assert.match(sql,/unique\(session_id,group_id,stage_index\)/);
  assert.match(sql,/enable row level security/);

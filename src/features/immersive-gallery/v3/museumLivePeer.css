@@ -1,0 +1,18 @@
+/* Contextual, classroom-only gallery walk; preserves the single-screen Paper workspace. */
+.bml-peer-live{display:grid;gap:12px;margin:12px 0 18px;padding:17px;border:1px solid #cfdfd8;border-radius:15px;background:#f9faf5;color:#254947;box-shadow:0 3px 0 rgba(38,81,74,.05)}
+.bml-peer-head,.bml-peer-own,.bml-peer-room-list article,.bml-peer-received article>div{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.bml-peer-head h3{font-family:inherit;font-size:1.13rem;margin:5px 0;color:#214d49}.bml-peer-head p{font-size:.86rem;line-height:1.45;margin:0}
+.bml-peer-head .bml-overline{display:inline-flex;align-items:center;gap:6px;font-size:.67rem;color:#b66745;letter-spacing:.08em}
+.bml-peer-own{padding:12px 13px;background:#e8f3ed;border:1px solid #c4dace;border-radius:10px}.bml-peer-own>div{display:grid;gap:3px}.bml-peer-own small{font-size:.7rem;color:#617975}
+.bml-peer-count,.bml-peer-message{display:flex;align-items:center;gap:8px;margin:0;font-size:.82rem;color:#207761}
+.bml-peer-hint{font-size:.78rem;line-height:1.4;color:#647974;margin:6px 0}
+.bml-peer-other,.bml-peer-received{display:grid;gap:9px}.bml-peer-room-list{display:grid;gap:7px}
+.bml-peer-room-list article{padding:10px 12px;border:1px solid #dce5df;border-radius:9px;background:#fffdf9}.bml-peer-room-list article>div{display:grid;gap:4px;min-width:0}.bml-peer-room-list small{font-size:.72rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:250px;color:#6a7c79}
+.bml-peer-room-list button,.bml-peer-own button{flex-shrink:0}.bml-peer-received article{padding:11px 13px;border-radius:11px;border:1px solid #d1e5de;background:#fffdf9}
+.bml-peer-received article>div span{font-size:.73rem;font-weight:700;color:#28685a}.bml-peer-received article p{font-size:.81rem;margin:6px 0;line-height:1.42}
+.bml-peer-review-dialog{max-width:min(1050px,96vw);max-height:93vh}.bml-peer-review-body{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(250px,.8fr);gap:14px;min-height:0;overflow:auto;padding:10px}
+.bml-peer-gallery{min-height:360px;overflow:auto;border:1px solid #dae5db;border-radius:12px}
+.bml-peer-review-form{display:grid;gap:10px;align-content:start}.bml-peer-review-form label{display:grid;gap:5px;font-size:.82rem;font-weight:700;color:#2b6256}
+.bml-peer-review-form textarea,.bml-peer-review-form select{width:100%;min-height:77px;padding:9px;border:1px solid #bfd1c8;background:#fff;border-radius:8px;color:#213e39;font:inherit}
+.bml-peer-review-form select{min-height:39px}.bml-peer-review-form small{font-size:.72rem;line-height:1.4;color:#61736c}
+@media(max-width:750px){.bml-peer-review-body{grid-template-columns:1fr}.bml-peer-gallery{min-height:230px}.bml-peer-live{padding:11px}.bml-peer-head,.bml-peer-own{flex-wrap:wrap}}

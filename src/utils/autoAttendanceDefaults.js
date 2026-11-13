@@ -177,4 +177,12 @@ export function installPastAttendanceDefaults() {
   return unsubscribe;
 }
 
-installPastAttendanceDefaults();
+// Defer auth subscription until cyclic ESM imports have initialized their
+// Supabase bindings. Synchronous module-scope registration can throw a TDZ
+// ReferenceError during the actual Brian app bootstrap (not the Museum harness).
+if (typeof window !== 'undefined') {
+  queueMicrotask(() => {
+    try { installPastAttendanceDefaults(); }
+    catch (error) { console.warn('[Attendance defaults] Unable to initialize:', error); }
+  });
+}

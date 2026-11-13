@@ -32,5 +32,5 @@ const data={profile:{id:'qa',role:'admin'},creatorSettings:{enabled:false},assig
 const transport=async()=>data;
 createRoot(document.getElementById('root')).render(<div className="app-shell metro-shell metro-clean-system" data-route="tool" data-tool="immersive-gallery" data-quick-access-layout="false">
 <div style={{padding:8,background:'white',textAlign:'center'}} data-testid="qa-harness">QA ONLY · SYNTHETIC LESSON DATA</div>
-<main id="bes-main-content" className="wp8-page-stage"><div className="bqa-content-safe-frame"><MuseumLabApp currentUser={{id:'qa',name:'QA'}} transport={transport}/></div></main><Footer language="vi" route="tool"/>
+<main id="bes-main-content" className="wp8-page-stage"><div className="bqa-content-safe-frame"><MuseumLabApp language="vi" currentUser={{id:'qa',name:'QA'}} transport={transport}/></div></main><Footer language="vi" route="tool"/>
 </div>);

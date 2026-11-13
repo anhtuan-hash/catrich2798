@@ -17,7 +17,7 @@ const initialMuseumTab=()=>{
  try{return new URLSearchParams(window.location.hash.split('?')[1]||'').has('exhibition')?'gallery':'home';}
  catch{return 'home';}
 };
-export default function MuseumLabApp({currentUser,language='vi',transport=staffRequest}){
+export default function MuseumLabApp({currentUser,language='en',transport=staffRequest}){
  const [tab,setTab]=useState(initialMuseumTab),[staff,setStaff]=useState(null);
  const [loading,setLoading]=useState(true),[error,setError]=useState('');
  const [query,setQuery]=useState(''),[reviewId,setReviewId]=useState(null),[help,setHelp]=useState(false);
@@ -47,7 +47,7 @@ export default function MuseumLabApp({currentUser,language='vi',transport=staffR
   navigate('gallery');
  };
  const pending=staff?.reviews?.filter(r=>['submitted','ttcm_review'].includes(r.state)).length||0;
- return <div className={'bml bml-app-layout bml-paper '+(['gallery','demo'].includes(tab)?'bml-is-exhibition':'')} data-testid="brian-museum-lab-v3">
+ return <div className={'bml bml-app-layout bml-paper '+(['gallery','demo'].includes(tab)?'bml-is-exhibition':'')} data-testid="brian-museum-lab-v3" lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
   <div className="bml-main-panel">
    <MuseumPaperHeader language={language} tab={tab} onNavigate={navigate} pending={pending}
     query={query} onQueryChange={setQuery} onRefresh={refresh} onHelp={()=>setHelp(true)}/>
@@ -64,7 +64,7 @@ export default function MuseumLabApp({currentUser,language='vi',transport=staffR
       onCreate={()=>create()} onReview={id=>navigate('submissions',id)} onOpenCollection={openCollection} onRefresh={refresh}/>:
     tab==='submissions'?<Submissions key={reviewId||'normal'} language={language} data={staff} query={query}
       initialReview={reviewId} onNavigate={navigate} onRefresh={refresh}/>:
-    tab==='gallery'?<MuseumGallery language={language} query={query} data={staff} onNavigate={navigate} onDemo={demo}/>:
+    tab==='gallery'?<MuseumGallery language={language} query={query} data={staff} onNavigate={navigate} onDemo={demo} onRefresh={refresh}/>:
     tab==='demo'?<MuseumExhibitionDetail gallery={DEMO_GALLERY} language={language} data={staff} isDemo
       onNavigate={navigate} onBack={()=>navigate('gallery')}/>:
     tab==='templates'?<MuseumTemplates language={language} onCreate={create} onDemo={demo}/>:

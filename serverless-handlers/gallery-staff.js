@@ -4,6 +4,7 @@ import {
  db,digest,randomSecret,fail,send,handleError,guardOrigin,guardBody,query,
  settings,staffContext,assertStaff,assertAdmin,reviewer,uid,clean,requireMethod
 } from './_galleryCreator.js';
+import {PREPARED_COLLECTIONS} from '../src/features/immersive-gallery/v3/museumPreparedCollections.js';
 
 // Copy approved private art into R1's still-private bucket before atomic promotion.
 // The SQL publication RPC verifies each link and the immutable TTCM snapshot hash.
@@ -82,6 +83,40 @@ export default async function galleryStaff(req,res){
   const ctx=await staffContext(req,admin);
   assertStaff(ctx);
 
+  // Staff can read only their own school's archived showcase inventory.
+  if(operation==='showcase-state'){
+   requireMethod(req,'GET');
+   const hidden=await query(admin.from('museum_showcase_archives')
+    .select('item_kind,item_key').eq('school_scope',ctx.profile.school).limit(500));
+   const archivedGalleries=ctx.role==='admin'?await query(admin.from('gallery_exhibitions')
+    .select('id,title,summary,status').eq('school_scope',ctx.profile.school)
+    .eq('status','archived').order('updated_at',{ascending:false}).limit(100)):[];
+   return send(res,200,{
+    hiddenCollections:hidden.filter(x=>x.item_kind==='collection').map(x=>x.item_key),
+    archivedGalleries
+   });
+  }
+  if(operation==='archive-exhibition'||operation==='restore-exhibition'){
+   requireMethod(req,'POST');guardOrigin(req);assertAdmin(ctx);
+   const body=guardBody(req,1500);
+   const kind=String(body.kind||''),key=String(body.key||'');
+   if(kind==='collection'){
+    if(!PREPARED_COLLECTIONS.some(c=>c.key===key))throw fail(404,'Unknown prepared collection.');
+   }else if(kind==='gallery'){
+    if(!uid(key))throw fail(400,'Invalid exhibition identifier.');
+    const gallery=await query(admin.from('gallery_exhibitions')
+     .select('id,school_scope,status').eq('id',key).maybeSingle());
+    if(!gallery||gallery.school_scope!==ctx.profile.school)throw fail(404,'Exhibition not found in your school.');
+   }else throw fail(400,'Invalid exhibition type.');
+   // One database transaction archives or restores the exhibition, preserving
+   // rooms, approved artworks, group submissions, rubric and evidence records.
+   const state=await query(admin.rpc('museum_showcase_change',{
+    p_kind:kind,p_key:key,p_school:ctx.profile.school,p_actor:ctx.user.id,
+    p_archive:operation==='archive-exhibition'
+   }));
+   return send(res,200,{ok:true,state,kind,key});
+  }
+
   if(operation==='dashboard'){
    requireMethod(req,'GET');
    const grants=await query(admin.from('gcp_reviewer_grants')
@@ -96,6 +131,9 @@ export default async function galleryStaff(req,res){
    const groups=ids.length?await query(admin.from('gcp_groups').select('*')
      .in('assignment_id',ids).limit(500)):[];
    const groupIds=groups.map(g=>g.id);
+   // A completed Exit Ticket is a live answer, never a submitted museum.
+   const exitTickets=groupIds.length?await query(admin.from('museum_live_responses')
+     .select('group_id,value,created_at').in('group_id',groupIds).eq('stage_index',10).limit(500)):[];
    const reviews=groupIds.length?await query(admin.from('gcp_reviews')
      .select('id,group_id,version,state,teacher_note,ttcm_note,approved_by,approved_at,submitted_at,snapshot_hash,snapshot')
      .in('group_id',groupIds).is('archived_at',null).order('submitted_at',{ascending:false}).limit(500)):[];
@@ -109,7 +147,7 @@ export default async function galleryStaff(req,res){
    return send(res,200,{profile:{role:ctx.profile.role,school:ctx.profile.school,id:ctx.user.id},
     creatorSettings:await settings(admin),reviewerCandidates,
     reviewers:grants,rubrics,
-    assignments,groups,reviews});
+    assignments,groups,reviews,exitTickets});
   }
 
   if(operation==='grade-rubric'){

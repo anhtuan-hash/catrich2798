@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {LESSON_KITS,RUBRIC,STEPS,emptyStudio,normalizeStudio,documentFromStudio,submissionMissing,scoreRubric,buildProgressCsv} from '../src/features/immersive-gallery/v3/museumData.js';
 import {normalizeGuestDraft} from '../src/features/immersive-gallery/creatorPassPolicy.js';
+import {canSaveMuseumDraft,canSubmitMuseumProject} from '../src/features/immersive-gallery/v3/museumSubmissionPolicy.js';
 
 test('new student workflow has exactly five coherent STEAM steps',()=>{
  assert.deepEqual(STEPS.map(s=>s.key),['understand','plan','create','test','submit']);
@@ -84,4 +85,97 @@ test('Material 3 redesign has scoped accessible UI and curated exhibitions',()=>
  assert.match(dashboard,/data-testid="museum-dashboard"/);
  assert.match(sample,/museum-collection-/);
  assert.doesNotMatch(sample,/>DEMO · SAMPLE</);
+});
+
+test('ended Teacher Live leaves a valid museum assignment writable',()=>{
+ assert.equal(canSaveMuseumDraft(null),true);
+ assert.equal(canSaveMuseumDraft({status:'not_started'}),true);
+ assert.equal(canSaveMuseumDraft({status:'active'}),true);
+ assert.equal(canSaveMuseumDraft({status:'ended'}),true);
+ assert.equal(canSaveMuseumDraft({status:'paused'}),false);
+ assert.equal(canSubmitMuseumProject(null),true);
+ assert.equal(canSubmitMuseumProject({status:'active',stage_index:10,stage_open:true}),true);
+ assert.equal(canSubmitMuseumProject({status:'active',stage_index:10,stage_open:false}),false);
+ assert.equal(canSubmitMuseumProject({status:'active',stage_index:9,stage_open:true}),false);
+ assert.equal(canSubmitMuseumProject({status:'ended',stage_index:10,stage_open:false}),true);
+ assert.equal(canSubmitMuseumProject({status:'ended',stageIndex:10,stageOpen:false}),true);
+ assert.equal(canSubmitMuseumProject({status:'paused',stage_index:10,stage_open:true}),false);
+ const backend=fs.readFileSync('serverless-handlers/gallery-guest.js','utf8');
+ const student=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLabStudent.jsx','utf8');
+ assert.match(backend,/canSaveMuseumDraft\(live\)/);
+ assert.match(backend,/canSubmitMuseumProject\(live\)/);
+ assert.match(student,/canSubmitMuseumProject\(liveInfo\)/);
+ assert.match(student,/Lesson completed/);
+ assert.match(backend,/guestContext\(req,admin,\{write:true\}\)/);
+ const artwork=fs.readFileSync('serverless-handlers/museum-artwork.js','utf8');
+ assert.match(artwork,/!canSaveMuseumDraft\(live\)/);
+});
+test('Exit Tickets and museum submissions are counted separately',()=>{
+ const api=fs.readFileSync('serverless-handlers/gallery-staff.js','utf8');
+ const lessons=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLessonFlow.jsx','utf8');
+ const liveStudent=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLiveStudent.jsx','utf8');
+ assert.match(api,/from\('museum_live_responses'\)/);
+ assert.match(api,/eq\('stage_index',10\)/);
+ assert.match(api,/assignments,groups,reviews,exitTickets/);
+ assert.match(lessons,/Exit Tickets: /);
+ assert.match(lessons,/ticket\.value/);
+ assert.match(liveStudent,/student-live-completed/);
+ assert.match(liveStudent,/Your group Exit Ticket was recorded/);
+});
+
+test('Museum Lab hides date and clock metadata on every student and teacher screen',()=>{
+ const read=name=>fs.readFileSync('src/features/immersive-gallery/v3/'+name,'utf8');
+ const dashboard=read('MuseumDashboard.jsx'), review=read('MuseumReview.jsx');
+ const lessons=read('MuseumLessonFlow.jsx'), student=read('MuseumLabStudent.jsx');
+ const liveStudent=read('MuseumLiveStudent.jsx'),liveTeacher=read('MuseumLiveTeacher.jsx');
+ const exhibition=read('MuseumExhibitionDetail.jsx');
+ assert.doesNotMatch(dashboard,/fmtDate\(|a\.deadline_at/);
+ assert.doesNotMatch(review,/fmtDate\(|fmtTime\(|r\.submitted_at|selected\.submitted_at/);
+ assert.doesNotMatch(lessons,/fmtDate\(|fmtTime\(|datetime-local|form\.deadlineAt/);
+ assert.match(lessons,/accessWindow/);
+ assert.match(lessons,/deadlineForWindow/);
+ assert.match(lessons,/deadlineAt:deadlineForWindow/);
+ assert.doesNotMatch(student,/fmtTime\(|new Date\(c\.createdAt\)|session\.assignment\.deadline_at/);
+ assert.match(student,/Version.*c\.version/);
+ assert.doesNotMatch(liveStudent,/new Date\(r\.created_at\)/);
+ assert.doesNotMatch(liveTeacher,/\{state\.survey\.created_at\}/);
+ assert.doesNotMatch(exhibition,/dateLabel|toLocaleDateString/);
+ // State/audit timestamps are intentionally retained by the backend and exports.
+ const server=fs.readFileSync('serverless-handlers/gallery-guest.js','utf8');
+ assert.match(server,/assignment\.deadline_at/);
+});
+
+test('Admin can safely archive and restore both prepared and database exhibitions',()=>{
+ const server=fs.readFileSync('serverless-handlers/gallery-staff.js','utf8');
+ const gallery=fs.readFileSync('src/features/immersive-gallery/v3/MuseumExplore.jsx','utf8');
+ const app=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLabApp.jsx','utf8');
+ const detail=fs.readFileSync('src/features/immersive-gallery/v3/MuseumExhibitionDetail.jsx','utf8');
+ const data=fs.readFileSync('src/features/immersive-gallery/galleryData.js','utf8');
+ const css=fs.readFileSync('src/features/immersive-gallery/v3/museumLab.css','utf8');
+ const migration=fs.readFileSync('supabase/migrations/20261113164000_museum_showcase_safe_archive.sql','utf8');
+ assert.match(server,/operation==='archive-exhibition'/);
+ assert.match(server,/operation==='restore-exhibition'/);
+ assert.match(server,/guardOrigin\(req\);assertAdmin\(ctx\)/);
+ assert.match(server,/gallery\.school_scope!==ctx\.profile\.school/);
+ assert.match(server,/PREPARED_COLLECTIONS\.some/);
+ assert.match(server,/museum_showcase_change/);
+ assert.match(server,/operation==='showcase-state'/);
+ assert.match(gallery,/data-testid="museum-archived-exhibitions"/);
+ assert.match(gallery,/Delete exhibition:/);
+ assert.match(gallery,/Restore exhibition/);
+ assert.match(gallery,/onClick=\{\(\)=>changeArchive\('collection'/);
+ assert.match(gallery,/onClick=\{\(\)=>changeArchive\('gallery'/);
+ assert.match(gallery,/archive\.hiddenCollections\.includes\(key\)/);
+ assert.match(app,/onRefresh=\{refresh\}/);
+ assert.match(detail,/onDelete\?\</);
+ assert.match(data,/neq\('status','archived'\)/);
+ assert.match(data,/exhibit\.status==='archived'/);
+ assert.match(css,/bml-exhibition-delete/);
+ assert.match(migration,/enable row level security/);
+ assert.match(migration,/from public, anon, authenticated/);
+ assert.match(migration,/security invoker/);
+ assert.match(migration,/to service_role/);
+ assert.match(migration,/school_scope=p_school/);
+ assert.match(migration,/status='archived'/);
+ assert.doesNotMatch(server,/from\('gcp_reviews'\)\.delete\(/);
 });

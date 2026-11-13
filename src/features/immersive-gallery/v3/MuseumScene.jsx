@@ -8,8 +8,8 @@ export function reviewMuseum(review){
  const raw=review?.snapshot||{};
  return {
   id:'review-'+String(review?.id||'preview'),
-  title:raw.title||'Triển lãm tiếng Anh',
-  summary:raw.summary||'Bản duyệt nội bộ — chưa xuất bản',
+  title:raw.title||'English Museum',
+  summary:raw.summary||'Private review draft — not published',
   status:review?.state||'draft',
   rooms:(raw.rooms||[]).map((r,i)=>({
    id:'review-room-'+i,title:r.title||'Room '+(i+1),

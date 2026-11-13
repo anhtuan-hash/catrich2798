@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from 'react';
-import {ArrowLeft,ArrowRight,CheckCircle2,ChevronRight,ClipboardList,Eye,Info,Landmark,LockKeyhole,Settings2,Shield,ShieldAlert,ShieldCheck,Users,BookOpen,Plus,Leaf} from 'lucide-react';
+import {ArrowLeft,ArrowRight,CheckCircle2,ChevronRight,ClipboardList,Eye,Info,Landmark,LockKeyhole,Settings2,Shield,ShieldAlert,ShieldCheck,Users,BookOpen,Plus,Leaf,Trash2,Archive,RotateCcw} from 'lucide-react';
 import {LESSON_KITS} from './museumData.js';
 import {PREPARED_COLLECTIONS,preparedGallery} from './museumPreparedCollections.js';
 import {staffRequest,DEMO_GALLERY} from './museumApi.js';
@@ -41,26 +41,46 @@ const setExhibitionHash=key=>{
  const url=current+(key?'?exhibition='+encodeURIComponent(key):'');
  window.history.replaceState(null,'',url);
 };
-export function MuseumGallery({language='vi',onDemo,query='',onNavigate,data}){
- const [galleries,setGalleries]=useState([]),[selected,setSelected]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
+export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefresh,data}){
+ const isAdmin=data?.profile?.role==='admin';
+ const [galleries,setGalleries]=useState([]),[selected,setSelected]=useState(null);
+ const [showcase,setShowcase]=useState({hiddenCollections:[],archivedGalleries:[]});
+ const [busy,setBusy]=useState(false),[loading,setLoading]=useState(true);
+ const [showArchived,setShowArchived]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
+ const pull=async()=>{
+  const api=await import('../galleryData.js');
+  const [enabled,archive]=await Promise.all([api.getGalleryEnabled(),staffRequest('showcase-state')]);
+  const items=enabled?await api.listExhibitions():[];
+  return {api,items,archive};
+ };
  useEffect(()=>{
   let active=true;
-  import('../galleryData.js').then(async({getGalleryEnabled,listExhibitions})=>{
-   const enabled=await getGalleryEnabled();return enabled?listExhibitions():[];
-  }).then(items=>{if(active)setGalleries(items||[]);})
-    .catch(e=>{if(active)setError(e.message);});
-  const initial=exhibitionFromHash();
-  if(initial){
-   if(initial==='demo')setSelected(DEMO_GALLERY);
-   else if(initial.startsWith('collection-')&&PREPARED_COLLECTIONS.some(c=>'collection-'+c.key===initial)){
-    setSelected(preparedGallery(initial.slice('collection-'.length)));
-   }else import('../galleryData.js').then(({getExhibition})=>getExhibition(initial))
-     .then(item=>{if(active)setSelected(item);})
-     .catch(e=>{if(active)setError(e.message);});
-  }
+  (async()=>{
+   try{
+    const {api,items,archive}=await pull();
+    if(!active)return;
+    setGalleries(items);setShowcase(archive);
+    const initial=exhibitionFromHash();
+    if(initial==='demo')setSelected(DEMO_GALLERY);
+    else if(initial.startsWith('collection-')){
+     const key=initial.slice('collection-'.length);
+     if(PREPARED_COLLECTIONS.some(c=>c.key===key)&&!archive.hiddenCollections.includes(key))setSelected(preparedGallery(key));
+     else if(initial)setError('This exhibition has been removed from the showcase.');
+    }else if(initial){
+     try{const full=await api.getExhibition(initial);if(active)setSelected(full);}
+     catch{if(active)setError('This exhibition is unavailable or has been archived.');}
+    }
+   }catch(e){if(active)setError(e.message);}
+   finally{if(active)setLoading(false);}
+  })();
   return()=>{active=false;};
  },[]);
+ const reload=async()=>{
+  const {items,archive}=await pull();
+  setGalleries(items);setShowcase(archive);
+ };
  const enter=async item=>{
+  if(busy)return;
   setBusy(true);setError('');
   try{
    const {getExhibition}=await import('../galleryData.js');
@@ -70,31 +90,77 @@ export function MuseumGallery({language='vi',onDemo,query='',onNavigate,data}){
   finally{setBusy(false);}
  };
  const leave=()=>{setSelected(null);setExhibitionHash('');};
+ const changeArchive=async(kind,key,title,archive=true)=>{
+  if(!isAdmin||busy)return;
+  if(archive&&!window.confirm('Delete exhibition "'+title+'"? It will be removed from the showcase but student work, scores and learning evidence will be preserved. You can restore it from Archived.'))return;
+  setBusy(true);setError('');setNotice('');
+  try{
+   await staffRequest(archive?'archive-exhibition':'restore-exhibition',{kind,key});
+   leave();await reload();await onRefresh?.();
+   setNotice(archive?'Exhibition removed from the showcase. You can restore it under Archived.':'Exhibition restored.');
+  }catch(e){setError(e.message);}
+  finally{setBusy(false);}
+ };
+ const visiblePrepared=PREPARED_COLLECTIONS.filter(c=>!showcase.hiddenCollections.includes(c.key)&&
+  (c.title+' '+c.classScope).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
+ const visibleGalleries=galleries.filter(g=>(g.title+' '+(g.summary||'')).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
+ const archivedCollections=PREPARED_COLLECTIONS.filter(c=>showcase.hiddenCollections.includes(c.key));
+ const archivedItems=[...archivedCollections.map(c=>({kind:'collection',key:c.key,title:c.title,label:c.classScope+' · ENGLISH STEAM'})),
+  ...showcase.archivedGalleries.map(g=>({kind:'gallery',key:g.id,title:g.title,label:'Student exhibition'}))];
  if(selected)return <MuseumExhibitionDetail gallery={selected} language={language}
-  isDemo={selected.id===DEMO_GALLERY.id} data={data} onBack={leave} onNavigate={onNavigate}/>;
+  isDemo={selected.id===DEMO_GALLERY.id} data={data} onBack={leave} onNavigate={onNavigate}
+  onDelete={isAdmin&&selected.id!==DEMO_GALLERY.id?()=>changeArchive(
+   String(selected.id||'').startsWith('collection-')?'collection':'gallery',
+   String(selected.id||'').startsWith('collection-')?String(selected.id).slice('collection-'.length):selected.id,
+   selected.title,true):null} busy={busy}/>;
  return <div className="bml-screen" data-testid="museum-showcase">
-  <div><div className="bml-overline">MUSEUM SHOWCASE</div><h1>{tr(language,'Triển lãm của chúng ta','Our exhibitions')}</h1>
+  <div className="bml-heading-actions"><div><div className="bml-overline">MUSEUM SHOWCASE</div>
+   <h1>{tr(language,'Triển lãm của chúng ta','Our exhibitions')}</h1>
    <p>{tr(language,'Khám phá các dự án tiếng Anh qua không gian bảo tàng 3D.','Explore English projects in interactive 3D museums.')}</p></div>
-  {error?<div className="bml-banner bml-danger-banner" role="alert"><ShieldAlert size={19}/>{error}</div>:null}
-  <div className="bml-gallery-grid">
-   {PREPARED_COLLECTIONS.filter(c=>(c.title+' '+c.classScope).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())).map(c=>
-    <button type="button" className="bml-gallery-card" key={c.key} data-testid={'museum-collection-'+c.key}
-      onClick={()=>{setSelected(preparedGallery(c.key));setExhibitionHash('collection-'+c.key);}}>
-     <div className="bml-card-photo"><span className="bml-gallery-badge">{c.classScope} · ENGLISH STEAM</span><Landmark strokeWidth={1.2}/></div>
-     <div className="bml-card-caption"><strong>{c.title}</strong>
-      <small>{c.groupCount} {tr(language,'nhóm','groups')} · {c.groupCount*3} {tr(language,'tác phẩm','exhibits')}</small>
-      <span>{tr(language,'Tham quan bảo tàng 3D','Explore 3D museum')} <ArrowRight size={16}/></span></div>
-    </button>)}
-   {galleries.filter(g=>(g.title+' '+(g.summary||'')).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())).map(g=>
-    <button type="button" className="bml-gallery-card" key={g.id} onClick={()=>enter(g)} disabled={busy}>
-     <div className="bml-card-photo"><span className="bml-gallery-badge">{g.status?.toUpperCase()||'EXHIBITION'}</span><Leaf strokeWidth={1.35}/></div>
-     <div className="bml-card-caption"><strong>{g.title}</strong><small>{g.summary}</small>
-      <span>{tr(language,'Mở triển lãm','Open exhibition')} <ArrowRight size={16}/></span></div>
-    </button>)}
+   {isAdmin?<button className="bml-outline" type="button" aria-pressed={showArchived} disabled={busy||loading}
+    onClick={()=>{setShowArchived(v=>!v);setNotice('');}}>
+    <Archive size={17}/>{showArchived?'Back to exhibitions':'Archived'} ({archivedItems.length})
+   </button>:null}
   </div>
-  {!galleries.length?<div className="bml-banner bml-info-banner"><Info size={18}/>{tr(language,
-   'Các bộ sưu tập bài học đã sẵn sàng. Bài nộp được duyệt sẽ xuất hiện khi được công bố.',
-   'Lesson collections are ready. Approved submissions will appear when published.')}</div>:null}
+  {error?<div className="bml-banner bml-danger-banner" role="alert"><ShieldAlert size={19}/>{error}</div>:null}
+  {notice?<div className="bml-banner bml-success-banner" role="status"><CheckCircle2 size={18}/>{notice}</div>:null}
+  {loading?<div className="bml-empty bml-surface" role="status">Loading exhibitions…</div>:
+  showArchived&&isAdmin?<div className="bml-gallery-grid" data-testid="museum-archived-exhibitions">
+   {archivedItems.map(item=><article key={item.kind+':'+item.key} className="bml-gallery-card bml-gallery-card--managed">
+    <div className="bml-card-photo"><span className="bml-gallery-badge">ARCHIVED</span><Archive size={48}/></div>
+    <div className="bml-card-caption"><strong>{item.title}</strong><small>{item.label}</small>
+     <button className="bml-outline" type="button" disabled={busy} onClick={()=>changeArchive(item.kind,item.key,item.title,false)}>
+      <RotateCcw size={16}/>Restore exhibition</button></div>
+   </article>)}
+   {!archivedItems.length?<div className="bml-empty bml-surface">No archived exhibitions.</div>:null}
+  </div>:
+  <div className="bml-gallery-grid">
+   {visiblePrepared.map(c=><article className="bml-gallery-card bml-gallery-card--managed"
+      key={c.key} data-testid={'museum-collection-'+c.key}>
+     <button type="button" className="bml-gallery-card-open" disabled={busy}
+      onClick={()=>{setSelected(preparedGallery(c.key));setExhibitionHash('collection-'+c.key);}}>
+      <div className="bml-card-photo"><span className="bml-gallery-badge">{c.classScope} · ENGLISH STEAM</span><Landmark strokeWidth={1.2}/></div>
+      <div className="bml-card-caption"><strong>{c.title}</strong>
+       <small>{c.groupCount} {tr(language,'nhóm','groups')} · {c.groupCount*3} {tr(language,'tác phẩm','exhibits')}</small>
+       <span>{tr(language,'Tham quan bảo tàng 3D','Explore 3D museum')} <ArrowRight size={16}/></span></div>
+     </button>
+     {isAdmin?<button className="bml-exhibition-delete" type="button" disabled={busy}
+      aria-label={'Delete exhibition: '+c.title} title="Delete exhibition"
+      onClick={()=>changeArchive('collection',c.key,c.title,true)}><Trash2 size={17}/></button>:null}
+    </article>)}
+   {visibleGalleries.map(g=><article className="bml-gallery-card bml-gallery-card--managed" key={g.id}>
+     <button type="button" className="bml-gallery-card-open" disabled={busy} onClick={()=>enter(g)}>
+      <div className="bml-card-photo"><span className="bml-gallery-badge">{g.status?.toUpperCase()||'EXHIBITION'}</span><Leaf strokeWidth={1.35}/></div>
+      <div className="bml-card-caption"><strong>{g.title}</strong><small>{g.summary}</small>
+       <span>{tr(language,'Mở triển lãm','Open exhibition')} <ArrowRight size={16}/></span></div>
+     </button>
+     {isAdmin?<button className="bml-exhibition-delete" type="button" disabled={busy}
+      aria-label={'Delete exhibition: '+g.title} title="Delete exhibition"
+      onClick={()=>changeArchive('gallery',g.id,g.title,true)}><Trash2 size={17}/></button>:null}
+    </article>)}
+  </div>}
+  {!showArchived&&!visibleGalleries.length&&!visiblePrepared.length&&!loading?
+   <div className="bml-banner bml-info-banner"><Info size={18}/>No exhibitions match this view.</div>:null}
  </div>;
 }
 export function MuseumSettings({data,onRefresh,language='vi'}){

@@ -2,6 +2,7 @@ import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronLeft,ChevronRight,Clock3,Eye,Fullscreen,HelpCircle,Lock,MonitorPlay,Pause,Play,Presentation,Printer,QrCode,RefreshCcw,ShieldCheck,Users,X,Film,Volume2,Sparkles,Minimize2} from 'lucide-react';
 import {LIVE_STAGES,LIVE_PERIOD_MINUTES,LIVE_TOTAL_MINUTES} from './liveLesson.js';
 import {liveStaff} from './museumLiveApi.js';
+import {englishSystemGroupLabel} from './museumApi.js';
 import LessonResources from './LessonResources.jsx';
 import {surveyChartPng} from './surveyChart.js';
 import {saveBlob} from './museumDocx.js';
@@ -43,14 +44,14 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  const refresh=useCallback(async()=>{
   if(!assignmentId)return;
   try{const response=await transport('state',null,{assignmentId});
-    if(activeRef.current){setState(response);}
+    if(activeRef.current){setState(response);setError('');}
   }catch(e){if(activeRef.current)setError(e.message);}
  },[assignmentId,transport]);
  useEffect(()=>{activeRef.current=true;refresh();const id=window.setInterval(()=>{refresh();setTime(Date.now());},3000);
   return()=>{activeRef.current=false;window.clearInterval(id);};},[refresh]);
  useEffect(()=>{if(!showQr)return;let active=true;import('qrcode').then(({default:QR})=>QR.toDataURL(link,{width:220,margin:2})).then(url=>{if(active)setQr(url);}).catch(()=>{});
   return()=>{active=false;};},[showQr]);
- const session=state?.session,stage=session?.stage,groups=state?.groups||[],result=session?.stageIndex===2&&state?.survey?state.survey:state?.result;
+ const session=state?.session,stage=session?.stage,groups=(state?.groups||[]).map(g=>({...g,label:language==='en'?englishSystemGroupLabel(g.label):g.label})),result=session?.stageIndex===2&&state?.survey?state.survey:state?.result;
  const currentIndex=session?.stageIndex??0,minute=LIVE_STAGES[currentIndex]?.minutes||0;
  useEffect(()=>{setStageVideo(null);},[assignmentId,currentIndex]);
  const elapsed=(session?.elapsedSeconds||0)+(session?.status==='active'&&session?.stageStartedAt?Math.max(0,Math.floor((time-Date.parse(session.stageStartedAt))/1000)):0);
@@ -66,17 +67,36 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
   }catch(e){setError(e.message);}
   finally{setBusy(false);}
  };
+ // Voiceover scripts are teacher resources until explicitly shared for the open stage.
+ const shareNarration=async()=>{
+  if(busy||!session||session.status==='ended')return;
+  setBusy(true);setError('');
+  try{
+   const send=version=>transport('media-voice',{assignmentId,stageIndex:currentIndex,version,enabled:!session.media?.voiceEnabled});
+   let out;
+   try{out=await send(session.version);}
+   catch(e){
+    if(e.status!==409)throw e;
+    const latest=await transport('state',null,{assignmentId});
+    if(latest.session?.stageIndex!==currentIndex)throw new Error('The activity changed. Reopen the narration tool.');
+    out=await send(latest.session.version);
+   }
+   if(out.session)setState(prev=>({...prev,session:out.session}));
+   await refresh();
+  }catch(e){setError(e.message);}
+  finally{setBusy(false);}
+ };
  const spotlightGroup=async groupId=>{
   setBusy(true);setError('');
   try{const r=await transport('group-gallery',null,{assignmentId,groupId});
-   if(!r?.draft?.rooms?.length)throw new Error('Nhóm chưa có bản triển lãm.');
+   if(!r?.draft?.rooms?.length)throw new Error(t(language,'Nhóm chưa có bản triển lãm.','This group has not created a museum draft yet.'));
    const urls=new Map((r.artworks||[]).map(a=>[a.id,a.image_url]));
    const gallery={...r.draft,rooms:r.draft.rooms.map((room,i)=>({
     ...room,id:'class-room-'+i,exhibits:room.exhibits.map((e,j)=>({
      ...e,id:'class-exhibit-'+i+'-'+j,image_url:urls.get(e.asset_id)||'',status:'published'
     }))
    }))};
-   setSpotlight({gallery,groupLabel:r.groupLabel});
+   setSpotlight({gallery,groupLabel:language==='en'?englishSystemGroupLabel(r.groupLabel):r.groupLabel});
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
  const fullscreen=async()=>{
@@ -149,7 +169,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
       <MuseumLivePaperArt variant={['artwork','peer','present','exit'].includes(stage?.kind)?'studio':stage?.kind==='quiz'?'gallery':'climate'}/>
       <div className="bml-paper-stage-titles">
        <div className="bml-live-section">{stage?.period===1?'PERIOD 01 · INVESTIGATE & DESIGN':'PERIOD 02 · CREATE, TEST & IMPROVE'}</div>
-       <h2>{stage?.title}</h2><p className="bml-live-vietnamese">{stage?.vi}</p>
+       <h2>{stage?.title}</h2>{language==='en'?null:<p className="bml-live-vietnamese">{stage?.vi}</p>}
       </div>
      </div>
      <div className="bml-paper-question-sheet"><div className="bml-live-question">{stage?.question}</div></div>
@@ -200,7 +220,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
       <button type="button" className="bml-presenter-close" aria-label="Close presenter panel" onClick={()=>setActiveTool(null)}><X size={22}/></button>
      </header>
      <div className="bml-presenter-panel-scroll">
-      {activeTool==='voice'?<MuseumVoiceover stage={stage} language={language}/>:null}
+      {activeTool==='voice'?<MuseumVoiceover stage={stage} language={language} shareWithStudents={session.media?.voiceEnabled===true} onShareToggle={shareNarration}/>:null}
       {activeTool==='resources'?<><MuseumResourceHub stage={stage} language={language}/><LessonResources stageIndex={currentIndex} language={language} teacher/></>:null}
       {activeTool==='video'?<MuseumVideoLab mode="teacher" stage={stage} stageIndex={currentIndex}
        media={session.media} assignmentId={assignmentId} transport={transport} version={session.version}
@@ -228,7 +248,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
         {t(language,'Nhập kiểm phiếu giấy khi không có phiếu online','Enter paper tally if no online votes')}</label>
         {paper?<><div className="bml-field-grid">{stage.options.map((option,i)=><label key={option}>{option}<input type="number"
          min="0" max="1000" value={tally[i]} onChange={e=>setTally(v=>v.map((x,j)=>i===j?e.target.value:x))}/></label>)}</div>
-         <label>{t(language,'Nguồn và thời điểm','Source and time')}<input value={tallyNote} maxLength={500} onChange={e=>setTallyNote(e.target.value)}/></label></>:null}
+         <label>{t(language,'Ghi chú nguồn','Source note')}<input value={tallyNote} maxLength={500} onChange={e=>setTallyNote(e.target.value)}/></label></>:null}
         <button className="bml-primary" type="button" disabled={busy} onClick={freeze}>{t(language,'Chốt số liệu khảo sát','Freeze survey')}</button>
         <p>{t(language,'Số liệu đã chốt không sửa; không suy ra thói quen cá nhân.','Frozen figures cannot be edited; no individual habits are inferred.')}</p></>}
        {currentIndex>=7&&state?.feedback?.length?<p>{state.feedback.length} {t(language,'phản hồi chéo đã lưu','saved peer responses')}</p>:null}
@@ -275,20 +295,20 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
      <span className="bml-live-help">{state?.needHelp||0} {t(language,'nhóm cần trợ giúp','groups requesting help')}</span>
     </div>
     {currentIndex===2&&session.evidenceVersion!==0?<div className="bml-evidence-controls">
-     {state?.survey?<><strong>Đã chốt · N={state.survey.n} lượt nhóm · {state.survey.source}</strong><p>{state.survey.created_at}</p><button className="bml-outline" onClick={()=>{const a=document.createElement('a');a.href=surveyChartPng(state.survey);a.download='Class-group-priority-survey.png';a.click();}}>{t(language,'Tải biểu đồ PNG','Download chart PNG')}</button></>:<>
+     {state?.survey?<><strong>Đã chốt · N={state.survey.n} lượt nhóm · {state.survey.source}</strong><button className="bml-outline" onClick={()=>{const a=document.createElement('a');a.href=surveyChartPng(state.survey);a.download='Class-group-priority-survey.png';a.click();}}>{t(language,'Tải biểu đồ PNG','Download chart PNG')}</button></>:<>
      <label><input type="checkbox" checked={paper} onChange={e=>setPaper(e.target.checked)}/> {t(language,'Nhập kiểm phiếu giấy (chỉ khi chưa có phiếu trực tuyến)','Enter paper tally (only with no online votes)')}</label>
-     {paper?<><div className="bml-field-grid">{stage.options.map((label,i)=><label key={label}>{label}<input type="number" min="0" max="1000" value={tally[i]} onChange={e=>setTally(v=>v.map((x,j)=>i===j?e.target.value:x))}/></label>)}</div><label>{t(language,'Nguồn phiếu và thời điểm','Paper source and time')}<input value={tallyNote} maxLength={500} onChange={e=>setTallyNote(e.target.value)}/></label></>:null}
+     {paper?<><div className="bml-field-grid">{stage.options.map((label,i)=><label key={label}>{label}<input type="number" min="0" max="1000" value={tally[i]} onChange={e=>setTally(v=>v.map((x,j)=>i===j?e.target.value:x))}/></label>)}</div><label>{t(language,'Nguồn phiếu giấy','Paper ballot source')}<input value={tallyNote} maxLength={500} onChange={e=>setTallyNote(e.target.value)}/></label></>:null}
      <button className="bml-primary" disabled={busy} onClick={freeze}>{t(language,'Chốt số liệu khảo sát / Freeze survey','Freeze survey')}</button><p>{t(language,'Số liệu đã chốt không sửa. N là số nhóm; không suy ra thói quen cá nhân.','Frozen counts cannot change. N counts groups, not individual habits.')}</p></>}
     </div>:null}
-    {currentIndex>=7&&state?.feedback?.length?<details open><summary>Phản hồi chéo đã lưu · {state.feedback.length}</summary>{state.feedback.map(r=><article key={r.from_group}><strong>{groups.find(g=>g.id===r.from_group)?.label} → {groups.find(g=>g.id===r.to_group)?.label} · {r.rating}/4</strong><p>{r.learned}</p><p>{r.clarify}</p></article>)}</details>:null}
+    {currentIndex>=7&&state?.feedback?.length?<details open><summary>{t(language,'Phản hồi chéo đã lưu','Saved peer feedback')} · {state.feedback.length}</summary>{state.feedback.map(r=><article key={r.from_group}><strong>{groups.find(g=>g.id===r.from_group)?.label} → {groups.find(g=>g.id===r.to_group)?.label} · {r.rating}/4</strong><p>{r.learned}</p><p>{r.clarify}</p></article>)}</details>:null}
     {currentIndex===10?<div>{state?.responses?.map(r=><p key={r.group_id}><strong>{groups.find(g=>g.id===r.group_id)?.label}: </strong>{String(r.value)}</p>)}</div>:null}
     {MICRO_CHALLENGES[currentIndex]?<div className="bml-live-micro-summary"><ShieldCheck size={17}/>
-     {state?.microResponses||0} nhóm đã nộp câu hỏi tư duy nhanh. Câu trả lời được lưu làm minh chứng quá trình.</div>:null}
+     {state?.microResponses||0} {t(language,'nhóm đã nộp câu hỏi tư duy nhanh. Câu trả lời được lưu làm minh chứng quá trình.','groups submitted a thinking challenge. Responses are saved as learning-process evidence.')}</div>:null}
     {!isFullscreen&&showResources?<div className="bml-paper-resource-drawer" data-testid="museum-live-resources">
      <MuseumResourceHub stage={stage} language={language}/>
      <LessonResources stageIndex={currentIndex} language={language} teacher/>
     </div>:null}
-    {!isFullscreen&&showVoiceover?<div className="bml-comp-panel"><MuseumVoiceover stage={stage} language={language}/></div>:null}
+    {!isFullscreen&&showVoiceover?<div className="bml-comp-panel"><MuseumVoiceover stage={stage} language={language} shareWithStudents={session.media?.voiceEnabled===true} onShareToggle={shareNarration}/></div>:null}
     {!isFullscreen&&showVideoLab?<div className="bml-comp-panel"><MuseumVideoLab mode="teacher" stage={stage}
       stageIndex={currentIndex} media={session.media} assignmentId={assignmentId} transport={transport}
       version={session.version} language={language} onProject={setStageVideo}

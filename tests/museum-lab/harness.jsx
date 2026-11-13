@@ -83,41 +83,44 @@ const demoTeacherApi=async(action,body)=>{
 };
 function Harness(){
  const [screen,setScreen]=useState('dashboard');
+  const englishOnly=screen.endsWith('-en');
+  const normalized=englishOnly?screen.slice(0,-3):screen;
+  const uiLanguage=englishOnly?'en':'vi';
  const [preparedKey,setPreparedKey]=useState('marine-12');
  return <div style={{fontFamily:'Roboto,Arial,sans-serif'}}>
   <div style={{display:'flex',gap:8,padding:10,background:'#e6f0ff',flexWrap:'wrap'}} data-testid="qa-harness">
    <strong>QA ONLY · ALL DATA SYNTHETIC</strong>
-   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','published-lesson'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
+   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','published-lesson','dashboard-en','student-en','teacher-live-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
   </div>
-  <div className={screen==='dashboard'?'':'bml'}>
-   {screen==='dashboard'?<MuseumLabApp currentUser={{id:'teacher-synthetic',name:'Demo Teacher'}} transport={demoDashboardApi}/>:null}
-   {screen==='student'?<MuseumLabStudent language="vi"/>:null}
-   {screen==='admin-review'?<Submissions data={submittedQa} language="vi" onNavigate={setScreen} onRefresh={async()=>{}}/>:null}
-   {screen==='published-lesson'?<LessonsList
+  <div className={normalized==='dashboard'?'':'bml'}>
+   {normalized==='dashboard'?<MuseumLabApp language={uiLanguage} currentUser={{id:'teacher-synthetic',name:'Demo Teacher'}} transport={demoDashboardApi}/>:null}
+   {normalized==='student'?<MuseumLabStudent language={uiLanguage}/>:null}
+   {normalized==='admin-review'?<Submissions data={submittedQa} language={uiLanguage} onNavigate={setScreen} onRefresh={async()=>{}}/>:null}
+   {normalized==='published-lesson'?<LessonsList
     data={{...synthetic,groups:synthetic.groups.map((g,i)=>i===0?{...g,state:'published'}:g)}}
-    language="vi" onCreate={()=>{}} onReview={()=>{}} onRefresh={async()=>{}}
+    language={uiLanguage} onCreate={()=>{}} onReview={()=>{}} onRefresh={async()=>{}}
     onOpenCollection={()=>{}}/>:null}
-   {screen==='teacher-live'?<MuseumLiveTeacher data={synthetic} language="vi" transport={demoTeacherApi}/>:null}
-   {screen==='student-live'?<MuseumLiveStudent csrf="qa-secret" language="vi"/>:null}
-   {screen==='artwork'?<MuseumArtworkStudio studio={{artworks:{issue:null,evidence:null,solution:null}}}
-     csrf="qa-secret" language="vi" uploadEnabled={true} update={()=>{}}/>:null}
-   {screen==='scene'?<MuseumScene gallery={DEMO_GALLERY} language="vi" onBack={()=>setScreen('dashboard')}/>:null}
-   {screen==='prepared'?<LessonsList data={preparedQa} language="vi" onCreate={()=>{}} onReview={()=>{}}
+   {normalized==='teacher-live'?<MuseumLiveTeacher data={synthetic} language={uiLanguage} transport={demoTeacherApi}/>:null}
+   {normalized==='student-live'?<MuseumLiveStudent csrf="qa-secret" language={uiLanguage}/>:null}
+   {normalized==='artwork'?<MuseumArtworkStudio studio={{artworks:{issue:null,evidence:null,solution:null}}}
+     csrf="qa-secret" language={uiLanguage} uploadEnabled={true} update={()=>{}}/>:null}
+   {normalized==='scene'?<MuseumScene gallery={DEMO_GALLERY} language={uiLanguage} onBack={()=>setScreen('dashboard')}/>:null}
+   {normalized==='prepared'?<LessonsList data={preparedQa} language={uiLanguage} onCreate={()=>{}} onReview={()=>{}}
      onRefresh={async()=>{}} onOpenCollection={key=>{setPreparedKey(key);setScreen('prepared-gallery');}}/>:null}
-   {screen==='prepared-gallery'?<MuseumExhibitionDetail gallery={preparedGallery(preparedKey)} language="vi"
+   {normalized==='prepared-gallery'?<MuseumExhibitionDetail gallery={preparedGallery(preparedKey)} language={uiLanguage}
      data={preparedQa} onBack={()=>setScreen('prepared')} onNavigate={setScreen}/>:null}
-   {screen==='evidence'?<MuseumEvidence data={{...synthetic,rubrics:[]}} language="vi"
+   {normalized==='evidence'?<MuseumEvidence data={{...synthetic,rubrics:[]}} language={uiLanguage}
      currentUser={{name:'Demo Teacher'}} onDemo={()=>setScreen('scene')}/>:null}
-   {screen==='exhibition'?<MuseumExhibitionDetail gallery={DEMO_GALLERY} isDemo language="vi"
+   {normalized==='exhibition'?<MuseumExhibitionDetail gallery={DEMO_GALLERY} isDemo language={uiLanguage}
      data={synthetic} onBack={()=>setScreen('dashboard')} onNavigate={setScreen}/>:null}
-   {screen==='exhibition-layout'?<div className="bml bml-app-layout bml-is-exhibition" data-testid="museum-layout-shell">
+   {normalized==='exhibition-layout'?<div className="bml bml-app-layout bml-is-exhibition" data-testid="museum-layout-shell">
       <aside className="bml-sidebar"><div className="bml-brand">BRIAN Museum Lab</div>
        <nav className="bml-nav"><button type="button">Dạy trực tiếp</button><button type="button" className="is-active">Triển lãm</button></nav></aside>
       <div className="bml-main-panel"><header className="bml-appbar">Museum Lab</header>
-       <main className="bml-page"><MuseumExhibitionDetail gallery={DEMO_GALLERY} isDemo language="vi"
+       <main className="bml-page"><MuseumExhibitionDetail gallery={DEMO_GALLERY} isDemo language={uiLanguage}
          data={synthetic} onBack={()=>setScreen('dashboard')} onNavigate={setScreen}/></main></div>
     </div>:null}
-   {screen==='wizard'?<LessonWizard data={synthetic} language="vi" onExit={()=>setScreen('dashboard')}
+   {normalized==='wizard'?<LessonWizard data={synthetic} language={uiLanguage} onExit={()=>setScreen('dashboard')}
     onCompleted={async()=>{}} onSettings={()=>setScreen('dashboard')}/>:null}
   </div>
  </div>;
