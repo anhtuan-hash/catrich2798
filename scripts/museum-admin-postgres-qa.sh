@@ -6,6 +6,7 @@ p(){ psql -X -v ON_ERROR_STOP=1 -q "$@"; }
 bash scripts/museum-evidence-postgres-qa.sh >/tmp/museum-evidence-base-admin.log 2>&1 || { tail -90 /tmp/museum-evidence-base-admin.log; exit 1; }
 p -f supabase/migrations/20261113010000_museum_admin_direct_review_archive.sql
 p -f supabase/migrations/20261113020000_museum_archive_published_lessons.sql
+p -f supabase/migrations/20261113033000_museum_live_competition_lab_v42.sql
 p <<'SQL'
 do $admin_test$
 declare owner uuid:='11111111-1111-4111-8111-111111111111';
@@ -104,4 +105,34 @@ begin
  then raise exception 'Admin-only function leaked to client roles';end if;
 end $privilege_test$;
 SQL
+p <<'SQL'
+do $competition_lab$
+declare s uuid; group_id uuid:='eeeeeeee-1111-4111-8111-111111111111';
+ denied boolean:=false;
+begin
+ select id into s from public.museum_live_sessions
+ where assignment_id='aaaaaaaa-1111-4111-8111-111111111111';
+ if s is null then raise exception 'QA live session missing';end if;
+ if not(select relrowsecurity from pg_class where oid='public.museum_live_micro_responses'::regclass)
+ then raise exception 'Competition micro responses must have RLS';end if;
+ if has_table_privilege('anon','public.museum_live_micro_responses','SELECT') or
+    has_table_privilege('authenticated','public.museum_live_micro_responses','INSERT')
+ then raise exception 'Micro response leaked through Data API';end if;
+ update public.museum_live_sessions set media_board='{
+  "3":{"query":"NASA climate change","instruction":"Find a verifiable source","videos":[]}
+ }'::jsonb where id=s;
+ if (select media_board->'3'->>'query' from public.museum_live_sessions where id=s)<>'NASA climate change'
+ then raise exception 'Teacher media board not stored';end if;
+ insert into public.museum_live_micro_responses(session_id,group_id,stage_index,choice,reason)
+ values(s,group_id,3,0,'I chose a reliable source because its observations can be verified.');
+ begin
+  insert into public.museum_live_micro_responses(session_id,group_id,stage_index,choice,reason)
+  values(s,group_id,3,1,'This second response must never replace the authentic first submission.');
+ exception when unique_violation then denied:=true;end;
+ if not denied then raise exception 'Duplicate group answer accepted';end if;
+ if (select choice from public.museum_live_micro_responses where session_id=s and group_id=group_id and stage_index=3)<>0
+ then raise exception 'Original answer overwritten';end if;
+end $competition_lab$;
+SQL
+
 echo "[museum-admin] PASS: one Admin issues, reviews, publishes and archives both unpublished/published lessons with original gallery preserved."
