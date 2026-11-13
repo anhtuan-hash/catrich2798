@@ -73,7 +73,7 @@ export default async function museumLive(req,res){
     return send(res,200,{session:stateOf(session,{staff:true}),stageCount:LIVE_STAGES.length,
      microResponses:micro.length,microResults:micro,
      result:(()=>{const r=summarizeResponses(session.stage_index,responses);if(session.evidence_version===0&&session.stage_index===2)r.options=r.options.map((o,i)=>({...o,label:legacySurvey.options[i]}));return r;})(),
-     groups:grp,needHelp:helps.length,survey:await surveyFor(admin,session.id),feedback:await feedbackFor(admin,session.id),responses:await query(admin.from('museum_live_responses').select('group_id,value,created_at').eq('session_id',session.id).eq('stage_index',session.stage_index))});
+     groups:grp,needHelp:new Set(helps.map(h=>h.group_id)).size,helpGroups:[...new Set(helps.map(h=>h.group_id))],survey:await surveyFor(admin,session.id),feedback:await feedbackFor(admin,session.id),responses:await query(admin.from('museum_live_responses').select('group_id,value,created_at').eq('session_id',session.id).eq('stage_index',session.stage_index))});
    }
    if(op==='video-search'){
     requireMethod(req,'GET');
