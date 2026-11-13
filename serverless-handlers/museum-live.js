@@ -35,7 +35,7 @@ function stateOf(s,{staff=false}={}){
  return {id:s.id,assignmentId:s.assignment_id,status:s.status,stageIndex:s.stage_index,
   stageOpen:s.stage_open,revealed:s.revealed,version:s.version,
   stageStartedAt:s.stage_started_at,elapsedSeconds:s.elapsed_seconds,updatedAt:s.updated_at,
-  evidenceVersion:s.evidence_version,media:mediaTask(s),
+  evidenceVersion:s.evidence_version,questionVersion:Number(s.media_board?.lessonQuestionVersion||1),media:mediaTask(s),
   stage:publicStage(s.evidence_version===0&&s.stage_index===2?legacySurvey:sessionStage(s,s.stage_index),s.revealed,staff)};
 }
 async function groupGallery(admin,groupId){
