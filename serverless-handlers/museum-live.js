@@ -81,7 +81,7 @@ export default async function museumLive(req,res){
     const q=mediaText(req.query?.q,120);
     return send(res,200,await searchVideos(q,{teacher:true}));
    }
-   if(['media-task','media-add','media-remove'].includes(op)){
+   if(['media-task','media-add','media-remove','media-voice'].includes(op)){
     requireMethod(req,'POST');guardOrigin(req);
     const body=guardBody(req,1800);
     if(!session||session.status==='ended')throw fail(423,'Buổi dạy chưa hoạt động.');
@@ -91,7 +91,10 @@ export default async function museumLive(req,res){
     if(!Number.isInteger(index)||index<0||index>=LIVE_STAGES.length)throw fail(400,'Hoạt động không hợp lệ.');
     let patch={};
     const current=videoTaskFor(session.media_board,index);
-    if(op==='media-task'){
+    if(op==='media-voice'){
+     if(typeof body.enabled!=='boolean')throw fail(400,'Narration setting must be true or false.');
+     patch={voiceEnabled:body.enabled};
+    }else if(op==='media-task'){
      const q=mediaText(body.query,120),instruction=mediaText(body.instruction,350);
      if(q&&q.length<6)throw fail(400,'Từ khóa cần có ít nhất 6 ký tự.');
      patch={query:q,instruction};

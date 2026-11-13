@@ -51,6 +51,8 @@ jobs:
         run: node --test scripts/test-museum-competition-v42.mjs
       - name: Fullscreen teaching dock and en-US voice strictness
         run: node --test scripts/test-museum-live-fullscreen-v43.mjs
+      - name: Stage-scoped assigned videos and opt-in student narration
+        run: node --test scripts/test-museum-stage-media-v50.mjs
       - name: School-inspired 3D hall, authentic identity and backwards compatibility
         run: node --test scripts/test-pek-museum-v33.mjs
       - name: Artwork 360 orbit, original media and accessibility contract

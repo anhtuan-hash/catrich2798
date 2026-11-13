@@ -5,7 +5,7 @@ import {rankAmericanVoices} from './americanVoices.js';
 
 // Local browser TTS: never records pupils, never sends text to our own TTS server.
 // We only present voices marked en-US. Browser voice quality/availability is OS-dependent.
-export default function MuseumVoiceover({stage,language='vi',compact=false}){
+export default function MuseumVoiceover({stage,language='vi',compact=false,shareWithStudents=false,onShareToggle=null}){
  const [supported,setSupported]=useState(false),[voices,setVoices]=useState([]);
  const [voiceUri,setVoiceUri]=useState('');
  const [playing,setPlaying]=useState(false),[paused,setPaused]=useState(false);
@@ -74,6 +74,8 @@ export default function MuseumVoiceover({stage,language='vi',compact=false}){
    <label>Speed <select value={rate} onChange={e=>{stop();setRate(Number(e.target.value));}} aria-label="Voiceover speed">
     <option value={.8}>{'0.8×'}</option><option value={.9}>{'0.9×'}</option><option value={1}>{'1×'}</option><option value={1.1}>{'1.1×'}</option>
    </select></label>
+   {onShareToggle?<button type="button" className="bml-outline" aria-pressed={shareWithStudents}
+    onClick={onShareToggle}>{shareWithStudents?'Student narration ON':'Share narration with students'}</button>:null}
   </div>
   <details><summary>{language==='en'?'Read the transcript':'Xem kịch bản lời dẫn'}</summary>
    <p lang="en">{text}</p></details>

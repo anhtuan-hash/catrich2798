@@ -3,6 +3,7 @@ import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronLeft,ChevronRigh
 import {emptyStudio,documentFromStudio,normalizeStudio,STEPS,submissionMissing} from './museumData.js';
 import {guestRequest,fmtTime,englishSystemGroupLabel} from './museumApi.js';
 import {liveGuest} from './museumLiveApi.js';
+import {stageMediaTools} from './museumLiveExtensions.js';
 import {wordCount,evidenceMissing,changedExhibits} from './learningEvidence.js';
 import MuseumScene from './MuseumScene.jsx';
 import MuseumLiveStudent from './MuseumLiveStudent.jsx';
@@ -158,6 +159,7 @@ export default function MuseumLabStudent({language='en'}){
  const exhibitStatus=()=>[l.issue,l.evidence,l.solution].filter(Boolean).length;
  const progressChecks=[!!studio.title,!!l.issue,!!l.evidence,!!l.solution,!!l.source,!!l.feedback,!!l.improvement,!!l.tested,!!l.reflection];
  const progressPercent=Math.round(100*progressChecks.filter(Boolean).length/progressChecks.length);
+ const studentMedia=stageMediaTools(liveInfo);
  return <main className="bml bml-student-shell bml-student-canvas16 bml-student-editorial" data-testid="museum-student-wizard" lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
   <header className="bml-student-bar"><div className="bml-brand"><span className="bml-brand-icon"><Landmark size={23}/></span><span><strong>BRIAN Museum Lab</strong><small>Student Creator</small></span></div>
    <div className="bml-student-right"><span className="bml-group-pill"><Users size={16}/>{language==='en'?englishSystemGroupLabel(session.groupLabel):session.groupLabel} · {session.assignment.class_scope}</span>
@@ -209,8 +211,8 @@ export default function MuseumLabStudent({language='en'}){
      <div className="bml-student-rail-tools">
       <button type="button" onClick={()=>showTool('materials')}><BookOpen size={18}/>{T(language,'Tài liệu bài học','Lesson materials')}</button>
       <button type="button" onClick={()=>showTool('research')}><FileText size={18}/>{T(language,'Kho tư liệu','Research library')}</button>
-      <button type="button" onClick={()=>showTool('voice')}><Lightbulb size={18}/>{T(language,'Giọng đọc Anh Mỹ','US voiceover')}</button>
-      <button type="button" onClick={()=>showTool('video')}><Eye size={18}/>{T(language,'Video học tập','Learning videos')}</button>
+      {studentMedia.voice?<button type="button" onClick={()=>showTool('voice')}><Lightbulb size={18}/>{T(language,'Giọng đọc Anh Mỹ','US voiceover')}</button>:null}
+      {studentMedia.video?<button type="button" onClick={()=>showTool('video')}><Eye size={18}/>{T(language,'Video học tập','Learning videos')}</button>:null}
       <button type="button" onClick={()=>showTool('micro')}><ClipboardCheck size={18}/>{T(language,'Câu hỏi bổ sung','Thinking challenge')}</button>
      </div>
      <div className="bml-student-rail-footer"><ShieldCheck size={17}/>{T(language,'Bài của nhóm được lưu riêng tư.','Your group work stays private.')}</div>

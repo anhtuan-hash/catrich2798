@@ -31,9 +31,20 @@ export default function MuseumVideoLab({mode='student',stage,stageIndex,media,as
   if(busy)return;
   setBusy(true);setError('');setMessage('');
   try{
-   const out=await transport(action,{assignmentId,stageIndex,version,...payload});
+   const request=expectedVersion=>transport(action,{assignmentId,stageIndex,version:expectedVersion,...payload});
+   let out;
+   try{out=await request(version);}
+   catch(e){
+    if(!teacher||e.status!==409)throw e;
+    const latest=await transport('state',null,{assignmentId});
+    if(latest.session?.stageIndex!==stageIndex)throw new Error('The activity changed. Reopen Video Lab for the current activity.');
+    out=await request(latest.session.version);
+   }
    await onSaved?.(out);
-   setMessage(tr(language,'Đã lưu nhiệm vụ video cho tiết học.','Video task saved for this lesson.'));
+   setMessage(action==='media-task'?
+    (payload.query?'Research task assigned to the current activity.':'Research task cleared from this activity.'):
+    action==='media-add'?'YouTube video assigned to the current activity.':
+    'Video removed from the current activity.');
    if(action==='media-add'){setManualUrl('');setManualTitle('');}
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
@@ -72,16 +83,18 @@ export default function MuseumVideoLab({mode='student',stage,stageIndex,media,as
     <textarea rows={2} maxLength={350} value={instruction} onChange={e=>setInstruction(e.target.value)}
      placeholder="Find one claim, identify its source, and explain a limitation in English."/></label>
    <div className="bml-video-actions">
-    <button type="button" className="bml-primary" disabled={busy||Boolean(query)&&query.trim().length<6}
-     onClick={()=>save('media-task',{query:query.trim(),instruction:instruction.trim()})}><Check size={17}/>{tr(language,'Giao nhiệm vụ video','Assign video research')}</button>
+    <button type="button" className="bml-primary" disabled={busy||query.trim().length<6}
+     onClick={()=>save('media-task',{query:query.trim(),instruction:instruction.trim()})}><Check size={17}/>Assign research task</button>
+    {task.query?<button type="button" className="bml-outline" disabled={busy} onClick={()=>save('media-task',{query:'',instruction:''})}>Clear research task</button>:null}
     <button type="button" className="bml-outline" disabled={busy||query.trim().length<4} onClick={search}><Search size={17}/>{tr(language,'Tìm video trên YouTube','Search YouTube videos')}</button>
    </div>
    <div className="bml-video-manual"><label>{tr(language,'Hoặc chọn trước một video YouTube phù hợp','Or select a suitable YouTube video in advance')}
     <input maxLength={250} value={manualUrl} placeholder="https://www.youtube.com/watch?v=…" onChange={e=>setManualUrl(e.target.value)}/></label>
     <label>{tr(language,'Tên video / nguồn','Video title / source')}
      <input maxLength={160} value={manualTitle} placeholder="Teacher-curated climate video" onChange={e=>setManualTitle(e.target.value)}/></label>
-    <button type="button" className="bml-outline" disabled={busy||!extractYouTubeVideoId(manualUrl)} onClick={addManual}><Link2 size={16}/>{tr(language,'Thêm vào kho học liệu','Add to class library')}</button>
+    <button type="button" className="bml-outline" disabled={busy||!extractYouTubeVideoId(manualUrl)} onClick={addManual}><Link2 size={16}/>Assign video to this activity</button>
    </div>
+   <p className="bml-video-note" role="status">{task.query?'Research task assigned · ':''}{videos.length?videos.length+' video(s) assigned to this activity':'Paste a YouTube URL above to assign a specific video without an API key.'}</p>
   </div>:<div className="bml-video-task">
    <span className="bml-video-task-label"><ShieldCheck size={17}/>{tr(language,'NHIỆM VỤ GIÁO VIÊN GIAO','TEACHER-ASSIGNED RESEARCH')}</span>
    <strong>{task.query||'Teacher-selected research videos'}</strong>
