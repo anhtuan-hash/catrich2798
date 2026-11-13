@@ -1,6 +1,7 @@
 import React,{useEffect,useState} from 'react';
 import {CheckCircle2,Eye,HelpCircle,Info,Lock,MessageCircle,RefreshCcw,Send,Users,BookOpen,Volume2} from 'lucide-react';
 import {liveGuest} from './museumLiveApi.js';
+import {englishSystemGroupLabel} from './museumApi.js';
 import LessonResources from './LessonResources.jsx';
 import {validatePeer} from './learningEvidence.js';
 import MuseumScene from './MuseumScene.jsx';
@@ -42,7 +43,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
   catch(e){setError(e.message);}
  };
  const visitPeer=async()=>{setError('');try{const r=await liveGuest('peer-gallery');if(!r.gallery){setError(t(language,'Chưa có nhóm khác để tham quan.','No other group gallery yet.'));return;}
-   setPeerLabel(r.gallery.groupLabel+' · v'+r.gallery.version);
+   setPeerLabel((language==='en'?englishSystemGroupLabel(r.gallery.groupLabel):r.gallery.groupLabel)+' · v'+r.gallery.version);
    const draft=r.gallery.draft||{},signed=new Map((r.gallery.artworks||[]).map(x=>[x.id,x.image_url]));
    setPeer({...draft,summary:'Temporary private classroom preview',rooms:(draft.rooms||[]).map((room,i)=>({
     ...room,id:'peer-room-'+i,exhibits:(room.exhibits||[]).map((e,j)=>({

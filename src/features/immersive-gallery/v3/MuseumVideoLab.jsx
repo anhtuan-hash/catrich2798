@@ -54,7 +54,7 @@ export default function MuseumVideoLab({mode='student',stage,stageIndex,media,as
  };
  const addManual=()=>{
   const id=extractYouTubeVideoId(manualUrl);
-  if(!id){setError('Hãy nhập URL video YouTube hợp lệ (watch, youtu.be, shorts hoặc embed).');return;}
+  if(!id){setError(tr(language,'Hãy nhập URL video YouTube hợp lệ (watch, youtu.be, shorts hoặc embed).','Enter a valid YouTube URL (watch, youtu.be, Shorts or embed).'));return;}
   save('media-add',{videoId:id,title:manualTitle||'Teacher-selected video',channel:''});
  };
  const suggestion=VIDEO_TASK_SUGGESTIONS[stage?.id]||'climate change school action';
@@ -76,9 +76,9 @@ export default function MuseumVideoLab({mode='student',stage,stageIndex,media,as
      onClick={()=>save('media-task',{query:query.trim(),instruction:instruction.trim()})}><Check size={17}/>{tr(language,'Giao nhiệm vụ video','Assign video research')}</button>
     <button type="button" className="bml-outline" disabled={busy||query.trim().length<4} onClick={search}><Search size={17}/>{tr(language,'Tìm video trên YouTube','Search YouTube videos')}</button>
    </div>
-   <div className="bml-video-manual"><label>Hoặc chọn trước một video YouTube phù hợp
+   <div className="bml-video-manual"><label>{tr(language,'Hoặc chọn trước một video YouTube phù hợp','Or select a suitable YouTube video in advance')}
     <input maxLength={250} value={manualUrl} placeholder="https://www.youtube.com/watch?v=…" onChange={e=>setManualUrl(e.target.value)}/></label>
-    <label>Tên video / nguồn
+    <label>{tr(language,'Tên video / nguồn','Video title / source')}
      <input maxLength={160} value={manualTitle} placeholder="Teacher-curated climate video" onChange={e=>setManualTitle(e.target.value)}/></label>
     <button type="button" className="bml-outline" disabled={busy||!extractYouTubeVideoId(manualUrl)} onClick={addManual}><Link2 size={16}/>{tr(language,'Thêm vào kho học liệu','Add to class library')}</button>
    </div>
@@ -91,10 +91,10 @@ export default function MuseumVideoLab({mode='student',stage,stageIndex,media,as
     <button className="bml-primary" disabled={busy} onClick={search}><Search size={16}/>{tr(language,'Tìm video','Search videos')}</button></div>:null}
   </div>}
   {videos.length?<div className="bml-video-approved">
-   <div className="bml-video-kicker"><Check size={16}/> VIDEO GIÁO VIÊN ĐÃ CHỌN · {videos.length}</div>
+   <div className="bml-video-kicker"><Check size={16}/> {tr(language,'VIDEO GIÁO VIÊN ĐÃ CHỌN','TEACHER-SELECTED VIDEOS')} · {videos.length}</div>
    <div className="bml-video-results">{videos.map(v=><div className="bml-video-result" key={v.id}>
     <div><strong>{v.title}</strong><small>{v.channel||'YouTube'} · ID {v.id}</small></div>
-    <div className="bml-video-actions"><button className="bml-outline" type="button" onClick={()=>{setSelected(v);onProject?.(v);}}><Play size={15}/>{teacher?'Chiếu video':'Xem tại đây'}</button>
+    <div className="bml-video-actions"><button className="bml-outline" type="button" onClick={()=>{setSelected(v);onProject?.(v);}}><Play size={15}/>{teacher?tr(language,'Chiếu video','Project video'):tr(language,'Xem tại đây','Watch here')}</button>
      {teacher?<button className="bml-outline" disabled={busy} type="button" onClick={()=>save('media-remove',{videoId:v.id})}><Trash2 size={15}/>{tr(language,'Bỏ','Remove')}</button>:null}</div>
    </div>)}</div>
   </div>:null}
@@ -103,8 +103,8 @@ export default function MuseumVideoLab({mode='student',stage,stageIndex,media,as
    {results.map(v=><div className="bml-video-result" key={v.id}>
     <div><strong>{v.title}</strong><small>{v.channel}</small></div>
     <div className="bml-video-actions">
-     <button type="button" className="bml-outline" onClick={()=>{setSelected(v);onProject?.(v);}}><Play size={15}/>{teacher?'Xem thử':'Xem tại đây'}</button>
-     {teacher?<button type="button" className="bml-primary" disabled={busy||videos.some(x=>x.id===v.id)} onClick={()=>save('media-add',{videoId:v.id,title:v.title,channel:v.channel})}><Check size={15}/>Duyệt</button>:null}
+     <button type="button" className="bml-outline" onClick={()=>{setSelected(v);onProject?.(v);}}><Play size={15}/>{teacher?tr(language,'Xem thử','Preview'):tr(language,'Xem tại đây','Watch here')}</button>
+     {teacher?<button type="button" className="bml-primary" disabled={busy||videos.some(x=>x.id===v.id)} onClick={()=>save('media-add',{videoId:v.id,title:v.title,channel:v.channel})}><Check size={15}/>{tr(language,'Duyệt','Approve')}</button>:null}
     </div>
    </div>)}
   </div>:null}

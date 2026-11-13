@@ -17,19 +17,19 @@ export default function MuseumEvidence({data,currentUser,onDemo,language='vi'}){
   teacher:currentUser?.full_name||currentUser?.name||'',
   birthYear:'',gender:'',experience:'',school:data?.profile?.school||'',phone:'',
   topic:'Climate Action Museum',context:'',foundation:'',outcomes:'',
-  competencies:'',space:'Trong lớp học',objectives:'',drivingQuestion:''
+  competencies:'',space:'Classroom',objectives:'',drivingQuestion:''
  });
  const localReviews=selected?reviews.filter(r=>data.groups?.some(g=>g.id===r.group_id&&g.assignment_id===selected.id)):[];
  const approved=localReviews.filter(r=>['approved_locked','published'].includes(r.state));
  const hasScore=localReviews.some(r=>rubrics.some(s=>s.review_id===r.id));
  const completeProfile=Boolean(fields.teacher&&fields.birthYear&&fields.gender&&fields.experience&&fields.school&&fields.phone);
  const checklist=[
-  {label:'Phần 1: Thông tin giáo viên và bối cảnh',done:completeProfile,desc:'Kiểm tra tên, năm sinh, môn Tiếng Anh, đơn vị, liên hệ'},
-  {label:'Phần 2: Kế hoạch hai tiết',done:Boolean(fields.objectives&&fields.foundation&&selected),desc:'Mục tiêu, yêu cầu cần đạt và tiến trình STEM/STEAM'},
-  {label:'Học liệu số hỗ trợ',done:true,desc:'Bốn thẻ ngữ liệu có nguồn và hướng dẫn dùng giấy được kèm trong ZIP'},
-  {label:'Sản phẩm học sinh được duyệt',done:approved.length>0,desc:approved.length+' bản được duyệt trong dữ liệu thật'},
-  {label:'Rubric đã chấm',done:hasScore,desc:hasScore?'Có điểm rubric đã lưu':'Chưa có rubric của bản nộp thật'},
-  {label:'Minh chứng lớp học thật',done:false,desc:'Cần bổ sung ảnh, video, phiếu học tập và bản sửa được phép chia sẻ'}
+  {label:'Section 1: Teacher and school context',done:completeProfile,desc:'Check name, birth year, English subject, institution and contact details'},
+  {label:'Section 2: Two-period teaching plan',done:Boolean(fields.objectives&&fields.foundation&&selected),desc:'Objectives, learning outcomes and STEM/STEAM sequence'},
+  {label:'Digital learning resources',done:true,desc:'Four sourced language cards and a printable guide are included in the ZIP'},
+  {label:'Approved student work',done:approved.length>0,desc:approved.length+' approved entries in authentic records'},
+  {label:'Rubric scored',done:hasScore,desc:hasScore?'Saved rubric score available':'No scored rubric from an authentic submission yet'},
+  {label:'Authentic classroom evidence',done:false,desc:'Add permitted classroom photos, videos, worksheets and revision evidence'}
  ];
  const completed=checklist.filter(c=>c.done).length;
  const downloadDoc=async(part)=>{
@@ -73,7 +73,7 @@ export default function MuseumEvidence({data,currentUser,onDemo,language='vi'}){
     <button type="button" className="bml-outline" disabled={exportBusy} onClick={downloadZip}><FileArchive size={18}/>{tr(language,'Tải ZIP hồ sơ nháp P1/P2','Download P1/P2 draft ZIP')}</button>
     <button type="button" className="bml-outline" disabled={exportBusy||!selected} onClick={downloadEvidence}><Download size={18}/>{tr(language,'Xuất khảo sát · góp ý · bản trước/sau · ảnh thật','Export survey · feedback · revisions · original images')}</button>
     {exportError?<div className="bml-banner bml-danger-banner" role="alert">{exportError}</div>:null}
-    <button type="button" className="bml-outline" onClick={()=>saveTextFile('BRIAN_MuseumLab_TienDo.csv','text/csv;charset=utf-8',buildProgressCsv(data))}><Download size={18}/>{tr(language,'Tải bảng tiến độ CSV','Download progress CSV')}</button>
+    <button type="button" className="bml-outline" onClick={()=>saveTextFile('BRIAN_MuseumLab_Progress.csv','text/csv;charset=utf-8',buildProgressCsv(data,language))}><Download size={18}/>{tr(language,'Tải bảng tiến độ CSV','Download progress CSV')}</button>
     <a className="bml-outline" href="/museum-lesson-guide.html" target="_blank" rel="noreferrer">{tr(language,'Hướng dẫn bài dạy · không cần đăng nhập','Read-only lesson guide · no login')}</a>
     <small>{tr(language,'ZIP gồm P1/P2 đúng tên giáo viên, học liệu và bảng kiểm. Nút xuất minh chứng tải dữ liệu lớp đã lưu riêng; tổng P2 sau khi ghép phải không quá 50 MB. Giáo viên phải bổ sung học liệu thật, kiểm tra giới hạn dung lượng trước khi nộp.','ZIP includes two editable DOCX drafts and a missing-evidence checklist. Add authentic teaching materials and verify the official file-size limit before submission.')}</small>
    </aside>

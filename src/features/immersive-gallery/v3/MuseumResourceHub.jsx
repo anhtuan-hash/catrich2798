@@ -28,7 +28,7 @@ export default function MuseumResourceHub({stage,language='vi'}){
  return <section className="bml-resource-hub" data-testid="museum-research-library">
   <div className="bml-resource-hub-head">
    <div><div className="bml-video-kicker"><BookOpen size={17}/> RESEARCH LIBRARY</div>
-    <h3>Kho tư liệu · {stage?.title||'English climate action'}</h3>
+    <h3>{tr(language,'Kho tư liệu','Research library')} · {stage?.title||'English climate action'}</h3>
     <p>{tr(language,'Tư liệu khoa học, đọc hiểu và câu mẫu có nguồn; phù hợp hoạt động hiện tại.','Sourced climate science, reading and English language supports for this activity.')}</p></div>
    <label className="bml-resource-search"><Search size={16}/>
     <input value={filter} onChange={e=>setFilter(e.target.value)} placeholder={tr(language,"Search sources / tìm trong kho…","Search the learning library…")} aria-label="Search learning library"/></label>

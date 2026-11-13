@@ -8,7 +8,7 @@ const t=(lang,vi,en)=>lang==='en'?en:vi;
 const short=(value,length=300)=>String(value??'').trim().slice(0,length);
 const dateLabel=value=>{
  if(!value||Number.isNaN(Date.parse(value)))return '';
- return new Date(value).toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'});
+ return new Date(value).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'});
 };
 function Metric({icon:Icon,value,label,subtitle,tone}){
  return <div className={'bml-exh-metric bml-exh-metric-'+tone}>
@@ -79,7 +79,7 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
     ...(room.exhibits||[]).map((e,j)=>String(j+1)+') '+short(e.title,140)+' — '+short(e.description,800)),
     ''
    ]),
-   isDemo?'DEMO — Nội dung minh họa, không phải sản phẩm học sinh thật.':'',
+   isDemo?'DEMO — Illustrative content, not authentic student work.':'',
    'Generated from currently visible exhibition content.'];
   saveTextFile('BRIAN_Museum_Exhibition_Summary.txt','text/plain;charset=utf-8',lines.join('\n'));
  };

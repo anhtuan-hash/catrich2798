@@ -1,6 +1,7 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookOpen,CalendarDays,Check,CheckCircle2,ChevronRight,ClipboardList,Copy,Download,ExternalLink,KeyRound,LockKeyhole,Plus,Printer,QrCode,RefreshCw,ShieldAlert,Trash2,Users} from 'lucide-react';
 import {LESSON_KITS,progressOfGroup} from './museumData.js';
+import {englishSystemGroupLabel} from './museumApi.js';
 import {LIVE_STAGES,LIVE_TOTAL_MINUTES} from './liveLesson.js';
 import {preparedCollectionFor} from './museumPreparedCollections.js';
 import './museumPrepared.css';
@@ -20,8 +21,8 @@ export function OneTimeInvites({invitations,onClose,language='vi'}){
     <p>{tr(language,'Lưu hoặc in ngay. Mã bí mật chỉ được hiển thị một lần và không nằm trong QR.','Save or print these codes now. Private secrets are shown only once and are never embedded in QR codes.')}</p></div>
    <button type="button" className="bml-icon-btn" onClick={onClose} aria-label="Close">✕</button></div>
   <div className="bml-qr-grid">{invitations.map(inv=><article className="bml-qr-card" key={inv.groupId}>
-   <div className="bml-qr-top"><span className="bml-overline">BRIAN · MUSEUM LAB</span><strong>{inv.label}</strong></div>
-   {qr[inv.groupId]?<img src={qr[inv.groupId]} width="180" height="180" alt={tr(language,'Mã QR mở Studio cho ','QR for ')+inv.label}/>:<div className="bml-qr-placeholder"><QrCode size={50}/></div>}
+   <div className="bml-qr-top"><span className="bml-overline">BRIAN · MUSEUM LAB</span><strong>{language==='en'?englishSystemGroupLabel(inv.label):inv.label}</strong></div>
+   {qr[inv.groupId]?<img src={qr[inv.groupId]} width="180" height="180" alt={tr(language,'Mã QR mở Studio cho ','QR for ')+(language==='en'?englishSystemGroupLabel(inv.label):inv.label)}/>:<div className="bml-qr-placeholder"><QrCode size={50}/></div>}
    <small>{tr(language,'QUÉT QR ĐỂ VÀO','SCAN TO START')}</small>
    <div className="bml-secret"><span>{tr(language,'Mã mời','Invite')}</span><code>{inv.handle}</code></div>
    <div className="bml-secret"><span>{tr(language,'Mã bí mật','Private code')}</span><code>{inv.groupSecret}</code></div>
@@ -106,7 +107,7 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'})
     <p>{tr(language,'Xác nhận nội dung trước khi tạo mã nhóm. Sau khi tạo, mã bí mật sẽ chỉ xuất hiện một lần.','Confirm details before generating one-time private group codes.')}</p>
     <div className="bml-field-grid">
      <label>{tr(language,'Tên chủ đề','Lesson title')}<input maxLength={140} value={title} onChange={e=>setForm(v=>({...v,title:e.target.value}))}/></label>
-     <label>{tr(language,'Lớp / nhóm','Class / groups')}<input disabled value={form.classScope+' · '+form.groupCount+' nhóm'}/></label>
+     <label>{tr(language,'Lớp / nhóm','Class / groups')}<input disabled value={form.classScope+' · '+form.groupCount+' '+tr(language,'nhóm','groups')}/></label>
     </div>
     <label className="bml-full-field">{tr(language,'Nhiệm vụ của học sinh','Student assignment')}<textarea rows={5} maxLength={5000} value={brief} onChange={e=>setForm(v=>({...v,brief:e.target.value}))}/></label>
     <div className="bml-wizard-summary"><div><BookOpen size={21}/><span>{kit.title}</span></div>
@@ -145,7 +146,7 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
  const allAssignments=data?.assignments||[],assignments=allAssignments.filter(a=>(a.title+' '+a.class_scope).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())),groups=data?.groups||[],reviews=data?.reviews||[];
  const rotate=async groupId=>{if(!window.confirm(tr(language,'Mã cũ sẽ bị thu hồi. Bạn muốn cấp mã mới?','The old code will be revoked. Generate a new one?')))return;
   setBusy(true);setError('');
-  try{const out=await staffRequest('rotate-invite',{groupId});setInvites([{groupId:out.groupId,label:'Mã cấp lại',handle:out.handle,groupSecret:out.groupSecret}]);await onRefresh();}
+  try{const out=await staffRequest('rotate-invite',{groupId});setInvites([{groupId:out.groupId,label:tr(language,'Mã cấp lại','New invitation'),handle:out.handle,groupSecret:out.groupSecret}]);await onRefresh();}
   catch(e){setError(e.message);}finally{setBusy(false);}
  };
  return <div className="bml-screen" data-testid="museum-lessons"><div className="bml-heading-actions"><div><div className="bml-overline">{tr(language,'LỚP HỌC SỐ','LESSON WORKSPACE')}</div>
@@ -171,9 +172,9 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
      </div></div>
     <div className="bml-progress bml-progress-wide"><div style={{width:(mine.length?100*done/mine.length:0)+'%'}}/></div>
     {selected===a.id?<div className="bml-group-list">{mine.map(g=>{
-      const state=progressOfGroup(g.state);const review=reviews.find(r=>r.group_id===g.id);
+      const state=progressOfGroup(g.state,language);const review=reviews.find(r=>r.group_id===g.id);
       return <div className="bml-group-row" key={g.id}><span className="bml-group-avatar"><Users size={18}/></span>
-       <div><strong>{g.label}</strong><small>{state.label}</small></div><span className="bml-progress-small"><i style={{width:state.pct+'%'}}/></span>
+       <div><strong>{language==='en'?englishSystemGroupLabel(g.label):g.label}</strong><small>{state.label}</small></div><span className="bml-progress-small"><i style={{width:state.pct+'%'}}/></span>
        {review?<button type="button" className="bml-text-btn" onClick={()=>onReview(review.id)}>{tr(language,'Xem bài','Review')} <ArrowRight size={16}/></button>:null}
        {['issued','editing','changes_requested'].includes(g.state)&&a.created_by===data?.profile?.id?
        <button type="button" disabled={busy} className="bml-quiet-btn" onClick={()=>rotate(g.id)}><KeyRound size={16}/>{tr(language,'Cấp lại mã','Reset code')}</button>:null}

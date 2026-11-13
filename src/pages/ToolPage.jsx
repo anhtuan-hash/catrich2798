@@ -19,7 +19,7 @@ function ToolFallback({ language = 'vi' }) {
 }
 
 function renderLazy(Component, props, extraProps = {}) {
-  return <Suspense fallback={<ToolFallback language={props.language} />}><Component {...props} {...extraProps} /></Suspense>;
+  return <Suspense fallback={<ToolFallback language={extraProps.language ?? props.language} />}><Component {...props} {...extraProps} /></Suspense>;
 }
 
 const templates = [
@@ -59,7 +59,7 @@ export default function ToolPage(props) {
   if (tool?.slug === 'sync-doctor') return renderLazy(SyncDoctor, props);
   if (tool?.slug === 'lesson-check-studio') return renderLazy(LessonCheckStudio, props);
   if (tool?.slug === 'questatlas') return renderLazy(QuestAtlas, props);
-  if (tool?.slug === 'immersive-gallery') return renderLazy(ImmersiveGallery, props);
+  if (tool?.slug === 'immersive-gallery') return renderLazy(ImmersiveGallery, props, { language: 'en' });
   if (tool?.slug === 'textlab-activities') return renderLazy(TextLabActivities, props);
   if (tool?.slug === 'thpt-practice-hub') return renderLazy(THPTPracticeHub, props);
   if (tool?.slug === 'brian-team') return renderLazy(BrianTeamPortal, props);

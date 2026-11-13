@@ -60,7 +60,7 @@ export default function MuseumArtworkStudio({studio,update,csrf,disabled=false,u
       <input type="file" accept="image/jpeg,image/png,image/webp" disabled={disabled||!uploadEnabled||!!busySlot}
        onChange={e=>{const file=e.currentTarget.files?.[0];e.currentTarget.value='';if(file)upload(key,file);}}/>
     </label>
-    {id?<div className="bml-art-meta">{[['alt','Mô tả ảnh / Alt text'],['source','Nguồn ảnh / Source'],['rights','Quyền sử dụng / Permission']].map(([f,label])=><label key={f}>{label}<input maxLength={f==='alt'?500:f==='source'?600:300} disabled={disabled} value={studio.artMeta?.[key]?.[f]||''} onChange={e=>{const value=e.target.value;update(d=>({...d,artMeta:{...normalizeArtMeta(d.artMeta),[key]:{...normalizeArtMeta(d.artMeta)[key],[f]:value}}}));}}/></label>)}</div>:null}
+    {id?<div className="bml-art-meta">{[['alt',t('Mô tả ảnh / Alt text','Alt text')],['source',t('Nguồn ảnh / Source','Image source')],['rights',t('Quyền sử dụng / Permission','Usage permission')]].map(([f,label])=><label key={f}>{label}<input maxLength={f==='alt'?500:f==='source'?600:300} disabled={disabled} value={studio.artMeta?.[key]?.[f]||''} onChange={e=>{const value=e.target.value;update(d=>({...d,artMeta:{...normalizeArtMeta(d.artMeta),[key]:{...normalizeArtMeta(d.artMeta)[key],[f]:value}}}));}}/></label>)}</div>:null}
     {id&&asset?<button type="button" className="bml-outline" disabled={disabled||!!busySlot} onClick={()=>remove(key)}>
       <Trash2 size={16}/>{t('Xóa ảnh','Remove image')}</button>:null}
    </div>;})}</div>

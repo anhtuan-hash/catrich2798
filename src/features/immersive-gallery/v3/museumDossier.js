@@ -2,43 +2,43 @@ import {LIVE_STAGES} from './liveLesson.js';
 import {LESSON_RESOURCES,OFFLINE_GUIDE,CONCLUSION} from './lessonResources.js';
 import {RUBRIC} from './museumData.js';
 const html=x=>String(x??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const docShell=(title,body)=>'<!doctype html><html><head><meta charset="utf-8"><title>'+html(title)+'</title><style>body{font-family:Arial,sans-serif;margin:35px;font-size:12pt;line-height:1.6;color:#111}h1{font-size:20pt;color:#174ea6}h2{font-size:14pt;margin-top:20px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:7px;text-align:left}em{color:#555}</style></head><body>'+body+'</body></html>';
+const docShell=(title,body)=>'<!doctype html><html lang="en"><head><meta charset="utf-8"><title>'+html(title)+'</title><style>body{font-family:Arial,sans-serif;margin:35px;font-size:12pt;line-height:1.6;color:#111}h1{font-size:20pt;color:#174ea6}h2{font-size:14pt;margin-top:20px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:7px;text-align:left}em{color:#555}</style></head><body>'+body+'</body></html>';
 export function p1Document(fields,assignment){
  const lines=[
- ['Họ và tên giáo viên',fields.teacher],
- ['Năm sinh',fields.birthYear],
- ['Giới tính',fields.gender],
- ['Môn dự thi','Tiếng Anh'],
- ['Cấp học','THPT'],
- ['Thâm niên công tác',fields.experience],
- ['Đơn vị',fields.school],
- ['Điện thoại liên hệ',fields.phone],
- ['Chủ đề',assignment?.title||fields.topic],
- ['Bối cảnh thực hiện',fields.context],
- ['Kiến thức, kỹ năng nền',fields.foundation],
- ['Kiến thức, kỹ năng được hình thành',fields.outcomes],
- ['Năng lực, phẩm chất',fields.competencies],
- ['Thời lượng', '2 tiết (dự kiến 45 phút/tiết)'],
- ['Không gian',fields.space],
- ['Mục tiêu cần đạt',fields.objectives]
+ ['Teacher name',fields.teacher],
+ ['Birth year',fields.birthYear],
+ ['Gender',fields.gender],
+ ['Registered subject','English'],
+ ['School level','High school'],
+ ['Teaching experience',fields.experience],
+ ['Institution',fields.school],
+ ['Contact phone',fields.phone],
+ ['Lesson topic',assignment?.title||fields.topic],
+ ['Teaching context',fields.context],
+ ['Prerequisite knowledge and skills',fields.foundation],
+ ['Developed knowledge and skills',fields.outcomes],
+ ['Competencies and values',fields.competencies],
+ ['Duration', '2 periods (45 minutes each, planned)'],
+ ['Learning environment',fields.space],
+ ['Learning objectives',fields.objectives]
  ];
- return docShell('Phần 1: Tổng quan', '<h1>PHẦN 1 — TỔNG QUAN</h1><p><em>Bản nháp cần giáo viên rà soát và xác nhận trước khi nộp.</em></p><table>'+
-  lines.map(([k,v])=>'<tr><th width="37%">'+html(k)+'</th><td>'+html(v||'[Cần bổ sung]')+'</td></tr>').join('')+
-  '</table><p><b>Lưu ý:</b> Bản này được tạo từ thông tin giáo viên cung cấp, không phải bản xác nhận của đơn vị.</p>');
+ return docShell('Part 1: Overview', '<h1>PART 1 — OVERVIEW</h1><p><em>Teacher review and verification are required before submission.</em></p><table>'+
+  lines.map(([k,v])=>'<tr><th width="37%">'+html(k)+'</th><td>'+html(v||'[To be completed]')+'</td></tr>').join('')+
+  '</table><p><b>Note:</b> This draft uses teacher-provided information and is not an institutional endorsement.</p>');
 }
 export function p2Document(fields,assignment){
  const topic=assignment?.title||fields.topic||'Climate Action Museum';
- const rows=LIVE_STAGES.map(s=>['Tiết '+s.period+' · '+s.minutes+' phút',s.title+' / '+s.vi,s.teaching,s.question+' '+s.sentence,s.expected]);
- const rubric=RUBRIC.map(c=>'<tr><td>'+html(c.label)+'</td><td>'+c.max+'</td><td>'+html(c.help)+'</td></tr>').join('');
- return docShell('Phần 2: Kế hoạch dạy học','<h1>PHẦN 2 — KẾ HOẠCH DẠY HỌC</h1><p><em>BẢN NHÁP · Cần đối chiếu CT GDPT 2018, SGK đang sử dụng và thực tế lớp học trước khi nộp.</em></p>'+
- '<h2>Chủ đề</h2><p>'+html(topic)+' · Tiếng Anh · THPT · 2 tiết</p>'+
- '<h2>Vấn đề cần giải quyết</h2><p>'+html(fields.drivingQuestion||'How can we make our school greener and explain the solution persuasively in English?')+'</p>'+
- '<h2>Kiến thức nền và yêu cầu cần đạt</h2><p>'+html(fields.foundation||'[Giáo viên bổ sung kiến thức nền được kiểm chứng]')+'</p>'+
- '<h2>Mục tiêu</h2><p>'+html(fields.objectives||'[Giáo viên bổ sung mục tiêu ngôn ngữ và năng lực]')+'</p>'+
- '<h2>Tiến trình dạy học (mẫu dự kiến)</h2><table><tr><th>Thời điểm</th><th>Hoạt động</th><th>Giáo viên tổ chức</th><th>Học sinh thực hiện</th><th>Sản phẩm và đánh giá</th></tr>'+rows.map(r=>'<tr>'+r.map(c=>'<td>'+html(c)+'</td>').join('')+'</tr>').join('')+'</table>'+
- '<h2>Ngữ liệu và nhiệm vụ có nguồn</h2>'+LESSON_RESOURCES.map(c=>'<h3>'+html(c.title)+'</h3><p>'+html(c.text)+'</p><p>'+html(c.task)+'</p><p>'+html(c.source)+' '+html(c.url||'')+'</p>').join('')+
- '<h2>Kết luận và vận dụng</h2><p>'+html(CONCLUSION)+'</p><h2>Phương án khi mất mạng</h2><p>'+html(OFFLINE_GUIDE)+'</p>'+
- '<h2>Rubric đánh giá nội bộ (không phải rubric chính thức của hội thi)</h2><table><tr><th>Tiêu chí</th><th>Điểm</th><th>Mô tả</th></tr>'+rubric+'</table>'+
- '<h2>Minh chứng cần đính kèm</h2><ul><li>Nguồn dữ liệu/học liệu hợp pháp; phiếu học tập số</li><li>Bản thiết kế, ảnh/clip thao tác lớp học có sự cho phép</li><li>Triển lãm học sinh, phản hồi bạn học và nhật ký chỉnh sửa</li><li>Phiếu rubric thực tế và kết quả tự đánh giá</li></ul>'+
- '<p><b>Cảnh báo:</b> Chỉ sử dụng minh chứng có thật. Không tạo dữ liệu lớp học, hiệu quả hay phản hồi học sinh giả.</p>');
+ const rows=LIVE_STAGES.map(s=>['Period '+s.period+' · '+s.minutes+' min',s.title,s.teaching,s.question+' '+s.sentence,s.expected]);
+ const rubric=RUBRIC.map(c=>'<tr><td>'+html(c.en)+'</td><td>'+c.max+'</td><td>'+html(c.help)+'</td></tr>').join('');
+ return docShell('Part 2: Teaching plan','<h1>PART 2 — TEACHING PLAN</h1><p><em>DRAFT · Verify alignment with the national curriculum, current textbooks and authentic classroom practice before submission.</em></p>'+
+ '<h2>Lesson topic</h2><p>'+html(topic)+' · English · High school · 2 periods</p>'+
+ '<h2>Driving problem</h2><p>'+html(fields.drivingQuestion||'How can we make our school greener and explain the solution persuasively in English?')+'</p>'+
+ '<h2>Prerequisites and expected outcomes</h2><p>'+html(fields.foundation||'[Teacher to provide verified prerequisites]')+'</p>'+
+ '<h2>Objectives</h2><p>'+html(fields.objectives||'[Teacher to provide language and competency objectives]')+'</p>'+
+ '<h2>Teaching sequence (draft)</h2><table><tr><th>Timing</th><th>Activity</th><th>Teacher facilitation</th><th>Student tasks</th><th>Products and assessment</th></tr>'+rows.map(r=>'<tr>'+r.map(c=>'<td>'+html(c)+'</td>').join('')+'</tr>').join('')+'</table>'+
+ '<h2>Sourced language materials and tasks</h2>'+LESSON_RESOURCES.map(c=>'<h3>'+html(c.title)+'</h3><p>'+html(c.text)+'</p><p>'+html(c.task)+'</p><p>'+html(c.source)+' '+html(c.url||'')+'</p>').join('')+
+ '<h2>Conclusion and application</h2><p>'+html(CONCLUSION)+'</p><h2>Offline contingency</h2><p>'+html(OFFLINE_GUIDE)+'</p>'+
+ '<h2>Internal assessment rubric (not the official competition rubric)</h2><table><tr><th>Criterion</th><th>Points</th><th>Description</th></tr>'+rubric+'</table>'+
+ '<h2>Evidence to attach</h2><ul><li>Credible and licensed data sources; digital worksheets</li><li>Design drafts; classroom photos or videos with permission</li><li>Student exhibition, authentic peer feedback and revision history</li><li>Actual rubric sheets and learner self-assessments</li></ul>'+
+ '<p><b>Warning:</b> Use only authentic evidence. Never fabricate classroom data, effectiveness claims or student feedback.</p>');
 }
