@@ -38,7 +38,7 @@ test('YouTube IDs are strictly host allow-listed, no arbitrarily embeddable URL'
 test('media tasks are bounded, predictable and do not expose unrelated stage videos',()=>{
  const board={3:{query:'school energy',instruction:'Name one source',videos:[{id:'jNQXAC9IVRw',title:'Trusted reference',channel:'Educator'}]},
   5:{query:'another topic',videos:[{id:'not-video',title:'Bad'}]}};
- assert.deepEqual(videoTaskFor(board,3),{query:'school energy',instruction:'Name one source',videos:[{id:'jNQXAC9IVRw',title:'Trusted reference',channel:'Educator'}]});
+ assert.deepEqual(videoTaskFor(board,3),{query:'school energy',instruction:'Name one source',voiceEnabled:false,videos:[{id:'jNQXAC9IVRw',title:'Trusted reference',channel:'Educator'}]});
  assert.equal(videoTaskFor(board,2).videos.length,0);
  assert.equal(videoTaskFor(board,5).videos.length,0);
 });
@@ -49,7 +49,7 @@ test('school-scoped video search uses Google API server-only and never HTML scra
  assert.match(server,/if\(op==='video-search'\)/);
  assert.match(server,/if\(!task\.query\)throw fail\(423/);
  assert.match(server,/searchThrottle\('group-'\+ctx\.group\.id\)/);
- assert.match(server,/if\(\['media-task','media-add','media-remove'\]\.includes\(op\)\)/);
+ assert.match(server,/if\(\['media-task','media-add','media-remove','media-voice'\]\.includes\(op\)\)/);
  assert.match(helper,/process\.env\.YOUTUBE_API_KEY/);
  assert.match(helper,/videoEmbeddable:'true'/);
  assert.match(helper,/safeSearch:'strict'/);
