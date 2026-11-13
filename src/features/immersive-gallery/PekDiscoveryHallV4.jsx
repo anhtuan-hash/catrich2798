@@ -39,14 +39,21 @@ function DisplayLettering({main,sub,position,size=[8.5,.69],light=false}){
 function SchoolCrest(){
  const crest=useTexture('/museum/branding/petrus-ky-original.png');
  useEffect(()=>{crest.colorSpace=THREE.SRGBColorSpace;crest.anisotropy=4;crest.needsUpdate=true;},[crest]);
- return <group position={[-5.38,4.75,-8.002]}>
-  <mesh position={[0,0,-.025]}>
-   <boxGeometry args={[.91,1.05,.10]}/>
-   <meshStandardMaterial color="#F9F8E9" metalness={.04} roughness={.70}/>
+ // The previous wall-mounted crest sat BEHIND the central sign board
+ // (z=-8.002). Mount the original asset on the sign's front-left plaque.
+ // Leave enough room for the wordmark; never hide or redraw its artwork.
+ return <group name="SchoolCrestV4" position={[-4.72,4.74,-7.68]}>
+  <mesh position={[0,0,-.045]}>
+   <boxGeometry args={[.88,.92,.11]}/>
+   <meshStandardMaterial color="#F9F8F0" metalness={.06} roughness={.64}/>
   </mesh>
-  <mesh position={[0,0,.043]}>
-   <planeGeometry args={[.73,.9]}/>
+  <mesh position={[0,0,.025]}>
+   <planeGeometry args={[.67,.80]}/>
    <meshBasicMaterial map={crest} transparent toneMapped={false} side={THREE.DoubleSide} depthWrite={false}/>
+  </mesh>
+  <mesh position={[0,-.43,.04]}>
+   <boxGeometry args={[.70,.013,.014]}/>
+   <meshStandardMaterial color="#D6B660" metalness={.42} roughness={.36}/>
   </mesh>
  </group>;
 }
