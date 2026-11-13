@@ -50,6 +50,7 @@ export default function MuseumLabStudent({language='vi'}){
  const [history,setHistory]=useState([]),[studentView,setStudentView]=useState('studio');
  const [studioSubstep,setStudioSubstep]=useState(0),[historyOpen,setHistoryOpen]=useState(false);
  const [projectPreview,setProjectPreview]=useState(false),[studentTool,setStudentTool]=useState(null);
+ const [artworkOpen,setArtworkOpen]=useState(false);
  const viewHistory=async()=>{try{setHistory((await liveGuest('history')).checkpoints||[]);}catch(e){setError(e.message);}};
  const documentRef=useRef(studio),versionRef=useRef(0),csrfRef=useRef(''),savingRef=useRef(false),dirtyRef=useRef(false);
  const groupLocked=session&&!['issued','editing','changes_requested'].includes(session.groupState);
@@ -267,8 +268,18 @@ export default function MuseumLabStudent({language='vi'}){
       </details>)}
     </>:null}
     {step===2&&studioSubstep===2?<><p>{T(language,'Thêm sản phẩm trực quan và kiểm tra bản trình bày 2D/3D.','Add authentic artwork and preview the 2D/3D museum.')}</p>
+     <button className="bml-primary" type="button" onClick={()=>setArtworkOpen(true)}>
+      <CloudUpload size={19}/>{T(language,'Mở xưởng hiện vật và hình ảnh','Open artwork & media studio')}</button>
+     {artworkOpen?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label={T(language,'Xưởng hiện vật','Artwork studio')}>
+      <div className="bml-student-detail-window">
+       <div className="bml-student-detail-head"><strong>{T(language,'Xưởng sáng tạo hiện vật','Artwork & media studio')}</strong>
+        <button type="button" className="bml-outline" onClick={()=>setArtworkOpen(false)}><X size={17}/>{T(language,'Đóng','Close')}</button></div>
+       <div className="bml-student-artwork-dialog">
      <MuseumArtworkStudio studio={studio} update={edit} csrf={session.csrf} language={language}
       disabled={locked||(liveRunning&&![6,8].includes(stageIndex))||busy} uploadEnabled={session.uploadEnabled===true} onAssets={setArtAssets}/>
+
+       </div>
+      </div></div>:null}
      <button type="button" className="bml-outline" onClick={()=>setPreview(v=>!v)}><Eye size={19}/>{preview?T(language,'Đóng xem trước','Close preview'):T(language,'Xem trước bảo tàng 2D/3D','Preview 2D / 3D museum')}</button>
      {preview?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label={T(language,'Xem trước bảo tàng','Museum preview')}>
       <div className="bml-student-detail-window">
