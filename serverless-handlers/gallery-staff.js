@@ -5,6 +5,7 @@ import {
  settings,staffContext,assertStaff,assertAdmin,reviewer,uid,clean,requireMethod
 } from './_galleryCreator.js';
 import {PREPARED_COLLECTIONS} from '../src/features/immersive-gallery/v3/museumPreparedCollections.js';
+import {encryptGroupPasscode,decryptGroupPasscode} from './_galleryPasscodes.js';
 
 // Copy approved private art into R1's still-private bucket before atomic promotion.
 // The SQL publication RPC verifies each link and the immutable TTCM snapshot hash.
@@ -188,12 +189,13 @@ export default async function galleryStaff(req,res){
    // Only authorized staff can recover invitation *handles*. Never return
    // secret hashes, one-time private passcodes, or guest session tokens.
    const inviteRows=groupIds.length?await query(admin.from('gcp_invites')
-     .select('group_id,handle,expires_at,revoked_at').in('group_id',groupIds).limit(500)):[];
+     .select('group_id,handle,expires_at,revoked_at,secret_envelope').in('group_id',groupIds).limit(500)):[];
    const inviteByGroup=new Map(inviteRows.map(inv=>[inv.group_id,inv]));
    const visibleGroups=groups.map(group=>{
     const invite=inviteByGroup.get(group.id);
     return {...group,invite_handle:invite?.handle||null,
-     invite_expires_at:invite?.expires_at||null,invite_revoked:Boolean(invite?.revoked_at)};
+     invite_expires_at:invite?.expires_at||null,invite_revoked:Boolean(invite?.revoked_at),
+     invite_has_passcode:Boolean(invite?.secret_envelope)};
    });
    // A completed Exit Ticket is a live answer, never a submitted museum.
    const exitTickets=groupIds.length?await query(admin.from('museum_live_responses')
@@ -213,6 +215,62 @@ export default async function galleryStaff(req,res){
     reviewers:grants,rubrics,
     assignments,groups:visibleGroups,reviews,exitTickets,
     publishedGalleries:await publishedSchoolCatalog(ctx)});
+  }
+
+  // Passcodes are never included in the regular dashboard or visible to staff.
+  // A deliberate admin-only POST is needed to decrypt them.
+  if(operation==='reveal-passcodes'){
+   requireMethod(req,'POST');guardOrigin(req);assertAdmin(ctx);
+   const body=guardBody(req,1200),assignmentId=String(body.assignmentId||'');
+   if(!uid(assignmentId))throw fail(400,'Invalid lesson.');
+   const assignment=await query(admin.from('gcp_assignments')
+     .select('id,school_scope,created_by,archived_at').eq('id',assignmentId).maybeSingle());
+   if(!assignment||assignment.archived_at||assignment.school_scope!==ctx.profile.school||
+      assignment.created_by!==ctx.user.id)throw fail(403,'You cannot reveal these group passcodes.');
+   const groupRows=await query(admin.from('gcp_groups').select('id,label').eq('assignment_id',assignmentId).limit(12));
+   const invites=groupRows.length?await query(admin.from('gcp_invites')
+     .select('group_id,handle,secret_envelope').in('group_id',groupRows.map(g=>g.id)).limit(12)):[];
+   const safeInvites=new Map(invites.map(x=>[x.group_id,x]));
+   return send(res,200,{assignmentId,passcodes:groupRows.map(g=>{
+    const inv=safeInvites.get(g.id);
+    return {groupId:g.id,label:g.label,groupSecret:inv?.secret_envelope?
+       decryptGroupPasscode(inv.secret_envelope,inv.handle):null};
+   })});
+  }
+
+  // Atomic bulk reset: old sessions are revoked, original QR handles preserved,
+  // and existing student work and publication statuses are not changed.
+  if(operation==='regenerate-all-passcodes'){
+   requireMethod(req,'POST');guardOrigin(req);assertAdmin(ctx);
+   const body=guardBody(req,1200),assignmentId=String(body.assignmentId||'');
+   if(!uid(assignmentId))throw fail(400,'Invalid lesson.');
+   const assignment=await query(admin.from('gcp_assignments')
+     .select('id,school_scope,created_by,status,archived_at')
+     .eq('id',assignmentId).maybeSingle());
+   if(!assignment||assignment.archived_at||assignment.status!=='active')
+    throw fail(423,'This lesson is no longer active.');
+   if(assignment.school_scope!==ctx.profile.school||assignment.created_by!==ctx.user.id)
+    throw fail(403,'You cannot regenerate these group passcodes.');
+   const groupRows=await query(admin.from('gcp_groups')
+     .select('id,label').eq('assignment_id',assignmentId).limit(13));
+   if(!groupRows.length||groupRows.length>12)throw fail(400,'Invalid group count.');
+   const invites=await query(admin.from('gcp_invites')
+     .select('group_id,handle,revoked_at').in('group_id',groupRows.map(g=>g.id)).limit(13));
+   const byGroup=new Map(invites.map(x=>[x.group_id,x]));
+   const generated=groupRows.map(g=>{
+    const inv=byGroup.get(g.id);
+    if(!inv||inv.revoked_at)throw fail(409,'A group invitation is unavailable. Refresh the lesson.');
+    const secret=randomSecret(24);
+    return {groupId:g.id,label:g.label,handle:inv.handle,groupSecret:secret,
+     secret_hash:digest('invite:'+secret),secret_envelope:encryptGroupPasscode(secret,inv.handle)};
+   });
+   const result=await query(admin.rpc('gcp_admin_rotate_assignment_passcodes',{
+    p_assignment:assignmentId,p_actor:ctx.user.id,p_school:ctx.profile.school,
+    p_tokens:generated.map(x=>({groupId:x.groupId,secret_hash:x.secret_hash,secret_envelope:x.secret_envelope}))
+   }));
+   if(result?.updated!==generated.length)throw fail(409,'The group reset could not be verified.');
+   return send(res,200,{assignmentId,count:generated.length,
+    passcodes:generated.map(({groupId,label,groupSecret})=>({groupId,label,groupSecret}))});
   }
 
   if(operation==='grade-rubric'){
@@ -274,13 +332,14 @@ export default async function galleryStaff(req,res){
    if(!enabled.enabled)throw fail(423,'Creator Pass chưa được bật.');
    const tokens=Array.from({length:count},()=>{
     const handle=randomSecret(15),groupSecret=randomSecret(24);
-    return {handle,groupSecret,secret_hash:digest('invite:'+groupSecret)};
+    return {handle,groupSecret,secret_hash:digest('invite:'+groupSecret),
+     secret_envelope:encryptGroupPasscode(groupSecret,handle)};
    });
    const created=await query(admin.rpc('gcp_staff_issue_assignment',{
     p_teacher:ctx.user.id,p_reviewer:reviewerId,p_school:ctx.profile.school,
     p_class:classScope,p_title:title,p_brief:clean(body.brief,5000),
     p_deadline:deadline.toISOString(),
-    p_tokens:tokens.map(x=>({handle:x.handle,secret_hash:x.secret_hash}))
+    p_tokens:tokens.map(x=>({handle:x.handle,secret_hash:x.secret_hash,secret_envelope:x.secret_envelope}))
    }));
    const invitations=created.groups.map(g=>({
     ...g,groupSecret:tokens.find(t=>t.handle===g.handle)?.groupSecret
@@ -332,7 +391,8 @@ export default async function galleryStaff(req,res){
    await query(admin.from('gcp_sessions').update({revoked_at:now})
      .eq('group_id',group.id).is('revoked_at',null));
    await query(admin.from('gcp_invites').update({
-    handle,secret_hash:digest('invite:'+secret),failed_attempts:0,locked_until:null,
+    handle,secret_hash:digest('invite:'+secret),
+    secret_envelope:encryptGroupPasscode(secret,handle),failed_attempts:0,locked_until:null,
     expires_at:assignment.deadline_at,revoked_at:null
    }).eq('group_id',group.id));
    return send(res,200,{groupId:group.id,handle,groupSecret:secret});
