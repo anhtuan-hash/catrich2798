@@ -6,6 +6,8 @@ import {ROOM_TEMPLATES,normalizeTransform,useLiteQuality} from './sceneTemplates
 import {createCuratedGlb,CURATED_GLB_KEYS} from './curatedGlb.js';
 import {PekMuseumArchitecture,ExhibitWallLabel,TextExhibitPoster} from './PekMuseumArchitecture.jsx';
 import PekDiscoveryHallV4 from './PekDiscoveryHallV4.jsx';
+import MuseumExhibitFocusRig from './v3/MuseumExhibitFocusRig.jsx';
+import {FOCUS_IDLE,focusLayout,clampDelta,smoothstep} from './v3/museumExhibitFocusMotion.js';
 import './pekMuseum.css';
 // Cloud media service is imported on demand to prevent eager auth/bootstrap cycles.
 
@@ -30,38 +32,126 @@ function CuratedModel({modelKey='globe',scale=1}) {
 }
 export {CuratedModel};
 function ArtworkImage({assetId,imageUrl,schoolEdition=false,cinemaEdition=false}) {
- const [texture,setTexture]=useState(null);
+ const [texture,setTexture]=useState(null),live=useRef(null);
  useEffect(()=>{
-  if(!assetId&&!imageUrl)return undefined;let alive=true,created=null;
-  (imageUrl?Promise.resolve(imageUrl):import('./galleryData.js').then(({getGalleryAssetUrl})=>getGalleryAssetUrl(assetId))).then(url=>{
-    if(!alive)return;
+  let active=true;
+  if(cinemaEdition&&!imageUrl){
+   const old=live.current;live.current=null;setTexture(null);old?.dispose();
+   return undefined;
+  }
+  if(!assetId&&!imageUrl)return undefined;
+  // In private Cinema, only the authorized short-lived signed URL is used.
+  // The previous *decoded* GPU texture remains visible while a new signed URL
+  // loads; failures never replace the original picture with fabricated media.
+  (imageUrl?Promise.resolve(imageUrl):import('./galleryData.js').then(({getGalleryAssetUrl})=>getGalleryAssetUrl(assetId)))
+   .then(url=>{
+    if(!active||!url)return;
     new THREE.TextureLoader().load(url,t=>{
-      created=t;t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=2;
-      if(alive){
-       setTexture(t);
-       // Private photo URL is never sent to telemetry/logs; signal only that
-       // WebGL has decoded the actual student artwork texture for visual QA.
-       document.dispatchEvent(new Event('bml:museum-texture-ready'));
-     }else t.dispose();
-    },undefined,()=>{if(alive)setTexture(null);});
-  }).catch(()=>{if(alive)setTexture(null);});
-  return()=>{alive=false;if(created)created.dispose();};
- },[assetId,imageUrl]);
+     t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=2;
+     if(!active){t.dispose();return;}
+     const old=live.current;live.current=t;
+     setTexture(t);
+     if(old&&old!==t)old.dispose();
+     document.dispatchEvent(new Event('bml:museum-texture-ready'));
+    },undefined,()=>{/* keep last authorized decoded texture, no false replacement */});
+   }).catch(()=>{/* 2D remains available if signed URL cannot be renewed */});
+  return()=>{active=false;};
+ },[assetId,imageUrl,cinemaEdition]);
+ useEffect(()=>()=>{live.current?.dispose();live.current=null;},[]);
  if(!texture)return <mesh position={[0,0,.087]}>
   <planeGeometry args={cinemaEdition?[2.25,3.03]:schoolEdition?[2.1,1.46]:[1.62,1.17]}/>
   <meshStandardMaterial color="#E4E9DF" roughness={.95}/></mesh>;
  const width=texture.image?.width||1,height=texture.image?.height||1,aspect=width/height;
  const maxWidth=cinemaEdition?2.26:schoolEdition?2.11:1.65,maxHeight=cinemaEdition?3.03:schoolEdition?1.62:1.36;
  const size=aspect>maxWidth/maxHeight?[maxWidth,maxWidth/aspect]:[maxHeight*aspect,maxHeight];
- return <mesh position={[0,0,cinemaEdition ? .096 : .083]}><planeGeometry args={size}/><meshBasicMaterial map={texture} toneMapped={false} side={THREE.DoubleSide}/></mesh>;
+ return <mesh position={[0,0,cinemaEdition?.096:.083]}>
+  <planeGeometry args={size}/>
+  <meshBasicMaterial map={texture} toneMapped={false} side={THREE.DoubleSide}/>
+ </mesh>;
 }
-function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdition=false,index=0}) {
+function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdition=false,index=0,
+ focus=FOCUS_IDLE,onFocusPhaseChange}) {
  const transform=useMemo(()=>normalizeTransform(exhibit.transform||{}),[exhibit.transform]);
  const position=cinemaEdition?
   [Math.max(-3.2,Math.min(3.2,transform.position[0])),2.45,-7.68]:transform.position;
- return <group position={position} rotation={transform.rotation} scale={transform.scale}
-  onClick={e=>{e.stopPropagation();onSelect?.(exhibit.id);}}
-  onPointerOver={e=>{e.stopPropagation();document.body.style.cursor='pointer';}}
+ const ref=useRef(null),motion=useRef({p:0,presenting:false,arrived:false,returned:false});
+ const {size,invalidate,camera,gl}=useThree();
+ const isTarget=cinemaEdition&&focus.exhibitId===exhibit.id;
+ const wall=useMemo(()=>({
+  position:[...position],rotation:[...transform.rotation],scale:[...transform.scale]
+ }),[...position,...transform.rotation,...transform.scale]);
+ useEffect(()=>{
+  if(!ref.current)return;
+  if(isTarget&&focus.phase==='preparing'){
+   motion.current={p:0,presenting:false,arrived:false,returned:false};
+   onFocusPhaseChange?.({type:'ASSET_READY'});
+   invalidate();
+  }else if(isTarget&&focus.phase==='returning'){
+   motion.current.returned=false;
+   invalidate();
+  }else if(!isTarget){
+   motion.current={p:0,presenting:false,arrived:false,returned:false};
+   ref.current.position.set(...wall.position);
+   ref.current.rotation.set(...wall.rotation);
+   ref.current.scale.set(...wall.scale);
+   invalidate();
+  }
+ },[isTarget,focus.phase,focus.generation,wall,invalidate]);
+ useFrame((_,delta)=>{
+  if(!ref.current)return;
+  const node=ref.current,a=motion.current;
+  const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const dt=clampDelta(delta);
+  if(isTarget&&['extracting','presenting'].includes(focus.phase)){
+   a.p=Math.min(1,a.p+dt/(reduced?.08:1.03));
+   if(a.p>.60&&!a.presenting&&focus.phase==='extracting'){
+    a.presenting=true;onFocusPhaseChange?.({type:'PRESENTING'});
+   }
+   if(a.p>=1&&!a.arrived){
+    a.arrived=true;onFocusPhaseChange?.({type:'ARRIVED'});
+   }
+   if(a.p<1)invalidate();
+  }else if(isTarget&&focus.phase==='returning'){
+   a.p=Math.max(0,a.p-dt/(reduced?.08:.85));
+   if(a.p<=0&&!a.returned){
+    a.returned=true;onFocusPhaseChange?.({type:'RETURN_COMPLETE'});
+   }
+   if(a.p>0)invalidate();
+  }
+  if(isTarget){
+   const layout=focusLayout(size.width,size.height),t=smoothstep(a.p);
+   node.position.set(
+    wall.position[0]+(layout.artwork[0]-wall.position[0])*t,
+    wall.position[1]+(layout.artwork[1]-wall.position[1])*t,
+    wall.position[2]+(layout.artwork[2]-wall.position[2])*t
+   );
+   const original=new THREE.Quaternion().setFromEuler(new THREE.Euler(...wall.rotation));
+   node.quaternion.copy(original).slerp(new THREE.Quaternion(),t);
+   const sc=layout.artworkScale;
+   node.scale.set(...wall.scale.map(x=>x+(sc-x)*t));
+  }
+  // Read-only geometry QA bridge, available only to the project's test harness:
+  // no group identifiers, asset URLs, token, or image bytes are exposed.
+  if(cinemaEdition&&location.pathname.includes('/tests/museum-lab/')){
+   window.__bmlMuseumFocusQA??={artworks:{},camera:{}};
+   const p=new THREE.Vector3();node.getWorldPosition(p);
+   const rect=gl.domElement.getBoundingClientRect(),q=p.clone().project(camera);
+   window.__bmlMuseumFocusQA.artworks[index]={
+    uuid:node.uuid,world:p.toArray().map(x=>+x.toFixed(4)),
+    wall:[...wall.position],selected:isTarget,
+    screen:{x:rect.left+(q.x+1)*rect.width/2,y:rect.top+(1-q.y)*rect.height/2}
+   };
+   window.__bmlMuseumFocusQA.camera={
+    position:camera.position.toArray().map(x=>+x.toFixed(4)),
+    quaternion:camera.quaternion.toArray().map(x=>+x.toFixed(5)),
+    forward:camera.getWorldDirection(new THREE.Vector3()).toArray().map(x=>+x.toFixed(5))
+   };
+  }
+ });
+ return <group ref={ref} name={'BML_OriginalArtwork_'+index} userData={{originalArtwork:true,index}}
+  position={position} rotation={transform.rotation} scale={transform.scale}
+  onClick={e=>{e.stopPropagation();if(focus.phase==='idle')onSelect?.(exhibit.id);}}
+  onPointerOver={e=>{e.stopPropagation();if(focus.phase==='idle')document.body.style.cursor='pointer';}}
   onPointerOut={()=>{document.body.style.cursor='';}}>
   <mesh><boxGeometry args={cinemaEdition?[2.63,3.41,.12]:schoolEdition?[2.45,1.95,.11]:[2.04,1.70,.10]}/>
    <meshStandardMaterial color={schoolEdition?(isSelected?'#F6D477':'#B69B62'):(isSelected?'#e4aa64':'#ae856e')} roughness={.63} metalness={schoolEdition?.19:0}/></mesh>
@@ -146,7 +236,7 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
   if(teleport?.length===2){camera.position.set(teleport[0],1.7,teleport[1]);invalidate();}
  },[camera,invalidate,teleport]);
  useEffect(()=>{
-   if(paused)held.current.clear();
+   if(paused){held.current.clear();drag.current=null;}
  },[paused,held]);
  // Viewpoint transitions are camera movement, not CSS resizing.
  useEffect(()=>{
@@ -167,7 +257,7 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
      if(MOVE_KEYS.has(key)&&!paused){tween.current=null;held.current.add(key);invalidate();if(key.startsWith('arrow'))e.preventDefault();}
    };
    const keyUp=e=>{held.current.delete(String(e.key).toLowerCase());};
-   const down=e=>{if(e.button!==0)return;drag.current=[e.clientX,e.clientY];canvas.setPointerCapture?.(e.pointerId);};
+   const down=e=>{if(e.button!==0||paused)return;drag.current=[e.clientX,e.clientY];canvas.setPointerCapture?.(e.pointerId);};
    const move=e=>{if(!drag.current||paused)return;tween.current=null;const [x,y]=drag.current;
      yaw.current-=Math.max(-60,Math.min(60,e.clientX-x))*0.005;
      pitch.current=Math.max(-0.62,Math.min(0.62,pitch.current-(e.clientY-y)*0.003));
@@ -214,6 +304,76 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
 // R3F owns the canvas pixel dimensions; this observer keeps the perspective
 // matrix synchronized with resized modal/fullscreen containers. Never stretch
 // the CSS image of the canvas to simulate a larger room.
+function MuseumFocusCameraRig({focus}){
+ const {camera,size,invalidate}=useThree();
+ const saved=useRef(null),returnStart=useRef(null),phaseRef=useRef('idle');
+ const enterTime=useRef(0),returnTime=useRef(0);
+ useEffect(()=>{
+  if(focus.phase==='preparing'&&phaseRef.current==='idle'){
+   saved.current={position:camera.position.clone(),quaternion:camera.quaternion.clone(),fov:camera.fov};
+   enterTime.current=0;returnStart.current=null;
+  }
+  if(focus.phase==='returning'&&phaseRef.current!=='returning'){
+   returnStart.current={position:camera.position.clone(),quaternion:camera.quaternion.clone()};
+   returnTime.current=0;
+  }
+  if(focus.phase==='idle'&&phaseRef.current!=='idle'&&saved.current){
+   camera.position.copy(saved.current.position);camera.quaternion.copy(saved.current.quaternion);
+   camera.fov=saved.current.fov;camera.updateProjectionMatrix();
+   saved.current=null;returnStart.current=null;
+  }
+  phaseRef.current=focus.phase;invalidate();
+ },[focus.phase,focus.generation,camera,invalidate]);
+ useFrame((_,delta)=>{
+  const active=['extracting','presenting','focused'].includes(focus.phase);
+  const returning=focus.phase==='returning';
+  if(!saved.current||(!active&&!returning))return;
+  const reduce=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const layout=focusLayout(size.width,size.height);
+  const target=new THREE.Vector3(...layout.camera),look=new THREE.Vector3(...layout.look);
+  // Camera eyes look along local -Z; Object3D.lookAt uses +Z instead and
+  // produced a backwards-facing empty scene during the first V5 visual run.
+  const cameraRotation=new THREE.Quaternion().setFromRotationMatrix(
+   new THREE.Matrix4().lookAt(target,look,new THREE.Vector3(0,1,0))
+  );
+  if(active){
+   enterTime.current=Math.min(1,enterTime.current+clampDelta(delta)/(reduce?.08:1.0));
+   const t=smoothstep(enterTime.current);
+   camera.position.copy(saved.current.position).lerp(target,t);
+   camera.quaternion.copy(saved.current.quaternion).slerp(cameraRotation,t);
+   if(t<1)invalidate();
+  }else if(returnStart.current){
+   returnTime.current=Math.min(1,returnTime.current+clampDelta(delta)/(reduce?.08:.83));
+   const t=smoothstep(returnTime.current);
+   camera.position.copy(returnStart.current.position).lerp(saved.current.position,t);
+   camera.quaternion.copy(returnStart.current.quaternion).slerp(saved.current.quaternion,t);
+   if(t<1)invalidate();
+  }
+  camera.fov=saved.current.fov;camera.updateProjectionMatrix();
+ });
+ return null;
+}
+/**
+ * A demand-rendered Canvas may drop the final invalidate() when a reducer
+ * changes extracting -> presenting during the same R3F frame. Keep submitting
+ * frames ONLY while a physical transition is active; idle/focused return to
+ * demand rendering. This does not mount another Canvas or animate a copy.
+ */
+function MuseumFocusFramePump({phase}){
+ const {invalidate}=useThree();
+ useEffect(()=>{
+  if(!['preparing','extracting','presenting','returning'].includes(phase))return;
+  let alive=true,raf=0;
+  const tick=()=>{
+   if(!alive)return;
+   invalidate();
+   raf=window.requestAnimationFrame(tick);
+  };
+  raf=window.requestAnimationFrame(tick);
+  return()=>{alive=false;window.cancelAnimationFrame(raf);};
+ },[phase,invalidate]);
+ return null;
+}
 function CameraResizeSync(){
  const {camera,gl,invalidate}=useThree();
  useEffect(()=>{
@@ -233,17 +393,19 @@ function CameraResizeSync(){
  },[camera,gl,invalidate]);
  return null;
 }
-function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=false,cinemaEdition=false,lite=false}) {
+function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=false,cinemaEdition=false,lite=false,focus=FOCUS_IDLE,focusBoard,onFocusBack,onFocusPhaseChange}) {
  return <><color attach="background" args={[schoolEdition?'#EBF5F0':'#f2f0e9']}/>
   <ambientLight intensity={schoolEdition?1.25:1.1}/>
   <hemisphereLight args={['#FFFFFF',schoolEdition?'#9CAD9D':'#B7AFA3',1.1]}/>
   <directionalLight position={[1,7,3]} color={schoolEdition?'#FFF7E4':'#FFFFFF'} intensity={1.15}/>
   <Walls template={template} onTeleport={onTeleport} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} lite={lite}/>
   {exhibits.slice(0,30).map((e,i)=><PaperArtwork key={e.id} exhibit={e} index={i} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition}
-   onSelect={onSelect} isSelected={selectedId===e.id}/>)}
+   focus={focus} onFocusPhaseChange={onFocusPhaseChange} onSelect={onSelect}
+   isSelected={selectedId===e.id||focus.exhibitId===e.id}/>)}
+  {cinemaEdition&&focus.phase!=='idle'?<MuseumExhibitFocusRig focus={focus} board={focusBoard} onBack={onFocusBack} lite={lite}/>:null}
  </>;
 }
-export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelect,selectedId='',quality='auto',language='vi',schoolEdition=false,cinemaEdition=false}) {
+export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelect,selectedId='',quality='auto',language='vi',schoolEdition=false,cinemaEdition=false,focus=FOCUS_IDLE,focusBoard,onFocusBack,onFocusPhaseChange}) {
  const held=useRef(new Set());
  const narrow=typeof window!=='undefined'&&window.matchMedia?.('(max-width:700px)').matches;
  const startingZ=cinemaEdition?(narrow?2.2:1.3):schoolEdition?(narrow?2.5:-1.6):4.7;
@@ -255,10 +417,11 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
    catch {ok=false;}
    setSupported(ok);
  },[]);
- useEffect(()=>{held.current.clear();},[selectedId,template]);
+ useEffect(()=>{held.current.clear();},[selectedId,template,focus.phase]);
  const onPosition=(x,z)=>{setPos([+x.toFixed(1),+z.toFixed(1)]);};
  const hold=(key,down)=>{if(down)held.current.add(key);else held.current.delete(key);window.dispatchEvent(new Event('big-gallery-animate'));};
  const onTeleport=point=>{
+  if(cinemaEdition&&focus.phase!=='idle')return;
   if(cinemaEdition){
    setViewPreset({type:point[1]<-3?'artwork':'room',x:point[0],id:Date.now()+Math.random()});
   }else setTeleport([...point]);
@@ -269,21 +432,31 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
    <Canvas camera={{position:[0,cinemaEdition?1.92:1.77,startingZ],fov:cinemaEdition?55:schoolEdition?59:61,near:0.08,far:55}} dpr={mode==='lite'?1:mode==='high'?[1,1.75]:[1,1.35]}
     frameloop="demand" gl={{antialias:mode!=='lite',powerPreference:'low-power',alpha:false}} onCreated={({gl})=>{gl.setClearColor('#f2f0e9');}}>
     <CameraResizeSync/>
+    {cinemaEdition?<MuseumFocusFramePump phase={focus.phase}/>:null}
     <Room template={template} exhibits={exhibits} onSelect={onSelect} selectedId={selectedId} onTeleport={onTeleport}
+     focus={focus} focusBoard={focusBoard} onFocusBack={onFocusBack} onFocusPhaseChange={onFocusPhaseChange}
      schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} lite={mode==='lite'}/>
-    <CameraWalker held={held} paused={!!selectedId} teleport={teleport} onPosition={onPosition} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} viewPreset={viewPreset}/>
+    <MuseumFocusCameraRig focus={cinemaEdition?focus:FOCUS_IDLE}/>
+    <CameraWalker held={held} paused={!!selectedId||(cinemaEdition&&focus.phase!=='idle')}
+     teleport={teleport} onPosition={onPosition} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} viewPreset={viewPreset}/>
    </Canvas>
   </Suspense>}
   {schoolEdition?<div className="big-pek-tools" role="group" aria-label={language==='en'?'Museum viewpoints':'Góc tham quan bảo tàng'}>
    <div className="big-pek-edition-mark"><span className="big-pek-dot"/>
     <span className="big-pek-edition-long">{language==='en'?'PÉTRUS KÝ · DISCOVERY HALL':'PÉTRUS KÝ · BẢO TÀNG KHÁM PHÁ'}</span>
     <span className="big-pek-edition-short">{'PéK'}</span></div>
-   <button type="button" onClick={()=>onTeleport([0,-4.45])}>{language==='en'?'See the artwork':'Đến gần tranh'}</button>
-   <button type="button" onClick={()=>onTeleport([0,1.55])}>{language==='en'?'Full room view':'Toàn cảnh'}</button>
+   <button type="button" disabled={cinemaEdition&&focus.phase!=='idle'} onClick={()=>onTeleport([0,-4.45])}>{language==='en'?'See the artwork':'Đến gần tranh'}</button>
+   <button type="button" disabled={cinemaEdition&&focus.phase!=='idle'} onClick={()=>onTeleport([0,1.55])}>{language==='en'?'Full room view':'Toàn cảnh'}</button>
   </div>:<div className="big-scene-hud" aria-hidden="true">{pos[0]}, {pos[1]} · R3F</div>}
-  <div className="big-touch-pad" aria-label="Mobile navigation">
+  {cinemaEdition?<div className="bml-v5-artwork-access" role="group" aria-label="Select a museum exhibit">
+   {exhibits.slice(0,30).map((e,i)=><button type="button" key={e.id||i}
+    disabled={focus.phase!=='idle'} onClick={()=>onSelect?.(e.id)}
+    aria-label={'Inspect '+String(e.title||'exhibit')} title={e.title}>
+    {String(i+1).padStart(2,'0')}</button>)}
+  </div>:null}
+  {(!cinemaEdition||focus.phase==='idle')?<div className="big-touch-pad" aria-label="Mobile navigation">
    {[['↑','w'],['←','a'],['↓','s'],['→','d']].map(([text,key])=><button key={key} type="button" onPointerDown={e=>{e.preventDefault();hold(key,true);}}
      onPointerUp={()=>hold(key,false)} onPointerCancel={()=>hold(key,false)} onPointerLeave={()=>hold(key,false)}>{text}</button>)}
-  </div>
+  </div>:null}
  </div>;
 }

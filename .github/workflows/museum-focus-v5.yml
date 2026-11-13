@@ -1,0 +1,49 @@
+name: BRIAN Museum V5 Physical Reveal Acceptance
+on:
+  pull_request:
+    paths:
+      - 'src/features/immersive-gallery/**'
+      - 'tests/museum-lab/**'
+      - 'scripts/test-museum-focus-v5.mjs'
+      - '.github/workflows/museum-focus-v5.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  physical-focus-unit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Focus reducer, slow-frame timing, wall pose, data confidentiality
+        run: node --test scripts/test-museum-focus-v5.mjs
+      - name: Actual Vite bundle with real R3F/Three components
+        run: npx vite build
+  browser-cinema-reveal:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Real clicked artwork, UUID, world-space movement, board and Back
+        run: npx playwright test --config tests/museum-lab/playwright.config.mjs --project=material-desktop --grep "V5 Cinema"
+      - name: Preserve actual WebGL screenshots and traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: museum-v5-webgl-evidence
+          path: |
+            artifacts/museum-lab
+            test-results
+          if-no-files-found: ignore
+          retention-days: 7

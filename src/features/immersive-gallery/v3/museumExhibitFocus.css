@@ -1,0 +1,129 @@
+/* V5 focus: DOM text sits on a physical Three.js plaque via Drei Html transform.
+   This is not a modal, overlay image, screenshot or duplicated painting. */
+.bml .bml-v5-plaque-copy{
+ width:314px;height:355px;box-sizing:border-box;
+ display:flex;flex-direction:column;min-height:0;
+ background:linear-gradient(148deg,#FFF9ED,#FAF1DF);
+ color:#244B41;padding:14px 16px 13px;
+ border:1px solid #D3B77C;border-radius:10px;
+ box-shadow:0 1px 8px #604C2526;
+ font-family:Georgia,serif;user-select:text;
+ pointer-events:auto;overscroll-behavior:contain;
+}
+.bml .bml-v5-plaque-eyebrow{
+ color:#346E65;font:800 10px/1.4 system-ui,sans-serif;
+ letter-spacing:.12em;margin:0 0 9px;text-transform:uppercase;
+}
+.bml .bml-v5-plaque-copy h2{
+ color:#224B41;font:700 28px/1.10 Georgia,serif;
+ letter-spacing:-.04em;margin:0 0 9px;
+ overflow-wrap:anywhere;
+}
+.bml .bml-v5-plaque-rule{
+ background:#BF984D;width:43px;height:3px;
+ border-radius:3px;margin:0 0 8px;
+}
+.bml .bml-v5-plaque-scroll{
+ flex:1 1 auto;min-height:0;
+ overflow-y:auto;overflow-x:hidden;
+ font:400 13.5px/1.5 system-ui,sans-serif;
+ scrollbar-width:thin;scrollbar-color:#BAA37C #FBF2E3;
+ white-space:pre-wrap;overflow-wrap:anywhere;
+ overscroll-behavior:contain;
+}
+.bml .bml-v5-plaque-scroll p{margin:3px 0 8px}
+.bml .bml-v5-plaque-scroll .bml-v5-survey{margin:10px 0;border-top:1px solid #DED0B0;padding-top:9px}
+.bml .bml-v5-plaque-scroll .bml-v5-survey strong{display:block;font-size:12px;line-height:1.45;margin-bottom:6px}
+.bml .bml-v5-survey>div{display:flex;align-items:baseline;justify-content:space-between;gap:7px;margin:4px 0;font-size:11.5px}
+.bml .bml-v5-survey>div b{white-space:nowrap}
+.bml .bml-v5-survey small{display:block;color:#6D6A5C;margin:6px 0;font-size:11px;line-height:1.35}
+.bml .bml-v5-plaque-source{
+ border-top:1px solid #D5C5A4;padding:8px 0 6px;
+ display:flex;flex-direction:column;gap:3px;
+ font-size:12px;line-height:1.45;font-style:normal;
+}
+.bml .bml-v5-plaque-source strong{color:#2E6554;font-family:system-ui,sans-serif;font-size:11px}
+.bml .bml-v5-attribution{font-size:11px;color:#4E6E5F}
+.bml .bml-v5-back{
+ flex:0 0 auto;align-self:center;cursor:pointer;
+ display:flex;align-items:center;justify-content:center;gap:10px;
+ margin-top:10px;min-height:40px;padding:9px 17px;
+ border:1px solid #9F9C7E;border-radius:999px;
+ color:#205847;background:#FFFDF5;
+ font:800 13.5px/1 system-ui,sans-serif;
+ box-shadow:0 2px 0 #D1C4AC;
+}
+.bml .bml-v5-back:hover:not(:disabled){background:#E6F2E7}
+.bml .bml-v5-back:disabled{opacity:.55;cursor:default}
+.bml .bml-v5-back:focus-visible,.bml .bml-v5-details:focus-visible,
+.bml .bml-v5-plaque-scroll:focus-visible{outline:3px solid #1F8872;outline-offset:3px}
+.bml .bml-v5-details{
+ border:1px solid #CCD9C6;border-radius:8px;background:#E9F0E4;
+ font:700 11px system-ui,sans-serif;padding:5px 9px;
+ color:#315E51;cursor:pointer;
+}
+.bml .bml-museum-cinema .bml-v5-focus-status{
+ position:absolute;left:20px;top:21px;z-index:65;
+ max-width:min(40%,375px);color:#205747;
+ background:#FFFDF1E7;border:1px solid #DCCBA6;
+ border-radius:99px;padding:9px 15px;
+ font:750 12px/1.3 system-ui,sans-serif;
+ box-shadow:0 3px 14px #17362934;pointer-events:none;
+}
+.bml .bml-museum-cinema .bml-v5-focus-status[hidden]{display:none}
+.bml .bml-museum-cinema .bml-v5-focus-back{
+ position:absolute;right:clamp(18px,15vw,300px);bottom:13%;z-index:69;
+ border:1px solid #C9B58E;border-radius:99px;
+ color:#235F4D;background:#FFFCF2F5;
+ padding:12px 17px;font-weight:800;
+ box-shadow:0 5px 13px #183F3538;
+ cursor:pointer;min-height:44px;
+}
+.bml .bml-museum-cinema .bml-v5-focus-back:focus-visible{outline:3px solid #F1C66E;outline-offset:2px}
+@media(max-width:700px){
+ /* This copy is projected from the actual 3D plaque position by Drei Html.
+    Its 195x244px footprint stays inside the gold world-space board at 390px,
+    rather than inheriting the desktop perspective's 0.2px CSS3D width. */
+ .bml .bml-v5-plaque-copy{
+  width:205px;height:257px;padding:8px 9px;
+  transform:scale(.83);transform-origin:center;
+ }
+ .bml .bml-v5-plaque-eyebrow{font-size:8px;margin-bottom:4px}
+ .bml .bml-v5-plaque-copy h2{font-size:19px;margin-bottom:5px}
+ .bml .bml-v5-plaque-rule{margin-bottom:5px}
+ .bml .bml-v5-plaque-scroll{font-size:11px;line-height:1.35}
+ .bml .bml-v5-plaque-source{font-size:10px}
+ .bml .bml-v5-back{min-height:34px;font-size:11px;margin-top:5px;padding:7px 10px}
+ .bml .bml-museum-cinema .bml-v5-focus-status{left:9px;top:60px;max-width:62%;font-size:11px}
+ .bml .bml-museum-cinema .bml-v5-focus-back{left:auto;right:9px;bottom:79px;padding:10px 12px}
+}
+@media(prefers-reduced-motion:reduce){
+ .bml .bml-v5-plaque-copy *{transition:none!important;animation:none!important}
+}
+
+/* Keyboard/touch access to the same R3F original artwork meshes. These controls
+   dispatch selection only; they never create a 2D poster copy or second Canvas. */
+.bml .bml-museum-cinema .bml-v5-artwork-access,
+.bml .big-pek-v4 .bml-v5-artwork-access{
+ position:absolute;bottom:74px;left:17px;z-index:69;
+ display:flex;align-items:center;gap:6px;
+ padding:5px;border:1px solid #D4DECC;
+ border-radius:999px;background:#FFFCF2E8;
+ box-shadow:0 4px 17px #1C393635;
+ backdrop-filter:blur(8px);
+}
+.bml .big-pek-v4 .bml-v5-artwork-access button{
+ display:grid;place-items:center;min-height:37px;min-width:37px;
+ border-radius:100%;padding:6px;
+ border:1px solid #B8CBAF;background:#FCFFF8;color:#245747;
+ font:800 12px/1 system-ui,sans-serif;cursor:pointer;
+}
+.bml .big-pek-v4 .bml-v5-artwork-access button:hover:not(:disabled){background:#CDE7D6}
+.bml .big-pek-v4 .bml-v5-artwork-access button:focus-visible{
+ outline:3px solid #D8B456;outline-offset:3px;
+}
+.bml .big-pek-v4 .bml-v5-artwork-access button:disabled{opacity:.36;cursor:default}
+@media(max-width:700px){
+ .bml .big-pek-v4 .bml-v5-artwork-access{bottom:123px;left:8px;padding:4px}
+ .bml .big-pek-v4 .bml-v5-artwork-access button{min-height:42px;min-width:42px}
+}

@@ -1949,3 +1949,159 @@ test('Published cards survive a failure of the separate showcase catalogue reque
  await expect(showcase.getByRole('button',{name:/Synthetic Published Group 01/})).toBeVisible();
  await expect(showcase).toContainText('Synthetic showcase catalogue unavailable');
 });
+
+test('V5 Cinema physically detaches the SAME 3D artwork, displays only real evidence, and exactly restores wall pose',async({page,isMobile},testInfo)=>{
+ if(isMobile)return;
+ await page.setViewportSize({width:1536,height:864});
+ const fixtures=["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAABICAIAAAA/EeF8AAAAtElEQVR4nO3aIQ6DQBBAUZZwr4paRAWu58NVVNQiOAt3qMFUNGlIk+5fsQ1D8p+CrNjP2CGtz6WJpN074JtBJFxQt32599ddIi6P8fMcbkIGEYNIuKAufzxMc/Urb+dT5vRoE3rLf1O5knmHm5BBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIkXboH9szX452oRqbcrKhZuQQSRcUPKXL2AQCRf0AkV7EkHU/73DAAAAAElFTkSuQmCC","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAABICAIAAAA/EeF8AAAAtklEQVR4nO3aMQ6CQBBAUZZwHQsrDuJNaK1pvYkHsaLgCNzBhsbCxBAT92+xhiH5r4JssZ9ph7Q+lyaSdu+AbwaRcEHd9uV8fewSMY395znchAwiBpFwQV3+eL5dql95Gu6Z06NN6C3/TeVK5h1uQgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIFG2D/rE1++VoE6q1KSsXbkIGkXBByV++gEEkXNALMNsSQZN/v8kAAAAASUVORK5CYII=","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAABICAIAAAA/EeF8AAAAtElEQVR4nO3aIQ6DQBBAUZZwloqeCl+LrETW1vdUCCx3qMFUNGlIk+5fsQ1D8p+CrNjP2CGtz6WJpN074JtBJFxQt30536+7REyX8fMcbkIGEYNIuKAufzwPj+pXnm595vRoE3rLf1O5knmHm5BBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIkXboH9szX452oRqbcrKhZuQQSRcUPKXL2AQCRf0Ali7EkEcileqAAAAAElFTkSuQmCC"];
+ const ids=['aaa00000-0000-4000-8000-000000000001','aaa00000-0000-4000-8000-000000000002','aaa00000-0000-4000-8000-000000000003'];
+ const uploaded=ids.map((id,i)=>({id,image_url:fixtures[i],original_name:['problem.png','evidence.png','solution.png'][i]}));
+ await page.addInitScript(()=>{
+  window.__museumTextureReady=0;
+  document.addEventListener('bml:museum-texture-ready',()=>{window.__museumTextureReady++;});
+ });
+ await page.route('**/api/gallery-guest/artwork?**',route=>route.fulfill({json:{assets:uploaded,expiresSeconds:90}}));
+ await page.route('**/api/gallery-guest?**',route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  if(op==='me')return route.fulfill({json:{groupLabel:'Group 01',groupState:'editing',csrf:'qa-v5',
+   assignment:{title:'Our Climate Action Museum',brief:'Make a climate exhibition in English.',
+    class_scope:'11.3',deadline_at:new Date(Date.now()+86400000).toISOString()}}});
+  if(op==='draft')return route.fulfill({json:{version:3,draft:{
+   title:'Lights Off, Future On',summary:'Classroom responsibilities',
+   theme:'classic',artworks:{issue:ids[0],evidence:ids[1],solution:ids[2]},
+   artMeta:{issue:{alt:'Original Problem poster'},evidence:{alt:'Original Evidence poster',
+    source:'Created by Group 01',rights:'Classroom use'},solution:{alt:'Original Solution poster'}},
+   learning:{
+    issue:'The bell rings and nobody checks the fans and lights.',
+    evidence:'Four of ten class groups prioritised switching off unused lights.',
+    source:'NASA Science. The Causes of Climate Change.',
+    solution:'The room monitor and teacher check equipment before departure.'
+   },
+   survey:{counts:[2,4,3,1],source:'paper'},
+   rooms:[{title:'Lights Off, Future On',template_key:'classic',
+    exhibits:['The Problem','The Evidence','Our Solution'].map((title,i)=>({
+     title,kind:'image',description:'Student-authored text '+i,asset_id:ids[i]
+    }))}]
+  }}});
+  return route.fulfill({json:{ok:true,version:3}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>route.fulfill({json:{session:null,survey:null}}));
+ await page.goto('/tests/museum-lab/v3.html');
+ await page.getByTestId('qa-student-en').click();
+ await page.getByTestId('museum-student-wizard').getByRole('button',{name:'Preview 2D/3D museum'}).click();
+ const viewer=page.getByTestId('museum-visitor');
+ await expect(viewer).toHaveAttribute('data-museum-mode','cinema');
+ await expect(viewer.locator('canvas')).toHaveCount(1);
+ await expect.poll(()=>page.evaluate(()=>window.__museumTextureReady||0),{timeout:20000}).toBeGreaterThanOrEqual(3);
+ await expect.poll(()=>page.evaluate(()=>window.__bmlMuseumFocusQA?.artworks?.[1]?.screen?.x||0)).toBeGreaterThan(100);
+ const before=await page.evaluate(()=>structuredClone(window.__bmlMuseumFocusQA));
+ await page.screenshot({path:testInfo.outputPath('museum-v5-idle-1536x864.png'),fullPage:false});
+ const click=before.artworks[1].screen;
+ await page.mouse.click(click.x,click.y);
+ await expect(viewer.getByTestId('museum-focus-status')).toBeVisible();
+ await expect(page.getByTestId('museum-artwork-inspector')).toHaveCount(0);
+ const board=viewer.getByTestId('museum-focus-stage');
+ await expect(board).toBeVisible({timeout:12000});
+ await expect(board).toContainText('The Evidence');
+ await expect(board).toContainText('Four of ten class groups prioritised switching off unused lights.');
+ await expect(board).toContainText('NASA Science. The Causes of Climate Change.');
+ await expect(board).toContainText('4/10 (40%)');
+ await expect(board).toContainText('not measurements of electricity savings');
+ await expect(board).not.toContainText('autosaved');
+ await expect(viewer.locator('canvas')).toHaveCount(1);
+ await expect(board).toHaveAttribute('data-focus-phase','focused',{timeout:9000});
+ const selected=await page.evaluate(()=>structuredClone(window.__bmlMuseumFocusQA));
+ expect(selected.artworks[1].uuid).toBe(before.artworks[1].uuid);
+ expect(selected.artworks[1].world[2]-before.artworks[1].world[2]).toBeGreaterThan(3.5);
+ expect(selected.camera.position[2]-before.camera.position[2]).toBeGreaterThan(.4);
+ // The first visual-QA run exposed an accidental +Z camera look direction,
+ // yielding an empty screenshot despite correct mesh coordinates.
+ expect(selected.camera.forward[2]).toBeLessThan(-.70);
+ await page.screenshot({path:testInfo.outputPath('museum-v5-focused-1536x864.png'),fullPage:false});
+ for(const vp of [{width:1366,height:768},{width:1920,height:1080}]){
+  await page.setViewportSize(vp);
+  await expect(board).toBeVisible();
+  const q=await page.evaluate(()=>window.__bmlMuseumFocusQA);
+  expect(q.camera.forward[2]).toBeLessThan(-.70);
+  await page.screenshot({path:testInfo.outputPath('museum-v5-focused-'+vp.width+'x'+vp.height+'.png'),fullPage:false});
+ }
+ await page.setViewportSize({width:1536,height:864});
+ await expect(viewer.getByTestId('museum-back-to-wall-hud')).toBeEnabled();
+ await viewer.getByTestId('museum-back-to-wall-hud').click();
+ await expect(board).toHaveCount(0,{timeout:12000});
+ await expect.poll(()=>page.evaluate(()=>{
+  const q=window.__bmlMuseumFocusQA;return Math.abs(q.artworks[1].world[2]-q.artworks[1].wall[2]);
+ })).toBeLessThan(.0015);
+ const returned=await page.evaluate(()=>structuredClone(window.__bmlMuseumFocusQA));
+ expect(returned.artworks[1].uuid).toBe(before.artworks[1].uuid);
+ expect(Math.abs(returned.camera.position[2]-before.camera.position[2])).toBeLessThan(.005);
+ await page.screenshot({path:testInfo.outputPath('museum-v5-returned-1536x864.png'),fullPage:false});
+ // Repeated activation must reuse one group, restore the pose and not add a Canvas.
+ for(let pass=0;pass<2;pass++){
+  const link=viewer.getByRole('button',{name:'Inspect The Evidence'});
+  await link.click();
+  await expect(viewer.getByTestId('museum-focus-stage')).toHaveAttribute('data-focus-phase','focused',{timeout:9000});
+  await page.keyboard.press('Escape');
+  await expect(viewer.getByTestId('museum-focus-stage')).toHaveCount(0,{timeout:11000});
+  expect(await viewer.locator('canvas').count()).toBe(1);
+ }
+ await viewer.getByRole('button',{name:'2D',exact:true}).click();
+ await expect(viewer.getByTestId('museum-2d-exhibits')).toBeVisible();
+ await expect(viewer.getByTestId('museum-artwork-inspector')).toHaveCount(0);
+});
+
+
+test('V5 Cinema mobile and reduced motion keeps physical plaque readable and ESC restores room',async({page},testInfo)=>{
+ await page.addInitScript(()=>{
+  window.__museumTextureReady=0;
+  document.addEventListener('bml:museum-texture-ready',()=>{window.__museumTextureReady++;});
+ });
+ await page.setViewportSize({width:390,height:844});
+ await page.emulateMedia({reducedMotion:'reduce'});
+ const fixtures=["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAABICAIAAAA/EeF8AAAAtElEQVR4nO3aIQ6DQBBAUZZwr4paRAWu58NVVNQiOAt3qMFUNGlIk+5fsQ1D8p+CrNjP2CGtz6WJpN074JtBJFxQt32599ddIi6P8fMcbkIGEYNIuKAufzxMc/Urb+dT5vRoE3rLf1O5knmHm5BBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIkXboH9szX452oRqbcrKhZuQQSRcUPKXL2AQCRf0AkV7EkHU/73DAAAAAElFTkSuQmCC","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAABICAIAAAA/EeF8AAAAtklEQVR4nO3aMQ6CQBBAUZZwHQsrDuJNaK1pvYkHsaLgCNzBhsbCxBAT92+xhiH5r4JssZ9ph7Q+lyaSdu+AbwaRcEHd9uV8fewSMY395znchAwiBpFwQV3+eL5dql95Gu6Z06NN6C3/TeVK5h1uQgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIFG2D/rE1++VoE6q1KSsXbkIGkXBByV++gEEkXNALMNsSQZN/v8kAAAAASUVORK5CYII=","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAABICAIAAAA/EeF8AAAAtElEQVR4nO3aIQ6DQBBAUZZwloqeCl+LrETW1vdUCCx3qMFUNGlIk+5fsQ1D8p+CrNjP2CGtz6WJpN074JtBJFxQt30536+7REyX8fMcbkIGEYNIuKAufzwPj+pXnm595vRoE3rLf1O5knmHm5BBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIkXboH9szX452oRqbcrKhZuQQSRcUPKXL2AQCRf0Ali7EkEcileqAAAAAElFTkSuQmCC"];
+ const ids=['aaa00000-0000-4000-8000-000000000001','aaa00000-0000-4000-8000-000000000002','aaa00000-0000-4000-8000-000000000003'];
+ const images=ids.map((id,i)=>({id,original_name:'group-poster-'+i+'.png',image_url:fixtures[i]}));
+ await page.route('**/api/gallery-guest/artwork?**',route=>route.fulfill({json:{assets:images,expiresSeconds:90}}));
+ await page.route('**/api/gallery-guest?**',route=>{
+  const operation=new URL(route.request().url()).searchParams.get('operation');
+  if(operation==='me')return route.fulfill({json:{groupLabel:'Group 01',groupState:'editing',csrf:'qa-v5-mobile',assignment:{title:'Our Climate Action Museum',
+    brief:'Build a museum in English.',class_scope:'11.3',deadline_at:new Date(Date.now()+86400000).toISOString()}}});
+  if(operation==='draft')return route.fulfill({json:{version:3,draft:{title:'Lights Off, Future On',
+    artworks:{issue:ids[0],evidence:ids[1],solution:ids[2]},
+    artMeta:{evidence:{alt:'Actual school survey poster',source:'Group 01 original'}},
+    learning:{issue:'Classroom fans remain running.',evidence:'Four of ten groups chose switching off lights.',
+     source:'NASA Space Place. The Greenhouse Effect.',solution:'The student monitor checks lights.'},
+    survey:{counts:[2,4,3,1],source:'paper'},
+    rooms:[{title:'Our Classroom',template_key:'classic',exhibits:['The Problem','The Evidence','Our Solution'].map((title,i)=>({
+     title,kind:'image',description:'Original student content '+i,asset_id:ids[i]
+    }))}]}}});
+  return route.fulfill({json:{ok:true,version:3}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>route.fulfill({json:{session:null,survey:null}}));
+ await page.goto('/tests/museum-lab/v3.html');
+ await page.getByTestId('qa-student-en').click();
+ await page.getByTestId('museum-student-wizard').getByRole('button',{name:'Preview 2D/3D museum'}).click();
+ const viewer=page.getByTestId('museum-visitor');
+ await expect(viewer).toHaveAttribute('data-museum-mode','cinema');
+ await expect(viewer.locator('canvas')).toHaveCount(1);
+ await expect.poll(()=>page.evaluate(()=>window.__museumTextureReady||0),{timeout:20000}).toBeGreaterThanOrEqual(3);
+ await viewer.getByRole('button',{name:'Inspect The Evidence'}).click();
+ const stage=viewer.getByTestId('museum-focus-stage');
+ await expect(stage).toHaveAttribute('data-focus-phase','focused',{timeout:18000});
+ await expect(stage).toContainText('Four of ten groups chose switching off lights.');
+ await expect(stage).toContainText('NASA Space Place. The Greenhouse Effect.');
+ await expect(page.getByTestId('museum-artwork-inspector')).toHaveCount(0);
+ const bounds=await stage.evaluate(el=>{
+  const r=el.getBoundingClientRect();
+  return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};
+ });
+ expect(bounds.width).toBeGreaterThan(40);
+ expect(bounds.left).toBeGreaterThanOrEqual(-5);
+ expect(bounds.right).toBeLessThanOrEqual(395);
+ await page.screenshot({path:testInfo.outputPath('museum-v5-focused-390x844-reduced.png'),fullPage:false});
+ await page.keyboard.press('Escape');
+ await expect(viewer.getByTestId('museum-focus-stage')).toHaveCount(0,{timeout:15000});
+ await viewer.getByRole('button',{name:'2D',exact:true}).click();
+ await expect(viewer.getByTestId('museum-2d-exhibits')).toBeVisible();
+ await expect(viewer.locator('canvas')).toHaveCount(0);
+});
