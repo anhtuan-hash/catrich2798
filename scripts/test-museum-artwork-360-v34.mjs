@@ -3,11 +3,18 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const viewer=fs.readFileSync('src/features/immersive-gallery/v3/Exhibit360Viewer.jsx','utf8');
 const museum=fs.readFileSync('src/features/immersive-gallery/v3/MuseumScene.jsx','utf8');
-test('clicking a 3D or 2D exhibit opens the same live 360 inspector',()=>{
- assert.match(museum,/onSelect=\{openExhibit\}/);
+test('Cinema 3D selects the original in-scene object without opening the 360 dialog',()=>{
+ assert.match(museum,/cinema&&threeD/);
+ assert.match(museum,/dispatchFocus\(\{type:'SELECT'/);
+ assert.match(museum,/focus=\{cinema\?focus:FOCUS_IDLE\}/);
+ assert.match(museum,/selected&&\!\(cinema&&threeD\)/);
+ assert.match(museum,/buildExhibitFocusBoard/);
+});
+test('2D and legacy paths retain the original 360 dialog and accessibility controls',()=>{
  assert.match(museum,/onClick=\{\(\)=>openExhibit\(e.id\)\}/);
  assert.match(museum,/Exhibit360Viewer key=\{selected.id\}/);
  assert.match(museum,/data-testid="museum-artwork-inspector"/);
+ assert.match(museum,/closeRef.current\?\.focus/);
 });
 test('real WebGL orbit uses camera rotation, zoom, auto-rotate and reset',()=>{
  for(const feature of ['OrbitControls','enableRotate','enableZoom','autoRotate={spin}','minDistance','maxDistance','setReset(n=>n+1)']){
