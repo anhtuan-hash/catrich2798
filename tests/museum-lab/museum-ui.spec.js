@@ -1796,7 +1796,7 @@ test('Published cards survive a failure of the separate showcase catalogue reque
 test('V5 Cinema physically detaches the SAME 3D artwork, displays only real evidence, and exactly restores wall pose',async({page,isMobile},testInfo)=>{
  if(isMobile)return;
  await page.setViewportSize({width:1536,height:864});
- const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAYCAIAAAB8wupbAAAAR0lEQVR4nGPkjXZlIAUwkaSaLhoY/3++QJIGFgYGhitRtWiiOsuaGRgY1FBSNJCcvBmvL7YnScMg9DQAQV4OGRjRfFEAAAAASUVORK5CYII=';
+ const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAYCAIAAAB8wupbAAAAR0lEQVR4nGPkjXZlIAUwkaSaLhoY/3++QJIGFgYGhitRtWiiOsuaGRgY1Fvfo4nfrBYchJ4e1TBSNJCcvBmvL7YnScMg9DQAQV4OGRjRfFEAAAAASUVORK5CYII=';
  const ids=['aaa00000-0000-4000-8000-000000000001','aaa00000-0000-4000-8000-000000000002','aaa00000-0000-4000-8000-000000000003'];
  const uploaded=ids.map((id,i)=>({id,image_url:png,original_name:['problem.png','evidence.png','solution.png'][i]}));
  await page.addInitScript(()=>{
