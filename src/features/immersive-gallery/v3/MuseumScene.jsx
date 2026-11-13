@@ -58,7 +58,18 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
  const focusBack=()=>dispatchFocus({type:'BACK'});
  const changeTo2D=()=>{dispatchFocus({type:'RESET'});setInfoOpen(false);setThreeD(false);};
  const changeTo3D=()=>{setInfoOpen(false);setThreeD(true);};
+ const focusBackButtonRef=useRef(null),lastFocusPhase=useRef('idle');
  const cinemaRef=useRef(null),cinemaOpenerRef=useRef(null),[infoOpen,setInfoOpen]=useState(false);
+ useEffect(()=>{
+  if(!cinema)return;
+  if(focus.phase==='focused'&&lastFocusPhase.current!=='focused'){
+   focusBackButtonRef.current?.focus({preventScroll:true});
+  }else if(focus.phase==='idle'&&lastFocusPhase.current!=='idle'){
+   if(openerRef.current?.isConnected)openerRef.current.focus({preventScroll:true});
+   else cinemaRef.current?.querySelector('.bml-cinema-mode-group button')?.focus({preventScroll:true});
+  }
+  lastFocusPhase.current=focus.phase;
+ },[cinema,focus.phase]);
  useEffect(()=>{if(cinema)cinemaOpenerRef.current=document.activeElement;},[cinema]);
  const [isFullscreen,setIsFullscreen]=useState(false),[fallbackFullscreen,setFallbackFullscreen]=useState(false);
  const leaveCinema=()=>{
@@ -278,7 +289,7 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
     </section>
    </div>:null}
   {cinema&&threeD&&isFocus?<button type="button" className="bml-v5-focus-back"
-   data-testid="museum-back-to-wall-hud" aria-label="Back to wall"
+   ref={focusBackButtonRef} data-testid="museum-back-to-wall-hud" aria-label="Back to wall"
    disabled={focus.phase!=='focused'} onClick={focusBack}>
    <span aria-hidden="true">←</span> Back to wall
   </button>:null}
