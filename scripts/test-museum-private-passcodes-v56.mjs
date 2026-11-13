@@ -17,7 +17,7 @@ assert.ok(api.includes("if(operation==='reveal-passcodes')"));
 assert.ok(api.includes("if(operation==='regenerate-all-passcodes')"));
 assert.ok(api.includes("assertAdmin(ctx)"));
 assert.ok(api.includes("secret_envelope:encryptGroupPasscode(secret,handle)"));
-assert.ok(api.includes("invite_has_passcode:Boolean(inv?.secret_envelope)"));
+assert.ok(api.includes("invite_has_passcode:Boolean(invite?.secret_envelope)"));
 assert.ok(!api.includes("invite_private_code:"));
 assert.ok(frontend.includes('Regenerate all passcodes'));
 assert.ok(frontend.includes('Private group passcode'));
