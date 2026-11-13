@@ -59,10 +59,10 @@ export default function MuseumLiveStudent({csrf,language='vi',onState}){
    <span>{session.stageOpen?t(language,'Giáo viên đã mở hoạt động','Activity is open'):t(language,'Chờ giáo viên mở hoạt động','Waiting for teacher')}</span></header>
   <h2>{stage?.title}</h2><p>{stage?.question}</p><LessonResources stageIndex={stageIndex} language={language}/>
   <details className="bml-student-enrichment" data-testid="museum-student-research"><summary>
-   <BookOpen size={17}/>Kho tư liệu · nguồn đáng tin cậy</summary>
+   <BookOpen size={17}/>{t(language,'Kho tư liệu · nguồn đáng tin cậy','Research library · reliable sources')}</summary>
    <MuseumResourceHub stage={stage} language={language}/>
   </details>
-  <details className="bml-student-enrichment"><summary><Volume2 size={17}/>Nghe lời dẫn tiếng Anh</summary>
+  <details className="bml-student-enrichment"><summary><Volume2 size={17}/>{t(language,'Nghe lời dẫn tiếng Anh','Listen to English voiceover')}</summary>
    <MuseumVoiceover stage={stage} language={language} compact/>
   </details>
   <div className="bml-step-hint"><Info size={19}/><span>{stage?.sentence}</span></div>
