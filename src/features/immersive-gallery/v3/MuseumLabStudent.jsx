@@ -10,6 +10,7 @@ import MuseumArtworkStudio from './MuseumArtworkStudio.jsx';
 import './museumLab.css';
 import './museumStudentFocus.css';
 import './museumStudentCanvas.css';
+import './museumStudentEditorial.css';
 const T=(lang,vi,en)=>lang==='en'?en:vi;
 const getHandle=()=>{
  try{const raw=new URLSearchParams(window.location.hash.split('?')[1]||'').get('invite')||'';return raw.match(/^[A-Za-z0-9_-]{16,80}/)?.[0]||raw.slice(0,80);}catch{return '';}
@@ -157,7 +158,7 @@ export default function MuseumLabStudent({language='en'}){
  const exhibitStatus=()=>[l.issue,l.evidence,l.solution].filter(Boolean).length;
  const progressChecks=[!!studio.title,!!l.issue,!!l.evidence,!!l.solution,!!l.source,!!l.feedback,!!l.improvement,!!l.tested,!!l.reflection];
  const progressPercent=Math.round(100*progressChecks.filter(Boolean).length/progressChecks.length);
- return <main className="bml bml-student-shell bml-student-canvas16" data-testid="museum-student-wizard" lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
+ return <main className="bml bml-student-shell bml-student-canvas16 bml-student-editorial" data-testid="museum-student-wizard" lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
   <header className="bml-student-bar"><div className="bml-brand"><span className="bml-brand-icon"><Landmark size={23}/></span><span><strong>BRIAN Museum Lab</strong><small>Student Creator</small></span></div>
    <div className="bml-student-right"><span className="bml-group-pill"><Users size={16}/>{language==='en'?englishSystemGroupLabel(session.groupLabel):session.groupLabel} · {session.assignment.class_scope}</span>
     <span className={'bml-save-indicator bml-save-'+saveState}>{saveState==='saved'?<><Cloud size={16}/>{T(language,'Đã lưu','Saved')}</>:
@@ -166,8 +167,8 @@ export default function MuseumLabStudent({language='en'}){
   <div className="bml-student-content">
    <section className="bml-student-focus" data-testid="student-focus-switch" aria-label={T(language,'Bảng điều khiển học sinh','Student workspace')}>
     <div className="bml-student-focus-head">
-     <span className="bml-student-focus-kicker"><Sparkles size={16}/> STUDENT WORKSPACE</span>
-     <strong>{T(language,'Bảng hoạt động của nhóm','Group learning dashboard')}</strong>
+     <span className="bml-student-focus-kicker"><Landmark size={16}/> THE STUDENT EDITION</span>
+     <strong>{T(language,'Sổ tay triển lãm','Your museum workshop')}</strong>
      <span className="bml-student-focus-stage" role="status">
       <span className={liveRunning&&liveInfo?.stageOpen?'bml-focus-dot is-open':'bml-focus-dot'}/>
       {liveRunning?
@@ -184,9 +185,9 @@ export default function MuseumLabStudent({language='en'}){
    <div className="bml-student-workbench" data-testid="student-one-screen-workspace">
     <aside className="bml-student-toolrail" aria-label={T(language,'Bảng công cụ học tập','Learning tools')}>
      <div className="bml-student-paper-note">
-      <span className="bml-student-note-kicker"><Sparkles size={16}/> TEACHER LIVE</span>
+      <span className="bml-student-note-kicker"><BookOpen size={16}/> TODAY’S LESSON</span>
       <strong>{liveInfo?.stage?.title||T(language,'Sẵn sàng học tập','Ready to explore')}</strong>
-      <p>{liveInfo?.stage?.question||T(language,'Các hoạt động sẽ đồng bộ theo giáo viên.','Activities follow your teacher.')}</p>
+      <p>{liveInfo?.stage?.sentence||T(language,'Các hoạt động sẽ đồng bộ theo giáo viên.','Follow the lesson, share your thinking, and build your exhibit.')}</p>
       <small>{liveRunning?T(language,'Tiết','Period')+' '+(liveInfo.stage?.period||1)+'/2 · '+(stageIndex+1)+'/11':T(language,'Đang chờ buổi dạy','Waiting for class')}</small>
      </div>
     <div className="bml-student-view-tabs" role="group" aria-label={T(language,'Chọn khu vực học tập','Choose learning area')}>
@@ -204,7 +205,7 @@ export default function MuseumLabStudent({language='en'}){
      </button>
     </div>
 
-     <div className="bml-student-rail-label">{T(language,'CÔNG CỤ HỖ TRỢ','STUDY TOOLS')}</div>
+     <div className="bml-student-rail-label">{T(language,'CÔNG CỤ HỖ TRỢ','YOUR TOOLKIT')}</div>
      <div className="bml-student-rail-tools">
       <button type="button" onClick={()=>showTool('materials')}><BookOpen size={18}/>{T(language,'Tài liệu bài học','Lesson materials')}</button>
       <button type="button" onClick={()=>showTool('research')}><FileText size={18}/>{T(language,'Kho tư liệu','Research library')}</button>
@@ -349,19 +350,22 @@ export default function MuseumLabStudent({language='en'}){
     </section>
     <aside className="bml-student-projectrail" aria-label={T(language,'Sản phẩm của nhóm','Group project')}>
      <section className="bml-student-project-card">
-      <div className="bml-student-project-ribbon"><Landmark size={19}/>{T(language,'Sản phẩm của nhóm','OUR GROUP PROJECT')}</div>
+      <div className="bml-student-project-ribbon"><Landmark size={19}/>{T(language,'Sản phẩm của nhóm','EXHIBITION DOSSIER')}</div>
    <div className="bml-student-heading"><span className="bml-overline">{T(language,'DỰ ÁN TIẾNG ANH · BẢO TÀNG SỐ','ENGLISH PROJECT · DIGITAL MUSEUM')}</span>
     <h1>{session.assignment.title}</h1><p>{session.assignment.brief||T(language,'Tạo triển lãm tiếng Anh từ ý tưởng của nhóm em.','Create an English exhibition from your group’s ideas.')}</p>
     <small><Info size={15}/>{T(language,'Hạn nộp','Due')} {fmtTime(session.assignment.deadline_at)} · {T(language,'Tự lưu theo mã nhóm','Autosaved to this group pass')}</small></div>
 
-      <div className="bml-student-project-art"><span>🌱</span><strong>{studio.title||'Our Climate Action Museum'}</strong></div>
+      <div className="bml-student-project-art">
+        <span className="bml-student-project-mark" aria-hidden="true"><Leaf size={27}/></span>
+        <div><small>WORK IN PROGRESS</small><strong>{studio.title||'Every exhibition begins with one idea.'}</strong></div>
+       </div>
       <div className="bml-student-project-meter"><strong>{T(language,'Tiến độ nội dung','Project completion')}</strong><span>{progressPercent}%</span>
        <div role="progressbar" aria-label={T(language,'Tiến độ nội dung','Project completion')} aria-valuenow={progressPercent} aria-valuemin={0} aria-valuemax={100}><i style={{width:progressPercent+'%'}}/></div></div>
       <button type="button" className="bml-outline bml-student-project-preview" onClick={()=>setProjectPreview(true)}>
        <Eye size={17}/>{T(language,'Xem bảo tàng 2D/3D','Preview 2D/3D museum')}</button>
       <small className="bml-student-real-data-note">{T(language,'Tiến độ đếm 9 mục thực tế, không phải điểm số.','Progress counts nine actual draft fields, not a grade.')}</small>
      </section>
-   <aside className="bml-student-guide bml-surface"><div className="bml-guide-circle"><Lightbulb size={25}/></div><h3>{T(language,'Mẹo học tiếng Anh','English learning tips')}</h3>
+   <aside className="bml-student-guide bml-surface"><div className="bml-guide-circle"><Lightbulb size={25}/></div><h3>{T(language,'Mẹo học tiếng Anh','English for your exhibit')}</h3>
     <p>{T(language,'Dùng từ nối để giải thích nguyên nhân, trình bày dẫn chứng và đề xuất giải pháp rõ ràng.','Use transitions to explain causes, give evidence and suggest a clear solution.')}</p>
     {['because / therefore','according to the source','we suggest / we recommend','our visitors can…'].map(v=><span className="bml-english-chip" key={v}>{v}</span>)}
     <div className="bml-guide-divider"/>
