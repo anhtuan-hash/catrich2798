@@ -1,6 +1,7 @@
 import React,{useState} from 'react';
 import {BookOpen,ExternalLink,FileText,Filter,Globe2,Leaf,Lightbulb,Search,ShieldCheck} from 'lucide-react';
 import {LESSON_RESOURCES} from './lessonResources.js';
+const tr=(lang,vi,en)=>lang==='en'?en:vi;
 const categories={
  'climate-detective':[0,1],
  'language-mini-lesson':[0,2,3],
@@ -28,17 +29,17 @@ export default function MuseumResourceHub({stage,language='vi'}){
   <div className="bml-resource-hub-head">
    <div><div className="bml-video-kicker"><BookOpen size={17}/> RESEARCH LIBRARY</div>
     <h3>Kho tư liệu · {stage?.title||'English climate action'}</h3>
-    <p>Tư liệu khoa học, đọc hiểu và câu mẫu có nguồn; phù hợp hoạt động hiện tại.</p></div>
+    <p>{tr(language,'Tư liệu khoa học, đọc hiểu và câu mẫu có nguồn; phù hợp hoạt động hiện tại.','Sourced climate science, reading and English language supports for this activity.')}</p></div>
    <label className="bml-resource-search"><Search size={16}/>
-    <input value={filter} onChange={e=>setFilter(e.target.value)} placeholder="Search sources / tìm trong kho…" aria-label="Search learning library"/></label>
+    <input value={filter} onChange={e=>setFilter(e.target.value)} placeholder={tr(language,"Search sources / tìm trong kho…","Search the learning library…")} aria-label="Search learning library"/></label>
   </div>
   <div className="bml-resource-hub-list">{visible.map((item,i)=><article key={item.id} className="bml-resource-hub-card">
    <div className="bml-resource-number">{String(i+1).padStart(2,'0')}</div>
    <div><h4>{item.title}</h4><p>{item.text}</p><blockquote>{item.task}</blockquote>
     {item.url?<a href={item.url} target="_blank" rel="noopener noreferrer"><ExternalLink size={15}/>{item.source}</a>:<small><ShieldCheck size={14}/>{item.source}</small>}
    </div></article>)}</div>
-  {!visible.length?<p>Không tìm thấy tư liệu khớp từ khóa.</p>:null}
-  <div className="bml-source-check"><Globe2 size={21}/><div><strong>SOURCE CHECK · trước khi đưa thông tin vào triển lãm</strong>
+  {!visible.length?<p>{tr(language,'Không tìm thấy tư liệu khớp từ khóa.','No learning resources match this search.')}</p>:null}
+  <div className="bml-source-check"><Globe2 size={21}/><div><strong>{tr(language,'SOURCE CHECK · trước khi đưa thông tin vào triển lãm','SOURCE CHECK · before including a claim in your museum')}</strong>
    <div>{SOURCE_TIPS.map(tip=><span key={tip}><Leaf size={14}/>{tip}</span>)}</div></div></div>
  </section>;
 }
