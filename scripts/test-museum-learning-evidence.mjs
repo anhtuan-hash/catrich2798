@@ -41,7 +41,7 @@ test('P2 contains exactly the teacher 11 stages and correct 45+45 timing',()=>{
  const p=p2Document({},{});
  for(const stage of LIVE_STAGES)assert.ok(p.includes(stage.title));
  for(const period of [1,2])assert.equal(LIVE_STAGES.filter(s=>s.period===period).reduce((n,s)=>n+s.minutes,0),45);
- assert.match(p,/NASA/);assert.match(p,/United Nations/);assert.match(p,/Phương án khi mất mạng/);
+ assert.match(p,/NASA/);assert.match(p,/United Nations/);assert.match(p,/Offline contingency/);
  assert.equal(contestBasename('Nguyễn Anh Tuấn'),'TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_');
 });
 test('CSV cells reject formula execution while preserving actual feedback',()=>{
