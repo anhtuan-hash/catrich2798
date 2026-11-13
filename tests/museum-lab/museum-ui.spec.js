@@ -201,6 +201,8 @@ test('realistic Group 01 Stage 1 permits vote, help, all group project steps and
  const vote=page.getByRole('button',{name:/B\. Switching off unused lights/});
  await expect(vote).toBeVisible();
  await expect(vote).toBeEnabled();
+ await vote.scrollIntoViewIfNeeded();
+ await expect(vote).toBeInViewport();
  const hit=await vote.evaluate(el=>{
   const rect=el.getBoundingClientRect(),top=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);
   return Boolean(top&&(top===el||el.contains(top)));
