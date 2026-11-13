@@ -37,6 +37,21 @@ const preparedQa={
  }))),
  reviews:[]
 };
+const tenGroups=Array.from({length:10},(_,i)=>({
+ id:'g'+(i+1),assignment_id:'lesson-synthetic',state:i===0?'submitted':'editing',
+ label:'Nhóm '+String(i+1).padStart(2,'0')
+}));
+const tenFeedback=[
+ {id:'f1',from_group:'g1',to_group:'g2',rating:4,
+  learned:'The marked crossing makes the safety concern visible to visitors.',
+  clarify:'The visitor needs another path for unsafe or rainy-day routes.'},
+ {id:'f2',from_group:'g3',to_group:'g2',rating:3,
+  learned:'I learned that group votes do not describe actual commuting behaviour.',
+  clarify:'Please explain who assesses local road conditions before travel advice.'},
+ {id:'f3',from_group:'g2',to_group:'g7',rating:4,
+  learned:'The canteen exhibit explains why personal meal records should remain private.',
+  clarify:'The chart should define what counts as an anonymous category.'}
+];
 const submittedQa={
  ...synthetic,
  reviews:[{id:'review-qa-1',group_id:'group-1',version:1,state:'submitted',
@@ -80,6 +95,14 @@ const demoTeacherApi=async(action,body)=>{
  if(action==='group-gallery')return {draft:{title:'Synthetic Group',rooms:[]},artworks:[],groupLabel:'Demo group'};
  throw new Error('Unexpected mocked operation');
 };
+const tenTeacherApi=async(action,body,query)=>{
+ if(action==='group-gallery')return {draft:DEMO_GALLERY,artworks:[],groupLabel:
+  'Nhóm '+String(tenGroups.findIndex(g=>g.id===query?.groupId)+1).padStart(2,'0')};
+ const base=await demoTeacherApi(action,body,query);
+ return action==='state'?{...base,groups:tenGroups,feedback:tenFeedback,
+  responses:[{group_id:'g1',value:1},{group_id:'g3',value:0}],
+  microResults:[{group_id:'g2',choice:1}],helpGroups:['g4','g7'],needHelp:2}:base;
+};
 function Harness(){
  const [screen,setScreen]=useState('dashboard');
   const englishOnly=screen.endsWith('-en');
@@ -89,7 +112,7 @@ function Harness(){
  return <div style={{fontFamily:'Roboto,Arial,sans-serif'}}>
   <div style={{display:'flex',gap:8,padding:10,background:'#e6f0ff',flexWrap:'wrap'}} data-testid="qa-harness">
    <strong>QA ONLY · ALL DATA SYNTHETIC</strong>
-   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','published-lesson','dashboard-en','student-en','teacher-live-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
+   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','published-lesson','dashboard-en','student-en','teacher-live-en','teacher-live-ten-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
   </div>
   <div className="bml">
    {normalized==='dashboard'?<MuseumDashboard data={synthetic} onNavigate={setScreen} onCreate={()=>setScreen('wizard')} onDemo={()=>setScreen('scene')} language={uiLanguage}/>:null}
@@ -100,6 +123,7 @@ function Harness(){
     language={uiLanguage} onCreate={()=>{}} onReview={()=>{}} onRefresh={async()=>{}}
     onOpenCollection={()=>{}}/>:null}
    {normalized==='teacher-live'?<MuseumLiveTeacher data={synthetic} language={uiLanguage} transport={demoTeacherApi}/>:null}
+    {normalized==='teacher-live-ten'?<MuseumLiveTeacher data={{...synthetic,groups:tenGroups}} language={uiLanguage} transport={tenTeacherApi}/>:null}
    {normalized==='student-live'?<MuseumLiveStudent csrf="qa-secret" language={uiLanguage}/>:null}
    {normalized==='artwork'?<MuseumArtworkStudio studio={{artworks:{issue:null,evidence:null,solution:null}}}
      csrf="qa-secret" language={uiLanguage} uploadEnabled={true} update={()=>{}}/>:null}
