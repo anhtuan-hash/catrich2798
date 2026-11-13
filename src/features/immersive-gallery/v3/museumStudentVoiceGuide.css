@@ -1,0 +1,89 @@
+/* Scoped to the authenticated Student Creator; no changes to teacher/admin UI. */
+.bml.bml-student-canvas16 .bml-student-voice-guide{
+ position:relative;z-index:11;display:flex;align-items:center;justify-content:center;
+ flex:0 1 auto;min-width:0;gap:4px;margin-inline:auto;
+ padding:3px 5px;border:1px solid #c6d8ce;border-radius:11px;
+ background:#f3f8f2;color:#245548;font-family:inherit;
+}
+.bml.bml-student-canvas16 .bml-student-voice-guide button,
+.bml.bml-student-canvas16 .bml-student-voice-guide summary{
+ display:inline-flex;align-items:center;justify-content:center;gap:6px;
+ min-height:30px;padding:4px 8px;border:0;border-radius:7px;
+ background:transparent;color:#245548;font-weight:800;cursor:pointer;
+ font-size:11px;white-space:nowrap;
+}
+.bml.bml-student-canvas16 .bml-student-voice-toggle.is-on{
+ background:#dfefe3;color:#1d6854;
+}
+.bml.bml-student-canvas16 .bml-student-voice-toggle span{display:flex;align-items:center;gap:5px}
+.bml.bml-student-canvas16 .bml-student-voice-toggle small{
+ font-size:8px;letter-spacing:.07em;color:#287262;
+}
+.bml.bml-student-canvas16 .bml-student-voice-replay:disabled{
+ opacity:.45;cursor:not-allowed;
+}
+.bml.bml-student-canvas16 .bml-student-voice-guide button:focus-visible,
+.bml.bml-student-canvas16 .bml-student-voice-guide summary:focus-visible,
+.bml.bml-student-canvas16 .bml-student-voice-guide select:focus-visible{
+ outline:3px solid #366b91;outline-offset:2px;
+}
+.bml.bml-student-canvas16 .bml-student-voice-details{
+ position:relative;min-width:0;
+}
+.bml.bml-student-canvas16 .bml-student-voice-details summary{
+ list-style:none;border-left:1px solid #c9d9d0;border-radius:0;
+}
+.bml.bml-student-canvas16 .bml-student-voice-details summary::-webkit-details-marker{display:none}
+.bml.bml-student-canvas16 .bml-student-voice-details[open] summary{
+ background:#e5efe4;border-radius:6px;
+}
+.bml.bml-student-canvas16 .bml-student-voice-status{
+ font-size:10px;font-weight:700;color:#526b62;max-width:170px;
+ white-space:nowrap;text-overflow:ellipsis;overflow:hidden;
+}
+.bml.bml-student-canvas16 .bml-student-voice-guide[data-voice-status="tap"] .bml-student-voice-status,
+.bml.bml-student-canvas16 .bml-student-voice-guide[data-voice-status="no-voice"] .bml-student-voice-status,
+.bml.bml-student-canvas16 .bml-student-voice-guide[data-voice-status="failed"] .bml-student-voice-status{
+ color:#9a4b2a;
+}
+.bml.bml-student-canvas16 .bml-student-voice-transcript{
+ position:absolute;right:0;top:calc(100% + 9px);
+ display:flex;flex-direction:column;gap:9px;
+ width:min(380px,calc(100vw - 30px));max-height:min(65vh,490px);overflow-y:auto;
+ padding:17px;border:1px solid #b5cfc0;border-radius:12px;
+ background:#fffdf5;color:#284d45;
+ box-shadow:0 14px 36px #29483d38;z-index:60;
+ white-space:normal;line-height:1.5;
+}
+.bml.bml-student-canvas16 .bml-student-voice-transcript strong{
+ font-size:14px;color:#1c5048;overflow-wrap:anywhere;
+}
+.bml.bml-student-canvas16 .bml-student-voice-transcript p{
+ font-size:13px;margin:0;white-space:normal;overflow-wrap:anywhere;
+}
+.bml.bml-student-canvas16 .bml-student-voice-transcript label{
+ display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:700;
+}
+.bml.bml-student-canvas16 .bml-student-voice-transcript select{
+ max-width:100%;min-height:32px;border-radius:6px;padding:4px 8px;
+ border:1px solid #bdcec2;background:#fff;color:#254b43;
+}
+.bml.bml-student-canvas16 .bml-student-voice-transcript small{
+ font-size:10px;color:#59736a;
+}
+@media(max-width:1100px){
+ .bml.bml-student-canvas16 .bml-student-voice-status{display:none}
+}
+@media(max-width:680px){
+ .bml.bml-student-canvas16 .bml-student-voice-guide{
+  margin:0 0 0 auto;gap:1px;padding:2px 3px;max-width:100%;
+ }
+ .bml.bml-student-canvas16 .bml-student-voice-guide button,
+ .bml.bml-student-canvas16 .bml-student-voice-guide summary{
+  padding:4px 6px;font-size:10px;min-height:32px;
+ }
+ .bml.bml-student-canvas16 .bml-student-voice-transcript{
+  position:fixed;right:12px;left:12px;top:180px;
+  width:auto;max-height:min(65vh,420px);
+ }
+}
