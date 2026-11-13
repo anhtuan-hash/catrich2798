@@ -25,15 +25,55 @@ test('English-only student route shows only English access, privacy and passcode
  expect((await entry.innerText())).not.toMatch(/[à-ỹÀ-ỸđĐ]/u);
 });
 test('English-only teacher, lesson wizard, reviews and dossier show translated UI',async({page})=>{
+ const assertOnlyEnglish=async()=>{
+  const visible=await page.locator('.bml').first().innerText();
+  expect(visible).not.toMatch(/[à-ỹÀ-ỸđĐ]/u);
+ };
+
  await page.getByTestId('qa-teacher-live-en').click();
  await expect(page.getByRole('heading',{name:'Teacher Live'})).toBeVisible();
  await expect(page.getByRole('button',{name:/Start lesson/})).toBeVisible();
+ await assertOnlyEnglish();
  await page.getByTestId('qa-wizard-en').click();
  await expect(page.getByRole('heading',{name:'Create a new lesson'})).toBeVisible();
+ await assertOnlyEnglish();
  await page.getByTestId('qa-admin-review-en').click();
  await expect(page.getByRole('heading',{name:'Student submissions'})).toBeVisible();
+ await assertOnlyEnglish();
  await page.getByTestId('qa-evidence-en').click();
  await expect(page.getByText('Section 1: Teacher and school context')).toBeVisible();
+ await assertOnlyEnglish();
+});
+test('English-only group workspace shows no Vietnamese UI in all five project steps',async({page})=>{
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const operation=new URL(route.request().url()).searchParams.get('operation');
+  const body=operation==='me'?{groupLabel:'Nhóm 01',groupState:'editing',csrf:'english-only-qa',
+   assignment:{title:'Our Climate Action Museum',brief:'Investigate one school climate action using real evidence.',
+    class_scope:'11-DEMO',deadline_at:new Date(Date.now()+86400000).toISOString()}}:
+   {draft:{title:'',summary:'',rooms:[]},version:0};
+  await route.fulfill({json:body});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>route.fulfill({json:{session:null,survey:null}}));
+ await page.getByTestId('qa-student-en').click();
+ const app=page.getByTestId('museum-student-wizard');
+ await expect(app).toBeVisible();
+ await expect(app).toHaveAttribute('lang','en');
+ await expect(app.getByText('Group 01')).toBeVisible();
+ for(let step=0;step<5;step++){
+  await app.locator('.bml-student-steps button').nth(step).click();
+  await expect(app.locator('.bml-student-task')).toBeVisible();
+  if(step===1||step===2){
+   for(const index of step===1?[0,1]:[0,1,2]){
+    await app.locator('.bml-student-subpages button').nth(index).click();
+    const visible=await app.innerText();
+    expect(visible).not.toMatch(/[à-ỹÀ-ỸđĐ]/u);
+   }
+  }
+  const visible=await app.innerText();
+  expect(visible).not.toMatch(/[à-ỹÀ-ỸđĐ]/u);
+  const placeholders=await app.locator('input,textarea').evaluateAll(elements=>elements.map(x=>x.placeholder||'').join(' '));
+  expect(placeholders).not.toMatch(/[à-ỹÀ-ỸđĐ]/u);
+ }
 });
 test('the no-account entry is an understandable, keyboard-accessible form',async({page})=>{
  await page.getByTestId('qa-student').click();
