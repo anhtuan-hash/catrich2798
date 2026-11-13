@@ -671,7 +671,17 @@ test('fullscreen presenter keeps primary and research tools inside the actual fu
  await expect(panel.getByLabel('American English voice').locator('option')).toHaveCount(1);
  await expect(panel.getByLabel('American English voice').locator('option')).toContainText('Samantha');
  await dock.getByRole('button',{name:'Video Lab'}).click();
- await expect(panel.getByTestId('museum-video-lab')).toBeVisible();
+ const videoLab=panel.getByTestId('museum-video-lab');
+ await expect(videoLab).toBeVisible();
+ await videoLab.getByPlaceholder('https://www.youtube.com/watch?v=…').fill('https://youtu.be/jNQXAC9IVRw');
+ await videoLab.getByPlaceholder('Teacher-curated climate video').fill('Classroom source video');
+ await videoLab.getByRole('button',{name:/Thêm vào kho học liệu/}).click();
+ await videoLab.getByRole('button',{name:/Chiếu video/}).click();
+ const videoModal=page.getByTestId('museum-projector-video');
+ await expect(videoModal).toBeVisible();
+ await expect(videoModal.locator('iframe')).toHaveCount(1);
+ await videoModal.getByRole('button',{name:/Đóng video/}).click();
+ await expect(videoModal).toHaveCount(0);
  await dock.getByRole('button',{name:/Kho tư liệu/}).click();
  await expect(panel.getByTestId('museum-research-library')).toBeVisible();
  await dock.getByRole('button',{name:/Nhóm/}).click();
