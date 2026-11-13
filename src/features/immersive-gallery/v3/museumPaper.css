@@ -13,7 +13,7 @@
 .bml-paper .bml-paper-ribbon{display:inline-block;background:linear-gradient(170deg,#ff779a,#d92e67);padding:6px 20px;margin:6px 0 5px;color:#fff;font-size:clamp(12px,1.35vw,20px);font-weight:750;box-shadow:0 3px 0 #b63d5d30;clip-path:polygon(2% 0,100% 0,97% 50%,100% 100%,0 100%,3% 48%);transform:rotate(-1deg)}
 .bml-paper .bml-paper-hero h1{font-family:MuseumHand,'Segoe Print',cursive;font-weight:700;font-size:clamp(31px,4.3vw,62px);line-height:1.1;letter-spacing:-.035em;margin:2px -5% 0;color:#102b58;transform:rotate(-3deg)}
 .bml-paper .bml-paper-hero p{font-size:clamp(12px,1.45vw,20px);line-height:1.45;color:#14366b;margin:12px auto 0;max-width:95%}
-.bml-paper .bml-paper-building-label{position:absolute;left:63.5%;top:33.5%;width:10%;text-align:center;font-size:clamp(10px,1.3vw,20px);font-weight:900;line-height:1.02;color:#132b64;transform:rotate(-.5deg)}
+.bml-paper .bml-paper-building-label{position:absolute;left:63.5%;top:33.5%;width:10%;text-align:center;font-size:clamp(10px,1.1vw,17px);font-weight:900;white-space:nowrap;line-height:1.02;color:#132b64;transform:rotate(-.5deg)}
 .bml-paper .bml-paper-compact-brand{display:flex;align-items:center;gap:12px;padding:22px 4px;color:#15386c;font-size:22px}
 .bml-paper .bml-paper-compact-brand>span{font-size:14px;margin-left:auto;color:#35577a}
 .bml-paper .bml-paper-nav{position:relative;display:grid;grid-template-columns:1fr 1fr 1fr 1.35fr;gap:10px;background:var(--museum-grain),#fff4df;border:10px solid transparent;border-image:var(--museum-rim) 12 / 10px / 3px round;border-radius:22px;box-shadow:var(--museum-lift);padding:10px 16px;margin:0 0 14px;isolation:isolate}
@@ -42,7 +42,7 @@
 .bml-paper .bml-quick-card.bml-quick-submissions{background-color:#e9dfff}
 .bml-paper .bml-quick-card.bml-quick-gallery{background-color:#d8f1e6;grid-column:auto}
 .bml-paper .bml-quick-card:hover{transform:translateY(-3px) rotate(-.5deg);box-shadow:0 6px 0 #578eaf24,0 12px 18px #245b783b}
-.bml-paper .bml-quick-card strong{font-size:clamp(16px,1.55vw,23px);line-height:1.25;color:#15336b}
+.bml-paper .bml-quick-card strong{font-size:clamp(16px,1.4vw,20px);line-height:1.25;color:#15336b}
 .bml-paper .bml-quick-card small{font-size:12px;color:#304e76;line-height:1.45}
 .bml-paper .bml-quick-icon{height:64px;width:64px;border:4px solid #fffdf6;border-radius:10px;background:var(--museum-grain),#fff3bd;box-shadow:2px 4px 0 #bda56566,0 5px 8px #4b3e7424;transform:rotate(-9deg);color:#7157bd}
 .bml-paper .bml-quick-icon svg{width:42px;height:42px;stroke-width:1.65;filter:drop-shadow(1px 2px 0 #fff)}
@@ -79,7 +79,7 @@ html body #root#root#root .bml-paper .bml-paper-hero h1{font-family:MuseumHand,'
 /* Continue the Museum paper palette through the existing shared footer only. */
 html body #root#root#root .app-shell[data-tool="immersive-gallery"]:has(.bml-paper){
  background:url('/assets/dashboard-scrapbook/paper-grain.svg'),#b2e3fa !important;
- & > footer.signature-footer-v50{--museum-rim:url('/assets/museum-paper/paper-rim.svg');position:relative!important;max-width:1560px!important;width:100%!important;margin:0 auto!important;padding:12px clamp(18px,3vw,42px) 25px!important;border:0!important;background:transparent!important;box-shadow:none!important;color:#143467!important;}
+ & > footer.signature-footer-v50{--museum-rim:url('/assets/museum-paper/paper-rim.svg');position:relative!important;max-width:1540px!important;width:var(--bes-unified-stage-width,100%)!important;margin:0 auto!important;padding:12px clamp(14px,2.2vw,30px) 25px!important;border:0!important;background:transparent!important;box-shadow:none!important;color:#143467!important;}
  & #english-hub-footer-details{padding:0!important;background:transparent!important;border:0!important;}
  & .signature-footer-v50-main{display:grid!important;grid-template-columns:1fr 1fr 1.18fr!important;gap:24px!important;align-items:stretch!important;width:100%!important;max-width:none!important;margin:0!important;}
  & #english-hub-footer-details .signature-footer-v50-main>section{background:url('/assets/dashboard-scrapbook/paper-grain.svg'),var(--museum-footer-paper,#fffaf5)!important;border:9px solid transparent!important;border-image:var(--museum-rim) 12 / 9px / 3px round!important;border-radius:21px!important;padding:22px 19px!important;min-width:0!important;min-height:0!important;margin:0!important;box-shadow:0 5px 0 #578eaf24,0 9px 15px #245b7829!important;}
@@ -87,7 +87,7 @@ html body #root#root#root .app-shell[data-tool="immersive-gallery"]:has(.bml-pap
  & .signature-footer-v50-main>.signature-footer-v50-credentials{--museum-footer-paper:#fff1d5;}
  & .signature-footer-v50-brand{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;align-content:center!important;align-items:center!important;justify-content:center!important;gap:14px!important;}
  & .signature-footer-v50-brand::after{content:'Better Learners · Brighter Futures'!important;display:block!important;position:static!important;flex-basis:100%;width:auto!important;height:auto!important;background:none!important;color:#163a70!important;font:italic 14px/1.4 Georgia,serif!important;text-align:center;}
- & .signature-footer-v50-brian-logo{width:95px!important;height:115px!important;max-width:38%!important;object-fit:contain!important;}
+ & .signature-footer-v50-brian-logo{width:110px!important;height:130px!important;max-height:none!important;max-width:38%!important;object-fit:contain!important;}
  & .signature-footer-v50-affiliations{display:flex!important;align-items:center!important;justify-content:center!important;gap:10px!important;width:auto!important;padding:0!important;margin:0!important;flex:1;}
  & .signature-footer-v50-affiliations img{height:64px!important;width:auto!important;max-width:65px!important;object-fit:contain!important;}
  & .signature-footer-v50-logo-divider{height:50px!important;}
@@ -98,7 +98,8 @@ html body #root#root#root .app-shell[data-tool="immersive-gallery"]:has(.bml-pap
  & .signature-footer-v50-section-label{display:block!important;font-size:clamp(14px,1.3vw,19px)!important;color:#a83225!important;margin:0 0 12px!important;line-height:1.35!important;}
  & .signature-footer-v50-star{color:#e6a014!important;}
  & .signature-footer-v50::before,& .signature-footer-v50::after,& .signature-footer-dashboard-landscape{display:none!important;}
- & .signature-footer-dashboard-artwork{display:none!important;}
+ & .signature-footer-dashboard-artwork{display:flex!important;justify-content:flex-end!important;position:relative!important;inset:auto!important;height:auto!important;padding:15px 0 0!important;pointer-events:none;}
+ & .signature-footer-dashboard-signoff{position:static!important;display:block!important;width:auto!important;padding:4px 15px!important;background:#fff9ec!important;box-shadow:0 3px 5px #3e719d22!important;border:2px solid white!important;transform:rotate(-2deg);color:#143467!important;font:700 22px/1.3 MuseumHand,cursive!important;}
  & .signature-footer-static-summary{background:transparent!important;padding:15px 0 0!important;margin:0 auto!important;min-height:0!important;}
  & .bes-portfolio-footer-trigger{background:#fff9ec!important;color:#163a70!important;border:3px solid white!important;border-radius:14px!important;box-shadow:0 4px 8px #3e719d22!important;}
 }

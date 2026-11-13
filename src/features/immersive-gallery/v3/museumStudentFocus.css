@@ -1,0 +1,177 @@
+/* Student Focus v4.4 — isolated from Teacher Live and Brian's global navigation.
+   Warm layered-paper visual language, touch-first controls and a clear active task. */
+.bml.bml-student-shell{
+ --bml-student-ink:#183d58;--bml-student-paper:#fffefa;--bml-student-line:#d5e4e9;
+ background:radial-gradient(circle at 12% 4%,#e2f4ed 0,transparent 34%),
+            radial-gradient(circle at 90% 3%,#e6efff 0,transparent 32%),#f8f8f2;
+ overflow:visible;min-height:100svh;max-width:100%;
+}
+.bml.bml-student-shell *{box-sizing:border-box}
+.bml .bml-student-content{max-width:1070px;width:100%;min-width:0;padding:clamp(14px,2.7vw,32px)}
+.bml .bml-student-focus{
+ position:relative;isolation:isolate;display:grid;gap:18px;
+ background:linear-gradient(127deg,#fffefa,#f6fbf8);
+ border:1px solid #d8e8df;border-radius:22px;
+ padding:clamp(18px,2.5vw,28px);margin-bottom:17px;
+ box-shadow:0 3px 0 #e1eade,0 11px 28px #244c6614;overflow:hidden;
+}
+.bml .bml-student-focus:before{
+ content:"";position:absolute;top:-35px;right:-28px;width:155px;height:155px;
+ border:19px solid #e7ecff;border-radius:46px;transform:rotate(18deg);z-index:-1;opacity:.62;
+}
+.bml .bml-student-focus-head{display:grid;gap:6px;min-width:0}
+.bml .bml-student-focus-kicker{
+ display:inline-flex;align-items:center;gap:7px;font-size:11px;letter-spacing:.12em;
+ color:#248274;font-weight:850;
+}
+.bml .bml-student-focus-head>strong{
+ color:#143d5b;font-size:clamp(20px,2.5vw,29px);line-height:1.2;overflow-wrap:anywhere;
+}
+.bml .bml-student-focus-stage{display:inline-flex;align-items:center;gap:9px;
+ color:#587282;font-size:13px;line-height:1.45;font-weight:650;overflow-wrap:anywhere}
+.bml .bml-focus-dot{display:inline-block;flex:none;width:9px;height:9px;
+ border-radius:50%;background:#d1a957;box-shadow:0 0 0 4px #f5e7c6}
+.bml .bml-focus-dot.is-open{background:#2c9b73;box-shadow:0 0 0 4px #dcf3e8}
+.bml .bml-student-view-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.bml .bml-student-view-tabs button{
+ min-width:0;min-height:76px;display:flex;align-items:center;gap:12px;
+ background:#fff;border:1px solid #cddde5;border-radius:16px;padding:13px 16px;
+ color:#38617c;text-align:left;cursor:pointer;transition:border-color .18s,box-shadow .18s,transform .18s;
+}
+.bml .bml-student-view-tabs button>svg{flex:none;color:#347c97}
+.bml .bml-student-view-tabs button>span{min-width:0;display:grid;gap:3px}
+.bml .bml-student-view-tabs button strong{font-size:15px;color:inherit;line-height:1.25}
+.bml .bml-student-view-tabs button small{font-size:12px;line-height:1.4;color:#68818c}
+.bml .bml-student-view-tabs button.is-active{
+ border:2px solid #247fa0;background:#e9f6f8;color:#145774;
+ box-shadow:0 4px 0 #c4e5e5;transform:translateY(-2px);padding:12px 15px;
+}
+.bml .bml-student-view-tabs button.is-active small{color:#2b6c78}
+.bml .bml-student-view-tabs button:focus-visible,.bml .bml-live-response-options button:focus-visible,
+.bml .bml-student-steps button:focus-visible{outline:3px solid #e0a74c;outline-offset:3px}
+.bml .bml-student-pane[hidden]{display:none!important}
+.bml .bml-student-pane{min-width:0;animation:bml-student-pane-enter .22s ease-out both}
+@keyframes bml-student-pane-enter{from{opacity:.65;transform:translateY(6px)}to{opacity:1;transform:none}}
+.bml .bml-student-pane>.bml-live-student{
+ background:var(--bml-student-paper);color:var(--bml-student-ink);
+ border:1px solid #d8e3e3;box-shadow:0 8px 20px #17466212;
+ padding:clamp(18px,3vw,30px);gap:18px;
+}
+.bml .bml-live-student-header{align-items:center}
+.bml .bml-live-student-header>strong{color:#1c6d8a;font-size:12px;letter-spacing:.04em}
+.bml .bml-live-student-header>span{font-size:12px;font-weight:750;color:#186b56;
+ background:#e3f5e8;border:1px solid #b9e5cb;border-radius:30px;padding:7px 11px}
+.bml .bml-live-student-question{display:grid;gap:8px;padding:19px 20px;
+ border-left:5px solid #efc779;border-radius:4px 15px 15px 4px;
+ background:linear-gradient(112deg,#fff7e9,#fffefb)}
+.bml .bml-live-student-question h2{margin:0;color:#153e60;font-size:clamp(24px,3vw,34px);line-height:1.16}
+.bml .bml-live-student-question p{margin:0;font-size:clamp(16px,1.6vw,20px);
+ line-height:1.55;color:#35596c;font-weight:600}
+.bml .bml-live-student .bml-live-response-form{gap:17px}
+.bml .bml-live-student .bml-live-response-form>div{background:#fff;border:1px solid #dae8e8;border-radius:15px;padding:15px;display:grid;gap:11px}
+.bml .bml-live-student .bml-live-response-form>div>strong{font-size:16px;line-height:1.45;color:#183f5b}
+.bml .bml-live-student .bml-live-response-options{gap:11px}
+.bml .bml-live-student .bml-live-response-options button{
+ min-width:0;min-height:62px;padding:14px 17px;background:#fff;
+ color:#204860;font-size:16px;line-height:1.45;font-weight:670;
+ border:2px solid #d8e6ea;box-shadow:0 3px 0 #e9edef;white-space:normal;
+}
+.bml .bml-live-student .bml-live-response-options button.is-chosen,
+.bml .bml-live-student .bml-live-response-options button[aria-pressed=true]{
+ border-color:#177f82;background:#e3f6ef;color:#13635e;box-shadow:0 3px 0 #b7e3d6;
+}
+.bml .bml-live-student .bml-live-response-options button:disabled:not(.is-chosen){opacity:.62}
+.bml .bml-live-student .bml-live-actions{
+ display:flex;align-items:stretch;gap:10px;flex-wrap:wrap;margin:3px 0;
+}
+.bml .bml-live-student .bml-live-actions button{min-height:52px;font-size:15px;line-height:1.3}
+.bml .bml-live-student .bml-live-actions .bml-primary{flex:1 1 230px}
+.bml .bml-live-student .bml-live-actions .bml-outline{flex:1 1 180px}
+.bml .bml-student-support{display:grid;gap:10px;border-top:1px dashed #c9dbe1;padding-top:12px}
+.bml .bml-student-support .bml-step-hint{margin:2px 0 4px;background:#eef7ed;color:#326956}
+.bml .bml-student-enrichment{min-width:0;border:1px solid #d7e4e9;border-radius:13px;background:#fff;overflow:hidden}
+.bml .bml-student-enrichment>summary{
+ display:flex;align-items:center;gap:10px;min-height:48px;padding:12px 15px;
+ cursor:pointer;color:#245779;font-size:14px;font-weight:750;line-height:1.4;
+}
+.bml .bml-student-enrichment[open]>summary{background:#edf7fb;border-bottom:1px solid #d8e9ec}
+.bml .bml-student-enrichment>summary svg{flex:none}
+.bml .bml-student-enrichment>.bml-learning-resources,
+.bml .bml-student-enrichment>.bml-resource-hub,
+.bml .bml-student-enrichment>.bml-voiceover{margin:0;padding:15px;max-width:100%}
+.bml .bml-student-enrichment .bml-resource-hub-list{grid-template-columns:1fr}
+.bml .bml-student-heading{padding:10px 2px 0}
+.bml .bml-student-heading h1{font-size:clamp(22px,2.7vw,31px);color:#153f60;line-height:1.23;overflow-wrap:anywhere}
+.bml .bml-student-task{background:var(--bml-student-paper);border:1px solid #dce7e5;box-shadow:0 8px 24px #1d4d5b12}
+.bml .bml-student-steps{scrollbar-width:thin}
+.bml .bml-student-steps button{cursor:pointer}
+.bml .bml-student-steps button:disabled{cursor:not-allowed;opacity:.5}
+.bml .bml-student-steps button[aria-current=step] small{font-weight:850}
+.bml .bml-student-pane textarea,.bml .bml-student-pane input:not([type=checkbox]),
+.bml .bml-student-pane select,.bml .bml-guest-form input{max-width:100%;font-size:16px;line-height:1.45}
+.bml .bml-student-pane .bml-full-field{min-width:0;overflow-wrap:anywhere}
+.bml .bml-student-pane .bml-full-field textarea{min-width:0}
+@media(max-width:760px){
+ .bml .bml-student-content{padding:15px 13px 28px}
+ .bml .bml-student-focus{padding:16px;gap:14px;border-radius:17px}
+ .bml .bml-student-view-tabs{gap:8px}
+ .bml .bml-student-view-tabs button{padding:11px;gap:8px;min-height:78px}
+ .bml .bml-student-view-tabs button.is-active{padding:10px}
+ .bml .bml-student-view-tabs button>svg{width:19px}
+ .bml .bml-student-view-tabs button strong{font-size:14px}
+ .bml .bml-student-view-tabs button small{font-size:11px}
+ .bml .bml-student-steps{display:flex;gap:9px;overflow-x:auto;overscroll-behavior-x:contain;
+  padding:0 1px 12px;margin:17px 0;scroll-snap-type:x proximity}
+ .bml .bml-student-steps button{flex:0 0 122px;min-height:76px;scroll-snap-align:start}
+ .bml .bml-student-steps button small{font-size:12px;line-height:1.25}
+ .bml .bml-student-steps button>span{width:34px;height:34px}
+ .bml .bml-student-task.bml-surface{padding:18px}
+ .bml .bml-student-stage{display:grid;grid-template-columns:1fr}
+ .bml .bml-student-guide{order:2}
+ .bml .bml-student-bar{padding:11px 14px}
+}
+@media(max-width:550px){
+ .bml .bml-guest-entry{display:flex;flex-direction:column;min-height:0;margin:9px 10px 20px;border-radius:18px}
+ .bml .bml-guest-form{order:1;padding:19px 19px 25px}
+ .bml .bml-guest-form h2{font-size:26px}
+ .bml .bml-guest-form>p{margin:8px 0 15px;font-size:14px;line-height:1.5}
+ .bml .bml-guest-form label{font-size:14px;margin:10px 0}
+ .bml .bml-guest-form input{min-height:50px}
+ .bml .bml-guest-form button{min-height:52px}
+ .bml .bml-guest-illustration{order:2;padding:15px 19px 20px}
+ .bml .bml-guest-globe{display:none}
+ .bml .bml-guest-illustration h1{font-size:22px;line-height:1.25;margin:9px 0}
+ .bml .bml-guest-illustration p{font-size:13px;margin:4px 0}
+ .bml .bml-guest-benefits{margin-top:9px}
+ .bml .bml-student-bar{flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px}
+ .bml .bml-student-bar .bml-brand strong{font-size:14px}
+ .bml .bml-student-right{width:100%;justify-content:space-between;gap:8px}
+ .bml .bml-group-pill{max-width:65%;overflow-wrap:anywhere}
+ .bml .bml-student-content{padding:11px 10px 30px}
+ .bml .bml-student-focus-head>strong{font-size:21px}
+ .bml .bml-student-focus-stage{font-size:12px}
+ .bml .bml-student-view-tabs button{align-items:flex-start;flex-direction:column;min-height:105px}
+ .bml .bml-student-view-tabs button>span{gap:4px}
+ .bml .bml-student-pane>.bml-live-student{padding:15px 12px;gap:13px}
+ .bml .bml-live-student-header{align-items:flex-start}
+ .bml .bml-live-student-header>span{font-size:11px}
+ .bml .bml-live-student-question{padding:16px}
+ .bml .bml-live-student-question h2{font-size:24px}
+ .bml .bml-live-student-question p{font-size:16px}
+ .bml .bml-live-student .bml-live-response-options{grid-template-columns:1fr}
+ .bml .bml-live-student .bml-live-response-options button{min-height:60px;font-size:16px;padding:13px}
+ .bml .bml-live-student .bml-live-actions{position:sticky;bottom:0;z-index:7;
+  padding:9px 0 calc(9px + env(safe-area-inset-bottom));background:linear-gradient(#fffefaee,#fffefa)}
+ .bml .bml-live-student .bml-live-actions button{flex:1 1 100%;min-height:50px}
+ .bml .bml-student-bottom{gap:13px}
+ .bml .bml-student-bottom>div{display:flex;flex:1;justify-content:flex-end}
+ .bml .bml-student-bottom button{min-height:48px}
+ .bml .bml-student-task.bml-surface{padding:15px}
+ .bml .bml-student-task>h2{font-size:23px;line-height:1.25}
+ .bml .bml-video-player,.bml .bml-resource-hub-card{max-width:100%}
+ .bml .bml-video-embed{min-height:0;aspect-ratio:16/9}
+}
+@media(prefers-reduced-motion:reduce){
+ .bml .bml-student-pane{animation:none}
+ .bml .bml-student-view-tabs button{transition:none;transform:none}
+}

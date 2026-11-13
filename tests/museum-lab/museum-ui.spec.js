@@ -90,6 +90,77 @@ test('mobile viewport keeps task controls within the page width',async({page,isM
 });
 
 
+test('Student Focus is touch-friendly and keeps an unsent group vote when switching to the studio',async({page})=>{
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  const body=op==='me'?{groupLabel:'Nhóm Demo',groupState:'editing',csrf:'synthetic-csrf',
+   assignment:{title:'Synthetic Climate Action Museum',brief:'Design a class exhibit.',
+    class_scope:'11-DEMO',deadline_at:new Date(Date.now()+86400000).toISOString()}}:
+   {draft:{title:'',summary:'',rooms:[]},version:0};
+  await route.fulfill({json:body});
+ });
+ await page.route('**/api/gallery-guest/live?**',async route=>{
+  await route.fulfill({json:{session:{id:'student-focus-qa',status:'active',stageIndex:0,stageOpen:true,
+   stage:{id:'climate-detective',kind:'vote',period:1,title:'Climate Detective',
+    question:'Which action helps?',sentence:'I think … because …',
+    options:['Switch off unused lights','Reduce food waste']}},
+   survey:null,feedback:[],submitted:false}});
+ });
+ await page.getByTestId('qa-student').click();
+ const liveTab=page.getByTestId('student-tab-live');
+ const studioTab=page.getByTestId('student-tab-studio');
+ await expect(page.getByTestId('student-focus-switch')).toBeVisible();
+ await expect(liveTab).toHaveAttribute('aria-pressed','true',{timeout:10000});
+ const choice=page.getByRole('button',{name:/A\. Switch off unused lights/});
+ await expect(choice).toBeVisible();
+ await choice.click();
+ await expect(choice).toHaveAttribute('aria-pressed','true');
+ await studioTab.click();
+ await expect(page.getByTestId('student-live-activity')).toBeHidden();
+ await expect(page.getByLabel('Vấn đề mà nhóm em chọn')).toBeVisible();
+ await liveTab.click();
+ await expect(choice).toBeVisible();
+ await expect(choice).toHaveAttribute('aria-pressed','true');
+ const dims=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:window.innerWidth}));
+ expect(dims.scroll).toBeLessThanOrEqual(dims.width+4);
+});
+
+test('student canvas keeps 16:9 activity, navigation and project panels on one desktop viewport',async({page})=>{
+ await page.setViewportSize({width:1366,height:768});
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  await route.fulfill({json:op==='me'?{groupLabel:'Nhóm Demo',groupState:'editing',csrf:'synthetic-csrf',
+   assignment:{title:'Our Climate Action Museum',brief:'Authentic English presentation.',
+    class_scope:'11-DEMO',deadline_at:new Date(Date.now()+86400000).toISOString()}}:
+   {draft:{title:'Our Climate Action Museum',summary:'One solution per exhibit.',rooms:[]},version:0}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>route.fulfill({json:{
+  session:{id:'one-screen-qa',status:'active',stageIndex:9,stageOpen:true,
+   stage:{id:'present',kind:'present',period:2,title:'Present and Discuss',
+    question:'Explain your problem, one authentic figure with N, and one practical solution.',
+    sentence:'We propose …'}},survey:null,feedback:[]}}));
+ await page.getByTestId('qa-student').click();
+ const root=page.getByTestId('museum-student-wizard');
+ await expect(root).toBeVisible();
+ await expect(page.getByTestId('student-one-screen-workspace')).toBeVisible();
+ await expect(page.getByTestId('student-tab-studio')).toHaveAttribute('aria-pressed','true',{timeout:10000});
+ const geometry=await root.evaluate(el=>{
+  const a=el.getBoundingClientRect();
+  const workspace=el.querySelector('[data-testid="student-one-screen-workspace"]').getBoundingClientRect();
+  const rail=el.querySelector('.bml-student-projectrail').getBoundingClientRect();
+  return {rootWidth:a.width,rootHeight:a.height,rootTop:a.top,workspaceBottom:workspace.bottom,railBottom:rail.bottom,
+   viewportWidth:window.innerWidth,viewportHeight:window.innerHeight,overflow:el.scrollWidth>el.clientWidth+2};
+ });
+ expect(geometry.rootTop).toBeGreaterThanOrEqual(-1);
+ expect(geometry.rootWidth).toBeLessThanOrEqual(geometry.viewportWidth+2);
+ expect(geometry.rootHeight).toBeLessThanOrEqual(geometry.viewportHeight+2);
+ expect(geometry.workspaceBottom).toBeLessThanOrEqual(geometry.viewportHeight+1);
+ expect(geometry.railBottom).toBeLessThanOrEqual(geometry.viewportHeight+1);
+ expect(geometry.overflow).toBe(false);
+ await expect(page.getByLabel('Phản hồi thực tế từ bạn học (tiếng Anh)')).toBeVisible();
+ await page.getByTestId('student-tab-live').click();
+ await expect(page.getByTestId('student-live-activity')).toBeVisible();
+});
 test('student can complete five English STEAM steps, autosave and submit without a student account',async({page})=>{
  let version=0,groupState='editing',draft={title:'',summary:'',rooms:[]},saves=0,submissions=0;
  await page.route('**/api/gallery-guest?**',async route=>{
@@ -114,13 +185,16 @@ test('student can complete five English STEAM steps, autosave and submit without
  await expect(page.getByText('Synthetic Climate Action Museum')).toBeVisible();
  await page.getByLabel('Vấn đề mà nhóm em chọn').fill('Plastic waste is harmful because it can pollute the environment.');
  await page.getByRole('button',{name:/Tiếp tục/}).click();
+ await page.getByRole('button',{name:'Trang 2'}).click();
  await page.getByLabel('Bằng chứng hoặc quan sát bằng tiếng Anh').fill('According to our classroom scenario, plastic packaging is used every day.');
  await page.getByLabel('Nguồn dữ liệu/ tài liệu').fill('Synthetic classroom scenario (not a measured dataset).');
  await page.getByLabel('Giải pháp nhóm đề xuất bằng tiếng Anh').fill('We recommend reusable bottles because they can reduce waste.');
  await page.getByRole('button',{name:/Tiếp tục/}).click();
  await page.getByLabel('Tên triển lãm').fill('Our Climate Museum');
  await page.getByLabel('Thông điệp mở đầu').fill('A greener school starts with small changes.');
- await page.getByRole('button',{name:/Tiếp tục/}).click();
+ await page.getByRole('button',{name:/Tiếp tục/}).click(); // Captions page
+ await page.getByRole('button',{name:/Tiếp tục/}).click(); // Artwork page
+ await page.getByRole('button',{name:/Tiếp tục/}).click(); // Peer feedback step
  await page.getByLabel('Phản hồi thực tế từ bạn học (tiếng Anh)').fill('Our synthetic peer asked for a clearer solution.');
  await page.getByLabel('Nhóm đã cải tiến điểm gì? (tiếng Anh)').fill('We added a simple example.');
  await page.getByRole('checkbox',{name:/Nhóm đã xem và thử nghiệm/}).check();
