@@ -335,3 +335,17 @@
  .bml-student-canvas16 .bml-student-tool-content .bml-resource-hub-list{grid-template-columns:1fr}
  .bml-student-canvas16 .bml-student-detail-window{height:96dvh;width:98vw;padding:9px}
 }
+
+/* Hidden live quiz pages must remain truly hidden despite card display rules. */
+.bml-student-canvas16 [hidden]{display:none!important}
+.bml-student-canvas16 .bml-student-primary>.bml-student-pane:not([hidden]){
+ display:flex;flex-direction:column;min-height:0;
+}
+.bml-student-canvas16 .bml-student-pane>.bml-student-stage{
+ flex:1 1 auto;height:auto;min-height:0;
+}
+.bml-student-canvas16 .bml-student-pane>.bml-banner{flex:0 0 auto;margin:4px 7px;padding:8px 11px;font-size:11px}
+@media(max-width:999px){
+ .bml-student-canvas16 .bml-student-bar{min-height:58px;max-height:none;height:auto;flex-basis:auto}
+ .bml-student-canvas16 .bml-student-pane>.bml-student-stage{height:auto;min-height:0}
+}
