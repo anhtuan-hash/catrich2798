@@ -19,7 +19,7 @@ export function MuseumVideoFrame({id,title,onClose,language='vi'}){
    <a target="_blank" rel="noopener noreferrer" href={'https://www.youtube.com/watch?v='+videoId}><ExternalLink size={14}/>{tr(language,'Mở trên YouTube','Open on YouTube')}</a></p>
  </div>;
 }
-export default function MuseumVideoLab({mode='student',stage,stageIndex,media,assignmentId,version,language='vi',csrf,onSaved,onProject}){
+export default function MuseumVideoLab({mode='student',stage,stageIndex,media,assignmentId,version,language='vi',csrf,onSaved,onProject,transport=liveStaff}){
  const teacher=mode==='teacher',task=media||{query:'',instruction:'',videos:[]},videos=task.videos||[];
  const [query,setQuery]=useState(task.query||''),[instruction,setInstruction]=useState(task.instruction||'');
  const [refine,setRefine]=useState(''),[manualUrl,setManualUrl]=useState(''),[manualTitle,setManualTitle]=useState('');
@@ -31,7 +31,7 @@ export default function MuseumVideoLab({mode='student',stage,stageIndex,media,as
   if(busy)return;
   setBusy(true);setError('');setMessage('');
   try{
-   const out=await liveStaff(action,{assignmentId,stageIndex,version,...payload});
+   const out=await transport(action,{assignmentId,stageIndex,version,...payload});
    await onSaved?.(out);
    setMessage(tr(language,'Đã lưu nhiệm vụ video cho tiết học.','Video task saved for this lesson.'));
    if(action==='media-add'){setManualUrl('');setManualTitle('');}
@@ -42,7 +42,7 @@ export default function MuseumVideoLab({mode='student',stage,stageIndex,media,as
   setBusy(true);setError('');setMessage('');setResults([]);
   try{
    const res=teacher?
-    await liveStaff('video-search',null,{assignmentId,q:query}):
+    await transport('video-search',null,{assignmentId,q:query}):
     await liveGuest('video-search','GET',null,csrf,{refine});
    setSearchAvailable(res.available===true);
    setResults(res.results||[]);
