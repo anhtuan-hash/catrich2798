@@ -10,6 +10,7 @@ import MuseumScene from './MuseumScene.jsx';
 import MuseumLiveStudent from './MuseumLiveStudent.jsx';
 import MuseumLivePeerFeedback from './MuseumLivePeerFeedback.jsx';
 import MuseumArtworkStudio from './MuseumArtworkStudio.jsx';
+import MuseumCompetitionRibbon from './MuseumCompetitionRibbon.jsx';
 import './museumLab.css';
 import './museumStudentFocus.css';
 import './museumStudentCanvas.css';
@@ -163,6 +164,7 @@ export default function MuseumLabStudent({language='en'}){
  const progressPercent=Math.round(100*progressChecks.filter(Boolean).length/progressChecks.length);
  const studentMedia=stageMediaTools(liveInfo);
  return <main className="bml bml-student-shell bml-student-canvas16 bml-student-editorial" data-testid="museum-student-wizard" lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
+  <MuseumCompetitionRibbon/>
   <header className="bml-student-bar"><div className="bml-brand"><span className="bml-brand-icon"><Landmark size={23}/></span><span><strong>BRIAN Museum Lab</strong><small>Student Creator</small></span></div>
    <div className="bml-student-right"><span className="bml-group-pill"><Users size={16}/>{language==='en'?englishSystemGroupLabel(session.groupLabel):session.groupLabel} · {session.assignment.class_scope}</span>
     <span className={'bml-save-indicator bml-save-'+saveState} title={T(language,'Đã lưu bản nháp chưa có nghĩa là đã nộp bảo tàng.','Saved draft does not mean the museum project was submitted.')}>{saveState==='saved'?<><Cloud size={16}/>{T(language,'Đã lưu','Saved')}</>:
