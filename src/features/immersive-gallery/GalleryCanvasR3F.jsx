@@ -223,7 +223,7 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
   if(teleport?.length===2){camera.position.set(teleport[0],1.7,teleport[1]);invalidate();}
  },[camera,invalidate,teleport]);
  useEffect(()=>{
-   if(paused)held.current.clear();
+   if(paused){held.current.clear();drag.current=null;}
  },[paused,held]);
  // Viewpoint transitions are camera movement, not CSS resizing.
  useEffect(()=>{
@@ -244,7 +244,7 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
      if(MOVE_KEYS.has(key)&&!paused){tween.current=null;held.current.add(key);invalidate();if(key.startsWith('arrow'))e.preventDefault();}
    };
    const keyUp=e=>{held.current.delete(String(e.key).toLowerCase());};
-   const down=e=>{if(e.button!==0)return;drag.current=[e.clientX,e.clientY];canvas.setPointerCapture?.(e.pointerId);};
+   const down=e=>{if(e.button!==0||paused)return;drag.current=[e.clientX,e.clientY];canvas.setPointerCapture?.(e.pointerId);};
    const move=e=>{if(!drag.current||paused)return;tween.current=null;const [x,y]=drag.current;
      yaw.current-=Math.max(-60,Math.min(60,e.clientX-x))*0.005;
      pitch.current=Math.max(-0.62,Math.min(0.62,pitch.current-(e.clientY-y)*0.003));
@@ -291,6 +291,51 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
 // R3F owns the canvas pixel dimensions; this observer keeps the perspective
 // matrix synchronized with resized modal/fullscreen containers. Never stretch
 // the CSS image of the canvas to simulate a larger room.
+function MuseumFocusCameraRig({focus}){
+ const {camera,size,invalidate}=useThree();
+ const saved=useRef(null),returnStart=useRef(null),phaseRef=useRef('idle');
+ const enterTime=useRef(0),returnTime=useRef(0);
+ useEffect(()=>{
+  if(focus.phase==='preparing'&&phaseRef.current==='idle'){
+   saved.current={position:camera.position.clone(),quaternion:camera.quaternion.clone(),fov:camera.fov};
+   enterTime.current=0;returnStart.current=null;
+  }
+  if(focus.phase==='returning'&&phaseRef.current!=='returning'){
+   returnStart.current={position:camera.position.clone(),quaternion:camera.quaternion.clone()};
+   returnTime.current=0;
+  }
+  if(focus.phase==='idle'&&phaseRef.current!=='idle'&&saved.current){
+   camera.position.copy(saved.current.position);camera.quaternion.copy(saved.current.quaternion);
+   camera.fov=saved.current.fov;camera.updateProjectionMatrix();
+   saved.current=null;returnStart.current=null;
+  }
+  phaseRef.current=focus.phase;invalidate();
+ },[focus.phase,focus.generation,camera,invalidate]);
+ useFrame((_,delta)=>{
+  const active=['extracting','presenting','focused'].includes(focus.phase);
+  const returning=focus.phase==='returning';
+  if(!saved.current||(!active&&!returning))return;
+  const reduce=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const layout=focusLayout(size.width,size.height);
+  const target=new THREE.Vector3(...layout.camera),look=new THREE.Vector3(...layout.look);
+  const temp=new THREE.Object3D();temp.position.copy(target);temp.lookAt(look);
+  if(active){
+   enterTime.current=Math.min(1,enterTime.current+clampDelta(delta)/(reduce?.08:1.0));
+   const t=smoothstep(enterTime.current);
+   camera.position.copy(saved.current.position).lerp(target,t);
+   camera.quaternion.copy(saved.current.quaternion).slerp(temp.quaternion,t);
+   if(t<1)invalidate();
+  }else if(returnStart.current){
+   returnTime.current=Math.min(1,returnTime.current+clampDelta(delta)/(reduce?.08:.83));
+   const t=smoothstep(returnTime.current);
+   camera.position.copy(returnStart.current.position).lerp(saved.current.position,t);
+   camera.quaternion.copy(returnStart.current.quaternion).slerp(saved.current.quaternion,t);
+   if(t<1)invalidate();
+  }
+  camera.fov=saved.current.fov;camera.updateProjectionMatrix();
+ });
+ return null;
+}
 function CameraResizeSync(){
  const {camera,gl,invalidate}=useThree();
  useEffect(()=>{
@@ -310,17 +355,19 @@ function CameraResizeSync(){
  },[camera,gl,invalidate]);
  return null;
 }
-function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=false,cinemaEdition=false,lite=false}) {
+function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=false,cinemaEdition=false,lite=false,focus=FOCUS_IDLE,focusBoard,onFocusBack,onFocusPhaseChange}) {
  return <><color attach="background" args={[schoolEdition?'#EBF5F0':'#f2f0e9']}/>
   <ambientLight intensity={schoolEdition?1.25:1.1}/>
   <hemisphereLight args={['#FFFFFF',schoolEdition?'#9CAD9D':'#B7AFA3',1.1]}/>
   <directionalLight position={[1,7,3]} color={schoolEdition?'#FFF7E4':'#FFFFFF'} intensity={1.15}/>
   <Walls template={template} onTeleport={onTeleport} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} lite={lite}/>
   {exhibits.slice(0,30).map((e,i)=><PaperArtwork key={e.id} exhibit={e} index={i} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition}
-   onSelect={onSelect} isSelected={selectedId===e.id}/>)}
+   focus={focus} onFocusPhaseChange={onFocusPhaseChange} onSelect={onSelect}
+   isSelected={selectedId===e.id||focus.exhibitId===e.id}/>)}
+  {cinemaEdition&&focus.phase!=='idle'?<MuseumExhibitFocusRig focus={focus} board={focusBoard} onBack={onFocusBack} lite={lite}/>:null}
  </>;
 }
-export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelect,selectedId='',quality='auto',language='vi',schoolEdition=false,cinemaEdition=false}) {
+export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelect,selectedId='',quality='auto',language='vi',schoolEdition=false,cinemaEdition=false,focus=FOCUS_IDLE,focusBoard,onFocusBack,onFocusPhaseChange}) {
  const held=useRef(new Set());
  const narrow=typeof window!=='undefined'&&window.matchMedia?.('(max-width:700px)').matches;
  const startingZ=cinemaEdition?(narrow?2.2:1.3):schoolEdition?(narrow?2.5:-1.6):4.7;
@@ -332,7 +379,7 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
    catch {ok=false;}
    setSupported(ok);
  },[]);
- useEffect(()=>{held.current.clear();},[selectedId,template]);
+ useEffect(()=>{held.current.clear();},[selectedId,template,focus.phase]);
  const onPosition=(x,z)=>{setPos([+x.toFixed(1),+z.toFixed(1)]);};
  const hold=(key,down)=>{if(down)held.current.add(key);else held.current.delete(key);window.dispatchEvent(new Event('big-gallery-animate'));};
  const onTeleport=point=>{
