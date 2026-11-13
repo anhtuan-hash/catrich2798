@@ -1,0 +1,51 @@
+/* Dashboard banner: intrinsic height keeps official credits readable at zoom.
+   The compact student-canvas ribbon and Brian navbar have separate styles. */
+.bml-paper .bml-competition-ribbon--dashboard{
+ position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(100px,15%) minmax(0,1fr) minmax(100px,15%);align-items:center;gap:clamp(12px,1.7vw,28px);
+ margin:14px calc(-1 * clamp(14px,2.2vw,30px)) 16px;padding:16px clamp(18px,2.2vw,34px);min-width:0;
+ color:#123b54;background:var(--museum-grain),linear-gradient(110deg,#2e7439,#6b9346 32%,#366e35 78%,#819943);
+ border:10px solid transparent;border-image:var(--museum-rim) 12 / 10px / 0 round;border-radius:15px;box-shadow:var(--museum-lift);
+ font-family:Inter,'Segoe UI',Arial,sans-serif;
+}
+.bml-paper .bml-competition-ribbon--dashboard::before{
+ content:'';position:absolute;inset:7px 12px;z-index:-2;pointer-events:none;
+ background:var(--museum-grain),repeating-linear-gradient(0deg,transparent 0 19px,#c0aa7714 19px 20px),repeating-linear-gradient(90deg,transparent 0 19px,#c0aa7714 19px 20px),#fff5df;
+ border:7px solid #fffcf2;border-radius:5% 3% 5% 4% / 14% 10% 13% 12%;box-shadow:0 3px 7px #173d3738;
+}
+.bml-paper .bml-competition-ribbon--dashboard::after{content:'';position:absolute;inset:21px 14%;z-index:-1;border:2px dashed #dd7358;border-radius:45% 6% 35% 8% / 7% 12% 9% 11%;pointer-events:none}
+.bml-paper .bml-competition-ribbon--dashboard .bml-competition-decor{position:absolute;width:16%;height:30px;background:var(--museum-grain),repeating-linear-gradient(90deg,transparent 0 9px,#d69c4233 9px 10px),#ffcf54;box-shadow:0 2px 3px #674b2730;z-index:-1;pointer-events:none}
+.bml-paper .bml-competition-ribbon--dashboard .bml-competition-decor--left{left:3%;top:13px;transform:rotate(-12deg)}
+.bml-paper .bml-competition-ribbon--dashboard .bml-competition-decor--right{right:2%;bottom:14px;transform:rotate(-12deg)}
+.bml-paper .bml-competition-ribbon--dashboard .bml-competition-seal{margin:0;min-width:0;display:grid;place-items:center;position:relative;padding:7px;background:#fffdf6;border-radius:49% 48% 46% 51%;filter:drop-shadow(0 4px 3px #55573138)}
+.bml-paper .bml-competition-ribbon--dashboard .bml-competition-seal img{display:block;width:100%;height:auto;max-height:190px;object-fit:contain}
+.bml-paper .bml-competition-ribbon--dashboard .bml-competition-seal--department img{mix-blend-mode:multiply}
+.bml-paper .bml-competition-ribbon--dashboard .bml-competition-copy{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;text-align:center;padding:0 0 2px}
+.bml-paper .bml-competition-ribbon--dashboard .bml-competition-award{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:12px;padding:5px 24px;color:#fffdf0;background:linear-gradient(#f44345,#ba1f30);border:1px solid #a92925;box-shadow:0 3px 0 #b9222d44,0 5px 8px #82392230;font-weight:900;font-size:clamp(19px,2vw,29px);line-height:1.15;letter-spacing:.04em}
+.bml-paper .bml-competition-ribbon--dashboard .bml-competition-award::before,.bml-paper .bml-competition-ribbon--dashboard .bml-competition-award::after{content:'';position:absolute;top:6px;bottom:-5px;width:26px;background:#d82732;z-index:-1;clip-path:polygon(0 0,100% 0,100% 100%,0 100%,22% 50%)}
+.bml-paper .bml-competition-ribbon--dashboard .bml-competition-award::before{left:-17px}
+.bml-paper .bml-competition-ribbon--dashboard .bml-competition-award::after{right:-17px;transform:scaleX(-1)}
+.bml-paper .bml-competition-ribbon--dashboard .bml-competition-award svg{color:#ffdc42;flex:none;width:19px;height:19px}
+.bml-paper .bml-competition-ribbon--dashboard h2{margin:3px 0!important;font-size:clamp(16px,1.6vw,24px);font-weight:900;line-height:1.22;letter-spacing:-.025em;color:#123f55;text-wrap:balance;max-width:100%}
+.bml-paper .bml-competition-ribbon--dashboard .bml-competition-year{padding:4px 22px;max-width:100%;background:linear-gradient(100deg,#0d4453,#1e6d70,#0d4453);color:#fffced;font-weight:850;font-size:clamp(13px,1.3vw,19px);line-height:1.3;clip-path:polygon(0 0,100% 0,98% 50%,100% 100%,0 100%,2% 50%)}
+.bml-paper .bml-competition-ribbon--dashboard .bml-competition-copy p{margin:0!important;max-width:100%;font-size:clamp(12px,1.1vw,16px);font-weight:700;line-height:1.35;color:#153653}
+.bml-paper .bml-competition-ribbon--dashboard .bml-competition-copy .bml-competition-author{padding:2px 16px;background:var(--museum-grain),#ffda65;border-radius:5px;box-shadow:0 2px 0 #d4ad4b30}
+.bml-paper .bml-competition-ribbon--dashboard .bml-competition-accent{position:absolute;bottom:14px;pointer-events:none;filter:drop-shadow(0 3px 0 #fff);width:35px;height:35px}
+.bml-paper .bml-competition-ribbon--dashboard .bml-competition-accent--book{left:18%;color:#e17928;transform:rotate(-9deg);fill:#ffdb7e}
+.bml-paper .bml-competition-ribbon--dashboard .bml-competition-accent--globe{right:18%;color:#198ca4;transform:rotate(9deg);fill:#c8eb98}
+.bml-paper .bml-competition-ribbon--dashboard .bml-competition-accent--leaf{display:none}
+@media(max-width:1000px){
+ .bml-paper .bml-competition-ribbon--dashboard{grid-template-columns:100px minmax(0,1fr) 100px;padding:15px;gap:12px}
+ .bml-paper .bml-competition-ribbon--dashboard .bml-competition-accent{display:none}
+}
+@media(max-width:680px){
+ .bml-paper .bml-competition-ribbon--dashboard{grid-template-columns:1fr 1fr;gap:12px;padding:17px 16px 20px;margin-top:9px}
+ .bml-paper .bml-competition-ribbon--dashboard::after{inset:15px}
+ .bml-paper .bml-competition-ribbon--dashboard .bml-competition-seal{grid-row:1;width:90px;height:104px;justify-self:center;padding:5px}
+ .bml-paper .bml-competition-ribbon--dashboard .bml-competition-seal img{max-width:100%;max-height:94px;width:auto}
+ .bml-paper .bml-competition-ribbon--dashboard .bml-competition-seal--department{grid-column:1}
+ .bml-paper .bml-competition-ribbon--dashboard .bml-competition-seal--school{grid-column:2}
+ .bml-paper .bml-competition-ribbon--dashboard .bml-competition-copy{grid-row:2;grid-column:1/-1;gap:8px}
+ .bml-paper .bml-competition-ribbon--dashboard h2{font-size:17px;line-height:1.3}
+ .bml-paper .bml-competition-ribbon--dashboard .bml-competition-year{font-size:13px;padding:5px 14px}
+ .bml-paper .bml-competition-ribbon--dashboard .bml-competition-copy p{font-size:13px;line-height:1.4}
+}

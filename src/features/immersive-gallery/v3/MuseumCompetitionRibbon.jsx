@@ -15,13 +15,14 @@ const schoolName='Trường Trung - Tiểu học Pétrus Ký';
 const departmentLogo='/museum/branding/hcmc-department-education.png';
 const schoolLogo='/museum/branding/petrus-ky-school.png';
 
-export default function MuseumCompetitionRibbon(){
- return <section className="bml-competition-ribbon" data-testid="museum-competition-ribbon"
+export default function MuseumCompetitionRibbon({variant='student'}){
+ const dashboard=variant==='dashboard';
+ return <section className={`bml-competition-ribbon${dashboard ? ' bml-competition-ribbon--dashboard' : ''}`} data-testid="museum-competition-ribbon"
   lang="vi" aria-label={awardLabel+" – "+contestName}>
   <div className="bml-competition-decor bml-competition-decor--left" aria-hidden="true"/>
   <div className="bml-competition-decor bml-competition-decor--right" aria-hidden="true"/>
   <figure className="bml-competition-seal bml-competition-seal--department">
-   <img src={departmentLogo} width="172" height="173" alt="Logo Sở Giáo dục và Đào tạo Thành phố Hồ Chí Minh" loading="eager" decoding="async"/>
+   <img src={dashboard ? '/assets/museum-paper/hcmc-education-original.jpg' : departmentLogo} width="172" height="173" alt="Logo Sở Giáo dục và Đào tạo Thành phố Hồ Chí Minh" loading="eager" decoding="async"/>
   </figure>
   <div className="bml-competition-copy">
    <div className="bml-competition-award"><Star size={15} fill="currentColor" aria-hidden="true"/> {awardLabel} <Star size={15} fill="currentColor" aria-hidden="true"/></div>
@@ -35,7 +36,7 @@ export default function MuseumCompetitionRibbon(){
    <Leaf className="bml-competition-accent bml-competition-accent--leaf" size={28} strokeWidth={1.6} aria-hidden="true"/>
   </div>
   <figure className="bml-competition-seal bml-competition-seal--school">
-   <img src={schoolLogo} width="172" height="210" alt="Logo Trường Trung - Tiểu học Pétrus Ký – The Pioneers" loading="eager" decoding="async"/>
+   <img src={dashboard ? '/assets/museum-paper/petrus-ky-original.png' : schoolLogo} width="172" height="210" alt="Logo Trường Trung - Tiểu học Pétrus Ký – The Pioneers" loading="eager" decoding="async"/>
   </figure>
  </section>;
 }
