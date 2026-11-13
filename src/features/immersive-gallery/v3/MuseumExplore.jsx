@@ -198,7 +198,7 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
    <div className="bml-banner bml-info-banner"><Info size={18}/>
     <span>No exhibitions match this view. Please refresh if you have published work.</span>
     <button type="button" className="bml-outline" onClick={()=>reload().catch(e=>setError(e.message))}>Reload exhibitions</button>
-   </div>:null
+   </div>:null}
  </div>;
 }
 export function MuseumSettings({data,onRefresh,language='vi'}){
