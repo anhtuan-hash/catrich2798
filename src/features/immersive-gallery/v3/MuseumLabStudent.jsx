@@ -1,11 +1,11 @@
 import React,{Suspense,useCallback,useEffect,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronLeft,ChevronRight,CircleHelp,ClipboardCheck,Cloud,CloudAlert,CloudUpload,Eye,FileText,Info,KeyRound,Landmark,Leaf,Lightbulb,LockKeyhole,MessageSquare,RefreshCw,Send,ShieldCheck,Sparkles,Users,X} from 'lucide-react';
-import {emptyStudio,documentFromStudio,normalizeStudio,STEPS,submissionMissing,moveStoryboardCard} from './museumData.js';
+import {emptyStudio,documentFromStudio,normalizeStudio,STEPS,moveStoryboardCard} from './museumData.js';
 import {guestRequest,englishSystemGroupLabel} from './museumApi.js';
 import {artGuest,liveGuest} from './museumLiveApi.js';
 import {buildStudentMuseumPreview} from './museumPreviewImages.js';
 import {stageMediaTools} from './museumLiveExtensions.js';
-import {wordCount,evidenceMissing,changedExhibits} from './learningEvidence.js';
+import {wordCount,changedExhibits} from './learningEvidence.js';
 import {canSaveMuseumDraft,canSubmitMuseumProject} from './museumSubmissionPolicy.js';
 import {submissionReadiness,submissionWindowMessage} from './museumSubmissionReadiness.js';
 import MuseumScene from './MuseumScene.jsx';
@@ -22,6 +22,7 @@ import './museumStudentCanvas.css';
 import './museumStudentEditorial.css';
 import './museumStudentScrollFix.css';
 import './museumStudentScrapbookV6.css';
+import './museumSubmissionFix.css';
 const T=(lang,vi,en)=>lang==='en'?en:vi;
 const getHandle=()=>{
  try{const raw=new URLSearchParams(window.location.hash.split('?')[1]||'').get('invite')||'';return raw.match(/^[A-Za-z0-9_-]{16,80}/)?.[0]||raw.slice(0,80);}catch{return '';}
@@ -240,7 +241,7 @@ export default function MuseumLabStudent({language='en'}){
      <button data-testid="student-tab-studio" type="button" aria-pressed={studentView==='studio'}
       className={studentView==='studio'?'is-active':''} onClick={()=>setStudentView('studio')}>
       <ClipboardCheck size={20}/><span><strong>{T(language,'Sản phẩm của nhóm','Our group project')}</strong>
-       <small>{T(language,'Thiết kế · Tự lưu · Nộp bài','Create · Autosave · Submit')}</small></span>
+       <small>{stageIndex===10&&!groupLocked?'Review and submit for Admin':T(language,'Thiết kế · Tự lưu · Nộp bài','Create · Autosave · Submit')}</small></span>
      </button>
     </div>
 
@@ -256,10 +257,6 @@ export default function MuseumLabStudent({language='en'}){
     </aside>
     <section className="bml-student-primary" aria-label={T(language,'Không gian thực hiện nhiệm vụ','Task workspace')}>
    <div className="bml-student-pane" hidden={studentView!=='live'}>
-    {stageIndex===10&&!groupLocked?<div className="bml-student-live-submit-hint" role="status">
-     <span>Exit Ticket is a separate activity. Your museum project must be submitted for Admin review.</span>
-     <button type="button" onClick={openSubmitReview}><Send size={15}/> Review museum submission</button>
-    </div>:null}
     <MuseumLiveStudent csrf={session.csrf} language={language} onState={setLiveInfo} toolRequest={studentTool} compact/>
    </div>
    <div className="bml-student-pane" hidden={studentView!=='studio'}>
@@ -445,8 +442,6 @@ export default function MuseumLabStudent({language='en'}){
        </div>
       <div className="bml-student-project-meter"><strong>{T(language,'Tiến độ nội dung','Draft content completion')}</strong><span>{progressPercent}%</span>
        <div role="progressbar" aria-label={T(language,'Tiến độ nội dung','Project completion')} aria-valuenow={progressPercent} aria-valuemin={0} aria-valuemax={100}><i style={{width:progressPercent+'%'}}/></div></div>
-      <button type="button" className="bml-outline bml-student-project-preview" onClick={()=>setProjectPreview(true)}>
-       <Eye size={17}/>{T(language,'Xem bảo tàng 2D/3D','Preview 2D/3D museum')}</button>
       <div className="bml-student-submit-summary" data-testid="museum-submit-summary" role="status">
         <strong>{groupLocked?'Submitted / under review':readiness.missing.length?readiness.stateLabel:'Draft requirements complete'}</strong>
         <small>{groupLocked?'The project is locked pending review.':
@@ -456,6 +451,8 @@ export default function MuseumLabStudent({language='en'}){
        {!groupLocked?<button type="button" className="bml-student-submit-shortcut" onClick={openSubmitReview} data-testid="museum-submit-shortcut">
         <Send size={16}/> Review & submit museum <ChevronRight size={16}/>
        </button>:null}
+      <button type="button" className="bml-outline bml-student-project-preview" onClick={()=>setProjectPreview(true)}>
+       <Eye size={17}/>{T(language,'Xem bảo tàng 2D/3D','Preview 2D/3D museum')}</button>
        <small className="bml-student-real-data-note">{T(language,'Tiến độ đếm 9 mục nội dung, không phải điểm số hoặc trạng thái đã nộp.','Draft progress counts nine text fields, not a grade or submission status.')}</small>
      </section>
    <aside className="bml-student-guide bml-surface"><div className="bml-guide-circle"><Lightbulb size={25}/></div><h3>{T(language,'Mẹo học tiếng Anh','English for your exhibit')}</h3>
