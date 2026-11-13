@@ -14,6 +14,7 @@ const checks=[
   ['node',['scripts/test-immersive-gallery.mjs']],
   ['node',['scripts/test-museum-private-passcodes-v56.mjs']],
   ['node',['scripts/test-museum-lesson-paper-v57.mjs']],
+  ['node',['scripts/test-museum-quick-classroom-v58.mjs']],
   ['npm',['run','test:i18n']],
   ['node',['scripts/test-learning-reports-contract.mjs']],
   ['node',['scripts/test-learning-report-instructor-scoping.mjs']],
