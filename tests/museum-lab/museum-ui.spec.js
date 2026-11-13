@@ -10,13 +10,14 @@ test.beforeEach(async({page})=>{
 });
 test('paper dashboard has clear actions and real-label synthetic progress',async({page})=>{
  await expect(page.getByTestId('museum-dashboard')).toBeVisible();
- await expect(page.getByText('Chào mừng trở lại!')).toBeVisible();
+ await expect(page.getByTestId('museum-competition-ribbon')).toBeVisible();
  await expect(page.getByText('Synthetic Climate Action Museum')).toBeVisible();
  await expect(page.getByRole('button',{name:/Tạo bài học mới/})).toBeVisible();
 });
 test('paper dashboard preserves the current English interface',async({page})=>{
  await page.getByTestId('qa-dashboard-en').click();
- await expect(page.getByRole('heading',{name:'Welcome back!',exact:true})).toBeVisible();
+ await expect(page.getByTestId('museum-competition-ribbon')).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Welcome back!',exact:true})).toHaveCount(0);
  const app=page.getByTestId('brian-museum-lab-v3');
  await expect(app).toHaveAttribute('lang','en');
  await expect(app.getByRole('navigation',{name:'Museum Lab navigation'}).getByRole('button')).toHaveCount(4);
@@ -44,9 +45,11 @@ test('paper navigation reaches real screens and search keeps the lesson filter',
  await expect(page.getByRole('dialog',{name:'Hướng dẫn Museum Lab'})).toBeVisible();
 });
 test('paper dashboard fits the viewport and its decorative assets load',async({page},testInfo)=>{
- const hero=page.locator('.bml-paper-hero-image');
- await expect(hero).toBeVisible();
- await expect.poll(()=>hero.evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+ const banner=page.getByTestId('museum-competition-ribbon');
+ await expect(banner).toBeVisible();
+ await expect.poll(()=>banner.locator('img').evaluateAll(imgs=>imgs.every(img=>img.complete&&img.naturalWidth>0))).toBe(true);
+ await expect(page.locator('.bml-paper-hero-image')).toHaveCount(0);
+ await expect(page.locator('.bml-quick-actions')).toBeVisible();
  await expect(page.locator('.bml-bottom-grid')).toHaveCount(0);
  await expect(page.getByText('DẠY TRỰC TIẾP KHÔNG CẦN POWERPOINT')).toHaveCount(0);
  await expect(page.getByRole('button',{name:'Dạy trực tiếp',exact:true})).toBeVisible();
@@ -82,8 +85,8 @@ test('dashboard competition banner preserves original logos and readable credits
   });
   expect(errors).toEqual([]);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
-  const box=await banner.boundingBox(),hero=await page.locator('.bml-paper-hero').boundingBox();
-  expect(box.y+box.height).toBeLessThanOrEqual(hero.y);
+  const box=await banner.boundingBox(),actions=await page.locator('.bml-quick-actions').boundingBox();
+  expect(box.y+box.height).toBeLessThanOrEqual(actions.y+1);
  };
  await validateLayout();
  await page.screenshot({path:testInfo.outputPath('museum-dashboard-competition.png'),fullPage:true});
@@ -209,7 +212,8 @@ test('Student Creator Pass entry reuses full official Gallery competition banner
  await expect(entry.getByRole('heading',{name:'Start creating'})).toBeVisible();
  await expect(entry.getByLabel('Invitation code')).toHaveAttribute('required','');
  await expect(entry.getByLabel('Private group passcode')).toHaveAttribute('type','password');
- await expect(entry.getByRole('button',{name:/Enter Creator Studio/})).toBeEnabled();
+ // A group cannot enter without a valid invitation; submitting empty credentials is blocked.
+ await expect(entry.getByRole('button',{name:/Enter lesson/})).toBeDisabled();
  for(const size of [{width:1536,height:960},{width:1024,height:768},{width:390,height:844}]){
   await page.setViewportSize(size);
   const bannerBox=await ribbon.boundingBox(),entryBox=await entry.boundingBox();
@@ -321,7 +325,7 @@ test('mobile viewport keeps task controls within the page width',async({page,isM
  const width=await page.evaluate(()=>document.documentElement.scrollWidth);
  const windowWidth=await page.evaluate(()=>window.innerWidth);
  expect(width).toBeLessThanOrEqual(windowWidth+4);
- await expect(page.getByRole('button',{name:/Vào không gian sáng tạo/})).toBeVisible();
+ await expect(page.getByRole('button',{name:/Vào bài học/})).toBeVisible();
 });
 
 
@@ -921,6 +925,10 @@ test('three English lessons expose eighteen group projects and a navigable 3D ar
  await expect(lessons.getByText('Protecting Marine Life',{exact:true})).toHaveCount(2);
  await expect(lessons.getByText('Sustainable School',{exact:true})).toHaveCount(1);
  const first=lessons.locator('.bml-lesson-block').first();
+ // The first lesson opens expanded by default; verify both collapse and reopen.
+ await expect(first.getByTestId('lesson-portfolio-marine-12')).toBeVisible();
+ await first.getByRole('button',{name:/Thu gọn|Collapse/}).click();
+ await expect(first.getByTestId('lesson-portfolio-marine-12')).toHaveCount(0);
  await first.getByRole('button',{name:/Xem các nhóm|View groups/}).click();
  await expect(first.getByTestId('lesson-portfolio-marine-12')).toBeVisible();
  await expect(first.locator('.bml-prepared-project')).toHaveCount(6);
@@ -1020,13 +1028,14 @@ test('frozen survey chart uploads real computed PNG instead of an empty evidence
 test('paper footer integrates with existing site styles without page overflow',async({page},testInfo)=>{
  await page.goto('/tests/museum-lab/paper.html');
  await expect(page.getByTestId('museum-dashboard')).toBeVisible();
- await expect(page.getByRole('heading',{name:'Chào mừng trở lại!'})).toBeVisible();
+ await expect(page.getByTestId('museum-competition-ribbon')).toBeVisible();
  const footer=page.locator('footer[data-app-shell-footer]');
  await expect(footer).toBeVisible();
  await expect(footer.locator('.signature-footer-v50-main>section')).toHaveCount(3);
  await expect(footer.getByRole('heading',{name:'NGUYỄN ANH TUẤN (MR.)',exact:true})).toBeVisible();
  await page.evaluate(()=>document.fonts.ready);
- await expect(page.locator('.bml-paper-hero h1')).toHaveCSS('font-family',/MuseumHand/);
+ await expect(page.locator('.bml-paper-header')).toBeVisible();
+ await expect(page.locator('.bml-paper-hero')).toHaveCount(0);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
  await page.screenshot({path:testInfo.outputPath('museum-paper-footer.png'),fullPage:true});
 });
@@ -1606,7 +1615,7 @@ test('Student Creator V6 layered-paper skin stays readable and interactive acros
   expect(colors.submitFooterPosition).toBe('relative');
   await app.locator('.bml-student-steps button').nth(4).click();
   const panel=app.getByTestId('student-task-scroll');
-  await expect(app.getByText('Submission checklist')).toBeVisible();
+  await expect(app.getByRole('heading',{name:'Submission checklist'})).toBeVisible();
   await expect(app.getByRole('button',{name:'Submit for Admin review'})).toBeVisible();
   await panel.evaluate(el=>{el.scrollTop=el.scrollHeight;});
   const footer=app.locator('.bml-student-bottom');
