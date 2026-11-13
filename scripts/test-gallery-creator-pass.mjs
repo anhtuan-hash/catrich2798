@@ -51,14 +51,18 @@ test('no Supabase auth identities are created for guests',()=>{
  assert.match(migration,/grant execute on function public\.gcp_guest_save[\s\S]*to service_role/);
  assert.match(migration,/enabled boolean not null default false/);
 });
-test('TTCM is separately granted and publication stays Admin-gated',()=>{
+test('Admin directly assigns and approves while legacy review SQL remains historical',()=>{
  const staff=fs.readFileSync('serverless-handlers/gallery-staff.js','utf8');
- const sql=fs.readFileSync('supabase/migrations/20261112171000_gallery_creator_pass_v21.sql','utf8');
+ const legacy=fs.readFileSync('supabase/migrations/20261112171000_gallery_creator_pass_v21.sql','utf8');
+ const migration=fs.readFileSync('supabase/migrations/20261113010000_museum_admin_direct_review_archive.sql','utf8');
  assert.match(staff,/assertAdmin\(ctx\)/);
- assert.match(staff,/reviewer\(ctx,ctx\.user\.id\)/);
- assert.match(sql,/p_actor=a\.reviewer_id/);
- assert.match(sql,/p_role|admin_required|p\.role='admin'/);
- assert.match(sql,/approved_snapshot_required/);
+ assert.match(staff,/const reviewerId=ctx\.user\.id/);
+ assert.match(staff,/if\(operation==='admin-decision'\)/);
+ assert.match(staff,/admin\.rpc\('gcp_admin_decide'/);
+ assert.match(migration,/create or replace function public\.gcp_admin_decide/);
+ assert.match(migration,/p\.role='admin' and p\.approved=true/);
+ assert.match(legacy,/p_actor=a\.reviewer_id/);
+ assert.match(legacy,/approved_snapshot_required/);
 });
 test('public guest route stays isolated from legacy Brian route guards',()=>{
  const main=fs.readFileSync('src/main.jsx','utf8');

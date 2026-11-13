@@ -1,5 +1,5 @@
 import React,{useEffect,useMemo,useState} from 'react';
-import {ArrowLeft,ArrowRight,BookOpen,CalendarDays,Check,CheckCircle2,ChevronRight,ClipboardList,Copy,Download,ExternalLink,KeyRound,LockKeyhole,Plus,Printer,QrCode,RefreshCw,ShieldAlert,Users} from 'lucide-react';
+import {ArrowLeft,ArrowRight,BookOpen,CalendarDays,Check,CheckCircle2,ChevronRight,ClipboardList,Copy,Download,ExternalLink,KeyRound,LockKeyhole,Plus,Printer,QrCode,RefreshCw,ShieldAlert,Trash2,Users} from 'lucide-react';
 import {LESSON_KITS,progressOfGroup} from './museumData.js';
 import {LIVE_STAGES,LIVE_TOTAL_MINUTES} from './liveLesson.js';
 import {preparedCollectionFor} from './museumPreparedCollections.js';
@@ -34,16 +34,15 @@ export function OneTimeInvites({invitations,onClose,language='vi'}){
 export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'}){
  const [step,setStep]=useState(0);
  const kit=LESSON_KITS[0];
- const validReviewers=(data?.reviewers||[]).filter(r=>r.active&&r.can_publish&&r.reviewer_id!==data?.profile?.id);
- const [form,setForm]=useState({classScope:'',groupCount:6,deadlineAt:defaultDeadline(),title:'',brief:'',reviewerId:''});
+ const isAdmin=data?.profile?.role==='admin';
+ const [form,setForm]=useState({classScope:'',groupCount:6,deadlineAt:defaultDeadline(),title:'',brief:''});
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[invites,setInvites]=useState(null);
- const chosenReviewer=form.reviewerId||validReviewers[0]?.reviewer_id||'';
  const title=form.title||kit.title,brief=form.brief||kit.brief;
  const issue=async()=>{
   setError('');setBusy(true);
   try{
    const payload={title,classScope:form.classScope.trim(),brief,groupCount:Number(form.groupCount),
-    reviewerId:chosenReviewer,deadlineAt:new Date(form.deadlineAt).toISOString()};
+    deadlineAt:new Date(form.deadlineAt).toISOString()};
    const r=await staffRequest('create-assignment',payload);setInvites(r.invitations);
    await onCompleted();
   }catch(e){setError(e.message);}finally{setBusy(false);}
@@ -98,13 +97,10 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'})
      <label>{tr(language,'Lớp học','Class')}<input autoFocus required maxLength={120} placeholder="11A3" value={form.classScope} onChange={e=>setForm(v=>({...v,classScope:e.target.value}))}/></label>
      <label>{tr(language,'Số nhóm','Number of groups')}<select value={form.groupCount} onChange={e=>setForm(v=>({...v,groupCount:Number(e.target.value)}))}>{Array.from({length:12},(_,i)=><option key={i+1} value={i+1}>{i+1} {tr(language,'nhóm','groups')}</option>)}</select></label>
      <label>{tr(language,'Hạn nộp','Deadline')}<input type="datetime-local" required value={form.deadlineAt} onChange={e=>setForm(v=>({...v,deadlineAt:e.target.value}))}/></label>
-     <label>{tr(language,'Người duyệt chuyên môn','Department reviewer')}<select value={chosenReviewer} onChange={e=>setForm(v=>({...v,reviewerId:e.target.value}))}>
-       {!validReviewers.length?<option value="">{tr(language,'Chưa được cấp quyền','No reviewer delegated')}</option>:null}
-       {validReviewers.map(r=><option key={r.reviewer_id} value={r.reviewer_id}>{data?.reviewerCandidates?.find(c=>c.id===r.reviewer_id)?.full_name||tr(language,'TTCM được cấp quyền','Authorized reviewer')}</option>)}
-      </select></label>
     </div>
-    {!validReviewers.length?<div className="bml-banner bml-warning-banner"><LockKeyhole size={19}/><div>{tr(language,'Chưa có người duyệt chuyên môn. Admin cần cấp quyền trước.','No department reviewer has been delegated. Ask the Admin to authorize one.')}</div>
-      <button type="button" className="bml-text-btn" onClick={onSettings}>{tr(language,'Mở cài đặt','Settings')} <ArrowRight size={16}/></button></div>:null}
+    <div className="bml-banner bml-info-banner"><CheckCircle2 size={19}/>{tr(language,
+      'Admin trực tiếp giao nhiệm vụ, duyệt bài và công bố. Không cần phân công giáo viên/TTCM.',
+      'The Admin assigns, reviews and publishes directly; no staff delegation is required.')}</div>
    </>:null}
    {step===2?<><h2>{tr(language,'Kiểm tra và giao bài','Review and share')}</h2>
     <p>{tr(language,'Xác nhận nội dung trước khi tạo mã nhóm. Sau khi tạo, mã bí mật sẽ chỉ xuất hiện một lần.','Confirm details before generating one-time private group codes.')}</p>
@@ -122,14 +118,24 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'})
    <Notice error={error}/>
    <div className="bml-wizard-footer"><button type="button" className="bml-outline" onClick={()=>step===0?onExit():setStep(s=>s-1)}>
      <ArrowLeft size={17}/>{tr(language,'Quay lại','Back')}</button>
-    {step<2?<button type="button" className="bml-primary" disabled={step===1&&(!form.classScope.trim()||!chosenReviewer)} onClick={()=>setStep(s=>s+1)}>{tr(language,'Tiếp tục','Continue')} <ArrowRight size={17}/></button>:
-    <button type="button" className="bml-primary" disabled={busy||!data?.creatorSettings?.enabled||!form.classScope.trim()||!chosenReviewer}
+    {step<2?<button type="button" className="bml-primary" disabled={step===1&&(!form.classScope.trim()||!isAdmin)} onClick={()=>setStep(s=>s+1)}>{tr(language,'Tiếp tục','Continue')} <ArrowRight size={17}/></button>:
+    <button type="button" className="bml-primary" disabled={busy||!isAdmin||!data?.creatorSettings?.enabled||!form.classScope.trim()}
       onClick={issue}><QrCode size={18}/>{busy?tr(language,'Đang tạo…','Creating…'):tr(language,'Tạo mã nhóm & giao bài','Generate group codes')}</button>}</div>
   </section></>}
  </div>;
 }
 export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,query='',language='vi'}){
  const [selected,setSelected]=useState(null),[invites,setInvites]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ const isAdmin=data?.profile?.role==='admin';
+ const archiveAssignment=async assignment=>{
+  if(!isAdmin||busy)return;
+  if(!window.confirm(tr(language,
+   'Xóa bài học “'+assignment.title+'” của lớp '+assignment.class_scope+' khỏi danh sách hoạt động? Mã nhóm sẽ bị thu hồi, nhưng dữ liệu gốc được lưu trong lịch sử. Bài đã công bố không thể xóa.',
+   'Remove “'+assignment.title+'” ('+assignment.class_scope+') from active lessons? Group access will be revoked; historical evidence is preserved. Published lessons cannot be removed.')))return;
+  setBusy(true);setError('');
+  try{await staffRequest('archive-assignment',{assignmentId:assignment.id});setSelected(null);await onRefresh();}
+  catch(e){setError(e.message);}finally{setBusy(false);}
+ };
  const allAssignments=data?.assignments||[],assignments=allAssignments.filter(a=>(a.title+' '+a.class_scope).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())),groups=data?.groups||[],reviews=data?.reviews||[];
  const rotate=async groupId=>{if(!window.confirm(tr(language,'Mã cũ sẽ bị thu hồi. Bạn muốn cấp mã mới?','The old code will be revoked. Generate a new one?')))return;
   setBusy(true);setError('');
@@ -138,7 +144,7 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
  };
  return <div className="bml-screen" data-testid="museum-lessons"><div className="bml-heading-actions"><div><div className="bml-overline">{tr(language,'LỚP HỌC SỐ','LESSON WORKSPACE')}</div>
   <h1>{tr(language,'Bài học của tôi','My lessons')}</h1><p>{tr(language,'Giao dự án và theo dõi từng nhóm.','Assign projects and track your groups.')}</p></div>
-  <button type="button" className="bml-primary" onClick={onCreate}><Plus size={19}/>{tr(language,'Tạo bài học mới','New lesson')}</button></div>
+  {isAdmin?<button type="button" className="bml-primary" onClick={onCreate}><Plus size={19}/>{tr(language,'Tạo bài học mới','New lesson')}</button>:null}</div>
   <Notice error={error}/>
   {invites?<OneTimeInvites invitations={invites} onClose={()=>setInvites(null)} language={language}/>:null}
   {assignments.length?<div className="bml-lesson-list">{assignments.map(a=>{
@@ -153,6 +159,9 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
        <BookOpen size={17}/>{tr(language,'Triển lãm 3D','3D exhibition')} <ArrowRight size={15}/></button>:null}
       <button type="button" className="bml-outline" onClick={()=>setSelected(selected===a.id?null:a.id)}>
        {selected===a.id?tr(language,'Thu gọn','Collapse'):tr(language,'Xem các nhóm','View groups')} <ChevronRight size={17}/></button>
+      {isAdmin?<button type="button" disabled={busy} className="bml-danger bml-archive-btn"
+        onClick={()=>archiveAssignment(a)} aria-label={tr(language,'Xóa bài học '+a.title,'Remove lesson '+a.title)}>
+       <Trash2 size={17}/>{tr(language,'Xóa bài học','Delete lesson')}</button>:null}
      </div></div>
     <div className="bml-progress bml-progress-wide"><div style={{width:(mine.length?100*done/mine.length:0)+'%'}}/></div>
     {selected===a.id?<div className="bml-group-list">{mine.map(g=>{

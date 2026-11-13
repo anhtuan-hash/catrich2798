@@ -79,10 +79,10 @@ export default function MuseumLabApp({currentUser,language='vi',transport=staffR
      <header><div><span className="bml-overline">HOW IT WORKS</span><h2>{tr(language,'Bắt đầu thật đơn giản','Getting started is simple')}</h2></div>
       <button type="button" className="bml-icon-btn" onClick={()=>setHelp(false)} aria-label="Close"><X size={20}/></button></header>
      <div className="bml-checklist" style={{margin:'19px 0'}}>{[
-      ['01','Chọn Bài học và mẫu phù hợp','Choose a lesson and a template'],
+      ['01','Mở kế hoạch Unit 5: Global Warming','Open the Unit 5: Global Warming plan'],
       ['02','Tạo mã QR và mã bí mật cho từng nhóm','Create a QR and private passcode for each group'],
       ['03','Học sinh làm 5 bước, tự lưu, không đăng nhập','Students complete five steps with no account'],
-      ['04','Giáo viên chấm và chuyển TTCM duyệt','Teachers assess; department heads review']
+      ['04','Admin đánh giá, phê duyệt và công bố','Admin assesses, approves and publishes']
      ].map(([number,vi,en])=><div className="bml-check-item" key={number}><span className="bml-class-tag">{number}</span><div><strong>{tr(language,vi,en)}</strong></div></div>)}</div>
      <button className="bml-primary" type="button" onClick={()=>{setHelp(false);create();}}><Plus size={17}/>{tr(language,'Tạo bài học ngay','Create a lesson')}</button>
     </section></div>:null}

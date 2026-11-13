@@ -25,7 +25,7 @@ import '../../src/styles/UnifiedBubbleMotion.css';
 import '../../src/styles/BrianFloatingGlow.css';
 import Footer from '../../src/components/Footer.jsx';
 import MuseumLabApp from '../../src/features/immersive-gallery/v3/MuseumLabApp.jsx';
-const data={profile:{id:'qa',role:'teacher'},creatorSettings:{enabled:false},assignments:[
+const data={profile:{id:'qa',role:'admin'},creatorSettings:{enabled:false},assignments:[
 {id:'qa-1',title:'Our Climate Action Museum',class_scope:'11.4',deadline_at:'2026-11-19T17:00:00Z'}
 ],groups:[{id:'qa-g1',assignment_id:'qa-1',state:'submitted'},{id:'qa-g2',assignment_id:'qa-1',state:'editing'}],reviews:[]};
 const transport=async()=>data;

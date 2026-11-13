@@ -37,17 +37,17 @@
 .bml-paper .bml-paper-utilities button{display:grid;place-items:center;width:38px;height:38px;border:1px solid #fff;background:#f4fbffe6;border-radius:12px;color:#27466f}
 .bml-paper .bml-paper-utilities button:hover{background:#fff7db}
 .bml-paper .bml-dashboard{gap:28px}
-.bml-paper .bml-quick-actions{grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+.bml-paper .bml-quick-actions{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:22px}
 .bml-paper .bml-quick-card{min-height:112px;border:8px solid transparent;border-image:var(--museum-rim) 12 / 8px / 3px round;border-radius:23px;background:var(--museum-grain),#fce0ee;box-shadow:var(--museum-lift);padding:15px 12px;gap:14px;color:#132e62;transition:transform .15s,box-shadow .15s}
-.bml-paper .bml-quick-card:nth-child(2){background-color:#e9dfff}
-.bml-paper .bml-quick-card:nth-child(3){background-color:#d8f1e6;grid-column:auto}
+.bml-paper .bml-quick-card.bml-quick-submissions{background-color:#e9dfff}
+.bml-paper .bml-quick-card.bml-quick-gallery{background-color:#d8f1e6;grid-column:auto}
 .bml-paper .bml-quick-card:hover{transform:translateY(-3px) rotate(-.5deg);box-shadow:0 6px 0 #578eaf24,0 12px 18px #245b783b}
 .bml-paper .bml-quick-card strong{font-size:clamp(16px,1.55vw,23px);line-height:1.25;color:#15336b}
 .bml-paper .bml-quick-card small{font-size:12px;color:#304e76;line-height:1.45}
 .bml-paper .bml-quick-icon{height:64px;width:64px;border:4px solid #fffdf6;border-radius:10px;background:var(--museum-grain),#fff3bd;box-shadow:2px 4px 0 #bda56566,0 5px 8px #4b3e7424;transform:rotate(-9deg);color:#7157bd}
 .bml-paper .bml-quick-icon svg{width:42px;height:42px;stroke-width:1.65;filter:drop-shadow(1px 2px 0 #fff)}
-.bml-paper .bml-quick-card:nth-child(2) .bml-quick-icon{background-color:#ffe186;color:#8b55cd;transform:rotate(7deg)}
-.bml-paper .bml-quick-card:nth-child(3) .bml-quick-icon{background-color:#e4f6ff;color:#2b956a;transform:rotate(-6deg);border-color:#ffc76d}
+.bml-paper .bml-quick-card.bml-quick-submissions .bml-quick-icon{background-color:#ffe186;color:#8b55cd;transform:rotate(7deg)}
+.bml-paper .bml-quick-card.bml-quick-gallery .bml-quick-icon{background-color:#e4f6ff;color:#2b956a;transform:rotate(-6deg);border-color:#ffc76d}
 .bml-paper .bml-quick-card>svg:last-child{width:34px;height:34px;padding:7px;background:#fff;border-radius:50%;box-shadow:0 3px 4px #31456820;color:#263983}
 .bml-paper .bml-surface{background:var(--museum-grain),#fffaf1;border-color:#fef9ed;box-shadow:0 4px 0 #578eaf1a,0 7px 15px #245b7820}
 .bml-paper .bml-paper-recents{position:relative;border:10px solid transparent;border-image:var(--museum-rim) 12 / 10px / 4px round;border-radius:24px;padding:16px 22px 23px;box-shadow:var(--museum-lift);isolation:isolate}

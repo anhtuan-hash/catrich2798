@@ -499,3 +499,21 @@ test('paper footer integrates with existing site styles without page overflow',a
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
  await page.screenshot({path:testInfo.outputPath('museum-paper-footer.png'),fullPage:true});
 });
+
+test('Admin directly manages assignments and submitted work without delegating a reviewer',async({page})=>{
+ await page.getByTestId('qa-wizard').click();
+ await expect(page.getByTestId('museum-lesson-wizard')).toBeVisible();
+ await page.getByRole('button',{name:/Tiếp tục/}).click();
+ await expect(page.getByText('Thiết lập lớp và nhóm')).toBeVisible();
+ await expect(page.getByText(/Admin trực tiếp giao nhiệm vụ/)).toBeVisible();
+ await expect(page.getByText('Người duyệt chuyên môn')).toHaveCount(0);
+ await page.getByTestId('qa-prepared').click();
+ const first=page.getByTestId('museum-lessons').locator('.bml-lesson-block').first();
+ await expect(first.getByRole('button',{name:/Xóa bài học/})).toBeVisible();
+ await page.getByTestId('qa-admin-review').click();
+ await expect(page.getByTestId('museum-review-desk')).toBeVisible();
+ await page.getByRole('button',{name:/Group climate work/}).first().click();
+ await expect(page.getByRole('button',{name:/Admin phê duyệt/})).toBeVisible();
+ await expect(page.getByRole('button',{name:/Xóa bài nộp/})).toBeVisible();
+ await expect(page.getByRole('button',{name:/Chuyển TTCM duyệt/})).toHaveCount(0);
+});

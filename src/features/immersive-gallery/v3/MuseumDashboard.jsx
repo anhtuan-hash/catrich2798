@@ -45,16 +45,17 @@ export function KitCard({kit,onClick,selected=false,language='vi'}){
 }
 export default function MuseumDashboard({data,onNavigate,onCreate,language='vi'}){
  const tr=(vi,en)=>language==='en'?en:vi;
+ const isAdmin=data?.profile?.role==='admin';
  const assignments=(data?.assignments||[]).slice(0,5),groups=data?.groups||[];
  return <div className="bml-screen bml-dashboard" data-testid="museum-dashboard">
   <div className="bml-quick-actions">
-   <button type="button" className="bml-quick-card" onClick={onCreate}>
+   {isAdmin?<button type="button" className="bml-quick-card bml-quick-create" onClick={onCreate}>
     <span className="bml-quick-icon bml-blue"><BookOpen size={25}/></span><span><strong>{tr('Tạo bài học mới','Create a lesson')}</strong>
-      <small>{tr('Soạn nội dung, giao nhiệm vụ','Unit 5 lesson, groups and QR access')}</small></span><Plus size={19}/></button>
-   <button type="button" className="bml-quick-card" onClick={()=>onNavigate('submissions')}>
+      <small>{tr('Soạn nội dung, giao nhiệm vụ','Unit 5 lesson, groups and QR access')}</small></span><Plus size={19}/></button>:null}
+   <button type="button" className="bml-quick-card bml-quick-submissions" onClick={()=>onNavigate('submissions')}>
     <span className="bml-quick-icon bml-purple"><Users size={25}/></span><span><strong>{tr('Xem bài nộp','Review submissions')}</strong>
       <small>{tr('Theo dõi tiến độ và đánh giá','Track progress and evaluate')}</small></span><ArrowRight size={19}/></button>
-   <button type="button" className="bml-quick-card" onClick={()=>onNavigate('gallery')}>
+   <button type="button" className="bml-quick-card bml-quick-gallery" onClick={()=>onNavigate('gallery')}>
     <span className="bml-quick-icon bml-sky"><Image size={25}/></span><span><strong>{tr('Tham quan triển lãm','Explore museums')}</strong>
       <small>{tr('Xem, chia sẻ và công bố','Browse, share and publish')}</small></span><ArrowRight size={19}/></button>
   </div>
@@ -74,7 +75,7 @@ export default function MuseumDashboard({data,onNavigate,onCreate,language='vi'}
      </tr>;})}</tbody>
    </table></div>:<div className="bml-empty bml-empty-slim"><BookOpen size={31}/><strong>{tr('Chưa có bài học nào','No lessons yet')}</strong>
      <p>{tr('Bắt đầu với Our Climate Action Museum, Tiếng Anh 11 Unit 5. Ba bước để giao nhiệm vụ cho nhóm.','Start with Our Climate Action Museum, English 11 Unit 5, then assign groups in three steps.')}</p>
-     <button className="bml-primary" type="button" onClick={onCreate}><Plus size={17}/>{tr('Tạo bài học đầu tiên','Create your first lesson')}</button>
+     {isAdmin?<button className="bml-primary" type="button" onClick={onCreate}><Plus size={17}/>{tr('Tạo bài học đầu tiên','Create your first lesson')}</button>:null}
    </div>}
   </section>
  </div>;
