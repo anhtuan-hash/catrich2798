@@ -1610,6 +1610,18 @@ test('Student Creator 2D Paper exhibit displays actual uploaded photos and remai
   expect(boardBounds.x).toBeGreaterThan(-10);
   expect(boardBounds.x+boardBounds.width).toBeLessThan(viewport.width+10);
  }
+ // Keep the same physical stage usable after a portrait resize; this is
+ // still one WebGL Canvas, not a mobile screenshot/second 2D modal.
+ await page.setViewportSize({width:390,height:844});
+ await expect(infoBoard).toBeVisible();
+ await expect(infoBoard.getByTestId('museum-back-to-wall')).toBeVisible();
+ const mobileBoard=await infoBoard.boundingBox();
+ expect(mobileBoard).toBeTruthy();
+ expect(mobileBoard.x).toBeGreaterThan(-10);
+ expect(mobileBoard.x+mobileBoard.width).toBeLessThanOrEqual(400);
+ await page.screenshot({path:testInfo.outputPath('museum-v5-focused-390x844.png'),fullPage:false});
+ await page.setViewportSize({width:1536,height:960});
+ await expect(infoBoard).toBeVisible();
  await infoBoard.getByTestId('museum-back-to-wall').click();
  await expect(viewer.getByTestId('museum-focus-state')).toHaveAttribute('data-phase','idle',{timeout:15000});
  await expect(infoBoard).toHaveCount(0);
