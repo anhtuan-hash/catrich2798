@@ -1,5 +1,5 @@
 import React from 'react';
-import {ArrowLeft,ArrowRight,BookOpen,Check,ChevronLeft,ChevronRight,Eye,Film,Focus,Fullscreen,HelpCircle,LayoutPanelRight,Lock,Maximize2,Minimize2,MoreHorizontal,Pause,Play,QrCode,RefreshCcw,Sparkles,Users,Volume2,X} from 'lucide-react';
+import {BookOpen,Check,ChevronLeft,ChevronRight,Eye,Film,Focus,HelpCircle,Lock,Minimize2,MoreHorizontal,Pause,Play,QrCode,RefreshCcw,Sparkles,Users,Volume2} from 'lucide-react';
 const t=(language,vi,en)=>language==='en'?en:vi;
 function Tool({label,icon:Icon,onClick,disabled=false,active=false,title}){
  return <button type="button" onClick={onClick} disabled={disabled} aria-pressed={active}
