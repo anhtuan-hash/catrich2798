@@ -254,3 +254,29 @@ test('Paper 2D exhibition uses real image URLs and cannot fabricate stock eviden
  assert.match(styles,/bml-paper-art-card/);
  assert.match(styles,/bml-museum-preview-window/);
 });
+
+test('published school exhibitions stay visible when browser catalogue reads fail',()=>{
+ const server=fs.readFileSync('serverless-handlers/gallery-staff.js','utf8');
+ const gallery=fs.readFileSync('src/features/immersive-gallery/v3/MuseumExplore.jsx','utf8');
+ const app=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLabApp.jsx','utf8');
+ assert.match(server,/operation==='showcase-state'/);
+ assert.match(server,/galleryEnabled,publishedGalleries/);
+ assert.match(server,/\.eq\('school_scope',ctx\.profile\.school\)\.eq\('status','published'\)/);
+ assert.match(server,/\.in\('visibility',\['school','public'\]\)/);
+ assert.match(server,/Date\.parse\(g\.starts_at\)/);
+ assert.match(server,/Date\.parse\(g\.ends_at\)/);
+ assert.match(gallery,/Array\.isArray\(archive\.publishedGalleries\)/);
+ assert.match(gallery,/directError&&!published\.length/);
+ assert.match(gallery,/new Map\(\)/);
+ assert.match(gallery,/item\.status!=='archived'/);
+ assert.match(app,/if\(id==='gallery'&&id!==tab\)setQuery\(''\)/);
+});
+
+test('published exhibits hydrate their original private images before 2D/3D viewing',()=>{
+ const galleryData=fs.readFileSync('src/features/immersive-gallery/galleryData.js','utf8');
+ assert.match(galleryData,/exhibits\.filter\(e=>e\.kind==='image'&&e\.asset_id\)/);
+ assert.match(galleryData,/Promise\.allSettled\(imageIds\.map\(id=>getGalleryAssetUrl\(id\)\)\)/);
+ assert.match(galleryData,/image_url:e\.kind==='image'\?/);
+ assert.match(galleryData,/imageUrls\.get\(e\.asset_id\)/);
+ assert.match(galleryData,/createSignedUrl\(row\.path,120\)/);
+});
