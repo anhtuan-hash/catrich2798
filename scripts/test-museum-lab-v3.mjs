@@ -271,3 +271,12 @@ test('published school exhibitions stay visible when browser catalogue reads fai
  assert.match(gallery,/item\.status!=='archived'/);
  assert.match(app,/if\(id==='gallery'&&id!==tab\)setQuery\(''\)/);
 });
+
+test('published exhibits hydrate their original private images before 2D/3D viewing',()=>{
+ const galleryData=fs.readFileSync('src/features/immersive-gallery/galleryData.js','utf8');
+ assert.match(galleryData,/exhibits\.filter\(e=>e\.kind==='image'&&e\.asset_id\)/);
+ assert.match(galleryData,/Promise\.allSettled\(imageIds\.map\(id=>getGalleryAssetUrl\(id\)\)\)/);
+ assert.match(galleryData,/image_url:e\.kind==='image'\?/);
+ assert.match(galleryData,/imageUrls\.get\(e\.asset_id\)/);
+ assert.match(galleryData,/createSignedUrl\(row\.path,120\)/);
+});
