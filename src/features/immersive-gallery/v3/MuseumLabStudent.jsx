@@ -84,6 +84,10 @@ export default function MuseumLabStudent({language='en'}){
  },[stageIndex,liveRunning]);
  const locked=groupLocked||!stageEditAllowed;
  const studioPages=step===1?2:step===2?3:1;
+ // Keep the 16:9 frame stationary; only the active step's fields scroll.
+ // Reset on navigation so Page 2 and the next step never open halfway down.
+ const taskScrollRef=useRef(null);
+ useEffect(()=>{if(taskScrollRef.current)taskScrollRef.current.scrollTop=0;},[step,studioSubstep,studentView]);
  const showTool=name=>{setStudentView('live');setStudentTool({name,key:Date.now()});};
  useEffect(()=>{setStudioSubstep(0);setHistoryOpen(false);},[step]);
  useEffect(()=>{
@@ -247,6 +251,9 @@ export default function MuseumLabStudent({language='en'}){
       onClick={()=>setStudioSubstep(i)}>{T(language,'Trang','Page')} {i+1}</button>)}
      <small>{studioSubstep+1} / {studioPages}</small>
     </nav>:null}
+    <div className="bml-student-task-scroll" data-testid="student-task-scroll"
+     role="region" aria-label={T(language,'Nội dung bài làm có thể cuộn','Scrollable project step content')}
+     tabIndex={0} ref={taskScrollRef}>
     {step===0?<><p>{T(language,'Đọc đề bài. Chọn một vấn đề môi trường thực tế mà người xem cần hiểu.','Read the assignment. Choose one real-world environmental issue your visitors should understand.')}</p>
      <div className="bml-step-hint"><Lightbulb size={21}/><div><strong>{T(language,'Gợi ý viết tiếng Anh','English sentence starter')}</strong>
       <p>“One environmental issue at our school is … because …”</p></div></div>
@@ -347,6 +354,7 @@ export default function MuseumLabStudent({language='en'}){
     {error?<div className="bml-banner bml-danger-banner" role="alert"><CloudAlert size={19}/>{error}
       {conflict?<button type="button" className="bml-outline" onClick={()=>load().catch(e=>setError(e.message))}><RefreshCw size={16}/>{T(language,'Tải bản mới nhất','Reload latest')}</button>:null}</div>:null}
     {notice?<div className="bml-banner bml-success-banner" role="status"><CheckCircle2 size={19}/>{notice}</div>:null}
+    </div>
     <footer className="bml-student-bottom">
      <button type="button" className="bml-outline" disabled={step===0&&studioSubstep===0} onClick={()=>{if(studioSubstep>0)setStudioSubstep(v=>v-1);else setStep(s=>Math.max(0,s-1));setPreview(false);}}><ChevronLeft size={18}/>{T(language,'Quay lại','Previous')}</button>
      <div><button type="button" className="bml-text-btn" disabled={!dirty||busy||conflict||locked} onClick={()=>save()}><Cloud size={17}/>{T(language,'Lưu ngay','Save now')}</button>
