@@ -95,7 +95,7 @@ function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdi
   };
   if(['extracting','returning','presenting'].includes(focusPhase)){
    motion.current={
-    phase:focusPhase,elapsed:0,duration:selectFocusDuration(
+    phase:focusPhase,elapsed:0,startedAt:performance.now(),duration:selectFocusDuration(
      focusPhase,window.matchMedia?.('(prefers-reduced-motion: reduce)').matches),
     from:{position:node.position.clone(),quaternion:node.quaternion.clone(),scale:node.scale.clone()},
     to
@@ -108,7 +108,8 @@ function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdi
   if(!group||!wall||!isFocused||!cinemaEdition)return;
   const tween=motion.current;
   if(tween){
-   tween.elapsed+=Math.min(.05,delta);
+   // Frame-based interpolation with a real elapsed-time floor: software WebGL must not stretch a one-second action to fifteen seconds.
+   tween.elapsed=Math.max(tween.elapsed+Math.min(.05,delta),(performance.now()-tween.startedAt)/1000);
    const t=smoothstep(Math.min(1,tween.elapsed/tween.duration));
    group.position.lerpVectors(tween.from.position,tween.to.position,t);
    group.quaternion.slerpQuaternions(tween.from.quaternion,tween.to.quaternion,t);
@@ -334,7 +335,7 @@ function MuseumFocusCameraDirector({phase='idle',cinemaEdition=false,onCameraPos
      new THREE.Vector3(...layout.lookAt),new THREE.Vector3(0,1,0));
     destination.quaternion.setFromRotationMatrix(look);
    }
-   animation.current={phase,elapsed:0,duration:selectFocusDuration(
+   animation.current={phase,elapsed:0,startedAt:performance.now(),duration:selectFocusDuration(
     phase,window.matchMedia?.('(prefers-reduced-motion: reduce)').matches),
     from:{position:camera.position.clone(),quaternion:camera.quaternion.clone(),fov:camera.fov},to:destination};
    invalidate();
@@ -343,7 +344,8 @@ function MuseumFocusCameraDirector({phase='idle',cinemaEdition=false,onCameraPos
  useFrame((_,delta)=>{
   const tween=animation.current;
   if(!tween||!cinemaEdition)return;
-  tween.elapsed+=Math.min(.05,delta);
+  // Frame-based interpolation with a real elapsed-time floor: software WebGL must not stretch a one-second action to fifteen seconds.
+   tween.elapsed=Math.max(tween.elapsed+Math.min(.05,delta),(performance.now()-tween.startedAt)/1000);
   const t=smoothstep(Math.min(1,tween.elapsed/tween.duration));
   camera.position.lerpVectors(tween.from.position,tween.to.position,t);
   camera.quaternion.slerpQuaternions(tween.from.quaternion,tween.to.quaternion,t);
