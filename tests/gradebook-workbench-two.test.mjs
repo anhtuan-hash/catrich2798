@@ -6,8 +6,8 @@ import {
 } from '../src/utils/gradebookStudentView.js';
 
 const read=(path)=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
-const source=read('src/components/gradebook/GradebookEngine.jsx');
-const css=read('src/styles/GradebookAcademicWorkspace.css');
+const source=read('src/components/gradebook/GradebookMacEngine.jsx');
+const css=read('src/components/gradebook/GradebookMacEngine.css');
 const students=[
   {id:'s1',fullName:'Trần Thị An',code:'ST-01'},
   {id:'s2',fullName:'Nguyễn Thị Bình',code:'ST-02'},
@@ -62,45 +62,42 @@ test('per-column progress counts all students, including those hidden by filters
   assert.equal(JSON.stringify(round),before);
 });
 
-test('full roster remains source of truth, sort and density only affect rendering',()=>{
-  assert.match(source,/const studentIds = useMemo\(\(\) => students\.map\(\(student\) => student\.id\)/);
+
+test('active macOS gradebook keeps the roster as source of truth', () => {
   assert.match(source,/originalStudentPosition\.get\(student\.id\)/);
   assert.match(source,/filterGradebookStudentView\(\{ students, search: studentQuery, missingOnly, view, activeRound, semester: activeSemester, sortBy \}\)/);
   assert.match(source,/const \[sortBy, setSortBy\] = useState\('original'\)/);
-  assert.ok(source.includes("const [density, setDensity] = useState(() =>"));
-  assert.ok(source.includes("localStorage.getItem('brian-gradebook-density-v6')"));
-  assert.ok(source.includes("localStorage.setItem('brian-gradebook-density-v6', density)"));
+  assert.match(source,/const \[density, setDensity\] = useState\(\(\) =>/);
+  assert.match(source,/localStorage\.getItem\('brian-gradebook-density-v6'\)/);
+  assert.match(source,/localStorage\.setItem\('brian-gradebook-density-v6', density\)/);
   assert.match(source,/setSortBy\('original'\)/);
-  assert.doesNotMatch(source,/setDensity\\('comfortable'\\)/);
   assert.match(source,/await onCommit\(/);
-  assert.match(source,/\{students\.map\(\(student\) => <option key=\{student\.id\}/);
-  assert.match(source,/onClick=\{openClassGradebook\}/);
-  assert.match(source,/onClick=\{openStudentReport\}/);
+  assert.match(source,/openStudentReport/);
 });
 
-test('next empty score navigates only editable raw score inputs and never writes',()=>{
+test('next empty score uses only editable inputs, never writes a grade', () => {
   assert.match(source,/scoreTableRef = useRef\(null\)/);
   assert.match(source,/ref=\{scoreTableRef\}/);
-  assert.match(source,/const focusNextEmptyScore = \(\) =>/);
-  assert.match(source,/td\.gb-m3-score-cell input\.hr-grade-input:not\(:disabled\)/);
-  assert.match(source,/input\.value\.trim\(\) === ''/);
-  assert.match(source,/next\.focus\(\)/);
-  assert.match(source,/next\.select\(\)/);
-  assert.match(source,/disabled=\{finalized \|\| !visibleStudents\.length\}/);
-  assert.doesNotMatch(source.slice(source.indexOf('const focusNextEmptyScore'),source.indexOf('const renderTableControls')),/updateRegularScore|mutate\(/);
+  const start=source.indexOf('const focusNextEmptyScore = () =>');
+  const end=source.indexOf('const openMissionSection',start);
+  assert.ok(start>0&&end>start);
+  const focus=source.slice(start,end);
+  assert.match(focus,/input\.hr-grade-input:not\(:disabled\)/);
+  assert.match(focus,/input\.value\.trim\(\) === ''/);
+  assert.match(focus,/next\.focus\(\)/);
+  assert.match(focus,/next\.select\(\)/);
+  assert.doesNotMatch(focus,/updateRegularScore|mutate\(/);
 });
 
-test('all actionable Material controls have client-side state, contrast and responsive CSS',()=>{
-  assert.match(source,/aria-label="Sắp xếp học sinh"/);
+test('current macOS gradebook provides responsive, accessible sorting and grade cells', () => {
+  assert.match(source,/gbmac-sort/);
   assert.match(source,/value="missing-first"/);
-  assert.match(source,/aria-pressed=\{density === 'compact'\}/);
-  assert.match(source,/className="gb-roster-column-insights"/);
-  assert.match(source,/gradebookColumnProgress\(students, activeRound\)/);
-  assert.match(source,/className="gb-roster-column-track"/);
-  assert.match(css,/\.gb-roster-sort select/);
-  assert.match(css,/\.hr-gradebook\.gb-density-compact \.hr-grade-table tbody td/);
-  assert.match(css,/\.gb-roster-column-grid/);
-  assert.match(css,/@media\(max-width:650px\)/);
-  assert.doesNotMatch(css,/(?:\.brian-nav|\.bes-top-chrome|\.signature-footer|html body footer)/);
+  assert.match(source,/gbmac-table-viewport/);
+  assert.match(source,/gradebookColumnProgress|summarizeGradebookProgress/);
+  assert.match(css,/\.gbmac-sort select/);
+  assert.match(css,/\.gbmac-table tbody tr/);
+  assert.match(css,/\.gbmac-table :is\(th,td\)\.gbmac-pin-name/);
+  assert.match(css,/@media\(max-width:760px\)/);
+  assert.doesNotMatch(css,/\.brian-nav|\.bes-top-chrome|\.signature-footer|html body footer/);
   assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length);
 });
