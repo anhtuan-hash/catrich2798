@@ -147,7 +147,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
     {MICRO_CHALLENGES[stageIndex]?<button className="bml-outline" type="button" onClick={()=>setActiveTool('micro')}><BookOpen size={16}/>Thinking Lab</button>:null}
     {survey&&stageIndex>=3?<button className="bml-outline" type="button" onClick={()=>setActiveTool('survey')}><Users size={16}/>Class Survey</button>:null}
    </div>:null}
-   {data?.feedback?.length?<div className="bml-live-survey"><h3>{t(language,'Phản hồi dành cho nhóm / Feedback received','Feedback received')}</h3>{data.feedback.map(r=><article key={r.from_group}><p>{r.learned}</p><p>{r.clarify}</p><small>Clarity: {r.rating}/4 · {new Date(r.created_at).toLocaleString()}</small></article>)}</div>:null}
+   {data?.feedback?.length?<div className="bml-live-survey"><h3>{t(language,'Phản hồi dành cho nhóm / Feedback received','Feedback received')}</h3>{data.feedback.map(r=><article key={r.from_group}><p>{r.learned}</p><p>{r.clarify}</p><small>Clarity: {r.rating}/4</small></article>)}</div>:null}
    {compact&&peer?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true">
     <div className="bml-student-detail-window">
      <div className="bml-student-detail-head"><strong>{peerLabel||'Peer Gallery Walk'}</strong>

@@ -1,7 +1,6 @@
 import React from 'react';
 import {ArrowRight,BookOpen,CheckCheck,ChevronRight,ClipboardList,FileText,Leaf,Plus,School,ShieldCheck,Sparkles,Users,Waves,Landmark ,Presentation} from 'lucide-react';
 import {LESSON_KITS,progressOfGroup} from './museumData.js';
-import {fmtDate} from './museumApi.js';
 const kitIcons={leaf:Leaf,waves:Waves,school:School};
 export function MuseumHeroArt(){
  return <svg aria-hidden="true" className="bml-hero-art" viewBox="0 0 520 230" preserveAspectRatio="xMidYMax meet">
@@ -78,7 +77,7 @@ export default function MuseumDashboard({data,onNavigate,onCreate,onDemo,languag
     <p>{tr('Tiến độ được đọc từ dữ liệu thật trên Brian','Progress is calculated from your real Brian assignments')}</p></div>
     <button type="button" className="bml-text-btn" onClick={()=>onNavigate('lessons')}>{tr('Xem tất cả','View all')} <ChevronRight size={17}/></button></div>
    {assignments.length?<div className="bml-responsive-table"><table className="bml-table">
-    <thead><tr><th>{tr('Tên bài học','Lesson')}</th><th>{tr('Lớp','Class')}</th><th>{tr('Số nhóm','Groups')}</th><th>{tr('Tiến độ','Progress')}</th><th>{tr('Hạn nộp','Deadline')}</th></tr></thead>
+    <thead><tr><th>{tr('Tên bài học','Lesson')}</th><th>{tr('Lớp','Class')}</th><th>{tr('Số nhóm','Groups')}</th><th>{tr('Tiến độ','Progress')}</th></tr></thead>
     <tbody>{assignments.map(a=>{
      const linked=groups.filter(g=>g.assignment_id===a.id),count=linked.filter(g=>['submitted','ttcm_review','approved_locked','published'].includes(g.state)).length;
      const exitCount=linked.filter(g=>exitTickets.some(t=>t.group_id===g.id)).length;
@@ -87,7 +86,7 @@ export default function MuseumDashboard({data,onNavigate,onCreate,onDemo,languag
       <td><span className="bml-class-tag">{a.class_scope}</span></td><td>{linked.length}</td>
       <td><div className="bml-progress"><div style={{width:(linked.length?count/linked.length*100:0)+'%'}}/></div>
        <small>Exit Tickets: {exitCount}/{linked.length}</small><small>{tr('Sản phẩm bảo tàng','Museum projects')}: {count}/{linked.length}</small></td>
-      <td>{fmtDate(a.deadline_at)}</td>
+      
      </tr>;})}</tbody>
    </table></div>:<div className="bml-empty bml-empty-slim"><BookOpen size={31}/><strong>{tr('Chưa có bài học nào','No lessons yet')}</strong>
      <p>{tr('Bắt đầu với Our Climate Action Museum, Tiếng Anh 11 Unit 5. Ba bước để giao nhiệm vụ cho nhóm.','Start with Our Climate Action Museum, English 11 Unit 5, then assign groups in three steps.')}</p>

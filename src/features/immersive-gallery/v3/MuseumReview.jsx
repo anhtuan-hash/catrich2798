@@ -2,7 +2,7 @@ import React,{useMemo,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookOpen,CheckCircle2,ClipboardCheck,Clock3,Eye,FileText,MessageCircle,ShieldAlert,ShieldCheck,Star,Trash2,Users} from 'lucide-react';
 import {RUBRIC,progressOfGroup,scoreRubric} from './museumData.js';
 import {englishSystemGroupLabel} from './museumApi.js';
-import {staffRequest,fmtDate,fmtTime} from './museumApi.js';
+import {staffRequest} from './museumApi.js';
 import MuseumScene,{reviewMuseum} from './MuseumScene.jsx';
 const tr=(lang,vi,en)=>lang==='en'?en:vi;
 const NOTES={
@@ -79,14 +79,14 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,query='',la
        <span className={'bml-status-pill bml-status-'+status.kind}>{tr(language,status.label,{
         submitted:'Teacher review',ttcm_review:'Department review',changes_requested:'Needs revision',approved_locked:'Approved',published:'Published',rejected:'Rejected'}[r.state]||status.label)}</span></div>
       <strong>{language==='en'?englishSystemGroupLabel(g?.label||'Nhóm'):g?.label||'Nhóm'}</strong><span>{r.snapshot?.title||a?.title||'English museum'}</span>
-      <small>{a?.class_scope||''} · {tr(language,'Nộp','Submitted')} {fmtDate(r.submitted_at)}</small>
+      <small>{a?.class_scope||''}</small>
       <span className="bml-review-card-link">{tr(language,'Xem chi tiết','Open submission')} <ArrowRight size={17}/></span>
     </button>;
    })}</div>}
   {selected?<section className="bml-review-detail bml-surface">
     <div className="bml-section-head"><div><span className="bml-overline">{tr(language,'BẢN NỘP','SUBMISSION')} · v{selected.version}</span>
      <h2>{selected.snapshot?.title||tr(language,'Bản nháp','Draft')}</h2>
-     <p>{language==='en'?englishSystemGroupLabel(group?.label):group?.label} · {assignment?.class_scope} · {fmtTime(selected.submitted_at)}</p></div>
+     <p>{language==='en'?englishSystemGroupLabel(group?.label):group?.label} · {assignment?.class_scope}</p></div>
      <button type="button" className="bml-icon-btn" onClick={()=>setSelectedId(null)} aria-label="Close"><ArrowLeft size={21}/></button></div>
     <div className="bml-review-detail-layout">
      <div className="bml-review-preview">

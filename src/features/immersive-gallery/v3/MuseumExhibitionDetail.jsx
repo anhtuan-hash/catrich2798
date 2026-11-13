@@ -6,10 +6,6 @@ import {MuseumHeroArt} from './MuseumDashboard.jsx';
 import {saveTextFile} from './museumApi.js';
 const t=(lang,vi,en)=>lang==='en'?en:vi;
 const short=(value,length=300)=>String(value??'').trim().slice(0,length);
-const dateLabel=value=>{
- if(!value||Number.isNaN(Date.parse(value)))return '';
- return new Date(value).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'});
-};
 function Metric({icon:Icon,value,label,subtitle,tone}){
  return <div className={'bml-exh-metric bml-exh-metric-'+tone}>
   <span className="bml-exh-metric-icon"><Icon size={25}/></span>
@@ -54,7 +50,6 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
  const viewerRef=useRef(null);
  const rooms=useMemo(()=>Array.isArray(gallery?.rooms)?gallery.rooms:[],[gallery?.rooms]);
  const exhibitCount=rooms.reduce((total,room)=>total+(room.exhibits?.length||0),0);
- const date=dateLabel(gallery?.updated_at||gallery?.created_at);
  const visibleStatus=gallery?.status==='published'&&!isDemo;
  const subtitle=short(gallery?.summary,250);
  const link=typeof window==='undefined'?'':window.location.origin+window.location.pathname+
@@ -104,7 +99,7 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
      <span className={'bml-exh-status '+(visibleStatus?'is-published':isDemo?'is-demo':'is-private')}>
       <CheckCircle2 size={16}/>{isDemo?'DEMO':visibleStatus?t(language,'Đã xuất bản','Published'):t(language,'Triển lãm nội bộ','School exhibition')}
      </span>
-     {date?<small>{t(language,'Cập nhật: ','Updated: ')}{date}</small>:null}
+     
      {isDemo?<small>{t(language,'Dữ liệu minh họa · không phải tác phẩm thật','Synthetic sample · not student evidence')}</small>:null}
     </div>
    </div>
