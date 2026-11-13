@@ -179,3 +179,23 @@ test('Admin can safely archive and restore both prepared and database exhibition
  assert.match(migration,/status='archived'/);
  assert.doesNotMatch(server,/from\('gcp_reviews'\)\.delete\(/);
 });
+
+test('Student Creator displays an official competition ribbon with both supplied crests',()=>{
+ const student=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLabStudent.jsx','utf8');
+ const ribbon=fs.readFileSync('src/features/immersive-gallery/v3/MuseumCompetitionRibbon.jsx','utf8');
+ const css=fs.readFileSync('src/features/immersive-gallery/v3/museumCompetitionRibbon.css','utf8');
+ assert.match(student,/import MuseumCompetitionRibbon/);
+ assert.match(student,/<MuseumCompetitionRibbon\/>/);
+ assert.match(ribbon,/lang="vi"/);
+ for(const label of ['BÀI DỰ THI','HỘI THI THIẾT KẾ CHỦ ĐỀ DẠY HỌC STEM\/STEAM','NĂM HỌC 2026–2027','Chủ đề dạy học số – Môn Tiếng Anh THPT','Thạc sĩ Nguyễn Anh Tuấn','Trường Trung - Tiểu học Pétrus Ký']){
+  assert.ok(ribbon.includes(label),'Missing competition text: '+label);
+ }
+ for(const file of ['public/museum/branding/hcmc-department-education.png','public/museum/branding/petrus-ky-school.png']){
+  const bytes=fs.readFileSync(file);
+  assert.ok(bytes.length>1000,'Missing supplied original logo '+file);
+  assert.equal(bytes.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
+ }
+ assert.match(css,/max-height:800px/);
+ assert.match(css,/max-width:560px/);
+ assert.match(css,/bml-student-canvas16/);
+});
