@@ -57,6 +57,12 @@ test('V5 responsive layout positions stage in the same room without overlap',()=
  const desktop=focusLayout(1536,864),tablet=focusLayout(1024,768),mobile=focusLayout(390,844);
  assert.equal(desktop.artworkScale,1);
  assert.equal(mobile.artworkScale,.66);
+ assert.equal(mobile.boardScale,.62);
+ assert.ok(mobile.pedestalScale<1);
+ // Mobile paintings and plaques must have separate world-space extents.
+ // Effective half-widths: poster 2.63*artworkScale/2, plaque 2.63*boardScale/2.
+ assert.ok(mobile.board[0]-mobile.artwork[0]>
+   (2.63*mobile.artworkScale+2.63*mobile.boardScale)/2+.25);
  for(const lay of [desktop,tablet,mobile]){
   assert.ok(lay.artwork[2]>-7.6&&lay.artwork[2]<0);
   assert.ok(lay.board[2]>-7.6&&lay.board[2]<0);
