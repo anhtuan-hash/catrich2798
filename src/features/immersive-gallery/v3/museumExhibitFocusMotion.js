@@ -35,7 +35,11 @@ export const smoothstep=t=>{
  const v=Math.max(0,Math.min(1,Number(t)||0));
  return v*v*(3-2*v);
 };
-export const clampDelta=delta=>Math.min(.05,Math.max(0,Number(delta)||0));
+// A low-FPS software WebGL renderer can produce 200ms+ frames. A hard 50ms
+// cap turns a nominal 1s physical reveal into 10s+ and leaves it in 'presenting'.
+// Permit up to 250ms of physical elapsed time per frame while retaining a
+// bounded step after a suspended tab; the underlying R3F loop stays demand-based.
+export const clampDelta=delta=>Math.min(.25,Math.max(0,Number(delta)||0));
 export const FOCUS_POSITIONS=Object.freeze({
  desktop:{artwork:[-1.70,2.47,-3.56],board:[1.58,2.33,-3.51],camera:[0,2.18,2.05],
   look:[0,2.28,-3.55],artworkScale:1,boardScale:1,pedestalScale:1},
