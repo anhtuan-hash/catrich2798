@@ -9,7 +9,8 @@ export default function MuseumExhibitFocusRig({phase,board,onBack,lite=false}){
  const {size,invalidate}=useThree();
  const aspect=size.width/Math.max(1,size.height);
  const layout=useMemo(()=>museumFocusLayout(aspect),[aspect]);
- const root=useRef(null),progress=useRef(0),previousPhase=useRef('');
+ const root=useRef(null),progress=useRef(0);
+ const timeline=useRef({phase:'',startedAt:0,from:0});
  const target=useMemo(()=>{
   const obj=new THREE.Object3D();obj.position.set(layout.art[0],layout.art[1],layout.art[2]);
   return obj;
@@ -17,15 +18,18 @@ export default function MuseumExhibitFocusRig({phase,board,onBack,lite=false}){
  useEffect(()=>{invalidate();},[phase,invalidate,aspect]);
  useFrame((_,delta)=>{
   if(!root.current)return;
-  if(previousPhase.current!==phase){previousPhase.current=phase;invalidate();}
+  const now=performance.now();
+  if(timeline.current.phase!==phase){
+   timeline.current={phase,startedAt:now,from:progress.current};
+   invalidate();
+  }
   const wants=phase==='returning'||phase==='idle'?0:phase==='preparing'?0:
    phase==='extracting'?.86:1;
-  const rate=Math.min(delta,.05)/(selectFocusDuration(phase,
-   typeof window!=='undefined'&&window.matchMedia?.('(prefers-reduced-motion: reduce)').matches));
-  if(Math.abs(wants-progress.current)>.001){
-   progress.current=THREE.MathUtils.lerp(progress.current,wants,Math.min(1,rate*2.7));
-   invalidate();
-  }else progress.current=wants;
+  const duration=phase==='returning'?.36:phase==='extracting'?.64:.25;
+  const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const t=smoothstep(Math.min(1,(now-timeline.current.startedAt)/((reduced?.08:duration)*1000)));
+  progress.current=THREE.MathUtils.lerp(timeline.current.from,wants,t);
+  if(t<1)invalidate();
   const v=smoothstep(progress.current);
   root.current.visible=v>.001;
   root.current.position.y=-.32*(1-v);
