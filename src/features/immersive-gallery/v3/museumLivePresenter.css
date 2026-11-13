@@ -165,3 +165,32 @@
  .bml .bml-presenter-panel{animation:none}
  .bml .bml-presenter-tool{transition:none!important}
 }
+
+/* Project a selected educational video as a readable modal over the live slide.
+   The stage and timer stay mounted, and the dock remains clickable below. */
+.bml .bml-presenter-video-modal{
+ position:absolute;z-index:16;inset:55px 0 61px;display:flex;align-items:center;justify-content:center;
+ background:#06162de3;padding:clamp(12px,2.4vw,33px);min-width:0;min-height:0;
+ backdrop-filter:blur(2px);
+}
+.bml .bml-presenter-video-modal .bml-live-video-stage{
+ flex:initial;min-height:0;max-height:100%;width:min(1050px,100%);
+ display:flex;align-items:center;justify-content:center;overflow:auto;padding:0;
+}
+.bml .bml-presenter-video-modal .bml-video-player{
+ width:100%;max-height:100%;box-shadow:0 12px 35px #0008;overflow:auto;
+}
+.bml .bml-presenter-video-modal .bml-video-embed{
+ min-height:0;aspect-ratio:16/9;max-height:min(55vh,610px)
+}
+.bml .bml-presenter-panel-layer.is-qr{justify-content:center;align-items:center}
+.bml .bml-presenter-panel.is-modal{
+ width:min(435px,calc(100vw - 28px));height:auto;max-height:min(90%,610px);
+ border-radius:21px;border:1px solid #bfdce9;
+ box-shadow:0 20px 45px #061d386b;
+}
+.bml .bml-presenter-panel.is-modal .bml-presenter-panel-scroll{max-height:min(70vh,490px)}
+@media(max-width:600px){
+ .bml .bml-presenter-video-modal{padding:8px;inset:46px 0 56px}
+ .bml .bml-presenter-video-modal .bml-video-embed{max-height:45vh}
+}
