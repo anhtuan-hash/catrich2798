@@ -147,6 +147,10 @@ const tenTeacherApi=async(action,body,query)=>{
   responses:[{group_id:'g1',value:1},{group_id:'g3',value:0}],
   microResults:[{group_id:'g2',choice:1}],helpGroups:['g4','g7'],needHelp:2}:base;
 };
+const publishedQaTransportBroken=async(action,...args)=>{
+ if(action==='showcase-state')throw new Error('Synthetic showcase catalogue unavailable');
+ return publishedQaTransport(action,...args);
+};
 function Harness(){
  const [screen,setScreen]=useState('dashboard');
   const englishOnly=screen.endsWith('-en');
@@ -156,12 +160,14 @@ function Harness(){
  return <div style={{fontFamily:'Roboto,Arial,sans-serif'}}>
   <div style={{display:'flex',gap:8,padding:10,background:'#e6f0ff',flexWrap:'wrap'}} data-testid="qa-harness">
    <strong>QA ONLY · ALL DATA SYNTHETIC</strong>
-   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','published-lesson','dashboard-en','dashboard-published-en','student-en','teacher-live-en','teacher-live-ten-en','v53-evidence-en','v54-speaking-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
+   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','published-lesson','dashboard-en','dashboard-published-en','dashboard-published-fail-en','student-en','teacher-live-en','teacher-live-ten-en','v53-evidence-en','v54-speaking-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
   </div>
   <div className={normalized==='dashboard'?'':'bml'}>
    {normalized==='dashboard'?<MuseumLabApp language={uiLanguage} currentUser={{id:'teacher-synthetic',name:'Demo Teacher'}} transport={demoDashboardApi}/>:null}
    {normalized==='dashboard-published'?<MuseumLabApp language={uiLanguage}
     currentUser={{id:'teacher-synthetic',name:'Synthetic Teacher'}} transport={publishedQaTransport}/>:null}
+   {normalized==='dashboard-published-fail'?<MuseumLabApp language={uiLanguage}
+    currentUser={{id:'teacher-synthetic',name:'Synthetic Teacher'}} transport={publishedQaTransportBroken}/>:null}
    {normalized==='student'?<MuseumLabStudent language={uiLanguage}/>:null}
    {normalized==='admin-review'?<Submissions data={submittedQa} language={uiLanguage} onNavigate={setScreen} onRefresh={async()=>{}}/>:null}
    {normalized==='published-lesson'?<LessonsList
