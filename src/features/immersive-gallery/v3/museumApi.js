@@ -31,6 +31,16 @@ export async function staffRequest(action,body){
   throw new Error('Invalid staff session response.');
  return value;
 }
+export async function getMuseumInviteInfo(handle){
+ const response=await fetch('/api/gallery-guest?operation=invite-info&handle='+encodeURIComponent(handle),{
+  method:'GET',credentials:'same-origin',cache:'no-store'
+ });
+ if(!response.ok)throw new Error('Invitation not available.');
+ const value=await response.json().catch(()=>null);
+ if(!value||typeof value.quickAccessEnabled!=='boolean'||!value.groupLabel)
+  throw new Error('Invitation not available.');
+ return value;
+}
 export async function guestRequest(action,method='GET',body,csrf=''){
  const response=await fetch('/api/gallery-guest?operation='+encodeURIComponent(action),{
   method,credentials:'same-origin',cache:'no-store',

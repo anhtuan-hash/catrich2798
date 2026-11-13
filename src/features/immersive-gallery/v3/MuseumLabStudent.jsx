@@ -1,7 +1,7 @@
 import React,{Suspense,useCallback,useEffect,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronLeft,ChevronRight,CircleHelp,ClipboardCheck,Cloud,CloudAlert,CloudUpload,Eye,FileText,Info,KeyRound,Landmark,Leaf,Lightbulb,LockKeyhole,MessageSquare,RefreshCw,Send,ShieldCheck,Sparkles,Users,X} from 'lucide-react';
 import {emptyStudio,documentFromStudio,normalizeStudio,STEPS,moveStoryboardCard} from './museumData.js';
-import {guestRequest,englishSystemGroupLabel} from './museumApi.js';
+import {guestRequest,getMuseumInviteInfo,englishSystemGroupLabel} from './museumApi.js';
 import {artGuest,liveGuest} from './museumLiveApi.js';
 import {buildStudentMuseumPreview} from './museumPreviewImages.js';
 import {stageMediaTools} from './museumLiveExtensions.js';
@@ -24,14 +24,32 @@ import './museumStudentScrollFix.css';
 import './museumStudentScrapbookV6.css';
 import './museumSubmissionFix.css';
 import './museumDashboardBanner.css';
+import './museumQuickAccessV58.css';
 
 const T=(lang,vi,en)=>lang==='en'?en:vi;
 const getHandle=()=>{
  try{const raw=new URLSearchParams(window.location.hash.split('?')[1]||'').get('invite')||'';return raw.match(/^[A-Za-z0-9_-]{16,80}/)?.[0]||raw.slice(0,80);}catch{return '';}
 };
 const initialSession=()=>null;
-function GuestEntry({onRedeem,busy,error,language}){
+function GuestEntry({onRedeem,busy,error,language,onResetError}){
  const [handle,setHandle]=useState(getHandle),[secret,setSecret]=useState('');
+ const [invite,setInvite]=useState(null),[lookupBusy,setLookupBusy]=useState(false);
+ const [method,setMethod]=useState('quick');
+ const validHandle=/^[A-Za-z0-9_-]{16,80}$/.test(handle.trim());
+ useEffect(()=>{
+  let active=true;
+  if(!validHandle){setInvite(null);setMethod('private');return ()=>{active=false;};}
+  setLookupBusy(true);
+  getMuseumInviteInfo(handle.trim()).then(info=>{
+   if(!active)return;
+   setInvite(info);setMethod(info.quickAccessEnabled?'quick':'private');
+  }).catch(()=>{if(active){setInvite(null);setMethod('private');}})
+   .finally(()=>{if(active)setLookupBusy(false);});
+  return ()=>{active=false;};
+ },[handle,validHandle]);
+ const quick=method==='quick'&&invite?.quickAccessEnabled;
+ const selectMethod=next=>{setMethod(next);setSecret('');onResetError?.();};
+ const group=invite?englishSystemGroupLabel(invite.groupLabel):null;
  return <div className="bml-guest-entry" data-testid="museum-student-entry">
   <div className="bml-guest-illustration"><div className="bml-guest-overline"><Landmark size={27}/><b>BRIAN Museum Lab</b></div>
    <div className="bml-guest-globe" aria-hidden="true"><Landmark size={82}/><Leaf size={35}/></div>
@@ -40,14 +58,34 @@ function GuestEntry({onRedeem,busy,error,language}){
    <div className="bml-guest-benefits"><span><Check size={16}/>{T(language,'Không tạo tài khoản','No account needed')}</span>
     <span><Check size={16}/>{T(language,'Tự động lưu bài','Automatic saving')}</span></div>
   </div>
-  <form className="bml-guest-form" onSubmit={e=>{e.preventDefault();onRedeem({handle:handle.trim(),groupSecret:secret});}}>
-   <span className="bml-overline">{T(language,'STUDENT CREATOR PASS','STUDENT CREATOR PASS')}</span>
+  <form className="bml-guest-form bml-quick-classroom-login" onSubmit={e=>{
+   e.preventDefault();
+   onRedeem({handle:handle.trim(),...(quick?{classroomPassword:secret}:{groupSecret:secret})});
+  }}>
+   <span className="bml-overline">STUDENT CREATOR PASS</span>
    <h2>{T(language,'Bắt đầu sáng tạo','Start creating')}</h2>
-   <p>{T(language,'Quét QR giáo viên gửi, sau đó nhập mã bí mật riêng của nhóm.','Scan your teacher’s QR code, then enter your group’s private passcode.')}</p>
-   <label>{T(language,'Mã lời mời','Invitation code')}<input autoComplete="off" maxLength={80} required value={handle} onChange={e=>setHandle(e.target.value)} placeholder={T(language,'Mã từ QR của giáo viên','Teacher invite code')}/></label>
-   <label>{T(language,'Mã bí mật nhóm','Private group passcode')}<input autoComplete="off" type="password" required minLength={16} maxLength={128} value={secret} onChange={e=>setSecret(e.target.value)} placeholder={T(language,'Mã được cấp riêng','Private group code')}/></label>
+   {invite?<div className="bml-classroom-invite-summary" data-testid="museum-invite-context">
+    <Users size={19}/><div><strong>{group}</strong><small>{invite.assignmentTitle} · {invite.classScope}</small></div>
+   </div>:null}
+   <p>{quick?T(language,'Mở QR hoặc link mời và nhập mật khẩu lớp.','Open your invitation link and enter the classroom password.'):
+     T(language,'Nhập mã riêng do giáo viên cung cấp.','Enter the private passcode from your teacher.')}</p>
+   {!invite||!validHandle?<label>{T(language,'Mã lời mời','Invitation code')}
+    <input autoComplete="off" maxLength={80} required value={handle}
+     onChange={e=>{setHandle(e.target.value);setSecret('');onResetError?.();}}
+     placeholder={T(language,'Mã từ QR của giáo viên','Teacher invite code')}/></label>:
+    <div className="bml-quick-link-confirmation"><CheckCircle2 size={16}/> {T(language,'Đã nhận diện link mời','Invitation link recognized')}</div>}
+   <label>{quick?T(language,'Mật khẩu lớp học','Class password'):T(language,'Mã bí mật nhóm','Private group passcode')}
+    <input autoComplete="off" type="password" required minLength={quick?6:16} maxLength={quick?64:128}
+     value={secret} onChange={e=>setSecret(e.target.value)}
+     placeholder={quick?T(language,'Nhập mật khẩu lớp','Enter classroom password'):T(language,'Mã riêng của nhóm','Your private group passcode')}/></label>
+   {lookupBusy?<small className="bml-invite-loading">{T(language,'Đang kiểm tra link mời…','Checking invitation link…')}</small>:null}
+   {invite?.quickAccessEnabled?<button type="button" className="bml-quick-access-alternate"
+    onClick={()=>selectMethod(quick?'private':'quick')}>
+    {quick?T(language,'Sử dụng mã bí mật riêng','Use private group passcode instead'):
+      T(language,'Dùng mật khẩu lớp','Use classroom password instead')}</button>:null}
    {error?<div className="bml-banner bml-danger-banner" role="alert">{error}</div>:null}
-   <button type="submit" className="bml-primary bml-full-button" disabled={busy}><KeyRound size={18}/>{busy?T(language,'Đang kiểm tra mã…','Checking invitation…'):T(language,'Vào không gian sáng tạo','Enter Creator Studio')} <ArrowRight size={17}/></button>
+   <button type="submit" className="bml-primary bml-full-button" disabled={busy||lookupBusy||!validHandle}>
+    <KeyRound size={18}/>{busy?T(language,'Đang kiểm tra…','Checking access…'):T(language,'Vào bài học','Enter lesson')} <ArrowRight size={17}/></button>
    <small className="bml-privacy"><ShieldCheck size={17}/>{T(language,'Không nhập họ tên, ảnh cá nhân hoặc thông tin riêng tư vào triển lãm.','Never include student identities or private personal information in an exhibit.')}</small>
   </form>
  </div>;
@@ -195,7 +233,7 @@ export default function MuseumLabStudent({language='en'}){
   <div className="bml-paper bml-guest-competition-wrap" data-testid="museum-login-competition-banner">
    <MuseumCompetitionRibbon variant="dashboard"/>
   </div>
-  <GuestEntry onRedeem={redeem} busy={busy} error={error} language={language}/>
+  <GuestEntry onRedeem={redeem} busy={busy} error={error} language={language} onResetError={()=>setError('')}/>
  </div>;
  const l=studio.learning,doc=documentFromStudio(studio),room=doc.rooms[0];
  const exhibitStatus=()=>[l.issue,l.evidence,l.solution].filter(Boolean).length;

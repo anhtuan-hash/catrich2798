@@ -10,6 +10,7 @@ import {KitCover} from './MuseumDashboard.jsx';
 import MuseumGroupQr from './MuseumGroupQr.jsx';
 import './museumLessonQr.css';
 import './museumLessonPaperV57.css';
+import './museumQuickAccessV58.css';
 const tr=(language,vi,en)=>language==='en'?en:vi;
 const deadlineForWindow=accessWindow=>new Date(Date.now()+({standard:7,extended:30,term:90}[accessWindow]||7)*86400000).toISOString();
 function Notice({error,success}){return error?<div className="bml-banner bml-danger-banner" role="alert"><ShieldAlert size={19}/>{error}</div>:success?<div className="bml-banner bml-success-banner" role="status"><CheckCircle2 size={18}/>{success}</div>:null;}
@@ -177,6 +178,22 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
   setVisibleSecrets(prev=>Object.fromEntries(Object.entries(prev).filter(([id])=>!ids.has(id))));
   setSecrets(prev=>Object.fromEntries(Object.entries(prev).filter(([id])=>!ids.has(id))));
  };
+ const changeQuickAccess=async assignment=>{
+  if(busy||passcodeBusy)return;
+  const willEnable=!assignment.quick_access_enabled;
+  const message=willEnable?
+   'Enable Quick Classroom Access for '+assignment.title+'? Students with a group QR or invitation link can enter using the shared classroom password PEK123. Private group passcodes remain valid. Anyone with a link and this password can enter the corresponding group.':
+   'Disable Quick Classroom Access for '+assignment.title+'? Existing quick-access sessions will be invalidated. Private group passcodes remain valid.';
+  if(!window.confirm(message))return;
+  setBusy(true);setError('');setSuccess('');
+  try{
+   const output=await staffRequest('quick-access-setting',{assignmentId:assignment.id,enabled:willEnable});
+   await onRefresh();
+   setSuccess(output.enabled?
+    'Quick Classroom Access enabled. Share each group QR/link and classroom password PEK123.':
+    'Quick Classroom Access disabled. Private group passcodes still work.');
+  }catch(e){setError(e.message);}finally{setBusy(false);}
+ };
  const regenerateAll=async assignment=>{
   if(busy||passcodeBusy)return;
   const name=assignment.title+' · '+assignment.class_scope;
@@ -257,6 +274,10 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
        <div className="bml-passcode-toolbar-copy"><span className="bml-passcode-toolbar-icon"><LockKeyhole size={20}/></span>
         <strong>Private group passcodes</strong><small>Admin only · never included in QR</small></div>
        <div className="bml-passcode-toolbar-actions">
+        <button type="button" className={'bml-quick-access-toggle'+(a.quick_access_enabled?' is-active':'')}
+         aria-pressed={Boolean(a.quick_access_enabled)} disabled={busy||passcodeBusy}
+         onClick={()=>changeQuickAccess(a)}><KeyRound size={15}/>
+         {a.quick_access_enabled?'Quick access ON · PEK123':'Enable quick access'}</button>
         {allVisible?<button type="button" className="bml-outline" onClick={()=>hideLessonPasscodes(a)}><EyeOff size={15}/> Hide all</button>:
          <button type="button" className="bml-outline" disabled={passcodeBusy||busy} onClick={()=>revealPasscodes(a)}><Eye size={15}/> Show all passcodes</button>}
         <button type="button" className="bml-regenerate-all-passcodes" disabled={busy||passcodeBusy} onClick={()=>regenerateAll(a)}><RefreshCw size={15}/> Regenerate all passcodes</button>
