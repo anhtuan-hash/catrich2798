@@ -198,7 +198,7 @@ test('realistic Group 01 Stage 1 permits vote, help, all group project steps and
  const app=page.getByTestId('museum-student-wizard');
  await expect(app).toBeVisible();
  await expect(page.getByTestId('student-tab-live')).toHaveAttribute('aria-pressed','true',{timeout:12000});
- const vote=page.getByRole('button',{name:/B\\. Switching off unused lights/});
+ const vote=page.getByRole('button',{name:/B\. Switching off unused lights/});
  await expect(vote).toBeVisible();
  await expect(vote).toBeEnabled();
  const hit=await vote.evaluate(el=>{
