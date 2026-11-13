@@ -9,7 +9,7 @@ import MuseumVoiceover from './MuseumVoiceover.jsx';
 import MuseumVideoLab from './MuseumVideoLab.jsx';
 import MuseumResourceHub from './MuseumResourceHub.jsx';
 import MuseumMicroChallenge from './MuseumMicroChallenge.jsx';
-import {MICRO_CHALLENGES} from './museumLiveExtensions.js';
+import {MICRO_CHALLENGES,stageMediaTools} from './museumLiveExtensions.js';
 import './museumLive.css';
 import './museumLiveCompetition.css';
 import './museumStudentFocus.css';
@@ -29,6 +29,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
  };
  useEffect(()=>{refresh();const id=window.setInterval(refresh,3500);return()=>window.clearInterval(id);},[]);
  const session=data?.session,stage=session?.stage,stageIndex=session?.stageIndex;
+ const {video:hasVideo,voice:hasVoice}=stageMediaTools(session);
  useEffect(()=>{setSelected(null);setQuiz({});setWritten('');setPeer(null);setQuizPage(0);setActiveTool(null);setNotice('');},[stageIndex]);
  const posted=sent[session?.id+'-'+stageIndex]===true;
  const canRespond=stage&&['vote','quiz','peer','exit'].includes(stage.kind);
@@ -108,7 +109,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
       {posted?t(language,'Đã ghi nhận một lượt của nhóm','One group response recorded'):t(language,'Gửi câu trả lời của nhóm','Submit group response')}</button>
      <button type="button" className="bml-outline" onClick={help}><HelpCircle size={17}/>{t(language,'Nhờ giáo viên hỗ trợ','Need help')}</button>
     </div>:null}
-    {!compact&&session.media&&(session.media.query||session.media.videos?.length)?<MuseumVideoLab
+    {!compact&&hasVideo?<MuseumVideoLab
      mode="student" stage={stage} stageIndex={stageIndex} media={session.media}
      language={language} csrf={csrf}/>:null}
     {!compact&&MICRO_CHALLENGES[stageIndex]?<MuseumMicroChallenge key={session.id+'-'+stageIndex}
@@ -128,13 +129,13 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
      <summary><BookOpen size={17}/>{t(language,'Kho tư liệu · nguồn đáng tin cậy','Research library · reliable sources')}</summary>
      <MuseumResourceHub stage={stage} language={language}/>
     </details>
-    <details className="bml-student-enrichment">
+    {hasVoice?<details className="bml-student-enrichment">
      <summary><Volume2 size={17}/>{t(language,'Nghe lời dẫn tiếng Anh','Listen to English voiceover')}</summary>
      <MuseumVoiceover stage={stage} language={language} compact/>
-    </details>
+    </details>:null}
    </div>:null}
    {compact?<div className="bml-student-compact-links">
-    {session.media&&(session.media.query||session.media.videos?.length)?<button className="bml-outline" type="button" onClick={()=>setActiveTool('video')}><Eye size={16}/>Video</button>:null}
+    {hasVideo?<button className="bml-outline" type="button" onClick={()=>setActiveTool('video')}><Eye size={16}/>Video</button>:null}
     {MICRO_CHALLENGES[stageIndex]?<button className="bml-outline" type="button" onClick={()=>setActiveTool('micro')}><BookOpen size={16}/>Thinking Lab</button>:null}
     {survey&&stageIndex>=3?<button className="bml-outline" type="button" onClick={()=>setActiveTool('survey')}><Users size={16}/>Class Survey</button>:null}
    </div>:null}
@@ -145,7 +146,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
       <button className="bml-outline" type="button" onClick={()=>setPeer(null)}>Close</button></div>
      <MuseumScene gallery={peer} language={language} embedded/>
     </div></div>:null}
-   {compact&&activeTool?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label="Learning tools">
+   {compact&&activeTool&&(activeTool!=='video'||hasVideo)&&(activeTool!=='voice'||hasVoice)?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label="Learning tools">
     <div className="bml-student-detail-window">
      <div className="bml-student-detail-head">
       <strong>{({materials:'Lesson Materials',research:'Research Library',voice:'American English Voiceover',video:'Video Lab',micro:'English Thinking Lab',survey:'Real Class Survey'})[activeTool]}</strong>
@@ -154,8 +155,8 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
      <div className="bml-student-tool-content" data-testid="student-tool-panel">
       {activeTool==='materials'?<LessonResources stageIndex={stageIndex} language={language}/>:null}
       {activeTool==='research'?<MuseumResourceHub stage={stage} language={language}/>:null}
-      {activeTool==='voice'?<MuseumVoiceover stage={stage} language={language} compact/>:null}
-      {activeTool==='video'?(session.media&&(session.media.query||session.media.videos?.length)?
+      {activeTool==='voice'&&hasVoice?<MuseumVoiceover stage={stage} language={language} compact/>:null}
+      {activeTool==='video'?(hasVideo?
        <MuseumVideoLab mode="student" stage={stage} stageIndex={stageIndex} media={session.media} language={language} csrf={csrf}/>:
        <p>{t(language,'Giáo viên chưa giao video cho hoạt động này.','No video assigned yet.')}</p>):null}
       {activeTool==='micro'?(MICRO_CHALLENGES[stageIndex]?
