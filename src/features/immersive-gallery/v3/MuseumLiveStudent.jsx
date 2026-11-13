@@ -14,7 +14,7 @@ import './museumLive.css';
 import './museumLiveCompetition.css';
 import './museumStudentFocus.css';
 const t=(language,vi,en)=>language==='en'?en:vi;
-export default function MuseumLiveStudent({csrf,language='vi',onState,compact=false,toolRequest=null}){
+export default function MuseumLiveStudent({csrf,language='vi',onState,compact=false,toolRequest=null,readOnly=false}){
  const [data,setData]=useState(null),[selected,setSelected]=useState(null);
  const [quiz,setQuiz]=useState({}),[written,setWritten]=useState('');
  const [sent,setSent]=useState({}),[error,setError]=useState(''),[busy,setBusy]=useState(false),[notice,setNotice]=useState('');
@@ -37,14 +37,14 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
  const posted=sent[session?.id+'-'+stageIndex]===true;
  const canRespond=stage&&(['vote','quiz','peer','exit'].includes(stage.kind)||isVideoCheck);
  const submit=async()=>{
-  if(busy||posted)return;
+  if(readOnly||busy||posted)return;
   const value=stage.kind==='vote'?selected:responseQuestions?responseQuestions.map((_,i)=>quiz[i]??null):stage.kind==='peer'?peerResponse:written.trim();
   setBusy(true);setError('');setNotice('');
   try{await liveGuest('respond','POST',{value},csrf);setSent(v=>({...v,[session.id+'-'+stageIndex]:true}));
    setNotice(t(language,'Đã lưu câu trả lời của nhóm.','Your group response was saved.'));}
   catch(e){setError(e.message);}finally{setBusy(false);}
  };
- const help=async()=>{setError('');setNotice('');
+ const help=async()=>{if(readOnly)return;setError('');setNotice('');
   try{await liveGuest('need-help','POST',{},csrf);
    setNotice(t(language,'Đã gửi tín hiệu cần hỗ trợ.','Help request sent to your teacher.'));}
   catch(e){setError(e.message);}
@@ -74,6 +74,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
   <strong>{t(language,'THAM QUAN CHÉO · CHỈ TRONG PHẠM VI LỚP','PEER REVIEW · CLASSROOM ONLY')}</strong>
   <MuseumScene gallery={peer} language={language} embedded/></section>;
  return <section className="bml-live-student" data-testid="student-live-activity" data-stage-kind={stage?.kind||"unknown"}>
+  {readOnly?<p role="status" className="bml-banner bml-success-banner">Completed lesson · View only. Your answers and exhibits are preserved.</p>:null}
   <header className="bml-live-student-header"><strong>Teacher Live · {t(language,'Tiết','Period')} {stage?.period}/2 · {t(language,'Hoạt động','Stage')} {stageIndex+1}/11</strong>
    <span>{session.stageOpen?t(language,'Giáo viên đã mở hoạt động','Activity is open'):t(language,'Chờ giáo viên mở hoạt động','Waiting for teacher')}</span></header>
   <div className="bml-live-student-question">
@@ -84,7 +85,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
      onClick={()=>setActiveTool('curriculum')}><Film size={17}/> Watch NASA clip · {curriculumClip.title}</button>:null}
   </div>
   {!session.stageOpen||session.status!=='active'?<div className="bml-banner bml-info-banner"><Lock size={18}/>{t(language,'Chờ giáo viên mở hoạt động tiếp theo.','Wait for your teacher to open this task.')}</div>:<>
-    {stage.kind==='vote'?<div className="bml-live-response-options">{stage.options.map((o,i)=><button type="button" key={i} disabled={posted||busy}
+    {stage.kind==='vote'?<div className="bml-live-response-options">{stage.options.map((o,i)=><button type="button" key={i} disabled={readOnly||posted||busy}
      aria-pressed={selected===i} aria-label={String.fromCharCode(65+i)+'. '+o} className={selected===i?'is-chosen':''} onClick={()=>{setSelected(i);setNotice('');}}>
       <span className="bml-option-letter" aria-hidden="true">{String.fromCharCode(65+i)}.</span>
       <span className="bml-option-copy" aria-hidden="true">{o}</span>
@@ -92,7 +93,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
     {responseQuestions?<div className="bml-live-response-form" data-testid="student-video-questions">
      {isVideoCheck?<p className="bml-video-question-intro">NASA VIDEO CHECK · Answer three questions before continuing your group design.</p>:null}
      {responseQuestions.map((q,i)=><div key={i} hidden={compact&&quizPage!==i}>
-     <strong>Q{i+1}. {q.q}</strong><div className="bml-live-response-options">{q.choices.map((v,j)=><button type="button" key={j} disabled={posted||busy}
+     <strong>Q{i+1}. {q.q}</strong><div className="bml-live-response-options">{q.choices.map((v,j)=><button type="button" key={j} disabled={readOnly||posted||busy}
       aria-pressed={quiz[i]===j} aria-label={String.fromCharCode(65+j)+'. '+v} className={quiz[i]===j?'is-chosen':''} onClick={()=>setQuiz(prev=>({...prev,[i]:j}))}>
        <span className="bml-option-letter" aria-hidden="true">{String.fromCharCode(65+j)}.</span>
        <span className="bml-option-copy" aria-hidden="true">{v}</span>
@@ -105,8 +106,8 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
     </div>:null}</div>:null}
     {['peer','exit'].includes(stage.kind)?<div className="bml-live-response-form">
      {stage.kind==='peer'?<button type="button" className="bml-outline" onClick={visitPeer}><Eye size={17}/>{t(language,'Tham quan triển lãm nhóm khác (riêng tư)','Visit another group (private)')}</button>:null}
-     {stage.kind==='peer'?<><strong>{peerLabel||t(language,'Nhóm được phân công sẽ hiện khi mở triển lãm.','Your assigned peer group will appear when the gallery opens.')}</strong>{[['learned','I learned …'],['clarify','The message would be clearer if …']].map(([key,label])=><label className="bml-full-field" key={key}>{label}<textarea rows={3} maxLength={400} disabled={posted} value={peerResponse[key]} onChange={e=>setPeerResponse(v=>({...v,[key]:e.target.value}))}/></label>)}<label>{t(language,'Clarity / Mức rõ ràng','Clarity')}<select value={peerResponse.rating} disabled={posted} onChange={e=>setPeerResponse(v=>({...v,rating:Number(e.target.value)}))}><option value={0}>{t(language,'Chọn mức','Choose a rating')}</option><option value={1}>1 · Unclear</option><option value={2}>2 · Partly clear</option><option value={3}>3 · Mostly clear</option><option value={4}>4 · Clear</option></select></label></>:<label className="bml-full-field">{t(language,'Trả lời bằng tiếng Anh','Write your response in English')}<textarea rows={3}
-      maxLength={800} disabled={posted} placeholder={stage.sentence} value={written} onChange={e=>setWritten(e.target.value)}/></label>}
+     {stage.kind==='peer'?<><strong>{peerLabel||t(language,'Nhóm được phân công sẽ hiện khi mở triển lãm.','Your assigned peer group will appear when the gallery opens.')}</strong>{[['learned','I learned …'],['clarify','The message would be clearer if …']].map(([key,label])=><label className="bml-full-field" key={key}>{label}<textarea rows={3} maxLength={400} disabled={readOnly||posted} value={peerResponse[key]} onChange={e=>setPeerResponse(v=>({...v,[key]:e.target.value}))}/></label>)}<label>{t(language,'Clarity / Mức rõ ràng','Clarity')}<select value={peerResponse.rating} disabled={readOnly||posted} onChange={e=>setPeerResponse(v=>({...v,rating:Number(e.target.value)}))}><option value={0}>{t(language,'Chọn mức','Choose a rating')}</option><option value={1}>1 · Unclear</option><option value={2}>2 · Partly clear</option><option value={3}>3 · Mostly clear</option><option value={4}>4 · Clear</option></select></label></>:<label className="bml-full-field">{t(language,'Trả lời bằng tiếng Anh','Write your response in English')}<textarea rows={3}
+      maxLength={800} disabled={readOnly||posted} placeholder={stage.sentence} value={written} onChange={e=>setWritten(e.target.value)}/></label>}
     </div>:null}
     {responseQuestions&&posted?<p className="bml-live-choice-note bml-editorial-submitted-note" role="status">
      <CheckCircle2 size={17}/>{t(language,'Đã ghi nhận đáp án của nhóm. Giáo viên sẽ mở hoạt động tiếp theo.','Your group answers are recorded. Your teacher will guide the next activity.')}
@@ -117,17 +118,17 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
       t(language,'Đã chọn phương án ','Option ')+String.fromCharCode(65+selected)+t(language,'. Bấm gửi để ghi nhận.',' selected. Press Submit to record your answer.')}
     </p>:null}
     {canRespond?<div className="bml-live-actions">
-     <button type="button" className="bml-primary" disabled={busy||posted||(stage.kind==='vote'&&selected===null)||
+     <button type="button" className="bml-primary" disabled={readOnly||busy||posted||(stage.kind==='vote'&&selected===null)||
       (responseQuestions&&responseQuestions.some((_,i)=>!Number.isInteger(quiz[i])))||
       (stage.kind==='peer'&&!validatePeer(peerResponse))||(stage.kind==='exit'&&written.trim().length<10)} onClick={submit}>
       {posted?<CheckCircle2 size={18}/>:<Send size={17}/>}
       {posted?t(language,'Đã ghi nhận một lượt của nhóm','One group response recorded'):t(language,'Gửi câu trả lời của nhóm','Submit group response')}</button>
-     <button type="button" className="bml-outline" onClick={help}><HelpCircle size={17}/>{t(language,'Nhờ giáo viên hỗ trợ','Need help')}</button>
+     <button type="button" className="bml-outline" disabled={readOnly} onClick={help}><HelpCircle size={17}/>{t(language,'Nhờ giáo viên hỗ trợ','Need help')}</button>
     </div>:null}
     {!compact&&hasVideo?<MuseumVideoLab
      mode="student" stage={stage} stageIndex={stageIndex} media={session.media}
      language={language} csrf={csrf}/>:null}
-    {!compact&&MICRO_CHALLENGES[stageIndex]?<MuseumMicroChallenge key={session.id+'-'+stageIndex}
+    {!readOnly&&!compact&&MICRO_CHALLENGES[stageIndex]?<MuseumMicroChallenge key={session.id+'-'+stageIndex}
      stageIndex={stageIndex} existing={data?.micro} csrf={csrf} language={language}/>:null}
     {['group','recap','artwork','present'].includes(stage.kind)?<p className="bml-live-student-status">
       {t(language,'Hãy thực hiện nhiệm vụ bên dưới theo hướng dẫn của giáo viên.','After the NASA video check, continue with the Problem–Evidence–Solution canvas.')}</p>:null}

@@ -19,21 +19,23 @@ export default async function galleryGuest(req,res){
    const handle=String(req.query?.handle||'').trim();
    if(!/^[A-Za-z0-9_-]{16,80}$/.test(handle))throw fail(404,'Invitation not available.');
    const feature=await settings(admin);
-   if(!feature.enabled)throw fail(423,'Student Creator Pass is disabled.');
+   // Viewing a frozen lesson remains available even if authoring is disabled.
    const invite=await query(admin.from('gcp_invites')
     .select('group_id,expires_at,revoked_at').eq('handle',handle).maybeSingle());
-   if(!invite||invite.revoked_at||Date.parse(invite.expires_at)<=Date.now())throw fail(404,'Invitation not available.');
+   if(!invite||invite.revoked_at)throw fail(404,'Invitation not available.');
    const group=await query(admin.from('gcp_groups').select('id,assignment_id,label,state').eq('id',invite.group_id).maybeSingle());
    if(!group)throw fail(404,'Invitation not available.');
    const assignment=await query(admin.from('gcp_assignments')
-    .select('id,title,class_scope,deadline_at,status,archived_at').eq('id',group.assignment_id).maybeSingle());
+    .select('id,title,class_scope,deadline_at,status,archived_at,content_frozen_at').eq('id',group.assignment_id).maybeSingle());
    if(!assignment||assignment.archived_at||assignment.status!=='active'||
-      Date.parse(assignment.deadline_at)<=Date.now()||
-      ['rejected','published'].includes(group.state))throw fail(404,'Invitation not available.');
+      (!assignment.content_frozen_at&&(Date.parse(assignment.deadline_at)<=Date.now()||
+      Date.parse(invite.expires_at)<=Date.now()||!feature.enabled||['rejected','published'].includes(group.state))))
+    throw fail(404,'Invitation not available.');
    const quick=await query(admin.from('gcp_quick_access')
     .select('enabled').eq('assignment_id',assignment.id).maybeSingle());
    return send(res,200,{groupLabel:group.label,assignmentTitle:assignment.title,
-    classScope:assignment.class_scope,quickAccessEnabled:quick?.enabled===true});
+    classScope:assignment.class_scope,quickAccessEnabled:quick?.enabled===true,
+    readOnly:Boolean(assignment.content_frozen_at)});
   }
 
   if(operation==='redeem'){
@@ -48,7 +50,7 @@ export default async function galleryGuest(req,res){
       (quickMode?(secret.length<6||secret.length>64):(secret.length<16||secret.length>128)))
     throw fail(401,'The invitation or password is invalid.');
    const config=await settings(admin);
-   if(!config.enabled)throw fail(423,'Creator Pass chưa được mở.');
+   // Frozen presentations accept the original credentials for read-only access.
    const ip=ipHash(req),since=new Date(Date.now()-15*60*1000).toISOString();
    const handleHash=digest('handle:'+handle);
    const [ipWindow,handleWindow]=await Promise.all([
@@ -67,7 +69,8 @@ export default async function galleryGuest(req,res){
    const quick=quickMode&&assignment?await query(admin.from('gcp_quick_access')
      .select('enabled,password_salt,password_hash').eq('assignment_id',assignment.id).maybeSingle()):null;
    const correct=quickMode?verifyQuickAccess(secret,quick):Boolean(invite&&safeEqual(invite.secret_hash,digest('invite:'+secret)));
-   const valid=Boolean(invite&&group&&assignment&&!invite.revoked_at&&Date.parse(invite.expires_at)>now&&
+   const valid=Boolean(invite&&group&&assignment&&!invite.revoked_at&&
+    (assignment.content_frozen_at||Date.parse(invite.expires_at)>now)&&
     (!invite.locked_until||Date.parse(invite.locked_until)<now)&&correct);
    await query(admin.from('gcp_redeem_attempts').insert({
     ip_hash:ip,handle_hash:handleHash,succeeded:Boolean(valid)
@@ -82,15 +85,20 @@ export default async function galleryGuest(req,res){
     }
     throw fail(401,'Mã nhóm không hợp lệ hoặc đã hết hạn.');
    }
-   if(assignment.archived_at||assignment.status!=='active'||Date.parse(assignment.deadline_at)<=now ||
-      ['rejected','published'].includes(group.state))
+   if(assignment.archived_at||assignment.status!=='active'||
+      (!assignment.content_frozen_at&&(Date.parse(assignment.deadline_at)<=now ||
+      !config.enabled||['rejected','published'].includes(group.state))))
     throw fail(423,'Nhiệm vụ đã đóng.');
    const active=await admin.from('gcp_sessions').select('token_hash',{head:true,count:'exact'})
     .eq('group_id',group.id).is('revoked_at',null).gt('expires_at',new Date().toISOString());
    if(active.error)throw fail(503,'Không thể tạo phiên.');
-   if(active.count>=3)throw fail(429,'Nhóm đã có ba thiết bị đang hoạt động. Hãy nhờ giáo viên làm mới mã.');
+   if(!assignment.content_frozen_at&&active.count>=3)
+    throw fail(429,'Nhóm đã có ba thiết bị đang hoạt động. Hãy nhờ giáo viên làm mới mã.');
+   if(assignment.content_frozen_at&&active.count>=20)
+    throw fail(429,'Too many read-only devices. Try again later.');
    const token=randomSecret(32),csrf=randomSecret(24);
-   const expires=Math.min(now+12*60*60*1000,Date.parse(invite.expires_at),Date.parse(assignment.deadline_at));
+   const expires=assignment.content_frozen_at?now+12*60*60*1000:
+    Math.min(now+12*60*60*1000,Date.parse(invite.expires_at),Date.parse(assignment.deadline_at));
    await query(admin.from('gcp_sessions').insert({
     token_hash:digest('session:'+token),group_id:group.id,csrf_token:csrf,
     auth_method:quickMode?'quick':'private',expires_at:new Date(expires).toISOString()
@@ -102,7 +110,9 @@ export default async function galleryGuest(req,res){
   }
 
   if(operation==='logout'){
-   requireMethod(req,'POST');const ctx=await guestContext(req,admin,{write:true});
+   requireMethod(req,'POST');guardOrigin(req);
+   const ctx=await guestContext(req,admin);
+   if(!safeEqual(req.headers['x-gallery-csrf'],ctx.session.csrf_token))throw fail(403,'CSRF verification failed.');
    await query(admin.from('gcp_sessions').update({revoked_at:new Date().toISOString()})
     .eq('token_hash',ctx.session.token_hash));
    clearCookie(res);
@@ -119,8 +129,10 @@ export default async function galleryGuest(req,res){
      ?{state:latest.state,teacher:latest.teacher_note,ttcm:latest.ttcm_note}:null;
    return send(res,200,{
     groupLabel:group.label,groupState:group.state,csrf:session.csrf_token,feedback,
-    uploadEnabled:(await settings(admin)).upload_enabled===true,
+    readOnly:Boolean(assignment.content_frozen_at),
+    uploadEnabled:!assignment.content_frozen_at&&(await settings(admin)).upload_enabled===true,
     assignment:{title:assignment.title,brief:assignment.brief,class_scope:assignment.class_scope,
+     content_frozen_at:assignment.content_frozen_at||null,
      deadline_at:assignment.deadline_at,max_rooms:assignment.max_rooms,max_exhibits:assignment.max_exhibits}
    });
   }

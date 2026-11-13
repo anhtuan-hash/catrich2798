@@ -95,13 +95,16 @@ export async function guestContext(req,admin,{write=false}={}){
   .select('token_hash,group_id,csrf_token,expires_at,revoked_at,auth_method').eq('token_hash',digest('session:'+token)).maybeSingle());
  if(!sess||sess.revoked_at||sess.expires_at<=now)throw fail(401,'Phiên làm việc đã hết hạn.');
  const feature=await settings(admin);
- if(!feature.enabled)throw fail(423,'Creator Pass hiện đang khóa.');
+ // Frozen lessons remain available to existing QR/passcode holders even if
+ // the Creator editing feature is disabled globally.
  const group=await query(admin.from('gcp_groups').select('*').eq('id',sess.group_id).single());
  const assignment=await query(admin.from('gcp_assignments').select('*').eq('id',group.assignment_id).single());
  const invite=await query(admin.from('gcp_invites').select('revoked_at,expires_at')
   .eq('group_id',group.id).maybeSingle());
- if(!invite||invite.revoked_at||invite.expires_at<=now)throw fail(401,'Mã nhóm đã bị thu hồi hoặc hết hạn.');
+ if(!invite||invite.revoked_at)throw fail(401,'Mã nhóm đã bị thu hồi.');
  if(assignment.archived_at||assignment.status!=='active')throw fail(410,'Bài học đã được đóng.');
+ if(!assignment.content_frozen_at && (!feature.enabled || invite.expires_at<=now))
+  throw fail(401,'Mã nhóm đã hết hạn hoặc Creator Pass đã đóng.');
  if(sess.auth_method==='quick'){
   const quick=await query(admin.from('gcp_quick_access').select('enabled')
     .eq('assignment_id',assignment.id).maybeSingle());
@@ -109,6 +112,7 @@ export async function guestContext(req,admin,{write=false}={}){
  }
  if(write){
   guardOrigin(req);
+  if(assignment.content_frozen_at)throw fail(423,'This lesson is locked for viewing. Editing and submissions are disabled.');
   if(!safeEqual(req.headers['x-gallery-csrf'],sess.csrf_token))throw fail(403,'CSRF không hợp lệ.');
   const config=await settings(admin);
   if(!config.enabled||assignment.archived_at||assignment.status!=='active'||assignment.deadline_at<=now)

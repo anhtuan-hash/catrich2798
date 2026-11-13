@@ -58,6 +58,10 @@ export default async function museumLive(req,res){
    const ctx=await staffContext(req,admin);assertStaff(ctx);
    const id=String(req.method==='GET'?req.query?.assignmentId:req.body?.assignmentId||'');
    const assignment=await scopedStaff(ctx,id);
+   // Allow stage viewing, signed images and evidence export, but never alter
+   // the frozen presentation or its live classroom history.
+   if(req.method!=='GET'&&assignment.content_frozen_at)
+    throw fail(423,'This completed lesson is view-only. Teacher Live controls are locked.');
    const session=await getSession(admin,assignment.id);
    if(op==='state'){
     requireMethod(req,'GET');

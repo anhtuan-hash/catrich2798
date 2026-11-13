@@ -1,0 +1,45 @@
+name: Museum Final Read-only Acceptance
+on:
+  pull_request:
+    paths:
+      - 'serverless-handlers/_galleryCreator.js'
+      - 'serverless-handlers/gallery-guest.js'
+      - 'serverless-handlers/gallery-staff.js'
+      - 'serverless-handlers/museum-live.js'
+      - 'src/features/immersive-gallery/v3/**'
+      - 'scripts/test-museum-final-readonly.mjs'
+      - 'supabase/migrations/*museum_completed_readonly.sql'
+      - '.github/workflows/museum-final-readonly.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'serverless-handlers/_galleryCreator.js'
+      - 'serverless-handlers/gallery-guest.js'
+      - 'serverless-handlers/gallery-staff.js'
+      - 'serverless-handlers/museum-live.js'
+      - 'src/features/immersive-gallery/v3/**'
+      - 'scripts/test-museum-final-readonly.mjs'
+      - 'supabase/migrations/*museum_completed_readonly.sql'
+permissions:
+  contents: read
+jobs:
+  immutable-lesson:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - name: Syntax-check serverless API files
+        run: |
+          node --check serverless-handlers/_galleryCreator.js
+          node --check serverless-handlers/gallery-guest.js
+          node --check serverless-handlers/gallery-staff.js
+          node --check serverless-handlers/museum-live.js
+      - name: Verify final read-only lesson controls
+        run: node scripts/test-museum-final-readonly.mjs
+      - name: Compile React and browser production bundle
+        run: npx vite build
