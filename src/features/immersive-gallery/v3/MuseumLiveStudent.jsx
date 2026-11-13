@@ -61,7 +61,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
  if(peer&&!compact)return <section className="bml-live-student"><button className="bml-outline" type="button" onClick={()=>setPeer(null)}>{t(language,'← Trở về bài học','← Back to lesson')}</button>
   <strong>{t(language,'THAM QUAN CHÉO · CHỈ TRONG PHẠM VI LỚP','PEER REVIEW · CLASSROOM ONLY')}</strong>
   <MuseumScene gallery={peer} language={language} embedded/></section>;
- return <section className="bml-live-student" data-testid="student-live-activity">
+ return <section className="bml-live-student" data-testid="student-live-activity" data-stage-kind={stage?.kind||"unknown"}>
   <header className="bml-live-student-header"><strong>Teacher Live · {t(language,'Tiết','Period')} {stage?.period}/2 · {t(language,'Hoạt động','Stage')} {stageIndex+1}/11</strong>
    <span>{session.stageOpen?t(language,'Giáo viên đã mở hoạt động','Activity is open'):t(language,'Chờ giáo viên mở hoạt động','Waiting for teacher')}</span></header>
   <div className="bml-live-student-question">
