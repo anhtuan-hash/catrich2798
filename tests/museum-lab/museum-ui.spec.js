@@ -474,3 +474,19 @@ test('Admin directly manages assignments and submitted work without delegating a
  await expect(page.getByRole('button',{name:/Xóa bài nộp/})).toBeVisible();
  await expect(page.getByRole('button',{name:/Chuyển TTCM duyệt/})).toHaveCount(0);
 });
+
+
+test('Admin deleting lesson with published exhibition explains gallery retention before archive',async({page})=>{
+ await page.getByTestId('qa-published-lesson').click();
+ const lessons=page.getByTestId('museum-lessons');
+ await expect(lessons.getByText('Synthetic Climate Action Museum')).toBeVisible();
+ let confirmation='';
+ page.once('dialog',async dialog=>{
+  confirmation=dialog.message();
+  await dialog.dismiss();
+ });
+ await lessons.getByRole('button',{name:/Xóa bài học Synthetic Climate Action Museum/}).click();
+ expect(confirmation).toContain('1 triển lãm đã công bố');
+ expect(confirmation).toContain('triển lãm vẫn còn trong mục Triển lãm');
+ await expect(lessons.getByText('Synthetic Climate Action Museum')).toBeVisible();
+});
