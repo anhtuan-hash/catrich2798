@@ -38,7 +38,9 @@ const preparedQa={
  }))),
  reviews:[]
 };
-const demoDashboardApi=async()=>synthetic;
+const demoDashboardApi=async(action)=>action==='showcase-state'
+ ?{hiddenCollections:[],archivedGalleries:[],galleryEnabled:false,publishedGalleries:[]}
+ :synthetic;
 const publishedQaItem={
  id:'11111111-1111-4111-8111-111111111111',
  slug:'qa-published-group-01',title:'Synthetic Published Group 01',
