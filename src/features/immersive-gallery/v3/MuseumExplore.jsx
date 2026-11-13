@@ -136,6 +136,7 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
  const visibleGalleries=[...inventory.values()].filter(g=>
   (g.title+' '+(g.summary||'')).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
  const publishedCount=[...inventory.values()].filter(g=>g.status==='published').length;
+ const publishedInView=visibleGalleries.filter(g=>g.status==='published');
  const archivedCollections=PREPARED_COLLECTIONS.filter(c=>showcase.hiddenCollections.includes(c.key));
  const archivedItems=[...archivedCollections.map(c=>({kind:'collection',key:c.key,title:c.title,label:c.classScope+' · ENGLISH STEAM'})),
   ...showcase.archivedGalleries.map(g=>({kind:'gallery',key:g.id,title:g.title,label:'Student exhibition'}))];
@@ -159,6 +160,19 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
   </div>
   {error?<div className="bml-banner bml-danger-banner" role="alert"><ShieldAlert size={19}/>{error}</div>:null}
   {notice?<div className="bml-banner bml-success-banner" role="status"><CheckCircle2 size={18}/>{notice}</div>:null}
+  {!showArchived&&publishedInView.length?<section className="bml-published-panel" data-testid="museum-published-panel">
+   <div className="bml-published-heading">
+    <Landmark size={20}/><strong>Published exhibitions</strong><span>{publishedInView.length} live</span>
+   </div>
+   <div className="bml-published-items">
+    {publishedInView.map(g=><button type="button" key={g.id} className="bml-published-entry"
+     disabled={busy} onClick={()=>enter(g)}>
+     <span className="bml-published-status"><CheckCircle2 size={15}/> Published</span>
+     <strong>{g.title}</strong><small>{g.summary||'Student museum project'}</small>
+     <span className="bml-published-open">Open 3D exhibition <ArrowRight size={16}/></span>
+    </button>)}
+   </div>
+  </section>:null}
   {loading?<div className="bml-empty bml-surface" role="status">Loading exhibitions…</div>:
   showArchived&&isAdmin?<div className="bml-gallery-grid" data-testid="museum-archived-exhibitions">
    {archivedItems.map(item=><article key={item.kind+':'+item.key} className="bml-gallery-card bml-gallery-card--managed">
@@ -183,7 +197,7 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
       aria-label={'Delete exhibition: '+c.title} title="Delete exhibition"
       onClick={()=>changeArchive('collection',c.key,c.title,true)}><Trash2 size={17}/></button>:null}
     </article>)}
-   {visibleGalleries.map(g=><article className="bml-gallery-card bml-gallery-card--managed" key={g.id}>
+   {visibleGalleries.filter(g=>g.status!=='published').map(g=><article className="bml-gallery-card bml-gallery-card--managed" key={g.id}>
      <button type="button" className="bml-gallery-card-open" disabled={busy} onClick={()=>enter(g)}>
       <div className="bml-card-photo"><span className="bml-gallery-badge">{g.status?.toUpperCase()||'EXHIBITION'}</span><Leaf strokeWidth={1.35}/></div>
       <div className="bml-card-caption"><strong>{g.title}</strong><small>{g.summary}</small>
