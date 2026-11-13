@@ -1693,3 +1693,32 @@ test('Student Creator Group 01: 100% draft but missing sources opens Submit and 
  await expect.poll(()=>submits,{timeout:12000}).toBe(1);
  await expect(app).toContainText('Submission is locked');
 });
+
+test('Published school exhibition renders from the already loaded dashboard and opens its signed artworks',async({page})=>{
+ await page.getByTestId('qa-dashboard-published-en').click();
+ const app=page.getByTestId('brian-museum-lab-v3');
+ await app.getByRole('navigation',{name:'Museum Lab navigation'}).getByRole('button',{name:'Exhibitions'}).click();
+ const showcase=page.getByTestId('museum-showcase');
+ await expect(showcase.getByTestId('museum-showcase-published-count')).toContainText('1 published exhibitions');
+ await expect(showcase.getByRole('button',{name:/Synthetic Published Group 01/})).toBeVisible();
+ await showcase.getByRole('button',{name:/Synthetic Published Group 01/}).click();
+ const detail=page.getByTestId('museum-exhibition-detail');
+ await expect(detail).toBeVisible();
+ await expect(detail).toContainText('Synthetic Published Group 01');
+ await expect(detail).toContainText('The Problem');
+ await expect(detail).toContainText('The Evidence');
+ await expect(detail).toContainText('Our Solution');
+ await detail.getByRole('button',{name:'2D',exact:true}).click();
+ const cards=detail.locator('[data-testid="museum-2d-exhibits"] img');
+ await expect(cards).toHaveCount(3);
+ await expect(cards.first()).toHaveJSProperty('complete',true);
+});
+test('Published cards survive a failure of the separate showcase catalogue request',async({page})=>{
+ await page.getByTestId('qa-dashboard-published-fail-en').click();
+ const app=page.getByTestId('brian-museum-lab-v3');
+ await app.getByRole('navigation',{name:'Museum Lab navigation'}).getByRole('button',{name:'Exhibitions'}).click();
+ const showcase=page.getByTestId('museum-showcase');
+ await expect(showcase.getByTestId('museum-showcase-published-count')).toContainText('1 published exhibitions');
+ await expect(showcase.getByRole('button',{name:/Synthetic Published Group 01/})).toBeVisible();
+ await expect(showcase).toContainText('Synthetic showcase catalogue unavailable');
+});
