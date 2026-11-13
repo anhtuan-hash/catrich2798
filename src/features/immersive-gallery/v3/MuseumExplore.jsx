@@ -41,7 +41,7 @@ const setExhibitionHash=key=>{
  const url=current+(key?'?exhibition='+encodeURIComponent(key):'');
  window.history.replaceState(null,'',url);
 };
-export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefresh,data}){
+export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefresh,data,transport=staffRequest}){
  const isAdmin=data?.profile?.role==='admin';
  const [galleries,setGalleries]=useState(()=>data?.publishedGalleries||[]),[selected,setSelected]=useState(null);
  const [showcase,setShowcase]=useState({hiddenCollections:[],archivedGalleries:[]});
@@ -49,7 +49,7 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
  const [showArchived,setShowArchived]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const pull=async()=>{
   const api=await import('../galleryData.js');
-  const [clientEnabled,archive]=await Promise.all([api.getGalleryEnabled(),staffRequest('showcase-state')]);
+  const [clientEnabled,archive]=await Promise.all([api.getGalleryEnabled(),transport('showcase-state')]);
   // The staff endpoint reads the authoritative school catalogue and respects
   // gallery enablement, visibility, schedule and published status server-side.
   // Keep legacy client results (including own drafts) for backwards compatibility.
@@ -87,7 +87,7 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
       const match=items.find(g=>g.id===initial||g.slug===initial)||
        (data?.publishedGalleries||[]).find(g=>g.id===initial||g.slug===initial);
       const full=match?.status==='published'
-       ?(await staffRequest('showcase-exhibition',{id:match.id})).gallery
+       ?(await transport('showcase-exhibition',{id:match.id})).gallery
        :await api.getExhibition(initial);
       if(active)setSelected(full);
      }catch(e){if(active)setError(e.message||'This exhibition is unavailable.');}
@@ -108,7 +108,7 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
    // Resolve published exhibitions and their privately signed artwork through
    // the staff server, not a second browser Supabase Data API roundtrip.
    const full=item.status==='published'
-    ?(await staffRequest('showcase-exhibition',{id:item.id})).gallery
+    ?(await transport('showcase-exhibition',{id:item.id})).gallery
     :await (await import('../galleryData.js')).getExhibition(item.id);
    setSelected(full);setExhibitionHash(full.slug||full.id);
   }catch(e){setError(e.message);}
@@ -120,7 +120,7 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
   if(archive&&!window.confirm('Delete exhibition "'+title+'"? It will be removed from the showcase but student work, scores and learning evidence will be preserved. You can restore it from Archived.'))return;
   setBusy(true);setError('');setNotice('');
   try{
-   await staffRequest(archive?'archive-exhibition':'restore-exhibition',{kind,key});
+   await transport(archive?'archive-exhibition':'restore-exhibition',{kind,key});
    leave();await reload();await onRefresh?.();
    setNotice(archive?'Exhibition removed from the showcase. You can restore it under Archived.':'Exhibition restored.');
   }catch(e){setError(e.message);}
