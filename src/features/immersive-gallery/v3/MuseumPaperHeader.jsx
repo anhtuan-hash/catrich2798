@@ -1,4 +1,6 @@
 import React from 'react';
+import MuseumCompetitionRibbon from './MuseumCompetitionRibbon.jsx';
+import './museumDashboardBanner.css';
 import {Award,BookOpen,CalendarDays,CircleHelp,ClipboardCheck,House,Landmark,Presentation,RefreshCw,Search,Settings2} from 'lucide-react';
 
 const PRIMARY = [
@@ -19,6 +21,7 @@ export default function MuseumPaperHeader({language='vi',tab='home',onNavigate,p
  const tr=(vi,en)=>language==='en'?en:vi;
  const active=['home','wizard'].includes(tab)?'lessons':tab==='demo'?'gallery':tab;
  return <header className="bml-paper-header">
+  {tab==='home' && <MuseumCompetitionRibbon variant="dashboard"/>}
   {tab==='home'?<div className="bml-paper-hero">
    <img className="bml-paper-hero-image" src="/assets/museum-paper/hero.webp" width="2172" height="724" alt="" fetchPriority="high"/>
    <div className="bml-paper-hero-copy">

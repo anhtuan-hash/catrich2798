@@ -55,6 +55,40 @@ test('paper dashboard fits the viewport and its decorative assets load',async({p
  await page.getByRole('button',{name:/Tạo bài học mới/}).click();
  await expect(page.getByTestId('museum-lesson-wizard')).toBeVisible();
 });
+test('dashboard competition banner preserves original logos and readable credits',async({page},testInfo)=>{
+ await page.goto('/tests/museum-lab/paper.html');
+ const banner=page.locator('.bml-competition-ribbon--dashboard');
+ await expect(banner).toBeVisible();
+ await expect(banner).toHaveAttribute('lang','vi');
+ await expect(banner).toContainText('Thạc sĩ Nguyễn Anh Tuấn');
+ await expect(banner).toContainText('2026–2027');
+ const images=banner.locator('img');
+ await expect(images).toHaveCount(2);
+ await expect.poll(()=>images.evaluateAll(imgs=>imgs.every(img=>img.complete&&img.naturalWidth>=299))).toBe(true);
+ await expect(images.nth(0)).toHaveAttribute('src','/museum/branding/hcmc-department-education-original.jpg');
+ await expect(images.nth(1)).toHaveAttribute('src','/museum/branding/petrus-ky-original.png');
+ const validateLayout=async()=>{
+  const errors=await banner.evaluate(el=>{
+   const outer=el.getBoundingClientRect();
+   const nodes=[...el.querySelectorAll('.bml-competition-copy > :not(svg),figure')];
+   const rects=nodes.map(n=>({name:n.className||n.tagName,r:n.getBoundingClientRect()}));
+   const failures=[];
+   for(const {name,r} of rects)if(r.left<outer.left||r.right>outer.right||r.top<outer.top||r.bottom>outer.bottom)failures.push('clipped '+name);
+   for(let i=0;i<rects.length;i++)for(let j=i+1;j<rects.length;j++){
+    const a=rects[i].r,b=rects[j].r;
+    if(Math.min(a.right,b.right)-Math.max(a.left,b.left)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>1)failures.push('overlap '+rects[i].name+' / '+rects[j].name);
+   }
+   return failures;
+  });
+  expect(errors).toEqual([]);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+  const box=await banner.boundingBox(),hero=await page.locator('.bml-paper-hero').boundingBox();
+  expect(box.y+box.height).toBeLessThanOrEqual(hero.y);
+ };
+ await validateLayout();
+ await page.screenshot({path:testInfo.outputPath('museum-dashboard-competition.png'),fullPage:true});
+ for(const width of [320,768,1280]){await page.setViewportSize({width,height:900});await validateLayout();}
+});
 test('English-only student route shows only English access, privacy and passcode instructions',async({page})=>{
  await page.getByTestId('qa-student-en').click();
  const entry=page.getByTestId('museum-student-entry');

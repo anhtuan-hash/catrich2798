@@ -15,8 +15,9 @@ const schoolName='Trường Trung - Tiểu học Pétrus Ký';
 const departmentLogo='/museum/branding/hcmc-department-education-original.jpg';
 const schoolLogo='/museum/branding/petrus-ky-original.png';
 
-export default function MuseumCompetitionRibbon(){
- return <section className="bml-competition-ribbon" data-testid="museum-competition-ribbon"
+export default function MuseumCompetitionRibbon({variant='student'}){
+ const dashboard=variant==='dashboard';
+ return <section className={`bml-competition-ribbon${dashboard ? ' bml-competition-ribbon--dashboard' : ''}`} data-testid="museum-competition-ribbon"
   lang="vi" aria-label={awardLabel+" – "+contestName}>
   <div className="bml-competition-decor bml-competition-decor--left" aria-hidden="true"/>
   <div className="bml-competition-decor bml-competition-decor--right" aria-hidden="true"/>
