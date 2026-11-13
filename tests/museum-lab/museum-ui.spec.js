@@ -1857,7 +1857,18 @@ test('V5 Cinema physically detaches the SAME 3D artwork, displays only real evid
  expect(selected.artworks[1].uuid).toBe(before.artworks[1].uuid);
  expect(selected.artworks[1].world[2]-before.artworks[1].world[2]).toBeGreaterThan(3.5);
  expect(selected.camera.position[2]-before.camera.position[2]).toBeGreaterThan(.4);
+ // The first visual-QA run exposed an accidental +Z camera look direction,
+ // yielding an empty screenshot despite correct mesh coordinates.
+ expect(selected.camera.forward[2]).toBeLessThan(-.70);
  await page.screenshot({path:testInfo.outputPath('museum-v5-focused-1536x864.png'),fullPage:false});
+ for(const vp of [{width:1366,height:768},{width:1920,height:1080}]){
+  await page.setViewportSize(vp);
+  await expect(board).toBeVisible();
+  const q=await page.evaluate(()=>window.__bmlMuseumFocusQA);
+  expect(q.camera.forward[2]).toBeLessThan(-.70);
+  await page.screenshot({path:testInfo.outputPath('museum-v5-focused-'+vp.width+'x'+vp.height+'.png'),fullPage:false});
+ }
+ await page.setViewportSize({width:1536,height:864});
  await expect(viewer.getByTestId('museum-back-to-wall-hud')).toBeEnabled();
  await viewer.getByTestId('museum-back-to-wall-hud').click();
  await expect(board).toHaveCount(0,{timeout:12000});
