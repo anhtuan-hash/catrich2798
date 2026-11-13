@@ -1,5 +1,5 @@
 import React,{useEffect,useMemo,useState} from 'react';
-import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronRight,ClipboardList,Copy,Download,ExternalLink,KeyRound,LockKeyhole,Plus,Printer,QrCode,RefreshCw,ShieldAlert,Trash2,Users} from 'lucide-react';
+import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronRight,ClipboardList,Copy,Download,Eye,EyeOff,ExternalLink,KeyRound,LockKeyhole,Plus,Printer,QrCode,RefreshCw,ShieldAlert,Trash2,Users} from 'lucide-react';
 import {LESSON_KITS,progressOfGroup} from './museumData.js';
 import {englishSystemGroupLabel} from './museumApi.js';
 import {LIVE_STAGES,LIVE_TOTAL_MINUTES} from './liveLesson.js';
@@ -20,7 +20,7 @@ export function OneTimeInvites({invitations,onClose,language='vi'}){
  const copy=async inv=>{try{await navigator.clipboard.writeText(joinUrl(inv.handle)+'\nMã bí mật: '+inv.groupSecret);}catch{window.prompt('Sao chép phiếu nhóm:',joinUrl(inv.handle)+'\n'+inv.groupSecret);}};
  return <section className="bml-surface bml-qr-sheet" data-testid="museum-qr-invites">
   <div className="bml-section-head"><div><span className="bml-overline">CREATOR PASS · PRIVATE</span><h2>{tr(language,'Mã truy cập của từng nhóm','Group invitation codes')}</h2>
-    <p>{tr(language,'Lưu hoặc in ngay. Mã bí mật chỉ được hiển thị một lần và không nằm trong QR.','Save or print these codes now. Private secrets are shown only once and are never embedded in QR codes.')}</p></div>
+    <p>{tr(language,'Lưu hoặc in ngay. Mã bí mật chỉ được hiển thị một lần và không nằm trong QR.','Save or print these codes. Private passcodes are not embedded in QR codes; Admin can reveal them later from My lessons.')}</p></div>
    <button type="button" className="bml-icon-btn" onClick={onClose} aria-label="Close">✕</button></div>
   <div className="bml-qr-grid">{invitations.map(inv=><article className="bml-qr-card" key={inv.groupId}>
    <div className="bml-qr-top"><span className="bml-overline">BRIAN · MUSEUM LAB</span><strong>{language==='en'?englishSystemGroupLabel(inv.label):inv.label}</strong></div>
@@ -131,8 +131,66 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'})
   </section></>}
  </div>;
 }
+
+function PrivatePasscodeCard({secret,available,revealed,busy,onShow,onHide,onCopy}){
+ return <div className="bml-private-passcode" data-testid="museum-private-passcode">
+  <small className="bml-private-passcode-label"><LockKeyhole size={12}/> Private group passcode</small>
+  <code className={revealed&&secret?'is-revealed':''}>{revealed&&secret?secret:'••••••••••••'}</code>
+  {!available&&!secret?<small className="bml-private-passcode-unavailable">Older code cannot be recovered. Regenerate to view.</small>:null}
+  <div className="bml-private-passcode-buttons">
+   {revealed&&secret?<><button type="button" onClick={onHide}><EyeOff size={13}/> Hide</button>
+    <button type="button" onClick={onCopy}><Copy size={13}/> Copy</button></>:
+    <button type="button" disabled={busy||!available&&!secret} onClick={onShow}>
+      <Eye size={13}/> {busy?'Loading…':'Show code'}
+    </button>}
+  </div>
+ </div>;
+}
+
 export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,query='',language='vi'}){
  const [selected,setSelected]=useState('__auto__'),[invites,setInvites]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ const [secrets,setSecrets]=useState({}),[visibleSecrets,setVisibleSecrets]=useState({});
+ const [passcodeBusy,setPasscodeBusy]=useState(false),[success,setSuccess]=useState('');
+ const copyPass=async secret=>{
+  try{await navigator.clipboard.writeText(secret);}
+  catch{window.prompt('Copy private group passcode:',secret);}
+ };
+ const hideGroup=groupId=>{
+  setVisibleSecrets(prev=>{const next={...prev};delete next[groupId];return next;});
+  setSecrets(prev=>{const next={...prev};delete next[groupId];return next;});
+ };
+ const revealPasscodes=async(assignment,groupId=null)=>{
+  if(passcodeBusy)return;
+  setPasscodeBusy(true);setError('');setSuccess('');
+  try{
+   const result=await staffRequest('reveal-passcodes',{assignmentId:assignment.id});
+   const values=Object.fromEntries(result.passcodes.filter(x=>x.groupSecret).map(x=>[x.groupId,x.groupSecret]));
+   setSecrets(prev=>({...prev,...values}));
+   const selected=groupId?result.passcodes.filter(x=>x.groupId===groupId&&x.groupSecret):result.passcodes.filter(x=>x.groupSecret);
+   setVisibleSecrets(prev=>({...prev,...Object.fromEntries(selected.map(x=>[x.groupId,true]))}));
+   if(!selected.length)setSuccess('Older private codes cannot be recovered. Use Regenerate all passcodes to create viewable ones.');
+  }catch(e){setError(e.message);}finally{setPasscodeBusy(false);}
+ };
+ const hideLessonPasscodes=assignment=>{
+  const ids=new Set((data?.groups||[]).filter(g=>g.assignment_id===assignment.id).map(g=>g.id));
+  setVisibleSecrets(prev=>Object.fromEntries(Object.entries(prev).filter(([id])=>!ids.has(id))));
+  setSecrets(prev=>Object.fromEntries(Object.entries(prev).filter(([id])=>!ids.has(id))));
+ };
+ const regenerateAll=async assignment=>{
+  if(busy||passcodeBusy)return;
+  const name=assignment.title+' · '+assignment.class_scope;
+  if(!window.confirm('Regenerate ALL Private group passcodes for '+name+'?\\n\\nExisting student sign-in sessions and old passcodes will be revoked. QR invitation links, submissions, reviews and exhibitions will remain unchanged. Distribute the new passcodes to your groups.'))return;
+  setBusy(true);setError('');setSuccess('');
+  try{
+   const out=await staffRequest('regenerate-all-passcodes',{assignmentId:assignment.id});
+   await onRefresh();
+   const values=Object.fromEntries(out.passcodes.map(x=>[x.groupId,x.groupSecret]));
+   setSecrets(prev=>({...prev,...values}));
+   setVisibleSecrets(prev=>({...prev,...Object.fromEntries(out.passcodes.map(x=>[x.groupId,true]))}));
+   setSuccess('Created '+out.count+' new private group passcodes. QR codes and student work were preserved. Copy and share the new codes securely.');
+  }catch(e){setError(e.message);}finally{setBusy(false);}
+ };
+
  const isAdmin=data?.profile?.role==='admin';
  const archiveAssignment=async assignment=>{
   if(!isAdmin||busy)return;
@@ -152,19 +210,22 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
  const allAssignments=data?.assignments||[],assignments=allAssignments.filter(a=>(a.title+' '+a.class_scope).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())),groups=data?.groups||[],reviews=data?.reviews||[],exitTickets=data?.exitTickets||[];
  const rotate=async groupId=>{if(!window.confirm(tr(language,'Mã cũ sẽ bị thu hồi. Bạn muốn cấp mã mới?','The old code will be revoked. Generate a new one?')))return;
   setBusy(true);setError('');
-  try{const out=await staffRequest('rotate-invite',{groupId});setInvites([{groupId:out.groupId,label:tr(language,'Mã cấp lại','New invitation'),handle:out.handle,groupSecret:out.groupSecret}]);await onRefresh();}
+  try{const out=await staffRequest('rotate-invite',{groupId});setInvites([{groupId:out.groupId,label:tr(language,'Mã cấp lại','New invitation'),handle:out.handle,groupSecret:out.groupSecret}]);
+   setSecrets(prev=>({...prev,[groupId]:out.groupSecret}));setVisibleSecrets(prev=>({...prev,[groupId]:true}));await onRefresh();}
   catch(e){setError(e.message);}finally{setBusy(false);}
  };
  return <div className="bml-screen" data-testid="museum-lessons"><div className="bml-heading-actions"><div><div className="bml-overline">{tr(language,'LỚP HỌC SỐ','LESSON WORKSPACE')}</div>
   <h1>{tr(language,'Bài học của tôi','My lessons')}</h1><p>{tr(language,'Giao dự án và theo dõi từng nhóm.','Assign projects and track your groups.')}</p></div>
   {isAdmin?<button type="button" className="bml-primary" onClick={onCreate}><Plus size={19}/>{tr(language,'Tạo bài học mới','New lesson')}</button>:null}</div>
-  <Notice error={error}/>
+  <Notice error={error} success={success}/>
   {invites?<OneTimeInvites invitations={invites} onClose={()=>setInvites(null)} language={language}/>:null}
   {assignments.length?<div className="bml-lesson-list">{assignments.map(a=>{
    const mine=groups.filter(g=>g.assignment_id===a.id).sort((left,right)=>String(left.label||'').localeCompare(String(right.label||''),undefined,{numeric:true})),done=mine.filter(g=>['submitted','ttcm_review','approved_locked','published'].includes(g.state)).length;
    const exitCount=mine.filter(g=>exitTickets.some(t=>t.group_id===g.id)).length;
    const collection=preparedCollectionFor(a);
    const expanded=selected===a.id||(selected==='__auto__'&&a.id===assignments[0]?.id);
+   const canManagePasscodes=isAdmin&&a.created_by===data?.profile?.id;
+   const allVisible=mine.length>0&&mine.every(g=>visibleSecrets[g.id]&&secrets[g.id]);
    return <article className="bml-lesson-block bml-surface" key={a.id}>
     <div className="bml-lesson-summary"><span className="bml-table-icon"><BookOpen size={22}/></span>
      <div><span className="bml-overline">{a.class_scope}</span>
@@ -179,7 +240,16 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
        <Trash2 size={17}/>{tr(language,'Xóa bài học','Delete lesson')}</button>:null}
      </div></div>
     <div className="bml-progress bml-progress-wide"><div style={{width:(mine.length?100*done/mine.length:0)+'%'}}/></div>
-    {expanded?<div className="bml-group-list bml-lesson-qr-grid" data-testid="museum-group-qr-grid">{mine.map(g=>{
+    {expanded?<>
+      {canManagePasscodes?<div className="bml-lesson-passcode-toolbar">
+       <span><LockKeyhole size={18}/><strong>Private group passcodes</strong><small>Admin only · never included in QR</small></span>
+       <div>
+        {allVisible?<button type="button" className="bml-outline" onClick={()=>hideLessonPasscodes(a)}><EyeOff size={15}/> Hide all</button>:
+         <button type="button" className="bml-outline" disabled={passcodeBusy||busy} onClick={()=>revealPasscodes(a)}><Eye size={15}/> Show all passcodes</button>}
+        <button type="button" className="bml-regenerate-all-passcodes" disabled={busy||passcodeBusy} onClick={()=>regenerateAll(a)}><RefreshCw size={15}/> Regenerate all passcodes</button>
+       </div>
+      </div>:null}
+      <div className="bml-group-list bml-lesson-qr-grid" data-testid="museum-group-qr-grid">{mine.map(g=>{
       const state=progressOfGroup(g.state,language);const review=reviews.find(r=>r.group_id===g.id);
       const ticket=exitTickets.find(t=>t.group_id===g.id);
       const exitAnswer=ticket?(typeof ticket.value==='string'?ticket.value:JSON.stringify(ticket.value)):null;
@@ -199,8 +269,14 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
          </div>
         </div>
        </div>
-       <MuseumGroupQr handle={g.invite_handle} groupLabel={groupLabel}
-        expiresAt={g.invite_expires_at} revoked={g.invite_revoked} language={language}/>
+       <div className="bml-lesson-qr-access">
+        <MuseumGroupQr handle={g.invite_handle} groupLabel={groupLabel}
+         expiresAt={g.invite_expires_at} revoked={g.invite_revoked} language={language}/>
+        {canManagePasscodes?<PrivatePasscodeCard secret={secrets[g.id]} available={g.invite_has_passcode}
+         revealed={Boolean(visibleSecrets[g.id])} busy={passcodeBusy||busy}
+         onShow={()=>revealPasscodes(a,g.id)} onHide={()=>hideGroup(g.id)}
+         onCopy={()=>copyPass(secrets[g.id])}/>:null}
+       </div>
       </article>;})}
       {collection?<div className="bml-prepared-projects" data-testid={'lesson-portfolio-'+collection.key}>
        <div className="bml-prepared-projects-heading"><h3>{tr(language,'Dự án và tác phẩm','Projects and artwork')}</h3>
@@ -211,7 +287,7 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
          <span>{p.solution}</span>
          <em>{tr(language,'Xem tác phẩm trong bảo tàng','View in 3D museum')} <ArrowRight size={15}/></em>
         </button>)}</div>
-      </div>:null}</div>:null}
+      </div></>:null}
    </article>;
   })}</div>:<div className="bml-empty bml-surface"><BookOpen size={36}/><h2>{tr(language,'Chưa có bài học','No lessons assigned yet')}</h2>
     <p>{tr(language,'Tạo bài học đầu tiên từ một mẫu có sẵn.','Create your first lesson from a curated template.')}</p>
