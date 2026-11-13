@@ -353,6 +353,27 @@ function MuseumFocusCameraRig({focus}){
  });
  return null;
 }
+/**
+ * A demand-rendered Canvas may drop the final invalidate() when a reducer
+ * changes extracting -> presenting during the same R3F frame. Keep submitting
+ * frames ONLY while a physical transition is active; idle/focused return to
+ * demand rendering. This does not mount another Canvas or animate a copy.
+ */
+function MuseumFocusFramePump({phase}){
+ const {invalidate}=useThree();
+ useEffect(()=>{
+  if(!['preparing','extracting','presenting','returning'].includes(phase))return;
+  let alive=true,raf=0;
+  const tick=()=>{
+   if(!alive)return;
+   invalidate();
+   raf=window.requestAnimationFrame(tick);
+  };
+  raf=window.requestAnimationFrame(tick);
+  return()=>{alive=false;window.cancelAnimationFrame(raf);};
+ },[phase,invalidate]);
+ return null;
+}
 function CameraResizeSync(){
  const {camera,gl,invalidate}=useThree();
  useEffect(()=>{
@@ -411,6 +432,7 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
    <Canvas camera={{position:[0,cinemaEdition?1.92:1.77,startingZ],fov:cinemaEdition?55:schoolEdition?59:61,near:0.08,far:55}} dpr={mode==='lite'?1:mode==='high'?[1,1.75]:[1,1.35]}
     frameloop="demand" gl={{antialias:mode!=='lite',powerPreference:'low-power',alpha:false}} onCreated={({gl})=>{gl.setClearColor('#f2f0e9');}}>
     <CameraResizeSync/>
+    {cinemaEdition?<MuseumFocusFramePump phase={focus.phase}/>:null}
     <Room template={template} exhibits={exhibits} onSelect={onSelect} selectedId={selectedId} onTeleport={onTeleport}
      focus={focus} focusBoard={focusBoard} onFocusBack={onFocusBack} onFocusPhaseChange={onFocusPhaseChange}
      schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} lite={mode==='lite'}/>
