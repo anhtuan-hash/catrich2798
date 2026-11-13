@@ -1517,3 +1517,84 @@ test('V5.4 Speaking Studio requires user microphone action, rehearses group text
  await studio.getByRole('button',{name:'Close Speaking Studio'}).click();
  await expect(studio).toHaveCount(0);
 });
+
+test('Student Creator Group 01: 100% draft but missing sources opens Submit and guides real attribution before Admin review',async({page})=>{
+ const assetIds=['c78d4bba-2808-4efe-9ac7-f904bc3b1001','c78d4bba-2808-4efe-9ac7-f904bc3b1002','c78d4bba-2808-4efe-9ac7-f904bc3b1003'];
+ const keys=['issue','evidence','solution'];
+ const survey={id:'sample-frozen-vote',session_id:'sample-class',counts:[1,2,3,4],source:'online',created_at:'2026-11-13T10:00:00Z'};
+ let state='editing',version=13,saves=0,submits=0;
+ let draft={
+  title:'Lights Off, Future On',summary:'A classroom climate action museum.',
+  survey,artworks:Object.fromEntries(keys.map((k,i)=>[k,assetIds[i]])),
+  artMeta:Object.fromEntries(keys.map(k=>[k,{alt:'Student caption describing '+k,
+   source:'',rights:'Group declared classroom use permission'}])),
+  learning:{issue:'Unused classroom equipment remains on.',
+   evidence:'Four out of ten groups selected unused lighting as a priority.',
+   source:'Group-priority survey, ten participating groups.',
+   solution:'Ask a teacher to approve a switch-checking routine.',
+   roles:'English editor; source checker; poster designer; presenter.',
+   feasibility:'A teacher confirms which lights and devices are safe to turn off.',
+   feedback:'A peer asked for a clearer safety rule.',
+   improvement:'The group added an approval step.',
+   reflection:'Our English recommendations are now more precise.',
+   tested:true}
+ };
+ const assets=assetIds.map((id,i)=>({id,original_name:'original-'+keys[i]+'.png',image_url:''}));
+ await page.route('**/api/gallery-guest/artwork?**',route=>route.fulfill({json:{assets,expiresSeconds:90}}));
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const operation=new URL(route.request().url()).searchParams.get('operation');
+  if(operation==='me')return route.fulfill({json:{groupLabel:'Nhóm 01',groupState:state,csrf:'qa-submit-csrf',
+    uploadEnabled:true,assignment:{title:'Our Climate Action Museum',brief:'Sourced class climate action.',class_scope:'11.3',
+     deadline_at:new Date(Date.now()+86400000).toISOString()}}});
+  if(operation==='draft')return route.fulfill({json:{draft,version}});
+  if(operation==='save'){
+   const body=route.request().postDataJSON();saves++;version++;draft=body.draft;
+   return route.fulfill({json:{ok:true,version}});
+  }
+  if(operation==='submit'){
+   const allSources=keys.every(k=>Boolean(draft.artMeta?.[k]?.source?.trim()));
+   if(!allSources)return route.fulfill({status:400,json:{error:'Complete missing image source attributions.'}});
+   const body=route.request().postDataJSON();
+   if(body.expectedVersion!==version)return route.fulfill({status:409,json:{error:'Version changed.'}});
+   state='submitted';submits++;
+   return route.fulfill({json:{ok:true,status:'submitted',reviewId:'review-qa-submitted'}});
+  }
+  return route.fulfill({json:{ok:true}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>route.fulfill({json:{
+  session:{id:'qa-live-11',status:'active',stageIndex:10,stageOpen:true,stage:{
+   id:'exit-ticket',title:'Exit Ticket',kind:'exit',period:2,minutes:3,
+   question:'What environmental action will you take, and why?',sentence:'I will … because …',options:[]
+  },media:{query:'',videos:[],voiceEnabled:false}},
+  submitted:true,survey
+ }}));
+ await page.getByTestId('qa-student-en').click();
+ const app=page.getByTestId('museum-student-wizard');
+ await expect(app.getByTestId('museum-submit-summary')).toContainText('3 requirements to complete');
+ await expect(app.getByTestId('museum-submit-shortcut')).toBeVisible();
+ // Top step 5 must switch away from Exit Ticket into the actual submission pane.
+ await app.getByTestId('student-tab-live').click();
+ await app.locator('.bml-student-steps button').nth(4).click();
+ await expect(app.getByTestId('student-tab-studio')).toHaveAttribute('aria-pressed','true');
+ const checks=app.getByTestId('museum-submission-checks');
+ await expect(checks).toContainText('The Problem: name the actual image creator or source');
+ await expect(checks).toContainText('The Evidence: name the actual image creator or source');
+ await expect(checks).toContainText('Our Solution: name the actual image creator or source');
+ await checks.getByRole('button',{name:'Add missing image sources (3)'}).click();
+ const media=app.getByTestId('museum-artwork-studio');
+ await expect(media).toBeVisible();
+ await expect(media.locator('.bml-artwork-source-required')).toHaveCount(3);
+ for(let i=0;i<3;i++){
+  await media.locator('.bml-artwork-slot').nth(i).locator('label').filter({hasText:'Image source'}).locator('input')
+   .fill('Real creator named for '+keys[i]);
+ }
+ await expect(media.locator('.bml-artwork-source-required')).toHaveCount(0);
+ await app.locator('.bml-student-detail-head button').last().click();
+ await app.locator('.bml-student-steps button').nth(4).click();
+ await expect(app.getByTestId('museum-submission-checks')).toContainText('All draft checks passed');
+ await expect.poll(()=>saves,{timeout:12000}).toBeGreaterThan(0);
+ await expect(app.locator('.bml-save-indicator')).toContainText('Saved');
+ await app.getByRole('button',{name:'Submit for Admin review'}).click();
+ await expect.poll(()=>submits,{timeout:12000}).toBe(1);
+ await expect(app).toContainText('Submission is locked');
+});
