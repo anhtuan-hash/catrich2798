@@ -370,3 +370,17 @@
 .bml .bml-single-lesson-note{font-size:12px;color:#617870;margin:15px 0 0;line-height:1.6}
 @media(max-width:850px){.bml .bml-single-outcome-grid{grid-template-columns:1fr}.bml .bml-single-lesson{align-items:stretch;flex-direction:column}.bml .bml-single-lesson>.bml-kit-cover{flex:auto;min-height:130px}}
 @media(max-width:620px){.bml .bml-single-period-grid{grid-template-columns:1fr}.bml .bml-single-lesson{gap:12px;padding:12px}.bml .bml-single-period li{padding:7px 0}}
+
+/* Admin-only exhibition removal. Real action button sits OUTSIDE the card-open
+   button for correct keyboard focus and to prevent accidental navigation. */
+.bml .bml-gallery-card--managed{position:relative}
+.bml .bml-gallery-card-open{display:block;width:100%;padding:0;border:0;background:transparent;text-align:left;color:inherit;cursor:pointer}
+.bml .bml-gallery-card-open:hover .bml-card-caption>span{color:#0842a0}
+.bml .bml-gallery-card-open:focus-visible{outline:3px solid #7baaf8;outline-offset:-3px}
+.bml .bml-exhibition-delete{position:absolute;right:12px;top:11px;z-index:2;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:12px;border:1px solid #f1cfcb;background:#fffafa;color:#a53430;box-shadow:0 2px 8px #2838491c}
+.bml .bml-exhibition-delete:hover{background:#ffe9e7;border-color:#cf9b93}
+.bml .bml-exhibition-delete:focus-visible{outline:3px solid #7baaf8;outline-offset:2px}
+.bml .bml-gallery-card--managed .bml-card-caption>.bml-outline{align-self:flex-start;margin-top:3px}
+.bml .bml-exh-delete-action{color:#ad362f!important;font-weight:700}
+.bml .bml-exh-delete-action:hover{background:#fff1ef!important}
+@media (max-width:660px){.bml .bml-exhibition-delete{width:40px;height:40px;right:9px;top:9px}}
