@@ -196,7 +196,7 @@
 }
 
 /* Release 5.2: groups now open a full-width 16:9 board within the real fullscreen surface. */
-.bml .bml-presenter-panel:has(.bml-class-command){width:min(1200px,94vw);max-width:94vw}
+.bml .bml-presenter-panel:has(.bml-class-command){width:min(1200px,94vw);max-width:94vw;animation:none;transform:none}
 .bml .bml-presenter-panel-scroll:has(.bml-class-command){padding:8px;overflow:hidden;display:block;flex:1 1 0}
 .bml .bml-presenter-panel-scroll .bml-class-command{width:100%;height:100%;min-height:0}
 .bml .bml-cc-compact-summary{display:flex;align-items:center;gap:9px;padding:11px 13px;
