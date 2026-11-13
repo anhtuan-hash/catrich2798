@@ -86,10 +86,19 @@ export function videoTaskFor(board,stageIndex){
  return {
   query:typeof allowed.query==='string'?allowed.query.slice(0,120):'',
   instruction:typeof allowed.instruction==='string'?allowed.instruction.slice(0,350):'',
+  voiceEnabled:allowed.voiceEnabled===true,
   videos:Array.isArray(allowed.videos)?allowed.videos.slice(0,6).filter(v=>extractYouTubeVideoId(v?.id)).map(v=>({
    id:extractYouTubeVideoId(v.id),title:String(v.title||'YouTube research video').slice(0,160),
    channel:String(v.channel||'').slice(0,120)
   })):[]
+ };
+}
+export function stageMediaTools(session){
+ const media=session?.media||{};
+ const open=session?.status==='active'&&session?.stageOpen===true;
+ return {
+  video:open&&(Boolean(media.query?.trim())||(Array.isArray(media.videos)&&media.videos.length>0)),
+  voice:open&&media.voiceEnabled===true
  };
 }
 export function teacherVoiceover(stage){return VOICEOVER_SCRIPTS[stage?.id]||[stage?.title,stage?.question,stage?.sentence].filter(Boolean).join('. ');}
