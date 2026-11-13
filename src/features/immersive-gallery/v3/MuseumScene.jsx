@@ -23,7 +23,8 @@ function ExhibitVisual({exhibit,index,language}){
    </div>}
  </div>;
 }
-export function reviewMuseum(review){
+export function reviewMuseum(review,assets=[]){
+ const byId=new Map(assets.filter(a=>a?.id&&a?.image_url).map(a=>[a.id,a]));
  const raw=review?.snapshot||{};
  return {
   id:'review-'+String(review?.id||'preview'),
@@ -33,7 +34,14 @@ export function reviewMuseum(review){
   rooms:(raw.rooms||[]).map((r,i)=>({
    id:'review-room-'+i,title:r.title||'Room '+(i+1),
    template_key:r.template_key||'classic',
-   exhibits:(r.exhibits||[]).map((e,j)=>({...e,id:'review-exhibit-'+i+'-'+j,status:'published'}))
+   exhibits:(r.exhibits||[]).map((e,j)=>{
+    const slot=['issue','evidence','solution'][j];
+    const asset=byId.get(e.asset_id||raw.artworks?.[slot]);
+    return {...e,id:'review-exhibit-'+i+'-'+j,status:'published',
+     image_url:asset?.image_url||'',kind:asset?'image':e.kind,
+     alt_text:e.alt_text||raw.artMeta?.[slot]?.alt||e.title,
+     image_original_name:asset?.original_name||''};
+   })
   }))
  };
 }
