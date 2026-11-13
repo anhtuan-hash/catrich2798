@@ -21,6 +21,7 @@ on:
       - 'serverless-handlers/_museumLiveMedia.js'
       - 'serverless-handlers/_museumLivePeer.js'
       - 'scripts/test-museum-live-peer-v51.mjs'
+      - 'scripts/test-museum-command-center-v52.mjs'
       - 'supabase/migrations/*museum_live_peer*'
       - 'supabase/migrations/*museum_live_competition*'
       - 'scripts/museum-v31-postgres-qa.sh'
@@ -60,6 +61,8 @@ jobs:
         run: node --test scripts/test-museum-stage-media-v50.mjs
       - name: Official climate videos and private live group feedback
         run: node --test scripts/test-museum-live-peer-v51.mjs
+      - name: Release V5.2 command center, class metrics and content-quality advisory
+        run: node --test scripts/test-museum-command-center-v52.mjs
       - name: School-inspired 3D hall, authentic identity and backwards compatibility
         run: node --test scripts/test-pek-museum-v33.mjs
       - name: Artwork 360 orbit, original media and accessibility contract
