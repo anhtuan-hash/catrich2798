@@ -400,6 +400,7 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
  const onPosition=(x,z)=>{setPos([+x.toFixed(1),+z.toFixed(1)]);};
  const hold=(key,down)=>{if(down)held.current.add(key);else held.current.delete(key);window.dispatchEvent(new Event('big-gallery-animate'));};
  const onTeleport=point=>{
+  if(cinemaEdition&&focus.phase!=='idle')return;
   if(cinemaEdition){
    setViewPreset({type:point[1]<-3?'artwork':'room',x:point[0],id:Date.now()+Math.random()});
   }else setTeleport([...point]);
@@ -422,8 +423,8 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
    <div className="big-pek-edition-mark"><span className="big-pek-dot"/>
     <span className="big-pek-edition-long">{language==='en'?'PÉTRUS KÝ · DISCOVERY HALL':'PÉTRUS KÝ · BẢO TÀNG KHÁM PHÁ'}</span>
     <span className="big-pek-edition-short">{'PéK'}</span></div>
-   <button type="button" onClick={()=>onTeleport([0,-4.45])}>{language==='en'?'See the artwork':'Đến gần tranh'}</button>
-   <button type="button" onClick={()=>onTeleport([0,1.55])}>{language==='en'?'Full room view':'Toàn cảnh'}</button>
+   <button type="button" disabled={cinemaEdition&&focus.phase!=='idle'} onClick={()=>onTeleport([0,-4.45])}>{language==='en'?'See the artwork':'Đến gần tranh'}</button>
+   <button type="button" disabled={cinemaEdition&&focus.phase!=='idle'} onClick={()=>onTeleport([0,1.55])}>{language==='en'?'Full room view':'Toàn cảnh'}</button>
   </div>:<div className="big-scene-hud" aria-hidden="true">{pos[0]}, {pos[1]} · R3F</div>}
   {cinemaEdition?<div className="bml-v5-artwork-access" role="group" aria-label="Select a museum exhibit">
    {exhibits.slice(0,30).map((e,i)=><button type="button" key={e.id||i}
@@ -431,9 +432,9 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
     aria-label={'Inspect '+String(e.title||'exhibit')} title={e.title}>
     {String(i+1).padStart(2,'0')}</button>)}
   </div>:null}
-  <div className="big-touch-pad" aria-label="Mobile navigation">
+  {(!cinemaEdition||focus.phase==='idle')?<div className="big-touch-pad" aria-label="Mobile navigation">
    {[['↑','w'],['←','a'],['↓','s'],['→','d']].map(([text,key])=><button key={key} type="button" onPointerDown={e=>{e.preventDefault();hold(key,true);}}
      onPointerUp={()=>hold(key,false)} onPointerCancel={()=>hold(key,false)} onPointerLeave={()=>hold(key,false)}>{text}</button>)}
-  </div>
+  </div>:null}
  </div>;
 }
