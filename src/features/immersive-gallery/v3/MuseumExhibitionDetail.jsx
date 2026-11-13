@@ -1,4 +1,5 @@
-import React,{useMemo,useRef,useState} from 'react';
+import React,{useEffect,useMemo,useRef,useState} from 'react';
+import {createPortal} from 'react-dom';
 import {ArrowLeft,ArrowRight,Award,BarChart3,BookOpen,CheckCircle2,ChevronRight,Clock3,Copy,Download,Eye,FileText,FolderOpen,Home,Images,Info,Landmark,Layers3,Maximize2,MoreHorizontal,Presentation,Share2,ShieldCheck,Users,Trash2,X} from 'lucide-react';
 import MuseumScene from './MuseumScene.jsx';
 import './museumExhibition.css';
@@ -45,9 +46,10 @@ function OverviewCards({data,onNavigate,language}){
   </section>
  </div>;
 }
-export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onNavigate,data,isDemo=false,onDelete=null,busy=false}){
+export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onNavigate,data,isDemo=false,onDelete=null,busy=false,startInCinema=false}){
  const [section,setSection]=useState('space'),[moreOpen,setMoreOpen]=useState(false),[notice,setNotice]=useState('');
- const viewerRef=useRef(null);
+ const [cinemaOpen,setCinemaOpen]=useState(Boolean(startInCinema));
+ const enterCinemaRef=useRef(null);
  const rooms=useMemo(()=>Array.isArray(gallery?.rooms)?gallery.rooms:[],[gallery?.rooms]);
  const exhibitCount=rooms.reduce((total,room)=>total+(room.exhibits?.length||0),0);
  const visibleStatus=gallery?.status==='published'&&!isDemo;
@@ -78,13 +80,23 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
    'Generated from currently visible exhibition content.'];
   saveTextFile('BRIAN_Museum_Exhibition_Summary.txt','text/plain;charset=utf-8',lines.join('\n'));
  };
- const toggleFullscreen=()=>{
-  const el=viewerRef.current;if(!el)return;
-  if(document.fullscreenElement===el){document.exitFullscreen?.();}
-  else if(el.requestFullscreen)el.requestFullscreen().catch(()=>announce(t(language,'Thiết bị không hỗ trợ toàn màn hình.','Fullscreen is unavailable.')));
-  else announce(t(language,'Thiết bị không hỗ trợ toàn màn hình.','Fullscreen is unavailable.'));
- };
- return <div className="bml-exhibition-detail bml-screen" data-testid="museum-exhibition-detail">
+ // Teachers use the exact same full-viewport MuseumScene cinema mode as student
+ // creators. Keep the management page mounted underneath for information,
+ // sharing and returning to the Exhibition catalogue.
+ const openCinema=()=>{setSection('space');setMoreOpen(false);setCinemaOpen(true);};
+ const closeCinema=()=>{setCinemaOpen(false);
+  window.requestAnimationFrame?.(()=>enterCinemaRef.current?.focus?.());};
+ useEffect(()=>{
+  if(!cinemaOpen||typeof document==='undefined')return undefined;
+  const oldOverflow=document.body.style.overflow;
+  document.body.style.overflow='hidden';
+  const frame=window.requestAnimationFrame?.(()=>{
+   document.querySelector('[data-testid="museum-teacher-cinema-portal"] .bml-cinema-close')?.focus?.();
+  });
+  return()=>{if(frame!=null)window.cancelAnimationFrame?.(frame);document.body.style.overflow=oldOverflow;};
+ },[cinemaOpen]);
+ return <>
+ <div className="bml-exhibition-detail bml-screen" data-testid="museum-exhibition-detail">
   <nav className="bml-exh-breadcrumbs" aria-label={t(language,'Đường dẫn','Breadcrumb')}>
    <button type="button" onClick={()=>onNavigate?.('home')}><Home size={15}/>{t(language,'Trang chủ','Home')}</button>
    <ChevronRight size={14}/><button type="button" onClick={onBack}>{t(language,'Triển lãm','Exhibitions')}</button>
@@ -105,7 +117,7 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
    </div>
    <div className="bml-exh-hero-visual"><MuseumHeroArt/></div>
   </section>
-  <section className="bml-exh-museum-frame" ref={viewerRef} data-testid="museum-exhibition-frame">
+  <section className="bml-exh-museum-frame" data-testid="museum-exhibition-frame">
    <div className="bml-exh-toolbar">
     <div className="bml-exh-section-tabs" role="tablist" aria-label={t(language,'Nội dung triển lãm','Exhibition sections')}>
      <button type="button" role="tab" aria-selected={section==='space'} className={section==='space'?'is-active':''}
@@ -114,7 +126,7 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
       onClick={()=>setSection('about')}><Info size={17}/>{t(language,'Thông tin & hoạt động','Information & activity')}</button>
     </div>
     <div className="bml-exh-toolbar-actions">
-     <button type="button" className="bml-exh-round-action" onClick={toggleFullscreen} title={t(language,'Toàn màn hình','Fullscreen')} aria-label={t(language,'Toàn màn hình','Fullscreen')}><Maximize2 size={19}/></button>
+     <button type="button" className="bml-exh-round-action" onClick={openCinema} title={t(language,'Mở bảo tàng toàn màn hình','Open full-screen museum')} aria-label={t(language,'Mở bảo tàng toàn màn hình','Open full-screen museum')}><Maximize2 size={19}/></button>
      <button type="button" className="bml-exh-round-action" onClick={copyLink} title={t(language,'Chia sẻ','Share')} aria-label={t(language,'Chia sẻ','Share')}><Share2 size={19}/></button>
      <div className="bml-exh-more-wrap">
       <button type="button" className="bml-exh-round-action" aria-expanded={moreOpen} aria-label={t(language,'Tùy chọn','More options')}
@@ -130,7 +142,9 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
    </div>
    {notice?<div className="bml-exh-notice" role="status"><CheckCircle2 size={16}/>{notice}<button aria-label="Close" onClick={()=>setNotice('')}><X size={16}/></button></div>:null}
    {section==='space'?<div role="tabpanel">
-     <MuseumScene gallery={gallery} language={language} compact initial3D/>
+     {!cinemaOpen?<><button ref={enterCinemaRef} type="button" className="bml-exh-enter-cinema" onClick={openCinema}>
+      <Maximize2 size={18}/>{t(language,'Tham quan bảo tàng toàn màn hình','Open full-screen museum')}
+     </button><MuseumScene gallery={gallery} language={language} compact initial3D/></>:null}
     </div>:<div className="bml-exh-info-panel" role="tabpanel">
      <div>
       <span className="bml-overline">{t(language,'CÂU CHUYỆN TRIỂN LÃM','EXHIBITION STORY')}</span>
@@ -156,5 +170,14 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
   <OverviewCards data={data} onNavigate={onNavigate} language={language}/>
   <footer className="bml-exh-footer"><span><Landmark size={18}/> BRIAN Museum Lab <span aria-hidden="true">·</span> V3.2</span>
    <span>Teach Better Together ♡</span></footer>
- </div>;
+ </div>
+ {cinemaOpen&&typeof document!=='undefined'?createPortal(
+  <div className="bml bml-paper bml-teacher-cinema-portal" data-testid="museum-teacher-cinema-portal">
+   <div className="bml-review-cinema-overlay" role="dialog" aria-modal="true"
+    aria-label={t(language,'Tham quan triển lãm toàn màn hình','Full-screen museum exhibition')}>
+    <MuseumScene gallery={gallery} language={language} embedded cinema initial3D
+     onClose={closeCinema}/>
+   </div>
+  </div>,document.body):null}
+ </>;
 }

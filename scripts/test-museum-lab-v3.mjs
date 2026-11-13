@@ -305,3 +305,21 @@ test('published exhibition catalogue remains dashboard-backed and private poster
  assert.match(paper,/\.bml-published-entry/);
  assert.match(app,/onRefresh=\{refresh\} transport=\{transport\}/);
 });
+
+test('teacher gallery uses the same 2D/3D cinema component as student preview',()=>{
+ const teacher=fs.readFileSync('src/features/immersive-gallery/v3/MuseumExhibitionDetail.jsx','utf8');
+ const gallery=fs.readFileSync('src/features/immersive-gallery/v3/MuseumExplore.jsx','utf8');
+ const student=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLabStudent.jsx','utf8');
+ const css=fs.readFileSync('src/features/immersive-gallery/v3/museumExhibition.css','utf8');
+ assert.match(teacher,/import \{createPortal\} from 'react-dom'/);
+ assert.match(teacher,/startInCinema=false/);
+ assert.match(teacher,/useState\(Boolean\(startInCinema\)\)/);
+ assert.match(teacher,/createPortal\(/);
+ assert.match(teacher,/cinema initial3D/);
+ assert.match(teacher,/onClose=\{closeCinema\}/);
+ assert.match(teacher,/enterCinemaRef\.current\?\.focus/);
+ assert.match(gallery,/language=\{language\} startInCinema/);
+ assert.match(student,/embedded cinema initial3D gallery=\{previewGallery\}/);
+ assert.match(css,/\.bml\.bml-teacher-cinema-portal/);
+ assert.match(css,/z-index:9999/);
+});
