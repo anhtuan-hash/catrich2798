@@ -1,0 +1,84 @@
+/* V5 world-anchored museum plaque only — never a modal or fake frame. */
+.bml .bml-v5-world-board{
+ display:flex;flex-direction:column;box-sizing:border-box;
+ width:520px;height:442px;padding:18px 27px 16px;
+ border:0;background:transparent;
+ font-family:Arial,Helvetica,sans-serif;color:#234A43;
+ text-align:left;line-height:1.48;pointer-events:auto;
+}
+.bml .bml-v5-board-scroll{
+ display:block;flex:1 1 auto;min-height:0;
+ overflow:auto;overscroll-behavior:contain;
+ scrollbar-width:thin;scrollbar-color:#C5AD70 #F9F2DF;
+}
+.bml .bml-v5-board-eyebrow{
+ color:#2F6458;letter-spacing:.13em;font:800 18px/1.35 Arial,sans-serif;
+ margin:0 0 13px;
+}
+.bml .bml-v5-world-board h2{
+ font:600 46px/1.07 Georgia,serif;color:#194F42;
+ margin:0 0 15px;overflow-wrap:anywhere;
+}
+.bml .bml-v5-board-rule{width:78px;height:4px;background:#C8A34B;margin:17px 0 23px;border-radius:2px}
+.bml .bml-v5-board-copy,.bml .bml-v5-world-board p{
+ font-size:22px;line-height:1.43;color:#263F3A;
+ margin:0 0 15px;overflow-wrap:anywhere;white-space:pre-wrap;
+}
+.bml .bml-v5-board-source{
+ margin:16px 0 7px;padding:15px 0 0;border-top:1px solid #C5B78A;
+}
+.bml .bml-v5-board-source strong{
+ display:block;font-size:18px;font-family:Georgia,serif;font-style:italic;color:#254D41;margin-bottom:8px;
+}
+.bml .bml-v5-board-source p{
+ font-size:19px;line-height:1.4;overflow-wrap:anywhere;
+}
+.bml .bml-v5-board-more{
+ margin:10px 0;padding:5px 0;border-top:1px solid #E2D7BC;
+}
+.bml .bml-v5-board-more summary{
+ cursor:pointer;color:#22604E;min-height:33px;
+ font-size:18px;font-weight:800;outline-offset:3px;
+}
+.bml .bml-v5-board-more p{font-size:18px;line-height:1.4;margin:5px 0 10px}
+.bml .bml-v5-survey-rows p{display:flex;justify-content:space-between;gap:10px;font-size:17px}
+.bml .bml-v5-survey-rows strong{white-space:nowrap}
+.bml .bml-v5-board-more small{font-size:17px;color:#596D62}
+.bml .bml-v5-back-to-wall{
+ display:inline-flex;align-items:center;justify-content:center;gap:12px;
+ flex:0 0 auto;align-self:end;
+ min-height:51px;padding:8px 21px;margin:16px 0 0;
+ border-radius:999px;border:2px solid #AE9462;
+ background:#FFFDF4;color:#245C4D;font:800 19px/1.3 Arial,sans-serif;
+ cursor:pointer;box-shadow:0 3px 8px #59462924;
+ pointer-events:auto;
+}
+.bml .bml-v5-back-to-wall:hover{background:#E6F0E6}
+.bml .bml-v5-back-to-wall:focus-visible,
+.bml .bml-v5-board-more summary:focus-visible{
+ outline:4px solid #F2C76B;outline-offset:3px;
+}
+.bml .bml-v5-back-to-wall:disabled{opacity:.5;cursor:wait}
+.bml .bml-v5-world-board.is-compact{width:500px;height:435px;padding:18px 23px}
+.bml .bml-v5-world-board.is-compact h2{font-size:41px}
+.bml .bml-v5-world-board.is-compact .bml-v5-board-copy{font-size:21px}
+.bml .bml-v5-world-board.is-compact .bml-v5-board-source p{font-size:18px}
+/* World HTML is attached by Drei Html transform to the plaque Object3D;
+   wrappers must not become fixed/floating screen cards. */
+.bml .big-pek-v4 .bml-v5-world-board *{box-sizing:border-box}
+.bml .bml-museum-cinema[data-focus-active="true"] .big-pek-tools{
+ opacity:.22;pointer-events:none;
+}
+.bml .bml-museum-cinema[data-focus-active="true"] .big-touch-pad{
+ display:none!important;
+}
+.bml .bml-museum-cinema[data-focus-active="true"] .bml-cinema-bottom-hud{
+ opacity:.35;pointer-events:none;
+}
+.bml .bml-v5-focus-announcement{
+ position:absolute;width:1px;height:1px;overflow:hidden;
+ clip:rect(0,0,0,0);white-space:nowrap;
+}
+@media(prefers-reduced-motion:reduce){
+ .bml .bml-v5-world-board *, .bml .bml-v5-back-to-wall{transition:none!important;animation:none!important}
+}

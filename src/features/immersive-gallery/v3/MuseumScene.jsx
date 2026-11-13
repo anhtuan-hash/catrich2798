@@ -2,6 +2,9 @@ import React,{Suspense,lazy,useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,Box,ChevronLeft,ChevronRight,Eye,FileText,Info,LayoutGrid,MapPin,Maximize2,Minimize2,X,Image as ImageIcon,Leaf,Globe2} from 'lucide-react';
 import '../gallery.css';
 import {exhibitInsights,exhibitField} from './museumExhibitInsights.js';
+import {projectAuthorizedEvidence,buildExhibitFocusBoard} from './museumExhibitFocusData.js';
+import {FOCUS_INITIAL,focusReducer} from './museumExhibitFocusMotion.js';
+import './museumExhibitFocus.css';
 import './museumExhibitLens.css';
 import './museumPaper2D.css';
 import './museumCinemaPreview.css';
@@ -34,6 +37,7 @@ export function reviewMuseum(review,assets=[]){
   title:raw.title||'English Museum',
   summary:raw.summary||'Private review draft — not published',
   status:review?.state||'draft',
+  ...projectAuthorizedEvidence(raw),
   rooms:(raw.rooms||[]).map((r,i)=>({
    id:'review-room-'+i,title:r.title||'Room '+(i+1),
    template_key:r.template_key||'classic',
@@ -49,11 +53,13 @@ export function reviewMuseum(review,assets=[]){
 export default function MuseumScene({gallery,onBack,onClose,language='vi',embedded=false,compact=false,initial3D=false,onExhibitSelect,cinema=false}){
  const [activeRoom,setActiveRoom]=useState(0),[threeD,setThreeD]=useState(cinema||initial3D),[selectedId,setSelectedId]=useState(null);
  const [fullPosterId,setFullPosterId]=useState(null);
+ const [focus,dispatchFocus]=React.useReducer(focusReducer,FOCUS_INITIAL);
  const cinemaRef=useRef(null),cinemaOpenerRef=useRef(null),[infoOpen,setInfoOpen]=useState(false);
  useEffect(()=>{if(cinema)cinemaOpenerRef.current=document.activeElement;},[cinema]);
  const [isFullscreen,setIsFullscreen]=useState(false),[fallbackFullscreen,setFallbackFullscreen]=useState(false);
  const leaveCinema=()=>{
   if(document.fullscreenElement===cinemaRef.current)document.exitFullscreen?.().catch(()=>{});
+  dispatchFocus({type:'RESET'});
   setFallbackFullscreen(false);onClose?.();
   Promise.resolve().then(()=>cinemaOpenerRef.current?.focus?.());
  };
@@ -83,6 +89,10 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
    }
    if(event.key!=='Escape')return;
    if(infoOpen){setInfoOpen(false);return;}
+   if(cinema&&threeD&&focus.phase!=='idle'){
+    event.preventDefault();event.stopPropagation();
+    dispatchFocus({type:'BACK'});return;
+   }
    if(!selectedId&&!fullPosterId&&!document.fullscreenElement){
     event.preventDefault();leaveCinema();
    }
@@ -90,7 +100,7 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
   document.addEventListener('fullscreenchange',onFullscreen);
   document.addEventListener('keydown',onEscape);
   return()=>{document.removeEventListener('fullscreenchange',onFullscreen);document.removeEventListener('keydown',onEscape);};
- },[cinema,onClose,selectedId,fullPosterId,infoOpen]);
+ },[cinema,onClose,selectedId,fullPosterId,infoOpen,threeD,focus.phase]);
  const posterCloseRef=useRef(null),posterOpenerRef=useRef(null);
  const dialogRef=useRef(null),closeRef=useRef(null),openerRef=useRef(null);
  const rooms=gallery?.rooms||[];
@@ -113,6 +123,21 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
   document.addEventListener('keydown',onKey,true);
   return()=>document.removeEventListener('keydown',onKey,true);
  },[fullPoster?.id]);
+ const focusedIndex=exhibits.findIndex(e=>e.id===focus.exhibitId);
+ const focusedExhibit=focusedIndex>=0?exhibits[focusedIndex]:null;
+ const focusedInsight=focusedExhibit?exhibitInsights(gallery,focusedExhibit,focusedIndex):null;
+ const focusBoard=focusedExhibit?buildExhibitFocusBoard(focusedExhibit,focusedInsight,focusedIndex):null;
+ useEffect(()=>{
+  if(focus.phase==='preparing'&&focus.roomId===room?.id&&focusedExhibit){
+   dispatchFocus({type:'PREPARED'});
+  }
+ },[focus.phase,focus.roomId,room?.id,focusedExhibit?.id]);
+ // The physical artwork already reached its end pose when the Canvas emitted
+ // EXTRACT_COMPLETE. Presentation mounts the board in the same scene; do not
+ // require an extra stationary render-loop tween to declare focus ready.
+ useEffect(()=>{
+  if(focus.phase==='presenting')dispatchFocus({type:'PRESENT_COMPLETE'});
+ },[focus.phase]);
  const selectedIndex=exhibits.findIndex(e=>e.id===selectedId);
  const insight=selected?exhibitInsights(gallery,selected,selectedIndex):null;
  const tr=(vi,en)=>language==='en'?en:vi;
@@ -122,6 +147,17 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
   if(index>=0)onExhibitSelect?.({index,key:exhibitField(index,exhibits[index]?.title),title:exhibits[index]?.title});
   setSelectedId(id);
  };
+ const open3DExhibit=id=>{
+  if(!cinema||!threeD){openExhibit(id);return;}
+  if(focus.phase!=='idle'||!room?.id)return;
+  const index=exhibits.findIndex(e=>e.id===id);
+  if(index<0)return;
+  onExhibitSelect?.({index,key:exhibitField(index,exhibits[index]?.title),title:exhibits[index]?.title});
+  dispatchFocus({type:'SELECT',exhibitId:id,roomId:room.id});
+ };
+ const backToWall=()=>dispatchFocus({type:'BACK'});
+ const switch2D=()=>{dispatchFocus({type:'RESET'});setThreeD(false);};
+ const switch3D=()=>{dispatchFocus({type:'RESET'});setThreeD(true);};
  const closeExhibit=()=>{
   setSelectedId(null);
   Promise.resolve().then(()=>openerRef.current?.focus?.());
@@ -141,9 +177,10 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
   document.addEventListener('keydown',handleKeys);
   return()=>document.removeEventListener('keydown',handleKeys);
  },[selected?.id]);
- const changeRoom=n=>{setActiveRoom(n);setSelectedId(null);setFullPosterId(null);};
+ const changeRoom=n=>{dispatchFocus({type:'RESET'});setActiveRoom(n);setSelectedId(null);setFullPosterId(null);};
  return <section ref={cinemaRef} className={'bml-scene bml-paper-2d '+(!threeD?'is-2d ':'')+(embedded?'bml-scene-embedded ':'')+(compact?'bml-scene-compact ':'')+(cinema?'bml-museum-cinema ':'')+(fallbackFullscreen?'is-fallback-fullscreen':'')}
-  data-testid="museum-visitor" data-museum-mode={cinema?'cinema':'classic'}>
+  data-testid="museum-visitor" data-museum-mode={cinema?'cinema':'classic'}
+  data-focus-active={cinema&&threeD&&focus.phase!=='idle'}>
   {!compact&&!cinema?<header className="bml-scene-header">
    <div className="bml-scene-title">
     {onBack?<button type="button" className="bml-icon-btn" onClick={onBack} aria-label={tr('Quay lại','Back')}><ArrowLeft size={20}/></button>:null}
@@ -159,9 +196,9 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
   {cinema?<div className="bml-cinema-hud" data-testid="museum-cinema-hud">
    <div className="bml-cinema-mode-group" role="group" aria-label="Museum view mode">
     <button type="button" className={!threeD?'is-active':''} aria-pressed={!threeD}
-     onClick={()=>{setInfoOpen(false);setThreeD(false);}}><LayoutGrid size={17}/>2D</button>
+     onClick={()=>{setInfoOpen(false);switch2D();}}><LayoutGrid size={17}/>2D</button>
     <button type="button" className={threeD?'is-active':''} aria-pressed={threeD}
-     onClick={()=>{setInfoOpen(false);setThreeD(true);}}><Box size={17}/>3D</button>
+     onClick={()=>{setInfoOpen(false);switch3D();}}><Box size={17}/>3D</button>
    </div>
    <button type="button" aria-label="Museum information" aria-expanded={infoOpen}
     className="bml-cinema-hud-button" onClick={()=>setInfoOpen(v=>!v)}><Info size={19}/></button>
@@ -190,7 +227,10 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
     </div>:null}
     <Suspense fallback={<div className="bml-empty"><Box size={32}/>{tr('Đang dựng bảo tàng 3D…','Preparing 3D museum…')}</div>}>
      <GalleryCanvas key={room.id} template={room.template_key} exhibits={exhibits} selectedId={selectedId||''}
-      onSelect={openExhibit} quality="auto" language={language} schoolEdition cinemaEdition={cinema}/>
+      onSelect={open3DExhibit} quality="auto" language={language} schoolEdition cinemaEdition={cinema}
+      focusPhase={cinema?focus.phase:'idle'} focusId={cinema?focus.exhibitId:null}
+      focusBoard={cinema?focusBoard:null} onFocusBack={backToWall}
+      onFocusPhaseChange={action=>dispatchFocus({type:action})}/>
     </Suspense>
     {!cinema?<div className="bml-3d-caption"><Info size={15}/>{tr('Dùng WASD hoặc nút trên điện thoại để di chuyển. Chạm vào hiện vật để xem nội dung.','Use WASD or touch controls. Select any exhibit to read it.')}</div>:null}
    </div>:<div className="bml-museum-room bml-paper-museum-room" data-testid="museum-paper-2d-room">
@@ -255,7 +295,7 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
        'The complete original poster is displayed without cropping or distortion.')}</p>
     </section>
    </div>:null}
-  {selected?<div className="bml-modal-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)closeExhibit();}} role="presentation">
+  {selected&&!(cinema&&threeD)?<div className="bml-modal-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)closeExhibit();}} role="presentation">
     <section className="bml-modal bml-art-dialog bml-art-360-dialog" ref={dialogRef} role="dialog" aria-modal="true"
       aria-label={clean(selected.title,140)} data-testid="museum-artwork-inspector">
      <header><span className="bml-overline">{tr('THAM QUAN HIỆN VẬT 360°','360° EXHIBIT INSPECTION')}</span>

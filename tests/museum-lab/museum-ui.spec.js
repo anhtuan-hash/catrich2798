@@ -1478,7 +1478,11 @@ test('Student Creator 2D Paper exhibit displays actual uploaded photos and remai
    title:'Lights Off, Future On',summary:'An energy use gallery about our school.',
    artworks:{issue:assetIds[0],evidence:assetIds[1],solution:assetIds[2]},
    artMeta:{issue:{alt:'Actual classroom image'},evidence:{alt:'Actual class survey image'},solution:{alt:'Actual action photo'}},
-   learning:{issue:'Problem',evidence:'Survey',solution:'Action'},
+   learning:{issue:'Unnecessary lights remain on in empty classrooms.',
+    evidence:'Four of ten groups prioritised switching off unused lights. This is a preference, not a direct measure of energy saved.',
+    source:'NASA Space Place: The Greenhouse Effect',
+    solution:'Assign a student monitor and a teacher to check lights.',improvement:'Added a teacher check after peer feedback.'},
+   survey:{counts:[4,3,2,1],source:'paper'},
    rooms:[{title:'Lights Off, Future On',template_key:'classic',exhibits:titles.map((title,i)=>({
     title,description:'Student-written exhibit description '+(i+1)+'.',kind:'image',asset_id:assetIds[i]
    }))}]
@@ -1594,6 +1598,80 @@ test('Student Creator 2D Paper exhibit displays actual uploaded photos and remai
   await expect.poll(()=>page.evaluate(()=>window.__museumTextureReady||0),{timeout:15000}).toBeGreaterThanOrEqual(3);
   await page.screenshot({path:testInfo.outputPath('museum-v4-cinema-'+viewport.width+'x'+viewport.height+'.png'),fullPage:false});
  }
+ // V5: Click the real The Evidence mesh in the same WebGL Canvas,
+ // not a DOM fake, duplicate poster, or second orbit viewer.
+ const beforeFocus=await page.evaluate(()=>window.__brianMuseumV5QA?.());
+ expect(beforeFocus).toBeTruthy();
+ expect(beforeFocus.originalArtworkCount).toBe(3);
+ expect(beforeFocus.focusRigCount).toBe(0);
+ expect(beforeFocus.canvasCount).toBe(1);
+ const evidenceBefore=beforeFocus.art.find(a=>a.index===1);
+ expect(evidenceBefore).toBeTruthy();
+ await page.mouse.click(evidenceBefore.screen.x,evidenceBefore.screen.y);
+ // Geometric-only debug: never logs a signed image URL, group key or student content.
+ for(let sample=0;sample<5;sample++){
+  await page.waitForTimeout(450);
+  const state=await viewer.getByTestId('museum-focus-state').getAttribute('data-phase');
+  const pose=await page.evaluate(()=>window.__brianMuseumV5QA?.());
+  console.log('V5_WORLD_QA',JSON.stringify({sample,state,
+   art:pose?.art?.find(a=>a.index===1)?.position,
+   camera:pose?.camera,rig:pose?.focusRigCount}));
+ }
+ await expect(viewer.getByTestId('museum-focus-state')).toHaveAttribute('data-phase','focused',{timeout:13000});
+ await expect(viewer.getByTestId('museum-artwork-inspector')).toHaveCount(0);
+ await expect(viewer.getByTestId('museum-focus-stage')).toHaveCount(1);
+ const infoBoard=viewer.getByTestId('museum-focus-info-board');
+ await expect(infoBoard).toBeVisible({timeout:15000});
+ await expect(infoBoard).toContainText('The Evidence');
+ await expect(infoBoard).toContainText('NASA Space Place: The Greenhouse Effect');
+ await expect(infoBoard).toContainText('Four of ten groups');
+ await expect(infoBoard).toContainText('Group survey');
+ await expect(infoBoard).not.toContainText('Autosaved');
+ const focusedPose=await page.evaluate(()=>window.__brianMuseumV5QA?.());
+ const evidenceFocus=focusedPose.art.find(a=>a.index===1);
+ expect(focusedPose.originalArtworkCount).toBe(3);
+ expect(focusedPose.focusRigCount).toBe(1);
+ expect(focusedPose.canvasCount).toBe(1);
+ expect(evidenceFocus.uuid).toBe(evidenceBefore.uuid);
+ expect(evidenceFocus.position[2]-evidenceBefore.position[2]).toBeGreaterThan(3.7);
+ expect(evidenceFocus.position[0]).toBeLessThan(0);
+ for(const viewport of [{width:1366,height:768},{width:1536,height:864},{width:1920,height:1080}]){
+  await page.setViewportSize(viewport);
+  await expect(infoBoard).toBeVisible();
+  await page.screenshot({path:testInfo.outputPath('museum-v5-focused-'+viewport.width+'x'+viewport.height+'.png'),fullPage:false});
+  const boardBounds=await infoBoard.boundingBox();
+  expect(boardBounds).toBeTruthy();
+  expect(boardBounds.x).toBeGreaterThan(-10);
+  expect(boardBounds.x+boardBounds.width).toBeLessThan(viewport.width+10);
+ }
+ // Keep the same physical stage usable after a portrait resize; this is
+ // still one WebGL Canvas, not a mobile screenshot/second 2D modal.
+ await page.setViewportSize({width:390,height:844});
+ await expect(infoBoard).toBeVisible();
+ await expect(infoBoard.getByTestId('museum-back-to-wall')).toBeVisible();
+ const mobileBoard=await infoBoard.boundingBox();
+ expect(mobileBoard).toBeTruthy();
+ expect(mobileBoard.x).toBeGreaterThan(-10);
+ expect(mobileBoard.x+mobileBoard.width).toBeLessThanOrEqual(400);
+ await page.screenshot({path:testInfo.outputPath('museum-v5-focused-390x844.png'),fullPage:false});
+ await page.setViewportSize({width:1536,height:960});
+ await expect(infoBoard).toBeVisible();
+ await infoBoard.getByTestId('museum-back-to-wall').click();
+ await expect(viewer.getByTestId('museum-focus-state')).toHaveAttribute('data-phase','idle',{timeout:15000});
+ await expect(infoBoard).toHaveCount(0);
+ const afterReturn=await page.evaluate(()=>window.__brianMuseumV5QA?.());
+ const evidenceReturn=afterReturn.art.find(a=>a.index===1);
+ expect(afterReturn.originalArtworkCount).toBe(3);
+ expect(afterReturn.focusRigCount).toBe(0);
+ expect(evidenceReturn.uuid).toBe(evidenceBefore.uuid);
+ for(let i=0;i<3;i++)expect(evidenceReturn.position[i]).toBeCloseTo(evidenceBefore.position[i],3);
+ for(let i=0;i<3;i++)expect(afterReturn.camera[i]).toBeCloseTo(beforeFocus.camera[i],2);
+ // ESC after re-entry reverses focus without ever invoking the old inspector.
+ await page.mouse.click(evidenceBefore.screen.x,evidenceBefore.screen.y);
+ await expect(viewer.getByTestId('museum-focus-state')).toHaveAttribute('data-phase','focused',{timeout:15000});
+ await page.keyboard.press('Escape');
+ await expect(viewer.getByTestId('museum-focus-state')).toHaveAttribute('data-phase','idle',{timeout:15000});
+ await expect(viewer.getByTestId('museum-artwork-inspector')).toHaveCount(0);
  // Fullscreen toggles an actual browser Fullscreen API request where permitted,
  // or a CSS fallback; both grow the same real scene, not a stretched bitmap.
  const fullscreen=viewer.getByRole('button',{name:'Fullscreen',exact:true});
