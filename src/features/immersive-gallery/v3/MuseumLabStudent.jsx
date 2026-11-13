@@ -319,7 +319,7 @@ export default function MuseumLabStudent({language='en'}){
       {T(language,'Xem bản thiết kế / Trước–sau','View storyboard / before and after')}</button>
      <div className="bml-step-hint"><MessageSquare size={21}/><div><strong>{T(language,'Câu hỏi gợi ý cho người xem','Ask your peer')}</strong>
       <p>“What is the problem?” · “Is the evidence clear?” · “What action should we take?”</p></div></div>
-     {field(T(language,'Phản hồi thực tế từ bạn học (tiếng Anh)','Actual peer feedback (English)'),l.feedback,v=>changeLearning('feedback',v),{
+     {field(T(language,'Phản hồi thực tế từ bạn học (tiếng Anh)','Peer feedback (English)'),l.feedback,v=>changeLearning('feedback',v),{
       rows:3,disabled:locked,limit:1200,placeholder:'My classmate understood the problem but asked for a clearer example.'})}
      {field(T(language,'Nhóm đã cải tiến điểm gì? (tiếng Anh)','What did your group improve? (English)'),l.improvement,v=>changeLearning('improvement',v),{
       rows:3,disabled:locked,limit:1200,placeholder:'We revised the description and added a more specific action.'})}

@@ -312,7 +312,7 @@ test('realistic Group 01 Stage 1 permits vote, help, all group project steps and
  await app.locator('.bml-student-steps button').nth(2).click();
  await expect(page.getByLabel('Exhibition title')).toBeEnabled();
  await app.locator('.bml-student-steps button').nth(3).click();
- await expect(page.getByLabel('Actual peer feedback (English)')).toBeEnabled();
+ await expect(page.getByLabel('Peer feedback (English)')).toBeEnabled();
  await app.locator('.bml-student-steps button').nth(4).click();
  await expect(page.getByLabel('Our learning reflection (English)')).toBeEnabled();
  // Final submission must still wait for the teacher's Exit Ticket stage.
