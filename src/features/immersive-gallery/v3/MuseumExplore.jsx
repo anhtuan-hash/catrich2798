@@ -7,7 +7,7 @@ import MuseumScene from './MuseumScene.jsx';
 import MuseumExhibitionDetail from './MuseumExhibitionDetail.jsx';
 import {KitCover} from './MuseumDashboard.jsx';
 const tr=(l,vi,en)=>l==='en'?en:vi;
-export function MuseumTemplates({language='vi',onCreate}){
+export function MuseumTemplates({language='vi',onCreate,readOnly=false}){
  const kit=LESSON_KITS[0];
  return <div className="bml-screen"><div><div className="bml-overline">ENGLISH 11 · GLOBAL SUCCESS UNIT 5</div>
   <h1>{tr(language,'Kế hoạch bài dạy','Teaching plan')}</h1>
@@ -21,7 +21,7 @@ export function MuseumTemplates({language='vi',onCreate}){
     <strong>{tr(language,'Câu hỏi định hướng','Driving question')}</strong>
     <p className="bml-single-lesson-question">{kit.challenge}</p><p>{kit.goal}</p>
     <div className="bml-chips"><span>English 11 · Unit 5</span><span>{'2 × 45 min'}</span><span>11 {tr(language,'hoạt động','activities')}</span></div>
-    <button type="button" className="bml-primary" onClick={()=>onCreate('climate')}>
+    <button type="button" className="bml-primary" disabled={readOnly} onClick={()=>onCreate('climate')}>
      {tr(language,'Tạo bài học từ kế hoạch này','Create lesson from this plan')} <ArrowRight size={17}/></button>
    </div>
   </div>
@@ -42,7 +42,7 @@ const setExhibitionHash=key=>{
  window.history.replaceState(null,'',url);
 };
 export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefresh,data,transport=staffRequest}){
- const isAdmin=data?.profile?.role==='admin';
+ const isAdmin=data?.profile?.role==='admin'&&!data?.offlineReadOnly;
  const [galleries,setGalleries]=useState(()=>data?.publishedGalleries||[]),[selected,setSelected]=useState(null);
  const [showcase,setShowcase]=useState({hiddenCollections:[],archivedGalleries:[]});
  const [busy,setBusy]=useState(false),[loading,setLoading]=useState(true);
@@ -216,7 +216,7 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
  </div>;
 }
 export function MuseumSettings({data,onRefresh,language='vi'}){
- const isAdmin=data?.profile?.role==='admin';
+ const isAdmin=data?.profile?.role==='admin'&&!data?.offlineReadOnly;
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
  const act=async(action,body)=>{
   setBusy(true);setError('');setMessage('');

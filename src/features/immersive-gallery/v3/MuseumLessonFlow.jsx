@@ -39,7 +39,7 @@ export function OneTimeInvites({invitations,onClose,language='vi'}){
 export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'}){
  const [step,setStep]=useState(0);
  const kit=LESSON_KITS[0];
- const isAdmin=data?.profile?.role==='admin';
+ const isAdmin=data?.profile?.role==='admin'&&!data?.offlineReadOnly;
  const [form,setForm]=useState({classScope:'',groupCount:6,accessWindow:'standard',title:'',brief:''});
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[invites,setInvites]=useState(null);
  const title=form.title||kit.title,brief=form.brief||kit.brief;
@@ -209,7 +209,7 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
 
- const isAdmin=data?.profile?.role==='admin';
+ const isAdmin=data?.profile?.role==='admin'&&!data?.offlineReadOnly;
  const archiveAssignment=async assignment=>{
   if(!isAdmin||busy)return;
   const publishedCount=(data?.groups||[]).filter(g=>g.assignment_id===assignment.id&&g.state==='published').length;

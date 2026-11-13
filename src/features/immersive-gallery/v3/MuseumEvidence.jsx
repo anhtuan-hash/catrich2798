@@ -1,3 +1,4 @@
+import MuseumOfflineExport from './MuseumOfflineExport.jsx';
 import React,{useMemo,useState} from 'react';
 import {ArrowRight,Award,BookOpen,CheckCircle2,Circle,ClipboardCheck,Download,FileArchive,FileCheck2,FileDown,FileText,Info,Presentation,Printer,ShieldCheck,Star,UploadCloud} from 'lucide-react';
 import {buildProgressCsv} from './museumData.js';
@@ -53,6 +54,7 @@ export default function MuseumEvidence({data,currentUser,onDemo,language='vi'}){
   <div className="bml-heading-actions"><div><div className="bml-overline">{tr(language,'HỒ SƠ HỘI THI 2026–2027','COMPETITION DOSSIER')}</div>
    <h1>{tr(language,'Minh chứng dự thi','Competition evidence')}</h1><p>{tr(language,'Tạo bản nháp P1/P2 và tổng hợp dữ liệu thực tế từ các nhóm.','Draft P1/P2 and collect actual group evidence.')}</p></div>
    <button type="button" className="bml-outline" onClick={onDemo}><Presentation size={18}/>{tr(language,'Xem demo giám khảo','Judge demo')}</button></div>
+  {!data?.offlineReadOnly?<MuseumOfflineExport language={language}/>:null}
   <div className="bml-evidence-layout">
    <section className="bml-surface"><div className="bml-section-head"><div><h2>{tr(language,'Kiểm tra hồ sơ','Submission readiness')}</h2>
      <p>{tr(language,'Theo hướng dẫn hội thi của Sở GDĐT TP.HCM','Aligned to HCMC Department of Education notice 12070')}</p></div>
@@ -86,7 +88,7 @@ export default function MuseumEvidence({data,currentUser,onDemo,language='vi'}){
     ['context','Bối cảnh thực hiện','Teaching context'],['space','Không gian thực hiện','Learning space'],
     ['foundation','Kiến thức nền','Prior knowledge'],['objectives','Mục tiêu cần đạt','Learning objectives'],
     ['outcomes','Kiến thức, kỹ năng hình thành','Expected knowledge and skills'],['competencies','Năng lực và phẩm chất','Competencies and values']
-   ].map(([key,vi,en])=><label key={key}>{tr(language,vi,en)}<input value={fields[key]} maxLength={1200} onChange={e=>setFields(f=>({...f,[key]:e.target.value}))}/></label>)}</div>
+   ].map(([key,vi,en])=><label key={key}>{tr(language,vi,en)}<input readOnly={!!data?.offlineReadOnly} value={fields[key]} maxLength={1200} onChange={e=>setFields(f=>({...f,[key]:e.target.value}))}/></label>)}</div>
   </section>
  </div>;
 }

@@ -40,7 +40,7 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
   setTab(id);
   if(id==='submissions'&&extra)setReviewId(extra);
  };
- const create=()=>navigate('wizard');
+ const create=()=>{if(!staff?.offlineReadOnly)navigate('wizard');};
  const demo=()=>navigate('demo');
  const openCollection=key=>{
   if(typeof window!=='undefined'){
@@ -70,7 +70,7 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
     tab==='gallery'?<MuseumGallery language={language} query={query} data={staff} onNavigate={navigate} onDemo={demo} onRefresh={refresh} transport={transport}/>:
     tab==='demo'?<MuseumExhibitionDetail gallery={DEMO_GALLERY} language={language} data={staff} isDemo startInCinema
       onNavigate={navigate} onBack={()=>navigate('gallery')}/>:
-    tab==='templates'?<MuseumTemplates language={language} onCreate={create} onDemo={demo}/>:
+    tab==='templates'?<MuseumTemplates language={language} readOnly={!!staff?.offlineReadOnly} onCreate={create} onDemo={demo}/>:
     tab==='evidence'?<MuseumEvidence language={language} data={staff||{assignments:[],groups:[],reviews:[],rubrics:[]}}
       currentUser={currentUser} onDemo={demo}/>:
     tab==='settings'?<MuseumSettings language={language} data={staff} onRefresh={refresh}/>:
@@ -87,7 +87,7 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
       ['03','Học sinh làm 5 bước, tự lưu, không đăng nhập','Students complete five steps with no account'],
       ['04','Admin đánh giá, phê duyệt và công bố','Admin assesses, approves and publishes']
      ].map(([number,vi,en])=><div className="bml-check-item" key={number}><span className="bml-class-tag">{number}</span><div><strong>{tr(language,vi,en)}</strong></div></div>)}</div>
-     <button className="bml-primary" type="button" onClick={()=>{setHelp(false);create();}}><Plus size={17}/>{tr(language,'Tạo bài học ngay','Create a lesson')}</button>
+     <button className="bml-primary" type="button" disabled={!!staff?.offlineReadOnly} onClick={()=>{setHelp(false);create();}}><Plus size={17}/>{tr(language,'Tạo bài học ngay','Create a lesson')}</button>
     </section></div>:null}
  </div>;
 }

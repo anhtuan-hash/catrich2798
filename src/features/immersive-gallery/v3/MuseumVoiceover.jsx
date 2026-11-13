@@ -1,3 +1,4 @@
+import {getMuseumOffline} from './offlineAccess.js';
 import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {Pause,Play,RefreshCcw,Volume2,VolumeX} from 'lucide-react';
 import {teacherVoiceover} from './museumLiveExtensions.js';
@@ -18,7 +19,7 @@ export default function MuseumVoiceover({stage,language='vi',compact=false,share
  },[]);
  const updateVoices=useCallback(()=>{
   if(typeof window==='undefined'||!('speechSynthesis' in window))return;
-  const found=rankAmericanVoices(window.speechSynthesis.getVoices());
+  const found=rankAmericanVoices(window.speechSynthesis.getVoices().filter(v=>!getMuseumOffline()||v.localService));
   setVoices(found);
   setVoiceUri(current=>found.some(v=>v.voiceURI===current)?current:(found[0]?.voiceURI||''));
  },[]);
@@ -34,7 +35,7 @@ export default function MuseumVoiceover({stage,language='vi',compact=false,share
  useEffect(()=>{stop();return stop;},[text,stop]);
  const start=()=>{
   if(!supported){setError(language==='en'?'Voiceover is not supported in this browser.':'Trình duyệt này chưa hỗ trợ đọc lời dẫn.');return;}
-  const list=rankAmericanVoices(window.speechSynthesis.getVoices());
+  const list=rankAmericanVoices(window.speechSynthesis.getVoices().filter(v=>!getMuseumOffline()||v.localService));
   const chosen=list.find(v=>v.voiceURI===voiceUri)||list[0];
   if(!chosen){
    setError(language==='en'?'No American English (en-US) voice is installed. Add an en-US system voice, then refresh the list.':'Thiết bị chưa có giọng English (United States) (en-US). Hãy cài giọng Mỹ trong hệ điều hành rồi bấm Tải lại giọng.');

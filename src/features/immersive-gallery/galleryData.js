@@ -1,3 +1,4 @@
+import {getMuseumOffline} from './v3/offlineAccess.js';
 import { supabase, isSupabaseConfigured } from '../../utils/supabase.js';
 import { normalizeTransform, validateExhibition, validateExhibit, ROOM_KEYS, safeVideoUrl } from './sceneTemplates.js';
 
@@ -12,6 +13,7 @@ const MAX={image:2*1024*1024,audio:12*1024*1024,pdf:5*1024*1024};
 export const GALLERY_BUCKET=BUCKET;
 
 export async function getGalleryEnabled(){
+  if(getMuseumOffline())return getMuseumOffline().gallery('enabled');
   if(!isSupabaseConfigured||!supabase)return false;
   try {const {data,error}=await supabase.from('gallery_settings').select('enabled').eq('id',true).maybeSingle();if(error) return false;return data?.enabled===true;}
   catch {return false;}
@@ -23,9 +25,11 @@ export async function setGalleryEnabled(enabled,user){
   return check({data,error});
 }
 export async function listExhibitions(){
+  if(getMuseumOffline())return getMuseumOffline().gallery('list');
   return check(await client().from('gallery_exhibitions').select('id,slug,title,summary,visibility,status,owner_id,accept_submissions,created_at,updated_at').neq('status','archived').order('updated_at',{ascending:false}).limit(100))||[];
 }
 export async function getExhibition(slugOrId){
+  if(getMuseumOffline())return getMuseumOffline().gallery('get',slugOrId);
   const col=/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(String(slugOrId))?'id':'slug';
   const exhibit=check(await client().from('gallery_exhibitions').select('*').eq(col,slugOrId).maybeSingle());
   if(!exhibit||exhibit.status==='archived')throw new Error('This exhibition has been removed from the showcase.');
@@ -111,6 +115,7 @@ export async function uploadGalleryAsset(file,kind,user){
   catch(e){await storage.remove([path]).catch(()=>{});throw e;}
 }
 export async function getGalleryAssetUrl(assetId) {
+  if(getMuseumOffline())return getMuseumOffline().gallery('asset',assetId);
   if(!assetId)return '';
   const row=check(await client().from('gallery_assets').select('path').eq('id',assetId).maybeSingle());
   if(!row)return '';
