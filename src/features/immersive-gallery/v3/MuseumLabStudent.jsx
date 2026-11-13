@@ -16,6 +16,8 @@ import MuseumLivePeerFeedback from './MuseumLivePeerFeedback.jsx';
 import MuseumArtworkStudio from './MuseumArtworkStudio.jsx';
 import MuseumCompetitionRibbon from './MuseumCompetitionRibbon.jsx';
 import MuseumSpeakingStudio from './MuseumSpeakingStudio.jsx';
+import MuseumStudentVoiceGuide from './MuseumStudentVoiceGuide.jsx';
+import {studentNarrationCue} from './museumStudentNarration.js';
 import './museumLab.css';
 import './museumStudentFocus.css';
 import './museumStudentCanvas.css';
@@ -61,7 +63,7 @@ export default function MuseumLabStudent({language='en'}){
  const [version,setVersion]=useState(0),[dirty,setDirty]=useState(false),[busy,setBusy]=useState(false);
  const [saveState,setSaveState]=useState('saved'),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [step,setStep]=useState(0),[preview,setPreview]=useState(false),[conflict,setConflict]=useState(false);
- const [liveInfo,setLiveInfo]=useState(null),[artAssets,setArtAssets]=useState([]);
+ const [liveInfo,setLiveInfo]=useState(null),[liveReady,setLiveReady]=useState(false),[artAssets,setArtAssets]=useState([]);
  const [history,setHistory]=useState([]),[studentView,setStudentView]=useState('studio');
  const [studioSubstep,setStudioSubstep]=useState(0),[historyOpen,setHistoryOpen]=useState(false);
  const [projectPreview,setProjectPreview]=useState(false),[studentTool,setStudentTool]=useState(null);
@@ -206,9 +208,11 @@ export default function MuseumLabStudent({language='en'}){
  const openSubmitReview=()=>{setStudentView('studio');setStep(4);setArtworkOpen(false);setPreview(false);setError('');};
  const openArtworkSources=()=>{setStudentView('studio');setArtworkOpen(true);setStep(2);setStudioSubstep(2);setPreview(false);setError('');};
  const studentMedia=stageMediaTools(liveInfo);
+ const narrationCue=studentNarrationCue({liveInfo,step,ready:liveReady});
  return <main className="bml bml-student-shell bml-student-canvas16 bml-student-editorial" data-testid="museum-student-wizard" lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
   <MuseumCompetitionRibbon/>
   <header className="bml-student-bar"><div className="bml-brand"><span className="bml-brand-icon"><Landmark size={23}/></span><span><strong>BRIAN Museum Lab</strong><small>Student Creator</small></span></div>
+   <MuseumStudentVoiceGuide cue={narrationCue}/>
    <div className="bml-student-right"><span className="bml-group-pill"><Users size={16}/>{language==='en'?englishSystemGroupLabel(session.groupLabel):session.groupLabel} · {session.assignment.class_scope}</span>
     <span className={'bml-save-indicator bml-save-'+saveState} title={T(language,'Đã lưu bản nháp chưa có nghĩa là đã nộp bảo tàng.','Saved draft does not mean the museum project was submitted.')}>{saveState==='saved'?<><Cloud size={16}/>{T(language,'Đã lưu','Saved')}</>:
       saveState==='saving'?<><CloudUpload size={16}/>{T(language,'Đang lưu…','Saving…')}</>:<><CloudAlert size={16}/>{T(language,'Cần xử lý','Action needed')}</>}</span>
@@ -264,7 +268,7 @@ export default function MuseumLabStudent({language='en'}){
     </aside>
     <section className="bml-student-primary" aria-label={T(language,'Không gian thực hiện nhiệm vụ','Task workspace')}>
    <div className="bml-student-pane" hidden={studentView!=='live'}>
-    <MuseumLiveStudent csrf={session.csrf} language={language} onState={setLiveInfo} toolRequest={studentTool} compact/>
+    <MuseumLiveStudent csrf={session.csrf} language={language} onState={next=>{setLiveInfo(next);setLiveReady(true);}} toolRequest={studentTool} compact/>
    </div>
    <div className="bml-student-pane" hidden={studentView!=='studio'}>
    {session.feedback?<div className="bml-banner bml-warning-banner" role="status"><MessageSquare size={20}/><div><strong>{T(language,'Nhận xét để chỉnh sửa','Feedback for revision')}</strong>
