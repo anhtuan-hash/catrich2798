@@ -48,7 +48,7 @@ function ArtworkImage({assetId,imageUrl,schoolEdition=false,cinemaEdition=false}
  const width=texture.image?.width||1,height=texture.image?.height||1,aspect=width/height;
  const maxWidth=cinemaEdition?2.26:schoolEdition?2.11:1.65,maxHeight=cinemaEdition?3.03:schoolEdition?1.62:1.36;
  const size=aspect>maxWidth/maxHeight?[maxWidth,maxWidth/aspect]:[maxHeight*aspect,maxHeight];
- return <mesh position={[0,0,cinemaEdition?.096:.083]}><planeGeometry args={size}/><meshBasicMaterial map={texture} toneMapped={false} side={THREE.DoubleSide}/></mesh>;
+ return <mesh position={[0,0,cinemaEdition ? .096 : .083]}><planeGeometry args={size}/><meshBasicMaterial map={texture} toneMapped={false} side={THREE.DoubleSide}/></mesh>;
 }
 function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdition=false,index=0}) {
  const transform=useMemo(()=>normalizeTransform(exhibit.transform||{}),[exhibit.transform]);
@@ -206,6 +206,28 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
  });
  return null;
 }
+// R3F owns the canvas pixel dimensions; this observer keeps the perspective
+// matrix synchronized with resized modal/fullscreen containers. Never stretch
+// the CSS image of the canvas to simulate a larger room.
+function CameraResizeSync(){
+ const {camera,gl,invalidate}=useThree();
+ useEffect(()=>{
+  const parent=gl.domElement.parentElement;
+  if(!parent||typeof ResizeObserver==='undefined')return;
+  const sync=()=>{
+   const width=parent.clientWidth,height=parent.clientHeight;
+   if(width>0&&height>0&&'aspect'in camera){
+    camera.aspect=width/height;
+    camera.updateProjectionMatrix();
+    invalidate();
+   }
+  };
+  const observer=new ResizeObserver(sync);
+  observer.observe(parent);sync();
+  return()=>observer.disconnect();
+ },[camera,gl,invalidate]);
+ return null;
+}
 function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=false,cinemaEdition=false,lite=false}) {
  return <><color attach="background" args={[schoolEdition?'#EBF5F0':'#f2f0e9']}/>
   <ambientLight intensity={schoolEdition?1.25:1.1}/>
@@ -241,6 +263,7 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
   {supported===false?<div role="alert" className="big-canvas-error">{language==='en'?'WebGL unavailable. Use the 2D exhibit list.':'Thiết bị không hỗ trợ WebGL. Hãy sử dụng danh sách hiện vật 2D.'}</div>:supported===null?<div className="big-canvas-loading">Preparing 3D exhibition…</div>:<Suspense fallback={<div className="big-canvas-loading">Loading original 3D art…</div>}>
    <Canvas camera={{position:[0,cinemaEdition?1.92:1.77,startingZ],fov:cinemaEdition?52:schoolEdition?59:61,near:0.08,far:55}} dpr={mode==='lite'?1:mode==='high'?[1,1.75]:[1,1.35]}
     frameloop="demand" gl={{antialias:mode!=='lite',powerPreference:'low-power',alpha:false}} onCreated={({gl})=>{gl.setClearColor('#f2f0e9');}}>
+    <CameraResizeSync/>
     <Room template={template} exhibits={exhibits} onSelect={onSelect} selectedId={selectedId} onTeleport={onTeleport}
      schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} lite={mode==='lite'}/>
     <CameraWalker held={held} paused={!!selectedId} teleport={teleport} onPosition={onPosition} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} viewPreset={viewPreset}/>
