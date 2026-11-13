@@ -67,7 +67,7 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
       onCreate={()=>create()} onReview={id=>navigate('submissions',id)} onOpenCollection={openCollection} onRefresh={refresh}/>:
     tab==='submissions'?<Submissions key={reviewId||'normal'} language={language} data={staff} query={query}
       initialReview={reviewId} onNavigate={navigate} onRefresh={refresh}/>:
-    tab==='gallery'?<MuseumGallery language={language} query={query} data={staff} onNavigate={navigate} onDemo={demo} onRefresh={refresh}/>:
+    tab==='gallery'?<MuseumGallery language={language} query={query} data={staff} onNavigate={navigate} onDemo={demo} onRefresh={refresh} transport={transport}/>:
     tab==='demo'?<MuseumExhibitionDetail gallery={DEMO_GALLERY} language={language} data={staff} isDemo
       onNavigate={navigate} onBack={()=>navigate('gallery')}/>:
     tab==='templates'?<MuseumTemplates language={language} onCreate={create} onDemo={demo}/>:
