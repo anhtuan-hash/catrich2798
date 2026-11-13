@@ -62,20 +62,99 @@ function ArtworkImage({assetId,imageUrl,schoolEdition=false,cinemaEdition=false}
  const width=texture.image?.width||1,height=texture.image?.height||1,aspect=width/height;
  const maxWidth=cinemaEdition?2.26:schoolEdition?2.11:1.65,maxHeight=cinemaEdition?3.03:schoolEdition?1.62:1.36;
  const size=aspect>maxWidth/maxHeight?[maxWidth,maxWidth/aspect]:[maxHeight*aspect,maxHeight];
- return <mesh position={[0,0,cinemaEdition?.096:.083]}>
+ return <mesh position={[0,0,cinemaEdition ? .096 : .083]}>
   <planeGeometry args={size}/><meshBasicMaterial map={texture} toneMapped={false} side={THREE.DoubleSide}/>
  </mesh>;
 }
-function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdition=false,index=0}) {
+function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdition=false,index=0,
+ focusPhase='idle',isFocused=false,selectionLocked=false,onTransitionComplete,onWorldPose}) {
  const transform=useMemo(()=>normalizeTransform(exhibit.transform||{}),[exhibit.transform]);
- const position=cinemaEdition?
-  [Math.max(-3.2,Math.min(3.2,transform.position[0])),2.45,-7.68]:transform.position;
- return <group position={position} rotation={transform.rotation} scale={transform.scale}
-  onClick={e=>{e.stopPropagation();onSelect?.(exhibit.id);}}
-  onPointerOver={e=>{e.stopPropagation();document.body.style.cursor='pointer';}}
+ const position=useMemo(()=>cinemaEdition?
+  [Math.max(-3.2,Math.min(3.2,transform.position[0])),2.45,-7.68]:transform.position,
+  [cinemaEdition,transform.position[0],transform.position[1],transform.position[2]]);
+ const artRef=useRef(null),wallPose=useRef(null),motion=useRef(null);
+ const pointerDown=useRef(null),lastPhase=useRef('idle');
+ const {invalidate,size}=useThree();
+ const aspect=size.width/Math.max(1,size.height),layout=useMemo(()=>museumFocusLayout(aspect),[aspect]);
+ useEffect(()=>{
+  const node=artRef.current;
+  if(node&&!wallPose.current){
+   wallPose.current={position:node.position.clone(),quaternion:node.quaternion.clone(),
+    scale:node.scale.clone(),uuid:node.uuid};
+  }
+ },[]);
+ useEffect(()=>{
+  const node=artRef.current,wall=wallPose.current;
+  if(!node||!wall||!cinemaEdition||!isFocused)return;
+  if(focusPhase===lastPhase.current)return;
+  lastPhase.current=focusPhase;
+  const to=focusPhase==='returning'?wall:{
+   position:new THREE.Vector3(...layout.art),
+   quaternion:new THREE.Quaternion(),
+   scale:wall.scale.clone()
+  };
+  if(['extracting','returning','presenting'].includes(focusPhase)){
+   motion.current={
+    phase:focusPhase,elapsed:0,duration:selectFocusDuration(
+     focusPhase,window.matchMedia?.('(prefers-reduced-motion: reduce)').matches),
+    from:{position:node.position.clone(),quaternion:node.quaternion.clone(),scale:node.scale.clone()},
+    to
+   };
+   invalidate();
+  }
+ },[cinemaEdition,isFocused,focusPhase,layout,aspect,invalidate]);
+ useFrame((_,delta)=>{
+  const group=artRef.current,wall=wallPose.current;
+  if(!group||!wall||!isFocused||!cinemaEdition)return;
+  const tween=motion.current;
+  if(tween){
+   tween.elapsed+=Math.min(.05,delta);
+   const t=smoothstep(Math.min(1,tween.elapsed/tween.duration));
+   group.position.lerpVectors(tween.from.position,tween.to.position,t);
+   group.quaternion.slerpQuaternions(tween.from.quaternion,tween.to.quaternion,t);
+   group.scale.lerpVectors(tween.from.scale,tween.to.scale,t);
+   if(t>=1){
+    group.position.copy(tween.to.position);
+    group.quaternion.copy(tween.to.quaternion);
+    group.scale.copy(tween.to.scale);
+    if(tween.phase==='returning'){
+     // Verify the original object, not a duplicated presentation image,
+     // returns to its immutable starting transform.
+     group.position.copy(wall.position);
+     group.quaternion.copy(wall.quaternion);
+     group.scale.copy(wall.scale);
+    }
+    motion.current=null;
+    onWorldPose?.({uuid:group.uuid,position:group.position.toArray(),
+     wall:wall.position.toArray(),quaternion:group.quaternion.toArray(),
+     wallQuaternion:wall.quaternion.toArray(),scale:group.scale.toArray()});
+    const event=tween.phase==='extracting'?'EXTRACT_COMPLETE':
+     tween.phase==='presenting'?'PRESENT_COMPLETE':'RETURN_COMPLETE';
+    onTransitionComplete?.(event);
+   }else{
+    onWorldPose?.({uuid:group.uuid,position:group.position.toArray(),
+     wall:wall.position.toArray(),quaternion:group.quaternion.toArray(),
+     wallQuaternion:wall.quaternion.toArray(),scale:group.scale.toArray()});
+    invalidate();
+   }
+  }
+ });
+ const maySelect=!selectionLocked;
+ return <group ref={artRef} name={'MuseumOriginalArtwork-'+index}
+  userData={{museumOriginalArtwork:true,exhibitIndex:index}}
+  position={position} rotation={transform.rotation} scale={transform.scale}
+  onPointerDown={e=>{pointerDown.current=[e.clientX,e.clientY];}}
+  onClick={e=>{
+   e.stopPropagation();
+   const down=pointerDown.current;pointerDown.current=null;
+   if(!maySelect||down&&Math.hypot(e.clientX-down[0],e.clientY-down[1])>8)return;
+   onSelect?.(exhibit.id);
+  }}
+  onPointerOver={e=>{e.stopPropagation();if(maySelect)document.body.style.cursor='pointer';}}
   onPointerOut={()=>{document.body.style.cursor='';}}>
   <mesh><boxGeometry args={cinemaEdition?[2.63,3.41,.12]:schoolEdition?[2.45,1.95,.11]:[2.04,1.70,.10]}/>
-   <meshStandardMaterial color={schoolEdition?(isSelected?'#F6D477':'#B69B62'):(isSelected?'#e4aa64':'#ae856e')} roughness={.63} metalness={schoolEdition?.19:0}/></mesh>
+   <meshStandardMaterial color={schoolEdition?(isSelected?'#F6D477':'#B69B62'):(isSelected?'#e4aa64':'#ae856e')}
+    roughness={.63} metalness={schoolEdition?.19:0}/></mesh>
   <mesh position={[0,0,.058]}><boxGeometry args={cinemaEdition?[2.46,3.22,.025]:schoolEdition?[2.29,1.80,.025]:[1.86,1.52,.025]}/>
    <meshStandardMaterial color="#fffdf5" roughness={.89}/></mesh>
   {exhibit.kind==='model'
