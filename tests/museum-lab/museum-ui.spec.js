@@ -1205,3 +1205,77 @@ test('V5.2 fullscreen groups tool stays inside projection surface and supports s
  await panel.getByRole('button',{name:'Close presenter panel'}).click();
  await expect(panel).toHaveCount(0);
 });
+
+
+test('Project pages scroll inside the 16:9 workbench without overlapping labels or losing navigation',async({page,isMobile},testInfo)=>{
+ if(isMobile)return;
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  if(op==='me')return route.fulfill({json:{
+   groupLabel:'Nhóm 01',groupState:'editing',csrf:'layout-regression',
+   assignment:{title:'Our Climate Action Museum',brief:'Investigate ONE school environmental issue, prepare evidence and solutions.',
+    class_scope:'11.3',deadline_at:new Date(Date.now()+86400000).toISOString()}
+  }});
+  return route.fulfill({json:{draft:{title:'Our Climate Action Museum',summary:'A classroom action museum',rooms:[],
+   learning:{issue:'The classroom stays illuminated after students leave.',
+    roles:'Data checker verifies the class survey. Editor explains the evidence. Designer prepares exhibit captions.',
+    feasibility:'Teacher and student monitor confirm a room is unoccupied.',
+    evidence:'Four groups selected switching off unused lights. We do not claim electricity savings without measurements.',
+    source:'Classroom survey and NASA Space Place https://spaceplace.nasa.gov/',
+    solution:'Assign a monitor, check before breaks, and record results in a log.',
+    feedback:'Visitors understand the action but want concrete classroom steps.',
+    improvement:'We revised the caption with a two-person check.',
+    reflection:'We used evidence before recommending action.',tested:true}
+   },version:5}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>route.fulfill({json:{session:null,survey:null}}));
+ for(const viewport of [{width:1366,height:768},{width:1536,height:960}]){
+  await page.setViewportSize(viewport);
+  await page.getByTestId('qa-student-en').click();
+  const app=page.getByTestId('museum-student-wizard');
+  const scroll=app.getByTestId('student-task-scroll');
+  const footer=app.locator('.bml-student-bottom');
+  await expect(scroll).toBeVisible();
+  await app.locator('.bml-student-steps button').nth(1).click();
+  await expect(page.getByLabel('Group roles')).toBeVisible();
+  const before=await scroll.evaluate(el=>({
+   overflow:getComputedStyle(el).overflowY,
+   width:el.clientWidth,client:el.clientHeight,height:el.scrollHeight
+  }));
+  expect(['auto','scroll']).toContain(before.overflow);
+  expect(before.client).toBeGreaterThan(110);
+  const fields=await app.locator('.bml-student-task-scroll > label.bml-full-field').evaluateAll(labels=>
+    labels.map(label=>{
+     const box=label.getBoundingClientRect(),field=label.querySelector('textarea,input')?.getBoundingClientRect();
+     return {top:box.top,bottom:box.bottom,inputTop:field?.top,inputBottom:field?.bottom};
+    })
+  );
+  expect(fields.length).toBeGreaterThanOrEqual(3);
+  for(let i=0;i<fields.length;i++){
+   expect(fields[i].inputTop).toBeGreaterThanOrEqual(fields[i].top+8);
+   expect(fields[i].inputBottom).toBeLessThanOrEqual(fields[i].bottom+2);
+   if(i>0)expect(fields[i].top).toBeGreaterThanOrEqual(fields[i-1].bottom-1);
+  }
+  // Page 2 contains a storyboard, long evidence and the final solution. It
+  // must remain accessible inside the form, not underneath its fixed footer.
+  await app.locator('.bml-student-subpages button').nth(1).click();
+  await expect(page.getByLabel('Proposed solution in English')).toBeVisible();
+  await expect.poll(()=>scroll.evaluate(el=>el.scrollHeight>el.clientHeight+10)).toBe(true);
+  const footerBefore=await footer.boundingBox();
+  await scroll.evaluate(el=>{el.scrollTop=el.scrollHeight;});
+  await expect.poll(()=>scroll.evaluate(el=>el.scrollTop)).toBeGreaterThan(5);
+  await page.getByLabel('Proposed solution in English').scrollIntoViewIfNeeded();
+  const footerAfter=await footer.boundingBox();
+  expect(Math.abs(footerBefore.y-footerAfter.y)).toBeLessThanOrEqual(2);
+  expect(footerAfter.y+footerAfter.height).toBeLessThanOrEqual(viewport.height+2);
+  await expect(footer.getByRole('button',{name:'Continue'})).toBeInViewport();
+  await expect(page.getByLabel('Proposed solution in English')).toBeInViewport();
+  // Moving to Create must reset scroll, not open in the middle of a page.
+  await app.locator('.bml-student-steps button').nth(2).click();
+  await expect.poll(()=>scroll.evaluate(el=>el.scrollTop)).toBe(0);
+  await app.locator('.bml-student-subpages button').nth(1).click();
+  await expect(app.locator('.bml-student-exhibit').first()).toBeVisible();
+  await expect(footer).toBeInViewport();
+  await page.screenshot({path:testInfo.outputPath('student-step-scroll-'+viewport.width+'.png'),fullPage:false});
+ }
+});
