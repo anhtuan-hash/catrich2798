@@ -12,6 +12,8 @@ import MuseumLivePaperCards from './MuseumLivePaperCards.jsx';
 import MuseumVoiceover from './MuseumVoiceover.jsx';
 import MuseumResourceHub from './MuseumResourceHub.jsx';
 import MuseumVideoLab,{MuseumVideoFrame} from './MuseumVideoLab.jsx';
+import MuseumCurriculumStageVideo from './MuseumCurriculumStageVideo.jsx';
+import {MUSEUM_CURRICULUM_VIDEOS} from './museumLiveExtensions.js';
 import MuseumFullscreenDock from './MuseumFullscreenDock.jsx';
 import MuseumClassroomCommandCenter from './MuseumClassroomCommandCenter.jsx';
 import {MICRO_CHALLENGES} from './museumLiveExtensions.js';
@@ -20,6 +22,7 @@ import './museumLivePaper.css';
 import './museumLiveCompetition.css';
 import './museumLivePresenter.css';
 import './museumStageMotionV54.css';
+import './museumCurriculumVideo.css';
 import {loadPresenterRecovery,savePresenterRecovery,shouldRestorePanel} from './museumPresenterRecovery.js';
 const t=(lang,vi,en)=>lang==='en'?en:vi;
 const link=typeof window!=='undefined'?window.location.origin+window.location.pathname+'#/gallery-create':'/#/gallery-create';
@@ -32,6 +35,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  const [showNotes,setShowNotes]=useState(false),[showResources,setShowResources]=useState(false),[showQr,setShowQr]=useState(false),[qr,setQr]=useState('');
  const [showVoiceover,setShowVoiceover]=useState(false),[showVideoLab,setShowVideoLab]=useState(false);
  const [motionOn,setMotionOn]=useState(savedPreference.current?.motionOn!==false),[stageVideo,setStageVideo]=useState(null);
+ const [curriculumMode,setCurriculumMode]=useState('video');
  const [isFullscreen,setIsFullscreen]=useState(false),[activeTool,setActiveTool]=useState(null),[presenterFocus,setPresenterFocus]=useState(false);
  const [spotlight,setSpotlight]=useState(null),[time,setTime]=useState(Date.now());
  const [paper,setPaper]=useState(false),[tally,setTally]=useState(['','','','']),[tallyNote,setTallyNote]=useState('');
@@ -58,6 +62,8 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
   return()=>{active=false;};},[showQr]);
  const session=state?.session,stage=session?.stage,groups=(state?.groups||[]).map(g=>({...g,label:language==='en'?englishSystemGroupLabel(g.label):g.label})),result=session?.stageIndex===2&&state?.survey?state.survey:state?.result;
  const currentIndex=session?.stageIndex??0,minute=LIVE_STAGES[currentIndex]?.minutes||0;
+ const curriculumVideo=MUSEUM_CURRICULUM_VIDEOS[currentIndex]||null;
+ const showingCurriculumVideo=Boolean(curriculumVideo&&curriculumMode==='video');
  const restoreKey=String(session?.id||'')+'/'+String(session?.stageIndex??'-');
  const hydratedKey=useRef('');
  useEffect(()=>{
@@ -77,7 +83,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
   },assignmentIds);
  },[session?.id,session?.stageIndex,assignmentId,motionOn,isFullscreen,activeTool,showVoiceover,showVideoLab]);
 
- useEffect(()=>{setStageVideo(null);},[assignmentId,currentIndex]);
+ useEffect(()=>{setStageVideo(null);setCurriculumMode('video');},[assignmentId,currentIndex]);
  const elapsed=(session?.elapsedSeconds||0)+(session?.status==='active'&&session?.stageStartedAt?Math.max(0,Math.floor((time-Date.parse(session.stageStartedAt))/1000)):0);
  const remaining=Math.max(0,minute*60-elapsed);
  const act=async(action)=>{
@@ -189,7 +195,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
      <div className="bml-live-spotlight-top"><strong>{t(language,'TRÌNH CHIẾU NHÓM','GROUP SPOTLIGHT')} · {spotlight.groupLabel}</strong>
       <button type="button" onClick={()=>setSpotlight(null)}><X size={18}/>{t(language,'Đóng','Close')}</button></div>
      <MuseumScene gallery={spotlight.gallery} language={language} embedded/>
-    </div>:<div className="bml-live-slide" key={currentIndex} data-testid="museum-live-slide">
+    </div>:<div className={"bml-live-slide"+(curriculumVideo?" bml-live-slide--curriculum":"")} key={currentIndex} data-testid="museum-live-slide">
      <div className="bml-paper-stage-intro">
       <MuseumLivePaperArt variant={['artwork','peer','present','exit'].includes(stage?.kind)?'studio':stage?.kind==='quiz'?'gallery':'climate'}/>
       <div className="bml-paper-stage-titles">
@@ -197,16 +203,25 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
        <h2>{stage?.title}</h2>{language==='en'?null:<p className="bml-live-vietnamese">{stage?.vi}</p>}
       </div>
      </div>
-     <div className="bml-paper-question-sheet"><div className="bml-live-question">{stage?.question}</div></div>
+     {curriculumVideo?<div className="bml-curriculum-switch" data-testid="museum-curriculum-switch">
+      <strong>NASA VIDEO · ACTIVITY {currentIndex+1}</strong>
+      <div className="bml-curriculum-switch-actions" role="group" aria-label="Activity teaching view">
+       <button type="button" aria-pressed={showingCurriculumVideo} onClick={()=>setCurriculumMode('video')}><Film size={16}/> Watch NASA clip</button>
+       <button type="button" aria-pressed={!showingCurriculumVideo} onClick={()=>setCurriculumMode('task')}><BookOpen size={16}/>{currentIndex===1?'3 language questions':'Evidence and design tasks'}</button>
+      </div>
+     </div>:null}
+     {!showingCurriculumVideo?<div className="bml-paper-question-sheet"><div className="bml-live-question">{stage?.question}</div></div>:null}
+     {showingCurriculumVideo?<MuseumCurriculumStageVideo video={curriculumVideo} stageIndex={currentIndex}
+      language={language} onContinue={()=>setCurriculumMode('task')}/>:null}
      {stage?.kind==='vote'?<div className="bml-live-choices">
        {stage.options.map((opt,i)=><div key={opt}><b>{String.fromCharCode(65+i)}</b>{opt}
         {result&&session.revealed?<span>{result.options?.[i]?.count||0} / {result.n||0}</span>:null}</div>)}
       </div>:null}
-     {stage?.kind==='quiz'?<div className="bml-live-quiz">
+     {stage?.kind==='quiz'&&!showingCurriculumVideo?<div className="bml-live-quiz">
        {stage.questions?.map((q,i)=><div key={i}><strong>Q{i+1}. {q.q}</strong>
         <p>{q.choices.join('   ·   ')}</p>
         {session.revealed?<small>{t(language,'Đáp án','Answer')}: {String.fromCharCode(65+q.answer)} · {q.explanation}</small>:null}</div>)}</div>:null}
-     {stage&&!['vote','quiz'].includes(stage.kind)?<MuseumLivePaperCards stage={stage}/>:null}
+     {stage&&!['vote','quiz'].includes(stage.kind)&&!showingCurriculumVideo?<MuseumLivePaperCards stage={stage}/>:null}
      <div className="bml-live-sentence"><span>{stage?.sentence}</span></div>
      {stage?.kind==='vote'&&session.revealed&&result?<div className="bml-live-chart">
        <strong>{t(language,'KẾT QUẢ THỰC TẾ','LIVE RESULTS')} · N = {result.n} {t(language,'thiết bị nhóm','group devices')}</strong>
@@ -215,7 +230,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
      {stage?.kind==='quiz'&&session.revealed&&result?<div className="bml-live-chart">
       <strong>{t(language,'KIỂM TRA HIỂU BÀI','CHECK FOR UNDERSTANDING')} · N = {result.n} {t(language,'nhóm','groups')}</strong>
       {result.questions?.map((q,i)=><p key={i}>Q{i+1}: {q.correct}/{result.n} {t(language,'nhóm chọn đúng','groups correct')} ({q.percent}%)</p>)}</div>:null}
-     {session.revealed?<div className="bml-live-explanation"><CheckCircle2 size={20}/>{stage?.expected}</div>:null}
+     {session.revealed&&!showingCurriculumVideo?<div className="bml-live-explanation"><CheckCircle2 size={20}/>{stage?.expected}</div>:null}
     </div>}
     {stageVideo?<div className="bml-presenter-video-modal" role="dialog" aria-label="YouTube projector" aria-modal="false"
      data-testid="museum-projector-video" onMouseDown={e=>{if(e.target===e.currentTarget)setStageVideo(null);}}>
