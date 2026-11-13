@@ -20,7 +20,7 @@ test('Admin directly creates lessons without a reviewer dropdown',()=>{
 test('server-only Admin review checks frozen source evidence and school',()=>{
  assert.match(api,/if\(operation==='admin-decision'\)/);
  assert.match(api,/admin\.rpc\('gcp_admin_decide'/);
- assert.match(sql,/create function public\.gcp_admin_decide/);
+ assert.match(sql,/create or replace function public\.gcp_admin_decide/);
  assert.match(sql,/p\.role='admin' and p\.approved=true and trim\(p\.school\)=a\.school_scope/);
  assert.match(sql,/rev\.snapshot_hash<>encode\(extensions\.digest/);
  assert.match(sql,/rev\.state not in \('submitted','ttcm_review'\)/);
@@ -35,8 +35,8 @@ test('deletion buttons call scoped archive endpoints, not destructive cascading 
  assert.match(review,/window\.confirm/);
  assert.match(api,/if\(operation==='archive-review'\)/);
  assert.match(api,/if\(operation==='archive-assignment'\)/);
- assert.match(sql,/create function public\.gcp_admin_archive_review/);
- assert.match(sql,/create function public\.gcp_admin_archive_assignment/);
+ assert.match(sql,/create or replace function public\.gcp_admin_archive_review/);
+ assert.match(sql,/create or replace function public\.gcp_admin_archive_assignment/);
  assert.match(sql,/rev\.state in \('approved_locked','published'\)/);
  assert.match(sql,/published_assignment_immutable/);
  assert.match(sql,/update public\.gcp_sessions set revoked_at=now\(\)/);
