@@ -59,7 +59,7 @@ test('Admin directly assigns and approves while legacy review SQL remains histor
  assert.match(staff,/const reviewerId=ctx\.user\.id/);
  assert.match(staff,/if\(operation==='admin-decision'\)/);
  assert.match(staff,/admin\.rpc\('gcp_admin_decide'/);
- assert.match(migration,/create function public\.gcp_admin_decide/);
+ assert.match(migration,/create or replace function public\.gcp_admin_decide/);
  assert.match(migration,/p\.role='admin' and p\.approved=true/);
  assert.match(legacy,/p_actor=a\.reviewer_id/);
  assert.match(legacy,/approved_snapshot_required/);
