@@ -65,7 +65,8 @@ function GuestEntry({onRedeem,busy,error,language,onResetError}){
    onRedeem({handle:handle.trim(),...(quick?{classroomPassword:secret}:{groupSecret:secret})});
   }}>
    <span className="bml-overline">STUDENT CREATOR PASS</span>
-   <h2>{T(language,'Bắt đầu sáng tạo','Start creating')}</h2>
+   <h2>{invite?.readOnly?'View completed lesson':T(language,'Bắt đầu sáng tạo','Start creating')}</h2>
+   {invite?.readOnly?<div className="bml-banner bml-success-banner" role="status"><LockKeyhole size={17}/> This lesson is finalized. Sign in to view its preserved work; editing is disabled.</div>:null}
    {invite?<div className="bml-classroom-invite-summary" data-testid="museum-invite-context">
     <Users size={19}/><div><strong>{group}</strong><small>{invite.assignmentTitle} · {invite.classScope}</small></div>
    </div>:null}
@@ -139,7 +140,7 @@ export default function MuseumLabStudent({language='en'}){
  const viewHistory=async()=>{try{setHistory((await liveGuest('history')).checkpoints||[]);}catch(e){setError(e.message);}};
  const documentRef=useRef(studio),versionRef=useRef(0),csrfRef=useRef(''),savingRef=useRef(false),dirtyRef=useRef(false);
  const dragStoryboard=useRef(null);
- const groupLocked=session&&!['issued','editing','changes_requested'].includes(session.groupState);
+ const groupLocked=session&&(session.readOnly===true||!['issued','editing','changes_requested'].includes(session.groupState));
  const liveRunning=liveInfo&&liveInfo.status!=='not_started';
  const stageIndex=liveInfo?.stageIndex??-1;
  // Group work is independent of the gated Teacher Live response.
@@ -306,14 +307,14 @@ export default function MuseumLabStudent({language='en'}){
     </aside>
     <section className="bml-student-primary" aria-label={T(language,'Không gian thực hiện nhiệm vụ','Task workspace')}>
    <div className="bml-student-pane" hidden={studentView!=='live'}>
-    <MuseumLiveStudent csrf={session.csrf} language={language} onState={next=>{setLiveInfo(next);setLiveReady(true);}} toolRequest={studentTool} compact/>
+    <MuseumLiveStudent csrf={session.csrf} language={language} readOnly={session.readOnly===true} onState={next=>{setLiveInfo(next);setLiveReady(true);}} toolRequest={studentTool} compact/>
    </div>
    <div className="bml-student-pane" hidden={studentView!=='studio'}>
    {session.feedback?<div className="bml-banner bml-warning-banner" role="status"><MessageSquare size={20}/><div><strong>{T(language,'Nhận xét để chỉnh sửa','Feedback for revision')}</strong>
       {session.feedback.teacher?<p>{T(language,'Giáo viên','Teacher')}: {session.feedback.teacher}</p>:null}
       {session.feedback.ttcm?<p>TTCM: {session.feedback.ttcm}</p>:null}</div></div>:null}
-   {groupLocked?<div className="bml-banner bml-success-banner"><LockKeyhole size={20}/><div><strong>{T(language,'Bản nộp đã khóa chỉnh sửa','Submission is locked')}</strong>
-      <p>{session.groupState==='published'?T(language,'Triển lãm đã được công bố.','Your museum has been published.') :
+   {groupLocked?<div className="bml-banner bml-success-banner" role="status"><LockKeyhole size={20}/><div><strong>{session.readOnly?'Completed lesson · View only':T(language,'Bản nộp đã khóa chỉnh sửa','Submission is locked')}</strong>
+      <p>{session.readOnly?'The final lesson and all submitted exhibits are preserved. You can view them, but cannot make changes.':session.groupState==='published'?T(language,'Triển lãm đã được công bố.','Your museum has been published.') :
       session.groupState==='approved_locked'?T(language,'TTCM đã duyệt bản nộp.','The reviewer approved this version.') :
       T(language,'Bài đang được xem xét. Nhóm sẽ sửa lại nếu có yêu cầu.','Your submission is being reviewed. You can revise if it is returned.')}</p></div></div>:null}
    {studio.legacy?<div className="bml-banner bml-warning-banner"><ShieldCheck size={20}/><div><strong>{T(language,'Có bản nháp Gallery đời cũ','Existing legacy gallery draft detected')}</strong>
