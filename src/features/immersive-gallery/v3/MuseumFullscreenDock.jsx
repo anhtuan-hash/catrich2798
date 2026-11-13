@@ -21,7 +21,7 @@ export default function MuseumFullscreenDock({
     <Tool icon={open?Lock:Play} label={open?t(language,'Khóa','Lock'):t(language,'Mở lại','Reopen')}
      disabled={busy||ended} onClick={()=>onAction(open?'close':'open')}/>
     <Tool icon={Eye} label={t(language,'Giải thích','Explanation')} active={activeTool==='explain'}
-     onClick={()=>{onAction('reveal');onTool('explain');}} disabled={busy||ended}/>
+     onClick={()=>{if(!session.revealed)onAction('reveal');onTool('explain');}} disabled={busy||ended}/>
    </div>
    <div className="bml-presenter-dock-tools">
     <Tool icon={Volume2} label="Voiceover" active={activeTool==='voice'} onClick={()=>onTool('voice')} title="V"/>
