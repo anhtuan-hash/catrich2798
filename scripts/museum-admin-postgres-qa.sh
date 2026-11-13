@@ -5,6 +5,7 @@ export PGHOST=127.0.0.1 PGPORT=5432 PGUSER=postgres PGDATABASE=postgres
 p(){ psql -X -v ON_ERROR_STOP=1 -q "$@"; }
 bash scripts/museum-evidence-postgres-qa.sh >/tmp/museum-evidence-base-admin.log 2>&1 || { tail -90 /tmp/museum-evidence-base-admin.log; exit 1; }
 p -f supabase/migrations/20261113010000_museum_admin_direct_review_archive.sql
+p -f supabase/migrations/20261113020000_museum_archive_published_lessons.sql
 p <<'SQL'
 do $admin_test$
 declare owner uuid:='11111111-1111-4111-8111-111111111111';
@@ -43,10 +44,25 @@ begin
  -- This proves a single Admin can publish their own directly approved exhibit.
  published:=public.gcp_admin_publish(r,owner);
  if published is null then raise exception 'Direct Admin publish failed';end if;
- denied:=false;
- begin perform public.gcp_admin_archive_assignment(a,owner);
- exception when others then denied:=true;end;
- if not denied then raise exception 'Published lesson was archived';end if;
+ -- Archiving a lesson with a published exhibition is now allowed, but
+ -- the exhibition, publication link and frozen student review are retained.
+ if public.gcp_admin_archive_assignment(a,owner)<>'archived'
+ then raise exception 'Published lesson could not be archived';end if;
+ if not exists(select 1 from public.gcp_assignments x
+  where x.id=a and x.archived_at is not null and x.status='closed')
+ then raise exception 'Published lesson not archived';end if;
+ if not exists(select 1 from public.gcp_invites i
+  where i.group_id=g and i.revoked_at is not null)
+ then raise exception 'Published lesson invite not revoked';end if;
+ if not exists(select 1 from public.gcp_publication_links x
+  where x.group_id=g and x.exhibition_id=published)
+ then raise exception 'Publishing link erased by lesson archive';end if;
+ if not exists(select 1 from public.gallery_exhibitions x
+  where x.id=published and x.status='published')
+ then raise exception 'Published 3D gallery was hidden or removed';end if;
+ if not exists(select 1 from public.gcp_reviews x
+  where x.id=r and x.state='published' and x.archived_at is null)
+ then raise exception 'Frozen published review altered';end if;
 end $admin_test$;
 do $archive_test$
 declare owner uuid:='11111111-1111-4111-8111-111111111111';
@@ -88,4 +104,4 @@ begin
  then raise exception 'Admin-only function leaked to client roles';end if;
 end $privilege_test$;
 SQL
-echo "[museum-admin] PASS: one Admin issues, reviews, publishes and safely archives; school scope, audit, publication and privilege safeguards pass."
+echo "[museum-admin] PASS: one Admin issues, reviews, publishes and archives both unpublished/published lessons with original gallery preserved."
