@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'src/features/immersive-gallery/**'
+      - 'public/assets/museum-paper/**'
+      - 'tests/museum-lab/**'
       - 'serverless-handlers/museum-*.js'
       - 'serverless-handlers/_museumPng.js'
       - 'serverless-handlers/gallery-guest.js'
@@ -67,11 +69,31 @@ jobs:
       - name: V3 baseline desktop/mobile regression
         run: npx playwright test --config tests/museum-lab/playwright.config.mjs
 
+      - name: Upload Museum browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: museum-browser-evidence
+          path: |
+            artifacts/museum-lab/report
+            test-results
+          retention-days: 7
+
   postgres:
     runs-on: ubuntu-24.04
     timeout-minutes: 16
     services:
-      postgres:
+          - name: Upload Museum browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: museum-browser-evidence
+          path: |
+            artifacts/museum-lab/report
+            test-results
+          retention-days: 7
+
+  postgres:
         image: postgres:16
         env:
           POSTGRES_PASSWORD: postgres

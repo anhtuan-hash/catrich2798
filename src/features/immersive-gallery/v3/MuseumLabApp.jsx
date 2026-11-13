@@ -1,39 +1,30 @@
-import React,{useCallback,useEffect,useMemo,useState} from 'react';
-import {ArrowRight,Award,Bell,BookOpen,CheckCircle2,ChevronRight,CircleHelp,ClipboardCheck,FileCheck2,Grid2X2,House,Landmark,Library,Menu,Plus,RefreshCw,Search,Settings2,ShieldAlert,Sparkles,Users,X ,Presentation} from 'lucide-react';
+import React,{useCallback,useEffect,useState} from 'react';
+import {Plus,RefreshCw,ShieldAlert,X} from 'lucide-react';
+import MuseumPaperHeader from './MuseumPaperHeader.jsx';
 import MuseumDashboard from './MuseumDashboard.jsx';
 import MuseumLiveTeacher from './MuseumLiveTeacher.jsx';
 import {LessonWizard,LessonsList} from './MuseumLessonFlow.jsx';
 import {Submissions} from './MuseumReview.jsx';
 import {MuseumTemplates,MuseumGallery,MuseumSettings} from './MuseumExplore.jsx';
 import MuseumEvidence from './MuseumEvidence.jsx';
-import MuseumScene from './MuseumScene.jsx';
 import MuseumExhibitionDetail from './MuseumExhibitionDetail.jsx';
 import {DEMO_GALLERY,staffRequest} from './museumApi.js';
 import './museumLab.css';
-const NAV=[
- {id:'live',icon:Presentation,vi:'Dạy trực tiếp',en:'Teach Live'},
- {id:'home',icon:House,vi:'Trang chủ',en:'Home'},
- {id:'lessons',icon:BookOpen,vi:'Bài học',en:'Lessons'},
- {id:'submissions',icon:ClipboardCheck,vi:'Bài nộp',en:'Submissions'},
- {id:'gallery',icon:Landmark,vi:'Triển lãm',en:'Exhibitions'},
- {id:'templates',icon:Library,vi:'Kế hoạch bài dạy',en:'Teaching plan'},
- {id:'evidence',icon:Award,vi:'Hồ sơ dự thi',en:'Competition dossier'},
- {id:'settings',icon:Settings2,vi:'Cài đặt',en:'Settings'}
-];
+import './museumPaper.css';
 const tr=(language,vi,en)=>language==='en'?en:vi;
 const initialMuseumTab=()=>{
  if(typeof window==='undefined')return 'home';
  try{return new URLSearchParams(window.location.hash.split('?')[1]||'').has('exhibition')?'gallery':'home';}
  catch{return 'home';}
 };
-export default function MuseumLabApp({currentUser,language='vi'}){
+export default function MuseumLabApp({currentUser,language='vi',transport=staffRequest}){
  const [tab,setTab]=useState(initialMuseumTab),[staff,setStaff]=useState(null);
- const [loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState('');
- const [query,setQuery]=useState(''),[reviewId,setReviewId]=useState(null),[help,setHelp]=useState(false),[menuOpen,setMenuOpen]=useState(false);
+ const [loading,setLoading]=useState(true),[error,setError]=useState('');
+ const [query,setQuery]=useState(''),[reviewId,setReviewId]=useState(null),[help,setHelp]=useState(false);
  const refresh=useCallback(async()=>{
-  try{const data=await staffRequest('dashboard');setStaff(data);setError('');return data;}
+  try{const data=await transport('dashboard');setStaff(data);setError('');return data;}
   catch(e){setError(e.message);return null;}finally{setLoading(false);}
- },[]);
+ },[transport]);
  useEffect(()=>{refresh();},[refresh,currentUser?.id]);
  useEffect(()=>{
   const timer=window.setInterval(()=>{if(!document.hidden)refresh();},45000);
@@ -43,7 +34,7 @@ export default function MuseumLabApp({currentUser,language='vi'}){
   if(typeof window!=='undefined'&&id!=='gallery'&&id!=='demo'&&window.location.hash.includes('?exhibition=')){
    window.history.replaceState(null,'',window.location.hash.split('?')[0]);
   }
-  setTab(id);setMenuOpen(false);setNotice('');
+  setTab(id);
   if(id==='submissions'&&extra)setReviewId(extra);
  };
  const create=()=>navigate('wizard');
@@ -56,39 +47,10 @@ export default function MuseumLabApp({currentUser,language='vi'}){
   navigate('gallery');
  };
  const pending=staff?.reviews?.filter(r=>['submitted','ttcm_review'].includes(r.state)).length||0;
- const activePage=NAV.find(n=>n.id===tab);
- const initials=String(currentUser?.full_name||currentUser?.name||currentUser?.email||'B').trim().slice(0,1).toUpperCase();
- const primary=NAV.slice(0,5),secondary=NAV.slice(5);
- return <div className={'bml bml-app-layout '+(['gallery','demo'].includes(tab)?'bml-is-exhibition ':'')+(menuOpen?'is-menu-open':'')} data-testid="brian-museum-lab-v3">
-  <aside className={'bml-sidebar '+(menuOpen?'is-open':'')}>
-   <div className="bml-brand"><span className="bml-brand-icon"><Landmark size={23}/></span>
-    <div><strong>BRIAN Museum Lab</strong><small>V3.0 · Learn by creating</small></div></div>
-   <nav className="bml-nav" aria-label={tr(language,'Điều hướng Museum Lab','Museum Lab navigation')}>
-    {primary.map(({id,icon:Icon,vi,en})=><button type="button" className={tab===id?'is-active':''} aria-current={tab===id?'page':undefined}
-      key={id} onClick={()=>navigate(id)}><Icon size={20}/>{tr(language,vi,en)}{id==='submissions'&&pending>0?<span className="bml-status-pill bml-status-purple">{pending}</span>:null}</button>)}
-   </nav>
-   <div className="bml-nav-divider"/>
-   <div className="bml-nav-label">{tr(language,'CÔNG CỤ HỖ TRỢ','EXTRA TOOLS')}</div>
-   <nav className="bml-nav" aria-label={tr(language,'Công cụ mở rộng','Other tools')}>
-    {secondary.map(({id,icon:Icon,vi,en})=><button type="button" className={tab===id?'is-active':''} key={id}
-      onClick={()=>navigate(id)}><Icon size={19}/>{tr(language,vi,en)}</button>)}</nav>
-   <div className="bml-sidebar-footer"><Sparkles size={19}/><span>{tr(language,'Thiết kế bài học trong ba bước, học sinh không cần tài khoản.','Three-step lessons. Students never need accounts.')}</span></div>
-  </aside>
+ return <div className={'bml bml-app-layout bml-paper '+(['gallery','demo'].includes(tab)?'bml-is-exhibition':'')} data-testid="brian-museum-lab-v3">
   <div className="bml-main-panel">
-   <header className="bml-appbar">
-    <button type="button" className="bml-icon-btn" aria-label={tr(language,'Mở điều hướng','Open navigation')} onClick={()=>setMenuOpen(v=>!v)}><Menu size={22}/></button>
-    <div className="bml-appbar-title">{tab==='home'?'BRIAN Museum Lab':tr(language,activePage?.vi||'Museum Lab',activePage?.en||'Museum Lab')}</div>
-    <label className="bml-search"><Search size={19} color="#6e8195"/><input aria-label={tr(language,'Tìm bài học','Search lessons')}
-      value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){navigate('lessons');}}}
-      placeholder={tr(language,'Tìm bài học, triển lãm…','Search lessons and museums…')}/></label>
-    <div className="bml-appbar-actions">
-     <button className="bml-icon-btn" type="button" onClick={()=>refresh()} aria-label={tr(language,'Làm mới dữ liệu','Refresh data')}><RefreshCw size={20}/></button>
-     <button className="bml-icon-btn" type="button" onClick={()=>setHelp(true)} aria-label={tr(language,'Trợ giúp','Help')}><CircleHelp size={22}/></button>
-     <button className="bml-icon-btn" type="button" onClick={()=>navigate('submissions')} aria-label={tr(language,'Bài nộp chờ duyệt','Pending reviews')}><Bell size={21}/></button>
-     <button className="bml-icon-btn" type="button" onClick={()=>{window.location.hash='#/apps';}} aria-label={tr(language,'Ứng dụng Brian','Brian apps')}><Grid2X2 size={21}/></button>
-     <div className="bml-user-avatar" title={currentUser?.email||''} aria-label={tr(language,'Tài khoản đang đăng nhập','Signed-in user')}>{initials}</div>
-    </div>
-   </header>
+   <MuseumPaperHeader language={language} tab={tab} onNavigate={navigate} pending={pending}
+    query={query} onQueryChange={setQuery} onRefresh={refresh} onHelp={()=>setHelp(true)}/>
    <main className="bml-page">
     {error?<div className="bml-banner bml-danger-banner" role="alert" style={{marginBottom:18}}><ShieldAlert size={19}/>
       <div><strong>{tr(language,'Không thể đồng bộ dữ liệu quản lý','Could not load staff data')}</strong><p>{error}</p>

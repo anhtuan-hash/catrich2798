@@ -1,6 +1,5 @@
 import React from 'react';
-import {ArrowRight,BookOpen,CheckCheck,ChevronRight,ClipboardList,FileText,Leaf,Plus,School,ShieldCheck,Sparkles,Users,Waves,Landmark ,Presentation} from 'lucide-react';
-import {LESSON_KITS,progressOfGroup} from './museumData.js';
+import {ArrowRight,BookOpen,CalendarDays,ChevronRight,Image,Leaf,Plus,School,Users,Waves} from 'lucide-react';
 import {fmtDate} from './museumApi.js';
 const kitIcons={leaf:Leaf,waves:Waves,school:School};
 export function MuseumHeroArt(){
@@ -44,39 +43,25 @@ export function KitCard({kit,onClick,selected=false,language='vi'}){
    <span>{tr('Mở kế hoạch','Open lesson plan')} <ChevronRight size={16}/></span></span>
  </button>;
 }
-export default function MuseumDashboard({data,onNavigate,onCreate,onDemo,language='vi'}){
+export default function MuseumDashboard({data,onNavigate,onCreate,language='vi'}){
  const tr=(vi,en)=>language==='en'?en:vi;
  const assignments=(data?.assignments||[]).slice(0,5),groups=data?.groups||[];
- const submitted=groups.filter(x=>['submitted','ttcm_review','approved_locked','published'].includes(x.state)).length;
  return <div className="bml-screen bml-dashboard" data-testid="museum-dashboard">
-  <div className="bml-welcome">
-   <div className="bml-welcome-copy"><div className="bml-overline">{tr('BẢO TÀNG SỐ TRONG LỚP HỌC','CREATIVE LEARNING WORKSPACE')}</div>
-    <h1>{tr('Chào mừng trở lại!','Welcome back!')}</h1>
-    <p>{tr('Hôm nay, thầy/cô muốn sáng tạo điều gì?','What would you like to create with your class today?')}</p>
-   </div><MuseumHeroArt/>
-  </div>
-  <section className="bml-surface bml-live-entry" style={{background:'linear-gradient(110deg,#e6f1ff,#f3f8ff)',borderColor:'#bfd4f7',display:'flex',alignItems:'center',justifyContent:'space-between',gap:18,flexWrap:'wrap'}}>
-   <div><div className="bml-overline">{tr('DẠY TRỰC TIẾP KHÔNG CẦN POWERPOINT','LIVE TEACHING · NO POWERPOINT')}</div>
-    <h2>{tr('Bắt đầu tiết học cùng BRIAN Museum Lab','Teach your next lesson inside Museum Lab')}</h2>
-    <p>{tr('11 hoạt động · 2 tiết · khảo sát tức thời · sáng tạo triển lãm 3D','11 stages · two periods · live survey · real 3D student museums')}</p></div>
-   <button type="button" className="bml-primary" onClick={()=>onNavigate('live')}><Presentation size={19}/>{tr('Bắt đầu giảng dạy','Start teaching')}<ArrowRight size={17}/></button>
-  </section>
   <div className="bml-quick-actions">
    <button type="button" className="bml-quick-card" onClick={onCreate}>
     <span className="bml-quick-icon bml-blue"><BookOpen size={25}/></span><span><strong>{tr('Tạo bài học mới','Create a lesson')}</strong>
-      <small>{tr('Một kế hoạch Unit 5, giao nhóm và phát QR','Unit 5 lesson, groups and QR access')}</small></span><Plus size={19}/></button>
+      <small>{tr('Soạn nội dung, giao nhiệm vụ','Unit 5 lesson, groups and QR access')}</small></span><Plus size={19}/></button>
    <button type="button" className="bml-quick-card" onClick={()=>onNavigate('submissions')}>
     <span className="bml-quick-icon bml-purple"><Users size={25}/></span><span><strong>{tr('Xem bài nộp','Review submissions')}</strong>
       <small>{tr('Theo dõi tiến độ và đánh giá','Track progress and evaluate')}</small></span><ArrowRight size={19}/></button>
    <button type="button" className="bml-quick-card" onClick={()=>onNavigate('gallery')}>
-    <span className="bml-quick-icon bml-sky"><Landmark size={25}/></span><span><strong>{tr('Tham quan triển lãm','Explore museums')}</strong>
+    <span className="bml-quick-icon bml-sky"><Image size={25}/></span><span><strong>{tr('Tham quan triển lãm','Explore museums')}</strong>
       <small>{tr('Xem, chia sẻ và công bố','Browse, share and publish')}</small></span><ArrowRight size={19}/></button>
   </div>
-  <section className="bml-surface">
-   <div className="bml-section-head"><div><h2>{tr('Bài học gần đây','Recent lessons')}</h2>
-    <p>{tr('Tiến độ được đọc từ dữ liệu thật trên Brian','Progress is calculated from your real Brian assignments')}</p></div>
+  <section className="bml-surface bml-paper-recents">
+   <div className="bml-section-head"><div className="bml-paper-section-title"><img src="/assets/attendance-scrapbook/books.svg" alt="" width="72" height="72"/><h2>{tr('Bài học gần đây','Recent lessons')}</h2></div>
     <button type="button" className="bml-text-btn" onClick={()=>onNavigate('lessons')}>{tr('Xem tất cả','View all')} <ChevronRight size={17}/></button></div>
-   {assignments.length?<div className="bml-responsive-table"><table className="bml-table">
+   {assignments.length?<div className="bml-responsive-table" tabIndex={0} role="region" aria-label={tr('Bài học gần đây · cuộn ngang để xem đầy đủ','Recent lessons · scroll horizontally for all columns')}><table className="bml-table">
     <thead><tr><th>{tr('Tên bài học','Lesson')}</th><th>{tr('Lớp','Class')}</th><th>{tr('Số nhóm','Groups')}</th><th>{tr('Tiến độ','Progress')}</th><th>{tr('Hạn nộp','Deadline')}</th></tr></thead>
     <tbody>{assignments.map(a=>{
      const linked=groups.filter(g=>g.assignment_id===a.id),count=linked.filter(g=>['submitted','ttcm_review','approved_locked','published'].includes(g.state)).length;
@@ -85,23 +70,12 @@ export default function MuseumDashboard({data,onNavigate,onCreate,onDemo,languag
       <td><span className="bml-class-tag">{a.class_scope}</span></td><td>{linked.length}</td>
       <td><div className="bml-progress"><div style={{width:(linked.length?count/linked.length*100:0)+'%'}}/></div>
        <small>{tr('Đã nộp','Submitted')} {count}/{linked.length}</small></td>
-      <td>{fmtDate(a.deadline_at)}</td>
+      <td><span className="bml-paper-deadline"><CalendarDays size={18} aria-hidden="true"/>{fmtDate(a.deadline_at)}</span></td>
      </tr>;})}</tbody>
    </table></div>:<div className="bml-empty bml-empty-slim"><BookOpen size={31}/><strong>{tr('Chưa có bài học nào','No lessons yet')}</strong>
      <p>{tr('Bắt đầu với Our Climate Action Museum, Tiếng Anh 11 Unit 5. Ba bước để giao nhiệm vụ cho nhóm.','Start with Our Climate Action Museum, English 11 Unit 5, then assign groups in three steps.')}</p>
      <button className="bml-primary" type="button" onClick={onCreate}><Plus size={17}/>{tr('Tạo bài học đầu tiên','Create your first lesson')}</button>
    </div>}
   </section>
-  <div className="bml-bottom-grid">
-   <section className="bml-surface"><div className="bml-section-head"><h2>{tr('Kế hoạch bài dạy','Teaching plan')}</h2>
-      <button className="bml-text-btn" onClick={()=>onNavigate('templates')}>{tr('Xem kế hoạch','View plan')} <ChevronRight size={17}/></button></div>
-      <div className="bml-mini-kits">{LESSON_KITS.map(k=><KitCard key={k.id} kit={k} language={language} onClick={()=>onCreate(k.id)}/>)}</div>
-   </section>
-   <section className="bml-surface bml-demo-teaser"><div className="bml-overline">{tr('TRÌNH DIỄN HỘI THI','COMPETITION PREVIEW')}</div>
-    <h2>{tr('Xem bảo tàng mẫu 3D','Visit the sample 3D museum')}</h2>
-    <p>{tr('Nội dung mẫu tổng hợp, không chứa dữ liệu học sinh thật.','Synthetic sample content. No real student data.')}</p>
-    <button type="button" className="bml-outline" onClick={onDemo}><Sparkles size={18}/>{tr('Tham quan bản mẫu','Open sample museum')}</button>
-   </section>
-  </div>
  </div>;
 }
