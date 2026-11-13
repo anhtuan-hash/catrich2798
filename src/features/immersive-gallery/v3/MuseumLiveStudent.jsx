@@ -1,10 +1,16 @@
 import React,{useEffect,useState} from 'react';
-import {CheckCircle2,Eye,HelpCircle,Info,Lock,MessageCircle,RefreshCcw,Send,Users} from 'lucide-react';
+import {CheckCircle2,Eye,HelpCircle,Info,Lock,MessageCircle,RefreshCcw,Send,Users,BookOpen,Volume2} from 'lucide-react';
 import {liveGuest} from './museumLiveApi.js';
 import LessonResources from './LessonResources.jsx';
 import {validatePeer} from './learningEvidence.js';
 import MuseumScene from './MuseumScene.jsx';
+import MuseumVoiceover from './MuseumVoiceover.jsx';
+import MuseumVideoLab from './MuseumVideoLab.jsx';
+import MuseumResourceHub from './MuseumResourceHub.jsx';
+import MuseumMicroChallenge from './MuseumMicroChallenge.jsx';
+import {MICRO_CHALLENGES} from './museumLiveExtensions.js';
 import './museumLive.css';
+import './museumLiveCompetition.css';
 const t=(language,vi,en)=>language==='en'?en:vi;
 export default function MuseumLiveStudent({csrf,language='vi',onState}){
  const [data,setData]=useState(null),[selected,setSelected]=useState(null);
@@ -52,6 +58,13 @@ export default function MuseumLiveStudent({csrf,language='vi',onState}){
   <header className="bml-live-student-header"><strong>Teacher Live · {t(language,'Tiết','Period')} {stage?.period}/2 · {t(language,'Hoạt động','Stage')} {stageIndex+1}/11</strong>
    <span>{session.stageOpen?t(language,'Giáo viên đã mở hoạt động','Activity is open'):t(language,'Chờ giáo viên mở hoạt động','Waiting for teacher')}</span></header>
   <h2>{stage?.title}</h2><p>{stage?.question}</p><LessonResources stageIndex={stageIndex} language={language}/>
+  <details className="bml-student-enrichment" data-testid="museum-student-research"><summary>
+   <BookOpen size={17}/>{t(language,'Kho tư liệu · nguồn đáng tin cậy','Research library · reliable sources')}</summary>
+   <MuseumResourceHub stage={stage} language={language}/>
+  </details>
+  <details className="bml-student-enrichment"><summary><Volume2 size={17}/>{t(language,'Nghe lời dẫn tiếng Anh','Listen to English voiceover')}</summary>
+   <MuseumVoiceover stage={stage} language={language} compact/>
+  </details>
   <div className="bml-step-hint"><Info size={19}/><span>{stage?.sentence}</span></div>
   {!session.stageOpen||session.status!=='active'?<div className="bml-banner bml-info-banner"><Lock size={18}/>{t(language,'Chờ giáo viên mở hoạt động tiếp theo.','Wait for your teacher to open this task.')}</div>:<>
     {stage.kind==='vote'?<div className="bml-live-response-options">{stage.options.map((o,i)=><button type="button" key={i} disabled={posted||busy}
@@ -65,6 +78,11 @@ export default function MuseumLiveStudent({csrf,language='vi',onState}){
      {stage.kind==='peer'?<><strong>{peerLabel||'Nhóm được phân công sẽ hiện khi mở triển lãm.'}</strong>{[['learned','I learned …'],['clarify','The message would be clearer if …']].map(([key,label])=><label className="bml-full-field" key={key}>{label}<textarea rows={3} maxLength={400} disabled={posted} value={peerResponse[key]} onChange={e=>setPeerResponse(v=>({...v,[key]:e.target.value}))}/></label>)}<label>{t(language,'Clarity / Mức rõ ràng','Clarity')}<select value={peerResponse.rating} disabled={posted} onChange={e=>setPeerResponse(v=>({...v,rating:Number(e.target.value)}))}><option value={0}>{t(language,'Chọn mức','Choose a rating')}</option><option value={1}>1 · Unclear</option><option value={2}>2 · Partly clear</option><option value={3}>3 · Mostly clear</option><option value={4}>4 · Clear</option></select></label></>:<label className="bml-full-field">{t(language,'Trả lời bằng tiếng Anh','Write your response in English')}<textarea rows={3}
       maxLength={800} disabled={posted} placeholder={stage.sentence} value={written} onChange={e=>setWritten(e.target.value)}/></label>}
     </div>:null}
+    {session.media&&(session.media.query||session.media.videos?.length)?<MuseumVideoLab
+     mode="student" stage={stage} stageIndex={stageIndex} media={session.media}
+     language={language} csrf={csrf}/>:null}
+    {MICRO_CHALLENGES[stageIndex]?<MuseumMicroChallenge key={session.id+'-'+stageIndex}
+     stageIndex={stageIndex} existing={data?.micro} csrf={csrf} language={language}/>:null}
     {canRespond?<div className="bml-live-actions">
      <button type="button" className="bml-primary" disabled={busy||posted||(stage.kind==='vote'&&selected===null)||
       (stage.kind==='quiz'&&stage.questions.some((_,i)=>!Number.isInteger(quiz[i])))||

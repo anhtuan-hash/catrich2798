@@ -15,8 +15,8 @@ export async function liveStaff(action,body,params={}){
  if(!response.ok||d.error)throw Object.assign(new Error(d.error||'Lỗi bài dạy trực tiếp'),{status:response.status});
  return d;
 }
-export async function liveGuest(action,method='GET',body,csrf){
- const q=new URLSearchParams({operation:action});
+export async function liveGuest(action,method='GET',body,csrf,params={}){
+ const q=new URLSearchParams({operation:action,...params});
  const res=await fetch(LIVE_ROUTE+'?'+q.toString(),{
   method,credentials:'same-origin',cache:'no-store',
   headers:{...(body?{'Content-Type':'application/json'}:{}),...(csrf?{'X-Gallery-CSRF':csrf}:{})},

@@ -5,6 +5,7 @@ import MuseumLiveTeacher from '../../src/features/immersive-gallery/v3/MuseumLiv
 import MuseumArtworkStudio from '../../src/features/immersive-gallery/v3/MuseumArtworkStudio.jsx';
 import MuseumLiveStudent from '../../src/features/immersive-gallery/v3/MuseumLiveStudent.jsx';
 import {LIVE_STAGES,summarizeResponses} from '../../src/features/immersive-gallery/v3/liveLesson.js';
+import {videoTaskFor} from '../../src/features/immersive-gallery/v3/museumLiveExtensions.js';
 import MuseumLabStudent from '../../src/features/immersive-gallery/v3/MuseumLabStudent.jsx';
 import MuseumScene from '../../src/features/immersive-gallery/v3/MuseumScene.jsx';
 import MuseumExhibitionDetail from '../../src/features/immersive-gallery/v3/MuseumExhibitionDetail.jsx';
@@ -47,22 +48,36 @@ const submittedQa={
 };
 let liveSession=null;
 const demoTeacherApi=async(action,body)=>{
- if(action==='state')return {session:liveSession?{...liveSession,stage:LIVE_STAGES[liveSession.stageIndex]}:null,
+ if(['media-task','media-add','media-remove'].includes(action)){
+  if(!liveSession||body.version!==liveSession.version)throw new Error('Stale QA version');
+  const board=liveSession.mediaBoard||{},stageIndex=body.stageIndex;
+  const old=videoTaskFor(board,stageIndex);
+  let media=old;
+  if(action==='media-task')media={...old,query:body.query,instruction:body.instruction};
+  if(action==='media-add')media={...old,videos:[...old.videos.filter(v=>v.id!==body.videoId),
+   {id:body.videoId,title:body.title||'Synthetic approved video',channel:body.channel||''}]};
+  if(action==='media-remove')media={...old,videos:old.videos.filter(v=>v.id!==body.videoId)};
+  liveSession={...liveSession,version:liveSession.version+1,mediaBoard:{...board,[stageIndex]:media}};
+  return {session:{...liveSession,media:videoTaskFor(liveSession.mediaBoard,liveSession.stageIndex),
+   stage:LIVE_STAGES[liveSession.stageIndex]}};
+ }
+ if(action==='video-search')return {available:false,results:[],reason:'youtube_api_key_not_configured'};
+ if(action==='state')return {session:liveSession?{...liveSession,media:videoTaskFor(liveSession.mediaBoard,liveSession.stageIndex),stage:LIVE_STAGES[liveSession.stageIndex]}:null,
   groups:synthetic.groups,result:liveSession?summarizeResponses(liveSession.stageIndex,[]):null,needHelp:0};
  if(action==='start'){liveSession={id:'lesson-demo-session',assignmentId:'lesson-synthetic',status:'active',
-  stageIndex:0,stageOpen:false,revealed:false,version:0,stageStartedAt:new Date().toISOString()};
-  return {session:{...liveSession,stage:LIVE_STAGES[0]}};}
+  stageIndex:0,stageOpen:true,revealed:false,version:0,stageStartedAt:new Date().toISOString()};
+  return {session:{...liveSession,media:videoTaskFor(liveSession.mediaBoard,0),stage:LIVE_STAGES[0]}};}
  if(action==='control'){if(!liveSession)throw new Error('No session');liveSession={...liveSession,version:liveSession.version+1};
   if(body.action==='next')liveSession.stageIndex++;
   if(body.action==='previous')liveSession.stageIndex--;
-  if(body.action==='next'||body.action==='previous')liveSession.stageOpen=false;
+  if(body.action==='next'||body.action==='previous')liveSession.stageOpen=true;
   if(body.action==='open')liveSession.stageOpen=true;
   if(body.action==='close')liveSession.stageOpen=false;
   if(body.action==='reveal')liveSession.revealed=true;
-  if(body.action==='pause')liveSession.status='paused';
-  if(body.action==='resume')liveSession.status='active';
+  if(body.action==='pause'){liveSession.status='paused';liveSession.stageOpen=false;}
+  if(body.action==='resume'){liveSession.status='active';liveSession.stageOpen=true;}
   if(body.action==='end')liveSession.status='ended';
-  return {session:{...liveSession,stage:LIVE_STAGES[liveSession.stageIndex]}};}
+  return {session:{...liveSession,media:videoTaskFor(liveSession.mediaBoard,liveSession.stageIndex),stage:LIVE_STAGES[liveSession.stageIndex]}};}
  if(action==='group-gallery')return {draft:{title:'Synthetic Group',rooms:[]},artworks:[],groupLabel:'Demo group'};
  throw new Error('Unexpected mocked operation');
 };
@@ -72,12 +87,16 @@ function Harness(){
  return <div style={{fontFamily:'Roboto,Arial,sans-serif'}}>
   <div style={{display:'flex',gap:8,padding:10,background:'#e6f0ff',flexWrap:'wrap'}} data-testid="qa-harness">
    <strong>QA ONLY · ALL DATA SYNTHETIC</strong>
-   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
+   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','published-lesson'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
   </div>
   <div className="bml">
    {screen==='dashboard'?<MuseumLabApp currentUser={{id:'teacher-synthetic',name:'Demo Teacher'}} transport={demoDashboardApi}/>:null}
    {screen==='student'?<MuseumLabStudent language="vi"/>:null}
    {screen==='admin-review'?<Submissions data={submittedQa} language="vi" onNavigate={setScreen} onRefresh={async()=>{}}/>:null}
+   {screen==='published-lesson'?<LessonsList
+    data={{...synthetic,groups:synthetic.groups.map((g,i)=>i===0?{...g,state:'published'}:g)}}
+    language="vi" onCreate={()=>{}} onReview={()=>{}} onRefresh={async()=>{}}
+    onOpenCollection={()=>{}}/>:null}
    {screen==='teacher-live'?<MuseumLiveTeacher data={synthetic} language="vi" transport={demoTeacherApi}/>:null}
    {screen==='student-live'?<MuseumLiveStudent csrf="qa-secret" language="vi"/>:null}
    {screen==='artwork'?<MuseumArtworkStudio studio={{artworks:{issue:null,evidence:null,solution:null}}}

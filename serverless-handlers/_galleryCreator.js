@@ -25,7 +25,24 @@ export const clean=(v,n=140)=>String(v??'').replace(/[\u0000-\u001f\u007f]/g,' '
 export const uid=x=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(x||''));
 export const query=async promise=>{
  const {data,error}=await promise;
- if(error)throw fail(error.message?.includes('version_conflict')?409:400,'Không thể hoàn tất yêu cầu.');
+ if(error){
+  // Present only deliberately allow-listed, actionable client messages.
+  // Never expose raw database details or PostgREST internals to students.
+  const safeFailures=[
+   ['published_assignment_immutable',409,'Bài học có triển lãm đã công bố. Hãy tải lại trang để áp dụng phiên bản mới.'],
+   ['assignment_missing',404,'Bài học không còn trong danh sách hoạt động. Hãy tải lại trang.'],
+   ['admin_required',403,'Chỉ Admin đã được duyệt cùng trường mới có quyền thực hiện.'],
+   ['approved_review_immutable',409,'Bài nộp đã duyệt hoặc công bố không thể xóa bằng chức năng này.'],
+   ['review_missing',404,'Bài nộp không còn trong danh sách hoạt động.'],
+   ['assignment_closed',423,'Bài học đã đóng hoặc đã được lưu trữ.'],
+   ['stale_review',409,'Bài nộp đã thay đổi. Hãy tải lại trước khi duyệt.'],
+   ['version_conflict',409,'Có thay đổi mới hơn. Hãy tải lại để tiếp tục.']
+  ];
+  const detail=String(error.message||'');
+  const known=safeFailures.find(([code])=>detail.includes(code));
+  if(known)throw fail(known[1],known[2]);
+  throw fail(400,'Không thể hoàn tất yêu cầu. Hãy tải lại trang rồi thử lại.');
+ }
  return data;
 };
 export const send=(res,status,data)=>{

@@ -179,13 +179,23 @@ test('teacher controls 11 live lesson stages without a PowerPoint or automatic t
  await expect(page.getByTestId('museum-teacher-live')).toBeVisible();
  await page.getByRole('button',{name:/Bắt đầu buổi dạy/}).click();
  await expect(page.getByText('Climate Detective')).toBeVisible();
- await page.getByRole('button',{name:/Mở cho học sinh/}).click();
+ // Students can respond as soon as Admin starts; no extra Open action.
  await expect(page.getByText('ĐANG MỞ HOẠT ĐỘNG')).toBeVisible();
+ await expect(page.getByRole('button',{name:/Khóa hoạt động/})).toBeVisible();
+ await expect(page.getByRole('button',{name:/Mở cho học sinh/})).toHaveCount(0);
  await page.getByRole('button',{name:/Hiện giải thích/}).click();
  await expect(page.getByText('This is a warm-up vote',{exact:false})).toBeVisible();
  await page.getByRole('button',{name:/Hoạt động tiếp/}).click();
  await expect(page.getByText('Language Mini-Lesson')).toBeVisible();
+ await expect(page.getByText('ĐANG MỞ HOẠT ĐỘNG')).toBeVisible();
+ await page.getByRole('button',{name:/Khóa hoạt động/}).click();
  await expect(page.getByText('HOẠT ĐỘNG CHƯA MỞ')).toBeVisible();
+ await page.getByRole('button',{name:/Mở lại tương tác/}).click();
+ await expect(page.getByText('ĐANG MỞ HOẠT ĐỘNG')).toBeVisible();
+ await page.getByRole('button',{name:/Tạm dừng/}).click();
+ await expect(page.getByText('HOẠT ĐỘNG CHƯA MỞ')).toBeVisible();
+ await page.getByRole('button',{name:/Tiếp tục/}).click();
+ await expect(page.getByText('ĐANG MỞ HOẠT ĐỘNG')).toBeVisible();
 });
 test('group receives teacher stage, cannot answer a closed task and submits only once when released',async({page})=>{
  let open=false,posts=0,last=null;
@@ -516,4 +526,239 @@ test('Admin directly manages assignments and submitted work without delegating a
  await expect(page.getByRole('button',{name:/Admin phê duyệt/})).toBeVisible();
  await expect(page.getByRole('button',{name:/Xóa bài nộp/})).toBeVisible();
  await expect(page.getByRole('button',{name:/Chuyển TTCM duyệt/})).toHaveCount(0);
+});
+
+
+test('Admin deleting lesson with published exhibition explains gallery retention before archive',async({page})=>{
+ await page.getByTestId('qa-published-lesson').click();
+ const lessons=page.getByTestId('museum-lessons');
+ await expect(lessons.getByText('Synthetic Climate Action Museum')).toBeVisible();
+ let confirmation='';
+ page.once('dialog',async dialog=>{
+  confirmation=dialog.message();
+  await dialog.dismiss();
+ });
+ await lessons.getByRole('button',{name:/Xóa bài học Synthetic Climate Action Museum/}).click();
+ expect(confirmation).toContain('1 triển lãm đã công bố');
+ expect(confirmation).toContain('triển lãm vẫn còn trong mục Triển lãm');
+ await expect(lessons.getByText('Synthetic Climate Action Museum')).toBeVisible();
+});
+
+
+test('approved paper collage renders all eleven live stages with separated title, question, status and controls',async({page})=>{
+ const names=['Climate Detective','Language Mini-Lesson','Live Classroom Survey',
+  'Problem · Evidence · Solution','Storyboard Checkpoint','Recap and Resume',
+  'Create the 3D Museum','Peer Gallery Walk','Improve the Exhibition',
+  'Present and Discuss','Exit Ticket'];
+ await page.getByTestId('qa-teacher-live').click();
+ await page.getByRole('button',{name:/Bắt đầu buổi dạy/}).click();
+ const screen=page.getByTestId('museum-live-paper-stage');
+ await expect(screen).toBeVisible();
+ for(let i=0;i<names.length;i++){
+  await expect(screen).toHaveAttribute('data-stage-index',String(i));
+  await expect(screen.getByRole('heading',{name:names[i],exact:true})).toBeVisible();
+  await expect(screen.locator('.bml-paper-question-sheet')).toHaveCount(1);
+  await expect(screen.locator('.bml-paper-illustration')).toHaveCount(1);
+  await expect(screen.locator('.bml-live-bottom')).toBeVisible();
+  await expect(screen.getByText('ĐANG MỞ HOẠT ĐỘNG')).toBeVisible();
+  if([0,2].includes(i))await expect(screen.locator('.bml-live-choices>div')).toHaveCount(4);
+  else if(i===1)await expect(screen.locator('.bml-live-quiz>div')).toHaveCount(3);
+  else await expect(screen.locator('.bml-paper-task')).toHaveCount(3);
+  const layout=await screen.evaluate(el=>{
+   const slide=el.querySelector('.bml-live-slide'),footer=el.querySelector('.bml-live-bottom'),
+    top=el.querySelector('.bml-live-topbar'),question=el.querySelector('.bml-live-question'),
+    hero=el.querySelector('.bml-paper-stage-intro'),bounds=x=>x.getBoundingClientRect();
+   const a=bounds(slide),b=bounds(footer),c=bounds(top),q=bounds(question),h=bounds(hero),e=bounds(el);
+   return {
+    titleHasRoom:h.bottom<=b.top+1,
+    questionInWidth:q.left>=e.left-3&&q.right<=e.right+3,
+    questionAboveFooter:q.top<b.top,
+    stageDoesNotOverlayFooter:a.bottom<=b.top+2,
+    topDoesNotOverlayStage:c.bottom<=a.top+2,
+    hasScrollableSlide:getComputedStyle(slide).overflowY==='auto',
+    screenWidth:e.width
+   };
+  });
+  expect(layout).toMatchObject({
+   titleHasRoom:true,questionInWidth:true,questionAboveFooter:true,
+   stageDoesNotOverlayFooter:true,topDoesNotOverlayStage:true,hasScrollableSlide:true
+  });
+  if(i<names.length-1)await page.getByRole('button',{name:/Hoạt động tiếp/}).click();
+ }
+ await page.getByRole('button',{name:/Kho tư liệu/}).click();
+ await expect(page.getByTestId('museum-live-resources')).toBeVisible();
+ await expect(page.getByTestId('museum-live-paper-stage').locator('.bml-learning-resources')).toHaveCount(0);
+});
+
+test('paper live presenter avoids horizontally clipped text on a narrow MacBook or mobile screen',async({page})=>{
+ await page.setViewportSize({width:820,height:760});
+ await page.getByTestId('qa-teacher-live').click();
+ await page.getByRole('button',{name:/Bắt đầu buổi dạy/}).click();
+ const stage=page.getByTestId('museum-live-paper-stage');
+ await expect(stage.locator('.bml-live-choices>div')).toHaveCount(4);
+ const results=await stage.evaluate(el=>{
+  const screen=el.getBoundingClientRect(),
+   candidates=[...el.querySelectorAll('.bml-live-choices>div,.bml-live-question,.bml-paper-status,.bml-live-slide h2')];
+  return candidates.map(x=>({text:x.textContent.slice(0,30),right:x.getBoundingClientRect().right-screen.right,
+   left:screen.left-x.getBoundingClientRect().left}));
+ });
+ for(const r of results){
+  expect(r.right,r.text+' clipped on right').toBeLessThanOrEqual(4);
+  expect(r.left,r.text+' clipped on left').toBeLessThanOrEqual(4);
+ }
+});
+
+
+test('Teacher Live has real stage motion control, readable voiceover, research library and persistent curated videos',async({page})=>{
+ await page.getByTestId('qa-teacher-live').click();
+ await page.getByRole('button',{name:/Bắt đầu buổi dạy/}).click();
+ const stage=page.getByTestId('museum-live-paper-stage');
+ await expect(stage).toHaveAttribute('data-motion','on');
+ await page.getByRole('button',{name:'Motion ON'}).click();
+ await expect(stage).toHaveAttribute('data-motion','off');
+ await page.getByRole('button',{name:'Motion OFF'}).click();
+ await expect(stage).toHaveAttribute('data-motion','on');
+ await page.getByRole('button',{name:'Voiceover'}).click();
+ await expect(page.getByTestId('museum-voiceover')).toBeVisible();
+ await expect(page.getByText('Welcome to our Climate Action Museum.',{exact:false})).not.toBeVisible();
+ await page.getByText('Xem kịch bản lời dẫn').click();
+ await expect(page.getByText('Welcome to our Climate Action Museum.',{exact:false})).toBeVisible();
+ await page.getByRole('button',{name:/Kho tư liệu/}).click();
+ await expect(page.getByTestId('museum-research-library')).toBeVisible();
+ await expect(page.getByRole('link',{name:/NASA/})).toBeVisible();
+ await page.getByRole('button',{name:'Video Lab'}).click();
+ const lab=page.getByTestId('museum-video-lab');
+ await expect(lab).toBeVisible();
+ await lab.getByPlaceholder('school climate actions reducing carbon footprint').fill('global warming causes for students');
+ await lab.getByRole('button',{name:/Giao nhiệm vụ video/}).click();
+ await expect(lab.getByText('Đã lưu nhiệm vụ video cho tiết học.')).toBeVisible();
+ await lab.getByPlaceholder('https://www.youtube.com/watch?v=…').fill('https://youtu.be/jNQXAC9IVRw');
+ await lab.getByPlaceholder('Teacher-curated climate video').fill('Teacher-selected classroom video');
+ await lab.getByRole('button',{name:/Thêm vào kho học liệu/}).click();
+ await expect(lab.getByText('Teacher-selected classroom video')).toBeVisible();
+ await expect(lab.getByText('VIDEO GIÁO VIÊN ĐÃ CHỌN',{exact:false})).toBeVisible();
+});
+
+test('Student Studio can watch a teacher-selected video and save source-based English reasoning by group',async({page})=>{
+ let microPosts=0,record=null;
+ await page.route('https://www.youtube-nocookie.com/**',r=>r.fulfill({status:200,contentType:'text/html',body:'<html><body>Video host test</body></html>'}));
+ await page.route('**/api/gallery-guest/live?**',async route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  if(op==='state')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   session:{id:'qa-comp-session',status:'active',stageIndex:3,stageOpen:true,revealed:false,
+    media:{query:'NASA climate change school',instruction:'Find a checkable scientific source.',
+     videos:[{id:'jNQXAC9IVRw',title:'Teacher-selected classroom video',channel:'Chosen source'}]},
+    stage:{id:'problem-evidence-solution',kind:'group',period:1,title:'Problem · Evidence · Solution',
+     question:'How can our school reduce one environmental problem?',sentence:'One problem is…'}
+   },micro:null,survey:null,feedback:[]})});
+  if(op==='micro-submit'){microPosts++;record=route.request().postDataJSON();
+   return route.fulfill({status:201,contentType:'application/json',body:'{"ok":true}'});}
+  if(op==='video-search')return route.fulfill({status:200,contentType:'application/json',
+   body:'{"available":false,"results":[],"reason":"youtube_api_key_not_configured"}'});
+  return route.fulfill({status:404,body:'{"error":"Unexpected operation"}'});
+ });
+ await page.getByTestId('qa-student-live').click();
+ await expect(page.getByTestId('student-live-activity')).toBeVisible();
+ const lab=page.getByTestId('museum-video-lab');
+ await expect(lab.getByText('Teacher-selected classroom video')).toBeVisible();
+ await lab.getByRole('button',{name:/Xem tại đây/}).click();
+ await expect(page.getByTestId('museum-youtube-player').locator('iframe')).toHaveCount(1);
+ await lab.getByRole('button',{name:/Tìm video/}).click();
+ await expect(lab.getByText('Tìm kiếm YouTube trong ứng dụng cần cấu hình',{exact:false})).toBeVisible();
+ const mini=page.getByTestId('museum-micro-challenge');
+ await expect(mini.getByText('Evidence Detective')).toBeVisible();
+ await mini.getByRole('button',{name:/A.*A dated observation/}).click();
+ await mini.getByPlaceholder('We chose this because …').fill('A dated observation gives a checkable source and context.');
+ await mini.getByRole('button',{name:/Gửi lập luận của nhóm/}).click();
+ await expect(mini.getByText('Đã ghi nhận lựa chọn và lập luận',{exact:false})).toBeVisible();
+ expect(microPosts).toBe(1);expect(record.choice).toBe(0);
+ expect(record.reason).toContain('checkable source');
+});
+
+
+test('fullscreen presenter keeps primary and research tools inside the actual fullscreen element',async({page})=>{
+ await page.addInitScript(()=>{
+  if(!('speechSynthesis' in window))return;
+  try{
+   Object.defineProperty(window.speechSynthesis,'getVoices',{
+    configurable:true,value:()=>[
+     {name:'Samantha',lang:'en-US',voiceURI:'qa-samantha',localService:true},
+     {name:'British Voice',lang:'en-GB',voiceURI:'qa-british',localService:true}]
+   });
+  }catch{}
+ });
+ await page.getByTestId('qa-teacher-live').click();
+ await page.getByRole('button',{name:/Bắt đầu buổi dạy/}).click();
+ await page.getByRole('button',{name:/Toàn màn hình/}).click();
+ const surface=page.getByTestId('museum-fullscreen-surface');
+ await expect(surface).toBeVisible();
+ await expect.poll(()=>page.evaluate(()=>document.fullscreenElement?.getAttribute('data-testid')||''))
+  .toBe('museum-fullscreen-surface');
+ const dock=page.getByTestId('museum-fullscreen-toolbar');
+ await expect(dock).toBeVisible();
+ await expect(dock.getByRole('button',{name:'Voiceover'})).toBeVisible();
+ await expect(dock.getByRole('button',{name:'Video Lab'})).toBeVisible();
+ await expect(dock.getByRole('button',{name:/Kho tư liệu/})).toBeVisible();
+ const geometry=await page.evaluate(()=>{
+  const full=document.fullscreenElement.getBoundingClientRect();
+  const d=document.querySelector('[data-testid="museum-fullscreen-toolbar"]').getBoundingClientRect();
+  const screen=document.querySelector('[data-testid="museum-live-paper-stage"]').getBoundingClientRect();
+  return {inside:d.top>=full.top&&d.bottom<=full.bottom+2, separated:screen.bottom<=d.top+2};
+ });
+ expect(geometry).toMatchObject({inside:true,separated:true});
+ await dock.getByRole('button',{name:'Voiceover'}).click();
+ const panel=page.getByTestId('museum-fullscreen-panel');
+ await expect(panel).toBeVisible();
+ await expect(panel.getByTestId('museum-voiceover')).toBeVisible();
+ await expect(panel.getByLabel('American English voice')).toBeVisible();
+ const voiceOptions=panel.getByLabel('American English voice').locator('option');
+ await expect(voiceOptions).toHaveCount(1);
+ const choice=await voiceOptions.first().innerText();
+ expect(choice.includes('Samantha · en-US')||choice.includes('Chưa tìm thấy giọng en-US'),
+  'Only an available en-US system voice or a clear no-US-voice message is permitted').toBe(true);
+ expect(choice).not.toContain('British');
+ await dock.getByRole('button',{name:'Video Lab'}).click();
+ const videoLab=panel.getByTestId('museum-video-lab');
+ await expect(videoLab).toBeVisible();
+ await videoLab.getByPlaceholder('https://www.youtube.com/watch?v=…').fill('https://youtu.be/jNQXAC9IVRw');
+ await videoLab.getByPlaceholder('Teacher-curated climate video').fill('Classroom source video');
+ await videoLab.getByRole('button',{name:/Thêm vào kho học liệu/}).click();
+ await videoLab.getByRole('button',{name:/Chiếu video/}).click();
+ const videoModal=page.getByTestId('museum-projector-video');
+ await expect(videoModal).toBeVisible();
+ await expect(videoModal.locator('iframe')).toHaveCount(1);
+ await videoModal.getByRole('button',{name:/Đóng video/}).click();
+ await expect(videoModal).toHaveCount(0);
+ await dock.getByRole('button',{name:/Kho tư liệu/}).click();
+ await expect(panel.getByTestId('museum-research-library')).toBeVisible();
+ await dock.getByRole('button',{name:/Nhóm/}).click();
+ await expect(panel.getByText('Demo Group 1')).toBeVisible();
+ await dock.getByRole('button',{name:'QR'}).click();
+ await expect(panel.getByAltText('Student Creator QR')).toBeVisible();
+ await dock.getByRole('button',{name:/Tập trung/}).click();
+ await expect(dock).toHaveClass(/is-focus/);
+ await dock.getByRole('button',{name:/Đủ nút/}).click();
+ await expect(dock).not.toHaveClass(/is-focus/);
+ await dock.getByRole('button',{name:/Thoát/}).click();
+ await expect.poll(()=>page.evaluate(()=>document.fullscreenElement===null)).toBe(true);
+});
+
+test('fullscreen can switch lesson stages and open presenter explanation without leaving projection',async({page})=>{
+ await page.getByTestId('qa-teacher-live').click();
+ await page.getByRole('button',{name:/Bắt đầu buổi dạy/}).click();
+ await page.getByRole('button',{name:/Toàn màn hình/}).click();
+ const screen=page.getByTestId('museum-live-paper-stage');
+ const dock=page.getByTestId('museum-fullscreen-toolbar');
+ await expect(screen).toHaveAttribute('data-stage-index','0');
+ await dock.getByRole('button',{name:'Tiếp',exact:true}).click();
+ await expect(screen).toHaveAttribute('data-stage-index','1');
+ await dock.getByRole('button',{name:/Giải thích/}).click();
+ const panel=page.getByTestId('museum-fullscreen-panel');
+ await expect(panel).toBeVisible();
+ await expect(panel).toHaveAttribute('data-active-tool','explain');
+ await expect(page.getByTestId('museum-fullscreen-toolbar')).toBeVisible();
+ await panel.getByRole('button',{name:'Close presenter panel'}).click();
+ await dock.getByRole('button',{name:'Voiceover'}).click();
+ await expect(panel).toHaveAttribute('data-active-tool','voice');
+ await dock.getByRole('button',{name:/Thoát/}).click();
 });

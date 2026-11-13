@@ -1,0 +1,196 @@
+/* Teacher Live fullscreen presenter — scoped to BRIAN Museum Lab only.
+ * No modification of Brian app header, sidebar or other embedded modules.
+ * The entire surface enters Fullscreen, so every control remains reachable.
+ */
+.bml .bml-presenter-surface{position:relative;min-width:0;isolation:isolate;}
+.bml .bml-presenter-surface:not(:fullscreen) .bml-presenter-dock,
+.bml .bml-presenter-surface:not(:fullscreen) .bml-presenter-panel-layer,
+.bml .bml-presenter-surface:not(:fullscreen) .bml-presenter-exit{display:none!important}
+.bml .bml-presenter-surface:fullscreen{
+ display:flex;flex-direction:column;position:relative;isolation:isolate;
+ width:100vw;height:100vh;height:100dvh;max-height:100dvh;overflow:hidden;
+ margin:0;padding:0;color:#f7fcff;background:#071f3e;--presenter-dock-height:126px;
+}
+.bml .bml-presenter-surface:fullscreen .bml-live-screen--paper{
+ width:100%;height:auto;min-height:0;flex:1 1 0;aspect-ratio:auto;
+ border-radius:0;border:0;box-shadow:none;overflow:hidden;
+}
+.bml .bml-presenter-surface:fullscreen .bml-live-screen--paper .bml-live-topbar{
+ min-height:58px;padding:9px clamp(13px,2vw,32px);gap:13px;align-items:center;flex-wrap:wrap;
+}
+.bml .bml-presenter-surface:fullscreen .bml-live-screen--paper .bml-live-slide{
+ flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
+ padding:clamp(16px,2.7vh,43px) clamp(18px,3.5vw,60px);
+ scrollbar-width:thin;
+}
+.bml .bml-presenter-surface:fullscreen .bml-live-screen--paper .bml-live-question{
+ font-size:clamp(25px,2.8vw,50px);line-height:1.17;
+ padding:clamp(15px,2.7vh,32px) clamp(21px,2.8vw,43px);
+}
+.bml .bml-presenter-surface:fullscreen .bml-live-screen--paper .bml-live-choices>div{
+ font-size:clamp(17px,1.75vw,29px);min-height:clamp(64px,8.7vh,108px);
+}
+.bml .bml-presenter-surface:fullscreen .bml-live-screen--paper .bml-paper-illustration{
+ width:min(34%,440px);
+}
+.bml .bml-presenter-exit{
+ display:flex;align-items:center;justify-content:center;gap:6px;flex:none;
+ padding:8px 10px;border:1px solid #bdd8f055;border-radius:10px;background:#102e50;color:#f5fbff;
+ min-height:37px;font-size:12px;font-weight:800;
+}
+.bml .bml-presenter-exit:focus-visible,
+.bml .bml-presenter-tool:focus-visible,
+.bml .bml-presenter-close:focus-visible{outline:3px solid #ffd375;outline-offset:2px}
+.bml .bml-presenter-dock{
+ flex:0 0 var(--presenter-dock-height);height:var(--presenter-dock-height);
+ display:flex;flex-direction:column;gap:3px;min-width:0;overflow-x:hidden;overflow-y:auto;
+ padding:8px clamp(10px,1.5vw,25px);box-sizing:border-box;
+ background:linear-gradient(135deg,#fffefa,#f2f8ff);
+ border-top:5px solid #ebc66f;box-shadow:0 -4px 18px #00000039;
+ color:#183a60;z-index:45;
+ scrollbar-width:thin;
+}
+.bml .bml-presenter-dock.is-focus{
+ --presenter-dock-height:74px;flex-basis:74px;height:74px;justify-content:center;
+}
+.bml .bml-presenter-dock-main{
+ display:flex;align-items:center;justify-content:space-between;
+ flex-wrap:wrap;gap:5px 10px;min-width:0;flex:0 0 auto;
+}
+.bml .bml-presenter-dock-nav,.bml .bml-presenter-dock-tools,.bml .bml-presenter-dock-edge,
+.bml .bml-presenter-dock-secondary{display:flex;align-items:center;gap:4px;flex-wrap:wrap;min-width:0}
+.bml .bml-presenter-dock-nav{flex-shrink:0}
+.bml .bml-presenter-dock-secondary{
+ border-top:1px solid #d8e1ec;padding-top:5px;
+ justify-content:flex-start;flex:0 0 auto;
+}
+.bml .bml-presenter-dock .bml-presenter-tool{
+ display:flex;align-items:center;justify-content:center;gap:7px;
+ min-height:37px;padding:8px 10px;
+ border:1px solid transparent;border-radius:10px;
+ background:transparent;color:#184977;line-height:1.18;font-size:clamp(11px,.91vw,14px);
+ font-weight:800;white-space:normal;cursor:pointer;
+}
+.bml .bml-presenter-dock .bml-presenter-tool:hover{background:#e1f1fa;color:#064b8e}
+.bml .bml-presenter-dock .bml-presenter-tool.is-active{background:#d6f2e8;border-color:#9cd4bd;color:#0e6d58}
+.bml .bml-presenter-dock .bml-presenter-tool:disabled{opacity:.42;cursor:not-allowed}
+.bml .bml-presenter-dock-nav .bml-presenter-tool:nth-child(2){
+ color:#fff;background:#145ac1;border-color:#145ac1;
+ box-shadow:0 3px 9px #224b8c33;
+}
+.bml .bml-presenter-dock-edge .bml-presenter-tool:last-child{border-color:#bfd3eb;background:#eff6ff}
+.bml .bml-presenter-help{font-size:12px;color:#5f7890;margin-left:auto;display:inline-flex;align-items:center;gap:5px}
+.bml .bml-presenter-panel-layer{
+ position:absolute;inset:58px 0 var(--presenter-dock-height) 0;
+ display:flex;justify-content:flex-end;z-index:40;
+ background:linear-gradient(90deg,rgba(4,19,39,.07),rgba(4,19,39,.34));
+}
+.bml .bml-presenter-surface:fullscreen:has(.bml-presenter-dock.is-focus){--presenter-dock-height:74px}
+.bml .bml-presenter-panel{
+ width:min(515px,48vw);height:100%;min-height:0;
+ display:flex;flex-direction:column;background:#f9fcff;color:#14375d;
+ border-left:1px solid #bcd8e8;border-radius:20px 0 0 20px;
+ box-shadow:-12px 0 35px #031b345c;
+ animation:bml-panel-enter .22s ease both;overflow:hidden;
+}
+@keyframes bml-panel-enter{from{opacity:.5;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+.bml .bml-presenter-panel-header{
+ display:flex;gap:12px;justify-content:space-between;align-items:flex-start;
+ padding:18px 18px 14px;
+ background:linear-gradient(130deg,#0e3156,#245d90);color:#fff;
+ border-bottom:4px solid #ead18f;flex:0 0 auto;
+}
+.bml .bml-presenter-panel-header small{display:block;color:#b1efc8;letter-spacing:.095em;font-weight:800;font-size:10px}
+.bml .bml-presenter-panel-header h2{margin:4px 0 0;color:#fff;font-size:clamp(18px,1.6vw,25px);line-height:1.2;overflow-wrap:anywhere}
+.bml .bml-presenter-close{border:1px solid #a6cbe650;display:grid;place-items:center;
+ width:37px;height:37px;flex:none;color:#fff;background:#ffffff20;border-radius:11px;cursor:pointer}
+.bml .bml-presenter-panel-scroll{
+ flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;
+ padding:16px;display:flex;flex-direction:column;gap:14px;
+}
+.bml .bml-presenter-panel-scroll .bml-video-lab,
+.bml .bml-presenter-panel-scroll .bml-resource-hub,
+.bml .bml-presenter-panel-scroll .bml-voiceover{width:100%;min-width:0;box-sizing:border-box}
+.bml .bml-presenter-panel-scroll .bml-resource-hub-list{grid-template-columns:1fr!important}
+.bml .bml-presenter-panel-scroll .bml-video-result{align-items:stretch;flex-direction:column}
+.bml .bml-presenter-panel-scroll .bml-video-manual{grid-template-columns:1fr!important}
+.bml .bml-presenter-panel-scroll .bml-video-manual>button{grid-column:auto!important}
+.bml .bml-presenter-panel-scroll input,.bml .bml-presenter-panel-scroll textarea{max-width:100%;box-sizing:border-box}
+.bml .bml-presenter-panel-scroll .bml-video-embed{min-height:190px}
+.bml .bml-presenter-note{display:grid;gap:13px;padding:20px;background:#fffdf7;border:1px solid #e5d9bd;border-radius:17px}
+.bml .bml-presenter-note h3{margin:0;font-size:21px;color:#124071}
+.bml .bml-presenter-note p{margin:0;font-size:15px;line-height:1.62;color:#365c71;overflow-wrap:anywhere}
+.bml .bml-presenter-note strong{color:#1e725e}
+.bml .bml-presenter-qr{text-align:center;justify-items:center}
+.bml .bml-presenter-qr img{display:block;border:8px solid #fff;border-radius:12px;box-shadow:0 3px 10px #35506f33}
+.bml .bml-presenter-group-grid,.bml .bml-presenter-all-tools{display:grid;gap:9px}
+.bml .bml-presenter-group-grid>button{display:flex;align-items:center;gap:9px;justify-content:space-between;
+ width:100%;text-align:left;border:1px solid #d2dfea;background:#fff;border-radius:12px;padding:12px;color:#23496f;cursor:pointer}
+.bml .bml-presenter-group-grid>button span{flex:1}
+.bml .bml-presenter-group-grid>button small{display:block;color:#7590a4}
+.bml .bml-presenter-all-tools{grid-template-columns:repeat(2,minmax(0,1fr))}
+.bml .bml-presenter-all-tools>button{min-height:43px;display:flex;align-items:center;gap:7px;padding:9px 12px;font-size:13px;justify-content:flex-start}
+.bml .bml-presenter-panel-scroll .bml-voice-choice{display:grid;gap:7px;color:#245677;font-size:13px;font-weight:800}
+.bml .bml-presenter-panel-scroll .bml-voice-choice select{width:100%;min-height:41px;border:1px solid #afcfe1;border-radius:11px;background:#fff;color:#13395c;padding:9px}
+.bml .bml-voice-choice{display:grid;gap:7px;color:#245677;font-size:13px;font-weight:800}
+.bml .bml-voice-choice select{width:100%;min-height:41px;border:1px solid #afcfe1;border-radius:11px;background:#fff;color:#13395c;padding:9px}
+.bml .bml-presenter-surface:fullscreen .bml-live-bottom{z-index:3;flex:0 0 auto}
+@media(max-width:1180px){
+ .bml .bml-presenter-surface:fullscreen{--presenter-dock-height:144px}
+ .bml .bml-presenter-dock .bml-presenter-tool{padding:7px 9px;font-size:11px}
+ .bml .bml-presenter-panel{width:min(485px,54vw)}
+}
+@media(max-width:790px){
+ .bml .bml-presenter-surface:fullscreen{--presenter-dock-height:168px}
+ .bml .bml-presenter-panel{width:min(100%,540px);border-radius:17px 0 0 17px}
+ .bml .bml-presenter-surface:fullscreen .bml-live-screen--paper .bml-live-topbar{min-height:45px}
+ .bml .bml-presenter-panel-layer{top:48px}
+ .bml .bml-presenter-dock{padding:7px 10px}
+ .bml .bml-presenter-dock .bml-presenter-tool{min-height:37px;padding:7px 9px}
+ .bml .bml-presenter-dock-main{justify-content:flex-start}
+ .bml .bml-presenter-dock-tools{order:3;width:100%}
+ .bml .bml-presenter-dock-edge{margin-left:auto}
+ .bml .bml-presenter-dock-secondary{max-width:100%}
+ .bml .bml-presenter-surface:fullscreen .bml-live-screen--paper .bml-live-question{font-size:clamp(21px,4.2vw,32px)}
+}
+@media(max-width:550px){
+ .bml .bml-presenter-surface:fullscreen{--presenter-dock-height:188px}
+ .bml .bml-presenter-dock .bml-presenter-tool span{font-size:10px}
+ .bml .bml-presenter-surface:fullscreen .bml-live-screen--paper .bml-live-slide{padding:12px}
+ .bml .bml-presenter-surface:fullscreen .bml-live-bottom{padding:7px 10px}
+ .bml .bml-presenter-panel-header{padding:11px 13px}
+ .bml .bml-presenter-panel-scroll{padding:11px}
+}
+@media(prefers-reduced-motion:reduce){
+ .bml .bml-presenter-panel{animation:none}
+ .bml .bml-presenter-tool{transition:none!important}
+}
+
+/* Project a selected educational video as a readable modal over the live slide.
+   The stage and timer stay mounted, and the dock remains clickable below. */
+.bml .bml-presenter-video-modal{
+ position:absolute;z-index:16;inset:55px 0 61px;display:flex;align-items:center;justify-content:center;
+ background:#06162de3;padding:clamp(12px,2.4vw,33px);min-width:0;min-height:0;
+ backdrop-filter:blur(2px);
+}
+.bml .bml-presenter-video-modal .bml-live-video-stage{
+ flex:initial;min-height:0;max-height:100%;width:min(1050px,100%);
+ display:flex;align-items:center;justify-content:center;overflow:auto;padding:0;
+}
+.bml .bml-presenter-video-modal .bml-video-player{
+ width:100%;max-height:100%;box-shadow:0 12px 35px #0008;overflow:auto;
+}
+.bml .bml-presenter-video-modal .bml-video-embed{
+ min-height:0;aspect-ratio:16/9;max-height:min(55vh,610px)
+}
+.bml .bml-presenter-panel-layer.is-qr{justify-content:center;align-items:center}
+.bml .bml-presenter-panel.is-modal{
+ width:min(435px,calc(100vw - 28px));height:auto;max-height:min(90%,610px);
+ border-radius:21px;border:1px solid #bfdce9;
+ box-shadow:0 20px 45px #061d386b;
+}
+.bml .bml-presenter-panel.is-modal .bml-presenter-panel-scroll{max-height:min(70vh,490px)}
+@media(max-width:600px){
+ .bml .bml-presenter-video-modal{padding:8px;inset:46px 0 56px}
+ .bml .bml-presenter-video-modal .bml-video-embed{max-height:45vh}
+}
