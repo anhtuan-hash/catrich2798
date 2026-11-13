@@ -148,13 +148,23 @@ test('teacher controls 11 live lesson stages without a PowerPoint or automatic t
  await expect(page.getByTestId('museum-teacher-live')).toBeVisible();
  await page.getByRole('button',{name:/Bắt đầu buổi dạy/}).click();
  await expect(page.getByText('Climate Detective')).toBeVisible();
- await page.getByRole('button',{name:/Mở cho học sinh/}).click();
+ // Students can respond as soon as Admin starts; no extra Open action.
  await expect(page.getByText('ĐANG MỞ HOẠT ĐỘNG')).toBeVisible();
+ await expect(page.getByRole('button',{name:/Khóa hoạt động/})).toBeVisible();
+ await expect(page.getByRole('button',{name:/Mở cho học sinh/})).toHaveCount(0);
  await page.getByRole('button',{name:/Hiện giải thích/}).click();
  await expect(page.getByText('This is a warm-up vote',{exact:false})).toBeVisible();
  await page.getByRole('button',{name:/Hoạt động tiếp/}).click();
  await expect(page.getByText('Language Mini-Lesson')).toBeVisible();
+ await expect(page.getByText('ĐANG MỞ HOẠT ĐỘNG')).toBeVisible();
+ await page.getByRole('button',{name:/Khóa hoạt động/}).click();
  await expect(page.getByText('HOẠT ĐỘNG CHƯA MỞ')).toBeVisible();
+ await page.getByRole('button',{name:/Mở lại tương tác/}).click();
+ await expect(page.getByText('ĐANG MỞ HOẠT ĐỘNG')).toBeVisible();
+ await page.getByRole('button',{name:/Tạm dừng/}).click();
+ await expect(page.getByText('HOẠT ĐỘNG CHƯA MỞ')).toBeVisible();
+ await page.getByRole('button',{name:/Tiếp tục/}).click();
+ await expect(page.getByText('ĐANG MỞ HOẠT ĐỘNG')).toBeVisible();
 });
 test('group receives teacher stage, cannot answer a closed task and submits only once when released',async({page})=>{
  let open=false,posts=0,last=null;

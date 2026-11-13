@@ -72,7 +72,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
   {!assignments.length?<div className="bml-empty bml-surface"><BookOpen size={26}/>{t(language,'Hãy tạo bài học và mã nhóm trước khi mở Teacher Live.','Create a lesson and group passes first.')}</div>:null}
   {assignmentId&&!session?<div className="bml-surface bml-live-start">
    <MonitorPlay size={42}/><h2>{t(language,'Bắt đầu dạy trực tiếp','Start live teaching')}</h2>
-   <p>{t(language,'Bài học có 11 màn hình tương tác, tổng cộng 90 phút (45 + 45). Giáo viên tự chuyển hoạt động.','The lesson has 11 interactive stages over 90 minutes (45 + 45). Only the teacher advances them.')}</p>
+   <p>{t(language,'Bài học có 11 hoạt động trong 90 phút (45 + 45). Nhấn Bắt đầu để học sinh vào hoạt động đầu tiên ngay; mỗi lần chuyển hoạt động, phần tương tác tiếp theo cũng tự mở.','The lesson has 11 stages over 90 minutes (45 + 45). Starting the lesson immediately opens the first student activity; advancing opens the next activity automatically.')}</p>
    <button type="button" disabled={busy} onClick={()=>act('start')} className="bml-primary"><Play size={19}/>{t(language,'Bắt đầu buổi dạy','Start lesson')}</button>
   </div>:null}
   {session?<div className="bml-live-workspace">
@@ -116,7 +116,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
      <button className="bml-primary" disabled={busy||session.status==='ended'||currentIndex===10} onClick={()=>act('next')}>{t(language,'Hoạt động tiếp','Next activity')}<ChevronRight size={17}/></button>
      <button className="bml-outline" disabled={busy||session.status==='ended'} onClick={()=>act(session.stageOpen?'close':'open')}>
       {session.stageOpen?<Lock size={18}/>:<Play size={18}/>}
-      {session.stageOpen?t(language,'Khóa hoạt động','Close task'):t(language,'Mở cho học sinh','Open student task')}</button>
+      {session.stageOpen?t(language,'Khóa hoạt động','Close task'):t(language,'Mở lại tương tác','Reopen interaction')}</button>
      <button className="bml-outline" disabled={busy||session.revealed} onClick={()=>act('reveal')}><Eye size={17}/>{t(language,'Hiện giải thích','Reveal explanation')}</button>
      <button className="bml-outline" onClick={()=>setShowQr(v=>!v)}><QrCode size={18}/> QR</button>
      <button className="bml-outline" onClick={fullscreen}><Fullscreen size={18}/>{t(language,'Toàn màn hình','Fullscreen')}</button>

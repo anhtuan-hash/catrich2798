@@ -49,17 +49,17 @@ const demoTeacherApi=async(action,body)=>{
  if(action==='state')return {session:liveSession?{...liveSession,stage:LIVE_STAGES[liveSession.stageIndex]}:null,
   groups:synthetic.groups,result:liveSession?summarizeResponses(liveSession.stageIndex,[]):null,needHelp:0};
  if(action==='start'){liveSession={id:'lesson-demo-session',assignmentId:'lesson-synthetic',status:'active',
-  stageIndex:0,stageOpen:false,revealed:false,version:0,stageStartedAt:new Date().toISOString()};
+  stageIndex:0,stageOpen:true,revealed:false,version:0,stageStartedAt:new Date().toISOString()};
   return {session:{...liveSession,stage:LIVE_STAGES[0]}};}
  if(action==='control'){if(!liveSession)throw new Error('No session');liveSession={...liveSession,version:liveSession.version+1};
   if(body.action==='next')liveSession.stageIndex++;
   if(body.action==='previous')liveSession.stageIndex--;
-  if(body.action==='next'||body.action==='previous')liveSession.stageOpen=false;
+  if(body.action==='next'||body.action==='previous')liveSession.stageOpen=true;
   if(body.action==='open')liveSession.stageOpen=true;
   if(body.action==='close')liveSession.stageOpen=false;
   if(body.action==='reveal')liveSession.revealed=true;
-  if(body.action==='pause')liveSession.status='paused';
-  if(body.action==='resume')liveSession.status='active';
+  if(body.action==='pause'){liveSession.status='paused';liveSession.stageOpen=false;}
+  if(body.action==='resume'){liveSession.status='active';liveSession.stageOpen=true;}
   if(body.action==='end')liveSession.status='ended';
   return {session:{...liveSession,stage:LIVE_STAGES[liveSession.stageIndex]}};}
  if(action==='group-gallery')return {draft:{title:'Synthetic Group',rooms:[]},artworks:[],groupLabel:'Demo group'};

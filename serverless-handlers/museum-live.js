@@ -94,7 +94,7 @@ export default async function museumLive(req,res){
     if(!session){
      const created=await query(admin.from('museum_live_sessions').insert({
       assignment_id:assignment.id,owner_id:assignment.created_by,
-      school_scope:assignment.school_scope,status:'active',stage_index:0,stage_open:false,
+      school_scope:assignment.school_scope,status:'active',stage_index:0,stage_open:true,
       started_at:now,stage_started_at:now
      }).select('*').single());
      await query(admin.from('museum_learning_events').insert({
@@ -104,7 +104,7 @@ export default async function museumLive(req,res){
     }
     if(session.status==='ended')throw fail(423,'Bài học đã kết thúc. Hãy tạo bài học mới để dạy lại.');
     const resumed=await query(admin.from('museum_live_sessions').update({
-     status:'active',updated_at:now,version:session.version+1
+     status:'active',stage_open:!(session.stage_index===2&&await surveyFor(admin,session.id)),updated_at:now,version:session.version+1
     }).eq('id',session.id).eq('version',session.version).select('*').single());
     return send(res,200,{session:stateOf(resumed,{staff:true})});
    }
@@ -120,7 +120,7 @@ export default async function museumLive(req,res){
      if(action==='next'&&session.evidence_version!==0&&session.stage_index===2&&!await surveyFor(admin,session.id))throw fail(423,'Hãy chốt khảo sát trực tuyến hoặc nhập kiểm phiếu giấy trước khi chuyển hoạt động.');
      const index=session.stage_index+(action==='next'?1:-1);
      if(index<0||index>=LIVE_STAGES.length)throw fail(400,'Hết nội dung bài dạy.');
-     Object.assign(update,{stage_index:index,stage_open:false,revealed:false,stage_started_at:now,elapsed_seconds:0});
+     Object.assign(update,{stage_index:index,stage_open:!(index===2&&await surveyFor(admin,session.id)),revealed:false,stage_started_at:now,elapsed_seconds:0});
     }else if(action==='open'){if(session.status!=='active')throw fail(423,'Hãy tiếp tục bài dạy.');if(session.stage_index===2&&await surveyFor(admin,session.id))throw fail(423,'Khảo sát đã chốt. Hãy chuyển sang hoạt động tiếp theo.');update.stage_open=true;}
     else if(action==='close')update.stage_open=false;
     else if(action==='reveal')update.revealed=true;
@@ -128,7 +128,7 @@ export default async function museumLive(req,res){
      update.status='paused';update.stage_open=false;
      update.elapsed_seconds=Math.min(7200,(session.elapsed_seconds||0)+Math.max(0,Math.floor((Date.now()-Date.parse(session.stage_started_at))/1000)));
     }
-    else if(action==='resume'){update.status='active';update.stage_started_at=now;}
+    else if(action==='resume'){update.status='active';update.stage_open=!(session.stage_index===2&&await surveyFor(admin,session.id));update.stage_started_at=now;}
     else if(action==='end'){update.status='ended';update.stage_open=false;}
     else throw fail(400,'Lệnh giảng dạy không hợp lệ.');
     const changed=await query(admin.from('museum_live_sessions').update(update)
