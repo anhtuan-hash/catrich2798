@@ -631,3 +631,77 @@ test('Student Studio can watch a teacher-selected video and save source-based En
  expect(microPosts).toBe(1);expect(record.choice).toBe(0);
  expect(record.reason).toContain('checkable source');
 });
+
+
+test('fullscreen presenter keeps primary and research tools inside the actual fullscreen element',async({page})=>{
+ await page.addInitScript(()=>{
+  if(!('speechSynthesis' in window))return;
+  try{
+   Object.defineProperty(window.speechSynthesis,'getVoices',{
+    configurable:true,value:()=>[
+     {name:'Samantha',lang:'en-US',voiceURI:'qa-samantha',localService:true},
+     {name:'British Voice',lang:'en-GB',voiceURI:'qa-british',localService:true}]
+   });
+  }catch{}
+ });
+ await page.getByTestId('qa-teacher-live').click();
+ await page.getByRole('button',{name:/Bắt đầu buổi dạy/}).click();
+ await page.getByRole('button',{name:/Toàn màn hình/}).click();
+ const surface=page.getByTestId('museum-fullscreen-surface');
+ await expect(surface).toBeVisible();
+ await expect.poll(()=>page.evaluate(()=>document.fullscreenElement?.getAttribute('data-testid')||''))
+  .toBe('museum-fullscreen-surface');
+ const dock=page.getByTestId('museum-fullscreen-toolbar');
+ await expect(dock).toBeVisible();
+ await expect(dock.getByRole('button',{name:'Voiceover'})).toBeVisible();
+ await expect(dock.getByRole('button',{name:'Video Lab'})).toBeVisible();
+ await expect(dock.getByRole('button',{name:/Kho tư liệu/})).toBeVisible();
+ const geometry=await page.evaluate(()=>{
+  const full=document.fullscreenElement.getBoundingClientRect();
+  const d=document.querySelector('[data-testid="museum-fullscreen-toolbar"]').getBoundingClientRect();
+  const screen=document.querySelector('[data-testid="museum-live-paper-stage"]').getBoundingClientRect();
+  return {inside:d.top>=full.top&&d.bottom<=full.bottom+2, separated:screen.bottom<=d.top+2};
+ });
+ expect(geometry).toMatchObject({inside:true,separated:true});
+ await dock.getByRole('button',{name:'Voiceover'}).click();
+ const panel=page.getByTestId('museum-fullscreen-panel');
+ await expect(panel).toBeVisible();
+ await expect(panel.getByTestId('museum-voiceover')).toBeVisible();
+ await expect(panel.getByLabel('American English voice')).toBeVisible();
+ await expect(panel.getByLabel('American English voice').locator('option')).toHaveCount(1);
+ await expect(panel.getByLabel('American English voice').locator('option')).toContainText('Samantha');
+ await dock.getByRole('button',{name:'Video Lab'}).click();
+ await expect(panel.getByTestId('museum-video-lab')).toBeVisible();
+ await dock.getByRole('button',{name:/Kho tư liệu/}).click();
+ await expect(panel.getByTestId('museum-research-library')).toBeVisible();
+ await dock.getByRole('button',{name:/Nhóm/}).click();
+ await expect(panel.getByText('Demo Group 1')).toBeVisible();
+ await dock.getByRole('button',{name:'QR'}).click();
+ await expect(panel.getByAltText('Student Creator QR')).toBeVisible();
+ await dock.getByRole('button',{name:/Tập trung/}).click();
+ await expect(dock).toHaveClass(/is-focus/);
+ await dock.getByRole('button',{name:/Đủ nút/}).click();
+ await expect(dock).not.toHaveClass(/is-focus/);
+ await dock.getByRole('button',{name:/Thoát/}).click();
+ await expect.poll(()=>page.evaluate(()=>document.fullscreenElement===null)).toBe(true);
+});
+
+test('fullscreen can switch lesson stages and open presenter explanation without leaving projection',async({page})=>{
+ await page.getByTestId('qa-teacher-live').click();
+ await page.getByRole('button',{name:/Bắt đầu buổi dạy/}).click();
+ await page.getByRole('button',{name:/Toàn màn hình/}).click();
+ const screen=page.getByTestId('museum-live-paper-stage');
+ const dock=page.getByTestId('museum-fullscreen-toolbar');
+ await expect(screen).toHaveAttribute('data-stage-index','0');
+ await dock.getByRole('button',{name:'Tiếp',exact:true}).click();
+ await expect(screen).toHaveAttribute('data-stage-index','1');
+ await dock.getByRole('button',{name:/Giải thích/}).click();
+ const panel=page.getByTestId('museum-fullscreen-panel');
+ await expect(panel).toBeVisible();
+ await expect(panel).toHaveAttribute('data-active-tool','explain');
+ await expect(page.getByTestId('museum-fullscreen-toolbar')).toBeVisible();
+ await panel.getByRole('button',{name:'Close presenter panel'}).click();
+ await dock.getByRole('button',{name:'Voiceover'}).click();
+ await expect(panel).toHaveAttribute('data-active-tool','voice');
+ await dock.getByRole('button',{name:/Thoát/}).click();
+});
