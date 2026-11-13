@@ -220,7 +220,7 @@ export default function MuseumLabStudent({language='en'}){
    <nav className="bml-student-steps" aria-label={T(language,'Các bước thực hiện','Project steps')}>{STEPS.map((s,i)=><button type="button" key={s.key}
      disabled={maxStudentStep<0||i>maxStudentStep}
      aria-current={i===step?'step':undefined}
-     onClick={()=>{if(i<=maxStudentStep){setStep(i);setPreview(false);}}} className={i===step?'is-active':i<step?'is-complete':''}>
+     onClick={()=>{if(i<=maxStudentStep){setStudentView('studio');setStep(i);setPreview(false);}}} className={i===step?'is-active':i<step?'is-complete':''}>
      <span>{i<step?<Check size={17}/>:i+1}</span><small>{T(language,s.vi,s.en)}</small></button>)}</nav>
    </section>
    <div className="bml-student-workbench" data-testid="student-one-screen-workspace">
