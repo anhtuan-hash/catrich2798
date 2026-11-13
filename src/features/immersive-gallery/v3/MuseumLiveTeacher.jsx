@@ -97,7 +97,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
       <button type="button" onClick={()=>setSpotlight(null)}><X size={18}/>{t(language,'Đóng','Close')}</button></div>
      <MuseumScene gallery={spotlight.gallery} language={language} embedded/>
     </div>:stageVideo?<div className="bml-live-video-stage" data-testid="museum-projector-video">
-     <MuseumVideoFrame id={stageVideo.id} title={stageVideo.title} onClose={()=>setStageVideo(null)}/>
+     <MuseumVideoFrame id={stageVideo.id} title={stageVideo.title} language={language} onClose={()=>setStageVideo(null)}/>
     </div>:<div className="bml-live-slide" key={currentIndex} data-testid="museum-live-slide">
      <div className="bml-paper-stage-intro">
       <MuseumLivePaperArt variant={['artwork','peer','present','exit'].includes(stage?.kind)?'studio':stage?.kind==='quiz'?'gallery':'climate'}/>
