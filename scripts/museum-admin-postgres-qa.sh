@@ -107,7 +107,7 @@ end $privilege_test$;
 SQL
 p <<'SQL'
 do $competition_lab$
-declare s uuid; group_id uuid:='eeeeeeee-1111-4111-8111-111111111111';
+declare s uuid; gid uuid:='eeeeeeee-1111-4111-8111-111111111111';
  denied boolean:=false;
 begin
  select id into s from public.museum_live_sessions
@@ -124,13 +124,13 @@ begin
  if (select media_board->'3'->>'query' from public.museum_live_sessions where id=s)<>'NASA climate change'
  then raise exception 'Teacher media board not stored';end if;
  insert into public.museum_live_micro_responses(session_id,group_id,stage_index,choice,reason)
- values(s,group_id,3,0,'I chose a reliable source because its observations can be verified.');
+ values(s,gid,3,0,'I chose a reliable source because its observations can be verified.');
  begin
   insert into public.museum_live_micro_responses(session_id,group_id,stage_index,choice,reason)
-  values(s,group_id,3,1,'This second response must never replace the authentic first submission.');
+  values(s,gid,3,1,'This second response must never replace the authentic first submission.');
  exception when unique_violation then denied:=true;end;
  if not denied then raise exception 'Duplicate group answer accepted';end if;
- if (select choice from public.museum_live_micro_responses where session_id=s and group_id=group_id and stage_index=3)<>0
+ if (select choice from public.museum_live_micro_responses where session_id=s and group_id=gid and stage_index=3)<>0
  then raise exception 'Original answer overwritten';end if;
 end $competition_lab$;
 SQL
