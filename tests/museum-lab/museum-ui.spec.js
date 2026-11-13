@@ -1455,6 +1455,24 @@ test('Student Creator 2D Paper exhibit displays actual uploaded photos and remai
  await app.getByRole('button',{name:'Preview 2D/3D museum'}).click();
  const viewer=app.getByTestId('museum-visitor');
  await expect(viewer).toBeVisible();
+ await expect(viewer).toHaveAttribute('data-museum-mode','cinema');
+ await expect(viewer.locator('.bml-cinema-hud')).toBeVisible();
+ await expect(viewer.locator('.bml-cinema-hud').getByRole('button',{name:'3D',exact:true})).toHaveAttribute('aria-pressed','true');
+ await expect(viewer.locator('.bml-cinema-hud').getByRole('button',{name:'Fullscreen'})).toBeVisible();
+ const cinemaGeometry=await viewer.evaluate(el=>{
+  const r=el.getBoundingClientRect(),canvas=el.querySelector('.bml-3d-stage');
+  const s=canvas?.getBoundingClientRect();
+  return {width:r.width,height:r.height,sceneWidth:s?.width,sceneHeight:s?.height,
+   headerCount:el.querySelectorAll('.bml-scene-header').length,
+   roomBar:!!el.querySelector('.bml-room-tabs:not([hidden])')};
+ });
+ expect(cinemaGeometry.width/1536).toBeGreaterThan(.95);
+ expect(cinemaGeometry.height/960).toBeGreaterThan(.87);
+ expect(cinemaGeometry.sceneWidth/cinemaGeometry.width).toBeGreaterThan(.96);
+ expect(cinemaGeometry.sceneHeight/cinemaGeometry.height).toBeGreaterThan(.88);
+ expect(cinemaGeometry.headerCount).toBe(0);
+ expect(cinemaGeometry.roomBar).toBe(false);
+ await viewer.locator('.bml-cinema-hud').getByRole('button',{name:'2D',exact:true}).click();
  await expect(viewer.getByTestId('museum-paper-2d-room')).toBeVisible();
  const cards=viewer.locator('.bml-paper-art-card');
  await expect(cards).toHaveCount(3);
@@ -1482,7 +1500,7 @@ test('Student Creator 2D Paper exhibit displays actual uploaded photos and remai
  expect(await original.locator('img').evaluate(el=>getComputedStyle(el).objectFit)).toBe('contain');
  await page.keyboard.press('Escape');
  await expect(original).toHaveCount(0);
- const scrolling=await viewer.evaluate(el=>({
+ const scrolling=await viewer.getByTestId('museum-paper-2d-room').evaluate(el=>({
   overflow:getComputedStyle(el).overflowY,
   hasScroll:el.scrollHeight>el.clientHeight,
   total:el.scrollHeight,
@@ -1490,9 +1508,9 @@ test('Student Creator 2D Paper exhibit displays actual uploaded photos and remai
  }));
  expect(scrolling.overflow).toBe('auto');
  if(scrolling.hasScroll){
-  await viewer.evaluate(el=>{el.scrollTop=el.scrollHeight;});
-  expect(await viewer.evaluate(el=>el.scrollTop)).toBeGreaterThan(0);
-  await viewer.evaluate(el=>{el.scrollTop=0;});
+  await viewer.getByTestId('museum-paper-2d-room').evaluate(el=>{el.scrollTop=el.scrollHeight;});
+  expect(await viewer.getByTestId('museum-paper-2d-room').evaluate(el=>el.scrollTop)).toBeGreaterThan(0);
+  await viewer.getByTestId('museum-paper-2d-room').evaluate(el=>{el.scrollTop=0;});
  }
  const dimensions=await cards.evaluateAll(items=>items.map(x=>({
   height:x.getBoundingClientRect().height,visual:x.querySelector('.bml-paper-art-photo').getBoundingClientRect().height
