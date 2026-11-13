@@ -242,6 +242,7 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
    const exitCount=mine.filter(g=>exitTickets.some(t=>t.group_id===g.id)).length;
    const collection=preparedCollectionFor(a);
    const expanded=selected===a.id||(selected==='__auto__'&&a.id===assignments[0]?.id);
+   const frozen=Boolean(a.content_frozen_at);
    const canManagePasscodes=isAdmin&&a.created_by===data?.profile?.id;
    const allVisible=mine.length>0&&mine.every(g=>visibleSecrets[g.id]&&secrets[g.id]);
    return <article className="bml-lesson-block bml-surface bml-paper-lesson-block" key={a.id}>
@@ -252,6 +253,7 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
       <h2>{a.title}</h2>
       <div className="bml-lesson-facts" aria-label="Lesson progress">
        <span><Users size={14}/>{mine.length} groups</span>
+       {frozen?<span role="status" className="bml-lesson-frozen"><LockKeyhole size={14}/> FINAL · VIEW ONLY</span>:null}
        <span><ClipboardList size={14}/>Exit Tickets: {exitCount}/{mine.length}</span>
        <span><Landmark size={14}/>Museum projects: {done}/{mine.length}</span>
       </div>
@@ -261,7 +263,7 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
        <BookOpen size={17}/>{tr(language,'Triển lãm 3D','3D exhibition')} <ArrowRight size={15}/></button>:null}
       <button type="button" className="bml-outline bml-lesson-toggle" onClick={()=>setSelected(expanded?null:a.id)}>
        {expanded?tr(language,'Thu gọn','Collapse'):tr(language,'Xem các nhóm','View groups')} <ChevronRight size={17} className={expanded?'is-expanded':''}/></button>
-      {isAdmin?<button type="button" disabled={busy} className="bml-danger bml-archive-btn"
+      {isAdmin?<button type="button" disabled={busy||frozen} className="bml-danger bml-archive-btn"
         onClick={()=>archiveAssignment(a)} aria-label={tr(language,'Xóa bài học '+a.title,'Remove lesson '+a.title)}>
        <Trash2 size={17}/>{tr(language,'Xóa bài học','Delete lesson')}</button>:null}
      </div>
@@ -275,12 +277,12 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
         <strong>Private group passcodes</strong><small>Admin only · never included in QR</small></div>
        <div className="bml-passcode-toolbar-actions">
         <button type="button" className={'bml-quick-access-toggle'+(a.quick_access_enabled?' is-active':'')}
-         aria-pressed={Boolean(a.quick_access_enabled)} disabled={busy||passcodeBusy}
+         aria-pressed={Boolean(a.quick_access_enabled)} disabled={frozen||busy||passcodeBusy}
          onClick={()=>changeQuickAccess(a)}><KeyRound size={15}/>
          {a.quick_access_enabled?'Quick access ON · PEK123':'Enable quick access'}</button>
         {allVisible?<button type="button" className="bml-outline" onClick={()=>hideLessonPasscodes(a)}><EyeOff size={15}/> Hide all</button>:
          <button type="button" className="bml-outline" disabled={passcodeBusy||busy} onClick={()=>revealPasscodes(a)}><Eye size={15}/> Show all passcodes</button>}
-        <button type="button" className="bml-regenerate-all-passcodes" disabled={busy||passcodeBusy} onClick={()=>regenerateAll(a)}><RefreshCw size={15}/> Regenerate all passcodes</button>
+        <button type="button" className="bml-regenerate-all-passcodes" disabled={frozen||busy||passcodeBusy} onClick={()=>regenerateAll(a)}><RefreshCw size={15}/> Regenerate all passcodes</button>
        </div>
       </div>:null}
       <div className="bml-group-list bml-lesson-qr-grid" data-testid="museum-group-qr-grid">{mine.map(g=>{
@@ -288,7 +290,7 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
       const ticket=exitTickets.find(t=>t.group_id===g.id);
       const exitAnswer=ticket?(typeof ticket.value==='string'?ticket.value:JSON.stringify(ticket.value)):null;
       const groupLabel=language==='en'?englishSystemGroupLabel(g.label):g.label;
-      const canRotate=isAdmin&&['issued','editing','changes_requested'].includes(g.state)&&a.created_by===data?.profile?.id;
+      const canRotate=!frozen&&isAdmin&&['issued','editing','changes_requested'].includes(g.state)&&a.created_by===data?.profile?.id;
       return <article className="bml-lesson-qr-card bml-paper-group-card" key={g.id} data-testid="museum-group-qr-card">
        <div className="bml-lesson-qr-details">
         <div className="bml-lesson-group-heading">
