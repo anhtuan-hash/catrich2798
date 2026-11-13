@@ -330,12 +330,16 @@ function MuseumFocusCameraRig({focus}){
   const reduce=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const layout=focusLayout(size.width,size.height);
   const target=new THREE.Vector3(...layout.camera),look=new THREE.Vector3(...layout.look);
-  const temp=new THREE.Object3D();temp.position.copy(target);temp.lookAt(look);
+  // Camera eyes look along local -Z; Object3D.lookAt uses +Z instead and
+  // produced a backwards-facing empty scene during the first V5 visual run.
+  const cameraRotation=new THREE.Quaternion().setFromRotationMatrix(
+   new THREE.Matrix4().lookAt(target,look,new THREE.Vector3(0,1,0))
+  );
   if(active){
    enterTime.current=Math.min(1,enterTime.current+clampDelta(delta)/(reduce?.08:1.0));
    const t=smoothstep(enterTime.current);
    camera.position.copy(saved.current.position).lerp(target,t);
-   camera.quaternion.copy(saved.current.quaternion).slerp(temp.quaternion,t);
+   camera.quaternion.copy(saved.current.quaternion).slerp(cameraRotation,t);
    if(t<1)invalidate();
   }else if(returnStart.current){
    returnTime.current=Math.min(1,returnTime.current+clampDelta(delta)/(reduce?.08:.83));
