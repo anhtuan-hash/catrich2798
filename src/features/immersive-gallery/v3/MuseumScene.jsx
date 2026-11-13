@@ -18,7 +18,7 @@ function ExhibitVisual({exhibit,index,language}){
    onError={()=>setFailed(true)}/>:
    <div className="bml-paper-photo-placeholder">
     <ImageIcon size={32} strokeWidth={1.5} aria-hidden="true"/>
-    <span>{failed?tr('Ảnh không khả dụng · mở lại xem trước','Image unavailable · reopen preview'):
+    <span>{failed||exhibit?.asset_id?tr('Ảnh không khả dụng · mở lại xem trước','Image unavailable · reopen preview'):
       tr('Chưa có ảnh của nhóm','No group image uploaded')}</span>
    </div>}
  </div>;
