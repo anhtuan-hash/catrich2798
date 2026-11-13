@@ -189,7 +189,7 @@ test('student US voiceover starts once for each opened live activity and support
  expect((await page.evaluate(()=>window.__qaNarrations[3].text))).toMatch(/Each group must choose/);
  const transcript=voice.getByText('Transcript');
  await transcript.click();
- await expect(voice.getByText(/class survey shows preferences/i)).toBeVisible();
+ await expect(voice.getByText(/group priorities, not individual habits/i)).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+3)).toBe(true);
 });
 test('Student Creator Pass entry reuses full official Gallery competition banner without changing login',async({page})=>{
