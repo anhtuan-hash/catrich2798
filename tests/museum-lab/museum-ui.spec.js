@@ -125,6 +125,82 @@ test('mobile viewport keeps task controls within the page width',async({page,isM
 });
 
 
+
+test('FULL BRIAN ENTRYPOINT: Group 01 can tap live answers and edit with no global shell interception',async({page,isMobile})=>{
+ // Unlike the isolated Museum harness, this loads the actual src/main.jsx entrypoint,
+ // which previously mounted floating Brian tools and transformed layout layers.
+ let posts=0,saves=0,version=0;
+ let draft={title:'',summary:'',rooms:[]};
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const operation=new URL(route.request().url()).searchParams.get('operation');
+  if(operation==='me')return route.fulfill({json:{
+   groupLabel:'Nhóm 01',groupState:'issued',csrf:'safe-synthetic-csrf',uploadEnabled:true,
+   assignment:{title:'Our Climate Action Museum',brief:'Original group project',class_scope:'11.3',
+    deadline_at:new Date(Date.now()+86400000).toISOString(),max_rooms:3,max_exhibits:12}
+  }});
+  if(operation==='draft')return route.fulfill({json:{draft,version}});
+  if(operation==='save'){
+   let input=route.request().postDataJSON();
+   expect(input.expectedVersion).toBe(version);
+   draft=input.draft;version++;saves++;
+   return route.fulfill({json:{version,ok:true}});
+  }
+  return route.fulfill({json:{ok:true}});
+ });
+ await page.route('**/api/gallery-guest/live?**',async route=>{
+  const operation=new URL(route.request().url()).searchParams.get('operation');
+  if(operation==='respond'){
+   expect(route.request().postDataJSON().value).toBe(1);posts++;
+   return route.fulfill({status:201,json:{ok:true}});
+  }
+  if(operation==='need-help')return route.fulfill({json:{ok:true}});
+  return route.fulfill({json:{session:{
+    id:'full-entry-stage-one',status:'active',stageIndex:0,stageOpen:true,
+    stage:{id:'climate-detective',kind:'vote',title:'Climate Detective',period:1,
+     question:'Which everyday school action could best reduce our environmental impact?',
+     options:['Walking or cycling when possible','Switching off unused lights','Reducing food waste','I am not sure yet'],
+     sentence:'I think … because …'}
+   },survey:null,submitted:posts>0}});
+ });
+ const res=await page.goto('/#/gallery-create?invite=synthetic-public-handle');
+ expect(res?.status()).toBe(200);
+ const root=page.getByTestId('museum-student-wizard');
+ await expect(root).toBeVisible({timeout:18000});
+ // The student page must be a direct fullscreen workspace, never a child of
+ // the authenticated/global application shell, chat, and floating tools.
+ await expect(page.locator('.app-shell')).toHaveCount(0);
+ await expect(page.locator('#bes-main-content')).toHaveCount(0);
+ await expect(page.getByTestId('student-tab-live')).toHaveAttribute('aria-pressed','true',{timeout:15000});
+ const option=page.getByRole('button',{name:/B\. Switching off unused lights/});
+ await expect(option).toBeEnabled();
+ await option.scrollIntoViewIfNeeded();
+ await expect(option).toBeInViewport();
+ const hit=await option.evaluate(el=>{
+  const r=el.getBoundingClientRect(),top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
+  return {hit:top===el||el.contains(top),element:top?.tagName};
+ });
+ expect(hit.hit).toBe(true);
+ const submit=page.getByRole('button',{name:'Submit group response'});
+ await expect(submit).toBeDisabled();
+ await option.click();
+ await expect(option).toHaveAttribute('aria-pressed','true');
+ await expect(submit).toBeEnabled();
+ await submit.click();
+ await expect(page.getByTestId('student-action-notice')).toContainText('Your group response was saved');
+ expect(posts).toBe(1);
+ await page.getByTestId('student-tab-studio').click();
+ await expect(page.getByLabel('Describe your problem')).toBeEnabled();
+ await page.getByLabel('Describe your problem').fill('Our school leaves unused lights switched on.');
+ await expect.poll(()=>saves,{timeout:16000}).toBeGreaterThan(0);
+ await page.locator('.bml-student-steps button').nth(2).click();
+ await expect(page.getByLabel('Exhibition title')).toBeEnabled();
+ if(!isMobile){
+  const box=await root.boundingBox();
+  expect(box.x).toBeLessThanOrEqual(2);
+  expect(box.width).toBeLessThanOrEqual(1442);
+ }
+});
+
 test('Student Focus is touch-friendly and keeps an unsent group vote when switching to the studio',async({page})=>{
  await page.route('**/api/gallery-guest?**',async route=>{
   const op=new URL(route.request().url()).searchParams.get('operation');
