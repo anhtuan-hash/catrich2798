@@ -124,6 +124,35 @@ test('English-only teacher, lesson wizard, reviews and dossier show translated U
  await expect(page.getByText('Section 1: Teacher and school context')).toBeVisible();
  await assertOnlyEnglish();
 });
+test('Student Creator Pass entry reuses full official Gallery competition banner without changing login',async({page})=>{
+ await page.getByTestId('qa-student-en').click();
+ const entry=page.getByTestId('museum-student-entry');
+ const header=page.getByTestId('museum-login-competition-banner');
+ const ribbon=header.getByTestId('museum-competition-ribbon');
+ await expect(entry).toBeVisible();
+ await expect(ribbon).toBeVisible();
+ await expect(ribbon).toHaveClass(/bml-competition-ribbon--dashboard/);
+ await expect(ribbon.getByText('BÀI DỰ THI')).toBeVisible();
+ await expect(ribbon.getByText('CẤP THÀNH PHỐ · NĂM HỌC 2026–2027')).toBeVisible();
+ await expect(ribbon.locator('img')).toHaveCount(2);
+ await expect(ribbon.locator('img').first()).toHaveAttribute('src','/museum/branding/hcmc-department-education-original.jpg');
+ await expect(ribbon.locator('img').last()).toHaveAttribute('src','/museum/branding/petrus-ky-original.png');
+ await expect(entry.getByRole('heading',{name:'Build a museum from your evidence.'})).toBeVisible();
+ await expect(entry.getByRole('heading',{name:'Start creating'})).toBeVisible();
+ await expect(entry.getByLabel('Invitation code')).toHaveAttribute('required','');
+ await expect(entry.getByLabel('Private group passcode')).toHaveAttribute('type','password');
+ await expect(entry.getByRole('button',{name:/Enter Creator Studio/})).toBeEnabled();
+ for(const size of [{width:1536,height:960},{width:1024,height:768},{width:390,height:844}]){
+  await page.setViewportSize(size);
+  const bannerBox=await ribbon.boundingBox(),entryBox=await entry.boundingBox();
+  expect(bannerBox,'Competition banner rendered at '+size.width).toBeTruthy();
+  expect(entryBox,'Creator Pass rendered at '+size.width).toBeTruthy();
+  expect(bannerBox.y+bannerBox.height).toBeLessThanOrEqual(entryBox.y+1);
+  expect(bannerBox.width).toBeLessThanOrEqual(size.width+1);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+  if(size.width>=1024)expect(await entry.locator('.bml-guest-form').boundingBox()).toBeTruthy();
+ }
+});
 test('English-only group workspace shows no Vietnamese UI in all five project steps',async({page})=>{
  await page.route('**/api/gallery-guest?**',async route=>{
   const operation=new URL(route.request().url()).searchParams.get('operation');
