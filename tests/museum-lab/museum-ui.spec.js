@@ -500,3 +500,67 @@ test('Admin deleting lesson with published exhibition explains gallery retention
  expect(confirmation).toContain('triển lãm vẫn còn trong mục Triển lãm');
  await expect(lessons.getByText('Synthetic Climate Action Museum')).toBeVisible();
 });
+
+
+test('approved paper collage renders all eleven live stages with separated title, question, status and controls',async({page})=>{
+ const names=['Climate Detective','Language Mini-Lesson','Live Classroom Survey',
+  'Problem · Evidence · Solution','Storyboard Checkpoint','Recap and Resume',
+  'Create the 3D Museum','Peer Gallery Walk','Improve the Exhibition',
+  'Present and Discuss','Exit Ticket'];
+ await page.getByTestId('qa-teacher-live').click();
+ await page.getByRole('button',{name:/Bắt đầu buổi dạy/}).click();
+ const screen=page.getByTestId('museum-live-paper-stage');
+ await expect(screen).toBeVisible();
+ for(let i=0;i<names.length;i++){
+  await expect(screen).toHaveAttribute('data-stage-index',String(i));
+  await expect(screen.getByRole('heading',{name:names[i],exact:true})).toBeVisible();
+  await expect(screen.locator('.bml-paper-question-sheet')).toHaveCount(1);
+  await expect(screen.locator('.bml-paper-illustration')).toHaveCount(1);
+  await expect(screen.locator('.bml-live-bottom')).toBeVisible();
+  await expect(screen.getByText('ĐANG MỞ HOẠT ĐỘNG')).toBeVisible();
+  if([0,2].includes(i))await expect(screen.locator('.bml-live-choices>div')).toHaveCount(4);
+  else if(i===1)await expect(screen.locator('.bml-live-quiz>div')).toHaveCount(3);
+  else await expect(screen.locator('.bml-paper-task')).toHaveCount(3);
+  const layout=await screen.evaluate(el=>{
+   const slide=el.querySelector('.bml-live-slide'),footer=el.querySelector('.bml-live-bottom'),
+    top=el.querySelector('.bml-live-topbar'),question=el.querySelector('.bml-live-question'),
+    hero=el.querySelector('.bml-paper-stage-intro'),bounds=x=>x.getBoundingClientRect();
+   const a=bounds(slide),b=bounds(footer),c=bounds(top),q=bounds(question),h=bounds(hero),e=bounds(el);
+   return {
+    titleHasRoom:h.bottom<=b.top+1,
+    questionInWidth:q.left>=e.left-3&&q.right<=e.right+3,
+    questionAboveFooter:q.top<b.top,
+    stageDoesNotOverlayFooter:a.bottom<=b.top+2,
+    topDoesNotOverlayStage:c.bottom<=a.top+2,
+    hasScrollableSlide:getComputedStyle(slide).overflowY==='auto',
+    screenWidth:e.width
+   };
+  });
+  expect(layout).toMatchObject({
+   titleHasRoom:true,questionInWidth:true,questionAboveFooter:true,
+   stageDoesNotOverlayFooter:true,topDoesNotOverlayStage:true,hasScrollableSlide:true
+  });
+  if(i<names.length-1)await page.getByRole('button',{name:/Hoạt động tiếp/}).click();
+ }
+ await page.getByRole('button',{name:/Tư liệu hoạt động/}).click();
+ await expect(page.getByTestId('museum-live-resources')).toBeVisible();
+ await expect(page.getByTestId('museum-live-paper-stage').locator('.bml-learning-resources')).toHaveCount(0);
+});
+
+test('paper live presenter avoids horizontally clipped text on a narrow MacBook or mobile screen',async({page})=>{
+ await page.setViewportSize({width:820,height:760});
+ await page.getByTestId('qa-teacher-live').click();
+ await page.getByRole('button',{name:/Bắt đầu buổi dạy/}).click();
+ const stage=page.getByTestId('museum-live-paper-stage');
+ await expect(stage.locator('.bml-live-choices>div')).toHaveCount(4);
+ const results=await stage.evaluate(el=>{
+  const screen=el.getBoundingClientRect(),
+   candidates=[...el.querySelectorAll('.bml-live-choices>div,.bml-live-question,.bml-paper-status,.bml-live-slide h2')];
+  return candidates.map(x=>({text:x.textContent.slice(0,30),right:x.getBoundingClientRect().right-screen.right,
+   left:screen.left-x.getBoundingClientRect().left}));
+ });
+ for(const r of results){
+  expect(r.right,r.text+' clipped on right').toBeLessThanOrEqual(4);
+  expect(r.left,r.text+' clipped on left').toBeLessThanOrEqual(4);
+ }
+});
