@@ -1,19 +1,19 @@
 /* Museum-only paper layer. No selectors target Brian's global navigation. */
-@font-face{font-family:MuseumHand;src:url('/assets/fonts/caveat-bold.ttf') format('truetype');font-display:swap;font-weight:700}
+@font-face{font-family:MuseumHand;src:url('/assets/museum-paper/dancing-script.ttf') format('truetype');font-display:swap;font-weight:700}
 .bml.bml-app-layout.bml-paper{--bml-text:#102b58;--bml-muted:#536684;--bml-primary:#1742ab;--bml-radius:18px;--museum-grain:url('/assets/dashboard-scrapbook/paper-grain.svg');--museum-rim:url('/assets/museum-paper/paper-rim.svg');--museum-lift:0 5px 0 #578eaf24,0 9px 15px #245b7830;display:block;background:var(--museum-grain),#b2e3fa;border:0;border-radius:16px;overflow:clip;min-height:0;color:var(--bml-text);padding:0 0 18px}
 .bml-paper :is(h1,h2,h3,h4){color:#102b58}
 .bml.bml-app-layout.bml-paper>.bml-main-panel{width:100%;background:transparent;grid-column:1;grid-row:1}
 .bml.bml-app-layout.bml-paper .bml-page{padding:0 clamp(14px,2.2vw,30px) 10px;max-width:1560px}
 .bml-paper .bml-paper-header{padding:0 clamp(14px,2.2vw,30px);width:100%;max-width:1560px;margin:auto}
-.bml-paper .bml-paper-hero{position:relative;isolation:isolate;margin:0 calc(-1 * clamp(14px,2.2vw,30px));aspect-ratio:3/1;display:flex;align-items:center}
+.bml-paper .bml-paper-hero{position:relative;isolation:isolate;margin:0 calc(-1 * clamp(14px,2.2vw,30px));aspect-ratio:4.2/1;display:flex;align-items:center}
 .bml-paper .bml-paper-hero-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1}
-.bml-paper .bml-paper-hero-copy{width:50%;padding:20px 2.5% 30px 5%;text-align:center}
+.bml-paper .bml-paper-hero-copy{width:50%;padding:15px 2.5% 20px 5%;text-align:center}
 .bml-paper .bml-paper-wordmark{display:flex;gap:10px;align-items:center;justify-content:center;color:#102b58;font-size:clamp(19px,2.35vw,34px);font-weight:850;line-height:1.2}
 .bml-paper .bml-paper-wordmark svg{flex:none;width:clamp(32px,4vw,58px);height:clamp(32px,4vw,58px);stroke:#b85a13;fill:#ffdfa3;filter:drop-shadow(0 2px 0 white) drop-shadow(0 3px 2px #8f583f44);transform:rotate(-7deg)}
 .bml-paper .bml-paper-ribbon{display:inline-block;background:linear-gradient(170deg,#ff779a,#d92e67);padding:6px 20px;margin:6px 0 5px;color:#fff;font-size:clamp(12px,1.35vw,20px);font-weight:750;box-shadow:0 3px 0 #b63d5d30;clip-path:polygon(2% 0,100% 0,97% 50%,100% 100%,0 100%,3% 48%);transform:rotate(-1deg)}
-.bml-paper .bml-paper-hero h1{font-family:MuseumHand,'Segoe Print',cursive;font-weight:700;font-size:clamp(31px,4.8vw,70px);line-height:1.1;letter-spacing:-.035em;margin:2px -5% 0;color:#102b58;transform:rotate(-3deg)}
+.bml-paper .bml-paper-hero h1{font-family:MuseumHand,'Segoe Print',cursive;font-weight:700;font-size:clamp(31px,4.3vw,62px);line-height:1.1;letter-spacing:-.035em;margin:2px -5% 0;color:#102b58;transform:rotate(-3deg)}
 .bml-paper .bml-paper-hero p{font-size:clamp(12px,1.45vw,20px);line-height:1.45;color:#14366b;margin:12px auto 0;max-width:95%}
-.bml-paper .bml-paper-building-label{position:absolute;left:63.5%;top:38.2%;width:10%;text-align:center;font-size:clamp(10px,1.3vw,20px);font-weight:900;line-height:1.02;color:#132b64;transform:rotate(-.5deg)}
+.bml-paper .bml-paper-building-label{position:absolute;left:63.5%;top:33.5%;width:10%;text-align:center;font-size:clamp(10px,1.3vw,20px);font-weight:900;line-height:1.02;color:#132b64;transform:rotate(-.5deg)}
 .bml-paper .bml-paper-compact-brand{display:flex;align-items:center;gap:12px;padding:22px 4px;color:#15386c;font-size:22px}
 .bml-paper .bml-paper-compact-brand>span{font-size:14px;margin-left:auto;color:#35577a}
 .bml-paper .bml-paper-nav{position:relative;display:grid;grid-template-columns:1fr 1fr 1fr 1.35fr;gap:10px;background:var(--museum-grain),#fff4df;border:10px solid transparent;border-image:var(--museum-rim) 12 / 10px / 3px round;border-radius:22px;box-shadow:var(--museum-lift);padding:10px 16px;margin:0 0 14px;isolation:isolate}
@@ -73,6 +73,9 @@
 .bml-paper :is(button,a,input,select,textarea,[tabindex]):focus-visible{outline:3px solid #2a4eac;outline-offset:3px}
 .bml-paper.bml-is-exhibition{grid-template-columns:minmax(0,1fr)}
 
+/* The reference's handwritten greeting is decorative; body text follows Brian's font setting. */
+html body #root#root#root .bml-paper .bml-paper-hero h1{font-family:MuseumHand,'Segoe Print',cursive!important}
+
 /* Continue the Museum paper palette through the existing shared footer only. */
 html body #root#root#root .app-shell[data-tool="immersive-gallery"]:has(.bml-paper){
  background:url('/assets/dashboard-scrapbook/paper-grain.svg'),#b2e3fa !important;
@@ -99,7 +102,7 @@ html body #root#root#root .app-shell[data-tool="immersive-gallery"]:has(.bml-pap
  & .signature-footer-static-summary{background:transparent!important;padding:15px 0 0!important;margin:0 auto!important;min-height:0!important;}
  & .bes-portfolio-footer-trigger{background:#fff9ec!important;color:#163a70!important;border:3px solid white!important;border-radius:14px!important;box-shadow:0 4px 8px #3e719d22!important;}
 }
-@media(min-width:1560px){.bml-paper .bml-paper-hero h1{font-size:70px}}
+@media(min-width:1560px){.bml-paper .bml-paper-hero h1{font-size:62px}}
 @media(max-width:1100px){
  .bml-paper .bml-quick-actions{gap:15px}
  .bml-paper .bml-quick-card{gap:9px;padding:13px 8px}

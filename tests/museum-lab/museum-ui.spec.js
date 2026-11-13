@@ -506,6 +506,7 @@ test('paper footer integrates with existing site styles without page overflow',a
  await expect(footer.locator('.signature-footer-v50-main>section')).toHaveCount(3);
  await expect(footer.getByRole('heading',{name:'NGUYỄN ANH TUẤN (MR.)',exact:true})).toBeVisible();
  await page.evaluate(()=>document.fonts.ready);
+ await expect(page.locator('.bml-paper-hero h1')).toHaveCSS('font-family',/MuseumHand/);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
  await page.screenshot({path:testInfo.outputPath('museum-paper-footer.png'),fullPage:true});
 });

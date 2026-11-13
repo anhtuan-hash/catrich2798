@@ -89,7 +89,7 @@ function Harness(){
    <strong>QA ONLY · ALL DATA SYNTHETIC</strong>
    {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','published-lesson'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
   </div>
-  <div className="bml">
+  <div className={screen==='dashboard'?'':'bml'}>
    {screen==='dashboard'?<MuseumLabApp currentUser={{id:'teacher-synthetic',name:'Demo Teacher'}} transport={demoDashboardApi}/>:null}
    {screen==='student'?<MuseumLabStudent language="vi"/>:null}
    {screen==='admin-review'?<Submissions data={submittedQa} language="vi" onNavigate={setScreen} onRefresh={async()=>{}}/>:null}
