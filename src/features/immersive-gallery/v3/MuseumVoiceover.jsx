@@ -72,7 +72,7 @@ export default function MuseumVoiceover({stage,language='vi',compact=false}){
    <button type="button" onClick={stop} disabled={!playing} aria-label="Stop voiceover"><VolumeX size={17}/>{language==='en'?'Stop':'Dừng'}</button>
    <button type="button" onClick={updateVoices} aria-label="Refresh American voices"><RefreshCcw size={16}/>{language==='en'?'Refresh voices':'Tải lại giọng'}</button>
    <label>Speed <select value={rate} onChange={e=>{stop();setRate(Number(e.target.value));}} aria-label="Voiceover speed">
-    <option value={.8}>0.8×</option><option value={.9}>0.9×</option><option value={1}>1×</option><option value={1.1}>1.1×</option>
+    <option value={.8}>{'0.8×'}</option><option value={.9}>{'0.9×'}</option><option value={1}>{'1×'}</option><option value={1.1}>{'1.1×'}</option>
    </select></label>
   </div>
   <details><summary>{language==='en'?'Read the transcript':'Xem kịch bản lời dẫn'}</summary>
