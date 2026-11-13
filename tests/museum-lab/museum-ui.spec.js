@@ -938,11 +938,11 @@ test('Teacher Live has real stage motion control, readable voiceover, research l
  const lab=page.getByTestId('museum-video-lab');
  await expect(lab).toBeVisible();
  await lab.getByPlaceholder('school climate actions reducing carbon footprint').fill('global warming causes for students');
- await lab.getByRole('button',{name:/Giao nhiệm vụ video/}).click();
- await expect(lab.getByText('Đã lưu nhiệm vụ video cho tiết học.')).toBeVisible();
+ await lab.getByRole('button',{name:'Assign research task'}).click();
+ await expect(lab.getByText('Research task assigned to the current activity.')).toBeVisible();
  await lab.getByPlaceholder('https://www.youtube.com/watch?v=…').fill('https://youtu.be/jNQXAC9IVRw');
  await lab.getByPlaceholder('Teacher-curated climate video').fill('Teacher-selected classroom video');
- await lab.getByRole('button',{name:/Thêm vào kho học liệu/}).click();
+ await lab.getByRole('button',{name:'Assign video to this activity'}).click();
  await expect(lab.getByText('Teacher-selected classroom video')).toBeVisible();
  await expect(lab.getByText('VIDEO GIÁO VIÊN ĐÃ CHỌN',{exact:false})).toBeVisible();
 });
@@ -1030,7 +1030,7 @@ test('fullscreen presenter keeps primary and research tools inside the actual fu
  await expect(videoLab).toBeVisible();
  await videoLab.getByPlaceholder('https://www.youtube.com/watch?v=…').fill('https://youtu.be/jNQXAC9IVRw');
  await videoLab.getByPlaceholder('Teacher-curated climate video').fill('Classroom source video');
- await videoLab.getByRole('button',{name:/Thêm vào kho học liệu/}).click();
+ await videoLab.getByRole('button',{name:'Assign video to this activity'}).click();
  await videoLab.getByRole('button',{name:/Chiếu video/}).click();
  const videoModal=page.getByTestId('museum-projector-video');
  await expect(videoModal).toBeVisible();
