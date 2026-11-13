@@ -6,6 +6,8 @@ import {ROOM_TEMPLATES,normalizeTransform,useLiteQuality} from './sceneTemplates
 import {createCuratedGlb,CURATED_GLB_KEYS} from './curatedGlb.js';
 import {PekMuseumArchitecture,ExhibitWallLabel,TextExhibitPoster} from './PekMuseumArchitecture.jsx';
 import PekDiscoveryHallV4 from './PekDiscoveryHallV4.jsx';
+import MuseumExhibitFocusRig from './v3/MuseumExhibitFocusRig.jsx';
+import {museumFocusLayout,selectFocusDuration,smoothstep} from './v3/museumExhibitFocusMotion.js';
 import './pekMuseum.css';
 // Cloud media service is imported on demand to prevent eager auth/bootstrap cycles.
 
@@ -31,21 +33,28 @@ function CuratedModel({modelKey='globe',scale=1}) {
 export {CuratedModel};
 function ArtworkImage({assetId,imageUrl,schoolEdition=false,cinemaEdition=false}) {
  const [texture,setTexture]=useState(null);
+ const displayed=useRef(null);
+ useEffect(()=>()=>{
+  displayed.current?.dispose();displayed.current=null;
+ },[]);
  useEffect(()=>{
-  if(!assetId&&!imageUrl)return undefined;let alive=true,created=null;
-  (imageUrl?Promise.resolve(imageUrl):import('./galleryData.js').then(({getGalleryAssetUrl})=>getGalleryAssetUrl(assetId))).then(url=>{
-    if(!alive)return;
+  let alive=true;
+  if(!assetId&&!imageUrl)return undefined;
+  (imageUrl?Promise.resolve(imageUrl):import('./galleryData.js').then(({getGalleryAssetUrl})=>getGalleryAssetUrl(assetId)))
+   .then(url=>{
+    if(!alive||!url)return;
     new THREE.TextureLoader().load(url,t=>{
-      created=t;t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=2;
-      if(alive){
-       setTexture(t);
-       // Private photo URL is never sent to telemetry/logs; signal only that
-       // WebGL has decoded the actual student artwork texture for visual QA.
-       document.dispatchEvent(new Event('bml:museum-texture-ready'));
-     }else t.dispose();
-    },undefined,()=>{if(alive)setTexture(null);});
-  }).catch(()=>{if(alive)setTexture(null);});
-  return()=>{alive=false;if(created)created.dispose();};
+     t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=2;
+     if(!alive){t.dispose();return;}
+     const old=displayed.current;
+     displayed.current=t;
+     setTexture(t);
+     if(old&&old!==t)old.dispose();
+     // Event exposes no tokens, group IDs or private URLs.
+     document.dispatchEvent(new Event('bml:museum-texture-ready'));
+    },undefined,()=>{/* Keep last decoded original while URL renews. */});
+   }).catch(()=>{/* Never replace art with fabricated media. */});
+  return()=>{alive=false;};
  },[assetId,imageUrl]);
  if(!texture)return <mesh position={[0,0,.087]}>
   <planeGeometry args={cinemaEdition?[2.25,3.03]:schoolEdition?[2.1,1.46]:[1.62,1.17]}/>
@@ -53,7 +62,9 @@ function ArtworkImage({assetId,imageUrl,schoolEdition=false,cinemaEdition=false}
  const width=texture.image?.width||1,height=texture.image?.height||1,aspect=width/height;
  const maxWidth=cinemaEdition?2.26:schoolEdition?2.11:1.65,maxHeight=cinemaEdition?3.03:schoolEdition?1.62:1.36;
  const size=aspect>maxWidth/maxHeight?[maxWidth,maxWidth/aspect]:[maxHeight*aspect,maxHeight];
- return <mesh position={[0,0,cinemaEdition ? .096 : .083]}><planeGeometry args={size}/><meshBasicMaterial map={texture} toneMapped={false} side={THREE.DoubleSide}/></mesh>;
+ return <mesh position={[0,0,cinemaEdition?.096:.083]}>
+  <planeGeometry args={size}/><meshBasicMaterial map={texture} toneMapped={false} side={THREE.DoubleSide}/>
+ </mesh>;
 }
 function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdition=false,index=0}) {
  const transform=useMemo(()=>normalizeTransform(exhibit.transform||{}),[exhibit.transform]);
