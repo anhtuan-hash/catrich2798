@@ -36,7 +36,7 @@ test('English-only teacher, lesson wizard, reviews and dossier show translated U
  await assertOnlyEnglish();
  await page.getByRole('button',{name:/Start lesson/}).click();
  await expect(page.getByTestId('museum-live-slide')).toBeVisible();
- await expect(page.getByText('Climate Detective')).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Climate Detective',exact:true})).toBeVisible();
  await expect(page.locator('.bml-live-vietnamese')).toHaveCount(0);
  await assertOnlyEnglish();
  await page.getByTestId('qa-wizard-en').click();
@@ -498,7 +498,7 @@ test('teacher controls 11 live lesson stages without a PowerPoint or automatic t
  await page.getByTestId('qa-teacher-live').click();
  await expect(page.getByTestId('museum-teacher-live')).toBeVisible();
  await page.getByRole('button',{name:/Bắt đầu buổi dạy/}).click();
- await expect(page.getByText('Climate Detective')).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Climate Detective',exact:true})).toBeVisible();
  // Students can respond as soon as Admin starts; no extra Open action.
  await expect(page.getByText('ĐANG MỞ HOẠT ĐỘNG')).toBeVisible();
  await expect(page.getByRole('button',{name:/Khóa hoạt động/})).toBeVisible();
@@ -1040,7 +1040,7 @@ test('fullscreen presenter keeps primary and research tools inside the actual fu
  await dock.getByRole('button',{name:/Kho tư liệu/}).click();
  await expect(panel.getByTestId('museum-research-library')).toBeVisible();
  await dock.getByRole('button',{name:/Nhóm/}).click();
- await expect(panel.getByText('Demo Group 1')).toBeVisible();
+ await expect(panel.getByRole('button',{name:/Demo Group 1/})).toBeVisible();
  await dock.getByRole('button',{name:'QR'}).click();
  await expect(panel.getByAltText('Student Creator QR')).toBeVisible();
  await dock.getByRole('button',{name:/Tập trung/}).click();
@@ -1112,14 +1112,12 @@ test('V5.2 fullscreen groups tool stays inside projection surface and supports s
  await expect(panel).toBeVisible();
  const board=panel.getByTestId('museum-class-command');
  await expect(board.locator('.bml-cc-group')).toHaveCount(10);
- const bounds=await panel.evaluate(el=>{
-  const r=el.getBoundingClientRect();
-  return {widthRatio:r.width/window.innerWidth,inside:r.right<=window.innerWidth+2,
-   vertical:r.bottom<=window.innerHeight+2};
- });
+ await expect.poll(async()=>panel.evaluate(el=>{
+  const r=el.getBoundingClientRect(),full=document.fullscreenElement.getBoundingClientRect();
+  return r.left>=full.left-2&&r.right<=full.right+2&&r.top>=full.top-2&&r.bottom<=full.bottom+2;
+ })).toBe(true);
+ const bounds=await panel.evaluate(el=>({widthRatio:el.getBoundingClientRect().width/document.fullscreenElement.getBoundingClientRect().width}));
  expect(bounds.widthRatio).toBeGreaterThan(.8);
- expect(bounds.inside).toBe(true);
- expect(bounds.vertical).toBe(true);
  await board.getByRole('button',{name:/Group 03/}).click();
  await expect(board.getByRole('heading',{name:'Group 03'})).toBeVisible();
  await panel.getByRole('button',{name:'Close presenter panel'}).click();
