@@ -86,16 +86,20 @@ function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdi
  useEffect(()=>{
   const node=artRef.current,wall=wallPose.current;
   if(!node||!wall||!cinemaEdition||!isFocused)return;
-  if(focusPhase===lastPhase.current)return;
+  // A focused exhibit remains world-anchored after browser/fullscreen resize.
+  // Reposition its *same* group, never create a second portrait frame.
+  if(focusPhase===lastPhase.current&&focusPhase!=='focused')return;
   lastPhase.current=focusPhase;
   const to=focusPhase==='returning'?wall:{
    position:new THREE.Vector3(...layout.art),
    quaternion:new THREE.Quaternion(),
    scale:wall.scale.clone()
   };
-  if(['extracting','returning','presenting'].includes(focusPhase)){
+  if(['extracting','returning','presenting','focused'].includes(focusPhase)){
+   if(focusPhase==='focused'&&node.position.distanceTo(to.position)<.002)return;
    motion.current={
-    phase:focusPhase,elapsed:0,startedAt:performance.now(),duration:selectFocusDuration(
+    phase:focusPhase==='focused'?'relayout':focusPhase,elapsed:0,
+    startedAt:performance.now(),duration:focusPhase==='focused'?.35:selectFocusDuration(
      focusPhase,window.matchMedia?.('(prefers-reduced-motion: reduce)').matches),
     from:{position:node.position.clone(),quaternion:node.quaternion.clone(),scale:node.scale.clone()},
     to
@@ -130,8 +134,9 @@ function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdi
      wall:wall.position.toArray(),quaternion:group.quaternion.toArray(),
      wallQuaternion:wall.quaternion.toArray(),scale:group.scale.toArray()});
     const event=tween.phase==='extracting'?'EXTRACT_COMPLETE':
-     tween.phase==='presenting'?'PRESENT_COMPLETE':'RETURN_COMPLETE';
-    onTransitionComplete?.(event);
+     tween.phase==='presenting'?'PRESENT_COMPLETE':
+     tween.phase==='returning'?'RETURN_COMPLETE':null;
+    if(event)onTransitionComplete?.(event);
    }else{
     onWorldPose?.({uuid:group.uuid,position:group.position.toArray(),
      wall:wall.position.toArray(),quaternion:group.quaternion.toArray(),
@@ -321,7 +326,7 @@ function MuseumFocusCameraDirector({phase='idle',cinemaEdition=false,onCameraPos
    original.current={position:camera.position.clone(),quaternion:camera.quaternion.clone(),fov:camera.fov};
    onCameraPose?.({phase:'wall',position:camera.position.toArray(),quaternion:camera.quaternion.toArray(),fov:camera.fov});
   }
-  if(phase==='extracting'||phase==='returning'){
+  if(phase==='extracting'||phase==='returning'||phase==='focused'){
    const restore=phase==='returning',aspect=size.width/Math.max(1,size.height);
    const dist=minimumCameraDistance(6.25,4.15,aspect,layout.fov,.09);
    const destination=restore?original.current:{
@@ -335,7 +340,8 @@ function MuseumFocusCameraDirector({phase='idle',cinemaEdition=false,onCameraPos
      new THREE.Vector3(...layout.lookAt),new THREE.Vector3(0,1,0));
     destination.quaternion.setFromRotationMatrix(look);
    }
-   animation.current={phase,elapsed:0,startedAt:performance.now(),duration:selectFocusDuration(
+   animation.current={phase,elapsed:0,startedAt:performance.now(),duration:
+    phase==='focused'?.35:selectFocusDuration(
     phase,window.matchMedia?.('(prefers-reduced-motion: reduce)').matches),
     from:{position:camera.position.clone(),quaternion:camera.quaternion.clone(),fov:camera.fov},to:destination};
    invalidate();
