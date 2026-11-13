@@ -144,3 +144,38 @@ test('Museum Lab hides date and clock metadata on every student and teacher scre
  const server=fs.readFileSync('serverless-handlers/gallery-guest.js','utf8');
  assert.match(server,/assignment\.deadline_at/);
 });
+
+test('Admin can safely archive and restore both prepared and database exhibitions',()=>{
+ const server=fs.readFileSync('serverless-handlers/gallery-staff.js','utf8');
+ const gallery=fs.readFileSync('src/features/immersive-gallery/v3/MuseumExplore.jsx','utf8');
+ const app=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLabApp.jsx','utf8');
+ const detail=fs.readFileSync('src/features/immersive-gallery/v3/MuseumExhibitionDetail.jsx','utf8');
+ const data=fs.readFileSync('src/features/immersive-gallery/galleryData.js','utf8');
+ const css=fs.readFileSync('src/features/immersive-gallery/v3/museumLab.css','utf8');
+ const migration=fs.readFileSync('supabase/migrations/20261113164000_museum_showcase_safe_archive.sql','utf8');
+ assert.match(server,/operation==='archive-exhibition'/);
+ assert.match(server,/operation==='restore-exhibition'/);
+ assert.match(server,/guardOrigin\(req\);assertAdmin\(ctx\)/);
+ assert.match(server,/gallery\.school_scope!==ctx\.profile\.school/);
+ assert.match(server,/PREPARED_COLLECTIONS\.some/);
+ assert.match(server,/museum_showcase_change/);
+ assert.match(server,/operation==='showcase-state'/);
+ assert.match(gallery,/data-testid="museum-archived-exhibitions"/);
+ assert.match(gallery,/Delete exhibition:/);
+ assert.match(gallery,/Restore exhibition/);
+ assert.match(gallery,/onClick=\{\(\)=>changeArchive\('collection'/);
+ assert.match(gallery,/onClick=\{\(\)=>changeArchive\('gallery'/);
+ assert.match(gallery,/archive\.hiddenCollections\.includes\(key\)/);
+ assert.match(app,/onRefresh=\{refresh\}/);
+ assert.match(detail,/onDelete\?\</);
+ assert.match(data,/neq\('status','archived'\)/);
+ assert.match(data,/exhibit\.status==='archived'/);
+ assert.match(css,/bml-exhibition-delete/);
+ assert.match(migration,/enable row level security/);
+ assert.match(migration,/from public, anon, authenticated/);
+ assert.match(migration,/security invoker/);
+ assert.match(migration,/to service_role/);
+ assert.match(migration,/school_scope=p_school/);
+ assert.match(migration,/status='archived'/);
+ assert.doesNotMatch(server,/from\('gcp_reviews'\)\.delete\(/);
+});

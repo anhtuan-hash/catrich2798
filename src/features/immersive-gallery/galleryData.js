@@ -23,12 +23,12 @@ export async function setGalleryEnabled(enabled,user){
   return check({data,error});
 }
 export async function listExhibitions(){
-  return check(await client().from('gallery_exhibitions').select('id,slug,title,summary,visibility,status,owner_id,accept_submissions,created_at,updated_at').order('updated_at',{ascending:false}).limit(100))||[];
+  return check(await client().from('gallery_exhibitions').select('id,slug,title,summary,visibility,status,owner_id,accept_submissions,created_at,updated_at').neq('status','archived').order('updated_at',{ascending:false}).limit(100))||[];
 }
 export async function getExhibition(slugOrId){
   const col=/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(String(slugOrId))?'id':'slug';
   const exhibit=check(await client().from('gallery_exhibitions').select('*').eq(col,slugOrId).maybeSingle());
-  if(!exhibit)throw new Error('Triển lãm không tồn tại hoặc bạn không có quyền xem.');
+  if(!exhibit||exhibit.status==='archived')throw new Error('This exhibition has been removed from the showcase.');
   const rooms=check(await client().from('gallery_rooms').select('*').eq('exhibition_id',exhibit.id).order('sort_order'))||[];
   let exhibits=[];
   if(rooms.length) exhibits=check(await client().from('gallery_exhibits').select('*').in('room_id',rooms.map(r=>r.id)).order('created_at'))||[];

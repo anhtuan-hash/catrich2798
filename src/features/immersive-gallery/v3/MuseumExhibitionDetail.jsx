@@ -1,5 +1,5 @@
 import React,{useMemo,useRef,useState} from 'react';
-import {ArrowLeft,ArrowRight,Award,BarChart3,BookOpen,CheckCircle2,ChevronRight,Clock3,Copy,Download,Eye,FileText,FolderOpen,Home,Images,Info,Landmark,Layers3,Maximize2,MoreHorizontal,Presentation,Share2,ShieldCheck,Users,X} from 'lucide-react';
+import {ArrowLeft,ArrowRight,Award,BarChart3,BookOpen,CheckCircle2,ChevronRight,Clock3,Copy,Download,Eye,FileText,FolderOpen,Home,Images,Info,Landmark,Layers3,Maximize2,MoreHorizontal,Presentation,Share2,ShieldCheck,Users,Trash2,X} from 'lucide-react';
 import MuseumScene from './MuseumScene.jsx';
 import './museumExhibition.css';
 import {MuseumHeroArt} from './MuseumDashboard.jsx';
@@ -45,7 +45,7 @@ function OverviewCards({data,onNavigate,language}){
   </section>
  </div>;
 }
-export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onNavigate,data,isDemo=false}){
+export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onNavigate,data,isDemo=false,onDelete=null,busy=false}){
  const [section,setSection]=useState('space'),[moreOpen,setMoreOpen]=useState(false),[notice,setNotice]=useState('');
  const viewerRef=useRef(null);
  const rooms=useMemo(()=>Array.isArray(gallery?.rooms)?gallery.rooms:[],[gallery?.rooms]);
@@ -123,6 +123,7 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
        <button type="button" role="menuitem" onClick={copyLink}><Copy size={16}/>{t(language,'Sao chép liên kết','Copy link')}</button>
        <button type="button" role="menuitem" onClick={downloadDetails}><Download size={16}/>{t(language,'Tải nội dung (.txt)','Download text summary')}</button>
        <button type="button" role="menuitem" onClick={()=>{setMoreOpen(false);setSection('about');}}><Info size={16}/>{t(language,'Xem thông tin','View information')}</button>
+       {onDelete?<button type="button" role="menuitem" disabled={busy} className="bml-exh-delete-action" onClick={()=>{setMoreOpen(false);onDelete();}}><Trash2 size={16}/>Delete exhibition</button>:null}
       </div>:null}
      </div>
     </div>
