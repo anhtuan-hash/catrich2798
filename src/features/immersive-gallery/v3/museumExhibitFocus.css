@@ -1,7 +1,7 @@
 /* V5 world-anchored museum plaque only — never a modal or fake frame. */
 .bml .bml-v5-world-board{
  display:flex;flex-direction:column;box-sizing:border-box;
- width:520px;height:600px;padding:29px 29px 25px;
+ width:520px;height:442px;padding:18px 27px 16px;
  border:0;background:transparent;
  font-family:Arial,Helvetica,sans-serif;color:#234A43;
  text-align:left;line-height:1.48;pointer-events:auto;
@@ -59,7 +59,7 @@
  outline:4px solid #F2C76B;outline-offset:3px;
 }
 .bml .bml-v5-back-to-wall:disabled{opacity:.5;cursor:wait}
-.bml .bml-v5-world-board.is-compact{width:500px;height:535px;padding:22px 24px}
+.bml .bml-v5-world-board.is-compact{width:500px;height:435px;padding:18px 23px}
 .bml .bml-v5-world-board.is-compact h2{font-size:41px}
 .bml .bml-v5-world-board.is-compact .bml-v5-board-copy{font-size:21px}
 .bml .bml-v5-world-board.is-compact .bml-v5-board-source p{font-size:18px}
