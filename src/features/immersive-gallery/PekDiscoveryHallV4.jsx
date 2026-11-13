@@ -51,7 +51,7 @@ function SchoolCrest(){
  </group>;
 }
 function Skylight({lite}){
- const arcs=useMemo(()=>[-6.7,-4.4,-2.1,.2,2.5].map(z=>{
+ const arcs=useMemo(()=>[-7.4,-6.25,-5.1,-3.95,-2.8].map(z=>{
   const curve=new THREE.CatmullRomCurve3([
    new THREE.Vector3(-5.7,5.54,z),
    new THREE.Vector3(-3.7,5.99,z),
@@ -63,19 +63,19 @@ function Skylight({lite}){
  }),[lite]);
  return <group>
   {/* Elliptical translucent skylight with dimensional wood ribs */}
-  <mesh position={[0,5.92,-2.45]} rotation={[-Math.PI/2,0,0]} scale={[1.38,.74,1]}>
+  <mesh position={[0,5.73,-5.15]} rotation={[-Math.PI/2,0,0]} scale={[1.38,.74,1]}>
    <circleGeometry args={[4.08,72]}/>
    <meshStandardMaterial color="#F5F7EA" emissive="#E7EBD5" emissiveIntensity={.22}
     roughness={.65} transparent opacity={.78} side={THREE.DoubleSide}/>
   </mesh>
-  <mesh position={[0,5.89,-2.45]} rotation={[-Math.PI/2,0,0]} scale={[1.38,.74,1]}>
+  <mesh position={[0,5.72,-5.15]} rotation={[-Math.PI/2,0,0]} scale={[1.38,.74,1]}>
    <torusGeometry args={[4.14,.125,10,84]}/>
    <meshStandardMaterial color="#B99A6F" metalness={.12} roughness={.62}/>
   </mesh>
   {arcs.map((g,i)=><mesh key={i} geometry={g}>
    <meshStandardMaterial color={i%2?'#9D754B':'#B59368'} metalness={.08} roughness={.68}/>
   </mesh>)}
-  {!lite?[-5.5,-3.1,-.7,1.7].map(z=><group key={z}>
+  {!lite?[-6.8,-5.4,-4.0,-2.6].map(z=><group key={z}>
    <mesh position={[0,5.72,z]}>
     <boxGeometry args={[10,.07,.055]}/>
     <meshBasicMaterial color="#FFF1C4"/>
