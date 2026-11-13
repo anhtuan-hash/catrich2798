@@ -1700,6 +1700,11 @@ test('Published school exhibition renders from the already loaded dashboard and 
  await app.getByRole('navigation',{name:'Museum Lab navigation'}).getByRole('button',{name:'Exhibitions'}).click();
  const showcase=page.getByTestId('museum-showcase');
  await expect(showcase.getByTestId('museum-showcase-published-count')).toContainText('1 published exhibitions');
+ await expect(showcase.getByTestId('museum-published-panel')).toBeVisible();
+ // Regression: published work remains accessible even when a legacy gallery
+ // grid or external stylesheet hides the old card container completely.
+ await page.addStyleTag({content:'.bml-gallery-grid{display:none!important}'});
+ await expect(showcase.getByTestId('museum-published-panel')).toBeVisible();
  await expect(showcase.getByRole('button',{name:/Synthetic Published Group 01/})).toBeVisible();
  await showcase.getByRole('button',{name:/Synthetic Published Group 01/}).click();
  const detail=page.getByTestId('museum-exhibition-detail');
