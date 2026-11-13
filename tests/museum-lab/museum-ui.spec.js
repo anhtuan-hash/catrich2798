@@ -1455,6 +1455,24 @@ test('Student Creator 2D Paper exhibit displays actual uploaded photos and remai
  await app.getByRole('button',{name:'Preview 2D/3D museum'}).click();
  const viewer=app.getByTestId('museum-visitor');
  await expect(viewer).toBeVisible();
+ await expect(viewer).toHaveAttribute('data-museum-mode','cinema');
+ await expect(viewer.locator('.bml-cinema-hud')).toBeVisible();
+ await expect(viewer.locator('.bml-cinema-hud').getByRole('button',{name:'3D',exact:true})).toHaveAttribute('aria-pressed','true');
+ await expect(viewer.locator('.bml-cinema-hud').getByRole('button',{name:'Fullscreen'})).toBeVisible();
+ const cinemaGeometry=await viewer.evaluate(el=>{
+  const r=el.getBoundingClientRect(),canvas=el.querySelector('.bml-3d-stage');
+  const s=canvas?.getBoundingClientRect();
+  return {width:r.width,height:r.height,sceneWidth:s?.width,sceneHeight:s?.height,
+   headerCount:el.querySelectorAll('.bml-scene-header').length,
+   roomBar:!!el.querySelector('.bml-room-tabs:not([hidden])')};
+ });
+ expect(cinemaGeometry.width/1536).toBeGreaterThan(.95);
+ expect(cinemaGeometry.height/960).toBeGreaterThan(.87);
+ expect(cinemaGeometry.sceneWidth/cinemaGeometry.width).toBeGreaterThan(.96);
+ expect(cinemaGeometry.sceneHeight/cinemaGeometry.height).toBeGreaterThan(.88);
+ expect(cinemaGeometry.headerCount).toBe(0);
+ expect(cinemaGeometry.roomBar).toBe(false);
+ await viewer.locator('.bml-cinema-hud').getByRole('button',{name:'2D',exact:true}).click();
  await expect(viewer.getByTestId('museum-paper-2d-room')).toBeVisible();
  const cards=viewer.locator('.bml-paper-art-card');
  await expect(cards).toHaveCount(3);
@@ -1482,7 +1500,7 @@ test('Student Creator 2D Paper exhibit displays actual uploaded photos and remai
  expect(await original.locator('img').evaluate(el=>getComputedStyle(el).objectFit)).toBe('contain');
  await page.keyboard.press('Escape');
  await expect(original).toHaveCount(0);
- const scrolling=await viewer.evaluate(el=>({
+ const scrolling=await viewer.getByTestId('museum-paper-2d-room').evaluate(el=>({
   overflow:getComputedStyle(el).overflowY,
   hasScroll:el.scrollHeight>el.clientHeight,
   total:el.scrollHeight,
@@ -1490,9 +1508,9 @@ test('Student Creator 2D Paper exhibit displays actual uploaded photos and remai
  }));
  expect(scrolling.overflow).toBe('auto');
  if(scrolling.hasScroll){
-  await viewer.evaluate(el=>{el.scrollTop=el.scrollHeight;});
-  expect(await viewer.evaluate(el=>el.scrollTop)).toBeGreaterThan(0);
-  await viewer.evaluate(el=>{el.scrollTop=0;});
+  await viewer.getByTestId('museum-paper-2d-room').evaluate(el=>{el.scrollTop=el.scrollHeight;});
+  expect(await viewer.getByTestId('museum-paper-2d-room').evaluate(el=>el.scrollTop)).toBeGreaterThan(0);
+  await viewer.getByTestId('museum-paper-2d-room').evaluate(el=>{el.scrollTop=0;});
  }
  const dimensions=await cards.evaluateAll(items=>items.map(x=>({
   height:x.getBoundingClientRect().height,visual:x.querySelector('.bml-paper-art-photo').getBoundingClientRect().height
@@ -1523,8 +1541,35 @@ test('Student Creator 2D Paper exhibit displays actual uploaded photos and remai
  }));
  expect(compactStage.shell).toBeGreaterThan(270);
  expect(compactStage.shell/compactStage.stage).toBeGreaterThan(.88);
+ // VIS-01 geometry contract across the two most common presentation sizes.
+ for(const viewport of [{width:1536,height:864},{width:1366,height:768},{width:1920,height:1080}]){
+  await page.setViewportSize(viewport);
+  const metrics=await viewer.evaluate(el=>{
+   const canvas=el.querySelector('.bml-cinema-stage');
+   const root=el.getBoundingClientRect(),stage=canvas?.getBoundingClientRect();
+   return {w:root.width,h:root.height,sw:stage?.width,sh:stage?.height};
+  });
+  expect(metrics.w/viewport.width).toBeGreaterThan(.95);
+  expect(metrics.h/viewport.height).toBeGreaterThan(.87);
+  expect(metrics.sw/metrics.w).toBeGreaterThan(.96);
+  expect(metrics.sh/metrics.h).toBeGreaterThan(.88);
+  await page.screenshot({path:testInfo.outputPath('museum-v4-cinema-'+viewport.width+'x'+viewport.height+'.png'),fullPage:false});
+ }
+ // Fullscreen toggles an actual browser Fullscreen API request where permitted,
+ // or a CSS fallback; both grow the same real scene, not a stretched bitmap.
+ const fullscreen=viewer.getByRole('button',{name:'Fullscreen',exact:true});
+ await fullscreen.click();
+ await expect(viewer.getByRole('button',{name:'Exit fullscreen'})).toBeVisible();
+ await viewer.getByRole('button',{name:'Exit fullscreen'}).click();
+ await expect(viewer.getByRole('button',{name:'Fullscreen'})).toBeVisible();
+ await viewer.getByRole('button',{name:'Museum information'}).click();
+ await expect(viewer.getByTestId('museum-cinema-info')).toBeVisible();
+ await viewer.getByRole('button',{name:'Close information'}).click();
+ await expect(viewer.getByTestId('museum-cinema-info')).toHaveCount(0);
  await viewer.getByRole('button',{name:'2D',exact:true}).click();
  await expect(cards).toHaveCount(3);
+ await viewer.getByRole('button',{name:'Close museum preview'}).click();
+ await expect(viewer).toHaveCount(0);
 });
 
 test('V5.4 Speaking Studio requires user microphone action, rehearses group text locally, and deletes the clip',async({page})=>{

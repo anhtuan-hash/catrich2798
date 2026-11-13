@@ -1,0 +1,241 @@
+/*
+ BRIAN Museum Lab V4 Cinema: a true stage, not a screenshot or a scaled canvas.
+ This layer is isolated to Student Creator and opted-in reviewer previews.
+ Preserve ordinary 2D/3D MuseumScene for other app routes.
+*/
+.bml.bml-student-canvas16 .bml-student-detail-overlay.bml-museum-preview-overlay{
+ inset:0!important;position:fixed;z-index:1700;
+ padding:8px!important;place-items:stretch!important;
+ background:#102d2be8;backdrop-filter:blur(7px);
+}
+.bml.bml-student-canvas16 .bml-student-detail-window.bml-museum-preview-window{
+ width:min(1920px,calc(100vw - 16px))!important;
+ max-width:calc(100vw - 16px)!important;
+ height:min(1080px,calc(100dvh - 16px))!important;
+ max-height:calc(100dvh - 16px)!important;
+ margin:auto!important;box-sizing:border-box;
+ padding:0!important;border:0!important;
+ border-radius:14px!important;background:#f9f8f2;
+ box-shadow:0 0 0 1px #ebdfc8,0 32px 90px #0b2525a6;
+ overflow:hidden;display:flex;flex-direction:column;
+}
+.bml.bml-student-canvas16 .bml-museum-preview-window>.bml-student-detail-head{display:none!important}
+.bml .bml-museum-cinema.bml-scene{
+ position:relative;isolation:isolate;
+ display:flex!important;flex-direction:column!important;
+ flex:1 1 auto;min-width:0;min-height:0;height:100%;
+ width:100%;max-width:none;max-height:none;
+ padding:0!important;margin:0!important;border:0!important;
+ border-radius:0!important;overflow:hidden!important;
+ background:#ecf2ea;
+}
+.bml .bml-museum-cinema .bml-scene-header,
+.bml .bml-museum-cinema .bml-scene-footer,
+.bml .bml-museum-cinema .bml-3d-caption,
+.bml .bml-museum-cinema .bml-room-mast{display:none!important}
+.bml .bml-museum-cinema .bml-room-tabs[hidden]{display:none!important}
+.bml .bml-museum-cinema .bml-room-tabs.bml-cinema-room-tabs:not([hidden]){
+ display:flex;position:absolute;z-index:58;
+ top:67px;right:18px;left:auto;
+ max-width:75%;max-height:55px;padding:5px;border:1px solid #d9e8d6;
+ border-radius:14px;background:#fffcf0e9;
+ overflow-x:auto;box-shadow:0 7px 22px #153d332e;
+}
+.bml .bml-museum-cinema .bml-cinema-hud{
+ position:absolute;z-index:65;
+ top:clamp(10px,1.25vw,21px);right:clamp(10px,1.25vw,21px);
+ display:flex;align-items:center;gap:8px;
+ max-width:calc(100% - 20px);
+ pointer-events:auto;
+}
+.bml .bml-museum-cinema .bml-cinema-mode-group{
+ display:flex;align-items:center;gap:2px;padding:4px;
+ border:1px solid #d5e4d5;background:#fffdf2f1;
+ border-radius:999px;box-shadow:0 4px 16px #0f443633;
+ backdrop-filter:blur(12px);
+}
+.bml .bml-museum-cinema .bml-cinema-mode-group button{
+ display:inline-flex;align-items:center;justify-content:center;gap:7px;
+ min-height:39px;min-width:66px;padding:7px 12px;
+ border:0;border-radius:999px;color:#285c4d;
+ background:transparent;font-size:13px;font-weight:850;cursor:pointer;
+ transition:background .18s ease,color .18s ease;
+}
+.bml .bml-museum-cinema .bml-cinema-mode-group button.is-active{
+ color:#fff;background:#0D5B45;box-shadow:0 2px 0 #96bba7;
+}
+.bml .bml-museum-cinema .bml-cinema-hud-button,
+.bml .bml-museum-cinema .bml-cinema-close{
+ min-width:45px;min-height:45px;display:inline-flex;
+ justify-content:center;align-items:center;gap:8px;
+ border:1px solid #d5e4d5;background:#fffdf5ef;color:#255b4c;
+ border-radius:99px;padding:8px 12px;cursor:pointer;
+ font-weight:800;font-size:13px;
+ backdrop-filter:blur(11px);
+ box-shadow:0 4px 15px #0f443633;
+}
+.bml .bml-museum-cinema .bml-cinema-close{padding-inline:14px}
+.bml .bml-museum-cinema .bml-cinema-hud button:hover{
+ background:#E5F0E6;color:#0F654D;
+}
+.bml .bml-museum-cinema .bml-cinema-hud button:focus-visible,
+.bml .bml-museum-cinema .bml-cinema-room-controls button:focus-visible{
+ outline:3px solid #E6CB7C;outline-offset:2px;
+}
+.bml .bml-museum-cinema .bml-cinema-info{
+ position:absolute;top:74px;right:18px;z-index:68;
+ width:min(420px,calc(100% - 36px));max-height:min(70%,450px);
+ padding:16px 18px;overflow:auto;color:#254f44;
+ background:#fffdf5f4;border:1px solid #d7e4d7;border-radius:16px;
+ box-shadow:0 15px 38px #11382f47;backdrop-filter:blur(12px);
+}
+.bml .bml-museum-cinema .bml-cinema-info header{
+ display:flex;justify-content:space-between;align-items:center;gap:12px;
+}
+.bml .bml-museum-cinema .bml-cinema-info header strong{
+ font-size:18px;font-family:Georgia,serif;
+}
+.bml .bml-museum-cinema .bml-cinema-info button{
+ border:1px solid #c5dcc7;background:#f2f8f0;color:#285c4d;
+ border-radius:99px;padding:7px;cursor:pointer;
+}
+.bml .bml-museum-cinema .bml-cinema-info p{
+ font-size:13px;line-height:1.6;margin:10px 0 2px;color:#536e61;
+}
+.bml .bml-museum-cinema .bml-cinema-bottom-hud{
+ position:absolute;bottom:17px;right:18px;z-index:62;
+ display:flex;align-items:center;gap:10px;
+ padding:7px 10px;background:#fffdf4df;
+ border:1px solid #e3e8d7;border-radius:99px;
+ backdrop-filter:blur(10px);color:#255a4b;
+ box-shadow:0 6px 20px #103c3330;
+ font-size:12px;font-weight:800;
+}
+.bml .bml-museum-cinema .bml-cinema-room-controls{
+ display:flex;align-items:center;gap:6px;
+}
+.bml .bml-museum-cinema .bml-cinema-room-controls button{
+ border:1px solid #bbd6c1;background:#f9fdf5;color:#21604f;
+ width:32px;height:32px;border-radius:50%;
+ display:grid;place-items:center;cursor:pointer;
+}
+.bml .bml-museum-cinema .bml-cinema-room-controls button:disabled{
+ opacity:.34;cursor:default;
+}
+/* Cinema WebGL gets the full background footprint. No legacy 340/565px caps. */
+.bml .bml-museum-cinema>.bml-3d-stage.bml-cinema-stage{
+ display:flex!important;position:relative!important;
+ flex:1 1 auto!important;min-width:0!important;min-height:0!important;
+ width:100%!important;height:100%!important;
+ padding:0!important;margin:0!important;
+ border:0!important;overflow:hidden!important;background:#e9f0e8;
+}
+.bml .bml-museum-cinema>.bml-3d-stage.bml-cinema-stage>.big-webgl-shell{
+ display:block!important;position:relative;
+ flex:1 1 auto!important;width:100%!important;height:100%!important;
+ min-width:0!important;min-height:0!important;
+ max-width:none!important;max-height:none!important;
+ border:0!important;border-radius:0!important;
+ overflow:hidden!important;
+}
+.bml .bml-museum-cinema .big-webgl-shell canvas{
+ display:block;width:100%!important;height:100%!important;
+}
+.bml .bml-museum-cinema .big-pek-museum.big-pek-v4 .big-pek-tools{
+ position:absolute;left:17px;top:auto;bottom:18px;
+ display:flex;align-items:center;gap:6px;
+ max-width:calc(100% - 330px);z-index:61;
+ background:#f9f9ecde;padding:5px;border:1px solid #d5e5d9;
+ border-radius:99px;box-shadow:0 5px 19px #143d3529;
+}
+.bml .bml-museum-cinema .big-pek-v4 .big-pek-edition-mark{
+ display:none;
+}
+.bml .bml-museum-cinema .big-pek-v4 .big-pek-tools button{
+ min-height:35px;padding:7px 12px;border-radius:99px;
+}
+.bml .bml-museum-cinema .big-pek-v4 .big-touch-pad{
+ z-index:62;left:16px;bottom:75px;
+}
+/* 2D fallback keeps full poster ratios and scrolls inside the same shell. */
+.bml .bml-museum-cinema.is-2d>.bml-museum-room,
+.bml .bml-museum-cinema.is-2d>.bml-paper-museum-room{
+ display:block;flex:1 1 auto;min-height:0;min-width:0;
+ width:100%;height:100%;margin:0!important;
+ padding:74px clamp(12px,2vw,34px) 76px!important;
+ border:0!important;border-radius:0!important;
+ overflow-y:auto!important;overflow-x:hidden!important;
+ scrollbar-width:thin;overscroll-behavior-y:contain;
+}
+.bml .bml-museum-cinema.is-2d .bml-art-grid.bml-paper-art-grid{
+ grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:clamp(12px,1.4vw,23px);
+}
+.bml .bml-museum-cinema.is-2d .bml-paper-art-photo{
+ aspect-ratio:3/4;height:auto;
+}
+.bml .bml-museum-cinema.is-2d .bml-paper-art-photo img{
+ object-fit:contain!important;
+}
+.bml .bml-museum-cinema.is-fallback-fullscreen,
+.bml .bml-museum-cinema:fullscreen{
+ position:fixed!important;inset:0;z-index:4000;
+ width:100vw!important;height:100dvh!important;
+ max-height:none!important;max-width:none!important;
+ border-radius:0!important;
+}
+@media(max-width:960px){
+ .bml .bml-museum-cinema .big-pek-museum.big-pek-v4 .big-pek-tools{
+  bottom:14px;left:12px;max-width:calc(100% - 195px);
+ }
+ .bml .bml-museum-cinema .big-pek-v4 .big-pek-tools button{font-size:10px;padding-inline:7px}
+ .bml .bml-museum-cinema.is-2d .bml-art-grid.bml-paper-art-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+ }
+}
+@media(max-width:600px){
+ .bml.bml-student-canvas16 .bml-student-detail-overlay.bml-museum-preview-overlay{padding:4px!important}
+ .bml.bml-student-canvas16 .bml-student-detail-window.bml-museum-preview-window{
+  width:calc(100vw - 8px)!important;max-width:calc(100vw - 8px)!important;
+  height:calc(100dvh - 8px)!important;max-height:calc(100dvh - 8px)!important;
+  border-radius:9px!important;
+ }
+ .bml .bml-museum-cinema .bml-cinema-hud{right:8px;top:8px;gap:4px}
+ .bml .bml-museum-cinema .bml-cinema-mode-group{padding:2px}
+ .bml .bml-museum-cinema .bml-cinema-mode-group button{
+  min-width:50px;min-height:35px;padding:6px 7px;gap:4px;font-size:11px;
+ }
+ .bml .bml-museum-cinema .bml-cinema-hud-button,
+ .bml .bml-museum-cinema .bml-cinema-close{min-width:35px;min-height:35px;padding:5px 6px}
+ .bml .bml-museum-cinema .bml-cinema-close span{display:none}
+ .bml .bml-museum-cinema .big-pek-museum.big-pek-v4 .big-pek-tools{
+  left:8px;bottom:9px;max-width:calc(100% - 110px);padding:4px;
+ }
+ .bml .bml-museum-cinema .big-pek-v4 .big-pek-tools button{min-height:32px;font-size:10px}
+ .bml .bml-museum-cinema .big-pek-v4 .big-touch-pad{bottom:75px;left:8px}
+ .bml .bml-museum-cinema .bml-cinema-bottom-hud{bottom:9px;right:8px;padding:6px 8px}
+ .bml .bml-museum-cinema.is-2d .bml-art-grid.bml-paper-art-grid{grid-template-columns:1fr}
+ .bml .bml-museum-cinema.is-2d>.bml-museum-room{padding-top:64px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .bml .bml-museum-cinema *, .bml .bml-museum-cinema *:before,
+ .bml .bml-museum-cinema *:after{animation:none!important;transition:none!important}
+}
+
+/* Same opt-in 16:9 presentation for authorized teacher review,
+   with artwork URLs still supplied only by artStaff. */
+.bml .bml-review-cinema-overlay{
+ position:fixed;inset:8px;z-index:2400;
+ display:flex;flex-direction:column;min-height:0;
+ width:calc(100vw - 16px);height:calc(100dvh - 16px);
+ background:#E7EDE5;border:1px solid #D4E0D2;border-radius:14px;
+ box-shadow:0 0 0 8px #102D2BD9,0 25px 90px #102D2B92;
+ overflow:hidden;
+}
+.bml .bml-review-cinema-overlay>.bml-scene.bml-museum-cinema{
+ flex:1 1 auto;min-height:0;min-width:0;width:100%;height:100%;
+}
+@media(max-width:600px){
+ .bml .bml-review-cinema-overlay{inset:4px;width:calc(100vw - 8px);
+ height:calc(100dvh - 8px);border-radius:9px}
+}

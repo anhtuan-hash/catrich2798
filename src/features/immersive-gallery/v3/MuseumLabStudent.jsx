@@ -362,7 +362,7 @@ export default function MuseumLabStudent({language='en'}){
       <div className="bml-student-detail-window bml-museum-preview-window">
        <div className="bml-student-detail-head"><strong>{studio.title||'Our Climate Action Museum'}</strong>
         <button type="button" className="bml-outline" onClick={()=>setPreview(false)}><X size={17}/>{T(language,'Đóng','Close')}</button></div>
-       <MuseumScene language={language} embedded gallery={previewGallery}/>
+       <MuseumScene language={language} embedded cinema initial3D gallery={previewGallery} onClose={()=>setPreview(false)}/>
       </div>
      </div>:null}
     </>:null}
@@ -484,7 +484,7 @@ export default function MuseumLabStudent({language='en'}){
   {projectPreview?<div className="bml-student-detail-overlay bml-museum-preview-overlay" role="dialog" aria-modal="true" aria-label={T(language,'Xem bảo tàng của nhóm','Preview group museum')}>
    <div className="bml-student-detail-window bml-museum-preview-window">
     <div className="bml-student-detail-head"><strong>{studio.title||'Our Climate Action Museum'}</strong><button type="button" className="bml-outline" onClick={()=>setProjectPreview(false)}><X size={18}/>{T(language,'Đóng','Close')}</button></div>
-    <MuseumScene language={language} embedded gallery={previewGallery}/>
+    <MuseumScene language={language} embedded cinema initial3D gallery={previewGallery} onClose={()=>setProjectPreview(false)}/>
    </div></div>:null}
  </main>;
 }

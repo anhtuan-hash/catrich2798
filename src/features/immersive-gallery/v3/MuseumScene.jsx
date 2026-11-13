@@ -1,9 +1,10 @@
 import React,{Suspense,lazy,useEffect,useMemo,useRef,useState} from 'react';
-import {ArrowLeft,ArrowRight,Box,ChevronLeft,ChevronRight,Eye,FileText,Info,LayoutGrid,MapPin,Maximize2,PanelRightClose,Image as ImageIcon,Leaf,Globe2} from 'lucide-react';
+import {ArrowLeft,ArrowRight,Box,ChevronLeft,ChevronRight,Eye,FileText,Info,LayoutGrid,MapPin,Maximize2,Minimize2,X,Image as ImageIcon,Leaf,Globe2} from 'lucide-react';
 import '../gallery.css';
 import {exhibitInsights,exhibitField} from './museumExhibitInsights.js';
 import './museumExhibitLens.css';
 import './museumPaper2D.css';
+import './museumCinemaPreview.css';
 const GalleryCanvas=lazy(()=>import('../GalleryCanvasR3F.jsx'));
 const Exhibit360Viewer=lazy(()=>import('./Exhibit360Viewer.jsx'));
 const clean=(x,n=180)=>String(x??'').slice(0,n);
@@ -45,9 +46,51 @@ export function reviewMuseum(review,assets=[]){
   }))
  };
 }
-export default function MuseumScene({gallery,onBack,language='vi',embedded=false,compact=false,initial3D=false,onExhibitSelect}){
- const [activeRoom,setActiveRoom]=useState(0),[threeD,setThreeD]=useState(initial3D),[selectedId,setSelectedId]=useState(null);
+export default function MuseumScene({gallery,onBack,onClose,language='vi',embedded=false,compact=false,initial3D=false,onExhibitSelect,cinema=false}){
+ const [activeRoom,setActiveRoom]=useState(0),[threeD,setThreeD]=useState(cinema||initial3D),[selectedId,setSelectedId]=useState(null);
  const [fullPosterId,setFullPosterId]=useState(null);
+ const cinemaRef=useRef(null),cinemaOpenerRef=useRef(null),[infoOpen,setInfoOpen]=useState(false);
+ useEffect(()=>{if(cinema)cinemaOpenerRef.current=document.activeElement;},[cinema]);
+ const [isFullscreen,setIsFullscreen]=useState(false),[fallbackFullscreen,setFallbackFullscreen]=useState(false);
+ const leaveCinema=()=>{
+  if(document.fullscreenElement===cinemaRef.current)document.exitFullscreen?.().catch(()=>{});
+  setFallbackFullscreen(false);onClose?.();
+  Promise.resolve().then(()=>cinemaOpenerRef.current?.focus?.());
+ };
+ const toggleFullscreen=async()=>{
+  if(document.fullscreenElement===cinemaRef.current){
+   try{await document.exitFullscreen?.();}catch{setFallbackFullscreen(false);}
+   return;
+  }
+  if(fallbackFullscreen){setFallbackFullscreen(false);return;}
+  try{
+   if(typeof cinemaRef.current?.requestFullscreen!=='function')throw Error('Fullscreen unavailable');
+   await cinemaRef.current.requestFullscreen();
+  }catch{setFallbackFullscreen(true);}
+ };
+ useEffect(()=>{
+  if(!cinema)return undefined;
+  const onFullscreen=()=>setIsFullscreen(document.fullscreenElement===cinemaRef.current);
+  const onEscape=event=>{
+   if(event.key==='Tab'&&!selectedId&&!fullPosterId){
+    const controls=[...(cinemaRef.current?.querySelectorAll('button:not(:disabled),a[href]')||[])]
+     .filter(el=>el.getClientRects().length>0&&getComputedStyle(el).visibility!=='hidden');
+    if(!controls.length)return;
+    const first=controls[0],last=controls[controls.length-1];
+    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+    return;
+   }
+   if(event.key!=='Escape')return;
+   if(infoOpen){setInfoOpen(false);return;}
+   if(!selectedId&&!fullPosterId&&!document.fullscreenElement){
+    event.preventDefault();leaveCinema();
+   }
+  };
+  document.addEventListener('fullscreenchange',onFullscreen);
+  document.addEventListener('keydown',onEscape);
+  return()=>{document.removeEventListener('fullscreenchange',onFullscreen);document.removeEventListener('keydown',onEscape);};
+ },[cinema,onClose,selectedId,fullPosterId,infoOpen]);
  const posterCloseRef=useRef(null),posterOpenerRef=useRef(null);
  const dialogRef=useRef(null),closeRef=useRef(null),openerRef=useRef(null);
  const rooms=gallery?.rooms||[];
@@ -99,8 +142,9 @@ export default function MuseumScene({gallery,onBack,language='vi',embedded=false
   return()=>document.removeEventListener('keydown',handleKeys);
  },[selected?.id]);
  const changeRoom=n=>{setActiveRoom(n);setSelectedId(null);setFullPosterId(null);};
- return <section className={'bml-scene bml-paper-2d '+(!threeD?'is-2d ':'')+(embedded?'bml-scene-embedded ':'')+(compact?'bml-scene-compact':'')} data-testid="museum-visitor">
-  {!compact?<header className="bml-scene-header">
+ return <section ref={cinemaRef} className={'bml-scene bml-paper-2d '+(!threeD?'is-2d ':'')+(embedded?'bml-scene-embedded ':'')+(compact?'bml-scene-compact ':'')+(cinema?'bml-museum-cinema ':'')+(fallbackFullscreen?'is-fallback-fullscreen':'')}
+  data-testid="museum-visitor" data-museum-mode={cinema?'cinema':'classic'}>
+  {!compact&&!cinema?<header className="bml-scene-header">
    <div className="bml-scene-title">
     {onBack?<button type="button" className="bml-icon-btn" onClick={onBack} aria-label={tr('Quay lại','Back')}><ArrowLeft size={20}/></button>:null}
     <div><div className="bml-overline">{tr('TRIỂN LÃM TƯƠNG TÁC','INTERACTIVE EXHIBITION')}</div>
@@ -112,31 +156,53 @@ export default function MuseumScene({gallery,onBack,language='vi',embedded=false
     <button type="button" aria-pressed={threeD} className={threeD?'is-active':''} onClick={()=>setThreeD(true)}><Box size={16}/> 3D</button>
    </div>
   </header>:null}
+  {cinema?<div className="bml-cinema-hud" data-testid="museum-cinema-hud">
+   <div className="bml-cinema-mode-group" role="group" aria-label="Museum view mode">
+    <button type="button" className={!threeD?'is-active':''} aria-pressed={!threeD}
+     onClick={()=>{setInfoOpen(false);setThreeD(false);}}><LayoutGrid size={17}/>2D</button>
+    <button type="button" className={threeD?'is-active':''} aria-pressed={threeD}
+     onClick={()=>{setInfoOpen(false);setThreeD(true);}}><Box size={17}/>3D</button>
+   </div>
+   <button type="button" aria-label="Museum information" aria-expanded={infoOpen}
+    className="bml-cinema-hud-button" onClick={()=>setInfoOpen(v=>!v)}><Info size={19}/></button>
+   <button type="button" aria-label={isFullscreen||fallbackFullscreen?'Exit fullscreen':'Fullscreen'}
+    className="bml-cinema-hud-button" onClick={toggleFullscreen}>
+    {isFullscreen||fallbackFullscreen?<Minimize2 size={19}/>:<Maximize2 size={19}/>}
+   </button>
+   <button type="button" className="bml-cinema-close" aria-label="Close museum preview" onClick={leaveCinema}>
+    <X size={19}/><span>Close</span></button>
+  </div>:null}
+  {cinema&&infoOpen?<aside className="bml-cinema-info" data-testid="museum-cinema-info">
+   <header><strong>{clean(gallery?.title,140)}</strong>
+    <button type="button" aria-label="Close information" onClick={()=>setInfoOpen(false)}><X size={16}/></button></header>
+   <p>{clean(gallery?.summary,1000)||'Explore the museum and select artwork to learn more.'}</p>
+   <p><b>Controls</b> · WASD / arrow keys to move, drag to look, tap artwork to inspect.</p>
+  </aside>:null}
   {rooms.length?<>
-   <nav className="bml-room-tabs" aria-label={tr('Các phòng trưng bày','Exhibition rooms')}>
+   <nav className={'bml-room-tabs '+(cinema?'bml-cinema-room-tabs':'')} aria-label={tr('Các phòng trưng bày','Exhibition rooms')} hidden={cinema&&rooms.length===1}>
     {rooms.map((r,i)=><button type="button" key={r.id||i} className={i===activeRoom?'is-active':''} onClick={()=>changeRoom(i)}>
       {String(i+1).padStart(2,'0')} · {r.title}</button>)}
    </nav>
-   {threeD?<div className="bml-3d-stage">
-    {compact?<div className="bml-scene-mode-float" aria-label={tr('Chế độ xem','View mode')}>
+   {threeD?<div className={'bml-3d-stage '+(cinema?'bml-cinema-stage':'')}>
+    {compact&&!cinema?<div className="bml-scene-mode-float" aria-label={tr('Chế độ xem','View mode')}>
      <button type="button" aria-pressed={!threeD} onClick={()=>setThreeD(false)}><LayoutGrid size={16}/> 2D</button>
      <button type="button" aria-pressed={threeD} className="is-active" onClick={()=>setThreeD(true)}><Box size={16}/> 3D</button>
     </div>:null}
     <Suspense fallback={<div className="bml-empty"><Box size={32}/>{tr('Đang dựng bảo tàng 3D…','Preparing 3D museum…')}</div>}>
      <GalleryCanvas key={room.id} template={room.template_key} exhibits={exhibits} selectedId={selectedId||''}
-      onSelect={openExhibit} quality="auto" language={language} schoolEdition/>
+      onSelect={openExhibit} quality="auto" language={language} schoolEdition cinemaEdition={cinema}/>
     </Suspense>
-    <div className="bml-3d-caption"><Info size={15}/>{tr('Dùng WASD hoặc nút trên điện thoại để di chuyển. Chạm vào hiện vật để xem nội dung.','Use WASD or touch controls. Select any exhibit to read it.')}</div>
+    {!cinema?<div className="bml-3d-caption"><Info size={15}/>{tr('Dùng WASD hoặc nút trên điện thoại để di chuyển. Chạm vào hiện vật để xem nội dung.','Use WASD or touch controls. Select any exhibit to read it.')}</div>:null}
    </div>:<div className="bml-museum-room bml-paper-museum-room" data-testid="museum-paper-2d-room">
-    {compact?<div className="bml-scene-mode-float" aria-label={tr('Chế độ xem','View mode')}>
+    {compact&&!cinema?<div className="bml-scene-mode-float" aria-label={tr('Chế độ xem','View mode')}>
      <button type="button" className="is-active" aria-pressed={!threeD} onClick={()=>setThreeD(false)}><LayoutGrid size={16}/> 2D</button>
      <button type="button" aria-pressed={threeD} onClick={()=>setThreeD(true)}><Box size={16}/> 3D</button>
     </div>:null}
-    <div className="bml-room-mast">
+    {!cinema?<div className="bml-room-mast">
      <div className="bml-floor-label"><Leaf size={16} aria-hidden="true"/>{tr('BẢO TÀNG SỐ','DIGITAL MUSEUM')}</div>
      <h3>{clean(room.title,140)}</h3>
      <p>{tr('Đọc nội dung triển lãm bằng tiếng Anh. Chuyển sang 3D để tham quan không gian.','Read the English exhibit labels or explore the immersive 3D view.')}</p>
-    </div>
+    </div>:null}
     <div className="bml-art-grid bml-paper-art-grid" data-testid="museum-2d-exhibits">{exhibits.map((e,i)=>
      <div className="bml-paper-art-tile" key={e.id||i}>
       <button type="button" className={'bml-art-card bml-paper-art-card bml-paper-art-card--'+i%3}
@@ -158,11 +224,18 @@ export default function MuseumScene({gallery,onBack,language='vi',embedded=false
      </div>)}</div>
     {!exhibits.length?<div className="bml-empty"><FileText size={28}/>{tr('Chưa có hiện vật trong phòng này.','No exhibits in this room.')}</div>:null}
    </div>}
-   <footer className="bml-scene-footer">
+   {!cinema?<footer className="bml-scene-footer">
     <span><MapPin size={16}/>{activeRoom+1}/{rooms.length} {tr('phòng','rooms')} · {exhibits.length} {tr('hiện vật','exhibits')}</span>
     <div><button type="button" disabled={activeRoom===0} onClick={()=>changeRoom(activeRoom-1)}><ChevronLeft size={18}/> {tr('Trước','Previous')}</button>
      <button type="button" disabled={activeRoom===rooms.length-1} onClick={()=>changeRoom(activeRoom+1)}>{tr('Phòng tiếp','Next room')} <ChevronRight size={18}/></button></div>
-   </footer>
+   </footer>:null}
+   {cinema?<div className="bml-cinema-bottom-hud" data-testid="museum-cinema-bottom-hud">
+    <span className="bml-cinema-room-counter">{activeRoom+1}/{rooms.length} rooms · {exhibits.length} exhibits</span>
+    {rooms.length>1?<div className="bml-cinema-room-controls">
+     <button type="button" disabled={activeRoom===0} onClick={()=>changeRoom(activeRoom-1)} aria-label="Previous room"><ChevronLeft size={18}/></button>
+     <button type="button" disabled={activeRoom===rooms.length-1} onClick={()=>changeRoom(activeRoom+1)} aria-label="Next room"><ChevronRight size={18}/></button>
+    </div>:null}
+   </div>:null}
   </>:<div className="bml-empty">{tr('Triển lãm chưa có phòng.','No rooms available.')}</div>}
   {fullPoster?<div className="bml-modal-overlay bml-paper-poster-overlay" role="presentation"
    onMouseDown={event=>{if(event.target===event.currentTarget)closeFullPoster();}}>

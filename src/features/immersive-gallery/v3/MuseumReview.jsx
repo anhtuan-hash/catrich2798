@@ -107,7 +107,10 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,query='',la
      <div className="bml-review-preview">
       <div className="bml-review-preview-head"><h3>{tr(language,'Sản phẩm học sinh','Student exhibition')}</h3>
        <button type="button" className="bml-outline" onClick={()=>setPreview(v=>!v)}><Eye size={17}/>{preview?tr(language,'Đọc nội dung','Read content'):tr(language,'Xem bảo tàng 2D/3D','Preview museum')}</button></div>
-      {preview?<MuseumScene gallery={reviewMuseum(selected,reviewArtAssets)} embedded language={language}/>:
+      {preview?<div className="bml-review-cinema-overlay" role="dialog" aria-modal="true" aria-label="Review student museum in Cinema Preview">
+        <MuseumScene gallery={reviewMuseum(selected,reviewArtAssets)} embedded language={language}
+         cinema initial3D onClose={()=>setPreview(false)}/>
+       </div>:
        <div className="bml-submission-content">
         {(selected.snapshot?.rooms||[]).map((room,i)=><article key={i}>
          <h4>{String(i+1).padStart(2,'0')} · {room.title}</h4>
