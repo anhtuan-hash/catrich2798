@@ -3,8 +3,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const viewer=fs.readFileSync('src/features/immersive-gallery/v3/Exhibit360Viewer.jsx','utf8');
 const museum=fs.readFileSync('src/features/immersive-gallery/v3/MuseumScene.jsx','utf8');
-test('clicking a 3D or 2D exhibit opens the same live 360 inspector',()=>{
- assert.match(museum,/onSelect=\{openExhibit\}/);
+test('Cinema 3D uses a single in-scene mesh while 2D/legacy retain the old inspector',()=>{
+ assert.match(museum,/onSelect=\{open3DExhibit\}/);
+ assert.match(museum,/cinema&&threeD/);
+ assert.match(museum,/focusPhase=\{cinema\?focus.phase:'idle'\}/);
+ assert.match(museum,/selected&&\!\(cinema&&threeD\)/);
  assert.match(museum,/onClick=\{\(\)=>openExhibit\(e.id\)\}/);
  assert.match(museum,/Exhibit360Viewer key=\{selected.id\}/);
  assert.match(museum,/data-testid="museum-artwork-inspector"/);
