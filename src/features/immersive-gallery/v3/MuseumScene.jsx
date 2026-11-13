@@ -48,6 +48,7 @@ export function reviewMuseum(review,assets=[]){
 }
 export default function MuseumScene({gallery,onBack,onClose,language='vi',embedded=false,compact=false,initial3D=false,onExhibitSelect,cinema=false}){
  const [activeRoom,setActiveRoom]=useState(0),[threeD,setThreeD]=useState(cinema||initial3D),[selectedId,setSelectedId]=useState(null);
+ const [fullPosterId,setFullPosterId]=useState(null);
  const cinemaRef=useRef(null),[infoOpen,setInfoOpen]=useState(false);
  const [isFullscreen,setIsFullscreen]=useState(false),[fallbackFullscreen,setFallbackFullscreen]=useState(false);
  const leaveCinema=()=>{
@@ -79,7 +80,6 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
   document.addEventListener('keydown',onEscape);
   return()=>{document.removeEventListener('fullscreenchange',onFullscreen);document.removeEventListener('keydown',onEscape);};
  },[cinema,onClose,selectedId,fullPosterId,infoOpen]);
- const [fullPosterId,setFullPosterId]=useState(null);
  const posterCloseRef=useRef(null),posterOpenerRef=useRef(null);
  const dialogRef=useRef(null),closeRef=useRef(null),openerRef=useRef(null);
  const rooms=gallery?.rooms||[];
