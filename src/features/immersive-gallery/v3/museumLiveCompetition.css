@@ -1,6 +1,6 @@
 /* BRIAN Museum Lab Competition Live: motion, sound, curated research.
    Scoped to Teacher Live and Group Creator; global Brian navigation untouched. */
-@keyframes bml-stage-enter{from{opacity:0;transform:translateY(20px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes bml-stage-enter{from{opacity:0;filter:blur(3px)}to{opacity:1;filter:blur(0)}}
 @keyframes bml-paper-breathe{0%,100%{transform:translate(0,0)}50%{transform:translate(-6px,-5px)}}
 @keyframes bml-paper-glow{0%,100%{filter:drop-shadow(0 4px 7px #001b4b33)}50%{filter:drop-shadow(0 7px 17px #b9f2dd77)}}
 @keyframes bml-answer-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
