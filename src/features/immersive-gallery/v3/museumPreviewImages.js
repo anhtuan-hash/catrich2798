@@ -1,10 +1,15 @@
+import {documentFromStudio} from './museumData.js';
 // Builds a private student preview using only actual uploaded group assets.
 // Signed media URLs come from /api/gallery-guest/artwork and are never persisted
 // to the draft, copied to public state, or replaced by stock/generated images.
 const SLOT_KEYS=['issue','evidence','solution'];
 export function buildStudentMuseumPreview(studio,assets=[]){
  const byId=new Map((assets||[]).filter(a=>a?.id&&a?.image_url).map(a=>[a.id,a]));
- const room=studio?.rooms?.[0]||{};
+ // normalizeStudio() intentionally keeps learning fields, not editable rooms.
+ // Reconstruct the authored 3 exhibits from the same canonical draft formatter
+ // used by saving/submission. Support raw room objects only for legacy previews.
+ const canonical=documentFromStudio(studio);
+ const room=studio?.rooms?.[0]?.exhibits?.length?studio.rooms[0]:canonical.rooms[0];
  const artworks=studio?.artworks||{};
  const metadata=studio?.artMeta||{};
  return {
