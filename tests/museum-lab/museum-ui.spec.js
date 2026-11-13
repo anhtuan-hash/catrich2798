@@ -1895,6 +1895,10 @@ test('V5 Cinema physically detaches the SAME 3D artwork, displays only real evid
 
 
 test('V5 Cinema mobile and reduced motion keeps physical plaque readable and ESC restores room',async({page},testInfo)=>{
+ await page.addInitScript(()=>{
+  window.__museumTextureReady=0;
+  document.addEventListener('bml:museum-texture-ready',()=>{window.__museumTextureReady++;});
+ });
  await page.setViewportSize({width:390,height:844});
  await page.emulateMedia({reducedMotion:'reduce'});
  const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAYCAIAAAB8wupbAAAAR0lEQVR4nGPkjXZlIAUwkaSaLhoY/3++QJIGFgYGhitRtWiiOsuaGRgY1FBSNJCcvBmvL7YnScMg9DQAQV4OGRjRfFEAAAAASUVORK5CYII=';
@@ -1923,6 +1927,7 @@ test('V5 Cinema mobile and reduced motion keeps physical plaque readable and ESC
  const viewer=page.getByTestId('museum-visitor');
  await expect(viewer).toHaveAttribute('data-museum-mode','cinema');
  await expect(viewer.locator('canvas')).toHaveCount(1);
+ await expect.poll(()=>page.evaluate(()=>window.__museumTextureReady||0),{timeout:20000}).toBeGreaterThanOrEqual(3);
  await viewer.getByRole('button',{name:'Inspect The Evidence'}).click();
  const stage=viewer.getByTestId('museum-focus-stage');
  await expect(stage).toHaveAttribute('data-focus-phase','focused',{timeout:18000});
