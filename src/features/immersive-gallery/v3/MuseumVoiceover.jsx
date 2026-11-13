@@ -37,14 +37,14 @@ export default function MuseumVoiceover({stage,language='vi',compact=false}){
    <button type="button" onClick={toggle} disabled={!supported} aria-label={playing?(paused?'Continue voiceover':'Pause voiceover'):'Play voiceover'}>
     {playing?(paused?<Play size={17}/>:<Pause size={17}/>):<Volume2 size={17}/>}
     {playing?(paused?'Tiếp tục':'Tạm dừng'):'Phát lời dẫn'}</button>
-   <button type="button" onClick={stop} disabled={!playing} aria-label="Stop voiceover"><VolumeX size={17}/>Dừng</button>
+   <button type="button" onClick={stop} disabled={!playing} aria-label="Stop voiceover"><VolumeX size={17}/>{language==='en'?'Stop':'Dừng'}</button>
    <label>Speed <select value={rate} onChange={e=>setRate(Number(e.target.value))} aria-label="Voiceover speed">
-    <option value={.8}>0.8×</option><option value={.9}>0.9×</option><option value={1}>1×</option><option value={1.1}>1.1×</option>
+    <option value={.8}>{'0.8×'}</option><option value={.9}>{'0.9×'}</option><option value={1}>{'1×'}</option><option value={1.1}>{'1.1×'}</option>
    </select></label>
   </div>
   <details><summary>{language==='en'?'Read the transcript':'Xem kịch bản lời dẫn'}</summary>
    <p lang="en">{text}</p></details>
-  {!supported?<small>Voiceover chỉ hoạt động trên trình duyệt có hỗ trợ Speech Synthesis.</small>:null}
+  {!supported?<small>{language==='en'?'Voiceover requires a browser with Speech Synthesis support.':'Voiceover chỉ hoạt động trên trình duyệt có hỗ trợ Speech Synthesis.'}</small>:null}
   {error?<p role="alert" className="bml-live-media-error">{error}</p>:null}
  </section>;
 }
