@@ -379,18 +379,25 @@ function CameraResizeSync(){
  },[camera,gl,invalidate]);
  return null;
 }
-function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=false,cinemaEdition=false,lite=false}) {
+function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=false,cinemaEdition=false,lite=false,
+ focusPhase='idle',focusId=null,focusBoard=null,onFocusBack,onFocusPhaseChange,onWorldPose}) {
  return <><color attach="background" args={[schoolEdition?'#EBF5F0':'#f2f0e9']}/>
   <ambientLight intensity={schoolEdition?1.25:1.1}/>
   <hemisphereLight args={['#FFFFFF',schoolEdition?'#9CAD9D':'#B7AFA3',1.1]}/>
   <directionalLight position={[1,7,3]} color={schoolEdition?'#FFF7E4':'#FFFFFF'} intensity={1.15}/>
   <Walls template={template} onTeleport={onTeleport} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} lite={lite}/>
   {exhibits.slice(0,30).map((e,i)=><PaperArtwork key={e.id} exhibit={e} index={i} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition}
-   onSelect={onSelect} isSelected={selectedId===e.id}/>)}
+   focusPhase={focusPhase} isFocused={!!focusId&&focusId===e.id} selectionLocked={focusPhase!=='idle'}
+   onTransitionComplete={onFocusPhaseChange} onWorldPose={onWorldPose}
+   onSelect={onSelect} isSelected={selectedId===e.id||focusId===e.id}/>)}
+  {cinemaEdition&&focusId&&focusBoard&&focusPhase!=='idle'?
+   <MuseumExhibitFocusRig phase={focusPhase} board={focusBoard} onBack={onFocusBack} lite={lite}/>:null}
  </>;
 }
-export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelect,selectedId='',quality='auto',language='vi',schoolEdition=false,cinemaEdition=false}) {
+export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelect,selectedId='',quality='auto',language='en',schoolEdition=false,cinemaEdition=false,
+ focusPhase='idle',focusId=null,focusBoard=null,onFocusBack,onFocusPhaseChange}) {
  const held=useRef(new Set());
+ const shellRef=useRef(null);
  const narrow=typeof window!=='undefined'&&window.matchMedia?.('(max-width:700px)').matches;
  const startingZ=cinemaEdition?(narrow?2.2:1.3):schoolEdition?(narrow?2.5:-1.6):4.7;
  const [teleport,setTeleport]=useState(null),[viewPreset,setViewPreset]=useState(null),[pos,setPos]=useState([0,startingZ]),[supported,setSupported]=useState(null);
@@ -401,7 +408,19 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
    catch {ok=false;}
    setSupported(ok);
  },[]);
- useEffect(()=>{held.current.clear();},[selectedId,template]);
+ useEffect(()=>{held.current.clear();},[selectedId,focusPhase,template]);
+ useEffect(()=>()=>{if(typeof window!=='undefined'&&window.__brianMuseumV5QA)delete window.__brianMuseumV5QA;},[]);
+ const onWorldPose=pose=>{
+  const node=shellRef.current?.querySelector('[data-testid="museum-focus-artwork"]');
+  if(!node)return;
+  node.dataset.worldPosition=pose.position.map(n=>n.toFixed(5)).join(',');
+  node.dataset.wallPosition=pose.wall.map(n=>n.toFixed(5)).join(',');
+  node.dataset.meshUuid=pose.uuid;
+ };
+ const onCameraPose=pose=>{
+  const node=shellRef.current?.querySelector('[data-testid="museum-focus-artwork"]');
+  if(node)node.dataset.cameraPosition=pose.position.map(n=>n.toFixed(5)).join(',');
+ };
  const onPosition=(x,z)=>{setPos([+x.toFixed(1),+z.toFixed(1)]);};
  const hold=(key,down)=>{if(down)held.current.add(key);else held.current.delete(key);window.dispatchEvent(new Event('big-gallery-animate'));};
  const onTeleport=point=>{
@@ -409,26 +428,58 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
    setViewPreset({type:point[1]<-3?'artwork':'room',x:point[0],id:Date.now()+Math.random()});
   }else setTeleport([...point]);
  };
- return <div className={'big-webgl-shell '+(schoolEdition?'big-pek-museum ':'')+(cinemaEdition?'big-pek-v4':'')} data-testid={schoolEdition?'pek-discovery-hall':undefined}
+ return <div ref={shellRef} className={'big-webgl-shell '+(schoolEdition?'big-pek-museum ':'')+(cinemaEdition?'big-pek-v4':'')} data-testid={schoolEdition?'pek-discovery-hall':undefined}
   aria-label={schoolEdition?(language==='en'?'Pétrus Ký-inspired Discovery Museum 3D':'Bảo tàng 3D lấy cảm hứng từ Trường Pétrus Ký'):undefined}>
+  {cinemaEdition?<div data-testid="museum-focus-state" data-phase={focusPhase}
+    data-focused={focusPhase!=='idle'} className="bml-v5-focus-announcement" aria-live="polite">
+    {focusPhase==='focused'&&focusBoard?focusBoard.title+' is now displayed in the museum.':''}
+  </div>:null}
+  {cinemaEdition&&focusId?<div data-testid="museum-focus-stage" data-real-scene="MuseumV5FocusRig"
+    className="bml-v5-focus-announcement" aria-hidden="true"/>
+   :null}
+  {cinemaEdition?<div data-testid="museum-focus-artwork" className="bml-v5-focus-announcement" aria-hidden="true"/>:null}
   {supported===false?<div role="alert" className="big-canvas-error">{language==='en'?'WebGL unavailable. Use the 2D exhibit list.':'Thiết bị không hỗ trợ WebGL. Hãy sử dụng danh sách hiện vật 2D.'}</div>:supported===null?<div className="big-canvas-loading">Preparing 3D exhibition…</div>:<Suspense fallback={<div className="big-canvas-loading">Loading original 3D art…</div>}>
    <Canvas camera={{position:[0,cinemaEdition?1.92:1.77,startingZ],fov:cinemaEdition?55:schoolEdition?59:61,near:0.08,far:55}} dpr={mode==='lite'?1:mode==='high'?[1,1.75]:[1,1.35]}
-    frameloop="demand" gl={{antialias:mode!=='lite',powerPreference:'low-power',alpha:false}} onCreated={({gl})=>{gl.setClearColor('#f2f0e9');}}>
+    frameloop="demand" gl={{antialias:mode!=='lite',powerPreference:'low-power',alpha:false}} onCreated={({gl,scene,camera})=>{
+     gl.setClearColor('#f2f0e9');
+     // Read-only geometric bridge in QA harness only. Never expose URLs,
+     // group identity, artwork text or auth tokens.
+     if(location.pathname.startsWith('/tests/museum-lab/')){
+      window.__brianMuseumV5QA=()=>{
+       const art=[];scene.traverse(o=>{
+        if(!o.userData?.museumOriginalArtwork)return;
+        const p=new THREE.Vector3(),q=new THREE.Quaternion(),s=new THREE.Vector3();
+        o.getWorldPosition(p);o.getWorldQuaternion(q);o.getWorldScale(s);
+        art.push({index:o.userData.exhibitIndex,uuid:o.uuid,position:p.toArray(),
+         quaternion:q.toArray(),scale:s.toArray()});
+       });
+       const focus=scene.getObjectByName('MuseumV5FocusRig');
+       return {originalArtworkCount:art.length,art,
+        focusRigCount:focus?1:0,
+        camera:camera.position.toArray(),cameraQuaternion:camera.quaternion.toArray(),fov:camera.fov,
+        canvasCount:document.querySelectorAll('.bml-museum-cinema canvas').length};
+      };
+     }
+    }}>
     <CameraResizeSync/>
     <Room template={template} exhibits={exhibits} onSelect={onSelect} selectedId={selectedId} onTeleport={onTeleport}
-     schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} lite={mode==='lite'}/>
-    <CameraWalker held={held} paused={!!selectedId} teleport={teleport} onPosition={onPosition} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} viewPreset={viewPreset}/>
+     schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} lite={mode==='lite'}
+     focusPhase={focusPhase} focusId={focusId} focusBoard={focusBoard}
+     onFocusBack={onFocusBack} onFocusPhaseChange={onFocusPhaseChange} onWorldPose={onWorldPose}/>
+    <CameraWalker held={held} paused={!!selectedId||focusPhase!=='idle'} teleport={teleport}
+     onPosition={onPosition} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} viewPreset={viewPreset}/>
+    {cinemaEdition?<MuseumFocusCameraDirector phase={focusPhase} cinemaEdition onCameraPose={onCameraPose}/>:null}
    </Canvas>
   </Suspense>}
   {schoolEdition?<div className="big-pek-tools" role="group" aria-label={language==='en'?'Museum viewpoints':'Góc tham quan bảo tàng'}>
    <div className="big-pek-edition-mark"><span className="big-pek-dot"/>
     <span className="big-pek-edition-long">{language==='en'?'PÉTRUS KÝ · DISCOVERY HALL':'PÉTRUS KÝ · BẢO TÀNG KHÁM PHÁ'}</span>
     <span className="big-pek-edition-short">{'PéK'}</span></div>
-   <button type="button" onClick={()=>onTeleport([0,-4.45])}>{language==='en'?'See the artwork':'Đến gần tranh'}</button>
-   <button type="button" onClick={()=>onTeleport([0,1.55])}>{language==='en'?'Full room view':'Toàn cảnh'}</button>
+   <button type="button" disabled={focusPhase!=='idle'} onClick={()=>onTeleport([0,-4.45])}>{language==='en'?'See the artwork':'Đến gần tranh'}</button>
+   <button type="button" disabled={focusPhase!=='idle'} onClick={()=>onTeleport([0,1.55])}>{language==='en'?'Full room view':'Toàn cảnh'}</button>
   </div>:<div className="big-scene-hud" aria-hidden="true">{pos[0]}, {pos[1]} · R3F</div>}
   <div className="big-touch-pad" aria-label="Mobile navigation">
-   {[['↑','w'],['←','a'],['↓','s'],['→','d']].map(([text,key])=><button key={key} type="button" onPointerDown={e=>{e.preventDefault();hold(key,true);}}
+   {[['↑','w'],['←','a'],['↓','s'],['→','d']].map(([text,key])=><button key={key} type="button" disabled={focusPhase!=='idle'} onPointerDown={e=>{if(focusPhase!=='idle')return;e.preventDefault();hold(key,true);}}
      onPointerUp={()=>hold(key,false)} onPointerCancel={()=>hold(key,false)} onPointerLeave={()=>hold(key,false)}>{text}</button>)}
   </div>
  </div>;
