@@ -440,7 +440,11 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
   {cinemaEdition?<div data-testid="museum-focus-artwork" className="bml-v5-focus-announcement" aria-hidden="true"/>:null}
   {supported===false?<div role="alert" className="big-canvas-error">{language==='en'?'WebGL unavailable. Use the 2D exhibit list.':'Thiết bị không hỗ trợ WebGL. Hãy sử dụng danh sách hiện vật 2D.'}</div>:supported===null?<div className="big-canvas-loading">Preparing 3D exhibition…</div>:<Suspense fallback={<div className="big-canvas-loading">Loading original 3D art…</div>}>
    <Canvas camera={{position:[0,cinemaEdition?1.92:1.77,startingZ],fov:cinemaEdition?55:schoolEdition?59:61,near:0.08,far:55}} dpr={mode==='lite'?1:mode==='high'?[1,1.75]:[1,1.35]}
-    frameloop="demand" gl={{antialias:mode!=='lite',powerPreference:'low-power',alpha:false}} onCreated={({gl,scene,camera})=>{
+    // Run continuous frames only for the <1s physical transition; all settled
+    // states remain demand-driven. Headless/school GPUs may throttle invalidate()
+    // requested inside useFrame, otherwise indefinitely stalling extraction.
+    frameloop={cinemaEdition&&['preparing','extracting','presenting','returning'].includes(focusPhase)?'always':'demand'}
+    gl={{antialias:mode!=='lite',powerPreference:'low-power',alpha:false}} onCreated={({gl,scene,camera})=>{
      gl.setClearColor('#f2f0e9');
      // Read-only geometric bridge in QA harness only. Never expose URLs,
      // group identity, artwork text or auth tokens.
