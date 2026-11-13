@@ -6,6 +6,12 @@ import './museumCompetitionRibbon.css';
 // navigation controls. Logos are optimized from the two files provided by
 // the teacher; no generative redraws or personal identifiers are introduced.
 const contestName='HỘI THI THIẾT KẾ CHỦ ĐỀ DẠY HỌC STEM/STEAM, CHỦ ĐỀ DẠY HỌC SỐ';
+const awardLabel='BÀI DỰ THI';
+const yearLabel='CẤP THÀNH PHỐ · NĂM HỌC 2026–2027';
+const fieldLabel='Lĩnh vực: Chủ đề dạy học số – Môn Tiếng Anh THPT';
+const teacherLabel='GV thực hiện:';
+const teacherName='Thạc sĩ Nguyễn Anh Tuấn';
+const schoolName='Trường Trung - Tiểu học Pétrus Ký';
 const departmentLogo='/museum/branding/hcmc-department-education.png';
 const schoolLogo='/museum/branding/petrus-ky-school.png';
 
@@ -18,12 +24,12 @@ export default function MuseumCompetitionRibbon(){
    <img src={departmentLogo} width="172" height="173" alt="Logo Sở Giáo dục và Đào tạo Thành phố Hồ Chí Minh" loading="eager" decoding="async"/>
   </figure>
   <div className="bml-competition-copy">
-   <div className="bml-competition-award"><Star size={15} fill="currentColor" aria-hidden="true"/> BÀI DỰ THI <Star size={15} fill="currentColor" aria-hidden="true"/></div>
+   <div className="bml-competition-award"><Star size={15} fill="currentColor" aria-hidden="true"/> {awardLabel} <Star size={15} fill="currentColor" aria-hidden="true"/></div>
    <h2>{contestName}</h2>
-   <div className="bml-competition-year">CẤP THÀNH PHỐ · NĂM HỌC 2026–2027</div>
-   <p className="bml-competition-field">Lĩnh vực: Chủ đề dạy học số – Môn Tiếng Anh THPT</p>
-   <p className="bml-competition-author">GV thực hiện: <strong>Thạc sĩ Nguyễn Anh Tuấn</strong></p>
-   <p className="bml-competition-school">Trường Trung - Tiểu học Pétrus Ký</p>
+   <div className="bml-competition-year">{yearLabel}</div>
+   <p className="bml-competition-field">{fieldLabel}</p>
+   <p className="bml-competition-author">{teacherLabel} <strong>{teacherName}</strong></p>
+   <p className="bml-competition-school">{schoolName}</p>
    <BookOpen className="bml-competition-accent bml-competition-accent--book" size={34} strokeWidth={1.6} aria-hidden="true"/>
    <Globe2 className="bml-competition-accent bml-competition-accent--globe" size={34} strokeWidth={1.6} aria-hidden="true"/>
    <Leaf className="bml-competition-accent bml-competition-accent--leaf" size={28} strokeWidth={1.6} aria-hidden="true"/>
