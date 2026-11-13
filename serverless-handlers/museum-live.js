@@ -1,13 +1,13 @@
 // Teacher-owned live classroom. Accountless student groups reuse Creator Pass cookies.
 // Strict class scope, explicit stage transitions, no identity inference, real N group devices.
 import {db,fail,send,handleError,guardOrigin,guardBody,guestContext,staffContext,assertStaff,query,uid,clean,requireMethod} from './_galleryCreator.js';
-import {LIVE_STAGES,liveStage,validResponse,summarizeResponses} from '../src/features/immersive-gallery/v3/liveLesson.js';
+import {LIVE_STAGES,liveStage,sessionStage,VIDEO_QUESTION_VERSION,validResponse,summarizeResponses} from '../src/features/immersive-gallery/v3/liveLesson.js';
 import {surveyFor,checkpointGallery,feedbackFor} from './_museumEvidence.js';
 import {validatePeer} from '../src/features/immersive-gallery/v3/learningEvidence.js';
 import {MICRO_CHALLENGES,validMicroAnswer,videoTaskFor,curriculumMediaBoard} from '../src/features/immersive-gallery/v3/museumLiveExtensions.js';
 import {searchVideos,mediaText,mediaId,mediaBoardUpdate,mediaTask,searchThrottle,safeRefinement} from './_museumLiveMedia.js';
 import {handleLivePeer,peerRoomsEvidence} from './_museumLivePeer.js';
-const canRespond=stage=>['vote','quiz','exit','peer'].includes(stage?.kind);
+const canRespond=stage=>['vote','quiz','exit','peer'].includes(stage?.kind)||(stage?.kind==='group'&&Array.isArray(stage.videoQuestions));
 async function scopedStaff(ctx,assignmentId){
  if(!uid(assignmentId))throw fail(400,'Lớp học không hợp lệ.');
  const a=await query(ctx.admin.from('gcp_assignments').select('*').eq('id',assignmentId).single());
@@ -25,6 +25,7 @@ function publicStage(stage,revealed=false,staff=false){
   id:stage.id,period:stage.period,minutes:stage.minutes,title:stage.title,vi:stage.vi,
   kind:stage.kind,question:stage.question,options:stage.options,
   questions:stage.questions?.map(q=>({...q,answer:staff||revealed?q.answer:null,explanation:staff||revealed?q.explanation:null})),
+  videoQuestions:stage.videoQuestions?.map(q=>({...q,answer:staff||revealed?q.answer:null,explanation:staff||revealed?q.explanation:null})),
   sentence:stage.sentence,
   ...(staff?{teaching:stage.teaching,expected:stage.expected}:revealed?{expected:stage.expected}:{})
  };
@@ -34,8 +35,8 @@ function stateOf(s,{staff=false}={}){
  return {id:s.id,assignmentId:s.assignment_id,status:s.status,stageIndex:s.stage_index,
   stageOpen:s.stage_open,revealed:s.revealed,version:s.version,
   stageStartedAt:s.stage_started_at,elapsedSeconds:s.elapsed_seconds,updatedAt:s.updated_at,
-  evidenceVersion:s.evidence_version,media:mediaTask(s),
-  stage:publicStage(s.evidence_version===0&&s.stage_index===2?legacySurvey:liveStage(s.stage_index),s.revealed,staff)};
+  evidenceVersion:s.evidence_version,questionVersion:Number(s.media_board?.lessonQuestionVersion||1),media:mediaTask(s),
+  stage:publicStage(s.evidence_version===0&&s.stage_index===2?legacySurvey:sessionStage(s,s.stage_index),s.revealed,staff)};
 }
 async function groupGallery(admin,groupId){
  const group=await query(admin.from('gcp_groups').select('id,label,assignment_id').eq('id',groupId).single());
@@ -72,7 +73,7 @@ export default async function museumLive(req,res){
      .eq('stage_index',session.stage_index).limit(50)):[];
     return send(res,200,{session:stateOf(session,{staff:true}),stageCount:LIVE_STAGES.length,
      microResponses:micro.length,microResults:micro,
-     result:(()=>{const r=summarizeResponses(session.stage_index,responses);if(session.evidence_version===0&&session.stage_index===2)r.options=r.options.map((o,i)=>({...o,label:legacySurvey.options[i]}));return r;})(),
+     result:(()=>{const r=summarizeResponses(session.stage_index,responses,sessionStage(session,session.stage_index));if(session.evidence_version===0&&session.stage_index===2)r.options=r.options.map((o,i)=>({...o,label:legacySurvey.options[i]}));return r;})(),
      groups:grp,needHelp:new Set(helps.map(h=>h.group_id)).size,helpGroups:[...new Set(helps.map(h=>h.group_id))],survey:await surveyFor(admin,session.id),feedback:await feedbackFor(admin,session.id),responses:await query(admin.from('museum_live_responses').select('group_id,value,created_at').eq('session_id',session.id).eq('stage_index',session.stage_index))});
    }
    if(op==='video-search'){
@@ -154,7 +155,7 @@ export default async function museumLive(req,res){
      const created=await query(admin.from('museum_live_sessions').insert({
       assignment_id:assignment.id,owner_id:assignment.created_by,
       school_scope:assignment.school_scope,status:'active',stage_index:0,stage_open:true,
-      started_at:now,stage_started_at:now,media_board:curriculumMediaBoard()
+      started_at:now,stage_started_at:now,media_board:{...curriculumMediaBoard(),lessonQuestionVersion:VIDEO_QUESTION_VERSION}
      }).select('*').single());
      await query(admin.from('museum_learning_events').insert({
       session_id:created.id,actor_role:'teacher',action:'lesson_started',stage_index:0
@@ -261,7 +262,7 @@ export default async function museumLive(req,res){
    return handleLivePeer({op,req,res,admin,ctx,session});
   if(!session||session.status!=='active'||!session.stage_open)
    throw fail(423,'Chờ giáo viên mở hoạt động.');
-  const stage=liveStage(session.stage_index);
+  const stage=sessionStage(session,session.stage_index);
   if(op==='micro-submit'){
    requireMethod(req,'POST');const body=guardBody(req,1300);
    if(!validMicroAnswer(session.stage_index,body))throw fail(400,'Hãy chọn một câu và giải thích bằng tiếng Anh (12–450 ký tự).');
@@ -286,7 +287,7 @@ export default async function museumLive(req,res){
     if(inserted.error&&inserted.error.code!=='23505')throw fail(503,'Không lưu được phản hồi.');
     return send(res,200,{ok:true,alreadySubmitted:inserted.error?.code==='23505',toGroup:pair.to_group,checkpointId:pair.checkpoint_id});
    }
-   if(!canRespond(stage)||!validResponse(session.stage_index,body.value))
+   if(!canRespond(stage)||!validResponse(session.stage_index,body.value,stage))
     throw fail(400,'Câu trả lời không phù hợp hoạt động.');
    const existing=await query(admin.from('museum_live_responses').select('value')
     .eq('session_id',session.id).eq('stage_index',session.stage_index)

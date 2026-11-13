@@ -175,3 +175,27 @@
  .bml .bml-student-pane{animation:none}
  .bml .bml-student-view-tabs button{transition:none;transform:none}
 }
+
+/* NASA-informed watch + video-check controls: student Current Activity, both layouts. */
+.bml .bml-student-video-cta{
+ display:inline-flex;align-items:center;justify-content:center;gap:8px;
+ border:1px solid #b1d9d6;border-radius:13px;background:linear-gradient(120deg,#e9f7f1,#e4f0ff);
+ padding:10px 14px;color:#153c65;font:inherit;font-weight:780;
+ font-size:clamp(12px,1.15vw,15px);max-width:100%;text-align:left;cursor:pointer;
+ box-shadow:0 3px 0 #1a477b18;overflow-wrap:anywhere;
+}
+.bml .bml-student-video-cta:hover{background:#d8eef0}
+.bml .bml-student-video-cta:focus-visible{outline:3px solid #1d6f8c;outline-offset:2px}
+.bml .bml-video-question-intro{
+ margin:0;padding:9px 12px;border-left:4px solid #31847b;
+ border-radius:9px;background:#e9f8f2;color:#225c54;font-size:13px;
+ font-weight:750;line-height:1.4
+}
+.bml .bml-quiz-revealed{color:#226345;font-weight:650;line-height:1.5}
+.bml .bml-student-tool-content:has([data-testid="museum-youtube-player"]) .bml-video-player{
+ width:100%;max-width:100%
+}
+.bml .bml-student-detail-window .bml-video-embed{aspect-ratio:16/9;max-width:100%}
+.bml .bml-student-detail-window .bml-video-embed iframe{display:block;width:100%;height:100%;min-height:200px;border:0}
+
+.bml .bml-live-response-form > div[hidden]{display:none!important}

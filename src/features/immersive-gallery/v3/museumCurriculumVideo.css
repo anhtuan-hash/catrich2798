@@ -97,3 +97,11 @@
 @media(prefers-reduced-motion:reduce){
  .bml .bml-curriculum-video *{animation:none!important;transition:none!important}
 }
+
+/* Legacy live quizzes preserve their recorded answers until a new teaching session starts. */
+.bml .bml-curriculum-legacy-notice{
+ position:relative;z-index:2;margin:0 5px;padding:8px 11px;
+ border:1px solid #ebc585;border-radius:9px;background:#fff4d4;color:#644713;
+ font-size:clamp(11px,.9vw,13px);font-weight:700;line-height:1.35;
+}
+.bml .bml-live-slide--curriculum[data-legacy="true"]{gap:8px}

@@ -26,6 +26,8 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts
+      - name: NASA video question accuracy, group response and session compatibility
+        run: node --test scripts/test-museum-nasa-video-questions.mjs
       - name: Museum V3 data, security and workflow contracts
         run: node --test scripts/test-museum-lab-v3.mjs
       - name: Server handler syntax

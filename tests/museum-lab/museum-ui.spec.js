@@ -987,8 +987,17 @@ test('approved paper collage renders all eleven live stages with separated title
    await expect(video).toHaveAttribute('data-video-id',i===1?'SN5-DnOHQmE':'TUinL0C_zgE');
    await expect(video.locator('iframe')).toHaveAttribute('src',new RegExp('youtube-nocookie\\.com/embed/'+(i===1?'SN5-DnOHQmE':'TUinL0C_zgE')));
    await expect(screen.getByTestId('museum-curriculum-switch')).toContainText('NASA VIDEO');
-   await screen.getByRole('button',{name:i===1?'3 language questions':'Evidence and design tasks'}).click();
-   await expect(video).toHaveCount(0);
+   if(i===3){
+    await screen.getByRole('button',{name:'3 video questions'}).click();
+    await expect(video).toHaveCount(0);
+    await expect(screen.getByTestId('museum-live-video-questions').locator(':scope > div')).toHaveCount(3);
+    await expect(screen).toContainText('What does global warming mean in NASA');
+    await screen.getByRole('button',{name:'Design tasks'}).click();
+   }else{
+    await screen.getByRole('button',{name:'3 language questions'}).click();
+    await expect(video).toHaveCount(0);
+    await expect(screen.getByTestId('museum-live-video-questions').locator(':scope > div')).toHaveCount(3);
+   }
   }else{
    await expect(screen.getByTestId('museum-curriculum-video')).toHaveCount(0);
   }
@@ -1072,6 +1081,58 @@ test('Teacher Live has real stage motion control, readable voiceover, research l
  await lab.getByRole('button',{name:'Assign video to this activity'}).click();
  await expect(lab.getByText('Teacher-selected classroom video')).toBeVisible();
  await expect(lab.getByText('VIDEO GIÁO VIÊN ĐÃ CHỌN',{exact:false})).toBeVisible();
+});
+
+
+test('NASA video checks use the same live group-response contract for Activities 2 and 4',async({page})=>{
+ let stageIndex=1,submissions=[],submitted=false;
+ const videoIds=['SN5-DnOHQmE','TUinL0C_zgE'];
+ await page.route('https://www.youtube-nocookie.com/**',route=>route.fulfill({status:200,contentType:'text/html',body:'<html><body>NASA video test</body></html>'}));
+ const stage2={id:'language-mini-lesson',kind:'quiz',period:1,title:'Language Mini-Lesson',question:'After watching NASA, identify the science.',
+  questions:[
+   {q:'What surrounds Earth and contains heat-trapping gases?',choices:['A glass roof','The atmosphere','A layer of ice'],answer:null,explanation:null},
+   {q:'Which human activity releases extra carbon dioxide?',choices:['Burning coal and oil','Watching the weather','Turning off unused lights'],answer:null,explanation:null},
+   {q:'Which sentence correctly reports NASA’s explanation?',choices:['Wrong survey claim','Correct cause/result statement','Wrong claim about sunlight'],answer:null,explanation:null}
+  ],sentence:'According to NASA, …'};
+ const stage4={id:'problem-evidence-solution',kind:'group',period:1,title:'Problem · Evidence · Solution',question:'How can our school reduce one environmental problem?',
+  videoQuestions:[
+   {q:'What does global warming mean in NASA’s video?',choices:['A long-term rise in Earth’s average surface temperature','A hot day','A classroom'],answer:null,explanation:null},
+   {q:'Which example is mentioned as an effect of broader climate change?',choices:['More Arctic ice','Decreasing Arctic ice and droughts','A vote'],answer:null,explanation:null},
+   {q:'Which statement responsibly connects NASA evidence to our museum project?',choices:['Incorrect vote claim','Incorrect same-meaning claim','According to NASA, global warming is one part of climate change.'],answer:null,explanation:null}
+  ],sentence:'According to NASA, …'};
+ await page.route('**/api/gallery-guest/live?**',route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  if(op==='state')return route.fulfill({json:{
+   session:{id:'nasa-video-group-qa',status:'active',stageIndex,stageOpen:true,revealed:false,
+    stage:stageIndex===1?stage2:stage4},submitted
+  }});
+  if(op==='respond'){
+   submissions.push({stageIndex,value:route.request().postDataJSON()?.value});
+   submitted=true;
+   return route.fulfill({json:{ok:true},status:201});
+  }
+  return route.fulfill({status:404,json:{error:'Unsupported test operation'}});
+ });
+ await page.getByTestId('qa-student-live').click();
+ for(const [index,answers] of [[1,[1,0,1]],[3,[0,1,2]]]){
+  if(index===3){stageIndex=3;submitted=false;}
+  await expect(page.getByTestId('student-live-activity')).toHaveAttribute('data-stage-kind',index===1?'quiz':'group',{timeout:12000});
+  await page.getByTestId('student-curriculum-watch').click();
+  const frame=page.getByTestId('museum-youtube-player').locator('iframe');
+  await expect(frame).toHaveAttribute('src',new RegExp(videoIds[index===1?0:1]));
+  await page.getByRole('button',{name:/Đóng video/}).click();
+  const form=page.getByTestId('student-video-questions');
+  await expect(form.locator(':scope > div')).toHaveCount(3);
+  for(let q=0;q<3;q++){
+   const options=form.locator(':scope > div').nth(q).locator('.bml-live-response-options button');
+   await options.nth(answers[q]).click();
+  }
+  const button=page.getByRole('button',{name:/Gửi câu trả lời của nhóm/});
+  await expect(button).toBeEnabled();
+  await button.click();
+  await expect(page.getByText('Đã ghi nhận một lượt của nhóm')).toBeVisible();
+ }
+ expect(submissions).toEqual([{stageIndex:1,value:[1,0,1]},{stageIndex:3,value:[0,1,2]}]);
 });
 
 test('Student Studio can watch a teacher-selected video and save source-based English reasoning by group',async({page})=>{
