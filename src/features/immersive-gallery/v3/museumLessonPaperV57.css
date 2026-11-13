@@ -1,0 +1,78 @@
+/* Museum Lab / My lessons: approved Paper Scrapbook redesign (V57).
+   Scope is deliberately restricted to this screen. Never style the global
+   Brian navigation, competition ribbon, other Museum Lab tabs, or footer. */
+.bml.bml-paper .bml-lesson-workspace-v57{--ml-ink:#182f62;--ml-lilac:#8e70d9;--ml-paper:#fffbf4;--ml-shadow:0 3px 0 #8c9ab625,0 9px 20px #315b8130;min-width:0;gap:16px;color:var(--ml-ink)}
+.bml.bml-paper .bml-lesson-workspace-v57>.bml-heading-actions{margin:3px 0 4px;align-items:center}
+.bml.bml-paper .bml-lesson-workspace-v57>.bml-heading-actions h1{font-family:MuseumHand,'Segoe Print',cursive;font-size:clamp(32px,3.1vw,45px);font-weight:700;color:#142e60;line-height:1.1;margin:4px 0}
+.bml.bml-paper .bml-lesson-workspace-v57>.bml-heading-actions p{font-size:13px;color:#435d82;margin:2px 0 0}
+.bml.bml-paper .bml-lesson-workspace-v57>.bml-heading-actions .bml-primary{border-radius:99px;min-height:41px;box-shadow:0 3px 0 #153f9855,0 5px 9px #356aa524}
+.bml.bml-paper .bml-lesson-workspace-v57>.bml-success-banner{align-items:center;min-height:38px;padding:9px 13px;border:1px solid #b8e0c0;background:#eaf9ee;color:#28634c;border-radius:12px;box-shadow:0 2px 7px #44746418;font-size:12px}
+.bml.bml-paper .bml-lesson-workspace-v57>.bml-success-banner svg{width:17px;height:17px}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-list{gap:25px;min-width:0}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-paper-lesson-block{position:relative;isolation:isolate;min-width:0;padding:clamp(13px,2vw,24px);border:9px solid transparent;border-image:var(--museum-rim) 12 / 9px / 2px round;border-radius:24px;background:var(--museum-grain),var(--ml-paper);box-shadow:var(--ml-shadow)}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-paper-lesson-block::before{content:'';position:absolute;width:28px;height:45px;right:17px;top:-21px;border:4px solid #e54bc1;border-left:0;border-bottom:0;border-radius:12px 13px 0 0;transform:rotate(22deg);pointer-events:none;filter:drop-shadow(1px 2px 1px #7d467030);opacity:.8}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-hero-summary{display:flex;align-items:center;gap:15px;padding:16px 14px 12px;background:linear-gradient(115deg,#ffffffdb,#fff7e5a9);border:1px solid #ebe0ce;border-radius:15px 15px 9px 9px;min-width:0}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-hero-icon{width:58px;height:58px;min-width:58px;border-radius:13px;background:#f0eaff;border:2px dashed #c9b5ef;display:grid;place-items:center;color:#2857aa}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-title-area{flex:1 1 360px;min-width:0}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-class-chip{display:inline-flex;align-items:center;padding:4px 13px;border-radius:99px;background:#e9d8ff;color:#4b3a9e;font-size:11px;font-weight:800;line-height:1.15}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-title-area h2{margin:5px 0 7px;font-size:clamp(19px,2vw,27px);font-weight:850;color:#1a3065;line-height:1.2;letter-spacing:-.018em}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-facts{display:flex;align-items:center;gap:8px 15px;flex-wrap:wrap;font-size:11px;line-height:1.3;color:#576a88}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-facts>span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-facts svg{color:#5d67ba;flex:none}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-hero-summary>.bml-prepared-lesson-actions{flex:0 1 auto;min-width:0;margin-left:auto;gap:9px;justify-content:flex-end}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-hero-summary>.bml-prepared-lesson-actions button{min-height:35px;border-radius:99px;padding:7px 12px;font-size:12px;white-space:nowrap;box-shadow:0 2px 4px #24446b16}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-toggle svg.is-expanded{transform:rotate(-90deg)}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-archive-btn{background:#fff1ef;border:1px solid #efb2aa;color:#ab322f}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-overall-progress{height:8px;margin:0 14px 13px;max-width:none;background:#e0e5ee;border-radius:99px;overflow:hidden}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-overall-progress>div{height:100%;background:linear-gradient(90deg,#39aa7a,#27a977);border-radius:99px}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-passcode-toolbar{display:flex;align-items:center;gap:13px;justify-content:space-between;min-height:56px;margin:14px 0 16px;padding:9px 12px;border:2px dashed #d6bdf3;border-radius:13px;background:linear-gradient(100deg,#f7ecff,#f3edff 58%,#fff9e9);color:#23356b}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-passcode-toolbar-copy{display:flex;align-items:center;gap:10px;flex:1 1 220px;min-width:0;flex-wrap:wrap}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-passcode-toolbar-icon{display:grid;place-items:center;flex:none;height:33px;width:33px;border-radius:9px;background:#ece0ff;color:#5734a5}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-passcode-toolbar-copy strong{font-size:14px;white-space:nowrap}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-passcode-toolbar-copy small{font-size:11px;color:#665c86}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-passcode-toolbar-actions{display:flex;flex:0 1 auto;align-items:center;justify-content:flex-end;gap:8px;padding-left:16px;border-left:1px solid #cdbce3;flex-wrap:wrap}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-passcode-toolbar-actions button{min-height:35px;padding:7px 13px;font-size:11px;border-radius:99px;box-shadow:0 2px 4px #2b438016}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-regenerate-all-passcodes{background:linear-gradient(100deg,#ffedc9,#ffda9a);border:1px solid #e4be82;color:#7a4a1b}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-regenerate-all-passcodes:hover{background:#ffdc9d}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-group-list.bml-lesson-qr-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;min-width:0;padding-top:0}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-paper-group-card{display:grid;grid-template-columns:minmax(0,1fr) clamp(150px,14vw,190px);align-items:stretch;gap:10px;min-width:0;min-height:240px;padding:12px;border:1px solid #ded6ef;border-radius:17px;background:var(--museum-grain),linear-gradient(155deg,#fffefe,#faf8ff);box-shadow:0 2px 0 #b3a6c43a,0 5px 12px #5e607b24}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-paper-group-card:focus-within{border-color:#ad8fe8}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-details{display:flex;flex-direction:column;gap:8px;min-width:0;align-items:stretch;padding:4px 2px 4px 4px}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-group-heading{display:flex;align-items:center;gap:9px;min-width:0;color:var(--ml-ink)}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-group-heading strong{font-size:clamp(15px,1.25vw,19px);font-weight:850;line-height:1.2}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-group-heading .bml-group-avatar{height:35px;width:35px;border-radius:10px;background:#eee3ff;color:#6844b9;display:grid;place-items:center}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-copy{display:flex;flex-direction:column;gap:7px;min-width:0;flex:1;align-items:stretch}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-group-metadata{display:flex;align-items:flex-start;gap:6px;font-size:11px;line-height:1.35;color:#495c7d;overflow-wrap:anywhere}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-group-metadata svg{color:#6e6ba0;flex:none;margin-top:1px}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-group-metadata strong{font-weight:650;color:#2e4877}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-copy>.bml-progress-small{width:100%;max-width:240px;height:8px;margin:2px 0 3px;background:#dfe6f2;border-radius:99px;overflow:hidden}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-copy>.bml-progress-small i{background:linear-gradient(90deg,#43b58a,#65c89b);height:100%}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-group-activity{margin-top:auto;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-ticket{max-width:100%;min-width:0;margin:0}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-ticket summary{display:inline-flex;align-items:center;gap:4px;border-radius:9px;cursor:pointer;color:#28477c;font-size:11px;font-weight:730;line-height:1.2;padding:4px 5px}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-ticket summary::-webkit-details-marker{display:none}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-ticket[open] summary svg{transform:rotate(90deg)}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-ticket p{padding:8px;background:#fff;border:1px solid #e3dbf5;border-radius:9px;margin:3px 0;max-width:100%;font-size:11px}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:0;padding:0}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-actions button{min-height:32px;padding:7px 12px;border-radius:99px;font-size:11px;font-weight:750}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-qr-review-btn{background:#e5f2ff;color:#2056b3;border:1px solid #b2d5fc}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-actions .bml-quiet-btn{background:#f0f3f8;color:#425a79;border:1px solid #dce4ef}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-access{display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;gap:7px;min-width:0;padding:9px;background:linear-gradient(180deg,#fbfaff,#f5efff);border:1px solid #d8c2f3;border-radius:13px;box-shadow:0 3px 0 #c5b6db40}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-access>.bml-lesson-qr-invite{display:flex;align-items:center;gap:5px;width:100%;min-width:0}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-image{width:102px;height:102px;max-width:100%;padding:3px;flex:none;border:1px solid #e1d6f2;border-radius:9px;background:#fff;box-shadow:none}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-image img{display:block;width:100%;height:100%;object-fit:contain;image-rendering:auto}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-handle{width:100%;max-width:100%;display:block;min-height:30px;padding:5px 7px;background:#e8dbff;border-radius:9px;color:#5643a0;font-size:10px;line-height:1.25;font-weight:750;overflow-wrap:anywhere;text-align:center}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-copy-link{margin:0;min-height:25px;background:#fff;border:1px solid #ddd5ee;border-radius:99px;padding:3px 9px;font-size:10px}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-private-passcode{display:flex;flex-direction:column;align-items:stretch;gap:5px;border:0;border-top:1px dashed #d8c5ee;border-radius:0;background:transparent;padding:8px 0 0;min-width:0}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-private-passcode-label{display:flex;justify-content:center;align-items:center;gap:5px;color:#56439b;font-weight:800;font-size:10px;line-height:1.25}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-private-passcode code{display:block;min-height:30px;max-width:100%;padding:7px 6px;border-radius:8px;background:#fff;border:1px solid #eadcf7;font-size:10px;color:#53437e;overflow-wrap:anywhere;text-align:center;line-height:1.25}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-private-passcode code.is-revealed{color:#263e76;font-weight:750}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-private-passcode-buttons{display:flex;justify-content:center;align-items:center;gap:5px;flex-wrap:wrap}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-private-passcode-buttons button{min-height:27px;display:inline-flex;justify-content:center;gap:4px;align-items:center;padding:4px 9px;border-radius:99px;border:1px solid #d8d5e9;color:#435587;background:#fff;font-size:10px;box-shadow:0 1px 2px #47547d1a}
+.bml.bml-paper .bml-lesson-workspace-v57 .bml-private-passcode-buttons button:hover{background:#ecf1fe}
+.bml.bml-paper .bml-lesson-workspace-v57 :is(button,summary):focus-visible{outline:3px solid #325fc4;outline-offset:3px}
+@media(max-width:1040px){.bml.bml-paper .bml-lesson-workspace-v57 .bml-paper-group-card{grid-template-columns:minmax(0,1fr) 151px}.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-image{width:94px;height:94px}.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-hero-summary{align-items:flex-start}.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-hero-summary>.bml-prepared-lesson-actions{flex-basis:100%;justify-content:flex-end}}
+@media(max-width:800px){.bml.bml-paper .bml-lesson-workspace-v57 .bml-group-list.bml-lesson-qr-grid{grid-template-columns:1fr}.bml.bml-paper .bml-lesson-workspace-v57 .bml-paper-group-card{grid-template-columns:minmax(0,1fr) clamp(155px,29vw,190px)}.bml.bml-paper .bml-lesson-workspace-v57 .bml-passcode-toolbar-actions{border-left:0;padding-left:0}.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-hero-summary>.bml-prepared-lesson-actions{margin-left:0}}
+@media(max-width:470px){.bml.bml-paper .bml-lesson-workspace-v57 .bml-paper-lesson-block{padding:10px}.bml.bml-paper .bml-lesson-workspace-v57 .bml-paper-group-card{grid-template-columns:minmax(0,1fr) 132px;padding:9px;gap:8px}.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-access{padding:6px}.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-image{width:84px;height:84px}.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-facts{gap:7px}.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-group-metadata{font-size:10px}.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-group-heading strong{font-size:15px}.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-copy>.bml-progress-small{height:7px}.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-handle{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.bml.bml-paper .bml-lesson-workspace-v57 *{transition:none!important;animation:none!important}}
+@media print{.bml.bml-paper .bml-lesson-workspace-v57 .bml-paper-group-card{break-inside:avoid;box-shadow:none}.bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-access{border:1px solid #aaa;background:white}}

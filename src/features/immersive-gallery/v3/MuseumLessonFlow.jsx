@@ -1,5 +1,5 @@
 import React,{useEffect,useMemo,useState} from 'react';
-import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronRight,ClipboardList,Copy,Download,Eye,EyeOff,ExternalLink,KeyRound,LockKeyhole,Plus,Printer,QrCode,RefreshCw,ShieldAlert,Trash2,Users} from 'lucide-react';
+import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronRight,ClipboardList,Copy,Download,Eye,EyeOff,ExternalLink,KeyRound,Landmark,LockKeyhole,Plus,Printer,QrCode,RefreshCw,ShieldAlert,Trash2,Users} from 'lucide-react';
 import {LESSON_KITS,progressOfGroup} from './museumData.js';
 import {englishSystemGroupLabel} from './museumApi.js';
 import {LIVE_STAGES,LIVE_TOTAL_MINUTES} from './liveLesson.js';
@@ -9,6 +9,7 @@ import {staffRequest,joinUrl,saveTextFile} from './museumApi.js';
 import {KitCover} from './MuseumDashboard.jsx';
 import MuseumGroupQr from './MuseumGroupQr.jsx';
 import './museumLessonQr.css';
+import './museumLessonPaperV57.css';
 const tr=(language,vi,en)=>language==='en'?en:vi;
 const deadlineForWindow=accessWindow=>new Date(Date.now()+({standard:7,extended:30,term:90}[accessWindow]||7)*86400000).toISOString();
 function Notice({error,success}){return error?<div className="bml-banner bml-danger-banner" role="alert"><ShieldAlert size={19}/>{error}</div>:success?<div className="bml-banner bml-success-banner" role="status"><CheckCircle2 size={18}/>{success}</div>:null;}
@@ -214,7 +215,7 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
    setSecrets(prev=>({...prev,[groupId]:out.groupSecret}));setVisibleSecrets(prev=>({...prev,[groupId]:true}));await onRefresh();}
   catch(e){setError(e.message);}finally{setBusy(false);}
  };
- return <div className="bml-screen" data-testid="museum-lessons"><div className="bml-heading-actions"><div><div className="bml-overline">{tr(language,'LỚP HỌC SỐ','LESSON WORKSPACE')}</div>
+ return <div className="bml-screen bml-lesson-workspace-v57" data-testid="museum-lessons"><div className="bml-heading-actions"><div><div className="bml-overline">{tr(language,'LỚP HỌC SỐ','LESSON WORKSPACE')}</div>
   <h1>{tr(language,'Bài học của tôi','My lessons')}</h1><p>{tr(language,'Giao dự án và theo dõi từng nhóm.','Assign projects and track your groups.')}</p></div>
   {isAdmin?<button type="button" className="bml-primary" onClick={onCreate}><Plus size={19}/>{tr(language,'Tạo bài học mới','New lesson')}</button>:null}</div>
   <Notice error={error} success={success}/>
@@ -226,24 +227,36 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
    const expanded=selected===a.id||(selected==='__auto__'&&a.id===assignments[0]?.id);
    const canManagePasscodes=isAdmin&&a.created_by===data?.profile?.id;
    const allVisible=mine.length>0&&mine.every(g=>visibleSecrets[g.id]&&secrets[g.id]);
-   return <article className="bml-lesson-block bml-surface" key={a.id}>
-    <div className="bml-lesson-summary"><span className="bml-table-icon"><BookOpen size={22}/></span>
-     <div><span className="bml-overline">{a.class_scope}</span>
-      <h2>{a.title}</h2><p>Exit Tickets: {exitCount}/{mine.length} · {tr(language,'Sản phẩm bảo tàng','Museum projects')}: {done}/{mine.length}</p></div>
+   return <article className="bml-lesson-block bml-surface bml-paper-lesson-block" key={a.id}>
+    <div className="bml-lesson-summary bml-lesson-hero-summary">
+     <span className="bml-table-icon bml-lesson-hero-icon" aria-hidden="true"><BookOpen size={25}/></span>
+     <div className="bml-lesson-title-area">
+      <span className="bml-lesson-class-chip">Class {a.class_scope}</span>
+      <h2>{a.title}</h2>
+      <div className="bml-lesson-facts" aria-label="Lesson progress">
+       <span><Users size={14}/>{mine.length} groups</span>
+       <span><ClipboardList size={14}/>Exit Tickets: {exitCount}/{mine.length}</span>
+       <span><Landmark size={14}/>Museum projects: {done}/{mine.length}</span>
+      </div>
+     </div>
      <div className="bml-prepared-lesson-actions">
       {collection?<button type="button" className="bml-outline bml-prepared-visit" onClick={()=>onOpenCollection?.(collection.key)}>
        <BookOpen size={17}/>{tr(language,'Triển lãm 3D','3D exhibition')} <ArrowRight size={15}/></button>:null}
-      <button type="button" className="bml-outline" onClick={()=>setSelected(expanded?null:a.id)}>
-       {expanded?tr(language,'Thu gọn','Collapse'):tr(language,'Xem các nhóm','View groups')} <ChevronRight size={17}/></button>
+      <button type="button" className="bml-outline bml-lesson-toggle" onClick={()=>setSelected(expanded?null:a.id)}>
+       {expanded?tr(language,'Thu gọn','Collapse'):tr(language,'Xem các nhóm','View groups')} <ChevronRight size={17} className={expanded?'is-expanded':''}/></button>
       {isAdmin?<button type="button" disabled={busy} className="bml-danger bml-archive-btn"
         onClick={()=>archiveAssignment(a)} aria-label={tr(language,'Xóa bài học '+a.title,'Remove lesson '+a.title)}>
        <Trash2 size={17}/>{tr(language,'Xóa bài học','Delete lesson')}</button>:null}
-     </div></div>
-    <div className="bml-progress bml-progress-wide"><div style={{width:(mine.length?100*done/mine.length:0)+'%'}}/></div>
+     </div>
+    </div>
+    <div className="bml-progress bml-progress-wide bml-lesson-overall-progress" role="progressbar" aria-label="Museum project submission progress" aria-valuemin={0} aria-valuemax={mine.length} aria-valuenow={done}>
+     <div style={{width:(mine.length?100*done/mine.length:0)+'%'}}/>
+    </div>
     {expanded?<>
-      {canManagePasscodes?<div className="bml-lesson-passcode-toolbar">
-       <span><LockKeyhole size={18}/><strong>Private group passcodes</strong><small>Admin only · never included in QR</small></span>
-       <div>
+      {canManagePasscodes?<div className="bml-lesson-passcode-toolbar" role="group" aria-label="Private group passcode controls">
+       <div className="bml-passcode-toolbar-copy"><span className="bml-passcode-toolbar-icon"><LockKeyhole size={20}/></span>
+        <strong>Private group passcodes</strong><small>Admin only · never included in QR</small></div>
+       <div className="bml-passcode-toolbar-actions">
         {allVisible?<button type="button" className="bml-outline" onClick={()=>hideLessonPasscodes(a)}><EyeOff size={15}/> Hide all</button>:
          <button type="button" className="bml-outline" disabled={passcodeBusy||busy} onClick={()=>revealPasscodes(a)}><Eye size={15}/> Show all passcodes</button>}
         <button type="button" className="bml-regenerate-all-passcodes" disabled={busy||passcodeBusy} onClick={()=>regenerateAll(a)}><RefreshCw size={15}/> Regenerate all passcodes</button>
@@ -255,21 +268,26 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
       const exitAnswer=ticket?(typeof ticket.value==='string'?ticket.value:JSON.stringify(ticket.value)):null;
       const groupLabel=language==='en'?englishSystemGroupLabel(g.label):g.label;
       const canRotate=isAdmin&&['issued','editing','changes_requested'].includes(g.state)&&a.created_by===data?.profile?.id;
-      return <article className="bml-lesson-qr-card" key={g.id} data-testid="museum-group-qr-card">
+      return <article className="bml-lesson-qr-card bml-paper-group-card" key={g.id} data-testid="museum-group-qr-card">
        <div className="bml-lesson-qr-details">
-        <span className="bml-group-avatar"><Users size={19}/></span>
-        <div className="bml-lesson-qr-copy"><strong>{groupLabel}</strong>
-         <small>{tr(language,'Sản phẩm bảo tàng','Museum project')}: {state.label}</small>
-         <small>{ticket?tr(language,'Exit Ticket: Đã nộp','Exit Ticket: Submitted'):tr(language,'Exit Ticket: Chưa nộp','Exit Ticket: Not submitted')}</small>
-         <span className="bml-progress-small"><i style={{width:state.pct+'%'}}/></span>
-         {ticket?<details className="bml-lesson-qr-ticket"><summary>{tr(language,'Xem câu trả lời Exit Ticket','View Exit Ticket response')}</summary><p>{exitAnswer?.slice(0,2000)}</p></details>:null}
-         <div className="bml-lesson-qr-actions">
-          {review?<button type="button" className="bml-qr-review-btn" onClick={()=>onReview(review.id)}>{tr(language,'Xem bài','Review')} <ArrowRight size={15}/></button>:null}
-          {canRotate?<button type="button" disabled={busy} className="bml-quiet-btn" onClick={()=>rotate(g.id)}><KeyRound size={15}/>{tr(language,'Cấp lại mã','Reset code')}</button>:null}
+        <div className="bml-lesson-group-heading">
+         <span className="bml-group-avatar" aria-hidden="true"><Users size={19}/></span>
+         <strong>{groupLabel}</strong>
+        </div>
+        <div className="bml-lesson-qr-copy">
+         <div className="bml-lesson-group-metadata"><Landmark size={14}/><span>{tr(language,'Sản phẩm bảo tàng','Museum project')}: <strong>{state.label}</strong></span></div>
+         <div className="bml-lesson-group-metadata"><ClipboardList size={14}/><span>{ticket?tr(language,'Exit Ticket: Đã nộp','Exit Ticket: Submitted'):tr(language,'Exit Ticket: Chưa nộp','Exit Ticket: Not submitted')}</span></div>
+         <div className="bml-progress-small" role="progressbar" aria-label={groupLabel+' progress'} aria-valuemin={0} aria-valuemax={100} aria-valuenow={state.pct}><i style={{width:state.pct+'%'}}/></div>
+         <div className="bml-lesson-group-activity">
+          {ticket?<details className="bml-lesson-qr-ticket"><summary><ChevronRight size={14}/>{tr(language,'Xem câu trả lời Exit Ticket','View Exit Ticket response')}</summary><p>{exitAnswer?.slice(0,2000)}</p></details>:null}
+          <div className="bml-lesson-qr-actions">
+           {review?<button type="button" className="bml-qr-review-btn" onClick={()=>onReview(review.id)}>{tr(language,'Xem bài','Review')} <ArrowRight size={15}/></button>:null}
+           {canRotate?<button type="button" disabled={busy} className="bml-quiet-btn" onClick={()=>rotate(g.id)}><KeyRound size={15}/>{tr(language,'Cấp lại mã','Reset code')}</button>:null}
+          </div>
          </div>
         </div>
        </div>
-       <div className="bml-lesson-qr-access">
+       <div className="bml-lesson-qr-access" aria-label={groupLabel+' QR and access credentials'}>
         <MuseumGroupQr handle={g.invite_handle} groupLabel={groupLabel}
          expiresAt={g.invite_expires_at} revoked={g.invite_revoked} language={language}/>
         {canManagePasscodes?<PrivatePasscodeCard secret={secrets[g.id]} available={g.invite_has_passcode}

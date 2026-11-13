@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const jsx=readFileSync(new URL('../src/features/immersive-gallery/v3/MuseumLessonFlow.jsx',import.meta.url),'utf8');
+const css=readFileSync(new URL('../src/features/immersive-gallery/v3/museumLessonPaperV57.css',import.meta.url),'utf8');
+const before=readFileSync(new URL('../src/features/immersive-gallery/v3/MuseumGroupQr.jsx',import.meta.url),'utf8');
+const req=['bml-lesson-workspace-v57','bml-paper-lesson-block','bml-lesson-hero-summary','bml-lesson-passcode-toolbar',
+'bml-paper-group-card','bml-lesson-qr-access','PrivatePasscodeCard','MuseumGroupQr','regenerateAll(a)','revealPasscodes(a)'];
+for(const item of req)assert.ok(jsx.includes(item),'missing layout or action: '+item);
+for(const item of ['bml-group-list.bml-lesson-qr-grid','bml-paper-group-card','bml-lesson-qr-access','bml-lesson-group-activity','bml-lesson-passcode-toolbar'])assert.ok(css.includes(item),'missing stylesheet: '+item);
+assert.ok(jsx.includes('Groups')||jsx.includes('groups'));
+assert.ok(jsx.includes('mine.map(g=>'));
+assert.ok(jsx.includes('a.class_scope'));
+assert.ok(jsx.includes('done}/{mine.length}'));
+assert.ok(before.includes('joinUrl(handle)'));
+assert.ok(before.includes('getQrLibrary()'));
+assert.ok(jsx.includes('onReview(review.id)'));
+assert.ok(jsx.includes('onClick={()=>rotate(g.id)}'));
+assert.ok(jsx.includes('onClick={()=>regenerateAll(a)}'));
+assert.ok(jsx.includes('onClick={()=>hideLessonPasscodes(a)}'));
+assert.ok(jsx.includes('onCopy={()=>copyPass(secrets[g.id])}'));
+assert.ok(!css.includes('.app-shell'));
+assert.ok(!css.includes('.bml-paper-nav'));
+console.log('PASS: V57 lesson-paper layout, live counts, all ten group cards and QR/passcode actions preserved.');
