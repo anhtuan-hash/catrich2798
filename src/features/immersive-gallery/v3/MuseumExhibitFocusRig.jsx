@@ -60,7 +60,11 @@ export default function MuseumExhibitFocusRig({phase,board,onBack,lite=false}){
     <meshStandardMaterial color="#B0A493" roughness={.77}/>
    </mesh>
   </group>
-  <group position={[layout.art[0],5.63,layout.art[2]+.12]}>
+  <group position={[layout.art[0],4.68,layout.art[2]+.12]}>
+   {[-1.30,1.30].map(x=><mesh key={x} position={[x,.30,0]}>
+    <cylinderGeometry args={[.025,.025,.61,8]}/>
+    <meshStandardMaterial color="#B08C47" metalness={.55} roughness={.41}/>
+   </mesh>)}
    <mesh rotation={[Math.PI/2,0,0]}>
     <torusGeometry args={[1.50,.077,9,72,Math.PI*1.06]}/>
     <meshStandardMaterial color="#C8A34B" metalness={.53} roughness={.4}/>
