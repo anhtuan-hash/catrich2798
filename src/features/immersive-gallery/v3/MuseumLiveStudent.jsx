@@ -55,7 +55,15 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
     }))
    }))});}
   catch(e){setError(e.message);}};
- if(!session||session.status==='not_started'||session.status==='ended')return <section className="bml-live-student" data-testid="student-live-waiting">
+ if(session?.status==='ended')return <section className="bml-live-student" data-testid="student-live-completed">
+  <div className="bml-live-student-header"><strong>Teacher Live</strong><span>{t(language,'Buổi học đã kết thúc','Lesson completed')}</span></div>
+  <div className="bml-banner bml-success-banner" role="status"><CheckCircle2 size={18}/>
+   {data?.submitted?t(language,'Exit Ticket của nhóm đã được ghi nhận. Sản phẩm bảo tàng là bài nộp riêng.','Your group Exit Ticket was recorded. Your museum project is submitted separately.'):
+    t(language,'Hoạt động trực tiếp đã kết thúc. Sản phẩm bảo tàng vẫn mở trước hạn.','Live activities have ended. Your museum project remains available until the deadline.')}
+  </div>
+  <button type="button" className="bml-outline" onClick={refresh}><RefreshCcw size={16}/>{t(language,'Kiểm tra lại','Refresh')}</button>
+ </section>;
+ if(!session||session.status==='not_started')return <section className="bml-live-student" data-testid="student-live-waiting">
   <div className="bml-live-student-header"><strong>Teacher Live</strong><span>{t(language,'Đang chờ giáo viên bắt đầu bài dạy.','Waiting for your teacher to start the lesson.')}</span></div>
   <button type="button" className="bml-outline" onClick={refresh}><RefreshCcw size={16}/>{t(language,'Kiểm tra lại','Refresh')}</button>
  </section>;
