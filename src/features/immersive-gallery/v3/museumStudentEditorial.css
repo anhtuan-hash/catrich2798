@@ -1,0 +1,529 @@
+/*
+ * BRIAN Museum Lab — Museum Field Journal / Student Edition v4.9
+ * A restrained, original print-inspired visual system for the real student route.
+ * Scoped entirely to .bml-student-editorial. No changes to Teacher Live,
+ * the global Brian shell, data flow, keyboard controls or Creator Pass.
+ */
+.bml.bml-student-canvas16.bml-student-editorial{
+ --fj-ink:#263e47;
+ --fj-deep:#25464c;
+ --fj-forest:#2c6b60;
+ --fj-rust:#b66c4e;
+ --fj-gold:#d9af68;
+ --fj-page:#fffdf7;
+ --fj-linen:#f1eee7;
+ --fj-rule:#d8d9d0;
+ --fj-shadow:0 2px 0 #d6ddd4,0 9px 22px rgba(43,65,62,.06);
+ --bml-primary:#2b645a;
+ --bml-primary-hover:#214e47;
+ --bml-text:#263e47;
+ color:var(--fj-ink);
+ font-family:"Avenir Next",Inter,"Segoe UI",Arial,sans-serif;
+ background:
+  radial-gradient(circle at 3% 95%,rgba(169,194,169,.17),transparent 30%),
+  radial-gradient(circle at 96% 5%,rgba(198,212,205,.22),transparent 30%),
+  var(--fj-linen)!important;
+ border:0!important;border-radius:0!important;
+}
+.bml-student-editorial :is(h1,h2,h3,h4){letter-spacing:-.02em;color:var(--fj-ink)}
+.bml-student-editorial .bml-student-bar{
+ flex-basis:56px;min-height:56px;max-height:56px;
+ background:#fffdf8;border-bottom:1px solid #d1d8cf;
+ box-shadow:none;padding:8px clamp(17px,2.1vw,34px);
+}
+.bml-student-editorial .bml-brand{gap:11px}
+.bml-student-editorial .bml-brand-icon{
+ width:36px;height:36px;border-radius:5px;
+ background:var(--fj-deep);color:#fffefa;
+ box-shadow:3px 3px 0 #d8c8a4;
+}
+.bml-student-editorial .bml-brand strong{
+ color:var(--fj-ink);font-size:16px;font-weight:800;letter-spacing:-.035em;
+}
+.bml-student-editorial .bml-brand small{
+ color:#78807a;font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:750;
+}
+.bml-student-editorial .bml-group-pill{
+ background:#f0f1e9;border:1px solid #dadfd6;border-radius:5px;color:#344f55;
+ font-weight:750;font-size:11px;padding:7px 11px;
+}
+.bml-student-editorial .bml-save-indicator{font-size:11px;font-weight:700;color:#406a56}
+.bml-student-editorial .bml-student-right>.bml-outline{
+ background:transparent;border:1px solid #aebcbb;border-radius:5px;
+ min-height:35px;padding:6px 14px;color:var(--fj-ink);font-weight:750;
+}
+.bml-student-editorial .bml-student-content{
+ grid-template-rows:84px minmax(0,1fr);
+ gap:12px;padding:12px clamp(13px,1.45vw,22px) 14px;
+}
+.bml-student-editorial .bml-student-focus{
+ grid-template-columns:minmax(200px,28%) minmax(0,1fr);
+ gap:12px;border:1px solid var(--fj-rule);border-radius:7px;
+ background:#fffdf7;box-shadow:var(--fj-shadow);
+ padding:10px 20px;margin:0;overflow:hidden;
+}
+.bml-student-editorial .bml-student-focus:before{display:none}
+.bml-student-editorial .bml-student-focus:after{
+ content:"";position:absolute;left:0;top:0;bottom:0;width:5px;
+ background:var(--fj-rust);
+}
+.bml-student-editorial .bml-student-focus-head{gap:1px;padding-left:7px}
+.bml-student-editorial .bml-student-focus-kicker{
+ color:var(--fj-rust);font-size:9px;letter-spacing:.16em;font-weight:900;
+}
+.bml-student-editorial .bml-student-focus-kicker svg{width:14px;height:14px}
+.bml-student-editorial .bml-student-focus-head>strong{
+ font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;
+ font-size:clamp(20px,1.55vw,26px);font-weight:600;
+ line-height:1.14;letter-spacing:-.035em;color:#243d42;
+}
+.bml-student-editorial .bml-student-focus-stage{
+ font-size:clamp(10px,.82vw,12px);font-weight:700;
+ color:#647773;letter-spacing:0;
+}
+.bml-student-editorial .bml-student-steps{gap:2px;padding:0}
+.bml-student-editorial .bml-student-steps button{
+ min-height:60px;padding:3px 2px;gap:2px;color:#758580;
+}
+.bml-student-editorial .bml-student-steps button:before{
+ height:1px;background:#c5d0c9;top:17px;
+}
+.bml-student-editorial .bml-student-steps button>span{
+ margin-top:0;width:29px;height:29px;border-radius:6px;
+ border:1px solid #cad4ca;background:#f2f3ec;color:#60716a;
+ font-family:Georgia,serif;font-size:14px;font-weight:700;
+}
+.bml-student-editorial .bml-student-steps button.is-active>span{
+ color:#fffaf1;background:var(--fj-forest);border-color:var(--fj-forest);
+ box-shadow:2px 2px 0 #c3d8c5;
+}
+.bml-student-editorial .bml-student-steps button.is-complete>span{
+ color:var(--fj-forest);border-color:#a8c7b7;background:#edf5ed;
+}
+.bml-student-editorial .bml-student-steps button small{
+ color:inherit;font-size:clamp(10px,.78vw,12px);
+ letter-spacing:.015em;font-weight:730;
+}
+.bml-student-editorial .bml-student-steps button.is-active small{color:#285e54}
+.bml-student-editorial .bml-student-workbench{
+ grid-template-columns:clamp(214px,17vw,252px) minmax(0,1fr) clamp(250px,19.4vw,298px);
+ gap:12px;
+}
+.bml-student-editorial :is(.bml-student-toolrail,.bml-student-project-card,.bml-student-primary,.bml-student-projectrail>.bml-student-guide){
+ border-radius:7px;box-shadow:var(--fj-shadow);
+}
+.bml-student-editorial .bml-student-toolrail{
+ background:var(--fj-deep);
+ border:1px solid #2b5054;
+ padding:clamp(12px,1.25vw,18px);
+ gap:10px;box-shadow:3px 4px 0 #c5d3c8;
+ color:#fff9ed;overflow:hidden;
+}
+.bml-student-editorial .bml-student-paper-note{
+ background:#f9f1df;border:0;border-left:4px solid var(--fj-rust);
+ border-radius:3px;padding:14px 12px 12px;
+ box-shadow:2px 2px 0 rgba(0,0,0,.1);
+ max-height:28%;gap:5px;
+}
+.bml-student-editorial .bml-student-note-kicker{
+ color:#9d6249;letter-spacing:.13em;font-size:9px;font-weight:900;
+}
+.bml-student-editorial .bml-student-paper-note>strong{
+ font-family:Georgia,"Palatino Linotype",serif;
+ font-size:clamp(16px,1.15vw,19px);font-weight:600;
+ color:#30464b;line-height:1.18;
+}
+.bml-student-editorial .bml-student-paper-note p{
+ color:#4a615e;font-size:12px;line-height:1.35;
+ -webkit-line-clamp:2;
+}
+.bml-student-editorial .bml-student-paper-note small{
+ color:#806e56;font-size:10px;letter-spacing:.015em;
+}
+.bml-student-editorial .bml-student-view-tabs{gap:5px}
+.bml-student-editorial .bml-student-view-tabs button,
+.bml-student-editorial .bml-student-view-tabs button.is-active{
+ min-height:52px;border:1px solid rgba(249,250,240,.19);
+ border-left:3px solid transparent;border-radius:4px;
+ color:#f1f3e9;background:transparent;box-shadow:none;
+ padding:8px 10px;gap:10px;text-align:left;
+}
+.bml-student-editorial .bml-student-view-tabs button svg{color:#d0d9ce;flex:none}
+.bml-student-editorial .bml-student-view-tabs button strong{
+ color:inherit;font-size:13px;font-weight:760;
+}
+.bml-student-editorial .bml-student-view-tabs button small{
+ color:#b8ccc4;font-size:10px;
+}
+.bml-student-editorial .bml-student-view-tabs button.is-active{
+ background:#f8f4e9;color:#294f51;
+ border:1px solid #f8f4e9;border-left:3px solid var(--fj-gold);
+}
+.bml-student-editorial .bml-student-view-tabs button.is-active svg{color:#356c66}
+.bml-student-editorial .bml-student-view-tabs button.is-active small{color:#64736b}
+.bml-student-editorial .bml-student-rail-label{
+ color:#ddcba4;letter-spacing:.17em;font-size:9px;
+ font-weight:900;margin-top:5px;padding-bottom:2px;
+}
+.bml-student-editorial .bml-student-rail-tools{gap:1px}
+.bml-student-editorial .bml-student-rail-tools button{
+ min-height:40px;color:#f6f6ee;display:flex;align-items:center;
+ font-size:clamp(11px,.9vw,13px);font-weight:680;
+ background:transparent;border:0;border-bottom:1px solid #45636a;
+ border-radius:0;padding:7px 3px;gap:10px;
+ box-shadow:none;line-height:1.15;
+}
+.bml-student-editorial .bml-student-rail-tools button svg{
+ flex:none;color:#e4cda1;width:17px;height:17px;
+}
+.bml-student-editorial .bml-student-rail-tools button:hover,
+.bml-student-editorial .bml-student-rail-tools button:focus-visible{
+ color:#fffaf0;background:#365a60;border-bottom-color:#d8bb89;
+}
+.bml-student-editorial .bml-student-rail-footer{
+ color:#d0d9ce;font-size:10px;line-height:1.35;
+ padding-top:7px;border-top:1px solid #567279;
+}
+.bml-student-editorial .bml-student-rail-footer svg{color:#dbbe8d}
+.bml-student-editorial .bml-student-primary{
+ background:var(--fj-page);border:1px solid var(--fj-rule);
+ box-shadow:var(--fj-shadow);overflow:hidden;
+}
+.bml-student-editorial .bml-student-pane>.bml-live-student{
+ border:0;border-radius:6px;box-shadow:none;
+ background:transparent;color:var(--fj-ink);
+ padding:clamp(18px,1.65vw,29px);
+ gap:13px;
+}
+.bml-student-editorial .bml-live-student-header{
+ gap:12px;padding:2px 0 12px;border-bottom:1px solid var(--fj-rule);
+ align-items:center;
+}
+.bml-student-editorial .bml-live-student-header>strong{
+ font-size:11px;color:#3b6969;font-weight:850;
+ letter-spacing:.07em;
+}
+.bml-student-editorial .bml-live-student-header>span{
+ border-radius:4px;background:#e4f1e7;color:#276451;
+ padding:6px 10px;font-size:10px;font-weight:800;border:1px solid #b9dcca;
+}
+.bml-student-editorial .bml-live-student-question{
+ padding:10px 8px 13px 17px;margin:0;
+ background:transparent;border:0;border-left:3px solid var(--fj-rust);
+ border-radius:0;box-shadow:none;
+}
+.bml-student-editorial .bml-question-eyebrow{
+ display:block;margin:0 0 5px;color:#a3644c;
+ font-size:9px;line-height:1.3;letter-spacing:.18em;font-weight:900;
+}
+.bml-student-editorial .bml-live-student-question h2{
+ font-family:Georgia,"Iowan Old Style",serif;font-size:clamp(18px,1.5vw,24px);
+ line-height:1.18;font-weight:600;color:var(--fj-ink);margin:0 0 6px;
+}
+.bml-student-editorial .bml-live-student-question p{
+ color:#41606a;font-size:clamp(13px,1vw,16px);
+ line-height:1.4;margin:0;font-weight:550;
+}
+.bml-student-editorial .bml-live-student[data-stage-kind="vote"] .bml-live-student-question p{
+ font-family:Georgia,"Palatino Linotype",serif;
+ font-size:clamp(18px,1.45vw,24px);font-weight:600;line-height:1.28;
+ color:#334d51;
+}
+.bml-student-editorial .bml-live-student .bml-live-response-form{
+ border:0;padding:0;margin:0;gap:14px;background:transparent;
+}
+.bml-student-editorial .bml-live-response-form>div>strong{
+ display:block;font-family:Georgia,"Iowan Old Style",serif;
+ color:#2a444b;font-size:clamp(18px,1.4vw,23px);
+ font-weight:600;line-height:1.25;letter-spacing:-.015em;
+ margin:4px 0 13px;
+}
+.bml-student-editorial .bml-live-student .bml-live-response-options{
+ grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
+}
+.bml-student-editorial .bml-live-student .bml-live-response-options button,
+.bml-student-editorial .bml-live-response-options button{
+ border:1px solid #cbd6d0;border-radius:5px;
+ background:#fffefa;box-shadow:0 2px 0 #e1e7dd;
+ color:var(--fj-ink);padding:9px 11px;min-height:57px;
+ display:flex;align-items:center;justify-content:flex-start;gap:11px;
+ font-size:clamp(12px,.94vw,15px);line-height:1.32;font-weight:650;
+ transition:background .12s ease,border-color .12s ease,box-shadow .12s ease;
+}
+.bml-student-editorial .bml-live-response-options button .bml-option-letter{
+ display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;
+ border:1px solid #d9e1d7;border-radius:3px;background:#f1f2ea;
+ color:#37665e;font-family:Georgia,serif;font-size:17px;font-weight:700;
+}
+.bml-student-editorial .bml-live-response-options button .bml-option-copy{
+ display:block;min-width:0;text-align:left;line-height:1.35;
+}
+.bml-student-editorial .bml-live-response-options button:is(:hover,:focus-visible):not(:disabled){
+ border-color:#76a99a;background:#f0f8f1;box-shadow:0 2px 0 #b9d8c5;
+}
+.bml-student-editorial .bml-live-student .bml-live-response-options button[aria-pressed=true],
+.bml-student-editorial .bml-live-response-options button.is-chosen{
+ background:#e6f3e9!important;color:#1d564b!important;
+ border-color:#36806f!important;box-shadow:inset 0 0 0 1px #36806f!important;
+}
+.bml-student-editorial .bml-live-response-options button[aria-pressed=true] .bml-option-letter{
+ background:var(--fj-forest);color:#fffdf5;border-color:var(--fj-forest);
+}
+.bml-student-editorial .bml-live-response-options button:disabled:not([aria-pressed=true]){
+ opacity:.67;background:#f9faf7;box-shadow:none;
+}
+.bml-student-editorial .bml-student-quiz-page-controls{
+ display:grid;grid-template-columns:minmax(95px,1fr) auto minmax(95px,1fr);
+ align-items:center;gap:10px;
+ margin:3px 0 5px;padding:13px 0 0;
+ border-top:1px solid #dddcd2;
+}
+.bml-student-editorial .bml-student-quiz-page-controls button{
+ background:transparent;border:1px solid #c4d3ca;border-radius:4px;
+ min-height:35px;padding:6px 12px;font-size:12px;font-weight:750;
+ color:#345a56;box-shadow:none;
+}
+.bml-student-editorial .bml-student-quiz-page-controls button:last-child{justify-self:end}
+.bml-student-editorial .bml-student-quiz-page-controls button:disabled{opacity:.35}
+.bml-student-editorial .bml-student-quiz-page-controls strong{
+ font-size:12px;color:#34575a;text-align:center;font-weight:750;
+ white-space:nowrap;
+}
+.bml-student-editorial .bml-student-quiz-page-controls strong small{
+ display:inline;font-size:9px;letter-spacing:.11em;color:#a16c53;
+ font-weight:900;margin-right:4px;
+}
+.bml-student-editorial .bml-student-quiz-page-controls strong em{
+ font-style:normal;font-size:11px;color:#668076;
+}
+.bml-student-editorial .bml-live-choice-note{
+ border-radius:3px;border:1px solid #cbded1;background:#f3f7ee;
+ padding:9px 12px;color:#366459;font-size:12px;font-weight:690;
+}
+.bml-student-editorial .bml-live-student .bml-live-actions{
+ margin-top:auto;gap:10px;padding:12px 0 0;
+ border-top:1px solid var(--fj-rule);background:transparent;
+}
+.bml-student-editorial .bml-live-student .bml-live-actions button{
+ border-radius:5px;min-height:47px;
+ font-size:clamp(11px,.86vw,13px);
+ font-weight:800;letter-spacing:.01em;
+}
+.bml-student-editorial .bml-live-student .bml-live-actions .bml-primary{
+ background:var(--fj-forest);border:1px solid var(--fj-forest);
+ box-shadow:0 3px 0 #a9c7b9;color:white;
+}
+.bml-student-editorial .bml-live-student .bml-live-actions .bml-primary:disabled{
+ opacity:.55;filter:saturate(.55);box-shadow:none;
+}
+.bml-student-editorial .bml-live-student .bml-live-actions .bml-outline{
+ background:#fffefa;border:1px solid #b7c9bd;color:#315e55;box-shadow:none;
+}
+.bml-student-editorial .bml-student-action-notice{
+ background:#edf6ed;border:1px solid #b8d6c0;border-radius:4px;
+ color:#335d4e;font-size:11px;padding:8px 10px;margin:1px 0;
+}
+.bml-student-editorial .bml-student-projectrail{gap:12px}
+.bml-student-editorial .bml-student-project-card{
+ background:#fffdfa;border:1px solid #d8d6cd;
+ padding:clamp(14px,1.25vw,19px);gap:10px;
+ box-shadow:2px 4px 0 #d8ddd3;
+}
+.bml-student-editorial .bml-student-project-ribbon{
+ background:transparent;color:var(--fj-rust);
+ border-radius:0;border-bottom:1px solid #e6dbca;
+ padding:0 0 10px;font-size:10px;font-weight:900;
+ letter-spacing:.13em;gap:8px;
+}
+.bml-student-editorial .bml-student-project-ribbon svg{width:17px;height:17px}
+.bml-student-editorial .bml-student-heading h1{
+ font-family:Georgia,"Iowan Old Style",serif;
+ color:#283f43;font-size:clamp(21px,1.65vw,28px);
+ line-height:1.15;letter-spacing:-.025em;font-weight:600;
+ -webkit-line-clamp:3;margin:3px 0;
+}
+.bml-student-editorial .bml-student-heading>p{
+ color:#697b76;font-size:clamp(11px,.82vw,13px);
+ line-height:1.42;-webkit-line-clamp:3;
+}
+.bml-student-editorial .bml-student-heading>small{
+ color:#789089;font-size:10px;line-height:1.35;
+}
+.bml-student-editorial .bml-student-project-art{
+ background:#e8efe7;border:1px solid #d6e2d6;
+ border-radius:4px;padding:11px;min-height:69px;gap:11px;
+}
+.bml-student-editorial .bml-student-project-mark{
+ flex:0 0 44px;height:44px;display:grid;place-items:center;
+ background:#f8f4e7;color:var(--fj-forest);
+ border:1px solid #c8d9c3;border-radius:3px;
+}
+.bml-student-editorial .bml-student-project-art>div{display:grid;gap:2px;min-width:0}
+.bml-student-editorial .bml-student-project-art small{
+ font-size:9px;letter-spacing:.12em;font-weight:900;color:#648075;
+}
+.bml-student-editorial .bml-student-project-art strong{
+ color:#2e524e;font-size:clamp(12px,.86vw,15px);
+ line-height:1.25;font-weight:750;
+}
+.bml-student-editorial .bml-student-project-meter{margin-top:6px;color:#47615c}
+.bml-student-editorial .bml-student-project-meter strong{color:#49605a;font-size:12px}
+.bml-student-editorial .bml-student-project-meter span{
+ font-family:Georgia,serif;color:var(--fj-forest);font-size:21px;
+}
+.bml-student-editorial .bml-student-project-meter>div{
+ border-radius:0;height:6px;background:#e7e7de;
+}
+.bml-student-editorial .bml-student-project-meter i{
+ background:var(--fj-forest);border-radius:0;
+}
+.bml-student-editorial .bml-student-project-preview{
+ min-height:40px;border-radius:4px;color:var(--fj-forest);
+ font-weight:760;font-size:12px;box-shadow:none;
+ background:transparent;border:1px solid #c0d1c5;
+}
+.bml-student-editorial .bml-student-real-data-note{font-size:10px;color:#788781}
+.bml-student-editorial .bml-student-projectrail>.bml-student-guide{
+ background:#f6f0e2;border:1px solid #e0d6c0;
+ padding:14px;flex:0 1 auto;max-height:31%;
+ box-shadow:2px 3px 0 #ddd9cb;
+}
+.bml-student-editorial .bml-student-guide .bml-guide-circle{
+ background:transparent;border:1px solid #d3bd95;
+ border-radius:4px;color:#aa7445;width:28px;height:28px;
+}
+.bml-student-editorial .bml-student-guide h3{
+ font-family:Georgia,serif;color:#3c514b;
+ font-size:clamp(15px,1.03vw,18px);
+ margin:5px 0;font-weight:600;
+}
+.bml-student-editorial .bml-student-guide p{
+ color:#6a7469;line-height:1.32;font-size:11px;
+ -webkit-line-clamp:2;margin:4px 0;
+}
+.bml-student-editorial .bml-student-guide .bml-english-chip{
+ background:transparent;border:0;border-bottom:1px dashed #d5cbb8;
+ border-radius:0;font-weight:650;color:#526b5e;
+ padding:4px 1px;margin:1px 0;font-size:10px;
+}
+.bml-student-editorial .bml-student-task.bml-surface{
+ background:var(--fj-page);border:0;border-radius:5px;
+ padding:clamp(17px,1.5vw,25px);
+}
+.bml-student-editorial .bml-student-task>h2{
+ font-family:Georgia,serif;color:#2d4448;
+ font-weight:600;font-size:clamp(21px,1.7vw,28px);
+}
+.bml-student-editorial .bml-student-task>.bml-overline{
+ color:var(--fj-rust);letter-spacing:.13em;font-size:10px;
+}
+.bml-student-editorial .bml-student-task label{
+ color:#3c605d;font-weight:750;
+}
+.bml-student-editorial .bml-student-task :is(input:not([type=checkbox]),textarea){
+ background:#fffefa;border:1px solid #c8d5ca;border-radius:5px;
+ color:#283f43;font-size:clamp(13px,.92vw,16px);
+}
+.bml-student-editorial .bml-student-subpages button{
+ background:#f5f4eb;color:#395f54;border:1px solid #c9d7ca;
+ border-radius:4px;font-weight:760;font-size:11px;
+}
+.bml-student-editorial .bml-student-subpages button[aria-current=page]{
+ background:var(--fj-forest);border-color:var(--fj-forest);
+}
+.bml-student-editorial .bml-student-bottom{
+ border-top:1px solid var(--fj-rule)!important;
+}
+.bml-student-editorial .bml-student-bottom .bml-primary,
+.bml-student-editorial .bml-student-task>.bml-primary{
+ border-radius:4px;background:var(--fj-forest);
+ border-color:var(--fj-forest);
+}
+.bml-student-editorial .bml-student-bottom .bml-outline,
+.bml-student-editorial .bml-student-bottom .bml-text-btn{
+ border-radius:4px;color:#365e54;
+}
+.bml-student-editorial .bml-student-detail-overlay{
+ background:rgba(24,48,49,.74);
+}
+.bml-student-editorial .bml-student-detail-window{
+ background:#fffcf5;border:3px solid #e7e5d9;border-radius:8px;
+}
+.bml-student-editorial button:focus-visible,
+.bml-student-editorial input:focus-visible,
+.bml-student-editorial textarea:focus-visible{
+ outline:3px solid #ce974e;outline-offset:2px;
+}
+@media(max-height:750px) and (min-width:1000px){
+ .bml-student-editorial .bml-student-content{
+  grid-template-rows:74px minmax(0,1fr);
+  padding:8px 10px 10px;gap:9px;
+ }
+ .bml-student-editorial .bml-student-paper-note{padding:9px;gap:3px}
+ .bml-student-editorial .bml-student-toolrail{gap:6px;padding:10px}
+ .bml-student-editorial .bml-student-rail-tools button{min-height:35px}
+ .bml-student-editorial .bml-student-pane>.bml-live-student{padding:13px 16px;gap:8px}
+ .bml-student-editorial .bml-live-student-question{padding:8px 10px 8px 13px}
+ .bml-student-editorial .bml-live-student .bml-live-response-options button{min-height:47px}
+ .bml-student-editorial .bml-live-student .bml-live-actions{padding-top:7px}
+ .bml-student-editorial .bml-student-project-card{padding:11px;gap:6px}
+ .bml-student-editorial .bml-student-projectrail>.bml-student-guide{padding:10px}
+}
+@media(max-width:999px){
+ .bml.bml-student-canvas16.bml-student-editorial{
+  background:var(--fj-linen)!important;
+ }
+ .bml-student-editorial .bml-student-bar{
+  min-height:58px;max-height:none;height:auto;
+ }
+ .bml-student-editorial .bml-student-content{
+  padding:12px;display:block;overflow:visible;
+ }
+ .bml-student-editorial .bml-student-focus{
+  display:block;margin-bottom:13px;padding:13px;
+ }
+ .bml-student-editorial .bml-student-focus-head{padding-left:7px}
+ .bml-student-editorial .bml-student-steps{
+  display:flex;overflow-x:auto;padding:0 0 4px;margin:12px 0 0;
+ }
+ .bml-student-editorial .bml-student-steps button{flex:0 0 112px}
+ .bml-student-editorial .bml-student-workbench{
+  display:flex;flex-direction:column;gap:12px;height:auto;
+ }
+ .bml-student-editorial .bml-student-toolrail{display:block;background:var(--fj-deep)}
+ .bml-student-editorial .bml-student-paper-note{max-height:none;margin-bottom:10px}
+ .bml-student-editorial .bml-student-view-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .bml-student-editorial .bml-student-rail-tools{
+  grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:5px;
+ }
+ .bml-student-editorial .bml-student-primary{min-height:460px}
+ .bml-student-editorial .bml-student-pane>.bml-live-student{height:auto;max-height:none}
+ .bml-student-editorial .bml-student-projectrail{flex-direction:row}
+ .bml-student-editorial .bml-student-project-card{min-height:240px}
+ .bml-student-editorial .bml-student-projectrail>.bml-student-guide{max-height:none}
+}
+@media(max-width:620px){
+ .bml-student-editorial .bml-brand strong{font-size:14px}
+ .bml-student-editorial .bml-group-pill{font-size:10px;padding:5px 7px}
+ .bml-student-editorial .bml-student-workbench{gap:10px}
+ .bml-student-editorial .bml-student-rail-tools{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .bml-student-editorial .bml-live-student .bml-live-response-options{grid-template-columns:1fr}
+ .bml-student-editorial .bml-live-student .bml-live-response-options button{min-height:53px}
+ .bml-student-editorial .bml-student-pane>.bml-live-student{padding:15px}
+ .bml-student-editorial .bml-student-projectrail{flex-direction:column}
+ .bml-student-editorial .bml-student-projectrail>.bml-student-guide{display:block}
+ .bml-student-editorial .bml-student-quiz-page-controls{
+  grid-template-columns:1fr 1fr;gap:8px;
+ }
+ .bml-student-editorial .bml-student-quiz-page-controls strong{
+  grid-row:1;grid-column:1/-1;
+ }
+ .bml-student-editorial .bml-student-quiz-page-controls button{grid-row:2}
+ .bml-student-editorial .bml-student-quiz-page-controls button:last-child{justify-self:stretch}
+ .bml-student-editorial .bml-student-quiz-page-controls button:first-child{justify-self:stretch}
+}
+@media(prefers-reduced-motion:reduce){
+ .bml-student-editorial *,.bml-student-editorial *:before,.bml-student-editorial *:after{
+  animation:none!important;transition:none!important;
+ }
+}
