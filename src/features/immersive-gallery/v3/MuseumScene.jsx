@@ -2,6 +2,9 @@ import React,{Suspense,lazy,useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,Box,ChevronLeft,ChevronRight,Eye,FileText,Info,LayoutGrid,MapPin,Maximize2,Minimize2,X,Image as ImageIcon,Leaf,Globe2} from 'lucide-react';
 import '../gallery.css';
 import {exhibitInsights,exhibitField} from './museumExhibitInsights.js';
+import {projectAuthorizedEvidence,buildExhibitFocusBoard} from './museumExhibitFocusData.js';
+import {FOCUS_INITIAL,focusReducer} from './museumExhibitFocusMotion.js';
+import './museumExhibitFocus.css';
 import './museumExhibitLens.css';
 import './museumPaper2D.css';
 import './museumCinemaPreview.css';
@@ -34,6 +37,7 @@ export function reviewMuseum(review,assets=[]){
   title:raw.title||'English Museum',
   summary:raw.summary||'Private review draft — not published',
   status:review?.state||'draft',
+  ...projectAuthorizedEvidence(raw),
   rooms:(raw.rooms||[]).map((r,i)=>({
    id:'review-room-'+i,title:r.title||'Room '+(i+1),
    template_key:r.template_key||'classic',
