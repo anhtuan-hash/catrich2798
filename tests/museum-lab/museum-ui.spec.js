@@ -1418,8 +1418,12 @@ test('Student Creator V6 layered-paper skin stays readable and interactive acros
 
 test('Student Creator 2D Paper exhibit displays actual uploaded photos and remains interactive',async({page,isMobile},testInfo)=>{
  if(isMobile)return;
+ await page.addInitScript(()=>{
+  window.__museumTextureReady=0;
+  document.addEventListener('bml:museum-texture-ready',()=>{window.__museumTextureReady++;});
+ });
  await page.setViewportSize({width:1536,height:960});
- const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGN0m5bHwMDAxMDAwMDAAAAPegFOmdI+tQAAAABJRU5ErkJggg==';
+ const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAYCAIAAAB8wupbAAAAR0lEQVR4nGPkjXZlIAUwkaSaLhoY/3++QJIGFgYGhitRtWiiOsuaGRgY1Fvfo4nfrBYchJ4e1TBSNJCcvBmvL7YnScMg9DQAQV4OGRjRfFEAAAAASUVORK5CYII=';
  const assetIds=['aaa00000-0000-4000-8000-000000000001','aaa00000-0000-4000-8000-000000000002','aaa00000-0000-4000-8000-000000000003'];
  const artNames=['uploaded-classroom.png','uploaded-survey.png','uploaded-switch.png'];
  const uploaded=assetIds.map((id,i)=>({id,original_name:artNames[i],image_url:png,width:1,height:1}));
@@ -1496,7 +1500,7 @@ test('Student Creator 2D Paper exhibit displays actual uploaded photos and remai
  await viewer.getByRole('button',{name:'View full original poster: The Problem'}).click();
  const original=page.getByTestId('museum-original-poster-dialog');
  await expect(original).toBeVisible();
- await expect(original.getByTestId('museum-original-poster')).toHaveJSProperty('naturalWidth',2);
+ await expect(original.getByTestId('museum-original-poster')).toHaveJSProperty('naturalWidth',16);
  expect(await original.locator('img').evaluate(el=>getComputedStyle(el).objectFit)).toBe('contain');
  await page.keyboard.press('Escape');
  await expect(original).toHaveCount(0);
@@ -1553,6 +1557,7 @@ test('Student Creator 2D Paper exhibit displays actual uploaded photos and remai
   expect(metrics.h/viewport.height).toBeGreaterThan(.87);
   expect(metrics.sw/metrics.w).toBeGreaterThan(.96);
   expect(metrics.sh/metrics.h).toBeGreaterThan(.88);
+  await expect.poll(()=>page.evaluate(()=>window.__museumTextureReady||0),{timeout:15000}).toBeGreaterThanOrEqual(3);
   await page.screenshot({path:testInfo.outputPath('museum-v4-cinema-'+viewport.width+'x'+viewport.height+'.png'),fullPage:false});
  }
  // Fullscreen toggles an actual browser Fullscreen API request where permitted,

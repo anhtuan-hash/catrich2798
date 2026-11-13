@@ -39,19 +39,26 @@ function DisplayLettering({main,sub,position,size=[8.5,.69],light=false}){
 function SchoolCrest(){
  const crest=useTexture('/museum/branding/petrus-ky-original.png');
  useEffect(()=>{crest.colorSpace=THREE.SRGBColorSpace;crest.anisotropy=4;crest.needsUpdate=true;},[crest]);
- return <group position={[-5.38,4.75,-8.002]}>
-  <mesh position={[0,0,-.025]}>
-   <boxGeometry args={[.91,1.05,.10]}/>
-   <meshStandardMaterial color="#F9F8E9" metalness={.04} roughness={.70}/>
+ // The previous wall-mounted crest sat BEHIND the central sign board
+ // (z=-8.002). Mount the original asset on the sign's front-left plaque.
+ // Leave enough room for the wordmark; never hide or redraw its artwork.
+ return <group name="SchoolCrestV4" position={[-4.72,4.74,-7.68]}>
+  <mesh position={[0,0,-.045]}>
+   <boxGeometry args={[.88,.92,.11]}/>
+   <meshStandardMaterial color="#F9F8F0" metalness={.06} roughness={.64}/>
   </mesh>
-  <mesh position={[0,0,.043]}>
-   <planeGeometry args={[.73,.9]}/>
+  <mesh position={[0,0,.025]}>
+   <planeGeometry args={[.67,.80]}/>
    <meshBasicMaterial map={crest} transparent toneMapped={false} side={THREE.DoubleSide} depthWrite={false}/>
+  </mesh>
+  <mesh position={[0,-.43,.04]}>
+   <boxGeometry args={[.70,.013,.014]}/>
+   <meshStandardMaterial color="#D6B660" metalness={.42} roughness={.36}/>
   </mesh>
  </group>;
 }
 function Skylight({lite}){
- const arcs=useMemo(()=>[-6.7,-4.4,-2.1,.2,2.5].map(z=>{
+ const arcs=useMemo(()=>[-7.4,-6.25,-5.1,-3.95,-2.8].map(z=>{
   const curve=new THREE.CatmullRomCurve3([
    new THREE.Vector3(-5.7,5.54,z),
    new THREE.Vector3(-3.7,5.99,z),
@@ -63,19 +70,19 @@ function Skylight({lite}){
  }),[lite]);
  return <group>
   {/* Elliptical translucent skylight with dimensional wood ribs */}
-  <mesh position={[0,5.92,-2.45]} rotation={[-Math.PI/2,0,0]} scale={[1.38,.74,1]}>
+  <mesh position={[0,5.73,-5.15]} rotation={[-Math.PI/2,0,0]} scale={[1.38,.74,1]}>
    <circleGeometry args={[4.08,72]}/>
    <meshStandardMaterial color="#F5F7EA" emissive="#E7EBD5" emissiveIntensity={.22}
     roughness={.65} transparent opacity={.78} side={THREE.DoubleSide}/>
   </mesh>
-  <mesh position={[0,5.89,-2.45]} rotation={[-Math.PI/2,0,0]} scale={[1.38,.74,1]}>
+  <mesh position={[0,5.72,-5.15]} rotation={[-Math.PI/2,0,0]} scale={[1.38,.74,1]}>
    <torusGeometry args={[4.14,.125,10,84]}/>
    <meshStandardMaterial color="#B99A6F" metalness={.12} roughness={.62}/>
   </mesh>
   {arcs.map((g,i)=><mesh key={i} geometry={g}>
    <meshStandardMaterial color={i%2?'#9D754B':'#B59368'} metalness={.08} roughness={.68}/>
   </mesh>)}
-  {!lite?[-5.5,-3.1,-.7,1.7].map(z=><group key={z}>
+  {!lite?[-6.8,-5.4,-4.0,-2.6].map(z=><group key={z}>
    <mesh position={[0,5.72,z]}>
     <boxGeometry args={[10,.07,.055]}/>
     <meshBasicMaterial color="#FFF1C4"/>

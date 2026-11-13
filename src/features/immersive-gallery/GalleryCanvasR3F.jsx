@@ -37,7 +37,12 @@ function ArtworkImage({assetId,imageUrl,schoolEdition=false,cinemaEdition=false}
     if(!alive)return;
     new THREE.TextureLoader().load(url,t=>{
       created=t;t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=2;
-      if(alive)setTexture(t);else t.dispose();
+      if(alive){
+       setTexture(t);
+       // Private photo URL is never sent to telemetry/logs; signal only that
+       // WebGL has decoded the actual student artwork texture for visual QA.
+       document.dispatchEvent(new Event('bml:museum-texture-ready'));
+     }else t.dispose();
     },undefined,()=>{if(alive)setTexture(null);});
   }).catch(()=>{if(alive)setTexture(null);});
   return()=>{alive=false;if(created)created.dispose();};
@@ -131,7 +136,7 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
   // R3F default cameras look at the scene origin; a closer camera can then face
   // AWAY from the actual art wall. Set a known school-gallery orientation.
   if(!schoolEdition)return;
-  yaw.current=0;pitch.current=-.025;
+  yaw.current=0;pitch.current=cinemaEdition?.075:-.025;
   camera.rotation.order='YXZ';
   camera.rotation.set(pitch.current,yaw.current,0);
   camera.updateMatrixWorld();
@@ -147,7 +152,7 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
  useEffect(()=>{
   if(!cinemaEdition||!viewPreset)return;
   const destination=viewPreset.type==='artwork'?
-   [viewPreset.x??0,1.9,-4.42]:[0,1.92,viewPreset.type==='room'?1.55:-1.17];
+   [viewPreset.x??0,1.95,-3.56]:[0,1.96,viewPreset.type==='room'?2.3:1.3];
   const reduce=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   tween.current={from:camera.position.clone(),to:new THREE.Vector3(...destination),
    elapsed:0,duration:reduce?0:(viewPreset.type==='artwork'?.62:.82)};
@@ -189,7 +194,7 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
     const ratio=t.duration===0?1:Math.min(1,t.elapsed/t.duration);
     const ease=ratio*ratio*(3-2*ratio);
     camera.position.lerpVectors(t.from,t.to,ease);
-    if(cinemaEdition){yaw.current=0;pitch.current=-.06;camera.rotation.set(pitch.current,yaw.current,0,'YXZ');}
+    if(cinemaEdition){yaw.current=0;pitch.current=.075;camera.rotation.set(pitch.current,yaw.current,0,'YXZ');}
     if(ratio>=1)tween.current=null;
     else invalidate();
    }
@@ -241,7 +246,7 @@ function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=fa
 export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelect,selectedId='',quality='auto',language='vi',schoolEdition=false,cinemaEdition=false}) {
  const held=useRef(new Set());
  const narrow=typeof window!=='undefined'&&window.matchMedia?.('(max-width:700px)').matches;
- const startingZ=cinemaEdition?(narrow?1.5:-1.17):schoolEdition?(narrow?2.5:-1.6):4.7;
+ const startingZ=cinemaEdition?(narrow?2.2:1.3):schoolEdition?(narrow?2.5:-1.6):4.7;
  const [teleport,setTeleport]=useState(null),[viewPreset,setViewPreset]=useState(null),[pos,setPos]=useState([0,startingZ]),[supported,setSupported]=useState(null);
  const mode=useLiteQuality(quality);
  useEffect(()=>{
@@ -261,7 +266,7 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
  return <div className={'big-webgl-shell '+(schoolEdition?'big-pek-museum ':'')+(cinemaEdition?'big-pek-v4':'')} data-testid={schoolEdition?'pek-discovery-hall':undefined}
   aria-label={schoolEdition?(language==='en'?'Pétrus Ký-inspired Discovery Museum 3D':'Bảo tàng 3D lấy cảm hứng từ Trường Pétrus Ký'):undefined}>
   {supported===false?<div role="alert" className="big-canvas-error">{language==='en'?'WebGL unavailable. Use the 2D exhibit list.':'Thiết bị không hỗ trợ WebGL. Hãy sử dụng danh sách hiện vật 2D.'}</div>:supported===null?<div className="big-canvas-loading">Preparing 3D exhibition…</div>:<Suspense fallback={<div className="big-canvas-loading">Loading original 3D art…</div>}>
-   <Canvas camera={{position:[0,cinemaEdition?1.92:1.77,startingZ],fov:cinemaEdition?52:schoolEdition?59:61,near:0.08,far:55}} dpr={mode==='lite'?1:mode==='high'?[1,1.75]:[1,1.35]}
+   <Canvas camera={{position:[0,cinemaEdition?1.92:1.77,startingZ],fov:cinemaEdition?55:schoolEdition?59:61,near:0.08,far:55}} dpr={mode==='lite'?1:mode==='high'?[1,1.75]:[1,1.35]}
     frameloop="demand" gl={{antialias:mode!=='lite',powerPreference:'low-power',alpha:false}} onCreated={({gl})=>{gl.setClearColor('#f2f0e9');}}>
     <CameraResizeSync/>
     <Room template={template} exhibits={exhibits} onSelect={onSelect} selectedId={selectedId} onTeleport={onTeleport}
