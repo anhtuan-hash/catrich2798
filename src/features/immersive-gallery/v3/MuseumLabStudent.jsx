@@ -5,6 +5,7 @@ import {guestRequest,fmtTime,englishSystemGroupLabel} from './museumApi.js';
 import {liveGuest} from './museumLiveApi.js';
 import {stageMediaTools} from './museumLiveExtensions.js';
 import {wordCount,evidenceMissing,changedExhibits} from './learningEvidence.js';
+import {canSaveMuseumDraft,canSubmitMuseumProject} from './museumSubmissionPolicy.js';
 import MuseumScene from './MuseumScene.jsx';
 import MuseumLiveStudent from './MuseumLiveStudent.jsx';
 import MuseumArtworkStudio from './MuseumArtworkStudio.jsx';
@@ -71,7 +72,7 @@ export default function MuseumLabStudent({language='en'}){
  const stageIndex=liveInfo?.stageIndex??-1;
  // Group work is independent of the gated Teacher Live response.
  const maxStudentStep=4;
- const stageEditAllowed=!liveRunning||liveInfo.status==='active';
+ const stageEditAllowed=canSaveMuseumDraft(liveInfo);
  // Group production defaults to the workbench; voting, quizzes and reflection use Live.
  // Keep both panes mounted to preserve unsent answers when switching views.
  useEffect(()=>{
@@ -163,7 +164,7 @@ export default function MuseumLabStudent({language='en'}){
  return <main className="bml bml-student-shell bml-student-canvas16 bml-student-editorial" data-testid="museum-student-wizard" lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
   <header className="bml-student-bar"><div className="bml-brand"><span className="bml-brand-icon"><Landmark size={23}/></span><span><strong>BRIAN Museum Lab</strong><small>Student Creator</small></span></div>
    <div className="bml-student-right"><span className="bml-group-pill"><Users size={16}/>{language==='en'?englishSystemGroupLabel(session.groupLabel):session.groupLabel} · {session.assignment.class_scope}</span>
-    <span className={'bml-save-indicator bml-save-'+saveState}>{saveState==='saved'?<><Cloud size={16}/>{T(language,'Đã lưu','Saved')}</>:
+    <span className={'bml-save-indicator bml-save-'+saveState} title={T(language,'Đã lưu bản nháp chưa có nghĩa là đã nộp bảo tàng.','Saved draft does not mean the museum project was submitted.')}>{saveState==='saved'?<><Cloud size={16}/>{T(language,'Đã lưu','Saved')}</>:
       saveState==='saving'?<><CloudUpload size={16}/>{T(language,'Đang lưu…','Saving…')}</>:<><CloudAlert size={16}/>{T(language,'Cần xử lý','Action needed')}</>}</span>
     <button type="button" className="bml-outline" onClick={logout}>{T(language,'Thoát','Exit')}</button></div></header>
   <div className="bml-student-content">
@@ -173,8 +174,7 @@ export default function MuseumLabStudent({language='en'}){
      <strong>{T(language,'Sổ tay triển lãm','Your museum workshop')}</strong>
      <span className="bml-student-focus-stage" role="status">
       <span className={liveRunning&&liveInfo?.stageOpen?'bml-focus-dot is-open':'bml-focus-dot'}/>
-      {liveRunning?
-       T(language,'Hoạt động','Activity')+' '+(stageIndex+1)+'/11 · '+(liveInfo?.stage?.title||'Teacher Live'):
+      {liveInfo?.status==='ended'?T(language,'Buổi học đã kết thúc · Dự án vẫn mở','Lesson completed · Museum project remains open'):liveRunning?T(language,'Hoạt động','Activity')+' '+(stageIndex+1)+'/11 · '+(liveInfo?.stage?.title||'Teacher Live'):
        T(language,'Đang chờ giáo viên bắt đầu · Có thể xem sản phẩm nhóm','Waiting for teacher · Group workspace available')}
      </span>
     </div>
@@ -196,8 +196,7 @@ export default function MuseumLabStudent({language='en'}){
      <button data-testid="student-tab-live" type="button" aria-pressed={studentView==='live'}
       className={studentView==='live'?'is-active':''} onClick={()=>setStudentView('live')}>
       <BookOpen size={20}/><span><strong>{T(language,'Hoạt động hiện tại','Current activity')}</strong>
-       <small>{liveRunning?
-        (liveInfo?.stageOpen?T(language,'Đang mở · Tham gia ngay','Open · Join now'):T(language,'Đang chờ giáo viên','Waiting for teacher')):
+       <small>{liveInfo?.status==='ended'?T(language,'Đã kết thúc · Xem Exit Ticket','Lesson completed · View Exit Ticket'):liveRunning?(liveInfo?.stageOpen?T(language,'Đang mở · Tham gia ngay','Open · Join now'):T(language,'Đang chờ giáo viên','Waiting for teacher')):
         T(language,'Theo nhịp bài dạy','Follow the lesson')}</small></span>
      </button>
      <button data-testid="student-tab-studio" type="button" aria-pressed={studentView==='studio'}
@@ -234,7 +233,8 @@ export default function MuseumLabStudent({language='en'}){
      <button type="button" className="bml-outline" disabled={locked} onClick={()=>edit(d=>({...d,legacy:false,legacyOriginal:null}))}>{T(language,'Tôi đã kiểm tra · Chuyển sang mẫu mới','Reviewed · Convert to V3')}</button>
     </div></div>:null}
    {liveRunning&&!stageEditAllowed&&!groupLocked?<div className="bml-banner bml-warning-banner" role="status">
-    {T(language,'Buổi học đang tạm dừng hoặc kết thúc. Chưa thể chỉnh sửa bản nháp.','The lesson is paused or ended. Editing is temporarily unavailable.')}</div>:null}
+    {T(language,'Buổi học đang tạm dừng hoặc kết thúc. Chưa thể chỉnh sửa bản nháp.','The live lesson is paused. Editing is temporarily unavailable.')}</div>:null}
+   {liveInfo?.status==='ended'&&!groupLocked?<div className="bml-banner bml-info-banner" role="status"><CheckCircle2 size={18}/>{T(language,'Buổi học đã kết thúc. Dự án vẫn có thể hoàn thiện và nộp trước hạn.','Lesson completed. You can edit and submit your museum project before the deadline.')}</div>:null}
    {liveRunning&&stageIndex<3&&!groupLocked&&stageEditAllowed?<div className="bml-banner bml-info-banner bml-student-early-edit" role="status">
     {T(language,'Nhóm có thể soạn và tự lưu sản phẩm ngay. Để trả lời câu hỏi trực tiếp, mở Current activity.','You can create and autosave your project now. Use Current activity to answer the live question.')}</div>:null}
    <div className="bml-student-stage"><div className="bml-student-task bml-surface"><div className="bml-overline">{T(language,'BƯỚC','STEP')} {step+1} / 5</div>
@@ -333,7 +333,7 @@ export default function MuseumLabStudent({language='en'}){
        [!!l.reflection,'Phản ánh học tập','Learning reflection']
       ].map(([ok,vi,en],i)=><div key={i} className={ok?'is-done':'is-pending'}><span>{ok?<Check size={16}/>:i+1}</span>{T(language,vi,en)}</div>)}
      </div>
-     <button type="button" disabled={busy||locked||studio.legacy||conflict||saveState==='saving'||(liveRunning&&stageIndex!==10)} className="bml-primary bml-full-button"
+     <button type="button" disabled={busy||locked||studio.legacy||conflict||saveState==='saving'||!canSubmitMuseumProject(liveInfo)} className="bml-primary bml-full-button"
       onClick={submit}><Send size={19}/>{busy?T(language,'Đang nộp bài…','Submitting…'):T(language,'Nộp để giáo viên duyệt','Submit for Admin review')}</button>
     </>:null}
     {error?<div className="bml-banner bml-danger-banner" role="alert"><CloudAlert size={19}/>{error}
