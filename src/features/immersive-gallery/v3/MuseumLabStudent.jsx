@@ -24,7 +24,7 @@ import './museumStudentScrollFix.css';
 import './museumStudentScrapbookV6.css';
 import './museumSubmissionFix.css';
 import './museumDashboardBanner.css';
-import './museumStudentEntryRibbon.css';
+
 const T=(lang,vi,en)=>lang==='en'?en:vi;
 const getHandle=()=>{
  try{const raw=new URLSearchParams(window.location.hash.split('?')[1]||'').get('invite')||'';return raw.match(/^[A-Za-z0-9_-]{16,80}/)?.[0]||raw.slice(0,80);}catch{return '';}
