@@ -16,11 +16,11 @@ export default function MuseumExhibitInfoPlaque({board,position=[1.69,2.35,-3.43
    <boxGeometry args={[plaqueWidth,plaqueHeight,.05]}/>
    <meshStandardMaterial color="#FFF9EB" metalness={.02} roughness={.91}/>
   </mesh>
-  <mesh position={[0,-plaqueHeight/2-.45,-.04]} castShadow>
-   <cylinderGeometry args={[.055,.07,.92,14]}/>
+  <mesh position={[0,-plaqueHeight/2-.58,-.04]} castShadow>
+   <cylinderGeometry args={[.055,.07,1.10,14]}/>
    <meshStandardMaterial color="#AF8B3F" metalness={.52} roughness={.4}/>
   </mesh>
-  <mesh position={[0,-plaqueHeight/2-.93,-.03]} castShadow>
+  <mesh position={[0,-plaqueHeight/2-1.15,-.03]} castShadow>
    <cylinderGeometry args={[.32,.37,.12,22]}/>
    <meshStandardMaterial color="#B0914D" metalness={.42} roughness={.45}/>
   </mesh>
