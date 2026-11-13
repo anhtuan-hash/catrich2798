@@ -90,8 +90,8 @@ export default function MuseumScene({gallery,onBack,language='vi',embedded=false
      <p>{clean(gallery?.summary,350)}</p></div>
    </div>
    <div className="bml-scene-switch" aria-label={tr('Chế độ xem','View mode')}>
-    <button type="button" className={!threeD?'is-active':''} onClick={()=>setThreeD(false)}><LayoutGrid size={16}/> 2D</button>
-    <button type="button" className={threeD?'is-active':''} onClick={()=>setThreeD(true)}><Box size={16}/> 3D</button>
+    <button type="button" aria-pressed={!threeD} className={!threeD?'is-active':''} onClick={()=>setThreeD(false)}><LayoutGrid size={16}/> 2D</button>
+    <button type="button" aria-pressed={threeD} className={threeD?'is-active':''} onClick={()=>setThreeD(true)}><Box size={16}/> 3D</button>
    </div>
   </header>:null}
   {rooms.length?<>
