@@ -22,12 +22,12 @@ test('English-only student route shows only English access, privacy and passcode
  await expect(entry.getByText('No account needed')).toBeVisible();
  await expect(entry.getByLabel('Invitation code')).toBeVisible();
  await expect(entry.getByLabel('Private group passcode')).toBeVisible();
- expect((await entry.innerText())).not.toMatch(/[à-ỹÀ-ỸđĐ]/u);
+ expect((await entry.innerText())).not.toMatch(/[àáạảãăằắặẳẵâầấậẩẫèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃĂẰẮẶẲẴÂẦẤẬẨẪÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/u);
 });
 test('English-only teacher, lesson wizard, reviews and dossier show translated UI',async({page})=>{
  const assertOnlyEnglish=async()=>{
   const visible=await page.locator('.bml').first().innerText();
-  expect(visible).not.toMatch(/[à-ỹÀ-ỸđĐ]/u);
+  expect(visible).not.toMatch(/[àáạảãăằắặẳẵâầấậẩẫèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃĂẰẮẶẲẴÂẦẤẬẨẪÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/u);
  };
 
  await page.getByTestId('qa-teacher-live-en').click();
@@ -66,13 +66,13 @@ test('English-only group workspace shows no Vietnamese UI in all five project st
    for(const index of step===1?[0,1]:[0,1,2]){
     await app.locator('.bml-student-subpages button').nth(index).click();
     const visible=await app.innerText();
-    expect(visible).not.toMatch(/[à-ỹÀ-ỸđĐ]/u);
+    expect(visible).not.toMatch(/[àáạảãăằắặẳẵâầấậẩẫèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃĂẰẮẶẲẴÂẦẤẬẨẪÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/u);
    }
   }
   const visible=await app.innerText();
-  expect(visible).not.toMatch(/[à-ỹÀ-ỸđĐ]/u);
+  expect(visible).not.toMatch(/[àáạảãăằắặẳẵâầấậẩẫèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃĂẰẮẶẲẴÂẦẤẬẨẪÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/u);
   const placeholders=await app.locator('input,textarea').evaluateAll(elements=>elements.map(x=>x.placeholder||'').join(' '));
-  expect(placeholders).not.toMatch(/[à-ỹÀ-ỸđĐ]/u);
+  expect(placeholders).not.toMatch(/[àáạảãăằắặẳẵâầấậẩẫèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃĂẰẮẶẲẴÂẦẤẬẨẪÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/u);
  }
 });
 test('the no-account entry is an understandable, keyboard-accessible form',async({page})=>{
