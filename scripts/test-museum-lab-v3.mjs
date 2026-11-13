@@ -107,6 +107,8 @@ test('ended Teacher Live leaves a valid museum assignment writable',()=>{
  assert.match(student,/canSubmitMuseumProject\(liveInfo\)/);
  assert.match(student,/Lesson completed/);
  assert.match(backend,/guestContext\(req,admin,\{write:true\}\)/);
+ const artwork=fs.readFileSync('serverless-handlers/museum-artwork.js','utf8');
+ assert.match(artwork,/!canSaveMuseumDraft\(live\)/);
 });
 test('Exit Tickets and museum submissions are counted separately',()=>{
  const api=fs.readFileSync('serverless-handlers/gallery-staff.js','utf8');
