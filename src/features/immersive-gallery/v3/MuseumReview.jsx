@@ -66,10 +66,13 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,query='',la
   try{
    const total=scoreRubric(initialScores);
    await staffRequest('grade-rubric',{reviewId:selected.id,scores:initialScores,feedback:note});
-   await onRefresh();setSuccess(tr(language,'Đã lưu rubric: ','Rubric saved: ')+total+'/100');
+   // A failed dashboard refresh must not be confused with a failed score save.
+   setSuccess(tr(language,'Đã lưu rubric: ','Rubric saved: ')+total+'/100');
+   try{await onRefresh();}
+   catch{setError(tr(language,'Điểm đã lưu nhưng chưa thể làm mới danh sách. Tải lại trang để kiểm tra.','The rubric was saved, but the list could not refresh. Reload to verify.'));}
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
- const open=r=>{setSelectedId(r.id);setNote('');setError('');setSuccess('');setPreview(false);setReviewArtAssets([]);setScores({});};
+ const open=r=>{setSelectedId(r.id);setNote(data?.rubrics?.find(row=>row.review_id===r.id)?.feedback||'');setError('');setSuccess('');setPreview(false);setReviewArtAssets([]);setScores({});};
  return <div className="bml-screen" data-testid="museum-review-desk">
   <div className="bml-heading-actions"><div><div className="bml-overline">{tr(language,'ĐÁNH GIÁ HỌC TẬP','LEARNING ASSESSMENT')}</div>
    <h1>{tr(language,'Bài nộp của học sinh','Student submissions')}</h1>

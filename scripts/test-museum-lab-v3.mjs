@@ -5,6 +5,7 @@ import {LESSON_KITS,RUBRIC,STEPS,emptyStudio,normalizeStudio,documentFromStudio,
 import {normalizeGuestDraft} from '../src/features/immersive-gallery/creatorPassPolicy.js';
 import {canSaveMuseumDraft,canSubmitMuseumProject} from '../src/features/immersive-gallery/v3/museumSubmissionPolicy.js';
 import {buildStudentMuseumPreview} from '../src/features/immersive-gallery/v3/museumPreviewImages.js';
+import {canGradeReviewState,GRADEABLE_REVIEW_STATES} from '../serverless-handlers/_museumRubricPolicy.js';
 
 test('new student workflow has exactly five coherent STEAM steps',()=>{
  assert.deepEqual(STEPS.map(s=>s.key),['understand','plan','create','test','submit']);
@@ -369,4 +370,22 @@ test('student voice guidance is deterministic for 11 open activities and five pr
  assert.match(component,/Replay activity guidance/);
  assert.match(student,/<MuseumStudentVoiceGuide cue=\{narrationCue\}\/>/);
  assert.match(student,/setLiveReady\(true\)/);
+});
+
+test('published and approved museum submissions retain independent Admin rubric grading',()=>{
+ assert.deepEqual(GRADEABLE_REVIEW_STATES,['submitted','ttcm_review','approved_locked','published']);
+ for(const state of GRADEABLE_REVIEW_STATES)assert.equal(canGradeReviewState(state),true,state);
+ for(const state of ['editing','changes_requested','rejected','archived','',null])assert.equal(canGradeReviewState(state),false,String(state));
+ const api=fs.readFileSync('serverless-handlers/gallery-staff.js','utf8');
+ const pane=fs.readFileSync('src/features/immersive-gallery/v3/MuseumReview.jsx','utf8');
+ const route=api.slice(api.indexOf("if(operation==='grade-rubric')"),api.indexOf("if(operation==='grant-reviewer')"));
+ assert.match(route,/assertAdmin\(ctx\)/);
+ assert.match(route,/loadScopedReview\(ctx,body\.reviewId\)/);
+ assert.match(route,/canGradeReviewState\(scoped\.review\.state\)/);
+ assert.match(route,/Object\.keys\(raw\)\.length!==5/);
+ assert.match(route,/gcp_rubric_scores'\)\.upsert/);
+ assert.match(route,/action:'rubric_scored'/);
+ assert.doesNotMatch(route,/from\('gcp_reviews'\)\.(update|delete)/);
+ assert.match(pane,/setSuccess\(tr\(language,'Đã lưu rubric:/);
+ assert.match(pane,/setNote\(data\?\.rubrics\?\.find/);
 });
