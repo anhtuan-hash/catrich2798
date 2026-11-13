@@ -7,7 +7,7 @@ import {createCuratedGlb,CURATED_GLB_KEYS} from './curatedGlb.js';
 import {PekMuseumArchitecture,ExhibitWallLabel,TextExhibitPoster} from './PekMuseumArchitecture.jsx';
 import PekDiscoveryHallV4 from './PekDiscoveryHallV4.jsx';
 import MuseumExhibitFocusRig from './v3/MuseumExhibitFocusRig.jsx';
-import {museumFocusLayout,selectFocusDuration,smoothstep} from './v3/museumExhibitFocusMotion.js';
+import {museumFocusLayout,minimumCameraDistance,selectFocusDuration,smoothstep} from './v3/museumExhibitFocusMotion.js';
 import './pekMuseum.css';
 // Cloud media service is imported on demand to prevent eager auth/bootstrap cycles.
 
@@ -298,6 +298,62 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
    camera.position.z=Math.max(-7.6,Math.min(7.9,camera.position.z+dir.z*speed));
    onPosition?.(camera.position.x,camera.position.z);
    invalidate();
+ });
+ return null;
+}
+function MuseumFocusCameraDirector({phase='idle',cinemaEdition=false,onCameraPose}){
+ const {camera,size,invalidate}=useThree();
+ const original=useRef(null),animation=useRef(null);
+ const layout=useMemo(()=>museumFocusLayout(size.width/Math.max(1,size.height)),[size.width,size.height]);
+ useEffect(()=>{
+  if(!cinemaEdition)return;
+  if(phase==='idle'){
+   if(original.current){
+    camera.position.copy(original.current.position);
+    camera.quaternion.copy(original.current.quaternion);
+    camera.fov=original.current.fov;camera.updateProjectionMatrix();
+    original.current=null;invalidate();
+   }
+   return;
+  }
+  if(!original.current){
+   original.current={position:camera.position.clone(),quaternion:camera.quaternion.clone(),fov:camera.fov};
+   onCameraPose?.({phase:'wall',position:camera.position.toArray(),quaternion:camera.quaternion.toArray(),fov:camera.fov});
+  }
+  if(phase==='extracting'||phase==='returning'){
+   const restore=phase==='returning',aspect=size.width/Math.max(1,size.height);
+   const dist=minimumCameraDistance(6.25,4.15,aspect,layout.fov,.09);
+   const destination=restore?original.current:{
+    position:new THREE.Vector3(layout.camera[0],layout.camera[1],
+     Math.max(layout.camera[2],layout.art[2]+dist+.20)),
+    quaternion:new THREE.Quaternion(),
+    fov:layout.fov
+   };
+   if(!restore){
+    const look=new THREE.Matrix4().lookAt(destination.position,
+     new THREE.Vector3(...layout.lookAt),new THREE.Vector3(0,1,0));
+    destination.quaternion.setFromRotationMatrix(look);
+   }
+   animation.current={phase,elapsed:0,duration:selectFocusDuration(
+    phase,window.matchMedia?.('(prefers-reduced-motion: reduce)').matches),
+    from:{position:camera.position.clone(),quaternion:camera.quaternion.clone(),fov:camera.fov},to:destination};
+   invalidate();
+  }
+ },[phase,cinemaEdition,layout,camera,size.width,size.height,invalidate]);
+ useFrame((_,delta)=>{
+  const tween=animation.current;
+  if(!tween||!cinemaEdition)return;
+  tween.elapsed+=Math.min(.05,delta);
+  const t=smoothstep(Math.min(1,tween.elapsed/tween.duration));
+  camera.position.lerpVectors(tween.from.position,tween.to.position,t);
+  camera.quaternion.slerpQuaternions(tween.from.quaternion,tween.to.quaternion,t);
+  camera.fov=THREE.MathUtils.lerp(tween.from.fov,tween.to.fov,t);camera.updateProjectionMatrix();
+  onCameraPose?.({phase:tween.phase,position:camera.position.toArray(),quaternion:camera.quaternion.toArray(),fov:camera.fov});
+  if(t>=1){
+   camera.position.copy(tween.to.position);camera.quaternion.copy(tween.to.quaternion);
+   camera.fov=tween.to.fov;camera.updateProjectionMatrix();
+   animation.current=null;
+  }else invalidate();
  });
  return null;
 }
