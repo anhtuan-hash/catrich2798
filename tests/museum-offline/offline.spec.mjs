@@ -9,8 +9,9 @@ test('file opens without network, navigates frozen lessons, submissions and live
  await expect(page.getByText('Synthetic Offline QA Museum',{exact:true})).toBeVisible();
  await expect(page.getByRole('button',{name:/Create a lesson|New lesson|Download offline/})).toHaveCount(0);
  await expect.poll(()=>page.getByTestId('museum-competition-ribbon').locator('img').evaluateAll(imgs=>imgs.length===2&&imgs.every(i=>i.complete&&i.naturalWidth>0&&i.src.startsWith('data:')))).toBe(true);
+ await page.screenshot({path:info.outputPath('offline-dashboard.png'),fullPage:true});
  const nav=page.getByRole('navigation',{name:'Museum Lab navigation',exact:true});
- await nav.getByRole('button',{name:'Submissions',exact:true}).click();
+ await nav.getByRole('button',{name:/^Submissions/}).click();
  await expect(page.getByTestId('brian-museum-lab-v3')).toContainText('Synthetic QA exhibition');
  await nav.getByRole('button',{name:'Teaching plan',exact:true}).click();
  await expect(page.getByRole('button',{name:/Create lesson from this plan/})).toBeDisabled();
@@ -21,6 +22,10 @@ test('file opens without network, navigates frozen lessons, submissions and live
  await expect(slide).not.toHaveText(before);
  await page.getByRole('button',{name:'Reveal explanation',exact:true}).click();
  await expect(page.getByRole('button',{name:'Reveal explanation',exact:true})).toBeDisabled();
+ for(let i=2;i<=10;i++){
+  await page.getByRole('button',{name:'Next activity',exact:true}).click();
+  await expect(page.getByTestId('museum-live-paper-stage')).toHaveAttribute('data-stage-index',String(i));
+ }
  await page.getByRole('button',{name:'Evidence records',exact:true}).click();
  await page.getByText('Activity responses (1)',{exact:true}).click();
  await expect(page.getByText('answer: QA recorded response',{exact:true})).toBeVisible();

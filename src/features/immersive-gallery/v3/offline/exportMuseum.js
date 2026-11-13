@@ -16,7 +16,7 @@ export async function captureMuseum({onProgress=()=>{},signal,staff=staffRequest
    if(!r.ok)throw new Error('An artwork could not be downloaded. Export again while online.');
    const blob=await r.blob();
    if(!/^image\/(png|jpeg|webp|avif|gif|svg\+xml)$/.test(blob.type))throw new Error('An artwork URL did not return an image. The export was stopped.');
-   totalBytes+=blob.size;if(totalBytes>LIMIT)throw new Error('Artwork exceeds the 180 MB offline export limit. Reduce the selected evidence before exporting.');
+   totalBytes+=blob.size;if(totalBytes>LIMIT)throw new Error('Artwork exceeds the 180 MB offline export limit. This archive is too large for the current browser export.');
    const bytes=new Uint8Array(await blob.arrayBuffer());
    const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(v=>v.toString(16).padStart(2,'0')).join('');
    const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(blob);});
@@ -35,7 +35,9 @@ export async function captureMuseum({onProgress=()=>{},signal,staff=staffRequest
  };
  onProgress('Reading authorized lessons and submissions…');
  const staffData=await staff('dashboard'),showcase=await staff('showcase-state');check();
- if(staffData.assignments.length>=100||staffData.groups.length>=500||staffData.reviews.length>=500)
+ if(staffData.assignments.length>=100||staffData.groups.length>=500||staffData.reviews.length>=500||
+  (staffData.rubrics||[]).length>=500||(staffData.exitTickets||[]).length>=500||
+  (showcase.publishedGalleries||[]).length>=100)
   throw new Error('The staff catalogue reached its API limit. A complete archive cannot be guaranteed; export was stopped.');
  const snapshot={format:SNAPSHOT_FORMAT,startedAt,completedAt:null,source:'BRIAN Museum Lab',
   staff:staffData,showcase,galleries:[],artworks:{},groupDrafts:{},live:{},evidence:{},comparisons:{},warnings,media};

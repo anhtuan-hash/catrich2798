@@ -310,14 +310,14 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
          </div>
         </div>
        </div>
-       <div className="bml-lesson-qr-access" aria-label={groupLabel+' QR and access credentials'}>
+       {!data?.offlineReadOnly?<div className="bml-lesson-qr-access" aria-label={groupLabel+' QR and access credentials'}>
         <MuseumGroupQr handle={g.invite_handle} groupLabel={groupLabel}
          expiresAt={g.invite_expires_at} revoked={g.invite_revoked} language={language}/>
         {canManagePasscodes?<PrivatePasscodeCard secret={secrets[g.id]} available={g.invite_has_passcode}
          revealed={Boolean(visibleSecrets[g.id])} busy={passcodeBusy||busy}
          onShow={()=>revealPasscodes(a,g.id)} onHide={()=>hideGroup(g.id)}
          onCopy={()=>copyPass(secrets[g.id])}/>:null}
-       </div>
+       </div>:null}
       </article>;})}
       {collection?<div className="bml-prepared-projects" data-testid={'lesson-portfolio-'+collection.key}>
        <div className="bml-prepared-projects-heading"><h3>{tr(language,'Dự án và tác phẩm','Projects and artwork')}</h3>
@@ -333,7 +333,7 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
    </article>;
   })}</div>:<div className="bml-empty bml-surface"><BookOpen size={36}/><h2>{tr(language,'Chưa có bài học','No lessons assigned yet')}</h2>
     <p>{tr(language,'Tạo bài học đầu tiên từ một mẫu có sẵn.','Create your first lesson from a curated template.')}</p>
-    <button type="button" className="bml-primary" onClick={onCreate}><Plus size={18}/>{tr(language,'Tạo bài học','Create lesson')}</button>
+    <button type="button" className="bml-primary" disabled={!!data?.offlineReadOnly} onClick={onCreate}><Plus size={18}/>{tr(language,'Tạo bài học','Create lesson')}</button>
    </div>}
  </div>;
 }

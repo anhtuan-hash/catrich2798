@@ -183,6 +183,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
     {!assignments.length?<option value="">{t(language,'Chưa có bài học được giao','No lesson assigned')}</option>:null}
     {assignments.map(a=><option value={a.id} key={a.id}>{a.title} · {a.class_scope}</option>)}
    </select></label>
+  {offline?<div role="status" className="bml-banner bml-info-banner">Offline presentation · Controls change only the viewing position. Recorded responses and scores remain frozen.</div>:null}
   {readOnly?<div role="status" className="bml-banner bml-success-banner">Completed lesson · View only. Playback, lesson content, QR codes and evidence remain available; live controls cannot change saved data.</div>:null}
   {error?<div role="alert" className="bml-banner bml-danger-banner">{error}</div>:null}
   {!assignments.length?<div className="bml-empty bml-surface"><BookOpen size={26}/>{t(language,'Hãy tạo bài học và mã nhóm trước khi mở Teacher Live.','Create a lesson and group passes first.')}</div>:null}

@@ -20,6 +20,7 @@ export async function buildMuseumOffline(outDir='dist'){
  let css=output.filter(x=>x.type==='asset'&&x.fileName.endsWith('.css')).map(x=>String(x.source)).join('\n');
  const mime={'.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.avif':'image/avif','.svg':'image/svg+xml','.ttf':'font/ttf','.woff2':'font/woff2','.html':'text/html'};
  const assetPaths=new Set([...((script+'\n'+css).matchAll(/["'`(](\/(?:assets|museum)\/[^"'`()\s]+)["'`)]/g))].map(m=>m[1]));
+ assetPaths.add('/museum-lesson-guide.html');
  for(const asset of assetPaths){
   const absolute=path.join(root,'public',asset);const bytes=await fs.readFile(absolute);
   const type=mime[path.extname(absolute)];if(!type)throw new Error('Unsupported offline asset: '+asset);

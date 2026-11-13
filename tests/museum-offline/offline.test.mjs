@@ -41,3 +41,19 @@ test('cancelled or capped captures cannot report success',async()=>{
  f.staff.assignments=Array.from({length:100},()=>f.staff.assignments[0]);
  await assert.rejects(captureMuseum(fakeOptions(f)),/API limit/);
 });
+test('image bytes are embedded before signed capabilities are stripped; failed downloads abort',async()=>{
+ const original=globalThis.FileReader;
+ globalThis.FileReader=class {async readAsDataURL(blob){this.result='data:'+blob.type+';base64,'+Buffer.from(await blob.arrayBuffer()).toString('base64');this.onload();}};
+ try{
+  const f=fixture(),url='https://storage.example/storage/v1/object/sign/image?token=temporary';
+  f.galleries[0].rooms[0].exhibits[0].image_url=url;
+  let calls=0;
+  const snapshot=await captureMuseum({...fakeOptions(f),fetcher:async(input,options)=>{
+   calls++;assert.equal(input,url);assert.equal(options.credentials,'omit');
+   return new Response(Buffer.from('synthetic image bytes'),{headers:{'Content-Type':'image/png'}});
+  }});
+  assert.equal(calls,1);assert.match(snapshot.galleries[0].rooms[0].exhibits[0].image_url,/^data:image\/png;base64,/);
+  assert.equal(JSON.stringify(snapshot).includes('token=temporary'),false);assert.equal(snapshot.media[0].sha256.length,64);
+  await assert.rejects(captureMuseum({...fakeOptions(f),fetcher:async()=>new Response('',{status:403})}),/could not be downloaded/);
+ }finally{globalThis.FileReader=original;}
+});

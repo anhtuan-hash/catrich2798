@@ -76,7 +76,7 @@ export default function MuseumEvidence({data,currentUser,onDemo,language='vi'}){
     <button type="button" className="bml-outline" disabled={exportBusy||!selected} onClick={downloadEvidence}><Download size={18}/>{tr(language,'Xuất khảo sát · góp ý · bản trước/sau · ảnh thật','Export survey · feedback · revisions · original images')}</button>
     {exportError?<div className="bml-banner bml-danger-banner" role="alert">{exportError}</div>:null}
     <button type="button" className="bml-outline" onClick={()=>saveTextFile('BRIAN_MuseumLab_Progress.csv','text/csv;charset=utf-8',buildProgressCsv(data,language))}><Download size={18}/>{tr(language,'Tải bảng tiến độ CSV','Download progress CSV')}</button>
-    <a className="bml-outline" href="/museum-lesson-guide.html" target="_blank" rel="noreferrer">{tr(language,'Hướng dẫn bài dạy · không cần đăng nhập','Read-only lesson guide · no login')}</a>
+    <a className="bml-outline" href="/museum-lesson-guide.html" download={data?.offlineReadOnly?'BRIAN_Lesson_Guide.html':undefined} target="_blank" rel="noreferrer">{tr(language,'Hướng dẫn bài dạy · không cần đăng nhập','Read-only lesson guide · no login')}</a>
     <small>{tr(language,'ZIP gồm P1/P2 đúng tên giáo viên, học liệu và bảng kiểm. Nút xuất minh chứng tải dữ liệu lớp đã lưu riêng; tổng P2 sau khi ghép phải không quá 50 MB. Giáo viên phải bổ sung học liệu thật, kiểm tra giới hạn dung lượng trước khi nộp.','ZIP includes two editable DOCX drafts and a missing-evidence checklist. Add authentic teaching materials and verify the official file-size limit before submission.')}</small>
    </aside>
   </div>
