@@ -277,6 +277,11 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
        'The complete original poster is displayed without cropping or distortion.')}</p>
     </section>
    </div>:null}
+  {cinema&&threeD&&isFocus?<button type="button" className="bml-v5-focus-back"
+   data-testid="museum-back-to-wall-hud" aria-label="Back to wall"
+   disabled={focus.phase!=='focused'} onClick={focusBack}>
+   <span aria-hidden="true">←</span> Back to wall
+  </button>:null}
   {cinema&&threeD&&isFocus?<div className="bml-v5-focus-status" role="status" aria-live="polite"
    data-testid="museum-focus-status">
    {focus.phase==='focused'?focusBoard?.title+' is now displayed in the room.':
