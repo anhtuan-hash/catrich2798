@@ -103,6 +103,43 @@ export default async function galleryStaff(req,res){
   const ctx=await staffContext(req,admin);
   assertStaff(ctx);
 
+  // A completed lesson is permanently view-only until explicitly unlocked in
+  // a controlled database migration. Check before any privileged RPC or storage
+  // side-effect; a database trigger separately enforces immutability.
+  const frozenMutations=new Set([
+   'quick-access-setting','regenerate-all-passcodes','grade-rubric',
+   'admin-decision','archive-review','archive-assignment','rotate-invite',
+   'publish','archive-exhibition','restore-exhibition'
+  ]);
+  if(req.method==='POST'&&frozenMutations.has(operation)){
+   const body=req.body&&typeof req.body==='object'?req.body:{};
+   let assignmentId=String(body.assignmentId||'');
+   if(!assignmentId&&uid(String(body.groupId||''))){
+    const g=await query(admin.from('gcp_groups').select('assignment_id').eq('id',body.groupId).maybeSingle());
+    assignmentId=g?.assignment_id||'';
+   }
+   if(!assignmentId&&uid(String(body.reviewId||''))){
+    const review=await query(admin.from('gcp_reviews').select('group_id').eq('id',body.reviewId).maybeSingle());
+    if(review){
+     const g=await query(admin.from('gcp_groups').select('assignment_id').eq('id',review.group_id).maybeSingle());
+     assignmentId=g?.assignment_id||'';
+    }
+   }
+   if(!assignmentId&&body.kind==='gallery'&&uid(String(body.key||''))){
+    const link=await query(admin.from('gcp_publication_links').select('group_id')
+     .eq('exhibition_id',body.key).limit(1).maybeSingle());
+    if(link){
+     const g=await query(admin.from('gcp_groups').select('assignment_id').eq('id',link.group_id).maybeSingle());
+     assignmentId=g?.assignment_id||'';
+    }
+   }
+   if(uid(assignmentId)){
+    const target=await query(admin.from('gcp_assignments').select('content_frozen_at')
+     .eq('id',assignmentId).maybeSingle());
+    if(target?.content_frozen_at)throw fail(423,'This lesson has been finalized and is view-only. Edits, reviews, passcode resets and deletion are disabled.');
+   }
+  }
+
   // Staff can read only their own school's archived showcase inventory.
   if(operation==='showcase-state'){
    requireMethod(req,'GET');
