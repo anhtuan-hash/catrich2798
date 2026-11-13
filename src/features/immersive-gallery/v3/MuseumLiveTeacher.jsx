@@ -96,7 +96,8 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
   const handle=e=>{
    if(e.altKey||e.ctrlKey||e.metaKey||e.isComposing||e.repeat)return;
    const target=e.target,tag=target?.tagName?.toLowerCase();
-   if(['input','textarea','select','button','summary'].includes(tag)||target?.isContentEditable)return;
+   if(['input','textarea','select'].includes(tag)||target?.isContentEditable)return;
+   if(tag==='button'&&e.key===' ')return;
    const key=e.key.toLowerCase();
    if(key==='escape'&&activeTool){e.preventDefault();setActiveTool(null);return;}
    if(key==='arrowright'&&currentIndex<10){e.preventDefault();act('next');}
