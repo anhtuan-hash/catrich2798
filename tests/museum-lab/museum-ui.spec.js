@@ -124,6 +124,74 @@ test('English-only teacher, lesson wizard, reviews and dossier show translated U
  await expect(page.getByText('Section 1: Teacher and school context')).toBeVisible();
  await assertOnlyEnglish();
 });
+test('student US voiceover starts once for each opened live activity and supports mute and replay',async({page})=>{
+ await page.addInitScript(()=>{
+  window.__qaNarrations=[];
+  window.localStorage.setItem('brian-museum-student-auto-us-voice-v1','on');
+  window.SpeechSynthesisUtterance=class{constructor(text){this.text=text;}};
+  const synth={
+   speaking:false,pending:false,
+   getVoices(){return [{name:'British voice',voiceURI:'en-gb-qa',lang:'en-GB',localService:true},
+    {name:'Samantha',voiceURI:'en-us-qa',lang:'en-US',localService:true}];},
+   addEventListener(){},removeEventListener(){},
+   cancel(){this.speaking=false;},
+   speak(item){
+    this.speaking=true;
+    window.__qaNarrations.push({text:item.text,locale:item.lang,voice:item.voice?.lang});
+    item.onstart?.();
+   }
+  };
+  Object.defineProperty(window,'speechSynthesis',{configurable:true,value:synth});
+ });
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const operation=new URL(route.request().url()).searchParams.get('operation');
+  const body=operation==='me'?{groupLabel:'Group 01',groupState:'editing',csrf:'voice-guide-test',
+   assignment:{title:'Our Climate Action Museum',brief:'Investigate a school climate issue.',
+    class_scope:'11.3',deadline_at:new Date(Date.now()+86400000).toISOString()}}:
+    {draft:{title:'',summary:'',rooms:[]},version:0};
+  await route.fulfill({json:body});
+ });
+ let stageIndex=0,stageOpen=true;
+ const stageIds=['climate-detective','language-mini-lesson','classroom-survey'];
+ await page.route('**/api/gallery-guest/live?**',async route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  if(op!=='state'){await route.fulfill({json:{}});return;}
+  await route.fulfill({json:{session:{id:'qa-voice-lesson',status:'active',stageOpen,
+   stageIndex,stage:{id:stageIds[stageIndex],kind:'recap',title:'Voice Test Stage '+(stageIndex+1),
+    period:1,question:'Explain your thinking.',sentence:'Write an English sentence.'}},survey:null,submitted:false}});
+ });
+ // Install synthetic speech on the next document navigation, then wait for React.
+ await page.reload({waitUntil:'networkidle'});
+ await expect(page.getByTestId('museum-dashboard')).toBeVisible();
+ await page.getByTestId('qa-student-en').click();
+ const app=page.getByTestId('museum-student-wizard');
+ const voice=app.getByTestId('student-auto-voice');
+ await expect(voice).toBeVisible();
+ await expect(voice.getByRole('button',{name:'Turn off automatic US voice guidance'})).toBeVisible();
+ await expect.poll(()=>page.evaluate(()=>window.__qaNarrations.length),{timeout:9000}).toBe(1);
+ const first=await page.evaluate(()=>window.__qaNarrations[0]);
+ expect(first.locale).toBe('en-US');expect(first.voice).toBe('en-US');
+ expect(first.text).toMatch(/Climate Action Museum/);
+ await page.waitForTimeout(3900);
+ expect(await page.evaluate(()=>window.__qaNarrations.length),'Polling must not restart the narrator').toBe(1);
+ stageIndex=1;
+ await expect.poll(()=>page.evaluate(()=>window.__qaNarrations.length),{timeout:9000}).toBe(2);
+ expect((await page.evaluate(()=>window.__qaNarrations[1].text))).toMatch(/Good evidence/);
+ await voice.getByRole('button',{name:'Replay activity guidance'}).click();
+ await expect.poll(()=>page.evaluate(()=>window.__qaNarrations.length)).toBe(3);
+ await voice.getByRole('button',{name:'Turn off automatic US voice guidance'}).click();
+ await expect(voice.getByRole('button',{name:'Turn on automatic US voice guidance'})).toBeVisible();
+ stageIndex=2;
+ await page.waitForTimeout(3900);
+ expect(await page.evaluate(()=>window.__qaNarrations.length),'Muted guidance must remain silent').toBe(3);
+ await voice.getByRole('button',{name:'Turn on automatic US voice guidance'}).click();
+ await expect.poll(()=>page.evaluate(()=>window.__qaNarrations.length)).toBe(4);
+ expect((await page.evaluate(()=>window.__qaNarrations[3].text))).toMatch(/Each group must choose/);
+ const transcript=voice.getByText('Transcript');
+ await transcript.click();
+ await expect(voice.getByText(/group priorities, not individual habits/i)).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+3)).toBe(true);
+});
 test('Student Creator Pass entry reuses full official Gallery competition banner without changing login',async({page})=>{
  await page.getByTestId('qa-student-en').click();
  const entry=page.getByTestId('museum-student-entry');
