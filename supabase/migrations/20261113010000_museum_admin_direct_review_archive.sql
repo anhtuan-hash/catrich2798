@@ -59,7 +59,7 @@ begin
 end; $gcp_issue$;
 
 -- Atomic direct review by an approved Admin in the same school.
-create function public.gcp_admin_decide(p_review uuid,p_actor uuid,p_action text,p_note text)
+create or replace function public.gcp_admin_decide(p_review uuid,p_actor uuid,p_action text,p_note text)
 returns text language plpgsql security definer set search_path='' as $$
 declare rev public.gcp_reviews; g public.gcp_groups; a public.gcp_assignments;
  d public.gcp_drafts; next_state text; from_state text;
@@ -94,7 +94,7 @@ end; $$;
 
 -- Archiving a submitted review preserves historical evidence but removes it
 -- from the active queue; students may revise and resubmit a new draft version.
-create function public.gcp_admin_archive_review(p_review uuid,p_actor uuid)
+create or replace function public.gcp_admin_archive_review(p_review uuid,p_actor uuid)
 returns text language plpgsql security definer set search_path='' as $$
 declare rev public.gcp_reviews; g public.gcp_groups; a public.gcp_assignments;
 begin
@@ -121,7 +121,7 @@ end; $$;
 
 -- Archive a lesson, hide it from active lists, and revoke current Creator
 -- Pass access. Public exhibitions are immutable and require separate unpublish.
-create function public.gcp_admin_archive_assignment(p_assignment uuid,p_actor uuid)
+create or replace function public.gcp_admin_archive_assignment(p_assignment uuid,p_actor uuid)
 returns text language plpgsql security definer set search_path='' as $$
 declare a public.gcp_assignments;
 begin
