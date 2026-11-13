@@ -6,6 +6,8 @@ import {ROOM_TEMPLATES,normalizeTransform,useLiteQuality} from './sceneTemplates
 import {createCuratedGlb,CURATED_GLB_KEYS} from './curatedGlb.js';
 import {PekMuseumArchitecture,ExhibitWallLabel,TextExhibitPoster} from './PekMuseumArchitecture.jsx';
 import PekDiscoveryHallV4 from './PekDiscoveryHallV4.jsx';
+import MuseumExhibitFocusRig from './v3/MuseumExhibitFocusRig.jsx';
+import {FOCUS_IDLE,focusLayout,clampDelta,smoothstep} from './v3/museumExhibitFocusMotion.js';
 import './pekMuseum.css';
 // Cloud media service is imported on demand to prevent eager auth/bootstrap cycles.
 
@@ -55,13 +57,88 @@ function ArtworkImage({assetId,imageUrl,schoolEdition=false,cinemaEdition=false}
  const size=aspect>maxWidth/maxHeight?[maxWidth,maxWidth/aspect]:[maxHeight*aspect,maxHeight];
  return <mesh position={[0,0,cinemaEdition ? .096 : .083]}><planeGeometry args={size}/><meshBasicMaterial map={texture} toneMapped={false} side={THREE.DoubleSide}/></mesh>;
 }
-function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdition=false,index=0}) {
+function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdition=false,index=0,
+ focus=FOCUS_IDLE,onFocusPhaseChange}) {
  const transform=useMemo(()=>normalizeTransform(exhibit.transform||{}),[exhibit.transform]);
  const position=cinemaEdition?
   [Math.max(-3.2,Math.min(3.2,transform.position[0])),2.45,-7.68]:transform.position;
- return <group position={position} rotation={transform.rotation} scale={transform.scale}
-  onClick={e=>{e.stopPropagation();onSelect?.(exhibit.id);}}
-  onPointerOver={e=>{e.stopPropagation();document.body.style.cursor='pointer';}}
+ const ref=useRef(null),motion=useRef({p:0,presenting:false,arrived:false,returned:false});
+ const {size,invalidate,camera,gl}=useThree();
+ const isTarget=cinemaEdition&&focus.exhibitId===exhibit.id;
+ const wall=useMemo(()=>({
+  position:[...position],rotation:[...transform.rotation],scale:[...transform.scale]
+ }),[...position,...transform.rotation,...transform.scale]);
+ useEffect(()=>{
+  if(!ref.current)return;
+  if(isTarget&&focus.phase==='preparing'){
+   motion.current={p:0,presenting:false,arrived:false,returned:false};
+   onFocusPhaseChange?.({type:'ASSET_READY'});
+   invalidate();
+  }else if(isTarget&&focus.phase==='returning'){
+   motion.current.returned=false;
+   invalidate();
+  }else if(!isTarget){
+   motion.current={p:0,presenting:false,arrived:false,returned:false};
+   ref.current.position.set(...wall.position);
+   ref.current.rotation.set(...wall.rotation);
+   ref.current.scale.set(...wall.scale);
+   invalidate();
+  }
+ },[isTarget,focus.phase,focus.generation,wall,invalidate]);
+ useFrame((_,delta)=>{
+  if(!ref.current)return;
+  const node=ref.current,a=motion.current;
+  const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const dt=clampDelta(delta);
+  if(isTarget&&['extracting','presenting'].includes(focus.phase)){
+   a.p=Math.min(1,a.p+dt/(reduced?.08:1.03));
+   if(a.p>.60&&!a.presenting&&focus.phase==='extracting'){
+    a.presenting=true;onFocusPhaseChange?.({type:'PRESENTING'});
+   }
+   if(a.p>=1&&!a.arrived){
+    a.arrived=true;onFocusPhaseChange?.({type:'ARRIVED'});
+   }
+   if(a.p<1)invalidate();
+  }else if(isTarget&&focus.phase==='returning'){
+   a.p=Math.max(0,a.p-dt/(reduced?.08:.85));
+   if(a.p<=0&&!a.returned){
+    a.returned=true;onFocusPhaseChange?.({type:'RETURN_COMPLETE'});
+   }
+   if(a.p>0)invalidate();
+  }
+  if(isTarget){
+   const layout=focusLayout(size.width,size.height),t=smoothstep(a.p);
+   node.position.set(
+    wall.position[0]+(layout.artwork[0]-wall.position[0])*t,
+    wall.position[1]+(layout.artwork[1]-wall.position[1])*t,
+    wall.position[2]+(layout.artwork[2]-wall.position[2])*t
+   );
+   const original=new THREE.Quaternion().setFromEuler(new THREE.Euler(...wall.rotation));
+   node.quaternion.copy(original).slerp(new THREE.Quaternion(),t);
+   const sc=layout.artworkScale;
+   node.scale.set(...wall.scale.map(x=>x+(sc-x)*t));
+  }
+  // Read-only geometry QA bridge, available only to the project's test harness:
+  // no group identifiers, asset URLs, token, or image bytes are exposed.
+  if(cinemaEdition&&location.pathname.includes('/tests/museum-lab/')){
+   window.__bmlMuseumFocusQA??={artworks:{},camera:{}};
+   const p=new THREE.Vector3();node.getWorldPosition(p);
+   const rect=gl.domElement.getBoundingClientRect(),q=p.clone().project(camera);
+   window.__bmlMuseumFocusQA.artworks[index]={
+    uuid:node.uuid,world:p.toArray().map(x=>+x.toFixed(4)),
+    wall:[...wall.position],selected:isTarget,
+    screen:{x:rect.left+(q.x+1)*rect.width/2,y:rect.top+(1-q.y)*rect.height/2}
+   };
+   window.__bmlMuseumFocusQA.camera={
+    position:camera.position.toArray().map(x=>+x.toFixed(4)),
+    quaternion:camera.quaternion.toArray().map(x=>+x.toFixed(5))
+   };
+  }
+ });
+ return <group ref={ref} name={'BML_OriginalArtwork_'+index} userData={{originalArtwork:true,index}}
+  position={position} rotation={transform.rotation} scale={transform.scale}
+  onClick={e=>{e.stopPropagation();if(focus.phase==='idle')onSelect?.(exhibit.id);}}
+  onPointerOver={e=>{e.stopPropagation();if(focus.phase==='idle')document.body.style.cursor='pointer';}}
   onPointerOut={()=>{document.body.style.cursor='';}}>
   <mesh><boxGeometry args={cinemaEdition?[2.63,3.41,.12]:schoolEdition?[2.45,1.95,.11]:[2.04,1.70,.10]}/>
    <meshStandardMaterial color={schoolEdition?(isSelected?'#F6D477':'#B69B62'):(isSelected?'#e4aa64':'#ae856e')} roughness={.63} metalness={schoolEdition?.19:0}/></mesh>
