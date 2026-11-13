@@ -108,7 +108,10 @@ test('legacy Admin route resolves to the intended Settings-merged admin workspac
   await page.goto('/#/admin');
   await expect(page).toHaveURL(/#\/settings\?section=admin/);
   await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'settings');
-  await expect(page.locator('#settings-admin-merge-host')).toBeVisible();
+  // Admin controls now live in the permission-gated Settings launcher rather
+  // than the retired settings-admin-merge-host portal.
+  await expect(page.getByRole('heading', { name: 'Cài đặt hệ thống' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Phân quyền/ }).first()).toBeVisible();
   await expect(page.getByRole('heading', { name: /Chưa được cấp quyền|Permission required/i })).toHaveCount(0);
   await expect(pageErrors, `Unhandled browser errors for merged Admin Settings route: ${pageErrors.join('\n')}`).toEqual([]);
 });
