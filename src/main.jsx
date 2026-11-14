@@ -332,7 +332,7 @@ function App() {
 
   useEffect(() => {
     languageRef.current = language;
-    document.title = language === 'vi' ? 'Brian English · Hệ thống dạy học số' : 'Brian English · Digital Teaching Studio';
+    document.title = language === 'vi' ? 'Pétrus Ký School System · Hệ thống dạy học số' : 'Pétrus Ký School System · Digital Teaching Studio';
     document.documentElement.lang = language === 'vi' ? 'vi' : 'en';
     document.documentElement.dataset.language = language;
   }, [language]);

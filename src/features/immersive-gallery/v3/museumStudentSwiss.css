@@ -464,3 +464,33 @@
  max-height:none!important;
  object-fit:cover!important;
 }
+.bml.bml-student-canvas16>.bml-contest-art .cmast img,
+.bml.bml-student-login-with-ribbon .bml-paper .bml-contest-art .cmast img{
+ width:auto!important;
+ height:auto!important;
+ max-width:none!important;
+ max-height:none!important;
+ object-fit:contain!important;
+}
+.bml .bml-locked-dossier{display:flex;flex-direction:column;gap:10px;color:#152033}
+.bml .bml-locked-note{display:flex;align-items:center;gap:8px;margin:0;font-size:13px;font-weight:700;color:#176f57}
+.bml .bml-locked-dossier h3{margin:0;font-size:28px;line-height:1.1}
+.bml .bml-locked-lead{margin:0;font-size:15px;line-height:1.45}
+.bml .bml-locked-poster{display:block;width:min(100%,420px);height:auto;border:1px solid #dedbd5}
+.bml .bml-locked-dossier dl{display:grid;gap:10px;margin:0}
+.bml .bml-locked-dossier dl div{padding-top:8px;border-top:1px solid #dedbd5}
+.bml .bml-locked-dossier dt{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8a5a12}
+.bml .bml-locked-dossier dd{margin:3px 0 0;white-space:pre-wrap;font-size:15px;line-height:1.45}
+.bml.bml-student-login-with-ribbon .bml-guest-overline b{letter-spacing:-.03em}
+.bml.bml-student-login-with-ribbon .bml-guest-illustration{
+ background:#fffdf9!important;
+ color:#152033!important;
+ border-radius:0!important;
+ box-shadow:none!important;
+}
+.bml.bml-student-login-with-ribbon .bml-guest-illustration h1,
+.bml.bml-student-login-with-ribbon .bml-guest-illustration p,
+.bml.bml-student-login-with-ribbon .bml-guest-overline,
+.bml.bml-student-login-with-ribbon .bml-guest-overline b{
+ color:#152033!important;
+}

@@ -223,6 +223,11 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
       onFocusPhaseChange={action=>dispatchFocus({...action,generation:focus.generation})}
       onSelect={openExhibit} quality="auto" language={language} schoolEdition cinemaEdition={cinema}/>
     </Suspense>
+    <div className="bml-3d-plate">
+     <small>{clean(gallery?.title,90)||'Our Climate Action Museum'}</small>
+     <strong>{clean(room?.title,90)}</strong>
+     {exhibits.length?<p>{exhibits.slice(0,3).map(item=>clean(item.title,48)).filter(Boolean).join(' · ')}</p>:null}
+    </div>
     {!cinema?<div className="bml-3d-caption"><Info size={15}/>{tr('Dùng WASD hoặc nút trên điện thoại để di chuyển. Chạm vào hiện vật để xem nội dung.','Use WASD or touch controls. Select any exhibit to read it.')}</div>:null}
    </div>:<div className="bml-museum-room bml-paper-museum-room" data-testid="museum-paper-2d-room">
     {compact&&!cinema?<div className="bml-scene-mode-float" aria-label={tr('Chế độ xem','View mode')}>

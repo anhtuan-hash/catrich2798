@@ -23,7 +23,7 @@ function OverviewCards({data,onNavigate,language}){
    <button type="button" className="bml-exh-linked-lesson" onClick={()=>onNavigate?.('lessons')}>
     <span>{t(language,'Mở các bài học đã giao','Open your assigned lessons')}</span><ChevronRight size={20}/>
    </button>
-   <p>{t(language,'Dạy trực tiếp, giao nhiệm vụ và hướng dẫn học sinh tạo tác phẩm ngay trong BRIAN Museum Lab.','Teach live, assign group tasks and create artworks inside BRIAN Museum Lab.')}</p>
+   <p>{t(language,'Dạy trực tiếp, giao nhiệm vụ và hướng dẫn học sinh tạo tác phẩm ngay trong Pétrus Ký School System.','Teach live, assign group tasks and create artworks inside Pétrus Ký School System.')}</p>
    <button type="button" className="bml-exh-text-link" onClick={()=>onNavigate?.('live')}>
     <Presentation size={17}/>{t(language,'Mở Teacher Live','Open Teacher Live')}<ArrowRight size={15}/>
    </button>
@@ -61,7 +61,7 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
   setMoreOpen(false);
   if(data?.offlineReadOnly){announce('Share the original offline ZIP archive to let another person open this exhibition.');return;}
   try{
-   if(navigator.share){await navigator.share({title:gallery?.title||'BRIAN Museum Lab',url:link});return;}
+   if(navigator.share){await navigator.share({title:gallery?.title||'Pétrus Ký School System',url:link});return;}
    await navigator.clipboard.writeText(link);
    announce(t(language,'Đã sao chép liên kết. Người xem vẫn cần quyền truy cập Brian.','Link copied. Viewers still need Brian access.'));
   }catch(e){
@@ -70,7 +70,7 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
  };
  const downloadDetails=()=>{
   setMoreOpen(false);
-  const lines=['BRIAN MUSEUM LAB · EXHIBITION',gallery?.title||'',
+  const lines=['PÉTRUS KÝ SCHOOL SYSTEM · EXHIBITION',gallery?.title||'',
    subtitle,'',
    ...rooms.flatMap((room,i)=>[
     String(i+1)+'. '+short(room.title,160),
@@ -79,7 +79,7 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
    ]),
    isDemo?'DEMO — Illustrative content, not authentic student work.':'',
    'Generated from currently visible exhibition content.'];
-  saveTextFile('BRIAN_Museum_Exhibition_Summary.txt','text/plain;charset=utf-8',lines.join('\n'));
+  saveTextFile('PetrusKy_Museum_Exhibition_Summary.txt','text/plain;charset=utf-8',lines.join('\n'));
  };
  // Teachers use the exact same full-viewport MuseumScene cinema mode as student
  // creators. Keep the management page mounted underneath for information,
@@ -181,7 +181,7 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
    <Metric icon={Eye} value="—" label={t(language,'Lượt xem','Views')} subtitle={t(language,'Chưa triển khai thống kê','Not yet tracked')} tone="amber"/>
   </div>
   <OverviewCards data={data} onNavigate={onNavigate} language={language}/>
-  <footer className="bml-exh-footer"><span><Landmark size={18}/> BRIAN Museum Lab <span aria-hidden="true">·</span> V3.2</span>
+  <footer className="bml-exh-footer"><span><Landmark size={18}/> Pétrus Ký School System <span aria-hidden="true">·</span> V3.2</span>
    <span>Teach Better Together ♡</span></footer>
  </div>
  {cinemaPortal}

@@ -228,7 +228,7 @@ function Harness(){
    {normalized==='exhibition'?<MuseumExhibitionDetail gallery={DEMO_GALLERY} isDemo language={uiLanguage}
      data={synthetic} onBack={()=>setScreen('dashboard')} onNavigate={setScreen}/>:null}
    {normalized==='exhibition-layout'?<div className="bml bml-app-layout bml-is-exhibition" data-testid="museum-layout-shell">
-      <aside className="bml-sidebar"><div className="bml-brand">BRIAN Museum Lab</div>
+      <aside className="bml-sidebar"><div className="bml-brand">Pétrus Ký School System</div>
        <nav className="bml-nav"><button type="button">Dạy trực tiếp</button><button type="button" className="is-active">Triển lãm</button></nav></aside>
       <div className="bml-main-panel"><header className="bml-appbar">Museum Lab</header>
        <main className="bml-page"><MuseumExhibitionDetail gallery={DEMO_GALLERY} isDemo language={uiLanguage}

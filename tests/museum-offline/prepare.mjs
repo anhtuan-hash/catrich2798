@@ -14,7 +14,7 @@ try{result=await exportMuseumOffline({staff:async action=>action==='dashboard'?f
  fetcher:async()=>{throw Error('Unexpected external fetch');}});}finally{globalThis.fetch=originalFetch;}
 const zip=await JSZip.loadAsync(await result.blob.arrayBuffer());
 const snapshot=JSON.parse(await zip.file('snapshot.json').async('string')),manifest=JSON.parse(await zip.file('manifest.json').async('string'));
-const html=await zip.file('BRIAN_Museum_Offline.html').async('string');
+const html=await zip.file('PetrusKy_Museum_Offline.html').async('string');
 assert.equal(await digest(html),manifest.htmlSha256);assert.equal(await digest(JSON.stringify(snapshot)),manifest.snapshotSha256);
 assert.equal(manifest.counts.lessons,1);assert.equal(manifest.readOnly,true);
 await fs.mkdir('artifacts/museum-offline',{recursive:true});

@@ -44,13 +44,13 @@ export default function MuseumOfflineExport({language='en',data}){
     </table>
    </div>
   </div>
-  <button className="bml-primary" type="button" disabled={busy} onClick={start}><Download size={18}/>{tr('Tải bản giáo viên + '+rows.length+' bài học sinh (.zip)','Download teacher app + '+rows.length+' student workshops (.zip)')}</button>
+  <button className="bml-primary" type="button" disabled={busy} onClick={start}><Download size={18}/>{tr('Tải gói hội thi · giáo viên + '+rows.length+' bài học sinh','Download contest pack · teacher + '+rows.length+' student workshops')}</button>
   {busy?<><p role="status" aria-live="polite">{progress}</p><button type="button" className="bml-outline" onClick={()=>abort.current?.abort()}><X size={16}/>{tr('Hủy','Cancel')}</button></>:null}
   {error?<p role="alert" className="bml-banner bml-danger-banner">{error}</p>:null}
   {report?<div role="status" className="bml-banner bml-info-banner"><PackageCheck size={20}/><div>
    <strong>{tr('Đã xuất bản dữ liệu đóng băng','Frozen archive exported')}</strong>
    <p>{report.counts.lessons} lessons · {report.counts.groups} groups · {report.counts.studentWorkshops||0} student workshops · {report.counts.exhibitions} exhibitions · {(report.bytes/1048576).toFixed(1)} MB</p>
-   <p>{tr('Giải nén ZIP. Mở BRIAN_Museum_Offline.html cho bản giáo viên, hoặc hoc-sinh/index.html để quản 10 bài học sinh.','Extract the ZIP. Open BRIAN_Museum_Offline.html for the teacher app, or hoc-sinh/index.html to manage the student workshops.')}</p>
+   <p>{tr('Giải nén ZIP. Mở PetrusKy_Museum_Offline.html cho bản giáo viên, hoặc hoc-sinh/index.html để quản 10 bài học sinh.','Extract the ZIP. Open PetrusKy_Museum_Offline.html for the teacher app, or hoc-sinh/index.html to manage the student workshops.')}</p>
   </div></div>:null}
  </section>;
 }

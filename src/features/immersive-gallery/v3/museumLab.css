@@ -228,6 +228,11 @@
 .bml .bml-3d-stage{position:relative;padding:10px;background:#eef4f5}
 .bml .bml-3d-stage .big-webgl-shell{min-height:420px;height:clamp(360px,50vw,540px);border-radius:12px;overflow:hidden}
 .bml .bml-3d-caption{position:absolute;bottom:22px;left:22px;background:#ffffffea;color:#36526a;padding:8px 13px;border-radius:11px;font-size:12px;display:flex;gap:8px;align-items:center;box-shadow:var(--bml-shadow)}
+.bml .bml-3d-plate{position:absolute;top:16px;left:16px;z-index:4;max-width:min(420px,70%);padding:10px 12px;background:#fffdf8ee;border-left:4px solid #ca2431;color:#152033;pointer-events:none}
+.bml .bml-3d-plate small{display:block;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8a5a12}
+.bml .bml-3d-plate strong{display:block;margin-top:2px;font-size:16px;line-height:1.2}
+.bml .bml-3d-plate p{margin:4px 0 0;font-size:12px;line-height:1.35;color:#3d4a5c}
+.bml .bml-museum-cinema .bml-3d-plate{top:62px}
 .bml .bml-scene-footer{padding:12px 18px;display:flex;gap:12px;align-items:center;justify-content:space-between;font-size:12px;color:#667a8b}
 .bml .bml-scene-footer>span,.bml .bml-scene-footer>div{display:flex;gap:10px;align-items:center}
 .bml .bml-scene-footer button{border:1px solid #d5e0ed;background:white;border-radius:19px;padding:8px 11px;display:flex;gap:5px;align-items:center}

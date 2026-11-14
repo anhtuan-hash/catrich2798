@@ -26,7 +26,7 @@ export function buildOfflineHtml(runtime,snapshot,snapshotHash,extra={}){
  const payload=safeJson({snapshot,snapshotHash,mode:extra.mode||'teacher',groupId:extra.groupId||''});
  const code=runtime.script.replace(/<\/script/gi,'<\\/script');
  const css=runtime.css.replace(/<\/style/gi,'<\\/style');
- const title=extra.title||'BRIAN Museum Lab · Frozen evidence';
+ const title=extra.title||'Pétrus Ký School System · Frozen evidence';
  return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+
  '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'unsafe-inline\' blob:; style-src \'unsafe-inline\'; img-src data: blob:; font-src data:; media-src data: blob:; connect-src data: blob:; worker-src blob:; frame-src \'none\'; object-src \'none\'; base-uri \'none\'; form-action \'none\'">'+
  '<title>'+title.replace(/[<>&]/g,'')+'</title><style>'+css+'</style></head><body><div id="root"><p>Opening the frozen Museum Lab archive…</p></div>'+

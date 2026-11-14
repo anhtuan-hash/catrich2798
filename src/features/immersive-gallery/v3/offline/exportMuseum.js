@@ -39,7 +39,7 @@ export async function captureMuseum({onProgress=()=>{},signal,staff=staffRequest
   (staffData.rubrics||[]).length>=500||(staffData.exitTickets||[]).length>=500||
   (showcase.publishedGalleries||[]).length>=100)
   throw new Error('The staff catalogue reached its API limit. A complete archive cannot be guaranteed; export was stopped.');
- const snapshot={format:SNAPSHOT_FORMAT,startedAt,completedAt:null,source:'BRIAN Museum Lab',
+ const snapshot={format:SNAPSHOT_FORMAT,startedAt,completedAt:null,source:'Pétrus Ký School System',
   staff:staffData,showcase,galleries:[],artworks:{},groupDrafts:{},live:{},evidence:{},comparisons:{},warnings,media};
  for(const [i,gallery] of (showcase.publishedGalleries||staffData.publishedGalleries||[]).entries()){
   check();onProgress('Saving published exhibition '+(i+1)+'…');
@@ -105,13 +105,13 @@ export async function exportMuseumOffline(options={}){
    submissions:snapshot.staff.reviews.length,exhibitions:snapshot.galleries.length,embeddedImages:snapshot.media.length,
    studentWorkshops:board.groups.length},
   students:board.groups,warnings:snapshot.warnings,media:snapshot.media,readOnly:true};
- zip.file('BRIAN_Museum_Offline.html',html);
+ zip.file('PetrusKy_Museum_Offline.html',html);
  zip.file('hoc-sinh/index.html',board.html);
  zip.file('snapshot.json',JSON.stringify(snapshot));
  zip.file('manifest.json',JSON.stringify(manifest,null,2));
  zip.file('README_VI.txt',[
-  'BRIAN MUSEUM LAB — BẢN MINH CHỨNG OFFLINE CHỈ ĐỌC',
-  '1. Giải nén ZIP. Mở BRIAN_Museum_Offline.html bằng Chrome hoặc Edge trên máy tính.',
+  'PÉTRUS KÝ SCHOOL SYSTEM — BẢN MINH CHỨNG OFFLINE CHỈ ĐỌC',
+  '1. Giải nén ZIP. Mở PetrusKy_Museum_Offline.html bằng Chrome hoặc Edge trên máy tính.',
   '2. Có thể tắt Wi-Fi trước khi mở. Không cần cài đặt, máy chủ hay đăng nhập.',
   '3. Xem bài học, bài nộp, tác phẩm, khảo sát, triển lãm 2D/3D và trình chiếu 11 hoạt động.',
   '4. Mở hoc-sinh/index.html để quản 10 bài thực hành. Chọn một nhóm để mở đúng bài của nhóm đó. Chỉ xem.',
@@ -125,7 +125,7 @@ export async function exportMuseumOffline(options={}){
  ].join('\n'));
  const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
  options.signal?.throwIfAborted();
- return {blob,manifest,filename:'BRIAN_Museum_Offline_'+snapshot.completedAt.slice(0,10)+'.zip',runtime,snapshot};
+ return {blob,manifest,filename:'PetrusKy_Museum_Offline_'+snapshot.completedAt.slice(0,10)+'.zip',runtime,snapshot};
 }
 export function groupWorkshopRows(snapshot){
  return [...(snapshot?.staff?.groups||[])].sort((a,b)=>String(a.label||'').localeCompare(String(b.label||''),undefined,{numeric:true}))

@@ -60,7 +60,7 @@ export default function DossierScreen({language='vi',data,staff,onRefresh,transp
     setExportBusy(true);setExportError('');
     try{
       const output=await buildCompetitionZip(p1Document(fields,selected),p2Document(fields,selected),checklist,fields.teacher);
-      saveBlob(output,'BRIAN_MuseumLab_BAN_NHAP_HO_SO_HOI_THI.zip');
+      saveBlob(output,'PetrusKy_HoSo_HoiThi.zip');
     }catch(e){setExportError(e.message);}finally{setExportBusy(false);}
   };
   const downloadEvidence=async()=>{
@@ -69,10 +69,10 @@ export default function DossierScreen({language='vi',data,staff,onRefresh,transp
       const bundle=await transport('evidence',null,{assignmentId:selected.id});
       const ids=new Set(localReviews.map(r=>r.id));
       const out=await buildEvidenceZip(bundle,(rubrics||[]).filter(r=>ids.has(r.review_id)));
-      saveBlob(out,'BRIAN_Museum_Class_Evidence.zip');
+      saveBlob(out,'PetrusKy_Museum_Class_Evidence.zip');
     }catch(e){setExportError(e.message);}finally{setExportBusy(false);}
   };
-  const downloadCsv=()=>{try{saveTextFile('BRIAN_MuseumLab_Progress.csv','text/csv;charset=utf-8',buildProgressCsv(data,language));}catch(e){setExportError(e.message);}};
+  const downloadCsv=()=>{try{saveTextFile('PetrusKy_MuseumLab_Progress.csv','text/csv;charset=utf-8',buildProgressCsv(data,language));}catch(e){setExportError(e.message);}};
   const missing=checklist.filter(c=>!c.done);
   return (
     <div className="igv2 igv2-screen" data-testid="igv2-dossier-screen">

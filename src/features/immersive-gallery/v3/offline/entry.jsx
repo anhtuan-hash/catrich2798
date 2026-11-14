@@ -22,7 +22,7 @@ function OfflineApp({runtime,hash}){
   }
  }}>
   <header className="museum-offline-bar">
-   <strong>BRIAN Museum Lab</strong><span>Frozen evidence · Read only</span>
+   <strong>Pétrus Ký School System</strong><span>Frozen evidence · Read only</span>
    <nav aria-label="Offline archive navigation">
     <button type="button" onClick={()=>setView('app')} aria-current={view==='app'?'page':undefined}>Museum Lab</button>
     <button type="button" onClick={()=>setView('work')} aria-current={view==='work'?'page':undefined}>Saved student work</button>
@@ -70,7 +70,7 @@ function StudentBoard({runtime}){
   const group=groups.find(item=>item.id===groupId);
   return <div className="museum-offline-root">
    <header className="museum-offline-bar"><strong>Student workshop</strong><span>Frozen · {group?.label||'Group'} · Read only</span>
-    <button type="button" onClick={()=>setGroupId('')}>All workshops</button><a href="../BRIAN_Museum_Offline.html">Teacher archive</a></header>
+    <button type="button" onClick={()=>setGroupId('')}>All workshops</button><a href="../PetrusKy_Museum_Offline.html">Teacher archive</a></header>
    <MuseumLabStudent key={groupId} language="en"/>
   </div>;
  }
@@ -78,7 +78,7 @@ function StudentBoard({runtime}){
   <p>PÉTRUS KÝ · FROZEN · READ ONLY</p>
   <h1>10 student workshops</h1>
   <p>Each row opens that group’s saved practice. Nothing can be added, edited or deleted.</p>
-  <p><a href="../BRIAN_Museum_Offline.html">Open the teacher archive</a></p>
+  <p><a href="../PetrusKy_Museum_Offline.html">Open the teacher archive</a></p>
   <table className="bml-frozen-table"><thead><tr><th>#</th><th>Group</th><th>Class</th><th>Museum</th><th></th></tr></thead>
    <tbody>{groups.map((group,index)=>{
     const lesson=runtime.snapshot.staff.assignments.find(item=>item.id===group.assignment_id);

@@ -1,7 +1,7 @@
 export const APPS = [
   {
     slug: 'immersive-gallery', icon: 'IG', tone: 'mint', group: 'Creative Learning', groupVi: 'Sáng tạo & trưng bày',
-    title: 'BRIAN Museum Lab V3', titleVi: 'BRIAN Museum Lab · Bảo tàng số',
+    title: 'Pétrus Ký School System', titleVi: 'Pétrus Ký School System · Bảo tàng số',
     desc: 'Run English STEAM lessons, create accountless group museums, review and showcase student exhibitions.',
     descVi: 'Tạo bài học STEM/STEAM Tiếng Anh, học sinh làm bảo tàng 3D không cần tài khoản, giáo viên và TTCM duyệt.',
     status: 'Material 3 · STEAM · Accountless', statusVi: 'Dễ dùng · Bảo tàng 3D · Không cần tài khoản học sinh',

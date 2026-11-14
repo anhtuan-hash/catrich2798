@@ -394,7 +394,7 @@ export default function GlobalCompactNavigation({
       <nav ref={rootRef} className="brian-nav" data-halloween-nav={seasonalHome.enabled && (route === "home" || seasonalNavbar.enabled) ? "true" : "false"} aria-label={language === 'vi' ? 'Điều hướng chính' : 'Main navigation'}>
         <button type="button" className="brian-nav__brand" onClick={(event) => openRoute('#/home', 'BE', event)}>
           <img src="/brian-english-brand-mark.png" alt="" aria-hidden="true" />
-          <span>Brian English</span>
+          <span>Pétrus Ký School System</span>
         </button>
 
         <div className="brian-nav__primary" aria-label={language === 'vi' ? 'Khu vực chính' : 'Primary areas'}>

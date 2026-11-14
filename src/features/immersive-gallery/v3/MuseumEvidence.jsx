@@ -46,10 +46,10 @@ export default function MuseumEvidence({data,currentUser,language='vi'}){
   setExportBusy(true);setExportError('');
   try{
    const output=await buildCompetitionZip(p1Document(fields,selected),p2Document(fields,selected),checklist,fields.teacher);
-   saveBlob(output,'BRIAN_MuseumLab_BAN_NHAP_HO_SO_HOI_THI.zip');
+   saveBlob(output,'PetrusKy_HoSo_HoiThi.zip');
   }catch(e){setExportError(e.message);}finally{setExportBusy(false);}
  };
- const downloadEvidence=async()=>{setExportBusy(true);setExportError('');try{const bundle=await liveStaff('evidence',null,{assignmentId:selected.id});const ids=new Set(localReviews.map(r=>r.id));const out=await buildEvidenceZip(bundle,rubrics.filter(r=>ids.has(r.review_id)));saveBlob(out,'BRIAN_Museum_Class_Evidence.zip');}catch(e){setExportError(e.message);}finally{setExportBusy(false);}};
+ const downloadEvidence=async()=>{setExportBusy(true);setExportError('');try{const bundle=await liveStaff('evidence',null,{assignmentId:selected.id});const ids=new Set(localReviews.map(r=>r.id));const out=await buildEvidenceZip(bundle,rubrics.filter(r=>ids.has(r.review_id)));saveBlob(out,'PetrusKy_Museum_Class_Evidence.zip');}catch(e){setExportError(e.message);}finally{setExportBusy(false);}};
  return <div className="bml-screen" data-testid="museum-evidence-studio">
   <div className="bml-heading-actions"><div><div className="bml-overline">{tr(language,'HỒ SƠ HỘI THI 2026–2027','COMPETITION DOSSIER')}</div>
    <h1>{tr(language,'Minh chứng dự thi','Competition evidence')}</h1><p>{tr(language,'Tạo bản nháp P1/P2 và tổng hợp dữ liệu thực tế từ các nhóm.','Draft P1/P2 and collect actual group evidence.')}</p></div>
@@ -75,7 +75,7 @@ export default function MuseumEvidence({data,currentUser,language='vi'}){
     <button type="button" className="bml-outline" disabled={exportBusy} onClick={downloadZip}><FileArchive size={18}/>{tr(language,'Tải ZIP hồ sơ nháp P1/P2','Download P1/P2 draft ZIP')}</button>
     <button type="button" className="bml-outline" disabled={exportBusy||!selected} onClick={downloadEvidence}><Download size={18}/>{tr(language,'Xuất khảo sát · góp ý · bản trước/sau · ảnh thật','Export survey · feedback · revisions · original images')}</button>
     {exportError?<div className="bml-banner bml-danger-banner" role="alert">{exportError}</div>:null}
-    <button type="button" className="bml-outline" onClick={()=>saveTextFile('BRIAN_MuseumLab_Progress.csv','text/csv;charset=utf-8',buildProgressCsv(data,language))}><Download size={18}/>{tr(language,'Tải bảng tiến độ CSV','Download progress CSV')}</button>
+    <button type="button" className="bml-outline" onClick={()=>saveTextFile('PetrusKy_MuseumLab_Progress.csv','text/csv;charset=utf-8',buildProgressCsv(data,language))}><Download size={18}/>{tr(language,'Tải bảng tiến độ CSV','Download progress CSV')}</button>
     <a className="bml-outline" href="/museum-lesson-guide.html" download={data?.offlineReadOnly?'BRIAN_Lesson_Guide.html':undefined} target="_blank" rel="noreferrer">{tr(language,'Hướng dẫn bài dạy · không cần đăng nhập','Read-only lesson guide · no login')}</a>
     <small>{tr(language,'ZIP gồm P1/P2 đúng tên giáo viên, học liệu và bảng kiểm. Nút xuất minh chứng tải dữ liệu lớp đã lưu riêng; tổng P2 sau khi ghép phải không quá 50 MB. Giáo viên phải bổ sung học liệu thật, kiểm tra giới hạn dung lượng trước khi nộp.','ZIP includes two editable DOCX drafts and a missing-evidence checklist. Add authentic teaching materials and verify the official file-size limit before submission.')}</small>
    </aside>

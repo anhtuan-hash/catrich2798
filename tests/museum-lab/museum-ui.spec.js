@@ -809,7 +809,7 @@ test('exhibition options download the actual exhibit content, not invented analy
  const dl=page.waitForEvent('download');
  await detail.getByRole('menuitem',{name:'Tải nội dung (.txt)'}).click();
  const file=await dl;
- expect(file.suggestedFilename()).toBe('BRIAN_Museum_Exhibition_Summary.txt');
+ expect(file.suggestedFilename()).toBe('PetrusKy_Museum_Exhibition_Summary.txt');
  const txt=fs.readFileSync(await file.path(),'utf8');
  expect(txt).toContain('Our Planet, Our Future');
  expect(txt).toContain('One Minute for Nature');
