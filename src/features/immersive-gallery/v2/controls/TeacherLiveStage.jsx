@@ -38,7 +38,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
       aria-label={t(language,'Sân khấu hoạt động lớp học trực tiếp','Live classroom activity stage')}>
       {isFullscreen?<button type="button" className="adv-stage-exit-fullscreen" onClick={onExitFullscreen} aria-label={t(language,'Thoát toàn màn hình','Exit fullscreen')}><Minimize2 size={13}/> {t(language,'Thoát','Exit')}</button>:null}
       <div className="adv-stage-top">
-        <span className="adv-stage-brand"><span className="adv-stage-dot" aria-hidden="true"/>BRIAN MUSEUM LAB · TEACHER LIVE</span>
+        <span className="adv-stage-brand"><span className="adv-stage-dot" aria-hidden="true"/>PÉTRUS KÝ SCHOOL SYSTEM · TEACHER LIVE</span>
         <span className="adv-stage-progress">
           <span>{t(language,'TIẾT','PERIOD')} {period}/2</span>
           <span>{t(language,'HOẠT ĐỘNG','ACTIVITY')} {Math.min(currentIndex+1,11)}/11</span>

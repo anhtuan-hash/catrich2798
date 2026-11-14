@@ -17,7 +17,6 @@ export default function TeacherToolbar({
 }){
   const ended=session?.status==='ended';
   const mutateLocked=readOnly||busy||ended;
-  const browseLocked=busy||(!readOnly&&ended);
   const stageOpen=Boolean(session?.stageOpen);
   const revealed=Boolean(session?.revealed);
   const isLast=currentIndex>=10;
@@ -29,8 +28,8 @@ export default function TeacherToolbar({
   );
   return (
     <div className="toolbar adv-toolbar" role="toolbar" aria-label={t(language,'Thanh điều khiển giáo viên','Teacher control toolbar')}>
-      {btn('previous',t(language,'Hoạt động trước','Previous activity'),ArrowLeft,{onClick:onPrevious,disabled:busy||currentIndex===0})}
-      {btn('next',t(language,'Hoạt động tiếp theo →','Next activity →'),ArrowRight,{onClick:onNext,disabled:browseLocked||isLast,variant:'primary',extraAria:t(language,'Chuyển sang hoạt động tiếp theo','Advance to next activity')})}
+      {btn('previous',t(language,'Hoạt động trước','Previous activity'),ArrowLeft,{onClick:onPrevious,disabled:(!readOnly&&busy)||currentIndex===0})}
+      {btn('next',t(language,'Hoạt động tiếp theo →','Next activity →'),ArrowRight,{onClick:onNext,disabled:(!readOnly&&(busy||ended))||isLast,variant:'primary',extraAria:t(language,'Chuyển sang hoạt động tiếp theo','Advance to next activity')})}
       {btn('task',stageOpen?t(language,'Đóng nhiệm vụ','Close task'):t(language,'Mở nhiệm vụ','Open task'),stageOpen?Lock:LockOpen,{onClick:onToggleTask,disabled:mutateLocked,extraAria:stageOpen?t(language,'Đóng nhiệm vụ hiện tại','Close current task'):t(language,'Mở nhiệm vụ hiện tại','Open current task')})}
       {btn('reveal',readOnly?(revealed?t(language,'Ẩn giải thích','Hide explanation'):t(language,'Xem giải thích','Show explanation')):revealed?t(language,'Đã hiện giải thích','Explanation shown'):t(language,'Hiện giải thích','Reveal explanation'),Eye,{onClick:onReveal,disabled:busy||(!readOnly&&(ended||revealed))})}
       <span className="adv-toolbar-spacer" aria-hidden="true"/>

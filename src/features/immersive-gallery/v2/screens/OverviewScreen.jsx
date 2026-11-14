@@ -130,15 +130,13 @@ export default function OverviewScreen({
   return (
     <div className="igv2-screen ov-root" data-testid="igv2-overview-screen">
       {/* Band 1: Swiss Editorial Hero + Slanted School Architectural Visual */}
-      <section className="ov-hero" aria-label={tr(language, 'Giới thiệu hệ sinh thái Brian English', 'Brian English ecosystem hero')}>
+      <section className="ov-hero" aria-label={tr(language, 'Giới thiệu Pétrus Ký School System', 'Pétrus Ký School System')}>
         <div className="ov-hero-copy">
-          <div className="ov-hero-kicker">BRIAN ENGLISH</div>
+          <div className="ov-hero-kicker">PÉTRUS KÝ SCHOOL SYSTEM</div>
           <div className="ov-hero-lockup">
             <div className="ov-hero-row-top">
               <h1 className="ov-hero-title">
-                <span>BRIAN</span>
-                <span className="ov-hero-sr-space"> </span>
-                <span className="ov-hero-title-sub">ENGLISH</span>
+                <span>PÉTRUS KÝ</span>
               </h1>
               <span className="ov-hero-slash" aria-hidden="true" />
               <p className="ov-hero-strapline">
@@ -150,7 +148,7 @@ export default function OverviewScreen({
 
             <div className="ov-hero-row-bottom">
               <div className="ov-hero-word-bottom" aria-hidden="true">
-                <span>ENGLISH</span>
+                <span>SCHOOL SYSTEM</span>
                 <span className="ov-hero-bar" />
               </div>
 

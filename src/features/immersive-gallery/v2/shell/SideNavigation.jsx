@@ -24,9 +24,9 @@ export default function SideNavigation({activeNav, onNavigate, staff}) {
   return (
     <aside className="sidebar" aria-label="Immersive Gallery navigation">
       <div className="brand">
-        <div className="brand-mark" aria-hidden="true">B.</div>
+        <div className="brand-mark" aria-hidden="true">PK</div>
         <div>
-          <div className="brand-name">BRIAN<br/>ENGLISH</div>
+          <div className="brand-name">PÉTRUS KÝ<br/>SCHOOL SYSTEM</div>
           <div className="brand-caption">TEACHING STUDIO</div>
         </div>
       </div>

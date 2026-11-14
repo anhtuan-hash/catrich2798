@@ -48,7 +48,7 @@ export default function TeachingPlanScreen({language='vi',data,onCreate,onBack,o
 
       <div className="plan-hero" style={{display:'grid',gridTemplateColumns:'280px 1fr',gap:24,alignItems:'stretch',marginTop:20}}>
         <div className="plan-visual" style={{background:'var(--igv2-navy,#112339)',color:'#fff',padding:22,display:'flex',flexDirection:'column',justifyContent:'space-between',minHeight:220}}>
-          <div style={{fontSize:11,fontWeight:800,letterSpacing:'.14em',color:'var(--igv2-warm-yellow,#f4ca4b)'}}>BRIAN / PROJECT-BASED ENGLISH</div>
+          <div style={{fontSize:11,fontWeight:800,letterSpacing:'.14em',color:'var(--igv2-warm-yellow,#f4ca4b)'}}>PÉTRUS KÝ / SCHOOL SYSTEM</div>
           <div style={{fontSize:72,fontWeight:900,lineHeight:.9,margin:'12px 0'}}>{activityCount}<br/><span style={{fontSize:28,color:'var(--igv2-warm-yellow,#f4ca4b)'}}>05.</span></div>
           <div style={{fontSize:13,fontWeight:800,lineHeight:1.3}}>GLOBAL WARMING<br/>CLIMATE ACTION MUSEUM</div>
         </div>

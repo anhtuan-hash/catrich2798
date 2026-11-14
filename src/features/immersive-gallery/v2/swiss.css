@@ -2964,3 +2964,48 @@ html body .igv2.igv2 :not(#igv2-swiss-a#igv2-swiss-b#igv2-swiss-c):is(
   background: #152033;
   color: #fff;
 }
+
+.igv2 .igv2-topbar-wordmark {
+  font-size: 13px;
+  line-height: 1.15;
+  max-width: 168px;
+}
+.igv2 .igv2-topbar-logo {
+  object-fit: contain;
+  background: #fff;
+  border-radius: 50%;
+}
+.igv2 .ov-hero-title { font-size: clamp(40px, 4.6vw, 68px); }
+.igv2 .ov-hero-word-bottom span:first-child { font-size: clamp(28px, 3.2vw, 48px); }
+
+.igv2 .kpi-grid .kpi:nth-child(1) { background: #fff4f2; box-shadow: inset 4px 0 0 #c23b3b; }
+.igv2 .kpi-grid .kpi:nth-child(2) { background: #f3faf5; box-shadow: inset 4px 0 0 #176f57; }
+.igv2 .kpi-grid .kpi:nth-child(3) { background: #f3f7fc; box-shadow: inset 4px 0 0 #1d4e89; }
+.igv2 .kpi-grid .kpi:nth-child(4) { background: #fff8ea; box-shadow: inset 4px 0 0 #c9a227; }
+
+.igv2 .bml-lesson-qr-grid .bml-paper-group-card { border-top: 4px solid #176f57; }
+.igv2 .bml-lesson-qr-grid .bml-paper-group-card:nth-child(5n+2) { border-top-color: #c9a227; }
+.igv2 .bml-lesson-qr-grid .bml-paper-group-card:nth-child(5n+3) { border-top-color: #1d4e89; }
+.igv2 .bml-lesson-qr-grid .bml-paper-group-card:nth-child(5n+4) { border-top-color: #c23b3b; }
+.igv2 .bml-lesson-qr-grid .bml-paper-group-card:nth-child(5n) { border-top-color: #2a6b4f; }
+.igv2 .bml-lesson-qr-grid .bml-paper-group-card .bml-group-avatar {
+  background: #e7f4ee;
+  color: #176f57;
+}
+
+.igv2 .submission-grid .submission-card { border-top: 4px solid #1d4e89; background: #f7fafc; }
+.igv2 .submission-grid .submission-card:nth-child(5n+2) { border-top-color: #c9a227; background: #fffaf0; }
+.igv2 .submission-grid .submission-card:nth-child(5n+3) { border-top-color: #176f57; background: #f4faf6; }
+.igv2 .submission-grid .submission-card:nth-child(5n+4) { border-top-color: #c23b3b; background: #fff6f4; }
+.igv2 .submission-grid .submission-card:nth-child(5n) { border-top-color: #6b4c9a; background: #f7f4fb; }
+
+.igv2 .adv-plan-periods { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.igv2 .adv-plan-period { background: #f7fafc; border: 1px solid #d7e2ee; border-top: 4px solid #1d4e89; padding: 14px; }
+.igv2 .adv-plan-period:nth-child(2) { background: #f4faf6; border-color: #d5eadc; border-top-color: #176f57; }
+.igv2 .adv-plan-period h3 { color: #142033; }
+.igv2 .three-col .panel:nth-child(1) { background: #fff6f4; }
+.igv2 .three-col .panel:nth-child(2) { background: #fff8ea; }
+.igv2 .three-col .panel:nth-child(3) { background: #f3f7fc; }
+@media (max-width: 860px) {
+  .igv2 .adv-plan-periods { grid-template-columns: 1fr; }
+}

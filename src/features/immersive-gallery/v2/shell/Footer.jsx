@@ -1,4 +1,6 @@
 import React from 'react';
+import schoolMark from './branding/petrus-ky.png';
+import deptMark from './branding/hcmc-education.jpg';
 import {
   Building2,
   GraduationCap,
@@ -45,8 +47,8 @@ export default function Footer() {
           <div className="footer-logos-row">
             <div className="footer-logo-slot">
               <img
-                src="/brian-english-brand-logo.png"
-                alt="Brian English brand logo"
+                src={deptMark}
+                alt="Sở Giáo dục và Đào tạo Thành phố Hồ Chí Minh"
                 loading="lazy"
                 decoding="async"
               />
@@ -112,13 +114,13 @@ export default function Footer() {
         <div className="footer-final-inner">
           <div className="footer-final-left">
             <img
-              src="/brian-english-brand-mark.png"
-              alt="Brian English"
+              src={schoolMark}
+              alt="Pétrus Ký School"
               width={24}
               height={24}
               className="footer-final-logo"
             />
-            <strong>BRIAN ENGLISH</strong>
+            <strong>PÉTRUS KÝ SCHOOL SYSTEM</strong>
             <span className="footer-final-pipe" aria-hidden="true">|</span>
             <span className="footer-final-motto">
               Teach Better Together <Heart size={13} strokeWidth={2} className="footer-heart" aria-hidden="true" />

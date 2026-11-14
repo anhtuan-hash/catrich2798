@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import CompetitionBanner from './CompetitionBanner.jsx';
+import schoolMark from './branding/petrus-ky.png';
 import { NAV_ITEMS } from './SideNavigation.jsx';
 import Footer from './Footer.jsx';
 
@@ -132,16 +133,16 @@ export default function ImmersiveShell({
             type="button"
             className="igv2-topbar-brand"
             onClick={() => onNavigate?.('overview')}
-            aria-label={tr(language, 'Brian English · Về tổng quan', 'Brian English · Go to overview')}
+            aria-label={tr(language, 'Pétrus Ký School System · Về tổng quan', 'Pétrus Ký School System · Go to overview')}
           >
             <img
-              src="/brian-english-brand-mark.png"
-              alt="Brian English"
+              src={schoolMark}
+              alt="Pétrus Ký School"
               width={30}
               height={30}
               className="igv2-topbar-logo"
             />
-            <span className="igv2-topbar-wordmark">Brian English</span>
+            <span className="igv2-topbar-wordmark">Pétrus Ký School System</span>
           </button>
 
           <span className="igv2-topbar-sep" aria-hidden="true" />

@@ -1,6 +1,6 @@
 import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronLeft,ChevronRight,Clock3,Eye,Fullscreen,HelpCircle,Lock,MonitorPlay,Pause,Play,Presentation,Printer,QrCode,RefreshCcw,ShieldCheck,Users,X,Film,Volume2,Sparkles,Minimize2} from 'lucide-react';
-import {LIVE_STAGES,LIVE_PERIOD_MINUTES,LIVE_TOTAL_MINUTES} from './liveLesson.js';
+import {LIVE_STAGES,LIVE_PERIOD_MINUTES,LIVE_TOTAL_MINUTES,liveStage,LEGACY_LANGUAGE_MINI_LESSON} from './liveLesson.js';
 import {liveStaff} from './museumLiveApi.js';
 import {englishSystemGroupLabel} from './museumApi.js';
 import LessonResources from './LessonResources.jsx';
@@ -34,7 +34,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  const offline=Boolean(data?.offlineReadOnly);
  const readOnly=Boolean(offline||assignments.find(a=>a.id===assignmentId)?.content_frozen_at);
  // A frozen lesson has independent, GET-only presentation navigation.
- const [browseIndex,setBrowseIndex]=useState(0);
+ const [browseIndex,setBrowseIndex]=useState(null);
  const [previewReveal,setPreviewReveal]=useState(false);
  const requestSequence=useRef(0);
  const [state,setState]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
@@ -61,7 +61,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
   const sequence=++requestSequence.current;
   try{
    const response=await transport('state',null,{
-    assignmentId,...(readOnly?{viewStage:String(browseIndex)}:{})
+    assignmentId,...(readOnly&&browseIndex!=null?{viewStage:String(browseIndex)}:{})
    });
    if(activeRef.current&&sequence===requestSequence.current){
     setState(response);setError('');
@@ -73,8 +73,13 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  useEffect(()=>{if(!showQr)return;let active=true;import('qrcode').then(({default:QR})=>QR.toDataURL(link,{width:220,margin:2})).then(url=>{if(active)setQr(url);}).catch(()=>{});
   return()=>{active=false;};},[showQr]);
  const session=state?.session?(readOnly?{...state.session,revealed:previewReveal}:state.session):null;
- const stage=session?.stage,groups=(state?.groups||[]).map(g=>({...g,label:language==='en'?englishSystemGroupLabel(g.label):g.label})),result=session?.stageIndex===2&&state?.survey?state.survey:state?.result;
- const currentIndex=session?.stageIndex??0,minute=LIVE_STAGES[currentIndex]?.minutes||0;
+ const serverIndex=session?.stageIndex??0;
+ const currentIndex=readOnly?(browseIndex??serverIndex):serverIndex;
+ const stage=(readOnly
+  ?(currentIndex===1&&session?.questionVersion!==2?LEGACY_LANGUAGE_MINI_LESSON:liveStage(currentIndex))
+  :session?.stage);
+ const groups=(state?.groups||[]).map(g=>({...g,label:language==='en'?englishSystemGroupLabel(g.label):g.label})),result=currentIndex===2&&state?.survey?state.survey:state?.result;
+ const minute=LIVE_STAGES[currentIndex]?.minutes||0;
  const curriculumVideo=MUSEUM_CURRICULUM_VIDEOS[currentIndex]||null;
  const showingCurriculumVideo=Boolean(curriculumVideo&&curriculumMode==='video');
  const showingVideoCheck=currentIndex===3&&curriculumMode==='check';
@@ -105,10 +110,12 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  const remaining=Math.max(0,minute*60-elapsed);
  const act=async(action)=>{
   if(!assignmentId||busy)return;
-  if(readOnly){
-   // Presentation controls never POST or change persisted student evidence.
+   if(readOnly){
    if(action==='next'||action==='previous'){
-    setBrowseIndex(i=>Math.max(0,Math.min(LIVE_STAGES.length-1,i+(action==='next'?1:-1))));
+    setBrowseIndex(i=>{
+     const base=i??(session?.stageIndex??0);
+     return Math.max(0,Math.min(LIVE_STAGES.length-1,base+(action==='next'?1:-1)));
+    });
     setPreviewReveal(false);setStageVideo(null);setSpotlight(null);
    }else if(action==='reveal')setPreviewReveal(value=>!value);
    return;
@@ -118,7 +125,8 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
   try{const payload=action==='start'?{assignmentId}:{assignmentId,action,version:session?.version};
     const out=await transport(action==='start'?'start':'control',payload);
     if(out.session)setState(prev=>({...prev,session:out.session}));
-    await refresh();
+    if(action==='next'||action==='previous')refresh();
+    else await refresh();
   }catch(e){setError(e.message);}
   finally{setBusy(false);}
  };
@@ -344,8 +352,8 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
    </div>
    <div className="bml-live-controls bml-live-controls--paper bml-surface">
     <div className="bml-live-control-line">
-     <button className="bml-outline" disabled={busy||currentIndex===0} onClick={()=>act('previous')}><ChevronLeft size={17}/>{t(language,'Trước','Back')}</button>
-     <button className="bml-primary" disabled={busy||(!readOnly&&session.status==='ended')||currentIndex===10} onClick={()=>act('next')}>{t(language,'Hoạt động tiếp','Next activity')}<ChevronRight size={17}/></button>
+     <button className="bml-outline" disabled={(!readOnly&&busy)||currentIndex===0} onClick={()=>act('previous')}><ChevronLeft size={17}/>{t(language,'Trước','Back')}</button>
+     <button className="bml-primary" disabled={(!readOnly&&busy)||(!readOnly&&session.status==='ended')||currentIndex===10} onClick={()=>act('next')}>{t(language,'Hoạt động tiếp','Next activity')}<ChevronRight size={17}/></button>
      <button className="bml-outline" disabled={readOnly||busy||session.status==='ended'} onClick={()=>act(session.stageOpen?'close':'open')}>
       {session.stageOpen?<Lock size={18}/>:<Play size={18}/>}
       {session.stageOpen?t(language,'Khóa hoạt động','Close task'):t(language,'Mở lại tương tác','Reopen interaction')}</button>

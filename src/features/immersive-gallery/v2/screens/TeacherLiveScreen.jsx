@@ -1,6 +1,6 @@
 import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowLeft,Play,MonitorPlay,BookOpen,Printer,X} from 'lucide-react';
-import {LIVE_STAGES} from '../../v3/liveLesson.js';
+import {LIVE_STAGES,liveStage,LEGACY_LANGUAGE_MINI_LESSON} from '../../v3/liveLesson.js';
 import {liveStaff} from '../../v3/museumLiveApi.js';
 import {englishSystemGroupLabel} from '../../v3/museumApi.js';
 import {MUSEUM_CURRICULUM_VIDEOS} from '../../v3/museumLiveExtensions.js';
@@ -40,7 +40,8 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   const [assignmentId,setAssignmentId]=useState(initialReview||savedPreference.current?.assignmentId||assignments[0]?.id||'');
   const assignment=assignments.find(a=>a.id===assignmentId);
   const readOnly=Boolean(data?.offlineReadOnly||assignment?.content_frozen_at);
-  const [browseIndex,setBrowseIndex]=useState(0);
+  const [browseIndex,setBrowseIndex]=useState(null);
+  const [jumpIndex,setJumpIndex]=useState(null);
   const [previewReveal,setPreviewReveal]=useState(false);
   const requestSequence=useRef(0);
   const frozenReason=assignment?.content_frozen_at
@@ -58,7 +59,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     if(!assignmentId)return;
     const sequence=++requestSequence.current;
     try{
-      const response=await transport('state',null,{assignmentId,...(readOnly?{viewStage:String(browseIndex)}:{})});
+      const response=await transport('state',null,{assignmentId,...(readOnly&&browseIndex!=null?{viewStage:String(browseIndex)}:{})});
       if(activeRef.current&&sequence===requestSequence.current){setState(response);setError('');}
     }catch(e){if(activeRef.current&&sequence===requestSequence.current)setError(e.message);}
   },[assignmentId,transport,readOnly,browseIndex]);
@@ -69,8 +70,13 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   },[]);
   useEffect(()=>{if(activeTool!=='qr')return;let active=true;import('qrcode').then(({default:QR})=>QR.toDataURL(link,{width:220,margin:2})).then(url=>{if(active)setQr(url);}).catch(()=>{});return()=>{active=false;};},[activeTool]);
   const session=state?.session?(readOnly?{...state.session,revealed:previewReveal}:state.session):null;
-  const stage=session?.stage,groups=(state?.groups||[]).map(g=>({...g,label:language==='en'?englishSystemGroupLabel(g.label):g.label}));
-  const currentIndex=session?.stageIndex??0,minute=LIVE_STAGES[currentIndex]?.minutes||0;
+  const serverIndex=session?.stageIndex??0;
+  const currentIndex=readOnly?(browseIndex??serverIndex):(jumpIndex??serverIndex);
+  const stage=(readOnly||jumpIndex!=null)
+    ?(currentIndex===1&&session?.questionVersion!==2?LEGACY_LANGUAGE_MINI_LESSON:liveStage(currentIndex))
+    :session?.stage;
+  const groups=(state?.groups||[]).map(g=>({...g,label:language==='en'?englishSystemGroupLabel(g.label):g.label}));
+  const minute=LIVE_STAGES[currentIndex]?.minutes||0;
   const curriculumVideo=MUSEUM_CURRICULUM_VIDEOS[currentIndex]||null;
   const showingCurriculumVideo=Boolean(curriculumVideo&&curriculumMode==='video');
   const showingVideoCheck=currentIndex===3&&curriculumMode==='check';
@@ -95,19 +101,28 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     if(!assignmentId||busy)return;
     if(readOnly){
       if(action==='next'||action==='previous'){
-        setBrowseIndex(i=>Math.max(0,Math.min(LIVE_STAGES.length-1,i+(action==='next'?1:-1))));
+        setBrowseIndex(i=>{
+          const base=i??(session?.stageIndex??0);
+          return Math.max(0,Math.min(LIVE_STAGES.length-1,base+(action==='next'?1:-1)));
+        });
         setPreviewReveal(false);setSpotlight(null);
       }else if(action==='reveal')setPreviewReveal(v=>!v);
       return;
     }
     if(action==='end'&&!window.confirm(t(language,'Kết thúc tiết học? Học sinh sẽ không thể tiếp tục thao tác trong phiên này.','End this lesson? Student tasks will be locked.')))return;
+    if(action==='next'||action==='previous'){
+      const base=jumpIndex??session?.stageIndex??0;
+      setJumpIndex(Math.max(0,Math.min(LIVE_STAGES.length-1,base+(action==='next'?1:-1))));
+    }
     setBusy(true);setError('');
     try{const payload=action==='start'?{assignmentId}:{assignmentId,action,version:session?.version};
       const out=await transport(action==='start'?'start':'control',payload);
       if(out.session)setState(prev=>({...prev,session:out.session}));
-      await refresh();
-    }catch(e){setError(e.message);}finally{setBusy(false);}
-  },[assignmentId,busy,readOnly,session?.version,transport,refresh,language]);
+      setJumpIndex(null);
+      if(action==='next'||action==='previous')refresh();
+      else await refresh();
+    }catch(e){setJumpIndex(null);setError(e.message);}finally{setBusy(false);}
+  },[assignmentId,busy,readOnly,session?.version,session?.stageIndex,jumpIndex,transport,refresh,language]);
   const freeze=async()=>{if(readOnly)return;setBusy(true);setError('');try{await transport('freeze-survey',{assignmentId,version:session.version,...(paper?{counts:tally.map(v=>v===''?null:Number(v)),note:tallyNote}:{})});await refresh();}catch(e){setError(e.message);}finally{setBusy(false);}};
   const shareNarration=async()=>{
     if(readOnly||busy||!session||session.status==='ended')return;
@@ -207,7 +222,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
         description={t(language,'Điều khiển toàn bộ 11 hoạt động trong 2 tiết. Học sinh tham gia bằng mã nhóm.','Control all 11 activities across two lessons. Students join using group passes.')}
         aside={readOnly?t(language,'Bài học đã kết thúc · Chỉ xem lại','Completed lesson · View-only playback'):t(language,'Đang trực tiếp · Học sinh bằng mã nhóm','Live · students join by group pass')}/>
       <label className="adv-dossier-field" style={{marginBottom:12}}>{t(language,'Chọn lớp và bài học','Choose lesson / class')}
-        <select className="adv-assignment-select" value={assignmentId} onChange={e=>{setAssignmentId(e.target.value);setBrowseIndex(0);setPreviewReveal(false);setState(null);setSpotlight(null);}} aria-label={t(language,'Chọn bài học','Select lesson')}>
+        <select className="adv-assignment-select" value={assignmentId} onChange={e=>{setAssignmentId(e.target.value);setBrowseIndex(null);setJumpIndex(null);setPreviewReveal(false);setState(null);setSpotlight(null);}} aria-label={t(language,'Chọn bài học','Select lesson')}>
           {!assignments.length?<option value="">{t(language,'Chưa có bài học được giao','No lesson assigned')}</option>:null}
           {assignments.map(a=><option value={a.id} key={a.id}>{a.title} · {a.class_scope||''}</option>)}
         </select></label>
