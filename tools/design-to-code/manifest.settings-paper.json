@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "1.0",
+  "engine": "BRIAN DESIGN-TO-CODE",
+  "module": "settings",
+  "variant": "layered-paper-scrapbook",
+  "featureFlag": "brianPaper=1",
+  "route": "#/settings",
+  "fixture": "tools/design-to-code/fixtures/settings-paper.html",
+  "visualReference": {
+    "name": "vietnamese_scrapbook_settings_dashboard.png",
+    "source": "User-approved conversation mockup, 7 November 2026",
+    "width": 1145,
+    "height": 1374,
+    "status": "external-reference-required",
+    "notice": "Original conversation image was not automatically committed to the GitHub repository. Pass it to the CLI via --reference; do not manufacture a match score."
+  },
+  "breakpoints": [390, 768, 1145, 1440],
+  "businessLogic": {
+    "preserveData": true,
+    "preserveRoleAccess": true,
+    "preserveOnOpenHandlers": true,
+    "preserveAccountSecurity": true,
+    "forbidFakeImageOnlyUI": true,
+    "forbidAnonymousPrivateSettings": true
+  },
+  "acceptance": {
+    "mustPass": [
+      "No horizontal clipping",
+      "All 11 admin settings modules visible",
+      "List/grid toggle works",
+      "Search filters modules",
+      "Pin/unpin remains persistent",
+      "Open module uses original action",
+      "Mobile 390px UI remains navigable",
+      "Original Settings UI remains available without feature flag"
+    ],
+    "visualSimilarity": {
+      "metric": "meanAbsoluteRGBError and changedPixelRatio",
+      "automatedTarget": null,
+      "note": "No percentage target is asserted until same-size reference has been supplied and baseline reviewed."
+    }
+  }
+}

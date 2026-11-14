@@ -20,6 +20,8 @@ import '../styles/SettingsLauncher2.css';
 import '../styles/SettingsLauncherDrawerRedesign.css';
 import '../styles/SettingsLauncherPortalCompat.css';
 import '../styles/SettingsAccountDrawerRefinement.css';
+import '../features/design-to-code/paper-tokens.css';
+import '../features/design-to-code/settings-paper-layer.css';
 import SettingsLauncherHome, { SETTINGS_LAUNCHER_TILES } from '../components/settings/SettingsLauncherHome.jsx';
 const SettingsTeacherManagement = lazy(() => import('../components/settings/SettingsTeacherManagement.jsx'));
 const EventManagerPage = lazy(() => import('../features/events/admin/EventManagerPage.jsx'));
@@ -345,6 +347,7 @@ export default function Settings({
           <SettingsLauncherHome
             currentUser={currentUser} language={language}
             dataSyncEnabled={dataSyncEnabled} liveSyncEnabled={liveSyncEnabled}
+            paperMode={new URLSearchParams(window.location.search).get('brianPaper') === '1'}
             onOpen={openModule}
           />
           {activeModule && typeof document !== 'undefined' ? createPortal(
