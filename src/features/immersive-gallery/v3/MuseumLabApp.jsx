@@ -2,8 +2,19 @@ import React,{useCallback,useEffect,useState} from 'react';
 import {Plus,RefreshCw,ShieldAlert,X} from 'lucide-react';
 import {LessonsList,LessonWizard} from './MuseumLessonFlow.jsx';
 import {staffRequest} from './museumApi.js';
+import ImmersiveShell from '../v2/shell/ImmersiveShell.jsx';
+import OverviewScreen from '../v2/screens/OverviewScreen.jsx';
+import SubmissionsScreen from '../v2/screens/SubmissionsScreen.jsx';
+import ExhibitionsScreen from '../v2/screens/ExhibitionsScreen.jsx';
+import TeacherLiveScreen from '../v2/screens/TeacherLiveScreen.jsx';
+import TeachingPlanScreen from '../v2/screens/TeachingPlanScreen.jsx';
+import DossierScreen from '../v2/screens/DossierScreen.jsx';
+import SettingsScreen from '../v2/screens/SettingsScreen.jsx';
+import {liveStaff} from './museumLiveApi.js';
 import './museumLab.css';
 import './museumPaper.css';
+import '../v2/tokens.css';
+import '../v2/swiss.css';
 const tr=(language,vi,en)=>language==='en'?en:vi;
 const initialMuseumTab=()=>{
  if(typeof window==='undefined')return 'home';
@@ -48,7 +59,7 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
  };
  // Shell nav ids map to existing tabs; existing navigate()/reviewId preserved.
  const shellNavigate=(navId)=>{ navigate(NAV_TO_TAB[navId]||'home'); };
- const create=()=>navigate('wizard');
+ const create=()=>{if(!staff?.offlineReadOnly)navigate('wizard');};
  const activeNav=TAB_TO_NAV[tab]||'overview';
  const pendingCount=(staff?.reviews||[]).filter(r=>r.state==='submitted'||r.state==='ttcm_review').length;
  const sharedScreenProps={language,data:staff,staff,onNavigate:navigate,onRefresh:refresh,transport,onCreate:create,onBack:()=>navigate('home'),initialReview:reviewId};
@@ -59,7 +70,7 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
       <button type="button" className="bml-outline" onClick={()=>{setLoading(true);refresh();}}><RefreshCw size={17}/>{tr(language,'Thử lại','Retry')}</button></div></div>:null}
    {loading?<div className="bml-empty bml-surface" role="status"><RefreshCw size={27}/>{tr(language,'Đang tải bài học và phân quyền…','Loading lessons and permissions…')}</div>:
    tab==='home'?<OverviewScreen {...sharedScreenProps}/>:
-   tab==='live'?<TeacherLiveScreen {...sharedScreenProps}/>:
+   tab==='live'?<TeacherLiveScreen {...sharedScreenProps} transport={liveStaff}/>:
    tab==='wizard'?<LessonWizard language={language} data={staff} onCompleted={refresh} onExit={()=>navigate('lessons')} onSettings={()=>navigate('settings')}/>:
    tab==='lessons'?<LessonsList language={language} data={staff} query={query}
      onCreate={()=>create()} onReview={id=>navigate('submissions',id)} onRefresh={refresh}/>:
@@ -82,5 +93,5 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
      ].map(([number,vi,en])=><div className="bml-check-item" key={number}><span className="bml-class-tag">{number}</span><div><strong>{tr(language,vi,en)}</strong></div></div>)}</div>
      <button className="bml-primary" type="button" disabled={!!staff?.offlineReadOnly} onClick={()=>{setHelp(false);create();}}><Plus size={17}/>{tr(language,'Tạo bài học ngay','Create a lesson')}</button>
     </section></div>:null}
- </div>;
+ </ImmersiveShell>;
 }
