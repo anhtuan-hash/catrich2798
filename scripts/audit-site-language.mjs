@@ -7,7 +7,10 @@ import { lookupLegacyUiEnglish } from '../src/utils/globalI18n.js';
 // font-glyph samples, sample student names and scanner false positives.
 // These are NOT interface labels and must not be reworded just to inflate metrics.
 const PRESERVE = Object.freeze({
-  'src/features/immersive-gallery/v3/offline/entry.jsx': ['BRIAN ENGLISH · Nguyễn Anh Tuấn · Teach Better Together'],
+  'src/features/immersive-gallery/v3/offline/entry.jsx': [
+    'BRIAN ENGLISH · Nguyễn Anh Tuấn · Teach Better Together',
+    'PÉTRUS KÝ SCHOOL SYSTEM · Nguyễn Anh Tuấn · Teach Better Together',
+  ],
   'src/pages/TextCareCompactStudio.jsx': [
     'Kính gửi:', 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM',
     'Độc lập - Tự do - Hạnh phúc','Nơi nhận:','(Ký, ghi rõ họ tên)',
@@ -27,11 +30,32 @@ const PRESERVE = Object.freeze({
     ",'Đối chiếu'],['history',"
   ],
   'src/pages/ClassroomJoin.jsx': ['Nguyễn Văn A'],
+  // Official school branding contains Vietnamese diacritics in a proper name,
+  // not untranslated interface copy. Allowlist exact verified strings only.
+  'src/features/immersive-gallery/v2/screens/OverviewScreen.jsx': [
+    'PÉTRUS KÝ SCHOOL SYSTEM', 'PÉTRUS KÝ',
+  ],
+  'src/features/immersive-gallery/GalleryApp.jsx': [
+    'PÉTRUS KÝ SCHOOL SYSTEM · A LIVING MUSEUM',
+  ],
+  'src/features/immersive-gallery/v2/controls/TeacherLiveStage.jsx': [
+    'PÉTRUS KÝ SCHOOL SYSTEM · TEACHER LIVE',
+  ],
+  'src/features/immersive-gallery/v2/screens/TeachingPlanScreen.jsx': [
+    'PÉTRUS KÝ / SCHOOL SYSTEM',
+  ],
+  'src/features/immersive-gallery/v2/shell/ImmersiveShell.jsx': [
+    'Pétrus Ký School System',
+  ],
+  'src/features/immersive-gallery/v2/shell/SideNavigation.jsx': [
+    'PÉTRUS KÝ',
+  ],
   // User-approved V2 footer identity and section labels are preserved verbatim.
   'src/features/immersive-gallery/v2/shell/Footer.jsx': [
     'NGUYỄN ANH TUẤN (MR.)',
     'HỌC VẤN & CHỨNG CHỈ CHUYÊN MÔN',
     'Nguyễn Anh Tuấn',
+    'PÉTRUS KÝ SCHOOL SYSTEM',
   ],
   'src/pages/QuestionBank.jsx': [
     '5 Arrangement · 5 Discourse Cloze · 10 Reading · 8 Reading · 2 × 6 Functional Cloze.',
