@@ -39,9 +39,9 @@
   /* Typography */
   --igv2-font-family: Inter, "Inter Display", Arial, sans-serif;
   --igv2-font-serif: Georgia, serif;
-  --igv2-page-title-px: 48px;
-  --igv2-section-px: 14px;
-  --igv2-body-px: 13px;
+  --igv2-page-title-px: 56px;
+  --igv2-section-px: 13px;
+  --igv2-body-px: 15px;
   --igv2-micro-px: 11px;
 
   /* Layout */
