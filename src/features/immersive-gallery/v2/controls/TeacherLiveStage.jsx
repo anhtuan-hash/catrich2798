@@ -67,7 +67,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
                 {options.map((o,i)=><div className="adv-stage-option" role="listitem" key={i}><b style={{color:'#ffdd75',marginRight:6}}>{String.fromCharCode(65+i)}.</b>{o}</div>)}
               </div>
             ):null}
-            {revealed&&stage?.expected?<div style={{fontSize:'clamp(10px,1.6cqi,13px)',color:'#b7e4c7',lineHeight:1.45}}>✓ {stage.expected}</div>:null}
+            {revealed&&stage?.expected?<div style={{fontSize:'clamp(16px,2.2cqi,26px)',color:'#b7e4c7',lineHeight:1.45}}>✓ {stage.expected}</div>:null}
             {stage?.sentence?<div className="adv-stage-sentence">“{stage.sentence}”</div>:null}
           </>
         )}
