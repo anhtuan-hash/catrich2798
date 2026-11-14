@@ -5,6 +5,7 @@ import {
 } from './earlyWarningEngine.js';
 import './EnglishEarlyWarning.css';
 import InterventionTracker from './InterventionTracker.jsx';
+import ResearchEvidencePanel from './ResearchEvidencePanel.jsx';
 import CloudPilotControls from './CloudPilotControls.jsx';
 import './CloudPilotControls.css';
 import './InterventionTracker.css';
@@ -127,7 +128,7 @@ export default function EnglishEarlyWarning({ currentUser }) {
     <section className="bew" aria-label="English Early Warning and Intervention">
       <div className="bew-head">
         <div>
-          <span className="bew-eyebrow">ENGLISH LEARNING · RESEARCH PILOT V4</span>
+          <span className="bew-eyebrow">ENGLISH LEARNING · RESEARCH PILOT V5</span>
           <h2>Early Warning & Intervention</h2>
           <p>A rule-based screening and teacher-led support workspace. Not a diagnosis, automated decision or certified proficiency test.</p>
         </div>
@@ -237,6 +238,12 @@ export default function EnglishEarlyWarning({ currentUser }) {
           </aside>
         </div>
       )}
+      <ResearchEvidencePanel
+        results={analyzed}
+        reviews={reviews}
+        journal={journal}
+        onExport={downloadText}
+      />
       <CloudPilotControls
         currentUser={currentUser}
         cohort={cohort}
@@ -244,7 +251,7 @@ export default function EnglishEarlyWarning({ currentUser }) {
         journal={journal}
         onRestore={restoreCodedStudy}
       />
-      <footer className="bew-footer">BRIAN ENGLISH · Intervention V4 pilot · Rule v{RULE_VERSION} · Coded evidence only · No AI-based risk predictions</footer>
+      <footer className="bew-footer">BRIAN ENGLISH · Evidence V5 pilot · Rule v{RULE_VERSION} · Coded evidence only · No AI-based risk predictions</footer>
     </section>
   );
 }
