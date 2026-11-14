@@ -9,6 +9,7 @@ import StudentSupportCaseManager from '../components/studentSupport/StudentSuppo
 import StudentSupportRulePanel from '../components/studentSupport/StudentSupportRulePanel.jsx';
 import StudentSupportRuleSettings from '../components/studentSupport/StudentSupportRuleSettings.jsx';
 import StudentSupportReports from '../components/studentSupport/StudentSupportReports.jsx';
+import EnglishEarlyWarning from '../features/english-early-warning/EnglishEarlyWarning.jsx';
 import { listSupportAlerts, listSupportCases } from '../studentSupport/studentSupportApi.js';
 import { buildStudentSupportHash, parseStudentSupportHash } from '../studentSupport/studentSupportIdentity.js';
 import { searchScopedStudents } from '../studentSupport/studentSupportSources.js';
@@ -22,6 +23,7 @@ import {
 const TABS = [
   ['overview', 'Tổng quan', 'Overview'],
   ['alerts', 'Cảnh báo', 'Alerts'],
+  ['english', 'Cảnh báo Tiếng Anh', 'English Early Warning'],
   ['student', 'Hồ sơ học sinh', 'Student 360'],
   ['cases', 'Hồ sơ hỗ trợ', 'Cases'],
   ['observations', 'Ghi nhận giáo viên', 'Observations'],
@@ -229,14 +231,16 @@ export default function StudentSupportCenter({ language = 'vi', currentUser = nu
         ))}
       </nav>
 
-      {databasePending ? (
+      {databasePending && activeTab !== 'english' ? (
         <section className="student-support-state-card is-pending" aria-live="polite">
           <strong>{vi ? 'Database Student Support chưa được kích hoạt' : 'Student Support database is not active yet'}</strong>
           <p>{vi ? 'Giao diện và kiểm thử code vẫn hoạt động; dữ liệu thật sẽ chỉ được mở sau bước migration production được duyệt riêng.' : 'The UI and code verification can continue; live data will activate only after a separately approved production migration.'}</p>
         </section>
       ) : null}
-      {loading ? <section className="student-support-state-card">{vi ? 'Đang tải dữ liệu…' : 'Loading data…'}</section> : null}
-      {error ? <section className="student-support-state-card is-error">{error}</section> : null}
+      {loading && activeTab !== 'english' ? <section className="student-support-state-card">{vi ? 'Đang tải dữ liệu…' : 'Loading data…'}</section> : null}
+      {error && activeTab !== 'english' ? <section className="student-support-state-card is-error">{error}</section> : null}
+
+      {activeTab === 'english' ? <EnglishEarlyWarning currentUser={currentUser} /> : null}
 
       {!loading && !error && activeTab === 'overview' ? (
         <StudentSupportOverview
