@@ -32,4 +32,6 @@ assert.throws(()=>importCodedCohort([header.replace('student_id','full_name'),re
 assert.throws(()=>importCodedCohort([header,record('P001','101')].join('\n')), /0–100/);
 assert.equal(escapeCsv('=SUM(1,2)'), "\"'=SUM(1,2)\"");
 assert.match(toCsv(['x'],[{x:'1,2'}]),/"1,2"/);
+assert.equal(escapeCsv(-7.5),'-7.5');
+assert.equal(escapeCsv('-SUM(A1:A2)'),"'-SUM(A1:A2)");
 console.log('[PASS] English Early Warning: CSV validation, tri-state signals, workbook parity, exports');
