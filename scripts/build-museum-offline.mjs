@@ -29,7 +29,8 @@ export async function buildMuseumOffline(outDir='dist'){
  }
  // All scripts are inline; an offline reader must never fetch a code chunk.
  if(/import\s*\(/.test(script))throw new Error('Offline build still contains dynamic imports.');
- let revision='local';try{revision=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();}catch{}
+ let revision=process.env.VERCEL_GIT_COMMIT_SHA||process.env.GITHUB_SHA||'';
+ if(!revision)try{revision=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();}catch{revision='local';}
  const artifact={format:SNAPSHOT_FORMAT,build:revision,script,css,embeddedStaticAssets:[...assetPaths]};
  await fs.mkdir(outDir,{recursive:true});await fs.writeFile(path.join(outDir,'museum-offline-runtime.json'),JSON.stringify(artifact));
  console.log('[museum-offline] Self-contained runtime built; '+assetPaths.size+' static assets embedded.');
