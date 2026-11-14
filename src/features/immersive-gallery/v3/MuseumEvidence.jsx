@@ -1,3 +1,4 @@
+import MuseumOfflineExport from './MuseumOfflineExport.jsx';
 import React,{useMemo,useState} from 'react';
 import {ArrowRight,Award,BookOpen,CheckCircle2,Circle,ClipboardCheck,Download,FileArchive,FileCheck2,FileDown,FileText,Info,Printer,ShieldCheck,Star,UploadCloud} from 'lucide-react';
 import {buildProgressCsv} from './museumData.js';
@@ -53,6 +54,7 @@ export default function MuseumEvidence({data,currentUser,language='vi'}){
   <div className="bml-heading-actions"><div><div className="bml-overline">{tr(language,'HỒ SƠ HỘI THI 2026–2027','COMPETITION DOSSIER')}</div>
    <h1>{tr(language,'Minh chứng dự thi','Competition evidence')}</h1><p>{tr(language,'Tạo bản nháp P1/P2 và tổng hợp dữ liệu thực tế từ các nhóm.','Draft P1/P2 and collect actual group evidence.')}</p></div>
   </div>
+  {!data?.offlineReadOnly?<MuseumOfflineExport language={language}/>:null}
   <div className="bml-evidence-layout">
    <section className="bml-surface"><div className="bml-section-head"><div><h2>{tr(language,'Kiểm tra hồ sơ','Submission readiness')}</h2>
      <p>{tr(language,'Theo hướng dẫn hội thi của Sở GDĐT TP.HCM','Aligned to HCMC Department of Education notice 12070')}</p></div>
@@ -74,7 +76,7 @@ export default function MuseumEvidence({data,currentUser,language='vi'}){
     <button type="button" className="bml-outline" disabled={exportBusy||!selected} onClick={downloadEvidence}><Download size={18}/>{tr(language,'Xuất khảo sát · góp ý · bản trước/sau · ảnh thật','Export survey · feedback · revisions · original images')}</button>
     {exportError?<div className="bml-banner bml-danger-banner" role="alert">{exportError}</div>:null}
     <button type="button" className="bml-outline" onClick={()=>saveTextFile('BRIAN_MuseumLab_Progress.csv','text/csv;charset=utf-8',buildProgressCsv(data,language))}><Download size={18}/>{tr(language,'Tải bảng tiến độ CSV','Download progress CSV')}</button>
-    <a className="bml-outline" href="/museum-lesson-guide.html" target="_blank" rel="noreferrer">{tr(language,'Hướng dẫn bài dạy · không cần đăng nhập','Read-only lesson guide · no login')}</a>
+    <a className="bml-outline" href="/museum-lesson-guide.html" download={data?.offlineReadOnly?'BRIAN_Lesson_Guide.html':undefined} target="_blank" rel="noreferrer">{tr(language,'Hướng dẫn bài dạy · không cần đăng nhập','Read-only lesson guide · no login')}</a>
     <small>{tr(language,'ZIP gồm P1/P2 đúng tên giáo viên, học liệu và bảng kiểm. Nút xuất minh chứng tải dữ liệu lớp đã lưu riêng; tổng P2 sau khi ghép phải không quá 50 MB. Giáo viên phải bổ sung học liệu thật, kiểm tra giới hạn dung lượng trước khi nộp.','ZIP includes two editable DOCX drafts and a missing-evidence checklist. Add authentic teaching materials and verify the official file-size limit before submission.')}</small>
    </aside>
   </div>
@@ -86,7 +88,7 @@ export default function MuseumEvidence({data,currentUser,language='vi'}){
     ['context','Bối cảnh thực hiện','Teaching context'],['space','Không gian thực hiện','Learning space'],
     ['foundation','Kiến thức nền','Prior knowledge'],['objectives','Mục tiêu cần đạt','Learning objectives'],
     ['outcomes','Kiến thức, kỹ năng hình thành','Expected knowledge and skills'],['competencies','Năng lực và phẩm chất','Competencies and values']
-   ].map(([key,vi,en])=><label key={key}>{tr(language,vi,en)}<input value={fields[key]} maxLength={1200} onChange={e=>setFields(f=>({...f,[key]:e.target.value}))}/></label>)}</div>
+   ].map(([key,vi,en])=><label key={key}>{tr(language,vi,en)}<input readOnly={!!data?.offlineReadOnly} value={fields[key]} maxLength={1200} onChange={e=>setFields(f=>({...f,[key]:e.target.value}))}/></label>)}</div>
   </section>
  </div>;
 }

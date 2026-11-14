@@ -7,6 +7,7 @@ import { lookupLegacyUiEnglish } from '../src/utils/globalI18n.js';
 // font-glyph samples, sample student names and scanner false positives.
 // These are NOT interface labels and must not be reworded just to inflate metrics.
 const PRESERVE = Object.freeze({
+  'src/features/immersive-gallery/v3/offline/entry.jsx': ['BRIAN ENGLISH · Nguyễn Anh Tuấn · Teach Better Together'],
   'src/pages/TextCareCompactStudio.jsx': [
     'Kính gửi:', 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM',
     'Độc lập - Tự do - Hạnh phúc','Nơi nhận:','(Ký, ghi rõ họ tên)',

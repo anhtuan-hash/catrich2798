@@ -11,6 +11,8 @@ const studentLive=read('src/features/immersive-gallery/v3/MuseumLiveStudent.jsx'
 const teacherLive=read('src/features/immersive-gallery/v3/MuseumLiveTeacher.jsx');
 const lessons=read('src/features/immersive-gallery/v3/MuseumLessonFlow.jsx');
 const reviews=read('src/features/immersive-gallery/v3/MuseumReview.jsx');
+const fullscreenDock=read('src/features/immersive-gallery/v3/MuseumFullscreenDock.jsx');
+const videoLab=read('src/features/immersive-gallery/v3/MuseumVideoLab.jsx');
 const migration=read('supabase/migrations/20261114013000_museum_completed_readonly.sql');
 
 function hasAll(source,items,name){
@@ -38,8 +40,24 @@ hasAll(student,['session.readOnly===true','readOnly={session.readOnly===true}',
 hasAll(studentLive,['readOnly=false','if(readOnly||busy||posted)return',
  'disabled={readOnly||busy||posted','Completed lesson · View only'],
  'student live controls');
-hasAll(teacherLive,['const readOnly=Boolean(','if(!assignmentId||busy||readOnly)return',
- 'Completed lesson · View only'],'teacher live controls');
+hasAll(teacherLive,['const readOnly=Boolean(','viewStage:String(browseIndex)',
+ "if(action==='next'||action==='previous')","setBrowseIndex(i=>",
+ "else if(action==='reveal')setPreviewReveal","readOnly?'ARCHIVED · VIEW ONLY'",
+ 'onShareToggle={readOnly?null:shareNarration}','Completed lesson · View only'],
+ 'teacher live read-only playback and mutation guards');
+assert.doesNotMatch(teacherLive,/disabled=\{readOnly\|\|busy\|\|currentIndex===0\}/);
+hasAll(live,["const viewIndex=assignment.content_frozen_at",
+ "const viewing=assignment.content_frozen_at",
+ "readOnly:Boolean(assignment.content_frozen_at)",
+ "persistedStageIndex:session.stage_index",
+ "eq('stage_index',viewIndex)"],
+ 'authorized GET-only historical browsing');
+hasAll(fullscreenDock,['readOnly=false','(!readOnly&&ended)','disabled={readOnly||busy||ended}',
+ "if(readOnly||!session.revealed)onAction('reveal')"],
+ 'fullscreen navigation and disabled write controls');
+hasAll(videoLab,['readOnly=false','if(readOnly||busy)return;',
+ 'teacher&&readOnly','Watch NASA clip','teacher&&!readOnly'],
+ 'YouTube video playback without editing assigned videos');
 hasAll(lessons,['const frozen=Boolean(a.content_frozen_at)',
  'disabled={frozen||busy||passcodeBusy}','disabled={busy||frozen}',
  'FINAL · VIEW ONLY'],'lesson admin controls');

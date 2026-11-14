@@ -44,7 +44,7 @@ export function KitCard({kit,onClick,selected=false,language='vi'}){
 }
 export default function MuseumDashboard({data,onNavigate,onCreate,language='vi'}){
  const tr=(vi,en)=>language==='en'?en:vi;
- const isAdmin=data?.profile?.role==='admin';
+ const isAdmin=data?.profile?.role==='admin'&&!data?.offlineReadOnly;
  const assignments=(data?.assignments||[]).slice(0,5),groups=data?.groups||[],exitTickets=data?.exitTickets||[];
  return <div className="bml-screen bml-dashboard" data-testid="museum-dashboard">
   <div className="bml-quick-actions">

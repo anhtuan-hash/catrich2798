@@ -1,3 +1,4 @@
+import MuseumOfflineExport from '../../v3/MuseumOfflineExport.jsx';
 import React,{useMemo,useState} from 'react';
 import {CheckCircle2,Circle,Info,AlertTriangle} from 'lucide-react';
 import {buildProgressCsv} from '../../v3/museumData.js';
@@ -80,6 +81,7 @@ export default function DossierScreen({language='vi',data,staff,onRefresh,transp
         title={t(language,'Minh chứng dự thi.','Competition evidence.')}
         description={t(language,'Soạn bản nháp P1/P2 và tổng hợp dữ liệu thực tế từ các nhóm.','Draft P1/P2 and collect actual group evidence.')}
         aside={t(language,'Độ sẵn sàng nộp · ','Submission readiness · ')+completed+'/'+checklist.length}/>
+      {!data?.offlineReadOnly?<MuseumOfflineExport language={language}/>:null}
       <MetricStrip items={[
         {value:completed+'/'+checklist.length,label:t(language,'mục đã hoàn thành','checks complete'),highlight:true},
         {value:String(approved.length),label:t(language,'bản học sinh đã duyệt','approved student entries')},
@@ -106,7 +108,7 @@ export default function DossierScreen({language='vi',data,staff,onRefresh,transp
           </div>
           <div className="info-strip mt16" style={{background:'#eff3f7',borderLeftColor:'#205b8a'}} role="note"><Info size={14}/> {t(language,'Bản nháp không phải minh chứng chính thức. Chỉ đính kèm tài liệu giảng dạy thật, có nguồn và sự cho phép.','Drafts do not constitute official evidence. Verify curriculum alignment and attach only authentic teaching materials.')}</div>
         </div>
-        <DossierEditor language={language} fields={fields} onFieldsChange={setFields}
+        <DossierEditor readOnly={!!data?.offlineReadOnly} language={language} fields={fields} onFieldsChange={setFields}
           assignments={assignments} selectedAssignmentId={selected?.id||''} onSelectAssignment={setAssignmentId}
           exportBusy={exportBusy} exportError={exportError}
           onExportDoc={downloadDoc} onExportZip={downloadZip} onExportEvidence={downloadEvidence} onExportCsv={downloadCsv}/>

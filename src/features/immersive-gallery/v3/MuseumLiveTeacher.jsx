@@ -27,11 +27,16 @@ import {loadPresenterRecovery,savePresenterRecovery,shouldRestorePanel} from './
 const t=(lang,vi,en)=>lang==='en'?en:vi;
 const link=typeof window!=='undefined'?window.location.origin+window.location.pathname+'#/gallery-create':'/#/gallery-create';
 export default function MuseumLiveTeacher({data,language='vi',initialAssignment,onBack,transport=liveStaff}){
- const assignments=(data?.assignments||[]).filter(a=>a.created_by===data?.profile?.id||data?.profile?.role==='admin');
+ const assignments=(data?.assignments||[]).filter(a=>data?.offlineReadOnly||a.created_by===data?.profile?.id||data?.profile?.role==='admin');
  const assignmentIds=assignments.map(a=>a.id);
  const savedPreference=useRef(loadPresenterRecovery(typeof window!=='undefined'?window.sessionStorage:null,assignmentIds));
  const [assignmentId,setAssignmentId]=useState(initialAssignment||savedPreference.current?.assignmentId||assignments[0]?.id||'');
- const readOnly=Boolean(assignments.find(a=>a.id===assignmentId)?.content_frozen_at);
+ const offline=Boolean(data?.offlineReadOnly);
+ const readOnly=Boolean(offline||assignments.find(a=>a.id===assignmentId)?.content_frozen_at);
+ // A frozen lesson has independent, GET-only presentation navigation.
+ const [browseIndex,setBrowseIndex]=useState(0);
+ const [previewReveal,setPreviewReveal]=useState(false);
+ const requestSequence=useRef(0);
  const [state,setState]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [showNotes,setShowNotes]=useState(false),[showResources,setShowResources]=useState(false),[showQr,setShowQr]=useState(false),[qr,setQr]=useState('');
  const [showVoiceover,setShowVoiceover]=useState(false),[showVideoLab,setShowVideoLab]=useState(false);
@@ -40,7 +45,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  const [isFullscreen,setIsFullscreen]=useState(false),[activeTool,setActiveTool]=useState(null),[presenterFocus,setPresenterFocus]=useState(false);
  const [spotlight,setSpotlight]=useState(null),[time,setTime]=useState(Date.now());
  const [paper,setPaper]=useState(false),[tally,setTally]=useState(['','','','']),[tallyNote,setTallyNote]=useState('');
- const freeze=async()=>{if(readOnly)return;setBusy(true);setError('');try{await transport('freeze-survey',{assignmentId,version:state.session.version,...(paper?{counts:tally.map(v=>v===''?null:Number(v)),note:tallyNote}:{})});await refresh();}catch(e){setError(e.message);}finally{setBusy(false);}};
+ const freeze=async()=>{if(readOnly||offline)return;setBusy(true);setError('');try{await transport('freeze-survey',{assignmentId,version:state.session.version,...(paper?{counts:tally.map(v=>v===''?null:Number(v)),note:tallyNote}:{})});await refresh();}catch(e){setError(e.message);}finally{setBusy(false);}};
  const stageRef=useRef(null),activeRef=useRef(true);
  useEffect(()=>{
   const sync=()=>{
@@ -53,15 +58,22 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  },[]);
  const refresh=useCallback(async()=>{
   if(!assignmentId)return;
-  try{const response=await transport('state',null,{assignmentId});
-    if(activeRef.current){setState(response);setError('');}
-  }catch(e){if(activeRef.current)setError(e.message);}
- },[assignmentId,transport]);
- useEffect(()=>{activeRef.current=true;refresh();const id=window.setInterval(()=>{refresh();setTime(Date.now());},3000);
+  const sequence=++requestSequence.current;
+  try{
+   const response=await transport('state',null,{
+    assignmentId,...(readOnly?{viewStage:String(browseIndex)}:{})
+   });
+   if(activeRef.current&&sequence===requestSequence.current){
+    setState(response);setError('');
+   }
+  }catch(e){if(activeRef.current&&sequence===requestSequence.current)setError(e.message);}
+ },[assignmentId,transport,readOnly,browseIndex]);
+ useEffect(()=>{activeRef.current=true;refresh();const id=window.setInterval(()=>{refresh();setTime(Date.now());},readOnly?15000:3000);
   return()=>{activeRef.current=false;window.clearInterval(id);};},[refresh]);
  useEffect(()=>{if(!showQr)return;let active=true;import('qrcode').then(({default:QR})=>QR.toDataURL(link,{width:220,margin:2})).then(url=>{if(active)setQr(url);}).catch(()=>{});
   return()=>{active=false;};},[showQr]);
- const session=state?.session,stage=session?.stage,groups=(state?.groups||[]).map(g=>({...g,label:language==='en'?englishSystemGroupLabel(g.label):g.label})),result=session?.stageIndex===2&&state?.survey?state.survey:state?.result;
+ const session=state?.session?(readOnly?{...state.session,revealed:previewReveal}:state.session):null;
+ const stage=session?.stage,groups=(state?.groups||[]).map(g=>({...g,label:language==='en'?englishSystemGroupLabel(g.label):g.label})),result=session?.stageIndex===2&&state?.survey?state.survey:state?.result;
  const currentIndex=session?.stageIndex??0,minute=LIVE_STAGES[currentIndex]?.minutes||0;
  const curriculumVideo=MUSEUM_CURRICULUM_VIDEOS[currentIndex]||null;
  const showingCurriculumVideo=Boolean(curriculumVideo&&curriculumMode==='video');
@@ -92,7 +104,15 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  const elapsed=(session?.elapsedSeconds||0)+(session?.status==='active'&&session?.stageStartedAt?Math.max(0,Math.floor((time-Date.parse(session.stageStartedAt))/1000)):0);
  const remaining=Math.max(0,minute*60-elapsed);
  const act=async(action)=>{
-  if(!assignmentId||busy||readOnly)return;
+  if(!assignmentId||busy)return;
+  if(readOnly){
+   // Presentation controls never POST or change persisted student evidence.
+   if(action==='next'||action==='previous'){
+    setBrowseIndex(i=>Math.max(0,Math.min(LIVE_STAGES.length-1,i+(action==='next'?1:-1))));
+    setPreviewReveal(false);setStageVideo(null);setSpotlight(null);
+   }else if(action==='reveal')setPreviewReveal(value=>!value);
+   return;
+  }
   if(action==='end'&&!window.confirm(t(language,'Kết thúc tiết học? Học sinh sẽ không thể tiếp tục thao tác trong phiên này.','End this lesson? Student tasks will be locked.')))return;
   setBusy(true);setError('');
   try{const payload=action==='start'?{assignmentId}:{assignmentId,action,version:session?.version};
@@ -104,7 +124,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  };
  // Voiceover scripts are teacher resources until explicitly shared for the open stage.
  const shareNarration=async()=>{
-  if(readOnly||busy||!session||session.status==='ended')return;
+  if(readOnly||offline||busy||!session||session.status==='ended')return;
   setBusy(true);setError('');
   try{
    const send=version=>transport('media-voice',{assignmentId,stageIndex:currentIndex,version,enabled:!session.media?.voiceEnabled});
@@ -144,6 +164,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
   }catch(e){setError(t(language,'Không thể mở toàn màn hình. Hãy cho phép chế độ toàn màn hình trên trình duyệt.','Fullscreen was blocked. Please enable it in your browser.'));}
  };
  const togglePresenterTool=key=>{
+  if(key==='qr'&&offline)return;
   if(key==='qr')setShowQr(true);
   setActiveTool(current=>current===key?null:key);
  };
@@ -162,11 +183,11 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
    else if(key==='r'){e.preventDefault();togglePresenterTool('resources');}
    else if(key==='y'){e.preventDefault();togglePresenterTool('video');}
    else if(key==='f'){e.preventDefault();fullscreen();}
-   else if(key===' '){e.preventDefault();act(session?.status==='paused'?'resume':'pause');}
+   else if(key===' '&&!readOnly){e.preventDefault();act(session?.status==='paused'?'resume':'pause');}
   };
   window.addEventListener('keydown',handle);
   return()=>window.removeEventListener('keydown',handle);
- },[isFullscreen,activeTool,busy,currentIndex,session?.version,session?.status]);
+ },[isFullscreen,activeTool,busy,currentIndex,session?.version,session?.status,readOnly,browseIndex]);
  useEffect(()=>{
   if(isFullscreen&&activeTool==='qr'&&!qr)setShowQr(true);
  },[isFullscreen,activeTool,qr]);
@@ -177,11 +198,11 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
    {onBack?<button className="bml-outline" type="button" onClick={onBack}><ArrowLeft size={18}/>{t(language,'Trở về','Back')}</button>:null}
   </header>
   <label className="bml-full-field bml-live-picker">{t(language,'Chọn lớp và bài học','Choose lesson / class')}
-   <select value={assignmentId} onChange={e=>{setAssignmentId(e.target.value);setState(null);setSpotlight(null);}}>
+   <select value={assignmentId} onChange={e=>{setAssignmentId(e.target.value);setBrowseIndex(0);setPreviewReveal(false);setState(null);setSpotlight(null);}}>
     {!assignments.length?<option value="">{t(language,'Chưa có bài học được giao','No lesson assigned')}</option>:null}
     {assignments.map(a=><option value={a.id} key={a.id}>{a.title} · {a.class_scope}</option>)}
    </select></label>
-  {readOnly?<div role="status" className="bml-banner bml-success-banner">Completed lesson · View only. Playback, lesson content, QR codes and evidence remain available; live controls cannot change saved data.</div>:null}
+  {readOnly?<div role="status" className="bml-banner bml-success-banner">Completed lesson · View only. Use Back / Next to review all 11 activities, play voiceovers and videos, and inspect saved answers. Student data cannot be changed.</div>:null}
   {error?<div role="alert" className="bml-banner bml-danger-banner">{error}</div>:null}
   {!assignments.length?<div className="bml-empty bml-surface"><BookOpen size={26}/>{t(language,'Hãy tạo bài học và mã nhóm trước khi mở Teacher Live.','Create a lesson and group passes first.')}</div>:null}
   {assignmentId&&!session?<div className="bml-surface bml-live-start">
@@ -247,12 +268,12 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
       language={language} onClose={()=>setStageVideo(null)}/></div>
     </div>:null}
     <div className="bml-live-bottom">
-     <span className="bml-paper-clock"><Clock3 size={23}/>{String(Math.floor(remaining/60)).padStart(2,'0')}:{String(remaining%60).padStart(2,'0')}</span>
-     <span className={'bml-paper-status '+(session.stageOpen?'is-open':'is-closed')}><span className="bml-paper-status-dot"/>{session.stageOpen?t(language,'ĐANG MỞ HOẠT ĐỘNG','TASK OPEN'):t(language,'HOẠT ĐỘNG CHƯA MỞ','TASK CLOSED')}</span>
+     <span className="bml-paper-clock"><Clock3 size={23}/>{readOnly?'REVIEW MODE':String(Math.floor(remaining/60)).padStart(2,'0')+':'+String(remaining%60).padStart(2,'0')}</span>
+     <span className={'bml-paper-status '+(session.stageOpen&&!readOnly?'is-open':'is-closed')}><span className="bml-paper-status-dot"/>{readOnly?'ARCHIVED · VIEW ONLY':session.stageOpen?t(language,'ĐANG MỞ HOẠT ĐỘNG','TASK OPEN'):t(language,'HOẠT ĐỘNG CHƯA MỞ','TASK CLOSED')}</span>
      <span className="bml-paper-responses"><Users size={20}/>{result?.n??0} {t(language,'nhóm trả lời','group responses')}</span>
     </div>
    </div>
-   <MuseumFullscreenDock language={language} session={session} currentIndex={currentIndex}
+   <MuseumFullscreenDock language={language} session={session} currentIndex={currentIndex} readOnly={readOnly}
     busy={busy} activeTool={activeTool} motionOn={motionOn} focusMode={presenterFocus} needHelp={state?.needHelp||0}
     onAction={act} onTool={togglePresenterTool} onMotion={()=>setMotionOn(v=>!v)}
     onFocus={()=>setPresenterFocus(v=>!v)} onExit={fullscreen} onRefresh={refresh}/>
@@ -269,16 +290,16 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
       <button type="button" className="bml-presenter-close" aria-label="Close presenter panel" onClick={()=>setActiveTool(null)}><X size={22}/></button>
      </header>
      <div className="bml-presenter-panel-scroll">
-      {activeTool==='voice'?<MuseumVoiceover stage={stage} language={language} shareWithStudents={session.media?.voiceEnabled===true} onShareToggle={shareNarration}/>:null}
+      {activeTool==='voice'?<MuseumVoiceover stage={stage} language={language} shareWithStudents={session.media?.voiceEnabled===true} onShareToggle={readOnly?null:shareNarration}/>:null}
       {activeTool==='resources'?<><MuseumResourceHub stage={stage} language={language}/><LessonResources stageIndex={currentIndex} language={language} teacher/></>:null}
-      {activeTool==='video'?<MuseumVideoLab mode="teacher" stage={stage} stageIndex={currentIndex}
+      {activeTool==='video'?<MuseumVideoLab mode="teacher" readOnly={readOnly} stage={stage} stageIndex={currentIndex}
        media={session.media} assignmentId={assignmentId} transport={transport} version={session.version}
        language={language} onProject={video=>{setStageVideo(video);setActiveTool(null);}}
        onSaved={async out=>{if(out.session)setState(prev=>({...prev,session:out.session}));await refresh();}}/>:null}
       {activeTool==='notes'?<section className="bml-presenter-note"><h3>{stage?.title}</h3>
        <p>{stage?.teaching}</p><strong>{t(language,'Kết quả mong đợi','Expected learning')}</strong><p>{stage?.expected}</p></section>:null}
       {activeTool==='explain'?<section className="bml-presenter-note"><h3>{stage?.title}</h3><p>{stage?.expected}</p>
-       <button type="button" className="bml-primary" onClick={()=>act('reveal')} disabled={readOnly||busy||session.revealed}>
+       <button type="button" className="bml-primary" onClick={()=>act('reveal')} disabled={busy||(!readOnly&&session.revealed)}>
         <Eye size={17}/>{session.revealed?t(language,'Đã hiển thị giải thích','Explanation revealed'):t(language,'Hiện giải thích cho lớp','Reveal to class')}</button></section>:null}
       {activeTool==='qr'?<section className="bml-presenter-note bml-presenter-qr">
        <strong>{t(language,'Học sinh mở Student Creator','Students enter Creator Studio')}</strong>
@@ -294,12 +315,12 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
         <p>{t(language,'N là số nhóm, không phải số học sinh.','N counts groups, not students.')}</p>
         <button type="button" className="bml-outline" onClick={()=>{const a=document.createElement('a');a.href=surveyChartPng(state.survey);a.download='Class-group-priority-survey.png';a.click();}}>
          {t(language,'Tải biểu đồ PNG','Download chart')}</button></>:
-       <><label><input type="checkbox" checked={paper} onChange={e=>setPaper(e.target.checked)}/>
+       <><label><input disabled={offline} type="checkbox" checked={paper} onChange={e=>setPaper(e.target.checked)}/>
         {t(language,'Nhập kiểm phiếu giấy khi không có phiếu online','Enter paper tally if no online votes')}</label>
         {paper?<><div className="bml-field-grid">{stage.options.map((option,i)=><label key={option}>{option}<input type="number"
          min="0" max="1000" value={tally[i]} onChange={e=>setTally(v=>v.map((x,j)=>i===j?e.target.value:x))}/></label>)}</div>
          <label>{t(language,'Ghi chú nguồn','Source note')}<input value={tallyNote} maxLength={500} onChange={e=>setTallyNote(e.target.value)}/></label></>:null}
-        <button className="bml-primary" type="button" disabled={readOnly||busy} onClick={freeze}>{t(language,'Chốt số liệu khảo sát','Freeze survey')}</button>
+        <button className="bml-primary" type="button" disabled={readOnly||offline||busy} onClick={freeze}>{t(language,'Chốt số liệu khảo sát','Freeze survey')}</button>
         <p>{t(language,'Số liệu đã chốt không sửa; không suy ra thói quen cá nhân.','Frozen figures cannot be edited; no individual habits are inferred.')}</p></>}
        {currentIndex>=7&&state?.feedback?.length?<p>{state.feedback.length} {t(language,'phản hồi chéo đã lưu','saved peer responses')}</p>:null}
       </section>:null}
@@ -323,13 +344,13 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
    </div>
    <div className="bml-live-controls bml-live-controls--paper bml-surface">
     <div className="bml-live-control-line">
-     <button className="bml-outline" disabled={readOnly||busy||currentIndex===0} onClick={()=>act('previous')}><ChevronLeft size={17}/>{t(language,'Trước','Back')}</button>
-     <button className="bml-primary" disabled={readOnly||busy||session.status==='ended'||currentIndex===10} onClick={()=>act('next')}>{t(language,'Hoạt động tiếp','Next activity')}<ChevronRight size={17}/></button>
+     <button className="bml-outline" disabled={busy||currentIndex===0} onClick={()=>act('previous')}><ChevronLeft size={17}/>{t(language,'Trước','Back')}</button>
+     <button className="bml-primary" disabled={busy||(!readOnly&&session.status==='ended')||currentIndex===10} onClick={()=>act('next')}>{t(language,'Hoạt động tiếp','Next activity')}<ChevronRight size={17}/></button>
      <button className="bml-outline" disabled={readOnly||busy||session.status==='ended'} onClick={()=>act(session.stageOpen?'close':'open')}>
       {session.stageOpen?<Lock size={18}/>:<Play size={18}/>}
       {session.stageOpen?t(language,'Khóa hoạt động','Close task'):t(language,'Mở lại tương tác','Reopen interaction')}</button>
-     <button className="bml-outline" disabled={readOnly||busy||session.revealed} onClick={()=>act('reveal')}><Eye size={17}/>{t(language,'Hiện giải thích','Reveal explanation')}</button>
-     <button className="bml-outline" onClick={()=>setShowQr(v=>!v)}><QrCode size={18}/> QR</button>
+     <button className="bml-outline" disabled={busy||(!readOnly&&session.revealed)} onClick={()=>act('reveal')}><Eye size={17}/>{readOnly?(session.revealed?'Hide explanation':'Show explanation'):t(language,'Hiện giải thích','Reveal explanation')}</button>
+     <button className="bml-outline" disabled={offline} onClick={()=>setShowQr(v=>!v)}><QrCode size={18}/> QR</button>
      <button className="bml-outline" onClick={fullscreen}><Fullscreen size={18}/>{t(language,'Toàn màn hình','Fullscreen')}</button>
     </div>
     <div className="bml-live-control-line">
@@ -338,17 +359,17 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
      <button className="bml-text-btn" aria-expanded={showVoiceover} onClick={()=>setShowVoiceover(v=>!v)}><Volume2 size={17}/>Voiceover</button>
      <button className="bml-text-btn" aria-expanded={showVideoLab} onClick={()=>setShowVideoLab(v=>!v)}><Film size={17}/>Video Lab</button>
      <button className="bml-text-btn bml-live-motion-toggle" aria-pressed={motionOn} onClick={()=>setMotionOn(v=>!v)}><Sparkles size={17}/>{motionOn?'Motion ON':'Motion OFF'}</button>
-     {session.status==='paused'?<button className="bml-text-btn" onClick={()=>act('resume')}><Play size={17}/>{t(language,'Tiếp tục','Resume')}</button>:
-     <button className="bml-text-btn" onClick={()=>act('pause')} disabled={session.status==='ended'}><Pause size={17}/>{t(language,'Tạm dừng','Pause')}</button>}
+     {session.status==='paused'?<button className="bml-text-btn" onClick={()=>act('resume')} disabled={readOnly}><Play size={17}/>{t(language,'Tiếp tục','Resume')}</button>:
+     <button className="bml-text-btn" onClick={()=>act('pause')} disabled={readOnly||session.status==='ended'}><Pause size={17}/>{t(language,'Tạm dừng','Pause')}</button>}
      <button className="bml-text-btn" onClick={refresh}><RefreshCcw size={17}/>{t(language,'Cập nhật','Refresh')}</button>
      <button className="bml-text-btn" disabled={readOnly||session.status==='ended'} onClick={()=>act('end')}><Check size={17}/>{t(language,'Kết thúc bài dạy','End lesson')}</button>
      <span className="bml-live-help">{state?.needHelp||0} {t(language,'nhóm cần trợ giúp','groups requesting help')}</span>
     </div>
     {currentIndex===2&&session.evidenceVersion!==0?<div className="bml-evidence-controls">
      {state?.survey?<><strong>Đã chốt · N={state.survey.n} lượt nhóm · {state.survey.source}</strong><button className="bml-outline" onClick={()=>{const a=document.createElement('a');a.href=surveyChartPng(state.survey);a.download='Class-group-priority-survey.png';a.click();}}>{t(language,'Tải biểu đồ PNG','Download chart PNG')}</button></>:<>
-     <label><input type="checkbox" checked={paper} onChange={e=>setPaper(e.target.checked)}/> {t(language,'Nhập kiểm phiếu giấy (chỉ khi chưa có phiếu trực tuyến)','Enter paper tally (only with no online votes)')}</label>
+     <label><input disabled={offline} type="checkbox" checked={paper} onChange={e=>setPaper(e.target.checked)}/> {t(language,'Nhập kiểm phiếu giấy (chỉ khi chưa có phiếu trực tuyến)','Enter paper tally (only with no online votes)')}</label>
      {paper?<><div className="bml-field-grid">{stage.options.map((label,i)=><label key={label}>{label}<input type="number" min="0" max="1000" value={tally[i]} onChange={e=>setTally(v=>v.map((x,j)=>i===j?e.target.value:x))}/></label>)}</div><label>{t(language,'Nguồn phiếu giấy','Paper ballot source')}<input value={tallyNote} maxLength={500} onChange={e=>setTallyNote(e.target.value)}/></label></>:null}
-     <button className="bml-primary" disabled={readOnly||busy} onClick={freeze}>{t(language,'Chốt số liệu khảo sát / Freeze survey','Freeze survey')}</button><p>{t(language,'Số liệu đã chốt không sửa. N là số nhóm; không suy ra thói quen cá nhân.','Frozen counts cannot change. N counts groups, not individual habits.')}</p></>}
+     <button className="bml-primary" disabled={readOnly||offline||busy} onClick={freeze}>{t(language,'Chốt số liệu khảo sát / Freeze survey','Freeze survey')}</button><p>{t(language,'Số liệu đã chốt không sửa. N là số nhóm; không suy ra thói quen cá nhân.','Frozen counts cannot change. N counts groups, not individual habits.')}</p></>}
     </div>:null}
     {currentIndex>=7&&state?.feedback?.length?<p className="bml-cc-compact-summary">
      <CheckCircle2 size={16}/>{state.feedback.length} peer reviews recorded. Select a group in Classroom Command Center to read individual feedback.</p>:null}
@@ -359,8 +380,8 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
      <MuseumResourceHub stage={stage} language={language}/>
      <LessonResources stageIndex={currentIndex} language={language} teacher/>
     </div>:null}
-    {!isFullscreen&&showVoiceover?<div className="bml-comp-panel"><MuseumVoiceover stage={stage} language={language} shareWithStudents={session.media?.voiceEnabled===true} onShareToggle={shareNarration}/></div>:null}
-    {!isFullscreen&&showVideoLab?<div className="bml-comp-panel"><MuseumVideoLab mode="teacher" stage={stage}
+    {!isFullscreen&&showVoiceover?<div className="bml-comp-panel"><MuseumVoiceover stage={stage} language={language} shareWithStudents={session.media?.voiceEnabled===true} onShareToggle={readOnly?null:shareNarration}/></div>:null}
+    {!isFullscreen&&showVideoLab?<div className="bml-comp-panel"><MuseumVideoLab mode="teacher" readOnly={readOnly} stage={stage}
       stageIndex={currentIndex} media={session.media} assignmentId={assignmentId} transport={transport}
       version={session.version} language={language} onProject={setStageVideo}
       onSaved={async out=>{if(out.session)setState(prev=>({...prev,session:out.session}));await refresh();}}/></div>:null}

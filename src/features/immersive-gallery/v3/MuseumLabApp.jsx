@@ -2,21 +2,8 @@ import React,{useCallback,useEffect,useState} from 'react';
 import {Plus,RefreshCw,ShieldAlert,X} from 'lucide-react';
 import {LessonsList,LessonWizard} from './MuseumLessonFlow.jsx';
 import {staffRequest} from './museumApi.js';
-// --- Swiss Editorial V2 shell + owned screens (route-scoped under .igv2) ---
-import ImmersiveShell from '../v2/shell/ImmersiveShell.jsx';
-import OverviewScreen from '../v2/screens/OverviewScreen.jsx';
-import SubmissionsScreen from '../v2/screens/SubmissionsScreen.jsx';
-import ExhibitionsScreen from '../v2/screens/ExhibitionsScreen.jsx';
-import SettingsScreen from '../v2/screens/SettingsScreen.jsx';
-// --- Screens owned by the parallel agent (contract: named exports) ---
-import {TeachingPlanScreen} from '../v2/screens/TeachingPlanScreen.jsx';
-import {TeacherLiveScreen} from '../v2/screens/TeacherLiveScreen.jsx';
-import {DossierScreen} from '../v2/screens/DossierScreen.jsx';
 import './museumLab.css';
 import './museumPaper.css';
-import '../v2/tokens.css';
-import '../v2/swiss.css';
-
 const tr=(language,vi,en)=>language==='en'?en:vi;
 const initialMuseumTab=()=>{
  if(typeof window==='undefined')return 'home';
@@ -93,7 +80,7 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
       ['03','Học sinh làm 5 bước, tự lưu, không đăng nhập','Students complete five steps with no account'],
       ['04','Admin đánh giá, phê duyệt và công bố','Admin assesses, approves and publishes']
      ].map(([number,vi,en])=><div className="bml-check-item" key={number}><span className="bml-class-tag">{number}</span><div><strong>{tr(language,vi,en)}</strong></div></div>)}</div>
-     <button className="bml-primary" type="button" onClick={()=>{setHelp(false);create();}}><Plus size={17}/>{tr(language,'Tạo bài học ngay','Create a lesson')}</button>
+     <button className="bml-primary" type="button" disabled={!!staff?.offlineReadOnly} onClick={()=>{setHelp(false);create();}}><Plus size={17}/>{tr(language,'Tạo bài học ngay','Create a lesson')}</button>
     </section></div>:null}
- </ImmersiveShell>;
+ </div>;
 }

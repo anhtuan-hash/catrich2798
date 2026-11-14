@@ -38,7 +38,7 @@ export function OneTimeInvites({invitations,onClose,language='vi'}){
 export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'}){
  const [step,setStep]=useState(0);
  const kit=LESSON_KITS[0];
- const isAdmin=data?.profile?.role==='admin';
+ const isAdmin=data?.profile?.role==='admin'&&!data?.offlineReadOnly;
  const [form,setForm]=useState({classScope:'',groupCount:6,accessWindow:'standard',title:'',brief:''});
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[invites,setInvites]=useState(null);
  const title=form.title||kit.title,brief=form.brief||kit.brief;
@@ -208,7 +208,7 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
 
- const isAdmin=data?.profile?.role==='admin';
+ const isAdmin=data?.profile?.role==='admin'&&!data?.offlineReadOnly;
  const archiveAssignment=async assignment=>{
   if(!isAdmin||busy)return;
   const publishedCount=(data?.groups||[]).filter(g=>g.assignment_id===assignment.id&&g.state==='published').length;
@@ -312,20 +312,20 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
          </div>
         </div>
        </div>
-       <div className="bml-lesson-qr-access" aria-label={groupLabel+' QR and access credentials'}>
+       {!data?.offlineReadOnly?<div className="bml-lesson-qr-access" aria-label={groupLabel+' QR and access credentials'}>
         <MuseumGroupQr handle={g.invite_handle} groupLabel={groupLabel}
          expiresAt={g.invite_expires_at} revoked={g.invite_revoked} language={language}/>
         {canManagePasscodes?<PrivatePasscodeCard secret={secrets[g.id]} available={g.invite_has_passcode}
          revealed={Boolean(visibleSecrets[g.id])} busy={passcodeBusy||busy}
          onShow={()=>revealPasscodes(a,g.id)} onHide={()=>hideGroup(g.id)}
          onCopy={()=>copyPass(secrets[g.id])}/>:null}
-       </div>
+       </div>:null}
       </article>;})}
       </div></>:null}
    </article>;
   })}</div>:<div className="bml-empty bml-surface"><BookOpen size={36}/><h2>{tr(language,'Chưa có bài học','No lessons assigned yet')}</h2>
     <p>{tr(language,'Tạo bài học mới từ kế hoạch giảng dạy đã duyệt.','Create your first lesson from the approved teaching plan.')}</p>
-    <button type="button" className="bml-primary" onClick={onCreate}><Plus size={18}/>{tr(language,'Tạo bài học','Create lesson')}</button>
+    <button type="button" className="bml-primary" disabled={!!data?.offlineReadOnly} onClick={onCreate}><Plus size={18}/>{tr(language,'Tạo bài học','Create lesson')}</button>
    </div>}
  </div>;
 }
