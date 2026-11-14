@@ -145,8 +145,8 @@ export function summarizeCohort(results) {
 export function escapeCsv(value) {
   const text = String(value ?? '');
   const trimmed = text.trimStart();
-  const numeric = /^-?(?:\\d+(?:\\.\\d+)?|\\.\\d+)$/.test(trimmed);
-  const dangerous = /^[=+@\\t\\r]/.test(trimmed) || (/^-/.test(trimmed) && !numeric);
+  const numeric = /^-?(?:\d+(?:\.\d+)?|\.\d+)$/.test(trimmed);
+  const dangerous = /^[=+@\t\r]/.test(trimmed) || (/^-/.test(trimmed) && !numeric);
   const safe = dangerous ? "'" + text : text;
   return /[",\r\n]/.test(safe) ? '"' + safe.replace(/"/g, '""') + '"' : safe;
 }
