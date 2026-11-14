@@ -77,16 +77,18 @@ test('teacher rubric endpoint is scoped and no public RLS table privileges',()=>
  assert.match(sql,/revoke all on public\.gcp_rubric_scores from public,anon,authenticated/);
  assert.match(sql,/alter table public\.gcp_rubric_scores enable row level security/);
 });
-test('Material 3 redesign has scoped accessible UI and curated exhibitions',()=>{
+test('Material 3 redesign keeps accessible UI and only approved exhibitions in the showcase',()=>{
  const css=fs.readFileSync('src/features/immersive-gallery/v3/museumLab.css','utf8');
  const dashboard=fs.readFileSync('src/features/immersive-gallery/v3/MuseumDashboard.jsx','utf8');
- const sample=fs.readFileSync('src/features/immersive-gallery/v3/MuseumExplore.jsx','utf8');
+ const showcase=fs.readFileSync('src/features/immersive-gallery/v3/MuseumExplore.jsx','utf8');
  assert.match(css,/#0b57d0/);
  assert.match(css,/prefers-reduced-motion/);
  assert.match(css,/:focus-visible/);
  assert.match(dashboard,/data-testid="museum-dashboard"/);
- assert.match(sample,/museum-collection-/);
- assert.doesNotMatch(sample,/>DEMO · SAMPLE</);
+ assert.match(showcase,/const visiblePrepared=\[\]/);
+ assert.match(showcase,/isPracticeShowcase/);
+ assert.doesNotMatch(showcase,/museum-collection-/);
+ assert.doesNotMatch(showcase,/preparedGallery\(/);
 });
 
 test('ended Teacher Live leaves a valid museum assignment writable',()=>{
@@ -147,7 +149,7 @@ test('Museum Lab hides date and clock metadata on every student and teacher scre
  assert.match(server,/assignment\.deadline_at/);
 });
 
-test('Admin can safely archive and restore both prepared and database exhibitions',()=>{
+test('Admin can safely archive database exhibitions without exposing prepared collections',()=>{
  const server=fs.readFileSync('serverless-handlers/gallery-staff.js','utf8');
  const gallery=fs.readFileSync('src/features/immersive-gallery/v3/MuseumExplore.jsx','utf8');
  const app=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLabApp.jsx','utf8');
@@ -165,9 +167,11 @@ test('Admin can safely archive and restore both prepared and database exhibition
  assert.match(gallery,/data-testid="museum-archived-exhibitions"/);
  assert.match(gallery,/Delete exhibition:/);
  assert.match(gallery,/Restore exhibition/);
- assert.match(gallery,/onClick=\{\(\)=>changeArchive\('collection'/);
+ assert.doesNotMatch(gallery,/onClick=\{\(\)=>changeArchive\('collection'/);
+ assert.doesNotMatch(gallery,/museum-collection-/);
+ assert.match(gallery,/const archivedItems=showcase\.archivedGalleries/);
  assert.match(gallery,/onClick=\{\(\)=>changeArchive\('gallery'/);
- assert.match(gallery,/archive\.hiddenCollections\.includes\(key\)/);
+ assert.match(gallery,/initial==='demo'\|\|initial\.startsWith\('collection-'\)/);
  assert.match(app,/onRefresh=\{refresh\}/);
  assert.match(detail,/onDelete\?\</);
  assert.match(data,/neq\('status','archived'\)/);

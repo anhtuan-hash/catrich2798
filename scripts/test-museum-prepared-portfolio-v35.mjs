@@ -46,13 +46,15 @@ test('each gallery has six interactive rooms and 18 complete original artifacts'
   assert.equal(preparedGallery(c.key,3).rooms.length,1);
  }
 });
-test('catalog does not create server-side student events, scores or invented grades',()=>{
+test('teacher-authored catalog stays internal and cannot generate student events or visible gallery cards',()=>{
  const content=fs.readFileSync('src/features/immersive-gallery/v3/museumPreparedCollections.js','utf8');
  assert.doesNotMatch(content,/staffRequest\(|guestRequest\(|supabase\.from\(|fetch\(|insert\(|submitted_at:|scoreRubric\(/);
- assert.match(lessonUi,/preparedCollectionFor\(a\)/);
- assert.match(lessonUi,/onOpenCollection\?\./);
- assert.match(galleryUi,/data-testid=\{'museum-collection-'\+c.key\}/);
- assert.match(app,/openCollection/);
+ assert.doesNotMatch(lessonUi,/preparedCollectionFor\(a\)/);
+ assert.doesNotMatch(lessonUi,/bml-prepared-projects|bml-prepared-visit/);
+ assert.doesNotMatch(lessonUi,/onOpenCollection\?\./);
+ assert.doesNotMatch(galleryUi,/museum-collection-/);
+ assert.match(galleryUi,/const visiblePrepared=\[\]/);
+ assert.doesNotMatch(app,/openCollection/);
 });
 
 

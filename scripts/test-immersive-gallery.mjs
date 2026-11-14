@@ -79,12 +79,13 @@ test('post-create Gallery table grants explicitly exclude TRUNCATE and DELETE',(
  assert.doesNotMatch(sql,/grant[^;]*(?:delete|truncate)[^;]*to authenticated/i);
 });
 
-test('release includes a privacy-safe 3D local demo with no cloud seed side effect',()=>{
+test('release excludes synthetic local demos and sample-seeding from official Gallery UI',()=>{
  const fixture=fs.readFileSync('src/features/immersive-gallery/gallerySampleSeed.js','utf8');
  const app=fs.readFileSync('src/features/immersive-gallery/GalleryApp.jsx','utf8');
+ // The quarantined fixture still exists for test tooling, but has no UI entry.
  assert.match(fixture,/export function buildLocalGalleryDemo\(/);
  assert.match(fixture,/id:'local-demo'/);
- assert.match(fixture,/status:'published',visibility:'private',accept_submissions:false/);
- assert.match(app,/data-testid="gallery-original-demo"/);
- assert.match(app,/setGallery\(buildLocalGalleryDemo\(\)\)/);
+ assert.match(app,/isPracticeGallery/);
+ assert.doesNotMatch(app,/gallery-original-demo|seedDemoGallery|buildLocalGalleryDemo|Create sample exhibition|Visit the demo museum/);
+ assert.match(app,/setGalleries\(\(await listExhibitions\(\)\)\.filter\(g=>!isPracticeGallery\(g\)\)\)/);
 });

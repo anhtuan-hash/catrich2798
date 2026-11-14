@@ -1,12 +1,14 @@
 import React,{useEffect,useState} from 'react';
 import {ArrowLeft,ArrowRight,CheckCircle2,ChevronRight,ClipboardList,Eye,Info,Landmark,LockKeyhole,Settings2,Shield,ShieldAlert,ShieldCheck,Users,BookOpen,Plus,Leaf,Trash2,Archive,RotateCcw} from 'lucide-react';
 import {LESSON_KITS} from './museumData.js';
-import {PREPARED_COLLECTIONS,preparedGallery} from './museumPreparedCollections.js';
-import {staffRequest,DEMO_GALLERY} from './museumApi.js';
+import {staffRequest} from './museumApi.js';
 import MuseumScene from './MuseumScene.jsx';
 import MuseumExhibitionDetail from './MuseumExhibitionDetail.jsx';
 import {KitCover} from './MuseumDashboard.jsx';
 const tr=(l,vi,en)=>l==='en'?en:vi;
+// Exclude explicitly non-production exhibitions; never relabel them as student work.
+const isPracticeShowcase=item=>Boolean(item?.is_sample||item?.is_demo||
+ /(?:^|[\s_-])(demo|sample|synthetic|mock)(?:$|[\s_-])/i.test([item?.title,item?.slug].filter(Boolean).join(' ')));
 export function MuseumTemplates({language='vi',onCreate}){
  const kit=LESSON_KITS[0];
  return <div className="bml-screen"><div><div className="bml-overline">ENGLISH 11 · GLOBAL SUCCESS UNIT 5</div>
@@ -63,7 +65,7 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
   if(directError&&!published.length)throw directError;
   const unique=new Map();
   for(const item of [...direct,...published]){
-   if(item?.id&&item.status!=='archived')unique.set(item.id,item);
+   if(item?.id&&item.status!=='archived'&&!isPracticeShowcase(item))unique.set(item.id,item);
   }
   const items=[...unique.values()].sort((a,b)=>
    new Date(b.updated_at||0).getTime()-new Date(a.updated_at||0).getTime());
@@ -77,19 +79,19 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
     if(!active)return;
     setGalleries(items);setShowcase(archive);
     const initial=exhibitionFromHash();
-    if(initial==='demo')setSelected(DEMO_GALLERY);
-    else if(initial.startsWith('collection-')){
-     const key=initial.slice('collection-'.length);
-     if(PREPARED_COLLECTIONS.some(c=>c.key===key)&&!archive.hiddenCollections.includes(key))setSelected(preparedGallery(key));
-     else if(initial)setError('This exhibition has been removed from the showcase.');
+    // Retired demo/teacher-prepared links must not open as if they were
+    // submitted, reviewed student exhibits in the official competition app.
+    if(initial==='demo'||initial.startsWith('collection-')){
+     setExhibitionHash('');setSelected(null);
     }else if(initial){
      try{
       const match=items.find(g=>g.id===initial||g.slug===initial)||
        (data?.publishedGalleries||[]).find(g=>g.id===initial||g.slug===initial);
+      if(!match||isPracticeShowcase(match))throw new Error('This exhibition is unavailable.');
       const full=match?.status==='published'
        ?(await transport('showcase-exhibition',{id:match.id})).gallery
        :await api.getExhibition(initial);
-      if(active)setSelected(full);
+      if(active&&!isPracticeShowcase(full))setSelected(full);
      }catch(e){if(active)setError(e.message||'This exhibition is unavailable.');}
     }
    }catch(e){if(active)setError(e.message);}
@@ -110,6 +112,7 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
    const full=item.status==='published'
     ?(await transport('showcase-exhibition',{id:item.id})).gallery
     :await (await import('../galleryData.js')).getExhibition(item.id);
+   if(isPracticeShowcase(full))throw new Error('This exhibition is unavailable.');
    setSelected(full);setExhibitionHash(full.slug||full.id);
   }catch(e){setError(e.message);}
   finally{setBusy(false);}
@@ -126,22 +129,22 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
   }catch(e){setError(e.message);}
   finally{setBusy(false);}
  };
- const visiblePrepared=PREPARED_COLLECTIONS.filter(c=>!showcase.hiddenCollections.includes(c.key)&&
-  (c.title+' '+c.classScope).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
+ // Teacher-authored illustration collections are retained internally, but
+ // must not appear beside actual approved student work in the public showcase.
+ const visiblePrepared=[];
  // Retain server catalogue from dashboard even when a separate reload fails.
  const inventory=new Map();
  for(const g of [...(data?.publishedGalleries||[]),...galleries]){
-  if(g?.id&&g.status!=='archived')inventory.set(g.id,g);
+  if(g?.id&&g.status!=='archived'&&!isPracticeShowcase(g))inventory.set(g.id,g);
  }
  const visibleGalleries=[...inventory.values()].filter(g=>
   (g.title+' '+(g.summary||'')).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
  const publishedCount=[...inventory.values()].filter(g=>g.status==='published').length;
  const publishedInView=visibleGalleries.filter(g=>g.status==='published');
- const archivedCollections=PREPARED_COLLECTIONS.filter(c=>showcase.hiddenCollections.includes(c.key));
- const archivedItems=[...archivedCollections.map(c=>({kind:'collection',key:c.key,title:c.title,label:c.classScope+' · ENGLISH STEAM'})),
-  ...showcase.archivedGalleries.map(g=>({kind:'gallery',key:g.id,title:g.title,label:'Student exhibition'}))];
+ const archivedItems=showcase.archivedGalleries.filter(g=>!isPracticeShowcase(g))
+  .map(g=>({kind:'gallery',key:g.id,title:g.title,label:'Student exhibition'}));
  if(selected)return <MuseumExhibitionDetail gallery={selected} language={language} startInCinema
-  isDemo={selected.id===DEMO_GALLERY.id} data={data} onBack={leave} onNavigate={onNavigate}
+  data={data} onBack={leave} onNavigate={onNavigate}
   onDelete={isAdmin&&selected.id!==DEMO_GALLERY.id?()=>changeArchive(
    String(selected.id||'').startsWith('collection-')?'collection':'gallery',
    String(selected.id||'').startsWith('collection-')?String(selected.id).slice('collection-'.length):selected.id,
@@ -184,19 +187,6 @@ export function MuseumGallery({language='en',onDemo,query='',onNavigate,onRefres
    {!archivedItems.length?<div className="bml-empty bml-surface">No archived exhibitions.</div>:null}
   </div>:
   <div className="bml-gallery-grid">
-   {visiblePrepared.map(c=><article className="bml-gallery-card bml-gallery-card--managed"
-      key={c.key} data-testid={'museum-collection-'+c.key}>
-     <button type="button" className="bml-gallery-card-open" disabled={busy}
-      onClick={()=>{setSelected(preparedGallery(c.key));setExhibitionHash('collection-'+c.key);}}>
-      <div className="bml-card-photo"><span className="bml-gallery-badge">{c.classScope} · ENGLISH STEAM</span><Landmark strokeWidth={1.2}/></div>
-      <div className="bml-card-caption"><strong>{c.title}</strong>
-       <small>{c.groupCount} {tr(language,'nhóm','groups')} · {c.groupCount*3} {tr(language,'tác phẩm','exhibits')}</small>
-       <span>{tr(language,'Tham quan bảo tàng 3D','Explore 3D museum')} <ArrowRight size={16}/></span></div>
-     </button>
-     {isAdmin?<button className="bml-exhibition-delete" type="button" disabled={busy}
-      aria-label={'Delete exhibition: '+c.title} title="Delete exhibition"
-      onClick={()=>changeArchive('collection',c.key,c.title,true)}><Trash2 size={17}/></button>:null}
-    </article>)}
    {visibleGalleries.filter(g=>g.status!=='published').map(g=><article className="bml-gallery-card bml-gallery-card--managed" key={g.id}>
      <button type="button" className="bml-gallery-card-open" disabled={busy} onClick={()=>enter(g)}>
       <div className="bml-card-photo"><span className="bml-gallery-badge">{g.status?.toUpperCase()||'EXHIBITION'}</span><Leaf strokeWidth={1.35}/></div>

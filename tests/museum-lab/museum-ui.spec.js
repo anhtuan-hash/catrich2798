@@ -917,83 +917,49 @@ test('artwork inspector remains within mobile viewport and has a working close a
 });
 
 
-test('three English lessons expose eighteen group projects and a navigable 3D artwork collection',async({page})=>{
+test('teacher-authored practice portfolios are absent from official lesson cards',async({page})=>{
  await page.getByTestId('qa-prepared').click();
  const lessons=page.getByTestId('museum-lessons');
  await expect(lessons).toBeVisible();
  await expect(lessons.locator('.bml-lesson-block')).toHaveCount(3);
- await expect(lessons.getByText('Protecting Marine Life',{exact:true})).toHaveCount(2);
- await expect(lessons.getByText('Sustainable School',{exact:true})).toHaveCount(1);
  const first=lessons.locator('.bml-lesson-block').first();
- // The first lesson opens expanded by default; verify both collapse and reopen.
- await expect(first.getByTestId('lesson-portfolio-marine-12')).toBeVisible();
+ // Lesson management remains operable, without a sample 3D collection shortcut.
+ await expect(first.locator('.bml-prepared-visit')).toHaveCount(0);
+ await expect(lessons.locator('.bml-prepared-projects')).toHaveCount(0);
+ await expect(lessons.locator('.bml-prepared-project')).toHaveCount(0);
  await first.getByRole('button',{name:/Thu gọn|Collapse/}).click();
- await expect(first.getByTestId('lesson-portfolio-marine-12')).toHaveCount(0);
  await first.getByRole('button',{name:/Xem các nhóm|View groups/}).click();
- await expect(first.getByTestId('lesson-portfolio-marine-12')).toBeVisible();
- await expect(first.locator('.bml-prepared-project')).toHaveCount(6);
- await first.getByRole('button',{name:/Triển lãm 3D|3D exhibition/}).click();
- const detail=page.getByTestId('museum-exhibition-detail');
- await expect(detail).toBeVisible();
- await expect(detail.getByRole('heading',{name:'Protecting Marine Life · 12.1'})).toBeVisible();
- await detail.getByRole('button',{name:'2D',exact:true}).click();
- await expect(detail.locator('.bml-room-tabs button')).toHaveCount(6);
- await expect(detail.locator('.bml-art-card')).toHaveCount(3);
- await expect(detail.locator('.bml-art-card img').first()).toHaveAttribute('src',/^data:image\/png;base64,/);
- await detail.locator('.bml-art-card').first().click();
- await expect(detail.getByTestId('exhibit-360-viewer')).toBeVisible();
- await detail.getByTestId('museum-artwork-inspector').getByRole('button',{name:/Đóng|Close/}).click();
- await expect(detail.getByTestId('museum-artwork-inspector')).toHaveCount(0);
+ await expect(first.getByTestId('museum-group-qr-card')).toHaveCount(6);
 });
 
-
-test('school poster artworks have actual topic illustration pixels, not text-only placeholders',async({page})=>{
+test('internally retained teacher poster assets are real AVIFs but not displayed as student exhibits',async({page})=>{
  await page.getByTestId('qa-prepared').click();
- const school=page.getByTestId('museum-lessons').locator('.bml-lesson-block').nth(1);
- await school.getByRole('button',{name:/Triển lãm 3D|3D exhibition/}).click();
- const detail=page.getByTestId('museum-exhibition-detail');
- await detail.getByRole('button',{name:'2D',exact:true}).click();
- const frames=detail.locator('.bml-art-card img');
- await expect(frames).toHaveCount(3);
- for(const [i,stage] of ['problem','evidence','solution'].entries()){
-  await expect(frames.nth(i)).toHaveAttribute('src',
-   '/museum/artwork/green-campus-0'+(i+1)+'-'+stage+'.avif');
-  const status=await frames.nth(i).evaluate(async img=>{
-   await img.decode();
-   return {complete:img.complete,width:img.naturalWidth,height:img.naturalHeight};
-  });
-  expect(status.complete).toBe(true);
-  expect(status.width).toBe(1024);
-  expect(status.height).toBe(768);
+ const paths=['problem','evidence','solution'].map((part,i)=>
+  '/museum/artwork/green-campus-0'+(i+1)+'-'+part+'.avif');
+ await expect(page.locator('.bml-prepared-projects')).toHaveCount(0);
+ const observations=await page.evaluate(async paths=>{
+  const load=async src=>{
+   const image=new Image();image.src=src;await image.decode();
+   const canvas=document.createElement('canvas');canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
+   const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(image,0,0);
+   const d=ctx.getImageData(64,230,760,380).data;
+   let saturated=0;const palette=new Set();
+   for(let i=0;i<d.length;i+=4*44){
+    const r=d[i],g=d[i+1],b=d[i+2];
+    palette.add([r>>4,g>>4,b>>4].join('.'));
+    if(Math.max(r,g,b)-Math.min(r,g,b)>42)saturated++;
+   }
+   return {width:image.naturalWidth,height:image.naturalHeight,palette:palette.size,saturated};
+  };
+  return Promise.all(paths.map(load));
+ },paths);
+ expect(observations).toHaveLength(3);
+ for(const result of observations){
+  expect(result.width).toBe(1024);
+  expect(result.height).toBe(768);
+  expect(result.palette).toBeGreaterThan(30);
+  expect(result.saturated).toBeGreaterThan(100);
  }
- const sample=await frames.first().evaluate(async(img)=>{
-  await img.decode();
-  const canvas=document.createElement('canvas');canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;
-  const ctx=canvas.getContext('2d',{willReadFrequently:true});
-  ctx.drawImage(img,0,0);
-  const data=ctx.getImageData(64,230,760,380).data;
-  const palette=new Set();let saturated=0;
-  for(let i=0;i<data.length;i+=4*44){
-   const r=data[i],g=data[i+1],b=data[i+2];
-   palette.add([r>>4,g>>4,b>>4].join('.'));
-   if(Math.max(r,g,b)-Math.min(r,g,b)>42)saturated++;
-  }
-  return {width:img.naturalWidth,height:img.naturalHeight,palette:palette.size,saturated};
- });
- expect(sample.width).toBeGreaterThanOrEqual(1000);
- expect(sample.height).toBeGreaterThanOrEqual(700);
- expect(sample.palette).toBeGreaterThan(30);
- expect(sample.saturated).toBeGreaterThan(100);
- const one=await frames.first().getAttribute('src');
- const two=await frames.nth(1).getAttribute('src');
- expect(one).not.toBe(two);
- await detail.locator('.bml-art-card').first().click();
- const viewer=detail.getByTestId('exhibit-360-viewer');
- await viewer.getByRole('button',{name:/Xem 2D|2D original/}).click();
- const original=viewer.locator('img.bml-exhibit-original-image');
- await expect(original).toBeVisible();
- const resolution=await original.evaluate(async img=>{await img.decode();return img.naturalWidth;});
- expect(resolution).toBeGreaterThanOrEqual(1000);
 });
 
 test('peer response submits structured learning, clarification and clarity score',async({page})=>{
