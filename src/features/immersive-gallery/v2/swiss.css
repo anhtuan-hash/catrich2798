@@ -2706,6 +2706,81 @@ html:has(.igv2) .bes-smart-bubble-dock {
 .igv2 .kpi-grid,
 .igv2 .action { border-radius: 0; }
 
+/* Exhibition posters: picture first, title only. */
+.igv2 .exhibit-poster-card {
+  padding: 0;
+  min-height: 0;
+  background: #fff;
+  color: var(--igv2-ink);
+  border-color: var(--igv2-divider);
+  overflow: hidden;
+}
+.igv2 .exhibit-poster-card.featured { background: #fff; color: var(--igv2-ink); }
+.igv2 .exhibit-poster-hit {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.igv2 .exhibit-poster { display: block; width: 100%; height: auto; }
+.igv2 .exhibit-poster-card .serial,
+.igv2 .exhibit-poster-card .status {
+  position: absolute;
+  top: 10px;
+  z-index: 1;
+  background: #fffdf9;
+  color: var(--igv2-ink);
+  padding: 3px 7px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+.igv2 .exhibit-poster-card .serial { left: 18px; }
+.igv2 .exhibit-poster-card .status { right: 10px; letter-spacing: 0; text-transform: none; }
+.igv2 .exhibit-poster-card h3 { margin: 12px 14px 0; font-size: 16px; min-height: 2.4em; }
+.igv2 .exhibit-poster-card .small-link { margin: 8px 14px 14px; padding-top: 0; }
+.igv2 .exhibit-sr {
+  position: absolute;
+  width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+/* Ten groups: two rows of five, stacked cards. */
+.igv2 .bml .bml-lesson-workspace-v57 .bml-group-list.bml-lesson-qr-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+.igv2 .bml .bml-lesson-workspace-v57 .bml-paper-group-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  min-width: 0;
+}
+.igv2 .bml .bml-lesson-workspace-v57 .bml-lesson-qr-access {
+  padding: 8px;
+}
+.igv2 .bml .bml-lesson-workspace-v57 .bml-lesson-qr-image,
+.igv2 .bml.bml-paper .bml-lesson-workspace-v57 .bml-lesson-qr-image {
+  width: 92px;
+  height: 92px;
+  margin: 0 auto;
+}
+.igv2 .bml .bml-lesson-workspace-v57 .bml-lesson-qr-handle {
+  font-size: 9px;
+  max-height: 2.5em;
+  overflow: hidden;
+}
+.igv2 .bml .bml-lesson-workspace-v57 .bml-lesson-group-metadata { font-size: 11px; }
+@media (max-width: 1180px) {
+  .igv2 .bml .bml-lesson-workspace-v57 .bml-group-list.bml-lesson-qr-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* Swiss type: one grotesk, one scale. Beats the global font authority inside this tool. */
 html body .igv2.igv2 :not(#igv2-swiss-a#igv2-swiss-b#igv2-swiss-c):is(
   h1, h2, h3, h4, h5, h6, p, span, strong, b, em, small, label, li, a, button,

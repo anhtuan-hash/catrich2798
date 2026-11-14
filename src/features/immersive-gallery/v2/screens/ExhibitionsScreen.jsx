@@ -197,6 +197,7 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
               title={g.title}
               description={g.summary || tr(language,'Dự án bảo tàng của học sinh','Student museum project')}
               featured={i === 0}
+              index={i}
               statusLabel={tr(language,'Đã công bố','Published')}
               language={language}
               onOpen={() => enter(g)} />
