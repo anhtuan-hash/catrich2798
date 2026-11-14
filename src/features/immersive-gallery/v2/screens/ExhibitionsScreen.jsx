@@ -5,6 +5,7 @@ import MetricStrip from '../shell/MetricStrip.jsx';
 import ExhibitionCard from '../shell/ExhibitionCard.jsx';
 import ContentPanel from '../shell/ContentPanel.jsx';
 import MuseumExhibitionDetail from '../../v3/MuseumExhibitionDetail.jsx';
+import GalleryRenderBoundary from '../../GalleryRenderBoundary.jsx';
 import {staffRequest as defaultTransport} from '../../v3/museumApi.js';
 
 const tr = (lang, vi, en) => lang === 'en' ? en : vi;
@@ -38,6 +39,7 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
   const [loading, setLoading] = useState(true);
   const [showArchived, setShowArchived] = useState(false);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [covers, setCovers] = useState({});
 
   const pull = async () => {
@@ -136,10 +138,14 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
 
   // If a 3D exhibition is open, render the existing viewer (full behavior preserved).
   if (selected) {
-    return <MuseumExhibitionDetail gallery={selected} language={language} startInCinema
-      data={payload} onBack={leave} onNavigate={onNavigate}
-      onDelete={isAdmin ? () => changeArchive('gallery', selected.id, selected.title, true) : null}
-      busy={busy} />;
+    return (
+      <GalleryRenderBoundary language={language} onFallback={leave}>
+        <MuseumExhibitionDetail gallery={selected} language={language} startInCinema
+          data={payload} onBack={leave} onNavigate={onNavigate}
+          onDelete={isAdmin ? () => changeArchive('gallery', selected.id, selected.title, true) : null}
+          busy={busy} />
+      </GalleryRenderBoundary>
+    );
   }
 
   const inventory = new Map();
