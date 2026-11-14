@@ -2,6 +2,7 @@ import React,{useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import MuseumLabApp from '../../src/features/immersive-gallery/v3/MuseumLabApp.jsx';
 import MuseumLiveTeacher from '../../src/features/immersive-gallery/v3/MuseumLiveTeacher.jsx';
+import SwissTeacherLive from '../../src/features/immersive-gallery/v2/screens/TeacherLiveScreen.jsx';
 import MuseumArtworkStudio from '../../src/features/immersive-gallery/v3/MuseumArtworkStudio.jsx';
 import MuseumLiveStudent from '../../src/features/immersive-gallery/v3/MuseumLiveStudent.jsx';
 import {LIVE_STAGES,summarizeResponses} from '../../src/features/immersive-gallery/v3/liveLesson.js';
@@ -190,7 +191,7 @@ function Harness(){
  return <div style={{fontFamily:'Roboto,Arial,sans-serif'}}>
   <div style={{display:'flex',gap:8,padding:10,background:'#e6f0ff',flexWrap:'wrap'}} data-testid="qa-harness">
    <strong>QA ONLY · ALL DATA SYNTHETIC</strong>
-   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','published-lesson','dashboard-en','dashboard-published-en','dashboard-published-fail-en','student-en','teacher-live-en','teacher-live-ten-en','teacher-live-frozen-en','v53-evidence-en','v54-speaking-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
+   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','published-lesson','dashboard-en','dashboard-published-en','dashboard-published-fail-en','student-en','teacher-live-en','teacher-live-ten-en','teacher-live-frozen-en','teacher-live-v2-frozen-en','v53-evidence-en','v54-speaking-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
   </div>
   <div className={normalized==='dashboard'?'':'bml'}>
    {normalized==='dashboard'?<MuseumLabApp language={uiLanguage} currentUser={{id:'teacher-synthetic',name:'Demo Teacher'}} transport={demoDashboardApi}/>:null}
@@ -207,6 +208,7 @@ function Harness(){
    {normalized==='teacher-live'?<MuseumLiveTeacher data={synthetic} language={uiLanguage} transport={demoTeacherApi}/>:null}
     {normalized==='teacher-live-ten'?<MuseumLiveTeacher data={{...synthetic,groups:tenGroups}} language={uiLanguage} transport={tenTeacherApi}/>:null}
    {normalized==='teacher-live-frozen'?<MuseumLiveTeacher data={frozenQa} language={uiLanguage} transport={frozenTeacherApi}/>:null}
+   {normalized==='teacher-live-v2-frozen'?<SwissTeacherLive data={frozenQa} language={uiLanguage} transport={frozenTeacherApi}/>:null}
    {normalized==='student-live'?<MuseumLiveStudent csrf="qa-secret" language={uiLanguage}/>:null}
    {normalized==='artwork'?<MuseumArtworkStudio studio={{artworks:{issue:null,evidence:null,solution:null}}}
      csrf="qa-secret" language={uiLanguage} uploadEnabled={true} update={()=>{}}/>:null}
