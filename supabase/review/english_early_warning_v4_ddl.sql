@@ -6,6 +6,12 @@ begin;
 
 do $guard$
 begin
+  if to_regprocedure('public.bes_my_brian_assignments()') is null then
+    raise exception 'English-teacher subject assignments are unavailable';
+  end if;
+  if to_regprocedure('public.bes_current_school_year()') is null then
+    raise exception 'School-year scope is unavailable';
+  end if;
   if to_regprocedure('public.bes_has_any_class_assignment(text)') is null then
     raise exception 'Required teacher assignment function is absent; do not enable EW cloud sync';
   end if;
@@ -127,6 +133,31 @@ revoke all on function private.brian_ew_snapshot_valid(jsonb) from public;
 grant execute on function private.brian_ew_score_valid(jsonb, boolean) to authenticated;
 grant execute on function private.brian_ew_snapshot_valid(jsonb) to authenticated;
 
+create or replace function private.brian_ew_is_english_teacher(p_class_name text)
+returns boolean
+language sql stable security invoker
+set search_path = pg_catalog, public, private
+as $
+  select auth.uid() is not null
+    and public.bes_has_any_class_assignment(p_class_name)
+    and exists (
+      select 1
+      from public.bes_my_brian_assignments() a
+      cross join lateral jsonb_array_elements_text(
+        case when jsonb_typeof(a.member->'teachingClasses') = 'array'
+          then a.member->'teachingClasses'
+          else to_jsonb(regexp_split_to_array(
+            coalesce(a.member->>'teachingClasses',''), '[,;\\n]+'
+          ))
+        end
+      ) class_entry(class_name)
+      where lower(trim(coalesce(a.member->>'teachingSubject',''))) in ('tiếng anh','english')
+        and lower(trim(class_entry.class_name)) = lower(trim(p_class_name))
+    );
+$;
+revoke all on function private.brian_ew_is_english_teacher(text) from public;
+grant execute on function private.brian_ew_is_english_teacher(text) to authenticated;
+
 create table if not exists public.brian_english_ew_snapshots (
   owner_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
   class_name text not null check (char_length(class_name) between 2 and 60 and class_name !~ '[<>@]'),
@@ -163,12 +194,12 @@ for select to authenticated using (owner_id = (select auth.uid()));
 
 create policy brian_ew_verified_teacher_insert on public.brian_english_ew_snapshots
 for insert to authenticated
-with check (owner_id = (select auth.uid()) and public.bes_has_any_class_assignment(class_name));
+with check (owner_id = (select auth.uid()) and private.brian_ew_is_english_teacher(class_name) and school_year=public.bes_current_school_year());
 
 create policy brian_ew_verified_teacher_update on public.brian_english_ew_snapshots
 for update to authenticated
 using (owner_id = (select auth.uid()))
-with check (owner_id = (select auth.uid()) and public.bes_has_any_class_assignment(class_name));
+with check (owner_id = (select auth.uid()) and private.brian_ew_is_english_teacher(class_name) and school_year=public.bes_current_school_year());
 
 create policy brian_ew_owner_delete on public.brian_english_ew_snapshots
 for delete to authenticated using (owner_id = (select auth.uid()));
