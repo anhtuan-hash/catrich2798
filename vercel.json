@@ -148,6 +148,10 @@
       "destination": "/api/gateway?handler=gallery-guest"
     },
     {
+      "source": "/api/gallery-public",
+      "destination": "/api/gateway?handler=gallery-public"
+    },
+    {
       "source": "/api/gallery-staff",
       "destination": "/api/gateway?handler=gallery-staff"
     },

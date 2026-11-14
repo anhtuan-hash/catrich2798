@@ -33,6 +33,44 @@ export async function staffRequest(action,body){
   throw new Error('Invalid staff session response.');
  return value;
 }
+
+// Public visitors use an intentionally separate, GET-only API. Never downgrade
+// the authenticated staff transport to permit anonymous mutations.
+export async function publicMuseumRequest(action, body) {
+ const isList = action === 'dashboard' || action === 'showcase-state';
+ const isExhibition = action === 'showcase-exhibition';
+ if (!isList && !isExhibition) throw new Error('This operation requires an authorized account.');
+ const params = new URLSearchParams({operation: isList ? 'list' : 'exhibition'});
+ if (isExhibition) {
+  if (!body?.id || typeof body.id !== 'string') throw new Error('Invalid exhibition identifier.');
+  params.set('id', body.id);
+ }
+ const response = await fetch('/api/gallery-public?' + params.toString(), {
+  method: 'GET', credentials: 'omit', cache: 'no-store'
+ });
+ const value = await response.json().catch(() => null);
+ if (!response.ok || !value || value.error) {
+  throw new Error(value?.error || 'Could not load the public museum.');
+ }
+ if (isExhibition) {
+  if (!value.gallery || !Array.isArray(value.gallery.rooms)) throw new Error('Invalid public exhibition.');
+  return value;
+ }
+ if (!Array.isArray(value.publishedGalleries) || typeof value.galleryEnabled !== 'boolean') {
+  throw new Error('Invalid public museum catalogue.');
+ }
+ if (action === 'dashboard') {
+  return {
+   profile: {role: 'visitor'},
+   publicReadOnly: true,
+   galleryEnabled: value.galleryEnabled,
+   publishedGalleries: value.publishedGalleries,
+   assignments: [], groups: [], reviews: [], rubrics: [], exitTickets: [],
+  };
+ }
+ return value;
+}
+
 export async function getMuseumInviteInfo(handle){
  const response=await fetch('/api/gallery-guest?operation=invite-info&handle='+encodeURIComponent(handle),{
   method:'GET',credentials:'same-origin',cache:'no-store'

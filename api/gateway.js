@@ -13,6 +13,7 @@ import questatlasLive from '../serverless-handlers/_questatlas-live.js';
 import clientErrorReport from '../serverless-handlers/_client-error-report.js';
 import galleryGuest from '../serverless-handlers/gallery-guest.js';
 import galleryStaff from '../serverless-handlers/gallery-staff.js';
+import galleryPublic from '../serverless-handlers/gallery-public.js';
 import museumLive from '../serverless-handlers/museum-live.js';
 import museumArtwork from '../serverless-handlers/museum-artwork.js';
 
@@ -32,6 +33,7 @@ const handlers = Object.freeze({
   'client-error-report': clientErrorReport,
   'gallery-guest': galleryGuest,
   'gallery-staff': galleryStaff,
+  'gallery-public': galleryPublic,
   'museum-live': museumLive,
   'museum-artwork': museumArtwork,
 });

@@ -41,6 +41,16 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
   const [notice, setNotice] = useState('');
 
   const pull = async () => {
+    // Anonymous visitors must never query the unrestricted client-side
+    // exhibition tables. Only the server-approved public catalogue is used.
+    if (payload?.publicReadOnly) {
+      const archive = await transport('showcase-state');
+      const items = (archive.galleryEnabled && Array.isArray(archive.publishedGalleries)
+        ? archive.publishedGalleries : [])
+        .filter(g => g?.id && g.status === 'published' && g.visibility === 'public' && !isPracticeShowcase(g))
+        .sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
+      return {api: null, items, archive};
+    }
     const api = await import('../../galleryData.js');
     const [clientEnabled, archive] = await Promise.all([api.getGalleryEnabled(), transport('showcase-state')]);
     const enabled = typeof archive.galleryEnabled === 'boolean' ? archive.galleryEnabled : clientEnabled;
@@ -138,7 +148,9 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
     {value: String(publishedCount), label: tr(language,'Triển lãm đã công bố','Published exhibitions'), highlight: true},
     {value: String(publishedInView.length), label: tr(language,'Đang hiển thị','Showing in view')},
     {value: String(archivedItems.length), label: tr(language,'Đã lưu trữ','Archived exhibitions')},
-    {value: String((payload?.groups || []).length), label: tr(language,'Nhóm học sinh','Student groups')},
+    payload?.publicReadOnly
+      ? {value: 'VIEW ONLY', label: tr(language, 'Truy cập công khai', 'Public access')}
+      : {value: String((payload?.groups || []).length), label: tr(language,'Nhóm học sinh','Student groups')},
   ];
 
   return (

@@ -372,9 +372,14 @@ function App() {
   const accessibleApps = APPS.filter(item => visibleForCurrentUser(item) && (item.slug !== 'immersive-gallery' || galleryEnabled));
   const accessibleTools = SPECIAL_TOOLS.filter(visibleForCurrentUser);
 
-  const requiresAuth = currentRoute === 'tool' || !PUBLIC_ROUTES.has(currentRoute);
+  // Museum Lab alone is public. Its guest view is read-only; every other tool
+  // retains its existing authentication and permission requirements.
+  const publicMuseumRoute = currentRoute === 'tool' && selectedTool?.slug === 'immersive-gallery';
+  const museumStaffAccess = Boolean(currentUser && hasRouteAccess(currentUser, currentRoute, selectedTool));
+  const publicMuseumVisitor = publicMuseumRoute && !museumStaffAccess;
+  const requiresAuth = !publicMuseumRoute && (currentRoute === 'tool' || !PUBLIC_ROUTES.has(currentRoute));
   const guestPreviewAllowed = !currentUser && isGuestPreviewRoute(currentRoute, selectedTool);
-  const canAccessRoute = visibilityReady && !temporarilyHidden && (!requiresAuth || hasRouteAccess(
+  const canAccessRoute = visibilityReady && (publicMuseumRoute || !temporarilyHidden) && (publicMuseumRoute || !requiresAuth || hasRouteAccess(
     currentRoute === 'attendance' ? withAttendanceReadOnlyAccess(currentUser) : currentUser,
     currentRoute,
     selectedTool,
@@ -680,7 +685,7 @@ function App() {
             {currentRoute === 'register' && <AuthPage mode="register" onLogin={(u) => { if (u) { setCurrentUser(u); window.location.hash = `#/${getFirstAllowedRoute(u)}`; } }} {...context} />}
             {canAccessRoute && currentRoute === 'admin' && currentUser && <AdminPage {...context} />}
             {currentRoute === 'setup' && <SupabaseSetup {...context} />}
-            {canAccessRoute && currentRoute === 'tool' && currentUser && <ToolPage tool={selectedTool} {...context} />}
+            {canAccessRoute && currentRoute === 'tool' && (currentUser || publicMuseumRoute) && <ToolPage tool={selectedTool} {...context} currentUser={publicMuseumVisitor ? null : currentUser} />}
           </Suspense>
           </div>
         </main>
