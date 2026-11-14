@@ -929,7 +929,7 @@ test('teacher-authored practice portfolios are absent from official lesson cards
  await expect(lessons.locator('.bml-prepared-project')).toHaveCount(0);
  await first.getByRole('button',{name:/Thu gọn|Collapse/}).click();
  await first.getByRole('button',{name:/Xem các nhóm|View groups/}).click();
- await expect(first.locator('.bml-lesson-group')).toHaveCount(6);
+ await expect(first.getByTestId('museum-group-qr-card')).toHaveCount(6);
 });
 
 test('internally retained teacher poster assets are real AVIFs but not displayed as student exhibits',async({page})=>{
