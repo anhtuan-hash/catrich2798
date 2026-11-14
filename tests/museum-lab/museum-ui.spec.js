@@ -1197,9 +1197,9 @@ test('Swiss Editorial frozen Teacher Live supports 11 GET-only replay activities
  await expect(toolbar.getByRole('button',{name:'Advance to next activity'})).toBeEnabled();
  await expect(toolbar.getByRole('button',{name:'Previous activity'})).toBeDisabled();
  await expect(toolbar.getByRole('button',{name:'Open current task'})).toBeDisabled();
- await toolbar.getByRole('button',{name:'Reveal explanation'}).click();
- await expect(stage).toContainText('A feasible action must match the school situation');
  await toolbar.getByRole('button',{name:'Show explanation'}).click();
+ await expect(stage).toContainText('A feasible action must match the school situation');
+ await toolbar.getByRole('button',{name:'Hide explanation'}).click();
  await expect(stage).not.toContainText('A feasible action must match the school situation');
  await toolbar.getByRole('button',{name:'Advance to next activity'}).click();
  await expect(stage).toContainText('Language Mini-Lesson');
