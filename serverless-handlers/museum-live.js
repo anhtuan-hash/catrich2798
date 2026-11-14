@@ -1,6 +1,6 @@
 // Teacher-owned live classroom. Accountless student groups reuse Creator Pass cookies.
 // Strict class scope, explicit stage transitions, no identity inference, real N group devices.
-import {db,fail,send,handleError,guardOrigin,guardBody,guestContext,staffContext,assertStaff,query,uid,clean,requireMethod} from './_galleryCreator.js';
+import {db,fail,send,handleError,guardOrigin,guardBody,guestContext,staffContext,assertStaff,query,uid,clean,requireMethod,publicMuseumContext} from './_galleryCreator.js';
 import {LIVE_STAGES,liveStage,sessionStage,VIDEO_QUESTION_VERSION,validResponse,summarizeResponses} from '../src/features/immersive-gallery/v3/liveLesson.js';
 import {surveyFor,checkpointGallery,feedbackFor} from './_museumEvidence.js';
 import {validatePeer} from '../src/features/immersive-gallery/v3/learningEvidence.js';
@@ -55,13 +55,25 @@ export default async function museumLive(req,res){
  try{
   const op=String(req.query?.operation||''),admin=db();
   const isStaff=String(req.headers.authorization||'').startsWith('Bearer ');
-  if(isStaff){
-   const ctx=await staffContext(req,admin);assertStaff(ctx);
-   const id=String(req.method==='GET'?req.query?.assignmentId:req.body?.assignmentId||'');
-   const assignment=await scopedStaff(ctx,id);
+  const publicReads=new Set(['state','evidence','checkpoint-compare','group-gallery']);
+  const publicRead=!isStaff&&req.method==='GET'&&publicReads.has(op);
+  if(isStaff||publicRead){
+   let ctx,assignment;
+   if(publicRead){
+    ctx=await publicMuseumContext(admin);
+    const id=String(req.query?.assignmentId||'');
+    if(!uid(id))throw fail(400,'Lớp học không hợp lệ.');
+    assignment=await query(admin.from('gcp_assignments').select('*').eq('id',id).single());
+    if(assignment.archived_at||assignment.school_scope!==ctx.profile.school)
+     throw fail(403,'This lesson is not in the public museum.');
+   }else{
+    ctx=await staffContext(req,admin);assertStaff(ctx);
+    const id=String(req.method==='GET'?req.query?.assignmentId:req.body?.assignmentId||'');
+    assignment=await scopedStaff(ctx,id);
+   }
    // Allow stage viewing, signed images and evidence export, but never alter
    // the frozen presentation or its live classroom history.
-   if(req.method!=='GET'&&assignment.content_frozen_at)
+   if(!publicRead&&req.method!=='GET'&&assignment.content_frozen_at)
     throw fail(423,'This completed lesson is view-only. Teacher Live controls are locked.');
    const session=await getSession(admin,assignment.id);
    if(op==='state'){

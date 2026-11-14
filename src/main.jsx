@@ -374,6 +374,7 @@ function App() {
 
   const requiresAuth = currentRoute === 'tool' || !PUBLIC_ROUTES.has(currentRoute);
   const guestPreviewAllowed = !currentUser && isGuestPreviewRoute(currentRoute, selectedTool);
+  const publicMuseum = !currentUser && selectedTool?.slug === 'immersive-gallery';
   const canAccessRoute = visibilityReady && !temporarilyHidden && (!requiresAuth || hasRouteAccess(
     currentRoute === 'attendance' ? withAttendanceReadOnlyAccess(currentUser) : currentUser,
     currentRoute,
@@ -381,10 +382,10 @@ function App() {
   ));
 
   useEffect(() => {
-    if (authReady && requiresAuth && !currentUser && !guestPreviewAllowed) {
+    if (authReady && requiresAuth && !currentUser && !guestPreviewAllowed && !publicMuseum) {
       window.location.hash = '#/login';
     }
-  }, [authReady, requiresAuth, currentUser, guestPreviewAllowed]);
+  }, [authReady, requiresAuth, currentUser, guestPreviewAllowed, publicMuseum]);
 
   useEffect(() => {
     if (authReady && currentUser && ['login', 'register'].includes(currentRoute)) {
@@ -680,6 +681,7 @@ function App() {
             {currentRoute === 'register' && <AuthPage mode="register" onLogin={(u) => { if (u) { setCurrentUser(u); window.location.hash = `#/${getFirstAllowedRoute(u)}`; } }} {...context} />}
             {canAccessRoute && currentRoute === 'admin' && currentUser && <AdminPage {...context} />}
             {currentRoute === 'setup' && <SupabaseSetup {...context} />}
+            {authReady && publicMuseum && <ToolPage tool={selectedTool} {...context} publicReadOnly />}
             {canAccessRoute && currentRoute === 'tool' && currentUser && <ToolPage tool={selectedTool} {...context} />}
           </Suspense>
           </div>

@@ -33,6 +33,23 @@ export async function staffRequest(action,body){
   throw new Error('Invalid staff session response.');
  return value;
 }
+const PUBLIC_STAFF_GET=new Set(['dashboard','showcase-state']);
+const PUBLIC_STAFF_POST=new Set(['showcase-exhibition']);
+const publicDenied='Public visitors can browse this museum, but cannot add, edit, or delete.';
+export async function publicStaffRequest(action,body){
+ if(getMuseumOffline())return getMuseumOffline().staff(action,body);
+ if(body?!PUBLIC_STAFF_POST.has(action):!PUBLIC_STAFF_GET.has(action))throw new Error(publicDenied);
+ const response=await fetch('/api/gallery-staff?operation='+encodeURIComponent(action),{
+  method:body?'POST':'GET',credentials:'same-origin',cache:'no-store',
+  headers:{'X-Museum-Public':'1',...(body?{'Content-Type':'application/json'}:{})},
+  ...(body?{body:JSON.stringify(body)}:{})
+ });
+ const value=await response.json().catch(()=>({error:'No valid response received from the server.'}));
+ if(!response.ok||value.error)throw new Error(englishMuseumError(value.error,publicDenied));
+ if(action==='dashboard'&&(!value.profile||!Array.isArray(value.assignments)||!Array.isArray(value.groups)))
+  throw new Error('Invalid public museum response.');
+ return {...value,publicReadOnly:true};
+}
 export async function getMuseumInviteInfo(handle){
  const response=await fetch('/api/gallery-guest?operation=invite-info&handle='+encodeURIComponent(handle),{
   method:'GET',credentials:'same-origin',cache:'no-store'

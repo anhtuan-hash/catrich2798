@@ -23,6 +23,22 @@ export const safeEqual=(a,b)=>{
 };
 export const clean=(v,n=140)=>String(v??'').replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,n);
 export const uid=x=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(x||''));
+// Anonymous competition visitors. Not a real account, and never an admin.
+export const PUBLIC_MUSEUM_ACTOR='00000000-0000-4000-8000-000000000001';
+export async function publicMuseumContext(admin){
+ const rows=await query(admin.from('gcp_assignments')
+  .select('school_scope,updated_at,content_frozen_at')
+  .is('archived_at',null)
+  .order('updated_at',{ascending:false})
+  .limit(40));
+ const school=rows.find(row=>row.content_frozen_at)?.school_scope||rows[0]?.school_scope;
+ if(!clean(school,180))throw fail(404,'No public museum is available.');
+ return {
+  user:{id:PUBLIC_MUSEUM_ACTOR},
+  profile:{id:PUBLIC_MUSEUM_ACTOR,role:'viewer',school,approved:true},
+  admin,role:'viewer',publicReadOnly:true
+ };
+}
 export const query=async promise=>{
  const {data,error}=await promise;
  if(error){

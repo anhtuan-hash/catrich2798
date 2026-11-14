@@ -1,7 +1,7 @@
 import React,{useCallback,useEffect,useState} from 'react';
 import {Plus,RefreshCw,ShieldAlert,X} from 'lucide-react';
 import {LessonsList,LessonWizard} from './MuseumLessonFlow.jsx';
-import {staffRequest} from './museumApi.js';
+import {staffRequest,publicStaffRequest} from './museumApi.js';
 import ImmersiveShell from '../v2/shell/ImmersiveShell.jsx';
 import OverviewScreen from '../v2/screens/OverviewScreen.jsx';
 import SubmissionsScreen from '../v2/screens/SubmissionsScreen.jsx';
@@ -10,7 +10,7 @@ import TeacherLiveScreen from '../v2/screens/TeacherLiveScreen.jsx';
 import TeachingPlanScreen from '../v2/screens/TeachingPlanScreen.jsx';
 import DossierScreen from '../v2/screens/DossierScreen.jsx';
 import SettingsScreen from '../v2/screens/SettingsScreen.jsx';
-import {liveStaff} from './museumLiveApi.js';
+import {liveStaff,publicLiveStaff} from './museumLiveApi.js';
 import './museumLab.css';
 import './museumPaper.css';
 import '../v2/tokens.css';
@@ -30,7 +30,9 @@ const TAB_TO_NAV={home:'overview',lessons:'lessons',submissions:'submissions',
  gallery:'exhibitions',wizard:'lessons',templates:'teaching-plan',
  live:'teacher-live',evidence:'competition-dossier',settings:'settings'};
 
-export default function MuseumLabApp({currentUser,language='en',transport=staffRequest}){
+export default function MuseumLabApp({currentUser,language='en',transport,publicReadOnly=false}){
+ const staffTransport=transport||(publicReadOnly?publicStaffRequest:staffRequest);
+ const liveTransport=publicReadOnly?publicLiveStaff:liveStaff;
  const [uiLanguage,setUiLanguage]=useState(()=>{
   try{const saved=sessionStorage.getItem('bml-ui-language');if(saved==='vi'||saved==='en')return saved;}catch{/* ignore */}
   return language==='vi'?'vi':'en';
@@ -44,9 +46,9 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
  const [loading,setLoading]=useState(true),[error,setError]=useState('');
  const [query,setQuery]=useState(''),[reviewId,setReviewId]=useState(null),[help,setHelp]=useState(false);
  const refresh=useCallback(async()=>{
-  try{const data=await transport('dashboard');setStaff(data);setError('');return data;}
+  try{const data=await staffTransport('dashboard');setStaff(data);setError('');return data;}
   catch(e){setError(e.message);return null;}finally{setLoading(false);}
- },[transport]);
+ },[staffTransport]);
  useEffect(()=>{refresh();},[refresh,currentUser?.id]);
  useEffect(()=>{
   const timer=window.setInterval(()=>{if(!document.hidden)refresh();},45000);
@@ -54,6 +56,7 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
  },[refresh]);
  const navigate=(id,extra)=>{
   const nextTab=NAV_TO_TAB[id]||id;
+  if((publicReadOnly||staff?.publicReadOnly)&&nextTab==='wizard')return;
   // The completed competition experience has no demonstration route.
   if(id==='demo'){setTab('gallery');return;}
   if(nextTab==='demo'){setTab('gallery');return;}
@@ -68,25 +71,30 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
  };
  // Shell nav ids map to existing tabs; existing navigate()/reviewId preserved.
  const shellNavigate=(navId)=>{ navigate(NAV_TO_TAB[navId]||'home'); };
- const create=()=>{if(!staff?.offlineReadOnly)navigate('wizard');};
+ const visitor=publicReadOnly||!!staff?.publicReadOnly;
+ const create=()=>{if(!visitor)navigate('wizard');};
  const activeNav=TAB_TO_NAV[tab]||'overview';
  const pendingCount=(staff?.reviews||[]).filter(r=>r.state==='submitted'||r.state==='ttcm_review').length;
- const sharedScreenProps={language:uiLanguage,data:staff,staff,onNavigate:navigate,onRefresh:refresh,transport,onCreate:create,onBack:()=>navigate('home'),initialReview:reviewId};
+ const sharedScreenProps={language:uiLanguage,data:staff,staff,onNavigate:navigate,onRefresh:refresh,transport:staffTransport,onCreate:visitor?undefined:create,onBack:()=>navigate('home'),initialReview:reviewId};
  return <ImmersiveShell activeNav={activeNav} onNavigate={shellNavigate} language={uiLanguage} onLanguageChange={chooseLanguage} staff={staff} data={staff} query={query} onQueryChange={setQuery} onRefresh={refresh} onHelp={()=>setHelp(true)} pendingCount={pendingCount}>
-  <div className="bml" data-testid="brian-museum-lab-v3" lang={uiLanguage} data-ui-locale={uiLanguage==='en'?'en-US':'vi-VN'}>
+  <div className="bml" data-testid="brian-museum-lab-v3" lang={uiLanguage} data-ui-locale={uiLanguage==='en'?'en-US':'vi-VN'} data-public-readonly={visitor?'true':'false'}>
+   {visitor?<div className="bml-banner" role="status" style={{margin:'0 0 14px',borderLeft:'4px solid #ca2431',background:'#fffdf9'}}>
+    <strong>{tr(uiLanguage,'Chế độ xem công khai','Public view')}</strong>
+    <p style={{margin:'4px 0 0'}}>{tr(uiLanguage,'Bạn xem và thao tác được toàn bộ nội dung. Không thể thêm, sửa hoặc xóa.','You can view and browse everything. Adding, editing and deleting are turned off.')}</p>
+   </div>:null}
    {error?<div className="bml-banner bml-danger-banner" role="alert" style={{marginBottom:18}}><ShieldAlert size={19}/>
      <div><strong>{tr(uiLanguage,'Không thể đồng bộ dữ liệu quản lý','Could not load staff data')}</strong><p>{error}</p>
       <button type="button" className="bml-outline" onClick={()=>{setLoading(true);refresh();}}><RefreshCw size={17}/>{tr(uiLanguage,'Thử lại','Retry')}</button></div></div>:null}
    {loading?<div className="bml-empty bml-surface" role="status"><RefreshCw size={27}/>{tr(uiLanguage,'Đang tải bài học và phân quyền…','Loading lessons and permissions…')}</div>:
    tab==='home'?<OverviewScreen {...sharedScreenProps}/>:
-   tab==='live'?<TeacherLiveScreen {...sharedScreenProps} transport={liveStaff}/>:
+   tab==='live'?<TeacherLiveScreen {...sharedScreenProps} transport={liveTransport}/>:
    tab==='wizard'?<LessonWizard language={uiLanguage} data={staff} onCompleted={refresh} onExit={()=>navigate('lessons')} onSettings={()=>navigate('settings')}/>:
    tab==='lessons'?<LessonsList language={uiLanguage} data={staff} query={query}
      onCreate={()=>create()} onReview={id=>navigate('submissions',id)} onRefresh={refresh}/>:
    tab==='submissions'?<SubmissionsScreen {...sharedScreenProps} query={query}/>:
    tab==='gallery'?<ExhibitionsScreen {...sharedScreenProps} query={query}/>:
    tab==='templates'?<TeachingPlanScreen {...sharedScreenProps}/>:
-   tab==='evidence'?<DossierScreen {...sharedScreenProps}/>:
+   tab==='evidence'?<DossierScreen {...sharedScreenProps} transport={liveTransport}/>:
    tab==='settings'?<SettingsScreen {...sharedScreenProps}/>:
    <OverviewScreen {...sharedScreenProps}/>}
   </div>
@@ -100,7 +108,7 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
       ['03','Học sinh làm 5 bước, tự lưu, không đăng nhập','Students complete five steps with no account'],
       ['04','Admin đánh giá, phê duyệt và công bố','Admin assesses, approves and publishes']
      ].map(([number,vi,en])=><div className="bml-check-item" key={number}><span className="bml-class-tag">{number}</span><div><strong>{tr(uiLanguage,vi,en)}</strong></div></div>)}</div>
-     <button className="bml-primary" type="button" disabled={!!staff?.offlineReadOnly} onClick={()=>{setHelp(false);create();}}><Plus size={17}/>{tr(uiLanguage,'Tạo bài học ngay','Create a lesson')}</button>
+     <button className="bml-primary" type="button" disabled={visitor} onClick={()=>{setHelp(false);create();}}><Plus size={17}/>{tr(uiLanguage,'Tạo bài học ngay','Create a lesson')}</button>
     </section></div>:null}
  </ImmersiveShell>;
 }

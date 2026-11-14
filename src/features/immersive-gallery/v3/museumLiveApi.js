@@ -17,6 +17,19 @@ export async function liveStaff(action,body,params={}){
  if(!response.ok||d.error)throw Object.assign(new Error(englishMuseumError(d.error,'Live lesson request failed.')),{status:response.status});
  return d;
 }
+const PUBLIC_LIVE_READS=new Set(['state','evidence','checkpoint-compare','group-gallery']);
+export async function publicLiveStaff(action,body,params={}){
+ if(body||!PUBLIC_LIVE_READS.has(action))
+  throw new Error('Public visitors can browse this museum, but cannot add, edit, or delete.');
+ if(getMuseumOffline())return getMuseumOffline().liveStaff(action,null,params);
+ const q=new URLSearchParams({operation:action,...params});
+ const response=await fetch(LIVE_ROUTE+'?'+q.toString(),{
+  method:'GET',credentials:'same-origin',cache:'no-store',headers:{'X-Museum-Public':'1'}
+ });
+ const d=await response.json().catch(()=>({error:'The server returned an invalid response.'}));
+ if(!response.ok||d.error)throw Object.assign(new Error(englishMuseumError(d.error,'Live lesson request failed.')),{status:response.status});
+ return d;
+}
 export async function liveGuest(action,method='GET',body,csrf,params={}){
  if(getMuseumOffline())return getMuseumOffline().liveGuest(action,method,body,params);
  const q=new URLSearchParams({operation:action,...params});

@@ -358,7 +358,7 @@ export default function OverviewScreen({
 
       {/* Band 4: 3 Quick Action Cards */}
       <section className="ov-quick-row" aria-label={tr(language, 'Thao tác nhanh', 'Quick actions')}>
-        {quickActions.map((act) => {
+        {quickActions.filter((act) => typeof act.onClick === 'function').map((act) => {
           const Icon = act.icon;
           return (
             <button

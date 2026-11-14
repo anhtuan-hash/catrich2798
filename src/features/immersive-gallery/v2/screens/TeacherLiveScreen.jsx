@@ -34,12 +34,12 @@ const link=typeof window!=='undefined'?window.location.origin+window.location.pa
  * disabled AND the reason banner is shown (disabled buttons alone are insufficient).
  */
 export default function TeacherLiveScreen({language='vi',data,initialReview,onBack,onRefresh,transport=liveStaff}){
-  const assignments=useMemo(()=>(data?.assignments||[]).filter(a=>data?.offlineReadOnly||a.created_by===data?.profile?.id||data?.profile?.role==='admin'),[data]);
+  const assignments=useMemo(()=>(data?.assignments||[]).filter(a=>data?.publicReadOnly||data?.offlineReadOnly||a.created_by===data?.profile?.id||data?.profile?.role==='admin'),[data]);
   const assignmentIds=useMemo(()=>assignments.map(a=>a.id),[assignments]);
   const savedPreference=useRef(loadPresenterRecovery(typeof window!=='undefined'?window.sessionStorage:null,assignmentIds));
   const [assignmentId,setAssignmentId]=useState(initialReview||savedPreference.current?.assignmentId||assignments[0]?.id||'');
   const assignment=assignments.find(a=>a.id===assignmentId);
-  const readOnly=Boolean(data?.offlineReadOnly||assignment?.content_frozen_at);
+  const readOnly=Boolean(data?.publicReadOnly||data?.offlineReadOnly||assignment?.content_frozen_at);
   const [browseIndex,setBrowseIndex]=useState(null);
   const [jumpIndex,setJumpIndex]=useState(null);
   const [previewReveal,setPreviewReveal]=useState(false);

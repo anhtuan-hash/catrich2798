@@ -108,7 +108,7 @@ export default function DossierScreen({language='vi',data,staff,onRefresh,transp
           </div>
           <div className="info-strip mt16" style={{background:'#eff3f7',borderLeftColor:'#205b8a'}} role="note"><Info size={14}/> {t(language,'Bản nháp không phải minh chứng chính thức. Chỉ đính kèm tài liệu giảng dạy thật, có nguồn và sự cho phép.','Drafts do not constitute official evidence. Verify curriculum alignment and attach only authentic teaching materials.')}</div>
         </div>
-        <DossierEditor readOnly={!!data?.offlineReadOnly} language={language} fields={fields} onFieldsChange={setFields}
+        <DossierEditor readOnly={!!data?.offlineReadOnly||!!data?.publicReadOnly} language={language} fields={fields} onFieldsChange={setFields}
           assignments={assignments} selectedAssignmentId={selected?.id||''} onSelectAssignment={setAssignmentId}
           exportBusy={exportBusy} exportError={exportError}
           onExportDoc={downloadDoc} onExportZip={downloadZip} onExportEvidence={downloadEvidence} onExportCsv={downloadCsv}/>

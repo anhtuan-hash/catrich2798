@@ -325,7 +325,7 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
    </article>;
   })}</div>:<div className="bml-empty bml-surface"><BookOpen size={36}/><h2>{tr(language,'Chưa có bài học','No lessons assigned yet')}</h2>
     <p>{tr(language,'Tạo bài học mới từ kế hoạch giảng dạy đã duyệt.','Create your first lesson from the approved teaching plan.')}</p>
-    <button type="button" className="bml-primary" disabled={!!data?.offlineReadOnly} onClick={onCreate}><Plus size={18}/>{tr(language,'Tạo bài học','Create lesson')}</button>
+    <button type="button" className="bml-primary" disabled={!!data?.offlineReadOnly||!!data?.publicReadOnly} onClick={onCreate}><Plus size={18}/>{tr(language,'Tạo bài học','Create lesson')}</button>
    </div>}
  </div>;
 }

@@ -2,7 +2,8 @@
 import {createHash} from 'node:crypto';
 import {
  db,digest,randomSecret,fail,send,handleError,guardOrigin,guardBody,query,
- settings,staffContext,assertStaff,assertAdmin,reviewer,uid,clean,requireMethod
+ settings,staffContext,assertStaff,assertAdmin,reviewer,uid,clean,requireMethod,
+ publicMuseumContext
 } from './_galleryCreator.js';
 import {PREPARED_COLLECTIONS} from '../src/features/immersive-gallery/v3/museumPreparedCollections.js';
 import {encryptGroupPasscode,decryptGroupPasscode} from './_galleryPasscodes.js';
@@ -100,8 +101,19 @@ export default async function galleryStaff(req,res){
  try {
   const operation=String(req.query?.operation||'');
   const admin=db();
-  const ctx=await staffContext(req,admin);
-  assertStaff(ctx);
+  const bearer=String(req.headers?.authorization||'');
+  const hasBearer=/^Bearer\s+\S{40,}$/i.test(bearer);
+  const publicGet=new Set(['dashboard','showcase-state']);
+  const publicPost=new Set(['showcase-exhibition']);
+  let ctx;
+  if(!hasBearer){
+   if((req.method==='GET'&&publicGet.has(operation))||(req.method==='POST'&&publicPost.has(operation)))
+    ctx=await publicMuseumContext(admin);
+   else throw fail(403,'Public visitors can browse this museum, but cannot add, edit, or delete.');
+  }else{
+   ctx=await staffContext(req,admin);
+   assertStaff(ctx);
+  }
 
   // A completed lesson is permanently view-only until explicitly unlocked in
   // a controlled database migration. Check before any privileged RPC or storage
@@ -216,7 +228,7 @@ export default async function galleryStaff(req,res){
    const grants=await query(admin.from('gcp_reviewer_grants')
      .select('reviewer_id,school_scope,can_publish,active').eq('school_scope',ctx.profile.school)
      .eq('active',true));
-   const where=ctx.role==='admin'?null:ctx.user.id;
+   const where=(ctx.role==='admin'||ctx.publicReadOnly)?null:ctx.user.id;
    let q=admin.from('gcp_assignments').select('*').eq('school_scope',ctx.profile.school)
     .is('archived_at',null).order('created_at',{ascending:false}).limit(100);
    if(where)q=q.or('created_by.eq.'+where+',reviewer_id.eq.'+where);
@@ -253,7 +265,8 @@ export default async function galleryStaff(req,res){
     .select('id,full_name,role').eq('school',ctx.profile.school).eq('approved',true).limit(100)):
     grants.length?await query(admin.from('profiles').select('id,full_name,role')
      .in('id',grants.map(g=>g.reviewer_id)).eq('approved',true)):[];
-   return send(res,200,{profile:{role:ctx.profile.role,school:ctx.profile.school,id:ctx.user.id},
+   return send(res,200,{profile:{role:ctx.publicReadOnly?'viewer':ctx.profile.role,school:ctx.profile.school,id:ctx.user.id},
+    publicReadOnly:ctx.publicReadOnly===true,
     creatorSettings:await settings(admin),reviewerCandidates,
     reviewers:grants,rubrics,
     assignments:visibleAssignments,groups:visibleGroups,reviews,exitTickets,
