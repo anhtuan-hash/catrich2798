@@ -66,19 +66,28 @@ export default async function museumLive(req,res){
    if(op==='state'){
     requireMethod(req,'GET');
     if(!session)return send(res,200,{session:null,stageCount:LIVE_STAGES.length});
+    // GET-only historical browsing: a teacher can inspect every frozen stage
+    // without mutating stage_index, stage_open, saved responses or media_board.
+    // A non-frozen lesson ignores viewStage and keeps its live teaching state.
+    const requested=String(req.query?.viewStage??'');
+    const viewIndex=assignment.content_frozen_at&&/^(?:[0-9]|10)$/.test(requested)
+     ?Number(requested):session.stage_index;
+    const viewing=assignment.content_frozen_at
+     ?{...session,stage_index:viewIndex,stage_started_at:null,elapsed_seconds:0,stage_open:false}
+     :session;
     const grp=await query(admin.from('gcp_groups').select('id,label,state')
       .eq('assignment_id',assignment.id).order('label'));
     const responses=await query(admin.from('museum_live_responses').select('value')
-      .eq('session_id',session.id).eq('stage_index',session.stage_index).limit(30));
+      .eq('session_id',session.id).eq('stage_index',viewIndex).limit(30));
     const helps=await query(admin.from('museum_learning_events').select('group_id,created_at')
-      .eq('session_id',session.id).eq('action','need_help').eq('stage_index',session.stage_index).limit(40));
-    const micro=MICRO_CHALLENGES[session.stage_index]?await query(admin.from('museum_live_micro_responses')
+      .eq('session_id',session.id).eq('action','need_help').eq('stage_index',viewIndex).limit(40));
+    const micro=MICRO_CHALLENGES[viewIndex]?await query(admin.from('museum_live_micro_responses')
      .select('group_id,choice,reason,submitted_at').eq('session_id',session.id)
-     .eq('stage_index',session.stage_index).limit(50)):[];
-    return send(res,200,{session:stateOf(session,{staff:true}),stageCount:LIVE_STAGES.length,
+     .eq('stage_index',viewIndex).limit(50)):[];
+    return send(res,200,{session:{...stateOf(viewing,{staff:true}),readOnly:Boolean(assignment.content_frozen_at),persistedStageIndex:session.stage_index},stageCount:LIVE_STAGES.length,
      microResponses:micro.length,microResults:micro,
-     result:(()=>{const r=summarizeResponses(session.stage_index,responses,sessionStage(session,session.stage_index));if(session.evidence_version===0&&session.stage_index===2)r.options=r.options.map((o,i)=>({...o,label:legacySurvey.options[i]}));return r;})(),
-     groups:grp,needHelp:new Set(helps.map(h=>h.group_id)).size,helpGroups:[...new Set(helps.map(h=>h.group_id))],survey:await surveyFor(admin,session.id),feedback:await feedbackFor(admin,session.id),responses:await query(admin.from('museum_live_responses').select('group_id,value,created_at').eq('session_id',session.id).eq('stage_index',session.stage_index))});
+     result:(()=>{const r=summarizeResponses(viewIndex,responses,sessionStage(viewing,viewIndex));if(r&&session.evidence_version===0&&viewIndex===2)r.options=r.options.map((o,i)=>({...o,label:legacySurvey.options[i]}));return r;})(),
+     groups:grp,needHelp:new Set(helps.map(h=>h.group_id)).size,helpGroups:[...new Set(helps.map(h=>h.group_id))],survey:await surveyFor(admin,session.id),feedback:await feedbackFor(admin,session.id),responses:await query(admin.from('museum_live_responses').select('group_id,value,created_at').eq('session_id',session.id).eq('stage_index',viewIndex))});
    }
    if(op==='video-search'){
     requireMethod(req,'GET');
