@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap");
 /* Student Creator Pass gate only.
    Scoped to the unauthenticated login shell so the studio stays unchanged. */
 .bml.bml-student-login-with-ribbon.bml-student-editorial{
@@ -8,13 +9,16 @@
  isolation:isolate;
  overflow:hidden;
  color:var(--luxe-ink);
- background:
+ background-color:#e8f4ee;
+ background-image:
+  url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 900' preserveAspectRatio='none'><path fill='%23ffffff' fill-opacity='0.55' d='M0 120C180 40 320 200 520 160C760 110 860 20 1100 70C1260 104 1360 80 1440 40V0H0Z'/><path fill='%23ffffff' fill-opacity='0.38' d='M0 760C220 680 380 860 640 800C900 740 1040 900 1280 840C1360 820 1410 830 1440 820V900H0Z'/><path fill='%23cfeadf' fill-opacity='0.55' d='M0 540C240 470 420 620 700 560C980 500 1120 640 1440 560V700C1100 780 860 620 620 690C360 770 180 640 0 700Z'/></svg>"),
   radial-gradient(920px 480px at 8% -8%, #fff8ec 0%, transparent 62%),
   radial-gradient(780px 560px at 108% 6%, #c9f0e4 0%, transparent 58%),
   radial-gradient(640px 520px at -8% 92%, #e7f7ef 0%, transparent 60%),
-  radial-gradient(860px 520px at 92% 108%, #d5efe4 0%, transparent 55%),
-  linear-gradient(165deg, #f7fbf8 0%, #e7f4ee 42%, #f6f1e6 100%);
- font-family:"Avenir Next","Segoe UI",Inter,Arial,sans-serif;
+  linear-gradient(165deg, #f4faf7 0%, #e5f3ec 46%, #f7f3ea 100%);
+ background-size:100% 100%, auto, auto, auto, auto;
+ background-repeat:no-repeat;
+ font-family:"Plus Jakarta Sans","Avenir Next","Segoe UI",Inter,sans-serif;
 }
 .bml.bml-student-login-with-ribbon.bml-student-editorial::before,
 .bml.bml-student-login-with-ribbon.bml-student-editorial::after{
@@ -62,18 +66,21 @@
  display:none!important;
 }
 .bml.bml-student-login-with-ribbon .bml-paper .bml-competition-ribbon--dashboard .bml-competition-seal{
- background:radial-gradient(circle at 50% 42%, #fff, #f4f7f2 72%);
- border-radius:50%;
- padding:8px;
- box-shadow:
-  0 0 0 8px rgba(255,255,255,.55),
-  0 12px 28px rgba(36,84,70,.14);
+ background:transparent;
+ border-radius:0;
+ padding:0;
+ box-shadow:none;
  filter:none;
+ overflow:visible;
 }
 .bml.bml-student-login-with-ribbon .bml-paper .bml-competition-ribbon--dashboard .bml-competition-seal img{
- max-height:148px;
- border-radius:50%;
+ max-height:168px;
+ width:auto;
+ height:auto;
+ border-radius:0;
  mix-blend-mode:normal!important;
+ filter:drop-shadow(0 10px 16px rgba(36,84,70,.16));
+ background:transparent;
 }
 .bml.bml-student-login-with-ribbon .bml-paper .bml-competition-ribbon--dashboard .bml-competition-award{
  border:0;
@@ -124,12 +131,12 @@
  grid-template-columns:1.05fr .95fr;
  align-items:stretch;
  border-radius:36px;
- border:1px solid rgba(255,255,255,.78);
- background:linear-gradient(180deg, rgba(255,255,255,.42), rgba(255,255,255,.18));
+ border:1px solid rgba(255,255,255,.72);
+ background:linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,.12));
  box-shadow:
-  0 30px 70px rgba(32,78,66,.14),
-  inset 0 1px 0 rgba(255,255,255,.85);
- backdrop-filter:blur(10px);
+  0 30px 70px rgba(32,78,66,.12),
+  inset 0 1px 0 rgba(255,255,255,.8);
+ backdrop-filter:blur(8px);
  overflow:hidden;
 }
 .bml.bml-student-login-with-ribbon .bml-guest-illustration{
@@ -138,11 +145,15 @@
  padding:clamp(28px,3.4vw,48px);
  color:#f7f1e4;
  background:
-  radial-gradient(420px 240px at 80% 12%, rgba(255,255,255,.28), transparent 60%),
-  linear-gradient(165deg, rgba(47,168,146,.92), rgba(16,104,96,.88) 58%, rgba(12,78,74,.92));
- box-shadow:inset 0 1px 0 rgba(255,255,255,.35);
+  radial-gradient(420px 240px at 78% 8%, rgba(255,255,255,.42), transparent 58%),
+  radial-gradient(280px 220px at 12% 88%, rgba(255,255,255,.16), transparent 60%),
+  linear-gradient(165deg, rgba(86,196,170,.78), rgba(24,140,124,.72) 48%, rgba(14,104,96,.8));
+ box-shadow:
+  inset 0 1px 0 rgba(255,255,255,.55),
+  inset 0 -30px 50px rgba(8,50,46,.08);
  gap:10px;
  justify-content:center;
+ backdrop-filter:blur(8px);
 }
 .bml.bml-student-login-with-ribbon .bml-guest-overline{
  color:#f4efe4;
@@ -155,18 +166,19 @@
  filter:drop-shadow(0 4px 8px rgba(8,40,36,.25));
 }
 .bml.bml-student-login-with-ribbon .bml-guest-globe{
- width:min(250px,78%);
- height:168px;
- margin:10px auto 6px;
- border:1px solid rgba(255,255,255,.55);
- border-radius:28px;
- background:linear-gradient(160deg, rgba(255,255,255,.34), rgba(255,255,255,.08));
+ width:min(290px,86%);
+ height:196px;
+ margin:8px auto 4px;
+ border:1px solid rgba(255,255,255,.72);
+ border-radius:30px;
+ background:linear-gradient(155deg, rgba(255,255,255,.48), rgba(255,255,255,.12));
  box-shadow:
-  0 22px 40px rgba(6,36,32,.22),
-  inset 0 1px 0 rgba(255,255,255,.65);
- color:#f6e7b0;
- backdrop-filter:blur(14px);
- transform:rotate(-7deg);
+  0 24px 40px rgba(6,40,36,.18),
+  0 0 0 1px rgba(255,255,255,.25),
+  inset 0 1px 0 rgba(255,255,255,.8);
+ color:#f8ecc0;
+ backdrop-filter:blur(16px);
+ transform:rotate(-8deg);
  filter:none;
 }
 .bml.bml-student-login-with-ribbon .bml-guest-globe::before,
@@ -189,8 +201,9 @@
  border-top:1px solid rgba(255,255,255,.38);
 }
 .bml.bml-student-login-with-ribbon .bml-guest-globe > svg:first-child{
- width:78px;height:78px;
- filter:drop-shadow(0 8px 12px rgba(8,40,30,.25));
+ width:86px;height:86px;
+ color:#f6e7b0;
+ filter:drop-shadow(0 0 12px rgba(246,231,176,.55)) drop-shadow(0 8px 12px rgba(8,40,30,.25));
 }
 .bml.bml-student-login-with-ribbon .bml-guest-globe > svg:last-child{
  right:22px;bottom:18px;
@@ -198,13 +211,26 @@
  filter:drop-shadow(0 4px 8px rgba(8,40,30,.2));
 }
 .bml.bml-student-login-with-ribbon .bml-guest-illustration h1{
- font-family:"Avenir Next","Segoe UI",Inter,sans-serif;
- font-weight:780;
- letter-spacing:-.035em;
- color:#f8f1e2;
- font-size:clamp(34px,3.3vw,48px);
- line-height:1.05;
+ font-family:"Plus Jakarta Sans","Nunito Sans","Avenir Next","Segoe UI",sans-serif;
+ font-style:normal;
+ font-weight:800;
+ letter-spacing:-.04em;
+ color:#f6edd4;
+ font-size:clamp(36px,3.5vw,52px);
+ line-height:1.02;
  text-wrap:balance;
+}
+/* The site-wide page-title font is applied to every h1 with !important.
+   This gate must stay a bold sans, matching the approved mockup. */
+html body .bml.bml-student-login-with-ribbon .bml-guest-illustration h1:not(#bes-luxe-a#bes-luxe-b#bes-luxe-c#bes-luxe-d){
+ font-family:"Plus Jakarta Sans","Nunito Sans","Avenir Next","Segoe UI",sans-serif!important;
+ font-style:normal!important;
+ font-weight:800!important;
+ font-size:clamp(36px,3.5vw,52px)!important;
+ letter-spacing:-.04em!important;
+ line-height:1.02!important;
+ color:#f6edd4!important;
+ -webkit-text-fill-color:#f6edd4!important;
 }
 .bml.bml-student-login-with-ribbon .bml-guest-illustration p{
  color:rgba(247,241,228,.86);
@@ -221,9 +247,10 @@
 }
 .bml.bml-student-login-with-ribbon .bml-guest-form{
  border-radius:28px;
- background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,252,247,.82));
+ background:linear-gradient(180deg, rgba(255,255,255,.78), rgba(244,251,247,.62));
  box-shadow:inset 0 1px 0 #fff;
  padding:clamp(26px,3vw,42px);
+ backdrop-filter:blur(16px);
 }
 .bml.bml-student-login-with-ribbon .bml-guest-form > .bml-overline{
  color:#b15a3e;
@@ -232,7 +259,7 @@
  font-weight:800;
 }
 .bml.bml-student-login-with-ribbon .bml-guest-form h2{
- font-family:"Avenir Next","Segoe UI",Inter,sans-serif;
+ font-family:"Plus Jakarta Sans","Avenir Next","Segoe UI",sans-serif;
  font-weight:760;
  letter-spacing:-.03em;
  color:#17343a;
@@ -310,13 +337,14 @@
 }
 .bml.bml-student-login-with-ribbon .bml-guest-form button.bml-primary{
  margin-top:8px;
- min-height:56px;
+ min-height:58px;
  border:0;
  border-radius:18px;
- background:linear-gradient(180deg,#1aa384,#0d6d62 55%,#0b5c54);
+ background:linear-gradient(180deg,#20b090 0%, #0e8a78 42%, #0b6d62 100%);
  box-shadow:
-  0 12px 24px rgba(13,109,98,.28),
-  inset 0 1px 0 rgba(255,255,255,.35);
+  0 14px 28px rgba(12,120,104,.32),
+  inset 0 1px 0 rgba(255,255,255,.45),
+  inset 0 -8px 16px rgba(0,40,36,.12);
  font-weight:780;
  letter-spacing:.01em;
 }
@@ -344,11 +372,8 @@
   border-radius:22px!important;
   padding:14px 12px 16px!important;
  }
- .bml.bml-student-login-with-ribbon .bml-paper .bml-competition-ribbon--dashboard .bml-competition-seal{
-  width:78px;height:78px;padding:4px;
- }
  .bml.bml-student-login-with-ribbon .bml-paper .bml-competition-ribbon--dashboard .bml-competition-seal img{
-  max-height:70px;
+  max-height:92px;
  }
 }
 @media (prefers-reduced-motion:reduce){
