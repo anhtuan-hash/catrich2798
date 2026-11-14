@@ -376,3 +376,47 @@
 .bml.bml-student-canvas16.bml-student-editorial .bml-student-guide .bml-english-chip{
  border-bottom:1px solid #dedbd5!important;
 }
+.bml .bml-contest-art{
+ display:block!important;
+ position:relative!important;
+ grid-template-columns:none!important;
+ min-height:0!important;
+ height:auto!important;
+ padding:0!important;
+ margin:0 0 8px!important;
+ background:transparent!important;
+ background-image:none!important;
+ border:0!important;
+ box-shadow:none!important;
+ overflow:hidden!important;
+}
+.bml .bml-contest-art::before,
+.bml .bml-contest-art::after{
+ content:none!important;
+ display:none!important;
+}
+.bml .bml-contest-art img{
+ display:block!important;
+ width:100%!important;
+ height:auto!important;
+ max-width:100%!important;
+ max-height:none!important;
+ object-fit:contain!important;
+ background:transparent!important;
+ border:0!important;
+ border-radius:0!important;
+ padding:0!important;
+ mix-blend-mode:normal!important;
+ filter:none!important;
+}
+.bml .bml-contest-credits{
+ position:absolute;
+ width:1px;
+ height:1px;
+ margin:-1px;
+ padding:0;
+ overflow:hidden;
+ clip:rect(0,0,0,0);
+ white-space:nowrap;
+ border:0;
+}

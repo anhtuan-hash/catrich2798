@@ -242,28 +242,26 @@ test('English-only group workspace shows no Vietnamese UI in all five project st
  const competition=app.getByTestId('museum-competition-ribbon');
  await expect(competition).toBeVisible();
  await expect(competition).toHaveAttribute('lang','vi');
- await expect(competition.getByText('BÀI DỰ THI')).toBeVisible();
- await expect(competition.locator('img')).toHaveCount(2);
- for(const img of await competition.locator('img').all())await expect(img).toHaveJSProperty('complete',true);
- // Verify original-resolution source logos and all six lines of official credits.
+ await expect(competition).toContainText('BÀI DỰ THI');
+ await expect(competition.locator('img')).toHaveCount(1);
+ const banner=competition.locator('img');
+ await expect(banner).toHaveJSProperty('complete',true);
  const originalViewport=page.viewportSize();
  for(const viewport of [{width:1536,height:960},{width:1366,height:768},{width:1024,height:768},{width:390,height:844}]){
   await page.setViewportSize(viewport);
   const result=await competition.evaluate(root=>{
    const outer=root.getBoundingClientRect();
-   const parts=Array.from(root.querySelectorAll('.bml-competition-award,.bml-competition-copy h2,.bml-competition-year,.bml-competition-field,.bml-competition-author,.bml-competition-school'));
-   const rects=parts.map(el=>el.getBoundingClientRect());
+   const img=root.querySelector('img');
+   const box=img.getBoundingClientRect();
    return {
-    visible:rects.length===6&&rects.every(r=>r.height>0&&r.top>=outer.top-1&&r.bottom<=outer.bottom+1&&r.left>=outer.left-1&&r.right<=outer.right+1),
-    nonOverlapping:rects.every((r,i)=>i===0||r.top>=rects[i-1].bottom-1),
-    logos:Array.from(root.querySelectorAll('img')).map(img=>({loaded:img.complete&&img.naturalWidth>0,width:img.naturalWidth,height:img.naturalHeight})),
+    visible:box.height>40&&box.top>=outer.top-1&&box.bottom<=outer.bottom+1&&box.left>=outer.left-1&&box.right<=outer.right+1,
+    loaded:img.complete&&img.naturalWidth===2116&&img.naturalHeight===463,
     scrollFree:root.scrollHeight<=root.clientHeight+2
    };
   });
-  expect(result.visible,'Credits must remain inside ribbon at '+viewport.width+'px').toBe(true);
-  expect(result.nonOverlapping,'No credit rows may overlap at '+viewport.width+'px').toBe(true);
+  expect(result.visible,'Banner must stay inside the masthead at '+viewport.width+'px').toBe(true);
+  expect(result.loaded,'Approved contest artwork must load at '+viewport.width+'px').toBe(true);
   expect(result.scrollFree,'Ribbon must not clip content at '+viewport.width+'px').toBe(true);
-  expect(result.logos).toEqual([{loaded:true,width:299,height:300},{loaded:true,width:1682,height:2048}]);
  }
  if(originalViewport)await page.setViewportSize(originalViewport);
 
