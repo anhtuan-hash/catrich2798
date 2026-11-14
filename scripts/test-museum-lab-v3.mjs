@@ -77,16 +77,18 @@ test('teacher rubric endpoint is scoped and no public RLS table privileges',()=>
  assert.match(sql,/revoke all on public\.gcp_rubric_scores from public,anon,authenticated/);
  assert.match(sql,/alter table public\.gcp_rubric_scores enable row level security/);
 });
-test('Material 3 redesign has scoped accessible UI and curated exhibitions',()=>{
+test('Material 3 redesign keeps accessible UI and only approved exhibitions in the showcase',()=>{
  const css=fs.readFileSync('src/features/immersive-gallery/v3/museumLab.css','utf8');
  const dashboard=fs.readFileSync('src/features/immersive-gallery/v3/MuseumDashboard.jsx','utf8');
- const sample=fs.readFileSync('src/features/immersive-gallery/v3/MuseumExplore.jsx','utf8');
+ const showcase=fs.readFileSync('src/features/immersive-gallery/v3/MuseumExplore.jsx','utf8');
  assert.match(css,/#0b57d0/);
  assert.match(css,/prefers-reduced-motion/);
  assert.match(css,/:focus-visible/);
  assert.match(dashboard,/data-testid="museum-dashboard"/);
- assert.match(sample,/museum-collection-/);
- assert.doesNotMatch(sample,/>DEMO · SAMPLE</);
+ assert.match(showcase,/const visiblePrepared=\[\]/);
+ assert.match(showcase,/isPracticeShowcase/);
+ assert.doesNotMatch(showcase,/museum-collection-/);
+ assert.doesNotMatch(showcase,/preparedGallery\(/);
 });
 
 test('ended Teacher Live leaves a valid museum assignment writable',()=>{
