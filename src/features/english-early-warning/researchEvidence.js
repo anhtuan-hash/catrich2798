@@ -70,7 +70,7 @@ export function buildResearchEvidence(results = [], reviews = {}, journal = []) 
       codedLearners: results.length, completeBaseline: baselineComplete.length,
       completePost: postComplete.length, completePaired: completePaired.length,
       missingPost: results.length - postComplete.length, unmatched: results.length - completePaired.length,
-      exportPermitted: results.length >= PUBLIC_MIN_COHORT_SIZE,
+      exportPermitted: results.length >= PUBLIC_MIN_COHORT_SIZE && completePaired.length >= PUBLIC_MIN_COHORT_SIZE,
     },
     screening: statusCounts,
     teacherReviews: {
@@ -102,7 +102,7 @@ export function buildResearchEvidence(results = [], reviews = {}, journal = []) 
 const format = v => v === null || v === undefined ? 'Not available' : String(v);
 const fmtInterval = x => x.lower95 === null ? 'Not estimable' : '[' + format(x.lower95) + ', ' + format(x.upper95) + ']';
 export function researchReportMarkdown(evidence, generatedAt) {
-  if (!evidence?.sample?.exportPermitted) throw new Error('City-level aggregate export requires at least five coded learner records.');
+  if (!evidence?.sample?.exportPermitted) throw new Error('City-level aggregate export requires at least five learners with complete paired assessments.');
   const date = typeof generatedAt === 'string' && Number.isFinite(Date.parse(generatedAt))
     ? generatedAt : (() => { throw new Error('A valid export timestamp is required.'); })();
   const sample = evidence.sample;
@@ -112,7 +112,9 @@ export function researchReportMarkdown(evidence, generatedAt) {
     ...SKILLS.map(skill => [skill, outcome.skillChanges[skill]]),
   ];
   const table = rows.map(([name, stats]) =>
-    '| ' + name + ' | ' + stats.n + ' | ' + format(stats.meanChange) + ' | ' + fmtInterval(stats) + ' | ' + format(stats.medianChange) + ' |'
+    stats.n < PUBLIC_MIN_COHORT_SIZE
+      ? '| ' + name + ' | <5 (suppressed) | Not disclosed | Not disclosed | Not disclosed |'
+      : '| ' + name + ' | ' + stats.n + ' | ' + format(stats.meanChange) + ' | ' + fmtInterval(stats) + ' | ' + format(stats.medianChange) + ' |'
   );
   return [
     '# BRIAN ENGLISH — Aggregate research evidence',
