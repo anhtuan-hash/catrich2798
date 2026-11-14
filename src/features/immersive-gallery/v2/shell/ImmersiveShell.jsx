@@ -75,6 +75,7 @@ export default function ImmersiveShell({
   onQueryChange,
   onHelp,
   pendingCount = 0,
+  publicReadOnly = false,
 }) {
   const payload = data || staff || {};
   const profile = payload?.profile || {};
@@ -149,7 +150,7 @@ export default function ImmersiveShell({
             className="igv2-topbar-nav"
             aria-label={tr(language, 'Điều hướng không gian Museum Lab', 'Museum Lab workspace navigation')}
           >
-            {PRIMARY_NAV.map((item) => {
+            {(publicReadOnly ? PRIMARY_NAV.filter(item => ['exhibitions', 'teaching-plan'].includes(item.id)) : PRIMARY_NAV).map((item) => {
               const Icon = item.icon;
               const isActive = activeNav === item.id;
               return (
@@ -169,7 +170,7 @@ export default function ImmersiveShell({
           </nav>
 
           <div className="igv2-topbar-utils">
-            {SECONDARY_NAV.map((item) => {
+            {(publicReadOnly ? [] : SECONDARY_NAV).map((item) => {
               const Icon = item.icon;
               const isActive = activeNav === item.id;
               return (
@@ -235,6 +236,7 @@ export default function ImmersiveShell({
               </div>
             ) : null}
 
+            {!publicReadOnly ? <>
             <button
               type="button"
               className="igv2-util-btn has-badge"
@@ -264,6 +266,7 @@ export default function ImmersiveShell({
             >
               <Settings size={17} strokeWidth={1.85} aria-hidden="true" />
             </button>
+            </> : null}
 
             {onHelp ? (
               <button
@@ -278,7 +281,11 @@ export default function ImmersiveShell({
               </button>
             ) : null}
 
-            <div className="igv2-user-menu" ref={menuRef}>
+            {publicReadOnly ? (
+              <a href="#/login" className="igv2-public-status"
+                style={{whiteSpace:'nowrap',fontSize:12,fontWeight:750,padding:'9px 14px',borderRadius:999,background:'rgba(255,255,255,.8)',color:'#315878',textDecoration:'none'}}
+                title="Sign in to access authorized editing controls">PUBLIC · VIEW ONLY · SIGN IN</a>
+            ) : <div className="igv2-user-menu" ref={menuRef}>
               <button
                 type="button"
                 className="igv2-user-trigger"
@@ -345,7 +352,7 @@ export default function ImmersiveShell({
                   ) : null}
                 </div>
               ) : null}
-            </div>
+            </div>}
           </div>
         </div>
       </header>
