@@ -28,6 +28,7 @@ import './museumSubmissionFix.css';
 import './museumDashboardBanner.css';
 import './museumQuickAccessV58.css';
 import './museumCreatorPassLuxe.css';
+import './museumStudentSwiss.css';
 
 const T=(lang,vi,en)=>lang==='en'?en:vi;
 const getHandle=()=>{
@@ -257,7 +258,7 @@ export default function MuseumLabStudent({language='en'}){
  const narrationCue=studentNarrationCue({liveInfo,step,ready:liveReady});
  return <main className="bml bml-student-shell bml-student-canvas16 bml-student-editorial" data-testid="museum-student-wizard" lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
   <MuseumCompetitionRibbon/>
-  <header className="bml-student-bar"><div className="bml-brand"><span className="bml-brand-icon"><Landmark size={23}/></span><span><strong>BRIAN Museum Lab</strong><small>Student Creator</small></span></div>
+  <header className="bml-student-bar"><div className="bml-brand"><span className="bml-brand-icon"><Landmark size={23}/></span><span><strong>Pétrus Ký School System</strong><small>Student Creator</small></span></div>
    <MuseumStudentVoiceGuide cue={narrationCue}/>
    <div className="bml-student-right"><span className="bml-group-pill"><Users size={16}/>{language==='en'?englishSystemGroupLabel(session.groupLabel):session.groupLabel} · {session.assignment.class_scope}</span>
     <span className={'bml-save-indicator bml-save-'+saveState} title={T(language,'Đã lưu bản nháp chưa có nghĩa là đã nộp bảo tàng.','Saved draft does not mean the museum project was submitted.')}>{saveState==='saved'?<><Cloud size={16}/>{T(language,'Đã lưu','Saved')}</>:

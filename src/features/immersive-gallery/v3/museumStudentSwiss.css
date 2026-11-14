@@ -1,0 +1,378 @@
+/* Student workshop — same Swiss Editorial language as the teacher studio.
+   Login gate stays on its own skin. Loaded last so scrapbook layers lose. */
+.bml.bml-student-canvas16.bml-student-editorial{
+ --swiss-ink:#152033;
+ --swiss-navy:#112339;
+ --swiss-red:#ca2431;
+ --swiss-yellow:#f4ca4b;
+ --swiss-paper:#fffdf9;
+ --swiss-bg:#faf9f6;
+ --swiss-line:#dedbd5;
+ --swiss-muted:#526171;
+ font-family:Inter,"Be Vietnam Pro","Helvetica Neue",Arial,sans-serif!important;
+ color:var(--swiss-ink);
+ background:var(--swiss-bg)!important;
+ border-radius:0;
+ border-color:var(--swiss-line);
+}
+.bml.bml-student-canvas16.bml-student-editorial :is(h1,h2,h3,h4,strong,button,input,textarea,label,small,p){
+ font-family:Inter,"Be Vietnam Pro","Helvetica Neue",Arial,sans-serif;
+}
+
+/* Contest bar: flat paper, red and gold rules, no tape. */
+.bml.bml-student-canvas16>.bml-competition-ribbon{
+ background:var(--swiss-paper,#fffdf9)!important;
+ border-bottom:2px solid #172536!important;
+ box-shadow:none!important;
+ color:#152033!important;
+ font-family:Inter,"Be Vietnam Pro","Helvetica Neue",Arial,sans-serif!important;
+}
+.bml.bml-student-canvas16>.bml-competition-ribbon::before{
+ content:""!important;
+ inset:auto!important;
+ top:0!important;left:0!important;
+ width:84px!important;height:10px!important;
+ border:0!important;border-radius:0!important;
+ background:#ca2431!important;
+}
+.bml.bml-student-canvas16>.bml-competition-ribbon::after{
+ content:"";
+ position:absolute;z-index:1;pointer-events:none;
+ right:0;bottom:0;width:160px;height:8px;
+ background:#e3ad22;
+}
+.bml.bml-student-canvas16 .bml-competition-decor{display:none!important}
+.bml.bml-student-canvas16 .bml-competition-seal{
+ background:transparent!important;
+ box-shadow:none!important;
+ border-radius:0!important;
+ padding:0!important;
+}
+.bml.bml-student-canvas16 .bml-competition-award{
+ background:#ca2431!important;
+ border:0!important;
+ border-radius:0!important;
+ box-shadow:none!important;
+ letter-spacing:.14em;
+}
+.bml.bml-student-canvas16 .bml-competition-year{
+ background:#132d47!important;
+ border-radius:0!important;
+ letter-spacing:.04em;
+}
+.bml.bml-student-canvas16 .bml-competition-copy h2{
+ font-family:Inter,"Be Vietnam Pro",Arial,sans-serif!important;
+ letter-spacing:.01em!important;
+ color:#152033!important;
+}
+.bml.bml-student-canvas16 .bml-competition-author{
+ background:#f4ca4b!important;
+ border-radius:0!important;
+ color:#152033!important;
+}
+.bml.bml-student-canvas16 .bml-competition-school{
+ font-style:normal!important;
+ font-weight:750!important;
+}
+
+/* Top bar */
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-bar{
+ background:#fffdf9!important;
+ border-bottom:1px solid #dedbd5!important;
+ box-shadow:none!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-brand-icon{
+ border-radius:0!important;
+ background:#112339!important;
+ box-shadow:none!important;
+ transform:none!important;
+ color:#fff;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-brand strong{
+ font-weight:800;
+ letter-spacing:-.03em;
+ color:#152033;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-brand small{
+ letter-spacing:.14em;
+ text-transform:uppercase;
+ font-size:10px;
+ font-weight:700;
+ color:#526171;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-group-pill{
+ border-radius:0!important;
+ background:#fff!important;
+ border:1px solid #dedbd5!important;
+ color:#152033!important;
+ box-shadow:none!important;
+ font-weight:700;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-right>.bml-outline{
+ border-radius:0!important;
+ background:#fff!important;
+ border:1px solid #152033!important;
+ color:#152033!important;
+ box-shadow:none!important;
+ min-height:40px;
+ font-weight:750;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-right>.bml-outline:hover{
+ background:#152033!important;
+ color:#fff!important;
+}
+
+/* Focus + steps */
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-focus{
+ border-radius:0!important;
+ background:#fffdf9!important;
+ border:1px solid #dedbd5!important;
+ border-top:4px solid #ca2431!important;
+ box-shadow:none!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-focus:after{display:none!important}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-focus-kicker{
+ color:#ca2431!important;
+ letter-spacing:.16em!important;
+ font-size:11px!important;
+ font-weight:800!important;
+ text-transform:uppercase;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-focus-head>strong{
+ font-family:Inter,"Be Vietnam Pro",Arial,sans-serif!important;
+ font-size:clamp(26px,2.2vw,36px)!important;
+ font-weight:800!important;
+ letter-spacing:-.045em!important;
+ line-height:1.05!important;
+ color:#152033!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-focus-stage{color:#526171!important}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-steps button{
+ border-radius:0!important;
+ background:transparent!important;
+ box-shadow:none!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-steps button>span{
+ border-radius:0!important;
+ border:1px solid #dedbd5!important;
+ background:#fff!important;
+ color:#152033!important;
+ font-weight:800;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-steps button.is-active>span,
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-steps button.is-complete>span{
+ background:#ca2431!important;
+ border-color:#ca2431!important;
+ color:#fff!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-steps button small{
+ font-weight:750!important;
+ letter-spacing:.02em;
+ color:#526171!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-steps button.is-active small{color:#152033!important}
+
+/* Navy tool rail, like the teacher sidebar */
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-toolrail{
+ background:#112339!important;
+ border:0!important;
+ border-radius:0!important;
+ box-shadow:none!important;
+ color:#fff!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-paper-note{
+ background:#fffdf9!important;
+ border:0!important;
+ border-left:4px solid #f4ca4b!important;
+ border-radius:0!important;
+ box-shadow:none!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-paper-note:before{display:none!important}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-note-kicker{
+ color:#ca2431!important;
+ letter-spacing:.16em!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-paper-note>strong{
+ font-family:Inter,"Be Vietnam Pro",Arial,sans-serif!important;
+ font-weight:800!important;
+ letter-spacing:-.03em!important;
+ color:#152033!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-paper-note p{color:#526171!important}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-view-tabs button,
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-view-tabs button.is-active{
+ border-radius:0!important;
+ border:0!important;
+ border-left:3px solid transparent!important;
+ background:transparent!important;
+ box-shadow:none!important;
+ color:#dce5ed!important;
+ transform:none!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-view-tabs button.is-active{
+ background:#ca2431!important;
+ border-left-color:#f4ca4b!important;
+ color:#fff!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-view-tabs button.is-active small,
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-view-tabs button.is-active svg,
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-view-tabs button.is-active strong{color:#fff!important}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-rail-label{
+ color:#94a7b9!important;
+ letter-spacing:.18em!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-rail-tools button{
+ border-radius:0!important;
+ border:0!important;
+ border-bottom:1px solid #45586b!important;
+ background:transparent!important;
+ color:#dce5ed!important;
+ transform:none!important;
+ box-shadow:none!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-rail-tools button svg{
+ border-radius:0!important;
+ background:transparent!important;
+ border:0!important;
+ color:#f4ca4b!important;
+ width:18px!important;height:18px!important;padding:0!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-rail-tools button:hover{
+ background:#21364e!important;
+ color:#fff!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-rail-footer{
+ border-top:1px solid #45586b!important;
+ color:#b4c0ca!important;
+}
+
+/* Task sheet */
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-primary,
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-task.bml-surface{
+ border-radius:0!important;
+ background:#fffdf9!important;
+ border:1px solid #dedbd5!important;
+ box-shadow:none!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-task>.bml-overline{
+ border-radius:0!important;
+ background:transparent!important;
+ border:0!important;
+ box-shadow:none!important;
+ color:#ca2431!important;
+ letter-spacing:.16em!important;
+ padding:0!important;
+ font-weight:800!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-task>h2{
+ font-family:Inter,"Be Vietnam Pro",Arial,sans-serif!important;
+ font-weight:800!important;
+ letter-spacing:-.04em!important;
+ color:#152033!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-subpages button{
+ border-radius:0!important;
+ border:1px solid #dedbd5!important;
+ background:#fff!important;
+ color:#152033!important;
+ box-shadow:none!important;
+ font-weight:750;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-subpages button[aria-current="page"]{
+ background:#152033!important;
+ border-color:#152033!important;
+ color:#fff!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial :is(input,textarea,select){
+ border-radius:0!important;
+ border:1px solid #dedbd5!important;
+ background:#fff!important;
+ box-shadow:none!important;
+ font-family:inherit!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-primary{
+ background:#152033!important;
+ border:1px solid #152033!important;
+ color:#fff!important;
+ border-radius:0!important;
+ box-shadow:none!important;
+ min-height:42px;
+ font-weight:750;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-primary:hover:not(:disabled){
+ background:#ca2431!important;
+ border-color:#ca2431!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-outline{
+ border-radius:0!important;
+ box-shadow:none!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-banner{
+ border-radius:0!important;
+ box-shadow:none!important;
+}
+
+/* Dossier */
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-project-card,
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-projectrail>.bml-student-guide{
+ border-radius:0!important;
+ background:#fffdf9!important;
+ border:1px solid #dedbd5!important;
+ box-shadow:none!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-project-card:before{display:none!important}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-project-ribbon{
+ color:#ca2431!important;
+ border-bottom:1px solid #dedbd5!important;
+ letter-spacing:.14em;
+ font-weight:800;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-heading h1,
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-guide h3{
+ font-family:Inter,"Be Vietnam Pro",Arial,sans-serif!important;
+ font-weight:800!important;
+ letter-spacing:-.03em!important;
+ color:#152033!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-project-art{
+ border-radius:0!important;
+ background:#f5f1eb!important;
+ border:1px solid #dedbd5!important;
+ box-shadow:none!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-project-mark{
+ border-radius:0!important;
+ transform:none!important;
+ background:#112339!important;
+ color:#f4ca4b!important;
+ border:0!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-project-meter>div,
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-project-meter i{
+ border-radius:0!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-project-meter i{
+ background:#ca2431!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-project-preview{
+ border-radius:0!important;
+ border:1px solid #152033!important;
+ background:#fff!important;
+ color:#152033!important;
+ box-shadow:none!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-project-preview:hover{
+ background:#152033!important;
+ color:#fff!important;
+ transform:none!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-guide .bml-guide-circle{
+ border-radius:0!important;
+ transform:none!important;
+ background:#f4ca4b!important;
+ color:#152033!important;
+ border:0!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-guide .bml-english-chip{
+ border-bottom:1px solid #dedbd5!important;
+}
