@@ -81,7 +81,7 @@ export default function DossierScreen({language='vi',data,staff,onRefresh,transp
         title={t(language,'Minh chứng dự thi.','Competition evidence.')}
         description={t(language,'Soạn bản nháp P1/P2 và tổng hợp dữ liệu thực tế từ các nhóm.','Draft P1/P2 and collect actual group evidence.')}
         aside={t(language,'Độ sẵn sàng nộp · ','Submission readiness · ')+completed+'/'+checklist.length}/>
-      {!data?.offlineReadOnly?<MuseumOfflineExport language={language}/>:null}
+      {!data?.offlineReadOnly?<MuseumOfflineExport language={language} data={data}/>:null}
       <MetricStrip items={[
         {value:completed+'/'+checklist.length,label:t(language,'mục đã hoàn thành','checks complete'),highlight:true},
         {value:String(approved.length),label:t(language,'bản học sinh đã duyệt','approved student entries')},

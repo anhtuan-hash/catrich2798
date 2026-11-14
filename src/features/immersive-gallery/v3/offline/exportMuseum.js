@@ -96,14 +96,17 @@ export async function exportMuseumOffline(options={}){
  const snapshotHash=await digest(JSON.stringify(snapshot));
  options.onProgress?.('Packaging the application and verifying the evidence…');
  const html=buildOfflineHtml(runtime,snapshot,snapshotHash);
+ const board=await studentBoardHtml(runtime,snapshot);
  const {default:JSZip}=await import('jszip');const zip=new JSZip();
  const manifest={format:SNAPSHOT_FORMAT,startedAt:snapshot.startedAt,completedAt:snapshot.completedAt,
   applicationBuild:runtime.build,scope:'Authorized Museum Lab staff catalogue at export; unrelated Brian modules are excluded.',
   snapshotSha256:snapshotHash,htmlSha256:await digest(html),
   counts:{lessons:snapshot.staff.assignments.length,groups:snapshot.staff.groups.length,
-   submissions:snapshot.staff.reviews.length,exhibitions:snapshot.galleries.length,embeddedImages:snapshot.media.length},
-  warnings:snapshot.warnings,media:snapshot.media,readOnly:true};
+   submissions:snapshot.staff.reviews.length,exhibitions:snapshot.galleries.length,embeddedImages:snapshot.media.length,
+   studentWorkshops:board.groups.length},
+  students:board.groups,warnings:snapshot.warnings,media:snapshot.media,readOnly:true};
  zip.file('BRIAN_Museum_Offline.html',html);
+ zip.file('hoc-sinh/index.html',board.html);
  zip.file('snapshot.json',JSON.stringify(snapshot));
  zip.file('manifest.json',JSON.stringify(manifest,null,2));
  zip.file('README_VI.txt',[
@@ -111,15 +114,60 @@ export async function exportMuseumOffline(options={}){
   '1. Giải nén ZIP. Mở BRIAN_Museum_Offline.html bằng Chrome hoặc Edge trên máy tính.',
   '2. Có thể tắt Wi-Fi trước khi mở. Không cần cài đặt, máy chủ hay đăng nhập.',
   '3. Xem bài học, bài nộp, tác phẩm, khảo sát, triển lãm 2D/3D và trình chiếu 11 hoạt động.',
-  '4. Nút chuyển hoạt động/hiện đáp án chỉ đổi cách xem. Không thêm, sửa, xóa, chấm điểm hay gửi dữ liệu.',
-  '5. YouTube và trang ngoài không được tải kèm. Giọng đọc cần giọng en-US cài sẵn trên hệ điều hành.',
-  '6. Đây là bản sao dữ liệu mà tài khoản xuất có quyền đọc. Người có tệp có thể xem nội dung này.',
-  '7. Dữ liệu được thu thập từ '+snapshot.startedAt+' đến '+snapshot.completedAt+'. Dừng thao tác cập nhật trong lúc xuất để có bản nhất quán.',
-  '8. manifest.json ghi SHA-256 và các mục không có dữ liệu. Giữ nguyên bản ZIP gốc khi nộp.',
-  '9. SHA-256 phát hiện thay đổi so với bản kê; không phải chữ ký số hoặc xác nhận của cơ quan tổ chức.',
-  '10. Kiểm tra nguồn gốc minh chứng, quyền sử dụng ảnh và giới hạn dung lượng hồ sơ trước khi nộp.',
+  '4. Mở hoc-sinh/index.html để quản 10 bài thực hành. Chọn một nhóm để mở đúng bài của nhóm đó. Chỉ xem.',
+  '5. Nút chuyển hoạt động/hiện đáp án chỉ đổi cách xem. Không thêm, sửa, xóa, chấm điểm hay gửi dữ liệu.',
+  '6. YouTube và trang ngoài không được tải kèm. Giọng đọc cần giọng en-US cài sẵn trên hệ điều hành.',
+  '7. Đây là bản sao dữ liệu mà tài khoản xuất có quyền đọc. Người có tệp có thể xem nội dung này.',
+  '8. Dữ liệu được thu thập từ '+snapshot.startedAt+' đến '+snapshot.completedAt+'. Dừng thao tác cập nhật trong lúc xuất để có bản nhất quán.',
+  '9. manifest.json ghi SHA-256 và các mục không có dữ liệu. Giữ nguyên bản ZIP gốc khi nộp.',
+  '10. SHA-256 phát hiện thay đổi so với bản kê; không phải chữ ký số hoặc xác nhận của cơ quan tổ chức.',
+  '11. Kiểm tra nguồn gốc minh chứng, quyền sử dụng ảnh và giới hạn dung lượng hồ sơ trước khi nộp.',
  ].join('\n'));
  const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
  options.signal?.throwIfAborted();
- return {blob,manifest,filename:'BRIAN_Museum_Offline_'+snapshot.completedAt.slice(0,10)+'.zip'};
+ return {blob,manifest,filename:'BRIAN_Museum_Offline_'+snapshot.completedAt.slice(0,10)+'.zip',runtime,snapshot};
+}
+export function groupWorkshopRows(snapshot){
+ return [...(snapshot?.staff?.groups||[])].sort((a,b)=>String(a.label||'').localeCompare(String(b.label||''),undefined,{numeric:true}))
+  .map((group,index)=>{
+   const assignment=snapshot.staff.assignments.find(item=>item.id===group.assignment_id);
+   return {id:group.id,label:group.label||'Group '+String(index+1).padStart(2,'0'),classScope:assignment?.class_scope||'',
+    state:group.state||'',exit:(snapshot.staff.exitTickets||[]).some(item=>item.group_id===group.id),
+    draft:Boolean(snapshot.groupDrafts?.[group.id]),filename:'nhom-'+String(index+1).padStart(2,'0')+'.html'};
+  });
+}
+async function studentBoardHtml(runtime,snapshot){
+ const sliced=sanitizeSnapshot({...snapshot,galleries:[],media:[]});
+ const hash=await digest(JSON.stringify(sliced));
+ return {groups:groupWorkshopRows(snapshot),html:buildOfflineHtml(runtime,sliced,hash,{mode:'student-board',title:'10 student workshops'})};
+}
+export async function buildStudentWorkshopHtml(runtime,snapshot,groupId){
+ const rows=groupWorkshopRows(snapshot);
+ const row=rows.find(item=>item.id===groupId);
+ const group=snapshot.staff.groups.find(item=>item.id===groupId);
+ if(!runtime?.script||!row||!group)throw new Error('This group is not in the frozen archive.');
+ const sliced=studentSnapshot(snapshot,group);
+ const hash=await digest(JSON.stringify(sliced));
+ const html=buildOfflineHtml(runtime,sliced,hash,{mode:'student',groupId,title:row.label+' · Student workshop'});
+ return {filename:row.filename,blob:new Blob([html],{type:'text/html'})};
+}
+function studentSnapshot(full,group){
+ const assignmentId=group.assignment_id;
+ const evidence=full.evidence[assignmentId];
+ const staff={...full.staff,
+  assignments:full.staff.assignments.filter(item=>item.id===assignmentId),
+  groups:[group],
+  reviews:(full.staff.reviews||[]).filter(item=>item.group_id===group.id),
+  exitTickets:(full.staff.exitTickets||[]).filter(item=>item.group_id===group.id),
+  publishedGalleries:[]};
+ const slim=evidence?{...evidence,
+  responses:(evidence.responses||[]).filter(item=>item.group_id===group.id),
+  feedback:(evidence.feedback||[]).filter(item=>item.from_group===group.id||item.to_group===group.id),
+  microResponses:(evidence.microResponses||[]).filter(item=>item.group_id===group.id)}:null;
+ return sanitizeSnapshot({...full,staff,galleries:[],media:[],
+  artworks:{[group.id]:full.artworks[group.id]||[]},
+  groupDrafts:{[group.id]:full.groupDrafts[group.id]||null},
+  live:{[assignmentId]:full.live[assignmentId]||{session:null}},
+  evidence:slim?{[assignmentId]:slim}:{},
+  comparisons:{[group.id]:full.comparisons[group.id]||{before:null,after:null,groupLabel:group.label}}});
 }

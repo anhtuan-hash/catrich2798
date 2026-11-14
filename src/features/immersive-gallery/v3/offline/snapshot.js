@@ -22,12 +22,13 @@ export async function digest(text){
  return [...new Uint8Array(sum)].map(x=>x.toString(16).padStart(2,'0')).join('');
 }
 export const safeJson=value=>JSON.stringify(value).replace(/</g,'\\u003c').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');
-export function buildOfflineHtml(runtime,snapshot,snapshotHash){
- const payload=safeJson({snapshot,snapshotHash});
+export function buildOfflineHtml(runtime,snapshot,snapshotHash,extra={}){
+ const payload=safeJson({snapshot,snapshotHash,mode:extra.mode||'teacher',groupId:extra.groupId||''});
  const code=runtime.script.replace(/<\/script/gi,'<\\/script');
  const css=runtime.css.replace(/<\/style/gi,'<\\/style');
+ const title=extra.title||'BRIAN Museum Lab · Frozen evidence';
  return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+
  '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'unsafe-inline\' blob:; style-src \'unsafe-inline\'; img-src data: blob:; font-src data:; media-src data: blob:; connect-src data: blob:; worker-src blob:; frame-src \'none\'; object-src \'none\'; base-uri \'none\'; form-action \'none\'">'+
- '<title>BRIAN Museum Lab · Frozen evidence</title><style>'+css+'</style></head><body><div id="root"><p>Opening the frozen Museum Lab archive…</p></div>'+
+ '<title>'+title.replace(/[<>&]/g,'')+'</title><style>'+css+'</style></head><body><div id="root"><p>Opening the frozen Museum Lab archive…</p></div>'+
  '<script id="museum-frozen-payload" type="application/json">'+payload+'</script><script>'+code+'</script></body></html>';
 }

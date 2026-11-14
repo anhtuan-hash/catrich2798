@@ -4,6 +4,12 @@ export function createOfflineRuntime(input){
  if(input?.format!==SNAPSHOT_FORMAT)throw new Error('Unsupported Museum archive format.');
  const snapshot=deepFreeze(clone(input)),presentation=new Map();
  const deny=()=>{throw new Error(BLOCKED_WRITE);};
+ let studentGroupId='';
+ const studentGroup=()=>{
+  const group=snapshot.staff.groups.find(item=>item.id===studentGroupId);
+  if(!group)throw new Error('This student package does not include a group.');
+  return group;
+ };
  const findGallery=id=>snapshot.galleries.find(g=>g.id===id||g.slug===id);
  const presentationState=(id,viewStage)=>{
   const saved=snapshot.live[id]||{session:null};
@@ -56,6 +62,51 @@ export function createOfflineRuntime(input){
    return deny();
   },
   artStaff:async id=>clone(snapshot.artworks[id]||[]),
+  useStudent(id){studentGroupId=id;},
+  guest:async(action,method)=>{
+   if(!studentGroupId)return deny();
+   if(method&&method!=='GET')return deny();
+   const group=studentGroup();
+   if(action==='me'){
+    const assignment=snapshot.staff.assignments.find(item=>item.id===group.assignment_id)||{};
+    const review=(snapshot.staff.reviews||[]).find(item=>item.group_id===group.id);
+    const feedback=review&&['changes_requested','rejected'].includes(review.state)
+     ?{state:review.state,teacher:review.teacher_note||'',ttcm:review.ttcm_note||''}:null;
+    return {groupLabel:group.label,groupState:group.state,csrf:'offline-frozen',feedback,readOnly:true,uploadEnabled:false,
+     assignment:{title:assignment.title||'',brief:assignment.brief||'',class_scope:assignment.class_scope||'',
+      content_frozen_at:assignment.content_frozen_at||snapshot.completedAt,deadline_at:assignment.deadline_at||null,
+      max_rooms:assignment.max_rooms||1,max_exhibits:assignment.max_exhibits||3}};
+   }
+   if(action==='draft'){
+    const pack=snapshot.groupDrafts[group.id];
+    return {draft:clone(pack?.draft||{}),version:pack?.version||0,updated_at:pack?.updated_at||null};
+   }
+   return deny();
+  },
+  liveGuest:async(action,method)=>{
+   if(!studentGroupId||(method&&method!=='GET'))return deny();
+   const group=studentGroup();
+   const evidence=snapshot.evidence[group.assignment_id]||{};
+   if(action==='state'){
+    const live=presentationState(group.assignment_id);
+    const stageIndex=live.session?.stageIndex;
+    return {session:live.session,groupLabel:group.label,assignmentTitle:snapshot.staff.assignments.find(item=>item.id===group.assignment_id)?.title||'',
+     survey:live.survey||null,feedback:clone((evidence.feedback||[]).filter(item=>item.from_group===group.id||item.to_group===group.id)),
+     micro:clone((evidence.microResponses||[]).find(item=>item.group_id===group.id&&item.stage_index===stageIndex)||null),
+     submitted:(evidence.responses||[]).some(item=>item.group_id===group.id&&item.stage_index===stageIndex)};
+   }
+   if(action==='history'){
+    const compare=snapshot.comparisons[group.id]||{};
+    return {checkpoints:[compare.before,compare.after].filter(Boolean).map(clone)};
+   }
+   if(action==='peer-gallery')return {gallery:null};
+   if(action==='peer-rooms')return {rooms:[]};
+   return deny();
+  },
+  artGuest:async(action,method)=>{
+   if(!studentGroupId||(method&&method!=='GET')||action!=='list')return deny();
+   return {assets:clone(snapshot.artworks[studentGroupId]||[])};
+  },
   liveStaff:async(action,body,params={})=>{
    const id=body?.assignmentId||params.assignmentId;
    if(!snapshot.staff.assignments.some(a=>a.id===id))throw new Error('Lesson not included in the archive.');
@@ -80,6 +131,5 @@ export function createOfflineRuntime(input){
    if(action==='checkpoint-compare')return clone(snapshot.comparisons[params.groupId]||{before:null,after:null,groupLabel:''});
    return deny();
   },
-  guest:deny,liveGuest:deny,artGuest:deny,
  };
 }

@@ -103,6 +103,13 @@
 .bml .bml-heading-line{justify-content:start}
 .bml .bml-heading-actions p{color:#6e7d8e}
 .bml .bml-heading-meta{display:flex;align-items:center;gap:8px;color:#56738e}
+.bml .bml-frozen-board{margin:14px 0 16px;border:1px solid #e4ddd0;background:#fff}
+.bml .bml-frozen-board .bml-section-head{padding:12px 14px 0}
+.bml .bml-frozen-board h3{margin:0;font-size:18px}
+.bml .bml-frozen-table-wrap{overflow-x:auto}
+.bml .bml-frozen-table{width:100%;border-collapse:collapse}
+.bml .bml-frozen-table th,.bml .bml-frozen-table td{text-align:left;padding:10px 12px;border-top:1px solid #ece7dc;font-size:13px;white-space:nowrap}
+.bml .bml-frozen-table th{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#5c6b7a}
 .bml .bml-banner{display:flex;align-items:start;gap:12px;padding:14px 17px;border-radius:13px;font-size:13px;border:1px solid}
 .bml .bml-banner svg{flex:none}
 .bml .bml-banner p{margin:4px 0}

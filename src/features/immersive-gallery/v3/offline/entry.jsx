@@ -1,6 +1,7 @@
 import React,{useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import MuseumLabApp from '../MuseumLabApp.jsx';
+import MuseumLabStudent from '../MuseumLabStudent.jsx';
 import MuseumScene from '../MuseumScene.jsx';
 import {installMuseumOffline} from '../offlineAccess.js';
 import {createOfflineRuntime} from './runtime.js';
@@ -27,6 +28,7 @@ function OfflineApp({runtime,hash}){
     <button type="button" onClick={()=>setView('work')} aria-current={view==='work'?'page':undefined}>Saved student work</button>
     <button type="button" onClick={()=>setView('records')} aria-current={view==='records'?'page':undefined}>Evidence records</button>
    </nav>
+   <a href="hoc-sinh/index.html">10 student workshops</a>
    <details><summary>Archive details</summary><p>Captured from {snapshot.startedAt} to {snapshot.completedAt}. Viewing controls do not change this snapshot.</p>
     <p>Snapshot SHA-256: <code>{hash}</code></p><p>Checksums detect changes relative to this manifest; they are not a digital signature.</p>
     <ul>{snapshot.warnings.map((w,i)=><li key={i}>{w.lesson||w.group||''} {w.message}</li>)}</ul>
@@ -60,11 +62,49 @@ function OfflineApp({runtime,hash}){
   {view!=='app'?<footer className="museum-offline-footer">PÉTRUS KÝ SCHOOL SYSTEM · Nguyễn Anh Tuấn · Teach Better Together</footer>:null}
  </div>;
 }
+function StudentBoard({runtime}){
+ const [groupId,setGroupId]=useState('');
+ const groups=[...runtime.snapshot.staff.groups].sort((a,b)=>String(a.label||'').localeCompare(String(b.label||''),undefined,{numeric:true}));
+ const open=id=>{runtime.useStudent(id);setGroupId(id);};
+ if(groupId){
+  const group=groups.find(item=>item.id===groupId);
+  return <div className="museum-offline-root">
+   <header className="museum-offline-bar"><strong>Student workshop</strong><span>Frozen · {group?.label||'Group'} · Read only</span>
+    <button type="button" onClick={()=>setGroupId('')}>All workshops</button><a href="../BRIAN_Museum_Offline.html">Teacher archive</a></header>
+   <MuseumLabStudent key={groupId} language="en"/>
+  </div>;
+ }
+ return <main className="bml museum-offline-records">
+  <p>PÉTRUS KÝ · FROZEN · READ ONLY</p>
+  <h1>10 student workshops</h1>
+  <p>Each row opens that group’s saved practice. Nothing can be added, edited or deleted.</p>
+  <p><a href="../BRIAN_Museum_Offline.html">Open the teacher archive</a></p>
+  <table className="bml-frozen-table"><thead><tr><th>#</th><th>Group</th><th>Class</th><th>Museum</th><th></th></tr></thead>
+   <tbody>{groups.map((group,index)=>{
+    const lesson=runtime.snapshot.staff.assignments.find(item=>item.id===group.assignment_id);
+    return <tr key={group.id}><td>{String(index+1).padStart(2,'0')}</td><td>{group.label}</td><td>{lesson?.class_scope||''}</td><td>{group.state}</td>
+     <td><button type="button" onClick={()=>open(group.id)}>Open</button></td></tr>;
+   })}</tbody></table>
+ </main>;
+}
 async function boot(){
  const payload=JSON.parse(document.getElementById('museum-frozen-payload').textContent);
  const actual=await digest(JSON.stringify(payload.snapshot));
  if(actual!==payload.snapshotHash)throw new Error('The snapshot checksum does not match. Open the original archive again.');
  const runtime=createOfflineRuntime(payload.snapshot);installMuseumOffline(runtime);
+ if(payload.mode==='student-board'){
+  createRoot(document.getElementById('root')).render(<StudentBoard runtime={runtime}/>);
+  return;
+ }
+ if(payload.mode==='student'){
+  runtime.useStudent(payload.groupId);
+  const group=payload.snapshot.staff.groups.find(item=>item.id===payload.groupId);
+  createRoot(document.getElementById('root')).render(<div className="museum-offline-root">
+   <header className="museum-offline-bar"><strong>Student workshop</strong><span>Frozen · {group?.label||'Group'} · Read only</span></header>
+   <MuseumLabStudent language="en"/>
+  </div>);
+  return;
+ }
  createRoot(document.getElementById('root')).render(<OfflineApp runtime={runtime} hash={actual}/>);
 }
 boot().catch(error=>{const root=document.getElementById('root');root.textContent='Unable to open this archive: '+error.message;});

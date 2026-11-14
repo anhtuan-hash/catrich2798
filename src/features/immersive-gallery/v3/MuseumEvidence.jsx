@@ -54,7 +54,7 @@ export default function MuseumEvidence({data,currentUser,language='vi'}){
   <div className="bml-heading-actions"><div><div className="bml-overline">{tr(language,'HỒ SƠ HỘI THI 2026–2027','COMPETITION DOSSIER')}</div>
    <h1>{tr(language,'Minh chứng dự thi','Competition evidence')}</h1><p>{tr(language,'Tạo bản nháp P1/P2 và tổng hợp dữ liệu thực tế từ các nhóm.','Draft P1/P2 and collect actual group evidence.')}</p></div>
   </div>
-  {!data?.offlineReadOnly?<MuseumOfflineExport language={language}/>:null}
+  {!data?.offlineReadOnly?<MuseumOfflineExport language={language} data={data}/>:null}
   <div className="bml-evidence-layout">
    <section className="bml-surface"><div className="bml-section-head"><div><h2>{tr(language,'Kiểm tra hồ sơ','Submission readiness')}</h2>
      <p>{tr(language,'Theo hướng dẫn hội thi của Sở GDĐT TP.HCM','Aligned to HCMC Department of Education notice 12070')}</p></div>
