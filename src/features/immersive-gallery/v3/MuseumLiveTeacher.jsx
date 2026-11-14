@@ -379,7 +379,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
      <LessonResources stageIndex={currentIndex} language={language} teacher/>
     </div>:null}
     {!isFullscreen&&showVoiceover?<div className="bml-comp-panel"><MuseumVoiceover stage={stage} language={language} shareWithStudents={session.media?.voiceEnabled===true} onShareToggle={readOnly?null:shareNarration}/></div>:null}
-    {!isFullscreen&&showVideoLab?<div className="bml-comp-panel"><MuseumVideoLab mode="teacher" stage={stage}
+    {!isFullscreen&&showVideoLab?<div className="bml-comp-panel"><MuseumVideoLab mode="teacher" readOnly={readOnly} stage={stage}
       stageIndex={currentIndex} media={session.media} assignmentId={assignmentId} transport={transport}
       version={session.version} language={language} onProject={setStageVideo}
       onSaved={async out=>{if(out.session)setState(prev=>({...prev,session:out.session}));await refresh();}}/></div>:null}
