@@ -42,13 +42,6 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
   if(id==='submissions'&&extra)setReviewId(extra);
  };
  const create=()=>navigate('wizard');
- const openCollection=key=>{
-  if(typeof window!=='undefined'){
-   const hash=window.location.hash.split('?')[0]||'#/tool/immersive-gallery';
-   window.history.replaceState(null,'',hash+'?exhibition=collection-'+encodeURIComponent(key));
-  }
-  navigate('gallery');
- };
  const pending=staff?.reviews?.filter(r=>['submitted','ttcm_review'].includes(r.state)).length||0;
  return <div className={'bml bml-app-layout bml-paper '+(tab==='gallery'?'bml-is-exhibition':'')} data-testid="brian-museum-lab-v3" lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
   <div className="bml-main-panel">
@@ -64,7 +57,7 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
     tab==='wizard'?<LessonWizard language={language} data={staff} onExit={()=>navigate('lessons')}
       onSettings={()=>navigate('settings')} onCompleted={refresh}/>:
     tab==='lessons'?<LessonsList language={language} data={staff} query={query}
-      onCreate={()=>create()} onReview={id=>navigate('submissions',id)} onOpenCollection={openCollection} onRefresh={refresh}/>:
+      onCreate={()=>create()} onReview={id=>navigate('submissions',id)} onRefresh={refresh}/>:
     tab==='submissions'?<Submissions key={reviewId||'normal'} language={language} data={staff} query={query}
       initialReview={reviewId} onNavigate={navigate} onRefresh={refresh}/>:
     tab==='gallery'?<MuseumGallery language={language} query={query} data={staff} onNavigate={navigate} onRefresh={refresh} transport={transport}/>:
