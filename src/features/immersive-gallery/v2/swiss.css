@@ -2872,3 +2872,95 @@ html body .igv2.igv2 :not(#igv2-swiss-a#igv2-swiss-b#igv2-swiss-c):is(
 .igv2 .contest-sub,
 .igv2 .contest-person,
 .igv2 .contest-level { font-weight: 650; letter-spacing: 0; text-transform: none; }
+
+/* Competition masthead: sharp seals and the restored lesson identity. */
+.igv2 .contest {
+  min-height: 0;
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: 124px minmax(0, 1fr) 124px;
+  align-items: center;
+  gap: 16px;
+  background: #fffdf8;
+  background-image: none;
+  border: 2px solid #cc1f2d;
+}
+.igv2 .contest-crest-wrap,
+.igv2 .contest-crest-wrap--dept,
+.igv2 .contest-crest-wrap--school {
+  width: auto;
+  min-height: 0;
+  padding: 0;
+  justify-items: center;
+}
+.igv2 .contest .crest,
+.igv2 .contest .crest.school {
+  width: 112px;
+  height: 112px;
+  max-width: 112px;
+  opacity: 1;
+  object-fit: contain;
+  background: transparent;
+}
+.igv2 .contest-mid { max-width: 760px; }
+.igv2 .contest-sub {
+  display: block;
+  font-size: 12px;
+  line-height: 1.35;
+  max-width: none;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+.igv2 .contest-field,
+.igv2 .contest-school,
+.igv2 .contest-lesson,
+.igv2 .contest-deck,
+.igv2 .contest-meta { display: block; }
+.igv2 .contest-field {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: none;
+  color: #9d1c28;
+}
+.igv2 .contest-lesson {
+  margin: 4px 0 0;
+  font-size: clamp(18px, 2vw, 26px);
+  font-weight: 850;
+  letter-spacing: .04em;
+  line-height: 1.05;
+  color: #142033;
+}
+.igv2 .contest-deck {
+  margin: 4px 0 0;
+  font-size: 13px;
+  font-weight: 650;
+  color: #243246;
+}
+.igv2 .contest-meta {
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.4;
+  color: #3d4c5e;
+}
+.igv2-lang-toggle {
+  display: inline-flex;
+  border: 1px solid #152033;
+  margin-right: 4px;
+}
+.igv2-lang-toggle button {
+  min-width: 36px;
+  min-height: 32px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  color: #152033;
+  background: #fff;
+}
+.igv2-lang-toggle button[aria-pressed="true"] {
+  background: #152033;
+  color: #fff;
+}

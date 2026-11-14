@@ -1,44 +1,45 @@
 import React from 'react';
 import {Star} from 'lucide-react';
+import departmentLogo from './branding/hcmc-education.jpg';
+import schoolLogo from './branding/petrus-ky.png';
 
-// Full-width competition masthead. Text and logo paths are copied VERBATIM
-// from v3/MuseumCompetitionRibbon.jsx (official 2026–2027 contest content).
-// No institutions invented. Rendered FIRST on every Immersive Gallery V2 screen.
 const contestName = 'HỘI THI THIẾT KẾ CHỦ ĐỀ DẠY HỌC STEM/STEAM, CHỦ ĐỀ DẠY HỌC SỐ';
 const awardLabel = 'BÀI DỰ THI';
 const yearLabel = 'CẤP THÀNH PHỐ · NĂM HỌC 2026–2027';
-const fieldLabel = 'Lĩnh vực: Chủ đề dạy học số – Môn Tiếng Anh THPT';
+const fieldLabel = 'Lĩnh vực dự thi: Chủ đề số';
+const lessonTitle = 'OUR CLIMATE ACTION MUSEUM';
+const lessonDeck = 'From a Group-Priority Survey to a 3D English Exhibition';
+const lessonMeta = 'Môn học: Tiếng Anh  ·  Lớp: 11 – Global Success, Unit 5: Global Warming  ·  Thời lượng: 02 tiết × 45 phút';
 const teacherLabel = 'GV thực hiện:';
 const teacherName = 'Thạc sĩ Nguyễn Anh Tuấn';
-const schoolName = 'Trường Trung - Tiểu học Pétrus Ký';
-const departmentLogo = '/museum/branding/hcmc-department-education-original.jpg';
-const schoolLogo = '/museum/branding/petrus-ky-original.png';
 
 export default function CompetitionBanner() {
   return (
     <header className="contest" data-testid="igv2-competition-banner" lang="vi"
-      aria-label={awardLabel + ' – ' + contestName}>
+      aria-label={awardLabel + ' – ' + lessonTitle}>
       <div className="contest-crest-wrap contest-crest-wrap--dept">
         <img className="crest" src={departmentLogo}
           alt="Logo Sở Giáo dục và Đào tạo Thành phố Hồ Chí Minh"
-          width={299} height={300} loading="eager" decoding="async" />
+          width={299} height={300} />
       </div>
       <div className="contest-mid">
         <div className="banner-ribbon">
-          <Star size={14} fill="currentColor" aria-hidden="true" className="contest-ribbon-star" />
+          <Star size={13} fill="currentColor" aria-hidden="true" className="contest-ribbon-star" />
           <span>{awardLabel}</span>
-          <Star size={14} fill="currentColor" aria-hidden="true" className="contest-ribbon-star" />
+          <Star size={13} fill="currentColor" aria-hidden="true" className="contest-ribbon-star" />
         </div>
         <div className="contest-sub">{contestName}</div>
         <div className="contest-level">{yearLabel}</div>
-        <div className="contest-field">{fieldLabel}</div>
+        <p className="contest-field">{fieldLabel}</p>
+        <p className="contest-lesson">{lessonTitle}</p>
+        <p className="contest-deck">{lessonDeck}</p>
+        <p className="contest-meta">{lessonMeta}</p>
         <div className="contest-person">{teacherLabel} <strong>{teacherName}</strong></div>
-        <p className="contest-school">{schoolName}</p>
       </div>
       <div className="contest-crest-wrap contest-crest-wrap--school">
         <img className="crest school" src={schoolLogo}
           alt="Logo Trường Trung - Tiểu học Pétrus Ký – The Pioneers"
-          width={1682} height={2048} loading="eager" decoding="async" />
+          width={631} height={768} />
       </div>
     </header>
   );

@@ -31,6 +31,15 @@ const TAB_TO_NAV={home:'overview',lessons:'lessons',submissions:'submissions',
  live:'teacher-live',evidence:'competition-dossier',settings:'settings'};
 
 export default function MuseumLabApp({currentUser,language='en',transport=staffRequest}){
+ const [uiLanguage,setUiLanguage]=useState(()=>{
+  try{const saved=sessionStorage.getItem('bml-ui-language');if(saved==='vi'||saved==='en')return saved;}catch{/* ignore */}
+  return language==='vi'?'vi':'en';
+ });
+ const chooseLanguage=(next)=>{
+  const value=next==='vi'?'vi':'en';
+  setUiLanguage(value);
+  try{sessionStorage.setItem('bml-ui-language',value);}catch{/* ignore */}
+ };
  const [tab,setTab]=useState(initialMuseumTab),[staff,setStaff]=useState(null);
  const [loading,setLoading]=useState(true),[error,setError]=useState('');
  const [query,setQuery]=useState(''),[reviewId,setReviewId]=useState(null),[help,setHelp]=useState(false);
@@ -62,17 +71,17 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
  const create=()=>{if(!staff?.offlineReadOnly)navigate('wizard');};
  const activeNav=TAB_TO_NAV[tab]||'overview';
  const pendingCount=(staff?.reviews||[]).filter(r=>r.state==='submitted'||r.state==='ttcm_review').length;
- const sharedScreenProps={language,data:staff,staff,onNavigate:navigate,onRefresh:refresh,transport,onCreate:create,onBack:()=>navigate('home'),initialReview:reviewId};
- return <ImmersiveShell activeNav={activeNav} onNavigate={shellNavigate} language={language} staff={staff} data={staff} query={query} onQueryChange={setQuery} onRefresh={refresh} onHelp={()=>setHelp(true)} pendingCount={pendingCount}>
-  <div className="bml" data-testid="brian-museum-lab-v3" lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
+ const sharedScreenProps={language:uiLanguage,data:staff,staff,onNavigate:navigate,onRefresh:refresh,transport,onCreate:create,onBack:()=>navigate('home'),initialReview:reviewId};
+ return <ImmersiveShell activeNav={activeNav} onNavigate={shellNavigate} language={uiLanguage} onLanguageChange={chooseLanguage} staff={staff} data={staff} query={query} onQueryChange={setQuery} onRefresh={refresh} onHelp={()=>setHelp(true)} pendingCount={pendingCount}>
+  <div className="bml" data-testid="brian-museum-lab-v3" lang={uiLanguage} data-ui-locale={uiLanguage==='en'?'en-US':'vi-VN'}>
    {error?<div className="bml-banner bml-danger-banner" role="alert" style={{marginBottom:18}}><ShieldAlert size={19}/>
-     <div><strong>{tr(language,'Không thể đồng bộ dữ liệu quản lý','Could not load staff data')}</strong><p>{error}</p>
-      <button type="button" className="bml-outline" onClick={()=>{setLoading(true);refresh();}}><RefreshCw size={17}/>{tr(language,'Thử lại','Retry')}</button></div></div>:null}
-   {loading?<div className="bml-empty bml-surface" role="status"><RefreshCw size={27}/>{tr(language,'Đang tải bài học và phân quyền…','Loading lessons and permissions…')}</div>:
+     <div><strong>{tr(uiLanguage,'Không thể đồng bộ dữ liệu quản lý','Could not load staff data')}</strong><p>{error}</p>
+      <button type="button" className="bml-outline" onClick={()=>{setLoading(true);refresh();}}><RefreshCw size={17}/>{tr(uiLanguage,'Thử lại','Retry')}</button></div></div>:null}
+   {loading?<div className="bml-empty bml-surface" role="status"><RefreshCw size={27}/>{tr(uiLanguage,'Đang tải bài học và phân quyền…','Loading lessons and permissions…')}</div>:
    tab==='home'?<OverviewScreen {...sharedScreenProps}/>:
    tab==='live'?<TeacherLiveScreen {...sharedScreenProps} transport={liveStaff}/>:
-   tab==='wizard'?<LessonWizard language={language} data={staff} onCompleted={refresh} onExit={()=>navigate('lessons')} onSettings={()=>navigate('settings')}/>:
-   tab==='lessons'?<LessonsList language={language} data={staff} query={query}
+   tab==='wizard'?<LessonWizard language={uiLanguage} data={staff} onCompleted={refresh} onExit={()=>navigate('lessons')} onSettings={()=>navigate('settings')}/>:
+   tab==='lessons'?<LessonsList language={uiLanguage} data={staff} query={query}
      onCreate={()=>create()} onReview={id=>navigate('submissions',id)} onRefresh={refresh}/>:
    tab==='submissions'?<SubmissionsScreen {...sharedScreenProps} query={query}/>:
    tab==='gallery'?<ExhibitionsScreen {...sharedScreenProps} query={query}/>:
@@ -82,16 +91,16 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
    <OverviewScreen {...sharedScreenProps}/>}
   </div>
   {help?<div className="bml-modal-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)setHelp(false);}}>
-    <section className="bml-modal" role="dialog" aria-modal="true" aria-label={tr(language,'Hướng dẫn Museum Lab','Museum Lab help')}>
-     <header><div><span className="bml-overline">HOW IT WORKS</span><h2>{tr(language,'Bắt đầu thật đơn giản','Getting started is simple')}</h2></div>
+    <section className="bml-modal" role="dialog" aria-modal="true" aria-label={tr(uiLanguage,'Hướng dẫn Museum Lab','Museum Lab help')}>
+     <header><div><span className="bml-overline">HOW IT WORKS</span><h2>{tr(uiLanguage,'Bắt đầu thật đơn giản','Getting started is simple')}</h2></div>
       <button type="button" className="bml-icon-btn" onClick={()=>setHelp(false)} aria-label="Close"><X size={20}/></button></header>
      <div className="bml-checklist" style={{margin:'19px 0'}}>{[
       ['01','Mở kế hoạch Unit 5: Global Warming','Open the Unit 5: Global Warming plan'],
       ['02','Tạo mã QR và mã bí mật cho từng nhóm','Create a QR and private passcode for each group'],
       ['03','Học sinh làm 5 bước, tự lưu, không đăng nhập','Students complete five steps with no account'],
       ['04','Admin đánh giá, phê duyệt và công bố','Admin assesses, approves and publishes']
-     ].map(([number,vi,en])=><div className="bml-check-item" key={number}><span className="bml-class-tag">{number}</span><div><strong>{tr(language,vi,en)}</strong></div></div>)}</div>
-     <button className="bml-primary" type="button" disabled={!!staff?.offlineReadOnly} onClick={()=>{setHelp(false);create();}}><Plus size={17}/>{tr(language,'Tạo bài học ngay','Create a lesson')}</button>
+     ].map(([number,vi,en])=><div className="bml-check-item" key={number}><span className="bml-class-tag">{number}</span><div><strong>{tr(uiLanguage,vi,en)}</strong></div></div>)}</div>
+     <button className="bml-primary" type="button" disabled={!!staff?.offlineReadOnly} onClick={()=>{setHelp(false);create();}}><Plus size={17}/>{tr(uiLanguage,'Tạo bài học ngay','Create a lesson')}</button>
     </section></div>:null}
  </ImmersiveShell>;
 }

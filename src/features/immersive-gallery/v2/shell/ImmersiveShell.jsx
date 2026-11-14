@@ -69,6 +69,7 @@ export default function ImmersiveShell({
   onNavigate,
   children,
   language = 'en',
+  onLanguageChange,
   staff,
   data,
   query = '',
@@ -169,6 +170,10 @@ export default function ImmersiveShell({
           </nav>
 
           <div className="igv2-topbar-utils">
+            <div className="igv2-lang-toggle" role="group" aria-label={tr(language, 'Ngôn ngữ giao diện', 'Interface language')}>
+              <button type="button" aria-pressed={language !== 'en'} onClick={() => onLanguageChange?.('vi')}>VI</button>
+              <button type="button" aria-pressed={language === 'en'} onClick={() => onLanguageChange?.('en')}>EN</button>
+            </div>
             {SECONDARY_NAV.map((item) => {
               const Icon = item.icon;
               const isActive = activeNav === item.id;
