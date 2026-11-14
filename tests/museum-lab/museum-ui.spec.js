@@ -1125,6 +1125,69 @@ test('paper live presenter avoids horizontally clipped text on a narrow MacBook 
 });
 
 
+test('completed lesson replays all 11 activities, explanations, US voice and NASA video without writes',async({page})=>{
+ await page.addInitScript(()=>{
+  window.__frozenTeacherWrites=0;window.__frozenTeacherReads=[];window.__qaFrozenNarration=[];
+  window.SpeechSynthesisUtterance=class{constructor(text){this.text=text;}};
+  const synth={
+   speaking:false,pending:false,
+   getVoices(){return [{name:'Samantha',voiceURI:'en-us-qa',lang:'en-US',localService:true}];},
+   addEventListener(){},removeEventListener(){},cancel(){this.speaking=false;},
+   pause(){this.speaking=false;},resume(){this.speaking=true;},
+   speak(item){this.speaking=true;window.__qaFrozenNarration.push({text:item.text,lang:item.lang});item.onstart?.();}
+  };
+  Object.defineProperty(window,'speechSynthesis',{configurable:true,value:synth});
+ });
+ await page.reload({waitUntil:'domcontentloaded'});
+ await page.getByTestId('qa-teacher-live-frozen-en').click();
+ const stage=page.getByTestId('museum-live-paper-stage');
+ const controls=page.locator('.bml-live-controls');
+ await expect(stage).toHaveAttribute('data-stage-index','0');
+ await expect(stage).toContainText('Climate Detective');
+ await expect(stage).toContainText('ARCHIVED · VIEW ONLY');
+ await expect(controls.getByRole('button',{name:'Next activity'})).toBeEnabled();
+ await expect(controls.getByRole('button',{name:'End lesson'})).toBeDisabled();
+ await expect(controls.getByRole('button',{name:/Reopen interaction|Close task/})).toBeDisabled();
+ await controls.getByRole('button',{name:'Show explanation'}).click();
+ await expect(stage).toContainText('A feasible action must match the school situation');
+ await controls.getByRole('button',{name:'Hide explanation'}).click();
+ await expect(stage).not.toContainText('A feasible action must match the school situation');
+ await controls.getByRole('button',{name:'Voiceover'}).click();
+ const voice=page.getByTestId('museum-voiceover');
+ await expect(voice.getByRole('button',{name:'Play narration'})).toBeEnabled();
+ await voice.getByRole('button',{name:'Play narration'}).click();
+ await expect.poll(()=>page.evaluate(()=>window.__qaFrozenNarration.length)).toBeGreaterThan(0);
+ expect((await page.evaluate(()=>window.__qaFrozenNarration[0].lang))).toBe('en-US');
+ await controls.getByRole('button',{name:'Next activity'}).click();
+ await expect(stage).toHaveAttribute('data-stage-index','1');
+ await expect(stage).toContainText('Language Mini-Lesson');
+ await controls.getByRole('button',{name:'Video Lab'}).click();
+ const video=page.getByTestId('museum-video-lab');
+ await expect(video.getByRole('button',{name:'Watch NASA clip'})).toBeVisible();
+ await expect(video.getByRole('button',{name:/Assign verified NASA clip/})).toHaveCount(0);
+ await video.getByRole('button',{name:'Watch NASA clip'}).click();
+ await expect(page.getByTestId('museum-projector-video')).toBeVisible();
+ await page.getByTestId('museum-projector-video').getByRole('button',{name:'Close video'}).click();
+ for(let next=2;next<11;next++){
+  await controls.getByRole('button',{name:'Next activity'}).click();
+  await expect(stage).toHaveAttribute('data-stage-index',String(next));
+ }
+ await expect(stage).toContainText('Exit Ticket');
+ await expect(controls.getByRole('button',{name:'Next activity'})).toBeDisabled();
+ await controls.getByRole('button',{name:'Back',exact:true}).click();
+ await expect(stage).toHaveAttribute('data-stage-index','9');
+ await controls.getByRole('button',{name:'Fullscreen'}).click();
+ const dock=page.getByTestId('museum-fullscreen-toolbar');
+ await expect(dock).toBeVisible();
+ await expect(dock.getByRole('button',{name:'Next'})).toBeEnabled();
+ await expect(dock.getByRole('button',{name:'End lesson'})).toBeDisabled();
+ await dock.getByRole('button',{name:'Previous'}).click();
+ await expect(stage).toHaveAttribute('data-stage-index','8');
+ await expect.poll(()=>page.evaluate(()=>window.__frozenTeacherWrites)).toBe(0);
+ const reads=await page.evaluate(()=>window.__frozenTeacherReads);
+ expect(reads).toContain(0);expect(reads).toContain(1);expect(reads).toContain(10);
+});
+
 test('Teacher Live has real stage motion control, readable voiceover, research library and persistent curated videos',async({page})=>{
  await page.getByTestId('qa-teacher-live').click();
  await page.getByRole('button',{name:/Bắt đầu buổi dạy/}).click();
