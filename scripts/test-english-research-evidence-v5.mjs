@@ -27,7 +27,7 @@ assert.throws(()=>pairedDescription([NaN]),/finite/);
 
 const cohort=[
   learner('P001',50,10),learner('P002',50,20),learner('P003',50,0),
-  learner('P004',50,10),learner('P005',50,0,false),
+  learner('P004',50,10),learner('P005',50,0,false),learner('P006',50,10),
 ];
 const reviews={
   P001:{decision:'confirmed'},P002:{decision:'confirmed'},
@@ -38,28 +38,28 @@ const logged=[{
   checkpointScore:60,observedOn:'2026-11-14',recordedAt:'2026-11-14T00:00:00Z',sequence:1,
 }];
 const report=buildResearchEvidence(cohort,reviews,logged);
-assert.equal(report.sample.codedLearners,5);
-assert.equal(report.sample.completePaired,4);
+assert.equal(report.sample.codedLearners,6);
+assert.equal(report.sample.completePaired,5);
 assert.equal(report.sample.missingPost,1);
 assert.equal(report.outcomes.overall.meanChange,10);
-assertClose(report.outcomes.overall.lower95,-2.99);
-assertClose(report.outcomes.overall.upper95,22.99);
+assertClose(report.outcomes.overall.lower95,1.22);
+assertClose(report.outcomes.overall.upper95,18.78);
 assert.equal(report.teacherReviews.confirmed,2);
 assert.equal(report.teacherReviews.notConfirmed,1);
-assert.equal(report.teacherReviews.pending,2);
+assert.equal(report.teacherReviews.pending,3);
 assert.equal(report.delivery.events,1);
 assert.equal(report.delivery.confirmedWithoutLoggedSupport,1);
 assert.equal(report.delivery.completionPct,50);
 assert.equal(report.sample.exportPermitted,true);
 const exported=researchReportMarkdown(report,'2026-11-14T08:00:00.000Z');
-assert.match(exported,/Paired four-skill observations: 4/);
+assert.match(exported,/Paired four-skill observations: 5/);
 assert.match(exported,/Mean of paired baseline four-skill averages: 50/);
 assert.match(exported,/Missing complete post-assessment: 1/);
 assert.match(exported,/95% paired-t CI/);
 assert.doesNotMatch(exported,/P001|P002|Private comment/);
 assert.throws(()=>researchReportMarkdown(report,'invalid'),/timestamp/);
 
-const tiny=buildResearchEvidence(cohort.slice(0,4),reviews,logged);
+const tiny=buildResearchEvidence(cohort.slice(0,5),reviews,logged);
 assert.equal(PUBLIC_MIN_COHORT_SIZE,5);
 assert.equal(tiny.sample.exportPermitted,false);
 assert.throws(()=>researchReportMarkdown(tiny,'2026-11-14T08:00:00Z'),/at least five/);
