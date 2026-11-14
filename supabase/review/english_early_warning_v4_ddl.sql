@@ -104,6 +104,11 @@ begin
 
   for item in select value from jsonb_array_elements(p->'entries') loop
     if jsonb_typeof(item) <> 'object' or not (item->>'studentId' = any(codes)) then return false; end if;
+    if not exists (
+      select 1 from jsonb_array_elements(p->'reviews') as approved(r)
+      where approved.r->>'studentId'=item->>'studentId'
+        and approved.r->>'decision'='confirmed'
+    ) then return false; end if;
     for field in select jsonb_object_keys(item) loop
       if field not in ('studentId','week','skill','assigned','completed','checkpointScore','observedOn','recordedAt','sequence') then return false; end if;
     end loop;
