@@ -26,12 +26,12 @@ export default function ResearchEvidencePanel({results,reviews,journal,onExport}
           <p>Aggregate, paired analysis for the city-level innovation dossier. The software does not claim a treatment effect or certified B1 proficiency.</p>
         </div>
         <button type="button" onClick={download} disabled={!report.sample.exportPermitted}>
-          Export committee-ready aggregate
+          Export aggregate dossier draft
         </button>
       </div>
-      {report.sample.codedLearners < PUBLIC_MIN_COHORT_SIZE && (
+      {!report.sample.exportPermitted && (
         <p className="bew-research-warning" role="status">
-          Aggregate dossier export is restricted to cohorts of at least {PUBLIC_MIN_COHORT_SIZE} coded learners to reduce small-cohort disclosure. Import enough real, approved records before exporting. Individual coded CSV remains a separate, internal-only workflow.
+          Dossier export requires at least {PUBLIC_MIN_COHORT_SIZE} coded learners with complete paired pre/post scores. Smaller subgroups are suppressed in exported tables. Import only approved, real results; individual coded CSV is strictly for internal use.
         </p>
       )}
       <div className="bew-research-kpis">
