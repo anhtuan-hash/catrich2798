@@ -2,6 +2,7 @@ import React from 'react';
 import {Star} from 'lucide-react';
 import departmentLogo from './branding/hcmc-education.jpg';
 import schoolLogo from './branding/petrus-ky.png';
+import bambooArt from './branding/bamboo.png';
 
 const contestName = 'HỘI THI THIẾT KẾ CHỦ ĐỀ DẠY HỌC STEM/STEAM, CHỦ ĐỀ DẠY HỌC SỐ';
 const awardLabel = 'BÀI DỰ THI';
@@ -22,6 +23,7 @@ export default function CompetitionBanner() {
           alt="Logo Sở Giáo dục và Đào tạo Thành phố Hồ Chí Minh"
           width={299} height={300} />
       </div>
+      <img className="contest-bamboo" src={bambooArt} alt="" aria-hidden="true" width={731} height={1473} />
       <div className="contest-mid">
         <div className="banner-ribbon">
           <Star size={13} fill="currentColor" aria-hidden="true" className="contest-ribbon-star" />

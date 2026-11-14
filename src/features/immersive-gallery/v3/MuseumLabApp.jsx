@@ -78,10 +78,6 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
  const sharedScreenProps={language:uiLanguage,data:staff,staff,onNavigate:navigate,onRefresh:refresh,transport:staffTransport,onCreate:visitor?undefined:create,onBack:()=>navigate('home'),initialReview:reviewId};
  return <ImmersiveShell activeNav={activeNav} onNavigate={shellNavigate} language={uiLanguage} onLanguageChange={chooseLanguage} staff={staff} data={staff} query={query} onQueryChange={setQuery} onRefresh={refresh} onHelp={()=>setHelp(true)} pendingCount={pendingCount}>
   <div className="bml" data-testid="brian-museum-lab-v3" lang={uiLanguage} data-ui-locale={uiLanguage==='en'?'en-US':'vi-VN'} data-public-readonly={visitor?'true':'false'}>
-   {visitor?<div className="bml-banner" role="status" style={{margin:'0 0 14px',borderLeft:'4px solid #ca2431',background:'#fffdf9'}}>
-    <strong>{tr(uiLanguage,'Chế độ xem công khai','Public view')}</strong>
-    <p style={{margin:'4px 0 0'}}>{tr(uiLanguage,'Bạn xem và thao tác được toàn bộ nội dung. Không thể thêm, sửa hoặc xóa.','You can view and browse everything. Adding, editing and deleting are turned off.')}</p>
-   </div>:null}
    {error?<div className="bml-banner bml-danger-banner" role="alert" style={{marginBottom:18}}><ShieldAlert size={19}/>
      <div><strong>{tr(uiLanguage,'Không thể đồng bộ dữ liệu quản lý','Could not load staff data')}</strong><p>{error}</p>
       <button type="button" className="bml-outline" onClick={()=>{setLoading(true);refresh();}}><RefreshCw size={17}/>{tr(uiLanguage,'Thử lại','Retry')}</button></div></div>:null}

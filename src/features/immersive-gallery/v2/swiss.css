@@ -2987,6 +2987,26 @@ html body .igv2.igv2 :not(#igv2-swiss-a#igv2-swiss-b#igv2-swiss-c):is(
 .igv2 .bml-lesson-qr-grid .bml-paper-group-card:nth-child(5n+2) { border-top-color: #c9a227; }
 .igv2 .bml-lesson-qr-grid .bml-paper-group-card:nth-child(5n+3) { border-top-color: #1d4e89; }
 .igv2 .bml-lesson-qr-grid .bml-paper-group-card:nth-child(5n+4) { border-top-color: #c23b3b; }
+
+.igv2 .contest {
+  grid-template-columns: 112px 92px minmax(0, 1fr) 112px;
+  overflow: hidden;
+}
+.igv2 .contest-bamboo {
+  justify-self: center;
+  align-self: end;
+  width: 84px;
+  height: 188px;
+  margin-bottom: -6px;
+  object-fit: contain;
+  object-position: bottom center;
+  pointer-events: none;
+  user-select: none;
+}
+@media (max-width: 980px) {
+  .igv2 .contest { grid-template-columns: 96px minmax(0, 1fr) 96px; }
+  .igv2 .contest-bamboo { display: none; }
+}
 .igv2 .bml-lesson-qr-grid .bml-paper-group-card:nth-child(5n) { border-top-color: #2a6b4f; }
 .igv2 .bml-lesson-qr-grid .bml-paper-group-card .bml-group-avatar {
   background: #e7f4ee;
