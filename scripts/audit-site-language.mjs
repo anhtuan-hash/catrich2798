@@ -54,6 +54,16 @@ const PRESERVE = Object.freeze({
   'src/features/immersive-gallery/v2/shell/SideNavigation.jsx': [
     'PÉTRUS KÝ',
   ],
+  // The approved contest masthead is official competition copy, not app navigation.
+  // Preserve only these six verified, file-scoped Vietnamese banner labels.
+  'src/features/immersive-gallery/contest/ContestMasthead.jsx': [
+    'BÀI DỰ THI',
+    'HỘI THI THIẾT KẾ CHỦ ĐỀ DẠY HỌC STEM/STEAM, CHỦ ĐỀ DẠY HỌC SỐ',
+    'CẤP THÀNH PHỐ · NĂM HỌC 2026–2027',
+    'Lĩnh vực dự thi: Chủ đề số',
+    'Môn học: Tiếng Anh · Lớp: 11 – Global Success, Unit 5: Global Warming · Thời lượng: 02 tiết × 45 phút',
+    'GV thực hiện: Thạc sĩ Nguyễn Anh Tuấn',
+  ],
   // User-approved V2 footer identity and section labels are preserved verbatim.
   'src/features/immersive-gallery/v2/shell/Footer.jsx': [
     'NGUYỄN ANH TUẤN (MR.)',
