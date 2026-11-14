@@ -1,0 +1,61 @@
+name: English Early Warning V6 audit and browser QA
+on:
+  push:
+    branches: [feature/english-early-warning-v6-audit-20261114]
+    paths:
+      - 'src/features/english-early-warning/**'
+      - 'src/pages/StudentSupportCenter.jsx'
+      - 'tests/e2e/english-early-warning-v6.spec.js'
+      - 'scripts/test-english-*.mjs'
+      - '.github/workflows/english-early-warning-v6.yml'
+  pull_request:
+    paths:
+      - 'src/features/english-early-warning/**'
+      - 'src/pages/StudentSupportCenter.jsx'
+      - 'tests/e2e/english-early-warning-v6.spec.js'
+      - 'scripts/test-english-*.mjs'
+      - '.github/workflows/english-early-warning-v6.yml'
+permissions:
+  contents: read
+jobs:
+  audit-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Verify screening, journal, evidence and checksum contracts
+        run: |
+          node --version
+          node --check src/features/english-early-warning/researchAudit.js
+          node scripts/test-english-early-warning.mjs
+          node scripts/test-english-intervention-v4.mjs
+          node scripts/test-english-cloud-snapshot-v4.mjs
+          node scripts/test-english-cloud-schema-static-v4.mjs
+          node scripts/test-english-research-evidence-v5.mjs
+          node scripts/test-english-research-audit-v6.mjs
+  browser-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium webkit
+      - run: npm run build
+      - name: Run coded-CSV and evidence-download UX in Chromium and WebKit
+        run: npx playwright test tests/e2e/english-early-warning-v6.spec.js --project=chromium-desktop --project=webkit-desktop
+      - name: Upload test report only if QA fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: english-early-warning-v6-playwright-report
+          path: reports/playwright
+          retention-days: 3
+          if-no-files-found: ignore
