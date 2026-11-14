@@ -32,7 +32,7 @@ export default function CloudPilotControls({currentUser,cohort,reviews,journal,o
         if (!cohort.length) throw new Error('Import coded records before saving.');
         if (!window.confirm('Save coded learning records and activity metrics to Supabase? No names or narrative notes are included.')) return;
         const result=await savePilotSnapshot({user:currentUser,className:selectedClass,cohort,reviews,journal});
-        setMessage('Encrypted-hosted study saved for assigned class at ' + result.updated_at + '. Narrative notes remain local.');
+        setMessage('Coded study saved for assigned class at ' + result.updated_at + '. Narrative notes remain local.');
       } else if(action==='load'){
         if (!window.confirm('Replace this tab’s current records, reviews and activity log with the saved class snapshot? Export current evidence first.')) return;
         const result=await loadPilotSnapshot({user:currentUser,className:selectedClass});
