@@ -20,7 +20,9 @@ const MAX_FILE_BYTES = 250 * 1024;
 const formatScore = x => x === null || x === undefined ? '—' : Number(x).toFixed(1).replace(/\.0$/, '');
 
 function downloadText(text, name, mime = 'text/csv;charset=utf-8') {
-  const blob = new Blob(['\uFEFF', text], { type: mime });
+  // Excel CSV needs a BOM; Markdown/JSON reports must hash the exact downloaded bytes.
+  const bom = mime.toLowerCase().startsWith('text/csv') ? '\uFEFF' : '';
+  const blob = new Blob([bom, text], { type: mime });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
