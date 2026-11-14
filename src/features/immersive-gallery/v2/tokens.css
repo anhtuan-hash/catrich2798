@@ -1,0 +1,57 @@
+/* ============================================================
+   Immersive Gallery V2 — Swiss Editorial Modernism tokens
+   Sourced from design_kit/design_tokens.json.
+   All custom properties are scoped under the .igv2 root class so
+   they never leak outside the immersive-gallery route.
+   ============================================================ */
+
+.igv2 {
+  /* Colors — Swiss Editorial Modernism V2 palette */
+  --igv2-ink: #152033;
+  --igv2-navy: #112339;
+  --igv2-navy-deep: #101e2e;
+  --igv2-navy-card: #132d47;
+  --igv2-red: #ca2431;
+  --igv2-red-deep: #b51f2a;
+  --igv2-warm-yellow: #f4ca4b;
+  --igv2-yellow-deep: #e3ad22;
+  --igv2-background: #faf9f6;
+  --igv2-paper: #fffdf9;
+  --igv2-paper-warm: #f5f1eb;
+  --igv2-divider: #dedbd5;
+  --igv2-divider-soft: #e4e3df;
+  --igv2-success: #218d58;
+  --igv2-success-soft: #e5f2e4;
+  --igv2-muted: #526171;
+  --igv2-muted-soft: #687887;
+  --igv2-line-dark: #172536;
+
+  /* Typography */
+  --igv2-font-family: Inter, "Inter Display", Arial, sans-serif;
+  --igv2-font-serif: Georgia, serif;
+  --igv2-page-title-px: 48px;
+  --igv2-section-px: 14px;
+  --igv2-body-px: 13px;
+  --igv2-micro-px: 11px;
+
+  /* Layout */
+  --igv2-sidebar-px: 234px;
+  --igv2-main-padding-px: 30px;
+  --igv2-grid-columns: 12;
+
+  /* Elevation / radius (editorial = minimal radius, hairline borders) */
+  --igv2-radius: 0px;
+  --igv2-border: 1px solid var(--igv2-divider);
+}
+
+/* Reduced motion: disable transitions/animations inside the route */
+@media (prefers-reduced-motion: reduce) {
+  .igv2 *,
+  .igv2 *::before,
+  .igv2 *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
