@@ -114,7 +114,7 @@ export default function EnglishEarlyWarning({ currentUser }) {
         <strong>Privacy-first pilot.</strong> Import only coded IDs (P001, P002…). Do not upload names, original student codes or contact data. Records and reviews remain in this tab's memory; no server write or autosave is performed. Export evidence before leaving.
       </div>
       <div className="bew-actions">
-        <label className="bew-button bew-primary" htmlFor="bew-csv-import">Import coded CSV</label>
+        <button type="button" className="bew-button bew-primary" onClick={() => inputRef.current?.click()}>Import coded CSV</button>
         <input ref={inputRef} id="bew-csv-import" className="bew-file" type="file" accept=".csv,text/csv" onChange={handleImport}/>
         <button type="button" className="bew-button" onClick={() => downloadText(CSV_COLUMNS.join(',') + '\r\n', 'brian-english-import-template.csv')}>Download CSV template</button>
         <button type="button" className="bew-button" onClick={exportDetailed} disabled={!cohort.length}>Export coded evidence</button>
