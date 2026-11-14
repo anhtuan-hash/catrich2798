@@ -240,7 +240,7 @@ export default function StudentSupportCenter({ language = 'vi', currentUser = nu
       {loading && activeTab !== 'english' ? <section className="student-support-state-card">{vi ? 'Đang tải dữ liệu…' : 'Loading data…'}</section> : null}
       {error && activeTab !== 'english' ? <section className="student-support-state-card is-error">{error}</section> : null}
 
-      {activeTab === 'english' ? <EnglishEarlyWarning currentUser={currentUser} /> : null}
+      {activeTab === 'english' ? <EnglishEarlyWarning key={currentUser?.id || 'guest'} currentUser={currentUser} /> : null}
 
       {!loading && !error && activeTab === 'overview' ? (
         <StudentSupportOverview
