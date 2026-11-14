@@ -17,5 +17,7 @@ assert.equal(restored.learners[0].scores.listening,50);
 assert.equal(restored.reviews.P001.notes,'');
 assert.equal(restored.entries[0].note,'');
 assert.throws(()=>restoreCloudSnapshot({...snapshot,schemaVersion:99}),/Unsupported/);
+assert.throws(()=>buildCloudSnapshot(cohort, {}, journal),/teacher-confirmed review/);
+assert.throws(()=>restoreCloudSnapshot({...snapshot,reviews:[]}),/no confirmed teacher review/);
 assert.throws(()=>restoreCloudSnapshot({...snapshot,learners:[{studentId:'PRIVATE_NAME',scores:{}}]}),/Invalid coded learner/);
 console.log('[PASS] V4 cloud snapshot strips free text, validates pseudonyms and round trips scores');
