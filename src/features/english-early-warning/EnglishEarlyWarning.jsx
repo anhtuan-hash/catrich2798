@@ -5,6 +5,8 @@ import {
 } from './earlyWarningEngine.js';
 import './EnglishEarlyWarning.css';
 import InterventionTracker from './InterventionTracker.jsx';
+import CloudPilotControls from './CloudPilotControls.jsx';
+import './CloudPilotControls.css';
 import './InterventionTracker.css';
 import { journalToCsv, summarizeJournal, weeklyCoverage } from './interventionJournal.js';
 
@@ -108,6 +110,16 @@ export default function EnglishEarlyWarning({ currentUser }) {
     setCohort([]); setReviews({}); setJournal([]); setSelectedId(''); setNotesDraft(''); setError(''); setNotice('Session data cleared.');
   }
   const plan = selected ? suggestedIntervention(selected) : null;
+  function restoreCodedStudy(restored) {
+    setCohort(restored.learners);
+    setReviews(restored.reviews);
+    setJournal(restored.entries);
+    setSelectedId(restored.learners[0]?.studentId || '');
+    setNotesDraft('');
+    setFilter('all');
+    setSearch('');
+    setError('');
+  }
   function exportJournal() {
     downloadText(journalToCsv(journal), 'brian-english-intervention-journal-' + new Date().toISOString().slice(0,10) + '.csv');
   }
@@ -225,6 +237,13 @@ export default function EnglishEarlyWarning({ currentUser }) {
           </aside>
         </div>
       )}
+      <CloudPilotControls
+        currentUser={currentUser}
+        cohort={cohort}
+        reviews={reviews}
+        journal={journal}
+        onRestore={restoreCodedStudy}
+      />
       <footer className="bew-footer">BRIAN ENGLISH · Intervention V4 pilot · Rule v{RULE_VERSION} · Coded evidence only · No AI-based risk predictions</footer>
     </section>
   );
