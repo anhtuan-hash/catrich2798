@@ -7,7 +7,16 @@ import { lookupLegacyUiEnglish } from '../src/utils/globalI18n.js';
 // font-glyph samples, sample student names and scanner false positives.
 // These are NOT interface labels and must not be reworded just to inflate metrics.
 const PRESERVE = Object.freeze({
+  // The official school brand is a proper name, not untranslated interface
+  // copy. Preserve these exact JSX occurrences only at their reviewed paths.
+  'src/components/GlobalCompactNavigation.jsx': [
+    'Pétrus Ký School System',
+  ],
+  'src/features/immersive-gallery/v3/MuseumExhibitionDetail.jsx': [
+    'Pétrus Ký School System',
+  ],
   'src/features/immersive-gallery/v3/offline/entry.jsx': [
+    'Pétrus Ký School System',
     'BRIAN ENGLISH · Nguyễn Anh Tuấn · Teach Better Together',
     'PÉTRUS KÝ SCHOOL SYSTEM · Nguyễn Anh Tuấn · Teach Better Together',
     'PÉTRUS KÝ · FROZEN · READ ONLY',
