@@ -123,6 +123,9 @@ $$;
 
 revoke all on function private.brian_ew_score_valid(jsonb, boolean) from public;
 revoke all on function private.brian_ew_snapshot_valid(jsonb) from public;
+-- CHECK expressions execute under the writing role; these validators hold no data.
+grant execute on function private.brian_ew_score_valid(jsonb, boolean) to authenticated;
+grant execute on function private.brian_ew_snapshot_valid(jsonb) to authenticated;
 
 create table if not exists public.brian_english_ew_snapshots (
   owner_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
