@@ -21,14 +21,15 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
   result=null,revealed=false,
   elapsed=0,remaining=0,
   respondedCount=null,
-  isFullscreen=false,onExitFullscreen
+  isFullscreen=false,onExitFullscreen,
+  fullscreenControls=null,fullscreenPanel=null
 },ref){
   const period=stage?.period??1;
   const periodLabel=period===1
     ?t(language,'TIẾT 01 · KHỞI ĐỘNG & THIẾT KẾ','PERIOD 01 · INVESTIGATE & DESIGN')
     :t(language,'TIẾT 02 · TẠO, KIỂM TRA & CẢI TIẾN','PERIOD 02 · CREATE, TEST & IMPROVE');
   const taskOpen=Boolean(session?.stageOpen);
-  const statusLabel=taskOpen
+  const statusLabel=readOnly?t(language,'CHỈ XEM','VIEW ONLY'):taskOpen
     ?t(language,'ĐANG MỞ HOẠT ĐỘNG','TASK OPEN')
     :t(language,'HOẠT ĐỘNG CHƯA MỞ','TASK CLOSED');
   const options=stage?.options||[];
@@ -72,10 +73,18 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
         )}
       </div>
       <div className="adv-stage-bottom">
-        <strong className="adv-stage-timer" aria-label={t(language,'Thời gian còn lại','Time remaining')}>◷ {fmtClock(remaining)}</strong>
-        <span className="status" data-open={taskOpen?'true':'false'} style={{background:taskOpen?'#dff3e8':'#fdecec',color:taskOpen?'#14532d':'#7f1d1d',padding:'3px 10px',fontSize:10,fontWeight:850,letterSpacing:'.08em'}}>{statusLabel}</span>
+        <strong className="adv-stage-timer" aria-label={readOnly?'Review mode':t(language,'Thời gian còn lại','Time remaining')}>◷ {readOnly?'REVIEW MODE':fmtClock(remaining)}</strong>
+        <span className="status" data-open={taskOpen&&!readOnly?'true':'false'} style={{background:readOnly?'#dff3e8':taskOpen?'#dff3e8':'#fdecec',color:readOnly?'#14532d':taskOpen?'#14532d':'#7f1d1d',padding:'3px 10px',fontSize:10,fontWeight:850,letterSpacing:'.08em'}}>{statusLabel}</span>
         <span style={{color:'#9fb3c6'}}>{respondedCount!=null?`${respondedCount} ${t(language,'phản hồi nhóm','group responses')}`:''}</span>
       </div>
+      {isFullscreen&&fullscreenControls?<div className="adv-stage-fullscreen-controls" data-testid="museum-fullscreen-viewer-controls"
+        style={{position:'absolute',zIndex:30,left:12,right:12,bottom:8,padding:'8px 10px',background:'rgba(8,28,51,.96)',borderRadius:8}}>
+        {fullscreenControls}
+      </div>:null}
+      {isFullscreen&&fullscreenPanel?<div className="adv-stage-fullscreen-panel" data-testid="museum-fullscreen-viewer-panel"
+        style={{position:'absolute',zIndex:40,top:'8%',right:12,width:'min(480px,92vw)',maxHeight:'72%',overflowY:'auto',background:'#fff',color:'#173452',borderRadius:10,padding:16,boxShadow:'0 12px 32px rgba(0,0,0,.3)'}}>
+        {fullscreenPanel}
+      </div>:null}
       {readOnly?(
         <div className="adv-stage-readonly" aria-live="polite">
           <span>🔒 {frozenReason||t(language,'Bài học đã kết thúc · Chỉ xem','Completed lesson · View only')}</span>
