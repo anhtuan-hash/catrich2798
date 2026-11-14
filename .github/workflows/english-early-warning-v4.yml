@@ -1,0 +1,35 @@
+name: English Early Warning V4 contract
+on:
+  push:
+    branches: [feature/english-early-warning-v4-20261114]
+    paths:
+      - 'src/features/english-early-warning/**'
+      - 'src/pages/StudentSupportCenter.jsx'
+      - 'src/studentSupport/studentSupportIdentity.js'
+      - 'scripts/test-english-*.mjs'
+      - 'supabase/review/english_early_warning_v4_ddl.sql'
+      - '.github/workflows/english-early-warning-v4.yml'
+  pull_request:
+    paths:
+      - 'src/features/english-early-warning/**'
+      - 'scripts/test-english-*.mjs'
+      - 'supabase/review/english_early_warning_v4_ddl.sql'
+permissions:
+  contents: read
+jobs:
+  v4-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Validate deterministic rules, eight-week journal and cloud data minimization
+        run: |
+          node --version
+          node --check src/features/english-early-warning/earlyWarningEngine.js
+          node --check src/features/english-early-warning/interventionJournal.js
+          node --check src/features/english-early-warning/cloudSnapshot.js
+          node scripts/test-english-early-warning.mjs
+          node scripts/test-english-intervention-v4.mjs
+          node scripts/test-english-cloud-snapshot-v4.mjs
+          node scripts/test-english-cloud-schema-static-v4.mjs

@@ -1,0 +1,7 @@
+.bew-cloud{margin-top:16px;padding:20px;border-radius:18px;background:#f8faf9;border:1px solid #d8e5e3;color:#315559}
+.bew-cloud-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.bew-cloud h3{margin:4px 0;font-size:1rem}.bew-cloud p{font-size:.78rem;line-height:1.6;color:#526d72}
+.bew-cloud-disabled,.bew-cloud-ready{display:inline-flex;border-radius:999px;padding:7px 10px;font-size:.7rem;font-weight:700;background:#eff1f3;color:#62727b}
+.bew-cloud-ready{background:#e5f5ec;color:#286b48}.bew-cloud-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.bew-cloud-controls label{font-weight:700;font-size:.78rem}.bew-cloud select{padding:10px;border-radius:10px;border:1px solid #cdddda;background:white;color:#1f4144;min-width:165px}
+.bew-cloud-consent{display:flex;align-items:start;gap:8px;font-size:.77rem;line-height:1.5;margin:14px 0}.bew-cloud-consent input{margin-top:4px;accent-color:#18756a}
+.bew-cloud-buttons{display:flex;gap:8px;flex-wrap:wrap}.bew-cloud-buttons button{background:#f7fffc;border:1px solid #abccc5;border-radius:9px;padding:9px 12px;font-size:.75rem;font-weight:740;color:#21554b;cursor:pointer}.bew-cloud-buttons button:disabled{opacity:.4;cursor:not-allowed}.bew-cloud-buttons button:last-child{color:#a34040}
+.bew-cloud-success{color:#26724f!important}
