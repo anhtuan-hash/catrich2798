@@ -22,7 +22,7 @@ assert.equal(suggestedIntervention(evaluateLearner(rows[0])).durationWeeks,8);
 assert.deepEqual(summarizeCohort(rows.map(evaluateLearner)), {
   n:2,priority:1,review:0,no_signal:1,insufficient:0,matchedPairs:1,meanBefore:80,meanAfter:85,meanChange:5,rubricMet:1,ruleVersion:'0.1'
 });
-const withMissing = importCodedCoh([header,record('P003','40','40','40','40','','','')].join('\n'));
+const withMissing = importCodedCohort([header,record('P003','40','40','40','40','','','')].join('\n'));
 assert.equal(evaluateLearner(withMissing[0]).status,'insufficient');
 assert.equal(evaluateLearner(withMissing[0]).flagCount,null);
 assert.equal(evaluateLearner(withMissing[0]).postMean,null);
