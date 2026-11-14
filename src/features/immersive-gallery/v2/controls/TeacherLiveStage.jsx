@@ -1,6 +1,7 @@
 import React,{forwardRef} from 'react';
 import {X,Minimize2} from 'lucide-react';
 import MuseumScene from '../../v3/MuseumScene.jsx';
+import StageArt from './StageArt.jsx';
 const t=(lang,vi,en)=>lang==='en'?en:vi;
 const fmtClock=sec=>{
   if(!Number.isFinite(sec)||sec<0)sec=0;
@@ -57,18 +58,23 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
           </div>
         ):(
           <>
-            <div className="adv-stage-section">{periodLabel}{stage?.kind?` · ${stage.kind}`:''}</div>
-            <h2 className="adv-stage-title">{stage?.title||t(language,'Đang tải hoạt động…','Loading activity…')}</h2>
-            {language!=='en'&&stage?.vi?<p className="adv-stage-vi">{stage.vi}</p>:null}
-            {stage?.question?<p className="adv-stage-question">{stage.question}</p>:null}
-            {curriculumNode}
-            {options.length>0&&!revealed?(
-              <div className="adv-stage-options" role="list" aria-label={t(language,'Lựa chọn hoạt động','Activity options')}>
-                {options.map((o,i)=><div className="adv-stage-option" role="listitem" key={i}><b style={{color:'#ffdd75',marginRight:6}}>{String.fromCharCode(65+i)}.</b>{o}</div>)}
+            <div className={'adv-stage-layout' + (curriculumNode ? ' is-video' : '')}>
+              <div className="adv-stage-copy">
+                <div className="adv-stage-section">{periodLabel}{stage?.kind?` · ${stage.kind}`:''}</div>
+                <h2 className="adv-stage-title">{stage?.title||t(language,'Đang tải hoạt động…','Loading activity…')}</h2>
+                {language!=='en'&&stage?.vi?<p className="adv-stage-vi">{stage.vi}</p>:null}
+                {stage?.question?<p className="adv-stage-question">{stage.question}</p>:null}
+                {curriculumNode}
+                {options.length>0&&!revealed?(
+                  <div className="adv-stage-options" role="list" aria-label={t(language,'Lựa chọn hoạt động','Activity options')}>
+                    {options.map((o,i)=><div className="adv-stage-option" role="listitem" key={i}><b style={{color:'#ffdd75',marginRight:6}}>{String.fromCharCode(65+i)}.</b>{o}</div>)}
+                  </div>
+                ):null}
+                {revealed&&stage?.expected?<div style={{fontSize:'clamp(16px,2.2cqi,26px)',color:'#b7e4c7',lineHeight:1.45}}>✓ {stage.expected}</div>:null}
+                {stage?.sentence?<div className="adv-stage-sentence">“{stage.sentence}”</div>:null}
               </div>
-            ):null}
-            {revealed&&stage?.expected?<div style={{fontSize:'clamp(16px,2.2cqi,26px)',color:'#b7e4c7',lineHeight:1.45}}>✓ {stage.expected}</div>:null}
-            {stage?.sentence?<div className="adv-stage-sentence">“{stage.sentence}”</div>:null}
+              {curriculumNode ? null : <StageArt id={stage?.id} />}
+            </div>
           </>
         )}
       </div>
