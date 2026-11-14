@@ -19,7 +19,7 @@ export function MuseumVideoFrame({id,title,onClose,language='vi'}){
    <a target="_blank" rel="noopener noreferrer" href={'https://www.youtube.com/watch?v='+videoId}><ExternalLink size={14}/>{tr(language,'Mở trên YouTube','Open on YouTube')}</a></p>
  </div>;
 }
-export default function MuseumVideoLab({mode='student',stage,stageIndex,media,assignmentId,version,language='vi',csrf,onSaved,onProject,transport=liveStaff}){
+export default function MuseumVideoLab({mode='student',readOnly=false,stage,stageIndex,media,assignmentId,version,language='vi',csrf,onSaved,onProject,transport=liveStaff}){
  const teacher=mode==='teacher',task=media||{query:'',instruction:'',videos:[]},videos=task.videos||[];
  const [query,setQuery]=useState(task.query||''),[instruction,setInstruction]=useState(task.instruction||'');
  const [refine,setRefine]=useState(''),[manualUrl,setManualUrl]=useState(''),[manualTitle,setManualTitle]=useState('');
@@ -29,7 +29,7 @@ export default function MuseumVideoLab({mode='student',stage,stageIndex,media,as
  const [message,setMessage]=useState(''),[error,setError]=useState('');
  useEffect(()=>{setQuery(task.query||'');setInstruction(task.instruction||'');setResults([]);setSelected(null);setError('');},[stageIndex,task.query,task.instruction]);
  const save=async(action,payload)=>{
-  if(busy)return;
+  if(readOnly||busy)return;
   setSaving(true);setError('');setMessage('');
   try{
    const request=expectedVersion=>transport(action,{assignmentId,stageIndex,version:expectedVersion,...payload});
@@ -91,13 +91,23 @@ export default function MuseumVideoLab({mode='student',stage,stageIndex,media,as
     <div className="bml-video-kicker"><ShieldCheck size={16}/> VERIFIED LESSON CLIP · NASA</div>
     <strong>{curated.title}</strong><p>{curated.prompt}</p><small>{curated.timing}</small>
     <div className="bml-video-actions">
+     {readOnly?<button type="button" className="bml-primary" onClick={()=>onProject?.({id:curated.id,title:curated.title,channel:curated.channel})}>
+      <Play size={16}/>Watch NASA clip</button>:
      <button type="button" className="bml-primary" disabled={busy||videos.some(v=>v.id===curated.id)}
       onClick={()=>save('media-add',{videoId:curated.id,title:curated.title,channel:curated.channel,instruction:curated.prompt})}>
-      <Check size={16}/>{videos.some(v=>v.id===curated.id)?'Assigned to this activity':'Assign verified NASA clip'}</button>
+      <Check size={16}/>{videos.some(v=>v.id===curated.id)?'Assigned to this activity':'Assign verified NASA clip'}</button>}
      <a target="_blank" rel="noopener noreferrer" href={curated.source}>Check original NASA video</a>
     </div>
    </div>:null}
-  {teacher?<div className="bml-video-teacher-form">
+  {teacher&&readOnly?<div className="bml-video-task">
+    <div className="bml-video-kicker"><ShieldCheck size={16}/> VIEW ONLY · NO SAVED CHANGES</div>
+    {task.query?<strong>{task.query}</strong>:null}
+    {task.instruction?<p lang="en">{task.instruction}</p>:null}
+    <label>Search YouTube for viewing (not assigned to this lesson)
+     <input maxLength={120} value={query} placeholder={suggestion} onChange={e=>setQuery(e.target.value)}/></label>
+    <button className="bml-outline" type="button" onClick={search} disabled={searching||query.trim().length<4}>
+     <Search size={17}/>{searching?'Searching…':'Search videos'}</button>
+   </div>:teacher?<div className="bml-video-teacher-form">
    <label>{tr(language,'Từ khóa tìm kiếm giao cho học sinh','Student research search topic')}
     <input maxLength={120} value={query} placeholder={suggestion} onChange={e=>setQuery(e.target.value)}/></label>
    <label>{tr(language,'Câu hỏi định hướng khi xem video','Teacher viewing task')}
@@ -129,7 +139,7 @@ export default function MuseumVideoLab({mode='student',stage,stageIndex,media,as
    <div className="bml-video-results">{videos.map(v=><div className="bml-video-result" key={v.id}>
     <div><strong>{v.title}</strong><small>{v.channel||'YouTube'} · ID {v.id}</small></div>
     <div className="bml-video-actions"><button className="bml-outline" type="button" onClick={()=>{setSelected(v);onProject?.(v);}}><Play size={15}/>{teacher?tr(language,'Chiếu video','Project video'):tr(language,'Xem tại đây','Watch here')}</button>
-     {teacher?<button className="bml-outline" disabled={busy} type="button" onClick={()=>save('media-remove',{videoId:v.id})}><Trash2 size={15}/>{tr(language,'Bỏ','Remove')}</button>:null}</div>
+     {teacher&&!readOnly?<button className="bml-outline" disabled={busy} type="button" onClick={()=>save('media-remove',{videoId:v.id})}><Trash2 size={15}/>{tr(language,'Bỏ','Remove')}</button>:null}</div>
    </div>)}</div>
   </div>:null}
   {results.length?<div className="bml-video-results">
@@ -138,7 +148,7 @@ export default function MuseumVideoLab({mode='student',stage,stageIndex,media,as
     <div><strong>{v.title}</strong><small>{v.channel}</small></div>
     <div className="bml-video-actions">
      <button type="button" className="bml-outline" onClick={()=>{setSelected(v);onProject?.(v);}}><Play size={15}/>{teacher?tr(language,'Xem thử','Preview'):tr(language,'Xem tại đây','Watch here')}</button>
-     {teacher?<button type="button" className="bml-primary" disabled={busy||videos.some(x=>x.id===v.id)} onClick={()=>save('media-add',{videoId:v.id,title:v.title,channel:v.channel})}><Check size={15}/>{tr(language,'Duyệt','Approve')}</button>:null}
+     {teacher&&!readOnly?<button type="button" className="bml-primary" disabled={busy||videos.some(x=>x.id===v.id)} onClick={()=>save('media-add',{videoId:v.id,title:v.title,channel:v.channel})}><Check size={15}/>{tr(language,'Duyệt','Approve')}</button>:null}
     </div>
    </div>)}
   </div>:null}
