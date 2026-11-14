@@ -40,6 +40,9 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   const [assignmentId,setAssignmentId]=useState(initialReview||savedPreference.current?.assignmentId||assignments[0]?.id||'');
   const assignment=assignments.find(a=>a.id===assignmentId);
   const readOnly=Boolean(assignment?.content_frozen_at);
+  const [browseIndex,setBrowseIndex]=useState(0);
+  const [previewReveal,setPreviewReveal]=useState(false);
+  const requestSequence=useRef(0);
   const frozenReason=assignment?.content_frozen_at
     ?t(language,'Bài học đã chốt vào ','Lesson frozen at ')+new Date(assignment.content_frozen_at).toLocaleString()+t(language,' · Chỉ xem lại',' · View-only playback')
     :'';
@@ -53,16 +56,20 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   const stageRef=useRef(null),activeRef=useRef(true);
   const refresh=useCallback(async()=>{
     if(!assignmentId)return;
-    try{const response=await transport('state',null,{assignmentId});if(activeRef.current){setState(response);setError('');}}
-    catch(e){if(activeRef.current)setError(e.message);}
-  },[assignmentId,transport]);
-  useEffect(()=>{activeRef.current=true;refresh();const id=window.setInterval(()=>{refresh();setTime(Date.now());},3000);return()=>{activeRef.current=false;window.clearInterval(id);};},[refresh]);
+    const sequence=++requestSequence.current;
+    try{
+      const response=await transport('state',null,{assignmentId,...(readOnly?{viewStage:String(browseIndex)}:{})});
+      if(activeRef.current&&sequence===requestSequence.current){setState(response);setError('');}
+    }catch(e){if(activeRef.current&&sequence===requestSequence.current)setError(e.message);}
+  },[assignmentId,transport,readOnly,browseIndex]);
+  useEffect(()=>{activeRef.current=true;refresh();const id=window.setInterval(()=>{refresh();setTime(Date.now());},readOnly?15000:3000);return()=>{activeRef.current=false;window.clearInterval(id);};},[refresh]);
   useEffect(()=>{
     const sync=()=>{const active=document.fullscreenElement===stageRef.current;setIsFullscreen(active);if(!active)setActiveTool(null);};
     document.addEventListener('fullscreenchange',sync);return()=>document.removeEventListener('fullscreenchange',sync);
   },[]);
   useEffect(()=>{if(activeTool!=='qr')return;let active=true;import('qrcode').then(({default:QR})=>QR.toDataURL(link,{width:220,margin:2})).then(url=>{if(active)setQr(url);}).catch(()=>{});return()=>{active=false;};},[activeTool]);
-  const session=state?.session,stage=session?.stage,groups=(state?.groups||[]).map(g=>({...g,label:language==='en'?englishSystemGroupLabel(g.label):g.label}));
+  const session=state?.session?(readOnly?{...state.session,revealed:previewReveal}:state.session):null;
+  const stage=session?.stage,groups=(state?.groups||[]).map(g=>({...g,label:language==='en'?englishSystemGroupLabel(g.label):g.label}));
   const currentIndex=session?.stageIndex??0,minute=LIVE_STAGES[currentIndex]?.minutes||0;
   const curriculumVideo=MUSEUM_CURRICULUM_VIDEOS[currentIndex]||null;
   const showingCurriculumVideo=Boolean(curriculumVideo&&curriculumMode==='video');
@@ -85,7 +92,14 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   const elapsed=(session?.elapsedSeconds||0)+(session?.status==='active'&&session?.stageStartedAt?Math.max(0,Math.floor((time-Date.parse(session.stageStartedAt))/1000)):0);
   const remaining=Math.max(0,minute*60-elapsed);
   const act=useCallback(async(action)=>{
-    if(!assignmentId||busy||readOnly)return;
+    if(!assignmentId||busy)return;
+    if(readOnly){
+      if(action==='next'||action==='previous'){
+        setBrowseIndex(i=>Math.max(0,Math.min(LIVE_STAGES.length-1,i+(action==='next'?1:-1))));
+        setPreviewReveal(false);setSpotlight(null);
+      }else if(action==='reveal')setPreviewReveal(v=>!v);
+      return;
+    }
     if(action==='end'&&!window.confirm(t(language,'Kết thúc tiết học? Học sinh sẽ không thể tiếp tục thao tác trong phiên này.','End this lesson? Student tasks will be locked.')))return;
     setBusy(true);setError('');
     try{const payload=action==='start'?{assignmentId}:{assignmentId,action,version:session?.version};
@@ -141,11 +155,11 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
       else if(key==='r'){e.preventDefault();toggleTool('resources');}
       else if(key==='y'){e.preventDefault();toggleTool('video');}
       else if(key==='f'){e.preventDefault();fullscreen();}
-      else if(key===' '){e.preventDefault();act(session?.status==='paused'?'resume':'pause');}
+      else if(key===' '&&!readOnly){e.preventDefault();act(session?.status==='paused'?'resume':'pause');}
     };
     window.addEventListener('keydown',handle);return()=>window.removeEventListener('keydown',handle);
-  },[isFullscreen,activeTool,busy,currentIndex,session?.version,session?.status,act]);
-  const respondedCount=state?.responses?state.responses.filter(r=>r.stage_index===currentIndex).length:null;
+  },[isFullscreen,activeTool,busy,currentIndex,session?.version,session?.status,act,readOnly]);
+  const respondedCount=Array.isArray(state?.responses)?state.responses.length:null;
   const curriculumNode=curriculumVideo?(
     <div style={{display:'flex',flexDirection:'column',gap:6}}>
       <strong style={{fontSize:'clamp(9px,1.4cqi,11px)',letterSpacing:'.1em',color:'#9fc2e0'}}>NASA VIDEO · ACTIVITY {currentIndex+1}</strong>
@@ -167,7 +181,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
         description={t(language,'Điều khiển toàn bộ 11 hoạt động trong 2 tiết. Học sinh tham gia bằng mã nhóm.','Control all 11 activities across two lessons. Students join using group passes.')}
         aside={readOnly?t(language,'Bài học đã kết thúc · Chỉ xem lại','Completed lesson · View-only playback'):t(language,'Đang trực tiếp · Học sinh bằng mã nhóm','Live · students join by group pass')}/>
       <label className="adv-dossier-field" style={{marginBottom:12}}>{t(language,'Chọn lớp và bài học','Choose lesson / class')}
-        <select className="adv-assignment-select" value={assignmentId} onChange={e=>{setAssignmentId(e.target.value);setState(null);setSpotlight(null);}} aria-label={t(language,'Chọn bài học','Select lesson')}>
+        <select className="adv-assignment-select" value={assignmentId} onChange={e=>{setAssignmentId(e.target.value);setBrowseIndex(0);setPreviewReveal(false);setState(null);setSpotlight(null);}} aria-label={t(language,'Chọn bài học','Select lesson')}>
           {!assignments.length?<option value="">{t(language,'Chưa có bài học được giao','No lesson assigned')}</option>:null}
           {assignments.map(a=><option value={a.id} key={a.id}>{a.title} · {a.class_scope||''}</option>)}
         </select></label>
@@ -196,7 +210,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
           <div className="mt16">
             <TeacherToolbar language={language} readOnly={readOnly} busy={busy} session={session} currentIndex={currentIndex}
               motionOn={motionOn} activeTool={activeTool}
-              onBack={onBack} onNext={()=>act('next')} onToggleTask={()=>act(session.stageOpen?'close':'open')}
+              onBack={onBack} onPrevious={()=>act('previous')} onNext={()=>act('next')} onToggleTask={()=>act(session.stageOpen?'close':'open')}
               onReveal={()=>act('reveal')} onToggleTool={toggleTool} onFullscreen={fullscreen}
               onToggleMotion={()=>setMotionOn(v=>!v)} onTogglePause={()=>act(session.status==='paused'?'resume':'pause')}
               onRefresh={()=>{refresh();onRefresh&&onRefresh();}}/>
@@ -237,13 +251,13 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
           {activeTool==='voice'?(
             <div className="adv-panel-overlay" role="region" aria-label={t(language,'Giọng đọc','Voiceover')}>
               <button type="button" className="adv-panel-close" onClick={()=>setActiveTool(null)} aria-label={t(language,'Đóng giọng đọc','Close voiceover')}><X size={14}/></button>
-              <MuseumVoiceover stage={stage} language={language} compact shareWithStudents={Boolean(session?.media?.voiceEnabled)} onShareToggle={shareNarration}/>
+              <MuseumVoiceover stage={stage} language={language} compact shareWithStudents={Boolean(session?.media?.voiceEnabled)} onShareToggle={readOnly?null:shareNarration}/>
             </div>
           ):null}
           {activeTool==='video'?(
             <div className="adv-panel-overlay" role="region" aria-label={t(language,'Video Lab','Video Lab')}>
               <button type="button" className="adv-panel-close" onClick={()=>setActiveTool(null)} aria-label={t(language,'Đóng Video Lab','Close Video Lab')}><X size={14}/></button>
-              <MuseumVideoLab mode="teacher" stage={stage} stageIndex={currentIndex} media={session?.media} assignmentId={assignmentId} version={session?.version} language={language} transport={transport}/>
+              <MuseumVideoLab mode="teacher" readOnly={readOnly} stage={stage} stageIndex={currentIndex} media={session?.media} assignmentId={assignmentId} version={session?.version} language={language} transport={transport}/>
             </div>
           ):null}
           <div className="content-gap" style={{marginTop:20}}/>
