@@ -40,7 +40,7 @@ export async function createAuditManifest(reportMarkdown, evidence, createdAt, c
     evidenceVersion: EVIDENCE_VERSION,
     screeningRuleVersion: RULE_VERSION,
     exportedUtc,
-    reportFile: 'brian-english-aggregate-report.md',
+    reportFile: 'brian-english-city-level-aggregate-report-' + exportedUtc.slice(0,10) + '.md',
     reportSha256: await sha256Text(reportMarkdown, cryptoImpl),
     reportSizeBytes: utf8(reportMarkdown).byteLength,
     sample: {
