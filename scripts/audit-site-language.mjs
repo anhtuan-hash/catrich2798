@@ -10,6 +10,7 @@ const PRESERVE = Object.freeze({
   'src/features/immersive-gallery/v3/offline/entry.jsx': [
     'BRIAN ENGLISH · Nguyễn Anh Tuấn · Teach Better Together',
     'PÉTRUS KÝ SCHOOL SYSTEM · Nguyễn Anh Tuấn · Teach Better Together',
+    'PÉTRUS KÝ · FROZEN · READ ONLY',
   ],
   'src/pages/TextCareCompactStudio.jsx': [
     'Kính gửi:', 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM',
