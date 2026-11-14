@@ -1,0 +1,30 @@
+name: Museum Official-Only Showcase
+on:
+  pull_request:
+    paths:
+      - 'src/features/immersive-gallery/GalleryApp.jsx'
+      - 'src/features/immersive-gallery/v3/MuseumLabApp.jsx'
+      - 'src/features/immersive-gallery/v3/MuseumExplore.jsx'
+      - 'src/features/immersive-gallery/v3/MuseumEvidence.jsx'
+      - 'scripts/test-museum-lab-v3.mjs'
+      - 'scripts/test-museum-sample-free-ui.mjs'
+      - '.github/workflows/museum-official-showcase.yml'
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  official-showcase:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Prevent demo and sample UI regressions
+        run: node scripts/test-museum-sample-free-ui.mjs
+      - name: Compile official Museum Lab
+        run: npx vite build
