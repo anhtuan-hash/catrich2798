@@ -27,9 +27,9 @@ export const uid=x=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{1
 export const PUBLIC_MUSEUM_ACTOR='00000000-0000-4000-8000-000000000001';
 export async function publicMuseumContext(admin){
  const rows=await query(admin.from('gcp_assignments')
-  .select('school_scope,updated_at,content_frozen_at')
+  .select('school_scope,created_at,content_frozen_at')
   .is('archived_at',null)
-  .order('updated_at',{ascending:false})
+  .order('created_at',{ascending:false})
   .limit(40));
  const school=rows.find(row=>row.content_frozen_at)?.school_scope||rows[0]?.school_scope;
  if(!clean(school,180))throw fail(404,'No public museum is available.');
