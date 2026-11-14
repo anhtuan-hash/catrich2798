@@ -30,6 +30,6 @@ assert.throws(()=>importCodedCohort([header,record('RealStudent01')].join('\n'))
 assert.throws(()=>importCodedCohort([header,record('P001'),record('P001')].join('\n')), /duplicate/);
 assert.throws(()=>importCodedCohort([header.replace('student_id','full_name'),record('P001')].join('\n')), /Personal-identification/);
 assert.throws(()=>importCodedCohort([header,record('P001','101')].join('\n')), /0–100/);
-assert.equal(escapeCsv('=SUM(1,2)'),"'=SUM(1,2)");
+assert.equal(escapeCsv('=SUM(1,2)'), "\"'=SUM(1,2)\"");
 assert.match(toCsv(['x'],[{x:'1,2'}]),/"1,2"/);
 console.log('[PASS] English Early Warning: CSV validation, tri-state signals, workbook parity, exports');
