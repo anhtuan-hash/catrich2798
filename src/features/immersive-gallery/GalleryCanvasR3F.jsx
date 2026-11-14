@@ -153,8 +153,10 @@ function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdi
   onClick={e=>{e.stopPropagation();if(focus.phase==='idle')onSelect?.(exhibit.id);}}
   onPointerOver={e=>{e.stopPropagation();if(focus.phase==='idle')document.body.style.cursor='pointer';}}
   onPointerOut={()=>{document.body.style.cursor='';}}>
-  <mesh><boxGeometry args={cinemaEdition?[2.63,3.41,.12]:schoolEdition?[2.45,1.95,.11]:[2.04,1.70,.10]}/>
-   <meshStandardMaterial color={schoolEdition?(isSelected?'#F6D477':'#B69B62'):(isSelected?'#e4aa64':'#ae856e')} roughness={.63} metalness={schoolEdition?.19:0}/></mesh>
+  <mesh><boxGeometry args={cinemaEdition?[2.78,3.56,.08]:schoolEdition?[2.45,1.95,.11]:[2.04,1.70,.10]}/>
+   <meshStandardMaterial color={cinemaEdition?'#0C3228':schoolEdition?(isSelected?'#F6D477':'#B69B62'):(isSelected?'#e4aa64':'#ae856e')} roughness={.45} metalness={cinemaEdition?.35:schoolEdition?.19:0}/></mesh>
+  {cinemaEdition?<mesh position={[0,0,.03]}><boxGeometry args={[2.63,3.41,.07]}/>
+   <meshStandardMaterial color={isSelected?'#F6D477':'#E2C56A'} metalness={.62} roughness={.28}/></mesh>:null}
   <mesh position={[0,0,.058]}><boxGeometry args={cinemaEdition?[2.46,3.22,.025]:schoolEdition?[2.29,1.80,.025]:[1.86,1.52,.025]}/>
    <meshStandardMaterial color="#fffdf5" roughness={.89}/></mesh>
   {exhibit.kind==='model'
@@ -170,7 +172,13 @@ function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdi
 }
 function Walls({template,onTeleport,schoolEdition=false,cinemaEdition=false,lite=false}) {
  const original=ROOM_TEMPLATES[template]||ROOM_TEMPLATES.classic;
- const theme=schoolEdition?{...original,wall:'#E5F3EB',floor:'#DFE5DC',ceiling:'#F8FCF7',accent:'#138F86'}:original;
+ const theme=schoolEdition
+  ?{...original,
+    wall:cinemaEdition?'#16382F':'#E5F3EB',
+    floor:cinemaEdition?'#102E27':'#DFE5DC',
+    ceiling:cinemaEdition?'#1A3330':'#F8FCF7',
+    accent:'#C8A34B'}
+  :original;
  const culture=template==='culture',lab=template==='lab',lobby=template==='lobby';
  return <group>
   <mesh position={[0,-0.08,0]} rotation={[-Math.PI/2,0,0]} receiveShadow onClick={e=>{
@@ -394,10 +402,10 @@ function CameraResizeSync(){
  return null;
 }
 function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=false,cinemaEdition=false,lite=false,focus=FOCUS_IDLE,focusBoard,onFocusBack,onFocusPhaseChange}) {
- return <><color attach="background" args={[schoolEdition?'#EBF5F0':'#f2f0e9']}/>
-  <ambientLight intensity={schoolEdition?1.25:1.1}/>
-  <hemisphereLight args={['#FFFFFF',schoolEdition?'#9CAD9D':'#B7AFA3',1.1]}/>
-  <directionalLight position={[1,7,3]} color={schoolEdition?'#FFF7E4':'#FFFFFF'} intensity={1.15}/>
+ return <><color attach="background" args={[schoolEdition?(cinemaEdition?'#0C241E':'#EBF5F0'):'#f2f0e9']}/>
+  <ambientLight intensity={schoolEdition?(cinemaEdition?.62:1.25):1.1}/>
+  <hemisphereLight args={[cinemaEdition?'#F6E2B0':'#FFFFFF',schoolEdition?(cinemaEdition?'#14352C':'#9CAD9D'):'#B7AFA3',cinemaEdition?.72:1.1]}/>
+  <directionalLight position={[1,7,3]} color={schoolEdition?'#FFF7E4':'#FFFFFF'} intensity={cinemaEdition?.85:1.15}/>
   <Walls template={template} onTeleport={onTeleport} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} lite={lite}/>
   {exhibits.slice(0,30).map((e,i)=><PaperArtwork key={e.id} exhibit={e} index={i} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition}
    focus={focus} onFocusPhaseChange={onFocusPhaseChange} onSelect={onSelect}

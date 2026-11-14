@@ -8,7 +8,24 @@ import {useTexture} from '@react-three/drei';
  * Student exhibits remain independent mesh objects in GalleryCanvasR3F.
  * Performance-lite drops small architectural/foliage accents, never the art.
  */
-const INK='#0D5B45',PINE='#176D59',GOLD='#C8A34B',PALE='#FAF8F1';
+const INK='#0D5B45',PINE='#176D59',GOLD='#C8A34B',PALE='#F4EBD6';
+function useCanvasMap(draw,width,height,deps){
+ const map=useMemo(()=>{
+  if(typeof document==='undefined')return null;
+  const canvas=document.createElement('canvas');
+  canvas.width=width;canvas.height=height;
+  const ctx=canvas.getContext('2d');
+  if(!ctx)return null;
+  draw(ctx,width,height);
+  const texture=new THREE.CanvasTexture(canvas);
+  texture.colorSpace=THREE.SRGBColorSpace;
+  texture.anisotropy=4;
+  return texture;
+ // eslint-disable-next-line react-hooks/exhaustive-deps
+ },deps);
+ useEffect(()=>()=>map?.dispose(),[map]);
+ return map;
+}
 function DisplayLettering({main,sub,position,size=[8.5,.69],light=false}){
  const map=useMemo(()=>{
   if(typeof document==='undefined')return null;
@@ -90,31 +107,41 @@ function Skylight({lite}){
   </group>):null}
  </group>;
 }
-function WindowBays({lite}){
+function WindowBays(){
+ const glass=useCanvasMap((ctx,w,h)=>{
+  const sky=ctx.createLinearGradient(0,0,0,h);
+  sky.addColorStop(0,'#163E38');sky.addColorStop(.42,'#6EAE8C');sky.addColorStop(1,'#E8D29A');
+  ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
+  ctx.globalAlpha=.5;
+  [[.2,.24,'#C8A34B'],[.52,.3,'#F6E7B4'],[.8,.22,'#1F6B52'],[.34,.64,'#0D5B45'],[.7,.68,'#E8CE78']].forEach(([x,y,color],i)=>{
+   ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(w*x,h*y,78+i*6,48,i*.4,0,Math.PI*2);ctx.fill();
+  });
+  ctx.globalAlpha=1;
+  ctx.strokeStyle='rgba(232,206,120,.9)';ctx.lineWidth=12;
+  ctx.strokeRect(26,26,w-52,h-52);
+ },512,640,[]);
  return <group>
-  {[-1,1].map(side=>[-4.9,1.1].map((z,index)=><group key={side+'-'+z}
+  {[-1,1].map(side=>[-4.9,1.1].map(z=><group key={side+'-'+z}
    position={[side*6.83,3.13,z]} rotation={[0,side===-1?Math.PI/2:-Math.PI/2,0]}>
-   <mesh position={[0,0,-.015]}>
-    <boxGeometry args={[3.15,3.68,.10]}/>
-    <meshStandardMaterial color="#D9E3D7" metalness={.08} roughness={.46}/>
+   <mesh position={[0,0,-.04]}>
+    <boxGeometry args={[3.42,4.05,.16]}/>
+    <meshStandardMaterial color="#08261F" metalness={.22} roughness={.42}/>
    </mesh>
-   <mesh position={[0,0,.042]}>
-    <planeGeometry args={[2.92,3.42]}/>
-    <meshBasicMaterial color="#C5DCCF" side={THREE.DoubleSide}/>
+   <mesh position={[0,0,.02]}>
+    <boxGeometry args={[3.22,3.82,.08]}/>
+    <meshStandardMaterial color={GOLD} metalness={.62} roughness={.28}/>
    </mesh>
-   {/* Layered landscape is geometry inside the window, not a campus photograph. */}
-   {Array.from({length:lite?3:5},(_,i)=><mesh key={i}
-    position={[-1.1+i*.53,-.82+Math.sin(i*2.1)*.23,.056]}>
-    <sphereGeometry args={[.45,9,7]}/>
-    <meshStandardMaterial color={i%2?'#81AC85':'#5D9278'} roughness={.93}/>
+   <mesh position={[0,0,.07]}>
+    <planeGeometry args={[2.92,3.48]}/>
+    {glass?<meshBasicMaterial map={glass} toneMapped={false}/>:<meshBasicMaterial color="#C5DCCF"/>}
+   </mesh>
+   {[-1.5,0,1.5].map(x=><mesh key={'v'+x} position={[x,0,.12]}>
+    <boxGeometry args={[.09,3.55,.08]}/>
+    <meshStandardMaterial color={GOLD} metalness={.55} roughness={.32}/>
    </mesh>)}
-   {[-1.55,0,1.55].map(x=><mesh key={'v'+x} position={[x,0,.1]}>
-    <boxGeometry args={[.095,3.7,.15]}/>
-    <meshStandardMaterial color="#0D6656" metalness={.10} roughness={.5}/>
-   </mesh>)}
-   {[-1.82,0,1.82].map(y=><mesh key={'h'+y} position={[0,y,.1]}>
-    <boxGeometry args={[3.3,.1,.15]}/>
-    <meshStandardMaterial color="#0D6656" metalness={.10} roughness={.5}/>
+   {[-1.75,0,1.75].map(y=><mesh key={'h'+y} position={[0,y,.12]}>
+    <boxGeometry args={[3.15,.09,.08]}/>
+    <meshStandardMaterial color={GOLD} metalness={.55} roughness={.32}/>
    </mesh>)}
   </group>))}
  </group>;
@@ -200,11 +227,26 @@ function ArtworkSpotlight({x,lite}){
  return <group>
   <primitive object={target}/>
   <spotLight position={[x,5.22,-6.75]} target={target}
-   color="#FFF3DA" intensity={lite?1.1:2.15}
+   color="#FFF3DA" intensity={lite?1.6:3.4}
    angle={.36} penumbra={.84} distance={7.3} decay={2}/>
  </group>;
 }
 export default function PekDiscoveryHallV4({lite=false}){
+ const floor=useCanvasMap((ctx,w,h)=>{
+  ctx.fillStyle='#102E27';ctx.fillRect(0,0,w,h);
+  ctx.fillStyle='#F7F1E4';ctx.fillRect(64,64,w-128,h-128);
+  ctx.strokeStyle='rgba(168,140,78,.28)';ctx.lineWidth=2;
+  for(let i=0;i<16;i++){
+   ctx.beginPath();ctx.moveTo(80,90+i*56);
+   ctx.bezierCurveTo(280,40+i*50,720,140+i*36,940,70+i*52);ctx.stroke();
+  }
+  ctx.strokeStyle='#C8A34B';ctx.lineWidth=22;ctx.strokeRect(36,36,w-72,h-72);
+  ctx.strokeStyle='#E8D48A';ctx.lineWidth=5;ctx.strokeRect(78,78,w-156,h-156);
+  ctx.beginPath();ctx.arc(w/2,h/2,150,0,Math.PI*2);ctx.strokeStyle='#0D5B45';ctx.lineWidth=12;ctx.stroke();
+  ctx.beginPath();ctx.arc(w/2,h/2,96,0,Math.PI*2);ctx.strokeStyle='#C8A34B';ctx.lineWidth=7;ctx.stroke();
+  ctx.fillStyle='#0D5B45';ctx.font='700 42px Georgia, serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('PÉTRUS KÝ',w/2,h/2-8);
+ },1024,1024,[lite]);
  return <group name="PekDiscoveryHallV4">
   {/* Walls, banners and lighting all exist in world-space. */}
   <mesh position={[0,3,-8.18]} receiveShadow>
@@ -231,9 +273,11 @@ export default function PekDiscoveryHallV4({lite=false}){
   <Skylight lite={lite}/>
   <WindowBays lite={lite}/>
   {/* Sculpted gallery floor and metallic guide lines. */}
-  <mesh rotation={[-Math.PI/2,0,0]} position={[0,-.064,-3.45]}>
-   <planeGeometry args={[10.6,10.9]}/>
-   <meshStandardMaterial color="#F4F1E9" metalness={.045} roughness={.35}/>
+  <mesh rotation={[-Math.PI/2,0,0]} position={[0,-.064,-3.45]} receiveShadow>
+   <planeGeometry args={[12.4,12.2]}/>
+   {floor
+    ?<meshStandardMaterial map={floor} metalness={.18} roughness={.42}/>
+    :<meshStandardMaterial color="#12352C" metalness={.12} roughness={.45}/>}
   </mesh>
   {[-5.16,5.16].map(x=><mesh key={x} position={[x,-.048,-3.45]}>
    <boxGeometry args={[.043,.012,10.8]}/>
@@ -265,5 +309,19 @@ export default function PekDiscoveryHallV4({lite=false}){
     <meshBasicMaterial color="#FFF4CD"/></mesh>
    <ArtworkSpotlight x={x} lite={lite}/>
   </group>)}
+  {/* Side galleries, drapes and a brass pendant — shared by teacher and student cinema. */}
+  {!lite?[-5.72,5.72].map(x=><group key={'drape-'+x} position={[x,3.35,-7.55]}>
+   <mesh><boxGeometry args={[.42,3.5,.08]}/><meshStandardMaterial color="#0C3D31" roughness={.72}/></mesh>
+   <mesh position={[x>0?-.16:.16,-1.15,.05]}><boxGeometry args={[.28,1.15,.06]}/><meshStandardMaterial color={GOLD} metalness={.45} roughness={.36}/></mesh>
+  </group>):null}
+  {!lite?<group position={[0,5.15,-3.6]}>
+   <mesh><cylinderGeometry args={[.04,.04,.7,10]}/><meshStandardMaterial color={GOLD} metalness={.7} roughness={.25}/></mesh>
+   <mesh position={[0,-.42,0]}><torusGeometry args={[.55,.045,10,28]}/><meshStandardMaterial color="#E8CE78" metalness={.62} roughness={.28}/></mesh>
+   {[-.55,0,.55].map(x=><mesh key={x} position={[x,-.62,0]}>
+    <sphereGeometry args={[.09,12,10]}/>
+    <meshStandardMaterial color="#FFF1C4" emissive="#FFE6A8" emissiveIntensity={.65}/>
+   </mesh>)}
+   <pointLight position={[0,-.7,0]} color="#FFE7B0" intensity={.85} distance={7} decay={2}/>
+  </group>:null}
  </group>;
 }
