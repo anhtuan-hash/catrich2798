@@ -16,6 +16,8 @@ import TtcmScrapbookSetting from '../features/ttcm-scrapbook/TtcmScrapbookSettin
 import GradebookScrapbookAdminPanel from '../components/admin/GradebookScrapbookAdminPanel.jsx';
 import { isAdminRole, isDepartmentLeaderRole } from '../utils/roles.js';
 import '../styles/SettingsGoogleM3.css';
+import '../styles/SettingsCosmic.css';
+import SettingsCosmicScene from '../components/settings/SettingsCosmicScene.jsx';
 import '../styles/SettingsLauncher2.css';
 import '../styles/SettingsLauncherDrawerRedesign.css';
 import '../styles/SettingsLauncherPortalCompat.css';
@@ -340,6 +342,7 @@ export default function Settings({
 
   return (
     <div className="page settings-google-page settings-launcher-v2">
+      <SettingsCosmicScene />
       <div className="settings-google-shell settings-launcher-shell">
         <main className="settings-google-main settings-launcher-stage">
           <SettingsLauncherHome
