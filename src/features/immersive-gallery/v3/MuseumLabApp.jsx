@@ -7,8 +7,7 @@ import {LessonWizard,LessonsList} from './MuseumLessonFlow.jsx';
 import {Submissions} from './MuseumReview.jsx';
 import {MuseumTemplates,MuseumGallery,MuseumSettings} from './MuseumExplore.jsx';
 import MuseumEvidence from './MuseumEvidence.jsx';
-import MuseumExhibitionDetail from './MuseumExhibitionDetail.jsx';
-import {DEMO_GALLERY,staffRequest} from './museumApi.js';
+import {staffRequest} from './museumApi.js';
 import './museumLab.css';
 import './museumPaper.css';
 const tr=(language,vi,en)=>language==='en'?en:vi;
@@ -31,7 +30,9 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
   return()=>window.clearInterval(timer);
  },[refresh]);
  const navigate=(id,extra)=>{
-  if(typeof window!=='undefined'&&id!=='gallery'&&id!=='demo'&&window.location.hash.includes('?exhibition=')){
+  // The completed competition experience has no demonstration route.
+  if(id==='demo'){setTab('gallery');return;}
+  if(typeof window!=='undefined'&&id!=='gallery'&&window.location.hash.includes('?exhibition=')){
    window.history.replaceState(null,'',window.location.hash.split('?')[0]);
   }
   // A lesson/submission search must never silently hide newly published
@@ -41,7 +42,6 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
   if(id==='submissions'&&extra)setReviewId(extra);
  };
  const create=()=>navigate('wizard');
- const demo=()=>navigate('demo');
  const openCollection=key=>{
   if(typeof window!=='undefined'){
    const hash=window.location.hash.split('?')[0]||'#/tool/immersive-gallery';
@@ -50,7 +50,7 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
   navigate('gallery');
  };
  const pending=staff?.reviews?.filter(r=>['submitted','ttcm_review'].includes(r.state)).length||0;
- return <div className={'bml bml-app-layout bml-paper '+(['gallery','demo'].includes(tab)?'bml-is-exhibition':'')} data-testid="brian-museum-lab-v3" lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
+ return <div className={'bml bml-app-layout bml-paper '+(tab==='gallery'?'bml-is-exhibition':'')} data-testid="brian-museum-lab-v3" lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
   <div className="bml-main-panel">
    <MuseumPaperHeader language={language} tab={tab} onNavigate={navigate} pending={pending}
     query={query} onQueryChange={setQuery} onRefresh={refresh} onHelp={()=>setHelp(true)}/>
@@ -59,7 +59,7 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
       <div><strong>{tr(language,'Không thể đồng bộ dữ liệu quản lý','Could not load staff data')}</strong><p>{error}</p>
        <button type="button" className="bml-outline" onClick={()=>{setLoading(true);refresh();}}><RefreshCw size={17}/>{tr(language,'Thử lại','Retry')}</button></div></div>:null}
     {loading?<div className="bml-empty bml-surface" role="status"><RefreshCw size={27}/>{tr(language,'Đang tải bài học và phân quyền…','Loading lessons and permissions…')}</div>:
-    tab==='home'?<MuseumDashboard language={language} data={staff} onNavigate={navigate} onCreate={create} onDemo={demo}/>:
+    tab==='home'?<MuseumDashboard language={language} data={staff} onNavigate={navigate} onCreate={create}/>:
     tab==='live'?<MuseumLiveTeacher data={staff} language={language} onBack={()=>navigate('home')}/>:
     tab==='wizard'?<LessonWizard language={language} data={staff} onExit={()=>navigate('lessons')}
       onSettings={()=>navigate('settings')} onCompleted={refresh}/>:
@@ -67,14 +67,12 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
       onCreate={()=>create()} onReview={id=>navigate('submissions',id)} onOpenCollection={openCollection} onRefresh={refresh}/>:
     tab==='submissions'?<Submissions key={reviewId||'normal'} language={language} data={staff} query={query}
       initialReview={reviewId} onNavigate={navigate} onRefresh={refresh}/>:
-    tab==='gallery'?<MuseumGallery language={language} query={query} data={staff} onNavigate={navigate} onDemo={demo} onRefresh={refresh} transport={transport}/>:
-    tab==='demo'?<MuseumExhibitionDetail gallery={DEMO_GALLERY} language={language} data={staff} isDemo startInCinema
-      onNavigate={navigate} onBack={()=>navigate('gallery')}/>:
-    tab==='templates'?<MuseumTemplates language={language} onCreate={create} onDemo={demo}/>:
+    tab==='gallery'?<MuseumGallery language={language} query={query} data={staff} onNavigate={navigate} onRefresh={refresh} transport={transport}/>:
+    tab==='templates'?<MuseumTemplates language={language} onCreate={create}/>:
     tab==='evidence'?<MuseumEvidence language={language} data={staff||{assignments:[],groups:[],reviews:[],rubrics:[]}}
-      currentUser={currentUser} onDemo={demo}/>:
+      currentUser={currentUser}/>:
     tab==='settings'?<MuseumSettings language={language} data={staff} onRefresh={refresh}/>:
-    <MuseumDashboard language={language} data={staff} onNavigate={navigate} onCreate={create} onDemo={demo}/>}
+    <MuseumDashboard language={language} data={staff} onNavigate={navigate} onCreate={create}/>}
    </main>
   </div>
   {help?<div className="bml-modal-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)setHelp(false);}}>
