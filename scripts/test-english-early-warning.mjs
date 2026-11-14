@@ -26,10 +26,10 @@ const withMissing = importCodedCohort([header,record('P003','40','40','40','40',
 assert.equal(evaluateLearner(withMissing[0]).status,'insufficient');
 assert.equal(evaluateLearner(withMissing[0]).flagCount,null);
 assert.equal(evaluateLearner(withMissing[0]).postMean,null);
-assert.throws(()=>importCodedCoh([header,record('RealStudent01')].join('\n')), /coded IDs/);
-assert.throws(()=>importCodedCoh([header,record('P001'),record('P001')].join('\n')), /duplicate/);
-assert.throws(()=>importCodedCoh([header.replace('student_id','full_name'),record('P001')].join('\n')), /Personal-identification/);
-assert.throws(()=>importCodedCoh([header,record('P001','101')].join('\n')), /0–100/);
+assert.throws(()=>importCodedCohort([header,record('RealStudent01')].join('\n')), /coded IDs/);
+assert.throws(()=>importCodedCohort([header,record('P001'),record('P001')].join('\n')), /duplicate/);
+assert.throws(()=>importCodedCohort([header.replace('student_id','full_name'),record('P001')].join('\n')), /Personal-identification/);
+assert.throws(()=>importCodedCohort([header,record('P001','101')].join('\n')), /0–100/);
 assert.equal(escapeCsv('=SUM(1,2)'),"'=SUM(1,2)");
 assert.match(toCsv(['x'],[{x:'1,2'}]),/"1,2"/);
 console.log('[PASS] English Early Warning: CSV validation, tri-state signals, workbook parity, exports');
