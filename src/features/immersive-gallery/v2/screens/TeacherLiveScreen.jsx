@@ -173,6 +173,32 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   ):null;
   const exitResponses=(stage?.kind==='exit'||session?.status==='ended')&&Array.isArray(state?.responses)
     ?state.responses.filter(r=>r.stage_index===currentIndex||stage?.kind==='exit').slice(0,30):[];
+  const toolbar=session?<TeacherToolbar language={language} readOnly={readOnly} busy={busy} session={session} currentIndex={currentIndex}
+    motionOn={motionOn} activeTool={activeTool}
+    onBack={onBack} onPrevious={()=>act('previous')} onNext={()=>act('next')} onToggleTask={()=>act(session.stageOpen?'close':'open')}
+    onReveal={()=>act('reveal')} onToggleTool={toggleTool} onFullscreen={fullscreen}
+    onToggleMotion={()=>setMotionOn(v=>!v)} onTogglePause={()=>act(session.status==='paused'?'resume':'pause')}
+    onRefresh={()=>{refresh();onRefresh&&onRefresh();}}/>:null;
+  // Fullscreen is rendered inside the fullscreen element; every viewer tool
+  // remains usable without opening an API write path for completed lessons.
+  const fullscreenPanel=isFullscreen&&activeTool?(
+   <div className="adv-fullscreen-viewer-tool">
+    <button type="button" className="adv-toolbtn" onClick={()=>setActiveTool(null)} aria-label="Close presenter tool">
+     <X size={14}/> Close
+    </button>
+    {activeTool==='voice'?<MuseumVoiceover stage={stage} language={language} compact
+      shareWithStudents={Boolean(session?.media?.voiceEnabled)}
+      onShareToggle={readOnly?null:shareNarration}/>:null}
+    {activeTool==='video'?<MuseumVideoLab mode="teacher" readOnly={readOnly} stage={stage}
+      stageIndex={currentIndex} media={session?.media} assignmentId={assignmentId} version={session?.version}
+      language={language} transport={transport}/>:null}
+    {activeTool==='notes'?<LessonResources stageIndex={currentIndex} teacher language={language}/>:null}
+    {activeTool==='resources'?<MuseumResourceHub stage={stage} language={language}/>:null}
+    {activeTool==='qr'?<div><h3>Student Creator QR</h3>
+      {qr?<img src={qr} width="160" height="160" alt="Student Creator QR"/>:null}
+      <p>{link}</p></div>:null}
+   </div>
+  ):null;
   return (
     <div className="igv2 igv2-screen" data-testid="igv2-teacher-live-screen">
       <EditorialHeading
@@ -206,14 +232,10 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
             revealed={Boolean(session.revealed)}
             elapsed={elapsed} remaining={remaining}
             respondedCount={respondedCount}
-            isFullscreen={isFullscreen} onExitFullscreen={fullscreen}/>
+            isFullscreen={isFullscreen} onExitFullscreen={fullscreen}
+            fullscreenControls={toolbar} fullscreenPanel={fullscreenPanel}/>
           <div className="mt16">
-            <TeacherToolbar language={language} readOnly={readOnly} busy={busy} session={session} currentIndex={currentIndex}
-              motionOn={motionOn} activeTool={activeTool}
-              onBack={onBack} onPrevious={()=>act('previous')} onNext={()=>act('next')} onToggleTask={()=>act(session.stageOpen?'close':'open')}
-              onReveal={()=>act('reveal')} onToggleTool={toggleTool} onFullscreen={fullscreen}
-              onToggleMotion={()=>setMotionOn(v=>!v)} onTogglePause={()=>act(session.status==='paused'?'resume':'pause')}
-              onRefresh={()=>{refresh();onRefresh&&onRefresh();}}/>
+            {!isFullscreen?toolbar:null}
           </div>
           {currentIndex===2&&!state?.survey&&!readOnly?(
             <div className="adv-panel-overlay" role="region" aria-label={t(language,'Chốt khảo sát','Freeze survey')}>
@@ -225,7 +247,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
               </div>):(<button type="button" className="adv-toolbtn adv-toolbtn--primary" style={{marginLeft:8}} disabled={busy} onClick={freeze}>{t(language,'Chốt khảo sát trực tuyến','Freeze online survey')}</button>)}
             </div>
           ):null}
-          {activeTool==='qr'?(
+          {!isFullscreen&&activeTool==='qr'?(
             <div className="adv-panel-overlay" role="region" aria-label={t(language,'Mã QR vào lớp','Class join QR')}>
               <button type="button" className="adv-panel-close" onClick={()=>setActiveTool(null)} aria-label={t(language,'Đóng mã QR','Close QR')}><X size={14}/></button>
               <h3 style={{marginTop:0}}>{t(language,'Học sinh quét mã QR để vào','Students scan to join')}</h3>
@@ -236,25 +258,25 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
                 </div></>:<p>{t(language,'Đang tạo mã QR…','Generating QR…')}</p>}
             </div>
           ):null}
-          {activeTool==='notes'?(
+          {!isFullscreen&&activeTool==='notes'?(
             <div className="adv-panel-overlay" role="region" aria-label={t(language,'Ghi chú dạy','Teaching notes')}>
               <button type="button" className="adv-panel-close" onClick={()=>setActiveTool(null)} aria-label={t(language,'Đóng ghi chú','Close notes')}><X size={14}/></button>
               <LessonResources stageIndex={currentIndex} teacher language={language}/>
             </div>
           ):null}
-          {activeTool==='resources'?(
+          {!isFullscreen&&activeTool==='resources'?(
             <div className="adv-panel-overlay" role="region" aria-label={t(language,'Thư viện nghiên cứu','Research library')}>
               <button type="button" className="adv-panel-close" onClick={()=>setActiveTool(null)} aria-label={t(language,'Đóng thư viện','Close library')}><X size={14}/></button>
               <MuseumResourceHub stage={stage} language={language}/>
             </div>
           ):null}
-          {activeTool==='voice'?(
+          {!isFullscreen&&activeTool==='voice'?(
             <div className="adv-panel-overlay" role="region" aria-label={t(language,'Giọng đọc','Voiceover')}>
               <button type="button" className="adv-panel-close" onClick={()=>setActiveTool(null)} aria-label={t(language,'Đóng giọng đọc','Close voiceover')}><X size={14}/></button>
               <MuseumVoiceover stage={stage} language={language} compact shareWithStudents={Boolean(session?.media?.voiceEnabled)} onShareToggle={readOnly?null:shareNarration}/>
             </div>
           ):null}
-          {activeTool==='video'?(
+          {!isFullscreen&&activeTool==='video'?(
             <div className="adv-panel-overlay" role="region" aria-label={t(language,'Video Lab','Video Lab')}>
               <button type="button" className="adv-panel-close" onClick={()=>setActiveTool(null)} aria-label={t(language,'Đóng Video Lab','Close Video Lab')}><X size={14}/></button>
               <MuseumVideoLab mode="teacher" readOnly={readOnly} stage={stage} stageIndex={currentIndex} media={session?.media} assignmentId={assignmentId} version={session?.version} language={language} transport={transport}/>
