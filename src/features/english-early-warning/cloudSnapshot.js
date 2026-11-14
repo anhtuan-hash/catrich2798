@@ -24,6 +24,7 @@ export function buildCloudSnapshot(cohort, reviews, journal) {
     studentId, decision: entry.decision, reviewedAt: entry.reviewedAt,
   }));
   const entries = (journal || []).map(row => {
+    if (reviews?.[row.studentId]?.decision !== 'confirmed') throw new Error('An intervention requires teacher-confirmed review.');
     const valid = validateWeeklyEntry({ ...row, note: '' }, ids);
     if (!Number.isFinite(Date.parse(String(row.recordedAt || '')))) throw new Error('Invalid journal timestamp.');
     return {
@@ -61,6 +62,7 @@ export function restoreCloudSnapshot(payload) {
     reviews[row.studentId] = { decision: row.decision, reviewedAt: row.reviewedAt, notes: '' };
   }
   const entries = payload.entries.map((row, index) => {
+    if (reviews[row.studentId]?.decision !== 'confirmed') throw new Error('Cloud intervention entry has no confirmed teacher review.');
     const value = validateWeeklyEntry({ ...row, note: '' }, ids);
     if (!Number.isFinite(Date.parse(row.recordedAt))) throw new Error('Invalid journal date in snapshot.');
     if (!Number.isInteger(row.sequence) || row.sequence < 1 || row.sequence > 960) throw new Error('Invalid journal sequence.');
