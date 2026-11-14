@@ -8,7 +8,7 @@ function Tool({label,icon:Icon,onClick,disabled=false,active=false,title}){
  </button>;
 }
 export default function MuseumFullscreenDock({
- language='vi',session,currentIndex,busy,activeTool,motionOn,focusMode,needHelp=0,
+ language='vi',session,currentIndex,busy,activeTool,motionOn,focusMode,needHelp=0,readOnly=false,
  onAction,onTool,onMotion,onFocus,onExit,onRefresh
 }){
  const ended=session?.status==='ended',open=session?.stageOpen;
@@ -17,11 +17,11 @@ export default function MuseumFullscreenDock({
   <div className="bml-presenter-dock-main">
    <div className="bml-presenter-dock-nav">
     <Tool icon={ChevronLeft} label={t(language,'Trước','Previous')} disabled={busy||currentIndex===0} onClick={()=>onAction('previous')} title="←"/>
-    <Tool icon={ChevronRight} label={t(language,'Tiếp','Next')} disabled={busy||ended||currentIndex===10} onClick={()=>onAction('next')} title="→"/>
+    <Tool icon={ChevronRight} label={t(language,'Tiếp','Next')} disabled={busy||(!readOnly&&ended)||currentIndex===10} onClick={()=>onAction('next')} title="→"/>
     <Tool icon={open?Lock:Play} label={open?t(language,'Khóa','Lock'):t(language,'Mở lại','Reopen')}
-     disabled={busy||ended} onClick={()=>onAction(open?'close':'open')}/>
+     disabled={readOnly||busy||ended} onClick={()=>onAction(open?'close':'open')}/>
     <Tool icon={Eye} label={t(language,'Giải thích','Explanation')} active={activeTool==='explain'}
-     onClick={()=>{if(!session.revealed)onAction('reveal');onTool('explain');}} disabled={busy||ended}/>
+     onClick={()=>{if(readOnly||!session.revealed)onAction('reveal');onTool('explain');}} disabled={busy||(!readOnly&&ended)}/>
    </div>
    <div className="bml-presenter-dock-tools">
     <Tool icon={Volume2} label="Voiceover" active={activeTool==='voice'} onClick={()=>onTool('voice')} title="V"/>
@@ -41,9 +41,9 @@ export default function MuseumFullscreenDock({
   {!focusMode?<div className="bml-presenter-dock-secondary">
    <Tool icon={Sparkles} label={motionOn?'Motion ON':'Motion OFF'} active={motionOn} onClick={onMotion}/>
    <Tool icon={session.status==='paused'?Play:Pause} label={session.status==='paused'?t(language,'Tiếp tục','Resume'):t(language,'Tạm dừng','Pause')}
-    onClick={()=>onAction(session.status==='paused'?'resume':'pause')} disabled={busy||ended} title="Space"/>
+    onClick={()=>onAction(session.status==='paused'?'resume':'pause')} disabled={readOnly||busy||ended} title="Space"/>
    <Tool icon={RefreshCcw} label={t(language,'Cập nhật','Refresh')} onClick={onRefresh}/>
-   <Tool icon={Check} label={t(language,'Kết thúc buổi dạy','End lesson')} onClick={()=>onAction('end')} disabled={busy||ended}/>
+   <Tool icon={Check} label={t(language,'Kết thúc buổi dạy','End lesson')} onClick={()=>onAction('end')} disabled={readOnly||busy||ended}/>
    <span className="bml-presenter-help"><HelpCircle size={16}/>{needHelp} {t(language,'nhóm cần giúp','groups need help')}</span>
   </div>:null}
  </nav>;
