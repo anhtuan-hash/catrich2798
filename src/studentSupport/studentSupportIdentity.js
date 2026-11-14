@@ -1,4 +1,4 @@
-const VALID_TABS = new Set(['overview','alerts','student','cases','observations','rules','reports']);
+const VALID_TABS = new Set(['overview','alerts','student','cases','observations','rules','reports','english']);
 
 function clean(value) {
   return String(value || '').trim();
