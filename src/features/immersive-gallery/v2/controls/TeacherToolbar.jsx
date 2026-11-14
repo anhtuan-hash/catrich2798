@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{useState} from 'react';
 import {ArrowLeft,ArrowRight,QrCode,Maximize,BookOpen,Library,Volume2,Film,Sparkles,Pause,Play,RefreshCw,Eye,LockOpen,Lock} from 'lucide-react';
 const t=(lang,vi,en)=>lang==='en'?en:vi;
 /**
@@ -20,16 +20,27 @@ export default function TeacherToolbar({
   const stageOpen=Boolean(session?.stageOpen);
   const revealed=Boolean(session?.revealed);
   const isLast=currentIndex>=10;
-  const btn=(key,label,Icon,{onClick,disabled=false,pressed=false,variant='',extraAria=''}={})=>(
-    <button key={key} type="button" className={`adv-toolbtn${variant?' adv-toolbtn--'+variant:''}${pressed?' is-active':''}`}
-      onClick={onClick} disabled={disabled} aria-pressed={pressed||undefined} aria-label={extraAria||label}>
-      {Icon?<Icon size={14} aria-hidden="true"/>:null}{label}
+  const [navKey,setNavKey]=useState('');
+  const runNav=async(key,fn)=>{
+    if(navKey)return;
+    setNavKey(key);
+    const started=Date.now();
+    try{await fn();}
+    finally{
+      const wait=Math.max(0,420-(Date.now()-started));
+      window.setTimeout(()=>setNavKey(''),wait);
+    }
+  };
+  const btn=(key,label,Icon,{onClick,disabled=false,pressed=false,variant='',extraAria='',loading=false}={})=>(
+    <button key={key} type="button" className={`adv-toolbtn${variant?' adv-toolbtn--'+variant:''}${pressed?' is-active':''}${loading?' is-loading':''}`}
+      onClick={onClick} disabled={disabled||loading} aria-pressed={pressed||undefined} aria-busy={loading||undefined} aria-label={extraAria||label}>
+      {loading?<span className="adv-spin" aria-hidden="true"/>:Icon?<Icon size={14} aria-hidden="true"/>:null}{label}
     </button>
   );
   return (
     <div className="toolbar adv-toolbar" role="toolbar" aria-label={t(language,'Thanh điều khiển giáo viên','Teacher control toolbar')}>
-      {btn('previous',t(language,'Hoạt động trước','Previous activity'),ArrowLeft,{onClick:onPrevious,disabled:(!readOnly&&busy)||currentIndex===0})}
-      {btn('next',t(language,'Hoạt động tiếp theo →','Next activity →'),ArrowRight,{onClick:onNext,disabled:(!readOnly&&(busy||ended))||isLast,variant:'primary',extraAria:t(language,'Chuyển sang hoạt động tiếp theo','Advance to next activity')})}
+      {btn('previous',navKey==='previous'?t(language,'Đang chuyển…','Moving…'):t(language,'Hoạt động trước','Previous activity'),ArrowLeft,{onClick:()=>runNav('previous',onPrevious),disabled:(!readOnly&&busy)||currentIndex===0,loading:navKey==='previous'})}
+      {btn('next',navKey==='next'?t(language,'Đang chuyển…','Moving…'):t(language,'Hoạt động tiếp theo →','Next activity →'),ArrowRight,{onClick:()=>runNav('next',onNext),disabled:(!readOnly&&(busy||ended))||isLast,variant:'primary',loading:navKey==='next',extraAria:t(language,'Chuyển sang hoạt động tiếp theo','Advance to next activity')})}
       {btn('task',stageOpen?t(language,'Đóng nhiệm vụ','Close task'):t(language,'Mở nhiệm vụ','Open task'),stageOpen?Lock:LockOpen,{onClick:onToggleTask,disabled:mutateLocked,extraAria:stageOpen?t(language,'Đóng nhiệm vụ hiện tại','Close current task'):t(language,'Mở nhiệm vụ hiện tại','Open current task')})}
       {btn('reveal',readOnly?(revealed?t(language,'Ẩn giải thích','Hide explanation'):t(language,'Xem giải thích','Show explanation')):revealed?t(language,'Đã hiện giải thích','Explanation shown'):t(language,'Hiện giải thích','Reveal explanation'),Eye,{onClick:onReveal,disabled:busy||(!readOnly&&(ended||revealed))})}
       <span className="adv-toolbar-spacer" aria-hidden="true"/>
