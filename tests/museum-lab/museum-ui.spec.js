@@ -243,24 +243,26 @@ test('English-only group workspace shows no Vietnamese UI in all five project st
  await expect(competition).toBeVisible();
  await expect(competition).toHaveAttribute('lang','vi');
  await expect(competition).toContainText('BÀI DỰ THI');
- await expect(competition.locator('img')).toHaveCount(1);
- const banner=competition.locator('img');
- await expect(banner).toHaveJSProperty('complete',true);
+ await expect(competition).toContainText('OUR CLIMATE ACTION MUSEUM');
+ await expect(competition.locator('img')).toHaveCount(2);
  const originalViewport=page.viewportSize();
  for(const viewport of [{width:1536,height:960},{width:1366,height:768},{width:1024,height:768},{width:390,height:844}]){
   await page.setViewportSize(viewport);
   const result=await competition.evaluate(root=>{
    const outer=root.getBoundingClientRect();
-   const img=root.querySelector('img');
-   const box=img.getBoundingClientRect();
+   const title=root.querySelector('.cmast-title');
+   const titleBox=title.getBoundingClientRect();
+   const imgs=Array.from(root.querySelectorAll('img'));
    return {
-    visible:box.height>40&&box.top>=outer.top-1&&box.bottom<=outer.bottom+1&&box.left>=outer.left-1&&box.right<=outer.right+1,
-    loaded:img.complete&&img.naturalWidth===2116&&img.naturalHeight===463,
+    selectable:getComputedStyle(title).userSelect!=='none'&&title.innerText.includes('OUR CLIMATE ACTION MUSEUM'),
+    visible:titleBox.height>8&&titleBox.top>=outer.top-1&&titleBox.bottom<=outer.bottom+1&&titleBox.left>=outer.left-1&&titleBox.right<=outer.right+1,
+    loaded:imgs.length===2&&imgs.every(img=>img.complete&&img.naturalWidth>0),
     scrollFree:root.scrollHeight<=root.clientHeight+2
    };
   });
-  expect(result.visible,'Banner must stay inside the masthead at '+viewport.width+'px').toBe(true);
-  expect(result.loaded,'Approved contest artwork must load at '+viewport.width+'px').toBe(true);
+  expect(result.selectable,'Contest wording must be real selectable text at '+viewport.width+'px').toBe(true);
+  expect(result.visible,'Banner text must stay inside the masthead at '+viewport.width+'px').toBe(true);
+  expect(result.loaded,'Contest artwork must load at '+viewport.width+'px').toBe(true);
   expect(result.scrollFree,'Ribbon must not clip content at '+viewport.width+'px').toBe(true);
  }
  if(originalViewport)await page.setViewportSize(originalViewport);

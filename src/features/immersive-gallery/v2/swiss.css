@@ -3043,6 +3043,11 @@ html body .igv2.igv2 :not(#igv2-swiss-a#igv2-swiss-b#igv2-swiss-c):is(
   border: 0;
   border-radius: 0;
 }
+.igv2 .contest.contest-art .cmast-wing {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 .igv2 .adv-plan-period:nth-child(2) { background: #f4faf6; border-color: #d5eadc; border-top-color: #176f57; }
 .igv2 .adv-plan-period h3 { color: #142033; }
 .igv2 .three-col .panel:nth-child(1) { background: #fff6f4; }

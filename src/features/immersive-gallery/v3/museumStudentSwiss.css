@@ -451,3 +451,16 @@
 .bml.bml-student-login-with-ribbon .bml-paper .bml-contest-art{
  border-radius:18px!important;
 }
+.bml .bml-contest-art .cmast,
+.bml .bml-contest-art .cmast-copy,
+.bml .bml-contest-art .cmast-copy p{
+ user-select:text!important;
+ -webkit-user-select:text!important;
+}
+.bml .bml-contest-art .cmast-wing{
+ width:100%!important;
+ height:100%!important;
+ max-width:none!important;
+ max-height:none!important;
+ object-fit:cover!important;
+}

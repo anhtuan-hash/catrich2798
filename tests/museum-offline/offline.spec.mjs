@@ -8,7 +8,7 @@ test('file opens without network, navigates frozen lessons, submissions and live
  await expect(page.getByTestId('immersive-gallery-v2')).toBeVisible();
  await expect(page.getByText('Synthetic Offline QA Museum',{exact:true}).first()).toBeVisible();
  await expect(page.getByRole('button',{name:/Create a lesson|New lesson|Download offline/})).toHaveCount(0);
- await expect.poll(()=>page.getByTestId('igv2-competition-banner').locator('img').evaluateAll(imgs=>imgs.length===1&&imgs.every(i=>i.complete&&i.naturalWidth>0&&i.src.startsWith('data:')))).toBe(true);
+ await expect.poll(()=>page.getByTestId('igv2-competition-banner').locator('img').evaluateAll(imgs=>imgs.length===2&&imgs.every(i=>i.complete&&i.naturalWidth>0&&i.src.startsWith('data:')))).toBe(true);
  await page.screenshot({path:info.outputPath('offline-dashboard.png'),fullPage:true});
  const nav=page.getByRole('navigation',{name:'Primary',exact:true});
  await nav.getByRole('button',{name:/^Submissions/}).click();
