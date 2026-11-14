@@ -189,7 +189,7 @@ export default function EnglishEarlyWarning({ currentUser }) {
                   <p>Mean: <strong>{formatScore(selected.postMean)}</strong> · Change: <strong>{selected.progress === null ? '—' : (selected.progress > 0 ? '+' : '') + selected.progress}</strong> · Provisional rubric: <strong>{selected.rubricTarget === null ? 'Awaiting data' : selected.rubricTarget ? 'Target met' : 'Below target'}</strong></p>
                   <small>Form equivalence has not yet been validated. Changes are descriptive, not causal evidence.</small>
                 </section>
-                <section className="bew-review">
+                <section className="bew-verification">
                   <h4>Teacher verification</h4>
                   <label htmlFor="bew-review-notes">Notes (coded references only; max 600 characters)</label>
                   <textarea id="bew-review-notes" value={notesDraft} onChange={event => setNotesDraft(event.target.value)} maxLength={600} placeholder="Record the observed learning need and next review step without identifiable details."/>
