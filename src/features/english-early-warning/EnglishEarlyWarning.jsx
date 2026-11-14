@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   CSV_COLUMNS, RULE_VERSION, PILOT_THRESHOLDS, evaluateLearner,
   importCodedCohort, suggestedIntervention, summarizeCohort, toCsv,
@@ -46,6 +46,22 @@ export default function EnglishEarlyWarning({ currentUser }) {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [notesDraft, setNotesDraft] = useState('');
+  const accountIdRef = useRef(currentUser?.id || null);
+  useEffect(() => {
+    const accountId = currentUser?.id || null;
+    if (accountIdRef.current !== accountId) {
+      // Coded records must not leak across teacher account changes.
+      setCohort([]);
+      setReviews({});
+      setJournal([]);
+      setSelectedId('');
+      setNotesDraft('');
+      setSearch('');
+      setError('');
+      setNotice('Teacher session changed. Coded working data has been cleared.');
+      accountIdRef.current = accountId;
+    }
+  }, [currentUser?.id]);
   const analyzed = useMemo(() => cohort.map(evaluateLearner), [cohort]);
   const metrics = useMemo(() => summarizeCohort(analyzed), [analyzed]);
   const reviewMetrics = useMemo(() => reviewCounts(reviews), [reviews]);
