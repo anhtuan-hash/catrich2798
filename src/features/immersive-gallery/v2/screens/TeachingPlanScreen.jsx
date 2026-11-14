@@ -52,7 +52,7 @@ export default function TeachingPlanScreen({language='vi',data,onCreate,onBack,o
           <div style={{fontSize:72,fontWeight:900,lineHeight:.9,margin:'12px 0'}}>{activityCount}<br/><span style={{fontSize:28,color:'var(--igv2-warm-yellow,#f4ca4b)'}}>05.</span></div>
           <div style={{fontSize:13,fontWeight:800,lineHeight:1.3}}>GLOBAL WARMING<br/>CLIMATE ACTION MUSEUM</div>
         </div>
-        <div className="plan-copy" style={{padding:'4px 0'}}>
+        <div className="plan-copy" style={{background:'#fff',border:'1px solid var(--igv2-divider,#d9d4c9)',padding:'20px 24px'}}>
           <div style={{fontSize:11,fontWeight:850,letterSpacing:'.14em',color:'var(--igv2-muted,#6b7782)'}}>OUR CLIMATE ACTION MUSEUM</div>
           <h2 style={{margin:'6px 0 4px',fontSize:26,fontWeight:850}}>{kit.title||'Our Climate Action Museum'}</h2>
           <p style={{margin:0,fontSize:13,color:'var(--igv2-muted,#6b7782)'}}>{kit.subtitle||'English 11 · Global Success · Unit 5: Global Warming'}</p>
@@ -88,7 +88,7 @@ export default function TeachingPlanScreen({language='vi',data,onCreate,onBack,o
         ))}
       </div>
 
-      <ContentPanel variant="default" ariaLabel={t(language,'Sản phẩm học sinh cần hoàn thành','Expected student work')}>
+      <ContentPanel variant="default" className="mt20" ariaLabel={t(language,'Sản phẩm học sinh cần hoàn thành','Expected student work')}>
         <h3 style={{margin:'0 0 12px',fontSize:15,borderBottom:'2px solid var(--igv2-ink,#152033)',paddingBottom:8}}>{t(language,'Sản phẩm học sinh cần hoàn thành','Expected student work')}</h3>
         <div className="adv-outcomes">
           {outcomes.map(o=>(
@@ -100,7 +100,7 @@ export default function TeachingPlanScreen({language='vi',data,onCreate,onBack,o
         </div>
       </ContentPanel>
 
-      <ContentPanel variant="default" ariaLabel={t(language,'Tiến trình bài dạy','Lesson sequence')}>
+      <ContentPanel variant="default" className="mt20" ariaLabel={t(language,'Tiến trình bài dạy','Lesson sequence')}>
         <h3 style={{margin:'0 0 12px',fontSize:15,borderBottom:'2px solid var(--igv2-ink,#152033)',paddingBottom:8}}>{t(language,'Tiến trình {{n}} hoạt động · {{m}} phút','{{n}}-activity lesson sequence · {{m}} min').replace('{{n}}',activityCount).replace('{{m}}',LIVE_TOTAL_MINUTES)}</h3>
         <div className="adv-plan-periods">
           {[1,2].map(period=>(
@@ -125,7 +125,7 @@ export default function TeachingPlanScreen({language='vi',data,onCreate,onBack,o
         <p style={{fontSize:11,color:'var(--igv2-muted,#6b7782)',marginTop:14}}>{t(language,'Tạo bài học mới không thay đổi các bài đã giao. Dữ liệu khảo sát, phản hồi và kết quả học sinh chỉ có khi lớp thực sự thực hiện.','Creating this lesson does not alter existing assignments. Survey responses, peer feedback and student results are recorded only after classroom activity.')}</p>
       </ContentPanel>
 
-      <div style={{display:'flex',flexWrap:'wrap',gap:10,marginTop:20}}>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:14,marginTop:20}}>
         {onCreate?<ActionTile title={t(language,'Tạo bài học từ kế hoạch','Create lesson from plan')} description={t(language,'Mở trình tạo bài học và phát hành mã nhóm.','Open the lesson wizard and issue group passes.')} variant="accent" onClick={onCreate}/>:null}
         {onNavigate?<ActionTile title={t(language,'Xem bài học đã giao','View assigned lessons')} description={t(language,'Quản lý mã nhóm và bài đã giao.','Manage group passes and assignments.')} onClick={()=>onNavigate('lessons')}/>:null}
       </div>

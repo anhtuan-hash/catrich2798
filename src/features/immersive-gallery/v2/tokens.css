@@ -26,6 +26,16 @@
   --igv2-muted-soft: #687887;
   --igv2-line-dark: #172536;
 
+  /* Swiss Editorial V3 semantic tile & surface extensions */
+  --igv2-tile-cream: #f5ede2;
+  --igv2-tile-yellow: #fcd864;
+  --igv2-tile-blue: #bce0f7;
+  --igv2-tile-coral: #f26b5b;
+  --igv2-peach-soft: #fcedea;
+  --igv2-green-bar: #2ea44f;
+  --igv2-card-border: #d8d4cc;
+  --igv2-shadow-subtle: 0 2px 8px rgba(21, 32, 51, 0.05);
+
   /* Typography */
   --igv2-font-family: Inter, "Inter Display", Arial, sans-serif;
   --igv2-font-serif: Georgia, serif;
@@ -35,6 +45,7 @@
   --igv2-micro-px: 11px;
 
   /* Layout */
+  --igv2-max-width: 1360px;
   --igv2-sidebar-px: 234px;
   --igv2-main-padding-px: 30px;
   --igv2-grid-columns: 12;

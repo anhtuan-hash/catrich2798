@@ -1,6 +1,6 @@
 import React,{useCallback,useEffect,useState} from 'react';
 import {Plus,RefreshCw,ShieldAlert,X} from 'lucide-react';
-import {LessonsList} from './MuseumLessonFlow.jsx';
+import {LessonsList,LessonWizard} from './MuseumLessonFlow.jsx';
 import {staffRequest} from './museumApi.js';
 // --- Swiss Editorial V2 shell + owned screens (route-scoped under .igv2) ---
 import ImmersiveShell from '../v2/shell/ImmersiveShell.jsx';
@@ -26,10 +26,10 @@ const initialMuseumTab=()=>{
 
 // SideNavigation id (contract) <-> existing v3 tab.
 const NAV_TO_TAB={overview:'home',lessons:'lessons',submissions:'submissions',
- exhibitions:'gallery','teaching-plan':'wizard','teacher-live':'live',
+ exhibitions:'gallery','teaching-plan':'templates','teacher-live':'live',
  'competition-dossier':'evidence',settings:'settings'};
 const TAB_TO_NAV={home:'overview',lessons:'lessons',submissions:'submissions',
- gallery:'exhibitions',wizard:'teaching-plan',templates:'teaching-plan',
+ gallery:'exhibitions',wizard:'lessons',templates:'teaching-plan',
  live:'teacher-live',evidence:'competition-dossier',settings:'settings'};
 
 export default function MuseumLabApp({currentUser,language='en',transport=staffRequest}){
@@ -46,23 +46,26 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
   return()=>window.clearInterval(timer);
  },[refresh]);
  const navigate=(id,extra)=>{
+  const nextTab=NAV_TO_TAB[id]||id;
   // The completed competition experience has no demonstration route.
   if(id==='demo'){setTab('gallery');return;}
-  if(typeof window!=='undefined'&&id!=='gallery'&&window.location.hash.includes('?exhibition=')){
+  if(nextTab==='demo'){setTab('gallery');return;}
+  if(typeof window!=='undefined'&&nextTab!=='gallery'&&window.location.hash.includes('?exhibition=')){
    window.history.replaceState(null,'',window.location.hash.split('?')[0]);
   }
   // A lesson/submission search must never silently hide newly published
   // exhibitions when navigating to a different Museum Lab tab.
-  if(id==='gallery'&&id!==tab)setQuery('');
-  setTab(id);
-  if(id==='submissions'&&extra)setReviewId(extra);
+  if(nextTab==='gallery'&&nextTab!==tab)setQuery('');
+  setTab(nextTab);
+  if(nextTab==='submissions'&&extra)setReviewId(extra);
  };
  // Shell nav ids map to existing tabs; existing navigate()/reviewId preserved.
  const shellNavigate=(navId)=>{ navigate(NAV_TO_TAB[navId]||'home'); };
  const create=()=>navigate('wizard');
  const activeNav=TAB_TO_NAV[tab]||'overview';
+ const pendingCount=(staff?.reviews||[]).filter(r=>r.state==='submitted'||r.state==='ttcm_review').length;
  const sharedScreenProps={language,data:staff,staff,onNavigate:navigate,onRefresh:refresh,transport,onCreate:create,onBack:()=>navigate('home'),initialReview:reviewId};
- return <ImmersiveShell activeNav={activeNav} onNavigate={shellNavigate} language={language} staff={staff} data={staff}>
+ return <ImmersiveShell activeNav={activeNav} onNavigate={shellNavigate} language={language} staff={staff} data={staff} query={query} onQueryChange={setQuery} onRefresh={refresh} onHelp={()=>setHelp(true)} pendingCount={pendingCount}>
   <div className="bml" data-testid="brian-museum-lab-v3" lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
    {error?<div className="bml-banner bml-danger-banner" role="alert" style={{marginBottom:18}}><ShieldAlert size={19}/>
      <div><strong>{tr(language,'Không thể đồng bộ dữ liệu quản lý','Could not load staff data')}</strong><p>{error}</p>
@@ -70,7 +73,7 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
    {loading?<div className="bml-empty bml-surface" role="status"><RefreshCw size={27}/>{tr(language,'Đang tải bài học và phân quyền…','Loading lessons and permissions…')}</div>:
    tab==='home'?<OverviewScreen {...sharedScreenProps}/>:
    tab==='live'?<TeacherLiveScreen {...sharedScreenProps}/>:
-   tab==='wizard'?<TeachingPlanScreen {...sharedScreenProps}/>:
+   tab==='wizard'?<LessonWizard language={language} data={staff} onCompleted={refresh} onExit={()=>navigate('lessons')} onSettings={()=>navigate('settings')}/>:
    tab==='lessons'?<LessonsList language={language} data={staff} query={query}
      onCreate={()=>create()} onReview={id=>navigate('submissions',id)} onRefresh={refresh}/>:
    tab==='submissions'?<SubmissionsScreen {...sharedScreenProps} query={query}/>:

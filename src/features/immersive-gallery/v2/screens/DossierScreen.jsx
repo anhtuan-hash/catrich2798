@@ -89,7 +89,7 @@ export default function DossierScreen({language='vi',data,staff,onRefresh,transp
       {missing.some(c=>c.label===t(language,'Minh chứng lớp học thật','Authentic classroom evidence'))?(
         <div className="adv-banner adv-banner--warn" role="alert"><AlertTriangle size={14}/> {t(language,'Cảnh báo thiếu minh chứng: ','Missing-evidence warning: ')}{t(language,'Minh chứng lớp học thật chưa được đính kèm. Ứng dụng chỉ lập bản nháp, không tự tạo thành tích hay minh chứng. Giáo viên phải bổ sung học liệu thật và xác nhận trước khi nộp.','Authentic classroom evidence is not attached. Drafts do not constitute official evidence. Verify curriculum alignment and attach only authentic teaching materials before submission.')}</div>
       ):null}
-      <div className="dossier-layout" style={{display:'grid',gridTemplateColumns:'1.3fr 1fr',gap:16,marginTop:16}}>
+      <div className="dossier-layout">
         <div className="panel">
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
             <h3 style={{margin:0}}>{t(language,'KIỂM TRA HỒ SƠ','SUBMISSION READINESS')}</h3>
@@ -111,7 +111,7 @@ export default function DossierScreen({language='vi',data,staff,onRefresh,transp
           exportBusy={exportBusy} exportError={exportError}
           onExportDoc={downloadDoc} onExportZip={downloadZip} onExportEvidence={downloadEvidence} onExportCsv={downloadCsv}/>
       </div>
-      <style>{`.igv2 .dossier-layout{grid-template-columns:1.3fr 1fr}@media(max-width:900px){.igv2 .dossier-layout{grid-template-columns:1fr}}`}</style>
+      <style>{`.igv2 .dossier-layout{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;margin-top:16px}@media(max-width:900px){.igv2 .dossier-layout{grid-template-columns:minmax(0,1fr)}}`}</style>
     </div>
   );
 }
