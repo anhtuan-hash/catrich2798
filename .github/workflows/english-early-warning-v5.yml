@@ -1,0 +1,30 @@
+name: English Early Warning V5 evidence verification
+on:
+  push:
+    branches: [feature/english-early-warning-v5-evidence-20261114]
+    paths:
+      - 'src/features/english-early-warning/**'
+      - 'scripts/test-english-*.mjs'
+      - '.github/workflows/english-early-warning-v5.yml'
+  pull_request:
+    paths:
+      - 'src/features/english-early-warning/**'
+      - 'scripts/test-english-*.mjs'
+permissions:
+  contents: read
+jobs:
+  evidence-verification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Validate V3–V5 deterministic rules and evidence
+        run: |
+          node --version
+          node --check src/features/english-early-warning/researchEvidence.js
+          node scripts/test-english-early-warning.mjs
+          node scripts/test-english-intervention-v4.mjs
+          node scripts/test-english-cloud-snapshot-v4.mjs
+          node scripts/test-english-cloud-schema-static-v4.mjs
+          node scripts/test-english-research-evidence-v5.mjs
