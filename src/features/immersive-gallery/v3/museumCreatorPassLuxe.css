@@ -1,0 +1,361 @@
+/* Student Creator Pass gate only.
+   Scoped to the unauthenticated login shell so the studio stays unchanged. */
+.bml.bml-student-login-with-ribbon.bml-student-editorial{
+ --luxe-ink:#17343a;
+ --luxe-teal:#0f6d62;
+ --luxe-deep:#0b534c;
+ position:relative;
+ isolation:isolate;
+ overflow:hidden;
+ color:var(--luxe-ink);
+ background:
+  radial-gradient(920px 480px at 8% -8%, #fff8ec 0%, transparent 62%),
+  radial-gradient(780px 560px at 108% 6%, #c9f0e4 0%, transparent 58%),
+  radial-gradient(640px 520px at -8% 92%, #e7f7ef 0%, transparent 60%),
+  radial-gradient(860px 520px at 92% 108%, #d5efe4 0%, transparent 55%),
+  linear-gradient(165deg, #f7fbf8 0%, #e7f4ee 42%, #f6f1e6 100%);
+ font-family:"Avenir Next","Segoe UI",Inter,Arial,sans-serif;
+}
+.bml.bml-student-login-with-ribbon.bml-student-editorial::before,
+.bml.bml-student-login-with-ribbon.bml-student-editorial::after{
+ content:"";
+ position:absolute;
+ z-index:0;
+ pointer-events:none;
+ border-radius:50%;
+ filter:blur(2px);
+}
+.bml.bml-student-login-with-ribbon.bml-student-editorial::before{
+ width:min(620px,70vw);height:min(420px,48vw);
+ left:-8%;top:18%;
+ background:radial-gradient(circle, rgba(255,255,255,.72), rgba(186,230,214,.18) 62%, transparent 72%);
+}
+.bml.bml-student-login-with-ribbon.bml-student-editorial::after{
+ width:min(540px,62vw);height:min(380px,46vw);
+ right:-6%;bottom:4%;
+ background:radial-gradient(circle, rgba(255,248,230,.8), rgba(176,214,196,.16) 60%, transparent 74%);
+}
+.bml.bml-student-login-with-ribbon.bml-student-editorial > *{position:relative;z-index:1}
+
+/* Official contest masthead as frosted glass, not paper tape. */
+.bml.bml-student-login-with-ribbon .bml-guest-competition-wrap{
+ max-width:1180px;
+}
+.bml.bml-student-login-with-ribbon .bml-paper .bml-competition-ribbon--dashboard{
+ margin:0!important;
+ border:1px solid rgba(255,255,255,.78)!important;
+ border-image:none!important;
+ border-radius:32px!important;
+ padding:18px clamp(16px,2.4vw,34px)!important;
+ background:
+  linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,252,246,.58))!important;
+ box-shadow:
+  0 18px 50px rgba(48,92,78,.12),
+  inset 0 1px 0 rgba(255,255,255,.9)!important;
+ backdrop-filter:blur(18px) saturate(1.15);
+ -webkit-backdrop-filter:blur(18px) saturate(1.15);
+ color:#17343a;
+}
+.bml.bml-student-login-with-ribbon .bml-paper .bml-competition-ribbon--dashboard::before,
+.bml.bml-student-login-with-ribbon .bml-paper .bml-competition-ribbon--dashboard::after,
+.bml.bml-student-login-with-ribbon .bml-paper .bml-competition-ribbon--dashboard .bml-competition-decor{
+ display:none!important;
+}
+.bml.bml-student-login-with-ribbon .bml-paper .bml-competition-ribbon--dashboard .bml-competition-seal{
+ background:radial-gradient(circle at 50% 42%, #fff, #f4f7f2 72%);
+ border-radius:50%;
+ padding:8px;
+ box-shadow:
+  0 0 0 8px rgba(255,255,255,.55),
+  0 12px 28px rgba(36,84,70,.14);
+ filter:none;
+}
+.bml.bml-student-login-with-ribbon .bml-paper .bml-competition-ribbon--dashboard .bml-competition-seal img{
+ max-height:148px;
+ border-radius:50%;
+ mix-blend-mode:normal!important;
+}
+.bml.bml-student-login-with-ribbon .bml-paper .bml-competition-ribbon--dashboard .bml-competition-award{
+ border:0;
+ border-radius:999px;
+ padding:7px 22px;
+ background:linear-gradient(180deg,#ef4b45,#c42732);
+ box-shadow:0 8px 18px rgba(180,40,48,.28), inset 0 1px 0 rgba(255,255,255,.35);
+ font-size:clamp(15px,1.5vw,22px);
+ letter-spacing:.08em;
+}
+.bml.bml-student-login-with-ribbon .bml-paper .bml-competition-ribbon--dashboard .bml-competition-award::before,
+.bml.bml-student-login-with-ribbon .bml-paper .bml-competition-ribbon--dashboard .bml-competition-award::after{
+ display:none!important;
+}
+.bml.bml-student-login-with-ribbon .bml-paper .bml-competition-ribbon--dashboard h2{
+ color:#163e49!important;
+ font-weight:850!important;
+ letter-spacing:-.02em!important;
+}
+.bml.bml-student-login-with-ribbon .bml-paper .bml-competition-ribbon--dashboard .bml-competition-year{
+ border-radius:999px;
+ clip-path:none;
+ padding:6px 18px;
+ background:linear-gradient(100deg,#0e4e56,#1a6d68);
+ box-shadow:0 8px 16px rgba(14,70,74,.22);
+}
+.bml.bml-student-login-with-ribbon .bml-paper .bml-competition-ribbon--dashboard .bml-competition-copy .bml-competition-author{
+ border-radius:999px;
+ background:linear-gradient(180deg,#ffe38a,#f6c95a);
+ box-shadow:0 6px 14px rgba(196,150,40,.18);
+ padding:3px 14px!important;
+}
+.bml.bml-student-login-with-ribbon .bml-paper .bml-competition-ribbon--dashboard .bml-competition-school{
+ font-family:Georgia,"Iowan Old Style",serif;
+ font-style:italic;
+ font-weight:700;
+}
+
+/* Two frosted panes inside one luminous shell. */
+.bml.bml-student-login-with-ribbon.bml-student-editorial > .bml-guest-entry{
+ width:min(1080px,100%);
+ max-width:1080px;
+ min-height:0;
+ margin:0 auto;
+ padding:12px;
+ gap:12px;
+ display:grid;
+ grid-template-columns:1.05fr .95fr;
+ align-items:stretch;
+ border-radius:36px;
+ border:1px solid rgba(255,255,255,.78);
+ background:linear-gradient(180deg, rgba(255,255,255,.42), rgba(255,255,255,.18));
+ box-shadow:
+  0 30px 70px rgba(32,78,66,.14),
+  inset 0 1px 0 rgba(255,255,255,.85);
+ backdrop-filter:blur(10px);
+ overflow:hidden;
+}
+.bml.bml-student-login-with-ribbon .bml-guest-illustration{
+ position:relative;
+ border-radius:28px;
+ padding:clamp(28px,3.4vw,48px);
+ color:#f7f1e4;
+ background:
+  radial-gradient(420px 240px at 80% 12%, rgba(255,255,255,.28), transparent 60%),
+  linear-gradient(165deg, rgba(47,168,146,.92), rgba(16,104,96,.88) 58%, rgba(12,78,74,.92));
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.35);
+ gap:10px;
+ justify-content:center;
+}
+.bml.bml-student-login-with-ribbon .bml-guest-overline{
+ color:#f4efe4;
+ letter-spacing:.02em;
+ font-size:18px;
+ font-weight:750;
+}
+.bml.bml-student-login-with-ribbon .bml-guest-overline svg{
+ color:#f6e7b2;
+ filter:drop-shadow(0 4px 8px rgba(8,40,36,.25));
+}
+.bml.bml-student-login-with-ribbon .bml-guest-globe{
+ width:min(250px,78%);
+ height:168px;
+ margin:10px auto 6px;
+ border:1px solid rgba(255,255,255,.55);
+ border-radius:28px;
+ background:linear-gradient(160deg, rgba(255,255,255,.34), rgba(255,255,255,.08));
+ box-shadow:
+  0 22px 40px rgba(6,36,32,.22),
+  inset 0 1px 0 rgba(255,255,255,.65);
+ color:#f6e7b0;
+ backdrop-filter:blur(14px);
+ transform:rotate(-7deg);
+ filter:none;
+}
+.bml.bml-student-login-with-ribbon .bml-guest-globe::before,
+.bml.bml-student-login-with-ribbon .bml-guest-globe::after{
+ content:"";
+ position:absolute;
+ inset:0;
+ border-radius:inherit;
+ border:1px solid rgba(255,255,255,.38);
+ background:linear-gradient(160deg, rgba(255,255,255,.22), rgba(255,255,255,.05));
+ pointer-events:none;
+}
+.bml.bml-student-login-with-ribbon .bml-guest-globe::before{
+ transform:rotate(11deg) translate(16px,-12px);
+ z-index:-1;
+}
+.bml.bml-student-login-with-ribbon .bml-guest-globe::after{
+ transform:rotate(-16deg) translate(-14px,14px);
+ z-index:-2;
+ border-top:1px solid rgba(255,255,255,.38);
+}
+.bml.bml-student-login-with-ribbon .bml-guest-globe > svg:first-child{
+ width:78px;height:78px;
+ filter:drop-shadow(0 8px 12px rgba(8,40,30,.25));
+}
+.bml.bml-student-login-with-ribbon .bml-guest-globe > svg:last-child{
+ right:22px;bottom:18px;
+ color:#d7f3c8;
+ filter:drop-shadow(0 4px 8px rgba(8,40,30,.2));
+}
+.bml.bml-student-login-with-ribbon .bml-guest-illustration h1{
+ font-family:"Avenir Next","Segoe UI",Inter,sans-serif;
+ font-weight:780;
+ letter-spacing:-.035em;
+ color:#f8f1e2;
+ font-size:clamp(34px,3.3vw,48px);
+ line-height:1.05;
+ text-wrap:balance;
+}
+.bml.bml-student-login-with-ribbon .bml-guest-illustration p{
+ color:rgba(247,241,228,.86);
+ font-size:15px;
+}
+.bml.bml-student-login-with-ribbon .bml-guest-benefits span{
+ border:1px solid rgba(255,255,255,.38);
+ background:rgba(255,255,255,.14);
+ color:#f7f3e8;
+ border-radius:999px;
+ backdrop-filter:blur(8px);
+ padding:8px 14px;
+ font-weight:700;
+}
+.bml.bml-student-login-with-ribbon .bml-guest-form{
+ border-radius:28px;
+ background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,252,247,.82));
+ box-shadow:inset 0 1px 0 #fff;
+ padding:clamp(26px,3vw,42px);
+}
+.bml.bml-student-login-with-ribbon .bml-guest-form > .bml-overline{
+ color:#b15a3e;
+ letter-spacing:.16em;
+ font-size:11px;
+ font-weight:800;
+}
+.bml.bml-student-login-with-ribbon .bml-guest-form h2{
+ font-family:"Avenir Next","Segoe UI",Inter,sans-serif;
+ font-weight:760;
+ letter-spacing:-.03em;
+ color:#17343a;
+ font-size:clamp(28px,2.4vw,36px);
+}
+.bml.bml-student-login-with-ribbon .bml-guest-form > p{
+ color:#4d645c;
+}
+.bml.bml-student-login-with-ribbon .bml-guest-form .bml-success-banner{
+ align-items:center;
+ border-radius:18px;
+ border:1px solid #c9ead4;
+ background:linear-gradient(180deg,#f3fbf4,#e7f6ec);
+ color:#2a6a52;
+ box-shadow:inset 0 1px 0 #fff;
+}
+.bml.bml-student-login-with-ribbon .bml-classroom-invite-summary{
+ border-radius:20px;
+ border:1px solid #e4d8f6;
+ background:linear-gradient(120deg,#f7f2ff,#fbf9ff);
+ box-shadow:inset 0 1px 0 #fff;
+}
+.bml.bml-student-login-with-ribbon .bml-quick-link-confirmation{
+ border-radius:16px;
+ background:linear-gradient(180deg,#f4fbf6,#e5f6ec);
+ border-color:#c5e6d2;
+}
+.bml.bml-student-login-with-ribbon .bml-guest-form label{
+ color:#1d3f3a;
+ font-size:14px;
+ font-weight:750;
+}
+.bml.bml-student-login-with-ribbon .bml-secret-field{
+ position:relative;
+ display:block;
+ margin-top:8px;
+}
+.bml.bml-student-login-with-ribbon .bml-guest-form .bml-secret-field input{
+ margin-top:0;
+ min-height:52px;
+ border-radius:16px;
+ border:1px solid #d5e3dc;
+ background:#fff;
+ padding-right:48px;
+ box-shadow:inset 0 1px 2px rgba(23,52,48,.04);
+}
+.bml.bml-student-login-with-ribbon .bml-guest-form input{
+ border-radius:16px;
+ min-height:52px;
+ border:1px solid #d5e3dc;
+ background:#fff;
+}
+.bml.bml-student-login-with-ribbon .bml-secret-toggle{
+ position:absolute;
+ top:50%;
+ right:8px;
+ transform:translateY(-50%);
+ width:36px;
+ height:36px;
+ min-height:36px;
+ margin:0;
+ padding:0;
+ border:0;
+ border-radius:12px;
+ background:transparent;
+ color:#5d746c;
+ display:grid;
+ place-items:center;
+ cursor:pointer;
+}
+.bml.bml-student-login-with-ribbon .bml-secret-toggle:hover{background:#eef6f2;color:#14584f}
+.bml.bml-student-login-with-ribbon .bml-quick-access-alternate{
+ color:#1d5fbf;
+ font-weight:700;
+}
+.bml.bml-student-login-with-ribbon .bml-guest-form button.bml-primary{
+ margin-top:8px;
+ min-height:56px;
+ border:0;
+ border-radius:18px;
+ background:linear-gradient(180deg,#1aa384,#0d6d62 55%,#0b5c54);
+ box-shadow:
+  0 12px 24px rgba(13,109,98,.28),
+  inset 0 1px 0 rgba(255,255,255,.35);
+ font-weight:780;
+ letter-spacing:.01em;
+}
+.bml.bml-student-login-with-ribbon .bml-guest-form button.bml-primary:hover{
+ background:linear-gradient(180deg,#179678,#0b6258);
+}
+.bml.bml-student-login-with-ribbon .bml-guest-form .bml-privacy{
+ color:#5c726a;
+ align-items:flex-start;
+}
+
+@media (max-width:760px){
+ .bml.bml-student-login-with-ribbon.bml-student-editorial > .bml-guest-entry{
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  padding:8px;
+  border-radius:26px;
+ }
+ .bml.bml-student-login-with-ribbon .bml-guest-form{order:1;padding:22px 18px}
+ .bml.bml-student-login-with-ribbon .bml-guest-illustration{order:2;padding:22px 18px}
+ .bml.bml-student-login-with-ribbon .bml-guest-globe{display:flex}
+ .bml.bml-student-login-with-ribbon .bml-guest-illustration h1{font-size:30px}
+ .bml.bml-student-login-with-ribbon .bml-paper .bml-competition-ribbon--dashboard{
+  border-radius:22px!important;
+  padding:14px 12px 16px!important;
+ }
+ .bml.bml-student-login-with-ribbon .bml-paper .bml-competition-ribbon--dashboard .bml-competition-seal{
+  width:78px;height:78px;padding:4px;
+ }
+ .bml.bml-student-login-with-ribbon .bml-paper .bml-competition-ribbon--dashboard .bml-competition-seal img{
+  max-height:70px;
+ }
+}
+@media (prefers-reduced-motion:reduce){
+ .bml.bml-student-login-with-ribbon.bml-student-editorial *,
+ .bml.bml-student-login-with-ribbon.bml-student-editorial *::before,
+ .bml.bml-student-login-with-ribbon.bml-student-editorial *::after{
+  animation:none!important;
+  transition:none!important;
+ }
+}

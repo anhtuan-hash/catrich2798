@@ -1,5 +1,5 @@
 import React,{Suspense,useCallback,useEffect,useRef,useState} from 'react';
-import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronLeft,ChevronRight,CircleHelp,ClipboardCheck,Cloud,CloudAlert,CloudUpload,Eye,FileText,Info,KeyRound,Landmark,Leaf,Lightbulb,LockKeyhole,MessageSquare,RefreshCw,Send,ShieldCheck,Sparkles,Users,X} from 'lucide-react';
+import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronLeft,ChevronRight,CircleHelp,ClipboardCheck,Cloud,CloudAlert,CloudUpload,Eye,EyeOff,FileText,Info,KeyRound,Landmark,Leaf,Lightbulb,LockKeyhole,MessageSquare,RefreshCw,Send,ShieldCheck,Sparkles,Users,X} from 'lucide-react';
 import {emptyStudio,documentFromStudio,normalizeStudio,STEPS,moveStoryboardCard} from './museumData.js';
 import {guestRequest,getMuseumInviteInfo,englishSystemGroupLabel} from './museumApi.js';
 import {artGuest,liveGuest} from './museumLiveApi.js';
@@ -27,6 +27,7 @@ import './museumStudentScrapbookV6.css';
 import './museumSubmissionFix.css';
 import './museumDashboardBanner.css';
 import './museumQuickAccessV58.css';
+import './museumCreatorPassLuxe.css';
 
 const T=(lang,vi,en)=>lang==='en'?en:vi;
 const getHandle=()=>{
@@ -37,6 +38,7 @@ function GuestEntry({onRedeem,busy,error,language,onResetError}){
  const [handle,setHandle]=useState(getHandle),[secret,setSecret]=useState('');
  const [invite,setInvite]=useState(null),[lookupBusy,setLookupBusy]=useState(false);
  const [method,setMethod]=useState('quick');
+ const [showSecret,setShowSecret]=useState(false);
  const validHandle=/^[A-Za-z0-9_-]{16,80}$/.test(handle.trim());
  useEffect(()=>{
   let active=true;
@@ -78,9 +80,14 @@ function GuestEntry({onRedeem,busy,error,language,onResetError}){
      placeholder={T(language,'Mã từ QR của giáo viên','Teacher invite code')}/></label>:
     <div className="bml-quick-link-confirmation"><CheckCircle2 size={16}/> {T(language,'Đã nhận diện link mời','Invitation link recognized')}</div>}
    <label>{quick?T(language,'Mật khẩu lớp học','Class password'):T(language,'Mã bí mật nhóm','Private group passcode')}
-    <input autoComplete="off" type="password" required minLength={quick?6:16} maxLength={quick?64:128}
+    <span className="bml-secret-field">
+    <input autoComplete="off" type={showSecret?'text':'password'} required minLength={quick?6:16} maxLength={quick?64:128}
      value={secret} onChange={e=>setSecret(e.target.value)}
-     placeholder={quick?T(language,'Nhập mật khẩu lớp','Enter classroom password'):T(language,'Mã riêng của nhóm','Your private group passcode')}/></label>
+     placeholder={quick?T(language,'Nhập mật khẩu lớp','Enter classroom password'):T(language,'Mã riêng của nhóm','Your private group passcode')}/>
+    <button type="button" className="bml-secret-toggle" aria-pressed={showSecret}
+     aria-label={showSecret?T(language,'Ẩn mật khẩu','Hide password'):T(language,'Hiện mật khẩu','Show password')}
+     onClick={()=>setShowSecret(v=>!v)}>{showSecret?<EyeOff size={18}/>:<Eye size={18}/>}</button>
+    </span></label>
    {lookupBusy?<small className="bml-invite-loading">{T(language,'Đang kiểm tra link mời…','Checking invitation link…')}</small>:null}
    {invite?.quickAccessEnabled?<button type="button" className="bml-quick-access-alternate"
     onClick={()=>selectMethod(quick?'private':'quick')}>
