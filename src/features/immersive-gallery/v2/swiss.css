@@ -2705,3 +2705,86 @@ html:has(.igv2) .bes-smart-bubble-dock {
 .igv2 .panel,
 .igv2 .kpi-grid,
 .igv2 .action { border-radius: 0; }
+
+/* Swiss type: one grotesk, one scale. Beats the global font authority inside this tool. */
+html body .igv2.igv2 :not(#igv2-swiss-a#igv2-swiss-b#igv2-swiss-c):is(
+  h1, h2, h3, h4, h5, h6, p, span, strong, b, em, small, label, li, a, button,
+  input, textarea, select, option, div
+) {
+  font-family: var(--igv2-font-family) !important;
+  font-synthesis: none;
+}
+.igv2 {
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  text-rendering: optimizeLegibility;
+}
+.igv2 .page-title,
+.igv2 .bml h1 {
+  font-size: var(--igv2-type-title);
+  font-weight: 800;
+  line-height: 0.96;
+  letter-spacing: -0.045em;
+}
+.igv2 .ov-hero-title,
+.igv2 .ov-hero-word-bottom {
+  font-size: var(--igv2-type-display);
+  font-weight: 800;
+  line-height: 0.88;
+  letter-spacing: -0.055em;
+  text-transform: uppercase;
+}
+.igv2 .ov-hero-strapline {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.25;
+}
+.igv2 .page-desc,
+.igv2 .bml p {
+  font-size: var(--igv2-body-px);
+  font-weight: 450;
+  line-height: 1.5;
+  letter-spacing: -0.011em;
+}
+.igv2 .bml h2,
+.igv2 .panel h3 {
+  font-size: var(--igv2-type-h2);
+  font-weight: 750;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+.igv2 .bml h3 { font-size: var(--igv2-type-h3); font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; }
+.igv2 .section-title,
+.igv2 .bml .bml-overline,
+.igv2 .ov-hero-year-label,
+.igv2 .banner-ribbon {
+  font-size: var(--igv2-section-px);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+.igv2 .igv2-topbar-wordmark {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.igv2 .igv2-nav-pill,
+.igv2 .bml .bml-primary,
+.igv2 .bml .bml-outline,
+.igv2 .bml .bml-quiet-btn {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.igv2 .kpi strong,
+.igv2 .ov-hero-year-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+.igv2 .kpi strong { font-size: clamp(32px, 2.6vw, 44px); line-height: 1; }
+.igv2 .contest-sub,
+.igv2 .contest-person,
+.igv2 .contest-level { font-weight: 650; letter-spacing: 0; text-transform: none; }

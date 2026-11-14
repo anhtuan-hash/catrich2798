@@ -61,11 +61,11 @@
 .igv2 .ov-hero-title,
 .igv2 .ov-hero-word-bottom {
   margin: 0;
-  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
-  font-size: clamp(46px, 4.6vw, 60px);
+  font-family: Inter, "Be Vietnam Pro", "Helvetica Neue", Arial, sans-serif;
+  font-size: clamp(40px, 4vw, 56px);
   font-weight: 800;
-  line-height: 0.94;
-  letter-spacing: -0.025em;
+  line-height: 0.9;
+  letter-spacing: -0.05em;
   color: #191d26;
   text-transform: uppercase;
   flex-shrink: 0;
