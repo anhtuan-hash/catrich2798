@@ -5,7 +5,13 @@ import {
   summarizeJournal,
 } from './interventionJournal.js';
 
-function dateToday() { return new Date().toISOString().slice(0, 10); }
+function dateToday() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return yyyy + '-' + mm + '-' + dd;
+}
 const EMPTY = { week: '1', skill: 'listening', assigned: '2', completed: '0', checkpointScore: '', observedOn: dateToday(), note: '' };
 
 export default function InterventionTracker({ studentId, cohort, reviews, entries, onEntriesChange, onMessage }) {
