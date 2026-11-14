@@ -2726,6 +2726,15 @@ html:has(.igv2) .bes-smart-bubble-dock {
   cursor: pointer;
 }
 .igv2 .exhibit-poster { display: block; width: 100%; height: auto; }
+.igv2 .exhibit-cover {
+  display: block;
+  width: 100%;
+  height: 210px;
+  object-fit: contain;
+  object-position: center;
+  background: #f6f1e6;
+}
+.igv2 .exhibit-cover-wait { background: #efe8da; }
 .igv2 .exhibit-poster-card .serial,
 .igv2 .exhibit-poster-card .status {
   position: absolute;

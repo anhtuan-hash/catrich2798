@@ -85,8 +85,11 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
  // creators. Keep the management page mounted underneath for information,
  // sharing and returning to the Exhibition catalogue.
  const openCinema=()=>{setSection('space');setMoreOpen(false);setCinemaOpen(true);};
- const closeCinema=()=>{setCinemaOpen(false);
-  window.requestAnimationFrame?.(()=>enterCinemaRef.current?.focus?.());};
+ const closeCinema=()=>{
+  if(startInCinema){onBack?.();return;}
+  setCinemaOpen(false);
+  window.requestAnimationFrame?.(()=>enterCinemaRef.current?.focus?.());
+ };
  useEffect(()=>{
   if(!cinemaOpen||typeof document==='undefined')return undefined;
   const oldOverflow=document.body.style.overflow;
@@ -96,6 +99,15 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
   });
   return()=>{if(frame!=null)window.cancelAnimationFrame?.(frame);document.body.style.overflow=oldOverflow;};
  },[cinemaOpen]);
+ const cinemaPortal=cinemaOpen&&typeof document!=='undefined'?createPortal(
+  <div className="bml bml-paper bml-teacher-cinema-portal" data-testid="museum-teacher-cinema-portal">
+   <div className="bml-review-cinema-overlay" role="dialog" aria-modal="true"
+    aria-label={t(language,'Tham quan triển lãm toàn màn hình','Full-screen museum exhibition')}>
+    <MuseumScene gallery={gallery} language={language} embedded cinema initial3D
+     onClose={closeCinema}/>
+   </div>
+  </div>,document.body):null;
+ if(startInCinema)return cinemaPortal;
  return <>
  <div className="bml-exhibition-detail bml-screen" data-testid="museum-exhibition-detail">
   <nav className="bml-exh-breadcrumbs" aria-label={t(language,'Đường dẫn','Breadcrumb')}>
@@ -172,13 +184,6 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
   <footer className="bml-exh-footer"><span><Landmark size={18}/> BRIAN Museum Lab <span aria-hidden="true">·</span> V3.2</span>
    <span>Teach Better Together ♡</span></footer>
  </div>
- {cinemaOpen&&typeof document!=='undefined'?createPortal(
-  <div className="bml bml-paper bml-teacher-cinema-portal" data-testid="museum-teacher-cinema-portal">
-   <div className="bml-review-cinema-overlay" role="dialog" aria-modal="true"
-    aria-label={t(language,'Tham quan triển lãm toàn màn hình','Full-screen museum exhibition')}>
-    <MuseumScene gallery={gallery} language={language} embedded cinema initial3D
-     onClose={closeCinema}/>
-   </div>
-  </div>,document.body):null}
+ {cinemaPortal}
  </>;
 }

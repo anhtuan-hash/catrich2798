@@ -38,7 +38,7 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
   const [loading, setLoading] = useState(true);
   const [showArchived, setShowArchived] = useState(false);
   const [error, setError] = useState('');
-  const [notice, setNotice] = useState('');
+  const [covers, setCovers] = useState({});
 
   const pull = async () => {
     const api = await import('../../galleryData.js');
@@ -64,6 +64,7 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
         const {api, items, archive} = await pull();
         if (!active) return;
         setGalleries(items); setShowcase(archive);
+        loadCovers(items).then(next => { if (active) setCovers(next); }).catch(() => {});
         const initial = exhibitionFromHash();
         if (initial && initial !== 'demo' && !initial.startsWith('collection-')) {
           try {
@@ -83,9 +84,27 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const loadCovers = async (items) => {
+    const published = (items || []).filter(g => g?.id && g.status === 'published').slice(0, 16);
+    const pairs = await Promise.all(published.map(async (g) => {
+      try {
+        const full = (await transport('showcase-exhibition', {id: g.id})).gallery;
+        const image = (full?.rooms || [])
+          .flatMap(room => room.exhibits || [])
+          .map(exhibit => exhibit.image_url)
+          .find(src => typeof src === 'string' && src) || '';
+        return [g.id, image];
+      } catch {
+        return [g.id, ''];
+      }
+    }));
+    return Object.fromEntries(pairs);
+  };
+
   const reload = async () => {
     const {items, archive} = await pull();
     setGalleries(items); setShowcase(archive);
+    setCovers(await loadCovers(items));
   };
 
   const enter = async item => {
@@ -195,9 +214,7 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
             <ExhibitionCard key={g.id}
               serial={'EXH. ' + String(i + 1).padStart(2, '0')}
               title={g.title}
-              description={g.summary || tr(language,'Dự án bảo tàng của học sinh','Student museum project')}
-              featured={i === 0}
-              index={i}
+              cover={covers[g.id] || ''}
               statusLabel={tr(language,'Đã công bố','Published')}
               language={language}
               onOpen={() => enter(g)} />

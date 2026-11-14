@@ -323,5 +323,19 @@ export default function PekDiscoveryHallV4({lite=false}){
    </mesh>)}
    <pointLight position={[0,-.7,0]} color="#FFE7B0" intensity={.85} distance={7} decay={2}/>
   </group>:null}
+  {!lite?<mesh position={[0,-.058,-5.55]} rotation={[-Math.PI/2,0,0]}>
+   <planeGeometry args={[2.15,7.1]}/>
+   <meshStandardMaterial color="#6B1C28" roughness={.9} metalness={.02}/>
+  </mesh>:null}
+  {!lite?[-1.22,1.22].map(x=><group key={'rail-'+x}>
+   {[-6.55,-4.55].map(z=><group key={z} position={[x,0,z]}>
+    <mesh position={[0,.46,0]}><cylinderGeometry args={[.045,.05,.92,12]}/><meshStandardMaterial color={GOLD} metalness={.72} roughness={.26}/></mesh>
+    <mesh position={[0,.94,0]}><sphereGeometry args={[.07,12,10]}/><meshStandardMaterial color="#F3E2A8" metalness={.6} roughness={.3}/></mesh>
+   </group>)}
+   <mesh position={[x,.9,-5.55]} rotation={[Math.PI/2,0,0]}>
+    <cylinderGeometry args={[.016,.016,2.05,8]}/>
+    <meshStandardMaterial color="#7A2430" roughness={.62}/>
+   </mesh>
+  </group>):null}
  </group>;
 }
