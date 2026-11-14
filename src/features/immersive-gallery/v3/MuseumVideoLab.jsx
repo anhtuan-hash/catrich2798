@@ -91,7 +91,7 @@ export default function MuseumVideoLab({mode='student',readOnly=false,stage,stag
     <div className="bml-video-kicker"><ShieldCheck size={16}/> VERIFIED LESSON CLIP · NASA</div>
     <strong>{curated.title}</strong><p>{curated.prompt}</p><small>{curated.timing}</small>
     <div className="bml-video-actions">
-     {readOnly?<button type="button" className="bml-primary" onClick={()=>onProject?.({id:curated.id,title:curated.title,channel:curated.channel})}>
+     {readOnly?<button type="button" className="bml-primary" onClick={()=>{const clip={id:curated.id,title:curated.title,channel:curated.channel};setSelected(clip);onProject?.(clip);}}>
       <Play size={16}/>Watch NASA clip</button>:
      <button type="button" className="bml-primary" disabled={busy||videos.some(v=>v.id===curated.id)}
       onClick={()=>save('media-add',{videoId:curated.id,title:curated.title,channel:curated.channel,instruction:curated.prompt})}>
