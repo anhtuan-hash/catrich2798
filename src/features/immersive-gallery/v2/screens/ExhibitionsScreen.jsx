@@ -29,7 +29,7 @@ const setExhibitionHash = key => {
 // Props: {language, data, staff, onNavigate, onRefresh, transport, query}.
 export default function ExhibitionsScreen({language='en', data, staff, onNavigate, onRefresh, transport=defaultTransport, query=''}) {
   const payload = data || staff || {};
-  const isAdmin = payload?.profile?.role === 'admin';
+  const isAdmin = payload?.profile?.role === 'admin' && !payload?.offlineReadOnly;
   const [galleries, setGalleries] = useState(() => payload?.publishedGalleries || []);
   const [showcase, setShowcase] = useState({hiddenCollections: [], archivedGalleries: []});
   const [selected, setSelected] = useState(null);

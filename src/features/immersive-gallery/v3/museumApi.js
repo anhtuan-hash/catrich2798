@@ -1,3 +1,4 @@
+import {getMuseumOffline} from './offlineAccess.js';
 import {DEMO_GALLERY} from './museumDemo.js';
 const vietnameseDiacritics=/[àáạảãăằắặẳẵâầấậẩẫèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;
 export function englishMuseumError(value,fallback='The request could not be completed.'){
@@ -14,6 +15,7 @@ export function englishMuseumError(value,fallback='The request could not be comp
 export const englishSystemGroupLabel=label=>String(label??'').replace(/^Nhóm(?=\s|$)/i,'Group');
 export {DEMO_GALLERY};
 export async function staffRequest(action,body){
+ if(getMuseumOffline())return getMuseumOffline().staff(action,body);
  const {supabase}=await import('../../../utils/supabase.js');
  if(!supabase)throw new Error('BRIAN account connection is not configured.');
  const {data:{session},error}=await supabase.auth.getSession();
@@ -42,6 +44,7 @@ export async function getMuseumInviteInfo(handle){
  return value;
 }
 export async function guestRequest(action,method='GET',body,csrf=''){
+ if(getMuseumOffline())return getMuseumOffline().guest(action,method,body);
  const response=await fetch('/api/gallery-guest?operation='+encodeURIComponent(action),{
   method,credentials:'same-origin',cache:'no-store',
   headers:{

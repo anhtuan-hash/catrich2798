@@ -59,6 +59,7 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
  const announce=(message)=>{setNotice(message);window.setTimeout(()=>setNotice(''),4000);};
  const copyLink=async()=>{
   setMoreOpen(false);
+  if(data?.offlineReadOnly){announce('Share the original offline ZIP archive to let another person open this exhibition.');return;}
   try{
    if(navigator.share){await navigator.share({title:gallery?.title||'BRIAN Museum Lab',url:link});return;}
    await navigator.clipboard.writeText(link);

@@ -21,7 +21,7 @@ const FIELD_DEFS=[
  * No evidence is invented: missing fields stay blank until the teacher fills them.
  */
 export default function DossierEditor({
-  language='vi',
+  language='vi',readOnly=false,
   fields={},onFieldsChange=()=>{},
   assignments=[],selectedAssignmentId='',onSelectAssignment=()=>{},
   exportBusy=false,exportError='',
@@ -45,7 +45,7 @@ export default function DossierEditor({
           <button type="button" className="adv-export-btn" disabled={exportBusy} onClick={onExportZip}><FileArchive size={15}/>{t(language,'Tải ZIP hồ sơ nháp P1/P2','Download P1/P2 draft ZIP')}</button>
           <button type="button" className="adv-export-btn" disabled={exportBusy||!selectedAssignmentId} onClick={onExportEvidence}><Download size={15}/>{t(language,'Xuất khảo sát · góp ý · bản trước/sau · ảnh thật','Export survey · feedback · revisions · original images')}</button>
           <button type="button" className="adv-export-btn" onClick={onExportCsv}><Download size={15}/>{t(language,'Tải bảng tiến độ CSV','Download progress CSV')}</button>
-          <a className="adv-export-link" href={guideHref} target="_blank" rel="noreferrer">{t(language,'Hướng dẫn bài dạy · không cần đăng nhập','Read-only lesson guide · no login')}</a>
+          <a className="adv-export-link" href={guideHref} download={readOnly?'BRIAN_Lesson_Guide.html':undefined} target="_blank" rel="noreferrer">{t(language,'Hướng dẫn bài dạy · không cần đăng nhập','Read-only lesson guide · no login')}</a>
         </div>
         {exportError?<div className="adv-banner adv-banner--danger" role="alert"><AlertCircle size={14}/> {exportError}</div>:null}
         <p className="page-desc" style={{fontSize:11,marginBottom:0}}>{t(language,'ZIP gồm hai bản nháp DOCX có thể chỉnh sửa và bảng kiểm tra thiếu minh chứng.','ZIP includes two editable DOCX drafts and a missing-evidence checklist.')}</p>
@@ -57,7 +57,7 @@ export default function DossierEditor({
           {FIELD_DEFS.map(([key,vi,en])=>(
             <div className="form-field adv-dossier-field" key={key}>
               <label htmlFor={`igv2-dossier-${key}`}>{t(language,vi,en)}</label>
-              <input id={`igv2-dossier-${key}`} value={fields[key]||''} maxLength={1200}
+              <input readOnly={readOnly} id={`igv2-dossier-${key}`} value={fields[key]||''} maxLength={1200}
                 onChange={e=>set(key,e.target.value)}
                 aria-required={['teacher','birthYear','gender','experience','school','phone'].includes(key)}
                 placeholder={t(language,'[Giáo viên điền]','[Teacher to provide]')}/>

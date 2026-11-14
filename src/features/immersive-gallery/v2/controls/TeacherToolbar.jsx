@@ -9,7 +9,7 @@ const t=(lang,vi,en)=>lang==='en'?en:vi;
  */
 export default function TeacherToolbar({
   language='vi',
-  readOnly=false,busy=false,
+  readOnly=false,busy=false,offline=false,
   session=null,currentIndex=0,
   motionOn=true,activeTool=null,
   onBack,onPrevious,onNext,onToggleTask,onReveal,onToggleTool,onFullscreen,
@@ -34,7 +34,7 @@ export default function TeacherToolbar({
       {btn('task',stageOpen?t(language,'Đóng nhiệm vụ','Close task'):t(language,'Mở nhiệm vụ','Open task'),stageOpen?Lock:LockOpen,{onClick:onToggleTask,disabled:mutateLocked,extraAria:stageOpen?t(language,'Đóng nhiệm vụ hiện tại','Close current task'):t(language,'Mở nhiệm vụ hiện tại','Open current task')})}
       {btn('reveal',readOnly?(revealed?t(language,'Ẩn giải thích','Hide explanation'):t(language,'Xem giải thích','Show explanation')):revealed?t(language,'Đã hiện giải thích','Explanation shown'):t(language,'Hiện giải thích','Reveal explanation'),Eye,{onClick:onReveal,disabled:busy||(!readOnly&&(ended||revealed))})}
       <span className="adv-toolbar-spacer" aria-hidden="true"/>
-      {btn('qr','QR',QrCode,{onClick:()=>onToggleTool('qr'),pressed:activeTool==='qr'})}
+      {btn('qr','QR',QrCode,{disabled:offline,onClick:()=>onToggleTool('qr'),pressed:activeTool==='qr'})}
       {btn('fullscreen',t(language,'Toàn màn hình','Fullscreen'),Maximize,{onClick:onFullscreen})}
       {btn('notes',t(language,'Ghi chú dạy','Teaching notes'),BookOpen,{onClick:()=>onToggleTool('notes'),pressed:activeTool==='notes'})}
       {btn('resources',t(language,'Thư viện','Research library'),Library,{onClick:()=>onToggleTool('resources'),pressed:activeTool==='resources'})}

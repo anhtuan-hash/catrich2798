@@ -67,7 +67,7 @@ export default function OverviewScreen({language='en', data, staff, onNavigate, 
 
       <div className="section-title"><span>{tr(language,'LỐI TẮT LÀM VIỆC','WORKSPACE SHORTCUTS')}</span><span className="right">{tr(language,'Chọn không gian làm việc','Select a workspace')}</span></div>
       <div className="actions-grid">
-        {shortcuts.map((s, i) => <ActionTile key={i} {...s} />)}
+        {shortcuts.filter(s=>s.onClick).map((s, i) => <ActionTile key={i} {...s} />)}
       </div>
 
       <div className="content-gap">

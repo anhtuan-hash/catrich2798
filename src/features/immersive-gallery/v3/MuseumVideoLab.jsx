@@ -1,3 +1,4 @@
+import {getMuseumOffline} from './offlineAccess.js';
 import React,{useEffect,useState} from 'react';
 import {BookOpen,Check,ExternalLink,Film,Link2,Play,RefreshCcw,Search,Send,ShieldCheck,Trash2,Video,X} from 'lucide-react';
 import {extractYouTubeVideoId,VIDEO_TASK_SUGGESTIONS,MUSEUM_CURRICULUM_VIDEOS} from './museumLiveExtensions.js';
@@ -6,6 +7,7 @@ const tr=(lang,vi,en)=>lang==='en'?en:vi;
 export function MuseumVideoFrame({id,title,onClose,language='vi'}){
  const videoId=extractYouTubeVideoId(id);
  if(!videoId)return null;
+ if(getMuseumOffline())return <section className="bml-surface" data-testid="museum-offline-video"><h3>{title||'YouTube'}</h3><p>{tr(language,'Video YouTube cần Internet và không được đóng gói trong bản này. Lời dẫn và nhiệm vụ học tập vẫn có thể xem offline.','This YouTube video requires Internet and is not embedded. Teaching scripts and tasks remain available offline.')}</p><code>{'https://www.youtube.com/watch?v='+videoId}</code><p><button type="button" className="bml-outline" onClick={onClose}>{tr(language,'Đóng','Close')}</button></p></section>;
  return <div className="bml-video-player" data-testid="museum-youtube-player">
   <div className="bml-video-player-heading"><strong><Film size={17}/>{title||'YouTube'}</strong>
    <button type="button" className="bml-outline" onClick={onClose}><X size={16}/>{tr(language,'Đóng video','Close video')}</button></div>
@@ -80,6 +82,7 @@ export default function MuseumVideoLab({mode='student',readOnly=false,stage,stag
  };
  const suggestion=VIDEO_TASK_SUGGESTIONS[stage?.id]||'climate change school action';
  const curated=MUSEUM_CURRICULUM_VIDEOS[stageIndex];
+ if(getMuseumOffline())return <section className="bml-video-lab" data-testid="museum-offline-video-list"><h3>Saved video resources</h3><p>{task.instruction}</p><p>YouTube videos require Internet and are not embedded in this archive.</p>{videos.map(v=><article key={v.id}><strong>{v.title}</strong><p>{v.channel}</p><code>{'https://www.youtube.com/watch?v='+v.id}</code></article>)}{!videos.length?<p>No video was assigned to this activity at export.</p>:null}</section>;
  if(!teacher&&!task.query&&!videos.length)return null;
  return <section className="bml-video-lab" data-testid="museum-video-lab">
   <header className="bml-video-lab-header">

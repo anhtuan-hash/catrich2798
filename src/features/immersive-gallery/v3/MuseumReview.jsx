@@ -39,7 +39,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,query='',la
  const assignment=assignments.find(a=>a.id===group?.assignment_id);
  const rubric=data?.rubrics?.find(r=>r.review_id===selectedId);
  const initialScores=selected?Object.fromEntries(RUBRIC.map(c=>[c.key,Number(scores[selectedId]?.[c.key]??rubric?.scores?.[c.key]??0)])):{};
- const isAdmin=data?.profile?.role==='admin';
+ const isAdmin=data?.profile?.role==='admin'&&!data?.offlineReadOnly;
  const frozen=Boolean(assignment?.content_frozen_at);
  const canTeach=selected&&isAdmin&&!frozen;
  const canReview=selected&&isAdmin&&!frozen;
@@ -134,7 +134,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,query='',la
         <div className="bml-score-input"><input type="number" min="0" max={c.max} step="1" disabled={!canTeach} value={initialScores[c.key]}
           onChange={e=>setScores(v=>({...v,[selectedId]:{...initialScores,[c.key]:Number(e.target.value)}}))}/><span>/{c.max}</span></div></label>)}
        <div className="bml-total-score">{tr(language,'Tổng điểm','Total score')} <strong>{Object.values(initialScores).reduce((x,y)=>x+(Number(y)||0),0)}<small>/100</small></strong></div>
-       <label className="bml-full-field">{tr(language,'Nhận xét dành cho học sinh','Student feedback')}<textarea rows={4} maxLength={2000} value={note} onChange={e=>setNote(e.target.value)}
+       <label className="bml-full-field">{tr(language,'Nhận xét dành cho học sinh','Student feedback')}<textarea readOnly={!!data?.offlineReadOnly} rows={4} maxLength={2000} value={note} onChange={e=>setNote(e.target.value)}
         placeholder={tr(language,'Nêu một điểm tốt và một điều cần cải tiến…','Describe a strength and one area for improvement…')}/></label>
        {selected.teacher_note?<p className="bml-note"><b>{tr(language,'Giáo viên','Teacher')}:</b> {selected.teacher_note}</p>:null}
        {selected.ttcm_note?<p className="bml-note"><b>TTCM:</b> {selected.ttcm_note}</p>:null}

@@ -34,12 +34,12 @@ const link=typeof window!=='undefined'?window.location.origin+window.location.pa
  * disabled AND the reason banner is shown (disabled buttons alone are insufficient).
  */
 export default function TeacherLiveScreen({language='vi',data,initialReview,onBack,onRefresh,transport=liveStaff}){
-  const assignments=useMemo(()=>(data?.assignments||[]).filter(a=>a.created_by===data?.profile?.id||data?.profile?.role==='admin'),[data]);
+  const assignments=useMemo(()=>(data?.assignments||[]).filter(a=>data?.offlineReadOnly||a.created_by===data?.profile?.id||data?.profile?.role==='admin'),[data]);
   const assignmentIds=useMemo(()=>assignments.map(a=>a.id),[assignments]);
   const savedPreference=useRef(loadPresenterRecovery(typeof window!=='undefined'?window.sessionStorage:null,assignmentIds));
   const [assignmentId,setAssignmentId]=useState(initialReview||savedPreference.current?.assignmentId||assignments[0]?.id||'');
   const assignment=assignments.find(a=>a.id===assignmentId);
-  const readOnly=Boolean(assignment?.content_frozen_at);
+  const readOnly=Boolean(data?.offlineReadOnly||assignment?.content_frozen_at);
   const [browseIndex,setBrowseIndex]=useState(0);
   const [previewReveal,setPreviewReveal]=useState(false);
   const requestSequence=useRef(0);
@@ -139,7 +139,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
       else setError(t(language,'Trình duyệt không hỗ trợ chế độ toàn màn hình.','Fullscreen mode is unavailable in this browser.'));
     }catch(e){setError(t(language,'Không thể mở toàn màn hình. Hãy cho phép chế độ toàn màn hình trên trình duyệt.','Fullscreen was blocked. Please enable it in your browser.'));}
   };
-  const toggleTool=key=>{setActiveTool(cur=>cur===key?null:key);};
+  const toggleTool=key=>{if(data?.offlineReadOnly&&key==='qr')return;setActiveTool(cur=>cur===key?null:key);};
   useEffect(()=>{
     if(!isFullscreen)return;
     const handle=e=>{
@@ -173,7 +173,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   ):null;
   const exitResponses=(stage?.kind==='exit'||session?.status==='ended')&&Array.isArray(state?.responses)
     ?state.responses.filter(r=>r.stage_index===currentIndex||stage?.kind==='exit').slice(0,30):[];
-  const toolbar=session?<TeacherToolbar language={language} readOnly={readOnly} busy={busy} session={session} currentIndex={currentIndex}
+  const toolbar=session?<TeacherToolbar offline={!!data?.offlineReadOnly} language={language} readOnly={readOnly} busy={busy} session={session} currentIndex={currentIndex}
     motionOn={motionOn} activeTool={activeTool}
     onBack={onBack} onPrevious={()=>act('previous')} onNext={()=>act('next')} onToggleTask={()=>act(session.stageOpen?'close':'open')}
     onReveal={()=>act('reveal')} onToggleTool={toggleTool} onFullscreen={fullscreen}

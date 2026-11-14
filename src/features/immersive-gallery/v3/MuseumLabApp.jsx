@@ -1,6 +1,7 @@
 import React,{useCallback,useEffect,useState} from 'react';
 import {Plus,RefreshCw,ShieldAlert,X} from 'lucide-react';
 import {LessonsList} from './MuseumLessonFlow.jsx';
+import {liveStaff} from './museumLiveApi.js';
 import {staffRequest} from './museumApi.js';
 // --- Swiss Editorial V2 shell + owned screens (route-scoped under .igv2) ---
 import ImmersiveShell from '../v2/shell/ImmersiveShell.jsx';
@@ -46,6 +47,7 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
   return()=>window.clearInterval(timer);
  },[refresh]);
  const navigate=(id,extra)=>{
+  id=NAV_TO_TAB[id]||id;
   // The completed competition experience has no demonstration route.
   if(id==='demo'){setTab('gallery');return;}
   if(typeof window!=='undefined'&&id!=='gallery'&&window.location.hash.includes('?exhibition=')){
@@ -59,9 +61,9 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
  };
  // Shell nav ids map to existing tabs; existing navigate()/reviewId preserved.
  const shellNavigate=(navId)=>{ navigate(NAV_TO_TAB[navId]||'home'); };
- const create=()=>navigate('wizard');
+ const create=()=>{if(!staff?.offlineReadOnly)navigate('wizard');};
  const activeNav=TAB_TO_NAV[tab]||'overview';
- const sharedScreenProps={language,data:staff,staff,onNavigate:navigate,onRefresh:refresh,transport,onCreate:create,onBack:()=>navigate('home'),initialReview:reviewId};
+ const sharedScreenProps={language,data:staff,staff,onNavigate:navigate,onRefresh:refresh,transport,onCreate:staff?.offlineReadOnly?null:create,onBack:()=>navigate('home'),initialReview:reviewId};
  return <ImmersiveShell activeNav={activeNav} onNavigate={shellNavigate} language={language} staff={staff} data={staff}>
   <div className="bml" data-testid="brian-museum-lab-v3" lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
    {error?<div className="bml-banner bml-danger-banner" role="alert" style={{marginBottom:18}}><ShieldAlert size={19}/>
@@ -69,14 +71,14 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
       <button type="button" className="bml-outline" onClick={()=>{setLoading(true);refresh();}}><RefreshCw size={17}/>{tr(language,'Thử lại','Retry')}</button></div></div>:null}
    {loading?<div className="bml-empty bml-surface" role="status"><RefreshCw size={27}/>{tr(language,'Đang tải bài học và phân quyền…','Loading lessons and permissions…')}</div>:
    tab==='home'?<OverviewScreen {...sharedScreenProps}/>:
-   tab==='live'?<TeacherLiveScreen {...sharedScreenProps}/>:
+   tab==='live'?<TeacherLiveScreen {...sharedScreenProps} transport={liveStaff}/>:
    tab==='wizard'?<TeachingPlanScreen {...sharedScreenProps}/>:
    tab==='lessons'?<LessonsList language={language} data={staff} query={query}
      onCreate={()=>create()} onReview={id=>navigate('submissions',id)} onRefresh={refresh}/>:
    tab==='submissions'?<SubmissionsScreen {...sharedScreenProps} query={query}/>:
    tab==='gallery'?<ExhibitionsScreen {...sharedScreenProps} query={query}/>:
    tab==='templates'?<TeachingPlanScreen {...sharedScreenProps}/>:
-   tab==='evidence'?<DossierScreen {...sharedScreenProps}/>:
+   tab==='evidence'?<DossierScreen {...sharedScreenProps} transport={liveStaff}/>:
    tab==='settings'?<SettingsScreen {...sharedScreenProps}/>:
    <OverviewScreen {...sharedScreenProps}/>}
   </div>
@@ -90,7 +92,7 @@ export default function MuseumLabApp({currentUser,language='en',transport=staffR
       ['03','Học sinh làm 5 bước, tự lưu, không đăng nhập','Students complete five steps with no account'],
       ['04','Admin đánh giá, phê duyệt và công bố','Admin assesses, approves and publishes']
      ].map(([number,vi,en])=><div className="bml-check-item" key={number}><span className="bml-class-tag">{number}</span><div><strong>{tr(language,vi,en)}</strong></div></div>)}</div>
-     <button className="bml-primary" type="button" onClick={()=>{setHelp(false);create();}}><Plus size={17}/>{tr(language,'Tạo bài học ngay','Create a lesson')}</button>
+     <button className="bml-primary" type="button" disabled={!!staff?.offlineReadOnly} onClick={()=>{setHelp(false);create();}}><Plus size={17}/>{tr(language,'Tạo bài học ngay','Create a lesson')}</button>
     </section></div>:null}
  </ImmersiveShell>;
 }

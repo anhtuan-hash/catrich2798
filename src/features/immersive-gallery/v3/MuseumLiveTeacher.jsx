@@ -27,11 +27,12 @@ import {loadPresenterRecovery,savePresenterRecovery,shouldRestorePanel} from './
 const t=(lang,vi,en)=>lang==='en'?en:vi;
 const link=typeof window!=='undefined'?window.location.origin+window.location.pathname+'#/gallery-create':'/#/gallery-create';
 export default function MuseumLiveTeacher({data,language='vi',initialAssignment,onBack,transport=liveStaff}){
- const assignments=(data?.assignments||[]).filter(a=>a.created_by===data?.profile?.id||data?.profile?.role==='admin');
+ const assignments=(data?.assignments||[]).filter(a=>data?.offlineReadOnly||a.created_by===data?.profile?.id||data?.profile?.role==='admin');
  const assignmentIds=assignments.map(a=>a.id);
  const savedPreference=useRef(loadPresenterRecovery(typeof window!=='undefined'?window.sessionStorage:null,assignmentIds));
  const [assignmentId,setAssignmentId]=useState(initialAssignment||savedPreference.current?.assignmentId||assignments[0]?.id||'');
- const readOnly=Boolean(assignments.find(a=>a.id===assignmentId)?.content_frozen_at);
+ const offline=Boolean(data?.offlineReadOnly);
+ const readOnly=Boolean(offline||assignments.find(a=>a.id===assignmentId)?.content_frozen_at);
  // A frozen lesson has independent, GET-only presentation navigation.
  const [browseIndex,setBrowseIndex]=useState(0);
  const [previewReveal,setPreviewReveal]=useState(false);
@@ -44,7 +45,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  const [isFullscreen,setIsFullscreen]=useState(false),[activeTool,setActiveTool]=useState(null),[presenterFocus,setPresenterFocus]=useState(false);
  const [spotlight,setSpotlight]=useState(null),[time,setTime]=useState(Date.now());
  const [paper,setPaper]=useState(false),[tally,setTally]=useState(['','','','']),[tallyNote,setTallyNote]=useState('');
- const freeze=async()=>{if(readOnly)return;setBusy(true);setError('');try{await transport('freeze-survey',{assignmentId,version:state.session.version,...(paper?{counts:tally.map(v=>v===''?null:Number(v)),note:tallyNote}:{})});await refresh();}catch(e){setError(e.message);}finally{setBusy(false);}};
+ const freeze=async()=>{if(readOnly||offline)return;setBusy(true);setError('');try{await transport('freeze-survey',{assignmentId,version:state.session.version,...(paper?{counts:tally.map(v=>v===''?null:Number(v)),note:tallyNote}:{})});await refresh();}catch(e){setError(e.message);}finally{setBusy(false);}};
  const stageRef=useRef(null),activeRef=useRef(true);
  useEffect(()=>{
   const sync=()=>{
@@ -123,7 +124,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  };
  // Voiceover scripts are teacher resources until explicitly shared for the open stage.
  const shareNarration=async()=>{
-  if(readOnly||busy||!session||session.status==='ended')return;
+  if(readOnly||offline||busy||!session||session.status==='ended')return;
   setBusy(true);setError('');
   try{
    const send=version=>transport('media-voice',{assignmentId,stageIndex:currentIndex,version,enabled:!session.media?.voiceEnabled});
@@ -163,6 +164,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
   }catch(e){setError(t(language,'Không thể mở toàn màn hình. Hãy cho phép chế độ toàn màn hình trên trình duyệt.','Fullscreen was blocked. Please enable it in your browser.'));}
  };
  const togglePresenterTool=key=>{
+  if(key==='qr'&&offline)return;
   if(key==='qr')setShowQr(true);
   setActiveTool(current=>current===key?null:key);
  };
@@ -313,12 +315,12 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
         <p>{t(language,'N là số nhóm, không phải số học sinh.','N counts groups, not students.')}</p>
         <button type="button" className="bml-outline" onClick={()=>{const a=document.createElement('a');a.href=surveyChartPng(state.survey);a.download='Class-group-priority-survey.png';a.click();}}>
          {t(language,'Tải biểu đồ PNG','Download chart')}</button></>:
-       <><label><input type="checkbox" checked={paper} onChange={e=>setPaper(e.target.checked)}/>
+       <><label><input disabled={offline} type="checkbox" checked={paper} onChange={e=>setPaper(e.target.checked)}/>
         {t(language,'Nhập kiểm phiếu giấy khi không có phiếu online','Enter paper tally if no online votes')}</label>
         {paper?<><div className="bml-field-grid">{stage.options.map((option,i)=><label key={option}>{option}<input type="number"
          min="0" max="1000" value={tally[i]} onChange={e=>setTally(v=>v.map((x,j)=>i===j?e.target.value:x))}/></label>)}</div>
          <label>{t(language,'Ghi chú nguồn','Source note')}<input value={tallyNote} maxLength={500} onChange={e=>setTallyNote(e.target.value)}/></label></>:null}
-        <button className="bml-primary" type="button" disabled={readOnly||busy} onClick={freeze}>{t(language,'Chốt số liệu khảo sát','Freeze survey')}</button>
+        <button className="bml-primary" type="button" disabled={readOnly||offline||busy} onClick={freeze}>{t(language,'Chốt số liệu khảo sát','Freeze survey')}</button>
         <p>{t(language,'Số liệu đã chốt không sửa; không suy ra thói quen cá nhân.','Frozen figures cannot be edited; no individual habits are inferred.')}</p></>}
        {currentIndex>=7&&state?.feedback?.length?<p>{state.feedback.length} {t(language,'phản hồi chéo đã lưu','saved peer responses')}</p>:null}
       </section>:null}
@@ -348,7 +350,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
       {session.stageOpen?<Lock size={18}/>:<Play size={18}/>}
       {session.stageOpen?t(language,'Khóa hoạt động','Close task'):t(language,'Mở lại tương tác','Reopen interaction')}</button>
      <button className="bml-outline" disabled={busy||(!readOnly&&session.revealed)} onClick={()=>act('reveal')}><Eye size={17}/>{readOnly?(session.revealed?'Hide explanation':'Show explanation'):t(language,'Hiện giải thích','Reveal explanation')}</button>
-     <button className="bml-outline" onClick={()=>setShowQr(v=>!v)}><QrCode size={18}/> QR</button>
+     <button className="bml-outline" disabled={offline} onClick={()=>setShowQr(v=>!v)}><QrCode size={18}/> QR</button>
      <button className="bml-outline" onClick={fullscreen}><Fullscreen size={18}/>{t(language,'Toàn màn hình','Fullscreen')}</button>
     </div>
     <div className="bml-live-control-line">
@@ -365,9 +367,9 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
     </div>
     {currentIndex===2&&session.evidenceVersion!==0?<div className="bml-evidence-controls">
      {state?.survey?<><strong>Đã chốt · N={state.survey.n} lượt nhóm · {state.survey.source}</strong><button className="bml-outline" onClick={()=>{const a=document.createElement('a');a.href=surveyChartPng(state.survey);a.download='Class-group-priority-survey.png';a.click();}}>{t(language,'Tải biểu đồ PNG','Download chart PNG')}</button></>:<>
-     <label><input type="checkbox" checked={paper} onChange={e=>setPaper(e.target.checked)}/> {t(language,'Nhập kiểm phiếu giấy (chỉ khi chưa có phiếu trực tuyến)','Enter paper tally (only with no online votes)')}</label>
+     <label><input disabled={offline} type="checkbox" checked={paper} onChange={e=>setPaper(e.target.checked)}/> {t(language,'Nhập kiểm phiếu giấy (chỉ khi chưa có phiếu trực tuyến)','Enter paper tally (only with no online votes)')}</label>
      {paper?<><div className="bml-field-grid">{stage.options.map((label,i)=><label key={label}>{label}<input type="number" min="0" max="1000" value={tally[i]} onChange={e=>setTally(v=>v.map((x,j)=>i===j?e.target.value:x))}/></label>)}</div><label>{t(language,'Nguồn phiếu giấy','Paper ballot source')}<input value={tallyNote} maxLength={500} onChange={e=>setTallyNote(e.target.value)}/></label></>:null}
-     <button className="bml-primary" disabled={readOnly||busy} onClick={freeze}>{t(language,'Chốt số liệu khảo sát / Freeze survey','Freeze survey')}</button><p>{t(language,'Số liệu đã chốt không sửa. N là số nhóm; không suy ra thói quen cá nhân.','Frozen counts cannot change. N counts groups, not individual habits.')}</p></>}
+     <button className="bml-primary" disabled={readOnly||offline||busy} onClick={freeze}>{t(language,'Chốt số liệu khảo sát / Freeze survey','Freeze survey')}</button><p>{t(language,'Số liệu đã chốt không sửa. N là số nhóm; không suy ra thói quen cá nhân.','Frozen counts cannot change. N counts groups, not individual habits.')}</p></>}
     </div>:null}
     {currentIndex>=7&&state?.feedback?.length?<p className="bml-cc-compact-summary">
      <CheckCircle2 size={16}/>{state.feedback.length} peer reviews recorded. Select a group in Classroom Command Center to read individual feedback.</p>:null}

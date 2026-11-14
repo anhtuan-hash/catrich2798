@@ -40,7 +40,8 @@ function stateOf(s,{staff=false}={}){
 }
 async function groupGallery(admin,groupId){
  const group=await query(admin.from('gcp_groups').select('id,label,assignment_id').eq('id',groupId).single());
- const draft=await query(admin.from('gcp_drafts').select('doc,version,updated_at').eq('group_id',groupId).single());
+ const draft=await query(admin.from('gcp_drafts').select('doc,version,updated_at').eq('group_id',groupId).maybeSingle());
+ if(!draft)throw fail(404,'No saved group draft exists.');
  const assets=await query(admin.from('museum_artwork_assets').select('id,storage_path,original_name')
   .eq('group_id',groupId).eq('status','private_ready').limit(6));
  const signed=await Promise.all(assets.map(async a=>{

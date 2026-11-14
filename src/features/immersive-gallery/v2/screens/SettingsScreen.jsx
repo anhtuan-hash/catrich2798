@@ -12,7 +12,7 @@ const tr = (lang, vi, en) => lang === 'en' ? en : vi;
 // Props: {language, data, staff, onRefresh, transport}.
 export default function SettingsScreen({language='en', data, staff, onRefresh, transport=defaultTransport}) {
   const payload = data || staff || {};
-  const isAdmin = payload?.profile?.role === 'admin';
+  const isAdmin = payload?.profile?.role === 'admin' && !payload?.offlineReadOnly;
   const creator = payload?.creatorSettings || {};
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');

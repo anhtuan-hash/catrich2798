@@ -1,3 +1,4 @@
+import {getMuseumOffline} from './offlineAccess.js';
 // Immersive 360-degree inspection of a physical frame or curated 3D object.
 // A flat photograph remains flat: this is NOT a synthetic 360 panorama.
 // Uses the existing authorized exhibit URL and never changes publication scope.
@@ -145,7 +146,8 @@ export default function Exhibit360Viewer({exhibit,language='vi'}){
  // An encoded 1024px artwork is usually far longer than 3,000 characters.
  // Never pass a truncated data URL to THREE.TextureLoader or the original 2D view.
  const rawImageUrl=typeof exhibit?.image_url==='string'?exhibit.image_url:'';
- const imageUrl=rawImageUrl.length<=4000000&&(
+ const imageUrl=(getMuseumOffline()&&/^data:image\/(?:png|jpeg|webp|avif|gif);base64,/.test(rawImageUrl)||rawImageUrl.length<=4000000)&&(
+  (getMuseumOffline()&&/^data:image\/(?:png|jpeg|webp|avif|gif);base64,/.test(rawImageUrl))||
   rawImageUrl.startsWith('data:image/png;base64,')||
   rawImageUrl.startsWith('data:image/jpeg;base64,')||
   rawImageUrl.startsWith('https://')||

@@ -1,3 +1,4 @@
+import {buildMuseumOffline} from './scripts/build-museum-offline.mjs';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 
@@ -5,6 +6,7 @@ const departmentCloudEnabled = process.env.VITE_DEPARTMENT_CLOUD_ENABLED || 'tru
 const departmentId = process.env.VITE_DEPARTMENT_ID || '00000000-0000-0000-0000-000000000001';
 
 export default defineConfig({
+  plugins: [{name:'museum-offline-archive',apply:'build',async closeBundle(){await buildMuseumOffline('dist');}}],
   resolve: {
     alias: [{ find: /^read-excel-file$/, replacement: 'read-excel-file/browser' }],
   },

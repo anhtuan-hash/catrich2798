@@ -1,7 +1,9 @@
+import {getMuseumOffline} from './offlineAccess.js';
 import {guestRequest,englishMuseumError} from './museumApi.js';
 export const LIVE_ROUTE='/api/gallery-guest/live';
 export const ART_ROUTE='/api/gallery-guest/artwork';
 export async function liveStaff(action,body,params={}){
+ if(getMuseumOffline())return getMuseumOffline().liveStaff(action,body,params);
  const {supabase}=await import('../../../utils/supabase.js');
  const {data:{session},error}=await supabase.auth.getSession();
  if(error||!session?.access_token)throw new Error('Sign in with your BRIAN teacher account.');
@@ -16,6 +18,7 @@ export async function liveStaff(action,body,params={}){
  return d;
 }
 export async function liveGuest(action,method='GET',body,csrf,params={}){
+ if(getMuseumOffline())return getMuseumOffline().liveGuest(action,method,body,params);
  const q=new URLSearchParams({operation:action,...params});
  const res=await fetch(LIVE_ROUTE+'?'+q.toString(),{
   method,credentials:'same-origin',cache:'no-store',
@@ -27,6 +30,7 @@ export async function liveGuest(action,method='GET',body,csrf,params={}){
  return d;
 }
 export async function artGuest(action,method='GET',body,csrf){
+ if(getMuseumOffline())return getMuseumOffline().artGuest(action,method,body);
  const res=await fetch(ART_ROUTE+'?operation='+encodeURIComponent(action),{
   method,credentials:'same-origin',cache:'no-store',
   headers:{...(body?{'Content-Type':'application/json'}:{}),...(csrf?{'X-Gallery-CSRF':csrf}:{})},
@@ -37,6 +41,7 @@ export async function artGuest(action,method='GET',body,csrf){
  return d;
 }
 export async function artStaff(groupId){
+ if(getMuseumOffline())return getMuseumOffline().artStaff(groupId);
  const {supabase}=await import('../../../utils/supabase.js');
  const {data:{session}}=await supabase.auth.getSession();
  if(!session?.access_token)throw new Error('Teacher account required.');
