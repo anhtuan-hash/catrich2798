@@ -375,6 +375,7 @@ function App() {
   const requiresAuth = currentRoute === 'tool' || !PUBLIC_ROUTES.has(currentRoute);
   const guestPreviewAllowed = !currentUser && isGuestPreviewRoute(currentRoute, selectedTool);
   const publicMuseum = !currentUser && selectedTool?.slug === 'immersive-gallery';
+  const museumLink = selectedTool?.slug === 'immersive-gallery';
   const canAccessRoute = visibilityReady && !temporarilyHidden && (!requiresAuth || hasRouteAccess(
     currentRoute === 'attendance' ? withAttendanceReadOnlyAccess(currentUser) : currentUser,
     currentRoute,
@@ -640,7 +641,7 @@ function App() {
             {currentRoute === 'gallery-create' && <GalleryCreatorGuestPage />}
             {authReady && guestPreviewAllowed && currentRoute !== 'home' && <GuestPreview route={currentRoute} language={language} />}
             {currentRoute === 'home' && currentUser && !visibilityReady ? <div className="windows-loader-wrap"><div className="windows-loader-card">{language === 'vi' ? 'Đang đồng bộ danh sách ứng dụng…' : 'Syncing app visibility…'}</div></div> : null}
-            {requiresAuth && currentUser && !canAccessRoute && visibilityReady && <AccessDenied language={language} currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} temporarilyHidden={temporarilyHidden} />}
+            {requiresAuth && currentUser && !canAccessRoute && visibilityReady && !museumLink && <AccessDenied language={language} currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} temporarilyHidden={temporarilyHidden} />}
             {requiresAuth && currentUser && !visibilityReady ? <div className="windows-loader-wrap"><div className="windows-loader-card">{language === 'vi' ? 'Đang đồng bộ danh sách ứng dụng…' : 'Syncing app visibility…'}</div></div> : null}
             {canAccessRoute && currentRoute === 'apps' && currentUser && (
               <AppErrorBoundary scope="apps-launcher" label={language === 'vi' ? 'trang Ứng dụng' : 'Apps page'}>
@@ -682,6 +683,7 @@ function App() {
             {canAccessRoute && currentRoute === 'admin' && currentUser && <AdminPage {...context} />}
             {currentRoute === 'setup' && <SupabaseSetup {...context} />}
             {authReady && publicMuseum && <ToolPage tool={selectedTool} {...context} publicReadOnly />}
+            {authReady && currentUser && museumLink && !canAccessRoute && <ToolPage tool={selectedTool} {...context} publicReadOnly />}
             {canAccessRoute && currentRoute === 'tool' && currentUser && <ToolPage tool={selectedTool} {...context} />}
           </Suspense>
           </div>
