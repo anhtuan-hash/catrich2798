@@ -5,26 +5,26 @@ const url=file=>pathToFileURL(path.resolve('artifacts/museum-offline/'+file+'.ht
 test('file opens without network, navigates frozen lessons, submissions and live presentation',async({page},info)=>{
  const errors=[],requests=[];page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(/^https?:/.test(r.url()))requests.push(r.url());});
  await page.goto(url('qa'));
- await expect(page.getByTestId('museum-dashboard')).toBeVisible();
- await expect(page.getByText('Synthetic Offline QA Museum',{exact:true})).toBeVisible();
+ await expect(page.getByTestId('immersive-gallery-v2')).toBeVisible();
+ await expect(page.getByText('Synthetic Offline QA Museum',{exact:true}).first()).toBeVisible();
  await expect(page.getByRole('button',{name:/Create a lesson|New lesson|Download offline/})).toHaveCount(0);
- await expect.poll(()=>page.getByTestId('museum-competition-ribbon').locator('img').evaluateAll(imgs=>imgs.length===2&&imgs.every(i=>i.complete&&i.naturalWidth>0&&i.src.startsWith('data:')))).toBe(true);
+ await expect.poll(()=>page.getByTestId('igv2-competition-banner').locator('img').evaluateAll(imgs=>imgs.length===2&&imgs.every(i=>i.complete&&i.naturalWidth>0&&i.src.startsWith('data:')))).toBe(true);
  await page.screenshot({path:info.outputPath('offline-dashboard.png'),fullPage:true});
- const nav=page.getByRole('navigation',{name:'Museum Lab navigation',exact:true});
+ const nav=page.getByRole('navigation',{name:'Primary',exact:true});
  await nav.getByRole('button',{name:/^Submissions/}).click();
  await expect(page.getByTestId('brian-museum-lab-v3')).toContainText('Synthetic QA exhibition');
  await nav.getByRole('button',{name:'Teaching plan',exact:true}).click();
- await expect(page.getByRole('button',{name:/Create lesson from this plan/})).toBeDisabled();
- await page.getByRole('button',{name:'Teach live',exact:true}).click();
- await expect(page.getByTestId('museum-teacher-live')).toBeVisible();
- const slide=page.getByTestId('museum-live-slide'),before=await slide.innerText();
- await page.getByRole('button',{name:'Next activity',exact:true}).click();
+ await expect(page.getByRole('button',{name:/Create lesson from/})).toHaveCount(0);
+ await nav.getByRole('button',{name:'Teacher Live',exact:true}).click();
+ await expect(page.getByTestId('igv2-teacher-live-screen')).toBeVisible();
+ const slide=page.getByTestId('igv2-teacher-live-stage'),before=await slide.innerText();
+ await page.getByRole('button',{name:'Advance to next activity',exact:true}).click();
  await expect(slide).not.toHaveText(before);
- await page.getByRole('button',{name:'Reveal explanation',exact:true}).click();
- await expect(page.getByRole('button',{name:'Reveal explanation',exact:true})).toBeDisabled();
+ await page.getByRole('button',{name:'Show explanation',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Hide explanation',exact:true})).toBeVisible();
  for(let i=2;i<=10;i++){
-  await page.getByRole('button',{name:'Next activity',exact:true}).click();
-  await expect(page.getByTestId('museum-live-paper-stage')).toHaveAttribute('data-stage-index',String(i));
+  await page.getByRole('button',{name:'Advance to next activity',exact:true}).click();
+  await expect(page.getByTestId('igv2-teacher-live-stage')).toContainText('ACTIVITY '+(i+1)+'/11');
  }
  await page.getByRole('button',{name:'Evidence records',exact:true}).click();
  await page.getByText('Activity responses (1)',{exact:true}).click();
@@ -51,5 +51,5 @@ test('saved artwork works in 2D and actual WebGL 3D with no server',async({page}
 });
 test('modified frozen data is rejected',async({page})=>{
  await page.goto(url('tampered'));await expect(page.locator('#root')).toContainText('snapshot checksum does not match');
- await expect(page.getByTestId('museum-dashboard')).toHaveCount(0);
+ await expect(page.getByTestId('immersive-gallery-v2')).toHaveCount(0);
 });

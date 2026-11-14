@@ -3,7 +3,6 @@ import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronRight,ClipboardL
 import {LESSON_KITS,progressOfGroup} from './museumData.js';
 import {englishSystemGroupLabel} from './museumApi.js';
 import {LIVE_STAGES,LIVE_TOTAL_MINUTES} from './liveLesson.js';
-import {preparedCollectionFor} from './museumPreparedCollections.js';
 import './museumPrepared.css';
 import {staffRequest,joinUrl,saveTextFile} from './museumApi.js';
 import {KitCover} from './MuseumDashboard.jsx';
@@ -149,7 +148,7 @@ function PrivatePasscodeCard({secret,available,revealed,busy,onShow,onHide,onCop
  </div>;
 }
 
-export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,query='',language='vi'}){
+export function LessonsList({data,onCreate,onReview,onRefresh,query='',language='vi'}){
  const [selected,setSelected]=useState('__auto__'),[invites,setInvites]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [secrets,setSecrets]=useState({}),[visibleSecrets,setVisibleSecrets]=useState({});
  const [passcodeBusy,setPasscodeBusy]=useState(false),[success,setSuccess]=useState('');
@@ -240,7 +239,6 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
   {assignments.length?<div className="bml-lesson-list">{assignments.map(a=>{
    const mine=groups.filter(g=>g.assignment_id===a.id).sort((left,right)=>String(left.label||'').localeCompare(String(right.label||''),undefined,{numeric:true})),done=mine.filter(g=>['submitted','ttcm_review','approved_locked','published'].includes(g.state)).length;
    const exitCount=mine.filter(g=>exitTickets.some(t=>t.group_id===g.id)).length;
-   const collection=preparedCollectionFor(a);
    const expanded=selected===a.id||(selected==='__auto__'&&a.id===assignments[0]?.id);
    const frozen=Boolean(a.content_frozen_at);
    const canManagePasscodes=isAdmin&&a.created_by===data?.profile?.id;
@@ -259,8 +257,6 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
       </div>
      </div>
      <div className="bml-prepared-lesson-actions">
-      {collection?<button type="button" className="bml-outline bml-prepared-visit" onClick={()=>onOpenCollection?.(collection.key)}>
-       <BookOpen size={17}/>{tr(language,'Triển lãm 3D','3D exhibition')} <ArrowRight size={15}/></button>:null}
       <button type="button" className="bml-outline bml-lesson-toggle" onClick={()=>setSelected(expanded?null:a.id)}>
        {expanded?tr(language,'Thu gọn','Collapse'):tr(language,'Xem các nhóm','View groups')} <ChevronRight size={17} className={expanded?'is-expanded':''}/></button>
       {isAdmin?<button type="button" disabled={busy||frozen} className="bml-danger bml-archive-btn"
@@ -319,20 +315,10 @@ export function LessonsList({data,onCreate,onReview,onRefresh,onOpenCollection,q
          onCopy={()=>copyPass(secrets[g.id])}/>:null}
        </div>:null}
       </article>;})}
-      {collection?<div className="bml-prepared-projects" data-testid={'lesson-portfolio-'+collection.key}>
-       <div className="bml-prepared-projects-heading"><h3>{tr(language,'Dự án và tác phẩm','Projects and artwork')}</h3>
-        <span>{collection.groupCount} {tr(language,'nhóm','groups')} · {collection.groupCount*3} {tr(language,'tác phẩm','exhibits')}</span></div>
-       <div className="bml-prepared-project-grid">{collection.projects.map(p=>
-        <button type="button" key={p.id} className="bml-prepared-project" onClick={()=>onOpenCollection?.(collection.key)}>
-         <small>{p.label}</small><strong>{p.title}</strong>
-         <span>{p.solution}</span>
-         <em>{tr(language,'Xem tác phẩm trong bảo tàng','View in 3D museum')} <ArrowRight size={15}/></em>
-        </button>)}</div>
-      </div>:null}
       </div></>:null}
    </article>;
   })}</div>:<div className="bml-empty bml-surface"><BookOpen size={36}/><h2>{tr(language,'Chưa có bài học','No lessons assigned yet')}</h2>
-    <p>{tr(language,'Tạo bài học đầu tiên từ một mẫu có sẵn.','Create your first lesson from a curated template.')}</p>
+    <p>{tr(language,'Tạo bài học mới từ kế hoạch giảng dạy đã duyệt.','Create your first lesson from the approved teaching plan.')}</p>
     <button type="button" className="bml-primary" disabled={!!data?.offlineReadOnly} onClick={onCreate}><Plus size={18}/>{tr(language,'Tạo bài học','Create lesson')}</button>
    </div>}
  </div>;

@@ -917,83 +917,49 @@ test('artwork inspector remains within mobile viewport and has a working close a
 });
 
 
-test('three English lessons expose eighteen group projects and a navigable 3D artwork collection',async({page})=>{
+test('teacher-authored practice portfolios are absent from official lesson cards',async({page})=>{
  await page.getByTestId('qa-prepared').click();
  const lessons=page.getByTestId('museum-lessons');
  await expect(lessons).toBeVisible();
  await expect(lessons.locator('.bml-lesson-block')).toHaveCount(3);
- await expect(lessons.getByText('Protecting Marine Life',{exact:true})).toHaveCount(2);
- await expect(lessons.getByText('Sustainable School',{exact:true})).toHaveCount(1);
  const first=lessons.locator('.bml-lesson-block').first();
- // The first lesson opens expanded by default; verify both collapse and reopen.
- await expect(first.getByTestId('lesson-portfolio-marine-12')).toBeVisible();
+ // Lesson management remains operable, without a sample 3D collection shortcut.
+ await expect(first.locator('.bml-prepared-visit')).toHaveCount(0);
+ await expect(lessons.locator('.bml-prepared-projects')).toHaveCount(0);
+ await expect(lessons.locator('.bml-prepared-project')).toHaveCount(0);
  await first.getByRole('button',{name:/Thu gọn|Collapse/}).click();
- await expect(first.getByTestId('lesson-portfolio-marine-12')).toHaveCount(0);
  await first.getByRole('button',{name:/Xem các nhóm|View groups/}).click();
- await expect(first.getByTestId('lesson-portfolio-marine-12')).toBeVisible();
- await expect(first.locator('.bml-prepared-project')).toHaveCount(6);
- await first.getByRole('button',{name:/Triển lãm 3D|3D exhibition/}).click();
- const detail=page.getByTestId('museum-exhibition-detail');
- await expect(detail).toBeVisible();
- await expect(detail.getByRole('heading',{name:'Protecting Marine Life · 12.1'})).toBeVisible();
- await detail.getByRole('button',{name:'2D',exact:true}).click();
- await expect(detail.locator('.bml-room-tabs button')).toHaveCount(6);
- await expect(detail.locator('.bml-art-card')).toHaveCount(3);
- await expect(detail.locator('.bml-art-card img').first()).toHaveAttribute('src',/^data:image\/png;base64,/);
- await detail.locator('.bml-art-card').first().click();
- await expect(detail.getByTestId('exhibit-360-viewer')).toBeVisible();
- await detail.getByTestId('museum-artwork-inspector').getByRole('button',{name:/Đóng|Close/}).click();
- await expect(detail.getByTestId('museum-artwork-inspector')).toHaveCount(0);
+ await expect(first.getByTestId('museum-group-qr-card')).toHaveCount(6);
 });
 
-
-test('school poster artworks have actual topic illustration pixels, not text-only placeholders',async({page})=>{
+test('internally retained teacher poster assets are real AVIFs but not displayed as student exhibits',async({page})=>{
  await page.getByTestId('qa-prepared').click();
- const school=page.getByTestId('museum-lessons').locator('.bml-lesson-block').nth(1);
- await school.getByRole('button',{name:/Triển lãm 3D|3D exhibition/}).click();
- const detail=page.getByTestId('museum-exhibition-detail');
- await detail.getByRole('button',{name:'2D',exact:true}).click();
- const frames=detail.locator('.bml-art-card img');
- await expect(frames).toHaveCount(3);
- for(const [i,stage] of ['problem','evidence','solution'].entries()){
-  await expect(frames.nth(i)).toHaveAttribute('src',
-   '/museum/artwork/green-campus-0'+(i+1)+'-'+stage+'.avif');
-  const status=await frames.nth(i).evaluate(async img=>{
-   await img.decode();
-   return {complete:img.complete,width:img.naturalWidth,height:img.naturalHeight};
-  });
-  expect(status.complete).toBe(true);
-  expect(status.width).toBe(1024);
-  expect(status.height).toBe(768);
+ const paths=['problem','evidence','solution'].map((part,i)=>
+  '/museum/artwork/green-campus-0'+(i+1)+'-'+part+'.avif');
+ await expect(page.locator('.bml-prepared-projects')).toHaveCount(0);
+ const observations=await page.evaluate(async paths=>{
+  const load=async src=>{
+   const image=new Image();image.src=src;await image.decode();
+   const canvas=document.createElement('canvas');canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
+   const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(image,0,0);
+   const d=ctx.getImageData(64,230,760,380).data;
+   let saturated=0;const palette=new Set();
+   for(let i=0;i<d.length;i+=4*44){
+    const r=d[i],g=d[i+1],b=d[i+2];
+    palette.add([r>>4,g>>4,b>>4].join('.'));
+    if(Math.max(r,g,b)-Math.min(r,g,b)>42)saturated++;
+   }
+   return {width:image.naturalWidth,height:image.naturalHeight,palette:palette.size,saturated};
+  };
+  return Promise.all(paths.map(load));
+ },paths);
+ expect(observations).toHaveLength(3);
+ for(const result of observations){
+  expect(result.width).toBe(1024);
+  expect(result.height).toBe(768);
+  expect(result.palette).toBeGreaterThan(30);
+  expect(result.saturated).toBeGreaterThan(100);
  }
- const sample=await frames.first().evaluate(async(img)=>{
-  await img.decode();
-  const canvas=document.createElement('canvas');canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;
-  const ctx=canvas.getContext('2d',{willReadFrequently:true});
-  ctx.drawImage(img,0,0);
-  const data=ctx.getImageData(64,230,760,380).data;
-  const palette=new Set();let saturated=0;
-  for(let i=0;i<data.length;i+=4*44){
-   const r=data[i],g=data[i+1],b=data[i+2];
-   palette.add([r>>4,g>>4,b>>4].join('.'));
-   if(Math.max(r,g,b)-Math.min(r,g,b)>42)saturated++;
-  }
-  return {width:img.naturalWidth,height:img.naturalHeight,palette:palette.size,saturated};
- });
- expect(sample.width).toBeGreaterThanOrEqual(1000);
- expect(sample.height).toBeGreaterThanOrEqual(700);
- expect(sample.palette).toBeGreaterThan(30);
- expect(sample.saturated).toBeGreaterThan(100);
- const one=await frames.first().getAttribute('src');
- const two=await frames.nth(1).getAttribute('src');
- expect(one).not.toBe(two);
- await detail.locator('.bml-art-card').first().click();
- const viewer=detail.getByTestId('exhibit-360-viewer');
- await viewer.getByRole('button',{name:/Xem 2D|2D original/}).click();
- const original=viewer.locator('img.bml-exhibit-original-image');
- await expect(original).toBeVisible();
- const resolution=await original.evaluate(async img=>{await img.decode();return img.naturalWidth;});
- expect(resolution).toBeGreaterThanOrEqual(1000);
 });
 
 test('peer response submits structured learning, clarification and clarity score',async({page})=>{
@@ -1158,6 +1124,112 @@ test('paper live presenter avoids horizontally clipped text on a narrow MacBook 
  }
 });
 
+
+test('completed lesson replays all 11 activities, explanations, US voice and NASA video without writes',async({page})=>{
+ await page.addInitScript(()=>{
+  window.__frozenTeacherWrites=0;window.__frozenTeacherReads=[];window.__qaFrozenNarration=[];
+  window.SpeechSynthesisUtterance=class{constructor(text){this.text=text;}};
+  const synth={
+   speaking:false,pending:false,
+   getVoices(){return [{name:'Samantha',voiceURI:'en-us-qa',lang:'en-US',localService:true}];},
+   addEventListener(){},removeEventListener(){},cancel(){this.speaking=false;},
+   pause(){this.speaking=false;},resume(){this.speaking=true;},
+   speak(item){this.speaking=true;window.__qaFrozenNarration.push({text:item.text,lang:item.lang});item.onstart?.();}
+  };
+  Object.defineProperty(window,'speechSynthesis',{configurable:true,value:synth});
+ });
+ await page.reload({waitUntil:'domcontentloaded'});
+ await page.getByTestId('qa-teacher-live-frozen-en').click();
+ const stage=page.getByTestId('museum-live-paper-stage');
+ const controls=page.locator('.bml-live-controls');
+ await expect(stage).toHaveAttribute('data-stage-index','0');
+ await expect(stage).toContainText('Climate Detective');
+ await expect(stage).toContainText('ARCHIVED · VIEW ONLY');
+ await expect(controls.getByRole('button',{name:'Next activity'})).toBeEnabled();
+ await expect(controls.getByRole('button',{name:'End lesson'})).toBeDisabled();
+ await expect(controls.getByRole('button',{name:/Reopen interaction|Close task/})).toBeDisabled();
+ await controls.getByRole('button',{name:'Show explanation'}).click();
+ await expect(stage).toContainText('A feasible action must match the school situation');
+ await controls.getByRole('button',{name:'Hide explanation'}).click();
+ await expect(stage).not.toContainText('A feasible action must match the school situation');
+ await controls.getByRole('button',{name:'Voiceover'}).click();
+ const voice=page.getByTestId('museum-voiceover');
+ await expect(voice.getByRole('button',{name:'Play narration'})).toBeEnabled();
+ await voice.getByRole('button',{name:'Play narration'}).click();
+ await expect.poll(()=>page.evaluate(()=>window.__qaFrozenNarration.length)).toBeGreaterThan(0);
+ expect((await page.evaluate(()=>window.__qaFrozenNarration[0].lang))).toBe('en-US');
+ await controls.getByRole('button',{name:'Next activity'}).click();
+ await expect(stage).toHaveAttribute('data-stage-index','1');
+ await expect(stage).toContainText('Language Mini-Lesson');
+ await controls.getByRole('button',{name:'Video Lab'}).click();
+ const video=page.getByTestId('museum-video-lab');
+ await expect(video.getByRole('button',{name:'Watch NASA clip'})).toBeVisible();
+ await expect(video.getByRole('button',{name:/Assign verified NASA clip/})).toHaveCount(0);
+ await video.getByRole('button',{name:'Watch NASA clip'}).click();
+ await expect(page.getByTestId('museum-projector-video')).toBeVisible();
+ await page.getByTestId('museum-projector-video').getByRole('button',{name:'Close video'}).click();
+ for(let next=2;next<11;next++){
+  await controls.getByRole('button',{name:'Next activity'}).click();
+  await expect(stage).toHaveAttribute('data-stage-index',String(next));
+ }
+ await expect(stage).toContainText('Exit Ticket');
+ await expect(controls.getByRole('button',{name:'Next activity'})).toBeDisabled();
+ await controls.getByRole('button',{name:'Back',exact:true}).click();
+ await expect(stage).toHaveAttribute('data-stage-index','9');
+ await controls.getByRole('button',{name:'Fullscreen'}).click();
+ const dock=page.getByTestId('museum-fullscreen-toolbar');
+ await expect(dock).toBeVisible();
+ await expect(dock.getByRole('button',{name:'Next'})).toBeEnabled();
+ await expect(dock.getByRole('button',{name:'End lesson'})).toBeDisabled();
+ await dock.getByRole('button',{name:'Previous'}).click();
+ await expect(stage).toHaveAttribute('data-stage-index','8');
+ await expect.poll(()=>page.evaluate(()=>window.__frozenTeacherWrites)).toBe(0);
+ const reads=await page.evaluate(()=>window.__frozenTeacherReads);
+ expect(reads).toContain(0);expect(reads).toContain(1);expect(reads).toContain(10);
+});
+
+test('Swiss Editorial frozen Teacher Live supports 11 GET-only replay activities and fullscreen controls',async({page})=>{
+ await page.getByTestId('qa-teacher-live-v2-frozen-en').click();
+ const stage=page.getByTestId('igv2-teacher-live-stage');
+ const toolbar=page.getByRole('toolbar',{name:'Teacher control toolbar'});
+ await expect(stage).toContainText('Climate Detective');
+ await expect(stage).toContainText('VIEW ONLY');
+ await expect(toolbar.getByRole('button',{name:'Advance to next activity'})).toBeEnabled();
+ await expect(toolbar.getByRole('button',{name:'Previous activity'})).toBeDisabled();
+ await expect(toolbar.getByRole('button',{name:'Open current task'})).toBeDisabled();
+ await toolbar.getByRole('button',{name:'Show explanation'}).click();
+ await expect(stage).toContainText('A feasible action must match the school situation');
+ await toolbar.getByRole('button',{name:'Hide explanation'}).click();
+ await expect(stage).not.toContainText('A feasible action must match the school situation');
+ await toolbar.getByRole('button',{name:'Advance to next activity'}).click();
+ await expect(stage).toContainText('Language Mini-Lesson');
+ await toolbar.getByRole('button',{name:'Voiceover'}).click();
+ await expect(page.getByTestId('museum-voiceover')).toBeVisible();
+ await expect(page.getByRole('button',{name:'Share narration with students'})).toHaveCount(0);
+ await toolbar.getByRole('button',{name:'Video Lab'}).click();
+ const video=page.getByTestId('museum-video-lab');
+ await expect(video.getByRole('button',{name:'Watch NASA clip'})).toBeVisible();
+ await video.getByRole('button',{name:'Watch NASA clip'}).click();
+ await expect(video.getByTestId('museum-youtube-player')).toBeVisible();
+ for(let index=2;index<11;index++){
+  await toolbar.getByRole('button',{name:'Advance to next activity'}).click();
+  await expect(stage).toContainText('ACTIVITY '+(index+1)+'/11');
+ }
+ await expect(stage).toContainText('Exit Ticket');
+ await expect(toolbar.getByRole('button',{name:'Advance to next activity'})).toBeDisabled();
+ await toolbar.getByRole('button',{name:'Previous activity'}).click();
+ await expect(stage).toContainText('ACTIVITY 10/11');
+ await toolbar.getByRole('button',{name:'Fullscreen'}).click();
+ const full=page.getByTestId('museum-fullscreen-viewer-controls');
+ await expect(full).toBeVisible();
+ await full.getByRole('button',{name:'Previous activity'}).click();
+ await expect(stage).toContainText('ACTIVITY 9/11');
+ await full.getByRole('button',{name:'Voiceover'}).click();
+ await expect(page.getByTestId('museum-fullscreen-viewer-panel')).toBeVisible();
+ await expect.poll(()=>page.evaluate(()=>window.__frozenTeacherWrites||0)).toBe(0);
+ const reads=await page.evaluate(()=>window.__frozenTeacherReads||[]);
+ expect(reads).toContain(0);expect(reads).toContain(10);
+});
 
 test('Teacher Live has real stage motion control, readable voiceover, research library and persistent curated videos',async({page})=>{
  await page.getByTestId('qa-teacher-live').click();

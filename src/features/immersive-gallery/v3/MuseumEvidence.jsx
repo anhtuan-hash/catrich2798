@@ -1,6 +1,6 @@
 import MuseumOfflineExport from './MuseumOfflineExport.jsx';
 import React,{useMemo,useState} from 'react';
-import {ArrowRight,Award,BookOpen,CheckCircle2,Circle,ClipboardCheck,Download,FileArchive,FileCheck2,FileDown,FileText,Info,Presentation,Printer,ShieldCheck,Star,UploadCloud} from 'lucide-react';
+import {ArrowRight,Award,BookOpen,CheckCircle2,Circle,ClipboardCheck,Download,FileArchive,FileCheck2,FileDown,FileText,Info,Printer,ShieldCheck,Star,UploadCloud} from 'lucide-react';
 import {buildProgressCsv} from './museumData.js';
 import {p1Document,p2Document} from './museumDossier.js';
 import {buildWordDraft,buildCompetitionZip,saveBlob} from './museumDocx.js';
@@ -9,7 +9,7 @@ import {buildEvidenceZip} from './evidenceExport.js';
 import {contestBasename} from './learningEvidence.js';
 import {saveTextFile,fmtDate} from './museumApi.js';
 const tr=(l,vi,en)=>l==='en'?en:vi;
-export default function MuseumEvidence({data,currentUser,onDemo,language='vi'}){
+export default function MuseumEvidence({data,currentUser,language='vi'}){
  const assignments=data?.assignments||[],reviews=data?.reviews||[],rubrics=data?.rubrics||[];
  const [assignmentId,setAssignmentId]=useState(assignments[0]?.id||'');
  const [exportBusy,setExportBusy]=useState(false),[exportError,setExportError]=useState('');
@@ -53,7 +53,7 @@ export default function MuseumEvidence({data,currentUser,onDemo,language='vi'}){
  return <div className="bml-screen" data-testid="museum-evidence-studio">
   <div className="bml-heading-actions"><div><div className="bml-overline">{tr(language,'HỒ SƠ HỘI THI 2026–2027','COMPETITION DOSSIER')}</div>
    <h1>{tr(language,'Minh chứng dự thi','Competition evidence')}</h1><p>{tr(language,'Tạo bản nháp P1/P2 và tổng hợp dữ liệu thực tế từ các nhóm.','Draft P1/P2 and collect actual group evidence.')}</p></div>
-   <button type="button" className="bml-outline" onClick={onDemo}><Presentation size={18}/>{tr(language,'Xem demo giám khảo','Judge demo')}</button></div>
+  </div>
   {!data?.offlineReadOnly?<MuseumOfflineExport language={language}/>:null}
   <div className="bml-evidence-layout">
    <section className="bml-surface"><div className="bml-section-head"><div><h2>{tr(language,'Kiểm tra hồ sơ','Submission readiness')}</h2>

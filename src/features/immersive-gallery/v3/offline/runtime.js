@@ -5,10 +5,15 @@ export function createOfflineRuntime(input){
  const snapshot=deepFreeze(clone(input)),presentation=new Map();
  const deny=()=>{throw new Error(BLOCKED_WRITE);};
  const findGallery=id=>snapshot.galleries.find(g=>g.id===id||g.slug===id);
- const presentationState=id=>{
+ const presentationState=(id,viewStage)=>{
   const saved=snapshot.live[id]||{session:null};
   const evidence=snapshot.evidence[id];
   const state=presentation.get(id)||{index:Math.max(0,saved.session?.stageIndex||0),revealed:!!saved.session?.revealed,status:'paused'};
+  if(viewStage!==undefined){
+   const index=Number(viewStage);
+   if(!Number.isInteger(index)||index<0||index>=LIVE_STAGES.length)throw new Error('Invalid presentation activity.');
+   state.index=index;
+  }
   const historicalSession={media_board:{lessonQuestionVersion:saved.session?.questionVersion??2}};
   const currentStage=saved.session?.stageIndex===state.index?saved.session?.stage:null;
   let stage=currentStage||sessionStage(historicalSession,state.index);
@@ -54,7 +59,7 @@ export function createOfflineRuntime(input){
   liveStaff:async(action,body,params={})=>{
    const id=body?.assignmentId||params.assignmentId;
    if(!snapshot.staff.assignments.some(a=>a.id===id))throw new Error('Lesson not included in the archive.');
-   if(action==='state')return presentationState(id);
+   if(action==='state')return presentationState(id,params.viewStage);
    // These controls change the viewing position only; frozen records never change.
    if(action==='start'||action==='control'){
     const prior=presentationState(id).session;

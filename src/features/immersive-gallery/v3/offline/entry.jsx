@@ -57,7 +57,7 @@ function OfflineApp({runtime,hash}){
    </section>)}
    {!evidence.length?<p>No recorded live sessions were available at export. Lesson plans and saved work remain accessible.</p>:null}
   </main>:null}
-  <footer className="museum-offline-footer">BRIAN ENGLISH · Nguyễn Anh Tuấn · Teach Better Together</footer>
+  {view!=='app'?<footer className="museum-offline-footer">BRIAN ENGLISH · Nguyễn Anh Tuấn · Teach Better Together</footer>:null}
  </div>;
 }
 async function boot(){
