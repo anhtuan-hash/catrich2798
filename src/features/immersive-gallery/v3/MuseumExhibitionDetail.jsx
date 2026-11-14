@@ -168,7 +168,7 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
    <Metric icon={Users} value="—" label={t(language,'Học sinh tham gia','Students participating')} subtitle={t(language,'Chưa có dữ liệu xác thực','Not measured')} tone="violet"/>
    <Metric icon={Eye} value="—" label={t(language,'Lượt xem','Views')} subtitle={t(language,'Chưa triển khai thống kê','Not yet tracked')} tone="amber"/>
   </div>
-  <OverviewCards data={data} onNavigate={onNavigate} language={language}/>
+  {!data?.publicReadOnly ? <OverviewCards data={data} onNavigate={onNavigate} language={language}/> : null}
   <footer className="bml-exh-footer"><span><Landmark size={18}/> BRIAN Museum Lab <span aria-hidden="true">·</span> V3.2</span>
    <span>Teach Better Together ♡</span></footer>
  </div>
