@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 
 const DEMO_SESSION_KEY = 'bes-offline-demo-user-v943';
 const DEMO_ADMIN = {
@@ -58,6 +60,14 @@ test('V6 teacher-reviewed eight-week workflow and two-file dossier export',async
   await page.getByRole('button',{name:'Export SHA-256 audit manifest'}).click();
   const json=await jsonPromise;
   expect(json.suggestedFilename()).toMatch(/aggregate-audit.*\.json$/);
+  const markdownBytes=await readFile(await markdown.path());
+  const manifest=JSON.parse(await readFile(await json.path(),'utf8'));
+  const actualHash=createHash('sha256').update(markdownBytes).digest('hex');
+  expect(manifest.reportSha256).toBe(actualHash);
+  expect(manifest.reportSizeBytes).toBe(markdownBytes.length);
+  expect(manifest.reportFile).toBe(markdown.suggestedFilename());
+  expect(manifest.attestations.effectCausalityEstablished).toBe(false);
+  expect(manifest.attestations.studentObservationsAuthenticatedBySystem).toBe(false);
   await page.reload();
   await expect(page.getByText('Start with a coded assessment cohort')).toBeVisible();
   await expect(page.getByText('Intervention entries').locator('..')).toContainText('0');
