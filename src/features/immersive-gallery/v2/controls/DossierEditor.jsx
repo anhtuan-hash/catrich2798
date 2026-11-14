@@ -51,9 +51,9 @@ export default function DossierEditor({
         <p className="page-desc" style={{fontSize:11,marginBottom:0}}>{t(language,'ZIP gồm hai bản nháp DOCX có thể chỉnh sửa và bảng kiểm tra thiếu minh chứng.','ZIP includes two editable DOCX drafts and a missing-evidence checklist.')}</p>
       </div>
 
-      <div className="content-gap"><div className="section-title"><span>{t(language,'THÔNG TIN HỒ SƠ CẦN GIÁO VIÊN XÁC NHẬN','TEACHER-VERIFIED DOSSIER DETAILS')}</span><span className="right">{t(language,'Hoàn thành trước khi xuất','Complete before exporting')}</span></div></div>
-      <div className="panel warm" style={{background:'#fff8ec'}}>
-        <div className="form-grid adv-form-grid" style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:14}}>
+      <div className="content-gap dossier-full-span" style={{gridColumn:'1 / -1'}}><div className="section-title"><span>{t(language,'THÔNG TIN HỒ SƠ CẦN GIÁO VIÊN XÁC NHẬN','TEACHER-VERIFIED DOSSIER DETAILS')}</span><span className="right">{t(language,'Hoàn thành trước khi xuất','Complete before exporting')}</span></div></div>
+      <div className="panel warm dossier-full-span" style={{background:'#fff8ec',gridColumn:'1 / -1'}}>
+        <div className="form-grid adv-form-grid">
           {FIELD_DEFS.map(([key,vi,en])=>(
             <div className="form-field adv-dossier-field" key={key}>
               <label htmlFor={`igv2-dossier-${key}`}>{t(language,vi,en)}</label>
@@ -65,7 +65,7 @@ export default function DossierEditor({
           ))}
         </div>
       </div>
-      <style>{`.igv2 .adv-form-grid{grid-template-columns:repeat(2,1fr)}@media(max-width:640px){.igv2 .adv-form-grid{grid-template-columns:1fr}}`}</style>
+      <style>{`.igv2 .dossier-full-span{grid-column:1 / -1}.igv2 .adv-form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}@media(max-width:960px){.igv2 .adv-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:640px){.igv2 .adv-form-grid{grid-template-columns:minmax(0,1fr)}}`}</style>
     </>
   );
 }

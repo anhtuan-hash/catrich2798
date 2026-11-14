@@ -5,12 +5,12 @@ import {englishSystemGroupLabel} from '../../v3/museumApi.js';
 import {classroomSummary} from '../../v3/museumCommandCenter.js';
 const t=(lang,vi,en)=>lang==='en'?en:vi;
 const safeLabel=value=>englishSystemGroupLabel(value||'Group');
-const prettyState=state=>({
-  issued:t('vi','Đã phát phiếu','Invitation issued'),editing:t('vi','Đang chỉnh sửa','Editing'),
-  changes_requested:t('vi','Cần sửa lại','Changes requested'),submitted:t('vi','Đã nộp','Submitted'),
-  ttcm_review:t('vi','Đang duyệt','Under review'),approved_locked:t('vi','Đã duyệt','Approved'),
-  published:t('vi','Đã công bố','Published')
-})[state]||t('vi','Đang làm','Working');
+const prettyState=(state,lang='vi')=>({
+  issued:t(lang,'Đã phát phiếu','Invitation issued'),editing:t(lang,'Đang chỉnh sửa','Editing'),
+  changes_requested:t(lang,'Cần sửa lại','Changes requested'),submitted:t(lang,'Đã nộp','Submitted'),
+  ttcm_review:t(lang,'Đang duyệt','Under review'),approved_locked:t(lang,'Đã duyệt','Approved'),
+  published:t(lang,'Đã công bố','Published')
+})[state]||t(lang,'Đang làm','Working');
 /**
  * CommandCenter — editorial Classroom Command Center.
  * Reuses v3 classroomSummary() data model and the same onSpotlight/onCompare handlers;
@@ -64,10 +64,10 @@ export default function CommandCenter({
             <div className="adv-cc-groups" role="group" aria-label={t(language,'Các nhóm lớp','Class groups')}>
               {model.groups.map((group,i)=>(
                 <button key={group.id} type="button" className="adv-cc-group" aria-pressed={selected?.id===group.id}
-                  aria-label={safeLabel(group.label)+' — '+prettyState(group.state)}
+                  aria-label={safeLabel(group.label)+' — '+prettyState(group.state,language)}
                   onClick={()=>{setSelectedId(group.id);setTab('received');}}>
                   <span style={{display:'flex',justifyContent:'space-between'}}><strong>{safeLabel(group.label)}</strong><small>{String(i+1).padStart(2,'0')}</small></span>
-                  <small>{prettyState(group.state)}</small>
+                  <small>{prettyState(group.state,language)}</small>
                   <span style={{display:'inline-flex',gap:4,flexWrap:'wrap',marginTop:2}}>
                     <span style={{fontSize:10,padding:'1px 6px',borderRadius:8,background:(group.responded||group.thinkingAnswered)?'#dff3e8':'#fdecec',color:(group.responded||group.thinkingAnswered)?'#14532d':'#7f1d1d'}}>{(group.responded||group.thinkingAnswered)?t(language,'Đã trả lời','Responded'):t(language,'Chưa','Not yet')}</span>
                     <span style={{fontSize:10,color:'var(--adv-mute)'}}>{group.reviewCount} {t(language,'góp ý','reviews')}</span>
@@ -86,9 +86,9 @@ export default function CommandCenter({
                 <div>
                   <div style={{fontSize:10,fontWeight:850,letterSpacing:'.1em',color:'var(--adv-mute)',textTransform:'uppercase'}}>{t(language,'Nhóm được chọn','Selected group')}</div>
                   <h3 style={{margin:'2px 0 4px'}}>{safeLabel(selected.label)}</h3>
-                  <p style={{fontSize:12,color:'var(--adv-mute)',margin:0}}>{prettyState(selected.state)} · {selected.thinkingAnswered?t(language,'Hoàn thành nhiệm vụ tư duy','Thinking task completed'):selected.responded?t(language,'Đã nộp phản hồi','Response submitted'):t(language,'Chờ phản hồi hoạt động hiện tại','Awaiting current activity response')}</p>
+                  <p style={{fontSize:12,color:'var(--adv-mute)',margin:0}}>{prettyState(selected.state,language)} · {selected.thinkingAnswered?t(language,'Hoàn thành nhiệm vụ tư duy','Thinking task completed'):selected.responded?t(language,'Đã nộp phản hồi','Response submitted'):t(language,'Chờ phản hồi hoạt động hiện tại','Awaiting current activity response')}</p>
                 </div>
-                <span className="status" style={{background:'#dff3e8',color:'#14532d',padding:'3px 8px',fontSize:10,fontWeight:800}}>{prettyState(selected.state)}</span>
+                <span className="status" style={{background:'#dff3e8',color:'#14532d',padding:'3px 8px',fontSize:10,fontWeight:800}}>{prettyState(selected.state,language)}</span>
               </div>
               {onSpotlight?<button type="button" className="adv-toolbtn" style={{marginTop:10,fontSize:11}} onClick={()=>onSpotlight(selected.id)} disabled={busy} aria-label={t(language,'Trình chiếu triển lãm riêng của ','Spotlight private museum of ')+safeLabel(selected.label)}><MonitorPlay size={13}/>{t(language,'Trình chiếu nhóm','Spotlight')}</button>:null}
               {' '}

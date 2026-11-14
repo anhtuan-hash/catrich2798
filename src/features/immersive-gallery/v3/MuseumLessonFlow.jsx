@@ -234,6 +234,12 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
  return <div className="bml-screen bml-lesson-workspace-v57" data-testid="museum-lessons"><div className="bml-heading-actions"><div><div className="bml-overline">{tr(language,'LỚP HỌC SỐ','LESSON WORKSPACE')}</div>
   <h1>{tr(language,'Bài học của tôi','My lessons')}</h1><p>{tr(language,'Giao dự án và theo dõi từng nhóm.','Assign projects and track your groups.')}</p></div>
   {isAdmin?<button type="button" className="bml-primary" onClick={onCreate}><Plus size={19}/>{tr(language,'Tạo bài học mới','New lesson')}</button>:null}</div>
+  <div className="kpi-grid mb20" role="list" aria-label={tr(language,'Số liệu bài học','Lesson figures')}>
+   <div className="kpi" role="listitem"><strong><i>{allAssignments.length}</i></strong><small>{tr(language,'Bài học đã giao','Assigned lessons')}</small></div>
+   <div className="kpi" role="listitem"><strong>{groups.length}</strong><small>{tr(language,'Nhóm học sinh','Active groups')}</small></div>
+   <div className="kpi" role="listitem"><strong>{reviews.length}</strong><small>{tr(language,'Bảo tàng đã nộp','Museum submissions')}</small></div>
+   <div className="kpi" role="listitem"><strong>{exitTickets.length}</strong><small>Exit Tickets</small></div>
+  </div>
   <Notice error={error} success={success}/>
   {invites?<OneTimeInvites invitations={invites} onClose={()=>setInvites(null)} language={language}/>:null}
   {assignments.length?<div className="bml-lesson-list">{assignments.map(a=>{

@@ -18,14 +18,16 @@ export default function CompetitionBanner() {
   return (
     <header className="contest" data-testid="igv2-competition-banner" lang="vi"
       aria-label={awardLabel + ' – ' + contestName}>
-      <img className="crest" src={departmentLogo}
-        alt="Logo Sở Giáo dục và Đào tạo Thành phố Hồ Chí Minh"
-        width={299} height={300} loading="eager" decoding="async" />
+      <div className="contest-crest-wrap contest-crest-wrap--dept">
+        <img className="crest" src={departmentLogo}
+          alt="Logo Sở Giáo dục và Đào tạo Thành phố Hồ Chí Minh"
+          width={299} height={300} loading="eager" decoding="async" />
+      </div>
       <div className="contest-mid">
         <div className="banner-ribbon">
-          <Star size={15} fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle', marginRight:8}} />
-          {awardLabel}
-          <Star size={15} fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle', marginLeft:8}} />
+          <Star size={14} fill="currentColor" aria-hidden="true" className="contest-ribbon-star" />
+          <span>{awardLabel}</span>
+          <Star size={14} fill="currentColor" aria-hidden="true" className="contest-ribbon-star" />
         </div>
         <div className="contest-sub">{contestName}</div>
         <div className="contest-level">{yearLabel}</div>
@@ -33,9 +35,11 @@ export default function CompetitionBanner() {
         <div className="contest-person">{teacherLabel} <strong>{teacherName}</strong></div>
         <p className="contest-school">{schoolName}</p>
       </div>
-      <img className="crest school" src={schoolLogo}
-        alt="Logo Trường Trung - Tiểu học Pétrus Ký – The Pioneers"
-        width={1682} height={2048} loading="eager" decoding="async" />
+      <div className="contest-crest-wrap contest-crest-wrap--school">
+        <img className="crest school" src={schoolLogo}
+          alt="Logo Trường Trung - Tiểu học Pétrus Ký – The Pioneers"
+          width={1682} height={2048} loading="eager" decoding="async" />
+      </div>
     </header>
   );
 }

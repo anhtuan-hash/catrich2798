@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Archive,RotateCcw,ShieldAlert,CheckCircle2,Landmark,RefreshCw} from 'lucide-react';
 import EditorialHeading from '../shell/EditorialHeading.jsx';
+import MetricStrip from '../shell/MetricStrip.jsx';
 import ExhibitionCard from '../shell/ExhibitionCard.jsx';
 import ContentPanel from '../shell/ContentPanel.jsx';
 import MuseumExhibitionDetail from '../../v3/MuseumExhibitionDetail.jsx';
@@ -133,6 +134,13 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
   const archivedItems = (showcase.archivedGalleries || []).filter(g => !isPracticeShowcase(g))
     .map(g => ({kind: 'gallery', key: g.id, title: g.title, label: 'Student exhibition'}));
 
+  const exhibitionMetrics = [
+    {value: String(publishedCount), label: tr(language,'Triển lãm đã công bố','Published exhibitions'), highlight: true},
+    {value: String(publishedInView.length), label: tr(language,'Đang hiển thị','Showing in view')},
+    {value: String(archivedItems.length), label: tr(language,'Đã lưu trữ','Archived exhibitions')},
+    {value: String((payload?.groups || []).length), label: tr(language,'Nhóm học sinh','Student groups')},
+  ];
+
   return (
     <>
       <EditorialHeading
@@ -141,6 +149,9 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
         description={tr(language, 'Khám phá các dự án tiếng Anh qua không gian bảo tàng 3D.', 'Explore English projects in interactive 3D museums.')}
         aside={<span>{publishedCount} {tr(language,'triển lãm đã công bố','published exhibitions')} · <b>{archivedItems.length}</b> {tr(language,'đã lưu trữ','archived')}</span>}
       />
+
+      <MetricStrip items={exhibitionMetrics} />
+      <div className="content-gap" />
 
       <div className="section-title">
         <span>{tr(language, 'TRIỂN LÃM ĐÃ CÔNG BỐ', 'PUBLISHED EXHIBITIONS')}</span>
@@ -187,6 +198,7 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
               description={g.summary || tr(language,'Dự án bảo tàng của học sinh','Student museum project')}
               featured={i === 0}
               statusLabel={tr(language,'Đã công bố','Published')}
+              language={language}
               onOpen={() => enter(g)} />
           ))}
         </div>

@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {LockKeyhole,ShieldCheck,ShieldAlert,CheckCircle2} from 'lucide-react';
 import EditorialHeading from '../shell/EditorialHeading.jsx';
+import MetricStrip from '../shell/MetricStrip.jsx';
 import ContentPanel from '../shell/ContentPanel.jsx';
 import {staffRequest as defaultTransport} from '../../v3/museumApi.js';
 
@@ -55,6 +56,13 @@ export default function SettingsScreen({language='en', data, staff, onRefresh, t
     {n:3, title: tr(language,'Công bố & quản lý','Publish and manage'), desc: tr(language,'Admin công bố bài đã duyệt và quản lý thao tác lưu trữ an toàn.','The Admin publishes approved work and manages safe archive actions.')},
   ];
 
+  const settingsMetrics = [
+    {value: creator.enabled ? 'ON' : 'OFF', label: 'Student Creator Pass', highlight: Boolean(creator.enabled)},
+    {value: creator.upload_enabled ? 'ON' : 'OFF', label: tr(language, 'Tải tranh ảnh 3D', '3D artwork uploads')},
+    {value: 'QR + Code', label: tr(language, 'Xác thực học sinh', 'Student access mode')},
+    {value: 'Admin', label: tr(language, 'Quyền phê duyệt & công bố', 'Approval & publish authority')},
+  ];
+
   return (
     <>
       <EditorialHeading
@@ -63,6 +71,8 @@ export default function SettingsScreen({language='en', data, staff, onRefresh, t
         description={tr(language, 'Quyền truy cập đơn giản, vẫn bảo vệ nghiêm ngặt dữ liệu học sinh.', 'Simple permissions with strict student-data protection.')}
         aside={tr(language, 'Quyền truy cập & quy trình công bố', 'Access and publication workflow')}
       />
+
+      <MetricStrip items={settingsMetrics} />
 
       {error ? <div className="info-strip mt20" role="alert" style={{background:'#fde8e8', borderLeftColor:'#b31c2d', color:'#7a1620'}}><ShieldAlert size={15} aria-hidden="true"/> {error}</div> : null}
       {message ? <div className="info-strip mt20" role="status"><CheckCircle2 size={15} aria-hidden="true"/> {message}</div> : null}
