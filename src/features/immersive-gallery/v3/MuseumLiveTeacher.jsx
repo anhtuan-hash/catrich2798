@@ -32,7 +32,7 @@ export default function MuseumLiveTeacher({data,language='vi',initialAssignment,
  const savedPreference=useRef(loadPresenterRecovery(typeof window!=='undefined'?window.sessionStorage:null,assignmentIds));
  const [assignmentId,setAssignmentId]=useState(initialAssignment||savedPreference.current?.assignmentId||assignments[0]?.id||'');
  const offline=Boolean(data?.offlineReadOnly);
- const readOnly=offline||Boolean(assignments.find(a=>a.id===assignmentId)?.content_frozen_at);
+ const readOnly=Boolean(offline||assignments.find(a=>a.id===assignmentId)?.content_frozen_at);
  // A frozen lesson has independent, GET-only presentation navigation.
  const [browseIndex,setBrowseIndex]=useState(0);
  const [previewReveal,setPreviewReveal]=useState(false);
