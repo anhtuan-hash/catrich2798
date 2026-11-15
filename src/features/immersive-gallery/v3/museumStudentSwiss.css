@@ -467,15 +467,12 @@
 .bml .bml-locked-dossier dt{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8a5a12}
 .bml .bml-locked-dossier dd{margin:3px 0 0;white-space:pre-wrap;font-size:15px;line-height:1.45}
 .bml.bml-student-login-with-ribbon .bml-guest-overline b{letter-spacing:-.03em}
-.bml.bml-student-login-with-ribbon .bml-guest-illustration{
- background:#fffdf9!important;
- color:#152033!important;
- border-radius:0!important;
- box-shadow:none!important;
+.bml.bml-student-canvas16>.bml-contest-art{
+ display:flex!important;
+ justify-content:center!important;
+ background:transparent!important;
 }
-.bml.bml-student-login-with-ribbon .bml-guest-illustration h1,
-.bml.bml-student-login-with-ribbon .bml-guest-illustration p,
-.bml.bml-student-login-with-ribbon .bml-guest-overline,
-.bml.bml-student-login-with-ribbon .bml-guest-overline b{
- color:#152033!important;
+.bml.bml-student-canvas16>.bml-contest-art .cmast.cmast-plate{
+ width:50%!important;
+ max-width:50%!important;
 }
