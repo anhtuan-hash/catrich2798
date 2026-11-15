@@ -807,7 +807,7 @@ test('student can send a real raster poster through the private artwork API work
     return route.fulfill({status:503,json:{error:'Could not open the private image.'}});
    await uploadDelay;
    const id=received.replaceId?replacementId:imageId;
-   return route.fulfill({status:201,json:{asset:{id,image_url:received.png,original_name:received.filename}}});
+   return route.fulfill({status:201,json:{asset:{id,image_url:received.jpeg,original_name:received.filename}}});
   }
   listRequests++;
   return route.fulfill({json:{assets:[]}});
@@ -829,9 +829,10 @@ test('student can send a real raster poster through the private artwork API work
   await expect(studio.getByText('Đã tải tranh lên kho riêng tư',{exact:false})).toHaveCount(0);
  }finally{allowUpload();}
  await expect(page.getByText('Đã tải tranh lên kho riêng tư')).toBeVisible({timeout:15000});
- await expect(studio.locator('img').first()).toHaveAttribute('src',/^data:image\/png/);
+ await expect(studio.locator('img').first()).toHaveAttribute('src',/^data:image\/jpeg/);
  expect(received.filename).toBe('my-original-poster.png');
- expect(received.png).toMatch(/^data:image\/png;base64,/);
+ expect(received.jpeg).toMatch(/^data:image\/jpeg;base64,/);
+ expect(received.jpeg.length).toBeLessThan(800025);
  expect(listRequests).toBe(1);
  const source=studio.getByPlaceholder('Actual creator, class group, teacher or source URL');
  const permission=studio.getByRole('textbox',{name:/Usage permission|Quyền sử dụng/});
@@ -1076,6 +1077,48 @@ test('frozen survey chart uploads real computed PNG instead of an empty evidence
  await expect(page.getByPlaceholder('Actual creator, class group, teacher or source URL')).toHaveValue(/In-class group-priority survey/);
  await expect(page.getByRole('textbox',{name:/Usage permission|Quyền sử dụng/}))
   .toHaveValue('Original class survey chart; group totals only.');
+});
+
+test('Student Creator saves the uploaded artwork and credits without the typing debounce',async({page})=>{
+ const assetId='aaaaaaaa-1111-4111-8111-111111111111';
+ let saved,uploadFinished;
+ await page.route('**/api/gallery-guest?**',async route=>{
+  const operation=new URL(route.request().url()).searchParams.get('operation');
+  if(operation==='me')return route.fulfill({json:{groupLabel:'Group QA',groupState:'editing',
+   csrf:'qa-artwork-save',uploadEnabled:true,assignment:{title:'Artwork QA'}}});
+  if(operation==='draft')return route.fulfill({json:{draft:{title:'Artwork QA'},version:3}});
+  if(operation==='save'){
+   saved={body:route.request().postDataJSON(),delay:Date.now()-uploadFinished};
+   return route.fulfill({json:{ok:true,version:4}});
+  }
+  return route.fulfill({json:{ok:true}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>route.fulfill({json:{session:{
+  status:'active',stageIndex:6,stageOpen:true,media:{voiceEnabled:false}
+ }}}));
+ await page.route('**/api/gallery-guest/artwork?**',route=>{
+  if(route.request().method()==='GET')return route.fulfill({json:{assets:[]}});
+  uploadFinished=Date.now();
+  return route.fulfill({status:201,json:{asset:{id:assetId,original_name:'poster.png',
+   image_url:route.request().postDataJSON().jpeg}}});
+ });
+ await page.getByTestId('qa-student-en').click();
+ const app=page.getByTestId('museum-student-wizard');
+ await app.getByRole('button',{name:'Page 3',exact:true}).click();
+ await app.getByRole('button',{name:'Open artwork & media studio'}).click();
+ const image=await page.evaluate(()=>{
+  const canvas=document.createElement('canvas');
+  canvas.width=canvas.height=128;
+  return canvas.toDataURL('image/png').split(',')[1];
+ });
+ await app.locator('input[type="file"]').first().setInputFiles({
+  name:'poster.png',mimeType:'image/png',buffer:Buffer.from(image,'base64')
+ });
+ await expect.poll(()=>saved?.body.draft.artworks.issue).toBe(assetId);
+ expect(saved.body.expectedVersion).toBe(3);
+ expect(saved.body.draft.artMeta.issue.source).toContain('Created with AI assistance');
+ expect(saved.delay).toBeLessThan(1200);
+ await expect(app.locator('.bml-save-indicator')).toContainText('Saved');
 });
 
 test('paper footer integrates with existing site styles without page overflow',async({page},testInfo)=>{

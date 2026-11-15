@@ -1,6 +1,6 @@
 // Server-only, group-scoped artwork API. Never grants direct anon Storage access.
 import {db,fail,send,handleError,guardBody,guestContext,staffContext,assertStaff,query,clean,uid,requireMethod} from './_galleryCreator.js';
-import {canonicalArtworkPng} from './_museumPng.js';
+import {canonicalArtworkImage} from './_museumArtworkImage.js';
 import {randomUUID} from 'node:crypto';
 import {canSaveMuseumDraft} from '../src/features/immersive-gallery/v3/museumSubmissionPolicy.js';
 const BUCKET='museum-artwork-private';
@@ -43,8 +43,10 @@ async function signed(ctx,assets){
 }
 export default async function museumArtwork(req,res){
  try{
+  const started=performance.now();
   const op=String(req.query?.operation||'');const admin=db();
   const ctx=await authorise(req,admin);
+  const authorized=performance.now();
   if(op==='list'){
    requireMethod(req,'GET');const assets=await list(ctx);
    return send(res,200,{assets:await signed(ctx,assets),expiresSeconds:SIGNED_URL_TTL});
@@ -72,7 +74,8 @@ export default async function museumArtwork(req,res){
    if(current.length>=6&&!replace)throw fail(423,'Tối đa 6 tranh ảnh mỗi nhóm.');
    if(total.error||total.count>=30)throw fail(423,'Tối đa 30 phiên bản ảnh mỗi nhóm để giữ minh chứng.');
    let image;
-   try{image=canonicalArtworkPng(body.png);}catch(e){throw fail(400,e.message);}
+   try{image=await canonicalArtworkImage(body);}catch{throw fail(400,'This image could not be processed. Try another JPG, PNG or WebP image.');}
+   const encoded=performance.now();
    const name=clean(body.filename||'Student artwork',150);
    const assetId=randomUUID(),storagePath=ctx.assignment.id+'/'+ctx.group.id+'/'+assetId+'.png';
    const storage=admin.storage.from(BUCKET);
@@ -80,6 +83,7 @@ export default async function museumArtwork(req,res){
     contentType:'image/png',cacheControl:'private, max-age=90',upsert:false
    });
    if(stored.error)throw fail(503,'Không thể lưu ảnh vào kho riêng tư.');
+   const uploaded=performance.now();
    let imageUrl;
    try{
     const {data,error}=await storage.createSignedUrl(storagePath,SIGNED_URL_TTL);
@@ -99,6 +103,10 @@ export default async function museumArtwork(req,res){
     }).eq('id',replace.id).eq('group_id',ctx.group.id));
     // Retain private bytes for immutable before/after checkpoints.
    }
+   res.setHeader('Server-Timing', [
+    ['authorization',authorized-started],['prepare',encoded-authorized],
+    ['storage',uploaded-encoded],['record',performance.now()-uploaded]
+   ].map(([name,ms])=>name+';dur='+Math.round(ms)).join(', '));
    return send(res,201,{asset:{id:assetId,original_name:name,bytes:image.bytes,
     width:image.width,height:image.height,image_url:imageUrl}});
   }

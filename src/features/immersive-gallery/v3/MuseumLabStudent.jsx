@@ -165,6 +165,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  },[]);
  const viewHistory=async()=>{try{setHistory((await liveGuest('history')).checkpoints||[]);}catch(e){setError(e.message);}};
  const documentRef=useRef(studio),versionRef=useRef(0),csrfRef=useRef(''),savingRef=useRef(false),dirtyRef=useRef(false);
+ const artworkSavePending=useRef(false);
  const dragStoryboard=useRef(null);
  const groupLocked=session&&(session.readOnly===true||!['issued','editing','changes_requested'].includes(session.groupState));
  const liveRunning=Boolean(liveInfo&&liveInfo.status!=='not_started');
@@ -217,14 +218,16 @@ export default function MuseumLabStudent({language:languageProp='en'}){
   csrfRef.current=me.csrf;setSession(me);documentRef.current=parsed;setStudio(parsed);
   versionRef.current=d.version;setVersion(d.version);
  }).catch(()=>{});return()=>{active=false;};},[]);
- const edit=change=>{
+ const edit=(change,{saveImmediately=false}={})=>{
   if(locked||conflict)return;
+  if(saveImmediately)artworkSavePending.current=true;
   const before=documentRef.current,next=typeof change==='function'?change(before):change;
   documentRef.current=next;setStudio(next);dirtyRef.current=true;setDirty(true);setSaveState('saving');setError('');
  };
  const changeLearning=(key,value)=>edit(d=>({...d,learning:{...d.learning,[key]:value}}));
  const save=useCallback(async()=>{
   if(!session||savingRef.current||!dirtyRef.current||conflict||locked)return null;
+  artworkSavePending.current=false;
   savingRef.current=true;setSaveState('saving');
   const snapshot=documentRef.current,raw=JSON.stringify(snapshot),expected=versionRef.current;
   try{
@@ -243,9 +246,10 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  },[session,conflict,locked,language]);
  useEffect(()=>{
   if(!dirty||savingRef.current||conflict||locked)return undefined;
-  const timer=window.setTimeout(()=>save(),1500);
+  if(saveState==='error'&&!artworkSavePending.current)return undefined;
+  const timer=window.setTimeout(()=>save(),artworkSavePending.current?0:1500);
   return()=>window.clearTimeout(timer);
- },[studio,dirty,version,save,conflict,locked]);
+ },[studio,dirty,version,save,saveState,conflict,locked]);
  const redeem=async credentials=>{setBusy(true);setError('');
   try{await guestRequest('redeem','POST',credentials);await load();}
   catch(e){setError(e.message);}finally{setBusy(false);}
@@ -454,7 +458,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
        <div className="bml-student-detail-head"><strong>{T(language,'Xưởng sáng tạo hiện vật','Artwork & media studio')}</strong>
         <button type="button" className="bml-outline" onClick={()=>setArtworkOpen(false)}><X size={17}/>{T(language,'Đóng','Close')}</button></div>
        <div className="bml-student-artwork-dialog">
-     <MuseumArtworkStudio studio={studio} update={edit} csrf={session.csrf} language={language}
+     <MuseumArtworkStudio studio={studio} update={edit} saveArtwork={change=>edit(change,{saveImmediately:true})} csrf={session.csrf} language={language}
       disabled={locked||busy} uploadEnabled={session.uploadEnabled===true} onAssets={setArtAssets}/>
 
        </div>
