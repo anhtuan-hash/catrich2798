@@ -1,14 +1,17 @@
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace {
  display:grid!important;
  grid-template-columns:minmax(0,1fr);
- grid-template-rows:auto auto minmax(0,1fr);
+ grid-template-rows:auto auto auto;
+ align-content:start;
+ overflow-y:auto!important;
+ overflow-x:hidden!important;
  gap:10px;
  padding:12px;
 }
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace > .bml-contest-art {
  grid-column:1;
  grid-row:1;
- max-width:min(1200px,100%,96dvh);
+ max-width:min(1100px,100%,74dvh);
  justify-self:center;
 }
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace > .bml-student-bar {
@@ -24,7 +27,8 @@
  grid-column:1;
  grid-row:3;
  display:grid!important;
- grid-template-rows:auto minmax(0,1fr);
+ grid-template-rows:auto auto;
+ overflow:visible;
  gap:10px;
  padding:0;
  margin:0;
@@ -38,9 +42,10 @@
 }
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-workbench {
  display:grid!important;
- grid-template-columns:minmax(0,1.06fr) minmax(0,1fr);
+ grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);
+ align-items:start;
  min-height:0;
- height:100%;
+ height:auto;
  gap:12px;
 }
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-primary {
@@ -48,7 +53,7 @@
  grid-row:auto;
  min-width:0;
  min-height:0;
- height:100%;
+ height:auto;
  display:flex;
  flex-direction:column;
  border:1px solid var(--swiss-line);
@@ -102,7 +107,7 @@
 }
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel .bml-student-pane > .bml-live-student {
  display:block;
- height:100%;
+ height:auto;
  min-height:0;
  max-height:none;
  padding:12px clamp(12px,1.45vw,23px);
@@ -121,40 +126,56 @@
  outline:2px solid #245e88;
  outline-offset:2px;
 }
-@media (max-width:999px), (max-height:680px) {
+
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace :is(.bml-student-primary,.bml-student-stage,.bml-student-task.bml-surface,.bml-student-primary > .bml-student-pane) {
+ height:auto;
+ min-height:0;
+ max-height:none;
+ overflow:visible;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-task-scroll {
+ flex:0 0 auto;
+ overflow:visible;
+ padding-inline-end:0;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-pane > .bml-live-student {
+ overflow:visible!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-focus {
+ padding-block:8px;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-focus-head > strong {
+ font-size:clamp(21px,1.65vw,28px)!important;
+}
+.bml.bml-student-canvas16 .bml-student-practice-note {
+ padding:8px 12px;
+ border-inline-start:3px solid #397a68;
+ background:#edf4ef;
+ color:#254958;
+ font-size:14px;
+}
+.bml.bml-student-canvas16 .bml-student-saved-choice {
+ display:block;
+ margin-top:4px;
+ color:#285d51;
+ font-size:12px;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-live-response-options button {
+ font-size:clamp(14px,1.15vw,17px);
+ line-height:1.4;
+ min-height:46px;
+ overflow-wrap:anywhere;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-p2-task {
+ font-size:clamp(14px,1.15vw,17px);
+}
+@media (max-width:960px) {
  .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace {
   position:fixed!important;
-  overflow-y:auto!important;
-  overflow-x:hidden!important;
   height:100dvh!important;
   min-height:0!important;
-  max-height:100dvh!important;
-  align-content:start;
-  grid-template-rows:auto auto auto;
  }
- .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace > .bml-student-content {
-  grid-template-rows:auto auto;
-  overflow:visible;
+ .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-workbench {
+  grid-template-columns:minmax(0,1fr);
  }
- .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-workbench,
- .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-primary,
- .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-stage,
- .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-task.bml-surface {
-  height:auto;
-  min-height:0;
-  max-height:none;
-  overflow:visible;
- }
- .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-primary > .bml-student-pane,
- .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel .bml-student-pane > .bml-live-student {
-  height:auto;
-  overflow:visible!important;
- }
- .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-task-scroll {
-  flex:0 0 auto;
-  overflow:visible;
- }
-}
-@media (max-width:850px) {
- .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-workbench { grid-template-columns:minmax(0,1fr); }
 }

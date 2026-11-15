@@ -125,11 +125,11 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  const [session,setSession]=useState(initialSession),[studio,setStudio]=useState(emptyStudio);
  const [version,setVersion]=useState(0),[dirty,setDirty]=useState(false),[busy,setBusy]=useState(false);
  const [saveState,setSaveState]=useState('saved'),[error,setError]=useState(''),[notice,setNotice]=useState('');
- const [step,setStep]=useState(0),[preview,setPreview]=useState(false),[conflict,setConflict]=useState(false);
+ const [preview,setPreview]=useState(false),[conflict,setConflict]=useState(false);
  const [liveInfo,setLiveInfo]=useState(null),[liveReady,setLiveReady]=useState(false),[artAssets,setArtAssets]=useState([]);
  const [history,setHistory]=useState([]);
  const [reviewIndex,setReviewIndex]=useState(null);
- const [studioSubstep,setStudioSubstep]=useState(0),[historyOpen,setHistoryOpen]=useState(false);
+ const [pageChoice,setPageChoice]=useState(null),[historyOpen,setHistoryOpen]=useState(false);
  const [projectPreview,setProjectPreview]=useState(false),[studentTool,setStudentTool]=useState(null);
  const [artworkOpen,setArtworkOpen]=useState(false),[speakingOpen,setSpeakingOpen]=useState(false);
  const previewGallery=buildStudentMuseumPreview(studio,artAssets);
@@ -169,45 +169,35 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  const liveRunning=Boolean(liveInfo&&liveInfo.status!=='not_started');
  const stageIndex=liveInfo?.stageIndex??-1;
  // Group work is independent of the gated Teacher Live response.
- const maxStudentStep=4;
  const stageEditAllowed=canSaveMuseumDraft(liveInfo);
  const canFollowLive=liveRunning&&!session?.readOnly&&liveInfo.status!=='ended';
  const displayedActivity=reviewIndex??(canFollowLive?stageIndex:0);
- const displayedGroup=activityGroup(displayedActivity);
- const projectPanelRef=useRef(null),lessonBodyRef=useRef(null);
+ const step=activityGroup(displayedActivity);
+ const projectPanelRef=useRef(null);
  const focusProject=()=>{
   projectPanelRef.current?.focus({preventScroll:true});
   projectPanelRef.current?.scrollIntoView?.({block:'nearest'});
  };
- const returnLive=()=>{setReviewIndex(null);setStep(activityGroup(stageIndex));};
+ const returnLive=()=>{setReviewIndex(null);setPageChoice(null);};
  const browseActivity=index=>{
   setReviewIndex(canFollowLive&&index===stageIndex?null:index);
-  setStep(activityGroup(index));
+  setPageChoice(null);
   setPreview(false);
  };
  const chooseGroup=group=>{
-  if(group!==displayedGroup)browseActivity(firstActivity(group));
-  else setStep(group);
+  if(group!==step)browseActivity(firstActivity(group));
  };
  useEffect(()=>{
   setArtworkOpen(false);setSpeakingOpen(false);setHistoryOpen(false);setPreview(false);setProjectPreview(false);
  },[stageIndex]);
  const locked=groupLocked||!stageEditAllowed;
  const studioPages=step===1?2:step===2?3:1;
- // Keep the 16:9 frame stationary; only the active step's fields scroll.
- // Reset on navigation so Page 2 and the next step never open halfway down.
+ const studioSubstep=pageChoice?.activity===displayedActivity?pageChoice.page:displayedActivity===4||displayedActivity===5?1:0;
+ const setStudioSubstep=page=>setPageChoice({activity:displayedActivity,page});
  const taskScrollRef=useRef(null);
- useEffect(()=>{
-  const lesson=lessonBodyRef.current?.firstElementChild;
-  if(lesson)lesson.scrollTop=0;
- },[displayedActivity,reviewIndex]);
  useEffect(()=>{if(taskScrollRef.current)taskScrollRef.current.scrollTop=0;},[step,studioSubstep]);
  const showTool=name=>{setReviewIndex(null);setStudentTool({name,key:Date.now()});};
- useEffect(()=>{setStudioSubstep(step===2&&artworkOpen?2:0);setHistoryOpen(false);},[step]);
- useEffect(()=>{
-  if(!liveRunning||reviewIndex!=null)return;
-  setStep(activityGroup(stageIndex));
- },[stageIndex,liveRunning]);
+ useEffect(()=>{setHistoryOpen(false);setSpeakingOpen(false);},[displayedActivity]);
  const load=useCallback(async()=>{
   const me=await guestRequest('me');const d=await guestRequest('draft');
   const parsed=normalizeStudio(d.draft);
@@ -257,7 +247,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  const logout=async()=>{setBusy(true);
   try{await guestRequest('logout','POST',{},csrfRef.current);}catch{}
   csrfRef.current='';setSession(null);documentRef.current=emptyStudio();setStudio(emptyStudio());
-  setDirty(false);dirtyRef.current=false;setBusy(false);setStep(0);setLiveInfo(null);setReviewIndex(null);setLiveReady(false);setNotice('');setError('');
+  setDirty(false);dirtyRef.current=false;setBusy(false);setPageChoice(null);setLiveInfo(null);setReviewIndex(null);setLiveReady(false);setNotice('');setError('');
  };
  const submit=async()=>{
   setError('');setNotice('');setBusy(true);
@@ -284,8 +274,8 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  const progressPercent=Math.round(100*progressChecks.filter(Boolean).length/progressChecks.length);
  const readiness=submissionReadiness(studio,liveInfo);
  const submitWindowNote=submissionWindowMessage(liveInfo);
- const openSubmitReview=()=>{setStep(4);setArtworkOpen(false);setPreview(false);setError('');focusProject();};
- const openArtworkSources=()=>{setArtworkOpen(true);setStep(2);setStudioSubstep(2);setPreview(false);setError('');};
+ const openSubmitReview=()=>{browseActivity(10);setArtworkOpen(false);setPreview(false);setError('');focusProject();};
+ const openArtworkSources=()=>{browseActivity(6);setPageChoice({activity:6,page:2});setArtworkOpen(true);setError('');};
  const studentMedia=stageMediaTools(liveInfo);
  const narrationCue=session.readOnly?null:studentNarrationCue({liveInfo,step,ready:liveReady});
  return <main className="bml bml-student-shell bml-student-canvas16 bml-student-editorial bml-student-dual-workspace" data-testid="museum-student-wizard" lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
@@ -307,7 +297,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
        T(language,'Đang chờ giáo viên bắt đầu · Có thể xem sản phẩm nhóm','Waiting for teacher · Group workspace available')}
      </span>
     </div>
-    <MuseumStudentActivityGroups group={displayedGroup} activity={displayedActivity}
+    <MuseumStudentActivityGroups group={step} activity={displayedActivity}
      language={language} onGroup={chooseGroup} onActivity={browseActivity}/>
    </section>
    <div className="bml-student-workbench" data-testid="student-one-screen-workspace">
@@ -321,23 +311,20 @@ export default function MuseumLabStudent({language:languageProp='en'}){
        {studentMedia.video?<button type="button" className="bml-outline" onClick={()=>showTool('video')}><Eye size={16}/>{T(language,'Video học tập','Learning videos')}</button>:null}
       </div>
      </header>
-   <div ref={lessonBodyRef} className="bml-student-pane" data-testid="student-lesson-pane">
+   <div className="bml-student-pane" data-testid="student-lesson-pane">
     <MuseumLiveStudent csrf={session.csrf} language={language} readOnly={session.readOnly===true}
       onState={next=>{setLiveInfo(next);setLiveReady(true);}} toolRequest={studentTool} compact
-      reviewIndex={reviewIndex} onReturnLive={canFollowLive?returnLive:undefined} onReviewProject={()=>{setStep(displayedGroup);focusProject();}}
+      reviewIndex={reviewIndex} onReturnLive={canFollowLive?returnLive:undefined} onReviewProject={focusProject}
       onOpenProject={index=>{
        if(index===9){setSpeakingOpen(true);return;}
-       if(index===8)setStep(3);
-       if(index===10)setStep(4);
-       if(index===6){setStep(2);setStudioSubstep(2);setArtworkOpen(true);}
-       if(index>=3&&index<=5){setStep(1);setStudioSubstep(index===3?0:1);}
+       if(index===6)openArtworkSources();
        focusProject();
       }}
       peerActivity={stageIndex===7?<MuseumLivePeerFeedback csrf={session.csrf} liveInfo={liveInfo}
        locked={locked||conflict} saveState={saveState}/>:null}/>
    </div>
     </section>
-    <section ref={projectPanelRef} tabIndex={-1} className="bml-student-primary bml-student-project-panel" aria-labelledby="bml-student-project-title">
+    <section ref={projectPanelRef} tabIndex={-1} data-activity={displayedActivity+1} className="bml-student-primary bml-student-project-panel" aria-labelledby="bml-student-project-title">
      <header className="bml-student-panel-head bml-student-project-head">
       <div><h2 id="bml-student-project-title">{T(language,'Sản phẩm nhóm','Group Project')}</h2>
        {studio.title?<p>{studio.title}</p>:null}</div>
@@ -370,7 +357,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
     {T(language,'Buổi học đang tạm dừng hoặc kết thúc. Chưa thể chỉnh sửa bản nháp.','The live lesson is paused. Editing is temporarily unavailable.')}</div>:null}
    {liveInfo?.status==='ended'&&!groupLocked?<div className="bml-banner bml-info-banner" role="status"><CheckCircle2 size={18}/>{T(language,'Buổi học đã kết thúc. Dự án vẫn có thể hoàn thiện và nộp trước hạn.','Lesson completed. You can edit and submit your museum project before the deadline.')}</div>:null}
    <div className="bml-student-stage"><div className="bml-student-task bml-surface">{groupLocked?null:<><div className="bml-overline">{T(language,'BƯỚC','STEP')} {step+1} / 5</div>
-    <h2>{T(language,STEPS[step].vi,STEPS[step].en)}</h2>
+    <h2>{T(language,STEPS[step].vi,STEPS[step].en)}{displayedActivity===9?T(language,' · Thuyết trình',' · Presentation'):null}</h2>
     {studioPages>1?<nav className="bml-student-subpages" aria-label={T(language,'Các trang trong bước này','Pages in this step')}>
      {Array.from({length:studioPages},(_,i)=><button type="button" key={i} aria-current={studioSubstep===i?'page':undefined}
       onClick={()=>setStudioSubstep(i)}>{T(language,'Trang','Page')} {i+1}</button>)}
@@ -380,7 +367,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
      role="region" aria-label={T(language,'Nội dung bài làm có thể cuộn','Scrollable project step content')}
      tabIndex={0} ref={taskScrollRef}>
     {groupLocked?<StudentLockedDossier language={language} studio={studio} artAssets={artAssets} onPreview={()=>setProjectPreview(true)}/>:null}
-    {!groupLocked&&step===0?<><p>{T(language,'Đọc đề bài. Chọn một vấn đề môi trường thực tế mà người xem cần hiểu.','Read the assignment. Choose one real-world environmental issue your visitors should understand.')}</p>
+    {!groupLocked&&displayedActivity===0?<><p>{T(language,'Chọn một vấn đề môi trường thực tế mà người xem cần hiểu.','Choose one real-world environmental issue your visitors should understand.')}</p>
      <div className="bml-step-hint"><Lightbulb size={21}/><div><strong>{T(language,'Gợi ý viết tiếng Anh','English sentence starter')}</strong>
       <p>“One environmental issue at our school is … because …”</p></div></div>
      {field(T(language,'Vấn đề mà nhóm em chọn','Describe your problem'),l.issue,v=>changeLearning('issue',v),{
@@ -388,12 +375,24 @@ export default function MuseumLabStudent({language:languageProp='en'}){
      {field(T(language,'Đối tượng tham quan','Who is your visitor?'),l.audience,v=>changeLearning('audience',v),{
       disabled:locked,limit:1200,placeholder:'Students, teachers and families'})}
     </>:null}
+    {!groupLocked&&displayedActivity===1?<><p>{T(language,'Dùng một ý từ clip NASA để viết câu giải thích nguyên nhân và kết quả.','Use one idea from the NASA clip to explain a cause and its effect.')}</p>
+     {field(T(language,'Dẫn chứng tiếng Anh của nhóm','Your group’s evidence in English'),l.evidence,v=>changeLearning('evidence',v),{
+      rows:4,disabled:locked,placeholder:'According to NASA, … because … .' })}
+     {field(T(language,'Nguồn trích dẫn','Source / citation'),l.source,v=>changeLearning('source',v),{disabled:locked,limit:1200})}
+    </>:null}
+    {!groupLocked&&displayedActivity===2?<>
+     {field(T(language,'Cách nhóm diễn giải kết quả khảo sát','How your group interprets the survey'),l.evidence,v=>changeLearning('evidence',v),{
+      rows:4,disabled:locked,placeholder:'In our group-priority survey, … out of … groups selected … .' })}
+     <p>{T(language,'Thêm số nhóm, tỷ lệ và giới hạn của khảo sát vào phần bằng chứng.','Add the group count, percentage, and a limitation to your evidence.')}</p>
+    </>:null}
     {step===1&&studioSubstep===0&&!groupLocked?<><p>{T(language,'Lên câu chuyện triển lãm gồm ba phần: Vấn đề – Bằng chứng – Giải pháp.','Plan your story around Problem, Evidence, and Solution.')}</p>
      {field(T(language,'Vấn đề bằng tiếng Anh / Problem in English','Problem in English'),l.issue,v=>changeLearning('issue',v),{rows:3,disabled:locked})}
      {field(T(language,'Vai trò nhóm / Group roles','Group roles'),l.roles,v=>changeLearning('roles',v),{rows:2,disabled:locked,placeholder:'Editor: member A; data checker: B; designer: C; presenter: D (use initials or roles, no full names)'})}
      {field(T(language,'Tính khả thi / Feasibility','Feasibility'),l.feasibility,v=>changeLearning('feasibility',v),{rows:2,disabled:locked,placeholder:'Who will do it? Resources? One limitation?'})}
     </>:null}
-    {step===1&&studioSubstep===1&&!groupLocked?<><p>{T(language,'Bổ sung dẫn chứng có nguồn và một giải pháp khả thi.','Add sourced evidence and one feasible solution.')}</p>
+    {step===1&&studioSubstep===1&&!groupLocked?<><p>{displayedActivity===5
+      ?T(language,'Kiểm tra thứ tự hiện vật, nguồn và giải pháp trước khi dựng triển lãm.','Check the exhibit order, source and solution before building.')
+      :T(language,'Sắp xếp thứ tự tham quan và bổ sung dẫn chứng, giải pháp.','Arrange the visitor route and add evidence and a solution.')}</p>
      <div className="bml-storyboard" role="list" aria-label="Arrange your exhibition visitor route">
       {studio.storyboardOrder.map((key,i)=>{
        const title=EXHIBIT_FIELDS.find(item=>item.key===key)?.label||'Exhibit';
@@ -460,11 +459,10 @@ export default function MuseumLabStudent({language:languageProp='en'}){
       </div>
      </div>:null}
     </>:null}
-    {step===3&&!groupLocked?<><p>{T(language,'Mời một bạn hoặc nhóm khác đọc thử triển lãm. Ghi nhận điều họ hiểu, rồi cải tiến nội dung.','Invite a classmate or group to test the exhibition, note their feedback, then improve your draft.')}</p>
-      {liveRunning&&stageIndex===9&&liveInfo?.stageOpen?
-      <button type="button" className="bml-outline" data-testid="museum-open-speaking" onClick={()=>setSpeakingOpen(true)}>
-       <Sparkles size={18}/>English Speaking Studio · 45–60 seconds</button>:null}
-      {stageIndex>=8&&stageIndex<=9?<MuseumLivePeerFeedback csrf={session.csrf} liveInfo={liveInfo} locked={locked||conflict}
+    {step===3&&!groupLocked?<><p>{displayedActivity===8
+      ?T(language,'Đọc phản hồi, sửa một hiện vật và ghi lý do thay đổi.','Read the feedback, revise one exhibit, and explain your change.')
+      :T(language,'Xem góp ý và ghi điều người xem đã hiểu hoặc còn thắc mắc.','Review visitor feedback and record what visitors understood or want clarified.')}</p>
+      {displayedActivity===8&&stageIndex===8?<MuseumLivePeerFeedback csrf={session.csrf} liveInfo={liveInfo} locked={locked||conflict}
        saveState={saveState} onUseFeedback={r=>edit(d=>({...d,learning:{...d.learning,
         feedback:'From '+englishSystemGroupLabel(r.fromGroup)+' on '+(EXHIBIT_FIELDS.find(x=>x.key===r.targetExhibit)?.label||'the exhibition')+': '+r.learned+' | Suggested improvement: '+r.clarify,
         tested:true
@@ -473,20 +471,27 @@ export default function MuseumLabStudent({language:languageProp='en'}){
       {T(language,'Xem bản thiết kế / Trước–sau','View storyboard / before and after')}</button>
      <div className="bml-step-hint"><MessageSquare size={21}/><div><strong>{T(language,'Câu hỏi gợi ý cho người xem','Ask your peer')}</strong>
       <p>“What is the problem?” · “Is the evidence clear?” · “What action should we take?”</p></div></div>
-     {stageIndex===8?<details className="bml-student-exhibit">
+     {displayedActivity===8?<details className="bml-student-exhibit">
       <summary>{T(language,'Chỉnh nội dung và nguồn của hiện vật','Revise exhibit captions and source')}</summary>
       {EXHIBIT_FIELDS.map(item=><React.Fragment key={item.key}>{field(item.label,l[item.key],v=>changeLearning(item.key,v),{rows:3,disabled:locked})}</React.Fragment>)}
       {field(T(language,'Nguồn dữ liệu','Evidence source'),l.source,v=>changeLearning('source',v),{rows:2,disabled:locked})}
      </details>:null}
      {field(T(language,'Phản hồi thực tế từ bạn học (tiếng Anh)','Peer feedback (English)'),l.feedback,v=>changeLearning('feedback',v),{
       rows:3,disabled:locked,limit:1200,placeholder:'My classmate understood the problem but asked for a clearer example.'})}
-     {field(T(language,'Nhóm đã cải tiến điểm gì? (tiếng Anh)','What did your group improve? (English)'),l.improvement,v=>changeLearning('improvement',v),{
-      rows:3,disabled:locked,limit:1200,placeholder:'We revised the description and added a more specific action.'})}
+     {displayedActivity===8?field(T(language,'Nhóm đã cải tiến điểm gì? (tiếng Anh)','What did your group improve? (English)'),l.improvement,v=>changeLearning('improvement',v),{
+      rows:3,disabled:locked,limit:1200,placeholder:'We revised the description and added a more specific action.'}):null}
      <label className="bml-checkbox-row"><input type="checkbox" disabled={locked} checked={l.tested===true} onChange={e=>changeLearning('tested',e.target.checked)}/>
       {T(language,'Nhóm đã xem và thử nghiệm bản trình bày trước khi nộp.','Our group has tested the exhibition before submission.')}</label>
      <div className="bml-banner bml-info-banner"><Info size={18}/>{T(language,'Chỉ ghi phản hồi đã thu thập thật. Không tự tạo kết quả thử nghiệm.','Record only feedback actually collected. Never invent a test result.')}</div>
     </>:null}
-    {step===4&&!groupLocked?<><p>{T(language,'Xem lại các mục bắt buộc và tự đánh giá trước khi gửi bài.','Review the required learning evidence and reflect before submitting.')}</p>
+    {displayedActivity===9&&!groupLocked?<div className="bml-step-hint">
+     <div><strong>{T(language,'Chuẩn bị phần nói 45–60 giây','Prepare a 45–60-second pitch')}</strong>
+      <p>{T(language,'Trình bày vấn đề, dẫn chứng có nguồn, giải pháp và một điểm đã cải tiến.','Explain the problem, sourced evidence, your solution, and one revision.')}</p>
+      <button type="button" className="bml-outline" data-testid="museum-open-speaking" onClick={()=>setSpeakingOpen(true)}>
+       <Sparkles size={18}/>{T(language,'Luyện thuyết trình','Practice your pitch')}
+      </button></div>
+    </div>:null}
+    {displayedActivity===10&&!groupLocked?<><p>{T(language,'Xem lại các mục bắt buộc và tự đánh giá trước khi gửi bài.','Review the required learning evidence and reflect before submitting.')}</p>
      {field(T(language,'Điều nhóm em học được (tiếng Anh)','Our learning reflection (English)'),l.reflection,v=>changeLearning('reflection',v),{
       rows:3,disabled:locked,limit:1200,placeholder:'We learned to explain evidence and revise our English for visitors.'})}
      <div className="bml-submit-check"><h3>{T(language,'Kiểm tra trước khi nộp','Submission checklist')}</h3>
@@ -519,11 +524,11 @@ export default function MuseumLabStudent({language:languageProp='en'}){
     </div>
     <footer className="bml-student-bottom">
      {groupLocked?<button type="button" className="bml-primary" onClick={()=>setProjectPreview(true)}><Eye size={18}/>{T(language,'Mở bảo tàng 2D/3D','Open the 2D/3D museum')}</button>:<>
-     <button type="button" className="bml-outline" disabled={step===0&&studioSubstep===0} onClick={()=>{if(studioSubstep>0)setStudioSubstep(v=>v-1);else setStep(s=>Math.max(0,s-1));setPreview(false);}}><ChevronLeft size={18}/>{T(language,'Quay lại','Previous')}</button>
+     {studioPages>1?<button type="button" className="bml-outline" disabled={studioSubstep===0} onClick={()=>{setStudioSubstep(studioSubstep-1);setPreview(false);}}><ChevronLeft size={18}/>{T(language,'Trang trước','Previous page')}</button>:null}
      <div><button type="button" className="bml-text-btn" disabled={!dirty||busy||conflict||locked} onClick={()=>save()}><Cloud size={17}/>{T(language,'Lưu ngay','Save now')}</button>
-      {step<4?<button type="button" disabled={step>=maxStudentStep&&studioSubstep===studioPages-1} className="bml-primary"
-       onClick={()=>{if(studioSubstep<studioPages-1)setStudioSubstep(v=>v+1);else setStep(s=>Math.min(maxStudentStep,4,s+1));setPreview(false);}}>
-       {T(language,'Tiếp tục','Continue')} <ChevronRight size={18}/></button>:null}</div>
+      {studioSubstep<studioPages-1?<button type="button" className="bml-primary"
+       onClick={()=>{setStudioSubstep(studioSubstep+1);setPreview(false);}}>
+       {T(language,'Trang sau','Next page')} <ChevronRight size={18}/></button>:null}</div>
      </>}
     </footer>
    </div>
@@ -532,7 +537,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
     </section>
    </div>
   </div>
-  {speakingOpen&&stageIndex===9&&liveInfo?.stageOpen?<MuseumSpeakingStudio enabled={true} learning={studio.learning} onClose={()=>setSpeakingOpen(false)}/>:null}
+  {speakingOpen&&displayedActivity===9&&!groupLocked?<MuseumSpeakingStudio enabled={true} learning={studio.learning} onClose={()=>setSpeakingOpen(false)}/>:null}
   {historyOpen?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label={T(language,'Lịch sử thiết kế','Design history')}>
    <div className="bml-student-detail-window">
     <div className="bml-student-detail-head"><strong>{T(language,'Bản thiết kế trước và sau','Storyboard history')}</strong>
