@@ -110,7 +110,7 @@ export async function guestContext(req,admin,{write=false}={}){
  const sess=await query(admin.from('gcp_sessions')
   .select('token_hash,group_id,csrf_token,expires_at,revoked_at,auth_method').eq('token_hash',digest('session:'+token)).maybeSingle());
  if(!sess||sess.revoked_at||sess.expires_at<=now)throw fail(401,'Phiên làm việc đã hết hạn.');
- const feature=await settings(admin);
+ let feature=await settings(admin);
  // Frozen lessons remain available to existing QR/passcode holders even if
  // the Creator editing feature is disabled globally.
  const group=await query(admin.from('gcp_groups').select('*').eq('id',sess.group_id).single());
@@ -130,11 +130,11 @@ export async function guestContext(req,admin,{write=false}={}){
   guardOrigin(req);
   if(assignment.content_frozen_at)throw fail(423,'This lesson is locked for viewing. Editing and submissions are disabled.');
   if(!safeEqual(req.headers['x-gallery-csrf'],sess.csrf_token))throw fail(403,'CSRF không hợp lệ.');
-  const config=await settings(admin);
-  if(!config.enabled||assignment.archived_at||assignment.status!=='active'||assignment.deadline_at<=now)
+  feature=await settings(admin);
+  if(!feature.enabled||assignment.archived_at||assignment.status!=='active'||assignment.deadline_at<=now)
    throw fail(423,'Nhiệm vụ đang đóng.');
  }
- return {session:sess,group,assignment};
+ return {session:sess,group,assignment,feature};
 }
 export async function staffContext(req,admin){
  const bearer=String(req.headers?.authorization||'');

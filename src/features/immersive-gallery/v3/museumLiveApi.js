@@ -66,12 +66,31 @@ export async function artStaff(groupId){
  if(!res.ok||d.error)throw new Error(englishMuseumError(d.error,'Unable to open this image.'));
  return d.assets||[];
 }
-// Renders uploaded local JPG/PNG/WebP pixels to 8-bit canonical RGBA PNG.
-// The server independently decodes every PNG, re-encodes it, and strips metadata.
-export async function imageToCanvasPng(file){
+export function validateArtworkFile(file){
  if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type))
   throw new Error('Only JPG, PNG or WebP images are supported.');
  if(file.size>5000000)throw new Error('The original image must be smaller than 5 MB.');
+}
+
+// Keep the resulting base64 data URL within the existing 3.8 MB budget.
+const MAX_PNG_BLOB_BYTES=2849982;
+function encodeCanvasPng(canvas){
+ return new Promise((resolve,reject)=>{
+  canvas.toBlob(blob=>{
+   if(!blob){reject(new Error('The browser cannot encode this image.'));return;}
+   if(blob.size>MAX_PNG_BLOB_BYTES){resolve(null);return;}
+   const reader=new FileReader();
+   reader.onload=()=>resolve(reader.result);
+   reader.onerror=()=>reject(new Error('The browser cannot read the processed image.'));
+   reader.readAsDataURL(blob);
+  },'image/png');
+ });
+}
+
+// Render to PNG without blocking the UI during encoding. The server still
+// independently decodes every image, re-encodes it, and strips metadata.
+export async function imageToCanvasPng(file){
+ validateArtworkFile(file);
  const bitmap=await createImageBitmap(file);
  try{
   if(bitmap.width<30||bitmap.height<30||bitmap.width*bitmap.height>18000000)
@@ -83,17 +102,17 @@ export async function imageToCanvasPng(file){
   if(!ctx)throw new Error('The browser cannot process this image.');
   ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
   ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
-  let png=canvas.toDataURL('image/png');
+  let png=await encodeCanvasPng(canvas);
   // Lower resolution automatically for complex posters on classroom Wi-Fi.
-  while(png.length>3800000&&canvas.width>450&&canvas.height>280){
+  while(!png&&canvas.width>450&&canvas.height>280){
    canvas.width=Math.max(1,Math.round(canvas.width*.76));
    canvas.height=Math.max(1,Math.round(canvas.height*.76));
    const next=canvas.getContext('2d',{alpha:false});
    next.fillStyle='#fff';next.fillRect(0,0,canvas.width,canvas.height);
    next.drawImage(bitmap,0,0,canvas.width,canvas.height);
-   png=canvas.toDataURL('image/png');
+   png=await encodeCanvasPng(canvas);
   }
-  if(png.length>3800000)throw new Error('This image is too complex for safe upload. Try a different JPG.');
+  if(!png)throw new Error('This image is too complex for safe upload. Try a different JPG.');
   return png;
  }finally{bitmap.close?.();}
 }
