@@ -614,6 +614,10 @@ test('student lesson and project scroll independently below a fixed masthead',as
  const masthead=page.getByTestId('student-masthead');
  const footer=page.locator('.bml-student-bottom');
  await expect(lesson.getByTestId('student-lesson-videos').locator('iframe')).toBeVisible();
+ const projectBox=await page.getByTestId('student-project-pane').boundingBox();
+ const projectSheet=await page.locator('.bml-student-task').boundingBox();
+ expect(projectSheet.width).toBeCloseTo(projectBox.width,0);
+ expect(await lesson.evaluate(el=>getComputedStyle(el).overflowY)).toBe('auto');
  const top=el=>el.scrollTop;
  const move=async target=>{
   const box=await target.boundingBox();
@@ -635,6 +639,17 @@ test('student lesson and project scroll independently below a fixed masthead',as
  expect(await footer.boundingBox()).toEqual(footerBefore);
  await expect(footer).toBeInViewport();
  await page.screenshot({path:testInfo.outputPath('student-independent-scroll-1280.png')});
+ await page.setViewportSize({width:1600,height:720});
+ await page.locator('.bml-student-steps button').nth(3).click();
+ await expect(lesson.getByText('Peer Gallery Walk',{exact:true})).toBeVisible();
+ expect(await lesson.evaluate(el=>getComputedStyle(el).overflowY)).toBe('auto');
+ const lastReviewAction=lesson.getByRole('button',{name:'Mở sản phẩm của nhóm',exact:true});
+ await lesson.evaluate(el=>{el.scrollTop=el.scrollHeight;});
+ await expect(lastReviewAction).toBeInViewport();
+ expect(await root.evaluate(top)).toBe(0);
+ expect((await page.locator('.bml-student-task').boundingBox()).width)
+  .toBeCloseTo((await page.getByTestId('student-project-pane').boundingBox()).width,0);
+ await page.screenshot({path:testInfo.outputPath('student-peer-review-scroll-1600.png')});
  await page.setViewportSize({width:390,height:844});
  expect(await root.evaluate(el=>getComputedStyle(el).overflowY)).toBe('auto');
  await expect(project).toBeVisible();
