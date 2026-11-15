@@ -5,6 +5,10 @@ import {surveyChartPng} from './surveyChart.js';
 import {surveyCitation,normalizeArtMeta} from './learningEvidence.js';
 import './museumLive.css';
 const LABELS=[['issue','The Problem'],['evidence','The Evidence'],['solution','Our Solution']];
+const UPLOADED_ARTWORK_CREDIT={
+ source:'Created with AI assistance under the teacher’s guidance.',
+ rights:'For classroom use and display in the school’s project exhibition.'
+};
 const applyAssetChange=(assets,oldId,newAsset)=>[
  ...(assets||[]).filter(a=>a.id!==oldId&&a.id!==newAsset?.id),
  ...(newAsset?[newAsset]:[])
@@ -52,7 +56,11 @@ export default function MuseumArtworkStudio({studio,update,csrf,disabled=false,u
    const png=await imageToCanvasPng(file);
    setPending(current=>({...current,uploading:true}));
    const out=await artGuest('upload','POST',{png,filename:file.name,replaceId},csrf);
-   update(d=>({...d,artworks:{...(d.artworks||{}),[key]:out.asset.id}}));
+   update(d=>({
+    ...d,
+    artworks:{...d.artworks,[key]:out.asset.id},
+    artMeta:{...normalizeArtMeta(d.artMeta),[key]:{...d.artMeta?.[key],...UPLOADED_ARTWORK_CREDIT}}
+   }));
    updateAssets(replaceId,out.asset);
    setNotice(t('Đã tải tranh lên kho riêng tư và sẵn sàng treo trong phòng 3D.','Artwork is privately stored and ready for the 3D wall.'));
   }catch(e){setError(e.message);}finally{busyRef.current=false;setPending(null);setBusySlot(null);}

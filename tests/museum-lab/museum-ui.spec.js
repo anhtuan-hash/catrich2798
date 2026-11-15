@@ -796,15 +796,18 @@ test('group receives teacher stage, cannot answer a closed task and submits only
 });
 test('student can send a real raster poster through the private artwork API workflow',async({page})=>{
  const imageId='aaaaaaaa-1111-4111-8111-111111111111';
+ const replacementId='bbbbbbbb-1111-4111-8111-111111111111';
  let received=null,listRequests=0,allowUpload;
  const uploadDelay=new Promise(resolve=>{allowUpload=resolve;});
  await page.route('**/api/gallery-guest/artwork?**',async route=>{
   const op=new URL(route.request().url()).searchParams.get('operation');
   if(op==='upload'){
    received=route.request().postDataJSON();
-   if(received.replaceId)return route.fulfill({status:503,json:{error:'Could not open the private image.'}});
+   if(received.filename==='failed-replacement.png')
+    return route.fulfill({status:503,json:{error:'Could not open the private image.'}});
    await uploadDelay;
-   return route.fulfill({status:201,json:{asset:{id:imageId,image_url:received.png,original_name:received.filename}}});
+   const id=received.replaceId?replacementId:imageId;
+   return route.fulfill({status:201,json:{asset:{id,image_url:received.png,original_name:received.filename}}});
   }
   listRequests++;
   return route.fulfill({json:{assets:[]}});
@@ -830,9 +833,24 @@ test('student can send a real raster poster through the private artwork API work
  expect(received.filename).toBe('my-original-poster.png');
  expect(received.png).toMatch(/^data:image\/png;base64,/);
  expect(listRequests).toBe(1);
- await input.setInputFiles({...payload,name:'replacement.png'});
+ const source=studio.getByPlaceholder('Actual creator, class group, teacher or source URL');
+ const permission=studio.getByRole('textbox',{name:/Usage permission|Quyền sử dụng/});
+ const expectedSource='Created with AI assistance under the teacher’s guidance.';
+ const expectedPermission='For classroom use and display in the school’s project exhibition.';
+ await expect(source).toHaveValue(expectedSource);
+ await expect(permission).toHaveValue(expectedPermission);
+ await source.fill('Illustrated by the class group.');
+ await permission.fill('Shared with permission from the illustrator.');
+ await input.setInputFiles({...payload,name:'failed-replacement.png'});
  await expect(studio.getByRole('alert')).toContainText('Could not open the private image.');
  await expect(studio.locator('img').first()).toHaveAttribute('alt','The Problem — my-original-poster.png');
+ await expect(source).toHaveValue('Illustrated by the class group.');
+ await expect(permission).toHaveValue('Shared with permission from the illustrator.');
+ expect(received.replaceId).toBe(imageId);
+ await input.setInputFiles({...payload,name:'replacement.png'});
+ await expect(studio.locator('img').first()).toHaveAttribute('alt','The Problem — replacement.png');
+ await expect(source).toHaveValue(expectedSource);
+ await expect(permission).toHaveValue(expectedPermission);
  expect(received.replaceId).toBe(imageId);
  expect(listRequests).toBe(1);
 });
@@ -1055,6 +1073,9 @@ test('frozen survey chart uploads real computed PNG instead of an empty evidence
  await page.getByRole('button',{name:/Gắn biểu đồ khảo sát/}).click();
  await expect(page.getByText('Đã gắn biểu đồ thật.',{exact:false})).toBeVisible();
  expect(received.png).toMatch(/^data:image\/png;base64,/);expect(received.png.length).toBeGreaterThan(2000);
+ await expect(page.getByPlaceholder('Actual creator, class group, teacher or source URL')).toHaveValue(/In-class group-priority survey/);
+ await expect(page.getByRole('textbox',{name:/Usage permission|Quyền sử dụng/}))
+  .toHaveValue('Original class survey chart; group totals only.');
 });
 
 test('paper footer integrates with existing site styles without page overflow',async({page},testInfo)=>{
