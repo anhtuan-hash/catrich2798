@@ -194,8 +194,13 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  const studioPages=step===1?2:step===2?3:1;
  const studioSubstep=pageChoice?.activity===displayedActivity?pageChoice.page:displayedActivity===4||displayedActivity===5?1:0;
  const setStudioSubstep=page=>setPageChoice({activity:displayedActivity,page});
- const taskScrollRef=useRef(null);
- useEffect(()=>{if(taskScrollRef.current)taskScrollRef.current.scrollTop=0;},[step,studioSubstep]);
+ const lessonScrollRef=useRef(null),taskScrollRef=useRef(null);
+ useEffect(()=>{
+  if(lessonScrollRef.current)lessonScrollRef.current.scrollTop=0;
+ },[displayedActivity,reviewIndex]);
+ useEffect(()=>{
+  if(taskScrollRef.current)taskScrollRef.current.scrollTop=0;
+ },[displayedActivity,studioSubstep]);
  const showTool=name=>{setReviewIndex(null);setStudentTool({name,key:Date.now()});};
  useEffect(()=>{setHistoryOpen(false);setSpeakingOpen(false);},[displayedActivity]);
  const load=useCallback(async()=>{
@@ -313,7 +318,8 @@ export default function MuseumLabStudent({language:languageProp='en'}){
        {studentMedia.video&&liveInfo?.media?.query?<button type="button" className="bml-outline" onClick={()=>showTool('video')}><Eye size={16}/>{T(language,'Tìm video','Find videos')}</button>:null}
       </div>
      </header>
-   <div className="bml-student-pane" data-testid="student-lesson-pane">
+   <div className="bml-student-pane bml-student-lesson-scroll" data-testid="student-lesson-pane"
+    role="region" aria-label={T(language,'Nội dung bài học','Lesson content')} tabIndex={0} ref={lessonScrollRef}>
     <MuseumLiveStudent csrf={session.csrf} language={language} readOnly={session.readOnly===true}
       onState={next=>{setLiveInfo(next);setLiveReady(true);}} toolRequest={studentTool} compact
       reviewIndex={reviewIndex} onReturnLive={canFollowLive?returnLive:undefined} onReviewProject={focusProject}
@@ -343,7 +349,17 @@ export default function MuseumLabStudent({language:languageProp='en'}){
        <strong>{session.groupState==='published'?T(language,'Đã công bố','Published'):session.groupState==='approved_locked'?T(language,'Đã duyệt','Approved'):session.readOnly?T(language,'Chỉ xem','View only'):groupLocked?T(language,'Đã nộp / đang chờ duyệt','Submitted / under review'):readiness.missing.length?T(language,'Còn '+readiness.missing.length+' mục cần làm',readiness.stateLabel):T(language,'Đủ nội dung bản nháp','Draft requirements complete')}</strong>
       </div>
      </header>
-   <div className="bml-student-pane" data-testid="student-project-pane">
+   <div className="bml-student-pane bml-student-project-pane" data-testid="student-project-pane">
+   <div className="bml-student-stage"><div className="bml-student-task bml-surface">{groupLocked?null:<><div className="bml-overline">{T(language,'BƯỚC','STEP')} {step+1} / 5</div>
+    <h2>{T(language,STEPS[step].vi,STEPS[step].en)}{displayedActivity===9?T(language,' · Thuyết trình',' · Presentation'):null}</h2>
+    {studioPages>1?<nav className="bml-student-subpages" aria-label={T(language,'Các trang trong bước này','Pages in this step')}>
+     {Array.from({length:studioPages},(_,i)=><button type="button" key={i} aria-current={studioSubstep===i?'page':undefined}
+      onClick={()=>setStudioSubstep(i)}>{T(language,'Trang','Page')} {i+1}</button>)}
+     <small>{studioSubstep+1} / {studioPages}</small>
+    </nav>:null}</>}
+    <div className="bml-student-task-scroll" data-testid="student-task-scroll"
+     role="region" aria-label={T(language,'Nội dung bài làm có thể cuộn','Scrollable project step content')}
+     tabIndex={0} ref={taskScrollRef}>
    {session.feedback?<div className="bml-banner bml-warning-banner" role="status"><MessageSquare size={20}/><div><strong>{T(language,'Nhận xét để chỉnh sửa','Feedback for revision')}</strong>
       {session.feedback.teacher?<p>{T(language,'Giáo viên','Teacher')}: {session.feedback.teacher}</p>:null}
       {session.feedback.ttcm?<p>TTCM: {session.feedback.ttcm}</p>:null}</div></div>:null}
@@ -358,16 +374,6 @@ export default function MuseumLabStudent({language:languageProp='en'}){
    {liveRunning&&!stageEditAllowed&&!groupLocked?<div className="bml-banner bml-warning-banner" role="status">
     {T(language,'Buổi học đang tạm dừng hoặc kết thúc. Chưa thể chỉnh sửa bản nháp.','The live lesson is paused. Editing is temporarily unavailable.')}</div>:null}
    {liveInfo?.status==='ended'&&!groupLocked?<div className="bml-banner bml-info-banner" role="status"><CheckCircle2 size={18}/>{T(language,'Buổi học đã kết thúc. Dự án vẫn có thể hoàn thiện và nộp trước hạn.','Lesson completed. You can edit and submit your museum project before the deadline.')}</div>:null}
-   <div className="bml-student-stage"><div className="bml-student-task bml-surface">{groupLocked?null:<><div className="bml-overline">{T(language,'BƯỚC','STEP')} {step+1} / 5</div>
-    <h2>{T(language,STEPS[step].vi,STEPS[step].en)}{displayedActivity===9?T(language,' · Thuyết trình',' · Presentation'):null}</h2>
-    {studioPages>1?<nav className="bml-student-subpages" aria-label={T(language,'Các trang trong bước này','Pages in this step')}>
-     {Array.from({length:studioPages},(_,i)=><button type="button" key={i} aria-current={studioSubstep===i?'page':undefined}
-      onClick={()=>setStudioSubstep(i)}>{T(language,'Trang','Page')} {i+1}</button>)}
-     <small>{studioSubstep+1} / {studioPages}</small>
-    </nav>:null}</>}
-    <div className="bml-student-task-scroll" data-testid="student-task-scroll"
-     role="region" aria-label={T(language,'Nội dung bài làm có thể cuộn','Scrollable project step content')}
-     tabIndex={0} ref={taskScrollRef}>
     {groupLocked?<StudentLockedDossier language={language} studio={studio} artAssets={artAssets} onPreview={()=>setProjectPreview(true)}/>:null}
     {!groupLocked&&displayedActivity===0?<><p>{T(language,'Chọn một vấn đề môi trường thực tế mà người xem cần hiểu.','Choose one real-world environmental issue your visitors should understand.')}</p>
      <div className="bml-step-hint"><Lightbulb size={21}/><div><strong>{T(language,'Gợi ý viết tiếng Anh','English sentence starter')}</strong>

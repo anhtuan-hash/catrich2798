@@ -569,8 +569,9 @@ test('Museum Field Journal Stage 2 keeps the quiz and project usable side by sid
  }
  await expect(page.getByLabel('Describe your problem')).toBeEnabled();
 });
-test('student canvas uses page scrolling for the activity and project on desktop',async({page})=>{
- await page.setViewportSize({width:1366,height:768});
+test('student lesson and project scroll independently below a fixed masthead',async({page},testInfo)=>{
+ await page.setViewportSize({width:1280,height:720});
+ await page.route('https://www.youtube-nocookie.com/**',route=>route.fulfill({status:200,contentType:'text/html',body:'<html><body>Lesson video</body></html>'}));
  await page.route('**/api/gallery-guest?**',async route=>{
   const op=new URL(route.request().url()).searchParams.get('operation');
   await route.fulfill({json:op==='me'?{groupLabel:'Nhóm Demo',groupState:'editing',csrf:'synthetic-csrf',
@@ -579,8 +580,8 @@ test('student canvas uses page scrolling for the activity and project on desktop
    {draft:{title:'Our Climate Action Museum',summary:'One solution per exhibit.',rooms:[]},version:0}});
  });
  await page.route('**/api/gallery-guest/live?**',route=>route.fulfill({json:{
-  session:{id:'one-screen-qa',status:'active',stageIndex:9,stageOpen:true,
-   stage:{id:'present',kind:'present',period:2,title:'Present and Discuss',
+  session:{id:'one-screen-qa',status:'active',stageIndex:3,stageOpen:true,
+   stage:{id:'problem-evidence-solution',kind:'group',period:1,title:'Problem · Evidence · Solution',
     question:'Explain your problem, one authentic figure with N, and one practical solution.',
     sentence:'We propose …'}},survey:null,feedback:[]}}));
  await page.getByTestId('qa-student').click();
@@ -588,6 +589,7 @@ test('student canvas uses page scrolling for the activity and project on desktop
  await expect(root).toBeVisible();
  await expect(page.getByTestId('student-one-screen-workspace')).toBeVisible();
  await expect(page.getByTestId('student-project-pane')).toBeVisible({timeout:10000});
+ await page.getByRole('button',{name:'Trang 2',exact:true}).click();
  const geometry=await root.evaluate(el=>{
   const a=el.getBoundingClientRect();
   const workspace=el.querySelector('[data-testid="student-one-screen-workspace"]').getBoundingClientRect();
@@ -601,10 +603,45 @@ test('student canvas uses page scrolling for the activity and project on desktop
  expect(geometry.rootWidth).toBeLessThanOrEqual(geometry.viewportWidth+2);
  expect(geometry.rootHeight).toBeLessThanOrEqual(geometry.viewportHeight+2);
  expect(geometry.rowAligned).toBe(true);
- expect(geometry.scrollMode).toBe('auto');
+ expect(geometry.scrollMode).toBe('hidden');
+ expect(geometry.workspaceBottom).toBeLessThanOrEqual(geometry.viewportHeight);
+ expect(geometry.railBottom).toBeLessThanOrEqual(geometry.viewportHeight);
  expect(geometry.overflow).toBe(false);
  await expect(page.getByTestId('student-project-pane')).toBeVisible();
  await expect(page.getByTestId('student-live-activity')).toBeVisible();
+ const lesson=page.getByTestId('student-lesson-pane');
+ const project=page.getByTestId('student-task-scroll');
+ const masthead=page.getByTestId('student-masthead');
+ const footer=page.locator('.bml-student-bottom');
+ await expect(lesson.getByTestId('student-lesson-videos').locator('iframe')).toBeVisible();
+ const top=el=>el.scrollTop;
+ const move=async target=>{
+  const box=await target.boundingBox();
+  // Use the left inset to avoid scrolling inside an iframe or textarea.
+  await page.mouse.move(box.x+1,box.y+box.height/2);
+  await page.mouse.wheel(0,550);
+  await expect.poll(()=>target.evaluate(top)).toBeGreaterThan(0);
+ };
+ const mastBefore=await masthead.boundingBox();
+ const footerBefore=await footer.boundingBox();
+ await move(lesson);
+ expect(await project.evaluate(top)).toBe(0);
+ const lessonTop=await lesson.evaluate(top);
+ await move(project);
+ expect(await lesson.evaluate(top)).toBe(lessonTop);
+ expect(await root.evaluate(top)).toBe(0);
+ expect(await page.evaluate(()=>window.scrollY)).toBe(0);
+ expect(await masthead.boundingBox()).toEqual(mastBefore);
+ expect(await footer.boundingBox()).toEqual(footerBefore);
+ await expect(footer).toBeInViewport();
+ await page.screenshot({path:testInfo.outputPath('student-independent-scroll-1280.png')});
+ await page.setViewportSize({width:390,height:844});
+ expect(await root.evaluate(el=>getComputedStyle(el).overflowY)).toBe('auto');
+ await expect(project).toBeVisible();
+ await expect(footer).toBeVisible();
+ await footer.scrollIntoViewIfNeeded();
+ await expect(footer).toBeInViewport();
+ expect(await root.evaluate(el=>el.scrollWidth<=el.clientWidth+2)).toBe(true);
 });
 test('student can complete five English STEAM steps, autosave and submit without a student account',async({page})=>{
  let version=0,groupState='editing',draft={title:'',summary:'',rooms:[]},saves=0,submissions=0;
@@ -1664,7 +1701,7 @@ test('Student workspace keeps its banner and project editor usable across deskto
   await expect(ribbon.locator('img')).toHaveCount(1);
   await expect.poll(()=>ribbon.locator('img').evaluate(img=>img.naturalWidth)).toBeGreaterThan(0);
   const scrollMode=await app.getByTestId('student-task-scroll').evaluate(el=>getComputedStyle(el).overflowY);
-  expect(scrollMode).toBe('visible');
+  expect(scrollMode).toBe('auto');
   await app.locator('.bml-student-steps button').nth(4).click();
   const panel=app.getByTestId('student-task-scroll');
   await expect(app.getByRole('heading',{name:'Submission checklist'})).toBeVisible();
