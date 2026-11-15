@@ -1,12 +1,12 @@
 import React from 'react';
 import './contestMasthead.css';
 
-const art = '/museum/branding/contest-banner.png';
+const art = '/museum/branding/contest-banner-swiss.jpg';
 
 export default function ContestMasthead() {
   return (
     <div className="cmast cmast-plate">
-      <img className="cmast-plate-img" src={art} alt="" width={2183} height={542} />
+      <img className="cmast-plate-img" src={art} alt="" width={4096} height={1365} />
       <div className="cmast-plate-copy">
         <p>BÀI DỰ THI</p>
         <p>HỘI THI THIẾT KẾ CHỦ ĐỀ DẠY HỌC STEM/STEAM, CHỦ ĐỀ DẠY HỌC SỐ</p>
