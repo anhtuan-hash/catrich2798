@@ -12,13 +12,14 @@
  grid-column:1;
  grid-row:1;
  display:grid;
- grid-template-columns:minmax(0,1fr) minmax(0,1.46fr);
+ grid-template-columns:minmax(0,1fr) minmax(300px,420px);
  align-items:start;
  gap:12px;
  min-width:0;
 }
 .bml-student-dual-workspace .bml-student-masthead > .bml-contest-art {
- max-width:clamp(340px,74dvh,660px);
+ max-width:none;
+ width:100%;
  margin:0!important;
 }
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-masthead .bml-student-focus {
