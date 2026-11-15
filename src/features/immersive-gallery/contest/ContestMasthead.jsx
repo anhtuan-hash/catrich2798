@@ -17,9 +17,7 @@ export default function ContestMasthead() {
         </p>
         <h1>OUR CLIMATE ACTION MUSEUM</h1>
         <div className="cmast-rule" />
-        <p className="cmast-meta">
-          <b>Môn học:</b> Tiếng Anh · <b>Lớp:</b> 11 – Global Success, Unit 5: Global Warming · <b>Thời lượng:</b> 02 tiết × 45 phút
-        </p>
+        <p className="cmast-meta">Môn học: Tiếng Anh · Lớp: 11 – Global Success, Unit 5: Global Warming · Thời lượng: 02 tiết × 45 phút</p>
         <p className="cmast-by">GV thực hiện: Thạc sĩ Nguyễn Anh Tuấn</p>
       </div>
       <div className="cmast-side">
