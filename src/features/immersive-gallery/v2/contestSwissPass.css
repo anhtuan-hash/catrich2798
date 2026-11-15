@@ -153,3 +153,28 @@ html body #root .app-shell[data-tool="immersive-gallery"] > .footer.signature-fo
   box-shadow: none;
   background: #fffdf8;
 }
+
+/* Global pastel nav is painted inline. Flatten the shell around it. */
+html body #root .app-shell[data-tool="immersive-gallery"] > .bes-top-chrome .brian-nav > .brian-nav__brand,
+html body #root .app-shell[data-tool="immersive-gallery"] > .bes-top-chrome .brian-nav__search {
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #111 !important;
+}
+html body #root .app-shell[data-tool="immersive-gallery"] .brian-nav-border-runner,
+html body #root .app-shell[data-tool="immersive-gallery"] .brian-nav-star-effect {
+  display: none !important;
+}
+.igv2 .igv2-topbar-brand,
+.igv2 .igv2-topbar-logo,
+.igv2 .igv2-search-form,
+.igv2 .igv2-user-dropdown {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.igv2 .bml button,
+.igv2 .bml article,
+.igv2 .exhibit-poster-card {
+  box-shadow: none !important;
+}
