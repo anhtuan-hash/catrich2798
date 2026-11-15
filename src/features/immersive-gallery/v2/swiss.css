@@ -3048,56 +3048,65 @@ html body .igv2.igv2 :not(#igv2-swiss-a#igv2-swiss-b#igv2-swiss-c):is(
   height: 100%;
   object-fit: cover;
 }
+.igv2 .contest.contest-art .cmast {
+  aspect-ratio: 4.35 / 1;
+  min-height: 200px;
+}
 .igv2 .contest.contest-art .cmast img {
   position: absolute;
   display: block;
   width: auto !important;
   height: auto !important;
-  max-width: 110px !important;
-  max-height: 140px !important;
+  max-width: none !important;
+  max-height: none !important;
   object-fit: contain !important;
 }
 .igv2 .contest.contest-art .cmast .cmast-logo-dept {
-  left: 16px;
-  top: 50%;
-  width: 84px !important;
-  height: 84px !important;
-  max-width: 84px !important;
-  max-height: 84px !important;
-  transform: translateY(-50%);
+  left: 1.5% !important;
+  top: 50% !important;
+  width: auto !important;
+  height: 64% !important;
+  max-width: none !important;
+  max-height: none !important;
+  transform: translateY(-50%) !important;
 }
 .igv2 .contest.contest-art .cmast .cmast-logo-school {
-  right: 12px;
-  top: 50%;
-  width: 100px !important;
-  height: 122px !important;
-  max-width: 100px !important;
-  max-height: 122px !important;
-  transform: translateY(-50%);
+  right: 1% !important;
+  top: 48% !important;
+  width: auto !important;
+  height: 80% !important;
+  max-width: none !important;
+  max-height: none !important;
+  transform: translateY(-50%) !important;
 }
 .igv2 .contest.contest-art .cmast .cmast-bamboo {
-  left: 104px;
-  bottom: 8px;
-  top: auto;
+  left: 10.5% !important;
+  bottom: 2% !important;
+  top: auto !important;
   width: auto !important;
-  height: 148px !important;
-  max-width: 86px !important;
-  max-height: 148px !important;
+  height: 92% !important;
+  max-width: 12% !important;
+  max-height: none !important;
 }
 .igv2 .contest.contest-art .cmast .cmast-leaves {
-  right: 124px;
-  top: 4px;
-  bottom: auto;
+  right: 15.5% !important;
+  top: 0 !important;
+  bottom: auto !important;
   width: auto !important;
-  height: 70px !important;
-  max-width: 150px !important;
-  max-height: 70px !important;
+  height: 48% !important;
+  max-width: 20% !important;
+  max-height: none !important;
 }
 .igv2 .contest.contest-art .cmast .cmast-hill {
-  bottom: 8px;
-  height: 36px !important;
-  max-width: 180px !important;
-  max-height: 36px !important;
+  bottom: 1% !important;
+  height: 14% !important;
+  max-width: 18% !important;
+  max-height: none !important;
+}
+.igv2 .contest.contest-art .cmast .cmast-hill-l { left: 1% !important; }
+.igv2 .contest.contest-art .cmast .cmast-hill-r { right: 1% !important; }
+.igv2 .contest.contest-art .cmast .cmast-copy {
+  margin: 0 18% 0 23% !important;
 }
 .igv2 .adv-plan-period:nth-child(2) { background: #f4faf6; border-color: #d5eadc; border-top-color: #176f57; }
 .igv2 .adv-plan-period h3 { color: #142033; }

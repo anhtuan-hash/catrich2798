@@ -464,53 +464,62 @@
  max-height:none!important;
  object-fit:cover!important;
 }
+.bml .bml-contest-art .cmast{
+ aspect-ratio:4.35/1;
+ min-height:168px;
+}
 .bml.bml-student-canvas16>.bml-contest-art .cmast img,
 .bml.bml-student-login-with-ribbon .bml-paper .bml-contest-art .cmast img,
 .bml .bml-contest-art .cmast img{
  position:absolute!important;
  width:auto!important;
  height:auto!important;
- max-width:110px!important;
- max-height:140px!important;
+ max-width:none!important;
+ max-height:none!important;
  object-fit:contain!important;
 }
 .bml .bml-contest-art .cmast .cmast-logo-dept{
- left:16px!important;
+ left:1.5%!important;
  top:50%!important;
- width:84px!important;
- height:84px!important;
- max-width:84px!important;
- max-height:84px!important;
+ width:auto!important;
+ height:64%!important;
+ max-width:none!important;
+ max-height:none!important;
  transform:translateY(-50%)!important;
 }
 .bml .bml-contest-art .cmast .cmast-logo-school{
- right:12px!important;
- top:50%!important;
- width:100px!important;
- height:122px!important;
- max-width:100px!important;
- max-height:122px!important;
+ right:1%!important;
+ top:48%!important;
+ width:auto!important;
+ height:80%!important;
+ max-width:none!important;
+ max-height:none!important;
  transform:translateY(-50%)!important;
 }
 .bml .bml-contest-art .cmast .cmast-bamboo{
- left:104px!important;
- bottom:8px!important;
+ left:10.5%!important;
+ bottom:2%!important;
  top:auto!important;
- height:148px!important;
- max-width:86px!important;
- max-height:148px!important;
+ width:auto!important;
+ height:92%!important;
+ max-width:12%!important;
+ max-height:none!important;
 }
 .bml .bml-contest-art .cmast .cmast-leaves{
- right:124px!important;
- top:4px!important;
- height:70px!important;
- max-width:150px!important;
- max-height:70px!important;
+ right:15.5%!important;
+ top:0!important;
+ height:48%!important;
+ width:auto!important;
+ max-width:20%!important;
+ max-height:none!important;
 }
 .bml .bml-contest-art .cmast .cmast-hill{
- height:36px!important;
- max-width:180px!important;
- max-height:36px!important;
+ height:14%!important;
+ max-width:18%!important;
+ max-height:none!important;
+}
+.bml .bml-contest-art .cmast .cmast-copy{
+ margin:0 18% 0 23%!important;
 }
 .bml .bml-locked-dossier{display:flex;flex-direction:column;gap:10px;color:#152033}
 .bml .bml-locked-note{display:flex;align-items:center;gap:8px;margin:0;font-size:13px;font-weight:700;color:#176f57}
