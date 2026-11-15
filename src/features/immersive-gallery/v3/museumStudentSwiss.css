@@ -395,7 +395,7 @@
  content:none!important;
  display:none!important;
 }
-.bml .bml-contest-art img{
+.bml .bml-contest-art > img{
  display:block!important;
  width:100%!important;
  height:auto!important;
@@ -435,8 +435,8 @@
  box-shadow:none!important;
  overflow:hidden!important;
 }
-.bml.bml-student-canvas16>.bml-contest-art img,
-.bml.bml-student-login-with-ribbon .bml-paper .bml-contest-art img{
+.bml.bml-student-canvas16>.bml-contest-art > img,
+.bml.bml-student-login-with-ribbon .bml-paper .bml-contest-art > img{
  display:block!important;
  width:100%!important;
  height:auto!important;
@@ -456,70 +456,6 @@
 .bml .bml-contest-art .cmast-copy p{
  user-select:text!important;
  -webkit-user-select:text!important;
-}
-.bml .bml-contest-art .cmast-wing{
- width:100%!important;
- height:100%!important;
- max-width:none!important;
- max-height:none!important;
- object-fit:cover!important;
-}
-.bml .bml-contest-art .cmast{
- aspect-ratio:4.35/1;
- min-height:168px;
-}
-.bml.bml-student-canvas16>.bml-contest-art .cmast img,
-.bml.bml-student-login-with-ribbon .bml-paper .bml-contest-art .cmast img,
-.bml .bml-contest-art .cmast img{
- position:absolute!important;
- width:auto!important;
- height:auto!important;
- max-width:none!important;
- max-height:none!important;
- object-fit:contain!important;
-}
-.bml .bml-contest-art .cmast .cmast-logo-dept{
- left:1.5%!important;
- top:50%!important;
- width:auto!important;
- height:64%!important;
- max-width:none!important;
- max-height:none!important;
- transform:translateY(-50%)!important;
-}
-.bml .bml-contest-art .cmast .cmast-logo-school{
- right:1%!important;
- top:48%!important;
- width:auto!important;
- height:80%!important;
- max-width:none!important;
- max-height:none!important;
- transform:translateY(-50%)!important;
-}
-.bml .bml-contest-art .cmast .cmast-bamboo{
- left:10.5%!important;
- bottom:2%!important;
- top:auto!important;
- width:auto!important;
- height:92%!important;
- max-width:12%!important;
- max-height:none!important;
-}
-.bml .bml-contest-art .cmast .cmast-leaves{
- right:15.5%!important;
- top:0!important;
- height:48%!important;
- width:auto!important;
- max-width:20%!important;
- max-height:none!important;
-}
-.bml .bml-contest-art .cmast .cmast-hill{
- height:14%!important;
- max-width:18%!important;
- max-height:none!important;
-}
-.bml .bml-contest-art .cmast .cmast-copy{
- margin:0 18% 0 23%!important;
 }
 .bml .bml-locked-dossier{display:flex;flex-direction:column;gap:10px;color:#152033}
 .bml .bml-locked-note{display:flex;align-items:center;gap:8px;margin:0;font-size:13px;font-weight:700;color:#176f57}
