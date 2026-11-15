@@ -202,7 +202,7 @@
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-p2-task {
  font-size:clamp(14px,1.15vw,17px);
 }
-@media (max-width:960px) {
+@media (max-width:999px) {
  .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace {
   position:fixed!important;
   height:100dvh!important;
@@ -210,6 +210,47 @@
  }
  .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-workbench {
   grid-template-columns:minmax(0,1fr);
+ }
+}
+
+@media (min-width:1000px) {
+ .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace {
+  grid-template-rows:auto auto minmax(0,1fr);
+  overflow:hidden!important;
+  overscroll-behavior:none;
+ }
+ .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace > .bml-student-content {
+  grid-template-rows:minmax(0,1fr);
+  min-height:0;
+ }
+ .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-workbench {
+  grid-template-rows:minmax(0,1fr);
+  align-items:stretch;
+ }
+ .bml-student-dual-workspace .bml-student-project-pane > .bml-student-stage {
+  display:flex;
+  flex:1 1 0;
+  flex-direction:column;
+ }
+ .bml-student-dual-workspace .bml-student-project-pane .bml-student-task {
+  flex:1 1 0;
+ }
+ .bml-student-dual-workspace .bml-student-lesson-scroll > .bml-live-student {
+  flex:none;
+ }
+ .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-scroll,
+ .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-task-scroll {
+  flex:1 1 0;
+  min-height:0;
+  overflow:auto;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+  scrollbar-color:#6b8483 #eeeee9;
+  scroll-padding-block:12px;
+ }
+ .bml-student-dual-workspace .bml-student-lesson-scroll:focus-visible {
+  outline:2px solid #245e88;
+  outline-offset:-2px;
  }
 }
 
