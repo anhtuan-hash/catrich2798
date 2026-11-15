@@ -12,7 +12,7 @@ import MuseumScene from './MuseumScene.jsx';
 import MuseumBeforeAfter from './MuseumBeforeAfter.jsx';
 import {EXHIBIT_FIELDS} from './museumExhibitInsights.js';
 import MuseumLiveStudent from './MuseumLiveStudent.jsx';
-import MuseumStudentActivityNav from './MuseumStudentActivityNav.jsx';
+import MuseumStudentActivityGroups,{activityGroup,firstActivity} from './MuseumStudentActivityGroups.jsx';
 import MuseumLivePeerFeedback from './MuseumLivePeerFeedback.jsx';
 import MuseumArtworkStudio from './MuseumArtworkStudio.jsx';
 import MuseumCompetitionRibbon from './MuseumCompetitionRibbon.jsx';
@@ -173,10 +173,16 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  // Keep both panes mounted so switching tools preserves unsent group answers.
  const teacherView=liveInfo?.presentation?.view;
  const canFollowLive=liveRunning&&!session?.readOnly&&liveInfo.status!=='ended';
+ const displayedActivity=reviewIndex??(canFollowLive?stageIndex:0);
+ const displayedGroup=studentView==='studio'?step:activityGroup(displayedActivity);
  const returnLive=()=>{setReviewIndex(null);setStudentView('live');};
  const browseActivity=index=>{
   setReviewIndex(canFollowLive&&index===stageIndex?null:index);
   setStudentView('live');
+ };
+ const chooseGroup=group=>{
+  if(studentView==='studio'){setStep(group);setPreview(false);return;}
+  if(group!==displayedGroup)browseActivity(firstActivity(group));
  };
  useEffect(()=>{
   if(reviewIndex!=null)return;
@@ -196,10 +202,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  useEffect(()=>{setStudioSubstep(step===2&&artworkOpen?2:0);setHistoryOpen(false);},[step]);
  useEffect(()=>{
   if(!liveRunning)return;
-  if(stageIndex>=3&&stageIndex<=5)setStep(1);
-  else if(stageIndex===6)setStep(2);
-  else if(stageIndex>=7&&stageIndex<=9)setStep(3);
-  else if(stageIndex===10)setStep(4);
+  setStep(activityGroup(stageIndex));
  },[stageIndex,liveRunning]);
  const load=useCallback(async()=>{
   const me=await guestRequest('me');const d=await guestRequest('draft');
@@ -301,15 +304,8 @@ export default function MuseumLabStudent({language:languageProp='en'}){
        T(language,'Đang chờ giáo viên bắt đầu · Có thể xem sản phẩm nhóm','Waiting for teacher · Group workspace available')}
      </span>
     </div>
-   {studentView==='studio'?<nav className="bml-student-steps" aria-label={T(language,'Các bước thực hiện','Project steps')}>{STEPS.map((s,i)=><button type="button" key={s.key}
-     disabled={maxStudentStep<0||i>maxStudentStep}
-     aria-current={i===step?'step':undefined}
-     onClick={()=>{if(i<=maxStudentStep){setStudentView('studio');setStep(i);setPreview(false);}}} className={i===step?'is-active':i<step?'is-complete':''}>
-     <span>{i<step?<Check size={17}/>:i+1}</span><small>{T(language,s.vi,s.en)}</small></button>)}</nav>:null}
-   <div className="bml-student-lesson-nav">
-    <strong>{T(language,'11 hoạt động của bài học','11 lesson activities')}</strong>
-    <MuseumStudentActivityNav index={reviewIndex??(canFollowLive?stageIndex:0)} onChange={browseActivity} language={language} showLabels/>
-   </div>
+    <MuseumStudentActivityGroups group={displayedGroup} activity={studentView==='live'?displayedActivity:null}
+     language={language} onGroup={chooseGroup} onActivity={browseActivity}/>
    </section>
    <div className="bml-student-workbench" data-testid="student-one-screen-workspace">
     <aside className="bml-student-toolrail" aria-label={T(language,'Bảng công cụ học tập','Learning tools')}>
@@ -347,7 +343,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
    <div className="bml-student-pane" hidden={studentView!=='live'}>
     <MuseumLiveStudent csrf={session.csrf} language={language} readOnly={session.readOnly===true}
       onState={next=>{setLiveInfo(next);setLiveReady(true);}} toolRequest={studentTool} compact
-      reviewIndex={reviewIndex} onReturnLive={canFollowLive?returnLive:undefined} onReviewProject={()=>setStudentView('studio')}
+      reviewIndex={reviewIndex} onReturnLive={canFollowLive?returnLive:undefined} onReviewProject={()=>{setStep(activityGroup(displayedActivity));setStudentView('studio');}}
       onOpenProject={index=>{
        if(index===9){setSpeakingOpen(true);return;}
        if(index===8)setStep(3);
