@@ -1067,17 +1067,9 @@ html:has(.igv2) .bes-smart-bubble-dock {
   text-transform: none;
 }
 
-.igv2 .footer-col--qual h3 span {
-  display: block;
-}
-  padding: 0;
-  font-family: Inter, "Be Vietnam Pro", Arial, sans-serif;
-  font-size: clamp(22px, 1.7vw, 28px);
-  font-weight: 800;
-  line-height: 1.02;
-  letter-spacing: -0.035em;
-  color: #111111;
-  text-transform: none;
+.igv2 .footer-col--qual h3 {
+  max-inline-size: 12em;
+  text-wrap: balance;
 }
 
 .igv2 .footer-list {
