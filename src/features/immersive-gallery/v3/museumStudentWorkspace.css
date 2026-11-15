@@ -1,7 +1,7 @@
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace {
  display:grid!important;
  grid-template-columns:minmax(0,1fr);
- grid-template-rows:auto auto auto;
+ grid-template-rows:auto minmax(0,1fr);
  align-content:start;
  overflow-y:auto!important;
  overflow-x:hidden!important;
@@ -14,13 +14,30 @@
  display:grid;
  grid-template-columns:minmax(0,1fr) minmax(300px,420px);
  align-items:start;
- gap:12px;
+ gap:10px;
  min-width:0;
 }
-.bml-student-dual-workspace .bml-student-masthead > .bml-contest-art {
- max-width:none;
- width:100%;
+.bml-student-dual-workspace .bml-student-hub{
+ display:flex;
+ flex-direction:column;
+ gap:6px;
+ min-width:0;
+ max-width:360px;
+ justify-self:end;
+}
+.bml-student-dual-workspace .bml-student-masthead > .bml-contest-art{
+ max-width:min(100%,760px);
+ width:auto;
+ max-height:168px;
  margin:0!important;
+ align-self:start;
+}
+.bml-student-dual-workspace .bml-student-masthead .cmast.cmast-plate,
+.bml-student-dual-workspace .bml-student-masthead .cmast-plate-img{
+ width:auto!important;
+ max-width:min(100%,760px)!important;
+ max-height:168px!important;
+ height:auto!important;
 }
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-masthead .bml-student-focus {
  display:grid;
@@ -38,28 +55,40 @@
  font-size:clamp(17px,1.5vw,23px)!important;
 }
 .bml-student-dual-workspace .bml-student-masthead .bml-student-activity-groups { gap:4px; }
-.bml-student-dual-workspace .bml-student-masthead .bml-student-steps button { min-height:49px; }
-.bml-student-dual-workspace .bml-student-masthead .bml-student-group-activities { padding-top:5px; }
-.bml-student-dual-workspace .bml-student-masthead .bml-student-group-activities button { min-height:34px; }
+.bml-student-dual-workspace .bml-student-masthead .bml-student-steps button { min-height:36px; }
+.bml-student-dual-workspace .bml-student-masthead .bml-student-group-activities { padding-top:4px; }
+.bml-student-dual-workspace .bml-student-masthead .bml-student-group-activities button { min-height:28px; }
 @media (max-width:999px) {
  .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace > .bml-student-masthead {
   grid-template-columns:minmax(0,1fr);
  }
- .bml-student-dual-workspace .bml-student-masthead > .bml-contest-art { max-width:660px; }
- .bml-student-dual-workspace .bml-student-masthead .bml-student-steps { margin-top:3px; }
+ .bml-student-dual-workspace .bml-student-hub{max-width:none;justify-self:stretch}
+ .bml-student-dual-workspace .bml-student-masthead > .bml-contest-art,
+ .bml-student-dual-workspace .bml-student-masthead .cmast-plate-img{max-width:100%!important}
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace > .bml-student-bar {
- grid-column:1;
- grid-row:2;
- width:100%;
- height:auto;
- max-height:none;
- min-height:58px;
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-hub .bml-student-bar{
+ position:static!important;
+ display:flex!important;
  flex-wrap:wrap;
+ align-items:center;
+ gap:6px;
+ width:100%;
+ height:auto!important;
+ min-height:0!important;
+ max-height:none!important;
+ padding:6px 8px!important;
+ border:1px solid #dedbd5!important;
+ background:#fffdf9!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-hub .bml-student-right{
+ display:flex;
+ flex-wrap:wrap;
+ gap:6px;
+ margin-left:0;
 }
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace > .bml-student-content {
  grid-column:1;
- grid-row:3;
+ grid-row:2;
  display:grid!important;
  grid-template-rows:auto;
  overflow:visible;
@@ -221,7 +250,7 @@
 
 @media (min-width:1000px) {
  .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace {
-  grid-template-rows:auto auto minmax(0,1fr);
+  grid-template-rows:auto minmax(0,1fr);
   overflow:hidden!important;
   overscroll-behavior:none;
  }

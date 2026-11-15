@@ -291,6 +291,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  return <main className="bml bml-student-shell bml-student-canvas16 bml-student-editorial bml-student-dual-workspace" data-testid="museum-student-wizard" lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
   <div className="bml-student-masthead" data-testid="student-masthead">
    <MuseumCompetitionRibbon/>
+   <div className="bml-student-hub">
    <section className="bml-student-focus" data-testid="student-focus-switch" aria-label={T(language,'Bảng điều khiển học sinh','Student workspace')}>
     <div className="bml-student-focus-head">
      <strong>{T(language,'Sổ tay triển lãm','Your museum workshop')}</strong>
@@ -303,14 +304,15 @@ export default function MuseumLabStudent({language:languageProp='en'}){
     <MuseumStudentActivityGroups group={step} activity={displayedActivity}
      language={language} onGroup={chooseGroup} onActivity={browseActivity}/>
    </section>
-  </div>
-  <header className="bml-student-bar"><div className="bml-brand"><span className="bml-brand-icon"><Landmark size={23}/></span><span><strong>Pétrus Ký School System</strong><small>{T(language,'Học sinh sáng tạo','Student Creator')}</small></span></div>
+   <header className="bml-student-bar"><div className="bml-brand"><span className="bml-brand-icon"><Landmark size={23}/></span><span><strong>Pétrus Ký School System</strong><small>{T(language,'Học sinh sáng tạo','Student Creator')}</small></span></div>
    <MuseumStudentVoiceGuide cue={narrationCue} language={language}/>
    <div className="bml-student-right"><span className="bml-group-pill"><Users size={16}/>{language==='en'?englishSystemGroupLabel(session.groupLabel):session.groupLabel} · {session.assignment.class_scope}</span>
     <span className={'bml-save-indicator bml-save-'+saveState} title={T(language,'Đã lưu bản nháp chưa có nghĩa là đã nộp bảo tàng.','Saved draft does not mean the museum project was submitted.')}>{saveState==='saved'?<><Cloud size={16}/>{T(language,'Đã lưu','Saved')}</>:
       saveState==='saving'?<><CloudUpload size={16}/>{T(language,'Đang lưu…','Saving…')}</>:<><CloudAlert size={16}/>{T(language,'Cần xử lý','Action needed')}</>}</span>
     <StudentLangToggle language={language} onChange={chooseLanguage}/>
     <button type="button" className="bml-outline" onClick={logout}>{T(language,'Thoát','Exit')}</button></div></header>
+   </div>
+  </div>
   <div className="bml-student-content">
    <div className="bml-student-workbench" data-testid="student-one-screen-workspace">
     <section className="bml-student-primary bml-student-lesson-panel" aria-labelledby="bml-student-lesson-title">
