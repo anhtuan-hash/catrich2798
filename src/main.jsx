@@ -149,7 +149,23 @@ const QuestJoin = lazy(() => import('./features/questatlas/QuestJoin.jsx'));
 const ROUTES = ['home', 'apps', 'news', 'tools', 'homeroom', 'attendance', 'homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'slideshow', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qb-practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'gallery-create', 'setup'];
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'slideshow', 'qb-practice', 'gallery-create']);
 
+const CONTEST_PATH = '/nguyen-anh-tuan-bai-du-thi-stem-steam-day-hoc-so-2026-2027';
+
+function onContestPath() {
+  const path = String(window.location.pathname || '/').replace(/\/+$/, '') || '/';
+  return path === CONTEST_PATH;
+}
+
+function preferContestAddress() {
+  const hashRoute = String(window.location.hash || '').replace(/^#\/?/, '').split('?')[0].split('&')[0];
+  if (hashRoute !== 'tool/immersive-gallery') return;
+  const query = window.location.hash.includes('?') ? window.location.hash.slice(window.location.hash.indexOf('?')) : '';
+  window.history.replaceState(null, '', CONTEST_PATH + query);
+}
+
 function getInitialRoute() {
+  preferContestAddress();
+  if (onContestPath()) return 'tool/immersive-gallery';
   const href = window.location.href || '';
   const cleanHash = window.location.hash.replace('#/', '').replace('#', '').trim();
   if (href.includes('type=recovery') || href.includes('recovery=1')) return 'login';
