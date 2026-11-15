@@ -182,6 +182,10 @@ const publishedQaTransportBroken=async(action,...args)=>{
  if(action==='showcase-state')throw new Error('Synthetic showcase catalogue unavailable');
  return publishedQaTransport(action,...args);
 };
+function ArtworkHarness({language}){
+ const [studio,update]=useState({artworks:{issue:null,evidence:null,solution:null}});
+ return <MuseumArtworkStudio studio={studio} csrf="qa-secret" language={language} uploadEnabled={true} update={update}/>;
+}
 function Harness(){
  const [screen,setScreen]=useState('dashboard');
   const englishOnly=screen.endsWith('-en');
@@ -210,8 +214,7 @@ function Harness(){
    {normalized==='teacher-live-frozen'?<MuseumLiveTeacher data={frozenQa} language={uiLanguage} transport={frozenTeacherApi}/>:null}
    {normalized==='teacher-live-v2-frozen'?<SwissTeacherLive data={frozenQa} language={uiLanguage} transport={frozenTeacherApi}/>:null}
    {normalized==='student-live'?<MuseumLiveStudent csrf="qa-secret" language={uiLanguage}/>:null}
-   {normalized==='artwork'?<MuseumArtworkStudio studio={{artworks:{issue:null,evidence:null,solution:null}}}
-     csrf="qa-secret" language={uiLanguage} uploadEnabled={true} update={()=>{}}/>:null}
+   {normalized==='artwork'?<ArtworkHarness language={uiLanguage}/>:null}
    {normalized==='scene'?<MuseumScene gallery={DEMO_GALLERY} language={uiLanguage} onBack={()=>setScreen('dashboard')}/>:null}
    {normalized==='v53-evidence'?<MuseumScene gallery={v53QaGallery} language={uiLanguage}/>:null}
    {normalized==='v54-speaking'?<MuseumSpeakingStudio enabled learning={{
