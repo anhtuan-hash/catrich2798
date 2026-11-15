@@ -26,7 +26,7 @@ const projectActions={
   9:['Mở công cụ luyện thuyết trình','Open the speaking studio'],
   10:['Kiểm tra và nộp bảo tàng','Review and submit the museum'],
 };
-export default function MuseumLiveStudent({csrf,language='vi',onState,compact=false,toolRequest=null,readOnly=false,onOpenProject,peerActivity}){
+export default function MuseumLiveStudent({csrf,language='vi',onState,compact=false,toolRequest=null,readOnly=false,onOpenProject,peerActivity,reviewIndex,onReturnLive,onReviewProject}){
  const [data,setData]=useState(null),[selected,setSelected]=useState(null);
  const [quiz,setQuiz]=useState({}),[written,setWritten]=useState('');
  const [sent,setSent]=useState({}),[error,setError]=useState(''),[busy,setBusy]=useState(false),[notice,setNotice]=useState('');
@@ -72,6 +72,8 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
   if(view!=='video')setActiveTool(tool=>tool==='curriculum'?null:tool);
  },[session?.id,stageIndex,view,questionIndex,showQuestions]);
  const posted=sent[session?.id+'-'+stageIndex]===true;
+ const savedVote=Number.isInteger(data?.response)?data.response:selected;
+ const savedQuiz=Array.isArray(data?.response)?data.response:quiz;
  const canRespond=Boolean(showVote||responseQuestions||legacyPeer||showExit);
  const submit=async()=>{
   if(readOnly||busy||posted||!stageIsOpen||!canRespond)return;
@@ -95,13 +97,20 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
     }))
    }))});}
   catch(e){setError(e.message);}};
+ if(reviewIndex!=null)return <section className="bml-live-student">
+  {!readOnly&&session?.status!=='ended'&&onReturnLive?<button type="button" className="bml-outline bml-student-return-live" onClick={onReturnLive}>
+   {t(language,'Về hoạt động giáo viên đang mở','Return to current live activity')}
+  </button>:null}
+  <MuseumStudentLessonReview language={language} activityIndex={reviewIndex}
+    questionVersion={session?.questionVersion} survey={survey} loadSaved={Boolean(session)&&!readOnly} onOpenProject={onReviewProject}/>
+ </section>;
  if(readOnly||session?.status==='ended')return <section className="bml-live-student" data-testid="student-live-completed">
   <div className="bml-banner bml-success-banner" role="status"><CheckCircle2 size={18}/>
    {readOnly?t(language,'Bài đã hoàn thành · Chỉ xem. Câu trả lời và hiện vật được giữ nguyên.','Completed lesson · View only. Your answers and exhibits are preserved.'):
     data?.submitted?t(language,'Exit Ticket của nhóm đã được ghi nhận. Sản phẩm bảo tàng là bài nộp riêng.','Your group Exit Ticket was recorded. Your museum project is submitted separately.'):
     t(language,'Hoạt động trực tiếp đã kết thúc.','Live activities have ended.')}
   </div>
-  <MuseumStudentLessonReview language={language} onOpenProject={onOpenProject}/>
+  <MuseumStudentLessonReview language={language} activityIndex={onReviewProject?0:undefined} questionVersion={session?.questionVersion} survey={survey} loadSaved={session?.status==='ended'&&!readOnly} onOpenProject={onReviewProject||onOpenProject}/>
   {['materials','research'].includes(activeTool)?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label={t(language,'Tài liệu bài học','Lesson materials')}>
    <div className="bml-student-detail-window">
     <div className="bml-student-detail-head"><strong>{t(language,'Tài liệu bài học','Lesson materials')}</strong>
@@ -141,7 +150,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
     ?t(language,'Giáo viên đang tạm dừng bài học.','Your teacher has paused the lesson.')
     :t(language,'Nhiệm vụ đã đóng. Chờ giáo viên mở lượt tiếp theo.','This task is closed. Wait for the teacher to reopen it.')}</div>:null}
     {showVote?<><p className="bml-student-p2-question" lang="en">{stage.question}</p><div className="bml-live-response-options">{stage.options.map((o,i)=><button type="button" key={i} disabled={!stageIsOpen||posted||busy}
-     aria-pressed={selected===i} aria-label={String.fromCharCode(65+i)+'. '+o} className={selected===i?'is-chosen':''} onClick={()=>{setSelected(i);setNotice('');}}>
+     aria-pressed={savedVote===i} aria-label={String.fromCharCode(65+i)+'. '+o} className={savedVote===i?'is-chosen':''} onClick={()=>{setSelected(i);setNotice('');}}>
       <span className="bml-option-letter" aria-hidden="true">{String.fromCharCode(65+i)}.</span>
       <span className="bml-option-copy" aria-hidden="true">{o}</span>
      </button>)}</div></>:null}
@@ -150,20 +159,20 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
       {quizPage!==questionIndex?<button className="bml-outline" type="button" onClick={()=>setQuizPage(questionIndex)}>{t(language,'Về câu đang chiếu','Go to projected question')}</button>:null}</p>
      {responseQuestions.map((q,i)=><div key={i} hidden={quizPage!==i}>
      <strong>Q{i+1}. {q.q}</strong><div className="bml-live-response-options">{q.choices.map((v,j)=><button type="button" key={j} disabled={!stageIsOpen||posted||busy}
-      aria-pressed={quiz[i]===j} aria-label={String.fromCharCode(65+j)+'. '+v} className={quiz[i]===j?'is-chosen':''} onClick={()=>setQuiz(prev=>({...prev,[i]:j}))}>
+      aria-pressed={savedQuiz[i]===j} aria-label={String.fromCharCode(65+j)+'. '+v} className={savedQuiz[i]===j?'is-chosen':''} onClick={()=>setQuiz(prev=>({...prev,[i]:j}))}>
        <span className="bml-option-letter" aria-hidden="true">{String.fromCharCode(65+j)}.</span>
        <span className="bml-option-copy" aria-hidden="true">{v}</span>
       </button>)}</div>{session.revealed&&Number.isInteger(q.answer)?<p className="bml-quiz-revealed">Answer: {String.fromCharCode(65+q.answer)} · {q.explanation}</p>:null}
     </div>)}
     {responseQuestions.length>1?<div className="bml-student-quiz-page-controls">
      <button type="button" aria-label={t(language,'Câu trước','Previous question')} disabled={quizPage===0} onClick={()=>setQuizPage(v=>v-1)}>← <span>{t(language,'Trước','Previous')}</span></button>
-     <strong><small>{t(language,'CÂU','QUESTION')}</small> {quizPage+1} of {responseQuestions.length} <em>· {Object.keys(quiz).length} {t(language,'đã chọn','answered')}</em></strong>
+     <strong><small>{t(language,'CÂU','QUESTION')}</small> {quizPage+1} of {responseQuestions.length} <em>· {Object.keys(savedQuiz).length} {t(language,'đã chọn','answered')}</em></strong>
      <button type="button" aria-label={t(language,'Câu sau','Next question')} disabled={quizPage===responseQuestions.length-1} onClick={()=>setQuizPage(v=>v+1)}><span>{t(language,'Sau','Next')}</span> →</button>
     </div>:null}</div>:null}
     {stageIsOpen&&(legacyPeer||showExit)?<div className="bml-live-response-form">
      {stage.kind==='peer'?<button type="button" className="bml-outline" onClick={visitPeer}><Eye size={17}/>{t(language,'Tham quan triển lãm nhóm khác (riêng tư)','Visit another group (private)')}</button>:null}
      {stage.kind==='peer'?<><strong>{peerLabel||t(language,'Nhóm được phân công sẽ hiện khi mở triển lãm.','Your assigned peer group will appear when the gallery opens.')}</strong>{[['learned','I learned …'],['clarify','The message would be clearer if …']].map(([key,label])=><label className="bml-full-field" key={key}>{label}<textarea rows={3} maxLength={400} disabled={readOnly||posted} value={peerResponse[key]} onChange={e=>setPeerResponse(v=>({...v,[key]:e.target.value}))}/></label>)}<label>{t(language,'Clarity / Mức rõ ràng','Clarity')}<select value={peerResponse.rating} disabled={readOnly||posted} onChange={e=>setPeerResponse(v=>({...v,rating:Number(e.target.value)}))}><option value={0}>{t(language,'Chọn mức','Choose a rating')}</option><option value={1}>1 · Unclear</option><option value={2}>2 · Partly clear</option><option value={3}>3 · Mostly clear</option><option value={4}>4 · Clear</option></select></label></>:<label className="bml-full-field">{t(language,'Trả lời bằng tiếng Anh','Write your response in English')}<textarea rows={3}
-      maxLength={800} disabled={readOnly||posted} placeholder={stage.sentence} value={written} onChange={e=>setWritten(e.target.value)}/></label>}
+      maxLength={800} disabled={readOnly||posted} placeholder={stage.sentence} value={typeof data?.response==='string'?data.response:written} onChange={e=>setWritten(e.target.value)}/></label>}
     </div>:null}
     {responseQuestions&&posted?<p className="bml-live-choice-note bml-editorial-submitted-note" role="status">
      <CheckCircle2 size={17}/>{t(language,'Đã ghi nhận đáp án của nhóm. Giáo viên sẽ mở hoạt động tiếp theo.','Your group answers are recorded. Your teacher will guide the next activity.')}

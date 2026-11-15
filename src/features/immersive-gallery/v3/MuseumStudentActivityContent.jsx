@@ -49,7 +49,7 @@ export function StudentActivityQuiz({questions,language='vi',revealed=false,sele
      <span className="bml-option-letter" aria-hidden="true">{String.fromCharCode(65+i)}.</span>
      <span className="bml-option-copy" aria-hidden="true">{choice}</span>
     </button>)}
-   </div>:<ol type="A">{question.choices.map(choice=><li key={choice}>{choice}</li>)}</ol>}
+   </div>:<ol type="A">{question.choices.map((choice,i)=><li key={choice}>{selected[page]===i?<strong>{choice} · {tr(language,'Nhóm đã chọn','Group choice')}</strong>:choice}</li>)}</ol>}
    {revealed&&Number.isInteger(question.answer)?<p className="bml-quiz-revealed">Answer: {String.fromCharCode(65+question.answer)} · {question.explanation}</p>:null}
   </div>
  </section>;
