@@ -150,21 +150,39 @@ const ROUTES = ['home', 'apps', 'news', 'tools', 'homeroom', 'attendance', 'home
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'board-live', 'quest-join', 'slideshow', 'qb-practice', 'gallery-create']);
 
 const CONTEST_PATH = '/nguyen-anh-tuan-bai-du-thi-stem-steam-day-hoc-so-2026-2027';
+// The public contest link is this path plus #/apps. That alias must keep
+// showing the museum. Any other hash is a real global-nav choice and has to
+// leave the pretty path, otherwise the top bar changes the hash and the
+// studio stays mounted.
+const CONTEST_PARKED_ROUTES = new Set(['', 'apps']);
 
 function onContestPath() {
   const path = String(window.location.pathname || '/').replace(/\/+$/, '') || '/';
   return path === CONTEST_PATH;
 }
 
+function hashRouteOnly() {
+  return String(window.location.hash || '').replace(/^#\/?/, '').split('?')[0].split('&')[0];
+}
+
 function preferContestAddress() {
-  const hashRoute = String(window.location.hash || '').replace(/^#\/?/, '').split('?')[0].split('&')[0];
+  const hashRoute = hashRouteOnly();
   if (hashRoute !== 'tool/immersive-gallery') return;
   const query = window.location.hash.includes('?') ? window.location.hash.slice(window.location.hash.indexOf('?')) : '';
   window.history.replaceState(null, '', CONTEST_PATH + query);
 }
 
+function releaseContestPathForGlobalNav() {
+  if (!onContestPath()) return;
+  const routeOnly = hashRouteOnly();
+  if (CONTEST_PARKED_ROUTES.has(routeOnly) || routeOnly === 'tool/immersive-gallery') return;
+  const next = `/${window.location.hash || '#/home'}`;
+  window.history.replaceState(null, '', next);
+}
+
 function getInitialRoute() {
   preferContestAddress();
+  releaseContestPathForGlobalNav();
   if (onContestPath()) return 'tool/immersive-gallery';
   const href = window.location.href || '';
   const cleanHash = window.location.hash.replace('#/', '').replace('#', '').trim();
