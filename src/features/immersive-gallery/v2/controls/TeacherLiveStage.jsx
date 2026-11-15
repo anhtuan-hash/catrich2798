@@ -4,6 +4,8 @@ import MuseumScene from '../../v3/MuseumScene.jsx';
 import StageArt from './StageArt.jsx';
 import TeacherLiveSlideContent from './TeacherLiveSlideContent.jsx';
 import {MUSEUM_ACTIVITY_SLIDES} from '../../v3/museumActivitySlides.js';
+import {STEPS} from '../../v3/museumData.js';
+import {activityGroup} from '../../v3/MuseumStudentActivityGroups.jsx';
 const t=(lang,vi,en)=>lang==='en'?en:vi;
 const fmtClock=sec=>{
   if(!Number.isFinite(sec)||sec<0)sec=0;
@@ -28,9 +30,9 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
   fullscreenControls=null,fullscreenPanel=null
 },ref){
   const period=stage?.period??1;
-  const periodLabel=period===1
-    ?t(language,'TIẾT 01 · KHỞI ĐỘNG & THIẾT KẾ','PERIOD 01 · INVESTIGATE & DESIGN')
-    :t(language,'TIẾT 02 · TẠO, KIỂM TRA & CẢI TIẾN','PERIOD 02 · CREATE, TEST & IMPROVE');
+  const group=activityGroup(Math.min(Math.max(currentIndex||0,0),10));
+  const step=STEPS[group]||STEPS[0];
+  const phaseLabel=`${group+1} · ${language==='en'?step.en:step.vi}`;
   const taskOpen=Boolean(session?.stageOpen);
   const statusLabel=readOnly?t(language,'CHỈ XEM','VIEW ONLY'):taskOpen
     ?t(language,'ĐANG MỞ HOẠT ĐỘNG','TASK OPEN')
@@ -64,7 +66,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
           <>
             <div className={'adv-stage-layout' + (curriculumNode||focusedLayout?' is-video':'')}>
               <div className="adv-stage-copy">
-                <div className="adv-stage-section">{periodLabel}{stage?.kind?` · ${stage.kind}`:''}</div>
+                <div className="adv-stage-section">{phaseLabel}</div>
                 <h2 className="adv-stage-title">{stage?.title||t(language,'Đang tải hoạt động…','Loading activity…')}</h2>
                 {language!=='en'&&stage?.vi?<p className="adv-stage-vi">{stage.vi}</p>:null}
                 {hasLessonSlide?<TeacherLiveSlideContent key={stage.id} stage={stage} language={language}
