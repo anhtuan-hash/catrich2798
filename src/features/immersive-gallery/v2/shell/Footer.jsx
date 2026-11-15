@@ -91,11 +91,7 @@ export default function Footer() {
           </article>
 
           <article className="footer-col footer-col--qual" lang="vi">
-            <h3>
-              <span>HỌC VẤN & CHỨNG CHỈ</span>
-              {' '}
-              <span>CHUYÊN MÔN</span>
-            </h3>
+            <h3>HỌC VẤN & CHỨNG CHỈ CHUYÊN MÔN</h3>
             <ul className="footer-list footer-list--squares">
               {QUALIFICATION_LINES.map((line) => (
                 <li key={line}>
