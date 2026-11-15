@@ -295,17 +295,12 @@ export default function MuseumLabStudent({language:languageProp='en'}){
    <section className="bml-student-focus" data-testid="student-focus-switch" aria-label={T(language,'Bảng điều khiển học sinh','Student workspace')}>
     <div className="bml-student-focus-head">
      <strong>{T(language,'Sổ tay triển lãm','Your museum workshop')}</strong>
-     <span className="bml-student-focus-stage" role="status">
-      <span className={liveRunning&&liveInfo?.stageOpen?'bml-focus-dot is-open':'bml-focus-dot'}/>
-      {session.readOnly?T(language,'Bài đã hoàn thành · Chỉ xem','Completed lesson · View only'):liveInfo?.status==='ended'?T(language,'Buổi học đã kết thúc','Lesson completed'):liveRunning?T(language,'Hoạt động','Activity')+' '+(stageIndex+1)+'/11 · '+(liveInfo?.stage?.title||'Teacher Live'):
-       T(language,'Đang chờ giáo viên bắt đầu · Có thể xem sản phẩm nhóm','Waiting for teacher · Group workspace available')}
-     </span>
     </div>
     <MuseumStudentActivityGroups group={step} activity={displayedActivity}
      language={language} onGroup={chooseGroup} onActivity={browseActivity}/>
    </section>
-   <header className="bml-student-bar"><div className="bml-brand"><span className="bml-brand-icon"><Landmark size={23}/></span><span><strong>Pétrus Ký School System</strong><small>{T(language,'Học sinh sáng tạo','Student Creator')}</small></span></div>
-   <MuseumStudentVoiceGuide cue={narrationCue} language={language}/>
+   <header className="bml-student-bar">
+   <div className="bml-voice-autorun"><MuseumStudentVoiceGuide cue={narrationCue} language={language}/></div>
    <div className="bml-student-right"><span className="bml-group-pill"><Users size={16}/>{language==='en'?englishSystemGroupLabel(session.groupLabel):session.groupLabel} · {session.assignment.class_scope}</span>
     <span className={'bml-save-indicator bml-save-'+saveState} title={T(language,'Đã lưu bản nháp chưa có nghĩa là đã nộp bảo tàng.','Saved draft does not mean the museum project was submitted.')}>{saveState==='saved'?<><Cloud size={16}/>{T(language,'Đã lưu','Saved')}</>:
       saveState==='saving'?<><CloudUpload size={16}/>{T(language,'Đang lưu…','Saving…')}</>:<><CloudAlert size={16}/>{T(language,'Cần xử lý','Action needed')}</>}</span>

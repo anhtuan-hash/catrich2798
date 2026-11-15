@@ -22,11 +22,11 @@ export const RUBRIC = Object.freeze([
  {key:'revision',label:'Thử nghiệm & cải tiến',en:'Testing & revision',max:10,help:'Documented feedback and evidence of revision'}
 ]);
 export const STEPS = Object.freeze([
- {key:'understand',vi:'Hiểu vấn đề',en:'Understand'},
- {key:'plan',vi:'Lên ý tưởng',en:'Plan'},
- {key:'create',vi:'Sáng tạo',en:'Create'},
+ {key:'understand',vi:'Xác định vấn đề',en:'Identify the problem'},
+ {key:'plan',vi:'Thiết kế giải pháp',en:'Design a solution'},
+ {key:'create',vi:'Chế tạo',en:'Build'},
  {key:'test',vi:'Thử nghiệm',en:'Test'},
- {key:'submit',vi:'Nộp bài',en:'Submit'}
+ {key:'submit',vi:'Đánh giá',en:'Evaluate'}
 ]);
 const cap=(value,max)=>String(value??'').replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,max);
 export const emptyLearning=()=>({issue:'',audience:'',source:'',evidence:'',solution:'',feedback:'',improvement:'',reflection:'',tested:false,roles:'',feasibility:''});

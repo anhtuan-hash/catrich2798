@@ -97,7 +97,18 @@
  box-shadow:none!important;
  overflow:hidden;
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-hub .bml-brand,
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-voice-autorun{
+ position:absolute;
+ width:1px;
+ height:1px;
+ margin:-1px;
+ padding:0;
+ overflow:hidden;
+ clip:rect(0,0,0,0);
+ clip-path:inset(50%);
+ white-space:nowrap;
+ border:0;
+}
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-hub .bml-student-voice-guide,
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-hub .bml-student-right{
  min-width:0;
