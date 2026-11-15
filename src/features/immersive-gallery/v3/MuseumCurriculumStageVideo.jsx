@@ -40,6 +40,8 @@ export default function MuseumCurriculumStageVideo({video,stageIndex,language='e
     <BookOpen size={17} aria-hidden="true"/> {stageIndex===1?'Answer 3 video questions':'Check understanding · 3 questions'} <ArrowRight size={17} aria-hidden="true"/>
    </button>
    <small>{video.timing}</small>
+   <small><a href={video.officialSource} target="_blank" rel="noreferrer">{language==='en'?'NASA original':'Nguồn gốc NASA'}</a>
+    {' · '}<a href={video.transcript} target="_blank" rel="noreferrer">{language==='en'?'Transcript':'Bản lời thoại'}</a></small>
   </aside>
  </section>;
 }

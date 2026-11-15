@@ -78,7 +78,7 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'})
      <div className="bml-single-outcome-grid">
       <p><b>01 · The Problem – The Evidence – Our Solution</b><span>{tr(language,'Ba lời thuyết minh tiếng Anh, mỗi phần khoảng 25–40 từ.','Three English exhibit captions, approximately 25–40 words each.')}</span></p>
       <p><b>02 · Group-priority survey</b><span>{tr(language,'Biểu đồ từ phiếu lớp thật, số nhóm N, số đếm, phần trăm và giới hạn.','A genuine group-vote chart with N, counts, percentages and limitations.')}</span></p>
-      <p><b>03 · Artwork & learning process</b><span>{tr(language,'Poster/ảnh gốc, phòng 3D, phản hồi chéo, bản cải tiến và phần trình bày 45–60 giây.','Original poster, 3D gallery, peer feedback, documented revision and a 45–60-second pitch.')}</span></p>
+      <p><b>03 · Artwork & learning process</b><span>{tr(language,'Poster có ghi công, bản xem 3D hoặc 2D, phản hồi chéo, bản V1/V2 và bài trình bày 45–60 giây.','Credited visual, 3D or 2D exhibit, peer feedback, V1/V2 and a 45–60-second pitch.')}</span></p>
      </div>
     </section>
     <section className="bml-single-flow" aria-label={tr(language,'Tiến trình hai tiết','Two-period teaching sequence')}>

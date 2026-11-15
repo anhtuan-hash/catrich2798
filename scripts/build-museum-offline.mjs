@@ -21,8 +21,16 @@ export async function buildMuseumOffline(outDir='dist'){
  const mime={'.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.avif':'image/avif','.svg':'image/svg+xml','.ttf':'font/ttf','.woff2':'font/woff2','.html':'text/html'};
  const assetPaths=new Set([...((script+'\n'+css).matchAll(/["'`(](\/(?:assets|museum)\/[^"'`()\s]+)["'`)]/g))].map(m=>m[1]));
  assetPaths.add('/museum-lesson-guide.html');
+ assetPaths.add('/museum-lesson-worksheet.html');
+ const worksheetAsset='/museum-lesson-worksheet.html';
+ const worksheetBytes=await fs.readFile(path.join(root,'public',worksheetAsset));
+ const worksheetData='data:text/html;base64,'+worksheetBytes.toString('base64');
  for(const asset of assetPaths){
-  const absolute=path.join(root,'public',asset);const bytes=await fs.readFile(absolute);
+  const absolute=path.join(root,'public',asset);
+  let bytes=asset===worksheetAsset?worksheetBytes:await fs.readFile(absolute);
+  if(asset==='/museum-lesson-guide.html'){
+   bytes=Buffer.from(bytes.toString('utf8').replace('href="'+worksheetAsset+'"','href="'+worksheetData+'"'));
+  }
   const type=mime[path.extname(absolute)];if(!type)throw new Error('Unsupported offline asset: '+asset);
   const data='data:'+type+';base64,'+bytes.toString('base64');
   script=script.replaceAll(asset,data);css=css.replaceAll(asset,data);

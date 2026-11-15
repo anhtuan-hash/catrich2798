@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Our Climate Action Museum · Học liệu ngoại tuyến</title>
+<style>
+  :root{font-family:system-ui,sans-serif;color:#1b2830;background:#f2f5f4;line-height:1.55}
+  *{box-sizing:border-box}
+  body{max-width:960px;margin:auto;padding:24px 18px 50px}
+  h1,h2,h3,p{margin-top:0} h1{font-size:clamp(26px,5vw,42px);line-height:1.13;margin-bottom:10px}
+  h2{font-size:23px;margin-bottom:10px} h3{font-size:18px;margin-bottom:6px}
+  header,section{padding:20px;border:1px solid #c9d5d0;border-radius:10px;background:white;margin-bottom:16px}
+  a{color:#105746} a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #ce7420;outline-offset:3px}
+  nav{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-weight:600}
+  fieldset{border:1px solid #c9d5d0;margin:12px 0;padding:12px;border-radius:6px;min-inline-size:0}
+  legend,label{font-weight:600} label.radio{display:block;font-weight:400;margin:6px 0}
+  label.stack{display:block;margin:8px 0} label input:not([type=radio]),label textarea,label select{display:block;width:100%;margin-top:4px}
+  input:not([type=radio]),textarea,select{font:inherit;color:inherit;padding:7px 9px;border:1px solid #859d93;border-radius:4px;background:white}
+  input[type=file]{max-width:100%} textarea{min-height:70px;resize:vertical}
+  button{font:inherit;font-weight:650;border:0;background:#105746;color:white;padding:9px 14px;border-radius:5px;cursor:pointer;margin:4px 5px 3px 0}
+  button.secondary{color:#105746;background:#e4efe9;border:1px solid #9db8a9}
+  .grid{display:grid;gap:10px 14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,225px),1fr))}
+  .muted{color:#405454}.status{margin:9px 0 0;color:#144437;font-weight:650}.error{color:#9a2424}.empty{color:#405454}
+  .exhibit{padding:12px 0;margin-top:9px;border-top:1px solid #c9d5d0}
+  #posterPreview{display:block;width:min(100%,420px);height:auto;margin:10px auto;max-height:390px;object-fit:contain}
+  #posterPreview[hidden]{display:none}
+  #bars>div{display:grid;grid-template-columns:minmax(120px,1fr) 1.5fr 75px;align-items:center;gap:8px;margin:8px 0}
+  progress{width:100%;accent-color:#19735d}.plain{white-space:pre-wrap;overflow-wrap:anywhere} .results{margin-top:8px}
+  @media print{body{padding:0;background:white} header,section{padding:10px;border:0} nav,.no-print,button{display:none!important} .exhibit,fieldset{break-inside:avoid}}
+</style>
+<header>
+  <h1 lang="en">Our Climate Action Museum</h1>
+  <p>Tiếng Anh 11 · Unit 5 Global Warming · Phiếu thực hành cho các chặng 02–11</p>
+  <p><a href="https://esl-brian.vercel.app/museum-lesson-guide.html">Xem hướng dẫn 11 chặng trên BRIAN</a></p>
+  <p>Tiết 1: 5–10–10–12–8 phút. Tiết 2: 4–18–8–6–6–3 phút.</p>
+  <p class="muted">Mở tệp này bằng trình duyệt. Máy không gửi dữ liệu đi. Nếu dùng chung máy, chỉ nhập mã nhóm và mã học sinh. Tải bản ghi hoặc in trước khi đóng hay tải lại trang.</p>
+  <label class="stack">Mã lớp và phiên <input id="session" maxlength="60"></label>
+  <label class="stack">Mã nhóm <input id="group" maxlength="20" placeholder="G01"></label>
+  <nav aria-label="Chuyển mục"><a href="#individualA">Phiếu đầu giờ</a><a href="#listen">Nghe</a><a href="#survey">Khảo sát</a><a href="#design">Thiết kế</a><a href="#studio">Bảo tàng</a><a href="#test">Thử và sửa</a><a href="#finish">Kết thúc</a></nav>
+</header>
+<section id="individualA">
+  <h2>Phiếu cá nhân A · Chặng 01</h2>
+  <p>Dùng khi triển khai lại. Mỗi học sinh viết độc lập trong một phút. Đây là số liệu bài tập. Khi dùng chung một thiết bị nhóm, phát bản in I1 để mỗi em có phiếu riêng.</p>
+  <label class="stack" lang="en">In a classroom priority survey, 3 of 10 groups selected switching off unused lights. Report the result with a percentage. Explain what the survey can tell us. <textarea id="individualBefore"></textarea></label>
+</section>
+<section id="listen">
+  <h2>Nghe hiểu · Chặng 02 và 04</h2>
+  <p>GV chiếu video hoặc đọc phiếu A. HS chọn một đáp án mỗi câu rồi nộp trên máy. GV mở đáp án khi các nhóm đã gửi.</p>
+  <form id="listeningForm"></form>
+</section>
+<section id="survey">
+  <h2>Khảo sát · Chặng 03</h2>
+  <p lang="en">As a group, choose ONE action you would prioritise at school.</p>
+  <div id="surveyChoices" lang="en"></div>
+  <p class="muted">Gửi lựa chọn cho GV theo kênh của lớp. Sau khi GV chốt, nhập số phiếu hợp lệ, kể cả 0 ở phương án không có phiếu.</p>
+  <form id="surveyForm">
+    <div class="grid" id="counts"></div>
+    <button type="submit">Tính tỉ lệ và vẽ biểu đồ</button>
+    <p id="surveyStatus" class="status" role="status"></p>
+    <div id="bars" aria-label="Biểu đồ ưu tiên nhóm"></div>
+  </form>
+  <label class="stack" lang="en">In our survey, ___ out of ___ groups (___%) selected … <textarea id="surveyLine"></textarea></label>
+  <label class="stack" lang="en">What does this survey tell us? What would we need to measure actual impact? <textarea id="surveyLimit"></textarea></label>
+</section>
+<section id="design">
+  <h2>Thiết kế · Chặng 04 và 05</h2>
+  <div class="grid" lang="en">
+    <label class="stack">School problem and visitor’s need <textarea id="problem"></textarea></label>
+    <label class="stack">NASA claim and local priority evidence <textarea id="designEvidence"></textarea></label>
+    <label class="stack">Option A <textarea id="optionA"></textarea></label>
+    <label class="stack">Option B <textarea id="optionB"></textarea></label>
+  </div>
+  <div class="grid" lang="en">
+    <div id="scoresA"><h3>Option A</h3></div>
+    <div id="scoresB"><h3>Option B</h3></div>
+  </div>
+  <p class="muted">0 = chưa đáp ứng, 1 = một phần, 2 = có căn cứ. Khi bằng điểm, xem lại tính khả thi.</p>
+  <button type="button" id="compare">So sánh điểm</button>
+  <p id="compareStatus" class="status" role="status"></p>
+  <label class="stack" lang="en">We chose … because … <textarea id="decision"></textarea></label>
+  <label class="stack" lang="en">Storyboard. Record the title, first sentence, visual or source and owner for each of the three exhibits. <textarea id="storyboard"></textarea></label>
+</section>
+<section id="studio">
+  <h2>Bảo tàng · Chặng 07</h2>
+  <div class="no-print">
+    <p>Viết khoảng 25–40 từ/nhãn. Gắn nguồn đã dùng và thông tin tác giả poster. Ghi rõ người tạo và công cụ nếu poster do giáo viên chuẩn bị hoặc được tạo bằng AI. Dùng định dạng PNG, JPG hoặc WebP dưới 5 MB cho phiếu này.</p>
+    <div class="grid" lang="en">
+      <label class="stack">The Problem <textarea maxlength="600" id="labelProblem"></textarea></label>
+      <label class="stack">The Evidence <textarea maxlength="600" id="labelEvidence"></textarea></label>
+      <label class="stack">Our Solution <textarea maxlength="600" id="labelSolution"></textarea></label>
+    </div>
+    <div class="grid">
+      <label class="stack">URL nguồn NASA <input id="source" type="url"></label>
+      <label class="stack">Mã tác giả và ghi chú quyền ảnh <input id="rights"></label>
+      <label class="stack">Mô tả hình bằng văn bản <input id="alt"></label>
+      <label class="stack">Poster của nhóm <input id="poster" type="file" accept="image/png,image/jpeg,image/webp"></label>
+    </div>
+    <button type="button" id="preview">Cập nhật bản xem</button>
+    <button type="button" class="secondary" id="saveV1">Lưu bản V1</button>
+    <button type="button" class="secondary" id="saveV2">Lưu bản V2</button>
+    <p id="studioStatus" class="status" role="status"></p>
+  </div>
+  <article aria-label="Bản xem triển lãm">
+    <h3 lang="en">Our Climate Action Museum</h3>
+    <div class="exhibit"><strong lang="en">The Problem</strong><div id="showProblem" class="plain empty">Chưa nhập.</div></div>
+    <div class="exhibit"><strong lang="en">The Evidence</strong><div id="showEvidence" class="plain empty">Chưa nhập.</div><div id="showSource"></div><div id="showCounts" class="plain"></div></div>
+    <div class="exhibit"><strong lang="en">Our Solution</strong><div id="showSolution" class="plain empty">Chưa nhập.</div></div>
+    <img id="posterPreview" alt="" hidden><div id="showRights" class="muted plain"></div>
+  </article>
+</section>
+<section id="test">
+  <h2>Thử với khách và cải tiến · Chặng 08–09</h2>
+  <p>Mỗi nhóm gửi và nhận một phản hồi. Ghi điều học được, điểm cần làm rõ và độ rõ 1–4. Ba câu 0/1 ở V1/V2 là phép thử tùy chọn khi triển khai lại.</p>
+  <div class="grid" id="testForms"></div>
+  <label class="stack" lang="en">We changed … because the visitor … <textarea id="revision"></textarea></label>
+  <label class="stack" lang="en">What limits our comparison? <textarea id="comparison"></textarea></label>
+  <button type="button" id="scoreTest">Tính kết quả V1 và V2</button>
+  <p id="testStatus" class="status" role="status"></p>
+</section>
+<section id="finish">
+  <h2>Trình bày và vận dụng · Chặng 10–11</h2>
+  <p lang="en">Our museum explains … . According to NASA, … . Our group survey shows … . We recommend … . We changed … after feedback.</p>
+  <label class="stack">Mã học sinh nếu dùng hai phiếu cá nhân <input id="student" maxlength="20"></label>
+  <h3>Phiếu cá nhân B · Chặng 11</h3>
+  <label class="stack" lang="en">In a classroom priority survey, 7 of 10 groups selected using reusable bottles. Report the result with a percentage. Explain what the survey can tell us. <textarea id="individualAfter"></textarea></label>
+  <h3>Exit Ticket theo nhóm</h3>
+  <label class="stack" lang="en">One action I can take at school is … because … <textarea id="action"></textarea></label>
+  <label class="stack" lang="en">Our class survey tells us … <textarea id="meaning"></textarea></label>
+  <button type="button" id="download">Tải bản ghi TXT</button>
+  <button type="button" class="secondary" id="print">In / Lưu PDF</button>
+</section>
+<script>
+'use strict';
+const el = id => document.getElementById(id);
+function make(tag, text) {
+  const node = document.createElement(tag);
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+function status(id, text, error = false) {
+  el(id).textContent = text;
+  el(id).classList.toggle('error', error);
+}
+const clips = [
+  {title:'Chặng 02 · What Is the Greenhouse Effect?', url:'https://science.nasa.gov/kids/videos/video-what-is-the-greenhouse-effect/', questions:[
+    ['What surrounds Earth and contains heat-trapping gases?', ['A glass roof','The atmosphere','A layer of ice'],1,'The atmosphere surrounds Earth.'],
+    ['Which human activity releases extra carbon dioxide?', ['Burning coal and oil','Watching the weather','Turning off unused lights'],0,'Burning fossil fuels adds carbon dioxide.'],
+    ['Which sentence correctly reports NASA’s explanation?', ['Our school survey measures emissions.','Burning fossil fuels adds CO₂, so more heat can be trapped.','Greenhouse gases stop all sunlight.'],1,'Extra carbon dioxide can increase the amount of heat trapped.']]},
+  {title:'Chặng 04 · Is Climate Change the Same as Global Warming?', url:'https://www.nasa.gov/earth/climate-change/is-climate-change-the-same-as-global-warming-we-asked-a-nasa-scientist-episode-46/', questions:[
+    ['What does global warming refer to?',['A long-term rise in Earth’s average surface temperature','One unusually hot day','The temperature inside a classroom'],0,'Global warming is a long-term rise in global average surface temperature.'],
+    ['Which example is mentioned as an effect of broader climate change?',['More sea ice in the Arctic','Decreasing Arctic ice and droughts','A vote about school recycling'],1,'The speaker mentions decreases in Arctic ice and droughts.'],
+    ['Which statement responsibly connects NASA evidence to our museum project?',['Our classroom vote proves warming has stopped.','The two terms mean exactly the same thing.','Global warming is part of climate change. The survey records group priorities.'],2,'Climate change includes global warming and other long-term changes.']]}
+];
+function addRadio(parent, name, value, description) {
+  const label = make('label');
+  label.className='radio';
+  const input=make('input');
+  input.type='radio';
+  input.name=name;
+  input.value=value;
+  label.append(input, ' ', description);
+  parent.append(label);
+}
+const submitted = [null,null];
+for (const [ci,clip] of clips.entries()) {
+  const container=make('fieldset');
+  const link=make('a','Nguồn NASA');
+  link.href=clip.url;
+  container.append(make('legend',clip.title),link);
+  for (const [qi,[question,options]] of clip.questions.entries()) {
+    const field=make('fieldset');
+    field.lang='en';
+    field.append(make('legend',`${qi+1}. ${question}`));
+    options.forEach((o,i)=>addRadio(field,`clip${ci}q${qi}`,i,`${'ABC'[i]}. ${o}`));
+    container.append(field);
+  }
+  const submit=make('button','Nộp đáp án');
+  const reveal=make('button','GV mở giải thích');
+  const result=make('p');
+  result.className='status';
+  result.setAttribute('role','status');
+  submit.type=reveal.type='button';
+  reveal.className='secondary';
+  submit.onclick=()=>{
+    const data=new FormData(el('listeningForm'));
+    const answers=clip.questions.map((_,qi)=>data.get(`clip${ci}q${qi}`));
+    if(answers.includes(null)){result.textContent='Hãy chọn đủ 3 đáp án.';return;}
+    submitted[ci]=answers.map(Number);
+    result.textContent='Đã lưu 3 đáp án trên máy này.';
+  };
+  reveal.onclick=()=>{
+    if(!submitted[ci]){result.textContent='Nhóm cần nộp trước.';return;}
+    const score=clip.questions.filter((q,i)=>q[2]===submitted[ci][i]).length;
+    result.textContent=`${score}/3. `+clip.questions.map((q,i)=>`${i+1} ${'ABC'[q[2]]}. ${q[3]}`).join(' ');
+  };
+  container.append(submit,reveal,result);
+  el('listeningForm').append(container);
+}
+const options=['Check unused lights and equipment with the teacher','Use reusable bottles and an approved refill point','Reduce avoidable food waste','Choose lower-emission travel where safe and practical'];
+function field(parent, title, input) {
+  const label = make('label', title);
+  label.className='stack';
+  label.append(input);
+  parent.append(label);
+}
+const countFields=options.map((option,i)=>{
+  addRadio(el('surveyChoices'),'priority',i,option);
+  const input=make('input');
+  input.type='number'; input.min=0; input.step=1; input.required=true;
+  field(el('counts'),option,input);
+  return input;
+});
+function getCounts(){
+  if(countFields.some(f=>f.value===''||!f.validity.valid||!Number.isSafeInteger(Number(f.value)))) return null;
+  const counts=countFields.map(f=>Number(f.value));
+  const total=counts.reduce((sum,count)=>sum+count,0);
+  if(!Number.isSafeInteger(total)) return null;
+  return {counts,total};
+}
+const format=new Intl.NumberFormat('vi-VN',{maximumFractionDigits:1});
+el('surveyForm').onsubmit=e=>{
+  e.preventDefault();
+  const data=getCounts(), bars=el('bars');
+  bars.replaceChildren();
+  if(!data){status('surveyStatus','Cần nhập bốn số đếm nguyên không âm.',true);return;}
+  if(data.total===0){status('surveyStatus','n = 0. Chưa có tỉ lệ phần trăm.');return;}
+  status('surveyStatus',`n = ${data.total} phiếu nhóm hợp lệ.`);
+  data.counts.forEach((count,i)=>{
+    const row=make('div'), bar=make('progress');
+    bar.max=data.total;bar.value=count;bar.setAttribute('aria-label',options[i]);
+    row.append(make('span',options[i]),bar,make('span',`${count}/${data.total} · ${format.format(count/data.total*100)}%`));
+    bars.append(row);
+  });
+};
+function selectChoices(values){
+  const select=make('select');
+  select.append(new Option('Chọn',''));
+  for(const value of values)select.append(new Option(String(value),String(value)));
+  return select;
+}
+const criteria=['Clear to a visitor','Feasible at school','Easy to verify the evidence'];
+const ratingFields=['A','B'].map(key=>criteria.map(title=>{
+  const input=selectChoices([0,1,2]);field(el('scores'+key),title,input);return input;
+}));
+el('compare').onclick=()=>{
+  if(ratingFields.flat().some(f=>f.value==='')){status('compareStatus','Chấm đủ ba tiêu chí cho mỗi phương án.',true);return;}
+  const sums=ratingFields.map(fields=>fields.reduce((sum,f)=>sum+Number(f.value),0));
+  status('compareStatus',`A ${sums[0]}/6 · B ${sums[1]}/6. Ghi lý do lựa chọn trước khi chế tạo.`);
+};
+function val(id){return el(id).value.trim();}
+function readExhibit(){
+  const survey=getCounts();
+  return {
+    group:val('group'),time:new Date().toISOString(),problem:val('labelProblem'),
+    evidence:val('labelEvidence'),solution:val('labelSolution'),source:val('source'),
+    rights:val('rights'),alt:val('alt'),survey,
+    posterName:el('poster').files[0]?.name??''
+  };
+}
+function surveyText(survey){
+  if(!survey) return 'Chưa có số đếm được chốt.';
+  if(survey.total===0) return 'n = 0. Chưa có tỉ lệ phần trăm.';
+  return survey.counts.map((count,i)=>`${options[i]} · ${count}/${survey.total} (${format.format(count/survey.total*100)}%)`).join('\n');
+}
+let posterURL;
+function update(){
+  const model=readExhibit();
+  for(const key of ['Problem','Evidence','Solution']){
+    const item=el('show'+key);
+    item.textContent=model[key.toLowerCase()]||'Chưa nhập.';
+    item.classList.toggle('empty',!model[key.toLowerCase()]);
+  }
+  el('showSource').replaceChildren();
+  if(model.source){
+    try{
+      const url=new URL(model.source);
+      if(url.protocol!=='https:')throw new Error('scheme');
+      const a=make('a','Nguồn cho dữ kiện');
+      a.href=url.href;el('showSource').append(a);
+    }catch{el('showSource').textContent='Cần đường dẫn nguồn HTTPS hợp lệ.';}
+  }
+  el('showCounts').textContent=surveyText(model.survey);
+  el('showRights').textContent=model.rights;
+  const file=el('poster').files[0], poster=el('posterPreview');
+  if(posterURL)URL.revokeObjectURL(posterURL);
+  poster.hidden=true;
+  if(file){
+    if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>5_000_000){
+      status('studioStatus','Hãy dùng PNG, JPG hoặc WebP dưới 5 MB.',true);
+      return null;
+    }
+    if(!model.alt){status('studioStatus','Thêm mô tả văn bản cho hình.',true);return null;}
+    posterURL=URL.createObjectURL(file);poster.src=posterURL;poster.alt=model.alt;poster.hidden=false;
+  }
+  status('studioStatus','Bản xem đã cập nhật. Lưu V1 hoặc V2 khi sẵn sàng.');
+  return model;
+}
+el('preview').onclick=update;
+const versions={};
+function save(version){
+  const model=update();
+  if(!model) return;
+  if(!model.group||!model.problem||!model.evidence||!model.solution){
+    status('studioStatus','Nhập mã nhóm và đủ ba nhãn trước khi lưu phiên bản.',true);return;
+  }
+  if(version==='V2'&&!versions.V1){status('studioStatus','Lưu bản V1 trước khi lưu V2.',true);return;}
+  if(versions[version]){
+    status('studioStatus',`Bản ${version} đầu tiên đã được lưu. Giữ bản đó để đối chiếu.`);return;
+  }
+  versions[version]=model;
+  status('studioStatus',`Đã ghi bản ${version} trên thiết bị. In hoặc chụp ngay nếu cần lưu hình poster của phiên bản này.`);
+}
+el('saveV1').onclick=()=>save('V1');
+el('saveV2').onclick=()=>save('V2');
+const tasks=['Name the school problem','Point to the source for one claim','State the action, who and when'];
+function createTest(version) {
+  const box=make('fieldset');
+  box.lang='en';
+  box.append(make('legend',version));
+  const visitor=make('input'), time=make('input');
+  time.type='time';
+  field(box,'Visitor group code',visitor);field(box,'Test time',time);
+  const story=tasks.map(task=>{
+    const answer=make('input'), mark=selectChoices([0,1]);
+    field(box,task,answer);field(box,'Result · 0 or 1',mark);
+    return {answer,mark};
+  });
+  const comment=make('textarea'), clarity=selectChoices([1,2,3,4]);
+  field(box,'What did you learn? What could be clearer?',comment);field(box,'Clarity · 1 to 4',clarity);
+  el('testForms').append(box);
+  return {version,visitor,time,story,comment,clarity};
+}
+const tests=['V1','V2'].map(createTest);
+function testData(){
+  return tests.map(test=>{
+    const scores=test.story.map(t=>t.mark.value);
+    return {version:test.version,visitor:test.visitor.value,time:test.time.value,
+      results:test.story.map((t,i)=>({task:tasks[i],answer:t.answer.value,score:scores[i]})),
+      sum:scores.includes('')?null:scores.reduce((a,b)=>a+Number(b),0),comment:test.comment.value,clarity:test.clarity.value};
+  });
+}
+el('scoreTest').onclick=()=>status('testStatus',testData().map(t=>`${t.version} · ${t.sum===null?'Chưa đủ kết quả':t.sum+'/3'}`).join(' | '));
+function download(){
+  const selected=document.querySelector('input[name=priority]:checked');
+  const data={
+    session:val('session'), group:val('group'),
+    listeningSubmissions:submitted.map((a,i)=>({activity:i===0?'02':'04',answers:a?.map(v=>'ABC'[v])??[]})),
+    survey:{choice:selected?options[Number(selected.value)]:'', counts:getCounts(), finding:val('surveyLine'), limit:val('surveyLimit')},
+    design:{problem:val('problem'),evidence:val('designEvidence'),options:[val('optionA'),val('optionB')],
+      ratings:ratingFields.map(fields=>fields.map(f=>f.value)), decision:val('decision'),storyboard:val('storyboard')},
+    versions, currentLabels:readExhibit(), tests:testData(),
+    revision:val('revision'),comparison:val('comparison'),
+    individualWriting:{studentCode:val('student'),before:val('individualBefore'),after:val('individualAfter')},
+    exitTicket:{groupCode:val('group'),studentCode:val('student'),action:val('action'),surveyMeaning:val('meaning')}
+  };
+  const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'text/plain;charset=utf-8'}));
+  const a=make('a');
+  a.href=url;a.download='Museum_'+(data.group.replace(/[^a-z0-9_-]/gi,'')||'nhom')+'.txt';
+  a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+el('download').onclick=download;
+el('print').onclick=()=>{update();window.print();};
+</script>
+</html>

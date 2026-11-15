@@ -2,14 +2,14 @@
 // This module does not invent learner data or replace the locked curriculum sequence.
 export const VOICEOVER_SCRIPTS=Object.freeze({
  'climate-detective':'Welcome to our Climate Action Museum. Look at these everyday school choices. Which action could best reduce our environmental impact? Choose one idea and explain why it is feasible.',
- 'language-mini-lesson':'Good evidence needs a source. We use according to when naming a source, because when giving a reason, and therefore when describing a result. Now answer the three language questions in your group.',
- 'classroom-survey':'Each group must choose exactly one action it will prioritise. We are measuring group priorities, not individual habits. After voting, we will report the number of groups and the limits of our class survey.',
- 'problem-evidence-solution':'You are now climate detectives and designers. Identify one school issue, find relevant evidence, and propose a feasible solution. Write in English and explain how reliable your source is.',
+ 'language-mini-lesson':'Good evidence needs a source. We use according to when naming a source, because when giving a reason, and therefore when describing a result. After the NASA clip, answer three questions in your group and report one cause and result.',
+ 'classroom-survey':'Each group must choose exactly one action it will prioritise. We are measuring group priorities, not individual habits. After the chart is frozen, report the date, count, number of groups, percentage and one limitation.',
+ 'problem-evidence-solution':'You are now climate detectives and designers. After the NASA clip and three questions, use English to connect the school problem with a named source and a realistic action.',
  'storyboard':'Plan three museum exhibits: The Problem, The Evidence, and Our Solution. Sketch what a visitor will see, write a draft English caption, and check that each claim has support.',
  'recap':'Welcome back. What makes an exhibit trustworthy? We need clear English, authentic evidence, an honest limitation, and a practical recommendation. Reopen your group draft and prepare to create.',
- 'artwork-studio':'Now build your museum. Upload your own poster or a properly licensed image. Add alternative text, a source, and a clear English label. Visit the 3D gallery to check its readability.',
- 'peer-gallery-walk':'Visit another group’s private exhibition. What did you learn? Which message needs clarification? Give constructive feedback in English and rate its clarity. Be specific and respectful.',
- 'revise':'Read the feedback your group received. Make one real change to your poster or caption. Record what changed, the feedback that led to it, and why the revision improves communication.',
+ 'artwork-studio':'Now build your museum. Add a visual, credit its creator and method, and provide alternative text. Write the three English labels, pin the frozen chart to The Evidence and save version one for a visitor.',
+ 'peer-gallery-walk':'Visit another group’s private exhibition. What did you learn? Which message needs clarification? Give specific feedback in English and rate clarity from one to four. Be specific and respectful.',
+ 'revise':'Read the feedback your group received. Make one real change to your poster or caption. Keep the two versions, state what changed and why, and report what the visitor could understand if you tested again.',
  'present':'Present your museum in English. Explain one problem, cite one authentic figure with its sample size and limitation, and recommend a feasible action. Invite a question from another group.',
  'exit-ticket':'Before leaving, choose one environmental action you can take. Explain your reason in English. Submit your exit ticket and check that your museum draft is saved and ready for review.'
 });
@@ -33,14 +33,18 @@ export const MUSEUM_CURRICULUM_VIDEOS=Object.freeze({
  1:Object.freeze({
   id:'SN5-DnOHQmE',title:'What Is the Greenhouse Effect?',channel:'NASA Space Place',
   source:'https://www.youtube.com/watch?v=SN5-DnOHQmE',
+  officialSource:'https://science.nasa.gov/kids/videos/video-what-is-the-greenhouse-effect/',
+  transcript:'https://science.nasa.gov/kids/videos/video-what-is-the-greenhouse-effect/',
   prompt:'Watch a selected segment. Name one greenhouse gas and explain its effect using because / therefore.',
   timing:'Play a short teacher-selected excerpt during Activity 2, not the entire video if time is limited.'
  }),
  3:Object.freeze({
   id:'TUinL0C_zgE',title:'Is Climate Change the Same as Global Warming? — We Asked a NASA Expert',channel:'NASA',
   source:'https://www.youtube.com/watch?v=TUinL0C_zgE',
+  officialSource:'https://www.nasa.gov/earth/climate-change/is-climate-change-the-same-as-global-warming-we-asked-a-nasa-scientist-episode-46/',
+  transcript:'https://svs.gsfc.nasa.gov/vis/a010000/a014400/a014407/script_34847_01.html',
   prompt:'Distinguish a scientific explanation from the group-priority class survey. Cite NASA accurately.',
-  timing:'Show a brief teacher-selected excerpt at the start of Activity 4 for source verification.'
+  timing:'Show the complete clip (about 1 minute 14 seconds), or use 0:10–1:06 if time is limited.'
  })
 });
 export const curriculumMediaBoard=()=>Object.fromEntries(Object.entries(MUSEUM_CURRICULUM_VIDEOS).map(([index,v])=>[
@@ -121,4 +125,9 @@ export function stageMediaTools(session){
   voice:open&&media.voiceEnabled===true
  };
 }
-export function teacherVoiceover(stage){return VOICEOVER_SCRIPTS[stage?.id]||[stage?.title,stage?.question,stage?.sentence].filter(Boolean).join('. ');}
+export function teacherVoiceover(stage){
+ if(stage?.id==='language-mini-lesson'&&stage.questions?.[0]?.q==='Which phrase introduces evidence?'){
+  return 'Practise according to, therefore and we recommend. Then answer the three language questions in your group.';
+ }
+ return VOICEOVER_SCRIPTS[stage?.id]||[stage?.title,stage?.question,stage?.sentence].filter(Boolean).join('. ');
+}

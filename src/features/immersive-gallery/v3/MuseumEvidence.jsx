@@ -28,7 +28,7 @@ export default function MuseumEvidence({data,currentUser,language='vi'}){
   {label:'Section 1: Teacher and school context',done:completeProfile,desc:'Check name, birth year, English subject, institution and contact details'},
   {label:'Section 2: Two-period teaching plan',done:Boolean(fields.objectives&&fields.foundation&&selected),desc:'Objectives, learning outcomes and STEM/STEAM sequence'},
   {label:'Digital learning resources',done:true,desc:'Four sourced language cards and a printable guide are included in the ZIP'},
-  {label:'Approved student work',done:approved.length>0,desc:approved.length+' approved entries in authentic records'},
+  {label:'Approved student work',done:approved.length>0,desc:approved.length+' approved or published records in the app'},
   {label:'Rubric scored',done:hasScore,desc:hasScore?'Saved rubric score available':'No scored rubric from an authentic submission yet'},
   {label:'Authentic classroom evidence',done:false,desc:'Add permitted classroom photos, videos, worksheets and revision evidence'}
  ];
