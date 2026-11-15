@@ -836,8 +836,8 @@ test('student can send a real raster poster through the private artwork API work
  expect(listRequests).toBe(1);
  const source=studio.getByPlaceholder('Actual creator, class group, teacher or source URL');
  const permission=studio.getByRole('textbox',{name:/Usage permission|Quyền sử dụng/});
- const expectedSource='Created with AI assistance under the teacher’s guidance.';
- const expectedPermission='For classroom use and display in the school’s project exhibition.';
+ const expectedSource='AI-assisted poster created from the group’s English exhibit text under the teacher’s guidance.';
+ const expectedPermission='Classroom and school project exhibition use, subject to the image tool’s terms and the school’s permissions.';
  await expect(source).toHaveValue(expectedSource);
  await expect(permission).toHaveValue(expectedPermission);
  await source.fill('Illustrated by the class group.');
@@ -1106,6 +1106,11 @@ test('Student Creator saves the uploaded artwork and credits without the typing 
  const app=page.getByTestId('museum-student-wizard');
  await app.getByRole('button',{name:'Page 3',exact:true}).click();
  await app.getByRole('button',{name:'Open artwork & media studio'}).click();
+ const studio=app.getByTestId('museum-artwork-studio');
+ await expect(studio.locator('summary')).toHaveCount(3);
+ await studio.locator('summary').first().click();
+ await studio.getByRole('textbox',{name:'English prompt used'}).fill('Show a classroom just after lunch.');
+ await studio.getByRole('textbox',{name:'What did your group check or change?'}).fill('We removed a made-up number.');
  const image=await page.evaluate(()=>{
   const canvas=document.createElement('canvas');
   canvas.width=canvas.height=128;
@@ -1116,7 +1121,9 @@ test('Student Creator saves the uploaded artwork and credits without the typing 
  });
  await expect.poll(()=>saved?.body.draft.artworks.issue).toBe(assetId);
  expect(saved.body.expectedVersion).toBe(3);
- expect(saved.body.draft.artMeta.issue.source).toContain('Created with AI assistance');
+ expect(saved.body.draft.artMeta.issue.source).toContain('AI-assisted poster');
+ expect(saved.body.draft.artMeta.issue.posterPrompt).toBe('Show a classroom just after lunch.');
+ expect(saved.body.draft.artMeta.issue.posterCheck).toBe('We removed a made-up number.');
  expect(saved.delay).toBeLessThan(1200);
  await expect(app.locator('.bml-save-indicator')).toContainText('Saved');
 });
