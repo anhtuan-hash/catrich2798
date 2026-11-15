@@ -274,8 +274,31 @@ export default async function museumLive(req,res){
    const micro=session&&MICRO_CHALLENGES[session.stage_index]?await query(admin.from('museum_live_micro_responses')
     .select('choice,reason,submitted_at').eq('session_id',session.id)
     .eq('group_id',ctx.group.id).eq('stage_index',session.stage_index).maybeSingle()):null;
+   const saveable=session&&session.stage_index!==7;
+   const saved=session?await query(admin.from(saveable?'museum_live_responses':'museum_peer_reviews')
+    .select(saveable?'value':'session_id').eq('session_id',session.id).eq(saveable?'group_id':'from_group',ctx.group.id)
+    .match(saveable?{stage_index:session.stage_index}:{}).maybeSingle()):null;
    return send(res,200,{session:stateOf(session),micro,groupLabel:ctx.group.label,
-    submitted:session?Boolean(await query(admin.from(session.stage_index===7?'museum_peer_reviews':'museum_live_responses').select('session_id').eq('session_id',session.id).eq(session.stage_index===7?'from_group':'group_id',ctx.group.id).match(session.stage_index===7?{}:{stage_index:session.stage_index}).maybeSingle())):false,assignmentTitle:ctx.assignment.title,survey:await surveyFor(admin,session?.id),feedback:await feedbackFor(admin,session?.id,ctx.group.id)});
+    submitted:Boolean(saved),response:saveable?saved?.value??null:null,assignmentTitle:ctx.assignment.title,survey:await surveyFor(admin,session?.id),feedback:await feedbackFor(admin,session?.id,ctx.group.id)});
+  }
+  if(op==='review-activity'){
+   requireMethod(req,'GET');
+   const raw=String(req.query?.stageIndex??'');
+   if(!/^(?:[0-9]|10)$/.test(raw))throw fail(400,'Hoạt động không hợp lệ.');
+   if(!session)return send(res,200,{response:null,micro:null,peer:[]});
+   const index=Number(raw);
+   const [response,micro,paired,rooms]=await Promise.all([
+    query(admin.from('museum_live_responses').select('value')
+     .eq('session_id',session.id).eq('group_id',ctx.group.id).eq('stage_index',index).maybeSingle()),
+    MICRO_CHALLENGES[index]?query(admin.from('museum_live_micro_responses').select('choice,reason')
+     .eq('session_id',session.id).eq('group_id',ctx.group.id).eq('stage_index',index).maybeSingle()):null,
+    index===7?query(admin.from('museum_peer_reviews').select('learned,clarify,rating')
+     .eq('session_id',session.id).eq('from_group',ctx.group.id).maybeSingle()):null,
+    index===7?query(admin.from('museum_peer_live_rooms').select('id').eq('session_id',session.id)):[],
+   ]);
+   const livePeer=rooms.length?await query(admin.from('museum_peer_live_feedback').select('learned,clarify,rating')
+    .in('room_id',rooms.map(room=>room.id)).eq('from_group_id',ctx.group.id).limit(30)):[];
+   return send(res,200,{response:response?.value??null,micro,peer:livePeer.length?livePeer:paired?[paired]:[]});
   }
   if(op==='video-search'){
    requireMethod(req,'GET');
