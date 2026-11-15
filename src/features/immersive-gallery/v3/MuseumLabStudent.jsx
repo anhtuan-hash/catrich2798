@@ -128,6 +128,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  const [preview,setPreview]=useState(false),[conflict,setConflict]=useState(false);
  const [liveInfo,setLiveInfo]=useState(null),[liveReady,setLiveReady]=useState(false),[artAssets,setArtAssets]=useState([]);
  const [history,setHistory]=useState([]);
+ const [peerDrafts,setPeerDrafts]=useState({});
  const [reviewIndex,setReviewIndex]=useState(null);
  const [pageChoice,setPageChoice]=useState(null),[historyOpen,setHistoryOpen]=useState(false);
  const [projectPreview,setProjectPreview]=useState(false),[studentTool,setStudentTool]=useState(null);
@@ -252,7 +253,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  const logout=async()=>{setBusy(true);
   try{await guestRequest('logout','POST',{},csrfRef.current);}catch{}
   csrfRef.current='';setSession(null);documentRef.current=emptyStudio();setStudio(emptyStudio());
-  setDirty(false);dirtyRef.current=false;setBusy(false);setPageChoice(null);setLiveInfo(null);setReviewIndex(null);setLiveReady(false);setNotice('');setError('');
+  setDirty(false);dirtyRef.current=false;setBusy(false);setPageChoice(null);setPeerDrafts({});setLiveInfo(null);setReviewIndex(null);setLiveReady(false);setNotice('');setError('');
  };
  const submit=async()=>{
   setError('');setNotice('');setBusy(true);
@@ -328,8 +329,8 @@ export default function MuseumLabStudent({language:languageProp='en'}){
        if(index===6)openArtworkSources();
        focusProject();
       }}
-      peerActivity={stageIndex===7?<MuseumLivePeerFeedback csrf={session.csrf} liveInfo={liveInfo}
-       locked={locked||conflict} saveState={saveState}/>:null}/>
+      peerActivity={displayedActivity===7&&liveReady?<MuseumLivePeerFeedback csrf={session.csrf} liveInfo={liveInfo}
+       locked={locked||conflict} saveState={saveState} drafts={peerDrafts} setDrafts={setPeerDrafts}/>:null}/>
    </div>
     </section>
     <section ref={projectPanelRef} tabIndex={-1} data-activity={displayedActivity+1} className="bml-student-primary bml-student-project-panel" aria-labelledby="bml-student-project-title">
@@ -471,7 +472,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
       ?T(language,'Đọc phản hồi, sửa một hiện vật và ghi lý do thay đổi.','Read the feedback, revise one exhibit, and explain your change.')
       :T(language,'Xem góp ý và ghi điều người xem đã hiểu hoặc còn thắc mắc.','Review visitor feedback and record what visitors understood or want clarified.')}</p>
       {displayedActivity===8&&stageIndex===8?<MuseumLivePeerFeedback csrf={session.csrf} liveInfo={liveInfo} locked={locked||conflict}
-       saveState={saveState} onUseFeedback={r=>edit(d=>({...d,learning:{...d.learning,
+       saveState={saveState} drafts={peerDrafts} setDrafts={setPeerDrafts} onUseFeedback={r=>edit(d=>({...d,learning:{...d.learning,
         feedback:'From '+englishSystemGroupLabel(r.fromGroup)+' on '+(EXHIBIT_FIELDS.find(x=>x.key===r.targetExhibit)?.label||'the exhibition')+': '+r.learned+' | Suggested improvement: '+r.clarify,
         tested:true
        }}))}/>:null}

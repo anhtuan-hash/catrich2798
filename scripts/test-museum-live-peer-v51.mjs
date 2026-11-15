@@ -42,7 +42,7 @@ test('the live peer room remains behind a scoped Creator Pass and CSRF guard',()
  assert.match(peer,/ctx\.assignment\.id/);
  assert.match(peer,/\.eq\('session_id',session\.id\)/);
  assert.match(peer,/checkpointGallery\(admin/);
- assert.match(peer,/validatePeer\(body\.value\)/);
+ assert.match(peer,/validatePeer\(entry\?\.value\)/);
  assert.match(peer,/alreadySubmitted/);
  assert.doesNotMatch(peer,/service_role|process\.env|publicUrl|anonKey/);
 });
@@ -66,10 +66,10 @@ test('Test step supports open, close, visit, review, feedback reuse, and an actu
  assert.match(studio,/step===3/);
  assert.match(studio,/MuseumLivePeerFeedback csrf=\{session\.csrf\}/);
  assert.match(studio,/test(ed)?:true/);
- for(const action of ['peer-rooms','peer-room-toggle','peer-room-view','peer-room-review'])
+ for(const action of ['peer-rooms','peer-room-toggle','peer-room-view','peer-room-review-batch'])
   assert.ok(ui.includes("'"+action+"'"),'Missing operation '+action);
  assert.match(ui,/One response per group per exhibition/);
- assert.match(ui,/Use this as authentic peer evidence/);
+ assert.match(ui,/Use this feedback in our project/);
  assert.match(ui,/Clarity \(1–4\)/);
  assert.match(ui,/role="dialog"/);
 });

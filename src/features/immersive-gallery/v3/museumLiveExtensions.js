@@ -8,7 +8,7 @@ export const VOICEOVER_SCRIPTS=Object.freeze({
  'storyboard':'Plan three museum exhibits: The Problem, The Evidence, and Our Solution. Sketch what a visitor will see, write a draft English caption, and check that each claim has support.',
  'recap':'Welcome back. What makes an exhibit trustworthy? We need clear English, authentic evidence, an honest limitation, and a practical recommendation. Reopen your group draft and prepare to create.',
  'artwork-studio':'Now build your museum. Add a visual, credit its creator and method, and provide alternative text. Write the three English labels, pin the frozen chart to The Evidence and save version one for a visitor.',
- 'peer-gallery-walk':'Visit another group’s private exhibition. What did you learn? Which message needs clarification? Give specific feedback in English and rate clarity from one to four. Be specific and respectful.',
+ 'peer-gallery-walk':'Visit the other groups’ private exhibitions. For each one, explain what you learned, name one point to clarify and rate clarity from one to four. Save each draft and send the reviews together.',
  'revise':'Read the feedback your group received. Make one real change to your poster or caption. Keep the two versions, state what changed and why, and report what the visitor could understand if you tested again.',
  'present':'Present your museum in English. Explain one problem, cite one authentic figure with its sample size and limitation, and recommend a feasible action. Invite a question from another group.',
  'exit-ticket':'Before leaving, choose one environmental action you can take. Explain your reason in English. Submit your exit ticket and check that your museum draft is saved and ready for review.'

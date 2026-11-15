@@ -65,11 +65,11 @@ export const MUSEUM_ACTIVITY_SLIDES = {
   'peer-gallery-walk': {
     question: 'What did you learn? What could make this exhibit clearer?',
     cards: [
-      ['Visit', 'Open the next group’s private exhibit. Each group gives and receives one response.'],
-      ['Respond', 'Write what you understood and one point the group should clarify.'],
-      ['Rate clarity', 'Choose 1–4 and give a specific reason in English.'],
+      ['Visit', 'Visit each other group’s private exhibit.'],
+      ['Respond', 'Save a separate draft explaining what you learned and what could be clearer.'],
+      ['Rate and send', 'Rate clarity from 1 to 4 for each exhibit, then send all reviews together.'],
     ],
-    output: 'One real peer response per group, plus a rating from 1 to 4.',
+    output: 'One submission containing a separate review and clarity rating for each other group.',
   },
   revise: {
     question: 'Which change would help the visitor understand the exhibit?',
