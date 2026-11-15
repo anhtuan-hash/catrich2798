@@ -672,3 +672,24 @@
   margin:0 auto;width:100%;max-width:600px;
  }
 }
+
+/* Keep the teacher’s classroom tasks readable in the student workbench. */
+.bml .bml-student-p2-task { display:grid; gap:10px; padding:12px 14px; }
+.bml .bml-student-p2-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,155px),1fr)); gap:8px; }
+.bml .bml-student-p2-cards article {
+ min-width:0; padding:10px; background:#f3f6f2; border:1px solid #d7e0d8; border-inline-start:3px solid #397a68; border-radius:4px;
+}
+.bml .bml-student-p2-cards p, .bml .bml-student-p2-output, .bml .bml-student-p2-frame,
+.bml .bml-student-p2-question { margin:0; line-height:1.4; }
+.bml .bml-student-p2-cards p { margin-top:4px; }
+.bml .bml-student-p2-question { color:#183853; font-weight:750; }
+.bml .bml-student-p2-frame { color:#245742; font-weight:700; }
+.bml .bml-student-p2-task details { padding:8px 10px; border:1px solid #d7e0d8; }
+.bml .bml-student-p2-task summary { cursor:pointer; font-weight:700; }
+.bml .bml-student-p2-actions { display:flex; flex-wrap:wrap; gap:6px; }
+.bml .bml-student-p2-actions button[aria-pressed="true"] { background:#234955; color:#fff; }
+.bml .bml-student-p2-nav { display:flex; align-items:center; gap:8px; padding:8px 14px; }
+.bml .bml-student-p2-nav select { flex:1; min-width:0; padding:8px; }
+.bml .bml-student-p2-video, .bml .bml-student-p2-review > .bml-student-p2-actions { padding:8px 14px; }
+.bml .bml-student-p2-review { min-height:0; }
+.bml-student-editorial .bml-student-pane > .bml-live-student { overflow-y:auto; overscroll-behavior:contain; }

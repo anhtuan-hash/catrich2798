@@ -163,7 +163,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  const documentRef=useRef(studio),versionRef=useRef(0),csrfRef=useRef(''),savingRef=useRef(false),dirtyRef=useRef(false);
  const dragStoryboard=useRef(null);
  const groupLocked=session&&(session.readOnly===true||!['issued','editing','changes_requested'].includes(session.groupState));
- const liveRunning=liveInfo&&liveInfo.status!=='not_started';
+ const liveRunning=Boolean(liveInfo&&liveInfo.status!=='not_started');
  const stageIndex=liveInfo?.stageIndex??-1;
  // Group work is independent of the gated Teacher Live response.
  const maxStudentStep=4;
@@ -171,10 +171,10 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  // Group production defaults to the workbench; voting, quizzes and reflection use Live.
  // Keep both panes mounted to preserve unsent answers when switching views.
  useEffect(()=>{
+  if(session?.readOnly){setStudentView('live');return;}
   if(!liveRunning){setStudentView('studio');return;}
-  const handsOn=['group','recap','artwork','present'].includes(liveInfo?.stage?.kind);
-  setStudentView(handsOn?'studio':'live');
- },[stageIndex,liveRunning]);
+  setStudentView('live');
+ },[stageIndex,liveRunning,session?.readOnly]);
  const locked=groupLocked||!stageEditAllowed;
  const studioPages=step===1?2:step===2?3:1;
  // Keep the 16:9 frame stationary; only the active step's fields scroll.
@@ -186,7 +186,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  useEffect(()=>{
   if(!liveRunning)return;
   if(stageIndex===3||stageIndex===4)setStep(1);
-  else if(stageIndex===6||stageIndex===8)setStep(2);
+  else if(stageIndex===6)setStep(2);
   else if(stageIndex>=7&&stageIndex<=9)setStep(3);
   else if(stageIndex===10)setStep(4);
  },[stageIndex,liveRunning]);
@@ -269,7 +269,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  const openSubmitReview=()=>{setStudentView('studio');setStep(4);setArtworkOpen(false);setPreview(false);setError('');};
  const openArtworkSources=()=>{setStudentView('studio');setArtworkOpen(true);setStep(2);setStudioSubstep(2);setPreview(false);setError('');};
  const studentMedia=stageMediaTools(liveInfo);
- const narrationCue=studentNarrationCue({liveInfo,step,ready:liveReady});
+ const narrationCue=session.readOnly?null:studentNarrationCue({liveInfo,step,ready:liveReady});
  return <main className="bml bml-student-shell bml-student-canvas16 bml-student-editorial" data-testid="museum-student-wizard" lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
   <MuseumCompetitionRibbon/>
   <header className="bml-student-bar"><div className="bml-brand"><span className="bml-brand-icon"><Landmark size={23}/></span><span><strong>Pétrus Ký School System</strong><small>{T(language,'Học sinh sáng tạo','Student Creator')}</small></span></div>
@@ -286,7 +286,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
      <strong>{T(language,'Sổ tay triển lãm','Your museum workshop')}</strong>
      <span className="bml-student-focus-stage" role="status">
       <span className={liveRunning&&liveInfo?.stageOpen?'bml-focus-dot is-open':'bml-focus-dot'}/>
-      {liveInfo?.status==='ended'?T(language,'Buổi học đã kết thúc · Dự án vẫn mở','Lesson completed · Museum project remains open'):liveRunning?T(language,'Hoạt động','Activity')+' '+(stageIndex+1)+'/11 · '+(liveInfo?.stage?.title||'Teacher Live'):
+      {session.readOnly?T(language,'Bài đã hoàn thành · Chỉ xem','Completed lesson · View only'):liveInfo?.status==='ended'?T(language,'Buổi học đã kết thúc','Lesson completed'):liveRunning?T(language,'Hoạt động','Activity')+' '+(stageIndex+1)+'/11 · '+(liveInfo?.stage?.title||'Teacher Live'):
        T(language,'Đang chờ giáo viên bắt đầu · Có thể xem sản phẩm nhóm','Waiting for teacher · Group workspace available')}
      </span>
     </div>
@@ -300,14 +300,14 @@ export default function MuseumLabStudent({language:languageProp='en'}){
     <aside className="bml-student-toolrail" aria-label={T(language,'Bảng công cụ học tập','Learning tools')}>
      <div className="bml-student-paper-note">
       <span className="bml-student-note-kicker"><BookOpen size={16}/> {T(language,'BÀI HÔM NAY','TODAY’S LESSON')}</span>
-      <strong>{liveInfo?.stage?.title||T(language,'Sẵn sàng học tập','Ready to explore')}</strong>
-      <p>{liveInfo?.stage?.sentence||T(language,'Các hoạt động sẽ đồng bộ theo giáo viên.','Follow the lesson, share your thinking, and build your exhibit.')}</p>
+      <strong>{session.readOnly?T(language,'Xem lại bài học','Review the lesson'):liveInfo?.stage?.title||T(language,'Sẵn sàng học tập','Ready to explore')}</strong>
+      <p>{session.readOnly?T(language,'Xem 11 hoạt động và sản phẩm nhóm.','Review all 11 activities and your group project.'):liveInfo?.stage?.sentence||T(language,'Các hoạt động sẽ đồng bộ theo giáo viên.','Follow the lesson, share your thinking, and build your exhibit.')}</p>
       <small>{session?.readOnly?T(language,'Bài đã khóa · Chỉ xem','Completed lesson · View only'):liveRunning?T(language,'Tiết','Period')+' '+(liveInfo.stage?.period||1)+'/2 · '+(stageIndex+1)+'/11':T(language,'Đang chờ buổi dạy','Waiting for class')}</small>
      </div>
     <div className="bml-student-view-tabs" role="group" aria-label={T(language,'Chọn khu vực học tập','Choose learning area')}>
      <button data-testid="student-tab-live" type="button" aria-pressed={studentView==='live'}
       className={studentView==='live'?'is-active':''} onClick={()=>setStudentView('live')}>
-      <BookOpen size={20}/><span><strong>{T(language,'Hoạt động hiện tại','Current activity')}</strong>
+      <BookOpen size={20}/><span><strong>{session.readOnly?T(language,'Xem lại 11 hoạt động','Review 11 activities'):T(language,'Hoạt động hiện tại','Current activity')}</strong>
        <small>{session?.readOnly?T(language,'Bài đã khóa · Chỉ xem','Completed lesson · View only'):liveInfo?.status==='ended'?T(language,'Đã kết thúc · Xem Exit Ticket','Lesson completed · View Exit Ticket'):liveRunning?(liveInfo?.stageOpen?T(language,'Đang mở · Tham gia ngay','Open · Join now'):T(language,'Đang chờ giáo viên','Waiting for teacher')):
         T(language,'Theo nhịp bài dạy','Follow the lesson')}</small></span>
      </button>
@@ -324,13 +324,13 @@ export default function MuseumLabStudent({language:languageProp='en'}){
       <button type="button" onClick={()=>showTool('research')}><FileText size={18}/>{T(language,'Kho tư liệu','Research library')}</button>
       {studentMedia.voice?<button type="button" onClick={()=>showTool('voice')}><Lightbulb size={18}/>{T(language,'Giọng đọc Anh Mỹ','US voiceover')}</button>:null}
       {studentMedia.video?<button type="button" onClick={()=>showTool('video')}><Eye size={18}/>{T(language,'Video học tập','Learning videos')}</button>:null}
-      <button type="button" onClick={()=>showTool('micro')}><ClipboardCheck size={18}/>{T(language,'Câu hỏi bổ sung','Thinking challenge')}</button>
+      {!session.readOnly?<button type="button" onClick={()=>showTool('micro')}><ClipboardCheck size={18}/>{T(language,'Câu hỏi bổ sung','Thinking challenge')}</button>:null}
      </div>
      <div className="bml-student-rail-footer"><ShieldCheck size={17}/>{T(language,'Bài của nhóm được lưu riêng tư.','Your group work stays private.')}</div>
     </aside>
     <section className="bml-student-primary" aria-label={T(language,'Không gian thực hiện nhiệm vụ','Task workspace')}>
    <div className="bml-student-pane" hidden={studentView!=='live'}>
-    <MuseumLiveStudent csrf={session.csrf} language={language} readOnly={session.readOnly===true} onState={next=>{setLiveInfo(next);setLiveReady(true);}} toolRequest={studentTool} compact/>
+    <MuseumLiveStudent csrf={session.csrf} language={language} readOnly={session.readOnly===true} onState={next=>{setLiveInfo(next);setLiveReady(true);}} toolRequest={studentTool} onOpenProject={()=>setStudentView('studio')} compact/>
    </div>
    <div className="bml-student-pane" hidden={studentView!=='studio'}>
    {session.feedback?<div className="bml-banner bml-warning-banner" role="status"><MessageSquare size={20}/><div><strong>{T(language,'Nhận xét để chỉnh sửa','Feedback for revision')}</strong>
@@ -519,7 +519,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
       <div className="bml-student-project-meter"><strong>{T(language,'Tiến độ nội dung','Draft content completion')}</strong><span>{progressPercent}%</span>
        <div role="progressbar" aria-label={T(language,'Tiến độ nội dung','Project completion')} aria-valuenow={progressPercent} aria-valuemin={0} aria-valuemax={100}><i style={{width:progressPercent+'%'}}/></div></div>
       <div className="bml-student-submit-summary" data-testid="museum-submit-summary" role="status">
-        <strong>{groupLocked?T(language,'Đã nộp / đang chờ duyệt','Submitted / under review'):readiness.missing.length?readiness.stateLabel:'Draft requirements complete'}</strong>
+        <strong>{session.groupState==='published'?T(language,'Đã công bố','Published'):session.groupState==='approved_locked'?T(language,'Đã duyệt','Approved'):session.readOnly?T(language,'Chỉ xem','View only'):groupLocked?T(language,'Đã nộp / đang chờ duyệt','Submitted / under review'):readiness.missing.length?readiness.stateLabel:'Draft requirements complete'}</strong>
         <small>{groupLocked?T(language,'Bài đã khóa, chờ giáo viên xem.','The project is locked pending review.'):
          readiness.missing.length?'Text progress is separate from final submission readiness.':
          'Ready for the teacher/server final checks.'}</small>
