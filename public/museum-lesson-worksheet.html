@@ -89,6 +89,11 @@
       <label class="stack">The Evidence <textarea maxlength="600" id="labelEvidence"></textarea></label>
       <label class="stack">Our Solution <textarea maxlength="600" id="labelSolution"></textarea></label>
     </div>
+    <details>
+      <summary>Viết prompt và kiểm duyệt poster</summary>
+      <p>Viết prompt từ nội dung tiếng Anh của nhóm, bỏ thông tin nhận diện. Kiểm tra ảnh theo bản gốc. Tự thêm các số liệu và nguồn đã kiểm chứng.</p>
+      <div id="posterPromptFields" class="grid" lang="en"></div>
+    </details>
     <div class="grid">
       <label class="stack">URL nguồn NASA <input id="source" type="url"></label>
       <label class="stack">Mã tác giả và ghi chú quyền ảnh <input id="rights"></label>
@@ -248,12 +253,26 @@ el('compare').onclick=()=>{
   status('compareStatus',`A ${sums[0]}/6 · B ${sums[1]}/6. Ghi lý do lựa chọn trước khi chế tạo.`);
 };
 function val(id){return el(id).value.trim();}
+const posterPromptFields=[
+  ['Problem','The Problem','Show one school situation and make the problem easy to notice.'],
+  ['Evidence','The Evidence','Illustrate a verified observation or result. Use only the facts supplied.'],
+  ['Solution','Our Solution','Show who carries out the action, where and under which conditions.'],
+].map(([key,title,help])=>{
+  const panel=make('fieldset');
+  panel.append(make('legend',title),make('p',help));
+  const prompt=make('textarea'), check=make('textarea');
+  prompt.maxLength=900;check.maxLength=400;
+  field(panel,'English prompt used',prompt);field(panel,'What did your group check or change?',check);
+  el('posterPromptFields').append(panel);
+  return {key,prompt,check};
+});
 function readExhibit(){
   const survey=getCounts();
   return {
     group:val('group'),time:new Date().toISOString(),problem:val('labelProblem'),
     evidence:val('labelEvidence'),solution:val('labelSolution'),source:val('source'),
     rights:val('rights'),alt:val('alt'),survey,
+    posterPrompts:Object.fromEntries(posterPromptFields.map(({key,prompt,check})=>[key,{prompt:prompt.value.trim(),check:check.value.trim()}])),
     posterName:el('poster').files[0]?.name??''
   };
 }

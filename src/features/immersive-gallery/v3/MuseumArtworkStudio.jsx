@@ -3,11 +3,12 @@ import {CheckCircle2,Image as ImageIcon,Info,Lock,RefreshCcw,Trash2,UploadCloud}
 import {artGuest,liveGuest,imageToArtworkUpload,validateArtworkFile} from './museumLiveApi.js';
 import {surveyChartPng} from './surveyChart.js';
 import {surveyCitation,normalizeArtMeta} from './learningEvidence.js';
+import {POSTER_PROMPTS} from './posterPrompts.js';
 import './museumLive.css';
 const LABELS=[['issue','The Problem'],['evidence','The Evidence'],['solution','Our Solution']];
 const UPLOADED_ARTWORK_CREDIT={
- source:'Created with AI assistance under the teacher’s guidance.',
- rights:'For classroom use and display in the school’s project exhibition.'
+ source:'AI-assisted poster created from the group’s English exhibit text under the teacher’s guidance.',
+ rights:'Classroom and school project exhibition use, subject to the image tool’s terms and the school’s permissions.'
 };
 const applyAssetChange=(assets,oldId,newAsset)=>[
  ...(assets||[]).filter(a=>a.id!==oldId&&a.id!==newAsset?.id),
@@ -69,10 +70,16 @@ export default function MuseumArtworkStudio({studio,update,saveArtwork=update,cs
   if(busyRef.current||disabled||!uploadEnabled)return;
   busyRef.current=true;
   setBusySlot('evidence');setError('');setNotice('');
-  try{const {snapshot}=await liveGuest('results');const png=surveyChartPng(snapshot);
+  try{const {snapshot}=await liveGuest('results');
+   if(studio.artworks?.evidence){
+    saveArtwork(d=>({...d,survey:snapshot}));
+    setNotice(t('Đã gắn số liệu khảo sát vào The Evidence bên cạnh poster.','The frozen survey is attached to The Evidence beside your poster.'));
+    return;
+   }
+   const png=surveyChartPng(snapshot);
    const replaceId=studio.artworks?.evidence||null;
    const out=await artGuest('upload','POST',{png,filename:'Class group priority survey.png',replaceId},csrf);
-   saveArtwork(d=>({...d,survey:snapshot,artworks:{...d.artworks,evidence:out.asset.id},artMeta:{...normalizeArtMeta(d.artMeta),evidence:{alt:'Bar chart showing '+snapshot.n+' group priority votes. '+snapshot.options.map(o=>o.label+': '+o.count).join('; '),source:surveyCitation(snapshot),rights:'Original class survey chart; group totals only.'}}}));
+   saveArtwork(d=>({...d,survey:snapshot,artworks:{...d.artworks,evidence:out.asset.id},artMeta:{...normalizeArtMeta(d.artMeta),evidence:{...normalizeArtMeta(d.artMeta).evidence,alt:'Bar chart showing '+snapshot.n+' group priority votes. '+snapshot.options.map(o=>o.label+': '+o.count).join('; '),source:surveyCitation(snapshot),rights:'Original class survey chart; group totals only.'}}}));
    updateAssets(replaceId,out.asset);
    setNotice(t('Đã gắn biểu đồ thật. Nhóm tự viết phần diễn giải bằng tiếng Anh.','Frozen chart attached. Write your own English interpretation.'));
   }catch(e){setError(e.message);}finally{busyRef.current=false;setBusySlot(null);}
@@ -88,7 +95,7 @@ export default function MuseumArtworkStudio({studio,update,saveArtwork=update,cs
  };
  return <section className="bml-surface bml-artwork-studio" data-testid="museum-artwork-studio">
   <div className="bml-section-head"><div><div className="bml-overline">ARTWORK STUDIO · 3D MUSEUM</div>
-   <h2>{t('Tải tranh, poster và hình ảnh thật','Upload real student artwork')}</h2>
+   <h2>{t('Chuẩn bị và tải poster','Prepare and upload your posters')}</h2>
    <p>{t('Ảnh JPG/PNG/WebP sẽ được xử lý thành PNG an toàn rồi tự treo trong bảo tàng 3D.','JPG, PNG and WebP images are sanitized to PNG and automatically framed on the museum walls.')}</p></div>
    <button type="button" className="bml-icon-btn" disabled={!!busySlot} onClick={refresh} title={t('Cập nhật ảnh','Refresh art')}><RefreshCcw size={20}/></button></div>
   {!uploadEnabled?<div className="bml-banner bml-warning-banner"><Lock size={20}/>
@@ -101,6 +108,18 @@ export default function MuseumArtworkStudio({studio,update,saveArtwork=update,cs
    const uploadStatus=preview?.uploading?t('Đang tải lên…','Uploading…'):t('Đang xử lý…','Processing…');
    return <div className="bml-artwork-slot" key={key}>
     <strong>{label}</strong>
+    <details className="bml-student-exhibit">
+     <summary>{t('Viết prompt và kiểm duyệt poster','Write and check your poster prompt')}</summary>
+     <p lang="en">{POSTER_PROMPTS[key]}</p>
+     <p>{t('Dùng nội dung của nhóm, bỏ thông tin nhận diện. Đối chiếu ảnh với bản gốc. Sau khi tải, chỉnh mục nguồn ảnh cho đúng người tạo và công cụ. Chỉ điền phần nhóm thực sự thực hiện.','Use your group’s text and omit personal information. Compare the image with the original. After uploading, edit the image source to credit the actual creator and tool. Record only the work your group did.')}</p>
+     {[
+      ['posterPrompt',900,t('Prompt tiếng Anh đã dùng','English prompt used')],
+      ['posterCheck',400,t('Nhóm đã kiểm tra hoặc chỉnh gì?','What did your group check or change?')]
+     ].map(([field,max,fieldLabel])=><label className="bml-full-field" key={field}>{fieldLabel}
+      <textarea lang="en" rows={3} maxLength={max} disabled={disabled} value={studio.artMeta?.[key]?.[field]||''}
+       onChange={e=>{const value=e.target.value;update(d=>({...d,artMeta:{...d.artMeta,[key]:{...d.artMeta?.[key],[field]:value}}}));}}/>
+     </label>)}
+    </details>
     {imageUrl?<img src={imageUrl} alt={label+' — '+filename} referrerPolicy="no-referrer" loading={preview?'eager':'lazy'}/>:
       <div className="bml-artwork-missing"><ImageIcon size={29}/>{t('Chưa tải tranh','No image yet')}</div>}
     <span className="bml-artwork-caption">{filename||t('Tranh do nhóm tự tạo hoặc được phép sử dụng','Your own art or licensed material')}</span>

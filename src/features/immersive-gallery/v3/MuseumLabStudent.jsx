@@ -447,7 +447,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
        <small className="bml-word-count">{wordCount(l[key])} words · Suggested: 25–40</small>
       </details>)}
     </>:null}
-    {step===2&&studioSubstep===2&&!groupLocked?<><p>{T(language,'Thêm sản phẩm trực quan và kiểm tra bản trình bày 2D/3D.','Add authentic artwork and preview the 2D/3D museum.')}</p>
+    {step===2&&studioSubstep===2&&!groupLocked?<><p>{T(language,'Viết prompt cho từng poster, kiểm tra ảnh rồi tải lên và xem trước bảo tàng.','Write a prompt for each poster, check the image, then upload and preview the museum.')}</p>
      <button className="bml-primary" type="button" onClick={()=>setArtworkOpen(true)}>
       <CloudUpload size={19}/>{T(language,'Mở xưởng hiện vật và hình ảnh','Open artwork & media studio')}</button>
      {artworkOpen?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label={T(language,'Xưởng hiện vật','Artwork studio')}>

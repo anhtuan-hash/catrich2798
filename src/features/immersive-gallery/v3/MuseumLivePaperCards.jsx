@@ -1,4 +1,5 @@
 import React from 'react';
+import {EVIDENCE_PROMPT_EXAMPLE} from './posterPrompts.js';
 import {ArrowRight,BookOpen,CheckCircle2,ClipboardCheck,FileText,Image as ImageIcon,Lightbulb,MessageCircle,PenTool,RefreshCcw,Search,Users} from 'lucide-react';
 
 // Presenter-only guidance; not a replacement for LIVE_STAGES nor a student response.
@@ -17,9 +18,9 @@ const PER_STAGE={
   ['Reliable evidence','Is the source real, with N and limitations?','source'],
   ['Useful action','Is the recommendation feasible at school?','check']],
  'artwork-studio':[
-  ['Make an original poster','Export or photograph work created by your group.','draw'],
-  ['Write the exhibit label','Use 25–40 English words and cite the source.','text'],
-  ['Place it in your 3D room','Check the visitor view and the 2D fallback.','idea']],
+  ['Write three prompts','Use the group’s text for The Problem, The Evidence and Our Solution. Assign one poster per writer.','draw'],
+  ['Check the images','Match each image to its English label. Check the source, any numbers and the proposed action.','check'],
+  ['Upload and save V1','Save the prompt and one check note for each AI-assisted poster. Credit the creator, add alt text and preview in 2D or 3D.','idea']],
  'peer-gallery-walk':[
   ['Visit another group','Explore their exhibition as a real visitor.','search'],
   ['Give evidence-based feedback','Say what you learned and what is unclear.','message'],
@@ -44,7 +45,8 @@ export function presenterSteps(stage){
 export default function MuseumLivePaperCards({stage}){
  const cards=presenterSteps(stage);
  if(!cards.length)return null;
- return <div className="bml-paper-activity-grid" data-testid="museum-live-activity-cards">
+ return <>
+ <div className="bml-paper-activity-grid" data-testid="museum-live-activity-cards">
   {cards.map(([title,description,icon],i)=>{
    const Icon=iconFor[icon]||CheckCircle2;
    return <article className="bml-paper-task" key={stage.id+'-'+i}>
@@ -52,5 +54,11 @@ export default function MuseumLivePaperCards({stage}){
     <h3>{title}</h3><p>{description}</p><ArrowRight size={16} className="bml-paper-task-arrow" aria-hidden="true"/>
    </article>;
   })}
- </div>;
+ </div>
+ {stage.id==='artwork-studio'?<details className="bml-paper-task">
+  <summary>Model an Evidence prompt</summary>
+  <p>{EVIDENCE_PROMPT_EXAMPLE}</p>
+  <p>Ask the class to flag a bottle count, invented source or emissions claim. Use the verified caption and chart when adding text and numbers.</p>
+ </details>:null}
+ </>;
 }
