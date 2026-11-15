@@ -52,7 +52,7 @@ export const LESSON_PLAN_NOTES = Object.freeze({
   },
   'peer-gallery-walk': {
     phase: 'Test V1',
-    task: 'Visit the next group in the private gallery. Write what you learned and what could be clearer. Give a clarity rating from 1 to 4. Each group gives and receives one response.',
+    task: 'Visit the other groups in the private gallery. Draft one review per group with a specific learning point, a suggestion and a clarity rating from 1 to 4. Send the reviews together once all drafts are ready.',
     extension: 'For a new run, use the first two minutes of the visitor turn for the three V1 questions. Record the visitor’s answers before discussing how to improve the exhibit.'
   },
   'revise': {

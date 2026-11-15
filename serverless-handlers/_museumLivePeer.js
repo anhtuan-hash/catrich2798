@@ -29,6 +29,8 @@ export async function handleLivePeer({op,req,res,admin,ctx,session}){
   const mine=rows.find(r=>r.owner_group_id===ctx.group.id);
   return send(res,200,{
    stageIndex:session.stage_index,
+   peerCount:Math.max(0,owners.length-1),
+   sent:reviews.filter(v=>v.from_group_id===ctx.group.id).length,
    rooms:rows.filter(r=>r.is_open&&r.owner_group_id!==ctx.group.id).map(r=>({
     id:r.id,ownerGroup:labels.get(r.owner_group_id)||'Class group',
     title:String(r.draft_snapshot?.title||'Our English Museum').slice(0,140),
@@ -84,26 +86,55 @@ export async function handleLivePeer({op,req,res,admin,ctx,session}){
   },owner.label);
   return send(res,200,{gallery,roomId:room.id});
  }
- if(op==='peer-room-review'){
+ if(op==='peer-room-review'||op==='peer-room-review-batch'){
   requireMethod(req,'POST');requirePeerStage(session);
-  const body=guardBody(req,2500),roomId=roomIdOf(body.roomId);
-  if(!validatePeer(body.value))throw fail(400,'Provide two English comments of 10–400 characters and a clarity score from 1–4.');
-  const room=await query(admin.from('museum_peer_live_rooms').select('id,owner_group_id,is_open,draft_snapshot')
-   .eq('id',roomId).eq('session_id',session.id).maybeSingle());
-  if(!room?.is_open||room.owner_group_id===ctx.group.id)throw fail(423,'This room is closed or belongs to your group.');
-  const focus=body.value.targetExhibit===undefined||body.value.targetExhibit===null||body.value.targetExhibit===''?
-   null:String(body.value.targetExhibit);
-  if(focus&&!allowedFocus.has(focus))throw fail(400,'Choose a valid exhibit to review.');
-  if(focus&&!(room.draft_snapshot?.rooms||[]).flatMap(r=>r.exhibits||[])
-    .some((ex,i)=>exhibitField(i,ex.title)===focus))
-   throw fail(400,'That exhibit is not part of this classroom gallery.');
-  const ins=await admin.from('museum_peer_live_feedback').insert({
-   room_id:roomId,from_group_id:ctx.group.id,
-   learned:body.value.learned.trim(),clarify:body.value.clarify.trim(),
-   rating:body.value.rating,target_exhibit:focus
+  const batch=op==='peer-room-review-batch';
+  const body=guardBody(req,batch?48000:2500);
+  const entries=batch?body.reviews:[{roomId:body.roomId,value:body.value}];
+  if(!Array.isArray(entries)||!entries.length||entries.length>11||entries.some(entry=>!validatePeer(entry?.value)))
+   throw fail(400,'Provide two English comments of 10–400 characters and a clarity score from 1–4 for each group.');
+  const ids=entries.map(entry=>roomIdOf(entry.roomId));
+  if(new Set(ids).size!==ids.length)throw fail(400,'Each group must have a separate review.');
+  const q=admin.from('museum_peer_live_rooms').select('id,owner_group_id,is_open,draft_snapshot').eq('session_id',session.id);
+  const rooms=batch?await query(q.in('id',ids)):[await query(q.eq('id',ids[0]).maybeSingle())].filter(Boolean);
+  const byId=new Map(rooms.map(room=>[room.id,room]));
+  const inserts=entries.map(({value},index)=>{
+   const room=byId.get(ids[index]);
+   if(!room?.is_open||room.owner_group_id===ctx.group.id)throw fail(423,'A room was closed or belongs to your group. Refresh before sending.');
+   const focus=value.targetExhibit==null||value.targetExhibit===''?null:String(value.targetExhibit);
+   if(focus&&!allowedFocus.has(focus))throw fail(400,'Choose a valid exhibit to review.');
+   if(focus&&!(room.draft_snapshot?.rooms||[]).flatMap(r=>r.exhibits||[])
+     .some((ex,i)=>exhibitField(i,ex.title)===focus))
+    throw fail(400,'That exhibit is not part of this classroom gallery.');
+   return {room_id:room.id,from_group_id:ctx.group.id,learned:value.learned.trim(),clarify:value.clarify.trim(),
+    rating:value.rating,target_exhibit:focus};
   });
-  if(ins.error&&ins.error.code!=='23505')throw fail(503,'Could not save this feedback.');
-  return send(res,ins.error?200:201,{ok:true,alreadySubmitted:ins.error?.code==='23505'});
+  if(batch){
+   const [groups,roomList]=await Promise.all([
+    query(admin.from('gcp_groups').select('id').eq('assignment_id',ctx.assignment.id)),
+    query(admin.from('museum_peer_live_rooms').select('id,owner_group_id').eq('session_id',session.id)),
+   ]);
+   const existing=roomList.length?await query(admin.from('museum_peer_live_feedback').select('room_id')
+    .eq('from_group_id',ctx.group.id).in('room_id',roomList.map(room=>room.id))):[];
+   const completedRooms=new Set([...ids,...existing.map(review=>review.room_id)]);
+   const coveredGroups=new Set(roomList.filter(room=>completedRooms.has(room.id)).map(room=>room.owner_group_id));
+   if(groups.some(group=>group.id!==ctx.group.id&&!coveredGroups.has(group.id)))
+    throw fail(409,'Prepare one review for each other group before sending.');
+  }
+  // One atomic insert. A retry may acknowledge existing rows only if all fields match.
+  const table=admin.from('museum_peer_live_feedback');
+  const ins=await table.insert(batch?inserts:inserts[0]);
+  if(ins.error?.code==='23505'){
+   if(!batch)return send(res,200,{ok:true,alreadySubmitted:true});
+   const saved=await query(admin.from('museum_peer_live_feedback')
+    .select('room_id,learned,clarify,rating,target_exhibit').eq('from_group_id',ctx.group.id).in('room_id',ids));
+   const same=inserts.every(review=>saved.some(row=>row.room_id===review.room_id&&row.learned===review.learned&&
+    row.clarify===review.clarify&&row.rating===review.rating&&row.target_exhibit===review.target_exhibit));
+   if(!same)throw fail(409,'A review was already sent. Refresh to see which drafts are still pending.');
+   return send(res,200,{ok:true,alreadySubmitted:true,count:inserts.length});
+  }
+  if(ins.error)throw fail(503,'Could not save this feedback. Refresh before retrying.');
+  return send(res,201,batch?{ok:true,count:inserts.length}:{ok:true,alreadySubmitted:false});
  }
  throw fail(404,'Unknown peer-feedback operation.');
 }

@@ -106,6 +106,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
   </button>:null}
   <MuseumStudentLessonReview language={language} activityIndex={reviewIndex}
     questionVersion={session?.questionVersion} survey={survey} loadSaved={Boolean(session)&&!readOnly} onOpenProject={onReviewProject}/>
+  {reviewIndex===7?peerActivity:null}
  </section>;
  if(readOnly||session?.status==='ended')return <section className="bml-live-student" data-testid="student-live-completed">
   <div className="bml-banner bml-success-banner" role="status"><CheckCircle2 size={18}/>

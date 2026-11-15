@@ -266,7 +266,7 @@ export default async function museumLive(req,res){
    return send(res,404,{error:'Không tìm thấy chức năng giáo viên.'});
   }
   // Guest: no registered student account. Cookie is one group capability.
-  const writing=['respond','need-help','micro-submit','peer-room-toggle','peer-room-review'].includes(op);
+  const writing=['respond','need-help','micro-submit','peer-room-toggle','peer-room-review','peer-room-review-batch'].includes(op);
   const ctx=await guestContext(req,admin,{write:writing});
   const session=await getSession(admin,ctx.assignment.id);
   if(op==='state'){
@@ -320,7 +320,7 @@ export default async function museumLive(req,res){
    if(!snapshot)throw fail(423,'Giáo viên chưa chốt khảo sát.');
    return send(res,200,{results:snapshot,snapshot,source:snapshot.source});
   }
-  if(['peer-rooms','peer-room-toggle','peer-room-view','peer-room-review'].includes(op))
+  if(['peer-rooms','peer-room-toggle','peer-room-view','peer-room-review','peer-room-review-batch'].includes(op))
    return handleLivePeer({op,req,res,admin,ctx,session});
   if(!session||session.status!=='active'||!session.stage_open)
    throw fail(423,'Chờ giáo viên mở hoạt động.');
