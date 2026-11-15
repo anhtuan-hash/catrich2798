@@ -467,6 +467,69 @@
 .bml .bml-locked-dossier dt{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8a5a12}
 .bml .bml-locked-dossier dd{margin:3px 0 0;white-space:pre-wrap;font-size:15px;line-height:1.45}
 .bml.bml-student-login-with-ribbon .bml-guest-overline b{letter-spacing:-.03em}
+
+/* One paper surface. Drop repeated status lines that are not the lesson. */
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-toolrail{
+ background:#fffdf9!important;
+ color:#152033!important;
+ border:1px solid #dedbd5!important;
+ border-top:4px solid #ca2431!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-paper-note{
+ background:transparent!important;
+ border-left:3px solid #f4ca4b!important;
+ padding:0 0 0 12px!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-view-tabs button,
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-view-tabs button.is-active{
+ color:#152033!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-view-tabs button.is-active{
+ background:#ca2431!important;
+ color:#fff!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-rail-label{
+ color:#8a5a12!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-rail-tools button{
+ color:#152033!important;
+ border-bottom:1px solid #dedbd5!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-rail-tools button svg{color:#ca2431!important}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-rail-tools button:hover{
+ background:#f6f1e8!important;
+ color:#152033!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-focus-kicker,
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-focus-stage,
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-paper-note small,
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-view-tabs small,
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-heading>.bml-overline,
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-heading>p,
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-heading small,
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-real-data-note,
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-submit-summary small,
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-rail-footer,
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-guide>p,
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-guide>.bml-guide-divider,
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-guide>strong,
+.bml.bml-student-canvas16.bml-student-editorial .bml-success-banner p{
+ display:none!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-focus-head>strong{
+ font-size:clamp(22px,1.6vw,28px)!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-heading h1{
+ font-size:clamp(22px,1.7vw,28px)!important;
+ font-style:normal!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-success-banner{
+ background:#f7f4ee!important;
+ border:1px solid #dedbd5!important;
+ border-left:4px solid #ca2431!important;
+ color:#152033!important;
+ padding:10px 12px!important;
+}
 @media (min-width:1000px){
  .bml.bml-student-canvas16.bml-student-editorial{
   display:grid!important;
