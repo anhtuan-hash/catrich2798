@@ -29,7 +29,7 @@ function OfflineApp({runtime,hash}){
     <button type="button" onClick={()=>setView('records')} aria-current={view==='records'?'page':undefined}>Evidence records</button>
    </nav>
    <a href="hoc-sinh/index.html">10 student workshops</a>
-   <details><summary>Archive details</summary><p>Captured from {snapshot.startedAt} to {snapshot.completedAt}. Viewing controls do not change this snapshot.</p>
+   <details><summary>Archive details</summary><p>Viewing controls do not change this snapshot.</p>
     <p>Snapshot SHA-256: <code>{hash}</code></p><p>Checksums detect changes relative to this manifest; they are not a digital signature.</p>
     <ul>{snapshot.warnings.map((w,i)=><li key={i}>{w.lesson||w.group||''} {w.message}</li>)}</ul>
    </details>
@@ -51,10 +51,10 @@ function OfflineApp({runtime,hash}){
     <ul>{bundle.survey?.options?.map((o,i)=><li key={i}>{o.label}: {o.count} ({o.percent}%)</li>)}</ul>
     <details><summary>Activity responses ({bundle.responses?.length||0})</summary>
      {(bundle.responses||[]).map((r,i)=><article key={i}><strong>{groupLabel(r.group_id)} · Activity {r.stage_index+1}</strong>
-      <p>{typeof r.value==='string'?r.value:Object.entries(r.value||{}).map(([key,val])=>key+': '+(Array.isArray(val)?val.join(', '):String(val))).join(' · ')}</p><small>{r.created_at}</small></article>)}
+      <p>{typeof r.value==='string'?r.value:Object.entries(r.value||{}).map(([key,val])=>key+': '+(Array.isArray(val)?val.join(', '):String(val))).join(' · ')}</p></article>)}
     </details>
     <details><summary>Peer feedback ({bundle.feedback?.length||0})</summary>{(bundle.feedback||[]).map((r,i)=><article key={i}>
-     <strong>{groupLabel(r.from_group)} → {groupLabel(r.to_group)}</strong><p>{r.learned}</p><p>{r.clarify}</p><small>{r.created_at}</small></article>)}</details>
+     <strong>{groupLabel(r.from_group)} → {groupLabel(r.to_group)}</strong><p>{r.learned}</p><p>{r.clarify}</p></article>)}</details>
     <details><summary>Thinking challenges ({bundle.microResponses?.length||0})</summary>{(bundle.microResponses||[]).map((r,i)=><article key={i}><strong>{groupLabel(r.group_id)} · Activity {r.stage_index+1}</strong><p>{r.reason}</p></article>)}</details>
    </section>)}
    {!evidence.length?<p>No recorded live sessions were available at export. Lesson plans and saved work remain accessible.</p>:null}
