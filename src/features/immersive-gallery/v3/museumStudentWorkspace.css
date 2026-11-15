@@ -12,79 +12,113 @@
  grid-column:1;
  grid-row:1;
  display:grid;
- grid-template-columns:minmax(0,1fr) minmax(300px,420px);
- align-items:start;
+ grid-template-columns:minmax(0,1fr) minmax(320px,390px);
+ align-items:stretch;
  gap:10px;
  min-width:0;
 }
 .bml-student-dual-workspace .bml-student-hub{
  display:flex;
  flex-direction:column;
- gap:6px;
+ gap:0;
  min-width:0;
- max-width:360px;
- justify-self:end;
+ width:100%;
+ max-width:none;
+ justify-self:stretch;
+ overflow:hidden;
+ border:1px solid #dedbd5;
+ background:#fffdf9;
+ padding:8px 10px;
+ box-sizing:border-box;
 }
 .bml-student-dual-workspace .bml-student-masthead > .bml-contest-art{
- max-width:min(100%,760px);
- width:auto;
- max-height:168px;
+ width:100%!important;
+ max-width:none!important;
+ max-height:none!important;
+ height:auto!important;
  margin:0!important;
- align-self:start;
+ align-self:stretch;
 }
 .bml-student-dual-workspace .bml-student-masthead .cmast.cmast-plate,
 .bml-student-dual-workspace .bml-student-masthead .cmast-plate-img{
- width:auto!important;
- max-width:min(100%,760px)!important;
- max-height:168px!important;
+ width:100%!important;
+ max-width:100%!important;
+ max-height:none!important;
  height:auto!important;
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-masthead .bml-student-focus {
- display:grid;
- grid-template-columns:minmax(0,1fr);
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-hub .bml-student-focus{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr)!important;
  gap:4px;
- padding:8px 12px;
+ margin:0;
+ padding:0!important;
+ border:0!important;
+ border-radius:0!important;
+ background:transparent!important;
+ box-shadow:none!important;
 }
 .bml-student-dual-workspace .bml-student-masthead .bml-student-focus-head {
  display:flex;
  flex-wrap:wrap;
  align-items:center;
- gap:5px 12px;
+ gap:4px 10px;
 }
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-masthead .bml-student-focus-head > strong {
- font-size:clamp(17px,1.5vw,23px)!important;
+ font-size:18px!important;
 }
 .bml-student-dual-workspace .bml-student-masthead .bml-student-activity-groups { gap:4px; }
-.bml-student-dual-workspace .bml-student-masthead .bml-student-steps button { min-height:36px; }
+.bml-student-dual-workspace .bml-student-masthead .bml-student-steps button { min-height:34px; }
 .bml-student-dual-workspace .bml-student-masthead .bml-student-group-activities { padding-top:4px; }
 .bml-student-dual-workspace .bml-student-masthead .bml-student-group-activities button { min-height:28px; }
 @media (max-width:999px) {
  .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace > .bml-student-masthead {
   grid-template-columns:minmax(0,1fr);
  }
- .bml-student-dual-workspace .bml-student-hub{max-width:none;justify-self:stretch}
- .bml-student-dual-workspace .bml-student-masthead > .bml-contest-art,
- .bml-student-dual-workspace .bml-student-masthead .cmast-plate-img{max-width:100%!important}
 }
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-hub .bml-student-bar{
  position:static!important;
  display:flex!important;
- flex-wrap:wrap;
+ flex-wrap:wrap!important;
  align-items:center;
+ justify-content:flex-start!important;
  gap:6px;
- width:100%;
+ width:100%!important;
+ max-width:100%;
  height:auto!important;
  min-height:0!important;
  max-height:none!important;
- padding:6px 8px!important;
- border:1px solid #dedbd5!important;
- background:#fffdf9!important;
+ flex:none!important;
+ margin:6px 0 0;
+ padding:6px 0 0!important;
+ border:0!important;
+ border-top:1px solid #dedbd5!important;
+ border-radius:0!important;
+ background:transparent!important;
+ box-shadow:none!important;
+ overflow:hidden;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-hub .bml-brand,
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-hub .bml-student-voice-guide,
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-hub .bml-student-right{
+ min-width:0;
+ max-width:100%;
+ margin:0;
+ flex:1 1 140px;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-hub .bml-student-voice-guide{
+ justify-content:flex-start;
+ flex-wrap:wrap;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-hub .bml-student-voice-status{
+ min-width:0;
+ overflow:hidden;
+ text-overflow:ellipsis;
+ white-space:nowrap;
 }
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-hub .bml-student-right{
  display:flex;
  flex-wrap:wrap;
  gap:6px;
- margin-left:0;
 }
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace > .bml-student-content {
  grid-column:1;
