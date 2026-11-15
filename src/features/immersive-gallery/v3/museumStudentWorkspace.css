@@ -1,0 +1,160 @@
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace {
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr);
+ grid-template-rows:auto auto minmax(0,1fr);
+ gap:10px;
+ padding:12px;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace > .bml-contest-art {
+ grid-column:1;
+ grid-row:1;
+ max-width:min(1200px,100%,96dvh);
+ justify-self:center;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace > .bml-student-bar {
+ grid-column:1;
+ grid-row:2;
+ width:100%;
+ height:auto;
+ max-height:none;
+ min-height:58px;
+ flex-wrap:wrap;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace > .bml-student-content {
+ grid-column:1;
+ grid-row:3;
+ display:grid!important;
+ grid-template-rows:auto minmax(0,1fr);
+ gap:10px;
+ padding:0;
+ margin:0;
+ width:100%;
+ max-width:none;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-focus {
+ grid-column:auto;
+ grid-row:auto;
+ margin:0;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-workbench {
+ display:grid!important;
+ grid-template-columns:minmax(0,1.06fr) minmax(0,1fr);
+ min-height:0;
+ height:100%;
+ gap:12px;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-primary {
+ grid-column:auto;
+ grid-row:auto;
+ min-width:0;
+ min-height:0;
+ height:100%;
+ display:flex;
+ flex-direction:column;
+ border:1px solid var(--swiss-line);
+ background:var(--swiss-paper);
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-panel-head {
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ flex-wrap:wrap;
+ gap:8px 14px;
+ padding:10px 16px;
+ border-bottom:1px solid var(--swiss-line);
+ flex:none;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-panel-head h2 {
+ color:var(--swiss-ink);
+ margin:0;
+ font-size:18px;
+ line-height:1.25;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-panel-head p {
+ margin:3px 0 0;
+ font-size:13px;
+ color:var(--swiss-muted);
+ overflow-wrap:anywhere;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace :is(.bml-student-lesson-tools,.bml-student-project-actions,.bml-student-project-status) {
+ display:flex;
+ align-items:center;
+ flex-wrap:wrap;
+ gap:6px;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-panel-head button {
+ min-height:34px;
+ padding:5px 9px;
+ font-size:12px;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-status {
+ flex-basis:100%;
+ gap:4px 10px;
+ font-size:12px;
+ color:#255b4f;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-primary > .bml-student-pane {
+ flex:1 1 auto;
+ height:auto;
+ min-height:0;
+ display:flex;
+ flex-direction:column;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel .bml-student-pane > .bml-live-student {
+ display:block;
+ height:100%;
+ min-height:0;
+ max-height:none;
+ padding:12px clamp(12px,1.45vw,23px);
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-pane > .bml-live-student > *+* {
+ margin-block-start:12px;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-student-task.bml-surface {
+ border:0;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-student-bottom,
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-student-bottom > div {
+ flex-wrap:wrap;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel:focus-visible {
+ outline:2px solid #245e88;
+ outline-offset:2px;
+}
+@media (max-width:999px), (max-height:680px) {
+ .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace {
+  position:fixed!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  height:100dvh!important;
+  min-height:0!important;
+  max-height:100dvh!important;
+  align-content:start;
+  grid-template-rows:auto auto auto;
+ }
+ .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace > .bml-student-content {
+  grid-template-rows:auto auto;
+  overflow:visible;
+ }
+ .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-workbench,
+ .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-primary,
+ .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-stage,
+ .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-task.bml-surface {
+  height:auto;
+  min-height:0;
+  max-height:none;
+  overflow:visible;
+ }
+ .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-primary > .bml-student-pane,
+ .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel .bml-student-pane > .bml-live-student {
+  height:auto;
+  overflow:visible!important;
+ }
+ .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-task-scroll {
+  flex:0 0 auto;
+  overflow:visible;
+ }
+}
+@media (max-width:850px) {
+ .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-workbench { grid-template-columns:minmax(0,1fr); }
+}

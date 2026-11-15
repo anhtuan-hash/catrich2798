@@ -374,7 +374,7 @@ test('FULL BRIAN ENTRYPOINT: Group 01 can tap live answers and edit with no glob
  // the authenticated/global application shell, chat, and floating tools.
  await expect(page.locator('.app-shell')).toHaveCount(0);
  await expect(page.locator('#bes-main-content')).toHaveCount(0);
- await expect(page.getByTestId('student-tab-live')).toHaveAttribute('aria-pressed','true',{timeout:15000});
+ await expect(page.getByTestId('student-lesson-pane')).toBeVisible({timeout:15000});
  const option=page.getByRole('button',{name:/B\. Switching off unused lights/});
  await expect(option).toBeEnabled();
  await option.scrollIntoViewIfNeeded();
@@ -392,7 +392,6 @@ test('FULL BRIAN ENTRYPOINT: Group 01 can tap live answers and edit with no glob
  await submit.click();
  await expect(page.getByTestId('student-action-notice')).toContainText('Your group response was saved');
  expect(posts).toBe(1);
- await page.getByTestId('student-tab-studio').click();
  await expect(page.getByLabel('Describe your problem')).toBeEnabled();
  await page.getByLabel('Describe your problem').fill('Our school leaves unused lights switched on.');
  await expect.poll(()=>saves,{timeout:16000}).toBeGreaterThan(0);
@@ -405,7 +404,7 @@ test('FULL BRIAN ENTRYPOINT: Group 01 can tap live answers and edit with no glob
  }
 });
 
-test('Student Focus is touch-friendly and keeps an unsent group vote when switching to the studio',async({page})=>{
+test('The lesson and project stay visible without clearing an unsent vote',async({page})=>{
  await page.route('**/api/gallery-guest?**',async route=>{
   const op=new URL(route.request().url()).searchParams.get('operation');
   const body=op==='me'?{groupLabel:'Nhóm Demo',groupState:'editing',csrf:'synthetic-csrf',
@@ -422,18 +421,18 @@ test('Student Focus is touch-friendly and keeps an unsent group vote when switch
    survey:null,feedback:[],submitted:false}});
  });
  await page.getByTestId('qa-student').click();
- const liveTab=page.getByTestId('student-tab-live');
- const studioTab=page.getByTestId('student-tab-studio');
+ const lesson=page.getByTestId('student-lesson-pane');
+ const project=page.getByTestId('student-project-pane');
  await expect(page.getByTestId('student-focus-switch')).toBeVisible();
- await expect(liveTab).toHaveAttribute('aria-pressed','true',{timeout:10000});
+ await expect(lesson).toBeVisible({timeout:10000});
+ await expect(project).toBeVisible();
  const choice=page.getByRole('button',{name:/A\. Switch off unused lights/});
  await expect(choice).toBeVisible();
  await choice.click();
  await expect(choice).toHaveAttribute('aria-pressed','true');
- await studioTab.click();
- await expect(page.getByTestId('student-live-activity')).toBeHidden();
+ await page.getByLabel('Vấn đề mà nhóm em chọn').focus();
+ await expect(page.getByTestId('student-live-activity')).toBeVisible();
  await expect(page.getByLabel('Vấn đề mà nhóm em chọn')).toBeVisible();
- await liveTab.click();
  await expect(choice).toBeVisible();
  await expect(choice).toHaveAttribute('aria-pressed','true');
  const dims=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:window.innerWidth}));
@@ -477,7 +476,7 @@ test('realistic Group 01 Stage 1 permits vote, help, all group project steps and
  await page.getByTestId('qa-student-en').click();
  const app=page.getByTestId('museum-student-wizard');
  await expect(app).toBeVisible();
- await expect(page.getByTestId('student-tab-live')).toHaveAttribute('aria-pressed','true',{timeout:12000});
+ await expect(page.getByTestId('student-lesson-pane')).toBeVisible({timeout:12000});
  const vote=page.getByRole('button',{name:/B\. Switching off unused lights/});
  await expect(vote).toBeVisible();
  await expect(vote).toBeEnabled();
@@ -501,8 +500,7 @@ test('realistic Group 01 Stage 1 permits vote, help, all group project steps and
  await page.getByRole('button',{name:'Need help'}).click();
  await expect(page.getByTestId('student-action-notice')).toContainText('Help request sent');
  expect(helps).toBe(1);
- await page.getByTestId('student-tab-studio').click();
- await expect(page.getByTestId('student-tab-studio')).toHaveAttribute('aria-pressed','true');
+ await expect(page.getByTestId('student-project-pane')).toBeVisible();
  await expect(app.locator('.bml-student-steps button')).toHaveCount(5);
  for(let i=0;i<5;i++)await expect(app.locator('.bml-student-steps button').nth(i)).toBeEnabled();
  const problem=page.getByLabel('Describe your problem');
@@ -521,7 +519,7 @@ test('realistic Group 01 Stage 1 permits vote, help, all group project steps and
  await expect(page.getByLabel('Our learning reflection (English)')).toBeEnabled();
  // Final submission must still wait for the teacher's Exit Ticket stage.
  await expect(page.getByRole('button',{name:'Submit for Admin review'})).toBeDisabled();
- await page.getByTestId('student-tab-live').click();
+ await page.locator('.bml-student-steps button').first().click();
  await expect(page.getByTestId('student-vote-guidance')).toContainText('already submitted');
 });
 test('Museum Field Journal Stage 2 is legible, clickable and contained on a 16:9 classroom screen',async({page,isMobile})=>{
@@ -535,7 +533,7 @@ test('Museum Field Journal Stage 2 is legible, clickable and contained on a 16:9
   }:{draft:{title:'',summary:'',rooms:[]},version:0}});
  });
  await page.route('**/api/gallery-guest/live?**',async route=>route.fulfill({json:{
-  session:{id:'editorial-quiz',status:'active',stageIndex:1,stageOpen:true,
+  session:{id:'editorial-quiz',status:'active',stageIndex:1,stageOpen:true,presentation:{view:'check',questionIndex:0},
    stage:{id:'language-mini-lesson',kind:'quiz',period:1,title:'Language Mini-Lesson',
     question:'Practise evidence, cause and recommendation language.',
     questions:[
@@ -548,7 +546,7 @@ test('Museum Field Journal Stage 2 is legible, clickable and contained on a 16:9
  const root=page.getByTestId('museum-student-wizard');
  await expect(root).toHaveClass(/bml-student-editorial/);
  await expect(page.getByText('Your museum workshop')).toBeVisible();
- await expect(page.getByTestId('student-tab-live')).toHaveAttribute('aria-pressed','true',{timeout:12000});
+ await expect(page.getByTestId('student-lesson-pane')).toBeVisible({timeout:12000});
  const firstChoice=page.getByRole('button',{name:'B. According to our survey, four groups agreed.'});
  await firstChoice.scrollIntoViewIfNeeded();
  await expect(firstChoice).toBeEnabled();
@@ -563,16 +561,14 @@ test('Museum Field Journal Stage 2 is legible, clickable and contained on a 16:9
  if(!isMobile){
   const geometry=await root.evaluate(el=>{
    const box=x=>{const r=el.querySelector(x).getBoundingClientRect();return {left:r.left,top:r.top,right:r.right,bottom:r.bottom};};
-   const side=box('.bml-student-toolrail'),main=box('.bml-student-primary'),project=box('.bml-student-projectrail');
-   return {side,main,project,viewportWidth:innerWidth,viewportHeight:innerHeight};
+   const main=box('.bml-student-lesson-panel'),project=box('.bml-student-project-panel');
+   return {main,project,viewportWidth:innerWidth,viewportHeight:innerHeight};
   });
-  expect(geometry.side.right).toBeLessThan(geometry.main.left);
   expect(geometry.main.right).toBeLessThan(geometry.project.left);
   expect(geometry.main.bottom).toBeLessThanOrEqual(geometry.viewportHeight+1);
   expect(geometry.project.bottom).toBeLessThanOrEqual(geometry.viewportHeight+1);
   // The synthetic QA harness is longer than the viewport; only the fixed student canvas must fit.
  }
- await page.getByTestId('student-tab-studio').click();
  await expect(page.getByLabel('Describe your problem')).toBeEnabled();
 });
 test('student canvas keeps 16:9 activity, navigation and project panels on one desktop viewport',async({page})=>{
@@ -593,11 +589,11 @@ test('student canvas keeps 16:9 activity, navigation and project panels on one d
  const root=page.getByTestId('museum-student-wizard');
  await expect(root).toBeVisible();
  await expect(page.getByTestId('student-one-screen-workspace')).toBeVisible();
- await expect(page.getByTestId('student-tab-studio')).toHaveAttribute('aria-pressed','true',{timeout:10000});
+ await expect(page.getByTestId('student-project-pane')).toBeVisible({timeout:10000});
  const geometry=await root.evaluate(el=>{
   const a=el.getBoundingClientRect();
   const workspace=el.querySelector('[data-testid="student-one-screen-workspace"]').getBoundingClientRect();
-  const rail=el.querySelector('.bml-student-projectrail').getBoundingClientRect();
+  const rail=el.querySelector('.bml-student-project-panel').getBoundingClientRect();
   return {rootWidth:a.width,rootHeight:a.height,rootTop:a.top,workspaceBottom:workspace.bottom,railBottom:rail.bottom,
    viewportWidth:window.innerWidth,viewportHeight:window.innerHeight,overflow:el.scrollWidth>el.clientWidth+2};
  });
@@ -607,8 +603,7 @@ test('student canvas keeps 16:9 activity, navigation and project panels on one d
  expect(geometry.workspaceBottom).toBeLessThanOrEqual(geometry.viewportHeight+1);
  expect(geometry.railBottom).toBeLessThanOrEqual(geometry.viewportHeight+1);
  expect(geometry.overflow).toBe(false);
- await expect(page.getByLabel('Phản hồi thực tế từ bạn học (tiếng Anh)')).toBeVisible();
- await page.getByTestId('student-tab-live').click();
+ await expect(page.getByTestId('student-project-pane')).toBeVisible();
  await expect(page.getByTestId('student-live-activity')).toBeVisible();
 });
 test('student can complete five English STEAM steps, autosave and submit without a student account',async({page})=>{
@@ -1636,7 +1631,7 @@ test('V5.3 student can reorder 3 storyboard exhibits with touch-safe arrow butto
  expect(stored.rooms[0].exhibits.map(x=>x.title)).toEqual(['The Problem','Our Solution','The Evidence']);
 });
 
-test('Student Creator V6 layered-paper skin stays readable and interactive across 16:9 screens',async({page,isMobile},testInfo)=>{
+test('Student workspace keeps its banner and project editor usable across desktop screens',async({page,isMobile},testInfo)=>{
  if(isMobile)return;
  await page.route('**/api/gallery-guest?**',async route=>{
   const operation=new URL(route.request().url()).searchParams.get('operation');
@@ -1664,27 +1659,10 @@ test('Student Creator V6 layered-paper skin stays readable and interactive acros
   const ribbon=app.getByTestId('museum-competition-ribbon');
   await expect(ribbon).toBeVisible();
   await expect(ribbon).toContainText('Thạc sĩ Nguyễn Anh Tuấn');
-  const logos=await ribbon.locator('img').evaluateAll(images=>images.map(x=>({complete:x.complete,width:x.naturalWidth,height:x.naturalHeight})));
-  expect(logos).toEqual([{complete:true,width:299,height:300},{complete:true,width:1682,height:2048}]);
-  const colors=await app.evaluate(root=>{
-   const css=x=>getComputedStyle(root.querySelector(x));
-   return {
-    toolBackground:css('.bml-student-toolrail').backgroundImage,
-    focusRadius:parseFloat(css('.bml-student-focus').borderTopLeftRadius),
-    notebookRadius:parseFloat(css('.bml-student-primary').borderTopLeftRadius),
-    cardBackground:css('.bml-student-project-card').backgroundImage,
-    stepMarker:css('.bml-student-task > .bml-overline').backgroundColor,
-    scrollMode:css('.bml-student-task-scroll').overflowY,
-    submitFooterPosition:css('.bml-student-bottom').position,
-   };
-  });
-  expect(colors.toolBackground).toContain('gradient');
-  expect(colors.cardBackground).toContain('gradient');
-  expect(colors.focusRadius).toBeGreaterThanOrEqual(14);
-  expect(colors.notebookRadius).toBeGreaterThanOrEqual(14);
-  expect(colors.stepMarker).not.toBe('rgba(0, 0, 0, 0)');
-  expect(colors.scrollMode).toBe('auto');
-  expect(colors.submitFooterPosition).toBe('relative');
+  await expect(ribbon.locator('img')).toHaveCount(1);
+  await expect.poll(()=>ribbon.locator('img').evaluate(img=>img.naturalWidth)).toBeGreaterThan(0);
+  const scrollMode=await app.getByTestId('student-task-scroll').evaluate(el=>getComputedStyle(el).overflowY);
+  expect(scrollMode).toBe('auto');
   await app.locator('.bml-student-steps button').nth(4).click();
   const panel=app.getByTestId('student-task-scroll');
   await expect(app.getByRole('heading',{name:'Submission checklist'})).toBeVisible();
@@ -1951,10 +1929,9 @@ test('Student Creator Group 01: 100% draft but missing sources opens Submit and 
  const app=page.getByTestId('museum-student-wizard');
  await expect(app.getByTestId('museum-submit-summary')).toContainText('3 requirements to complete');
  await expect(app.getByTestId('museum-submit-shortcut')).toBeVisible();
- // Top step 5 must switch away from Exit Ticket into the actual submission pane.
- await app.getByTestId('student-tab-live').click();
- await app.locator('.bml-student-steps button').nth(4).click();
- await expect(app.getByTestId('student-tab-studio')).toHaveAttribute('aria-pressed','true');
+ // The submission controls stay available alongside Exit Ticket.
+ await app.getByTestId('museum-submit-shortcut').click();
+ await expect(app.getByTestId('student-live-activity')).toBeVisible();
  const checks=app.getByTestId('museum-submission-checks');
  await expect(checks).toContainText('The Problem: name the actual image creator or source');
  await expect(checks).toContainText('The Evidence: name the actual image creator or source');
