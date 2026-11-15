@@ -694,29 +694,40 @@
 .bml .bml-student-p2-review { min-height:0; }
 .bml-student-editorial .bml-student-pane > .bml-live-student { overflow-y:auto; overscroll-behavior:contain; }
 
-.bml-student-editorial .bml-student-lesson-nav {
- grid-column:1 / -1;
- min-width:0;
- display:grid;
+.bml-student-editorial .bml-student-activity-groups { min-width:0; display:grid; gap:10px; }
+.bml-student-editorial .bml-student-steps .bml-student-activity-range {
+ color:#526171;
+ font-size:11px;
+ font-weight:650;
+}
+.bml-student-editorial .bml-student-group-activities {
+ display:flex;
+ flex-wrap:wrap;
  gap:6px;
- padding-top:9px;
+ padding:7px 0 0;
  border-top:1px solid #dedbd5;
 }
-.bml-student-editorial .bml-student-lesson-nav > strong { font-size:13px; color:#254958; }
-.bml-student-editorial .bml-student-lesson-nav .bml-student-p2-nav { padding:0; min-width:0; }
-.bml-student-editorial .bml-student-lesson-nav select {
- width:100%;
- min-height:42px;
- border:1px solid #cbc8c0;
- border-radius:3px;
- background:#fff;
+.bml-student-editorial .bml-student-group-activities button {
+ display:inline-flex;
+ align-items:center;
+ gap:7px;
+ text-align:start;
+ max-width:100%;
+ min-height:40px;
+ padding:5px 9px;
+ border:1px solid #dedbd5;
+ background:#fffdf9;
  color:#152033;
  font:inherit;
+ font-size:13px;
+ line-height:1.25;
+ cursor:pointer;
 }
-.bml-student-editorial .bml-student-lesson-nav button { min-height:42px; white-space:nowrap; }
-.bml-student-editorial .bml-student-p2-nav :focus-visible { outline:2px solid #245e88; outline-offset:2px; }
+.bml-student-editorial .bml-student-group-activities button span { color:#285d51; font-weight:800; }
+.bml-student-editorial .bml-student-group-activities button[aria-current] {
+ background:#eef5ee;
+ border-color:#497d6d;
+ font-weight:700;
+}
+.bml-student-editorial .bml-student-group-activities :focus-visible { outline:2px solid #245e88; outline-offset:2px; }
 .bml-student-editorial .bml-student-return-live { align-self:flex-start; }
-@media (max-width:650px) {
- .bml-student-editorial .bml-student-lesson-nav { margin-top:10px; }
- .bml-student-editorial .bml-student-lesson-nav button span { display:none; }
-}
