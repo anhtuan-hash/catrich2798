@@ -72,24 +72,22 @@ export function validateArtworkFile(file){
  if(file.size>5000000)throw new Error('The original image must be smaller than 5 MB.');
 }
 
-// Keep the resulting base64 data URL within the existing 3.8 MB budget.
-const MAX_PNG_BLOB_BYTES=2849982;
-function encodeCanvasPng(canvas){
+const MAX_UPLOAD_JPEG_BYTES=600000;
+function encodeArtworkJpeg(canvas,quality){
  return new Promise((resolve,reject)=>{
   canvas.toBlob(blob=>{
-   if(!blob){reject(new Error('The browser cannot encode this image.'));return;}
-   if(blob.size>MAX_PNG_BLOB_BYTES){resolve(null);return;}
+   if(!blob||blob.type!=='image/jpeg'){reject(new Error('The browser cannot encode this image.'));return;}
+   if(blob.size>MAX_UPLOAD_JPEG_BYTES){resolve(null);return;}
    const reader=new FileReader();
    reader.onload=()=>resolve(reader.result);
    reader.onerror=()=>reject(new Error('The browser cannot read the processed image.'));
    reader.readAsDataURL(blob);
-  },'image/png');
+  },'image/jpeg',quality);
  });
 }
 
-// Render to PNG without blocking the UI during encoding. The server still
-// independently decodes every image, re-encodes it, and strips metadata.
-export async function imageToCanvasPng(file){
+// Use a smaller JPEG for transit. The private gallery still stores validated PNGs.
+export async function imageToArtworkUpload(file){
  validateArtworkFile(file);
  const bitmap=await createImageBitmap(file);
  try{
@@ -102,18 +100,11 @@ export async function imageToCanvasPng(file){
   if(!ctx)throw new Error('The browser cannot process this image.');
   ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
   ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
-  let png=await encodeCanvasPng(canvas);
-  // Lower resolution automatically for complex posters on classroom Wi-Fi.
-  while(!png&&canvas.width>450&&canvas.height>280){
-   canvas.width=Math.max(1,Math.round(canvas.width*.76));
-   canvas.height=Math.max(1,Math.round(canvas.height*.76));
-   const next=canvas.getContext('2d',{alpha:false});
-   next.fillStyle='#fff';next.fillRect(0,0,canvas.width,canvas.height);
-   next.drawImage(bitmap,0,0,canvas.width,canvas.height);
-   png=await encodeCanvasPng(canvas);
+  for(const quality of [0.92,0.85,0.75,0.6]){
+   const jpeg=await encodeArtworkJpeg(canvas,quality);
+   if(jpeg)return jpeg;
   }
-  if(!png)throw new Error('This image is too complex for safe upload. Try a different JPG.');
-  return png;
+  throw new Error('This image is too complex for safe upload. Try a different image.');
  }finally{bitmap.close?.();}
 }
 export const localMuseumFromDraft=(studio,assets)=>{

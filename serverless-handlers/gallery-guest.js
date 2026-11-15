@@ -130,7 +130,7 @@ export default async function galleryGuest(req,res){
    return send(res,200,{
     groupLabel:group.label,groupState:group.state,csrf:session.csrf_token,feedback,
     readOnly:Boolean(assignment.content_frozen_at),
-    uploadEnabled:!assignment.content_frozen_at&&(await settings(admin)).upload_enabled===true,
+    uploadEnabled:!assignment.content_frozen_at&&ctx.feature.upload_enabled===true,
     assignment:{title:assignment.title,brief:assignment.brief,class_scope:assignment.class_scope,
      content_frozen_at:assignment.content_frozen_at||null,
      deadline_at:assignment.deadline_at,max_rooms:assignment.max_rooms,max_exhibits:assignment.max_exhibits}
@@ -145,7 +145,9 @@ export default async function galleryGuest(req,res){
   }
 
   if(operation==='save'){
+   const started=performance.now();
    requireMethod(req,'PUT');const ctx=await guestContext(req,admin,{write:true});
+   const authorized=performance.now();
    const body=guardBody(req,100000);
    if(!Number.isInteger(body.expectedVersion)||body.expectedVersion<0)throw fail(400,'Phiên bản không hợp lệ.');
    const doc=normalizeGuestDraft(body.draft,ctx.assignment);
@@ -168,6 +170,8 @@ export default async function galleryGuest(req,res){
    const version=await query(admin.rpc('gcp_guest_save',{
     p_group:ctx.group.id,p_expected:body.expectedVersion,p_doc:doc
    }));
+   res.setHeader('Server-Timing','authorization;dur='+Math.round(authorized-started)+
+    ', draft;dur='+Math.round(performance.now()-authorized));
    return send(res,200,{ok:true,version});
   }
 

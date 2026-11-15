@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {deflateSync} from 'node:zlib';
 import fs from 'node:fs';
 import {canonicalArtworkPng} from '../serverless-handlers/_museumPng.js';
+import {canonicalArtworkImage} from '../serverless-handlers/_museumArtworkImage.js';
 import {LIVE_STAGES,LIVE_TOTAL_MINUTES,LIVE_PERIOD_MINUTES,liveStage,validResponse,summarizeResponses} from '../src/features/immersive-gallery/v3/liveLesson.js';
 import {documentFromStudio,emptyStudio,normalizeStudio} from '../src/features/immersive-gallery/v3/museumData.js';
 import {normalizeGuestDraft} from '../src/features/immersive-gallery/creatorPassPolicy.js';
@@ -57,6 +58,23 @@ test('corrupt checksum, MIME, excessive size and unknown payload are rejected',(
  assert.throws(()=>canonicalArtworkPng('data:image/png;base64,'+'A'.repeat(4000001)));
  assert.throws(()=>canonicalArtworkPng(''));
 });
+test('compact JPEG uploads are decoded and stored as metadata-free PNG',async()=>{
+ const {default:sharp}=await import('sharp');
+ const jpeg=await sharp({create:{width:960,height:1100,channels:3,background:'#15645e'}})
+  .withExif({IFD0:{Artist:'Synthetic Private Name'}}).jpeg().toBuffer();
+ const data='data:image/jpeg;base64,';
+ const result=await canonicalArtworkImage({jpeg:data+jpeg.toString('base64')});
+ assert.equal(result.mime,'image/png');
+ assert.equal(result.width,960);
+ assert.equal(result.height,1100);
+ assert.ok(result.buffer.subarray(0,8).equals(SIGNATURE));
+ assert.equal((await sharp(result.buffer).metadata()).exif,undefined);
+ assert.equal(result.buffer.includes('Synthetic Private Name'),false);
+ await assert.rejects(canonicalArtworkImage({jpeg:data+jpeg.subarray(0,jpeg.length-85).toString('base64')}));
+ await assert.rejects(canonicalArtworkImage({jpeg:data+fixture().toString('base64')}));
+ await assert.rejects(canonicalArtworkImage({jpeg:data+'A'.repeat(900001)}));
+ await assert.rejects(canonicalArtworkImage({jpeg:data+jpeg.toString('base64'),png:'unexpected'}));
+});
 test('uploaded student artwork becomes image type with exact asset ID',()=>{
  const id='aaaaaaaa-1111-4111-8111-111111111111',studio=emptyStudio();
  studio.title='A Real Student Museum';studio.learning.issue='Our school has an environmental challenge.';
@@ -82,7 +100,7 @@ test('private RLS, cookie scope, stage/CSRF gates and gateway are present',()=>{
  }
  assert.match(sql,/museum-artwork-private/);
  assert.match(guest,/museum_live_sessions/);assert.match(guest,/museum_artwork_assets/);
- assert.match(art,/canonicalArtworkPng/);assert.match(art,/guestContext\(req,admin/);
+ assert.match(art,/canonicalArtworkImage/);assert.match(art,/guestContext\(req,admin/);
  assert.match(live,/staffContext\(req,admin/);assert.match(live,/guestContext\(req,admin/);
  assert.match(live,/stage_open/);assert.match(live,/validResponse/);
  assert.ok(routes.some(r=>r.source==='/api/gallery-guest/live'));

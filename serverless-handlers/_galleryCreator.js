@@ -107,34 +107,36 @@ export async function guestContext(req,admin,{write=false}={}){
  const token=cookie(req);
  if(!token||token.length>128)throw fail(401,'Cần nhập mã nhóm để tiếp tục.');
  const now=new Date().toISOString();
- const sess=await query(admin.from('gcp_sessions')
-  .select('token_hash,group_id,csrf_token,expires_at,revoked_at,auth_method').eq('token_hash',digest('session:'+token)).maybeSingle());
+ const [sess,feature]=await Promise.all([
+  query(admin.from('gcp_sessions').select(`token_hash,group_id,csrf_token,expires_at,revoked_at,auth_method,
+   group:gcp_groups!gcp_sessions_group_id_fkey(*,
+    assignment:gcp_assignments!gcp_groups_assignment_id_fkey(*,
+     quick:gcp_quick_access!gcp_quick_access_assignment_id_fkey(enabled)),
+    invite:gcp_invites!gcp_invites_group_id_fkey(revoked_at,expires_at))`)
+   .eq('token_hash',digest('session:'+token)).maybeSingle()),
+  settings(admin)
+ ]);
  if(!sess||sess.revoked_at||sess.expires_at<=now)throw fail(401,'Phiên làm việc đã hết hạn.');
- let feature=await settings(admin);
+ const {group:membership,...session}=sess;
+ if(!membership?.assignment)throw fail(401,'Phiên làm việc đã hết hạn.');
+ const {assignment:lesson,invite,...group}=membership;
+ const {quick,...assignment}=lesson;
  // Frozen lessons remain available to existing QR/passcode holders even if
  // the Creator editing feature is disabled globally.
- const group=await query(admin.from('gcp_groups').select('*').eq('id',sess.group_id).single());
- const assignment=await query(admin.from('gcp_assignments').select('*').eq('id',group.assignment_id).single());
- const invite=await query(admin.from('gcp_invites').select('revoked_at,expires_at')
-  .eq('group_id',group.id).maybeSingle());
  if(!invite||invite.revoked_at)throw fail(401,'Mã nhóm đã bị thu hồi.');
  if(assignment.archived_at||assignment.status!=='active')throw fail(410,'Bài học đã được đóng.');
  if(!assignment.content_frozen_at && (!feature.enabled || invite.expires_at<=now))
   throw fail(401,'Mã nhóm đã hết hạn hoặc Creator Pass đã đóng.');
- if(sess.auth_method==='quick'){
-  const quick=await query(admin.from('gcp_quick_access').select('enabled')
-    .eq('assignment_id',assignment.id).maybeSingle());
-  if(!quick?.enabled)throw fail(401,'Classroom quick access is disabled. Sign in again with your private passcode.');
- }
+ if(sess.auth_method==='quick'&&!quick?.enabled)
+  throw fail(401,'Classroom quick access is disabled. Sign in again with your private passcode.');
  if(write){
   guardOrigin(req);
   if(assignment.content_frozen_at)throw fail(423,'This lesson is locked for viewing. Editing and submissions are disabled.');
-  if(!safeEqual(req.headers['x-gallery-csrf'],sess.csrf_token))throw fail(403,'CSRF không hợp lệ.');
-  feature=await settings(admin);
+  if(!safeEqual(req.headers['x-gallery-csrf'],session.csrf_token))throw fail(403,'CSRF không hợp lệ.');
   if(!feature.enabled||assignment.archived_at||assignment.status!=='active'||assignment.deadline_at<=now)
    throw fail(423,'Nhiệm vụ đang đóng.');
  }
- return {session:sess,group,assignment,feature};
+ return {session,group,assignment,feature};
 }
 export async function staffContext(req,admin){
  const bearer=String(req.headers?.authorization||'');

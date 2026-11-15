@@ -1,6 +1,6 @@
 import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {CheckCircle2,Image as ImageIcon,Info,Lock,RefreshCcw,Trash2,UploadCloud} from 'lucide-react';
-import {artGuest,liveGuest,imageToCanvasPng,validateArtworkFile} from './museumLiveApi.js';
+import {artGuest,liveGuest,imageToArtworkUpload,validateArtworkFile} from './museumLiveApi.js';
 import {surveyChartPng} from './surveyChart.js';
 import {surveyCitation,normalizeArtMeta} from './learningEvidence.js';
 import './museumLive.css';
@@ -13,7 +13,7 @@ const applyAssetChange=(assets,oldId,newAsset)=>[
  ...(assets||[]).filter(a=>a.id!==oldId&&a.id!==newAsset?.id),
  ...(newAsset?[newAsset]:[])
 ];
-export default function MuseumArtworkStudio({studio,update,csrf,disabled=false,uploadEnabled=false,language='vi',onAssets}){
+export default function MuseumArtworkStudio({studio,update,saveArtwork=update,csrf,disabled=false,uploadEnabled=false,language='vi',onAssets}){
  const [assets,setAssets]=useState(null),[busySlot,setBusySlot]=useState(null),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [pending,setPending]=useState(null);
  const refreshId=useRef(0);
@@ -53,10 +53,10 @@ export default function MuseumArtworkStudio({studio,update,csrf,disabled=false,u
    validateArtworkFile(file);
    const replaceId=studio.artworks?.[key]||null;
    setPending({key,url:URL.createObjectURL(file),name:file.name,uploading:false});
-   const png=await imageToCanvasPng(file);
+   const jpeg=await imageToArtworkUpload(file);
    setPending(current=>({...current,uploading:true}));
-   const out=await artGuest('upload','POST',{png,filename:file.name,replaceId},csrf);
-   update(d=>({
+   const out=await artGuest('upload','POST',{jpeg,filename:file.name,replaceId},csrf);
+   saveArtwork(d=>({
     ...d,
     artworks:{...d.artworks,[key]:out.asset.id},
     artMeta:{...normalizeArtMeta(d.artMeta),[key]:{...d.artMeta?.[key],...UPLOADED_ARTWORK_CREDIT}}
@@ -72,7 +72,7 @@ export default function MuseumArtworkStudio({studio,update,csrf,disabled=false,u
   try{const {snapshot}=await liveGuest('results');const png=surveyChartPng(snapshot);
    const replaceId=studio.artworks?.evidence||null;
    const out=await artGuest('upload','POST',{png,filename:'Class group priority survey.png',replaceId},csrf);
-   update(d=>({...d,survey:snapshot,artworks:{...d.artworks,evidence:out.asset.id},artMeta:{...normalizeArtMeta(d.artMeta),evidence:{alt:'Bar chart showing '+snapshot.n+' group priority votes. '+snapshot.options.map(o=>o.label+': '+o.count).join('; '),source:surveyCitation(snapshot),rights:'Original class survey chart; group totals only.'}}}));
+   saveArtwork(d=>({...d,survey:snapshot,artworks:{...d.artworks,evidence:out.asset.id},artMeta:{...normalizeArtMeta(d.artMeta),evidence:{alt:'Bar chart showing '+snapshot.n+' group priority votes. '+snapshot.options.map(o=>o.label+': '+o.count).join('; '),source:surveyCitation(snapshot),rights:'Original class survey chart; group totals only.'}}}));
    updateAssets(replaceId,out.asset);
    setNotice(t('Đã gắn biểu đồ thật. Nhóm tự viết phần diễn giải bằng tiếng Anh.','Frozen chart attached. Write your own English interpretation.'));
   }catch(e){setError(e.message);}finally{busyRef.current=false;setBusySlot(null);}
@@ -82,7 +82,7 @@ export default function MuseumArtworkStudio({studio,update,csrf,disabled=false,u
   busyRef.current=true;
   setBusySlot(key);setError('');setNotice('');
   try{await artGuest('remove','POST',{assetId:id},csrf);
-    update(d=>({...d,artworks:{...(d.artworks||{}),[key]:null}}));
+    saveArtwork(d=>({...d,artworks:{...(d.artworks||{}),[key]:null}}));
     updateAssets(id);
   }catch(e){setError(e.message);}finally{busyRef.current=false;setBusySlot(null);}
  };
