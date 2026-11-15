@@ -1,15 +1,14 @@
-import React,{useState} from 'react';
+import React from 'react';
 import {EVIDENCE_WRITING, LESSON_PLAN_NOTES, VISITOR_TASKS} from '../../v3/lessonPlanAlignment.js';
 import {NEXT_DELIVERY_STAGES, MUSEUM_ACTIVITY_SLIDES} from '../../v3/museumActivitySlides.js';
 
 const t=(language,vi,en)=>language==='en'?en:vi;
 
-function ListeningQuestion({questions,language,revealed}) {
-  const [index,setIndex]=useState(0);
+function ListeningQuestion({questions,language,revealed,index,onSelect,busy}) {
   const question=questions[index];
   return <>
     <nav className="adv-slide-view-tabs" aria-label={t(language,'Câu hỏi nghe hiểu','Listening questions')}>
-      {questions.map((item,i)=><button type="button" key={item.q} aria-pressed={index===i} onClick={()=>setIndex(i)}>
+      {questions.map((item,i)=><button type="button" key={item.q} aria-pressed={index===i} disabled={busy} onClick={()=>onSelect(i)}>
         {t(language,'Câu','Question')} {i+1}
       </button>)}
     </nav>
@@ -35,8 +34,8 @@ function FrozenSurvey({survey,language}){
   </div>;
 }
 
-export default function TeacherLiveSlideContent({stage,language,view='task',questions,revealed,survey,curriculumNode}) {
-  const [taskView,setTaskView]=useState('task');
+export default function TeacherLiveSlideContent({stage,language,view='task',questions,revealed,survey,curriculumNode,questionIndex=0,onPresent,busy=false}) {
+  const taskView=view;
   const slide=MUSEUM_ACTIVITY_SLIDES[stage.id];
   const note=LESSON_PLAN_NOTES[stage.id];
   const showVote=stage.kind==='vote'&&stage.id==='climate-detective';
@@ -45,12 +44,13 @@ export default function TeacherLiveSlideContent({stage,language,view='task',ques
   return <>
     {curriculumNode}
     {view==='check'&&questions?.length
-      ?<ListeningQuestion questions={questions} language={language} revealed={revealed}/>
+      ?<ListeningQuestion questions={questions} language={language} revealed={revealed} index={Math.min(questionIndex,questions.length-1)}
+        onSelect={i=>onPresent?.(view,i)} busy={busy}/>
       :<>
         {showVote||hasExtension?<nav className="adv-slide-view-tabs" aria-label={t(language,'Nội dung trình chiếu','Slide content')}>
-          <button type="button" aria-pressed={taskView==='task'} onClick={()=>setTaskView('task')}>{t(language,'Nhiệm vụ','Task')}</button>
-          {showVote?<button type="button" aria-pressed={taskView==='vote'} onClick={()=>setTaskView('vote')}>{t(language,'Lựa chọn bình chọn','Vote options')}</button>:null}
-          {hasExtension?<button type="button" aria-pressed={taskView==='next'} onClick={()=>setTaskView('next')}>{t(language,'Lần dạy tiếp theo','Next delivery')}</button>:null}
+          <button type="button" aria-pressed={taskView==='task'} disabled={busy} onClick={()=>onPresent?.('task')}>{t(language,'Nhiệm vụ','Task')}</button>
+          {showVote?<button type="button" aria-pressed={taskView==='vote'} disabled={busy} onClick={()=>onPresent?.('vote')}>{t(language,'Lựa chọn bình chọn','Vote options')}</button>:null}
+          {hasExtension?<button type="button" aria-pressed={taskView==='next'} disabled={busy} onClick={()=>onPresent?.('next')}>{t(language,'Lần dạy tiếp theo','Next delivery')}</button>:null}
         </nav>:null}
         {taskView==='vote'
           ?<><p className="adv-stage-question">{stage.question}</p><ol className="adv-slide-answers" type="A">

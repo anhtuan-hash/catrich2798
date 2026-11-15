@@ -7,6 +7,7 @@ import {validatePeer} from '../src/features/immersive-gallery/v3/learningEvidenc
 import {MICRO_CHALLENGES,validMicroAnswer,videoTaskFor,curriculumMediaBoard} from '../src/features/immersive-gallery/v3/museumLiveExtensions.js';
 import {searchVideos,mediaText,mediaId,mediaBoardUpdate,mediaTask,searchThrottle,safeRefinement} from './_museumLiveMedia.js';
 import {handleLivePeer,peerRoomsEvidence} from './_museumLivePeer.js';
+import {liveReadAudience,presentationFor,responseMatchesActivity,validPresentation} from '../src/features/immersive-gallery/v3/livePresentation.js';
 const canRespond=stage=>['vote','quiz','exit','peer'].includes(stage?.kind)||(stage?.kind==='group'&&Array.isArray(stage.videoQuestions));
 async function scopedStaff(ctx,assignmentId){
  if(!uid(assignmentId))throw fail(400,'Lớp học không hợp lệ.');
@@ -36,6 +37,7 @@ function stateOf(s,{staff=false}={}){
   stageOpen:s.stage_open,revealed:s.revealed,version:s.version,
   stageStartedAt:s.stage_started_at,elapsedSeconds:s.elapsed_seconds,updatedAt:s.updated_at,
   evidenceVersion:s.evidence_version,questionVersion:Number(s.media_board?.lessonQuestionVersion||1),media:mediaTask(s),
+  presentation:presentationFor(s.stage_index,s.media_board?.lessonPresentation),
   stage:publicStage(s.evidence_version===0&&s.stage_index===2?legacySurvey:sessionStage(s,s.stage_index),s.revealed,staff)};
 }
 async function groupGallery(admin,groupId){
@@ -54,10 +56,8 @@ async function groupGallery(admin,groupId){
 export default async function museumLive(req,res){
  try{
   const op=String(req.query?.operation||''),admin=db();
-  const isStaff=String(req.headers.authorization||'').startsWith('Bearer ');
-  const publicReads=new Set(['state','evidence','checkpoint-compare','group-gallery']);
-  const publicRead=!isStaff&&req.method==='GET'&&publicReads.has(op);
-  if(isStaff||publicRead){
+  const audience=liveReadAudience(req,op),publicRead=audience==='public';
+  if(audience!=='guest'){
    let ctx,assignment;
    if(publicRead){
     ctx=await publicMuseumContext(admin);
@@ -90,8 +90,14 @@ export default async function museumLive(req,res){
      :session;
     const grp=await query(admin.from('gcp_groups').select('id,label,state')
       .eq('assignment_id',assignment.id).order('label'));
-    const responses=await query(admin.from('museum_live_responses').select('value')
-      .eq('session_id',session.id).eq('stage_index',viewIndex).limit(30));
+    const responses=await query(admin.from('museum_live_responses').select('group_id,value,created_at')
+      .eq('session_id',session.id).eq('stage_index',viewIndex));
+    const feedback=await feedbackFor(admin,session.id);
+    const livePeer=audience==='staff'&&viewIndex>=7&&viewIndex<=9?await peerRoomsEvidence(admin,session.id):null;
+    const roomOwners=new Map(livePeer?.rooms.map(room=>[room.id,room.owner_group_id]));
+    const liveFeedback=(livePeer?.reviews||[]).map(r=>({...r,from_group:r.from_group_id,to_group:roomOwners.get(r.room_id)}));
+    const peerResponses=[...feedback,...liveFeedback].map(r=>({group_id:r.from_group,value:r.learned,created_at:r.created_at}));
+    const activityResponses=viewIndex===7?Array.from(new Map(peerResponses.map(r=>[r.group_id,r])).values()):responses;
     const helps=await query(admin.from('museum_learning_events').select('group_id,created_at')
       .eq('session_id',session.id).eq('action','need_help').eq('stage_index',viewIndex).limit(40));
     const micro=MICRO_CHALLENGES[viewIndex]?await query(admin.from('museum_live_micro_responses')
@@ -100,7 +106,7 @@ export default async function museumLive(req,res){
     return send(res,200,{session:{...stateOf(viewing,{staff:true}),readOnly:Boolean(assignment.content_frozen_at),persistedStageIndex:session.stage_index},stageCount:LIVE_STAGES.length,
      microResponses:micro.length,microResults:micro,
      result:(()=>{const r=summarizeResponses(viewIndex,responses,sessionStage(viewing,viewIndex));if(r&&session.evidence_version===0&&viewIndex===2)r.options=r.options.map((o,i)=>({...o,label:legacySurvey.options[i]}));return r;})(),
-     groups:grp,needHelp:new Set(helps.map(h=>h.group_id)).size,helpGroups:[...new Set(helps.map(h=>h.group_id))],survey:await surveyFor(admin,session.id),feedback:await feedbackFor(admin,session.id),responses:await query(admin.from('museum_live_responses').select('group_id,value,created_at').eq('session_id',session.id).eq('stage_index',viewIndex))});
+     groups:grp,needHelp:new Set(helps.map(h=>h.group_id)).size,helpGroups:[...new Set(helps.map(h=>h.group_id))],survey:await surveyFor(admin,session.id),feedback:[...feedback,...liveFeedback],responses:activityResponses});
    }
    if(op==='video-search'){
     requireMethod(req,'GET');
@@ -206,7 +212,14 @@ export default async function museumLive(req,res){
      if(action==='next'&&session.evidence_version!==0&&session.stage_index===2&&!await surveyFor(admin,session.id))throw fail(423,'Hãy chốt khảo sát trực tuyến hoặc nhập kiểm phiếu giấy trước khi chuyển hoạt động.');
      const index=session.stage_index+(action==='next'?1:-1);
      if(index<0||index>=LIVE_STAGES.length)throw fail(400,'Hết nội dung bài dạy.');
-     Object.assign(update,{stage_index:index,stage_open:!(index===2&&await surveyFor(admin,session.id)),revealed:false,stage_started_at:now,elapsed_seconds:0});
+     const {lessonPresentation,...mediaBoard}=session.media_board||{};
+     Object.assign(update,{media_board:mediaBoard,stage_index:index,stage_open:session.status==='active'&&!(index===2&&await surveyFor(admin,session.id)),revealed:false,stage_started_at:now,elapsed_seconds:0});
+    }else if(action==='present'){
+     const {view,questionIndex,stageIndex}=body;
+     if(stageIndex!==session.stage_index)throw fail(409,'Hoạt động đã thay đổi.');
+     if(!validPresentation(stageIndex,sessionStage(session,stageIndex),view,questionIndex))
+      throw fail(400,'Nội dung trình chiếu không hợp lệ.');
+     update.media_board={...session.media_board,lessonPresentation:{stageIndex,view,questionIndex}};
     }else if(action==='open'){if(session.status!=='active')throw fail(423,'Hãy tiếp tục bài dạy.');if(session.stage_index===2&&await surveyFor(admin,session.id))throw fail(423,'Khảo sát đã chốt. Hãy chuyển sang hoạt động tiếp theo.');update.stage_open=true;}
     else if(action==='close')update.stage_open=false;
     else if(action==='reveal')update.revealed=true;
@@ -220,7 +233,7 @@ export default async function museumLive(req,res){
     const changed=await query(admin.from('museum_live_sessions').update(update)
       .eq('id',session.id).eq('version',session.version).select('*').maybeSingle());
     if(!changed)throw fail(409,'Có thao tác của giáo viên khác. Hãy cập nhật.');
-    await query(admin.from('museum_learning_events').insert({
+    if(action!=='present')await query(admin.from('museum_learning_events').insert({
      session_id:session.id,actor_role:'teacher',action:'stage_'+action,
      stage_index:changed.stage_index
     }));
@@ -291,6 +304,7 @@ export default async function museumLive(req,res){
   const stage=sessionStage(session,session.stage_index);
   if(op==='micro-submit'){
    requireMethod(req,'POST');const body=guardBody(req,1300);
+   if(!responseMatchesActivity(body,session))throw fail(409,'Hoạt động đã thay đổi.');
    if(!validMicroAnswer(session.stage_index,body))throw fail(400,'Hãy chọn một câu và giải thích bằng tiếng Anh (12–450 ký tự).');
    const existing=await query(admin.from('museum_live_micro_responses').select('id')
     .eq('session_id',session.id).eq('group_id',ctx.group.id)
@@ -305,6 +319,7 @@ export default async function museumLive(req,res){
   }
   if(op==='respond'){
    requireMethod(req,'POST');const body=guardBody(req,3000);
+   if(!responseMatchesActivity(body,session))throw fail(409,'Hoạt động đã thay đổi. Hãy thử lại ở hoạt động hiện tại.');
    if(session.stage_index===7){
     if(!validatePeer(body.value))throw fail(400,'Điền điều đã học, điều cần làm rõ (10–400 ký tự) và mức rõ ràng 1–4.');
     const pair=await query(admin.from('museum_peer_pairs').select('*').eq('session_id',session.id).eq('from_group',ctx.group.id).maybeSingle());

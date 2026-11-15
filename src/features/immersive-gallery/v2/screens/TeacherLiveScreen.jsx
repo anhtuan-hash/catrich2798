@@ -1,5 +1,6 @@
 import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowLeft,Play,MonitorPlay,BookOpen,Printer,X} from 'lucide-react';
+import {presentationFor} from '../../v3/livePresentation.js';
 import {LIVE_STAGES,liveStage,LEGACY_LANGUAGE_MINI_LESSON} from '../../v3/liveLesson.js';
 import {liveStaff} from '../../v3/museumLiveApi.js';
 import {englishSystemGroupLabel} from '../../v3/museumApi.js';
@@ -50,7 +51,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   const [state,setState]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const [activeTool,setActiveTool]=useState(null),[qr,setQr]=useState('');
   const [motionOn,setMotionOn]=useState(savedPreference.current?.motionOn!==false);
-  const [curriculumMode,setCurriculumMode]=useState('video');
+  const [previewPresentation,setPreviewPresentation]=useState(null);
   const [isFullscreen,setIsFullscreen]=useState(false);
   const [spotlight,setSpotlight]=useState(null),[time,setTime]=useState(Date.now());
   const [paper,setPaper]=useState(false),[tally,setTally]=useState(['','','','']),[tallyNote,setTallyNote]=useState('');
@@ -69,7 +70,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     document.addEventListener('fullscreenchange',sync);return()=>document.removeEventListener('fullscreenchange',sync);
   },[]);
   useEffect(()=>{if(activeTool!=='qr')return;let active=true;import('qrcode').then(({default:QR})=>QR.toDataURL(link,{width:220,margin:2})).then(url=>{if(active)setQr(url);}).catch(()=>{});return()=>{active=false;};},[activeTool]);
-  const historicalSession=state?.session??null;
+  const historicalSession=state?.session?.assignmentId&&state.session.assignmentId!==assignmentId?null:state?.session??null;
   const slideOnly=readOnly&&Boolean(assignment?.content_frozen_at)&&!historicalSession;
   const session=historicalSession
     ?(readOnly?{...historicalSession,revealed:previewReveal}:historicalSession)
@@ -82,6 +83,9 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   const groups=(state?.groups||[]).map(g=>({...g,label:language==='en'?englishSystemGroupLabel(g.label):g.label}));
   const minute=LIVE_STAGES[currentIndex]?.minutes||0;
   const curriculumVideo=MUSEUM_CURRICULUM_VIDEOS[currentIndex]||null;
+  const presentation=presentationFor(currentIndex,readOnly?previewPresentation:
+    jumpIndex==null&&historicalSession?.presentation?{stageIndex:serverIndex,...historicalSession.presentation}:null);
+  const curriculumMode=presentation.view;
   const showingCurriculumVideo=Boolean(curriculumVideo&&curriculumMode==='video');
   const showingVideoCheck=Boolean(curriculumVideo&&curriculumMode==='check');
   const legacyActivityTwo=currentIndex===1&&session?.questionVersion!==2;
@@ -101,10 +105,10 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     if(!session?.id||hydratedKey.current!==restoreKey)return;
     savePresenterRecovery(window.sessionStorage,{assignmentId,sessionId:session.id,stageIndex:currentIndex,motionOn,panel:isFullscreen?activeTool:null,showVoiceover:false,showVideoLab:false},assignmentIds);
   },[session?.id,session?.stageIndex,assignmentId,motionOn,isFullscreen,activeTool,assignmentIds,currentIndex]);
-  useEffect(()=>{setCurriculumMode('video');},[assignmentId,currentIndex]);
+  useEffect(()=>{setPreviewPresentation(null);},[assignmentId,currentIndex]);
   const elapsed=(session?.elapsedSeconds||0)+(session?.status==='active'&&session?.stageStartedAt?Math.max(0,Math.floor((time-Date.parse(session.stageStartedAt))/1000)):0);
   const remaining=Math.max(0,minute*60-elapsed);
-  const act=useCallback(async(action)=>{
+  const act=useCallback(async(action,details={})=>{
     if(!assignmentId||busy)return;
     if(readOnly){
       if(action==='next'||action==='previous'){
@@ -114,6 +118,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
         });
         setPreviewReveal(false);setSpotlight(null);
       }else if(action==='reveal')setPreviewReveal(v=>!v);
+      else if(action==='present')setPreviewPresentation(details);
       return;
     }
     if(action==='end'&&!window.confirm(t(language,'Kết thúc tiết học? Học sinh sẽ không thể tiếp tục thao tác trong phiên này.','End this lesson? Student tasks will be locked.')))return;
@@ -122,14 +127,18 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
       setJumpIndex(Math.max(0,Math.min(LIVE_STAGES.length-1,base+(action==='next'?1:-1))));
     }
     setBusy(true);setError('');
-    try{const payload=action==='start'?{assignmentId}:{assignmentId,action,version:session?.version};
+    try{const payload=action==='start'?{assignmentId}:{assignmentId,action,version:session?.version,...details};
       const out=await transport(action==='start'?'start':'control',payload);
-      if(out.session)setState(prev=>({...prev,session:out.session}));
+      if(out.session){
+        ++requestSequence.current;
+        setState(prev=>({...prev,session:out.session}));
+      }
       setJumpIndex(null);
-      if(action==='next'||action==='previous')refresh();
+      if(action==='next'||action==='previous'||action==='present')refresh();
       else await refresh();
     }catch(e){setJumpIndex(null);setError(e.message);}finally{setBusy(false);}
   },[assignmentId,busy,readOnly,session?.version,session?.stageIndex,jumpIndex,transport,refresh,language]);
+  const present=(view,questionIndex=0)=>act('present',{stageIndex:currentIndex,view,questionIndex});
   const freeze=async()=>{if(readOnly)return;setBusy(true);setError('');try{await transport('freeze-survey',{assignmentId,version:session.version,...(paper?{counts:tally.map(v=>v===''?null:Number(v)),note:tallyNote}:{})});await refresh();}catch(e){setError(e.message);}finally{setBusy(false);}};
   const shareNarration=async()=>{
     if(readOnly||busy||!session||session.status==='ended')return;
@@ -192,18 +201,18 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     <div style={{display:'flex',flexDirection:'column',gap:6}}>
       <strong style={{fontSize:'clamp(9px,1.4cqi,11px)',letterSpacing:'.1em',color:'#9fc2e0'}}>NASA VIDEO · ACTIVITY {currentIndex+1}</strong>
       <div className="adv-slide-view-tabs" role="group" aria-label={t(language,'Góc nhìn dạy học của hoạt động','Activity teaching view')}>
-        <button type="button" aria-pressed={showingCurriculumVideo} onClick={()=>setCurriculumMode('video')}>{t(language,'Xem clip NASA','Watch NASA clip')}</button>
-        {questions?.length?<button type="button" aria-pressed={showingVideoCheck} onClick={()=>setCurriculumMode('check')}>
+        <button type="button" aria-pressed={showingCurriculumVideo} disabled={busy} onClick={()=>present('video')}>{t(language,'Xem clip NASA','Watch NASA clip')}</button>
+        {questions?.length?<button type="button" aria-pressed={showingVideoCheck} disabled={busy} onClick={()=>present('check')}>
           {legacyActivityTwo&&!readOnly?t(language,'3 câu hỏi của phiên cũ','3 questions from this session'):t(language,'3 câu hỏi video','3 video questions')}
         </button>:null}
-        {legacyActivityTwo&&readOnly?<button type="button" aria-pressed={showingSavedQuestions} onClick={()=>setCurriculumMode('saved')}>
+        {legacyActivityTwo&&readOnly?<button type="button" aria-pressed={showingSavedQuestions} onClick={()=>present('saved')}>
           {t(language,'Câu hỏi đã lưu của phiên cũ','Saved questions from this session')}
         </button>:null}
-        <button type="button" aria-pressed={curriculumMode==='task'} onClick={()=>setCurriculumMode('task')}>{t(language,'Nhiệm vụ','Task')}</button>
+        <button type="button" aria-pressed={curriculumMode==='task'} disabled={busy} onClick={()=>present('task')}>{t(language,'Nhiệm vụ','Task')}</button>
       </div>
       {showingCurriculumVideo?<MuseumCurriculumStageVideo video={curriculumVideo} stageIndex={currentIndex} language={language}
         continueLabel={legacyActivityTwo&&!readOnly?t(language,'Xem câu hỏi đã lưu','View saved questions'):undefined}
-        onContinue={()=>setCurriculumMode(questions?.length?'check':'task')}/>:null}
+        onContinue={()=>present(questions?.length?'check':'task')}/>:null}
     </div>
   ):null;
   const exitResponses=stage?.kind==='exit'&&serverIndex===currentIndex&&Array.isArray(state?.responses)
@@ -242,7 +251,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
         description={t(language,'Điều khiển toàn bộ 11 hoạt động trong 2 tiết. Học sinh tham gia bằng mã nhóm.','Control all 11 activities across two lessons. Students join using group passes.')}
         aside={readOnly?t(language,'Bài học đã kết thúc · Chỉ xem lại','Completed lesson · View-only playback'):t(language,'Đang trực tiếp · Học sinh bằng mã nhóm','Live · students join by group pass')}/>
       <label className="adv-dossier-field" style={{marginBottom:12}}>{t(language,'Chọn lớp và bài học','Choose lesson / class')}
-        <select className="adv-assignment-select" value={assignmentId} onChange={e=>{setAssignmentId(e.target.value);setBrowseIndex(null);setJumpIndex(null);setPreviewReveal(false);setState(null);setSpotlight(null);}} aria-label={t(language,'Chọn bài học','Select lesson')}>
+        <select className="adv-assignment-select" value={assignmentId} onChange={e=>{++requestSequence.current;setAssignmentId(e.target.value);setBrowseIndex(null);setJumpIndex(null);setPreviewReveal(false);setState(null);setSpotlight(null);}} aria-label={t(language,'Chọn bài học','Select lesson')}>
           {!assignments.length?<option value="">{t(language,'Chưa có bài học được giao','No lesson assigned')}</option>:null}
           {assignments.map(a=><option value={a.id} key={a.id}>{a.title} · {a.class_scope||''}</option>)}
         </select></label>
@@ -264,7 +273,8 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
             session={session} stage={stage} currentIndex={currentIndex} language={language}
             readOnly={readOnly} frozenReason={frozenReason}
             spotlight={spotlight} onCloseSpotlight={()=>setSpotlight(null)}
-            curriculumNode={curriculumNode} view={curriculumVideo?(showingSavedQuestions?'check':curriculumMode):'task'}
+            curriculumNode={curriculumNode} view={showingSavedQuestions?'check':curriculumMode}
+            questionIndex={presentation.questionIndex} onPresent={showingSavedQuestions?(view,index)=>present(view==='check'?'saved':view,index):present} presentationBusy={busy}
             questions={questions} survey={slideSurvey}
             revealed={Boolean(session.revealed)}
             elapsed={elapsed} remaining={remaining}
