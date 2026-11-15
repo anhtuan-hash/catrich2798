@@ -1,72 +1,169 @@
-.cmast.cmast-plate{
+@import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@600;700;800;900&family=Great+Vibes&display=swap");
+
+.cmast.cmast-live{
+  --paper:#f6f3ea;
+  --ink:#121212;
+  --red:#e10600;
   position:relative;
-  display:block;
+  display:grid !important;
+  grid-template-columns:14.4% minmax(0,1fr) 14.6%;
+  align-items:center;
   width:100%;
-  min-height:0;
-  aspect-ratio:auto;
+  aspect-ratio:4096 / 1365;
   margin:0;
-  padding:0;
+  background:var(--paper);
+  border:clamp(2px,.28cqw,4px) solid #161616;
+  box-sizing:border-box;
+  container-type:inline-size;
   overflow:hidden;
-  background:transparent;
-  border:0;
-  box-shadow:none;
+  color:var(--ink);
+  font-family:"Be Vietnam Pro","Segoe UI","Helvetica Neue",Arial,sans-serif;
+  text-align:center;
 }
-.igv2 .cmast-plate-img,
-.bml .cmast-plate-img,
-.cmast-plate-img{
-  display:block!important;
-  position:static!important;
-  width:100%!important;
-  height:auto!important;
-  max-width:none!important;
-  max-height:none!important;
-  margin:0!important;
-  padding:0!important;
-  object-fit:fill!important;
-  object-position:center!important;
-  background:transparent!important;
-  border:0!important;
-  border-radius:0!important;
-  transform:none!important;
+.bml-competition-ribbon:has(.cmast-live),
+.bml-paper .bml-competition-ribbon--dashboard:has(.cmast-live),
+.igv2 .bml-competition-ribbon:has(.cmast-live){
+  display:block !important;
+  grid-template-columns:none !important;
+  gap:0 !important;
+  margin:0 0 12px !important;
+  padding:0 !important;
+  min-height:0 !important;
+  background:transparent !important;
+  border:0 !important;
+  border-image:none !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
 }
-.cmast-plate-copy{
+.bml-competition-ribbon:has(.cmast-live)::before,
+.bml-competition-ribbon:has(.cmast-live)::after,
+.bml-paper .bml-competition-ribbon--dashboard:has(.cmast-live)::before,
+.bml-paper .bml-competition-ribbon--dashboard:has(.cmast-live)::after{
+  content:none !important;
+  display:none !important;
+}
+.cmast-live::before,
+.cmast-live::after{
+  content:"";
   position:absolute;
+  top:6.5%;
+  bottom:6.5%;
+  width:1.5px;
+  background:#1c1c1c;
+  z-index:3;
+  pointer-events:none;
+}
+.cmast-live::before{left:14.4%}
+.cmast-live::after{right:14.6%}
+.cmast-leaf{
+  position:absolute;
+  pointer-events:none;
+  z-index:1;
+  user-select:none;
+  width:auto !important;
+  height:auto !important;
+  max-height:none !important;
+  object-fit:contain !important;
+}
+.cmast-leaf-tl{left:-0.2%;top:-0.6%;width:20.8% !important}
+.cmast-leaf-br{right:-0.4%;bottom:-1.2%;width:18.8% !important}
+.cmast-mark{
+  display:block;
+  position:relative;
   z-index:2;
-  left:21%;
-  right:17%;
-  top:7%;
-  bottom:8%;
+  user-select:none;
+  height:auto !important;
+  max-height:none !important;
+  object-fit:contain !important;
+}
+.cmast-mark-seal{width:78% !important;margin:8% auto 0}
+.cmast-side{
+  position:relative;
+  z-index:2;
   display:flex;
   flex-direction:column;
   align-items:center;
-  justify-content:space-between;
-  margin:0;
-  padding:0;
+  justify-content:center;
+  min-width:0;
+  padding-top:1%;
+}
+.cmast-mark-school{width:76% !important}
+.cmast-script{
+  margin:.02em 0 0;
+  font-family:"Great Vibes",cursive;
+  font-weight:400;
+  font-size:2.05cqw;
+  color:#028ce5;
+  line-height:.85;
+}
+.cmast-copy{
+  position:relative;
+  z-index:4;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
   text-align:center;
-  color:transparent;
-  user-select:text;
-  -webkit-user-select:text;
-  cursor:text;
+  padding:1.05% 2% 1.2%;
+  gap:.22cqw;
 }
-.cmast-plate-copy p{
-  margin:0;
-  max-width:100%;
-  color:transparent;
-  font-family:"Be Vietnam Pro",Inter,"Helvetica Neue",Arial,sans-serif;
+.cmast-copy p{margin:0;max-width:100%;color:var(--ink)}
+.cmast-badge{
+  background:var(--red);
+  color:#fff !important;
   font-weight:800;
-  line-height:1.15;
-  user-select:text;
-  -webkit-user-select:text;
+  font-size:1.62cqw;
+  letter-spacing:.08em;
+  line-height:1;
+  padding:.46em .78em .4em;
 }
-.cmast-plate-copy p:nth-child(1){font-size:clamp(12px,1.3vw,18px)}
-.cmast-plate-copy p:nth-child(2){font-size:clamp(10px,1.05vw,15px)}
-.cmast-plate-copy p:nth-child(3){font-size:clamp(11px,1.15vw,16px)}
-.cmast-plate-copy p:nth-child(4){font-size:clamp(12px,1.2vw,17px)}
-.cmast-plate-copy p:nth-child(5){font-size:clamp(20px,2.6vw,42px);letter-spacing:-.02em}
-.cmast-plate-copy p:nth-child(6){font-size:clamp(10px,1vw,14px);font-weight:650}
-.cmast-plate-copy p:nth-child(7){font-size:clamp(12px,1.15vw,16px)}
-.cmast-plate-copy ::selection,
-.cmast-plate-copy p::selection{
-  background:#ffe14a;
-  color:#14284a;
+.cmast-line{
+  margin-top:.1em !important;
+  font-weight:800;
+  font-size:1.46cqw;
+  letter-spacing:-.012em;
+  line-height:1.16;
+}
+.cmast-sub{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.65em;
+  flex-wrap:wrap;
+  font-weight:800;
+  font-size:1.4cqw;
+  letter-spacing:-.014em;
+  line-height:1.15;
+}
+.cmast-field{font-weight:700;letter-spacing:-.004em}
+.cmast-split{width:1.5px;align-self:stretch;min-height:.9em;background:#222}
+.cmast-copy h1{
+  margin:.04em 0 0;
+  color:var(--ink);
+  font-weight:900;
+  font-size:4.15cqw;
+  letter-spacing:-.038em;
+  line-height:.9;
+  white-space:nowrap;
+}
+.cmast-rule{height:.3cqw;min-height:3px;background:var(--red);width:100%;margin:.1cqw 0 .05cqw}
+.cmast-meta{font-size:1.18cqw;font-weight:600;letter-spacing:-.011em;line-height:1.25}
+.cmast-meta b{font-weight:800}
+.cmast-by{
+  align-self:flex-start;
+  background:var(--red);
+  color:#fff !important;
+  font-weight:800;
+  font-size:1.46cqw;
+  line-height:1;
+  padding:.38em .7em .32em;
+}
+@media (max-width:760px){
+  .cmast.cmast-live{aspect-ratio:auto;grid-template-columns:22% minmax(0,1fr)}
+  .cmast-side,.cmast-live::after{display:none !important}
+  .cmast-copy h1{white-space:normal;font-size:6.2cqw}
+  .cmast-line,.cmast-sub{font-size:2.45cqw}
+  .cmast-meta{font-size:2.15cqw}
+  .cmast-badge,.cmast-by{font-size:2.5cqw}
 }
