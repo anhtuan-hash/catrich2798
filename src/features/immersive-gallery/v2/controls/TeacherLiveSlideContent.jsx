@@ -4,6 +4,12 @@ import {NEXT_DELIVERY_STAGES, MUSEUM_ACTIVITY_SLIDES} from '../../v3/museumActiv
 
 const t=(language,vi,en)=>language==='en'?en:vi;
 
+function cardParts(title, index) {
+  const match = String(title).match(/^([A-Z])\s·\s(.+)$/);
+  if (match) return {letter: match[1], title: match[2]};
+  return {letter: String.fromCharCode(65 + index), title};
+}
+
 function ListeningQuestion({questions,language,revealed,index,onSelect,busy}) {
   const question=questions[index];
   return <>
@@ -53,9 +59,13 @@ export default function TeacherLiveSlideContent({stage,language,view='task',ques
           {hasExtension?<button type="button" aria-pressed={taskView==='next'} disabled={busy} onClick={()=>onPresent?.('next')}>{t(language,'Lần dạy tiếp theo','Next delivery')}</button>:null}
         </nav>:null}
         {taskView==='vote'
-          ?<><p className="adv-stage-question">{stage.question}</p><ol className="adv-slide-answers" type="A">
-            {stage.options.map(option=><li key={option}>{option}</li>)}
-          </ol></>
+          ?<><p className="adv-stage-question">{stage.question}</p>
+            <div className="adv-slide-task-cards" data-cols={stage.options.length} lang="en">
+              {stage.options.map((option,index)=><div className="adv-slide-col" key={option}>
+                <b className="adv-slide-letter">{String.fromCharCode(65+index)}</b>
+                <div><strong>{option}</strong></div>
+              </div>)}
+            </div></>
           :taskView==='next'&&note
             ?<div className="adv-slide-extension" lang="en">
               <strong>{stage.id==='climate-detective'?'Individual writing · A':stage.id==='exit-ticket'?'Individual writing · B':'Visitor test · '+(stage.id==='revise'?'V2':'V1')}</strong>
@@ -66,16 +76,23 @@ export default function TeacherLiveSlideContent({stage,language,view='task',ques
             </div>
             :<>
               <p className="adv-stage-question">{slide.question}</p>
-              <div className="adv-slide-task-cards" lang="en">
-                {slide.cards.map(([title,text])=><div key={title}><strong>{title}</strong><p>{text}</p></div>)}
+              <div className="adv-slide-task-cards" data-cols={slide.cards.length} lang="en">
+                {slide.cards.map(([title, text], index) => {
+                  const card = cardParts(title, index);
+                  return <div className="adv-slide-col" key={title}>
+                    <b className="adv-slide-letter">{card.letter}</b>
+                    <div><strong>{card.title}</strong><p>{text}</p></div>
+                  </div>;
+                })}
               </div>
               {stage.id==='classroom-survey'&&survey?<FrozenSurvey survey={survey} language={language}/>:null}
               {stage.id==='classroom-survey'&&!survey&&stage.options?.length
                 ?<ol className="adv-slide-answers is-compact" type="A">{stage.options.map(option=><li key={option}>{option}</li>)}</ol>
                 :null}
-              <p className="adv-slide-output"><b>{t(language,'Sản phẩm','Deliverable')}</b> {slide.output}</p>
+              <p className="adv-slide-output">{slide.output}</p>
             </>}
-        {taskView!=='next'&&stage.sentence?<p className="adv-stage-sentence">“{stage.sentence}”</p>:null}
+        {taskView!=='next'&&stage.sentence?<p className="adv-stage-sentence">{stage.sentence.replace(/^["“]|["”]$/g,'')}</p>:null}
+        {revealed&&taskView!=='next'&&stage.expected?<p className="adv-slide-explanation">{stage.expected}</p>:null}
       </>}
   </>;
 }
