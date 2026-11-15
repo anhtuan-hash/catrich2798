@@ -91,6 +91,10 @@ function releaseButton(button) {
 }
 
 function bindButton(button) {
+  if (button.closest('.app-shell[data-tool="immersive-gallery"]')) {
+    if (bindings.has(button)) releaseButton(button);
+    return;
+  }
   if (!(button instanceof HTMLButtonElement) || bindings.has(button)) return;
 
   const key = resolveNavKey(button);
