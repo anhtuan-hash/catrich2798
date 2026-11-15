@@ -3049,10 +3049,55 @@ html body .igv2.igv2 :not(#igv2-swiss-a#igv2-swiss-b#igv2-swiss-c):is(
   object-fit: cover;
 }
 .igv2 .contest.contest-art .cmast img {
-  width: auto;
-  height: auto;
-  max-width: none;
-  object-fit: contain;
+  position: absolute;
+  display: block;
+  width: auto !important;
+  height: auto !important;
+  max-width: 110px !important;
+  max-height: 140px !important;
+  object-fit: contain !important;
+}
+.igv2 .contest.contest-art .cmast .cmast-logo-dept {
+  left: 16px;
+  top: 50%;
+  width: 84px !important;
+  height: 84px !important;
+  max-width: 84px !important;
+  max-height: 84px !important;
+  transform: translateY(-50%);
+}
+.igv2 .contest.contest-art .cmast .cmast-logo-school {
+  right: 12px;
+  top: 50%;
+  width: 100px !important;
+  height: 122px !important;
+  max-width: 100px !important;
+  max-height: 122px !important;
+  transform: translateY(-50%);
+}
+.igv2 .contest.contest-art .cmast .cmast-bamboo {
+  left: 104px;
+  bottom: 8px;
+  top: auto;
+  width: auto !important;
+  height: 148px !important;
+  max-width: 86px !important;
+  max-height: 148px !important;
+}
+.igv2 .contest.contest-art .cmast .cmast-leaves {
+  right: 124px;
+  top: 4px;
+  bottom: auto;
+  width: auto !important;
+  height: 70px !important;
+  max-width: 150px !important;
+  max-height: 70px !important;
+}
+.igv2 .contest.contest-art .cmast .cmast-hill {
+  bottom: 8px;
+  height: 36px !important;
+  max-width: 180px !important;
+  max-height: 36px !important;
 }
 .igv2 .adv-plan-period:nth-child(2) { background: #f4faf6; border-color: #d5eadc; border-top-color: #176f57; }
 .igv2 .adv-plan-period h3 { color: #142033; }
