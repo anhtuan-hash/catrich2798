@@ -14,7 +14,8 @@ function readAutoPreference(){
  * Some browsers require a tap before sound is allowed; a visible replay
  * affordance is kept available rather than claiming silent autoplay worked.
  */
-export default function MuseumStudentVoiceGuide({cue}){
+export default function MuseumStudentVoiceGuide({cue,language='en'}){
+ const t=(vi,en)=>language==='en'?en:vi;
  const [auto,setAuto]=useState(readAutoPreference);
  const [voices,setVoices]=useState([]),[voiceUri,setVoiceUri]=useState('');
  const [rate,setRate]=useState(.92),[status,setStatus]=useState('idle');
@@ -127,14 +128,14 @@ export default function MuseumStudentVoiceGuide({cue}){
  const changeVoice=e=>{cancel();lastCue.current='';setVoiceUri(e.target.value);};
  const changeRate=e=>{cancel();lastCue.current='';setRate(Number(e.target.value));};
  const available=supported&&voices.length>0;
- const message=!auto?'Muted':!supported?'Voice unavailable':
-  !voices.length?'Install an en-US voice':
-  status==='tap'?'Tap replay to enable sound':
-  status==='failed'?'Replay to try again':
-  status==='playing'?'Speaking…':
-  status==='starting'?'Starting…':
-  status==='finished'?'Guidance finished':
-  cueKey?'Auto guidance on':'Waiting for activity';
+ const message=!auto?t('Đã tắt tiếng','Muted'):!supported?t('Không có giọng đọc','Voice unavailable'):
+  !voices.length?t('Cần giọng en-US','Install an en-US voice'):
+  status==='tap'?t('Bấm phát lại để bật tiếng','Tap replay to enable sound'):
+  status==='failed'?t('Phát lại để thử tiếp','Replay to try again'):
+  status==='playing'?t('Đang đọc…','Speaking…'):
+  status==='starting'?t('Đang bắt đầu…','Starting…'):
+  status==='finished'?t('Đã đọc xong','Guidance finished'):
+  cueKey?t('Đang hướng dẫn','Auto guidance on'):t('Chờ hoạt động','Waiting for activity');
  return <aside className="bml-student-voice-guide" data-testid="student-auto-voice"
   aria-label="Automatic American English activity guidance" data-voice-status={status}>
   <button className={'bml-student-voice-toggle '+(auto?'is-on':'is-off')}
@@ -142,7 +143,7 @@ export default function MuseumStudentVoiceGuide({cue}){
    aria-label={auto?'Turn off automatic US voice guidance':'Turn on automatic US voice guidance'}
    onClick={toggleAuto} title="Automatic US English narration">
    {auto?<Volume2 size={17}/>:<VolumeX size={17}/>}
-   <span>US Voice <small>{auto?'AUTO':'OFF'}</small></span>
+   <span>{t('Giọng Mỹ','US Voice')} <small>{auto?'AUTO':'OFF'}</small></span>
   </button>
   <button type="button" className="bml-student-voice-replay"
    aria-label="Replay activity guidance" title="Replay English instructions"
@@ -150,7 +151,7 @@ export default function MuseumStudentVoiceGuide({cue}){
    <RotateCcw size={17}/>
   </button>
   <details className="bml-student-voice-details">
-   <summary title="Read the activity voiceover" aria-label="Read voice guidance transcript">Transcript</summary>
+   <summary title="Read the activity voiceover" aria-label={t('Đọc lời dẫn','Read voice guidance transcript')}>{t('Lời dẫn','Transcript')}</summary>
    <div className="bml-student-voice-transcript">
     <strong>{cue?.label||'Activity instructions'}</strong>
     <p lang="en-US">{cueText||'Your next activity will appear here.'}</p>

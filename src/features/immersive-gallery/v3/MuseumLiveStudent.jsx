@@ -74,7 +74,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
   <strong>{t(language,'THAM QUAN CHÉO · CHỈ TRONG PHẠM VI LỚP','PEER REVIEW · CLASSROOM ONLY')}</strong>
   <MuseumScene gallery={peer} language={language} embedded/></section>;
  return <section className="bml-live-student" data-testid="student-live-activity" data-stage-kind={stage?.kind||"unknown"}>
-  {readOnly?<p role="status" className="bml-banner bml-success-banner">Completed lesson · View only. Your answers and exhibits are preserved.</p>:null}
+  {readOnly?<p role="status" className="bml-banner bml-success-banner">{t(language,'Bài đã hoàn thành · Chỉ xem. Câu trả lời và hiện vật được giữ nguyên.','Completed lesson · View only. Your answers and exhibits are preserved.')}</p>:null}
   <header className="bml-live-student-header"><strong>Teacher Live · {t(language,'Tiết','Period')} {stage?.period}/2 · {t(language,'Hoạt động','Stage')} {stageIndex+1}/11</strong>
    <span>{session.stageOpen?t(language,'Giáo viên đã mở hoạt động','Activity is open'):t(language,'Chờ giáo viên mở hoạt động','Waiting for teacher')}</span></header>
   <div className="bml-live-student-question">
@@ -100,9 +100,9 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
       </button>)}</div>{session.revealed?<p className="bml-quiz-revealed">Answer: {String.fromCharCode(65+q.answer)} · {q.explanation}</p>:null}
     </div>)}
     {compact&&responseQuestions.length>1?<div className="bml-student-quiz-page-controls">
-     <button type="button" aria-label="Previous question" disabled={quizPage===0} onClick={()=>setQuizPage(v=>v-1)}>← <span>Previous</span></button>
-     <strong><small>QUESTION</small> {quizPage+1} of {responseQuestions.length} <em>· {Object.keys(quiz).length} answered</em></strong>
-     <button type="button" aria-label="Next question" disabled={quizPage===responseQuestions.length-1} onClick={()=>setQuizPage(v=>v+1)}><span>Next</span> →</button>
+     <button type="button" aria-label={t(language,'Câu trước','Previous question')} disabled={quizPage===0} onClick={()=>setQuizPage(v=>v-1)}>← <span>{t(language,'Trước','Previous')}</span></button>
+     <strong><small>{t(language,'CÂU','QUESTION')}</small> {quizPage+1} of {responseQuestions.length} <em>· {Object.keys(quiz).length} {t(language,'đã chọn','answered')}</em></strong>
+     <button type="button" aria-label={t(language,'Câu sau','Next question')} disabled={quizPage===responseQuestions.length-1} onClick={()=>setQuizPage(v=>v+1)}><span>{t(language,'Sau','Next')}</span> →</button>
     </div>:null}</div>:null}
     {['peer','exit'].includes(stage.kind)?<div className="bml-live-response-form">
      {stage.kind==='peer'?<button type="button" className="bml-outline" onClick={visitPeer}><Eye size={17}/>{t(language,'Tham quan triển lãm nhóm khác (riêng tư)','Visit another group (private)')}</button>:null}

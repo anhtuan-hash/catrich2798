@@ -466,7 +466,29 @@
 .bml .bml-locked-dossier dl div{padding-top:8px;border-top:1px solid #dedbd5}
 .bml .bml-locked-dossier dt{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8a5a12}
 .bml .bml-locked-dossier dd{margin:3px 0 0;white-space:pre-wrap;font-size:15px;line-height:1.45}
-.bml.bml-student-login-with-ribbon .bml-guest-overline b{letter-spacing:-.03em}
+.bml-student-lang{
+ display:inline-flex;
+ border:1px solid #152033;
+ vertical-align:middle;
+}
+.bml-student-lang button{
+ min-width:36px;
+ height:32px;
+ padding:0 8px;
+ border:0;
+ background:#fff;
+ color:#152033;
+ font-weight:800;
+ font-size:12px;
+ letter-spacing:.06em;
+ cursor:pointer;
+}
+.bml-student-lang button[aria-pressed="true"]{
+ background:#152033;
+ color:#fff;
+}
+.bml-student-right{display:flex;align-items:center;gap:8px}
+.bml-guest-form .bml-student-lang{margin:0 0 8px}
 
 /* One paper surface. Drop repeated status lines that are not the lesson. */
 .bml.bml-student-canvas16.bml-student-editorial .bml-student-toolrail{
