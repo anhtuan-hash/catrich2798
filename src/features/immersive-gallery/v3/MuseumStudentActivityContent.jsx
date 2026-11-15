@@ -4,11 +4,17 @@ import {MUSEUM_ACTIVITY_SLIDES,NEXT_DELIVERY_STAGES} from './museumActivitySlide
 
 const tr=(language,vi,en)=>language==='en'?en:vi;
 
-export function StudentActivityTask({stage,language='vi',onOpenProject}){
+export function StudentActivityTask({stage,language='vi',onOpenProject,projectLabel,extensionOnly=false}){
  const slide=MUSEUM_ACTIVITY_SLIDES[stage.id];
  const note=LESSON_PLAN_NOTES[stage.id];
  if(!slide)return null;
  const writing=stage.id==='climate-detective'?EVIDENCE_WRITING.before:stage.id==='exit-ticket'?EVIDENCE_WRITING.after:null;
+ if(extensionOnly&&note?.extension)return <section className="bml-student-p2-task" lang="en">
+  <h3>{writing?(stage.id==='climate-detective'?'Individual writing · A':'Individual writing · B'):(stage.id==='revise'?'Visitor test · V2':'Visitor test · V1')}</h3>
+  <p>{note.extension}</p>
+  {writing?<p>{writing}</p>:<ol>{VISITOR_TASKS.map(task=><li key={task}>{task}</li>)}</ol>}
+  {onOpenProject?<button type="button" className="bml-outline" onClick={onOpenProject}>{projectLabel}</button>:null}
+ </section>;
  return <section className="bml-student-p2-task" data-testid="student-p2-task" aria-label={tr(language,'Nhiệm vụ theo kế hoạch bài dạy','Teaching-plan task')}>
   <p className="bml-student-p2-question" lang="en">{slide.question}</p>
   <div className="bml-student-p2-cards" lang="en">
@@ -22,7 +28,7 @@ export function StudentActivityTask({stage,language='vi',onOpenProject}){
    {writing?<p lang="en">{writing}</p>:<ol lang="en">{VISITOR_TASKS.map(task=><li key={task}>{task}</li>)}</ol>}
   </details>:null}
   {onOpenProject?<div className="bml-student-p2-actions">
-   <button type="button" className="bml-outline" onClick={onOpenProject}>{tr(language,'Mở sản phẩm của nhóm','Open group project')}</button>
+   <button type="button" className="bml-outline" onClick={onOpenProject}>{projectLabel||tr(language,'Mở sản phẩm của nhóm','Open group project')}</button>
   </div>:null}
  </section>;
 }

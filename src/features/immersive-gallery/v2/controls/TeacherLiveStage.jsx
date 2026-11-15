@@ -20,7 +20,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
   session,stage,currentIndex,language='vi',
   readOnly=false,frozenReason='',
   spotlight=null,onCloseSpotlight,
-  curriculumNode=null,view='task',questions=null,survey=null,
+  curriculumNode=null,view='task',questions=null,survey=null,questionIndex=0,onPresent,presentationBusy=false,
   revealed=false,
   elapsed=0,remaining=0,
   respondedCount=null,
@@ -68,7 +68,8 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
                 <h2 className="adv-stage-title">{stage?.title||t(language,'Đang tải hoạt động…','Loading activity…')}</h2>
                 {language!=='en'&&stage?.vi?<p className="adv-stage-vi">{stage.vi}</p>:null}
                 {hasLessonSlide?<TeacherLiveSlideContent key={stage.id} stage={stage} language={language}
-                  view={view} questions={questions} revealed={revealed} survey={survey} curriculumNode={curriculumNode}/>
+                  view={view} questions={questions} revealed={revealed} survey={survey} curriculumNode={curriculumNode}
+                  questionIndex={questionIndex} onPresent={onPresent} busy={presentationBusy}/>
                  :<p className="adv-stage-question">{stage?.question}</p>}
               </div>
               {!curriculumNode&&!focusedLayout?<StageArt id={stage?.id}/>:null}

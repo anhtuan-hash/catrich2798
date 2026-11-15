@@ -2,7 +2,7 @@ import React,{useEffect,useState} from 'react';
 import {CheckCircle2,ClipboardCheck,Lightbulb,Send,ShieldCheck} from 'lucide-react';
 import {MICRO_CHALLENGES,validMicroAnswer} from './museumLiveExtensions.js';
 import {liveGuest} from './museumLiveApi.js';
-export default function MuseumMicroChallenge({stageIndex,existing,csrf,language='vi'}){
+export default function MuseumMicroChallenge({stageIndex,sessionId,existing,csrf,language='vi'}){
  const task=MICRO_CHALLENGES[stageIndex];
  const [choice,setChoice]=useState(null),[reason,setReason]=useState(''),[submitted,setSubmitted]=useState(false);
  const [busy,setBusy]=useState(false),[error,setError]=useState('');
@@ -13,7 +13,7 @@ export default function MuseumMicroChallenge({stageIndex,existing,csrf,language=
   const input={choice,reason:reason.trim()};
   if(!validMicroAnswer(stageIndex,input)||busy||submitted)return;
   setBusy(true);setError('');
-  try{await liveGuest('micro-submit','POST',input,csrf);setSubmitted(true);}
+  try{await liveGuest('micro-submit','POST',{...input,sessionId,stageIndex},csrf);setSubmitted(true);}
   catch(e){setError(e.message);}finally{setBusy(false);}
  };
  return <section className="bml-micro-lab" data-testid="museum-micro-challenge" aria-label="Group learning challenge">
