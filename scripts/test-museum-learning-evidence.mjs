@@ -44,6 +44,21 @@ test('P2 contains exactly the teacher 11 stages and correct 45+45 timing',()=>{
  assert.match(p,/NASA/);assert.match(p,/United Nations/);assert.match(p,/Offline contingency/);
  assert.equal(contestBasename('Nguyễn Anh Tuấn'),'TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_');
 });
+test('poster prompts and checks survive a saved draft without changing older artwork records',()=>{
+ const artMeta={
+  issue:{source:'Group illustration',posterPrompt:'Show a classroom after lunch.',posterCheck:'Removed the pupil names.'},
+  evidence:{source:'Teacher-created poster'},
+  solution:{posterPrompt:'x'.repeat(901),posterCheck:'y'.repeat(401)}
+ };
+ const doc=normalizeGuestDraft(documentFromStudio({title:'Our museum',artMeta}),{max_rooms:3,max_exhibits:12});
+ const saved=normalizeStudio(doc).artMeta;
+ assert.equal(saved.issue.posterPrompt,artMeta.issue.posterPrompt);
+ assert.equal(saved.issue.posterCheck,artMeta.issue.posterCheck);
+ assert.equal(saved.evidence.source,artMeta.evidence.source);
+ assert.equal(saved.evidence.posterPrompt,undefined);
+ assert.equal(saved.solution.posterPrompt.length,900);
+ assert.equal(saved.solution.posterCheck.length,400);
+});
 test('CSV cells reject formula execution while preserving actual feedback',()=>{
  const output=csv([['=HYPERLINK("bad")','Normal, feedback','line\nnext']]);
  assert.ok(output.includes("'=HYPERLINK"));assert.ok(output.includes('"Normal, feedback"'));

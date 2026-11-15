@@ -7,7 +7,12 @@ export const groupRoles=['English editor','Data checker','Artwork designer','Pre
 export const ART_KEYS=['issue','evidence','solution'];
 export function normalizeArtMeta(input){return Object.fromEntries(ART_KEYS.map(k=>[k,{
  alt:String(input?.[k]?.alt||'').trim().slice(0,500),source:String(input?.[k]?.source||'').trim().slice(0,600),
- rights:String(input?.[k]?.rights||'').trim().slice(0,300)
+ rights:String(input?.[k]?.rights||'').trim().slice(0,300),
+ ...Object.fromEntries([['posterPrompt',900],['posterCheck',400]].flatMap(([field,max])=>{
+  const value=input?.[k]?.[field];
+  const clean=typeof value==='string'?value.replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,max):'';
+  return clean?[[field,clean]]:[];
+ }))
 }]));}
 export function roundRobin(groups){
  const sorted=[...groups].sort((a,b)=>String(a.label).localeCompare(String(b.label),'en')||a.id.localeCompare(b.id));

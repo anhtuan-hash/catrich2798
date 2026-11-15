@@ -48,7 +48,7 @@ export const LESSON_PLAN_NOTES = Object.freeze({
   },
   'artwork-studio': {
     phase: 'Build V1',
-    task: 'Build three exhibits with English labels of about 25–40 words each. Pin the frozen chart to The Evidence and link the source. Credit who created or adapted each image and which tools were used. Add alt text, check 3D or 2D, and save V1 before feedback.'
+    task: 'Build three exhibits with English labels of about 25–40 words each. In a five-minute parallel task, draft one English prompt per poster, check each generated visual against the group’s text and record the prompt and one check or revision. Attach the frozen chart alongside The Evidence poster and link the source. Credit the actual creator and tool, add alt text, preview and save V1.'
   },
   'peer-gallery-walk': {
     phase: 'Test V1',

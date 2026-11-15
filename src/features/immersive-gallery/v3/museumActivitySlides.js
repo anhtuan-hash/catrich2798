@@ -57,15 +57,15 @@ export const MUSEUM_ACTIVITY_SLIDES = {
     question: 'Build the first version of your museum.',
     cards: [
       ['Write', 'Create three English labels of about 25–40 words each.'],
-      ['Build', 'Choose a room, add a visual, credit its creator and method, and write alt text. Pin the frozen chart to The Evidence.'],
-      ['Check and save V1', 'Open the 3D or 2D view. Confirm the labels, chart and source are easy to find, then save before feedback.'],
+      ['Prompt and check', 'Draft one English prompt for each poster. Check that the images match your text and contain only backed claims. Save the prompts and a check note.'],
+      ['Upload and save V1', 'Credit the actual creator, add alt text and attach the frozen chart to The Evidence. Check the 2D or 3D view.'],
     ],
     output: 'A saved V1 with three exhibits, a traceable source and a concrete action.',
   },
   'peer-gallery-walk': {
     question: 'What did you learn? What could make this exhibit clearer?',
     cards: [
-      ['Visit', 'Visit each other group’s private exhibit.'],
+      ['Visit', 'Use the three posters to identify the problem, the evidence and the proposed action.'],
       ['Respond', 'Save a separate draft explaining what you learned and what could be clearer.'],
       ['Rate and send', 'Rate clarity from 1 to 4 for each exhibit, then send all reviews together.'],
     ],
