@@ -69,7 +69,11 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     document.addEventListener('fullscreenchange',sync);return()=>document.removeEventListener('fullscreenchange',sync);
   },[]);
   useEffect(()=>{if(activeTool!=='qr')return;let active=true;import('qrcode').then(({default:QR})=>QR.toDataURL(link,{width:220,margin:2})).then(url=>{if(active)setQr(url);}).catch(()=>{});return()=>{active=false;};},[activeTool]);
-  const session=state?.session?(readOnly?{...state.session,revealed:previewReveal}:state.session):null;
+  const historicalSession=state?.session??null;
+  const slideOnly=readOnly&&Boolean(assignment?.content_frozen_at)&&!historicalSession;
+  const session=historicalSession
+    ?(readOnly?{...historicalSession,revealed:previewReveal}:historicalSession)
+    :(slideOnly?{status:'ended',stageIndex:0,questionVersion:2,revealed:previewReveal}:null);
   const serverIndex=session?.stageIndex??0;
   const currentIndex=readOnly?(browseIndex??serverIndex):(jumpIndex??serverIndex);
   const stage=(readOnly||jumpIndex!=null)
@@ -79,9 +83,12 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   const minute=LIVE_STAGES[currentIndex]?.minutes||0;
   const curriculumVideo=MUSEUM_CURRICULUM_VIDEOS[currentIndex]||null;
   const showingCurriculumVideo=Boolean(curriculumVideo&&curriculumMode==='video');
-  const showingVideoCheck=currentIndex===3&&curriculumMode==='check';
-  const inVideoTaskMode=currentIndex===3&&curriculumMode==='task';
+  const showingVideoCheck=Boolean(curriculumVideo&&curriculumMode==='check');
   const legacyActivityTwo=currentIndex===1&&session?.questionVersion!==2;
+  const showingSavedQuestions=legacyActivityTwo&&curriculumMode==='saved';
+  const questions=legacyActivityTwo&&readOnly&&!showingSavedQuestions
+    ?LIVE_STAGES[1].questions
+    :stage?.questions??stage?.videoQuestions;
   const restoreKey=String(session?.id||'')+'/'+String(session?.stageIndex??'-');
   const hydratedKey=useRef('');
   useEffect(()=>{
@@ -174,19 +181,32 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     };
     window.addEventListener('keydown',handle);return()=>window.removeEventListener('keydown',handle);
   },[isFullscreen,activeTool,busy,currentIndex,session?.version,session?.status,act,readOnly]);
-  const respondedCount=Array.isArray(state?.responses)?state.responses.length:null;
+  const displayedStageLoaded=Boolean(historicalSession&&serverIndex===currentIndex);
+  const respondedCount=displayedStageLoaded&&Array.isArray(state?.responses)?state.responses.length:null;
+  const survey=state?.survey;
+  const surveyOptions=displayedStageLoaded&&state?.result?.options;
+  const slideSurvey=currentIndex===2&&survey&&surveyOptions?.length===survey.options?.length
+    ?{...survey,options:survey.options.map((option,index)=>({...option,label:surveyOptions[index].label}))}
+    :survey;
   const curriculumNode=curriculumVideo?(
     <div style={{display:'flex',flexDirection:'column',gap:6}}>
       <strong style={{fontSize:'clamp(9px,1.4cqi,11px)',letterSpacing:'.1em',color:'#9fc2e0'}}>NASA VIDEO · ACTIVITY {currentIndex+1}</strong>
-      <div role="group" aria-label={t(language,'Góc nhìn dạy học của hoạt động','Activity teaching view')} style={{display:'flex',flexWrap:'wrap',gap:6}}>
-        <button type="button" className="adv-toolbtn" style={{fontSize:'clamp(9px,1.3cqi,11px)',padding:'4px 8px'}} aria-pressed={showingCurriculumVideo} onClick={()=>setCurriculumMode('video')}>▶ {t(language,'Xem clip NASA','Watch NASA clip')}</button>
-        {currentIndex===3?<button type="button" className="adv-toolbtn" style={{fontSize:'clamp(9px,1.3cqi,11px)',padding:'4px 8px'}} aria-pressed={showingVideoCheck} onClick={()=>setCurriculumMode('check')}><BookOpen size={12}/> 3 {t(language,'câu hỏi video','video questions')}</button>:null}
-        <button type="button" className="adv-toolbtn" style={{fontSize:'clamp(9px,1.3cqi,11px)',padding:'4px 8px'}} aria-pressed={currentIndex===3?inVideoTaskMode:!showingCurriculumVideo} onClick={()=>setCurriculumMode('task')}><BookOpen size={12}/>{currentIndex===1?(legacyActivityTwo?t(language,'3 câu hỏi ngữ pháp','3 language questions'):t(language,'3 câu hỏi video','3 video questions')):t(language,'Nhiệm vụ thiết kế','Design tasks')}</button>
+      <div className="adv-slide-view-tabs" role="group" aria-label={t(language,'Góc nhìn dạy học của hoạt động','Activity teaching view')}>
+        <button type="button" aria-pressed={showingCurriculumVideo} onClick={()=>setCurriculumMode('video')}>{t(language,'Xem clip NASA','Watch NASA clip')}</button>
+        {questions?.length?<button type="button" aria-pressed={showingVideoCheck} onClick={()=>setCurriculumMode('check')}>
+          {legacyActivityTwo&&!readOnly?t(language,'3 câu hỏi của phiên cũ','3 questions from this session'):t(language,'3 câu hỏi video','3 video questions')}
+        </button>:null}
+        {legacyActivityTwo&&readOnly?<button type="button" aria-pressed={showingSavedQuestions} onClick={()=>setCurriculumMode('saved')}>
+          {t(language,'Câu hỏi đã lưu của phiên cũ','Saved questions from this session')}
+        </button>:null}
+        <button type="button" aria-pressed={curriculumMode==='task'} onClick={()=>setCurriculumMode('task')}>{t(language,'Nhiệm vụ','Task')}</button>
       </div>
-      {showingCurriculumVideo?<div style={{flex:'1 1 auto',minHeight:0,display:'flex',alignItems:'center',justifyContent:'center'}}><MuseumCurriculumStageVideo video={curriculumVideo} stageIndex={currentIndex} language={language} onContinue={()=>setCurriculumMode('task')}/></div>:null}
+      {showingCurriculumVideo?<MuseumCurriculumStageVideo video={curriculumVideo} stageIndex={currentIndex} language={language}
+        continueLabel={legacyActivityTwo&&!readOnly?t(language,'Xem câu hỏi đã lưu','View saved questions'):undefined}
+        onContinue={()=>setCurriculumMode(questions?.length?'check':'task')}/>:null}
     </div>
   ):null;
-  const exitResponses=(stage?.kind==='exit'||session?.status==='ended')&&Array.isArray(state?.responses)
+  const exitResponses=stage?.kind==='exit'&&serverIndex===currentIndex&&Array.isArray(state?.responses)
     ?state.responses.filter(r=>r.stage_index===currentIndex||stage?.kind==='exit').slice(0,30):[];
   const toolbar=session?<TeacherToolbar offline={!!data?.offlineReadOnly} language={language} readOnly={readOnly} busy={busy} session={session} currentIndex={currentIndex}
     motionOn={motionOn} activeTool={activeTool}
@@ -228,6 +248,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
         </select></label>
       {readOnly?<div className="adv-banner adv-banner--success" role="status">🔒 {frozenReason||t(language,'Bài học đã kết thúc · Chỉ xem.','Completed lesson · View only.')} {t(language,'Xem lại, nội dung bài học, mã QR và minh chứng vẫn có sẵn; điều khiển trực tiếp không thể thay đổi dữ liệu đã lưu.','Playback, lesson content, QR codes and evidence remain available; live controls cannot change saved data.')}</div>:null}
       {error?<div className="adv-banner adv-banner--danger" role="alert">{error}</div>:null}
+      {slideOnly?<div className="adv-banner" role="status">{t(language,'Đang hiển thị slide theo kế hoạch P2. Dữ liệu đã lưu hiển thị khi phiên lớp có sẵn.','Showing the P2 teaching slides. Saved responses appear when the classroom session is available.')}</div>:null}
       {!assignments.length?<div className="panel" style={{padding:24,textAlign:'center'}}><BookOpen size={26}/><p>{t(language,'Hãy tạo bài học và mã nhóm trước khi mở Teacher Live.','Create a lesson and group passes first.')}</p></div>:null}
       {assignmentId&&!session&&assignments.length?(
         <div className="panel" style={{padding:24,textAlign:'center'}}>
@@ -243,7 +264,8 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
             session={session} stage={stage} currentIndex={currentIndex} language={language}
             readOnly={readOnly} frozenReason={frozenReason}
             spotlight={spotlight} onCloseSpotlight={()=>setSpotlight(null)}
-            curriculumNode={curriculumNode}
+            curriculumNode={curriculumNode} view={curriculumVideo?(showingSavedQuestions?'check':curriculumMode):'task'}
+            questions={questions} survey={slideSurvey}
             revealed={Boolean(session.revealed)}
             elapsed={elapsed} remaining={remaining}
             respondedCount={respondedCount}
@@ -298,9 +320,9 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
             </div>
           ):null}
           <div className="content-gap" style={{marginTop:20}}/>
-          <CommandCenter groups={groups} responses={state?.responses||[]} feedback={state?.feedback||[]}
+          {!slideOnly?<CommandCenter groups={groups} responses={state?.responses||[]} feedback={state?.feedback||[]}
             microResults={state?.microResults||[]} helpGroups={state?.helpGroups||[]}
-            session={session} busy={busy} onRefresh={refresh} onSpotlight={spotlightGroup} onCompare={compareGroup} language={language}/>
+            session={session} busy={busy} onRefresh={refresh} onSpotlight={spotlightGroup} onCompare={compareGroup} language={language}/>:null}
           {exitResponses.length?(
             <>
               <div className="content-gap"><div className="section-title"><span>{t(language,'PHẢN HỒI NHÓM ĐÃ LƯU','RECORDED GROUP REFLECTIONS')}</span><span className="right">{t(language,'Minh chứng chỉ đọc','Read-only evidence')}</span></div></div>
