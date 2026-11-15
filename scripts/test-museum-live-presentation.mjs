@@ -14,6 +14,7 @@ test('an ordinary group state request uses the verified group session', () => {
 
 test('all lesson stages have an appropriate default presentation', () => {
   assert.equal(LIVE_STAGES.length, 11);
+  assert.deepEqual(presentationFor(undefined), { view: "task", questionIndex: 0 });
   for (const [index, stage] of LIVE_STAGES.entries()) {
     const { view, questionIndex } = presentationFor(index);
     assert.equal(view, [1, 3].includes(index) ? 'video' : 'task');

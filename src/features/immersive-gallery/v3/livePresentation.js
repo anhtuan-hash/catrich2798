@@ -4,7 +4,7 @@ import { MUSEUM_CURRICULUM_VIDEOS } from './museumLiveExtensions.js';
 
 export function presentationFor(stageIndex, saved) {
   const initial = { view: MUSEUM_CURRICULUM_VIDEOS[stageIndex] ? 'video' : 'task', questionIndex: 0 };
-  return saved?.stageIndex === stageIndex ? { view: saved.view, questionIndex: saved.questionIndex } : initial;
+  return saved && saved.stageIndex === stageIndex ? { view: saved.view, questionIndex: saved.questionIndex } : initial;
 }
 
 export function validPresentation(stageIndex, stage, view, questionIndex) {
