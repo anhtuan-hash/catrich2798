@@ -1,0 +1,50 @@
+import React,{useState} from 'react';
+import {EVIDENCE_WRITING,LESSON_PLAN_NOTES,VISITOR_TASKS} from './lessonPlanAlignment.js';
+import {MUSEUM_ACTIVITY_SLIDES,NEXT_DELIVERY_STAGES} from './museumActivitySlides.js';
+
+const tr=(language,vi,en)=>language==='en'?en:vi;
+
+export function StudentActivityTask({stage,language='vi',onOpenProject}){
+ const slide=MUSEUM_ACTIVITY_SLIDES[stage.id];
+ const note=LESSON_PLAN_NOTES[stage.id];
+ if(!slide)return null;
+ const writing=stage.id==='climate-detective'?EVIDENCE_WRITING.before:stage.id==='exit-ticket'?EVIDENCE_WRITING.after:null;
+ return <section className="bml-student-p2-task" data-testid="student-p2-task" aria-label={tr(language,'Nhiệm vụ theo kế hoạch bài dạy','Teaching-plan task')}>
+  <p className="bml-student-p2-question" lang="en">{slide.question}</p>
+  <div className="bml-student-p2-cards" lang="en">
+   {slide.cards.map(([title,body])=><article key={title}><strong>{title}</strong><p>{body}</p></article>)}
+  </div>
+  <p className="bml-student-p2-output"><strong>{tr(language,'Sản phẩm','Deliverable')}</strong> <span lang="en">{slide.output}</span></p>
+  {stage.sentence?<p className="bml-student-p2-frame" lang="en">“{stage.sentence}”</p>:null}
+  {NEXT_DELIVERY_STAGES.includes(stage.id)&&note?.extension?<details>
+   <summary>{tr(language,'Lần dạy tiếp theo','Next delivery')}</summary>
+   <p lang="en">{note.extension}</p>
+   {writing?<p lang="en">{writing}</p>:<ol lang="en">{VISITOR_TASKS.map(task=><li key={task}>{task}</li>)}</ol>}
+  </details>:null}
+  {onOpenProject?<div className="bml-student-p2-actions">
+   <button type="button" className="bml-outline" onClick={onOpenProject}>{tr(language,'Mở sản phẩm của nhóm','Open group project')}</button>
+  </div>:null}
+ </section>;
+}
+
+export function StudentActivityQuiz({questions,language='vi',revealed=false,selected={},onSelect,disabled=false}){
+ const [page,setPage]=useState(0);
+ const question=questions[page];
+ return <section className="bml-live-response-form bml-student-p2-quiz" data-testid="student-video-questions">
+  <nav className="bml-student-p2-actions" aria-label={tr(language,'Câu hỏi nghe hiểu','Listening questions')}>
+   {questions.map((item,i)=><button key={item.q} type="button" className="bml-outline" aria-pressed={i===page} onClick={()=>setPage(i)}>{tr(language,'Câu','Question')} {i+1}</button>)}
+  </nav>
+  <div lang="en">
+   <strong>Q{page+1}. {question.q}</strong>
+   {onSelect?<div className="bml-live-response-options">
+    {question.choices.map((choice,i)=><button type="button" key={choice} disabled={disabled}
+     aria-pressed={selected[page]===i} aria-label={String.fromCharCode(65+i)+'. '+choice}
+     className={selected[page]===i?'is-chosen':''} onClick={()=>onSelect(page,i)}>
+     <span className="bml-option-letter" aria-hidden="true">{String.fromCharCode(65+i)}.</span>
+     <span className="bml-option-copy" aria-hidden="true">{choice}</span>
+    </button>)}
+   </div>:<ol type="A">{question.choices.map(choice=><li key={choice}>{choice}</li>)}</ol>}
+   {revealed&&Number.isInteger(question.answer)?<p className="bml-quiz-revealed">Answer: {String.fromCharCode(65+question.answer)} · {question.explanation}</p>:null}
+  </div>
+ </section>;
+}

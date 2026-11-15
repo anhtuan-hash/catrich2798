@@ -1,6 +1,6 @@
 import React,{useState} from 'react';
 import {EVIDENCE_WRITING, LESSON_PLAN_NOTES, VISITOR_TASKS} from '../../v3/lessonPlanAlignment.js';
-import {NEXT_DELIVERY_STAGES, TEACHER_LIVE_SLIDES} from './teacherLiveSlides.js';
+import {NEXT_DELIVERY_STAGES, MUSEUM_ACTIVITY_SLIDES} from '../../v3/museumActivitySlides.js';
 
 const t=(language,vi,en)=>language==='en'?en:vi;
 
@@ -37,7 +37,7 @@ function FrozenSurvey({survey,language}){
 
 export default function TeacherLiveSlideContent({stage,language,view='task',questions,revealed,survey,curriculumNode}) {
   const [taskView,setTaskView]=useState('task');
-  const slide=TEACHER_LIVE_SLIDES[stage.id];
+  const slide=MUSEUM_ACTIVITY_SLIDES[stage.id];
   const note=LESSON_PLAN_NOTES[stage.id];
   const showVote=stage.kind==='vote'&&stage.id==='climate-detective';
   const hasExtension=NEXT_DELIVERY_STAGES.includes(stage.id);

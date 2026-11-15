@@ -1,5 +1,5 @@
 // Projector copy for the P2 lesson. Historical question/response data comes from the live session.
-export const TEACHER_LIVE_SLIDES = {
+export const MUSEUM_ACTIVITY_SLIDES = {
   'climate-detective': {
     question: 'Which of these actions could our school realistically take, and why?',
     cards: [

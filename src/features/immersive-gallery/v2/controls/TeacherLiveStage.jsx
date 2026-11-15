@@ -3,7 +3,7 @@ import {X,Minimize2} from 'lucide-react';
 import MuseumScene from '../../v3/MuseumScene.jsx';
 import StageArt from './StageArt.jsx';
 import TeacherLiveSlideContent from './TeacherLiveSlideContent.jsx';
-import {TEACHER_LIVE_SLIDES} from './teacherLiveSlides.js';
+import {MUSEUM_ACTIVITY_SLIDES} from '../../v3/museumActivitySlides.js';
 const t=(lang,vi,en)=>lang==='en'?en:vi;
 const fmtClock=sec=>{
   if(!Number.isFinite(sec)||sec<0)sec=0;
@@ -35,7 +35,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
   const statusLabel=readOnly?t(language,'CHỈ XEM','VIEW ONLY'):taskOpen
     ?t(language,'ĐANG MỞ HOẠT ĐỘNG','TASK OPEN')
     :t(language,'HOẠT ĐỘNG CHƯA MỞ','TASK CLOSED');
-  const hasLessonSlide=Boolean(TEACHER_LIVE_SLIDES[stage?.id]);
+  const hasLessonSlide=Boolean(MUSEUM_ACTIVITY_SLIDES[stage?.id]);
   const focusedLayout=hasLessonSlide&&stage.id!=='climate-detective';
   return (
     <section className={'stage adv-stage'+(hasLessonSlide?' adv-p2-slide':'')+(curriculumNode&&view==='video'?' adv-p2-video':'')} ref={ref} data-testid="igv2-teacher-live-stage"
