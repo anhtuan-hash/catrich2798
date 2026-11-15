@@ -97,6 +97,15 @@ async function loadOwnGroup(ctx,groupId){
  return {group,assignment};
 }
 
+const rubricCeilings={english:40,evidence:20,reasoning:15,design:15,revision:10};
+function validateRubricScores(raw,ceilings=rubricCeilings){
+ if(!raw||typeof raw!=='object'||Array.isArray(raw)||
+    Object.keys(raw).length!==5||
+    Object.keys(ceilings).some(key=>!Number.isInteger(raw[key])||raw[key]<0||raw[key]>ceilings[key]))
+  throw fail(400,'Each of the five rubric scores must be a whole number within its allowed range.');
+ return raw;
+}
+
 export default async function galleryStaff(req,res){
  try {
   const operation=String(req.query?.operation||'');
@@ -258,7 +267,7 @@ export default async function galleryStaff(req,res){
    const reviews=groupIds.length?await query(admin.from('gcp_reviews')
      .select('id,group_id,version,state,teacher_note,ttcm_note,approved_by,approved_at,submitted_at,snapshot_hash,snapshot')
      .in('group_id',groupIds).is('archived_at',null).order('submitted_at',{ascending:false}).limit(500)):[];
-   const rubrics=reviews.length?await query(admin.from('gcp_rubric_scores')
+   const rubrics=reviews.length&&!ctx.publicReadOnly?await query(admin.from('gcp_rubric_scores')
      .select('review_id,teacher_id,scores,feedback,updated_at')
      .in('review_id',reviews.map(r=>r.id)).limit(500)):[];
    const reviewerCandidates=ctx.role==='admin'?await query(admin.from('profiles')
@@ -370,12 +379,7 @@ export default async function galleryStaff(req,res){
    // record or revise the independent teaching rubric without unpublishing it.
    if(!canGradeReviewState(scoped.review.state))
      throw fail(423,'The submission cannot be graded in its current state.');
-   const ceilings={english:40,evidence:20,reasoning:15,design:15,revision:10};
-   const raw=body.scores;
-   if(!raw||typeof raw!=='object'||Array.isArray(raw)||
-       Object.keys(raw).length!==5||
-       Object.keys(ceilings).some(key=>!Number.isInteger(raw[key])||raw[key]<0||raw[key]>ceilings[key]))
-      throw fail(400,'Điểm rubric phải đủ năm tiêu chí và không vượt điểm tối đa.');
+   const raw=validateRubricScores(body.scores);
    const feedback=clean(body.feedback,2000);
    await query(admin.from('gcp_rubric_scores').upsert({
     review_id:scoped.review.id,teacher_id:ctx.user.id,
@@ -439,12 +443,21 @@ export default async function galleryStaff(req,res){
 
   if(operation==='admin-decision'){
    requireMethod(req,'POST');guardOrigin(req);assertAdmin(ctx);
-   const body=guardBody(req,3500),action=String(body.action||'');
+   const body=guardBody(req,6000),action=String(body.action||'');
    if(!['approve','return','reject'].includes(action))throw fail(400,'Quyết định không hợp lệ.');
    await loadScopedReview(ctx,body.reviewId);
-   const state=await query(admin.rpc('gcp_admin_decide',{
-    p_review:body.reviewId,p_actor:ctx.user.id,p_action:action,p_note:clean(body.note,2000)
-   }));
+   const decision={p_review:body.reviewId,p_actor:ctx.user.id,p_note:clean(body.note,2000)};
+   let state;
+   if(action==='approve'&&body.rubric){
+    const {scores,expectedUpdatedAt}=body.rubric;
+    if(expectedUpdatedAt!==null&&(typeof expectedUpdatedAt!=='string'||!Number.isFinite(Date.parse(expectedUpdatedAt))))
+     throw fail(400,'Invalid rubric revision. Reload the submission and try again.');
+    state=await query(admin.rpc('gcp_admin_approve_with_rubric',{
+     ...decision,p_scores:validateRubricScores(scores),p_expected_updated_at:expectedUpdatedAt
+    }));
+   }else{
+    state=await query(admin.rpc('gcp_admin_decide',{...decision,p_action:action}));
+   }
    return send(res,200,{ok:true,state});
   }
   if(operation==='archive-review'){
