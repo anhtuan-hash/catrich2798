@@ -24,7 +24,7 @@ const VIDEO_GUIDANCE=Object.freeze({
   bridge:'Answer the three video questions, then build the museum design. The survey records group priorities, not measured emissions.'
  }
 });
-export default function MuseumCurriculumStageVideo({video,stageIndex,language='en',onContinue}){
+export default function MuseumCurriculumStageVideo({video,stageIndex,language='en',onContinue,continueLabel}){
  if(!video)return null;
  const guidance=VIDEO_GUIDANCE[stageIndex];
  return <section className="bml-curriculum-video" data-testid="museum-curriculum-video" data-video-id={video.id} aria-label={'NASA lesson video: '+video.title}>
@@ -37,7 +37,7 @@ export default function MuseumCurriculumStageVideo({video,stageIndex,language='e
    <ol>{guidance?.steps?.map(step=><li key={step}>{step}</li>)}</ol>
    <div className="bml-curriculum-video-reminder"><ShieldCheck size={17} aria-hidden="true"/><p>{guidance?.bridge||video.prompt}</p></div>
    <button type="button" className="bml-curriculum-video-continue" onClick={onContinue}>
-    <BookOpen size={17} aria-hidden="true"/> {stageIndex===1?'Answer 3 video questions':'Check understanding · 3 questions'} <ArrowRight size={17} aria-hidden="true"/>
+    <BookOpen size={17} aria-hidden="true"/> {continueLabel||(stageIndex===1?'Answer 3 video questions':'Check understanding · 3 questions')} <ArrowRight size={17} aria-hidden="true"/>
    </button>
    <small>{video.timing}</small>
    <small><a href={video.officialSource} target="_blank" rel="noreferrer">{language==='en'?'NASA original':'Nguồn gốc NASA'}</a>

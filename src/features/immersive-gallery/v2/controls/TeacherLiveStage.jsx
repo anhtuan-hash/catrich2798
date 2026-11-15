@@ -2,6 +2,8 @@ import React,{forwardRef} from 'react';
 import {X,Minimize2} from 'lucide-react';
 import MuseumScene from '../../v3/MuseumScene.jsx';
 import StageArt from './StageArt.jsx';
+import TeacherLiveSlideContent from './TeacherLiveSlideContent.jsx';
+import {TEACHER_LIVE_SLIDES} from './teacherLiveSlides.js';
 const t=(lang,vi,en)=>lang==='en'?en:vi;
 const fmtClock=sec=>{
   if(!Number.isFinite(sec)||sec<0)sec=0;
@@ -18,8 +20,8 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
   session,stage,currentIndex,language='vi',
   readOnly=false,frozenReason='',
   spotlight=null,onCloseSpotlight,
-  curriculumNode=null,
-  result=null,revealed=false,
+  curriculumNode=null,view='task',questions=null,survey=null,
+  revealed=false,
   elapsed=0,remaining=0,
   respondedCount=null,
   isFullscreen=false,onExitFullscreen,
@@ -33,9 +35,10 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
   const statusLabel=readOnly?t(language,'CHỈ XEM','VIEW ONLY'):taskOpen
     ?t(language,'ĐANG MỞ HOẠT ĐỘNG','TASK OPEN')
     :t(language,'HOẠT ĐỘNG CHƯA MỞ','TASK CLOSED');
-  const options=stage?.options||[];
+  const hasLessonSlide=Boolean(TEACHER_LIVE_SLIDES[stage?.id]);
+  const focusedLayout=hasLessonSlide&&stage.id!=='climate-detective';
   return (
-    <section className="stage adv-stage" ref={ref} data-testid="igv2-teacher-live-stage"
+    <section className={'stage adv-stage'+(hasLessonSlide?' adv-p2-slide':'')+(curriculumNode&&view==='video'?' adv-p2-video':'')} ref={ref} data-testid="igv2-teacher-live-stage"
       aria-label={t(language,'Sân khấu hoạt động lớp học trực tiếp','Live classroom activity stage')}>
       {isFullscreen?<button type="button" className="adv-stage-exit-fullscreen" onClick={onExitFullscreen} aria-label={t(language,'Thoát toàn màn hình','Exit fullscreen')}><Minimize2 size={13}/> {t(language,'Thoát','Exit')}</button>:null}
       <div className="adv-stage-top">
@@ -43,6 +46,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
         <span className="adv-stage-progress">
           <span>{t(language,'TIẾT','PERIOD')} {period}/2</span>
           <span>{t(language,'HOẠT ĐỘNG','ACTIVITY')} {Math.min(currentIndex+1,11)}/11</span>
+          {stage?.minutes?<span>{stage.minutes} {t(language,'PHÚT','MIN')}</span>:null}
         </span>
       </div>
       <div className="adv-stage-body">
@@ -58,29 +62,23 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
           </div>
         ):(
           <>
-            <div className={'adv-stage-layout' + (curriculumNode ? ' is-video' : '')}>
+            <div className={'adv-stage-layout' + (curriculumNode||focusedLayout?' is-video':'')}>
               <div className="adv-stage-copy">
                 <div className="adv-stage-section">{periodLabel}{stage?.kind?` · ${stage.kind}`:''}</div>
                 <h2 className="adv-stage-title">{stage?.title||t(language,'Đang tải hoạt động…','Loading activity…')}</h2>
                 {language!=='en'&&stage?.vi?<p className="adv-stage-vi">{stage.vi}</p>:null}
-                {stage?.question?<p className="adv-stage-question">{stage.question}</p>:null}
-                {curriculumNode}
-                {options.length>0&&!revealed?(
-                  <div className="adv-stage-options" role="list" aria-label={t(language,'Lựa chọn hoạt động','Activity options')}>
-                    {options.map((o,i)=><div className="adv-stage-option" role="listitem" key={i}><b style={{color:'#ffdd75',marginRight:6}}>{String.fromCharCode(65+i)}.</b>{o}</div>)}
-                  </div>
-                ):null}
-                {revealed&&stage?.expected?<div style={{fontSize:'clamp(16px,2.2cqi,26px)',color:'#b7e4c7',lineHeight:1.45}}>✓ {stage.expected}</div>:null}
-                {stage?.sentence?<div className="adv-stage-sentence">“{stage.sentence}”</div>:null}
+                {hasLessonSlide?<TeacherLiveSlideContent key={stage.id} stage={stage} language={language}
+                  view={view} questions={questions} revealed={revealed} survey={survey} curriculumNode={curriculumNode}/>
+                 :<p className="adv-stage-question">{stage?.question}</p>}
               </div>
-              {curriculumNode ? null : <StageArt id={stage?.id} />}
+              {!curriculumNode&&!focusedLayout?<StageArt id={stage?.id}/>:null}
             </div>
           </>
         )}
       </div>
       <div className="adv-stage-bottom">
         <strong className="adv-stage-timer" aria-label={readOnly?'Review mode':t(language,'Thời gian còn lại','Time remaining')}>◷ {readOnly?'REVIEW MODE':fmtClock(remaining)}</strong>
-        <span className="status" data-open={taskOpen&&!readOnly?'true':'false'} style={{background:readOnly?'#dff3e8':taskOpen?'#dff3e8':'#fdecec',color:readOnly?'#14532d':taskOpen?'#14532d':'#7f1d1d',padding:'3px 10px',fontSize:10,fontWeight:850,letterSpacing:'.08em'}}>{statusLabel}</span>
+        <span className="status" data-open={taskOpen&&!readOnly?'true':'false'} title={readOnly?frozenReason:undefined} style={{background:readOnly?'#dff3e8':taskOpen?'#dff3e8':'#fdecec',color:readOnly?'#14532d':taskOpen?'#14532d':'#7f1d1d',padding:'3px 10px',fontSize:10,fontWeight:850,letterSpacing:'.08em'}}>{statusLabel}</span>
         <span style={{color:'#9fb3c6'}}>{respondedCount!=null?`${respondedCount} ${t(language,'phản hồi nhóm','group responses')}`:''}</span>
       </div>
       {isFullscreen&&fullscreenControls?<div className="adv-stage-fullscreen-controls" data-testid="museum-fullscreen-viewer-controls"
@@ -91,11 +89,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
         style={{position:'absolute',zIndex:40,top:'8%',right:12,width:'min(480px,92vw)',maxHeight:'72%',overflowY:'auto',background:'#fff',color:'#173452',borderRadius:10,padding:16,boxShadow:'0 12px 32px rgba(0,0,0,.3)'}}>
         {fullscreenPanel}
       </div>:null}
-      {readOnly?(
-        <div className="adv-stage-readonly" aria-live="polite">
-          <span>🔒 {frozenReason||t(language,'Bài học đã kết thúc · Chỉ xem','Completed lesson · View only')}</span>
-        </div>
-      ):null}
+
     </section>
   );
 });
