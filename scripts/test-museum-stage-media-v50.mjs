@@ -49,7 +49,7 @@ test('student rail and nested panels use the same availability gate',()=>{
  const teacher=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLiveTeacher.jsx','utf8');
  const api=fs.readFileSync('serverless-handlers/museum-live.js','utf8');
  assert.match(rail,/studentMedia\.voice\?<button/);
- assert.match(rail,/studentMedia\.video\?<button/);
+ assert.match(rail,/studentMedia\.video&&liveInfo\?\.media\?\.query\?<button/);
  assert.match(live,/activeTool!=='video'\|\|hasVideo/);
  assert.match(live,/activeTool!=='voice'\|\|hasVoice/);
  assert.match(video,/Assign video to this activity/);

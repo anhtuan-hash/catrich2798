@@ -7,10 +7,10 @@ const tr=(lang,vi,en)=>lang==='en'?en:vi;
 export function MuseumVideoFrame({id,title,onClose,language='vi'}){
  const videoId=extractYouTubeVideoId(id);
  if(!videoId)return null;
- if(getMuseumOffline())return <section className="bml-surface" data-testid="museum-offline-video"><h3>{title||'YouTube'}</h3><p>{tr(language,'Video YouTube cần Internet và không được đóng gói trong bản này. Lời dẫn và nhiệm vụ học tập vẫn có thể xem offline.','This YouTube video requires Internet and is not embedded. Teaching scripts and tasks remain available offline.')}</p><code>{'https://www.youtube.com/watch?v='+videoId}</code><p><button type="button" className="bml-outline" onClick={onClose}>{tr(language,'Đóng','Close')}</button></p></section>;
+ if(getMuseumOffline())return <section className="bml-surface" data-testid="museum-offline-video"><h3>{title||'YouTube'}</h3><p>{tr(language,'Video YouTube cần Internet và không được đóng gói trong bản này. Lời dẫn và nhiệm vụ học tập vẫn có thể xem offline.','This YouTube video requires Internet and is not embedded. Teaching scripts and tasks remain available offline.')}</p><code>{'https://www.youtube.com/watch?v='+videoId}</code>{onClose?<p><button type="button" className="bml-outline" onClick={onClose}>{tr(language,'Đóng','Close')}</button></p>:null}</section>;
  return <div className="bml-video-player" data-testid="museum-youtube-player">
   <div className="bml-video-player-heading"><strong><Film size={17}/>{title||'YouTube'}</strong>
-   <button type="button" className="bml-outline" onClick={onClose}><X size={16}/>{tr(language,'Đóng video','Close video')}</button></div>
+   {onClose?<button type="button" className="bml-outline" onClick={onClose}><X size={16}/>{tr(language,'Đóng video','Close video')}</button>:null}</div>
   <div className="bml-video-embed">
    <iframe title={'YouTube · '+(title||'Learning video')} loading="lazy"
     src={'https://www.youtube-nocookie.com/embed/'+videoId+'?rel=0&cc_load_policy=1&cc_lang_pref=en'}

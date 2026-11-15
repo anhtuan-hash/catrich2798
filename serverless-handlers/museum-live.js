@@ -298,7 +298,7 @@ export default async function museumLive(req,res){
    ]);
    const livePeer=rooms.length?await query(admin.from('museum_peer_live_feedback').select('learned,clarify,rating')
     .in('room_id',rooms.map(room=>room.id)).eq('from_group_id',ctx.group.id).limit(30)):[];
-   return send(res,200,{response:response?.value??null,micro,peer:livePeer.length?livePeer:paired?[paired]:[]});
+   return send(res,200,{response:response?.value??null,micro,peer:livePeer.length?livePeer:paired?[paired]:[],videos:videoTaskFor(session.media_board,index).videos});
   }
   if(op==='video-search'){
    requireMethod(req,'GET');
