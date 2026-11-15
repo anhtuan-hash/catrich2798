@@ -522,7 +522,7 @@ test('realistic Group 01 Stage 1 permits vote, help, all group project steps and
  await page.locator('.bml-student-steps button').first().click();
  await expect(page.getByTestId('student-vote-guidance')).toContainText('already submitted');
 });
-test('Museum Field Journal Stage 2 is legible, clickable and contained on a 16:9 classroom screen',async({page,isMobile})=>{
+test('Museum Field Journal Stage 2 keeps the quiz and project usable side by side',async({page,isMobile})=>{
  if(!isMobile)await page.setViewportSize({width:1366,height:768});
  await page.route('**/api/gallery-guest?**',async route=>{
   const op=new URL(route.request().url()).searchParams.get('operation');
@@ -565,13 +565,11 @@ test('Museum Field Journal Stage 2 is legible, clickable and contained on a 16:9
    return {main,project,viewportWidth:innerWidth,viewportHeight:innerHeight};
   });
   expect(geometry.main.right).toBeLessThan(geometry.project.left);
-  expect(geometry.main.bottom).toBeLessThanOrEqual(geometry.viewportHeight+1);
-  expect(geometry.project.bottom).toBeLessThanOrEqual(geometry.viewportHeight+1);
-  // The synthetic QA harness is longer than the viewport; only the fixed student canvas must fit.
+  expect(geometry.main.top).toBeCloseTo(geometry.project.top,0);
  }
  await expect(page.getByLabel('Describe your problem')).toBeEnabled();
 });
-test('student canvas keeps 16:9 activity, navigation and project panels on one desktop viewport',async({page})=>{
+test('student canvas uses page scrolling for the activity and project on desktop',async({page})=>{
  await page.setViewportSize({width:1366,height:768});
  await page.route('**/api/gallery-guest?**',async route=>{
   const op=new URL(route.request().url()).searchParams.get('operation');
@@ -594,14 +592,16 @@ test('student canvas keeps 16:9 activity, navigation and project panels on one d
   const a=el.getBoundingClientRect();
   const workspace=el.querySelector('[data-testid="student-one-screen-workspace"]').getBoundingClientRect();
   const rail=el.querySelector('.bml-student-project-panel').getBoundingClientRect();
+  const lesson=el.querySelector('.bml-student-lesson-panel').getBoundingClientRect();
   return {rootWidth:a.width,rootHeight:a.height,rootTop:a.top,workspaceBottom:workspace.bottom,railBottom:rail.bottom,
-   viewportWidth:window.innerWidth,viewportHeight:window.innerHeight,overflow:el.scrollWidth>el.clientWidth+2};
+   viewportWidth:window.innerWidth,viewportHeight:window.innerHeight,overflow:el.scrollWidth>el.clientWidth+2,
+   rowAligned:rail.top===lesson.top,scrollMode:getComputedStyle(el).overflowY};
  });
  expect(geometry.rootTop).toBeGreaterThanOrEqual(-1);
  expect(geometry.rootWidth).toBeLessThanOrEqual(geometry.viewportWidth+2);
  expect(geometry.rootHeight).toBeLessThanOrEqual(geometry.viewportHeight+2);
- expect(geometry.workspaceBottom).toBeLessThanOrEqual(geometry.viewportHeight+1);
- expect(geometry.railBottom).toBeLessThanOrEqual(geometry.viewportHeight+1);
+ expect(geometry.rowAligned).toBe(true);
+ expect(geometry.scrollMode).toBe('auto');
  expect(geometry.overflow).toBe(false);
  await expect(page.getByTestId('student-project-pane')).toBeVisible();
  await expect(page.getByTestId('student-live-activity')).toBeVisible();
@@ -1548,7 +1548,7 @@ test('Project pages scroll inside the 16:9 workbench without overlapping labels 
   const footerAfter=await footer.boundingBox();
   expect(Math.abs(footerBefore.y-footerAfter.y)).toBeLessThanOrEqual(2);
   expect(footerAfter.y+footerAfter.height).toBeLessThanOrEqual(viewport.height+2);
-  await expect(footer.getByRole('button',{name:'Continue'})).toBeInViewport();
+  await expect(footer.getByRole('button',{name:'Next page'})).toBeVisible();
   await expect(page.getByLabel('Proposed solution in English')).toBeInViewport();
   // Moving to Create must reset scroll, not open in the middle of a page.
   await app.locator('.bml-student-steps button').nth(2).click();
@@ -1662,7 +1662,7 @@ test('Student workspace keeps its banner and project editor usable across deskto
   await expect(ribbon.locator('img')).toHaveCount(1);
   await expect.poll(()=>ribbon.locator('img').evaluate(img=>img.naturalWidth)).toBeGreaterThan(0);
   const scrollMode=await app.getByTestId('student-task-scroll').evaluate(el=>getComputedStyle(el).overflowY);
-  expect(scrollMode).toBe('auto');
+  expect(scrollMode).toBe('visible');
   await app.locator('.bml-student-steps button').nth(4).click();
   const panel=app.getByTestId('student-task-scroll');
   await expect(app.getByRole('heading',{name:'Submission checklist'})).toBeVisible();

@@ -33,7 +33,7 @@ export function StudentActivityTask({stage,language='vi',onOpenProject,projectLa
  </section>;
 }
 
-export function StudentActivityQuiz({questions,language='vi',revealed=false,selected={},onSelect,disabled=false}){
+export function StudentActivityQuiz({questions,language='vi',revealed=false,selected={},saved,onSelect,disabled=false}){
  const [page,setPage]=useState(0);
  const question=questions[page];
  return <section className="bml-live-response-form bml-student-p2-quiz" data-testid="student-video-questions">
@@ -47,7 +47,7 @@ export function StudentActivityQuiz({questions,language='vi',revealed=false,sele
      aria-pressed={selected[page]===i} aria-label={String.fromCharCode(65+i)+'. '+choice}
      className={selected[page]===i?'is-chosen':''} onClick={()=>onSelect(page,i)}>
      <span className="bml-option-letter" aria-hidden="true">{String.fromCharCode(65+i)}.</span>
-     <span className="bml-option-copy" aria-hidden="true">{choice}</span>
+     <span className="bml-option-copy">{choice}{saved?.[page]===i?<small className="bml-student-saved-choice">{tr(language,'Nhóm đã chọn','Group choice')}</small>:null}</span>
     </button>)}
    </div>:<ol type="A">{question.choices.map((choice,i)=><li key={choice}>{selected[page]===i?<strong>{choice} · {tr(language,'Nhóm đã chọn','Group choice')}</strong>:choice}</li>)}</ol>}
    {revealed&&Number.isInteger(question.answer)?<p className="bml-quiz-revealed">Answer: {String.fromCharCode(65+question.answer)} · {question.explanation}</p>:null}

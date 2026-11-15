@@ -77,7 +77,7 @@ test('visible submission controls and image fix shortcut are reachable from the 
  assert.match(component,/onClick=\{openSubmitReview\}/);
  assert.match(component,/data-testid="museum-submission-checks"/);
  assert.match(component,/Add missing image sources/);
- assert.match(component,/setStep\(2\)/);
+ assert.match(component,/browseActivity\(6\)/);
  assert.match(component,/setArtworkOpen\(true\)/);
  assert.match(artwork,/Image source is missing/);
  assert.match(artwork,/Do not invent a source/);
