@@ -85,6 +85,33 @@ const submittedQa={
    rooms:[{title:'The climate hall',exhibits:[{title:'Our Problem',description:'Energy waste can contribute to emissions.'}]}]}}],
  rubrics:[]
 };
+function ReviewWorkflowHarness({language}){
+ const [data,setData]=useState({
+  ...submittedQa,
+  groups:[
+   ...submittedQa.groups,
+   {id:'group-3',assignment_id:'lesson-synthetic',state:'approved_locked',label:'Demo Group 3'}
+  ],
+  reviews:[
+   {...submittedQa.reviews[0],id:'a1b2c3d4-e5f6-4718-9203-040506070809'},
+   {id:'approved-qa',group_id:'group-3',version:1,state:'approved_locked',snapshot:{title:'Approved climate work'}}
+  ]
+ });
+ const transport=async(operation,body)=>{
+  if(operation==='publish'&&body.reviewId==='approved-qa')throw new Error('QA publication unavailable');
+  if(!['admin-decision','publish'].includes(operation))throw new Error('Unexpected QA request');
+  if(operation==='admin-decision'&&(!body.rubric||body.rubric.expectedUpdatedAt!==null))throw new Error('Rubric missing from approval');
+  const review=data.reviews.find(row=>row.id===body.reviewId);
+  const state=operation==='publish'?'published':'approved_locked';
+  setData(previous=>({...previous,
+   groups:previous.groups.map(row=>row.id===review.group_id?{...row,state}:row),
+   reviews:previous.reviews.map(row=>row.id===review.id?{...row,state}:row),
+   rubrics:body.rubric?[{review_id:review.id,scores:body.rubric.scores,feedback:body.note}]:previous.rubrics
+  }));
+  return {ok:true,state};
+ };
+ return <Submissions data={data} language={language} onRefresh={async()=>{}} transport={transport}/>;
+}
 let liveSession=null;
 const demoTeacherApi=async(action,body)=>{
  if(['media-task','media-add','media-remove'].includes(action)){
@@ -195,7 +222,7 @@ function Harness(){
  return <div style={{fontFamily:'Roboto,Arial,sans-serif'}}>
   <div style={{display:'flex',gap:8,padding:10,background:'#e6f0ff',flexWrap:'wrap'}} data-testid="qa-harness">
    <strong>QA ONLY · ALL DATA SYNTHETIC</strong>
-   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','published-lesson','dashboard-en','dashboard-published-en','dashboard-published-fail-en','student-en','teacher-live-en','teacher-live-ten-en','teacher-live-frozen-en','teacher-live-v2-frozen-en','v53-evidence-en','v54-speaking-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
+   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','review-workflow-en','published-lesson','dashboard-en','dashboard-published-en','dashboard-published-fail-en','student-en','teacher-live-en','teacher-live-ten-en','teacher-live-frozen-en','teacher-live-v2-frozen-en','v53-evidence-en','v54-speaking-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
   </div>
   <div className={normalized==='dashboard'?'':'bml'}>
    {normalized==='dashboard'?<MuseumLabApp language={uiLanguage} currentUser={{id:'teacher-synthetic',name:'Demo Teacher'}} transport={demoDashboardApi}/>:null}
@@ -205,6 +232,7 @@ function Harness(){
     currentUser={{id:'teacher-synthetic',name:'Synthetic Teacher'}} transport={publishedQaTransportBroken}/>:null}
    {normalized==='student'?<MuseumLabStudent language={uiLanguage}/>:null}
    {normalized==='admin-review'?<Submissions data={submittedQa} language={uiLanguage} onNavigate={setScreen} onRefresh={async()=>{}}/>:null}
+   {normalized==='review-workflow'?<ReviewWorkflowHarness language={uiLanguage}/>:null}
    {normalized==='published-lesson'?<LessonsList
     data={{...synthetic,groups:synthetic.groups.map((g,i)=>i===0?{...g,state:'published'}:g)}}
     language={uiLanguage} onCreate={()=>{}} onReview={()=>{}} onRefresh={async()=>{}}

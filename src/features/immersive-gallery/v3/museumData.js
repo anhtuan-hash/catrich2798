@@ -140,3 +140,14 @@ export function scoreRubric(scores){
   return sum+value;
  },0);
 }
+
+// Stable pseudorandom defaults for an ungraded submission. The Admin must
+// review them before they become a saved rubric.
+export function suggestRubric(reviewId){
+ const seed=String(reviewId).replaceAll('-','');
+ return Object.fromEntries(RUBRIC.map(({key,max},index)=>{
+  const minimum=key==='revision'?9:Math.ceil(max*0.8);
+  const sample=Number.parseInt(seed.slice(index*6,index*6+6),16)||0;
+  return [key,minimum+sample%(max-minimum+1)];
+ }));
+}

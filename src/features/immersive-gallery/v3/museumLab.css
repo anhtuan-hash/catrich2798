@@ -157,7 +157,11 @@
 .bml .bml-group-avatar{height:43px;width:43px;border-radius:13px;display:grid;place-items:center;background:#eee6ff;color:#8057cc;flex:none}
 .bml .bml-progress-small{width:90px;height:7px;background:#e7edf4;border-radius:99px;overflow:hidden}
 .bml .bml-progress-small i{height:100%;background:#3da07b;display:block;border-radius:99px}
-.bml .bml-tab-filter{display:flex;gap:8px;overflow-x:auto;padding-bottom:3px}
+.bml .bml-submissions-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;min-width:0}
+.bml .bml-submissions-toolbar > button{margin-inline-start:auto}
+.bml .bml-review-error{white-space:pre-line;overflow-wrap:anywhere}
+.bml .bml-review-publish-progress{font-size:.875em}
+.bml .bml-tab-filter{display:flex;gap:8px;overflow-x:auto;max-width:100%;padding-bottom:3px}
 .bml .bml-tab-filter button{border:1px solid #d9e2ee;background:#fff;border-radius:25px;min-height:41px;padding:7px 14px;white-space:nowrap;color:#52657a;display:flex;gap:8px;align-items:center}
 .bml .bml-tab-filter button.is-active{background:#dce9ff;color:#0b57d0;border-color:#a5c6fc;font-weight:730}
 .bml .bml-tab-filter button span{background:#eef2f7;padding:2px 7px;border-radius:12px;font-size:11px}
@@ -167,6 +171,7 @@
 .bml .bml-review-card>strong{font-size:16px;color:#26384d}
 .bml .bml-review-card>span:nth-of-type(2){font-size:14px}
 .bml .bml-review-card small{font-size:11px}
+.bml .bml-review-card .bml-card-rubric{font-size:12px}
 .bml .bml-review-card-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .bml .bml-review-card-link{display:flex;align-items:center;gap:7px;font-size:12px;color:#0b57d0;font-weight:740;margin-top:4px}
 .bml .bml-status-pill{border-radius:20px;padding:5px 8px;font-size:11px;font-weight:700;white-space:nowrap}

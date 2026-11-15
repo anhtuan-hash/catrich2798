@@ -45,7 +45,7 @@ export default function SubmissionsScreen({language='en', data, staff, onNavigat
       <ContentPanel ariaLabel={tr(language,'Bàn duyệt bài nộp','Submission review desk')}>
         <Submissions key={initialReview || 'normal'} language={language} data={payload}
           query={query} initialReview={initialReview}
-          onNavigate={onNavigate} onRefresh={onRefresh} />
+          onNavigate={onNavigate} onRefresh={onRefresh} transport={transport} />
       </ContentPanel>
       <div className="info-strip mt20" role="note">
         {tr(language,

@@ -52,6 +52,7 @@ export const query=async promise=>{
    ['review_missing',404,'Bài nộp không còn trong danh sách hoạt động.'],
    ['assignment_closed',423,'Bài học đã đóng hoặc đã được lưu trữ.'],
    ['stale_review',409,'Bài nộp đã thay đổi. Hãy tải lại trước khi duyệt.'],
+   ['stale_rubric',409,'Another rubric was saved. Reload the submission before approving it.'],
    ['version_conflict',409,'Có thay đổi mới hơn. Hãy tải lại để tiếp tục.']
   ];
   const detail=String(error.message||'');

@@ -1170,6 +1170,39 @@ test('Admin deleting lesson with published exhibition explains gallery retention
  await expect(lessons.getByText('Synthetic Climate Action Museum')).toBeVisible();
 });
 
+test('Admin confirms suggested rubric in one approval and bulk publishing reports partial failures',async({page})=>{
+ await page.getByTestId('qa-review-workflow-en').click();
+ const desk=page.getByTestId('museum-review-desk');
+ const submission=desk.getByRole('button',{name:/Demo Group 1.*Group climate work/});
+ await submission.click();
+ const inputs=desk.getByRole('spinbutton');
+ const suggested=await inputs.evaluateAll(fields=>fields.map(field=>Number(field.value)));
+ expect(suggested).toHaveLength(5);
+ expect(suggested.reduce((sum,score)=>sum+score,0)).toBeGreaterThan(80);
+ await expect(desk.getByText(/Randomly suggested scores/)).toBeVisible();
+ await desk.getByRole('button',{name:'Close',exact:true}).click();
+ await submission.click();
+ expect(await inputs.evaluateAll(fields=>fields.map(field=>Number(field.value)))).toEqual(suggested);
+ await inputs.first().fill('29');
+ await desk.getByRole('textbox',{name:'Student feedback'}).fill('Clarify what the route map measures.');
+ await desk.getByRole('button',{name:'Admin approve',exact:true}).click();
+ await expect(desk.getByRole('button',{name:'Publish all approved (2)',exact:true})).toBeEnabled();
+ await expect(submission).toContainText('Saved rubric');
+ await submission.click();
+ await expect(inputs.first()).toHaveValue('29');
+ await expect(desk.getByRole('textbox',{name:'Student feedback'})).toHaveValue('Clarify what the route map measures.');
+ await expect(desk.getByText(/Randomly suggested scores/)).toHaveCount(0);
+ page.once('dialog',dialog=>dialog.accept());
+ await desk.getByRole('button',{name:'Publish all approved (2)',exact:true}).click();
+ await expect(desk.getByText('Published 1 exhibition.')).toBeVisible();
+ await expect(desk.getByRole('alert')).toContainText('QA publication unavailable');
+ await expect(desk.getByRole('button',{name:'Publish all approved (1)',exact:true})).toBeEnabled();
+ expect(await desk.locator('.bml-submissions-toolbar').evaluate(toolbar=>{
+  const action=toolbar.querySelector(':scope > button');
+  return action.getBoundingClientRect().right<=toolbar.getBoundingClientRect().right+1;
+ })).toBe(true);
+});
+
 
 test('approved paper collage renders all eleven live stages with separated title, question, status and controls',async({page})=>{
  const names=['Climate Detective','Language Mini-Lesson','Live Classroom Survey',

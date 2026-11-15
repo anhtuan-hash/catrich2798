@@ -386,10 +386,11 @@ test('published and approved museum submissions retain independent Admin rubric 
  assert.match(route,/assertAdmin\(ctx\)/);
  assert.match(route,/loadScopedReview\(ctx,body\.reviewId\)/);
  assert.match(route,/canGradeReviewState\(scoped\.review\.state\)/);
- assert.match(route,/Object\.keys\(raw\)\.length!==5/);
+ assert.match(route,/validateRubricScores\(body\.scores\)/);
+ assert.match(api,/Object\.keys\(raw\)\.length!==5/);
  assert.match(route,/gcp_rubric_scores'\)\.upsert/);
  assert.match(route,/action:'rubric_scored'/);
  assert.doesNotMatch(route,/from\('gcp_reviews'\)\.(update|delete)/);
  assert.match(pane,/setSuccess\(tr\(language,'Đã lưu rubric:/);
- assert.match(pane,/setNote\(data\?\.rubrics\?\.find/);
+ assert.match(pane,/form\?\.note\?\?rubric\?\.feedback/);
 });
