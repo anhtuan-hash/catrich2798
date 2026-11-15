@@ -5,7 +5,6 @@ import {
   CalendarDays,
   CheckCircle2,
   ClipboardCheck,
-  Edit3,
   Image as ImageIcon,
   Landmark,
   Users,
@@ -21,7 +20,6 @@ export default function OverviewScreen({
   staff,
   language = 'en',
   onNavigate,
-  onCreate,
 }) {
   const payload = data || staff || {};
   const groups = payload.groups || [];
@@ -88,42 +86,6 @@ export default function OverviewScreen({
         'Xem và điều phối kế hoạch bài dạy số',
         'View and manage the digital lesson plan'
       ),
-    },
-  ];
-
-  const quickActions = [
-    {
-      id: 'create-lesson',
-      icon: Edit3,
-      title: tr(language, 'Tạo bài học mới', 'Create a Lesson'),
-      desc: tr(
-        language,
-        'Bài học Unit 5, chia nhóm và cấp mã QR',
-        'Unit 5 lessons, groups and QR access'
-      ),
-      onClick: onCreate,
-    },
-    {
-      id: 'review-submissions',
-      icon: Users,
-      title: tr(language, 'Duyệt bài nộp', 'Review Submissions'),
-      desc: tr(
-        language,
-        'Theo dõi tiến độ và nhận xét học sinh',
-        'Track progress and provide feedback'
-      ),
-      onClick: () => onNavigate?.('submissions'),
-    },
-    {
-      id: 'explore-museums',
-      icon: ImageIcon,
-      title: tr(language, 'Khám phá bảo tàng', 'Explore Museums'),
-      desc: tr(
-        language,
-        'Xem, chia sẻ và xuất bản phòng trưng bày',
-        'Browse, share and publish exhibitions'
-      ),
-      onClick: () => onNavigate?.('gallery'),
     },
   ];
 
@@ -354,33 +316,6 @@ export default function OverviewScreen({
             />
           </div>
         </article>
-      </section>
-
-      {/* Band 4: 3 Quick Action Cards */}
-      <section className="ov-quick-row" aria-label={tr(language, 'Thao tác nhanh', 'Quick actions')}>
-        {quickActions.filter((act) => typeof act.onClick === 'function').map((act) => {
-          const Icon = act.icon;
-          return (
-            <button
-              key={act.id}
-              type="button"
-              className="ov-quick-card"
-              data-testid={`ov-quick-${act.id}`}
-              onClick={act.onClick}
-            >
-              <span className="ov-quick-icon" aria-hidden="true">
-                <Icon size={21} strokeWidth={1.8} />
-              </span>
-              <div className="ov-quick-copy">
-                <strong>{act.title}</strong>
-                <span>{act.desc}</span>
-              </div>
-              <span className="ov-quick-arrow-badge" aria-hidden="true">
-                <ArrowRight size={14} strokeWidth={2.2} className="ov-quick-arrow" />
-              </span>
-            </button>
-          );
-        })}
       </section>
     </div>
   );

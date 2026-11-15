@@ -1026,19 +1026,17 @@ html:has(.igv2) .bes-smart-bubble-dock {
 }
 
 .igv2 .footer-logos-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 118px));
+  align-items: start;
+  justify-content: center;
+  gap: clamp(16px, 2vw, 32px);
 }
 
 .igv2 .footer-logos-row img {
   display: block;
-  height: 118px;
-  width: auto;
-  max-width: 34%;
-  object-fit: contain;
-  flex: 0 1 auto;
+  width: 100%;
+  height: auto;
 }
 
 .igv2 .footer-logos-motto {
@@ -1467,9 +1465,8 @@ html:has(.igv2) .bes-smart-bubble-dock {
   .igv2 .igv2-user-name {
     display: none;
   }
-  .igv2 .footer-logos-row img {
-    height: 84px;
-    max-width: 32%;
+  .igv2 .footer-logos-row {
+    grid-template-columns: repeat(2, minmax(0, 88px));
   }
   .igv2 .footer-logos-motto {
     font-size: 28px;

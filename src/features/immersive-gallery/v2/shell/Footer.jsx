@@ -2,7 +2,6 @@ import React from 'react';
 import schoolMark from './branding/petrus-ky.png';
 import schoolBadge from './branding/petrus-ky-mark.png';
 import deptMark from './branding/hcmc-education.png';
-import cambridgeMark from './branding/cambridge-assessment.png';
 import {
   Building2,
   GraduationCap,
@@ -62,13 +61,6 @@ export default function Footer() {
                 alt="Pétrus Ký School"
                 width={631}
                 height={768}
-                decoding="async"
-              />
-              <img
-                src={cambridgeMark}
-                alt="Cambridge Assessment English"
-                width={168}
-                height={237}
                 decoding="async"
               />
             </div>

@@ -147,8 +147,7 @@ html body #root .app-shell[data-tool="immersive-gallery"] > .footer.signature-fo
 }
 .igv2 .panel,
 .igv2 .ov-card,
-.igv2 .ov-hero,
-.igv2 .ov-quick-card {
+.igv2 .ov-hero {
   border: 1.5px solid #111;
   box-shadow: none;
   background: #fffdf8;
