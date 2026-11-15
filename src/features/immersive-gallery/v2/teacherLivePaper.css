@@ -1,0 +1,15 @@
+/* Teacher Live paper board — matches the Swiss print mockup for all 11 slides. */
+.igv2 .adv-stage.adv-stage--paper {
+  --paper-red: #e10600;
+  --paper-ink: #111111;
+  --paper: #fffdf8;
+  aspect-ratio: auto;
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+  background: var(--paper);
+  color: var(--paper-ink);
+  border: 1.5px solid var(--paper-ink);
+  border-radius: 0;
+  font-family: Inter, "Be Vietnam Pro", "Helvetica Neue", Arial, sans-serif;
+}
