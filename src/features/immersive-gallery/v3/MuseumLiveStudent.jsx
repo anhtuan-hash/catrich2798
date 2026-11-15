@@ -3,6 +3,7 @@ import {CheckCircle2,Eye,HelpCircle,Info,Lock,MessageCircle,RefreshCcw,Send,User
 import {liveGuest} from './museumLiveApi.js';
 import {englishSystemGroupLabel} from './museumApi.js';
 import LessonResources from './LessonResources.jsx';
+import { LESSON_PLAN_NOTES } from './lessonPlanAlignment.js';
 import {validatePeer} from './learningEvidence.js';
 import MuseumScene from './MuseumScene.jsx';
 import MuseumVoiceover from './MuseumVoiceover.jsx';
@@ -81,6 +82,10 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
    <span className="bml-question-eyebrow">READ · THINK · RESPOND</span>
    <h2>{stage?.title}</h2>
    <p>{stage?.question}</p>
+   {compact&&[3,4,6,7,8,9,10].includes(stageIndex)&&LESSON_PLAN_NOTES[stage?.id]?
+    <details><summary>{t(language,'Yêu cầu của hoạt động','Activity instructions')}</summary>
+      <LessonResources stageIndex={stageIndex} language={language}/>
+    </details>:null}
    {curriculumClip&&session.stageOpen&&session.status==='active'?<button type="button" className="bml-student-video-cta" data-testid="student-curriculum-watch"
      onClick={()=>setActiveTool('curriculum')}><Film size={17}/> Watch NASA clip · {curriculumClip.title}</button>:null}
   </div>
@@ -131,7 +136,9 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
     {!readOnly&&!compact&&MICRO_CHALLENGES[stageIndex]?<MuseumMicroChallenge key={session.id+'-'+stageIndex}
      stageIndex={stageIndex} existing={data?.micro} csrf={csrf} language={language}/>:null}
     {['group','recap','artwork','present'].includes(stage.kind)?<p className="bml-live-student-status">
-      {t(language,'Hãy thực hiện nhiệm vụ bên dưới theo hướng dẫn của giáo viên.','After the NASA video check, continue with the Problem–Evidence–Solution canvas.')}</p>:null}
+      {stageIndex===3
+        ?t(language,'Sau phần câu hỏi video, hoàn thành bảng Vấn đề – Bằng chứng – Giải pháp.','After the NASA video check, continue with the Problem–Evidence–Solution canvas.')
+        :t(language,'Hãy thực hiện nhiệm vụ theo hướng dẫn của giáo viên.','Follow your teacher’s instructions for this activity.')}</p>:null}
     {!compact&&survey&&stageIndex>=3?<div className="bml-live-survey"><strong>{t(language,'KẾT QUẢ KHẢO SÁT LỚP','CLASS SURVEY')} · N={survey.n} {t(language,'thiết bị nhóm','group devices')}</strong>
       {survey.options?.map((o,i)=><p key={i}>{o.label}: {o.count}/{survey.n} ({o.percent}%)</p>)}</div>:null}
    </>}
