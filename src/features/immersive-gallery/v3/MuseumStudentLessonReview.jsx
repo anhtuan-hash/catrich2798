@@ -4,13 +4,12 @@ import {LIVE_STAGES,LEGACY_LANGUAGE_MINI_LESSON} from './liveLesson.js';
 import {liveGuest} from './museumLiveApi.js';
 import MuseumStudentActivityNav from './MuseumStudentActivityNav.jsx';
 import {MUSEUM_CURRICULUM_VIDEOS} from './museumLiveExtensions.js';
-import {MuseumVideoFrame} from './MuseumVideoLab.jsx';
+import MuseumStudentLessonVideos from './MuseumStudentLessonVideos.jsx';
 import {StudentActivityQuiz,StudentActivityTask} from './MuseumStudentActivityContent.jsx';
 
 const tr=(language,vi,en)=>language==='en'?en:vi;
 
 function ReviewActivity({stage,index,language,onOpenProject,survey,record}){
- const [showVideo,setShowVideo]=useState(false);
  const [practice,setPractice]=useState({});
  const video=MUSEUM_CURRICULUM_VIDEOS[index];
  const questions=stage.questions??stage.videoQuestions;
@@ -18,14 +17,11 @@ function ReviewActivity({stage,index,language,onOpenProject,survey,record}){
  const savedQuiz=Array.isArray(record?.response)?record.response:null;
  const interactive=stage.kind==='vote'||Boolean(questions?.length);
  return <>
-  {video?<div className="bml-student-p2-actions" role="group" aria-label={tr(language,'Nội dung hoạt động','Activity content')}>
-   <button type="button" className="bml-outline" aria-pressed={!showVideo} onClick={()=>setShowVideo(false)}>{tr(language,'3 câu hỏi video','3 video questions')}</button>
-   <button type="button" className="bml-outline" aria-pressed={showVideo} onClick={()=>setShowVideo(true)}>{tr(language,'Xem clip NASA','Watch NASA clip')}</button>
-  </div>:null}
-  {interactive&&!showVideo?<p className="bml-student-practice-note" role="status">
+  <MuseumStudentLessonVideos clip={video} assigned={record?.videos} language={language}/>
+  {interactive?<p className="bml-student-practice-note" role="status">
    {tr(language,'Luyện tập: lựa chọn ở đây không gửi vào lớp.','Practice: choices here are not sent to the class.')}
   </p>:null}
-  {!showVideo&&stage.kind==='vote'?<section className="bml-student-p2-task" lang="en">
+  {stage.kind==='vote'?<section className="bml-student-p2-task" lang="en">
    <p className="bml-student-p2-question">{stage.question}</p>
    <div className="bml-live-response-options">{stage.options.map((option,i)=><button type="button" key={option}
     aria-label={String.fromCharCode(65+i)+'. '+option}
@@ -40,14 +36,9 @@ function ReviewActivity({stage,index,language,onOpenProject,survey,record}){
     {survey.options?.map(option=><p key={option.label}>{option.label}: {option.count}/{survey.n} ({option.percent}%)</p>)}
    </div>:null}
   </section>:null}
-  {showVideo&&video?<div className="bml-student-p2-video">
-   <MuseumVideoFrame id={video.id} title={video.title} language={language} onClose={()=>setShowVideo(false)}/>
-   <p><a href={video.officialSource} target="_blank" rel="noreferrer">{tr(language,'Nguồn NASA','NASA original')}</a>
-    {' · '}<a href={video.transcript} target="_blank" rel="noreferrer">{tr(language,'Lời thoại','Transcript')}</a></p>
-  </div>:null}
-  {!showVideo&&questions?<StudentActivityQuiz questions={questions} language={language} selected={practice}
+  {questions?<StudentActivityQuiz questions={questions} language={language} selected={practice}
    saved={savedQuiz} onSelect={(question,choice)=>setPractice(prev=>({...prev,[question]:choice}))}/>:null}
-  {!showVideo?<StudentActivityTask stage={stage} language={language} onOpenProject={onOpenProject}/>:null}
+  <StudentActivityTask stage={stage} language={language} onOpenProject={onOpenProject}/>
   {typeof record?.response==='string'?<section className="bml-student-p2-task">
    <strong>{tr(language,'Câu trả lời đã lưu của nhóm','Saved group response')}</strong><p lang="en">{record.response}</p>
   </section>:null}

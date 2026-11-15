@@ -1,5 +1,5 @@
 import React,{useEffect,useRef,useState} from 'react';
-import {CheckCircle2,Eye,HelpCircle,Info,Lock,MessageCircle,RefreshCcw,Send,Users,BookOpen,Volume2,Film} from 'lucide-react';
+import {CheckCircle2,Eye,HelpCircle,Info,Lock,MessageCircle,RefreshCcw,Send,Users,BookOpen,Volume2} from 'lucide-react';
 import {liveGuest} from './museumLiveApi.js';
 import {englishSystemGroupLabel} from './museumApi.js';
 import LessonResources from './LessonResources.jsx';
@@ -9,7 +9,8 @@ import {presentationFor} from './livePresentation.js';
 import {validatePeer} from './learningEvidence.js';
 import MuseumScene from './MuseumScene.jsx';
 import MuseumVoiceover from './MuseumVoiceover.jsx';
-import MuseumVideoLab,{MuseumVideoFrame} from './MuseumVideoLab.jsx';
+import MuseumVideoLab from './MuseumVideoLab.jsx';
+import MuseumStudentLessonVideos from './MuseumStudentLessonVideos.jsx';
 import MuseumResourceHub from './MuseumResourceHub.jsx';
 import MuseumMicroChallenge from './MuseumMicroChallenge.jsx';
 import {MICRO_CHALLENGES,stageMediaTools,MUSEUM_CURRICULUM_VIDEOS} from './museumLiveExtensions.js';
@@ -72,7 +73,6 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
  },[session?.id,stageIndex]);
  useEffect(()=>{
   if(showQuestions)setQuizPage(questionIndex);
-  if(view!=='video')setActiveTool(tool=>tool==='curriculum'?null:tool);
  },[session?.id,stageIndex,view,questionIndex,showQuestions]);
  const posted=data?.submitted===true||sent[session?.id+'-'+stageIndex]===true;
  const savedVote=Number.isInteger(data?.response)?data.response:selected;
@@ -137,9 +137,8 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
   <div className="bml-live-student-question">
    <span className="bml-question-eyebrow">READ · THINK · RESPOND</span>
    <h2>{stage?.title}</h2>
-   {curriculumClip&&view==='video'?<button type="button" className="bml-student-video-cta" data-testid="student-curriculum-watch"
-     onClick={()=>setActiveTool('curriculum')}><Film size={17}/> Watch NASA clip · {curriculumClip.title}</button>:null}
   </div>
+  <MuseumStudentLessonVideos clip={curriculumClip} assigned={session.media?.videos} language={language}/>
   {stage?.id==='classroom-survey'&&survey?<div className="bml-live-survey" data-testid="student-frozen-survey">
    <strong>{t(language,'Khảo sát đã chốt','Frozen survey')} · N = {survey.n} {t(language,'nhóm','groups')}</strong>
    {survey.created_at?<p>{new Date(survey.created_at).toLocaleDateString(language==='en'?'en-GB':'vi-VN',{timeZone:'Asia/Ho_Chi_Minh'})}</p>:null}
@@ -197,8 +196,8 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
    extensionOnly={view==='next'}
    projectLabel={projectAction?t(language,...projectAction):undefined}
    onOpenProject={stageIsOpen&&onOpenProject&&projectAction?()=>onOpenProject(stageIndex):undefined}/>:null}
-    {stageIsOpen&&!compact&&hasVideo?<MuseumVideoLab
-     mode="student" stage={stage} stageIndex={stageIndex} media={session.media}
+    {stageIsOpen&&!compact&&hasVideo&&session.media?.query?<MuseumVideoLab
+     mode="student" stage={stage} stageIndex={stageIndex} media={{...session.media,videos:[]}}
      language={language} csrf={csrf}/>:null}
     {stageIsOpen&&!compact&&MICRO_CHALLENGES[stageIndex]?<MuseumMicroChallenge key={session.id+'-'+stageIndex} sessionId={session.id}
      stageIndex={stageIndex} existing={data?.micro} csrf={csrf} language={language}/>:null}
@@ -222,7 +221,6 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
     </details>:null}
    </div>:null}
    {compact?<div className="bml-student-compact-links">
-    {hasVideo?<button className="bml-outline" type="button" onClick={()=>setActiveTool('video')}><Eye size={16}/>Video</button>:null}
     {stageIsOpen&&MICRO_CHALLENGES[stageIndex]?<button className="bml-outline" type="button" onClick={()=>setActiveTool('micro')}><BookOpen size={16}/>Thinking Lab</button>:null}
     {survey&&stageIndex>=2?<button className="bml-outline" type="button" onClick={()=>setActiveTool('survey')}><Users size={16}/>Class Survey</button>:null}
    </div>:null}
@@ -233,23 +231,18 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
       <button className="bml-outline" type="button" onClick={()=>setPeer(null)}>Close</button></div>
      <MuseumScene gallery={peer} language={language} embedded/>
     </div></div>:null}
-   {activeTool&&(activeTool!=='video'||hasVideo)&&(activeTool!=='voice'||hasVoice)&&(activeTool!=='curriculum'||curriculumClip)?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label="Learning tools">
+   {activeTool&&(activeTool!=='video'||hasVideo)&&(activeTool!=='voice'||hasVoice)?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label="Learning tools">
     <div className="bml-student-detail-window">
      <div className="bml-student-detail-head">
-      <strong>{({materials:'Lesson Materials',research:'Research Library',voice:'American English Voiceover',video:'Video Lab',curriculum:'Watch NASA lesson video',micro:'English Thinking Lab',survey:'Class Survey'})[activeTool]}</strong>
+      <strong>{({materials:'Lesson Materials',research:'Research Library',voice:'American English Voiceover',video:'Video Lab',micro:'English Thinking Lab',survey:'Class Survey'})[activeTool]}</strong>
       <button className="bml-outline" type="button" onClick={()=>setActiveTool(null)}>{t(language,'Đóng','Close')}</button>
      </div>
      <div className="bml-student-tool-content" data-testid="student-tool-panel">
       {activeTool==='materials'?<LessonResources stageIndex={stageIndex} language={language}/>:null}
       {activeTool==='research'?<MuseumResourceHub stage={stage} language={language}/>:null}
       {activeTool==='voice'&&hasVoice?<MuseumVoiceover stage={stage} language={language} compact/>:null}
-      {activeTool==='curriculum'&&curriculumClip?<><MuseumVideoFrame id={curriculumClip.id} title={curriculumClip.title}
-       language={language} onClose={()=>setActiveTool(null)}/>
-       <p><a href={curriculumClip.officialSource} target="_blank" rel="noreferrer">{t(language,'Nguồn NASA','NASA original')}</a>
-        {' · '}<a href={curriculumClip.transcript} target="_blank" rel="noreferrer">{t(language,'Lời thoại','Transcript')}</a></p>
-      </>:null}
       {activeTool==='video'?(hasVideo?
-       <MuseumVideoLab mode="student" stage={stage} stageIndex={stageIndex} media={session.media} language={language} csrf={csrf}/>:
+       <MuseumVideoLab mode="student" stage={stage} stageIndex={stageIndex} media={{...session.media,videos:[]}} language={language} csrf={csrf}/>:
        <p>{t(language,'Giáo viên chưa giao video cho hoạt động này.','No video assigned yet.')}</p>):null}
       {activeTool==='micro'?(stageIsOpen&&MICRO_CHALLENGES[stageIndex]?
        <MuseumMicroChallenge key={session.id+'-'+stageIndex} sessionId={session.id} stageIndex={stageIndex} existing={data?.micro} csrf={csrf} language={language}/>:
@@ -260,11 +253,6 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
         <p>{t(language,'Chưa có dữ liệu khảo sát.','No survey data yet.')}</p>}
       </div>:null}
      </div>
-    </div></div>:null}
-   {!compact&&activeTool==='curriculum'&&curriculumClip?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label="NASA learning video">
-    <div className="bml-student-detail-window">
-     <div className="bml-student-detail-head"><strong>NASA LESSON VIDEO</strong><button type="button" className="bml-outline" onClick={()=>setActiveTool(null)}>Close</button></div>
-     <MuseumVideoFrame id={curriculumClip.id} title={curriculumClip.title} language={language} onClose={()=>setActiveTool(null)}/>
     </div></div>:null}
    {notice?<div role="status" data-testid="student-action-notice" className="bml-banner bml-success-banner bml-student-action-notice"><CheckCircle2 size={17}/>{notice}</div>:null}
     {error?<div role="alert" className="bml-banner bml-danger-banner">{error}</div>:null}

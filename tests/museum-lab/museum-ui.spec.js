@@ -1290,15 +1290,17 @@ test('NASA video checks use the same live group-response contract for Activities
  for(const [index,answers] of [[1,[1,0,1]],[3,[0,1,2]]]){
   if(index===3){stageIndex=3;submitted=false;}
   await expect(page.getByTestId('student-live-activity')).toHaveAttribute('data-stage-kind',index===1?'quiz':'group',{timeout:12000});
-  await page.getByTestId('student-curriculum-watch').click();
-  const frame=page.getByTestId('museum-youtube-player').locator('iframe');
+  const lesson=page.getByTestId('student-live-activity');
+  const video=lesson.getByTestId('student-lesson-videos');
+  const frame=video.locator('iframe');
+  await expect(frame).toBeVisible();
   await expect(frame).toHaveAttribute('src',new RegExp(videoIds[index===1?0:1]));
-  await page.getByRole('button',{name:/Đóng video/}).click();
-  const form=page.getByTestId('student-video-questions');
-  await expect(form.locator(':scope > div')).toHaveCount(3);
+  await expect(video.getByRole('button',{name:/Đóng video/})).toHaveCount(0);
+  await lesson.getByRole('button',{name:'Mở câu hỏi trắc nghiệm'}).click();
+  const form=lesson.getByTestId('student-video-questions');
   for(let q=0;q<3;q++){
-   const options=form.locator(':scope > div').nth(q).locator('.bml-live-response-options button');
-   await options.nth(answers[q]).click();
+   await form.locator('.bml-live-response-options button').nth(answers[q]).click();
+   if(q<2)await form.getByRole('button',{name:'Câu sau'}).click();
   }
   const button=page.getByRole('button',{name:/Gửi câu trả lời của nhóm/});
   await expect(button).toBeEnabled();
@@ -1328,10 +1330,10 @@ test('Student Studio can watch a teacher-selected video and save source-based En
  });
  await page.getByTestId('qa-student-live').click();
  await expect(page.getByTestId('student-live-activity')).toBeVisible();
+ const lesson=page.getByTestId('student-live-activity');
+ const assignedFrame=lesson.getByTestId('student-lesson-videos').locator('iframe[src*="jNQXAC9IVRw"]');
+ await expect(assignedFrame).toBeVisible();
  const lab=page.getByTestId('museum-video-lab');
- await expect(lab.getByText('Teacher-selected classroom video')).toBeVisible();
- await lab.getByRole('button',{name:/Xem tại đây/}).click();
- await expect(page.getByTestId('museum-youtube-player').locator('iframe')).toHaveCount(1);
  await lab.getByRole('button',{name:/Tìm video/}).click();
  await expect(lab.getByText('Chưa có YouTube API key và tìm kiếm dự phòng không khả dụng.',{exact:true})).toBeVisible();
  const mini=page.getByTestId('museum-micro-challenge');
