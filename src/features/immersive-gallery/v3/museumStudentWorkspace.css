@@ -267,3 +267,60 @@
 .bml .bml-student-inline-video figcaption { margin-top:6px; font-size:13px; }
 .bml .bml-student-inline-video .bml-video-embed { aspect-ratio:16/9; min-height:0; }
 .bml .bml-student-inline-video .bml-video-embed iframe { width:100%; height:100%; }
+
+/* Lesson reads as a cool record. Project reads as a warm working sheet. */
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel{
+ background:#f4f7fb!important;
+ border:1px solid #c5d4e4!important;
+ border-top:4px solid #1d4e89!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel > .bml-student-panel-head{
+ background:#e8f0f8;
+ border-bottom:1px solid #c5d4e4;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel .bml-student-panel-head h2{
+ color:#1d4e89!important;
+ font-size:13px!important;
+ letter-spacing:.16em;
+ text-transform:uppercase;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel .bml-student-panel-head h2::before{
+ content:"01";
+ margin-right:8px;
+ color:#1d4e89;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel .bml-student-panel-head .bml-outline{
+ border-color:#1d4e89!important;
+ color:#1d4e89!important;
+ background:#fff!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel{
+ background:#fff8ef!important;
+ border:1px solid #ead4b0!important;
+ border-top:4px solid #ca2431!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel > .bml-student-panel-head{
+ background:#fff1dc;
+ border-bottom:1px solid #ead4b0;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-student-panel-head h2{
+ color:#9a1c28!important;
+ font-size:13px!important;
+ letter-spacing:.16em;
+ text-transform:uppercase;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-student-panel-head h2::before{
+ content:"02";
+ margin-right:8px;
+ color:#ca2431;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-student-task.bml-surface,
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-pane{
+ background:transparent!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-status{
+ color:#8a4b12!important;
+}
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-overline{
+ color:#9a1c28!important;
+}
