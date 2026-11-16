@@ -1,5 +1,6 @@
-import React,{useEffect,useMemo} from 'react';
+import React,{useEffect,useMemo,useRef} from 'react';
 import * as THREE from 'three';
+import {useFrame} from '@react-three/fiber';
 import {useTexture} from '@react-three/drei';
 
 /**
@@ -50,7 +51,7 @@ function DisplayLettering({main,sub,position,size=[8.5,.69],light=false}){
  if(!map)return null;
  return <mesh position={position}>
   <planeGeometry args={size}/>
-  <meshBasicMaterial map={map} toneMapped={false} transparent depthWrite={false}/>
+  <meshBasicMaterial map={map} toneMapped={false} transparent depthWrite={false} fog={false}/>
  </mesh>;
 }
 function SchoolCrest(){
@@ -241,6 +242,18 @@ function BayMoulding({x}){
    </mesh>)}
  </group>;
 }
+function LightShaft({x}){
+ const mat=useRef(null);
+ useFrame(({clock})=>{
+  if(!mat.current)return;
+  mat.current.opacity=.16+Math.sin(clock.elapsedTime*1.3+x)*.05;
+ });
+ return <mesh position={[x,3.35,-7.15]} rotation={[.22,0,0]}>
+  <cylinderGeometry args={[.08,.85,2.55,18,1,true]}/>
+  <meshBasicMaterial ref={mat} color="#FFF3C4" transparent opacity={.18} depthWrite={false}
+   side={THREE.DoubleSide} blending={THREE.AdditiveBlending} fog={false}/>
+ </mesh>;
+}
 function ArtworkSpotlight({x,lite}){
  const target=useMemo(()=>{
   const value=new THREE.Object3D();
@@ -358,6 +371,7 @@ export default function PekDiscoveryHallV4({lite=false}){
     <meshBasicMaterial color="#FFF8DC"/>
    </mesh>
    <ArtworkSpotlight x={x} lite={lite}/>
+   {!lite?<LightShaft x={x}/>:null}
   </group>)}
   {/* Side galleries, drapes and a brass pendant — shared by teacher and student cinema. */}
   {!lite?[-5.72,5.72].map(x=><group key={'drape-'+x} position={[x,3.35,-7.55]}>

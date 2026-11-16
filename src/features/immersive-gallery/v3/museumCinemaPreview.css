@@ -122,6 +122,49 @@
 .bml .bml-museum-cinema .bml-cinema-room-controls button:disabled{
  opacity:.34;cursor:default;
 }
+@keyframes bml-rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes bml-gold-pulse{
+ 0%,100%{box-shadow:0 0 0 0 #e8ce7888}
+ 50%{box-shadow:0 0 0 7px #e8ce7800}
+}
+.bml .bml-museum-cinema .bml-cinema-hud,
+.bml .bml-museum-cinema .bml-3d-plate,
+.bml .bml-museum-cinema .bml-cinema-bottom-hud,
+.bml .bml-museum-cinema .big-pek-v4 .big-pek-tools,
+.bml .bml-museum-cinema .bml-v5-artwork-access{
+ animation:bml-rise .6s ease both;
+}
+.bml .bml-museum-cinema .bml-cinema-mode-group button.is-active{
+ animation:bml-gold-pulse 2.2s ease-in-out infinite;
+}
+.bml .bml-museum-cinema .bml-3d-plate{overflow:hidden}
+.bml .bml-museum-cinema .bml-3d-plate::after{
+ content:"";position:absolute;left:0;top:0;bottom:0;width:4px;
+ background:linear-gradient(#fff6d2,#e8ce78,#8d6b28);
+ box-shadow:0 0 16px #e8ce78;
+}
+.bml .bml-museum-cinema .bml-cinema-info{
+ color:#f4ebd6;background:#102820f2;border-color:#c8a34b77;
+}
+.bml .bml-museum-cinema .bml-cinema-info p{color:#d5e4da}
+.bml .bml-museum-cinema .bml-cinema-info button{
+ border-color:#c8a34b77;background:#17362c;color:#f6edd4;
+}
+.bml .bml-museum-cinema .bml-cinema-room-controls button{
+ border-color:#c8a34b77;background:#102820e8;color:#f6edd4;
+}
+.bml .bml-museum-cinema.is-2d>.bml-museum-room,
+.bml .bml-museum-cinema .bml-3d-stage{animation:bml-rise .45s ease both}
+@media(prefers-reduced-motion:reduce){
+ .bml .bml-museum-cinema .bml-cinema-hud,
+ .bml .bml-museum-cinema .bml-3d-plate,
+ .bml .bml-museum-cinema .bml-cinema-bottom-hud,
+ .bml .bml-museum-cinema .big-pek-v4 .big-pek-tools,
+ .bml .bml-museum-cinema .bml-v5-artwork-access,
+ .bml .bml-museum-cinema .bml-cinema-mode-group button.is-active,
+ .bml .bml-museum-cinema.is-2d>.bml-museum-room,
+ .bml .bml-museum-cinema .bml-3d-stage{animation:none}
+}
 /* Cinema WebGL gets the full background footprint. No legacy 340/565px caps. */
 .bml .bml-museum-cinema>.bml-3d-stage.bml-cinema-stage{
  display:flex!important;position:relative!important;

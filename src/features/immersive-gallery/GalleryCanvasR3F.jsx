@@ -66,7 +66,7 @@ function ArtworkImage({assetId,imageUrl,schoolEdition=false,cinemaEdition=false}
  const size=aspect>maxWidth/maxHeight?[maxWidth,maxWidth/aspect]:[maxHeight*aspect,maxHeight];
  return <mesh position={[0,0,cinemaEdition?.096:.083]}>
   <planeGeometry args={size}/>
-  <meshBasicMaterial map={texture} toneMapped={false} side={THREE.DoubleSide}/>
+  <meshBasicMaterial map={texture} toneMapped={false} side={THREE.DoubleSide} fog={false}/>
  </mesh>;
 }
 function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdition=false,index=0,
@@ -156,7 +156,7 @@ function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdi
   <mesh><boxGeometry args={cinemaEdition?[2.78,3.56,.08]:schoolEdition?[2.45,1.95,.11]:[2.04,1.70,.10]}/>
    <meshStandardMaterial color={cinemaEdition?'#1A120C':schoolEdition?(isSelected?'#F6D477':'#B69B62'):(isSelected?'#e4aa64':'#ae856e')} roughness={.4} metalness={cinemaEdition?.48:schoolEdition?.19:0}/></mesh>
   {cinemaEdition?<mesh position={[0,0,.03]}><boxGeometry args={[2.63,3.41,.07]}/>
-   <meshStandardMaterial color={isSelected?'#FFE7A1':'#F0D27A'} metalness={.7} roughness={.22}/></mesh>:null}
+   <meshStandardMaterial color={isSelected?'#FFE7A1':'#F0D27A'} emissive={isSelected?'#E8CE78':'#3A2A10'} emissiveIntensity={isSelected?.8:.12} metalness={.7} roughness={.22}/></mesh>:null}
   {cinemaEdition?<mesh position={[0,0,.044]}><boxGeometry args={[2.54,3.3,.02]}/>
    <meshStandardMaterial color="#2A2118" roughness={.72}/></mesh>:null}
   <mesh position={[0,0,.058]}><boxGeometry args={cinemaEdition?[2.4,3.14,.02]:schoolEdition?[2.29,1.80,.025]:[1.86,1.52,.025]}/>
@@ -384,6 +384,17 @@ function MuseumFocusFramePump({phase}){
  },[phase,invalidate]);
  return null;
 }
+function CinemaEffectPump({active}){
+ const {invalidate}=useThree();
+ useEffect(()=>{
+  if(!active||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return undefined;
+  let alive=true,raf=0;
+  const tick=()=>{if(!alive)return;if(!document.hidden)invalidate();raf=window.requestAnimationFrame(tick);};
+  raf=window.requestAnimationFrame(tick);
+  return ()=>{alive=false;window.cancelAnimationFrame(raf);};
+ },[active,invalidate]);
+ return null;
+}
 function CameraResizeSync(){
  const {camera,gl,invalidate}=useThree();
  useEffect(()=>{
@@ -409,6 +420,7 @@ function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=fa
   <hemisphereLight args={[cinemaEdition?'#F6E2B0':'#FFFFFF',schoolEdition?(cinemaEdition?'#102820':'#9CAD9D'):'#B7AFA3',cinemaEdition?.55:1.1]}/>
   <directionalLight position={[1,7,3]} color={schoolEdition?'#FFF7E4':'#FFFFFF'} intensity={cinemaEdition?.7:1.15}/>
   {cinemaEdition?<directionalLight position={[-5,2.4,1.2]} color="#E7D7A8" intensity={.28}/>:null}
+  {cinemaEdition?<fog attach="fog" args={['#071410',8,19]}/>:null}
   <Walls template={template} onTeleport={onTeleport} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} lite={lite}/>
   {exhibits.slice(0,30).map((e,i)=><PaperArtwork key={e.id} exhibit={e} index={i} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition}
    focus={focus} onFocusPhaseChange={onFocusPhaseChange} onSelect={onSelect}
@@ -447,6 +459,7 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
     }}>
     <CameraResizeSync/>
     {cinemaEdition?<MuseumFocusFramePump phase={focus.phase}/>:null}
+    {cinemaEdition?<CinemaEffectPump active={focus.phase==='idle'}/>:null}
     <Room template={template} exhibits={exhibits} onSelect={onSelect} selectedId={selectedId} onTeleport={onTeleport}
      focus={focus} focusBoard={focusBoard} onFocusBack={onFocusBack} onFocusPhaseChange={onFocusPhaseChange}
      schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} lite={mode==='lite'}/>
