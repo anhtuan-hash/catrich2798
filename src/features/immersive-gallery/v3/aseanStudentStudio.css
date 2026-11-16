@@ -1,0 +1,36 @@
+.bml .asean-student-studio { border-top: 4px solid #285445; scroll-margin-top: 85px; }
+.bml .asean-student-studio .asean-studio-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+.bml .asean-student-studio .asean-studio-head h2 { margin-top: 0; }
+.bml .asean-student-studio .asean-studio-head p { max-width: 58ch; }
+.bml .asean-student-studio .asean-studio-preview { margin: 12px 0; }
+.bml .asean-student-studio .asean-studio-preview:focus-visible { outline: 2px solid #285445; }
+.bml .asean-student-studio .bml-artwork-studio {
+  background: #f3f1e8;
+  border-radius: 0;
+  box-shadow: none;
+}
+.bml .asean-student-studio .bml-artwork-slot {
+  border-radius: 0;
+  border-top: 3px solid #285445;
+}
+.bml .asean-student-studio .bml-artwork-slot:nth-child(2) { border-top-color: #845d22; }
+.bml .asean-student-studio .bml-artwork-slot:nth-child(3) { border-top-color: #a43442; }
+.bml .asean-student-studio .asean-caption-field {
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  padding: 0;
+  cursor: auto;
+}
+.bml .asean-student-studio .asean-caption-field small { display: block; font-weight: normal; }
+.bml .asean-student-studio .bml-artwork-slot label:focus-within {
+  outline: 2px solid #285445;
+  outline-offset: 2px;
+}
+.bml .asean-student-studio .asean-studio-save { margin: 12px 0; }

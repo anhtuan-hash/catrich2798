@@ -1,4 +1,5 @@
-import React,{useEffect,useState} from 'react';
+import React,{useEffect,useRef,useState} from 'react';
+import {Box,Save} from 'lucide-react';
 import {ASEAN_FRAMES,ASEAN_STAGES,aseanDestination,aseanExhibitMissing,aseanWritingCard,aseanWordCount} from './aseanLesson.js';
 import {guestRequest,englishSystemGroupLabel} from './museumApi.js';
 import {liveGuest,localMuseumFromDraft,artGuest} from './museumLiveApi.js';
@@ -9,6 +10,7 @@ import MuseumArtworkStudio from './MuseumArtworkStudio.jsx';
 import MuseumCompetitionRibbon from './MuseumCompetitionRibbon.jsx';
 import MuseumScene,{reviewMuseum} from './MuseumScene.jsx';
 import GalleryRenderBoundary from '../GalleryRenderBoundary.jsx';
+import './aseanStudentStudio.css';
 
 const emptyAnswer=()=>({text:'',frame:null,score:0});
 const initialFields=stage=>{
@@ -121,6 +123,8 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
  const [dirty,setDirty]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [imageBusy,setImageBusy]=useState(false);
  const [notice,setNotice]=useState(''),[preview,setPreview]=useState(false);
+ const previewRef=useRef(null);
+ const studioRef=useRef(null);
  const [revision,setRevision]=useState({question:1,reason:''});
  const [submitted,setSubmitted]=useState(!['issued','editing','changes_requested'].includes(session.groupState));
  const refreshLive=async()=>{
@@ -143,12 +147,17 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
  const liveOpen=!readOnly&&live?.status==='active'&&live.stageOpen&&live.stageIndex===stage;
  const captured=records.checkpoints.find(item=>item.kind==='after');
  const editable=liveOpen&&(stage===2||(stage===4&&!captured))&&!submitted;
- const makeDocument=()=>documentFromStudio({...studio,title:destination?.name||'',summary:destination?.country||'',theme:'culture'},session.assignment);
+ const document=documentFromStudio({...studio,title:destination?.name||'',summary:destination?.country||'',theme:'culture'},session.assignment);
+ const missing=aseanExhibitMissing(document);
+ const photoCount=Object.values(studio.artworks).filter(Boolean).length;
+ const workshopVisible=[2,4,5].includes(stage);
+ useEffect(()=>{if(preview&&workshopVisible)previewRef.current?.focus();},[preview,workshopVisible]);
+ useEffect(()=>{setPreview(false);},[stage]);
  const edit=change=>{setStudio(value=>typeof change==='function'?change(value):change);setDirty(true);setNotice('');};
  const field=(key,value)=>edit(draft=>({...draft,learning:{...draft.learning,[key]:value}}));
  const save=async()=>{
-  const out=await guestRequest('save','PUT',{draft:makeDocument(),expectedVersion:version},session.csrf);
-  setVersion(out.version);setDirty(false);setNotice('Exhibit saved.');return out.version;
+  const out=await guestRequest('save','PUT',{draft:document,expectedVersion:version},session.csrf);
+  setVersion(out.version);setDirty(false);setNotice(stage===2&&!missing.length?'V1 saved. Your group’s 3D exhibit is ready for the visitor test.':'Exhibit draft saved.');return out.version;
  };
  const action=async operation=>{
   setBusy(true);setError('');
@@ -159,7 +168,8 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
     setStudio(normalizeStudio(result.draft));setVersion(result.version);setDirty(false);
    }
    if(operation==='preview'){
-    setAssets((await artGuest('list')).assets);setPreview(v=>!v);
+    if(preview){setPreview(false);return;}
+    setAssets((await artGuest('list')).assets);setPreview(true);
    }
    if(operation==='capture'){
     const next=dirty?await save():version;
@@ -172,6 +182,10 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
    }
   }catch(e){setError(errorText(e));}finally{setBusy(false);}
  };
+ const captionEditor=frame=><label className="bml-full-field asean-caption-field" key={frame.key}>{frame.label} caption
+  <small>{frame.question} · {aseanWordCount(studio.learning[frame.key])} / 20–30 words</small>
+  <textarea rows={3} maxLength={600} disabled={!editable||busy} value={studio.learning[frame.key]} onChange={e=>field(frame.key,e.target.value)}/>
+ </label>;
  return <main className="bml bml-paper bml-student-editorial" lang="en" data-testid="asean-student-lesson">
   <MuseumCompetitionRibbon language="en" lessonTemplate={session.assignment.lesson_template}/>
   <div className="bml-surface">
@@ -190,42 +204,61 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
    </nav>
    <p className="bml-overline">PERIOD {current.period} · ACTIVITY {stage+1} / 6 · {current.minutes} MIN</p>
    <h2>{current.title}</h2><p>{current.question}</p><p>{current.expected}</p>
+   {stage===2&&<button type="button" className="bml-primary" onClick={()=>{
+    studioRef.current?.focus({preventScroll:true});
+    studioRef.current?.scrollIntoView({block:'start'});
+   }}><Box size={18}/> Open the 3D Studio</button>}
    {readOnly&&<p role="status">Lesson complete · View only</p>}
    {!live&&<p role="status">Waiting for Teacher Live to start.</p>}
    {live?.stageIndex===stage&&live.media?.voiceEnabled&&<MuseumVoiceover stage={current} language="en" compact/>}
    {live?.stageIndex===stage&&Boolean(live.media?.videos?.length||live.media?.query)&&<MuseumVideoLab mode="student" language="en" stage={current} stageIndex={stage} media={live.media} readOnly={readOnly}/>}
-   {error&&<p className="bml-banner bml-danger-banner" role="alert">{error}</p>}
-   {notice&&<p role="status">{notice}</p>}
+   {!workshopVisible&&error&&<p className="bml-banner bml-danger-banner" role="alert">{error}</p>}
+   {!workshopVisible&&notice&&<p role="status">{notice}</p>}
   </div>
-  {stage!==2&&<GroupResponse key={stage} session={{...session,readOnly}} stage={stage} live={live} open={liveOpen}
+  {stage!==2&&stage!==4&&stage!==5&&<GroupResponse key={stage} session={{...session,readOnly}} stage={stage} live={live} open={liveOpen}
    record={records.rows.find(item=>item.stage_index===stage)?.value} refreshLive={refreshLive} refreshRecords={refreshRecords}/>}
-  {[2,4,5].includes(stage)&&<section className="bml-surface">
-   <h2>{stage===4?'Our revision':'Our exhibit'}</h2>
+  {workshopVisible&&<section className="bml-surface asean-student-studio" ref={studioRef} tabIndex={-1} data-testid="asean-3d-studio">
+   <div className="asean-studio-head">
+    <div><h2>{stage===2?'Build your group’s 3D exhibit':stage===4?'Revise your 3D exhibit':'Submit your 3D exhibit'}</h2>
+     <p>{stage===2?'Upload one photo per frame. Add the English captions and credits, preview the room, then save V1.':
+      stage===4?'Improve one frame, then make the revised room available for retesting.':'Preview the finished room, then send it to your teacher for review.'}</p>
+    </div>
+    <button type="button" className="bml-outline" disabled={busy||imageBusy||!photoCount} onClick={()=>action('preview')}><Box size={18}/>{preview?'Close 3D preview':'Preview in 3D'}</button>
+   </div>
+   {photoCount===0&&<p>Upload a photo to preview your room in 3D.</p>}
+   {preview&&<section className="asean-studio-preview" tabIndex={-1} ref={previewRef} aria-label="Preview of your 3D room">
+    <GalleryRenderBoundary language="en" onFallback={()=>setPreview(false)}>
+     <MuseumScene embedded initial3D language="en" gallery={localMuseumFromDraft(document,assets)}/>
+    </GalleryRenderBoundary>
+   </section>}
+   {!editable&&stage===2&&<p role="status">{readOnly||submitted?'This exhibit is view only.':'Your teacher needs to open Activity 3 before your group can edit.'}</p>}
    {stage===4&&records.feedback&&<p><strong>Feedback received</strong> {records.feedback.comment}</p>}
    {records.retest&&stage>=4&&<p><strong>Fresh visitor retest</strong> · {records.retest.score}/1 · {records.retest.answer}</p>}
    {stage===5&&captured&&<p>In your group report, explain the change you made and what the fresh visitor found.</p>}
-   {ASEAN_FRAMES.map(frame=><label className="bml-full-field" key={frame.key}>{frame.label} caption · {aseanWordCount(studio.learning[frame.key])} / 20–30 words
-    <textarea rows={3} maxLength={600} disabled={!editable||busy} value={studio.learning[frame.key]} onChange={e=>field(frame.key,e.target.value)}/>
-   </label>)}
-   <label className="bml-full-field">Factual source <input value={studio.learning.source} maxLength={600} disabled={!editable||busy} onChange={e=>field('source',e.target.value)}/></label>
    {stage!==5&&<MuseumArtworkStudio studio={studio} update={edit} csrf={session.csrf} language="en" disabled={!editable||busy}
-    uploadEnabled={session.uploadEnabled} onAssets={setAssets} onBusy={setImageBusy} lessonTemplate={session.assignment.lesson_template}/>}
-   <div className="bml-toolbar">
-    <button className="bml-primary" disabled={!editable||busy||imageBusy||!dirty} onClick={()=>action('save')}>Save exhibit</button>
-    <button className="bml-outline" disabled={busy} onClick={()=>action('preview')}>{preview?'Close preview':'Preview exhibit'}</button>
-    <button className="bml-outline" disabled={busy||imageBusy||!editable} onClick={()=>action('reload')}>Reload saved exhibit</button>
-   </div>
+    uploadEnabled={session.uploadEnabled||readOnly} onAssets={setAssets} onBusy={setImageBusy} lessonTemplate={session.assignment.lesson_template}
+    frameEditor={key=>captionEditor(ASEAN_FRAMES.find(frame=>frame.key===key))}/>}
+   {stage!==5&&<label className="bml-full-field">Factual source <input value={studio.learning.source} maxLength={600} disabled={!editable||busy} onChange={e=>field('source',e.target.value)}/></label>}
+   {stage!==5&&<div className="asean-studio-save">
+    <div className="bml-toolbar">
+     <button className="bml-primary" disabled={!editable||busy||imageBusy||!dirty} onClick={()=>action('save')}><Save size={18}/>{stage===2&&!missing.length?'Save V1':'Save draft'}</button>
+     <button className="bml-outline" disabled={busy||imageBusy||!editable} onClick={()=>{if(!dirty||window.confirm('Discard unsaved caption and credit changes?'))action('reload');}}>Reload saved exhibit</button>
+    </div>
+    {editable&&missing.length>0&&<details><summary>What’s still needed ({missing.length})</summary><ul>{missing.map(item=><li key={item}>{item}</li>)}</ul></details>}
+   </div>}
    {stage===4&&!captured&&editable&&<div className="bml-field-grid">
     <label>Question to retest <select value={revision.question} onChange={e=>setRevision({...revision,question:Number(e.target.value)})}>
      {ASEAN_FRAMES.map((f,i)=><option key={f.key} value={i+1}>{f.question}</option>)}</select></label>
     <label>Why did your group make this change? <input maxLength={300} value={revision.reason} onChange={e=>setRevision({...revision,reason:e.target.value})}/></label>
     <button className="bml-primary" disabled={busy||imageBusy||!revision.reason.trim()} onClick={()=>action('capture')}>Open saved V2 for retest</button>
    </div>}
-   {preview&&<GalleryRenderBoundary language="en" onFallback={()=>setPreview(false)}>
-    <MuseumScene embedded initial3D language="en" gallery={localMuseumFromDraft(makeDocument(),assets)}/>
-   </GalleryRenderBoundary>}
-   {stage===5&&<button className="bml-primary" disabled={!liveOpen||dirty||busy||submitted||!captured||Boolean(aseanExhibitMissing(makeDocument()).length)}
-    onClick={()=>action('submit')}>{submitted?'Submitted':'Submit final exhibit'}</button>}
+   {stage===5&&<button className="bml-primary" disabled={!liveOpen||dirty||busy||submitted||!captured||Boolean(missing.length)}
+    onClick={()=>action('submit')}>{submitted?'Submitted':'Submit final 3D exhibit'}</button>}
+   {stage===5&&liveOpen&&!captured&&!submitted&&<p>Save the revised V2 in Activity 5 before submitting.</p>}
+   {error&&<p className="bml-banner bml-danger-banner" role="alert">{error}</p>}
+   {notice&&<p role="status">{notice}</p>}
   </section>}
+  {(stage===4||stage===5)&&<GroupResponse key={stage} session={{...session,readOnly}} stage={stage} live={live} open={liveOpen}
+   record={records.rows.find(item=>item.stage_index===stage)?.value} refreshLive={refreshLive} refreshRecords={refreshRecords}/>}
  </main>;
 }

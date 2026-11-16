@@ -15,7 +15,7 @@ const applyAssetChange=(assets,oldId,newAsset)=>[
  ...(assets||[]).filter(a=>a.id!==oldId&&a.id!==newAsset?.id),
  ...(newAsset?[newAsset]:[])
 ];
-export default function MuseumArtworkStudio({studio,update,saveArtwork=update,csrf,disabled=false,uploadEnabled=false,language='vi',onAssets,onBusy,lessonTemplate}){
+export default function MuseumArtworkStudio({studio,update,saveArtwork=update,csrf,disabled=false,uploadEnabled=false,language='vi',onAssets,onBusy,lessonTemplate,frameEditor}){
  const asean=isAsean(lessonTemplate);
  const labels=asean?ASEAN_FRAMES.map(f=>[f.key,f.label]):LABELS;
  const [assets,setAssets]=useState(null),[busySlot,setBusySlot]=useState(null),[error,setError]=useState(''),[notice,setNotice]=useState('');
@@ -97,7 +97,7 @@ export default function MuseumArtworkStudio({studio,update,saveArtwork=update,cs
   }catch(e){setError(e.message);}finally{busyRef.current=false;setBusySlot(null);onBusy?.(false);}
  };
  return <section className="bml-surface bml-artwork-studio" data-testid="museum-artwork-studio">
-  <div className="bml-section-head"><div><div className="bml-overline">ARTWORK STUDIO · 3D MUSEUM</div>
+  <div className="bml-section-head"><div>{!asean&&<div className="bml-overline">ARTWORK STUDIO · 3D MUSEUM</div>}
    <h2>{asean?'Travel photographs':t('Chuẩn bị và tải poster','Prepare and upload your posters')}</h2>
    <p>{t('Ảnh JPG/PNG/WebP sẽ được xử lý thành PNG an toàn rồi tự treo trong bảo tàng 3D.','JPG, PNG and WebP images are sanitized to PNG and automatically framed on the museum walls.')}</p></div>
    <button type="button" className="bml-icon-btn" disabled={!!busySlot} onClick={refresh} title={t('Cập nhật ảnh','Refresh art')}><RefreshCcw size={20}/></button></div>
@@ -126,11 +126,12 @@ export default function MuseumArtworkStudio({studio,update,saveArtwork=update,cs
     {imageUrl?<img src={imageUrl} alt={label+' — '+filename} referrerPolicy="no-referrer" loading={preview?'eager':'lazy'}/>:
       <div className="bml-artwork-missing"><ImageIcon size={29}/>{t('Chưa tải tranh','No image yet')}</div>}
     <span className="bml-artwork-caption">{filename||t('Tranh do nhóm tự tạo hoặc được phép sử dụng','Your own art or licensed material')}</span>
-    <label aria-disabled={disabled||!uploadEnabled||!!busySlot}><UploadCloud size={17}/> {loading?uploadStatus:asset?t('Thay tranh','Replace art'):t('Tải tranh lên','Upload art')}
-      <input type="file" accept="image/jpeg,image/png,image/webp" disabled={disabled||!uploadEnabled||!!busySlot}
+    <label aria-disabled={disabled||!uploadEnabled||!!busySlot}><UploadCloud size={17}/> {loading?uploadStatus:asean?(asset?'Replace photo':'Upload photo'):asset?t('Thay tranh','Replace art'):t('Tải tranh lên','Upload art')}
+      <input type="file" accept="image/jpeg,image/png,image/webp" aria-label={asean?'Upload photo for '+label:undefined} disabled={disabled||!uploadEnabled||!!busySlot}
        onChange={e=>{const file=e.currentTarget.files?.[0];e.currentTarget.value='';if(file)upload(key,file);}}/>
     </label>
     {preview?<span className="bml-artwork-caption" role="status">{t('Xem trước trên thiết bị. Ảnh đang được lưu vào kho riêng tư.','Local preview. Saving to private storage.')}</span>:null}
+    {frameEditor?.(key)}
     {id?<div className="bml-art-meta">{[['alt',t('Mô tả ảnh / Alt text','Alt text')],['source',t('Nguồn ảnh / Source','Image source')],['rights',t('Quyền sử dụng / Permission','Usage permission')]].map(([f,label])=><label key={f}>{label}{f==='source'?' · Required for submission':''}<input maxLength={f==='alt'?500:f==='source'?600:300} disabled={disabled} value={studio.artMeta?.[key]?.[f]||''} placeholder={f==='source'?'Actual creator, class group, teacher or source URL':undefined} onChange={e=>{const value=e.target.value;update(d=>({...d,artMeta:{...normalizeArtMeta(d.artMeta),[key]:{...normalizeArtMeta(d.artMeta)[key],[f]:value}}}));}}/></label>)}{!String(studio.artMeta?.[key]?.source||'').trim()?
     <p className="bml-artwork-source-required" role="status">Image source is missing. Name the actual creator of this image. For work made by the group, say so; for teacher-provided or third-party art, credit its real origin. Do not invent a source.</p>:null}</div>:null}
     {id&&asset?<button type="button" className="bml-outline" disabled={disabled||!!busySlot} onClick={()=>remove(key)}>
