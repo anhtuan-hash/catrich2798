@@ -64,7 +64,7 @@ export default function Footer() {
                 decoding="async"
               />
             </div>
-            <p className="footer-logos-motto">Better Learners ·<br />Brighter Futures</p>
+            <p className="footer-logos-motto">Better Learners · Brighter Futures</p>
           </article>
 
           <article className="footer-col footer-col--teacher" lang="vi">

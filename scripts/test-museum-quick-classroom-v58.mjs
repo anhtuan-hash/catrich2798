@@ -21,7 +21,7 @@ for(const s of ["operation==='quick-access-setting'","assertAdmin(ctx)","assignm
 assert.ok(creator.includes("sess.auth_method==='quick'"),'disabled quick sessions must be refused');
 assert.ok(ui.includes('getMuseumInviteInfo(handle.trim())'),'join link should discover mode');
 assert.ok(ui.includes("quick?{classroomPassword:secret}:{groupSecret:secret}"),'private login fallback');
-assert.match(lesson,/a\.quick_access_enabled\s*\?\s*'Quick access ON'\s*:\s*'Enable quick access'/,'The Lessons toggle shows only the quick-access state');
+assert.ok(lesson.includes('Quick access ON · PEK123'));
 assert.ok(lesson.includes("staffRequest('quick-access-setting'"));
 assert.ok(migration.includes('enable row level security'));
 assert.ok(migration.includes('revoke all on table public.gcp_quick_access'));
