@@ -1684,6 +1684,61 @@ test('ASEAN student workshop uses the Climate layout for all six ASEAN activitie
  await expect(studio.getByLabel('Upload photo for Place')).toBeDisabled();
 });
 
+test('ASEAN V2 retest opens ahead of the completed exhibit, then records the visitor’s answer',async({page})=>{
+ const assignment={id:'qa-asean',title:'ASEAN in Three Frames',class_scope:'11-QA',lesson_template:'asean-in-three-frames'};
+ let response;
+ const live={id:'retest-session',stageIndex:4,status:'active',stageOpen:true};
+ const checkpoints=[{kind:'before',version:0,complete:false},{kind:'after',version:2,complete:true,reason:'Teacher-prepared V2: Added a river photo.'}];
+ await page.route('**/api/gallery-guest?**',route=>{
+  const operation=new URL(route.request().url()).searchParams.get('operation');
+  return route.fulfill({json:operation==='me'?{assignment,groupLabel:'Nhóm 01',groupState:'editing',csrf:'qa-asean'}:
+   {draft:{title:'Hội An Ancient Town'},version:2}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>{
+  const operation=new URL(route.request().url()).searchParams.get('operation');
+  if(operation==='asean-records')return route.fulfill({json:{checkpoints,rows:response?[{stage_index:4,value:response}]:[],
+   retestTask:{target:'Nhóm 03',ready:true,question:2}}});
+  if(operation==='asean-visit')return route.fulfill({json:{target:'Nhóm 03',question:2,
+   gallery:{checkpointId:'v2-angkor',version:2,draft:{title:'Angkor',rooms:[]},artworks:[]}}});
+  if(operation==='asean-submit'){
+   const payload=route.request().postDataJSON();
+   expect(payload).toEqual({sessionId:live.id,stageIndex:4,checkpointId:'v2-angkor',
+    value:{question:2,answer:'Visitors can look up at the stone faces.',frame:2,score:1}});
+   response=payload.value;
+   return route.fulfill({json:{ok:true}});
+  }
+  return route.fulfill({json:{session:live,readOnly:false}});
+ });
+ await page.getByTestId('qa-student-en').click();
+ const project=page.getByRole('region',{name:'Group Project',exact:true});
+ await expect(project.getByText('Group 03 · Angkor')).toBeVisible();
+ await expect(project.getByText('What can I do there?',{exact:true})).toBeVisible();
+ await expect(project.getByTestId('asean-3d-studio')).toHaveCount(0);
+ await expect(project.getByTestId('asean-own-revision')).toContainText('V1 was saved before the exhibit was complete.');
+ await project.getByRole('button',{name:'Open assigned V2 exhibit'}).click();
+ await page.getByRole('button',{name:'Close museum preview'}).click();
+ await project.getByRole('textbox',{name:'Your group’s answer'}).fill('Visitors can look up at the stone faces.');
+ await project.getByLabel('Evidence frame').selectOption('2');
+ await project.getByLabel('Score').selectOption('1');
+ await project.getByRole('button',{name:'Submit group response'}).click();
+ await expect(project.getByText('Group response saved.')).toBeVisible();
+ await expect(project.getByRole('textbox',{name:'Your group’s answer'})).toBeDisabled();
+});
+
+test('ASEAN V2 retest teacher table distinguishes pending submissions from a recorded zero',async({page})=>{
+ await page.getByTestId('qa-teacher-asean-retest-en').click();
+ await expect(page.getByRole('heading',{name:'V2 visitor progress · 1/10'})).toBeVisible();
+ const table=page.getByRole('region',{name:'V2 visitor assignments'});
+ await expect(table.getByRole('row')).toHaveCount(11);
+ const first=table.getByRole('row').filter({has:page.getByRole('rowheader',{name:'Group 01',exact:true})});
+ await expect(first).toContainText('Group 03 · Angkor');
+ await expect(first).toContainText('Awaiting response');
+ await first.getByText('Caption for reference').click();
+ await expect(first.getByText('Visitors can look up at the stone faces.')).toBeVisible();
+ const second=table.getByRole('row').filter({has:page.getByRole('rowheader',{name:'Group 02',exact:true})});
+ await expect(second).toContainText('0/1');
+});
+
 test('a locked student lesson loads and displays the frozen survey denominator',async({page})=>{
  const reads=[];
  await page.route('**/api/gallery-guest?**',route=>{

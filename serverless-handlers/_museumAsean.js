@@ -21,16 +21,27 @@ export async function handleAseanActivity({op,req,res,admin,ctx,session}){
   // The group one place before the author supplied V1 feedback.
   const source=session?await query(admin.from('museum_peer_pairs').select('from_group')
    .eq('session_id',session.id).eq('to_group',id).maybeSingle()):null;
-  const authorRetest=session&&session.stage_index>=4?await aseanVisitTarget(admin,ctx.assignment.id,id,4,true):null;
-  const [rows,feedback,ownCheckpoints,retest]=await Promise.all([
+  const groups=session&&session.stage_index>=4?await query(admin.from('gcp_groups').select('id,label').eq('assignment_id',ctx.assignment.id)):[];
+  const authorRetest=aseanPeerGroup(groups,id,4,{reverse:true});
+  const assigned=aseanPeerGroup(groups,id,4);
+  const [rows,feedback,ownCheckpoints,retest,assignedCheckpoint]=await Promise.all([
    session?aseanGroupRecords(admin,session.id,id):[],
    source?query(admin.from('museum_live_responses').select('value').eq('session_id',session.id)
     .eq('group_id',source.from_group).eq('stage_index',3).maybeSingle()):null,
-   session?query(admin.from('museum_checkpoints').select('kind,version').eq('session_id',session.id).eq('group_id',id)):[],
+   session?query(admin.from('museum_checkpoints').select('kind,version,doc').eq('session_id',session.id).eq('group_id',id)):[],
    authorRetest?query(admin.from('museum_live_responses').select('value').eq('session_id',session.id)
     .eq('group_id',authorRetest.id).eq('stage_index',4).maybeSingle()):null,
+   assigned?query(admin.from('museum_checkpoints').select('version,doc').eq('session_id',session.id)
+    .eq('group_id',assigned.id).eq('kind','after').maybeSingle()):null,
   ]);
-  return send(res,200,{rows,feedback:feedback?.value||null,retest:retest?.value||null,checkpoints:ownCheckpoints});
+  const checkpoints=ownCheckpoints.map(({kind,version,doc})=>({kind,version,complete:aseanExhibitMissing(doc).length===0,
+   ...(kind==='after'?{reason:doc?.revisionReason||''}:{})}));
+  const retestTask=assigned?{
+   target:assigned.label,
+   ready:Boolean(assignedCheckpoint&&aseanExhibitMissing(assignedCheckpoint.doc).length===0),
+   question:assignedCheckpoint?.doc?.retestQuestion??null,
+  }:null;
+  return send(res,200,{rows,feedback:feedback?.value||null,retest:retest?.value||null,checkpoints,retestTask});
  }
  if(session?.status!=='active'||!session.stage_open)throw fail(423,'Wait for the teacher to open this activity.');
  if(op==='asean-capture'){

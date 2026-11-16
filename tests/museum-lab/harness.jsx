@@ -246,6 +246,14 @@ function LessonCompletionHarness({visitor=false}){
  const data=visitor?{...frozenQa,publicReadOnly:true}:synthetic;
  return <SwissTeacherLive data={data} language="en" transport={visitor?frozenTeacherApi:transport}/>;
 }
+const aseanRetestQa={...synthetic,assignments:[{...synthetic.assignments[0],title:'ASEAN in Three Frames',lesson_template:'asean-in-three-frames'}]};
+const aseanRetestTeacherApi=async()=>({
+ session:{id:'qa-asean-retest',assignmentId:'lesson-synthetic',stageIndex:4,status:'active',stageOpen:true},
+ groups:tenGroups,
+ responses:[],
+ retestProgress:tenGroups.map((group,index)=>({group:group.label,target:tenGroups[(index+2)%tenGroups.length].label,
+  baselineReady:false,ready:true,question:2,score:index===1?0:null,reference:'Visitors can look up at the stone faces.'})),
+});
 function ArtworkHarness({language}){
  const [studio,update]=useState({artworks:{issue:null,evidence:null,solution:null}});
  return <MuseumArtworkStudio studio={studio} csrf="qa-secret" language={language} uploadEnabled={true} update={update}/>;
@@ -259,7 +267,7 @@ function Harness(){
  return <div style={{fontFamily:'Roboto,Arial,sans-serif'}}>
   <div style={{display:'flex',gap:8,padding:10,background:'#e6f0ff',flexWrap:'wrap'}} data-testid="qa-harness">
    <strong>QA ONLY · ALL DATA SYNTHETIC</strong>
-   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','review-workflow-en','published-lesson','dashboard-en','dashboard-visitor','dashboard-submissions','dashboard-published-en','dashboard-published-fail-en','student-en','teacher-live-en','teacher-live-ten-en','teacher-live-frozen-en','teacher-live-v2-frozen-en','teacher-live-completion-en','teacher-live-visitor-en','v53-evidence-en','v54-speaking-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
+   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','review-workflow-en','published-lesson','dashboard-en','dashboard-visitor','dashboard-submissions','dashboard-published-en','dashboard-published-fail-en','student-en','teacher-live-en','teacher-live-ten-en','teacher-live-frozen-en','teacher-live-v2-frozen-en','teacher-live-completion-en','teacher-live-visitor-en','teacher-asean-retest-en','v53-evidence-en','v54-speaking-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
   </div>
   <div className={['dashboard','dashboard-visitor','dashboard-submissions'].includes(normalized)?'':'bml'}>
    {normalized==='dashboard'?<MuseumLabApp language={uiLanguage} currentUser={{id:'teacher-synthetic',name:'Demo Teacher'}} transport={demoDashboardApi}/>:null}
@@ -283,6 +291,7 @@ function Harness(){
    {normalized==='teacher-live-v2-frozen'?<SwissTeacherLive data={frozenQa} language={uiLanguage} transport={frozenTeacherApi}/>:null}
    {normalized==='teacher-live-completion'?<LessonCompletionHarness/>:null}
    {normalized==='teacher-live-visitor'?<LessonCompletionHarness visitor/>:null}
+   {normalized==='teacher-asean-retest'?<SwissTeacherLive data={aseanRetestQa} language={uiLanguage} transport={aseanRetestTeacherApi}/>:null}
    {normalized==='student-live'?<MuseumLiveStudent csrf="qa-secret" language={uiLanguage}/>:null}
    {normalized==='artwork'?<ArtworkHarness language={uiLanguage}/>:null}
    {normalized==='scene'?<MuseumScene gallery={DEMO_GALLERY} language={uiLanguage} onBack={()=>setScreen('dashboard')}/>:null}
