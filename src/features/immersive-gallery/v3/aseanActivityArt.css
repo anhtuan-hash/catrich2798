@@ -1,0 +1,94 @@
+.asean-activity-art {
+  --art-paper: #fffdf5;
+  --art-ink: #182b29;
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+  display: grid;
+  align-content: center;
+  gap: 12px;
+  padding: clamp(14px, 2vw, 24px);
+  color: var(--art-ink);
+  background: #e9e6d8;
+  border: 1px solid color-mix(in srgb, var(--art-ink), transparent 74%);
+  overflow: hidden;
+}
+.asean-activity-art :is(ul, ol) { list-style: none; padding: 0; margin: 0; }
+.asean-activity-art svg { flex: none; }
+.asean-activity-art--discover {
+  grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+  align-items: center;
+  background: #e4edee;
+  background-image: repeating-linear-gradient(0deg, transparent 0 19px, #2b59651a 20px), repeating-linear-gradient(90deg, transparent 0 19px, #2b59651a 20px);
+}
+.asean-art-globe { position: relative; display: grid; place-items: center; }
+.asean-art-globe svg:first-child { width: clamp(60px, 12vw, 140px); height: auto; color: #2b5965; stroke-width: 1; max-width: 100%; }
+.asean-art-globe svg:nth-child(2) { position: absolute; width: 32%; height: auto; right: 8%; top: 8%; color: #b2262c; fill: #fffdf5; }
+.asean-art-questions { display: grid; gap: 6px; font-size: clamp(12px, 1.35vw, 18px); font-weight: 750; }
+.asean-art-questions li { display: flex; align-items: center; gap: 8px; background: var(--art-paper); padding: 7px 9px; border-left: 3px solid #2b5965; }
+.asean-art-questions svg { width: 17px; height: 17px; }
+.asean-activity-art--select {
+  background: #f2e7cd;
+  background-image: linear-gradient(105deg, transparent 0 84%, #d6a641 84% 87%, transparent 87%);
+}
+.asean-art-contact, .asean-art-room-wall {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(5px, 1vw, 12px);
+}
+.asean-art-contact li { display: grid; align-content: start; gap: 3px; background: var(--art-paper); padding: clamp(4px, .7vw, 9px); border: 1px solid #b1a180; }
+.asean-art-contact strong, .asean-art-room-wall strong, .asean-art-route strong { font-size: clamp(11px, 1.2vw, 16px); line-height: 1.2; overflow-wrap: anywhere; }
+.asean-art-contact small { line-height: 1.25; font-size: clamp(10px, .95vw, 13px); }
+.asean-art-photo {
+  display: grid; place-items: center; height: clamp(32px, 5vw, 64px);
+  color: #1e4c4a; background: linear-gradient(155deg, #cee0d4 0 58%, #a9c8bc 58% 69%, #dcebe5 69%);
+}
+.asean-art-contact li:nth-child(2) .asean-art-photo { color: #79521a; background: linear-gradient(150deg, #eadab2 0 54%, #d9bc82 54% 72%, #f1e7cd 72%); }
+.asean-art-contact li:nth-child(3) .asean-art-photo { color: #8d3539; background: linear-gradient(148deg, #f1d4cc 0 50%, #e4aaa6 50% 72%, #f7e6e0 72%); }
+.asean-art-photo svg { width: 48%; height: 66%; stroke-width: 1.4; }
+.asean-activity-art--build { background: #182c2b; padding: 0; min-height: clamp(125px, 16vw, 220px); }
+.asean-art-room {
+  background: linear-gradient(90deg, #1c302b, #36554a 23%, #486c5d 50%, #36554a 77%, #1c302b);
+  display: grid; align-content: end; min-height: inherit; position: relative;
+}
+.asean-art-room-wall {
+  position: relative; z-index: 1;
+  margin: 16px 13% 10px;
+}
+.asean-art-room-wall > div {
+  position: relative; min-width: 0; display: grid; place-items: center; align-content: center; gap: 4px;
+  text-align: center; padding: 7px 3px; min-height: clamp(52px, 7vw, 98px);
+  background: #faf0d9; border: 3px double #b99a4f; box-shadow: 0 4px 9px #081b17b0;
+}
+.asean-art-room-wall > div::before {
+  content: ''; position: absolute; top: -10px; left: 27%; right: 27%; height: 6px;
+  background: #ffdf8c; box-shadow: 0 2px 16px 3px #ffdf8c99; opacity: .85;
+}
+.asean-art-room-wall svg { width: clamp(14px, 2.2vw, 30px); height: auto; color: #426052; }
+.asean-art-room-floor {
+  height: clamp(23px, 4vw, 55px);
+  background: repeating-linear-gradient(0deg, transparent 0 10px, #9aab975c 11px), conic-gradient(from 133deg at 50% -50%, #273931 0 9deg, #3d544a 9deg 10deg, #273931 10deg 29deg, #3d544a 29deg 30deg, #273931 30deg 59deg, #3d544a 59deg 60deg, #273931 60deg 80deg, #3d544a 80deg 81deg, #273931 81deg);
+  border-top: 1px solid #829281;
+}
+.asean-activity-art--visit { background: #dfebed; }
+.asean-art-route { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); position: relative; text-align: center; gap: 4px; }
+.asean-art-route::before { content: ''; border-top: 2px dashed #366474; position: absolute; left: 14%; right: 14%; top: 17px; }
+.asean-art-route li { display: grid; justify-items: center; gap: 6px; z-index: 1; }
+.asean-art-pin { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: #234c5d; color: #fff; }
+.asean-art-pin svg { width: 19px; height: 19px; }
+.asean-art-ticket { display: flex; align-items: center; gap: 7px; background: var(--art-paper); border: 1px solid #a2bac0; padding: 6px 8px; font-size: clamp(11px, 1vw, 15px); }
+.asean-art-ticket strong { margin-left: auto; }
+.asean-art-ticket svg { width: 17px; height: 17px; }
+.asean-activity-art--revise { background: #eee7da; }
+.asean-art-proof { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; }
+.asean-art-proof div { display: grid; justify-items: start; align-content: start; gap: 5px; height: 100%; padding: clamp(7px, 1.1vw, 14px); background: #fbf4e5; border: 1px solid #baaa90; }
+.asean-art-proof div:last-child { color: #fff; background: #23483a; border-color: #23483a; }
+.asean-art-proof div strong { font-size: clamp(25px, 3.3vw, 48px); line-height: 1; }
+.asean-art-proof div span { font-size: clamp(11px, 1.2vw, 16px); }
+.asean-art-proof svg { width: clamp(15px, 2.5vw, 30px); height: auto; }
+.asean-activity-art--share { background: #ead9d5; }
+.asean-art-deliver { display: grid; grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr); gap: 7px; align-items: stretch; }
+.asean-art-deliver div { display: grid; align-content: center; gap: 6px; padding: clamp(8px, 1.4vw, 18px); background: #78363d; color: #fff; border: 1px solid #78363d; }
+.asean-art-deliver div:last-child { background: var(--art-paper); color: var(--art-ink); border-color: #b99697; }
+.asean-art-deliver svg { width: clamp(17px, 2.5vw, 30px); height: auto; }
+.asean-art-deliver strong { font-size: clamp(11px, 1.2vw, 18px); line-height: 1.35; overflow-wrap: anywhere; }

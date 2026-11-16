@@ -32,7 +32,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
   const phaseName=period===1
     ?t(language,'KHỞI ĐỘNG & THIẾT KẾ','INVESTIGATE & DESIGN')
     :t(language,'TẠO, KIỂM TRA & CẢI TIẾN','CREATE, TEST & IMPROVE');
-  const phaseLabel=`${phaseName}${stage?.kind?` · ${String(stage.kind).toUpperCase()}`:''}`;
+  const phaseLabel=`${phaseName}${stage?.kind&&stage.kind!=='asean'?` · ${String(stage.kind).toUpperCase()}`:''}`;
   const taskOpen=Boolean(session?.stageOpen);
   const statusLabel=readOnly?t(language,'CHỈ XEM','VIEW ONLY'):taskOpen
     ?t(language,'ĐANG MỞ HOẠT ĐỘNG','TASK OPEN')
@@ -76,7 +76,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
             <div className={'adv-stage-layout' + (videoLayout||stage?.kind==='asean'?' is-video':'')}>
               <div className="adv-stage-copy">
                 <div className="adv-stage-section">{phaseLabel}</div>
-                {stage?.kind==='asean'?<AseanLiveSlide stage={stage} currentIndex={currentIndex} language={language} revealed={revealed}
+                {stage?.kind==='asean'?<AseanLiveSlide currentIndex={currentIndex} language={language} revealed={revealed}
                   onJoin={onAseanJoin} onStudioHelp={onAseanStudioHelp} draftTools={aseanDraftTools}/>:<>
                 <h2 className="adv-stage-title">{stage?.title||t(language,'Đang tải hoạt động…','Loading activity…')}</h2>
                 {language!=='en'&&stage?.vi?<p className="adv-stage-vi">{stage.vi}</p>:null}

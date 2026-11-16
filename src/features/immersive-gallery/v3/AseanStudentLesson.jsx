@@ -1,5 +1,7 @@
 import React,{useEffect,useRef,useState} from 'react';
-import {Box,Save} from 'lucide-react';
+import {ArrowLeft,ArrowRight,Box,Save} from 'lucide-react';
+import AseanActivityArt,{AseanFrameIcon} from './AseanActivityArt.jsx';
+import {ASEAN_ACTIVITY_DESIGN} from './aseanActivityDesign.js';
 import {ASEAN_FRAMES,ASEAN_STAGES,aseanDestination,aseanExhibitMissing,aseanWritingCard,aseanWordCount} from './aseanLesson.js';
 import {guestRequest,englishSystemGroupLabel} from './museumApi.js';
 import {liveGuest,localMuseumFromDraft,artGuest} from './museumLiveApi.js';
@@ -34,37 +36,54 @@ function ResponseFields({stage,fields,update,groupLabel,question,recorded}){
  </select>;
  if(stage===0||stage===5){
   const card=aseanWritingCard(groupLabel,stage===5);
-  return <fieldset disabled={recorded}><legend>{card.title}</legend>
-   <p>{card.country}</p><p>Experience clues · {card.experience}</p><p>Visitor tip clues · {card.advice}</p>
-   {text('experience','One thing a visitor can do')}{text('advice','One piece of advice')}
+  return <fieldset className="asean-response-sheet" disabled={recorded}><legend>{card.title}</legend>
+   <p className="asean-response-context">{card.country}</p>
+   <div className="asean-response-grid">
+    <div><p><strong>Visitors can …</strong><br/>{card.experience}</p>{text('experience','One thing a visitor can do')}</div>
+    <div><p><strong>Visitors should …</strong><br/>{card.advice}</p>{text('advice','One piece of advice')}</div>
+   </div>
   </fieldset>;
  }
- if(stage===1)return <fieldset disabled={recorded}><legend>Exhibit plan</legend>
-  {ASEAN_FRAMES.map((f,i)=><label className="bml-full-field" key={f.key}>{f.label} photo code
-   <input required maxLength={35} value={fields.codes?.[i]||''} onChange={event=>update('codes',fields.codes.map((code,j)=>i===j?event.target.value:code))}/>
-  </label>)}
-  <label>Frame your group compared {frameSelect(fields.comparisonFrame,v=>update('comparisonFrame',v))}</label>
-  {text('alternative','Code for the other photo you considered',35)}
-  {text('fact','A fact in your own words')}{text('source','Source for the fact',350)}
-  {text('reason','We chose this photo because visitors can see …')}
+ if(stage===1)return <fieldset className="asean-response-sheet" disabled={recorded}><legend>Exhibit plan</legend>
+  <div className="asean-response-grid asean-response-grid--three">
+   {ASEAN_FRAMES.map((f,i)=><label className="bml-full-field asean-photo-plan" key={f.key}>
+    <AseanFrameIcon index={i}/><span>{f.label} photo code</span><small>{f.question}</small>
+    <input required maxLength={35} value={fields.codes?.[i]||''} onChange={event=>update('codes',fields.codes.map((code,j)=>i===j?event.target.value:code))}/>
+   </label>)}
+  </div>
+  <div className="asean-response-grid">
+   <section><h3>Compare two images</h3>
+    <label className="bml-full-field">Frame your group compared {frameSelect(fields.comparisonFrame,v=>update('comparisonFrame',v))}</label>
+    {text('alternative','Code for the other photo you considered',35)}
+    {text('reason','We chose this photo because visitors can see …')}
+   </section>
+   <section><h3>Check one fact</h3>
+    {text('fact','A fact in your own words')}{text('source','Source for the fact',350)}
+   </section>
+  </div>
  </fieldset>;
- if(stage===3)return <fieldset disabled={recorded}><legend>Visitor test /3</legend>
-  <label>First frame opened <select required value={fields.first??''} onChange={event=>update('first',Number(event.target.value))}><option value="">Select a frame</option>{frameOptions}</select></label>
+ if(stage===3)return <fieldset className="asean-response-sheet" disabled={recorded}><legend>Visitor test /3</legend>
+  <label className="bml-full-field">First frame opened <select required value={fields.first??''} onChange={event=>update('first',Number(event.target.value))}><option value="">Select a frame</option>{frameOptions}</select></label>
+  <div className="asean-response-grid asean-response-grid--three">
   {ASEAN_FRAMES.map(({key,question},i)=>{
    const answer=fields.answers[i];
    const change=(name,value)=>update('answers',fields.answers.map((item,index)=>index===i?{...item,[name]:value}:item));
    return <fieldset key={key}><legend>{question}</legend>
+    <AseanFrameIcon index={i}/>
     <label className="bml-full-field">Answer<textarea required rows={2} maxLength={130} value={answer.text} onChange={e=>change('text',e.target.value)}/></label>
-    <label>Evidence frame {frameSelect(answer.frame,v=>change('frame',v))}</label>{' '}
-    <label>Score {scoreSelect(answer.score,v=>change('score',v))}</label>
+    <label className="bml-full-field">Evidence frame {frameSelect(answer.frame,v=>change('frame',v))}</label>
+    <label className="bml-full-field">Score {scoreSelect(answer.score,v=>change('score',v))}</label>
    </fieldset>;
   })}
+  </div>
   {text('comment','One change that would make a frame clearer')}
  </fieldset>;
- return <fieldset disabled={recorded}><legend>{ASEAN_FRAMES[(question||fields.question)-1]?.question||'Fresh visitor test'}</legend>
+ return <fieldset className="asean-response-sheet" disabled={recorded}><legend>{ASEAN_FRAMES[(question||fields.question)-1]?.question||'Fresh visitor test'}</legend>
   {text('answer','Your group’s answer')}
-  <label>Evidence frame {frameSelect(fields.frame,v=>update('frame',v))}</label>{' '}
-  <label>Score {scoreSelect(fields.score,v=>update('score',v))}</label>
+  <div className="asean-response-grid">
+   <label className="bml-full-field">Evidence frame {frameSelect(fields.frame,v=>update('frame',v))}</label>
+   <label className="bml-full-field">Score {scoreSelect(fields.score,v=>update('score',v))}</label>
+  </div>
  </fieldset>;
 }
 
@@ -93,8 +112,9 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
    setShowGallery(false);
   }catch(e){setError(errorText(e));}finally{setBusy(false);}
  };
- if(!open&&!submitted)return <p className="bml-muted">{session.readOnly?'No group response was recorded for this activity.':'Your teacher has not opened this activity for responses.'}</p>;
- return <section className="bml-surface">
+ if(!open&&!submitted)return <p className="asean-response-closed" role="status">{session.readOnly?'No group response was recorded for this activity.':'Your teacher has not opened this activity for responses.'}</p>;
+ return <section className="bml-surface asean-group-response">
+  {visitStage&&<h3>{stage===3?'Your assigned V1 exhibit':'Test the assigned V2 exhibit'}</h3>}
   {visitStage&&open&&!submitted&&<button type="button" className="bml-outline" onClick={loadVisit} disabled={busy}>
    Open assigned {stage===3?'V1 exhibit':'V2 exhibit'}
   </button>}
@@ -144,6 +164,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
  },[]);
  const stage=review??Math.max(0,Math.min(ASEAN_STAGES.length-1,live?.stageIndex??0));
  const current=ASEAN_STAGES[stage];
+ const design=ASEAN_ACTIVITY_DESIGN[stage];
  const liveOpen=!readOnly&&live?.status==='active'&&live.stageOpen&&live.stageIndex===stage;
  const captured=records.checkpoints.find(item=>item.kind==='after');
  const editable=liveOpen&&(stage===2||(stage===4&&!captured))&&!submitted;
@@ -186,30 +207,38 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
   <small>{frame.question} · {aseanWordCount(studio.learning[frame.key])} / 20–30 words</small>
   <textarea rows={3} maxLength={600} disabled={!editable||busy} value={studio.learning[frame.key]} onChange={e=>field(frame.key,e.target.value)}/>
  </label>;
- return <main className="bml bml-paper bml-student-editorial" lang="en" data-testid="asean-student-lesson">
+ return <main className="bml bml-paper bml-student-editorial asean-student-lesson" lang="en" data-testid="asean-student-lesson">
   <MuseumCompetitionRibbon language="en" lessonTemplate={session.assignment.lesson_template}/>
-  <div className="bml-surface">
-   <header className="bml-section-head">
-    <div><h1>{destination?.name||session.assignment.title}</h1>
-     <p>{englishSystemGroupLabel(session.groupLabel)} · {destination?.country} · {session.assignment.class_scope}</p>
-    </div>
-    <button className="bml-outline" onClick={onLogout}>Sign out</button>
-   </header>
-   {destination&&<p><a href={destination.source} target="_blank" rel="noreferrer">UNESCO destination source</a>{' · '}
-    <a href={'https://commons.wikimedia.org/wiki/Special:MediaSearch?type=image&search='+encodeURIComponent(destination.name)} target="_blank" rel="noreferrer">Find candidate photographs</a></p>}
-   <nav aria-label="Lesson activities" className="bml-toolbar">
-    <button className="bml-outline" disabled={stage===0} onClick={()=>setReview(stage-1)}>Previous</button>
-    <button className="bml-outline" onClick={()=>setReview(null)}>Follow teacher</button>
-    <button className="bml-outline" disabled={stage===5} onClick={()=>setReview(stage+1)}>Next</button>
-   </nav>
-   <p className="bml-overline">PERIOD {current.period} · ACTIVITY {stage+1} / 6 · {current.minutes} MIN</p>
-   <h2>{current.title}</h2><p>{current.question}</p><p>{current.expected}</p>
-   {stage===2&&<button type="button" className="bml-primary" onClick={()=>{
-    studioRef.current?.focus({preventScroll:true});
-    studioRef.current?.scrollIntoView({block:'start'});
-   }}><Box size={18}/> Open the 3D Studio</button>}
-   {readOnly&&<p role="status">Lesson complete · View only</p>}
-   {!live&&<p role="status">Waiting for Teacher Live to start.</p>}
+  <header className="asean-student-mast">
+   <div><h1>{destination?.name||session.assignment.title}</h1>
+    <p>{[englishSystemGroupLabel(session.groupLabel),destination?.country,session.assignment.class_scope].filter(Boolean).join(' · ')}</p>
+   </div>
+   <button type="button" className="bml-outline" onClick={onLogout}>Sign out</button>
+  </header>
+  <nav aria-label="Lesson activities" className="bml-toolbar asean-student-nav">
+   <button type="button" className="bml-outline" disabled={stage===0} onClick={()=>setReview(stage-1)}><ArrowLeft size={15}/> Previous</button>
+   <button type="button" className="bml-outline" aria-pressed={review===null} onClick={()=>setReview(null)}>Follow teacher</button>
+   <button type="button" className="bml-outline" disabled={stage===ASEAN_STAGES.length-1} onClick={()=>setReview(stage+1)}>Next <ArrowRight size={15}/></button>
+  </nav>
+  <section className={'asean-student-activity asean-student-activity--'+design.id} aria-labelledby="asean-student-activity-title" data-testid={'asean-student-slide-'+(stage+1)}>
+   <div className="asean-student-activity-copy">
+    <p className="asean-student-index">Period {current.period} · Activity {stage+1} / {ASEAN_STAGES.length} · {current.minutes} min</p>
+    <h2 id="asean-student-activity-title">{design.studentTitle}</h2>
+    <p>{design.studentTask}</p>
+    {[1,2,4].includes(stage)&&destination&&<div className="asean-student-sources">
+     <a href={destination.source} target="_blank" rel="noreferrer">UNESCO destination source</a>
+     <a href={'https://commons.wikimedia.org/wiki/Special:MediaSearch?type=image&search='+encodeURIComponent(destination.name)} target="_blank" rel="noreferrer">Find candidate photographs</a>
+    </div>}
+    {stage===2&&<button type="button" className="bml-primary" onClick={()=>{
+     studioRef.current?.focus({preventScroll:true});
+     studioRef.current?.scrollIntoView({block:'start'});
+    }}><Box size={18}/> Open the 3D Studio</button>}
+    {readOnly&&<p role="status">Lesson complete · View only</p>}
+    {!live&&<p role="status">Waiting for Teacher Live to start.</p>}
+   </div>
+   <AseanActivityArt activity={design.id}/>
+  </section>
+  <div className="asean-student-media">
    {live?.stageIndex===stage&&live.media?.voiceEnabled&&<MuseumVoiceover stage={current} language="en" compact/>}
    {live?.stageIndex===stage&&Boolean(live.media?.videos?.length||live.media?.query)&&<MuseumVideoLab mode="student" language="en" stage={current} stageIndex={stage} media={live.media} readOnly={readOnly}/>}
    {!workshopVisible&&error&&<p className="bml-banner bml-danger-banner" role="alert">{error}</p>}
@@ -219,10 +248,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
    record={records.rows.find(item=>item.stage_index===stage)?.value} refreshLive={refreshLive} refreshRecords={refreshRecords}/>}
   {workshopVisible&&<section className="bml-surface asean-student-studio" ref={studioRef} tabIndex={-1} data-testid="asean-3d-studio">
    <div className="asean-studio-head">
-    <div><h2>{stage===2?'Build your group’s 3D exhibit':stage===4?'Revise your 3D exhibit':'Submit your 3D exhibit'}</h2>
-     <p>{stage===2?'Upload one photo per frame. Add the English captions and credits, preview the room, then save V1.':
-      stage===4?'Improve one frame, then make the revised room available for retesting.':'Preview the finished room, then send it to your teacher for review.'}</p>
-    </div>
+    <h2>{stage===2?'3D Studio':stage===4?'Revise your 3D exhibit':'Submit your 3D exhibit'}</h2>
     <button type="button" className="bml-outline" disabled={busy||imageBusy||!photoCount} onClick={()=>action('preview')}><Box size={18}/>{preview?'Close 3D preview':'Preview in 3D'}</button>
    </div>
    {photoCount===0&&<p>Upload a photo to preview your room in 3D.</p>}
