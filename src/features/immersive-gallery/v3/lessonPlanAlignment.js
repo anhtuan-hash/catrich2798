@@ -26,7 +26,7 @@ export const AFTER_CLASS_TASK = 'Track one approved action for a school week. Re
 
 export const VISITOR_TEST_GUIDANCE = 'On C2, the visitor answers all three questions in three minutes without coaching. Award one point for each correct answer after all three are written. For question 3, the action, person and time must all be present. On C3, repeat only the question for the part you revised. Keep the V1 total out of 3 and the paired scores out of 1. Mark the other V2 items N/T.';
 
-export const CLASSROOM_SETUP = 'Give each student a separate I1-A and I1-B form. Use the same student code on both. Collect I1 by student code and C2, C3 and D2 by group, on paper or in files exported from the offline worksheet. Give each group B1–B3, C2–C3, D1–D2 and two A4 sheets for the exhibit versions. Set up groups of four or five. Use BRIAN, the offline HTML, or a board tally and folded A4 sheets. If groups cannot open drafts at the start of Stage 07, switch to paper. Keep the same three panels, source check and visitor questions.';
+export const CLASSROOM_SETUP = 'Give each student a separate I1-A and I1-B form. Use the same student code on both. Collect I1 by student code and C2, C3 and D2 by group in the P2 workbook in BRIAN. Use paper or the exported offline worksheet if needed. Give each group B1–B3, C2–C3, D1–D2 and two A4 sheets for the exhibit versions. Set up groups of four or five. Use BRIAN, the offline HTML, or a board tally and folded A4 sheets. If groups cannot open drafts at the start of Stage 07, switch to paper. Keep the same three panels, source check and visitor questions.';
 
 export const CLASSROOM_RECORDS = Object.freeze({
   date: '15 November 2026',

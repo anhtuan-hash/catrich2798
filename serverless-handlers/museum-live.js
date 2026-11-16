@@ -8,6 +8,7 @@ import {MICRO_CHALLENGES,validMicroAnswer,videoTaskFor,curriculumMediaBoard} fro
 import {searchVideos,mediaText,mediaId,mediaBoardUpdate,mediaTask,searchThrottle,safeRefinement} from './_museumLiveMedia.js';
 import {handleLivePeer,peerRoomsEvidence} from './_museumLivePeer.js';
 import {liveReadAudience,presentationFor,responseMatchesActivity,validPresentation} from '../src/features/immersive-gallery/v3/livePresentation.js';
+import {handleMuseumP2} from './_museumP2.js';
 const canRespond=stage=>['vote','quiz','exit','peer'].includes(stage?.kind)||(stage?.kind==='group'&&Array.isArray(stage.videoQuestions));
 async function scopedStaff(ctx,assignmentId){
  if(!uid(assignmentId))throw fail(400,'Lớp học không hợp lệ.');
@@ -36,7 +37,7 @@ function stateOf(s,{staff=false}={}){
  return {id:s.id,assignmentId:s.assignment_id,status:s.status,stageIndex:s.stage_index,
   stageOpen:s.stage_open,revealed:s.revealed,version:s.version,
   stageStartedAt:s.stage_started_at,elapsedSeconds:s.elapsed_seconds,updatedAt:s.updated_at,
-  evidenceVersion:s.evidence_version,questionVersion:Number(s.media_board?.lessonQuestionVersion||1),media:mediaTask(s),
+  evidenceVersion:s.evidence_version,p2Enabled:s.media_board?.p2Worksheets===true,questionVersion:Number(s.media_board?.lessonQuestionVersion||1),media:mediaTask(s),
   presentation:presentationFor(s.stage_index,s.media_board?.lessonPresentation),
   stage:publicStage(s.evidence_version===0&&s.stage_index===2?legacySurvey:sessionStage(s,s.stage_index),s.revealed,staff)};
 }
@@ -90,6 +91,7 @@ export default async function museumLive(req,res){
    if(!publicRead&&req.method!=='GET'&&assignment.content_frozen_at)
     throw fail(423,'This completed lesson is view-only. Teacher Live controls are locked.');
    const session=await getSession(admin,assignment.id);
+   if(op==='p2-forms'||op==='p2-save')return await handleMuseumP2({op,req,res,admin,ctx,session,assignment,staff:true});
    if(op==='state'){
     requireMethod(req,'GET');
     if(!session)return send(res,200,{session:null,contentFrozenAt:assignment.content_frozen_at??null,stageCount:LIVE_STAGES.length});
@@ -201,7 +203,7 @@ export default async function museumLive(req,res){
      const created=await query(admin.from('museum_live_sessions').insert({
       assignment_id:assignment.id,owner_id:assignment.created_by,
       school_scope:assignment.school_scope,status:'active',stage_index:0,stage_open:true,
-      started_at:now,stage_started_at:now,media_board:{...curriculumMediaBoard(),lessonQuestionVersion:VIDEO_QUESTION_VERSION}
+      started_at:now,stage_started_at:now,media_board:{...curriculumMediaBoard(),lessonQuestionVersion:VIDEO_QUESTION_VERSION,p2Worksheets:true}
      }).select('*').single());
      await query(admin.from('museum_learning_events').insert({
       session_id:created.id,actor_role:'teacher',action:'lesson_started',stage_index:0
@@ -279,9 +281,10 @@ export default async function museumLive(req,res){
    return send(res,404,{error:'Không tìm thấy chức năng giáo viên.'});
   }
   // Guest: no registered student account. Cookie is one group capability.
-  const writing=['respond','need-help','micro-submit','peer-room-toggle','peer-room-review','peer-room-review-batch'].includes(op);
-  const ctx=await guestContext(req,admin,{write:writing});
+  const writing=['p2-save','respond','need-help','micro-submit','peer-room-toggle','peer-room-review','peer-room-review-batch'].includes(op);
+  const ctx=await guestContext(req,admin,{write:writing,allowPublishedWorksheet:op==='p2-save'&&req.body?.form==='D2'});
   const session=await getSession(admin,ctx.assignment.id);
+  if(['p2-forms','p2-save','p2-peer'].includes(op))return await handleMuseumP2({op,req,res,admin,ctx,session,assignment:ctx.assignment});
   if(op==='state'){
    requireMethod(req,'GET');
    const micro=session&&MICRO_CHALLENGES[session.stage_index]?await query(admin.from('museum_live_micro_responses')

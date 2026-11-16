@@ -4,9 +4,10 @@ import {MUSEUM_ACTIVITY_SLIDES,NEXT_DELIVERY_STAGES} from './museumActivitySlide
 
 const tr=(language,vi,en)=>language==='en'?en:vi;
 
-export function StudentActivityTask({stage,language='vi',onOpenProject,projectLabel,extensionOnly=false}){
+export function StudentActivityTask({stage,language='vi',onOpenProject,projectLabel,extensionOnly=false,onOpenWorksheet}){
  const slide=MUSEUM_ACTIVITY_SLIDES[stage.id];
  const note=LESSON_PLAN_NOTES[stage.id];
+ const nativeForm=({'climate-detective':'I1-A','classroom-survey':'B1','problem-evidence-solution':'B2',storyboard:'B3','artwork-studio':'C1','peer-gallery-walk':'C2',revise:'C3-share',present:'D1','exit-ticket':'I1-B'})[stage.id];
  const worksheet=({'climate-detective':'individualA','classroom-survey':'survey','problem-evidence-solution':'design',storyboard:'design','artwork-studio':'studio','peer-gallery-walk':'test',revise:'retest',present:'pitch','exit-ticket':'individualB'})[stage.id];
  if(!slide)return null;
  const writing=stage.id==='climate-detective'?EVIDENCE_WRITING.before:stage.id==='exit-ticket'?EVIDENCE_WRITING.after:null;
@@ -14,6 +15,7 @@ export function StudentActivityTask({stage,language='vi',onOpenProject,projectLa
   <h3>{writing?(stage.id==='climate-detective'?'Individual writing · A':'Individual writing · B'):(stage.id==='revise'?'Visitor test · V2':'Visitor test · V1')}</h3>
   <p>{note.extension}</p>
   {writing?<p>{writing}</p>:stage.id==='peer-gallery-walk'?<ol>{VISITOR_TASKS.map(task=><li key={task}>{task}</li>)}</ol>:null}
+  {onOpenWorksheet&&nativeForm?<button type="button" className="bml-outline" onClick={()=>onOpenWorksheet(nativeForm)}>{tr(language,'Mở phiếu trong BRIAN','Open BRIAN worksheet')} · {nativeForm}</button>:null}
   {onOpenProject?<button type="button" className="bml-outline" onClick={onOpenProject}>{projectLabel}</button>:null}
  </section>;
  return <section className="bml-student-p2-task" data-testid="student-p2-task" aria-label={tr(language,'Nhiệm vụ theo kế hoạch bài dạy','Teaching-plan task')}>
@@ -28,8 +30,10 @@ export function StudentActivityTask({stage,language='vi',onOpenProject,projectLa
    <p lang="en">{note.extension}</p>
    {writing?<p lang="en">{writing}</p>:stage.id==='peer-gallery-walk'?<ol lang="en">{VISITOR_TASKS.map(task=><li key={task}>{task}</li>)}</ol>:null}
   </details>:null}
-  {stage.id==='exit-ticket'?<p><a href={OFFLINE_LESSON_WORKSHEET+'#follow-up'} target="_blank" rel="noreferrer">{tr(language,'Mở phiếu D2 · Nhật ký sau giờ học','Open Worksheet D2 · After-class log')}</a></p>:null}
-  {worksheet?<p><a href={OFFLINE_LESSON_WORKSHEET+'#'+worksheet} target="_blank" rel="noreferrer">{tr(language,'Mở phiếu','Open worksheet')} · {note.reference}</a></p>:null}
+  {onOpenWorksheet&&stage.id==='exit-ticket'?<p><button type="button" className="bml-outline" onClick={()=>onOpenWorksheet('D2')}>{tr(language,'Mở phiếu D2 · Nhật ký sau giờ học','Open Worksheet D2 · After-class log')}</button></p>:null}
+  {!onOpenWorksheet&&stage.id==='exit-ticket'?<p><a href={OFFLINE_LESSON_WORKSHEET+'#follow-up'} target="_blank" rel="noreferrer">{tr(language,'Mở phiếu D2 · Nhật ký sau giờ học','Open Worksheet D2 · After-class log')}</a></p>:null}
+  {onOpenWorksheet&&nativeForm?<p><button type="button" className="bml-outline" onClick={()=>onOpenWorksheet(nativeForm)}>{tr(language,'Mở phiếu trong BRIAN','Open BRIAN worksheet')} · {nativeForm}</button></p>:null}
+  {!onOpenWorksheet&&worksheet?<p><a href={OFFLINE_LESSON_WORKSHEET+'#'+worksheet} target="_blank" rel="noreferrer">{tr(language,'Mở phiếu','Open worksheet')} · {note.reference}</a></p>:null}
   {onOpenProject?<div className="bml-student-p2-actions">
    <button type="button" className="bml-outline" onClick={onOpenProject}>{projectLabel||tr(language,'Mở sản phẩm của nhóm','Open group project')}</button>
   </div>:null}

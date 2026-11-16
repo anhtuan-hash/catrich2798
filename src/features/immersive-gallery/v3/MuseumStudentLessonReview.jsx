@@ -10,7 +10,7 @@ import MuseumSurveyChart from './MuseumSurveyChart.jsx';
 
 const tr=(language,vi,en)=>language==='en'?en:vi;
 
-function ReviewActivity({stage,index,language,onOpenProject,survey,surveyLoading,surveyPending,record,frozen,onActivityStart}){
+function ReviewActivity({stage,index,language,onOpenProject,survey,surveyLoading,surveyPending,record,frozen,onActivityStart,onOpenWorksheet}){
  const [practice,setPractice]=useState({});
  const video=MUSEUM_CURRICULUM_VIDEOS[index];
  const questions=stage.questions??stage.videoQuestions;
@@ -36,7 +36,7 @@ function ReviewActivity({stage,index,language,onOpenProject,survey,surveyLoading
   </section>:null}
   {questions?<StudentActivityQuiz questions={questions} language={language} selected={practice}
    saved={savedQuiz} disabled={frozen} onSelect={(question,choice)=>{onActivityStart?.();setPractice(prev=>({...prev,[question]:choice}));}}/>:null}
-  <StudentActivityTask stage={stage} language={language} onOpenProject={onOpenProject}/>
+  <StudentActivityTask stage={stage} language={language} onOpenProject={onOpenProject} onOpenWorksheet={onOpenWorksheet}/>
   {typeof record?.response==='string'?<section className="bml-student-p2-task">
    <strong>{tr(language,'Câu trả lời đã lưu của nhóm','Saved group response')}</strong><p lang="en">{record.response}</p>
   </section>:null}
@@ -50,7 +50,7 @@ function ReviewActivity({stage,index,language,onOpenProject,survey,surveyLoading
  </>;
 }
 
-export default function MuseumStudentLessonReview({language='vi',onOpenProject,activityIndex,questionVersion,survey,surveyLoading,surveyPending,loadSaved=false,frozen=false,compact=false,onActivityStart}){
+export default function MuseumStudentLessonReview({language='vi',onOpenProject,activityIndex,questionVersion,survey,surveyLoading,surveyPending,loadSaved=false,frozen=false,compact=false,onActivityStart,onOpenWorksheet}){
  const [localIndex,setLocalIndex]=useState(0);
  const index=activityIndex??localIndex;
  const [saved,setSaved]=useState(null);
@@ -75,7 +75,7 @@ export default function MuseumStudentLessonReview({language='vi',onOpenProject,a
    <h2>{stage.title}</h2>
   </div>
   <ReviewActivity key={stage.id} stage={stage} index={index} language={language} onOpenProject={onOpenProject} survey={survey}
-   surveyLoading={surveyLoading} surveyPending={surveyPending} record={record} frozen={frozen} onActivityStart={onActivityStart}/>
+   surveyLoading={surveyLoading} surveyPending={surveyPending} record={record} frozen={frozen} onActivityStart={onActivityStart} onOpenWorksheet={onOpenWorksheet}/>
   {loadSaved&&saved?.index===index&&saved.error?<p className="bml-student-p2-task" role="status">{tr(language,'Chưa tải được câu trả lời đã lưu.','Saved responses could not be loaded.')}</p>:null}
  </section>;
 }

@@ -14,6 +14,8 @@ import {EXHIBIT_FIELDS} from './museumExhibitInsights.js';
 import MuseumLiveStudent from './MuseumLiveStudent.jsx';
 import MuseumStudentActivityGroups,{activityGroup,firstActivity} from './MuseumStudentActivityGroups.jsx';
 import MuseumLivePeerFeedback from './MuseumLivePeerFeedback.jsx';
+import MuseumP2Workbook from './MuseumP2Workbook.jsx';
+import {getMuseumOffline} from './offlineAccess.js';
 import MuseumArtworkStudio from './MuseumArtworkStudio.jsx';
 import MuseumCompetitionRibbon from './MuseumCompetitionRibbon.jsx';
 import StudentLockedDossier from './StudentLockedDossier.jsx';
@@ -129,7 +131,10 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  const [preview,setPreview]=useState(false),[conflict,setConflict]=useState(false);
  const [liveInfo,setLiveInfo]=useState(null),[liveReady,setLiveReady]=useState(false),[artAssets,setArtAssets]=useState([]);
  const [history,setHistory]=useState([]);
+ const [worksheet,setWorksheet]=useState(null);
  const [peerDrafts,setPeerDrafts]=useState({});
+ const worksheetOnline=!getMuseumOffline()&&liveInfo?.p2Enabled===true;
+ const worksheetTransport=useCallback((action,body,params)=>liveGuest(action,body?'POST':'GET',body,csrfRef.current,params),[]);
  const [reviewIndex,setReviewIndex]=useState(null);
  const [bannerExpanded,setBannerExpanded]=useState(true);
  const [activityStarted,setActivityStarted]=useState(false);
@@ -372,15 +377,16 @@ export default function MuseumLabStudent({language:languageProp='en'}){
     role="region" aria-label={T(language,'Nội dung bài học','Lesson content')} tabIndex={0} ref={lessonScrollRef}>
     {!session.readOnly?<div className="bml-voice-autorun"><MuseumStudentVoiceGuide cue={narrationCue} language={language}/></div>:null}
     <MuseumLiveStudent csrf={session.csrf} language={language} readOnly={session.readOnly===true}
-      onState={syncCompletion} toolRequest={studentTool} compact onActivityStart={activityStarted?undefined:startActivity}
+      onState={syncCompletion} onOpenWorksheet={worksheetOnline?setWorksheet:undefined} toolRequest={studentTool} compact onActivityStart={activityStarted?undefined:startActivity}
       reviewIndex={viewedActivity} onReturnLive={liveActivityOpen&&reviewIndex!==null?returnLive:undefined} onReviewProject={focusProject}
       onOpenProject={index=>{
        if(index===9){setSpeakingOpen(true);return;}
        if(index===6)openArtworkSources();
        focusProject();
       }}
-      peerActivity={viewedActivity===null&&displayedActivity===7&&liveReady?<MuseumLivePeerFeedback csrf={session.csrf} liveInfo={liveInfo}
-       classroomCheck locked={locked||conflict} saveState={saveState} drafts={peerDrafts} setDrafts={setPeerDrafts}/>:null}/>
+      peerActivity={!worksheetOnline&&viewedActivity===null&&displayedActivity===7&&liveReady
+       ?<MuseumLivePeerFeedback csrf={session.csrf} liveInfo={liveInfo} classroomCheck locked={locked||conflict}
+         saveState={saveState} drafts={peerDrafts} setDrafts={setPeerDrafts}/>:null}/>
    </div>
      <footer className="bml-workshop-lesson-nav">
       <button type="button" className="bml-outline" disabled={displayedActivity===0} onClick={()=>moveActivity(-1)}>
@@ -420,6 +426,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
     <div className="bml-student-task-scroll" data-testid="student-task-scroll"
      role="region" aria-label={T(language,'Nội dung bài làm có thể cuộn','Scrollable project step content')}
      tabIndex={0} ref={taskScrollRef}>
+   {worksheetOnline?<button type="button" className="bml-outline" onClick={()=>setWorksheet('')}>{T(language,'Phiếu P2 của lớp','Classroom P2 worksheets')}</button>:null}
    {session.feedback?<div className="bml-banner bml-warning-banner" role="status"><MessageSquare size={20}/><div><strong>{T(language,'Nhận xét để chỉnh sửa','Feedback for revision')}</strong>
       {session.feedback.teacher?<p>{T(language,'Giáo viên','Teacher')}: {session.feedback.teacher}</p>:null}
       {session.feedback.ttcm?<p>TTCM: {session.feedback.ttcm}</p>:null}</div></div>:null}
@@ -527,11 +534,12 @@ export default function MuseumLabStudent({language:languageProp='en'}){
     {step===3&&!groupLocked?<><p>{displayedActivity===8
       ?T(language,'Đọc phản hồi, sửa một hiện vật và ghi lý do thay đổi.','Read the feedback, revise one exhibit, and explain your change.')
       :T(language,'Xem góp ý và ghi điều người xem đã hiểu hoặc còn thắc mắc.','Review visitor feedback and record what visitors understood or want clarified.')}</p>
-      {displayedActivity===8&&stageIndex===8?<MuseumLivePeerFeedback csrf={session.csrf} liveInfo={liveInfo} classroomCheck retest locked={locked||conflict}
-       saveState={saveState} drafts={peerDrafts} setDrafts={setPeerDrafts} onUseFeedback={r=>edit(d=>({...d,learning:{...d.learning,
-        feedback:'From '+englishSystemGroupLabel(r.fromGroup)+' on '+(EXHIBIT_FIELDS.find(x=>x.key===r.targetExhibit)?.label||'the exhibition')+': '+r.learned+' | Suggested improvement: '+r.clarify,
-        tested:true
-       }}))}/>:null}
+      {worksheetOnline?<button type="button" className="bml-outline" onClick={()=>setWorksheet(displayedActivity===8?'C3-share':'C2')}>
+       {T(language,'Mở phiếu thử nghiệm','Open visitor worksheet')}</button>:null}
+      {!worksheetOnline&&displayedActivity===8&&stageIndex===8
+       ?<MuseumLivePeerFeedback csrf={session.csrf} liveInfo={liveInfo} classroomCheck retest locked={locked||conflict}
+         saveState={saveState} drafts={peerDrafts} setDrafts={setPeerDrafts}/>:null}
+
      <button type="button" className="bml-outline" onClick={()=>{setHistoryOpen(true);viewHistory();}}>
       {T(language,'Xem bản thiết kế / Trước–sau','View storyboard / before and after')}</button>
      <div className="bml-step-hint"><MessageSquare size={21}/><div><strong>{T(language,'Câu hỏi gợi ý cho người xem','Ask your peer')}</strong>
@@ -603,6 +611,16 @@ export default function MuseumLabStudent({language:languageProp='en'}){
    </div>
   </div>
   {speakingOpen&&displayedActivity===9&&!groupLocked?<MuseumSpeakingStudio enabled={true} learning={studio.learning} onClose={()=>setSpeakingOpen(false)}/>:null}
+  {worksheet!==null?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label={T(language,'Phiếu P2','P2 worksheets')}
+    onKeyDown={event=>{if(event.key==='Escape')setWorksheet(null);}}>
+   <div className="bml-student-detail-window">
+    <div className="bml-student-detail-head"><strong>{T(language,'Phiếu P2 của lớp','Classroom P2 worksheets')}</strong>
+     <button type="button" className="bml-outline" autoFocus onClick={()=>setWorksheet(null)}>{T(language,'Đóng','Close')}</button></div>
+    <MuseumP2Workbook language={language} role="student" transport={worksheetTransport} initialForm={worksheet}
+     readOnly={Boolean(session.assignment?.content_frozen_at||liveInfo?.status==='ended')} groupPublished={session.groupState==='published'} stageIndex={stageIndex} stageOpen={Boolean(liveInfo?.stageOpen&&liveInfo.status==='active')}
+     draftReady={!dirty&&!conflict&&saveState==='saved'} draftVersion={version}/>
+   </div>
+  </div>:null}
   {historyOpen?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label={T(language,'Lịch sử thiết kế','Design history')}>
    <div className="bml-student-detail-window">
     <div className="bml-student-detail-head"><strong>{T(language,'Bản thiết kế trước và sau','Storyboard history')}</strong>

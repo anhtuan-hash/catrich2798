@@ -28,7 +28,7 @@ hasAll(invite,[
  "operation==='logout'","ctx.session.csrf_token"
 ],'QR and original-passcode sign-in');
 assert.ok(!invite.includes("Date.parse(assignment.deadline_at)<=now ||\n      ['rejected','published'].includes(group.state))"),'Published read-only groups must not be rejected');
-hasAll(auth,['if(readOnly)throw fail(423',
+hasAll(auth,["if(readOnly&&!(allowPublishedWorksheet&&group.state==='published'&&!assignment.content_frozen_at))",
  '!assignment.content_frozen_at && (!feature.enabled || invite.expires_at<=now)'],
  'guest authentication and denied writes');
 hasAll(staff,["'quick-access-setting'","'regenerate-all-passcodes'","'grade-rubric'",

@@ -30,7 +30,7 @@ const projectActions={
   9:['Mở công cụ luyện thuyết trình','Open the speaking studio'],
   10:['Kiểm tra và nộp bảo tàng','Review and submit the museum'],
 };
-export default function MuseumLiveStudent({csrf,language='vi',onState,compact=false,toolRequest=null,readOnly=false,onOpenProject,peerActivity,reviewIndex,onReturnLive,onReviewProject,onActivityStart}){
+export default function MuseumLiveStudent({csrf,language='vi',onState,compact=false,toolRequest=null,readOnly=false,onOpenProject,peerActivity,reviewIndex,onReturnLive,onReviewProject,onActivityStart,onOpenWorksheet}){
  const [data,setData]=useState(null),[selected,setSelected]=useState(null);
  const [quiz,setQuiz]=useState({}),[written,setWritten]=useState('');
  const [sent,setSent]=useState({}),[error,setError]=useState(''),[busy,setBusy]=useState(false),[notice,setNotice]=useState('');
@@ -69,7 +69,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
  const showVote=stage?.kind==='vote'&&view!=='next';
  const canSendVote=showVote&&!(stageIndex===2&&survey);
  const projectAction=projectActions[stageIndex];
- const legacyPeer=stage?.kind==='peer'&&!peerActivity;
+ const legacyPeer=stage?.kind==='peer'&&!peerActivity&&!onOpenWorksheet;
  const showExit=stage?.kind==='exit'&&view==='task';
  useEffect(()=>{
   setOpenQuestions(false);setSelected(null);setQuiz({});setWritten('');setPeer(null);setPeerResponse({learned:'',clarify:'',rating:0});
@@ -121,7 +121,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
   </button>:null}
   <MuseumStudentLessonReview language={language} activityIndex={reviewIndex} compact={compact}
     questionVersion={session?.questionVersion} survey={survey} surveyLoading={!data&&!syncError} surveyPending={!readOnly&&session?.status!=='ended'}
-    loadSaved={Boolean(session?.id)} frozen={readOnly} onOpenProject={onReviewProject||onOpenProject} onActivityStart={onActivityStart}/>
+    loadSaved={Boolean(session?.id)} onOpenWorksheet={onOpenWorksheet} frozen={readOnly} onOpenProject={onReviewProject||onOpenProject} onActivityStart={onActivityStart}/>
   {['materials','research','voice'].includes(activeTool)?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label={t(language,'Tài liệu bài học','Lesson materials')}>
    <div className="bml-student-detail-window">
     <div className="bml-student-detail-head"><strong>{t(language,'Tài liệu bài học','Lesson materials')}</strong>
@@ -201,6 +201,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
   {stage&&(view==='task'||view==='next')?<StudentActivityTask stage={stage} language={language}
    extensionOnly={view==='next'}
    projectLabel={projectAction?t(language,...projectAction):undefined}
+   onOpenWorksheet={onOpenWorksheet}
    onOpenProject={stageIsOpen&&onOpenProject&&projectAction?()=>onOpenProject(stageIndex):undefined}/>:null}
     {stageIsOpen&&!compact&&hasVideo&&session.media?.query?<MuseumVideoLab
      mode="student" stage={stage} stageIndex={stageIndex} media={{...session.media,videos:[]}}
