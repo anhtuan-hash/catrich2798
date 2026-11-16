@@ -10,7 +10,7 @@ import {handleLivePeer,peerRoomsEvidence} from './_museumLivePeer.js';
 import {liveReadAudience,presentationFor,responseMatchesActivity,validPresentation} from '../src/features/immersive-gallery/v3/livePresentation.js';
 import {handleMuseumP2,p2WorksheetsForEvidence} from './_museumP2.js';
 import {ASEAN_FRAMES,ASEAN_STAGES,aseanExhibitMissing,aseanPeerGroup,isAsean} from '../src/features/immersive-gallery/v3/aseanLesson.js';
-import {aseanGroupRecords,handleAseanActivity} from './_museumAsean.js';
+import {aseanGroupRecords,aseanStaffRetest,aseanStaffRetests,handleAseanActivity} from './_museumAsean.js';
 const stageCount=assignment=>isAsean(assignment)?ASEAN_STAGES.length:LIVE_STAGES.length;
 const canRespond=stage=>['vote','quiz','exit','peer'].includes(stage?.kind)||(stage?.kind==='group'&&Array.isArray(stage.videoQuestions));
 async function scopedStaff(ctx,assignmentId){
@@ -138,17 +138,22 @@ export default async function museumLive(req,res){
       .eq('session_id',session.id).eq('stage_index',viewIndex));
     let retestProgress;
     if(asean&&!privateAsean&&viewIndex===4&&grp.length){
-     const checkpoints=await query(admin.from('museum_checkpoints').select('group_id,kind,doc').eq('session_id',session.id).in('kind',['before','after']));
+     const [checkpoints,staffChecks]=await Promise.all([
+      query(admin.from('museum_checkpoints').select('id,group_id,kind,version,doc').eq('session_id',session.id).in('kind',['before','after'])),
+      aseanStaffRetests(admin,session.id),
+     ]);
      const complete=row=>Boolean(row&&aseanExhibitMissing(row.doc).length===0);
      retestProgress=grp.map(group=>{
       const target=aseanPeerGroup(grp,group.id,4);
       const before=checkpoints.find(row=>row.group_id===target?.id&&row.kind==='before');
       const after=checkpoints.find(row=>row.group_id===target?.id&&row.kind==='after');
       const response=responses.find(row=>row.group_id===group.id)?.value;
+      const staffReview=aseanStaffRetest(staffChecks,group.id,after);
       const question=after?.doc?.retestQuestion;
       const frame=ASEAN_FRAMES[question-1];
       return {group:group.label,target:target?.label,ready:complete(after),baselineReady:complete(before),question,
-       score:response?.score??null,reference:frame?after.doc.learning?.[frame.key]:null};
+       baselineReconstructed:before?.doc?.checkpointOrigin==='reconstructed_reference',
+       score:response?.score??null,staffReview,reference:frame?after.doc.learning?.[frame.key]:null};
      });
     }
     const writingScores=asean&&!privateAsean&&(viewIndex===0||viewIndex===5)
@@ -254,7 +259,8 @@ export default async function museumLive(req,res){
      .select('data_origin,teacher_visible_note,authored_drafts,curated_peer_feedback')
      .eq('assignment_id',assignment.id).maybeSingle());
     return send(res,200,{format:'museum-evidence-v33',exported_at:new Date().toISOString(),assignment:{id:assignment.id,title:assignment.title,class_scope:assignment.class_scope},session:stateOf(session,{staff:true}),groups,survey:await surveyFor(admin,session.id),checkpoints,feedback:await feedbackFor(admin,session.id),
-     responses,microResponses,p2Worksheets,teacherMediaBoard:session.media_board||{},livePeerFeedback:await peerRoomsEvidence(admin,session.id),presentationProvenance:provenance,media});
+     responses,microResponses,p2Worksheets,teacherMediaBoard:session.media_board||{},livePeerFeedback:await peerRoomsEvidence(admin,session.id),presentationProvenance:provenance,media,
+     ...(asean?{aseanStaffChecks:await aseanStaffRetests(admin,session.id)}:{})});
    }
    if(op==='start'){
     requireMethod(req,'POST');guardOrigin(req);guardBody(req,1000);
@@ -352,7 +358,7 @@ export default async function museumLive(req,res){
     return send(res,200,{session:session?stateOf(session):null,groupLabel:ctx.group.label,readOnly:ctx.readOnly,
      response:rows.find(row=>row.stage_index===session?.stage_index)?.value??null});
    }
-   if(['asean-records','asean-submit','asean-visit','asean-capture'].includes(op))
+   if(['asean-records','asean-submit','asean-visit','asean-capture','asean-reference-v1'].includes(op))
     return await handleAseanActivity({op,req,res,admin,ctx,session});
    if(!['history','need-help','video-search'].includes(op))throw fail(404,'Unknown ASEAN activity.');
   }

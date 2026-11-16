@@ -1688,7 +1688,7 @@ test('ASEAN V2 retest opens ahead of the completed exhibit, then records the vis
  const assignment={id:'qa-asean',title:'ASEAN in Three Frames',class_scope:'11-QA',lesson_template:'asean-in-three-frames'};
  let response;
  const live={id:'retest-session',stageIndex:4,status:'active',stageOpen:true};
- const checkpoints=[{kind:'before',version:0,complete:false},{kind:'after',version:2,complete:true,reason:'Teacher-prepared V2: Added a river photo.'}];
+ const checkpoints=[{kind:'before',version:0,complete:true,reconstructed:true},{kind:'after',version:2,complete:true,reason:'Teacher-prepared V2: Added a river photo.'}];
  await page.route('**/api/gallery-guest?**',route=>{
   const operation=new URL(route.request().url()).searchParams.get('operation');
   return route.fulfill({json:operation==='me'?{assignment,groupLabel:'Nhóm 01',groupState:'editing',csrf:'qa-asean'}:
@@ -1697,7 +1697,9 @@ test('ASEAN V2 retest opens ahead of the completed exhibit, then records the vis
  await page.route('**/api/gallery-guest/live?**',route=>{
   const operation=new URL(route.request().url()).searchParams.get('operation');
   if(operation==='asean-records')return route.fulfill({json:{checkpoints,rows:response?[{stage_index:4,value:response}]:[],
-   retestTask:{target:'Nhóm 03',ready:true,question:2}}});
+   retestTask:{target:'Nhóm 03',ready:true,question:2,staffChecked:true}}});
+  if(operation==='asean-reference-v1')return route.fulfill({json:{gallery:{version:0,
+   draft:{title:'Hội An reference',rooms:[]},artworks:[]}}});
   if(operation==='asean-visit')return route.fulfill({json:{target:'Nhóm 03',question:2,
    gallery:{checkpointId:'v2-angkor',version:2,draft:{title:'Angkor',rooms:[]},artworks:[]}}});
   if(operation==='asean-submit'){
@@ -1714,7 +1716,10 @@ test('ASEAN V2 retest opens ahead of the completed exhibit, then records the vis
  await expect(project.getByText('Group 03 · Angkor')).toBeVisible();
  await expect(project.getByText('What can I do there?',{exact:true})).toBeVisible();
  await expect(project.getByTestId('asean-3d-studio')).toHaveCount(0);
- await expect(project.getByTestId('asean-own-revision')).toContainText('V1 was saved before the exhibit was complete.');
+ await expect(project.getByText('A staff check is on file.',{exact:false})).toBeVisible();
+ await project.getByRole('button',{name:'View reconstructed V1'}).click();
+ await expect(page.getByRole('dialog',{name:'Reconstructed V1 reference'})).toBeVisible();
+ await page.getByRole('button',{name:'Close museum preview'}).click();
  await project.getByRole('button',{name:'Open assigned V2 exhibit'}).click();
  await page.getByRole('button',{name:'Close museum preview'}).click();
  await project.getByRole('textbox',{name:'Your group’s answer'}).fill('Visitors can look up at the stone faces.');
@@ -1728,6 +1733,8 @@ test('ASEAN V2 retest opens ahead of the completed exhibit, then records the vis
 test('ASEAN V2 retest teacher table distinguishes pending submissions from a recorded zero',async({page})=>{
  await page.getByTestId('qa-teacher-asean-retest-en').click();
  await expect(page.getByRole('heading',{name:'V2 visitor progress · 1/10'})).toBeVisible();
+ await expect(page.getByText('Staff-prepared checks · 10/10')).toBeVisible();
+ await expect(page.getByText('Student submissions · 1/10')).toBeVisible();
  const table=page.getByRole('region',{name:'V2 visitor assignments'});
  await expect(table.getByRole('row')).toHaveCount(11);
  const first=table.getByRole('row').filter({has:page.getByRole('rowheader',{name:'Group 01',exact:true})});

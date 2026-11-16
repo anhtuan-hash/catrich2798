@@ -252,7 +252,8 @@ const aseanRetestTeacherApi=async()=>({
  groups:tenGroups,
  responses:[],
  retestProgress:tenGroups.map((group,index)=>({group:group.label,target:tenGroups[(index+2)%tenGroups.length].label,
-  baselineReady:false,ready:true,question:2,score:index===1?0:null,reference:'Visitors can look up at the stone faces.'})),
+  baselineReady:true,baselineReconstructed:true,ready:true,question:2,score:index===1?0:null,
+  staffReview:{answer:'Staff review of the saved caption.',score:1},reference:'Visitors can look up at the stone faces.'})),
 });
 function ArtworkHarness({language}){
  const [studio,update]=useState({artworks:{issue:null,evidence:null,solution:null}});

@@ -447,9 +447,15 @@ function AseanSources(){
 }
 function AseanRetestProgress({rows,language}){
  const submitted=rows.filter(row=>row.score!==null).length;
+ const staffChecked=rows.filter(row=>row.staffReview).length;
+ const v1References=rows.filter(row=>row.baselineReconstructed).length;
  const incomplete=rows.filter(row=>!row.baselineReady).length;
  return <section className="bml-surface" aria-labelledby="asean-retest-progress">
   <h3 id="asean-retest-progress">{t(language,'Tiến độ thử lại V2','V2 visitor progress')} · {submitted}/{rows.length}</h3>
+  {staffChecked>0&&<p role="status"><strong>{t(language,`Phiếu kiểm tra hỗ trợ · ${staffChecked}/${rows.length}`,`Staff-prepared checks · ${staffChecked}/${rows.length}`)}</strong>
+   {' · '}{t(language,`Học sinh tự nộp · ${submitted}/${rows.length}`,`Student submissions · ${submitted}/${rows.length}`)}</p>}
+  {v1References>0&&<p>{t(language,`${v1References} phòng có V1 phục dựng từ ảnh đã lưu. Dùng các bản này để đối chiếu nội dung triển lãm.`,
+   `${v1References} exhibits have reconstructed V1 references using saved photos. Compare the exhibit content with these references.`)}</p>}
   {incomplete>0&&<p>{t(language,`${incomplete} phòng có mốc V1 chưa hoàn chỉnh. Dùng phiếu hiện tại để ghi nhận quan sát V2.`,
    `${incomplete} rooms have incomplete V1 checkpoints. Use this round to record V2 observations.`)}</p>}
   <div className="asean-retest-progress-table" tabIndex={0} role="region" aria-label={t(language,'Phân công thử lại V2','V2 visitor assignments')}>
@@ -464,7 +470,10 @@ function AseanRetestProgress({rows,language}){
       <td>{frame?.question||'—'}
        {row.reference&&<details><summary>{t(language,'Chú thích để đối chiếu','Caption for reference')}</summary><p lang="en">{row.reference}</p></details>}
       </td>
-      <td>{row.score!==null?`${row.score}/1`:row.ready?t(language,'Chờ nộp phiếu','Awaiting response'):t(language,'V2 chưa sẵn sàng','V2 unavailable')}</td>
+      <td>{row.score!==null?`${row.score}/1`:row.ready?t(language,'Chờ học sinh nộp','Awaiting response'):t(language,'V2 chưa sẵn sàng','V2 unavailable')}
+       {row.staffReview&&<details><summary>{t(language,'Phiếu kiểm tra hỗ trợ','Staff-prepared check')} · {row.staffReview.score}/1</summary>
+        <p lang="en">{row.staffReview.answer}</p></details>}
+      </td>
      </tr>;
     })}</tbody>
    </table>
