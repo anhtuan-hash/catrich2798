@@ -4,7 +4,7 @@ import {Canvas,useFrame,useThree} from '@react-three/fiber';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {ROOM_TEMPLATES,normalizeTransform,useLiteQuality} from './sceneTemplates.js';
 import {createCuratedGlb,CURATED_GLB_KEYS} from './curatedGlb.js';
-import {PekMuseumArchitecture,ExhibitWallLabel,TextExhibitPoster} from './PekMuseumArchitecture.jsx';
+import {ExhibitWallLabel,TextExhibitPoster} from './PekMuseumArchitecture.jsx';
 import PekDiscoveryHallV4 from './PekDiscoveryHallV4.jsx';
 import MuseumExhibitFocusRig from './v3/MuseumExhibitFocusRig.jsx';
 import {FOCUS_IDLE,focusLayout,clampDelta,smoothstep} from './v3/museumExhibitFocusMotion.js';
@@ -189,7 +189,7 @@ function Walls({template,onTeleport,schoolEdition=false,cinemaEdition=false,lite
   <mesh position={[0,3,-9]}><planeGeometry args={[14,6]}/><meshStandardMaterial color={theme.wall} side={THREE.DoubleSide}/></mesh>
   <mesh position={[-7,3,0]} rotation={[0,Math.PI/2,0]}><planeGeometry args={[18,6]}/><meshStandardMaterial color={theme.wall} side={THREE.DoubleSide}/></mesh>
   <mesh position={[7,3,0]} rotation={[0,-Math.PI/2,0]}><planeGeometry args={[18,6]}/><meshStandardMaterial color={theme.wall} side={THREE.DoubleSide}/></mesh>
-  {schoolEdition?(cinemaEdition?<PekDiscoveryHallV4 lite={lite}/>:<PekMuseumArchitecture template={template} lite={lite}/>):<group>
+  {schoolEdition?<PekDiscoveryHallV4 lite={lite}/>:<group>
   {[-6,-3,0,3,6].map(x=><group key={x}>
    <mesh position={[x,0.2,-8.87]}><boxGeometry args={[0.13,0.4,0.2]}/><meshStandardMaterial color={theme.accent}/></mesh>
    <mesh position={[x,5.78,-8.87]}><boxGeometry args={[0.13,0.2,0.2]}/><meshStandardMaterial color="#ffffff"/></mesh>

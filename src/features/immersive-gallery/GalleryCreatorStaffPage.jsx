@@ -135,7 +135,7 @@ export default function GalleryCreatorStaffPage({onBack}){
        <Suspense fallback={<p>Đang dựng bản xem trước 3D…</p>}>
         <div className="gcp-preview"><GalleryCanvas template={selected.snapshot.rooms[previewRoom].template_key}
            exhibits={selected.snapshot.rooms[previewRoom].exhibits.map((e,i)=>({...e,id:'review-'+i,status:'published'}))}
-           language="vi" quality="balanced"/></div>
+           language="vi" quality="balanced" schoolEdition/></div>
        </Suspense>
        <h3>Danh sách hiện vật (chế độ 2D)</h3>
        {selected.snapshot.rooms[previewRoom].exhibits.map((e,i)=><p key={i}><b>{e.title}</b> · {e.kind}<span style={{display:'block'}}>{e.description}</span></p>)}

@@ -146,7 +146,7 @@ export default function GalleryCreatorGuestPage(){
               {e.kind==='model'?<small>Mô hình: {e.model_key}</small>:null}
              </article>):<p>Phòng chưa có hiện vật.</p>}
           </div>:
-          <Suspense fallback={<p>Đang mở phòng 3D…</p>}><GalleryCanvas template={room.template_key} exhibits={room3d.exhibits} quality="balanced" language="vi"/></Suspense>}</div>
+          <Suspense fallback={<p>Đang mở phòng 3D…</p>}><GalleryCanvas template={room.template_key} exhibits={room3d.exhibits} quality="balanced" language="vi" schoolEdition/></Suspense>}</div>
          <button type="button" onClick={()=>setListOnly(v=>!v)}>Chuyển {listOnly?'3D':'2D'}</button></>:
         <>
          <label>Tên phòng<input disabled={!allowed} maxLength={120} value={room.title}
