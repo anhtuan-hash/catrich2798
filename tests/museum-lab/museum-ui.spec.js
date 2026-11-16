@@ -185,10 +185,16 @@ test('Museum Lab cards share the banner and footer edges across tabs',async({pag
   const offsets=await root.evaluate((shell,selector)=>{
    const footer=shell.querySelector('.igv2-footer-wrap').getBoundingClientRect();
    const elements=shell.querySelectorAll('.igv2-topbar,.contest.contest-art,'+selector);
-   return Array.from(elements,element=>{
+   const deviations=Array.from(elements,element=>{
     const box=element.getBoundingClientRect();
     return Math.max(Math.abs(box.left-footer.left),Math.abs(box.right-footer.right));
    });
+   const utilityButtons=shell.querySelectorAll('.igv2-topbar-utils button');
+   for(const button of utilityButtons){
+    const {left,right}=button.getBoundingClientRect();
+    deviations.push(Math.max(footer.left-left,right-footer.right,0));
+   }
+   return deviations;
   },selector);
   offsets.forEach(offset=>expect(offset).toBeLessThanOrEqual(1));
  };

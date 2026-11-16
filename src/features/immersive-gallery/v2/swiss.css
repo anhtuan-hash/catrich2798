@@ -1451,6 +1451,13 @@ html:has(.igv2) .bes-smart-bubble-dock {
 }
 
 @media (max-width: 520px) {
+  .igv2 .igv2-topbar-utils {
+    margin-inline-start: 0;
+    inline-size: 100%;
+    min-inline-size: 0;
+    flex-wrap: wrap;
+  }
+
   .igv2 .contest {
     flex-direction: column;
     text-align: center;
