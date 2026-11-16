@@ -176,9 +176,9 @@ function Walls({template,onTeleport,schoolEdition=false,cinemaEdition=false,lite
  const original=ROOM_TEMPLATES[template]||ROOM_TEMPLATES.classic;
  const theme=schoolEdition
   ?{...original,
-    wall:cinemaEdition?'#16382F':'#E5F3EB',
-    floor:cinemaEdition?'#102E27':'#DFE5DC',
-    ceiling:cinemaEdition?'#1A3330':'#F8FCF7',
+    wall:cinemaEdition?'#F4F7F2':'#E5F3EB',
+    floor:cinemaEdition?'#E7C99A':'#DFE5DC',
+    ceiling:cinemaEdition?'#FBF8F1':'#F8FCF7',
     accent:'#C8A34B'}
   :original;
  const culture=template==='culture',lab=template==='lab',lobby=template==='lobby';
@@ -415,12 +415,11 @@ function CameraResizeSync(){
  return null;
 }
 function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=false,cinemaEdition=false,lite=false,focus=FOCUS_IDLE,focusBoard,onFocusBack,onFocusPhaseChange}) {
- return <><color attach="background" args={[schoolEdition?(cinemaEdition?'#071410':'#EBF5F0'):'#f2f0e9']}/>
-  <ambientLight intensity={schoolEdition?(cinemaEdition?.48:1.25):1.1}/>
-  <hemisphereLight args={[cinemaEdition?'#F6E2B0':'#FFFFFF',schoolEdition?(cinemaEdition?'#102820':'#9CAD9D'):'#B7AFA3',cinemaEdition?.55:1.1]}/>
-  <directionalLight position={[1,7,3]} color={schoolEdition?'#FFF7E4':'#FFFFFF'} intensity={cinemaEdition?.7:1.15}/>
-  {cinemaEdition?<directionalLight position={[-5,2.4,1.2]} color="#E7D7A8" intensity={.28}/>:null}
-  {cinemaEdition?<fog attach="fog" args={['#071410',8,19]}/>:null}
+ return <><color attach="background" args={[schoolEdition?(cinemaEdition?'#F7F4EC':'#EBF5F0'):'#f2f0e9']}/>
+  <ambientLight intensity={schoolEdition?(cinemaEdition?1.15:1.25):1.1}/>
+  <hemisphereLight args={[cinemaEdition?'#FFF8EC':'#FFFFFF',schoolEdition?(cinemaEdition?'#D5E6D4':'#9CAD9D'):'#B7AFA3',cinemaEdition?1.05:1.1]}/>
+  <directionalLight position={[1,7,3]} color={schoolEdition?'#FFF7E4':'#FFFFFF'} intensity={cinemaEdition?1.35:1.15}/>
+  {cinemaEdition?<directionalLight position={[-5,2.4,1.2]} color="#FFF4D8" intensity={.7}/>:null}
   <Walls template={template} onTeleport={onTeleport} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} lite={lite}/>
   {exhibits.slice(0,30).map((e,i)=><PaperArtwork key={e.id} exhibit={e} index={i} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition}
    focus={focus} onFocusPhaseChange={onFocusPhaseChange} onSelect={onSelect}
@@ -454,8 +453,8 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
   {supported===false?<div role="alert" className="big-canvas-error">{language==='en'?'WebGL unavailable. Use the 2D exhibit list.':'Thiết bị không hỗ trợ WebGL. Hãy sử dụng danh sách hiện vật 2D.'}</div>:supported===null?<div className="big-canvas-loading">Preparing 3D exhibition…</div>:<Suspense fallback={<div className="big-canvas-loading">Loading original 3D art…</div>}>
    <Canvas camera={{position:[0,cinemaEdition?1.92:1.77,startingZ],fov:cinemaEdition?55:schoolEdition?59:61,near:0.08,far:55}} dpr={mode==='lite'?1:mode==='high'?[1,1.75]:[1,1.35]}
     frameloop="demand" gl={{antialias:mode!=='lite',powerPreference:'low-power',alpha:false}} onCreated={({gl})=>{
-     gl.setClearColor(cinemaEdition?'#071410':'#f2f0e9');
-     if(cinemaEdition){gl.toneMapping=THREE.ACESFilmicToneMapping;gl.toneMappingExposure=1.06;}
+     gl.setClearColor(cinemaEdition?'#F7F4EC':'#f2f0e9');
+     if(cinemaEdition){gl.toneMapping=THREE.ACESFilmicToneMapping;gl.toneMappingExposure=1.22;}
     }}>
     <CameraResizeSync/>
     {cinemaEdition?<MuseumFocusFramePump phase={focus.phase}/>:null}

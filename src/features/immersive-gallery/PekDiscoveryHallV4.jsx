@@ -111,7 +111,7 @@ function Skylight({lite}){
 function WindowBays(){
  const glass=useCanvasMap((ctx,w,h)=>{
   const sky=ctx.createLinearGradient(0,0,0,h);
-  sky.addColorStop(0,'#163E38');sky.addColorStop(.42,'#6EAE8C');sky.addColorStop(1,'#E8D29A');
+  sky.addColorStop(0,'#F4FBFF');sky.addColorStop(.45,'#D7F0C8');sky.addColorStop(1,'#FFF3C9');
   ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
   ctx.globalAlpha=.5;
   [[.2,.24,'#C8A34B'],[.52,.3,'#F6E7B4'],[.8,.22,'#1F6B52'],[.34,.64,'#0D5B45'],[.7,.68,'#E8CE78']].forEach(([x,y,color],i)=>{
@@ -126,7 +126,7 @@ function WindowBays(){
    position={[side*6.83,3.13,z]} rotation={[0,side===-1?Math.PI/2:-Math.PI/2,0]}>
    <mesh position={[0,0,-.04]}>
     <boxGeometry args={[3.42,4.05,.16]}/>
-    <meshStandardMaterial color="#08261F" metalness={.22} roughness={.42}/>
+    <meshStandardMaterial color="#2F6A52" metalness={.12} roughness={.48}/>
    </mesh>
    <mesh position={[0,0,.02]}>
     <boxGeometry args={[3.22,3.82,.08]}/>
@@ -269,14 +269,14 @@ function ArtworkSpotlight({x,lite}){
 }
 export default function PekDiscoveryHallV4({lite=false}){
  const floor=useCanvasMap((ctx,w,h)=>{
-  ctx.fillStyle='#24160F';ctx.fillRect(0,0,w,h);
+  ctx.fillStyle='#E4C08A';ctx.fillRect(0,0,w,h);
   const plank=78;
   for(let x=0,n=0;x<w;x+=plank,n++){
-   const tone=96+(n%4)*11;
+   const tone=186+(n%4)*14;
    const grad=ctx.createLinearGradient(x,0,x+plank,0);
-   grad.addColorStop(0,`rgb(${tone-18},${Math.floor(tone*.5)},${Math.floor(tone*.28)})`);
-   grad.addColorStop(.5,`rgb(${tone+28},${Math.floor(tone*.66)},${Math.floor(tone*.36)})`);
-   grad.addColorStop(1,`rgb(${tone-8},${Math.floor(tone*.52)},${Math.floor(tone*.3)})`);
+   grad.addColorStop(0,`rgb(${tone-10},${Math.floor(tone*.72)},${Math.floor(tone*.42)})`);
+   grad.addColorStop(.5,`rgb(${tone+16},${Math.floor(tone*.78)},${Math.floor(tone*.48)})`);
+   grad.addColorStop(1,`rgb(${tone-4},${Math.floor(tone*.7)},${Math.floor(tone*.4)})`);
    ctx.fillStyle=grad;ctx.fillRect(x+1,0,plank-2,h);
    ctx.strokeStyle='rgba(48,26,12,.35)';ctx.lineWidth=1.2;
    for(let g=0;g<7;g++){
@@ -285,7 +285,7 @@ export default function PekDiscoveryHallV4({lite=false}){
     ctx.stroke();
    }
   }
-  ctx.fillStyle='rgba(18,10,6,.45)';
+  ctx.fillStyle='rgba(120,78,36,.12)';
   ctx.fillRect(0,0,54,h);ctx.fillRect(w-54,0,54,h);ctx.fillRect(0,0,w,54);ctx.fillRect(0,h-54,w,54);
   ctx.strokeStyle='#E8CE78';ctx.lineWidth=10;ctx.strokeRect(46,46,w-92,h-92);
   ctx.beginPath();ctx.arc(w/2,h/2,132,0,Math.PI*2);ctx.lineWidth=7;ctx.stroke();
@@ -297,11 +297,11 @@ export default function PekDiscoveryHallV4({lite=false}){
   {/* Walls, banners and lighting all exist in world-space. */}
   <mesh position={[0,3,-8.18]} receiveShadow>
    <boxGeometry args={[12.65,5.65,.20]}/>
-   <meshStandardMaterial color="#E4D5BE" roughness={.9}/>
+   <meshStandardMaterial color="#F7F3E8" roughness={.86}/>
   </mesh>
   <mesh position={[0,.72,-8.04]}>
    <boxGeometry args={[12.3,1.44,.08]}/>
-   <meshStandardMaterial color="#0C3329" roughness={.74} metalness={.08}/>
+   <meshStandardMaterial color="#DCEBDF" roughness={.8} metalness={.02}/>
   </mesh>
   <mesh position={[0,1.46,-7.98]}>
    <boxGeometry args={[12.3,.07,.06]}/>
@@ -335,7 +335,7 @@ export default function PekDiscoveryHallV4({lite=false}){
   <mesh rotation={[-Math.PI/2,0,0]} position={[0,-.064,-3.45]} receiveShadow>
    <planeGeometry args={[12.4,12.2]}/>
    {floor
-    ?<meshStandardMaterial map={floor} metalness={.08} roughness={.62}/>
+    ?<meshStandardMaterial map={floor} metalness={.04} roughness={.72}/>
     :<meshStandardMaterial color="#12352C" metalness={.12} roughness={.45}/>}
   </mesh>
   {[-5.16,5.16].map(x=><mesh key={x} position={[x,-.048,-3.45]}>
