@@ -237,7 +237,9 @@
 .bml .bml-3d-plate small{display:block;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8a5a12}
 .bml .bml-3d-plate strong{display:block;margin-top:2px;font-size:16px;line-height:1.2}
 .bml .bml-3d-plate p{margin:4px 0 0;font-size:12px;line-height:1.35;color:#3d4a5c}
-.bml .bml-museum-cinema .bml-3d-plate{top:62px}
+.bml .bml-museum-cinema .bml-3d-plate{top:62px;background:#102820e8;border-left:4px solid #e8ce78;color:#f7f1e4;border-radius:0 16px 16px 0;box-shadow:0 14px 32px #04140f66;backdrop-filter:blur(12px)}
+.bml .bml-museum-cinema .bml-3d-plate small{color:#e8ce78}
+.bml .bml-museum-cinema .bml-3d-plate p{color:#d5e4da}
 .bml .bml-scene-footer{padding:12px 18px;display:flex;gap:12px;align-items:center;justify-content:space-between;font-size:12px;color:#667a8b}
 .bml .bml-scene-footer>span,.bml .bml-scene-footer>div{display:flex;gap:10px;align-items:center}
 .bml .bml-scene-footer button{border:1px solid #d5e0ed;background:white;border-radius:19px;padding:8px 11px;display:flex;gap:5px;align-items:center}

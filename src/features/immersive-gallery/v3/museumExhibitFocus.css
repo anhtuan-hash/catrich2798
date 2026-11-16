@@ -107,18 +107,18 @@
 .bml .big-pek-v4 .bml-v5-artwork-access{
  position:absolute;bottom:74px;left:17px;z-index:69;
  display:flex;align-items:center;gap:6px;
- padding:5px;border:1px solid #D4DECC;
- border-radius:999px;background:#FFFCF2E8;
- box-shadow:0 4px 17px #1C393635;
+ padding:5px;border:1px solid #c8a34b77;
+ border-radius:999px;background:#102820e8;
+ box-shadow:0 8px 22px #04140f55;
  backdrop-filter:blur(8px);
 }
 .bml .big-pek-v4 .bml-v5-artwork-access button{
  display:grid;place-items:center;min-height:37px;min-width:37px;
  border-radius:100%;padding:6px;
- border:1px solid #B8CBAF;background:#FCFFF8;color:#245747;
+ border:1px solid #c8a34b66;background:#17362c;color:#f6e7b2;
  font:800 12px/1 system-ui,sans-serif;cursor:pointer;
 }
-.bml .big-pek-v4 .bml-v5-artwork-access button:hover:not(:disabled){background:#CDE7D6}
+.bml .big-pek-v4 .bml-v5-artwork-access button:hover:not(:disabled){background:#245744;color:#fff6d2}
 .bml .big-pek-v4 .bml-v5-artwork-access button:focus-visible{
  outline:3px solid #D8B456;outline-offset:3px;
 }

@@ -50,33 +50,33 @@
 }
 .bml .bml-museum-cinema .bml-cinema-mode-group{
  display:flex;align-items:center;gap:2px;padding:4px;
- border:1px solid #d5e4d5;background:#fffdf2f1;
- border-radius:999px;box-shadow:0 4px 16px #0f443633;
+ border:1px solid #c8a34b88;background:#102820e8;
+ border-radius:999px;box-shadow:0 8px 22px #04140f66;
  backdrop-filter:blur(12px);
 }
 .bml .bml-museum-cinema .bml-cinema-mode-group button{
  display:inline-flex;align-items:center;justify-content:center;gap:7px;
  min-height:39px;min-width:66px;padding:7px 12px;
- border:0;border-radius:999px;color:#285c4d;
+ border:0;border-radius:999px;color:#f4ebd6;
  background:transparent;font-size:13px;font-weight:850;cursor:pointer;
  transition:background .18s ease,color .18s ease;
 }
 .bml .bml-museum-cinema .bml-cinema-mode-group button.is-active{
- color:#fff;background:#0D5B45;box-shadow:0 2px 0 #96bba7;
+ color:#102820;background:#e8ce78;box-shadow:none;
 }
 .bml .bml-museum-cinema .bml-cinema-hud-button,
 .bml .bml-museum-cinema .bml-cinema-close{
  min-width:45px;min-height:45px;display:inline-flex;
  justify-content:center;align-items:center;gap:8px;
- border:1px solid #d5e4d5;background:#fffdf5ef;color:#255b4c;
+ border:1px solid #c8a34b77;background:#102820e8;color:#f6edd4;
  border-radius:99px;padding:8px 12px;cursor:pointer;
  font-weight:800;font-size:13px;
  backdrop-filter:blur(11px);
- box-shadow:0 4px 15px #0f443633;
+ box-shadow:0 8px 20px #04140f55;
 }
 .bml .bml-museum-cinema .bml-cinema-close{padding-inline:14px}
 .bml .bml-museum-cinema .bml-cinema-hud button:hover{
- background:#E5F0E6;color:#0F654D;
+ background:#1c4034;color:#f6e7b2;
 }
 .bml .bml-museum-cinema .bml-cinema-hud button:focus-visible,
 .bml .bml-museum-cinema .bml-cinema-room-controls button:focus-visible{
@@ -105,10 +105,10 @@
 .bml .bml-museum-cinema .bml-cinema-bottom-hud{
  position:absolute;bottom:17px;right:18px;z-index:62;
  display:flex;align-items:center;gap:10px;
- padding:7px 10px;background:#fffdf4df;
- border:1px solid #e3e8d7;border-radius:99px;
- backdrop-filter:blur(10px);color:#255a4b;
- box-shadow:0 6px 20px #103c3330;
+ padding:7px 12px;background:#102820e6;
+ border:1px solid #c8a34b77;border-radius:99px;
+ backdrop-filter:blur(10px);color:#f4ebd6;
+ box-shadow:0 8px 22px #04140f55;
  font-size:12px;font-weight:800;
 }
 .bml .bml-museum-cinema .bml-cinema-room-controls{
@@ -145,14 +145,15 @@
  position:absolute;left:17px;top:auto;bottom:18px;
  display:flex;align-items:center;gap:6px;
  max-width:calc(100% - 330px);z-index:61;
- background:#f9f9ecde;padding:5px;border:1px solid #d5e5d9;
- border-radius:99px;box-shadow:0 5px 19px #143d3529;
+ background:#102820e8;padding:5px;border:1px solid #c8a34b77;
+ border-radius:99px;box-shadow:0 8px 22px #04140f55;
 }
 .bml .bml-museum-cinema .big-pek-v4 .big-pek-edition-mark{
  display:none;
 }
 .bml .bml-museum-cinema .big-pek-v4 .big-pek-tools button{
  min-height:35px;padding:7px 12px;border-radius:99px;
+ background:#17362c;color:#f6edd4;border-color:#c8a34b66;
 }
 .bml .bml-museum-cinema .big-pek-v4 .big-touch-pad{
  z-index:62;left:16px;bottom:75px;

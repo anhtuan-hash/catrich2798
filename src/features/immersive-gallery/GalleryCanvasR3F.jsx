@@ -154,9 +154,9 @@ function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdi
   onPointerOver={e=>{e.stopPropagation();if(focus.phase==='idle')document.body.style.cursor='pointer';}}
   onPointerOut={()=>{document.body.style.cursor='';}}>
   <mesh><boxGeometry args={cinemaEdition?[2.78,3.56,.08]:schoolEdition?[2.45,1.95,.11]:[2.04,1.70,.10]}/>
-   <meshStandardMaterial color={cinemaEdition?'#0C3228':schoolEdition?(isSelected?'#F6D477':'#B69B62'):(isSelected?'#e4aa64':'#ae856e')} roughness={.45} metalness={cinemaEdition?.35:schoolEdition?.19:0}/></mesh>
+   <meshStandardMaterial color={cinemaEdition?'#1A120C':schoolEdition?(isSelected?'#F6D477':'#B69B62'):(isSelected?'#e4aa64':'#ae856e')} roughness={.4} metalness={cinemaEdition?.48:schoolEdition?.19:0}/></mesh>
   {cinemaEdition?<mesh position={[0,0,.03]}><boxGeometry args={[2.63,3.41,.07]}/>
-   <meshStandardMaterial color={isSelected?'#F6D477':'#E2C56A'} metalness={.62} roughness={.28}/></mesh>:null}
+   <meshStandardMaterial color={isSelected?'#FFE7A1':'#F0D27A'} metalness={.7} roughness={.22}/></mesh>:null}
   <mesh position={[0,0,.058]}><boxGeometry args={cinemaEdition?[2.46,3.22,.025]:schoolEdition?[2.29,1.80,.025]:[1.86,1.52,.025]}/>
    <meshStandardMaterial color="#fffdf5" roughness={.89}/></mesh>
   {exhibit.kind==='model'

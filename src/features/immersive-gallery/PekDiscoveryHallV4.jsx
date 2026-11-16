@@ -233,25 +233,41 @@ function ArtworkSpotlight({x,lite}){
 }
 export default function PekDiscoveryHallV4({lite=false}){
  const floor=useCanvasMap((ctx,w,h)=>{
-  ctx.fillStyle='#102E27';ctx.fillRect(0,0,w,h);
-  ctx.fillStyle='#F7F1E4';ctx.fillRect(64,64,w-128,h-128);
-  ctx.strokeStyle='rgba(168,140,78,.28)';ctx.lineWidth=2;
-  for(let i=0;i<16;i++){
-   ctx.beginPath();ctx.moveTo(80,90+i*56);
-   ctx.bezierCurveTo(280,40+i*50,720,140+i*36,940,70+i*52);ctx.stroke();
+  ctx.fillStyle='#140E0A';ctx.fillRect(0,0,w,h);
+  const pw=54,ph=16;
+  for(let row=0,y=-ph;y<h+ph;y+=ph,row++){
+   for(let col=0,x=-pw;x<w+pw;x+=pw,col++){
+    ctx.save();
+    ctx.translate(x+pw/2,y+ph/2);
+    ctx.rotate((row+col)%2?Math.PI/4:-Math.PI/4);
+    const tone=108+((row*5+col*3)%6)*9;
+    ctx.fillStyle=`rgb(${tone},${Math.floor(tone*.58)},${Math.floor(tone*.32)})`;
+    ctx.fillRect(-pw*.46,-ph*.42,pw*.88,ph*.76);
+    ctx.restore();
+   }
   }
-  ctx.strokeStyle='#C8A34B';ctx.lineWidth=22;ctx.strokeRect(36,36,w-72,h-72);
-  ctx.strokeStyle='#E8D48A';ctx.lineWidth=5;ctx.strokeRect(78,78,w-156,h-156);
-  ctx.beginPath();ctx.arc(w/2,h/2,150,0,Math.PI*2);ctx.strokeStyle='#0D5B45';ctx.lineWidth=12;ctx.stroke();
-  ctx.beginPath();ctx.arc(w/2,h/2,96,0,Math.PI*2);ctx.strokeStyle='#C8A34B';ctx.lineWidth=7;ctx.stroke();
-  ctx.fillStyle='#0D5B45';ctx.font='700 42px Georgia, serif';ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.fillText('PÉTRUS KÝ',w/2,h/2-8);
+  ctx.fillStyle='rgba(10,7,5,.34)';
+  ctx.fillRect(0,0,w,86);ctx.fillRect(0,h-86,w,86);ctx.fillRect(0,0,86,h);ctx.fillRect(w-86,0,86,h);
+  ctx.strokeStyle='#C8A34B';ctx.lineWidth=16;ctx.strokeRect(40,40,w-80,h-80);
+  ctx.strokeStyle='#E8D48A';ctx.lineWidth=4;ctx.strokeRect(72,72,w-144,h-144);
+  ctx.beginPath();ctx.arc(w/2,h/2,118,0,Math.PI*2);ctx.strokeStyle='#E8CE78';ctx.lineWidth=8;ctx.stroke();
+  ctx.beginPath();ctx.arc(w/2,h/2,76,0,Math.PI*2);ctx.strokeStyle='#0D5B45';ctx.lineWidth=6;ctx.stroke();
+  ctx.fillStyle='#F6E7B2';ctx.font='700 34px Georgia, serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('PÉTRUS KÝ',w/2,h/2);
  },1024,1024,[lite]);
  return <group name="PekDiscoveryHallV4">
   {/* Walls, banners and lighting all exist in world-space. */}
   <mesh position={[0,3,-8.18]} receiveShadow>
    <boxGeometry args={[12.65,5.65,.20]}/>
-   <meshStandardMaterial color={PALE} roughness={.87}/>
+   <meshStandardMaterial color="#E4D5BE" roughness={.9}/>
+  </mesh>
+  <mesh position={[0,.72,-8.04]}>
+   <boxGeometry args={[12.3,1.44,.08]}/>
+   <meshStandardMaterial color="#0C3329" roughness={.74} metalness={.08}/>
+  </mesh>
+  <mesh position={[0,1.46,-7.98]}>
+   <boxGeometry args={[12.3,.07,.06]}/>
+   <meshStandardMaterial color={GOLD} metalness={.62} roughness={.28}/>
   </mesh>
   {[-6.1,6.1].map(x=><group key={x}>
    <mesh position={[x,2.98,-8.02]}><boxGeometry args={[.31,5.82,.42]}/>
@@ -303,10 +319,14 @@ export default function PekDiscoveryHallV4({lite=false}){
   {[-3,0,3].map((x,i)=><group key={i}>
    <mesh position={[x,.40,-7.92]}><boxGeometry args={[2.76,.13,.28]}/>
     <meshStandardMaterial color={GOLD} metalness={.51} roughness={.39}/></mesh>
-   <mesh position={[x,4.08,-7.96]}><boxGeometry args={[2.75,.075,.18]}/>
-    <meshStandardMaterial color="#CDAF62" metalness={.46} roughness={.36}/></mesh>
-   <mesh position={[x,4.1,-7.84]}><boxGeometry args={[1.85,.045,.03]}/>
-    <meshBasicMaterial color="#FFF4CD"/></mesh>
+   <mesh position={[x,4.42,-7.62]}>
+    <boxGeometry args={[1.55,.07,.16]}/>
+    <meshStandardMaterial color="#F0D78A" metalness={.72} roughness={.22}/>
+   </mesh>
+   <mesh position={[x,4.28,-7.52]}>
+    <boxGeometry args={[.9,.05,.05]}/>
+    <meshBasicMaterial color="#FFF6D2"/>
+   </mesh>
    <ArtworkSpotlight x={x} lite={lite}/>
   </group>)}
   {/* Side galleries, drapes and a brass pendant — shared by teacher and student cinema. */}
@@ -314,19 +334,27 @@ export default function PekDiscoveryHallV4({lite=false}){
    <mesh><boxGeometry args={[.42,3.5,.08]}/><meshStandardMaterial color="#0C3D31" roughness={.72}/></mesh>
    <mesh position={[x>0?-.16:.16,-1.15,.05]}><boxGeometry args={[.28,1.15,.06]}/><meshStandardMaterial color={GOLD} metalness={.45} roughness={.36}/></mesh>
   </group>):null}
-  {!lite?<group position={[0,5.15,-3.6]}>
-   <mesh><cylinderGeometry args={[.04,.04,.7,10]}/><meshStandardMaterial color={GOLD} metalness={.7} roughness={.25}/></mesh>
-   <mesh position={[0,-.42,0]}><torusGeometry args={[.55,.045,10,28]}/><meshStandardMaterial color="#E8CE78" metalness={.62} roughness={.28}/></mesh>
-   {[-.55,0,.55].map(x=><mesh key={x} position={[x,-.62,0]}>
-    <sphereGeometry args={[.09,12,10]}/>
-    <meshStandardMaterial color="#FFF1C4" emissive="#FFE6A8" emissiveIntensity={.65}/>
-   </mesh>)}
-   <pointLight position={[0,-.7,0]} color="#FFE7B0" intensity={.85} distance={7} decay={2}/>
+  {!lite?<group position={[0,4.72,-3.35]}>
+   <mesh><cylinderGeometry args={[.035,.035,.55,10]}/><meshStandardMaterial color={GOLD} metalness={.7} roughness={.25}/></mesh>
+   <mesh position={[0,-.48,0]}><torusGeometry args={[.92,.04,10,40]}/><meshStandardMaterial color="#E8CE78" metalness={.62} roughness={.28}/></mesh>
+   <mesh position={[0,-.48,0]}><torusGeometry args={[.62,.028,8,32]}/><meshStandardMaterial color="#F6E7B2" metalness={.55} roughness={.3}/></mesh>
+   {Array.from({length:8},(_,i)=>{
+    const a=i/8*Math.PI*2;
+    return <mesh key={i} position={[Math.cos(a)*.92,-.68,Math.sin(a)*.92]}>
+     <sphereGeometry args={[.075,12,10]}/>
+     <meshStandardMaterial color="#FFF6D4" emissive="#FFE6A8" emissiveIntensity={.8}/>
+    </mesh>;
+   })}
+   <pointLight position={[0,-.85,0]} color="#FFE7B0" intensity={1.15} distance={8} decay={2}/>
   </group>:null}
   {!lite?<mesh position={[0,-.058,-5.55]} rotation={[-Math.PI/2,0,0]}>
-   <planeGeometry args={[2.15,7.1]}/>
-   <meshStandardMaterial color="#6B1C28" roughness={.9} metalness={.02}/>
+   <planeGeometry args={[2.05,7.1]}/>
+   <meshStandardMaterial color="#4A101C" roughness={.86} metalness={.04}/>
   </mesh>:null}
+  {!lite?[-1.02,1.02].map(x=><mesh key={'carpet-edge-'+x} position={[x,-.05,-5.55]} rotation={[-Math.PI/2,0,0]}>
+   <planeGeometry args={[.045,7.1]}/>
+   <meshBasicMaterial color="#E8CE78" side={THREE.DoubleSide}/>
+  </mesh>):null}
   {!lite?[-1.22,1.22].map(x=><group key={'rail-'+x}>
    {[-6.55,-4.55].map(z=><group key={z} position={[x,0,z]}>
     <mesh position={[0,.46,0]}><cylinderGeometry args={[.045,.05,.92,12]}/><meshStandardMaterial color={GOLD} metalness={.72} roughness={.26}/></mesh>
