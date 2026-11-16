@@ -153,6 +153,41 @@ test('approved submissions page keeps review details and omits the footnote in b
  await expect(screen.getByText(/Statuses and counts are connected to actual records/)).toHaveCount(0);
  await expect(screen.locator('.swiss-editorial-submissions-note')).toHaveCount(0);
 });
+test('visitors see saved scores for published submissions and missing scores never look like zero',async({page})=>{
+ await page.route('**/api/gallery-staff?operation=dashboard',route=>route.fulfill({json:{
+  publicReadOnly:true,profile:{role:'viewer'},groups:[
+   {id:'graded-group',label:'Nhóm 07',assignment_id:'lesson'},
+   {id:'ungraded-group',label:'Nhóm 08',assignment_id:'lesson'},
+   {id:'pending-group',label:'Nhóm 09',assignment_id:'lesson'},
+  ],assignments:[{id:'lesson',class_scope:'11-QA'}],reviews:[
+   {id:'graded',group_id:'graded-group',version:1,state:'published',snapshot:{title:'Saved score exhibit'}},
+   {id:'ungraded',group_id:'ungraded-group',version:1,state:'published',snapshot:{title:'Ungraded exhibit'}},
+   {id:'pending',group_id:'pending-group',version:1,state:'submitted',snapshot:{title:'Unpublished exhibit'}},
+  ],rubrics:[
+   {review_id:'graded',scores:{english:33,evidence:18,reasoning:15,design:15,revision:9}},
+  ],
+ }}));
+ await page.getByTestId('qa-dashboard-visitor').click();
+ await page.getByTestId('igv2-nav-submissions').click();
+ const desk=page.getByTestId('museum-review-desk');
+ const card=desk.getByRole('button',{name:/Saved score exhibit/});
+ await expect(card).toContainText('90/100');
+ await card.click();
+ const detail=desk.getByRole('region',{name:'Saved score exhibit'});
+ await expect(detail.locator('.bml-total-score')).toContainText('90/100');
+ expect(await detail.getByRole('spinbutton').evaluateAll(inputs=>inputs.map(input=>[input.value,input.disabled])))
+  .toEqual([['33',true],['18',true],['15',true],['15',true],['9',true]]);
+ await expect(detail.getByRole('textbox')).toHaveCount(0);
+ await expect(detail.getByRole('button',{name:'Lưu điểm rubric'})).toHaveCount(0);
+ await page.getByRole('button',{name:'EN',exact:true}).click();
+ await expect(detail.locator('.bml-total-score')).toHaveText('Total score 90/100');
+ for(const title of ['Ungraded exhibit','Unpublished exhibit']){
+  await desk.getByRole('button',{name:new RegExp(title)}).click();
+  const other=desk.getByRole('region',{name:title});
+  await expect(other.getByText('No rubric score is available to the public.')).toBeVisible();
+  await expect(other.locator('.bml-total-score')).toHaveCount(0);
+ }
+});
 test('paper dashboard fits the viewport and its decorative assets load',async({page},testInfo)=>{
  const banner=page.getByTestId('museum-competition-ribbon');
  await expect(banner).toBeVisible();

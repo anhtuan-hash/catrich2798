@@ -266,9 +266,15 @@ export default async function galleryStaff(req,res){
    const reviews=groupIds.length?await query(admin.from('gcp_reviews')
      .select('id,group_id,version,state,teacher_note,ttcm_note,approved_by,approved_at,submitted_at,snapshot_hash,snapshot')
      .in('group_id',groupIds).is('archived_at',null).order('submitted_at',{ascending:false}).limit(500)):[];
-   const rubrics=reviews.length&&!ctx.publicReadOnly?await query(admin.from('gcp_rubric_scores')
-     .select('review_id,teacher_id,scores,feedback,updated_at')
-     .in('review_id',reviews.map(r=>r.id)).limit(500)):[];
+   // Guests can read the five saved scores for published submissions within
+   // this dashboard's school scope. Staff retain the complete assessment row.
+   const rubricReviewIds=reviews.filter(review=>!ctx.publicReadOnly||review.state==='published').map(review=>review.id);
+   const rubricRows=rubricReviewIds.length?await query(admin.from('gcp_rubric_scores')
+     .select(ctx.publicReadOnly?'review_id,scores':'review_id,teacher_id,scores,feedback,updated_at')
+     .in('review_id',rubricReviewIds).limit(500)):[];
+   const rubrics=ctx.publicReadOnly?rubricRows.map(({review_id,scores})=>({
+    review_id,scores:Object.fromEntries(Object.keys(rubricCeilings).map(key=>[key,scores[key]]))
+   })):rubricRows;
    const reviewerCandidates=ctx.role==='admin'?await query(admin.from('profiles')
     .select('id,full_name,role').eq('school',ctx.profile.school).eq('approved',true).limit(100)):
     grants.length?await query(admin.from('profiles').select('id,full_name,role')
