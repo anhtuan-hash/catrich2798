@@ -10,12 +10,11 @@ test('file opens without network, navigates frozen lessons, submissions and live
  await expect(page.getByRole('button',{name:/Create a lesson|New lesson|Download offline/})).toHaveCount(0);
  await expect.poll(()=>page.getByTestId('igv2-competition-banner').locator('img').evaluateAll(imgs=>imgs.length===2&&imgs.every(i=>i.complete&&i.naturalWidth>0&&i.src.startsWith('data:')))).toBe(true);
  await page.screenshot({path:info.outputPath('offline-dashboard.png'),fullPage:true});
- const nav=page.getByRole('navigation',{name:'Primary',exact:true});
- await nav.getByRole('button',{name:/^Submissions/}).click();
+ await page.getByTestId('igv2-nav-submissions').first().click();
  await expect(page.getByTestId('brian-museum-lab-v3')).toContainText('Synthetic QA exhibition');
- await nav.getByRole('button',{name:'Teaching plan',exact:true}).click();
+ await page.getByTestId('igv2-nav-teaching-plan').first().click();
  await expect(page.getByRole('button',{name:/Create lesson from/})).toHaveCount(0);
- await nav.getByRole('button',{name:'Teacher Live',exact:true}).click();
+ await page.getByTestId('igv2-nav-teacher-live').first().click();
  await expect(page.getByTestId('igv2-teacher-live-screen')).toBeVisible();
  const slide=page.getByTestId('igv2-teacher-live-stage'),before=await slide.innerText();
  await page.getByRole('button',{name:'Advance to next activity',exact:true}).click();
@@ -24,7 +23,7 @@ test('file opens without network, navigates frozen lessons, submissions and live
  await expect(page.getByRole('button',{name:'Hide explanation',exact:true})).toBeVisible();
  for(let i=2;i<=10;i++){
   await page.getByRole('button',{name:'Advance to next activity',exact:true}).click();
-  await expect(page.getByTestId('igv2-teacher-live-stage')).toContainText('ACTIVITY '+(i+1)+'/11');
+  await expect(page.getByTestId('igv2-teacher-live-stage')).toContainText('ACTIVITY '+String(i+1).padStart(2,'0')+' / 11');
  }
  await page.getByRole('button',{name:'Evidence records',exact:true}).click();
  await page.getByText('Activity responses (1)',{exact:true}).click();

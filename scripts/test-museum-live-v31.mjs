@@ -112,11 +112,11 @@ test('live session automatically opens student interaction when lesson begins, a
  const live=fs.readFileSync('serverless-handlers/museum-live.js','utf8');
  const teacher=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLiveTeacher.jsx','utf8');
  assert.match(live,/status:'active',stage_index:0,stage_open:true/);
- assert.match(live,/stage_index:index,stage_open:session.status==='active'&&!\(index===2&&await surveyFor\(admin,session\.id\)\)/);
- assert.match(live,/action==='resume'\).*update\.stage_open=!\(session\.stage_index===2&&await surveyFor\(admin,session\.id\)\)/);
+ assert.match(live,/stage_index:index,stage_open:session.status==='active'&&!\(!asean&&index===2&&await surveyFor\(admin,session\.id\)\)/);
+ assert.match(live,/action==='resume'\).*update\.stage_open=!\(!asean&&session\.stage_index===2&&await surveyFor\(admin,session\.id\)\)/);
  assert.match(live,/action==='pause'\)[\s\S]{0,80}update\.stage_open=false/);
  assert.match(live,/action==='close'\)update\.stage_open=false/);
- assert.match(live,/stage_open:!\(session\.stage_index===2&&await surveyFor\(admin,session\.id\)\),updated_at/);
+ assert.match(live,/stage_open:!\(!asean&&session\.stage_index===2&&await surveyFor\(admin,session\.id\)\),updated_at/);
  assert.match(teacher,/Bắt đầu để học sinh vào hoạt động đầu tiên ngay/);
  assert.doesNotMatch(teacher,/Mở cho học sinh/);
 });

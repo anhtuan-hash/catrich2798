@@ -3,6 +3,7 @@ import {Archive,RotateCcw,ShieldAlert,CheckCircle2,Landmark,RefreshCw} from 'luc
 import MetricStrip from '../shell/MetricStrip.jsx';
 import ExhibitionCard from '../shell/ExhibitionCard.jsx';
 import MuseumExhibitionDetail from '../../v3/MuseumExhibitionDetail.jsx';
+import {isAsean} from '../../v3/aseanLesson.js';
 import GalleryRenderBoundary from '../../GalleryRenderBoundary.jsx';
 import {staffRequest as defaultTransport} from '../../v3/museumApi.js';
 import './ExhibitionsScreen.css';
@@ -19,6 +20,7 @@ const exhibitionFromHash = () => {
   try { return new URLSearchParams(window.location.hash.split('?')[1] || '').get('exhibition') || ''; }
   catch { return ''; }
 };
+const inTemplate=(item,template)=>!template||isAsean(item)===isAsean(template);
 const setExhibitionHash = key => {
   if (typeof window === 'undefined') return;
   const current = window.location.hash.split('?')[0] || '#/tool/immersive-gallery';
@@ -28,7 +30,7 @@ const setExhibitionHash = key => {
 // ExhibitionsScreen — 03. Full Swiss card grid over real fetched exhibitions.
 // 3D entry reuses the existing v3 MuseumExhibitionDetail viewer (behavior preserved).
 // Props: {language, data, staff, onNavigate, onRefresh, transport, query}.
-export default function ExhibitionsScreen({language='en', data, staff, onNavigate, onRefresh, transport=defaultTransport, query=''}) {
+export default function ExhibitionsScreen({language='en', data, staff, onNavigate, onRefresh, onTemplateChange, lessonTemplate, transport=defaultTransport, query=''}) {
   const payload = data || staff || {};
   const isAdmin = payload?.profile?.role === 'admin' && !payload?.offlineReadOnly && !payload?.publicReadOnly;
   const [galleries, setGalleries] = useState(() => payload?.publishedGalleries || []);
@@ -54,9 +56,13 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
       try { direct = await api.listExhibitions(); } catch (e) { directError = e; }
     }
     if (directError && !published.length) throw directError;
+    const destinationIds=new Set(published.flatMap(item=>(item.destinations||[]).map(destination=>destination.id)));
     const unique = new Map();
-    for (const item of [...direct, ...published]) {
-      if (item?.id && item.status !== 'archived' && !isPracticeShowcase(item)) unique.set(item.id, item);
+    // Creator Pass exhibitions use the authoritative catalogue classification.
+    // A direct row alone has no lesson metadata and cannot be safely classified.
+    const standalone=direct.filter(item=>!item.slug?.startsWith('gcp-'));
+    for (const item of [...standalone, ...published]) {
+      if (item?.id && item.status !== 'archived' && !isPracticeShowcase(item)&&!destinationIds.has(item.id)) unique.set(item.id, item);
     }
     const items = [...unique.values()].sort((a, b) =>
       new Date(b.updated_at || 0).getTime() - new Date(a.updated_at || 0).getTime());
@@ -70,17 +76,17 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
         const {api, items, archive} = await pull();
         if (!active) return;
         setGalleries(items); setShowcase(archive);
-        loadCovers(items).then(next => { if (active) setCovers(next); }).catch(() => {});
+        loadCovers(items.filter(item=>inTemplate(item,lessonTemplate))).then(next => { if (active) setCovers(next); }).catch(() => {});
         const initial = exhibitionFromHash();
         if (initial && initial !== 'demo' && !initial.startsWith('collection-')) {
           try {
-            const match = items.find(g => g.id === initial || g.slug === initial) ||
+            const match = items.find(g => g.id === initial || g.slug === initial || g.destinations?.some(destination=>destination.id===initial)) ||
               (payload?.publishedGalleries || []).find(g => g.id === initial || g.slug === initial);
             if (!match || isPracticeShowcase(match)) throw new Error('This exhibition is unavailable.');
             const full = match?.status === 'published'
               ? (await transport('showcase-exhibition', {id: match.id})).gallery
               : await api.getExhibition(initial);
-            if (active && !isPracticeShowcase(full)) setSelected(full);
+            if (active && !isPracticeShowcase(full)) {setSelected(full);onTemplateChange?.(full.lesson_template||'climate');}
           } catch (e) { if (active) setError(e.message || 'This exhibition is unavailable.'); }
         }
       } catch (e) { if (active) setError(e.message); }
@@ -110,7 +116,7 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
   const reload = async () => {
     const {items, archive} = await pull();
     setGalleries(items); setShowcase(archive);
-    setCovers(await loadCovers(items));
+    setCovers(await loadCovers(items.filter(item=>inTemplate(item,lessonTemplate))));
   };
 
   const enter = async item => {
@@ -121,7 +127,7 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
         ? (await transport('showcase-exhibition', {id: item.id})).gallery
         : await (await import('../../galleryData.js')).getExhibition(item.id);
       if (isPracticeShowcase(full)) throw new Error('This exhibition is unavailable.');
-      setSelected(full); setExhibitionHash(full.slug || full.id);
+      setSelected(full); onTemplateChange?.(full.lesson_template||'climate'); setExhibitionHash(full.slug || full.id);
     } catch (e) { setError(e.message); }
     finally { setBusy(false); }
   };
@@ -146,7 +152,7 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
       <GalleryRenderBoundary language={language} onFallback={leave}>
         <MuseumExhibitionDetail gallery={selected} language={language} startInCinema
           data={payload} onBack={leave} onNavigate={onNavigate}
-          onDelete={isAdmin ? () => changeArchive('gallery', selected.id, selected.title, true) : null}
+          onDelete={isAdmin&&!isAsean(selected) ? () => changeArchive('gallery', selected.id, selected.title, true) : null}
           busy={busy} />
       </GalleryRenderBoundary>
     );
@@ -154,13 +160,13 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
 
   const inventory = new Map();
   for (const g of [...(payload?.publishedGalleries || []), ...galleries]) {
-    if (g?.id && g.status !== 'archived' && !isPracticeShowcase(g)) inventory.set(g.id, g);
+    if (inTemplate(g,lessonTemplate) && g?.id && g.status !== 'archived' && !isPracticeShowcase(g)) inventory.set(g.id, g);
   }
   const visible = [...inventory.values()].filter(g =>
     (g.title + ' ' + (g.summary || '')).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
   const publishedInView = visible.filter(g => g.status === 'published');
   const publishedCount = [...inventory.values()].filter(g => g.status === 'published').length;
-  const archivedItems = (showcase.archivedGalleries || []).filter(g => !isPracticeShowcase(g))
+  const archivedItems = (showcase.archivedGalleries || []).filter(g => inTemplate(g,lessonTemplate)&&!isPracticeShowcase(g))
     .map(g => ({kind: 'gallery', key: g.id, title: g.title, label: 'Student exhibition'}));
 
   const exhibitionMetrics = [

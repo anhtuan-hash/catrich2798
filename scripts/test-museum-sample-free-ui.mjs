@@ -35,7 +35,8 @@ assert.match(legacy,/setGalleries\(\(await listExhibitions\(\)\)\.filter\(g=>!is
 
 // The real lesson is still immutable: no provenance rewrites, data suppression
 // masquerading as authentic responses, or changes to auth/write guards.
-assert.match(locked,/if\(assignment\.content_frozen_at\)throw fail\(423/);
+assert.match(locked,/if\(readOnly&&\!\(allowPublishedWorksheet&&group\.state==='published'&&\!assignment\.content_frozen_at\)\)\s+throw fail\(423/);
+assert.match(locked,/return Boolean\(assignment\?\.content_frozen_at\|\|group\?\.state==='published'\)/);
 assert.match(freeze,/content_frozen_at/);
 assert.doesNotMatch(showcase,/data_origin\s*[:=]\s*['"](?:live|student|observed)['"]/);
 console.log('PASS: no sample or demo entry points in official Immersive Gallery; approved student exhibits and frozen data remain unchanged.');

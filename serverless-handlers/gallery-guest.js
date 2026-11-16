@@ -1,3 +1,4 @@
+import {ASEAN_FRAMES,aseanDestination,aseanExhibitMissing,isAsean} from '../src/features/immersive-gallery/v3/aseanLesson.js';
 import {surveyFor,feedbackFor} from './_museumEvidence.js';
 import {verifyQuickAccess} from './_galleryQuickAccess.js';
 import {evidenceMissing,changedExhibits} from '../src/features/immersive-gallery/v3/learningEvidence.js';
@@ -6,7 +7,7 @@ import {canSaveMuseumDraft,canSubmitMuseumProject} from '../src/features/immersi
 // The only cookie is an opaque, short-lived, group-scoped capability.
 import {
  db,digest,randomSecret,fail,send,handleError,guardOrigin,guardBody,query,
- setCookie,clearCookie,guestContext,guestLessonReadOnly,settings,ipHash,safeEqual,
+ setCookie,clearCookie,guestContext,assertGuestLessonScope,guestLessonReadOnly,settings,ipHash,safeEqual,
  normalizeGuestDraft,validateGuestSubmission,requireMethod
 } from './_galleryCreator.js';
 
@@ -26,7 +27,7 @@ export default async function galleryGuest(req,res){
    const group=await query(admin.from('gcp_groups').select('id,assignment_id,label,state').eq('id',invite.group_id).maybeSingle());
    if(!group)throw fail(404,'Invitation not available.');
    const assignment=await query(admin.from('gcp_assignments')
-    .select('id,title,class_scope,deadline_at,status,archived_at,content_frozen_at').eq('id',group.assignment_id).maybeSingle());
+    .select('id,title,class_scope,deadline_at,status,archived_at,content_frozen_at,lesson_template').eq('id',group.assignment_id).maybeSingle());
    const readOnly=guestLessonReadOnly(assignment,group);
    if(!assignment||assignment.archived_at||assignment.status!=='active'||
       (!assignment.content_frozen_at&&(Date.parse(assignment.deadline_at)<=Date.now()||
@@ -35,7 +36,7 @@ export default async function galleryGuest(req,res){
    const quick=await query(admin.from('gcp_quick_access')
     .select('enabled').eq('assignment_id',assignment.id).maybeSingle());
    return send(res,200,{groupLabel:group.label,assignmentTitle:assignment.title,
-    classScope:assignment.class_scope,quickAccessEnabled:quick?.enabled===true,
+    lessonTemplate:assignment.lesson_template,classScope:assignment.class_scope,quickAccessEnabled:quick?.enabled===true,
     readOnly});
   }
 
@@ -87,6 +88,7 @@ export default async function galleryGuest(req,res){
     }
     throw fail(401,'Mã nhóm không hợp lệ hoặc đã hết hạn.');
    }
+   assertGuestLessonScope(req.headers?.['x-museum-lesson'],assignment);
    if(assignment.archived_at||assignment.status!=='active'||
       (!assignment.content_frozen_at&&(Date.parse(assignment.deadline_at)<=now ||
       !config.enabled||group.state==='rejected')))
@@ -133,7 +135,7 @@ export default async function galleryGuest(req,res){
     groupLabel:group.label,groupState:group.state,csrf:session.csrf_token,feedback,
     readOnly:ctx.readOnly,
     uploadEnabled:!ctx.readOnly&&ctx.feature.upload_enabled===true,
-    assignment:{title:assignment.title,brief:assignment.brief,class_scope:assignment.class_scope,
+    assignment:{id:assignment.id,lesson_template:assignment.lesson_template,title:assignment.title,brief:assignment.brief,class_scope:assignment.class_scope,
      content_frozen_at:assignment.content_frozen_at||null,
      deadline_at:assignment.deadline_at,max_rooms:assignment.max_rooms,max_exhibits:assignment.max_exhibits}
    });
@@ -153,6 +155,26 @@ export default async function galleryGuest(req,res){
    const body=guardBody(req,100000);
    if(!Number.isInteger(body.expectedVersion)||body.expectedVersion<0)throw fail(400,'Phiên bản không hợp lệ.');
    const doc=normalizeGuestDraft(body.draft,ctx.assignment);
+   if(isAsean(ctx.assignment)){
+    const destination=aseanDestination(ctx.group.label);
+    if(!destination||doc.rooms.length!==1||doc.rooms[0].exhibits.length!==3)
+     throw fail(400,'Save one exhibit with the three required frames.');
+    doc.title=destination.name;
+    doc.summary=destination.country;
+    doc.rooms[0].title=destination.name;
+    doc.survey=null;
+    doc.rooms[0].exhibits.forEach((frame,index)=>{
+     const {key,label}=ASEAN_FRAMES[index];
+     frame.title=label;
+     const credit=doc.artMeta[key];
+     frame.description=[
+      doc.learning[key],
+      index===1&&doc.learning.source?'Source: '+doc.learning.source:'',
+      frame.kind==='image'?'Image source: '+credit.source+' · Rights: '+credit.rights:'',
+     ].filter(Boolean).join('\n\n');
+     frame.alt_text=doc.artMeta[key].alt;
+    });
+   }
    const live=await query(admin.from('museum_live_sessions')
      .select('id,status,stage_index,stage_open').eq('assignment_id',ctx.assignment.id).maybeSingle());
    // Team authoring is independent of the teacher's live-question gate.
@@ -186,11 +208,21 @@ export default async function galleryGuest(req,res){
    const doc=normalizeGuestDraft(d.doc,ctx.assignment);
    const live=await query(admin.from('museum_live_sessions')
     .select('id,status,stage_index,stage_open').eq('assignment_id',ctx.assignment.id).maybeSingle());
-   if(!canSubmitMuseumProject(live))
+   const asean=isAsean(ctx.assignment);
+   if(asean){
+    const missing=aseanExhibitMissing(doc);
+    if(missing.length)throw fail(400,'Complete: '+missing.join(' · '));
+    if(!live||live.stage_index!==5||live.status!=='active'||!live.stage_open)
+     throw fail(423,'Wait for Activity 6 to open before submitting.');
+    const revision=await query(admin.from('museum_checkpoints').select('version')
+     .eq('session_id',live.id).eq('group_id',ctx.group.id).eq('kind','after').maybeSingle());
+    if(revision?.version!==d.version)throw fail(400,'Open this saved revision for the fresh visitor before submitting.');
+   }
+   if(!asean&&!canSubmitMuseumProject(live))
     throw fail(423,'Wait for the final live activity to open or for the lesson to end.');
    if(live&&!doc.rooms.some(r=>r.exhibits.some(e=>e.kind==='image')))
     throw fail(400,'Bảo tàng của nhóm cần tối thiểu một tranh hoặc poster đã tải lên.');
-   if(live&&await surveyFor(admin,live.id)){
+   if(!asean&&live&&await surveyFor(admin,live.id)){
     const missing=evidenceMissing(doc);
     if(missing.length)throw fail(400,'Cần hoàn thành: '+missing.join(' · '));
     // While live, demand verified peer/checkpoint events. Once the lesson ends,

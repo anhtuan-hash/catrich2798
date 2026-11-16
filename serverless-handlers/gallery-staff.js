@@ -12,6 +12,8 @@ import {canGradeReviewState} from './_museumRubricPolicy.js';
 
 // Copy approved private art into R1's still-private bucket before atomic promotion.
 // The SQL publication RPC verifies each link and the immutable TTCM snapshot hash.
+import {ASEAN_TEMPLATE,ASEAN_TITLE,ASEAN_RUBRIC,aseanPublicKey,isAsean} from '../src/features/immersive-gallery/v3/aseanLesson.js';
+
 async function stageApprovedArt(ctx,scoped){
  const {review,group,assignment}=scoped,admin=ctx.admin;
  if(review.state==='published')return;
@@ -71,9 +73,44 @@ async function publishedSchoolCatalog(ctx){
   .eq('school_scope',ctx.profile.school).eq('status','published')
   .in('visibility',['school','public']).order('updated_at',{ascending:false}).limit(100));
  const now=Date.now();
- return rows.filter(g=>(!g.starts_at||Date.parse(g.starts_at)<=now)&&
+ const visible=rows.filter(g=>(!g.starts_at||Date.parse(g.starts_at)<=now)&&
   (!g.ends_at||Date.parse(g.ends_at)>=now))
   .map(({starts_at,ends_at,...row})=>row);
+ if(!visible.length)return [];
+ const assignmentByGallery=await galleryLessonAssignments(ctx,visible.map(gallery=>gallery.id));
+ const collections=new Map(),individual=[];
+ for(const gallery of visible){
+  const {assignment,group}=assignmentByGallery.get(gallery.id)||{};
+  if(!isAsean(assignment)){
+   individual.push(assignment?{...gallery,assignment_id:assignment.id}:gallery);
+   continue;
+  }
+  const collection=collections.get(assignment.id)||{
+   ...gallery,id:aseanPublicKey(assignment.id),slug:aseanPublicKey(assignment.id),
+   title:assignment.title||ASEAN_TITLE,summary:'Place, Experience and Visitor Advice',lesson_template:ASEAN_TEMPLATE,assignment_id:assignment.id,destinations:[]
+  };
+  collection.destinations.push({id:gallery.id,title:gallery.title,groupLabel:group.label});
+  collections.set(assignment.id,collection);
+ }
+ for(const collection of collections.values())
+  collection.destinations.sort((a,b)=>a.groupLabel.localeCompare(b.groupLabel,'en'));
+ return [...collections.values(),...individual];
+}
+
+async function galleryLessonAssignments(ctx,galleryIds){
+ if(!galleryIds.length)return new Map();
+ const admin=ctx.admin;
+ const links=await query(admin.from('gcp_publication_links').select('group_id,exhibition_id').in('exhibition_id',galleryIds));
+ const groups=links.length?await query(admin.from('gcp_groups').select('id,label,assignment_id').in('id',links.map(l=>l.group_id))):[];
+ const assignments=groups.length?await query(admin.from('gcp_assignments').select('id,title,lesson_template')
+  .in('id',[...new Set(groups.map(g=>g.assignment_id))]).eq('school_scope',ctx.profile.school)):[];
+ const groupsById=new Map(groups.map(g=>[g.id,g]));
+ const assignmentsById=new Map(assignments.map(a=>[a.id,a]));
+ return new Map(links.flatMap(link=>{
+  const group=groupsById.get(link.group_id);
+  const assignment=assignmentsById.get(group?.assignment_id);
+  return assignment?[[link.exhibition_id,{assignment,group}]]:[];
+ }));
 }
 
 async function loadScopedReview(ctx,reviewId){
@@ -98,11 +135,13 @@ async function loadOwnGroup(ctx,groupId){
 }
 
 const rubricCeilings={english:40,evidence:20,reasoning:15,design:15,revision:10};
-function validateRubricScores(raw,ceilings=rubricCeilings){
+const aseanCeilings=Object.fromEntries(ASEAN_RUBRIC.map(({key,max})=>[key,max]));
+function validateRubricScores(raw,assignment){
+ const ceilings=isAsean(assignment)?aseanCeilings:rubricCeilings;
  if(!raw||typeof raw!=='object'||Array.isArray(raw)||
-    Object.keys(raw).length!==5||
+    Object.keys(raw).length!==Object.keys(ceilings).length||
     Object.keys(ceilings).some(key=>!Number.isInteger(raw[key])||raw[key]<0||raw[key]>ceilings[key]))
-  throw fail(400,'Each of the five rubric scores must be a whole number within its allowed range.');
+  throw fail(400,'Each rubric score must be a whole number within its allowed range.');
  return raw;
 }
 
@@ -165,9 +204,14 @@ export default async function galleryStaff(req,res){
    requireMethod(req,'GET');
    const hidden=await query(admin.from('museum_showcase_archives')
     .select('item_kind,item_key').eq('school_scope',ctx.profile.school).limit(500));
-   const archivedGalleries=ctx.role==='admin'?await query(admin.from('gallery_exhibitions')
+   const archived=ctx.role==='admin'?await query(admin.from('gallery_exhibitions')
     .select('id,title,summary,status').eq('school_scope',ctx.profile.school)
     .eq('status','archived').order('updated_at',{ascending:false}).limit(100)):[];
+   const archivedScopes=await galleryLessonAssignments(ctx,archived.map(gallery=>gallery.id));
+   const archivedGalleries=archived.map(gallery=>{
+    const assignment=archivedScopes.get(gallery.id)?.assignment;
+    return assignment?{...gallery,lesson_template:assignment.lesson_template,assignment_id:assignment.id}:gallery;
+   });
    // Provide an authorized, server-side published catalogue so a transient
    // browser settings or Data API read issue does not hide published work.
    const galleryEnabled=(await query(admin.from('gallery_settings')
@@ -181,14 +225,18 @@ export default async function galleryStaff(req,res){
   if(operation==='showcase-exhibition'){
    requireMethod(req,'POST');guardOrigin(req);
    const body=guardBody(req,1100),id=String(body.id||'');
-   if(!uid(id))throw fail(400,'Invalid exhibition identifier.');
+   if(!uid(id)&&!(id.startsWith('asean-')&&uid(id.slice(6))))throw fail(400,'Invalid exhibition identifier.');
    // No draft, archived, other-school or time-locked gallery leaves this API.
    const eligible=await publishedSchoolCatalog(ctx);
-   if(!eligible.some(g=>g.id===id))throw fail(404,'Published exhibition unavailable.');
-   const exhibition=await query(admin.from('gallery_exhibitions').select('*')
+   const collection=eligible.find(item=>item.id===id&&isAsean(item));
+   const child=eligible.find(item=>item.destinations?.some(destination=>destination.id===id));
+   if(!collection&&!child&&!eligible.some(g=>g.id===id))throw fail(404,'Published exhibition unavailable.');
+   const exhibitions=collection?collection.destinations.map(destination=>destination.id):[id];
+   const exhibition=collection||await query(admin.from('gallery_exhibitions').select('*')
     .eq('id',id).eq('school_scope',ctx.profile.school).eq('status','published').single());
-   const rooms=await query(admin.from('gallery_rooms').select('*')
-    .eq('exhibition_id',id).order('sort_order'));
+   if(child)exhibition.lesson_template=ASEAN_TEMPLATE;
+   const fetchedRooms=await query(admin.from('gallery_rooms').select('*').in('exhibition_id',exhibitions).order('sort_order'));
+   const rooms=collection?exhibitions.flatMap(galleryId=>fetchedRooms.filter(room=>room.exhibition_id===galleryId)):fetchedRooms;
    const roomIds=rooms.map(r=>r.id);
    const exhibits=roomIds.length?await query(admin.from('gallery_exhibits').select('*')
     .in('room_id',roomIds).eq('status','published').order('created_at')):[];
@@ -251,7 +299,7 @@ export default async function galleryStaff(req,res){
    const groupIds=groups.map(g=>g.id);
    // Only authorized staff can recover invitation *handles*. Never return
    // secret hashes, one-time private passcodes, or guest session tokens.
-   const inviteRows=groupIds.length?await query(admin.from('gcp_invites')
+   const inviteRows=!ctx.publicReadOnly&&groupIds.length?await query(admin.from('gcp_invites')
      .select('group_id,handle,expires_at,revoked_at,secret_envelope').in('group_id',groupIds).limit(500)):[];
    const inviteByGroup=new Map(inviteRows.map(inv=>[inv.group_id,inv]));
    const visibleGroups=groups.map(group=>{
@@ -263,18 +311,28 @@ export default async function galleryStaff(req,res){
    // A completed Exit Ticket is a live answer, never a submitted museum.
    const exitTickets=groupIds.length?await query(admin.from('museum_live_responses')
      .select('group_id,value,created_at').in('group_id',groupIds).eq('stage_index',10).limit(500)):[];
-   const reviews=groupIds.length?await query(admin.from('gcp_reviews')
+   const allReviews=groupIds.length?await query(admin.from('gcp_reviews')
      .select('id,group_id,version,state,teacher_note,ttcm_note,approved_by,approved_at,submitted_at,snapshot_hash,snapshot')
      .in('group_id',groupIds).is('archived_at',null).order('submitted_at',{ascending:false}).limit(500)):[];
    // Guests can read the five saved scores for published submissions within
    // this dashboard's school scope. Staff retain the complete assessment row.
+   const assignmentById=new Map(assignments.map(item=>[item.id,item]));
+   const aseanGroupIds=groups.filter(group=>isAsean(assignmentById.get(group.assignment_id))).map(group=>group.id);
+   const aseanResponses=!ctx.publicReadOnly&&aseanGroupIds.length?await query(admin.from('museum_live_responses')
+    .select('group_id,stage_index,value,created_at').in('group_id',aseanGroupIds).in('stage_index',[0,1,3,4,5]).limit(2500)):[];
+   const aseanWritingScores=!ctx.publicReadOnly&&aseanGroupIds.length?await query(admin.from('museum_learning_events')
+    .select('group_id,stage_index,details').eq('action','asean_writing_grade').in('group_id',aseanGroupIds)
+    .order('created_at',{ascending:false}).limit(2500)):[];
+   const reviews=allReviews.filter(row=>!ctx.publicReadOnly||!aseanGroupIds.includes(row.group_id)||row.state==='published');
    const rubricReviewIds=reviews.filter(review=>!ctx.publicReadOnly||review.state==='published').map(review=>review.id);
    const rubricRows=rubricReviewIds.length?await query(admin.from('gcp_rubric_scores')
      .select(ctx.publicReadOnly?'review_id,scores':'review_id,teacher_id,scores,feedback,updated_at')
      .in('review_id',rubricReviewIds).limit(500)):[];
-   const rubrics=ctx.publicReadOnly?rubricRows.map(({review_id,scores})=>({
-    review_id,scores:Object.fromEntries(Object.keys(rubricCeilings).map(key=>[key,scores[key]]))
-   })):rubricRows;
+   const aseanReviewIds=new Set(reviews.filter(row=>aseanGroupIds.includes(row.group_id)).map(row=>row.id));
+   const rubrics=ctx.publicReadOnly?rubricRows.map(row=>{
+    const keys=aseanReviewIds.has(row.review_id)?Object.keys(aseanCeilings):Object.keys(rubricCeilings);
+    return {...row,scores:Object.fromEntries(keys.map(key=>[key,row.scores?.[key]]))};
+   }):rubricRows;
    const reviewerCandidates=ctx.role==='admin'?await query(admin.from('profiles')
     .select('id,full_name,role').eq('school',ctx.profile.school).eq('approved',true).limit(100)):
     grants.length?await query(admin.from('profiles').select('id,full_name,role')
@@ -283,7 +341,7 @@ export default async function galleryStaff(req,res){
     publicReadOnly:ctx.publicReadOnly===true,
     creatorSettings:await settings(admin),reviewerCandidates,
     reviewers:grants,rubrics,
-    assignments:visibleAssignments,groups:visibleGroups,reviews,exitTickets,
+    assignments:visibleAssignments,groups:visibleGroups,reviews,exitTickets,aseanResponses,aseanWritingScores,
     publishedGalleries:await publishedSchoolCatalog(ctx)});
   }
 
@@ -384,7 +442,7 @@ export default async function galleryStaff(req,res){
    // record or revise the independent teaching rubric without unpublishing it.
    if(!canGradeReviewState(scoped.review.state))
      throw fail(423,'The submission cannot be graded in its current state.');
-   const raw=validateRubricScores(body.scores);
+   const raw=validateRubricScores(body.scores,scoped.assignment);
    const feedback=clean(body.feedback,2000);
    await query(admin.from('gcp_rubric_scores').upsert({
     review_id:scoped.review.id,teacher_id:ctx.user.id,
@@ -393,7 +451,7 @@ export default async function galleryStaff(req,res){
    await query(admin.from('gcp_review_events').insert({
     review_id:scoped.review.id,actor_type:ctx.role==='admin'?'admin':'teacher',actor_id:ctx.user.id,
     action:'rubric_scored',from_state:scoped.review.state,to_state:scoped.review.state,
-    note:'Rubric '+Object.values(raw).reduce((n,v)=>n+v,0)+'/100'
+    note:'Rubric '+Object.values(raw).reduce((n,v)=>n+v,0)+'/'+(isAsean(scoped.assignment)?10:100)
    }));
    return send(res,200,{ok:true,total:Object.values(raw).reduce((n,v)=>n+v,0)});
   }
@@ -418,7 +476,10 @@ export default async function galleryStaff(req,res){
    requireMethod(req,'POST');guardOrigin(req);assertAdmin(ctx);
    const body=guardBody(req,6000);
    const reviewerId=ctx.user.id; // Admin alone assigns and approves.
+   const template=body.lessonTemplate??'climate';
+   if(!['climate',ASEAN_TEMPLATE].includes(template))throw fail(400,'Unknown lesson template.');
    const count=Number(body.groupCount||0);
+   if(template===ASEAN_TEMPLATE&&count!==10)throw fail(400,'This teaching plan uses ten groups.');
    if(!Number.isInteger(count)||count<1||count>12)throw fail(400,'Số nhóm phải từ 1 đến 12.');
    const deadline=new Date(body.deadlineAt),now=Date.now();
    if(!Number.isFinite(deadline.getTime())||deadline.getTime()<now+60*60*1000||
@@ -433,7 +494,8 @@ export default async function galleryStaff(req,res){
     return {handle,groupSecret,secret_hash:digest('invite:'+groupSecret),
      secret_envelope:encryptGroupPasscode(groupSecret,handle)};
    });
-   const created=await query(admin.rpc('gcp_staff_issue_assignment',{
+   const created=await query(admin.rpc(template===ASEAN_TEMPLATE?'museum_issue_templated_assignment':'gcp_staff_issue_assignment',{
+    ...(template===ASEAN_TEMPLATE?{p_template:template}:{}),
     p_teacher:ctx.user.id,p_reviewer:reviewerId,p_school:ctx.profile.school,
     p_class:classScope,p_title:title,p_brief:clean(body.brief,5000),
     p_deadline:deadline.toISOString(),
@@ -450,7 +512,7 @@ export default async function galleryStaff(req,res){
    requireMethod(req,'POST');guardOrigin(req);assertAdmin(ctx);
    const body=guardBody(req,6000),action=String(body.action||'');
    if(!['approve','return','reject'].includes(action))throw fail(400,'Quyết định không hợp lệ.');
-   await loadScopedReview(ctx,body.reviewId);
+   const scoped=await loadScopedReview(ctx,body.reviewId);
    const decision={p_review:body.reviewId,p_actor:ctx.user.id,p_note:clean(body.note,2000)};
    let state;
    if(action==='approve'&&body.rubric){
@@ -458,7 +520,7 @@ export default async function galleryStaff(req,res){
     if(expectedUpdatedAt!==null&&(typeof expectedUpdatedAt!=='string'||!Number.isFinite(Date.parse(expectedUpdatedAt))))
      throw fail(400,'Invalid rubric revision. Reload the submission and try again.');
     state=await query(admin.rpc('gcp_admin_approve_with_rubric',{
-     ...decision,p_scores:validateRubricScores(scores),p_expected_updated_at:expectedUpdatedAt
+     ...decision,p_scores:validateRubricScores(scores,scoped.assignment),p_expected_updated_at:expectedUpdatedAt
     }));
    }else{
     state=await query(admin.rpc('gcp_admin_decide',{...decision,p_action:action}));

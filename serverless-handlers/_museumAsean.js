@@ -1,0 +1,80 @@
+import {checkpointGallery} from './_museumEvidence.js';
+import {fail,guardBody,guardOrigin,query,requireMethod,send} from './_galleryCreator.js';
+import {ASEAN_DESTINATIONS,aseanExhibitMissing,aseanGroupIndex,validAseanResponse} from '../src/features/immersive-gallery/v3/aseanLesson.js';
+
+export async function aseanGroupRecords(admin, sessionId, groupId) {
+ return query(admin.from('museum_live_responses').select('stage_index,value')
+  .eq('session_id',sessionId).eq('group_id',groupId).order('stage_index'));
+}
+
+async function aseanVisitTarget(admin,assignmentId,groupId,stage,reverse=false){
+ const groups=await query(admin.from('gcp_groups').select('id,label').eq('assignment_id',assignmentId));
+ groups.sort((a,b)=>aseanGroupIndex(a.label)-aseanGroupIndex(b.label));
+ const index=groups.findIndex(group=>group.id===groupId);
+ if(groups.length!==ASEAN_DESTINATIONS.length||index<0)throw fail(409,'The ten assigned groups could not be found.');
+ const offset=(stage===3?1:2)*(reverse?-1:1);
+ return groups[(index+offset+groups.length)%groups.length];
+}
+
+export async function handleAseanActivity({op,req,res,admin,ctx,session}){
+ const stage=session?.stage_index,id=ctx.group.id;
+ if(op==='asean-records'){
+  requireMethod(req,'GET');
+  // The group one place before the author supplied V1 feedback.
+  const source=session?await query(admin.from('museum_peer_pairs').select('from_group')
+   .eq('session_id',session.id).eq('to_group',id).maybeSingle()):null;
+  const authorRetest=session&&session.stage_index>=4?await aseanVisitTarget(admin,ctx.assignment.id,id,4,true):null;
+  const [rows,feedback,ownCheckpoints,retest]=await Promise.all([
+   session?aseanGroupRecords(admin,session.id,id):[],
+   source?query(admin.from('museum_live_responses').select('value').eq('session_id',session.id)
+    .eq('group_id',source.from_group).eq('stage_index',3).maybeSingle()):null,
+   session?query(admin.from('museum_checkpoints').select('kind,version').eq('session_id',session.id).eq('group_id',id)):[],
+   authorRetest?query(admin.from('museum_live_responses').select('value').eq('session_id',session.id)
+    .eq('group_id',authorRetest.id).eq('stage_index',4).maybeSingle()):null,
+  ]);
+  return send(res,200,{rows,feedback:feedback?.value||null,retest:retest?.value||null,checkpoints:ownCheckpoints});
+ }
+ if(session?.status!=='active'||!session.stage_open)throw fail(423,'Wait for the teacher to open this activity.');
+ if(op==='asean-capture'){
+  requireMethod(req,'POST');guardOrigin(req);
+  const {version,question,reason}=guardBody(req,1500);
+  if(stage!==4||!Number.isInteger(version)||![1,2,3].includes(question)||typeof reason!=='string'||!reason.trim()||reason.length>300)
+   throw fail(400,'Select the question and explain the revision.');
+  const draft=await query(admin.from('gcp_drafts').select('doc,version').eq('group_id',id).single());
+  const missing=aseanExhibitMissing(draft.doc);
+  if(draft.version!==version)throw fail(409,'Save the latest draft first.');
+  if(missing.length)throw fail(400,'Complete: '+missing.join(' · '));
+  const saved=await query(admin.rpc('museum_asean_capture_revision',{
+   p_session:session.id,p_group:id,p_version:version,p_question:question,p_reason:reason.trim()
+  }));
+  return send(res,200,{version:saved.version});
+ }
+ if(op==='asean-visit'){
+  requireMethod(req,'GET');
+  if(stage!==3&&stage!==4)throw fail(423,'Gallery visits are available during Activities 4 and 5.');
+  const target=await aseanVisitTarget(admin,ctx.assignment.id,id,stage);
+  const checkpoint=await query(admin.from('museum_checkpoints').select('*').eq('session_id',session.id)
+   .eq('group_id',target.id).eq('kind',stage===3?'before':'after').maybeSingle());
+  if(!checkpoint||aseanExhibitMissing(checkpoint.doc).length)
+   return send(res,200,{gallery:null,target:target.label});
+  return send(res,200,{gallery:await checkpointGallery(admin,checkpoint,target.label),target:target.label,
+   question:stage===4?checkpoint.doc.retestQuestion:null});
+ }
+ requireMethod(req,'POST');guardOrigin(req);
+ const body=guardBody(req,2200);
+ if(body.sessionId!==session.id||body.stageIndex!==stage)throw fail(409,'The activity changed. Open the current activity.');
+ if(!validAseanResponse(stage,body.value))throw fail(400,'Complete the group response before submitting.');
+ if(stage===3||stage===4){
+  const target=await aseanVisitTarget(admin,ctx.assignment.id,id,stage);
+  const checkpoint=await query(admin.from('museum_checkpoints').select('id,doc').eq('session_id',session.id)
+   .eq('group_id',target.id).eq('kind',stage===3?'before':'after').maybeSingle());
+  if(!checkpoint||checkpoint.id!==body.checkpointId||aseanExhibitMissing(checkpoint.doc).length||
+     (stage===4&&checkpoint.doc.retestQuestion!==body.value.question))
+   throw fail(409,'Open the assigned version and answer its question.');
+ }
+ const result=await admin.from('museum_live_responses').insert({
+  session_id:session.id,stage_index:stage,group_id:id,value:body.value,
+ });
+ if(result.error&&result.error.code!=='23505')await query(result);
+ return send(res,result.error?200:201,{ok:true,alreadySubmitted:result.error?.code==='23505'});
+}

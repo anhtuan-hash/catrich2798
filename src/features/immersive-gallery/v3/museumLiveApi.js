@@ -1,5 +1,5 @@
 import {getMuseumOffline} from './offlineAccess.js';
-import {guestRequest,englishMuseumError} from './museumApi.js';
+import {guestRequest,englishMuseumError,museumGuestInviteHeader} from './museumApi.js';
 export const LIVE_ROUTE='/api/gallery-guest/live';
 export const ART_ROUTE='/api/gallery-guest/artwork';
 export async function liveStaff(action,body,params={}){
@@ -35,7 +35,7 @@ export async function liveGuest(action,method='GET',body,csrf,params={}){
  const q=new URLSearchParams({operation:action,...params});
  const res=await fetch(LIVE_ROUTE+'?'+q.toString(),{
   method,credentials:'same-origin',cache:'no-store',
-  headers:{...(body?{'Content-Type':'application/json'}:{}),...(csrf?{'X-Gallery-CSRF':csrf}:{})},
+  headers:{...(body?{'Content-Type':'application/json'}:{}),...(csrf?{'X-Gallery-CSRF':csrf}:{}),...museumGuestInviteHeader()},
   ...(body?{body:JSON.stringify(body)}:{})
  });
  const d=await res.json().catch(()=>({error:'Invalid live lesson response.'}));
@@ -46,7 +46,7 @@ export async function artGuest(action,method='GET',body,csrf){
  if(getMuseumOffline())return getMuseumOffline().artGuest(action,method,body);
  const res=await fetch(ART_ROUTE+'?operation='+encodeURIComponent(action),{
   method,credentials:'same-origin',cache:'no-store',
-  headers:{...(body?{'Content-Type':'application/json'}:{}),...(csrf?{'X-Gallery-CSRF':csrf}:{})},
+  headers:{...(body?{'Content-Type':'application/json'}:{}),...(csrf?{'X-Gallery-CSRF':csrf}:{}),...museumGuestInviteHeader()},
   ...(body?{body:JSON.stringify(body)}:{})
  });
  const d=await res.json().catch(()=>({error:'Invalid artwork response.'}));

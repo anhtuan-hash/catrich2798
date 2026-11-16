@@ -60,13 +60,27 @@ export async function getMuseumInviteInfo(handle){
   throw new Error('Invitation not available.');
  return value;
 }
+export function museumInviteHandle(){
+ if(typeof window==='undefined')return '';
+ const [route,query]=window.location.hash.split('?');
+ if(route!=='#/gallery-create')return '';
+ const raw=new URLSearchParams(query||'').get('invite')||'';
+ return raw.match(/^[A-Za-z0-9_-]{16,80}/)?.[0]||'';
+}
+export function museumGuestInviteHeader(){
+ const handle=museumInviteHandle();
+ const [route,query]=typeof window==='undefined'?[]:window.location.hash.split('?');
+ const lesson=route==='#/gallery-create'?new URLSearchParams(query||'').get('lesson'):null;
+ return {...(handle?{'X-Museum-Invite':handle}:{}),...(lesson?{'X-Museum-Lesson':lesson}:{})};
+}
 export async function guestRequest(action,method='GET',body,csrf=''){
  if(getMuseumOffline())return getMuseumOffline().guest(action,method,body);
  const response=await fetch('/api/gallery-guest?operation='+encodeURIComponent(action),{
   method,credentials:'same-origin',cache:'no-store',
   headers:{
    ...(body?{'Content-Type':'application/json'}:{}),
-   ...(csrf?{'X-Gallery-CSRF':csrf}:{})
+   ...(csrf?{'X-Gallery-CSRF':csrf}:{}),
+   ...museumGuestInviteHeader()
   },
   ...(body?{body:JSON.stringify(body)}:{})
  });

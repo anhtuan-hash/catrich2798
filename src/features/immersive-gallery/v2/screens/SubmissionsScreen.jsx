@@ -1,16 +1,18 @@
 import React from 'react';
 import MetricStrip from '../shell/MetricStrip.jsx';
+import {isAsean} from '../../v3/aseanLesson.js';
 import {Submissions} from '../../v3/MuseumReview.jsx';
 
 const tr = (lang, vi, en) => lang === 'en' ? en : vi;
 
-export default function SubmissionsScreen({language='en', data, staff, onNavigate, onRefresh, initialReview, transport, query=''}) {
+export default function SubmissionsScreen({language='en', data, staff, onNavigate, onRefresh, initialReview, transport, query='',lessonTemplate}) {
   const payload = data || staff || {};
+  const asean=isAsean(lessonTemplate);
   const reviews = payload.reviews || [];
   const exitTickets = payload.exitTickets || [];
   const metrics = [
     {value: String(reviews.length), label: tr(language,'Bảo tàng đã nộp','Museum submissions')},
-    {value: String(exitTickets.length), label: 'Exit Tickets'},
+    {value: String(asean?(payload.aseanResponses||[]).filter(r=>r.stage_index===5).length:exitTickets.length), label: asean?'Group transfer cards':'Exit Tickets'},
     {value: String(reviews.filter(r => r.state === 'submitted' || r.state === 'ttcm_review').length), label: tr(language,'Chờ Admin','Awaiting admin review')},
     {value: String(reviews.filter(r => r.state === 'approved_locked').length), label: tr(language,'Đã duyệt','Approved')},
   ];
@@ -20,7 +22,7 @@ export default function SubmissionsScreen({language='en', data, staff, onNavigat
         <div className="swiss-editorial-submissions-title">
           <h1>{tr(language, 'Bài nộp của', 'Student')}{' '}
             <span>{tr(language, 'học sinh', 'submissions.')}</span></h1>
-          <p>{tr(language,
+          <p>{asean?'Review each group’s three-frame exhibit and its revision.':tr(language,
             'Đây là bài nộp bảo tàng. Exit Ticket được xem riêng trong Bài học.',
             'Museum project submissions appear here. Exit Tickets are available under Lessons.')}</p>
         </div>

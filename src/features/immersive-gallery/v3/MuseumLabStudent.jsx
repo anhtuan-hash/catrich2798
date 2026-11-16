@@ -1,7 +1,9 @@
+import {isAsean} from './aseanLesson.js';
+import AseanStudentLesson from './AseanStudentLesson.jsx';
 import React,{Suspense,useCallback,useEffect,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronDown,ChevronLeft,ChevronRight,ChevronUp,CircleHelp,Cloud,CloudAlert,CloudUpload,Eye,EyeOff,FileText,Info,KeyRound,Landmark,Leaf,Lightbulb,LockKeyhole,MessageSquare,RefreshCw,Send,ShieldCheck,Sparkles,Trophy,Users,X} from 'lucide-react';
 import {emptyStudio,documentFromStudio,normalizeStudio,STEPS,moveStoryboardCard} from './museumData.js';
-import {guestRequest,getMuseumInviteInfo,englishSystemGroupLabel} from './museumApi.js';
+import {guestRequest,getMuseumInviteInfo,englishSystemGroupLabel,museumInviteHandle} from './museumApi.js';
 import {artGuest,liveGuest} from './museumLiveApi.js';
 import {buildStudentMuseumPreview} from './museumPreviewImages.js';
 import {stageMediaTools} from './museumLiveExtensions.js';
@@ -37,9 +39,7 @@ import './museumStudentSwiss.css';
 import './museumStudentWorkspace.css';
 
 const T=(lang,vi,en)=>lang==='en'?en:vi;
-const getHandle=()=>{
- try{const raw=new URLSearchParams(window.location.hash.split('?')[1]||'').get('invite')||'';return raw.match(/^[A-Za-z0-9_-]{16,80}/)?.[0]||raw.slice(0,80);}catch{return '';}
-};
+const getHandle=museumInviteHandle;
 const initialSession=()=>null;
 function StudentLangToggle({language,onChange}){
  return <div className="bml-student-lang" role="group" aria-label={T(language,'Ngôn ngữ giao diện','Interface language')}>
@@ -125,6 +125,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  });
  const language=uiLanguage;
  const chooseLanguage=next=>{setUiLanguage(next);try{sessionStorage.setItem('bml-student-ui',next);}catch{}};
+ const [invitationPage,setInvitationPage]=useState(()=>typeof window==='undefined'?'':window.location.hash);
  const [session,setSession]=useState(initialSession),[studio,setStudio]=useState(emptyStudio);
  const [version,setVersion]=useState(0),[dirty,setDirty]=useState(false),[busy,setBusy]=useState(false);
  const [saveState,setSaveState]=useState('saved'),[error,setError]=useState(''),[notice,setNotice]=useState('');
@@ -244,12 +245,23 @@ export default function MuseumLabStudent({language:languageProp='en'}){
   versionRef.current=d.version;setVersion(d.version);dirtyRef.current=false;setDirty(false);
   setSaveState('saved');setConflict(false);
  },[]);
+ useEffect(()=>{
+  const sync=()=>{
+   const next=window.location.hash;
+   if(!next.startsWith('#/gallery-create')||next===invitationPage)return;
+   csrfRef.current='';setSession(null);setLiveInfo(null);setLiveReady(false);
+   dirtyRef.current=false;setDirty(false);setError('');setNotice('');
+   setInvitationPage(next);
+  };
+  window.addEventListener('hashchange',sync);
+  return()=>window.removeEventListener('hashchange',sync);
+ },[invitationPage]);
  useEffect(()=>{let active=true;guestRequest('me').then(async me=>{
   const d=await guestRequest('draft');if(!active)return;
   const parsed=normalizeStudio(d.draft);
   csrfRef.current=me.csrf;setSession(me);documentRef.current=parsed;setStudio(parsed);
   versionRef.current=d.version;setVersion(d.version);
- }).catch(()=>{});return()=>{active=false;};},[]);
+ }).catch(()=>{});return()=>{active=false;};},[invitationPage]);
  const syncCompletion=(next,readOnly)=>{
   setLiveInfo(next);setLiveReady(true);
   if(typeof readOnly!=='boolean'||readOnly===Boolean(session.readOnly))return;
@@ -290,8 +302,16 @@ export default function MuseumLabStudent({language:languageProp='en'}){
   return()=>window.clearTimeout(timer);
  },[studio,dirty,version,save,saveState,conflict,locked]);
  const redeem=async credentials=>{setBusy(true);setError('');
-  try{await guestRequest('redeem','POST',credentials);await load();}
-  catch(e){setError(e.message);}finally{setBusy(false);}
+  try{
+   await guestRequest('redeem','POST',credentials);
+   const [route,query]=window.location.hash.split('?');
+   if(route==='#/gallery-create'){
+    const params=new URLSearchParams(query||'');
+    params.set('invite',credentials.handle);
+    window.history.replaceState(window.history.state,'',window.location.pathname+window.location.search+route+'?'+params.toString());
+   }
+   await load();
+  }catch(e){setError(e.message);}finally{setBusy(false);}
  };
  const logout=async()=>{setBusy(true);
   try{await guestRequest('logout','POST',{},csrfRef.current);}catch{}
@@ -316,8 +336,10 @@ export default function MuseumLabStudent({language:languageProp='en'}){
   <div className="bml-paper bml-guest-competition-wrap" data-testid="museum-login-competition-banner">
    <MuseumCompetitionRibbon variant="dashboard" language={language}/>
   </div>
-  <GuestEntry onRedeem={redeem} busy={busy} error={error} language={language} onLanguageChange={chooseLanguage} onResetError={()=>setError('')}/>
+  <GuestEntry key={invitationPage} onRedeem={redeem} busy={busy} error={error} language={language} onLanguageChange={chooseLanguage} onResetError={()=>setError('')}/>
  </div>;
+ if(isAsean(session.assignment))return <AseanStudentLesson key={session.assignment.id} session={session}
+  initialStudio={studio} initialVersion={version} onLogout={logout}/>;
  const l=studio.learning,doc=documentFromStudio(studio),room=doc.rooms[0];
  const exhibitStatus=()=>[l.issue,l.evidence,l.solution].filter(Boolean).length;
  const progressChecks=[!!studio.title,!!l.issue,!!l.evidence,!!l.solution,!!l.source,!!l.feedback,!!l.improvement,!!l.tested,!!l.reflection];

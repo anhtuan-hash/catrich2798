@@ -1,3 +1,4 @@
+import {ASEAN_STAGES,isAsean} from './aseanLesson.js';
 import {LESSON_PLAN_NOTES} from './lessonPlanAlignment.js';
 import {MUSEUM_ACTIVITY_SLIDES} from './museumActivitySlides.js';
 import {SURVEY_QUESTION,SURVEY_OPTIONS} from './learningEvidence.js';
@@ -42,6 +43,7 @@ export const LEGACY_LANGUAGE_MINI_LESSON=Object.freeze({...LIVE_STAGES[1],
  expected:'Legacy quiz answers: 1A, 2B, 3B. Preserved for already-started sessions.'
 });
 export const sessionStage=(session,index=session?.stage_index)=>{
+ if(isAsean(session?.media_board?.lessonTemplate))return ASEAN_STAGES[index]||null;
  const original=liveStage(index);
  if(index===1&&Number(session?.media_board?.lessonQuestionVersion||0)<VIDEO_QUESTION_VERSION)
   return LEGACY_LANGUAGE_MINI_LESSON;
