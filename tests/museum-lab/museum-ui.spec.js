@@ -1688,7 +1688,7 @@ test('ASEAN V2 retest opens ahead of the completed exhibit, then records the vis
  const assignment={id:'qa-asean',title:'ASEAN in Three Frames',class_scope:'11-QA',lesson_template:'asean-in-three-frames'};
  let response;
  const live={id:'retest-session',stageIndex:4,status:'active',stageOpen:true};
- const checkpoints=[{kind:'before',version:0,complete:true,reconstructed:true},{kind:'after',version:2,complete:true,reason:'Teacher-prepared V2: Added a river photo.'}];
+ const checkpoints=[{kind:'before',version:0,complete:true,reconstructed:true},{kind:'after',version:2,complete:true,reason:'Teacher-prepared V2: Revised the Place caption.'}];
  await page.route('**/api/gallery-guest?**',route=>{
   const operation=new URL(route.request().url()).searchParams.get('operation');
   return route.fulfill({json:operation==='me'?{assignment,groupLabel:'Nhóm 01',groupState:'editing',csrf:'qa-asean'}:
@@ -1697,6 +1697,7 @@ test('ASEAN V2 retest opens ahead of the completed exhibit, then records the vis
  await page.route('**/api/gallery-guest/live?**',route=>{
   const operation=new URL(route.request().url()).searchParams.get('operation');
   if(operation==='asean-records')return route.fulfill({json:{checkpoints,rows:response?[{stage_index:4,value:response}]:[],
+   revisionDetails:[{frame:'Place',v1:'Hội An has historic streets.',v2:'Hội An is beside the Thu Bồn River.',photoChanged:false}],
    retestTask:{target:'Nhóm 03',ready:true,question:2,staffChecked:true}}});
   if(operation==='asean-reference-v1')return route.fulfill({json:{gallery:{version:0,
    draft:{title:'Hội An reference',rooms:[]},artworks:[]}}});
@@ -1717,6 +1718,9 @@ test('ASEAN V2 retest opens ahead of the completed exhibit, then records the vis
  await expect(project.getByText('What can I do there?',{exact:true})).toBeVisible();
  await expect(project.getByTestId('asean-3d-studio')).toHaveCount(0);
  await expect(project.getByText('A staff check is on file.',{exact:false})).toBeVisible();
+ await expect(page.getByTestId('asean-student-slide-5').getByText('Review the V1 caption')).toBeVisible();
+ await project.getByText('Compare V1 and V2',{exact:true}).click();
+ await expect(project.getByText('Hội An is beside the Thu Bồn River.',{exact:false})).toBeVisible();
  await project.getByRole('button',{name:'View reconstructed V1'}).click();
  await expect(page.getByRole('dialog',{name:'Reconstructed V1 reference'})).toBeVisible();
  await page.getByRole('button',{name:'Close museum preview'}).click();

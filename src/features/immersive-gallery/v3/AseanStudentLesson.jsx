@@ -34,6 +34,19 @@ const ACTIVITY_GROUP_ENDS=[1,2,3,5,ASEAN_STAGES.length];
 const ASEAN_ACTIVITIES_VI=ASEAN_STAGES.map(stage=>({...stage,title:stage.vi}));
 const T=(language,vi,en)=>language==='en'?en:vi;
 
+function HoiAnVisitorModel(){
+ const captions=[
+  'Hội An Ancient Town is in central Viet Nam. Its historic streets and buildings show how local and overseas traders helped shape this old port.',
+  'Enjoy the local culture.',
+  'When you stop to take a photo near the bridge, stand to one side. Leave enough space for other visitors to pass safely.',
+ ];
+ return <section className="asean-visitor-model bml-surface" aria-labelledby="asean-visitor-model-title">
+  <h3 id="asean-visitor-model-title">Exhibit model · What is missing?</h3>
+  <ol>{ASEAN_FRAMES.map((frame,index)=><li key={frame.key}><strong>{frame.label}</strong> · {captions[index]}</li>)}</ol>
+  <p>Which visitor question is still unanswered? Agree on the missing detail and share it with your class.</p>
+ </section>;
+}
+
 function ResponseFields({stage,fields,update,groupLabel,question,recorded}){
  const text=(key,label,maxLength=220)=><label className="bml-full-field">{label}
   <textarea required rows={2} maxLength={maxLength} value={fields[key]||''} onChange={event=>update(key,event.target.value)}/>
@@ -204,6 +217,11 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
  const liveOpen=!readOnly&&live?.status==='active'&&live.stageOpen&&live.stageIndex===stage;
  const captured=records.checkpoints.find(item=>item.kind==='after');
  const baseline=records.checkpoints.find(item=>item.kind==='before');
+ const revisionTask=captured
+  ?'Visit the assigned V2 room and record what you find. For your own exhibit, compare the revised frame in V1 and V2 and explain how the change helps a visitor.'
+  :records.feedback
+   ?design.studentTask
+   :'Look for a caption or photo that could answer a visitor’s question more clearly. Explain your change and save V2. Then use the same question for the fresh visitor test.';
  const reportTask=records.retest
   ?'Report what changed and what the assigned visitor group found.'
   :records.staffRetest
@@ -240,7 +258,9 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
  const field=(key,value)=>edit(draft=>({...draft,learning:{...draft.learning,[key]:value}}));
  const save=async()=>{
   const out=await guestRequest('save','PUT',{draft:document,expectedVersion:version},session.csrf);
-  setVersion(out.version);setDirty(false);setNotice(stage===2&&!missing.length?'V1 saved. Your group’s 3D exhibit is ready for the visitor test.':'Exhibit draft saved.');return out.version;
+  setVersion(out.version);setDirty(false);
+  setNotice(stage===2&&!missing.length?'Draft saved. The latest saved draft becomes V1 when your teacher opens Activity 4.':'Exhibit draft saved.');
+  return out.version;
  };
  const action=async operation=>{
   setBusy(true);setError('');
@@ -308,11 +328,10 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        <h2 id="asean-student-activity-title">{design.studentTitle}</h2>
        <p>{stage===5
         ?reportTask+' Submit the final room and write two sentences for the destination on your transfer card.'
-        :stage===4&&captured
-         ?'Visit the assigned room and record what you find. Then review the change made to your own exhibit.'
-         :design.studentTask}</p>
+        :stage===4?revisionTask:design.studentTask}</p>
       </div>
-      <AseanActivityArt activity={design.id}/>
+      <AseanActivityArt activity={design.id} revisionCaptured={Boolean(captured)} revisionHasFeedback={Boolean(records.feedback)}/>
+      {stage===0&&(stageRecord||live?.stageIndex>0||readOnly)&&<HoiAnVisitorModel/>}
       {[1,2,4].includes(stage)&&destination&&<div className="asean-student-sources">
        <a href={destination.source} target="_blank" rel="noreferrer">UNESCO destination source</a>
        <a href={'https://commons.wikimedia.org/wiki/Special:MediaSearch?type=image&search='+encodeURIComponent(destination.name)} target="_blank" rel="noreferrer">Find candidate photographs</a>
@@ -354,6 +373,17 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        <h4>Our V2 exhibit</h4>
        {captured.reason&&<p>{captured.reason}</p>}
        {baseline?.reconstructed&&<button type="button" className="bml-outline" disabled={busy} onClick={()=>action('reference-v1')}>View reconstructed V1</button>}
+       {stage===4&&records.revisionDetails?.length>0&&<details className="asean-revision-comparison">
+        <summary>Compare V1 and V2</summary>
+        {records.revisionDetails.map(({frame,v1,v2,photoChanged})=><div key={frame}>
+         <h5>{frame}</h5>
+         {v1!==v2&&<>
+          <p><strong>{baseline?.reconstructed?'V1 reference':'V1'}</strong> · {v1||'No caption saved'}</p>
+          <p><strong>V2</strong> · {v2||'No caption saved'}</p>
+         </>}
+         {photoChanged&&<p>The photo in this frame changed in V2.</p>}
+        </div>)}
+       </details>}
        {baseline?.complete===false&&<p>V1 was saved before the exhibit was complete. Record what the visitor finds in V2.</p>}
        {records.retest?<p><strong>Assigned visitor group’s result</strong> · {records.retest.score}/1 · {records.retest.answer}</p>:
         <p role="status">Assigned visitor group’s result · Pending</p>}
@@ -370,7 +400,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        {stage!==5&&<label className="bml-full-field">Factual source <input value={studio.learning.source} maxLength={600} disabled={!editable||busy} onChange={e=>field('source',e.target.value)}/></label>}
        {stage!==5&&<div className="asean-studio-save">
         <div className="bml-toolbar">
-         <button className="bml-primary" disabled={!editable||busy||imageBusy||!dirty} onClick={()=>action('save')}><Save size={18}/>{stage===2&&!missing.length?'Save V1':'Save draft'}</button>
+         <button className="bml-primary" disabled={!editable||busy||imageBusy||!dirty} onClick={()=>action('save')}><Save size={18}/>Save draft</button>
          <button className="bml-outline" disabled={busy||imageBusy||!editable} onClick={()=>{if(!dirty||window.confirm('Discard unsaved caption and credit changes?'))action('reload');}}>Reload saved exhibit</button>
         </div>
         {editable&&missing.length>0&&<details><summary>What’s still needed ({missing.length})</summary><ul>{missing.map(item=><li key={item}>{item}</li>)}</ul></details>}
@@ -387,6 +417,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
       </section>}
       {stage!==2&&stage!==4&&<GroupResponse key={stage} session={{...session,readOnly}} stage={stage} live={live} open={liveOpen}
        record={stageRecord} refreshLive={refreshLive} refreshRecords={refreshRecords} onVisit={(gallery,reference)=>setPreview({gallery,reference})}/>}
+      {stage===3&&records.feedback&&<p role="status"><strong>Feedback on your exhibit</strong> · {records.feedback.comment}</p>}
       {error&&<p className="bml-banner bml-danger-banner" role="alert">{error}</p>}
       {notice&&<p role="status">{notice}</p>}
      </div>

@@ -434,7 +434,7 @@ function AseanTeachingNotes({stage,language,uploadsEnabled}){
    <ol>
     <li>{t(language,'Học sinh mở QR hoặc link mời của nhóm rồi đăng nhập bằng mã nhóm.','Students open the class QR or their invitation link and sign in with their group pass.')}</li>
     <li>{t(language,'Khi giáo viên mở Hoạt động 3, xưởng hiện trên trang học sinh. Nếu đang xem hoạt động khác, chọn Follow teacher.','The workshop appears on the student page when Activity 3 is open. If students are browsing another activity, select Follow teacher.')}</li>
-    <li>{t(language,'Tải ba ảnh, viết chú thích và ghi nguồn. Chọn Preview in 3D, rồi chọn Save V1. Giáo viên có thể trình chiếu bản đã lưu từ màn hình này.','Upload the three photos, write and credit the captions, open Preview in 3D, then select Save V1. The teacher can project a saved draft from this slide.')}</li>
+    <li>{t(language,'Tải ba ảnh, viết chú thích và ghi nguồn. Chọn Preview 2D/3D rồi chọn Save draft. Khi giáo viên chuyển sang Hoạt động 4, hệ thống chốt bản đã lưu mới nhất làm V1.','Upload the three photos, write the captions and add credits. Select Preview 2D/3D, then Save draft. When the teacher advances to Activity 4, the latest saved draft becomes V1.')}</li>
    </ol>
    {uploadsEnabled===false&&<p role="status">{t(language,'Tải ảnh đang tắt. Bật “Tải tranh ảnh 3D” trong Cài đặt để nhóm có thể dựng phòng.','Photo uploads are off. Enable 3D artwork uploads in Settings so groups can build their rooms.')}</p>}
   </>}

@@ -3,7 +3,7 @@ export const ASEAN_ACTIVITY_DESIGN = [
   id: 'discover',
   title: ['Khách cần biết gì?', 'What does a visitor need to know?'],
   studentTitle: 'Write for a first-time visitor',
-  studentTask: 'Use your group’s destination card to write one thing a visitor can do and one piece of advice.',
+  studentTask: 'Use your writing card to write one thing a visitor can do and one piece of advice. After submitting both sentences, use the Hội An model on this slide to discuss what information a visitor still needs.',
   steps: [
    [2, 'Viết hai câu theo thẻ', 'Write two sentences from the card'],
    [2, 'Xem mẫu giới thiệu', 'Examine a model introduction'],
@@ -28,12 +28,12 @@ export const ASEAN_ACTIVITY_DESIGN = [
   id: 'build',
   title: ['Dựng triển lãm 3D của nhóm', 'Build your group’s 3D exhibit'],
   studentTitle: 'Build your group’s 3D exhibit',
-  studentTask: 'Upload three photos, write a 20–30-word English caption for each, and add credits and a source for your fact. Preview the room and save V1.',
+  studentTask: 'Upload three photos, write a 20–30-word English caption for each, and add credits and a source for your fact. Preview the room and save your draft. When your teacher opens Activity 4, the latest saved draft becomes V1 for the visitor test.',
   steps: [
    [5, 'Mở QR và làm mẫu một khung trong xưởng', 'Open the join QR and model one frame in the studio'],
    [10, 'Viết ba chú thích tiếng Anh, mỗi đoạn 20–30 từ', 'Write three English captions of 20–30 words each'],
    [8, 'Tải ảnh, ghi nguồn và quyền sử dụng, xem thử 3D', 'Upload photos, add sources and permissions, preview in 3D'],
-   [2, 'Lưu V1 và kiểm tra tiến độ trên màn chiếu', 'Save V1 and check progress on the projector'],
+   [2, 'Lưu bản nháp và kiểm tra tiến độ trên màn chiếu', 'Save the draft and check progress on the projector'],
   ],
   output: ['Phòng 3D V1 đã lưu, đủ ba ảnh, chú thích và thông tin nguồn.', 'A saved V1 room with three photographs, captions and sources.'],
  },
@@ -41,7 +41,7 @@ export const ASEAN_ACTIVITY_DESIGN = [
   id: 'visit',
   title: ['Tham quan chéo phòng 3D', 'Test another group’s 3D exhibit'],
   studentTitle: 'Visit another group’s exhibit',
-  studentTask: 'Open your assigned V1 room. Answer the three visitor questions, cite the frame that helped you, and suggest one change.',
+  studentTask: 'Visit your assigned V1 without help from the authors. Record the first frame you opened, answer all three questions with evidence, and suggest one change. After the visit, give your comment in English. As authors, reply or ask a follow-up question in English.',
   steps: [
    [2, 'Giao vai khách và hướng dẫn cách chấm /3', 'Assign visitor roles and explain scoring out of 3'],
    [8, 'Đọc ba khung và ghi bằng chứng', 'Read the three frames and record the evidence'],

@@ -1,6 +1,6 @@
 import {checkpointGallery} from './_museumEvidence.js';
 import {fail,guardBody,guardOrigin,query,requireMethod,send} from './_galleryCreator.js';
-import {aseanExhibitMissing,aseanPeerGroup,validAseanResponse} from '../src/features/immersive-gallery/v3/aseanLesson.js';
+import {ASEAN_FRAMES,aseanExhibitMissing,aseanPeerGroup,validAseanResponse} from '../src/features/immersive-gallery/v3/aseanLesson.js';
 
 export async function aseanGroupRecords(admin, sessionId, groupId) {
  return query(admin.from('museum_live_responses').select('stage_index,value')
@@ -55,8 +55,16 @@ export async function handleAseanActivity({op,req,res,admin,ctx,session}){
    question:assignedCheckpoint?.doc?.retestQuestion??null,
    staffChecked:Boolean(aseanStaffRetest(staffChecks,id,assignedCheckpoint)),
   }:null;
-  const staffRetest=authorRetest?aseanStaffRetest(staffChecks,authorRetest.id,ownCheckpoints.find(checkpoint=>checkpoint.kind==='after')):null;
-  return send(res,200,{rows,feedback:feedback?.value||null,retest:retest?.value||null,staffRetest,checkpoints,retestTask});
+  const before=ownCheckpoints.find(checkpoint=>checkpoint.kind==='before')?.doc;
+  const afterCheckpoint=ownCheckpoints.find(checkpoint=>checkpoint.kind==='after');
+  const after=afterCheckpoint?.doc;
+  const revisionDetails=before&&after?ASEAN_FRAMES.flatMap(({key,label})=>{
+   const v1=before.learning?.[key]||'',v2=after.learning?.[key]||'';
+   const photoChanged=(before.artworks?.[key]||null)!==(after.artworks?.[key]||null);
+   return v1!==v2||photoChanged?[{frame:label,v1,v2,photoChanged}]:[];
+  }):[];
+  const staffRetest=authorRetest?aseanStaffRetest(staffChecks,authorRetest.id,afterCheckpoint):null;
+  return send(res,200,{rows,feedback:feedback?.value||null,retest:retest?.value||null,staffRetest,checkpoints,retestTask,revisionDetails});
  }
  if(op==='asean-reference-v1'){
   requireMethod(req,'GET');

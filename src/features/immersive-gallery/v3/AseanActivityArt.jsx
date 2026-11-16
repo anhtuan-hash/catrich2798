@@ -7,7 +7,7 @@ const frameIcons = [MapPin, Binoculars, Compass];
 const sceneIcons = [Landmark, Footprints, Compass];
 const questionsVi = ['Ở đâu?', 'Có thể làm gì?', 'Cần lưu ý gì?'];
 
-export default function AseanActivityArt({activity, language = 'en'}) {
+export default function AseanActivityArt({activity, language = 'en', revisionCaptured = false, revisionHasFeedback = true}) {
  const vi = language === 'vi';
  const t = (vn, en) => vi ? vn : en;
  const question = i => vi ? questionsVi[i] : ASEAN_FRAMES[i].question;
@@ -39,9 +39,12 @@ export default function AseanActivityArt({activity, language = 'en'}) {
   break;
  case 'revise':
   graphic = <div className="asean-art-proof">
-   <div><strong>V1</strong><MessageSquareQuote aria-hidden="true"/><span>{t('Đọc góp ý', 'Read the feedback')}</span></div>
+   <div><strong>V1</strong><MessageSquareQuote aria-hidden="true"/><span>{revisionCaptured
+    ?t('Xem lại chú thích V1', 'Review the V1 caption')
+    :revisionHasFeedback?t('Đọc góp ý', 'Read the feedback'):t('Xem lại điểm chưa rõ', 'Find an unclear detail')}</span></div>
    <ArrowRight aria-hidden="true"/>
-   <div><strong>V2</strong><PencilLine aria-hidden="true"/><span>{t('Sửa và thử lại', 'Revise and retest')}</span></div>
+   <div><strong>V2</strong><PencilLine aria-hidden="true"/><span>{revisionCaptured
+    ?t('Đối chiếu và thử lại', 'Compare and retest'):t('Sửa và thử lại', 'Revise and retest')}</span></div>
   </div>;
   break;
  case 'share':
