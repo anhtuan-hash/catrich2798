@@ -114,3 +114,11 @@
   font-size: .875rem;
   font-weight: 700;
 }
+
+.bml .asean-exhibit-destination-label {
+  margin: 0 0 3px;
+  color: #37534e;
+  font-size: .8rem;
+  font-weight: 700;
+}
+.bml .asean-writing-destination { margin: 0 0 4px; font-size: 1rem; }

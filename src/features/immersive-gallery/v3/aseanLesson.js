@@ -49,6 +49,13 @@ export function aseanPeerGroup(classGroups,groupId,stage,{reverse=false}={}){
  return sorted[(index+offset+sorted.length)%sorted.length];
 }
 export const aseanWritingCard = (label,transfer=false)=>ASEAN_CARDS[(Math.max(0,aseanGroupIndex(label))+(transfer?1:0))%2];
+export function aseanWritingRepeats(baseline,transfer){
+ const normalize=text=>String(text??'').normalize('NFC').toLowerCase().replace(/[\p{P}\s]+/gu,' ').trim();
+ return ['experience','advice'].every(key=>{
+  const first=normalize(baseline?.[key]);
+  return first.length>0&&first===normalize(transfer?.[key]);
+ });
+}
 export const aseanPublicKey = id => 'asean-'+id;
 export const aseanWordCount = value=>String(value||'').trim().split(/\s+/u).filter(Boolean).length;
 export function aseanExhibitMissing(doc){

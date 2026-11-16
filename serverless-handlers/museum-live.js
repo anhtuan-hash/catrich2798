@@ -10,7 +10,7 @@ import {handleLivePeer,peerRoomsEvidence} from './_museumLivePeer.js';
 import {liveReadAudience,presentationFor,responseMatchesActivity,validPresentation} from '../src/features/immersive-gallery/v3/livePresentation.js';
 import {handleMuseumP2,p2WorksheetsForEvidence} from './_museumP2.js';
 import {ASEAN_FRAMES,ASEAN_STAGES,aseanExhibitMissing,aseanPeerGroup,isAsean} from '../src/features/immersive-gallery/v3/aseanLesson.js';
-import {aseanGroupRecords,aseanStaffRetest,aseanStaffRetests,handleAseanActivity} from './_museumAsean.js';
+import {aseanArchivedTransferResponses,aseanGroupRecords,aseanStaffRetest,aseanStaffRetests,handleAseanActivity} from './_museumAsean.js';
 const stageCount=assignment=>isAsean(assignment)?ASEAN_STAGES.length:LIVE_STAGES.length;
 const canRespond=stage=>['vote','quiz','exit','peer'].includes(stage?.kind)||(stage?.kind==='group'&&Array.isArray(stage.videoQuestions));
 async function scopedStaff(ctx,assignmentId){
@@ -260,7 +260,8 @@ export default async function museumLive(req,res){
      .eq('assignment_id',assignment.id).maybeSingle());
     return send(res,200,{format:'museum-evidence-v33',exported_at:new Date().toISOString(),assignment:{id:assignment.id,title:assignment.title,class_scope:assignment.class_scope},session:stateOf(session,{staff:true}),groups,survey:await surveyFor(admin,session.id),checkpoints,feedback:await feedbackFor(admin,session.id),
      responses,microResponses,p2Worksheets,teacherMediaBoard:session.media_board||{},livePeerFeedback:await peerRoomsEvidence(admin,session.id),presentationProvenance:provenance,media,
-     ...(asean?{aseanStaffChecks:await aseanStaffRetests(admin,session.id)}:{})});
+     ...(asean?{aseanStaffChecks:await aseanStaffRetests(admin,session.id),
+      aseanArchivedTransferResponses:await query(aseanArchivedTransferResponses(admin,session.id))}:{})});
    }
    if(op==='start'){
     requireMethod(req,'POST');guardOrigin(req);guardBody(req,1000);

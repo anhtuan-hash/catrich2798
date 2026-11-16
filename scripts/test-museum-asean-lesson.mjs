@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {normalizeGuestDraft} from '../src/features/immersive-gallery/creatorPassPolicy.js';
 import {documentFromStudio,emptyStudio,scoreRubric} from '../src/features/immersive-gallery/v3/museumData.js';
-import {ASEAN_DESTINATIONS,ASEAN_FRAMES,ASEAN_RUBRIC,ASEAN_STAGES,ASEAN_TEMPLATE,aseanExhibitMissing,aseanWritingCard,validAseanResponse} from '../src/features/immersive-gallery/v3/aseanLesson.js';
+import {ASEAN_DESTINATIONS,ASEAN_FRAMES,ASEAN_RUBRIC,ASEAN_STAGES,ASEAN_TEMPLATE,aseanExhibitMissing,aseanWritingCard,aseanWritingRepeats,validAseanResponse} from '../src/features/immersive-gallery/v3/aseanLesson.js';
 import {sessionStage,LIVE_STAGES} from '../src/features/immersive-gallery/v3/liveLesson.js';
 import {ASEAN_MIN_GROUPS,ASEAN_MAX_GROUPS,aseanDestination,aseanPeerGroup,validAseanGroupCount} from '../src/features/immersive-gallery/v3/aseanLesson.js';
 
@@ -77,4 +77,17 @@ test('Creator Pass requests remain scoped when the browser has a different lesso
  assert.doesNotThrow(()=>assertActiveMuseumLesson(asean));
  assert.throws(()=>assertActiveMuseumLesson(climate),{status:404});
  assert.throws(()=>assertActiveMuseumLesson(null),{status:404});
+});
+
+test('ASEAN transfer rejects a repeated baseline and accepts new writing',()=>{
+ const baseline={experience:'Visitors can look at the old brick towers.',advice:'Stand to one side of the path.'};
+ assert.equal(aseanWritingRepeats(baseline,{
+  experience:'  visitors can look at the old brick towers!  ',
+  advice:'Stand to one side of the path',
+ }),true);
+ assert.equal(aseanWritingRepeats(baseline,{
+  ...baseline,experience:'Visitors can follow paths past historic monuments.',
+ }),false);
+ assert.equal(aseanWritingRepeats(null,baseline),false);
+ assert.equal(aseanWritingRepeats({experience:'Only one answer'},{experience:'Only one answer'}),false);
 });
