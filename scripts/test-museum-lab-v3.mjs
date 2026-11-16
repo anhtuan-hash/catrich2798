@@ -14,9 +14,9 @@ test('new student workflow has exactly five coherent STEAM steps',()=>{
  assert.equal(LESSON_KITS[0].title,'Our Climate Action Museum');
  assert.match(LESSON_KITS[0].subtitle,/Unit 5: Global Warming/);
  assert.match(LESSON_KITS[0].challenge,/everyday activities on global warming/);
- assert.match(LESSON_KITS[0].brief,/group-priority choice/);
+ assert.match(LESSON_KITS[0].brief,/one priority vote per group/);
  assert.match(LESSON_KITS[0].brief,/25–40 words/);
- assert.match(LESSON_KITS[0].brief,/peer feedback|feedback/);
+ assert.match(LESSON_KITS[0].brief,/test it with one partner group/);
  assert.doesNotMatch(LESSON_KITS.map(x=>x.title).join(' '),/Protecting Marine Life|Sustainable School/);
 });
 test('auto-layout yields three readable text exhibits without exposed geometric controls',()=>{
@@ -121,7 +121,7 @@ test('Exit Tickets and museum submissions are counted separately',()=>{
  assert.match(api,/from\('museum_live_responses'\)/);
  assert.match(api,/eq\('stage_index',10\)/);
  assert.match(api,/assignments:visibleAssignments,groups:visibleGroups,reviews,exitTickets/);
- assert.match(lessons,/Exit Tickets: /);
+ assert.match(lessons,/Exit Tickets'\}: \{exitCount\}/);
  assert.match(lessons,/activeTicket\.value/);
  assert.match(liveStudent,/student-live-completed/);
  assert.match(liveStudent,/Your group Exit Ticket was recorded/);
@@ -194,9 +194,9 @@ test('Museum Lab banners use the active language and both official crests',()=>{
  const staffBanner=fs.readFileSync('src/features/immersive-gallery/v2/shell/CompetitionBanner.jsx','utf8');
  assert.match(student,/import MuseumCompetitionRibbon/);
  assert.match(student,/<MuseumCompetitionRibbon language=\{language\}\/>/);
- assert.match(staff,/<CompetitionBanner language=\{language\} \/>/);
+ assert.match(staff,/<CompetitionBanner language=\{language\} lessonTemplate=\{lessonTemplate\} \/>/);
  for(const source of [ribbon,staffBanner]){
-  assert.match(source,/<ContestMasthead language=\{language\} \/>/);
+  assert.match(source,/<ContestMasthead language=\{language\} lessonTemplate=\{lessonTemplate\} \/>/);
  }
  assert.match(masthead,/lang=\{locale\}/);
  assert.doesNotMatch(masthead,/contest-banner-swiss\.jpg/);
@@ -302,7 +302,7 @@ test('published exhibition catalogue remains dashboard-backed and private poster
  assert.match(gallery,/swiss-editorial-exhibitions-grid/);
  assert.match(gallery,/publishedInView\.map\(\(g, i\)/);
  assert.match(gallery,/!payload\.publicReadOnly/);
- assert.match(app,/<ExhibitionsScreen \{\.\.\.sharedScreenProps\}/);
+ assert.match(app,/<ExhibitionsScreen key=\{lessonTemplate\} \{\.\.\.sharedScreenProps\}/);
  assert.match(app,/onRefresh:refresh,transport:staffTransport/);
 });
 
@@ -381,8 +381,8 @@ test('published and approved museum submissions retain independent Admin rubric 
  assert.match(route,/assertAdmin\(ctx\)/);
  assert.match(route,/loadScopedReview\(ctx,body\.reviewId\)/);
  assert.match(route,/canGradeReviewState\(scoped\.review\.state\)/);
- assert.match(route,/validateRubricScores\(body\.scores\)/);
- assert.match(api,/Object\.keys\(raw\)\.length!==5/);
+ assert.match(route,/validateRubricScores\(body\.scores,scoped\.assignment\)/);
+ assert.match(api,/Object\.keys\(raw\)\.length!==Object\.keys\(ceilings\)\.length/);
  assert.match(route,/gcp_rubric_scores'\)\.upsert/);
  assert.match(route,/action:'rubric_scored'/);
  assert.doesNotMatch(route,/from\('gcp_reviews'\)\.(update|delete)/);
