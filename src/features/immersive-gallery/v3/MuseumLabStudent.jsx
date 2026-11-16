@@ -52,7 +52,7 @@ function GuestEntry({onRedeem,busy,error,language,onResetError,onLanguageChange}
  const validHandle=/^[A-Za-z0-9_-]{16,80}$/.test(handle.trim());
  useEffect(()=>{
   let active=true;
-  if(!validHandle){setInvite(null);setMethod('private');return ()=>{active=false;};}
+  if(!validHandle){setInvite(null);setMethod('private');setLookupBusy(false);return;}
   setLookupBusy(true);
   getMuseumInviteInfo(handle.trim()).then(info=>{
    if(!active)return;
@@ -173,7 +173,10 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  // Group work is independent of the gated Teacher Live response.
  const stageEditAllowed=canSaveMuseumDraft(liveInfo);
  const canFollowLive=liveRunning&&!session?.readOnly&&liveInfo.status!=='ended';
+ const liveActivityOpen=canFollowLive&&liveInfo.status==='active'&&liveInfo.stageOpen===true;
  const displayedActivity=reviewIndex??(canFollowLive?stageIndex:0);
+ const viewedActivity=liveActivityOpen&&reviewIndex===null?null:
+  liveRunning||session?.readOnly||reviewIndex!==null?displayedActivity:null;
  const step=activityGroup(displayedActivity);
  const projectPanelRef=useRef(null);
  const focusProject=()=>{
@@ -182,7 +185,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  };
  const returnLive=()=>{setReviewIndex(null);setPageChoice(null);};
  const browseActivity=index=>{
-  setReviewIndex(canFollowLive&&index===stageIndex?null:index);
+  setReviewIndex(liveActivityOpen&&index===stageIndex?null:index);
   setPageChoice(null);
   setPreview(false);
  };
@@ -203,7 +206,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  useEffect(()=>{
   if(taskScrollRef.current)taskScrollRef.current.scrollTop=0;
  },[displayedActivity,studioSubstep]);
- const showTool=name=>{setReviewIndex(null);setStudentTool({name,key:Date.now()});};
+ const showTool=name=>setStudentTool({name,key:Date.now()});
  useEffect(()=>{setHistoryOpen(false);setSpeakingOpen(false);},[displayedActivity]);
  const load=useCallback(async(expectedCsrf)=>{
   const me=await guestRequest('me');const d=await guestRequest('draft');
@@ -324,21 +327,21 @@ export default function MuseumLabStudent({language:languageProp='en'}){
       <div className="bml-student-lesson-tools" role="group" aria-label={T(language,'Công cụ học tập','Learning tools')}>
        <button type="button" className="bml-outline" onClick={()=>showTool('materials')}><BookOpen size={16}/>{T(language,'Tài liệu','Materials')}</button>
        <button type="button" className="bml-outline" onClick={()=>showTool('research')}><FileText size={16}/>{T(language,'Kho tư liệu','Research library')}</button>
-       {studentMedia.voice?<button type="button" className="bml-outline" onClick={()=>showTool('voice')}><Lightbulb size={16}/>{T(language,'Giọng đọc Anh Mỹ','US voiceover')}</button>:null}
-       {studentMedia.video&&liveInfo?.media?.query?<button type="button" className="bml-outline" onClick={()=>showTool('video')}><Eye size={16}/>{T(language,'Tìm video','Find videos')}</button>:null}
+       {studentMedia.voice||viewedActivity!==null?<button type="button" className="bml-outline" onClick={()=>showTool('voice')}><Lightbulb size={16}/>{T(language,'Giọng đọc Anh Mỹ','US voiceover')}</button>:null}
+       {viewedActivity===null&&studentMedia.video&&liveInfo?.media?.query?<button type="button" className="bml-outline" onClick={()=>showTool('video')}><Eye size={16}/>{T(language,'Tìm video','Find videos')}</button>:null}
       </div>
      </header>
    <div className="bml-student-pane bml-student-lesson-scroll" data-testid="student-lesson-pane"
     role="region" aria-label={T(language,'Nội dung bài học','Lesson content')} tabIndex={0} ref={lessonScrollRef}>
     <MuseumLiveStudent csrf={session.csrf} language={language} readOnly={session.readOnly===true}
       onState={syncCompletion} toolRequest={studentTool} compact
-      reviewIndex={reviewIndex} onReturnLive={canFollowLive?returnLive:undefined} onReviewProject={focusProject}
+      reviewIndex={viewedActivity} onReturnLive={liveActivityOpen&&reviewIndex!==null?returnLive:undefined} onReviewProject={focusProject}
       onOpenProject={index=>{
        if(index===9){setSpeakingOpen(true);return;}
        if(index===6)openArtworkSources();
        focusProject();
       }}
-      peerActivity={displayedActivity===7&&liveReady?<MuseumLivePeerFeedback csrf={session.csrf} liveInfo={liveInfo}
+      peerActivity={viewedActivity===null&&displayedActivity===7&&liveReady?<MuseumLivePeerFeedback csrf={session.csrf} liveInfo={liveInfo}
        locked={locked||conflict} saveState={saveState} drafts={peerDrafts} setDrafts={setPeerDrafts}/>:null}/>
    </div>
     </section>

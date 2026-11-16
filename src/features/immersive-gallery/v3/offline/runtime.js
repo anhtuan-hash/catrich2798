@@ -83,7 +83,7 @@ export function createOfflineRuntime(input){
    }
    return deny();
   },
-  liveGuest:async(action,method)=>{
+  liveGuest:async(action,method,body,params={})=>{
    if(!studentGroupId||(method&&method!=='GET'))return deny();
    const group=studentGroup();
    const evidence=snapshot.evidence[group.assignment_id]||{};
@@ -94,6 +94,14 @@ export function createOfflineRuntime(input){
      survey:live.survey||null,feedback:clone((evidence.feedback||[]).filter(item=>item.from_group===group.id||item.to_group===group.id)),
      micro:clone((evidence.microResponses||[]).find(item=>item.group_id===group.id&&item.stage_index===stageIndex)||null),
      submitted:(evidence.responses||[]).some(item=>item.group_id===group.id&&item.stage_index===stageIndex)};
+   }
+   if(action==='review-activity'){
+    const index=Number(params.stageIndex);
+    if(!Number.isInteger(index)||index<0||index>=LIVE_STAGES.length)throw new Error('Invalid presentation activity.');
+    const response=(evidence.responses||[]).find(item=>item.group_id===group.id&&item.stage_index===index);
+    const micro=(evidence.microResponses||[]).find(item=>item.group_id===group.id&&item.stage_index===index);
+    const peer=index===7?(evidence.feedback||[]).filter(item=>item.from_group===group.id):[];
+    return clone({response:response?.value??null,micro:micro||null,peer,videos:evidence.teacherMediaBoard?.[index]?.videos||[]});
    }
    if(action==='history'){
     const compare=snapshot.comparisons[group.id]||{};

@@ -44,7 +44,8 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   const [readError,setReadError]=useState('');
   const contentFrozenAt=state?.contentFrozenAt===undefined?(assignment?.content_frozen_at??null):state.contentFrozenAt;
   const canManageLesson=Boolean(assignment&&data?.profile?.id&&!data.publicReadOnly&&!data.offlineReadOnly);
-  const readOnly=Boolean(data?.publicReadOnly||data?.offlineReadOnly||contentFrozenAt);
+  const historicalSession=state?.session?.assignmentId===assignmentId?state.session:null;
+  const readOnly=Boolean(data?.publicReadOnly||data?.offlineReadOnly||contentFrozenAt||historicalSession?.status==='ended');
   const [browseIndex,setBrowseIndex]=useState(null);
   const [jumpIndex,setJumpIndex]=useState(null);
   const [previewReveal,setPreviewReveal]=useState(false);
@@ -73,7 +74,6 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     document.addEventListener('fullscreenchange',sync);return()=>document.removeEventListener('fullscreenchange',sync);
   },[]);
   useEffect(()=>{if(activeTool!=='qr')return;let active=true;import('qrcode').then(({default:QR})=>QR.toDataURL(link,{width:220,margin:2})).then(url=>{if(active)setQr(url);}).catch(()=>{});return()=>{active=false;};},[activeTool]);
-  const historicalSession=state?.session?.assignmentId&&state.session.assignmentId!==assignmentId?null:state?.session??null;
   const slideOnly=Boolean(contentFrozenAt&&!historicalSession);
   const session=historicalSession
     ?(readOnly?{...historicalSession,revealed:previewReveal}:historicalSession)

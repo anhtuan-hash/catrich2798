@@ -93,13 +93,12 @@ export default async function museumLive(req,res){
    if(op==='state'){
     requireMethod(req,'GET');
     if(!session)return send(res,200,{session:null,contentFrozenAt:assignment.content_frozen_at??null,stageCount:LIVE_STAGES.length});
-    // GET-only historical browsing: a teacher can inspect every frozen stage
-    // without mutating stage_index, stage_open, saved responses or media_board.
-    // A non-frozen lesson ignores viewStage and keeps its live teaching state.
+    // Historical browsing must not move the live stage or reopen responses.
+    const reviewOnly=Boolean(publicRead||assignment.content_frozen_at||session.status==='ended');
     const requested=String(req.query?.viewStage??'');
-    const viewIndex=assignment.content_frozen_at&&/^(?:[0-9]|10)$/.test(requested)
+    const viewIndex=reviewOnly&&/^(?:[0-9]|10)$/.test(requested)
      ?Number(requested):session.stage_index;
-    const viewing=assignment.content_frozen_at
+    const viewing=reviewOnly
      ?{...session,stage_index:viewIndex,stage_started_at:null,elapsed_seconds:0,stage_open:false}
      :session;
     const grp=await query(admin.from('gcp_groups').select('id,label,state')
@@ -117,7 +116,7 @@ export default async function museumLive(req,res){
     const micro=MICRO_CHALLENGES[viewIndex]?await query(admin.from('museum_live_micro_responses')
      .select('group_id,choice,reason,submitted_at').eq('session_id',session.id)
      .eq('stage_index',viewIndex).limit(50)):[];
-    return send(res,200,{session:{...stateOf(viewing,{staff:true}),readOnly:Boolean(assignment.content_frozen_at),persistedStageIndex:session.stage_index},
+    return send(res,200,{session:{...stateOf(viewing,{staff:true}),readOnly:reviewOnly,persistedStageIndex:session.stage_index},
      contentFrozenAt:assignment.content_frozen_at??null,stageCount:LIVE_STAGES.length,
      microResponses:micro.length,microResults:micro,
      result:(()=>{const r=summarizeResponses(viewIndex,responses,sessionStage(viewing,viewIndex));if(r&&session.evidence_version===0&&viewIndex===2)r.options=r.options.map((o,i)=>({...o,label:legacySurvey.options[i]}));return r;})(),
@@ -293,7 +292,7 @@ export default async function museumLive(req,res){
     .select(saveable?'value':'session_id').eq('session_id',session.id).eq(saveable?'group_id':'from_group',ctx.group.id)
     .match(saveable?{stage_index:session.stage_index}:{}).maybeSingle()):null;
    return send(res,200,{session:stateOf(session),micro,groupLabel:ctx.group.label,
-    readOnly:Boolean(ctx.assignment.content_frozen_at),
+    readOnly:ctx.readOnly,
     submitted:Boolean(saved),response:saveable?saved?.value??null:null,assignmentTitle:ctx.assignment.title,survey:await surveyFor(admin,session?.id),feedback:await feedbackFor(admin,session?.id,ctx.group.id)});
   }
   if(op==='review-activity'){
