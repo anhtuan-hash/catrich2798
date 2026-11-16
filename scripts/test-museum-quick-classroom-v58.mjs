@@ -12,6 +12,7 @@ assert.equal(verifyQuickAccess('PEK123',{enabled:true,password_salt:'bad',passwo
 assert.notEqual(createQuickAccessVerifier().password_salt,verifier.password_salt);
 const guest=readFileSync(new URL('../serverless-handlers/gallery-guest.js',import.meta.url),'utf8');
 const creator=readFileSync(new URL('../serverless-handlers/_galleryCreator.js',import.meta.url),'utf8');
+const live=readFileSync(new URL('../serverless-handlers/museum-live.js',import.meta.url),'utf8');
 const staff=readFileSync(new URL('../serverless-handlers/gallery-staff.js',import.meta.url),'utf8');
 const ui=readFileSync(new URL('../src/features/immersive-gallery/v3/MuseumLabStudent.jsx',import.meta.url),'utf8');
 const lesson=readFileSync(new URL('../src/features/immersive-gallery/v3/MuseumLessonFlow.jsx',import.meta.url),'utf8');
@@ -19,7 +20,8 @@ const migration=readFileSync(new URL('../supabase/migrations/20261113233500_muse
 for(const s of ["operation==='invite-info'","operation==='redeem'","verifyQuickAccess(secret,quick)","auth_method:quickMode?'quick':'private'","ipWindow.count>=10","handleWindow.count>=20","active.count>=3","group.state==='rejected'",".eq('succeeded',false)","readOnly:ctx.readOnly"]){assert.ok(guest.includes(s),'guest contract missing '+s);}
 assert.ok(!guest.includes("['rejected','published'].includes(group.state)"));
 assert.ok(creator.includes("group?.state==='published'"));
-assert.ok(creator.includes("if(readOnly)throw fail(423"));
+assert.match(creator,/if\(readOnly&&\!\(allowPublishedWorksheet&&group\.state==='published'&&\!assignment\.content_frozen_at\)\)\s*throw fail\(423/);
+assert.ok(live.includes("allowPublishedWorksheet:op==='p2-save'&&req.body?.form==='D2'"));
 for(const s of ["operation==='quick-access-setting'","assertAdmin(ctx)","assignment.created_by!==ctx.user.id","createQuickAccessVerifier()","auth_method','quick'"]){assert.ok(staff.includes(s),'admin contract missing '+s);}
 assert.ok(creator.includes("sess.auth_method==='quick'"),'disabled quick sessions must be refused');
 assert.ok(ui.includes('getMuseumInviteInfo(handle.trim())'),'join link should discover mode');
