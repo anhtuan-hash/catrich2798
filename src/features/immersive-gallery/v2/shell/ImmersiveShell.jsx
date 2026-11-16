@@ -18,7 +18,6 @@ import CompetitionBanner from './CompetitionBanner.jsx';
 import schoolMark from './branding/petrus-ky.png';
 import { NAV_ITEMS } from './SideNavigation.jsx';
 import Footer from './Footer.jsx';
-import { launchRoute } from '../../../../utils/navigation.js';
 
 // ImmersiveShell — Swiss Editorial V3 horizontal topbar shell (full-width workspace).
 // CONTRACT props: {activeNav, onNavigate(id), children, language, staff, data, query, onQueryChange, onRefresh, onHelp, pendingCount}.
@@ -56,28 +55,6 @@ const SECONDARY_NAV = [
     titleEn: 'Competition Dossier',
   },
 ];
-
-const SCHOOL_LINKS = [
-  { vi: 'Ứng dụng', target: '#/apps' },
-  { vi: 'Dashboard', target: '#/dashboard' },
-  { vi: 'Chủ nhiệm', target: '#/homeroom' },
-  { vi: 'Sổ điểm', target: '#/tool/gradebook-studio' },
-  { vi: 'Kiểm tra', target: '#/tool/lesson-check-studio' },
-  { vi: 'Điểm danh', target: '#/attendance' },
-];
-
-const CONTEST_PATH = '/nguyen-anh-tuan-bai-du-thi-stem-steam-day-hoc-so-2026-2027';
-
-function openSchoolTool(target, sourceEl) {
-  if (typeof window === 'undefined') return;
-  const path = String(window.location.pathname || '/').replace(/\/+$/, '') || '/';
-  if (path === CONTEST_PATH) {
-    window.history.pushState(null, '', `/${target}`);
-    window.dispatchEvent(new HashChangeEvent('hashchange'));
-    return;
-  }
-  launchRoute({ target, sourceEl, label: target });
-}
 
 function shortTeacherName(profile) {
   const full = String(profile?.full_name || profile?.display_name || profile?.name || '').trim();
@@ -382,23 +359,6 @@ export default function ImmersiveShell({
       <div className="igv2-banner-wrap">
         <CompetitionBanner />
       </div>
-
-      <nav
-        className="igv2-school-row"
-        lang={language === 'en' ? 'en' : 'vi'}
-        aria-label={tr(language, 'Công cụ nhà trường', 'School tools')}
-      >
-        {SCHOOL_LINKS.map((item) => (
-          <button
-            key={item.target}
-            type="button"
-            lang="vi"
-            onClick={(event) => openSchoolTool(item.target, event.currentTarget)}
-          >
-            {item.vi}
-          </button>
-        ))}
-      </nav>
 
       <main className="igv2-main-full" id="igv2-main" aria-label={NAV_LABEL[activeNav] || 'Overview'}>
         {children}
