@@ -1,5 +1,4 @@
 const DEFAULT_COLOR = '#0078d4';
-const CONTEST_PATH = '/nguyen-anh-tuan-bai-du-thi-stem-steam-day-hoc-so-2026-2027';
 
 const ROUTE_ORDER = [
   'home', 'apps', 'news', 'games', 'tools', 'homeroom', 'homeroom-portal',
@@ -45,17 +44,6 @@ function clearPendingTarget(target = '') {
   }
 }
 
-function contestPathActive() {
-  if (typeof window === 'undefined') return false;
-  const path = String(window.location.pathname || '/').replace(/\/+$/, '') || '/';
-  return path === CONTEST_PATH;
-}
-
-function leaveContestPath(target) {
-  window.history.pushState(null, '', `/${target}`);
-  window.dispatchEvent(new HashChangeEvent('hashchange'));
-}
-
 function clearMetroNavigationState(root, delay = 480) {
   window.clearTimeout(metroCleanupTimer);
   metroCleanupTimer = window.setTimeout(() => {
@@ -78,12 +66,7 @@ export function launchRoute({
 
   const normalizedTarget = String(target);
   const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
-  // #/apps is already the contest landing hash, so a matching hash used to
-  // no-op and the Ứng dụng tab could not leave the studio.
-  if (window.location.hash === normalizedTarget) {
-    if (contestPathActive()) leaveContestPath(normalizedTarget);
-    return;
-  }
+  if (window.location.hash === normalizedTarget) return;
   if (pendingTarget === normalizedTarget && now - pendingStartedAt < 1600) return;
 
   const go = typeof navigate === 'function'
