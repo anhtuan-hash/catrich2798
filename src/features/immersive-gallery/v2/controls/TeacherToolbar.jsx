@@ -13,7 +13,7 @@ export default function TeacherToolbar({
   session=null,currentIndex=0,
   motionOn=true,activeTool=null,
   onBack,onPrevious,onNext,onToggleTask,onReveal,onToggleTool,onFullscreen,
-  onToggleMotion,onTogglePause,onRefresh
+  onToggleMotion,onTogglePause,onRefresh,onChangeCompletion,completed=false
 }){
   const ended=session?.status==='ended';
   const mutateLocked=readOnly||busy||ended;
@@ -52,6 +52,9 @@ export default function TeacherToolbar({
       {btn('motion',motionOn?t(language,'Chuyển động: BẬT','Motion ON'):t(language,'Chuyển động: TẮT','Motion OFF'),Sparkles,{onClick:onToggleMotion,pressed:motionOn,variant:motionOn?'mint':''})}
       {btn('pause',session?.status==='paused'?t(language,'Tiếp tục','Resume'):t(language,'Tạm dừng','Pause'),session?.status==='paused'?Play:Pause,{onClick:onTogglePause,disabled:mutateLocked})}
       {btn('refresh',t(language,'Làm mới','Refresh'),RefreshCw,{onClick:onRefresh,disabled:busy})}
+      {onChangeCompletion&&(completed
+        ?btn('unlock',t(language,'Mở khóa bài dạy','Unlock lesson'),LockOpen,{onClick:onChangeCompletion,disabled:busy})
+        :btn('complete',t(language,'Kết thúc bài dạy','End lesson'),Lock,{onClick:onChangeCompletion,disabled:busy,variant:'primary'}))}
     </div>
   );
 }

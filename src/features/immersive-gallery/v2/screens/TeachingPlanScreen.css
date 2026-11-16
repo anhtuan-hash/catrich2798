@@ -1,0 +1,465 @@
+@font-face {
+  font-family: "Teaching Plan Open Sans";
+  src: url("./fonts/open-sans-extrabold.woff") format("woff");
+  font-weight: 800;
+  font-display: swap;
+}
+
+/* Keep the existing contest shell, banner and footer aligned with the lesson grid. */
+.igv2:has(.swiss-teaching-plan) {
+  --swiss-editorial-plan-paper: #f3f1e9;
+  background: var(--swiss-editorial-plan-paper);
+}
+
+.igv2:has(.swiss-teaching-plan) .profile-footer {
+  background: var(--swiss-editorial-plan-paper);
+}
+
+.igv2 .swiss-teaching-plan {
+  --plan-paper: var(--swiss-editorial-plan-paper, #f3f1e9);
+  --plan-ink: #111110;
+  --plan-red: #ca0e23;
+  --plan-red-on-ink: #ff5e6d;
+  --plan-rule: #bfbcb3;
+  --plan-muted-paper: #ece8de;
+  --plan-display: "Teaching Plan Open Sans", Arial, sans-serif;
+  --plan-gap: clamp(16px, 2vw, 26px);
+  margin: 0;
+  color: var(--plan-ink);
+  background: var(--plan-paper);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 15px;
+  line-height: 1.48;
+  overflow-wrap: break-word;
+}
+
+.igv2 .swiss-teaching-plan :is(.page-title, .plan-copy h2, .plan-section > h2,
+  .plan-unit-number, .kpi strong, .plan-period h3, .plan-activity-number) {
+  /* The existing shell applies its font family to every text element. */
+  --igv2-font-family: var(--plan-display);
+  font-weight: 800;
+}
+
+/* Oversized title and a red duration block above the other live figures. */
+.igv2 .swiss-teaching-plan .plan-masthead {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+  gap: var(--plan-gap);
+  align-items: stretch;
+  border-block: 3px solid var(--plan-ink);
+  padding-block: 20px 23px;
+}
+
+.igv2 .swiss-teaching-plan .plan-masthead::before {
+  content: "";
+  position: absolute;
+  inset: -3px auto auto 0;
+  height: 3px;
+  width: 20%;
+  background: var(--plan-red);
+}
+
+.igv2 .swiss-teaching-plan .page-header {
+  display: block;
+  padding: 6px 0;
+  align-self: center;
+  min-width: 0;
+}
+
+.igv2 .swiss-teaching-plan :is(.page-kicker, .plan-label) {
+  margin: 0;
+  color: var(--plan-red);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .105em;
+}
+
+.igv2 .swiss-teaching-plan .page-kicker { display: block; }
+.igv2 .swiss-teaching-plan .page-kicker::before { content: none; }
+
+.igv2 .swiss-teaching-plan .page-title {
+  margin: 8px 0 12px;
+  font-size: clamp(52px, 7.3vw, 105px);
+  letter-spacing: -.071em;
+  line-height: .98;
+  color: inherit;
+}
+
+.igv2 .swiss-teaching-plan .plan-title-line { display: block; }
+.igv2 .swiss-teaching-plan .plan-title-dot { color: var(--plan-red); }
+
+.igv2 .swiss-teaching-plan :is(.page-desc, .header-aside) {
+  margin: 0;
+  color: #302e29;
+}
+
+.igv2 .swiss-teaching-plan .header-aside {
+  display: block;
+  max-width: none;
+  border: 0;
+  padding: 0;
+  margin-top: 6px;
+  text-align: start;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.igv2 .swiss-teaching-plan .kpi-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  align-content: stretch;
+  border: 0;
+  background: transparent;
+}
+
+.igv2 .swiss-teaching-plan .kpi-grid .kpi:nth-child(n) {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 0;
+  border-left: 1px solid var(--plan-rule);
+  background: transparent;
+  box-shadow: none;
+}
+
+.igv2 .swiss-teaching-plan .kpi-grid .kpi:first-child {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: end;
+  gap: 10px;
+  min-height: clamp(135px, 14vw, 196px);
+  padding: 14px 16px 18px;
+  border: 0;
+  color: white;
+  background: var(--plan-red);
+}
+
+.igv2 .swiss-teaching-plan .kpi strong {
+  font-size: clamp(29px, 3vw, 41px);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.075em;
+  color: inherit;
+}
+
+.igv2 .swiss-teaching-plan .kpi:first-child strong {
+  font-size: clamp(72px, 9.1vw, 130px);
+  line-height: .87;
+}
+
+.igv2 .swiss-teaching-plan .kpi i { color: inherit; }
+
+.igv2 .swiss-teaching-plan .kpi small {
+  color: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.igv2 .swiss-teaching-plan .kpi:first-child small {
+  align-self: end;
+  padding-bottom: 7px;
+  font-size: 16px;
+}
+
+/* Project brief: paper index card next to the black driving-question panel. */
+.igv2 .swiss-teaching-plan .plan-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2.1fr);
+  margin: 23px 0;
+  border: 1px solid var(--plan-ink);
+}
+
+.igv2 .swiss-teaching-plan .plan-visual {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  padding: clamp(16px, 2vw, 25px);
+}
+
+.igv2 .swiss-teaching-plan :is(.plan-unit-school, .plan-unit-caption) {
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.igv2 .swiss-teaching-plan .plan-unit-school { font-size: 11px; letter-spacing: .06em; }
+.igv2 .swiss-teaching-plan .plan-unit-caption { font-size: 14px; }
+
+.igv2 .swiss-teaching-plan .plan-unit-number {
+  font-size: clamp(72px, 8.75vw, 126px);
+  line-height: 1;
+  letter-spacing: -.085em;
+}
+
+.igv2 .swiss-teaching-plan .plan-unit-number span {
+  display: block;
+  margin-top: 16px;
+  color: var(--plan-red);
+  font-size: .42em;
+  letter-spacing: -.04em;
+}
+
+.igv2 .swiss-teaching-plan .plan-copy {
+  min-width: 0;
+  padding: clamp(16px, 2vw, 25px);
+  color: var(--plan-paper);
+  background: var(--plan-ink);
+}
+
+.igv2 .swiss-teaching-plan .plan-copy .plan-label { color: var(--plan-red-on-ink); }
+.igv2 .swiss-teaching-plan .plan-copy .plan-label:not(:first-child) { margin-top: 18px; }
+
+.igv2 .swiss-teaching-plan .plan-copy h2 {
+  margin: 4px 0 5px;
+  font-size: clamp(30px, 3.5vw, 50px);
+  line-height: 1.06;
+  letter-spacing: -.06em;
+  color: inherit;
+}
+
+.igv2 .swiss-teaching-plan .plan-question {
+  margin: 4px 0 8px;
+  font-size: clamp(18px, 1.75vw, 24px);
+  line-height: 1.23;
+  font-weight: 750;
+  letter-spacing: -.02em;
+}
+
+.igv2 .swiss-teaching-plan p { margin: 0; }
+
+.igv2 .swiss-teaching-plan :is(.plan-chips, .plan-hero-actions) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.igv2 .swiss-teaching-plan .plan-chips { margin-block: 14px; }
+
+.igv2 .swiss-teaching-plan .plan-chips .chip {
+  padding: 3px 8px;
+  color: inherit;
+  background: transparent;
+  border: 1px solid #8d8981;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.igv2 .swiss-teaching-plan .plan-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  min-height: 42px;
+  padding: 8px 13px;
+  border: 1px solid #aaa69a;
+  border-radius: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: start;
+  cursor: pointer;
+}
+
+.igv2 .swiss-teaching-plan :is(.plan-button-primary, .plan-actions .action.accent) {
+  background: var(--plan-red);
+  border-color: var(--plan-red);
+  color: white;
+}
+
+.igv2 .swiss-teaching-plan .plan-button:hover { border-color: white; }
+.igv2 .swiss-teaching-plan .plan-button svg { flex-shrink: 0; }
+
+.igv2 .swiss-teaching-plan .plan-note {
+  padding: 11px 14px;
+  border-block: 1px solid var(--plan-rule);
+  border-left: 4px solid var(--plan-red);
+  font-size: 14px;
+}
+
+.igv2 .swiss-teaching-plan :is(.plan-pillars, .plan-outcomes) {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--plan-gap);
+}
+
+.igv2 .swiss-teaching-plan .plan-pillars { padding: 19px 0 32px; }
+.igv2 .swiss-teaching-plan .plan-pillar { padding-top: 12px; border-top: 4px solid var(--plan-ink); }
+.igv2 .swiss-teaching-plan .plan-pillar:nth-child(2) { border-top-color: var(--plan-red); }
+
+.igv2 .swiss-teaching-plan .plan-pillar h2 {
+  display: inline;
+  color: inherit;
+  font: inherit;
+  font-size: 22px;
+  font-weight: 750;
+  letter-spacing: -.025em;
+}
+
+.igv2 .swiss-teaching-plan .plan-pillar svg {
+  margin-right: 8px;
+  vertical-align: -.2em;
+  color: var(--plan-red);
+}
+
+.igv2 .swiss-teaching-plan .plan-pillar p { margin-top: 5px; }
+
+.igv2 .swiss-teaching-plan .panel.plan-section {
+  padding: 18px 0 27px;
+  margin: 0;
+  border: 0;
+  border-top: 3px solid var(--plan-ink);
+  background: transparent;
+}
+
+.igv2 .swiss-teaching-plan .plan-section.plan-sequence { border-top-color: var(--plan-red); }
+
+.igv2 .swiss-teaching-plan .plan-section > h2 {
+  margin: 0 0 17px;
+  font-size: clamp(27px, 3vw, 40px);
+  line-height: 1.14;
+  letter-spacing: -.049em;
+  color: inherit;
+}
+
+.igv2 .swiss-teaching-plan .plan-outcome {
+  padding-left: 13px;
+  border-left: 3px solid var(--plan-red);
+}
+
+.igv2 .swiss-teaching-plan .plan-outcome b { display: block; margin-bottom: 4px; font-size: 17px; }
+
+/* Both periods remain fully expanded. The second period uses the reverse palette. */
+.igv2 .swiss-teaching-plan .plan-periods {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr);
+  gap: var(--plan-gap);
+}
+
+.igv2 .swiss-teaching-plan .plan-period:nth-child(2) {
+  --plan-rule: #625e57;
+  --plan-muted-paper: #383430;
+  padding: 0 17px 10px;
+  color: var(--plan-paper);
+  background: var(--plan-ink);
+}
+
+.igv2 .swiss-teaching-plan .plan-period h3 {
+  margin: 0;
+  padding-block: 12px;
+  border-bottom: 1px solid var(--plan-rule);
+  font-size: clamp(19px, 2vw, 25px);
+  line-height: 1.13;
+  letter-spacing: -.022em;
+  text-transform: uppercase;
+  color: inherit;
+}
+
+.igv2 .swiss-teaching-plan .plan-activities { margin: 0; padding: 0; list-style: none; }
+
+.igv2 .swiss-teaching-plan .plan-activity {
+  display: grid;
+  grid-template-columns: clamp(42px, 4.5vw, 66px) minmax(0, 1fr);
+  gap: 9px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--plan-rule);
+}
+
+.igv2 .swiss-teaching-plan .plan-activity-number {
+  color: var(--plan-red);
+  font-size: clamp(30px, 3vw, 40px);
+  line-height: 1;
+  letter-spacing: -.065em;
+}
+
+.igv2 .swiss-teaching-plan .plan-period:nth-child(2) .plan-activity-number { color: var(--plan-red-on-ink); }
+.igv2 .swiss-teaching-plan .plan-activity strong { display: block; font-size: 19px; line-height: 1.23; }
+.igv2 .swiss-teaching-plan .plan-activity small { display: block; margin-top: 6px; font-size: 14px; color: inherit; }
+
+.igv2 .swiss-teaching-plan .plan-activity-meta {
+  margin-top: 7px;
+  padding: 4px 7px;
+  background: var(--plan-muted-paper);
+  font-size: 13px;
+  line-height: 1.38;
+  font-weight: 700;
+}
+
+.igv2 .swiss-teaching-plan a { color: #aa0a1c; text-decoration: underline; text-underline-offset: 2px; font-weight: 700; }
+.igv2 .swiss-teaching-plan .plan-period:nth-child(2) a { color: inherit; }
+.igv2 .swiss-teaching-plan .plan-sequence-note { padding-top: 16px; font-size: 14px; }
+
+.igv2 .swiss-teaching-plan .plan-assessment {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, .85fr);
+  padding: 16px 20px;
+  gap: 18px var(--plan-gap);
+  background: var(--plan-muted-paper);
+}
+
+.igv2 .swiss-teaching-plan .plan-rubric { border-left: 1px solid var(--plan-ink); padding-left: var(--plan-gap); }
+.igv2 .swiss-teaching-plan .plan-assessment :is(ol, ul) { margin: 8px 0 0; padding-left: 22px; }
+.igv2 .swiss-teaching-plan .plan-assessment li { padding-block: 3px; }
+.igv2 .swiss-teaching-plan .plan-resources { grid-column: 1 / -1; border-top: 1px solid var(--plan-rule); padding-top: 12px; }
+
+.igv2 .swiss-teaching-plan .plan-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 13px;
+  padding-top: 16px;
+  border-top: 2px solid var(--plan-ink);
+}
+
+.igv2 .swiss-teaching-plan .plan-actions .action {
+  min-height: 74px;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border: 1px solid var(--plan-ink);
+  background: transparent;
+  color: var(--plan-ink);
+  cursor: pointer;
+}
+
+.igv2 .swiss-teaching-plan .plan-actions .action p { color: inherit; margin: 4px 0 0; }
+.igv2 .swiss-teaching-plan .plan-actions .go { position: static; display: flex; flex-shrink: 0; }
+.igv2 .swiss-teaching-plan .plan-actions .go .icon { width: 18px; height: 18px; }
+.igv2 .swiss-teaching-plan .plan-actions .action:hover { text-decoration: underline; }
+.igv2 .swiss-teaching-plan :is(button, a):focus-visible { outline: 3px solid #cd342c; outline-offset: 3px; }
+.igv2 .swiss-teaching-plan .plan-copy button:focus-visible { outline-color: #fff; }
+
+@media (max-width: 840px) {
+  .igv2 .swiss-teaching-plan .plan-masthead { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
+  .igv2 .swiss-teaching-plan .plan-periods { grid-template-columns: 1fr; }
+  .igv2 .swiss-teaching-plan .plan-period:nth-child(2) { padding-inline: 13px; }
+  .igv2 .swiss-teaching-plan .plan-pillars { padding-bottom: 23px; }
+}
+
+@media (max-width: 610px) {
+  .igv2:has(.swiss-teaching-plan) .igv2-topbar-utils {
+    margin-left: 0;
+    width: 100%;
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+  .igv2 .swiss-teaching-plan :is(.plan-masthead, .plan-pillars, .plan-outcomes, .plan-assessment) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .igv2 .swiss-teaching-plan .page-title { font-size: clamp(44px, 10vw, 62px); }
+  .igv2 .swiss-teaching-plan .kpi-grid .kpi:first-child { min-height: 100px; }
+  .igv2 .swiss-teaching-plan .plan-hero { grid-template-columns: minmax(0, 1fr); }
+  .igv2 .swiss-teaching-plan .plan-visual {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas: "school school" "unit caption";
+    align-items: end;
+    gap: 8px 14px;
+  }
+  .igv2 .swiss-teaching-plan .plan-unit-school { grid-area: school; }
+  .igv2 .swiss-teaching-plan .plan-unit-caption { grid-area: caption; font-size: clamp(11px, 3.2vw, 14px); }
+  .igv2 .swiss-teaching-plan .plan-unit-number { grid-area: unit; font-size: 58px; }
+  .igv2 .swiss-teaching-plan .plan-unit-number span { display: inline; margin-left: 7px; }
+  .igv2 .swiss-teaching-plan .plan-rubric { padding: 12px 0 0; border: 0; border-top: 1px solid var(--plan-rule); }
+}

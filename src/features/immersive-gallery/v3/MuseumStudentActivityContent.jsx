@@ -1,5 +1,5 @@
 import React,{useState} from 'react';
-import {EVIDENCE_WRITING,LESSON_PLAN_NOTES,VISITOR_TASKS} from './lessonPlanAlignment.js';
+import {EVIDENCE_WRITING,LESSON_PLAN_NOTES,OFFLINE_LESSON_WORKSHEET,VISITOR_TASKS} from './lessonPlanAlignment.js';
 import {MUSEUM_ACTIVITY_SLIDES,NEXT_DELIVERY_STAGES} from './museumActivitySlides.js';
 
 const tr=(language,vi,en)=>language==='en'?en:vi;
@@ -27,6 +27,11 @@ export function StudentActivityTask({stage,language='vi',onOpenProject,projectLa
    <p lang="en">{note.extension}</p>
    {writing?<p lang="en">{writing}</p>:<ol lang="en">{VISITOR_TASKS.map(task=><li key={task}>{task}</li>)}</ol>}
   </details>:null}
+  {stage.id==='exit-ticket'?<p>
+   <a href={OFFLINE_LESSON_WORKSHEET+'#finish'} target="_blank" rel="noreferrer">
+    {tr(language,'Mở phiếu D2 · Nhật ký sau giờ học','Open Worksheet D2 · After-class log')}
+   </a>
+  </p>:null}
   {onOpenProject?<div className="bml-student-p2-actions">
    <button type="button" className="bml-outline" onClick={onOpenProject}>{projectLabel||tr(language,'Mở sản phẩm của nhóm','Open group project')}</button>
   </div>:null}

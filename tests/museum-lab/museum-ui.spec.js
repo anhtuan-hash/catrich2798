@@ -44,6 +44,39 @@ test('paper navigation reaches real screens and search keeps the lesson filter',
  await page.getByRole('button',{name:'Trợ giúp',exact:true}).click();
  await expect(page.getByRole('dialog',{name:'Hướng dẫn Museum Lab'})).toBeVisible();
 });
+test('approved editorial layouts render on the four Museum Lab staff screens',async({page},testInfo)=>{
+ const checkOverflow=async()=>expect(await page.evaluate(
+  ()=>document.documentElement.scrollWidth<=innerWidth+1
+ )).toBe(true);
+ await page.getByTestId('igv2-nav-submissions').click();
+ const submissions=page.locator('.swiss-editorial-submissions-hero');
+ await expect(submissions).toHaveCSS('background-color','rgb(20, 20, 20)');
+ await expect(page.getByTestId('museum-review-desk')).toHaveClass(/swiss-editorial-review-desk/);
+ await checkOverflow();
+ await page.screenshot({path:testInfo.outputPath('submissions.png'),fullPage:true,animations:'disabled'});
+
+ await page.getByTestId('igv2-nav-exhibitions').click();
+ const exhibitions=page.locator('.swiss-editorial-exhibitions-hero');
+ await expect(exhibitions).toHaveCSS('display','grid');
+ await expect(exhibitions).toHaveCSS('border-top-width','3px');
+ await checkOverflow();
+ await page.screenshot({path:testInfo.outputPath('exhibitions.png'),fullPage:true,animations:'disabled'});
+
+ await page.getByTestId('igv2-nav-teaching-plan').click();
+ await expect(page.locator('.plan-masthead')).toHaveCSS('display','grid');
+ await expect(page.locator('.plan-period')).toHaveCount(2);
+ await checkOverflow();
+ await page.screenshot({path:testInfo.outputPath('teaching-plan.png'),fullPage:true,animations:'disabled'});
+
+ await page.getByRole('button',{name:/^Tạo bài học từ kế hoạch này/}).click();
+ const wizard=page.getByTestId('museum-lesson-wizard');
+ await expect(wizard).toHaveClass(/swiss-editorial-wizard/);
+ await expect(wizard.locator('.wizard-step-feature')).toBeVisible();
+ await expect(wizard.locator('.wizard-steps > li')).toHaveCount(3);
+ await expect(wizard.locator('.bml-single-period li')).toHaveCount(11);
+ await checkOverflow();
+ await page.screenshot({path:testInfo.outputPath('create-lesson.png'),fullPage:true,animations:'disabled'});
+});
 test('paper dashboard fits the viewport and its decorative assets load',async({page},testInfo)=>{
  const banner=page.getByTestId('museum-competition-ribbon');
  await expect(banner).toBeVisible();
@@ -516,6 +549,7 @@ test('realistic Group 01 Stage 1 permits vote, help, all group project steps and
  await app.locator('.bml-student-steps button').nth(3).click();
  await expect(page.getByLabel('Peer feedback (English)')).toBeEnabled();
  await app.locator('.bml-student-steps button').nth(4).click();
+ await app.getByTestId('student-activity-groups').getByRole('button',{name:/Exit Ticket/}).click();
  await expect(page.getByLabel('Our learning reflection (English)')).toBeEnabled();
  // Final submission must still wait for the teacher's Exit Ticket stage.
  await expect(page.getByRole('button',{name:'Submit for Admin review'})).toBeDisabled();
@@ -1384,6 +1418,11 @@ test('Swiss Editorial frozen Teacher Live supports 11 GET-only replay activities
  for(let index=2;index<11;index++){
   await toolbar.getByRole('button',{name:'Advance to next activity'}).click();
   await expect(stage).toContainText('ACTIVITY '+(index+1)+'/11');
+  if(index===2){
+   const chart=stage.getByTestId('museum-survey-chart');
+   await expect(chart).toContainText('Valid group responses N = 10');
+   await expect(chart).toContainText('4/10 (40%)');
+  }
  }
  await expect(stage).toContainText('Exit Ticket');
  await expect(toolbar.getByRole('button',{name:'Advance to next activity'})).toBeDisabled();
@@ -1399,6 +1438,186 @@ test('Swiss Editorial frozen Teacher Live supports 11 GET-only replay activities
  await expect.poll(()=>page.evaluate(()=>window.__frozenTeacherWrites||0)).toBe(0);
  const reads=await page.evaluate(()=>window.__frozenTeacherReads||[]);
  expect(reads).toContain(0);expect(reads).toContain(10);
+});
+
+test('student workshop expands both panels when an activity starts and can reopen the banner',async({page,isMobile},testInfo)=>{
+ const title='The Refill Route';
+ await page.route('**/api/gallery-guest?**',route=>{
+  const action=new URL(route.request().url()).searchParams.get('operation');
+  return route.fulfill({json:action==='me'?{
+   groupLabel:'Group 02',groupState:'published',readOnly:true,csrf:'qa-workshop',
+   assignment:{title:'Our Climate Action Museum',class_scope:'11-QA'}
+  }:{draft:{title,summary:'Find the water point. Start at the door and use the arrows.',learning:{
+   issue:'We have a place to fill bottles, but some students go past it. The queue is near the corner. We did not know where to put the sign at first.',
+   audience:'Students carrying reusable bottles at morning break.',evidence:'The floor map shows the tap.',
+   solution:'Follow the arrows.',source:'School floor map',feedback:'The arrow was clear.',
+   improvement:'Add text beside the arrow.',tested:true,reflection:'Test signage on the route.'
+  }},version:2}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>{
+  expect(route.request().method()).toBe('GET');
+  const action=new URL(route.request().url()).searchParams.get('operation');
+  return route.fulfill({json:action==='review-activity'?{response:1,peer:[],videos:[]}:
+   {session:{id:'qa-workshop',status:'ended',stageIndex:10}}});
+ });
+ await page.getByTestId('qa-student-en').click();
+ const root=page.getByTestId('museum-student-wizard');
+ const masthead=root.getByTestId('student-masthead');
+ const ribbon=masthead.getByTestId('museum-competition-ribbon');
+ const lesson=root.getByRole('region',{name:'Lesson',exact:true});
+ const project=root.getByRole('region',{name:'Group Project',exact:true});
+ const geometry=()=>root.evaluate(el=>{
+  const lesson=el.querySelector('.bml-student-lesson-panel').getBoundingClientRect();
+  const project=el.querySelector('.bml-student-project-panel').getBoundingClientRect();
+  return {lessonHeight:lesson.height,projectHeight:project.height,lessonTop:lesson.top,projectTop:project.top,
+   viewportHeight:innerHeight,overflow:el.scrollWidth>el.clientWidth+1};
+ });
+ await expect(ribbon).toBeVisible();
+ await expect(ribbon.getByText('COMPETITION ENTRY',{exact:true})).toBeVisible();
+ await expect(project.getByRole('heading',{name:title,exact:true})).toBeVisible();
+ await expect(lesson.getByRole('button',{name:/B\. Switching/})).toBeDisabled();
+ const before=await geometry();
+ await expect(ribbon).toBeInViewport();
+ expect((await ribbon.boundingBox()).width).toBeGreaterThan((await root.boundingBox()).width*.95);
+ await page.screenshot({path:testInfo.outputPath('student-workshop-before.png')});
+ await lesson.getByRole('button',{name:'Review activity',exact:true}).click();
+ await expect(ribbon).toBeHidden();
+ await expect(masthead.getByRole('button',{name:'Show banner'})).toHaveAttribute('aria-expanded','false');
+ const after=await geometry();
+ expect(after.overflow).toBe(false);
+ if(!isMobile){
+  expect(after.lessonTop).toBe(after.projectTop);
+  expect(after.lessonHeight-before.lessonHeight).toBeGreaterThan(70);
+  expect(after.projectHeight-before.projectHeight).toBeGreaterThan(70);
+  expect(after.lessonHeight).toBeGreaterThan(after.viewportHeight*.65);
+  await expect(lesson.getByRole('button',{name:/D\. I am not sure/})).toBeInViewport();
+  await expect(project.getByRole('button',{name:'Open the 2D/3D museum'})).toBeInViewport();
+ }
+ await page.screenshot({path:testInfo.outputPath('student-workshop-after.png')});
+ await lesson.getByRole('button',{name:'Next activity',exact:true}).click();
+ await expect(lesson.getByRole('heading',{name:'Language Mini-Lesson'})).toBeVisible();
+ await masthead.getByRole('button',{name:'Show banner'}).click();
+ await expect(ribbon).toBeVisible();
+ await expect(lesson.getByRole('heading',{name:'Language Mini-Lesson'})).toBeVisible();
+ await masthead.getByRole('button',{name:'VI',exact:true}).click();
+ await expect(ribbon.getByText('BÀI DỰ THI',{exact:true})).toBeVisible();
+ await masthead.getByRole('button',{name:'Ẩn banner',exact:true}).click();
+ await expect(ribbon).toBeHidden();
+});
+
+test('a locked student lesson loads and displays the frozen survey denominator',async({page})=>{
+ const reads=[];
+ await page.route('**/api/gallery-guest?**',route=>{
+  const action=new URL(route.request().url()).searchParams.get('operation');
+  return route.fulfill({json:action==='me'?{
+   groupLabel:'Group 01',groupState:'published',readOnly:true,csrf:'qa-locked-survey',
+   assignment:{title:'Climate Action Museum',class_scope:'11-QA'}
+  }:{draft:{title:'Climate Action Museum'},version:2}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>{
+  const params=new URL(route.request().url()).searchParams;
+  reads.push([route.request().method(),params.get('operation'),params.get('stageIndex')]);
+  if(params.get('operation')==='review-activity')return route.fulfill({json:{
+   response:params.get('stageIndex')==='10'?'I will bring a reusable bottle.':null,peer:[],videos:[]
+  }});
+  return route.fulfill({json:{session:{id:'qa-session',status:'ended',stageIndex:10},
+   survey:{n:10,created_at:'2026-11-13T00:00:00Z',options:[
+    {label:'Switching off unused lights',count:4,percent:40}
+   ]}}});
+ });
+ await page.getByTestId('qa-student-en').click();
+ await page.getByRole('button',{name:/Live Classroom Survey/}).click();
+ const chart=page.getByTestId('student-lesson-pane').getByTestId('museum-survey-chart');
+ await expect(chart).toContainText('Valid group responses N = 10');
+ await expect(chart).toContainText('4/10 (40%)');
+ await page.getByTestId('student-activity-groups').getByRole('button',{name:/Evaluate/}).click();
+ await page.getByTestId('student-activity-groups').getByRole('button',{name:/Exit Ticket/}).click();
+ await expect(page.getByTestId('student-lesson-review')).toContainText('I will bring a reusable bottle.');
+ await expect(page.getByRole('button',{name:'Submit group response'})).toHaveCount(0);
+ await page.getByRole('button',{name:'US voiceover'}).click();
+ await expect(page.getByTestId('museum-voiceover')).toBeVisible();
+ expect(reads).toContainEqual(['GET','review-activity','10']);
+ expect(reads.every(([method])=>method==='GET')).toBe(true);
+});
+
+test('published group opens its closed activities using quick classroom access',async({page})=>{
+ const handle='SyntheticInvite_123456';
+ let signedIn=false;
+ await page.route('**/api/gallery-guest?**',route=>{
+  const action=new URL(route.request().url()).searchParams.get('operation');
+  if(action==='invite-info')return route.fulfill({json:{
+   groupLabel:'Group 01',assignmentTitle:'Climate Action Museum',classScope:'11-QA',quickAccessEnabled:true,readOnly:true
+  }});
+  if(action==='redeem'){
+   expect(route.request().postDataJSON()).toEqual({handle,classroomPassword:'SyntheticQA'});
+   signedIn=true;
+   return route.fulfill({json:{ok:true}});
+  }
+  if(action==='me')return signedIn?route.fulfill({json:{
+   groupLabel:'Group 01',groupState:'published',readOnly:true,csrf:'qa-published',
+   assignment:{title:'Climate Action Museum',class_scope:'11-QA'}
+  }}):route.fulfill({status:401,json:{error:'Sign in with a group pass.'}});
+  return route.fulfill({json:{draft:{title:'Climate Action Museum'},version:2}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>{
+  expect(route.request().method()).toBe('GET');
+  const params=new URL(route.request().url()).searchParams;
+  if(params.get('operation')==='review-activity')return route.fulfill({json:{
+   response:params.get('stageIndex')==='10'?'Our group will reduce food waste.':null,peer:[],videos:[]
+  }});
+  return route.fulfill({json:{session:{id:'qa-published-session',status:'active',stageIndex:10,stageOpen:false}}});
+ });
+ await page.evaluate(invite=>history.replaceState(null,'',location.pathname+'#/gallery-create?invite='+invite),handle);
+ await page.getByTestId('qa-student-en').click();
+ await page.getByLabel('Class password',{exact:true}).fill('SyntheticQA');
+ await page.getByRole('button',{name:'Enter lesson'}).click();
+ const activities=page.getByTestId('student-activity-groups');
+ await activities.getByRole('button',{name:/Evaluate/}).click();
+ await activities.getByRole('button',{name:/Exit Ticket/}).click();
+ await expect(page.getByTestId('student-lesson-review')).toContainText('Our group will reduce food waste.');
+ await expect(page.getByRole('button',{name:'Submit group response'})).toHaveCount(0);
+});
+
+test('Swiss Teacher Live completes and unlocks the selected lesson, with view-only replay for visitors',async({page},testInfo)=>{
+ await page.getByTestId('qa-teacher-live-completion-en').click();
+ const stage=page.getByTestId('igv2-teacher-live-stage');
+ const toolbar=page.getByRole('toolbar',{name:'Teacher control toolbar'});
+ await expect(stage).toContainText('Exit Ticket');
+ await expect(stage).toContainText('1 group responses');
+ page.once('dialog',dialog=>dialog.dismiss());
+ await toolbar.getByRole('button',{name:'End lesson',exact:true}).click();
+ await expect(toolbar.getByRole('button',{name:'End lesson',exact:true})).toBeEnabled();
+ expect(await page.evaluate(()=>window.__completionWrites||[])).toEqual([]);
+
+ await page.screenshot({path:testInfo.outputPath('teacher-live-before-completion.png')});
+ page.once('dialog',dialog=>dialog.accept());
+ await toolbar.getByRole('button',{name:'End lesson',exact:true}).click();
+ await expect(stage).toContainText('VIEW ONLY');
+ await expect(stage).toContainText('1 group responses');
+ await expect(toolbar.getByRole('button',{name:'Open current task'})).toBeDisabled();
+ await expect(toolbar.getByRole('button',{name:'Unlock lesson'})).toBeEnabled();
+ await page.screenshot({path:testInfo.outputPath('teacher-live-completed.png')});
+ await toolbar.getByRole('button',{name:/Previous activity/}).click();
+ await expect(stage).toContainText('ACTIVITY 10 / 11');
+ await expect(toolbar.getByRole('button',{name:'Advance to next activity'})).toBeEnabled();
+ await expect(toolbar.getByRole('button',{name:'Voiceover'})).toBeEnabled();
+
+ page.once('dialog',dialog=>dialog.accept());
+ await toolbar.getByRole('button',{name:'Unlock lesson'}).click();
+ await expect(stage).toContainText('Exit Ticket');
+ await expect(toolbar.getByRole('button',{name:'Open current task'})).toBeEnabled();
+ await expect(toolbar.getByRole('button',{name:'End lesson',exact:true})).toBeEnabled();
+ const writes=await page.evaluate(()=>window.__completionWrites);
+ expect(writes.map(({operation,body})=>[operation,body.assignmentId,body.action??body.contentFrozenAt]))
+  .toEqual([['control','lesson-synthetic','end'],['unlock-lesson','lesson-synthetic','2026-11-16T02:00:00.123456+00:00']]);
+
+ await page.getByTestId('qa-teacher-live-visitor-en').click();
+ await expect(stage).toContainText('VIEW ONLY');
+ await expect(toolbar.getByRole('button',{name:/End lesson|Unlock lesson/})).toHaveCount(0);
+ await toolbar.getByRole('button',{name:/Previous activity/}).click();
+ await expect(stage).toContainText('ACTIVITY 10 / 11');
+ await expect(toolbar.getByRole('button',{name:'Advance to next activity'})).toBeEnabled();
+ expect(await page.evaluate(()=>window.__completionWrites.length)).toBe(2);
 });
 
 test('Teacher Live has real stage motion control, readable voiceover, research library and persistent curated videos',async({page})=>{

@@ -60,8 +60,8 @@ test('Brian Gallery routes are replaced but legacy source is preserved',()=>{
  const student=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLabStudent.jsx','utf8');
  assert.match(app,/v3\/MuseumLabApp/);
  assert.match(route,/v3\/MuseumLabStudent/);
- assert.match(home,/MuseumDashboard/);
- assert.match(home,/MuseumEvidence/);
+ assert.match(home,/<OverviewScreen/);
+ assert.match(home,/<DossierScreen/);
  assert.match(student,/guestRequest\('submit'/);
  assert.match(student,/guestRequest\('save'/);
  assert.doesNotMatch(student,/auth\.signUp|auth\.admin\.createUser|signInAnonymously/);
@@ -122,7 +122,7 @@ test('Exit Tickets and museum submissions are counted separately',()=>{
  assert.match(api,/eq\('stage_index',10\)/);
  assert.match(api,/assignments:visibleAssignments,groups:visibleGroups,reviews,exitTickets/);
  assert.match(lessons,/Exit Tickets: /);
- assert.match(lessons,/ticket\.value/);
+ assert.match(lessons,/activeTicket\.value/);
  assert.match(liveStudent,/student-live-completed/);
  assert.match(liveStudent,/Your group Exit Ticket was recorded/);
 });
@@ -186,30 +186,27 @@ test('Admin can safely archive database exhibitions without exposing prepared co
  assert.doesNotMatch(server,/from\('gcp_reviews'\)\.delete\(/);
 });
 
-test('Student Creator displays an official competition ribbon with both supplied crests',()=>{
+test('Museum Lab banners use the active language and both official crests',()=>{
  const student=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLabStudent.jsx','utf8');
  const ribbon=fs.readFileSync('src/features/immersive-gallery/v3/MuseumCompetitionRibbon.jsx','utf8');
- const css=fs.readFileSync('src/features/immersive-gallery/v3/museumCompetitionRibbon.css','utf8');
+ const masthead=fs.readFileSync('src/features/immersive-gallery/contest/ContestMasthead.jsx','utf8');
+ const staff=fs.readFileSync('src/features/immersive-gallery/v2/shell/ImmersiveShell.jsx','utf8');
+ const staffBanner=fs.readFileSync('src/features/immersive-gallery/v2/shell/CompetitionBanner.jsx','utf8');
  assert.match(student,/import MuseumCompetitionRibbon/);
- assert.match(student,/<MuseumCompetitionRibbon\/>/);
- assert.match(ribbon,/lang="vi"/);
- for(const label of ['BÀI DỰ THI','HỘI THI THIẾT KẾ CHỦ ĐỀ DẠY HỌC STEM\/STEAM','NĂM HỌC 2026–2027','Chủ đề dạy học số – Môn Tiếng Anh THPT','Thạc sĩ Nguyễn Anh Tuấn','Trường Trung - Tiểu học Pétrus Ký']){
-  assert.ok(ribbon.includes(label),'Missing competition text: '+label);
+ assert.match(student,/<MuseumCompetitionRibbon language=\{language\}\/>/);
+ assert.match(staff,/<CompetitionBanner language=\{language\} \/>/);
+ for(const source of [ribbon,staffBanner]){
+  assert.match(source,/<ContestMasthead language=\{language\} \/>/);
  }
- const officialDepartment=fs.readFileSync('public/museum/branding/hcmc-department-education-original.jpg');
- const officialSchool=fs.readFileSync('public/museum/branding/petrus-ky-original.png');
- assert.equal(officialDepartment.length,38788,'Department logo must be the exact supplied JPG');
- assert.equal(officialSchool.length,1055354,'School logo must be the exact supplied transparent PNG');
- assert.equal(officialDepartment.subarray(0,3).toString('hex'),'ffd8ff');
- assert.equal(officialSchool.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
- assert.match(ribbon,/hcmc-department-education-original\.jpg/);
- assert.match(ribbon,/petrus-ky-original\.png/);
- assert.doesNotMatch(ribbon,/BookOpen|Globe2|bml-competition-accent/);
- assert.match(css,/overflow:visible/);
- assert.match(css,/height:auto/);
- assert.match(css,/max-height:800px/);
- assert.match(css,/max-width:560px/);
- assert.match(css,/bml-student-canvas16/);
+ assert.match(masthead,/lang=\{locale\}/);
+ assert.doesNotMatch(masthead,/contest-banner-swiss\.jpg/);
+ for(const label of ['BÀI DỰ THI','COMPETITION ENTRY','NĂM HỌC 2026–2027','2026–2027 SCHOOL YEAR','GV thực hiện: Thạc sĩ Nguyễn Anh Tuấn','Teacher: Nguyễn Anh Tuấn, MA']){
+  assert.ok(masthead.includes(label),'Missing competition text: '+label);
+ }
+ for(const filename of ['contest-dept.png','contest-school.png']){
+  assert.ok(masthead.includes('/museum/branding/'+filename));
+  assert.equal(fs.readFileSync('public/museum/branding/'+filename).subarray(0,8).toString('hex'),'89504e470d0a1a0a');
+ }
 });
 
 test('private Student Creator 2D/3D preview resolves exactly the group uploaded images by slot',()=>{
@@ -262,7 +259,7 @@ test('Paper 2D exhibition uses real image URLs and cannot fabricate stock eviden
 
 test('published school exhibitions stay visible when browser catalogue reads fail',()=>{
  const server=fs.readFileSync('serverless-handlers/gallery-staff.js','utf8');
- const gallery=fs.readFileSync('src/features/immersive-gallery/v3/MuseumExplore.jsx','utf8');
+ const gallery=fs.readFileSync('src/features/immersive-gallery/v2/screens/ExhibitionsScreen.jsx','utf8');
  const app=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLabApp.jsx','utf8');
  assert.match(server,/operation==='showcase-state'/);
  assert.match(server,/galleryEnabled,publishedGalleries/);
@@ -271,10 +268,10 @@ test('published school exhibitions stay visible when browser catalogue reads fai
  assert.match(server,/Date\.parse\(g\.starts_at\)/);
  assert.match(server,/Date\.parse\(g\.ends_at\)/);
  assert.match(gallery,/Array\.isArray\(archive\.publishedGalleries\)/);
- assert.match(gallery,/directError&&!published\.length/);
+ assert.match(gallery,/directError\s*&&\s*!published\.length/);
  assert.match(gallery,/new Map\(\)/);
- assert.match(gallery,/item\.status!=='archived'/);
- assert.match(app,/if\(id==='gallery'&&id!==tab\)setQuery\(''\)/);
+ assert.match(gallery,/item\.status\s*!==\s*'archived'/);
+ assert.match(app,/if\(nextTab==='gallery'&&nextTab!==tab\)setQuery\(''\)/);
 });
 
 test('published exhibits hydrate their original private images before 2D/3D viewing',()=>{
@@ -288,7 +285,7 @@ test('published exhibits hydrate their original private images before 2D/3D view
 
 test('published exhibition catalogue remains dashboard-backed and private posters are served only to authorized school staff',()=>{
  const staff=fs.readFileSync('serverless-handlers/gallery-staff.js','utf8');
- const gallery=fs.readFileSync('src/features/immersive-gallery/v3/MuseumExplore.jsx','utf8');
+ const gallery=fs.readFileSync('src/features/immersive-gallery/v2/screens/ExhibitionsScreen.jsx','utf8');
  const app=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLabApp.jsx','utf8');
  assert.match(staff,/async function publishedSchoolCatalog\(ctx\)/);
  assert.match(staff,/\.eq\('school_scope',ctx\.profile\.school\)\.eq\('status','published'\)/);
@@ -299,21 +296,19 @@ test('published exhibition catalogue remains dashboard-backed and private poster
  assert.match(staff,/eligible\.some\(g=>g\.id===id\)/);
  assert.match(staff,/\.eq\('status','published'\)\.order\('created_at'\)/);
  assert.match(staff,/\.createSignedUrl\(asset\.path,600\)/);
- assert.match(gallery,/data\?\.publishedGalleries/);
- assert.match(gallery,/const inventory=new Map\(\)/);
- assert.match(gallery,/transport\('showcase-exhibition',\{id:item\.id\}\)/);
- assert.match(gallery,/museum-showcase-published-count/);
- assert.match(gallery,/museum-published-panel/);
- assert.match(gallery,/publishedInView\.map\(g=>/);
- const paper=fs.readFileSync('src/features/immersive-gallery/v3/museumPaper.css','utf8');
- assert.match(paper,/\.bml-published-panel/);
- assert.match(paper,/\.bml-published-entry/);
- assert.match(app,/onRefresh=\{refresh\} transport=\{transport\}/);
+ assert.match(gallery,/payload\?\.publishedGalleries/);
+ assert.match(gallery,/const inventory = new Map\(\)/);
+ assert.match(gallery,/transport\('showcase-exhibition', \{id: item\.id\}\)/);
+ assert.match(gallery,/swiss-editorial-exhibitions-grid/);
+ assert.match(gallery,/publishedInView\.map\(\(g, i\)/);
+ assert.match(gallery,/!payload\.publicReadOnly/);
+ assert.match(app,/<ExhibitionsScreen \{\.\.\.sharedScreenProps\}/);
+ assert.match(app,/onRefresh:refresh,transport:staffTransport/);
 });
 
 test('teacher gallery uses the same 2D/3D cinema component as student preview',()=>{
  const teacher=fs.readFileSync('src/features/immersive-gallery/v3/MuseumExhibitionDetail.jsx','utf8');
- const gallery=fs.readFileSync('src/features/immersive-gallery/v3/MuseumExplore.jsx','utf8');
+ const gallery=fs.readFileSync('src/features/immersive-gallery/v2/screens/ExhibitionsScreen.jsx','utf8');
  const student=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLabStudent.jsx','utf8');
  const css=fs.readFileSync('src/features/immersive-gallery/v3/museumExhibition.css','utf8');
  assert.match(teacher,/import \{createPortal\} from 'react-dom'/);
@@ -334,8 +329,8 @@ test('student creator login reuses official dashboard competition ribbon without
  const entryCss=fs.readFileSync('src/features/immersive-gallery/v3/museumStudentEditorial.css','utf8');
  assert.match(student,/if\(!session\)return/);
  assert.match(student,/museum-login-competition-banner/);
- assert.match(student,/<MuseumCompetitionRibbon variant="dashboard"\/>/);
- assert.match(student,/<GuestEntry onRedeem=\{redeem\} busy=\{busy\} error=\{error\} language=\{language\} onResetError=\{\(\)=>setError\(''\)\}\/>/);
+ assert.match(student,/<MuseumCompetitionRibbon variant="dashboard" language=\{language\}\/>/);
+ assert.match(student,/<GuestEntry\b[^>]*\bonRedeem=\{redeem\}[^>]*\blanguage=\{language\}/);
  assert.match(student,/import '\.\/museumDashboardBanner\.css'/);
  assert.match(entryCss,/\.bml\.bml-student-shell\.bml-student-editorial\.bml-student-login-with-ribbon/);
  assert.match(entryCss,/\.bml-guest-competition-wrap/);
@@ -372,7 +367,7 @@ test('student voice guidance is deterministic for 11 open activities and five pr
  assert.match(component,/localStorage.setItem/);
  assert.match(component,/lastCue.current===cueKey/);
  assert.match(component,/Replay activity guidance/);
- assert.match(student,/<MuseumStudentVoiceGuide cue=\{narrationCue\}\/>/);
+ assert.match(student,/<MuseumStudentVoiceGuide cue=\{narrationCue\} language=\{language\}\/>/);
  assert.match(student,/setLiveReady\(true\)/);
 });
 

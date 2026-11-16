@@ -1,12 +1,11 @@
 import React, {useEffect, useState} from 'react';
 import {Archive,RotateCcw,ShieldAlert,CheckCircle2,Landmark,RefreshCw} from 'lucide-react';
-import EditorialHeading from '../shell/EditorialHeading.jsx';
 import MetricStrip from '../shell/MetricStrip.jsx';
 import ExhibitionCard from '../shell/ExhibitionCard.jsx';
-import ContentPanel from '../shell/ContentPanel.jsx';
 import MuseumExhibitionDetail from '../../v3/MuseumExhibitionDetail.jsx';
 import GalleryRenderBoundary from '../../GalleryRenderBoundary.jsx';
 import {staffRequest as defaultTransport} from '../../v3/museumApi.js';
+import './ExhibitionsScreen.css';
 
 const tr = (lang, vi, en) => lang === 'en' ? en : vi;
 
@@ -31,7 +30,7 @@ const setExhibitionHash = key => {
 // Props: {language, data, staff, onNavigate, onRefresh, transport, query}.
 export default function ExhibitionsScreen({language='en', data, staff, onNavigate, onRefresh, transport=defaultTransport, query=''}) {
   const payload = data || staff || {};
-  const isAdmin = payload?.profile?.role === 'admin' && !payload?.offlineReadOnly;
+  const isAdmin = payload?.profile?.role === 'admin' && !payload?.offlineReadOnly && !payload?.publicReadOnly;
   const [galleries, setGalleries] = useState(() => payload?.publishedGalleries || []);
   const [showcase, setShowcase] = useState({hiddenCollections: [], archivedGalleries: []});
   const [selected, setSelected] = useState(null);
@@ -44,11 +43,16 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
 
   const pull = async () => {
     const api = await import('../../galleryData.js');
-    const [clientEnabled, archive] = await Promise.all([api.getGalleryEnabled(), transport('showcase-state')]);
-    const enabled = typeof archive.galleryEnabled === 'boolean' ? archive.galleryEnabled : clientEnabled;
-    let direct = [], directError = null;
-    if (enabled) { try { direct = await api.listExhibitions(); } catch (e) { directError = e; } }
+    const archive = await transport('showcase-state');
+    // The public server catalogue already enforces school scope and publication
+    // visibility. Do not let optional browser-side reads delay that catalogue.
+    const enabled = typeof archive.galleryEnabled === 'boolean'
+      ? archive.galleryEnabled : await api.getGalleryEnabled();
     const published = enabled && Array.isArray(archive.publishedGalleries) ? archive.publishedGalleries : [];
+    let direct = [], directError = null;
+    if (enabled && !payload.publicReadOnly) {
+      try { direct = await api.listExhibitions(); } catch (e) { directError = e; }
+    }
     if (directError && !published.length) throw directError;
     const unique = new Map();
     for (const item of [...direct, ...published]) {
@@ -160,43 +164,42 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
     .map(g => ({kind: 'gallery', key: g.id, title: g.title, label: 'Student exhibition'}));
 
   const exhibitionMetrics = [
-    {value: String(publishedCount), label: tr(language,'Triển lãm đã công bố','Published exhibitions'), highlight: true},
+    {value: String(publishedCount), label: tr(language,'Triển lãm đã công bố','Published exhibitions')},
     {value: String(publishedInView.length), label: tr(language,'Đang hiển thị','Showing in view')},
     {value: String(archivedItems.length), label: tr(language,'Đã lưu trữ','Archived exhibitions')},
     {value: String((payload?.groups || []).length), label: tr(language,'Nhóm học sinh','Student groups')},
   ];
 
   return (
-    <>
-      <EditorialHeading
-        kicker={tr(language, 'TRƯỞNG BÀY BẢO TÀNG', 'MUSEUM SHOWCASE')}
-        title={tr(language, 'Triển lãm của chúng ta.', 'Our exhibitions.')}
-        description={tr(language, 'Khám phá các dự án tiếng Anh qua không gian bảo tàng 3D.', 'Explore English projects in interactive 3D museums.')}
-        aside={<span>{publishedCount} {tr(language,'triển lãm đã công bố','published exhibitions')} · <b>{archivedItems.length}</b> {tr(language,'đã lưu trữ','archived')}</span>}
-      />
+    <div className="swiss-editorial-exhibitions" aria-busy={loading || busy}>
+      <header className="swiss-editorial-exhibitions-hero">
+        <div>
+          <h1>{tr(language, 'Triển lãm của chúng ta', 'Our exhibitions')}<span>.</span></h1>
+          <p>{tr(language, 'Khám phá các dự án tiếng Anh qua không gian bảo tàng 3D.', 'Explore English projects in interactive 3D museums.')}</p>
+        </div>
+        <MetricStrip items={exhibitionMetrics} />
+      </header>
 
-      <MetricStrip items={exhibitionMetrics} />
-      <div className="content-gap" />
-
-      <div className="section-title">
-        <span>{tr(language, 'TRIỂN LÃM ĐÃ CÔNG BỐ', 'PUBLISHED EXHIBITIONS')}</span>
-        <span className="right" style={{display:'inline-flex', gap:12, alignItems:'center'}}>
-          {publishedInView.length} {tr(language,'đang trực tuyến','live')}
+      <div className="swiss-editorial-exhibitions-bar">
+        <h2>{showArchived && isAdmin
+          ? tr(language,'Triển lãm đã lưu trữ','Archived exhibitions')
+          : tr(language,'Triển lãm đã công bố','Published exhibitions')}</h2>
+        <div className="swiss-editorial-exhibitions-tools">
+          <span>{publishedInView.length} {tr(language,'đang trực tuyến','live')}</span>
           {isAdmin ? (
-            <button type="button" className="small-link" aria-pressed={showArchived} disabled={busy || loading}
+            <button type="button" className="swiss-editorial-exhibition-archive" aria-pressed={showArchived} disabled={busy || loading}
               onClick={() => { setShowArchived(v => !v); setNotice(''); }}>
-              <Archive size={13} aria-hidden="true" style={{verticalAlign:'middle'}}/>{' '}
-              {showArchived ? tr(language,'Về triển lãm','Back to exhibitions') : tr(language,'Đã lưu trữ','Archived') + ' (' + archivedItems.length + ')'}
+              {showArchived ? tr(language,'Về triển lãm','Back to exhibitions') : tr(language,'Lưu trữ','Archive')}
             </button>
           ) : null}
-        </span>
+        </div>
       </div>
 
       {error ? <div className="info-strip info mt20" role="alert" style={{background:'#fde8e8', borderLeftColor:'#b31c2d', color:'#7a1620'}}><ShieldAlert size={15} aria-hidden="true"/> {error}</div> : null}
       {notice ? <div className="info-strip mt20" role="status"><CheckCircle2 size={15} aria-hidden="true"/> {notice}</div> : null}
 
       {loading ? (
-        <ContentPanel ariaLabel="Loading"><span className="muted"><RefreshCw size={15} aria-hidden="true"/> {tr(language,'Đang tải triển lãm…','Loading exhibitions…')}</span></ContentPanel>
+        <p className="swiss-editorial-exhibitions-loading" role="status"><RefreshCw size={15} aria-hidden="true"/> {tr(language,'Đang tải triển lãm…','Loading exhibitions…')}</p>
       ) : showArchived && isAdmin ? (
         <div className="exhibition-grid">
           {archivedItems.map(item => (
@@ -215,7 +218,7 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
           {!archivedItems.length ? <p className="muted">{tr(language,'Không có triển lãm nào đã lưu trữ.','No archived exhibitions.')}</p> : null}
         </div>
       ) : publishedInView.length ? (
-        <div className="exhibition-grid">
+        <div className="swiss-editorial-exhibitions-grid">
           {publishedInView.map((g, i) => (
             <ExhibitionCard key={g.id}
               serial={'EXH. ' + String(i + 1).padStart(2, '0')}
@@ -223,6 +226,7 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
               cover={covers[g.id] || ''}
               statusLabel={tr(language,'Đã công bố','Published')}
               language={language}
+              disabled={busy}
               onOpen={() => enter(g)} />
           ))}
         </div>
@@ -234,6 +238,6 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
           </button>
         </div>
       )}
-    </>
+    </div>
   );
 }

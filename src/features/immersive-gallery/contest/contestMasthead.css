@@ -1,72 +1,136 @@
-.cmast.cmast-plate{
-  position:relative;
-  display:block;
-  width:100%;
-  min-height:0;
-  aspect-ratio:auto;
-  margin:0;
-  padding:0;
-  overflow:hidden;
-  background:transparent;
-  border:0;
-  box-shadow:none;
+.cmast.cmast-plate {
+  container-type: inline-size;
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  margin: 0;
+  padding: 1.15% .9% 1.6%;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: #f8f5eb;
+  color: #101010;
+  font-family: Inter, "Be Vietnam Pro", Arial, sans-serif;
 }
-.igv2 .cmast-plate-img,
-.bml .cmast-plate-img,
-.cmast-plate-img{
-  display:block!important;
-  position:static!important;
-  width:100%!important;
-  height:auto!important;
-  max-width:none!important;
-  max-height:none!important;
-  margin:0!important;
-  padding:0!important;
-  object-fit:fill!important;
-  object-position:center!important;
-  background:transparent!important;
-  border:0!important;
-  border-radius:0!important;
-  transform:none!important;
+
+.cmast-layout {
+  position: relative;
+  display: grid;
+  grid-template-columns: 13.7% minmax(0, 1fr) 13.5%;
+  align-items: center;
+  min-height: 30cqi;
+  border: max(1px, .11cqi) solid #171b20;
+  background: radial-gradient(ellipse at 45% 42%, #f9f6ee 22%, #f5f0e3 100%);
 }
-.cmast-plate-copy{
-  position:absolute;
-  z-index:2;
-  left:21%;
-  right:17%;
-  top:7%;
-  bottom:8%;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:space-between;
-  margin:0;
-  padding:0;
-  text-align:center;
-  color:transparent;
-  user-select:text;
-  -webkit-user-select:text;
-  cursor:text;
+
+.cmast-layout::before,
+.cmast-layout::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  width: 15.8%;
+  aspect-ratio: 790 / 460;
+  background: url("/museum/branding/swiss-bamboo-tl.png") top left / 100% auto no-repeat;
+  clip-path: polygon(2.5% 3.5%, 91% 3.5%, 86% 21%, 66% 44%, 55% 62%, 37% 78%, 18% 78%, 15% 96%, 2.5% 96%);
+  pointer-events: none;
 }
-.cmast-plate-copy p{
-  margin:0;
-  max-width:100%;
-  color:transparent;
-  font-family:"Be Vietnam Pro",Inter,"Helvetica Neue",Arial,sans-serif;
-  font-weight:800;
-  line-height:1.15;
-  user-select:text;
-  -webkit-user-select:text;
+
+.cmast-layout::before { inset: 0 auto auto 0; }
+.cmast-layout::after {
+  inset: auto 0 0 auto;
+  width: 17.7%;
+  aspect-ratio: 742 / 312;
+  background-image: url("/museum/branding/swiss-bamboo-br.png");
+  clip-path: polygon(1% 94%, 1% 62%, 33% 35%, 36% 7%, 98% 1%, 98% 94%);
 }
-.cmast-plate-copy p:nth-child(1){font-size:clamp(12px,1.3vw,18px)}
-.cmast-plate-copy p:nth-child(2){font-size:clamp(10px,1.05vw,15px)}
-.cmast-plate-copy p:nth-child(3){font-size:clamp(11px,1.15vw,16px)}
-.cmast-plate-copy p:nth-child(4){font-size:clamp(12px,1.2vw,17px)}
-.cmast-plate-copy p:nth-child(5){font-size:clamp(20px,2.6vw,42px);letter-spacing:-.02em}
-.cmast-plate-copy p:nth-child(6){font-size:clamp(10px,1vw,14px);font-weight:650}
-.cmast-plate-copy p:nth-child(7){font-size:clamp(12px,1.15vw,16px)}
-.cmast-plate-copy ::selection,
-.cmast-plate-copy p::selection{
-  background:#ffe14a;
-  color:#14284a;
+
+.cmast-plate-copy {
+  position: relative;
+  z-index: 1;
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  margin-block: 2.9cqi;
+  padding-inline: 1.85cqi 1.2cqi;
+  font-weight: 750;
+  line-height: 1.22;
+  text-align: left;
+}
+
+.cmast-plate-copy::before {
+  content: "";
+  position: absolute;
+  inset: 11% 0 10%;
+  border-inline: max(1px, .11cqi) solid #171b20;
+  pointer-events: none;
+}
+
+.cmast :where(.cmast-plate-copy p) { margin: 0; color: inherit; }
+.cmast .cmast-entry,
+.cmast .cmast-author {
+  display: table;
+  max-width: 100%;
+  padding: .27em .55em;
+  background: #ce101c;
+  color: #fff;
+  font-weight: 800;
+  box-sizing: border-box;
+}
+.cmast .cmast-entry { font-size: clamp(12px, 2.55cqi, 58px); line-height: 1; }
+.cmast .cmast-competition {
+  margin-top: .72cqi;
+  font-size: clamp(11px, 1.83cqi, 44px);
+  font-weight: 900;
+}
+.cmast .cmast-edition {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .28em .85em;
+  margin-top: .12em;
+  font-size: clamp(10px, 1.77cqi, 42px);
+  font-weight: 820;
+}
+.cmast-edition span + span { padding-inline-start: .85em; border-inline-start: 1px solid currentColor; }
+.cmast .cmast-title {
+  margin: 1.1cqi 0 .9cqi;
+  padding-bottom: .95cqi;
+  border-bottom: max(2px, .28cqi) solid #ce101c;
+  font-size: clamp(20px, 4.52cqi, 100px);
+  line-height: 1.03;
+  font-weight: 950;
+  letter-spacing: -.045em;
+  text-transform: uppercase;
+}
+.cmast .cmast-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .15em .5em;
+  font-size: clamp(10px, 1.28cqi, 32px);
+}
+.cmast-meta span + span::before { content: "·"; margin-inline-end: .5em; }
+.cmast .cmast-author { margin-top: 1.2cqi; font-size: clamp(11px, 1.75cqi, 42px); }
+.cmast .cmast-logo {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 82%;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  justify-self: center;
+  object-fit: contain;
+}
+.cmast-logo--department { grid-column: 1; grid-row: 1; }
+.cmast-logo--school { grid-column: 3; grid-row: 1; }
+
+@container (max-width: 640px) {
+  .cmast-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; }
+  .cmast .cmast-logo { width: 38px; grid-row: 1; margin-top: 10px; }
+  .cmast-logo--school { grid-column: 2; }
+  .cmast-plate-copy { grid-column: 1 / -1; grid-row: 2; margin: 0; padding: 0 12px 12px; }
+  .cmast-plate-copy::before { display: none; }
+  .cmast .cmast-competition { margin-top: 6px; font-size: clamp(11px, 3.15cqi, 17px); }
+  .cmast .cmast-edition, .cmast .cmast-meta { font-size: clamp(10px, 2.9cqi, 15px); }
+  .cmast .cmast-title { margin: 7px 0 6px; padding-bottom: 5px; }
+  .cmast .cmast-author { margin-top: 7px; }
 }

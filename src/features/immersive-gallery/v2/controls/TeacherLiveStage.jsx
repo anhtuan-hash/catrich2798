@@ -25,7 +25,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
   respondedCount=null,
   isFullscreen=false,onExitFullscreen,
   fullscreenControls=null,fullscreenPanel=null,
-  assignments=[],assignmentId='',onAssignment
+  assignments=[],assignmentId='',assignmentBusy=false,onAssignment
 },ref){
   const period=stage?.period??1;
   const phaseName=period===1
@@ -47,7 +47,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
         <h1>{t(language,'Giảng dạy','Teacher Live')}</h1>
         <label className="adv-live-picker">
           <span className="adv-sr-only">{t(language,'Chọn bài học','Select lesson')}</span>
-          <select value={assignmentId} onChange={onAssignment}>
+          <select value={assignmentId} disabled={assignmentBusy} onChange={onAssignment}>
             {!assignments.length?<option value="">{t(language,'Chưa có bài học','No lesson')}</option>:null}
             {assignments.map(item=><option value={item.id} key={item.id}>{item.title}{item.class_scope?` · ${item.class_scope}`:''}</option>)}
           </select>
@@ -78,7 +78,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
                 <h2 className="adv-stage-title">{stage?.title||t(language,'Đang tải hoạt động…','Loading activity…')}</h2>
                 {language!=='en'&&stage?.vi?<p className="adv-stage-vi">{stage.vi}</p>:null}
                 {hasLessonSlide?<TeacherLiveSlideContent key={stage.id} stage={stage} language={language}
-                  view={view} questions={questions} revealed={revealed} survey={survey} curriculumNode={curriculumNode}
+                  view={view} questions={questions} revealed={revealed} survey={survey} readOnly={readOnly} curriculumNode={curriculumNode}
                   questionIndex={questionIndex} onPresent={onPresent} busy={presentationBusy}/>
                  :<p className="adv-stage-question">{stage?.question}</p>}
               </div>
