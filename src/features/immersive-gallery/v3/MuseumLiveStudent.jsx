@@ -30,7 +30,7 @@ const projectActions={
   9:['Mở công cụ luyện thuyết trình','Open the speaking studio'],
   10:['Kiểm tra và nộp bảo tàng','Review and submit the museum'],
 };
-export default function MuseumLiveStudent({csrf,language='vi',onState,compact=false,toolRequest=null,readOnly=false,onOpenProject,peerActivity,reviewIndex,onReturnLive,onReviewProject}){
+export default function MuseumLiveStudent({csrf,language='vi',onState,compact=false,toolRequest=null,readOnly=false,onOpenProject,peerActivity,reviewIndex,onReturnLive,onReviewProject,onActivityStart}){
  const [data,setData]=useState(null),[selected,setSelected]=useState(null);
  const [quiz,setQuiz]=useState({}),[written,setWritten]=useState('');
  const [sent,setSent]=useState({}),[error,setError]=useState(''),[busy,setBusy]=useState(false),[notice,setNotice]=useState('');
@@ -119,9 +119,9 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
   {!readOnly&&session?.status!=='ended'&&onReturnLive?<button type="button" className="bml-outline bml-student-return-live" onClick={onReturnLive}>
    {t(language,'Về hoạt động giáo viên đang mở','Return to current live activity')}
   </button>:null}
-  <MuseumStudentLessonReview language={language} activityIndex={reviewIndex}
+  <MuseumStudentLessonReview language={language} activityIndex={reviewIndex} compact={compact}
     questionVersion={session?.questionVersion} survey={survey} surveyLoading={!data&&!syncError} surveyPending={!readOnly&&session?.status!=='ended'}
-    loadSaved={Boolean(session?.id)} frozen={readOnly} onOpenProject={onReviewProject||onOpenProject}/>
+    loadSaved={Boolean(session?.id)} frozen={readOnly} onOpenProject={onReviewProject||onOpenProject} onActivityStart={onActivityStart}/>
   {['materials','research','voice'].includes(activeTool)?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label={t(language,'Tài liệu bài học','Lesson materials')}>
    <div className="bml-student-detail-window">
     <div className="bml-student-detail-head"><strong>{t(language,'Tài liệu bài học','Lesson materials')}</strong>
@@ -145,7 +145,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
    <span>{stageIsOpen?t(language,'Giáo viên đã mở hoạt động','Activity is open'):t(language,'Chờ giáo viên mở hoạt động','Waiting for teacher')}</span></header>
   {syncError?<p role="alert" className="bml-live-media-error">{syncError} <button type="button" onClick={refresh}>{t(language,'Thử đồng bộ lại','Retry sync')}</button></p>:null}
   <div className="bml-live-student-question">
-   <span className="bml-question-eyebrow">READ · THINK · RESPOND</span>
+   <span className="bml-question-eyebrow">{t(language,'Tiết','Period')} {stage?.period}/2 · {LIVE_STAGES[stageIndex]?.minutes} {t(language,'phút','min')}</span>
    <h2>{stage?.title}</h2>
   </div>
   <MuseumStudentLessonVideos clip={curriculumClip} assigned={session.media?.videos} language={language}/>
@@ -158,7 +158,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
      {openQuestions?t(language,'Ẩn câu hỏi','Hide questions'):t(language,'Mở câu hỏi trắc nghiệm','Open multiple-choice questions')}
     </button>:null}
     {showVote?<><p className="bml-student-p2-question" lang="en">{stage.question}</p><div className="bml-live-response-options">{stage.options.map((o,i)=><button type="button" key={i} disabled={!stageIsOpen||!canSendVote||posted||busy}
-     aria-pressed={savedVote===i} aria-label={String.fromCharCode(65+i)+'. '+o} className={savedVote===i?'is-chosen':''} onClick={()=>{setSelected(i);setNotice('');}}>
+     aria-pressed={savedVote===i} aria-label={String.fromCharCode(65+i)+'. '+o} className={savedVote===i?'is-chosen':''} onClick={()=>{onActivityStart?.();setSelected(i);setNotice('');}}>
       <span className="bml-option-letter" aria-hidden="true">{String.fromCharCode(65+i)}.</span>
       <span className="bml-option-copy" aria-hidden="true">{o}</span>
      </button>)}</div></>:null}
@@ -167,7 +167,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
       {quizPage!==questionIndex?<button className="bml-outline" type="button" onClick={()=>setQuizPage(questionIndex)}>{t(language,'Về câu đang chiếu','Go to projected question')}</button>:null}</p>:null}
      {responseQuestions.map((q,i)=><div key={i} hidden={quizPage!==i}>
      <strong>Q{i+1}. {q.q}</strong><div className="bml-live-response-options">{q.choices.map((v,j)=><button type="button" key={j} disabled={!stageIsOpen||posted||busy}
-      aria-pressed={savedQuiz[i]===j} aria-label={String.fromCharCode(65+j)+'. '+v} className={savedQuiz[i]===j?'is-chosen':''} onClick={()=>setQuiz(prev=>({...prev,[i]:j}))}>
+      aria-pressed={savedQuiz[i]===j} aria-label={String.fromCharCode(65+j)+'. '+v} className={savedQuiz[i]===j?'is-chosen':''} onClick={()=>{onActivityStart?.();setQuiz(prev=>({...prev,[i]:j}));}}>
        <span className="bml-option-letter" aria-hidden="true">{String.fromCharCode(65+j)}.</span>
        <span className="bml-option-copy" aria-hidden="true">{v}</span>
       </button>)}</div>{session.revealed&&Number.isInteger(q.answer)?<p className="bml-quiz-revealed">Answer: {String.fromCharCode(65+q.answer)} · {q.explanation}</p>:null}
