@@ -23,7 +23,7 @@ export default function MuseumPaperHeader({language='vi',tab='home',onNavigate,p
  return <header className="bml-paper-header">
   {/* Keep the official competition masthead present across every Museum Lab tab.
       The former welcome hero and redundant compact brand are intentionally removed. */}
-  <MuseumCompetitionRibbon variant="dashboard"/>
+  <MuseumCompetitionRibbon variant="dashboard" language={language}/>
   <nav className="bml-paper-nav" aria-label={tr('Điều hướng Museum Lab','Museum Lab navigation')}>
    {PRIMARY.map(([id,Icon,vi,en])=><button type="button" key={id} onClick={()=>onNavigate(id)}
     className={active===id?'is-active':''} aria-current={active===id?'page':undefined}>

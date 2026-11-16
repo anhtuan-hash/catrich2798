@@ -357,7 +357,7 @@ export default function ImmersiveShell({
       </header>
 
       <div className="igv2-banner-wrap">
-        <CompetitionBanner />
+        <CompetitionBanner language={language} />
       </div>
 
       <main className="igv2-main-full" id="igv2-main" aria-label={NAV_LABEL[activeNav] || 'Overview'}>
