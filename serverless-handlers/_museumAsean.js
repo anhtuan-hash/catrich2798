@@ -1,6 +1,6 @@
 import {checkpointGallery} from './_museumEvidence.js';
 import {fail,guardBody,guardOrigin,query,requireMethod,send} from './_galleryCreator.js';
-import {ASEAN_FRAMES,aseanExhibitMissing,aseanPeerGroup,validAseanResponse} from '../src/features/immersive-gallery/v3/aseanLesson.js';
+import {ASEAN_FRAMES,aseanExhibitMissing,aseanPeerGroup,aseanWritingRepeats,validAseanResponse} from '../src/features/immersive-gallery/v3/aseanLesson.js';
 
 export async function aseanGroupRecords(admin, sessionId, groupId) {
  return query(admin.from('museum_live_responses').select('stage_index,value')
@@ -10,6 +10,11 @@ export async function aseanGroupRecords(admin, sessionId, groupId) {
 export function aseanStaffRetests(admin,sessionId){
  return query(admin.from('museum_learning_events').select('group_id,details,created_at')
   .eq('session_id',sessionId).eq('stage_index',4).eq('action','asean_staff_exhibit_check'));
+}
+
+export function aseanArchivedTransferResponses(admin,sessionId){
+ return admin.from('museum_learning_events').select('group_id,details,created_at')
+  .eq('session_id',sessionId).eq('stage_index',5).eq('actor_role','teacher').eq('action','asean_transfer_response_archived');
 }
 
 export function aseanStaffRetest(reviews,groupId,checkpoint){
@@ -64,7 +69,9 @@ export async function handleAseanActivity({op,req,res,admin,ctx,session}){
    return v1!==v2||photoChanged?[{frame:label,v1,v2,photoChanged}]:[];
   }):[];
   const staffRetest=authorRetest?aseanStaffRetest(staffChecks,authorRetest.id,afterCheckpoint):null;
-  return send(res,200,{rows,feedback:feedback?.value||null,retest:retest?.value||null,staffRetest,checkpoints,retestTask,revisionDetails});
+  const transferNeedsResubmission=Boolean(session&&!rows.some(row=>row.stage_index===5)&&
+   (await query(aseanArchivedTransferResponses(admin,session.id).eq('group_id',id).limit(1))).length);
+  return send(res,200,{rows,feedback:feedback?.value||null,retest:retest?.value||null,staffRetest,checkpoints,retestTask,revisionDetails,transferNeedsResubmission});
  }
  if(op==='asean-reference-v1'){
   requireMethod(req,'GET');
@@ -112,6 +119,12 @@ export async function handleAseanActivity({op,req,res,admin,ctx,session}){
   if(!checkpoint||checkpoint.id!==body.checkpointId||aseanExhibitMissing(checkpoint.doc).length||
      (stage===4&&checkpoint.doc.retestQuestion!==body.value.question))
    throw fail(409,'Open the assigned version and answer its question.');
+ }
+ if(stage===5){
+  const baseline=await query(admin.from('museum_live_responses').select('value')
+   .eq('session_id',session.id).eq('group_id',id).eq('stage_index',0).maybeSingle());
+  if(aseanWritingRepeats(baseline?.value,body.value))
+   throw fail(400,'This repeats your baseline writing. Write two new sentences using the destination and prompts on your transfer card.');
  }
  const result=await admin.from('museum_live_responses').insert({
   session_id:session.id,stage_index:stage,group_id:id,value:body.value,

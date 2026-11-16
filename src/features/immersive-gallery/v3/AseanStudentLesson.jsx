@@ -60,8 +60,11 @@ function ResponseFields({stage,fields,update,groupLabel,question,recorded}){
  </select>;
  if(stage===0||stage===5){
   const card=aseanWritingCard(groupLabel,stage===5);
-  return <fieldset className="asean-response-sheet" disabled={recorded}><legend>{card.title}</legend>
+  return <fieldset className="asean-response-sheet" disabled={recorded}>
+   <legend>{stage===5?'Transfer writing card':'Baseline writing card'}</legend>
+   <h4 className="asean-writing-destination">{card.title}</h4>
    <p className="asean-response-context">{card.country}</p>
+   <p>Use this card for the two sentences. Your group’s 3D exhibit keeps its assigned destination.</p>
    <div className="asean-response-grid">
     <div><p><strong>Visitors can …</strong><br/>{card.experience}</p>{text('experience','One thing a visitor can do')}</div>
     <div><p><strong>Visitors should …</strong><br/>{card.advice}</p>{text('advice','One piece of advice')}</div>
@@ -112,7 +115,7 @@ function ResponseFields({stage,fields,update,groupLabel,question,recorded}){
  </fieldset>;
 }
 
-function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLive,onVisit,retestTask}){
+function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLive,onVisit,retestTask,transferNeedsResubmission}){
  const [fields,setFields]=useState(()=>record||initialFields(stage));
  const [visit,setVisit]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const submitted=Boolean(record);
@@ -154,8 +157,11 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
    await Promise.all([refreshRecords(),refreshLive()]);
   }catch(e){setError(errorText(e));}finally{setBusy(false);}
  };
- if(!open&&!submitted)return <p className="asean-response-closed" role="status">{session.readOnly?'No group response was recorded for this activity.':'Your teacher has not opened this activity for responses.'}</p>;
+ if(!open&&!submitted)return <p className="asean-response-closed" role="status">{transferNeedsResubmission
+  ?session.readOnly?'A corrected transfer response is still pending.':'Your previous response repeated your baseline writing. When Activity 6 opens, write two new sentences using your transfer card.'
+  :session.readOnly?'No group response was recorded for this activity.':'Your teacher has not opened this activity for responses.'}</p>;
  return <section className="bml-surface asean-group-response">
+  {transferNeedsResubmission&&!submitted&&<p role="status">Your previous response repeated your baseline writing. Write two new sentences using the transfer card below.</p>}
   {visitStage&&<h3>{stage===3?'Your assigned V1 exhibit':'Test the assigned V2 exhibit'}</h3>}
   {stage===4&&retestTask&&<>
    <p><strong>{englishSystemGroupLabel(retestTask.target)} · {aseanDestination(retestTask.target)?.name}</strong></p>
@@ -327,7 +333,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        <p className="bml-question-eyebrow">Period {current.period} · Activity {stage+1} / {ASEAN_STAGES.length} · {current.minutes} min</p>
        <h2 id="asean-student-activity-title">{design.studentTitle}</h2>
        <p>{stage===5
-        ?reportTask+' Submit the final room and write two sentences for the destination on your transfer card.'
+        ?reportTask+' Submit the final room for your assigned destination. For the separate writing task, use your new transfer card to write two sentences.'
         :stage===4?revisionTask:design.studentTask}</p>
       </div>
       <AseanActivityArt activity={design.id} revisionCaptured={Boolean(captured)} revisionHasFeedback={Boolean(records.feedback)}/>
@@ -364,6 +370,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
      <div className="bml-student-task-scroll asean-student-project" data-testid="student-task-scroll" role="region"
       aria-label={T(language,'Nội dung bài làm có thể cuộn','Scrollable project step content')} lang="en" ref={projectRef} tabIndex={0}>
       {readOnly&&<p className="bml-workshop-readonly" role="status"><LockKeyhole size={16}/>Lesson complete · View only</p>}
+      {(stage===0||stage===5)&&<p className="asean-exhibit-destination-label">Exhibit destination</p>}
       <h3 className="bml-workshop-draft-title">{destination?.name||session.assignment.title}</h3>
       {destination&&<p className="asean-student-country">{destination.country}</p>}
       {stage===4&&<GroupResponse key={stage} session={{...session,readOnly}} stage={stage} live={live} open={liveOpen}
@@ -416,7 +423,8 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        {stage===5&&liveOpen&&!captured&&!submitted&&<p>Save the revised V2 in Activity 5 before submitting.</p>}
       </section>}
       {stage!==2&&stage!==4&&<GroupResponse key={stage} session={{...session,readOnly}} stage={stage} live={live} open={liveOpen}
-       record={stageRecord} refreshLive={refreshLive} refreshRecords={refreshRecords} onVisit={(gallery,reference)=>setPreview({gallery,reference})}/>}
+       record={stageRecord} refreshLive={refreshLive} refreshRecords={refreshRecords} onVisit={(gallery,reference)=>setPreview({gallery,reference})}
+       transferNeedsResubmission={stage===5&&records.transferNeedsResubmission}/>}
       {stage===3&&records.feedback&&<p role="status"><strong>Feedback on your exhibit</strong> · {records.feedback.comment}</p>}
       {error&&<p className="bml-banner bml-danger-banner" role="alert">{error}</p>}
       {notice&&<p role="status">{notice}</p>}
