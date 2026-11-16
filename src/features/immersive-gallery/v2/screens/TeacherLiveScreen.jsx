@@ -2,7 +2,7 @@ import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowLeft,Box,Play,MonitorPlay,BookOpen,Printer,X} from 'lucide-react';
 import {presentationFor} from '../../v3/livePresentation.js';
 import {LIVE_STAGES,liveStage,LEGACY_LANGUAGE_MINI_LESSON} from '../../v3/liveLesson.js';
-import {ASEAN_STAGES,isAsean,ASEAN_DESTINATIONS} from '../../v3/aseanLesson.js';
+import {ASEAN_STAGES,isAsean,ASEAN_DESTINATIONS,ASEAN_FRAMES,aseanDestination} from '../../v3/aseanLesson.js';
 import {liveStaff} from '../../v3/museumLiveApi.js';
 import {englishSystemGroupLabel} from '../../v3/museumApi.js';
 import {MUSEUM_CURRICULUM_VIDEOS} from '../../v3/museumLiveExtensions.js';
@@ -394,6 +394,8 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
           {!slideOnly&&(!asean||!data?.publicReadOnly)?<CommandCenter groups={groups} responses={state?.responses||[]} feedback={state?.feedback||[]}
             microResults={state?.microResults||[]} helpGroups={state?.helpGroups||[]}
             session={session} busy={busy} onRefresh={refresh} onSpotlight={spotlightGroup} onCompare={compareGroup} language={language} asean={asean}/>:null}
+          {!slideOnly&&asean&&currentIndex===4&&displayedStageLoaded&&state?.retestProgress?.length>0&&
+            <AseanRetestProgress rows={state.retestProgress} language={language}/>}
           {asean&&displayedStageLoaded&&!data?.publicReadOnly&&state?.responses?.length>0?<section className="bml-surface">
             <h3>Group records for this activity</h3>
             {state.responses.map(record=><details key={record.group_id}><summary>{groups.find(group=>group.id===record.group_id)?.label}</summary>
@@ -443,6 +445,33 @@ function AseanSources(){
   <a href={destination.source} target="_blank" rel="noreferrer">{destination.name}</a>
  </li>)}</ul></div>;
 }
+function AseanRetestProgress({rows,language}){
+ const submitted=rows.filter(row=>row.score!==null).length;
+ const incomplete=rows.filter(row=>!row.baselineReady).length;
+ return <section className="bml-surface" aria-labelledby="asean-retest-progress">
+  <h3 id="asean-retest-progress">{t(language,'Tiến độ thử lại V2','V2 visitor progress')} · {submitted}/{rows.length}</h3>
+  {incomplete>0&&<p>{t(language,`${incomplete} phòng có mốc V1 chưa hoàn chỉnh. Dùng phiếu hiện tại để ghi nhận quan sát V2.`,
+   `${incomplete} rooms have incomplete V1 checkpoints. Use this round to record V2 observations.`)}</p>}
+  <div className="asean-retest-progress-table" tabIndex={0} role="region" aria-label={t(language,'Phân công thử lại V2','V2 visitor assignments')}>
+   <table>
+    <thead><tr>{[["Nhóm làm phiếu","Visitor group"],["Phòng được giao","Assigned exhibit"],["Câu hỏi","Question"],["Kết quả","Result"]]
+     .map(([vi,en])=><th key={en} scope="col">{t(language,vi,en)}</th>)}</tr></thead>
+    <tbody>{rows.map(row=>{
+     const frame=ASEAN_FRAMES[row.question-1];
+     return <tr key={row.group}>
+      <th scope="row">{t(language,row.group,englishSystemGroupLabel(row.group))}</th>
+      <td>{row.target?`${t(language,row.target,englishSystemGroupLabel(row.target))} · ${aseanDestination(row.target)?.name||''}`:'—'}</td>
+      <td>{frame?.question||'—'}
+       {row.reference&&<details><summary>{t(language,'Chú thích để đối chiếu','Caption for reference')}</summary><p lang="en">{row.reference}</p></details>}
+      </td>
+      <td>{row.score!==null?`${row.score}/1`:row.ready?t(language,'Chờ nộp phiếu','Awaiting response'):t(language,'V2 chưa sẵn sàng','V2 unavailable')}</td>
+     </tr>;
+    })}</tbody>
+   </table>
+  </div>
+ </section>;
+}
+
 function AseanGroupResponse({value}){
  if(!value||typeof value!=='object')return null;
  if(value.answers)return <div>

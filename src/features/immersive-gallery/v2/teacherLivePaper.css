@@ -378,3 +378,14 @@
   }
   .igv2 .adv-stage.adv-stage--paper .adv-stage-bottom { font-size: 14px; }
 }
+
+.asean-retest-progress-table { overflow-x: auto; }
+.asean-retest-progress-table table { width: 100%; border-collapse: collapse; text-align: start; }
+.asean-retest-progress-table :is(th, td) {
+  padding: 8px 10px;
+  border-block-end: 1px solid var(--adv-divider, #ded8ca);
+  vertical-align: top;
+  text-align: start;
+}
+.asean-retest-progress-table details { margin-block-start: 4px; }
+.asean-retest-progress-table details p { max-width: 48ch; }

@@ -86,3 +86,11 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+.bml .asean-own-revision {
+  margin-block: 12px;
+  padding: 10px 14px;
+  border-inline-start: 3px solid #285445;
+  background: #ecf0e8;
+}
+.asean-own-revision h4, .asean-own-revision p { margin: 0 0 6px; }
