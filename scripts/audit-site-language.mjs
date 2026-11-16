@@ -60,6 +60,9 @@ const PRESERVE = Object.freeze({
   'src/features/immersive-gallery/v3/MuseumLabStudent.jsx': [
     'Pétrus Ký School System',
   ],
+  'src/features/immersive-gallery/v3/MuseumStudentWorkshop.jsx': [
+    'Pétrus Ký School System',
+  ],
   'src/features/immersive-gallery/v2/shell/SideNavigation.jsx': [
     'PÉTRUS KÝ',
   ],

@@ -24,8 +24,9 @@ const screens = [
     ['v3/museumLessonWizardEditorial.css', '.wizard-step-feature'],
   ]],
   ['Student Workshop', [
-    ['v3/MuseumLabStudent.jsx', 'bml-student-dual-workspace', 'aria-expanded={bannerExpanded}',
-      'setBannerExpanded(false)', "import './museumStudentWorkspace.css'"],
+    ['v3/MuseumLabStudent.jsx', '<MuseumStudentWorkshop', 'setBannerExpanded(false)', "import './museumStudentWorkspace.css'"],
+    ['v3/AseanStudentLesson.jsx', '<MuseumStudentWorkshop', 'setBannerExpanded(false)'],
+    ['v3/MuseumStudentWorkshop.jsx', 'bml-student-dual-workspace', 'aria-expanded={bannerExpanded}'],
     ['v3/museumStudentWorkspace.css', '.bml-workshop-ribbon', '[data-banner-expanded="false"]'],
   ]],
 ];

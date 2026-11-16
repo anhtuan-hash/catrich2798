@@ -1,18 +1,32 @@
-.bml .asean-student-studio { border-top: 4px solid #285445; scroll-margin-top: 85px; }
-.bml .asean-student-studio .asean-studio-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 8px 18px;
+.bml.bml-student-dual-workspace .asean-student-activity {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
 }
-.bml .asean-student-studio .asean-studio-head h2 { margin-top: 0; }
-.bml .asean-student-studio .asean-studio-preview { margin: 12px 0; }
-.bml .asean-student-studio:focus-visible, .bml .asean-student-studio .asean-studio-preview:focus-visible { outline: 2px solid #285445; }
+.asean-student-activity > .asean-activity-art { width: 100%; }
+.asean-student-activity .bml-live-student-question { background: transparent; }
+.asean-student-sources { display: flex; flex-wrap: wrap; gap: 5px 14px; }
+.asean-student-sources a { text-underline-offset: 3px; }
+
+.asean-student-project { container-type: inline-size; }
+.asean-student-country { margin: 4px 0 14px; }
+.bml .asean-student-studio { scroll-margin-block: 10px; }
+.asean-studio-title {
+  margin: 0 0 9px;
+  padding-top: 8px;
+  border-top: 2px solid var(--workshop-ink);
+  color: var(--workshop-ink);
+  font-size: clamp(17px, 1.6vw, 26px);
+}
 .bml .asean-student-studio .bml-artwork-studio {
-  background: #f3f1e8;
+  padding: clamp(9px, 2cqi, 14px);
+  border: 1px solid var(--workshop-rule);
   border-radius: 0;
+  background: transparent;
   box-shadow: none;
+}
+.bml .asean-student-studio .bml-student-artwork-grid {
+  grid-template-columns: minmax(0, 1fr);
 }
 .bml .asean-student-studio .bml-artwork-slot {
   border-radius: 0;
@@ -32,69 +46,43 @@
   outline: 2px solid #285445;
   outline-offset: 2px;
 }
-.bml .asean-student-studio .asean-studio-save { margin: 12px 0; }
+.bml .asean-student-studio .asean-studio-save { margin-block: 12px; }
+.asean-student-studio .bml-field-grid { grid-template-columns: minmax(0, 1fr); }
+.asean-student-studio .bml-field-grid > button { justify-self: start; }
+.bml.bml-student-dual-workspace .asean-student-project :is(input:not([type=file]), textarea, select) {
+  min-width: 0;
+  max-width: 100%;
+}
 
-.asean-student-lesson {
-  --asean-student-ink: #182523;
-  --asean-student-accent: #254d5a;
-  --asean-student-line: #b7b7a8;
-  color: var(--asean-student-ink);
+.bml .asean-student-project .asean-group-response {
+  margin-top: 12px;
+  padding: 10px;
+  border: 1px solid var(--workshop-rule);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
-.asean-student-mast {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-  gap: 8px 20px; border-bottom: 2px solid var(--asean-student-ink); padding: 12px 0;
-}
-.asean-student-mast h1 {
-  margin: 0;
-  font-size: clamp(24px, 3vw, 46px);
-  letter-spacing: -.045em;
-  line-height: 1.05;
-}
-.asean-student-mast p { margin: 5px 0 0; }
-.bml .asean-student-nav { display: flex; gap: 6px; flex-wrap: wrap; padding: 0; margin: 10px 0; }
-.asean-student-nav button[aria-pressed="true"] { background: #e4eeea; color: #23483a; border-color: #23483a; }
-.asean-student-activity {
-  display: grid;
-  grid-template-columns: minmax(0, 1.12fr) minmax(0, .88fr);
-  gap: clamp(10px, 2vw, 24px);
-  border: 1px solid var(--asean-student-line);
-  border-top: 4px solid var(--asean-student-accent);
-  background: #fffdf6;
-  padding: clamp(10px, 1.7vw, 22px);
-}
-.asean-student-activity--select { --asean-student-accent: #815717; }
-.asean-student-activity--build, .asean-student-activity--revise { --asean-student-accent: #285443; }
-.asean-student-activity--share { --asean-student-accent: #78363d; }
-.asean-student-activity--build { grid-template-columns: minmax(0, .96fr) minmax(0, 1.04fr); }
-.asean-student-activity-copy { align-self: center; min-width: 0; }
-.asean-student-activity-copy h2 { font-size: clamp(23px, 2.8vw, 42px); margin: 4px 0 8px; letter-spacing: -.036em; line-height: 1.04; }
-.asean-student-activity-copy p { margin: 5px 0 9px; line-height: 1.35; }
-.asean-student-activity-copy .asean-student-index { color: var(--asean-student-accent); font-size: .83em; font-weight: 760; }
-.asean-student-sources { display: flex; flex-wrap: wrap; gap: 4px 14px; }
-.asean-student-sources a { margin-top: 3px; text-underline-offset: 3px; }
-.asean-student-sources + button { margin-top: 10px; }
-.asean-student-media:empty { display: none; }
-.asean-student-lesson .asean-group-response, .asean-student-lesson .asean-student-studio, .asean-response-closed { margin-top: 12px; }
-.asean-student-lesson .asean-group-response { border: 1px solid var(--asean-student-line); border-radius: 0; box-shadow: none; }
 .asean-group-response h3 { margin: 0 0 8px; }
 .asean-group-response :is(form, .bml-outline) { margin-top: 8px; }
-.asean-group-response fieldset { padding: 8px 10px; margin: 0; min-inline-size: 0; border: 1px solid #c7c8b9; }
+.asean-group-response fieldset { padding: 8px 10px; margin: 0; min-inline-size: 0; border: 1px solid var(--workshop-rule); }
 .asean-group-response fieldset legend { font-weight: 760; padding: 0 4px; }
-.asean-group-response :is(input, textarea, select) { max-width: 100%; min-width: 0; }
 .asean-group-response form > button { margin-top: 10px; }
 .asean-response-context { margin: 0 0 9px; }
-.asean-response-grid {
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;
-}
-.asean-response-grid--three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.asean-response-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
 .asean-response-grid > :is(div, section) { padding: 8px; background: #f5f1e5; border-top: 2px solid #285443; }
 .asean-response-grid > :is(div, section) p { margin: 0 0 5px; }
-.asean-response-grid .asean-photo-plan { background: #f5ead0; padding: 8px; margin-bottom: 10px; }
+.asean-response-grid .asean-photo-plan { background: #f5ead0; padding: 8px; }
 .asean-photo-plan svg, .asean-response-grid fieldset > svg { width: 18px; height: 18px; color: #285443; }
 .asean-photo-plan small { display: block; font-weight: 500; }
-.asean-group-response .asean-response-grid--three > fieldset { margin: 6px 0; }
-.asean-response-closed { border-left: 4px solid #254d5a; padding: 8px 12px; background: #e7eef0; }
-@media (max-width: 690px) {
-  .asean-student-activity { grid-template-columns: minmax(0, 1fr); }
-  .asean-response-grid, .asean-response-grid--three { grid-template-columns: minmax(0, 1fr); }
+.asean-response-closed { border-left: 4px solid var(--workshop-red); padding: 8px 12px; background: #f1ede3; }
+
+@container (min-width: 440px) {
+  .asean-response-grid:not(.asean-response-grid--three) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .asean-student-studio .bml-field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .asean-student-studio .bml-field-grid > button { grid-column: 1 / -1; }
+}
+@container (min-width: 600px) {
+  .asean-response-grid--three, .bml .asean-student-studio .bml-student-artwork-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }

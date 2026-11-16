@@ -190,12 +190,14 @@ test('Admin can safely archive database exhibitions without exposing prepared co
 
 test('Museum Lab banners use the active language and both official crests',()=>{
  const student=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLabStudent.jsx','utf8');
+ const workshop=fs.readFileSync('src/features/immersive-gallery/v3/MuseumStudentWorkshop.jsx','utf8');
  const ribbon=fs.readFileSync('src/features/immersive-gallery/v3/MuseumCompetitionRibbon.jsx','utf8');
  const masthead=fs.readFileSync('src/features/immersive-gallery/contest/ContestMasthead.jsx','utf8');
  const staff=fs.readFileSync('src/features/immersive-gallery/v2/shell/ImmersiveShell.jsx','utf8');
  const staffBanner=fs.readFileSync('src/features/immersive-gallery/v2/shell/CompetitionBanner.jsx','utf8');
  assert.match(student,/import MuseumCompetitionRibbon/);
- assert.match(student,/<MuseumCompetitionRibbon language=\{language\}\/>/);
+ assert.match(student,/<MuseumStudentWorkshop language=\{language\}/);
+ assert.match(workshop,/<MuseumCompetitionRibbon language=\{language\} lessonTemplate=\{lessonTemplate\}\/>/);
  assert.match(staff,/<CompetitionBanner language=\{language\} lessonTemplate=\{lessonTemplate\} \/>/);
  for(const source of [ribbon,staffBanner]){
   assert.match(source,/<ContestMasthead language=\{language\} lessonTemplate=\{lessonTemplate\} \/>/);
