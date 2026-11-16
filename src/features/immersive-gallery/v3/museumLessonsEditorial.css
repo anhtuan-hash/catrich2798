@@ -1,0 +1,418 @@
+.bml .swiss-editorial-lessons {
+  --lessons-ink: #141414;
+  --lessons-red: #c51223;
+  --lessons-paper: #f9f7f0;
+  --lessons-line: #a5a29a;
+  --lessons-selected: #f8e9e6;
+  color: var(--lessons-ink);
+  background: var(--lessons-paper);
+}
+
+.igv2 .bml .swiss-editorial-lessons {
+  gap: 0;
+}
+
+.igv2 .bml .swiss-editorial-lessons > .bml-heading-actions {
+  align-items: center;
+  padding: 18px 0;
+}
+
+.igv2 .bml .swiss-editorial-lessons > .bml-heading-actions .bml-overline {
+  display: block;
+  font-size: .82rem;
+  letter-spacing: .04em;
+  color: var(--lessons-red);
+  margin-bottom: 6px;
+}
+
+.igv2 .bml .swiss-editorial-lessons > .bml-heading-actions .bml-overline::before {
+  content: none;
+}
+
+.igv2 .bml .swiss-editorial-lessons > .bml-heading-actions h1 {
+  color: var(--lessons-ink);
+  font-size: clamp(2.85rem, 6.3vw, 5.75rem);
+  font-weight: 900;
+  letter-spacing: -.065em;
+}
+
+.igv2 .bml .swiss-editorial-lessons > .bml-heading-actions p {
+  color: var(--lessons-ink);
+  margin-top: 6px;
+}
+
+.igv2 .bml .swiss-editorial-lessons > .bml-heading-actions .bml-primary {
+  border: 1px solid var(--lessons-red);
+  border-radius: 0;
+  background: var(--lessons-red);
+  color: #fff;
+  font-size: 1.05rem;
+  box-shadow: none;
+}
+
+.igv2 .bml .swiss-editorial-lessons > .kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin: 0 0 14px;
+  padding: 6px 0;
+  border-block: 2px solid var(--lessons-ink);
+  border-bottom-width: 4px;
+  background: transparent;
+}
+
+.igv2 .bml .swiss-editorial-lessons > .kpi-grid .kpi {
+  padding: 4px clamp(10px, 1.7vw, 24px) 7px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--lessons-ink);
+}
+
+.igv2 .bml .swiss-editorial-lessons > .kpi-grid .kpi + .kpi {
+  border-inline-start: 1px solid var(--lessons-ink);
+}
+
+.igv2 .bml .swiss-editorial-lessons > .kpi-grid .kpi strong {
+  color: inherit;
+  font-size: clamp(1.9rem, 4vw, 3.4rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -.055em;
+  font-variant-numeric: tabular-nums;
+}
+
+.igv2 .bml .swiss-editorial-lessons > .kpi-grid .kpi strong i {
+  font-style: normal;
+  color: inherit;
+}
+
+.igv2 .bml .swiss-editorial-lessons > .kpi-grid .kpi small {
+  color: inherit;
+  font-size: .77rem;
+  font-weight: 800;
+  line-height: 1.22;
+  text-transform: uppercase;
+}
+
+.igv2 .bml .swiss-editorial-lessons .bml-paper-lesson-block,
+.igv2 .bml .swiss-editorial-lessons .bml-paper-lesson-block:hover {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.igv2 .bml .swiss-editorial-lessons .bml-lesson-hero-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  padding: 0 0 12px;
+  border-bottom: 2px solid var(--lessons-ink);
+}
+
+.igv2 .bml .swiss-editorial-lessons .bml-lesson-hero-icon,
+.igv2 .bml .swiss-editorial-lessons .bml-lesson-overall-progress {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  clip-path: inset(50%);
+  overflow: hidden;
+}
+
+.igv2 .bml .swiss-editorial-lessons .bml-lesson-class-chip {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--lessons-ink);
+  font-size: .83rem;
+  letter-spacing: .015em;
+  text-transform: uppercase;
+}
+
+.igv2 .bml .swiss-editorial-lessons .bml-lesson-title-area h2 {
+  color: var(--lessons-ink);
+  font-size: clamp(1.65rem, 3.1vw, 2.8rem);
+  font-weight: 900;
+  line-height: 1.06;
+  letter-spacing: -.045em;
+  overflow-wrap: anywhere;
+}
+
+.igv2 .bml .swiss-editorial-lessons .bml-lesson-facts {
+  font-size: .73rem;
+  margin-top: 6px;
+}
+
+.igv2 .bml .swiss-editorial-lessons .bml-prepared-lesson-actions {
+  justify-content: flex-end;
+}
+
+.igv2 .bml .swiss-editorial-lessons :is(.bml-lesson-toggle, .bml-archive-btn, .bml-lesson-passcode-toolbar button, .swiss-editorial-reset) {
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--lessons-ink);
+  border-radius: 0;
+  background: transparent;
+  color: var(--lessons-ink);
+  box-shadow: none;
+}
+
+.igv2 .bml .swiss-editorial-lessons .bml-prepared-lesson-actions .bml-archive-btn {
+  color: var(--lessons-red);
+  border-color: var(--lessons-red);
+}
+
+.igv2 .bml .swiss-editorial-lessons .bml-lesson-passcode-toolbar {
+  gap: 10px 20px;
+  margin: 0 0 12px;
+  padding: 10px 0;
+  border: 0;
+  border-bottom: 2px solid var(--lessons-ink);
+  border-radius: 0;
+  background: transparent;
+  color: var(--lessons-ink);
+}
+
+.igv2 .bml .swiss-editorial-lessons .bml-passcode-toolbar-icon {
+  width: auto;
+  height: auto;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.igv2 .bml .swiss-editorial-lessons .bml-passcode-toolbar-copy small {
+  color: #514e48;
+}
+
+.igv2 .bml .swiss-editorial-lessons .bml-quick-access-toggle.is-active {
+  background: var(--lessons-red);
+  border-color: var(--lessons-red);
+  color: white;
+}
+
+.bml .swiss-editorial-lesson-groups {
+  display: grid;
+  grid-template-columns: minmax(0, 2.75fr) minmax(230px, 1fr);
+  align-items: start;
+  gap: clamp(14px, 2vw, 26px);
+}
+
+.bml .swiss-editorial-lesson-groups table {
+  width: 100%;
+  min-width: 0;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: clamp(.81rem, 1.15vw, 1rem);
+}
+
+.bml .swiss-editorial-lesson-groups th,
+.bml .swiss-editorial-lesson-groups td {
+  padding: 3px clamp(5px, 1vw, 14px);
+  border-bottom: 1px solid var(--lessons-line);
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.bml .swiss-editorial-lesson-groups thead th {
+  padding-block: 7px;
+  font-size: .73rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.bml .swiss-editorial-lesson-groups th:first-child {
+  width: 25%;
+}
+
+.bml .swiss-editorial-lesson-groups th:nth-child(2) {
+  width: 29%;
+}
+
+.bml .swiss-editorial-lesson-groups tbody tr:hover,
+.bml .swiss-editorial-lesson-groups tbody tr.is-selected {
+  background: var(--lessons-selected);
+}
+
+.bml .swiss-editorial-lesson-groups tbody tr.is-selected th {
+  box-shadow: inset 4px 0 var(--lessons-red);
+}
+
+.bml .swiss-editorial-lesson-groups table button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  min-height: 34px;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--lessons-ink);
+  font: inherit;
+  font-weight: 800;
+  text-align: start;
+}
+
+.bml .swiss-editorial-lesson-groups table button.swiss-editorial-review {
+  color: var(--lessons-red);
+}
+
+.bml .swiss-editorial-lesson-groups table svg {
+  flex: none;
+}
+
+.bml .swiss-editorial-lessons button:focus-visible,
+.bml .swiss-editorial-lessons summary:focus-visible {
+  outline: 2px solid var(--lessons-red);
+  outline-offset: 2px;
+}
+
+.bml .swiss-editorial-group-detail {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+  padding-inline-start: clamp(14px, 2vw, 26px);
+  border-inline-start: 1px solid var(--lessons-ink);
+}
+
+.bml .swiss-editorial-group-detail h3 {
+  margin: 0;
+  color: var(--lessons-ink);
+  font-size: clamp(1.65rem, 2.8vw, 2.45rem);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -.05em;
+  overflow-wrap: anywhere;
+}
+
+.bml .swiss-editorial-group-detail details summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 5px 8px;
+  border: 1px solid var(--lessons-red);
+  color: var(--lessons-red);
+  font-size: .78rem;
+  font-weight: 800;
+  list-style: none;
+}
+
+.bml .swiss-editorial-group-detail details[open] summary svg {
+  transform: rotate(90deg);
+}
+
+.bml .swiss-editorial-group-detail details p {
+  margin: 8px 0 0;
+  color: var(--lessons-ink);
+  font-size: .86rem;
+}
+
+.igv2 .bml .swiss-editorial-lessons .swiss-editorial-group-detail .bml-lesson-qr-access {
+  display: grid;
+  align-items: stretch;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.igv2 .bml .swiss-editorial-lessons .swiss-editorial-group-detail .bml-lesson-qr-image {
+  width: 142px;
+  height: auto;
+  aspect-ratio: 1;
+  margin-block: 4px;
+  padding: 4px;
+  border: 1px solid #e2dfd7;
+  border-radius: 0;
+  background: white;
+  box-shadow: none;
+}
+
+.bml .swiss-editorial-group-detail .bml-lesson-qr-image img {
+  max-width: 100%;
+  aspect-ratio: 1;
+}
+
+.igv2 .bml .swiss-editorial-lessons .swiss-editorial-group-detail :is(.bml-lesson-qr-handle, .bml-private-passcode, .bml-private-passcode code) {
+  border-radius: 0;
+  background: transparent;
+  color: var(--lessons-ink);
+  box-shadow: none;
+}
+
+.igv2 .bml .swiss-editorial-lessons .swiss-editorial-group-detail .bml-private-passcode {
+  padding: 0;
+  border: 0;
+}
+
+.igv2 .bml .swiss-editorial-lessons .swiss-editorial-group-detail .bml-private-passcode-label {
+  justify-content: flex-start;
+  color: var(--lessons-ink);
+  font-size: .82rem;
+}
+
+.igv2 .bml .swiss-editorial-lessons .swiss-editorial-group-detail .bml-private-passcode code {
+  border-color: var(--lessons-line);
+}
+
+.igv2 .bml .swiss-editorial-lessons .swiss-editorial-group-detail :is(.bml-lesson-qr-copy-link, .bml-private-passcode-buttons button) {
+  width: 100%;
+  min-height: 34px;
+  padding: 5px 8px;
+  border: 1px solid var(--lessons-ink);
+  border-radius: 0;
+  background: transparent;
+  color: var(--lessons-ink);
+  font-size: .78rem;
+}
+
+.igv2 .bml .swiss-editorial-lessons .swiss-editorial-group-detail .bml-private-passcode-buttons button {
+  width: auto;
+  flex: 1;
+  color: var(--lessons-red);
+  border-color: var(--lessons-red);
+}
+
+.bml .swiss-editorial-no-groups {
+  margin: 12px 0;
+}
+
+@media (max-width: 760px) {
+  .bml .swiss-editorial-lesson-groups {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bml .swiss-editorial-group-detail {
+    border-inline-start: 0;
+    border-top: 2px solid var(--lessons-ink);
+    padding: 12px 0 0;
+  }
+}
+
+@media (max-width: 500px) {
+  .igv2 .bml .swiss-editorial-lessons > .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .igv2 .bml .swiss-editorial-lessons > .kpi-grid .kpi:nth-child(3) {
+    border-inline-start: 0;
+  }
+
+  .igv2 .bml .swiss-editorial-lessons > .kpi-grid .kpi:nth-child(n+3) {
+    border-top: 1px solid var(--lessons-line);
+  }
+
+  .bml .swiss-editorial-lesson-groups table svg {
+    display: none;
+  }
+}
