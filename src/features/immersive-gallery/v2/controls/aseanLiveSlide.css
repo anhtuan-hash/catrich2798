@@ -13,7 +13,7 @@
   margin: 6px 0 clamp(12px, 1.7cqi, 24px);
   text-wrap: balance;
 }
-.asean-live-slide h3 { font-size: clamp(14px, 1.58cqi, 22px); margin: 0; }
+.asean-live-slide .asean-slide-body h3 { font-size: clamp(14px, 1.58cqi, 22px); margin: 0; }
 .asean-live-slide p { line-height: 1.35; margin: 6px 0; }
 .asean-slide-body { font-size: clamp(14px, 1.39cqi, 20px); }
 .asean-slide-baseline, .asean-slide-build, .asean-slide-finish {
@@ -65,9 +65,12 @@
 .asean-slide-revise { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 12px; align-items: center; }
 .asean-slide-revise > div { background: #eee8da; padding: clamp(12px, 2cqi, 28px); align-self: stretch; }
 .asean-slide-revise > div:last-child, .asean-slide-final { background: var(--asean-green); color: #fff; }
+.asean-live-slide .asean-slide-final h3 { color: inherit; }
 .asean-slide-revise strong { display: block; font-size: clamp(28px, 4cqi, 52px); line-height: 1; }
 .asean-slide-note { border-top: 1px solid var(--asean-rule); margin: 12px 0 0 !important; padding-top: 8px; }
 @media (max-width: 730px) {
   .asean-slide-baseline, .asean-slide-build, .asean-slide-finish { grid-template-columns: 1fr; }
-  .asean-slide-visit .asean-slide-process li { padding: 7px; }
+  .asean-slide-visit .asean-slide-process { grid-template-columns: 1fr; }
+  .asean-slide-visit .asean-slide-process li { flex-direction: row; align-items: flex-start; }
+  .asean-slide-visit .asean-slide-process svg { flex: none; }
 }
