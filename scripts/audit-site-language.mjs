@@ -74,7 +74,7 @@ const PRESERVE = Object.freeze({
     'Thời lượng: 02 tiết × 45 phút',
     'GV thực hiện: Thạc sĩ Nguyễn Anh Tuấn',
     'Sở Giáo dục và Đào tạo Thành phố Hồ Chí Minh',
-    'Teacher: Nguyễn Anh Tuấn (Master’s degree)',
+    'Teacher: Nguyễn Anh Tuấn, MA',
     'Pétrus Ký School',
   ],
   // User-approved V2 footer identity and section labels are preserved verbatim.

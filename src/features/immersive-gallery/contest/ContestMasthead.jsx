@@ -22,7 +22,7 @@ const copy = {
     subject: 'Subject: English',
     lesson: 'Grade 11 – Global Success, Unit 5: Global Warming',
     duration: 'Duration: 2 periods × 45 minutes',
-    author: 'Teacher: Nguyễn Anh Tuấn (Master’s degree)',
+    author: 'Teacher: Nguyễn Anh Tuấn, MA',
     department: 'Ho Chi Minh City Department of Education and Training',
   },
 };

@@ -200,7 +200,7 @@ test('Museum Lab banners use the active language and both official crests',()=>{
  }
  assert.match(masthead,/lang=\{locale\}/);
  assert.doesNotMatch(masthead,/contest-banner-swiss\.jpg/);
- for(const label of ['BÀI DỰ THI','COMPETITION ENTRY','NĂM HỌC 2026–2027','2026–2027 SCHOOL YEAR','Thạc sĩ Nguyễn Anh Tuấn','Teacher: Nguyễn Anh Tuấn']){
+ for(const label of ['BÀI DỰ THI','COMPETITION ENTRY','NĂM HỌC 2026–2027','2026–2027 SCHOOL YEAR','GV thực hiện: Thạc sĩ Nguyễn Anh Tuấn','Teacher: Nguyễn Anh Tuấn, MA']){
   assert.ok(masthead.includes(label),'Missing competition text: '+label);
  }
  for(const filename of ['contest-dept.png','contest-school.png']){
