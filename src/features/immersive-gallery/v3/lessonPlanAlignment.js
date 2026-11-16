@@ -8,6 +8,14 @@ export const EVIDENCE_WRITING = Object.freeze({
   scoring: 'One point each for the correct count, denominator and percentage together, an accurate limit on what the survey describes, and clear English. Match the same student code before and after, and report the number of pairs and missing responses.'
 });
 
+export const LISTENING_FALLBACKS = Object.freeze({
+  'language-mini-lesson': 'Earth is surrounded by a layer of gases called the atmosphere. Sunlight warms Earth’s surface. The surface releases heat, and some gases in the atmosphere hold back part of that heat. Carbon dioxide is one of these gases. Burning fossil fuels such as coal and oil puts more carbon dioxide into the atmosphere. With more heat-trapping gases, more heat can be held near the surface, and Earth can become warmer.',
+  'problem-evidence-solution': 'Global warming is a long-term rise in Earth’s average surface temperature. Climate change is broader. It includes long-term changes in typical conditions across regions and around the world. Examples include less ice in the Arctic and droughts. Changes in average surface temperature are one part of that wider picture.'
+});
+
+export const LESSON_WORD_BANK = 'atmosphere, greenhouse gases, fossil fuels, trap heat, emissions, priority, feasible, source, limitation, revise';
+export const LESSON_LANGUAGE_FRAMES = '“According to NASA, …” · “Because …, …” · “In our survey, ___ out of ___ groups (___%) chose …” · “The data describe choices made by the groups in our class.” · “We recommend … because …” · “We changed … after visitors …”';
+
 export const VISITOR_TASKS = Object.freeze([
   'What is the school problem?',
   'Which source supports one claim? Point to it.',
