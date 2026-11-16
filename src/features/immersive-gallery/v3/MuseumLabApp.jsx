@@ -16,6 +16,7 @@ import './museumPaper.css';
 import '../v2/tokens.css';
 import '../v2/swiss.css';
 import '../v2/contestSwissPass.css';
+import './museumLessonsEditorial.css';
 const tr=(language,vi,en)=>language==='en'?en:vi;
 const initialMuseumTab=()=>{
  if(typeof window==='undefined')return 'home';
