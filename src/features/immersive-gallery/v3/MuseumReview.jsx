@@ -1,7 +1,7 @@
 import React,{useEffect,useMemo,useRef,useState} from 'react';
 import { LockKeyhole,ArrowLeft,ArrowRight,ArrowUpRight,BookOpen,CheckCircle2,ClipboardCheck,Clock3,Eye,FileText,MessageCircle,ShieldAlert,ShieldCheck,Star,Trash2,Users} from 'lucide-react';
 import {RUBRIC,scoreRubric,suggestRubric} from './museumData.js';
-import {ASEAN_RUBRIC,isAsean,aseanGroupIndex} from './aseanLesson.js';
+import {ASEAN_RUBRIC,isAsean,aseanPeerGroup} from './aseanLesson.js';
 import {LESSON_RUBRIC_LEVELS} from './lessonPlanAlignment.js';
 import {englishSystemGroupLabel,staffRequest} from './museumApi.js';
 import MuseumScene,{reviewMuseum} from './MuseumScene.jsx';
@@ -281,10 +281,10 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
 }
 
 function AseanReviewEvidence({group,groups,responses,snapshot}){
- const byOffset=offset=>groups.find(peer=>peer.assignment_id===group?.assignment_id&&
-   (aseanGroupIndex(peer.label)+offset)%10===aseanGroupIndex(group.label));
+ const classGroups=groups.filter(peer=>peer.assignment_id===group?.assignment_id);
+ const visitor=stage=>aseanPeerGroup(classGroups,group?.id,stage,{reverse:true});
  const get=(peer,stage)=>responses.find(response=>response.group_id===peer?.id&&response.stage_index===stage)?.value;
- const feedback=get(byOffset(1),3),retest=get(byOffset(2),4);
+ const feedback=get(visitor(3),3),retest=get(visitor(4),4);
  return <section className="bml-learning-evidence">
   <h4>Group evidence</h4>
   {snapshot?.learning?.source?<p><strong>Factual source</strong> · {snapshot.learning.source}</p>:null}

@@ -13,7 +13,7 @@ export default function AseanTeachingPlan({onCreate}){
   </header>
   <section className="bml-surface">
    <h2>Group learning outcomes</h2>
-   <p>Ten groups produce one exhibition with three frames per destination.</p>
+   <p>Each group contributes one destination to the class exhibition, with three frames per destination.</p>
    <ol>{ASEAN_FRAMES.map(frame=><li key={frame.key}><strong>{frame.label}</strong> · {frame.question}</li>)}</ol>
    <p>Each group submits a writing card at the start and end. Groups choose and credit photographs, test a first version and document one revision with a fresh visitor group.</p>
   </section>
