@@ -274,7 +274,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  };
  if(!session)return <div className="bml bml-student-shell bml-student-editorial bml-student-login-with-ribbon" lang={language}>
   <div className="bml-paper bml-guest-competition-wrap" data-testid="museum-login-competition-banner">
-   <MuseumCompetitionRibbon variant="dashboard"/>
+   <MuseumCompetitionRibbon variant="dashboard" language={language}/>
   </div>
   <GuestEntry onRedeem={redeem} busy={busy} error={error} language={language} onLanguageChange={chooseLanguage} onResetError={()=>setError('')}/>
  </div>;
@@ -290,7 +290,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  const narrationCue=session.readOnly?null:studentNarrationCue({liveInfo,step,ready:liveReady});
  return <main className="bml bml-student-shell bml-student-canvas16 bml-student-editorial bml-student-dual-workspace" data-testid="museum-student-wizard" lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
   <div className="bml-student-masthead" data-testid="student-masthead">
-   <MuseumCompetitionRibbon/>
+   <MuseumCompetitionRibbon language={language}/>
    <div className="bml-student-hub">
    <section className="bml-student-focus" data-testid="student-focus-switch" aria-label={T(language,'Bảng điều khiển học sinh','Student workspace')}>
     <div className="bml-student-focus-head">

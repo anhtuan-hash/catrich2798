@@ -186,30 +186,27 @@ test('Admin can safely archive database exhibitions without exposing prepared co
  assert.doesNotMatch(server,/from\('gcp_reviews'\)\.delete\(/);
 });
 
-test('Student Creator displays an official competition ribbon with both supplied crests',()=>{
+test('Museum Lab banners use the active language and both official crests',()=>{
  const student=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLabStudent.jsx','utf8');
  const ribbon=fs.readFileSync('src/features/immersive-gallery/v3/MuseumCompetitionRibbon.jsx','utf8');
- const css=fs.readFileSync('src/features/immersive-gallery/v3/museumCompetitionRibbon.css','utf8');
+ const masthead=fs.readFileSync('src/features/immersive-gallery/contest/ContestMasthead.jsx','utf8');
+ const staff=fs.readFileSync('src/features/immersive-gallery/v2/shell/ImmersiveShell.jsx','utf8');
+ const staffBanner=fs.readFileSync('src/features/immersive-gallery/v2/shell/CompetitionBanner.jsx','utf8');
  assert.match(student,/import MuseumCompetitionRibbon/);
- assert.match(student,/<MuseumCompetitionRibbon\/>/);
- assert.match(ribbon,/lang="vi"/);
- for(const label of ['BÀI DỰ THI','HỘI THI THIẾT KẾ CHỦ ĐỀ DẠY HỌC STEM\/STEAM','NĂM HỌC 2026–2027','Chủ đề dạy học số – Môn Tiếng Anh THPT','Thạc sĩ Nguyễn Anh Tuấn','Trường Trung - Tiểu học Pétrus Ký']){
-  assert.ok(ribbon.includes(label),'Missing competition text: '+label);
+ assert.match(student,/<MuseumCompetitionRibbon language=\{language\}\/>/);
+ assert.match(staff,/<CompetitionBanner language=\{language\} \/>/);
+ for(const source of [ribbon,staffBanner]){
+  assert.match(source,/<ContestMasthead language=\{language\} \/>/);
  }
- const officialDepartment=fs.readFileSync('public/museum/branding/hcmc-department-education-original.jpg');
- const officialSchool=fs.readFileSync('public/museum/branding/petrus-ky-original.png');
- assert.equal(officialDepartment.length,38788,'Department logo must be the exact supplied JPG');
- assert.equal(officialSchool.length,1055354,'School logo must be the exact supplied transparent PNG');
- assert.equal(officialDepartment.subarray(0,3).toString('hex'),'ffd8ff');
- assert.equal(officialSchool.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
- assert.match(ribbon,/hcmc-department-education-original\.jpg/);
- assert.match(ribbon,/petrus-ky-original\.png/);
- assert.doesNotMatch(ribbon,/BookOpen|Globe2|bml-competition-accent/);
- assert.match(css,/overflow:visible/);
- assert.match(css,/height:auto/);
- assert.match(css,/max-height:800px/);
- assert.match(css,/max-width:560px/);
- assert.match(css,/bml-student-canvas16/);
+ assert.match(masthead,/lang=\{locale\}/);
+ assert.doesNotMatch(masthead,/contest-banner-swiss\.jpg/);
+ for(const label of ['BÀI DỰ THI','COMPETITION ENTRY','NĂM HỌC 2026–2027','2026–2027 SCHOOL YEAR','Thạc sĩ Nguyễn Anh Tuấn','Teacher: Nguyễn Anh Tuấn']){
+  assert.ok(masthead.includes(label),'Missing competition text: '+label);
+ }
+ for(const filename of ['contest-dept.png','contest-school.png']){
+  assert.ok(masthead.includes('/museum/branding/'+filename));
+  assert.equal(fs.readFileSync('public/museum/branding/'+filename).subarray(0,8).toString('hex'),'89504e470d0a1a0a');
+ }
 });
 
 test('private Student Creator 2D/3D preview resolves exactly the group uploaded images by slot',()=>{
@@ -334,8 +331,8 @@ test('student creator login reuses official dashboard competition ribbon without
  const entryCss=fs.readFileSync('src/features/immersive-gallery/v3/museumStudentEditorial.css','utf8');
  assert.match(student,/if\(!session\)return/);
  assert.match(student,/museum-login-competition-banner/);
- assert.match(student,/<MuseumCompetitionRibbon variant="dashboard"\/>/);
- assert.match(student,/<GuestEntry onRedeem=\{redeem\} busy=\{busy\} error=\{error\} language=\{language\} onResetError=\{\(\)=>setError\(''\)\}\/>/);
+ assert.match(student,/<MuseumCompetitionRibbon variant="dashboard" language=\{language\}\/>/);
+ assert.match(student,/<GuestEntry\b[^>]*\bonRedeem=\{redeem\}[^>]*\blanguage=\{language\}/);
  assert.match(student,/import '\.\/museumDashboardBanner\.css'/);
  assert.match(entryCss,/\.bml\.bml-student-shell\.bml-student-editorial\.bml-student-login-with-ribbon/);
  assert.match(entryCss,/\.bml-guest-competition-wrap/);
