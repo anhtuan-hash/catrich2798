@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import {P2_ROLES} from '../src/features/immersive-gallery/v3/museumP2Forms.js';
 import { LIVE_STAGES, LIVE_PERIOD_MINUTES, LIVE_TOTAL_MINUTES } from '../src/features/immersive-gallery/v3/liveLesson.js';
 import { LESSON_RESOURCES, OFFLINE_GUIDE, CONCLUSION } from '../src/features/immersive-gallery/v3/lessonResources.js';
 import { MUSEUM_CURRICULUM_VIDEOS } from '../src/features/immersive-gallery/v3/museumLiveExtensions.js';
@@ -116,7 +117,7 @@ ${stages}
 </section>
 <section class="worksheet" aria-labelledby="worksheet">
 <h2 id="worksheet">Group worksheet</h2>
-<p>Roles: English editor · Data checker · Artwork designer · Presenter</p>
+<p>Roles: ${escape(P2_ROLES)}</p>
 <p>Problem and audience: ____________________</p>
 <p>Scientific finding and source: ____________________</p>
 <p>Group-priority survey: ____ out of ____ groups (____%) · Date: ____ · Limit: ____</p>

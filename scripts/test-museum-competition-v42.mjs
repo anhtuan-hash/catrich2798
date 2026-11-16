@@ -45,7 +45,7 @@ test('media tasks are bounded, predictable and do not expose unrelated stage vid
 test('school-scoped video search uses Google API server-only and never HTML scraping or public raw key',()=>{
  const server=load('serverless-handlers/museum-live.js');
  const helper=load('serverless-handlers/_museumLiveMedia.js');
- assert.match(server,/guestContext\(req,admin,\{write:writing\}\)/);
+ assert.match(server,/guestContext\(req,admin,\{write:writing,allowPublishedWorksheet:op==='p2-save'&&req\.body\?\.form==='D2'\}\)/);
  assert.match(server,/if\(op==='video-search'\)/);
  assert.match(server,/if\(!task\.query\)throw fail\(423/);
  assert.match(server,/searchThrottle\('group-'\+ctx\.group\.id\)/);
@@ -64,7 +64,8 @@ test('student thinking evidence is write-gated and private; client cannot mutate
  assert.match(server,/if\(op==='micro-submit'\)/);
  assert.match(server,/validMicroAnswer\(session\.stage_index,body\)/);
  assert.match(server,/group_id:ctx\.group\.id/);
- assert.match(server,/microResponses,teacherMediaBoard:session\.media_board\|\|\{\},livePeerFeedback:await peerRoomsEvidence\(admin,session\.id\),presentationProvenance:provenance,media/);
+ assert.match(server,/const p2Worksheets=publicRead\?undefined:await p2WorksheetsForEvidence\(admin,session\)/);
+ assert.match(server,/microResponses,p2Worksheets,teacherMediaBoard:session\.media_board\|\|\{\},livePeerFeedback:await peerRoomsEvidence\(admin,session\.id\),presentationProvenance:provenance,media/);
  assert.match(server,/\.eq\('group_id',ctx\.group\.id\)/);
  assert.match(sql,/unique\(session_id,group_id,stage_index\)/);
  assert.match(sql,/enable row level security/);

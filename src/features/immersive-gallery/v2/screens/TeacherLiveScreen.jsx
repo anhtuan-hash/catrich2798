@@ -8,6 +8,7 @@ import {MUSEUM_CURRICULUM_VIDEOS} from '../../v3/museumLiveExtensions.js';
 import MuseumVoiceover from '../../v3/MuseumVoiceover.jsx';
 import MuseumVideoLab from '../../v3/MuseumVideoLab.jsx';
 import MuseumResourceHub from '../../v3/MuseumResourceHub.jsx';
+import MuseumP2Workbook from '../../v3/MuseumP2Workbook.jsx';
 import LessonResources from '../../v3/LessonResources.jsx';
 import MuseumCurriculumStageVideo from '../../v3/MuseumCurriculumStageVideo.jsx';
 import {loadPresenterRecovery,savePresenterRecovery,shouldRestorePanel} from '../../v3/museumPresenterRecovery.js';
@@ -34,7 +35,7 @@ const link=typeof window!=='undefined'?window.location.origin+window.location.pa
  * Completed/frozen lessons are read-only with the reason surfaced; mutating controls are
  * disabled AND the reason banner is shown (disabled buttons alone are insufficient).
  */
-export default function TeacherLiveScreen({language='vi',data,initialReview,onBack,onRefresh,transport=liveStaff}){
+export default function TeacherLiveScreen({language='vi',data,initialReview,onBack,onRefresh,onNavigate,transport=liveStaff}){
   const assignments=useMemo(()=>(data?.assignments||[]).filter(a=>data?.publicReadOnly||data?.offlineReadOnly||a.created_by===data?.profile?.id||data?.profile?.role==='admin'),[data]);
   const assignmentIds=useMemo(()=>assignments.map(a=>a.id),[assignments]);
   const savedPreference=useRef(loadPresenterRecovery(typeof window!=='undefined'?window.sessionStorage:null,assignmentIds));
@@ -58,6 +59,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   const [previewPresentation,setPreviewPresentation]=useState(null);
   const [isFullscreen,setIsFullscreen]=useState(false);
   const [spotlight,setSpotlight]=useState(null),[time,setTime]=useState(Date.now());
+  const [workbookOpen,setWorkbookOpen]=useState(false);
   const [paper,setPaper]=useState(false),[tally,setTally]=useState(['','','','']),[tallyNote,setTallyNote]=useState('');
   const stageRef=useRef(null),activeRef=useRef(true);
   const refresh=useCallback(async()=>{
@@ -348,6 +350,16 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
               <MuseumVideoLab mode="teacher" readOnly={readOnly} stage={stage} stageIndex={currentIndex} media={session?.media} assignmentId={assignmentId} version={session?.version} language={language} transport={transport}/>
             </div>
           ):null}
+          {!isFullscreen&&canManageLesson&&session.p2Enabled&&!slideOnly?<details className="p2-workbook-section"
+            onToggle={event=>setWorkbookOpen(event.currentTarget.open)}>
+            <summary>{t(language,'Sổ phiếu P2 và đánh giá lớp','P2 worksheets and classroom assessment')}</summary>
+            {workbookOpen?<div className="p2-controls">
+              <p>{t(language,'Thu nhật ký D2 sau một tuần học rồi khóa hồ sơ.','Collect the D2 logs after one school week, then lock the lesson record.')}</p>
+              {onNavigate?<button type="button" className="adv-toolbtn" onClick={()=>onNavigate('submissions')}>{t(language,'E2 · Chấm rubric bài nộp','E2 · Score group submissions')}</button>:null}
+            </div>:null}
+            {workbookOpen?<MuseumP2Workbook key={assignmentId} language={language} role="teacher" transport={transport}
+              assignmentId={assignmentId} groups={groups} readOnly={readOnly}/>:null}
+          </details>:null}
           <div className="content-gap" style={{marginTop:20}}/>
           {!slideOnly?<CommandCenter groups={groups} responses={state?.responses||[]} feedback={state?.feedback||[]}
             microResults={state?.microResults||[]} helpGroups={state?.helpGroups||[]}

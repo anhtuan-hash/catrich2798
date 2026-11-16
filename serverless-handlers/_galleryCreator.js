@@ -107,7 +107,7 @@ export async function settings(admin){
  if(!data)throw fail(503,'Creator Pass chưa được thiết lập.');
  return data;
 }
-export async function guestContext(req,admin,{write=false}={}){
+export async function guestContext(req,admin,{write=false,allowPublishedWorksheet=false}={}){
  const token=cookie(req);
  if(!token||token.length>128)throw fail(401,'Cần nhập mã nhóm để tiếp tục.');
  const now=new Date().toISOString();
@@ -134,7 +134,8 @@ export async function guestContext(req,admin,{write=false}={}){
   throw fail(401,'Classroom quick access is disabled. Sign in again with your private passcode.');
  if(write){
   guardOrigin(req);
-  if(readOnly)throw fail(423,'This lesson is locked for viewing. Editing and submissions are disabled.');
+  if(readOnly&&!(allowPublishedWorksheet&&group.state==='published'&&!assignment.content_frozen_at))
+   throw fail(423,'This lesson is locked for viewing. Editing and submissions are disabled.');
   if(!safeEqual(req.headers['x-gallery-csrf'],session.csrf_token))throw fail(403,'CSRF không hợp lệ.');
   if(!feature.enabled||assignment.archived_at||assignment.status!=='active'||assignment.deadline_at<=now)
    throw fail(423,'Nhiệm vụ đang đóng.');

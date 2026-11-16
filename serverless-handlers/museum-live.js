@@ -8,6 +8,7 @@ import {MICRO_CHALLENGES,validMicroAnswer,videoTaskFor,curriculumMediaBoard} fro
 import {searchVideos,mediaText,mediaId,mediaBoardUpdate,mediaTask,searchThrottle,safeRefinement} from './_museumLiveMedia.js';
 import {handleLivePeer,peerRoomsEvidence} from './_museumLivePeer.js';
 import {liveReadAudience,presentationFor,responseMatchesActivity,validPresentation} from '../src/features/immersive-gallery/v3/livePresentation.js';
+import {handleMuseumP2,p2WorksheetsForEvidence} from './_museumP2.js';
 const canRespond=stage=>['vote','quiz','exit','peer'].includes(stage?.kind)||(stage?.kind==='group'&&Array.isArray(stage.videoQuestions));
 async function scopedStaff(ctx,assignmentId){
  if(!uid(assignmentId))throw fail(400,'Lớp học không hợp lệ.');
@@ -36,7 +37,7 @@ function stateOf(s,{staff=false}={}){
  return {id:s.id,assignmentId:s.assignment_id,status:s.status,stageIndex:s.stage_index,
   stageOpen:s.stage_open,revealed:s.revealed,version:s.version,
   stageStartedAt:s.stage_started_at,elapsedSeconds:s.elapsed_seconds,updatedAt:s.updated_at,
-  evidenceVersion:s.evidence_version,questionVersion:Number(s.media_board?.lessonQuestionVersion||1),media:mediaTask(s),
+  evidenceVersion:s.evidence_version,p2Enabled:s.media_board?.p2Worksheets===true,questionVersion:Number(s.media_board?.lessonQuestionVersion||1),media:mediaTask(s),
   presentation:presentationFor(s.stage_index,s.media_board?.lessonPresentation),
   stage:publicStage(s.evidence_version===0&&s.stage_index===2?legacySurvey:sessionStage(s,s.stage_index),s.revealed,staff)};
 }
@@ -90,6 +91,7 @@ export default async function museumLive(req,res){
    if(!publicRead&&req.method!=='GET'&&assignment.content_frozen_at)
     throw fail(423,'This completed lesson is view-only. Teacher Live controls are locked.');
    const session=await getSession(admin,assignment.id);
+   if(op==='p2-forms'||op==='p2-save')return await handleMuseumP2({op,req,res,admin,ctx,session,assignment,staff:true});
    if(op==='state'){
     requireMethod(req,'GET');
     if(!session)return send(res,200,{session:null,contentFrozenAt:assignment.content_frozen_at??null,stageCount:LIVE_STAGES.length});
@@ -182,7 +184,9 @@ export default async function museumLive(req,res){
     const microResponses=await query(admin.from('museum_live_micro_responses')
      .select('group_id,stage_index,choice,reason,submitted_at').eq('session_id',session.id)
      .order('submitted_at',{ascending:true}));
-    const assetIds=[...new Set(checkpoints.flatMap(c=>(c.doc?.rooms||[]).flatMap(r=>(r.exhibits||[]).map(e=>e.asset_id))).filter(Boolean))];
+    const p2Worksheets=publicRead?undefined:await p2WorksheetsForEvidence(admin,session);
+    const evidenceDocs=[...checkpoints,...(p2Worksheets?.rows||[]).flatMap(row=>row.snapshot?[row.snapshot]:[])];
+    const assetIds=[...new Set(evidenceDocs.flatMap(c=>(c.doc?.rooms||[]).flatMap(r=>(r.exhibits||[]).map(e=>e.asset_id))).filter(Boolean))];
     const assets=assetIds.length?await query(admin.from('museum_artwork_assets').select('id,group_id,storage_path,original_name,bytes,sha256').eq('assignment_id',assignment.id).in('id',assetIds)):[];
     const media=await Promise.all(assets.map(async({storage_path,...a})=>{const {data,error}=await admin.storage.from('museum-artwork-private').createSignedUrl(storage_path,600);if(error)throw fail(503,'Không thể xuất ảnh.');return {...a,url:data.signedUrl};}));
     // Teacher-only provenance is exported privately to distinguish prepared presentation
@@ -191,7 +195,7 @@ export default async function museumLive(req,res){
      .select('data_origin,teacher_visible_note,authored_drafts,curated_peer_feedback')
      .eq('assignment_id',assignment.id).maybeSingle());
     return send(res,200,{format:'museum-evidence-v33',exported_at:new Date().toISOString(),assignment:{id:assignment.id,title:assignment.title,class_scope:assignment.class_scope},session:stateOf(session,{staff:true}),groups,survey:await surveyFor(admin,session.id),checkpoints,feedback:await feedbackFor(admin,session.id),
-     responses,microResponses,teacherMediaBoard:session.media_board||{},livePeerFeedback:await peerRoomsEvidence(admin,session.id),presentationProvenance:provenance,media});
+     responses,microResponses,p2Worksheets,teacherMediaBoard:session.media_board||{},livePeerFeedback:await peerRoomsEvidence(admin,session.id),presentationProvenance:provenance,media});
    }
    if(op==='start'){
     requireMethod(req,'POST');guardOrigin(req);guardBody(req,1000);
@@ -201,7 +205,7 @@ export default async function museumLive(req,res){
      const created=await query(admin.from('museum_live_sessions').insert({
       assignment_id:assignment.id,owner_id:assignment.created_by,
       school_scope:assignment.school_scope,status:'active',stage_index:0,stage_open:true,
-      started_at:now,stage_started_at:now,media_board:{...curriculumMediaBoard(),lessonQuestionVersion:VIDEO_QUESTION_VERSION}
+      started_at:now,stage_started_at:now,media_board:{...curriculumMediaBoard(),lessonQuestionVersion:VIDEO_QUESTION_VERSION,p2Worksheets:true}
      }).select('*').single());
      await query(admin.from('museum_learning_events').insert({
       session_id:created.id,actor_role:'teacher',action:'lesson_started',stage_index:0
@@ -279,9 +283,10 @@ export default async function museumLive(req,res){
    return send(res,404,{error:'Không tìm thấy chức năng giáo viên.'});
   }
   // Guest: no registered student account. Cookie is one group capability.
-  const writing=['respond','need-help','micro-submit','peer-room-toggle','peer-room-review','peer-room-review-batch'].includes(op);
-  const ctx=await guestContext(req,admin,{write:writing});
+  const writing=['p2-save','respond','need-help','micro-submit','peer-room-toggle','peer-room-review','peer-room-review-batch'].includes(op);
+  const ctx=await guestContext(req,admin,{write:writing,allowPublishedWorksheet:op==='p2-save'&&req.body?.form==='D2'});
   const session=await getSession(admin,ctx.assignment.id);
+  if(['p2-forms','p2-save','p2-peer'].includes(op))return await handleMuseumP2({op,req,res,admin,ctx,session,assignment:ctx.assignment});
   if(op==='state'){
    requireMethod(req,'GET');
    const micro=session&&MICRO_CHALLENGES[session.stage_index]?await query(admin.from('museum_live_micro_responses')

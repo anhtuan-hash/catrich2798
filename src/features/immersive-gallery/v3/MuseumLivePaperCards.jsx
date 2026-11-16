@@ -18,7 +18,7 @@ const PER_STAGE={
   ['Reliable evidence','Is the source real, with N and limitations?','source'],
   ['Useful action','Is the recommendation feasible at school?','check']],
  'artwork-studio':[
-  ['Write three prompts','Use the group’s text for The Problem, The Evidence and Our Solution. Assign one poster per writer.','draw'],
+  ['Prepare three visuals','Draw or use a credited visual for each panel. Write prompts only when generating images.','draw'],
   ['Check the images','Match each image to its English label. Check the source, any numbers and the proposed action.','check'],
   ['Upload and save V1','Save the prompt and one check note for each AI-assisted poster. Credit the creator, add alt text and preview in 2D or 3D.','idea']],
  'peer-gallery-walk':[
