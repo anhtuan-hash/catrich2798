@@ -8,18 +8,13 @@ import EditorialHeading from '../shell/EditorialHeading.jsx';
 import MetricStrip from '../shell/MetricStrip.jsx';
 import ActionTile from '../shell/ActionTile.jsx';
 import ContentPanel from '../shell/ContentPanel.jsx';
-import '../advanced.css';
+import './TeachingPlanScreen.css';
 const t=(lang,vi,en)=>lang==='en'?en:vi;
 const kit=LESSON_KITS[0]||{};
 const activityCount=LIVE_STAGES.length;
 const periodMinutes=LIVE_PERIOD_MINUTES||[45,45];
-/**
- * 04 Teaching plan — Swiss Editorial V2.
- * Driving question, 2×45-minute plan, 11 activities (counted from LIVE_STAGES, never hard-coded),
- * create-from-plan CTA wired to props.onCreate (shell opens the existing LessonWizard).
- * Detailed curriculum plan preserved (per-activity minutes, Vietnamese title, facilitation,
- * sentence frame, expected outcome). No fabricated records.
- */
+const indexedStages = LIVE_STAGES.map((stage, index) => ({stage, index}));
+const periods = [1, 2].map(period => indexedStages.filter(({stage}) => stage.period === period));
 export default function TeachingPlanScreen({language='vi',data,onCreate,onBack,onNavigate}){
   const assignments=data?.assignments||[];
   const groups=data?.groups||[];
@@ -39,62 +34,66 @@ export default function TeachingPlanScreen({language='vi',data,onCreate,onBack,o
     {n:'02',title:t(language,'Khảo sát ưu tiên nhóm','Group-priority survey'),desc:t(language,'Biểu đồ từ phiếu lớp thật, số nhóm N, số đếm, phần trăm và giới hạn.','A genuine group-vote chart with N, counts, percentages and limitations.')},
     {n:'03',title:t(language,'Sản phẩm & quá trình học','Artwork & learning process'),desc:t(language,'Poster có ghi công, bản xem 3D hoặc 2D, phản hồi chéo, V1/V2 và bài trình bày 45–60 giây.','Credited visual, 3D or 2D exhibit, peer feedback, V1/V2 and a 45–60-second pitch.')}
   ];
+  const [firstTitleLine, secondTitleLine] = language === 'en' ? ['Teaching', 'plan'] : ['Kế hoạch', 'bài dạy'];
   return (
-    <div className="igv2 igv2-screen" data-testid="igv2-teaching-plan-screen">
-      <EditorialHeading
-        kicker={t(language,'TIẾNG ANH 11 · GLOBAL SUCCESS UNIT 5','ENGLISH 11 · GLOBAL SUCCESS UNIT 5')}
-        title={t(language,'Kế hoạch bài dạy.','Teaching plan.')}
-        description={t(language,'Một bài học số hai tiết tập trung, bám sát Unit 5: Global Warming.','One focused two-period digital lesson aligned with Unit 5: Global Warming.')}
-        aside={t(language,'2 × 45 min · ','2 × 45 min · ')+activityCount+t(language,' hoạt động',' activities')}/>
-      <MetricStrip items={metrics}/>
+    <div className="igv2-screen swiss-teaching-plan" data-testid="igv2-teaching-plan-screen">
+      <div className="plan-masthead">
+        <EditorialHeading
+          kicker={t(language,'TIẾNG ANH 11 · GLOBAL SUCCESS UNIT 5','ENGLISH 11 · GLOBAL SUCCESS UNIT 5')}
+          title={<>{firstTitleLine}{' '}<span className="plan-title-line">{secondTitleLine}<span className="plan-title-dot">.</span></span></>}
+          description={t(language,'Một bài học số hai tiết tập trung, bám sát Unit 5: Global Warming.','One focused two-period digital lesson aligned with Unit 5: Global Warming.')}
+          aside={t(language,'2 × 45 min · ','2 × 45 min · ')+activityCount+t(language,' hoạt động',' activities')}/>
+        <MetricStrip items={metrics}/>
+      </div>
 
-      <div className="plan-hero" style={{display:'grid',gridTemplateColumns:'280px 1fr',gap:24,alignItems:'stretch',marginTop:20}}>
-        <div className="plan-visual" style={{background:'var(--igv2-navy,#112339)',color:'#fff',padding:22,display:'flex',flexDirection:'column',justifyContent:'space-between',minHeight:220}}>
-          <div style={{fontSize:11,fontWeight:800,letterSpacing:'.14em',color:'var(--igv2-warm-yellow,#f4ca4b)'}}>PÉTRUS KÝ / SCHOOL SYSTEM</div>
-          <div style={{fontSize:72,fontWeight:900,lineHeight:.9,margin:'12px 0'}}>{activityCount}<br/><span style={{fontSize:28,color:'var(--igv2-warm-yellow,#f4ca4b)'}}>05.</span></div>
-          <div style={{fontSize:13,fontWeight:800,lineHeight:1.3}}>GLOBAL WARMING<br/>CLIMATE ACTION MUSEUM</div>
+      <section className="plan-hero" aria-labelledby="plan-project-title">
+        <div className="plan-visual">
+          <div className="plan-unit-school">PÉTRUS KÝ / SCHOOL SYSTEM</div>
+          <div className="plan-unit-number">{activityCount}<span>05.</span></div>
+          <div className="plan-unit-caption">GLOBAL WARMING<br/>CLIMATE ACTION MUSEUM</div>
         </div>
-        <div className="plan-copy" style={{background:'#fff',border:'1px solid var(--igv2-divider,#d9d4c9)',padding:'20px 24px'}}>
-          <div style={{fontSize:11,fontWeight:850,letterSpacing:'.14em',color:'var(--igv2-muted,#6b7782)'}}>OUR CLIMATE ACTION MUSEUM</div>
-          <h2 style={{margin:'6px 0 4px',fontSize:26,fontWeight:850}}>{kit.title||'Our Climate Action Museum'}</h2>
-          <p style={{margin:0,fontSize:13,color:'var(--igv2-muted,#6b7782)'}}>{kit.subtitle||'English 11 · Global Success · Unit 5: Global Warming'}</p>
-          <div style={{fontSize:11,fontWeight:850,letterSpacing:'.14em',color:'var(--igv2-muted,#6b7782)',marginTop:16}}>{t(language,'CÂU HỎI ĐỊNH HƯỚNG','DRIVING QUESTION')}</div>
-          <div className="question" style={{fontSize:18,fontWeight:800,lineHeight:1.3,margin:'6px 0',color:'var(--igv2-ink,#152033)'}}>{kit.challenge||'How can our school reduce the impact of everyday activities on global warming?'}</div>
-          <p style={{fontSize:13,lineHeight:1.55,color:'#3d4a57'}}>{kit.goal||''}</p>
-          <div className="chips" style={{display:'flex',flexWrap:'wrap',gap:8,margin:'12px 0'}}>
+        <div className="plan-copy">
+          <div className="plan-label">OUR CLIMATE ACTION MUSEUM</div>
+          <h2 id="plan-project-title">{kit.title||'Our Climate Action Museum'}</h2>
+          <p>{kit.subtitle||'English 11 · Global Success · Unit 5: Global Warming'}</p>
+          <div className="plan-label">{t(language,'CÂU HỎI ĐỊNH HƯỚNG','DRIVING QUESTION')}</div>
+          <div className="plan-question">{kit.challenge||'How can our school reduce the impact of everyday activities on global warming?'}</div>
+          <p>{kit.goal||''}</p>
+          <div className="plan-chips">
             <span className="chip">English 11 · Unit 5</span>
             <span className="chip">2 × 45 min</span>
             <span className="chip">{activityCount} {t(language,'hoạt động','activities')}</span>
             <span className="chip">{LIVE_TOTAL_MINUTES} {t(language,'phút','min')}</span>
           </div>
-          {onCreate?(
-            <button type="button" className="cta adv-toolbtn adv-toolbtn--primary" onClick={onCreate}
-              aria-label={t(language,'Tạo bài học từ kế hoạch này — mở trình tạo bài học','Create lesson from this plan — opens the lesson wizard')}
-              style={{marginTop:6}}>
-              {t(language,'Tạo bài học từ kế hoạch này','Create lesson from this plan')} <ArrowRight size={16}/>
-            </button>
-          ):null}
-          {onBack?<button type="button" className="adv-toolbtn" style={{marginLeft:8,marginTop:6}} onClick={onBack}>{t(language,'← Quay lại','← Back')}</button>:null}
+          <div className="plan-hero-actions">
+            {onCreate?(
+              <button type="button" className="plan-button plan-button-primary" onClick={onCreate}
+                aria-label={t(language,'Tạo bài học từ kế hoạch này — mở trình tạo bài học','Create lesson from this plan — opens the lesson wizard')}>
+                {t(language,'Tạo bài học từ kế hoạch này','Create lesson from this plan')} <ArrowRight size={16} aria-hidden="true"/>
+              </button>
+            ):null}
+            {onBack?<button type="button" className="plan-button" onClick={onBack}>{t(language,'← Quay lại','← Back')}</button>:null}
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="info-strip mt16" role="note">{t(language,'Các nhóm thực hiện khảo sát ưu tiên thật, viết ba thuyết minh tiếng Anh, đưa hình có ghi công và biểu đồ đã chốt vào triển lãm, kiểm tra và cải tiến, sau đó tham quan phòng trưng bày 3D.','Groups conduct a real priority survey, write three English captions, add a credited visual and the frozen group-priority chart, test and revise, then visit the 3D gallery.')}</div>
+      <div className="plan-note" role="note">{t(language,'Các nhóm thực hiện khảo sát ưu tiên thật, viết ba thuyết minh tiếng Anh, đưa hình có ghi công và biểu đồ đã chốt vào triển lãm, kiểm tra và cải tiến, sau đó tham quan phòng trưng bày 3D.','Groups conduct a real priority survey, write three English captions, add a credited visual and the frozen group-priority chart, test and revise, then visit the 3D gallery.')}</div>
 
-      <div className="three-col mt20" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16}}>
+      <div className="plan-pillars">
         {pillars.map(({icon:Icon,title,desc})=>(
-          <div className="panel" key={title} style={{padding:18}}>
-            <Icon size={26} color="var(--igv2-red,#ca2431)" aria-hidden="true"/>
-            <h3 style={{margin:'10px 0 6px',fontSize:15}}>{title}</h3>
-            <p className="page-desc" style={{fontSize:12,margin:0}}>{desc}</p>
+          <div className="plan-pillar" key={title}>
+            <Icon size={22} aria-hidden="true"/>
+            <h2>{title}</h2>
+            <p className="page-desc">{desc}</p>
           </div>
         ))}
       </div>
 
-      <ContentPanel variant="default" className="mt20" ariaLabel={t(language,'Sản phẩm học sinh cần hoàn thành','Expected student work')}>
-        <h3 style={{margin:'0 0 12px',fontSize:15,borderBottom:'2px solid var(--igv2-ink,#152033)',paddingBottom:8}}>{t(language,'Sản phẩm học sinh cần hoàn thành','Expected student work')}</h3>
-        <div className="adv-outcomes">
+      <ContentPanel className="plan-section" ariaLabel={t(language,'Sản phẩm học sinh cần hoàn thành','Expected student work')}>
+        <h2>{t(language,'Sản phẩm học sinh cần hoàn thành','Expected student work')}</h2>
+        <div className="plan-outcomes">
           {outcomes.map(o=>(
-            <div className="adv-outcome" key={o.n}>
+            <div className="plan-outcome" key={o.n}>
               <b>{o.n} · {o.title}</b>
               <span>{o.desc}</span>
             </div>
@@ -102,16 +101,16 @@ export default function TeachingPlanScreen({language='vi',data,onCreate,onBack,o
         </div>
       </ContentPanel>
 
-      <ContentPanel variant="default" className="mt20" ariaLabel={t(language,'Tiến trình bài dạy','Lesson sequence')}>
-        <h3 style={{margin:'0 0 12px',fontSize:15,borderBottom:'2px solid var(--igv2-ink,#152033)',paddingBottom:8}}>{t(language,'Tiến trình {{n}} hoạt động · {{m}} phút','{{n}}-activity lesson sequence · {{m}} min').replace('{{n}}',activityCount).replace('{{m}}',LIVE_TOTAL_MINUTES)}</h3>
-        <div className="adv-plan-periods">
-          {[1,2].map(period=>(
-            <div className="adv-plan-period" key={period}>
-              <h3>{t(language,'Tiết','Period')} {period} · {periodMinutes[period-1]||45} {t(language,'phút','minutes')}</h3>
-              <ol className="adv-activity-list">
-                {LIVE_STAGES.map((a,i)=>({a,i})).filter(x=>x.a.period===period).map(({a,i})=>(
-                  <li className="adv-activity-row" key={a.id}>
-                    <span className="adv-activity-num">{String(i+1).padStart(2,'0')}</span>
+      <ContentPanel className="plan-section plan-sequence" ariaLabel={t(language,'Tiến trình bài dạy','Lesson sequence')}>
+        <h2>{t(language,'Tiến trình {{n}} hoạt động · {{m}} phút','{{n}}-activity lesson sequence · {{m}} min').replace('{{n}}',activityCount).replace('{{m}}',LIVE_TOTAL_MINUTES)}</h2>
+        <div className="plan-periods">
+          {periods.map((stages, periodIndex) => (
+            <div className="plan-period" key={periodIndex}>
+              <h3>{t(language,'Tiết','Period')} {periodIndex + 1} · {periodMinutes[periodIndex]||45} {t(language,'phút','minutes')}</h3>
+              <ol className="plan-activities" role="list" start={(stages[0]?.index ?? 0) + 1}>
+                {stages.map(({stage:a,index:i})=>(
+                  <li className="plan-activity" key={a.id}>
+                    <span className="plan-activity-number" aria-hidden="true">{String(i+1).padStart(2,'0')}</span>
                     <div>
                       <strong>{language==='en'?a.title:(a.vi||a.title)}</strong>
                       <small>{language==='en'?null:a.title+' · '}{LESSON_PLAN_NOTES[a.id].task}</small>
@@ -119,8 +118,8 @@ export default function TeachingPlanScreen({language='vi',data,onCreate,onBack,o
                         <a href={MUSEUM_CURRICULUM_VIDEOS[i].officialSource} target="_blank" rel="noreferrer">{t(language,'Video NASA và nguồn','NASA video and source')}</a>
                         {' · '}<a href={PUBLIC_LESSON_GUIDE+'#stage-'+(i+1)}>{t(language,'3 câu hỏi nghe hiểu','3 listening questions')}</a>
                       </small>:null}
-                      <div className="adv-activity-meta">{a.minutes} {t(language,'phút','min')} · {a.kind}{a.sentence?` · “${a.sentence}”`:''}</div>
-                      <small style={{color:'var(--igv2-muted,#52655c)'}}>{t(language,'Giai đoạn: ','Design phase: ')}{LESSON_PLAN_NOTES[a.id].phase}</small>
+                      <div className="plan-activity-meta">{a.minutes} {t(language,'phút','min')} · {a.kind}{a.sentence?` · “${a.sentence}”`:''}</div>
+                      <small>{t(language,'Giai đoạn: ','Design phase: ')}{LESSON_PLAN_NOTES[a.id].phase}</small>
                       {LESSON_PLAN_NOTES[a.id].extension?<small><b>{t(language,'Khi dạy lại: ','Next delivery: ')}</b>{LESSON_PLAN_NOTES[a.id].extension}</small>:null}
                     </div>
                   </li>
@@ -129,26 +128,31 @@ export default function TeachingPlanScreen({language='vi',data,onCreate,onBack,o
             </div>
           ))}
         </div>
-        <p style={{fontSize:11,color:'var(--igv2-muted,#6b7782)',marginTop:14}}>{t(language,'Tạo bài học mới không thay đổi các bài đã giao. Dữ liệu khảo sát, phản hồi và kết quả học sinh chỉ có khi lớp thực sự thực hiện.','Creating this lesson does not alter existing assignments. Survey responses, peer feedback and student results are recorded only after classroom activity.')}</p>
+        <p className="plan-sequence-note">{t(language,'Tạo bài học mới không thay đổi các bài đã giao. Dữ liệu khảo sát, phản hồi và kết quả học sinh chỉ có khi lớp thực sự thực hiện.','Creating this lesson does not alter existing assignments. Survey responses, peer feedback and student results are recorded only after classroom activity.')}</p>
       </ContentPanel>
 
-      <ContentPanel variant="default" className="mt20" ariaLabel={t(language,'Đánh giá và minh chứng','Assessment and evidence')}>
-        <h3>{t(language,'Đánh giá và minh chứng','Assessment and evidence')}</h3>
-        <p>{t(language,'Khi dạy lại, dùng phiếu cá nhân 1 phút ở chặng 01 và 11. Khách thử V1/V2 bằng cùng ba nhiệm vụ ở chặng 08 và 09. Hồ sơ phiên đã khóa được đối chiếu bằng minh chứng gốc của phiên đó.','For a new delivery, use the one-minute individual writing checks in stages 01 and 11, and the same three visitor tasks for V1/V2 in stages 08 and 09. Review a finalized session using the evidence recorded in that session.')}</p>
-        <ol lang="en">{VISITOR_TASKS.map(task=><li key={task}>{task}</li>)}</ol>
-        <p><b>{t(language,'Rubric học tập · 100 điểm','Group learning rubric · 100 points')}</b></p>
-        <ul>{RUBRIC.map(item=><li key={item.key}>{t(language,item.label,item.en)} · {item.max}</li>)}</ul>
-        <p>
-          <a href={PUBLIC_LESSON_GUIDE}>{t(language,'Hướng dẫn 11 chặng và rubric bốn mức','11-stage guide and four-level rubric')}</a>
-          {' · '}<a href={OFFLINE_LESSON_WORKSHEET} download>{t(language,'Tải phiếu thực hành ngoại tuyến','Download offline practice worksheet')}</a>
-        </p>
+      <ContentPanel className="plan-section" ariaLabel={t(language,'Đánh giá và minh chứng','Assessment and evidence')}>
+        <h2>{t(language,'Đánh giá và minh chứng','Assessment and evidence')}</h2>
+        <div className="plan-assessment">
+          <div>
+            <p>{t(language,'Khi dạy lại, dùng phiếu cá nhân 1 phút ở chặng 01 và 11. Khách thử V1/V2 bằng cùng ba nhiệm vụ ở chặng 08 và 09. Hồ sơ phiên đã khóa được đối chiếu bằng minh chứng gốc của phiên đó.','For a new delivery, use the one-minute individual writing checks in stages 01 and 11, and the same three visitor tasks for V1/V2 in stages 08 and 09. Review a finalized session using the evidence recorded in that session.')}</p>
+            <ol lang="en">{VISITOR_TASKS.map(task=><li key={task}>{task}</li>)}</ol>
+          </div>
+          <div className="plan-rubric">
+            <p><b>{t(language,'Rubric học tập · 100 điểm','Group learning rubric · 100 points')}</b></p>
+            <ul>{RUBRIC.map(item=><li key={item.key}>{t(language,item.label,item.en)} · {item.max}</li>)}</ul>
+          </div>
+          <p className="plan-resources">
+            <a href={PUBLIC_LESSON_GUIDE}>{t(language,'Hướng dẫn 11 chặng và rubric bốn mức','11-stage guide and four-level rubric')}</a>
+            {' · '}<a href={OFFLINE_LESSON_WORKSHEET} download>{t(language,'Tải phiếu thực hành ngoại tuyến','Download offline practice worksheet')}</a>
+          </p>
+        </div>
       </ContentPanel>
 
-      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:14,marginTop:20}}>
+      <div className="plan-actions">
         {onCreate?<ActionTile title={t(language,'Tạo bài học từ kế hoạch','Create lesson from plan')} description={t(language,'Mở trình tạo bài học và phát hành mã nhóm.','Open the lesson wizard and issue group passes.')} variant="accent" onClick={onCreate}/>:null}
         {onNavigate?<ActionTile title={t(language,'Xem bài học đã giao','View assigned lessons')} description={t(language,'Quản lý mã nhóm và bài đã giao.','Manage group passes and assignments.')} onClick={()=>onNavigate('lessons')}/>:null}
       </div>
-      <style>{`@media(max-width:860px){.igv2 .plan-hero{grid-template-columns:1fr !important}.igv2 .three-col{grid-template-columns:1fr !important}}`}</style>
     </div>
   );
 }
