@@ -7,6 +7,7 @@ import {StudentActivityTask} from './MuseumStudentActivityContent.jsx';
 import MuseumStudentLessonReview from './MuseumStudentLessonReview.jsx';
 import MuseumSurveyChart from './MuseumSurveyChart.jsx';
 import {presentationFor} from './livePresentation.js';
+import {LIVE_STAGES} from './liveLesson.js';
 import {validatePeer} from './learningEvidence.js';
 import MuseumScene from './MuseumScene.jsx';
 import MuseumVoiceover from './MuseumVoiceover.jsx';
@@ -58,7 +59,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
   if(!readOnly)return;
   let active=true;
   liveGuest('state').then(result=>{
-   if(active){setData(result);setSyncError('');}
+   if(active){setData(result);setSyncError('');onState?.(result.session);}
   }).catch(error=>{if(active)setSyncError(error.message);});
   return()=>{active=false;};
  },[csrf,readOnly]);
@@ -110,31 +111,34 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
     }))
    }))});}
   catch(e){setError(e.message);}};
- if(reviewIndex!=null)return <section className="bml-live-student">
+ const reviewMode=reviewIndex!=null||readOnly||session?.status==='ended';
+ if(reviewMode){
+  const reviewStage=LIVE_STAGES[reviewIndex??0];
+  return <section className="bml-live-student" data-testid="student-live-completed">
+  {readOnly?<div className="bml-banner bml-success-banner" role="status"><CheckCircle2 size={18}/>
+   {t(language,'Chỉ xem lại. Câu trả lời và hiện vật đã lưu được giữ nguyên.','View only. Saved answers and exhibits are preserved.')}
+  </div>:session?.status==='ended'?<div className="bml-banner bml-success-banner" role="status"><CheckCircle2 size={18}/>
+   {data?.submitted?t(language,'Exit Ticket của nhóm đã được ghi nhận. Sản phẩm bảo tàng là bài nộp riêng.','Your group Exit Ticket was recorded. Your museum project is submitted separately.'):
+    t(language,'Hoạt động trực tiếp đã kết thúc.','Live activities have ended.')}
+  </div>:!stageIsOpen&&session?.status==='active'?<div className="bml-banner bml-info-banner" role="status"><Lock size={18}/>
+   {t(language,'Hoạt động đã đóng nhận câu trả lời. Em vẫn có thể xem lại nội dung.','Responses are closed. You can still review the activity.')}
+  </div>:null}
   {!readOnly&&session?.status!=='ended'&&onReturnLive?<button type="button" className="bml-outline bml-student-return-live" onClick={onReturnLive}>
    {t(language,'Về hoạt động giáo viên đang mở','Return to current live activity')}
   </button>:null}
   <MuseumStudentLessonReview language={language} activityIndex={reviewIndex}
     questionVersion={session?.questionVersion} survey={survey} surveyLoading={!data&&!syncError} surveyPending={!readOnly&&session?.status!=='ended'}
-    loadSaved={Boolean(session)&&!readOnly} onOpenProject={onReviewProject}/>
-  {reviewIndex===7?peerActivity:null}
- </section>;
- if(readOnly||session?.status==='ended')return <section className="bml-live-student" data-testid="student-live-completed">
-  <div className="bml-banner bml-success-banner" role="status"><CheckCircle2 size={18}/>
-   {readOnly?t(language,'Bài đã hoàn thành · Chỉ xem. Câu trả lời và hiện vật được giữ nguyên.','Completed lesson · View only. Your answers and exhibits are preserved.'):
-    data?.submitted?t(language,'Exit Ticket của nhóm đã được ghi nhận. Sản phẩm bảo tàng là bài nộp riêng.','Your group Exit Ticket was recorded. Your museum project is submitted separately.'):
-    t(language,'Hoạt động trực tiếp đã kết thúc.','Live activities have ended.')}
-  </div>
-  <MuseumStudentLessonReview language={language} activityIndex={onReviewProject?0:undefined} questionVersion={session?.questionVersion} survey={survey}
-   surveyLoading={!data&&!syncError} loadSaved={session?.status==='ended'&&!readOnly} onOpenProject={onReviewProject||onOpenProject}/>
-  {['materials','research'].includes(activeTool)?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label={t(language,'Tài liệu bài học','Lesson materials')}>
+    loadSaved={Boolean(session?.id)} onOpenProject={onReviewProject||onOpenProject}/>
+  {['materials','research','voice'].includes(activeTool)?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label={t(language,'Tài liệu bài học','Lesson materials')}>
    <div className="bml-student-detail-window">
     <div className="bml-student-detail-head"><strong>{t(language,'Tài liệu bài học','Lesson materials')}</strong>
      <button className="bml-outline" type="button" onClick={()=>setActiveTool(null)}>{t(language,'Đóng','Close')}</button></div>
-    <div className="bml-student-tool-content">{activeTool==='research'?<MuseumResourceHub language={language}/>:<LessonResources stageIndex={0} language={language}/>}</div>
+    <div className="bml-student-tool-content">{activeTool==='research'?<MuseumResourceHub language={language} stage={reviewStage}/>:
+     activeTool==='voice'?<MuseumVoiceover stage={reviewStage} language={language} compact/>:<LessonResources stageIndex={reviewIndex??0} language={language}/>}</div>
    </div>
   </div>:null}
  </section>;
+ }
  if(!session||session.status==='not_started')return <section className="bml-live-student" data-testid="student-live-waiting">
   {syncError?<p role="alert">{syncError}</p>:null}
   <div className="bml-live-student-header"><strong>Teacher Live</strong><span>{t(language,'Đang chờ giáo viên bắt đầu bài dạy.','Waiting for your teacher to start the lesson.')}</span></div>

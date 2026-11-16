@@ -1416,8 +1416,12 @@ test('a locked student lesson loads and displays the frozen survey denominator',
   }:{draft:{title:'Climate Action Museum'},version:2}});
  });
  await page.route('**/api/gallery-guest/live?**',route=>{
-  reads.push(route.request().method());
-  return route.fulfill({json:{session:{status:'ended',stageIndex:10},
+  const params=new URL(route.request().url()).searchParams;
+  reads.push([route.request().method(),params.get('operation'),params.get('stageIndex')]);
+  if(params.get('operation')==='review-activity')return route.fulfill({json:{
+   response:params.get('stageIndex')==='10'?'I will bring a reusable bottle.':null,peer:[],videos:[]
+  }});
+  return route.fulfill({json:{session:{id:'qa-session',status:'ended',stageIndex:10},
    survey:{n:10,created_at:'2026-11-13T00:00:00Z',options:[
     {label:'Switching off unused lights',count:4,percent:40}
    ]}}});
@@ -1427,7 +1431,52 @@ test('a locked student lesson loads and displays the frozen survey denominator',
  const chart=page.getByTestId('student-lesson-pane').getByTestId('museum-survey-chart');
  await expect(chart).toContainText('Valid group responses N = 10');
  await expect(chart).toContainText('4/10 (40%)');
- expect(reads).toEqual(['GET']);
+ await page.getByTestId('student-activity-groups').getByRole('button',{name:/Evaluate/}).click();
+ await page.getByTestId('student-activity-groups').getByRole('button',{name:/Exit Ticket/}).click();
+ await expect(page.getByTestId('student-lesson-review')).toContainText('I will bring a reusable bottle.');
+ await expect(page.getByRole('button',{name:'Submit group response'})).toHaveCount(0);
+ await page.getByRole('button',{name:'US voiceover'}).click();
+ await expect(page.getByTestId('museum-voiceover')).toBeVisible();
+ expect(reads).toContainEqual(['GET','review-activity','10']);
+ expect(reads.every(([method])=>method==='GET')).toBe(true);
+});
+
+test('published group opens its closed activities using quick classroom access',async({page})=>{
+ const handle='SyntheticInvite_123456';
+ let signedIn=false;
+ await page.route('**/api/gallery-guest?**',route=>{
+  const action=new URL(route.request().url()).searchParams.get('operation');
+  if(action==='invite-info')return route.fulfill({json:{
+   groupLabel:'Group 01',assignmentTitle:'Climate Action Museum',classScope:'11-QA',quickAccessEnabled:true,readOnly:true
+  }});
+  if(action==='redeem'){
+   expect(route.request().postDataJSON()).toEqual({handle,classroomPassword:'SyntheticQA'});
+   signedIn=true;
+   return route.fulfill({json:{ok:true}});
+  }
+  if(action==='me')return signedIn?route.fulfill({json:{
+   groupLabel:'Group 01',groupState:'published',readOnly:true,csrf:'qa-published',
+   assignment:{title:'Climate Action Museum',class_scope:'11-QA'}
+  }}):route.fulfill({status:401,json:{error:'Sign in with a group pass.'}});
+  return route.fulfill({json:{draft:{title:'Climate Action Museum'},version:2}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>{
+  expect(route.request().method()).toBe('GET');
+  const params=new URL(route.request().url()).searchParams;
+  if(params.get('operation')==='review-activity')return route.fulfill({json:{
+   response:params.get('stageIndex')==='10'?'Our group will reduce food waste.':null,peer:[],videos:[]
+  }});
+  return route.fulfill({json:{session:{id:'qa-published-session',status:'active',stageIndex:10,stageOpen:false}}});
+ });
+ await page.evaluate(invite=>history.replaceState(null,'',location.pathname+'#/gallery-create?invite='+invite),handle);
+ await page.getByTestId('qa-student-en').click();
+ await page.getByLabel('Class password',{exact:true}).fill('SyntheticQA');
+ await page.getByRole('button',{name:'Enter lesson'}).click();
+ const activities=page.getByTestId('student-activity-groups');
+ await activities.getByRole('button',{name:/Evaluate/}).click();
+ await activities.getByRole('button',{name:/Exit Ticket/}).click();
+ await expect(page.getByTestId('student-lesson-review')).toContainText('Our group will reduce food waste.');
+ await expect(page.getByRole('button',{name:'Submit group response'})).toHaveCount(0);
 });
 
 test('Teacher Live has real stage motion control, readable voiceover, research library and persistent curated videos',async({page})=>{
