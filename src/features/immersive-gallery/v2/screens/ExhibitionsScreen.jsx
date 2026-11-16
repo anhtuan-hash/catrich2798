@@ -43,11 +43,16 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
 
   const pull = async () => {
     const api = await import('../../galleryData.js');
-    const [clientEnabled, archive] = await Promise.all([api.getGalleryEnabled(), transport('showcase-state')]);
-    const enabled = typeof archive.galleryEnabled === 'boolean' ? archive.galleryEnabled : clientEnabled;
-    let direct = [], directError = null;
-    if (enabled) { try { direct = await api.listExhibitions(); } catch (e) { directError = e; } }
+    const archive = await transport('showcase-state');
+    // The public server catalogue already enforces school scope and publication
+    // visibility. Do not let optional browser-side reads delay that catalogue.
+    const enabled = typeof archive.galleryEnabled === 'boolean'
+      ? archive.galleryEnabled : await api.getGalleryEnabled();
     const published = enabled && Array.isArray(archive.publishedGalleries) ? archive.publishedGalleries : [];
+    let direct = [], directError = null;
+    if (enabled && !payload.publicReadOnly) {
+      try { direct = await api.listExhibitions(); } catch (e) { directError = e; }
+    }
     if (directError && !published.length) throw directError;
     const unique = new Map();
     for (const item of [...direct, ...published]) {
