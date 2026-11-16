@@ -1,3 +1,5 @@
+import {AFTER_CLASS_TASK} from './lessonPlanAlignment.js';
+
 // Projector copy for the P2 lesson. Historical question/response data comes from the live session.
 export const MUSEUM_ACTIVITY_SLIDES = {
   'climate-detective': {
@@ -67,7 +69,7 @@ export const MUSEUM_ACTIVITY_SLIDES = {
     cards: [
       ['Visit', 'Use the three posters to identify the problem, the evidence and the proposed action.'],
       ['Respond', 'Save a separate draft explaining what you learned and what could be clearer.'],
-      ['Rate and send', 'Rate clarity from 1 to 4 for each exhibit, then send all reviews together.'],
+      ['Rate and send', 'Give each reviewed group one clarity rating from 1 to 4. In a ten-group class, send nine reviews together in one submission.'],
     ],
     output: 'One submission containing a separate review and clarity rating for each other group.',
   },
@@ -94,7 +96,7 @@ export const MUSEUM_ACTIVITY_SLIDES = {
     cards: [
       ['Write', 'Use “I will … because …”. Give one concrete action and one reason.'],
       ['Submit', 'Send one Exit Ticket per group or device. Check that the museum is submitted.'],
-      ['Apply', 'Agree on one way to track the action over the next week.'],
+      ['After class · D2', AFTER_CLASS_TASK],
     ],
     output: 'One group Exit Ticket and a submitted museum. The team reviews exhibits after class.',
   },

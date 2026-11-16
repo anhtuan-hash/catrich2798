@@ -40,8 +40,8 @@ export default function DossierEditor({
             :<option value="">{t(language,'Chưa có bài học thật','No real lessons yet')}</option>}
         </select>
         <div className="mt16">
-          <button type="button" className="adv-export-btn adv-export-btn--major" disabled={exportBusy} onClick={()=>onExportDoc('P1')}><FileDown size={15}/>{t(language,'Xuất Phần 1 · Word','Export Part 1 · Word')}</button>
-          <button type="button" className="adv-export-btn adv-export-btn--major" disabled={exportBusy} onClick={()=>onExportDoc('P2')}><FileDown size={15}/>{t(language,'Xuất Phần 2 · Word','Export Part 2 · Word')}</button>
+          <button type="button" className="adv-export-btn adv-export-btn--major" disabled={exportBusy} onClick={()=>onExportDoc('P1')}><FileDown size={15}/>{t(language,'Xuất bản nháp Phần 1 · Word','Export Part 1 draft · Word')}</button>
+          <button type="button" className="adv-export-btn adv-export-btn--major" disabled={exportBusy} onClick={()=>onExportDoc('P2')}><FileDown size={15}/>{t(language,'Xuất bản nháp Phần 2 · Word','Export Part 2 draft · Word')}</button>
           <button type="button" className="adv-export-btn" disabled={exportBusy} onClick={onExportZip}><FileArchive size={15}/>{t(language,'Tải ZIP hồ sơ nháp P1/P2','Download P1/P2 draft ZIP')}</button>
           <button type="button" className="adv-export-btn" disabled={exportBusy||!selectedAssignmentId} onClick={onExportEvidence}><Download size={15}/>{t(language,'Xuất khảo sát · góp ý · bản trước/sau · ảnh thật','Export survey · feedback · revisions · original images')}</button>
           <button type="button" className="adv-export-btn" onClick={onExportCsv}><Download size={15}/>{t(language,'Tải bảng tiến độ CSV','Download progress CSV')}</button>

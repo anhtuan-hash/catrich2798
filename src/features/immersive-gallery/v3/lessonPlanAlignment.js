@@ -2,6 +2,8 @@
 export const PUBLIC_LESSON_GUIDE = '/museum-lesson-guide.html';
 export const OFFLINE_LESSON_WORKSHEET = '/museum-lesson-worksheet.html';
 
+export const AFTER_CLASS_TASK = 'Track one approved action for one school week. In Worksheet D2 record the dates, what you counted, and completions out of opportunities. Write two or three English sentences reporting the result and one limitation. Bring D2 to the first English lesson after the observation week.';
+
 export const EVIDENCE_WRITING = Object.freeze({
   before: 'In a classroom priority survey, 3 of 10 groups selected switching off unused lights. Write ONE sentence reporting the result with a percentage. Write ONE sentence explaining what the survey can tell us.',
   after: 'In a classroom priority survey, 7 of 10 groups selected using reusable bottles. Write ONE sentence reporting the result with a percentage. Write ONE sentence explaining what the survey can tell us.',
@@ -29,7 +31,7 @@ export const LESSON_PLAN_NOTES = Object.freeze({
   },
   'classroom-survey': {
     phase: 'Investigate',
-    task: 'Cast one priority vote per group. Freeze the chart before using it. Record the date, the count x, valid group votes N, x ÷ N × 100, and one limit on what the data show.',
+    task: 'Cast one priority vote per group. The teacher closes the survey. Read the date, votes x, valid group responses N and the percentage calculated by BRIAN. Write one result and one limitation in English.',
     extension: 'Use a paper tally only when no online votes exist. A group-priority vote gives neither individual habits nor an estimate of electricity use or emissions.',
   },
   'problem-evidence-solution': {
@@ -52,7 +54,7 @@ export const LESSON_PLAN_NOTES = Object.freeze({
   },
   'peer-gallery-walk': {
     phase: 'Test V1',
-    task: 'Visit the other groups in the private gallery. Draft one review per group with a specific learning point, a suggestion and a clarity rating from 1 to 4. Send the reviews together once all drafts are ready.',
+    task: 'Visit the other groups in the private gallery. Draft one review per group with a specific learning point, a suggestion and a clarity rating from 1 to 4. Send the reviews together once all drafts are ready. In a class of ten groups, each sends nine reviews and receives nine when all groups take part.',
     extension: 'For a new run, use the first two minutes of the visitor turn for the three V1 questions. Record the visitor’s answers before discussing how to improve the exhibit.'
   },
   'revise': {
@@ -66,7 +68,7 @@ export const LESSON_PLAN_NOTES = Object.freeze({
   },
   'exit-ticket': {
     phase: 'Apply',
-    task: 'Submit one Exit Ticket per group or device: “I will … because …”. Check that the final museum is submitted. Agree on one way to track the action over the next week.',
+    task: 'Submit one Exit Ticket per group or device: “I will … because …”. Check that the final museum is submitted. Agree on what you will track. ' + AFTER_CLASS_TASK,
     extension: 'For a new run, use one minute of task time for independent writing check B. Use the remaining 30 seconds to submit the group response prepared during the pitch stage.'
   }
 });
