@@ -1,6 +1,6 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronRight,ClipboardList,Copy,Download,Eye,EyeOff,ExternalLink,KeyRound,Landmark,LockKeyhole,Plus,Printer,QrCode,RefreshCw,ShieldAlert,Trash2,Users} from 'lucide-react';
-import {ASEAN_TEMPLATE,ASEAN_TITLE,ASEAN_SUBTITLE,ASEAN_CHALLENGE,ASEAN_BRIEF,ASEAN_STAGES,isAsean,aseanDestination} from './aseanLesson.js';
+import {ASEAN_TEMPLATE,ASEAN_TITLE,ASEAN_SUBTITLE,ASEAN_CHALLENGE,ASEAN_BRIEF,ASEAN_STAGES,ASEAN_MIN_GROUPS,ASEAN_MAX_GROUPS,isAsean,aseanDestination} from './aseanLesson.js';
 import {progressOfGroup} from './museumData.js';
 import {englishSystemGroupLabel} from './museumApi.js';
 import './museumPrepared.css';
@@ -38,13 +38,13 @@ export function OneTimeInvites({invitations,onClose,language='vi'}){
 export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'}){
  const [step,setStep]=useState(0);
  const isAdmin=data?.profile?.role==='admin'&&!data?.offlineReadOnly;
- const [form,setForm]=useState({classScope:'',accessWindow:'standard',title:'',brief:''});
+ const [form,setForm]=useState({classScope:'',groupCount:ASEAN_MAX_GROUPS,accessWindow:'standard',title:'',brief:''});
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[invites,setInvites]=useState(null);
  const title=form.title||ASEAN_TITLE,brief=form.brief||ASEAN_BRIEF;
  const issue=async()=>{
   setError('');setBusy(true);
   try{
-   const payload={title,classScope:form.classScope.trim(),brief,groupCount:10,lessonTemplate:ASEAN_TEMPLATE,
+   const payload={title,classScope:form.classScope.trim(),brief,groupCount:form.groupCount,lessonTemplate:ASEAN_TEMPLATE,
     deadlineAt:deadlineForWindow(form.accessWindow)};
    const r=await staffRequest('create-assignment',payload);setInvites(r.invitations);
    await onCompleted();
@@ -85,12 +85,19 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'})
    {step===0?<section className="bml-single-flow"><h2>{ASEAN_TITLE}</h2>
     <p>{ASEAN_SUBTITLE}</p><p>{ASEAN_CHALLENGE}</p>
     <ol>{ASEAN_STAGES.map(stage=><li key={stage.id}>{stage.title} · {stage.minutes} min</li>)}</ol>
-    <p>Ten groups · Ten destinations · Three frames per group</p>
+    <p>{tr(language,'Mỗi nhóm thực hiện ba khung ảnh về một điểm đến.','Each group builds a three-frame exhibit about one destination.')}</p>
    </section>:null}
    {step===1?<><h2>{tr(language,'Thiết lập lớp và nhóm','Set class and groups')}</h2><p>{tr(language,'Chỉ điền những thông tin cần thiết. Mỗi nhóm sẽ nhận một Creator Pass riêng.','Only essential information is required. Every group gets its own Creator Pass.')}</p>
     <div className="bml-field-grid">
      <label>{tr(language,'Lớp học','Class')}<input autoFocus required maxLength={120} placeholder="11A3" value={form.classScope} onChange={e=>setForm(v=>({...v,classScope:e.target.value}))}/></label>
-     <label>{tr(language,'Số nhóm','Number of groups')}<input value="10" readOnly/></label>
+     <label>{tr(language,'Số nhóm','Number of groups')}
+      <select value={form.groupCount} onChange={e=>setForm(v=>({...v,groupCount:Number(e.target.value)}))}>
+       {Array.from({length:ASEAN_MAX_GROUPS-ASEAN_MIN_GROUPS+1},(_,index)=>{
+        const count=ASEAN_MIN_GROUPS+index;
+        return <option key={count} value={count}>{count} {tr(language,'nhóm','groups')}</option>;
+       })}
+      </select>
+     </label>
      <label>{tr(language,'Quyền truy cập bài','Submission access')}<select value={form.accessWindow} onChange={e=>setForm(v=>({...v,accessWindow:e.target.value}))}>
       <option value="standard">{tr(language,'Tiêu chuẩn','Standard')}</option>
       <option value="extended">{tr(language,'Mở rộng','Extended')}</option>
@@ -105,11 +112,11 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'})
     <p>{tr(language,'Xác nhận nội dung trước khi tạo mã nhóm. Sau khi tạo, mã bí mật sẽ chỉ xuất hiện một lần.','Confirm details before generating one-time private group codes.')}</p>
     <div className="bml-field-grid">
      <label>{tr(language,'Tên chủ đề','Lesson title')}<input maxLength={140} value={title} onChange={e=>setForm(v=>({...v,title:e.target.value}))}/></label>
-     <label>{tr(language,'Lớp / nhóm','Class / groups')}<input disabled value={form.classScope+' · '+10+' '+tr(language,'nhóm','groups')}/></label>
+     <label>{tr(language,'Lớp / nhóm','Class / groups')}<input disabled value={form.classScope+' · '+form.groupCount+' '+tr(language,'nhóm','groups')}/></label>
     </div>
     <label className="bml-full-field">{tr(language,'Nhiệm vụ của học sinh','Student assignment')}<textarea rows={5} maxLength={5000} value={brief} onChange={e=>setForm(v=>({...v,brief:e.target.value}))}/></label>
     <div className="bml-wizard-summary"><div><BookOpen size={21}/><span>{ASEAN_TITLE}</span></div>
-     <div><Users size={21}/><span>10 {tr(language,'nhóm','groups')} · {form.classScope}</span></div>
+     <div><Users size={21}/><span>{form.groupCount} {tr(language,'nhóm','groups')} · {form.classScope}</span></div>
 </div>
     {!data?.creatorSettings?.enabled?<div className="bml-banner bml-warning-banner"><LockKeyhole size={20}/><span>{tr(language,'Creator Pass đang tắt. Admin cần bật sau khi nghiệm thu trước khi giao bài thật.','Creator Pass is OFF. An administrator must enable it after acceptance.')}</span>
       <button type="button" className="bml-text-btn" onClick={onSettings}>{tr(language,'Cài đặt','Settings')}</button></div>:null}

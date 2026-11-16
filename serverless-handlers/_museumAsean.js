@@ -1,6 +1,6 @@
 import {checkpointGallery} from './_museumEvidence.js';
 import {fail,guardBody,guardOrigin,query,requireMethod,send} from './_galleryCreator.js';
-import {ASEAN_DESTINATIONS,aseanExhibitMissing,aseanGroupIndex,validAseanResponse} from '../src/features/immersive-gallery/v3/aseanLesson.js';
+import {aseanExhibitMissing,aseanPeerGroup,validAseanResponse} from '../src/features/immersive-gallery/v3/aseanLesson.js';
 
 export async function aseanGroupRecords(admin, sessionId, groupId) {
  return query(admin.from('museum_live_responses').select('stage_index,value')
@@ -9,11 +9,9 @@ export async function aseanGroupRecords(admin, sessionId, groupId) {
 
 async function aseanVisitTarget(admin,assignmentId,groupId,stage,reverse=false){
  const groups=await query(admin.from('gcp_groups').select('id,label').eq('assignment_id',assignmentId));
- groups.sort((a,b)=>aseanGroupIndex(a.label)-aseanGroupIndex(b.label));
- const index=groups.findIndex(group=>group.id===groupId);
- if(groups.length!==ASEAN_DESTINATIONS.length||index<0)throw fail(409,'The ten assigned groups could not be found.');
- const offset=(stage===3?1:2)*(reverse?-1:1);
- return groups[(index+offset+groups.length)%groups.length];
+ const peer=aseanPeerGroup(groups,groupId,stage,{reverse});
+ if(!peer)throw fail(409,'The assigned visitor group could not be found.');
+ return peer;
 }
 
 export async function handleAseanActivity({op,req,res,admin,ctx,session}){

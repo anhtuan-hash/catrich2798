@@ -23,6 +23,10 @@ export const ASEAN_DESTINATIONS = Object.freeze([
  ['George Town','Malaysia',1223],['Singapore Botanic Gardens','Singapore',1483],
  ['Borobudur','Indonesia',592],['Vigan','Philippines',502],
 ].map(([name,country,sourceId])=>({name,country,source:'https://whc.unesco.org/en/list/'+sourceId+'/'})));
+export const ASEAN_MIN_GROUPS = 3;
+export const ASEAN_MAX_GROUPS = ASEAN_DESTINATIONS.length;
+export const validAseanGroupCount = count =>
+ Number.isInteger(count)&&count>=ASEAN_MIN_GROUPS&&count<=ASEAN_MAX_GROUPS;
 export const ASEAN_CARDS=Object.freeze([
  {title:'My Son Sanctuary',country:'Viet Nam · historic brick temples',experience:'brick towers / look from the path',advice:'taking a photo / stand to one side of the path'},
  {title:'Sukhothai Historical Park',country:'Thailand · historic monuments',experience:'historic monuments / look from the path',advice:'stopping to read / leave room for others on the path'},
@@ -36,6 +40,14 @@ export const ASEAN_RUBRIC=Object.freeze([
 export const isAsean = assignment => (typeof assignment==='string'?assignment:assignment?.lesson_template)===ASEAN_TEMPLATE;
 export const aseanGroupIndex = label => Number(String(label||'').match(/(\d+)\s*$/)?.[1]||0)-1;
 export const aseanDestination = label => ASEAN_DESTINATIONS[aseanGroupIndex(label)];
+export function aseanPeerGroup(classGroups,groupId,stage,{reverse=false}={}){
+ if(!validAseanGroupCount(classGroups.length)||![3,4].includes(stage))return null;
+ const sorted=classGroups.slice().sort((a,b)=>aseanGroupIndex(a.label)-aseanGroupIndex(b.label));
+ const index=sorted.findIndex(group=>group.id===groupId);
+ if(index<0)return null;
+ const offset=(stage===3?1:2)*(reverse?-1:1);
+ return sorted[(index+offset+sorted.length)%sorted.length];
+}
 export const aseanWritingCard = (label,transfer=false)=>ASEAN_CARDS[(Math.max(0,aseanGroupIndex(label))+(transfer?1:0))%2];
 export const aseanPublicKey = id => 'asean-'+id;
 export const aseanWordCount = value=>String(value||'').trim().split(/\s+/u).filter(Boolean).length;

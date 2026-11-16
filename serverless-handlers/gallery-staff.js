@@ -11,7 +11,7 @@ import {canGradeReviewState} from './_museumRubricPolicy.js';
 
 // Copy approved private art into R1's still-private bucket before atomic promotion.
 // The SQL publication RPC verifies each link and the immutable TTCM snapshot hash.
-import {ASEAN_TEMPLATE,ASEAN_TITLE,ASEAN_RUBRIC,aseanPublicKey,isAsean} from '../src/features/immersive-gallery/v3/aseanLesson.js';
+import {ASEAN_TEMPLATE,ASEAN_TITLE,ASEAN_RUBRIC,ASEAN_MIN_GROUPS,ASEAN_MAX_GROUPS,aseanPublicKey,isAsean,validAseanGroupCount} from '../src/features/immersive-gallery/v3/aseanLesson.js';
 
 async function stageApprovedArt(ctx,scoped){
  const {review,group,assignment}=scoped,admin=ctx.admin;
@@ -477,7 +477,7 @@ export default async function galleryStaff(req,res){
    const template=body.lessonTemplate??ASEAN_TEMPLATE;
    if(template!==ASEAN_TEMPLATE)throw fail(400,'Unknown lesson template.');
    const count=Number(body.groupCount||0);
-   if(count!==10)throw fail(400,'This teaching plan uses ten groups.');
+   if(!validAseanGroupCount(count))throw fail(400,`Chọn từ ${ASEAN_MIN_GROUPS} đến ${ASEAN_MAX_GROUPS} nhóm.`);
    const deadline=new Date(body.deadlineAt),now=Date.now();
    if(!Number.isFinite(deadline.getTime())||deadline.getTime()<now+60*60*1000||
       deadline.getTime()>now+120*24*60*60*1000)

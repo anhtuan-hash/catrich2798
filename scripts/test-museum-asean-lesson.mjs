@@ -4,6 +4,7 @@ import {normalizeGuestDraft} from '../src/features/immersive-gallery/creatorPass
 import {documentFromStudio,emptyStudio,scoreRubric} from '../src/features/immersive-gallery/v3/museumData.js';
 import {ASEAN_DESTINATIONS,ASEAN_FRAMES,ASEAN_RUBRIC,ASEAN_STAGES,ASEAN_TEMPLATE,aseanExhibitMissing,aseanWritingCard,validAseanResponse} from '../src/features/immersive-gallery/v3/aseanLesson.js';
 import {sessionStage,LIVE_STAGES} from '../src/features/immersive-gallery/v3/liveLesson.js';
+import {ASEAN_MIN_GROUPS,ASEAN_MAX_GROUPS,aseanDestination,aseanPeerGroup,validAseanGroupCount} from '../src/features/immersive-gallery/v3/aseanLesson.js';
 
 test('ASEAN uses two 45-minute group periods, ten destinations and parallel writing cards',()=>{
  for(const period of [1,2])assert.equal(ASEAN_STAGES.filter(stage=>stage.period===period).reduce((sum,stage)=>sum+stage.minutes,0),45);
@@ -32,6 +33,22 @@ test('three-frame exhibit remains valid through the password-protected studio an
  assert.deepEqual(aseanExhibitMissing(doc),['Visitor Advice caption (20–30 words)']);
  assert.equal(scoreRubric({english:4,design:2,evidence:2,revision:2},ASEAN_RUBRIC),10);
  assert.throws(()=>scoreRubric({english:5},ASEAN_RUBRIC));
+});
+
+test('every supported class size has a different visitor for each round and a destination for every group',()=>{
+ for(let count=ASEAN_MIN_GROUPS;count<=ASEAN_MAX_GROUPS;count++){
+  assert.equal(validAseanGroupCount(count),true);
+  const groups=Array.from({length:count},(_,index)=>({id:index,label:'Nhóm '+String(index+1).padStart(2,'0')})).reverse();
+  assert.equal(new Set(groups.map(group=>aseanDestination(group.label)?.name)).size,count);
+  for(const group of groups){
+   const initialVisitor=aseanPeerGroup(groups,group.id,3,{reverse:true});
+   const freshVisitor=aseanPeerGroup(groups,group.id,4,{reverse:true});
+   assert.equal(new Set([group.id,initialVisitor.id,freshVisitor.id]).size,3);
+   assert.equal(aseanPeerGroup(groups,initialVisitor.id,3).id,group.id);
+   assert.equal(aseanPeerGroup(groups,freshVisitor.id,4).id,group.id);
+  }
+ }
+ for(const count of [0,1,2,3.5,11,NaN])assert.equal(validAseanGroupCount(count),false);
 });
 
 test('group forms reject conflated image choices and incorrect scores for supporting frames',()=>{
