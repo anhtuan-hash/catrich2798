@@ -1062,12 +1062,16 @@ html:has(.igv2) .bes-smart-bubble-dock {
   line-height: 1.02;
   letter-spacing: -0.035em;
   color: #111111;
-  text-transform: none;
+  text-transform: uppercase;
 }
 
 .igv2 .footer-col--qual h3 {
   max-inline-size: 12em;
   text-wrap: balance;
+}
+
+.igv2 .igv2-footer-wrap:lang(en) .footer-col--qual h3 {
+  max-inline-size: none;
 }
 
 .igv2 .footer-list {
@@ -1143,6 +1147,7 @@ html:has(.igv2) .bes-smart-bubble-dock {
   font-weight: 800;
   letter-spacing: 0.045em;
   color: #ffffff;
+  text-transform: uppercase;
 }
 
 .igv2 .footer-final-pipe {

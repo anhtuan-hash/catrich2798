@@ -77,12 +77,9 @@ const PRESERVE = Object.freeze({
     'Teacher: Nguyễn Anh Tuấn, MA',
     'Pétrus Ký School',
   ],
-  // User-approved V2 footer identity and section labels are preserved verbatim.
+  // Vietnamese personal name is also retained in the English footer credit.
   'src/features/immersive-gallery/v2/shell/Footer.jsx': [
-    'NGUYỄN ANH TUẤN (MR.)',
-    'HỌC VẤN & CHỨNG CHỈ CHUYÊN MÔN',
     'Nguyễn Anh Tuấn',
-    'PÉTRUS KÝ SCHOOL SYSTEM',
   ],
   'src/pages/QuestionBank.jsx': [
     '5 Arrangement · 5 Discourse Cloze · 10 Reading · 8 Reading · 2 × 6 Functional Cloze.',

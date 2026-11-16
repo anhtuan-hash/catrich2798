@@ -25,6 +25,44 @@ test('paper dashboard preserves the current English interface',async({page})=>{
  await expect(app).toContainText('Exit Tickets:');
  await expect(app).not.toContainText('Chào mừng');
 });
+test('Swiss exhibition footer follows the VI/EN switch',async({page},testInfo)=>{
+ await page.getByTestId('qa-dashboard-published-en').click();
+ const navigation=page.getByRole('navigation',{name:'Museum Lab workspace navigation'});
+ await navigation.getByRole('button',{name:'Exhibitions',exact:true}).click();
+ const language=page.locator('.igv2-lang-toggle');
+ const footer=page.getByTestId('igv2-footer-root');
+ const portfolio=footer.locator('.footer-final-right');
+ const assertLayout=async()=>{
+  await expect(footer).toBeVisible();
+  expect(await footer.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+  await expect.poll(()=>footer.locator('img').evaluateAll(imgs=>imgs.every(img=>img.complete&&img.naturalWidth>0))).toBe(true);
+  await expect(portfolio).toHaveAttribute('href','https://decisive-difference-557977.framer.app/');
+ };
+ await expect(footer).toHaveAttribute('lang','en');
+ await expect(footer.getByRole('heading',{name:/^Mr Nguyễn Anh Tuấn$/i})).toBeVisible();
+ await expect(footer.getByRole('heading',{name:/^Academic Qualifications & Professional Credentials$/i})).toBeVisible();
+ await expect(footer).toContainText('Head of the English Department');
+ await expect(footer).toContainText('Speaking Examiner for Cambridge English Qualifications');
+ await expect(footer).toContainText('Currently pursuing a master’s degree in English Language Studies');
+ await expect(footer).toContainText('Better Learners · Brighter Futures');
+ await expect(footer).toContainText('Teach Better Together');
+ await expect(portfolio).toHaveText('Designed & developed by Nguyễn Anh Tuấn');
+ await assertLayout();
+ await footer.screenshot({path:testInfo.outputPath('exhibition-footer-en.png')});
+ await language.getByRole('button',{name:'VI',exact:true}).click();
+ await expect(footer).toHaveAttribute('lang','vi');
+ await expect(footer.getByRole('heading',{name:/^Nguyễn Anh Tuấn$/i})).toBeVisible();
+ await expect(footer.getByRole('heading',{name:/^Học vấn & Chứng chỉ chuyên môn$/i})).toBeVisible();
+ await expect(footer).toContainText('Tổ trưởng chuyên môn tiếng Anh');
+ await expect(footer).toContainText('Giám khảo vấn đáp các kỳ thi tiếng Anh Cambridge');
+ await expect(footer).toContainText('Đang theo học Thạc sĩ Ngôn ngữ Anh');
+ await expect(footer).toContainText('Học tốt hơn · Tương lai tươi sáng hơn');
+ await expect(footer).toContainText('Cùng nhau dạy tốt hơn');
+ await expect(portfolio).toHaveText('Thiết kế và phát triển bởi Nguyễn Anh Tuấn');
+ await expect(footer).toContainText('0339 270798');
+ await assertLayout();
+ await footer.screenshot({path:testInfo.outputPath('exhibition-footer-vi.png')});
+});
 test('paper navigation reaches real screens and search keeps the lesson filter',async({page})=>{
  const nav=page.getByRole('navigation',{name:'Điều hướng Museum Lab',exact:true});
  await expect(nav.getByRole('button')).toHaveCount(4);
