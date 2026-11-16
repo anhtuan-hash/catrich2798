@@ -387,6 +387,7 @@
 }
 
 .igv2 .swiss-teaching-plan a { color: #aa0a1c; text-decoration: underline; text-underline-offset: 2px; font-weight: 700; }
+.igv2 .swiss-teaching-plan .plan-copy a.plan-button { color: inherit; }
 .igv2 .swiss-teaching-plan .plan-period:nth-child(2) a { color: inherit; }
 .igv2 .swiss-teaching-plan .plan-sequence-note { padding-top: 16px; font-size: 14px; }
 
@@ -428,7 +429,7 @@
 .igv2 .swiss-teaching-plan .plan-actions .go .icon { width: 18px; height: 18px; }
 .igv2 .swiss-teaching-plan .plan-actions .action:hover { text-decoration: underline; }
 .igv2 .swiss-teaching-plan :is(button, a):focus-visible { outline: 3px solid #cd342c; outline-offset: 3px; }
-.igv2 .swiss-teaching-plan .plan-copy button:focus-visible { outline-color: #fff; }
+.igv2 .swiss-teaching-plan .plan-copy :is(button, a):focus-visible { outline-color: #fff; }
 
 @media (max-width: 840px) {
   .igv2 .swiss-teaching-plan .plan-masthead { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
