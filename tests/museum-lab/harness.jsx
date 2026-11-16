@@ -86,6 +86,13 @@ const submittedQa={
    rooms:[{title:'The climate hall',exhibits:[{title:'Our Problem',description:'Energy waste can contribute to emissions.'}]}]}}],
  rubrics:[]
 };
+const submissionsQa={
+ ...submittedQa,
+ exitTickets:[{group_id:'group-1',value:'An exit ticket'}],
+ reviews:[...submittedQa.reviews,
+  {id:'review-qa-2',group_id:'group-2',version:1,state:'published',snapshot:{title:'The climate museum'}}],
+};
+const submissionsQaTransport=async action=>action==='dashboard'?submissionsQa:demoDashboardApi(action);
 function ReviewWorkflowHarness({language}){
  const [data,setData]=useState({
   ...submittedQa,
@@ -252,10 +259,12 @@ function Harness(){
  return <div style={{fontFamily:'Roboto,Arial,sans-serif'}}>
   <div style={{display:'flex',gap:8,padding:10,background:'#e6f0ff',flexWrap:'wrap'}} data-testid="qa-harness">
    <strong>QA ONLY · ALL DATA SYNTHETIC</strong>
-   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','review-workflow-en','published-lesson','dashboard-en','dashboard-published-en','dashboard-published-fail-en','student-en','teacher-live-en','teacher-live-ten-en','teacher-live-frozen-en','teacher-live-v2-frozen-en','teacher-live-completion-en','teacher-live-visitor-en','v53-evidence-en','v54-speaking-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
+   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','review-workflow-en','published-lesson','dashboard-en','dashboard-submissions','dashboard-published-en','dashboard-published-fail-en','student-en','teacher-live-en','teacher-live-ten-en','teacher-live-frozen-en','teacher-live-v2-frozen-en','teacher-live-completion-en','teacher-live-visitor-en','v53-evidence-en','v54-speaking-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
   </div>
-  <div className={normalized==='dashboard'?'':'bml'}>
+  <div className={normalized==='dashboard'||normalized==='dashboard-submissions'?'':'bml'}>
    {normalized==='dashboard'?<MuseumLabApp language={uiLanguage} currentUser={{id:'teacher-synthetic',name:'Demo Teacher'}} transport={demoDashboardApi}/>:null}
+   {normalized==='dashboard-submissions'?<MuseumLabApp language={uiLanguage}
+    currentUser={{id:'teacher-synthetic',name:'Synthetic Teacher'}} transport={submissionsQaTransport}/>:null}
    {normalized==='dashboard-published'?<MuseumLabApp language={uiLanguage}
     currentUser={{id:'teacher-synthetic',name:'Synthetic Teacher'}} transport={publishedQaTransport}/>:null}
    {normalized==='dashboard-published-fail'?<MuseumLabApp language={uiLanguage}

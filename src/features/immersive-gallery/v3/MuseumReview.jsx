@@ -143,6 +143,11 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
    if(await refreshAfterChange())setForm(null);
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
+ const previewButton=<button type="button" className="bml-outline bml-review-preview-toggle" onClick={()=>setPreview(v=>!v)}>
+  <Eye size={17} aria-hidden="true"/>{preview?tr(language,'Đọc nội dung','Read content'):tr(language,'Xem bảo tàng 2D/3D','Preview museum')}
+ </button>;
+ const groupContext=[language==='en'?englishSystemGroupLabel(group?.label):group?.label,assignment?.class_scope].filter(Boolean).join(' · ');
+ const submissionVersion=tr(language,'BẢN NỘP','SUBMISSION')+' · v'+selected?.version;
  const open=r=>{setSelectedId(r.id);setForm(null);setError('');setSuccess('');setPreview(false);setReviewArtAssets([]);};
  return <div className={'bml-screen'+(editorial?' swiss-editorial-review-desk':'')} data-testid="museum-review-desk">
   {!editorial?<div className="bml-heading-actions"><div><div className="bml-overline">{tr(language,'ĐÁNH GIÁ HỌC TẬP','LEARNING ASSESSMENT')}</div>
@@ -178,7 +183,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
       submitted:'Teacher review',ttcm_review:'Department review',changes_requested:'Needs revision',approved_locked:'Approved',published:'Published',rejected:'Rejected'}[r.state]||status.label);
     const rubricLabel=tr(language,'Rubric đã lưu','Saved rubric');
     const openLabel=tr(language,'Xem chi tiết','Open submission');
-    return <button className={'bml-review-card '+(selectedId===r.id?'is-selected':'')} type="button" key={r.id} disabled={busy} onClick={event=>{openedCard.current=event.currentTarget;open(r);}}>
+    return <button className={'bml-review-card '+(selectedId===r.id?'is-selected':'')} type="button" key={r.id} disabled={busy} aria-expanded={editorial?selectedId===r.id:undefined} aria-controls={editorial&&selectedId===r.id?'museum-review-detail':undefined} onClick={event=>{openedCard.current=event.currentTarget;open(r);}}>
      {editorial?<>
       <span className="bml-review-card-top">
         <span className="swiss-editorial-review-group">{[groupLabel,a?.class_scope].filter(Boolean).join(' · ')}</span>
@@ -200,16 +205,21 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
     </button>;
    })}</div>}
   </div>
-  {selected?<section className="bml-review-detail bml-surface">
+  {selected?<section className="bml-review-detail bml-surface" id={editorial?'museum-review-detail':undefined} aria-labelledby={editorial?'museum-review-title':undefined}>
    {frozen?<div className="bml-banner bml-success-banner" role="status"><LockKeyhole size={18}/> Finalized lesson · Read-only review. Grading, approval and deletion are locked.</div>:null}
-    <div className="bml-section-head"><div><span className="bml-overline">{tr(language,'BẢN NỘP','SUBMISSION')} · v{selected.version}</span>
-     <h2 ref={detailHeading} tabIndex={editorial?-1:undefined}>{selected.snapshot?.title||tr(language,'Bản nháp','Draft')}</h2>
-     <p>{language==='en'?englishSystemGroupLabel(group?.label):group?.label} · {assignment?.class_scope}</p></div>
-     <button type="button" className="bml-icon-btn" disabled={busy} onClick={()=>{setSelectedId(null);setForm(null);if(editorial)openedCard.current?.focus();}} aria-label="Close"><ArrowLeft size={21}/></button></div>
+    <div className="bml-section-head"><div>
+     <span className="bml-overline">{editorial&&groupContext?groupContext:submissionVersion}</span>
+     <h2 ref={detailHeading} id={editorial?'museum-review-title':undefined} tabIndex={editorial?-1:undefined}>{selected.snapshot?.title||tr(language,'Bản nháp','Draft')}</h2>
+     <p>{editorial&&groupContext?submissionVersion:groupContext}</p></div>
+     <div className="bml-review-detail-controls">
+      {editorial?previewButton:null}
+      <button type="button" className="bml-icon-btn" disabled={busy} onClick={()=>{setSelectedId(null);setForm(null);if(editorial)openedCard.current?.focus();}} aria-label={editorial?tr(language,'Đóng chi tiết','Close submission'):'Close'}><ArrowLeft size={21} aria-hidden="true"/></button>
+     </div>
+    </div>
     <div className="bml-review-detail-layout">
      <div className="bml-review-preview">
       <div className="bml-review-preview-head"><h3>{tr(language,'Sản phẩm học sinh','Student exhibition')}</h3>
-       <button type="button" className="bml-outline" onClick={()=>setPreview(v=>!v)}><Eye size={17}/>{preview?tr(language,'Đọc nội dung','Read content'):tr(language,'Xem bảo tàng 2D/3D','Preview museum')}</button></div>
+       {editorial?null:previewButton}</div>
       {preview?<div className="bml-review-cinema-overlay" role="dialog" aria-modal="true" aria-label="Review student museum in Cinema Preview">
         <MuseumScene gallery={reviewMuseum(selected,reviewArtAssets)} embedded language={language}
          cinema initial3D onClose={()=>setPreview(false)}/>

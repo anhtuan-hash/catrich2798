@@ -18,9 +18,10 @@ export default function SubmissionsScreen({language='en', data, staff, onNavigat
     <div className="swiss-editorial-submissions">
       <header className="swiss-editorial-submissions-hero">
         <div className="swiss-editorial-submissions-title">
-          <h1>{tr(language, 'Bài nộp của học sinh', 'Student submissions.')}</h1>
+          <h1>{tr(language, 'Bài nộp của', 'Student')}{' '}
+            <span>{tr(language, 'học sinh', 'submissions.')}</span></h1>
           <p>{tr(language,
-            'Đây là bài nộp bảo tàng; Exit Ticket được xem riêng trong Bài học.',
+            'Đây là bài nộp bảo tàng. Exit Ticket được xem riêng trong Bài học.',
             'Museum project submissions appear here. Exit Tickets are available under Lessons.')}</p>
         </div>
         <MetricStrip items={metrics} ariaLabel={tr(language,'Số liệu bài nộp','Submission figures')} />
@@ -28,11 +29,6 @@ export default function SubmissionsScreen({language='en', data, staff, onNavigat
       <Submissions key={initialReview || 'normal'} language={language} data={payload}
         query={query} initialReview={initialReview}
         onNavigate={onNavigate} onRefresh={onRefresh} transport={transport} editorial />
-      <div className="swiss-editorial-submissions-note" role="note">
-        {tr(language,
-          'Màn hình phân biệt bài nộp bảo tàng với Exit Ticket; trạng thái và số liệu luôn lấy từ bản ghi thực.',
-          'Museum submissions are kept separate from Exit Tickets. Statuses and counts are connected to actual records.')}
-      </div>
     </div>
   );
 }
