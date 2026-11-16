@@ -13,32 +13,38 @@ const lessons=read('src/features/immersive-gallery/v3/MuseumLessonFlow.jsx');
 const reviews=read('src/features/immersive-gallery/v3/MuseumReview.jsx');
 const fullscreenDock=read('src/features/immersive-gallery/v3/MuseumFullscreenDock.jsx');
 const videoLab=read('src/features/immersive-gallery/v3/MuseumVideoLab.jsx');
+const swissLive=read('src/features/immersive-gallery/v2/screens/TeacherLiveScreen.jsx');
+const toolbar=read('src/features/immersive-gallery/v2/controls/TeacherToolbar.jsx');
 const migration=read('supabase/migrations/20261114013000_museum_completed_readonly.sql');
 
 function hasAll(source,items,name){
  for(const token of items)assert.ok(source.includes(token),name+' is missing '+token);
 }
 hasAll(invite,[
- 'content_frozen_at','readOnly:Boolean(assignment.content_frozen_at)',
+ 'content_frozen_at','readOnly:ctx.readOnly',
  'assignment.content_frozen_at?now+12*60*60*1000',
  'assignment.content_frozen_at||Date.parse(invite.expires_at)>now',
  '(!assignment.content_frozen_at&&',
  "operation==='logout'","ctx.session.csrf_token"
 ],'QR and original-passcode sign-in');
 assert.ok(!invite.includes("Date.parse(assignment.deadline_at)<=now ||\n      ['rejected','published'].includes(group.state))"),'Published read-only groups must not be rejected');
-hasAll(auth,['if(assignment.content_frozen_at)throw fail(423',
+hasAll(auth,['if(readOnly)throw fail(423',
  '!assignment.content_frozen_at && (!feature.enabled || invite.expires_at<=now)'],
  'guest authentication and denied writes');
 hasAll(staff,["'quick-access-setting'","'regenerate-all-passcodes'","'grade-rubric'",
  "'admin-decision'","'archive-review'","'archive-assignment'","'rotate-invite'",
  "'publish'","'archive-exhibition'","content_frozen_at"],
  'staff review, passcode and publication guards');
-hasAll(live,["if(req.method!=='GET'&&assignment.content_frozen_at)",'throw fail(423'],
+hasAll(live,["if(!publicRead&&req.method!=='GET'&&assignment.content_frozen_at)",'throw fail(423',
+ "'unlock-lesson'","admin.rpc('museum_set_lesson_completion'","p_actor:ctx.user.id"],
  'teacher live server protection');
+hasAll(swissLive,["canManageLesson&&(historicalSession||contentFrozenAt)","transport('unlock-lesson'",
+ "action:'end'","viewStage:String(browseIndex)"],'Swiss Teacher Live completion');
+hasAll(toolbar,["'Kết thúc bài dạy'","'Mở khóa bài dạy'"],'teacher toolbar controls');
 hasAll(student,['session.readOnly===true','readOnly={session.readOnly===true}',
  'Completed lesson · View only'],'student readonly display');
-hasAll(studentLive,['readOnly=false','if(readOnly||busy||posted)return',
- 'disabled={readOnly||busy||posted','Completed lesson · View only'],
+hasAll(studentLive,['readOnly=false','if(readOnly||busy||posted||!stageIsOpen||!canRespond)return',
+ 'disabled={readOnly||busy||posted','View only. Saved answers and exhibits are preserved.'],
  'student live controls');
 hasAll(teacherLive,['const readOnly=Boolean(','viewStage:String(browseIndex)',
  "if(action==='next'||action==='previous')","setBrowseIndex(i=>",
@@ -46,9 +52,9 @@ hasAll(teacherLive,['const readOnly=Boolean(','viewStage:String(browseIndex)',
  'onShareToggle={readOnly?null:shareNarration}','Completed lesson · View only'],
  'teacher live read-only playback and mutation guards');
 assert.doesNotMatch(teacherLive,/disabled=\{readOnly\|\|busy\|\|currentIndex===0\}/);
-hasAll(live,["const viewIndex=assignment.content_frozen_at",
- "const viewing=assignment.content_frozen_at",
- "readOnly:Boolean(assignment.content_frozen_at)",
+hasAll(live,["const viewIndex=reviewOnly",
+ "const viewing=reviewOnly",
+ "readOnly:reviewOnly",
  "persistedStageIndex:session.stage_index",
  "eq('stage_index',viewIndex)"],
  'authorized GET-only historical browsing');

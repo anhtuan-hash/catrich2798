@@ -22,8 +22,8 @@
   .grid{display:grid;gap:10px 14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,225px),1fr))}
   .muted{color:#405454}.status{margin:9px 0 0;color:#144437;font-weight:650}.error{color:#9a2424}.empty{color:#405454}
   .exhibit{padding:12px 0;margin-top:9px;border-top:1px solid #c9d5d0}
-  #posterPreview{display:block;width:min(100%,420px);height:auto;margin:10px auto;max-height:390px;object-fit:contain}
-  #posterPreview[hidden]{display:none}
+  .poster-preview{display:block;width:min(100%,420px);height:auto;margin:10px auto;max-height:390px;object-fit:contain}
+  .poster-preview[hidden]{display:none}
   #bars>div{display:grid;grid-template-columns:minmax(120px,1fr) 1.5fr 75px;align-items:center;gap:8px;margin:8px 0}
   progress{width:100%;accent-color:#19735d}.plain{white-space:pre-wrap;overflow-wrap:anywhere} .results{margin-top:8px}
   @media print{body{padding:0;background:white} header,section{padding:10px;border:0} nav,.no-print,button{display:none!important} .exhibit,fieldset{break-inside:avoid}}
@@ -52,8 +52,9 @@
   <h2>Khảo sát · Chặng 03</h2>
   <p lang="en">As a group, choose ONE action you would prioritise at school.</p>
   <div id="surveyChoices" lang="en"></div>
-  <p class="muted">Gửi lựa chọn cho GV theo kênh của lớp. Sau khi GV chốt, nhập số phiếu hợp lệ, kể cả 0 ở phương án không có phiếu.</p>
+  <p class="muted">Gửi một lựa chọn cho GV theo kênh của lớp. Khi dùng ngoại tuyến, nhập số phiếu GV đã chốt. Ghi 0 cho phương án không có phiếu. Biểu mẫu tự tính tỉ lệ và vẽ biểu đồ. Sau đó, nhóm đọc số phiếu và tỉ lệ hiển thị rồi viết kết quả và giới hạn bằng tiếng Anh.</p>
   <form id="surveyForm">
+    <label class="stack">Ngày khảo sát <input id="surveyDate" type="date"></label>
     <div class="grid" id="counts"></div>
     <button type="submit">Tính tỉ lệ và vẽ biểu đồ</button>
     <p id="surveyStatus" class="status" role="status"></p>
@@ -94,12 +95,8 @@
       <p>Viết prompt từ nội dung tiếng Anh của nhóm, bỏ thông tin nhận diện. Kiểm tra ảnh theo bản gốc. Tự thêm các số liệu và nguồn đã kiểm chứng.</p>
       <div id="posterPromptFields" class="grid" lang="en"></div>
     </details>
-    <div class="grid">
-      <label class="stack">URL nguồn NASA <input id="source" type="url"></label>
-      <label class="stack">Mã tác giả và ghi chú quyền ảnh <input id="rights"></label>
-      <label class="stack">Mô tả hình bằng văn bản <input id="alt"></label>
-      <label class="stack">Poster của nhóm <input id="poster" type="file" accept="image/png,image/jpeg,image/webp"></label>
-    </div>
+    <label class="stack">URL nguồn NASA <input id="source" type="url"></label>
+    <div id="posterFiles" class="grid" lang="en"></div>
     <button type="button" id="preview">Cập nhật bản xem</button>
     <button type="button" class="secondary" id="saveV1">Lưu bản V1</button>
     <button type="button" class="secondary" id="saveV2">Lưu bản V2</button>
@@ -107,15 +104,21 @@
   </div>
   <article aria-label="Bản xem triển lãm">
     <h3 lang="en">Our Climate Action Museum</h3>
-    <div class="exhibit"><strong lang="en">The Problem</strong><div id="showProblem" class="plain empty">Chưa nhập.</div></div>
-    <div class="exhibit"><strong lang="en">The Evidence</strong><div id="showEvidence" class="plain empty">Chưa nhập.</div><div id="showSource"></div><div id="showCounts" class="plain"></div></div>
-    <div class="exhibit"><strong lang="en">Our Solution</strong><div id="showSolution" class="plain empty">Chưa nhập.</div></div>
-    <img id="posterPreview" alt="" hidden><div id="showRights" class="muted plain"></div>
+    <div class="exhibit"><strong lang="en">The Problem</strong><div id="showProblem" class="plain empty">Chưa nhập.</div><div id="showPosterProblem"></div></div>
+    <div class="exhibit"><strong lang="en">The Evidence</strong><div id="showEvidence" class="plain empty">Chưa nhập.</div><div id="showSource"></div><div id="showCounts" class="plain"></div><div id="showPosterEvidence"></div></div>
+    <div class="exhibit"><strong lang="en">Our Solution</strong><div id="showSolution" class="plain empty">Chưa nhập.</div><div id="showPosterSolution"></div></div>
   </article>
 </section>
 <section id="test">
   <h2>Thử với khách và cải tiến · Chặng 08–09</h2>
-  <p>Mỗi nhóm gửi và nhận một phản hồi. Ghi điều học được, điểm cần làm rõ và độ rõ 1–4. Ba câu 0/1 ở V1/V2 là phép thử tùy chọn khi triển khai lại.</p>
+  <p>Ghi riêng nhận xét cho từng nhóm được phân công, gồm điều học được, điểm cần làm rõ và độ rõ 1–4. Với lớp 10 nhóm, ghi 9 nhận xét rồi nộp chung một lượt. Nếu dùng giấy, dùng một phiếu cho mỗi nhóm được góp ý. Dùng hai phiếu V1/V2 dưới đây để kiểm tra một lượt khách được phân công khi có tổ chức phép thử.</p>
+  <fieldset>
+    <legend>Góp ý theo nhóm</legend>
+    <div id="peerReviews" class="grid" lang="en"></div>
+    <button type="button" class="secondary" id="addPeerReview">Thêm nhóm được góp ý</button>
+    <button type="button" id="collectReviews">Gộp nhận xét thành một lượt nộp</button>
+    <p id="peerStatus" class="status" role="status"></p>
+  </fieldset>
   <div class="grid" id="testForms"></div>
   <label class="stack" lang="en">We changed … because the visitor … <textarea id="revision"></textarea></label>
   <label class="stack" lang="en">What limits our comparison? <textarea id="comparison"></textarea></label>
@@ -129,8 +132,13 @@
   <h3>Phiếu cá nhân B · Chặng 11</h3>
   <label class="stack" lang="en">In a classroom priority survey, 7 of 10 groups selected using reusable bottles. Report the result with a percentage. Explain what the survey can tell us. <textarea id="individualAfter"></textarea></label>
   <h3>Exit Ticket theo nhóm</h3>
-  <label class="stack" lang="en">One action I can take at school is … because … <textarea id="action"></textarea></label>
+  <label class="stack" lang="en">I will … because … <textarea id="action"></textarea></label>
   <label class="stack" lang="en">Our class survey tells us … <textarea id="meaning"></textarea></label>
+  <h3>Phiếu D2 · Nhật ký vận dụng sau giờ học</h3>
+  <p>Theo dõi một hành động đã thống nhất trong một tuần. Nộp vào buổi Tiếng Anh đầu tiên sau tuần theo dõi.</p>
+  <label class="stack" lang="en">Date range and action <input id="followUpAction"></label>
+  <label class="stack" lang="en">What did you count? How many times out of how many opportunities? <input id="followUpCount"></label>
+  <label class="stack" lang="en">Report what happened and one limitation in 2–3 sentences. <textarea id="followUpReport"></textarea></label>
   <button type="button" id="download">Tải bản ghi TXT</button>
   <button type="button" class="secondary" id="print">In / Lưu PDF</button>
 </section>
@@ -201,7 +209,7 @@ for (const [ci,clip] of clips.entries()) {
   container.append(submit,reveal,result);
   el('listeningForm').append(container);
 }
-const options=['Check unused lights and equipment with the teacher','Use reusable bottles and an approved refill point','Reduce avoidable food waste','Choose lower-emission travel where safe and practical'];
+const options=['Check unused lights and equipment with the teacher','Use reusable bottles and an approved refill point','Reduce avoidable food waste','Choose lower-emission travel where practical and safe'];
 function field(parent, title, input) {
   const label = make('label', title);
   label.className='stack';
@@ -220,7 +228,7 @@ function getCounts(){
   const counts=countFields.map(f=>Number(f.value));
   const total=counts.reduce((sum,count)=>sum+count,0);
   if(!Number.isSafeInteger(total)) return null;
-  return {counts,total};
+  return {counts,total,date:el('surveyDate').value};
 }
 const format=new Intl.NumberFormat('vi-VN',{maximumFractionDigits:1});
 el('surveyForm').onsubmit=e=>{
@@ -228,8 +236,8 @@ el('surveyForm').onsubmit=e=>{
   const data=getCounts(), bars=el('bars');
   bars.replaceChildren();
   if(!data){status('surveyStatus','Cần nhập bốn số đếm nguyên không âm.',true);return;}
-  if(data.total===0){status('surveyStatus','n = 0. Chưa có tỉ lệ phần trăm.');return;}
-  status('surveyStatus',`n = ${data.total} phiếu nhóm hợp lệ.`);
+  if(data.total===0){status('surveyStatus','N = 0. Chưa có tỉ lệ phần trăm.');return;}
+  status('surveyStatus',`N = ${data.total} phiếu nhóm hợp lệ.`);
   data.counts.forEach((count,i)=>{
     const row=make('div'), bar=make('progress');
     bar.max=data.total;bar.value=count;bar.setAttribute('aria-label',options[i]);
@@ -264,24 +272,36 @@ const posterPromptFields=[
   prompt.maxLength=900;check.maxLength=400;
   field(panel,'English prompt used',prompt);field(panel,'What did your group check or change?',check);
   el('posterPromptFields').append(panel);
-  return {key,prompt,check};
+  const upload=make('fieldset'), file=make('input'), rights=make('input'), alt=make('input');
+  upload.append(make('legend',title));
+  file.type='file';file.accept='image/png,image/jpeg,image/webp';
+  field(upload,'Poster image',file);
+  field(upload,'Creator, tool, image source and permission',rights);
+  field(upload,'Alternative text',alt);
+  el('posterFiles').append(upload);
+  const image=make('img'), credit=make('div');
+  image.className='poster-preview';image.hidden=true;image.alt='';
+  credit.className='muted plain';
+  el('showPoster'+key).append(image,credit);
+  return {key,prompt,check,title,file,rights,alt,image,credit,url:null};
 });
 function readExhibit(){
   const survey=getCounts();
   return {
     group:val('group'),time:new Date().toISOString(),problem:val('labelProblem'),
     evidence:val('labelEvidence'),solution:val('labelSolution'),source:val('source'),
-    rights:val('rights'),alt:val('alt'),survey,
+    survey,
     posterPrompts:Object.fromEntries(posterPromptFields.map(({key,prompt,check})=>[key,{prompt:prompt.value.trim(),check:check.value.trim()}])),
-    posterName:el('poster').files[0]?.name??''
+    posters:Object.fromEntries(posterPromptFields.map(({key,file,rights,alt})=>[key,{
+      fileName:file.files[0]?.name??'',credit:rights.value.trim(),alt:alt.value.trim()
+    }]))
   };
 }
 function surveyText(survey){
   if(!survey) return 'Chưa có số đếm được chốt.';
-  if(survey.total===0) return 'n = 0. Chưa có tỉ lệ phần trăm.';
+  if(survey.total===0) return 'N = 0. Chưa có tỉ lệ phần trăm.';
   return survey.counts.map((count,i)=>`${options[i]} · ${count}/${survey.total} (${format.format(count/survey.total*100)}%)`).join('\n');
 }
-let posterURL;
 function update(){
   const model=readExhibit();
   for(const key of ['Problem','Evidence','Solution']){
@@ -299,17 +319,23 @@ function update(){
     }catch{el('showSource').textContent='Cần đường dẫn nguồn HTTPS hợp lệ.';}
   }
   el('showCounts').textContent=surveyText(model.survey);
-  el('showRights').textContent=model.rights;
-  const file=el('poster').files[0], poster=el('posterPreview');
-  if(posterURL)URL.revokeObjectURL(posterURL);
-  poster.hidden=true;
-  if(file){
-    if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>5_000_000){
-      status('studioStatus','Hãy dùng PNG, JPG hoặc WebP dưới 5 MB.',true);
-      return null;
+  for(const slot of posterPromptFields){
+    const metadata=model.posters[slot.key], file=slot.file.files[0];
+    if(file&&(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>5_000_000)){
+      status('studioStatus',slot.title+' · Dùng PNG, JPG hoặc WebP dưới 5 MB.',true);return null;
     }
-    if(!model.alt){status('studioStatus','Thêm mô tả văn bản cho hình.',true);return null;}
-    posterURL=URL.createObjectURL(file);poster.src=posterURL;poster.alt=model.alt;poster.hidden=false;
+    if(file&&(!metadata.alt||!metadata.credit)){
+      status('studioStatus',slot.title+' · Ghi nguồn, quyền sử dụng và mô tả ảnh.',true);return null;
+    }
+  }
+  for(const slot of posterPromptFields){
+    const metadata=model.posters[slot.key], file=slot.file.files[0];
+    if(slot.url)URL.revokeObjectURL(slot.url);
+    slot.url=file?URL.createObjectURL(file):null;
+    slot.image.hidden=!file;
+    if(file){slot.image.src=slot.url;slot.image.alt=metadata.alt;}
+    else slot.image.removeAttribute('src');
+    slot.credit.textContent=metadata.credit;
   }
   status('studioStatus','Bản xem đã cập nhật. Lưu V1 hoặc V2 khi sẵn sàng.');
   return model;
@@ -322,6 +348,9 @@ function save(version){
   if(!model.group||!model.problem||!model.evidence||!model.solution){
     status('studioStatus','Nhập mã nhóm và đủ ba nhãn trước khi lưu phiên bản.',true);return;
   }
+  if(Object.values(model.posters).some(p=>!p.fileName)){
+    status('studioStatus','Chọn một poster cho mỗi hiện vật trước khi lưu phiên bản.',true);return;
+  }
   if(version==='V2'&&!versions.V1){status('studioStatus','Lưu bản V1 trước khi lưu V2.',true);return;}
   if(versions[version]){
     status('studioStatus',`Bản ${version} đầu tiên đã được lưu. Giữ bản đó để đối chiếu.`);return;
@@ -331,6 +360,37 @@ function save(version){
 }
 el('saveV1').onclick=()=>save('V1');
 el('saveV2').onclick=()=>save('V2');
+const peerFields=[];
+let submittedReviews=null;
+el('addPeerReview').onclick=()=>{
+  const box=make('fieldset'), group=make('input'), learned=make('textarea'), clarify=make('textarea');
+  const clarity=selectChoices([1,2,3,4]), remove=make('button','Remove');
+  group.maxLength=20;learned.maxLength=600;clarify.maxLength=600;remove.type='button';
+  const review={group,learned,clarify,clarity};
+  field(box,'Group code',group);
+  field(box,'What did you learn?',learned);
+  field(box,'What could be clearer?',clarify);
+  field(box,'Clarity · 1 to 4',clarity);
+  remove.onclick=()=>{peerFields.splice(peerFields.indexOf(review),1);box.remove();};
+  box.append(remove);
+  el('peerReviews').append(box);
+  peerFields.push(review);
+  group.focus();
+};
+el('collectReviews').onclick=()=>{
+  const reviews=peerFields.map(row=>Object.fromEntries(
+    Object.entries(row).map(([field,input])=>[field,input.value.trim()])
+  ));
+  const self=val('group').toLowerCase(), codes=reviews.map(row=>row.group.toLowerCase());
+  if(!self||!reviews.length||reviews.some(row=>Object.values(row).some(value=>!value))
+    ||codes.includes(self)||new Set(codes).size!==codes.length){
+    status('peerStatus','Nhập mã nhóm mình và ghi đủ một nhận xét cho từng mã nhóm khác.',true);return;
+  }
+  submittedReviews=reviews;
+  for(const control of el('peerReviews').querySelectorAll('input,textarea,select,button'))control.disabled=true;
+  el('addPeerReview').disabled=el('collectReviews').disabled=true;
+  status('peerStatus',`Đã gộp ${reviews.length} nhận xét. Tải bản ghi TXT để nộp chung cho giáo viên.`);
+};
 const tasks=['Name the school problem','Point to the source for one claim','State the action, who and when'];
 function createTest(version) {
   const box=make('fieldset');
@@ -367,10 +427,11 @@ function download(){
     survey:{choice:selected?options[Number(selected.value)]:'', counts:getCounts(), finding:val('surveyLine'), limit:val('surveyLimit')},
     design:{problem:val('problem'),evidence:val('designEvidence'),options:[val('optionA'),val('optionB')],
       ratings:ratingFields.map(fields=>fields.map(f=>f.value)), decision:val('decision'),storyboard:val('storyboard')},
-    versions, currentLabels:readExhibit(), tests:testData(),
+    versions, currentLabels:readExhibit(), peerReviews:submittedReviews, tests:testData(),
     revision:val('revision'),comparison:val('comparison'),
     individualWriting:{studentCode:val('student'),before:val('individualBefore'),after:val('individualAfter')},
-    exitTicket:{groupCode:val('group'),studentCode:val('student'),action:val('action'),surveyMeaning:val('meaning')}
+    exitTicket:{groupCode:val('group'),studentCode:val('student'),action:val('action'),surveyMeaning:val('meaning')},
+    followUp:{actionAndDates:val('followUpAction'),count:val('followUpCount'),report:val('followUpReport')}
   };
   const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'text/plain;charset=utf-8'}));
   const a=make('a');

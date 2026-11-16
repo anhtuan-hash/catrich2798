@@ -14,3 +14,8 @@
 - Protect secrets: never print, commit, or paste environment values, bearer tokens, or service-role keys. Use existing `.env.example` contracts only.
 - All code changes go to a separate branch/worktree; do not force push, change Vercel production settings, or merge automatically. Explicit user approval is required for production deployment.
 - Every phase requires: screenshot comparison, responsive checks, functional smoke tests, build/lint/tests, change summary, and accurate known limitations. Never claim visual fidelity or passing tests without evidence.
+
+## Museum Lab
+
+- When asked to align a Word document with the electronic lesson, use the approved electronic lesson as the source and edit the document only. An app change requires a separate request.
+- Integrate approved Museum Lab changes into `main` before deploying to production. Run the Vercel release checks and verify that the production domain points to the tested `main` commit.

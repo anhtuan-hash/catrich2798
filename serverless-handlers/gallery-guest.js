@@ -6,7 +6,7 @@ import {canSaveMuseumDraft,canSubmitMuseumProject} from '../src/features/immersi
 // The only cookie is an opaque, short-lived, group-scoped capability.
 import {
  db,digest,randomSecret,fail,send,handleError,guardOrigin,guardBody,query,
- setCookie,clearCookie,guestContext,settings,ipHash,safeEqual,
+ setCookie,clearCookie,guestContext,guestLessonReadOnly,settings,ipHash,safeEqual,
  normalizeGuestDraft,validateGuestSubmission,requireMethod
 } from './_galleryCreator.js';
 
@@ -27,15 +27,16 @@ export default async function galleryGuest(req,res){
    if(!group)throw fail(404,'Invitation not available.');
    const assignment=await query(admin.from('gcp_assignments')
     .select('id,title,class_scope,deadline_at,status,archived_at,content_frozen_at').eq('id',group.assignment_id).maybeSingle());
+   const readOnly=guestLessonReadOnly(assignment,group);
    if(!assignment||assignment.archived_at||assignment.status!=='active'||
       (!assignment.content_frozen_at&&(Date.parse(assignment.deadline_at)<=Date.now()||
-      Date.parse(invite.expires_at)<=Date.now()||!feature.enabled||['rejected','published'].includes(group.state))))
+      Date.parse(invite.expires_at)<=Date.now()||!feature.enabled||group.state==='rejected')))
     throw fail(404,'Invitation not available.');
    const quick=await query(admin.from('gcp_quick_access')
     .select('enabled').eq('assignment_id',assignment.id).maybeSingle());
    return send(res,200,{groupLabel:group.label,assignmentTitle:assignment.title,
     classScope:assignment.class_scope,quickAccessEnabled:quick?.enabled===true,
-    readOnly:Boolean(assignment.content_frozen_at)});
+    readOnly});
   }
 
   if(operation==='redeem'){
@@ -55,9 +56,9 @@ export default async function galleryGuest(req,res){
    const handleHash=digest('handle:'+handle);
    const [ipWindow,handleWindow]=await Promise.all([
     admin.from('gcp_redeem_attempts').select('id',{head:true,count:'exact'})
-      .eq('ip_hash',ip).gte('occurred_at',since),
+      .eq('ip_hash',ip).eq('succeeded',false).gte('occurred_at',since),
     admin.from('gcp_redeem_attempts').select('id',{head:true,count:'exact'})
-      .eq('handle_hash',handleHash).gte('occurred_at',since)
+      .eq('handle_hash',handleHash).eq('succeeded',false).gte('occurred_at',since)
    ]);
    if(ipWindow.error||handleWindow.error)throw fail(503,'Hệ thống xác thực tạm thời gián đoạn.');
    if(ipWindow.count>=10||handleWindow.count>=20)
@@ -66,6 +67,7 @@ export default async function galleryGuest(req,res){
    const now=Date.now();
    const group=invite?await query(admin.from('gcp_groups').select('*').eq('id',invite.group_id).maybeSingle()):null;
    const assignment=group?await query(admin.from('gcp_assignments').select('*').eq('id',group.assignment_id).maybeSingle()):null;
+   const readOnly=guestLessonReadOnly(assignment,group);
    const quick=quickMode&&assignment?await query(admin.from('gcp_quick_access')
      .select('enabled,password_salt,password_hash').eq('assignment_id',assignment.id).maybeSingle()):null;
    const correct=quickMode?verifyQuickAccess(secret,quick):Boolean(invite&&safeEqual(invite.secret_hash,digest('invite:'+secret)));
@@ -87,14 +89,14 @@ export default async function galleryGuest(req,res){
    }
    if(assignment.archived_at||assignment.status!=='active'||
       (!assignment.content_frozen_at&&(Date.parse(assignment.deadline_at)<=now ||
-      !config.enabled||['rejected','published'].includes(group.state))))
+      !config.enabled||group.state==='rejected')))
     throw fail(423,'Nhiệm vụ đã đóng.');
    const active=await admin.from('gcp_sessions').select('token_hash',{head:true,count:'exact'})
     .eq('group_id',group.id).is('revoked_at',null).gt('expires_at',new Date().toISOString());
    if(active.error)throw fail(503,'Không thể tạo phiên.');
-   if(!assignment.content_frozen_at&&active.count>=3)
+   if(!readOnly&&active.count>=3)
     throw fail(429,'Nhóm đã có ba thiết bị đang hoạt động. Hãy nhờ giáo viên làm mới mã.');
-   if(assignment.content_frozen_at&&active.count>=20)
+   if(readOnly&&active.count>=20)
     throw fail(429,'Too many read-only devices. Try again later.');
    const token=randomSecret(32),csrf=randomSecret(24);
    const expires=assignment.content_frozen_at?now+12*60*60*1000:
@@ -129,8 +131,8 @@ export default async function galleryGuest(req,res){
      ?{state:latest.state,teacher:latest.teacher_note,ttcm:latest.ttcm_note}:null;
    return send(res,200,{
     groupLabel:group.label,groupState:group.state,csrf:session.csrf_token,feedback,
-    readOnly:Boolean(assignment.content_frozen_at),
-    uploadEnabled:!assignment.content_frozen_at&&ctx.feature.upload_enabled===true,
+    readOnly:ctx.readOnly,
+    uploadEnabled:!ctx.readOnly&&ctx.feature.upload_enabled===true,
     assignment:{title:assignment.title,brief:assignment.brief,class_scope:assignment.class_scope,
      content_frozen_at:assignment.content_frozen_at||null,
      deadline_at:assignment.deadline_at,max_rooms:assignment.max_rooms,max_exhibits:assignment.max_exhibits}

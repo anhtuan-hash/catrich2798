@@ -124,9 +124,8 @@ export default async function galleryStaff(req,res){
    assertStaff(ctx);
   }
 
-  // A completed lesson is permanently view-only until explicitly unlocked in
-  // a controlled database migration. Check before any privileged RPC or storage
-  // side-effect; a database trigger separately enforces immutability.
+  // Check completion before privileged RPCs or storage side effects.
+  // Database triggers also enforce the classroom lock.
   const frozenMutations=new Set([
    'quick-access-setting','regenerate-all-passcodes','grade-rubric',
    'admin-decision','archive-review','archive-assignment','rotate-invite',

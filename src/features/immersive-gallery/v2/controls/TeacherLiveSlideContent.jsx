@@ -1,6 +1,7 @@
 import React from 'react';
 import {EVIDENCE_WRITING, LESSON_PLAN_NOTES, VISITOR_TASKS} from '../../v3/lessonPlanAlignment.js';
 import {NEXT_DELIVERY_STAGES, MUSEUM_ACTIVITY_SLIDES} from '../../v3/museumActivitySlides.js';
+import MuseumSurveyChart from '../../v3/MuseumSurveyChart.jsx';
 
 const t=(language,vi,en)=>language==='en'?en:vi;
 
@@ -26,21 +27,7 @@ function ListeningQuestion({questions,language,revealed,index,onSelect,busy}) {
   </>;
 }
 
-function FrozenSurvey({survey,language}){
-  const options=survey?.options;
-  if(!options?.length)return null;
-  const date=Date.parse(survey.created_at);
-  const dateLabel=Number.isFinite(date)?new Intl.DateTimeFormat(language==='en'?'en':'vi',{timeZone:'Asia/Ho_Chi_Minh',dateStyle:'medium'}).format(date):'';
-  const number=new Intl.NumberFormat(language==='en'?'en':'vi',{maximumFractionDigits:2});
-  return <div className="adv-slide-survey">
-    <strong>{t(language,'Biểu đồ đã chốt','Frozen survey')} · N = {survey.n} {t(language,'nhóm','groups')}{dateLabel?' · '+dateLabel:''}</strong>
-    <ul>{options.map(option=><li key={option.label}>
-      <span>{option.label}</span><b>{option.count}/{survey.n} · {number.format(option.percent)}%</b>
-    </li>)}</ul>
-  </div>;
-}
-
-export default function TeacherLiveSlideContent({stage,language,view='task',questions,revealed,survey,curriculumNode,questionIndex=0,onPresent,busy=false}) {
+export default function TeacherLiveSlideContent({stage,language,view='task',questions,revealed,survey,curriculumNode,questionIndex=0,onPresent,busy=false,readOnly=false}) {
   const taskView=view;
   const slide=MUSEUM_ACTIVITY_SLIDES[stage.id];
   const note=LESSON_PLAN_NOTES[stage.id];
@@ -76,6 +63,7 @@ export default function TeacherLiveSlideContent({stage,language,view='task',ques
             </div>
             :<>
               <p className="adv-stage-question">{slide.question}</p>
+              {stage.id==='classroom-survey'?<MuseumSurveyChart survey={survey} language={language} pending={!readOnly}/>:null}
               <div className="adv-slide-task-cards" data-cols={slide.cards.length} lang="en">
                 {slide.cards.map(([title, text], index) => {
                   const card = cardParts(title, index);
@@ -85,7 +73,6 @@ export default function TeacherLiveSlideContent({stage,language,view='task',ques
                   </div>;
                 })}
               </div>
-              {stage.id==='classroom-survey'&&survey?<FrozenSurvey survey={survey} language={language}/>:null}
               {stage.id==='classroom-survey'&&!survey&&stage.options?.length
                 ?<ol className="adv-slide-answers is-compact" type="A">{stage.options.map(option=><li key={option}>{option}</li>)}</ol>
                 :null}

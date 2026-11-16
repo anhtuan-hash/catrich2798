@@ -12,6 +12,7 @@ const checks=[
   ['npm',['run','audit:inactive-modules']],
   ['npm',['run','audit:i18n']],
   ['node',['scripts/test-immersive-gallery.mjs']],
+  ['node',['scripts/test-museum-approved-layouts.mjs']],
   ['node',['scripts/test-museum-private-passcodes-v56.mjs']],
   ['node',['scripts/test-museum-lesson-paper-v57.mjs']],
   ['node',['scripts/test-museum-quick-classroom-v58.mjs']],

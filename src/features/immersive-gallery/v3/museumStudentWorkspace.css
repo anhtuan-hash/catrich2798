@@ -1,531 +1,611 @@
+/* Student Workshop. The other Museum Lab views retain their own layout. */
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace {
- display:grid!important;
- grid-template-columns:minmax(0,1fr);
- grid-template-rows:auto minmax(0,1fr);
- align-content:start;
- overflow-y:auto!important;
- overflow-x:hidden!important;
- gap:10px;
- padding:12px;
+ --workshop-ink: #141414;
+ --workshop-paper: #f9f6ed;
+ --workshop-red: #cc071e;
+ --workshop-rule: #d4cfc2;
+ --workshop-font: Inter, "Be Vietnam Pro", Arial, sans-serif;
+ --workshop-pad: clamp(12px, 1.32vw, 24px);
+ display: grid !important;
+ grid-template-columns: minmax(0, 1fr);
+ grid-template-rows: auto minmax(0, 1fr);
+ align-content: start;
+ gap: 10px;
+ padding: 8px clamp(8px, 1vw, 18px) 12px;
+ overflow: hidden !important;
+ background: var(--workshop-paper) !important;
+ color: var(--workshop-ink);
+ font-family: var(--workshop-font);
 }
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace > .bml-student-masthead {
- grid-column:1;
- grid-row:1;
- display:grid;
- grid-template-columns:minmax(0,1fr) minmax(320px,390px);
- align-items:stretch;
- gap:10px;
- min-width:0;
+ display: grid;
+ grid-template-columns: minmax(0, 1fr);
+ gap: 5px;
+ min-width: 0;
 }
-.bml-student-dual-workspace .bml-student-hub{
- display:flex;
- flex-direction:column;
- gap:0;
- min-width:0;
- width:100%;
- max-width:none;
- justify-self:stretch;
- overflow:hidden;
- border:1px solid #dedbd5;
- background:#fffdf9;
- padding:8px 10px;
- box-sizing:border-box;
+.bml.bml-student-dual-workspace .bml-student-masthead > * {
+ grid-column: 1;
+ grid-row: auto;
 }
-.bml-student-dual-workspace .bml-student-masthead > .bml-contest-art{
- width:100%!important;
- max-width:none!important;
- max-height:none!important;
- height:auto!important;
- margin:0!important;
- align-self:stretch;
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-masthead .bml-student-bar {
+ position: static !important;
+ display: flex !important;
+ flex-wrap: wrap;
+ justify-content: space-between;
+ align-items: center;
+ width: 100%;
+ height: auto;
+ min-height: 42px;
+ max-height: none;
+ gap: 5px 14px;
+ padding: 3px 8px !important;
+ border: 1px solid var(--workshop-ink) !important;
+ background: transparent !important;
+ box-shadow: none !important;
 }
-.bml-student-dual-workspace .bml-student-masthead .cmast.cmast-plate,
-.bml-student-dual-workspace .bml-student-masthead .cmast-plate-img{
- width:100%!important;
- max-width:100%!important;
- max-height:none!important;
- height:auto!important;
+.bml-student-dual-workspace :is(.bml-workshop-identity,.bml-workshop-school,.bml-student-right) {
+ display: flex;
+ flex-wrap: wrap;
+ align-items: center;
+ gap: 6px 12px;
+ min-width: 0;
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-hub .bml-student-focus{
- display:grid!important;
- grid-template-columns:minmax(0,1fr)!important;
- gap:4px;
- margin:0;
- padding:0!important;
- border:0!important;
- border-radius:0!important;
- background:transparent!important;
- box-shadow:none!important;
+.bml-student-dual-workspace .bml-workshop-school {
+ flex-wrap: nowrap;
+ font-size: clamp(13px, 1.5vw, 23px);
+ font-weight: 850;
+ letter-spacing: -.04em;
 }
-.bml-student-dual-workspace .bml-student-masthead .bml-student-focus-head {
- display:flex;
- flex-wrap:wrap;
- align-items:center;
- gap:4px 10px;
+.bml-student-dual-workspace .bml-workshop-school img {
+ width: 26px;
+ height: 29px;
+ object-fit: contain;
+ object-position: center top;
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-masthead .bml-student-focus-head > strong {
- font-size:18px!important;
+.bml.bml-student-canvas16.bml-student-editorial .bml-workshop-identity .bml-group-pill {
+ min-height: 24px;
+ padding: 0 0 0 10px;
+ border: 0 !important;
+ border-inline-start: 1px solid var(--workshop-ink) !important;
+ background: transparent !important;
+ color: var(--workshop-ink) !important;
+ font-size: clamp(12px, 1.2vw, 18px);
 }
-.bml-student-dual-workspace .bml-student-masthead .bml-student-activity-groups { gap:4px; }
-.bml-student-dual-workspace .bml-student-masthead .bml-student-steps button { min-height:34px; }
-.bml-student-dual-workspace .bml-student-masthead .bml-student-group-activities { padding-top:4px; }
-.bml-student-dual-workspace .bml-student-masthead .bml-student-group-activities button { min-height:28px; }
-@media (max-width:999px) {
- .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace > .bml-student-masthead {
-  grid-template-columns:minmax(0,1fr);
+.bml.bml-student-dual-workspace .bml-student-bar .bml-student-right { margin: 0; }
+.bml.bml-student-dual-workspace .bml-student-bar .bml-outline,
+.bml.bml-student-dual-workspace .bml-student-bar .bml-student-lang button {
+ min-height: 34px;
+}
+.bml.bml-student-dual-workspace .bml-student-lang button[aria-pressed="true"] {
+ background: var(--workshop-ink);
+ color: white;
+}
+.bml-student-dual-workspace .bml-workshop-ribbon {
+ min-width: 0;
+ position: relative;
+ border: 1px solid var(--workshop-ink);
+}
+.bml-student-dual-workspace .bml-workshop-ribbon-bar {
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ gap: 8px;
+ min-height: 36px;
+ padding: 2px 5px;
+}
+.bml-student-dual-workspace .bml-workshop-ribbon-bar strong {
+ display: flex;
+ align-items: center;
+ gap: 8px;
+ font-size: clamp(12px, 1.42vw, 21px);
+ font-weight: 820;
+}
+.bml-student-dual-workspace .bml-workshop-ribbon-bar strong svg {
+ box-sizing: content-box;
+ flex: none;
+ padding: 6px 10px;
+ background: var(--workshop-red);
+ color: white;
+}
+.bml-student-dual-workspace .bml-student-bar .bml-save-indicator { font-size: 12px; }
+.bml.bml-student-dual-workspace .bml-workshop-ribbon-bar .bml-outline {
+ margin-inline-start: auto;
+ padding: 5px 9px;
+ min-height: 31px;
+ flex: none;
+ border: 1px solid var(--workshop-ink);
+ background: var(--workshop-paper);
+ color: var(--workshop-ink);
+}
+.bml-student-dual-workspace .bml-workshop-ribbon .bml-competition-ribbon {
+ display: block;
+ width: 100%;
+ max-height: none;
+ margin: 0 !important;
+ padding: 0;
+}
+.bml-student-dual-workspace .bml-workshop-ribbon .cmast.cmast-plate { padding: 0; }
+.bml-student-dual-workspace .bml-workshop-ribbon .cmast-layout {
+ min-height: 0;
+ border: 0;
+ background: var(--workshop-paper);
+}
+.bml-student-dual-workspace .bml-workshop-ribbon .cmast-layout::before,
+.bml-student-dual-workspace .bml-workshop-ribbon .cmast-layout::after { width: 12%; }
+@media (min-width: 700px) {
+ .bml-student-dual-workspace .bml-workshop-ribbon .cmast-layout {
+  grid-template-columns: 15% minmax(0, 1fr) 15%;
+ }
+ .bml-student-dual-workspace .bml-workshop-ribbon .cmast-plate-copy {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 2px 13px;
+  margin: 0;
+  padding: 10px 1.4cqi 12px;
+ }
+ .bml-student-dual-workspace .bml-workshop-ribbon .cmast-entry {
+  grid-row: span 2;
+  font-size: clamp(13px, 1.58cqi, 30px);
+ }
+ .bml-student-dual-workspace .bml-workshop-ribbon :is(.cmast-competition,.cmast-edition) {
+  margin: 0;
+  font-size: clamp(10px, 1.05cqi, 22px);
+ }
+ .bml-student-dual-workspace .bml-workshop-ribbon .cmast-title {
+  grid-column: 1 / -1;
+  margin: 4px 0 1px;
+  padding-bottom: 3px;
+  font-size: clamp(23px, min(3.35cqi, 5.8vh), 69px);
+ }
+ .bml-student-dual-workspace .bml-workshop-ribbon .cmast-meta {
+  grid-column: 1 / -1;
+  font-size: clamp(10px, 1.02cqi, 18px);
+ }
+ .bml-student-dual-workspace .bml-workshop-ribbon .cmast-author {
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin-top: 3px;
+  font-size: clamp(10px, 1.12cqi, 20px);
+ }
+ .bml-student-dual-workspace .bml-workshop-ribbon .cmast-logo {
+  width: clamp(55px, min(9cqi, 16vh), 150px);
+  max-height: min(145px, 17vh);
+ }
+ .bml-student-dual-workspace [data-banner-expanded="true"] .bml-workshop-ribbon-bar {
+  position: absolute;
+  inset: auto 0 0 auto;
+  z-index: 2;
  }
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-hub .bml-student-bar{
- position:static!important;
- display:flex!important;
- flex-wrap:wrap!important;
- align-items:center;
- justify-content:flex-start!important;
- gap:6px;
- width:100%!important;
- max-width:100%;
- height:auto!important;
- min-height:0!important;
- max-height:none!important;
- flex:none!important;
- margin:6px 0 0;
- padding:6px 0 0!important;
- border:0!important;
- border-top:1px solid #dedbd5!important;
- border-radius:0!important;
- background:transparent!important;
- box-shadow:none!important;
- overflow:hidden;
+
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-masthead .bml-student-focus {
+ display: grid !important;
+ grid-template-columns: minmax(0, 1fr) !important;
+ align-items: center;
+ grid-column: 1;
+ grid-row: auto;
+ gap: 2px;
+ margin: 0;
+ padding: 0 !important;
+ border: 0 !important;
+ background: none !important;
+ box-shadow: none !important;
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-voice-autorun{
- position:absolute;
- width:1px;
- height:1px;
- margin:-1px;
- padding:0;
- overflow:hidden;
- clip:rect(0,0,0,0);
- clip-path:inset(50%);
- white-space:nowrap;
- border:0;
+.bml-student-dual-workspace .bml-student-focus::before { display: none; }
+.bml-student-dual-workspace .bml-student-focus h1 {
+ margin: 0;
+ padding: 0 3px 2px;
+ color: var(--workshop-ink);
+ font-family: var(--workshop-font);
+ font-size: clamp(20px, 2.65vw, 40px);
+ line-height: 1.09;
+ letter-spacing: -.05em;
+ font-weight: 860;
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-hub .bml-student-voice-guide,
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-hub .bml-student-right{
- min-width:0;
- max-width:100%;
- margin:0;
- flex:1 1 140px;
+.bml-student-dual-workspace .bml-student-focus h1 span { color: var(--workshop-red); }
+.bml-student-dual-workspace .bml-student-activity-groups { display: contents; }
+.bml.bml-student-dual-workspace .bml-student-focus .bml-student-steps {
+ display: grid;
+ grid-template-columns: repeat(5, minmax(0, 1fr));
+ gap: 0;
+ padding: 0;
+ margin: 0;
+ border-block: 1px solid var(--workshop-ink);
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-hub .bml-student-voice-guide{
- justify-content:flex-start;
- flex-wrap:wrap;
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-focus .bml-student-steps button {
+ display: flex;
+ flex-flow: row wrap;
+ align-items: center;
+ justify-content: flex-start;
+ text-align: start;
+ min-width: 0;
+ min-height: 42px;
+ padding: 3px clamp(5px, 1vw, 17px);
+ gap: 2px 7px;
+ border: 0;
+ border-inline-end: 1px solid var(--workshop-rule);
+ border-bottom: 3px solid transparent;
+ color: var(--workshop-ink);
+ align-self: stretch;
+ height: auto;
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-hub .bml-student-voice-status{
- min-width:0;
- overflow:hidden;
- text-overflow:ellipsis;
- white-space:nowrap;
+.bml-student-dual-workspace .bml-student-focus .bml-student-steps button::before { display: none; }
+.bml.bml-student-dual-workspace .bml-student-focus .bml-student-steps button:last-child { border-inline-end: 0; }
+.bml.bml-student-dual-workspace .bml-student-focus .bml-student-steps button[aria-pressed="true"] { border-bottom-color: var(--workshop-red); }
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-focus .bml-student-steps button > span {
+ display: inline;
+ width: auto;
+ height: auto;
+ margin: 0;
+ border: 0 !important;
+ background: transparent !important;
+ color: var(--workshop-ink) !important;
+ font: 850 clamp(20px, 2.5vw, 38px)/1 var(--workshop-font);
+ line-height: 1;
+ letter-spacing: -.05em;
+ transform: none;
+ box-shadow: none;
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-hub .bml-student-right{
- display:flex;
- flex-wrap:wrap;
- gap:6px;
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-focus .bml-student-steps button.is-active > span {
+ color: var(--workshop-red) !important;
 }
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-focus .bml-student-steps button small {
+ color: var(--workshop-ink) !important;
+ font-size: clamp(11px, 1.18vw, 18px);
+ letter-spacing: -.02em;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-focus .bml-student-steps .bml-student-activity-range {
+ opacity: .75;
+ font-size: 10px;
+}
+.bml.bml-student-dual-workspace .bml-student-focus .bml-student-group-activities {
+ gap: 7px;
+ padding: 5px 0 6px;
+ border: 0;
+ border-bottom: 1px solid var(--workshop-ink);
+}
+.bml.bml-student-dual-workspace .bml-student-group-activities button {
+ min-height: 34px;
+ padding: 4px 10px;
+ border-color: var(--workshop-rule);
+ border-radius: 0;
+ background: transparent;
+ color: var(--workshop-ink);
+ font-weight: 680;
+}
+.bml.bml-student-dual-workspace .bml-student-group-activities button span { color: inherit; }
+.bml.bml-student-dual-workspace .bml-student-group-activities button[aria-current] {
+ border-color: var(--workshop-red);
+ box-shadow: inset 0 -2px var(--workshop-red);
+ font-weight: 800;
+}
+@media (min-width: 1180px) {
+ .bml.bml-student-canvas16.bml-student-editorial [data-banner-expanded="false"] .bml-student-focus {
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  gap: 0 12px;
+ }
+ .bml-student-dual-workspace [data-banner-expanded="false"] .bml-student-focus h1 { font-size: clamp(18px, 1.45vw, 24px); }
+ .bml.bml-student-dual-workspace [data-banner-expanded="false"] .bml-student-focus .bml-student-steps { border-top: 0; }
+ .bml-student-dual-workspace [data-banner-expanded="false"] .bml-student-group-activities { grid-column: 1 / -1; }
+}
+
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace > .bml-student-content {
- grid-column:1;
- grid-row:2;
- display:grid!important;
- grid-template-rows:auto;
- overflow:visible;
- gap:10px;
- padding:0;
- margin:0;
- width:100%;
- max-width:none;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-focus {
- grid-column:auto;
- grid-row:auto;
- margin:0;
+ display: grid !important;
+ grid-template-rows: minmax(0, 1fr);
+ min-width: 0;
+ min-height: 0;
+ width: 100%;
+ max-width: none;
+ padding: 0;
+ margin: 0;
 }
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-workbench {
- display:grid!important;
- grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);
- align-items:start;
- min-height:0;
- height:auto;
- gap:12px;
+ display: grid !important;
+ grid-template-columns: minmax(0, 55fr) minmax(0, 45fr);
+ grid-template-rows: minmax(0, 1fr);
+ align-items: stretch;
+ gap: clamp(8px, 1vw, 16px);
+ min-height: 0;
 }
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-primary {
- grid-column:auto;
- grid-row:auto;
- min-width:0;
- min-height:0;
- height:auto;
- max-height:none;
- overflow:visible;
- display:flex;
- flex-direction:column;
- border:1px solid var(--swiss-line);
- background:var(--swiss-paper);
+ grid-column: auto;
+ grid-row: auto;
+ display: flex;
+ flex-direction: column;
+ min-width: 0;
+ min-height: 0;
+ height: auto;
+ max-height: none;
+ overflow: visible;
+ border: 1px solid var(--workshop-ink) !important;
+ background: var(--workshop-paper) !important;
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-panel-head {
- display:flex;
- align-items:center;
- justify-content:space-between;
- flex-wrap:wrap;
- gap:8px 14px;
- padding:10px 16px;
- border-bottom:1px solid var(--swiss-line);
- flex:none;
+.bml.bml-student-dual-workspace .bml-student-primary > .bml-student-panel-head {
+ display: flex;
+ flex: none;
+ flex-wrap: wrap;
+ align-items: center;
+ justify-content: space-between;
+ gap: 6px 12px;
+ min-height: 52px;
+ padding: 6px var(--workshop-pad);
+ border-radius: 0;
+ background: var(--workshop-ink);
+ color: white;
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-panel-head h2 {
- color:var(--swiss-ink);
- margin:0;
- font-size:18px;
- line-height:1.25;
+.bml.bml-student-dual-workspace .bml-student-project-panel > .bml-student-panel-head { background: var(--workshop-red); }
+.bml.bml-student-dual-workspace .bml-student-panel-head h2 {
+ margin: 0;
+ color: white;
+ font-family: var(--workshop-font);
+ font-size: clamp(19px, 2.25vw, 38px);
+ line-height: 1.1;
+ letter-spacing: -.035em;
+ font-weight: 850;
+ text-transform: uppercase;
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-panel-head p {
- margin:3px 0 0;
- font-size:13px;
- color:var(--swiss-muted);
- overflow-wrap:anywhere;
+.bml.bml-student-dual-workspace .bml-student-panel-head h2::before { content: none; }
+.bml-student-dual-workspace :is(.bml-student-lesson-tools,.bml-student-project-actions,.bml-student-project-status) {
+ display: flex;
+ align-items: center;
+ flex-wrap: wrap;
+ gap: 5px 6px;
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace :is(.bml-student-lesson-tools,.bml-student-project-actions,.bml-student-project-status) {
- display:flex;
- align-items:center;
- flex-wrap:wrap;
- gap:6px;
+.bml.bml-student-dual-workspace .bml-student-panel-head .bml-outline {
+ min-height: 33px;
+ margin: 0;
+ padding: 4px 8px;
+ border: 1px solid currentColor;
+ background: transparent;
+ color: white;
+ font-size: clamp(11px, .94vw, 15px);
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-panel-head button {
- min-height:34px;
- padding:5px 9px;
- font-size:12px;
+.bml.bml-student-dual-workspace .bml-student-panel-head .bml-outline:hover {
+ color: var(--workshop-ink);
+ background: white;
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-status {
- flex-basis:100%;
- gap:4px 10px;
- font-size:12px;
- color:#255b4f;
+.bml.bml-student-dual-workspace .bml-student-project-status {
+ color: white;
+ font-size: clamp(12px, 1.16vw, 18px);
+ font-weight: 750;
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-primary > .bml-student-pane {
- flex:1 1 auto;
- height:auto;
- min-height:0;
- max-height:none;
- overflow:visible;
- display:flex;
- flex-direction:column;
+.bml-student-dual-workspace .bml-student-project-status span:not(:first-child)::before {
+ content: "·";
+ margin-inline-end: 6px;
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel .bml-student-pane > .bml-live-student {
- display:block;
- height:auto;
- min-height:0;
- max-height:none;
- padding:12px clamp(12px,1.45vw,23px);
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-primary > .bml-student-pane {
+ display: flex;
+ flex: 1 1 0;
+ flex-direction: column;
+ min-height: 0;
+ height: auto;
+ max-height: none;
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-pane > .bml-live-student > *+* {
- margin-block-start:12px;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-pane > .bml-student-stage,
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-pane .bml-student-task.bml-surface {
- height:auto;
- min-height:0;
- max-height:none;
- overflow:visible;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-pane .bml-student-task.bml-surface {
- border:0!important;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-student-bottom,
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-student-bottom > div {
- flex-wrap:wrap;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel:focus-visible {
- outline:2px solid #245e88;
- outline-offset:2px;
-}
-
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel > .bml-student-lesson-scroll,
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-task-scroll {
- flex:0 0 auto;
- overflow:visible;
- padding-inline-end:0;
+ overflow: hidden auto;
+ overscroll-behavior: contain;
+ scrollbar-gutter: stable;
+ scrollbar-color: #9a9489 var(--workshop-paper);
+ scroll-padding-block: 10px;
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-pane > .bml-live-student {
- overflow:visible!important;
+.bml-student-dual-workspace .bml-student-project-pane > .bml-student-stage {
+ display: flex;
+ flex: 1 1 0;
+ flex-direction: column;
+ align-items: stretch;
+ min-height: 0;
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-focus {
- padding-block:8px;
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-project-pane .bml-student-task.bml-surface {
+ flex: 1 1 0;
+ min-height: 0;
+ width: 100%;
+ border: 0 !important;
+ padding: 9px var(--workshop-pad);
+ background: transparent !important;
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-focus-head > strong {
- font-size:clamp(21px,1.65vw,28px)!important;
+.bml.bml-student-dual-workspace .bml-student-task-scroll { flex: 1 1 0; }
+.bml.bml-student-dual-workspace .bml-student-lesson-panel .bml-student-lesson-scroll .bml-live-student {
+ display: block;
+ flex: none;
+ padding: 8px var(--workshop-pad);
+ min-height: 0;
+ height: auto;
+ max-height: none;
+ overflow: visible !important;
+ border: 0;
+ border-radius: 0;
+ background: transparent !important;
+ box-shadow: none;
+ color: var(--workshop-ink);
 }
-.bml.bml-student-canvas16 .bml-student-practice-note {
- padding:8px 12px;
- border-inline-start:3px solid #397a68;
- background:#edf4ef;
- color:#254958;
- font-size:14px;
+.bml.bml-student-dual-workspace .bml-live-student > * + * { margin-block-start: 7px; }
+.bml.bml-student-dual-workspace .bml-live-student > .bml-student-p2-review { padding: 0; }
+.bml-student-dual-workspace .bml-live-student-header { padding: 2px 0 4px; }
+.bml-student-dual-workspace .bml-live-student-header > span {
+ padding: 2px 6px;
+ border-radius: 0;
 }
-.bml.bml-student-canvas16 .bml-student-saved-choice {
- display:block;
- margin-top:4px;
- color:#285d51;
- font-size:12px;
+.bml.bml-student-dual-workspace .bml-live-student-question {
+ padding: 0 0 0 10px;
+ border-inline-start: 5px solid var(--workshop-red);
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-live-response-options button {
- font-size:clamp(14px,1.15vw,17px);
- line-height:1.4;
- min-height:46px;
- overflow-wrap:anywhere;
+.bml.bml-student-dual-workspace .bml-question-eyebrow {
+ color: var(--workshop-red);
+ font-size: clamp(12px, 1.1vw, 17px);
+ font-weight: 800;
+ letter-spacing: 0;
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-p2-task {
- font-size:clamp(14px,1.15vw,17px);
+.bml.bml-student-dual-workspace :is(.bml-live-student-question h2,.bml-locked-dossier h3,.bml-workshop-draft-title) {
+ margin: 0;
+ color: var(--workshop-ink);
+ font: 850 clamp(28px, 3.2vw, 53px)/1.03 var(--workshop-font);
+ letter-spacing: -.05em;
+ overflow-wrap: anywhere;
 }
-@media (max-width:999px) {
- .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace {
-  position:fixed!important;
-  height:100dvh!important;
-  min-height:0!important;
- }
- .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-workbench {
-  grid-template-columns:minmax(0,1fr);
- }
+.bml.bml-student-dual-workspace .bml-student-p2-task:has(.bml-live-response-options) { padding: 0; }
+.bml.bml-student-dual-workspace .bml-student-p2-question {
+ color: var(--workshop-ink);
+ font-size: clamp(16px, 1.44vw, 23px);
+ font-weight: 750;
+ line-height: 1.23;
 }
+.bml.bml-student-dual-workspace .bml-live-student .bml-live-response-options {
+ grid-template-columns: minmax(0, 1fr);
+ gap: 6px;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-live-student .bml-live-response-options button {
+ gap: 10px;
+ min-height: 40px;
+ padding: 4px 8px;
+ border: 1px solid var(--workshop-ink);
+ border-radius: 0;
+ background: transparent;
+ color: var(--workshop-ink);
+ box-shadow: none;
+ font-size: clamp(14px, 1.33vw, 22px);
+ font-weight: 750;
+}
+.bml-student-dual-workspace .bml-student-saved-choice { display: block; font-size: .72em; }
+.bml.bml-student-dual-workspace .bml-live-student .bml-live-response-options .bml-option-letter {
+ flex-basis: 36px;
+ height: 24px;
+ border: 0;
+ border-inline-end: 1px solid currentColor;
+ border-radius: 0;
+ background: transparent;
+ color: inherit;
+ font: 850 1em/1 var(--workshop-font);
+}
+.bml.bml-student-dual-workspace .bml-live-student .bml-live-response-options button:disabled { opacity: 1; }
+.bml.bml-student-dual-workspace .bml-live-student .bml-live-response-options button:is(.is-chosen,[aria-pressed="true"],:has(.bml-student-saved-choice)) {
+ background: #fce9e9 !important;
+ color: #821320 !important;
+ border-color: var(--workshop-red) !important;
+ box-shadow: none !important;
+}
+.bml.bml-student-dual-workspace .bml-live-student .bml-live-response-options button:not(:disabled):hover {
+ background: #f2e9e0;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-task-scroll > .bml-workshop-readonly,
+.bml-student-dual-workspace .bml-student-lesson-scroll .bml-banner {
+ display: flex;
+ align-items: center;
+ gap: 7px;
+ margin: 0 0 8px;
+ padding: 5px 8px;
+ border: 0;
+ border-inline-start: 3px solid var(--workshop-red);
+ background: #f1ede3;
+ color: var(--workshop-ink);
+ font-size: 12px;
+ font-weight: 690;
+}
+.bml.bml-student-dual-workspace .bml-locked-dossier {
+ gap: 9px;
+ color: var(--workshop-ink);
+}
+.bml.bml-student-dual-workspace .bml-locked-dossier :is(.bml-locked-lead,dd) {
+ font-size: clamp(15px, 1.32vw, 22px);
+ line-height: 1.37;
+}
+.bml.bml-student-dual-workspace .bml-locked-dossier dt {
+ color: var(--workshop-red);
+ font-size: clamp(13px, 1.25vw, 19px);
+ letter-spacing: 0;
+}
+.bml.bml-student-dual-workspace .bml-locked-dossier dl div { border-color: var(--workshop-ink); }
+.bml-student-dual-workspace .bml-voice-autorun { padding: 8px var(--workshop-pad); }
+.bml.bml-student-dual-workspace .bml-workshop-lesson-nav,
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-project-panel .bml-student-task > .bml-student-bottom {
+ display: flex;
+ flex: none;
+ align-items: stretch;
+ justify-content: space-between;
+ gap: 6px 12px;
+ padding: 8px var(--workshop-pad);
+ border-top: 1px solid var(--workshop-rule);
+ background: var(--workshop-paper) !important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-project-panel .bml-student-task > .bml-student-bottom {
+ padding-inline: 0;
+ border-top: 1px solid var(--workshop-rule) !important;
+ flex-wrap: wrap;
+}
+.bml.bml-student-dual-workspace :is(.bml-workshop-lesson-nav,.bml-student-bottom) button {
+ justify-content: center;
+ min-height: 42px;
+ font-size: clamp(12px, 1.18vw, 18px);
+ font-weight: 780;
+}
+.bml.bml-student-dual-workspace .bml-workshop-lesson-nav .bml-outline {
+ border: 1px solid var(--workshop-ink);
+ color: var(--workshop-ink);
+ background: transparent;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-workbench :is(.bml-workshop-lesson-nav,.bml-student-bottom) .bml-primary {
+ border: 1px solid var(--workshop-red) !important;
+ background: var(--workshop-red) !important;
+ color: white !important;
+}
+.bml.bml-student-canvas16.bml-student-editorial .bml-student-workbench :is(.bml-workshop-lesson-nav,.bml-student-bottom) .bml-primary:not(:disabled):hover {
+ background: #9e091b !important;
+}
+.bml-student-dual-workspace .bml-student-bottom > .bml-primary:only-child { width: 100%; }
+.bml-student-dual-workspace :is(button,[tabindex]):focus-visible {
+ outline: 2px solid #225c91;
+ outline-offset: -2px;
+}
+.bml .bml-student-inline-videos { display: grid; gap: 12px; min-width: 0; }
+.bml .bml-student-inline-video { margin: 0; min-width: 0; }
+.bml .bml-student-inline-video .bml-video-player { margin: 0; }
+.bml .bml-student-inline-video figcaption { margin-top: 6px; font-size: 13px; }
+.bml .bml-student-inline-video .bml-video-embed { aspect-ratio: 16/9; min-height: 0; }
+.bml .bml-student-inline-video .bml-video-embed iframe { width: 100%; height: 100%; }
 
-@media (min-width:1000px) {
+@media (min-width: 900px) and (min-height: 830px) {
+ .bml-student-dual-workspace [data-banner-expanded="false"] + .bml-student-content .bml-live-student .bml-live-response-options button {
+  min-height: clamp(45px, 5.8vh, 66px);
+ }
+}
+@media (max-width: 899px), (max-height: 550px) {
  .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace {
-  grid-template-rows:auto minmax(0,1fr);
-  overflow:hidden!important;
-  overscroll-behavior:none;
+  grid-template-rows: auto auto;
+  overflow-y: auto !important;
  }
- .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace > .bml-student-content {
-  grid-template-rows:minmax(0,1fr);
-  min-height:0;
- }
+ .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace > .bml-student-content,
  .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-workbench {
-  grid-template-rows:minmax(0,1fr);
-  align-items:stretch;
- }
- .bml-student-dual-workspace .bml-student-project-pane > .bml-student-stage {
-  display:flex;
-  flex:1 1 0;
-  flex-direction:column;
-  align-items:stretch;
- }
- .bml-student-dual-workspace .bml-student-project-pane .bml-student-task {
-  flex:1 1 0;
- }
- .bml-student-dual-workspace .bml-student-lesson-scroll > .bml-live-student {
-  flex:none;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+  grid-template-rows: auto;
  }
  .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel > .bml-student-lesson-scroll,
  .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-task-scroll {
-  flex:1 1 0;
-  min-height:0;
-  overflow-x:hidden;
-  overflow-y:auto;
-  overscroll-behavior:contain;
-  scrollbar-gutter:stable;
-  scrollbar-color:#6b8483 #eeeee9;
-  scroll-padding-block:12px;
+  flex: 1 0 auto;
+  overflow: visible;
  }
- .bml-student-dual-workspace .bml-student-lesson-scroll:focus-visible {
-  outline:2px solid #245e88;
-  outline-offset:-2px;
+ .bml.bml-student-canvas16.bml-student-editorial .bml-student-primary > .bml-student-pane,
+ .bml-student-dual-workspace .bml-student-project-pane > .bml-student-stage,
+ .bml.bml-student-canvas16.bml-student-editorial .bml-student-project-pane .bml-student-task.bml-surface { flex: 1 0 auto; }
+}
+@media (max-width: 899px) {
+ .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-workbench {
+  grid-template-columns: minmax(0, 1fr);
  }
 }
-
-.bml .bml-student-inline-videos { display:grid; gap:12px; min-width:0; }
-.bml .bml-student-inline-video { margin:0; min-width:0; }
-.bml .bml-student-inline-video .bml-video-player { margin:0; }
-.bml .bml-student-inline-video figcaption { margin-top:6px; font-size:13px; }
-.bml .bml-student-inline-video .bml-video-embed { aspect-ratio:16/9; min-height:0; }
-.bml .bml-student-inline-video .bml-video-embed iframe { width:100%; height:100%; }
-/* Stronger Swiss ink. The pale paper was reading as washed out. */
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace{
- background:#d5dee8!important;
- color:#102033;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-hub{
- background:#fff!important;
- border:2px solid #112339!important;
- box-shadow:6px 6px 0 #112339;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-hub .bml-student-focus-head>strong{
- color:#112339!important;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-steps button small{
- color:#102033!important;
- font-weight:750!important;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-steps button.is-active>span{
- background:#ca2431!important;
- border-color:#ca2431!important;
- color:#fff!important;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel{
- background:#fff!important;
- border:2px solid #163e6b!important;
- border-top:0!important;
- box-shadow:6px 6px 0 #163e6b;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel>.bml-student-panel-head{
- background:#163e6b!important;
- border-bottom:0!important;
- color:#fff;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel .bml-student-panel-head h2,
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel .bml-student-panel-head h2::before{
- color:#fff!important;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel>.bml-student-panel-head .bml-outline{
- background:transparent!important;
- color:#fff!important;
- border:1px solid #fff!important;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel{
- background:#fffaf3!important;
- border:2px solid #9a1c28!important;
- border-top:0!important;
- box-shadow:6px 6px 0 #9a1c28;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel>.bml-student-panel-head{
- background:#9a1c28!important;
- border-bottom:0!important;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-student-panel-head h2,
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-student-panel-head h2::before,
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-student-panel-head p,
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-student-project-status,
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-student-project-status strong{
- color:#fff!important;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel>.bml-student-panel-head .bml-outline{
- background:transparent!important;
- color:#fff!important;
- border:1px solid #fff!important;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-p2-cards article{
- background:#fff!important;
- border:1px solid #163e6b!important;
- border-left:4px solid #ca2431!important;
- color:#102033;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-p2-question,
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-live-student,
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-locked-dossier{
- color:#102033;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel .bml-primary,
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-primary{
- background:#112339!important;
- border-color:#112339!important;
-}
-
-/* Lesson reads as a cool record. Project reads as a warm working sheet. */
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel{
- background:#f4f7fb!important;
- border:1px solid #c5d4e4!important;
- border-top:4px solid #1d4e89!important;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel > .bml-student-panel-head{
- background:#e8f0f8;
- border-bottom:1px solid #c5d4e4;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel .bml-student-panel-head h2{
- color:#1d4e89!important;
- font-size:13px!important;
- letter-spacing:.16em;
- text-transform:uppercase;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel .bml-student-panel-head h2::before{
- content:"01";
- margin-right:8px;
- color:#1d4e89;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel .bml-student-panel-head .bml-outline{
- border-color:#1d4e89!important;
- color:#1d4e89!important;
- background:#fff!important;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel{
- background:#fff8ef!important;
- border:1px solid #ead4b0!important;
- border-top:4px solid #ca2431!important;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel > .bml-student-panel-head{
- background:#fff1dc;
- border-bottom:1px solid #ead4b0;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-student-panel-head h2{
- color:#9a1c28!important;
- font-size:13px!important;
- letter-spacing:.16em;
- text-transform:uppercase;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-student-panel-head h2::before{
- content:"02";
- margin-right:8px;
- color:#ca2431;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-student-task.bml-surface,
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-pane{
- background:transparent!important;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-status{
- color:#8a4b12!important;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-overline{
- color:#9a1c28!important;
-}
-
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace{
- background:#d5dee8!important;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-hub{
- background:#fff!important;
- border:2px solid #112339!important;
- box-shadow:6px 6px 0 #112339;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel{
- background:#fff!important;
- border:2px solid #163e6b!important;
- border-top:0!important;
- box-shadow:6px 6px 0 #163e6b;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel>.bml-student-panel-head{
- background:#163e6b!important;
- border-bottom:0!important;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel .bml-student-panel-head h2,
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel .bml-student-panel-head h2::before{
- color:#fff!important;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-lesson-panel>.bml-student-panel-head .bml-outline{
- background:transparent!important;
- color:#fff!important;
- border-color:#fff!important;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel{
- background:#fffaf3!important;
- border:2px solid #9a1c28!important;
- border-top:0!important;
- box-shadow:6px 6px 0 #9a1c28;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel>.bml-student-panel-head{
- background:#9a1c28!important;
- border-bottom:0!important;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-student-panel-head h2,
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-student-panel-head h2::before,
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-student-panel-head p,
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-student-project-status,
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel .bml-student-project-status strong{
- color:#fff!important;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace .bml-student-project-panel>.bml-student-panel-head .bml-outline{
- background:transparent!important;
- color:#fff!important;
- border-color:#fff!important;
+@media (max-width: 520px) {
+ .bml.bml-student-canvas16.bml-student-editorial .bml-student-focus .bml-student-steps button {
+  flex-direction: column;
+  align-items: flex-start;
+  align-self: stretch;
+  gap: 2px;
+  min-height: 66px;
+  padding-inline: 4px;
+ }
+ .bml.bml-student-dual-workspace .bml-student-bar .bml-student-right { width: 100%; }
+ .bml.bml-student-dual-workspace .bml-student-bar .bml-student-lang { margin-inline-start: auto; }
+ .bml.bml-student-dual-workspace .bml-student-group-activities button { min-height: 42px; }
+ .bml.bml-student-dual-workspace .bml-student-panel-head .bml-outline { min-height: 38px; }
 }

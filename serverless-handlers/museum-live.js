@@ -71,6 +71,20 @@ export default async function museumLive(req,res){
     const id=String(req.method==='GET'?req.query?.assignmentId:req.body?.assignmentId||'');
     assignment=await scopedStaff(ctx,id);
    }
+   if(op==='unlock-lesson'||(op==='control'&&req.body?.action==='end')){
+    requireMethod(req,'POST');guardOrigin(req);
+    const body=guardBody(req,1000);
+    const completing=op==='control';
+    if(completing&&!Number.isInteger(body.version))throw fail(400,'Thiếu phiên bản bài dạy.');
+    if(!completing&&(typeof body.contentFrozenAt!=='string'||!Number.isFinite(Date.parse(body.contentFrozenAt))))
+     throw fail(400,'Thiếu thời điểm khóa bài dạy.');
+    const result=await query(admin.rpc('museum_set_lesson_completion',{
+     p_assignment:assignment.id,p_actor:ctx.user.id,p_complete:completing,
+     p_version:completing?body.version:null,p_frozen_at:completing?null:body.contentFrozenAt
+    }));
+    return send(res,200,{contentFrozenAt:result.contentFrozenAt,
+     session:result.session?stateOf(result.session,{staff:true}):null});
+   }
    // Allow stage viewing, signed images and evidence export, but never alter
    // the frozen presentation or its live classroom history.
    if(!publicRead&&req.method!=='GET'&&assignment.content_frozen_at)
@@ -78,14 +92,13 @@ export default async function museumLive(req,res){
    const session=await getSession(admin,assignment.id);
    if(op==='state'){
     requireMethod(req,'GET');
-    if(!session)return send(res,200,{session:null,stageCount:LIVE_STAGES.length});
-    // GET-only historical browsing: a teacher can inspect every frozen stage
-    // without mutating stage_index, stage_open, saved responses or media_board.
-    // A non-frozen lesson ignores viewStage and keeps its live teaching state.
+    if(!session)return send(res,200,{session:null,contentFrozenAt:assignment.content_frozen_at??null,stageCount:LIVE_STAGES.length});
+    // Historical browsing must not move the live stage or reopen responses.
+    const reviewOnly=Boolean(publicRead||assignment.content_frozen_at||session.status==='ended');
     const requested=String(req.query?.viewStage??'');
-    const viewIndex=assignment.content_frozen_at&&/^(?:[0-9]|10)$/.test(requested)
+    const viewIndex=reviewOnly&&/^(?:[0-9]|10)$/.test(requested)
      ?Number(requested):session.stage_index;
-    const viewing=assignment.content_frozen_at
+    const viewing=reviewOnly
      ?{...session,stage_index:viewIndex,stage_started_at:null,elapsed_seconds:0,stage_open:false}
      :session;
     const grp=await query(admin.from('gcp_groups').select('id,label,state')
@@ -103,7 +116,8 @@ export default async function museumLive(req,res){
     const micro=MICRO_CHALLENGES[viewIndex]?await query(admin.from('museum_live_micro_responses')
      .select('group_id,choice,reason,submitted_at').eq('session_id',session.id)
      .eq('stage_index',viewIndex).limit(50)):[];
-    return send(res,200,{session:{...stateOf(viewing,{staff:true}),readOnly:Boolean(assignment.content_frozen_at),persistedStageIndex:session.stage_index},stageCount:LIVE_STAGES.length,
+    return send(res,200,{session:{...stateOf(viewing,{staff:true}),readOnly:reviewOnly,persistedStageIndex:session.stage_index},
+     contentFrozenAt:assignment.content_frozen_at??null,stageCount:LIVE_STAGES.length,
      microResponses:micro.length,microResults:micro,
      result:(()=>{const r=summarizeResponses(viewIndex,responses,sessionStage(viewing,viewIndex));if(r&&session.evidence_version===0&&viewIndex===2)r.options=r.options.map((o,i)=>({...o,label:legacySurvey.options[i]}));return r;})(),
      groups:grp,needHelp:new Set(helps.map(h=>h.group_id)).size,helpGroups:[...new Set(helps.map(h=>h.group_id))],survey:await surveyFor(admin,session.id),feedback:[...feedback,...liveFeedback],responses:activityResponses});
@@ -228,7 +242,6 @@ export default async function museumLive(req,res){
      update.elapsed_seconds=Math.min(7200,(session.elapsed_seconds||0)+Math.max(0,Math.floor((Date.now()-Date.parse(session.stage_started_at))/1000)));
     }
     else if(action==='resume'){update.status='active';update.stage_open=!(session.stage_index===2&&await surveyFor(admin,session.id));update.stage_started_at=now;}
-    else if(action==='end'){update.status='ended';update.stage_open=false;}
     else throw fail(400,'Lệnh giảng dạy không hợp lệ.');
     const changed=await query(admin.from('museum_live_sessions').update(update)
       .eq('id',session.id).eq('version',session.version).select('*').maybeSingle());
@@ -279,6 +292,7 @@ export default async function museumLive(req,res){
     .select(saveable?'value':'session_id').eq('session_id',session.id).eq(saveable?'group_id':'from_group',ctx.group.id)
     .match(saveable?{stage_index:session.stage_index}:{}).maybeSingle()):null;
    return send(res,200,{session:stateOf(session),micro,groupLabel:ctx.group.label,
+    readOnly:ctx.readOnly,
     submitted:Boolean(saved),response:saveable?saved?.value??null:null,assignmentTitle:ctx.assignment.title,survey:await surveyFor(admin,session?.id),feedback:await feedbackFor(admin,session?.id,ctx.group.id)});
   }
   if(op==='review-activity'){

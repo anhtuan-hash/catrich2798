@@ -15,7 +15,7 @@ export default function MuseumStudentActivityGroups({group,activity,language,onG
     const first=firstActivity(i)+1,last=GROUP_ENDS[i];
     return <button type="button" key={item.key} aria-pressed={i===group}
      onClick={()=>onGroup(i)} className={i===group?'is-active':''}>
-     <span>{i+1}</span><small>{item[language]}</small>
+     <span>{String(i+1).padStart(2,'0')}</span><small>{item[language]}</small>
      <small className="bml-student-activity-range">{first===last?first:first+'–'+last}</small>
     </button>;
    })}

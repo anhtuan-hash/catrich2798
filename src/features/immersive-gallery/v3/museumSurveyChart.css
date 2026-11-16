@@ -1,0 +1,51 @@
+.museum-survey-chart {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: .85rem 1rem;
+  border: 1px solid #c2d2c6;
+  border-radius: 8px;
+  background: #f2f7f1;
+  color: #17352f;
+  font-size: clamp(.82rem, 1.08cqi, 1.05rem);
+  line-height: 1.35;
+}
+.museum-survey-chart header, .museum-survey-chart li > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: .35rem .75rem;
+  flex-wrap: wrap;
+}
+.museum-survey-chart header span, .museum-survey-chart p {
+  margin: .25rem 0 0;
+}
+.museum-survey-chart .museum-survey-denominator {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+  margin: .45rem 0;
+}
+.museum-survey-chart ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: .55rem 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.museum-survey-chart li { min-width: 0; }
+.museum-survey-chart li b { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.museum-survey-chart .museum-survey-bar {
+  display: block;
+  height: 6px;
+  margin-top: .23rem;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #dce8df;
+}
+.museum-survey-chart .museum-survey-bar i {
+  display: block;
+  height: 100%;
+  background: #267563;
+}
