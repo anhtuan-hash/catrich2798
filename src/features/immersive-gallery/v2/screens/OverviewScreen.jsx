@@ -9,6 +9,8 @@ import {
   Landmark,
   Users,
 } from 'lucide-react';
+import AseanActivityArt from '../../v3/AseanActivityArt.jsx';
+import {ASEAN_SUBTITLE, ASEAN_TITLE, isAsean} from '../../v3/aseanLesson.js';
 import './OverviewScreen.css';
 
 const SUBMITTED_STATES = ['submitted', 'ttcm_review', 'approved_locked', 'published'];
@@ -20,19 +22,52 @@ export default function OverviewScreen({
   staff,
   language = 'en',
   onNavigate,
+  lessonTemplate,
+  publicReadOnly = false,
 }) {
   const payload = data || staff || {};
   const groups = payload.groups || [];
   const assignments = payload.assignments || [];
-  const exitTickets = payload.exitTickets || [];
   const primary = assignments[0] || null;
+  const asean = isAsean(lessonTemplate || primary);
+  const publicAsean = asean && (publicReadOnly || payload.publicReadOnly);
   const linked = primary ? groups.filter((g) => g.assignment_id === primary.id) : groups;
   const total = linked.length;
-  const submittedCount = linked.filter((g) => SUBMITTED_STATES.includes(g.state || g.status)).length;
-  const exitCount = linked.filter((g) => exitTickets.some((t) => t.group_id === g.id)).length;
-
-  const exitPct = total > 0 ? Math.min(100, Math.round((exitCount / total) * 100)) : 0;
-  const projectPct = total > 0 ? Math.min(100, Math.round((submittedCount / total) * 100)) : 0;
+  const writtenResponses = asean
+    ? (payload.aseanResponses || []).filter((response) => response.stage_index === 5)
+    : payload.exitTickets || [];
+  const writtenGroupIds = new Set(writtenResponses.map((response) => response.group_id));
+  const publishedGroupIds = new Set((payload.reviews || [])
+    .filter((review) => review.state === 'published').map((review) => review.group_id));
+  const projectCount = linked.filter((group) => publicAsean
+    ? publishedGroupIds.has(group.id)
+    : SUBMITTED_STATES.includes(group.state || group.status)).length;
+  const progress = [
+    ...(!publicAsean ? [{
+      id: 'writing',
+      icon: Users,
+      count: linked.filter((group) => writtenGroupIds.has(group.id)).length,
+      label: asean ? tr(language, 'Phiếu vận dụng', 'Transfer Cards') : tr(language, 'Phiếu thoát', 'Exit Tickets'),
+      detail: asean
+        ? tr(language, 'Phiếu vận dụng đã hoàn thành', 'Transfer Cards Completed')
+        : tr(language, 'Phiếu thoát đã hoàn thành', 'Exit Tickets Completed'),
+    }] : []),
+    {
+      id: 'projects',
+      icon: ImageIcon,
+      count: projectCount,
+      label: publicAsean ? tr(language, 'Đã công bố', 'Published') : tr(language, 'Dự án bảo tàng', 'Museum Projects'),
+      detail: publicAsean
+        ? tr(language, 'Triển lãm đã công bố', 'Exhibits Published')
+        : tr(language, 'Dự án bảo tàng đã nộp', 'Museum Projects Submitted'),
+    },
+  ];
+  const title = primary?.title || (asean
+    ? ASEAN_TITLE
+    : tr(language, 'Bảo tàng Hành động Khí hậu của Chúng ta', 'Our Climate Action Museum'));
+  const subtitle = primary?.subtitle || primary?.theme || (asean
+    ? tr(language, 'Tiếng Anh 11 · Global Success · Bài 4: ASEAN và Việt Nam', ASEAN_SUBTITLE)
+    : tr(language, 'Tiếng Anh theo dự án', 'Project-based English'));
 
   const destinations = [
     {
@@ -196,31 +231,24 @@ export default function OverviewScreen({
           <div className="ov-recent-inner">
             <div className="ov-recent-body">
               <div className="ov-recent-art">
-                <img
-                  src="/museum/swiss-editorial/recent-lesson-climate.png"
-                  alt={tr(language, 'Minh họa hành động khí hậu', 'Climate Action Earth and Wind Energy')}
-                  className="ov-climate-img"
-                  width={201}
-                  height={145}
-                  loading="lazy"
-                  decoding="async"
-                />
+                {asean ? (
+                  <AseanActivityArt activity="build" language={language} />
+                ) : (
+                  <img
+                    src="/museum/swiss-editorial/recent-lesson-climate.png"
+                    alt={tr(language, 'Minh họa hành động khí hậu', 'Climate Action Earth and Wind Energy')}
+                    className="ov-climate-img"
+                    width={201}
+                    height={145}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                )}
               </div>
 
               <div className="ov-recent-info">
-                <h3>
-                  {primary?.title ||
-                    tr(
-                      language,
-                      'Bảo tàng Hành động Khí hậu của Chúng ta',
-                      'Our Climate Action Museum'
-                    )}
-                </h3>
-                <p className="ov-recent-sub">
-                  {primary?.subtitle ||
-                    primary?.theme ||
-                    tr(language, 'Tiếng Anh theo dự án', 'Project-based English')}
-                </p>
+                <h3>{title}</h3>
+                <p className="ov-recent-sub">{subtitle}</p>
 
                 <div className="ov-meta-pills">
                   <span className="ov-meta-pill">
@@ -232,31 +260,16 @@ export default function OverviewScreen({
                 </div>
 
                 <div className="ov-progress-list">
-                  <div className="ov-progress-row">
-                    <CheckCircle2 size={14} className="ov-check-icon" aria-hidden="true" />
-                    <span className="ov-progress-label">
-                      {tr(language, 'Phiếu thoát', 'Exit Tickets')}
-                    </span>
-                    <div className="ov-bar-track" aria-hidden="true">
-                      <span className="ov-bar-fill" style={{ width: `${exitPct}%` }} />
+                  {progress.map(({id, count, label}) => (
+                    <div className="ov-progress-row" key={id}>
+                      <CheckCircle2 size={14} className="ov-check-icon" aria-hidden="true" />
+                      <span className="ov-progress-label">{label}</span>
+                      <div className="ov-bar-track" aria-hidden="true">
+                        <span className="ov-bar-fill" style={{ width: total ? `${Math.round(count / total * 100)}%` : '0%' }} />
+                      </div>
+                      <strong className="ov-progress-ratio">{count}/{total}</strong>
                     </div>
-                    <strong className="ov-progress-ratio">
-                      {exitCount}/{total}
-                    </strong>
-                  </div>
-
-                  <div className="ov-progress-row">
-                    <CheckCircle2 size={14} className="ov-check-icon" aria-hidden="true" />
-                    <span className="ov-progress-label">
-                      {tr(language, 'Dự án bảo tàng', 'Museum Projects')}
-                    </span>
-                    <div className="ov-bar-track" aria-hidden="true">
-                      <span className="ov-bar-fill" style={{ width: `${projectPct}%` }} />
-                    </div>
-                    <strong className="ov-progress-ratio">
-                      {submittedCount}/{total}
-                    </strong>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -274,33 +287,17 @@ export default function OverviewScreen({
             </header>
 
             <div className="ov-stat-stack">
-              <div className="ov-stat-item">
-                <span className="ov-stat-icon" aria-hidden="true">
-                  <Users size={22} strokeWidth={1.8} />
-                </span>
-                <div className="ov-stat-copy">
-                  <strong className="ov-stat-number">
-                    {exitCount}/{total}
-                  </strong>
-                  <span className="ov-stat-label">
-                    {tr(language, 'Phiếu thoát đã hoàn thành', 'Exit Tickets Completed')}
+              {progress.map(({id, icon: Icon, count, detail}) => (
+                <div className="ov-stat-item" key={id}>
+                  <span className="ov-stat-icon" aria-hidden="true">
+                    <Icon size={22} strokeWidth={1.8} />
                   </span>
+                  <div className="ov-stat-copy">
+                    <strong className="ov-stat-number">{count}/{total}</strong>
+                    <span className="ov-stat-label">{detail}</span>
+                  </div>
                 </div>
-              </div>
-
-              <div className="ov-stat-item">
-                <span className="ov-stat-icon" aria-hidden="true">
-                  <ImageIcon size={22} strokeWidth={1.8} />
-                </span>
-                <div className="ov-stat-copy">
-                  <strong className="ov-stat-number">
-                    {submittedCount}/{total}
-                  </strong>
-                  <span className="ov-stat-label">
-                    {tr(language, 'Dự án bảo tàng đã nộp', 'Museum Projects Submitted')}
-                  </span>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 

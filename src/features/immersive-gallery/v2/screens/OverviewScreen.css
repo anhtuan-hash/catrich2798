@@ -436,6 +436,38 @@
   border-radius: 10px;
 }
 
+.igv2 .ov-recent-art .asean-activity-art--build {
+  min-height: 0;
+}
+
+.igv2 .ov-recent-art .asean-art-room {
+  grid-template-rows: 1fr auto;
+  min-height: 128px;
+}
+
+.igv2 .ov-recent-art .asean-art-room-wall {
+  align-items: stretch;
+  margin: 18px 4px 8px;
+  gap: 3px;
+}
+
+.igv2 .ov-recent-art .asean-art-room-wall > div {
+  min-height: 0;
+  padding: 5px 2px;
+}
+
+.igv2 .ov-recent-art .asean-art-room-wall strong {
+  font-size: 9px;
+}
+
+.igv2 .ov-recent-art .asean-art-room-wall svg {
+  width: 16px;
+}
+
+.igv2 .ov-recent-art .asean-art-room-floor {
+  height: 34px;
+}
+
 .igv2 .ov-recent-info {
   min-width: 0;
 }
