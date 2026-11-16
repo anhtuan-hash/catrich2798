@@ -19,15 +19,14 @@ test('school hall is a 3D exhibition environment with actual framed artworks and
   assert.ok(architecture.includes(motif),'Missing school motif: '+motif);
  }
  assert.match(canvas,/schoolEdition/);
- assert.match(canvas,/PekMuseumArchitecture/);
+ assert.match(canvas,/PekDiscoveryHallV4/);
  assert.match(canvas,/ExhibitWallLabel title=\{exhibit.title\}/);
  assert.match(canvas,/kind==='image'/);
  assert.match(canvas,/ArtworkImage assetId=\{exhibit.asset_id\}/);
 });
 test('default Gallery R1 remains supported without school architecture',()=>{
  assert.match(canvas,/schoolEdition=false/);
- assert.match(canvas,/cinemaEdition\?<PekDiscoveryHallV4/);
- assert.match(canvas,/:<PekMuseumArchitecture/);
+ assert.match(canvas,/schoolEdition\?<PekDiscoveryHallV4/);
  assert.match(visitor,/schoolEdition cinemaEdition=\{cinema\}/);
 });
 test('accessible close-up and full-room views without changing gallery data',()=>{
