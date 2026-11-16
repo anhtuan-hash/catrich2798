@@ -1,5 +1,5 @@
 import {ASEAN_TEMPLATE,isAsean} from './aseanLesson.js';
-import AseanTeachingPlan,{AseanDossier} from './AseanTeachingPlan.jsx';
+import {AseanDossier} from './AseanDossier.jsx';
 import React,{useCallback,useEffect,useState} from 'react';
 import {Plus,RefreshCw,ShieldAlert,X} from 'lucide-react';
 import {LessonsList,LessonWizard} from './MuseumLessonFlow.jsx';
@@ -111,7 +111,7 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
      onCreate={()=>create()} onReview={id=>navigate('submissions',id)} onRefresh={refresh}/>:
    tab==='submissions'?<SubmissionsScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate} query={query}/>:
    tab==='gallery'?<ExhibitionsScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate} query={query}/>:
-   tab==='templates'?(isAsean(lessonTemplate)?<AseanTeachingPlan onCreate={readOnly?undefined:create}/>:<TeachingPlanScreen {...sharedScreenProps} data={matchingData}/>):
+   tab==='templates'?<TeachingPlanScreen {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate}/>:
    tab==='evidence'?(isAsean(lessonTemplate)?<AseanDossier data={matchingData} onOpenGallery={id=>{
     window.history.replaceState(null,'',window.location.hash.split('?')[0]+'?exhibition='+encodeURIComponent(id));
     navigate('gallery');

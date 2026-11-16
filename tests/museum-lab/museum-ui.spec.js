@@ -111,9 +111,56 @@ test('approved editorial layouts render on the four Museum Lab staff screens',as
  await expect(wizard).toHaveClass(/swiss-editorial-wizard/);
  await expect(wizard.locator('.wizard-step-feature')).toBeVisible();
  await expect(wizard.locator('.wizard-steps > li')).toHaveCount(3);
- await expect(wizard.locator('.bml-single-period li')).toHaveCount(11);
+ await expect(wizard.locator('.bml-single-flow ol > li')).toHaveCount(6);
  await checkOverflow();
  await page.screenshot({path:testInfo.outputPath('create-lesson.png'),fullPage:true,animations:'disabled'});
+});
+test('ASEAN teaching plan reuses the approved editorial screen',async({page},testInfo)=>{
+ await page.getByTestId('igv2-nav-teaching-plan').click();
+ const screen=page.getByTestId('igv2-teaching-plan-screen');
+ await expect(screen.getByRole('heading',{name:'Kế hoạch bài dạy.'})).toBeVisible();
+ await expect(screen.locator('.plan-masthead')).toHaveCSS('display','grid');
+ await expect(screen.locator('.kpi').first()).toHaveCSS('background-color','rgb(202, 14, 35)');
+ await expect(screen.locator('.kpi strong').first()).toHaveText('90');
+ const periods=screen.locator('.plan-period');
+ await expect(periods).toHaveCount(2);
+ await expect(periods.nth(0).getByRole('listitem')).toHaveCount(3);
+ await expect(periods.nth(1).getByRole('listitem')).toHaveCount(3);
+ await expect(periods.nth(1)).toHaveCSS('background-color','rgb(17, 17, 16)');
+ const build=periods.nth(0).getByRole('listitem').nth(2);
+ await expect(build).toContainText('Dựng triển lãm 3D của nhóm');
+ await build.getByText('Cách tổ chức và sản phẩm',{exact:true}).click();
+ await expect(build.getByText(/Phòng 3D V1 đã lưu/)).toBeVisible();
+ await expect(screen).toContainText('Rubric triển lãm nhóm · 10 điểm');
+ await expect(screen).not.toContainText(/NASA|Global Warming/);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ await page.screenshot({path:testInfo.outputPath('asean-teaching-plan-vi.png'),fullPage:true,animations:'disabled'});
+
+ await page.getByRole('button',{name:'EN',exact:true}).click();
+ await expect(screen.getByRole('heading',{name:'Teaching plan.'})).toBeVisible();
+ await expect(screen.getByRole('heading',{name:'ASEAN in Three Frames'})).toBeVisible();
+ const download=screen.getByRole('link',{name:'Download the English lesson plan and group worksheets'});
+ const downloaded=page.waitForEvent('download');
+ await download.click();
+ expect((await downloaded).suggestedFilename()).toBe('ASEAN_Group_Lesson.docx');
+ await expect(screen.getByRole('heading',{name:'6-activity lesson sequence · 90 min'})).toBeVisible();
+ await screen.getByRole('button',{name:/^Create lesson from this plan/}).click();
+ const wizard=page.getByTestId('museum-lesson-wizard');
+ await expect(wizard.getByRole('heading',{name:'ASEAN in Three Frames'})).toBeVisible();
+ await expect(wizard.locator('.bml-single-flow ol > li')).toHaveCount(6);
+
+ await page.route('**/api/gallery-staff?operation=dashboard',route=>route.fulfill({json:{
+  profile:{role:'viewer'},
+  assignments:[{id:'asean-qa',lesson_template:'asean-in-three-frames'}],
+  groups:[{id:'group-qa',assignment_id:'asean-qa'}],
+ }}));
+ await page.route('**/api/gallery-staff?operation=showcase-state',route=>route.fulfill({json:{publishedGalleries:[]}}));
+ await page.getByTestId('qa-dashboard-visitor').click();
+ await page.getByTestId('igv2-nav-teaching-plan').click();
+ await expect(screen.getByRole('heading',{name:'ASEAN in Three Frames'})).toBeVisible();
+ await expect(screen.getByRole('button',{name:/Create lesson from/})).toHaveCount(0);
+ await expect(download).toBeVisible();
+ await expect(screen.locator('.kpi strong')).toHaveText(['90','6','1','1']);
 });
 test('approved submissions page keeps review details and omits the footnote in both languages',async({page,isMobile},testInfo)=>{
  await page.getByTestId('qa-dashboard-submissions').click();
