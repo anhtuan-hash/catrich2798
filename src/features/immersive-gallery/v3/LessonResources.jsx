@@ -8,10 +8,10 @@ export default function LessonResources({stageIndex,teacher=false,language='vi'}
  const activeNote=stage&&LESSON_PLAN_NOTES[stage.id];
  return <div className="bml-learning-resources">
   {activeNote?<p lang="en">{activeNote.task}</p>:null}
-  {activeNote?.extension?<details><summary>{tr('Khi triển khai lần tiếp theo','For the next delivery')}</summary>
+  {activeNote?.extension?<details><summary>{activeNote.reference}</summary>
    <p lang="en">{activeNote.extension}</p>
    {stageIndex===0||stageIndex===10?<p lang="en">{stageIndex===0?EVIDENCE_WRITING.before:EVIDENCE_WRITING.after}</p>:null}
-   {stageIndex===7||stageIndex===8?<ol lang="en">{VISITOR_TASKS.map(task=><li key={task}>{task}</li>)}</ol>:null}
+   {stageIndex===7?<ol lang="en">{VISITOR_TASKS.map(task=><li key={task}>{task}</li>)}</ol>:null}
    <a href={PUBLIC_LESSON_GUIDE+'#assessment'} target="_blank" rel="noreferrer">{tr('Mở hướng dẫn và phiếu đánh giá','Open assessment guide and worksheets')}</a>
   </details>:null}
   {stageIndex===0?<div className="bml-scenario-pair"><div><span aria-hidden="true">💡</span><strong>Empty classroom · lights on</strong><p>What could we change? Give one reason.</p></div><div><span aria-hidden="true">♻</span><strong>Single-use cups at school</strong><p>Where could students refill a reusable bottle?</p></div></div>:null}

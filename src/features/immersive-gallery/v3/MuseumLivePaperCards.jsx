@@ -32,7 +32,7 @@ const PER_STAGE={
  'present':[
   ['Problem','Introduce the school issue in your own words.','text'],
   ['Evidence','Explain one authentic figure, its N and limitation.','source'],
-  ['Action','Present a feasible solution in 45–60 seconds.','idea']],
+  ['Action','Present a feasible solution in 45 seconds.','idea']],
  'exit-ticket':[
   ['Choose one action','Name an environmental action you can take.','idea'],
   ['Give your reason','Use because to connect cause and action.','text'],

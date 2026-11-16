@@ -41,7 +41,7 @@
 <section id="individualA">
   <h2>Phiếu cá nhân A · Chặng 01</h2>
   <p>Dùng khi triển khai lại. Mỗi học sinh viết độc lập trong một phút. Đây là số liệu bài tập. Khi dùng chung một thiết bị nhóm, phát bản in I1 để mỗi em có phiếu riêng.</p>
-  <label class="stack" lang="en">In a classroom priority survey, 3 of 10 groups selected switching off unused lights. Report the result with a percentage. Explain what the survey can tell us. <textarea id="individualBefore"></textarea></label>
+  <label class="stack" lang="en">In a classroom priority survey, 3 of 10 groups selected switching off unused lights. Write ONE sentence reporting the result with a percentage. Write ONE sentence explaining what the survey can tell us. <textarea id="individualBefore"></textarea></label>
 </section>
 <section id="listen">
   <h2>Nghe hiểu · Chặng 02 và 04</h2>
@@ -111,34 +111,35 @@
 </section>
 <section id="test">
   <h2>Thử với khách và cải tiến · Chặng 08–09</h2>
-  <p>Ghi riêng nhận xét cho từng nhóm được phân công, gồm điều học được, điểm cần làm rõ và độ rõ 1–4. Với lớp 10 nhóm, ghi 9 nhận xét rồi nộp chung một lượt. Nếu dùng giấy, dùng một phiếu cho mỗi nhóm được góp ý. Dùng hai phiếu V1/V2 dưới đây để kiểm tra một lượt khách được phân công khi có tổ chức phép thử.</p>
-  <fieldset>
-    <legend>Góp ý theo nhóm</legend>
-    <div id="peerReviews" class="grid" lang="en"></div>
-    <button type="button" class="secondary" id="addPeerReview">Thêm nhóm được góp ý</button>
-    <button type="button" id="collectReviews">Gộp nhận xét thành một lượt nộp</button>
-    <p id="peerStatus" class="status" role="status"></p>
-  </fieldset>
+  <p>C2 · Mỗi nhóm xem một bản V1. Khách ghi cả ba câu trả lời trong 3 phút. Nhóm tác giả đối chiếu với B3 và cho mỗi câu 0 hoặc 1 điểm. Khách ghi một góp ý cụ thể bằng tiếng Anh.</p>
   <div class="grid" id="testForms"></div>
+  <h3 id="retest">C3 · Sửa và kiểm tra lại đúng câu hỏi liên quan</h3>
+  <label class="stack" lang="en">Original wording or layout <textarea id="originalWording"></textarea></label>
   <label class="stack" lang="en">We changed … because the visitor … <textarea id="revision"></textarea></label>
-  <label class="stack" lang="en">What limits our comparison? <textarea id="comparison"></textarea></label>
-  <button type="button" id="scoreTest">Tính kết quả V1 và V2</button>
+  <label class="stack" lang="en">Question from C2 <select id="targetItem"><option value="">Choose the item</option></select></label>
+  <label class="stack" lang="en">Visitor group and retest time <input id="retestVisitor"></label>
+  <label class="stack" lang="en">What did the visitor answer on V2? <textarea id="retestAnswer"></textarea></label>
+  <label class="stack" lang="en">V2 score <select id="retestScore"><option value="">Choose 0 or 1</option><option>0</option><option>1</option></select></label>
+  <label class="stack" lang="en">Did the reader change? Note any change to the test conditions. <textarea id="comparison"></textarea></label>
+  <button type="button" id="scoreTest">Tính tổng V1 và đối chiếu câu kiểm tra lại</button>
   <p id="testStatus" class="status" role="status"></p>
 </section>
 <section id="finish">
   <h2>Trình bày và vận dụng · Chặng 10–11</h2>
-  <p lang="en">Our museum explains … . According to NASA, … . Our group survey shows … . We recommend … . We changed … after feedback.</p>
-  <label class="stack">Mã học sinh nếu dùng hai phiếu cá nhân <input id="student" maxlength="20"></label>
+  <h3 id="pitch">D1 · Present and Discuss</h3>
+  <p lang="en">Every group presents for 45 seconds and takes 15 seconds for a question and reply. Everyone says one short sentence. “Our museum explains … . According to NASA, … . In our survey, … out of … groups chose … . This tells us … . We recommend … .”</p>
+  <label class="stack" lang="en">Observer, source, question and reply <textarea id="pitchRecord"></textarea></label>
+  <label class="stack">Mã học sinh dùng cho cả hai phiếu cá nhân <input id="student" maxlength="20"></label>
   <h3>Phiếu cá nhân B · Chặng 11</h3>
-  <label class="stack" lang="en">In a classroom priority survey, 7 of 10 groups selected using reusable bottles. Report the result with a percentage. Explain what the survey can tell us. <textarea id="individualAfter"></textarea></label>
+  <label class="stack" lang="en">In a classroom priority survey, 7 of 10 groups selected using reusable bottles. Write ONE sentence reporting the result with a percentage. Write ONE sentence explaining what the survey can tell us. <textarea id="individualAfter"></textarea></label>
   <h3>Exit Ticket theo nhóm</h3>
   <label class="stack" lang="en">I will … because … <textarea id="action"></textarea></label>
   <label class="stack" lang="en">Our class survey tells us … <textarea id="meaning"></textarea></label>
-  <h3>Phiếu D2 · Nhật ký vận dụng sau giờ học</h3>
-  <p>Theo dõi một hành động đã thống nhất trong một tuần. Nộp vào buổi Tiếng Anh đầu tiên sau tuần theo dõi.</p>
-  <label class="stack" lang="en">Date range and action <input id="followUpAction"></label>
-  <label class="stack" lang="en">What did you count? How many times out of how many opportunities? <input id="followUpCount"></label>
-  <label class="stack" lang="en">Report what happened and one limitation in 2–3 sentences. <textarea id="followUpReport"></textarea></label>
+  <h3 id="follow-up">D2 · Theo dõi một hành động trong một tuần học</h3>
+  <p>Ghi khoảng ngày, hành động, số lần thực hiện trên tổng số cơ hội và một giới hạn. Viết 2–3 câu tiếng Anh. Nộp vào tiết tiếng Anh đầu tiên sau tuần quan sát.</p>
+  <label class="stack" lang="en">Date range and action <input id="actionWeek"></label>
+  <label class="stack" lang="en">Observation unit and count (x / N) <input id="actionCount"></label>
+  <label class="stack" lang="en">What happened and what the result can tell us <textarea id="actionResult"></textarea></label>
   <button type="button" id="download">Tải bản ghi TXT</button>
   <button type="button" class="secondary" id="print">In / Lưu PDF</button>
 </section>
@@ -360,65 +361,51 @@ function save(version){
 }
 el('saveV1').onclick=()=>save('V1');
 el('saveV2').onclick=()=>save('V2');
-const peerFields=[];
-let submittedReviews=null;
-el('addPeerReview').onclick=()=>{
-  const box=make('fieldset'), group=make('input'), learned=make('textarea'), clarify=make('textarea');
-  const clarity=selectChoices([1,2,3,4]), remove=make('button','Remove');
-  group.maxLength=20;learned.maxLength=600;clarify.maxLength=600;remove.type='button';
-  const review={group,learned,clarify,clarity};
-  field(box,'Group code',group);
-  field(box,'What did you learn?',learned);
-  field(box,'What could be clearer?',clarify);
-  field(box,'Clarity · 1 to 4',clarity);
-  remove.onclick=()=>{peerFields.splice(peerFields.indexOf(review),1);box.remove();};
-  box.append(remove);
-  el('peerReviews').append(box);
-  peerFields.push(review);
-  group.focus();
-};
-el('collectReviews').onclick=()=>{
-  const reviews=peerFields.map(row=>Object.fromEntries(
-    Object.entries(row).map(([field,input])=>[field,input.value.trim()])
-  ));
-  const self=val('group').toLowerCase(), codes=reviews.map(row=>row.group.toLowerCase());
-  if(!self||!reviews.length||reviews.some(row=>Object.values(row).some(value=>!value))
-    ||codes.includes(self)||new Set(codes).size!==codes.length){
-    status('peerStatus','Nhập mã nhóm mình và ghi đủ một nhận xét cho từng mã nhóm khác.',true);return;
-  }
-  submittedReviews=reviews;
-  for(const control of el('peerReviews').querySelectorAll('input,textarea,select,button'))control.disabled=true;
-  el('addPeerReview').disabled=el('collectReviews').disabled=true;
-  status('peerStatus',`Đã gộp ${reviews.length} nhận xét. Tải bản ghi TXT để nộp chung cho giáo viên.`);
-};
-const tasks=['Name the school problem','Point to the source for one claim','State the action, who and when'];
-function createTest(version) {
+const tasks=[
+  'What is the school problem?',
+  'Which source supports one claim? Point to it.',
+  'What should someone do? Who does it and when?'
+];
+function createVisitorTest() {
   const box=make('fieldset');
   box.lang='en';
-  box.append(make('legend',version));
-  const visitor=make('input'), time=make('input');
+  box.append(make('legend','C2 · Visitor test card · V1'));
+  const author=make('input'), visitor=make('input'), time=make('input');
   time.type='time';
-  field(box,'Visitor group code',visitor);field(box,'Test time',time);
+  field(box,'Author group code',author);field(box,'Visitor group code',visitor);field(box,'Test time',time);
   const story=tasks.map(task=>{
     const answer=make('input'), mark=selectChoices([0,1]);
     field(box,task,answer);field(box,'Result · 0 or 1',mark);
     return {answer,mark};
   });
-  const comment=make('textarea'), clarity=selectChoices([1,2,3,4]);
-  field(box,'What did you learn? What could be clearer?',comment);field(box,'Clarity · 1 to 4',clarity);
+  const strength=make('textarea'), suggestion=make('textarea');
+  field(box,'One part that worked',strength);field(box,'One change we suggest',suggestion);
   el('testForms').append(box);
-  return {version,visitor,time,story,comment,clarity};
+  return {author,visitor,time,story,strength,suggestion};
 }
-const tests=['V1','V2'].map(createTest);
+const visitorTest=createVisitorTest();
+tasks.forEach((task,index)=>{
+  const option=make('option',task);
+  option.value=String(index);
+  el('targetItem').append(option);
+});
 function testData(){
-  return tests.map(test=>{
-    const scores=test.story.map(t=>t.mark.value);
-    return {version:test.version,visitor:test.visitor.value,time:test.time.value,
-      results:test.story.map((t,i)=>({task:tasks[i],answer:t.answer.value,score:scores[i]})),
-      sum:scores.includes('')?null:scores.reduce((a,b)=>a+Number(b),0),comment:test.comment.value,clarity:test.clarity.value};
-  });
+  const test=visitorTest;
+  const results=test.story.map(({answer,mark},i)=>({task:tasks[i],answer:answer.value,score:mark.value===''?null:Number(mark.value)}));
+  const total=results.every(row=>row.score!==null)?results.reduce((sum,row)=>sum+row.score,0):null;
+  const item=val('targetItem');
+  return {
+    v1:{author:test.author.value,visitor:test.visitor.value,time:test.time.value,results,total,strength:test.strength.value,suggestion:test.suggestion.value},
+    retest:item===''?null:{task:tasks[Number(item)], v1:results[Number(item)],visitorAndTime:val('retestVisitor'),
+      answer:val('retestAnswer'),score:val('retestScore')===''?null:Number(val('retestScore'))}
+  };
 }
-el('scoreTest').onclick=()=>status('testStatus',testData().map(t=>`${t.version} · ${t.sum===null?'Chưa đủ kết quả':t.sum+'/3'}`).join(' | '));
+el('scoreTest').onclick=()=>{
+  const {v1,retest}=testData();
+  const total=v1.total===null?'V1: chưa đủ kết quả':'V1: '+v1.total+'/3';
+  const comparison=retest?.v1.score!=null&&retest.score!=null?' · Câu kiểm tra lại: '+retest.v1.score+'/1 → '+retest.score+'/1':'';
+  status('testStatus',total+comparison);
+};
 function download(){
   const selected=document.querySelector('input[name=priority]:checked');
   const data={
@@ -427,11 +414,11 @@ function download(){
     survey:{choice:selected?options[Number(selected.value)]:'', counts:getCounts(), finding:val('surveyLine'), limit:val('surveyLimit')},
     design:{problem:val('problem'),evidence:val('designEvidence'),options:[val('optionA'),val('optionB')],
       ratings:ratingFields.map(fields=>fields.map(f=>f.value)), decision:val('decision'),storyboard:val('storyboard')},
-    versions, currentLabels:readExhibit(), peerReviews:submittedReviews, tests:testData(),
-    revision:val('revision'),comparison:val('comparison'),
+    versions, currentLabels:readExhibit(), tests:testData(),
+    originalWording:val('originalWording'), revision:val('revision'),comparison:val('comparison'),
+    pitch:val('pitchRecord'), followUp:{dateRangeAndAction:val('actionWeek'),unitAndCount:val('actionCount'),summary:val('actionResult')},
     individualWriting:{studentCode:val('student'),before:val('individualBefore'),after:val('individualAfter')},
-    exitTicket:{groupCode:val('group'),studentCode:val('student'),action:val('action'),surveyMeaning:val('meaning')},
-    followUp:{actionAndDates:val('followUpAction'),count:val('followUpCount'),report:val('followUpReport')}
+    exitTicket:{groupCode:val('group'),studentCode:val('student'),action:val('action'),surveyMeaning:val('meaning')}
   };
   const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'text/plain;charset=utf-8'}));
   const a=make('a');

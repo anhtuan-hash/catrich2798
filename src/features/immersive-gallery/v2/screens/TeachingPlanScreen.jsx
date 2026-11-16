@@ -2,7 +2,7 @@ import React from 'react';
 import {ArrowRight,Search,PenTool,Landmark} from 'lucide-react';
 import {LESSON_KITS, RUBRIC} from '../../v3/museumData.js';
 import {LIVE_STAGES,LIVE_TOTAL_MINUTES,LIVE_PERIOD_MINUTES} from '../../v3/liveLesson.js';
-import {LESSON_PLAN_NOTES, PUBLIC_LESSON_GUIDE, OFFLINE_LESSON_WORKSHEET, VISITOR_TASKS} from '../../v3/lessonPlanAlignment.js';
+import {LESSON_PLAN_NOTES, PUBLIC_LESSON_GUIDE, OFFLINE_LESSON_WORKSHEET, VISITOR_TASKS, CLASSROOM_SETUP, CLASSROOM_RECORDS, VISITOR_TEST_GUIDANCE} from '../../v3/lessonPlanAlignment.js';
 import {MUSEUM_CURRICULUM_VIDEOS} from '../../v3/museumLiveExtensions.js';
 import EditorialHeading from '../shell/EditorialHeading.jsx';
 import MetricStrip from '../shell/MetricStrip.jsx';
@@ -101,6 +101,11 @@ export default function TeachingPlanScreen({language='vi',data,onCreate,onBack,o
         </div>
       </ContentPanel>
 
+      <ContentPanel className="plan-section" ariaLabel={t(language,'Chuẩn bị','Before the lesson')}>
+        <h2>{t(language,'Chuẩn bị','Before the lesson')}</h2>
+        <p lang="en">{CLASSROOM_SETUP}</p>
+      </ContentPanel>
+
       <ContentPanel className="plan-section plan-sequence" ariaLabel={t(language,'Tiến trình bài dạy','Lesson sequence')}>
         <h2>{t(language,'Tiến trình {{n}} hoạt động · {{m}} phút','{{n}}-activity lesson sequence · {{m}} min').replace('{{n}}',activityCount).replace('{{m}}',LIVE_TOTAL_MINUTES)}</h2>
         <div className="plan-periods">
@@ -118,9 +123,9 @@ export default function TeachingPlanScreen({language='vi',data,onCreate,onBack,o
                         <a href={MUSEUM_CURRICULUM_VIDEOS[i].officialSource} target="_blank" rel="noreferrer">{t(language,'Video NASA và nguồn','NASA video and source')}</a>
                         {' · '}<a href={PUBLIC_LESSON_GUIDE+'#stage-'+(i+1)}>{t(language,'3 câu hỏi nghe hiểu','3 listening questions')}</a>
                       </small>:null}
-                      <div className="plan-activity-meta">{a.minutes} {t(language,'phút','min')} · {a.kind}{a.sentence?` · “${a.sentence}”`:''}</div>
+                      <div className="plan-activity-meta">{a.minutes} {t(language,'phút','min')} · {LESSON_PLAN_NOTES[a.id].time} · {LESSON_PLAN_NOTES[a.id].reference}{a.sentence?` · “${a.sentence}”`:''}</div>
                       <small>{t(language,'Giai đoạn: ','Design phase: ')}{LESSON_PLAN_NOTES[a.id].phase}</small>
-                      {LESSON_PLAN_NOTES[a.id].extension?<small><b>{t(language,'Khi dạy lại: ','Next delivery: ')}</b>{LESSON_PLAN_NOTES[a.id].extension}</small>:null}
+                      <details><summary>{t(language,'Cách tổ chức và sản phẩm','Procedure and deliverable')}</summary><small lang="en" style={{whiteSpace:'pre-line'}}>{LESSON_PLAN_NOTES[a.id].procedure}</small><small lang="en">{LESSON_PLAN_NOTES[a.id].output}</small></details>
                     </div>
                   </li>
                 ))}
@@ -135,7 +140,8 @@ export default function TeachingPlanScreen({language='vi',data,onCreate,onBack,o
         <h2>{t(language,'Đánh giá và minh chứng','Assessment and evidence')}</h2>
         <div className="plan-assessment">
           <div>
-            <p>{t(language,'Khi dạy lại, dùng phiếu cá nhân 1 phút ở chặng 01 và 11. Khách thử V1/V2 bằng cùng ba nhiệm vụ ở chặng 08 và 09. Hồ sơ phiên đã khóa được đối chiếu bằng minh chứng gốc của phiên đó.','For a new delivery, use the one-minute individual writing checks in stages 01 and 11, and the same three visitor tasks for V1/V2 in stages 08 and 09. Review a finalized session using the evidence recorded in that session.')}</p>
+            <p>{t(language,'Khi dạy lại, dùng phiếu cá nhân 1 phút ở chặng 01 và 11. Dùng C2 để chấm ba câu ở V1 và C3 để hỏi lại câu liên quan đến phần đã sửa. Hồ sơ phiên đã khóa được đối chiếu bằng minh chứng gốc của phiên đó.','For a new delivery, use the one-minute individual writing checks in stages 01 and 11, the C2 three-question check in Stage 08, and a C3 retest of the revised item in Stage 09. Review a finalized session using the evidence recorded in that session.')}</p>
+            <p lang="en">{VISITOR_TEST_GUIDANCE}</p>
             <ol lang="en">{VISITOR_TASKS.map(task=><li key={task}>{task}</li>)}</ol>
           </div>
           <div className="plan-rubric">
@@ -147,6 +153,13 @@ export default function TeachingPlanScreen({language='vi',data,onCreate,onBack,o
             {' · '}<a href={OFFLINE_LESSON_WORKSHEET} download>{t(language,'Tải phiếu thực hành ngoại tuyến','Download offline practice worksheet')}</a>
           </p>
         </div>
+      </ContentPanel>
+
+      <ContentPanel className="plan-section" ariaLabel="Class 11.4 classroom records">
+        <h2>{t(language,'Ghi nhận thực tế lớp 11.4 do giáo viên xác nhận','Teacher-Confirmed Classroom Records · 11.4')}</h2>
+        <p lang="en">{CLASSROOM_RECORDS.confirmation}</p>
+        <p><a href={PUBLIC_LESSON_GUIDE+'#classroom-records'}>{CLASSROOM_RECORDS.example}</a></p>
+        <small lang="en">{CLASSROOM_RECORDS.sourceNote}</small>
       </ContentPanel>
 
       <div className="plan-actions">

@@ -7,12 +7,13 @@ const tr=(language,vi,en)=>language==='en'?en:vi;
 export function StudentActivityTask({stage,language='vi',onOpenProject,projectLabel,extensionOnly=false}){
  const slide=MUSEUM_ACTIVITY_SLIDES[stage.id];
  const note=LESSON_PLAN_NOTES[stage.id];
+ const worksheet=({'climate-detective':'individualA','classroom-survey':'survey','problem-evidence-solution':'design',storyboard:'design','artwork-studio':'studio','peer-gallery-walk':'test',revise:'retest',present:'pitch','exit-ticket':'finish'})[stage.id];
  if(!slide)return null;
  const writing=stage.id==='climate-detective'?EVIDENCE_WRITING.before:stage.id==='exit-ticket'?EVIDENCE_WRITING.after:null;
  if(extensionOnly&&note?.extension)return <section className="bml-student-p2-task" lang="en">
   <h3>{writing?(stage.id==='climate-detective'?'Individual writing · A':'Individual writing · B'):(stage.id==='revise'?'Visitor test · V2':'Visitor test · V1')}</h3>
   <p>{note.extension}</p>
-  {writing?<p>{writing}</p>:<ol>{VISITOR_TASKS.map(task=><li key={task}>{task}</li>)}</ol>}
+  {writing?<p>{writing}</p>:stage.id==='peer-gallery-walk'?<ol>{VISITOR_TASKS.map(task=><li key={task}>{task}</li>)}</ol>:null}
   {onOpenProject?<button type="button" className="bml-outline" onClick={onOpenProject}>{projectLabel}</button>:null}
  </section>;
  return <section className="bml-student-p2-task" data-testid="student-p2-task" aria-label={tr(language,'Nhiệm vụ theo kế hoạch bài dạy','Teaching-plan task')}>
@@ -23,15 +24,12 @@ export function StudentActivityTask({stage,language='vi',onOpenProject,projectLa
   <p className="bml-student-p2-output"><strong>{tr(language,'Sản phẩm','Deliverable')}</strong> <span lang="en">{slide.output}</span></p>
   {stage.sentence?<p className="bml-student-p2-frame" lang="en">“{stage.sentence}”</p>:null}
   {NEXT_DELIVERY_STAGES.includes(stage.id)&&note?.extension?<details>
-   <summary>{tr(language,'Lần dạy tiếp theo','Next delivery')}</summary>
+   <summary>{note.reference}</summary>
    <p lang="en">{note.extension}</p>
-   {writing?<p lang="en">{writing}</p>:<ol lang="en">{VISITOR_TASKS.map(task=><li key={task}>{task}</li>)}</ol>}
+   {writing?<p lang="en">{writing}</p>:stage.id==='peer-gallery-walk'?<ol lang="en">{VISITOR_TASKS.map(task=><li key={task}>{task}</li>)}</ol>:null}
   </details>:null}
-  {stage.id==='exit-ticket'?<p>
-   <a href={OFFLINE_LESSON_WORKSHEET+'#finish'} target="_blank" rel="noreferrer">
-    {tr(language,'Mở phiếu D2 · Nhật ký sau giờ học','Open Worksheet D2 · After-class log')}
-   </a>
-  </p>:null}
+  {stage.id==='exit-ticket'?<p><a href={OFFLINE_LESSON_WORKSHEET+'#follow-up'} target="_blank" rel="noreferrer">{tr(language,'Mở phiếu D2 · Nhật ký sau giờ học','Open Worksheet D2 · After-class log')}</a></p>:null}
+  {worksheet?<p><a href={OFFLINE_LESSON_WORKSHEET+'#'+worksheet} target="_blank" rel="noreferrer">{tr(language,'Mở phiếu','Open worksheet')} · {note.reference}</a></p>:null}
   {onOpenProject?<div className="bml-student-p2-actions">
    <button type="button" className="bml-outline" onClick={onOpenProject}>{projectLabel||tr(language,'Mở sản phẩm của nhóm','Open group project')}</button>
   </div>:null}
