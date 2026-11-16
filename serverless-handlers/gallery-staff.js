@@ -3,9 +3,8 @@ import {createHash} from 'node:crypto';
 import {
  db,digest,randomSecret,fail,send,handleError,guardOrigin,guardBody,query,
  settings,staffContext,assertStaff,assertAdmin,reviewer,uid,clean,requireMethod,
- publicMuseumContext
+ publicMuseumContext,assertActiveMuseumLesson
 } from './_galleryCreator.js';
-import {PREPARED_COLLECTIONS} from '../src/features/immersive-gallery/v3/museumPreparedCollections.js';
 import {encryptGroupPasscode,decryptGroupPasscode} from './_galleryPasscodes.js';
 import {createQuickAccessVerifier} from './_galleryQuickAccess.js';
 import {canGradeReviewState} from './_museumRubricPolicy.js';
@@ -78,13 +77,10 @@ async function publishedSchoolCatalog(ctx){
   .map(({starts_at,ends_at,...row})=>row);
  if(!visible.length)return [];
  const assignmentByGallery=await galleryLessonAssignments(ctx,visible.map(gallery=>gallery.id));
- const collections=new Map(),individual=[];
+ const collections=new Map();
  for(const gallery of visible){
   const {assignment,group}=assignmentByGallery.get(gallery.id)||{};
-  if(!isAsean(assignment)){
-   individual.push(assignment?{...gallery,assignment_id:assignment.id}:gallery);
-   continue;
-  }
+  if(!isAsean(assignment))continue;
   const collection=collections.get(assignment.id)||{
    ...gallery,id:aseanPublicKey(assignment.id),slug:aseanPublicKey(assignment.id),
    title:assignment.title||ASEAN_TITLE,summary:'Place, Experience and Visitor Advice',lesson_template:ASEAN_TEMPLATE,assignment_id:assignment.id,destinations:[]
@@ -94,7 +90,7 @@ async function publishedSchoolCatalog(ctx){
  }
  for(const collection of collections.values())
   collection.destinations.sort((a,b)=>a.groupLabel.localeCompare(b.groupLabel,'en'));
- return [...collections.values(),...individual];
+ return [...collections.values()];
 }
 
 async function galleryLessonAssignments(ctx,galleryIds){
@@ -119,6 +115,7 @@ async function loadScopedReview(ctx,reviewId){
  if(!review||review.archived_at)throw fail(404,'Không có hồ sơ.');
  const group=await query(ctx.admin.from('gcp_groups').select('*').eq('id',review.group_id).single());
  const assignment=await query(ctx.admin.from('gcp_assignments').select('*').eq('id',group.assignment_id).single());
+ assertActiveMuseumLesson(assignment);
  if(assignment.archived_at||assignment.school_scope!==ctx.profile.school||
     ![assignment.created_by,assignment.reviewer_id].includes(ctx.user.id)&&ctx.role!=='admin')
   throw fail(403,'Không có quyền xem hồ sơ này.');
@@ -129,6 +126,7 @@ async function loadOwnGroup(ctx,groupId){
  const group=await query(ctx.admin.from('gcp_groups').select('*').eq('id',groupId).maybeSingle());
  if(!group)throw fail(404,'Không có nhóm.');
  const assignment=await query(ctx.admin.from('gcp_assignments').select('*').eq('id',group.assignment_id).single());
+ assertActiveMuseumLesson(assignment);
  if(assignment.archived_at||assignment.school_scope!==ctx.profile.school||
    (assignment.created_by!==ctx.user.id&&ctx.role!=='admin'))throw fail(403,'Không phải giáo viên quản lý nhóm.');
  return {group,assignment};
@@ -193,8 +191,9 @@ export default async function galleryStaff(req,res){
     }
    }
    if(uid(assignmentId)){
-    const target=await query(admin.from('gcp_assignments').select('content_frozen_at')
+    const target=await query(admin.from('gcp_assignments').select('content_frozen_at,lesson_template')
      .eq('id',assignmentId).maybeSingle());
+    if(target)assertActiveMuseumLesson(target);
     if(target?.content_frozen_at)throw fail(423,'This lesson has been finalized and is view-only. Edits, reviews, passcode resets and deletion are disabled.');
    }
   }
@@ -202,15 +201,13 @@ export default async function galleryStaff(req,res){
   // Staff can read only their own school's archived showcase inventory.
   if(operation==='showcase-state'){
    requireMethod(req,'GET');
-   const hidden=await query(admin.from('museum_showcase_archives')
-    .select('item_kind,item_key').eq('school_scope',ctx.profile.school).limit(500));
    const archived=ctx.role==='admin'?await query(admin.from('gallery_exhibitions')
     .select('id,title,summary,status').eq('school_scope',ctx.profile.school)
     .eq('status','archived').order('updated_at',{ascending:false}).limit(100)):[];
    const archivedScopes=await galleryLessonAssignments(ctx,archived.map(gallery=>gallery.id));
-   const archivedGalleries=archived.map(gallery=>{
+   const archivedGalleries=archived.flatMap(gallery=>{
     const assignment=archivedScopes.get(gallery.id)?.assignment;
-    return assignment?{...gallery,lesson_template:assignment.lesson_template,assignment_id:assignment.id}:gallery;
+    return isAsean(assignment)?[{...gallery,lesson_template:assignment.lesson_template,assignment_id:assignment.id}]:[];
    });
    // Provide an authorized, server-side published catalogue so a transient
    // browser settings or Data API read issue does not hide published work.
@@ -218,7 +215,7 @@ export default async function galleryStaff(req,res){
     .select('enabled').eq('id',true).maybeSingle()))?.enabled===true;
    const publishedGalleries=galleryEnabled?await publishedSchoolCatalog(ctx):[];
    return send(res,200,{
-    hiddenCollections:hidden.filter(x=>x.item_kind==='collection').map(x=>x.item_key),
+    hiddenCollections:[],
     archivedGalleries,galleryEnabled,publishedGalleries
    });
   }
@@ -262,13 +259,13 @@ export default async function galleryStaff(req,res){
    requireMethod(req,'POST');guardOrigin(req);assertAdmin(ctx);
    const body=guardBody(req,1500);
    const kind=String(body.kind||''),key=String(body.key||'');
-   if(kind==='collection'){
-    if(!PREPARED_COLLECTIONS.some(c=>c.key===key))throw fail(404,'Unknown prepared collection.');
-   }else if(kind==='gallery'){
+   if(kind==='gallery'){
     if(!uid(key))throw fail(400,'Invalid exhibition identifier.');
     const gallery=await query(admin.from('gallery_exhibitions')
      .select('id,school_scope,status').eq('id',key).maybeSingle());
     if(!gallery||gallery.school_scope!==ctx.profile.school)throw fail(404,'Exhibition not found in your school.');
+    const assignment=(await galleryLessonAssignments(ctx,[key])).get(key)?.assignment;
+    assertActiveMuseumLesson(assignment);
    }else throw fail(400,'Invalid exhibition type.');
    // One database transaction archives or restores the exhibition, preserving
    // rooms, approved artworks, group submissions, rubric and evidence records.
@@ -286,7 +283,7 @@ export default async function galleryStaff(req,res){
      .eq('active',true));
    const where=(ctx.role==='admin'||ctx.publicReadOnly)?null:ctx.user.id;
    let q=admin.from('gcp_assignments').select('*').eq('school_scope',ctx.profile.school)
-    .is('archived_at',null).order('created_at',{ascending:false}).limit(100);
+    .eq('lesson_template',ASEAN_TEMPLATE).is('archived_at',null).order('created_at',{ascending:false}).limit(100);
    if(where)q=q.or('created_by.eq.'+where+',reviewer_id.eq.'+where);
    const assignments=await query(q);
    const ids=assignments.map(x=>x.id);
@@ -383,7 +380,8 @@ export default async function galleryStaff(req,res){
    const body=guardBody(req,1200),assignmentId=String(body.assignmentId||'');
    if(!uid(assignmentId))throw fail(400,'Invalid lesson.');
    const assignment=await query(admin.from('gcp_assignments')
-     .select('id,school_scope,created_by,archived_at').eq('id',assignmentId).maybeSingle());
+     .select('id,school_scope,created_by,archived_at,lesson_template').eq('id',assignmentId).maybeSingle());
+   assertActiveMuseumLesson(assignment);
    if(!assignment||assignment.archived_at||assignment.school_scope!==ctx.profile.school||
       assignment.created_by!==ctx.user.id)throw fail(403,'You cannot reveal these group passcodes.');
    const groupRows=await query(admin.from('gcp_groups').select('id,label').eq('assignment_id',assignmentId).limit(12));
@@ -476,11 +474,10 @@ export default async function galleryStaff(req,res){
    requireMethod(req,'POST');guardOrigin(req);assertAdmin(ctx);
    const body=guardBody(req,6000);
    const reviewerId=ctx.user.id; // Admin alone assigns and approves.
-   const template=body.lessonTemplate??'climate';
-   if(!['climate',ASEAN_TEMPLATE].includes(template))throw fail(400,'Unknown lesson template.');
+   const template=body.lessonTemplate??ASEAN_TEMPLATE;
+   if(template!==ASEAN_TEMPLATE)throw fail(400,'Unknown lesson template.');
    const count=Number(body.groupCount||0);
-   if(template===ASEAN_TEMPLATE&&count!==10)throw fail(400,'This teaching plan uses ten groups.');
-   if(!Number.isInteger(count)||count<1||count>12)throw fail(400,'Số nhóm phải từ 1 đến 12.');
+   if(count!==10)throw fail(400,'This teaching plan uses ten groups.');
    const deadline=new Date(body.deadlineAt),now=Date.now();
    if(!Number.isFinite(deadline.getTime())||deadline.getTime()<now+60*60*1000||
       deadline.getTime()>now+120*24*60*60*1000)
@@ -494,8 +491,8 @@ export default async function galleryStaff(req,res){
     return {handle,groupSecret,secret_hash:digest('invite:'+groupSecret),
      secret_envelope:encryptGroupPasscode(groupSecret,handle)};
    });
-   const created=await query(admin.rpc(template===ASEAN_TEMPLATE?'museum_issue_templated_assignment':'gcp_staff_issue_assignment',{
-    ...(template===ASEAN_TEMPLATE?{p_template:template}:{}),
+   const created=await query(admin.rpc('museum_issue_templated_assignment',{
+    p_template:template,
     p_teacher:ctx.user.id,p_reviewer:reviewerId,p_school:ctx.profile.school,
     p_class:classScope,p_title:title,p_brief:clean(body.brief,5000),
     p_deadline:deadline.toISOString(),

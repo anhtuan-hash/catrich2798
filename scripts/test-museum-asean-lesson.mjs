@@ -46,9 +46,9 @@ test('group forms reject conflated image choices and incorrect scores for suppor
 });
 
 test('Creator Pass requests remain scoped when the browser has a different lesson or group',async()=>{
- const {assertGuestLessonScope,assertInviteScope}=await import('../serverless-handlers/_galleryCreator.js');
- const climate={id:'80000000-0000-4000-8000-000000000001',class_scope:'11.4'};
- const asean={id:'80000000-0000-4000-8000-000000000002',class_scope:'11.4'};
+ const {assertActiveMuseumLesson,assertGuestLessonScope,assertInviteScope}=await import('../serverless-handlers/_galleryCreator.js');
+ const climate={id:'80000000-0000-4000-8000-000000000001',class_scope:'11.4',lesson_template:'climate'};
+ const asean={id:'80000000-0000-4000-8000-000000000002',class_scope:'11.4',lesson_template:ASEAN_TEMPLATE};
  const climateInvite={handle:'climate-group-handle'};
  const aseanInvite={handle:'asean-group-handle'};
  assert.doesNotThrow(()=>assertGuestLessonScope(climate.id,climate));
@@ -57,4 +57,7 @@ test('Creator Pass requests remain scoped when the browser has a different lesso
  assert.throws(()=>assertGuestLessonScope(climate.id,asean),{status:409});
  assert.doesNotThrow(()=>assertInviteScope(aseanInvite.handle,aseanInvite));
  assert.throws(()=>assertInviteScope(aseanInvite.handle,climateInvite),{status:409});
+ assert.doesNotThrow(()=>assertActiveMuseumLesson(asean));
+ assert.throws(()=>assertActiveMuseumLesson(climate),{status:404});
+ assert.throws(()=>assertActiveMuseumLesson(null),{status:404});
 });

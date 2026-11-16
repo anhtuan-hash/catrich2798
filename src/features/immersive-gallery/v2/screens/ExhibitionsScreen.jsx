@@ -52,7 +52,7 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
       ? archive.galleryEnabled : await api.getGalleryEnabled();
     const published = enabled && Array.isArray(archive.publishedGalleries) ? archive.publishedGalleries : [];
     let direct = [], directError = null;
-    if (enabled && !payload.publicReadOnly) {
+    if (enabled && !payload.publicReadOnly && !isAsean(lessonTemplate)) {
       try { direct = await api.listExhibitions(); } catch (e) { directError = e; }
     }
     if (directError && !published.length) throw directError;
@@ -82,7 +82,7 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
           try {
             const match = items.find(g => g.id === initial || g.slug === initial || g.destinations?.some(destination=>destination.id===initial)) ||
               (payload?.publishedGalleries || []).find(g => g.id === initial || g.slug === initial);
-            if (!match || isPracticeShowcase(match)) throw new Error('This exhibition is unavailable.');
+            if (!match || !inTemplate(match,lessonTemplate) || isPracticeShowcase(match)) throw new Error('This exhibition is unavailable.');
             const full = match?.status === 'published'
               ? (await transport('showcase-exhibition', {id: match.id})).gallery
               : await api.getExhibition(initial);

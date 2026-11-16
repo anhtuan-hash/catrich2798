@@ -2,6 +2,10 @@
   "installCommand": "npm ci --no-audit --no-fund --registry=https://registry.npmjs.org",
   "buildCommand": "node scripts/build-brian-vercel-release.mjs",
   "outputDirectory": "dist",
+  "redirects": [
+    { "source": "/museum-lesson-guide.html", "destination": "/#/tool/immersive-gallery", "permanent": false },
+    { "source": "/museum-lesson-worksheet.html", "destination": "/#/tool/immersive-gallery", "permanent": false }
+  ],
   "rewrites": [
     {
       "source": "/api/client-error-report",
