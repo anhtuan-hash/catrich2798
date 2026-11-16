@@ -127,7 +127,7 @@
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: clamp(22px, 2.5vw, 36px) clamp(15px, 2.65vw, 38px);
-  padding: 0 clamp(0px, .6vw, 9px) 4px;
+  padding-block-end: 4px;
 }
 
 .igv2 .swiss-editorial-exhibit {

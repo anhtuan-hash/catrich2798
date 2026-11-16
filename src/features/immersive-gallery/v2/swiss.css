@@ -519,19 +519,19 @@ html:has(.igv2) .bes-smart-bubble-dock {
   overflow-x: clip;
 }
 
+/* Keep the outer edges on the same grid across every Museum Lab screen. */
+.igv2 > :is(.igv2-topbar, .igv2-banner-wrap, .igv2-main-full, .igv2-footer-wrap) {
+  inline-size: calc(min(100%, var(--igv2-max-width)) - 2 * var(--igv2-shell-gutter));
+  min-inline-size: 0;
+  margin-inline: auto;
+}
+
 .igv2 .igv2-main-full {
-  width: 100%;
-  max-width: var(--igv2-max-width);
-  margin: 0 auto;
-  padding: 16px clamp(14px, 1.8vw, 22px) 22px;
-  min-width: 0;
+  padding-block: 16px 22px;
 }
 
 .igv2 .igv2-banner-wrap {
-  width: 100%;
-  max-width: var(--igv2-max-width);
-  margin: 14px auto 0;
-  padding: 0 clamp(14px, 1.8vw, 22px);
+  margin-block-start: 14px;
 }
 
 /* ---------- Official Competition Banner (.contest) ---------- */
@@ -700,9 +700,7 @@ html:has(.igv2) .bes-smart-bubble-dock {
 }
 
 .igv2 .igv2-topbar-inner {
-  max-width: var(--igv2-max-width);
-  margin: 0 auto;
-  padding: 10px clamp(14px, 1.8vw, 22px);
+  padding-block: 10px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1006,8 +1004,6 @@ html:has(.igv2) .bes-smart-bubble-dock {
 }
 
 .igv2 .footer-band {
-  max-width: var(--igv2-max-width);
-  margin: 0 auto;
   display: grid;
   grid-template-columns: minmax(0, 0.96fr) minmax(0, 1.05fr) minmax(0, 1.08fr);
   align-items: stretch;
@@ -1116,8 +1112,6 @@ html:has(.igv2) .bes-smart-bubble-dock {
 }
 
 .igv2 .footer-final-inner {
-  max-width: var(--igv2-max-width);
-  margin: 0 auto;
   min-height: 52px;
   padding: 10px clamp(16px, 2.5vw, 30px);
   display: flex;

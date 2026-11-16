@@ -200,7 +200,6 @@
 .bml .swiss-editorial-lesson-groups {
   display: grid;
   grid-template-columns: minmax(0, 2.75fr) minmax(230px, 1fr);
-  align-items: start;
   gap: clamp(14px, 2vw, 26px);
 }
 
