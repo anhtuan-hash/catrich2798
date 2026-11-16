@@ -161,7 +161,9 @@ test('Admin can safely archive database exhibitions without exposing prepared co
  assert.match(server,/operation==='restore-exhibition'/);
  assert.match(server,/guardOrigin\(req\);assertAdmin\(ctx\)/);
  assert.match(server,/gallery\.school_scope!==ctx\.profile\.school/);
- assert.match(server,/PREPARED_COLLECTIONS\.some/);
+ assert.match(server,/assertActiveMuseumLesson\(assignment\)/);
+ assert.match(server,/hiddenCollections:\[\]/);
+ assert.doesNotMatch(server,/PREPARED_COLLECTIONS/);
  assert.match(server,/museum_showcase_change/);
  assert.match(server,/operation==='showcase-state'/);
  assert.match(gallery,/data-testid="museum-archived-exhibitions"/);
@@ -329,7 +331,7 @@ test('student creator login reuses official dashboard competition ribbon without
  const entryCss=fs.readFileSync('src/features/immersive-gallery/v3/museumStudentEditorial.css','utf8');
  assert.match(student,/if\(!session\)return/);
  assert.match(student,/museum-login-competition-banner/);
- assert.match(student,/<MuseumCompetitionRibbon variant="dashboard" language=\{language\}\/>/);
+ assert.match(student,/<MuseumCompetitionRibbon variant="dashboard" language=\{language\} lessonTemplate=\{ASEAN_TEMPLATE\}\/>/);
  assert.match(student,/<GuestEntry\b[^>]*\bonRedeem=\{redeem\}[^>]*\blanguage=\{language\}/);
  assert.match(student,/import '\.\/museumDashboardBanner\.css'/);
  assert.match(entryCss,/\.bml\.bml-student-shell\.bml-student-editorial\.bml-student-login-with-ribbon/);

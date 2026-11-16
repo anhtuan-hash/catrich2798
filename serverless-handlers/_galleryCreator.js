@@ -1,3 +1,4 @@
+import {isAsean} from '../src/features/immersive-gallery/v3/aseanLesson.js';
 import {createClient} from '@supabase/supabase-js';
 import {createHmac,randomBytes,timingSafeEqual} from 'node:crypto';
 import {normalizeGuestDraft,validateGuestSubmission} from '../src/features/immersive-gallery/creatorPassPolicy.js';
@@ -118,6 +119,9 @@ export function assertGuestLessonScope(expectedLesson,assignment){
  if(expectedLesson!==undefined&&(!uid(expectedLesson)||expectedLesson!==assignment?.id))
   throw fail(409,'This QR code is for a different lesson. Enter a Creator Pass for this lesson.');
 }
+export function assertActiveMuseumLesson(assignment){
+ if(!isAsean(assignment))throw fail(404,'This lesson is no longer available in Museum Lab.');
+}
 export async function guestContext(req,admin,{write=false,allowPublishedWorksheet=false}={}){
  const token=cookie(req);
  if(!token||token.length>128)throw fail(401,'Cần nhập mã nhóm để tiếp tục.');
@@ -136,6 +140,7 @@ export async function guestContext(req,admin,{write=false,allowPublishedWorkshee
  if(!membership?.assignment)throw fail(401,'Phiên làm việc đã hết hạn.');
  const {assignment:lesson,invite,...group}=membership;
  const {quick,...assignment}=lesson;
+ assertActiveMuseumLesson(assignment);
  const readOnly=guestLessonReadOnly(assignment,group);
  assertInviteScope(req.headers?.['x-museum-invite'],invite);
  assertGuestLessonScope(req.headers?.['x-museum-lesson'],assignment);

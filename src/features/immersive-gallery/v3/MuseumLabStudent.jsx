@@ -1,4 +1,4 @@
-import {isAsean} from './aseanLesson.js';
+import {ASEAN_TEMPLATE,isAsean} from './aseanLesson.js';
 import AseanStudentLesson from './AseanStudentLesson.jsx';
 import React,{Suspense,useCallback,useEffect,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronDown,ChevronLeft,ChevronRight,ChevronUp,CircleHelp,Cloud,CloudAlert,CloudUpload,Eye,EyeOff,FileText,Info,KeyRound,Landmark,Leaf,Lightbulb,LockKeyhole,MessageSquare,RefreshCw,Send,ShieldCheck,Sparkles,Trophy,Users,X} from 'lucide-react';
@@ -70,10 +70,10 @@ function GuestEntry({onRedeem,busy,error,language,onResetError,onLanguageChange}
  return <div className="bml-guest-entry" data-testid="museum-student-entry">
   <div className="bml-guest-illustration"><div className="bml-guest-overline"><Landmark size={27}/><b>Pétrus Ký School System</b></div>
    <div className="bml-guest-globe" aria-hidden="true"><Landmark size={82}/><Leaf size={35}/></div>
-   <h1>{T(language,'Bảo tàng của nhóm em bắt đầu tại đây.','Build a museum from your evidence.')}</h1>
-   <p>{T(language,'Khám phá vấn đề · Viết bằng tiếng Anh · Trưng bày 3D','Explore an issue · Write in English · Create in 3D')}</p>
+   <h1>{T(language,'Khám phá ASEAN qua ba khung ảnh','Explore ASEAN in three frames')}</h1>
+   <p>{T(language,'Địa điểm · Trải nghiệm · Lời khuyên cho du khách','Place · Experience · Visitor advice')}</p>
    <div className="bml-guest-benefits"><span><Check size={16}/>{T(language,'Không tạo tài khoản','No account needed')}</span>
-    <span><Check size={16}/>{T(language,'Tự động lưu bài','Automatic saving')}</span></div>
+    <span><Check size={16}/>{T(language,'Làm bài theo nhóm','Work as a group')}</span></div>
   </div>
   <form className="bml-guest-form bml-quick-classroom-login" onSubmit={e=>{
    e.preventDefault();
@@ -334,7 +334,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  };
  if(!session)return <div className="bml bml-student-shell bml-student-editorial bml-student-login-with-ribbon" lang={language}>
   <div className="bml-paper bml-guest-competition-wrap" data-testid="museum-login-competition-banner">
-   <MuseumCompetitionRibbon variant="dashboard" language={language}/>
+   <MuseumCompetitionRibbon variant="dashboard" language={language} lessonTemplate={ASEAN_TEMPLATE}/>
   </div>
   <GuestEntry key={invitationPage} onRedeem={redeem} busy={busy} error={error} language={language} onLanguageChange={chooseLanguage} onResetError={()=>setError('')}/>
  </div>;

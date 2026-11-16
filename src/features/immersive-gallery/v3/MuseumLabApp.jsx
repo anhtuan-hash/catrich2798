@@ -12,6 +12,7 @@ import TeacherLiveScreen from '../v2/screens/TeacherLiveScreen.jsx';
 import TeachingPlanScreen from '../v2/screens/TeachingPlanScreen.jsx';
 import DossierScreen from '../v2/screens/DossierScreen.jsx';
 import SettingsScreen from '../v2/screens/SettingsScreen.jsx';
+import {getMuseumOffline} from './offlineAccess.js';
 import {liveStaff,publicLiveStaff} from './museumLiveApi.js';
 import './museumLab.css';
 import './museumPaper.css';
@@ -47,11 +48,9 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
   setUiLanguage(value);
   try{sessionStorage.setItem('bml-ui-language',value);}catch{/* ignore */}
  };
- const [lessonTemplate,setLessonTemplate]=useState(()=>{
-  if(typeof window==='undefined')return 'climate';
-  const params=new URLSearchParams(window.location.hash.split('?')[1]||'');
-  return params.get('exhibition')?.startsWith('asean-')?ASEAN_TEMPLATE:'climate';
- });
+ // Previously downloaded Climate evidence keeps its original viewer.
+ const legacyArchive=getMuseumOffline()?.snapshot?.staff?.assignments?.some(assignment=>!isAsean(assignment));
+ const lessonTemplate=legacyArchive?'climate':ASEAN_TEMPLATE;
  const [tab,setTab]=useState(initialMuseumTab),[staff,setStaff]=useState(null);
  const [loading,setLoading]=useState(true),[error,setError]=useState('');
  const [query,setQuery]=useState(''),[reviewId,setReviewId]=useState(null),[help,setHelp]=useState(false);
@@ -83,7 +82,7 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
  const shellNavigate=(navId)=>{ navigate(NAV_TO_TAB[navId]||'home'); };
  const visitor=publicReadOnly||!!staff?.publicReadOnly;
  const readOnly=visitor||!!staff?.offlineReadOnly;
- const create=(template)=>{if(!readOnly){if(typeof template==='string')setLessonTemplate(template);navigate('wizard');}};
+ const create=()=>{if(!readOnly)navigate('wizard');};
  const activeNav=TAB_TO_NAV[tab]||'overview';
  const matchingAssignments=(staff?.assignments||[]).filter(a=>isAsean(a)===isAsean(lessonTemplate));
  const matchingIds=new Set(matchingAssignments.map(a=>a.id));
@@ -103,24 +102,14 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
    {error?<div className="bml-banner bml-danger-banner" role="alert" style={{marginBottom:18}}><ShieldAlert size={19}/>
      <div><strong>{tr(uiLanguage,'Không thể đồng bộ dữ liệu quản lý','Could not load staff data')}</strong><p>{error}</p>
       <button type="button" className="bml-outline" onClick={()=>{setLoading(true);refresh();}}><RefreshCw size={17}/>{tr(uiLanguage,'Thử lại','Retry')}</button></div></div>:null}
-   {!loading&&['home','templates','lessons','submissions','evidence','live','gallery'].includes(tab)&&<label className="bml-outline" style={{marginBottom:12}}>
-    {tr(uiLanguage,'Chủ đề bài dạy','Lesson template')}{' '}
-    <select value={lessonTemplate} onChange={e=>{
-     setLessonTemplate(e.target.value);setReviewId(null);setQuery('');
-     if(tab==='gallery')window.history.replaceState(null,'',window.location.hash.split('?')[0]);
-    }}>
-     <option value="climate">Our Climate Action Museum</option>
-     <option value={ASEAN_TEMPLATE}>ASEAN in Three Frames</option>
-    </select>
-   </label>}
    {loading?<div className="bml-empty bml-surface" role="status"><RefreshCw size={27}/>{tr(uiLanguage,'Đang tải bài học và phân quyền…','Loading lessons and permissions…')}</div>:
    tab==='home'?(isAsean(lessonTemplate)?<AseanTeachingPlan onCreate={readOnly?undefined:create}/>:<OverviewScreen {...sharedScreenProps} data={matchingData}/>):
    tab==='live'?<TeacherLiveScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} transport={liveTransport} initialTemplate={lessonTemplate}/>:
-   tab==='wizard'?<LessonWizard language={uiLanguage} data={staff} initialTemplate={lessonTemplate} onTemplateChange={setLessonTemplate} onCompleted={refresh} onExit={()=>navigate('lessons')} onSettings={()=>navigate('settings')}/>:
+   tab==='wizard'?<LessonWizard language={uiLanguage} data={staff} onCompleted={refresh} onExit={()=>navigate('lessons')} onSettings={()=>navigate('settings')}/>:
    tab==='lessons'?<LessonsList key={lessonTemplate} language={uiLanguage} data={matchingData} query={query}
      onCreate={()=>create()} onReview={id=>navigate('submissions',id)} onRefresh={refresh}/>:
    tab==='submissions'?<SubmissionsScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate} query={query}/>:
-   tab==='gallery'?<ExhibitionsScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate} onTemplateChange={setLessonTemplate} query={query}/>:
+   tab==='gallery'?<ExhibitionsScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate} query={query}/>:
    tab==='templates'?(isAsean(lessonTemplate)?<AseanTeachingPlan onCreate={readOnly?undefined:create}/>:<TeachingPlanScreen {...sharedScreenProps} data={matchingData}/>):
    tab==='evidence'?(isAsean(lessonTemplate)?<AseanDossier data={matchingData} onOpenGallery={id=>{
     window.history.replaceState(null,'',window.location.hash.split('?')[0]+'?exhibition='+encodeURIComponent(id));
@@ -134,7 +123,7 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
      <header><div><span className="bml-overline">HOW IT WORKS</span><h2>{tr(uiLanguage,'Bắt đầu thật đơn giản','Getting started is simple')}</h2></div>
       <button type="button" className="bml-icon-btn" onClick={()=>setHelp(false)} aria-label="Close"><X size={20}/></button></header>
      <div className="bml-checklist" style={{margin:'19px 0'}}>{[
-      ['01','Chọn mẫu trong Kế hoạch dạy','Choose a template in Teaching Plan'],
+      ['01','Mở kế hoạch dạy ASEAN','Open the ASEAN teaching plan'],
       ['02','Tạo mã QR và mã bí mật cho từng nhóm','Create a QR and private passcode for each group'],
       ['03','Học sinh làm bài theo nhóm và lưu bài bằng mã nhóm','Students use their group pass to complete and save their work'],
       ['04','Admin đánh giá, phê duyệt và công bố','Admin assesses, approves and publishes']

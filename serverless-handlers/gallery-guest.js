@@ -7,7 +7,7 @@ import {canSaveMuseumDraft,canSubmitMuseumProject} from '../src/features/immersi
 // The only cookie is an opaque, short-lived, group-scoped capability.
 import {
  db,digest,randomSecret,fail,send,handleError,guardOrigin,guardBody,query,
- setCookie,clearCookie,guestContext,assertGuestLessonScope,guestLessonReadOnly,settings,ipHash,safeEqual,
+ setCookie,clearCookie,guestContext,assertActiveMuseumLesson,assertGuestLessonScope,guestLessonReadOnly,settings,ipHash,safeEqual,
  normalizeGuestDraft,validateGuestSubmission,requireMethod
 } from './_galleryCreator.js';
 
@@ -28,6 +28,7 @@ export default async function galleryGuest(req,res){
    if(!group)throw fail(404,'Invitation not available.');
    const assignment=await query(admin.from('gcp_assignments')
     .select('id,title,class_scope,deadline_at,status,archived_at,content_frozen_at,lesson_template').eq('id',group.assignment_id).maybeSingle());
+   assertActiveMuseumLesson(assignment);
    const readOnly=guestLessonReadOnly(assignment,group);
    if(!assignment||assignment.archived_at||assignment.status!=='active'||
       (!assignment.content_frozen_at&&(Date.parse(assignment.deadline_at)<=Date.now()||
@@ -68,6 +69,7 @@ export default async function galleryGuest(req,res){
    const now=Date.now();
    const group=invite?await query(admin.from('gcp_groups').select('*').eq('id',invite.group_id).maybeSingle()):null;
    const assignment=group?await query(admin.from('gcp_assignments').select('*').eq('id',group.assignment_id).maybeSingle()):null;
+   assertActiveMuseumLesson(assignment);
    const readOnly=guestLessonReadOnly(assignment,group);
    const quick=quickMode&&assignment?await query(admin.from('gcp_quick_access')
      .select('enabled,password_salt,password_hash').eq('assignment_id',assignment.id).maybeSingle()):null;

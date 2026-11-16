@@ -1,9 +1,8 @@
 import React,{useEffect,useMemo,useState} from 'react';
-import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronRight,ClipboardList,Copy,Download,Eye,EyeOff,ExternalLink,KeyRound,Landmark,Leaf,LockKeyhole,Plus,Printer,QrCode,RefreshCw,ShieldAlert,Trash2,Users} from 'lucide-react';
+import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronRight,ClipboardList,Copy,Download,Eye,EyeOff,ExternalLink,KeyRound,Landmark,LockKeyhole,Plus,Printer,QrCode,RefreshCw,ShieldAlert,Trash2,Users} from 'lucide-react';
 import {ASEAN_TEMPLATE,ASEAN_TITLE,ASEAN_SUBTITLE,ASEAN_CHALLENGE,ASEAN_BRIEF,ASEAN_STAGES,isAsean,aseanDestination} from './aseanLesson.js';
-import {LESSON_KITS,progressOfGroup} from './museumData.js';
+import {progressOfGroup} from './museumData.js';
 import {englishSystemGroupLabel} from './museumApi.js';
-import {LIVE_STAGES,LIVE_TOTAL_MINUTES,LIVE_PERIOD_MINUTES} from './liveLesson.js';
 import './museumPrepared.css';
 import {staffRequest,joinUrl,saveTextFile} from './museumApi.js';
 import MuseumGroupQr from './MuseumGroupQr.jsx';
@@ -36,19 +35,16 @@ export function OneTimeInvites({invitations,onClose,language='vi'}){
    <button type="button" className="bml-outline" onClick={onClose}>{tr(language,'Đã lưu mã · Đóng','Codes saved · Close')}</button></div>
  </section>;
 }
-export function LessonWizard({data,onExit,onCompleted,onSettings,initialTemplate='climate',onTemplateChange,language='vi'}){
+export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'}){
  const [step,setStep]=useState(0);
- const [template,setTemplate]=useState(initialTemplate);
- const asean=isAsean(template);
- const kit=asean?{title:ASEAN_TITLE,subtitle:ASEAN_SUBTITLE,brief:ASEAN_BRIEF}:LESSON_KITS[0];
  const isAdmin=data?.profile?.role==='admin'&&!data?.offlineReadOnly;
- const [form,setForm]=useState({classScope:'',groupCount:6,accessWindow:'standard',title:'',brief:''});
+ const [form,setForm]=useState({classScope:'',accessWindow:'standard',title:'',brief:''});
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[invites,setInvites]=useState(null);
- const title=form.title||kit.title,brief=form.brief||kit.brief;
+ const title=form.title||ASEAN_TITLE,brief=form.brief||ASEAN_BRIEF;
  const issue=async()=>{
   setError('');setBusy(true);
   try{
-   const payload={title,classScope:form.classScope.trim(),brief,groupCount:asean?10:Number(form.groupCount),lessonTemplate:template,
+   const payload={title,classScope:form.classScope.trim(),brief,groupCount:10,lessonTemplate:ASEAN_TEMPLATE,
     deadlineAt:deadlineForWindow(form.accessWindow)};
    const r=await staffRequest('create-assignment',payload);setInvites(r.invitations);
    await onCompleted();
@@ -86,63 +82,15 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,initialTemplate
    </li>)}
   </ol>
   <section className="bml-surface bml-wizard-card">
-   {step===0&&<label>{tr(language,'Mẫu bài dạy','Lesson template')}
-    <select value={template} onChange={e=>{setTemplate(e.target.value);onTemplateChange?.(e.target.value);setForm(v=>({...v,title:'',brief:''}));}}>
-     <option value="climate">Our Climate Action Museum</option>
-     <option value={ASEAN_TEMPLATE}>{ASEAN_TITLE}</option>
-    </select>
-   </label>}
-   {step===0&&asean?<section className="bml-single-flow"><h2>{ASEAN_TITLE}</h2>
+   {step===0?<section className="bml-single-flow"><h2>{ASEAN_TITLE}</h2>
     <p>{ASEAN_SUBTITLE}</p><p>{ASEAN_CHALLENGE}</p>
     <ol>{ASEAN_STAGES.map(stage=><li key={stage.id}>{stage.title} · {stage.minutes} min</li>)}</ol>
     <p>Ten groups · Ten destinations · Three frames per group</p>
    </section>:null}
-   {step===0&&!asean?<><h2>{tr(language,'Kế hoạch bài dạy','Lesson plan')}</h2>
-    <p>{tr(language,
-     'Một chủ đề duy nhất theo Kế hoạch bài dạy hai tiết: Tiếng Anh 11, Global Success, Unit 5 – Global Warming.',
-     'One focused two-period lesson: English 11, Global Success, Unit 5 – Global Warming.')}</p>
-    <div className="bml-single-lesson" data-testid="museum-single-unit5-plan">
-     <div className="wizard-unit">
-      <strong className="wizard-unit-eyebrow">{tr(language,'TIẾNG ANH 11 · GLOBAL SUCCESS','ENGLISH 11 · GLOBAL SUCCESS')}</strong>
-      <span className="wizard-unit-number" aria-hidden="true">05</span>
-      <span className="wizard-unit-topic"><Leaf size={28} aria-hidden="true"/>{tr(language,'Sự nóng lên toàn cầu · Unit 5',kit.topic)}</span>
-     </div>
-     <div className="bml-single-lesson-copy">
-      <span className="bml-overline">OUR CLIMATE ACTION MUSEUM</span>
-      <h3>{kit.title}</h3><p>{kit.subtitle}</p>
-      <strong>{tr(language,'Câu hỏi định hướng','Driving question')}</strong>
-      <p className="bml-single-lesson-question">{kit.challenge}</p>
-      <p>{kit.goal}</p>
-      <div className="bml-chips"><span>English 11 · Unit 5</span><span>{'2 × 45 min'}</span><span>{LIVE_STAGES.length} {tr(language,'hoạt động','activities')}</span><span>STEAM learning</span></div>
-     </div>
-    </div>
-    <section className="bml-single-outcomes" aria-label={tr(language,'Sản phẩm học tập','Learning products')}>
-     <h3>{tr(language,'Sản phẩm học sinh cần hoàn thành','Expected student work')}</h3>
-     <div className="bml-single-outcome-grid">
-      <p><b>01 · The Problem – The Evidence – Our Solution</b><span>{tr(language,'Ba lời thuyết minh tiếng Anh, mỗi phần khoảng 25–40 từ.','Three English exhibit captions, approximately 25–40 words each.')}</span></p>
-      <p><b>02 · Group-priority survey</b><span>{tr(language,'Biểu đồ từ phiếu lớp thật, số nhóm N, số đếm, phần trăm và giới hạn.','A genuine group-vote chart with N, counts, percentages and limitations.')}</span></p>
-      <p><b>03 · Artwork & learning process</b><span>{tr(language,'Poster có ghi công, bản xem 3D hoặc 2D, phản hồi chéo, bản V1/V2 và bài trình bày 45 giây.','Credited visual, 3D or 2D exhibit, peer feedback, V1/V2 and a 45-second pitch.')}</span></p>
-     </div>
-    </section>
-    <section className="bml-single-flow" aria-label={tr(language,'Tiến trình hai tiết','Two-period teaching sequence')}>
-     <h3>{tr(language,'Tiến trình '+LIVE_STAGES.length+' hoạt động',LIVE_STAGES.length+'-activity lesson sequence')} · {LIVE_TOTAL_MINUTES} {tr(language,'phút','minutes')}</h3>
-     <div className="bml-single-period-grid">{[1,2].map(period=><div key={period} className="bml-single-period">
-      <h4>{tr(language,'Tiết','Period')} {period} · {LIVE_PERIOD_MINUTES[period-1]} {tr(language,'phút','minutes')}</h4>
-      <ol role="list" start={LIVE_STAGES.findIndex(activity=>activity.period===period)+1}>{LIVE_STAGES.map((activity,i)=>({activity,i})).filter(x=>x.activity.period===period).map(({activity,i})=>
-       <li key={activity.id}><span className="wizard-activity-index" aria-hidden="true">{String(i+1).padStart(2,'0')}</span><div>
-        <strong>{language==='en'?activity.title:activity.vi}</strong>
-        <small>{activity.minutes} {tr(language,'phút','min')} · {activity.title}</small>
-       </div></li>)}</ol>
-     </div>)}</div>
-    </section>
-    <p className="bml-single-lesson-note">{tr(language,
-      'Tạo bài học mới không thay đổi các bài đã giao. Dữ liệu khảo sát, phản hồi và kết quả học sinh chỉ có khi lớp thực sự thực hiện.',
-      'Creating this lesson does not alter existing assignments. Survey responses, peer feedback and student results are recorded only after classroom activity.')}</p>
-   </>:null}
    {step===1?<><h2>{tr(language,'Thiết lập lớp và nhóm','Set class and groups')}</h2><p>{tr(language,'Chỉ điền những thông tin cần thiết. Mỗi nhóm sẽ nhận một Creator Pass riêng.','Only essential information is required. Every group gets its own Creator Pass.')}</p>
     <div className="bml-field-grid">
      <label>{tr(language,'Lớp học','Class')}<input autoFocus required maxLength={120} placeholder="11A3" value={form.classScope} onChange={e=>setForm(v=>({...v,classScope:e.target.value}))}/></label>
-     <label>{tr(language,'Số nhóm','Number of groups')}<select disabled={asean} value={asean?10:form.groupCount} onChange={e=>setForm(v=>({...v,groupCount:Number(e.target.value)}))}>{Array.from({length:12},(_,i)=><option key={i+1} value={i+1}>{i+1} {tr(language,'nhóm','groups')}</option>)}</select></label>
+     <label>{tr(language,'Số nhóm','Number of groups')}<input value="10" readOnly/></label>
      <label>{tr(language,'Quyền truy cập bài','Submission access')}<select value={form.accessWindow} onChange={e=>setForm(v=>({...v,accessWindow:e.target.value}))}>
       <option value="standard">{tr(language,'Tiêu chuẩn','Standard')}</option>
       <option value="extended">{tr(language,'Mở rộng','Extended')}</option>
@@ -157,11 +105,11 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,initialTemplate
     <p>{tr(language,'Xác nhận nội dung trước khi tạo mã nhóm. Sau khi tạo, mã bí mật sẽ chỉ xuất hiện một lần.','Confirm details before generating one-time private group codes.')}</p>
     <div className="bml-field-grid">
      <label>{tr(language,'Tên chủ đề','Lesson title')}<input maxLength={140} value={title} onChange={e=>setForm(v=>({...v,title:e.target.value}))}/></label>
-     <label>{tr(language,'Lớp / nhóm','Class / groups')}<input disabled value={form.classScope+' · '+(asean?10:form.groupCount)+' '+tr(language,'nhóm','groups')}/></label>
+     <label>{tr(language,'Lớp / nhóm','Class / groups')}<input disabled value={form.classScope+' · '+10+' '+tr(language,'nhóm','groups')}/></label>
     </div>
     <label className="bml-full-field">{tr(language,'Nhiệm vụ của học sinh','Student assignment')}<textarea rows={5} maxLength={5000} value={brief} onChange={e=>setForm(v=>({...v,brief:e.target.value}))}/></label>
-    <div className="bml-wizard-summary"><div><BookOpen size={21}/><span>{kit.title}</span></div>
-     <div><Users size={21}/><span>{asean?10:form.groupCount} {tr(language,'nhóm','groups')} · {form.classScope}</span></div>
+    <div className="bml-wizard-summary"><div><BookOpen size={21}/><span>{ASEAN_TITLE}</span></div>
+     <div><Users size={21}/><span>10 {tr(language,'nhóm','groups')} · {form.classScope}</span></div>
 </div>
     {!data?.creatorSettings?.enabled?<div className="bml-banner bml-warning-banner"><LockKeyhole size={20}/><span>{tr(language,'Creator Pass đang tắt. Admin cần bật sau khi nghiệm thu trước khi giao bài thật.','Creator Pass is OFF. An administrator must enable it after acceptance.')}</span>
       <button type="button" className="bml-text-btn" onClick={onSettings}>{tr(language,'Cài đặt','Settings')}</button></div>:null}

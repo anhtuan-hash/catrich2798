@@ -1,6 +1,6 @@
 // Teacher-owned live classroom. Accountless student groups reuse Creator Pass cookies.
 // Strict class scope, explicit stage transitions, no identity inference, real N group devices.
-import {db,fail,send,handleError,guardOrigin,guardBody,guestContext,staffContext,assertStaff,query,uid,clean,requireMethod,publicMuseumContext} from './_galleryCreator.js';
+import {db,fail,send,handleError,guardOrigin,guardBody,guestContext,assertActiveMuseumLesson,staffContext,assertStaff,query,uid,clean,requireMethod,publicMuseumContext} from './_galleryCreator.js';
 import {LIVE_STAGES,liveStage,sessionStage,VIDEO_QUESTION_VERSION,validResponse,summarizeResponses} from '../src/features/immersive-gallery/v3/liveLesson.js';
 import {surveyFor,checkpointGallery,feedbackFor} from './_museumEvidence.js';
 import {validatePeer} from '../src/features/immersive-gallery/v3/learningEvidence.js';
@@ -76,6 +76,7 @@ export default async function museumLive(req,res){
     const id=String(req.method==='GET'?req.query?.assignmentId:req.body?.assignmentId||'');
     assignment=await scopedStaff(ctx,id);
    }
+   assertActiveMuseumLesson(assignment);
    const asean=isAsean(assignment);
    if(asean&&publicRead&&op!=='state')throw fail(403,'Classroom records are available to the teacher.');
    const privateAsean=asean&&publicRead;

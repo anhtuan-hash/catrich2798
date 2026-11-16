@@ -1,5 +1,5 @@
 // Server-only, group-scoped artwork API. Never grants direct anon Storage access.
-import {db,fail,send,handleError,guardBody,guestContext,staffContext,assertStaff,query,clean,uid,requireMethod} from './_galleryCreator.js';
+import {db,fail,send,handleError,guardBody,guestContext,assertActiveMuseumLesson,staffContext,assertStaff,query,clean,uid,requireMethod} from './_galleryCreator.js';
 import {canonicalArtworkImage} from './_museumArtworkImage.js';
 import {randomUUID} from 'node:crypto';
 import {canSaveMuseumDraft} from '../src/features/immersive-gallery/v3/museumSubmissionPolicy.js';
@@ -9,6 +9,7 @@ async function groupForStaff(ctx,id){
  if(!uid(id))throw fail(400,'Invalid group.');
  const group=await query(ctx.admin.from('gcp_groups').select('*').eq('id',id).single());
  const assignment=await query(ctx.admin.from('gcp_assignments').select('*').eq('id',group.assignment_id).single());
+ assertActiveMuseumLesson(assignment);
  if(assignment.archived_at||assignment.school_scope!==ctx.profile.school||
   (ctx.role!=='admin'&&![assignment.created_by,assignment.reviewer_id].includes(ctx.user.id)))
   throw fail(403,'Group is outside your teaching scope.');
