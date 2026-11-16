@@ -35,17 +35,17 @@ const PRIMARY_NAV = [
   { id: 'submissions', icon: ClipboardCheck, vi: 'Bài nộp', en: 'Submissions' },
   { id: 'exhibitions', icon: Landmark, vi: 'Triển lãm', en: 'Exhibitions' },
   { id: 'teaching-plan', icon: CalendarDays, vi: 'Kế hoạch dạy', en: 'Teaching Plan' },
-];
-
-const SECONDARY_NAV = [
   {
     id: 'teacher-live',
     icon: Radio,
-    vi: 'Trực tiếp',
-    en: 'Live',
-    titleVi: 'Giảng dạy trực tiếp',
+    vi: 'Điều phối lớp',
+    en: 'Live class',
+    titleVi: 'Điều phối lớp trực tiếp',
     titleEn: 'Teacher Live',
   },
+];
+
+const SECONDARY_NAV = [
   {
     id: 'competition-dossier',
     icon: FileBadge2,
@@ -161,6 +161,8 @@ export default function ImmersiveShell({
                   data-testid={`igv2-nav-${item.id}`}
                   className={`igv2-nav-pill${isActive ? ' is-active' : ''}`}
                   aria-current={isActive ? 'page' : undefined}
+                  title={item.titleVi ? tr(language, item.titleVi, item.titleEn) : undefined}
+                  aria-label={item.titleVi ? tr(language, item.titleVi, item.titleEn) : undefined}
                   onClick={() => onNavigate?.(item.id)}
                 >
                   <Icon size={16} strokeWidth={1.9} aria-hidden="true" />
