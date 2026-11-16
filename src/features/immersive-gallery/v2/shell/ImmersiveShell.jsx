@@ -383,11 +383,16 @@ export default function ImmersiveShell({
         <CompetitionBanner />
       </div>
 
-      <nav className="igv2-school-row" lang="vi" aria-label="Công cụ nhà trường">
+      <nav
+        className="igv2-school-row"
+        lang={language === 'en' ? 'en' : 'vi'}
+        aria-label={tr(language, 'Công cụ nhà trường', 'School tools')}
+      >
         {SCHOOL_LINKS.map((item) => (
           <button
             key={item.target}
             type="button"
+            lang="vi"
             onClick={(event) => openSchoolTool(item.target, event.currentTarget)}
           >
             {item.vi}
