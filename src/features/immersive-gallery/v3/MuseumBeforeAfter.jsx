@@ -1,6 +1,6 @@
 import React,{useMemo,useState} from 'react';
 import {ArrowLeftRight,CheckCircle2,ClipboardCheck,Image as ImageIcon,Info} from 'lucide-react';
-import {changedExhibits} from './learningEvidence.js';
+import {changedExhibits,normalizeArtMeta} from './learningEvidence.js';
 import {ASEAN_FRAMES} from './aseanLesson.js';
 import {EXHIBIT_FIELDS} from './museumExhibitInsights.js';
 import {normalizeStoryboardOrder} from './museumData.js';
@@ -24,7 +24,7 @@ const getImage=(checkpoint,key)=>{
 export function beforeAfterEvidence(before,after){
  const previous=normalizeCheckpoint(before),updated=normalizeCheckpoint(after);
  if(!previous||!updated)return {ready:false,changed:[],before:previous,after:updated};
- const changed=changedExhibits(previous,updated);
+ const changed=changedExhibits({...previous,artMeta:normalizeArtMeta(previous.artMeta)},{...updated,artMeta:normalizeArtMeta(updated.artMeta)});
  return {ready:true,changed,before:previous,after:updated,
   routeChanged:JSON.stringify(normalizeStoryboardOrder(previous.storyboardOrder))!==JSON.stringify(normalizeStoryboardOrder(updated.storyboardOrder)),
   improvement:text(updated.learning?.improvement,1200),
@@ -35,17 +35,18 @@ function VersionCard({checkpoint,kind,selectedKey,changed}){
  const isAfter=kind==='after';
  const value=getText(doc,selectedKey);
  const image=getImage(checkpoint,selectedKey);
+ const reconstructed=!isAfter&&doc?.checkpointOrigin==='reconstructed_reference';
  return <article className={'bml-compare-version'+(isAfter?' is-after':' is-before')}>
   <div className="bml-compare-version-heading">
-   <span>{kind==='before'?'BEFORE · INITIAL DESIGN':'AFTER · IMPROVED DESIGN'}</span>
-   <strong>{checkpoint?'Saved version '+checkpoint.version:'Not recorded'}</strong>
+   <span>{reconstructed?'V1 · RECONSTRUCTED REFERENCE':kind==='before'?'BEFORE · INITIAL DESIGN':'AFTER · IMPROVED DESIGN'}</span>
+   <strong>{reconstructed?'Prepared from saved exhibit assets':checkpoint?'Saved version '+checkpoint.version:'Not recorded'}</strong>
   </div>
   {doc?<><p className="bml-compare-version-title">{doc.title||'Our English Museum'}</p>
    <p className="bml-compare-content">{value||'No description for this exhibit.'}</p>
    {image?<img className="bml-compare-image" src={image} alt={kind+' uploaded exhibit artwork'} referrerPolicy="no-referrer"/>:
     <div className="bml-compare-no-image"><ImageIcon size={16}/> No uploaded image for this exhibit</div>}
    {selectedKey==='evidence'&&doc.learning?.source?<p className="bml-compare-source"><b>Source:</b> {text(doc.learning.source,600)}</p>:null}
-   <span className={'bml-compare-note'+(changed?' is-changed':'')}>{isAfter?(changed?'Revised after testing':'No content change recorded'):'Original checkpoint'}</span>
+   <span className={'bml-compare-note'+(changed?' is-changed':'')}>{isAfter?(changed?'Content changed':'No content change recorded'):reconstructed?'Reference exhibit':'Original checkpoint'}</span>
   </>:<p className="bml-compare-empty">This checkpoint has not been saved. No version is invented.</p>}
  </article>;
 }
@@ -80,9 +81,9 @@ export default function MuseumBeforeAfter({before=null,after=null,groupLabel='',
    {model.feedback||model.improvement||model.after?.revisionReason?<div className="bml-compare-revision">
     <div><ClipboardCheck size={17}/><strong>Feedback → revision</strong></div>
     {model.feedback?<p><b>Peer feedback:</b> {model.feedback}</p>:null}
-    {model.improvement||model.after.revisionReason?<p><b>Revision described by the group:</b> {model.improvement||model.after.revisionReason}</p>:null}
+    {model.improvement||model.after.revisionReason?<p><b>{model.before?.checkpointOrigin==='reconstructed_reference'?'Saved revision note:':'Revision described by the group:'}</b> {model.improvement||model.after.revisionReason}</p>:null}
    </div>:null}
-   <small className="bml-compare-integrity">{asean?'These records show the saved versions and the group’s revision.':'These are stored snapshots, not independent proof that learning outcomes or environmental savings occurred.'}</small>
+   <small className="bml-compare-integrity">{asean?(model.before?.checkpointOrigin==='reconstructed_reference'?'V1 is a reconstructed exhibit reference. The original checkpoint is archived.':'These records show the saved versions and the group’s revision.'):'These are stored snapshots, not independent proof that learning outcomes or environmental savings occurred.'}</small>
   </>}
  </section>;
 }

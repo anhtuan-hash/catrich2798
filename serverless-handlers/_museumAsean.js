@@ -7,6 +7,17 @@ export async function aseanGroupRecords(admin, sessionId, groupId) {
   .eq('session_id',sessionId).eq('group_id',groupId).order('stage_index'));
 }
 
+export function aseanStaffRetests(admin,sessionId){
+ return query(admin.from('museum_learning_events').select('group_id,details,created_at')
+  .eq('session_id',sessionId).eq('stage_index',4).eq('action','asean_staff_exhibit_check'));
+}
+
+export function aseanStaffRetest(reviews,groupId,checkpoint){
+ const review=reviews.find(row=>row.group_id===groupId&&row.details?.checkpointId===checkpoint?.id&&row.details?.version===checkpoint?.version);
+ const value=review?.details?.response;
+ return value&&value.question===checkpoint.doc?.retestQuestion&&validAseanResponse(4,value)?value:null;
+}
+
 async function aseanVisitTarget(admin,assignmentId,groupId,stage,reverse=false){
  const groups=await query(admin.from('gcp_groups').select('id,label').eq('assignment_id',assignmentId));
  const peer=aseanPeerGroup(groups,groupId,stage,{reverse});
@@ -24,24 +35,37 @@ export async function handleAseanActivity({op,req,res,admin,ctx,session}){
   const groups=session&&session.stage_index>=4?await query(admin.from('gcp_groups').select('id,label').eq('assignment_id',ctx.assignment.id)):[];
   const authorRetest=aseanPeerGroup(groups,id,4,{reverse:true});
   const assigned=aseanPeerGroup(groups,id,4);
-  const [rows,feedback,ownCheckpoints,retest,assignedCheckpoint]=await Promise.all([
+  const [rows,feedback,ownCheckpoints,retest,assignedCheckpoint,staffChecks]=await Promise.all([
    session?aseanGroupRecords(admin,session.id,id):[],
    source?query(admin.from('museum_live_responses').select('value').eq('session_id',session.id)
     .eq('group_id',source.from_group).eq('stage_index',3).maybeSingle()):null,
-   session?query(admin.from('museum_checkpoints').select('kind,version,doc').eq('session_id',session.id).eq('group_id',id)):[],
+   session?query(admin.from('museum_checkpoints').select('id,kind,version,doc').eq('session_id',session.id).eq('group_id',id)):[],
    authorRetest?query(admin.from('museum_live_responses').select('value').eq('session_id',session.id)
     .eq('group_id',authorRetest.id).eq('stage_index',4).maybeSingle()):null,
-   assigned?query(admin.from('museum_checkpoints').select('version,doc').eq('session_id',session.id)
+   assigned?query(admin.from('museum_checkpoints').select('id,version,doc').eq('session_id',session.id)
     .eq('group_id',assigned.id).eq('kind','after').maybeSingle()):null,
+   assigned?aseanStaffRetests(admin,session.id):[],
   ]);
   const checkpoints=ownCheckpoints.map(({kind,version,doc})=>({kind,version,complete:aseanExhibitMissing(doc).length===0,
+   ...(kind==='before'&&doc?.checkpointOrigin==='reconstructed_reference'?{reconstructed:true}:{}),
    ...(kind==='after'?{reason:doc?.revisionReason||''}:{})}));
   const retestTask=assigned?{
    target:assigned.label,
    ready:Boolean(assignedCheckpoint&&aseanExhibitMissing(assignedCheckpoint.doc).length===0),
    question:assignedCheckpoint?.doc?.retestQuestion??null,
+   staffChecked:Boolean(aseanStaffRetest(staffChecks,id,assignedCheckpoint)),
   }:null;
-  return send(res,200,{rows,feedback:feedback?.value||null,retest:retest?.value||null,checkpoints,retestTask});
+  const staffRetest=authorRetest?aseanStaffRetest(staffChecks,authorRetest.id,ownCheckpoints.find(checkpoint=>checkpoint.kind==='after')):null;
+  return send(res,200,{rows,feedback:feedback?.value||null,retest:retest?.value||null,staffRetest,checkpoints,retestTask});
+ }
+ if(op==='asean-reference-v1'){
+  requireMethod(req,'GET');
+  if(!session)throw fail(404,'No exhibit checkpoint has been saved.');
+  const checkpoint=await query(admin.from('museum_checkpoints').select('*').eq('session_id',session.id)
+   .eq('group_id',id).eq('kind','before').maybeSingle());
+  if(checkpoint?.doc?.checkpointOrigin!=='reconstructed_reference'||aseanExhibitMissing(checkpoint.doc).length)
+   throw fail(404,'A reconstructed V1 reference is unavailable.');
+  return send(res,200,{gallery:await checkpointGallery(admin,checkpoint,ctx.group.label)});
  }
  if(session?.status!=='active'||!session.stage_open)throw fail(423,'Wait for the teacher to open this activity.');
  if(op==='asean-capture'){

@@ -129,6 +129,7 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
    <p><strong>{englishSystemGroupLabel(retestTask.target)} · {aseanDestination(retestTask.target)?.name}</strong></p>
    {!visit?.gallery&&!submitted&&<p>{retestTask.ready?ASEAN_FRAMES[retestTask.question-1]?.question:'Waiting for this group’s V2.'}</p>}
   </>}
+  {stage===4&&retestTask?.staffChecked&&!submitted&&<p role="status">A staff check is on file. Submit your group’s own observations here.</p>}
   {visitStage&&open&&!submitted&&<button type="button" className="bml-outline" onClick={loadVisit} disabled={busy||retestTask?.ready===false}>
    Open assigned {stage===3?'V1 exhibit':'V2 exhibit'}
   </button>}
@@ -225,6 +226,10 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
     const result=await artGuest('list');
     setAssets(result.assets||[]);setPreview({own:true});
    }
+   if(operation==='reference-v1'){
+    const {gallery}=await liveGuest('asean-reference-v1');
+    setPreview({gallery:reviewMuseum({snapshot:gallery.draft},gallery.artworks),reference:true});
+   }
    if(operation==='capture'){
     const next=dirty?await save():version;
     await liveGuest('asean-capture','POST',{version:next,...revision},session.csrf);
@@ -248,7 +253,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
    groups={ACTIVITY_GROUPS} ends={ACTIVITY_GROUP_ENDS} activities={language==='en'?ASEAN_STAGES:ASEAN_ACTIVITIES_VI}
    onGroup={group=>browseActivity(group===activityGroup?stage:(ACTIVITY_GROUP_ENDS[group-1]??0))} onActivity={browseActivity}/>}
   overlays={preview&&<div className="bml-student-detail-overlay bml-museum-preview-overlay" role="dialog" aria-modal="true"
-   aria-label={preview.own?'Preview group museum':'Visit assigned exhibit'}>
+   aria-label={preview.reference?'Reconstructed V1 reference':preview.own?'Preview group museum':'Visit assigned exhibit'}>
    <div className="bml-student-detail-window bml-museum-preview-window">
     <GalleryRenderBoundary language="en" onFallback={()=>setPreview(null)}>
      <MuseumScene embedded cinema initial3D language="en" gallery={preview.own?localMuseumFromDraft(document,assets):preview.gallery}
@@ -316,9 +321,11 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
       {stage>=4&&captured&&<section className="asean-own-revision" data-testid="asean-own-revision">
        <h4>Our V2 exhibit</h4>
        {captured.reason&&<p>{captured.reason}</p>}
+       {baseline?.reconstructed&&<button type="button" className="bml-outline" disabled={busy} onClick={()=>action('reference-v1')}>View reconstructed V1</button>}
        {baseline?.complete===false&&<p>V1 was saved before the exhibit was complete. Record what the visitor finds in V2.</p>}
        {records.retest?<p><strong>Fresh visitor result</strong> · {records.retest.score}/1 · {records.retest.answer}</p>:
         <p role="status">Waiting for the assigned visitor group’s result.</p>}
+       {stage===5&&records.staffRetest&&<p><strong>Staff-prepared check</strong> · {records.staffRetest.score}/1 · {records.staffRetest.answer}</p>}
       </section>}
       {workshopVisible&&!(stage===4&&captured)&&<section className="asean-student-studio" ref={studioRef} tabIndex={-1} data-testid="asean-3d-studio">
        <h4 className="asean-studio-title">{stage===2?'3D Studio':stage===4?'Revise your 3D exhibit':'Submit your 3D exhibit'}</h4>
