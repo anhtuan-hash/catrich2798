@@ -29,7 +29,11 @@ export async function buildMuseumOffline(outDir='dist'){
   const absolute=path.join(root,'public',asset);
   let bytes=asset===worksheetAsset?worksheetBytes:await fs.readFile(absolute);
   if(asset==='/museum-lesson-guide.html'){
-   bytes=Buffer.from(bytes.toString('utf8').replace('href="'+worksheetAsset+'"','href="'+worksheetData+'"'));
+   const heroAsset='/museum/branding/lesson-guide-editorial.webp';
+   const heroBytes=await fs.readFile(path.join(root,'public',heroAsset));
+   bytes=Buffer.from(bytes.toString('utf8')
+    .replace('href="'+worksheetAsset+'"','href="'+worksheetData+'"')
+    .replace('src="'+heroAsset+'"','src="data:image/webp;base64,'+heroBytes.toString('base64')+'"'));
   }
   const type=mime[path.extname(absolute)];if(!type)throw new Error('Unsupported offline asset: '+asset);
   const data='data:'+type+';base64,'+bytes.toString('base64');
