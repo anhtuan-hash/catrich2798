@@ -267,7 +267,7 @@ function ArtworkSpotlight({x,lite}){
    angle={.36} penumbra={.84} distance={7.3} decay={2}/>
  </group>;
 }
- const VISITOR_ROUTE=[[-2.55,-2.05],[-2.55,-3.95],[-.85,-3.95],[.85,-3.95],[2.55,-3.95],[2.55,-2.05],[.15,-1.9]];
+ const VISITOR_ROUTE=[[-2.1,-3.62],[-2.1,-4.02],[-.65,-4.02],[.65,-4.02],[2.1,-4.02],[2.1,-3.62],[0,-3.5]];
 const VISITOR_SEGS=(()=>{
  let total=0;
  const segs=VISITOR_ROUTE.map((a,i)=>{
@@ -287,27 +287,11 @@ function routePoint(distance){
  return {x:s.a[0]+(s.b[0]-s.a[0])*t,z:s.a[1]+(s.b[1]-s.a[1])*t,yaw:Math.atan2(s.b[0]-s.a[0],s.b[1]-s.a[1]),loop:total};
 }
 const VISITORS=[
- {offset:0,speed:.34,scale:1.12,shirt:'#F7F4EC',trim:'#176D59',bottoms:'#243044',hair:'#2C2118',skin:'#F3C9A6',skirt:false,hairStyle:'crop'},
- {offset:.26,speed:.3,scale:1.05,shirt:'#F7F4EC',trim:'#176D59',bottoms:'#176D59',hair:'#1A120C',skin:'#E8B48A',skirt:true,hairStyle:'bob'},
- {offset:.51,speed:.32,scale:1.16,shirt:'#F4F7F2',trim:'#0D5B45',bottoms:'#1E3A5F',hair:'#4A3020',skin:'#F6D3B4',skirt:false,hairStyle:'fringe'},
- {offset:.77,speed:.28,scale:1.02,shirt:'#F7F4EC',trim:'#176D59',bottoms:'#176D59',hair:'#111111',skin:'#C9845A',skirt:true,hairStyle:'tie'}
+ {offset:0,speed:.22,scale:.78,shirt:'#F7F4EC',trim:'#176D59',bottoms:'#243044',hair:'#2C2118',skin:'#F3C9A6',skirt:false,hairStyle:'short'},
+ {offset:.25,speed:.2,scale:.74,shirt:'#F7F4EC',trim:'#176D59',bottoms:'#176D59',hair:'#1A120C',skin:'#E8B48A',skirt:true,hairStyle:'bob'},
+ {offset:.5,speed:.21,scale:.8,shirt:'#F4F7F2',trim:'#0D5B45',bottoms:'#1E3A5F',hair:'#4A3020',skin:'#F6D3B4',skirt:false,hairStyle:'short'},
+ {offset:.75,speed:.19,scale:.73,shirt:'#F7F4EC',trim:'#176D59',bottoms:'#176D59',hair:'#111111',skin:'#C9845A',skirt:true,hairStyle:'tail'}
 ];
-function VisitorHair({style,color}){
- const mat=()=><meshStandardMaterial color={color} roughness={.72}/>;
- if(style==='bob')return <group>
-  <mesh position={[0,.02,-.02]} scale={[1.12,.95,1.08]}><sphereGeometry args={[.145,18,14]}/>{mat()}</mesh>
-  <mesh position={[0,-.04,.07]} scale={[.95,.35,.55]}><sphereGeometry args={[.12,12,8]}/>{mat()}</mesh>
- </group>;
- if(style==='tie')return <group>
-  <mesh position={[0,.05,0]} scale={[1.02,.66,1]}><sphereGeometry args={[.136,16,12]}/>{mat()}</mesh>
-  <mesh position={[.02,-.06,-.13]}><sphereGeometry args={[.055,12,10]}/>{mat()}</mesh>
- </group>;
- if(style==='fringe')return <group>
-  <mesh position={[0,.05,0]} scale={[1.05,.7,1.02]}><sphereGeometry args={[.136,16,12]}/>{mat()}</mesh>
-  <mesh position={[0,0,.1]} rotation={[.35,0,0]}><boxGeometry args={[.18,.045,.05]}/>{mat()}</mesh>
- </group>;
- return <mesh position={[0,.06,0]} scale={[1.02,.6,1]}><sphereGeometry args={[.134,16,12]}/>{mat()}</mesh>;
-}
 function GalleryVisitor({visitor,still}){
  const ref=useRef(null),body=useRef(null),head=useRef(null);
  const legL=useRef(null),legR=useRef(null),armL=useRef(null),armR=useRef(null);
@@ -316,16 +300,17 @@ function GalleryVisitor({visitor,still}){
   const p=routePoint(distance);
   node.position.set(p.x,0,p.z);
   node.rotation.y=p.yaw;
-  if(body.current){body.current.position.y=Math.abs(step)*.035;body.current.rotation.z=step*.04;}
-  if(legL.current)legL.current.rotation.x=step*.62;
-  if(legR.current)legR.current.rotation.x=-step*.62;
-  if(armL.current)armL.current.rotation.x=-step*.48;
-  if(armR.current)armR.current.rotation.x=step*.48;
+  const stride=step*.2;
+  if(body.current)body.current.position.y=Math.abs(step)*.012;
+  if(legL.current)legL.current.rotation.x=stride;
+  if(legR.current)legR.current.rotation.x=-stride;
+  if(armL.current)armL.current.rotation.x=-stride*.85;
+  if(armR.current)armR.current.rotation.x=stride*.85;
   if(head.current){
    let look=Math.PI-p.yaw;
    while(look>Math.PI)look-=Math.PI*2;
    while(look<-Math.PI)look+=Math.PI*2;
-   head.current.rotation.y=Math.max(-.85,Math.min(.85,look))*.65;
+   head.current.rotation.y=Math.max(-.4,Math.min(.4,look));
   }
  };
  useEffect(()=>{
@@ -334,51 +319,46 @@ function GalleryVisitor({visitor,still}){
  },[visitor.offset]);
  useFrame(({clock})=>{
   if(still)return;
-  const step=Math.sin(clock.elapsedTime*visitor.speed*7.2+visitor.offset*11);
+  const step=Math.sin(clock.elapsedTime*visitor.speed*6+visitor.offset*9);
   pose(clock.elapsedTime*visitor.speed+visitor.offset*VISITOR_SEGS.total,step);
  });
- const v=visitor;
+ const v=visitor,hairY=v.hairStyle==='bob'?0: .045,hairScale=v.hairStyle==='bob'?[1.05,.72,1.04]:[1.02,.5,1.02];
  return <group ref={ref} scale={v.scale} name="GalleryVisitor">
-  <mesh rotation={[-Math.PI/2,0,0]} position={[0,.015,0]}>
-   <circleGeometry args={[.22,18]}/><meshBasicMaterial color="#6A4A2A" transparent opacity={.16} depthWrite={false}/>
+  <mesh rotation={[-Math.PI/2,0,0]} position={[0,.012,0]}>
+   <circleGeometry args={[.16,16]}/><meshBasicMaterial color="#8A6844" transparent opacity={.14} depthWrite={false}/>
   </mesh>
   <group ref={body}>
-   <group ref={legL} position={[-.075,.64,0]}>
-    <mesh position={[0,-.16,0]}><cylinderGeometry args={[.055,.048,.3,10]}/><meshStandardMaterial color={v.skirt?'#F7F4EC':v.bottoms}/></mesh>
-    <mesh position={[0,-.33,.03]}><boxGeometry args={[.1,.05,.16]}/><meshStandardMaterial color="#2A241C"/></mesh>
+   <group ref={legL} position={[-.055,.46,0]}>
+    <mesh position={[0,-.16,0]}><cylinderGeometry args={[.042,.038,.32,10]}/><meshStandardMaterial color={v.skirt?'#F4EFE4':v.bottoms}/></mesh>
+    <mesh position={[0,-.34,.02]}><boxGeometry args={[.08,.04,.13]}/><meshStandardMaterial color="#2A241C"/></mesh>
    </group>
-   <group ref={legR} position={[.075,.64,0]}>
-    <mesh position={[0,-.16,0]}><cylinderGeometry args={[.055,.048,.3,10]}/><meshStandardMaterial color={v.skirt?'#F7F4EC':v.bottoms}/></mesh>
-    <mesh position={[0,-.33,.03]}><boxGeometry args={[.1,.05,.16]}/><meshStandardMaterial color="#2A241C"/></mesh>
+   <group ref={legR} position={[.055,.46,0]}>
+    <mesh position={[0,-.16,0]}><cylinderGeometry args={[.042,.038,.32,10]}/><meshStandardMaterial color={v.skirt?'#F4EFE4':v.bottoms}/></mesh>
+    <mesh position={[0,-.34,.02]}><boxGeometry args={[.08,.04,.13]}/><meshStandardMaterial color="#2A241C"/></mesh>
    </group>
-   {v.skirt?<mesh position={[0,.56,0]}><cylinderGeometry args={[.2,.14,.3,14]}/><meshStandardMaterial color={v.trim} roughness={.62}/></mesh>:
-    <mesh position={[0,.62,0]}><sphereGeometry args={[.11,12,10]}/><meshStandardMaterial color={v.bottoms}/></mesh>}
-   <mesh position={[0,.9,0]} scale={[1,1.08,.82]}><sphereGeometry args={[.155,18,14]}/><meshStandardMaterial color={v.shirt} roughness={.58}/></mesh>
-   <mesh position={[0,.9,.125]}><boxGeometry args={[.035,.24,.02]}/><meshStandardMaterial color={v.trim}/></mesh>
-   <mesh position={[.07,.98,.12]}><sphereGeometry args={[.018,8,8]}/><meshStandardMaterial color="#E8CE78" metalness={.4} roughness={.35}/></mesh>
-   <mesh position={[0,1.08,0]} rotation={[Math.PI/2,0,0]}><torusGeometry args={[.075,.016,8,18]}/><meshStandardMaterial color={v.trim}/></mesh>
-   <group ref={armL} position={[-.18,1.02,0]}>
-    <mesh position={[0,-.13,0]}><cylinderGeometry args={[.042,.036,.24,8]}/><meshStandardMaterial color={v.shirt}/></mesh>
-    <mesh position={[0,-.27,0]}><sphereGeometry args={[.04,10,8]}/><meshStandardMaterial color={v.skin}/></mesh>
+   {v.skirt
+    ?<mesh position={[0,.5,0]}><cylinderGeometry args={[.075,.155,.44,16]}/><meshStandardMaterial color={v.trim} roughness={.66}/></mesh>
+    :<mesh position={[0,.5,0]}><cylinderGeometry args={[.09,.1,.16,12]}/><meshStandardMaterial color={v.bottoms}/></mesh>}
+   <mesh position={[0,.84,0]}><cylinderGeometry args={[.09,.115,.32,14]}/><meshStandardMaterial color={v.shirt} roughness={.62}/></mesh>
+   <mesh position={[0,.98,0]} scale={[1.28,.42,.82]}><sphereGeometry args={[.11,14,10]}/><meshStandardMaterial color={v.shirt}/></mesh>
+   <mesh position={[0,.78,.09]}><boxGeometry args={[.028,.16,.015]}/><meshStandardMaterial color={v.trim}/></mesh>
+   <mesh position={[0,1.05,0]}><cylinderGeometry args={[.04,.045,.07,8]}/><meshStandardMaterial color={v.skin}/></mesh>
+   <group ref={armL} position={[-.145,.96,0]}>
+    <mesh position={[0,-.11,0]}><cylinderGeometry args={[.028,.024,.2,8]}/><meshStandardMaterial color={v.shirt}/></mesh>
+    <mesh position={[0,-.22,0]}><sphereGeometry args={[.028,8,8]}/><meshStandardMaterial color={v.skin}/></mesh>
    </group>
-   <group ref={armR} position={[.18,1.02,0]}>
-    <mesh position={[0,-.13,0]}><cylinderGeometry args={[.042,.036,.24,8]}/><meshStandardMaterial color={v.shirt}/></mesh>
-    <mesh position={[0,-.27,0]}><sphereGeometry args={[.04,10,8]}/><meshStandardMaterial color={v.skin}/></mesh>
+   <group ref={armR} position={[.145,.96,0]}>
+    <mesh position={[0,-.11,0]}><cylinderGeometry args={[.028,.024,.2,8]}/><meshStandardMaterial color={v.shirt}/></mesh>
+    <mesh position={[0,-.22,0]}><sphereGeometry args={[.028,8,8]}/><meshStandardMaterial color={v.skin}/></mesh>
    </group>
-   <mesh position={[0,1.16,0]}><cylinderGeometry args={[.045,.05,.08,8]}/><meshStandardMaterial color={v.skin}/></mesh>
-   <mesh position={[0,.92,-.15]}><boxGeometry args={[.18,.22,.08]}/><meshStandardMaterial color={v.trim} roughness={.55}/></mesh>
-   <mesh position={[-.06,1.02,-.1]} rotation={[.15,0,.55]}><boxGeometry args={[.025,.18,.02]}/><meshStandardMaterial color={v.trim}/></mesh>
-   <mesh position={[.06,1.02,-.1]} rotation={[.15,0,-.55]}><boxGeometry args={[.025,.18,.02]}/><meshStandardMaterial color={v.trim}/></mesh>
-   <group ref={head} position={[0,1.32,0]}>
-    <mesh><sphereGeometry args={[.128,22,18]}/><meshStandardMaterial color={v.skin} roughness={.48}/></mesh>
-    <VisitorHair style={v.hairStyle} color={v.hair}/>
-    <mesh position={[-.046,.012,.112]} scale={[1,.7,1]}><sphereGeometry args={[.02,10,8]}/><meshStandardMaterial color="#243044"/></mesh>
-    <mesh position={[.046,.012,.112]} scale={[1,.7,1]}><sphereGeometry args={[.02,10,8]}/><meshStandardMaterial color="#243044"/></mesh>
-    <mesh position={[-.046,.02,.126]}><sphereGeometry args={[.007,6,6]}/><meshBasicMaterial color="#FFFFFF"/></mesh>
-    <mesh position={[.046,.02,.126]}><sphereGeometry args={[.007,6,6]}/><meshBasicMaterial color="#FFFFFF"/></mesh>
-    <mesh position={[-.046,.048,.108]} rotation={[0,0,.25]}><boxGeometry args={[.046,.01,.012]}/><meshStandardMaterial color={v.hair}/></mesh>
-    <mesh position={[.046,.048,.108]} rotation={[0,0,-.25]}><boxGeometry args={[.046,.01,.012]}/><meshStandardMaterial color={v.hair}/></mesh>
-    <mesh position={[0,-.04,.115]} rotation={[.2,0,Math.PI]}><torusGeometry args={[.03,.005,6,12,Math.PI]}/><meshStandardMaterial color="#C46B62"/></mesh>
+   <mesh position={[0,.86,-.1]} scale={[.9,1.05,.42]}><sphereGeometry args={[.09,12,10]}/><meshStandardMaterial color={v.trim}/></mesh>
+   <group ref={head} position={[0,1.18,0]}>
+    <mesh><sphereGeometry args={[.095,20,16]}/><meshStandardMaterial color={v.skin} roughness={.5}/></mesh>
+    <mesh position={[0,hairY,-.01]} scale={hairScale}><sphereGeometry args={[.1,16,12]}/><meshStandardMaterial color={v.hair} roughness={.7}/></mesh>
+    {v.hairStyle==='tail'?<mesh position={[0,-.02,-.09]}><sphereGeometry args={[.035,10,8]}/><meshStandardMaterial color={v.hair}/></mesh>:null}
+    <mesh position={[-.032,.008,.082]} scale={[1,.72,1]}><sphereGeometry args={[.014,8,6]}/><meshStandardMaterial color="#243044"/></mesh>
+    <mesh position={[.032,.008,.082]} scale={[1,.72,1]}><sphereGeometry args={[.014,8,6]}/><meshStandardMaterial color="#243044"/></mesh>
+    <mesh position={[0,-.028,.084]} scale={[1,.45,.4]}><sphereGeometry args={[.016,8,6]}/><meshStandardMaterial color="#C46B62"/></mesh>
    </group>
   </group>
  </group>;
