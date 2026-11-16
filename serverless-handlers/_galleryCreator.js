@@ -53,7 +53,10 @@ export const query=async promise=>{
    ['assignment_closed',423,'Bài học đã đóng hoặc đã được lưu trữ.'],
    ['stale_review',409,'Bài nộp đã thay đổi. Hãy tải lại trước khi duyệt.'],
    ['stale_rubric',409,'Another rubric was saved. Reload the submission before approving it.'],
-   ['version_conflict',409,'Có thay đổi mới hơn. Hãy tải lại để tiếp tục.']
+   ['version_conflict',409,'Có thay đổi mới hơn. Hãy tải lại để tiếp tục.'],
+   ['museum_lesson_frozen',423,'This lesson is locked for viewing. Editing and submissions are disabled.'],
+   ['museum_lesson_staff_required',403,'Only authorized teachers can change the lesson status.'],
+   ['museum_live_session_missing',404,'A live lesson must be started before it can be completed.']
   ];
   const detail=String(error.message||'');
   const known=safeFailures.find(([code])=>detail.includes(code));

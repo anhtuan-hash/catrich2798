@@ -205,8 +205,9 @@ export default function MuseumLabStudent({language:languageProp='en'}){
  },[displayedActivity,studioSubstep]);
  const showTool=name=>{setReviewIndex(null);setStudentTool({name,key:Date.now()});};
  useEffect(()=>{setHistoryOpen(false);setSpeakingOpen(false);},[displayedActivity]);
- const load=useCallback(async()=>{
+ const load=useCallback(async(expectedCsrf)=>{
   const me=await guestRequest('me');const d=await guestRequest('draft');
+  if(expectedCsrf&&csrfRef.current!==expectedCsrf)return;
   const parsed=normalizeStudio(d.draft);
   csrfRef.current=me.csrf;setSession(me);documentRef.current=parsed;setStudio(parsed);
   versionRef.current=d.version;setVersion(d.version);dirtyRef.current=false;setDirty(false);
@@ -218,6 +219,13 @@ export default function MuseumLabStudent({language:languageProp='en'}){
   csrfRef.current=me.csrf;setSession(me);documentRef.current=parsed;setStudio(parsed);
   versionRef.current=d.version;setVersion(d.version);
  }).catch(()=>{});return()=>{active=false;};},[]);
+ const syncCompletion=(next,readOnly)=>{
+  setLiveInfo(next);setLiveReady(true);
+  if(typeof readOnly!=='boolean'||readOnly===Boolean(session.readOnly))return;
+  // Apply the lock immediately and reload the server draft before enabling edits.
+  if(readOnly)setSession(current=>current?.csrf===session.csrf?{...current,readOnly:true,uploadEnabled:false}:current);
+  load(session.csrf).catch(e=>{if(csrfRef.current===session.csrf)setError(e.message);});
+ };
  const edit=(change,{saveImmediately=false}={})=>{
   if(locked||conflict)return;
   if(saveImmediately)artworkSavePending.current=true;
@@ -323,7 +331,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
    <div className="bml-student-pane bml-student-lesson-scroll" data-testid="student-lesson-pane"
     role="region" aria-label={T(language,'Nội dung bài học','Lesson content')} tabIndex={0} ref={lessonScrollRef}>
     <MuseumLiveStudent csrf={session.csrf} language={language} readOnly={session.readOnly===true}
-      onState={next=>{setLiveInfo(next);setLiveReady(true);}} toolRequest={studentTool} compact
+      onState={syncCompletion} toolRequest={studentTool} compact
       reviewIndex={reviewIndex} onReturnLive={canFollowLive?returnLive:undefined} onReviewProject={focusProject}
       onOpenProject={index=>{
        if(index===9){setSpeakingOpen(true);return;}

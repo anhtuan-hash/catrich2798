@@ -40,15 +40,18 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   const savedPreference=useRef(loadPresenterRecovery(typeof window!=='undefined'?window.sessionStorage:null,assignmentIds));
   const [assignmentId,setAssignmentId]=useState(initialReview||savedPreference.current?.assignmentId||assignments[0]?.id||'');
   const assignment=assignments.find(a=>a.id===assignmentId);
-  const readOnly=Boolean(data?.publicReadOnly||data?.offlineReadOnly||assignment?.content_frozen_at);
+  const [state,setState]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
+  const [readError,setReadError]=useState('');
+  const contentFrozenAt=state?.contentFrozenAt===undefined?(assignment?.content_frozen_at??null):state.contentFrozenAt;
+  const canManageLesson=Boolean(assignment&&data?.profile?.id&&!data.publicReadOnly&&!data.offlineReadOnly);
+  const readOnly=Boolean(data?.publicReadOnly||data?.offlineReadOnly||contentFrozenAt);
   const [browseIndex,setBrowseIndex]=useState(null);
   const [jumpIndex,setJumpIndex]=useState(null);
   const [previewReveal,setPreviewReveal]=useState(false);
   const requestSequence=useRef(0);
-  const frozenReason=assignment?.content_frozen_at
-    ?t(language,'Bài học đã chốt vào ','Lesson frozen at ')+new Date(assignment.content_frozen_at).toLocaleString()+t(language,' · Chỉ xem lại',' · View-only playback')
+  const frozenReason=contentFrozenAt
+    ?t(language,'Bài dạy đã kết thúc · Chỉ xem.','Lesson completed · View only.')
     :'';
-  const [state,setState]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const [activeTool,setActiveTool]=useState(null),[qr,setQr]=useState('');
   const [motionOn,setMotionOn]=useState(savedPreference.current?.motionOn!==false);
   const [previewPresentation,setPreviewPresentation]=useState(null);
@@ -61,8 +64,8 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     const sequence=++requestSequence.current;
     try{
       const response=await transport('state',null,{assignmentId,...(readOnly&&browseIndex!=null?{viewStage:String(browseIndex)}:{})});
-      if(activeRef.current&&sequence===requestSequence.current){setState(response);setError('');}
-    }catch(e){if(activeRef.current&&sequence===requestSequence.current)setError(e.message);}
+      if(activeRef.current&&sequence===requestSequence.current){setState(response);setReadError('');}
+    }catch(e){if(activeRef.current&&sequence===requestSequence.current)setReadError(e.message);}
   },[assignmentId,transport,readOnly,browseIndex]);
   useEffect(()=>{activeRef.current=true;refresh();const id=window.setInterval(()=>{refresh();setTime(Date.now());},readOnly?15000:3000);return()=>{activeRef.current=false;window.clearInterval(id);};},[refresh]);
   useEffect(()=>{
@@ -71,7 +74,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   },[]);
   useEffect(()=>{if(activeTool!=='qr')return;let active=true;import('qrcode').then(({default:QR})=>QR.toDataURL(link,{width:220,margin:2})).then(url=>{if(active)setQr(url);}).catch(()=>{});return()=>{active=false;};},[activeTool]);
   const historicalSession=state?.session?.assignmentId&&state.session.assignmentId!==assignmentId?null:state?.session??null;
-  const slideOnly=readOnly&&Boolean(assignment?.content_frozen_at)&&!historicalSession;
+  const slideOnly=Boolean(contentFrozenAt&&!historicalSession);
   const session=historicalSession
     ?(readOnly?{...historicalSession,revealed:previewReveal}:historicalSession)
     :(slideOnly?{status:'ended',stageIndex:0,questionVersion:2,revealed:previewReveal}:null);
@@ -121,7 +124,6 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
       else if(action==='present')setPreviewPresentation(details);
       return;
     }
-    if(action==='end'&&!window.confirm(t(language,'Kết thúc tiết học? Học sinh sẽ không thể tiếp tục thao tác trong phiên này.','End this lesson? Student tasks will be locked.')))return;
     if(action==='next'||action==='previous'){
       const base=jumpIndex??session?.stageIndex??0;
       setJumpIndex(Math.max(0,Math.min(LIVE_STAGES.length-1,base+(action==='next'?1:-1))));
@@ -138,6 +140,24 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
       else await refresh();
     }catch(e){setJumpIndex(null);setError(e.message);}finally{setBusy(false);}
   },[assignmentId,busy,readOnly,session?.version,session?.stageIndex,jumpIndex,transport,refresh,language]);
+  const changeCompletion=async()=>{
+    if(!canManageLesson||busy||(!contentFrozenAt&&!historicalSession))return;
+    const confirmText=contentFrozenAt
+      ?t(language,'Mở khóa bài dạy này để cho phép chỉnh sửa và nộp bài theo quyền hiện có?','Unlock this lesson to restore editing and submission permissions?')
+      :t(language,'Kết thúc bài dạy này? Bài nộp, điểm, phản hồi và minh chứng sẽ chuyển sang chế độ chỉ xem.','End this lesson? Submissions, scores, responses and evidence will become view-only.');
+    if(!window.confirm(confirmText))return;
+
+    setBusy(true);setError('');
+    try{
+      const out=contentFrozenAt
+        ?await transport('unlock-lesson',{assignmentId,contentFrozenAt})
+        :await transport('control',{assignmentId,action:'end',version:historicalSession.version});
+      ++requestSequence.current;
+      setState(prev=>({...prev,...out}));
+      setBrowseIndex(null);setPreviewReveal(false);setPreviewPresentation(null);setSpotlight(null);
+      await Promise.all([refresh(),onRefresh?.()]);
+    }catch(e){setError(e.message);if(e.status===409)await refresh();}finally{setBusy(false);}
+  };
   const present=(view,questionIndex=0)=>act('present',{stageIndex:currentIndex,view,questionIndex});
   const freeze=async()=>{if(readOnly)return;setBusy(true);setError('');try{await transport('freeze-survey',{assignmentId,version:session.version,...(paper?{counts:tally.map(v=>v===''?null:Number(v)),note:tallyNote}:{})});await refresh();}catch(e){setError(e.message);}finally{setBusy(false);}};
   const shareNarration=async()=>{
@@ -219,6 +239,8 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     ?state.responses.filter(r=>r.stage_index===currentIndex||stage?.kind==='exit').slice(0,30):[];
   const toolbar=session?<TeacherToolbar offline={!!data?.offlineReadOnly} language={language} readOnly={readOnly} busy={busy} session={session} currentIndex={currentIndex}
     motionOn={motionOn} activeTool={activeTool}
+    onChangeCompletion={canManageLesson&&(historicalSession||contentFrozenAt)?changeCompletion:undefined}
+    completed={Boolean(contentFrozenAt)}
     onBack={onBack} onPrevious={()=>act('previous')} onNext={()=>act('next')} onToggleTask={()=>act(session.stageOpen?'close':'open')}
     onReveal={()=>act('reveal')} onToggleTool={toggleTool} onFullscreen={fullscreen}
     onToggleMotion={()=>setMotionOn(v=>!v)} onTogglePause={()=>act(session.status==='paused'?'resume':'pause')}
@@ -245,12 +267,12 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   ):null;
   return (
     <div className="igv2 igv2-screen" data-testid="igv2-teacher-live-screen">
-      {readOnly?<div className="adv-banner adv-banner--success" role="status">🔒 {frozenReason||t(language,'Bài học đã kết thúc · Chỉ xem.','Completed lesson · View only.')} {t(language,'Xem lại, nội dung bài học, mã QR và minh chứng vẫn có sẵn; điều khiển trực tiếp không thể thay đổi dữ liệu đã lưu.','Playback, lesson content, QR codes and evidence remain available; live controls cannot change saved data.')}</div>:null}
-      {error?<div className="adv-banner adv-banner--danger" role="alert">{error}</div>:null}
+      {readOnly?<div className="adv-banner adv-banner--success" role="status">🔒 {frozenReason||t(language,'Chế độ chỉ xem.','View-only mode.')} {t(language,'Bạn vẫn có thể xem lại hoạt động, video, bài nộp và minh chứng.','You can still review activities, videos, submissions and evidence.')}</div>:null}
+      {error||readError?<div className="adv-banner adv-banner--danger" role="alert">{error||readError}</div>:null}
       {slideOnly?<div className="adv-banner" role="status">{t(language,'Đang hiển thị slide theo kế hoạch P2. Dữ liệu đã lưu hiển thị khi phiên lớp có sẵn.','Showing the P2 teaching slides. Saved responses appear when the classroom session is available.')}</div>:null}
       {!assignments.length?<div className="panel" style={{padding:24,textAlign:'center'}}><BookOpen size={26}/><p>{t(language,'Hãy tạo bài học và mã nhóm trước khi mở Teacher Live.','Create a lesson and group passes first.')}</p></div>:null}
       {!session&&assignments.length?<label className="adv-dossier-field" style={{marginBottom:12}}>{t(language,'Chọn lớp và bài học','Choose lesson / class')}
-        <select className="adv-assignment-select" value={assignmentId} onChange={e=>{++requestSequence.current;setAssignmentId(e.target.value);setBrowseIndex(null);setJumpIndex(null);setPreviewReveal(false);setState(null);setSpotlight(null);}} aria-label={t(language,'Chọn bài học','Select lesson')}>
+        <select className="adv-assignment-select" value={assignmentId} disabled={busy} onChange={e=>{++requestSequence.current;setAssignmentId(e.target.value);setBrowseIndex(null);setJumpIndex(null);setPreviewReveal(false);setState(null);setSpotlight(null);}} aria-label={t(language,'Chọn bài học','Select lesson')}>
           {!assignments.length?<option value="">{t(language,'Chưa có bài học được giao','No lesson assigned')}</option>:null}
           {assignments.map(a=><option value={a.id} key={a.id}>{a.title} · {a.class_scope||''}</option>)}
         </select></label>:null}
@@ -275,7 +297,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
             elapsed={elapsed} remaining={remaining}
             respondedCount={respondedCount}
             isFullscreen={isFullscreen} onExitFullscreen={fullscreen}
-            assignments={assignments} assignmentId={assignmentId}
+            assignments={assignments} assignmentId={assignmentId} assignmentBusy={busy}
             onAssignment={e=>{++requestSequence.current;setAssignmentId(e.target.value);setBrowseIndex(null);setJumpIndex(null);setPreviewReveal(false);setState(null);setSpotlight(null);}}
             fullscreenControls={toolbar} fullscreenPanel={fullscreenPanel}/>
           <div className="adv-live-dock">

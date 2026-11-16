@@ -13,6 +13,8 @@ const lessons=read('src/features/immersive-gallery/v3/MuseumLessonFlow.jsx');
 const reviews=read('src/features/immersive-gallery/v3/MuseumReview.jsx');
 const fullscreenDock=read('src/features/immersive-gallery/v3/MuseumFullscreenDock.jsx');
 const videoLab=read('src/features/immersive-gallery/v3/MuseumVideoLab.jsx');
+const swissLive=read('src/features/immersive-gallery/v2/screens/TeacherLiveScreen.jsx');
+const toolbar=read('src/features/immersive-gallery/v2/controls/TeacherToolbar.jsx');
 const migration=read('supabase/migrations/20261114013000_museum_completed_readonly.sql');
 
 function hasAll(source,items,name){
@@ -33,11 +35,15 @@ hasAll(staff,["'quick-access-setting'","'regenerate-all-passcodes'","'grade-rubr
  "'admin-decision'","'archive-review'","'archive-assignment'","'rotate-invite'",
  "'publish'","'archive-exhibition'","content_frozen_at"],
  'staff review, passcode and publication guards');
-hasAll(live,["if(req.method!=='GET'&&assignment.content_frozen_at)",'throw fail(423'],
+hasAll(live,["if(!publicRead&&req.method!=='GET'&&assignment.content_frozen_at)",'throw fail(423',
+ "'unlock-lesson'","admin.rpc('museum_set_lesson_completion'","p_actor:ctx.user.id"],
  'teacher live server protection');
+hasAll(swissLive,["canManageLesson&&(historicalSession||contentFrozenAt)","transport('unlock-lesson'",
+ "action:'end'","viewStage:String(browseIndex)"],'Swiss Teacher Live completion');
+hasAll(toolbar,["'Kết thúc bài dạy'","'Mở khóa bài dạy'"],'teacher toolbar controls');
 hasAll(student,['session.readOnly===true','readOnly={session.readOnly===true}',
  'Completed lesson · View only'],'student readonly display');
-hasAll(studentLive,['readOnly=false','if(readOnly||busy||posted)return',
+hasAll(studentLive,['readOnly=false','if(readOnly||busy||posted||!stageIsOpen||!canRespond)return',
  'disabled={readOnly||busy||posted','Completed lesson · View only'],
  'student live controls');
 hasAll(teacherLive,['const readOnly=Boolean(','viewStage:String(browseIndex)',

@@ -1,5 +1,5 @@
 // Teacher Live controls synchronous responses; the group museum is an independent
-// assignment. Ending the lesson must not end an otherwise valid, unexpired pass.
+// assignment. The assignment freeze marker controls the completed lesson lock.
 // Guest capability, deadline, CSRF, document validation and optimistic versions
 // remain enforced separately by the backend.
 export function canSaveMuseumDraft(live){

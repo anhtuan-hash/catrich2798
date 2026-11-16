@@ -42,25 +42,16 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
   if(polling.current)return;
   polling.current=true;
   const request=++pollVersion.current;
-  try{const d=await liveGuest('state');if(request<appliedPollVersion.current)return;appliedPollVersion.current=request;setSyncError('');setData(d);onState?.(d.session);
+  try{const d=await liveGuest('state');if(request<appliedPollVersion.current)return;appliedPollVersion.current=request;setSyncError('');setData(d);onState?.(d.session,d.readOnly);
    if(d.submitted&&d.session?.id)setSent(v=>({...v,[d.session.id+'-'+d.session.stageIndex]:true}));
   }catch(e){if(request>appliedPollVersion.current){appliedPollVersion.current=request;setSyncError(e.message);}}
   finally{polling.current=false;}
  };
  useEffect(()=>{
-  if(readOnly)return;
   refresh();
-  const id=window.setInterval(()=>{if(!document.hidden)refresh();},2000);
+  const id=window.setInterval(()=>{if(!document.hidden)refresh();},readOnly?5000:2000);
   document.addEventListener('visibilitychange',refresh);
   return()=>{appliedPollVersion.current=++pollVersion.current;window.clearInterval(id);document.removeEventListener('visibilitychange',refresh);};
- },[csrf,readOnly]);
- useEffect(()=>{
-  if(!readOnly)return;
-  let active=true;
-  liveGuest('state').then(result=>{
-   if(active){setData(result);setSyncError('');}
-  }).catch(error=>{if(active)setSyncError(error.message);});
-  return()=>{active=false;};
  },[csrf,readOnly]);
  const survey=data?.survey;
  const session=data?.session,stage=session?.stage,stageIndex=session?.stageIndex;
@@ -116,7 +107,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
   </button>:null}
   <MuseumStudentLessonReview language={language} activityIndex={reviewIndex}
     questionVersion={session?.questionVersion} survey={survey} surveyLoading={!data&&!syncError} surveyPending={!readOnly&&session?.status!=='ended'}
-    loadSaved={Boolean(session)&&!readOnly} onOpenProject={onReviewProject}/>
+    loadSaved={Boolean(session?.id)} frozen={readOnly} onOpenProject={onReviewProject}/>
   {reviewIndex===7?peerActivity:null}
  </section>;
  if(readOnly||session?.status==='ended')return <section className="bml-live-student" data-testid="student-live-completed">
@@ -126,7 +117,7 @@ export default function MuseumLiveStudent({csrf,language='vi',onState,compact=fa
     t(language,'Hoạt động trực tiếp đã kết thúc.','Live activities have ended.')}
   </div>
   <MuseumStudentLessonReview language={language} activityIndex={onReviewProject?0:undefined} questionVersion={session?.questionVersion} survey={survey}
-   surveyLoading={!data&&!syncError} loadSaved={session?.status==='ended'&&!readOnly} onOpenProject={onReviewProject||onOpenProject}/>
+   surveyLoading={!data&&!syncError} loadSaved={Boolean(session?.id)} frozen={readOnly} onOpenProject={onReviewProject||onOpenProject}/>
   {['materials','research'].includes(activeTool)?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label={t(language,'Tài liệu bài học','Lesson materials')}>
    <div className="bml-student-detail-window">
     <div className="bml-student-detail-head"><strong>{t(language,'Tài liệu bài học','Lesson materials')}</strong>

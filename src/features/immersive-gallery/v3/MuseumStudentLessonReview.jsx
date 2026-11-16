@@ -10,7 +10,7 @@ import MuseumSurveyChart from './MuseumSurveyChart.jsx';
 
 const tr=(language,vi,en)=>language==='en'?en:vi;
 
-function ReviewActivity({stage,index,language,onOpenProject,survey,surveyLoading,surveyPending,record}){
+function ReviewActivity({stage,index,language,onOpenProject,survey,surveyLoading,surveyPending,record,frozen}){
  const [practice,setPractice]=useState({});
  const video=MUSEUM_CURRICULUM_VIDEOS[index];
  const questions=stage.questions??stage.videoQuestions;
@@ -20,14 +20,14 @@ function ReviewActivity({stage,index,language,onOpenProject,survey,surveyLoading
  return <>
   <MuseumStudentLessonVideos clip={video} assigned={record?.videos} language={language}/>
   {index===2?<MuseumSurveyChart survey={survey} language={language} loading={surveyLoading} pending={surveyPending}/>:null}
-  {interactive?<p className="bml-student-practice-note" role="status">
+  {interactive&&!frozen?<p className="bml-student-practice-note" role="status">
    {tr(language,'Luyện tập: lựa chọn ở đây không gửi vào lớp.','Practice: choices here are not sent to the class.')}
   </p>:null}
   {stage.kind==='vote'?<section className="bml-student-p2-task" lang="en">
    <p className="bml-student-p2-question">{stage.question}</p>
    <div className="bml-live-response-options">{stage.options.map((option,i)=><button type="button" key={option}
     aria-label={String.fromCharCode(65+i)+'. '+option}
-    aria-pressed={practice.vote===i}
+    disabled={frozen} aria-pressed={practice.vote===i}
     className={practice.vote===i?'is-chosen':''}
     onClick={()=>setPractice(prev=>({...prev,vote:i}))}>
     <span className="bml-option-letter">{String.fromCharCode(65+i)}.</span>
@@ -35,7 +35,7 @@ function ReviewActivity({stage,index,language,onOpenProject,survey,surveyLoading
    </button>)}</div>
   </section>:null}
   {questions?<StudentActivityQuiz questions={questions} language={language} selected={practice}
-   saved={savedQuiz} onSelect={(question,choice)=>setPractice(prev=>({...prev,[question]:choice}))}/>:null}
+   saved={savedQuiz} disabled={frozen} onSelect={(question,choice)=>setPractice(prev=>({...prev,[question]:choice}))}/>:null}
   <StudentActivityTask stage={stage} language={language} onOpenProject={onOpenProject}/>
   {typeof record?.response==='string'?<section className="bml-student-p2-task">
    <strong>{tr(language,'Câu trả lời đã lưu của nhóm','Saved group response')}</strong><p lang="en">{record.response}</p>
@@ -50,7 +50,7 @@ function ReviewActivity({stage,index,language,onOpenProject,survey,surveyLoading
  </>;
 }
 
-export default function MuseumStudentLessonReview({language='vi',onOpenProject,activityIndex,questionVersion,survey,surveyLoading,surveyPending,loadSaved=false}){
+export default function MuseumStudentLessonReview({language='vi',onOpenProject,activityIndex,questionVersion,survey,surveyLoading,surveyPending,loadSaved=false,frozen=false}){
  const [localIndex,setLocalIndex]=useState(0);
  const index=activityIndex??localIndex;
  const [saved,setSaved]=useState(null);
@@ -75,7 +75,7 @@ export default function MuseumStudentLessonReview({language='vi',onOpenProject,a
    <h2>{stage.title}</h2>
   </div>
   <ReviewActivity key={stage.id} stage={stage} index={index} language={language} onOpenProject={onOpenProject} survey={survey}
-   surveyLoading={surveyLoading} surveyPending={surveyPending} record={record}/>
+   surveyLoading={surveyLoading} surveyPending={surveyPending} record={record} frozen={frozen}/>
   {loadSaved&&saved?.index===index&&saved.error?<p className="bml-student-p2-task" role="status">{tr(language,'Chưa tải được câu trả lời đã lưu.','Saved responses could not be loaded.')}</p>:null}
  </section>;
 }

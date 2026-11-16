@@ -1430,6 +1430,48 @@ test('a locked student lesson loads and displays the frozen survey denominator',
  expect(reads).toEqual(['GET']);
 });
 
+test('Swiss Teacher Live completes and unlocks the selected lesson, with view-only replay for visitors',async({page},testInfo)=>{
+ await page.getByTestId('qa-teacher-live-completion-en').click();
+ const stage=page.getByTestId('igv2-teacher-live-stage');
+ const toolbar=page.getByRole('toolbar',{name:'Teacher control toolbar'});
+ await expect(stage).toContainText('Exit Ticket');
+ await expect(stage).toContainText('1 group responses');
+ page.once('dialog',dialog=>dialog.dismiss());
+ await toolbar.getByRole('button',{name:'End lesson',exact:true}).click();
+ await expect(toolbar.getByRole('button',{name:'End lesson',exact:true})).toBeEnabled();
+ expect(await page.evaluate(()=>window.__completionWrites||[])).toEqual([]);
+
+ await page.screenshot({path:testInfo.outputPath('teacher-live-before-completion.png')});
+ page.once('dialog',dialog=>dialog.accept());
+ await toolbar.getByRole('button',{name:'End lesson',exact:true}).click();
+ await expect(stage).toContainText('VIEW ONLY');
+ await expect(stage).toContainText('1 group responses');
+ await expect(toolbar.getByRole('button',{name:'Open current task'})).toBeDisabled();
+ await expect(toolbar.getByRole('button',{name:'Unlock lesson'})).toBeEnabled();
+ await page.screenshot({path:testInfo.outputPath('teacher-live-completed.png')});
+ await toolbar.getByRole('button',{name:/Previous activity/}).click();
+ await expect(stage).toContainText('ACTIVITY 10 / 11');
+ await expect(toolbar.getByRole('button',{name:'Advance to next activity'})).toBeEnabled();
+ await expect(toolbar.getByRole('button',{name:'Voiceover'})).toBeEnabled();
+
+ page.once('dialog',dialog=>dialog.accept());
+ await toolbar.getByRole('button',{name:'Unlock lesson'}).click();
+ await expect(stage).toContainText('Exit Ticket');
+ await expect(toolbar.getByRole('button',{name:'Open current task'})).toBeEnabled();
+ await expect(toolbar.getByRole('button',{name:'End lesson',exact:true})).toBeEnabled();
+ const writes=await page.evaluate(()=>window.__completionWrites);
+ expect(writes.map(({operation,body})=>[operation,body.assignmentId,body.action??body.contentFrozenAt]))
+  .toEqual([['control','lesson-synthetic','end'],['unlock-lesson','lesson-synthetic','2026-11-16T02:00:00.123456+00:00']]);
+
+ await page.getByTestId('qa-teacher-live-visitor-en').click();
+ await expect(stage).toContainText('VIEW ONLY');
+ await expect(toolbar.getByRole('button',{name:/End lesson|Unlock lesson/})).toHaveCount(0);
+ await toolbar.getByRole('button',{name:/Previous activity/}).click();
+ await expect(stage).toContainText('ACTIVITY 10 / 11');
+ await expect(toolbar.getByRole('button',{name:'Advance to next activity'})).toBeEnabled();
+ expect(await page.evaluate(()=>window.__completionWrites.length)).toBe(2);
+});
+
 test('Teacher Live has real stage motion control, readable voiceover, research library and persistent curated videos',async({page})=>{
  await page.getByTestId('qa-teacher-live').click();
  await page.getByRole('button',{name:/Bắt đầu buổi dạy/}).click();
