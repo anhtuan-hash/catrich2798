@@ -516,6 +516,7 @@ test('realistic Group 01 Stage 1 permits vote, help, all group project steps and
  await app.locator('.bml-student-steps button').nth(3).click();
  await expect(page.getByLabel('Peer feedback (English)')).toBeEnabled();
  await app.locator('.bml-student-steps button').nth(4).click();
+ await app.getByTestId('student-activity-groups').getByRole('button',{name:/Exit Ticket/}).click();
  await expect(page.getByLabel('Our learning reflection (English)')).toBeEnabled();
  // Final submission must still wait for the teacher's Exit Ticket stage.
  await expect(page.getByRole('button',{name:'Submit for Admin review'})).toBeDisabled();
@@ -1404,6 +1405,71 @@ test('Swiss Editorial frozen Teacher Live supports 11 GET-only replay activities
  await expect.poll(()=>page.evaluate(()=>window.__frozenTeacherWrites||0)).toBe(0);
  const reads=await page.evaluate(()=>window.__frozenTeacherReads||[]);
  expect(reads).toContain(0);expect(reads).toContain(10);
+});
+
+test('student workshop expands both panels when an activity starts and can reopen the banner',async({page,isMobile},testInfo)=>{
+ const title='The Refill Route';
+ await page.route('**/api/gallery-guest?**',route=>{
+  const action=new URL(route.request().url()).searchParams.get('operation');
+  return route.fulfill({json:action==='me'?{
+   groupLabel:'Group 02',groupState:'published',readOnly:true,csrf:'qa-workshop',
+   assignment:{title:'Our Climate Action Museum',class_scope:'11-QA'}
+  }:{draft:{title,summary:'Find the water point. Start at the door and use the arrows.',learning:{
+   issue:'We have a place to fill bottles, but some students go past it. The queue is near the corner. We did not know where to put the sign at first.',
+   audience:'Students carrying reusable bottles at morning break.',evidence:'The floor map shows the tap.',
+   solution:'Follow the arrows.',source:'School floor map',feedback:'The arrow was clear.',
+   improvement:'Add text beside the arrow.',tested:true,reflection:'Test signage on the route.'
+  }},version:2}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>{
+  expect(route.request().method()).toBe('GET');
+  const action=new URL(route.request().url()).searchParams.get('operation');
+  return route.fulfill({json:action==='review-activity'?{response:1,peer:[],videos:[]}:
+   {session:{id:'qa-workshop',status:'ended',stageIndex:10}}});
+ });
+ await page.getByTestId('qa-student-en').click();
+ const root=page.getByTestId('museum-student-wizard');
+ const masthead=root.getByTestId('student-masthead');
+ const ribbon=masthead.getByTestId('museum-competition-ribbon');
+ const lesson=root.getByRole('region',{name:'Lesson',exact:true});
+ const project=root.getByRole('region',{name:'Group Project',exact:true});
+ const geometry=()=>root.evaluate(el=>{
+  const lesson=el.querySelector('.bml-student-lesson-panel').getBoundingClientRect();
+  const project=el.querySelector('.bml-student-project-panel').getBoundingClientRect();
+  return {lessonHeight:lesson.height,projectHeight:project.height,lessonTop:lesson.top,projectTop:project.top,
+   viewportHeight:innerHeight,overflow:el.scrollWidth>el.clientWidth+1};
+ });
+ await expect(ribbon).toBeVisible();
+ await expect(ribbon.getByText('COMPETITION ENTRY',{exact:true})).toBeVisible();
+ await expect(project.getByRole('heading',{name:title,exact:true})).toBeVisible();
+ await expect(lesson.getByRole('button',{name:/B\. Switching/})).toBeDisabled();
+ const before=await geometry();
+ await expect(ribbon).toBeInViewport();
+ expect((await ribbon.boundingBox()).width).toBeGreaterThan((await root.boundingBox()).width*.95);
+ await page.screenshot({path:testInfo.outputPath('student-workshop-before.png')});
+ await lesson.getByRole('button',{name:'Review activity',exact:true}).click();
+ await expect(ribbon).toBeHidden();
+ await expect(masthead.getByRole('button',{name:'Show banner'})).toHaveAttribute('aria-expanded','false');
+ const after=await geometry();
+ expect(after.overflow).toBe(false);
+ if(!isMobile){
+  expect(after.lessonTop).toBe(after.projectTop);
+  expect(after.lessonHeight-before.lessonHeight).toBeGreaterThan(70);
+  expect(after.projectHeight-before.projectHeight).toBeGreaterThan(70);
+  expect(after.lessonHeight).toBeGreaterThan(after.viewportHeight*.65);
+  await expect(lesson.getByRole('button',{name:/D\. I am not sure/})).toBeInViewport();
+  await expect(project.getByRole('button',{name:'Open the 2D/3D museum'})).toBeInViewport();
+ }
+ await page.screenshot({path:testInfo.outputPath('student-workshop-after.png')});
+ await lesson.getByRole('button',{name:'Next activity',exact:true}).click();
+ await expect(lesson.getByRole('heading',{name:'Language Mini-Lesson'})).toBeVisible();
+ await masthead.getByRole('button',{name:'Show banner'}).click();
+ await expect(ribbon).toBeVisible();
+ await expect(lesson.getByRole('heading',{name:'Language Mini-Lesson'})).toBeVisible();
+ await masthead.getByRole('button',{name:'VI',exact:true}).click();
+ await expect(ribbon.getByText('BÀI DỰ THI',{exact:true})).toBeVisible();
+ await masthead.getByRole('button',{name:'Ẩn banner',exact:true}).click();
+ await expect(ribbon).toBeHidden();
 });
 
 test('a locked student lesson loads and displays the frozen survey denominator',async({page})=>{
