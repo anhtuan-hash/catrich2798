@@ -5,7 +5,8 @@ import { MUSEUM_CURRICULUM_VIDEOS } from '../src/features/immersive-gallery/v3/m
 import { LESSON_KITS, RUBRIC } from '../src/features/immersive-gallery/v3/museumData.js';
 import {
   EVIDENCE_WRITING, LESSON_PLAN_NOTES, LESSON_RUBRIC_LEVELS, OFFLINE_LESSON_WORKSHEET,
-  VISITOR_TASKS, VISITOR_TEST_GUIDANCE,
+  VISITOR_TASKS, VISITOR_TEST_GUIDANCE, CLASSROOM_SETUP, CLASSROOM_RECORDS, AFTER_CLASS_TASK,
+  LISTENING_FALLBACKS, LESSON_WORD_BANK, LESSON_LANGUAGE_FRAMES,
 } from '../src/features/immersive-gallery/v3/lessonPlanAlignment.js';
 
 const escape = value => String(value).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -22,18 +23,40 @@ const stageCard = (stage, index) => {
     ? `<ol>${questions.map(q => `<li>${escape(q.q)}<ol type="A">${q.choices.map(choice => `<li>${escape(choice)}</li>`).join('')}</ol></li>`).join('')}</ol>
 <details><summary>Teacher answer key</summary>${list(questions.map(q => `${'ABC'[q.answer]} · ${q.explanation}`))}</details>`
     : '';
-  return `<details id="stage-${index + 1}"${index === 0 ? ' open' : ''}>
-<summary>${index + 1}. ${escape(stage.title)} <span>Period ${stage.period} · ${stage.minutes} min · ${escape(note.phase)}</span></summary>
-<p>${escape(stage.question)}</p><p class="sentence">${escape(stage.sentence)}</p>
-<p>${escape(note.task)}</p>${note.extension ? `<p><strong>Next delivery:</strong> ${escape(note.extension)}</p>` : ''}
-${videoResources}${quiz}
+  const reading = LISTENING_FALLBACKS[stage.id];
+  const readAloud = reading
+    ? `<details><summary>Read-aloud or source card · Appendix A</summary><p>${escape(reading)}</p></details>`
+    : '';
+  const number = index + 1;
+  return `<details class="stage" id="stage-${number}"${index === 0 ? ' open' : ''}>
+<summary>
+  <span class="stage-number">${String(number).padStart(2, '0')}</span>
+  <span class="stage-label"><strong>${escape(stage.title)}</strong><small>${escape(note.phase)}</small></span>
+  <span class="stage-time">${escape(note.time)} · ${stage.minutes} min</span>
+</summary>
+<div class="stage-body">
+<p class="stage-question">${escape(stage.question)}</p><p class="sentence">${escape(stage.sentence)}</p>
+<p><strong>${escape(note.reference)}</strong> · ${escape(note.task)}</p>
+<p><strong>Procedure.</strong> ${escape(note.procedure).replaceAll('\n', '<br>')}</p>
+<p><strong>Deliverable.</strong> ${escape(note.output)}</p>
+${note.extension ? `<p><strong>Next delivery:</strong> ${escape(note.extension)}</p>` : ''}
+${videoResources}${readAloud}${quiz}
+</div>
 </details>`;
 };
-const stages = LIVE_STAGES.map(stageCard).join('\n');
+const stages = LIVE_PERIOD_MINUTES.map((minutes, index) => {
+  const period = index + 1;
+  return `<section class="period" aria-labelledby="period-${period}">
+<h3 id="period-${period}"><span>Period ${period}</span><small>${minutes} minutes</small></h3>
+${LIVE_STAGES.map((stage, stageIndex) => stage.period === period ? stageCard(stage, stageIndex) : '').filter(Boolean).join('\n')}
+</section>`;
+}).join('\n');
 const cards = LESSON_RESOURCES.map(card => `<article><h3>${escape(card.title)}</h3><p>${escape(card.text)}</p>
 <p><strong>${escape(card.task)}</strong></p><small>${card.url ? link(card.url, card.source) : escape(card.source)}</small></article>`).join('\n');
-const rubric = RUBRIC.map(criterion => `<article><h3>${escape(criterion.en)} · ${criterion.max}</h3>
-${list(LESSON_RUBRIC_LEVELS[criterion.key])}</article>`).join('\n');
+const rubric = RUBRIC.map(criterion => `<tr><th scope="row">${escape(criterion.en)}</th>
+<td class="rubric-score">${criterion.max}</td><td>${list(LESSON_RUBRIC_LEVELS[criterion.key])}</td></tr>`).join('\n');
+
+const css = fs.readFileSync(new URL('./museum-lesson-guide.css', import.meta.url), 'utf8');
 
 const html = `<!doctype html>
 <html lang="en">
@@ -42,52 +65,57 @@ const html = `<!doctype html>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>BRIAN · Our Climate Action Museum · Lesson guide</title>
 <style>
-  *{box-sizing:border-box}
-  body{margin:0;background:#f3f5ed;color:#213c36;font:17px/1.65 system-ui,sans-serif}
-  main{max-width:1040px;margin:auto;padding:40px 24px}
-  header{background:#e3ecd9;border-radius:26px;padding:32px;margin-bottom:24px}
-  h1{font-size:clamp(30px,5vw,48px);line-height:1.15} h2{margin-top:38px} small{font-size:14px}
-  a{color:#135c57} :focus-visible{outline:3px solid #986100;outline-offset:3px}
-  details,article{background:white;border:1px solid #d3ddcf;padding:20px;border-radius:16px;margin:12px 0}
-  summary{cursor:pointer;font-weight:750} summary span{display:block;font-size:14px;color:#52655c}
-  .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-  .sentence{padding:16px;background:#f7f2db;border-radius:10px}
-  button,.button{display:inline-block;border:0;background:#225f50;color:white;padding:12px 18px;border-radius:9px;font:inherit;cursor:pointer;text-decoration:none;margin:4px}
-  .note{border-left:4px solid #778944;padding:12px 18px;background:#fffdf4}
-  nav ul{display:flex;flex-wrap:wrap;gap:8px 22px;padding-left:18px}
-  @media(max-width:650px){.cards{grid-template-columns:1fr}main{padding:16px}header{padding:22px}}
-  @media print{button,.button,nav{display:none}body{background:white}.cards{display:block}article{break-inside:avoid}}
+${css.trimEnd()}
 </style>
 </head>
-<body><main>
-<header>
-  <small>ENGLISH 11 · GLOBAL SUCCESS · UNIT 5</small>
-  <h1>Our Climate Action Museum</h1>
-  <p>${escape(LESSON_KITS[0].challenge)}</p>
-  <strong>2 periods · ${LIVE_PERIOD_MINUTES.join(' + ')} minutes · ${LIVE_STAGES.length} activities</strong>
-  <p>Teaching guide for English teachers and competition reviewers.</p>
-  <button type="button" id="print">Print / Save as PDF</button>
-  <a class="button" href="/#/tool/immersive-gallery">Open Museum Lab</a>
-  <a class="button" href="${OFFLINE_LESSON_WORKSHEET}" download="Our_Climate_Action_Museum_Hoc_lieu.html">Download offline worksheet</a>
+<body>
+<div class="guide">
+<header class="masthead">
+  <div class="brand">Brian English<br>Teaching Guide</div>
+  <p>English 11 / Global Success / Unit 5</p>
 </header>
-<p class="note">The published classroom session is a record of the completed lesson. The individual writing checks and the three-question V1/V2 comparison below are tools for a new delivery. Judge recorded classroom evidence using the original work from that session.</p>
 <nav aria-label="Lesson guide"><ul>
 <li><a href="#sequence">Lesson sequence</a></li><li><a href="#materials">Learning materials</a></li>
 <li><a href="#assessment">Assessment</a></li><li><a href="#evidence">Learning evidence</a></li>
 </ul></nav>
-<h2>Objectives and learning products</h2>
+<main>
+<header class="hero">
+  <div class="hero-copy">
+    <h1><span>Our Climate</span> <span>Action</span> <span>Museum</span></h1>
+    <p class="challenge">${escape(LESSON_KITS[0].challenge)}</p>
+    <p class="hero-meta"><strong>${LIVE_PERIOD_MINUTES.length} periods × ${LIVE_PERIOD_MINUTES[0]} minutes</strong><strong>${LIVE_STAGES.length} activities</strong></p>
+    <p class="audience">Teaching guide for English teachers and competition reviewers.</p>
+    <div class="hero-actions">
+      <button class="button button-primary" type="button" id="print">Print / Save as PDF</button>
+      <a class="button" href="/#/tool/immersive-gallery">Open Museum Lab</a>
+      <a class="button" href="${OFFLINE_LESSON_WORKSHEET}" download="Our_Climate_Action_Museum_Hoc_lieu.html">Download offline worksheet</a>
+    </div>
+  </div>
+  <img class="hero-art" src="/museum/branding/lesson-guide-editorial.webp" width="960" height="960" alt="">
+</header>
+<section class="objectives" aria-labelledby="objectives">
+<h2 id="objectives">Objectives and learning products</h2>
 <ul>
 <li>Listen for key ideas and details in two NASA videos. Aim for two correct answers out of three per video or explain a correction using a detail from the clip.</li>
 <li>Read a scientific source and a classroom chart. Explain what each source can support.</li>
 <li>Write three English labels of about 25–40 words each. Include a named source, x/N and percentage, a limit on the survey and a practical action.</li>
-<li>Prepare a 45–60-second pitch. Two or three groups present and answer a visitor’s question.</li>
+<li>Every group delivers a 45-second pitch to a partner and takes 15 seconds for a question and reply. Everyone speaks. Two groups also present to the class.</li>
 </ul>
+</section>
+<p class="note"><strong>Before the lesson.</strong> ${escape(CLASSROOM_SETUP)}</p>
+<div class="lesson-grid">
+<section aria-labelledby="sequence">
 <h2 id="sequence">${LIVE_TOTAL_MINUTES}-minute lesson sequence</h2>
 ${stages}
+</section>
+<div class="editorial-rail">
+<section aria-labelledby="materials">
 <h2 id="materials">Learning materials and tasks</h2>
-<div class="cards">${cards}</div>
-<h2>Group worksheet</h2>
-<article>
+<div class="materials">${cards}</div>
+<details><summary>Language support · Appendix A</summary><p><strong>Word bank.</strong> ${escape(LESSON_WORD_BANK)}</p><p><strong>Language frames.</strong> ${escape(LESSON_LANGUAGE_FRAMES)}</p></details>
+</section>
+<section class="worksheet" aria-labelledby="worksheet">
+<h2 id="worksheet">Group worksheet</h2>
 <p>Roles: English editor · Data checker · Artwork designer · Presenter</p>
 <p>Problem and audience: ____________________</p>
 <p>Scientific finding and source: ____________________</p>
@@ -95,9 +123,13 @@ ${stages}
 <p>Option A: ____ · Option B: ____ · Compare clarity, feasibility and whether the source can be found.</p>
 <p>Solution: ____ · Who acts? ____ · When? ____ · What can we track? ____</p>
 <p>Image creator / method / usage rights / alt text: ____________________</p>
-<p>Peer group: ____ · I learned ____ · Please clarify ____ · Clarity 1–4: ____</p>
-<p>V1: ____ · V2: ____ · We changed ____ because ____ .</p>
-</article>
+<p>C2: Author group ____ · Visitor group ____ · Time ____ · Three answers and scores (0/1) ____ · One suggestion ____</p>
+<p>C3: I revised ____ because ____ . We retested question ____ . V1 score ____ /1 · V2 score ____ /1 · Reader ____</p>
+</section>
+</div>
+</div>
+<div class="assessment-grid">
+<section class="assessment" aria-labelledby="assessment">
 <h2 id="assessment">Assessment for the next delivery</h2>
 <article>
 <h3>Individual writing · one minute at the start and end</h3>
@@ -110,13 +142,23 @@ ${stages}
 <h3>Visitor test · V1 and V2</h3>
 ${list(VISITOR_TASKS)}
 <p>${escape(VISITOR_TEST_GUIDANCE)}</p>
-<p>Record how many groups improved, stayed at the same score or fell, together with the number of groups with both scores. These scores describe exhibit comprehension.</p>
+<p>Among matched retests, report how many scores rose, stayed the same or fell. Keep those results separate from the three-question V1 totals.</p>
 </article>
-<h2>Group learning rubric · 100 points</h2>
+</section>
+<section class="editorial-rail" aria-labelledby="rubric">
+<h2 id="rubric">Group learning rubric · 100 points</h2>
 <p>The four levels guide feedback. Use the original recorded score when reviewing a finalized session.</p>
-<div class="cards">${rubric}</div>
-<h2>Conclusion and application</h2><p>${escape(CONCLUSION)}</p>
-<h2>Paper-based contingency</h2><p>${escape(OFFLINE_GUIDE)}</p>
+<table class="rubric" aria-labelledby="rubric">
+<thead><tr><th scope="col">Criterion</th><th scope="col">Max</th><th scope="col">Performance levels</th></tr></thead>
+<tbody>${rubric}</tbody>
+</table>
+</section>
+</div>
+<div class="closing-grid">
+<section><h2>Conclusion and application</h2><p>${escape(CONCLUSION)}</p></section>
+<section><h2>Paper-based contingency</h2><p>${escape(OFFLINE_GUIDE)}</p></section>
+<section><h2>After-class action log · D2</h2><p>${escape(AFTER_CLASS_TASK)}</p></section>
+<section aria-labelledby="evidence">
 <h2 id="evidence">How to preserve learning evidence</h2>
 ${list([
   'Freeze the stage 03 survey and record one choice per group. Keep the date and the number of valid group responses.',
@@ -125,16 +167,30 @@ ${list([
   'Keep the original peer response. Credit the people, tools and sources behind each visual, including any AI-assisted production.',
   'Attach only evidence with verified origin and appropriate permission. Use Competition Dossier to export the available materials and check the 50 MB Part 2 limit.'
 ])}
+</section>
+</div>
+<section aria-labelledby="classroom-records">
+<h2 id="classroom-records">Teacher-Confirmed Classroom Records · 11.4</h2>
+<p>${escape(CLASSROOM_RECORDS.confirmation)}</p>
+<h3>${escape(CLASSROOM_RECORDS.example)}</h3>
+<dl><dt>V1 · Solution</dt><dd>Put a two-box card at the exit. The monitor marks “reported”; the teacher marks “confirmed”.</dd>
+<dt>G10 → G01 · Suggestion</dt><dd>Leave a box for a late lesson that is still in the room. The monitor needs somewhere to record it without treating the room as empty.</dd>
+<dt>V2 · Solution</dt><dd>The card includes an “occupied” box, so the next class is never left in the dark.</dd></dl>
+<p>${link(CLASSROOM_RECORDS.exhibitionUrl, 'Open the published V2')}. The archive gives the entries the same timestamp. The version fields identify the saved sequence.</p>
+<p>${escape(CLASSROOM_RECORDS.sourceNote)}</p>
+</section>
 </main>
+</div>
 <script>
-  let previouslyClosed = [];
+  let previouslyClosed = null;
   window.addEventListener('beforeprint', () => {
+    if (previouslyClosed) return;
     previouslyClosed = Array.from(document.querySelectorAll('details:not([open])'));
     previouslyClosed.forEach(panel => { panel.open = true; });
   });
   window.addEventListener('afterprint', () => {
-    previouslyClosed.forEach(panel => { panel.open = false; });
-    previouslyClosed = [];
+    previouslyClosed?.forEach(panel => { panel.open = false; });
+    previouslyClosed = null;
   });
   document.getElementById('print').addEventListener('click', () => window.print());
 </script>

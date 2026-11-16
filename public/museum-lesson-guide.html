@@ -5,128 +5,420 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>BRIAN · Our Climate Action Museum · Lesson guide</title>
 <style>
-  *{box-sizing:border-box}
-  body{margin:0;background:#f3f5ed;color:#213c36;font:17px/1.65 system-ui,sans-serif}
-  main{max-width:1040px;margin:auto;padding:40px 24px}
-  header{background:#e3ecd9;border-radius:26px;padding:32px;margin-bottom:24px}
-  h1{font-size:clamp(30px,5vw,48px);line-height:1.15} h2{margin-top:38px} small{font-size:14px}
-  a{color:#135c57} :focus-visible{outline:3px solid #986100;outline-offset:3px}
-  details,article{background:white;border:1px solid #d3ddcf;padding:20px;border-radius:16px;margin:12px 0}
-  summary{cursor:pointer;font-weight:750} summary span{display:block;font-size:14px;color:#52655c}
-  .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-  .sentence{padding:16px;background:#f7f2db;border-radius:10px}
-  button,.button{display:inline-block;border:0;background:#225f50;color:white;padding:12px 18px;border-radius:9px;font:inherit;cursor:pointer;text-decoration:none;margin:4px}
-  .note{border-left:4px solid #778944;padding:12px 18px;background:#fffdf4}
-  nav ul{display:flex;flex-wrap:wrap;gap:8px 22px;padding-left:18px}
-  @media(max-width:650px){.cards{grid-template-columns:1fr}main{padding:16px}header{padding:22px}}
-  @media print{button,.button,nav{display:none}body{background:white}.cards{display:block}article{break-inside:avoid}}
+:root {
+  color-scheme: light;
+  --paper: #f5f1e8;
+  --ink: #121212;
+  --muted: #514a43;
+  --red: #c91524;
+  --rule: #a39b91;
+  --gutter: clamp(16px, 2.4vw, 34px);
+  font: 16px/1.52 Arial, Helvetica, sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); }
+.guide { max-width: 1440px; margin-inline: auto; padding: 20px clamp(16px, 4.7vw, 68px) 48px; }
+h1, h2, h3, p, ul, ol { margin: 0; }
+p + p, p + ol, ol + p { margin-top: .65em; }
+ul, ol { padding-inline-start: 1.25em; }
+li + li { margin-top: .23em; }
+small { font-size: .83em; }
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: .2em; }
+a:hover { color: var(--red); }
+:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
+h1, h2, h3, .brand { font-weight: 900; line-height: 1.02; }
+h2 { font-size: clamp(24px, 2.65vw, 38px); letter-spacing: -.048em; margin-bottom: .6em; }
+h3 { font-size: 1.14rem; letter-spacing: -.025em; }
+section[id], h2[id], details[id] { scroll-margin-top: 16px; }
+
+.masthead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--ink);
+  text-transform: uppercase;
+}
+.brand { font-size: clamp(18px, 2.8vw, 40px); letter-spacing: -.055em; line-height: .93; }
+.masthead p { text-align: right; font-size: clamp(10px, 1.25vw, 17px); font-weight: 800; }
+nav { border-bottom: 1px solid var(--ink); }
+nav ul { display: flex; flex-wrap: wrap; gap: 0; list-style: none; padding: 0; }
+nav li { margin: 0; }
+nav li + li { position: relative; }
+nav li + li::before { content: ""; position: absolute; height: 12px; width: 1px; background: var(--rule); top: calc(50% - 6px); }
+nav a { display: block; padding: 9px clamp(8px, 1.55vw, 22px); font-weight: 700; text-decoration: none; }
+nav li:first-child a { padding-inline-start: 0; }
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.37fr) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--gutter);
+  padding: clamp(16px, 2vw, 29px) 0;
+}
+.hero-copy h1 {
+  font-size: clamp(44px, 8.55vw, 123px);
+  letter-spacing: -.091em;
+  line-height: .84;
+  margin: 0 0 18px -.055em;
+}
+.hero-copy h1 span { display: block; }
+.challenge { max-width: 40ch; font-size: clamp(17px, 2.03vw, 29px); line-height: 1.16; letter-spacing: -.025em; }
+.hero-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .42em 1em; font-size: clamp(14px, 1.35vw, 19px); }
+.hero-meta strong + strong { border-inline-start: 1px solid; padding-inline-start: 1em; }
+.audience { color: var(--muted); font-size: .84rem; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: .5rem clamp(8px, .95vw, 14px);
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font: 700 clamp(13px, 1.15vw, 16px)/1.25 Arial, Helvetica, sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+}
+.button-primary { background: var(--red); border-color: var(--red); color: #fff; }
+.button:hover { background: var(--ink); border-color: var(--ink); color: #fff; }
+.hero-art { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; background: #e60019; }
+
+.objectives {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  align-items: start;
+  gap: var(--gutter);
+  border-top: 7px solid var(--ink);
+  padding: 17px 0;
+}
+.objectives h2 { margin: 0; }
+.objectives ul { list-style: square; border-inline-start: 1px solid var(--rule); padding-inline-start: 1.8em; }
+.note { margin-bottom: 18px; border-inline-start: 4px solid var(--red); background: #eee7dc; color: var(--muted); padding: 9px 13px; font-size: .88rem; }
+
+.lesson-grid, .assessment-grid, .closing-grid { display: grid; gap: var(--gutter); padding-block: 22px 26px; }
+.lesson-grid { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); border-top: 1px solid var(--ink); }
+.assessment-grid { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); border-top: 7px solid var(--ink); }
+.closing-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 7px solid var(--ink); padding-bottom: 0; }
+.editorial-rail, .closing-grid section + section { border-inline-start: 1px solid var(--rule); padding-inline-start: var(--gutter); }
+
+.period + .period { margin-top: 20px; }
+.period h3 { display: flex; align-items: center; gap: 10px; font-size: .98rem; line-height: 1.2; letter-spacing: 0; margin-bottom: 8px; }
+.period h3 span { background: var(--ink); color: #fff; padding: 4px 10px; }
+.period h3::after { content: ""; height: 1px; background: var(--ink); flex: 1; }
+summary { cursor: pointer; }
+.stage { border-bottom: 1px solid var(--rule); }
+.stage > summary {
+  display: grid;
+  grid-template-columns: minmax(36px, 3.8vw) minmax(0, 1fr) auto 12px;
+  gap: 8px;
+  align-items: center;
+  min-height: 49px;
+  padding: 6px 8px;
+  list-style: none;
+}
+.stage > summary::-webkit-details-marker { display: none; }
+.stage > summary::after {
+  content: "";
+  justify-self: center;
+  width: 7px;
+  height: 7px;
+  border: solid currentColor;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.stage[open] > summary::after { transform: rotate(225deg); }
+.stage > summary:hover { background: #ece4d7; }
+.stage[open] { border: 1px solid var(--rule); border-inline-start: 3px solid var(--red); background: #fbf7ed; }
+.stage-number { font-size: clamp(22px, 2.6vw, 35px); font-weight: 900; color: var(--red); line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -.04em; }
+.stage-label { padding-inline-start: 10px; border-inline-start: 1px solid var(--rule); line-height: 1.2; }
+.stage-label strong { display: block; font-size: clamp(15px, 1.6vw, 20px); letter-spacing: -.035em; }
+.stage-label small { display: block; color: var(--muted); margin-top: 3px; }
+.stage-time { white-space: nowrap; font-size: .83rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.stage-body { padding: 4px clamp(11px, 1.85vw, 26px) 16px; font-size: .94rem; }
+.stage-question { font-weight: 700; }
+.sentence { border-inline-start: 3px solid var(--red); background: #f6dfd9; padding: 6px 10px; font-weight: 700; }
+.stage-body details { border-top: 1px solid var(--rule); padding-top: 8px; margin-top: 12px; }
+.stage-body summary { font-weight: 700; }
+
+.materials article { border-top: 1px solid var(--rule); padding: 12px 0; }
+.materials p, .assessment h3 + p, .assessment h3 + ol { margin-top: .48em; }
+.materials small { display: block; margin-top: 5px; color: var(--muted); }
+.worksheet { margin-top: 12px; border-top: 2px solid var(--ink); padding-top: 14px; overflow-wrap: anywhere; }
+.worksheet p { padding-bottom: .23em; border-bottom: 1px solid #d7cfc4; font-size: .9rem; }
+.assessment article { padding: 4px 0 4px 13px; border-inline-start: 4px solid var(--red); }
+.assessment article + article { margin-top: 17px; }
+
+.rubric { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: .88rem; line-height: 1.35; }
+.rubric :is(th, td) { padding: 8px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--rule); }
+.rubric thead th { border-block: 1px solid var(--ink); font-size: .79rem; }
+.rubric tbody th { width: 29%; }
+.rubric td { border-inline-start: 1px solid var(--rule); }
+.rubric .rubric-score { color: var(--red); font-size: 1.35rem; font-weight: 900; text-align: center; }
+.closing-grid h2 { font-size: clamp(21px, 2.1vw, 30px); }
+
+@media screen and (max-width: 830px) {
+  .lesson-grid, .assessment-grid { grid-template-columns: 1fr; }
+  .editorial-rail { border-inline-start: 0; padding-inline-start: 0; border-top: 1px solid var(--ink); padding-top: 18px; }
+}
+@media screen and (max-width: 620px) {
+  .hero, .objectives, .closing-grid { grid-template-columns: 1fr; }
+  .hero h1 { font-size: clamp(45px, 12.7vw, 76px); letter-spacing: -.078em; }
+  .hero-art { max-width: 440px; }
+  .objectives ul, .closing-grid section + section { border-inline-start: 0; }
+  .objectives ul { padding-inline-start: 1.2em; }
+  .closing-grid section + section { border-top: 1px solid var(--rule); padding: 14px 0 0; }
+  nav a { font-size: .82rem; padding: 8px 7px; }
+}
+@media screen and (max-width: 440px) {
+  .masthead p { max-width: 17ch; }
+  nav ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  nav li + li::before { display: none; }
+  nav a { padding-inline: 0; }
+  nav li:nth-child(n+3) { border-top: 1px solid var(--rule); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+@page { margin: 13mm 15mm; }
+@media print {
+  :root { --paper: white; --ink: black; --muted: #333; --rule: #999; font-size: 10.5pt; }
+  .guide { max-width: none; padding: 0; }
+  nav, .hero-art, .hero-actions { display: none; }
+  .hero, .objectives, .lesson-grid, .assessment-grid, .closing-grid { display: block; }
+  .hero h1 { font-size: 32pt; line-height: .95; margin: 0 0 8px; letter-spacing: -.045em; }
+  .hero h1 span { display: inline; }
+  h2 { font-size: 19pt; }
+  .objectives h2 { margin-bottom: .4em; }
+  .editorial-rail, .closing-grid section + section { border-inline-start: 0; padding: 0; margin-top: 14px; }
+  .period h3 span { background: transparent; color: var(--ink); padding-inline-start: 0; }
+  .stage[open], .sentence, .note { background: transparent; }
+  .stage > summary { grid-template-columns: 30px minmax(0, 1fr) auto; min-height: auto; }
+  .stage > summary::after { display: none; }
+  h2, h3, summary { break-after: avoid; }
+  .materials article, .rubric tr { break-inside: avoid; }
+  p, li { orphans: 2; widows: 2; }
+}
 </style>
 </head>
-<body><main>
-<header>
-  <small>ENGLISH 11 · GLOBAL SUCCESS · UNIT 5</small>
-  <h1>Our Climate Action Museum</h1>
-  <p>How can our school reduce the impact of everyday activities on global warming?</p>
-  <strong>2 periods · 45 + 45 minutes · 11 activities</strong>
-  <p>Teaching guide for English teachers and competition reviewers.</p>
-  <button type="button" id="print">Print / Save as PDF</button>
-  <a class="button" href="/#/tool/immersive-gallery">Open Museum Lab</a>
-  <a class="button" href="/museum-lesson-worksheet.html" download="Our_Climate_Action_Museum_Hoc_lieu.html">Download offline worksheet</a>
+<body>
+<div class="guide">
+<header class="masthead">
+  <div class="brand">Brian English<br>Teaching Guide</div>
+  <p>English 11 / Global Success / Unit 5</p>
 </header>
-<p class="note"><strong>Before the lesson.</strong> Give each student a separate I1-A and I1-B form. Use the same student code on both. Collect I1 by student code and C2, C3 and D2 by group, on paper or in files exported from the offline worksheet. Give each group B1–B3, C2–C3, D1–D2 and two A4 sheets for the exhibit versions. Set up groups of four or five. Use BRIAN, the offline HTML, or a board tally and folded A4 sheets. If groups cannot open drafts at the start of Stage 07, switch to paper. Keep the same three panels, source check and visitor questions.</p>
 <nav aria-label="Lesson guide"><ul>
 <li><a href="#sequence">Lesson sequence</a></li><li><a href="#materials">Learning materials</a></li>
 <li><a href="#assessment">Assessment</a></li><li><a href="#evidence">Learning evidence</a></li>
 </ul></nav>
-<h2>Objectives and learning products</h2>
+<main>
+<header class="hero">
+  <div class="hero-copy">
+    <h1><span>Our Climate</span> <span>Action</span> <span>Museum</span></h1>
+    <p class="challenge">How can our school reduce the impact of everyday activities on global warming?</p>
+    <p class="hero-meta"><strong>2 periods × 45 minutes</strong><strong>11 activities</strong></p>
+    <p class="audience">Teaching guide for English teachers and competition reviewers.</p>
+    <div class="hero-actions">
+      <button class="button button-primary" type="button" id="print">Print / Save as PDF</button>
+      <a class="button" href="/#/tool/immersive-gallery">Open Museum Lab</a>
+      <a class="button" href="/museum-lesson-worksheet.html" download="Our_Climate_Action_Museum_Hoc_lieu.html">Download offline worksheet</a>
+    </div>
+  </div>
+  <img class="hero-art" src="/museum/branding/lesson-guide-editorial.webp" width="960" height="960" alt="">
+</header>
+<section class="objectives" aria-labelledby="objectives">
+<h2 id="objectives">Objectives and learning products</h2>
 <ul>
 <li>Listen for key ideas and details in two NASA videos. Aim for two correct answers out of three per video or explain a correction using a detail from the clip.</li>
 <li>Read a scientific source and a classroom chart. Explain what each source can support.</li>
 <li>Write three English labels of about 25–40 words each. Include a named source, x/N and percentage, a limit on the survey and a practical action.</li>
-<li>Every group delivers a 45-second pitch to a partner. Everyone speaks. Two groups also present to the class.</li>
+<li>Every group delivers a 45-second pitch to a partner and takes 15 seconds for a question and reply. Everyone speaks. Two groups also present to the class.</li>
 </ul>
+</section>
+<p class="note"><strong>Before the lesson.</strong> Give each student a separate I1-A and I1-B form. Use the same student code on both. Collect I1 by student code and C2, C3 and D2 by group, on paper or in files exported from the offline worksheet. Give each group B1–B3, C2–C3, D1–D2 and two A4 sheets for the exhibit versions. Set up groups of four or five. Use BRIAN, the offline HTML, or a board tally and folded A4 sheets. If groups cannot open drafts at the start of Stage 07, switch to paper. Keep the same three panels, source check and visitor questions.</p>
+<div class="lesson-grid">
+<section aria-labelledby="sequence">
 <h2 id="sequence">90-minute lesson sequence</h2>
-<details id="stage-1" open>
-<summary>1. Climate Detective <span>Period 1 · 00–05 · 5 min · Appendix A · I1-A</span></summary>
-<p>Which action could our school realistically take, and why?</p>
-<p>Complete I1-A independently in one minute. Compare an empty classroom with the lights on and a school using disposable cups. Agree on one problem and one reason in English.</p>
+<section class="period" aria-labelledby="period-1">
+<h3 id="period-1"><span>Period 1</span><small>45 minutes</small></h3>
+<details class="stage" id="stage-1" open>
+<summary>
+  <span class="stage-number">01</span>
+  <span class="stage-label"><strong>Climate Detective</strong><small>Define the problem</small></span>
+  <span class="stage-time">00–05 · 5 min</span>
+</summary>
+<div class="stage-body">
+<p class="stage-question">Which everyday school action could best reduce our environmental impact?</p><p class="sentence">I think … because …</p>
+<p><strong>Appendix A · I1-A</strong> · Complete I1-A independently in one minute. Compare an empty classroom with the lights on and a school using disposable cups. Agree on one problem and one reason in English.</p>
 <p><strong>Procedure.</strong> Set the task (1 min). Show the two cards and the driving question. Work (2 min). In a new class, students complete I1-A independently for 1 minute, then agree on a problem and reason. Report (1 min). Two groups share. Review (1 min). Introduce the museum brief and distinguish the scenario cards from school observations.</p>
 <p><strong>Deliverable.</strong> One problem and one supporting reason, such as “Lights left on in an empty room could waste electricity.”</p>
+<p><strong>Next delivery:</strong> Use one minute for I1-A independently and one minute for the group to agree on a reason. Use the same student code in I1-A and I1-B.</p>
+
+</div>
 </details>
-<details id="stage-2">
-<summary>2. Language Mini-Lesson <span>Period 1 · 05–15 · 10 min · Appendix A · A1–A3</span></summary>
-<p>What traps heat? What adds more CO₂?</p>
-<p>Watch NASA video 1. Note two key words and answer A1–A3 as a group. Cite NASA in one English sentence explaining cause and effect.</p>
+<details class="stage" id="stage-2">
+<summary>
+  <span class="stage-number">02</span>
+  <span class="stage-label"><strong>Language Mini-Lesson</strong><small>Investigate</small></span>
+  <span class="stage-time">05–15 · 10 min</span>
+</summary>
+<div class="stage-body">
+<p class="stage-question">What traps heat? What adds more CO₂?</p><p class="sentence">According to NASA, … . Therefore, … . We recommend … .</p>
+<p><strong>Appendix A · A1–A3</strong> · Watch NASA video 1. Note two key words and answer A1–A3 as a group. Cite NASA in one English sentence explaining cause and effect.</p>
 <p><strong>Procedure.</strong> Set the task (1 min). Ask “What traps heat? What adds more CO₂?” Work (5 min). Students note two key words, replay the relevant passage or consult the source card, and agree on three answers. Report (2 min). Ask two groups which words helped them, then reveal and explain the answers. Review (2 min). Students write a sentence citing NASA. Groups scoring below 2/3 correct one answer and identify the detail that supports it.</p>
 <p><strong>Deliverable.</strong> Three group answers and one cause-and-effect sentence with a source. For example, “According to NASA, burning fossil fuels adds carbon dioxide to the atmosphere, so more heat can be trapped.”</p>
-<p><strong>NASA:</strong> <a href="https://science.nasa.gov/kids/videos/video-what-is-the-greenhouse-effect/" rel="noreferrer">What Is the Greenhouse Effect?</a> · <a href="https://www.youtube.com/watch?v=SN5-DnOHQmE" rel="noreferrer">YouTube</a> · <a href="https://science.nasa.gov/kids/videos/video-what-is-the-greenhouse-effect/" rel="noreferrer">Transcript</a></p><p>Play a short teacher-selected excerpt during Activity 2, not the entire video if time is limited.</p><ol><li>What surrounds Earth and contains heat-trapping gases?<ol type="A"><li>A glass roof</li><li>The atmosphere</li><li>A layer of ice</li></ol></li><li>Which human activity releases extra carbon dioxide?<ol type="A"><li>Burning coal and oil</li><li>Watching the weather</li><li>Turning off unused lights</li></ol></li><li>Which sentence correctly reports NASA’s explanation?<ol type="A"><li>Our school survey measures emissions.</li><li>Burning fossil fuels adds CO₂, so more heat can be trapped.</li><li>Greenhouse gases stop all sunlight.</li></ol></li></ol><details><summary>Read-aloud or source card · Appendix A</summary><p>Earth is surrounded by a layer of gases called the atmosphere. Sunlight warms Earth’s surface. The surface releases heat, and some gases in the atmosphere hold back part of that heat. Carbon dioxide is one of these gases. Burning fossil fuels such as coal and oil puts more carbon dioxide into the atmosphere. With more heat-trapping gases, more heat can be held near the surface, and Earth can become warmer.</p></details><details><summary>Teacher answer key</summary><ol><li>B · NASA describes the atmosphere as a jacket of gases around Earth.</li><li>A · The NASA video identifies burning fossil fuels as a source of extra carbon dioxide.</li><li>B · This sentence identifies NASA as the source and connects the cause to the possible result without overstating the evidence.</li></ol></details>
+
+<p><strong>NASA:</strong> <a href="https://science.nasa.gov/kids/videos/video-what-is-the-greenhouse-effect/" rel="noreferrer">What Is the Greenhouse Effect?</a> · <a href="https://www.youtube.com/watch?v=SN5-DnOHQmE" rel="noreferrer">YouTube</a> · <a href="https://science.nasa.gov/kids/videos/video-what-is-the-greenhouse-effect/" rel="noreferrer">Transcript</a></p><p>Play a short teacher-selected excerpt during Activity 2, not the entire video if time is limited.</p><details><summary>Read-aloud or source card · Appendix A</summary><p>Earth is surrounded by a layer of gases called the atmosphere. Sunlight warms Earth’s surface. The surface releases heat, and some gases in the atmosphere hold back part of that heat. Carbon dioxide is one of these gases. Burning fossil fuels such as coal and oil puts more carbon dioxide into the atmosphere. With more heat-trapping gases, more heat can be held near the surface, and Earth can become warmer.</p></details><ol><li>What surrounds Earth and contains heat-trapping gases?<ol type="A"><li>A glass roof</li><li>The atmosphere</li><li>A layer of ice</li></ol></li><li>Which human activity releases extra carbon dioxide?<ol type="A"><li>Burning coal and oil</li><li>Watching the weather</li><li>Turning off unused lights</li></ol></li><li>Which sentence correctly reports NASA’s explanation?<ol type="A"><li>Our school survey measures emissions.</li><li>Burning fossil fuels adds CO₂, so more heat can be trapped.</li><li>Greenhouse gases stop all sunlight.</li></ol></li></ol>
+<details><summary>Teacher answer key</summary><ol><li>B · NASA describes the atmosphere as a jacket of gases around Earth.</li><li>A · The NASA video identifies burning fossil fuels as a source of extra carbon dioxide.</li><li>B · This sentence identifies NASA as the source and connects the cause to the possible result without overstating the evidence.</li></ol></details>
+</div>
 </details>
-<details id="stage-3">
-<summary>3. Live Classroom Survey <span>Period 1 · 15–25 · 10 min · B1</span></summary>
-<p>As a group, choose ONE action you would prioritise at school.</p>
-<p>Cast one priority vote per group. Read the frozen count x, total valid group votes N, percentage and date. In B1, write one sentence reporting the result and one explaining what the votes represent.</p>
+<details class="stage" id="stage-3">
+<summary>
+  <span class="stage-number">03</span>
+  <span class="stage-label"><strong>Live Classroom Survey</strong><small>Investigate</small></span>
+  <span class="stage-time">15–25 · 10 min</span>
+</summary>
+<div class="stage-body">
+<p class="stage-question">As a group, choose ONE action you would prioritise at school.</p><p class="sentence">In our group-priority survey, … out of N groups selected … . This does not measure individual habits.</p>
+<p><strong>B1</strong> · Cast one priority vote per group. Read the frozen count x, total valid group votes N, percentage and date. In B1, write one sentence reporting the result and one explaining what the votes represent.</p>
 <p><strong>Procedure.</strong> Explain one vote per group (1 min). Collect one choice and a group code from each team (4 min). Show the completed BRIAN chart or tally on the board (3 min). Have teams write a result and its limit in B1 (2 min). On paper, add the valid votes and use 100 × x/N for each share.</p>
 <p><strong>Deliverable.</strong> An automatically generated chart or frequency table. Each group records the date, x, N and the displayed percentage and writes two English sentences reporting the result and its limit.</p>
+
+
+</div>
 </details>
-<details id="stage-4">
-<summary>4. Problem–Evidence–Solution <span>Period 1 · 25–37 · 12 min · Appendix A · B1–B3 and Worksheet B2</span></summary>
-<p>Are global warming and climate change the same?</p>
-<p>Watch NASA video 2 and answer its three questions. Use B2 to compare two ways of presenting the same action. Score clarity, feasibility and source traceability from 0 to 2. Explain the choice.</p>
+<details class="stage" id="stage-4">
+<summary>
+  <span class="stage-number">04</span>
+  <span class="stage-label"><strong>Problem–Evidence–Solution</strong><small>Design a solution</small></span>
+  <span class="stage-time">25–37 · 12 min</span>
+</summary>
+<div class="stage-body">
+<p class="stage-question">Are global warming and climate change the same?</p><p class="sentence">According to NASA, … . Our group survey shows … . We recommend … because … .</p>
+<p><strong>Appendix A · B1–B3 and Worksheet B2</strong> · Watch NASA video 2 and answer its three questions. Use B2 to compare two ways of presenting the same action. Score clarity, feasibility and source traceability from 0 to 2. Explain the choice.</p>
 <p><strong>Procedure.</strong> Pose the question “Are global warming and climate change the same?” (1 min). Play the clip, collect three answers and have teams state the distinction in one English sentence (3 min). Teams enter one NASA fact, one survey finding and two design ideas in B2 (4 min). Ask a neighbouring group which is clearer and why (2 min). Score the designs, choose one and write the reason (2 min).</p>
 <p><strong>Deliverable.</strong> Three answers, one sentence linking the two concepts and a canvas comparing two options and justifying the selected one.</p>
-<p><strong>NASA:</strong> <a href="https://www.nasa.gov/earth/climate-change/is-climate-change-the-same-as-global-warming-we-asked-a-nasa-scientist-episode-46/" rel="noreferrer">Is Climate Change the Same as Global Warming? — We Asked a NASA Expert</a> · <a href="https://www.youtube.com/watch?v=TUinL0C_zgE" rel="noreferrer">YouTube</a> · <a href="https://svs.gsfc.nasa.gov/vis/a010000/a014400/a014407/script_34847_01.html" rel="noreferrer">Transcript</a></p><p>Show the complete clip (about 1 minute 14 seconds), or use 0:10–1:06 if time is limited.</p><ol><li>What does global warming refer to?<ol type="A"><li>A long-term rise in Earth’s average surface temperature</li><li>One unusually hot day</li><li>The temperature inside a classroom</li></ol></li><li>Which example is mentioned as an effect of broader climate change?<ol type="A"><li>More sea ice in the Arctic</li><li>Decreasing Arctic ice and droughts</li><li>A vote about school recycling</li></ol></li><li>Which statement responsibly connects NASA evidence to our museum project?<ol type="A"><li>Our classroom vote proves warming has stopped.</li><li>The two terms mean exactly the same thing.</li><li>Global warming is part of climate change. The survey records group priorities.</li></ol></li></ol><details><summary>Read-aloud or source card · Appendix A</summary><p>Global warming is a long-term rise in Earth’s average surface temperature. Climate change is broader. It includes long-term changes in typical conditions across regions and around the world. Examples include less ice in the Arctic and droughts. Changes in average surface temperature are one part of that wider picture.</p></details><details><summary>Teacher answer key</summary><ol><li>A · NASA defines global warming as the long-term rise in average surface temperature across Earth.</li><li>B · NASA mentions decreasing Arctic ice, droughts and wildfires among observed signs of climate change.</li><li>C · This distinguishes the scientific source from a limited classroom group-priority survey.</li></ol></details>
+
+<p><strong>NASA:</strong> <a href="https://www.nasa.gov/earth/climate-change/is-climate-change-the-same-as-global-warming-we-asked-a-nasa-scientist-episode-46/" rel="noreferrer">Is Climate Change the Same as Global Warming? — We Asked a NASA Expert</a> · <a href="https://www.youtube.com/watch?v=TUinL0C_zgE" rel="noreferrer">YouTube</a> · <a href="https://svs.gsfc.nasa.gov/vis/a010000/a014400/a014407/script_34847_01.html" rel="noreferrer">Transcript</a></p><p>Show the complete clip (about 1 minute 14 seconds), or use 0:10–1:06 if time is limited.</p><details><summary>Read-aloud or source card · Appendix A</summary><p>Global warming is a long-term rise in Earth’s average surface temperature. Climate change is broader. It includes long-term changes in typical conditions across regions and around the world. Examples include less ice in the Arctic and droughts. Changes in average surface temperature are one part of that wider picture.</p></details><ol><li>What does global warming refer to?<ol type="A"><li>A long-term rise in Earth’s average surface temperature</li><li>One unusually hot day</li><li>The temperature inside a classroom</li></ol></li><li>Which example is mentioned as an effect of broader climate change?<ol type="A"><li>More sea ice in the Arctic</li><li>Decreasing Arctic ice and droughts</li><li>A vote about school recycling</li></ol></li><li>Which statement responsibly connects NASA evidence to our museum project?<ol type="A"><li>Our classroom vote proves warming has stopped.</li><li>The two terms mean exactly the same thing.</li><li>Global warming is part of climate change. The survey records group priorities.</li></ol></li></ol>
+<details><summary>Teacher answer key</summary><ol><li>A · NASA defines global warming as the long-term rise in average surface temperature across Earth.</li><li>B · NASA mentions decreasing Arctic ice, droughts and wildfires among observed signs of climate change.</li><li>C · This distinguishes the scientific source from a limited classroom group-priority survey.</li></ol></details>
+</div>
 </details>
-<details id="stage-5">
-<summary>5. Storyboard Checkpoint <span>Period 1 · 37–45 · 8 min · B3</span></summary>
-<p>What should a visitor see, read and do?</p>
-<p>Use B3 to write one opening sentence per panel. Plan visuals, credits and reading order. Mark the source location and write the expected answers to the three C2 questions.</p>
+<details class="stage" id="stage-5">
+<summary>
+  <span class="stage-number">05</span>
+  <span class="stage-label"><strong>Storyboard Checkpoint</strong><small>Design a solution</small></span>
+  <span class="stage-time">37–45 · 8 min</span>
+</summary>
+<div class="stage-body">
+<p class="stage-question">What should a visitor see, read and do?</p><p class="sentence">Our first exhibit shows … . Our second exhibit uses … .</p>
+<p><strong>B3</strong> · Use B3 to write one opening sentence per panel. Plan visuals, credits and reading order. Mark the source location and write the expected answers to the three C2 questions.</p>
 <p><strong>Procedure.</strong> Show a three-panel layout (1 min). Each team writes one opening sentence per panel, marks where the source goes and enters its expected C2 answers on B3 (5 min). Ask two teams to point to the planned source (1 min). Check for missing sources and keep B3 for Period 2 (1 min).</p>
 <p><strong>Deliverable.</strong> A three-panel storyboard with draft opening lines, poster ideas, sources, assigned roles and a visitor test plan.</p>
+
+
+</div>
 </details>
-<details id="stage-6">
-<summary>6. Recap and Resume <span>Period 2 · 00–04 · 4 min · B3 · C2</span></summary>
-<p>Can visitors name the problem, find the source and explain the action?</p>
-<p>Reopen B3 and the class chart or paper tally. Confirm roles, recall the three C2 questions and practise keeping a copy of V1.</p>
+</section>
+<section class="period" aria-labelledby="period-2">
+<h3 id="period-2"><span>Period 2</span><small>45 minutes</small></h3>
+<details class="stage" id="stage-6">
+<summary>
+  <span class="stage-number">06</span>
+  <span class="stage-label"><strong>Recap and Resume</strong><small>Prepare to build</small></span>
+  <span class="stage-time">00–04 · 4 min</span>
+</summary>
+<div class="stage-body">
+<p class="stage-question">Can visitors name the problem, find the source and explain the action?</p><p class="sentence">Our exhibits must be clear, sourced and useful.</p>
+<p><strong>B3 · C2</strong> · Reopen B3 and the class chart or paper tally. Confirm roles, recall the three C2 questions and practise keeping a copy of V1.</p>
 <p><strong>Procedure.</strong> Return B3 and show the class chart or tally (1 min). Teams check their roles and open a draft or fold a blank sheet in thirds (1 min). Ask one group to recall the three C2 questions (1 min). Show how to keep a copy of the first draft before testing (1 min).</p>
 <p><strong>Deliverable.</strong> An open storyboard, confirmed roles and an 18-minute target for producing V1.</p>
+
+
+</div>
 </details>
-<details id="stage-7">
-<summary>7. Create the Museum <span>Period 2 · 04–22 · 18 min · B3 · C1 · Appendix K when using image generation</span></summary>
-<p>Build the first version of your museum.</p>
-<p>Build three English labels of 25–40 words. Place the chart or tally beside The Evidence. Link the source next to the claim. Credit each visual, add alt text to digital images, and save V1 with one sentence about a check.</p>
+<details class="stage" id="stage-7">
+<summary>
+  <span class="stage-number">07</span>
+  <span class="stage-label"><strong>Create the Museum</strong><small>Build V1</small></span>
+  <span class="stage-time">04–22 · 18 min</span>
+</summary>
+<div class="stage-body">
+<p class="stage-question">Build the first version of your museum.</p><p class="sentence">This artwork illustrates … . We chose … because … .</p>
+<p><strong>B3 · C1 · Appendix K when using image generation</strong> · Build three English labels of 25–40 words. Place the chart or tally beside The Evidence. Link the source next to the claim. Credit each visual, add alt text to digital images, and save V1 with one sentence about a check.</p>
 <p><strong>Procedure.</strong> Start · 2 min. Open the template or use the folded sheet. Show where the source and tally go.<br>Build · 12 min. Write the labels and check the figures in the first 5 minutes. Use the next 7 minutes to add visuals, credits and the class tally. Use a drawing or a credited visual if the digital image is unfinished.<br>Check · 4 min. In 3 minutes, have groups check all three panels and name one correction. In the last minute, save a copy or write V1 on the sheet.</p>
 <p><strong>Deliverable.</strong> One saved or paper copy of V1 and a one-sentence note on what the team checked. If using image generation, keep the English prompt and check the output against the label.</p>
+
+
+</div>
 </details>
-<details id="stage-8">
-<summary>8. Peer Gallery Walk <span>Period 2 · 22–30 · 8 min · C2</span></summary>
-<p>Can visitors understand your V1 without help?</p>
-<p>Visit one group’s V1. Without help from the authors, answer the three C2 questions in English. Authors check against B3 and mark each answer 0 or 1. The visitors write one specific suggestion.</p>
+<details class="stage" id="stage-8">
+<summary>
+  <span class="stage-number">08</span>
+  <span class="stage-label"><strong>Peer Gallery Walk</strong><small>Test V1</small></span>
+  <span class="stage-time">22–30 · 8 min</span>
+</summary>
+<div class="stage-body">
+<p class="stage-question">Can visitors understand your V1 without help?</p><p class="sentence">I learned … . The message would be clearer if … .</p>
+<p><strong>C2</strong> · Visit one group’s V1. Without help from the authors, answer the three C2 questions in English. Authors check against B3 and mark each answer 0 or 1. The visitors write one specific suggestion.</p>
 <p><strong>Procedure.</strong> Pair · 1 min. Pair neighbouring teams. With an odd number, have the last three exchange drafts in a circle.<br>Read · 3 min. Each team views one draft and records its three answers on C2. Authors stay silent.<br>Check · 2 min. Return each card to its authors. Check the answers against B3 and mark 0 or 1 for each.<br>Respond · 2 min. Visitors write one suggestion in English, such as “Name who checks the lights.” Authors choose what to change.</p>
 <p><strong>Deliverable.</strong> One C2 card per group’s V1 museum draft, with three scored answers and one specific suggestion in English.</p>
+<p><strong>Next delivery:</strong> Pair neighbouring groups. If the number is odd, the last three exchange drafts in a circle. Use 1 minute to pair, 3 to read and write, 2 to score and 2 to give a suggestion.</p>
+
+</div>
 </details>
-<details id="stage-9">
-<summary>9. Improve the Exhibition <span>Period 2 · 30–36 · 6 min · C3</span></summary>
-<p>Which change will help the visitor understand the exhibit?</p>
-<p>Keep V1 and save one reasoned change as V2. Use C3 to repeat only the question for the part that changed. Ask the same visitor group, preferably a different reader. Record the answer and both scores for that question.</p>
+<details class="stage" id="stage-9">
+<summary>
+  <span class="stage-number">09</span>
+  <span class="stage-label"><strong>Improve the Exhibition</strong><small>Revise and retest</small></span>
+  <span class="stage-time">30–36 · 6 min</span>
+</summary>
+<div class="stage-body">
+<p class="stage-question">Which change will help the visitor understand the exhibit?</p><p class="sentence">We changed … because our visitors said … .</p>
+<p><strong>C3</strong> · Keep V1 and save one reasoned change as V2. Use C3 to repeat only the question for the part that changed. Ask the same visitor group, preferably a different reader. Record the answer and both scores for that question.</p>
 <p><strong>Procedure.</strong> Choose · 1 min. Choose one suggestion. If all answers were correct, make one answer easier to find.<br>Revise · 3 min. Keep V1 and save the changed copy as V2. Note what you changed and why on C3.<br>Retest · 2 min. Return V2 to the team that tested your draft. If possible, ask a different reader to answer the same question without help. Record both scores for that question and who read V2.</p>
 <p><strong>Deliverable.</strong> V1, V2 and the matched 0/1 result for the revised criterion. Explain the change in English.</p>
+<p><strong>Next delivery:</strong> Choose for 1 minute, revise for 3 and retest for 2. In C3 mark the other questions N/T under V2. Record whether the reader changed.</p>
+
+</div>
 </details>
-<details id="stage-10">
-<summary>10. Present and Discuss <span>Period 2 · 36–42 · 6 min · D1 · E3</span></summary>
-<p>Explain your problem, evidence and proposed action.</p>
-<p>Every group gives a 45-second pitch to a partner. Everyone says one short sentence. Allow 15 seconds for a question and reply. Hear two examples for the whole class. Record on D1 and prepare the group Exit Ticket.</p>
+<details class="stage" id="stage-10">
+<summary>
+  <span class="stage-number">10</span>
+  <span class="stage-label"><strong>Present and Discuss</strong><small>Evaluate and present</small></span>
+  <span class="stage-time">36–42 · 6 min</span>
+</summary>
+<div class="stage-body">
+<p class="stage-question">Explain your problem, evidence and proposed action.</p><p class="sentence">According to our group survey (N=…), … . We propose … .</p>
+<p><strong>D1 · E3</strong> · Every group gives a 45-second pitch to a partner. Everyone says one short sentence. Allow 15 seconds for a question and reply. Hear two examples for the whole class. Record on D1 and prepare the group Exit Ticket.</p>
 <p><strong>Procedure.</strong> Have teams open V2 and assign lines (1 min). Partners take turns, with 45 seconds to present and 15 seconds for a question and reply per group (2 min). Hear any unpaired team while the pairs present. Then hear two 45-second examples and one class question and reply (2 min). Give feedback and ask each group to draft its Exit Ticket sentence (1 min). Use D1 for the peer record and E3 for contributions you hear.</p>
 <p><strong>Deliverable.</strong> One pitch per group in pairs, two plenary examples and a recorded question and answer.</p>
+
+
+</div>
 </details>
-<details id="stage-11">
-<summary>11. Exit Ticket <span>Period 2 · 42–45 · 3 min · I1-B · D2</span></summary>
-<p>What environmental action will your group take, and why?</p>
-<p>Write I1-B independently for one minute. The reporter submits one group sentence beginning “I will … because …” and confirms V2. Track the action in D2 after class.</p>
+<details class="stage" id="stage-11">
+<summary>
+  <span class="stage-number">11</span>
+  <span class="stage-label"><strong>Exit Ticket</strong><small>Apply</small></span>
+  <span class="stage-time">42–45 · 3 min</span>
+</summary>
+<div class="stage-body">
+<p class="stage-question">What environmental action will your group take, and why?</p><p class="sentence">I will … because … .</p>
+<p><strong>I1-B · D2</strong> · Write I1-B independently for one minute. The reporter submits one group sentence beginning “I will … because …” and confirms V2. Track the action in D2 after class.</p>
 <p><strong>Procedure.</strong> Hand out I1-B and cue the group ticket (30 sec). Students write alone (60 sec). The reporter copies the prepared sentence and confirms V2 (30 sec). Hear one action and its reason (30 sec). Collect the forms and assign D2 (30 sec).</p>
 <p><strong>Deliverable.</strong> Individual I1-B responses, one group Exit Ticket and the final museum version.</p>
+<p><strong>Next delivery:</strong> Hand out I1-B (30 seconds). Write individually (60 seconds). Copy the prepared group sentence and confirm V2 (30 seconds). Hear one action (30 seconds). Collect I1-B and assign D2 (30 seconds).</p>
+
+</div>
 </details>
+</section>
+</section>
+<div class="editorial-rail">
+<section aria-labelledby="materials">
 <h2 id="materials">Learning materials and tasks</h2>
-<div class="cards"><article><h3>1 · Understand the problem</h3><p>Burning fossil fuels adds greenhouse gases to the atmosphere. These gases trap heat and contribute to global warming. A school action can address one part of the problem, but a classroom vote cannot measure how much warming that action prevents.</p>
+<div class="materials"><article><h3>1 · Understand the problem</h3><p>Burning fossil fuels adds greenhouse gases to the atmosphere. These gases trap heat and contribute to global warming. A school action can address one part of the problem, but a classroom vote cannot measure how much warming that action prevents.</p>
 <p><strong>Underline a cause and its result. Explain the connection using because.</strong></p><small><a href="https://science.nasa.gov/climate-change/what-is-climate-change/" rel="noreferrer">NASA · What Is Climate Change?</a></small></article>
 <article><h3>2 · Compare feasible actions</h3><p>Walking or cycling where safe, switching off unused lights and reducing food waste are possible climate actions. Choose an action that fits your school. Explain who will do it, what resources it needs and one practical limitation.</p>
 <p><strong>Recommend one action. Explain why it is feasible and identify a limitation.</strong></p><small><a href="https://www.un.org/actnow/ten-actions" rel="noreferrer">United Nations · Ten Actions</a></small></article>
@@ -134,8 +426,10 @@
 <p><strong>Complete: … out of … groups selected … . We cannot conclude that … .</strong></p><small>BRIAN · Original evidence-literacy activity</small></article>
 <article><h3>4 · Write for a visitor</h3><p>A clear exhibit states a problem, gives relevant evidence and recommends a practical response. Use according to for a source, because for a reason and therefore for a result. Write 25–40 words per exhibit, then revise after a visitor tests the message.</p>
 <p><strong>Write three captions. Ask a peer what they learned and what needs clarification.</strong></p><small>BRIAN · Original English writing activity</small></article></div>
-<h2>Group worksheet</h2>
-<article>
+<details><summary>Language support · Appendix A</summary><p><strong>Word bank.</strong> atmosphere, greenhouse gases, fossil fuels, trap heat, emissions, priority, feasible, source, limitation, revise</p><p><strong>Language frames.</strong> “According to NASA, …” · “Because …, …” · “In our survey, ___ out of ___ groups (___%) chose …” · “The data describe choices made by the groups in our class.” · “We recommend … because …” · “We changed … after visitors …”</p></details>
+</section>
+<section class="worksheet" aria-labelledby="worksheet">
+<h2 id="worksheet">Group worksheet</h2>
 <p>Roles: English editor · Data checker · Artwork designer · Presenter</p>
 <p>Problem and audience: ____________________</p>
 <p>Scientific finding and source: ____________________</p>
@@ -145,8 +439,11 @@
 <p>Image creator / method / usage rights / alt text: ____________________</p>
 <p>C2: Author group ____ · Visitor group ____ · Time ____ · Three answers and scores (0/1) ____ · One suggestion ____</p>
 <p>C3: I revised ____ because ____ . We retested question ____ . V1 score ____ /1 · V2 score ____ /1 · Reader ____</p>
-</article>
-<details><summary>Language support · Appendix A</summary><p><strong>Word bank.</strong> atmosphere, greenhouse gases, fossil fuels, trap heat, emissions, priority, feasible, source, limitation, revise</p><p><strong>Language frames.</strong> “According to NASA, …” · “Because …, …” · “In our survey, ___ out of ___ groups (___%) chose …” · “The data describe choices made by the groups in our class.” · “We recommend … because …” · “We changed … after visitors …”</p></details>
+</section>
+</div>
+</div>
+<div class="assessment-grid">
+<section class="assessment" aria-labelledby="assessment">
 <h2 id="assessment">Assessment for the next delivery</h2>
 <article>
 <h3>Individual writing · one minute at the start and end</h3>
@@ -159,41 +456,58 @@
 <h3>Visitor test · V1 and V2</h3>
 <ol><li>What is the school problem?</li><li>Which source supports one claim? Point to it.</li><li>What should someone do? Who does it and when?</li></ol>
 <p>On C2, the visitor answers all three questions in three minutes without coaching. Award one point for each correct answer after all three are written. For question 3, the action, person and time must all be present. On C3, repeat only the question for the part you revised. Keep the V1 total out of 3 and the paired scores out of 1. Mark the other V2 items N/T.</p>
+<p>Among matched retests, report how many scores rose, stayed the same or fell. Keep those results separate from the three-question V1 totals.</p>
 </article>
-<h2>Group learning rubric · 100 points</h2>
+</section>
+<section class="editorial-rail" aria-labelledby="rubric">
+<h2 id="rubric">Group learning rubric · 100 points</h2>
 <p>The four levels guide feedback. Use the original recorded score when reviewing a finalized session.</p>
-<div class="cards"><article><h3>English communication · 40</h3>
-<ol><li>40. At least 2/3 per video or corrections with evidence. Three coherent labels and a complete pitch with a reasoned answer.</li><li>32. Understands both main ideas. Readable labels with sources and a proposal. Clear pitch and basic answer.</li><li>24. Partial understanding. Labels lack content or contain errors that obscure meaning. The pitch or answer needs support.</li><li>12. Isolated words or sentences, or the pitch and labels fail to convey the main message.</li></ol></article>
-<article><h3>Evidence &amp; sources · 20</h3>
-<ol><li>20. Verifiable NASA claim, correct x, N and percentage, and a clear limit. Conclusion stays within scope.</li><li>16. Both sources are clear and the conclusion is sound. One minor detail needs clarification, such as a unit or rounding note.</li><li>12. Evidence is present, but N or the limitation is missing, or the source is hard to locate.</li><li>6. Unsupported evidence or conclusions outside the scope of the data.</li></ol></article>
-<article><h3>Problem-solving · 15</h3>
-<ol><li>15. Specific problem and comparison of two options. The proposal specifies who acts, what they do, when and how to track it.</li><li>12. Two options considered. One implementation detail is missing from an otherwise clear proposal.</li><li>9. Only one option or a general reason. The action needs detail.</li><li>4. The problem or action is vague or poorly connected to evidence.</li></ol></article>
-<article><h3>Prototype &amp; usability · 15</h3>
-<ol><li>15. Three readable panels with easy-to-find sources, credited visuals and alt text for digital images.</li><li>12. Three readable panels with visuals. One detail about layout, sources, credit or digital alt text needs attention.</li><li>9. A preview exists but an exhibit, poster or source cue is missing.</li><li>4. The preview is disjointed and visitors struggle to follow it.</li></ol></article>
-<article><h3>Testing &amp; revision · 10</h3>
-<ol><li>10. C2 shows a specific barrier or suggestion. V1, V2 and C3 show a reasoned change and a recorded retest of the same item.</li><li>8. A peer check and a reasoned change are documented. The matched retest is missing or incomplete.</li><li>6. Feedback and a revision exist, but the connection is hard to verify.</li><li>3. Only a draft or isolated comment. No documented change based on feedback.</li></ol></article></div>
-<h2>Conclusion and application</h2><p>A persuasive English exhibit links a clear problem, a source and a feasible recommendation. Group priorities describe our class discussion, not individual behaviour or measured emission reductions. Transfer: choose one feasible action, state who will carry it out and explain how you would check it next week.</p>
-<h2>Paper-based contingency</h2><p>Prepare A4 sheets, a timer, B1–B3, C2–C3, D1–D2 and the two individual I1 forms. If groups cannot open drafts at Stage 07, switch to folded A4 panels. If a partial online vote cannot be verified, restart on paper and use that single tally. Keep the original drafts, C2 answers and C3 retest.</p>
-<h2>After-class action log · D2</h2><p>Track one approved action for a school week. Record the dates, what you counted and how often the action happened out of the total opportunities. Explain the result and one limitation in two or three English sentences. Submit D2 at the next English lesson after the observation week.</p>
+<table class="rubric" aria-labelledby="rubric">
+<thead><tr><th scope="col">Criterion</th><th scope="col">Max</th><th scope="col">Performance levels</th></tr></thead>
+<tbody><tr><th scope="row">English communication</th>
+<td class="rubric-score">40</td><td><ol><li>40. At least 2/3 per video or corrections with evidence. Three coherent labels and a complete pitch with a reasoned answer.</li><li>32. Understands both main ideas. Readable labels with sources and a proposal. Clear pitch and basic answer.</li><li>24. Partial understanding. Labels lack content or contain errors that obscure meaning. The pitch or answer needs support.</li><li>12. Isolated words or sentences, or the pitch and labels fail to convey the main message.</li></ol></td></tr>
+<tr><th scope="row">Evidence &amp; sources</th>
+<td class="rubric-score">20</td><td><ol><li>20. Verifiable NASA claim, correct x, N and percentage, and a clear limit. Conclusion stays within scope.</li><li>16. Both sources are clear and the conclusion is sound. One minor detail needs clarification, such as a unit or rounding note.</li><li>12. Evidence is present, but N or the limitation is missing, or the source is hard to locate.</li><li>6. Unsupported evidence or conclusions outside the scope of the data.</li></ol></td></tr>
+<tr><th scope="row">Problem-solving</th>
+<td class="rubric-score">15</td><td><ol><li>15. Specific problem and comparison of two options. The proposal specifies who acts, what they do, when and how to track it.</li><li>12. Two options considered. One implementation detail is missing from an otherwise clear proposal.</li><li>9. Only one option or a general reason. The action needs detail.</li><li>4. The problem or action is vague or poorly connected to evidence.</li></ol></td></tr>
+<tr><th scope="row">Prototype &amp; usability</th>
+<td class="rubric-score">15</td><td><ol><li>15. Three readable panels with easy-to-find sources, credited visuals and alt text for digital images.</li><li>12. Three readable panels with visuals. One detail about layout, sources, credit or digital alt text needs attention.</li><li>9. A preview exists but an exhibit, poster or source cue is missing.</li><li>4. The preview is disjointed and visitors struggle to follow it.</li></ol></td></tr>
+<tr><th scope="row">Testing &amp; revision</th>
+<td class="rubric-score">10</td><td><ol><li>10. C2 shows a specific barrier or suggestion. V1, V2 and C3 show a reasoned change and a recorded retest of the same item.</li><li>8. A peer check and a reasoned change are documented. The matched retest is missing or incomplete.</li><li>6. Feedback and a revision exist, but the connection is hard to verify.</li><li>3. Only a draft or isolated comment. No documented change based on feedback.</li></ol></td></tr></tbody>
+</table>
+</section>
+</div>
+<div class="closing-grid">
+<section><h2>Conclusion and application</h2><p>A persuasive English exhibit links a clear problem, a source and a feasible recommendation. Group priorities describe our class discussion, not individual behaviour or measured emission reductions. Transfer: choose one feasible action, state who will carry it out and explain how you would check it next week.</p></section>
+<section><h2>Paper-based contingency</h2><p>Prepare A4 sheets, a timer, B1–B3, C2–C3, D1–D2 and the two individual I1 forms. If groups cannot open drafts at Stage 07, switch to folded A4 panels. If a partial online vote cannot be verified, restart on paper and use that single tally. Keep the original drafts, C2 answers and C3 retest.</p></section>
+<section><h2>After-class action log · D2</h2><p>Track one approved action for a school week. Record the dates, what you counted and how often the action happened out of the total opportunities. Explain the result and one limitation in two or three English sentences. Submit D2 at the next English lesson after the observation week.</p></section>
+<section aria-labelledby="evidence">
+<h2 id="evidence">How to preserve learning evidence</h2>
+<ol><li>Freeze the stage 03 survey and record one choice per group. Keep the date and the number of valid group responses.</li><li>Confirm the storyboard is saved at stage 05. Keep V1 at stage 07 before feedback, then save V2 and explain the change at stage 09.</li><li>Attach the frozen chart to The Evidence and write an interpretation in English.</li><li>Keep the original peer response. Credit the people, tools and sources behind each visual, including any AI-assisted production.</li><li>Attach only evidence with verified origin and appropriate permission. Use Competition Dossier to export the available materials and check the 50 MB Part 2 limit.</li></ol>
+</section>
+</div>
+<section aria-labelledby="classroom-records">
 <h2 id="classroom-records">Teacher-Confirmed Classroom Records · 11.4</h2>
-<article><p>Nguyễn Anh Tuấn, the teacher responsible for class 11.4, confirms that the survey, feedback and saved versions are records of classroom activity.</p><h3>The Last Light · EXH. 02 · G01</h3>
+<p>Nguyễn Anh Tuấn, the teacher responsible for class 11.4, confirms that the survey, feedback and saved versions are records of classroom activity.</p>
+<h3>The Last Light · EXH. 02 · G01</h3>
 <dl><dt>V1 · Solution</dt><dd>Put a two-box card at the exit. The monitor marks “reported”; the teacher marks “confirmed”.</dd>
 <dt>G10 → G01 · Suggestion</dt><dd>Leave a box for a late lesson that is still in the room. The monitor needs somewhere to record it without treating the room as empty.</dd>
 <dt>V2 · Solution</dt><dd>The card includes an “occupied” box, so the next class is never left in the dark.</dd></dl>
-<p><a href="https://esl-brian.vercel.app/#/tool/immersive-gallery?exhibition=gcp-087a5236534747fc9f714a332b26620c">Open the published V2</a>. The archive gives the entries the same timestamp. The version fields identify the saved sequence.</p>
-<p>The original BRIAN export describes the entries as prepared for presentation in Record_provenance.csv. This description of classroom activity follows the teacher’s confirmation.</p></article>
-<h2 id="evidence">How to preserve learning evidence</h2>
-<ol><li>Freeze the stage 03 survey and record one choice per group. Keep the date and the number of valid group responses.</li><li>Confirm the storyboard is saved at stage 05. Keep V1 at stage 07 before feedback, then save V2 and explain the change at stage 09.</li><li>Attach the frozen chart to The Evidence and write an interpretation in English.</li><li>Keep the original peer response. Credit the people, tools and sources behind each visual, including any AI-assisted production.</li><li>Attach only evidence with verified origin and appropriate permission. Use Competition Dossier to export the available materials and check the 50 MB Part 2 limit.</li></ol>
+<p><a href="https://esl-brian.vercel.app/#/tool/immersive-gallery?exhibition=gcp-087a5236534747fc9f714a332b26620c" rel="noreferrer">Open the published V2</a>. The archive gives the entries the same timestamp. The version fields identify the saved sequence.</p>
+<p>The original BRIAN export describes the entries as prepared for presentation in Record_provenance.csv. This description of classroom activity follows the teacher’s confirmation.</p>
+</section>
 </main>
+</div>
 <script>
-  let previouslyClosed = [];
+  let previouslyClosed = null;
   window.addEventListener('beforeprint', () => {
+    if (previouslyClosed) return;
     previouslyClosed = Array.from(document.querySelectorAll('details:not([open])'));
     previouslyClosed.forEach(panel => { panel.open = true; });
   });
   window.addEventListener('afterprint', () => {
-    previouslyClosed.forEach(panel => { panel.open = false; });
-    previouslyClosed = [];
+    previouslyClosed?.forEach(panel => { panel.open = false; });
+    previouslyClosed = null;
   });
   document.getElementById('print').addEventListener('click', () => window.print());
 </script>
