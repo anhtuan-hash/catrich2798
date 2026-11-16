@@ -47,7 +47,7 @@ function ArtworkImage({assetId,imageUrl,schoolEdition=false,cinemaEdition=false}
    .then(url=>{
     if(!active||!url)return;
     new THREE.TextureLoader().load(url,t=>{
-     t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=2;
+     t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=cinemaEdition?8:4;t.needsUpdate=true;
      if(!active){t.dispose();return;}
      const old=live.current;live.current=t;
      setTexture(t);
@@ -157,7 +157,9 @@ function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdi
    <meshStandardMaterial color={cinemaEdition?'#1A120C':schoolEdition?(isSelected?'#F6D477':'#B69B62'):(isSelected?'#e4aa64':'#ae856e')} roughness={.4} metalness={cinemaEdition?.48:schoolEdition?.19:0}/></mesh>
   {cinemaEdition?<mesh position={[0,0,.03]}><boxGeometry args={[2.63,3.41,.07]}/>
    <meshStandardMaterial color={isSelected?'#FFE7A1':'#F0D27A'} metalness={.7} roughness={.22}/></mesh>:null}
-  <mesh position={[0,0,.058]}><boxGeometry args={cinemaEdition?[2.46,3.22,.025]:schoolEdition?[2.29,1.80,.025]:[1.86,1.52,.025]}/>
+  {cinemaEdition?<mesh position={[0,0,.044]}><boxGeometry args={[2.54,3.3,.02]}/>
+   <meshStandardMaterial color="#2A2118" roughness={.72}/></mesh>:null}
+  <mesh position={[0,0,.058]}><boxGeometry args={cinemaEdition?[2.4,3.14,.02]:schoolEdition?[2.29,1.80,.025]:[1.86,1.52,.025]}/>
    <meshStandardMaterial color="#fffdf5" roughness={.89}/></mesh>
   {exhibit.kind==='model'
    ?<group position={[0,0,0.45]}><CuratedModel modelKey={exhibit.model_key||'pedestal'} scale={0.63}/></group>
@@ -402,10 +404,11 @@ function CameraResizeSync(){
  return null;
 }
 function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=false,cinemaEdition=false,lite=false,focus=FOCUS_IDLE,focusBoard,onFocusBack,onFocusPhaseChange}) {
- return <><color attach="background" args={[schoolEdition?(cinemaEdition?'#0C241E':'#EBF5F0'):'#f2f0e9']}/>
-  <ambientLight intensity={schoolEdition?(cinemaEdition?.62:1.25):1.1}/>
-  <hemisphereLight args={[cinemaEdition?'#F6E2B0':'#FFFFFF',schoolEdition?(cinemaEdition?'#14352C':'#9CAD9D'):'#B7AFA3',cinemaEdition?.72:1.1]}/>
-  <directionalLight position={[1,7,3]} color={schoolEdition?'#FFF7E4':'#FFFFFF'} intensity={cinemaEdition?.85:1.15}/>
+ return <><color attach="background" args={[schoolEdition?(cinemaEdition?'#071410':'#EBF5F0'):'#f2f0e9']}/>
+  <ambientLight intensity={schoolEdition?(cinemaEdition?.48:1.25):1.1}/>
+  <hemisphereLight args={[cinemaEdition?'#F6E2B0':'#FFFFFF',schoolEdition?(cinemaEdition?'#102820':'#9CAD9D'):'#B7AFA3',cinemaEdition?.55:1.1]}/>
+  <directionalLight position={[1,7,3]} color={schoolEdition?'#FFF7E4':'#FFFFFF'} intensity={cinemaEdition?.7:1.15}/>
+  {cinemaEdition?<directionalLight position={[-5,2.4,1.2]} color="#E7D7A8" intensity={.28}/>:null}
   <Walls template={template} onTeleport={onTeleport} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} lite={lite}/>
   {exhibits.slice(0,30).map((e,i)=><PaperArtwork key={e.id} exhibit={e} index={i} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition}
    focus={focus} onFocusPhaseChange={onFocusPhaseChange} onSelect={onSelect}
@@ -438,7 +441,10 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
   aria-label={schoolEdition?(language==='en'?'Pétrus Ký-inspired Discovery Museum 3D':'Bảo tàng 3D lấy cảm hứng từ Trường Pétrus Ký'):undefined}>
   {supported===false?<div role="alert" className="big-canvas-error">{language==='en'?'WebGL unavailable. Use the 2D exhibit list.':'Thiết bị không hỗ trợ WebGL. Hãy sử dụng danh sách hiện vật 2D.'}</div>:supported===null?<div className="big-canvas-loading">Preparing 3D exhibition…</div>:<Suspense fallback={<div className="big-canvas-loading">Loading original 3D art…</div>}>
    <Canvas camera={{position:[0,cinemaEdition?1.92:1.77,startingZ],fov:cinemaEdition?55:schoolEdition?59:61,near:0.08,far:55}} dpr={mode==='lite'?1:mode==='high'?[1,1.75]:[1,1.35]}
-    frameloop="demand" gl={{antialias:mode!=='lite',powerPreference:'low-power',alpha:false}} onCreated={({gl})=>{gl.setClearColor('#f2f0e9');}}>
+    frameloop="demand" gl={{antialias:mode!=='lite',powerPreference:'low-power',alpha:false}} onCreated={({gl})=>{
+     gl.setClearColor(cinemaEdition?'#071410':'#f2f0e9');
+     if(cinemaEdition){gl.toneMapping=THREE.ACESFilmicToneMapping;gl.toneMappingExposure=1.06;}
+    }}>
     <CameraResizeSync/>
     {cinemaEdition?<MuseumFocusFramePump phase={focus.phase}/>:null}
     <Room template={template} exhibits={exhibits} onSelect={onSelect} selectedId={selectedId} onTeleport={onTeleport}

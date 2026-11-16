@@ -284,18 +284,20 @@ export function ExhibitWallLabel({title,index=0}){
  const safe=limited(title||'STUDENT ARTWORK');
  const map=useCanvasTexture((ctx,w,h)=>{
   ctx.fillStyle='#FAF7ED';ctx.fillRect(0,0,w,h);
-  ctx.fillStyle='#196F5C';ctx.fillRect(0,0,11,h);
+  ctx.fillStyle='#196F5C';ctx.fillRect(0,0,22,h);
   ctx.fillStyle='#3C5D5B';ctx.textBaseline='middle';ctx.textAlign='left';
-  ctx.font='bold 35px Arial';ctx.fillText(String(index+1).padStart(2,'0'),35,h/2,85);
-  ctx.fillStyle='#A38B49';ctx.fillRect(125,21,2,h-42);
-  ctx.fillStyle='#253F42';ctx.font='bold 39px Arial';
-  ctx.fillText(safe,157,h/2,w-187);
- },[768,128],[safe,index]);
+  ctx.font='bold 70px Arial';ctx.fillText(String(index+1).padStart(2,'0'),70,h/2,170);
+  ctx.fillStyle='#A38B49';ctx.fillRect(250,42,4,h-84);
+  ctx.fillStyle='#253F42';ctx.font='bold 78px Arial';
+  ctx.fillText(safe,314,h/2,w-374);
+ },[1536,256],[safe,index]);
  if(!map)return null;
  return <group position={[0,-1.24,.14]}>
-  <mesh position={[0,0,-.045]}><boxGeometry args={[2.27,.39,.045]}/>
-   <meshStandardMaterial color="#CBB57F" roughness={.65}/></mesh>
-  <mesh position={[0,0,.0]}><planeGeometry args={[2.20,.33]}/>
+  <mesh position={[0,0,-.05]}><boxGeometry args={[2.34,.42,.05]}/>
+   <meshStandardMaterial color="#1A120C" roughness={.55} metalness={.2}/></mesh>
+  <mesh position={[0,0,-.02]}><boxGeometry args={[2.24,.34,.02]}/>
+   <meshStandardMaterial color="#E4C56A" metalness={.45} roughness={.35}/></mesh>
+  <mesh position={[0,0,.012]}><planeGeometry args={[2.16,.28]}/>
    <meshBasicMaterial map={map} toneMapped={false}/></mesh>
  </group>;
 }

@@ -218,6 +218,29 @@ function MuseumFurniture({lite}){
   </group>
  </group>;
 }
+const BARRIER_ROPES=[
+ [[-1.22,.98,-6.55],[1.22,.98,-6.55]],
+ [[-1.22,.98,-4.55],[1.22,.98,-4.55]]
+];
+function GalleryRope({from,to}){
+ const geometry=useMemo(()=>{
+  const start=new THREE.Vector3(from[0],from[1],from[2]),end=new THREE.Vector3(to[0],to[1],to[2]);
+  const mid=start.clone().lerp(end,.5);mid.y-=.18;
+  return new THREE.TubeGeometry(new THREE.CatmullRomCurve3([start,mid,end]),28,.02,7,false);
+ },[from,to]);
+ useEffect(()=>()=>geometry.dispose(),[geometry]);
+ return <mesh geometry={geometry}><meshStandardMaterial color="#641826" roughness={.46} metalness={.12}/></mesh>;
+}
+function BayMoulding({x}){
+ const y=2.42,z=-7.86,w=3.22,h=3.78,t=.09;
+ return <group>
+  {[[0,h/2,w+t,t],[0,-h/2,w+t,t],[-w/2,0,t,h],[w/2,0,t,h]].map(([px,py,bw,bh],i)=>
+   <mesh key={i} position={[x+px,y+py,z]}>
+    <boxGeometry args={[bw,bh,.08]}/>
+    <meshStandardMaterial color="#C6A56A" metalness={.4} roughness={.38}/>
+   </mesh>)}
+ </group>;
+}
 function ArtworkSpotlight({x,lite}){
  const target=useMemo(()=>{
   const value=new THREE.Object3D();
@@ -233,28 +256,30 @@ function ArtworkSpotlight({x,lite}){
 }
 export default function PekDiscoveryHallV4({lite=false}){
  const floor=useCanvasMap((ctx,w,h)=>{
-  ctx.fillStyle='#140E0A';ctx.fillRect(0,0,w,h);
-  const pw=54,ph=16;
-  for(let row=0,y=-ph;y<h+ph;y+=ph,row++){
-   for(let col=0,x=-pw;x<w+pw;x+=pw,col++){
-    ctx.save();
-    ctx.translate(x+pw/2,y+ph/2);
-    ctx.rotate((row+col)%2?Math.PI/4:-Math.PI/4);
-    const tone=108+((row*5+col*3)%6)*9;
-    ctx.fillStyle=`rgb(${tone},${Math.floor(tone*.58)},${Math.floor(tone*.32)})`;
-    ctx.fillRect(-pw*.46,-ph*.42,pw*.88,ph*.76);
-    ctx.restore();
+  ctx.fillStyle='#24160F';ctx.fillRect(0,0,w,h);
+  const plank=78;
+  for(let x=0,n=0;x<w;x+=plank,n++){
+   const tone=96+(n%4)*11;
+   const grad=ctx.createLinearGradient(x,0,x+plank,0);
+   grad.addColorStop(0,`rgb(${tone-18},${Math.floor(tone*.5)},${Math.floor(tone*.28)})`);
+   grad.addColorStop(.5,`rgb(${tone+28},${Math.floor(tone*.66)},${Math.floor(tone*.36)})`);
+   grad.addColorStop(1,`rgb(${tone-8},${Math.floor(tone*.52)},${Math.floor(tone*.3)})`);
+   ctx.fillStyle=grad;ctx.fillRect(x+1,0,plank-2,h);
+   ctx.strokeStyle='rgba(48,26,12,.35)';ctx.lineWidth=1.2;
+   for(let g=0;g<7;g++){
+    ctx.beginPath();ctx.moveTo(x+10,g*190+12);
+    ctx.bezierCurveTo(x+plank*.7,g*190+50,x+16,g*190+110,x+plank-14,g*190+170);
+    ctx.stroke();
    }
   }
-  ctx.fillStyle='rgba(10,7,5,.34)';
-  ctx.fillRect(0,0,w,86);ctx.fillRect(0,h-86,w,86);ctx.fillRect(0,0,86,h);ctx.fillRect(w-86,0,86,h);
-  ctx.strokeStyle='#C8A34B';ctx.lineWidth=16;ctx.strokeRect(40,40,w-80,h-80);
-  ctx.strokeStyle='#E8D48A';ctx.lineWidth=4;ctx.strokeRect(72,72,w-144,h-144);
-  ctx.beginPath();ctx.arc(w/2,h/2,118,0,Math.PI*2);ctx.strokeStyle='#E8CE78';ctx.lineWidth=8;ctx.stroke();
-  ctx.beginPath();ctx.arc(w/2,h/2,76,0,Math.PI*2);ctx.strokeStyle='#0D5B45';ctx.lineWidth=6;ctx.stroke();
-  ctx.fillStyle='#F6E7B2';ctx.font='700 34px Georgia, serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillStyle='rgba(18,10,6,.45)';
+  ctx.fillRect(0,0,54,h);ctx.fillRect(w-54,0,54,h);ctx.fillRect(0,0,w,54);ctx.fillRect(0,h-54,w,54);
+  ctx.strokeStyle='#E8CE78';ctx.lineWidth=10;ctx.strokeRect(46,46,w-92,h-92);
+  ctx.beginPath();ctx.arc(w/2,h/2,132,0,Math.PI*2);ctx.lineWidth=7;ctx.stroke();
+  ctx.beginPath();ctx.arc(w/2,h/2,86,0,Math.PI*2);ctx.strokeStyle='#0D5B45';ctx.lineWidth=5;ctx.stroke();
+  ctx.fillStyle='#F8E7B4';ctx.font='700 36px Georgia, serif';ctx.textAlign='center';ctx.textBaseline='middle';
   ctx.fillText('PÉTRUS KÝ',w/2,h/2);
- },1024,1024,[lite]);
+ },1536,1536,[lite]);
  return <group name="PekDiscoveryHallV4">
   {/* Walls, banners and lighting all exist in world-space. */}
   <mesh position={[0,3,-8.18]} receiveShadow>
@@ -286,13 +311,18 @@ export default function PekDiscoveryHallV4({lite=false}){
   <DisplayLettering main="PÉTRUS KÝ" sub="DISCOVERY MUSEUM · THE PIONEERS"
    position={[0,4.73,-7.823]} size={[9.35,.71]} light/>
   <SchoolCrest/>
+  <mesh position={[0,5.34,-7.96]}>
+   <boxGeometry args={[12.35,.09,.18]}/>
+   <meshStandardMaterial color="#C6A56A" metalness={.48} roughness={.32}/>
+  </mesh>
+  {[-3,0,3].map(x=><BayMoulding key={'bay-'+x} x={x}/>)}
   <Skylight lite={lite}/>
   <WindowBays lite={lite}/>
   {/* Sculpted gallery floor and metallic guide lines. */}
   <mesh rotation={[-Math.PI/2,0,0]} position={[0,-.064,-3.45]} receiveShadow>
    <planeGeometry args={[12.4,12.2]}/>
    {floor
-    ?<meshStandardMaterial map={floor} metalness={.18} roughness={.42}/>
+    ?<meshStandardMaterial map={floor} metalness={.08} roughness={.62}/>
     :<meshStandardMaterial color="#12352C" metalness={.12} roughness={.45}/>}
   </mesh>
   {[-5.16,5.16].map(x=><mesh key={x} position={[x,-.048,-3.45]}>
@@ -319,13 +349,13 @@ export default function PekDiscoveryHallV4({lite=false}){
   {[-3,0,3].map((x,i)=><group key={i}>
    <mesh position={[x,.40,-7.92]}><boxGeometry args={[2.76,.13,.28]}/>
     <meshStandardMaterial color={GOLD} metalness={.51} roughness={.39}/></mesh>
-   <mesh position={[x,4.42,-7.62]}>
-    <boxGeometry args={[1.55,.07,.16]}/>
-    <meshStandardMaterial color="#F0D78A" metalness={.72} roughness={.22}/>
+   <mesh position={[x,4.62,-7.7]} rotation={[.5,0,0]}>
+    <boxGeometry args={[1.15,.08,.22]}/>
+    <meshStandardMaterial color="#F3D98A" metalness={.74} roughness={.2}/>
    </mesh>
-   <mesh position={[x,4.28,-7.52]}>
-    <boxGeometry args={[.9,.05,.05]}/>
-    <meshBasicMaterial color="#FFF6D2"/>
+   <mesh position={[x,4.5,-7.58]}>
+    <boxGeometry args={[.72,.035,.04]}/>
+    <meshBasicMaterial color="#FFF8DC"/>
    </mesh>
    <ArtworkSpotlight x={x} lite={lite}/>
   </group>)}
@@ -355,15 +385,15 @@ export default function PekDiscoveryHallV4({lite=false}){
    <planeGeometry args={[.045,7.1]}/>
    <meshBasicMaterial color="#E8CE78" side={THREE.DoubleSide}/>
   </mesh>):null}
-  {!lite?[-1.22,1.22].map(x=><group key={'rail-'+x}>
-   {[-6.55,-4.55].map(z=><group key={z} position={[x,0,z]}>
-    <mesh position={[0,.46,0]}><cylinderGeometry args={[.045,.05,.92,12]}/><meshStandardMaterial color={GOLD} metalness={.72} roughness={.26}/></mesh>
-    <mesh position={[0,.94,0]}><sphereGeometry args={[.07,12,10]}/><meshStandardMaterial color="#F3E2A8" metalness={.6} roughness={.3}/></mesh>
+  {!lite?<group>
+   {[-1.22,1.22].map(x=><group key={'rail-'+x}>
+    {[-6.55,-4.55].map(z=><group key={z} position={[x,0,z]}>
+     <mesh position={[0,.46,0]}><cylinderGeometry args={[.045,.05,.92,12]}/><meshStandardMaterial color={GOLD} metalness={.72} roughness={.26}/></mesh>
+     <mesh position={[0,.94,0]}><sphereGeometry args={[.07,12,10]}/><meshStandardMaterial color="#F3E2A8" metalness={.6} roughness={.3}/></mesh>
+    </group>)}
    </group>)}
-   <mesh position={[x,.9,-5.55]} rotation={[Math.PI/2,0,0]}>
-    <cylinderGeometry args={[.016,.016,2.05,8]}/>
-    <meshStandardMaterial color="#7A2430" roughness={.62}/>
-   </mesh>
-  </group>):null}
+   <GalleryRope from={BARRIER_ROPES[0][0]} to={BARRIER_ROPES[0][1]}/>
+   <GalleryRope from={BARRIER_ROPES[1][0]} to={BARRIER_ROPES[1][1]}/>
+  </group>:null}
  </group>;
 }
