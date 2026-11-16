@@ -40,7 +40,6 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   const savedPreference=useRef(loadPresenterRecovery(typeof window!=='undefined'?window.sessionStorage:null,assignmentIds));
   const [assignmentId,setAssignmentId]=useState(initialReview||savedPreference.current?.assignmentId||assignments[0]?.id||'');
   const assignment=assignments.find(a=>a.id===assignmentId);
-  const readOnly=Boolean(data?.publicReadOnly||data?.offlineReadOnly||assignment?.content_frozen_at);
   const [browseIndex,setBrowseIndex]=useState(null);
   const [jumpIndex,setJumpIndex]=useState(null);
   const [previewReveal,setPreviewReveal]=useState(false);
@@ -49,6 +48,8 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     ?t(language,'Bài học đã chốt vào ','Lesson frozen at ')+new Date(assignment.content_frozen_at).toLocaleString()+t(language,' · Chỉ xem lại',' · View-only playback')
     :'';
   const [state,setState]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
+  const historicalSession=state?.session?.assignmentId===assignmentId?state.session:null;
+  const readOnly=Boolean(data?.publicReadOnly||data?.offlineReadOnly||assignment?.content_frozen_at||historicalSession?.status==='ended');
   const [activeTool,setActiveTool]=useState(null),[qr,setQr]=useState('');
   const [motionOn,setMotionOn]=useState(savedPreference.current?.motionOn!==false);
   const [previewPresentation,setPreviewPresentation]=useState(null);
@@ -70,7 +71,6 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     document.addEventListener('fullscreenchange',sync);return()=>document.removeEventListener('fullscreenchange',sync);
   },[]);
   useEffect(()=>{if(activeTool!=='qr')return;let active=true;import('qrcode').then(({default:QR})=>QR.toDataURL(link,{width:220,margin:2})).then(url=>{if(active)setQr(url);}).catch(()=>{});return()=>{active=false;};},[activeTool]);
-  const historicalSession=state?.session?.assignmentId&&state.session.assignmentId!==assignmentId?null:state?.session??null;
   const slideOnly=readOnly&&Boolean(assignment?.content_frozen_at)&&!historicalSession;
   const session=historicalSession
     ?(readOnly?{...historicalSession,revealed:previewReveal}:historicalSession)

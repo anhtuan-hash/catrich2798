@@ -122,8 +122,7 @@ export async function guestContext(req,admin,{write=false}={}){
  if(!membership?.assignment)throw fail(401,'Phiên làm việc đã hết hạn.');
  const {assignment:lesson,invite,...group}=membership;
  const {quick,...assignment}=lesson;
- // Frozen lessons remain available to existing QR/passcode holders even if
- // the Creator editing feature is disabled globally.
+ const readOnly=guestLessonReadOnly(assignment,group);
  if(!invite||invite.revoked_at)throw fail(401,'Mã nhóm đã bị thu hồi.');
  if(assignment.archived_at||assignment.status!=='active')throw fail(410,'Bài học đã được đóng.');
  if(!assignment.content_frozen_at && (!feature.enabled || invite.expires_at<=now))
@@ -132,12 +131,15 @@ export async function guestContext(req,admin,{write=false}={}){
   throw fail(401,'Classroom quick access is disabled. Sign in again with your private passcode.');
  if(write){
   guardOrigin(req);
-  if(assignment.content_frozen_at)throw fail(423,'This lesson is locked for viewing. Editing and submissions are disabled.');
+  if(readOnly)throw fail(423,'This lesson is locked for viewing. Editing and submissions are disabled.');
   if(!safeEqual(req.headers['x-gallery-csrf'],session.csrf_token))throw fail(403,'CSRF không hợp lệ.');
   if(!feature.enabled||assignment.archived_at||assignment.status!=='active'||assignment.deadline_at<=now)
    throw fail(423,'Nhiệm vụ đang đóng.');
  }
- return {session,group,assignment,feature};
+ return {session,group,assignment,feature,readOnly};
+}
+export function guestLessonReadOnly(assignment,group){
+ return Boolean(assignment?.content_frozen_at||group?.state==='published');
 }
 export async function staffContext(req,admin){
  const bearer=String(req.headers?.authorization||'');
