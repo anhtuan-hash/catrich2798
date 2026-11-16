@@ -1,15 +1,15 @@
 import React,{useEffect,useMemo,useState} from 'react';
-import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronRight,ClipboardList,Copy,Download,Eye,EyeOff,ExternalLink,KeyRound,Landmark,LockKeyhole,Plus,Printer,QrCode,RefreshCw,ShieldAlert,Trash2,Users} from 'lucide-react';
+import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronRight,ClipboardList,Copy,Download,Eye,EyeOff,ExternalLink,KeyRound,Landmark,Leaf,LockKeyhole,Plus,Printer,QrCode,RefreshCw,ShieldAlert,Trash2,Users} from 'lucide-react';
 import {LESSON_KITS,progressOfGroup} from './museumData.js';
 import {englishSystemGroupLabel} from './museumApi.js';
-import {LIVE_STAGES,LIVE_TOTAL_MINUTES} from './liveLesson.js';
+import {LIVE_STAGES,LIVE_TOTAL_MINUTES,LIVE_PERIOD_MINUTES} from './liveLesson.js';
 import './museumPrepared.css';
 import {staffRequest,joinUrl,saveTextFile} from './museumApi.js';
-import {KitCover} from './MuseumDashboard.jsx';
 import MuseumGroupQr from './MuseumGroupQr.jsx';
 import './museumLessonQr.css';
 import './museumLessonPaperV57.css';
 import './museumQuickAccessV58.css';
+import './museumLessonWizardEditorial.css';
 const tr=(language,vi,en)=>language==='en'?en:vi;
 const deadlineForWindow=accessWindow=>new Date(Date.now()+({standard:7,extended:30,term:90}[accessWindow]||7)*86400000).toISOString();
 function Notice({error,success}){return error?<div className="bml-banner bml-danger-banner" role="alert"><ShieldAlert size={19}/>{error}</div>:success?<div className="bml-banner bml-success-banner" role="status"><CheckCircle2 size={18}/>{success}</div>:null;}
@@ -51,26 +51,55 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'})
    await onCompleted();
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
- return <div className="bml-screen" data-testid="museum-lesson-wizard">
-  <div className="bml-heading-line"><button className="bml-icon-btn" type="button" onClick={onExit} aria-label="Back"><ArrowLeft size={21}/></button>
-   <div><span className="bml-overline">{tr(language,'TẠO BÀI HỌC','CREATE LESSON')}</span><h1>{tr(language,'Tạo bài học mới','Create a new lesson')}</h1></div></div>
+ const steps=[
+  tr(language,'Kế hoạch bài dạy','Lesson plan'),
+  tr(language,'Lớp & nhóm','Class & groups'),
+  tr(language,'Giao nhiệm vụ','Issue assignment'),
+ ];
+ const stepNumber=String(step+1).padStart(2,'0');
+ const [titleFirst,titleSecond]=language==='en'?['Create a','new lesson']:['Tạo bài','học mới'];
+ return <div className="bml-screen swiss-editorial-wizard" data-testid="museum-lesson-wizard">
+  <header className="wizard-masthead">
+   <div>
+    <p className="wizard-kicker">{tr(language,'TẠO BÀI HỌC','CREATE LESSON')}</p>
+    <h1>{titleFirst}{' '}<span>{titleSecond}</span></h1>
+    <button className="wizard-back-link" type="button" onClick={onExit}>
+     <ArrowLeft size={17} aria-hidden="true"/>{tr(language,'Về danh sách bài học','Back to lessons')}
+    </button>
+   </div>
+   {!invites?<div className="wizard-step-feature">
+    <span className="wizard-step-number" aria-hidden="true">{stepNumber}</span>
+    <div className="wizard-step-caption">
+     <small>{tr(language,'Bước','Step')} {step+1} {tr(language,'trên','of')} {steps.length}</small>
+     <strong>{steps[step]}</strong>
+    </div>
+   </div>:null}
+  </header>
   {invites?<OneTimeInvites invitations={invites} language={language} onClose={onExit}/>:<>
-  <div className="bml-wizard-progress">{['Kế hoạch bài dạy','Lớp & nhóm','Giao nhiệm vụ'].map((label,i)=><div className={'bml-wizard-step '+(i<=step?'is-active':'')} key={label}>
-   <span>{i<step?<Check size={16}/>:i+1}</span><strong>{tr(language,label,['Lesson plan','Class & groups','Issue assignment'][i])}</strong></div>)}</div>
+  <ol className="wizard-steps" role="list" aria-label={tr(language,'Các bước tạo bài học','Lesson creation steps')}>
+   {steps.map((label,i)=><li key={i} aria-current={i===step?'step':undefined}>
+    <b className="wizard-step-index" aria-hidden="true">{i<step?<Check size={24}/>:String(i+1).padStart(2,'0')}</b>
+    <strong>{label}</strong>
+   </li>)}
+  </ol>
   <section className="bml-surface bml-wizard-card">
    {step===0?<><h2>{tr(language,'Kế hoạch bài dạy','Lesson plan')}</h2>
     <p>{tr(language,
      'Một chủ đề duy nhất theo Kế hoạch bài dạy hai tiết: Tiếng Anh 11, Global Success, Unit 5 – Global Warming.',
      'One focused two-period lesson: English 11, Global Success, Unit 5 – Global Warming.')}</p>
     <div className="bml-single-lesson" data-testid="museum-single-unit5-plan">
-     <KitCover kit={kit} size="large"/>
+     <div className="wizard-unit">
+      <strong className="wizard-unit-eyebrow">{tr(language,'TIẾNG ANH 11 · GLOBAL SUCCESS','ENGLISH 11 · GLOBAL SUCCESS')}</strong>
+      <span className="wizard-unit-number" aria-hidden="true">05</span>
+      <span className="wizard-unit-topic"><Leaf size={28} aria-hidden="true"/>{tr(language,'Sự nóng lên toàn cầu · Unit 5',kit.topic)}</span>
+     </div>
      <div className="bml-single-lesson-copy">
       <span className="bml-overline">OUR CLIMATE ACTION MUSEUM</span>
       <h3>{kit.title}</h3><p>{kit.subtitle}</p>
       <strong>{tr(language,'Câu hỏi định hướng','Driving question')}</strong>
       <p className="bml-single-lesson-question">{kit.challenge}</p>
       <p>{kit.goal}</p>
-      <div className="bml-chips"><span>English 11 · Unit 5</span><span>{'2 × 45 min'}</span><span>11 {tr(language,'hoạt động','activities')}</span><span>STEAM learning</span></div>
+      <div className="bml-chips"><span>English 11 · Unit 5</span><span>{'2 × 45 min'}</span><span>{LIVE_STAGES.length} {tr(language,'hoạt động','activities')}</span><span>STEAM learning</span></div>
      </div>
     </div>
     <section className="bml-single-outcomes" aria-label={tr(language,'Sản phẩm học tập','Learning products')}>
@@ -82,11 +111,11 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'})
      </div>
     </section>
     <section className="bml-single-flow" aria-label={tr(language,'Tiến trình hai tiết','Two-period teaching sequence')}>
-     <h3>{tr(language,'Tiến trình 11 hoạt động','11-activity lesson sequence')} · {LIVE_TOTAL_MINUTES} {tr(language,'phút','minutes')}</h3>
+     <h3>{tr(language,'Tiến trình '+LIVE_STAGES.length+' hoạt động',LIVE_STAGES.length+'-activity lesson sequence')} · {LIVE_TOTAL_MINUTES} {tr(language,'phút','minutes')}</h3>
      <div className="bml-single-period-grid">{[1,2].map(period=><div key={period} className="bml-single-period">
-      <h4>{tr(language,'Tiết','Period')} {period} · 45 {tr(language,'phút','minutes')}</h4>
-      <ol>{LIVE_STAGES.map((activity,i)=>({activity,i})).filter(x=>x.activity.period===period).map(({activity,i})=>
-       <li key={activity.id}><span>{String(i+1).padStart(2,'0')}</span><div>
+      <h4>{tr(language,'Tiết','Period')} {period} · {LIVE_PERIOD_MINUTES[period-1]} {tr(language,'phút','minutes')}</h4>
+      <ol role="list" start={LIVE_STAGES.findIndex(activity=>activity.period===period)+1}>{LIVE_STAGES.map((activity,i)=>({activity,i})).filter(x=>x.activity.period===period).map(({activity,i})=>
+       <li key={activity.id}><span className="wizard-activity-index" aria-hidden="true">{String(i+1).padStart(2,'0')}</span><div>
         <strong>{language==='en'?activity.title:activity.vi}</strong>
         <small>{activity.minutes} {tr(language,'phút','min')} · {activity.title}</small>
        </div></li>)}</ol>
