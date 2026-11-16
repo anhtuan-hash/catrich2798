@@ -1,5 +1,5 @@
-import React,{useEffect,useMemo,useState} from 'react';
-import { LockKeyhole,ArrowLeft,ArrowRight,BookOpen,CheckCircle2,ClipboardCheck,Clock3,Eye,FileText,MessageCircle,ShieldAlert,ShieldCheck,Star,Trash2,Users} from 'lucide-react';
+import React,{useEffect,useMemo,useRef,useState} from 'react';
+import { LockKeyhole,ArrowLeft,ArrowRight,ArrowUpRight,BookOpen,CheckCircle2,ClipboardCheck,Clock3,Eye,FileText,MessageCircle,ShieldAlert,ShieldCheck,Star,Trash2,Users} from 'lucide-react';
 import {RUBRIC,scoreRubric,suggestRubric} from './museumData.js';
 import {englishSystemGroupLabel,staffRequest} from './museumApi.js';
 import MuseumScene,{reviewMuseum} from './MuseumScene.jsx';
@@ -15,16 +15,20 @@ const NOTES={
  published:{label:'Đã công bố',kind:'green'},
  rejected:{label:'Đã từ chối',kind:'red'}
 };
-export function Submissions({data,onRefresh,initialReview,onNavigate,transport=staffRequest,query='',language='vi'}){
+export function Submissions({data,onRefresh,initialReview,onNavigate,transport=staffRequest,query='',language='vi',editorial=false}){
  const [filter,setFilter]=useState('all'),[selectedId,setSelectedId]=useState(initialReview||null),
   [busy,setBusy]=useState(false),[error,setError]=useState(''),
   [success,setSuccess]=useState(''),[preview,setPreview]=useState(false),[form,setForm]=useState(null);
  const [reviewArtAssets,setReviewArtAssets]=useState([]);
  const [publishing,setPublishing]=useState(null);
+ const detailHeading=useRef(null), openedCard=useRef(null);
  const groups=data?.groups||[],assignments=data?.assignments||[],reviews=data?.reviews||[];
  const mine=useMemo(()=>reviews.filter(r=>{const g=groups.find(x=>x.id===r.group_id),a=assignments.find(x=>x.id===g?.assignment_id);return (filter==='all'||r.state===filter)&&((r.snapshot?.title||'')+' '+(g?.label||'')+' '+(a?.class_scope||'')).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase());}),[reviews,filter,query,groups,assignments]);
  const selected=reviews.find(r=>r.id===selectedId);
  const group=groups.find(g=>g.id===selected?.group_id);
+ useEffect(()=>{
+  if(editorial&&selected?.id)detailHeading.current?.focus();
+ },[editorial,selected?.id]);
  // Teacher/admin art URLs are private and short-lived. Fetch when a submission
  // preview opens and renew while it remains visible, without touching snapshots.
  useEffect(()=>{
@@ -140,14 +144,14 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
  const open=r=>{setSelectedId(r.id);setForm(null);setError('');setSuccess('');setPreview(false);setReviewArtAssets([]);};
- return <div className="bml-screen" data-testid="museum-review-desk">
-  <div className="bml-heading-actions"><div><div className="bml-overline">{tr(language,'ĐÁNH GIÁ HỌC TẬP','LEARNING ASSESSMENT')}</div>
+ return <div className={'bml-screen'+(editorial?' swiss-editorial-review-desk':'')} data-testid="museum-review-desk">
+  {!editorial?<div className="bml-heading-actions"><div><div className="bml-overline">{tr(language,'ĐÁNH GIÁ HỌC TẬP','LEARNING ASSESSMENT')}</div>
    <h1>{tr(language,'Bài nộp của học sinh','Student submissions')}</h1>
    <p>{tr(language,'Đây là bài nộp bảo tàng; Exit Ticket được xem riêng trong Bài học.','Museum project submissions appear here; Exit Tickets are available under Lessons.')}</p></div>
-   <div className="bml-heading-meta"><Users size={19}/>{reviews.length} {tr(language,'bảo tàng đã nộp','museum submissions')} · {data?.exitTickets?.length||0} Exit Tickets</div></div>
-  <div className="bml-submissions-toolbar"><div className="bml-tab-filter" aria-label={tr(language,'Lọc bài nộp','Filter submissions')}>
+   <div className="bml-heading-meta"><Users size={19}/>{reviews.length} {tr(language,'bảo tàng đã nộp','museum submissions')} · {data?.exitTickets?.length||0} Exit Tickets</div></div>:null}
+  <div className="bml-submissions-toolbar"><div className="bml-tab-filter" role="group" aria-label={tr(language,'Lọc bài nộp','Filter submissions')}>
    {[['all','Tất cả'],['submitted','Chờ Admin'],['ttcm_review','Chờ Admin (cũ)'],['changes_requested','Cần sửa'],['approved_locked','Đã duyệt']].map(([id,label])=>
-    <button type="button" key={id} onClick={()=>setFilter(id)} className={filter===id?'is-active':''}>{tr(language,label,
+    <button type="button" key={id} onClick={()=>setFilter(id)} className={filter===id?'is-active':''} aria-pressed={filter===id}>{tr(language,label,
     {all:'All',submitted:'Admin review',ttcm_review:'Admin review (legacy)',changes_requested:'Needs revision',approved_locked:'Approved'}[id])}
       <span>{id==='all'?reviews.length:reviews.filter(r=>r.state===id).length}</span></button>)}
   </div>
@@ -156,6 +160,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
     ?tr(language,'Đang công bố','Publishing')+' '+publishing.done+'/'+publishing.total
     :tr(language,'Công bố hàng loạt','Publish all approved')+' ('+publishable.length+')'}
   </button>:null}</div>
+  <div className="bml-review-results" style={editorial?undefined:{display:'contents'}}>
   {error?<div className="bml-banner bml-danger-banner" role="alert"><ShieldAlert size={19}/><span className="bml-review-error">{error}</span></div>:null}
   {publishing?<span className="bml-review-publish-progress" role="status">{tr(language,'Đã xử lý','Processed')} {publishing.done}/{publishing.total}</span>:null}
   {success?<div className="bml-banner bml-success-banner" role="status"><CheckCircle2 size={19}/>{success}</div>:null}
@@ -167,22 +172,40 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
     const g=groups.find(x=>x.id===r.group_id),a=assignments.find(x=>x.id===g?.assignment_id),status=NOTES[r.state]||{label:r.state,kind:'gray'};
     const savedScores=rubricsByReview.get(r.id)?.scores;
     const total=savedScores?RUBRIC.reduce((sum,criterion)=>sum+(Number(savedScores[criterion.key])||0),0):null;
-    return <button className={'bml-review-card '+(selectedId===r.id?'is-selected':'')} type="button" key={r.id} disabled={busy} onClick={()=>open(r)}>
+    const groupLabel=language==='en'?englishSystemGroupLabel(g?.label||'Nhóm'):g?.label||'Nhóm';
+    const title=r.snapshot?.title||a?.title||'English museum';
+    const statusName=tr(language,status.label,{
+      submitted:'Teacher review',ttcm_review:'Department review',changes_requested:'Needs revision',approved_locked:'Approved',published:'Published',rejected:'Rejected'}[r.state]||status.label);
+    const rubricLabel=tr(language,'Rubric đã lưu','Saved rubric');
+    const openLabel=tr(language,'Xem chi tiết','Open submission');
+    return <button className={'bml-review-card '+(selectedId===r.id?'is-selected':'')} type="button" key={r.id} disabled={busy} onClick={event=>{openedCard.current=event.currentTarget;open(r);}}>
+     {editorial?<>
+      <span className="bml-review-card-top">
+        <span className="swiss-editorial-review-group">{[groupLabel,a?.class_scope].filter(Boolean).join(' · ')}</span>
+        <span className="swiss-editorial-review-status">{statusName}</span>
+      </span>
+      <strong className="swiss-editorial-review-title">{title}</strong>
+      <span className="swiss-editorial-review-meta">
+        {total!==null?<small className="bml-card-rubric">{rubricLabel}: <b>{total}/100</b></small>:null}
+        <span className="bml-review-card-link">{openLabel} <ArrowUpRight size={16} aria-hidden="true"/></span>
+      </span>
+     </>:<>
       <div className="bml-review-card-top"><span className="bml-group-avatar"><Users size={21}/></span>
-       <span className={'bml-status-pill bml-status-'+status.kind}>{tr(language,status.label,{
-        submitted:'Teacher review',ttcm_review:'Department review',changes_requested:'Needs revision',approved_locked:'Approved',published:'Published',rejected:'Rejected'}[r.state]||status.label)}</span></div>
-      <strong>{language==='en'?englishSystemGroupLabel(g?.label||'Nhóm'):g?.label||'Nhóm'}</strong><span>{r.snapshot?.title||a?.title||'English museum'}</span>
+       <span className={'bml-status-pill bml-status-'+status.kind}>{statusName}</span></div>
+      <strong>{groupLabel}</strong><span>{title}</span>
       <small>{a?.class_scope||''}</small>
-      {total!==null?<small className="bml-card-rubric">{tr(language,'Rubric đã lưu','Saved rubric')} · <b>{total}/100</b></small>:null}
-      <span className="bml-review-card-link">{tr(language,'Xem chi tiết','Open submission')} <ArrowRight size={17}/></span>
+      {total!==null?<small className="bml-card-rubric">{rubricLabel} · <b>{total}/100</b></small>:null}
+      <span className="bml-review-card-link">{openLabel} <ArrowRight size={17}/></span>
+     </>}
     </button>;
    })}</div>}
+  </div>
   {selected?<section className="bml-review-detail bml-surface">
    {frozen?<div className="bml-banner bml-success-banner" role="status"><LockKeyhole size={18}/> Finalized lesson · Read-only review. Grading, approval and deletion are locked.</div>:null}
     <div className="bml-section-head"><div><span className="bml-overline">{tr(language,'BẢN NỘP','SUBMISSION')} · v{selected.version}</span>
-     <h2>{selected.snapshot?.title||tr(language,'Bản nháp','Draft')}</h2>
+     <h2 ref={detailHeading} tabIndex={editorial?-1:undefined}>{selected.snapshot?.title||tr(language,'Bản nháp','Draft')}</h2>
      <p>{language==='en'?englishSystemGroupLabel(group?.label):group?.label} · {assignment?.class_scope}</p></div>
-     <button type="button" className="bml-icon-btn" disabled={busy} onClick={()=>{setSelectedId(null);setForm(null);}} aria-label="Close"><ArrowLeft size={21}/></button></div>
+     <button type="button" className="bml-icon-btn" disabled={busy} onClick={()=>{setSelectedId(null);setForm(null);if(editorial)openedCard.current?.focus();}} aria-label="Close"><ArrowLeft size={21}/></button></div>
     <div className="bml-review-detail-layout">
      <div className="bml-review-preview">
       <div className="bml-review-preview-head"><h3>{tr(language,'Sản phẩm học sinh','Student exhibition')}</h3>

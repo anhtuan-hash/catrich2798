@@ -1,21 +1,24 @@
-import React from 'react';
-import {ArrowRight} from 'lucide-react';
+import React, {useId} from 'react';
+import {ArrowUpRight, Image} from 'lucide-react';
 
 const tr = (lang, vi, en) => lang === 'vi' ? vi : en;
 
-export default function ExhibitionCard({serial, title, cover='', statusLabel='Published', language='en', ctaLabel, onOpen}) {
+export default function ExhibitionCard({serial, title, cover='', statusLabel='Published', language='en', ctaLabel, onOpen, disabled=false}) {
+  const titleId = useId();
+  const actionId = useId();
   return (
-    <article className="exhibit-card exhibit-poster-card">
-      <button type="button" className="exhibit-poster-hit" onClick={onOpen}>
+    <article className="swiss-editorial-exhibit" aria-labelledby={titleId}>
+      <div className="swiss-editorial-exhibit-poster">
         {cover
-          ? <img className="exhibit-cover" src={cover} alt={title}/>
-          : <span className="exhibit-cover exhibit-cover-wait" aria-hidden="true"/>}
-        <span className="serial">{serial}</span>
-        <span className="status">{statusLabel}</span>
-      </button>
-      <h3>{title}</h3>
-      <button type="button" className="small-link" onClick={onOpen}>
-        {ctaLabel || tr(language, 'Mở triển lãm 3D', 'Open 3D exhibition')} <ArrowRight size={13} aria-hidden="true" style={{verticalAlign:'middle'}}/>
+          ? <img src={cover} alt="" decoding="async" loading="lazy"/>
+          : <Image size={24} aria-hidden="true"/>}
+      </div>
+      <div className="swiss-editorial-exhibit-meta"><strong>{serial}</strong><span>{statusLabel}</span></div>
+      <h3 id={titleId}>{title}</h3>
+      <button type="button" className="swiss-editorial-exhibit-link"
+        aria-labelledby={`${actionId} ${titleId}`} onClick={onOpen} disabled={disabled}>
+        <span id={actionId}>{ctaLabel || tr(language, 'Mở triển lãm 3D', 'Open 3D exhibition')}</span>
+        <ArrowUpRight size={16} aria-hidden="true"/>
       </button>
     </article>
   );
