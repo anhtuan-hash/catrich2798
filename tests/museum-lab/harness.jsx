@@ -1,4 +1,4 @@
-import React,{useState} from 'react';
+import React,{useCallback,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import MuseumLabApp from '../../src/features/immersive-gallery/v3/MuseumLabApp.jsx';
 import MuseumLiveTeacher from '../../src/features/immersive-gallery/v3/MuseumLiveTeacher.jsx';
@@ -211,6 +211,34 @@ const publishedQaTransportBroken=async(action,...args)=>{
  if(action==='showcase-state')throw new Error('Synthetic showcase catalogue unavailable');
  return publishedQaTransport(action,...args);
 };
+function LessonCompletionHarness({visitor=false}){
+ const [lesson,setLesson]=useState({frozenAt:null,version:6});
+ const currentStage=10;
+ const transport=useCallback(async(operation,body,params={})=>{
+  if(body)window.__completionWrites=[...(window.__completionWrites||[]),{operation,body}];
+  if(operation==='control'&&body.action==='end'){
+   const frozenAt='2026-11-16T02:00:00.123456+00:00';
+   setLesson({frozenAt,version:lesson.version+1});
+   return {contentFrozenAt:frozenAt,session:sessionAt(10,frozenAt)};
+  }
+  if(operation==='unlock-lesson'){
+   if(body.contentFrozenAt!==lesson.frozenAt)throw new Error('Incorrect freeze marker');
+   setLesson({frozenAt:null,version:lesson.version+1});
+   return {contentFrozenAt:null,session:sessionAt(10,null)};
+  }
+  if(operation!=='state')throw new Error('Unexpected operation: '+operation);
+  const index=lesson.frozenAt&&params.viewStage!=null?Number(params.viewStage):currentStage;
+  return {contentFrozenAt:lesson.frozenAt,session:sessionAt(index,lesson.frozenAt),
+   groups:synthetic.groups,responses:index===10?[{group_id:'group-1',value:'We will turn off unused lights.'}]:[]};
+ },[lesson]);
+ function sessionAt(index,frozenAt){
+  return {id:'completion-qa-session',assignmentId:'lesson-synthetic',
+   stageIndex:index,stage:LIVE_STAGES[index],status:frozenAt?'ended':'active',
+   stageOpen:false,version:lesson.version,questionVersion:2,revealed:false};
+ }
+ const data=visitor?{...frozenQa,publicReadOnly:true}:synthetic;
+ return <SwissTeacherLive data={data} language="en" transport={visitor?frozenTeacherApi:transport}/>;
+}
 function ArtworkHarness({language}){
  const [studio,update]=useState({artworks:{issue:null,evidence:null,solution:null}});
  return <MuseumArtworkStudio studio={studio} csrf="qa-secret" language={language} uploadEnabled={true} update={update}/>;
@@ -224,7 +252,7 @@ function Harness(){
  return <div style={{fontFamily:'Roboto,Arial,sans-serif'}}>
   <div style={{display:'flex',gap:8,padding:10,background:'#e6f0ff',flexWrap:'wrap'}} data-testid="qa-harness">
    <strong>QA ONLY · ALL DATA SYNTHETIC</strong>
-   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','review-workflow-en','published-lesson','dashboard-en','dashboard-published-en','dashboard-published-fail-en','student-en','teacher-live-en','teacher-live-ten-en','teacher-live-frozen-en','teacher-live-v2-frozen-en','v53-evidence-en','v54-speaking-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
+   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','review-workflow-en','published-lesson','dashboard-en','dashboard-published-en','dashboard-published-fail-en','student-en','teacher-live-en','teacher-live-ten-en','teacher-live-frozen-en','teacher-live-v2-frozen-en','teacher-live-completion-en','teacher-live-visitor-en','v53-evidence-en','v54-speaking-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
   </div>
   <div className={normalized==='dashboard'?'':'bml'}>
    {normalized==='dashboard'?<MuseumLabApp language={uiLanguage} currentUser={{id:'teacher-synthetic',name:'Demo Teacher'}} transport={demoDashboardApi}/>:null}
@@ -243,6 +271,8 @@ function Harness(){
     {normalized==='teacher-live-ten'?<MuseumLiveTeacher data={{...synthetic,groups:tenGroups}} language={uiLanguage} transport={tenTeacherApi}/>:null}
    {normalized==='teacher-live-frozen'?<MuseumLiveTeacher data={frozenQa} language={uiLanguage} transport={frozenTeacherApi}/>:null}
    {normalized==='teacher-live-v2-frozen'?<SwissTeacherLive data={frozenQa} language={uiLanguage} transport={frozenTeacherApi}/>:null}
+   {normalized==='teacher-live-completion'?<LessonCompletionHarness/>:null}
+   {normalized==='teacher-live-visitor'?<LessonCompletionHarness visitor/>:null}
    {normalized==='student-live'?<MuseumLiveStudent csrf="qa-secret" language={uiLanguage}/>:null}
    {normalized==='artwork'?<ArtworkHarness language={uiLanguage}/>:null}
    {normalized==='scene'?<MuseumScene gallery={DEMO_GALLERY} language={uiLanguage} onBack={()=>setScreen('dashboard')}/>:null}
