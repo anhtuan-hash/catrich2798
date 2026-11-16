@@ -107,6 +107,7 @@ export default function MuseumP2Workbook({language,role,transport,readOnly,group
  const [group,setGroup]=useState(groups[0]?.id||'');
  const [slot,setSlot]=useState('');
  const [rows,setRows]=useState(null);
+ const [archivedCopy,setArchivedCopy]=useState(false);
  const [seen,setSeen]=useState(null);
  const [peer,setPeer]=useState(null);
  const [gallery,setGallery]=useState(null);
@@ -128,6 +129,7 @@ export default function MuseumP2Workbook({language,role,transport,readOnly,group
    const data=await transport('p2-forms',null,assignmentId?{assignmentId}:{});
    if(seq!==request.current)return;
    setRows(data.rows||[]);
+   setArchivedCopy(data.archivedCopy===true);
    setServerLocked(Boolean(data.readOnly));
    setError('');
   }catch(e){if(seq===request.current)setError(e.message);}
@@ -145,11 +147,11 @@ export default function MuseumP2Workbook({language,role,transport,readOnly,group
   }catch(e){if(seq===peerRequest.current)setError(e.message);return null;}
  },[transport]);
  useEffect(()=>{
-  if(staff||!isPeer)return;
+  if(staff||!isPeer||archivedCopy)return;
   getPeer();
   const timer=setInterval(()=>{if(!previewBusy.current)getPeer();},5000);
   return()=>{clearInterval(timer);++peerRequest.current;};
- },[getPeer,staff,isPeer,stageIndex]);
+ },[getPeer,staff,isPeer,stageIndex,archivedCopy]);
  useEffect(()=>{
   setValues(row?.values||{});
   setVersion(row?.version||0);
@@ -206,13 +208,14 @@ export default function MuseumP2Workbook({language,role,transport,readOnly,group
    <button type="button" className="p2-button" onClick={reload} disabled={saving}>{tr(language,'Tải lại bản ghi','Reload records')}</button>
    {staff&&rows?<button type="button" className="p2-button" onClick={()=>saveTextFile('Museum-P2-worksheets.json','application/json',JSON.stringify({groups,records:rows,summary:summarizeP2(rows)},null,2))}>{tr(language,'Xuất minh chứng P2','Export P2 evidence')}</button>:null}
   </div>
+  {archivedCopy?<p role="note">{tr(language,'Phiếu được tổng hợp sau buổi học từ hồ sơ đã lưu. Ô trống là mục chưa có minh chứng tương ứng.','These worksheets were compiled from saved records after the lesson. Blank fields have no corresponding evidence.')}</p>:null}
   {formId==='D1'&&!readOnly&&!serverLocked&&gate?<PitchTimer language={language}/>:null}
   {formId==='B3'?<p>{P2_ROLES}</p>:null}
   {formId==='C1'?<PosterPromptGuide language={language}/>:null}
   {formId==='D2'?<p>{tr(language,'Theo dõi một hành động trong một tuần học. Nộp nhật ký vào tiết tiếng Anh tiếp theo, trước khi giáo viên khóa hồ sơ.','Track one action for a school week. Save the log by the next English lesson, before the teacher locks the record.')}</p>:null}
   {formId==='I3'&&rows?<ClassSummary rows={rows} groups={groups} language={language}/>:null}
-  {isPeer?<PeerContext formId={formId} peer={peer} language={language} onPreview={preview}/>:null}
-  {formId==='C3-share'&&!draftReady?<p>{tr(language,'Lưu V2 trong Sản phẩm nhóm trước khi chia sẻ.','Save V2 in Group Project before sharing.')}</p>:null}
+  {isPeer&&!archivedCopy?<PeerContext formId={formId} peer={peer} language={language} onPreview={preview}/>:null}
+  {formId==='C3-share'&&!draftReady&&!archivedCopy?<p>{tr(language,'Lưu V2 trong Sản phẩm nhóm trước khi chia sẻ.','Save V2 in Group Project before sharing.')}</p>:null}
   {form.individual?<label className="p2-code">{tr(language,'Mã học sinh','Student code')}
    <input autoComplete="off" maxLength={20} list={staff?'p2-student-codes':undefined} value={slot} disabled={saving} onChange={e=>setSlot(e.target.value.toUpperCase())}/>
    {staff?<datalist id="p2-student-codes">{studentCodes(rows||[],currentGroup).map(code=><option key={code} value={code}/>)}</datalist>:null}
@@ -221,13 +224,13 @@ export default function MuseumP2Workbook({language,role,transport,readOnly,group
   {form.prompt?<p lang="en">{form.prompt}</p>:null}
   <form onSubmit={save}>
    <Fields form={form} values={values} onChange={(key,value)=>setValues(prev=>({...prev,[key]:value}))} disabled={disabled}/>
-   {formId==='B2'?<p>A · {[0,1,2].reduce((n,i)=>n+Number(values['a'+i]||0),0)}/6 · B · {[0,1,2].reduce((n,i)=>n+Number(values['b'+i]||0),0)}/6</p>:null}
+   {formId==='B2'&&!archivedCopy?<p>A · {[0,1,2].reduce((n,i)=>n+Number(values['a'+i]||0),0)}/6 · B · {[0,1,2].reduce((n,i)=>n+Number(values['b'+i]||0),0)}/6</p>:null}
    {formLocked?<p>{tr(language,'Phiếu chỉ xem.','Worksheet is read-only.')}</p>:fixed?<p>{tr(language,'Phiếu đã nộp.','Worksheet submitted.')}</p>:!gate?<p>{tr(language,'Phiếu mở theo chặng của giáo viên.','This worksheet opens at the corresponding teaching stage.')}</p>:
     <button type="submit" className="p2-button p2-save" disabled={disabled||!peerReady||Boolean(form.individual&&!selectedSlot)||(staff&&rubricForms.includes(formId)&&!writing)}>{saving?tr(language,'Đang lưu…','Saving…'):tr(language,'Lưu phiếu vào BRIAN','Save worksheet to BRIAN')}</button>}
   </form>
   {error?<p role="alert" className="p2-error">{error}</p>:null}
   {notice?<p role="status">{notice}</p>:null}
-  {staff&&sharedRows.length?<details><summary>{tr(language,'Phiếu học sinh đã lưu','Saved student worksheets')} · {sharedRows.length}</summary>
+  {staff&&sharedRows.length?<details open={archivedCopy?true:undefined}><summary>{archivedCopy?tr(language,'Phiếu nhóm từ hồ sơ đã lưu','Group worksheets compiled from records'):tr(language,'Phiếu học sinh đã lưu','Saved student worksheets')} · {sharedRows.length}</summary>
    {sharedRows.map(r=><Record key={r.form+r.slot} row={r}/>)}</details>:null}
   {gallery?<div className="p2-gallery-layer" role="dialog" aria-modal="true" aria-label={tr(language,'Sản phẩm nhóm bạn','Partner exhibit')}>
    <div><button type="button" className="p2-button" autoFocus onClick={()=>setGallery(null)}>{tr(language,'Quay lại phiếu','Return to worksheet')}</button>
