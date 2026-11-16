@@ -538,7 +538,10 @@ export default function MuseumLabStudent({language:languageProp='en'}){
        {T(language,'Mở phiếu thử nghiệm','Open visitor worksheet')}</button>:null}
       {!worksheetOnline&&displayedActivity===8&&stageIndex===8
        ?<MuseumLivePeerFeedback csrf={session.csrf} liveInfo={liveInfo} classroomCheck retest locked={locked||conflict}
-         saveState={saveState} drafts={peerDrafts} setDrafts={setPeerDrafts}/>:null}
+         saveState={saveState} drafts={peerDrafts} setDrafts={setPeerDrafts} onUseFeedback={r=>edit(d=>({...d,learning:{...d.learning,
+          feedback:'From '+englishSystemGroupLabel(r.fromGroup)+' on '+(EXHIBIT_FIELDS.find(x=>x.key===r.targetExhibit)?.label||'the exhibition')+': '+r.learned+' | Suggested improvement: '+r.clarify,
+          tested:true
+         }}))}/>:null}
 
      <button type="button" className="bml-outline" onClick={()=>{setHistoryOpen(true);viewHistory();}}>
       {T(language,'Xem bản thiết kế / Trước–sau','View storyboard / before and after')}</button>
