@@ -1723,8 +1723,12 @@ test('ASEAN V2 retest opens ahead of the completed exhibit, then records the vis
  await project.getByRole('button',{name:'Open assigned V2 exhibit'}).click();
  await page.getByRole('button',{name:'Close museum preview'}).click();
  await project.getByRole('textbox',{name:'Your group’s answer'}).fill('Visitors can look up at the stone faces.');
- await project.getByLabel('Evidence frame').selectOption('2');
  await project.getByLabel('Score').selectOption('1');
+ await expect(project.getByRole('button',{name:'Submit group response'})).toBeDisabled();
+ await expect(project.getByText('For a score of 1, choose Experience as the evidence frame.',{exact:false})).toBeVisible();
+ await project.getByLabel('Evidence frame').selectOption('1');
+ await expect(project.getByRole('button',{name:'Submit group response'})).toBeDisabled();
+ await project.getByLabel('Evidence frame').selectOption('2');
  await project.getByRole('button',{name:'Submit group response'}).click();
  await expect(project.getByText('Group response saved.')).toBeVisible();
  await expect(project.getByRole('textbox',{name:'Your group’s answer'})).toBeDisabled();
