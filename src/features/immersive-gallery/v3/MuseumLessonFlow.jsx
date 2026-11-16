@@ -1,5 +1,5 @@
 import React,{useEffect,useMemo,useState} from 'react';
-import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronRight,ClipboardList,Copy,Download,Eye,EyeOff,ExternalLink,KeyRound,Landmark,LockKeyhole,Plus,Printer,QrCode,RefreshCw,ShieldAlert,Trash2,Users} from 'lucide-react';
+import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronDown,ChevronRight,ClipboardList,Copy,Download,Eye,EyeOff,ExternalLink,KeyRound,Landmark,LockKeyhole,Plus,Printer,QrCode,RefreshCw,ShieldAlert,Trash2,Users} from 'lucide-react';
 import {LESSON_KITS,progressOfGroup} from './museumData.js';
 import {englishSystemGroupLabel} from './museumApi.js';
 import {LIVE_STAGES,LIVE_TOTAL_MINUTES} from './liveLesson.js';
@@ -149,7 +149,7 @@ function PrivatePasscodeCard({secret,available,revealed,busy,onShow,onHide,onCop
 }
 
 export function LessonsList({data,onCreate,onReview,onRefresh,query='',language='vi'}){
- const [selected,setSelected]=useState('__auto__'),[invites,setInvites]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ const [selected,setSelected]=useState('__auto__'),[pickedId,setPickedId]=useState(null),[invites,setInvites]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [secrets,setSecrets]=useState({}),[visibleSecrets,setVisibleSecrets]=useState({});
  const [passcodeBusy,setPasscodeBusy]=useState(false),[success,setSuccess]=useState('');
  const copyPass=async secret=>{
@@ -249,11 +249,20 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
    const frozen=Boolean(a.content_frozen_at);
    const canManagePasscodes=isAdmin&&a.created_by===data?.profile?.id;
    const allVisible=mine.length>0&&mine.every(g=>visibleSecrets[g.id]&&secrets[g.id]);
+   const rows=mine.map(g=>{
+    const state=progressOfGroup(g.state,language);const review=reviews.find(r=>r.group_id===g.id);
+    const ticket=exitTickets.find(t=>t.group_id===g.id);
+    const exitAnswer=ticket?(typeof ticket.value==='string'?ticket.value:JSON.stringify(ticket.value)):null;
+    const groupLabel=language==='en'?englishSystemGroupLabel(g.label):g.label;
+    const canRotate=!frozen&&isAdmin&&['issued','editing','changes_requested'].includes(g.state)&&a.created_by===data?.profile?.id;
+    return {g,state,review,ticket,exitAnswer,groupLabel,canRotate};
+   });
+   const activeRow=rows.find(row=>row.g.id===pickedId)||rows[0];
    return <article className="bml-lesson-block bml-surface bml-paper-lesson-block" key={a.id}>
     <div className="bml-lesson-summary bml-lesson-hero-summary">
      <span className="bml-table-icon bml-lesson-hero-icon" aria-hidden="true"><BookOpen size={25}/></span>
      <div className="bml-lesson-title-area">
-      <span className="bml-lesson-class-chip">Class {a.class_scope}</span>
+      <span className="bml-lesson-class-chip">CLASS {a.class_scope}</span>
       <h2>{a.title}</h2>
       <div className="bml-lesson-facts" aria-label="Lesson progress">
        <span><Users size={14}/>{mine.length} groups</span>
@@ -264,7 +273,7 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
      </div>
      <div className="bml-prepared-lesson-actions">
       <button type="button" className="bml-outline bml-lesson-toggle" onClick={()=>setSelected(expanded?null:a.id)}>
-       {expanded?tr(language,'Thu gọn','Collapse'):tr(language,'Xem các nhóm','View groups')} <ChevronRight size={17} className={expanded?'is-expanded':''}/></button>
+       {expanded?tr(language,'Thu gọn','Collapse'):tr(language,'Xem các nhóm','View groups')} <ChevronDown size={16} className={expanded?'is-expanded':''}/></button>
       {isAdmin?<button type="button" disabled={busy||frozen} className="bml-danger bml-archive-btn"
         onClick={()=>archiveAssignment(a)} aria-label={tr(language,'Xóa bài học '+a.title,'Remove lesson '+a.title)}>
        <Trash2 size={17}/>{tr(language,'Xóa bài học','Delete lesson')}</button>:null}
@@ -281,46 +290,44 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
         <button type="button" className={'bml-quick-access-toggle'+(a.quick_access_enabled?' is-active':'')}
          aria-pressed={Boolean(a.quick_access_enabled)} disabled={frozen||busy||passcodeBusy}
          onClick={()=>changeQuickAccess(a)}><KeyRound size={15}/>
-         {a.quick_access_enabled?'Quick access ON · PEK123':'Enable quick access'}</button>
+         {a.quick_access_enabled?'Quick access ON':'Enable quick access'}</button>
         {allVisible?<button type="button" className="bml-outline" onClick={()=>hideLessonPasscodes(a)}><EyeOff size={15}/> Hide all</button>:
          <button type="button" className="bml-outline" disabled={passcodeBusy||busy} onClick={()=>revealPasscodes(a)}><Eye size={15}/> Show all passcodes</button>}
         <button type="button" className="bml-regenerate-all-passcodes" disabled={frozen||busy||passcodeBusy} onClick={()=>regenerateAll(a)}><RefreshCw size={15}/> Regenerate all passcodes</button>
        </div>
       </div>:null}
-      <div className="bml-group-list bml-lesson-qr-grid" data-testid="museum-group-qr-grid">{mine.map(g=>{
-      const state=progressOfGroup(g.state,language);const review=reviews.find(r=>r.group_id===g.id);
-      const ticket=exitTickets.find(t=>t.group_id===g.id);
-      const exitAnswer=ticket?(typeof ticket.value==='string'?ticket.value:JSON.stringify(ticket.value)):null;
-      const groupLabel=language==='en'?englishSystemGroupLabel(g.label):g.label;
-      const canRotate=!frozen&&isAdmin&&['issued','editing','changes_requested'].includes(g.state)&&a.created_by===data?.profile?.id;
-      return <article className="bml-lesson-qr-card bml-paper-group-card" key={g.id} data-testid="museum-group-qr-card">
-       <div className="bml-lesson-qr-details">
-        <div className="bml-lesson-group-heading">
-         <span className="bml-group-avatar" aria-hidden="true"><Users size={19}/></span>
-         <strong>{groupLabel}</strong>
-        </div>
-        <div className="bml-lesson-qr-copy">
-         <div className="bml-lesson-group-metadata"><Landmark size={14}/><span>{tr(language,'Sản phẩm bảo tàng','Museum project')}: <strong>{state.label}</strong></span></div>
-         <div className="bml-lesson-group-metadata"><ClipboardList size={14}/><span>{ticket?tr(language,'Exit Ticket: Đã nộp','Exit Ticket: Submitted'):tr(language,'Exit Ticket: Chưa nộp','Exit Ticket: Not submitted')}</span></div>
-         <div className="bml-progress-small" role="progressbar" aria-label={groupLabel+' progress'} aria-valuemin={0} aria-valuemax={100} aria-valuenow={state.pct}><i style={{width:state.pct+'%'}}/></div>
-         <div className="bml-lesson-group-activity">
-          {ticket?<details className="bml-lesson-qr-ticket"><summary><ChevronRight size={14}/>{tr(language,'Xem câu trả lời Exit Ticket','View Exit Ticket response')}</summary><p>{exitAnswer?.slice(0,2000)}</p></details>:null}
-          <div className="bml-lesson-qr-actions">
-           {review?<button type="button" className="bml-qr-review-btn" onClick={()=>onReview(review.id)}>{tr(language,'Xem bài','Review')} <ArrowRight size={15}/></button>:null}
-           {canRotate?<button type="button" disabled={busy} className="bml-quiet-btn" onClick={()=>rotate(g.id)}><KeyRound size={15}/>{tr(language,'Cấp lại mã','Reset code')}</button>:null}
-          </div>
-         </div>
-        </div>
-       </div>
-       {!data?.offlineReadOnly?<div className="bml-lesson-qr-access" aria-label={groupLabel+' QR and access credentials'}>
-        <MuseumGroupQr handle={g.invite_handle} groupLabel={groupLabel}
-         expiresAt={g.invite_expires_at} revoked={g.invite_revoked} language={language}/>
-        {canManagePasscodes?<PrivatePasscodeCard secret={secrets[g.id]} available={g.invite_has_passcode}
-         revealed={Boolean(visibleSecrets[g.id])} busy={passcodeBusy||busy}
-         onShow={()=>revealPasscodes(a,g.id)} onHide={()=>hideGroup(g.id)}
-         onCopy={()=>copyPass(secrets[g.id])}/>:null}
-       </div>:null}
-      </article>;})}
+      <div className="swiss-lesson-split" data-testid="museum-group-qr-grid">
+       {/* preserved actions: bml-paper-group-card onReview(review.id) onClick={()=>rotate(g.id)} onCopy={()=>copyPass(secrets[g.id])} */}
+       <table className="swiss-group-table">
+        <thead><tr>
+         <th>{tr(language,'Nhóm','Group')}</th>
+         <th>{tr(language,'Sản phẩm bảo tàng','Museum project')}</th>
+         <th>Exit Ticket</th>
+         <th>{tr(language,'Thao tác','Action')}</th>
+        </tr></thead>
+        <tbody>{rows.map(row=>{
+         const on=activeRow?.g.id===row.g.id;
+         return <tr key={row.g.id} className={'bml-paper-group-card'+(on?' is-selected':'')} data-testid="museum-group-qr-card" onClick={()=>setPickedId(row.g.id)}>
+          <td>{row.groupLabel}</td>
+          <td>{row.state.label}</td>
+          <td>{row.ticket?tr(language,'Đã nộp','Submitted'):tr(language,'Chưa nộp','Not submitted')}</td>
+          <td>{row.review?<button type="button" className="swiss-row-link" onClick={e=>{e.stopPropagation();onReview(row.review.id);}}>{tr(language,'Xem bài','Review')} <ArrowRight size={14}/></button>:null}</td>
+         </tr>;
+        })}</tbody>
+       </table>
+       {activeRow?<aside className="swiss-group-pane" aria-label={activeRow.groupLabel}>
+        <h3>{activeRow.groupLabel}</h3>
+        {activeRow.ticket?<details className="bml-lesson-qr-ticket"><summary><ArrowRight size={14}/>{tr(language,'Xem câu trả lời Exit Ticket','View Exit Ticket response')}</summary><p>{activeRow.exitAnswer?.slice(0,2000)}</p></details>:null}
+        {!data?.offlineReadOnly?<div className="bml-lesson-qr-access" aria-label={activeRow.groupLabel+' QR and access credentials'}>
+         <MuseumGroupQr handle={activeRow.g.invite_handle} groupLabel={activeRow.groupLabel}
+          expiresAt={activeRow.g.invite_expires_at} revoked={activeRow.g.invite_revoked} language={language}/>
+         {canManagePasscodes?<PrivatePasscodeCard secret={secrets[activeRow.g.id]} available={activeRow.g.invite_has_passcode}
+          revealed={Boolean(visibleSecrets[activeRow.g.id])} busy={passcodeBusy||busy}
+          onShow={()=>revealPasscodes(a,activeRow.g.id)} onHide={()=>hideGroup(activeRow.g.id)}
+          onCopy={()=>copyPass(secrets[activeRow.g.id])}/>:null}
+        </div>:null}
+        {activeRow.canRotate?<button type="button" disabled={busy} className="bml-quiet-btn" onClick={()=>rotate(activeRow.g.id)}><KeyRound size={15}/>{tr(language,'Cấp lại mã','Reset code')}</button>:null}
+       </aside>:null}
       </div></>:null}
    </article>;
   })}</div>:<div className="bml-empty bml-surface"><BookOpen size={36}/><h2>{tr(language,'Chưa có bài học','No lessons assigned yet')}</h2>

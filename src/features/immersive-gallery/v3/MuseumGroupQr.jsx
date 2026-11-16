@@ -32,6 +32,7 @@ export default function MuseumGroupQr({handle,groupLabel,expiresAt,revoked=false
   <div className="bml-lesson-qr-image">
    {image?<img src={image} width="128" height="128" alt={(en?'Scan to open ':'Quét để mở ')+groupLabel} loading="lazy"/>:
     <span className="bml-lesson-qr-fallback"><QrCode size={43}/><small>{failed?(en?'QR unavailable':'Không tạo được QR'):(handle?(en?'Preparing QR':'Đang tạo QR'):(en?'No invitation':'Chưa có mã mời'))}</small></span>}
+   <span className="bml-lesson-qr-caption">{en?'QR preview':'Xem trước QR'}</span>
   </div>
   <span className="bml-lesson-qr-handle" title={handle||''}>{handle?(en?'Invite: ':'Mã mời: ')+handle:(en?'No invitation':'Chưa có mã mời')}</span>
   {unavailable?<span className="bml-lesson-qr-expired">{revoked?(en?'Revoked':'Đã thu hồi'):(en?'Expired':'Đã hết hạn')}</span>:null}
