@@ -43,9 +43,10 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
   return()=>{active=false;window.clearInterval(timer);};
  },[preview,selected?.group_id]);
  const assignment=assignments.find(a=>a.id===group?.assignment_id);
- const rubric=data?.rubrics?.find(r=>r.review_id===selectedId);
- const isAdmin=data?.profile?.role==='admin'&&!data?.offlineReadOnly&&!data?.publicReadOnly;
- const rubricsByReview=new Map((isAdmin?data?.rubrics||[]:[]).map(row=>[row.review_id,row]));
+ const publicReadOnly=Boolean(data?.publicReadOnly);
+ const isAdmin=data?.profile?.role==='admin'&&!data?.offlineReadOnly&&!publicReadOnly;
+ const rubricsByReview=new Map((data?.rubrics||[]).map(row=>[row.review_id,row]));
+ const rubric=!publicReadOnly||selected?.state==='published'?rubricsByReview.get(selectedId):undefined;
  const frozen=Boolean(assignment?.content_frozen_at);
  const canTeach=selected&&isAdmin&&!frozen&&GRADEABLE.includes(selected.state);
  const canReview=selected&&isAdmin&&!frozen&&AWAITING_REVIEW.includes(selected.state);
@@ -175,7 +176,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
     <button type="button" className="bml-outline" onClick={()=>onNavigate('lessons')}>{tr(language,'Xem bài học','View lessons')}</button>
    </div>:<div className="bml-review-grid">{mine.map(r=>{
     const g=groups.find(x=>x.id===r.group_id),a=assignments.find(x=>x.id===g?.assignment_id),status=NOTES[r.state]||{label:r.state,kind:'gray'};
-    const savedScores=rubricsByReview.get(r.id)?.scores;
+    const savedScores=(isAdmin||(publicReadOnly&&r.state==='published'))?rubricsByReview.get(r.id)?.scores:undefined;
     const total=savedScores?RUBRIC.reduce((sum,criterion)=>sum+(Number(savedScores[criterion.key])||0),0):null;
     const groupLabel=language==='en'?englishSystemGroupLabel(g?.label||'Nhóm'):g?.label||'Nhóm';
     const title=r.snapshot?.title||a?.title||'English museum';
@@ -239,12 +240,16 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
      <aside className="bml-eval-pane"><div className="bml-eval-heading"><ClipboardCheck size={21}/><h3>{tr(language,'Rubric đánh giá','Assessment rubric')}</h3></div>
        <p className="bml-muted">{tr(language,'Rubric nội bộ, không phải tiêu chí chính thức của hội thi.','An internal learning rubric, not an official competition scoring scheme.')}</p>
        {showSuggested?<p className="bml-muted" role="note">{tr(language,'Điểm gợi ý ngẫu nhiên. Kiểm tra hoặc chỉnh từng tiêu chí trước khi lưu hay duyệt.','Randomly suggested scores. Check or edit each criterion before saving or approving.')}</p>:null}
+       {publicReadOnly&&!rubric?.scores?<p className="bml-muted" role="status">
+        {tr(language,'Chưa có điểm rubric được công khai.','No rubric score is available to the public.')}
+       </p>:<>
        {RUBRIC.map(c=><label className="bml-rubric-row" key={c.key}><span><strong>{tr(language,c.label,c.en)}</strong><small>{c.help}</small></span>
         <div className="bml-score-input"><input type="number" min="0" max={c.max} step="1" disabled={!canTeach||busyAny} value={initialScores[c.key]}
           onChange={e=>editRubric({scores:{...initialScores,[c.key]:Number(e.target.value)}})}/><span>/{c.max}</span></div></label>)}
        <div className="bml-total-score">{tr(language,'Tổng điểm','Total score')} <strong>{Object.values(initialScores).reduce((x,y)=>x+(Number(y)||0),0)}<small>/100</small></strong></div>
-       <label className="bml-full-field">{tr(language,'Nhận xét dành cho học sinh','Student feedback')}<textarea readOnly={(!canTeach&&!canReview)||busyAny} rows={4} maxLength={2000} value={note} onChange={e=>editRubric({note:e.target.value})}
-        placeholder={tr(language,'Nêu một điểm tốt và một điều cần cải tiến…','Describe a strength and one area for improvement…')}/></label>
+       </>}
+       {!publicReadOnly?<label className="bml-full-field">{tr(language,'Nhận xét dành cho học sinh','Student feedback')}<textarea readOnly={(!canTeach&&!canReview)||busyAny} rows={4} maxLength={2000} value={note} onChange={e=>editRubric({note:e.target.value})}
+        placeholder={tr(language,'Nêu một điểm tốt và một điều cần cải tiến…','Describe a strength and one area for improvement…')}/></label>:null}
        {selected.teacher_note?<p className="bml-note"><b>{tr(language,'Giáo viên','Teacher')}:</b> {selected.teacher_note}</p>:null}
        {selected.ttcm_note?<p className="bml-note"><b>TTCM:</b> {selected.ttcm_note}</p>:null}
        <div className="bml-review-actions">
