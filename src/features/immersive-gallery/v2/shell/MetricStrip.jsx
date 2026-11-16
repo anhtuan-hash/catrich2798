@@ -2,10 +2,10 @@ import React from 'react';
 
 // MetricStrip — KPI row. Props: {items: [{value, label, highlight?}]}.
 // Counts are computed by the caller from real records; this component is pure display.
-export default function MetricStrip({items = []}) {
+export default function MetricStrip({items = [], ariaLabel = 'Live project figures'}) {
   if (!items.length) return null;
   return (
-    <div className="kpi-grid" role="list" aria-label="Live project figures">
+    <div className="kpi-grid" role="list" aria-label={ariaLabel}>
       {items.map((it, i) => (
         <div className="kpi" role="listitem" key={i}>
           <strong>{it.highlight ? <i>{it.value}</i> : it.value}</strong>
