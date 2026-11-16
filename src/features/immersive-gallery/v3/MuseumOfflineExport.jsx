@@ -24,7 +24,7 @@ export default function MuseumOfflineExport({language='en',data}){
  const start=async()=>{
   abort.current=new AbortController();setBusy(true);setError('');setReport(null);setReady(false);pack.current=null;
   try{const {exportMuseumOffline}=await import('./offline/exportMuseum.js');
-   const result=await exportMuseumOffline({signal:abort.current.signal,onProgress:setProgress});
+   const result=await exportMuseumOffline({signal:abort.current.signal,onProgress:setProgress,assignmentIds:(data?.assignments||[]).map(assignment=>assignment.id)});
    saveBlob(result.blob,result.filename);setReport({...result.manifest,bytes:result.blob.size});pack.current={runtime:result.runtime,snapshot:result.snapshot};setReady(true);
   }catch(e){setError(e.name==='AbortError'?tr('Đã hủy xuất.','Export cancelled.'):e.message);}
   finally{setBusy(false);setProgress('');abort.current=null;}
@@ -44,7 +44,7 @@ export default function MuseumOfflineExport({language='en',data}){
     </table>
    </div>
   </div>
-  <button className="bml-primary" type="button" disabled={busy} onClick={start}><Download size={18}/>{tr('Tải gói hội thi · giáo viên + '+rows.length+' bài học sinh','Download contest pack · teacher + '+rows.length+' student workshops')}</button>
+  <button className="bml-primary" type="button" disabled={busy||!data?.assignments?.length} onClick={start}><Download size={18}/>{tr('Tải gói hội thi · giáo viên + '+rows.length+' bài học sinh','Download contest pack · teacher + '+rows.length+' student workshops')}</button>
   {busy?<><p role="status" aria-live="polite">{progress}</p><button type="button" className="bml-outline" onClick={()=>abort.current?.abort()}><X size={16}/>{tr('Hủy','Cancel')}</button></>:null}
   {error?<p role="alert" className="bml-banner bml-danger-banner">{error}</p>:null}
   {report?<div role="status" className="bml-banner bml-info-banner"><PackageCheck size={20}/><div>

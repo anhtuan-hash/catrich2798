@@ -40,11 +40,12 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   const assignments=useMemo(()=>(data?.assignments||[]).filter(a=>data?.publicReadOnly||data?.offlineReadOnly||a.created_by===data?.profile?.id||data?.profile?.role==='admin'),[data]);
   const assignmentIds=useMemo(()=>assignments.map(a=>a.id),[assignments]);
   const savedPreference=useRef(loadPresenterRecovery(typeof window!=='undefined'?window.sessionStorage:null,assignmentIds));
-  const [assignmentId,setAssignmentId]=useState(initialReview||assignments.find(a=>isAsean(a)===isAsean(initialTemplate)&&a.id===savedPreference.current?.assignmentId)?.id||assignments.find(a=>isAsean(a)===isAsean(initialTemplate))?.id||assignments[0]?.id||'');
+  const [assignmentId,setAssignmentId]=useState((assignmentIds.includes(initialReview)?initialReview:null)||assignments.find(a=>isAsean(a)===isAsean(initialTemplate)&&a.id===savedPreference.current?.assignmentId)?.id||assignments.find(a=>isAsean(a)===isAsean(initialTemplate))?.id||assignments[0]?.id||'');
   const assignment=assignments.find(a=>a.id===assignmentId);
   const asean=isAsean(assignment);
   const stages=asean?ASEAN_STAGES:LIVE_STAGES;
   useEffect(()=>{if(assignment)onTemplateChange?.(assignment.lesson_template||'climate');},[assignment,onTemplateChange]);
+  const lessonLink=assignmentId?link+'?lesson='+encodeURIComponent(assignmentId):link;
   const [state,setState]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const [readError,setReadError]=useState('');
   const contentFrozenAt=state?.contentFrozenAt===undefined?(assignment?.content_frozen_at??null):state.contentFrozenAt;
@@ -79,7 +80,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     const sync=()=>{const active=document.fullscreenElement===stageRef.current;setIsFullscreen(active);if(!active)setActiveTool(null);};
     document.addEventListener('fullscreenchange',sync);return()=>document.removeEventListener('fullscreenchange',sync);
   },[]);
-  useEffect(()=>{if(activeTool!=='qr')return;let active=true;import('qrcode').then(({default:QR})=>QR.toDataURL(link,{width:220,margin:2})).then(url=>{if(active)setQr(url);}).catch(()=>{});return()=>{active=false;};},[activeTool]);
+  useEffect(()=>{if(activeTool!=='qr')return;setQr('');let active=true;import('qrcode').then(({default:QR})=>QR.toDataURL(lessonLink,{width:220,margin:2})).then(url=>{if(active)setQr(url);}).catch(()=>{});return()=>{active=false;};},[activeTool,lessonLink]);
   const slideOnly=Boolean(contentFrozenAt&&!historicalSession);
   const session=historicalSession
     ?(readOnly?{...historicalSession,revealed:previewReveal}:historicalSession)
@@ -268,7 +269,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     {activeTool==='resources'?(asean?<AseanSources/>:<MuseumResourceHub stage={stage} language={language}/>):null}
     {activeTool==='qr'?<div><h3>Student Creator QR</h3>
       {qr?<img src={qr} width="160" height="160" alt="Student Creator QR"/>:null}
-      <p>{link}</p></div>:null}
+      <p>{lessonLink}</p></div>:null}
    </div>
   ):null;
   return (
@@ -326,7 +327,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
               {qr?<><img className="adv-qr-img" src={qr} alt={t(language,'Mã QR vào bài học','Lesson join QR code')}/>
                 <div style={{marginTop:10,display:'flex',gap:8,flexWrap:'wrap'}}>
                   <button type="button" className="adv-toolbtn" onClick={()=>window.print()}><Printer size={14}/>{t(language,'In mã QR','Print QR')}</button>
-                  <button type="button" className="adv-toolbtn" onClick={async()=>{try{await navigator.clipboard.writeText(link);}catch{window.prompt(t(language,'Liên kết vào lớp','Class join link'),link);}}}>{t(language,'Sao chép liên kết','Copy link')}</button>
+                  <button type="button" className="adv-toolbtn" onClick={async()=>{try{await navigator.clipboard.writeText(lessonLink);}catch{window.prompt(t(language,'Liên kết vào lớp','Class join link'),lessonLink);}}}>{t(language,'Sao chép liên kết','Copy link')}</button>
                 </div></>:<p>{t(language,'Đang tạo mã QR…','Generating QR…')}</p>}
             </div>
           ):null}

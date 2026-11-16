@@ -49,9 +49,10 @@ begin
   select * into s from public.museum_live_sessions where id=new.session_id for update;
   if s.status<>'active' or not s.stage_open or s.stage_index<>new.stage_index then raise exception 'Activity is closed'; end if;
   select lesson_template into kit from public.gcp_assignments where id=s.assignment_id;
+  if not exists(select 1 from public.gcp_groups where id=new.group_id and assignment_id=s.assignment_id)
+  then raise exception 'Invalid group response'; end if;
   if kit='asean-in-three-frames' then
    if new.stage_index not in (0,1,3,4,5) or jsonb_typeof(new.value) is distinct from 'object'
-      or not exists(select 1 from public.gcp_groups where id=new.group_id and assignment_id=s.assignment_id)
    then raise exception 'Invalid group response'; end if;
    return new;
   end if;

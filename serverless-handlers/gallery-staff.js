@@ -77,22 +77,17 @@ async function publishedSchoolCatalog(ctx){
   (!g.ends_at||Date.parse(g.ends_at)>=now))
   .map(({starts_at,ends_at,...row})=>row);
  if(!visible.length)return [];
- const links=await query(admin.from('gcp_publication_links').select('group_id,exhibition_id').in('exhibition_id',visible.map(g=>g.id)));
- const groups=links.length?await query(admin.from('gcp_groups').select('id,label,assignment_id').in('id',links.map(l=>l.group_id))):[];
- const assignments=groups.length?await query(admin.from('gcp_assignments').select('id,title,lesson_template')
-  .in('id',[...new Set(groups.map(g=>g.assignment_id))]).eq('lesson_template',ASEAN_TEMPLATE)
-  .eq('school_scope',ctx.profile.school)):[];
- const byGroup=new Map(groups.map(g=>[g.id,g]));
- const byGallery=new Map(links.map(link=>[link.exhibition_id,byGroup.get(link.group_id)]));
- const templates=new Map(assignments.map(a=>[a.id,a]));
+ const assignmentByGallery=await galleryLessonAssignments(ctx,visible.map(gallery=>gallery.id));
  const collections=new Map(),individual=[];
  for(const gallery of visible){
-  const group=byGallery.get(gallery.id);
-  const assignment=templates.get(group?.assignment_id);
-  if(!assignment){individual.push(gallery);continue;}
+  const {assignment,group}=assignmentByGallery.get(gallery.id)||{};
+  if(!isAsean(assignment)){
+   individual.push(assignment?{...gallery,assignment_id:assignment.id}:gallery);
+   continue;
+  }
   const collection=collections.get(assignment.id)||{
    ...gallery,id:aseanPublicKey(assignment.id),slug:aseanPublicKey(assignment.id),
-   title:assignment.title||ASEAN_TITLE,summary:'Place, Experience and Visitor Advice',lesson_template:ASEAN_TEMPLATE,destinations:[]
+   title:assignment.title||ASEAN_TITLE,summary:'Place, Experience and Visitor Advice',lesson_template:ASEAN_TEMPLATE,assignment_id:assignment.id,destinations:[]
   };
   collection.destinations.push({id:gallery.id,title:gallery.title,groupLabel:group.label});
   collections.set(assignment.id,collection);
@@ -100,6 +95,22 @@ async function publishedSchoolCatalog(ctx){
  for(const collection of collections.values())
   collection.destinations.sort((a,b)=>a.groupLabel.localeCompare(b.groupLabel,'en'));
  return [...collections.values(),...individual];
+}
+
+async function galleryLessonAssignments(ctx,galleryIds){
+ if(!galleryIds.length)return new Map();
+ const admin=ctx.admin;
+ const links=await query(admin.from('gcp_publication_links').select('group_id,exhibition_id').in('exhibition_id',galleryIds));
+ const groups=links.length?await query(admin.from('gcp_groups').select('id,label,assignment_id').in('id',links.map(l=>l.group_id))):[];
+ const assignments=groups.length?await query(admin.from('gcp_assignments').select('id,title,lesson_template')
+  .in('id',[...new Set(groups.map(g=>g.assignment_id))]).eq('school_scope',ctx.profile.school)):[];
+ const groupsById=new Map(groups.map(g=>[g.id,g]));
+ const assignmentsById=new Map(assignments.map(a=>[a.id,a]));
+ return new Map(links.flatMap(link=>{
+  const group=groupsById.get(link.group_id);
+  const assignment=assignmentsById.get(group?.assignment_id);
+  return assignment?[[link.exhibition_id,{assignment,group}]]:[];
+ }));
 }
 
 async function loadScopedReview(ctx,reviewId){
@@ -193,9 +204,14 @@ export default async function galleryStaff(req,res){
    requireMethod(req,'GET');
    const hidden=await query(admin.from('museum_showcase_archives')
     .select('item_kind,item_key').eq('school_scope',ctx.profile.school).limit(500));
-   const archivedGalleries=ctx.role==='admin'?await query(admin.from('gallery_exhibitions')
+   const archived=ctx.role==='admin'?await query(admin.from('gallery_exhibitions')
     .select('id,title,summary,status').eq('school_scope',ctx.profile.school)
     .eq('status','archived').order('updated_at',{ascending:false}).limit(100)):[];
+   const archivedScopes=await galleryLessonAssignments(ctx,archived.map(gallery=>gallery.id));
+   const archivedGalleries=archived.map(gallery=>{
+    const assignment=archivedScopes.get(gallery.id)?.assignment;
+    return assignment?{...gallery,lesson_template:assignment.lesson_template,assignment_id:assignment.id}:gallery;
+   });
    // Provide an authorized, server-side published catalogue so a transient
    // browser settings or Data API read issue does not hide published work.
    const galleryEnabled=(await query(admin.from('gallery_settings')

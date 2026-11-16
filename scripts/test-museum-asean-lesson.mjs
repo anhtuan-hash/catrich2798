@@ -44,3 +44,17 @@ test('group forms reject conflated image choices and incorrect scores for suppor
  assert.equal(validAseanResponse(4,{question:2,answer:'A visitor answer.',frame:2,score:1}),true);
  assert.equal(validAseanResponse(4,{question:1,answer:'A visitor answer.',frame:2,score:1}),false);
 });
+
+test('Creator Pass requests remain scoped when the browser has a different lesson or group',async()=>{
+ const {assertGuestLessonScope,assertInviteScope}=await import('../serverless-handlers/_galleryCreator.js');
+ const climate={id:'80000000-0000-4000-8000-000000000001',class_scope:'11.4'};
+ const asean={id:'80000000-0000-4000-8000-000000000002',class_scope:'11.4'};
+ const climateInvite={handle:'climate-group-handle'};
+ const aseanInvite={handle:'asean-group-handle'};
+ assert.doesNotThrow(()=>assertGuestLessonScope(climate.id,climate));
+ assert.doesNotThrow(()=>assertGuestLessonScope(asean.id,asean));
+ assert.throws(()=>assertGuestLessonScope(asean.id,climate),{status:409});
+ assert.throws(()=>assertGuestLessonScope(climate.id,asean),{status:409});
+ assert.doesNotThrow(()=>assertInviteScope(aseanInvite.handle,aseanInvite));
+ assert.throws(()=>assertInviteScope(aseanInvite.handle,climateInvite),{status:409});
+});

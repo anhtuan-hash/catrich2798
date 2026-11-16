@@ -7,7 +7,7 @@ import {canSaveMuseumDraft,canSubmitMuseumProject} from '../src/features/immersi
 // The only cookie is an opaque, short-lived, group-scoped capability.
 import {
  db,digest,randomSecret,fail,send,handleError,guardOrigin,guardBody,query,
- setCookie,clearCookie,guestContext,guestLessonReadOnly,settings,ipHash,safeEqual,
+ setCookie,clearCookie,guestContext,assertGuestLessonScope,guestLessonReadOnly,settings,ipHash,safeEqual,
  normalizeGuestDraft,validateGuestSubmission,requireMethod
 } from './_galleryCreator.js';
 
@@ -88,6 +88,7 @@ export default async function galleryGuest(req,res){
     }
     throw fail(401,'Mã nhóm không hợp lệ hoặc đã hết hạn.');
    }
+   assertGuestLessonScope(req.headers?.['x-museum-lesson'],assignment);
    if(assignment.archived_at||assignment.status!=='active'||
       (!assignment.content_frozen_at&&(Date.parse(assignment.deadline_at)<=now ||
       !config.enabled||group.state==='rejected')))

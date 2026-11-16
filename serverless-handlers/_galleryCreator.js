@@ -110,6 +110,14 @@ export async function settings(admin){
  if(!data)throw fail(503,'Creator Pass chưa được thiết lập.');
  return data;
 }
+export function assertInviteScope(expectedHandle,invite){
+ if(expectedHandle!==undefined&&(!/^[A-Za-z0-9_-]{16,80}$/.test(expectedHandle)||expectedHandle!==invite?.handle))
+  throw fail(409,'This invitation is for a different group. Enter its own Creator Pass to continue.');
+}
+export function assertGuestLessonScope(expectedLesson,assignment){
+ if(expectedLesson!==undefined&&(!uid(expectedLesson)||expectedLesson!==assignment?.id))
+  throw fail(409,'This QR code is for a different lesson. Enter a Creator Pass for this lesson.');
+}
 export async function guestContext(req,admin,{write=false,allowPublishedWorksheet=false}={}){
  const token=cookie(req);
  if(!token||token.length>128)throw fail(401,'Cần nhập mã nhóm để tiếp tục.');
@@ -119,7 +127,7 @@ export async function guestContext(req,admin,{write=false,allowPublishedWorkshee
    group:gcp_groups!gcp_sessions_group_id_fkey(*,
     assignment:gcp_assignments!gcp_groups_assignment_id_fkey(*,
      quick:gcp_quick_access!gcp_quick_access_assignment_id_fkey(enabled)),
-    invite:gcp_invites!gcp_invites_group_id_fkey(revoked_at,expires_at))`)
+    invite:gcp_invites!gcp_invites_group_id_fkey(handle,revoked_at,expires_at))`)
    .eq('token_hash',digest('session:'+token)).maybeSingle()),
   settings(admin)
  ]);
@@ -129,6 +137,8 @@ export async function guestContext(req,admin,{write=false,allowPublishedWorkshee
  const {assignment:lesson,invite,...group}=membership;
  const {quick,...assignment}=lesson;
  const readOnly=guestLessonReadOnly(assignment,group);
+ assertInviteScope(req.headers?.['x-museum-invite'],invite);
+ assertGuestLessonScope(req.headers?.['x-museum-lesson'],assignment);
  if(!invite||invite.revoked_at)throw fail(401,'Mã nhóm đã bị thu hồi.');
  if(assignment.archived_at||assignment.status!=='active')throw fail(410,'Bài học đã được đóng.');
  if(!assignment.content_frozen_at && (!feature.enabled || invite.expires_at<=now))

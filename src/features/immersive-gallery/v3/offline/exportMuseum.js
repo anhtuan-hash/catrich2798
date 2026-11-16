@@ -4,7 +4,7 @@ import {SNAPSHOT_FORMAT,sanitizeSnapshot,digest,buildOfflineHtml} from './snapsh
 
 // Read only existing, permission-checked staff endpoints. Never export the
 // session token, Creator Pass, signed access URL or service-role credentials.
-export async function captureMuseum({onProgress=()=>{},signal,staff=staffRequest,live=liveStaff,art=artStaff,fetcher=fetch}={}){
+export async function captureMuseum({onProgress=()=>{},signal,assignmentIds,staff=staffRequest,live=liveStaff,art=artStaff,fetcher=fetch}={}){
  const startedAt=new Date().toISOString(),warnings=[],media=[],cache=new Map();let totalBytes=0;
  const LIMIT=180*1024*1024;
  const check=()=>{if(signal?.aborted)throw new DOMException('Export cancelled.','AbortError');};
@@ -34,11 +34,30 @@ export async function captureMuseum({onProgress=()=>{},signal,staff=staffRequest
   }return value;
  };
  onProgress('Reading authorized lessons and submissions…');
- const staffData=await staff('dashboard'),showcase=await staff('showcase-state');check();
+ const dashboard=await staff('dashboard'),catalogue=await staff('showcase-state');check();
+ let staffData=dashboard,showcase=catalogue;
  if(staffData.assignments.length>=100||staffData.groups.length>=500||staffData.reviews.length>=500||
   (staffData.rubrics||[]).length>=500||(staffData.exitTickets||[]).length>=500||
   (showcase.publishedGalleries||[]).length>=100)
   throw new Error('The staff catalogue reached its API limit. A complete archive cannot be guaranteed; export was stopped.');
+ if(assignmentIds){
+  const requested=new Set(assignmentIds);
+  const assignments=dashboard.assignments.filter(assignment=>requested.has(assignment.id));
+  if(!assignments.length||assignments.length!==requested.size)throw new Error('One or more selected lessons are unavailable.');
+  const groups=dashboard.groups.filter(group=>requested.has(group.assignment_id));
+  const groupIds=new Set(groups.map(group=>group.id));
+  const reviews=dashboard.reviews.filter(review=>groupIds.has(review.group_id));
+  const reviewIds=new Set(reviews.map(review=>review.id));
+  const belongsToLesson=gallery=>requested.has(gallery.assignment_id);
+  const publishedGalleries=(catalogue.publishedGalleries||dashboard.publishedGalleries||[]).filter(belongsToLesson);
+  staffData={...dashboard,assignments,groups,reviews,publishedGalleries,
+   rubrics:(dashboard.rubrics||[]).filter(rubric=>reviewIds.has(rubric.review_id)),
+   exitTickets:(dashboard.exitTickets||[]).filter(row=>groupIds.has(row.group_id)),
+   aseanResponses:(dashboard.aseanResponses||[]).filter(row=>groupIds.has(row.group_id)),
+   aseanWritingScores:(dashboard.aseanWritingScores||[]).filter(row=>groupIds.has(row.group_id))};
+  showcase={...catalogue,publishedGalleries,hiddenCollections:[],
+   archivedGalleries:(catalogue.archivedGalleries||[]).filter(belongsToLesson)};
+ }
  const snapshot={format:SNAPSHOT_FORMAT,startedAt,completedAt:null,source:'Pétrus Ký School System',
   staff:staffData,showcase,galleries:[],artworks:{},groupDrafts:{},live:{},evidence:{},comparisons:{},warnings,media};
  for(const [i,gallery] of (showcase.publishedGalleries||staffData.publishedGalleries||[]).entries()){
@@ -159,8 +178,12 @@ function studentSnapshot(full,group){
   groups:[group],
   reviews:(full.staff.reviews||[]).filter(item=>item.group_id===group.id),
   exitTickets:(full.staff.exitTickets||[]).filter(item=>item.group_id===group.id),
+  aseanResponses:(full.staff.aseanResponses||[]).filter(item=>item.group_id===group.id),
+  aseanWritingScores:(full.staff.aseanWritingScores||[]).filter(item=>item.group_id===group.id),
+  rubrics:(full.staff.rubrics||[]).filter(item=>(full.staff.reviews||[]).some(review=>review.id===item.review_id&&review.group_id===group.id)),
   publishedGalleries:[]};
- const slim=evidence?{...evidence,
+ const slim=evidence?{...evidence,groups:[group],
+  checkpoints:(evidence.checkpoints||[]).filter(item=>item.group_id===group.id),
   responses:(evidence.responses||[]).filter(item=>item.group_id===group.id),
   feedback:(evidence.feedback||[]).filter(item=>item.from_group===group.id||item.to_group===group.id),
   microResponses:(evidence.microResponses||[]).filter(item=>item.group_id===group.id)}:null;

@@ -23,7 +23,7 @@ test('viewer controls never mutate frozen records and all write endpoints reject
  for(const action of ['next','next','reveal','previous','pause','resume','end','restart'])await rt.liveStaff('control',{assignmentId:'qa-lesson',action});
  assert.equal(JSON.stringify(rt.snapshot),before);assert.equal(JSON.stringify(f),before);
  assert.throws(()=>{rt.snapshot.staff.assignments[0].title='changed';},TypeError);
- assert.throws(()=>rt.guest('save'),{message:BLOCKED_WRITE});
+ await assert.rejects(rt.guest('save'),{message:BLOCKED_WRITE});
  const read=await rt.staff('dashboard');read.assignments[0].title='changed';assert.equal(JSON.stringify(rt.snapshot),before);
 });
 const fakeOptions=f=>({staff:async action=>action==='dashboard'?f.staff:action==='showcase-state'?f.showcase:{gallery:f.galleries[0]},art:async()=>f.artworks['qa-group'],live:async action=>action==='state'?f.live['qa-lesson']:action==='evidence'?f.evidence['qa-lesson']:action==='group-gallery'?f.groupDrafts['qa-group']:{before:null,after:null},fetcher:async()=>{throw Error('Unexpected HTTP request');}});
@@ -66,4 +66,38 @@ test('historical sessions retain their original quiz answer key and survey meani
  const survey=await rt.liveStaff('control',{assignmentId:'qa-lesson',action:'next'});
  assert.match(survey.session.stage.question,/three days a week/);
  assert.equal(JSON.stringify(rt.snapshot),JSON.stringify(f));
+});
+
+test('an archive scoped by lesson ID contains only its own 11.4 records and galleries',async()=>{
+ const f=fixture();
+ const climate=f.staff.assignments[0];
+ climate.class_scope='11.4';
+ const asean={id:'asean-lesson',title:'ASEAN in Three Frames',class_scope:'11.4',lesson_template:'asean-in-three-frames'};
+ const aseanGroup={id:'asean-group',label:f.staff.groups[0].label,assignment_id:asean.id};
+ f.staff.assignments.push(asean);
+ f.staff.groups.push(aseanGroup);
+ f.staff.aseanResponses=[{group_id:aseanGroup.id,value:{answer:'ASEAN worksheet'}}];
+ f.staff.aseanWritingScores=[{group_id:aseanGroup.id,details:{advice:1}}];
+ f.staff.reviews.push({id:'asean-review',group_id:aseanGroup.id});
+ f.staff.rubrics.push({review_id:'asean-review',scores:{english:4}});
+ f.galleries[0].assignment_id=climate.id;
+ const aseanGallery={id:'asean-gallery',assignment_id:asean.id,title:'ASEAN only'};
+ f.showcase.publishedGalleries.push(aseanGallery);
+ f.showcase.archivedGalleries.push(aseanGallery);
+ const options=fakeOptions(f);
+ const snapshot=await captureMuseum({...options,assignmentIds:[climate.id],
+  staff:async(action,body)=>{
+   if(action==='showcase-exhibition')assert.equal(body.id,f.galleries[0].id);
+   return options.staff(action);
+  },
+  live:async(action,body,params)=>{
+   assert.equal(params.assignmentId,climate.id);
+   return options.live(action,body,params);
+  },
+  art:async groupId=>{
+   assert.equal(groupId,'qa-group');
+   return options.art(groupId);
+  }});
+ assert.deepEqual(snapshot.staff.assignments.map(row=>row.id),[climate.id]);
+ assert.equal(JSON.stringify(snapshot).includes('asean-'),false);
 });

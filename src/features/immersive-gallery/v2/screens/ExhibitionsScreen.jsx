@@ -20,6 +20,7 @@ const exhibitionFromHash = () => {
   try { return new URLSearchParams(window.location.hash.split('?')[1] || '').get('exhibition') || ''; }
   catch { return ''; }
 };
+const inTemplate=(item,template)=>!template||isAsean(item)===isAsean(template);
 const setExhibitionHash = key => {
   if (typeof window === 'undefined') return;
   const current = window.location.hash.split('?')[0] || '#/tool/immersive-gallery';
@@ -29,7 +30,7 @@ const setExhibitionHash = key => {
 // ExhibitionsScreen — 03. Full Swiss card grid over real fetched exhibitions.
 // 3D entry reuses the existing v3 MuseumExhibitionDetail viewer (behavior preserved).
 // Props: {language, data, staff, onNavigate, onRefresh, transport, query}.
-export default function ExhibitionsScreen({language='en', data, staff, onNavigate, onRefresh, onTemplateChange, transport=defaultTransport, query=''}) {
+export default function ExhibitionsScreen({language='en', data, staff, onNavigate, onRefresh, onTemplateChange, lessonTemplate, transport=defaultTransport, query=''}) {
   const payload = data || staff || {};
   const isAdmin = payload?.profile?.role === 'admin' && !payload?.offlineReadOnly && !payload?.publicReadOnly;
   const [galleries, setGalleries] = useState(() => payload?.publishedGalleries || []);
@@ -57,7 +58,10 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
     if (directError && !published.length) throw directError;
     const destinationIds=new Set(published.flatMap(item=>(item.destinations||[]).map(destination=>destination.id)));
     const unique = new Map();
-    for (const item of [...direct, ...published]) {
+    // Creator Pass exhibitions use the authoritative catalogue classification.
+    // A direct row alone has no lesson metadata and cannot be safely classified.
+    const standalone=direct.filter(item=>!item.slug?.startsWith('gcp-'));
+    for (const item of [...standalone, ...published]) {
       if (item?.id && item.status !== 'archived' && !isPracticeShowcase(item)&&!destinationIds.has(item.id)) unique.set(item.id, item);
     }
     const items = [...unique.values()].sort((a, b) =>
@@ -72,7 +76,7 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
         const {api, items, archive} = await pull();
         if (!active) return;
         setGalleries(items); setShowcase(archive);
-        loadCovers(items).then(next => { if (active) setCovers(next); }).catch(() => {});
+        loadCovers(items.filter(item=>inTemplate(item,lessonTemplate))).then(next => { if (active) setCovers(next); }).catch(() => {});
         const initial = exhibitionFromHash();
         if (initial && initial !== 'demo' && !initial.startsWith('collection-')) {
           try {
@@ -112,7 +116,7 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
   const reload = async () => {
     const {items, archive} = await pull();
     setGalleries(items); setShowcase(archive);
-    setCovers(await loadCovers(items));
+    setCovers(await loadCovers(items.filter(item=>inTemplate(item,lessonTemplate))));
   };
 
   const enter = async item => {
@@ -156,13 +160,13 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
 
   const inventory = new Map();
   for (const g of [...(payload?.publishedGalleries || []), ...galleries]) {
-    if (g?.id && g.status !== 'archived' && !isPracticeShowcase(g)) inventory.set(g.id, g);
+    if (inTemplate(g,lessonTemplate) && g?.id && g.status !== 'archived' && !isPracticeShowcase(g)) inventory.set(g.id, g);
   }
   const visible = [...inventory.values()].filter(g =>
     (g.title + ' ' + (g.summary || '')).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
   const publishedInView = visible.filter(g => g.status === 'published');
   const publishedCount = [...inventory.values()].filter(g => g.status === 'published').length;
-  const archivedItems = (showcase.archivedGalleries || []).filter(g => !isPracticeShowcase(g))
+  const archivedItems = (showcase.archivedGalleries || []).filter(g => inTemplate(g,lessonTemplate)&&!isPracticeShowcase(g))
     .map(g => ({kind: 'gallery', key: g.id, title: g.title, label: 'Student exhibition'}));
 
   const exhibitionMetrics = [
