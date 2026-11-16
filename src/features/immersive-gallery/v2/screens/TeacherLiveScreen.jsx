@@ -447,9 +447,11 @@ function AseanSources(){
 }
 function AseanRetestProgress({rows,language}){
  const submitted=rows.filter(row=>row.score!==null).length;
+ const reviewed=rows.filter(row=>row.teacherReview).length;
  const incomplete=rows.filter(row=>!row.baselineReady).length;
  return <section className="bml-surface" aria-labelledby="asean-retest-progress">
   <h3 id="asean-retest-progress">{t(language,'Tiến độ thử lại V2','V2 visitor progress')} · {submitted}/{rows.length}</h3>
+  {reviewed>0&&<p>{t(language,'Kiểm tra V2 theo yêu cầu giáo viên','V2 reviews requested by the teacher')} · {reviewed}/{rows.length}</p>}
   {incomplete>0&&<p>{t(language,`${incomplete} phòng có mốc V1 chưa hoàn chỉnh. Dùng phiếu hiện tại để ghi nhận quan sát V2.`,
    `${incomplete} rooms have incomplete V1 checkpoints. Use this round to record V2 observations.`)}</p>}
   <div className="asean-retest-progress-table" tabIndex={0} role="region" aria-label={t(language,'Phân công thử lại V2','V2 visitor assignments')}>
@@ -464,7 +466,14 @@ function AseanRetestProgress({rows,language}){
       <td>{frame?.question||'—'}
        {row.reference&&<details><summary>{t(language,'Chú thích để đối chiếu','Caption for reference')}</summary><p lang="en">{row.reference}</p></details>}
       </td>
-      <td>{row.score!==null?`${row.score}/1`:row.ready?t(language,'Chờ nộp phiếu','Awaiting response'):t(language,'V2 chưa sẵn sàng','V2 unavailable')}</td>
+      <td>
+       {row.score!==null?`${row.score}/1`:row.ready?t(language,'Chờ nộp phiếu','Awaiting response'):t(language,'V2 chưa sẵn sàng','V2 unavailable')}
+       {row.teacherReview&&<details>
+        <summary>{t(language,'Trợ lý kiểm tra','Assistant review')} · {row.teacherReview.score}/1</summary>
+        <p lang="en">{row.teacherReview.answer}</p>
+        <p>{ASEAN_FRAMES[row.teacherReview.frame-1]?.label} · <span lang="en">{row.teacherReview.evidence}</span></p>
+       </details>}
+      </td>
      </tr>;
     })}</tbody>
    </table>

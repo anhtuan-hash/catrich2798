@@ -1725,9 +1725,10 @@ test('ASEAN V2 retest opens ahead of the completed exhibit, then records the vis
  await expect(project.getByRole('textbox',{name:'Your group’s answer'})).toBeDisabled();
 });
 
-test('ASEAN V2 retest teacher table distinguishes pending submissions from a recorded zero',async({page})=>{
+test('ASEAN V2 retest separates group submissions, recorded zeroes and teacher-requested reviews',async({page})=>{
  await page.getByTestId('qa-teacher-asean-retest-en').click();
  await expect(page.getByRole('heading',{name:'V2 visitor progress · 1/10'})).toBeVisible();
+ await expect(page.getByText('V2 reviews requested by the teacher · 1/10')).toBeVisible();
  const table=page.getByRole('region',{name:'V2 visitor assignments'});
  await expect(table.getByRole('row')).toHaveCount(11);
  const first=table.getByRole('row').filter({has:page.getByRole('rowheader',{name:'Group 01',exact:true})});
@@ -1735,6 +1736,9 @@ test('ASEAN V2 retest teacher table distinguishes pending submissions from a rec
  await expect(first).toContainText('Awaiting response');
  await first.getByText('Caption for reference').click();
  await expect(first.getByText('Visitors can look up at the stone faces.')).toBeVisible();
+ await first.getByText('Assistant review · 1/1').click();
+ await expect(first.getByText('Look up at the carved faces.')).toBeVisible();
+ await expect(first.getByText('The Experience frame shows the faces.')).toBeVisible();
  const second=table.getByRole('row').filter({has:page.getByRole('rowheader',{name:'Group 02',exact:true})});
  await expect(second).toContainText('0/1');
 });

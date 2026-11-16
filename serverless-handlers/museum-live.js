@@ -23,6 +23,11 @@ async function scopedStaff(ctx,assignmentId){
 async function getSession(admin,assignmentId){
  return query(admin.from('museum_live_sessions').select('*').eq('assignment_id',assignmentId).maybeSingle());
 }
+async function aseanTeacherRetests(admin,sessionId){
+ return query(admin.from('museum_learning_events').select('group_id,details,created_at')
+  .eq('session_id',sessionId).eq('stage_index',4).eq('actor_role','teacher').eq('action','asean_v2_review')
+  .order('created_at',{ascending:false}));
+}
 const legacySurvey={...liveStage(2),question:'Which action do you currently take at least three days a week?',options:['Walk or cycle when possible','Switch off unused lights','Avoid food waste','None of these'],sentence:'Legacy group-device responses; do not interpret as individual habits or as the new priority survey.',teaching:'This session predates the group-priority protocol. Start a new lesson to use frozen priority evidence.'};
 function publicStage(stage,revealed=false,staff=false){
  if(!stage)return null;
@@ -138,7 +143,10 @@ export default async function museumLive(req,res){
       .eq('session_id',session.id).eq('stage_index',viewIndex));
     let retestProgress;
     if(asean&&!privateAsean&&viewIndex===4&&grp.length){
-     const checkpoints=await query(admin.from('museum_checkpoints').select('group_id,kind,doc').eq('session_id',session.id).in('kind',['before','after']));
+     const [checkpoints,teacherRetests]=await Promise.all([
+      query(admin.from('museum_checkpoints').select('id,group_id,kind,version,doc').eq('session_id',session.id).in('kind',['before','after'])),
+      aseanTeacherRetests(admin,session.id),
+     ]);
      const complete=row=>Boolean(row&&aseanExhibitMissing(row.doc).length===0);
      retestProgress=grp.map(group=>{
       const target=aseanPeerGroup(grp,group.id,4);
@@ -147,8 +155,12 @@ export default async function museumLive(req,res){
       const response=responses.find(row=>row.group_id===group.id)?.value;
       const question=after?.doc?.retestQuestion;
       const frame=ASEAN_FRAMES[question-1];
+      const teacherReview=after?teacherRetests.find(row=>row.group_id===group.id
+       &&row.details?.checkpointId===after.id&&row.details.version===after.version
+       &&row.details.question===question)?.details:null;
       return {group:group.label,target:target?.label,ready:complete(after),baselineReady:complete(before),question,
-       score:response?.score??null,reference:frame?after.doc.learning?.[frame.key]:null};
+       score:response?.score??null,reference:frame?after.doc.learning?.[frame.key]:null,
+       teacherReview:teacherReview?{answer:teacherReview.answer,evidence:teacherReview.evidence,frame:teacherReview.frame,score:teacherReview.score}:null};
      });
     }
     const writingScores=asean&&!privateAsean&&(viewIndex===0||viewIndex===5)
@@ -253,8 +265,9 @@ export default async function museumLive(req,res){
     const provenance=await query(admin.from('museum_presentation_data_provenance')
      .select('data_origin,teacher_visible_note,authored_drafts,curated_peer_feedback')
      .eq('assignment_id',assignment.id).maybeSingle());
+    const teacherRetests=asean?await aseanTeacherRetests(admin,session.id):undefined;
     return send(res,200,{format:'museum-evidence-v33',exported_at:new Date().toISOString(),assignment:{id:assignment.id,title:assignment.title,class_scope:assignment.class_scope},session:stateOf(session,{staff:true}),groups,survey:await surveyFor(admin,session.id),checkpoints,feedback:await feedbackFor(admin,session.id),
-     responses,microResponses,p2Worksheets,teacherMediaBoard:session.media_board||{},livePeerFeedback:await peerRoomsEvidence(admin,session.id),presentationProvenance:provenance,media});
+     responses,microResponses,p2Worksheets,teacherMediaBoard:session.media_board||{},livePeerFeedback:await peerRoomsEvidence(admin,session.id),presentationProvenance:provenance,teacherRetests,media});
    }
    if(op==='start'){
     requireMethod(req,'POST');guardOrigin(req);guardBody(req,1000);
