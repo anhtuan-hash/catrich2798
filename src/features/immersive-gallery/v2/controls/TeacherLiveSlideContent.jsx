@@ -43,7 +43,7 @@ export default function TeacherLiveSlideContent({stage,language,view='task',ques
         {showVote||hasExtension?<nav className="adv-slide-view-tabs" aria-label={t(language,'Nội dung trình chiếu','Slide content')}>
           <button type="button" aria-pressed={taskView==='task'} disabled={busy} onClick={()=>onPresent?.('task')}>{t(language,'Nhiệm vụ','Task')}</button>
           {showVote?<button type="button" aria-pressed={taskView==='vote'} disabled={busy} onClick={()=>onPresent?.('vote')}>{t(language,'Lựa chọn bình chọn','Vote options')}</button>:null}
-          {hasExtension?<button type="button" aria-pressed={taskView==='next'} disabled={busy} onClick={()=>onPresent?.('next')}>{t(language,'Lần dạy tiếp theo','Next delivery')}</button>:null}
+          {hasExtension?<button type="button" aria-pressed={taskView==='next'} disabled={busy} onClick={()=>onPresent?.('next')}>{t(language,'Phiếu hoạt động','Worksheet')}</button>:null}
         </nav>:null}
         {taskView==='vote'
           ?<><p className="adv-stage-question">{stage.question}</p>
@@ -59,7 +59,7 @@ export default function TeacherLiveSlideContent({stage,language,view='task',ques
               <p>{note.extension}</p>
               {stage.id==='climate-detective'||stage.id==='exit-ticket'
                 ?<p>{stage.id==='climate-detective'?EVIDENCE_WRITING.before:EVIDENCE_WRITING.after}</p>
-                :<ol>{VISITOR_TASKS.map(task=><li key={task}>{task}</li>)}</ol>}
+                :stage.id==='peer-gallery-walk'?<ol>{VISITOR_TASKS.map(task=><li key={task}>{task}</li>)}</ol>:null}
             </div>
             :<>
               <p className="adv-stage-question">{slide.question}</p>

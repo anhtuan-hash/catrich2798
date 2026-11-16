@@ -32,12 +32,12 @@ test('microphone only starts on explicit click; recording never uploaded',()=>{
  assert.match(src,/onClick=\{start\}/);
  assert.match(src,/getUserMedia\(\{audio:true\}\)/);
  assert.match(src,/rec\.start\(250\)/);
- assert.match(src,/if\(n>=60\)stop\(\)/);
+ assert.match(src,/if\(n>=45\)stop\(\)/);
  assert.match(src,/getTracks\(\)\.forEach\(t=>t\.stop\(\)\)/);
  assert.match(src,/URL\.revokeObjectURL/);
  assert.doesNotMatch(src,/\bfetch\(|localStorage|sendBeacon|navigator\.sendBeacon/);
  const student=read('src/features/immersive-gallery/v3/MuseumLabStudent.jsx');
- assert.match(student,/stageIndex===9&&liveInfo\?\.stageOpen/);
+ assert.match(student,/speakingOpen&&displayedActivity===9&&!groupLocked/);
  assert.match(student,/museum-open-speaking/);
 });
 test('11 different teacher stage cues respect Motion OFF and OS reduced motion',()=>{

@@ -5,7 +5,8 @@ import { MUSEUM_CURRICULUM_VIDEOS } from '../src/features/immersive-gallery/v3/m
 import { LESSON_KITS, RUBRIC } from '../src/features/immersive-gallery/v3/museumData.js';
 import {
   EVIDENCE_WRITING, LESSON_PLAN_NOTES, LESSON_RUBRIC_LEVELS, OFFLINE_LESSON_WORKSHEET,
-  VISITOR_TASKS, VISITOR_TEST_GUIDANCE,
+  VISITOR_TASKS, VISITOR_TEST_GUIDANCE, CLASSROOM_SETUP, CLASSROOM_RECORDS, AFTER_CLASS_TASK,
+  LISTENING_FALLBACKS, LESSON_WORD_BANK, LESSON_LANGUAGE_FRAMES,
 } from '../src/features/immersive-gallery/v3/lessonPlanAlignment.js';
 
 const escape = value => String(value).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -22,17 +23,24 @@ const stageCard = (stage, index) => {
     ? `<ol>${questions.map(q => `<li>${escape(q.q)}<ol type="A">${q.choices.map(choice => `<li>${escape(choice)}</li>`).join('')}</ol></li>`).join('')}</ol>
 <details><summary>Teacher answer key</summary>${list(questions.map(q => `${'ABC'[q.answer]} · ${q.explanation}`))}</details>`
     : '';
+  const reading = LISTENING_FALLBACKS[stage.id];
+  const readAloud = reading
+    ? `<details><summary>Read-aloud or source card · Appendix A</summary><p>${escape(reading)}</p></details>`
+    : '';
   const number = index + 1;
   return `<details class="stage" id="stage-${number}"${index === 0 ? ' open' : ''}>
 <summary>
   <span class="stage-number">${String(number).padStart(2, '0')}</span>
   <span class="stage-label"><strong>${escape(stage.title)}</strong><small>${escape(note.phase)}</small></span>
-  <span class="stage-time">${stage.minutes} min</span>
+  <span class="stage-time">${escape(note.time)} · ${stage.minutes} min</span>
 </summary>
 <div class="stage-body">
 <p class="stage-question">${escape(stage.question)}</p><p class="sentence">${escape(stage.sentence)}</p>
-<p>${escape(note.task)}</p>${note.extension ? `<p><strong>Next delivery:</strong> ${escape(note.extension)}</p>` : ''}
-${videoResources}${quiz}
+<p><strong>${escape(note.reference)}</strong> · ${escape(note.task)}</p>
+<p><strong>Procedure.</strong> ${escape(note.procedure).replaceAll('\n', '<br>')}</p>
+<p><strong>Deliverable.</strong> ${escape(note.output)}</p>
+${note.extension ? `<p><strong>Next delivery:</strong> ${escape(note.extension)}</p>` : ''}
+${videoResources}${readAloud}${quiz}
 </div>
 </details>`;
 };
@@ -91,10 +99,10 @@ ${css.trimEnd()}
 <li>Listen for key ideas and details in two NASA videos. Aim for two correct answers out of three per video or explain a correction using a detail from the clip.</li>
 <li>Read a scientific source and a classroom chart. Explain what each source can support.</li>
 <li>Write three English labels of about 25–40 words each. Include a named source, x/N and percentage, a limit on the survey and a practical action.</li>
-<li>Prepare a 45–60-second pitch. Two or three groups present and answer a visitor’s question.</li>
+<li>Every group delivers a 45-second pitch to a partner and takes 15 seconds for a question and reply. Everyone speaks. Two groups also present to the class.</li>
 </ul>
 </section>
-<p class="note">The published classroom session is a record of the completed lesson. The individual writing checks and the three-question V1/V2 comparison below are tools for a new delivery. Judge recorded classroom evidence using the original work from that session.</p>
+<p class="note"><strong>Before the lesson.</strong> ${escape(CLASSROOM_SETUP)}</p>
 <div class="lesson-grid">
 <section aria-labelledby="sequence">
 <h2 id="sequence">${LIVE_TOTAL_MINUTES}-minute lesson sequence</h2>
@@ -104,6 +112,7 @@ ${stages}
 <section aria-labelledby="materials">
 <h2 id="materials">Learning materials and tasks</h2>
 <div class="materials">${cards}</div>
+<details><summary>Language support · Appendix A</summary><p><strong>Word bank.</strong> ${escape(LESSON_WORD_BANK)}</p><p><strong>Language frames.</strong> ${escape(LESSON_LANGUAGE_FRAMES)}</p></details>
 </section>
 <section class="worksheet" aria-labelledby="worksheet">
 <h2 id="worksheet">Group worksheet</h2>
@@ -114,8 +123,8 @@ ${stages}
 <p>Option A: ____ · Option B: ____ · Compare clarity, feasibility and whether the source can be found.</p>
 <p>Solution: ____ · Who acts? ____ · When? ____ · What can we track? ____</p>
 <p>Image creator / method / usage rights / alt text: ____________________</p>
-<p>Peer group: ____ · I learned ____ · Please clarify ____ · Clarity 1–4: ____</p>
-<p>V1: ____ · V2: ____ · We changed ____ because ____ .</p>
+<p>C2: Author group ____ · Visitor group ____ · Time ____ · Three answers and scores (0/1) ____ · One suggestion ____</p>
+<p>C3: I revised ____ because ____ . We retested question ____ . V1 score ____ /1 · V2 score ____ /1 · Reader ____</p>
 </section>
 </div>
 </div>
@@ -133,7 +142,7 @@ ${stages}
 <h3>Visitor test · V1 and V2</h3>
 ${list(VISITOR_TASKS)}
 <p>${escape(VISITOR_TEST_GUIDANCE)}</p>
-<p>Record how many groups improved, stayed at the same score or fell, together with the number of groups with both scores. These scores describe exhibit comprehension.</p>
+<p>Among matched retests, report how many scores rose, stayed the same or fell. Keep those results separate from the three-question V1 totals.</p>
 </article>
 </section>
 <section class="editorial-rail" aria-labelledby="rubric">
@@ -148,6 +157,7 @@ ${list(VISITOR_TASKS)}
 <div class="closing-grid">
 <section><h2>Conclusion and application</h2><p>${escape(CONCLUSION)}</p></section>
 <section><h2>Paper-based contingency</h2><p>${escape(OFFLINE_GUIDE)}</p></section>
+<section><h2>After-class action log · D2</h2><p>${escape(AFTER_CLASS_TASK)}</p></section>
 <section aria-labelledby="evidence">
 <h2 id="evidence">How to preserve learning evidence</h2>
 ${list([
@@ -159,6 +169,16 @@ ${list([
 ])}
 </section>
 </div>
+<section aria-labelledby="classroom-records">
+<h2 id="classroom-records">Teacher-Confirmed Classroom Records · 11.4</h2>
+<p>${escape(CLASSROOM_RECORDS.confirmation)}</p>
+<h3>${escape(CLASSROOM_RECORDS.example)}</h3>
+<dl><dt>V1 · Solution</dt><dd>Put a two-box card at the exit. The monitor marks “reported”; the teacher marks “confirmed”.</dd>
+<dt>G10 → G01 · Suggestion</dt><dd>Leave a box for a late lesson that is still in the room. The monitor needs somewhere to record it without treating the room as empty.</dd>
+<dt>V2 · Solution</dt><dd>The card includes an “occupied” box, so the next class is never left in the dark.</dd></dl>
+<p>${link(CLASSROOM_RECORDS.exhibitionUrl, 'Open the published V2')}. The archive gives the entries the same timestamp. The version fields identify the saved sequence.</p>
+<p>${escape(CLASSROOM_RECORDS.sourceNote)}</p>
+</section>
 </main>
 </div>
 <script>

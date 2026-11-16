@@ -1358,8 +1358,8 @@ test('Admin confirms suggested rubric in one approval and bulk publishing report
 
 test('approved paper collage renders all eleven live stages with separated title, question, status and controls',async({page})=>{
  const names=['Climate Detective','Language Mini-Lesson','Live Classroom Survey',
-  'Problem · Evidence · Solution','Storyboard Checkpoint','Recap and Resume',
-  'Create the 3D Museum','Peer Gallery Walk','Improve the Exhibition',
+  'Problem–Evidence–Solution','Storyboard Checkpoint','Recap and Resume',
+  'Create the Museum','Peer Gallery Walk','Improve the Exhibition',
   'Present and Discuss','Exit Ticket'];
  await page.getByTestId('qa-teacher-live').click();
  await page.getByRole('button',{name:/Bắt đầu buổi dạy/}).click();
@@ -1378,7 +1378,7 @@ test('approved paper collage renders all eleven live stages with separated title
     await screen.getByRole('button',{name:'3 video questions'}).click();
     await expect(video).toHaveCount(0);
     await expect(screen.getByTestId('museum-live-video-questions').locator(':scope > div')).toHaveCount(3);
-    await expect(screen).toContainText('What does global warming mean in NASA');
+    await expect(screen).toContainText('What does global warming refer to?');
     await screen.getByRole('button',{name:'Design tasks'}).click();
    }else{
     await screen.getByRole('button',{name:'3 language questions'}).click();
@@ -1394,7 +1394,7 @@ test('approved paper collage renders all eleven live stages with separated title
   await expect(screen.getByText('ĐANG MỞ HOẠT ĐỘNG')).toBeVisible();
   if([0,2].includes(i))await expect(screen.locator('.bml-live-choices>div')).toHaveCount(4);
   else if(i===1)await expect(screen.locator('.bml-live-quiz>div')).toHaveCount(3);
-  else await expect(screen.locator('.bml-paper-task')).toHaveCount(3);
+  else await expect(screen.locator('.bml-paper-task')).toHaveCount(i===6||i===7?4:3);
   const layout=await screen.evaluate(el=>{
    const slide=el.querySelector('.bml-live-slide'),footer=el.querySelector('.bml-live-bottom'),
     top=el.querySelector('.bml-live-topbar'),question=el.querySelector('.bml-live-question'),
