@@ -2,7 +2,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,Box,LockKeyhole,Save} from 'lucide-react';
 import AseanActivityArt,{AseanFrameIcon} from './AseanActivityArt.jsx';
 import {ASEAN_ACTIVITY_DESIGN} from './aseanActivityDesign.js';
-import {ASEAN_FRAMES,ASEAN_STAGES,ASEAN_TITLE,aseanDestination,aseanExhibitMissing,aseanWritingCard,aseanWordCount} from './aseanLesson.js';
+import {ASEAN_FRAMES,ASEAN_STAGES,ASEAN_TITLE,aseanDestination,aseanExhibitMissing,aseanWritingCard,aseanWordCount,validAseanResponse} from './aseanLesson.js';
 import {guestRequest,englishSystemGroupLabel} from './museumApi.js';
 import {liveGuest,localMuseumFromDraft,artGuest} from './museumLiveApi.js';
 import {emptyStudio,normalizeStudio,documentFromStudio} from './museumData.js';
@@ -39,8 +39,8 @@ function ResponseFields({stage,fields,update,groupLabel,question,recorded}){
   <textarea required rows={2} maxLength={maxLength} value={fields[key]||''} onChange={event=>update(key,event.target.value)}/>
  </label>;
  const frameOptions=<>{ASEAN_FRAMES.map((frame,index)=><option key={frame.key} value={index+1}>{index+1} · {frame.label}</option>)}</>;
- const frameSelect=(value,onChange)=><select value={value??''} onChange={event=>onChange(Number(event.currentTarget.value)||null)}>
-  <option value="">No matching frame</option>{frameOptions}
+ const frameSelect=(value,onChange,emptyLabel='No matching frame')=><select value={value??''} onChange={event=>onChange(Number(event.currentTarget.value)||null)}>
+  <option value="">{emptyLabel}</option>{frameOptions}
  </select>;
  const scoreSelect=(value,onChange)=><select value={value} onChange={event=>onChange(Number(event.currentTarget.value))}>
   <option value={0}>0 · Missing or unclear</option><option value={1}>1 · Found with evidence</option>
@@ -56,6 +56,7 @@ function ResponseFields({stage,fields,update,groupLabel,question,recorded}){
   </fieldset>;
  }
  if(stage===1)return <fieldset className="asean-response-sheet" disabled={recorded}><legend>Exhibit plan</legend>
+  <p>Use the codes from your teacher’s photo set. If you found your own photos, give each one a different short code, for example P1, E1 and A1. Give the alternative its own code, such as E2 if you are comparing two Experience photos.</p>
   <div className="asean-response-grid asean-response-grid--three">
    {ASEAN_FRAMES.map((f,i)=><label className="bml-full-field asean-photo-plan" key={f.key}>
     <AseanFrameIcon index={i}/><span>{f.label} photo code</span><small>{f.question}</small>
@@ -64,7 +65,7 @@ function ResponseFields({stage,fields,update,groupLabel,question,recorded}){
   </div>
   <div className="asean-response-grid">
    <section><h3>Compare two images</h3>
-    <label className="bml-full-field">Frame your group compared {frameSelect(fields.comparisonFrame,v=>update('comparisonFrame',v))}</label>
+    <label className="bml-full-field">Frame your group compared {frameSelect(fields.comparisonFrame,v=>update('comparisonFrame',v),'Select a frame')}</label>
     {text('alternative','Code for the other photo you considered',35)}
     {text('reason','We chose this photo because visitors can see …')}
    </section>
@@ -90,7 +91,7 @@ function ResponseFields({stage,fields,update,groupLabel,question,recorded}){
   {text('comment','One change that would make a frame clearer')}
  </fieldset>;
  return <fieldset className="asean-response-sheet" disabled={recorded}><legend>{ASEAN_FRAMES[(question||fields.question)-1]?.question||'Fresh visitor test'}</legend>
-  {text('answer','Your group’s answer')}
+  {text('answer','Your group’s answer',130)}
   <div className="asean-response-grid">
    <label className="bml-full-field">Evidence frame {frameSelect(fields.frame,v=>update('frame',v))}</label>
    <label className="bml-full-field">Score {scoreSelect(fields.score,v=>update('score',v))}</label>
@@ -103,20 +104,38 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
  const [visit,setVisit]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const submitted=Boolean(record);
  const visitStage=stage===3||stage===4;
+ const reconstructed=stage===3&&visit?.gallery?.draft?.checkpointOrigin==='reconstructed_reference';
+ const scoreMismatch=stage===4&&visit?.gallery&&fields.score===1&&fields.frame!==visit.question;
  const loadVisit=async()=>{
   setError('');setBusy(true);
   try{
    const result=await liveGuest('asean-visit');
    setVisit(result);
-   if(result.gallery)onVisit(reviewMuseum({snapshot:result.gallery.draft},result.gallery.artworks));
+   if(result.gallery){
+    const reference=stage===3&&result.gallery.draft?.checkpointOrigin==='reconstructed_reference';
+    onVisit(reviewMuseum({snapshot:result.gallery.draft},result.gallery.artworks),reference);
+   }
    else setError(stage===3?'The saved V1 is incomplete. Ask your teacher about this visit.':englishSystemGroupLabel(result.target)+' has not made V2 available yet.');
   }catch(e){setError(errorText(e));}finally{setBusy(false);}
  };
  const submit=async event=>{
-  event.preventDefault();setBusy(true);setError('');
+  event.preventDefault();setError('');
+  const value=stage===4?{...fields,question:visit?.question}:fields;
+  if(visitStage&&!visit?.gallery)return;
+  if(!validAseanResponse(stage,value)){
+   if(stage===1){
+    setError('Use three different photo codes, choose the frame you compared, and give the alternative a different code from the photo you chose for that frame. Check that the fact, source and reason are filled in.');
+   }else if(stage===3){
+    setError('Select the first frame you opened, answer all three questions and add one suggestion. For each score of 1, select the frame that matches the question.');
+   }else{
+    setError('Complete the required answers before submitting.');
+   }
+   return;
+  }
+  setBusy(true);
   try{
    await liveGuest('asean-submit','POST',{
-    sessionId:live.id,stageIndex:stage,value:stage===4?{...fields,question:visit.question}:fields,
+    sessionId:live.id,stageIndex:stage,value,
     ...(visitStage?{checkpointId:visit.gallery.checkpointId}:{}),
    },session.csrf);
    await Promise.all([refreshRecords(),refreshLive()]);
@@ -133,13 +152,17 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
   {visitStage&&open&&!submitted&&<button type="button" className="bml-outline" onClick={loadVisit} disabled={busy||retestTask?.ready===false}>
    Open assigned {stage===3?'V1 exhibit':'V2 exhibit'}
   </button>}
-  {visit?.gallery&&<p role="status">{retestTask?null:englishSystemGroupLabel(visit.target)+' · '}Opened saved version {visit.gallery.version}.</p>}
+  {visit?.gallery&&<p role="status">
+   {retestTask?null:englishSystemGroupLabel(visit.target)+' · '}
+   {reconstructed?'Opened a reconstructed V1 reference. Record what you observe in this reference.':`Opened the assigned ${stage===3?'V1':'V2'} exhibit.`}
+  </p>}
   {stage===4&&open&&!submitted&&!visit?.gallery&&retestTask?.ready&&<p>Open the exhibit, inspect the frames, then close the viewer to answer and cite the frame you used.</p>}
   {(!visitStage||submitted||visit?.gallery)&&<form onSubmit={submit}>
    <ResponseFields stage={stage} fields={record||fields} update={(key,value)=>setFields(previous=>({...previous,[key]:value}))}
     groupLabel={session.groupLabel} question={visit?.question} recorded={submitted||!open}/>
+   {!submitted&&scoreMismatch&&<p role="status">For a score of 1, choose {ASEAN_FRAMES[visit.question-1]?.label} as the evidence frame. Choose 0 if the answer is missing or unclear.</p>}
    {submitted?<p role="status">Group response saved.</p>:
-    <button className="bml-primary" type="submit" disabled={busy||!open}>Submit group response</button>}
+    <button className="bml-primary" type="submit" disabled={busy||!open||scoreMismatch}>Submit group response</button>}
   </form>}
   {error&&<p className="bml-banner bml-danger-banner" role="alert">{error}</p>}
  </section>;
@@ -181,6 +204,11 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
  const liveOpen=!readOnly&&live?.status==='active'&&live.stageOpen&&live.stageIndex===stage;
  const captured=records.checkpoints.find(item=>item.kind==='after');
  const baseline=records.checkpoints.find(item=>item.kind==='before');
+ const reportTask=records.retest
+  ?'Report what changed and what the assigned visitor group found.'
+  :records.staffRetest
+   ?'Report what changed. You may cite the staff check as a teacher check while the visitor group’s reply is pending.'
+   :'Report what changed. Mark the visitor group’s result as pending.';
  const editable=liveOpen&&(stage===2||(stage===4&&!captured))&&!submitted;
  const document=documentFromStudio({...studio,title:destination?.name||'',summary:destination?.country||'',theme:'culture'},session.assignment);
  const missing=aseanExhibitMissing(document);
@@ -253,8 +281,9 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
    groups={ACTIVITY_GROUPS} ends={ACTIVITY_GROUP_ENDS} activities={language==='en'?ASEAN_STAGES:ASEAN_ACTIVITIES_VI}
    onGroup={group=>browseActivity(group===activityGroup?stage:(ACTIVITY_GROUP_ENDS[group-1]??0))} onActivity={browseActivity}/>}
   overlays={preview&&<div className="bml-student-detail-overlay bml-museum-preview-overlay" role="dialog" aria-modal="true"
-   aria-label={preview.reference?'Reconstructed V1 reference':preview.own?'Preview group museum':'Visit assigned exhibit'}>
+    aria-label={preview.reference?'Reconstructed V1 reference':preview.own?'Preview group museum':'Visit assigned exhibit'}>
    <div className="bml-student-detail-window bml-museum-preview-window">
+    {preview.reference&&<p className="asean-v1-reference-label">V1 · Reconstructed reference</p>}
     <GalleryRenderBoundary language="en" onFallback={()=>setPreview(null)}>
      <MuseumScene embedded cinema initial3D language="en" gallery={preview.own?localMuseumFromDraft(document,assets):preview.gallery}
       onClose={()=>setPreview(null)}/>
@@ -277,8 +306,11 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
       <div className="bml-live-student-question">
        <p className="bml-question-eyebrow">Period {current.period} · Activity {stage+1} / {ASEAN_STAGES.length} · {current.minutes} min</p>
        <h2 id="asean-student-activity-title">{design.studentTitle}</h2>
-       <p>{stage===4&&captured?
-        'Visit the assigned room and record what you find. Then check the revision and visitor result for your own exhibit.':design.studentTask}</p>
+       <p>{stage===5
+        ?reportTask+' Submit the final room and write two sentences for the destination on your transfer card.'
+        :stage===4&&captured
+         ?'Visit the assigned room and record what you find. Then review the change made to your own exhibit.'
+         :design.studentTask}</p>
       </div>
       <AseanActivityArt activity={design.id}/>
       {[1,2,4].includes(stage)&&destination&&<div className="asean-student-sources">
@@ -323,16 +355,15 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        {captured.reason&&<p>{captured.reason}</p>}
        {baseline?.reconstructed&&<button type="button" className="bml-outline" disabled={busy} onClick={()=>action('reference-v1')}>View reconstructed V1</button>}
        {baseline?.complete===false&&<p>V1 was saved before the exhibit was complete. Record what the visitor finds in V2.</p>}
-       {records.retest?<p><strong>Fresh visitor result</strong> · {records.retest.score}/1 · {records.retest.answer}</p>:
-        <p role="status">Waiting for the assigned visitor group’s result.</p>}
-       {stage===5&&records.staffRetest&&<p><strong>Staff-prepared check</strong> · {records.staffRetest.score}/1 · {records.staffRetest.answer}</p>}
+       {records.retest?<p><strong>Assigned visitor group’s result</strong> · {records.retest.score}/1 · {records.retest.answer}</p>:
+        <p role="status">Assigned visitor group’s result · Pending</p>}
+       {stage===5&&records.staffRetest&&<p><strong>Staff check (teacher reference)</strong> · {records.staffRetest.score}/1 · {records.staffRetest.answer}</p>}
       </section>}
       {workshopVisible&&!(stage===4&&captured)&&<section className="asean-student-studio" ref={studioRef} tabIndex={-1} data-testid="asean-3d-studio">
        <h4 className="asean-studio-title">{stage===2?'3D Studio':stage===4?'Revise your 3D exhibit':'Submit your 3D exhibit'}</h4>
        {photoCount===0&&<p>Upload a photo to preview your room in 3D.</p>}
        {!editable&&stage===2&&<p role="status">{readOnly||submitted?'This exhibit is view only.':'Your teacher needs to open Activity 3 before your group can edit.'}</p>}
        {stage===4&&records.feedback&&<p><strong>Feedback received</strong> {records.feedback.comment}</p>}
-       {stage===5&&captured&&<p>{records.retest?"Report the revision and what the fresh visitors found.":"Report the revision. The visitor result is still pending."}</p>}
        {stage!==5&&<MuseumArtworkStudio studio={studio} update={edit} csrf={session.csrf} language="en" disabled={!editable||busy}
         uploadEnabled={session.uploadEnabled||readOnly} onAssets={setAssets} onBusy={setImageBusy} lessonTemplate={session.assignment.lesson_template}
         frameEditor={key=>captionEditor(ASEAN_FRAMES.find(frame=>frame.key===key))}/>}
@@ -355,7 +386,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        {stage===5&&liveOpen&&!captured&&!submitted&&<p>Save the revised V2 in Activity 5 before submitting.</p>}
       </section>}
       {stage!==2&&stage!==4&&<GroupResponse key={stage} session={{...session,readOnly}} stage={stage} live={live} open={liveOpen}
-       record={stageRecord} refreshLive={refreshLive} refreshRecords={refreshRecords} onVisit={gallery=>setPreview({gallery})}/>}
+       record={stageRecord} refreshLive={refreshLive} refreshRecords={refreshRecords} onVisit={(gallery,reference)=>setPreview({gallery,reference})}/>}
       {error&&<p className="bml-banner bml-danger-banner" role="alert">{error}</p>}
       {notice&&<p role="status">{notice}</p>}
      </div>

@@ -94,3 +94,12 @@
   background: #ecf0e8;
 }
 .asean-own-revision h4, .asean-own-revision p { margin: 0 0 6px; }
+.bml .asean-v1-reference-label {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 7px 12px;
+  background: #f5ead0;
+  color: #243832;
+  font-size: .875rem;
+  font-weight: 700;
+}
