@@ -51,6 +51,7 @@
 
   /* Layout */
   --igv2-max-width: 1360px;
+  --igv2-shell-gutter: clamp(14px, 1.8vw, 22px);
   --igv2-sidebar-px: 234px;
   --igv2-main-padding-px: 30px;
   --igv2-grid-columns: 12;

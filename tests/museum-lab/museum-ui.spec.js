@@ -162,6 +162,75 @@ test('ASEAN teaching plan reuses the approved editorial screen',async({page},tes
  await expect(download).toBeVisible();
  await expect(screen.locator('.kpi strong')).toHaveText(['90','6','1','1']);
 });
+test('Museum Lab cards share the banner and footer edges across tabs',async({page},testInfo)=>{
+ test.setTimeout(120000);
+ const lessonTemplate='asean-in-three-frames';
+ const assignments=[{id:'alignment-lesson',title:'ASEAN in Three Frames',class_scope:'11-QA',lesson_template:lessonTemplate}];
+ const groups=Array.from({length:10},(_,index)=>({
+  id:'alignment-group-'+index,assignment_id:assignments[0].id,
+  label:'Nhóm '+String(index+1).padStart(2,'0'),state:'editing',
+ }));
+ const galleries=[{id:'alignment-exhibition',title:'Heritage destinations',lesson_template:lessonTemplate,status:'published'}];
+ await page.route('**/api/gallery-staff?operation=*',route=>{
+  const operation=new URL(route.request().url()).searchParams.get('operation');
+  const body=operation==='dashboard'?{profile:{role:'viewer'},assignments,groups,publishedGalleries:galleries}:
+   operation==='showcase-state'?{galleryEnabled:true,publishedGalleries:galleries}:{gallery:{...galleries[0],rooms:[]}};
+  return route.fulfill({json:body});
+ });
+ await page.route('**/api/gallery-guest/live?*',route=>route.fulfill({json:{session:null}}));
+ await page.getByTestId('qa-dashboard-visitor').click();
+ const root=page.getByTestId('immersive-gallery-v2');
+ const assertEdges=async selector=>{
+  await expect(root.locator(selector).first()).toBeVisible();
+  const offsets=await root.evaluate((shell,selector)=>{
+   const footer=shell.querySelector('.igv2-footer-wrap').getBoundingClientRect();
+   const elements=shell.querySelectorAll('.igv2-topbar,.contest.contest-art,'+selector);
+   const deviations=Array.from(elements,element=>{
+    const box=element.getBoundingClientRect();
+    return Math.max(Math.abs(box.left-footer.left),Math.abs(box.right-footer.right));
+   });
+   const utilityButtons=shell.querySelectorAll('.igv2-topbar-utils button');
+   for(const button of utilityButtons){
+    const {left,right}=button.getBoundingClientRect();
+    deviations.push(Math.max(footer.left-left,right-footer.right,0));
+   }
+   return deviations;
+  },selector);
+  offsets.forEach(offset=>expect(offset).toBeLessThanOrEqual(1));
+ };
+ const screens=[
+  ['overview','.ov-hero,.ov-nav-strip,.ov-two-col'],
+  ['lessons','.swiss-editorial-lessons,.swiss-editorial-lesson-groups'],
+  ['submissions','.swiss-editorial-submissions-hero,.swiss-editorial-review-desk'],
+  ['exhibitions','.swiss-editorial-exhibitions-hero,.swiss-editorial-exhibitions-grid'],
+  ['teaching-plan','.plan-masthead,.plan-hero,.plan-periods'],
+  ['teacher-live','[data-testid="igv2-teacher-live-screen"]'],
+  ['competition-dossier','.bml-screen'],
+ ];
+ for(const [tab,selector] of screens){
+  await root.getByTestId('igv2-nav-'+tab).click();
+  if(tab==='exhibitions')await expect(root.locator('.swiss-editorial-exhibit')).toHaveCount(1);
+  await assertEdges(selector);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+  if(tab==='lessons'){
+   const columns=root.locator('.swiss-editorial-lesson-groups');
+   const boxes=await columns.locator('table,aside').evaluateAll(items=>items.map(el=>{
+    const {top,bottom}=el.getBoundingClientRect();
+    return {top,bottom};
+   }));
+   if(!testInfo.project.use.isMobile){
+    expect(Math.abs(boxes[0].top-boxes[1].top)).toBeLessThanOrEqual(1);
+    expect(Math.abs(boxes[0].bottom-boxes[1].bottom)).toBeLessThanOrEqual(1);
+   } else {
+    expect(boxes[1].top).toBeGreaterThanOrEqual(boxes[0].bottom);
+   }
+  }
+ }
+ await root.getByRole('button',{name:'Cài đặt hệ thống',exact:true}).click();
+ await assertEdges('.settings-layout');
+ await root.getByTestId('igv2-nav-lessons').click();
+ await page.screenshot({path:testInfo.outputPath('museum-lessons-alignment.png'),fullPage:true,animations:'disabled'});
+});
 test('approved submissions page keeps review details and omits the footnote in both languages',async({page,isMobile},testInfo)=>{
  await page.getByTestId('qa-dashboard-submissions').click();
  await page.getByTestId('igv2-nav-submissions').click();
