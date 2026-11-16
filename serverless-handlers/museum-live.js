@@ -9,7 +9,7 @@ import {searchVideos,mediaText,mediaId,mediaBoardUpdate,mediaTask,searchThrottle
 import {handleLivePeer,peerRoomsEvidence} from './_museumLivePeer.js';
 import {liveReadAudience,presentationFor,responseMatchesActivity,validPresentation} from '../src/features/immersive-gallery/v3/livePresentation.js';
 import {handleMuseumP2,p2WorksheetsForEvidence} from './_museumP2.js';
-import {ASEAN_STAGES,isAsean} from '../src/features/immersive-gallery/v3/aseanLesson.js';
+import {ASEAN_STAGES,aseanExhibitMissing,isAsean} from '../src/features/immersive-gallery/v3/aseanLesson.js';
 import {aseanGroupRecords,handleAseanActivity} from './_museumAsean.js';
 const stageCount=assignment=>isAsean(assignment)?ASEAN_STAGES.length:LIVE_STAGES.length;
 const canRespond=stage=>['vote','quiz','exit','peer'].includes(stage?.kind)||(stage?.kind==='group'&&Array.isArray(stage.videoQuestions));
@@ -130,6 +130,10 @@ export default async function museumLive(req,res){
      :session;
     const grp=privateAsean?[]:await query(admin.from('gcp_groups').select('id,label,state')
       .eq('assignment_id',assignment.id).order('label'));
+    const studioDrafts=asean&&viewIndex===2&&grp.length
+     ?await query(admin.from('gcp_drafts').select('group_id,version,doc').in('group_id',grp.map(group=>group.id)).gt('version',0))
+     :[];
+    const studioProgress=studioDrafts.map(draft=>({groupId:draft.group_id,complete:aseanExhibitMissing(draft.doc).length===0}));
     const responses=privateAsean?[]:await query(admin.from('museum_live_responses').select('group_id,value,created_at')
       .eq('session_id',session.id).eq('stage_index',viewIndex));
     const writingScores=asean&&!privateAsean&&(viewIndex===0||viewIndex===5)
@@ -161,7 +165,7 @@ export default async function museumLive(req,res){
      contentFrozenAt:assignment.content_frozen_at??null,stageCount:stageCount(assignment),
      microResponses:micro.length,microResults:micro,
      result:asean?null:(()=>{const r=summarizeResponses(viewIndex,responses,sessionStage(viewing,viewIndex));if(r&&!asean&&session.evidence_version===0&&viewIndex===2)r.options=r.options.map((o,i)=>({...o,label:legacySurvey.options[i]}));return r;})(),
-     groups:grp,writingScores,needHelp:new Set(helps.map(h=>h.group_id)).size,helpGroups:[...new Set(helps.map(h=>h.group_id))],survey:await surveyFor(admin,session.id),feedback:[...feedback,...liveFeedback],responses:activityResponses});
+     groups:grp,studioProgress,writingScores,needHelp:new Set(helps.map(h=>h.group_id)).size,helpGroups:[...new Set(helps.map(h=>h.group_id))],survey:await surveyFor(admin,session.id),feedback:[...feedback,...liveFeedback],responses:activityResponses});
    }
    if(op==='video-search'){
     requireMethod(req,'GET');

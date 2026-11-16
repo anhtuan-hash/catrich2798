@@ -3,6 +3,7 @@ import {X,Minimize2} from 'lucide-react';
 import MuseumScene from '../../v3/MuseumScene.jsx';
 import StageArt from './StageArt.jsx';
 import TeacherLiveSlideContent from './TeacherLiveSlideContent.jsx';
+import AseanLiveSlide from './AseanLiveSlide.jsx';
 import {MUSEUM_ACTIVITY_SLIDES} from '../../v3/museumActivitySlides.js';
 const t=(lang,vi,en)=>lang==='en'?en:vi;
 const pad=value=>String(value).padStart(2,'0');
@@ -22,10 +23,10 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
   curriculumNode=null,view='task',questions=null,survey=null,questionIndex=0,onPresent,presentationBusy=false,
   revealed=false,
   elapsed=0,remaining=0,
-  respondedCount=null,
+  respondedCount=null, progressLabel=null,
   isFullscreen=false,onExitFullscreen,
   fullscreenControls=null,fullscreenPanel=null,
-  assignments=[],assignmentId='',assignmentBusy=false,onAssignment
+  assignments=[],assignmentId='',assignmentBusy=false,onAssignment,onAseanJoin,onAseanStudioHelp,aseanDraftTools
 },ref){
   const period=stage?.period??1;
   const phaseName=period===1
@@ -67,7 +68,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
               <button type="button" onClick={onCloseSpotlight} style={{background:'#fffdf8',color:'#111',border:'1.5px solid #111',padding:'5px 10px',fontSize:11,cursor:'pointer'}} aria-label={t(language,'Đóng trình chiếu nhóm','Close group spotlight')}><X size={13}/> {t(language,'Đóng','Close')}</button>
             </div>
             <div style={{flex:'1 1 auto',minHeight:0,overflow:'hidden',background:'#0a1522',borderRadius:3}}>
-              <MuseumScene gallery={spotlight.gallery} language={language} embedded/>
+              <MuseumScene gallery={spotlight.gallery} language={language} embedded initial3D={stage?.kind==='asean'}/>
             </div>
           </div>
         ):(
@@ -75,6 +76,8 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
             <div className={'adv-stage-layout' + (videoLayout||stage?.kind==='asean'?' is-video':'')}>
               <div className="adv-stage-copy">
                 <div className="adv-stage-section">{phaseLabel}</div>
+                {stage?.kind==='asean'?<AseanLiveSlide stage={stage} currentIndex={currentIndex} language={language} revealed={revealed}
+                  onJoin={onAseanJoin} onStudioHelp={onAseanStudioHelp} draftTools={aseanDraftTools}/>:<>
                 <h2 className="adv-stage-title">{stage?.title||t(language,'Đang tải hoạt động…','Loading activity…')}</h2>
                 {language!=='en'&&stage?.vi?<p className="adv-stage-vi">{stage.vi}</p>:null}
                 {hasLessonSlide?<TeacherLiveSlideContent key={stage.id} stage={stage} language={language}
@@ -83,7 +86,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
                  :<div><p className="adv-stage-question">{stage?.question}</p>
                    {stage?.expected&&<p><strong>Group output</strong> · {stage.expected}</p>}
                    {revealed&&stage?.teaching&&<p>{stage.teaching}</p>}
-                  </div>}
+                  </div>}</>}
               </div>
               {!videoLayout&&stage?.kind!=='asean'?<StageArt id={stage?.id}/>:null}
             </div>
@@ -93,7 +96,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
       <div className="adv-stage-bottom">
         <strong className="adv-stage-timer" aria-label={readOnly?'Review mode':t(language,'Thời gian còn lại','Time remaining')}>{readOnly?'00:00':fmtClock(remaining)}</strong>
         <span className="adv-live-status" data-open={taskOpen&&!readOnly?'true':'false'} title={readOnly?frozenReason:undefined}><i/>{statusLabel}</span>
-        <span>{respondedCount!=null?`${respondedCount} ${t(language,'phản hồi nhóm','group responses')}`:''}</span>
+        <span>{progressLabel??(respondedCount!=null?`${respondedCount} ${t(language,'phản hồi nhóm','group responses')}`:'')}</span>
       </div>
       {isFullscreen&&fullscreenControls?<div className="adv-stage-fullscreen-controls" data-testid="museum-fullscreen-viewer-controls"
         style={{position:'absolute',zIndex:30,left:12,right:12,bottom:8,padding:'8px 10px',background:'#fffdf8',color:'#111',border:'1.5px solid #111'}}>

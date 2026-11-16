@@ -1,5 +1,5 @@
 import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
-import {ArrowLeft,Play,MonitorPlay,BookOpen,Printer,X} from 'lucide-react';
+import {ArrowLeft,Box,Play,MonitorPlay,BookOpen,Printer,X} from 'lucide-react';
 import {presentationFor} from '../../v3/livePresentation.js';
 import {LIVE_STAGES,liveStage,LEGACY_LANGUAGE_MINI_LESSON} from '../../v3/liveLesson.js';
 import {ASEAN_STAGES,isAsean,ASEAN_DESTINATIONS} from '../../v3/aseanLesson.js';
@@ -64,6 +64,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   const [previewPresentation,setPreviewPresentation]=useState(null);
   const [isFullscreen,setIsFullscreen]=useState(false);
   const [spotlight,setSpotlight]=useState(null),[time,setTime]=useState(Date.now());
+  const [studioGroupId,setStudioGroupId]=useState('');
   const [workbookOpen,setWorkbookOpen]=useState(false);
   const [paper,setPaper]=useState(false),[tally,setTally]=useState(['','','','']),[tallyNote,setTallyNote]=useState('');
   const stageRef=useRef(null),activeRef=useRef(true);
@@ -91,6 +92,12 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     ?(currentIndex===1&&session?.questionVersion!==2?LEGACY_LANGUAGE_MINI_LESSON:liveStage(currentIndex))
     :session?.stage;
   const groups=(state?.groups||[]).map(g=>({...g,label:language==='en'?englishSystemGroupLabel(g.label):g.label}));
+  const studioGroup=groups.find(group=>group.id===studioGroupId)||groups[0];
+  const studioProgress=asean&&currentIndex===2&&serverIndex===currentIndex&&!data?.publicReadOnly&&Array.isArray(state?.studioProgress)
+   ?state.studioProgress:null;
+  const v1ProgressLabel=studioProgress&&groups.length?t(language,
+   `${studioProgress.filter(draft=>draft.complete).length}/${groups.length} bản 3D đủ nội dung`,
+   `${studioProgress.filter(draft=>draft.complete).length}/${groups.length} complete 3D drafts`):null;
   const minute=stages[currentIndex]?.minutes||0;
   const curriculumVideo=asean?null:MUSEUM_CURRICULUM_VIDEOS[currentIndex]||null;
   const presentation=presentationFor(currentIndex,readOnly?previewPresentation:
@@ -134,6 +141,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     if(action==='next'||action==='previous'){
       const base=jumpIndex??session?.stageIndex??0;
       setJumpIndex(Math.max(0,Math.min(stages.length-1,base+(action==='next'?1:-1))));
+      setSpotlight(null);
     }
     setBusy(true);setError('');
     try{const payload=action==='start'?{assignmentId}:{assignmentId,action,version:session?.version,...details};
@@ -182,7 +190,8 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   const spotlightGroup=async groupId=>{
     setBusy(true);setError('');
     try{const r=await transport('group-gallery',null,{assignmentId,groupId});
-      if(!r?.draft?.rooms?.length)throw new Error(t(language,'Nhóm chưa có bản triển lãm.','This group has not created a museum draft yet.'));
+      if(!r?.draft?.rooms?.length||asean&&!r.draft.rooms.some(room=>room.exhibits?.some(exhibit=>exhibit.kind==='image')))
+       throw new Error(t(language,'Nhóm chưa lưu bản triển lãm có ảnh.','This group has not saved an exhibit with photos yet.'));
       const urls=new Map((r.artworks||[]).map(a=>[a.id,a.image_url]));
       const gallery={...r.draft,rooms:r.draft.rooms.map((room,i)=>({...room,id:'class-room-'+i,exhibits:room.exhibits.map((e,j)=>({...e,id:'class-exhibit-'+i+'-'+j,image_url:urls.get(e.asset_id)||'',status:'published'}))}))};
       setSpotlight({gallery,groupLabel:language==='en'?englishSystemGroupLabel(r.groupLabel):r.groupLabel});
@@ -265,7 +274,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     {activeTool==='video'?<MuseumVideoLab mode="teacher" readOnly={readOnly} stage={stage}
       stageIndex={currentIndex} media={session?.media} assignmentId={assignmentId} version={session?.version}
       language={language} transport={transport}/>:null}
-    {activeTool==='notes'?(asean?<AseanTeachingNotes stage={stage}/>:<LessonResources stageIndex={currentIndex} teacher language={language}/>):null}
+    {activeTool==='notes'?(asean?<AseanTeachingNotes stage={stage} language={language} uploadsEnabled={data?.creatorSettings?.upload_enabled}/>:<LessonResources stageIndex={currentIndex} teacher language={language}/>):null}
     {activeTool==='resources'?(asean?<AseanSources/>:<MuseumResourceHub stage={stage} language={language}/>):null}
     {activeTool==='qr'?<div><h3>Student Creator QR</h3>
       {qr?<img src={qr} width="160" height="160" alt="Student Creator QR"/>:null}
@@ -302,10 +311,26 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
             questions={questions} survey={slideSurvey}
             revealed={Boolean(session.revealed)}
             elapsed={elapsed} remaining={remaining}
-            respondedCount={respondedCount}
+            respondedCount={asean&&currentIndex===2?null:respondedCount} progressLabel={v1ProgressLabel}
             isFullscreen={isFullscreen} onExitFullscreen={fullscreen}
             assignments={assignments} assignmentId={assignmentId} assignmentBusy={busy}
             onAssignment={e=>{++requestSequence.current;setAssignmentId(e.target.value);setBrowseIndex(null);setJumpIndex(null);setPreviewReveal(false);setState(null);setSpotlight(null);}}
+            onAseanJoin={asean&&!data?.offlineReadOnly&&!data?.publicReadOnly?()=>toggleTool('qr'):undefined}
+            onAseanStudioHelp={asean?()=>toggleTool('notes'):undefined}
+            aseanDraftTools={asean&&!data?.publicReadOnly&&studioGroup?<div>
+              <label>{t(language,'Bản đã lưu của','Saved draft from')}{' '}
+               <select value={studioGroup.id} onChange={event=>setStudioGroupId(event.target.value)}>
+                {groups.map(group=>{
+                 const draft=studioProgress?.find(item=>item.groupId===group.id);
+                 const status=draft?.complete?t(language,'đủ nội dung','complete'):draft?t(language,'đã lưu nháp','draft saved'):t(language,'chưa lưu','not saved');
+                 return <option key={group.id} value={group.id}>{group.label}{studioProgress?` · ${status}`:''}</option>;
+                })}
+               </select>
+              </label>
+              <button type="button" className="adv-toolbtn" disabled={busy||Boolean(studioProgress&&!studioProgress.some(item=>item.groupId===studioGroup.id))} onClick={()=>spotlightGroup(studioGroup.id)}>
+               <Box size={15}/>{t(language,'Mở bản lưu 3D','Open saved 3D draft')}
+              </button>
+             </div>:null}
             fullscreenControls={toolbar} fullscreenPanel={fullscreenPanel}/>
           <div className="adv-live-dock">
             {!isFullscreen?toolbar:null}
@@ -334,7 +359,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
           {!isFullscreen&&activeTool==='notes'?(
             <div className="adv-panel-overlay" role="region" aria-label={t(language,'Ghi chú dạy','Teaching notes')}>
               <button type="button" className="adv-panel-close" onClick={()=>setActiveTool(null)} aria-label={t(language,'Đóng ghi chú','Close notes')}><X size={14}/></button>
-              {asean?<AseanTeachingNotes stage={stage}/>:<LessonResources stageIndex={currentIndex} teacher language={language}/>}
+              {asean?<AseanTeachingNotes stage={stage} language={language} uploadsEnabled={data?.creatorSettings?.upload_enabled}/>:<LessonResources stageIndex={currentIndex} teacher language={language}/>}
             </div>
           ):null}
           {!isFullscreen&&activeTool==='resources'?(
@@ -401,8 +426,17 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
 }
 export {TeacherLiveScreen};
 
-function AseanTeachingNotes({stage}){
- return stage?<div><h3>{stage.title}</h3><p>{stage.teaching}</p><p>{stage.expected}</p></div>:null;
+function AseanTeachingNotes({stage,language,uploadsEnabled}){
+ return stage?<div><h3>{language==='vi'?stage.vi:stage.title}</h3>
+  {stage.id==='asean-build'&&<>
+   <ol>
+    <li>{t(language,'Học sinh mở QR hoặc link mời của nhóm rồi đăng nhập bằng mã nhóm.','Students open the class QR or their invitation link and sign in with their group pass.')}</li>
+    <li>{t(language,'Khi giáo viên mở Hoạt động 3, xưởng hiện trên trang học sinh. Nếu đang xem hoạt động khác, chọn Follow teacher.','The workshop appears on the student page when Activity 3 is open. If students are browsing another activity, select Follow teacher.')}</li>
+    <li>{t(language,'Tải ba ảnh, viết chú thích và ghi nguồn. Chọn Preview in 3D, rồi chọn Save V1. Giáo viên có thể trình chiếu bản đã lưu từ màn hình này.','Upload the three photos, write and credit the captions, open Preview in 3D, then select Save V1. The teacher can project a saved draft from this slide.')}</li>
+   </ol>
+   {uploadsEnabled===false&&<p role="status">{t(language,'Tải ảnh đang tắt. Bật “Tải tranh ảnh 3D” trong Cài đặt để nhóm có thể dựng phòng.','Photo uploads are off. Enable 3D artwork uploads in Settings so groups can build their rooms.')}</p>}
+  </>}
+  <p lang="en">{stage.teaching}</p><p lang="en">{stage.expected}</p></div>:null;
 }
 function AseanSources(){
  return <div><h3>Destination sources</h3><ul>{ASEAN_DESTINATIONS.map(destination=><li key={destination.name}>
