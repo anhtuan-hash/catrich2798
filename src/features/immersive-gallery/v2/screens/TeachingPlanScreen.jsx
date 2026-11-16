@@ -112,7 +112,7 @@ export default function TeachingPlanScreen({language='vi',data,lessonTemplate,on
       </section>
 
       <div className="plan-note" role="note">{asean
-        ? t(language,'Mỗi nhóm nộp một phiếu viết đầu giờ và một phiếu viết vận dụng. Giữa hai lượt viết, nhóm chọn và ghi công ảnh, kiểm tra V1, rồi ghi lại một thay đổi và kết quả thử lại V2.','Each group submits a baseline writing card and a transfer writing card. Between the two rounds, groups select and credit photographs, test V1, then record one change and the result of the V2 retest.')
+        ? t(language,'Mỗi lượt có một đề viết riêng cho từng nhóm. Ở lượt vận dụng, đề được xoay vòng để mỗi nhóm viết về địa điểm mới. Giữa hai lượt viết, nhóm chọn và ghi công ảnh, kiểm tra V1, rồi ghi lại một thay đổi và kết quả thử lại V2.','Each group has its own prompt in each round. For the transfer round, rotate the cards so every group writes about a new destination. Between the two rounds, groups select and credit photographs, test V1, then record one change and the result of the V2 retest.')
         : t(language,'Các nhóm thực hiện khảo sát ưu tiên thật, viết ba thuyết minh tiếng Anh, đưa hình có ghi công và biểu đồ đã chốt vào triển lãm, kiểm tra và cải tiến, sau đó trình bày theo cặp.','Groups conduct a real priority survey, write three English captions, add a credited visual and the frozen group-priority chart, test and revise, then present in pairs.')}</div>
 
       <div className="plan-pillars">

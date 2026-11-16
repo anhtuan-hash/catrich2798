@@ -30,6 +30,14 @@ export const validAseanGroupCount = count =>
 export const ASEAN_CARDS=Object.freeze([
  {title:'My Son Sanctuary',country:'Viet Nam · historic brick temples',experience:'brick towers / look from the path',advice:'taking a photo / stand to one side of the path'},
  {title:'Sukhothai Historical Park',country:'Thailand · historic monuments',experience:'historic monuments / look from the path',advice:'stopping to read / leave room for others on the path'},
+ {title:'Bagan',country:'Myanmar · historic temples',experience:'temple buildings / look from the path',advice:'stopping for photos / leave space for other visitors'},
+ {title:'Vat Phou',country:'Lao PDR · historic temple complex',experience:'old temple buildings / look from the path',advice:'walking near stone steps / take your time'},
+ {title:'Temple of Preah Vihear',country:'Cambodia · historic stone temple',experience:'stone carvings / look closely from the path',advice:'visiting the temple / leave the stonework untouched'},
+ {title:'Prambanan Temple Compounds',country:'Indonesia · historic temple towers',experience:'tall temple towers / look up from the courtyard',advice:'taking a group photo / leave space at the entrance'},
+ {title:'Rice Terraces of the Philippine Cordilleras',country:'Philippines · stepped rice fields',experience:'stepped rice fields / look from a viewpoint',advice:'taking photos / stay on the marked path'},
+ {title:'Kinabalu Park',country:'Malaysia · mountain forests',experience:'forest plants / look along a marked trail',advice:'looking at plants / leave them where they grow'},
+ {title:'Ha Long Bay',country:'Viet Nam · limestone islands',experience:'limestone islands / look from a boat',advice:'moving around the boat / follow the crew’s instructions'},
+ {title:'Komodo National Park',country:'Indonesia · islands and wildlife',experience:'island wildlife / watch with a guide',advice:'watching wildlife / keep your distance'},
 ]);
 export const ASEAN_RUBRIC=Object.freeze([
  {key:'english',label:'Tiếng Anh cho khách',en:'English for visitors',max:4,help:'Clear, specific captions for all three purposes.'},
@@ -48,7 +56,10 @@ export function aseanPeerGroup(classGroups,groupId,stage,{reverse=false}={}){
  const offset=(stage===3?1:2)*(reverse?-1:1);
  return sorted[(index+offset+sorted.length)%sorted.length];
 }
-export const aseanWritingCard = (label,transfer=false)=>ASEAN_CARDS[(Math.max(0,aseanGroupIndex(label))+(transfer?1:0))%2];
+export function aseanWritingCard(label,transfer=false){
+ const index=Math.max(0,aseanGroupIndex(label));
+ return ASEAN_CARDS[(index+(transfer?1:0))%ASEAN_CARDS.length];
+}
 export function aseanWritingRepeats(baseline,transfer){
  const normalize=text=>String(text??'').normalize('NFC').toLowerCase().replace(/[\p{P}\s]+/gu,' ').trim();
  return ['experience','advice'].every(key=>{

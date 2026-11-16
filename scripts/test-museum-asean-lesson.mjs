@@ -11,7 +11,15 @@ test('ASEAN uses two 45-minute group periods, ten destinations and parallel writ
  assert.equal(ASEAN_STAGES.length,6);
  assert.equal(LIVE_STAGES.length,11);
  assert.equal(ASEAN_DESTINATIONS.length,10);
- for(let group=1;group<=10;group++)assert.notEqual(aseanWritingCard('Nhóm '+group),aseanWritingCard('Nhóm '+group,true));
+ const groups=Array.from({length:10},(_,i)=>'Nhóm '+String(i+1).padStart(2,'0'));
+ const baseline=groups.map(label=>aseanWritingCard(label).title);
+ const transfer=groups.map(label=>aseanWritingCard(label,true).title);
+ assert.equal(new Set(baseline).size,10);
+ assert.equal(new Set(transfer).size,10);
+ assert.deepEqual(transfer,[...baseline.slice(1),baseline[0]]);
+ assert.equal(baseline[0],'My Son Sanctuary');
+ assert.equal(transfer[0],'Sukhothai Historical Park');
+ assert.ok(groups.every((_,i)=>baseline[i]!==transfer[i]));
  assert.equal(sessionStage({media_board:{lessonTemplate:ASEAN_TEMPLATE}},3),ASEAN_STAGES[3]);
  assert.equal(sessionStage({media_board:{}},0),LIVE_STAGES[0]);
 });
