@@ -1384,6 +1384,11 @@ test('Swiss Editorial frozen Teacher Live supports 11 GET-only replay activities
  for(let index=2;index<11;index++){
   await toolbar.getByRole('button',{name:'Advance to next activity'}).click();
   await expect(stage).toContainText('ACTIVITY '+(index+1)+'/11');
+  if(index===2){
+   const chart=stage.getByTestId('museum-survey-chart');
+   await expect(chart).toContainText('Valid group responses N = 10');
+   await expect(chart).toContainText('4/10 (40%)');
+  }
  }
  await expect(stage).toContainText('Exit Ticket');
  await expect(toolbar.getByRole('button',{name:'Advance to next activity'})).toBeDisabled();
@@ -1399,6 +1404,30 @@ test('Swiss Editorial frozen Teacher Live supports 11 GET-only replay activities
  await expect.poll(()=>page.evaluate(()=>window.__frozenTeacherWrites||0)).toBe(0);
  const reads=await page.evaluate(()=>window.__frozenTeacherReads||[]);
  expect(reads).toContain(0);expect(reads).toContain(10);
+});
+
+test('a locked student lesson loads and displays the frozen survey denominator',async({page})=>{
+ const reads=[];
+ await page.route('**/api/gallery-guest?**',route=>{
+  const action=new URL(route.request().url()).searchParams.get('operation');
+  return route.fulfill({json:action==='me'?{
+   groupLabel:'Group 01',groupState:'published',readOnly:true,csrf:'qa-locked-survey',
+   assignment:{title:'Climate Action Museum',class_scope:'11-QA'}
+  }:{draft:{title:'Climate Action Museum'},version:2}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>{
+  reads.push(route.request().method());
+  return route.fulfill({json:{session:{status:'ended',stageIndex:10},
+   survey:{n:10,created_at:'2026-11-13T00:00:00Z',options:[
+    {label:'Switching off unused lights',count:4,percent:40}
+   ]}}});
+ });
+ await page.getByTestId('qa-student-en').click();
+ await page.getByRole('button',{name:/Live Classroom Survey/}).click();
+ const chart=page.getByTestId('student-lesson-pane').getByTestId('museum-survey-chart');
+ await expect(chart).toContainText('Valid group responses N = 10');
+ await expect(chart).toContainText('4/10 (40%)');
+ expect(reads).toEqual(['GET']);
 });
 
 test('Teacher Live has real stage motion control, readable voiceover, research library and persistent curated videos',async({page})=>{

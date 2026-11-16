@@ -8,6 +8,7 @@ import './museumCinemaPreview.css';
 import './museumExhibitFocus.css';
 import {FOCUS_IDLE,focusReducer,focusActive} from './museumExhibitFocusMotion.js';
 import {buildExhibitFocusBoard} from './museumExhibitFocusData.js';
+import MuseumSurveyChart from './MuseumSurveyChart.jsx';
 const GalleryCanvas=lazy(()=>import('../GalleryCanvasR3F.jsx'));
 const Exhibit360Viewer=lazy(()=>import('./Exhibit360Viewer.jsx'));
 const clean=(x,n=180)=>String(x??'').slice(0,n);
@@ -313,11 +314,9 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
        <b>Source named by the group</b><p>{clean(insight.source,1200)}</p>
        <small>Citation text is supplied by the creators; it is not independently verified by this app.</small></div>:null}
       {insight?.survey?<div className="bml-exhibit-lens-block">
-       <b>Class group-priority survey · N={insight.survey.n} groups</b>
-       <div className="bml-exhibit-survey">
-        {insight.survey.options.map(option=><div key={option.label}>
-         <span>{option.label}</span><strong>{option.count}/{insight.survey.n} ({option.percent}%)</strong></div>)}
-       </div><small>Source: {insight.survey.source==='paper'?'teacher-entered paper tally':'online group votes'}. Group choices are not measurements of emissions or individual behaviour.</small>
+       <MuseumSurveyChart survey={insight.survey} language={language}/>
+       <small>{insight.survey.source==='paper'?tr('Nguồn · Phiếu giấy do giáo viên tổng hợp','Source · Teacher-entered paper tally')
+        :tr('Nguồn · Phiếu trực tuyến của các nhóm','Source · Online group votes')}</small>
       </div>:null}
       {insight?.improvement?<div className="bml-exhibit-lens-block">
        <b>Change after peer testing</b><p>{clean(insight.improvement,1200)}</p></div>:null}

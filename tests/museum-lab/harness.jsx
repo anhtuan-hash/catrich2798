@@ -6,6 +6,7 @@ import SwissTeacherLive from '../../src/features/immersive-gallery/v2/screens/Te
 import MuseumArtworkStudio from '../../src/features/immersive-gallery/v3/MuseumArtworkStudio.jsx';
 import MuseumLiveStudent from '../../src/features/immersive-gallery/v3/MuseumLiveStudent.jsx';
 import {LIVE_STAGES,summarizeResponses} from '../../src/features/immersive-gallery/v3/liveLesson.js';
+import {surveySummary} from '../../src/features/immersive-gallery/v3/learningEvidence.js';
 import {videoTaskFor} from '../../src/features/immersive-gallery/v3/museumLiveExtensions.js';
 import MuseumLabStudent from '../../src/features/immersive-gallery/v3/MuseumLabStudent.jsx';
 import MuseumScene from '../../src/features/immersive-gallery/v3/MuseumScene.jsx';
@@ -172,7 +173,8 @@ const frozenTeacherApi=async(action,body,params={})=>{
    media:{query:'',instruction:'',videos:[],voiceEnabled:false},
    evidenceVersion:1,questionVersion:2},
   result:summarizeResponses(index,[]),groups:synthetic.groups,needHelp:0,
-  survey:null,feedback:[],responses:[],microResponses:0,microResults:[]
+  survey:surveySummary({counts:[2,4,3,1],created_at:'2026-11-13T00:00:00Z'}),
+  feedback:[],responses:[],microResponses:0,microResults:[]
  };
 };
 const v53QaGallery={
