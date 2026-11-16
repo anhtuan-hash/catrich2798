@@ -1,5 +1,6 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronRight,ClipboardList,Copy,Download,Eye,EyeOff,ExternalLink,KeyRound,Landmark,Leaf,LockKeyhole,Plus,Printer,QrCode,RefreshCw,ShieldAlert,Trash2,Users} from 'lucide-react';
+import {ASEAN_TEMPLATE,ASEAN_TITLE,ASEAN_SUBTITLE,ASEAN_CHALLENGE,ASEAN_BRIEF,ASEAN_STAGES,isAsean,aseanDestination} from './aseanLesson.js';
 import {LESSON_KITS,progressOfGroup} from './museumData.js';
 import {englishSystemGroupLabel} from './museumApi.js';
 import {LIVE_STAGES,LIVE_TOTAL_MINUTES,LIVE_PERIOD_MINUTES} from './liveLesson.js';
@@ -35,9 +36,11 @@ export function OneTimeInvites({invitations,onClose,language='vi'}){
    <button type="button" className="bml-outline" onClick={onClose}>{tr(language,'Đã lưu mã · Đóng','Codes saved · Close')}</button></div>
  </section>;
 }
-export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'}){
+export function LessonWizard({data,onExit,onCompleted,onSettings,initialTemplate='climate',onTemplateChange,language='vi'}){
  const [step,setStep]=useState(0);
- const kit=LESSON_KITS[0];
+ const [template,setTemplate]=useState(initialTemplate);
+ const asean=isAsean(template);
+ const kit=asean?{title:ASEAN_TITLE,subtitle:ASEAN_SUBTITLE,brief:ASEAN_BRIEF}:LESSON_KITS[0];
  const isAdmin=data?.profile?.role==='admin'&&!data?.offlineReadOnly;
  const [form,setForm]=useState({classScope:'',groupCount:6,accessWindow:'standard',title:'',brief:''});
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[invites,setInvites]=useState(null);
@@ -45,7 +48,7 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'})
  const issue=async()=>{
   setError('');setBusy(true);
   try{
-   const payload={title,classScope:form.classScope.trim(),brief,groupCount:Number(form.groupCount),
+   const payload={title,classScope:form.classScope.trim(),brief,groupCount:asean?10:Number(form.groupCount),lessonTemplate:template,
     deadlineAt:deadlineForWindow(form.accessWindow)};
    const r=await staffRequest('create-assignment',payload);setInvites(r.invitations);
    await onCompleted();
@@ -83,7 +86,18 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'})
    </li>)}
   </ol>
   <section className="bml-surface bml-wizard-card">
-   {step===0?<><h2>{tr(language,'Kế hoạch bài dạy','Lesson plan')}</h2>
+   {step===0&&<label>{tr(language,'Mẫu bài dạy','Lesson template')}
+    <select value={template} onChange={e=>{setTemplate(e.target.value);onTemplateChange?.(e.target.value);setForm(v=>({...v,title:'',brief:''}));}}>
+     <option value="climate">Our Climate Action Museum</option>
+     <option value={ASEAN_TEMPLATE}>{ASEAN_TITLE}</option>
+    </select>
+   </label>}
+   {step===0&&asean?<section className="bml-single-flow"><h2>{ASEAN_TITLE}</h2>
+    <p>{ASEAN_SUBTITLE}</p><p>{ASEAN_CHALLENGE}</p>
+    <ol>{ASEAN_STAGES.map(stage=><li key={stage.id}>{stage.title} · {stage.minutes} min</li>)}</ol>
+    <p>Ten groups · Ten destinations · Three frames per group</p>
+   </section>:null}
+   {step===0&&!asean?<><h2>{tr(language,'Kế hoạch bài dạy','Lesson plan')}</h2>
     <p>{tr(language,
      'Một chủ đề duy nhất theo Kế hoạch bài dạy hai tiết: Tiếng Anh 11, Global Success, Unit 5 – Global Warming.',
      'One focused two-period lesson: English 11, Global Success, Unit 5 – Global Warming.')}</p>
@@ -128,7 +142,7 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'})
    {step===1?<><h2>{tr(language,'Thiết lập lớp và nhóm','Set class and groups')}</h2><p>{tr(language,'Chỉ điền những thông tin cần thiết. Mỗi nhóm sẽ nhận một Creator Pass riêng.','Only essential information is required. Every group gets its own Creator Pass.')}</p>
     <div className="bml-field-grid">
      <label>{tr(language,'Lớp học','Class')}<input autoFocus required maxLength={120} placeholder="11A3" value={form.classScope} onChange={e=>setForm(v=>({...v,classScope:e.target.value}))}/></label>
-     <label>{tr(language,'Số nhóm','Number of groups')}<select value={form.groupCount} onChange={e=>setForm(v=>({...v,groupCount:Number(e.target.value)}))}>{Array.from({length:12},(_,i)=><option key={i+1} value={i+1}>{i+1} {tr(language,'nhóm','groups')}</option>)}</select></label>
+     <label>{tr(language,'Số nhóm','Number of groups')}<select disabled={asean} value={asean?10:form.groupCount} onChange={e=>setForm(v=>({...v,groupCount:Number(e.target.value)}))}>{Array.from({length:12},(_,i)=><option key={i+1} value={i+1}>{i+1} {tr(language,'nhóm','groups')}</option>)}</select></label>
      <label>{tr(language,'Quyền truy cập bài','Submission access')}<select value={form.accessWindow} onChange={e=>setForm(v=>({...v,accessWindow:e.target.value}))}>
       <option value="standard">{tr(language,'Tiêu chuẩn','Standard')}</option>
       <option value="extended">{tr(language,'Mở rộng','Extended')}</option>
@@ -143,11 +157,11 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'})
     <p>{tr(language,'Xác nhận nội dung trước khi tạo mã nhóm. Sau khi tạo, mã bí mật sẽ chỉ xuất hiện một lần.','Confirm details before generating one-time private group codes.')}</p>
     <div className="bml-field-grid">
      <label>{tr(language,'Tên chủ đề','Lesson title')}<input maxLength={140} value={title} onChange={e=>setForm(v=>({...v,title:e.target.value}))}/></label>
-     <label>{tr(language,'Lớp / nhóm','Class / groups')}<input disabled value={form.classScope+' · '+form.groupCount+' '+tr(language,'nhóm','groups')}/></label>
+     <label>{tr(language,'Lớp / nhóm','Class / groups')}<input disabled value={form.classScope+' · '+(asean?10:form.groupCount)+' '+tr(language,'nhóm','groups')}/></label>
     </div>
     <label className="bml-full-field">{tr(language,'Nhiệm vụ của học sinh','Student assignment')}<textarea rows={5} maxLength={5000} value={brief} onChange={e=>setForm(v=>({...v,brief:e.target.value}))}/></label>
     <div className="bml-wizard-summary"><div><BookOpen size={21}/><span>{kit.title}</span></div>
-     <div><Users size={21}/><span>{form.groupCount} {tr(language,'nhóm','groups')} · {form.classScope}</span></div>
+     <div><Users size={21}/><span>{asean?10:form.groupCount} {tr(language,'nhóm','groups')} · {form.classScope}</span></div>
 </div>
     {!data?.creatorSettings?.enabled?<div className="bml-banner bml-warning-banner"><LockKeyhole size={20}/><span>{tr(language,'Creator Pass đang tắt. Admin cần bật sau khi nghiệm thu trước khi giao bài thật.','Creator Pass is OFF. An administrator must enable it after acceptance.')}</span>
       <button type="button" className="bml-text-btn" onClick={onSettings}>{tr(language,'Cài đặt','Settings')}</button></div>:null}
@@ -261,6 +275,8 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
    setSecrets(prev=>({...prev,[groupId]:out.groupSecret}));setVisibleSecrets(prev=>({...prev,[groupId]:true}));await onRefresh();}
   catch(e){setError(e.message);}finally{setBusy(false);}
  };
+ const groupCards=data?.aseanResponses||[];
+ const aseanList=isAsean(data?.lessonTemplate);
  return <div className="bml-screen bml-lesson-workspace-v57 swiss-editorial-lessons" data-testid="museum-lessons"><div className="bml-heading-actions"><div><div className="bml-overline">{tr(language,'LỚP HỌC SỐ','LESSON WORKSPACE')}</div>
   <h1>{tr(language,'Bài học của tôi','My lessons')}</h1><p>{tr(language,'Giao dự án và theo dõi từng nhóm.','Assign projects and track your groups.')}</p></div>
   {isAdmin?<button type="button" className="bml-primary" onClick={onCreate}><Plus size={19}/>{tr(language,'Tạo bài học mới','New lesson')}</button>:null}</div>
@@ -268,20 +284,22 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
    <div className="kpi" role="listitem"><strong><i>{allAssignments.length}</i></strong><small>{tr(language,'Bài học đã giao','Assigned lessons')}</small></div>
    <div className="kpi" role="listitem"><strong>{groups.length}</strong><small>{tr(language,'Nhóm học sinh','Active groups')}</small></div>
    <div className="kpi" role="listitem"><strong>{reviews.length}</strong><small>{tr(language,'Bảo tàng đã nộp','Museum submissions')}</small></div>
-   <div className="kpi" role="listitem"><strong>{exitTickets.length}</strong><small>Exit Tickets</small></div>
+   <div className="kpi" role="listitem"><strong>{aseanList?groupCards.filter(ticket=>ticket.stage_index===5).length:exitTickets.length}</strong><small>{aseanList?'Group transfer cards':'Exit Tickets'}</small></div>
   </div>
   <Notice error={error} success={success}/>
   {invites?<OneTimeInvites invitations={invites} onClose={()=>setInvites(null)} language={language}/>:null}
   {assignments.length?<div className="bml-lesson-list">{assignments.map(a=>{
    const mine=groups.filter(g=>g.assignment_id===a.id).sort((left,right)=>String(left.label||'').localeCompare(String(right.label||''),undefined,{numeric:true})),done=mine.filter(g=>['submitted','ttcm_review','approved_locked','published'].includes(g.state)).length;
-   const exitCount=mine.filter(g=>exitTickets.some(t=>t.group_id===g.id)).length;
+   const asean=isAsean(a);
+   const activityCards=asean?groupCards.filter(card=>card.stage_index===5):exitTickets;
+   const exitCount=mine.filter(g=>activityCards.some(t=>t.group_id===g.id)).length;
    const expanded=selected===a.id||(selected==='__auto__'&&a.id===assignments[0]?.id);
    const frozen=Boolean(a.content_frozen_at);
    const canManagePasscodes=isAdmin&&a.created_by===data?.profile?.id;
    const allVisible=mine.length>0&&mine.every(g=>visibleSecrets[g.id]&&secrets[g.id]);
    const activeGroup=mine.find(group=>group.id===pickedGroup)||mine[0];
    const activeLabel=language==='en'?englishSystemGroupLabel(activeGroup?.label):activeGroup?.label;
-   const activeTicket=exitTickets.find(ticket=>ticket.group_id===activeGroup?.id);
+   const activeTicket=activityCards.find(ticket=>ticket.group_id===activeGroup?.id);
    const activeAnswer=typeof activeTicket?.value==='string'?activeTicket.value:JSON.stringify(activeTicket?.value);
    const canRotate=activeGroup&&!frozen&&canManagePasscodes&&['issued','editing','changes_requested'].includes(activeGroup.state);
    return <article className="bml-lesson-block bml-surface bml-paper-lesson-block" key={a.id}>
@@ -293,7 +311,7 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
       <div className="bml-lesson-facts" aria-label="Lesson progress">
        <span><Users size={14}/>{mine.length} groups</span>
        {frozen?<span role="status" className="bml-lesson-frozen"><LockKeyhole size={14}/> FINAL · VIEW ONLY</span>:null}
-       <span><ClipboardList size={14}/>Exit Tickets: {exitCount}/{mine.length}</span>
+       {asean&&data?.publicReadOnly?null:<span><ClipboardList size={14}/>{asean?'Group transfer cards':'Exit Tickets'}: {exitCount}/{mine.length}</span>}
        <span><Landmark size={14}/>Museum projects: {done}/{mine.length}</span>
       </div>
      </div>
@@ -329,25 +347,25 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
               <tr>
                 <th scope="col">{tr(language,'Nhóm','Group')}</th>
                 <th scope="col">{tr(language,'Sản phẩm bảo tàng','Museum project')}</th>
-                <th scope="col">Exit Ticket</th>
+                <th scope="col">{asean?'Group transfer card':'Exit Ticket'}</th>
                 <th scope="col">{tr(language,'Thao tác','Action')}</th>
               </tr>
             </thead>
             <tbody>
               {mine.map(g => {
                 const review = reviews.find(item => item.group_id === g.id);
-                const submitted = exitTickets.some(ticket => ticket.group_id === g.id);
+                const submitted = activityCards.some(ticket => ticket.group_id === g.id);
                 const groupLabel = language === 'en' ? englishSystemGroupLabel(g.label) : g.label;
                 const active = g.id === activeGroup.id;
                 return (
                   <tr key={g.id} data-testid="museum-group-qr-card" className={active ? 'is-selected' : undefined}>
                     <th scope="row">
                       <button type="button" aria-pressed={active} onClick={() => setPickedGroup(g.id)}>
-                        {groupLabel}
+                        {groupLabel}{asean&&aseanDestination(g.label)?' · '+aseanDestination(g.label).name:''}
                       </button>
                     </th>
                     <td>{progressOfGroup(g.state,language).label}</td>
-                    <td>{submitted ? tr(language,'Đã nộp','Submitted') : tr(language,'Chưa nộp','Not submitted')}</td>
+                    <td>{asean&&data?.publicReadOnly?'—':submitted ? tr(language,'Đã nộp','Submitted') : tr(language,'Chưa nộp','Not submitted')}</td>
                     <td>{review ? (
                       <button type="button" className="swiss-editorial-review" onClick={() => onReview(review.id)}>
                         {tr(language,'Xem bài','Review')} <ArrowRight size={16} aria-hidden="true" />
@@ -362,11 +380,11 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
             <h3>{activeLabel}</h3>
             {activeTicket ? (
               <details className="bml-lesson-qr-ticket">
-                <summary>{tr(language,'Xem câu trả lời Exit Ticket','View Exit Ticket response')} <ArrowRight size={15} aria-hidden="true" /></summary>
-                <p>{activeAnswer?.slice(0,2000)}</p>
+                <summary>{asean?'View group transfer card':tr(language,'Xem câu trả lời Exit Ticket','View Exit Ticket response')} <ArrowRight size={15} aria-hidden="true" /></summary>
+                {asean?<><p>{activeTicket.value?.experience}</p><p>{activeTicket.value?.advice}</p></>:<p>{activeAnswer?.slice(0,2000)}</p>}
               </details>
             ) : null}
-        {!data?.offlineReadOnly && (
+        {!data?.offlineReadOnly && !data?.publicReadOnly && activeGroup.invite_handle && (
               <div className="bml-lesson-qr-access">
                 <MuseumGroupQr
                   handle={activeGroup.invite_handle}

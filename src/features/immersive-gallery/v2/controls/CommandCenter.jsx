@@ -16,7 +16,7 @@ const prettyState=(state,lang='vi')=>({
  * Reuses v3 classroomSummary() data model and the same onSpotlight/onCompare handlers;
  * group feedback tabs, before/after compare overlay, help alerts and quality warnings preserved.
  */
-export default function CommandCenter({
+export default function CommandCenter({asean=false,
   groups=[],responses=[],feedback=[],microResults=[],helpGroups=[],
   session=null,compact=false,busy=false,onRefresh,onSpotlight,onCompare,language='vi'
 }){
@@ -56,7 +56,7 @@ export default function CommandCenter({
       <div className="kpi-grid" aria-label={t(language,'Tổng quan lớp học','Classroom summary')}>
         {kpis.map(({icon:Icon,value,label})=><div key={label} className="kpi" style={{display:'flex',flexDirection:'column',gap:2}}><span style={{display:'inline-flex',alignItems:'center',gap:6,fontSize:11,color:'var(--adv-mute)'}}><Icon size={13} aria-hidden="true"/>{label}</span><strong style={{fontSize:26,fontWeight:850}}>{value}</strong></div>)}
       </div>
-      <p style={{fontSize:11,color:'var(--adv-mute)',margin:'8px 0 12px'}}>{t(language,'Hoạt động','Activity')} {activityNum}/11 · {session?.stage?.title||t(language,'Bài học','Lesson')} · <b>{session?.stageOpen?t(language,'Đang mở','Task open'):t(language,'Đã đóng','Task closed')}</b></p>
+      <p style={{fontSize:11,color:'var(--adv-mute)',margin:'8px 0 12px'}}>{t(language,'Hoạt động','Activity')} {activityNum}/{asean?6:11} · {session?.stage?.title||t(language,'Bài học','Lesson')} · <b>{session?.stageOpen?t(language,'Đang mở','Task open'):t(language,'Đã đóng','Task closed')}</b></p>
       <div className="command-grid" style={{display:'grid',gridTemplateColumns:'1.2fr 1fr',gap:16}}>
         <div className="panel">
           <div className="section-title" style={{borderTop:0,marginTop:0}}><span>{t(language,'Chọn một nhóm','Select a group')}</span><span className="right">{model.groups.length} {t(language,'nhóm','groups')}</span></div>
@@ -101,8 +101,8 @@ export default function CommandCenter({
               <div role="tabpanel" aria-label={tab==='received'?t(language,'Phản hồi nhận được','Feedback received'):t(language,'Phản hồi đã gửi','Feedback sent')} style={{marginTop:8}}>
                 {reviews.length?reviews.map((review,i)=>(
                   <article key={review.id||review.from_group+'-'+i} className="adv-cc-feedback">
-                    <div style={{display:'flex',justifyContent:'space-between',fontSize:11,fontWeight:800,marginBottom:4}}><span>{reviewLabel(review)||t(language,'Nhóm lớp','Class group')}</span><span>{review.rating||0}/4</span></div>
-                    <p style={{margin:'2px 0',fontSize:12}}><b>{t(language,'Điều chúng em học được:','What we learned:')}</b> {review.learned}</p>
+                    <div style={{display:'flex',justifyContent:'space-between',fontSize:11,fontWeight:800,marginBottom:4}}><span>{reviewLabel(review)||t(language,'Nhóm lớp','Class group')}</span><span>{review.rating||0}/{asean?3:4}</span></div>
+                    {!asean&&<p style={{margin:'2px 0',fontSize:12}}><b>{t(language,'Điều chúng em học được:','What we learned:')}</b> {review.learned}</p>}
                     {review.clarify?<p style={{margin:'2px 0',fontSize:12}}><b>{t(language,'Nên cải thiện:','What to improve:')}</b> {review.clarify}</p>:null}
                   </article>
                 )):(
@@ -130,7 +130,7 @@ export default function CommandCenter({
           <section role="dialog" aria-modal="true" aria-label={t(language,'So sánh các phiên bản triển lãm đã lưu','Compare saved exhibit revisions')} style={{background:'var(--adv-paper)',maxWidth:900,width:'100%',maxHeight:'90vh',overflow:'auto',padding:18,borderRadius:4}}>
             <header style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}><strong>{t(language,'Quá trình phát triển triển lãm nhóm','Group exhibit development')}</strong>
               <button type="button" onClick={()=>setCompareData(null)} aria-label={t(language,'Đóng so sánh','Close comparison')} className="adv-toolbtn" style={{fontSize:11}}><X size={13}/>{t(language,'Đóng','Close')}</button></header>
-            <MuseumBeforeAfter before={compareData.before} after={compareData.after} groupLabel={safeLabel(compareData.groupLabel)}/>
+            <MuseumBeforeAfter before={compareData.before} after={compareData.after} asean={asean} groupLabel={safeLabel(compareData.groupLabel)}/>
           </section>
         </div>
       ):null}

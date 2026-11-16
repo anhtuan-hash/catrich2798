@@ -16,7 +16,7 @@ const fmtClock=sec=>{
  * Forwarded ref is the fullscreen element (requestFullscreen target).
  */
 const TeacherLiveStage=forwardRef(function TeacherLiveStage({
-  session,stage,currentIndex,language='vi',
+  session,stage,currentIndex,stageCount=11,language='vi',
   readOnly=false,frozenReason='',
   spotlight=null,onCloseSpotlight,
   curriculumNode=null,view='task',questions=null,survey=null,questionIndex=0,onPresent,presentationBusy=false,
@@ -56,7 +56,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
       </header>
       <div className="adv-live-meta">
         <span>{t(language,'TIẾT','PERIOD')} {pad(period)} / 02</span>
-        <span>{t(language,'HOẠT ĐỘNG','ACTIVITY')} {pad(Math.min(currentIndex+1,11))} / 11</span>
+        <span>{t(language,'HOẠT ĐỘNG','ACTIVITY')} {pad(Math.min(currentIndex+1,stageCount))} / {pad(stageCount)}</span>
         <span>{stage?.minutes?`${pad(stage.minutes)} ${t(language,'PHÚT','MIN')}`:''}</span>
       </div>
       <div className="adv-stage-body">
@@ -72,7 +72,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
           </div>
         ):(
           <>
-            <div className={'adv-stage-layout' + (videoLayout?' is-video':'')}>
+            <div className={'adv-stage-layout' + (videoLayout||stage?.kind==='asean'?' is-video':'')}>
               <div className="adv-stage-copy">
                 <div className="adv-stage-section">{phaseLabel}</div>
                 <h2 className="adv-stage-title">{stage?.title||t(language,'Đang tải hoạt động…','Loading activity…')}</h2>
@@ -80,9 +80,12 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
                 {hasLessonSlide?<TeacherLiveSlideContent key={stage.id} stage={stage} language={language}
                   view={view} questions={questions} revealed={revealed} survey={survey} readOnly={readOnly} curriculumNode={curriculumNode}
                   questionIndex={questionIndex} onPresent={onPresent} busy={presentationBusy}/>
-                 :<p className="adv-stage-question">{stage?.question}</p>}
+                 :<div><p className="adv-stage-question">{stage?.question}</p>
+                   {stage?.expected&&<p><strong>Group output</strong> · {stage.expected}</p>}
+                   {revealed&&stage?.teaching&&<p>{stage.teaching}</p>}
+                  </div>}
               </div>
-              {!videoLayout?<StageArt id={stage?.id}/>:null}
+              {!videoLayout&&stage?.kind!=='asean'?<StageArt id={stage?.id}/>:null}
             </div>
           </>
         )}

@@ -10,7 +10,7 @@ const t=(lang,vi,en)=>lang==='en'?en:vi;
 export default function TeacherToolbar({
   language='vi',
   readOnly=false,busy=false,offline=false,
-  session=null,currentIndex=0,
+  session=null,currentIndex=0,stageCount=11,
   motionOn=true,activeTool=null,
   onBack,onPrevious,onNext,onToggleTask,onReveal,onToggleTool,onFullscreen,
   onToggleMotion,onTogglePause,onRefresh,onChangeCompletion,completed=false
@@ -19,7 +19,7 @@ export default function TeacherToolbar({
   const mutateLocked=readOnly||busy||ended;
   const stageOpen=Boolean(session?.stageOpen);
   const revealed=Boolean(session?.revealed);
-  const isLast=currentIndex>=10;
+  const isLast=currentIndex>=stageCount-1;
   const [navKey,setNavKey]=useState('');
   const runNav=async(key,fn)=>{
     if(navKey)return;

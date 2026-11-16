@@ -1,3 +1,4 @@
+import {ASEAN_FRAMES,isAsean} from './aseanLesson.js';
 import {normalizeArtMeta,surveySummary} from './learningEvidence.js';
 // BRIAN Museum Lab V3 — deterministic learning content and validation.
 // No network calls, identities, third-party model endpoints, or invented assessment data.
@@ -65,21 +66,24 @@ export function normalizeStudio(raw){
   learning,artworks:Object.fromEntries(['issue','evidence','solution'].map(key=>[key,/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(input.artworks?.[key]))?input.artworks[key]:null])),legacy,legacyOriginal:legacy?input:null
  };
 }
-export function documentFromStudio(studio){
+export function documentFromStudio(studio,assignment){
  const d=normalizeStudio(studio),v=d.learning;
  const entryByKey={
   issue:['The Problem',v.issue],
   evidence:['The Evidence',v.evidence],
   solution:['Our Solution',v.solution]
  };
- const descriptions=d.storyboardOrder.map((key,i)=>{
+ const asean=isAsean(assignment);
+ if(asean)for(const frame of ASEAN_FRAMES)entryByKey[frame.key][0]=frame.label;
+ const order=asean?ASEAN_FRAMES.map(frame=>frame.key):d.storyboardOrder;
+ const descriptions=order.map((key,i)=>{
   const [title,body]=entryByKey[key],imageId=d.artworks[key],meta=d.artMeta[key];
   return {
    title,
    description:cap([
     body,
     key==='evidence'&&v.source?'Source: '+v.source:'',
-    key==='solution'&&v.improvement?'After peer testing: '+v.improvement:'',
+    !asean&&key==='solution'&&v.improvement?'After peer testing: '+v.improvement:'',
     imageId?'Image source: '+meta.source+' · Rights: '+meta.rights:''
    ].filter(Boolean).join('\n\n'),5000),
    alt_text:meta.alt,
@@ -133,8 +137,8 @@ export function buildProgressCsv(data,language='vi'){
  }
  return '\ufeff'+[headers,...rows].map(row=>row.map(safeCsvCell).join(',')).join('\r\n');
 }
-export function scoreRubric(scores){
- return RUBRIC.reduce((sum,c)=>{
+export function scoreRubric(scores,criteria=RUBRIC){
+ return criteria.reduce((sum,c)=>{
   const value=Number(scores?.[c.key]??0);
   if(!Number.isInteger(value)||value<0||value>c.max)throw new Error('Điểm rubric không hợp lệ: '+c.label);
   return sum+value;

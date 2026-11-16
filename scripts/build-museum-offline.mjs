@@ -18,7 +18,7 @@ export async function buildMuseumOffline(outDir='dist'){
  const output=(Array.isArray(result)?result[0]:result).output;
  let script=output.filter(x=>x.type==='chunk').map(x=>x.code).join('\n');
  let css=output.filter(x=>x.type==='asset'&&x.fileName.endsWith('.css')).map(x=>String(x.source)).join('\n');
- const mime={'.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.avif':'image/avif','.svg':'image/svg+xml','.ttf':'font/ttf','.woff2':'font/woff2','.html':'text/html'};
+ const mime={'.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.avif':'image/avif','.svg':'image/svg+xml','.ttf':'font/ttf','.woff2':'font/woff2','.html':'text/html','.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document'};
  const assetPaths=new Set([...((script+'\n'+css).matchAll(/["'`(](\/(?:assets|museum)\/[^"'`()\s]+)["'`)]/g))].map(m=>m[1]));
  assetPaths.add('/museum-lesson-guide.html');
  assetPaths.add('/museum-lesson-worksheet.html');

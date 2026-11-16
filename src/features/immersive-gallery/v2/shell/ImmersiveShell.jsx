@@ -77,6 +77,7 @@ export default function ImmersiveShell({
   onQueryChange,
   onHelp,
   pendingCount = 0,
+  lessonTemplate,
 }) {
   const payload = data || staff || {};
   const profile = payload?.profile || {};
@@ -359,7 +360,7 @@ export default function ImmersiveShell({
       </header>
 
       <div className="igv2-banner-wrap">
-        <CompetitionBanner language={language} />
+        <CompetitionBanner language={language} lessonTemplate={lessonTemplate} />
       </div>
 
       <main className="igv2-main-full" id="igv2-main" aria-label={NAV_LABEL[activeNav] || 'Overview'}>

@@ -1,6 +1,7 @@
 import React,{useEffect,useMemo,useRef,useState} from 'react';
 import { LockKeyhole,ArrowLeft,ArrowRight,ArrowUpRight,BookOpen,CheckCircle2,ClipboardCheck,Clock3,Eye,FileText,MessageCircle,ShieldAlert,ShieldCheck,Star,Trash2,Users} from 'lucide-react';
 import {RUBRIC,scoreRubric,suggestRubric} from './museumData.js';
+import {ASEAN_RUBRIC,isAsean,aseanGroupIndex} from './aseanLesson.js';
 import {LESSON_RUBRIC_LEVELS} from './lessonPlanAlignment.js';
 import {englishSystemGroupLabel,staffRequest} from './museumApi.js';
 import MuseumScene,{reviewMuseum} from './MuseumScene.jsx';
@@ -44,6 +45,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
   return()=>{active=false;window.clearInterval(timer);};
  },[preview,selected?.group_id]);
  const assignment=assignments.find(a=>a.id===group?.assignment_id);
+ const asean=isAsean(assignment),criteria=asean?ASEAN_RUBRIC:RUBRIC,maxScore=asean?10:100;
  const publicReadOnly=Boolean(data?.publicReadOnly);
  const isAdmin=data?.profile?.role==='admin'&&!data?.offlineReadOnly&&!publicReadOnly;
  const rubricsByReview=new Map((data?.rubrics||[]).map(row=>[row.review_id,row]));
@@ -52,9 +54,9 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
  const canTeach=selected&&isAdmin&&!frozen&&GRADEABLE.includes(selected.state);
  const canReview=selected&&isAdmin&&!frozen&&AWAITING_REVIEW.includes(selected.state);
  const canPublish=selected&&isAdmin&&!frozen&&selected.state==='approved_locked'&&group?.state==='approved_locked';
- const showSuggested=canReview&&!rubric;
+ const showSuggested=canReview&&!rubric&&!asean;
  const suggestedScores=showSuggested?suggestRubric(selected.id):{};
- const initialScores=form?.scores??Object.fromEntries(RUBRIC.map(c=>[c.key,rubric?.scores?.[c.key]??suggestedScores[c.key]??0]));
+ const initialScores=form?.scores??Object.fromEntries(criteria.map(c=>[c.key,rubric?.scores?.[c.key]??suggestedScores[c.key]??0]));
  const note=form?.note??rubric?.feedback??'';
  const editRubric=change=>setForm({
   scores:initialScores,note,expectedUpdatedAt:form?form.expectedUpdatedAt:rubric?.updated_at??null,...change
@@ -72,7 +74,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
   try{
    const body={reviewId:selected.id};
    if(action==='approve'){
-    scoreRubric(initialScores);
+    scoreRubric(initialScores,criteria);
     if(showSuggested||form){
      body.rubric={scores:initialScores,expectedUpdatedAt:form?form.expectedUpdatedAt:rubric?.updated_at??null};
     }
@@ -138,10 +140,10 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
   if(!canTeach||busyAny)return;
   setBusy(true);setError('');setSuccess('');
   try{
-   const total=scoreRubric(initialScores);
+   const total=scoreRubric(initialScores,criteria);
    await transport('grade-rubric',{reviewId:selected.id,scores:initialScores,feedback:note});
    // A failed dashboard refresh must not be confused with a failed score save.
-   setSuccess(tr(language,'Đã lưu rubric: ','Rubric saved: ')+total+'/100');
+   setSuccess(tr(language,'Đã lưu rubric: ','Rubric saved: ')+total+'/'+maxScore);
    if(await refreshAfterChange())setForm(null);
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
@@ -178,7 +180,8 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
    </div>:<div className="bml-review-grid">{mine.map(r=>{
     const g=groups.find(x=>x.id===r.group_id),a=assignments.find(x=>x.id===g?.assignment_id),status=NOTES[r.state]||{label:r.state,kind:'gray'};
     const savedScores=(isAdmin||(publicReadOnly&&r.state==='published'))?rubricsByReview.get(r.id)?.scores:undefined;
-    const total=savedScores?RUBRIC.reduce((sum,criterion)=>sum+(Number(savedScores[criterion.key])||0),0):null;
+    const rowAsean=isAsean(a);
+    const total=savedScores?(rowAsean?ASEAN_RUBRIC:RUBRIC).reduce((sum,criterion)=>sum+(Number(savedScores[criterion.key])||0),0):null;
     const groupLabel=language==='en'?englishSystemGroupLabel(g?.label||'Nhóm'):g?.label||'Nhóm';
     const title=r.snapshot?.title||a?.title||'English museum';
     const statusName=tr(language,status.label,{
@@ -193,7 +196,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
       </span>
       <strong className="swiss-editorial-review-title">{title}</strong>
       <span className="swiss-editorial-review-meta">
-        {total!==null?<small className="bml-card-rubric">{rubricLabel}: <b>{total}/100</b></small>:null}
+        {total!==null?<small className="bml-card-rubric">{rubricLabel}: <b>{total}/{rowAsean?10:100}</b></small>:null}
         <span className="bml-review-card-link">{openLabel} <ArrowUpRight size={16} aria-hidden="true"/></span>
       </span>
      </>:<>
@@ -201,7 +204,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
        <span className={'bml-status-pill bml-status-'+status.kind}>{statusName}</span></div>
       <strong>{groupLabel}</strong><span>{title}</span>
       <small>{a?.class_scope||''}</small>
-      {total!==null?<small className="bml-card-rubric">{rubricLabel} · <b>{total}/100</b></small>:null}
+      {total!==null?<small className="bml-card-rubric">{rubricLabel} · <b>{total}/{rowAsean?10:100}</b></small>:null}
       <span className="bml-review-card-link">{openLabel} <ArrowRight size={17}/></span>
      </>}
     </button>;
@@ -231,27 +234,28 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
          <h4>{String(i+1).padStart(2,'0')} · {room.title}</h4>
          {(room.exhibits||[]).map((e,j)=><div key={j} className="bml-submission-exhibit"><strong>{e.title}</strong><p>{e.description}</p></div>)}
         </article>)}
-        {selected.snapshot?.learning?<div className="bml-learning-evidence"><h4>{tr(language,'Minh chứng quá trình học','Learning process evidence')}</h4>
+        {selected.snapshot?.learning&&!asean?<div className="bml-learning-evidence"><h4>{tr(language,'Minh chứng quá trình học','Learning process evidence')}</h4>
          {[
           ['Vấn đề','issue'],['Nguồn','source'],['Phản hồi thử nghiệm','feedback'],['Cải tiến','improvement'],['Phản ánh','reflection']
          ].map(([label,key])=><p key={key}><b>{tr(language,label,{issue:'Problem',source:'Source',feedback:'Peer feedback',improvement:'Revision',reflection:'Reflection'}[key])}:</b> {selected.snapshot.learning[key]||tr(language,'Chưa ghi','Not recorded')}</p>)}
         </div>:null}
+        {asean&&!publicReadOnly?<AseanReviewEvidence group={group} groups={groups} responses={data?.aseanResponses||[]} snapshot={selected.snapshot}/>:null}
        </div>}
      </div>
      <aside className="bml-eval-pane"><div className="bml-eval-heading"><ClipboardCheck size={21}/><h3>{tr(language,'Rubric đánh giá','Assessment rubric')}</h3></div>
        <p className="bml-muted">{tr(language,'Rubric nội bộ, không phải tiêu chí chính thức của hội thi.','An internal learning rubric, not an official competition scoring scheme.')}</p>
-       {!publicReadOnly?<details><summary>{tr(language,'E2 · Rubric bốn mức','E2 · Four-level rubric')}</summary>
-        {RUBRIC.map(c=><section key={c.key}><h4>{tr(language,c.label,c.en)} · {c.max}</h4>
+       {!publicReadOnly&&!asean?<details><summary>{tr(language,'E2 · Rubric bốn mức','E2 · Four-level rubric')}</summary>
+        {criteria.map(c=><section key={c.key}><h4>{tr(language,c.label,c.en)} · {c.max}</h4>
          <ol reversed lang="en">{LESSON_RUBRIC_LEVELS[c.key].map(level=><li key={level}>{level}</li>)}</ol></section>)}
        </details>:null}
        {showSuggested?<p className="bml-muted" role="note">{tr(language,'Điểm gợi ý ngẫu nhiên. Kiểm tra hoặc chỉnh từng tiêu chí trước khi lưu hay duyệt.','Randomly suggested scores. Check or edit each criterion before saving or approving.')}</p>:null}
        {publicReadOnly&&!rubric?.scores?<p className="bml-muted" role="status">
         {tr(language,'Chưa có điểm rubric được công khai.','No rubric score is available to the public.')}
        </p>:<>
-       {RUBRIC.map(c=><label className="bml-rubric-row" key={c.key}><span><strong>{tr(language,c.label,c.en)}</strong><small>{c.help}</small></span>
+       {criteria.map(c=><label className="bml-rubric-row" key={c.key}><span><strong>{tr(language,c.label,c.en)}</strong><small>{c.help}</small></span>
         <div className="bml-score-input"><input type="number" min="0" max={c.max} step="1" disabled={!canTeach||busyAny} value={initialScores[c.key]}
           onChange={e=>editRubric({scores:{...initialScores,[c.key]:Number(e.target.value)}})}/><span>/{c.max}</span></div></label>)}
-       <div className="bml-total-score">{tr(language,'Tổng điểm','Total score')} <strong>{Object.values(initialScores).reduce((x,y)=>x+(Number(y)||0),0)}<small>/100</small></strong></div>
+       <div className="bml-total-score">{tr(language,'Tổng điểm','Total score')} <strong>{Object.values(initialScores).reduce((x,y)=>x+(Number(y)||0),0)}<small>/{maxScore}</small></strong></div>
        </>}
        {!publicReadOnly?<label className="bml-full-field">{tr(language,'Nhận xét dành cho học sinh','Student feedback')}<textarea readOnly={(!canTeach&&!canReview)||busyAny} rows={4} maxLength={2000} value={note} onChange={e=>editRubric({note:e.target.value})}
         placeholder={tr(language,'Nêu một điểm tốt và một điều cần cải tiến…','Describe a strength and one area for improvement…')}/></label>:null}
@@ -274,4 +278,18 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
     </div>
    </section>:null}
  </div>;
+}
+
+function AseanReviewEvidence({group,groups,responses,snapshot}){
+ const byOffset=offset=>groups.find(peer=>peer.assignment_id===group?.assignment_id&&
+   (aseanGroupIndex(peer.label)+offset)%10===aseanGroupIndex(group.label));
+ const get=(peer,stage)=>responses.find(response=>response.group_id===peer?.id&&response.stage_index===stage)?.value;
+ const feedback=get(byOffset(1),3),retest=get(byOffset(2),4);
+ return <section className="bml-learning-evidence">
+  <h4>Group evidence</h4>
+  {snapshot?.learning?.source?<p><strong>Factual source</strong> · {snapshot.learning.source}</p>:null}
+  {feedback?<><p><strong>Visitor test</strong> · {feedback.answers.reduce((sum,answer)=>sum+answer.score,0)}/3</p><p>{feedback.comment}</p></>:<p>Visitor feedback pending.</p>}
+  {retest?<p><strong>Fresh visitor retest</strong> · {retest.score}/1 · {retest.answer}</p>:<p>Fresh visitor retest pending.</p>}
+  {[0,5].map(stage=>{const answer=get(group,stage);return answer?<p key={stage}><strong>{stage===0?'Baseline card':'Transfer card'}</strong> · {answer.experience} {answer.advice}</p>:null;})}
+ </section>;
 }

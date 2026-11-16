@@ -2,6 +2,7 @@ import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowLeft,Play,MonitorPlay,BookOpen,Printer,X} from 'lucide-react';
 import {presentationFor} from '../../v3/livePresentation.js';
 import {LIVE_STAGES,liveStage,LEGACY_LANGUAGE_MINI_LESSON} from '../../v3/liveLesson.js';
+import {ASEAN_STAGES,isAsean,ASEAN_DESTINATIONS} from '../../v3/aseanLesson.js';
 import {liveStaff} from '../../v3/museumLiveApi.js';
 import {englishSystemGroupLabel} from '../../v3/museumApi.js';
 import {MUSEUM_CURRICULUM_VIDEOS} from '../../v3/museumLiveExtensions.js';
@@ -35,12 +36,15 @@ const link=typeof window!=='undefined'?window.location.origin+window.location.pa
  * Completed/frozen lessons are read-only with the reason surfaced; mutating controls are
  * disabled AND the reason banner is shown (disabled buttons alone are insufficient).
  */
-export default function TeacherLiveScreen({language='vi',data,initialReview,onBack,onRefresh,onNavigate,transport=liveStaff}){
+export default function TeacherLiveScreen({language='vi',data,initialReview,onBack,onRefresh,onNavigate,initialTemplate,onTemplateChange,transport=liveStaff}){
   const assignments=useMemo(()=>(data?.assignments||[]).filter(a=>data?.publicReadOnly||data?.offlineReadOnly||a.created_by===data?.profile?.id||data?.profile?.role==='admin'),[data]);
   const assignmentIds=useMemo(()=>assignments.map(a=>a.id),[assignments]);
   const savedPreference=useRef(loadPresenterRecovery(typeof window!=='undefined'?window.sessionStorage:null,assignmentIds));
-  const [assignmentId,setAssignmentId]=useState(initialReview||savedPreference.current?.assignmentId||assignments[0]?.id||'');
+  const [assignmentId,setAssignmentId]=useState(initialReview||assignments.find(a=>isAsean(a)===isAsean(initialTemplate)&&a.id===savedPreference.current?.assignmentId)?.id||assignments.find(a=>isAsean(a)===isAsean(initialTemplate))?.id||assignments[0]?.id||'');
   const assignment=assignments.find(a=>a.id===assignmentId);
+  const asean=isAsean(assignment);
+  const stages=asean?ASEAN_STAGES:LIVE_STAGES;
+  useEffect(()=>{if(assignment)onTemplateChange?.(assignment.lesson_template||'climate');},[assignment,onTemplateChange]);
   const [state,setState]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const [readError,setReadError]=useState('');
   const contentFrozenAt=state?.contentFrozenAt===undefined?(assignment?.content_frozen_at??null):state.contentFrozenAt;
@@ -82,18 +86,18 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     :(slideOnly?{status:'ended',stageIndex:0,questionVersion:2,revealed:previewReveal}:null);
   const serverIndex=session?.stageIndex??0;
   const currentIndex=readOnly?(browseIndex??serverIndex):(jumpIndex??serverIndex);
-  const stage=(readOnly||jumpIndex!=null)
+  const stage=asean?stages[currentIndex]:(readOnly||jumpIndex!=null)
     ?(currentIndex===1&&session?.questionVersion!==2?LEGACY_LANGUAGE_MINI_LESSON:liveStage(currentIndex))
     :session?.stage;
   const groups=(state?.groups||[]).map(g=>({...g,label:language==='en'?englishSystemGroupLabel(g.label):g.label}));
-  const minute=LIVE_STAGES[currentIndex]?.minutes||0;
-  const curriculumVideo=MUSEUM_CURRICULUM_VIDEOS[currentIndex]||null;
+  const minute=stages[currentIndex]?.minutes||0;
+  const curriculumVideo=asean?null:MUSEUM_CURRICULUM_VIDEOS[currentIndex]||null;
   const presentation=presentationFor(currentIndex,readOnly?previewPresentation:
     jumpIndex==null&&historicalSession?.presentation?{stageIndex:serverIndex,...historicalSession.presentation}:null);
   const curriculumMode=presentation.view;
   const showingCurriculumVideo=Boolean(curriculumVideo&&curriculumMode==='video');
   const showingVideoCheck=Boolean(curriculumVideo&&curriculumMode==='check');
-  const legacyActivityTwo=currentIndex===1&&session?.questionVersion!==2;
+  const legacyActivityTwo=!asean&&currentIndex===1&&session?.questionVersion!==2;
   const showingSavedQuestions=legacyActivityTwo&&curriculumMode==='saved';
   const questions=legacyActivityTwo&&readOnly&&!showingSavedQuestions
     ?LIVE_STAGES[1].questions
@@ -119,7 +123,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
       if(action==='next'||action==='previous'){
         setBrowseIndex(i=>{
           const base=i??(session?.stageIndex??0);
-          return Math.max(0,Math.min(LIVE_STAGES.length-1,base+(action==='next'?1:-1)));
+          return Math.max(0,Math.min(stages.length-1,base+(action==='next'?1:-1)));
         });
         setPreviewReveal(false);setSpotlight(null);
       }else if(action==='reveal')setPreviewReveal(v=>!v);
@@ -128,7 +132,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     }
     if(action==='next'||action==='previous'){
       const base=jumpIndex??session?.stageIndex??0;
-      setJumpIndex(Math.max(0,Math.min(LIVE_STAGES.length-1,base+(action==='next'?1:-1))));
+      setJumpIndex(Math.max(0,Math.min(stages.length-1,base+(action==='next'?1:-1))));
     }
     setBusy(true);setError('');
     try{const payload=action==='start'?{assignmentId}:{assignmentId,action,version:session?.version,...details};
@@ -141,7 +145,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
       if(action==='next'||action==='previous'||action==='present')refresh();
       else await refresh();
     }catch(e){setJumpIndex(null);setError(e.message);}finally{setBusy(false);}
-  },[assignmentId,busy,readOnly,session?.version,session?.stageIndex,jumpIndex,transport,refresh,language]);
+  },[assignmentId,busy,readOnly,session?.version,session?.stageIndex,jumpIndex,transport,refresh,language,stages.length]);
   const changeCompletion=async()=>{
     if(!canManageLesson||busy||(!contentFrozenAt&&!historicalSession))return;
     const confirmText=contentFrozenAt
@@ -202,7 +206,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
       if(tag==='button'&&e.key===' ')return;
       const key=e.key.toLowerCase();
       if(key==='escape'&&activeTool){e.preventDefault();setActiveTool(null);return;}
-      if(key==='arrowright'&&currentIndex<10){e.preventDefault();act('next');}
+      if(key==='arrowright'&&currentIndex<stages.length-1){e.preventDefault();act('next');}
       else if(key==='arrowleft'&&currentIndex>0){e.preventDefault();act('previous');}
       else if(key==='v'){e.preventDefault();toggleTool('voice');}
       else if(key==='r'){e.preventDefault();toggleTool('resources');}
@@ -211,8 +215,8 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
       else if(key===' '&&!readOnly){e.preventDefault();act(session?.status==='paused'?'resume':'pause');}
     };
     window.addEventListener('keydown',handle);return()=>window.removeEventListener('keydown',handle);
-  },[isFullscreen,activeTool,busy,currentIndex,session?.version,session?.status,act,readOnly]);
-  const displayedStageLoaded=Boolean(historicalSession&&serverIndex===currentIndex);
+  },[isFullscreen,activeTool,busy,currentIndex,session?.version,session?.status,act,readOnly,stages.length]);
+  const displayedStageLoaded=Boolean(historicalSession&&serverIndex===currentIndex&&(!asean||!data?.publicReadOnly));
   const respondedCount=displayedStageLoaded&&Array.isArray(state?.responses)?state.responses.length:null;
   const survey=state?.survey;
   const surveyOptions=displayedStageLoaded&&state?.result?.options;
@@ -239,7 +243,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   ):null;
   const exitResponses=stage?.kind==='exit'&&serverIndex===currentIndex&&Array.isArray(state?.responses)
     ?state.responses.filter(r=>r.stage_index===currentIndex||stage?.kind==='exit').slice(0,30):[];
-  const toolbar=session?<TeacherToolbar offline={!!data?.offlineReadOnly} language={language} readOnly={readOnly} busy={busy} session={session} currentIndex={currentIndex}
+  const toolbar=session?<TeacherToolbar offline={!!data?.offlineReadOnly} language={language} readOnly={readOnly} busy={busy} session={session} currentIndex={currentIndex} stageCount={stages.length}
     motionOn={motionOn} activeTool={activeTool}
     onChangeCompletion={canManageLesson&&(historicalSession||contentFrozenAt)?changeCompletion:undefined}
     completed={Boolean(contentFrozenAt)}
@@ -260,8 +264,8 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     {activeTool==='video'?<MuseumVideoLab mode="teacher" readOnly={readOnly} stage={stage}
       stageIndex={currentIndex} media={session?.media} assignmentId={assignmentId} version={session?.version}
       language={language} transport={transport}/>:null}
-    {activeTool==='notes'?<LessonResources stageIndex={currentIndex} teacher language={language}/>:null}
-    {activeTool==='resources'?<MuseumResourceHub stage={stage} language={language}/>:null}
+    {activeTool==='notes'?(asean?<AseanTeachingNotes stage={stage}/>:<LessonResources stageIndex={currentIndex} teacher language={language}/>):null}
+    {activeTool==='resources'?(asean?<AseanSources/>:<MuseumResourceHub stage={stage} language={language}/>):null}
     {activeTool==='qr'?<div><h3>Student Creator QR</h3>
       {qr?<img src={qr} width="160" height="160" alt="Student Creator QR"/>:null}
       <p>{link}</p></div>:null}
@@ -282,14 +286,14 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
         <div className="panel" style={{padding:24,textAlign:'center'}}>
           <MonitorPlay size={42}/>
           <h2 style={{margin:'10px 0 6px'}}>{t(language,'Bắt đầu dạy trực tiếp','Start live teaching')}</h2>
-          <p style={{fontSize:13,color:'var(--igv2-muted,#6b7782)',maxWidth:640,margin:'0 auto 14px'}}>{t(language,'Bài học có 11 hoạt động trong 90 phút (45 + 45). Nhấn Bắt đầu để học sinh vào hoạt động đầu tiên ngay; mỗi lần chuyển hoạt động, phần tương tác tiếp theo cũng tự mở.','The lesson has 11 stages over 90 minutes (45 + 45). Starting the lesson immediately opens the first student activity; advancing opens the next activity automatically.')}</p>
+          <p style={{fontSize:13,color:'var(--igv2-muted,#6b7782)',maxWidth:640,margin:'0 auto 14px'}}>{asean?'Six group activities over two 45-minute periods. Starting opens Activity 1 for all groups.':t(language,'Bài học có 11 hoạt động trong 90 phút (45 + 45). Nhấn Bắt đầu để học sinh vào hoạt động đầu tiên ngay; mỗi lần chuyển hoạt động, phần tương tác tiếp theo cũng tự mở.','The lesson has 11 stages over 90 minutes (45 + 45). Starting the lesson immediately opens the first student activity; advancing opens the next activity automatically.')}</p>
           <button type="button" className="adv-toolbtn adv-toolbtn--primary" disabled={busy||readOnly} onClick={()=>act('start')}><Play size={16}/>{t(language,'Bắt đầu buổi dạy','Start lesson')}</button>
         </div>
       ):null}
       {session?(
         <>
           <TeacherLiveStage ref={stageRef}
-            session={session} stage={stage} currentIndex={currentIndex} language={language}
+            session={session} stage={stage} currentIndex={currentIndex} stageCount={stages.length} language={language}
             readOnly={readOnly} frozenReason={frozenReason}
             spotlight={spotlight} onCloseSpotlight={()=>setSpotlight(null)}
             curriculumNode={curriculumNode} view={showingSavedQuestions?'check':curriculumMode}
@@ -305,7 +309,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
           <div className="adv-live-dock">
             {!isFullscreen?toolbar:null}
           </div>
-          {currentIndex===2&&!state?.survey&&!readOnly?(
+          {!asean&&currentIndex===2&&!state?.survey&&!readOnly?(
             <div className="adv-panel-overlay" role="region" aria-label={t(language,'Chốt khảo sát','Freeze survey')}>
               <button type="button" className="adv-toolbtn" onClick={()=>setPaper(v=>!v)} aria-pressed={paper}>{paper?t(language,'Ẩn kiểm phiếu giấy','Hide paper tally'):t(language,'Nhập kiểm phiếu giấy','Enter paper tally')}</button>
               {paper?(<div style={{marginTop:10,display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
@@ -329,13 +333,13 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
           {!isFullscreen&&activeTool==='notes'?(
             <div className="adv-panel-overlay" role="region" aria-label={t(language,'Ghi chú dạy','Teaching notes')}>
               <button type="button" className="adv-panel-close" onClick={()=>setActiveTool(null)} aria-label={t(language,'Đóng ghi chú','Close notes')}><X size={14}/></button>
-              <LessonResources stageIndex={currentIndex} teacher language={language}/>
+              {asean?<AseanTeachingNotes stage={stage}/>:<LessonResources stageIndex={currentIndex} teacher language={language}/>}
             </div>
           ):null}
           {!isFullscreen&&activeTool==='resources'?(
             <div className="adv-panel-overlay" role="region" aria-label={t(language,'Thư viện nghiên cứu','Research library')}>
               <button type="button" className="adv-panel-close" onClick={()=>setActiveTool(null)} aria-label={t(language,'Đóng thư viện','Close library')}><X size={14}/></button>
-              <MuseumResourceHub stage={stage} language={language}/>
+              {asean?<AseanSources/>:<MuseumResourceHub stage={stage} language={language}/>}
             </div>
           ):null}
           {!isFullscreen&&activeTool==='voice'?(
@@ -361,9 +365,20 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
               assignmentId={assignmentId} groups={groups} readOnly={readOnly}/>:null}
           </details>:null}
           <div className="content-gap" style={{marginTop:20}}/>
-          {!slideOnly?<CommandCenter groups={groups} responses={state?.responses||[]} feedback={state?.feedback||[]}
+          {!slideOnly&&(!asean||!data?.publicReadOnly)?<CommandCenter groups={groups} responses={state?.responses||[]} feedback={state?.feedback||[]}
             microResults={state?.microResults||[]} helpGroups={state?.helpGroups||[]}
-            session={session} busy={busy} onRefresh={refresh} onSpotlight={spotlightGroup} onCompare={compareGroup} language={language}/>:null}
+            session={session} busy={busy} onRefresh={refresh} onSpotlight={spotlightGroup} onCompare={compareGroup} language={language} asean={asean}/>:null}
+          {asean&&displayedStageLoaded&&!data?.publicReadOnly&&state?.responses?.length>0?<section className="bml-surface">
+            <h3>Group records for this activity</h3>
+            {state.responses.map(record=><details key={record.group_id}><summary>{groups.find(group=>group.id===record.group_id)?.label}</summary>
+              <AseanGroupResponse value={record.value}/>
+              {(currentIndex===0||currentIndex===5)&&<AseanWritingGrade
+               key={assignmentId+'-'+currentIndex+'-'+record.group_id}
+               value={state.writingScores?.find(score=>score.group_id===record.group_id)?.details}
+               editable={canManageLesson&&!contentFrozenAt}
+               save={async marks=>{await transport('asean-writing-grade',{assignmentId,groupId:record.group_id,stageIndex:currentIndex,...marks});await refresh();}}/>}
+            </details>)}
+          </section>:null}
           {exitResponses.length?(
             <>
               <div className="content-gap"><div className="section-title"><span>{t(language,'PHẢN HỒI NHÓM ĐÃ LƯU','RECORDED GROUP REFLECTIONS')}</span><span className="right">{t(language,'Minh chứng chỉ đọc','Read-only evidence')}</span></div></div>
@@ -384,3 +399,43 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   );
 }
 export {TeacherLiveScreen};
+
+function AseanTeachingNotes({stage}){
+ return stage?<div><h3>{stage.title}</h3><p>{stage.teaching}</p><p>{stage.expected}</p></div>:null;
+}
+function AseanSources(){
+ return <div><h3>Destination sources</h3><ul>{ASEAN_DESTINATIONS.map(destination=><li key={destination.name}>
+  <a href={destination.source} target="_blank" rel="noreferrer">{destination.name}</a>
+ </li>)}</ul></div>;
+}
+function AseanGroupResponse({value}){
+ if(!value||typeof value!=='object')return null;
+ if(value.answers)return <div>
+   <p>First frame opened · {value.first}</p>
+   <ol>{value.answers.map((answer,index)=><li key={index}>{answer.text} · Frame {answer.frame??'—'} · {answer.score}/1</li>)}</ol>
+   <p>Visitor test · {value.answers.reduce((sum,answer)=>sum+answer.score,0)}/3</p>
+   <p>Peer feedback · {value.comment}</p>
+ </div>;
+ if(value.question)return <p>Question {value.question} · {value.answer} · Frame {value.frame??'—'} · {value.score}/1</p>;
+ if(value.codes)return <div><p>Image codes · {value.codes.join(', ')}</p><p>Compared frame · {value.comparisonFrame} · Alternative {value.alternative}</p><p>Fact · {value.fact}</p><p>Source · {value.source}</p><p>Reason · {value.reason}</p></div>;
+ return <div><p>Experience · {value.experience}</p><p>Visitor advice · {value.advice}</p></div>;
+}
+
+function AseanWritingGrade({value,editable,save}){
+ const [changes,setChanges]=useState(null),[saving,setSaving]=useState(false),[error,setError]=useState('');
+ const marks=changes??value??{experience:0,advice:0};
+ return <form onSubmit={async event=>{
+  event.preventDefault();setSaving(true);setError('');
+  try{await save(marks);setChanges(null);}catch(e){setError(e.message);}finally{setSaving(false);}
+ }}>
+  <fieldset disabled={!editable||saving}>
+   <legend>Teacher marking · {value?value.experience+value.advice+'/2':'Awaiting score'}</legend>
+   {['experience','advice'].map(key=><label key={key} style={{marginRight:8}}>
+    <input type="checkbox" checked={marks[key]===1} onChange={event=>setChanges({...marks,[key]:Number(event.target.checked)})}/>
+    {key==='experience'?'Clear, relevant experience':'Clear, appropriate advice'}
+   </label>)}
+   {editable&&<button className="adv-toolbtn" type="submit">Save score</button>}
+  </fieldset>
+  {error&&<p role="alert">{error}</p>}
+ </form>;
+}

@@ -56,6 +56,9 @@ export const query=async promise=>{
    ['version_conflict',409,'Có thay đổi mới hơn. Hãy tải lại để tiếp tục.'],
    ['museum_lesson_frozen',423,'This lesson is locked for viewing. Editing and submissions are disabled.'],
    ['museum_lesson_staff_required',403,'Only authorized teachers can change the lesson status.'],
+   ['museum_asean_editing_closed',423,'The teacher has closed this editing activity, or V2 is already open for visitors.'],
+   ['museum_asean_submission_closed',423,'The teacher needs to open Activity 6.'],
+   ['museum_asean_revision_unchanged',400,'Change a caption or photo, then save it before opening V2.'],
    ['museum_live_session_missing',404,'A live lesson must be started before it can be completed.']
   ];
   const detail=String(error.message||'');

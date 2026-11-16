@@ -9,6 +9,9 @@ import {searchVideos,mediaText,mediaId,mediaBoardUpdate,mediaTask,searchThrottle
 import {handleLivePeer,peerRoomsEvidence} from './_museumLivePeer.js';
 import {liveReadAudience,presentationFor,responseMatchesActivity,validPresentation} from '../src/features/immersive-gallery/v3/livePresentation.js';
 import {handleMuseumP2,p2WorksheetsForEvidence} from './_museumP2.js';
+import {ASEAN_STAGES,isAsean} from '../src/features/immersive-gallery/v3/aseanLesson.js';
+import {aseanGroupRecords,handleAseanActivity} from './_museumAsean.js';
+const stageCount=assignment=>isAsean(assignment)?ASEAN_STAGES.length:LIVE_STAGES.length;
 const canRespond=stage=>['vote','quiz','exit','peer'].includes(stage?.kind)||(stage?.kind==='group'&&Array.isArray(stage.videoQuestions));
 async function scopedStaff(ctx,assignmentId){
  if(!uid(assignmentId))throw fail(400,'Lớp học không hợp lệ.');
@@ -38,8 +41,9 @@ function stateOf(s,{staff=false}={}){
   stageOpen:s.stage_open,revealed:s.revealed,version:s.version,
   stageStartedAt:s.stage_started_at,elapsedSeconds:s.elapsed_seconds,updatedAt:s.updated_at,
   evidenceVersion:s.evidence_version,p2Enabled:s.media_board?.p2Worksheets===true,questionVersion:Number(s.media_board?.lessonQuestionVersion||1),media:mediaTask(s),
-  presentation:presentationFor(s.stage_index,s.media_board?.lessonPresentation),
-  stage:publicStage(s.evidence_version===0&&s.stage_index===2?legacySurvey:sessionStage(s,s.stage_index),s.revealed,staff)};
+  lessonTemplate:s.media_board?.lessonTemplate,stageCount:isAsean(s.media_board?.lessonTemplate)?ASEAN_STAGES.length:LIVE_STAGES.length,
+  presentation:isAsean(s.media_board?.lessonTemplate)?{view:'task',questionIndex:0}:presentationFor(s.stage_index,s.media_board?.lessonPresentation),
+  stage:publicStage(!isAsean(s.media_board?.lessonTemplate)&&s.evidence_version===0&&s.stage_index===2?legacySurvey:sessionStage(s,s.stage_index),s.revealed,staff)};
 }
 async function groupGallery(admin,groupId){
  const group=await query(admin.from('gcp_groups').select('id,label,assignment_id').eq('id',groupId).single());
@@ -72,6 +76,9 @@ export default async function museumLive(req,res){
     const id=String(req.method==='GET'?req.query?.assignmentId:req.body?.assignmentId||'');
     assignment=await scopedStaff(ctx,id);
    }
+   const asean=isAsean(assignment);
+   if(asean&&publicRead&&op!=='state')throw fail(403,'Classroom records are available to the teacher.');
+   const privateAsean=asean&&publicRead;
    if(op==='unlock-lesson'||(op==='control'&&req.body?.action==='end')){
     requireMethod(req,'POST');guardOrigin(req);
     const body=guardBody(req,1000);
@@ -91,38 +98,69 @@ export default async function museumLive(req,res){
    if(!publicRead&&req.method!=='GET'&&assignment.content_frozen_at)
     throw fail(423,'This completed lesson is view-only. Teacher Live controls are locked.');
    const session=await getSession(admin,assignment.id);
-   if(op==='p2-forms'||op==='p2-save')return await handleMuseumP2({op,req,res,admin,ctx,session,assignment,staff:true});
+   if(op==='p2-forms'||op==='p2-save'){
+    if(asean)throw fail(404,'This lesson uses group activity records.');
+    return await handleMuseumP2({op,req,res,admin,ctx,session,assignment,staff:true});
+   }
+   if(asean&&op==='asean-writing-grade'){
+    requireMethod(req,'POST');guardOrigin(req);
+    const {groupId,stageIndex,experience,advice}=guardBody(req,1000);
+    if(!session||!uid(groupId)||![0,5].includes(stageIndex)||![0,1].includes(experience)||![0,1].includes(advice))
+     throw fail(400,'Select 0 or 1 for each sentence.');
+    const group=await query(admin.from('gcp_groups').select('id').eq('id',groupId).eq('assignment_id',assignment.id).maybeSingle());
+    if(!group)throw fail(404,'Group not found for this lesson.');
+    const response=await query(admin.from('museum_live_responses').select('id').eq('session_id',session.id)
+     .eq('stage_index',stageIndex).eq('group_id',groupId).maybeSingle());
+    if(!response)throw fail(404,'This group has not submitted its writing card.');
+    await query(admin.from('museum_learning_events').insert({session_id:session.id,group_id:groupId,
+     action:'asean_writing_grade',actor_role:'teacher',stage_index:stageIndex,details:{experience,advice,teacherId:ctx.user.id}}));
+    return send(res,200,{ok:true});
+   }
    if(op==='state'){
     requireMethod(req,'GET');
-    if(!session)return send(res,200,{session:null,contentFrozenAt:assignment.content_frozen_at??null,stageCount:LIVE_STAGES.length});
+    if(!session)return send(res,200,{session:null,contentFrozenAt:assignment.content_frozen_at??null,stageCount:stageCount(assignment)});
     // Historical browsing must not move the live stage or reopen responses.
     const reviewOnly=Boolean(publicRead||assignment.content_frozen_at||session.status==='ended');
     const requested=String(req.query?.viewStage??'');
-    const viewIndex=reviewOnly&&/^(?:[0-9]|10)$/.test(requested)
+    const viewIndex=reviewOnly&&/^(?:[0-9]|10)$/.test(requested)&&Number(requested)<stageCount(assignment)
      ?Number(requested):session.stage_index;
     const viewing=reviewOnly
      ?{...session,stage_index:viewIndex,stage_started_at:null,elapsed_seconds:0,stage_open:false}
      :session;
-    const grp=await query(admin.from('gcp_groups').select('id,label,state')
+    const grp=privateAsean?[]:await query(admin.from('gcp_groups').select('id,label,state')
       .eq('assignment_id',assignment.id).order('label'));
-    const responses=await query(admin.from('museum_live_responses').select('group_id,value,created_at')
+    const responses=privateAsean?[]:await query(admin.from('museum_live_responses').select('group_id,value,created_at')
       .eq('session_id',session.id).eq('stage_index',viewIndex));
-    const feedback=await feedbackFor(admin,session.id);
+    const writingScores=asean&&!privateAsean&&(viewIndex===0||viewIndex===5)
+     ?await query(admin.from('museum_learning_events').select('group_id,details').eq('session_id',session.id)
+      .eq('stage_index',viewIndex).eq('action','asean_writing_grade').order('created_at',{ascending:false}))
+     :[];
+    let feedback=[];
+    if(asean&&!privateAsean&&viewIndex>=3){
+     const [pairs,visitorRecords]=await Promise.all([
+      query(admin.from('museum_peer_pairs').select('from_group,to_group').eq('session_id',session.id)),
+      query(admin.from('museum_live_responses').select('group_id,value').eq('session_id',session.id).eq('stage_index',3)),
+     ]);
+     feedback=visitorRecords.flatMap(record=>{
+      const pair=pairs.find(row=>row.from_group===record.group_id);
+      return pair?[{...pair,clarify:record.value.comment,rating:record.value.answers.reduce((total,answer)=>total+answer.score,0)}]:[];
+     });
+    }else if(!asean) feedback=await feedbackFor(admin,session.id);
     const livePeer=audience==='staff'&&viewIndex>=7&&viewIndex<=9?await peerRoomsEvidence(admin,session.id):null;
     const roomOwners=new Map(livePeer?.rooms.map(room=>[room.id,room.owner_group_id]));
     const liveFeedback=(livePeer?.reviews||[]).map(r=>({...r,from_group:r.from_group_id,to_group:roomOwners.get(r.room_id)}));
     const peerResponses=[...feedback,...liveFeedback].map(r=>({group_id:r.from_group,value:r.learned,created_at:r.created_at}));
     const activityResponses=viewIndex===7?Array.from(new Map(peerResponses.map(r=>[r.group_id,r])).values()):responses;
-    const helps=await query(admin.from('museum_learning_events').select('group_id,created_at')
+    const helps=privateAsean?[]:await query(admin.from('museum_learning_events').select('group_id,created_at')
       .eq('session_id',session.id).eq('action','need_help').eq('stage_index',viewIndex).limit(40));
-    const micro=MICRO_CHALLENGES[viewIndex]?await query(admin.from('museum_live_micro_responses')
+    const micro=!asean&&MICRO_CHALLENGES[viewIndex]?await query(admin.from('museum_live_micro_responses')
      .select('group_id,choice,reason,submitted_at').eq('session_id',session.id)
      .eq('stage_index',viewIndex).limit(50)):[];
     return send(res,200,{session:{...stateOf(viewing,{staff:true}),readOnly:reviewOnly,persistedStageIndex:session.stage_index},
-     contentFrozenAt:assignment.content_frozen_at??null,stageCount:LIVE_STAGES.length,
+     contentFrozenAt:assignment.content_frozen_at??null,stageCount:stageCount(assignment),
      microResponses:micro.length,microResults:micro,
-     result:(()=>{const r=summarizeResponses(viewIndex,responses,sessionStage(viewing,viewIndex));if(r&&session.evidence_version===0&&viewIndex===2)r.options=r.options.map((o,i)=>({...o,label:legacySurvey.options[i]}));return r;})(),
-     groups:grp,needHelp:new Set(helps.map(h=>h.group_id)).size,helpGroups:[...new Set(helps.map(h=>h.group_id))],survey:await surveyFor(admin,session.id),feedback:[...feedback,...liveFeedback],responses:activityResponses});
+     result:asean?null:(()=>{const r=summarizeResponses(viewIndex,responses,sessionStage(viewing,viewIndex));if(r&&!asean&&session.evidence_version===0&&viewIndex===2)r.options=r.options.map((o,i)=>({...o,label:legacySurvey.options[i]}));return r;})(),
+     groups:grp,writingScores,needHelp:new Set(helps.map(h=>h.group_id)).size,helpGroups:[...new Set(helps.map(h=>h.group_id))],survey:await surveyFor(admin,session.id),feedback:[...feedback,...liveFeedback],responses:activityResponses});
    }
    if(op==='video-search'){
     requireMethod(req,'GET');
@@ -138,7 +176,7 @@ export default async function museumLive(req,res){
     if(!Number.isInteger(body.version)||body.version!==session.version)
      throw fail(409,'Phiên dạy vừa thay đổi. Hãy cập nhật rồi thử lại.');
     const index=Number(body.stageIndex);
-    if(!Number.isInteger(index)||index<0||index>=LIVE_STAGES.length)throw fail(400,'Hoạt động không hợp lệ.');
+    if(!Number.isInteger(index)||index<0||index>=stageCount(assignment))throw fail(400,'Hoạt động không hợp lệ.');
     let patch={};
     const current=videoTaskFor(session.media_board,index);
     if(op==='media-voice'){
@@ -169,6 +207,7 @@ export default async function museumLive(req,res){
    if(op==='freeze-survey'){
     requireMethod(req,'POST');guardOrigin(req);const body=guardBody(req,2000);
     if(!session)throw fail(404,'Chưa bắt đầu tiết học.');
+    if(asean)throw fail(400,'This lesson has no climate survey.');
     if(session.evidence_version===0)throw fail(423,'Phiên cũ dùng câu hỏi khác. Hãy tạo bài học mới để khảo sát ưu tiên nhóm.');
     if(!Number.isInteger(body.version))throw fail(400,'Thiếu phiên bản khảo sát.');
     if(body.counts!==undefined&&(!Array.isArray(body.counts)||body.counts.length!==4||body.counts.some(v=>!Number.isInteger(v)||v<0)||!String(body.note||'').trim()))throw fail(400,'Nhập đủ bốn số nguyên và ghi nguồn phiếu giấy.');
@@ -205,7 +244,7 @@ export default async function museumLive(req,res){
      const created=await query(admin.from('museum_live_sessions').insert({
       assignment_id:assignment.id,owner_id:assignment.created_by,
       school_scope:assignment.school_scope,status:'active',stage_index:0,stage_open:true,
-      started_at:now,stage_started_at:now,media_board:{...curriculumMediaBoard(),lessonQuestionVersion:VIDEO_QUESTION_VERSION,p2Worksheets:true}
+      started_at:now,stage_started_at:now,media_board:asean?{lessonTemplate:assignment.lesson_template}:{...curriculumMediaBoard(),lessonQuestionVersion:VIDEO_QUESTION_VERSION,p2Worksheets:true}
      }).select('*').single());
      await query(admin.from('museum_learning_events').insert({
       session_id:created.id,actor_role:'teacher',action:'lesson_started',stage_index:0
@@ -214,7 +253,7 @@ export default async function museumLive(req,res){
     }
     if(session.status==='ended')throw fail(423,'Bài học đã kết thúc. Hãy tạo bài học mới để dạy lại.');
     const resumed=await query(admin.from('museum_live_sessions').update({
-     status:'active',stage_open:!(session.stage_index===2&&await surveyFor(admin,session.id)),updated_at:now,version:session.version+1
+     status:'active',stage_open:!(!asean&&session.stage_index===2&&await surveyFor(admin,session.id)),updated_at:now,version:session.version+1
     }).eq('id',session.id).eq('version',session.version).select('*').single());
     return send(res,200,{session:stateOf(resumed,{staff:true})});
    }
@@ -227,25 +266,25 @@ export default async function museumLive(req,res){
     const action=String(body.action||''),now=new Date().toISOString();
     const update={updated_at:now,version:session.version+1};
     if(action==='next'||action==='previous'){
-     if(action==='next'&&session.evidence_version!==0&&session.stage_index===2&&!await surveyFor(admin,session.id))throw fail(423,'Hãy chốt khảo sát trực tuyến hoặc nhập kiểm phiếu giấy trước khi chuyển hoạt động.');
+     if(action==='next'&&!asean&&session.evidence_version!==0&&session.stage_index===2&&!await surveyFor(admin,session.id))throw fail(423,'Hãy chốt khảo sát trực tuyến hoặc nhập kiểm phiếu giấy trước khi chuyển hoạt động.');
      const index=session.stage_index+(action==='next'?1:-1);
-     if(index<0||index>=LIVE_STAGES.length)throw fail(400,'Hết nội dung bài dạy.');
+     if(index<0||index>=stageCount(assignment))throw fail(400,'Hết nội dung bài dạy.');
      const {lessonPresentation,...mediaBoard}=session.media_board||{};
-     Object.assign(update,{media_board:mediaBoard,stage_index:index,stage_open:session.status==='active'&&!(index===2&&await surveyFor(admin,session.id)),revealed:false,stage_started_at:now,elapsed_seconds:0});
+     Object.assign(update,{media_board:mediaBoard,stage_index:index,stage_open:session.status==='active'&&!(!asean&&index===2&&await surveyFor(admin,session.id)),revealed:false,stage_started_at:now,elapsed_seconds:0});
     }else if(action==='present'){
      const {view,questionIndex,stageIndex}=body;
      if(stageIndex!==session.stage_index)throw fail(409,'Hoạt động đã thay đổi.');
-     if(!validPresentation(stageIndex,sessionStage(session,stageIndex),view,questionIndex))
+     if(!(asean?view==='task'&&questionIndex===0:validPresentation(stageIndex,sessionStage(session,stageIndex),view,questionIndex)))
       throw fail(400,'Nội dung trình chiếu không hợp lệ.');
      update.media_board={...session.media_board,lessonPresentation:{stageIndex,view,questionIndex}};
-    }else if(action==='open'){if(session.status!=='active')throw fail(423,'Hãy tiếp tục bài dạy.');if(session.stage_index===2&&await surveyFor(admin,session.id))throw fail(423,'Khảo sát đã chốt. Hãy chuyển sang hoạt động tiếp theo.');update.stage_open=true;}
+    }else if(action==='open'){if(session.status!=='active')throw fail(423,'Hãy tiếp tục bài dạy.');if(!asean&&session.stage_index===2&&await surveyFor(admin,session.id))throw fail(423,'Khảo sát đã chốt. Hãy chuyển sang hoạt động tiếp theo.');update.stage_open=true;}
     else if(action==='close')update.stage_open=false;
     else if(action==='reveal')update.revealed=true;
     else if(action==='pause'){
      update.status='paused';update.stage_open=false;
      update.elapsed_seconds=Math.min(7200,(session.elapsed_seconds||0)+Math.max(0,Math.floor((Date.now()-Date.parse(session.stage_started_at))/1000)));
     }
-    else if(action==='resume'){update.status='active';update.stage_open=!(session.stage_index===2&&await surveyFor(admin,session.id));update.stage_started_at=now;}
+    else if(action==='resume'){update.status='active';update.stage_open=!(!asean&&session.stage_index===2&&await surveyFor(admin,session.id));update.stage_started_at=now;}
     else throw fail(400,'Lệnh giảng dạy không hợp lệ.');
     const changed=await query(admin.from('museum_live_sessions').update(update)
       .eq('id',session.id).eq('version',session.version).select('*').maybeSingle());
@@ -283,9 +322,20 @@ export default async function museumLive(req,res){
    return send(res,404,{error:'Không tìm thấy chức năng giáo viên.'});
   }
   // Guest: no registered student account. Cookie is one group capability.
-  const writing=['p2-save','respond','need-help','micro-submit','peer-room-toggle','peer-room-review','peer-room-review-batch'].includes(op);
+  const writing=['asean-submit','asean-capture','p2-save','respond','need-help','micro-submit','peer-room-toggle','peer-room-review','peer-room-review-batch'].includes(op);
   const ctx=await guestContext(req,admin,{write:writing,allowPublishedWorksheet:op==='p2-save'&&req.body?.form==='D2'});
   const session=await getSession(admin,ctx.assignment.id);
+  if(isAsean(ctx.assignment)){
+   if(op==='state'){
+    requireMethod(req,'GET');
+    const rows=session?await aseanGroupRecords(admin,session.id,ctx.group.id):[];
+    return send(res,200,{session:session?stateOf(session):null,groupLabel:ctx.group.label,readOnly:ctx.readOnly,
+     response:rows.find(row=>row.stage_index===session?.stage_index)?.value??null});
+   }
+   if(['asean-records','asean-submit','asean-visit','asean-capture'].includes(op))
+    return await handleAseanActivity({op,req,res,admin,ctx,session});
+   if(!['history','need-help','video-search'].includes(op))throw fail(404,'Unknown ASEAN activity.');
+  }
   if(['p2-forms','p2-save','p2-peer'].includes(op))return await handleMuseumP2({op,req,res,admin,ctx,session,assignment:ctx.assignment});
   if(op==='state'){
    requireMethod(req,'GET');

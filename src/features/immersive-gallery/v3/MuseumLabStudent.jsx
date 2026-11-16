@@ -1,3 +1,5 @@
+import {isAsean} from './aseanLesson.js';
+import AseanStudentLesson from './AseanStudentLesson.jsx';
 import React,{Suspense,useCallback,useEffect,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronDown,ChevronLeft,ChevronRight,ChevronUp,CircleHelp,Cloud,CloudAlert,CloudUpload,Eye,EyeOff,FileText,Info,KeyRound,Landmark,Leaf,Lightbulb,LockKeyhole,MessageSquare,RefreshCw,Send,ShieldCheck,Sparkles,Trophy,Users,X} from 'lucide-react';
 import {emptyStudio,documentFromStudio,normalizeStudio,STEPS,moveStoryboardCard} from './museumData.js';
@@ -318,6 +320,8 @@ export default function MuseumLabStudent({language:languageProp='en'}){
   </div>
   <GuestEntry onRedeem={redeem} busy={busy} error={error} language={language} onLanguageChange={chooseLanguage} onResetError={()=>setError('')}/>
  </div>;
+ if(isAsean(session.assignment))return <AseanStudentLesson key={session.assignment.id} session={session}
+  initialStudio={studio} initialVersion={version} onLogout={logout}/>;
  const l=studio.learning,doc=documentFromStudio(studio),room=doc.rooms[0];
  const exhibitStatus=()=>[l.issue,l.evidence,l.solution].filter(Boolean).length;
  const progressChecks=[!!studio.title,!!l.issue,!!l.evidence,!!l.solution,!!l.source,!!l.feedback,!!l.improvement,!!l.tested,!!l.reflection];

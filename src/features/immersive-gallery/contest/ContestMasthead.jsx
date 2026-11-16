@@ -1,7 +1,7 @@
 import React from 'react';
 import './contestMasthead.css';
 
-const title = 'Our Climate Action Museum';
+import {ASEAN_TITLE,ASEAN_TOPIC,isAsean} from '../v3/aseanLesson.js';
 const copy = {
   vi: {
     entry: 'BÀI DỰ THI',
@@ -27,9 +27,12 @@ const copy = {
   },
 };
 
-export default function ContestMasthead({language = 'vi'}) {
+export default function ContestMasthead({language = 'vi',lessonTemplate}) {
   const locale = language === 'en' ? 'en' : 'vi';
   const text = copy[locale];
+  const asean=isAsean(lessonTemplate);
+  const title=asean?ASEAN_TITLE:'Our Climate Action Museum';
+  const lesson=asean?(locale==='en'?'Grade 11':'Lớp 11')+' – Global Success, Unit 4: '+ASEAN_TOPIC:text.lesson;
   return (
     <div className="cmast cmast-plate" lang={locale} role="group" aria-label={text.entry + ' – ' + title}>
       <div className="cmast-layout">
@@ -39,7 +42,7 @@ export default function ContestMasthead({language = 'vi'}) {
           <p className="cmast-competition">{text.competition}</p>
           <p className="cmast-edition"><span>{text.year}</span><span>{text.category}</span></p>
           <p className="cmast-title" lang="en">{title}</p>
-          <p className="cmast-meta"><span>{text.subject}</span><span>{text.lesson}</span><span>{text.duration}</span></p>
+          <p className="cmast-meta"><span>{text.subject}</span><span>{lesson}</span><span>{text.duration}</span></p>
           <p className="cmast-author">{text.author}</p>
         </div>
         <img className="cmast-logo cmast-logo--school" src="/museum/branding/contest-school.png" width={720} height={877} alt="Pétrus Ký School" />

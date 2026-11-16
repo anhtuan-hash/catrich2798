@@ -1,6 +1,7 @@
 import React,{useMemo,useState} from 'react';
 import {ArrowLeftRight,CheckCircle2,ClipboardCheck,Image as ImageIcon,Info} from 'lucide-react';
 import {changedExhibits} from './learningEvidence.js';
+import {ASEAN_FRAMES} from './aseanLesson.js';
 import {EXHIBIT_FIELDS} from './museumExhibitInsights.js';
 import {normalizeStoryboardOrder} from './museumData.js';
 import './museumBeforeAfter.css';
@@ -48,7 +49,7 @@ function VersionCard({checkpoint,kind,selectedKey,changed}){
   </>:<p className="bml-compare-empty">This checkpoint has not been saved. No version is invented.</p>}
  </article>;
 }
-export default function MuseumBeforeAfter({before=null,after=null,groupLabel='',compact=false}){
+export default function MuseumBeforeAfter({before=null,after=null,groupLabel='',compact=false,asean=false}){
  const [field,setField]=useState('issue');
  const model=useMemo(()=>beforeAfterEvidence(before,after),[before,after]);
  return <section className={'bml-before-after'+(compact?' is-compact':'')} data-testid="museum-before-after"
@@ -62,7 +63,7 @@ export default function MuseumBeforeAfter({before=null,after=null,groupLabel='',
    <p>Both a Before and an After checkpoint must exist to compare the exhibition. Only saved work appears here.</p>
   </div>:<>
    <div className="bml-compare-tabs" role="tablist" aria-label="Choose exhibit to compare">
-    {EXHIBIT_FIELDS.map(item=><button type="button" key={item.key} role="tab"
+    {(asean?ASEAN_FRAMES:EXHIBIT_FIELDS).map(item=><button type="button" key={item.key} role="tab"
      aria-selected={field===item.key} className={field===item.key?'is-active':''}
      onClick={()=>setField(item.key)}>{item.label}
      {model.changed.includes(item.key)?<span className="bml-compare-changed">Changed</span>:null}</button>)}
@@ -76,12 +77,12 @@ export default function MuseumBeforeAfter({before=null,after=null,groupLabel='',
     <span>{normalizeStoryboardOrder(model.before.storyboardOrder).map(k=>EXHIBIT_FIELDS.find(x=>x.key===k)?.short).join(' → ')}</span>
     <b>→</b><span>{normalizeStoryboardOrder(model.after.storyboardOrder).map(k=>EXHIBIT_FIELDS.find(x=>x.key===k)?.short).join(' → ')}</span>
    </div>:null}
-   {model.feedback||model.improvement?<div className="bml-compare-revision">
+   {model.feedback||model.improvement||model.after?.revisionReason?<div className="bml-compare-revision">
     <div><ClipboardCheck size={17}/><strong>Feedback → revision</strong></div>
     {model.feedback?<p><b>Peer feedback:</b> {model.feedback}</p>:null}
-    {model.improvement?<p><b>Revision described by the group:</b> {model.improvement}</p>:null}
+    {model.improvement||model.after.revisionReason?<p><b>Revision described by the group:</b> {model.improvement||model.after.revisionReason}</p>:null}
    </div>:null}
-   <small className="bml-compare-integrity">These are stored snapshots, not independent proof that learning outcomes or environmental savings occurred.</small>
+   <small className="bml-compare-integrity">{asean?'These records show the saved versions and the group’s revision.':'These are stored snapshots, not independent proof that learning outcomes or environmental savings occurred.'}</small>
   </>}
  </section>;
 }
