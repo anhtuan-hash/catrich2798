@@ -380,7 +380,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
        focusProject();
       }}
       peerActivity={viewedActivity===null&&displayedActivity===7&&liveReady?<MuseumLivePeerFeedback csrf={session.csrf} liveInfo={liveInfo}
-       locked={locked||conflict} saveState={saveState} drafts={peerDrafts} setDrafts={setPeerDrafts}/>:null}/>
+       classroomCheck locked={locked||conflict} saveState={saveState} drafts={peerDrafts} setDrafts={setPeerDrafts}/>:null}/>
    </div>
      <footer className="bml-workshop-lesson-nav">
       <button type="button" className="bml-outline" disabled={displayedActivity===0} onClick={()=>moveActivity(-1)}>
@@ -502,7 +502,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
        <small className="bml-word-count">{wordCount(l[key])} words · Suggested: 25–40</small>
       </details>)}
     </>:null}
-    {step===2&&studioSubstep===2&&!groupLocked?<><p>{T(language,'Viết prompt cho từng poster, kiểm tra ảnh rồi tải lên và xem trước bảo tàng.','Write a prompt for each poster, check the image, then upload and preview the museum.')}</p>
+    {step===2&&studioSubstep===2&&!groupLocked?<><p>{T(language,'Dùng hình có ghi nguồn hoặc hình tự vẽ. Nếu tạo ảnh bằng AI, lưu prompt tiếng Anh và kiểm tra ảnh trước khi tải lên.','Use credited visuals or your own drawings. If using image generation, save the English prompt and check the result before uploading.')}</p>
      <button className="bml-primary" type="button" onClick={()=>setArtworkOpen(true)}>
       <CloudUpload size={19}/>{T(language,'Mở xưởng hiện vật và hình ảnh','Open artwork & media studio')}</button>
      {artworkOpen?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label={T(language,'Xưởng hiện vật','Artwork studio')}>
@@ -527,7 +527,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
     {step===3&&!groupLocked?<><p>{displayedActivity===8
       ?T(language,'Đọc phản hồi, sửa một hiện vật và ghi lý do thay đổi.','Read the feedback, revise one exhibit, and explain your change.')
       :T(language,'Xem góp ý và ghi điều người xem đã hiểu hoặc còn thắc mắc.','Review visitor feedback and record what visitors understood or want clarified.')}</p>
-      {displayedActivity===8&&stageIndex===8?<MuseumLivePeerFeedback csrf={session.csrf} liveInfo={liveInfo} locked={locked||conflict}
+      {displayedActivity===8&&stageIndex===8?<MuseumLivePeerFeedback csrf={session.csrf} liveInfo={liveInfo} classroomCheck retest locked={locked||conflict}
        saveState={saveState} drafts={peerDrafts} setDrafts={setPeerDrafts} onUseFeedback={r=>edit(d=>({...d,learning:{...d.learning,
         feedback:'From '+englishSystemGroupLabel(r.fromGroup)+' on '+(EXHIBIT_FIELDS.find(x=>x.key===r.targetExhibit)?.label||'the exhibition')+': '+r.learned+' | Suggested improvement: '+r.clarify,
         tested:true
@@ -535,7 +535,7 @@ export default function MuseumLabStudent({language:languageProp='en'}){
      <button type="button" className="bml-outline" onClick={()=>{setHistoryOpen(true);viewHistory();}}>
       {T(language,'Xem bản thiết kế / Trước–sau','View storyboard / before and after')}</button>
      <div className="bml-step-hint"><MessageSquare size={21}/><div><strong>{T(language,'Câu hỏi gợi ý cho người xem','Ask your peer')}</strong>
-      <p>“What is the problem?” · “Is the evidence clear?” · “What action should we take?”</p></div></div>
+      <p>“What is the school problem?” · “Which source supports one claim? Point to it.” · “What should someone do? Who does it and when?”</p></div></div>
      {displayedActivity===8?<details className="bml-student-exhibit">
       <summary>{T(language,'Chỉnh nội dung và nguồn của hiện vật','Revise exhibit captions and source')}</summary>
       {EXHIBIT_FIELDS.map(item=><React.Fragment key={item.key}>{field(item.label,l[item.key],v=>changeLearning(item.key,v),{rows:3,disabled:locked})}</React.Fragment>)}
@@ -550,8 +550,8 @@ export default function MuseumLabStudent({language:languageProp='en'}){
      <div className="bml-banner bml-info-banner"><Info size={18}/>{T(language,'Chỉ ghi phản hồi đã thu thập thật. Không tự tạo kết quả thử nghiệm.','Record only feedback actually collected. Never invent a test result.')}</div>
     </>:null}
     {displayedActivity===9&&!groupLocked?<div className="bml-step-hint">
-     <div><strong>{T(language,'Chuẩn bị phần nói 45–60 giây','Prepare a 45–60-second pitch')}</strong>
-      <p>{T(language,'Trình bày vấn đề, dẫn chứng có nguồn, giải pháp và một điểm đã cải tiến.','Explain the problem, sourced evidence, your solution, and one revision.')}</p>
+     <div><strong>{T(language,'Chuẩn bị phần nói 45 giây','Prepare a 45-second pitch')}</strong>
+      <p>{T(language,'Trình bày vấn đề, nguồn, giới hạn khảo sát và giải pháp. Mỗi thành viên nói một câu. Dành 15 giây cho hỏi đáp.','Explain the problem, name the source and survey limit, and propose an action. Every member speaks. Allow 15 seconds for a question and reply.')}</p>
       <button type="button" className="bml-outline" data-testid="museum-open-speaking" onClick={()=>setSpeakingOpen(true)}>
        <Sparkles size={18}/>{T(language,'Luyện thuyết trình','Practice your pitch')}
       </button></div>

@@ -32,7 +32,7 @@ export function p2Document(fields,assignment){
  const topic=assignment?.title||fields.topic||'Climate Action Museum';
  const rows=LIVE_STAGES.map(s=>{
   const note=LESSON_PLAN_NOTES[s.id];
-  return ['Period '+s.period+' · '+s.minutes+' min',s.title,note.task,s.question+' '+s.sentence,[s.expected,note.extension].filter(Boolean).join(' ')];
+  return ['Period '+s.period+' · '+s.minutes+' min',s.title,note.procedure,note.task+' '+s.sentence,note.output];
  });
  const list=items=>'<ul>'+items.map(item=>'<li>'+html(item)+'</li>').join('')+'</ul>';
  const rubric=RUBRIC.map(c=>'<tr><td>'+html(c.en)+'</td><td>'+c.max+'</td><td>'+html(LESSON_RUBRIC_LEVELS[c.key].join(' · '))+'</td></tr>').join('');
@@ -46,11 +46,11 @@ export function p2Document(fields,assignment){
  '<h2>Lesson topic</h2><p>'+html(topic)+' · English · High school · 2 periods</p>'+
  '<h2>Driving problem</h2><p>'+html(fields.drivingQuestion||LESSON_KITS[0].challenge)+'</p>'+
  '<h2>Prerequisites and expected outcomes</h2><p>'+html(fields.foundation||'English 11 Global Success Unit 5 vocabulary, cause and result, making recommendations, and reading a simple group tally.')+'</p>'+
- '<h2>Objectives</h2><p>'+html(fields.objectives||'Listen for main ideas and details in two NASA videos, identify a source and the limits of the class survey, write three English exhibit labels of 25–40 words, and prepare a 45–60-second pitch.')+'</p>'+
+ '<h2>Objectives</h2><p>'+html(fields.objectives||'Listen for main ideas and details in two NASA videos, identify a source and the limits of the class survey, write three English exhibit labels of 25–40 words, and prepare a 45-second pitch.')+'</p>'+
  '<h2>Teaching sequence (draft)</h2><table><tr><th>Timing</th><th>Activity</th><th>Teacher facilitation</th><th>Student tasks</th><th>Products and assessment</th></tr>'+rows.map(r=>'<tr>'+r.map(c=>'<td>'+html(c)+'</td>').join('')+'</tr>').join('')+'</table>'+
  '<h2>NASA listening checks</h2>'+clips+
  '<h2>Sourced language materials and tasks</h2>'+LESSON_RESOURCES.map(c=>'<h3>'+html(c.title)+'</h3><p>'+html(c.text)+'</p><p>'+html(c.task)+'</p><p>'+html(c.source)+' '+html(c.url||'')+'</p>').join('')+
- '<h2>Conclusion and application</h2><p>'+html(CONCLUSION)+'</p><h2>Offline contingency</h2><p>'+html(OFFLINE_GUIDE)+'</p>'+
+ '<h2>Conclusion and application</h2><p>'+html(CONCLUSION)+'</p><h2>Individual writing · I1</h2>'+list([EVIDENCE_WRITING.before,EVIDENCE_WRITING.after,EVIDENCE_WRITING.scoring])+'<h2>Visitor check · C2 and C3</h2>'+list(VISITOR_TASKS)+'<p>'+html(VISITOR_TEST_GUIDANCE)+'</p><h2>Offline contingency</h2><p>'+html(OFFLINE_GUIDE)+'</p>'+
  '<h2>Internal assessment rubric (not the official competition rubric)</h2><table><tr><th>Criterion</th><th>Points</th><th>Four reference levels</th></tr>'+rubric+'</table>'+
  '<h2>Evidence to attach</h2><ul><li>Credible and licensed data sources; digital worksheets</li><li>Design drafts; classroom photos or videos with permission</li><li>Student exhibition, authentic peer feedback and revision history</li><li>Actual rubric sheets and learner self-assessments</li></ul>'+
  '<p><b>Warning:</b> Use only authentic evidence. Never fabricate classroom data, effectiveness claims or student feedback.</p>');

@@ -66,9 +66,9 @@ export default function MuseumSpeakingStudio({learning={},onClose,enabled=false}
    };
    rec.start(250);startAt.current=Date.now();setRecording(true);
    clock.current=window.setInterval(()=>{
-    const n=Math.min(60,Math.floor((Date.now()-startAt.current)/1000));
+    const n=Math.min(45,Math.floor((Date.now()-startAt.current)/1000));
     setSeconds(n);
-    if(n>=60)stop();
+    if(n>=45)stop();
    },250);
   }catch(e){
    releaseTracks();
@@ -92,7 +92,7 @@ export default function MuseumSpeakingStudio({learning={},onClose,enabled=false}
   <section role="dialog" aria-modal="true" aria-label="English Speaking Studio" data-testid="museum-speaking-studio"
    className="bml-speaking-dialog">
    <header className="bml-speaking-head"><div><span>ACTIVITY 10 · PRESENT AND DISCUSS</span>
-    <h2>English Speaking Studio</h2><p>Practise a 45–60-second museum pitch in English. The recording stays on this device.</p></div>
+    <h2>English Speaking Studio</h2><p>Practise a 45-second museum pitch in English. The recording stays on this device.</p></div>
     <button type="button" onClick={()=>{stop();stopSample();onClose?.();}} aria-label="Close Speaking Studio"><X size={20}/></button>
    </header>
    <div className="bml-speaking-cues" aria-label="Presentation cue cards">
@@ -108,7 +108,7 @@ export default function MuseumSpeakingStudio({learning={},onClose,enabled=false}
    </div>
    <div className="bml-speaking-record">
     <div className="bml-speaking-counter"><AudioLines size={23}/><strong>{speakingTime(seconds)}</strong>
-     <span>{recording?'Recording…':audioUrl?'Recording ready for local review':'Target: 00:45–01:00'}</span></div>
+     <span>{recording?'Recording…':audioUrl?'Recording ready for local review':'Target: 00:45'}</span></div>
     <div className="bml-speaking-actions">
      {!recording?<button className="bml-speaking-primary" type="button" disabled={!enabled} onClick={start}>
       <Mic size={18}/>{audioUrl?'Record again':'Start local recording'}</button>:

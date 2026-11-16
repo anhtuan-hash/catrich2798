@@ -2,7 +2,7 @@ import React from 'react';
 import {ArrowRight,Search,PenTool,Landmark} from 'lucide-react';
 import {LESSON_KITS, RUBRIC} from '../../v3/museumData.js';
 import {LIVE_STAGES,LIVE_TOTAL_MINUTES,LIVE_PERIOD_MINUTES} from '../../v3/liveLesson.js';
-import {LESSON_PLAN_NOTES, PUBLIC_LESSON_GUIDE, OFFLINE_LESSON_WORKSHEET, VISITOR_TASKS} from '../../v3/lessonPlanAlignment.js';
+import {LESSON_PLAN_NOTES, PUBLIC_LESSON_GUIDE, OFFLINE_LESSON_WORKSHEET, VISITOR_TASKS, CLASSROOM_SETUP, CLASSROOM_RECORDS, VISITOR_TEST_GUIDANCE, LESSON_RUBRIC_LEVELS} from '../../v3/lessonPlanAlignment.js';
 import {MUSEUM_CURRICULUM_VIDEOS} from '../../v3/museumLiveExtensions.js';
 import EditorialHeading from '../shell/EditorialHeading.jsx';
 import MetricStrip from '../shell/MetricStrip.jsx';
@@ -32,7 +32,7 @@ export default function TeachingPlanScreen({language='vi',data,onCreate,onBack,o
   const outcomes=[
     {n:'01',title:'The Problem – The Evidence – Our Solution',desc:t(language,'Ba lời thuyết minh tiếng Anh, mỗi phần khoảng 25–40 từ.','Three English exhibit captions, approximately 25–40 words each.')},
     {n:'02',title:t(language,'Khảo sát ưu tiên nhóm','Group-priority survey'),desc:t(language,'Biểu đồ từ phiếu lớp thật, số nhóm N, số đếm, phần trăm và giới hạn.','A genuine group-vote chart with N, counts, percentages and limitations.')},
-    {n:'03',title:t(language,'Sản phẩm & quá trình học','Artwork & learning process'),desc:t(language,'Poster có ghi công, bản xem 3D hoặc 2D, phản hồi chéo, V1/V2 và bài trình bày 45–60 giây.','Credited visual, 3D or 2D exhibit, peer feedback, V1/V2 and a 45–60-second pitch.')}
+    {n:'03',title:t(language,'Sản phẩm & quá trình học','Artwork & learning process'),desc:t(language,'Hình có ghi công, hồ sơ C2/C3 và V1/V2. Mỗi nhóm trình bày 45 giây theo cặp, thêm 15 giây hỏi đáp.','Credited visuals, C2/C3 and V1/V2. Every group has 45 seconds to present to a partner and 15 seconds for a question and reply.')}
   ];
   const [firstTitleLine, secondTitleLine] = language === 'en' ? ['Teaching', 'plan'] : ['Kế hoạch', 'bài dạy'];
   return (
@@ -77,7 +77,7 @@ export default function TeachingPlanScreen({language='vi',data,onCreate,onBack,o
         </div>
       </section>
 
-      <div className="plan-note" role="note">{t(language,'Các nhóm thực hiện khảo sát ưu tiên thật, viết ba thuyết minh tiếng Anh, đưa hình có ghi công và biểu đồ đã chốt vào triển lãm, kiểm tra và cải tiến, sau đó tham quan phòng trưng bày 3D.','Groups conduct a real priority survey, write three English captions, add a credited visual and the frozen group-priority chart, test and revise, then visit the 3D gallery.')}</div>
+      <div className="plan-note" role="note">{t(language,'Các nhóm thực hiện khảo sát ưu tiên thật, viết ba thuyết minh tiếng Anh, đưa hình có ghi công và biểu đồ đã chốt vào triển lãm, kiểm tra và cải tiến, sau đó trình bày theo cặp.','Groups conduct a real priority survey, write three English captions, add a credited visual and the frozen group-priority chart, test and revise, then present in pairs.')}</div>
 
       <div className="plan-pillars">
         {pillars.map(({icon:Icon,title,desc})=>(
@@ -101,6 +101,11 @@ export default function TeachingPlanScreen({language='vi',data,onCreate,onBack,o
         </div>
       </ContentPanel>
 
+      <ContentPanel className="plan-section" ariaLabel={t(language,'Chuẩn bị','Before the lesson')}>
+        <h2>{t(language,'Chuẩn bị','Before the lesson')}</h2>
+        <p lang="en">{CLASSROOM_SETUP}</p>
+      </ContentPanel>
+
       <ContentPanel className="plan-section plan-sequence" ariaLabel={t(language,'Tiến trình bài dạy','Lesson sequence')}>
         <h2>{t(language,'Tiến trình {{n}} hoạt động · {{m}} phút','{{n}}-activity lesson sequence · {{m}} min').replace('{{n}}',activityCount).replace('{{m}}',LIVE_TOTAL_MINUTES)}</h2>
         <div className="plan-periods">
@@ -116,11 +121,11 @@ export default function TeachingPlanScreen({language='vi',data,onCreate,onBack,o
                       <small>{language==='en'?null:a.title+' · '}{LESSON_PLAN_NOTES[a.id].task}</small>
                       {MUSEUM_CURRICULUM_VIDEOS[i]?<small>
                         <a href={MUSEUM_CURRICULUM_VIDEOS[i].officialSource} target="_blank" rel="noreferrer">{t(language,'Video NASA và nguồn','NASA video and source')}</a>
-                        {' · '}<a href={PUBLIC_LESSON_GUIDE+'#stage-'+(i+1)}>{t(language,'3 câu hỏi nghe hiểu','3 listening questions')}</a>
+                        {' · '}<a href={PUBLIC_LESSON_GUIDE+'#stage-'+(i+1)}>{t(language,'3 câu hỏi và bản đọc thay video','3 listening questions and read-aloud')}</a>
                       </small>:null}
-                      <div className="plan-activity-meta">{a.minutes} {t(language,'phút','min')} · {a.kind}{a.sentence?` · “${a.sentence}”`:''}</div>
+                      <div className="plan-activity-meta">{a.minutes} {t(language,'phút','min')} · {LESSON_PLAN_NOTES[a.id].time} · {LESSON_PLAN_NOTES[a.id].reference}{a.sentence?` · “${a.sentence}”`:''}</div>
                       <small>{t(language,'Giai đoạn: ','Design phase: ')}{LESSON_PLAN_NOTES[a.id].phase}</small>
-                      {LESSON_PLAN_NOTES[a.id].extension?<small><b>{t(language,'Khi dạy lại: ','Next delivery: ')}</b>{LESSON_PLAN_NOTES[a.id].extension}</small>:null}
+                      <details><summary>{t(language,'Cách tổ chức và sản phẩm','Procedure and deliverable')}</summary><small lang="en" style={{whiteSpace:'pre-line'}}>{LESSON_PLAN_NOTES[a.id].procedure}</small><small lang="en">{LESSON_PLAN_NOTES[a.id].output}</small></details>
                     </div>
                   </li>
                 ))}
@@ -135,18 +140,26 @@ export default function TeachingPlanScreen({language='vi',data,onCreate,onBack,o
         <h2>{t(language,'Đánh giá và minh chứng','Assessment and evidence')}</h2>
         <div className="plan-assessment">
           <div>
-            <p>{t(language,'Khi dạy lại, dùng phiếu cá nhân 1 phút ở chặng 01 và 11. Khách thử V1/V2 bằng cùng ba nhiệm vụ ở chặng 08 và 09. Hồ sơ phiên đã khóa được đối chiếu bằng minh chứng gốc của phiên đó.','For a new delivery, use the one-minute individual writing checks in stages 01 and 11, and the same three visitor tasks for V1/V2 in stages 08 and 09. Review a finalized session using the evidence recorded in that session.')}</p>
+            <p>{t(language,'Khi dạy lại, dùng phiếu cá nhân 1 phút ở chặng 01 và 11. Dùng C2 để chấm ba câu ở V1 và C3 để hỏi lại câu liên quan đến phần đã sửa. Hồ sơ phiên đã khóa được đối chiếu bằng minh chứng gốc của phiên đó.','For a new delivery, use the one-minute individual writing checks in stages 01 and 11, the C2 three-question check in Stage 08, and a C3 retest of the revised item in Stage 09. Review a finalized session using the evidence recorded in that session.')}</p>
+            <p lang="en">{VISITOR_TEST_GUIDANCE}</p>
             <ol lang="en">{VISITOR_TASKS.map(task=><li key={task}>{task}</li>)}</ol>
           </div>
           <div className="plan-rubric">
             <p><b>{t(language,'Rubric học tập · 100 điểm','Group learning rubric · 100 points')}</b></p>
-            <ul>{RUBRIC.map(item=><li key={item.key}>{t(language,item.label,item.en)} · {item.max}</li>)}</ul>
+            <ul>{RUBRIC.map(item=><li key={item.key}><details><summary>{t(language,item.label,item.en)} · {item.max}</summary><ul lang="en">{LESSON_RUBRIC_LEVELS[item.key].map(level=><li key={level}>{level}</li>)}</ul></details></li>)}</ul>
           </div>
           <p className="plan-resources">
             <a href={PUBLIC_LESSON_GUIDE}>{t(language,'Hướng dẫn 11 chặng và rubric bốn mức','11-stage guide and four-level rubric')}</a>
             {' · '}<a href={OFFLINE_LESSON_WORKSHEET} download>{t(language,'Tải phiếu thực hành ngoại tuyến','Download offline practice worksheet')}</a>
           </p>
         </div>
+      </ContentPanel>
+
+      <ContentPanel className="plan-section" ariaLabel="Class 11.4 classroom records">
+        <h2>{t(language,'Ghi nhận thực tế lớp 11.4 do giáo viên xác nhận','Teacher-Confirmed Classroom Records · 11.4')}</h2>
+        <p lang="en">{CLASSROOM_RECORDS.confirmation}</p>
+        <p><a href={PUBLIC_LESSON_GUIDE+'#classroom-records'}>{CLASSROOM_RECORDS.example}</a></p>
+        <small lang="en">{CLASSROOM_RECORDS.sourceNote}</small>
       </ContentPanel>
 
       <div className="plan-actions">

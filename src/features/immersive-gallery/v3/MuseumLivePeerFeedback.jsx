@@ -3,6 +3,7 @@ import {CheckCircle2,Eye,RefreshCw,Send,Users,X} from 'lucide-react';
 import {liveGuest} from './museumLiveApi.js';
 import MuseumScene from './MuseumScene.jsx';
 import {EXHIBIT_FIELDS,exhibitField} from './museumExhibitInsights.js';
+import {OFFLINE_LESSON_WORKSHEET, VISITOR_TASKS} from './lessonPlanAlignment.js';
 import {validatePeer} from './learningEvidence.js';
 import {englishSystemGroupLabel} from './museumApi.js';
 import './museumLivePeer.css';
@@ -19,7 +20,7 @@ function normalizePreview(draft,artworks){
   }))
  }))};
 }
-export default function MuseumLivePeerFeedback({csrf,liveInfo,locked=false,saveState='saved',drafts,setDrafts,onUseFeedback}){
+export default function MuseumLivePeerFeedback({csrf,liveInfo,locked=false,saveState='saved',drafts,setDrafts,onUseFeedback,classroomCheck=false,retest=false}){
  const [data,setData]=useState({rooms:[],mine:null,received:[]});
  const [selected,setSelected]=useState(null),[preview,setPreview]=useState(null);
  const [busy,setBusy]=useState(false);
@@ -53,7 +54,7 @@ export default function MuseumLivePeerFeedback({csrf,liveInfo,locked=false,saveS
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
  const visit=async room=>{
-  if(!ready||locked||room.responded||busy)return;
+  if(!ready||locked||(!classroomCheck&&room.responded)||busy)return;
   setBusy(true);setError('');setNotice('');
   try{
    const r=await liveGuest('peer-room-view','GET',null,csrf,{roomId:room.id});
@@ -77,16 +78,17 @@ export default function MuseumLivePeerFeedback({csrf,liveInfo,locked=false,saveS
  const label=s=>englishSystemGroupLabel(s||'Class group');
  return <section className="bml-peer-live" data-testid="museum-live-peer-feedback">
   <header className="bml-peer-head"><div><span className="bml-overline"><Users size={15}/> CLASSROOM GALLERY WALK</span>
-   <h3>Live Museum Feedback</h3>
-   <p>Open your museum for classmates, visit their exhibitions and give evidence-based feedback in English.</p>
+   <h3>{retest?'C3 · Review feedback and retest':classroomCheck?'C2 · Visit a partner exhibit':'Live Museum Feedback'}</h3>
+   <p>{retest?'Review the suggestion before changing V1. Then ask the same visitor group one question about the revised part.':classroomCheck?'Open your draft for your partner and visit one exhibit. Record the C2 answers and give a suggestion in English.':'Open your museum for classmates, visit their exhibitions and give evidence-based feedback in English.'}</p>
   </div><button className="bml-outline" type="button" onClick={refresh} disabled={busy} aria-label="Refresh feedback rooms"><RefreshCw size={17}/></button></header>
   {!ready?<p className="bml-peer-hint">Feedback rooms become interactive when your teacher opens Activity 8, 9 or 10.</p>:null}
-  <div className="bml-peer-own">
+  {retest?<p className="bml-peer-hint">Show your saved V2 on your screen or give the visitor a paper copy. The feedback room preserves the original V1. <a href={OFFLINE_LESSON_WORKSHEET+'#retest'} target="_blank" rel="noreferrer">Open C3 retest</a></p>:null}
+  {!retest?<div className="bml-peer-own">
    <div><strong>Our group's feedback room</strong><small>{data.mine?.isOpen?'OPEN · Visible to classroom groups':data.mine?'CLOSED · Private':'NOT OPENED YET'}</small></div>
    {data.mine?.isOpen?<button type="button" className="bml-outline" disabled={!canOpen||busy} onClick={()=>toggle(false)}>Close feedback</button>:
     <button type="button" className="bml-primary" disabled={!canOpen||busy} onClick={()=>toggle(true)}>Open for feedback</button>}
-  </div>
-  {ready&&saveState!=='saved'?<p className="bml-peer-hint">Save your latest museum draft before opening feedback.</p>:null}
+  </div>:null}
+  {!retest&&ready&&saveState!=='saved'?<p className="bml-peer-hint">Save your latest museum draft before opening feedback.</p>:null}
   {data.mine?.responses>0?<p className="bml-peer-count"><CheckCircle2 size={16}/> {data.mine.responses} group response(s) received</p>:null}
   {data.received?.length?<details className="bml-peer-received"><summary>Feedback received · {data.received.length} groups</summary>
    {data.received.map((r,i)=><article key={r.createdAt+'-'+i}>
@@ -98,19 +100,19 @@ export default function MuseumLivePeerFeedback({csrf,liveInfo,locked=false,saveS
      onClick={()=>onUseFeedback(r)}>Use this feedback in our project</button>:null}
    </article>)}
   </details>:null}
-  <div className="bml-peer-other"><strong>Classmates' open museums</strong>
+  {!retest?<div className="bml-peer-other"><strong>Classmates' open museums</strong>
    {!data.rooms?.length?<p className="bml-peer-hint">No other group has opened feedback yet. Open yours, or refresh when classmates are ready.</p>:null}
    <div className="bml-peer-room-list">{(data.rooms||[]).map(r=><article key={r.id}>
     <div><strong>{label(r.ownerGroup)}</strong><small>{r.title} · {r.responses} responses</small></div>
-    <button type="button" className="bml-outline" disabled={!ready||locked||r.responded||busy}
-     onClick={()=>visit(r)}><Eye size={16}/>{r.responded?'Feedback sent':validatePeer(drafts[r.id])?'Edit draft':'Visit & review'}</button>
+    <button type="button" className="bml-outline" disabled={!ready||locked||(!classroomCheck&&r.responded)||busy}
+     onClick={()=>visit(r)}><Eye size={16}/>{classroomCheck?'Visit partner':r.responded?'Feedback sent':validatePeer(drafts[r.id])?'Edit draft':'Visit & review'}</button>
    </article>)}</div>
-   {ready&&!locked&&remaining>0?<div className="bml-peer-batch-actions">
+   {!classroomCheck&&ready&&!locked&&remaining>0?<div className="bml-peer-batch-actions">
     <span role="status">{prepared.length}/{remaining} pending reviews ready</span>
     {batchRooms.length<remaining?<small>Waiting for every classmate group to open its museum.</small>:null}
     <button type="button" className="bml-primary" disabled={!canSend} onClick={submit}><Send size={16}/>Send all {remaining} reviews</button>
    </div>:null}
-  </div>
+  </div>:null}
   {notice?<p className="bml-peer-message" role="status"><CheckCircle2 size={16}/>{notice}</p>:null}
   {error?<p className="bml-live-media-error" role="alert">{error}</p>:null}
   {selected&&preview?<div className="bml-student-detail-overlay" role="dialog" aria-modal="true" aria-label="Review a classmate's museum">
@@ -119,7 +121,11 @@ export default function MuseumLivePeerFeedback({csrf,liveInfo,locked=false,saveS
      <button type="button" className="bml-outline" onClick={()=>{setSelected(null);setPreview(null);}}><X size={16}/>Close</button></div>
     <div className="bml-peer-review-body">
      <div className="bml-peer-gallery"><MuseumScene gallery={preview} language="en" embedded onExhibitSelect={item=>{if(item.key)setResponse(v=>({...v,targetExhibit:item.key}));}}/></div>
-     <form className="bml-peer-review-form" onSubmit={e=>{e.preventDefault();setSelected(null);setPreview(null);}}>
+     {classroomCheck?<div className="bml-peer-review-form">
+      <strong>C2 · Visitor questions</strong><ol>{VISITOR_TASKS.map(task=><li key={task}>{task}</li>)}</ol>
+      <p>Write all three answers before the authors explain. Then check against B3, score 0 or 1 for each, and give one suggestion.</p>
+      <a className="bml-outline" href={OFFLINE_LESSON_WORKSHEET+'#test'} target="_blank" rel="noreferrer">Open C2 worksheet</a>
+     </div>:<form className="bml-peer-review-form" onSubmit={e=>{e.preventDefault();setSelected(null);setPreview(null);}}>
       <label>What are you reviewing?
        <select value={response.targetExhibit} onChange={e=>setResponse(v=>({...v,targetExhibit:e.target.value}))}>
         <option value="">Whole exhibition</option>
@@ -139,7 +145,7 @@ export default function MuseumLivePeerFeedback({csrf,liveInfo,locked=false,saveS
        <option value={4}>4 · Clear</option></select></label>
       <button className="bml-primary" type="submit" disabled={busy||!ready||!validatePeer(response)}><CheckCircle2 size={16}/>Save review draft</button>
       <small>One response per group per exhibition. Save each review here, then send them together from the room list.</small>
-     </form>
+     </form>}
     </div>
    </div>
   </div>:null}

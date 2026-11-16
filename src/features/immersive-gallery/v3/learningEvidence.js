@@ -1,5 +1,5 @@
 // Shared, deterministic learning evidence helpers. No student identities or invented data.
-export const SURVEY_QUESTION='As a group, choose ONE action your group will prioritise at school.';
+export const SURVEY_QUESTION='As a group, choose ONE action you would prioritise at school.';
 export const SURVEY_OPTIONS=['Walking or cycling when feasible','Switching off unused lights','Reducing food waste','Another feasible action'];
 export const SURVEY_UNIT='group votes';
 export const wordCount=value=>String(value||'').trim().split(/\s+/u).filter(Boolean).length;

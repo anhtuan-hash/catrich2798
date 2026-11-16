@@ -1,3 +1,5 @@
+import {LESSON_PLAN_NOTES} from './lessonPlanAlignment.js';
+
 // Contest-grade instructional metadata for the existing 2 × 45-minute lesson.
 // This module does not invent learner data or replace the locked curriculum sequence.
 export const VOICEOVER_SCRIPTS=Object.freeze({
@@ -7,11 +9,11 @@ export const VOICEOVER_SCRIPTS=Object.freeze({
  'problem-evidence-solution':'You are now climate detectives and designers. After the NASA clip and three questions, use English to connect the school problem with a named source and a realistic action.',
  'storyboard':'Plan three museum exhibits: The Problem, The Evidence, and Our Solution. Sketch what a visitor will see, write a draft English caption, and check that each claim has support.',
  'recap':'Welcome back. What makes an exhibit trustworthy? We need clear English, authentic evidence, an honest limitation, and a practical recommendation. Reopen your group draft and prepare to create.',
- 'artwork-studio':'Build your museum from your three English exhibit texts. Draft and check a separate prompt for each poster. Record what you checked, then upload the posters, credit the creator, add alternative text, and attach the verified survey chart to The Evidence. Save version one.',
- 'peer-gallery-walk':'Visit the other groups’ private exhibitions. For each one, explain what you learned, name one point to clarify and rate clarity from one to four. Save each draft and send the reviews together.',
- 'revise':'Read the feedback your group received. Make one real change to your poster or caption. Keep the two versions, state what changed and why, and report what the visitor could understand if you tested again.',
- 'present':'Present your museum in English. Explain one problem, cite one authentic figure with its sample size and limitation, and recommend a feasible action. Invite a question from another group.',
- 'exit-ticket':'Before leaving, choose one environmental action you can take. Explain your reason in English. Submit your exit ticket and check that your museum draft is saved and ready for review.'
+ 'artwork-studio':'Build your museum from your three English exhibit texts. Use credited visuals or drawings. Credit the creator, add alternative text to digital images and attach the survey chart. Save V1.',
+ 'peer-gallery-walk':LESSON_PLAN_NOTES['peer-gallery-walk'].task,
+ 'revise':LESSON_PLAN_NOTES.revise.task,
+ 'present':LESSON_PLAN_NOTES.present.task,
+ 'exit-ticket':LESSON_PLAN_NOTES['exit-ticket'].task
 });
 export const VIDEO_TASK_SUGGESTIONS=Object.freeze({
  'climate-detective':'school climate actions reducing carbon footprint',
