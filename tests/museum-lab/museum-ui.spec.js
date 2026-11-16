@@ -2225,7 +2225,7 @@ test('Student Creator 2D Paper exhibit displays actual uploaded photos and remai
  await page.getByTestId('qa-student-en').click();
  const app=page.getByTestId('museum-student-wizard');
  await expect(app).toBeVisible();
- await app.getByRole('button',{name:'Preview 2D/3D museum'}).click();
+ await app.getByRole('button',{name:'Preview 2D/3D',exact:true}).click();
  const viewer=app.getByTestId('museum-visitor');
  await expect(viewer).toBeVisible();
  await expect(viewer).toHaveAttribute('data-museum-mode','cinema');
@@ -2553,7 +2553,7 @@ test('V5 Cinema physically detaches the SAME 3D artwork, displays only real evid
  await page.route('**/api/gallery-guest/live?**',route=>route.fulfill({json:{session:null,survey:null}}));
  await page.goto('/tests/museum-lab/v3.html');
  await page.getByTestId('qa-student-en').click();
- await page.getByTestId('museum-student-wizard').getByRole('button',{name:'Preview 2D/3D museum'}).click();
+ await page.getByTestId('museum-student-wizard').getByRole('button',{name:'Preview 2D/3D',exact:true}).click();
  const viewer=page.getByTestId('museum-visitor');
  await expect(viewer).toHaveAttribute('data-museum-mode','cinema');
  await expect(viewer.locator('canvas')).toHaveCount(1);
@@ -2647,7 +2647,7 @@ test('V5 Cinema mobile and reduced motion keeps physical plaque readable and ESC
  await page.route('**/api/gallery-guest/live?**',route=>route.fulfill({json:{session:null,survey:null}}));
  await page.goto('/tests/museum-lab/v3.html');
  await page.getByTestId('qa-student-en').click();
- await page.getByTestId('museum-student-wizard').getByRole('button',{name:'Preview 2D/3D museum'}).click();
+ await page.getByTestId('museum-student-wizard').getByRole('button',{name:'Preview 2D/3D',exact:true}).click();
  const viewer=page.getByTestId('museum-visitor');
  await expect(viewer).toHaveAttribute('data-museum-mode','cinema');
  await expect(viewer.locator('canvas')).toHaveCount(1);

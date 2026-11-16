@@ -66,7 +66,7 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
  },[refresh]);
  const navigate=(id,extra)=>{
   const nextTab=NAV_TO_TAB[id]||id;
-  if((publicReadOnly||staff?.publicReadOnly)&&nextTab==='wizard')return;
+  if(readOnly&&nextTab==='wizard')return;
   // The completed competition experience has no demonstration route.
   if(id==='demo'){setTab('gallery');return;}
   if(nextTab==='demo'){setTab('gallery');return;}
@@ -82,7 +82,8 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
  // Shell nav ids map to existing tabs; existing navigate()/reviewId preserved.
  const shellNavigate=(navId)=>{ navigate(NAV_TO_TAB[navId]||'home'); };
  const visitor=publicReadOnly||!!staff?.publicReadOnly;
- const create=(template)=>{if(!visitor){if(typeof template==='string')setLessonTemplate(template);navigate('wizard');}};
+ const readOnly=visitor||!!staff?.offlineReadOnly;
+ const create=(template)=>{if(!readOnly){if(typeof template==='string')setLessonTemplate(template);navigate('wizard');}};
  const activeNav=TAB_TO_NAV[tab]||'overview';
  const matchingAssignments=(staff?.assignments||[]).filter(a=>isAsean(a)===isAsean(lessonTemplate));
  const matchingIds=new Set(matchingAssignments.map(a=>a.id));
@@ -96,7 +97,7 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
   reviews:(staff.reviews||[]).filter(r=>matchingGroupIds.has(r.group_id)),
   exitTickets:(staff.exitTickets||[]).filter(r=>matchingGroupIds.has(r.group_id)),
   publishedGalleries:(staff.publishedGalleries||[]).filter(g=>isAsean(g)===isAsean(lessonTemplate))}:staff;
- const sharedScreenProps={language:uiLanguage,data:staff,staff,onNavigate:navigate,onRefresh:refresh,transport:staffTransport,onCreate:visitor?undefined:create,onBack:()=>navigate('home'),initialReview:reviewId};
+ const sharedScreenProps={language:uiLanguage,data:staff,staff,onNavigate:navigate,onRefresh:refresh,transport:staffTransport,onCreate:readOnly?undefined:create,onBack:()=>navigate('home'),initialReview:reviewId};
  return <ImmersiveShell activeNav={activeNav} onNavigate={shellNavigate} language={uiLanguage} onLanguageChange={chooseLanguage} staff={staff} data={staff} query={query} onQueryChange={setQuery} onRefresh={refresh} onHelp={()=>setHelp(true)} pendingCount={pendingCount} lessonTemplate={lessonTemplate}>
   <div className="bml" data-testid="brian-museum-lab-v3" lang={uiLanguage} data-ui-locale={uiLanguage==='en'?'en-US':'vi-VN'} data-public-readonly={visitor?'true':'false'}>
    {error?<div className="bml-banner bml-danger-banner" role="alert" style={{marginBottom:18}}><ShieldAlert size={19}/>
@@ -113,14 +114,14 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
     </select>
    </label>}
    {loading?<div className="bml-empty bml-surface" role="status"><RefreshCw size={27}/>{tr(uiLanguage,'Đang tải bài học và phân quyền…','Loading lessons and permissions…')}</div>:
-   tab==='home'?(isAsean(lessonTemplate)?<AseanTeachingPlan onCreate={visitor?undefined:create}/>:<OverviewScreen {...sharedScreenProps} data={matchingData}/>):
+   tab==='home'?(isAsean(lessonTemplate)?<AseanTeachingPlan onCreate={readOnly?undefined:create}/>:<OverviewScreen {...sharedScreenProps} data={matchingData}/>):
    tab==='live'?<TeacherLiveScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} transport={liveTransport} initialTemplate={lessonTemplate}/>:
    tab==='wizard'?<LessonWizard language={uiLanguage} data={staff} initialTemplate={lessonTemplate} onTemplateChange={setLessonTemplate} onCompleted={refresh} onExit={()=>navigate('lessons')} onSettings={()=>navigate('settings')}/>:
    tab==='lessons'?<LessonsList key={lessonTemplate} language={uiLanguage} data={matchingData} query={query}
      onCreate={()=>create()} onReview={id=>navigate('submissions',id)} onRefresh={refresh}/>:
    tab==='submissions'?<SubmissionsScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate} query={query}/>:
    tab==='gallery'?<ExhibitionsScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate} onTemplateChange={setLessonTemplate} query={query}/>:
-   tab==='templates'?(isAsean(lessonTemplate)?<AseanTeachingPlan onCreate={visitor?undefined:create}/>:<TeachingPlanScreen {...sharedScreenProps} data={matchingData}/>):
+   tab==='templates'?(isAsean(lessonTemplate)?<AseanTeachingPlan onCreate={readOnly?undefined:create}/>:<TeachingPlanScreen {...sharedScreenProps} data={matchingData}/>):
    tab==='evidence'?(isAsean(lessonTemplate)?<AseanDossier data={matchingData} onOpenGallery={id=>{
     window.history.replaceState(null,'',window.location.hash.split('?')[0]+'?exhibition='+encodeURIComponent(id));
     navigate('gallery');
@@ -138,7 +139,7 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
       ['03','Học sinh làm bài theo nhóm và lưu bài bằng mã nhóm','Students use their group pass to complete and save their work'],
       ['04','Admin đánh giá, phê duyệt và công bố','Admin assesses, approves and publishes']
      ].map(([number,vi,en])=><div className="bml-check-item" key={number}><span className="bml-class-tag">{number}</span><div><strong>{tr(uiLanguage,vi,en)}</strong></div></div>)}</div>
-     <button className="bml-primary" type="button" disabled={visitor} onClick={()=>{setHelp(false);create();}}><Plus size={17}/>{tr(uiLanguage,'Tạo bài học ngay','Create a lesson')}</button>
+     <button className="bml-primary" type="button" disabled={readOnly} onClick={()=>{setHelp(false);create();}}><Plus size={17}/>{tr(uiLanguage,'Tạo bài học ngay','Create a lesson')}</button>
     </section></div>:null}
  </ImmersiveShell>;
 }
