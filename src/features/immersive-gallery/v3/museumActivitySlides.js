@@ -21,7 +21,7 @@ export const MUSEUM_ACTIVITY_SLIDES = {
     question: 'As a group, choose ONE action you would prioritise at school.',
     cards: [
       ['Vote once', 'Agree on one choice and send one response per group.'],
-      ['Report your result', 'Record the date, the count x, the valid group total N, and x ÷ N × 100.'],
+      ['Report your result', 'Read the date, number of votes x, valid group total N, and percentage shown by BRIAN.'],
       ['State the limit', 'The chart describes group priorities in this class. It cannot measure habits or emissions.'],
     ],
     output: 'One dated count and percentage, and one sentence stating the survey’s limit.',

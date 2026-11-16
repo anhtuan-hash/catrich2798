@@ -78,7 +78,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
                 <h2 className="adv-stage-title">{stage?.title||t(language,'Đang tải hoạt động…','Loading activity…')}</h2>
                 {language!=='en'&&stage?.vi?<p className="adv-stage-vi">{stage.vi}</p>:null}
                 {hasLessonSlide?<TeacherLiveSlideContent key={stage.id} stage={stage} language={language}
-                  view={view} questions={questions} revealed={revealed} survey={survey} curriculumNode={curriculumNode}
+                  view={view} questions={questions} revealed={revealed} survey={survey} readOnly={readOnly} curriculumNode={curriculumNode}
                   questionIndex={questionIndex} onPresent={onPresent} busy={presentationBusy}/>
                  :<p className="adv-stage-question">{stage?.question}</p>}
               </div>
