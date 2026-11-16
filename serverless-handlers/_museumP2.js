@@ -44,13 +44,24 @@ async function peerState(admin,session,ctx,{gallery=false}={}){
  if(session.status==='active'&&session.stage_open&&session.stage_index===8&&outgoing&&outgoingRevision){
   available=true;
   if(gallery){
-  const shared=await query(admin.from(table).select('snapshot').eq('session_id',session.id).eq('group_id',target.id).eq('form','C3-share').eq('slot','').single());
+   const shared=await query(admin.from(table).select('snapshot').eq('session_id',session.id).eq('group_id',target.id).eq('form','C3-share').eq('slot','').single());
    if(shared.snapshot)exhibit=await checkpointGallery(admin,shared.snapshot,target.label);
   }
  }
  return {target:target.label,visitor:visitor.label,c2,score,revision,answer,retest,outgoing,outgoingRevision,outgoingAnswer,exhibit,available,
   // The authors see the reference answers only when checking their own V1.
   b3:c2?await findRow(admin,session.id,id,'B3'):null};
+}
+
+export async function p2WorksheetsForEvidence(admin,session){
+ if(session.media_board?.p2Worksheets!==true)return undefined;
+ const rows=[];
+ for(let offset=0;;offset+=500){
+  const page=await query(admin.from(table).select(fields+',snapshot').eq('session_id',session.id)
+   .order('group_id').order('form').order('slot').range(offset,offset+499));
+  rows.push(...page);
+  if(page.length<500)return {rows,summary:summarizeP2(rows)};
+ }
 }
 
 export async function handleMuseumP2({op,req,res,admin,ctx,session,assignment,staff=false}){

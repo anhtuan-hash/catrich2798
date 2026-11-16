@@ -1,6 +1,6 @@
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {P2_FORMS,P2_STAFF_FORMS,P2_STUDENT_FORMS,P2_PEER_FORMS,P2_ROLES,summarizeP2} from './museumP2Forms.js';
-import {VISITOR_TASKS} from './lessonPlanAlignment.js';
+import {VISITOR_TASKS,VISITOR_TEST_GUIDANCE} from './lessonPlanAlignment.js';
 import {saveTextFile} from './museumApi.js';
 import MuseumScene from './MuseumScene.jsx';
 import './museumP2Workbook.css';
@@ -52,13 +52,31 @@ function PeerContext({formId,peer,language,onPreview}){
  const item=peer.outgoingRevision?.values.item;
  return <>
   <p>{tr(language,'Nhóm mình đến xem','Your partner exhibit')} <b>{peer.target}</b> · {tr(language,'Nhóm đến xem bài mình','Your visitors')} <b>{peer.visitor}</b></p>
+  {formId==='C2'?<p lang="en">{VISITOR_TEST_GUIDANCE}</p>:null}
   {['C2','C3-answer'].includes(formId)&&peer.available?<button type="button" className="p2-button" onClick={onPreview}>{formId==='C2'?'Open partner V1':'Open partner V2'}</button>:null}
   {formId==='C3-answer'&&item!==undefined?<p><strong>{VISITOR_TASKS[Number(item)]}</strong><br/>The other two questions are N/T for V2.</p>:null}
   {formId==='C2-score'?<><Record row={peer.c2}/><Record row={peer.b3} heading="B3 · Expected answers"/></>:null}
   {formId==='C3-share'?<Record row={peer.c2}/>:null}
-  {formId==='C3-score'?<><Record row={peer.revision}/><Record row={peer.answer}/></>:null}
-  {peer.score?<p>C2 · V1 {valuesSum(peer.score.values)}/3. {peer.retest&&peer.revision?<>C3 · {peer.score.values['score'+peer.revision.values.item]}/1 → {peer.retest.values.score}/1.</>:null}</p>:null}
+  {formId==='C3-score'?<><Record row={peer.revision}/><Record row={peer.c2} heading="I4 · Trace the original visitor's answer"/><Record row={peer.answer} heading="I4 · Trace the answer on V2"/></>:null}
+  {peer.score?<p>C2 · V1 {valuesSum(peer.score.values)}/3.</p>:null}
+  {formId==='C3-score'&&peer.score&&peer.revision?<table className="p2-retest-table">
+   <thead><tr><th scope="col">Visitor question</th><th scope="col">V1</th><th scope="col">V2</th></tr></thead>
+   <tbody>{VISITOR_TASKS.map((question,i)=><tr key={question}><th scope="row">{question}</th>
+    <td>{peer.score.values['score'+i]}/1</td><td>{Number(peer.revision.values.item)===i?(peer.retest?peer.retest.values.score+'/1':'—'):'N/T'}</td></tr>)}</tbody>
+  </table>:null}
  </>;
+}
+
+function PosterPromptGuide({language}){
+ return <details><summary>{tr(language,'Phụ lục K · Hướng dẫn viết prompt cho poster','Appendix K · Poster prompt guide')}</summary>
+  <div lang="en">
+   <p>Replace the brackets with details from B3. Keep student names, faces and access codes out of the image generator.</p>
+   <p><strong>The Problem.</strong> Create a poster showing [one school situation] and make [the problem] easy to notice. Use only the details in our description. Leave space for our English labels.</p>
+   <p><strong>The Evidence.</strong> Illustrate [our verified observation or data] from [source] and show what it tells us. Use only the facts we supply. Leave space for our own numbers, limitations and source note.</p>
+   <p><strong>Our Solution.</strong> Illustrate how [who] can [action] at [time/place] under [condition]. Show the steps in order and leave space for our English instructions.</p>
+   <p>Check the places, numbers, source and action against your label. Add verified data yourself. Save the prompt, selected image and one sentence explaining your check.</p>
+  </div>
+ </details>;
 }
 
 function PitchTimer({language}){
@@ -190,6 +208,7 @@ export default function MuseumP2Workbook({language,role,transport,readOnly,group
   </div>
   {formId==='D1'&&!readOnly&&!serverLocked&&gate?<PitchTimer language={language}/>:null}
   {formId==='B3'?<p>{P2_ROLES}</p>:null}
+  {formId==='C1'?<PosterPromptGuide language={language}/>:null}
   {formId==='D2'?<p>{tr(language,'Theo dõi một hành động trong một tuần học. Nộp nhật ký vào tiết tiếng Anh tiếp theo, trước khi giáo viên khóa hồ sơ.','Track one action for a school week. Save the log by the next English lesson, before the teacher locks the record.')}</p>:null}
   {formId==='I3'&&rows?<ClassSummary rows={rows} groups={groups} language={language}/>:null}
   {isPeer?<PeerContext formId={formId} peer={peer} language={language} onPreview={preview}/>:null}

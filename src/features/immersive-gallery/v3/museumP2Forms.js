@@ -14,7 +14,7 @@ const i1 = (stage,prompt) => ({title:'Individual writing · one minute',stage,in
 export const P2_FORMS = {
  'I1-A':i1(0,EVIDENCE_WRITING.before),
  B1:{title:'Group priority survey',stage:2,fields:[text('finding','Our finding · date, x, N and percentage',true),text('scope','What do these group votes represent?',true)]},
- B2:{title:'Compare ways to present the same action',stage:3,fields:[
+ B2:{title:'Compare ways to present the same action',stage:3,prompt:'Score each criterion 0 if unmet, 1 if partly met or 2 if met with evidence. If tied, prioritise feasibility and explain the choice.',fields:[
   text('problem','School problem and what your visitor needs to understand',true),text('claim','NASA claim',true),text('source','NASA source link',true),text('localEvidence','Local evidence and its limitation',true),
   text('optionA','Option A · What will the visitor see or do?',true),
   ...['Clarity','Feasibility','Source traceability'].map((label,i)=>select('a'+i,'Option A · '+label,['0','1','2'])),
@@ -34,7 +34,7 @@ export const P2_FORMS = {
  'C3-answer':{title:'Answer the single retest question on V2',stage:8,fields:[
   text('answer','Visitor’s answer',true),select('reader','Did the reader change?',['same','different','unknown']),text('conditions','Changes to test conditions')]},
  'C3-score':{title:'Score the same question on V2',stage:8,fields:[mark('score','Retest score')]},
- D1:{title:'Paired pitch · 45 seconds + 15 seconds',stage:9,fields:[
+ D1:{title:'Paired pitch · 45 seconds + 15 seconds',stage:9,prompt:'Our museum explains … . According to NASA, … . In our survey, … out of … groups chose … . This tells us … . We recommend … . Ask one follow-up question about evidence, school action or what changed after the visitor test.',fields:[
   text('observer','Observer code',true),text('source','Evidence cited',true),text('question','Question asked',true),text('reply','Group’s reply',true)]},
  'I1-B':i1(10,EVIDENCE_WRITING.after),
  D2:{title:'Group Exit Ticket and school-week follow-up',stage:10,fields:[
@@ -42,12 +42,12 @@ export const P2_FORMS = {
   text('range','Observation dates and action'),text('unit','Observation unit'),
   number('done','Times completed',100000),number('opportunities','Total opportunities',100000),text('summary','Result and one limitation · 2–3 English sentences')]},
  E1:{title:'Process checklist',staff:true,group:true,fields:stages.flatMap((label,i)=>[select('state'+i,label,['E','R','N/O']),text('note'+i,'Notes · '+label)])},
- E3:{title:'Individual speaking observation',staff:true,group:true,individual:true,fields:[
+ E3:{title:'Individual speaking observation',staff:true,group:true,individual:true,prompt:'Score 2 for independent performance, 1 after prompting, 0 if the student had an opportunity and did not demonstrate the skill, or N/O when it was not observed.',fields:[
   ...['One relevant English sentence','Accurate explanation of source or survey','Action and reason in spoken English'].map((label,i)=>select('criterion'+i,label,['2','1','0','N/O'])),text('feedback','Feedback and next step')]},
  E4:{title:'Group evidence summary',staff:true,group:true,fields:[
   text('recorder','Recorder code'),...evidence.map((label,i)=>text('record'+i,label+' · File or record ID')),text('strength','The group demonstrated'),text('next','Next step')]},
- 'I2-A':{title:'Score individual writing A',staff:true,group:true,individual:true,fields:['Figures · 3/10 and 30%','Scope · group priorities','Two clear English sentences'].map((label,i)=>mark('score'+i,label))},
- 'I2-B':{title:'Score individual writing B',staff:true,group:true,individual:true,fields:['Figures · 7/10 and 70%','Scope · group priorities','Two clear English sentences'].map((label,i)=>mark('score'+i,label))},
+ 'I2-A':{title:'Score individual writing A',staff:true,group:true,individual:true,prompt:EVIDENCE_WRITING.scoring,fields:['Figures · 3/10 and 30%','Scope · group priorities','Two clear English sentences'].map((label,i)=>mark('score'+i,label))},
+ 'I2-B':{title:'Score individual writing B',staff:true,group:true,individual:true,prompt:EVIDENCE_WRITING.scoring,fields:['Figures · 7/10 and 70%','Scope · group priorities','Two clear English sentences'].map((label,i)=>mark('score'+i,label))},
  I3:{title:'Class summary',staff:true,fields:[
   number('enrolment','Total enrolment',1000),text('difficulty','One difficulty'),text('response','What you tried'),text('next','One change for the next lesson')]},
 };

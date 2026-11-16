@@ -1,6 +1,7 @@
 import React,{useEffect,useMemo,useRef,useState} from 'react';
 import { LockKeyhole,ArrowLeft,ArrowRight,ArrowUpRight,BookOpen,CheckCircle2,ClipboardCheck,Clock3,Eye,FileText,MessageCircle,ShieldAlert,ShieldCheck,Star,Trash2,Users} from 'lucide-react';
 import {RUBRIC,scoreRubric,suggestRubric} from './museumData.js';
+import {LESSON_RUBRIC_LEVELS} from './lessonPlanAlignment.js';
 import {englishSystemGroupLabel,staffRequest} from './museumApi.js';
 import MuseumScene,{reviewMuseum} from './MuseumScene.jsx';
 import {artStaff} from './museumLiveApi.js';
@@ -239,6 +240,10 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
      </div>
      <aside className="bml-eval-pane"><div className="bml-eval-heading"><ClipboardCheck size={21}/><h3>{tr(language,'Rubric đánh giá','Assessment rubric')}</h3></div>
        <p className="bml-muted">{tr(language,'Rubric nội bộ, không phải tiêu chí chính thức của hội thi.','An internal learning rubric, not an official competition scoring scheme.')}</p>
+       {!publicReadOnly?<details><summary>{tr(language,'E2 · Rubric bốn mức','E2 · Four-level rubric')}</summary>
+        {RUBRIC.map(c=><section key={c.key}><h4>{tr(language,c.label,c.en)} · {c.max}</h4>
+         <ol reversed lang="en">{LESSON_RUBRIC_LEVELS[c.key].map(level=><li key={level}>{level}</li>)}</ol></section>)}
+       </details>:null}
        {showSuggested?<p className="bml-muted" role="note">{tr(language,'Điểm gợi ý ngẫu nhiên. Kiểm tra hoặc chỉnh từng tiêu chí trước khi lưu hay duyệt.','Randomly suggested scores. Check or edit each criterion before saving or approving.')}</p>:null}
        {publicReadOnly&&!rubric?.scores?<p className="bml-muted" role="status">
         {tr(language,'Chưa có điểm rubric được công khai.','No rubric score is available to the public.')}
