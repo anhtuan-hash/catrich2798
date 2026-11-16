@@ -73,6 +73,7 @@ export async function handleMuseumP2({op,req,res,admin,ctx,session,assignment,st
  if(op==='p2-peer'){
   requireMethod(req,'GET');
   if(staff)throw fail(403,'Open the student workshop to visit a partner.');
+  if(session.media_board?.p2Archive)return send(res,200,{peer:null});
   return send(res,200,{peer:await peerState(admin,session,ctx,{gallery:req.query?.gallery==='1'})});
  }
  if(!saving){
@@ -90,12 +91,13 @@ export async function handleMuseumP2({op,req,res,admin,ctx,session,assignment,st
    rows.push(...page);
    if(page.length<500)break;
   }
-  return send(res,200,{rows,summary:staff?summarizeP2(rows):undefined,readOnly:Boolean(assignment.content_frozen_at||session.status==='ended')});
+  const archivedCopy=Boolean(session.media_board?.p2Archive);
+  return send(res,200,{rows,summary:staff?summarizeP2(rows):undefined,archivedCopy,readOnly:Boolean(archivedCopy||assignment.content_frozen_at||session.status==='ended')});
  }
  requireMethod(req,'POST');
  if(staff)guardOrigin(req);
  if(!session.media_board?.p2Worksheets)throw fail(423,'This lesson was created before P2 worksheets. Start a new lesson for the full P2 workflow.');
- if(assignment.content_frozen_at||session.status==='ended')throw fail(423,'The lesson is locked.');
+ if(session.media_board?.p2Archive||assignment.content_frozen_at||session.status==='ended')throw fail(423,'The lesson is locked.');
  const body=guardBody(req,18500);
  const formId=String(body.form||'');
  const form=Object.hasOwn(P2_FORMS,formId)?P2_FORMS[formId]:null;

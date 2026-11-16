@@ -354,7 +354,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
             onToggle={event=>setWorkbookOpen(event.currentTarget.open)}>
             <summary>{t(language,'Sổ phiếu P2 và đánh giá lớp','P2 worksheets and classroom assessment')}</summary>
             {workbookOpen?<div className="p2-controls">
-              <p>{t(language,'Thu nhật ký D2 sau một tuần học rồi khóa hồ sơ.','Collect the D2 logs after one school week, then lock the lesson record.')}</p>
+              {!readOnly?<p>{t(language,'Thu nhật ký D2 sau một tuần học rồi khóa hồ sơ.','Collect the D2 logs after one school week, then lock the lesson record.')}</p>:null}
               {onNavigate?<button type="button" className="adv-toolbtn" onClick={()=>onNavigate('submissions')}>{t(language,'E2 · Chấm rubric bài nộp','E2 · Score group submissions')}</button>:null}
             </div>:null}
             {workbookOpen?<MuseumP2Workbook key={assignmentId} language={language} role="teacher" transport={transport}
