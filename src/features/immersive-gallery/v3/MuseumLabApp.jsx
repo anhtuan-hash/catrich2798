@@ -97,13 +97,14 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
   exitTickets:(staff.exitTickets||[]).filter(r=>matchingGroupIds.has(r.group_id)),
   publishedGalleries:(staff.publishedGalleries||[]).filter(g=>isAsean(g)===isAsean(lessonTemplate))}:staff;
  const sharedScreenProps={language:uiLanguage,data:staff,staff,onNavigate:navigate,onRefresh:refresh,transport:staffTransport,onCreate:readOnly?undefined:create,onBack:()=>navigate('home'),initialReview:reviewId};
+ const overview=<OverviewScreen {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate} publicReadOnly={visitor}/>;
  return <ImmersiveShell activeNav={activeNav} onNavigate={shellNavigate} language={uiLanguage} onLanguageChange={chooseLanguage} staff={staff} data={staff} query={query} onQueryChange={setQuery} onRefresh={refresh} onHelp={()=>setHelp(true)} pendingCount={pendingCount} lessonTemplate={lessonTemplate}>
   <div className="bml" data-testid="brian-museum-lab-v3" lang={uiLanguage} data-ui-locale={uiLanguage==='en'?'en-US':'vi-VN'} data-public-readonly={visitor?'true':'false'}>
    {error?<div className="bml-banner bml-danger-banner" role="alert" style={{marginBottom:18}}><ShieldAlert size={19}/>
      <div><strong>{tr(uiLanguage,'Không thể đồng bộ dữ liệu quản lý','Could not load staff data')}</strong><p>{error}</p>
       <button type="button" className="bml-outline" onClick={()=>{setLoading(true);refresh();}}><RefreshCw size={17}/>{tr(uiLanguage,'Thử lại','Retry')}</button></div></div>:null}
    {loading?<div className="bml-empty bml-surface" role="status"><RefreshCw size={27}/>{tr(uiLanguage,'Đang tải bài học và phân quyền…','Loading lessons and permissions…')}</div>:
-   tab==='home'?(isAsean(lessonTemplate)?<AseanTeachingPlan onCreate={readOnly?undefined:create}/>:<OverviewScreen {...sharedScreenProps} data={matchingData}/>):
+   tab==='home'?overview:
    tab==='live'?<TeacherLiveScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} transport={liveTransport} initialTemplate={lessonTemplate}/>:
    tab==='wizard'?<LessonWizard language={uiLanguage} data={staff} onCompleted={refresh} onExit={()=>navigate('lessons')} onSettings={()=>navigate('settings')}/>:
    tab==='lessons'?<LessonsList key={lessonTemplate} language={uiLanguage} data={matchingData} query={query}
@@ -116,7 +117,7 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
     navigate('gallery');
    }}/>:<DossierScreen {...sharedScreenProps} data={matchingData} transport={liveTransport}/>):
    tab==='settings'?<SettingsScreen {...sharedScreenProps}/>:
-   <OverviewScreen {...sharedScreenProps}/>}
+   overview}
   </div>
   {help?<div className="bml-modal-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)setHelp(false);}}>
     <section className="bml-modal" role="dialog" aria-modal="true" aria-label={tr(uiLanguage,'Hướng dẫn Museum Lab','Museum Lab help')}>
