@@ -1616,6 +1616,74 @@ test('student workshop expands both panels when an activity starts and can reope
  await expect(ribbon).toBeHidden();
 });
 
+test('ASEAN student workshop uses the Climate layout for all six ASEAN activities',async({page,isMobile},testInfo)=>{
+ let stageIndex=2,readOnly=false;
+ const assignment={id:'qa-asean',title:'ASEAN in Three Frames',class_scope:'11-QA',lesson_template:'asean-in-three-frames'};
+ await page.route('**/api/gallery-guest?**',route=>{
+  const operation=new URL(route.request().url()).searchParams.get('operation');
+  return route.fulfill({json:operation==='me'?{
+   assignment,groupLabel:'Nhóm 01',groupState:'editing',readOnly,uploadEnabled:true,csrf:'qa-asean'
+  }:{draft:{title:'Hội An Ancient Town',learning:{issue:'This is the saved ASEAN caption.'}},version:2}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>{
+  const operation=new URL(route.request().url()).searchParams.get('operation');
+  return route.fulfill({json:operation==='asean-records'?{rows:[],checkpoints:[]}:
+   {session:{id:'qa-asean-live',stageIndex,status:'active',stageOpen:true},readOnly}});
+ });
+ await page.route('**/api/gallery-guest/artwork?**',route=>route.fulfill({json:{assets:[]}}));
+ await page.getByTestId('qa-student-en').click();
+ const root=page.getByTestId('asean-student-lesson');
+ const ribbon=root.getByTestId('museum-competition-ribbon');
+ const lesson=root.getByRole('region',{name:'Lesson',exact:true});
+ const project=root.getByRole('region',{name:'Group Project',exact:true});
+ const masthead=root.getByTestId('student-masthead');
+ const studio=root.getByTestId('asean-3d-studio');
+ await expect(ribbon).toContainText('ASEAN in Three Frames');
+ await expect(root.getByTestId('student-activity-groups').getByRole('navigation',{name:'Lesson groups'}).getByRole('button')).toHaveCount(5);
+ await expect(lesson.getByTestId('asean-student-slide-3')).toBeVisible();
+ await expect(studio.getByRole('textbox',{name:/Place caption/})).toHaveValue('This is the saved ASEAN caption.');
+ await expect(studio.getByRole('textbox',{name:/Place caption/})).toBeEditable();
+ const before=await lesson.boundingBox();
+ await page.screenshot({path:testInfo.outputPath('asean-workshop-expanded.png')});
+ await lesson.getByRole('button',{name:'Open the 3D Studio'}).click();
+ await expect(studio).toBeFocused();
+ await expect(ribbon).toBeHidden();
+ const [lessonBox,projectBox]=await Promise.all([lesson.boundingBox(),project.boundingBox()]);
+ if(isMobile)expect(projectBox.y).toBeGreaterThan(lessonBox.y);
+ else {
+  expect(lessonBox.y).toBe(projectBox.y);
+  expect(lessonBox.height-before.height).toBeGreaterThan(70);
+  expect(projectBox.y+projectBox.height).toBeLessThanOrEqual(900);
+  expect(await project.getByTestId('student-task-scroll').evaluate(el=>el.scrollHeight>el.clientHeight)).toBe(true);
+ }
+ await page.screenshot({path:testInfo.outputPath('asean-workshop-focused.png')});
+ const titles=['Write for a first-time visitor','Choose photographs with a purpose','Build your group’s 3D exhibit',
+  'Visit another group’s exhibit','Make one evidence-based change','Present and submit your work'];
+ for(let i=0;i<2;i++)await lesson.getByRole('button',{name:'Previous activity'}).click();
+ for(const [index,title] of titles.entries()){
+  const slide=lesson.getByTestId('asean-student-slide-'+(index+1));
+  await expect(slide.getByRole('heading',{name:title,exact:true})).toBeVisible();
+  await expect(slide.locator('.asean-activity-art')).toBeVisible();
+  for(const pane of [root,lesson.getByTestId('student-lesson-pane'),project.getByTestId('student-task-scroll')])
+   expect(await pane.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+  if(index<titles.length-1)await lesson.getByRole('button',{name:'Next activity'}).click();
+ }
+ await expect(lesson.getByRole('button',{name:'Next activity'})).toBeDisabled();
+ await lesson.getByRole('button',{name:'Follow teacher'}).click();
+ await expect(lesson.getByTestId('asean-student-slide-3')).toBeVisible();
+ await masthead.getByRole('button',{name:'Show banner'}).click();
+ await expect(ribbon).toBeVisible();
+ await masthead.getByRole('button',{name:'VI',exact:true}).click();
+ await expect(ribbon.getByText('BÀI DỰ THI',{exact:true})).toBeVisible();
+ await expect(root.getByRole('region',{name:'Sản phẩm nhóm',exact:true})).toBeVisible();
+ await expect(studio.getByRole('textbox',{name:/Place caption/})).toHaveValue('This is the saved ASEAN caption.');
+ stageIndex=4;
+ readOnly=true;
+ await expect(root.getByTestId('asean-student-slide-5')).toBeVisible({timeout:10000});
+ await expect(studio.getByRole('textbox',{name:/Place caption/})).toBeDisabled();
+ await expect(studio.getByLabel('Upload photo for Place')).toBeDisabled();
+});
+
 test('a locked student lesson loads and displays the frozen survey denominator',async({page})=>{
  const reads=[];
  await page.route('**/api/gallery-guest?**',route=>{

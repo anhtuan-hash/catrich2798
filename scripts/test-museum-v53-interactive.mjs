@@ -108,7 +108,9 @@ test('no automatic audio/video appears in museum inspection; files stay class sc
  const scene=read('src/features/immersive-gallery/v3/MuseumScene.jsx');
  assert.match(scene,/exhibitInsights\(gallery,selected,selectedIndex\)/);
  assert.match(scene,/Source named by the group/);
- assert.match(scene,/Group choices are not measurements of emissions/);
+ const chart=read('src/features/immersive-gallery/v3/MuseumSurveyChart.jsx');
+ assert.match(scene,/<MuseumSurveyChart survey=\{insight\.survey\}/);
+ assert.match(chart,/Individual habits and emissions require separate measurements/);
  assert.doesNotMatch(scene,/<audio\s|<video\s|autoplay|autoPlay/);
  assert.match(scene,/role="dialog"/);
  assert.match(scene,/document\.addEventListener\('keydown',handleKeys\)/);

@@ -26,7 +26,8 @@ test('server-only Admin review checks frozen source evidence and school',()=>{
  assert.match(sql,/rev\.state not in \('submitted','ttcm_review'\)/);
  assert.match(sql,/insert into public\.gcp_review_events/);
  assert.match(review,/decide\('approve'\)/);
- assert.match(review,/staffRequest\(action==='publish'\?'publish':'admin-decision'/);
+ assert.match(review,/transport=staffRequest/);
+ assert.match(review,/transport\(action==='publish'\?'publish':'admin-decision',body\)/);
 });
 test('deletion buttons call scoped archive endpoints, not destructive cascading deletes',()=>{
  assert.match(wizard,/archive-assignment/);

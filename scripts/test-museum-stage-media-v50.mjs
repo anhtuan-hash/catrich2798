@@ -42,14 +42,14 @@ test('voiceover permission is stage-specific and survives video updates',()=>{
  assert.equal(stageMediaTools(session(board3,1)).video,true);
 });
 
-test('student rail and nested panels use the same availability gate',()=>{
+test('live student tools use the availability gate and saved activities allow narration',()=>{
  const rail=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLabStudent.jsx','utf8');
  const live=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLiveStudent.jsx','utf8');
  const video=fs.readFileSync('src/features/immersive-gallery/v3/MuseumVideoLab.jsx','utf8');
  const teacher=fs.readFileSync('src/features/immersive-gallery/v3/MuseumLiveTeacher.jsx','utf8');
  const api=fs.readFileSync('serverless-handlers/museum-live.js','utf8');
- assert.match(rail,/studentMedia\.voice\?<button/);
- assert.match(rail,/studentMedia\.video&&liveInfo\?\.media\?\.query\?<button/);
+ assert.match(rail,/studentMedia\.voice\|\|viewedActivity!==null\s*\?<button/);
+ assert.match(rail,/viewedActivity===null&&studentMedia\.video&&liveInfo\?\.media\?\.query\?<button/);
  assert.match(live,/activeTool!=='video'\|\|hasVideo/);
  assert.match(live,/activeTool!=='voice'\|\|hasVoice/);
  assert.match(video,/Assign video to this activity/);
