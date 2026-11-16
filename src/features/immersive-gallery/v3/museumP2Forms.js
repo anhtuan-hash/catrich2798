@@ -45,7 +45,7 @@ export const P2_FORMS = {
  E3:{title:'Individual speaking observation',staff:true,group:true,individual:true,fields:[
   ...['One relevant English sentence','Accurate explanation of source or survey','Action and reason in spoken English'].map((label,i)=>select('criterion'+i,label,['2','1','0','N/O'])),text('feedback','Feedback and next step')]},
  E4:{title:'Group evidence summary',staff:true,group:true,fields:[
-  ...evidence.map((label,i)=>text('record'+i,label+' · File or record ID')),text('strength','The group demonstrated'),text('next','Next step')]},
+  text('recorder','Recorder code'),...evidence.map((label,i)=>text('record'+i,label+' · File or record ID')),text('strength','The group demonstrated'),text('next','Next step')]},
  'I2-A':{title:'Score individual writing A',staff:true,group:true,individual:true,fields:['Figures · 3/10 and 30%','Scope · group priorities','Two clear English sentences'].map((label,i)=>mark('score'+i,label))},
  'I2-B':{title:'Score individual writing B',staff:true,group:true,individual:true,fields:['Figures · 7/10 and 70%','Scope · group priorities','Two clear English sentences'].map((label,i)=>mark('score'+i,label))},
  I3:{title:'Class summary',staff:true,fields:[
@@ -66,6 +66,7 @@ export function normalizeP2Values(form, body) {
   || (f.max&&value&&(!/^\d{1,6}$/.test(value)||Number(value)>f.max))) return null;
   values[f.key]=value;
  }
+ if(form.individual&&form.staff&&Object.keys(values).some(key=>key.startsWith('score')&&!values[key]))return null;
  if ('opportunities' in values && (values.done||values.opportunities||values.summary||values.range||values.unit)) {
   if(!values.done||!values.opportunities||!values.range||!values.unit||!values.summary||Number(values.done)>Number(values.opportunities)||Number(values.opportunities)<1)return null;
  }

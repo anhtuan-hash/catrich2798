@@ -61,6 +61,26 @@ function PeerContext({formId,peer,language,onPreview}){
  </>;
 }
 
+function PitchTimer({language}){
+ const [deadline,setDeadline]=useState(null);
+ const [left,setLeft]=useState(60);
+ useEffect(()=>{
+  if(deadline===null)return;
+  const timer=setInterval(()=>{
+   const seconds=Math.max(0,Math.ceil((deadline-Date.now())/1000));
+   setLeft(seconds);
+   if(seconds===0)clearInterval(timer);
+  },250);
+  return()=>clearInterval(timer);
+ },[deadline]);
+ const phase=left>15?tr(language,'Trình bày','Pitch'):left>0?tr(language,'Hỏi đáp','Questions and reply'):tr(language,'Hoàn thành lượt','Turn complete');
+ return <div className="p2-controls">
+  <p>{tr(language,'Mỗi thành viên nói một câu. Đổi lượt với nhóm bạn sau phần hỏi đáp.','Each member speaks once. Switch turns with your partner after questions.')} </p>
+  <button type="button" className="p2-button" onClick={()=>{setLeft(60);setDeadline(Date.now()+60000);}}>{tr(language,'Bắt đầu lượt 45 + 15 giây','Start 45 + 15 second turn')}</button>
+  {deadline!==null?<><span role="status">{phase}</span><time>{left>15?left-15:left}s</time></>:null}
+ </div>;
+}
+
 // Mounted inside the active student or teacher route using its existing session transport.
 export default function MuseumP2Workbook({language,role,transport,readOnly,groupPublished=false,stageIndex=0,stageOpen=false,draftVersion,draftReady,groups=[],assignmentId,initialForm}){
  const staff=role==='teacher';
@@ -168,6 +188,7 @@ export default function MuseumP2Workbook({language,role,transport,readOnly,group
    <button type="button" className="p2-button" onClick={reload} disabled={saving}>{tr(language,'Tải lại bản ghi','Reload records')}</button>
    {staff&&rows?<button type="button" className="p2-button" onClick={()=>saveTextFile('Museum-P2-worksheets.json','application/json',JSON.stringify({groups,records:rows,summary:summarizeP2(rows)},null,2))}>{tr(language,'Xuất minh chứng P2','Export P2 evidence')}</button>:null}
   </div>
+  {formId==='D1'&&!readOnly&&!serverLocked&&gate?<PitchTimer language={language}/>:null}
   {formId==='B3'?<p>{P2_ROLES}</p>:null}
   {formId==='D2'?<p>{tr(language,'Theo dõi một hành động trong một tuần học. Nộp nhật ký vào tiết tiếng Anh tiếp theo, trước khi giáo viên khóa hồ sơ.','Track one action for a school week. Save the log by the next English lesson, before the teacher locks the record.')}</p>:null}
   {formId==='I3'&&rows?<ClassSummary rows={rows} groups={groups} language={language}/>:null}
