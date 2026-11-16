@@ -88,7 +88,7 @@ test('approved editorial layouts render on the four Museum Lab staff screens',as
  )).toBe(true);
  await page.getByTestId('igv2-nav-submissions').click();
  const submissions=page.locator('.swiss-editorial-submissions-hero');
- await expect(submissions).toHaveCSS('background-color','rgb(20, 20, 20)');
+ await expect(submissions.locator('.kpi').first()).toHaveCSS('background-color','rgb(201, 13, 37)');
  await expect(page.getByTestId('museum-review-desk')).toHaveClass(/swiss-editorial-review-desk/);
  await checkOverflow();
  await page.screenshot({path:testInfo.outputPath('submissions.png'),fullPage:true,animations:'disabled'});
@@ -114,6 +114,44 @@ test('approved editorial layouts render on the four Museum Lab staff screens',as
  await expect(wizard.locator('.bml-single-period li')).toHaveCount(11);
  await checkOverflow();
  await page.screenshot({path:testInfo.outputPath('create-lesson.png'),fullPage:true,animations:'disabled'});
+});
+test('approved submissions page keeps review details and omits the footnote in both languages',async({page,isMobile},testInfo)=>{
+ await page.getByTestId('qa-dashboard-submissions').click();
+ await page.getByTestId('igv2-nav-submissions').click();
+ const screen=page.locator('.swiss-editorial-submissions');
+ const desk=screen.getByTestId('museum-review-desk');
+ const card=desk.getByRole('button',{name:/Group climate work/});
+ const detail=desk.getByRole('region',{name:'Group climate work'});
+ await expect(screen.getByRole('heading',{name:'Bài nộp của học sinh'})).toBeVisible();
+ await expect(screen.locator('.kpi strong')).toHaveText(['2','1','1','0']);
+ await expect(desk.locator('.bml-review-card')).toHaveCount(2);
+ await desk.getByRole('button',{name:/Cần sửa/}).click();
+ await expect(desk.getByRole('heading',{name:'Không có bài nộp trong mục này'})).toBeVisible();
+ await desk.getByRole('button',{name:/Tất cả/}).click();
+ await card.focus();
+ await page.keyboard.press('Enter');
+ await expect(card).toHaveAttribute('aria-expanded','true');
+ await expect(detail.getByRole('heading',{name:'Group climate work'})).toBeFocused();
+ await expect(detail.getByText('Demo Group 1 · 11-DEMO')).toBeVisible();
+ await expect(detail.getByRole('button',{name:'Xem bảo tàng 2D/3D'})).toBeVisible();
+ await expect(detail.getByRole('heading',{name:'Rubric đánh giá'})).toBeVisible();
+ await expect(detail.getByRole('spinbutton')).toHaveCount(5);
+ await expect(detail.getByRole('button',{name:'Lưu điểm rubric'})).toBeEnabled();
+ const geometry=await detail.evaluate(el=>{
+  const preview=el.querySelector('.bml-review-preview').getBoundingClientRect();
+  if(document.documentElement.scrollWidth>innerWidth+1) console.log("Overflow elements", JSON.stringify([...document.querySelectorAll("body *")].filter(n=>n.getBoundingClientRect().right>innerWidth+1).slice(0,12).map(n=>[n.tagName,n.className,n.getBoundingClientRect().right])));
+  const rubric=el.querySelector('.bml-eval-pane').getBoundingClientRect();
+  return {sideBySide:Math.abs(preview.top-rubric.top)<2,overflow:document.documentElement.scrollWidth>innerWidth+1};
+ });
+ expect(geometry).toEqual({sideBySide:!isMobile,overflow:false});
+ await expect(screen.getByText(/Màn hình phân biệt bài nộp bảo tàng/)).toHaveCount(0);
+ await page.screenshot({path:testInfo.outputPath('submissions-detail.png'),fullPage:true,animations:'disabled'});
+ await detail.getByRole('button',{name:'Đóng chi tiết'}).click();
+ await expect(card).toBeFocused();
+ await page.getByRole('button',{name:'EN',exact:true}).click();
+ await expect(screen.getByRole('heading',{name:'Student submissions.'})).toBeVisible();
+ await expect(screen.getByText(/Statuses and counts are connected to actual records/)).toHaveCount(0);
+ await expect(screen.locator('.swiss-editorial-submissions-note')).toHaveCount(0);
 });
 test('paper dashboard fits the viewport and its decorative assets load',async({page},testInfo)=>{
  const banner=page.getByTestId('museum-competition-ribbon');

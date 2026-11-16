@@ -1,95 +1,118 @@
 .igv2 .bml .swiss-editorial-submissions {
-  --submissions-ink: #141414;
-  --submissions-paper: #f9f7f0;
-  --submissions-red: #c51223;
-  --submissions-line: #78746d;
+  --submissions-ink: #151515;
+  --submissions-paper: #f3f0e7;
+  --submissions-red: #c90d25;
+  --submissions-line: #8c867b;
+  --submissions-tint: #f5ddd7;
   min-width: 0;
   color: var(--submissions-ink);
   background: var(--submissions-paper);
 }
 
 .igv2 .bml .swiss-editorial-submissions-hero {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 2.15fr) minmax(240px, 1fr);
-  align-items: center;
-  gap: clamp(16px, 2vw, 29px);
-  padding: clamp(16px, 2vw, 28px);
-  background: var(--submissions-ink);
-  color: #faf7ef;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  align-items: end;
+  gap: clamp(20px, 3vw, 44px);
+  padding-block: clamp(18px, 2.4vw, 36px);
+  border-top: 3px solid var(--submissions-ink);
+  border-bottom: 1px solid var(--submissions-ink);
+  color: var(--submissions-ink);
 }
 
-.igv2 .bml .swiss-editorial-submissions-title {
-  padding-bottom: 16px;
-  border-bottom: 4px solid #f34043;
+.igv2 .bml .swiss-editorial-submissions-hero::before {
+  content: '';
+  position: absolute;
+  inset: -3px auto auto 0;
+  width: 12%;
+  height: 5px;
+  background: var(--submissions-red);
 }
 
 .igv2 .bml .swiss-editorial-submissions-title h1 {
-  margin: 0 0 8px;
+  margin: 0 0 12px;
   color: inherit;
-  font: 900 clamp(2.35rem, 5.2vw, 5.65rem)/.98 var(--igv2-font-family);
-  letter-spacing: -.065em;
-  overflow-wrap: anywhere;
+  font: 900 clamp(2.7rem, 6.9vw, 7.3rem)/.94 var(--igv2-font-family);
+  letter-spacing: -.075em;
+  overflow-wrap: break-word;
+}
+
+.igv2 .bml .swiss-editorial-submissions-title h1 span {
+  display: block;
 }
 
 .igv2 .bml .swiss-editorial-submissions-title p {
   margin: 0;
   color: inherit;
-  font-size: clamp(.9rem, 1.35vw, 1.13rem);
-  line-height: 1.36;
+  font-size: clamp(.91rem, 1.24vw, 1.12rem);
+  line-height: 1.45;
 }
 
 .igv2 .bml .swiss-editorial-submissions-hero .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0;
   margin: 0;
-  padding-inline-start: clamp(8px, 1.4vw, 20px);
-  border: 0;
-  border-inline-start: 1px solid #b4ada1;
+  padding: 0;
+  border: 1px solid var(--submissions-ink);
   background: transparent;
 }
 
 .igv2 .bml .swiss-editorial-submissions-hero .kpi {
   display: block;
   min-width: 0;
-  padding: 6px clamp(8px, 1.1vw, 16px);
+  padding: 10px clamp(8px, 1.45vw, 22px);
   border: 0;
+  border-inline-end: 1px solid var(--submissions-line);
   border-radius: 0;
   background: transparent;
   color: inherit;
   box-shadow: none;
 }
 
-.igv2 .bml .swiss-editorial-submissions-hero .kpi:nth-child(even) {
-  border-inline-start: 1px solid #b4ada1;
+.igv2 .bml .swiss-editorial-submissions-hero .kpi:last-child {
+  border-inline-end: 0;
 }
 
-.igv2 .bml .swiss-editorial-submissions-hero .kpi:nth-child(n+3) {
-  border-top: 1px solid #b4ada1;
+.igv2 .bml .swiss-editorial-submissions-hero .kpi:first-child {
+  grid-column: 1 / -1;
+  padding-block: clamp(12px, 1.55vw, 24px);
+  border: 0;
+  background: var(--submissions-red);
+  color: white;
 }
 
 .igv2 .bml .swiss-editorial-submissions-hero .kpi strong {
   display: block;
   color: inherit;
-  font-size: clamp(1.75rem, 3.55vw, 3.2rem);
+  font-size: clamp(1.65rem, 3.45vw, 3.4rem);
   font-weight: 900;
-  line-height: .98;
-  letter-spacing: -.06em;
+  line-height: .92;
+  letter-spacing: -.065em;
   font-variant-numeric: tabular-nums;
+}
+
+.igv2 .bml .swiss-editorial-submissions-hero .kpi:first-child strong {
+  font-size: clamp(3rem, 6.9vw, 6.9rem);
 }
 
 .igv2 .bml .swiss-editorial-submissions-hero .kpi small {
   display: block;
-  margin-top: 4px;
+  margin-top: 6px;
   color: inherit;
-  font-size: clamp(.78rem, 1.05vw, .92rem);
-  font-weight: 720;
-  line-height: 1.14;
+  font-size: clamp(.72rem, 1.05vw, .95rem);
+  font-weight: 750;
+  line-height: 1.15;
+}
+
+.igv2 .bml .swiss-editorial-submissions-hero .kpi:first-child small {
+  font-size: clamp(1rem, 1.65vw, 1.45rem);
 }
 
 .igv2 .bml .swiss-editorial-review-desk {
   display: grid;
-  grid-template-columns: minmax(148px, .235fr) minmax(0, 1fr);
+  grid-template-columns: minmax(148px, .22fr) minmax(0, 1fr);
   align-items: start;
   gap: 16px clamp(13px, 1.8vw, 24px);
   margin-top: 18px;
@@ -129,8 +152,8 @@
 
 .igv2 .bml .swiss-editorial-review-desk .bml-tab-filter button.is-active {
   margin-bottom: 6px;
-  border-bottom-color: var(--submissions-red) !important;
-  background: var(--submissions-red) !important;
+  border-inline-start: 4px solid var(--submissions-red) !important;
+  background: var(--submissions-ink) !important;
   color: white !important;
 }
 
@@ -175,8 +198,9 @@
   display: flex;
   min-width: 0;
   gap: 4px;
-  padding: 10px 0 11px;
+  padding: 10px 7px 11px;
   border: 0;
+  border-inline-start: 4px solid transparent;
   border-bottom: 1px solid var(--submissions-line);
   border-radius: 0;
   background: transparent;
@@ -187,7 +211,8 @@
 .igv2 .bml .swiss-editorial-review-desk .bml-review-card:hover,
 .igv2 .bml .swiss-editorial-review-desk .bml-review-card.is-selected {
   border-bottom-color: var(--submissions-red);
-  background: #f5ebe4;
+  border-inline-start-color: var(--submissions-red);
+  background: var(--submissions-tint);
 }
 
 .igv2 .bml .swiss-editorial-review-desk :is(button, h2):focus-visible {
@@ -231,6 +256,7 @@
 }
 
 .igv2 .bml .swiss-editorial-review-desk .bml-card-rubric {
+  order: 1;
   color: var(--submissions-ink);
   font-size: inherit;
 }
@@ -239,7 +265,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin: 0 0 0 auto;
+  margin: 0;
   color: var(--submissions-red);
   font-size: inherit;
   font-weight: 800;
@@ -247,28 +273,176 @@
 
 .igv2 .bml .swiss-editorial-review-desk .bml-review-detail {
   grid-column: 1 / -1;
-  margin-top: 0;
+  margin: 0;
+  padding: 0 0 12px;
+  border: 0;
+  border-top: 2px solid var(--submissions-ink);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
-.igv2 .bml .swiss-editorial-submissions-note {
-  margin-top: 16px;
-  padding: 8px 12px;
-  border-block: 1px solid var(--submissions-ink);
-  border-inline-start: 4px solid var(--submissions-red);
+.igv2 .bml .swiss-editorial-review-desk .bml-section-head {
+  align-items: center;
+  margin: 0;
+  padding-block: 17px;
+  border-bottom: 1px solid var(--submissions-ink);
+}
+
+.igv2 .bml .swiss-editorial-review-desk .bml-section-head .bml-overline {
+  display: block;
+  color: var(--submissions-red);
+  font-size: .95rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.igv2 .bml .swiss-editorial-review-desk .bml-section-head h2 {
+  margin: 4px 0 0;
   color: var(--submissions-ink);
-  font-size: .82rem;
+  font-size: clamp(1.9rem, 4.6vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -.055em;
+  overflow-wrap: anywhere;
+}
+
+.igv2 .bml .swiss-editorial-review-desk .bml-section-head p {
+  margin-top: 8px;
+  color: var(--submissions-ink);
+  font-size: .76rem;
+}
+
+.igv2 .bml .swiss-editorial-review-desk .bml-review-detail-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.igv2 .bml .swiss-editorial-review-desk .bml-review-preview-toggle {
+  min-height: 44px;
+  background: var(--submissions-ink);
+  border-color: var(--submissions-ink);
+  color: white;
+}
+
+.igv2 .bml .swiss-editorial-review-desk .bml-review-preview-toggle:hover {
+  background: var(--submissions-red);
+  border-color: var(--submissions-red);
+  color: white;
+}
+
+.igv2 .bml .swiss-editorial-review-desk .bml-review-detail-layout {
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  gap: 0;
+}
+
+.igv2 .bml .swiss-editorial-review-desk .bml-review-preview {
+  padding: 16px clamp(12px, 1.6vw, 24px) 0 0;
+}
+
+.igv2 .bml .swiss-editorial-review-desk .bml-eval-pane {
+  padding: 16px 0 0 clamp(12px, 1.6vw, 24px);
+  border: 0;
+  border-inline-start: 1px solid var(--submissions-line);
+  background: transparent;
+}
+
+.igv2 .bml .swiss-editorial-review-desk :is(.bml-review-preview-head, .bml-eval-heading) h3 {
+  margin: 0;
+  color: var(--submissions-ink);
+  font-size: clamp(1.2rem, 2vw, 1.7rem);
+  font-weight: 900;
+  letter-spacing: -.04em;
+}
+
+.igv2 .bml .swiss-editorial-review-desk .bml-eval-heading {
+  color: var(--submissions-red);
+}
+
+.igv2 .bml .swiss-editorial-review-desk .bml-submission-content {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.igv2 .bml .swiss-editorial-review-desk .bml-submission-content h4 {
+  margin: 0 0 8px;
+  color: var(--submissions-ink);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.igv2 .bml .swiss-editorial-review-desk .bml-submission-exhibit {
+  padding: 12px;
+  border: 1px solid var(--submissions-line);
+  background: transparent;
+}
+
+.igv2 .bml .swiss-editorial-review-desk .bml-submission-content p {
+  color: var(--submissions-ink);
+  font-size: .9rem;
+  line-height: 1.5;
+}
+
+.igv2 .bml .swiss-editorial-review-desk .bml-submission-exhibit p {
+  margin: 5px 0 0;
+}
+
+.igv2 .bml .swiss-editorial-review-desk .bml-learning-evidence {
+  border-top: 1px solid var(--submissions-line);
+}
+
+.igv2 .bml .swiss-editorial-review-desk .bml-rubric-row {
+  border-color: var(--submissions-line);
+}
+
+.igv2 .bml .swiss-editorial-review-desk .bml-score-input input {
+  border-radius: 0;
+  background: transparent;
+  border-color: var(--submissions-line);
+}
+
+.igv2 .bml .swiss-editorial-review-desk .bml-total-score {
+  margin-block: 8px 14px;
+  padding: 8px 12px;
+  color: var(--submissions-ink);
+  background: var(--submissions-tint);
+  font-weight: 850;
+}
+
+.igv2 .bml .swiss-editorial-review-desk .bml-total-score strong {
+  color: var(--submissions-red);
+}
+
+.igv2 .bml .swiss-editorial-review-desk .bml-full-field textarea {
+  border-radius: 0;
+  background: transparent;
+  border-color: var(--submissions-line);
 }
 
 @media (max-width: 760px) {
   .igv2 .bml .swiss-editorial-submissions-hero,
-  .igv2 .bml .swiss-editorial-review-desk {
+  .igv2 .bml .swiss-editorial-review-desk,
+  .igv2 .bml .swiss-editorial-review-desk .bml-review-detail-layout {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .igv2 .bml .swiss-editorial-submissions-hero .kpi-grid,
   .igv2 .bml .swiss-editorial-review-desk .bml-review-results {
     padding-inline-start: 0;
     border-inline-start: 0;
+  }
+
+  .igv2 .bml .swiss-editorial-review-desk .bml-review-preview {
+    padding-inline-end: 0;
+  }
+
+  .igv2 .bml .swiss-editorial-review-desk .bml-eval-pane {
+    margin-top: 15px;
+    padding-inline-start: 0;
+    border-inline-start: 0;
+    border-top: 1px solid var(--submissions-ink);
   }
 
   .igv2 .bml .swiss-editorial-review-desk .bml-tab-filter {
