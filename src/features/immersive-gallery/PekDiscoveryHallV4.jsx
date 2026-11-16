@@ -267,6 +267,70 @@ function ArtworkSpotlight({x,lite}){
    angle={.36} penumbra={.84} distance={7.3} decay={2}/>
  </group>;
 }
+ const VISITOR_ROUTE=[[-2.55,-2.05],[-2.55,-3.95],[-.85,-3.95],[.85,-3.95],[2.55,-3.95],[2.55,-2.05],[.15,-1.9]];
+function routePoint(distance){
+ let total=0;
+ const segs=[];
+ for(let i=0;i<VISITOR_ROUTE.length;i++){
+  const a=VISITOR_ROUTE[i],b=VISITOR_ROUTE[(i+1)%VISITOR_ROUTE.length];
+  const len=Math.hypot(b[0]-a[0],b[1]-a[1])||.0001;
+  segs.push({a,b,len,start:total});
+  total+=len;
+ }
+ let d=((distance%total)+total)%total,s=segs[0];
+ for(const item of segs){if(d<=item.start+item.len){s=item;break;}}
+ const t=(d-s.start)/s.len;
+ return {x:s.a[0]+(s.b[0]-s.a[0])*t,z:s.a[1]+(s.b[1]-s.a[1])*t,yaw:Math.atan2(s.b[0]-s.a[0],s.b[1]-s.a[1]),loop:total};
+}
+const VISITORS=[
+ {offset:0,speed:.42,scale:1,shirt:'#F7F4EC',trim:'#176D59',bottoms:'#1E3F56',hair:'#2A2118',skin:'#F6D3B4',skirt:false},
+ {offset:.27,speed:.36,scale:.94,shirt:'#F7F4EC',trim:'#176D59',bottoms:'#176D59',hair:'#1A120C',skin:'#E7B892',skirt:true},
+ {offset:.53,speed:.4,scale:1.05,shirt:'#176D59',trim:'#F4EBD6',bottoms:'#243044',hair:'#4A3428',skin:'#F3C7A4',skirt:false},
+ {offset:.79,speed:.33,scale:.9,shirt:'#F7F4EC',trim:'#C8A34B',bottoms:'#176D59',hair:'#111111',skin:'#C98A62',skirt:true}
+];
+function GalleryVisitor({visitor,still}){
+ const ref=useRef(null),arms=useRef(null);
+ const place=(distance)=>{
+  const node=ref.current;if(!node)return;
+  const p=routePoint(distance);
+  node.position.set(p.x,0,p.z);
+  node.rotation.y=p.yaw;
+ };
+ useEffect(()=>{
+  place(visitor.offset*routePoint(0).loop);
+  ref.current?.traverse(obj=>{obj.raycast=()=>{};});
+ },[visitor.offset]);
+ useFrame(({clock})=>{
+  if(still)return;
+  const loop=routePoint(0).loop;
+  place(clock.elapsedTime*visitor.speed+visitor.offset*loop);
+  const step=Math.sin(clock.elapsedTime*visitor.speed*8+visitor.offset*12);
+  if(ref.current)ref.current.position.y=Math.abs(step)*.04;
+  const limbs=arms.current?.children;
+  if(limbs?.[0]&&limbs?.[1]){limbs[0].rotation.x=step*.55;limbs[1].rotation.x=-step*.55;}
+ });
+ return <group ref={ref} scale={visitor.scale} name="GalleryVisitor">
+  <mesh position={[-.07,.22,0]}><cylinderGeometry args={[.045,.05,.42,8]}/><meshStandardMaterial color={visitor.bottoms}/></mesh>
+  <mesh position={[.07,.22,0]}><cylinderGeometry args={[.045,.05,.42,8]}/><meshStandardMaterial color={visitor.bottoms}/></mesh>
+  {visitor.skirt?<mesh position={[0,.5,0]}><cylinderGeometry args={[.17,.12,.22,8]}/><meshStandardMaterial color={visitor.trim}/></mesh>:null}
+  <mesh position={[0,.78,0]}><boxGeometry args={[.3,.34,.16]}/><meshStandardMaterial color={visitor.shirt} roughness={.7}/></mesh>
+  <mesh position={[0,.9,.082]}><boxGeometry args={[.22,.07,.02]}/><meshStandardMaterial color={visitor.trim}/></mesh>
+  <group ref={arms}>
+   <group position={[-.19,.9,0]}><mesh position={[0,-.13,0]}><cylinderGeometry args={[.035,.04,.26,6]}/><meshStandardMaterial color={visitor.skin}/></mesh></group>
+   <group position={[.19,.9,0]}><mesh position={[0,-.13,0]}><cylinderGeometry args={[.035,.04,.26,6]}/><meshStandardMaterial color={visitor.skin}/></mesh></group>
+  </group>
+  <mesh position={[0,1.14,0]}><sphereGeometry args={[.125,16,12]}/><meshStandardMaterial color={visitor.skin}/></mesh>
+  <mesh position={[0,1.22,-.01]}><sphereGeometry args={[.13,12,8,0,Math.PI*2,0,Math.PI*.58]}/><meshStandardMaterial color={visitor.hair}/></mesh>
+  <mesh position={[-.045,1.15,.1]}><sphereGeometry args={[.016,6,6]}/><meshBasicMaterial color="#243044"/></mesh>
+  <mesh position={[.045,1.15,.1]}><sphereGeometry args={[.016,6,6]}/><meshBasicMaterial color="#243044"/></mesh>
+  <mesh position={[0,.76,-.11]}><boxGeometry args={[.18,.2,.07]}/><meshStandardMaterial color={visitor.trim}/></mesh>
+ </group>;
+}
+function GalleryVisitors({lite=false}){
+ const still=typeof window!=='undefined'&&window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+ const people=lite?VISITORS.slice(0,2):VISITORS;
+ return <group name="GalleryVisitors">{people.map((visitor,index)=><GalleryVisitor key={index} visitor={visitor} still={still}/>)}</group>;
+}
 export default function PekDiscoveryHallV4({lite=false}){
  const floor=useCanvasMap((ctx,w,h)=>{
   ctx.fillStyle='#E4C08A';ctx.fillRect(0,0,w,h);
@@ -409,5 +473,6 @@ export default function PekDiscoveryHallV4({lite=false}){
    <GalleryRope from={BARRIER_ROPES[0][0]} to={BARRIER_ROPES[0][1]}/>
    <GalleryRope from={BARRIER_ROPES[1][0]} to={BARRIER_ROPES[1][1]}/>
   </group>:null}
+  <GalleryVisitors lite={lite}/>
  </group>;
 }
