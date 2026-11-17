@@ -124,15 +124,21 @@ test('ASEAN teaching plan reuses the approved editorial screen',async({page},tes
  await expect(screen.locator('.plan-masthead')).toHaveCSS('display','grid');
  await expect(screen.locator('.kpi').first()).toHaveCSS('background-color','rgb(202, 14, 35)');
  await expect(screen.locator('.kpi strong').first()).toHaveText('90');
+ await expect(screen.getByRole('heading',{name:'I. Mục tiêu'})).toBeVisible();
+ await expect(screen.getByRole('heading',{name:'II. Thiết bị dạy học và học liệu'})).toBeVisible();
+ await expect(screen.getByRole('heading',{name:'III. Tiến trình dạy học'})).toBeVisible();
  const periods=screen.locator('.plan-period');
  await expect(periods).toHaveCount(2);
  await expect(periods.nth(0).getByRole('listitem')).toHaveCount(3);
  await expect(periods.nth(1).getByRole('listitem')).toHaveCount(3);
  await expect(periods.nth(1)).toHaveCSS('background-color','rgb(17, 17, 16)');
  const build=periods.nth(0).getByRole('listitem').nth(2);
- await expect(build).toContainText('Dựng triển lãm 3D của nhóm');
- await build.getByText('Cách tổ chức và sản phẩm',{exact:true}).click();
- await expect(build.getByText(/Bản trước góp ý đã lưu/)).toBeVisible();
+ await expect(build.getByRole('heading',{name:'Hoạt động 3. Viết chú thích và dựng phòng 3D đầu tiên'})).toBeVisible();
+ await expect(build).toContainText('Tiết 1, phút 20–45 (25 phút)');
+ await build.getByText('Mục tiêu, nội dung, sản phẩm và tổ chức thực hiện',{exact:true}).click();
+ await expect(build.getByText(/Một bản nháp đã lưu trong Museum Lab/)).toBeVisible();
+ await expect(build.getByRole('heading',{name:'d) Tổ chức thực hiện'})).toBeVisible();
+ await expect(build.locator('details li')).toHaveCount(4);
  await expect(screen).toContainText('Rubric triển lãm nhóm · 10 điểm');
  await expect(screen).not.toContainText(/NASA|Global Warming/);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
@@ -141,11 +147,11 @@ test('ASEAN teaching plan reuses the approved editorial screen',async({page},tes
  await page.getByRole('button',{name:'EN',exact:true}).click();
  await expect(screen.getByRole('heading',{name:'Teaching plan.'})).toBeVisible();
  await expect(screen.getByRole('heading',{name:'ASEAN in Three Frames'})).toBeVisible();
- const download=screen.getByRole('link',{name:'Download the English lesson plan and group worksheets'});
+ const download=screen.getByRole('link',{name:'Download Part 2 · Teaching plan and appendices (Word)'});
  const downloaded=page.waitForEvent('download');
  await download.click();
- expect((await downloaded).suggestedFilename()).toBe('ASEAN_Group_Lesson.docx');
- await expect(screen.getByRole('heading',{name:'6-activity lesson sequence · 90 min'})).toBeVisible();
+ expect((await downloaded).suggestedFilename()).toBe('TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2.docx');
+ await expect(screen.getByRole('heading',{name:'III. Tiến trình dạy học'})).toBeVisible();
  await screen.getByRole('button',{name:/^Create lesson from this plan/}).click();
  const wizard=page.getByTestId('museum-lesson-wizard');
  await expect(wizard.getByRole('heading',{name:'ASEAN in Three Frames'})).toBeVisible();
@@ -162,7 +168,7 @@ test('ASEAN teaching plan reuses the approved editorial screen',async({page},tes
  await expect(screen.getByRole('heading',{name:'ASEAN in Three Frames'})).toBeVisible();
  await expect(screen.getByRole('button',{name:/Create lesson from/})).toHaveCount(0);
  await expect(download).toBeVisible();
- await expect(screen.locator('.kpi strong')).toHaveText(['90','6','1','1']);
+ await expect(screen.locator('.kpi strong')).toHaveText(['90','6','11.3','10']);
 });
 test('Museum Lab cards share the banner and footer edges across tabs',async({page},testInfo)=>{
  test.setTimeout(120000);
