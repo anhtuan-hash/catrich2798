@@ -1,6 +1,8 @@
 import React,{Suspense} from 'react';
 import {useCanvasTexture} from './PekMuseumArchitecture.jsx';
 import {CrestImage} from './SwissEditorialHallDetails.jsx';
+import MetalWallLettering from './MetalWallLettering.jsx';
+import {hasMetalLetteringGlyphs} from './metalLetteringGeometry.js';
 import {useEditorialWallTexture} from './SwissEditorialHall.jsx';
 import {PEK_GALLERY_WALL_INSCRIPTIONS} from './pekMuseumMotto.js';
 import {collectionHallHeight,collectionHallPosition} from './swissCollectionLayout.js';
@@ -10,20 +12,29 @@ const coveHeight=collectionHallHeight-.28;
 const friezeHeight=1.46;
 const friezeCenter=coveHeight-friezeHeight/2-.05;
 
-function CollectionWallLabel({title,index,x,current}){
+function FallbackCollectionTitle({title}){
  const label=useCanvasTexture((ctx,w,h)=>{
-  ctx.textBaseline='middle';
-  ctx.font='800 85px Arial, sans-serif';
-  ctx.fillStyle=current?selectedRed:pine;
-  ctx.fillText(String(index+1).padStart(2,'0'),18,h*.45);
-  ctx.fillStyle=pine;
-  ctx.fillText(title,147,h*.45,w-165);
-  ctx.fillStyle=brass;ctx.fillRect(18,h*.86,w-36,4);
- },[1440,132],[title,index,current]);
- return <mesh position={[x,4.13,.021]}>
-  <planeGeometry args={[8.7,.53]}/>
-  <meshBasicMaterial map={label} transparent depthWrite={false} toneMapped={false}/>
+  ctx.fillStyle=pine;ctx.textBaseline='middle';
+  ctx.font='800 88px Arial, sans-serif';
+  ctx.fillText(title,0,h*.50,w);
+ },[1300,132],[title]);
+ return <mesh position={[.44,.018,.007]}>
+  <planeGeometry args={[7.4,.42]}/><meshBasicMaterial map={label} transparent depthWrite={false} toneMapped={false}/>
  </mesh>;
+}
+
+function CollectionWallLabel({title,index,x,current}){
+ const caption=String(title??'');
+ const size=.375;
+ return <group position={[x,4.13,.022]}>
+  <MetalWallLettering lines={[String(index+1).padStart(2,'0')]} maxWidth={.48} size={size}
+   depth={.034} position={[-4.23,.025,0]} align="left" finish={current?'red':'bronze'}/>
+  {hasMetalLetteringGlyphs(caption)?<MetalWallLettering lines={[caption]} maxWidth={7.38} size={size}
+   depth={.034} position={[-3.46,.025,0]} align="left"/>:<FallbackCollectionTitle title={caption}/>}
+  <mesh position={[0,-.177,.006]}>
+   <boxGeometry args={[8.47,.025,.018]}/><meshBasicMaterial color={brass} toneMapped={false}/>
+  </mesh>
+ </group>;
 }
 
 function Divider({x,corner=false}){
@@ -55,24 +66,13 @@ function Track({x}){
 function WallFrieze({length,inscription}){
  const {name,lines}=inscription;
  const width=Math.min(length-2.3,lines.length===1?11.8:9.15);
- const texture=useCanvasTexture((ctx,w,h)=>{
-  ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.font=lines.length===1?'800 96px Arial, sans-serif':'750 81px Arial, sans-serif';
-  lines.forEach((line,index)=>{
-   const y=h/2+(index-(lines.length-1)/2)*84;
-   ctx.fillStyle='#40391e44';ctx.fillText(line,w/2+3,y+4,w-48);
-   ctx.fillStyle=pine;ctx.fillText(line,w/2,y,w-48);
-  });
- },[2048,330],[name]);
  return <>
   <mesh position={[0,friezeCenter,.026]}>
    <boxGeometry args={[length,friezeHeight,.074]}/>
    <meshBasicMaterial color="#eee6d5" toneMapped={false}/>
   </mesh>
-  <mesh name={name} position={[0,friezeCenter,.066]}>
-   <planeGeometry args={[width,friezeHeight-.12]}/>
-   <meshBasicMaterial map={texture} transparent depthWrite={false} toneMapped={false}/>
-  </mesh>
+  <MetalWallLettering name={name} lines={lines} maxWidth={width} position={[0,friezeCenter,.065]}
+   size={lines.length===1?.60:.405} lineStep={.408} depth={.057}/>
   <mesh position={[0,friezeCenter-friezeHeight/2,.073]}>
    <boxGeometry args={[length-.24,.025,.028]}/>
    <meshBasicMaterial color={brass} toneMapped={false}/>
