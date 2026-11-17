@@ -3187,6 +3187,12 @@ test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published 
  const destinations=titles.map((title,index)=>({id:'exhibition-'+(index+1),title,groupLabel:'Nhóm '+String(index+1).padStart(2,'0')}));
  const collection={id:'asean-qa',slug:'asean-qa',title:'ASEAN in Three Frames',lesson_template:'asean-in-three-frames',status:'published',destinations};
  const requests=[];
+ let originalSchoolLogoLoaded=false;
+ page.on('response',response=>{
+  if(new URL(response.url()).pathname==='/museum/branding/petrus-ky-original.png'&&response.ok()){
+   originalSchoolLogoLoaded=true;
+  }
+ });
  await page.addStyleTag({path:'src/styles/GlobalRegionalFontSystem.css'});
  await page.evaluate(()=>{
   sessionStorage.setItem('bml-ui-language','en');
@@ -3207,7 +3213,7 @@ test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published 
    id:'room-'+destination.id,exhibition_id:destination.id,title:destination.title,
    exhibits:['Place','Experience','Visitor Advice'].map((title,index)=>({
     id:destination.id==='exhibition-10'&&index===0?'137b69b5-af44-4ed8-99ce-37148fa56d23':destination.id+'-image-'+index,
-    kind:'image',title,description:destination.title,status:'published',image_url:destination.id==='exhibition-1'&&index===2?portrait:poster
+    kind:'image',title,description:destination.title,status:'published',image_url:(destination.id==='exhibition-1'&&index===2)||(destination.id==='exhibition-2'&&index===1)?portrait:poster
    })),
   }))}}});
  });
@@ -3306,6 +3312,7 @@ test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published 
  await expect(rooms.getByRole('button',{name:'01 · Hội An'})).toHaveAttribute('aria-current','true');
  const canvas=cinema.locator('canvas');
  await expect(canvas).toBeVisible();
+ await expect.poll(()=>originalSchoolLogoLoaded).toBe(true);
  await expect(cinema.getByRole('heading',{name:'Hội An',exact:true})).toBeVisible();
  await expect(cinema.getByRole('list',{name:'Exhibits'}).getByRole('button')).toHaveCount(3);
  const getCameraZ=()=>page.evaluate(()=>window.__bmlMuseumFocusQA?.camera?.position?.[2]);
@@ -3331,6 +3338,10 @@ test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published 
  await page.setViewportSize(desktopViewport);
  await cinema.getByRole('button',{name:'Next room'}).click();
  await expect(rooms.getByRole('button',{name:'02 · Tràng An'})).toHaveAttribute('aria-current','true');
+ await expect(canvas).toBeVisible();
+ await cinema.getByRole('button',{name:'Full room view'}).click();
+ await expect.poll(getCameraZ).toBeCloseTo(wallZ,1);
+ await page.screenshot({path:testInfo.outputPath('asean-pek-trang-an-hall.png')});
  await cinema.getByRole('button',{name:'Previous room'}).click();
  await expect(rooms.getByRole('button',{name:'01 · Hội An'})).toHaveAttribute('aria-current','true');
  await page.goto('/tests/museum-lab/v3.html#/tool/immersive-gallery?exhibition=exhibition-10');

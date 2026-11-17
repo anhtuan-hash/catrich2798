@@ -1,10 +1,11 @@
 import React from 'react';
 import * as THREE from 'three';
 import {useCanvasTexture} from './PekMuseumArchitecture.jsx';
+import SwissEditorialHallDetails from './SwissEditorialHallDetails.jsx';
 
 const ink='#211f1b';
 const red='#cc2f20';
-const trackPositions=[-4.9,-2.6,0,2.6,4.9];
+const trackPositions=[-2.46,.34,3.14];
 
 function grain(ctx,width,height,strength){
  const image=ctx.getImageData(0,0,width,height);
@@ -35,17 +36,17 @@ export function SwissArtworkLabel({title,index,width,position}){
  </group>;
 }
 
-export default function SwissEditorialHall({roomNumber,onTeleport}){
+export default function SwissEditorialHall({roomNumber,roomTitle,exhibits,onTeleport}){
  const plaster=useCanvasTexture((ctx,w,h)=>{
   const wall=ctx.createLinearGradient(0,0,0,h);
   wall.addColorStop(0,'#a99d8d');wall.addColorStop(.34,'#c3b7a7');wall.addColorStop(1,'#a99c8c');
   ctx.fillStyle=wall;ctx.fillRect(0,0,w,h);
-  for(const x of [.10,.30,.53,.76,.93]){
-   ctx.save();ctx.translate(w*x,h*.14);ctx.scale(1,1.2);
-   const beam=ctx.createRadialGradient(0,0,0,0,0,w*.195);
-   beam.addColorStop(0,'rgba(255,239,208,.74)');beam.addColorStop(.46,'rgba(255,237,206,.34)');
+  for(const x of [.10,.27,.53,.79]){
+   ctx.save();ctx.translate(w*x,h*.14);ctx.scale(1,1.55);
+   const beam=ctx.createRadialGradient(0,0,0,0,0,w*.155);
+   beam.addColorStop(0,'rgba(255,239,208,.89)');beam.addColorStop(.46,'rgba(255,237,206,.32)');
    beam.addColorStop(1,'rgba(255,236,205,0)');
-   ctx.fillStyle=beam;ctx.fillRect(-w*.195,-w*.195,w*.39,w*.39);ctx.restore();
+   ctx.fillStyle=beam;ctx.fillRect(-w*.155,-w*.155,w*.31,w*.31);ctx.restore();
   }
   grain(ctx,w,h,8);
  },[1024,512],[]);
@@ -59,7 +60,7 @@ export default function SwissEditorialHall({roomNumber,onTeleport}){
    gloss.addColorStop(0,'rgba(255,234,194,.44)');gloss.addColorStop(1,'rgba(255,234,194,0)');
    ctx.fillStyle=gloss;ctx.fillRect(-w*.1,-w*.1,w*.2,w*.2);ctx.restore();
   }
-  grain(ctx,w,h,37);
+  grain(ctx,w,h,23);
  },[768,768],[]);
  const number=useCanvasTexture((ctx,w,h)=>{
   ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='900 312px Arial, sans-serif';
@@ -81,14 +82,13 @@ export default function SwissEditorialHall({roomNumber,onTeleport}){
   </mesh>)}
   <mesh position={[0,2.17,-8.26]}><boxGeometry args={[10.7,4.48,.65]}/><meshStandardMaterial color="#9d9081" roughness={.94}/></mesh>
   <mesh position={[0,2.17,-7.934]}><planeGeometry args={[10.7,4.48]}/><meshBasicMaterial map={plaster} toneMapped={false}/></mesh>
-  <mesh position={[-4.49,3.34,-7.925]}><planeGeometry args={[1.12,.84]}/><meshBasicMaterial map={number} transparent toneMapped={false}/></mesh>
+  <mesh position={[-3.55,4.09,-7.925]}><planeGeometry args={[.85,.58]}/><meshBasicMaterial map={number} transparent toneMapped={false}/></mesh>
   <mesh position={[0,4.50,-6.73]}><boxGeometry args={[12.8,.54,.48]}/><meshStandardMaterial color="#a89d8e" roughness={.94}/></mesh>
   <mesh position={[0,4.34,-6.47]}><boxGeometry args={[11.7,.045,.058]}/><meshStandardMaterial color={ink}/></mesh>
   {trackPositions.map(x=><group key={x} position={[x,4.19,-6.44]} rotation={[-.26,0,.07]}>
    <mesh><cylinderGeometry args={[.074,.092,.22,16]}/><meshStandardMaterial color={ink} roughness={.63}/></mesh>
    <mesh position={[0,-.111,0]} rotation={[Math.PI/2,0,0]}><circleGeometry args={[.069,16]}/><meshBasicMaterial color="#fff2d6" toneMapped={false}/></mesh>
   </group>)}
-  <mesh position={[.68,-.074,-5.84]}><boxGeometry args={[10.4,.003,.068]}/><meshBasicMaterial color={red} toneMapped={false}/></mesh>
-  <mesh position={[-4.53,-.074,-4.08]}><boxGeometry args={[.068,.003,3.60]}/><meshBasicMaterial color={red} toneMapped={false}/></mesh>
+  <SwissEditorialHallDetails title={roomTitle} exhibits={exhibits}/>
  </group>;
 }

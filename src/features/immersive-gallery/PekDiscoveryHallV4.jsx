@@ -54,9 +54,13 @@ function DisplayLettering({main,sub,position,size=[8.5,.69],light=false}){
   <meshBasicMaterial map={map} toneMapped={false} transparent depthWrite={false} fog={false}/>
  </mesh>;
 }
-function SchoolCrest(){
+export function usePekSchoolCrest(){
  const crest=useTexture('/museum/branding/petrus-ky-original.png');
  useEffect(()=>{crest.colorSpace=THREE.SRGBColorSpace;crest.anisotropy=4;crest.needsUpdate=true;},[crest]);
+ return crest;
+}
+function SchoolCrest(){
+ const crest=usePekSchoolCrest();
  // The previous wall-mounted crest sat BEHIND the central sign board
  // (z=-8.002). Mount the original asset on the sign's front-left plaque.
  // Leave enough room for the wordmark; never hide or redraw its artwork.

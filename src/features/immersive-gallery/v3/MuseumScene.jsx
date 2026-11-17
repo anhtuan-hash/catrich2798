@@ -296,7 +296,7 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
       focusBoard={focusBoard} onFocusBack={focusBack} onFocusStep={stepFocus} focusIndex={Math.max(0,focusSelectedIndex)}
       onFocusPhaseChange={action=>dispatchFocus({...action,generation:focus.generation})}
       onSelect={openExhibit} quality="auto" language={language} schoolEdition cinemaEdition={cinema}
-      editorial={swiss3D} roomNumber={numberLabel(roomIndex+1)} editorialViewpoint={viewpoint}/>
+      editorial={swiss3D} roomNumber={numberLabel(roomIndex+1)} roomTitle={clean(room.title,140)} editorialViewpoint={viewpoint}/>
     </Suspense>
     {!swiss3D?<div className="bml-3d-plate">
      <small>{clean(gallery?.title,90)||'Our Climate Action Museum'}</small>
