@@ -26,7 +26,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
   respondedCount=null, progressLabel=null,
   isFullscreen=false,onExitFullscreen,
   fullscreenControls=null,fullscreenPanel=null,
-  assignments=[],assignmentId='',assignmentBusy=false,onAssignment,onAseanJoin,onAseanStudioHelp,aseanDraftTools
+  assignments=[],assignmentId='',assignmentBusy=false,onAssignment,onAseanJoin,onAseanStudioHelp,aseanDraftTools,aseanHighlights,aseanContextCard
 },ref){
   const period=stage?.period??1;
   const phaseName=period===1
@@ -77,7 +77,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
               <div className="adv-stage-copy">
                 <div className="adv-stage-section">{phaseLabel}</div>
                 {stage?.kind==='asean'?<AseanLiveSlide currentIndex={currentIndex} language={language} revealed={revealed}
-                  onJoin={onAseanJoin} onStudioHelp={onAseanStudioHelp} draftTools={aseanDraftTools}/>:<>
+                  onJoin={onAseanJoin} onStudioHelp={onAseanStudioHelp} draftTools={aseanDraftTools} highlights={aseanHighlights} contextCard={aseanContextCard}/>:<>
                 <h2 className="adv-stage-title">{stage?.title||t(language,'Đang tải hoạt động…','Loading activity…')}</h2>
                 {language!=='en'&&stage?.vi?<p className="adv-stage-vi">{stage.vi}</p>:null}
                 {hasLessonSlide?<TeacherLiveSlideContent key={stage.id} stage={stage} language={language}

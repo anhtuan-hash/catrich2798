@@ -1948,6 +1948,7 @@ test('ASEAN groups submit and revisit the Huế discussion quiz separately',asyn
  await expect(panel.getByRole('status')).toContainText('3/3');
  await expect(choices.nth(1)).toBeDisabled();
  await page.reload();
+ await page.getByTestId('qa-student-en').click();
  await expect(panel.getByRole('status')).toContainText('3/3');
  await expect(page.getByText('Group response saved.',{exact:true})).toBeVisible();
 });
@@ -2217,6 +2218,54 @@ test('ASEAN final activity shows the writing card before opening and confirms ea
  await expect(lesson).toContainText('Đã nộp hai câu tiếng Anh');
  await expect(root.getByRole('region',{name:'Triển lãm của nhóm',exact:true})).toContainText('Đã gửi triển lãm cho giáo viên duyệt.');
  await page.screenshot({path:testInfo.outputPath('asean-activity6-submissions-vi.png')});
+});
+
+test('ASEAN Teacher Live mirrors all six student activities and shows only recorded progress',async({page},testInfo)=>{
+ await page.getByTestId('qa-teacher-asean-alignment-en').click();
+ const root=page.getByTestId('igv2-teacher-live-screen');
+ const slide=index=>root.getByTestId('asean-slide-'+index);
+ const next=root.getByRole('button',{name:'Advance to next activity'});
+ await expect(slide(1).getByText('Write and submit two sentences from your card')).toBeVisible();
+ await slide(1).getByText('Shared Hué example',{exact:true}).click();
+ await expect(slide(1).getByText('Enjoy the local culture.',{exact:false})).toBeVisible();
+ await slide(1).getByText('Discussion quiz · 3 questions',{exact:true}).click();
+ await expect(slide(1).getByText('Where is the Complex of Hué Monuments?',{exact:true})).toBeVisible();
+ await expect(slide(1).getByText('Correct',{exact:false})).toHaveCount(0);
+ await root.getByRole('button',{name:'Reveal explanation'}).click();
+ await expect(slide(1).getByText('· Correct',{exact:true})).toHaveCount(3);
+ await next.click();
+ await expect(slide(2).getByText('Compare one alternative photo',{exact:true})).toBeVisible();
+ await expect(slide(2).getByText('Record a sourced fact and submit the plan')).toBeVisible();
+ await next.click();
+ await expect(slide(3).getByText('Complete each frame',{exact:true})).toBeVisible();
+ await expect(slide(3).getByText('Complete 3D drafts',{exact:true})).toBeVisible();
+ await expect(slide(3).locator('.asean-slide-highlights dd')).toHaveText(['2/10','1/10']);
+ await slide(3).getByLabel('Saved draft from').selectOption('g2');
+ await slide(3).getByText('What this draft is missing').click();
+ await expect(slide(3).getByText('Factual source',{exact:true})).toBeVisible();
+ await expect(slide(3).getByRole('button',{name:'Open saved 3D draft'})).toBeEnabled();
+ await slide(3).scrollIntoViewIfNeeded();
+ expect(await slide(3).evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+ await page.screenshot({path:testInfo.outputPath('teacher-live-asean-build.png')});
+ await next.click();
+ await expect(slide(4).getByText('Record answers and evidence frames')).toBeVisible();
+ await slide(4).getByText('Assigned exhibit by group',{exact:true}).click();
+ await expect(slide(4).getByText('Group 03 · Angkor',{exact:true})).toBeVisible();
+ await next.click();
+ await expect(slide(5).getByText('Assigned exhibit: retest the revised exhibit')).toBeVisible();
+ await next.click();
+ await expect(slide(6).getByText('Submit two sentences',{exact:true})).toBeVisible();
+ await expect(slide(6).getByText('Submit final 3D exhibit',{exact:true})).toBeVisible();
+ await expect(slide(6).getByText('1 submitted by staff')).toBeVisible();
+ await expect(slide(6).locator('.asean-slide-highlights dd')).toHaveText(['1/10 1 submitted by staff','1/10']);
+ await slide(6).getByText('Group writing card',{exact:true}).click();
+ await expect(slide(6).getByText('Bagan',{exact:true})).toBeVisible();
+ await slide(6).getByLabel('Select group').selectOption('g1');
+ await expect(slide(6).getByText('Sukhothai Historical Park',{exact:true})).toBeVisible();
+ await page.getByTestId('qa-teacher-asean-alignment-visitor-en').click();
+ await expect(slide(1).getByText('Write and submit two sentences from your card')).toBeVisible();
+ await expect(slide(1).getByText('Group writing card',{exact:true})).toHaveCount(0);
+ await expect(slide(1).locator('.asean-slide-highlights')).toHaveCount(0);
 });
 
 test('ASEAN V2 retest teacher table distinguishes pending submissions from a recorded zero',async({page})=>{
