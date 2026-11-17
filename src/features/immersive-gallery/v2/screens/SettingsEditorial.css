@@ -1,0 +1,338 @@
+.igv2 .bml .swiss-editorial-settings {
+  --settings-paper: #f8f5ec;
+  --settings-ink: #111;
+  --settings-red: #be0c21;
+  --settings-rule: #262522;
+  --settings-muted: #5a554f;
+  container-type: inline-size;
+  color: var(--settings-ink);
+  background: var(--settings-paper);
+  padding-block: clamp(8px, 1vw, 18px) 0;
+}
+
+.igv2 .bml .swiss-editorial-settings :is(h1, h2, h3, p) {
+  margin: 0;
+  color: inherit;
+}
+
+.igv2 .bml .ig-settings-heading {
+  position: relative;
+  border-bottom: 4px solid var(--settings-ink);
+  padding-bottom: clamp(15px, 2cqw, 23px);
+}
+
+.igv2 .bml .ig-settings-heading::after {
+  content: '';
+  position: absolute;
+  inset: auto auto -6px 0;
+  width: 19%;
+  height: 7px;
+  background: var(--settings-red);
+}
+
+.igv2 .bml .ig-settings-heading h1 {
+  font-size: clamp(2.25rem, 6cqw, 5.15rem);
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -.064em;
+}
+
+.igv2 .bml .ig-settings-heading p {
+  margin-top: 6px;
+  font-size: clamp(1rem, 2cqw, 1.42rem);
+  line-height: 1.35;
+}
+
+.igv2 .bml .ig-settings-roles {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  margin-block: clamp(17px, 2.55cqw, 30px);
+}
+
+.igv2 .bml .ig-settings-role {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: clamp(10px, 2.45cqw, 32px);
+  align-items: center;
+  padding: clamp(8px, 1cqw, 14px) clamp(12px, 2.6cqw, 33px);
+  border: 1px solid #aaa69c;
+}
+
+.igv2 .bml .ig-settings-role-admin {
+  background: var(--settings-red);
+  border-color: var(--settings-red);
+  color: #fff;
+}
+
+.igv2 .bml .ig-settings-role-icon {
+  display: grid;
+  place-items: center;
+  width: clamp(48px, 10.7cqw, 140px);
+  border-inline-end: 2px solid currentColor;
+  padding-inline-end: clamp(9px, 1.8cqw, 24px);
+}
+
+.igv2 .bml .ig-settings-role-admin .ig-settings-role-icon {
+  width: clamp(48px, 6.9cqw, 90px);
+}
+
+.igv2 .bml .ig-settings-role-icon svg {
+  width: clamp(33px, 6.3cqw, 80px);
+  height: auto;
+  stroke-width: 1.7;
+}
+
+.igv2 .bml .ig-settings-role-admin svg {
+  width: clamp(32px, 5.3cqw, 66px);
+}
+
+.igv2 .bml .ig-settings-role :is(span, strong) {
+  display: block;
+  line-height: 1.08;
+  font-weight: 850;
+  letter-spacing: -.045em;
+}
+
+.igv2 .bml .ig-settings-role span {
+  font-size: clamp(1.06rem, 2.3cqw, 1.9rem);
+}
+
+.igv2 .bml .ig-settings-role strong {
+  font-size: clamp(1.62rem, 4.1cqw, 3.45rem);
+}
+
+.igv2 .bml .ig-settings-role-admin strong {
+  margin-bottom: 3px;
+}
+
+.igv2 .bml .ig-settings-role p {
+  margin-top: 4px;
+  font-size: clamp(.88rem, 1.73cqw, 1.22rem);
+  line-height: 1.25;
+}
+
+.igv2 .bml .ig-settings-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 58.5fr) minmax(0, 41.5fr);
+  border-bottom: 1px solid var(--settings-rule);
+}
+
+.igv2 .bml .ig-settings-access {
+  min-width: 0;
+  padding-inline-end: clamp(14px, 2.7cqw, 34px);
+  border-inline-end: 1px solid var(--settings-rule);
+}
+
+.igv2 .bml .ig-settings-workflow {
+  min-width: 0;
+  padding-inline-start: clamp(14px, 2.7cqw, 34px);
+}
+
+.igv2 .bml .ig-settings-panel-heading {
+  border-bottom: 1px solid var(--settings-rule);
+  padding-bottom: clamp(12px, 1.5cqw, 22px);
+}
+
+.igv2 .bml .ig-settings-panel-heading h2 {
+  display: flex;
+  align-items: center;
+  gap: clamp(9px, 1.25cqw, 16px);
+  font-size: clamp(1.5rem, 3.1cqw, 2.65rem);
+  font-weight: 900;
+  line-height: 1.13;
+  letter-spacing: -.045em;
+}
+
+.igv2 .bml .ig-settings-panel-heading svg {
+  width: clamp(27px, 4cqw, 52px);
+  height: auto;
+  flex-shrink: 0;
+}
+
+.igv2 .bml .ig-settings-panel-heading p {
+  margin-top: 5px;
+  font-size: clamp(.93rem, 1.66cqw, 1.2rem);
+}
+
+.igv2 .bml .ig-settings-control {
+  display: grid;
+  grid-template-columns: minmax(28px, 11.5fr) minmax(0, 54fr) auto;
+  align-items: center;
+  gap: clamp(9px, 1.7cqw, 23px);
+  padding-block: clamp(15px, 2.15cqw, 27px);
+}
+
+.igv2 .bml .ig-settings-control + .ig-settings-control {
+  border-top: 1px solid var(--settings-rule);
+}
+
+.igv2 .bml .ig-settings-line-icon {
+  display: grid;
+  place-items: center;
+  border-inline-end: 1px solid var(--settings-rule);
+  padding-inline-end: clamp(4px, 1.25cqw, 17px);
+  min-height: 52px;
+}
+
+.igv2 .bml .ig-settings-line-icon svg {
+  width: min(100%, clamp(24px, 3.8cqw, 46px));
+  height: auto;
+}
+
+.igv2 .bml .ig-settings-control h3,
+.igv2 .bml .ig-settings-workflow h3 {
+  font-size: clamp(1.05rem, 2.18cqw, 1.8rem);
+  font-weight: 850;
+  line-height: 1.1;
+  letter-spacing: -.045em;
+}
+
+.igv2 .bml :is(.ig-settings-control-copy, .ig-settings-workflow) p {
+  margin-top: 5px;
+  font-size: clamp(.875rem, 1.53cqw, 1.13rem);
+  line-height: 1.3;
+}
+
+.igv2 .bml .ig-settings-control-actions {
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+}
+
+.igv2 .bml .ig-settings-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: .86rem;
+  font-weight: 750;
+}
+
+.igv2 .bml .ig-settings-state::before {
+  content: '';
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #736d65;
+}
+
+.igv2 .bml .ig-settings-state[data-enabled="true"]::before {
+  background: #138024;
+}
+
+.igv2 .bml .ig-settings-control-actions button {
+  border: 1px solid var(--settings-red);
+  border-radius: 2px;
+  padding: 6px 11px;
+  min-height: 36px;
+  background: transparent;
+  color: var(--settings-red);
+  font: 750 clamp(.75rem, 1.22cqw, .92rem)/1.2 var(--igv2-font-family);
+  cursor: pointer;
+}
+
+.igv2 .bml .ig-settings-control-actions button:hover:not(:disabled) {
+  background: var(--settings-red);
+  color: #fff;
+}
+
+.igv2 .bml .ig-settings-control-actions button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.igv2 .bml .ig-settings-workflow ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.igv2 .bml .ig-settings-workflow li {
+  display: grid;
+  grid-template-columns: minmax(57px, 21fr) minmax(0, 79fr);
+  align-items: center;
+  gap: clamp(10px, 1.7cqw, 23px);
+  padding-block: clamp(11px, 1.55cqw, 20px);
+}
+
+.igv2 .bml .ig-settings-workflow li + li {
+  border-top: 1px solid var(--settings-rule);
+}
+
+.igv2 .bml .ig-settings-step-number {
+  padding-inline: clamp(5px, .95cqw, 11px);
+  border-inline-end: 1px solid var(--settings-rule);
+  color: var(--settings-red);
+  font-size: clamp(1.9rem, 4.35cqw, 3.6rem);
+  line-height: 1.09;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.06em;
+}
+
+.igv2 .bml :is(.ig-settings-safety-note, .ig-settings-readonly, .ig-settings-feedback) {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding-block: 11px;
+}
+
+.igv2 .bml :is(.ig-settings-safety-note, .ig-settings-readonly, .ig-settings-feedback) svg {
+  flex-shrink: 0;
+}
+
+.igv2 .bml .ig-settings-readonly {
+  color: var(--settings-muted);
+  font-size: .86rem;
+}
+
+.igv2 .bml .ig-settings-feedback {
+  margin-bottom: 13px;
+  padding-inline: 11px;
+  border-inline-start: 3px solid #287a46;
+  background: #e9f3e9;
+}
+
+.igv2 .bml .ig-settings-feedback-error {
+  border-color: var(--settings-red);
+  background: #fae5e5;
+}
+
+@container (max-width: 750px) {
+  .igv2 .bml .ig-settings-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .igv2 .bml :is(.ig-settings-access, .ig-settings-workflow) {
+    padding-inline: 0;
+    border-inline: 0;
+  }
+
+  .igv2 .bml .ig-settings-workflow {
+    border-top: 1px solid var(--settings-rule);
+    padding-top: 16px;
+  }
+}
+
+@container (max-width: 455px) {
+  .igv2 .bml .ig-settings-roles {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .igv2 .bml .ig-settings-role {
+    padding-block: 12px;
+  }
+
+  .igv2 .bml .ig-settings-control {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+
+  .igv2 .bml .ig-settings-control-actions {
+    grid-column: 2;
+    justify-items: start;
+  }
+
+  .igv2 .bml .ig-settings-control-actions button {
+    min-height: 42px;
+  }
+}

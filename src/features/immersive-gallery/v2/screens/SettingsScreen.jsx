@@ -1,20 +1,31 @@
 import React, {useState} from 'react';
-import {LockKeyhole,ShieldCheck,ShieldAlert,CheckCircle2} from 'lucide-react';
-import EditorialHeading from '../shell/EditorialHeading.jsx';
-import MetricStrip from '../shell/MetricStrip.jsx';
-import ContentPanel from '../shell/ContentPanel.jsx';
+import {CheckCircle2,FileText,Flag,Image,Laptop,LockKeyhole,ShieldAlert,ShieldCheck,UsersRound} from 'lucide-react';
 import {staffRequest as defaultTransport} from '../../v3/museumApi.js';
+import './SettingsEditorial.css';
 
 const tr = (lang, vi, en) => lang === 'en' ? en : vi;
 
-// SettingsScreen — 07. Full Swiss layout. Toggles call the SAME server
-// actions as v3/MuseumSettings (feature-settings / artwork-settings) with
-// the same confirmation guards. Admin-only; non-admins see read-only state.
-// Props: {language, data, staff, onRefresh, transport}.
+function SettingControl({icon:Icon, title, description, state, enabled, children}) {
+  return (
+    <div className="ig-settings-control">
+      <div className="ig-settings-line-icon"><Icon aria-hidden="true"/></div>
+      <div className="ig-settings-control-copy">
+        <h3>{title}</h3>
+        <p>{description}</p>
+      </div>
+      <div className="ig-settings-control-actions">
+        <span className="ig-settings-state" data-enabled={Boolean(enabled)}>{state}</span>
+        {children}
+      </div>
+    </div>
+  );
+}
 export default function SettingsScreen({language='en', data, staff, onRefresh, transport=defaultTransport}) {
   const payload = data || staff || {};
-  const isAdmin = payload?.profile?.role === 'admin' && !payload?.offlineReadOnly;
+  const isAdmin = payload?.profile?.role === 'admin' && !payload?.offlineReadOnly && !payload?.publicReadOnly;
   const creator = payload?.creatorSettings || {};
+  const t = (vi, en) => tr(language, vi, en);
+  const stateLabel = enabled => enabled ? t('Đang bật', 'Enabled') : t('Đang tắt', 'Disabled');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -51,89 +62,100 @@ export default function SettingsScreen({language='en', data, staff, onRefresh, t
   };
 
   const workflow = [
-    {n:1, title: tr(language,'Phân công','Assign'), desc: tr(language,'Admin tạo bài tập và phát mã bí mật nhóm.','The Admin creates assignments and issues group passes.')},
-    {n:2, title: tr(language,'Duyệt','Review'), desc: tr(language,'Admin chấm điểm và trực tiếp phê duyệt hoặc trả lại bài nộp.','The Admin scores and directly approves or returns submissions.')},
-    {n:3, title: tr(language,'Công bố & quản lý','Publish and manage'), desc: tr(language,'Admin công bố bài đã duyệt và quản lý thao tác lưu trữ an toàn.','The Admin publishes approved work and manages safe archive actions.')},
-  ];
-
-  const settingsMetrics = [
-    {value: creator.enabled ? 'ON' : 'OFF', label: 'Student Creator Pass', highlight: Boolean(creator.enabled)},
-    {value: creator.upload_enabled ? 'ON' : 'OFF', label: tr(language, 'Tải tranh ảnh 3D', '3D artwork uploads')},
-    {value: 'QR + Code', label: tr(language, 'Xác thực học sinh', 'Student access mode')},
-    {value: 'Admin', label: tr(language, 'Quyền phê duyệt & công bố', 'Approval & publish authority')},
+    [t('Phân công', 'Assign'), t('Tạo bài học và cấp mã nhóm.', 'Create lessons and issue group codes.')],
+    [t('Xem và duyệt', 'Review and approve'), t('Chấm bài, duyệt hoặc yêu cầu chỉnh sửa.', 'Score and approve submissions or request revisions.')],
+    [t('Công bố', 'Publish'), t('Đưa bài đã duyệt lên triển lãm.', 'Publish approved submissions in the exhibition.')],
   ];
 
   return (
-    <>
-      <EditorialHeading
-        kicker={tr(language, 'QUẢN LÝ TRƯỜNG', 'SCHOOL MANAGEMENT')}
-        title={tr(language, 'Cài đặt & phân quyền.', 'Settings & permissions.')}
-        description={tr(language, 'Quyền truy cập đơn giản, vẫn bảo vệ nghiêm ngặt dữ liệu học sinh.', 'Simple permissions with strict student-data protection.')}
-        aside={tr(language, 'Quyền truy cập & quy trình công bố', 'Access and publication workflow')}
-      />
+    <section className="swiss-editorial-settings" data-testid="igv2-settings-screen">
+      <header className="ig-settings-heading">
+        <h1>{t('Cài đặt & phân quyền.', 'Settings & permissions.')}</h1>
+        <p>{t('Quản lý quyền truy cập học sinh và quy trình công bố.', 'Manage student access and the publication workflow.')}</p>
+      </header>
 
-      <MetricStrip items={settingsMetrics} />
+      <div className="ig-settings-roles">
+        <div className="ig-settings-role">
+          <div className="ig-settings-role-icon"><UsersRound aria-hidden="true"/></div>
+          <div>
+            <span>{t('Học sinh', 'Students')}</span>
+            <strong>{t('QR + mã nhóm', 'QR + group code')}</strong>
+            <p>{t('Vào Studio bằng mã mời', 'Enter the Studio using a group invitation')}</p>
+          </div>
+        </div>
+        <div className="ig-settings-role ig-settings-role-admin">
+          <div className="ig-settings-role-icon"><ShieldCheck aria-hidden="true"/></div>
+          <div>
+            <strong>Admin</strong>
+            <span>{t('Phê duyệt & công bố', 'Approve & publish')}</span>
+          </div>
+        </div>
+      </div>
 
-      {error ? <div className="info-strip mt20" role="alert" style={{background:'#fde8e8', borderLeftColor:'#b31c2d', color:'#7a1620'}}><ShieldAlert size={15} aria-hidden="true"/> {error}</div> : null}
-      {message ? <div className="info-strip mt20" role="status"><CheckCircle2 size={15} aria-hidden="true"/> {message}</div> : null}
+      {error && <div className="ig-settings-feedback ig-settings-feedback-error" role="alert"><ShieldAlert size={18} aria-hidden="true"/> {error}</div>}
+      {message && <div className="ig-settings-feedback" role="status"><CheckCircle2 size={18} aria-hidden="true"/> {message}</div>}
 
-      <div className="settings-layout mt20">
-        <ContentPanel ariaLabel={tr(language,'Học sinh không cần tài khoản','No student accounts')}>
-          <h3><LockKeyhole size={24} aria-hidden="true" style={{verticalAlign:'middle', marginRight:8}}/> {tr(language,'Học sinh không cần tài khoản','No student accounts')}</h3>
-          <p style={{fontSize:14, lineHeight:1.55, color:'#516272'}}>
-            {tr(language,
-              'Học sinh vào bằng mã QR và mã bí mật riêng cho nhóm. Không có quyền vào dữ liệu nội bộ của Brian.',
-              'Students use a QR invitation plus a separate private group passcode; no Brian account is created.')}
-          </p>
-          <div className="setting-item">
-            <div className="row">
-              <span>Student Creator Pass</span>
-              <span className={'toggle' + (creator.enabled ? '' : ' off')}>{creator.enabled ? 'ON' : 'OFF'}</span>
-            </div>
-            <p>{tr(language,'Cho phép nhóm mở Studio theo mã mời','Allow students to enter via group invites')}</p>
-            {isAdmin ? (
+      <div className="ig-settings-layout">
+        <section className="ig-settings-access" aria-labelledby="ig-settings-access-title">
+          <header className="ig-settings-panel-heading">
+            <h2 id="ig-settings-access-title"><Laptop aria-hidden="true"/>{t('Quyền truy cập học sinh', 'Student access')}</h2>
+            <p>{t('Học sinh vào Studio bằng mã mời của nhóm.', 'Students enter the Studio using their group invitation.')}</p>
+          </header>
+          <SettingControl
+            icon={FileText}
+            title="Student Creator Pass"
+            description={t('Cho phép nhóm mở Studio theo mã mời.', 'Allow groups to open the Studio using their invitation.')}
+            state={stateLabel(creator.enabled)}
+            enabled={creator.enabled}
+          >
+            {isAdmin && (
               <button type="button" disabled={busy} onClick={toggleCreatorPass}>
-                {creator.enabled ? tr(language,'Tạm khóa Creator Pass','Disable Creator Pass') : tr(language,'Bật Creator Pass sau nghiệm thu','Enable Creator Pass after QA')}
+                {creator.enabled ? t('Tạm khóa Creator Pass', 'Disable Creator Pass') : t('Bật Creator Pass', 'Enable Creator Pass')}
               </button>
-            ) : (
-              <p style={{color:'#8a6d10'}}><ShieldCheck size={13} aria-hidden="true"/> {tr(language,'Chỉ Admin được phép thay đổi.','Only an Admin can change this switch.')}</p>
             )}
-          </div>
-          <div className="setting-item">
-            <div className="row">
-              <span>{tr(language,'Tải tranh ảnh vào bảo tàng 3D','Student artwork uploads to 3D')}</span>
-              <span className={'toggle' + (creator.upload_enabled ? '' : ' off')}>{creator.upload_enabled ? 'ON' : 'OFF'}</span>
-            </div>
-            <p>{tr(language,'JPG / PNG / WebP → PNG đã tái mã hóa, kho ảnh riêng tư và kiểm tra quyền nhóm','JPG / PNG / WebP → re-encoded PNG; private storage and group permissions')}</p>
-            {isAdmin ? (
+          </SettingControl>
+          <SettingControl
+            icon={Image}
+            title={t('Tải tranh ảnh vào bảo tàng 3D', 'Artwork uploads to the 3D museum')}
+            description={t('Hỗ trợ JPG, PNG và WebP. Ảnh được lưu riêng theo nhóm.', 'Supports JPG, PNG, and WebP. Images are stored privately by group.')}
+            state={stateLabel(creator.upload_enabled)}
+            enabled={creator.upload_enabled}
+          >
+            {isAdmin && (
               <button type="button" disabled={busy || !creator.enabled} onClick={toggleArtwork}>
-                {creator.upload_enabled ? tr(language,'Tắt tải tranh ảnh học sinh','Disable artwork uploads') : tr(language,'Cho phép tải tranh ảnh sau nghiệm thu','Enable artwork uploads after QA')}
+                {creator.upload_enabled ? t('Tắt tải tranh ảnh học sinh', 'Disable artwork uploads') : t('Bật tải tranh ảnh học sinh', 'Enable artwork uploads')}
               </button>
-            ) : null}
-          </div>
-        </ContentPanel>
+            )}
+          </SettingControl>
+          {!isAdmin && (
+            <p className="ig-settings-readonly"><LockKeyhole size={15} aria-hidden="true"/>
+              {t('Chỉ Admin được phép thay đổi các cài đặt này.', 'Only an Admin can change these settings.')}
+            </p>
+          )}
+        </section>
 
-        <ContentPanel ariaLabel={tr(language,'Quy trình do Admin quản lý','Admin-controlled workflow')}>
-          <h3><ShieldCheck size={24} aria-hidden="true" style={{verticalAlign:'middle', marginRight:8}}/> {tr(language,'Admin quản lý trực tiếp','Admin-controlled workflow')}</h3>
-          <p style={{fontSize:14, lineHeight:1.55, color:'#516272'}}>
-            {tr(language,
-              'Admin tạo bài học, phát mã nhóm, chấm bài, yêu cầu sửa, phê duyệt và công bố triển lãm trực tiếp. Không giao giáo viên hay bộ phận duyệt khác.',
-              'The Admin creates lessons, issues group passes, scores submissions, requests revisions, approves and publishes exhibitions directly. No teacher or department reviewer is assigned.')}
-          </p>
-          {workflow.map(w => (
-            <div className="workflow-step" key={w.n}>
-              <span className="step-number">{w.n}</span>
-              <div><b>{w.title}</b><p>{w.desc}</p></div>
-            </div>
-          ))}
-        </ContentPanel>
+        <section className="ig-settings-workflow" aria-labelledby="ig-settings-workflow-title">
+          <header className="ig-settings-panel-heading">
+            <h2 id="ig-settings-workflow-title"><Flag aria-hidden="true"/>{t('Quy trình công bố', 'Publication workflow')}</h2>
+          </header>
+          <ol>
+            {workflow.map(([title, description], index) => (
+              <li key={title}>
+                <span className="ig-settings-step-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+                <div>
+                  <h3>{title}</h3>
+                  <p>{description}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
       </div>
 
-      <div className="info-strip info mt20" role="note">
-        {tr(language,
-          'Công bố: nhóm học sinh nộp → Admin xem và chấm → Admin phê duyệt → Admin công bố. Phiên bản đã công bố được bảo vệ khỏi xóa nhầm.',
-          'Publication: student group submits → Admin reviews and scores → Admin approves → Admin publishes. Published versions are protected from accidental deletion.')}
+      <div className="ig-settings-safety-note" role="note">
+        <LockKeyhole size={22} aria-hidden="true"/>
+        <p>{t('Bài đã công bố được bảo vệ khỏi thao tác xóa nhầm.', 'Published submissions are protected from accidental deletion.')}</p>
       </div>
-    </>
+    </section>
   );
 }
