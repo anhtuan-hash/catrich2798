@@ -4,7 +4,6 @@ import {CrestImage} from './SwissEditorialHallDetails.jsx';
 import SwissGalleryFurnishings from './SwissGalleryFurnishings.jsx';
 import MetalWallLettering from './MetalWallLettering.jsx';
 import {hasMetalLetteringGlyphs} from './metalLetteringGeometry.js';
-import {useEditorialWallTexture} from './SwissEditorialHall.jsx';
 import {PEK_GALLERY_WALL_INSCRIPTIONS} from './pekMuseumMotto.js';
 import {collectionHallHeight,collectionHallPosition,collectionFurnishingAt} from './swissCollectionLayout.js';
 
@@ -52,16 +51,59 @@ function Divider({x,corner=false}){
  </group>;
 }
 
+const galleryTrackOffsets=[-2.46,.34,3.14];
+const panelWidth=9.20,panelHeight=4.55;
+
 function Track({x}){
  return <group position={[x,coveHeight-.15,1.32]}>
   <mesh><boxGeometry args={[8.7,.055,.11]}/><meshStandardMaterial color={ink}/></mesh>
-  {[-2.78,0,2.78].map(offset=><group key={offset} position={[offset,-.12,0]} rotation={[-.40,0,0]}>
-   <mesh><cylinderGeometry args={[.085,.10,.21,12]}/><meshStandardMaterial color={ink} roughness={.64}/></mesh>
-   <mesh position={[0,-.106,0]} rotation={[Math.PI/2,0,0]}>
-    <circleGeometry args={[.071,12]}/><meshBasicMaterial color="#fff3d7" toneMapped={false}/>
+  {galleryTrackOffsets.map(offset=><group key={offset} position={[offset,-.14,0]} rotation={[.34,0,0]}>
+   <mesh><cylinderGeometry args={[.111,.113,.24,16]}/><meshStandardMaterial color={ink} roughness={.64}/></mesh>
+   <mesh position={[0,-.121,0]}>
+    <cylinderGeometry args={[.113,.099,.023,16]}/><meshStandardMaterial color={brass} roughness={.52}/>
+   </mesh>
+   <mesh position={[0,-.133,0]} rotation={[Math.PI/2,0,0]}>
+    <circleGeometry args={[.078,16]}/><meshBasicMaterial color="#fff4db" toneMapped={false}/>
    </mesh>
   </group>)}
  </group>;
+}
+
+function useGalleryPanel(){
+ return useCanvasTexture((ctx,w,h)=>{
+  const shade=ctx.createLinearGradient(0,0,0,h);
+  shade.addColorStop(0,'#e9ddcb');
+  shade.addColorStop(.14,'#dfd6c7');
+  shade.addColorStop(.48,'#d1c8b9');
+  shade.addColorStop(1,'#c2b9a9');
+  ctx.fillStyle=shade;ctx.fillRect(0,0,w,h);
+  // A shared baked wall wash keeps the original artwork colors and avoids
+  // adding per-painting lights to the WebGL scene.
+  for(const offset of galleryTrackOffsets){
+   const x=w*(.5+offset/panelWidth),y=h*.20,spread=w*.18;
+   ctx.save();ctx.translate(x,y);ctx.scale(1,1.55);
+   const beam=ctx.createRadialGradient(0,0,0,0,0,spread);
+   beam.addColorStop(0,'#fff3d9d4');
+   beam.addColorStop(.40,'#fff0d781');
+   beam.addColorStop(.73,'#fff0d73e');
+   beam.addColorStop(1,'#fff0d700');
+   ctx.fillStyle=beam;ctx.fillRect(-spread,-spread,spread*2,spread*2);ctx.restore();
+  }
+  let seed=419;
+  for(let y=0;y<h;y+=2){
+   ctx.fillStyle=y%6===0?'#786d5c09':'#fff7ea0e';
+   ctx.fillRect(0,y,w,1);
+  }
+  for(let i=0;i<9500;i++){
+   seed=(Math.imul(seed,1664525)+1013904223)>>>0;
+   const x=(seed&65535)*w/65536,y=(seed>>>16)*h/65536;
+   ctx.fillStyle=i%3===0?'#63584616':'#fff8e71d';
+   ctx.fillRect(x,y,1.4,1);
+  }
+  // A narrow reveal and a lit edge read as the perimeter of the inset panel.
+  ctx.lineWidth=8;ctx.strokeStyle='#777063';ctx.strokeRect(4,4,w-8,h-8);
+  ctx.lineWidth=2;ctx.strokeStyle='#f9edd8';ctx.strokeRect(10,10,w-20,h-20);
+ },[1024,512],[]);
 }
 
 function WallFrieze({length,inscription}){
@@ -167,7 +209,7 @@ function GalleryStoneFloor({width,depth,onWalk}){
 }
 
 export default function SwissCollectionHall({hall,collections,collectionIndex,onTeleport}){
- const plaster=useEditorialWallTexture(true);
+ const panel=useGalleryPanel();
  const width=hall.halfWidth*2,depth=hall.halfDepth*2;
  return <group name="PetrusKyFourWallGallery">
   <GalleryStoneFloor width={width} depth={depth} onWalk={event=>{
@@ -180,7 +222,7 @@ export default function SwissCollectionHall({hall,collections,collectionIndex,on
   {hall.walls.map((wall,i)=><group key={i} name={'CollectionWall'+(i+1)} position={[wall.x,0,wall.z]} rotation={[0,wall.yaw,0]}>
    <mesh position={[0,collectionHallHeight/2,-.061]}>
     <boxGeometry args={[wall.length,collectionHallHeight+.16,.12]}/>
-    <meshBasicMaterial color="#d7cbb9" toneMapped={false}/>
+    <meshBasicMaterial color="#e2d7c4" toneMapped={false}/>
    </mesh>
    <mesh position={[0,coveHeight+.01,.44]}>
     <boxGeometry args={[wall.length-.12,.17,.88]}/><meshBasicMaterial color="#ddd1be" toneMapped={false}/>
@@ -190,11 +232,10 @@ export default function SwissCollectionHall({hall,collections,collectionIndex,on
    </mesh>
    <WallFrieze length={wall.length} inscription={PEK_GALLERY_WALL_INSCRIPTIONS[i]}/>
    {wall.bays.map((bay,j)=>{
-    const span=wall.length/wall.bays.length;
     const next=wall.bays[j+1];
     return <React.Fragment key={bay.index}>
-     <mesh position={[(j-(wall.bays.length-1)/2)*span,2.23,.003]}>
-      <planeGeometry args={[span,4.62]}/><meshBasicMaterial map={plaster} toneMapped={false}/>
+     <mesh name="LinenExhibitionPanel" position={[bay.x,2.18,.006]}>
+      <planeGeometry args={[panelWidth,panelHeight]}/><meshBasicMaterial map={panel} toneMapped={false}/>
      </mesh>
      <Track x={bay.x}/>
      <CollectionWallLabel title={collections[bay.index].title} index={bay.index} x={bay.x} current={bay.index===collectionIndex}/>
@@ -204,11 +245,14 @@ export default function SwissCollectionHall({hall,collections,collectionIndex,on
      {next?<Divider x={(bay.x+next.x)/2}/>:null}
     </React.Fragment>;
    })}
-   <mesh position={[0,.035,.034]}>
-    <boxGeometry args={[wall.length,.23,.10]}/><meshBasicMaterial color={pine} toneMapped={false}/>
+   <mesh name="GalleryWainscot" position={[0,.16,.032]}>
+    <boxGeometry args={[wall.length,.48,.09]}/><meshBasicMaterial color={pine} toneMapped={false}/>
    </mesh>
-   <mesh position={[0,.151,.048]}>
-    <boxGeometry args={[wall.length-.18,.029,.115]}/><meshBasicMaterial color="#687062" toneMapped={false}/>
+   <mesh position={[0,.403,.044]}>
+    <boxGeometry args={[wall.length-.18,.031,.105]}/><meshBasicMaterial color="#aa9061" toneMapped={false}/>
+   </mesh>
+   <mesh position={[0,-.030,.065]}>
+    <boxGeometry args={[wall.length-.18,.082,.049]}/><meshBasicMaterial color="#183429" toneMapped={false}/>
    </mesh>
    <Divider x={wall.length/2-.15} corner/>
    {i===0?<group position={[-wall.length/2+.80,friezeCenter,.081]} scale={.68}>
