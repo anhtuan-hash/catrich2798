@@ -1,5 +1,6 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,Box,LockKeyhole,Save} from 'lucide-react';
+import AseanHueQuiz from './AseanHueQuiz.jsx';
 import AseanDiscussionPhoto from './AseanDiscussionPhoto.jsx';
 import AseanActivityArt,{AseanFrameIcon} from './AseanActivityArt.jsx';
 import {ASEAN_ACTIVITY_DESIGN,ASEAN_DISCUSSION_MODEL} from './aseanActivityDesign.js';
@@ -334,7 +335,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        <p className="bml-question-eyebrow">Period {current.period} · Activity {stage+1} / {ASEAN_STAGES.length} · {current.minutes} min</p>
        <h2 id="asean-student-activity-title">{stage===0?'1. Write about '+aseanWritingCard(session.groupLabel).title:design.studentTitle}</h2>
        <p>{stage===0
-        ?'Write one thing a visitor can do and one piece of advice. Submit both sentences, then discuss the class example in Step 2.'
+        ?'Write one thing a visitor can do and one piece of advice. Submit both sentences, then discuss the class example and answer its three questions in Step 2.'
         :stage===5
         ?reportTask+' Submit your final exhibit in the project panel. Use the transfer card below to write two sentences.'
         :stage===4?revisionTask:design.studentTask}</p>
@@ -378,6 +379,8 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
       {stage===0?<>
        {(stageRecord||live?.stageIndex>0||readOnly)?<>
         <ClassVisitorModel language={language}/>
+        <AseanHueQuiz key={live?.id||'review'} language={language} sessionId={live?.id} csrf={session.csrf}
+         open={Boolean(liveOpen&&stageRecord)} readOnly={readOnly} record={records.hueQuiz}/>
         <AseanActivityArt activity={design.id}/>
        </>:
         <p className="asean-response-closed" role="status" lang={language}>{T(language,'Nộp hai câu ở Bước 1 để mở mẫu chung.','Submit your two sentences in Step 1 to open the class example.')}</p>}
