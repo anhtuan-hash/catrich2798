@@ -260,7 +260,6 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
        {!publicReadOnly?<label className="bml-full-field">{tr(language,'Nhận xét dành cho học sinh','Student feedback')}<textarea readOnly={(!canTeach&&!canReview)||busyAny} rows={4} maxLength={2000} value={note} onChange={e=>editRubric({note:e.target.value})}
         placeholder={tr(language,'Nêu một điểm tốt và một điều cần cải tiến…','Describe a strength and one area for improvement…')}/></label>:null}
        {selected.teacher_note?<p className="bml-note"><b>{tr(language,'Giáo viên','Teacher')}:</b> {selected.teacher_note}</p>:null}
-       {selected.ttcm_note?<p className="bml-note"><b>TTCM:</b> {selected.ttcm_note}</p>:null}
        <div className="bml-review-actions">
         {canTeach?<button type="button" className="bml-outline" disabled={busyAny} onClick={grade}><Star size={17}/>{tr(language,'Lưu điểm rubric','Save rubric')}</button>:null}
         {canReview?<>
@@ -273,7 +272,6 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
         {canPublish?<button type="button" disabled={busyAny}
           className="bml-primary" onClick={()=>decide('publish')}><ShieldCheck size={17}/>{tr(language,'Admin công bố bản đã duyệt','Admin publishes approved version')}</button>:null}
        </div>
-       <p className="bml-audit">{tr(language,'Mỗi quyết định được ghi nhận trên máy chủ; nội dung đã duyệt không thể âm thầm thay đổi.','All decisions are audited; approved snapshots cannot be silently modified.')}</p>
      </aside>
     </div>
    </section>:null}
