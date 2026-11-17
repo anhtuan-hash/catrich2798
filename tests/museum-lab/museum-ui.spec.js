@@ -3182,10 +3182,15 @@ test('Student Creator Group 01: 100% draft but missing sources opens Submit and 
 
 test('Public ASEAN catalogue lists ten published group rooms and opens a room from its card or link',async({page},testInfo)=>{
  const titles=['Hội An','Tràng An','Angkor','Luang Prabang','Ayutthaya','Melaka','George Town','Singapore Botanic Gardens','Borobudur','Vigan'];
- const destinations=titles.map((title,index)=>({id:'exhibition-'+(index+1),title,groupLabel:'Group '+String(index+1).padStart(2,'0')}));
+ const destinations=titles.map((title,index)=>({id:'exhibition-'+(index+1),title,groupLabel:'Nhóm '+String(index+1).padStart(2,'0')}));
  const collection={id:'asean-qa',slug:'asean-qa',title:'ASEAN in Three Frames',lesson_template:'asean-in-three-frames',status:'published',destinations};
  const requests=[];
- await page.evaluate(()=>sessionStorage.setItem('bml-ui-language','en'));
+ await page.addStyleTag({path:'src/styles/GlobalRegionalFontSystem.css'});
+ await page.evaluate(()=>{
+  sessionStorage.setItem('bml-ui-language','en');
+  document.documentElement.setAttribute('data-font-region-page-title','test');
+  document.documentElement.style.setProperty('--bes-font-pageTitle','cursive');
+ });
  const poster='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="240" height="150"%3E%3Crect width="240" height="150" fill="seagreen"/%3E%3C/svg%3E';
  await page.route('**/api/gallery-staff?operation=*',route=>{
   const request=route.request();
@@ -3204,9 +3209,16 @@ test('Public ASEAN catalogue lists ten published group rooms and opens a room fr
  await page.getByTestId('igv2-nav-exhibitions').click();
  const catalogue=page.getByRole('region',{name:collection.title});
  const cards=catalogue.getByRole('article');
- await expect(catalogue.getByText('10 published group rooms',{exact:true})).toBeVisible();
+ const hero=page.locator('.swiss-editorial-exhibitions-hero');
+ await expect(hero.getByRole('heading',{name:'Our exhibitions'})).toHaveCSS('font-family',/Inter/);
+ const totals=hero.getByRole('list',{name:'Exhibition totals'}).getByRole('listitem');
+ await expect(totals).toHaveText(['1Published exhibition','10Published group rooms']);
  await expect(cards).toHaveCount(10);
  await expect.poll(()=>cards.locator('img').count()).toBe(10);
+ await expect(cards.first().locator('.swiss-editorial-exhibit-poster')).toHaveCSS('aspect-ratio','4 / 3');
+ await expect(cards.first().locator('img')).toHaveCSS('object-fit','cover');
+ await expect(catalogue.getByText('Published',{exact:true})).toHaveCount(0);
+ await expect(catalogue.getByRole('button',{name:'Open full exhibition'})).toHaveCSS('background-color','rgb(201, 13, 37)');
  await expect(cards.last()).toContainText('Group 10');
  expect(await catalogue.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
  await catalogue.screenshot({path:testInfo.outputPath('published-group-rooms.png')});

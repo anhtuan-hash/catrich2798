@@ -1,11 +1,11 @@
 import React, {useEffect, useState} from 'react';
-import {Archive,RotateCcw,ShieldAlert,CheckCircle2,Landmark,RefreshCw} from 'lucide-react';
+import {Archive,ArrowUpRight,RotateCcw,ShieldAlert,CheckCircle2,Landmark,RefreshCw} from 'lucide-react';
 import MetricStrip from '../shell/MetricStrip.jsx';
 import ExhibitionCard from '../shell/ExhibitionCard.jsx';
 import MuseumExhibitionDetail from '../../v3/MuseumExhibitionDetail.jsx';
 import {isAsean} from '../../v3/aseanLesson.js';
 import GalleryRenderBoundary from '../../GalleryRenderBoundary.jsx';
-import {staffRequest as defaultTransport} from '../../v3/museumApi.js';
+import {englishSystemGroupLabel,staffRequest as defaultTransport} from '../../v3/museumApi.js';
 import './ExhibitionsScreen.css';
 
 const tr = (lang, vi, en) => lang === 'en' ? en : vi;
@@ -25,9 +25,6 @@ const matchesQuery = (item, query) =>
   [item.title, item.summary, item.groupLabel].filter(Boolean).join(' ').toLocaleLowerCase().includes(query);
 const findDestinationRoom = (gallery, destinationId) =>
   (gallery.rooms || []).findIndex(room => room.exhibition_id === destinationId);
-const roomCountLabel = (language, count) => language === 'en'
-  ? count === 1 ? '1 published group room' : count + ' published group rooms'
-  : count + ' phòng nhóm đã công bố';
 const setExhibitionHash = key => {
   if (typeof window === 'undefined') return;
   const current = window.location.hash.split('?')[0] || '#/tool/immersive-gallery';
@@ -193,15 +190,14 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
   const publishedInView = published.filter(g => matchesQuery(g, term) ||
     g.destinations?.some(destination => matchesQuery(destination, term)));
   const groupRoomCount = published.reduce((count, g) => count + (g.destinations?.length || 0), 0);
+  const showGroupRooms = isAsean(lessonTemplate) || groupRoomCount > 0;
   const archivedItems = (showcase.archivedGalleries || []).filter(g => inTemplate(g,lessonTemplate)&&!isPracticeShowcase(g))
     .map(g => ({kind: 'gallery', key: g.id, title: g.title, label: 'Student exhibition'}));
 
   const exhibitionMetrics = [
-    {value: String(published.length), label: tr(language,'Triển lãm đã công bố','Published exhibitions')},
-    {value: String(publishedInView.length), label: tr(language,'Đang hiển thị','Showing in view')},
-    {value: String(archivedItems.length), label: tr(language,'Đã lưu trữ','Archived exhibitions')},
-    {value: String(groupRoomCount || (payload?.groups || []).length), label: groupRoomCount
-      ? tr(language,'Phòng nhóm đã công bố','Published group rooms')
+    {value: published.length, label: tr(language,'Triển lãm đã công bố',published.length === 1 ? 'Published exhibition' : 'Published exhibitions')},
+    {value: showGroupRooms ? groupRoomCount : (payload?.groups || []).length, label: showGroupRooms
+      ? tr(language,'Phòng nhóm đã công bố',groupRoomCount === 1 ? 'Published group room' : 'Published group rooms')
       : tr(language,'Nhóm học sinh','Student groups')},
   ];
 
@@ -209,10 +205,10 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
     <div className="swiss-editorial-exhibitions" aria-busy={loading || busy}>
       <header className="swiss-editorial-exhibitions-hero">
         <div>
-          <h1>{tr(language, 'Triển lãm của chúng ta', 'Our exhibitions')}<span>.</span></h1>
+          <h1>{tr(language, 'Triển lãm của chúng ta', 'Our exhibitions')}<span aria-hidden="true" /></h1>
           <p>{tr(language, 'Khám phá các dự án tiếng Anh qua không gian bảo tàng 3D.', 'Explore English projects in interactive 3D museums.')}</p>
         </div>
-        <MetricStrip items={exhibitionMetrics} />
+        <MetricStrip items={exhibitionMetrics} ariaLabel={tr(language,'Số liệu triển lãm','Exhibition totals')} />
       </header>
 
       <div className="swiss-editorial-exhibitions-bar">
@@ -257,15 +253,15 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
           {publishedInView.map((g, i) => g.destinations?.length ? (
             <section key={g.id} className="swiss-editorial-exhibition-collection" aria-label={g.title}>
               <header className="swiss-editorial-exhibition-collection-head">
-                <div><h3>{g.title}</h3><p>{roomCountLabel(language, g.destinations.length)}</p></div>
+                <h3>{g.title}</h3>
                 <button type="button" className="swiss-editorial-exhibition-open-all" disabled={busy}
-                  onClick={() => enter(g)}>{tr(language,'Mở toàn bộ triển lãm','Open full exhibition')}</button>
+                  onClick={() => enter(g)}>{tr(language,'Mở toàn bộ triển lãm','Open full exhibition')} <ArrowUpRight size={17} aria-hidden="true"/></button>
               </header>
               <div className="swiss-editorial-exhibitions-grid">
                 {(matchesQuery(g, term) ? g.destinations : g.destinations.filter(d => matchesQuery(d, term))).map(destination => (
-                  <ExhibitionCard key={destination.id} heading="h4"
-                    serial={destination.groupLabel} title={destination.title}
-                    cover={covers[destination.id] || ''} statusLabel={tr(language,'Đã công bố','Published')}
+                  <ExhibitionCard key={destination.id} groupRoom
+                    serial={language === 'en' ? englishSystemGroupLabel(destination.groupLabel) : destination.groupLabel}
+                    title={destination.title} cover={covers[destination.id] || ''}
                     language={language} ctaLabel={tr(language,'Mở phòng nhóm','Open group room')}
                     disabled={busy} onOpen={() => enter(g, destination.id)} />
                 ))}
