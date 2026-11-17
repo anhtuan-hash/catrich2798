@@ -85,10 +85,10 @@ function StudentBoard({runtime}){
   <h1>{groups.length} student workshops</h1>
   <p>Each row opens that group’s saved practice. Nothing can be added, edited or deleted.</p>
   <p><a href="../PetrusKy_Museum_Offline.html">Open the teacher archive</a></p>
-  <table className="bml-frozen-table"><thead><tr><th>#</th><th>Group</th><th>Class</th><th>Museum</th><th>{writingHeading}</th><th></th></tr></thead>
+  <div className="bml-frozen-table-wrap"><table className="bml-frozen-table"><thead><tr><th>#</th><th>Group</th><th>Class</th><th>Museum</th><th>{writingHeading}</th><th></th></tr></thead>
    <tbody>{groups.map((group,index)=><tr key={group.id}><td>{String(index+1).padStart(2,'0')}</td><td>{group.label}</td><td>{group.classScope}</td><td>{group.state}</td>
     <td>{group.transfer===null?(group.exit?'Submitted':'None'):(group.transfer?'On file':'No saved writing')}</td>
-    <td><button type="button" onClick={()=>open(group.id)}>Open</button></td></tr>)}</tbody></table>
+    <td><button type="button" onClick={()=>open(group.id)}>Open</button></td></tr>)}</tbody></table></div>
  </main>;
 }
 async function boot(){

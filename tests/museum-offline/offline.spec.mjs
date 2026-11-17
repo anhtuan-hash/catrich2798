@@ -65,6 +65,9 @@ test('ASEAN ZIP opens the teacher dossier and the six student activities without
  await expect(page.getByRole('columnheader',{name:'Group transfer card · Activity 6'})).toBeVisible();
  await expect(page.getByRole('row',{name:/Nhóm 01/}).getByRole('cell',{name:'On file'})).toBeVisible();
  await expect(page.getByRole('row',{name:/Nhóm 02/}).getByRole('cell',{name:'No saved writing'})).toBeVisible();
+ await page.setViewportSize({width:390,height:844});
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+ await page.setViewportSize({width:1440,height:1000});
  await page.getByRole('row',{name:/Nhóm 01/}).getByRole('button',{name:'Open',exact:true}).click();
  const workshop=page.getByTestId('asean-student-lesson');
  await expect(workshop.getByTestId('asean-student-slide-1')).toBeVisible();
