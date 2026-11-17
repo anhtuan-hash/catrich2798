@@ -118,8 +118,9 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
  const baselineDraft=stage===0&&session.assignment?.class_scope==='11.3'?aseanBaselineDraft(session.groupLabel):null;
  const [fields,setFields]=useState(()=>record||baselineDraft||initialFields(stage));
  const [visit,setVisit]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ const [prefilledFeedback,setPrefilledFeedback]=useState(false);
  const submitted=Boolean(record);
- const errorRef=useRef(null);
+ const errorRef=useRef(null),openedV1=useRef(false);
  useEffect(()=>{
   if(formId&&error)errorRef.current?.focus();
  },[formId,error]);
@@ -137,6 +138,13 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
    const result=await liveGuest('asean-visit');
    setVisit(result);
    if(result.gallery){
+    if(v1Visit&&!openedV1.current){
+     openedV1.current=true;
+     if(validAseanResponse(3,result.feedbackDraft)){
+      setFields(result.feedbackDraft);
+      setPrefilledFeedback(true);
+     }
+    }
     const reference=stage===3&&result.gallery.draft?.checkpointOrigin==='reconstructed_reference';
     onVisit(reviewMuseum({snapshot:result.gallery.draft},result.gallery.artworks),reference);
    }
@@ -205,6 +213,10 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
    </p>:<h3 data-visit-form-heading tabIndex={-1} lang={language}>{T(language,'2. Điền phiếu góp ý','2. Complete the visitor feedback')}</h3>)}
    {v1Visit&&visitedExhibit&&<p className="asean-visit-target" lang={language}>
     {T(language,'Triển lãm được góp ý','Exhibit visited')} · <strong>{visitedExhibit}</strong>
+   </p>}
+   {prefilledFeedback&&!submitted&&<p className="bml-banner bml-info-banner" lang={language}>
+    {T(language,'Phiếu điền sẵn từ lượt rà soát V1. Hãy kiểm tra các câu trả lời, bằng chứng và khung nhóm mở đầu tiên trước khi nộp.',
+     'Draft based on a V1 review. Check the answers, evidence and the first frame your group opened before submitting.')}
    </p>}
    {baselineDraft&&!submitted&&<p role="status">{open
     ?'Teacher-provided draft. Review the two sentences and edit them before submitting.'

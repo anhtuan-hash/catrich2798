@@ -1955,6 +1955,11 @@ test('ASEAN groups submit and revisit the Huế discussion quiz separately',asyn
 test('ASEAN Activity 4 guides a visitor from the assigned V1 to submitted feedback',async({page},testInfo)=>{
  const assignment={id:'qa-asean-visit',title:'ASEAN in Three Frames',class_scope:'11-QA',lesson_template:'asean-in-three-frames'};
  const live={id:'qa-visit-session',stageIndex:3,status:'active',stageOpen:true};
+ const feedbackDraft={first:1,answers:[
+  {text:'The Place caption locates Tràng An in Ninh Bình.',frame:1,score:1},
+  {text:'The Experience caption omits a visitor activity.',frame:2,score:0},
+  {text:'Stay seated near the cave entrance.',frame:3,score:1}
+ ],comment:'Name one activity a visitor can try.'};
  let ready=false,response;
  await page.route('**/api/gallery-guest?**',route=>{
   const op=new URL(route.request().url()).searchParams.get('operation');
@@ -1968,7 +1973,7 @@ test('ASEAN Activity 4 guides a visitor from the assigned V1 to submitted feedba
   }});
   if(op==='asean-visit')return route.fulfill({json:{target:'Nhóm 02',gallery:ready?{
    checkpointId:'qa-v1-trang-an',version:3,draft:{title:'Tràng An',rooms:[]},artworks:[]
-  }:null}});
+  }:null,...(ready?{feedbackDraft}:{})}});
   if(op==='asean-submit'){
    const payload=route.request().postDataJSON();
    expect(payload.sessionId).toBe(live.id);
@@ -2003,15 +2008,22 @@ test('ASEAN Activity 4 guides a visitor from the assigned V1 to submitted feedba
  await expect(formHeading).toBeFocused();
  await expect(formHeading).toBeInViewport();
  await expect(panel.getByText('Exhibit visited · Group 02 · Tràng An')).toBeInViewport();
+ await expect(panel.getByText('Draft based on a V1 review.',{exact:false})).toBeVisible();
+ await expect(panel.getByLabel('Which frame did you open first?')).toHaveValue('1');
+ await expect(panel.getByLabel('One specific change the group could make')).toHaveValue(feedbackDraft.comment);
  await page.screenshot({path:testInfo.outputPath('asean-visitor-feedback.png')});
  await panel.getByLabel('Which frame did you open first?').selectOption('2');
+ await panel.getByRole('button',{name:'Reopen the V1 exhibit'}).click();
+ await page.getByRole('button',{name:'Close museum preview'}).click();
+ await expect(panel.getByLabel('Which frame did you open first?')).toHaveValue('2');
  const questions=['1. Where is it?','2. What can I do there?','3. What should I keep in mind?'];
  const answers=['It is in Ninh Binh.','Visitors can take a boat.','The caption did not explain where to wait.'];
  for(const [index,name] of questions.entries()){
   const question=panel.getByRole('group',{name,exact:true});
   await question.getByLabel('What did you find?').fill(answers[index]);
-  if(index<2)await question.getByLabel('Score').selectOption('1');
+  await question.getByLabel('Score').selectOption(index<2?'1':'0');
  }
+ await panel.getByRole('group',{name:questions[2],exact:true}).getByLabel('Evidence frame').selectOption('');
  await panel.getByLabel('One specific change the group could make').fill('Show where visitors can wait for a boat.');
  const place=panel.getByRole('group',{name:questions[0],exact:true});
  await place.getByLabel('Evidence frame').selectOption('2');
