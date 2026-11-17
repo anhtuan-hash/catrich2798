@@ -2051,9 +2051,9 @@ test('ASEAN Activity 4 guides a visitor from the assigned V1 to submitted feedba
  await page.screenshot({path:testInfo.outputPath('asean-visitor-score-vi.png')});
 });
 
-test('ASEAN V2 retest opens ahead of the completed exhibit, then records the visitor’s answer',async({page})=>{
+test('ASEAN V2 retest separates our revision, the teacher reference and the assigned visit',async({page},testInfo)=>{
  const assignment={id:'qa-asean',title:'ASEAN in Three Frames',class_scope:'11-QA',lesson_template:'asean-in-three-frames'};
- let response;
+ let response,incomingRetest;
  const live={id:'retest-session',stageIndex:4,status:'active',stageOpen:true};
  const checkpoints=[{kind:'before',version:0,complete:true,reconstructed:true},{kind:'after',version:2,complete:true,reason:'Teacher-prepared V2: Revised the Place caption.'}];
  await page.route('**/api/gallery-guest?**',route=>{
@@ -2065,6 +2065,7 @@ test('ASEAN V2 retest opens ahead of the completed exhibit, then records the vis
   const operation=new URL(route.request().url()).searchParams.get('operation');
   if(operation==='asean-records')return route.fulfill({json:{checkpoints,rows:response?[{stage_index:4,value:response}]:[],
    revisionDetails:[{frame:'Place',v1:'Hội An has historic streets.',v2:'Hội An is beside the Thu Bồn River.',photoChanged:false}],
+   retestVisitor:'Nhóm 09',retest:incomingRetest,staffRetest:{question:1,answer:'The teacher located the exhibit in central Viet Nam.',frame:1,score:1},
    retestTask:{target:'Nhóm 03',ready:true,question:2,staffChecked:true}}});
   if(operation==='asean-reference-v1')return route.fulfill({json:{gallery:{version:0,
    draft:{title:'Hội An reference',rooms:[]},artworks:[]}}});
@@ -2080,29 +2081,42 @@ test('ASEAN V2 retest opens ahead of the completed exhibit, then records the vis
   return route.fulfill({json:{session:live,readOnly:false}});
  });
  await page.getByTestId('qa-student-en').click();
- const project=page.getByRole('region',{name:'Group Project',exact:true});
+ const lesson=page.getByTestId('asean-student-slide-5');
+ const project=page.getByRole('region',{name:'Revision & Retest',exact:true});
+ const own=project.getByTestId('asean-own-revision');
+ await lesson.getByRole('button',{name:'Our exhibit',exact:true}).click();
+ await expect(own.getByRole('heading',{name:'1. Our V2 exhibit'})).toBeFocused();
+ await expect(own.getByText('Hội An Ancient Town',{exact:true})).toBeVisible();
+ await expect(own).toContainText('Teacher reference check · 1/1');
+ await expect(own.getByRole('status')).toHaveText('Waiting for Group 09 to submit its retest.');
+ await page.screenshot({path:testInfo.outputPath('asean-activity5-revision.png')});
  await expect(project.getByText('Group 03 · Angkor')).toBeVisible();
  await expect(project.getByText('What can I do there?',{exact:true})).toBeVisible();
  await expect(project.getByTestId('asean-3d-studio')).toHaveCount(0);
- await expect(project.getByText('A staff check is on file.',{exact:false})).toBeVisible();
- await expect(page.getByTestId('asean-student-slide-5').getByText('Review the V1 caption')).toBeVisible();
- await project.getByText('Compare V1 and V2',{exact:true}).click();
- await expect(project.getByText('Hội An is beside the Thu Bồn River.',{exact:false})).toBeVisible();
+ await expect(lesson.getByText('Review the V1 caption')).toBeVisible();
+ await expect(own.getByText('Hội An is beside the Thu Bồn River.',{exact:false})).toBeVisible();
  await project.getByRole('button',{name:'View reconstructed V1'}).click();
  await expect(page.getByRole('dialog',{name:'Reconstructed V1 reference'})).toBeVisible();
  await page.getByRole('button',{name:'Close museum preview'}).click();
+ await lesson.getByRole('button',{name:'Assigned exhibit',exact:true}).click();
+ await expect(project.getByRole('heading',{name:'2. Retest the assigned group’s V2'})).toBeFocused();
  await project.getByRole('button',{name:'Open assigned V2 exhibit'}).click();
  await page.getByRole('button',{name:'Close museum preview'}).click();
+ await expect(project.getByRole('heading',{name:'Record your retest answer'})).toBeFocused();
  await project.getByRole('textbox',{name:'Your group’s answer'}).fill('Visitors can look up at the stone faces.');
  await project.getByLabel('Score').selectOption('1');
- await expect(project.getByRole('button',{name:'Submit group response'})).toBeDisabled();
+ await expect(project.getByRole('button',{name:'Submit retest answer'})).toBeDisabled();
  await expect(project.getByText('For a score of 1, choose Experience as the evidence frame.',{exact:false})).toBeVisible();
  await project.getByLabel('Evidence frame').selectOption('1');
- await expect(project.getByRole('button',{name:'Submit group response'})).toBeDisabled();
+ await expect(project.getByRole('button',{name:'Submit retest answer'})).toBeDisabled();
  await project.getByLabel('Evidence frame').selectOption('2');
- await project.getByRole('button',{name:'Submit group response'}).click();
- await expect(project.getByText('Group response saved.')).toBeVisible();
+ await project.getByRole('button',{name:'Submit retest answer'}).click();
+ await expect(project.getByText('Retest submitted · 1/1',{exact:true})).toBeVisible();
  await expect(project.getByRole('textbox',{name:'Your group’s answer'})).toBeDisabled();
+ await expect(own.getByRole('status')).toHaveText('Waiting for Group 09 to submit its retest.');
+ incomingRetest={question:1,answer:'The location was still unclear to us.',frame:null,score:0};
+ await expect(own.getByRole('status')).toContainText('Retest result from Group 09 · 0/1',{timeout:8000});
+ await expect(own).toContainText('Teacher reference check · 1/1');
 });
 
 test('ASEAN V2 retest teacher table distinguishes pending submissions from a recorded zero',async({page})=>{
