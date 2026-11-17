@@ -5,35 +5,48 @@ import * as THREE from 'three';
 import {focusLayout,smoothstep,clampDelta} from './museumExhibitFocusMotion.js';
 import {excerptSentences} from './museumExhibitFocusData.js';
 
-function PlaqueText({board,onBack,phase}){
+function citation(text){
+ const parts=String(text||'').split(/(https?:\/\/[^\s·]+)/g);
+ return parts.map((part,i)=>/^https?:\/\//.test(part)
+  ?<a key={i} href={part} target="_blank" rel="noreferrer noopener">{part.replace(/^https?:\/\/(www\.)?/,'')}</a>
+  :<span key={i}>{part}</span>);
+}
+function PlaqueText({board,onBack,onStep,index=0,count=1,phase,language='en'}){
  const [expanded,setExpanded]=useState(false);
  const backButton=useRef(null);
+ const vi=language!=='en';
  useEffect(()=>setExpanded(false),[board?.title,board?.description]);
  // Focus the single actionable Back control on the real, world-anchored plaque.
- useEffect(()=>{if(phase==='focused')backButton.current?.focus({preventScroll:true});},[phase]);
+ useEffect(()=>{if(phase==='focused')backButton.current?.focus({preventScroll:true});},[phase,board?.title]);
  const {excerpt,hasMore}=excerptSentences(board?.description||'',365);
+ const ready=phase==='focused';
  return <div className="bml-v5-plaque-copy" data-testid="museum-focus-stage"
   data-focus-phase={phase} role="region" aria-label="Exhibit information in the 3D museum"
   onPointerDown={e=>e.stopPropagation()} onClick={e=>e.stopPropagation()}
   onWheel={e=>e.stopPropagation()}>
-  <div className="bml-v5-plaque-eyebrow">EXHIBIT INSPECTION</div>
+  <div className="bml-v5-plaque-eyebrow">{vi?'THUYẾT MINH HIỆN VẬT':'EXHIBIT INSPECTION'}</div>
   <h2 data-testid="museum-focus-title">{board?.title||'Exhibit'}</h2>
   <div className="bml-v5-plaque-rule" aria-hidden="true"/>
+  {count>1?<div className="bml-v5-step">
+   <button type="button" disabled={!ready||index<=0} onClick={()=>onStep?.(-1)}>{vi?'← Trước':'← Previous'}</button>
+   <span>{String(index+1).padStart(2,'0')} / {String(count).padStart(2,'0')}</span>
+   <button type="button" disabled={!ready||index>=count-1} onClick={()=>onStep?.(1)}>{vi?'Tiếp →':'Next →'}</button>
+  </div>:null}
   <div className="bml-v5-plaque-scroll" tabIndex={0} aria-label="Exhibit text and sources">
    <p data-testid="museum-focus-description">{expanded?board?.description:excerpt}</p>
    {hasMore?<button type="button" className="bml-v5-details" aria-expanded={expanded}
-    onClick={()=>setExpanded(v=>!v)}>{expanded?'Read less':'Read more'}</button>:null}
-   {board?.improvement?<p><strong>After peer testing:</strong> {board.improvement}</p>:null}
+    onClick={()=>setExpanded(v=>!v)}>{expanded?(vi?'Thu gọn':'Read less'):(vi?'Đọc tiếp':'Read more')}</button>:null}
+   {board?.improvement?<p><strong>{vi?'Sau phản hồi đồng trang lứa:':'After peer testing:'}</strong> {board.improvement}</p>:null}
    <div className="bml-v5-plaque-source" data-testid="museum-focus-source">
-    <strong>Source</strong>
-    <span>{board?.source||'Source not provided'}</span>
+    <strong>{vi?'Nguồn':'Source'}</strong>
+    <span>{board?.source||(vi?'Chưa có nguồn':'Source not provided')}</span>
    </div>
-   {board?.imageSource?<p className="bml-v5-attribution">Image source: {board.imageSource}
-    {board?.imageRights?' · Rights: '+board.imageRights:''}</p>:null}
+   {board?.imageSource?<p className="bml-v5-attribution">{vi?'Nguồn ảnh: ':'Image source: '}{citation(board.imageSource)}
+    {board?.imageRights?' · '+(vi?'Quyền: ':'Rights: ')+board.imageRights:''}</p>:null}
    {/* Keep the authentic citation visible before the optional longer tally.
        The complete group survey remains scrollable below, never omitted. */}
    {board?.survey?<div className="bml-v5-survey">
-    <strong>Group-priority survey · N={board.survey.n} groups</strong>
+    <strong>{vi?'Khảo sát ưu tiên nhóm':'Group-priority survey'} · N={board.survey.n} {vi?'nhóm':'groups'}</strong>
     {board.survey.options.map((opt,i)=><div key={i}>
      <span>{opt.label}</span><b>{opt.count}/{board.survey.n} ({opt.percent}%)</b>
     </div>)}
@@ -42,7 +55,7 @@ function PlaqueText({board,onBack,phase}){
   </div>
   <button ref={backButton} type="button" className="bml-v5-back" data-testid="museum-back-to-wall"
    disabled={phase!=='focused'} onClick={onBack}>
-   <span aria-hidden="true">←</span> Back to wall
+   <span aria-hidden="true">←</span> {vi?'Về tường':'Back to wall'}
   </button>
  </div>;
 }
@@ -68,7 +81,7 @@ function MuseumFocusSpotlight({position,aim,lite=false,index=0}){
  </>;
 }
 /** This stage holds only a plinth, physical board and light, never a copy of the poster. */
-export default function MuseumExhibitFocusRig({focus,board,onBack,lite=false}){
+export default function MuseumExhibitFocusRig({focus,board,onBack,onStep,index=0,count=1,language='en',lite=false}){
  const {size,invalidate}=useThree();
  const stage=useRef(null),boardGroup=useRef(null),pedestalGroup=useRef(null);
  const active=focus?.phase!=='idle'&&focus?.phase!=='error';
@@ -110,14 +123,6 @@ export default function MuseumExhibitFocusRig({focus,board,onBack,lite=false}){
     <boxGeometry args={[2.72,.085,.90]}/>
     <meshStandardMaterial color="#EFE9DB" metalness={.05} roughness={.7}/>
    </mesh>
-   <mesh position={[0,.18,.396]}>
-    <boxGeometry args={[1.60,.22,.027]}/>
-    <meshStandardMaterial color="#B9954A" metalness={.53} roughness={.43}/>
-   </mesh>
-   <mesh position={[0,.18,.417]}>
-    <boxGeometry args={[1.49,.17,.01]}/>
-    <meshStandardMaterial color="#F8EED6" metalness={.01} roughness={.8}/>
-   </mesh>
    <mesh position={[0,.0,-.08]} rotation={[-Math.PI/2,0,0]}>
     <ringGeometry args={[1.64,1.69,48]}/>
     <meshBasicMaterial color="#C8A34B" side={THREE.DoubleSide} depthWrite={false}/>
@@ -158,7 +163,7 @@ export default function MuseumExhibitFocusRig({focus,board,onBack,lite=false}){
    <Html transform={size.width>=650} center position={[0,0,.114]}
     distanceFactor={size.width>=650?3.1:undefined} occlude={false}
     style={{pointerEvents:'auto'}}>
-    <PlaqueText board={board} phase={focus.phase} onBack={onBack}/>
+    <PlaqueText board={board} phase={focus.phase} onBack={onBack} onStep={onStep} index={index} count={count} language={language}/>
    </Html>
   </group>
  </group>;

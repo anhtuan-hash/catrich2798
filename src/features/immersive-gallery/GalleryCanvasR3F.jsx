@@ -192,7 +192,7 @@ function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdi
     <group><mesh position={[0,0.22,0.083]}><boxGeometry args={[1.06,0.12,0.02]}/><meshStandardMaterial color="#93afa7"/></mesh>
       <mesh position={[0,-0.04,0.085]}><boxGeometry args={[0.9,0.05,0.02]}/><meshStandardMaterial color="#d7c3b3"/></mesh>
       <mesh position={[0,-0.20,0.085]}><boxGeometry args={[1.02,0.05,0.02]}/><meshStandardMaterial color="#d7c3b3"/></mesh></group>}
-  {schoolEdition?<group position={[0,fitted?-(fitted.outer[1]/2+0.22)+1.24:(cinemaEdition?-.54:0),0]}><ExhibitWallLabel title={exhibit.title} index={index}/></group>:null}
+  {schoolEdition&&!(isTarget&&focus.phase!=='idle')?<group position={[0,fitted?-(fitted.outer[1]/2+0.22)+1.24:(cinemaEdition?-.54:0),0]}><ExhibitWallLabel title={exhibit.title} index={index}/></group>:null}
  </group>;
 }
 function Walls({template,onTeleport,schoolEdition=false,cinemaEdition=false,lite=false}) {
@@ -437,7 +437,7 @@ function CameraResizeSync(){
  },[camera,gl,invalidate]);
  return null;
 }
-function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=false,cinemaEdition=false,lite=false,focus=FOCUS_IDLE,focusBoard,onFocusBack,onFocusPhaseChange}) {
+function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=false,cinemaEdition=false,lite=false,focus=FOCUS_IDLE,focusBoard,onFocusBack,onFocusStep,focusIndex=0,language='en',onFocusPhaseChange}) {
  return <><color attach="background" args={[schoolEdition?(cinemaEdition?'#F7F4EC':'#EBF5F0'):'#f2f0e9']}/>
   <ambientLight intensity={schoolEdition?(cinemaEdition?1.15:1.25):1.1}/>
   <hemisphereLight args={[cinemaEdition?'#FFF8EC':'#FFFFFF',schoolEdition?(cinemaEdition?'#D5E6D4':'#9CAD9D'):'#B7AFA3',cinemaEdition?1.05:1.1]}/>
@@ -447,10 +447,10 @@ function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=fa
   {exhibits.slice(0,30).map((e,i)=><PaperArtwork key={e.id} exhibit={e} index={i} count={Math.min(exhibits.length,30)} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition}
    focus={focus} onFocusPhaseChange={onFocusPhaseChange} onSelect={onSelect}
    isSelected={selectedId===e.id||focus.exhibitId===e.id}/>)}
-  {cinemaEdition&&focus.phase!=='idle'?<MuseumExhibitFocusRig focus={focus} board={focusBoard} onBack={onFocusBack} lite={lite}/>:null}
+  {cinemaEdition&&focus.phase!=='idle'?<MuseumExhibitFocusRig focus={focus} board={focusBoard} onBack={onFocusBack} onStep={onFocusStep} index={focusIndex} count={exhibits.length} language={language} lite={lite}/>:null}
  </>;
 }
-export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelect,selectedId='',quality='auto',language='vi',schoolEdition=false,cinemaEdition=false,focus=FOCUS_IDLE,focusBoard,onFocusBack,onFocusPhaseChange}) {
+export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelect,selectedId='',quality='auto',language='vi',schoolEdition=false,cinemaEdition=false,focus=FOCUS_IDLE,focusBoard,onFocusBack,onFocusStep,focusIndex=0,onFocusPhaseChange}) {
  const held=useRef(new Set());
  const narrow=typeof window!=='undefined'&&window.matchMedia?.('(max-width:700px)').matches;
  const startingZ=cinemaEdition?(narrow?2.2:1.3):schoolEdition?(narrow?2.5:-1.6):4.7;
@@ -483,7 +483,7 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
     {cinemaEdition?<MuseumFocusFramePump phase={focus.phase}/>:null}
     {cinemaEdition?<CinemaEffectPump active={focus.phase==='idle'}/>:null}
     <Room template={template} exhibits={exhibits} onSelect={onSelect} selectedId={selectedId} onTeleport={onTeleport}
-     focus={focus} focusBoard={focusBoard} onFocusBack={onFocusBack} onFocusPhaseChange={onFocusPhaseChange}
+     focus={focus} focusBoard={focusBoard} onFocusBack={onFocusBack} onFocusStep={onFocusStep} focusIndex={focusIndex} language={language} onFocusPhaseChange={onFocusPhaseChange}
      schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} lite={mode==='lite'}/>
     <MuseumFocusCameraRig focus={cinemaEdition?focus:FOCUS_IDLE}/>
     <CameraWalker held={held} paused={!!selectedId||(cinemaEdition&&focus.phase!=='idle')}

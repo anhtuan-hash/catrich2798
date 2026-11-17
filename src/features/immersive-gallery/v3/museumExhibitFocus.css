@@ -44,6 +44,21 @@
 }
 .bml .bml-v5-plaque-source strong{color:#2E6554;font-family:system-ui,sans-serif;font-size:11px}
 .bml .bml-v5-attribution{font-size:11px;color:#4E6E5F}
+.bml .bml-v5-attribution a{color:#1B6A56;font-weight:700;word-break:break-all}
+.bml .bml-v5-step{
+ display:flex;align-items:center;justify-content:space-between;gap:8px;
+ margin:0 0 8px;
+}
+.bml .bml-v5-step span{
+ font:800 11px/1 system-ui,sans-serif;letter-spacing:.08em;color:#6A5730;
+}
+.bml .bml-v5-step button{
+ min-height:34px;padding:6px 10px;border-radius:999px;cursor:pointer;
+ border:1px solid #C8A34B;background:#17362C;color:#F6EDD4;
+ font:800 12px/1 system-ui,sans-serif;
+}
+.bml .bml-v5-step button:hover:not(:disabled){background:#215744}
+.bml .bml-v5-step button:disabled{opacity:.35;cursor:default}
 .bml .bml-v5-back{
  flex:0 0 auto;align-self:center;cursor:pointer;
  display:flex;align-items:center;justify-content:center;gap:10px;

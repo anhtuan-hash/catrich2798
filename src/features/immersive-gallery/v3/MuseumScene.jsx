@@ -57,7 +57,16 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
  const [focus,dispatchFocus]=useReducer(focusReducer,FOCUS_IDLE);
  const isFocus=cinema&&threeD&&focusActive(focus);
  const focusBack=()=>dispatchFocus({type:'BACK'});
- const changeTo2D=()=>{dispatchFocus({type:'RESET'});setInfoOpen(false);setThreeD(false);};
+ const queuedFocus=useRef(null);
+ const stepFocus=dir=>{
+  if(focus.phase!=='focused')return;
+  const i=exhibits.findIndex(e=>e.id===focus.exhibitId);
+  const next=exhibits[i+dir];
+  if(!next)return;
+  queuedFocus.current=next.id;
+  dispatchFocus({type:'BACK'});
+ };
+ const changeTo2D=()=>{queuedFocus.current=null;dispatchFocus({type:'RESET'});setInfoOpen(false);setThreeD(false);};
  const changeTo3D=()=>{setInfoOpen(false);setThreeD(true);};
  const lastFocusPhase=useRef('idle');
  const cinemaRef=useRef(null),cinemaOpenerRef=useRef(null),[infoOpen,setInfoOpen]=useState(false);
@@ -170,7 +179,23 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
   document.addEventListener('keydown',handleKeys);
   return()=>document.removeEventListener('keydown',handleKeys);
  },[selected?.id]);
- const changeRoom=n=>{dispatchFocus({type:'RESET'});setActiveRoom(n);setSelectedId(null);setFullPosterId(null);};
+ const changeRoom=n=>{queuedFocus.current=null;dispatchFocus({type:'RESET'});setActiveRoom(n);setSelectedId(null);setFullPosterId(null);};
+ useEffect(()=>{
+  if(!(cinema&&threeD)||focus.phase!=='idle'||!queuedFocus.current)return;
+  const id=queuedFocus.current;
+  queuedFocus.current=null;
+  dispatchFocus({type:'SELECT',exhibitId:id,roomId:room?.id||'room-'+activeRoom});
+ },[focus.phase,focus.generation,cinema,threeD,room?.id,activeRoom]);
+ useEffect(()=>{
+  if(!(cinema&&threeD)||focus.phase!=='focused')return undefined;
+  const onKey=event=>{
+   if(event.key==='Escape'){event.preventDefault();focusBack();}
+   else if(event.key==='ArrowRight'){event.preventDefault();stepFocus(1);}
+   else if(event.key==='ArrowLeft'){event.preventDefault();stepFocus(-1);}
+  };
+  window.addEventListener('keydown',onKey);
+  return()=>window.removeEventListener('keydown',onKey);
+ },[cinema,threeD,focus.phase,focus.exhibitId,exhibits]);
  return <section ref={cinemaRef} className={'bml-scene bml-paper-2d '+(!threeD?'is-2d ':'')+(embedded?'bml-scene-embedded ':'')+(compact?'bml-scene-compact ':'')+(cinema?'bml-museum-cinema ':'')+(fallbackFullscreen?'is-fallback-fullscreen':'')}
   data-testid="museum-visitor" data-museum-mode={cinema?'cinema':'classic'}>
   {!compact&&!cinema?<header className="bml-scene-header">
@@ -220,7 +245,7 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
     <Suspense fallback={<div className="bml-empty"><Box size={32}/>{tr('Đang dựng bảo tàng 3D…','Preparing 3D museum…')}</div>}>
      <GalleryCanvas key={room.id} template={room.template_key} exhibits={exhibits}
       selectedId={selectedId||''} focus={cinema?focus:FOCUS_IDLE}
-      focusBoard={focusBoard} onFocusBack={focusBack}
+      focusBoard={focusBoard} onFocusBack={focusBack} onFocusStep={stepFocus} focusIndex={Math.max(0,focusSelectedIndex)}
       onFocusPhaseChange={action=>dispatchFocus({...action,generation:focus.generation})}
       onSelect={openExhibit} quality="auto" language={language} schoolEdition cinemaEdition={cinema}/>
     </Suspense>
@@ -292,7 +317,7 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
        'The complete original poster is displayed without cropping or distortion.')}</p>
     </section>
    </div>:null}
-  {cinema&&threeD&&isFocus?<div className="bml-v5-focus-status" role="status" aria-live="polite"
+  {cinema&&threeD&&isFocus&&focus.phase!=='focused'?<div className="bml-v5-focus-status" role="status" aria-live="polite"
    data-testid="museum-focus-status">
    {focus.phase==='focused'?focusBoard?.title+' is now displayed in the room.':
     focus.phase==='returning'?'Returning artwork to wall…':'Preparing exhibit in the room…'}
