@@ -429,7 +429,6 @@ export default function PekDiscoveryHallV4({lite=false}){
    <boxGeometry args={[12.35,.09,.18]}/>
    <meshStandardMaterial color="#C6A56A" metalness={.48} roughness={.32}/>
   </mesh>
-  {[-3,0,3].map(x=><BayMoulding key={'bay-'+x} x={x}/>)}
   <Skylight lite={lite}/>
   <WindowBays lite={lite}/>
   {/* Sculpted gallery floor and metallic guide lines. */}

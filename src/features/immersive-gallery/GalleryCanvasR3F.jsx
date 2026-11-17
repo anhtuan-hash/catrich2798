@@ -1,4 +1,4 @@
-import React,{Suspense,useEffect,useMemo,useRef,useState} from 'react';
+import React,{Suspense,useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import * as THREE from 'three';
 import {Canvas,useFrame,useThree} from '@react-three/fiber';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
@@ -31,7 +31,19 @@ function CuratedModel({modelKey='globe',scale=1}) {
   return scene?<primitive object={scene} scale={scale}/>:<mesh scale={0.4}><octahedronGeometry/><meshStandardMaterial color="#a3b6ae"/></mesh>;
 }
 export {CuratedModel};
-function ArtworkImage({assetId,imageUrl,schoolEdition=false,cinemaEdition=false}) {
+function cinemaMount(aspect){
+ const safe=Math.max(.55,Math.min(Number(aspect)||.78,1.9));
+ const maxW=2.42,maxH=3.12;
+ let imageW,imageH;
+ if(safe>=1){imageW=maxW;imageH=imageW/safe;}
+ else{imageH=maxH;imageW=Math.min(maxW,imageH*safe);imageH=imageW/safe;}
+ const mat=[imageW+.14,imageH+.14];
+ const liner=[mat[0]+.1,mat[1]+.1];
+ const gold=[liner[0]+.1,liner[1]+.1];
+ const outer=[gold[0]+.14,gold[1]+.14];
+ return {image:[imageW,imageH],mat,liner,gold,outer};
+}
+function ArtworkImage({assetId,imageUrl,schoolEdition=false,cinemaEdition=false,onAspect,box}) {
  const [texture,setTexture]=useState(null),live=useRef(null);
  useEffect(()=>{
   let active=true;
@@ -53,16 +65,18 @@ function ArtworkImage({assetId,imageUrl,schoolEdition=false,cinemaEdition=false}
      setTexture(t);
      if(old&&old!==t)old.dispose();
      document.dispatchEvent(new Event('bml:museum-texture-ready'));
+    const ratio=(t.image?.width||1)/(t.image?.height||1);
+    if(onAspect)onAspect(ratio);
     },undefined,()=>{/* keep last authorized decoded texture, no false replacement */});
    }).catch(()=>{/* 2D remains available if signed URL cannot be renewed */});
   return()=>{active=false;};
- },[assetId,imageUrl,cinemaEdition]);
+ },[assetId,imageUrl,cinemaEdition,onAspect]);
  useEffect(()=>()=>{live.current?.dispose();live.current=null;},[]);
  if(!texture)return <mesh position={[0,0,.087]}>
-  <planeGeometry args={cinemaEdition?[2.25,3.03]:schoolEdition?[2.1,1.46]:[1.62,1.17]}/>
+  <planeGeometry args={box||(cinemaEdition?[2.25,3.03]:schoolEdition?[2.1,1.46]:[1.62,1.17])}/>
   <meshStandardMaterial color="#E4E9DF" roughness={.95}/></mesh>;
  const width=texture.image?.width||1,height=texture.image?.height||1,aspect=width/height;
- const maxWidth=cinemaEdition?2.26:schoolEdition?2.11:1.65,maxHeight=cinemaEdition?3.03:schoolEdition?1.62:1.36;
+ const maxWidth=box?.[0]??(cinemaEdition?2.26:schoolEdition?2.11:1.65),maxHeight=box?.[1]??(cinemaEdition?3.03:schoolEdition?1.62:1.36);
  const size=aspect>maxWidth/maxHeight?[maxWidth,maxWidth/aspect]:[maxHeight*aspect,maxHeight];
  return <mesh position={[0,0,cinemaEdition?.096:.083]}>
   <planeGeometry args={size}/>
@@ -75,6 +89,11 @@ function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdi
  const position=cinemaEdition?
   [Math.max(-3.2,Math.min(3.2,transform.position[0])),2.45,-7.68]:transform.position;
  const ref=useRef(null),motion=useRef({p:0,presenting:false,arrived:false,returned:false});
+ const [aspect,setAspect]=useState(0);
+ const reportAspect=useCallback(value=>{
+  setAspect(prev=>Math.abs(prev-value)<.02?prev:value);
+ },[]);
+ const fitted=cinemaEdition?cinemaMount(aspect||.78):null;
  const {size,invalidate,camera,gl}=useThree();
  const isTarget=cinemaEdition&&focus.exhibitId===exhibit.id;
  const wall=useMemo(()=>({
@@ -153,23 +172,23 @@ function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdi
   onClick={e=>{e.stopPropagation();if(focus.phase==='idle')onSelect?.(exhibit.id);}}
   onPointerOver={e=>{e.stopPropagation();if(focus.phase==='idle')document.body.style.cursor='pointer';}}
   onPointerOut={()=>{document.body.style.cursor='';}}>
-  <mesh><boxGeometry args={cinemaEdition?[2.78,3.56,.08]:schoolEdition?[2.45,1.95,.11]:[2.04,1.70,.10]}/>
+  <mesh><boxGeometry args={fitted? [...fitted.outer,.08]:cinemaEdition?[2.78,3.56,.08]:schoolEdition?[2.45,1.95,.11]:[2.04,1.70,.10]}/>
    <meshStandardMaterial color={cinemaEdition?'#1A120C':schoolEdition?(isSelected?'#F6D477':'#B69B62'):(isSelected?'#e4aa64':'#ae856e')} roughness={.4} metalness={cinemaEdition?.48:schoolEdition?.19:0}/></mesh>
-  {cinemaEdition?<mesh position={[0,0,.03]}><boxGeometry args={[2.63,3.41,.07]}/>
+  {fitted?<mesh position={[0,0,.03]}><boxGeometry args={[...fitted.gold,.07]}/>
    <meshStandardMaterial color={isSelected?'#FFE7A1':'#F0D27A'} emissive={isSelected?'#E8CE78':'#3A2A10'} emissiveIntensity={isSelected?.8:.12} metalness={.7} roughness={.22}/></mesh>:null}
-  {cinemaEdition?<mesh position={[0,0,.044]}><boxGeometry args={[2.54,3.3,.02]}/>
+  {fitted?<mesh position={[0,0,.044]}><boxGeometry args={[...fitted.liner,.02]}/>
    <meshStandardMaterial color="#2A2118" roughness={.72}/></mesh>:null}
-  <mesh position={[0,0,.058]}><boxGeometry args={cinemaEdition?[2.4,3.14,.02]:schoolEdition?[2.29,1.80,.025]:[1.86,1.52,.025]}/>
+  <mesh position={[0,0,.058]}><boxGeometry args={fitted?[...fitted.mat,.02]:cinemaEdition?[2.4,3.14,.02]:schoolEdition?[2.29,1.80,.025]:[1.86,1.52,.025]}/>
    <meshStandardMaterial color="#fffdf5" roughness={.89}/></mesh>
   {exhibit.kind==='model'
    ?<group position={[0,0,0.45]}><CuratedModel modelKey={exhibit.model_key||'pedestal'} scale={0.63}/></group>
    :exhibit.kind==='image'
-    ?<ArtworkImage assetId={exhibit.asset_id} imageUrl={exhibit.image_url} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition}/>
+    ?<ArtworkImage assetId={exhibit.asset_id} imageUrl={exhibit.image_url} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} onAspect={cinemaEdition?reportAspect:undefined} box={fitted?.image}/>
     :schoolEdition?<TextExhibitPoster title={exhibit.title} index={index}/>:
     <group><mesh position={[0,0.22,0.083]}><boxGeometry args={[1.06,0.12,0.02]}/><meshStandardMaterial color="#93afa7"/></mesh>
       <mesh position={[0,-0.04,0.085]}><boxGeometry args={[0.9,0.05,0.02]}/><meshStandardMaterial color="#d7c3b3"/></mesh>
       <mesh position={[0,-0.20,0.085]}><boxGeometry args={[1.02,0.05,0.02]}/><meshStandardMaterial color="#d7c3b3"/></mesh></group>}
-  {schoolEdition?<group position={[0,cinemaEdition?-.54:0,0]}><ExhibitWallLabel title={exhibit.title} index={index}/></group>:null}
+  {schoolEdition?<group position={[0,fitted?-(fitted.outer[1]/2+0.22)+1.24:(cinemaEdition?-.54:0),0]}><ExhibitWallLabel title={exhibit.title} index={index}/></group>:null}
  </group>;
 }
 function Walls({template,onTeleport,schoolEdition=false,cinemaEdition=false,lite=false}) {
