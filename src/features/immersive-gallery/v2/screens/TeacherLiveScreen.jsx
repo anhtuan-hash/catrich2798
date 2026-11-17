@@ -516,8 +516,8 @@ export {TeacherLiveScreen};
 
 function aseanStageHighlights(stage,state,groups,language,publicReadOnly){
  const found=Array.isArray(state.responses)?state.responses.length:null;
- const item=(vi,en,value,extra)=>Number.isInteger(value)
-  ?{label:t(language,vi,en),count:`${value}/${groups.length}`,extra}:null;
+ const item=(vi,en,value)=>Number.isInteger(value)
+  ?{label:t(language,vi,en),count:`${value}/${groups.length}`}:null;
  let result;
  switch(stage){
   case 0: result=[
@@ -534,14 +534,11 @@ function aseanStageHighlights(stage,state,groups,language,publicReadOnly){
    item('Bản chỉnh sửa sẵn sàng để thử','Revised exhibits ready',state.retestProgress?.filter(row=>row.ready).length),
    item('Nhóm đã nộp phiếu thử lại','Retests submitted',publicReadOnly?found:state.retestProgress?.filter(row=>row.score!=null).length),
   ];break;
-  case 5: {
-   const assisted=state.staffTransferGroupIds?.length;
-   result=[
-    item('Nhóm đã nộp hai câu','Transfer cards submitted',found,assisted?t(language,`${assisted} do giáo viên nộp thay`,`${assisted} submitted by staff`):null),
-    item('Nhóm đã gửi triển lãm 3D','3D exhibits submitted',groups.filter(group=>
-      ['submitted','ttcm_review','changes_requested','approved_locked','published'].includes(group.state)).length),
-   ];break;
-  }
+  case 5: result=[
+   item('Phiếu vận dụng đã ghi nhận','Transfer cards recorded',found),
+   item('Nhóm đã gửi triển lãm 3D','3D exhibits submitted',groups.filter(group=>
+     ['submitted','ttcm_review','changes_requested','approved_locked','published'].includes(group.state)).length),
+  ];break;
   default: return [];
  }
  return result.filter(Boolean);
@@ -565,14 +562,11 @@ function AseanSources(){
  </li>)}</ul></div>;
 }
 function AseanRetestProgress({rows,language}){
- const submitted=rows.filter(row=>row.score!==null).length;
- const staffChecked=rows.filter(row=>row.staffReview).length;
+ const submitted=rows.filter(row=>row.score!=null).length;
  const v1References=rows.filter(row=>row.baselineReconstructed).length;
  const incomplete=rows.filter(row=>!row.baselineReady).length;
  return <section className="bml-surface" aria-labelledby="asean-retest-progress">
   <h3 id="asean-retest-progress">{t(language,'Tiến độ thử lại bản đã chỉnh sửa','Revised exhibit retest progress')} · {submitted}/{rows.length}</h3>
-  {staffChecked>0&&<p role="status"><strong>{t(language,`Phiếu kiểm tra hỗ trợ · ${staffChecked}/${rows.length}`,`Staff-prepared checks · ${staffChecked}/${rows.length}`)}</strong>
-   {' · '}{t(language,`Học sinh tự nộp · ${submitted}/${rows.length}`,`Student submissions · ${submitted}/${rows.length}`)}</p>}
   {v1References>0&&<p>{t(language,`${v1References} phòng có bản trước góp ý được dựng lại từ ảnh đã lưu. Dùng các bản này để đối chiếu nội dung triển lãm.`,
    `${v1References} rooms use reconstructed first exhibits based on saved photos. Use these references to compare the exhibits.`)}</p>}
   {incomplete>0&&<p>{t(language,`${incomplete} phòng có bản trước góp ý chưa hoàn chỉnh. Dùng phiếu hiện tại để ghi lại điều khách tìm thấy trong bản đã chỉnh sửa.`,
@@ -589,8 +583,8 @@ function AseanRetestProgress({rows,language}){
       <td>{frame?.question||'—'}
        {row.reference&&<details><summary>{t(language,'Chú thích để đối chiếu','Caption for reference')}</summary><p lang="en">{row.reference}</p></details>}
       </td>
-      <td>{row.score!==null?`${row.score}/1`:row.ready?t(language,'Chờ học sinh nộp','Awaiting response'):t(language,'Bản đã chỉnh sửa chưa sẵn sàng','Revised exhibit unavailable')}
-       {row.staffReview&&<details><summary>{t(language,'Phiếu kiểm tra hỗ trợ','Staff-prepared check')} · {row.staffReview.score}/1</summary>
+      <td>{row.score!=null?`${row.score}/1`:row.ready?t(language,'Chờ học sinh nộp','Awaiting response'):t(language,'Bản đã chỉnh sửa chưa sẵn sàng','Revised exhibit unavailable')}
+       {row.staffReview&&<details><summary>{t(language,'Tham chiếu kỹ thuật của giáo viên','Teacher’s technical reference')} · {row.staffReview.score}/1</summary>
         <p lang="en">{row.staffReview.answer}</p></details>}
       </td>
      </tr>;

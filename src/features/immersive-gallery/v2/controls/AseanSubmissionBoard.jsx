@@ -17,7 +17,8 @@ export default function AseanSubmissionBoard({
  if(!active)return null;
  const activity=stageIndex===5?tr(language,'Phiếu vận dụng','Transfer card'):
   stageIndex===0?tr(language,'Phiếu viết đầu giờ','Baseline card'):tr(language,stage?.vi,stage?.title);
- const writingStage=stageIndex===0||stageIndex===5;
+ const transferStage=stageIndex===5;
+ const writingStage=stageIndex===0||transferStage;
  const groupLabel=label=>language==='en'?englishSystemGroupLabel(label):label;
  const activityNumber=String(stageIndex+1).padStart(2,'0');
 
@@ -25,11 +26,11 @@ export default function AseanSubmissionBoard({
   <header className="asean-submissions-heading">
    <div>
     <p className="asean-submissions-overline">{tr(language,'Hoạt động','Activity')} {activityNumber} · {activity}</p>
-    <h3 id={titleId}>{tr(language,'Bài đã nộp của từng nhóm','Group submissions for this activity')}</h3>
+    <h3 id={titleId}>{transferStage?tr(language,'Phiếu vận dụng theo nhóm','Group transfer cards'):tr(language,'Bài đã nộp của từng nhóm','Group submissions for this activity')}</h3>
    </div>
    <div className="asean-submissions-tally">
     <strong>{submitted.length}/{ordered.length}</strong>
-    <span>{tr(language,'Nhóm đã nộp','Groups submitted')}</span>
+    <span>{transferStage?tr(language,'Nhóm có phiếu đã ghi nhận','Groups with a recorded card'):tr(language,'Nhóm đã nộp','Groups submitted')}</span>
    </div>
   </header>
 
@@ -52,7 +53,7 @@ export default function AseanSubmissionBoard({
     {ordered.map((group,index)=>{
      const record=responseByGroup.get(group.id);
      const target=aseanPeerGroup(groups,group.id,stageIndex);
-     const staffEntry=stageIndex===5&&staffTransferGroupIds?.includes(group.id);
+     const staffEntry=transferStage&&record&&staffTransferGroupIds?.includes(group.id);
      const marks=writingScores.find(score=>score.group_id===group.id)?.details;
      const hasScore=[0,1].includes(marks?.experience)&&[0,1].includes(marks?.advice);
      const groupTitleId=titleId+'-label-'+index;
@@ -61,7 +62,7 @@ export default function AseanSubmissionBoard({
        <div>
         <h4 id={groupTitleId}>{groupLabel(group.label)}</h4>
         {target&&<p>{groupLabel(target.label)} · {aseanDestination(target.label)?.name}</p>}
-        {staffEntry&&<p>{tr(language,'Giáo viên nộp thay','Submitted by staff')}</p>}
+        {staffEntry&&<p>{tr(language,'Nguồn bản ghi: tài khoản giáo viên','Record source: teacher account')}</p>}
        </div>
        {writingStage&&record&&<div className="asean-submissions-score" data-scored={hasScore}>
         <strong>{hasScore?marks.experience+marks.advice+'/2':'—'}</strong>

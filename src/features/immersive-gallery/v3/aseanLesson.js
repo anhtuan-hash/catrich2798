@@ -6,8 +6,9 @@ export const ASEAN_EXHIBIT_NAMES = Object.freeze({
  vi: {first:'Bản trước góp ý',revised:'Bản đã chỉnh sửa'},
  en: {first:'First exhibit',revised:'Revised exhibit'},
 });
-export const aseanRevisionReason = (reason,language='en') => String(reason??'').replace(/^Teacher-prepared V2:\s*/u,
- language==='vi'?'Giáo viên chuẩn bị bản chỉnh sửa · ':'Teacher-prepared revision · ');
+const REFERENCE_REVISION_PREFIX = /^Teacher-prepared V2:\s*/u;
+export const isAseanReferenceRevision = reason => REFERENCE_REVISION_PREFIX.test(String(reason??''));
+export const aseanRevisionReason = reason => String(reason??'').replace(REFERENCE_REVISION_PREFIX,'');
 export const ASEAN_CHALLENGE = 'How can three images and three English captions help a first-time visitor understand an ASEAN destination?';
 export const ASEAN_BRIEF = 'Work in groups to build a three-frame travel exhibit: Place, Experience and Visitor Advice. Write 20–30 words per caption, cite a fact, and credit each photo. Test your first version, revise one detail and ask a fresh group to test it again.';
 export const ASEAN_FRAMES = Object.freeze([
