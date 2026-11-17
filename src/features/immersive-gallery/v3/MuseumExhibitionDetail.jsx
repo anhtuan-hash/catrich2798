@@ -46,7 +46,7 @@ function OverviewCards({data,onNavigate,language}){
   </section>
  </div>;
 }
-export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onNavigate,data,isDemo=false,onDelete=null,busy=false,startInCinema=false}){
+export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onNavigate,data,isDemo=false,onDelete=null,busy=false,startInCinema=false,initialRoomIndex=0}){
  const [section,setSection]=useState('space'),[moreOpen,setMoreOpen]=useState(false),[notice,setNotice]=useState('');
  const [cinemaOpen,setCinemaOpen]=useState(Boolean(startInCinema));
  const enterCinemaRef=useRef(null);
@@ -103,7 +103,7 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
   <div className="bml bml-paper bml-teacher-cinema-portal" data-testid="museum-teacher-cinema-portal">
    <div className="bml-review-cinema-overlay" role="dialog" aria-modal="true"
     aria-label={t(language,'Tham quan triển lãm toàn màn hình','Full-screen museum exhibition')}>
-    <MuseumScene gallery={gallery} language={language} embedded cinema initial3D
+    <MuseumScene gallery={gallery} language={language} embedded cinema initial3D initialRoomIndex={initialRoomIndex}
      onClose={closeCinema}/>
    </div>
   </div>,document.body):null;

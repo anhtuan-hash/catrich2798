@@ -130,6 +130,41 @@
   padding-block-end: 4px;
 }
 
+.igv2 .swiss-editorial-exhibition-collection {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.igv2 .swiss-editorial-exhibition-collection-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  padding: 12px 0;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #b9b0a3;
+}
+
+.igv2 .bml .swiss-editorial-exhibition-collection-head h3 {
+  margin: 0;
+  font: 850 clamp(1.38rem, 2.6vw, 2.15rem)/1.1 var(--igv2-font-family);
+  letter-spacing: -.035em;
+}
+
+.igv2 .swiss-editorial-exhibition-collection-head p {
+  margin: 5px 0 0;
+  font-weight: 650;
+}
+
+.igv2 .swiss-editorial-exhibition-open-all {
+  padding: 8px 14px;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: var(--exhibitions-red);
+  font-weight: 750;
+}
+
 .igv2 .swiss-editorial-exhibit {
   position: relative;
   display: flex;
@@ -169,7 +204,7 @@
   letter-spacing: .04em;
 }
 
-.igv2 .bml .swiss-editorial-exhibit h3 {
+.igv2 .bml .swiss-editorial-exhibit :is(h3, h4) {
   margin: 3px 0 5px;
   color: inherit;
   font: 850 clamp(1rem, 1.46vw, 1.35rem)/1.08 var(--igv2-font-family);
