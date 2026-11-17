@@ -14,12 +14,27 @@ import {museumPhotoQuiz} from './museumPhotoQuizData.js';
 import {MuseumEditorialRoom,MuseumEditorialExhibit} from './MuseumEditorial2D.jsx';
 import {isAsean} from './aseanLesson.js';
 import {PEK_GALLERY_WALL_INSCRIPTIONS} from '../pekMuseumMotto.js';
+import {buildCollectionHall} from '../swissCollectionLayout.js';
 import './museumEditorial3D.css';
 const GalleryCanvas=lazy(()=>import('../GalleryCanvasR3F.jsx'));
 const Exhibit360Viewer=lazy(()=>import('./Exhibit360Viewer.jsx'));
 const clean=(x,n=180)=>String(x??'').slice(0,n);
 const numberLabel=n=>String(n).padStart(2,'0');
 const museumSchool='PÉTRUS KÝ';
+function CollectionFloorPlan({count,activeIndex,language}){
+ const {walls,bays}=useMemo(()=>buildCollectionHall(count),[count]);
+ const activeWall=bays[activeIndex].wallIndex+1;
+ const position=(language==='en'?'Wall ':'Tường ')+numberLabel(activeWall)+' / '+numberLabel(walls.length);
+ return <figure className="bml-swiss-3d-plan" data-testid="museum-collection-plan" data-wall={activeWall}>
+  <div className="bml-swiss-3d-plan-grid" role="img"
+   aria-label={(language==='en'?'Gallery floor plan. ':'Sơ đồ phòng triển lãm. ')+position}>
+   {walls.map((wall,i)=><div key={i} className="bml-swiss-3d-plan-wall" data-side={i+1} aria-hidden="true">
+    {wall.bays.map(bay=><span key={bay.index} className={bay.index===activeIndex?'is-current':''}/>)}
+   </div>)}
+  </div>
+  <figcaption aria-hidden="true">{position}</figcaption>
+ </figure>;
+}
 function ExhibitVisual({exhibit,index,language}){
  const [failed,setFailed]=useState(false);
  const source=typeof exhibit?.image_url==='string'?exhibit.image_url:'';
@@ -317,8 +332,9 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
      </ul>:null}
      {rooms.length>1?<nav className="bml-swiss-3d-rooms"
       aria-label={tr('Bộ sưu tập','Exhibition collections')}>
+      {fourWall?<CollectionFloorPlan count={rooms.length} activeIndex={roomIndex} language={language}/>:null}
       <p>{tr('BỘ SƯU TẬP','COLLECTIONS')}</p>
-      <div>{rooms.map((item,i)=><button key={item.id||i} type="button" disabled={isFocus} onClick={()=>changeRoom(i)}
+      <div className="bml-swiss-3d-collection-grid">{rooms.map((item,i)=><button key={item.id||i} type="button" disabled={isFocus} onClick={()=>changeRoom(i)}
        className={i===roomIndex?'is-active':''} aria-current={i===roomIndex?'true':undefined}
        aria-label={numberLabel(i+1)+' · '+item.title} title={item.title}>{numberLabel(i+1)}</button>)}</div>
      </nav>:null}

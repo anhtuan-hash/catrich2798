@@ -511,7 +511,7 @@ function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=fa
   <hemisphereLight args={[cinemaEdition?'#FFF8EC':'#FFFFFF',schoolEdition?(cinemaEdition?'#D5E6D4':'#9CAD9D'):'#B7AFA3',cinemaEdition?1.05:1.1]}/>
   <directionalLight position={[1,7,3]} color={schoolEdition?'#FFF7E4':'#FFFFFF'} intensity={cinemaEdition?1.35:1.15}/>
   {cinemaEdition?<directionalLight position={[-5,2.4,1.2]} color="#FFF4D8" intensity={.7}/>:null}
-  {hall?<SwissCollectionHall hall={hall} collections={collections} onTeleport={onTeleport}/>:
+  {hall?<SwissCollectionHall hall={hall} collections={collections} collectionIndex={collectionIndex} onTeleport={onTeleport}/>:
    editorial?<SwissEditorialHall roomNumber={roomNumber} roomTitle={roomTitle} exhibits={exhibits} onTeleport={onTeleport} onRoomGuide={onRoomGuide} roomGuideLabel={roomGuideLabel}/>:
    <Walls template={template} onTeleport={onTeleport} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} lite={lite}/>}
   {hall?hall.bays.map(bay=><group key={collections[bay.index].id??bay.index}
