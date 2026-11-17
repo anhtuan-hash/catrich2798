@@ -1,9 +1,19 @@
+export const ASEAN_DISCUSSION_MODEL = {
+ title: 'Complex of Hué Monuments',
+ vi: 'Quần thể di tích Cố đô Huế',
+ captions: [
+  'The Complex of Hué Monuments is in central Viet Nam. The Imperial City, palaces and other buildings are part of the former royal capital.',
+  'Enjoy the local culture.',
+  'When you stop to photograph a gate, move to one side of the entrance. Leave enough space for other visitors to pass safely.',
+ ],
+};
+
 export const ASEAN_ACTIVITY_DESIGN = [
  {
   id: 'discover',
   title: ['Khách cần biết gì?', 'What does a visitor need to know?'],
   studentTitle: 'Write for a first-time visitor',
-  studentTask: 'Use your writing card to write one thing a visitor can do and one piece of advice. After submitting both sentences, use the Hội An model on this slide to discuss what information a visitor still needs.',
+  studentTask: 'Use your writing card to write one thing a visitor can do and one piece of advice. After submitting both sentences, use the shared model on this slide to discuss what information a visitor still needs.',
   steps: [
    [2, 'Viết hai câu theo thẻ', 'Write two sentences from the card'],
    [2, 'Xem mẫu giới thiệu', 'Examine a model introduction'],

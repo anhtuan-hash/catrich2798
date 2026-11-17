@@ -1782,8 +1782,9 @@ test('ASEAN student workshop uses the Climate layout for all six ASEAN activitie
   if(index!==0)await expect(slide.locator('.asean-activity-art')).toBeVisible();
   if(index===0){
    const example=root.getByRole('region',{name:'2. Discuss the class example',exact:true});
-   await expect(example.getByRole('heading',{name:'Hội An Ancient Town',exact:true})).toBeVisible();
+   await expect(example.getByRole('heading',{name:'Complex of Hué Monuments',exact:true})).toBeVisible();
    await expect(example.getByText('Your 3D project topic',{exact:true})).toBeVisible();
+   await expect(example.getByText('Hội An Ancient Town',{exact:true})).toBeVisible();
    await expect(example.locator('.asean-activity-art')).toBeVisible();
    await expect(example.getByRole('textbox')).toHaveCount(0);
   }
