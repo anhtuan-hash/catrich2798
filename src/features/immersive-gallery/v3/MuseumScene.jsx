@@ -1,4 +1,4 @@
-import React,{Suspense,lazy,useEffect,useMemo,useReducer,useRef,useState} from 'react';
+import React,{Suspense,lazy,useCallback,useEffect,useMemo,useReducer,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,Box,ChevronLeft,ChevronRight,Eye,FileText,Info,LayoutGrid,MapPin,Maximize2,Minimize2,X,Image as ImageIcon,Leaf,Globe2} from 'lucide-react';
 import '../gallery.css';
 import {exhibitInsights,exhibitField} from './museumExhibitInsights.js';
@@ -13,6 +13,7 @@ import MuseumPhotoQuiz from './MuseumPhotoQuiz.jsx';
 import {museumPhotoQuiz} from './museumPhotoQuizData.js';
 import {MuseumEditorialRoom,MuseumEditorialExhibit} from './MuseumEditorial2D.jsx';
 import {isAsean} from './aseanLesson.js';
+import {PEK_MUSEUM_MOTTO} from '../pekMuseumMotto.js';
 import './museumEditorial3D.css';
 const GalleryCanvas=lazy(()=>import('../GalleryCanvasR3F.jsx'));
 const Exhibit360Viewer=lazy(()=>import('./Exhibit360Viewer.jsx'));
@@ -81,6 +82,15 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
  const changeTo3D=()=>{setInfoOpen(false);setSelectedId(null);setFullPosterId(null);setThreeD(true);};
  const lastFocusPhase=useRef('idle');
  const cinemaRef=useRef(null),cinemaOpenerRef=useRef(null),[infoOpen,setInfoOpen]=useState(false);
+ const infoTriggerRef=useRef(null),infoCloseRef=useRef(null);
+ const openInfo=useCallback(()=>setInfoOpen(true),[]);
+ const closeInfo=useCallback(()=>{
+  setInfoOpen(false);
+  infoTriggerRef.current?.focus({preventScroll:true});
+ },[]);
+ useEffect(()=>{
+  if(swiss3D&&infoOpen)infoCloseRef.current?.focus({preventScroll:true});
+ },[infoOpen,swiss3D]);
  useEffect(()=>{
   if(!cinema)return;
   if(focus.phase==='idle'&&lastFocusPhase.current!=='idle'){
@@ -121,7 +131,7 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
     return;
    }
    if(event.key!=='Escape')return;
-   if(infoOpen){setInfoOpen(false);return;}
+   if(infoOpen){event.preventDefault();closeInfo();return;}
    if(cinema&&threeD&&focusActive(focus)){
     event.preventDefault();event.stopPropagation();focusBack();return;
    }
@@ -132,7 +142,7 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
   document.addEventListener('fullscreenchange',onFullscreen);
   document.addEventListener('keydown',onEscape);
   return()=>{document.removeEventListener('fullscreenchange',onFullscreen);document.removeEventListener('keydown',onEscape);};
- },[cinema,onClose,selectedId,fullPosterId,infoOpen,threeD,focus.phase,editorial]);
+ },[cinema,onClose,selectedId,fullPosterId,infoOpen,threeD,focus.phase,editorial,closeInfo]);
  const posterCloseRef=useRef(null),posterOpenerRef=useRef(null);
  const dialogRef=useRef(null),closeRef=useRef(null),openerRef=useRef(null);
  const editorialScrollRef=useRef(null),roomTabsRef=useRef(null);
@@ -168,7 +178,8 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
   [gallery,focusSelected,focusSelectedIndex]);
  const tr=(vi,en)=>language==='en'?en:vi;
  const openExhibit=(id,recordOpener=true)=>{
-  if(recordOpener)openerRef.current=document.activeElement;
+  if(recordOpener)openerRef.current=swiss3D&&infoOpen?infoTriggerRef.current:document.activeElement;
+  if(swiss3D&&infoOpen)setInfoOpen(false);
   const index=exhibits.findIndex(e=>e.id===id);
   if(index>=0)onExhibitSelect?.({index,key:exhibitField(index,exhibits[index]?.title),title:exhibits[index]?.title});
   if(cinema&&threeD){
@@ -241,8 +252,8 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
     <button type="button" className={threeD?'is-active':''} aria-pressed={threeD}
      onClick={changeTo3D}><Box size={17}/>3D</button>
    </div>
-   <button type="button" aria-label="Museum information" aria-expanded={infoOpen}
-    className="bml-cinema-hud-button" onClick={()=>setInfoOpen(v=>!v)}><Info size={19}/></button>
+   <button type="button" ref={infoTriggerRef} aria-label="Museum information" aria-expanded={infoOpen}
+    className="bml-cinema-hud-button" onClick={infoOpen?closeInfo:openInfo}><Info size={19}/></button>
    <button type="button" aria-label={isFullscreen||fallbackFullscreen?'Exit fullscreen':'Fullscreen'}
     className="bml-cinema-hud-button" onClick={toggleFullscreen}>
     {isFullscreen||fallbackFullscreen?<Minimize2 size={19}/>:<Maximize2 size={19}/>}
@@ -252,9 +263,17 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
     <X size={19}/><span>Close</span></button>
   </div>:null}
   {cinema&&infoOpen?<aside className="bml-cinema-info" data-testid="museum-cinema-info">
-   <header><strong>{clean(gallery?.title,140)}</strong>
-    <button type="button" aria-label="Close information" onClick={()=>setInfoOpen(false)}><X size={16}/></button></header>
+   <header><strong>{clean(swiss3D&&room?.title?room.title:gallery?.title,140)}</strong>
+    <button type="button" ref={infoCloseRef} aria-label="Close information" onClick={closeInfo}><X size={16}/></button></header>
    <p>{clean(gallery?.summary,1000)||'Explore the museum and select artwork to learn more.'}</p>
+   {swiss3D?<><p className="bml-room-guide-motto" lang="vi">{PEK_MUSEUM_MOTTO}</p>
+    {exhibits.length?<ul className="bml-room-guide-exhibits" aria-label={tr('Tác phẩm trong phòng','Room exhibits')}>
+     {exhibits.slice(0,30).map((exhibit,i)=><li key={exhibit.id||i}>
+      <button type="button" disabled={isFocus} onClick={()=>openExhibit(exhibit.id)}>
+       <span>{numberLabel(i+1)}</span> {clean(exhibit.title,120)} <ArrowRight size={15} aria-hidden="true"/>
+      </button>
+     </li>)}
+    </ul>:null}</>:null}
    <p>{editorial?tr('Mở một tác phẩm để xem ảnh gốc và trả lời câu đố.','Open an exhibit to view the original photo and answer its quiz.'):
     'WASD / arrow keys to move, drag to look, tap artwork to inspect.'}</p>
   </aside>:null}
@@ -296,7 +315,9 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
       focusBoard={focusBoard} onFocusBack={focusBack} onFocusStep={stepFocus} focusIndex={Math.max(0,focusSelectedIndex)}
       onFocusPhaseChange={action=>dispatchFocus({...action,generation:focus.generation})}
       onSelect={openExhibit} quality="auto" language={language} schoolEdition cinemaEdition={cinema}
-      editorial={swiss3D} roomNumber={numberLabel(roomIndex+1)} editorialViewpoint={viewpoint}/>
+      editorial={swiss3D} roomNumber={numberLabel(roomIndex+1)} roomTitle={clean(room.title,140)} editorialViewpoint={viewpoint}
+      onRoomGuide={swiss3D&&!isFocus?openInfo:undefined} roomGuideOpen={swiss3D&&infoOpen}
+      roomGuideLabel={tr('Giới thiệu phòng ↗','Room guide ↗')}/>
     </Suspense>
     {!swiss3D?<div className="bml-3d-plate">
      <small>{clean(gallery?.title,90)||'Our Climate Action Museum'}</small>
