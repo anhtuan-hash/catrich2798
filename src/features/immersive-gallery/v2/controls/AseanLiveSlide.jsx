@@ -1,5 +1,6 @@
 import React from 'react';
 import {ArrowRight, QrCode} from 'lucide-react';
+import AseanDiscussionPhoto from '../../v3/AseanDiscussionPhoto.jsx';
 import AseanActivityArt from '../../v3/AseanActivityArt.jsx';
 import {ASEAN_ACTIVITY_DESIGN} from '../../v3/aseanActivityDesign.js';
 import './aseanLiveSlide.css';
@@ -39,7 +40,10 @@ export default function AseanLiveSlide({currentIndex, language, revealed, onJoin
  return <article className={'asean-live-slide asean-live-slide--'+slide.id} data-testid={'asean-slide-'+(currentIndex+1)}>
   <h2 className="asean-slide-heading">{slide.title[lang]}</h2>
   <div className="asean-slide-body">
-   <div className="asean-slide-visual"><AseanActivityArt activity={slide.id} language={lang ? 'en' : 'vi'}/></div>
+   <div className="asean-slide-visual">
+    {currentIndex===0&&<AseanDiscussionPhoto language={language}/>}
+    <AseanActivityArt activity={slide.id} language={lang ? 'en' : 'vi'}/>
+   </div>
    <div className="asean-slide-plan">
     <p className="asean-slide-prompt">{prompts[currentIndex][lang]}</p>
     <ol className="asean-slide-timing" aria-label={lang ? 'Activity timing' : 'Phân bổ thời gian'}>
