@@ -1759,6 +1759,10 @@ test('ASEAN student workshop uses the Climate layout for all six ASEAN activitie
  await expect(lesson.getByTestId('asean-student-slide-3')).toBeVisible();
  await expect(studio.getByRole('textbox',{name:/Place caption/})).toHaveValue('This is the saved ASEAN caption.');
  await expect(studio.getByRole('textbox',{name:/Place caption/})).toBeEditable();
+ await expect(project.getByRole('region',{name:'Exhibit progress'})).toBeVisible();
+ await expect(project.getByText('0 / 3 frames ready',{exact:true})).toBeVisible();
+ await expect(project.locator('footer').getByRole('button',{name:'Save draft',exact:true})).toBeVisible();
+ await expect(project.locator('footer').getByRole('button',{name:'Preview 2D/3D',exact:true})).toBeVisible();
  const before=await lesson.boundingBox();
  await page.screenshot({path:testInfo.outputPath('asean-workshop-expanded.png')});
  await lesson.getByRole('button',{name:'Open the 3D Studio'}).click();
@@ -1807,6 +1811,45 @@ test('ASEAN student workshop uses the Climate layout for all six ASEAN activitie
  await expect(root.getByTestId('asean-student-slide-5')).toBeVisible({timeout:10000});
  await expect(studio.getByRole('textbox',{name:/Place caption/})).toBeDisabled();
  await expect(studio.getByLabel('Upload photo for Place')).toBeDisabled();
+});
+
+test('ASEAN plan submits from the fixed project action bar',async({page})=>{
+ const assignment={id:'qa-asean',title:'ASEAN in Three Frames',class_scope:'11-QA',lesson_template:'asean-in-three-frames'};
+ const live={id:'qa-asean-plan',stageIndex:1,status:'active',stageOpen:true};
+ let saved;
+ await page.route('**/api/gallery-guest?**',route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  return route.fulfill({json:op==='me'?{assignment,groupLabel:'Nhóm 01',groupState:'editing',csrf:'qa-asean'}:
+   {draft:{title:'Hội An Ancient Town'},version:2}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  if(op==='asean-records')return route.fulfill({json:{checkpoints:[],rows:saved?[{stage_index:1,value:saved}]:[]}});
+  if(op==='asean-submit'){
+   const body=route.request().postDataJSON();
+   expect(body.sessionId).toBe(live.id);
+   expect(body.stageIndex).toBe(1);
+   saved=body.value;
+   return route.fulfill({json:{ok:true}});
+  }
+  return route.fulfill({json:{session:live,readOnly:false}});
+ });
+ await page.getByTestId('qa-student-en').click();
+ const project=page.getByRole('region',{name:'Group Project',exact:true});
+ const submit=project.locator('footer').getByRole('button',{name:'Submit exhibit plan',exact:true});
+ await expect(project.getByText('Plan not submitted',{exact:true})).toBeVisible();
+ await expect(submit).toBeVisible();
+ await project.getByRole('textbox',{name:/Place photo code/}).fill('P1');
+ await project.getByRole('textbox',{name:/Experience photo code/}).fill('E1');
+ await project.getByRole('textbox',{name:/Visitor Advice photo code/}).fill('A1');
+ await project.getByLabel('Frame your group compared').selectOption('2');
+ await project.getByRole('textbox',{name:/Code for the alternative photo/}).fill('E2');
+ await project.getByRole('textbox',{name:/We chose this photo because/}).fill('The image shows an activity visitors can do.');
+ await project.getByRole('textbox',{name:'A fact in your own words'}).fill('Hội An is a historic port.');
+ await project.getByRole('textbox',{name:'Source for the fact'}).fill('https://whc.unesco.org/en/list/948/');
+ await submit.click();
+ await expect(project.getByText('Plan submitted',{exact:true})).toBeVisible();
+ expect(saved).toMatchObject({codes:['P1','E1','A1'],comparisonFrame:2,alternative:'E2'});
 });
 
 test('ASEAN groups submit and revisit the Huế discussion quiz separately',async({page})=>{

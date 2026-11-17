@@ -165,3 +165,21 @@
 .asean-hue-quiz p.asean-hue-quiz-feedback { margin: 6px 0 0; font-size: .9rem; }
 .asean-hue-quiz-result { display: flex; flex-wrap: wrap; gap: 6px 12px; color: #1f5741; }
 .asean-hue-quiz-submit { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+
+.asean-build-checklist { margin-block: 10px; padding: 8px 10px; border: 1px solid var(--workshop-rule); }
+.asean-build-checklist > ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.asean-build-checklist > ul > li { display: flex; gap: 4px; flex-wrap: wrap; }
+.asean-build-checklist > ul > li[data-ready=true] span { color: #25534a; }
+.asean-build-checklist > ul > li[data-ready=false] span { color: #78421a; }
+.asean-build-checklist details { margin-block-start: 6px; }
+.asean-build-checklist summary { font-weight: 700; cursor: pointer; }
+.asean-build-missing { padding-inline-start: 1.3em; }
+.asean-build-status { flex: 0 0 100%; margin: 0; }
+.bml-student-bottom .asean-workshop-action { flex: 1 1 10rem; min-inline-size: 0; }
