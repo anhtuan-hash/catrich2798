@@ -110,7 +110,7 @@ export default function MuseumExhibitFocusRig({focus,board,onBack,onStep,index=0
   const duration=isReturn?.75:1.0;
   const reduced=typeof window!=='undefined'&&window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const step=reduced?1:clampDelta(delta)/duration;
-  motion.current=Math.max(0,Math.min(1,motion.current+(desired>motion.current?step:-step)));
+  motion.current=isReturn?Math.max(desired,motion.current-step):Math.min(desired,motion.current+step);
   const p=smoothstep(motion.current);
   stage.current.position.y=0;
   stage.current.scale.setScalar(1);
@@ -121,7 +121,8 @@ export default function MuseumExhibitFocusRig({focus,board,onBack,onStep,index=0
    boardGroup.current.scale.setScalar(Math.max(.001,p*(layout.boardScale||1)));
   }
   if(Math.abs(motion.current-desired)>.0001)invalidate();
- });
+ // Update the physical board before Drei projects its HTML for this frame.
+ },-1);
  useEffect(()=>{if(active)invalidate();else motion.current=0;},[active,focus?.phase,invalidate]);
  if(!active)return null;
  return <group ref={stage} name="MuseumV5FocusStage" userData={{focusStage:true}}>

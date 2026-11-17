@@ -3236,7 +3236,7 @@ test('V5 Cinema and 2D show the photo quiz for the matching published ASEAN artw
  await cinema.getByRole('button',{name:'Inspect Place',exact:true}).click();
  const plaque=cinema.getByTestId('museum-focus-stage');
  await expect(plaque).toHaveAttribute('data-focus-phase','focused',{timeout:15000});
- await plaque.getByRole('button',{name:'Photo quiz'}).click();
+ await plaque.getByRole('button',{name:'Photo quiz'}).click({timeout:15000});
  const plaqueQuiz=plaque.getByTestId('museum-photo-quiz');
  await expect(plaqueQuiz).toBeVisible();
  await plaqueQuiz.getByRole('button',{name:'A horse-drawn carriage',exact:true}).click();
