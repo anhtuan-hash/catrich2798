@@ -13,7 +13,7 @@ import {buildCollectionHall,collectionCameraView,collectionFurnishingAt} from '.
 test('gallery furnishings reserve space at the corners and leave the main aisle open',()=>{
  for(const count of [2,4,10]){
   const hall=buildCollectionHall(count);
-  assert.deepEqual(hall.furnishings.map(({kind})=>kind).sort(),['bamboo','bamboo','bench','bench','ceramic','ceramic']);
+  assert.deepEqual(hall.furnishings.map(({kind})=>kind).sort(),['bamboo','bamboo','ceramic','ceramic']);
   for(const item of hall.furnishings){
    assert(Math.abs(item.x)+item.halfWidth<hall.halfWidth);
    assert(Math.abs(item.z)+item.halfDepth<hall.halfDepth);
@@ -25,9 +25,8 @@ test('gallery furnishings reserve space at the corners and leave the main aisle 
     assert(!collectionFurnishingAt(hall,x,z),'camera presets keep clear of furniture');
    }
   }
-  for(let step=-7;step<=7;step++){
-   assert(!collectionFurnishingAt(hall,0,step));
-   assert(!collectionFurnishingAt(hall,step,0));
+  for(let x=-7;x<=7;x++)for(let z=-7;z<=7;z++){
+   assert(!collectionFurnishingAt(hall,x,z),'the former seating area and the main floor are walkable');
   }
  }
 });

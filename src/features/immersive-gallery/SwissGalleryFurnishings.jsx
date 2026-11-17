@@ -104,6 +104,7 @@ function BambooPlanter(){
 }
 
 function CeramicDisplay({index}){
+ const profileScale=index%2?[.88,1.11,.88]:[1,1,1];
  return <group name="CeramicDisplay">
   <mesh position={[0,.055,0]}>
    <boxGeometry args={[.93,.11,.93]}/><meshStandardMaterial color={green} roughness={.65}/>
@@ -114,44 +115,16 @@ function CeramicDisplay({index}){
   <mesh position={[0,.777,0]}>
    <boxGeometry args={[.83,.028,.83]}/><meshStandardMaterial color={brass} roughness={.48} metalness={.52}/>
   </mesh>
-  <mesh position={[0,.797,0]} scale={index%2?[.88,1.11,.88]:[1,1,1]}>
-   <latheGeometry args={[points(porcelainProfile),26]}/><meshStandardMaterial color={ceramicColors[index%2]} roughness={.40}/>
-  </mesh>
-  <mesh position={[0,1.326,0]} scale={index%2?[.88,1.11,.88]:[1,1,1]}>
-   <cylinderGeometry args={[.080,.075,.015,18]}/><meshStandardMaterial color="#3e493d" roughness={.84}/>
-  </mesh>
- </group>;
-}
-
-function GalleryBench({wood}){
- return <group name="GalleryBench">
-  {[-1.00,1.00].map(x=><group key={x} position={[x,0,0]}>
-   <mesh position={[0,.065,0]}>
-    <boxGeometry args={[.17,.13,.75]}/><meshStandardMaterial color={green} roughness={.74}/>
+  <group position={[0,.797,0]} scale={profileScale}>
+   <mesh>
+    <latheGeometry args={[points(porcelainProfile),26]}/>
+    <meshStandardMaterial color={ceramicColors[index%2]} roughness={.40}/>
    </mesh>
-   {[-.244,.244].map(z=><mesh key={z} position={[0,.26,z]}>
-    <boxGeometry args={[.108,.42,.105]}/><meshStandardMaterial color={green} roughness={.74}/>
-   </mesh>)}
-  </group>)}
-  {[-.222,0,.222].map(z=><mesh key={z} position={[0,.49,z]}>
-   <boxGeometry args={[2.74,.12,.207]}/>
-   <meshStandardMaterial color="#d4a676" map={wood} roughness={.71}/>
-  </mesh>)}
-  <mesh position={[0,.407,0]}>
-   <boxGeometry args={[2.40,.035,.56]}/><meshStandardMaterial color={brass} roughness={.58}/>
-  </mesh>
+  </group>
  </group>;
 }
 
 export default function SwissGalleryFurnishings({furnishings}){
- const wood=useCanvasTexture((ctx,w,h)=>{
-  ctx.fillStyle='#8e6143';ctx.fillRect(0,0,w,h);
-  for(let y=0;y<h;y++){
-   ctx.strokeStyle=y%5===0?'#4e342555':'#d5a47545';
-   ctx.beginPath();ctx.moveTo(0,y);
-   ctx.bezierCurveTo(w*.25,y-1.8,w*.7,y+2.25,w,y-.8);ctx.stroke();
-  }
- },[256,64],[]);
  const shadow=useCanvasTexture((ctx,w,h)=>{
   const gradient=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);
   gradient.addColorStop(0,'#21180f63');gradient.addColorStop(.44,'#21180f44');gradient.addColorStop(1,'#21180f00');
@@ -163,7 +136,7 @@ export default function SwissGalleryFurnishings({furnishings}){
     <planeGeometry args={[halfWidth*2+.42,halfDepth*2+.40]}/>
     <meshBasicMaterial map={shadow} transparent depthWrite={false} toneMapped={false}/>
    </mesh>
-   {kind==='bench'?<GalleryBench wood={wood}/>:kind==='bamboo'?<BambooPlanter/>:<CeramicDisplay index={i}/>}
+   {kind==='bamboo'?<BambooPlanter/>:<CeramicDisplay index={i}/>}
   </group>)}
  </group>;
 }

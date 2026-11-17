@@ -40,15 +40,15 @@ function CollectionWallLabel({title,index,x,current}){
 
 function Divider({x,corner=false}){
  const height=corner?coveHeight:4.43;
- return <group position={[x,height/2-.064,corner?.16:.31]}>
+ return <group position={[x,height/2-.064,corner?.14:.23]}>
   <mesh>
-   <boxGeometry args={[corner?.29:.23,height,corner?.32:.62]}/>
-   <meshStandardMaterial color={pine} roughness={.78}/>
+   <boxGeometry args={[corner?.32:.29,height,corner?.28:.46]}/>
+   <meshStandardMaterial color={pine} roughness={.72}/>
   </mesh>
-  <mesh position={[.065,0,corner?.164:.313]}>
-   <boxGeometry args={[.025,height,.018]}/>
-   <meshStandardMaterial color={brass} roughness={.50}/>
-  </mesh>
+  {[-.088,0,.088].map(offset=><mesh key={offset} position={[offset,0,corner?.146:.236]}>
+   <boxGeometry args={[.041,height-.10,.022]}/>
+   <meshStandardMaterial color={offset===0?brass:'#496456'} metalness={offset===0?.34:0} roughness={.54}/>
+  </mesh>)}
  </group>;
 }
 
@@ -70,7 +70,7 @@ function WallFrieze({length,inscription}){
  return <>
   <mesh position={[0,friezeCenter,.026]}>
    <boxGeometry args={[length,friezeHeight,.074]}/>
-   <meshBasicMaterial color="#eee6d5" toneMapped={false}/>
+   <meshBasicMaterial color="#f0e8d8" toneMapped={false}/>
   </mesh>
   <MetalWallLettering name={name} lines={lines} maxWidth={width} position={[0,friezeCenter,.065]}
    size={lines.length===1?.60:.405} lineStep={.408} depth={.057}/>
@@ -82,47 +82,86 @@ function WallFrieze({length,inscription}){
 }
 
 function GalleryCeiling({width,depth}){
- const panels=3,span=(depth-2.48)/panels;
+ const panels=3,span=(depth-3.10)/panels;
+ const panelWidth=width-3.10;
+ const recess=useCanvasTexture((ctx,w,h)=>{
+  const glow=ctx.createLinearGradient(0,0,0,h);
+  glow.addColorStop(0,'#c7baa5');glow.addColorStop(.045,'#e4dacf');
+  glow.addColorStop(.13,'#f8efe1');glow.addColorStop(.50,'#ede5d9');
+  glow.addColorStop(.87,'#f8efe1');glow.addColorStop(.955,'#e4dacf');
+  glow.addColorStop(1,'#c7baa5');
+  ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);
+ },[64,256],[]);
  return <group name="GalleryCofferedCeiling">
   <mesh position={[0,collectionHallHeight,0]} rotation={[Math.PI/2,0,0]}>
-   <planeGeometry args={[width,depth]}/><meshBasicMaterial color="#c9beaa" toneMapped={false}/>
+   <planeGeometry args={[width,depth]}/><meshBasicMaterial color="#d8cdbb" toneMapped={false}/>
   </mesh>
   {Array.from({length:panels},(_,i)=>{
    const z=(i-(panels-1)/2)*span;
-   return <group key={i} position={[0,collectionHallHeight-.20,z]}>
+   return <group key={i} position={[0,collectionHallHeight-.14,z]}>
     <mesh rotation={[Math.PI/2,0,0]}>
-     <planeGeometry args={[width-2.56,span-.27]}/><meshBasicMaterial color="#e2daca" toneMapped={false}/>
+     <planeGeometry args={[panelWidth,span-.34]}/><meshBasicMaterial map={recess} toneMapped={false}/>
     </mesh>
-    {[-.5,.5].map(sign=><mesh key={sign} position={[0,-.05,sign*(span/2-.18)]}>
-     <boxGeometry args={[width-2.6,.06,.082]}/><meshBasicMaterial color="#ad9d83" toneMapped={false}/>
-    </mesh>)}
+    {[-1,1].map(sign=><React.Fragment key={sign}>
+     <mesh position={[0,-.045,sign*(span/2-.18)]}>
+      <boxGeometry args={[panelWidth+.09,.18,.12]}/><meshBasicMaterial color="#a9997d" toneMapped={false}/>
+     </mesh>
+     <mesh position={[0,-.102,sign*(span/2-.28)]}>
+      <boxGeometry args={[panelWidth-.14,.04,.055]}/><meshBasicMaterial color="#fff2d6" toneMapped={false}/>
+     </mesh>
+     <mesh position={[sign*(panelWidth/2+.025),-.046,0]}>
+      <boxGeometry args={[.10,.17,span-.25]}/><meshBasicMaterial color="#b5a78c" toneMapped={false}/>
+     </mesh>
+    </React.Fragment>)}
    </group>;
   })}
  </group>;
 }
 
 function GalleryStoneFloor({width,depth,onWalk}){
- const cols=Math.max(1,Math.round(width/2.25)),rows=Math.max(1,Math.round(depth/2.25));
  const stone=useCanvasTexture((ctx,w,h)=>{
-  ctx.fillStyle='#afa492';ctx.fillRect(0,0,w,h);
+  ctx.fillStyle='#a89983';ctx.fillRect(0,0,w,h);
   let seed=291;
   const rnd=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
+  const cols=Math.round(width/2.9),rows=Math.round(depth/1.85);
   const tileW=w/cols,tileH=h/rows;
-  for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){
-   const base=178+Math.round(rnd()*13);
-   ctx.fillStyle='rgb('+base+','+(base-7)+','+(base-18)+')';
-   ctx.fillRect(col*tileW+1,row*tileH+1,tileW-1.5,tileH-1.5);
+  for(let row=0;row<rows;row++){
+   const stagger=row%2?.5:0;
+   for(let col=-1;col<cols;col++){
+    const x=(col+stagger)*tileW,y=row*tileH;
+    const base=190+Math.round(rnd()*14);
+    ctx.fillStyle='rgb('+base+','+(base-9)+','+(base-22)+')';
+    ctx.fillRect(x+1,y+1,tileW-1.4,tileH-1.4);
+    ctx.fillStyle='#fff3df38';
+    ctx.fillRect(x+1,y+1,tileW-1.4,1.25);
+   }
   }
-  const chips=['#e8deca99','#71695f55','#ab8d6659','#f4ecdd83','#847b6c47'];
-  for(let i=0;i<16000;i++){
-   const x=rnd()*w,y=rnd()*h,size=.55+rnd()*(i%7===0?3.8:1.8);
-   ctx.fillStyle=chips[i%chips.length];ctx.fillRect(x,y,size,size*.79);
+  for(let i=0;i<1100;i++){
+   const x=rnd()*w,y=rnd()*h,rx=7+rnd()*56,ry=1.7+rnd()*8;
+   const wash=ctx.createRadialGradient(0,0,0,0,0,1);
+   wash.addColorStop(0,i%3===0?'#8f775326':'#fff3d82e');
+   wash.addColorStop(1,'#ffffff00');
+   ctx.save();ctx.translate(x,y);ctx.scale(rx,ry);ctx.fillStyle=wash;
+   ctx.fillRect(-1,-1,2,2);ctx.restore();
   }
-  const light=ctx.createRadialGradient(.50*w,.55*h,0,.50*w,.55*h,.70*w);
-  light.addColorStop(0,'#fff5dc29');light.addColorStop(.72,'#fff5dc00');light.addColorStop(1,'#59452c27');
+  for(let i=0;i<7200;i++){
+   const x=rnd()*w,y=rnd()*h;
+   ctx.fillStyle=i%3===0?'#7d6f5630':'#fff6df57';
+   ctx.fillRect(x,y,.6+rnd()*2.0,.45+rnd());
+  }
+  const light=ctx.createRadialGradient(.50*w,.50*h,.1*w,.50*w,.50*h,.68*w);
+  light.addColorStop(0,'#fff0ca2a');light.addColorStop(1,'#59452c23');
   ctx.fillStyle=light;ctx.fillRect(0,0,w,h);
- },[1536,1536],[cols,rows]);
- return <mesh name="TerrazzoGalleryFloor" position={[0,-.08,0]} rotation={[-Math.PI/2,0,0]} onClick={onWalk}>
+
+  // The inlay follows the walls, with equal physical margins on all four sides.
+  const inlay=(offset,color)=>{
+   const x=w*offset/width,y=h*offset/depth;
+   ctx.strokeStyle=color;ctx.strokeRect(x,y,w-x*2,h-y*2);
+  };
+  ctx.lineWidth=12;inlay(.72,'#4e594a');
+  ctx.lineWidth=2;inlay(.84,'#b9955c');inlay(.60,'#c6a976');
+ },[1536,1536],[width,depth]);
+ return <mesh name="LimestoneGalleryFloor" position={[0,-.08,0]} rotation={[-Math.PI/2,0,0]} onClick={onWalk}>
   <planeGeometry args={[width,depth]}/><meshBasicMaterial map={stone} toneMapped={false}/>
  </mesh>;
 }
@@ -144,10 +183,10 @@ export default function SwissCollectionHall({hall,collections,collectionIndex,on
     <meshBasicMaterial color="#d7cbb9" toneMapped={false}/>
    </mesh>
    <mesh position={[0,coveHeight+.01,.44]}>
-    <boxGeometry args={[wall.length-.12,.17,.88]}/><meshBasicMaterial color="#d7c9b4" toneMapped={false}/>
+    <boxGeometry args={[wall.length-.12,.17,.88]}/><meshBasicMaterial color="#ddd1be" toneMapped={false}/>
    </mesh>
    <mesh position={[0,coveHeight-.095,.74]}>
-    <boxGeometry args={[wall.length-.35,.032,.19]}/><meshBasicMaterial color="#fff0c8" toneMapped={false}/>
+    <boxGeometry args={[wall.length-.35,.030,.13]}/><meshBasicMaterial color="#fff4d8" toneMapped={false}/>
    </mesh>
    <WallFrieze length={wall.length} inscription={PEK_GALLERY_WALL_INSCRIPTIONS[i]}/>
    {wall.bays.map((bay,j)=>{
@@ -166,12 +205,12 @@ export default function SwissCollectionHall({hall,collections,collectionIndex,on
     </React.Fragment>;
    })}
    <mesh position={[0,.035,.034]}>
-    <boxGeometry args={[wall.length,.21,.075]}/><meshBasicMaterial color={pine} toneMapped={false}/>
+    <boxGeometry args={[wall.length,.23,.10]}/><meshBasicMaterial color={pine} toneMapped={false}/>
+   </mesh>
+   <mesh position={[0,.151,.048]}>
+    <boxGeometry args={[wall.length-.18,.029,.115]}/><meshBasicMaterial color="#687062" toneMapped={false}/>
    </mesh>
    <Divider x={wall.length/2-.15} corner/>
-   <mesh position={[0,-.074,1.36]}>
-    <boxGeometry args={[wall.length-2.72,.006,.026]}/><meshBasicMaterial color={brass} toneMapped={false}/>
-   </mesh>
    {i===0?<group position={[-wall.length/2+.80,friezeCenter,.081]} scale={.68}>
     <mesh><boxGeometry args={[.97,1.22,.07]}/><meshStandardMaterial color="#f4ead3" roughness={.66}/></mesh>
     <Suspense fallback={null}><CrestImage/></Suspense>

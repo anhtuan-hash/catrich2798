@@ -26,8 +26,6 @@ export function buildCollectionHall(total){
   return {...wall,bays};
  });
  const furnishings=[
-  {kind:'bench',x:3,z:-1.8,halfWidth:1.37,halfDepth:.38},
-  {kind:'bench',x:-3,z:1.8,halfWidth:1.37,halfDepth:.38},
   {kind:'bamboo',x:halfWidth-.88,z:-halfDepth+.94,halfWidth:.59,halfDepth:.59},
   {kind:'ceramic',x:halfWidth-.91,z:halfDepth-.99,halfWidth:.465,halfDepth:.465},
   {kind:'ceramic',x:-halfWidth+.91,z:-halfDepth+.99,halfWidth:.465,halfDepth:.465},
