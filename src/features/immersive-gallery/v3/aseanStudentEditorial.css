@@ -36,25 +36,85 @@
   border-top-width: 3px !important;
 }
 .bml.bml-student-dual-workspace[data-workshop-activity] .bml-workshop-ribbon { border-color: var(--workshop-rule); }
-.bml[data-workshop-activity] .bml-student-focus #bml-workshop-heading {
-  padding-inline: 0 10px;
-  font: 800 clamp(16px, 1.45vw, 24px)/1.09 var(--workshop-font);
-  letter-spacing: -.035em;
+.bml.bml-student-canvas16.bml-student-editorial[data-workshop-activity] .bml-student-focus {
+  --asean-stage-red: #d40812;
+  --asean-stage-number: clamp(23px, 3.55vw, 57px);
+  --asean-stage-label: clamp(12px, 1.66vw, 27px);
+
+  & #bml-workshop-heading {
+    padding: 0 0 3px 3px;
+    font: 860 clamp(24px, 2.8vw, 44px)/1.08 var(--workshop-font);
+    letter-spacing: -.045em;
+  }
+  & #bml-workshop-heading span { color: var(--asean-stage-red); }
+
+  & .bml-student-steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.2fr) minmax(0, 1fr);
+    padding-block: 3px;
+  }
+  & .bml-student-steps button {
+    position: relative;
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(5px, 1.2vw, 18px);
+    min-height: clamp(42px, 4.2vw, 66px);
+    padding: 1px clamp(6px, 1.65vw, 26px) 7px;
+    border-block-end: 0;
+    border-radius: 0;
+  }
+  & .bml-student-steps button:not(:last-child) {
+    border-inline-end: 1px solid var(--workshop-ink);
+  }
+  & .bml-student-steps button:not(.is-active):hover { background-color: var(--asean-sheet); }
+  & .bml-student-steps button.is-active::after {
+    content: "";
+    position: absolute;
+    inset: auto 7px 0;
+    height: clamp(3px, .4vw, 6px);
+    background-color: var(--asean-stage-red);
+    pointer-events: none;
+  }
+  & .bml-student-steps button > span {
+    font-size: var(--asean-stage-number);
+    letter-spacing: -.045em;
+    font-variant-numeric: tabular-nums;
+  }
+  & .bml-student-steps button.is-active > span { color: var(--asean-stage-red) !important; }
+  & .bml-student-steps button small {
+    min-width: 0;
+    font: 810 var(--asean-stage-label)/1.1 var(--workshop-font);
+    letter-spacing: -.025em;
+    text-align: start;
+    overflow-wrap: break-word;
+  }
+  & .bml-student-steps .bml-student-activity-range { display: none; }
 }
-.bml.bml-student-canvas16.bml-student-editorial[data-workshop-activity] .bml-student-focus .bml-student-steps button.is-active {
-  background: var(--asean-wash);
-  border-block-end-color: var(--asean-accent);
+@media (min-width: 1180px) {
+  .bml[data-workshop-activity] [data-banner-expanded="false"] .bml-student-focus {
+    --asean-stage-number: clamp(30px, 2.85vw, 46px);
+    --asean-stage-label: clamp(13px, 1.35vw, 22px);
+
+    & #bml-workshop-heading { font-size: clamp(18px, 1.7vw, 26px); }
+  }
 }
-.bml.bml-student-canvas16.bml-student-editorial[data-workshop-activity] .bml-student-focus .bml-student-steps button > span {
-  font-size: clamp(16px, 1.55vw, 24px);
-  letter-spacing: -.04em;
+@media (max-width: 600px) {
+  .bml.bml-student-canvas16.bml-student-editorial[data-workshop-activity] .bml-student-focus {
+    --asean-stage-number: clamp(20px, 5.6vw, 29px);
+    --asean-stage-label: clamp(10px, 2.8vw, 13px);
+
+    & .bml-student-steps button {
+      grid-template-columns: minmax(0, 1fr);
+      align-content: start;
+      gap: 3px;
+      min-height: 56px;
+      padding: 4px 4px 7px;
+    }
+  }
 }
-.bml[data-workshop-activity] .bml-student-focus .bml-student-steps button:not(.is-active):hover { background: #fffdf8; }
-.bml.bml-student-canvas16.bml-student-editorial[data-workshop-activity] .bml-student-focus .bml-student-steps button.is-active > span {
-  color: var(--asean-accent) !important;
-}
-.bml.bml-student-canvas16.bml-student-editorial[data-workshop-activity] .bml-student-focus .bml-student-steps button small:not(.bml-student-activity-range) {
-  font-size: clamp(11px, 1.05vw, 16px);
+.bml.bml-student-dual-workspace[data-workshop-activity] .bml-student-group-activities button {
+  padding: 5px clamp(8px, 1.1vw, 17px);
+  font-size: clamp(12px, 1.42vw, 22px);
 }
 .bml.bml-student-dual-workspace[data-workshop-activity] .bml-student-group-activities button[aria-current] {
   border-color: color-mix(in srgb, var(--asean-accent) 25%, var(--asean-wash));
