@@ -4,7 +4,7 @@ import AseanHueQuiz from './AseanHueQuiz.jsx';
 import AseanDiscussionPhoto from './AseanDiscussionPhoto.jsx';
 import AseanActivityArt,{AseanFrameIcon} from './AseanActivityArt.jsx';
 import {ASEAN_ACTIVITY_DESIGN,ASEAN_DISCUSSION_MODEL} from './aseanActivityDesign.js';
-import {ASEAN_EXHIBIT_NAMES,ASEAN_FRAMES,ASEAN_STAGES,ASEAN_TITLE,aseanBaselineDraft,aseanDestination,aseanExhibitMissing,aseanRevisionReason,aseanWritingCard,aseanWordCount,validAseanResponse} from './aseanLesson.js';
+import {ASEAN_EXHIBIT_NAMES,ASEAN_FRAMES,ASEAN_STAGES,ASEAN_TITLE,aseanBaselineDraft,aseanDestination,aseanExhibitMissing,aseanRevisionReason,aseanTransferDraft,aseanWritingCard,aseanWordCount,validAseanResponse} from './aseanLesson.js';
 import {guestRequest,englishSystemGroupLabel} from './museumApi.js';
 import {liveGuest,localMuseumFromDraft,artGuest} from './museumLiveApi.js';
 import {emptyStudio,normalizeStudio,documentFromStudio} from './museumData.js';
@@ -120,7 +120,10 @@ function ResponseFields({stage,fields,update,groupLabel,question,recorded,langua
 
 function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLive,onVisit,retestTask,transferNeedsResubmission,formId,onSubmittingChange,language='en'}){
  const baselineDraft=stage===0&&session.assignment?.class_scope==='11.3'?aseanBaselineDraft(session.groupLabel):null;
- const [fields,setFields]=useState(()=>record||baselineDraft||initialFields(stage));
+ const transferDraft=stage===5&&session.assignment?.class_scope==='11.3'&&!session.readOnly
+  ?aseanTransferDraft(session.groupLabel):null;
+ const [fields,setFields]=useState(()=>record||baselineDraft||(stage===5?null:initialFields(stage)));
+ const responseFields=fields||transferDraft||initialFields(stage);
  const [visit,setVisit]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [prefilledFeedback,setPrefilledFeedback]=useState(false);
  const submitted=Boolean(record);
@@ -163,7 +166,7 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
   event.preventDefault();
   if(!open||submitted||busy)return;
   setError('');
-  const value=stage===4?{...fields,question:visit?.question}:fields;
+  const value=stage===4?{...fields,question:visit?.question}:responseFields;
   if(visitStage&&!visit?.gallery)return;
   if(!validAseanResponse(stage,value)){
    if(stage===1){
@@ -196,8 +199,13 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
      :T(language,'Chờ giáo viên mở phần nộp Hoạt động 6. Em có thể đọc thẻ trước.','Wait for your teacher to open Activity 6 for submissions. You can read the card now.')}
    </p>}
    {transferNeedsResubmission&&!submitted&&<p role="status">
-    {T(language,'Câu trả lời trước trùng với bài ở Hoạt động 1. Hãy dùng gợi ý trong thẻ này để viết hai câu mới.',
-     'Your previous response repeated your Activity 1 writing. Use the clues on this card to write two new sentences.')}
+    {transferDraft?T(language,'Câu trả lời trước trùng với bài ở Hoạt động 1.','Your previous response repeated your Activity 1 writing.')
+     :T(language,'Câu trả lời trước trùng với bài ở Hoạt động 1. Hãy dùng gợi ý trên thẻ để viết hai câu mới.',
+      'Your previous response repeated your Activity 1 writing. Use the clues on this card to write two new sentences.')}
+   </p>}
+   {transferDraft&&!submitted&&<p className="bml-banner bml-info-banner">
+    {T(language,'Hai câu mẫu đã được điền sẵn. Nhóm em hãy chỉnh lại bằng lời của mình trước khi nộp.',
+     'Two example sentences are filled in. Revise them in your own words before submitting.')}
    </p>}
   </div>}
   {v1Visit&&!submitted&&<div className="asean-visit-intro" lang={language}>
@@ -249,7 +257,7 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
    {baselineDraft&&!submitted&&<p role="status">{open
     ?'Teacher-provided draft. Review the two sentences and edit them before submitting.'
     :session.readOnly?'Teacher-provided example shown for review.':'Teacher-provided draft. Your teacher needs to open Activity 1 for editing and submission.'}</p>}
-   <ResponseFields stage={stage} fields={record||fields} update={(key,value)=>setFields(previous=>({...previous,[key]:value}))}
+   <ResponseFields stage={stage} fields={record||(transfer&&session.readOnly?initialFields(stage):responseFields)} update={(key,value)=>setFields(previous=>({...(previous||responseFields),[key]:value}))}
     groupLabel={session.groupLabel} question={visit?.question} recorded={submitted||!open} language={language}/>
    {!submitted&&scoreMismatch&&<p role="status">For a score of 1, choose {ASEAN_FRAMES[visit.question-1]?.label} as the evidence frame. Choose 0 if the answer is missing or unclear.</p>}
    {submitted?!visitStage&&<p role="status" lang={transfer?language:undefined}>{transfer
