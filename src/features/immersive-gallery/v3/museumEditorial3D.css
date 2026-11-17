@@ -1,0 +1,268 @@
+/* ASEAN's full-room viewer uses page-level controls around the live canvas. */
+.bml .bml-museum-cinema.bml-swiss-3d {
+ --museum-paper: #f3f0e8;
+ --museum-ink: #171714;
+ --museum-red: #cf2d20;
+ --museum-line: 1px solid var(--museum-ink);
+ --museum-type: Inter, Arial, sans-serif;
+ background: var(--museum-paper);
+ color: var(--museum-ink);
+ font-family: var(--museum-type);
+ container-type: inline-size;
+}
+.bml .bml-swiss-3d > .bml-cinema-hud,
+.bml .bml-swiss-3d > .bml-cinema-bottom-hud {
+ position: relative;
+ inset: auto;
+ width: 100%;
+ max-width: none;
+ flex: none;
+ box-sizing: border-box;
+ backdrop-filter: none;
+ box-shadow: none;
+ border: 0;
+ border-radius: 0;
+ animation: none;
+ background: var(--museum-paper);
+ color: var(--museum-ink);
+ padding: 12px clamp(12px, 1.5cqw, 26px);
+}
+.bml .bml-swiss-3d > .bml-cinema-hud {
+ display: flex;
+ align-items: center;
+ gap: clamp(6px, 1.05cqw, 18px);
+ border-bottom: 2px solid var(--museum-ink);
+}
+.bml .bml-swiss-3d .bml-swiss-3d-masthead {
+ display: flex;
+ align-items: baseline;
+ flex-wrap: wrap;
+ min-width: 0;
+ column-gap: 14px;
+ margin-right: auto;
+}
+.bml .bml-swiss-3d-masthead strong {
+ font: 900 clamp(24px, 3.4cqw, 58px)/.98 var(--museum-type);
+ letter-spacing: -.067em;
+ white-space: nowrap;
+}
+.bml .bml-swiss-3d-masthead span {
+ font: 800 clamp(10px, 1.28cqw, 21px)/1.2 var(--museum-type);
+ white-space: nowrap;
+}
+.bml .bml-swiss-3d .bml-cinema-mode-group,
+.bml .bml-swiss-3d .bml-cinema-room-controls {
+ display: flex;
+ gap: 0;
+ padding: 0;
+ border: var(--museum-line);
+ border-radius: 0;
+ background: transparent;
+ backdrop-filter: none;
+ box-shadow: none;
+}
+.bml .bml-swiss-3d .bml-cinema-mode-group button,
+.bml .bml-swiss-3d .bml-cinema-hud-button,
+.bml .bml-swiss-3d .bml-cinema-close,
+.bml .bml-swiss-3d .bml-cinema-room-controls button,
+.bml .bml-swiss-3d-viewpoints button,
+.bml .bml-swiss-3d-rooms button,
+.bml .bml-swiss-3d-exhibits button {
+ border-radius: 0;
+ border: 0;
+ padding: 0;
+ min-width: 42px;
+ min-height: 42px;
+ background: transparent;
+ color: var(--museum-ink);
+ box-shadow: none;
+ backdrop-filter: none;
+ animation: none;
+ font: 800 clamp(13px, 1.2cqw, 20px)/1.15 var(--museum-type);
+ cursor: pointer;
+}
+.bml .bml-swiss-3d .bml-cinema-mode-group button svg { display: none }
+.bml .bml-swiss-3d .bml-cinema-mode-group button + button,
+.bml .bml-swiss-3d .bml-cinema-room-controls button + button { border-left: var(--museum-line) }
+.bml .bml-swiss-3d .bml-cinema-close { border-left: var(--museum-line); padding-inline: 12px 0 }
+.bml .bml-swiss-3d button:disabled { cursor: default; opacity: .46 }
+.bml .bml-swiss-3d > .bml-cinema-hud button:hover:not(.is-active),
+.bml .bml-swiss-3d button:hover:not(:disabled):not(.is-active) { background: #1717140d; color: var(--museum-ink) }
+.bml .bml-swiss-3d .bml-cinema-mode-group button.is-active,
+.bml .bml-swiss-3d .bml-swiss-3d-rooms button.is-active,
+.bml .bml-swiss-3d .bml-swiss-3d-viewpoints button:first-child {
+ background: var(--museum-red);
+ color: white;
+}
+.bml .bml-swiss-3d button:focus-visible { outline: 2px solid var(--museum-red); outline-offset: -3px }
+.bml .bml-swiss-3d .is-active:focus-visible,
+.bml .bml-swiss-3d .bml-swiss-3d-viewpoints button:first-child:focus-visible { outline-color: white }
+
+.bml .bml-museum-cinema.bml-swiss-3d > .bml-3d-stage.bml-cinema-stage {
+ display: grid !important;
+ grid-template-columns: minmax(205px, 21.5%) minmax(0, 1fr);
+ grid-template-rows: minmax(0, 1fr);
+ height: auto !important;
+ border-radius: 0 !important;
+ background: #ada497;
+ animation: none;
+}
+.bml .bml-swiss-3d-index {
+ display: flex;
+ flex-direction: column;
+ gap: clamp(18px, 4cqh, 62px);
+ min-width: 0;
+ padding: clamp(22px, 5cqh, 56px) clamp(12px, 1.5cqw, 26px) clamp(14px, 3cqh, 32px);
+ background: var(--museum-paper);
+ border-right: var(--museum-line);
+ overflow: auto;
+}
+.bml .bml-swiss-3d-room-title p,
+.bml .bml-swiss-3d-rooms p {
+ margin: 0 0 12px;
+ font: 850 clamp(11px, 1.25cqw, 20px)/1.15 var(--museum-type);
+ text-transform: uppercase;
+}
+.bml .bml-swiss-3d-room-title h2 {
+ margin: 0;
+ color: var(--museum-ink);
+ font: 900 clamp(34px, 4cqw, 70px)/.95 var(--museum-type);
+ letter-spacing: -.062em;
+ overflow-wrap: anywhere;
+}
+.bml .bml-swiss-3d-room-title h2 span { display: block; font-size: .75em; margin-top: .10em }
+.bml .bml-swiss-3d-exhibits {
+ padding: 0;
+ margin: 0;
+ list-style: none;
+ border-top: var(--museum-line);
+}
+.bml .bml-swiss-3d-exhibits li { border-bottom: var(--museum-line) }
+.bml .bml-swiss-3d-exhibits button {
+ display: grid;
+ width: 100%;
+ grid-template-columns: minmax(26px, 2.5em) minmax(0, 1fr);
+ gap: 4px;
+ align-items: baseline;
+ text-align: left;
+ padding: .62em 4px;
+ font-size: clamp(14px, 1.65cqw, 27px);
+ overflow-wrap: anywhere;
+}
+.bml .bml-swiss-3d-rooms { margin-top: auto }
+.bml .bml-swiss-3d-rooms div {
+ display: grid;
+ grid-template-columns: repeat(5, minmax(0, 1fr));
+ border-block-start: var(--museum-line);
+ border-inline-start: var(--museum-line);
+}
+.bml .bml-swiss-3d-rooms button {
+ min-width: 0;
+ min-height: clamp(38px, 3.7cqw, 57px);
+ border-inline-end: var(--museum-line);
+ border-block-end: var(--museum-line);
+}
+
+.bml .bml-swiss-3d > .bml-cinema-bottom-hud {
+ gap: 0;
+ border-top: 2px solid var(--museum-ink);
+}
+.bml .bml-swiss-3d-viewpoints { display: flex; gap: 8px; margin-right: auto }
+.bml .bml-swiss-3d .bml-swiss-3d-viewpoints button {
+ border: var(--museum-line);
+ padding: 4px clamp(8px, 1.5cqw, 24px);
+}
+.bml .bml-swiss-3d .bml-swiss-3d-viewpoints button:first-child { border-color: var(--museum-red) }
+.bml .bml-swiss-3d .bml-swiss-3d-viewpoints button:first-child:hover:not(:disabled) { background: #a82118 }
+.bml .bml-swiss-3d .bml-cinema-room-counter {
+ margin: 0 12px;
+ font: 800 clamp(12px, 1.3cqw, 21px)/1.15 var(--museum-type);
+ white-space: nowrap;
+}
+.bml .bml-swiss-3d .bml-cinema-info {
+ top: 72px;
+ border: var(--museum-line);
+ border-radius: 0;
+ background: var(--museum-paper);
+ color: var(--museum-ink);
+}
+.bml .bml-swiss-3d .bml-cinema-info :is(header strong,p,button) {
+ color: var(--museum-ink);
+ font-family: var(--museum-type);
+}
+.bml .bml-swiss-3d .bml-cinema-info button { border: var(--museum-line); border-radius: 0; background: transparent }
+.bml .bml-swiss-3d .big-pek-v4 .big-touch-pad { bottom: 8px; left: 8px }
+.bml .bml-swiss-3d .big-touch-pad button {
+ background: var(--museum-paper);
+ color: var(--museum-ink);
+ border: var(--museum-line);
+ border-radius: 0;
+ box-shadow: none;
+}
+.bml .bml-swiss-3d :is(.bml-v5-focus-status,.bml-v5-focus-back) {
+ border: var(--museum-line);
+ border-radius: 0;
+ background: var(--museum-paper);
+ color: var(--museum-ink);
+ box-shadow: none;
+}
+.bml .bml-swiss-3d .bml-v5-focus-status { top: 12px; left: auto; right: 12px }
+
+@container (max-width: 700px) {
+ .bml .bml-swiss-3d > .bml-cinema-hud,
+ .bml .bml-swiss-3d > .bml-cinema-bottom-hud { padding: 6px 8px }
+ .bml .bml-swiss-3d-masthead span { flex-basis: 100%; margin-top: 3px }
+ .bml .bml-swiss-3d .bml-cinema-close { padding-inline: 5px 0 }
+ .bml .bml-swiss-3d .bml-cinema-close span { display: none }
+ .bml .bml-museum-cinema.bml-swiss-3d > .bml-3d-stage.bml-cinema-stage {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+ }
+ .bml .bml-swiss-3d-index { gap: 8px; padding: 10px 10px 8px; border: 0; border-bottom: var(--museum-line); max-height: 30dvh }
+ .bml .bml-swiss-3d-room-title p { margin-bottom: 4px }
+ .bml .bml-swiss-3d-room-title h2 { font-size: clamp(24px, 7.4cqw, 38px); line-height: 1 }
+ .bml .bml-swiss-3d-room-title h2 span { display: inline; margin-left: .25em }
+ .bml .bml-swiss-3d-exhibits { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) }
+ .bml .bml-swiss-3d-exhibits li + li { border-left: var(--museum-line) }
+ .bml .bml-swiss-3d-exhibits button { font-size: 12px; grid-template-columns: 2ch minmax(0, 1fr); gap: 5px }
+ .bml .bml-swiss-3d-rooms { display: flex; align-items: center; gap: 6px }
+ .bml .bml-swiss-3d-rooms p { margin: 0 }
+ .bml .bml-swiss-3d-rooms div { flex: 1; grid-template-columns: repeat(10, minmax(0, 1fr)) }
+ .bml .bml-swiss-3d-rooms button { min-height: 33px; font-size: 12px }
+ .bml .bml-swiss-3d .bml-cinema-room-counter { display: none }
+ .bml .bml-swiss-3d-viewpoints { gap: 4px; margin-inline-end: auto }
+ .bml .bml-swiss-3d .bml-swiss-3d-viewpoints button { font-size: 11px; padding-inline: 6px }
+ .bml .bml-swiss-3d .bml-cinema-info { top: 56px }
+}
+
+.bml .bml-swiss-3d .bml-v5-plaque-copy {
+ background: var(--museum-paper);
+ color: var(--museum-ink);
+ border: var(--museum-line);
+ border-radius: 0;
+ font-family: var(--museum-type);
+}
+.bml .bml-swiss-3d .bml-v5-plaque-copy :is(h2,.bml-v5-plaque-eyebrow,.bml-v5-step span,.bml-v5-plaque-source strong,.bml-v5-attribution) {
+ color: var(--museum-ink);
+ font-family: var(--museum-type);
+}
+.bml .bml-swiss-3d .bml-v5-plaque-rule { background: var(--museum-red); border-radius: 0 }
+.bml .bml-swiss-3d .bml-v5-plaque-copy button { border-radius: 0; box-shadow: none }
+.bml .bml-swiss-3d .bml-v5-plaque-copy :is(.bml-v5-back,.bml-v5-step button,.bml-v5-details) {
+ border: var(--museum-line);
+ background: var(--museum-paper);
+ color: var(--museum-ink);
+}
+.bml .bml-swiss-3d .bml-v5-plaque-copy .bml-v5-quiz-toggle {
+ border-color: var(--museum-red);
+ background: var(--museum-red);
+ color: white;
+}
+.bml .bml-swiss-3d .bml-v5-plaque-copy .bml-v5-quiz-toggle:hover:not(:disabled) { background: #a82118; color: white }
+
+@container (max-width: 370px) {
+ .bml .bml-swiss-3d-masthead strong { font-size: 20px }
+ .bml .bml-swiss-3d .bml-cinema-hud :is(.bml-cinema-mode-group button,.bml-cinema-hud-button,.bml-cinema-close) {
+  min-width: 33px;
+ }
+}

@@ -6,6 +6,7 @@ import {ROOM_TEMPLATES,normalizeTransform,useLiteQuality} from './sceneTemplates
 import {createCuratedGlb,CURATED_GLB_KEYS} from './curatedGlb.js';
 import {ExhibitWallLabel,TextExhibitPoster} from './PekMuseumArchitecture.jsx';
 import PekDiscoveryHallV4 from './PekDiscoveryHallV4.jsx';
+import SwissEditorialHall,{SwissArtworkLabel} from './SwissEditorialHall.jsx';
 import MuseumExhibitFocusRig from './v3/MuseumExhibitFocusRig.jsx';
 import {FOCUS_IDLE,focusLayout,clampDelta,smoothstep} from './v3/museumExhibitFocusMotion.js';
 import './pekMuseum.css';
@@ -34,12 +35,18 @@ export {CuratedModel};
 function cinemaPitch(count){
  return Math.min(2.95,8.4/Math.max(count||1,1));
 }
-function cinemaMount(aspect,count=3){
+function cinemaMount(aspect,count=3,editorial=false){
  const safe=Math.max(.55,Math.min(Number(aspect)||.78,1.85));
- const maxW=Math.min(2.2,Math.max(1.2,cinemaPitch(count)-.5)),maxH=2.42;
+ const pitch=cinemaPitch(count);
+ const maxW=editorial?Math.min(2.37,Math.max(.3,pitch-.46)):Math.min(2.2,Math.max(1.2,pitch-.5));
+ const maxH=editorial?2.29:2.42;
  let imageW,imageH;
  if(safe>=1){imageW=maxW;imageH=imageW/safe;}
  else{imageH=maxH;imageW=Math.min(maxW,imageH*safe);imageH=imageW/safe;}
+ if(editorial){
+  const mat=[imageW+.26,imageH+.26];
+  return {image:[imageW,imageH],mat,outer:[mat[0]+.12,mat[1]+.12]};
+ }
  const mat=[imageW+.14,imageH+.14];
  const liner=[mat[0]+.1,mat[1]+.1];
  const gold=[liner[0]+.1,liner[1]+.1];
@@ -87,16 +94,16 @@ function ArtworkImage({assetId,imageUrl,schoolEdition=false,cinemaEdition=false,
  </mesh>;
 }
 function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdition=false,index=0,count=1,
- focus=FOCUS_IDLE,onFocusPhaseChange}) {
+ focus=FOCUS_IDLE,onFocusPhaseChange,editorial=false}) {
  const transform=useMemo(()=>normalizeTransform(exhibit.transform||{}),[exhibit.transform]);
  const [aspect,setAspect]=useState(0);
  const reportAspect=useCallback(value=>{
   setAspect(prev=>Math.abs(prev-value)<.02?prev:value);
  },[]);
- const fitted=cinemaEdition?cinemaMount(aspect||.78,count):null;
+ const fitted=cinemaEdition?cinemaMount(aspect||.78,count,editorial):null;
  const frameHalf=fitted?fitted.outer[1]/2:1.6;
  const position=cinemaEdition?
-  [(index-(count-1)/2)*cinemaPitch(count),1.18+frameHalf,-7.68]:transform.position;
+  [(index-(count-1)/2)*cinemaPitch(count)+(editorial ? .34 : 0),1.18+frameHalf,editorial?-7.82:-7.68]:transform.position;
  const ref=useRef(null),motion=useRef({p:0,presenting:false,arrived:false,returned:false});
  const {size,invalidate,camera,gl}=useThree();
  const isTarget=cinemaEdition&&focus.exhibitId===exhibit.id;
@@ -177,13 +184,13 @@ function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdi
   onPointerOver={e=>{e.stopPropagation();if(focus.phase==='idle')document.body.style.cursor='pointer';}}
   onPointerOut={()=>{document.body.style.cursor='';}}>
   <mesh><boxGeometry args={fitted? [...fitted.outer,.08]:cinemaEdition?[2.78,3.56,.08]:schoolEdition?[2.45,1.95,.11]:[2.04,1.70,.10]}/>
-   <meshStandardMaterial color={cinemaEdition?'#1A120C':schoolEdition?(isSelected?'#F6D477':'#B69B62'):(isSelected?'#e4aa64':'#ae856e')} roughness={.4} metalness={cinemaEdition?.48:schoolEdition?.19:0}/></mesh>
-  {fitted?<mesh position={[0,0,.03]}><boxGeometry args={[...fitted.gold,.07]}/>
+   <meshStandardMaterial color={editorial?'#201e1a':cinemaEdition?'#1A120C':schoolEdition?(isSelected?'#F6D477':'#B69B62'):(isSelected?'#e4aa64':'#ae856e')} roughness={.4} metalness={editorial ? .05 : cinemaEdition ? .48 : schoolEdition ? .19 : 0}/></mesh>
+  {fitted&&!editorial?<mesh position={[0,0,.03]}><boxGeometry args={[...fitted.gold,.07]}/>
    <meshStandardMaterial color={isSelected?'#FFE7A1':'#F0D27A'} emissive={isSelected?'#E8CE78':'#3A2A10'} emissiveIntensity={isSelected?.8:.12} metalness={.7} roughness={.22}/></mesh>:null}
-  {fitted?<mesh position={[0,0,.044]}><boxGeometry args={[...fitted.liner,.02]}/>
+  {fitted&&!editorial?<mesh position={[0,0,.044]}><boxGeometry args={[...fitted.liner,.02]}/>
    <meshStandardMaterial color="#2A2118" roughness={.72}/></mesh>:null}
   <mesh position={[0,0,.058]}><boxGeometry args={fitted?[...fitted.mat,.02]:cinemaEdition?[2.4,3.14,.02]:schoolEdition?[2.29,1.80,.025]:[1.86,1.52,.025]}/>
-   <meshStandardMaterial color="#fffdf5" roughness={.89}/></mesh>
+   <meshStandardMaterial color={editorial?"#e9dfce":"#fffdf5"} roughness={.89}/></mesh>
   {exhibit.kind==='model'
    ?<group position={[0,0,0.45]}><CuratedModel modelKey={exhibit.model_key||'pedestal'} scale={0.63}/></group>
    :exhibit.kind==='image'
@@ -192,7 +199,9 @@ function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdi
     <group><mesh position={[0,0.22,0.083]}><boxGeometry args={[1.06,0.12,0.02]}/><meshStandardMaterial color="#93afa7"/></mesh>
       <mesh position={[0,-0.04,0.085]}><boxGeometry args={[0.9,0.05,0.02]}/><meshStandardMaterial color="#d7c3b3"/></mesh>
       <mesh position={[0,-0.20,0.085]}><boxGeometry args={[1.02,0.05,0.02]}/><meshStandardMaterial color="#d7c3b3"/></mesh></group>}
-  {schoolEdition&&!(isTarget&&focus.phase!=='idle')?<group position={[0,fitted?-(fitted.outer[1]/2+0.22)+1.24:(cinemaEdition?-.54:0),0]}><ExhibitWallLabel title={exhibit.title} index={index}/></group>:null}
+  {editorial&&!(isTarget&&focus.phase!=='idle')?<SwissArtworkLabel title={exhibit.title} index={index}
+   width={Math.max(.35,fitted.outer[0]-.06)} position={[0,-frameHalf-.205,.076]}/>:null}
+  {schoolEdition&&!editorial&&!(isTarget&&focus.phase!=='idle')?<group position={[0,fitted?-(fitted.outer[1]/2+0.22)+1.24:(cinemaEdition?-.54:0),0]}><ExhibitWallLabel title={exhibit.title} index={index}/></group>:null}
  </group>;
 }
 function Walls({template,onTeleport,schoolEdition=false,cinemaEdition=false,lite=false}) {
@@ -252,9 +261,13 @@ function Walls({template,onTeleport,schoolEdition=false,cinemaEdition=false,lite
  </group>;
 }
 const MOVE_KEYS=new Set(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright','shift']);
-function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=false,cinemaEdition=false}) {
- const {camera,gl,invalidate}=useThree();
- const yaw=useRef(0),pitch=useRef(0),drag=useRef(null),tween=useRef(null);
+// Fit the whole artwork wall in the real content area, including the narrow mobile stage.
+function editorialRoomZ(aspect){
+ return THREE.MathUtils.clamp(10.6/(2*Math.tan(THREE.MathUtils.degToRad(27.5))*aspect)-7.82,-2.15,7.9);
+}
+function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=false,cinemaEdition=false,editorial=false}) {
+ const {camera,gl,invalidate,size}=useThree();
+ const yaw=useRef(0),pitch=useRef(0),drag=useRef(null),tween=useRef(null),walking=useRef(false);
  useEffect(()=>{
   // R3F default cameras look at the scene origin; a closer camera can then face
   // AWAY from the actual art wall. Set a known school-gallery orientation.
@@ -264,7 +277,12 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
   camera.rotation.set(pitch.current,yaw.current,0);
   camera.updateMatrixWorld();
   invalidate();
- },[camera,invalidate,schoolEdition]);
+ },[camera,invalidate,schoolEdition,cinemaEdition]);
+ useEffect(()=>{
+  if(!editorial||paused||walking.current||viewPreset||!size.width||!size.height)return;
+  camera.position.set(0,1.95,editorialRoomZ(size.width/size.height));
+  invalidate();
+ },[camera,editorial,invalidate,paused,size.width,size.height,viewPreset]);
  useEffect(()=>{
   if(teleport?.length===2){camera.position.set(teleport[0],1.7,teleport[1]);invalidate();}
  },[camera,invalidate,teleport]);
@@ -274,24 +292,25 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
  // Viewpoint transitions are camera movement, not CSS resizing.
  useEffect(()=>{
   if(!cinemaEdition||!viewPreset)return;
+  const overviewZ=editorial?editorialRoomZ(camera.aspect):viewPreset.type==='room'?2.3:1.3;
   const destination=viewPreset.type==='artwork'?
-   [viewPreset.x??0,1.95,-3.56]:[0,1.96,viewPreset.type==='room'?2.3:1.3];
+   [viewPreset.x??0,1.95,editorial&&viewPreset.x==null?Math.max(-3.65,overviewZ-2.4):-3.56]:[0,1.96,overviewZ];
   const reduce=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   tween.current={from:camera.position.clone(),to:new THREE.Vector3(...destination),
    elapsed:0,duration:reduce?0:(viewPreset.type==='artwork'?.62:.82)};
   invalidate();
- },[camera,invalidate,cinemaEdition,viewPreset?.id]);
+ },[camera,invalidate,cinemaEdition,editorial,viewPreset]);
  useEffect(()=>{
    const canvas=gl.domElement;
    const keyDown=e=>{
      const node=e.target;
      if(node?.closest?.('input,textarea,select,[contenteditable="true"],[role="dialog"]'))return;
      const key=String(e.key).toLowerCase();
-     if(MOVE_KEYS.has(key)&&!paused){tween.current=null;held.current.add(key);invalidate();if(key.startsWith('arrow'))e.preventDefault();}
+     if(MOVE_KEYS.has(key)&&!paused){walking.current=true;tween.current=null;held.current.add(key);invalidate();if(key.startsWith('arrow'))e.preventDefault();}
    };
    const keyUp=e=>{held.current.delete(String(e.key).toLowerCase());};
    const down=e=>{if(e.button!==0||paused)return;drag.current=[e.clientX,e.clientY];canvas.setPointerCapture?.(e.pointerId);};
-   const move=e=>{if(!drag.current||paused)return;tween.current=null;const [x,y]=drag.current;
+   const move=e=>{if(!drag.current||paused)return;walking.current=true;tween.current=null;const [x,y]=drag.current;
      yaw.current-=Math.max(-60,Math.min(60,e.clientX-x))*0.005;
      pitch.current=Math.max(-0.62,Math.min(0.62,pitch.current-(e.clientY-y)*0.003));
      camera.rotation.order='YXZ';camera.rotation.y=yaw.current;camera.rotation.x=pitch.current;
@@ -325,6 +344,7 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
    const forward=Number(keys.has('w')||keys.has('arrowup'))-Number(keys.has('s')||keys.has('arrowdown'));
    const sideways=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft'));
    if(!forward&&!sideways)return;
+   walking.current=true;
    const speed=Math.min(delta,0.06)*(keys.has('shift')?4.2:2.6);
    const dir=new THREE.Vector3(sideways,0,-forward).applyEuler(new THREE.Euler(0,camera.rotation.y,0,'YXZ')).normalize();
    camera.position.x=Math.max(-6,Math.min(6,camera.position.x+dir.x*speed));
@@ -437,24 +457,25 @@ function CameraResizeSync(){
  },[camera,gl,invalidate]);
  return null;
 }
-function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=false,cinemaEdition=false,lite=false,focus=FOCUS_IDLE,focusBoard,onFocusBack,onFocusStep,focusIndex=0,language='en',onFocusPhaseChange}) {
+function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=false,cinemaEdition=false,editorial,roomNumber,lite=false,focus=FOCUS_IDLE,focusBoard,onFocusBack,onFocusStep,focusIndex=0,language='en',onFocusPhaseChange}) {
  return <><color attach="background" args={[schoolEdition?(cinemaEdition?'#F7F4EC':'#EBF5F0'):'#f2f0e9']}/>
   <ambientLight intensity={schoolEdition?(cinemaEdition?1.15:1.25):1.1}/>
   <hemisphereLight args={[cinemaEdition?'#FFF8EC':'#FFFFFF',schoolEdition?(cinemaEdition?'#D5E6D4':'#9CAD9D'):'#B7AFA3',cinemaEdition?1.05:1.1]}/>
   <directionalLight position={[1,7,3]} color={schoolEdition?'#FFF7E4':'#FFFFFF'} intensity={cinemaEdition?1.35:1.15}/>
   {cinemaEdition?<directionalLight position={[-5,2.4,1.2]} color="#FFF4D8" intensity={.7}/>:null}
-  <Walls template={template} onTeleport={onTeleport} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} lite={lite}/>
+  {editorial?<SwissEditorialHall roomNumber={roomNumber} onTeleport={onTeleport}/>:<Walls template={template} onTeleport={onTeleport} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} lite={lite}/>}
   {exhibits.slice(0,30).map((e,i)=><PaperArtwork key={e.id} exhibit={e} index={i} count={Math.min(exhibits.length,30)} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition}
-   focus={focus} onFocusPhaseChange={onFocusPhaseChange} onSelect={onSelect}
+   editorial={editorial} focus={focus} onFocusPhaseChange={onFocusPhaseChange} onSelect={onSelect}
    isSelected={selectedId===e.id||focus.exhibitId===e.id}/>)}
-  {cinemaEdition&&focus.phase!=='idle'?<MuseumExhibitFocusRig focus={focus} board={focusBoard} onBack={onFocusBack} onStep={onFocusStep} index={focusIndex} count={exhibits.length} language={language} lite={lite}/>:null}
+  {cinemaEdition&&focus.phase!=='idle'?<MuseumExhibitFocusRig focus={focus} board={focusBoard} onBack={onFocusBack} onStep={onFocusStep} index={focusIndex} count={exhibits.length} language={language} lite={lite} editorial={editorial}/>:null}
  </>;
 }
-export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelect,selectedId='',quality='auto',language='vi',schoolEdition=false,cinemaEdition=false,focus=FOCUS_IDLE,focusBoard,onFocusBack,onFocusStep,focusIndex=0,onFocusPhaseChange}) {
+export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelect,selectedId='',quality='auto',language='vi',schoolEdition=false,cinemaEdition=false,focus=FOCUS_IDLE,focusBoard,onFocusBack,onFocusStep,focusIndex=0,onFocusPhaseChange,editorial=false,roomNumber,editorialViewpoint}) {
  const held=useRef(new Set());
  const narrow=typeof window!=='undefined'&&window.matchMedia?.('(max-width:700px)').matches;
  const startingZ=cinemaEdition?(narrow?2.2:1.3):schoolEdition?(narrow?2.5:-1.6):4.7;
  const [teleport,setTeleport]=useState(null),[viewPreset,setViewPreset]=useState(null),[pos,setPos]=useState([0,startingZ]),[supported,setSupported]=useState(null);
+ useEffect(()=>{if(editorialViewpoint)setViewPreset(editorialViewpoint);},[editorialViewpoint]);
  const mode=useLiteQuality(quality);
  useEffect(()=>{
    let ok=false;
@@ -468,7 +489,7 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
  const onTeleport=point=>{
   if(cinemaEdition&&focus.phase!=='idle')return;
   if(cinemaEdition){
-   setViewPreset({type:point[1]<-3?'artwork':'room',x:point[0],id:Date.now()+Math.random()});
+   setViewPreset({type:point[1]<-3?'artwork':'room',x:point[0]});
   }else setTeleport([...point]);
  };
  return <div className={'big-webgl-shell '+(schoolEdition?'big-pek-museum ':'')+(cinemaEdition?'big-pek-v4':'')} data-testid={schoolEdition?'pek-discovery-hall':undefined}
@@ -484,20 +505,20 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
     {cinemaEdition?<CinemaEffectPump active={focus.phase==='idle'}/>:null}
     <Room template={template} exhibits={exhibits} onSelect={onSelect} selectedId={selectedId} onTeleport={onTeleport}
      focus={focus} focusBoard={focusBoard} onFocusBack={onFocusBack} onFocusStep={onFocusStep} focusIndex={focusIndex} language={language} onFocusPhaseChange={onFocusPhaseChange}
-     schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} lite={mode==='lite'}/>
+     schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} editorial={editorial} roomNumber={roomNumber} lite={mode==='lite'}/>
     <MuseumFocusCameraRig focus={cinemaEdition?focus:FOCUS_IDLE}/>
     <CameraWalker held={held} paused={!!selectedId||(cinemaEdition&&focus.phase!=='idle')}
-     teleport={teleport} onPosition={onPosition} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} viewPreset={viewPreset}/>
+     teleport={teleport} onPosition={onPosition} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} editorial={editorial} viewPreset={viewPreset}/>
    </Canvas>
   </Suspense>}
-  {schoolEdition?<div className="big-pek-tools" role="group" aria-label={language==='en'?'Museum viewpoints':'Góc tham quan bảo tàng'}>
+  {schoolEdition&&!editorial?<div className="big-pek-tools" role="group" aria-label={language==='en'?'Museum viewpoints':'Góc tham quan bảo tàng'}>
    <div className="big-pek-edition-mark"><span className="big-pek-dot"/>
     <span className="big-pek-edition-long">{language==='en'?'PÉTRUS KÝ · DISCOVERY HALL':'PÉTRUS KÝ · BẢO TÀNG KHÁM PHÁ'}</span>
     <span className="big-pek-edition-short">{'PéK'}</span></div>
    <button type="button" disabled={cinemaEdition&&focus.phase!=='idle'} onClick={()=>onTeleport([0,-4.45])}>{language==='en'?'See the artwork':'Đến gần tranh'}</button>
    <button type="button" disabled={cinemaEdition&&focus.phase!=='idle'} onClick={()=>onTeleport([0,1.55])}>{language==='en'?'Full room view':'Toàn cảnh'}</button>
-  </div>:<div className="big-scene-hud" aria-hidden="true">{pos[0]}, {pos[1]} · R3F</div>}
-  {cinemaEdition?<div className="bml-v5-artwork-access" role="group" aria-label="Select a museum exhibit">
+  </div>:!schoolEdition?<div className="big-scene-hud" aria-hidden="true">{pos[0]}, {pos[1]} · R3F</div>:null}
+  {cinemaEdition&&!editorial?<div className="bml-v5-artwork-access" role="group" aria-label="Select a museum exhibit">
    {exhibits.slice(0,30).map((e,i)=><button type="button" key={e.id||i}
     disabled={focus.phase!=='idle'} onClick={()=>onSelect?.(e.id)}
     aria-label={'Inspect '+String(e.title||'exhibit')} title={e.title}>

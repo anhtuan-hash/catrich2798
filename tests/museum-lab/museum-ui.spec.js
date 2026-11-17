@@ -3193,7 +3193,9 @@ test('V5 Cinema and 2D show the photo quiz for the matching published ASEAN artw
   document.documentElement.setAttribute('data-font-region-page-title','test');
   document.documentElement.style.setProperty('--bes-font-pageTitle','cursive');
  });
- const poster='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="240" height="150"%3E%3Crect width="240" height="150" fill="seagreen"/%3E%3C/svg%3E';
+ const poster=(width,height,color)=>'data:image/svg+xml,'+encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="'+width+'" height="'+height+'"><rect width="100%" height="100%" fill="'+color+'"/></svg>'
+ );
  await page.route('**/api/gallery-staff?operation=*',route=>{
   const request=route.request();
   const operation=new URL(request.url()).searchParams.get('operation');
@@ -3204,10 +3206,18 @@ test('V5 Cinema and 2D show the photo quiz for the matching published ASEAN artw
   expect(request.postDataJSON()).toEqual({id:collection.id});
   return route.fulfill({json:{gallery:{...collection,rooms:destinations.map(destination=>({
    id:'room-'+destination.id,exhibition_id:destination.id,title:destination.title,
-   exhibits:[{
-    id:destination.id==='exhibition-10'?'137b69b5-af44-4ed8-99ce-37148fa56d23':'image-'+destination.id,
-    kind:'image',title:'Place',description:destination.title,status:'published',image_url:poster
-   }],
+   exhibits:[
+    ...(destination.id==='exhibition-1'?[{
+     id:'advice-hoi-an',kind:'image',title:'Visitor Advice',status:'published',image_url:poster(150,240,'#c2a052')
+    }]:[]),
+    {
+     id:destination.id==='exhibition-10'?'137b69b5-af44-4ed8-99ce-37148fa56d23':'image-'+destination.id,
+     kind:'image',title:'Place',description:destination.title,status:'published',image_url:poster(240,150,'seagreen')
+    },
+    ...(destination.id==='exhibition-1'?[{
+     id:'experience-hoi-an',kind:'image',title:'Experience',status:'published',image_url:poster(240,150,'#9b5138')
+    }]:[]),
+   ],
   }))}}});
  });
  await page.getByTestId('qa-dashboard-visitor').click();
@@ -3259,12 +3269,33 @@ test('V5 Cinema and 2D show the photo quiz for the matching published ASEAN artw
  await expect(quiz.getByRole('status')).toContainText('Correct!');
  await inspector.getByRole('button',{name:'Close',exact:true}).click();
  await rooms.getByRole('button',{name:'01 · Hội An'}).click();
- await cinema.getByRole('button',{name:'Explore exhibit 1: Place'}).click();
+ await cinema.getByRole('button',{name:'Explore exhibit 2: Place'}).click();
  await expect(inspector.getByTestId('museum-photo-quiz')).toHaveCount(0);
  await inspector.getByRole('button',{name:'Close',exact:true}).click();
  await cinema.getByRole('button',{name:'Close museum preview'}).click();
  await catalogue.getByRole('button',{name:'Open full exhibition'}).click();
- await expect(rooms.getByRole('button',{name:'01 · Hội An'})).toHaveClass(/is-active/);
+ await expect(rooms.getByRole('button',{name:'01 · Hội An'})).toHaveAttribute('aria-current','true');
+ const canvas=cinema.locator('canvas');
+ await expect(canvas).toBeVisible();
+ await expect(cinema.getByRole('heading',{name:'Hội An',exact:true})).toBeVisible();
+ await expect(cinema.getByRole('list',{name:'Exhibits'}).getByRole('button')).toHaveCount(3);
+ const getCameraZ=()=>page.evaluate(()=>window.__bmlMuseumFocusQA?.camera?.position?.[2]);
+ await expect.poll(()=>page.evaluate(()=>Object.keys(window.__bmlMuseumFocusQA?.artworks||{}).length)).toBe(3);
+ const stage=await canvas.boundingBox();
+ const masthead=await cinema.getByTestId('museum-cinema-hud').boundingBox();
+ const controls=await cinema.getByTestId('museum-cinema-bottom-hud').boundingBox();
+ expect(masthead.y+masthead.height).toBeLessThanOrEqual(stage.y+1);
+ expect(controls.y+1).toBeGreaterThanOrEqual(stage.y+stage.height);
+ const wallZ=await getCameraZ();
+ await cinema.getByRole('button',{name:'See the artwork'}).click();
+ await expect.poll(getCameraZ).toBeLessThan(wallZ-.4);
+ await cinema.getByRole('button',{name:'Full room view'}).click();
+ await expect.poll(getCameraZ).toBeCloseTo(wallZ,1);
+ await page.screenshot({path:testInfo.outputPath('asean-swiss-3d-room.png')});
+ await cinema.getByRole('button',{name:'Next room'}).click();
+ await expect(rooms.getByRole('button',{name:'02 · Tràng An'})).toHaveAttribute('aria-current','true');
+ await cinema.getByRole('button',{name:'Previous room'}).click();
+ await expect(rooms.getByRole('button',{name:'01 · Hội An'})).toHaveAttribute('aria-current','true');
  await page.goto('/tests/museum-lab/v3.html#/tool/immersive-gallery?exhibition=exhibition-10');
  await page.reload();
  await page.getByTestId('qa-dashboard-visitor').click();
