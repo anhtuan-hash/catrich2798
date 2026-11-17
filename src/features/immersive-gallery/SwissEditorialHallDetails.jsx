@@ -30,7 +30,7 @@ pineShape.closePath();
 const pineRelief={depth:.016,bevelEnabled:true,bevelThickness:.007,bevelSize:.008,bevelSegments:1};
 const screwPositions=[[-.42,-.57],[-.42,.57],[.42,-.57],[.42,.57]];
 
-function CrestImage(){
+export function CrestImage(){
  const crest=usePekSchoolCrest();
  // Match the PNG's intrinsic proportions, including the original lower wordmark.
  return <mesh name="OfficialPetrusKyCrest" position={[0,0,.047]}>
@@ -77,7 +77,7 @@ function SchoolIdentity(){
  </>;
 }
 
-function GalleryFurniture({title,exhibits,onRoomGuide,roomGuideLabel}){
+export function GalleryFurniture({title,exhibits,onRoomGuide,roomGuideLabel,showBench=true}){
  const labels=exhibits.slice(0,3).map(exhibit=>exhibit.title).join(' · ');
  const introduction=useCanvasTexture((ctx,w,h)=>{
   ctx.fillStyle=ivory;ctx.fillRect(0,0,w,h);
@@ -103,7 +103,7 @@ function GalleryFurniture({title,exhibits,onRoomGuide,roomGuideLabel}){
   ctx.fillStyle=gradient;ctx.fillRect(0,0,w,h);
  },[128,128],[]);
  return <>
-  <group name="GalleryViewingBench" position={[bench.x,-.08,bench.z]}>
+  {showBench?<group name="GalleryViewingBench" position={[bench.x,-.08,bench.z]}>
    <mesh position={[0,.004,0]} rotation={[-Math.PI/2,0,0]}>
     <planeGeometry args={[bench.width+.32,bench.depth+.48]}/>
     <meshBasicMaterial map={shadow} transparent depthWrite={false} toneMapped={false}/>
@@ -116,7 +116,7 @@ function GalleryFurniture({title,exhibits,onRoomGuide,roomGuideLabel}){
     <boxGeometry args={[.052,.45,.45]}/>
     <meshStandardMaterial color={iron} roughness={.58}/>
    </mesh>)}
-  </group>
+  </group>:null}
   <group name="RoomIntroductionStand" position={[lectern.x,-.08,lectern.z]}>
    <mesh position={[0,.004,0]} rotation={[-Math.PI/2,0,0]}>
     <planeGeometry args={[.76,.72]}/>

@@ -3262,6 +3262,7 @@ test('Student Creator Group 01: 100% draft but missing sources opens Submit and 
 });
 
 test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published ASEAN artwork',async({page},testInfo)=>{
+ test.slow();
  test.setTimeout(90000);
  await page.emulateMedia({reducedMotion:'reduce'});
  const titles=['Hội An','Tràng An','Angkor','Luang Prabang','Ayutthaya','Melaka','George Town','Singapore Botanic Gardens','Borobudur','Vigan'];
@@ -3317,7 +3318,7 @@ test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published 
  await catalogue.screenshot({path:testInfo.outputPath('published-group-rooms.png')});
  await catalogue.getByRole('button',{name:'Open group room Vigan'}).click();
  const cinema=page.getByTestId('museum-teacher-cinema-portal');
- const rooms=cinema.getByRole('navigation',{name:'Exhibition rooms'});
+ const rooms=cinema.getByRole('navigation',{name:/^Exhibition (rooms|collections)$/});
  await expect(rooms.getByRole('button')).toHaveCount(10);
  await expect(rooms.getByRole('button',{name:'10 · Vigan'})).toHaveClass(/is-active/);
  await expect(page).toHaveURL(/exhibition=exhibition-10$/);
@@ -3393,11 +3394,22 @@ test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published 
  await expect(rooms.getByRole('button',{name:'01 · Hội An'})).toHaveAttribute('aria-current','true');
  const canvas=cinema.locator('canvas');
  await expect(canvas).toBeVisible();
+ const canvasIdentity=await canvas.elementHandle();
+ const hall=cinema.getByTestId('pek-discovery-hall');
+ await expect(hall).toHaveAttribute('data-gallery-layout','four-wall');
+ await expect(cinema.getByText('01 / 10 collections')).toBeVisible();
  await expect.poll(()=>originalSchoolLogoLoaded).toBe(true);
  await expect(cinema.getByRole('heading',{name:'Hội An',exact:true})).toBeVisible();
  await expect(cinema.getByRole('list',{name:'Exhibits'}).getByRole('button')).toHaveCount(3);
  const getCameraZ=()=>page.evaluate(()=>window.__bmlMuseumFocusQA?.camera?.position?.[2]);
- await expect.poll(()=>page.evaluate(()=>Object.keys(window.__bmlMuseumFocusQA?.artworks||{}).length)).toBe(3);
+ await expect.poll(()=>page.evaluate(()=>Object.keys(window.__bmlMuseumFocusQA?.artworks||{}).length)).toBe(30);
+ const anchors=await page.evaluate(()=>Object.entries(window.__bmlMuseumFocusQA.artworks)
+  .filter(([key])=>key.endsWith(':0')).map(([key,item])=>[Number(key.split(':')[0]),item.wall]));
+ anchors.sort((a,b)=>a[0]-b[0]);
+ expect(anchors.slice(0,2).every(([,p])=>p[2]<-14)).toBe(true);
+ expect(anchors.slice(2,5).every(([,p])=>p[0]>9)).toBe(true);
+ expect(anchors.slice(5,7).every(([,p])=>p[2]>14)).toBe(true);
+ expect(anchors.slice(7,10).every(([,p])=>p[0]<-9)).toBe(true);
  const stage=await canvas.boundingBox();
  const masthead=await cinema.getByTestId('museum-cinema-hud').boundingBox();
  const controls=await cinema.getByTestId('museum-cinema-bottom-hud').boundingBox();
@@ -3414,22 +3426,13 @@ test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published 
  expect(await cinema.getByTestId('museum-visitor').evaluate(el=>el.scrollWidth<=el.clientWidth)).toBe(true);
  await expect(rooms.getByRole('button',{name:'10 · Vigan'})).toBeVisible();
  await cinema.getByRole('button',{name:'Full room view'}).click();
- await expect.poll(getCameraZ).toBeGreaterThan(wallZ+.3);
+ await expect.poll(()=>page.evaluate(()=>window.__bmlMuseumFocusQA?.camera?.forward?.[2])).toBeLessThan(-.9);
  await page.screenshot({path:testInfo.outputPath('asean-swiss-3d-mobile.png')});
  await page.setViewportSize(desktopViewport);
- await page.evaluate(()=>{
-  window.__trangAnTextureCount=0;
-  const onTexture=()=>{
-   if(++window.__trangAnTextureCount===3){
-    document.removeEventListener('bml:museum-texture-ready',onTexture);
-   }
-  };
-  document.addEventListener('bml:museum-texture-ready',onTexture);
- });
- await cinema.getByRole('button',{name:'Next room'}).click();
+ await cinema.getByRole('button',{name:'Next collection'}).click();
  await expect(rooms.getByRole('button',{name:'02 · Tràng An'})).toHaveAttribute('aria-current','true');
- await expect(canvas).toBeVisible();
- await expect.poll(()=>page.evaluate(()=>window.__trangAnTextureCount)).toBe(3);
+ expect(await canvasIdentity.evaluate(el=>el.isConnected)).toBe(true);
+ await expect.poll(getCameraZ).toBeLessThan(wallZ-.4);
  await cinema.getByRole('button',{name:'Full room view'}).click();
  await expect.poll(getCameraZ).toBeCloseTo(wallZ,1);
  await page.screenshot({path:testInfo.outputPath('asean-pek-trang-an-hall.png')});
@@ -3439,13 +3442,17 @@ test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published 
  roomCamera.position.fromArray(view.position);
  roomCamera.quaternion.fromArray(view.quaternion);
  roomCamera.updateMatrixWorld();
- const guidePoint=new Vector3(4.46,.85,-7.20).project(roomCamera);
+ const guidePoint=new Vector3(4.46+4.925,.85,-7.20-14.775+7.82).project(roomCamera);
  await page.mouse.click(roomCanvas.x+(1+guidePoint.x)*roomCanvas.width/2,
   roomCanvas.y+(1-guidePoint.y)*roomCanvas.height/2);
  const guide=cinema.getByTestId('museum-cinema-info');
  await expect(guide).toBeVisible();
  await expect(guide.locator('header strong')).toHaveText('Tràng An');
- await expect(guide.locator('[lang="vi"]')).toHaveText('Thân thiện - Trách nhiệm - Hợp tác - Phát triển');
+ await expect(guide.locator('[lang="vi"]')).toHaveText([
+  'Thân thiện - Trách nhiệm - Hợp tác - Phát triển',
+  'Trật tự, vệ sinh, văn minh, nề nếp',
+  'Mỗi thầy cô là một tấm gương sáng về nhân cách, đạo đức, lối sống, tự học và sáng tạo'
+ ]);
  await expect(guide.getByRole('button',{name:'Close information'})).toBeFocused();
  await page.keyboard.press('Escape');
  await expect(guide).toHaveCount(0);
@@ -3458,7 +3465,21 @@ test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published 
  await expect(plaque.getByRole('heading',{name:'Place',exact:true})).toBeVisible();
  await plaque.getByRole('button',{name:'Back to wall'}).click();
  await expect(plaque).toHaveCount(0,{timeout:12000});
- await cinema.getByRole('button',{name:'Previous room'}).click();
+ // Selecting a collection on the next wall keeps the same canvas and artwork mesh.
+ await rooms.getByRole('button',{name:'03 · Angkor'}).click();
+ await expect.poll(()=>page.evaluate(()=>window.__bmlMuseumFocusQA?.camera?.forward?.[0])).toBeGreaterThan(.9);
+ const artwork=()=>page.evaluate(()=>window.__bmlMuseumFocusQA?.artworks['2:0']);
+ const before=await artwork();
+ await page.mouse.click(before.screen.x,before.screen.y);
+ await expect(plaque).toHaveAttribute('data-focus-phase','focused',{timeout:15000});
+ expect((await artwork()).uuid).toBe(before.uuid);
+ expect((await artwork()).world[0]).toBeLessThan(before.world[0]-3);
+ await plaque.getByRole('button',{name:'Back to wall'}).click();
+ await expect(plaque).toHaveCount(0,{timeout:12000});
+ await expect.poll(async()=>(await artwork()).world[0]).toBeCloseTo(before.world[0],2);
+ expect(await canvasIdentity.evaluate(el=>el.isConnected)).toBe(true);
+ await rooms.getByRole('button',{name:'02 · Tràng An'}).click();
+ await cinema.getByRole('button',{name:'Previous collection'}).click();
  await expect(rooms.getByRole('button',{name:'01 · Hội An'})).toHaveAttribute('aria-current','true');
  await page.goto('/tests/museum-lab/v3.html#/tool/immersive-gallery?exhibition=exhibition-10');
  await page.reload();

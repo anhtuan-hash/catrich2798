@@ -13,7 +13,7 @@ import MuseumPhotoQuiz from './MuseumPhotoQuiz.jsx';
 import {museumPhotoQuiz} from './museumPhotoQuizData.js';
 import {MuseumEditorialRoom,MuseumEditorialExhibit} from './MuseumEditorial2D.jsx';
 import {isAsean} from './aseanLesson.js';
-import {PEK_MUSEUM_MOTTO} from '../pekMuseumMotto.js';
+import {PEK_MUSEUM_MOTTO,PEK_COURTESY_MOTTO,PEK_TEACHER_MOTTO} from '../pekMuseumMotto.js';
 import './museumEditorial3D.css';
 const GalleryCanvas=lazy(()=>import('../GalleryCanvasR3F.jsx'));
 const Exhibit360Viewer=lazy(()=>import('./Exhibit360Viewer.jsx'));
@@ -150,6 +150,7 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
  const rooms=gallery?.rooms||[];
  const roomIndex=Math.min(activeRoom,Math.max(0,rooms.length-1));
  const room=rooms[roomIndex];
+ const fourWall=swiss3D&&rooms.length>1;
  const [roomHeading,roomSubtitle]=clean(room?.title,140).split(/ (?=Ancient Town$)/);
  const exhibits=useMemo(()=>room?.exhibits||[],[room]);
  const selected=exhibits.find(e=>e.id===selectedId);
@@ -178,13 +179,19 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
   buildExhibitFocusBoard(gallery,focusSelected,focusSelectedIndex):null,
   [gallery,focusSelected,focusSelectedIndex]);
  const tr=(vi,en)=>language==='en'?en:vi;
- const openExhibit=(id,recordOpener=true)=>{
+ const openExhibit=(id,recordOpener=true,collectionIndex=roomIndex)=>{
+  if(cinema&&threeD&&focus.phase!=='idle')return;
+  const collection=rooms[collectionIndex];
+  const collectionExhibits=collection?.exhibits||[];
+  const index=collectionExhibits.findIndex(exhibit=>exhibit.id===id);
+  if(index<0)return;
+  if(collectionIndex!==roomIndex)setActiveRoom(collectionIndex);
   if(recordOpener)openerRef.current=swiss3D&&infoOpen?infoTriggerRef.current:document.activeElement;
   if(swiss3D&&infoOpen)setInfoOpen(false);
-  const index=exhibits.findIndex(e=>e.id===id);
-  if(index>=0)onExhibitSelect?.({index,key:exhibitField(index,exhibits[index]?.title),title:exhibits[index]?.title});
+  const title=collectionExhibits[index].title;
+  onExhibitSelect?.({index,key:exhibitField(index,title),title});
   if(cinema&&threeD){
-   dispatchFocus({type:'SELECT',exhibitId:id,roomId:room?.id||'room-'+activeRoom});
+   dispatchFocus({type:'SELECT',exhibitId:id,roomId:collection?.id||'room-'+collectionIndex});
   }else setSelectedId(id);
  };
  const closeExhibit=()=>{
@@ -212,7 +219,15 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
   if(!selectedId)roomTabsRef.current?.querySelector('[aria-current="true"]')
    ?.scrollIntoView({block:'nearest',inline:'nearest'});
  },[editorial,roomIndex,selectedId]);
- const changeRoom=n=>{if(n===roomIndex)return;setViewpoint(null);queuedFocus.current=null;dispatchFocus({type:'RESET'});setActiveRoom(n);setSelectedId(null);setFullPosterId(null);};
+ const changeRoom=index=>{
+  if(index===roomIndex&&!fourWall)return;
+  if(fourWall&&focus.phase!=='idle')return;
+  setViewpoint(fourWall?{type:'collection',collectionIndex:index}:null);
+  queuedFocus.current=null;
+  dispatchFocus({type:'RESET'});
+  setActiveRoom(index);setSelectedId(null);setFullPosterId(null);
+ };
+ const openCollectionGuide=index=>{setActiveRoom(index);openInfo();};
  useEffect(()=>{
   if(!(cinema&&threeD)||focus.phase!=='idle'||!queuedFocus.current)return;
   const id=queuedFocus.current;
@@ -268,6 +283,8 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
     <button type="button" ref={infoCloseRef} aria-label="Close information" onClick={closeInfo}><X size={16}/></button></header>
    <p>{clean(gallery?.summary,1000)||'Explore the museum and select artwork to learn more.'}</p>
    {swiss3D?<><p className="bml-room-guide-motto" lang="vi">{PEK_MUSEUM_MOTTO}</p>
+    <p lang="vi">{PEK_COURTESY_MOTTO}</p>
+    <p lang="vi">{PEK_TEACHER_MOTTO}</p>
     {exhibits.length?<ul className="bml-room-guide-exhibits" aria-label={tr('Tác phẩm trong phòng','Room exhibits')}>
      {exhibits.slice(0,30).map((exhibit,i)=><li key={exhibit.id||i}>
       <button type="button" disabled={isFocus} onClick={()=>openExhibit(exhibit.id)}>
@@ -299,9 +316,10 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
        </button>
       </li>)}
      </ul>:null}
-     {rooms.length>1?<nav className="bml-swiss-3d-rooms" aria-label={tr('Các phòng trưng bày','Exhibition rooms')}>
-      <p>{tr('PHÒNG','ROOMS')}</p>
-      <div>{rooms.map((item,i)=><button key={item.id||i} type="button" onClick={()=>changeRoom(i)}
+     {rooms.length>1?<nav className="bml-swiss-3d-rooms"
+      aria-label={tr('Bộ sưu tập','Exhibition collections')}>
+      <p>{tr('BỘ SƯU TẬP','COLLECTIONS')}</p>
+      <div>{rooms.map((item,i)=><button key={item.id||i} type="button" disabled={isFocus} onClick={()=>changeRoom(i)}
        className={i===roomIndex?'is-active':''} aria-current={i===roomIndex?'true':undefined}
        aria-label={numberLabel(i+1)+' · '+item.title} title={item.title}>{numberLabel(i+1)}</button>)}</div>
      </nav>:null}
@@ -311,14 +329,15 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
      <button type="button" aria-pressed={threeD} className="is-active" onClick={()=>setThreeD(true)}><Box size={16}/> 3D</button>
     </div>:null}
     <Suspense fallback={<div className="bml-empty"><Box size={32}/>{tr('Đang dựng bảo tàng 3D…','Preparing 3D museum…')}</div>}>
-     <GalleryCanvas key={room.id} template={room.template_key} exhibits={exhibits}
+     <GalleryCanvas key={fourWall?gallery.id??'four-wall-gallery':room.id} template={room.template_key} exhibits={exhibits}
+      collections={fourWall?rooms:undefined} collectionIndex={roomIndex} onCollectionGuide={openCollectionGuide}
       selectedId={selectedId||''} focus={cinema?focus:FOCUS_IDLE}
       focusBoard={focusBoard} onFocusBack={focusBack} onFocusStep={stepFocus} focusIndex={Math.max(0,focusSelectedIndex)}
       onFocusPhaseChange={action=>dispatchFocus({...action,generation:focus.generation})}
       onSelect={openExhibit} quality="auto" language={language} schoolEdition cinemaEdition={cinema}
       editorial={swiss3D} roomNumber={numberLabel(roomIndex+1)} roomTitle={clean(room.title,140)} editorialViewpoint={viewpoint}
       onRoomGuide={swiss3D&&!isFocus?openInfo:undefined} roomGuideOpen={swiss3D&&infoOpen}
-      roomGuideLabel={tr('Giới thiệu phòng ↗','Room guide ↗')}/>
+      roomGuideLabel={fourWall?tr('Giới thiệu bộ sưu tập ↗','Collection guide ↗'):tr('Giới thiệu phòng ↗','Room guide ↗')}/>
     </Suspense>
     {!swiss3D?<div className="bml-3d-plate">
      <small>{clean(gallery?.title,90)||'Our Climate Action Museum'}</small>
@@ -373,17 +392,19 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
    </footer>:null}
    {cinema&&!editorial?<div className="bml-cinema-bottom-hud" data-testid="museum-cinema-bottom-hud">
     {swiss3D?<div className="bml-swiss-3d-viewpoints" role="group" aria-label={tr('Góc nhìn','Museum viewpoints')}>
-     <button type="button" disabled={isFocus} onClick={()=>setViewpoint({type:'artwork'})}>
+     <button type="button" disabled={isFocus} onClick={()=>setViewpoint({type:'artwork',collectionIndex:roomIndex})}>
       {tr('Đến gần tranh','See the artwork')}</button>
-     <button type="button" disabled={isFocus} onClick={()=>setViewpoint({type:'room'})}>
+     <button type="button" disabled={isFocus} onClick={()=>setViewpoint({type:'room',collectionIndex:roomIndex})}>
       {tr('Toàn cảnh','Full room view')}</button>
     </div>:null}
     <span className="bml-cinema-room-counter">{swiss3D?
-     numberLabel(roomIndex+1)+' / '+numberLabel(rooms.length)+' '+tr('phòng','rooms'):
+     numberLabel(roomIndex+1)+' / '+numberLabel(rooms.length)+' '+(fourWall?tr('bộ sưu tập','collections'):tr('phòng','rooms')):
      (roomIndex+1)+'/'+rooms.length+' rooms · '+exhibits.length+' exhibits'}</span>
     {rooms.length>1?<div className="bml-cinema-room-controls">
-     <button type="button" disabled={roomIndex===0} onClick={()=>changeRoom(roomIndex-1)} aria-label="Previous room"><ChevronLeft size={18}/></button>
-     <button type="button" disabled={roomIndex===rooms.length-1} onClick={()=>changeRoom(roomIndex+1)} aria-label="Next room"><ChevronRight size={18}/></button>
+     <button type="button" disabled={roomIndex===0||fourWall&&isFocus} onClick={()=>changeRoom(roomIndex-1)}
+      aria-label={fourWall?tr('Bộ sưu tập trước','Previous collection'):'Previous room'}><ChevronLeft size={18}/></button>
+     <button type="button" disabled={roomIndex===rooms.length-1||fourWall&&isFocus} onClick={()=>changeRoom(roomIndex+1)}
+      aria-label={fourWall?tr('Bộ sưu tập tiếp theo','Next collection'):'Next room'}><ChevronRight size={18}/></button>
     </div>:null}
    </div>:null}
   </>:<div className="bml-empty">{tr('Triển lãm chưa có phòng.','No rooms available.')}</div>}
