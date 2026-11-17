@@ -1,5 +1,5 @@
 import React,{useEffect,useId,useRef,useState} from 'react';
-import {ArrowLeft,ArrowRight,Box,LockKeyhole,Save} from 'lucide-react';
+import {ArrowLeft,ArrowRight,BookOpen,Box,Clock3,ExternalLink,Landmark,LockKeyhole,Save} from 'lucide-react';
 import AseanHueQuiz from './AseanHueQuiz.jsx';
 import AseanDiscussionPhoto from './AseanDiscussionPhoto.jsx';
 import AseanActivityArt,{AseanFrameIcon} from './AseanActivityArt.jsx';
@@ -44,8 +44,11 @@ function ClassVisitorModel({language}){
  const {title,vi,captions}=ASEAN_DISCUSSION_MODEL;
  return <section className="asean-visitor-model bml-surface" aria-labelledby="asean-visitor-model-title">
   <h3 id="asean-visitor-model-title" lang={language}>{T(language,vi,title)}</h3>
-  <AseanDiscussionPhoto language={language}/>
-  <ol>{ASEAN_FRAMES.map((frame,index)=><li key={frame.key}><strong>{frame.label}</strong> · {captions[index]}</li>)}</ol>
+  <AseanDiscussionPhoto language={language} imageSource="/museum/asean/presenter/hue-meridian-gate.webp"
+   fallback={<div className="asean-model-image-fallback"><Landmark aria-hidden="true"/></div>}/>
+  <ul className="asean-model-captions">{ASEAN_FRAMES.map((frame,index)=><li key={frame.key}>
+   <strong><AseanFrameIcon index={index}/>{frame.label}</strong><span>{captions[index]}</span>
+  </li>)}</ul>
   <p>Which visitor question still needs a clearer answer? Agree on the missing detail and share it with your class.</p>
  </section>;
 }
@@ -350,7 +353,11 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
   if(lessonRef.current)lessonRef.current.scrollTop=0;
   if(projectRef.current)projectRef.current.scrollTop=0;
  },[stage,live?.id]);
- const startActivity=()=>{setActivityStarted(true);setBannerExpanded(false);};
+ const startActivity=()=>{
+  if(!activityStarted&&lessonRef.current)lessonRef.current.scrollTop=0;
+  setActivityStarted(true);
+  setBannerExpanded(false);
+ };
  const focusWithin=(element,block='nearest')=>{
   element?.focus({preventScroll:true});
   element?.scrollIntoView({block});
@@ -447,7 +454,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
  return <MuseumStudentWorkshop language={language} onLanguageChange={onLanguageChange} onLogout={onLogout}
   groupLabel={[language==='en'?englishSystemGroupLabel(session.groupLabel):session.groupLabel,session.assignment.class_scope].filter(Boolean).join(' · ')}
   bannerExpanded={bannerExpanded} onBannerChange={setBannerExpanded} lessonTemplate={session.assignment.lesson_template}
-  title={ASEAN_TITLE} testId="asean-student-lesson"
+  title={ASEAN_TITLE} testId="asean-student-lesson" activity={design.id}
   navigation={<MuseumStudentActivityGroups group={activityGroup} activity={stage} language={language}
    groups={ACTIVITY_GROUPS} ends={ACTIVITY_GROUP_ENDS} activities={language==='en'?ASEAN_STAGES:ASEAN_ACTIVITIES_VI}
    onGroup={group=>browseActivity(group===activityGroup?stage:(ACTIVITY_GROUP_ENDS[group-1]??0))} onActivity={browseActivity}/>}
@@ -465,7 +472,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
   </div>}>
   <section className="bml-student-primary bml-student-lesson-panel" aria-labelledby="bml-student-lesson-title">
    <header className="bml-student-panel-head">
-    <h2 id="bml-student-lesson-title">{T(language,'Bài học','Lesson')}</h2>
+    <h2 id="bml-student-lesson-title"><BookOpen aria-hidden="true"/>{T(language,'Bài học','Lesson')}</h2>
     <div className="bml-student-lesson-tools">
      <button type="button" className="bml-outline" aria-pressed={review===null} onClick={()=>{startActivity();setReview(null);focusWithin(lessonRef.current);}}>
       {T(language,'Theo giáo viên','Follow teacher')}
@@ -477,7 +484,13 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
     <div className="bml-live-student asean-student-brief">
      <section className="asean-student-activity" aria-labelledby="asean-student-activity-title" data-testid={'asean-student-slide-'+(stage+1)}>
       <div className="bml-live-student-question">
-       <p className="bml-question-eyebrow">Period {current.period} · Activity {stage+1} / {ASEAN_STAGES.length} · {current.minutes} min</p>
+       <div className="asean-activity-meta" lang={language}>
+        <span className="asean-activity-index" aria-hidden="true">{String(stage+1).padStart(2,'0')}</span>
+        <div>
+         <p className="bml-question-eyebrow">{T(language,'Hoạt động','Activity')} {stage+1} / {ASEAN_STAGES.length}</p>
+         <p className="asean-activity-time"><Clock3 aria-hidden="true"/>{T(language,'Tiết','Period')} {current.period} · {current.minutes} {T(language,'phút','min')}</p>
+        </div>
+       </div>
        <h2 id="asean-student-activity-title">{stage===0?'1. Write about '+aseanWritingCard(session.groupLabel).title:
         stage===5?T(language,'Trình bày và nộp bài',design.studentTitle):design.studentTitle}</h2>
        <p lang={[2,3,4,5].includes(stage)?language:undefined}>{stage===0
@@ -544,8 +557,8 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        visitorResult={stage===3?visitorResult(stageRecord):null}
        revisionCaptured={Boolean(captured)} revisionHasFeedback={Boolean(records.feedback)}/>}
       {[1,2,4].includes(stage)&&destination&&<div className="asean-student-sources">
-       <a href={destination.source} target="_blank" rel="noreferrer">UNESCO destination source</a>
-       <a href={'https://commons.wikimedia.org/wiki/Special:MediaSearch?type=image&search='+encodeURIComponent(destination.name)} target="_blank" rel="noreferrer">Find candidate photographs</a>
+       <a href={destination.source} target="_blank" rel="noreferrer">UNESCO destination source <ExternalLink aria-hidden="true"/></a>
+       <a href={'https://commons.wikimedia.org/wiki/Special:MediaSearch?type=image&search='+encodeURIComponent(destination.name)} target="_blank" rel="noreferrer">Find candidate photographs <ExternalLink aria-hidden="true"/></a>
       </div>}
       {stage===1&&<p>Complete all three steps in the project panel, then select Submit exhibit plan.</p>}
      </section>
@@ -577,7 +590,9 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
     <div className="bml-student-stage"><div className="bml-student-task bml-surface">
      <div className="bml-student-task-scroll asean-student-project" data-testid="student-task-scroll" role="region"
       aria-label={stage===0?T(language,'Mẫu chung của lớp','Class example content'):T(language,'Nội dung bài làm có thể cuộn','Scrollable project step content')} lang="en" ref={projectRef} tabIndex={0}>
-      {readOnly&&<p className="bml-workshop-readonly" role="status"><LockKeyhole size={16}/>Lesson complete · View only</p>}
+      {readOnly&&<p className="bml-workshop-readonly" role="status" lang={language}><LockKeyhole size={16} aria-hidden="true"/>
+       {T(language,'Bài học đã kết thúc · Chỉ xem','Lesson complete · View only')}
+      </p>}
       {stage===0?<>
        {(stageRecord||live?.stageIndex>0||readOnly)?<>
         <ClassVisitorModel language={language}/>
@@ -588,9 +603,11 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
         <p className="asean-response-closed" role="status" lang={language}>{T(language,'Nộp hai câu ở Bước 1 để mở mẫu chung.','Submit your two sentences in Step 1 to open the class example.')}</p>}
        <p className="asean-project-topic"><span>Your 3D project topic</span><strong>{destination?.name||session.assignment.title}</strong></p>
       </>:stage!==3&&!(stage===4&&captured)&&<>
-       {stage===5&&<p className="asean-exhibit-destination-label" lang={language}>{T(language,'Điểm đến của triển lãm','Exhibit destination')}</p>}
-       <h3 className="bml-workshop-draft-title">{destination?.name||session.assignment.title}</h3>
-       {destination&&<p className="asean-student-country">{destination.country}</p>}
+       <div className="asean-exhibit-heading">
+        {stage===5&&<p className="asean-exhibit-destination-label" lang={language}>{T(language,'Điểm đến của triển lãm','Exhibit destination')}</p>}
+        <h3 className="bml-workshop-draft-title">{destination?.name||session.assignment.title}</h3>
+        {destination&&<p className="asean-student-country">{destination.country}</p>}
+       </div>
       </>}
       {stage>=4&&captured&&<section className="asean-own-revision" data-testid="asean-own-revision">
        <h3 data-activity5-own={stage===4?true:undefined} tabIndex={stage===4?-1:undefined} lang={language}>
@@ -613,10 +630,10 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
         <summary>{T(language,'So sánh trước và sau khi sửa','Compare before and after revision')}</summary>
         {records.revisionDetails.map(({frame,v1,v2,photoChanged})=><div key={frame}>
          <h5>{frame}</h5>
-         {v1!==v2&&<>
-          <p><strong>{exhibitNames.first}</strong>{baseline?.reconstructed&&T(language,' (tham chiếu dựng lại)',' (reconstructed reference)')} · {v1||'No caption saved'}</p>
-          <p><strong>{exhibitNames.revised}</strong> · {v2||'No caption saved'}</p>
-         </>}
+         {v1!==v2&&<dl className="asean-comparison-captions">
+          <div><dt>{exhibitNames.first}{baseline?.reconstructed&&T(language,' (tham chiếu dựng lại)',' (reconstructed reference)')}</dt><dd>{v1||'No caption saved'}</dd></div>
+          <div><dt>{exhibitNames.revised}</dt><dd>{v2||'No caption saved'}</dd></div>
+         </dl>}
          {photoChanged&&<p>{T(language,'Ảnh ở khung này đã thay đổi trong bản chỉnh sửa.','This frame has a different photo in the revised exhibit.')}</p>}
         </div>)}
        </details>}
