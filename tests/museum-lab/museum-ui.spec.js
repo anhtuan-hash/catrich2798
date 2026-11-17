@@ -3180,7 +3180,7 @@ test('Student Creator Group 01: 100% draft but missing sources opens Submit and 
  await expect(app).toContainText('Submission is locked');
 });
 
-test('Public ASEAN catalogue lists ten published group rooms and opens a room from its card or link',async({page},testInfo)=>{
+test('Public ASEAN catalogue opens ten published rooms with artwork-specific quizzes',async({page},testInfo)=>{
  const titles=['Hội An','Tràng An','Angkor','Luang Prabang','Ayutthaya','Melaka','George Town','Singapore Botanic Gardens','Borobudur','Vigan'];
  const destinations=titles.map((title,index)=>({id:'exhibition-'+(index+1),title,groupLabel:'Nhóm '+String(index+1).padStart(2,'0')}));
  const collection={id:'asean-qa',slug:'asean-qa',title:'ASEAN in Three Frames',lesson_template:'asean-in-three-frames',status:'published',destinations};
@@ -3202,7 +3202,10 @@ test('Public ASEAN catalogue lists ten published group rooms and opens a room fr
   expect(request.postDataJSON()).toEqual({id:collection.id});
   return route.fulfill({json:{gallery:{...collection,rooms:destinations.map(destination=>({
    id:'room-'+destination.id,exhibition_id:destination.id,title:destination.title,
-   exhibits:[{id:'image-'+destination.id,kind:'image',title:'Place',description:destination.title,status:'published',image_url:poster}],
+   exhibits:[{
+    id:destination.id==='exhibition-10'?'137b69b5-af44-4ed8-99ce-37148fa56d23':'image-'+destination.id,
+    kind:'image',title:'Place',description:destination.title,status:'published',image_url:poster
+   }],
   }))}}});
  });
  await page.getByTestId('qa-dashboard-visitor').click();
@@ -3230,6 +3233,19 @@ test('Public ASEAN catalogue lists ten published group rooms and opens a room fr
  await expect(page).toHaveURL(/exhibition=exhibition-10$/);
  await cinema.getByRole('button',{name:'2D',exact:true}).click();
  await expect(cinema.getByTestId('museum-2d-exhibits')).toContainText('Vigan');
+ await cinema.getByRole('button',{name:'Explore exhibit 1: Place'}).click();
+ const inspector=cinema.getByTestId('museum-artwork-inspector');
+ const quiz=inspector.getByTestId('museum-photo-quiz');
+ await expect(quiz).toContainText('What is travelling down the middle of this historic street?');
+ await quiz.getByRole('button',{name:'A motorbike',exact:true}).click();
+ await expect(quiz.getByRole('status')).toHaveText('Try again.');
+ await quiz.getByRole('button',{name:'A horse-drawn carriage',exact:true}).click();
+ await expect(quiz.getByRole('status')).toContainText('Correct!');
+ await inspector.getByRole('button',{name:'Close',exact:true}).click();
+ await rooms.getByRole('button',{name:'01 · Hội An'}).click();
+ await cinema.getByRole('button',{name:'Explore exhibit 1: Place'}).click();
+ await expect(inspector.getByTestId('museum-photo-quiz')).toHaveCount(0);
+ await inspector.getByRole('button',{name:'Close',exact:true}).click();
  await cinema.getByRole('button',{name:'Close museum preview'}).click();
  await catalogue.getByRole('button',{name:'Open full exhibition'}).click();
  await expect(rooms.getByRole('button',{name:'01 · Hội An'})).toHaveClass(/is-active/);
