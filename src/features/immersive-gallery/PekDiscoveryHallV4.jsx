@@ -246,11 +246,11 @@ function LightShaft({x}){
  const mat=useRef(null);
  useFrame(({clock})=>{
   if(!mat.current)return;
-  mat.current.opacity=.16+Math.sin(clock.elapsedTime*1.3+x)*.05;
+  mat.current.opacity=.08+Math.sin(clock.elapsedTime*1.3+x)*.025;
  });
- return <mesh position={[x,3.35,-7.15]} rotation={[.22,0,0]}>
-  <cylinderGeometry args={[.08,.85,2.55,18,1,true]}/>
-  <meshBasicMaterial ref={mat} color="#FFF3C4" transparent opacity={.18} depthWrite={false}
+ return <mesh position={[x,4.35,-7.45]} rotation={[.7,0,0]}>
+  <cylinderGeometry args={[.03,.38,.9,16,1,true]}/>
+  <meshBasicMaterial ref={mat} color="#FFF6D8" transparent opacity={.1} depthWrite={false}
    side={THREE.DoubleSide} blending={THREE.AdditiveBlending} fog={false}/>
  </mesh>;
 }
@@ -266,107 +266,6 @@ function ArtworkSpotlight({x,lite}){
    color="#FFF3DA" intensity={lite?1.6:3.4}
    angle={.36} penumbra={.84} distance={7.3} decay={2}/>
  </group>;
-}
- const VISITOR_ROUTE=[[-2.1,-3.62],[-2.1,-4.02],[-.65,-4.02],[.65,-4.02],[2.1,-4.02],[2.1,-3.62],[0,-3.5]];
-const VISITOR_SEGS=(()=>{
- let total=0;
- const segs=VISITOR_ROUTE.map((a,i)=>{
-  const b=VISITOR_ROUTE[(i+1)%VISITOR_ROUTE.length];
-  const len=Math.hypot(b[0]-a[0],b[1]-a[1])||.0001;
-  const seg={a,b,len,start:total};
-  total+=len;
-  return seg;
- });
- return {segs,total};
-})();
-function routePoint(distance){
- const {segs,total}=VISITOR_SEGS;
- let d=((distance%total)+total)%total,s=segs[0];
- for(const item of segs){if(d<=item.start+item.len){s=item;break;}}
- const t=(d-s.start)/s.len;
- return {x:s.a[0]+(s.b[0]-s.a[0])*t,z:s.a[1]+(s.b[1]-s.a[1])*t,yaw:Math.atan2(s.b[0]-s.a[0],s.b[1]-s.a[1]),loop:total};
-}
-const VISITORS=[
- {offset:0,speed:.22,scale:.78,shirt:'#F7F4EC',trim:'#176D59',bottoms:'#243044',hair:'#2C2118',skin:'#F3C9A6',skirt:false,hairStyle:'short'},
- {offset:.25,speed:.2,scale:.74,shirt:'#F7F4EC',trim:'#176D59',bottoms:'#176D59',hair:'#1A120C',skin:'#E8B48A',skirt:true,hairStyle:'bob'},
- {offset:.5,speed:.21,scale:.8,shirt:'#F4F7F2',trim:'#0D5B45',bottoms:'#1E3A5F',hair:'#4A3020',skin:'#F6D3B4',skirt:false,hairStyle:'short'},
- {offset:.75,speed:.19,scale:.73,shirt:'#F7F4EC',trim:'#176D59',bottoms:'#176D59',hair:'#111111',skin:'#C9845A',skirt:true,hairStyle:'tail'}
-];
-function GalleryVisitor({visitor,still}){
- const ref=useRef(null),body=useRef(null),head=useRef(null);
- const legL=useRef(null),legR=useRef(null),armL=useRef(null),armR=useRef(null);
- const pose=(distance,step=0)=>{
-  const node=ref.current;if(!node)return;
-  const p=routePoint(distance);
-  node.position.set(p.x,0,p.z);
-  node.rotation.y=p.yaw;
-  const stride=step*.2;
-  if(body.current)body.current.position.y=Math.abs(step)*.012;
-  if(legL.current)legL.current.rotation.x=stride;
-  if(legR.current)legR.current.rotation.x=-stride;
-  if(armL.current)armL.current.rotation.x=-stride*.85;
-  if(armR.current)armR.current.rotation.x=stride*.85;
-  if(head.current){
-   let look=Math.PI-p.yaw;
-   while(look>Math.PI)look-=Math.PI*2;
-   while(look<-Math.PI)look+=Math.PI*2;
-   head.current.rotation.y=Math.max(-.4,Math.min(.4,look));
-  }
- };
- useEffect(()=>{
-  pose(visitor.offset*VISITOR_SEGS.total);
-  ref.current?.traverse(obj=>{obj.raycast=()=>{};});
- },[visitor.offset]);
- useFrame(({clock})=>{
-  if(still)return;
-  const step=Math.sin(clock.elapsedTime*visitor.speed*6+visitor.offset*9);
-  pose(clock.elapsedTime*visitor.speed+visitor.offset*VISITOR_SEGS.total,step);
- });
- const v=visitor,hairY=v.hairStyle==='bob'?0: .045,hairScale=v.hairStyle==='bob'?[1.05,.72,1.04]:[1.02,.5,1.02];
- return <group ref={ref} scale={v.scale} name="GalleryVisitor">
-  <mesh rotation={[-Math.PI/2,0,0]} position={[0,.012,0]}>
-   <circleGeometry args={[.16,16]}/><meshBasicMaterial color="#8A6844" transparent opacity={.14} depthWrite={false}/>
-  </mesh>
-  <group ref={body}>
-   <group ref={legL} position={[-.055,.46,0]}>
-    <mesh position={[0,-.16,0]}><cylinderGeometry args={[.042,.038,.32,10]}/><meshStandardMaterial color={v.skirt?'#F4EFE4':v.bottoms}/></mesh>
-    <mesh position={[0,-.34,.02]}><boxGeometry args={[.08,.04,.13]}/><meshStandardMaterial color="#2A241C"/></mesh>
-   </group>
-   <group ref={legR} position={[.055,.46,0]}>
-    <mesh position={[0,-.16,0]}><cylinderGeometry args={[.042,.038,.32,10]}/><meshStandardMaterial color={v.skirt?'#F4EFE4':v.bottoms}/></mesh>
-    <mesh position={[0,-.34,.02]}><boxGeometry args={[.08,.04,.13]}/><meshStandardMaterial color="#2A241C"/></mesh>
-   </group>
-   {v.skirt
-    ?<mesh position={[0,.5,0]}><cylinderGeometry args={[.075,.155,.44,16]}/><meshStandardMaterial color={v.trim} roughness={.66}/></mesh>
-    :<mesh position={[0,.5,0]}><cylinderGeometry args={[.09,.1,.16,12]}/><meshStandardMaterial color={v.bottoms}/></mesh>}
-   <mesh position={[0,.84,0]}><cylinderGeometry args={[.09,.115,.32,14]}/><meshStandardMaterial color={v.shirt} roughness={.62}/></mesh>
-   <mesh position={[0,.98,0]} scale={[1.28,.42,.82]}><sphereGeometry args={[.11,14,10]}/><meshStandardMaterial color={v.shirt}/></mesh>
-   <mesh position={[0,.78,.09]}><boxGeometry args={[.028,.16,.015]}/><meshStandardMaterial color={v.trim}/></mesh>
-   <mesh position={[0,1.05,0]}><cylinderGeometry args={[.04,.045,.07,8]}/><meshStandardMaterial color={v.skin}/></mesh>
-   <group ref={armL} position={[-.145,.96,0]}>
-    <mesh position={[0,-.11,0]}><cylinderGeometry args={[.028,.024,.2,8]}/><meshStandardMaterial color={v.shirt}/></mesh>
-    <mesh position={[0,-.22,0]}><sphereGeometry args={[.028,8,8]}/><meshStandardMaterial color={v.skin}/></mesh>
-   </group>
-   <group ref={armR} position={[.145,.96,0]}>
-    <mesh position={[0,-.11,0]}><cylinderGeometry args={[.028,.024,.2,8]}/><meshStandardMaterial color={v.shirt}/></mesh>
-    <mesh position={[0,-.22,0]}><sphereGeometry args={[.028,8,8]}/><meshStandardMaterial color={v.skin}/></mesh>
-   </group>
-   <mesh position={[0,.86,-.1]} scale={[.9,1.05,.42]}><sphereGeometry args={[.09,12,10]}/><meshStandardMaterial color={v.trim}/></mesh>
-   <group ref={head} position={[0,1.18,0]}>
-    <mesh><sphereGeometry args={[.095,20,16]}/><meshStandardMaterial color={v.skin} roughness={.5}/></mesh>
-    <mesh position={[0,hairY,-.01]} scale={hairScale}><sphereGeometry args={[.1,16,12]}/><meshStandardMaterial color={v.hair} roughness={.7}/></mesh>
-    {v.hairStyle==='tail'?<mesh position={[0,-.02,-.09]}><sphereGeometry args={[.035,10,8]}/><meshStandardMaterial color={v.hair}/></mesh>:null}
-    <mesh position={[-.032,.008,.082]} scale={[1,.72,1]}><sphereGeometry args={[.014,8,6]}/><meshStandardMaterial color="#243044"/></mesh>
-    <mesh position={[.032,.008,.082]} scale={[1,.72,1]}><sphereGeometry args={[.014,8,6]}/><meshStandardMaterial color="#243044"/></mesh>
-    <mesh position={[0,-.028,.084]} scale={[1,.45,.4]}><sphereGeometry args={[.016,8,6]}/><meshStandardMaterial color="#C46B62"/></mesh>
-   </group>
-  </group>
- </group>;
-}
-function GalleryVisitors({lite=false}){
- const still=typeof window!=='undefined'&&window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
- const people=lite?VISITORS.slice(0,2):VISITORS;
- return <group name="GalleryVisitors">{people.map((visitor,index)=><GalleryVisitor key={index} visitor={visitor} still={still}/>)}</group>;
 }
 export default function PekDiscoveryHallV4({lite=false}){
  const floor=useCanvasMap((ctx,w,h)=>{
@@ -459,7 +358,7 @@ export default function PekDiscoveryHallV4({lite=false}){
   </group>):null}
   <MuseumFurniture lite={lite}/>
   {/* Each bay gets a real plinth and warm indirect light. */}
-  {[-3,0,3].map((x,i)=><group key={i}>
+  {[-2.7,0,2.7].map((x,i)=><group key={i}>
    <mesh position={[x,.40,-7.92]}><boxGeometry args={[2.76,.13,.28]}/>
     <meshStandardMaterial color={GOLD} metalness={.51} roughness={.39}/></mesh>
    <mesh position={[x,4.62,-7.7]} rotation={[.5,0,0]}>
@@ -509,6 +408,5 @@ export default function PekDiscoveryHallV4({lite=false}){
    <GalleryRope from={BARRIER_ROPES[0][0]} to={BARRIER_ROPES[0][1]}/>
    <GalleryRope from={BARRIER_ROPES[1][0]} to={BARRIER_ROPES[1][1]}/>
   </group>:null}
-  <GalleryVisitors lite={lite}/>
  </group>;
 }

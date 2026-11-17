@@ -31,9 +31,12 @@ function CuratedModel({modelKey='globe',scale=1}) {
   return scene?<primitive object={scene} scale={scale}/>:<mesh scale={0.4}><octahedronGeometry/><meshStandardMaterial color="#a3b6ae"/></mesh>;
 }
 export {CuratedModel};
-function cinemaMount(aspect){
- const safe=Math.max(.55,Math.min(Number(aspect)||.78,1.9));
- const maxW=2.42,maxH=3.12;
+function cinemaPitch(count){
+ return Math.min(2.95,8.4/Math.max(count||1,1));
+}
+function cinemaMount(aspect,count=3){
+ const safe=Math.max(.55,Math.min(Number(aspect)||.78,1.85));
+ const maxW=Math.min(2.2,Math.max(1.2,cinemaPitch(count)-.5)),maxH=2.42;
  let imageW,imageH;
  if(safe>=1){imageW=maxW;imageH=imageW/safe;}
  else{imageH=maxH;imageW=Math.min(maxW,imageH*safe);imageH=imageW/safe;}
@@ -83,17 +86,18 @@ function ArtworkImage({assetId,imageUrl,schoolEdition=false,cinemaEdition=false,
   <meshBasicMaterial map={texture} toneMapped={false} side={THREE.DoubleSide} fog={false}/>
  </mesh>;
 }
-function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdition=false,index=0,
+function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdition=false,index=0,count=1,
  focus=FOCUS_IDLE,onFocusPhaseChange}) {
  const transform=useMemo(()=>normalizeTransform(exhibit.transform||{}),[exhibit.transform]);
- const position=cinemaEdition?
-  [Math.max(-3.2,Math.min(3.2,transform.position[0])),2.45,-7.68]:transform.position;
- const ref=useRef(null),motion=useRef({p:0,presenting:false,arrived:false,returned:false});
  const [aspect,setAspect]=useState(0);
  const reportAspect=useCallback(value=>{
   setAspect(prev=>Math.abs(prev-value)<.02?prev:value);
  },[]);
- const fitted=cinemaEdition?cinemaMount(aspect||.78):null;
+ const fitted=cinemaEdition?cinemaMount(aspect||.78,count):null;
+ const frameHalf=fitted?fitted.outer[1]/2:1.6;
+ const position=cinemaEdition?
+  [(index-(count-1)/2)*cinemaPitch(count),1.18+frameHalf,-7.68]:transform.position;
+ const ref=useRef(null),motion=useRef({p:0,presenting:false,arrived:false,returned:false});
  const {size,invalidate,camera,gl}=useThree();
  const isTarget=cinemaEdition&&focus.exhibitId===exhibit.id;
  const wall=useMemo(()=>({
@@ -440,7 +444,7 @@ function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=fa
   <directionalLight position={[1,7,3]} color={schoolEdition?'#FFF7E4':'#FFFFFF'} intensity={cinemaEdition?1.35:1.15}/>
   {cinemaEdition?<directionalLight position={[-5,2.4,1.2]} color="#FFF4D8" intensity={.7}/>:null}
   <Walls template={template} onTeleport={onTeleport} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} lite={lite}/>
-  {exhibits.slice(0,30).map((e,i)=><PaperArtwork key={e.id} exhibit={e} index={i} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition}
+  {exhibits.slice(0,30).map((e,i)=><PaperArtwork key={e.id} exhibit={e} index={i} count={Math.min(exhibits.length,30)} schoolEdition={schoolEdition} cinemaEdition={cinemaEdition}
    focus={focus} onFocusPhaseChange={onFocusPhaseChange} onSelect={onSelect}
    isSelected={selectedId===e.id||focus.exhibitId===e.id}/>)}
   {cinemaEdition&&focus.phase!=='idle'?<MuseumExhibitFocusRig focus={focus} board={focusBoard} onBack={onFocusBack} lite={lite}/>:null}
