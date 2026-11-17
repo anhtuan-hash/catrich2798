@@ -6,7 +6,7 @@ import React,{Suspense,useEffect,useMemo,useState} from 'react';
 import * as THREE from 'three';
 import {Canvas} from '@react-three/fiber';
 import {OrbitControls} from '@react-three/drei';
-import {ArrowLeft,ArrowRight,Image as ImageIcon,Pause,Play,RotateCcw} from 'lucide-react';
+import {ArrowLeft,ArrowRight,Image as ImageIcon,Pause,Play,RotateCcw,ZoomIn} from 'lucide-react';
 import {CuratedModel} from '../GalleryCanvasR3F.jsx';
 import './exhibit360.css';
 
@@ -141,7 +141,7 @@ function OrbitStage({exhibit,url,spin,yaw,reset,onImageError}){
    minPolarAngle={.16} maxPolarAngle={Math.PI-.16}/>
  </Canvas>;
 }
-export default function Exhibit360Viewer({exhibit,language='vi'}){
+export default function Exhibit360Viewer({exhibit,language='vi',editorial=false,onZoom}){
  const tr=(vi,en)=>language==='en'?en:vi;
  // An encoded 1024px artwork is usually far longer than 3,000 characters.
  // Never pass a truncated data URL to THREE.TextureLoader or the original 2D view.
@@ -157,7 +157,7 @@ export default function Exhibit360Viewer({exhibit,language='vi'}){
  const assetId=exhibit?.asset_id;
  const [resolvedUrl,setResolvedUrl]=useState(imageUrl);
  const [supportsWebGL,setSupportsWebGL]=useState(null);
- const [view,setView]=useState('3d'),[spin,setSpin]=useState(false);
+ const [view,setView]=useState(editorial?'2d':'3d'),[spin,setSpin]=useState(false);
  const [yaw,setYaw]=useState(0),[reset,setReset]=useState(0);
  const [loadError,setLoadError]=useState(false);
  useEffect(()=>{
@@ -176,16 +176,20 @@ export default function Exhibit360Viewer({exhibit,language='vi'}){
  const switchTo2D=()=>{setSpin(false);setView('2d');};
  const onImageError=React.useCallback(()=>setLoadError(true),[]);
  const inspect3D=view==='3d'&&supportsWebGL===true;
- return <div className="bml-exhibit-360" data-testid="exhibit-360-viewer">
-  <div className="bml-exhibit-360-toolbar" role="group" aria-label={tr('Chế độ quan sát tác phẩm','Exhibit viewing mode')}>
+ const originalButton=<button type="button" aria-pressed={view==='2d'||supportsWebGL===false}
+  onClick={switchTo2D}><ImageIcon size={15}/>{tr(editorial?'Ảnh gốc 2D':'Xem 2D','2D original')}</button>;
+ const toolbar=<div className="bml-exhibit-360-toolbar" role="group" aria-label={tr('Chế độ quan sát tác phẩm','Exhibit viewing mode')}>
+   {editorial?originalButton:null}
    <button type="button" aria-pressed={inspect3D} disabled={supportsWebGL===false}
     onClick={()=>{setView('3d');setLoadError(false);}}>{tr('Xem 360°','360° view')}</button>
-   <button type="button" aria-pressed={view==='2d'||supportsWebGL===false}
-    onClick={switchTo2D}><ImageIcon size={15}/>{tr('Xem 2D','2D original')}</button>
+   {!editorial?originalButton:null}
+   {onZoom?<button type="button" onClick={onZoom}><ZoomIn size={16}/>{tr('Phóng to','Zoom')}</button>:null}
    {inspect3D?<button type="button" aria-pressed={spin} onClick={()=>setSpin(v=>!v)}>
     {spin?<Pause size={15}/>:<Play size={15}/>}
     {spin?tr('Dừng xoay','Pause'):tr('Tự xoay','Auto rotate')}</button>:null}
-  </div>
+  </div>;
+ return <div className="bml-exhibit-360" data-testid="exhibit-360-viewer" data-view={inspect3D?'orbit':'original'}>
+  {!editorial?toolbar:null}
   <div className="bml-exhibit-360-stage" data-testid="exhibit-360-stage">
    {inspect3D?<Suspense fallback={<p>{tr('Đang tải góc nhìn 360°…','Preparing 360° view…')}</p>}>
     <OrbitStage exhibit={exhibit} url={resolvedUrl} spin={spin}
@@ -199,8 +203,9 @@ export default function Exhibit360Viewer({exhibit,language='vi'}){
       <p>{safeText(exhibit?.description,500)}</p>
       {supportsWebGL===false?<small>{tr('Thiết bị không hỗ trợ WebGL.','WebGL is unavailable on this device.')}</small>:null}
     </div>}
-   {supportsWebGL===null?<div className="bml-exhibit-360-wait">{tr('Đang kiểm tra thiết bị…','Checking device…')}</div>:null}
+   {view==='3d'&&supportsWebGL===null?<div className="bml-exhibit-360-wait">{tr('Đang kiểm tra thiết bị…','Checking device…')}</div>:null}
   </div>
+  {editorial?toolbar:null}
   {inspect3D?<div className="bml-exhibit-360-actions" role="group" aria-label={tr('Điều khiển góc nhìn','View controls')}>
    <button type="button" onClick={()=>setYaw(v=>v-Math.PI/6)} aria-label={tr('Xoay trái 30 độ','Rotate left 30 degrees')}><ArrowLeft size={16}/>{tr('Trái','Left')}</button>
    <button type="button" onClick={()=>{setYaw(0);setReset(n=>n+1);setSpin(false);}}><RotateCcw size={16}/>{tr('Đặt lại','Reset')}</button>
@@ -209,13 +214,13 @@ export default function Exhibit360Viewer({exhibit,language='vi'}){
   {loadError&&exhibit?.kind==='image'?<p className="bml-exhibit-360-error" role="status">
    {tr('Ảnh hiện không tải được. Có thể đường dẫn xem riêng tư đã hết hạn.','Image unavailable; the private viewing link may have expired.')}
   </p>:null}
-  <p className="bml-exhibit-360-help">
+  {!editorial||inspect3D?<><p className="bml-exhibit-360-help">
    {inspect3D?tr('Kéo để xoay quanh khung tranh 360°. Cuộn hoặc chụm để phóng to và thu nhỏ.','Drag to orbit 360° around the frame. Scroll or pinch to zoom.'):
     tr('Đây là ảnh gốc hoặc nội dung mô tả của hiện vật.','This is the original 2D image or exhibit description.')}
   </p>
   <p className="bml-exhibit-360-disclaimer">
    {tr('Đây là góc nhìn 3D quanh tác phẩm phẳng, không phải ảnh panorama 360° của cảnh bên trong tranh.',
         'This rotates around a flat artwork; it is not a 360° panorama of the scene inside the image.')}
-  </p>
+  </p></>:null}
  </div>;
 }

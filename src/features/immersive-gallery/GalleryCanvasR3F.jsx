@@ -268,6 +268,7 @@ function editorialRoomZ(aspect){
 function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=false,cinemaEdition=false,editorial=false}) {
  const {camera,gl,invalidate,size}=useThree();
  const yaw=useRef(0),pitch=useRef(0),drag=useRef(null),tween=useRef(null),walking=useRef(false);
+ const editorialAspect=editorial&&size.height?size.width/size.height:null;
  useEffect(()=>{
   // R3F default cameras look at the scene origin; a closer camera can then face
   // AWAY from the actual art wall. Set a known school-gallery orientation.
@@ -279,10 +280,10 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
   invalidate();
  },[camera,invalidate,schoolEdition,cinemaEdition]);
  useEffect(()=>{
-  if(!editorial||paused||walking.current||viewPreset||!size.width||!size.height)return;
-  camera.position.set(0,1.95,editorialRoomZ(size.width/size.height));
+  if(!editorialAspect||paused||walking.current||viewPreset)return;
+  camera.position.set(0,1.95,editorialRoomZ(editorialAspect));
   invalidate();
- },[camera,editorial,invalidate,paused,size.width,size.height,viewPreset]);
+ },[camera,editorialAspect,invalidate,paused,viewPreset]);
  useEffect(()=>{
   if(teleport?.length===2){camera.position.set(teleport[0],1.7,teleport[1]);invalidate();}
  },[camera,invalidate,teleport]);
@@ -292,14 +293,14 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
  // Viewpoint transitions are camera movement, not CSS resizing.
  useEffect(()=>{
   if(!cinemaEdition||!viewPreset)return;
-  const overviewZ=editorial?editorialRoomZ(camera.aspect):viewPreset.type==='room'?2.3:1.3;
+  const overviewZ=editorialAspect?editorialRoomZ(editorialAspect):viewPreset.type==='room'?2.3:1.3;
   const destination=viewPreset.type==='artwork'?
    [viewPreset.x??0,1.95,editorial&&viewPreset.x==null?Math.max(-3.65,overviewZ-2.4):-3.56]:[0,1.96,overviewZ];
   const reduce=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   tween.current={from:camera.position.clone(),to:new THREE.Vector3(...destination),
    elapsed:0,duration:reduce?0:(viewPreset.type==='artwork'?.62:.82)};
   invalidate();
- },[camera,invalidate,cinemaEdition,editorial,viewPreset]);
+ },[camera,invalidate,cinemaEdition,editorial,editorialAspect,viewPreset]);
  useEffect(()=>{
    const canvas=gl.domElement;
    const keyDown=e=>{
