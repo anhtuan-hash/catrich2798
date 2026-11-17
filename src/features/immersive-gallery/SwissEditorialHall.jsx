@@ -37,8 +37,8 @@ export function SwissArtworkLabel({title,index,width,position}){
  </group>;
 }
 
-export function useEditorialHallTextures(light=false){
- const plaster=useCanvasTexture((ctx,w,h)=>{
+export function useEditorialWallTexture(light=false){
+ return useCanvasTexture((ctx,w,h)=>{
   const wall=ctx.createLinearGradient(0,0,0,h);
   wall.addColorStop(0,light?'#c1b39f':'#a99d8d');wall.addColorStop(.34,light?'#e7d9c3':'#c3b7a7');wall.addColorStop(1,light?'#c5b8a4':'#a99c8c');
   ctx.fillStyle=wall;ctx.fillRect(0,0,w,h);
@@ -51,7 +51,10 @@ export function useEditorialHallTextures(light=false){
   }
   grain(ctx,w,h,8);
  },[1024,512],[light]);
- const concrete=useCanvasTexture((ctx,w,h)=>{
+}
+
+function useEditorialFloorTexture(){
+ return useCanvasTexture((ctx,w,h)=>{
   const floor=ctx.createLinearGradient(0,0,0,h);
   floor.addColorStop(0,'#665d50');floor.addColorStop(.14,'#b1a697');floor.addColorStop(.45,'#918779');floor.addColorStop(1,'#6b6358');
   ctx.fillStyle=floor;ctx.fillRect(0,0,w,h);
@@ -63,7 +66,6 @@ export function useEditorialHallTextures(light=false){
   }
   grain(ctx,w,h,23);
  },[768,768],[]);
- return {plaster,concrete};
 }
 
 export function SwissWallInscription({lines,width,height,position,rotation,name}){
@@ -84,7 +86,8 @@ export function SwissWallInscription({lines,width,height,position,rotation,name}
 }
 
 export default function SwissEditorialHall({roomNumber,roomTitle,exhibits,onTeleport,onRoomGuide,roomGuideLabel}){
- const {plaster,concrete}=useEditorialHallTextures();
+ const plaster=useEditorialWallTexture();
+ const concrete=useEditorialFloorTexture();
  const motto=useCanvasTexture((ctx,w,h)=>{
   ctx.fillStyle='#24402c';ctx.textBaseline='middle';
   ctx.font='700 88px Arial, sans-serif';

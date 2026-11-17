@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import JSZip from 'jszip';
 import {test,expect} from '@playwright/test';
 import {PerspectiveCamera,Vector3} from 'three';
+import {buildCollectionHall,collectionCameraView} from '../../src/features/immersive-gallery/swissCollectionLayout.js';
 test.beforeEach(async({page})=>{
  page.on('pageerror',error=>console.error('[museum-browser-pageerror]',error.stack||String(error)));
  page.on('console',msg=>{if(msg.type()==='error')console.error('[museum-browser-console]',msg.text());});
@@ -3415,7 +3416,10 @@ test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published 
  const controls=await cinema.getByTestId('museum-cinema-bottom-hud').boundingBox();
  expect(masthead.y+masthead.height).toBeLessThanOrEqual(stage.y+1);
  expect(controls.y+1).toBeGreaterThanOrEqual(stage.y+stage.height);
- const wallZ=await getCameraZ();
+ const layout=buildCollectionHall(destinations.length);
+ const overviewZ=index=>collectionCameraView(layout.bays[index],stage.width/stage.height,'room').camera[2];
+ const wallZ=overviewZ(0);
+ await expect.poll(getCameraZ).toBeCloseTo(wallZ,1);
  await cinema.getByRole('button',{name:'See the artwork'}).click();
  await expect.poll(getCameraZ).toBeLessThan(wallZ-.4);
  await cinema.getByRole('button',{name:'Full room view'}).click();
@@ -3434,7 +3438,7 @@ test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published 
  expect(await canvasIdentity.evaluate(el=>el.isConnected)).toBe(true);
  await expect.poll(getCameraZ).toBeLessThan(wallZ-.4);
  await cinema.getByRole('button',{name:'Full room view'}).click();
- await expect.poll(getCameraZ).toBeCloseTo(wallZ,1);
+ await expect.poll(getCameraZ).toBeCloseTo(overviewZ(1),1);
  await page.screenshot({path:testInfo.outputPath('asean-pek-trang-an-hall.png')});
  const roomCanvas=await canvas.boundingBox();
  const view=await page.evaluate(()=>window.__bmlMuseumFocusQA.camera);
@@ -3449,9 +3453,10 @@ test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published 
  await expect(guide).toBeVisible();
  await expect(guide.locator('header strong')).toHaveText('Tràng An');
  await expect(guide.locator('[lang="vi"]')).toHaveText([
-  'Thân thiện - Trách nhiệm - Hợp tác - Phát triển',
+  'Trường Trung - Tiểu học Pétrus Ký',
   'Trật tự, vệ sinh, văn minh, nề nếp',
-  'Mỗi thầy cô là một tấm gương sáng về nhân cách, đạo đức, lối sống, tự học và sáng tạo'
+  'Mỗi thầy cô là một tấm gương sáng về nhân cách, đạo đức, lối sống, tự học và sáng tạo',
+  'Thân thiện, trách nhiệm, hợp tác, phát triển'
  ]);
  await expect(guide.getByRole('button',{name:'Close information'})).toBeFocused();
  await page.keyboard.press('Escape');
@@ -3478,6 +3483,16 @@ test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published 
  await expect(plaque).toHaveCount(0,{timeout:12000});
  await expect.poll(async()=>(await artwork()).world[0]).toBeCloseTo(before.world[0],2);
  expect(await canvasIdentity.evaluate(el=>el.isConnected)).toBe(true);
+ for(const [name,index] of [['03 · Angkor',2],['06 · Melaka',5],['09 · Borobudur',8]]){
+  await rooms.getByRole('button',{name}).click();
+  await cinema.getByRole('button',{name:'Full room view'}).click();
+  const dest=collectionCameraView(layout.bays[index],stage.width/stage.height,'room').camera;
+  await expect.poll(()=>page.evaluate(expected=>{
+   const camera=window.__bmlMuseumFocusQA?.camera?.position;
+   return camera?Math.hypot(...camera.map((value,i)=>value-expected[i])):99;
+  },dest)).toBeLessThan(.10);
+  await page.screenshot({path:testInfo.outputPath('asean-frieze-wall-'+(layout.bays[index].wallIndex+1)+'.png')});
+ }
  await rooms.getByRole('button',{name:'02 · Tràng An'}).click();
  await cinema.getByRole('button',{name:'Previous collection'}).click();
  await expect(rooms.getByRole('button',{name:'01 · Hội An'})).toHaveAttribute('aria-current','true');
