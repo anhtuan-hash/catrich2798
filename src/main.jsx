@@ -549,7 +549,7 @@ function App() {
         }}
       >
         {currentRoute === 'home' ? <div className="halloween-home-scene" aria-hidden="true" style={{ display: 'none' }} /> : null}
-        {!['homeroom-portal', 'classroom-join', 'board-live', 'slideshow', 'gallery-create'].includes(currentRoute) ? <div className="bes-top-chrome">
+        {!publicMuseum && !['homeroom-portal', 'classroom-join', 'board-live', 'slideshow', 'gallery-create'].includes(currentRoute) ? <div className="bes-top-chrome">
           {currentRoute !== 'quest-join' && <>
             <Suspense fallback={null}>
               <StatusMenuBar route={currentRoute} {...context} />

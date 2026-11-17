@@ -254,6 +254,8 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
    const allVisible=mine.length>0&&mine.every(g=>visibleSecrets[g.id]&&secrets[g.id]);
    const activeGroup=mine.find(group=>group.id===pickedGroup)||mine[0];
    const activeLabel=language==='en'?englishSystemGroupLabel(activeGroup?.label):activeGroup?.label;
+   const publicExhibit=data?.publicReadOnly&&data.publishedGalleries?.find(gallery=>gallery.assignment_id===a.id)
+    ?.destinations?.find(destination=>destination.groupLabel===activeGroup?.label);
    const activeTicket=activityCards.find(ticket=>ticket.group_id===activeGroup?.id);
    const activeAnswer=typeof activeTicket?.value==='string'?activeTicket.value:JSON.stringify(activeTicket?.value);
    const canRotate=activeGroup&&!frozen&&canManagePasscodes&&['issued','editing','changes_requested'].includes(activeGroup.state);
@@ -341,7 +343,12 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
             ) : data?.publicReadOnly ? (
               <p className="bml-muted">{tr(language,'Chưa có câu trả lời đã lưu cho nhóm này.','No saved response is available for this group.')}</p>
             ) : null}
-        {!data?.offlineReadOnly && !data?.publicReadOnly && activeGroup.invite_handle && (
+            {publicExhibit && (
+              <div className="bml-lesson-qr-access">
+                <MuseumGroupQr exhibitionId={publicExhibit.id} groupLabel={activeLabel} language={language} />
+              </div>
+            )}
+            {!data?.offlineReadOnly && !data?.publicReadOnly && activeGroup.invite_handle && (
               <div className="bml-lesson-qr-access">
                 <MuseumGroupQr
                   handle={activeGroup.invite_handle}
