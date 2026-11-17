@@ -15,7 +15,7 @@ const applyAssetChange=(assets,oldId,newAsset)=>[
  ...(assets||[]).filter(a=>a.id!==oldId&&a.id!==newAsset?.id),
  ...(newAsset?[newAsset]:[])
 ];
-export default function MuseumArtworkStudio({studio,update,saveArtwork=update,csrf,disabled=false,uploadEnabled=false,language='vi',onAssets,onBusy,lessonTemplate,frameEditor}){
+export default function MuseumArtworkStudio({studio,update,saveArtwork=update,csrf,disabled=false,uploadEnabled=false,language='vi',onAssets,onBusy,lessonTemplate,frameEditor,compactCredits=false}){
  const asean=isAsean(lessonTemplate);
  const labels=asean?ASEAN_FRAMES.map(f=>[f.key,f.label]):LABELS;
  const [assets,setAssets]=useState(null),[busySlot,setBusySlot]=useState(null),[error,setError]=useState(''),[notice,setNotice]=useState('');
@@ -109,7 +109,22 @@ export default function MuseumArtworkStudio({studio,update,saveArtwork=update,cs
    const preview=pending?.key===key?pending:null;
    const imageUrl=preview?.url||asset?.image_url,filename=preview?.name||asset?.original_name;
    const uploadStatus=preview?.uploading?t('Đang tải lên…','Uploading…'):t('Đang xử lý…','Processing…');
-   return <div className="bml-artwork-slot" key={key}>
+   const meta=studio.artMeta?.[key];
+   const creditMissing=['alt','source','rights'].some(field=>!String(meta?.[field]||'').trim());
+   const creditFields=id&&<div className="bml-art-meta">
+    {[
+     ['alt',t('Mô tả ảnh / Alt text','Alt text'),500],
+     ['source',t('Nguồn ảnh / Source','Image source'),600],
+     ['rights',t('Quyền sử dụng / Permission','Usage permission'),300]
+    ].map(([field,fieldLabel,max])=><label key={field}>
+     {fieldLabel}{field==='source'?' · Required for submission':''}
+     <input maxLength={max} disabled={disabled} value={meta?.[field]||''}
+      placeholder={field==='source'?'Actual creator, class group, teacher or source URL':undefined}
+      onChange={e=>{const value=e.target.value;update(d=>({...d,artMeta:{...normalizeArtMeta(d.artMeta),[key]:{...normalizeArtMeta(d.artMeta)[key],[field]:value}}}));}}/>
+    </label>)}
+    {!String(meta?.source||'').trim()&&<p className="bml-artwork-source-required" role="status">Image source is missing. Name the actual creator of this image. For work made by the group, say so; for teacher-provided or third-party art, credit its real origin. Do not invent a source.</p>}
+   </div>;
+   return <div className="bml-artwork-slot" key={key} data-artwork-frame={compactCredits?key:undefined} tabIndex={compactCredits?-1:undefined}>
     <strong>{label}</strong>
     {!asean?<details className="bml-student-exhibit">
      <summary>{t('Viết prompt và kiểm duyệt poster','Write and check your poster prompt')}</summary>
@@ -132,8 +147,10 @@ export default function MuseumArtworkStudio({studio,update,saveArtwork=update,cs
     </label>
     {preview?<span className="bml-artwork-caption" role="status">{t('Xem trước trên thiết bị. Ảnh đang được lưu vào kho riêng tư.','Local preview. Saving to private storage.')}</span>:null}
     {frameEditor?.(key)}
-    {id?<div className="bml-art-meta">{[['alt',t('Mô tả ảnh / Alt text','Alt text')],['source',t('Nguồn ảnh / Source','Image source')],['rights',t('Quyền sử dụng / Permission','Usage permission')]].map(([f,label])=><label key={f}>{label}{f==='source'?' · Required for submission':''}<input maxLength={f==='alt'?500:f==='source'?600:300} disabled={disabled} value={studio.artMeta?.[key]?.[f]||''} placeholder={f==='source'?'Actual creator, class group, teacher or source URL':undefined} onChange={e=>{const value=e.target.value;update(d=>({...d,artMeta:{...normalizeArtMeta(d.artMeta),[key]:{...normalizeArtMeta(d.artMeta)[key],[f]:value}}}));}}/></label>)}{!String(studio.artMeta?.[key]?.source||'').trim()?
-    <p className="bml-artwork-source-required" role="status">Image source is missing. Name the actual creator of this image. For work made by the group, say so; for teacher-provided or third-party art, credit its real origin. Do not invent a source.</p>:null}</div>:null}
+    {id&&compactCredits?<details className="asean-build-credits">
+     <summary>{creditMissing?'Add photo credit and usage details':'Photo credit and usage details'}</summary>
+     {creditFields}
+    </details>:creditFields}
     {id&&asset?<button type="button" className="bml-outline" disabled={disabled||!!busySlot} onClick={()=>remove(key)}>
       <Trash2 size={16}/>{t('Xóa ảnh','Remove image')}</button>:null}
    </div>;})}</div>

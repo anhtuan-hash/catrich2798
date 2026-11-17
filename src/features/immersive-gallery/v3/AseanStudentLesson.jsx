@@ -255,27 +255,38 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
   if(projectRef.current)projectRef.current.scrollTop=0;
  },[stage]);
  const startActivity=()=>{setActivityStarted(true);setBannerExpanded(false);};
- const focusWithin=element=>{
+ const focusWithin=(element,block='nearest')=>{
   element?.focus({preventScroll:true});
-  element?.scrollIntoView({block:'nearest'});
+  element?.scrollIntoView({block});
  };
  const browseActivity=next=>{startActivity();if(next!==stage)setReview(next);};
  const moveActivity=next=>{browseActivity(next);focusWithin(lessonRef.current);};
  const focusStudio=()=>{
   startActivity();
-  studioRef.current?.focus({preventScroll:true});
-  if(!projectRef.current)return;
-  if(getComputedStyle(projectRef.current).overflowY==='auto')projectRef.current.scrollTop=0;
-  else studioRef.current?.scrollIntoView({block:'nearest'});
+  requestAnimationFrame(()=>{
+   const project=projectRef.current,editor=studioRef.current;
+   if(!project||!editor)return;
+   editor.focus({preventScroll:true});
+   if(getComputedStyle(project).overflowY==='auto'&&project.scrollHeight>project.clientHeight)project.scrollTop=0;
+   else editor.querySelector('.asean-studio-title')?.scrollIntoView({block:'start'});
+  });
  };
  const stageRecord=records.rows.find(item=>item.stage_index===stage)?.value;
- const frames=ASEAN_FRAMES.map(frame=>({...frame,ready:!missing.some(item=>item.startsWith(frame.label+' '))}));
+ const frames=ASEAN_FRAMES.map(frame=>({
+  ...frame,
+  needsPhoto:missing.includes(frame.label+' photo'),
+  ready:!missing.some(item=>item.startsWith(frame.label+' ')),
+ }));
+ const missingPhotos=frames.filter(frame=>frame.needsPhoto);
  const readyFrames=frames.filter(frame=>frame.ready).length;
+ const buildPhotoTask=missingPhotos.length
+  ?T(language,'Bổ sung ảnh cho các khung sau','Add photos for these frames')+': '+missingPhotos.map(frame=>frame.label).join(', ')+'.'
+  :T(language,'Ba ảnh của nhóm đã có trong triển lãm.','Your three photos are already in place.');
  const draftStatus=dirty?T(language,'Có thay đổi chưa lưu','Unsaved changes'):
   missing.length?Number(version)>0
    ?T(language,'Đã lưu bản nháp · Còn thiếu mục','Draft saved · Some items are still missing')
    :T(language,'Còn thiếu nội dung hoặc nguồn','Some build requirements are still missing'):
-  Number(version)>0?T(language,'Đã lưu, sẵn sàng tham quan','Saved and ready for the visitor test'):
+  Number(version)>0?T(language,'Đã lưu bản nháp · Sẵn sàng cho lượt tham quan thử','Draft saved · Ready for the visitor test'):
   T(language,'Đủ nội dung · Hãy lưu bản nháp','All requirements met · Save your draft');
  const projectStatus=stage===1
   ?stageRecord?T(language,'Đã nộp kế hoạch','Plan submitted'):T(language,'Chưa nộp kế hoạch','Plan not submitted')
@@ -288,7 +299,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
  const save=async()=>{
   const out=await guestRequest('save','PUT',{draft:document,expectedVersion:version},session.csrf);
   setVersion(out.version);setDirty(false);
-  setNotice(stage===2&&!missing.length?'Draft saved. The latest saved draft becomes V1 when your teacher opens Activity 4.':'Exhibit draft saved.');
+  if(stage!==2)setNotice('Exhibit draft saved.');
   return out.version;
  };
  const action=async operation=>{
@@ -355,12 +366,21 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
       <div className="bml-live-student-question">
        <p className="bml-question-eyebrow">Period {current.period} · Activity {stage+1} / {ASEAN_STAGES.length} · {current.minutes} min</p>
        <h2 id="asean-student-activity-title">{stage===0?'1. Write about '+aseanWritingCard(session.groupLabel).title:design.studentTitle}</h2>
-       <p>{stage===0
+       <p lang={stage===2?language:undefined}>{stage===0
         ?'Write one thing a visitor can do and one piece of advice. Submit both sentences, then discuss the class example and answer its three questions in Step 2.'
         :stage===5
         ?reportTask+' Submit your final exhibit in the project panel. Use the transfer card below to write two sentences.'
-        :stage===4?revisionTask:design.studentTask}</p>
+        :stage===4?revisionTask:stage===2?buildPhotoTask:design.studentTask}</p>
       </div>
+      {stage===2&&<div className="asean-build-instructions" lang={language}>
+       {editable&&<ol>
+        <li>{T(language,'Chỉnh sửa triển lãm. Rà ba chú thích tiếng Anh (20–30 từ mỗi khung), nguồn ảnh và nguồn dữ kiện.',design.studentTask)}</li>
+        <li>{T(language,'Xem thử phòng 3D và lưu bản nháp nếu có thay đổi.','Preview your exhibit in 3D and save any changes.')}</li>
+       </ol>}
+       <button type="button" className="bml-primary" onClick={focusStudio}><Box size={18}/>
+        {editable?T(language,'Chỉnh sửa triển lãm','Edit your exhibit'):T(language,'Xem lại triển lãm','Review your exhibit')}
+       </button>
+      </div>}
       {isWritingActivity&&<GroupResponse key={stage} session={{...session,readOnly}} stage={stage} live={live} open={liveOpen}
        record={stageRecord} refreshLive={refreshLive} refreshRecords={refreshRecords}
        transferNeedsResubmission={stage===5&&records.transferNeedsResubmission}/>}
@@ -370,7 +390,6 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        <a href={'https://commons.wikimedia.org/wiki/Special:MediaSearch?type=image&search='+encodeURIComponent(destination.name)} target="_blank" rel="noreferrer">Find candidate photographs</a>
       </div>}
       {stage===1&&<p>Complete all three steps in the project panel, then select Submit exhibit plan.</p>}
-      {stage===2&&<button type="button" className="bml-primary" onClick={focusStudio}><Box size={18}/> Open the 3D Studio</button>}
      </section>
      {live?.stageIndex===stage&&live.media?.voiceEnabled&&<MuseumVoiceover stage={current} language="en" compact/>}
      {live?.stageIndex===stage&&Boolean(live.media?.videos?.length||live.media?.query)&&<MuseumVideoLab mode="student" language="en" stage={current} stageIndex={stage} media={live.media} readOnly={readOnly}/>}
@@ -436,11 +455,15 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        {stage===5&&records.staffRetest&&<p><strong>Staff check (teacher reference)</strong> · {records.staffRetest.score}/1 · {records.staffRetest.answer}</p>}
       </section>}
       {workshopVisible&&!(stage===4&&captured)&&<section className="asean-student-studio" ref={studioRef} tabIndex={-1} data-testid="asean-3d-studio">
-       <h4 className="asean-studio-title">{stage===2?'3D Studio':stage===4?'Revise your 3D exhibit':'Submit your 3D exhibit'}</h4>
-       {stage===2&&<section className="asean-build-checklist" aria-label="Exhibit progress">
-        <ul>{frames.map(({key,label,ready})=><li key={key} data-ready={ready}>
-         <strong>{label}</strong> <span>{ready?'Ready':'Incomplete'}</span>
+       <h4 className="asean-studio-title">{stage===2?T(language,'Ba khung triển lãm','Your three frames'):stage===4?'Revise your 3D exhibit':'Submit your 3D exhibit'}</h4>
+       {stage===2&&<section className="asean-build-checklist" aria-label={T(language,'Tiến độ triển lãm','Exhibit progress')} lang={language}>
+        <ul>{frames.map(({key,label,ready,needsPhoto})=><li key={key} data-ready={ready}>
+         <button type="button" onClick={()=>focusWithin(studioRef.current?.querySelector('[data-artwork-frame="'+key+'"]'),'start')}>
+          <strong>{label}</strong>
+          <span>{needsPhoto?T(language,'Thiếu ảnh','Photo needed'):ready?T(language,'Đã đủ','Ready'):T(language,'Cần bổ sung','Details needed')}</span>
+         </button>
         </li>)}</ul>
+        {missing.includes('Factual source')&&<p className="asean-build-source-needed">{T(language,'Cần bổ sung nguồn dữ kiện.','Add the source for your fact.')}</p>}
         {missing.length>0&&<details><summary>What’s still needed ({missing.length})</summary>
          <ul className="asean-build-missing">{missing.map(item=><li key={item}>{item}</li>)}</ul>
         </details>}
@@ -450,6 +473,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        {stage===4&&records.feedback&&<p><strong>Feedback received</strong> {records.feedback.comment}</p>}
        {stage!==5&&<MuseumArtworkStudio studio={studio} update={edit} csrf={session.csrf} language="en" disabled={!editable||busy}
         uploadEnabled={session.uploadEnabled||readOnly} onAssets={setAssets} onBusy={setImageBusy} lessonTemplate={session.assignment.lesson_template}
+        compactCredits={stage===2}
         frameEditor={key=>captionEditor(ASEAN_FRAMES.find(frame=>frame.key===key))}/>}
        {stage!==5&&<label className="bml-full-field">Factual source <input value={studio.learning.source} maxLength={600} disabled={!editable||busy} onChange={e=>field('source',e.target.value)}/></label>}
        {stage!==5&&<div className="asean-studio-save">
@@ -481,7 +505,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        {planSubmitting?T(language,'Đang nộp…','Submitting…'):T(language,'Nộp kế hoạch triển lãm','Submit exhibit plan')}
       </button>}
       {stage===2&&<>
-       <p className="asean-build-status" role="status">{draftStatus}</p>
+       <p className="asean-build-status" role="status"><strong>{draftStatus}</strong></p>
        {error&&<p className="bml-banner bml-danger-banner asean-build-status" role="alert">{error}</p>}
        <button type="button" className="bml-primary asean-workshop-action"
         disabled={!editable||busy||imageBusy||(!dirty&&(missing.length>0||Number(version)>0))} onClick={()=>action('save')}>
@@ -490,8 +514,11 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
       </>}
       {(stage!==1||photoCount>0)&&<button type="button" className={stage===1||stage===2?'bml-outline asean-workshop-action':'bml-primary'}
        disabled={busy||imageBusy||!photoCount} onClick={()=>action('preview')}>
-       <Box size={18}/>{stage===0?T(language,'Xem trước triển lãm của nhóm','Preview your exhibit'):T(language,'Xem trước 2D/3D','Preview 2D/3D')}
+       <Box size={18}/>{stage===0||stage===2?T(language,'Xem thử triển lãm','Preview your exhibit'):T(language,'Xem trước 2D/3D','Preview 2D/3D')}
       </button>}
+      {stage===2&&<p className="asean-build-status asean-build-next">
+       {T(language,'Khi giáo viên mở Hoạt động 4, bản nháp đã lưu mới nhất sẽ là V1 cho lượt tham quan thử.','When your teacher opens Activity 4, the latest saved draft becomes V1 for the visitor test.')}
+      </p>}
      </footer>}
     </div></div>
    </div>

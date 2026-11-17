@@ -38,7 +38,7 @@ export const ASEAN_ACTIVITY_DESIGN = [
   id: 'build',
   title: ['Dựng triển lãm 3D của nhóm', 'Build your group’s 3D exhibit'],
   studentTitle: 'Build your group’s 3D exhibit',
-  studentTask: 'Upload three photos, write a 20–30-word English caption for each, and add credits and a source for your fact. Preview the room and save your draft. When your teacher opens Activity 4, the latest saved draft becomes V1 for the visitor test.',
+  studentTask: 'Edit your exhibit. Check the three English captions (20–30 words each), the photo credits and the source for your fact.',
   steps: [
    [5, 'Mở QR và làm mẫu một khung trong xưởng', 'Open the join QR and model one frame in the studio'],
    [10, 'Viết ba chú thích tiếng Anh, mỗi đoạn 20–30 từ', 'Write three English captions of 20–30 words each'],

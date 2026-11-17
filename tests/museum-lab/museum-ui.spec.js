@@ -1761,11 +1761,12 @@ test('ASEAN student workshop uses the Climate layout for all six ASEAN activitie
  await expect(studio.getByRole('textbox',{name:/Place caption/})).toBeEditable();
  await expect(project.getByRole('region',{name:'Exhibit progress'})).toBeVisible();
  await expect(project.getByText('0 / 3 frames ready',{exact:true})).toBeVisible();
+ await expect(lesson.getByText('Add photos for these frames: Place, Experience, Visitor Advice.')).toBeVisible();
  await expect(project.locator('footer').getByRole('button',{name:'Save draft',exact:true})).toBeVisible();
- await expect(project.locator('footer').getByRole('button',{name:'Preview 2D/3D',exact:true})).toBeVisible();
+ await expect(project.locator('footer').getByRole('button',{name:'Preview your exhibit',exact:true})).toBeDisabled();
  const before=await lesson.boundingBox();
  await page.screenshot({path:testInfo.outputPath('asean-workshop-expanded.png')});
- await lesson.getByRole('button',{name:'Open the 3D Studio'}).click();
+ await lesson.getByRole('button',{name:'Edit your exhibit',exact:true}).click();
  await expect(studio).toBeFocused();
  await expect(ribbon).toBeHidden();
  const [lessonBox,projectBox]=await Promise.all([lesson.boundingBox(),project.boundingBox()]);
@@ -1777,6 +1778,8 @@ test('ASEAN student workshop uses the Climate layout for all six ASEAN activitie
   expect(await project.getByTestId('student-task-scroll').evaluate(el=>el.scrollHeight>el.clientHeight)).toBe(true);
  }
  await page.screenshot({path:testInfo.outputPath('asean-workshop-focused.png')});
+ await project.getByRole('button',{name:'Experience Photo needed'}).click();
+ await expect(studio.locator('[data-artwork-frame="evidence"]')).toBeFocused();
  const titles=['1. Write about My Son Sanctuary','Choose photographs with a purpose','Build your group’s 3D exhibit',
   'Visit another group’s exhibit','Make one evidence-based change','Present and submit your work'];
  for(let i=0;i<2;i++)await lesson.getByRole('button',{name:'Previous activity'}).click();
@@ -1811,6 +1814,64 @@ test('ASEAN student workshop uses the Climate layout for all six ASEAN activitie
  await expect(root.getByTestId('asean-student-slide-5')).toBeVisible({timeout:10000});
  await expect(studio.getByRole('textbox',{name:/Place caption/})).toBeDisabled();
  await expect(studio.getByLabel('Upload photo for Place')).toBeDisabled();
+});
+
+test('ASEAN Build reuses three saved photos and links frame details to the draft workflow',async({page},testInfo)=>{
+ const assignment={id:'qa-asean-build',title:'ASEAN in Three Frames',class_scope:'11-QA',lesson_template:'asean-in-three-frames'};
+ const keys=['issue','evidence','solution'];
+ const caption='From the riverbank, visitors can see the old trading houses and follow the narrow streets that connect the market to the bridge.';
+ let version=7;
+ let draft={
+  artworks:Object.fromEntries(keys.map((key,index)=>[key,'c78d4bba-2808-4efe-9ac7-f904bc3b100'+(index+1)])),
+  artMeta:Object.fromEntries(keys.map(key=>[key,{alt:'Historic town',source:'Photo credit',rights:'CC BY-SA 4.0'}])),
+  learning:{issue:caption,evidence:caption,solution:caption,source:'https://whc.unesco.org/en/list/948/'}
+ };
+ await page.route('**/api/gallery-guest?**',route=>{
+  const operation=new URL(route.request().url()).searchParams.get('operation');
+  if(operation==='me')return route.fulfill({json:{assignment,groupLabel:'Nhóm 01',groupState:'editing',uploadEnabled:true,csrf:'qa-build'}});
+  if(operation==='save'){
+   const body=route.request().postDataJSON();
+   expect(body.expectedVersion).toBe(7);
+   draft=body.draft;
+   return route.fulfill({json:{version:++version}});
+  }
+  return route.fulfill({json:{draft,version}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>{
+  const operation=new URL(route.request().url()).searchParams.get('operation');
+  return route.fulfill({json:operation==='asean-records'?{rows:[],checkpoints:[]}:
+   {session:{id:'qa-asean-live',stageIndex:2,status:'active',stageOpen:true}}});
+ });
+ await page.route('**/api/gallery-guest/artwork?**',route=>route.fulfill({
+  json:{assets:Object.values(draft.artworks).map(id=>({id,original_name:'Test photo.png',image_url:'/museum/swiss-editorial/hero-petrus-ky-facade.png'}))}
+ }));
+ await page.getByTestId('qa-student-en').click();
+ const root=page.getByTestId('asean-student-lesson');
+ const footer=root.getByRole('region',{name:'Group Project',exact:true}).locator('footer');
+ const save=footer.getByRole('button',{name:'Save draft',exact:true});
+ await expect(root.getByText('Your three photos are already in place.')).toBeVisible();
+ await expect(footer.getByText('Draft saved · Ready for the visitor test')).toBeVisible();
+ await expect(footer.getByText(/latest saved draft becomes V1/)).toBeVisible();
+ await expect(footer.getByRole('button',{name:'Preview your exhibit'})).toBeEnabled();
+ await expect(save).toBeDisabled();
+ await root.getByRole('button',{name:'Edit your exhibit',exact:true}).click();
+ const progress=root.getByRole('region',{name:'Exhibit progress'});
+ await expect(progress.getByRole('button')).toHaveCount(3);
+ await expect(progress).toBeInViewport();
+ await page.screenshot({path:testInfo.outputPath('asean-build-ready.png')});
+ await progress.getByRole('button',{name:'Place Ready'}).click();
+ const frame=root.locator('[data-artwork-frame="issue"]');
+ const credit=frame.getByRole('textbox',{name:/Image source/});
+ await expect(frame).toBeFocused();
+ await expect(credit).toBeHidden();
+ await frame.getByText('Photo credit and usage details',{exact:true}).click();
+ await expect(credit).toHaveValue('Photo credit');
+ await frame.getByRole('textbox',{name:/Place caption/}).fill(caption+' Read the signs.');
+ await expect(footer.getByText('Unsaved changes')).toBeVisible();
+ await save.click();
+ await expect(footer.getByText('Draft saved · Ready for the visitor test')).toBeVisible();
+ expect(draft.learning.issue).toBe(caption+' Read the signs.');
+ expect(Object.values(draft.artworks).filter(Boolean)).toHaveLength(3);
 });
 
 test('ASEAN plan submits from the fixed project action bar',async({page})=>{
