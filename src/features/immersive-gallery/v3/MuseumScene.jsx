@@ -9,6 +9,8 @@ import './museumExhibitFocus.css';
 import {FOCUS_IDLE,focusReducer,focusActive} from './museumExhibitFocusMotion.js';
 import {buildExhibitFocusBoard} from './museumExhibitFocusData.js';
 import MuseumSurveyChart from './MuseumSurveyChart.jsx';
+import MuseumPhotoQuiz from './MuseumPhotoQuiz.jsx';
+import {museumPhotoQuiz} from './museumPhotoQuizData.js';
 const GalleryCanvas=lazy(()=>import('../GalleryCanvasR3F.jsx'));
 const Exhibit360Viewer=lazy(()=>import('./Exhibit360Viewer.jsx'));
 const clean=(x,n=180)=>String(x??'').slice(0,n);
@@ -146,6 +148,7 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
  },[fullPoster?.id]);
  const selectedIndex=exhibits.findIndex(e=>e.id===selectedId);
  const insight=selected?exhibitInsights(gallery,selected,selectedIndex):null;
+ const selectedQuiz=museumPhotoQuiz(selected);
  const focusSelectedIndex=exhibits.findIndex(e=>e.id===focus.exhibitId);
  const focusSelected=focusSelectedIndex>=0?exhibits[focusSelectedIndex]:null;
  const focusBoard=useMemo(()=>focusSelected?
@@ -332,6 +335,7 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
       <Exhibit360Viewer key={selected.id} exhibit={selected} language={language}/>
      </Suspense>
      <p className="bml-article-copy">{clean(insight?.message,2500)||tr('Chưa có thuyết minh.','No description yet.')}</p>
+     {selectedQuiz?<MuseumPhotoQuiz key={selected.id} quiz={selectedQuiz} language={language}/>:null}
      <section className="bml-exhibit-lens" aria-label="Exhibit evidence and context" data-testid="museum-exhibit-evidence">
       <header><Info size={18}/><div><strong>{insight?.label||'Exhibit'} · Evidence & context</strong>
        <small>Explore the source, limitations and revision where recorded.</small></div></header>

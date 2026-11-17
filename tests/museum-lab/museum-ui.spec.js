@@ -3180,7 +3180,9 @@ test('Student Creator Group 01: 100% draft but missing sources opens Submit and 
  await expect(app).toContainText('Submission is locked');
 });
 
-test('Public ASEAN catalogue lists ten published group rooms and opens a room from its card or link',async({page},testInfo)=>{
+test('V5 Cinema and 2D show the photo quiz for the matching published ASEAN artwork',async({page},testInfo)=>{
+ test.setTimeout(90000);
+ await page.emulateMedia({reducedMotion:'reduce'});
  const titles=['Hội An','Tràng An','Angkor','Luang Prabang','Ayutthaya','Melaka','George Town','Singapore Botanic Gardens','Borobudur','Vigan'];
  const destinations=titles.map((title,index)=>({id:'exhibition-'+(index+1),title,groupLabel:'Nhóm '+String(index+1).padStart(2,'0')}));
  const collection={id:'asean-qa',slug:'asean-qa',title:'ASEAN in Three Frames',lesson_template:'asean-in-three-frames',status:'published',destinations};
@@ -3202,7 +3204,10 @@ test('Public ASEAN catalogue lists ten published group rooms and opens a room fr
   expect(request.postDataJSON()).toEqual({id:collection.id});
   return route.fulfill({json:{gallery:{...collection,rooms:destinations.map(destination=>({
    id:'room-'+destination.id,exhibition_id:destination.id,title:destination.title,
-   exhibits:[{id:'image-'+destination.id,kind:'image',title:'Place',description:destination.title,status:'published',image_url:poster}],
+   exhibits:[{
+    id:destination.id==='exhibition-10'?'137b69b5-af44-4ed8-99ce-37148fa56d23':'image-'+destination.id,
+    kind:'image',title:'Place',description:destination.title,status:'published',image_url:poster
+   }],
   }))}}});
  });
  await page.getByTestId('qa-dashboard-visitor').click();
@@ -3228,8 +3233,35 @@ test('Public ASEAN catalogue lists ten published group rooms and opens a room fr
  await expect(rooms.getByRole('button')).toHaveCount(10);
  await expect(rooms.getByRole('button',{name:'10 · Vigan'})).toHaveClass(/is-active/);
  await expect(page).toHaveURL(/exhibition=exhibition-10$/);
+ await cinema.getByRole('button',{name:'Inspect Place',exact:true}).click();
+ const plaque=cinema.getByTestId('museum-focus-stage');
+ await expect(plaque).toHaveAttribute('data-focus-phase','focused',{timeout:15000});
+ await plaque.getByRole('button',{name:'Photo quiz'}).click({timeout:15000});
+ const plaqueQuiz=plaque.getByTestId('museum-photo-quiz');
+ await expect(plaqueQuiz).toBeVisible();
+ await plaqueQuiz.getByRole('button',{name:'A horse-drawn carriage',exact:true}).click();
+ await expect(plaqueQuiz.getByRole('status')).toContainText('Correct!');
+ await page.screenshot({path:testInfo.outputPath('asean-photo-quiz-3d.png')});
+ await plaque.getByRole('button',{name:'Read caption'}).click();
+ await expect(plaque.getByTestId('museum-focus-description')).toBeVisible();
+ await expect(plaqueQuiz).toBeHidden();
+ await plaque.getByRole('button',{name:'Back to wall'}).click();
+ await expect(plaque).toHaveCount(0,{timeout:12000});
  await cinema.getByRole('button',{name:'2D',exact:true}).click();
  await expect(cinema.getByTestId('museum-2d-exhibits')).toContainText('Vigan');
+ await cinema.getByRole('button',{name:'Explore exhibit 1: Place'}).click();
+ const inspector=cinema.getByTestId('museum-artwork-inspector');
+ const quiz=inspector.getByTestId('museum-photo-quiz');
+ await expect(quiz).toContainText('What is travelling down the middle of this historic street?');
+ await quiz.getByRole('button',{name:'A motorbike',exact:true}).click();
+ await expect(quiz.getByRole('status')).toHaveText('Try again.');
+ await quiz.getByRole('button',{name:'A horse-drawn carriage',exact:true}).click();
+ await expect(quiz.getByRole('status')).toContainText('Correct!');
+ await inspector.getByRole('button',{name:'Close',exact:true}).click();
+ await rooms.getByRole('button',{name:'01 · Hội An'}).click();
+ await cinema.getByRole('button',{name:'Explore exhibit 1: Place'}).click();
+ await expect(inspector.getByTestId('museum-photo-quiz')).toHaveCount(0);
+ await inspector.getByRole('button',{name:'Close',exact:true}).click();
  await cinema.getByRole('button',{name:'Close museum preview'}).click();
  await catalogue.getByRole('button',{name:'Open full exhibition'}).click();
  await expect(rooms.getByRole('button',{name:'01 · Hội An'})).toHaveClass(/is-active/);
@@ -3295,6 +3327,7 @@ test('Published cards survive a failure of the separate showcase catalogue reque
 
 test('V5 Cinema physically detaches the SAME 3D artwork, displays only real evidence, and exactly restores wall pose',async({page,isMobile},testInfo)=>{
  if(isMobile)return;
+ test.setTimeout(120000);
  await page.setViewportSize({width:1536,height:864});
  const fixtures=["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAABICAIAAAA/EeF8AAAAtElEQVR4nO3aIQ6DQBBAUZZwr4paRAWu58NVVNQiOAt3qMFUNGlIk+5fsQ1D8p+CrNjP2CGtz6WJpN074JtBJFxQt32599ddIi6P8fMcbkIGEYNIuKAufzxMc/Urb+dT5vRoE3rLf1O5knmHm5BBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIkXboH9szX452oRqbcrKhZuQQSRcUPKXL2AQCRf0AkV7EkHU/73DAAAAAElFTkSuQmCC","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAABICAIAAAA/EeF8AAAAtklEQVR4nO3aMQ6CQBBAUZZwHQsrDuJNaK1pvYkHsaLgCNzBhsbCxBAT92+xhiH5r4JssZ9ph7Q+lyaSdu+AbwaRcEHd9uV8fewSMY395znchAwiBpFwQV3+eL5dql95Gu6Z06NN6C3/TeVK5h1uQgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIFG2D/rE1++VoE6q1KSsXbkIGkXBByV++gEEkXNALMNsSQZN/v8kAAAAASUVORK5CYII=","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAABICAIAAAA/EeF8AAAAtElEQVR4nO3aIQ6DQBBAUZZwloqeCl+LrETW1vdUCCx3qMFUNGlIk+5fsQ1D8p+CrNjP2CGtz6WJpN074JtBJFxQt30536+7REyX8fMcbkIGEYNIuKAufzwPj+pXnm595vRoE3rLf1O5knmHm5BBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIkXboH9szX452oRqbcrKhZuQQSRcUPKXL2AQCRf0Ali7EkEcileqAAAAAElFTkSuQmCC"];
  const ids=['aaa00000-0000-4000-8000-000000000001','aaa00000-0000-4000-8000-000000000002','aaa00000-0000-4000-8000-000000000003'];

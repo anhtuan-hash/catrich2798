@@ -1,4 +1,5 @@
 import {exhibitInsights} from './museumExhibitInsights.js';
+import {museumPhotoQuiz} from './museumPhotoQuizData.js';
 const clean=(s,max=2500)=>String(s??'').replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,max);
 const stripDates=source=>source; // Source citations must remain verbatim, never erase bibliographic years.
 export function buildExhibitFocusBoard(gallery,exhibit,index){
@@ -16,7 +17,7 @@ export function buildExhibitFocusBoard(gallery,exhibit,index){
   eyebrow:'EXHIBIT INSPECTION',title:clean(exhibit?.title||insight.label||'Exhibit',160),
   description,source:source||'Source not provided',
   hasRecordedSource:!!source,
-  survey,improvement:clean(insight.improvement,1200),
+  survey,quiz:museumPhotoQuiz(exhibit),improvement:clean(insight.improvement,1200),
   imageSource:clean(insight.imageSource,600),imageRights:clean(insight.imageRights,300),
   alt:clean(exhibit?.alt_text||exhibit?.title,300),
   // Never include image_url, asset_id, group ids or timestamps on the board DTO.

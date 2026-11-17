@@ -59,6 +59,9 @@
 }
 .bml .bml-v5-step button:hover:not(:disabled){background:#215744}
 .bml .bml-v5-step button:disabled{opacity:.35;cursor:default}
+.bml .bml-v5-plaque-actions{
+ flex:0 0 auto;display:flex;justify-content:center;gap:6px;
+}
 .bml .bml-v5-back{
  flex:0 0 auto;align-self:center;cursor:pointer;
  display:flex;align-items:center;justify-content:center;gap:10px;
@@ -68,6 +71,8 @@
  font:800 13.5px/1 system-ui,sans-serif;
  box-shadow:0 2px 0 #D1C4AC;
 }
+.bml .bml-v5-plaque-actions .bml-v5-quiz-toggle{background:#17362c;color:#fff5d9}
+.bml .bml-v5-plaque-actions .bml-v5-quiz-toggle:hover:not(:disabled){background:#215744}
 .bml .bml-v5-back:hover:not(:disabled){background:#E6F2E7}
 .bml .bml-v5-back:disabled{opacity:.55;cursor:default}
 .bml .bml-v5-back:focus-visible,.bml .bml-v5-details:focus-visible,
@@ -109,6 +114,7 @@
  .bml .bml-v5-plaque-scroll{font-size:11px;line-height:1.35}
  .bml .bml-v5-plaque-source{font-size:10px}
  .bml .bml-v5-back{min-height:34px;font-size:11px;margin-top:5px;padding:7px 10px}
+ .bml .bml-v5-plaque-actions:has(.bml-v5-quiz-toggle) .bml-v5-back{gap:4px;padding-inline:6px;font-size:10px}
  .bml .bml-museum-cinema .bml-v5-focus-status{left:9px;top:60px;max-width:62%;font-size:11px}
  .bml .bml-museum-cinema .bml-v5-focus-back{left:auto;right:9px;bottom:79px;padding:10px 12px}
 }
