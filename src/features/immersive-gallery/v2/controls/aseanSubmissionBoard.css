@@ -1,0 +1,288 @@
+.igv2 .swiss-editorial-live-submissions {
+  --submission-paper: #faf8f1;
+  --submission-ink: #141414;
+  --submission-red: #c21825;
+  --submission-pad: clamp(12px, 1.55vw, 24px);
+  container-type: inline-size;
+  background: var(--submission-paper);
+  color: var(--submission-ink);
+  border: 1px solid var(--submission-ink);
+  margin-block: 14px 8px;
+  font-family: var(--igv2-font-family);
+}
+
+.igv2 .swiss-editorial-live-submissions :is(h3, h4, p, dl, dd) {
+  margin: 0;
+  color: inherit;
+}
+
+.igv2 .asean-submissions-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px 18px;
+  position: relative;
+  margin-inline: var(--submission-pad);
+  padding-block: var(--submission-pad);
+  border-bottom: 2px solid var(--submission-ink);
+}
+
+.igv2 .asean-submissions-heading::after {
+  content: '';
+  position: absolute;
+  inset: auto auto -4px 0;
+  width: 31%;
+  height: 6px;
+  background: var(--submission-red);
+}
+
+.igv2 .swiss-editorial-live-submissions .asean-submissions-overline {
+  margin-bottom: .5em;
+  font-size: clamp(.74rem, 1.35cqw, 1.15rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .014em;
+}
+
+.igv2 .swiss-editorial-live-submissions .asean-submissions-heading h3 {
+  color: var(--submission-ink);
+  font-size: clamp(1.72rem, 5.15cqw, 5.15rem);
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -.062em;
+  text-wrap: balance;
+}
+
+.igv2 .asean-submissions-tally {
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+  text-align: end;
+  font-weight: 800;
+}
+
+.igv2 .asean-submissions-tally strong,
+.igv2 .asean-submissions-score strong {
+  font-size: clamp(1.55rem, 4cqw, 4rem);
+  line-height: .98;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.06em;
+}
+
+.igv2 .asean-submissions-tally span,
+.igv2 .asean-submissions-score span {
+  font-size: clamp(.73rem, 1.4cqw, 1.15rem);
+  line-height: 1.25;
+}
+
+.igv2 .asean-submissions-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 32fr) minmax(0, 68fr);
+}
+
+.igv2 .asean-submissions-index,
+.igv2 .asean-submissions-reader {
+  min-width: 0;
+  padding: var(--submission-pad);
+}
+
+.igv2 .asean-submissions-index {
+  border-inline-end: 1px solid var(--submission-ink);
+}
+
+.igv2 .swiss-editorial-live-submissions .asean-submissions-index h4 {
+  color: var(--submission-ink);
+  font-size: clamp(1rem, 2.3cqw, 2rem);
+  font-weight: 900;
+  letter-spacing: -.035em;
+  text-transform: uppercase;
+}
+
+.igv2 .asean-submissions-numbers {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: clamp(12px, 2.35cqw, 32px);
+}
+
+.igv2 .asean-submissions-numbers button {
+  min-width: 0;
+  min-height: 42px;
+  aspect-ratio: 1;
+  padding: 0 2px;
+  background: transparent;
+  color: var(--submission-ink);
+  border: 1px solid var(--submission-ink);
+  border-radius: 0;
+  font: 900 clamp(.95rem, 2.45cqw, 2.45rem)/1 var(--igv2-font-family, sans-serif);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.igv2 .asean-submissions-numbers button:hover {
+  border-color: var(--submission-red);
+  color: var(--submission-red);
+}
+
+.igv2 .asean-submissions-numbers button[aria-pressed="true"] {
+  background: var(--submission-red);
+  border-color: var(--submission-red);
+  color: #fff;
+}
+
+.igv2 .asean-submissions-numbers button:focus-visible {
+  outline: 2px solid var(--submission-ink);
+  outline-offset: 2px;
+}
+
+.igv2 .asean-submissions-reader > [hidden] {
+  display: none;
+}
+
+.igv2 .asean-submissions-reader-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: clamp(10px, 1.35cqw, 18px);
+}
+
+.igv2 .swiss-editorial-live-submissions .asean-submissions-reader-heading h4 {
+  color: var(--submission-ink);
+  font-size: clamp(1.55rem, 4.45cqw, 4.65rem);
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -.055em;
+  overflow-wrap: anywhere;
+}
+
+.igv2 .swiss-editorial-live-submissions .asean-submissions-reader-heading p {
+  margin-top: .5em;
+  font-size: .9rem;
+}
+
+.igv2 .asean-submissions-score {
+  display: grid;
+  justify-items: center;
+  min-width: min(28%, 7.2rem);
+  padding: 8px clamp(7px, 1.45cqw, 22px);
+  gap: 3px;
+  color: var(--submission-ink);
+  border: 1px solid currentColor;
+  font-weight: 850;
+  text-align: center;
+}
+
+.igv2 .asean-submissions-score[data-scored="true"] {
+  border-color: var(--submission-red);
+  background: var(--submission-red);
+  color: #fff;
+}
+
+.igv2 .asean-submissions-score span {
+  text-transform: uppercase;
+}
+
+.igv2 .asean-submissions-response {
+  border-top: 1px solid var(--submission-ink);
+}
+
+.igv2 .asean-submissions-response > div {
+  display: grid;
+  grid-template-columns: minmax(0, 24fr) minmax(0, 76fr);
+  border-bottom: 1px solid var(--submission-ink);
+}
+
+.igv2 .asean-submissions-response :is(dt, dd) {
+  padding-block: clamp(9px, 1.25cqw, 17px);
+  overflow-wrap: anywhere;
+}
+
+.igv2 .asean-submissions-response dt {
+  padding-inline-end: 8px;
+  font-size: clamp(.7rem, 1.4cqw, 1.25rem);
+  font-weight: 850;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.igv2 .asean-submissions-response dd {
+  padding-inline-start: clamp(8px, 1.45cqw, 22px);
+  border-inline-start: 1px solid var(--submission-ink);
+  font-size: clamp(.96rem, 1.9cqw, 1.7rem);
+  line-height: 1.3;
+  font-weight: 650;
+}
+
+.igv2 .asean-submissions-response ol {
+  margin: 0;
+  padding-inline-start: 1.35em;
+}
+
+.igv2 .asean-submissions-empty {
+  border-top: 1px solid var(--submission-ink);
+  padding-block: .85em;
+}
+
+.igv2 .asean-submissions-grading {
+  margin-top: 16px;
+}
+
+.igv2 .asean-submissions-grading fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px 12px;
+  border: 1px solid var(--submission-ink);
+}
+
+.igv2 .asean-submissions-grading label {
+  display: inline-flex;
+  gap: 5px;
+  align-items: baseline;
+}
+
+@container (max-width: 790px) {
+  .igv2 .asean-submissions-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .igv2 .asean-submissions-index {
+    border-inline-end: 0;
+    border-bottom: 1px solid var(--submission-ink);
+  }
+
+  .igv2 .asean-submissions-numbers {
+    grid-template-columns: repeat(5, minmax(0, 54px));
+    margin-top: 9px;
+  }
+}
+
+@container (max-width: 440px) {
+  .igv2 .asean-submissions-heading {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .igv2 .asean-submissions-tally {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    text-align: start;
+  }
+
+  .igv2 .asean-submissions-response > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .igv2 .asean-submissions-response dt {
+    padding-block-end: 0;
+  }
+
+  .igv2 .asean-submissions-response dd {
+    padding-block-start: 4px;
+    padding-inline-start: 0;
+    border-inline-start: 0;
+  }
+}
