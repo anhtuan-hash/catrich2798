@@ -63,7 +63,9 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   const [activeTool,setActiveTool]=useState(null),[qr,setQr]=useState('');
   const [motionOn,setMotionOn]=useState(savedPreference.current?.motionOn!==false);
   const [previewPresentation,setPreviewPresentation]=useState(null);
-  const [isFullscreen,setIsFullscreen]=useState(false);
+  const [nativeFullscreen,setNativeFullscreen]=useState(false);
+  const [fullscreenFallback,setFullscreenFallback]=useState(false);
+  const isFullscreen=nativeFullscreen||fullscreenFallback;
   const [spotlight,setSpotlight]=useState(null),[time,setTime]=useState(Date.now());
   const [studioGroupId,setStudioGroupId]=useState('');
   const [workbookOpen,setWorkbookOpen]=useState(false);
@@ -79,8 +81,17 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   },[assignmentId,transport,readOnly,browseIndex]);
   useEffect(()=>{activeRef.current=true;refresh();const id=window.setInterval(()=>{refresh();setTime(Date.now());},readOnly?15000:3000);return()=>{activeRef.current=false;window.clearInterval(id);};},[refresh]);
   useEffect(()=>{
-    const sync=()=>{const active=document.fullscreenElement===stageRef.current;setIsFullscreen(active);if(!active)setActiveTool(null);};
-    document.addEventListener('fullscreenchange',sync);return()=>document.removeEventListener('fullscreenchange',sync);
+    const sync=()=>{
+      const active=Boolean(stageRef.current&&(document.fullscreenElement||document.webkitFullscreenElement)===stageRef.current);
+      setNativeFullscreen(active);
+      if(!active)setActiveTool(null);
+    };
+    document.addEventListener('fullscreenchange',sync);
+    document.addEventListener('webkitfullscreenchange',sync);
+    return()=>{
+      document.removeEventListener('fullscreenchange',sync);
+      document.removeEventListener('webkitfullscreenchange',sync);
+    };
   },[]);
   useEffect(()=>{if(activeTool!=='qr')return;setQr('');let active=true;import('qrcode').then(({default:QR})=>QR.toDataURL(lessonLink,{width:220,margin:2})).then(url=>{if(active)setQr(url);}).catch(()=>{});return()=>{active=false;};},[activeTool,lessonLink]);
   const slideOnly=Boolean(contentFrozenAt&&!historicalSession);
@@ -213,12 +224,24 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   };
   const compareGroup=async groupId=>transport('checkpoint-compare',null,{assignmentId,groupId});
   const fullscreen=async()=>{
+    if(fullscreenFallback){setFullscreenFallback(false);setActiveTool(null);return;}
     try{
-      if(document.fullscreenElement===stageRef.current)await document.exitFullscreen?.();
-      else if(document.fullscreenElement)await document.exitFullscreen?.();
-      else if(stageRef.current?.requestFullscreen)await stageRef.current.requestFullscreen();
+      const stageElement=stageRef.current;
+      if(!stageElement)return;
+      const active=document.fullscreenElement||document.webkitFullscreenElement;
+      if(active){
+        const exit=document.exitFullscreen||document.webkitExitFullscreen;
+        await exit?.call(document);
+        return;
+      }
+      const enter=stageElement.requestFullscreen||stageElement.webkitRequestFullscreen;
+      if(enter){await enter.call(stageElement);return;}
+      if(asean)setFullscreenFallback(true);
       else setError(t(language,'Trình duyệt không hỗ trợ chế độ toàn màn hình.','Fullscreen mode is unavailable in this browser.'));
-    }catch(e){setError(t(language,'Không thể mở toàn màn hình. Hãy cho phép chế độ toàn màn hình trên trình duyệt.','Fullscreen was blocked. Please enable it in your browser.'));}
+    }catch{
+      if(asean)setFullscreenFallback(true);
+      else setError(t(language,'Không thể mở toàn màn hình. Hãy cho phép chế độ toàn màn hình trên trình duyệt.','Fullscreen was blocked. Please enable it in your browser.'));
+    }
   };
   const toggleTool=key=>{if(data?.offlineReadOnly&&key==='qr')return;setActiveTool(cur=>cur===key?null:key);};
   useEffect(()=>{
@@ -230,6 +253,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
       if(tag==='button'&&e.key===' ')return;
       const key=e.key.toLowerCase();
       if(key==='escape'&&activeTool){e.preventDefault();setActiveTool(null);return;}
+      if(key==='escape'&&fullscreenFallback){e.preventDefault();setFullscreenFallback(false);return;}
       if(key==='arrowright'&&currentIndex<stages.length-1){e.preventDefault();act('next');}
       else if(key==='arrowleft'&&currentIndex>0){e.preventDefault();act('previous');}
       else if(key==='v'){e.preventDefault();toggleTool('voice');}
@@ -239,7 +263,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
       else if(key===' '&&!readOnly){e.preventDefault();act(session?.status==='paused'?'resume':'pause');}
     };
     window.addEventListener('keydown',handle);return()=>window.removeEventListener('keydown',handle);
-  },[isFullscreen,activeTool,busy,currentIndex,session?.version,session?.status,act,readOnly,stages.length]);
+  },[isFullscreen,fullscreenFallback,asean,activeTool,busy,currentIndex,session?.version,session?.status,act,readOnly,stages.length]);
   const respondedCount=displayedStageLoaded&&Array.isArray(state?.responses)?state.responses.length:null;
   const survey=state?.survey;
   const surveyOptions=displayedStageLoaded&&state?.result?.options;
@@ -267,7 +291,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   const exitResponses=stage?.kind==='exit'&&serverIndex===currentIndex&&Array.isArray(state?.responses)
     ?state.responses.filter(r=>r.stage_index===currentIndex||stage?.kind==='exit').slice(0,30):[];
   const toolbar=session?<TeacherToolbar offline={!!data?.offlineReadOnly} language={language} readOnly={readOnly} busy={busy} session={session} currentIndex={currentIndex} stageCount={stages.length}
-    motionOn={motionOn} activeTool={activeTool}
+    motionOn={motionOn} activeTool={activeTool} presentationActive={asean&&isFullscreen}
     onChangeCompletion={canManageLesson&&(historicalSession||contentFrozenAt)?changeCompletion:undefined}
     completed={Boolean(contentFrozenAt)}
     onBack={onBack} onPrevious={()=>act('previous')} onNext={()=>act('next')} onToggleTask={()=>act(session.stageOpen?'close':'open')}

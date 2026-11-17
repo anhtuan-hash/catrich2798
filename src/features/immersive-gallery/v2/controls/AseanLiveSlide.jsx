@@ -1,7 +1,6 @@
 import React from 'react';
 import {ArrowRight, QrCode} from 'lucide-react';
-import AseanDiscussionPhoto from '../../v3/AseanDiscussionPhoto.jsx';
-import AseanActivityArt from '../../v3/AseanActivityArt.jsx';
+import AseanPresenterVisual from './AseanPresenterVisual.jsx';
 import {ASEAN_ACTIVITY_DESIGN, ASEAN_DISCUSSION_MODEL} from '../../v3/aseanActivityDesign.js';
 import {ASEAN_HUE_CORRECT, ASEAN_HUE_QUESTIONS} from '../../v3/aseanHueQuestions.js';
 import {ASEAN_FRAMES} from '../../v3/aseanLesson.js';
@@ -91,22 +90,23 @@ export default function AseanLiveSlide({currentIndex, language, revealed, onJoin
  const build = slide.id === 'build';
  return <article key={slide.id} className={'asean-live-slide asean-live-slide--'+slide.id} data-testid={'asean-slide-'+(currentIndex+1)}>
   <h2 className="asean-slide-heading">{slide.title[lang]}</h2>
-  {highlights?.length>0&&<dl className="asean-slide-highlights" aria-label={en?'Class progress':'Tiến độ của lớp'}>
-   {highlights.map(({label,count,extra})=><div key={label}><dt>{label}</dt><dd>{count}{extra&&<small>{' '}{extra}</small>}</dd></div>)}
-  </dl>}
   <div className="asean-slide-body">
    <div className="asean-slide-visual">
-    {currentIndex===0?<><AseanDiscussionPhoto language={language}/><HueModel key={String(revealed)} en={en} revealed={revealed}/></>:
-     <AseanActivityArt activity={slide.id} language={en?'en':'vi'}/>}
+    <AseanPresenterVisual key={slide.id} activity={slide.id} language={language}/>
+    {currentIndex===0&&<HueModel key={String(revealed)} en={en} revealed={revealed}/>}
     {contextCard}
    </div>
    <section className="asean-slide-plan" aria-labelledby="asean-student-task-heading">
     <h3 id="asean-student-task-heading" className="asean-slide-section-title">{en?'On the student screen':'Trên màn hình học sinh'}</h3>
     <ol className="asean-slide-student-actions">
-     {studentActions[currentIndex].map(([vi, title, detailVi, detail])=><li key={title}>
-      <div><strong>{en?title:vi}</strong><p>{en?detail:detailVi}</p></div>
+     {studentActions[currentIndex].map(([vi, title])=><li key={title}>
+      <strong>{en?title:vi}</strong>
      </li>)}
     </ol>
+    <details className="asean-slide-disclosures asean-slide-instructions">
+     <summary>{en?'Student instructions':'Hướng dẫn chi tiết cho học sinh'}</summary>
+     <ol>{studentActions[currentIndex].map(([,title,detailVi,detail])=><li key={title}>{en?detail:detailVi}</li>)}</ol>
+    </details>
     <details className="asean-slide-disclosures">
      <summary>{en?'Teacher pacing':'Phân bổ thời gian cho giáo viên'}</summary>
      <ol className="asean-slide-timing" aria-label={en?'Activity timing':'Phân bổ thời gian'}>
@@ -115,6 +115,9 @@ export default function AseanLiveSlide({currentIndex, language, revealed, onJoin
     </details>
    </section>
   </div>
+  {highlights?.length>0&&<dl className="asean-slide-highlights" aria-label={en?'Class progress':'Tiến độ của lớp'}>
+   {highlights.map(({label,count,extra})=><div key={label}><dt>{label}</dt><dd>{count}{extra&&<small>{' '}{extra}</small>}</dd></div>)}
+  </dl>}
   <div className="asean-slide-end">
    <div className="asean-slide-output"><strong>{en?'Group output':'Sản phẩm nhóm'}</strong><p>{slide.output[lang]}</p></div>
    {build&&(onJoin||onStudioHelp||draftTools)&&<div className="asean-slide-actions">

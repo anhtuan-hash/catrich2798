@@ -1,4 +1,4 @@
-import React,{forwardRef} from 'react';
+import React,{forwardRef,useEffect,useRef} from 'react';
 import {X,Minimize2} from 'lucide-react';
 import MuseumScene from '../../v3/MuseumScene.jsx';
 import StageArt from './StageArt.jsx';
@@ -38,12 +38,22 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
     ?t(language,'ĐANG MỞ HOẠT ĐỘNG','TASK OPEN')
     :t(language,'HOẠT ĐỘNG CHƯA MỞ','TASK CLOSED');
   const hasLessonSlide=Boolean(MUSEUM_ACTIVITY_SLIDES[stage?.id]);
-  const focusedLayout=false;
+  const asean=stage?.kind==='asean';
+  const isPresenting=asean&&isFullscreen;
+  const scrollRegion=useRef(null);
+  useEffect(()=>{
+    if(isPresenting)scrollRegion.current?.focus({preventScroll:true});
+  },[isPresenting]);
+  useEffect(()=>{
+    if(isPresenting&&scrollRegion.current)scrollRegion.current.scrollTop=0;
+  },[isPresenting,currentIndex]);
   const videoLayout=Boolean(curriculumNode&&view==='video');
   return (
-    <section className={'stage adv-stage adv-stage--paper'+(hasLessonSlide?' adv-p2-slide':'')+(videoLayout?' adv-p2-video':'')} ref={ref} data-testid="igv2-teacher-live-stage"
+    <section className={'stage adv-stage adv-stage--paper'+(hasLessonSlide?' adv-p2-slide':'')+(videoLayout?' adv-p2-video':'')+(asean?' adv-stage--asean':'')+(isPresenting?' is-presenting':'')} ref={ref} data-testid="igv2-teacher-live-stage"
       aria-label={t(language,'Sân khấu hoạt động lớp học trực tiếp','Live classroom activity stage')}>
-      {isFullscreen?<button type="button" className="adv-stage-exit-fullscreen" onClick={onExitFullscreen} aria-label={t(language,'Thoát toàn màn hình','Exit fullscreen')}><Minimize2 size={13}/> {t(language,'Thoát','Exit')}</button>:null}
+      {isFullscreen&&!asean?<button type="button" className="adv-stage-exit-fullscreen" onClick={onExitFullscreen} aria-label={t(language,'Thoát toàn màn hình','Exit fullscreen')}><Minimize2 size={13}/> {t(language,'Thoát','Exit')}</button>:null}
+      <div className="adv-slide-scroll" ref={scrollRegion} role={isPresenting?'region':undefined}
+        tabIndex={isPresenting?0:undefined} aria-label={isPresenting?t(language,'Nội dung slide có thể cuộn','Scrollable slide content'):undefined}>
       <header className="adv-live-mast">
         <h1>{t(language,'Giảng dạy','Teacher Live')}</h1>
         <label className="adv-live-picker">
@@ -93,13 +103,14 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
           </>
         )}
       </div>
-      <div className="adv-stage-bottom">
+      </div>
+      <div className={'adv-stage-bottom'+(asean?' adv-stage-bottom--asean':'')}>
         <strong className="adv-stage-timer" aria-label={readOnly?'Review mode':t(language,'Thời gian còn lại','Time remaining')}>{readOnly?'00:00':fmtClock(remaining)}</strong>
         <span className="adv-live-status" data-open={taskOpen&&!readOnly?'true':'false'} title={readOnly?frozenReason:undefined}><i/>{statusLabel}</span>
-        <span>{progressLabel??(respondedCount!=null?`${respondedCount} ${t(language,'phản hồi nhóm','group responses')}`:'')}</span>
+        {!asean&&<span>{progressLabel??(respondedCount!=null?`${respondedCount} ${t(language,'phản hồi nhóm','group responses')}`:'')}</span>}
       </div>
       {isFullscreen&&fullscreenControls?<div className="adv-stage-fullscreen-controls" data-testid="museum-fullscreen-viewer-controls"
-        style={{position:'absolute',zIndex:30,left:12,right:12,bottom:8,padding:'8px 10px',background:'#fffdf8',color:'#111',border:'1.5px solid #111'}}>
+        style={asean?undefined:{position:'absolute',zIndex:30,left:12,right:12,bottom:8,padding:'8px 10px',background:'#fffdf8',color:'#111',border:'1.5px solid #111'}}>
         {fullscreenControls}
       </div>:null}
       {isFullscreen&&fullscreenPanel?<div className="adv-stage-fullscreen-panel" data-testid="museum-fullscreen-viewer-panel"
