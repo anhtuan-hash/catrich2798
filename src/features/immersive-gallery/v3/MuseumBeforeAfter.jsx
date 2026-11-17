@@ -1,7 +1,7 @@
 import React,{useMemo,useState} from 'react';
 import {ArrowLeftRight,CheckCircle2,ClipboardCheck,Image as ImageIcon,Info} from 'lucide-react';
 import {changedExhibits,normalizeArtMeta} from './learningEvidence.js';
-import {ASEAN_EXHIBIT_NAMES,ASEAN_FRAMES,aseanRevisionReason} from './aseanLesson.js';
+import {ASEAN_EXHIBIT_NAMES,ASEAN_FRAMES,aseanRevisionReason,isAseanReferenceRevision} from './aseanLesson.js';
 import {EXHIBIT_FIELDS} from './museumExhibitInsights.js';
 import {normalizeStoryboardOrder} from './museumData.js';
 import './museumBeforeAfter.css';
@@ -55,7 +55,11 @@ export default function MuseumBeforeAfter({before=null,after=null,groupLabel='',
  const [field,setField]=useState('issue');
  const model=useMemo(()=>beforeAfterEvidence(before,after),[before,after]);
  const names=asean?ASEAN_EXHIBIT_NAMES[language==='vi'?'vi':'en']:null;
- const revisionReason=asean?aseanRevisionReason(model.after?.revisionReason,language):model.after?.revisionReason;
+ const referenceRevision=asean&&isAseanReferenceRevision(model.after?.revisionReason);
+ const revisionReason=asean?aseanRevisionReason(model.after?.revisionReason):model.after?.revisionReason;
+ const revisedName=referenceRevision
+  ?(language==='vi'?'Bản chỉnh sửa tham chiếu':'Revised reference exhibit')
+  :names?.revised;
  return <section className={'bml-before-after'+(compact?' is-compact':'')} data-testid="museum-before-after"
   aria-label="Before and after exhibit comparison">
   <header className="bml-compare-header"><div><span className="bml-compare-kicker"><ArrowLeftRight size={16}/> DESIGN EVOLUTION</span>
@@ -74,7 +78,7 @@ export default function MuseumBeforeAfter({before=null,after=null,groupLabel='',
    </div>
    <div className="bml-compare-grid" role="tabpanel">
     <VersionCard checkpoint={before} kind="before" selectedKey={field} changed={false} exhibitName={names?.first} language={language}/>
-    <VersionCard checkpoint={after} kind="after" selectedKey={field} changed={model.changed.includes(field)} exhibitName={names?.revised} language={language}/>
+    <VersionCard checkpoint={after} kind="after" selectedKey={field} changed={model.changed.includes(field)} exhibitName={revisedName} language={language}/>
    </div>
    {model.routeChanged?<div className="bml-compare-route-changed">
     <ArrowLeftRight size={17}/><strong>Visitor route revised:</strong>
@@ -84,11 +88,13 @@ export default function MuseumBeforeAfter({before=null,after=null,groupLabel='',
    {model.feedback||model.improvement||revisionReason?<div className="bml-compare-revision">
     <div><ClipboardCheck size={17}/><strong>Feedback → revision</strong></div>
     {model.feedback?<p><b>Peer feedback:</b> {model.feedback}</p>:null}
-    {model.improvement||revisionReason?<p><b>{model.before?.checkpointOrigin==='reconstructed_reference'?'Saved revision note:':'Revision described by the group:'}</b> {model.improvement||revisionReason}</p>:null}
+    {model.improvement||revisionReason?<p><b>{(referenceRevision||model.before?.checkpointOrigin==='reconstructed_reference')?'Saved revision note:':'Revision described by the group:'}</b> {model.improvement||revisionReason}</p>:null}
    </div>:null}
    <small className="bml-compare-integrity">{asean?(model.before?.checkpointOrigin==='reconstructed_reference'
     ?language==='vi'?'Bản trước góp ý là bản tham chiếu dựng lại. Mốc lưu ban đầu đã được lưu trữ.':'The first exhibit is a reconstructed reference. The original checkpoint is archived.'
-    :'These records show the saved versions and the group’s revision.'):'These are stored snapshots, not independent proof that learning outcomes or environmental savings occurred.'}</small>
+    :referenceRevision
+     ?(language==='vi'?'Bản chỉnh sửa là bản tham chiếu.':'The revised exhibit is a reference version.')
+     :'These records show the saved versions and the group’s revision.'):'These are stored snapshots, not independent proof that learning outcomes or environmental savings occurred.'}</small>
   </>}
  </section>;
 }

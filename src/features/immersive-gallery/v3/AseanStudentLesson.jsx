@@ -4,7 +4,7 @@ import AseanHueQuiz from './AseanHueQuiz.jsx';
 import AseanDiscussionPhoto from './AseanDiscussionPhoto.jsx';
 import AseanActivityArt,{AseanFrameIcon} from './AseanActivityArt.jsx';
 import {ASEAN_ACTIVITY_DESIGN,ASEAN_DISCUSSION_MODEL} from './aseanActivityDesign.js';
-import {ASEAN_EXHIBIT_NAMES,ASEAN_FRAMES,ASEAN_STAGES,ASEAN_TITLE,aseanBaselineDraft,aseanDestination,aseanExhibitMissing,aseanRevisionReason,aseanTransferDraft,aseanWritingCard,aseanWordCount,validAseanResponse} from './aseanLesson.js';
+import {ASEAN_EXHIBIT_NAMES,ASEAN_FRAMES,ASEAN_STAGES,ASEAN_TITLE,aseanBaselineDraft,aseanDestination,aseanExhibitMissing,aseanRevisionReason,aseanTransferDraft,aseanWritingCard,aseanWordCount,isAseanReferenceRevision,validAseanResponse} from './aseanLesson.js';
 import {guestRequest,englishSystemGroupLabel} from './museumApi.js';
 import {liveGuest,localMuseumFromDraft,artGuest} from './museumLiveApi.js';
 import {emptyStudio,normalizeStudio,documentFromStudio} from './museumData.js';
@@ -213,8 +213,8 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
       'Your previous response repeated your Activity 1 writing. Use the clues on this card to write two new sentences.')}
    </p>}
    {transferDraft&&!submitted&&<p className="bml-banner bml-info-banner">
-    {T(language,'Hai câu mẫu đã được điền sẵn. Nhóm em hãy chỉnh lại bằng lời của mình trước khi nộp.',
-     'Two example sentences are filled in. Revise them in your own words before submitting.')}
+    {T(language,'Nhóm em hãy đọc bản nháp và viết lại bằng lời của mình trước khi nộp.',
+     'Review the draft and use your own words before submitting.')}
    </p>}
   </div>}
   {v1Visit&&!submitted&&<div className="asean-visit-intro" lang={language}>
@@ -258,14 +258,15 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
     {T(language,'Phòng vừa thử','Exhibit tested')} · <strong>{visitedExhibit}</strong>
    </p>}
    {prefilledFeedback&&!submitted&&<p className="bml-banner bml-info-banner" lang={language}>
-    {v2Visit?T(language,'Phiếu điền sẵn từ lượt kiểm tra của giáo viên trên bản đã chỉnh sửa. Hãy kiểm tra câu trả lời, khung bằng chứng và điểm trước khi nộp.',
-     'Draft based on the teacher’s check of the revised exhibit. Check the answer, evidence frame and score before submitting.')
-     :T(language,'Phiếu điền sẵn từ lượt rà soát bản trước góp ý. Hãy kiểm tra các câu trả lời, bằng chứng và khung nhóm mở đầu tiên trước khi nộp.',
-     'Draft based on a review of the first exhibit. Check the answers, evidence and the first frame your group opened before submitting.')}
+    {v2Visit?T(language,'Hãy kiểm tra câu trả lời, khung bằng chứng và điểm trong bản nháp trước khi nộp.',
+     'Check the draft answer, evidence frame and score before submitting.')
+     :T(language,'Hãy kiểm tra câu trả lời, bằng chứng và khung nhóm mở đầu tiên trước khi nộp.',
+     'Check the answers, evidence and the first frame your group opened before submitting.')}
    </p>}
    {baselineDraft&&!submitted&&<p role="status">{open
-    ?'Teacher-provided draft. Review the two sentences and edit them before submitting.'
-    :session.readOnly?'Teacher-provided example shown for review.':'Teacher-provided draft. Your teacher needs to open Activity 1 for editing and submission.'}</p>}
+    ?T(language,'Đọc và chỉnh hai câu trong bản nháp trước khi nộp.','Review and edit the draft sentences before submitting.')
+    :session.readOnly?T(language,'Bản nháp chưa nộp.','Unsubmitted draft.')
+     :T(language,'Đợi Hoạt động 1 mở để chỉnh và nộp phiếu.','Wait for Activity 1 to open for editing and submission.')}</p>}
    <ResponseFields stage={stage} fields={record||(transfer&&session.readOnly?initialFields(stage):responseFields)} update={(key,value)=>setFields(previous=>({...(previous||responseFields),[key]:value}))}
     groupLabel={session.groupLabel} question={visit?.question} recorded={submitted||!open} language={language}/>
    {!submitted&&scoreMismatch&&<p role="status">For a score of 1, choose {ASEAN_FRAMES[visit.question-1]?.label} as the evidence frame. Choose 0 if the answer is missing or unclear.</p>}
@@ -322,7 +323,8 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
  const liveOpen=!readOnly&&live?.status==='active'&&live.stageOpen&&live.stageIndex===stage;
  const captured=records.checkpoints.find(item=>item.kind==='after');
  const baseline=records.checkpoints.find(item=>item.kind==='before');
- const revisionReason=aseanRevisionReason(captured?.reason,language);
+ const referenceRevision=isAseanReferenceRevision(captured?.reason);
+ const revisionReason=aseanRevisionReason(captured?.reason);
  const retestVisitor=records.retestVisitor?groupName(language,records.retestVisitor)
   :T(language,'nhóm khách được giao','the assigned visitor group');
  const waitingForRetest=live?.stageIndex===4&&liveOpen
@@ -338,8 +340,8 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
  const reportTask=records.retest
   ?T(language,'Nêu điều nhóm đã sửa và điều nhóm khách tìm thấy khi thử lại.','Report what your group changed and what the visitors found.')
   :records.staffRetest
-   ?T(language,'Nêu điều nhóm đã sửa. Nếu dùng kết quả của giáo viên, hãy ghi rõ nhóm khách chưa nộp phiếu.',
-    'Report what changed. If you cite the teacher’s check, say that the visitor group has yet to submit.')
+   ?T(language,'Nêu chi tiết đã đổi và ghi rõ nhóm khách chưa nộp phiếu thử lại.',
+    'Describe the change and say that the visitor group has yet to submit its retest.')
    :T(language,'Nêu điều nhóm đã sửa và cho biết nhóm khách chưa nộp phiếu thử lại.',
     'Report what changed and say that the visitor group has yet to submit.');
  const editable=liveOpen&&(stage===2||(stage===4&&!captured))&&!submitted;
@@ -625,12 +627,14 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
       </>}
       {stage>=4&&captured&&<section className="asean-own-revision" data-testid="asean-own-revision">
        <h3 data-activity5-own={stage===4?true:undefined} tabIndex={stage===4?-1:undefined} lang={language}>
-        {stage===4?'1. ':null}{T(language,'Bản đã chỉnh sửa của nhóm em','Our revised exhibit')}
+        {stage===4?'1. ':null}{referenceRevision
+         ?T(language,'Bản chỉnh sửa tham chiếu','Revised reference exhibit')
+         :T(language,'Bản đã chỉnh sửa của nhóm em','Our revised exhibit')}
        </h3>
        {stage===4&&<p><strong>{destination?.name||session.assignment.title}</strong></p>}
        {revisionReason&&<p>{revisionReason}</p>}
        <div className="asean-retest-results" lang={language}>
-        {records.staffRetest&&<p><strong>{T(language,'Kiểm tra tham chiếu của giáo viên','Teacher reference check')}</strong>
+        {records.staffRetest&&<p><strong>{T(language,'Kết quả tham chiếu kỹ thuật','Technical reference result')}</strong>
          {' · '}{records.staffRetest.score}/1<br/><span lang="en">{records.staffRetest.answer}</span>
         </p>}
         {records.retest?<p role="status"><strong>{T(language,'Kết quả thử lại của '+retestVisitor,'Retest result from '+retestVisitor)}</strong>

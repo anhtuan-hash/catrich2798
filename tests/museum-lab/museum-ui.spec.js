@@ -2088,7 +2088,7 @@ test('ASEAN Activity 4 guides a visitor from the assigned V1 to submitted feedba
  await expect(formHeading).toBeFocused();
  await expect(formHeading).toBeInViewport();
  await expect(panel.getByText('Exhibit visited · Group 02 · Tràng An')).toBeInViewport();
- await expect(panel.getByText('Draft based on a review of the first exhibit.',{exact:false})).toBeVisible();
+ await expect(panel.getByText('Check the answers, evidence and the first frame your group opened before submitting.',{exact:false})).toBeVisible();
  await expect(panel.getByLabel('Which frame did you open first?')).toHaveValue('1');
  await expect(panel.getByLabel('One specific change the group could make')).toHaveValue(feedbackDraft.comment);
  await expect(visitArt.getByText('Max 3 points',{exact:true})).toBeVisible();
@@ -2164,10 +2164,10 @@ test('ASEAN V2 retest separates our revision, the teacher reference and the assi
  const project=page.getByRole('region',{name:'Revision & Retest',exact:true});
  const own=project.getByTestId('asean-own-revision');
  await lesson.getByRole('button',{name:'Our exhibit',exact:true}).click();
- await expect(own.getByRole('heading',{name:'1. Our revised exhibit'})).toBeFocused();
+ await expect(own.getByRole('heading',{name:'1. Revised reference exhibit'})).toBeFocused();
  await expect(own.getByText('Hội An Ancient Town',{exact:true})).toBeVisible();
- await expect(own.getByText('Teacher-prepared revision · Revised the Place caption.')).toBeVisible();
- await expect(own).toContainText('Teacher reference check · 1/1');
+ await expect(own.getByText('Revised the Place caption.',{exact:true})).toBeVisible();
+ await expect(own).toContainText('Technical reference result · 1/1');
  await expect(own.getByRole('status')).toHaveText('Waiting for Group 09 to submit its retest.');
  await page.screenshot({path:testInfo.outputPath('asean-activity5-revision.png')});
  await expect(project.getByText('Group 03 · Angkor')).toBeVisible();
@@ -2190,7 +2190,7 @@ test('ASEAN V2 retest separates our revision, the teacher reference and the assi
  await expect(answer).toHaveValue(feedbackDraft.answer);
  await expect(project.getByLabel('Evidence frame')).toHaveValue('2');
  await expect(project.getByLabel('Score')).toHaveValue('1');
- await expect(project.getByText('Draft based on the teacher’s check of the revised exhibit.',{exact:false})).toBeVisible();
+ await expect(project.getByText('Check the draft answer, evidence frame and score before submitting.',{exact:false})).toBeVisible();
  expect(response).toBeUndefined();
  await answer.fill('Visitors can look up at the stone faces.');
  await project.getByLabel('Evidence frame').selectOption('');
@@ -2208,7 +2208,7 @@ test('ASEAN V2 retest separates our revision, the teacher reference and the assi
  await expect(own.getByRole('status')).toHaveText('Waiting for Group 09 to submit its retest.');
  incomingRetest={question:1,answer:'The location was still unclear to us.',frame:null,score:0};
  await expect(own.getByRole('status')).toContainText('Retest result from Group 09 · 0/1',{timeout:8000});
- await expect(own).toContainText('Teacher reference check · 1/1');
+ await expect(own).toContainText('Technical reference result · 1/1');
  await page.getByTestId('student-masthead').getByRole('button',{name:'VI',exact:true}).click();
  await versions.scrollIntoViewIfNeeded();
  await expect(versions.getByText('Bản trước góp ý',{exact:true})).toBeInViewport();
@@ -2263,7 +2263,7 @@ test('ASEAN final activity shows the writing card before opening and confirms ea
  const advice=lesson.getByRole('textbox',{name:'One piece of advice'});
  await expect(experience).toBeDisabled();
  await expect(lesson).toContainText('You can read the card now.');
- await expect(lesson).toContainText('Two example sentences are filled in.');
+ await expect(lesson).toContainText('Review the draft and use your own words before submitting.');
  await expect(experience).toHaveValue('Visitors can walk along the paths and look at the historic monuments.');
  await expect(advice).toHaveValue('Visitors should leave room for others to pass when they stop to read a sign.');
  expect(written).toBeUndefined();
@@ -2333,8 +2333,12 @@ test('ASEAN Teacher Live mirrors all six student activities and shows only recor
  await next.click();
  await expect(slide(6).getByText('Submit two sentences',{exact:true})).toBeVisible();
  await expect(slide(6).getByText('Submit final 3D exhibit',{exact:true})).toBeVisible();
- await expect(slide(6).getByText('1 submitted by staff')).toBeVisible();
- await expect(slide(6).locator('.asean-slide-highlights dd')).toHaveText(['1/10 1 submitted by staff','1/10']);
+ await expect(slide(6).getByText('Transfer cards recorded',{exact:true})).toBeVisible();
+ await expect(slide(6).locator('.asean-slide-highlights dd')).toHaveText(['1/10','1/10']);
+ const cards=page.getByTestId('asean-live-submissions');
+ await expect(cards.getByRole('heading',{name:'Group transfer cards'})).toBeVisible();
+ await expect(cards.getByText('Visitors can look at the monuments.',{exact:true})).toBeVisible();
+ await expect(cards.getByText('Submitted by staff',{exact:true})).toHaveCount(0);
  await slide(6).getByText('Group writing card',{exact:true}).click();
  await expect(slide(6).getByText('Bagan',{exact:true})).toBeVisible();
  await slide(6).getByLabel('Select group').selectOption('g1');
@@ -2398,7 +2402,7 @@ test('ASEAN presenter keeps scrolling in the viewport fallback when native fulls
 test('ASEAN V2 retest teacher table distinguishes pending submissions from a recorded zero',async({page})=>{
  await page.getByTestId('qa-teacher-asean-retest-en').click();
  await expect(page.getByRole('heading',{name:'Revised exhibit retest progress · 1/10'})).toBeVisible();
- await expect(page.getByText('Staff-prepared checks · 10/10')).toBeVisible();
+ await expect(page.getByText('Technical reference checks · 10/10')).toBeVisible();
  await expect(page.getByText('Student submissions · 1/10')).toBeVisible();
  const table=page.getByRole('region',{name:'Revised exhibit retest assignments'});
  await expect(table.getByRole('row')).toHaveCount(11);

@@ -294,7 +294,8 @@ test('published exhibition catalogue remains dashboard-backed and private poster
  assert.match(staff,/async function publishedSchoolCatalog\(ctx\)/);
  assert.match(staff,/\.eq\('school_scope',ctx\.profile\.school\)\.eq\('status','published'\)/);
  assert.match(staff,/\.in\('visibility',\['school','public'\]\)/);
- assert.match(staff,/publishedGalleries:await publishedSchoolCatalog\(ctx\)/);
+ assert.match(staff,/const publishedGalleries=galleryEnabled\?await publishedSchoolCatalog\(ctx\):\[\];/);
+ assert.match(staff,/archivedGalleries,galleryEnabled,publishedGalleries/);
  assert.match(staff,/operation==='showcase-exhibition'/);
  assert.match(staff,/guardOrigin\(req\)/);
  assert.match(staff,/eligible\.some\(g=>g\.id===id\)/);
