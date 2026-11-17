@@ -3343,9 +3343,19 @@ test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published 
  await expect.poll(getCameraZ).toBeGreaterThan(wallZ+.3);
  await page.screenshot({path:testInfo.outputPath('asean-swiss-3d-mobile.png')});
  await page.setViewportSize(desktopViewport);
+ await page.evaluate(()=>{
+  window.__trangAnTextureCount=0;
+  const onTexture=()=>{
+   if(++window.__trangAnTextureCount===3){
+    document.removeEventListener('bml:museum-texture-ready',onTexture);
+   }
+  };
+  document.addEventListener('bml:museum-texture-ready',onTexture);
+ });
  await cinema.getByRole('button',{name:'Next room'}).click();
  await expect(rooms.getByRole('button',{name:'02 · Tràng An'})).toHaveAttribute('aria-current','true');
  await expect(canvas).toBeVisible();
+ await expect.poll(()=>page.evaluate(()=>window.__trangAnTextureCount)).toBe(3);
  await cinema.getByRole('button',{name:'Full room view'}).click();
  await expect.poll(getCameraZ).toBeCloseTo(wallZ,1);
  await page.screenshot({path:testInfo.outputPath('asean-pek-trang-an-hall.png')});
