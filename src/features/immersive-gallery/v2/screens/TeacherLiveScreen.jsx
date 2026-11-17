@@ -17,6 +17,7 @@ import {loadPresenterRecovery,savePresenterRecovery,shouldRestorePanel} from '..
 import TeacherLiveStage from '../controls/TeacherLiveStage.jsx';
 import TeacherToolbar from '../controls/TeacherToolbar.jsx';
 import CommandCenter from '../controls/CommandCenter.jsx';
+import AseanSubmissionBoard from '../controls/AseanSubmissionBoard.jsx';
 import '../../v3/museumLive.css';
 import '../../v3/museumLivePaper.css';
 import '../../v3/museumLiveCompetition.css';
@@ -467,28 +468,15 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
               </li>)}</ol>
             </details>)}
           </section>}
-          {asean&&displayedResponses.length>0?<section className="bml-surface">
-            <h3>{t(language,'Bài đã nộp của từng nhóm','Group submissions for this activity')}</h3>
-            {displayedResponses.map(record=>{
-             const group=evidenceGroups.find(group=>group.id===record.group_id);
-             const target=aseanPeerGroup(evidenceGroups,record.group_id,currentIndex);
-             const staffEntry=!publicAsean&&currentIndex===5&&state?.staffTransferGroupIds?.includes(record.group_id);
-             const marks=writingScores.find(score=>score.group_id===record.group_id)?.details;
-             return <details key={record.group_id}><summary>{language==='en'?englishSystemGroupLabel(group?.label):group?.label}
-              {target?` → ${target.label} · ${aseanDestination(target.label)?.name||''}`:null}
-              {staffEntry?' · '+t(language,'Giáo viên nộp thay','Submitted by staff'):null}
-             </summary>
-              <AseanGroupResponse value={record.value}/>
-              {(currentIndex===0||currentIndex===5)&&(publicAsean
-               ?<p>{t(language,'Điểm viết','Writing score')} · {marks?marks.experience+marks.advice+'/2':t(language,'Chưa có điểm','Awaiting score')}</p>
-               :<AseanWritingGrade
-               key={assignmentId+'-'+currentIndex+'-'+record.group_id}
-               value={marks}
-               editable={canManageLesson&&!contentFrozenAt}
-               save={async marks=>{await transport('asean-writing-grade',{assignmentId,groupId:record.group_id,stageIndex:currentIndex,...marks});await refresh();}}/>)}
-             </details>;
-            })}
-          </section>:null}
+          {asean&&displayedResponses.length>0&&<AseanSubmissionBoard
+            key={assignmentId+'-'+currentIndex} language={language} stage={stage} stageIndex={currentIndex}
+            groups={evidenceGroups} responses={displayedResponses} writingScores={writingScores}
+            staffTransferGroupIds={publicAsean?undefined:state?.staffTransferGroupIds}
+            canGrade={canManageLesson&&!readOnly}
+            onSaveGrade={async(groupId,marks)=>{
+             await transport('asean-writing-grade',{assignmentId,groupId,stageIndex:currentIndex,...marks});
+             await refresh();
+            }}/>}
           {exitResponses.length?(
             <>
               <div className="content-gap"><div className="section-title"><span>{t(language,'PHẢN HỒI NHÓM ĐÃ LƯU','RECORDED GROUP REFLECTIONS')}</span><span className="right">{t(language,'Minh chứng chỉ đọc','Read-only evidence')}</span></div></div>
@@ -594,36 +582,4 @@ function AseanRetestProgress({rows,language}){
    </table>
   </div>
  </section>;
-}
-
-function AseanGroupResponse({value}){
- if(!value||typeof value!=='object')return null;
- if(value.answers)return <div>
-   <p>First frame opened · {value.first}</p>
-   <ol>{value.answers.map((answer,index)=><li key={index}>{answer.text} · Frame {answer.frame??'—'} · {answer.score}/1</li>)}</ol>
-   <p>Visitor test · {value.answers.reduce((sum,answer)=>sum+answer.score,0)}/3</p>
-   <p>Peer feedback · {value.comment}</p>
- </div>;
- if(value.question)return <p>Question {value.question} · {value.answer} · Frame {value.frame??'—'} · {value.score}/1</p>;
- if(value.codes)return <div><p>Image codes · {value.codes.join(', ')}</p><p>Compared frame · {value.comparisonFrame} · Alternative {value.alternative}</p><p>Fact · {value.fact}</p><p>Source · {value.source}</p><p>Reason · {value.reason}</p></div>;
- return <div><p>Experience · {value.experience}</p><p>Visitor advice · {value.advice}</p></div>;
-}
-
-function AseanWritingGrade({value,editable,save}){
- const [changes,setChanges]=useState(null),[saving,setSaving]=useState(false),[error,setError]=useState('');
- const marks=changes??value??{experience:0,advice:0};
- return <form onSubmit={async event=>{
-  event.preventDefault();setSaving(true);setError('');
-  try{await save(marks);setChanges(null);}catch(e){setError(e.message);}finally{setSaving(false);}
- }}>
-  <fieldset disabled={!editable||saving}>
-   <legend>Teacher marking · {value?value.experience+value.advice+'/2':'Awaiting score'}</legend>
-   {['experience','advice'].map(key=><label key={key} style={{marginRight:8}}>
-    <input type="checkbox" checked={marks[key]===1} onChange={event=>setChanges({...marks,[key]:Number(event.target.checked)})}/>
-    {key==='experience'?'Clear, relevant experience':'Clear, appropriate advice'}
-   </label>)}
-   {editable&&<button className="adv-toolbtn" type="submit">Save score</button>}
-  </fieldset>
-  {error&&<p role="alert">{error}</p>}
- </form>;
 }
