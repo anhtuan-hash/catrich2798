@@ -5,18 +5,21 @@ import {useEditorialWallTexture} from './SwissEditorialHall.jsx';
 import {PEK_GALLERY_WALL_INSCRIPTIONS} from './pekMuseumMotto.js';
 import {collectionHallHeight,collectionHallPosition} from './swissCollectionLayout.js';
 
-const pine='#254536',brass='#a8874a',ink='#211f1b';
+const pine='#254536',brass='#a8874a',ink='#211f1b',selectedRed='#b53326';
 const coveHeight=collectionHallHeight-.28;
 const friezeHeight=1.46;
 const friezeCenter=coveHeight-friezeHeight/2-.05;
 
-function CollectionWallLabel({title,index,x}){
+function CollectionWallLabel({title,index,x,current}){
  const label=useCanvasTexture((ctx,w,h)=>{
-  ctx.fillStyle=pine;ctx.textBaseline='middle';
+  ctx.textBaseline='middle';
   ctx.font='800 85px Arial, sans-serif';
-  ctx.fillText(String(index+1).padStart(2,'0')+'  '+title,18,h*.45,w-36);
+  ctx.fillStyle=current?selectedRed:pine;
+  ctx.fillText(String(index+1).padStart(2,'0'),18,h*.45);
+  ctx.fillStyle=pine;
+  ctx.fillText(title,147,h*.45,w-165);
   ctx.fillStyle=brass;ctx.fillRect(18,h*.86,w-36,4);
- },[1440,132],[title,index]);
+ },[1440,132],[title,index,current]);
  return <mesh position={[x,4.13,.021]}>
   <planeGeometry args={[8.7,.53]}/>
   <meshBasicMaterial map={label} transparent depthWrite={false} toneMapped={false}/>
@@ -123,7 +126,7 @@ function GalleryStoneFloor({width,depth,onWalk}){
  </mesh>;
 }
 
-export default function SwissCollectionHall({hall,collections,onTeleport}){
+export default function SwissCollectionHall({hall,collections,collectionIndex,onTeleport}){
  const plaster=useEditorialWallTexture(true);
  const width=hall.halfWidth*2,depth=hall.halfDepth*2;
  return <group name="PetrusKyFourWallGallery">
@@ -152,7 +155,10 @@ export default function SwissCollectionHall({hall,collections,onTeleport}){
       <planeGeometry args={[span,4.62]}/><meshBasicMaterial map={plaster} toneMapped={false}/>
      </mesh>
      <Track x={bay.x}/>
-     <CollectionWallLabel title={collections[bay.index].title} index={bay.index} x={bay.x}/>
+     <CollectionWallLabel title={collections[bay.index].title} index={bay.index} x={bay.x} current={bay.index===collectionIndex}/>
+     {bay.index===collectionIndex?<mesh name="CurrentCollectionFloorMarker" position={[bay.x,-.071,1.36]}>
+      <boxGeometry args={[3.2,.007,.065]}/><meshBasicMaterial color={selectedRed} toneMapped={false}/>
+     </mesh>:null}
      {next?<Divider x={(bay.x+next.x)/2}/>:null}
     </React.Fragment>;
    })}

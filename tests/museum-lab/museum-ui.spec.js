@@ -3265,6 +3265,7 @@ test('Student Creator Group 01: 100% draft but missing sources opens Submit and 
 test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published ASEAN artwork',async({page},testInfo)=>{
  test.slow();
  test.setTimeout(90000);
+ await page.setViewportSize({width:1440,height:900});
  await page.emulateMedia({reducedMotion:'reduce'});
  const titles=['Hội An','Tràng An','Angkor','Luang Prabang','Ayutthaya','Melaka','George Town','Singapore Botanic Gardens','Borobudur','Vigan'];
  const destinations=titles.map((title,index)=>({id:'exhibition-'+(index+1),title,groupLabel:'Nhóm '+String(index+1).padStart(2,'0')}));
@@ -3412,6 +3413,10 @@ test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published 
  expect(anchors.slice(5,7).every(([,p])=>p[2]>14)).toBe(true);
  expect(anchors.slice(7,10).every(([,p])=>p[0]<-9)).toBe(true);
  const stage=await canvas.boundingBox();
+ const rail=await cinema.locator('.bml-swiss-3d-index').boundingBox();
+ expect(rail.width/(rail.width+stage.width)).toBeLessThan(.165);
+ const plan=cinema.getByTestId('museum-collection-plan');
+ await expect(plan.getByRole('img',{name:/Wall 01 \/ 04/})).toBeVisible();
  const masthead=await cinema.getByTestId('museum-cinema-hud').boundingBox();
  const controls=await cinema.getByTestId('museum-cinema-bottom-hud').boundingBox();
  expect(masthead.y+masthead.height).toBeLessThanOrEqual(stage.y+1);
@@ -3429,6 +3434,7 @@ test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published 
  await expect(canvas).toBeVisible();
  expect(await cinema.getByTestId('museum-visitor').evaluate(el=>el.scrollWidth<=el.clientWidth)).toBe(true);
  await expect(rooms.getByRole('button',{name:'10 · Vigan'})).toBeVisible();
+ await expect(plan).toBeHidden();
  await cinema.getByRole('button',{name:'Full room view'}).click();
  await expect.poll(()=>page.evaluate(()=>window.__bmlMuseumFocusQA?.camera?.forward?.[2])).toBeLessThan(-.9);
  await page.screenshot({path:testInfo.outputPath('asean-swiss-3d-mobile.png')});
@@ -3485,6 +3491,7 @@ test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published 
  expect(await canvasIdentity.evaluate(el=>el.isConnected)).toBe(true);
  for(const [name,index] of [['03 · Angkor',2],['06 · Melaka',5],['09 · Borobudur',8]]){
   await rooms.getByRole('button',{name}).click();
+  await expect(plan).toHaveAttribute('data-wall',String(layout.bays[index].wallIndex+1));
   await cinema.getByRole('button',{name:'Full room view'}).click();
   const dest=collectionCameraView(layout.bays[index],stage.width/stage.height,'room').camera;
   await expect.poll(()=>page.evaluate(expected=>{

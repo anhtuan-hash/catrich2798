@@ -100,7 +100,7 @@
 
 .bml .bml-museum-cinema.bml-swiss-3d > .bml-3d-stage.bml-cinema-stage {
  display: grid !important;
- grid-template-columns: minmax(205px, 21.5%) minmax(0, 1fr);
+ grid-template-columns: clamp(170px, 13.5cqw, 248px) minmax(0, 1fr);
  grid-template-rows: minmax(0, 1fr);
  height: auto !important;
  border-radius: 0 !important;
@@ -110,23 +110,23 @@
 .bml .bml-swiss-3d-index {
  display: flex;
  flex-direction: column;
- gap: clamp(18px, 4cqh, 62px);
+ gap: clamp(12px, 2.6dvh, 26px);
  min-width: 0;
- padding: clamp(22px, 5cqh, 56px) clamp(12px, 1.5cqw, 26px) clamp(14px, 3cqh, 32px);
+ padding: clamp(16px, 3dvh, 30px) clamp(10px, 1.05cqw, 18px) clamp(12px, 2dvh, 22px);
  background: var(--museum-paper);
  border-right: var(--museum-line);
  overflow: auto;
 }
 .bml .bml-swiss-3d-room-title p,
 .bml .bml-swiss-3d-rooms p {
- margin: 0 0 12px;
- font: 850 clamp(11px, 1.25cqw, 20px)/1.15 var(--museum-type);
+ margin: 0 0 7px;
+ font: 800 clamp(10px, .84cqw, 13px)/1.25 var(--museum-type);
  text-transform: uppercase;
 }
 .bml .bml-swiss-3d-room-title h2 {
  margin: 0;
  color: var(--museum-ink);
- font: 900 clamp(34px, 4cqw, 70px)/.95 var(--museum-type);
+ font: 880 clamp(20px, 2.15cqw, 36px)/1.03 var(--museum-type);
  letter-spacing: -.062em;
  overflow-wrap: anywhere;
 }
@@ -141,16 +141,16 @@
 .bml .bml-swiss-3d-exhibits button {
  display: grid;
  width: 100%;
- grid-template-columns: minmax(26px, 2.5em) minmax(0, 1fr);
- gap: 4px;
+ grid-template-columns: 2ch minmax(0, 1fr);
+ gap: 9px;
  align-items: baseline;
  text-align: left;
- padding: .62em 4px;
- font-size: clamp(14px, 1.65cqw, 27px);
+ padding: .70em 2px;
+ font-size: clamp(13px, 1.1cqw, 17px);
  overflow-wrap: anywhere;
 }
 .bml .bml-swiss-3d-rooms { margin-top: auto }
-.bml .bml-swiss-3d-rooms div {
+.bml .bml-swiss-3d-collection-grid {
  display: grid;
  grid-template-columns: repeat(5, minmax(0, 1fr));
  border-block-start: var(--museum-line);
@@ -158,9 +158,44 @@
 }
 .bml .bml-swiss-3d-rooms button {
  min-width: 0;
- min-height: clamp(38px, 3.7cqw, 57px);
+ min-height: clamp(35px, 2.65cqw, 44px);
+ font-size: clamp(12px, .99cqw, 16px);
+ font-variant-numeric: tabular-nums;
  border-inline-end: var(--museum-line);
  border-block-end: var(--museum-line);
+}
+
+
+.bml .bml-swiss-3d-plan {
+ margin: 0 0 18px;
+ padding: 10px;
+ border: 1px solid #bdb8a8;
+ background: #e7e2d5;
+}
+.bml .bml-swiss-3d-plan-grid {
+ display: grid;
+ grid-template: 7px minmax(24px, 3.4cqw) 7px / 7px minmax(0, 1fr) 7px;
+ grid-template-areas: "north north north" "west floor east" "south south south";
+ border: 1px solid #254536;
+ background: #f3efe4;
+}
+.bml .bml-swiss-3d-plan-wall {
+ display: flex;
+ gap: 2px;
+ padding: 1px;
+ background: #b7b7a0;
+}
+.bml .bml-swiss-3d-plan-wall[data-side="1"] { grid-area: north }
+.bml .bml-swiss-3d-plan-wall[data-side="2"] { grid-area: east; flex-direction: column }
+.bml .bml-swiss-3d-plan-wall[data-side="3"] { grid-area: south; flex-direction: row-reverse }
+.bml .bml-swiss-3d-plan-wall[data-side="4"] { grid-area: west; flex-direction: column-reverse }
+.bml .bml-swiss-3d-plan-wall span { flex: 1; background: #576c5c }
+.bml .bml-swiss-3d-plan-wall span.is-current { background: var(--museum-red) }
+.bml .bml-swiss-3d-plan figcaption {
+ margin-top: 8px;
+ color: #254536;
+ font: 750 11px/1.15 var(--museum-type);
+ font-variant-numeric: tabular-nums;
 }
 
 .bml .bml-swiss-3d > .bml-cinema-bottom-hud {
@@ -239,16 +274,18 @@
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
  }
- .bml .bml-swiss-3d-index { gap: 8px; padding: 10px 10px 8px; border: 0; border-bottom: var(--museum-line); max-height: 30dvh }
- .bml .bml-swiss-3d-room-title p { margin-bottom: 4px }
- .bml .bml-swiss-3d-room-title h2 { font-size: clamp(24px, 7.4cqw, 38px); line-height: 1 }
+ .bml .bml-swiss-3d-index { gap: 6px; padding: 8px 10px 6px; border: 0; border-bottom: var(--museum-line); max-height: 30dvh }
+ .bml .bml-swiss-3d-room-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 8px }
+ .bml .bml-swiss-3d-room-title p { margin: 0 }
+ .bml .bml-swiss-3d-room-title h2 { font-size: clamp(17px, 4.6cqw, 25px); line-height: 1.07 }
  .bml .bml-swiss-3d-room-title h2 span { display: inline; margin-left: .25em }
  .bml .bml-swiss-3d-exhibits { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) }
  .bml .bml-swiss-3d-exhibits li + li { border-left: var(--museum-line) }
- .bml .bml-swiss-3d-exhibits button { font-size: 12px; grid-template-columns: 2ch minmax(0, 1fr); gap: 5px }
+ .bml .bml-swiss-3d-exhibits button { min-height: 38px; font-size: 12px; gap: 5px }
+ .bml .bml-swiss-3d-plan { display: none }
  .bml .bml-swiss-3d-rooms { display: flex; align-items: center; gap: 6px }
  .bml .bml-swiss-3d-rooms p { margin: 0 }
- .bml .bml-swiss-3d-rooms div { flex: 1; grid-template-columns: repeat(10, minmax(0, 1fr)) }
+ .bml .bml-swiss-3d-collection-grid { flex: 1; grid-template-columns: repeat(10, minmax(0, 1fr)) }
  .bml .bml-swiss-3d-rooms button { min-height: 33px; font-size: 12px }
  .bml .bml-swiss-3d .bml-cinema-room-counter { display: none }
  .bml .bml-swiss-3d-viewpoints { gap: 4px; margin-inline-end: auto }
