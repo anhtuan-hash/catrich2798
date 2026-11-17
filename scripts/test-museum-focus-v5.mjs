@@ -5,6 +5,27 @@ import {FOCUS_IDLE,focusReducer,focusLayout,clampDelta,smoothstep,blendPose,near
  from '../src/features/immersive-gallery/v3/museumExhibitFocusMotion.js';
 import {buildExhibitFocusBoard,excerptSentences} from '../src/features/immersive-gallery/v3/museumExhibitFocusData.js';
 
+import {PEK_GALLERY_WALL_INSCRIPTIONS} from '../src/features/immersive-gallery/pekMuseumMotto.js';
+import {buildMetalLettering,hasMetalLetteringGlyphs} from '../src/features/immersive-gallery/metalLetteringGeometry.js';
+
+test('all four Vietnamese wall texts have centered beveled metal geometry',()=>{
+ for(const {lines} of PEK_GALLERY_WALL_INSCRIPTIONS){
+  for(const line of lines)assert(hasMetalLetteringGlyphs(line),line);
+  const size=lines.length===1?.60:.405;
+  const {solid,shadow}=buildMetalLettering(lines,{size,maxWidth:11.8,lineStep:.408,depth:.057});
+  solid.computeBoundingBox();
+  const {min,max}=solid.boundingBox;
+  assert(max.z-min.z>.065,'raised letters retain physical depth and a bevel');
+  assert(Math.abs(min.x+max.x)<.02,'overall sign is horizontally centered');
+  assert(max.y-min.y<1.34,'lettering fits the wall frieze');
+  assert.equal(solid.groups.length,0,'each sign draws as one metal mesh');
+  assert(solid.getAttribute('color').count>0);
+  solid.dispose();
+  shadow.dispose();
+ }
+ assert(hasMetalLetteringGlyphs('Hội An Ancient Town · Tràng An'.normalize('NFD')));
+});
+
 const evolve=(s,type,extra={})=>focusReducer(s,{type,generation:s.generation,...extra});
 test('V5 complete physical focus state sequence and original generation',()=>{
  let s=FOCUS_IDLE;

@@ -2,6 +2,7 @@ import React from 'react';
 import * as THREE from 'three';
 import {useCanvasTexture} from './PekMuseumArchitecture.jsx';
 import SwissEditorialHallDetails from './SwissEditorialHallDetails.jsx';
+import MetalWallLettering from './MetalWallLettering.jsx';
 import {PEK_MUSEUM_MOTTO,PEK_COURTESY_MOTTO,PEK_TEACHER_MOTTO_LINES} from './pekMuseumMotto.js';
 
 const ink='#211f1b';
@@ -68,32 +69,9 @@ function useEditorialFloorTexture(){
  },[768,768],[]);
 }
 
-export function SwissWallInscription({lines,width,height,position,rotation,name}){
- const text=useCanvasTexture((ctx,w,h)=>{
-  const em=116,lineHeight=142;
-  ctx.font='800 '+em+'px Arial, sans-serif';
-  ctx.textAlign='center';ctx.textBaseline='middle';
-  lines.forEach((line,i)=>{
-   const y=h/2+(i-(lines.length-1)/2)*lineHeight;
-   ctx.fillStyle='#342b1b55';ctx.fillText(line,w/2+4,y+5,w-54);
-   ctx.fillStyle='#24402c';ctx.fillText(line,w/2,y,w-54);
-  });
- },[2048,166*lines.length],[lines.join('\n')]);
- return <mesh name={name} position={position} rotation={rotation}>
-  <planeGeometry args={[width,height]}/>
-  <meshBasicMaterial map={text} transparent depthWrite={false} toneMapped={false}/>
- </mesh>;
-}
-
 export default function SwissEditorialHall({roomNumber,roomTitle,exhibits,onTeleport,onRoomGuide,roomGuideLabel}){
  const plaster=useEditorialWallTexture();
  const concrete=useEditorialFloorTexture();
- const motto=useCanvasTexture((ctx,w,h)=>{
-  ctx.fillStyle='#24402c';ctx.textBaseline='middle';
-  ctx.font='700 88px Arial, sans-serif';
-  ctx.fillText(PEK_MUSEUM_MOTTO,24,h*.49,w-48);
-  ctx.fillStyle='#a5833c';ctx.fillRect(24,134,w-48,3);
- },[2048,162],[]);
  const number=useCanvasTexture((ctx,w,h)=>{
   ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='900 312px Arial, sans-serif';
   ctx.fillStyle=red;ctx.fillText(roomNumber,w/2,h/2+9);
@@ -112,16 +90,17 @@ export default function SwissEditorialHall({roomNumber,roomTitle,exhibits,onTele
   {[-7,7].map(x=><mesh key={x} position={[x,2.38,0]}>
    <boxGeometry args={[.12,4.88,18]}/><meshStandardMaterial color="#c6bbad" roughness={.94}/>
   </mesh>)}
-  <SwissWallInscription name="PetrusKyWallCourtesy" lines={[PEK_COURTESY_MOTTO]}
-   width={9.2} height={.64} position={[6.925,3.83,-3.1]} rotation={[0,-Math.PI/2,0]}/>
-  <SwissWallInscription name="PetrusKyWallTeacher" lines={PEK_TEACHER_MOTTO_LINES}
-   width={7.6} height={1.56} position={[-6.925,3.45,-3.1]} rotation={[0,Math.PI/2,0]}/>
+  <MetalWallLettering name="PetrusKyWallCourtesy" lines={[PEK_COURTESY_MOTTO]}
+   maxWidth={9.2} size={.57} position={[6.925,3.83,-3.1]} rotation={[0,-Math.PI/2,0]}/>
+  <MetalWallLettering name="PetrusKyWallTeacher" lines={PEK_TEACHER_MOTTO_LINES}
+   maxWidth={7.6} size={.46} lineStep={.47} position={[-6.925,3.45,-3.1]} rotation={[0,Math.PI/2,0]}/>
   <mesh position={[0,2.17,-8.26]}><boxGeometry args={[10.7,4.48,.65]}/><meshStandardMaterial color="#9d9081" roughness={.94}/></mesh>
   <mesh position={[0,2.17,-7.934]}><planeGeometry args={[10.7,4.48]}/><meshBasicMaterial map={plaster} toneMapped={false}/></mesh>
   <mesh position={[-3.55,4.09,-7.925]}><planeGeometry args={[.85,.58]}/><meshBasicMaterial map={number} transparent toneMapped={false}/></mesh>
-  <mesh name="PetrusKyWallMotto" position={[.58,4.08,-7.922]}>
-   <planeGeometry args={[6.84,.54]}/>
-   <meshBasicMaterial map={motto} transparent depthWrite={false} toneMapped={false}/>
+  <MetalWallLettering name="PetrusKyWallMotto" lines={[PEK_MUSEUM_MOTTO]}
+   maxWidth={6.84} size={.37} position={[.58,4.10,-7.928]}/>
+  <mesh position={[.58,3.89,-7.918]}>
+   <boxGeometry args={[6.84,.014,.012]}/><meshBasicMaterial color="#a5833c" toneMapped={false}/>
   </mesh>
   <mesh position={[0,4.50,-6.73]}><boxGeometry args={[12.8,.54,.48]}/><meshStandardMaterial color="#a89d8e" roughness={.94}/></mesh>
   <mesh position={[0,4.34,-6.47]}><boxGeometry args={[11.7,.045,.058]}/><meshStandardMaterial color={ink}/></mesh>
