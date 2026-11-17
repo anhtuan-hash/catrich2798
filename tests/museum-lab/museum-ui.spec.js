@@ -2088,9 +2088,9 @@ test('ASEAN Activity 4 guides a visitor from the assigned V1 to submitted feedba
  await expect(formHeading).toBeFocused();
  await expect(formHeading).toBeInViewport();
  await expect(panel.getByText('Exhibit visited · Group 02 · Tràng An')).toBeInViewport();
- await expect(panel.getByText('Draft based on a review of the first exhibit.',{exact:false})).toHaveCount(0);
- await expect(panel.getByLabel('Which frame did you open first?')).toHaveValue('');
- await expect(panel.getByLabel('One specific change the group could make')).toHaveValue('');
+ await expect(panel.getByText('Check the answers, evidence and the first frame your group opened before submitting.',{exact:false})).toBeVisible();
+ await expect(panel.getByLabel('Which frame did you open first?')).toHaveValue('1');
+ await expect(panel.getByLabel('One specific change the group could make')).toHaveValue(feedbackDraft.comment);
  await expect(visitArt.getByText('Max 3 points',{exact:true})).toBeVisible();
  await page.screenshot({path:testInfo.outputPath('asean-visitor-feedback.png')});
  await panel.getByLabel('Which frame did you open first?').selectOption('2');
@@ -2129,7 +2129,7 @@ test('ASEAN Activity 4 guides a visitor from the assigned V1 to submitted feedba
  await page.screenshot({path:testInfo.outputPath('asean-visitor-score-vi.png')});
 });
 
-test('ASEAN V2 retest leaves answers blank and separates the reference exhibit from the student result',async({page},testInfo)=>{
+test('ASEAN V2 retest separates our revision, the teacher reference and the assigned visit',async({page},testInfo)=>{
  const assignment={id:'qa-asean',title:'ASEAN in Three Frames',class_scope:'11-QA',lesson_template:'asean-in-three-frames'};
  let response,incomingRetest;
  const live={id:'retest-session',stageIndex:4,status:'active',stageOpen:true};
@@ -2167,7 +2167,7 @@ test('ASEAN V2 retest leaves answers blank and separates the reference exhibit f
  await expect(own.getByRole('heading',{name:'1. Revised reference exhibit'})).toBeFocused();
  await expect(own.getByText('Hội An Ancient Town',{exact:true})).toBeVisible();
  await expect(own.getByText('Revised the Place caption.',{exact:true})).toBeVisible();
- await expect(own).not.toContainText('The teacher located the exhibit');
+ await expect(own).toContainText('Technical reference result · 1/1');
  await expect(own.getByRole('status')).toHaveText('Waiting for Group 09 to submit its retest.');
  await page.screenshot({path:testInfo.outputPath('asean-activity5-revision.png')});
  await expect(project.getByText('Group 03 · Angkor')).toBeVisible();
@@ -2187,11 +2187,10 @@ test('ASEAN V2 retest leaves answers blank and separates the reference exhibit f
  await page.getByRole('button',{name:'Close museum preview'}).click();
  await expect(project.getByRole('heading',{name:'Record your retest answer'})).toBeFocused();
  const answer=project.getByRole('textbox',{name:'Your group’s answer'});
- await expect(answer).toHaveValue('');
- await expect(project.getByLabel('Evidence frame')).toHaveValue('');
- await expect(project.getByLabel('Score')).toHaveValue('0');
- await project.getByLabel('Score').selectOption('1');
- await expect(project.getByText('Draft based on the teacher’s check of the revised exhibit.',{exact:false})).toHaveCount(0);
+ await expect(answer).toHaveValue(feedbackDraft.answer);
+ await expect(project.getByLabel('Evidence frame')).toHaveValue('2');
+ await expect(project.getByLabel('Score')).toHaveValue('1');
+ await expect(project.getByText('Check the draft answer, evidence frame and score before submitting.',{exact:false})).toBeVisible();
  expect(response).toBeUndefined();
  await answer.fill('Visitors can look up at the stone faces.');
  await project.getByLabel('Evidence frame').selectOption('');
@@ -2209,7 +2208,7 @@ test('ASEAN V2 retest leaves answers blank and separates the reference exhibit f
  await expect(own.getByRole('status')).toHaveText('Waiting for Group 09 to submit its retest.');
  incomingRetest={question:1,answer:'The location was still unclear to us.',frame:null,score:0};
  await expect(own.getByRole('status')).toContainText('Retest result from Group 09 · 0/1',{timeout:8000});
- await expect(own).not.toContainText('The teacher located the exhibit');
+ await expect(own).toContainText('Technical reference result · 1/1');
  await page.getByTestId('student-masthead').getByRole('button',{name:'VI',exact:true}).click();
  await versions.scrollIntoViewIfNeeded();
  await expect(versions.getByText('Bản trước góp ý',{exact:true})).toBeInViewport();
@@ -2264,9 +2263,9 @@ test('ASEAN final activity shows the writing card before opening and confirms ea
  const advice=lesson.getByRole('textbox',{name:'One piece of advice'});
  await expect(experience).toBeDisabled();
  await expect(lesson).toContainText('You can read the card now.');
- await expect(lesson).not.toContainText('Two example sentences are filled in.');
- await expect(experience).toHaveValue('');
- await expect(advice).toHaveValue('');
+ await expect(lesson).toContainText('Review the draft and use your own words before submitting.');
+ await expect(experience).toHaveValue('Visitors can walk along the paths and look at the historic monuments.');
+ await expect(advice).toHaveValue('Visitors should leave room for others to pass when they stop to read a sign.');
  expect(written).toBeUndefined();
  await expect(lesson).toContainText('Your previous response repeated your Activity 1 writing.');
  const submit=project.getByRole('button',{name:'Submit final 3D exhibit'});
@@ -2282,7 +2281,7 @@ test('ASEAN final activity shows the writing card before opening and confirms ea
  checkpointVersion=version;
  await expect(submit).toBeEnabled({timeout:9000});
  await experience.fill('Visitors can follow the path and look at historic monuments.');
- await expect(advice).toHaveValue('');
+ await expect(advice).toHaveValue('Visitors should leave room for others to pass when they stop to read a sign.');
  await advice.fill('Visitors should leave room on the path when stopping to read a sign.');
  await lesson.getByRole('button',{name:'Submit two sentences'}).click();
  await expect(lesson.getByText('Writing submitted',{exact:true})).toBeVisible();
@@ -2338,7 +2337,8 @@ test('ASEAN Teacher Live mirrors all six student activities and shows only recor
  await expect(slide(6).locator('.asean-slide-highlights dd')).toHaveText(['1/10','1/10']);
  const cards=page.getByTestId('asean-live-submissions');
  await expect(cards.getByRole('heading',{name:'Group transfer cards'})).toBeVisible();
- await expect(cards.getByText('Record source: teacher account',{exact:true})).toBeVisible();
+ await expect(cards.getByText('Visitors can look at the monuments.',{exact:true})).toBeVisible();
+ await expect(cards.getByText('Submitted by staff',{exact:true})).toHaveCount(0);
  await slide(6).getByText('Group writing card',{exact:true}).click();
  await expect(slide(6).getByText('Bagan',{exact:true})).toBeVisible();
  await slide(6).getByLabel('Select group').selectOption('g1');
@@ -2402,12 +2402,13 @@ test('ASEAN presenter keeps scrolling in the viewport fallback when native fulls
 test('ASEAN V2 retest teacher table distinguishes pending submissions from a recorded zero',async({page})=>{
  await page.getByTestId('qa-teacher-asean-retest-en').click();
  await expect(page.getByRole('heading',{name:'Revised exhibit retest progress · 1/10'})).toBeVisible();
+ await expect(page.getByText('Technical reference checks · 10/10')).toBeVisible();
+ await expect(page.getByText('Student submissions · 1/10')).toBeVisible();
  const table=page.getByRole('region',{name:'Revised exhibit retest assignments'});
  await expect(table.getByRole('row')).toHaveCount(11);
  const first=table.getByRole('row').filter({has:page.getByRole('rowheader',{name:'Group 01',exact:true})});
  await expect(first).toContainText('Group 03 · Angkor');
  await expect(first).toContainText('Awaiting response');
- await expect(first.getByText('Teacher’s technical reference · 1/1')).toBeVisible();
  await first.getByText('Caption for reference').click();
  await expect(first.getByText('Visitors can look up at the stone faces.')).toBeVisible();
  const second=table.getByRole('row').filter({has:page.getByRole('rowheader',{name:'Group 02',exact:true})});

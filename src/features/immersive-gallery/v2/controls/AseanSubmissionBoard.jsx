@@ -6,7 +6,7 @@ import './aseanSubmissionBoard.css';
 const tr=(language,vi,en)=>language==='en'?en:vi;
 
 export default function AseanSubmissionBoard({
- language,stage,stageIndex,groups,responses,writingScores,staffTransferGroupIds,canGrade,onSaveGrade,
+ language,stage,stageIndex,groups,responses,writingScores,canGrade,onSaveGrade,
 }){
  const titleId=useId();
  const [selectedId,setSelectedId]=useState(null);
@@ -53,7 +53,6 @@ export default function AseanSubmissionBoard({
     {ordered.map((group,index)=>{
      const record=responseByGroup.get(group.id);
      const target=aseanPeerGroup(groups,group.id,stageIndex);
-     const staffEntry=transferStage&&record&&staffTransferGroupIds?.includes(group.id);
      const marks=writingScores.find(score=>score.group_id===group.id)?.details;
      const hasScore=[0,1].includes(marks?.experience)&&[0,1].includes(marks?.advice);
      const groupTitleId=titleId+'-label-'+index;
@@ -62,7 +61,6 @@ export default function AseanSubmissionBoard({
        <div>
         <h4 id={groupTitleId}>{groupLabel(group.label)}</h4>
         {target&&<p>{groupLabel(target.label)} · {aseanDestination(target.label)?.name}</p>}
-        {staffEntry&&<p>{tr(language,'Nguồn bản ghi: tài khoản giáo viên','Record source: teacher account')}</p>}
        </div>
        {writingStage&&record&&<div className="asean-submissions-score" data-scored={hasScore}>
         <strong>{hasScore?marks.experience+marks.advice+'/2':'—'}</strong>

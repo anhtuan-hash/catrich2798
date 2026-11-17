@@ -487,7 +487,6 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
           {asean&&displayedResponses.length>0&&<AseanSubmissionBoard
             key={assignmentId+'-'+currentIndex} language={language} stage={stage} stageIndex={currentIndex}
             groups={groups} responses={displayedResponses} writingScores={writingScores}
-            staffTransferGroupIds={publicAsean?undefined:state?.staffTransferGroupIds}
             canGrade={canManageLesson&&!readOnly}
             onSaveGrade={async(groupId,marks)=>{
              await transport('asean-writing-grade',{assignmentId,groupId,stageIndex:currentIndex,...marks});
@@ -562,11 +561,14 @@ function AseanSources(){
  </li>)}</ul></div>;
 }
 function AseanRetestProgress({rows,language}){
- const submitted=rows.filter(row=>row.score!=null).length;
+ const submitted=rows.filter(row=>row.score!==null).length;
+ const staffChecked=rows.filter(row=>row.staffReview).length;
  const v1References=rows.filter(row=>row.baselineReconstructed).length;
  const incomplete=rows.filter(row=>!row.baselineReady).length;
  return <section className="bml-surface" aria-labelledby="asean-retest-progress">
   <h3 id="asean-retest-progress">{t(language,'Tiến độ thử lại bản đã chỉnh sửa','Revised exhibit retest progress')} · {submitted}/{rows.length}</h3>
+  {staffChecked>0&&<p role="status"><strong>{t(language,`Phiếu tham chiếu kỹ thuật · ${staffChecked}/${rows.length}`,`Technical reference checks · ${staffChecked}/${rows.length}`)}</strong>
+   {' · '}{t(language,`Học sinh tự nộp · ${submitted}/${rows.length}`,`Student submissions · ${submitted}/${rows.length}`)}</p>}
   {v1References>0&&<p>{t(language,`${v1References} phòng có bản trước góp ý được dựng lại từ ảnh đã lưu. Dùng các bản này để đối chiếu nội dung triển lãm.`,
    `${v1References} rooms use reconstructed first exhibits based on saved photos. Use these references to compare the exhibits.`)}</p>}
   {incomplete>0&&<p>{t(language,`${incomplete} phòng có bản trước góp ý chưa hoàn chỉnh. Dùng phiếu hiện tại để ghi lại điều khách tìm thấy trong bản đã chỉnh sửa.`,
@@ -583,8 +585,8 @@ function AseanRetestProgress({rows,language}){
       <td>{frame?.question||'—'}
        {row.reference&&<details><summary>{t(language,'Chú thích để đối chiếu','Caption for reference')}</summary><p lang="en">{row.reference}</p></details>}
       </td>
-      <td>{row.score!=null?`${row.score}/1`:row.ready?t(language,'Chờ học sinh nộp','Awaiting response'):t(language,'Bản đã chỉnh sửa chưa sẵn sàng','Revised exhibit unavailable')}
-       {row.staffReview&&<details><summary>{t(language,'Tham chiếu kỹ thuật của giáo viên','Teacher’s technical reference')} · {row.staffReview.score}/1</summary>
+      <td>{row.score!==null?`${row.score}/1`:row.ready?t(language,'Chờ học sinh nộp','Awaiting response'):t(language,'Bản đã chỉnh sửa chưa sẵn sàng','Revised exhibit unavailable')}
+       {row.staffReview&&<details><summary>{t(language,'Kết quả tham chiếu kỹ thuật','Technical reference result')} · {row.staffReview.score}/1</summary>
         <p lang="en">{row.staffReview.answer}</p></details>}
       </td>
      </tr>;
