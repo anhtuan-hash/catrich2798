@@ -21,6 +21,13 @@ const exhibitionFromHash = () => {
   catch { return ''; }
 };
 const inTemplate=(item,template)=>!template||isAsean(item)===isAsean(template);
+const matchesQuery = (item, query) =>
+  [item.title, item.summary, item.groupLabel].filter(Boolean).join(' ').toLocaleLowerCase().includes(query);
+const findDestinationRoom = (gallery, destinationId) =>
+  (gallery.rooms || []).findIndex(room => room.exhibition_id === destinationId);
+const roomCountLabel = (language, count) => language === 'en'
+  ? count === 1 ? '1 published group room' : count + ' published group rooms'
+  : count + ' phòng nhóm đã công bố';
 const setExhibitionHash = key => {
   if (typeof window === 'undefined') return;
   const current = window.location.hash.split('?')[0] || '#/tool/immersive-gallery';
@@ -86,7 +93,8 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
             const full = match?.status === 'published'
               ? (await transport('showcase-exhibition', {id: match.id})).gallery
               : await api.getExhibition(initial);
-            if (active && !isPracticeShowcase(full)) {setSelected(full);onTemplateChange?.(full.lesson_template||'climate');}
+            const destinationId = match.destinations?.some(destination => destination.id === initial) ? initial : '';
+            if (active) openGallery(full, destinationId);
           } catch (e) { if (active) setError(e.message || 'This exhibition is unavailable.'); }
         }
       } catch (e) { if (active) setError(e.message); }
@@ -98,19 +106,24 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
 
   const loadCovers = async (items) => {
     const published = (items || []).filter(g => g?.id && g.status === 'published').slice(0, 16);
-    const pairs = await Promise.all(published.map(async (g) => {
+    const entries = await Promise.all(published.map(async (g) => {
       try {
         const full = (await transport('showcase-exhibition', {id: g.id})).gallery;
-        const image = (full?.rooms || [])
-          .flatMap(room => room.exhibits || [])
-          .map(exhibit => exhibit.image_url)
-          .find(src => typeof src === 'string' && src) || '';
-        return [g.id, image];
+        const map = new Map();
+        for (const room of full?.rooms || []) {
+          const photos = (room.exhibits || []).filter(exhibit => exhibit.image_url);
+          const cover = photos.find(exhibit => exhibit.title === 'Place') || photos[0];
+          const key = room.exhibition_id || g.id;
+          if (cover && !map.has(key)) map.set(key, cover.image_url);
+        }
+        const cover = map.get(g.id) || map.values().next().value;
+        if (cover) map.set(g.id, cover);
+        return [...map];
       } catch {
-        return [g.id, ''];
+        return [];
       }
     }));
-    return Object.fromEntries(pairs);
+    return Object.fromEntries(entries.flat());
   };
 
   const reload = async () => {
@@ -119,15 +132,27 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
     setCovers(await loadCovers(items.filter(item=>inTemplate(item,lessonTemplate))));
   };
 
-  const enter = async item => {
+  const openGallery = (gallery, destinationId = '') => {
+    if (!gallery || isPracticeShowcase(gallery)) {
+      throw new Error(tr(language, 'Triển lãm này hiện không mở được.', 'This exhibition is unavailable.'));
+    }
+    const roomIndex = destinationId ? findDestinationRoom(gallery, destinationId) : 0;
+    if (roomIndex < 0) {
+      throw new Error(tr(language, 'Phòng nhóm này hiện không mở được.', 'This group room is unavailable.'));
+    }
+    setSelected({gallery, roomIndex});
+    onTemplateChange?.(gallery.lesson_template || 'climate');
+  };
+
+  const enter = async (item, destinationId = '') => {
     if (busy) return;
     setBusy(true); setError('');
     try {
       const full = item.status === 'published'
         ? (await transport('showcase-exhibition', {id: item.id})).gallery
         : await (await import('../../galleryData.js')).getExhibition(item.id);
-      if (isPracticeShowcase(full)) throw new Error('This exhibition is unavailable.');
-      setSelected(full); onTemplateChange?.(full.lesson_template||'climate'); setExhibitionHash(full.slug || full.id);
+      openGallery(full, destinationId);
+      setExhibitionHash(destinationId || full.slug || full.id);
     } catch (e) { setError(e.message); }
     finally { setBusy(false); }
   };
@@ -148,11 +173,12 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
 
   // If a 3D exhibition is open, render the existing viewer (full behavior preserved).
   if (selected) {
+    const {gallery, roomIndex} = selected;
     return (
       <GalleryRenderBoundary language={language} onFallback={leave}>
-        <MuseumExhibitionDetail gallery={selected} language={language} startInCinema
+        <MuseumExhibitionDetail gallery={gallery} language={language} startInCinema initialRoomIndex={roomIndex}
           data={payload} onBack={leave} onNavigate={onNavigate}
-          onDelete={isAdmin&&!isAsean(selected) ? () => changeArchive('gallery', selected.id, selected.title, true) : null}
+          onDelete={isAdmin&&!isAsean(gallery) ? () => changeArchive('gallery', gallery.id, gallery.title, true) : null}
           busy={busy} />
       </GalleryRenderBoundary>
     );
@@ -162,18 +188,21 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
   for (const g of [...(payload?.publishedGalleries || []), ...galleries]) {
     if (inTemplate(g,lessonTemplate) && g?.id && g.status !== 'archived' && !isPracticeShowcase(g)) inventory.set(g.id, g);
   }
-  const visible = [...inventory.values()].filter(g =>
-    (g.title + ' ' + (g.summary || '')).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
-  const publishedInView = visible.filter(g => g.status === 'published');
-  const publishedCount = [...inventory.values()].filter(g => g.status === 'published').length;
+  const term = query.trim().toLocaleLowerCase();
+  const published = [...inventory.values()].filter(g => g.status === 'published');
+  const publishedInView = published.filter(g => matchesQuery(g, term) ||
+    g.destinations?.some(destination => matchesQuery(destination, term)));
+  const groupRoomCount = published.reduce((count, g) => count + (g.destinations?.length || 0), 0);
   const archivedItems = (showcase.archivedGalleries || []).filter(g => inTemplate(g,lessonTemplate)&&!isPracticeShowcase(g))
     .map(g => ({kind: 'gallery', key: g.id, title: g.title, label: 'Student exhibition'}));
 
   const exhibitionMetrics = [
-    {value: String(publishedCount), label: tr(language,'Triển lãm đã công bố','Published exhibitions')},
+    {value: String(published.length), label: tr(language,'Triển lãm đã công bố','Published exhibitions')},
     {value: String(publishedInView.length), label: tr(language,'Đang hiển thị','Showing in view')},
     {value: String(archivedItems.length), label: tr(language,'Đã lưu trữ','Archived exhibitions')},
-    {value: String((payload?.groups || []).length), label: tr(language,'Nhóm học sinh','Student groups')},
+    {value: String(groupRoomCount || (payload?.groups || []).length), label: groupRoomCount
+      ? tr(language,'Phòng nhóm đã công bố','Published group rooms')
+      : tr(language,'Nhóm học sinh','Student groups')},
   ];
 
   return (
@@ -225,7 +254,24 @@ export default function ExhibitionsScreen({language='en', data, staff, onNavigat
         </div>
       ) : publishedInView.length ? (
         <div className="swiss-editorial-exhibitions-grid">
-          {publishedInView.map((g, i) => (
+          {publishedInView.map((g, i) => g.destinations?.length ? (
+            <section key={g.id} className="swiss-editorial-exhibition-collection" aria-label={g.title}>
+              <header className="swiss-editorial-exhibition-collection-head">
+                <div><h3>{g.title}</h3><p>{roomCountLabel(language, g.destinations.length)}</p></div>
+                <button type="button" className="swiss-editorial-exhibition-open-all" disabled={busy}
+                  onClick={() => enter(g)}>{tr(language,'Mở toàn bộ triển lãm','Open full exhibition')}</button>
+              </header>
+              <div className="swiss-editorial-exhibitions-grid">
+                {(matchesQuery(g, term) ? g.destinations : g.destinations.filter(d => matchesQuery(d, term))).map(destination => (
+                  <ExhibitionCard key={destination.id} heading="h4"
+                    serial={destination.groupLabel} title={destination.title}
+                    cover={covers[destination.id] || ''} statusLabel={tr(language,'Đã công bố','Published')}
+                    language={language} ctaLabel={tr(language,'Mở phòng nhóm','Open group room')}
+                    disabled={busy} onOpen={() => enter(g, destination.id)} />
+                ))}
+              </div>
+            </section>
+          ) : (
             <ExhibitionCard key={g.id}
               serial={'EXH. ' + String(i + 1).padStart(2, '0')}
               title={g.title}

@@ -3180,6 +3180,54 @@ test('Student Creator Group 01: 100% draft but missing sources opens Submit and 
  await expect(app).toContainText('Submission is locked');
 });
 
+test('Public ASEAN catalogue lists ten published group rooms and opens a room from its card or link',async({page},testInfo)=>{
+ const titles=['Hội An','Tràng An','Angkor','Luang Prabang','Ayutthaya','Melaka','George Town','Singapore Botanic Gardens','Borobudur','Vigan'];
+ const destinations=titles.map((title,index)=>({id:'exhibition-'+(index+1),title,groupLabel:'Group '+String(index+1).padStart(2,'0')}));
+ const collection={id:'asean-qa',slug:'asean-qa',title:'ASEAN in Three Frames',lesson_template:'asean-in-three-frames',status:'published',destinations};
+ const requests=[];
+ await page.evaluate(()=>sessionStorage.setItem('bml-ui-language','en'));
+ const poster='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="240" height="150"%3E%3Crect width="240" height="150" fill="seagreen"/%3E%3C/svg%3E';
+ await page.route('**/api/gallery-staff?operation=*',route=>{
+  const request=route.request();
+  const operation=new URL(request.url()).searchParams.get('operation');
+  requests.push(operation);
+  if(operation==='dashboard')return route.fulfill({json:{profile:{role:'visitor'},assignments:[],groups:[],publishedGalleries:[collection]}});
+  if(operation==='showcase-state')return route.fulfill({json:{galleryEnabled:true,publishedGalleries:[collection]}});
+  if(operation!=='showcase-exhibition')return route.fulfill({status:404,json:{}});
+  expect(request.postDataJSON()).toEqual({id:collection.id});
+  return route.fulfill({json:{gallery:{...collection,rooms:destinations.map(destination=>({
+   id:'room-'+destination.id,exhibition_id:destination.id,title:destination.title,
+   exhibits:[{id:'image-'+destination.id,kind:'image',title:'Place',description:destination.title,status:'published',image_url:poster}],
+  }))}}});
+ });
+ await page.getByTestId('qa-dashboard-visitor').click();
+ await page.getByTestId('igv2-nav-exhibitions').click();
+ const catalogue=page.getByRole('region',{name:collection.title});
+ const cards=catalogue.getByRole('article');
+ await expect(catalogue.getByText('10 published group rooms',{exact:true})).toBeVisible();
+ await expect(cards).toHaveCount(10);
+ await expect.poll(()=>cards.locator('img').count()).toBe(10);
+ await expect(cards.last()).toContainText('Group 10');
+ expect(await catalogue.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+ await catalogue.screenshot({path:testInfo.outputPath('published-group-rooms.png')});
+ await catalogue.getByRole('button',{name:'Open group room Vigan'}).click();
+ const cinema=page.getByTestId('museum-teacher-cinema-portal');
+ const rooms=cinema.getByRole('navigation',{name:'Exhibition rooms'});
+ await expect(rooms.getByRole('button')).toHaveCount(10);
+ await expect(rooms.getByRole('button',{name:'10 · Vigan'})).toHaveClass(/is-active/);
+ await expect(page).toHaveURL(/exhibition=exhibition-10$/);
+ await cinema.getByRole('button',{name:'2D',exact:true}).click();
+ await expect(cinema.getByTestId('museum-2d-exhibits')).toContainText('Vigan');
+ await cinema.getByRole('button',{name:'Close museum preview'}).click();
+ await catalogue.getByRole('button',{name:'Open full exhibition'}).click();
+ await expect(rooms.getByRole('button',{name:'01 · Hội An'})).toHaveClass(/is-active/);
+ await page.goto('/tests/museum-lab/v3.html#/tool/immersive-gallery?exhibition=exhibition-10');
+ await page.reload();
+ await page.getByTestId('qa-dashboard-visitor').click();
+ await expect(rooms.getByRole('button',{name:'10 · Vigan'})).toHaveClass(/is-active/);
+ expect([...new Set(requests)].sort()).toEqual(['dashboard','showcase-exhibition','showcase-state']);
+});
+
 test('Published school exhibition renders from the already loaded dashboard and opens its signed artworks',async({page})=>{
  await page.getByTestId('qa-dashboard-published-en').click();
  const app=page.getByTestId('brian-museum-lab-v3');

@@ -51,8 +51,8 @@ export function reviewMuseum(review,assets=[]){
   }))
  };
 }
-export default function MuseumScene({gallery,onBack,onClose,language='vi',embedded=false,compact=false,initial3D=false,onExhibitSelect,cinema=false}){
- const [activeRoom,setActiveRoom]=useState(0),[threeD,setThreeD]=useState(cinema||initial3D),[selectedId,setSelectedId]=useState(null);
+export default function MuseumScene({gallery,onBack,onClose,language='vi',embedded=false,compact=false,initial3D=false,onExhibitSelect,cinema=false,initialRoomIndex=0}){
+ const [activeRoom,setActiveRoom]=useState(initialRoomIndex),[threeD,setThreeD]=useState(cinema||initial3D),[selectedId,setSelectedId]=useState(null);
  const [fullPosterId,setFullPosterId]=useState(null);
  const [focus,dispatchFocus]=useReducer(focusReducer,FOCUS_IDLE);
  const isFocus=cinema&&threeD&&focusActive(focus);
