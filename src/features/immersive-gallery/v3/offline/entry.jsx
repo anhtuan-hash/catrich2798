@@ -6,6 +6,7 @@ import MuseumScene from '../MuseumScene.jsx';
 import {installMuseumOffline} from '../offlineAccess.js';
 import {createOfflineRuntime} from './runtime.js';
 import {digest} from './snapshot.js';
+import {groupWorkshopRows} from './workshopRows.js';
 import './offline.css';
 
 function OfflineApp({runtime,hash}){
@@ -65,7 +66,11 @@ function OfflineApp({runtime,hash}){
 }
 function StudentBoard({runtime}){
  const [groupId,setGroupId]=useState('');
- const groups=[...runtime.snapshot.staff.groups].sort((a,b)=>String(a.label||'').localeCompare(String(b.label||''),undefined,{numeric:true}));
+ const groups=groupWorkshopRows(runtime.snapshot);
+ const hasTransfer=groups.some(group=>group.transfer!==null);
+ const writingHeading=hasTransfer
+  ?groups.some(group=>group.transfer===null)?'Final activity':'Group transfer card · Activity 6'
+  :'Exit Ticket';
  const open=id=>{runtime.useStudent(id);setGroupId(id);};
  if(groupId){
   const group=groups.find(item=>item.id===groupId);
@@ -80,12 +85,10 @@ function StudentBoard({runtime}){
   <h1>{groups.length} student workshops</h1>
   <p>Each row opens that group’s saved practice. Nothing can be added, edited or deleted.</p>
   <p><a href="../PetrusKy_Museum_Offline.html">Open the teacher archive</a></p>
-  <table className="bml-frozen-table"><thead><tr><th>#</th><th>Group</th><th>Class</th><th>Museum</th><th></th></tr></thead>
-   <tbody>{groups.map((group,index)=>{
-    const lesson=runtime.snapshot.staff.assignments.find(item=>item.id===group.assignment_id);
-    return <tr key={group.id}><td>{String(index+1).padStart(2,'0')}</td><td>{group.label}</td><td>{lesson?.class_scope||''}</td><td>{group.state}</td>
-     <td><button type="button" onClick={()=>open(group.id)}>Open</button></td></tr>;
-   })}</tbody></table>
+  <table className="bml-frozen-table"><thead><tr><th>#</th><th>Group</th><th>Class</th><th>Museum</th><th>{writingHeading}</th><th></th></tr></thead>
+   <tbody>{groups.map((group,index)=><tr key={group.id}><td>{String(index+1).padStart(2,'0')}</td><td>{group.label}</td><td>{group.classScope}</td><td>{group.state}</td>
+    <td>{group.transfer===null?(group.exit?'Submitted':'None'):(group.transfer?'On file':'No saved writing')}</td>
+    <td><button type="button" onClick={()=>open(group.id)}>Open</button></td></tr>)}</tbody></table>
  </main>;
 }
 async function boot(){

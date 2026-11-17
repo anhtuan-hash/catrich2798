@@ -62,6 +62,9 @@ test('ASEAN ZIP opens the teacher dossier and the six student activities without
  await expect(page.getByTestId('museum-offline-export')).toHaveCount(0);
  await page.getByRole('link',{name:'3 student workshops'}).click();
  await expect(page.getByRole('heading',{name:'3 student workshops'})).toBeVisible();
+ await expect(page.getByRole('columnheader',{name:'Group transfer card · Activity 6'})).toBeVisible();
+ await expect(page.getByRole('row',{name:/Nhóm 01/}).getByRole('cell',{name:'On file'})).toBeVisible();
+ await expect(page.getByRole('row',{name:/Nhóm 02/}).getByRole('cell',{name:'No saved writing'})).toBeVisible();
  await page.getByRole('row',{name:/Nhóm 01/}).getByRole('button',{name:'Open',exact:true}).click();
  const workshop=page.getByTestId('asean-student-lesson');
  await expect(workshop.getByTestId('asean-student-slide-1')).toBeVisible();
