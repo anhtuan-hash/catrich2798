@@ -7,7 +7,7 @@ const frameIcons = [MapPin, Binoculars, Compass];
 const sceneIcons = [Landmark, Footprints, Compass];
 const questionsVi = ['Ở đâu?', 'Có thể làm gì?', 'Cần lưu ý gì?'];
 
-export default function AseanActivityArt({activity, language = 'en', revisionCaptured = false, revisionHasFeedback = true, visitorResult = null}) {
+export default function AseanActivityArt({activity, language = 'en', revisionCaptured = false, revisionHasFeedback = true, visitorResult = null, framePhotos}) {
  const vi = language === 'vi';
  const t = (vn, en) => vi ? vn : en;
  const names = ASEAN_EXHIBIT_NAMES[vi?'vi':'en'];
@@ -28,7 +28,13 @@ export default function AseanActivityArt({activity, language = 'en', revisionCap
   break;
  case 'build':
   graphic = <div className="asean-art-room">
-   <div className="asean-art-room-wall">{sceneIcons.map((Icon, i) => <div key={ASEAN_FRAMES[i].key}><Icon aria-hidden="true"/><strong lang="en">{ASEAN_FRAMES[i].label}</strong></div>)}</div>
+   <div className="asean-art-room-wall">{sceneIcons.map((Icon, i) => {
+    const photo=framePhotos?.[i];
+    return <div key={ASEAN_FRAMES[i].key}>
+     {photo?<img className="asean-art-frame-photo" src={photo.src} alt={photo.alt} decoding="async"/>:<Icon aria-hidden="true"/>}
+     <strong lang="en">{ASEAN_FRAMES[i].label}</strong>
+    </div>;
+   })}</div>
    <div className="asean-art-room-floor" aria-hidden="true"/>
   </div>;
   break;

@@ -1,5 +1,5 @@
 import React,{useEffect,useId,useRef,useState} from 'react';
-import {ArrowLeft,ArrowRight,BookOpen,Box,Clock3,ExternalLink,Landmark,LockKeyhole,Save} from 'lucide-react';
+import {ArrowLeft,ArrowRight,BookOpen,Box,Check,Clock3,Compass,ExternalLink,Images,Landmark,Lightbulb,LockKeyhole,MapPin,MessageSquare,MessagesSquare,PencilLine,Save,Send} from 'lucide-react';
 import AseanHueQuiz from './AseanHueQuiz.jsx';
 import AseanDiscussionPhoto from './AseanDiscussionPhoto.jsx';
 import AseanActivityArt,{AseanFrameIcon} from './AseanActivityArt.jsx';
@@ -33,6 +33,7 @@ const ACTIVITY_GROUPS=[
  {key:'share',en:'Share',vi:'Trình bày'},
 ];
 const ACTIVITY_GROUP_ENDS=[1,2,3,5,ASEAN_STAGES.length];
+const ACTIVITY_ICONS=[Compass,Images,Box,MessagesSquare,PencilLine,Send];
 const ASEAN_ACTIVITIES_VI=ASEAN_STAGES.map(stage=>({...stage,title:stage.vi}));
 const T=(language,vi,en)=>language==='en'?en:vi;
 const groupName=(language,label)=>language==='en'?englishSystemGroupLabel(label):label;
@@ -40,7 +41,7 @@ const visitorResult=record=>validAseanResponse(3,record)
  ?record.answers.reduce((sum,answer)=>sum+answer.score,0)+'/'+ASEAN_FRAMES.length
  :null;
 
-function ClassVisitorModel({language}){
+function ClassVisitorModel({language,onQuiz}){
  const {title,vi,captions}=ASEAN_DISCUSSION_MODEL;
  return <section className="asean-visitor-model bml-surface" aria-labelledby="asean-visitor-model-title">
   <h3 id="asean-visitor-model-title" lang={language}>{T(language,vi,title)}</h3>
@@ -49,7 +50,12 @@ function ClassVisitorModel({language}){
   <ul className="asean-model-captions">{ASEAN_FRAMES.map((frame,index)=><li key={frame.key}>
    <strong><AseanFrameIcon index={index}/>{frame.label}</strong><span>{captions[index]}</span>
   </li>)}</ul>
-  <p>Which visitor question still needs a clearer answer? Agree on the missing detail and share it with your class.</p>
+  <div className="asean-model-prompt">
+   <p><MessageSquare aria-hidden="true"/>Which visitor question still needs a clearer answer? Agree on the missing detail and share it with your class.</p>
+   <button type="button" className="bml-outline" onClick={onQuiz}>
+    {T(language,'Đến phần trắc nghiệm','Go to the quiz')}<ArrowRight size={16} aria-hidden="true"/>
+   </button>
+  </div>
  </section>;
 }
 
@@ -70,8 +76,8 @@ function ResponseFields({stage,fields,update,groupLabel,question,recorded,langua
    <legend>{stage===5?card.title:'Your two sentences'}</legend>
    <p className="asean-response-context">{card.country}</p>
    <div className="asean-response-grid">
-    <div><p><strong>Visitors can …</strong><br/>{card.experience}</p>{text('experience',stage===5?T(language,'Một hoạt động du khách có thể làm','One thing a visitor can do'):'One thing a visitor can do')}</div>
-    <div><p><strong>Visitors should …</strong><br/>{card.advice}</p>{text('advice',stage===5?T(language,'Một lời khuyên cho du khách','One piece of advice'):'One piece of advice')}</div>
+    <div className="asean-writing-note"><p><strong><AseanFrameIcon index={1}/>Visitors can …</strong>{card.experience}</p>{text('experience',stage===5?T(language,'Một hoạt động du khách có thể làm','One thing a visitor can do'):'One thing a visitor can do')}</div>
+    <div className="asean-writing-note"><p><strong><Lightbulb aria-hidden="true"/>Visitors should …</strong>{card.advice}</p>{text('advice',stage===5?T(language,'Một lời khuyên cho du khách','One piece of advice'):'One piece of advice')}</div>
    </div>
   </fieldset>;
  }
@@ -263,7 +269,7 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
    <ResponseFields stage={stage} fields={record||(transfer&&session.readOnly?initialFields(stage):responseFields)} update={(key,value)=>setFields(previous=>({...(previous||responseFields),[key]:value}))}
     groupLabel={session.groupLabel} question={visit?.question} recorded={submitted||!open} language={language}/>
    {!submitted&&scoreMismatch&&<p role="status">For a score of 1, choose {ASEAN_FRAMES[visit.question-1]?.label} as the evidence frame. Choose 0 if the answer is missing or unclear.</p>}
-   {submitted?!visitStage&&<p role="status" lang={transfer?language:undefined}>{transfer
+   {submitted?!visitStage&&<p className="asean-response-saved" role="status" lang={transfer?language:undefined}><Check size={16} aria-hidden="true"/>{transfer
     ?T(language,'Đã nộp hai câu tiếng Anh','Writing submitted'):stage===1?'Exhibit plan submitted.':'Group response saved.'}</p>:
     !formId&&(!transfer||open)&&<button className="bml-primary" type="submit" disabled={busy||!open||scoreMismatch}>
      {v2Visit?T(language,'Nộp phiếu thử lại','Submit retest answer'):
@@ -312,6 +318,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
  const current=ASEAN_STAGES[stage];
  const activityGroup=ACTIVITY_GROUP_ENDS.findIndex(end=>stage<end);
  const design=ASEAN_ACTIVITY_DESIGN[stage];
+ const ActivityIcon=ACTIVITY_ICONS[stage];
  const liveOpen=!readOnly&&live?.status==='active'&&live.stageOpen&&live.stageIndex===stage;
  const captured=records.checkpoints.find(item=>item.kind==='after');
  const baseline=records.checkpoints.find(item=>item.kind==='before');
@@ -388,6 +395,10 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
   needsPhoto:missing.includes(frame.label+' photo'),
   ready:!missing.some(item=>item.startsWith(frame.label+' ')),
  }));
+ const framePhotos=stage===2?frames.map(({key})=>{
+  const asset=assets.find(item=>item.id===studio.artworks[key]);
+  return asset?.image_url?{src:asset.image_url,alt:studio.artMeta[key]?.alt||''}:null;
+ }):undefined;
  const missingPhotos=frames.filter(frame=>frame.needsPhoto);
  const readyFrames=frames.filter(frame=>frame.ready).length;
  const buildPhotoTask=missingPhotos.length
@@ -485,7 +496,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
      <section className="asean-student-activity" aria-labelledby="asean-student-activity-title" data-testid={'asean-student-slide-'+(stage+1)}>
       <div className="bml-live-student-question">
        <div className="asean-activity-meta" lang={language}>
-        <span className="asean-activity-index" aria-hidden="true">{String(stage+1).padStart(2,'0')}</span>
+        <span className="asean-activity-index" aria-hidden="true"><ActivityIcon/></span>
         <div>
          <p className="bml-question-eyebrow">{T(language,'Hoạt động','Activity')} {stage+1} / {ASEAN_STAGES.length}</p>
          <p className="asean-activity-time"><Clock3 aria-hidden="true"/>{T(language,'Tiết','Period')} {current.period} · {current.minutes} {T(language,'phút','min')}</p>
@@ -494,7 +505,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        <h2 id="asean-student-activity-title">{stage===0?'1. Write about '+aseanWritingCard(session.groupLabel).title:
         stage===5?T(language,'Trình bày và nộp bài',design.studentTitle):design.studentTitle}</h2>
        <p lang={[2,3,4,5].includes(stage)?language:undefined}>{stage===0
-        ?'Write one thing a visitor can do and one piece of advice. Submit both sentences, then discuss the class example and answer its three questions in Step 2.'
+        ?'What would you tell a friend visiting for the first time? Write one thing they can do and one piece of advice. Submit both sentences, then try the Hué example in Step 2.'
         :stage===5
         ?reportTask
         :stage===4?revisionTask:stage===2?buildPhotoTask:stage===3
@@ -511,7 +522,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        </button>
       </div>}
       {stage===3&&<div className="asean-visit-instructions" lang={language}>
-       <ol>
+       <ol className="asean-action-list">
         <li>{T(language,'Mở phòng được giao và đọc ba khung. Ghi nhớ khung mở đầu tiên.','Open the assigned room, inspect all three frames and remember which one you opened first.')}</li>
         <li>{T(language,'Đóng phòng, ghi điều tìm được và chấm từng câu theo bằng chứng.','Close the viewer, record what you found and score each answer using the evidence.')}</li>
         <li>{T(language,'Viết một đề xuất cụ thể bằng tiếng Anh và nộp phiếu.','Write one specific suggestion in English and submit the feedback.')}</li>
@@ -523,7 +534,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        </button>}
       </div>}
       {stage===4&&<div className="asean-visit-instructions" lang={language}>
-       <ol>
+       <ol className="asean-action-list">
         <li>{captured?T(language,'Phòng nhóm em: so sánh khung trước và sau khi sửa, rồi xem kết quả thử lại.',
          'Your exhibit: compare the same frame before and after revision, then check the retest result.')
          :T(language,'Phòng nhóm em: sửa một khung, giải thích lý do và lưu bản đã chỉnh sửa.',
@@ -541,7 +552,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        </div>
       </div>}
       {stage===5&&<div className="asean-visit-instructions asean-share-steps" lang={language}>
-       <ol>
+       <ol className="asean-action-list">
         <li>{T(language,'Xem lại bản chỉnh sửa và kết quả thử lại để trình bày.','Review your revised exhibit and the retest result before presenting.')}</li>
         <li>{T(language,'Viết và nộp hai câu tiếng Anh về điểm đến mới trên thẻ bên dưới.','Write and submit two English sentences about the new destination on the card below.')}</li>
         <li>{T(language,'Nộp triển lãm 3D của nhóm ở cột bên phải.','Submit your group’s 3D exhibit in the project panel.')}</li>
@@ -553,7 +564,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
       {isWritingActivity&&<GroupResponse key={stage} session={{...session,readOnly}} stage={stage} live={live} open={liveOpen}
        record={stageRecord} refreshLive={refreshLive} refreshRecords={refreshRecords}
        transferNeedsResubmission={stage===5&&records.transferNeedsResubmission} language={stage===5?language:'en'}/>}
-      {stage!==0&&stage!==5&&<AseanActivityArt activity={design.id} language={stage===3||stage===4?language:undefined}
+      {stage!==0&&stage!==5&&<AseanActivityArt activity={design.id} language={language} framePhotos={framePhotos}
        visitorResult={stage===3?visitorResult(stageRecord):null}
        revisionCaptured={Boolean(captured)} revisionHasFeedback={Boolean(records.feedback)}/>}
       {[1,2,4].includes(stage)&&destination&&<div className="asean-student-sources">
@@ -580,7 +591,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
   </section>
   <section className="bml-student-primary bml-student-project-panel" aria-labelledby="bml-student-project-title">
    <header className="bml-student-panel-head bml-student-project-head">
-    <h2 id="bml-student-project-title">{stage===0?T(language,'2. Thảo luận mẫu chung','2. Discuss the class example'):
+    <h2 id="bml-student-project-title"><ActivityIcon aria-hidden="true"/>{stage===0?T(language,'2. Thảo luận mẫu chung','2. Discuss the class example'):
      stage===3?T(language,'Phiếu góp ý tham quan','Visitor Feedback'):
      stage===4?T(language,'Chỉnh sửa và thử lại','Revision & Retest'):
      stage===5?T(language,'Triển lãm của nhóm','Group Exhibit'):T(language,'Sản phẩm nhóm','Group Project')}</h2>
@@ -595,7 +606,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
       </p>}
       {stage===0?<>
        {(stageRecord||live?.stageIndex>0||readOnly)?<>
-        <ClassVisitorModel language={language}/>
+        <ClassVisitorModel language={language} onQuiz={()=>focusVisitorStep('#asean-hue-quiz-title')}/>
         <AseanHueQuiz key={live?.id||'review'} language={language} sessionId={live?.id} csrf={session.csrf}
          open={Boolean(liveOpen&&stageRecord)} readOnly={readOnly} record={records.hueQuiz}/>
         <AseanActivityArt activity={design.id}/>
@@ -605,8 +616,11 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
       </>:stage!==3&&!(stage===4&&captured)&&<>
        <div className="asean-exhibit-heading">
         {stage===5&&<p className="asean-exhibit-destination-label" lang={language}>{T(language,'Điểm đến của triển lãm','Exhibit destination')}</p>}
-        <h3 className="bml-workshop-draft-title">{destination?.name||session.assignment.title}</h3>
-        {destination&&<p className="asean-student-country">{destination.country}</p>}
+        <div className="asean-destination-name">
+         <MapPin aria-hidden="true"/>
+         <div><h3 className="bml-workshop-draft-title">{destination?.name||session.assignment.title}</h3>
+          {destination&&<p className="asean-student-country">{destination.country}</p>}</div>
+        </div>
        </div>
       </>}
       {stage>=4&&captured&&<section className="asean-own-revision" data-testid="asean-own-revision">
