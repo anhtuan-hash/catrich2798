@@ -4,7 +4,8 @@ import {RUBRIC,scoreRubric,suggestRubric} from './museumData.js';
 import {ASEAN_RUBRIC,isAsean,aseanPeerGroup} from './aseanLesson.js';
 import {LESSON_RUBRIC_LEVELS} from './lessonPlanAlignment.js';
 import {englishSystemGroupLabel,staffRequest} from './museumApi.js';
-import MuseumScene,{reviewMuseum} from './MuseumScene.jsx';
+import {reviewMuseum} from './MuseumScene.jsx';
+import MuseumExhibitionDetail from './MuseumExhibitionDetail.jsx';
 import {artStaff} from './museumLiveApi.js';
 const tr=(lang,vi,en)=>lang==='en'?en:vi;
 const AWAITING_REVIEW=['submitted','ttcm_review'];
@@ -22,20 +23,27 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
   [busy,setBusy]=useState(false),[error,setError]=useState(''),
   [success,setSuccess]=useState(''),[preview,setPreview]=useState(false),[form,setForm]=useState(null);
  const [reviewArtAssets,setReviewArtAssets]=useState([]);
+ const [publishedPreview,setPublishedPreview]=useState(null);
  const [publishing,setPublishing]=useState(null);
- const detailHeading=useRef(null), openedCard=useRef(null);
+ const detailHeading=useRef(null), openedCard=useRef(null), previewTrigger=useRef(null);
  const publicReadOnly=Boolean(data?.publicReadOnly);
  const groups=data?.groups||[],assignments=data?.assignments||[],reviews=data?.reviews||[];
  const mine=useMemo(()=>reviews.filter(r=>{const g=groups.find(x=>x.id===r.group_id),a=assignments.find(x=>x.id===g?.assignment_id);return (filter==='all'||r.state===filter)&&((r.snapshot?.title||'')+' '+(g?.label||'')+' '+(a?.class_scope||'')).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase());}),[reviews,filter,query,groups,assignments]);
  const selected=reviews.find(r=>r.id===selectedId);
  const group=groups.find(g=>g.id===selected?.group_id);
+ const assignment=assignments.find(a=>a.id===group?.assignment_id);
+ const collection=selected?.state==='published'?(data?.publishedGalleries||[])
+  .find(gallery=>gallery.assignment_id===assignment?.id):null;
+ const publishedRoomId=collection?.destinations?.find(destination=>destination.groupLabel===group?.label)?.id;
+ const collectionId=publishedRoomId?collection.id:null;
+ const closePreview=()=>{setPreview(false);setPublishedPreview(null);};
  useEffect(()=>{
   if(editorial&&selected?.id)detailHeading.current?.focus();
  },[editorial,selected?.id]);
  // Teacher/admin art URLs are private and short-lived. Fetch when a submission
  // preview opens and renew while it remains visible, without touching snapshots.
  useEffect(()=>{
-  if(publicReadOnly||!preview||!selected?.group_id)return undefined;
+  if(publicReadOnly||!preview||collectionId||!selected?.group_id)return undefined;
   let active=true;
   const refresh=async()=>{
    try{const assets=await artStaff(selected.group_id);if(active)setReviewArtAssets(assets);}
@@ -44,8 +52,20 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
   refresh();
   const timer=window.setInterval(refresh,55000);
   return()=>{active=false;window.clearInterval(timer);};
- },[preview,selected?.group_id,publicReadOnly]);
- const assignment=assignments.find(a=>a.id===group?.assignment_id);
+ },[preview,selected?.group_id,publicReadOnly,collectionId]);
+ useEffect(()=>{
+  if(!preview||!collectionId)return undefined;
+  let active=true;
+  transport('showcase-exhibition',{id:collectionId}).then(({gallery})=>{
+   if(!active)return;
+   const roomIndex=gallery?.rooms?.findIndex(room=>room.exhibition_id===publishedRoomId)??-1;
+   if(roomIndex<0)throw new Error(tr(language,'Phòng triển lãm của nhóm hiện không mở được.','This group’s exhibition room is unavailable.'));
+   setPublishedPreview({gallery,roomIndex});
+  }).catch(e=>{
+   if(active){setError(e.message);setPreview(false);}
+  });
+  return()=>{active=false;};
+ },[preview,collectionId,publishedRoomId,transport,language]);
  const asean=isAsean(assignment),criteria=asean?ASEAN_RUBRIC:RUBRIC,maxScore=asean?10:100;
  const isAdmin=data?.profile?.role==='admin'&&!data?.offlineReadOnly&&!publicReadOnly;
  const rubricsByReview=new Map((data?.rubrics||[]).map(row=>[row.review_id,row]));
@@ -84,7 +104,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
    setSuccess(action==='publish'
     ?tr(language,'Đã công bố triển lãm.','Exhibition published.')
     :tr(language,'Đã lưu quyết định và nhật ký duyệt.','Review decision and audit log saved.'));
-   setSelectedId(null);setPreview(false);setForm(null);await refreshAfterChange();
+   setSelectedId(null);closePreview();setForm(null);await refreshAfterChange();
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
  const refreshAfterChange=async()=>{
@@ -132,7 +152,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
    'Xóa bài nộp “'+(selected.snapshot?.title||'')+'” khỏi danh sách duyệt? Bài gốc và nhật ký được lưu; nhóm có thể chỉnh sửa và nộp bản mới. Bài đã duyệt/công bố không thể xóa.',
    'Remove “'+(selected.snapshot?.title||'')+'” from the review queue? Original evidence and audit are preserved; a new draft version can be submitted. Approved/published submissions are protected.')))return;
   setBusy(true);setError('');setSuccess('');
-  try{await transport('archive-review',{reviewId:selected.id});setSelectedId(null);setPreview(false);setForm(null);await refreshAfterChange();
+  try{await transport('archive-review',{reviewId:selected.id});setSelectedId(null);closePreview();setForm(null);await refreshAfterChange();
    setSuccess(tr(language,'Đã xóa bài nộp khỏi danh sách duyệt.','Submission removed from review queue.'));}
   catch(e){setError(e.message);}finally{setBusy(false);}
  };
@@ -147,14 +167,16 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
    if(await refreshAfterChange())setForm(null);
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
- const publishedRoom=publicReadOnly&&(data?.publishedGalleries||[]).find(gallery=>gallery.assignment_id===assignment?.id)
-  ?.destinations?.find(destination=>destination.groupLabel===group?.label);
- const previewButton=publicReadOnly&&!publishedRoom?null:<button type="button" className="bml-outline bml-review-preview-toggle" onClick={()=>publishedRoom?onNavigate?.('gallery',publishedRoom.id):setPreview(v=>!v)}>
-  <Eye size={17} aria-hidden="true"/>{preview?tr(language,'Đọc nội dung','Read content'):tr(language,'Xem bảo tàng 2D/3D','Preview museum')}
+ const previewGallery=preview?(collectionId?publishedPreview?.gallery:
+  !publicReadOnly?reviewMuseum(selected,reviewArtAssets,assignment?.lesson_template):null):null;
+ const previewButton=publicReadOnly&&!publishedRoomId?null:<button type="button" className="bml-outline bml-review-preview-toggle"
+  ref={previewTrigger} aria-busy={preview&&!previewGallery} onClick={()=>{setError('');setReviewArtAssets([]);setPreview(true);}}>
+  <Eye size={17} aria-hidden="true"/>{preview&&!previewGallery?tr(language,'Đang mở triển lãm…','Opening exhibition…'):
+   tr(language,'Xem bảo tàng 2D/3D','Preview museum')}
  </button>;
  const groupContext=[language==='en'?englishSystemGroupLabel(group?.label):group?.label,assignment?.class_scope].filter(Boolean).join(' · ');
  const submissionVersion=tr(language,'BẢN NỘP','SUBMISSION')+' · v'+selected?.version;
- const open=r=>{setSelectedId(r.id);setForm(null);setError('');setSuccess('');setPreview(false);setReviewArtAssets([]);};
+ const open=r=>{setSelectedId(r.id);setForm(null);setError('');setSuccess('');closePreview();setReviewArtAssets([]);};
  return <div className={'bml-screen'+(editorial?' swiss-editorial-review-desk':'')} data-testid="museum-review-desk">
   {!editorial?<div className="bml-heading-actions"><div><div className="bml-overline">{tr(language,'ĐÁNH GIÁ HỌC TẬP','LEARNING ASSESSMENT')}</div>
    <h1>{tr(language,'Bài nộp của học sinh','Student submissions')}</h1>
@@ -220,17 +242,17 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
      <p>{editorial&&groupContext?submissionVersion:groupContext}</p></div>
      <div className="bml-review-detail-controls">
       {editorial?previewButton:null}
-      <button type="button" className="bml-icon-btn" disabled={busy} onClick={()=>{setSelectedId(null);setForm(null);if(editorial)openedCard.current?.focus();}} aria-label={editorial?tr(language,'Đóng chi tiết','Close submission'):'Close'}><ArrowLeft size={21} aria-hidden="true"/></button>
+      <button type="button" className="bml-icon-btn" disabled={busy} onClick={()=>{setSelectedId(null);closePreview();setForm(null);if(editorial)openedCard.current?.focus();}} aria-label={editorial?tr(language,'Đóng chi tiết','Close submission'):'Close'}><ArrowLeft size={21} aria-hidden="true"/></button>
      </div>
     </div>
     <div className="bml-review-detail-layout">
      <div className="bml-review-preview">
       <div className="bml-review-preview-head"><h3>{tr(language,'Sản phẩm học sinh','Student exhibition')}</h3>
        {editorial?null:previewButton}</div>
-      {preview?<div className="bml-review-cinema-overlay" role="dialog" aria-modal="true" aria-label="Review student museum in Cinema Preview">
-        <MuseumScene gallery={reviewMuseum(selected,reviewArtAssets)} embedded language={language}
-         cinema initial3D onClose={()=>setPreview(false)}/>
-       </div>:
+      {previewGallery?<MuseumExhibitionDetail gallery={previewGallery} language={language} startInCinema
+       initialRoomIndex={collectionId?publishedPreview.roomIndex:0} onBack={()=>{
+        closePreview();window.requestAnimationFrame(()=>previewTrigger.current?.focus({preventScroll:true}));
+       }}/>:null}
        <div className="bml-submission-content">
         {(selected.snapshot?.rooms||[]).map((room,i)=><article key={i}>
          <h4>{String(i+1).padStart(2,'0')} · {room.title}</h4>
@@ -242,7 +264,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
          ].map(([label,key])=><p key={key}><b>{tr(language,label,{issue:'Problem',source:'Source',feedback:'Peer feedback',improvement:'Revision',reflection:'Reflection'}[key])}:</b> {selected.snapshot.learning[key]||tr(language,'Chưa ghi','Not recorded')}</p>)}
         </div>:null}
         {asean?<AseanReviewEvidence group={group} groups={groups} responses={data?.aseanResponses||[]} writingScores={data?.aseanWritingScores||[]} snapshot={selected.snapshot} language={language}/>:null}
-       </div>}
+       </div>
      </div>
      <aside className="bml-eval-pane"><div className="bml-eval-heading"><ClipboardCheck size={21}/><h3>{tr(language,'Rubric đánh giá','Assessment rubric')}</h3></div>
        <p className="bml-muted">{tr(language,'Rubric nội bộ, không phải tiêu chí chính thức của hội thi.','An internal learning rubric, not an official competition scoring scheme.')}</p>
