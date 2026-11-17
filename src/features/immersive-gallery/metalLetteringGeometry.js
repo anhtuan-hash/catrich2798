@@ -1,10 +1,10 @@
 import {BufferAttribute,ExtrudeGeometry,ShapeGeometry} from 'three';
 import {FontLoader} from 'three/addons/loaders/FontLoader.js';
-import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
+import {mergeGeometries,mergeVertices} from 'three/addons/utils/BufferGeometryUtils.js';
 import typeface from './fonts/petrus-gallery-lettering.json' with {type:'json'};
 
 const font=new FontLoader().parse(typeface);
-const curveSegments=4;
+const curveSegments=3;
 
 export function hasMetalLetteringGlyphs(text){
  return [...text.normalize('NFC')].every(glyph=>Object.hasOwn(typeface.glyphs,glyph));
@@ -34,9 +34,11 @@ export function buildMetalLettering(lines,{size,maxWidth,lineStep=size,align='ce
   const y=(lines.length/2-.5-i)*lineStep-(min.y+max.y)/2;
   shadow.translate(x,y,0);
   shadows.push(shadow);
-  const solid=new ExtrudeGeometry(shapes,{
-   depth,curveSegments,bevelEnabled:true,bevelThickness:bevel,bevelSize:bevel*.78,bevelSegments:2
+  const extruded=new ExtrudeGeometry(shapes,{
+   depth,curveSegments,bevelEnabled:true,bevelThickness:bevel,bevelSize:bevel*.78,bevelSegments:1
   });
+  const solid=mergeVertices(extruded);
+  extruded.dispose();
   solid.translate(x,y,0);
   // One material and draw call per sign. A darker cut edge makes the front
   // visually distinct even across walls with different light directions.
