@@ -3185,6 +3185,7 @@ test('Public ASEAN catalogue lists ten published group rooms and opens a room fr
  const destinations=titles.map((title,index)=>({id:'exhibition-'+(index+1),title,groupLabel:'Group '+String(index+1).padStart(2,'0')}));
  const collection={id:'asean-qa',slug:'asean-qa',title:'ASEAN in Three Frames',lesson_template:'asean-in-three-frames',status:'published',destinations};
  const requests=[];
+ await page.evaluate(()=>sessionStorage.setItem('bml-ui-language','en'));
  const poster='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="240" height="150"%3E%3Crect width="240" height="150" fill="seagreen"/%3E%3C/svg%3E';
  await page.route('**/api/gallery-staff?operation=*',route=>{
   const request=route.request();
