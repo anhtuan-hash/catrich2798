@@ -35,6 +35,9 @@ const ACTIVITY_GROUPS=[
 const ACTIVITY_GROUP_ENDS=[1,2,3,5,ASEAN_STAGES.length];
 const ASEAN_ACTIVITIES_VI=ASEAN_STAGES.map(stage=>({...stage,title:stage.vi}));
 const T=(language,vi,en)=>language==='en'?en:vi;
+const visitorResult=record=>validAseanResponse(3,record)
+ ?record.answers.reduce((sum,answer)=>sum+answer.score,0)+'/'+ASEAN_FRAMES.length
+ :null;
 
 function ClassVisitorModel({language}){
  const {title,vi,captions}=ASEAN_DISCUSSION_MODEL;
@@ -209,7 +212,7 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
   {stage===4&&open&&!submitted&&!visit?.gallery&&retestTask?.ready&&<p>Open the exhibit, inspect the frames, then close the viewer to answer and cite the frame you used.</p>}
   {(!visitStage||submitted||visit?.gallery)&&<form id={formId} onSubmit={submit}>
    {v1Visit&&(submitted?<p role="status" lang={language}>
-    {T(language,'Đã nộp góp ý','Visitor feedback submitted')} · {record.answers.reduce((sum,answer)=>sum+answer.score,0)}/3
+    {[T(language,'Đã nộp góp ý','Visitor feedback submitted'),visitorResult(record)].filter(Boolean).join(' · ')}
    </p>:<h3 data-visit-form-heading tabIndex={-1} lang={language}>{T(language,'2. Điền phiếu góp ý','2. Complete the visitor feedback')}</h3>)}
    {v1Visit&&visitedExhibit&&<p className="asean-visit-target" lang={language}>
     {T(language,'Triển lãm được góp ý','Exhibit visited')} · <strong>{visitedExhibit}</strong>
@@ -447,7 +450,9 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
       {isWritingActivity&&<GroupResponse key={stage} session={{...session,readOnly}} stage={stage} live={live} open={liveOpen}
        record={stageRecord} refreshLive={refreshLive} refreshRecords={refreshRecords}
        transferNeedsResubmission={stage===5&&records.transferNeedsResubmission}/>}
-      {stage!==0&&<AseanActivityArt activity={design.id} revisionCaptured={Boolean(captured)} revisionHasFeedback={Boolean(records.feedback)}/>}
+      {stage!==0&&<AseanActivityArt activity={design.id} language={stage===3?language:undefined}
+       visitorResult={stage===3?visitorResult(stageRecord):null}
+       revisionCaptured={Boolean(captured)} revisionHasFeedback={Boolean(records.feedback)}/>}
       {[1,2,4].includes(stage)&&destination&&<div className="asean-student-sources">
        <a href={destination.source} target="_blank" rel="noreferrer">UNESCO destination source</a>
        <a href={'https://commons.wikimedia.org/wiki/Special:MediaSearch?type=image&search='+encodeURIComponent(destination.name)} target="_blank" rel="noreferrer">Find candidate photographs</a>

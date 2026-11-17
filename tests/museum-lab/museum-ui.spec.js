@@ -1986,6 +1986,7 @@ test('ASEAN Activity 4 guides a visitor from the assigned V1 to submitted feedba
  });
  await page.getByTestId('qa-student-en').click();
  const lesson=page.getByTestId('asean-student-slide-4');
+ const visitArt=lesson.locator('.asean-art-ticket');
  const panel=page.getByRole('region',{name:'Visitor Feedback',exact:true});
  const start=panel.getByRole('heading',{name:'1. Visit the assigned exhibit'});
  const formHeading=panel.getByRole('heading',{name:'2. Complete the visitor feedback'});
@@ -1994,6 +1995,7 @@ test('ASEAN Activity 4 guides a visitor from the assigned V1 to submitted feedba
  await expect(panel.getByRole('heading',{name:'Hội An Ancient Town'})).toHaveCount(0);
  await expect(panel.getByRole('button',{name:/Preview 2D/})).toHaveCount(0);
  await expect(submit).toHaveCount(0);
+ await expect(visitArt.getByText('Max 3 points',{exact:true})).toBeVisible();
  await lesson.getByRole('button',{name:'Go to the visitor task'}).click();
  await expect(start).toBeFocused();
  await expect(start).toBeInViewport();
@@ -2011,6 +2013,7 @@ test('ASEAN Activity 4 guides a visitor from the assigned V1 to submitted feedba
  await expect(panel.getByText('Draft based on a V1 review.',{exact:false})).toBeVisible();
  await expect(panel.getByLabel('Which frame did you open first?')).toHaveValue('1');
  await expect(panel.getByLabel('One specific change the group could make')).toHaveValue(feedbackDraft.comment);
+ await expect(visitArt.getByText('Max 3 points',{exact:true})).toBeVisible();
  await page.screenshot({path:testInfo.outputPath('asean-visitor-feedback.png')});
  await panel.getByLabel('Which frame did you open first?').selectOption('2');
  await panel.getByRole('button',{name:'Reopen the V1 exhibit'}).click();
@@ -2035,11 +2038,17 @@ test('ASEAN Activity 4 guides a visitor from the assigned V1 to submitted feedba
  await panel.getByRole('group',{name:questions[1],exact:true}).getByLabel('Evidence frame').selectOption('2');
  await submit.click();
  await expect(panel.getByText('Visitor feedback submitted · 2/3',{exact:true})).toBeVisible();
+ await expect(visitArt.getByText('Visit result · 2/3',{exact:true})).toBeVisible();
  expect(response).toEqual({first:2,answers:answers.map((text,index)=>({text,frame:index<2?index+1:null,score:index<2?1:0})),
   comment:'Show where visitors can wait for a boat.'});
  await expect(panel.getByRole('heading',{name:'Feedback received on your own exhibit'})).toBeVisible();
  await expect(place.getByLabel('What did you find?')).toBeDisabled();
  await expect(submit).toHaveCount(0);
+ await page.getByTestId('student-masthead').getByRole('button',{name:'VI',exact:true}).click();
+ await visitArt.scrollIntoViewIfNeeded();
+ await expect(visitArt.getByText('Kết quả tham quan · 2/3',{exact:true})).toBeInViewport();
+ expect(await visitArt.evaluate(element=>element.scrollWidth<=element.clientWidth+1)).toBe(true);
+ await page.screenshot({path:testInfo.outputPath('asean-visitor-score-vi.png')});
 });
 
 test('ASEAN V2 retest opens ahead of the completed exhibit, then records the visitor’s answer',async({page})=>{

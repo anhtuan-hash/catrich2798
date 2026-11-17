@@ -7,7 +7,7 @@ const frameIcons = [MapPin, Binoculars, Compass];
 const sceneIcons = [Landmark, Footprints, Compass];
 const questionsVi = ['Ở đâu?', 'Có thể làm gì?', 'Cần lưu ý gì?'];
 
-export default function AseanActivityArt({activity, language = 'en', revisionCaptured = false, revisionHasFeedback = true}) {
+export default function AseanActivityArt({activity, language = 'en', revisionCaptured = false, revisionHasFeedback = true, visitorResult = null}) {
  const vi = language === 'vi';
  const t = (vn, en) => vi ? vn : en;
  const question = i => vi ? questionsVi[i] : ASEAN_FRAMES[i].question;
@@ -34,7 +34,9 @@ export default function AseanActivityArt({activity, language = 'en', revisionCap
  case 'visit':
   graphic = <>
    <ul className="asean-art-route">{frameIcons.map((Icon, i) => <li key={ASEAN_FRAMES[i].key}><span className="asean-art-pin"><Icon aria-hidden="true"/></span><strong lang="en">{ASEAN_FRAMES[i].label}</strong></li>)}</ul>
-   <div className="asean-art-ticket"><ScanSearch aria-hidden="true"/><span>{t('Câu trả lời · Số khung · Góp ý', 'Answer · Frame number · Suggestion')}</span><strong> /3</strong></div>
+   <div className="asean-art-ticket"><ScanSearch aria-hidden="true"/><span>{t('Câu trả lời · Số khung · Góp ý', 'Answer · Frame number · Suggestion')}</span>
+    <strong>{visitorResult===null?t('Tối đa 3 điểm','Max 3 points'):t('Kết quả tham quan','Visit result')+' · '+visitorResult}</strong>
+   </div>
   </>;
   break;
  case 'revise':
