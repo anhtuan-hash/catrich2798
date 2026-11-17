@@ -3,6 +3,7 @@ import {liveStaff,artStaff} from '../museumLiveApi.js';
 import {isAsean} from '../aseanLesson.js';
 import {aseanStudentRecords} from './aseanRecords.js';
 import {SNAPSHOT_FORMAT,sanitizeSnapshot,digest,buildOfflineHtml} from './snapshot.js';
+import {groupWorkshopRows} from './workshopRows.js';
 
 // Read only existing, permission-checked staff endpoints. Never export the
 // session token, Creator Pass, signed access URL or service-role credentials.
@@ -151,15 +152,6 @@ export async function exportMuseumOffline(options={}){
  const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
  options.signal?.throwIfAborted();
  return {blob,manifest,filename:'PetrusKy_Museum_Offline_'+snapshot.completedAt.slice(0,10)+'.zip',runtime,snapshot};
-}
-export function groupWorkshopRows(snapshot){
- return [...(snapshot?.staff?.groups||[])].sort((a,b)=>String(a.label||'').localeCompare(String(b.label||''),undefined,{numeric:true}))
-  .map((group,index)=>{
-   const assignment=snapshot.staff.assignments.find(item=>item.id===group.assignment_id);
-   return {id:group.id,label:group.label||'Group '+String(index+1).padStart(2,'0'),classScope:assignment?.class_scope||'',
-    state:group.state||'',exit:(snapshot.staff.exitTickets||[]).some(item=>item.group_id===group.id),
-    draft:Boolean(snapshot.groupDrafts?.[group.id]),filename:'nhom-'+String(index+1).padStart(2,'0')+'.html'};
-  });
 }
 async function studentBoardHtml(runtime,snapshot){
  const sliced=sanitizeSnapshot({...snapshot,galleries:[],media:[]});
