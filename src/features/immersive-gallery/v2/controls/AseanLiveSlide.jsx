@@ -6,8 +6,8 @@ import './aseanLiveSlide.css';
 
 const prompts = [
  [
-  'Viết “Visitors can …” và “Visitors should …” theo thẻ. Sau khi xem mẫu, hỏi khách còn thiếu thông tin gì.',
-  'Write “Visitors can …” and “Visitors should …” from the card. After the model, ask what the visitor still needs to know.',
+  'Viết “Visitors can …” và “Visitors should …” theo thẻ. Sau đó xem mẫu chung về Huế và hỏi khách còn thiếu thông tin gì.',
+  'Write “Visitors can …” and “Visitors should …” from the card. Then use the shared Hué example to ask what the visitor still needs to know.',
  ],
  [
   'Mỗi khung trả lời một câu hỏi khác nhau. So sánh hai ảnh cho cùng một khung trước khi chốt.',
