@@ -41,9 +41,9 @@ function HoiAnVisitorModel(){
   'When you stop to take a photo near the bridge, stand to one side. Leave enough space for other visitors to pass safely.',
  ];
  return <section className="asean-visitor-model bml-surface" aria-labelledby="asean-visitor-model-title">
-  <h3 id="asean-visitor-model-title">Exhibit model · What is missing?</h3>
+  <h3 id="asean-visitor-model-title">Hội An Ancient Town</h3>
   <ol>{ASEAN_FRAMES.map((frame,index)=><li key={frame.key}><strong>{frame.label}</strong> · {captions[index]}</li>)}</ol>
-  <p>Which visitor question is still unanswered? Agree on the missing detail and share it with your class.</p>
+  <p>Which visitor question still needs a clearer answer? Agree on the missing detail and share it with your class.</p>
  </section>;
 }
 
@@ -61,10 +61,8 @@ function ResponseFields({stage,fields,update,groupLabel,question,recorded}){
  if(stage===0||stage===5){
   const card=aseanWritingCard(groupLabel,stage===5);
   return <fieldset className="asean-response-sheet" disabled={recorded}>
-   <legend>{stage===5?'Transfer writing card':'Baseline writing card'}</legend>
-   <h4 className="asean-writing-destination">{card.title}</h4>
+   <legend>{stage===5?'Transfer writing · '+card.title:'Your two sentences'}</legend>
    <p className="asean-response-context">{card.country}</p>
-   <p>Use this card for the two sentences. Your group’s 3D exhibit keeps its assigned destination.</p>
    <div className="asean-response-grid">
     <div><p><strong>Visitors can …</strong><br/>{card.experience}</p>{text('experience','One thing a visitor can do')}</div>
     <div><p><strong>Visitors should …</strong><br/>{card.advice}</p>{text('advice','One piece of advice')}</div>
@@ -217,6 +215,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
   return()=>{active=false;window.clearInterval(interval);};
  },[]);
  const stage=review??Math.max(0,Math.min(ASEAN_STAGES.length-1,live?.stageIndex??0));
+ const isWritingActivity=stage===0||stage===5;
  const current=ASEAN_STAGES[stage];
  const activityGroup=ACTIVITY_GROUP_ENDS.findIndex(end=>stage<end);
  const design=ASEAN_ACTIVITY_DESIGN[stage];
@@ -331,13 +330,17 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
      <section className="asean-student-activity" aria-labelledby="asean-student-activity-title" data-testid={'asean-student-slide-'+(stage+1)}>
       <div className="bml-live-student-question">
        <p className="bml-question-eyebrow">Period {current.period} · Activity {stage+1} / {ASEAN_STAGES.length} · {current.minutes} min</p>
-       <h2 id="asean-student-activity-title">{design.studentTitle}</h2>
-       <p>{stage===5
-        ?reportTask+' Submit the final room for your assigned destination. For the separate writing task, use your new transfer card to write two sentences.'
+       <h2 id="asean-student-activity-title">{stage===0?'1. Write about '+aseanWritingCard(session.groupLabel).title:design.studentTitle}</h2>
+       <p>{stage===0
+        ?'Write one thing a visitor can do and one piece of advice. Submit both sentences, then discuss the class example in Step 2.'
+        :stage===5
+        ?reportTask+' Submit your final exhibit in the project panel. Use the transfer card below to write two sentences.'
         :stage===4?revisionTask:design.studentTask}</p>
       </div>
-      <AseanActivityArt activity={design.id} revisionCaptured={Boolean(captured)} revisionHasFeedback={Boolean(records.feedback)}/>
-      {stage===0&&(stageRecord||live?.stageIndex>0||readOnly)&&<HoiAnVisitorModel/>}
+      {isWritingActivity&&<GroupResponse key={stage} session={{...session,readOnly}} stage={stage} live={live} open={liveOpen}
+       record={stageRecord} refreshLive={refreshLive} refreshRecords={refreshRecords}
+       transferNeedsResubmission={stage===5&&records.transferNeedsResubmission}/>}
+      {stage!==0&&<AseanActivityArt activity={design.id} revisionCaptured={Boolean(captured)} revisionHasFeedback={Boolean(records.feedback)}/>}
       {[1,2,4].includes(stage)&&destination&&<div className="asean-student-sources">
        <a href={destination.source} target="_blank" rel="noreferrer">UNESCO destination source</a>
        <a href={'https://commons.wikimedia.org/wiki/Special:MediaSearch?type=image&search='+encodeURIComponent(destination.name)} target="_blank" rel="noreferrer">Find candidate photographs</a>
@@ -362,17 +365,26 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
   </section>
   <section className="bml-student-primary bml-student-project-panel" aria-labelledby="bml-student-project-title">
    <header className="bml-student-panel-head bml-student-project-head">
-    <h2 id="bml-student-project-title">{T(language,'Sản phẩm nhóm','Group Project')}</h2>
-    <div className="bml-student-project-status" role="status"><strong>{projectStatus}</strong></div>
+    <h2 id="bml-student-project-title">{stage===0?T(language,'2. Thảo luận mẫu chung','2. Discuss the class example'):T(language,'Sản phẩm nhóm','Group Project')}</h2>
+    {stage!==0&&<div className="bml-student-project-status" role="status"><strong>{projectStatus}</strong></div>}
    </header>
    <div className="bml-student-pane bml-student-project-pane" data-testid="student-project-pane">
     <div className="bml-student-stage"><div className="bml-student-task bml-surface">
      <div className="bml-student-task-scroll asean-student-project" data-testid="student-task-scroll" role="region"
-      aria-label={T(language,'Nội dung bài làm có thể cuộn','Scrollable project step content')} lang="en" ref={projectRef} tabIndex={0}>
+      aria-label={stage===0?T(language,'Mẫu chung của lớp','Class example content'):T(language,'Nội dung bài làm có thể cuộn','Scrollable project step content')} lang="en" ref={projectRef} tabIndex={0}>
       {readOnly&&<p className="bml-workshop-readonly" role="status"><LockKeyhole size={16}/>Lesson complete · View only</p>}
-      {(stage===0||stage===5)&&<p className="asean-exhibit-destination-label">Exhibit destination</p>}
-      <h3 className="bml-workshop-draft-title">{destination?.name||session.assignment.title}</h3>
-      {destination&&<p className="asean-student-country">{destination.country}</p>}
+      {stage===0?<>
+       {(stageRecord||live?.stageIndex>0||readOnly)?<>
+        <HoiAnVisitorModel/>
+        <AseanActivityArt activity={design.id}/>
+       </>:
+        <p className="asean-response-closed" role="status">Submit your two sentences in Step 1 to open the Hội An example.</p>}
+       <p className="asean-project-topic"><span>Your 3D project topic</span><strong>{destination?.name||session.assignment.title}</strong></p>
+      </>:<>
+       {stage===5&&<p className="asean-exhibit-destination-label">Your 3D project topic</p>}
+       <h3 className="bml-workshop-draft-title">{destination?.name||session.assignment.title}</h3>
+       {destination&&<p className="asean-student-country">{destination.country}</p>}
+      </>}
       {stage===4&&<GroupResponse key={stage} session={{...session,readOnly}} stage={stage} live={live} open={liveOpen}
        record={stageRecord} refreshLive={refreshLive} refreshRecords={refreshRecords} onVisit={gallery=>setPreview({gallery})}
        retestTask={records.retestTask}/>}
@@ -422,16 +434,15 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
         onClick={()=>action('submit')}>{submitted?'Submitted':'Submit final 3D exhibit'}</button>}
        {stage===5&&liveOpen&&!captured&&!submitted&&<p>Save the revised V2 in Activity 5 before submitting.</p>}
       </section>}
-      {stage!==2&&stage!==4&&<GroupResponse key={stage} session={{...session,readOnly}} stage={stage} live={live} open={liveOpen}
-       record={stageRecord} refreshLive={refreshLive} refreshRecords={refreshRecords} onVisit={(gallery,reference)=>setPreview({gallery,reference})}
-       transferNeedsResubmission={stage===5&&records.transferNeedsResubmission}/>}
+      {(stage===1||stage===3)&&<GroupResponse key={stage} session={{...session,readOnly}} stage={stage} live={live} open={liveOpen}
+       record={stageRecord} refreshLive={refreshLive} refreshRecords={refreshRecords} onVisit={(gallery,reference)=>setPreview({gallery,reference})}/>}
       {stage===3&&records.feedback&&<p role="status"><strong>Feedback on your exhibit</strong> · {records.feedback.comment}</p>}
       {error&&<p className="bml-banner bml-danger-banner" role="alert">{error}</p>}
       {notice&&<p role="status">{notice}</p>}
      </div>
      <footer className="bml-student-bottom">
       <button type="button" className="bml-primary" disabled={busy||imageBusy||!photoCount} onClick={()=>action('preview')}>
-       <Box size={18}/>{T(language,'Xem trước 2D/3D','Preview 2D/3D')}
+       <Box size={18}/>{stage===0?T(language,'Xem trước triển lãm của nhóm','Preview your exhibit'):T(language,'Xem trước 2D/3D','Preview 2D/3D')}
       </button>
      </footer>
     </div></div>
