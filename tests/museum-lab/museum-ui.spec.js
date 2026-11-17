@@ -1786,7 +1786,7 @@ test('ASEAN student workshop uses the Climate layout for all six ASEAN activitie
  for(const [index,title] of titles.entries()){
   const slide=lesson.getByTestId('asean-student-slide-'+(index+1));
   await expect(slide.getByRole('heading',{name:title,exact:true})).toBeVisible();
-  if(index!==0)await expect(slide.locator('.asean-activity-art')).toBeVisible();
+  if(index>0&&index<5)await expect(slide.locator('.asean-activity-art')).toBeVisible();
   if(index===0){
    const example=root.getByRole('region',{name:'2. Discuss the class example',exact:true});
    await expect(example.getByRole('heading',{name:'Complex of Hué Monuments',exact:true})).toBeVisible();
@@ -1800,7 +1800,7 @@ test('ASEAN student workshop uses the Climate layout for all six ASEAN activitie
    expect(await pane.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
   if(index<titles.length-1)await lesson.getByRole('button',{name:'Next activity'}).click();
  }
- await expect(lesson.getByRole('button',{name:'Next activity'})).toBeDisabled();
+ await expect(lesson.getByRole('button',{name:'Next activity'})).toHaveCount(0);
  await lesson.getByRole('button',{name:'Follow teacher'}).click();
  await expect(lesson.getByTestId('asean-student-slide-3')).toBeVisible();
  await masthead.getByRole('button',{name:'Show banner'}).click();
@@ -2137,6 +2137,81 @@ test('ASEAN V2 retest separates our revision, the teacher reference and the assi
  await expect(versions.getByText('Bản đã chỉnh sửa',{exact:true})).toBeInViewport();
  expect(await versions.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
  await page.screenshot({path:testInfo.outputPath('asean-activity5-version-names-vi.png')});
+});
+
+test('ASEAN final activity shows the writing card before opening and confirms each submission separately',async({page},testInfo)=>{
+ const assignment={id:'qa-asean-share',title:'ASEAN in Three Frames',class_scope:'11-QA',lesson_template:'asean-in-three-frames'};
+ const keys=['issue','evidence','solution'];
+ const caption='From the riverbank, visitors can see the old trading houses and follow the narrow streets that connect the market to the bridge.';
+ const version=7;
+ const draft={
+  artworks:Object.fromEntries(keys.map((key,index)=>[key,'c78d4bba-2808-4efe-9ac7-f904bc3b100'+(index+1)])),
+  artMeta:Object.fromEntries(keys.map(key=>[key,{alt:'Historic town',source:'Photo credit',rights:'CC BY-SA 4.0'}])),
+  learning:{issue:caption,evidence:caption,solution:caption,source:'https://whc.unesco.org/en/list/948/'},
+ };
+ let stageOpen=false,written,exhibitSubmitted=false;
+ let checkpointVersion=version-1;
+ await page.route('**/api/gallery-guest?**',route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  if(op==='me')return route.fulfill({json:{assignment,groupLabel:'Nhóm 01',groupState:'editing',csrf:'qa-share'}});
+  if(op==='submit'){
+   expect(route.request().postDataJSON()).toEqual({expectedVersion:version});
+   exhibitSubmitted=true;
+   return route.fulfill({json:{ok:true}});
+  }
+  return route.fulfill({json:{draft,version}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  if(op==='asean-submit'){
+   const body=route.request().postDataJSON();
+   expect(body.stageIndex).toBe(5);
+   written=body.value;
+   return route.fulfill({json:{ok:true}});
+  }
+  if(op==='asean-records')return route.fulfill({json:{
+   checkpoints:[{kind:'after',version:checkpointVersion,complete:true,reason:'Revised the Place caption.'}],
+   rows:written?[{stage_index:5,value:written}]:[],transferNeedsResubmission:!written,
+   retestVisitor:'Nhóm 09',retest:{score:1,answer:'The town is by the Thu Bồn River.'},
+  }});
+  return route.fulfill({json:{session:{id:'qa-share-live',stageIndex:5,status:'active',stageOpen},readOnly:false}});
+ });
+ await page.getByTestId('qa-student-en').click();
+ const root=page.getByTestId('asean-student-lesson');
+ const lesson=root.getByTestId('asean-student-slide-6');
+ const project=root.getByRole('region',{name:'Group Exhibit',exact:true});
+ await expect(lesson.getByText('Sukhothai Historical Park',{exact:true})).toBeVisible();
+ const experience=lesson.getByRole('textbox',{name:'One thing a visitor can do'});
+ const advice=lesson.getByRole('textbox',{name:'One piece of advice'});
+ await expect(experience).toBeDisabled();
+ await expect(lesson).toContainText('You can read the card now.');
+ await expect(lesson).toContainText('Your previous response repeated your Activity 1 writing.');
+ const submit=project.getByRole('button',{name:'Submit final 3D exhibit'});
+ await expect(submit).toBeDisabled();
+ await lesson.getByRole('button',{name:'Go to exhibit submission'}).click();
+ await expect(project.getByRole('heading',{name:'3. Submit your 3D exhibit'})).toBeFocused();
+ await expect(project).toContainText('Wait for your teacher to open Activity 6 for submissions.');
+ await expect(root.getByRole('button',{name:'Next activity'})).toHaveCount(0);
+ stageOpen=true;
+ await expect(experience).toBeEditable({timeout:9000});
+ await expect(project).toContainText('Ask your teacher to reopen Activity 5');
+ await expect(submit).toBeDisabled();
+ checkpointVersion=version;
+ await expect(submit).toBeEnabled({timeout:9000});
+ await experience.fill('Visitors can follow the path and look at historic monuments.');
+ await advice.fill('Visitors should leave room on the path when stopping to read a sign.');
+ await lesson.getByRole('button',{name:'Submit two sentences'}).click();
+ await expect(lesson.getByText('Writing submitted',{exact:true})).toBeVisible();
+ expect(written).toEqual({experience:'Visitors can follow the path and look at historic monuments.',advice:'Visitors should leave room on the path when stopping to read a sign.'});
+ await expect(project).toContainText('Your revised exhibit is ready to submit.');
+ expect(exhibitSubmitted).toBe(false);
+ await submit.click();
+ await expect(project).toContainText('Your exhibit was submitted for teacher review.');
+ expect(exhibitSubmitted).toBe(true);
+ await page.getByTestId('student-masthead').getByRole('button',{name:'VI',exact:true}).click();
+ await expect(lesson).toContainText('Đã nộp hai câu tiếng Anh');
+ await expect(root.getByRole('region',{name:'Triển lãm của nhóm',exact:true})).toContainText('Đã gửi triển lãm cho giáo viên duyệt.');
+ await page.screenshot({path:testInfo.outputPath('asean-activity6-submissions-vi.png')});
 });
 
 test('ASEAN V2 retest teacher table distinguishes pending submissions from a recorded zero',async({page})=>{
