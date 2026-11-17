@@ -8,6 +8,30 @@ import {buildExhibitFocusBoard,excerptSentences} from '../src/features/immersive
 import {PEK_GALLERY_WALL_INSCRIPTIONS} from '../src/features/immersive-gallery/pekMuseumMotto.js';
 import {buildMetalLettering,hasMetalLetteringGlyphs} from '../src/features/immersive-gallery/metalLetteringGeometry.js';
 
+import {buildCollectionHall,collectionCameraView,collectionFurnishingAt} from '../src/features/immersive-gallery/swissCollectionLayout.js';
+
+test('gallery furnishings reserve space at the corners and leave the main aisle open',()=>{
+ for(const count of [2,4,10]){
+  const hall=buildCollectionHall(count);
+  assert.deepEqual(hall.furnishings.map(({kind})=>kind).sort(),['bamboo','bamboo','bench','bench','ceramic','ceramic']);
+  for(const item of hall.furnishings){
+   assert(Math.abs(item.x)+item.halfWidth<hall.halfWidth);
+   assert(Math.abs(item.z)+item.halfDepth<hall.halfDepth);
+   assert(collectionFurnishingAt(hall,item.x,item.z));
+  }
+  for(const bay of hall.bays)for(const mode of ['room','collection','artwork']){
+   for(const aspect of [.43,.61,1.05,1.45,1.7,2.2]){
+    const [x,,z]=collectionCameraView(bay,aspect,mode).camera;
+    assert(!collectionFurnishingAt(hall,x,z),'camera presets keep clear of furniture');
+   }
+  }
+  for(let step=-7;step<=7;step++){
+   assert(!collectionFurnishingAt(hall,0,step));
+   assert(!collectionFurnishingAt(hall,step,0));
+  }
+ }
+});
+
 test('all four Vietnamese wall texts have centered beveled metal geometry',()=>{
  for(const {lines} of PEK_GALLERY_WALL_INSCRIPTIONS){
   for(const line of lines)assert(hasMetalLetteringGlyphs(line),line);

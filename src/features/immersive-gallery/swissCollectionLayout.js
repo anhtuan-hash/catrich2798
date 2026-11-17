@@ -25,7 +25,15 @@ export function buildCollectionHall(total){
   });
   return {...wall,bays};
  });
- return {halfWidth,halfDepth,walls,bays:walls.flatMap(wall=>wall.bays)};
+ const furnishings=[
+  {kind:'bench',x:3,z:-1.8,halfWidth:1.37,halfDepth:.38},
+  {kind:'bench',x:-3,z:1.8,halfWidth:1.37,halfDepth:.38},
+  {kind:'bamboo',x:halfWidth-.88,z:-halfDepth+.94,halfWidth:.59,halfDepth:.59},
+  {kind:'ceramic',x:halfWidth-.91,z:halfDepth-.99,halfWidth:.465,halfDepth:.465},
+  {kind:'ceramic',x:-halfWidth+.91,z:-halfDepth+.99,halfWidth:.465,halfDepth:.465},
+  {kind:'bamboo',x:-halfWidth+.88,z:halfDepth-.94,halfWidth:.59,halfDepth:.59},
+ ];
+ return {halfWidth,halfDepth,walls,furnishings,bays:walls.flatMap(wall=>wall.bays)};
 }
 
 export function collectionWorldPoint(frame,[x,y,z]){
@@ -54,4 +62,11 @@ export function collectionHallPosition(hall,x,z){
   Math.max(-hall.halfWidth+1.08,Math.min(hall.halfWidth-1.08,x)),
   Math.max(-hall.halfDepth+1.08,Math.min(hall.halfDepth-1.08,z)),
  ];
+}
+
+export function collectionFurnishingAt(hall,x,z){
+ const clearance=.19;
+ return hall.furnishings.some(item=>
+  Math.abs(x-item.x)<item.halfWidth+clearance&&Math.abs(z-item.z)<item.halfDepth+clearance
+ );
 }

@@ -8,7 +8,7 @@ import {ExhibitWallLabel,TextExhibitPoster} from './PekMuseumArchitecture.jsx';
 import PekDiscoveryHallV4 from './PekDiscoveryHallV4.jsx';
 import SwissEditorialHall,{SwissArtworkLabel} from './SwissEditorialHall.jsx';
 import SwissCollectionHall from './SwissCollectionHall.jsx';
-import {buildCollectionHall,collectionCameraView,collectionHallPosition,collectionWorldPoint} from './swissCollectionLayout.js';
+import {buildCollectionHall,collectionCameraView,collectionFurnishingAt,collectionHallPosition,collectionWorldPoint} from './swissCollectionLayout.js';
 import {GalleryFurniture,isEditorialFurnitureAt} from './SwissEditorialHallDetails.jsx';
 import MuseumExhibitFocusRig from './v3/MuseumExhibitFocusRig.jsx';
 import {FOCUS_IDLE,focusLayout,clampDelta,smoothstep} from './v3/museumExhibitFocusMotion.js';
@@ -384,8 +384,9 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
    const x=camera.position.x+dir.x*speed,z=camera.position.z+dir.z*speed;
    const [nextX,nextZ]=hall?collectionHallPosition(hall,x,z):
     [THREE.MathUtils.clamp(x,-6,6),THREE.MathUtils.clamp(z,-7.6,7.9)];
-   if(hall||!editorial||!isEditorialFurnitureAt(nextX,camera.position.z))camera.position.x=nextX;
-   if(hall||!editorial||!isEditorialFurnitureAt(camera.position.x,nextZ))camera.position.z=nextZ;
+   const blocked=(x,z)=>hall?collectionFurnishingAt(hall,x,z):editorial&&isEditorialFurnitureAt(x,z);
+   if(!blocked(nextX,camera.position.z))camera.position.x=nextX;
+   if(!blocked(camera.position.x,nextZ))camera.position.z=nextZ;
    camera.updateMatrixWorld();
    onPosition?.(camera.position.x,camera.position.z);
    invalidate();
