@@ -104,21 +104,28 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   const stage=asean?stages[currentIndex]:(readOnly||jumpIndex!=null)
     ?(currentIndex===1&&session?.questionVersion!==2?LEGACY_LANGUAGE_MINI_LESSON:liveStage(currentIndex))
     :session?.stage;
-  const groups=(state?.groups||[]).map(g=>({...g,label:language==='en'?englishSystemGroupLabel(g.label):g.label}));
-  const selectedGroup=groups.find(group=>group.id===studioGroupId)||groups[0];
   const publicAsean=asean&&data?.publicReadOnly;
-  const evidenceGroups=publicAsean?(data.groups||[]).filter(group=>group.assignment_id===assignmentId):groups;
-  const publicGroupIds=publicAsean?new Set(evidenceGroups.map(group=>group.id)):null;
+  const publicExhibits=publicAsean
+   ?data.publishedGalleries?.find(gallery=>gallery.assignment_id===assignmentId)?.destinations||[]:[];
+  const exhibitByLabel=new Map(publicExhibits.map(exhibit=>[exhibit.groupLabel,exhibit]));
+  const rawGroups=publicAsean
+   ?(data.groups||[]).filter(group=>group.assignment_id===assignmentId&&exhibitByLabel.has(group.label))
+   :state?.groups||[];
+  const groups=rawGroups.map(g=>({...g,label:language==='en'?englishSystemGroupLabel(g.label):g.label}));
+  const selectedGroup=groups.find(group=>group.id===studioGroupId)||groups[0];
+  const selectedPublicExhibit=exhibitByLabel.get(rawGroups.find(group=>group.id===selectedGroup?.id)?.label);
+  const publicGroupIds=publicAsean?new Set(groups.map(group=>group.id)):null;
   const publicResponses=publicAsean?(data.aseanResponses||[]).filter(record=>
     record.stage_index===currentIndex&&publicGroupIds.has(record.group_id)):[];
   const displayedStageLoaded=Boolean(historicalSession&&serverIndex===currentIndex&&
    (state.activityDataStageIndex??serverIndex)===currentIndex&&!publicAsean);
   const displayedResponses=publicAsean?publicResponses:displayedStageLoaded?(state.responses||[]):[];
-  const writingScores=publicAsean?(data.aseanWritingScores||[]).filter(score=>score.stage_index===currentIndex):(state?.writingScores||[]);
+  const writingScores=publicAsean?(data.aseanWritingScores||[]).filter(score=>
+   score.stage_index===currentIndex&&publicGroupIds.has(score.group_id)):(state?.writingScores||[]);
   const studioProgress=asean&&currentIndex===2&&displayedStageLoaded&&Array.isArray(state?.studioProgress)
    ?state.studioProgress:null;
   const selectedDraft=studioProgress?.find(draft=>draft.groupId===selectedGroup?.id);
-  const studentCard=asean&&selectedGroup&&!data?.publicReadOnly&&(currentIndex===0||currentIndex===5)
+  const studentCard=asean&&selectedGroup&&(currentIndex===0||currentIndex===5)
    ?aseanWritingCard(selectedGroup.label,currentIndex===5):null;
   const assignedRoom=asean&&displayedStageLoaded&&(currentIndex===3||currentIndex===4)
    ?aseanPeerGroup(groups,selectedGroup?.id,currentIndex):null;
@@ -129,8 +136,8 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     {groups.map(group=><option key={group.id} value={group.id}>{group.label}</option>)}
    </select>
   </label>;
-  const aseanHighlights=asean&&displayedStageLoaded&&groups.length
-   ?aseanStageHighlights(currentIndex,state,groups,language):null;
+  const aseanHighlights=asean&&groups.length&&(displayedStageLoaded||publicAsean)
+   ?aseanStageHighlights(currentIndex,publicAsean?{responses:publicResponses}:state,groups,language,publicAsean):null;
   const minute=stages[currentIndex]?.minutes||0;
   const curriculumVideo=asean?null:MUSEUM_CURRICULUM_VIDEOS[currentIndex]||null;
   const presentation=presentationFor(currentIndex,readOnly?previewPresentation:
@@ -251,7 +258,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
       else setError(t(language,'Không thể mở toàn màn hình. Hãy cho phép chế độ toàn màn hình trên trình duyệt.','Fullscreen was blocked. Please enable it in your browser.'));
     }
   };
-  const toggleTool=key=>{if(data?.offlineReadOnly&&key==='qr')return;setActiveTool(cur=>cur===key?null:key);};
+  const toggleTool=key=>{if(key==='qr'&&(data?.offlineReadOnly||data?.publicReadOnly))return;setActiveTool(cur=>cur===key?null:key);};
   useEffect(()=>{
     if(!isFullscreen)return;
     const handle=e=>{
@@ -299,7 +306,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   const exitResponses=stage?.kind==='exit'&&serverIndex===currentIndex&&Array.isArray(state?.responses)
     ?state.responses.filter(r=>r.stage_index===currentIndex||stage?.kind==='exit').slice(0,30):[];
   const toolbar=session?<TeacherToolbar offline={!!data?.offlineReadOnly} language={language} readOnly={readOnly} busy={busy} session={session} currentIndex={currentIndex} stageCount={stages.length}
-    motionOn={motionOn} activeTool={activeTool} presentationActive={asean&&isFullscreen}
+    motionOn={motionOn} activeTool={activeTool} presentationActive={asean&&isFullscreen} showJoinQr={!data?.publicReadOnly}
     onChangeCompletion={canManageLesson&&(historicalSession||contentFrozenAt)?changeCompletion:undefined}
     completed={Boolean(contentFrozenAt)}
     onBack={onBack} onPrevious={()=>act('previous')} onNext={()=>act('next')} onToggleTask={()=>act(session.stageOpen?'close':'open')}
@@ -375,7 +382,16 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
               {retestQuestion&&<><dt>{t(language,'Câu hỏi thử lại','Retest question')}</dt><dd lang="en">{retestQuestion}</dd></>}
              </dl>}
             </details>}
-            aseanDraftTools={asean&&currentIndex===2&&!data?.publicReadOnly&&selectedGroup?<div>
+            aseanDraftTools={asean&&currentIndex===2&&selectedPublicExhibit?<div>
+              <label>{t(language,'Triển lãm của','Exhibit from')}{' '}
+               <select value={selectedGroup.id} onChange={event=>setStudioGroupId(event.target.value)}>
+                {groups.map(group=><option key={group.id} value={group.id}>{group.label}</option>)}
+               </select>
+              </label>
+              <button type="button" className="adv-toolbtn" onClick={()=>onNavigate('gallery',selectedPublicExhibit.id)}>
+               <Box size={15}/>{t(language,'Mở triển lãm đã công bố','Open published exhibit')}
+              </button>
+             </div>:asean&&currentIndex===2&&!data?.publicReadOnly&&selectedGroup?<div>
               <label>{t(language,'Bản đã lưu của','Saved draft from')}{' '}
                <select value={selectedGroup.id} onChange={event=>setStudioGroupId(event.target.value)}>
                 {groups.map(group=>{
@@ -470,7 +486,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
           </section>}
           {asean&&displayedResponses.length>0&&<AseanSubmissionBoard
             key={assignmentId+'-'+currentIndex} language={language} stage={stage} stageIndex={currentIndex}
-            groups={evidenceGroups} responses={displayedResponses} writingScores={writingScores}
+            groups={groups} responses={displayedResponses} writingScores={writingScores}
             staffTransferGroupIds={publicAsean?undefined:state?.staffTransferGroupIds}
             canGrade={canManageLesson&&!readOnly}
             onSaveGrade={async(groupId,marks)=>{
@@ -498,7 +514,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
 }
 export {TeacherLiveScreen};
 
-function aseanStageHighlights(stage,state,groups,language){
+function aseanStageHighlights(stage,state,groups,language,publicReadOnly){
  const found=Array.isArray(state.responses)?state.responses.length:null;
  const item=(vi,en,value,extra)=>Number.isInteger(value)
   ?{label:t(language,vi,en),count:`${value}/${groups.length}`,extra}:null;
@@ -516,7 +532,7 @@ function aseanStageHighlights(stage,state,groups,language){
   case 3: result=[item('Nhóm đã nộp phiếu góp ý','Visitor feedback submitted',found)];break;
   case 4: result=[
    item('Bản chỉnh sửa sẵn sàng để thử','Revised exhibits ready',state.retestProgress?.filter(row=>row.ready).length),
-   item('Nhóm đã nộp phiếu thử lại','Retests submitted',state.retestProgress?.filter(row=>row.score!=null).length),
+   item('Nhóm đã nộp phiếu thử lại','Retests submitted',publicReadOnly?found:state.retestProgress?.filter(row=>row.score!=null).length),
   ];break;
   case 5: {
    const assisted=state.staffTransferGroupIds?.length;

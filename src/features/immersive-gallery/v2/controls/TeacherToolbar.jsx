@@ -9,7 +9,7 @@ const t=(lang,vi,en)=>lang==='en'?en:vi;
  */
 export default function TeacherToolbar({
   language='vi',
-  readOnly=false,busy=false,offline=false,
+  readOnly=false,busy=false,offline=false,showJoinQr=true,
   session=null,currentIndex=0,stageCount=11,
   motionOn=true,activeTool=null,presentationActive=false,
   onBack,onPrevious,onNext,onToggleTask,onReveal,onToggleTool,onFullscreen,
@@ -43,7 +43,7 @@ export default function TeacherToolbar({
       {btn('next',navKey==='next'?t(language,'Đang chuyển…','Moving…'):t(language,'Hoạt động tiếp theo →','Next activity →'),null,{onClick:()=>runNav('next',onNext),disabled:(!readOnly&&(busy||ended))||isLast,variant:'primary',loading:navKey==='next',extraAria:t(language,'Chuyển sang hoạt động tiếp theo','Advance to next activity')})}
       {btn('task',stageOpen?t(language,'Đóng nhiệm vụ','Close task'):t(language,'Mở nhiệm vụ','Open task'),stageOpen?Lock:LockOpen,{onClick:onToggleTask,disabled:mutateLocked,extraAria:stageOpen?t(language,'Đóng nhiệm vụ hiện tại','Close current task'):t(language,'Mở nhiệm vụ hiện tại','Open current task')})}
       {btn('reveal',readOnly?(revealed?t(language,'Ẩn giải thích','Hide explanation'):t(language,'Xem giải thích','Show explanation')):revealed?t(language,'Đã hiện giải thích','Explanation shown'):t(language,'Hiện giải thích','Reveal explanation'),Eye,{onClick:onReveal,disabled:busy||(!readOnly&&(ended||revealed))})}
-      {btn('qr','QR',QrCode,{disabled:offline,onClick:()=>onToggleTool('qr'),pressed:activeTool==='qr'})}
+      {showJoinQr&&btn('qr','QR',QrCode,{disabled:offline,onClick:()=>onToggleTool('qr'),pressed:activeTool==='qr'})}
       {btn('fullscreen',presentationActive?t(language,'Thoát toàn màn hình','Exit fullscreen'):t(language,'Toàn màn hình','Fullscreen'),presentationActive?Minimize2:Maximize,{onClick:onFullscreen})}
       {btn('notes',t(language,'Ghi chú dạy','Teaching notes'),BookOpen,{onClick:()=>onToggleTool('notes'),pressed:activeTool==='notes'})}
       {btn('resources',t(language,'Thư viện','Research library'),Library,{onClick:()=>onToggleTool('resources'),pressed:activeTool==='resources'})}
