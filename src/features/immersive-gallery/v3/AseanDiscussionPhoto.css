@@ -1,0 +1,17 @@
+.asean-discussion-photo { margin: 0 0 10px; min-width: 0; }
+.asean-discussion-photo img {
+  display: block;
+  width: 100%;
+  max-height: 160px;
+  height: auto;
+  background: #e7e9e2;
+  object-fit: contain;
+}
+.asean-discussion-photo figcaption {
+  margin: 4px 0 0;
+  font-size: .75rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.asean-discussion-photo a { color: inherit; text-decoration: underline; }
+.asean-slide-visual:has(.asean-discussion-photo) { align-content: start; }

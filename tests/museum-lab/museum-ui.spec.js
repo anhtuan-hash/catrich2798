@@ -1786,6 +1786,7 @@ test('ASEAN student workshop uses the Climate layout for all six ASEAN activitie
    await expect(example.getByText('Your 3D project topic',{exact:true})).toBeVisible();
    await expect(example.getByText('Hội An Ancient Town',{exact:true})).toBeVisible();
    await expect(example.locator('.asean-activity-art')).toBeVisible();
+   await expect(example.getByTestId('asean-discussion-photo').getByRole('img')).toHaveAttribute('src',/Ngo_Mon\.jpg/);
    await expect(example.getByRole('textbox')).toHaveCount(0);
   }
   for(const pane of [root,lesson.getByTestId('student-lesson-pane'),root.getByTestId('student-task-scroll')])

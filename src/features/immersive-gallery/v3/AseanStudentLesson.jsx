@@ -1,8 +1,9 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,Box,LockKeyhole,Save} from 'lucide-react';
+import AseanDiscussionPhoto from './AseanDiscussionPhoto.jsx';
 import AseanActivityArt,{AseanFrameIcon} from './AseanActivityArt.jsx';
 import {ASEAN_ACTIVITY_DESIGN,ASEAN_DISCUSSION_MODEL} from './aseanActivityDesign.js';
-import {ASEAN_FRAMES,ASEAN_STAGES,ASEAN_TITLE,aseanDestination,aseanExhibitMissing,aseanWritingCard,aseanWordCount,validAseanResponse} from './aseanLesson.js';
+import {ASEAN_FRAMES,ASEAN_STAGES,ASEAN_TITLE,aseanBaselineDraft,aseanDestination,aseanExhibitMissing,aseanWritingCard,aseanWordCount,validAseanResponse} from './aseanLesson.js';
 import {guestRequest,englishSystemGroupLabel} from './museumApi.js';
 import {liveGuest,localMuseumFromDraft,artGuest} from './museumLiveApi.js';
 import {emptyStudio,normalizeStudio,documentFromStudio} from './museumData.js';
@@ -38,6 +39,7 @@ function ClassVisitorModel({language}){
  const {title,vi,captions}=ASEAN_DISCUSSION_MODEL;
  return <section className="asean-visitor-model bml-surface" aria-labelledby="asean-visitor-model-title">
   <h3 id="asean-visitor-model-title" lang={language}>{T(language,vi,title)}</h3>
+  <AseanDiscussionPhoto language={language}/>
   <ol>{ASEAN_FRAMES.map((frame,index)=><li key={frame.key}><strong>{frame.label}</strong> · {captions[index]}</li>)}</ol>
   <p>Which visitor question still needs a clearer answer? Agree on the missing detail and share it with your class.</p>
  </section>;
@@ -110,7 +112,8 @@ function ResponseFields({stage,fields,update,groupLabel,question,recorded}){
 }
 
 function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLive,onVisit,retestTask,transferNeedsResubmission}){
- const [fields,setFields]=useState(()=>record||initialFields(stage));
+ const baselineDraft=stage===0&&session.assignment?.class_scope==='11.3'?aseanBaselineDraft(session.groupLabel):null;
+ const [fields,setFields]=useState(()=>record||baselineDraft||initialFields(stage));
  const [visit,setVisit]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const submitted=Boolean(record);
  const visitStage=stage===3||stage===4;
@@ -151,7 +154,7 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
    await Promise.all([refreshRecords(),refreshLive()]);
   }catch(e){setError(errorText(e));}finally{setBusy(false);}
  };
- if(!open&&!submitted)return <p className="asean-response-closed" role="status">{transferNeedsResubmission
+ if(!open&&!submitted&&!baselineDraft)return <p className="asean-response-closed" role="status">{transferNeedsResubmission
   ?session.readOnly?'A corrected transfer response is still pending.':'Your previous response repeated your baseline writing. When Activity 6 opens, write two new sentences using your transfer card.'
   :session.readOnly?'No group response was recorded for this activity.':'Your teacher has not opened this activity for responses.'}</p>;
  return <section className="bml-surface asean-group-response">
@@ -171,6 +174,9 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
   </p>}
   {stage===4&&open&&!submitted&&!visit?.gallery&&retestTask?.ready&&<p>Open the exhibit, inspect the frames, then close the viewer to answer and cite the frame you used.</p>}
   {(!visitStage||submitted||visit?.gallery)&&<form onSubmit={submit}>
+   {baselineDraft&&!submitted&&<p role="status">{open
+    ?'Teacher-provided draft. Review the two sentences and edit them before submitting.'
+    :session.readOnly?'Teacher-provided example shown for review.':'Teacher-provided draft. Your teacher needs to open Activity 1 for editing and submission.'}</p>}
    <ResponseFields stage={stage} fields={record||fields} update={(key,value)=>setFields(previous=>({...previous,[key]:value}))}
     groupLabel={session.groupLabel} question={visit?.question} recorded={submitted||!open}/>
    {!submitted&&scoreMismatch&&<p role="status">For a score of 1, choose {ASEAN_FRAMES[visit.question-1]?.label} as the evidence frame. Choose 0 if the answer is missing or unclear.</p>}

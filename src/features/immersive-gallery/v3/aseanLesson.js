@@ -56,6 +56,22 @@ export function aseanPeerGroup(classGroups,groupId,stage,{reverse=false}={}){
  const offset=(stage===3?1:2)*(reverse?-1:1);
  return sorted[(index+offset+sorted.length)%sorted.length];
 }
+const BASELINE_DRAFTS = [
+ ["Visitors can follow the path and look at the ancient brick towers.","Visitors should stand to one side of the path when taking photos."],
+ ["Visitors can follow the paths and look at the historic monuments.","Visitors should leave space for others to pass when stopping to read a sign."],
+ ["Visitors can look at the old temple buildings from the path.","Visitors should leave room for other people when stopping to take photos."],
+ ["Visitors can follow the path past the old temple buildings.","Visitors should take their time when walking near the stone steps."],
+ ["Visitors can look closely at the stone carvings from the path.","Visitors should leave the stonework untouched during their visit."],
+ ["Visitors can look up at the tall temple towers from the courtyard.","Visitors should keep the entrance clear when taking a group photo."],
+ ["Visitors can look out over the stepped rice fields from a viewpoint.","Visitors should stay on the marked path when taking photos."],
+ ["Visitors can look for forest plants along a marked trail.","Visitors should leave the plants where they grow."],
+ ["Visitors can look at the limestone islands from a boat.","Visitors should follow the crew’s instructions when moving around the boat."],
+ ["Visitors can watch island wildlife with a guide.","Visitors should keep their distance from the animals."],
+];
+export function aseanBaselineDraft(label){
+ const draft=BASELINE_DRAFTS[aseanGroupIndex(label)];
+ return draft?{experience:draft[0],advice:draft[1]}:null;
+}
 export function aseanWritingCard(label,transfer=false){
  const index=Math.max(0,aseanGroupIndex(label));
  return ASEAN_CARDS[(index+(transfer?1:0))%ASEAN_CARDS.length];
