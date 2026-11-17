@@ -141,3 +141,27 @@
   color: #37534e;
 }
 .bml .asean-project-topic strong { color: var(--workshop-ink); }
+
+.bml .asean-hue-quiz {
+  margin-block: 12px;
+  padding: 12px 16px;
+}
+.asean-hue-quiz h3, .asean-hue-quiz p { margin: 0 0 8px; }
+.asean-hue-quiz fieldset {
+  margin: 0 0 10px;
+  min-inline-size: 0;
+  padding: 6px 10px 8px;
+  border: 1px solid var(--workshop-rule);
+}
+.asean-hue-quiz legend { font-weight: 700; padding-inline: 4px; }
+.asean-hue-quiz label {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 0;
+}
+.asean-hue-quiz input[type=radio] { flex: none; accent-color: #ac1022; }
+.asean-hue-quiz label:has(input:not(:disabled)) { cursor: pointer; }
+.asean-hue-quiz p.asean-hue-quiz-feedback { margin: 6px 0 0; font-size: .9rem; }
+.asean-hue-quiz-result { display: flex; flex-wrap: wrap; gap: 6px 12px; color: #1f5741; }
+.asean-hue-quiz-submit { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }

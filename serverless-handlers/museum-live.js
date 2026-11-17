@@ -10,7 +10,7 @@ import {handleLivePeer,peerRoomsEvidence} from './_museumLivePeer.js';
 import {liveReadAudience,presentationFor,responseMatchesActivity,validPresentation} from '../src/features/immersive-gallery/v3/livePresentation.js';
 import {handleMuseumP2,p2WorksheetsForEvidence} from './_museumP2.js';
 import {ASEAN_FRAMES,ASEAN_STAGES,aseanExhibitMissing,aseanPeerGroup,isAsean} from '../src/features/immersive-gallery/v3/aseanLesson.js';
-import {aseanArchivedTransferResponses,aseanGroupRecords,aseanStaffRetest,aseanStaffRetests,handleAseanActivity} from './_museumAsean.js';
+import {aseanArchivedTransferResponses,aseanGroupRecords,aseanHueQuizRecords,aseanStaffRetest,aseanStaffRetests,handleAseanActivity} from './_museumAsean.js';
 const stageCount=assignment=>isAsean(assignment)?ASEAN_STAGES.length:LIVE_STAGES.length;
 const canRespond=stage=>['vote','quiz','exit','peer'].includes(stage?.kind)||(stage?.kind==='group'&&Array.isArray(stage.videoQuestions));
 async function scopedStaff(ctx,assignmentId){
@@ -181,11 +181,12 @@ export default async function museumLive(req,res){
     const micro=!asean&&MICRO_CHALLENGES[viewIndex]?await query(admin.from('museum_live_micro_responses')
      .select('group_id,choice,reason,submitted_at').eq('session_id',session.id)
      .eq('stage_index',viewIndex).limit(50)):[];
+    const hueQuizResults=asean&&!privateAsean&&viewIndex===0?await query(aseanHueQuizRecords(admin,session.id)):[];
     return send(res,200,{session:{...stateOf(viewing,{staff:true}),readOnly:reviewOnly,persistedStageIndex:session.stage_index},
      contentFrozenAt:assignment.content_frozen_at??null,stageCount:stageCount(assignment),
      microResponses:micro.length,microResults:micro,
      result:asean?null:(()=>{const r=summarizeResponses(viewIndex,responses,sessionStage(viewing,viewIndex));if(r&&!asean&&session.evidence_version===0&&viewIndex===2)r.options=r.options.map((o,i)=>({...o,label:legacySurvey.options[i]}));return r;})(),
-     groups:grp,studioProgress,writingScores,retestProgress,needHelp:new Set(helps.map(h=>h.group_id)).size,helpGroups:[...new Set(helps.map(h=>h.group_id))],survey:await surveyFor(admin,session.id),feedback:[...feedback,...liveFeedback],responses:activityResponses});
+     groups:grp,studioProgress,writingScores,retestProgress,hueQuizResults,needHelp:new Set(helps.map(h=>h.group_id)).size,helpGroups:[...new Set(helps.map(h=>h.group_id))],survey:await surveyFor(admin,session.id),feedback:[...feedback,...liveFeedback],responses:activityResponses});
    }
    if(op==='video-search'){
     requireMethod(req,'GET');
@@ -261,7 +262,8 @@ export default async function museumLive(req,res){
     return send(res,200,{format:'museum-evidence-v33',exported_at:new Date().toISOString(),assignment:{id:assignment.id,title:assignment.title,class_scope:assignment.class_scope},session:stateOf(session,{staff:true}),groups,survey:await surveyFor(admin,session.id),checkpoints,feedback:await feedbackFor(admin,session.id),
      responses,microResponses,p2Worksheets,teacherMediaBoard:session.media_board||{},livePeerFeedback:await peerRoomsEvidence(admin,session.id),presentationProvenance:provenance,media,
      ...(asean?{aseanStaffChecks:await aseanStaffRetests(admin,session.id),
-      aseanArchivedTransferResponses:await query(aseanArchivedTransferResponses(admin,session.id))}:{})});
+      aseanArchivedTransferResponses:await query(aseanArchivedTransferResponses(admin,session.id)),
+      hueQuizResults:await query(aseanHueQuizRecords(admin,session.id))}:{})});
    }
    if(op==='start'){
     requireMethod(req,'POST');guardOrigin(req);guardBody(req,1000);
@@ -349,7 +351,7 @@ export default async function museumLive(req,res){
    return send(res,404,{error:'Không tìm thấy chức năng giáo viên.'});
   }
   // Guest: no registered student account. Cookie is one group capability.
-  const writing=['asean-submit','asean-capture','p2-save','respond','need-help','micro-submit','peer-room-toggle','peer-room-review','peer-room-review-batch'].includes(op);
+  const writing=['asean-submit','asean-hue-quiz','asean-capture','p2-save','respond','need-help','micro-submit','peer-room-toggle','peer-room-review','peer-room-review-batch'].includes(op);
   const ctx=await guestContext(req,admin,{write:writing,allowPublishedWorksheet:op==='p2-save'&&req.body?.form==='D2'});
   const session=await getSession(admin,ctx.assignment.id);
   if(isAsean(ctx.assignment)){
@@ -359,7 +361,7 @@ export default async function museumLive(req,res){
     return send(res,200,{session:session?stateOf(session):null,groupLabel:ctx.group.label,readOnly:ctx.readOnly,
      response:rows.find(row=>row.stage_index===session?.stage_index)?.value??null});
    }
-   if(['asean-records','asean-submit','asean-visit','asean-capture','asean-reference-v1'].includes(op))
+   if(['asean-records','asean-submit','asean-hue-quiz','asean-visit','asean-capture','asean-reference-v1'].includes(op))
     return await handleAseanActivity({op,req,res,admin,ctx,session});
    if(!['history','need-help','video-search'].includes(op))throw fail(404,'Unknown ASEAN activity.');
   }

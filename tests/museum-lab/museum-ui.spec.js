@@ -1809,6 +1809,45 @@ test('ASEAN student workshop uses the Climate layout for all six ASEAN activitie
  await expect(studio.getByLabel('Upload photo for Place')).toBeDisabled();
 });
 
+test('ASEAN groups submit and revisit the Huế discussion quiz separately',async({page})=>{
+ const assignment={id:'qa-asean',title:'ASEAN in Three Frames',class_scope:'11-QA',lesson_template:'asean-in-three-frames'};
+ const live={id:'hue-quiz-session',stageIndex:0,status:'active',stageOpen:true};
+ const baseline={experience:'Visitors can look at the brick towers.',advice:'Visitors should leave room on the path.'};
+ let saved;
+ await page.route('**/api/gallery-guest?**',route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  return route.fulfill({json:op==='me'?{assignment,groupLabel:'Nhóm 01',groupState:'editing',csrf:'qa-asean'}:
+   {draft:{title:'Hội An Ancient Town'},version:2}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  if(op==='asean-records')return route.fulfill({json:{checkpoints:[],rows:[{stage_index:0,value:baseline}],hueQuiz:saved}});
+  if(op==='asean-hue-quiz'){
+   const body=route.request().postDataJSON();
+   expect(body).toEqual({sessionId:live.id,answers:[1,2,0]});
+   saved={answers:body.answers,score:3,expected:[1,2,0],feedback:['Review the place.','Review the experience.','Review the advice.']};
+   return route.fulfill({json:{result:saved}});
+  }
+  return route.fulfill({json:{session:live,readOnly:false}});
+ });
+ await page.getByTestId('qa-student-en').click();
+ const panel=page.getByRole('region',{name:'Discussion quiz'});
+ const submit=panel.getByRole('button',{name:'Submit quiz',exact:true});
+ const choices=panel.getByRole('radio');
+ await expect(choices).toHaveCount(9);
+ await expect(submit).toBeDisabled();
+ await choices.nth(1).check();
+ await choices.nth(5).check();
+ await expect(submit).toBeDisabled();
+ await choices.nth(6).check();
+ await submit.click();
+ await expect(panel.getByRole('status')).toContainText('3/3');
+ await expect(choices.nth(1)).toBeDisabled();
+ await page.reload();
+ await expect(panel.getByRole('status')).toContainText('3/3');
+ await expect(page.getByText('Group response saved.',{exact:true})).toBeVisible();
+});
+
 test('ASEAN V2 retest opens ahead of the completed exhibit, then records the visitor’s answer',async({page})=>{
  const assignment={id:'qa-asean',title:'ASEAN in Three Frames',class_scope:'11-QA',lesson_template:'asean-in-three-frames'};
  let response;

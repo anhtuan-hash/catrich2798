@@ -3,6 +3,7 @@ import {ArrowLeft,Box,Play,MonitorPlay,BookOpen,Printer,X} from 'lucide-react';
 import {presentationFor} from '../../v3/livePresentation.js';
 import {LIVE_STAGES,liveStage,LEGACY_LANGUAGE_MINI_LESSON} from '../../v3/liveLesson.js';
 import {ASEAN_STAGES,isAsean,ASEAN_DESTINATIONS,ASEAN_FRAMES,aseanDestination} from '../../v3/aseanLesson.js';
+import {ASEAN_HUE_QUESTIONS} from '../../v3/aseanHueQuestions.js';
 import {liveStaff} from '../../v3/museumLiveApi.js';
 import {englishSystemGroupLabel} from '../../v3/museumApi.js';
 import {MUSEUM_CURRICULUM_VIDEOS} from '../../v3/museumLiveExtensions.js';
@@ -396,6 +397,16 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
             session={session} busy={busy} onRefresh={refresh} onSpotlight={spotlightGroup} onCompare={compareGroup} language={language} asean={asean}/>:null}
           {!slideOnly&&asean&&currentIndex===4&&displayedStageLoaded&&state?.retestProgress?.length>0&&
             <AseanRetestProgress rows={state.retestProgress} language={language}/>}
+          {asean&&currentIndex===0&&displayedStageLoaded&&!data?.publicReadOnly&&<section className="bml-surface">
+            <h3>{t(language,'Kết quả trắc nghiệm Huế','Huế quiz results')}</h3>
+            <p>{state.hueQuizResults?.length??0}/{groups.length} {t(language,'nhóm đã nộp','groups submitted')}</p>
+            {state.hueQuizResults?.map(({group_id,details})=><details key={group_id}>
+              <summary>{groups.find(group=>group.id===group_id)?.label} · {details.score}/{ASEAN_HUE_QUESTIONS.length}</summary>
+              <ol lang="en">{details.answers.map((choice,i)=><li key={ASEAN_HUE_QUESTIONS[i].prompt}>
+                {ASEAN_HUE_QUESTIONS[i].options[choice]} · {choice===details.expected[i]?'Correct':'Incorrect'}
+              </li>)}</ol>
+            </details>)}
+          </section>}
           {asean&&displayedStageLoaded&&!data?.publicReadOnly&&state?.responses?.length>0?<section className="bml-surface">
             <h3>Group records for this activity</h3>
             {state.responses.map(record=><details key={record.group_id}><summary>{groups.find(group=>group.id===record.group_id)?.label}</summary>
