@@ -254,6 +254,9 @@ test('approved submissions page keeps review details and omits the footnote in b
  await expect(detail.getByRole('heading',{name:'Rubric đánh giá'})).toBeVisible();
  await expect(detail.getByRole('spinbutton')).toHaveCount(5);
  await expect(detail.getByRole('button',{name:'Lưu điểm rubric'})).toBeEnabled();
+ await expect(detail.getByRole('textbox',{name:'Nhận xét dành cho học sinh'})).toBeVisible();
+ await expect(detail.getByText('Internal approval note for the subject lead',{exact:false})).toHaveCount(0);
+ await expect(detail.getByText(/Mỗi quyết định được ghi nhận trên máy chủ/)).toHaveCount(0);
  const geometry=await detail.evaluate(el=>{
   const preview=el.querySelector('.bml-review-preview').getBoundingClientRect();
   if(document.documentElement.scrollWidth>innerWidth+1) console.log("Overflow elements", JSON.stringify([...document.querySelectorAll("body *")].filter(n=>n.getBoundingClientRect().right>innerWidth+1).slice(0,12).map(n=>[n.tagName,n.className,n.getBoundingClientRect().right])));
@@ -269,6 +272,10 @@ test('approved submissions page keeps review details and omits the footnote in b
  await expect(screen.getByRole('heading',{name:'Student submissions.'})).toBeVisible();
  await expect(screen.getByText(/Statuses and counts are connected to actual records/)).toHaveCount(0);
  await expect(screen.locator('.swiss-editorial-submissions-note')).toHaveCount(0);
+ await card.click();
+ await expect(detail.getByRole('textbox',{name:'Student feedback'})).toBeVisible();
+ await expect(detail.getByText('Internal approval note for the subject lead',{exact:false})).toHaveCount(0);
+ await expect(detail.getByText(/All decisions are audited/)).toHaveCount(0);
 });
 test('visitors see saved scores for published submissions and missing scores never look like zero',async({page})=>{
  await page.route('**/api/gallery-staff?operation=dashboard',route=>route.fulfill({json:{

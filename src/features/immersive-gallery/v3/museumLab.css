@@ -204,7 +204,6 @@
 .bml .bml-review-actions{display:grid;gap:8px;margin-top:16px}
 .bml .bml-review-actions button{width:100%}
 .bml .bml-note{font-size:12px;background:#f6f8fb;padding:8px;border-radius:9px}
-.bml .bml-audit{font-size:11px;color:#7b8999}
 .bml .bml-scene{background:white;border:1px solid #dce5ef;border-radius:18px;overflow:hidden}
 .bml .bml-scene-header{display:flex;align-items:start;justify-content:space-between;gap:16px;padding:17px 20px}
 .bml .bml-scene-title{display:flex;gap:10px;align-items:start}

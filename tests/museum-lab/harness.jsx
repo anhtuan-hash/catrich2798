@@ -89,7 +89,7 @@ const submittedQa={
 const submissionsQa={
  ...submittedQa,
  exitTickets:[{group_id:'group-1',value:'An exit ticket'}],
- reviews:[...submittedQa.reviews,
+ reviews:[{...submittedQa.reviews[0],ttcm_note:'Internal approval note for the subject lead'},
   {id:'review-qa-2',group_id:'group-2',version:1,state:'published',snapshot:{title:'The climate museum'}}],
 };
 const submissionsQaTransport=async action=>action==='dashboard'?submissionsQa:demoDashboardApi(action);
