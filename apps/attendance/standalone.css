@@ -1,0 +1,49 @@
+.attendance-site {
+  min-height: 100dvh;
+}
+
+.attendance-site-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.25rem;
+  padding: 0.75rem clamp(1rem, 4vw, 3rem);
+  border-bottom: 1px solid #d5dfeb;
+  background: #f8fbff;
+  color: #16324d;
+}
+
+.attendance-site-header > a,
+.attendance-site-header > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  color: inherit;
+}
+
+.attendance-site-header img {
+  object-fit: contain;
+}
+
+.attendance-site-header button,
+.attendance-site-status button {
+  padding: 0.5rem 0.8rem;
+  border: 1px solid #b4c6d9;
+  border-radius: 0.45rem;
+  background: #fff;
+  color: #16324d;
+}
+
+.attendance-site-content {
+  width: 100%;
+  min-width: 0;
+}
+
+.attendance-site-status {
+  max-width: 38rem;
+  margin: clamp(1.5rem, 7vw, 5rem) auto;
+  padding: 1.25rem;
+  color: #16324d;
+}

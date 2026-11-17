@@ -1,0 +1,6 @@
+{
+  "installCommand": "npm ci --prefix ../.. --no-audit --no-fund",
+  "buildCommand": "../../node_modules/.bin/vite build",
+  "outputDirectory": "dist",
+  "framework": "vite"
+}
