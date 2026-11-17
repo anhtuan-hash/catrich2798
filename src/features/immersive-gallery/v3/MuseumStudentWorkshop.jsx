@@ -13,8 +13,9 @@ export function StudentLangToggle({language,onChange}){
 
 export default function MuseumStudentWorkshop({language,onLanguageChange,onLogout,groupLabel,saveState,
  bannerExpanded,onBannerChange,lessonTemplate,title='Our Climate Action Museum',testId='museum-student-wizard',
- navigation,children,overlays}){
- return <main className="bml bml-student-shell bml-student-canvas16 bml-student-editorial bml-student-dual-workspace" data-testid={testId} lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
+ activity,navigation,children,overlays}){
+ return <main className="bml bml-student-shell bml-student-canvas16 bml-student-editorial bml-student-dual-workspace" data-testid={testId}
+  data-workshop-activity={activity} lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
   <div className="bml-student-masthead" data-testid="student-masthead" data-banner-expanded={bannerExpanded}>
    <header className="bml-student-bar">
     <div className="bml-workshop-identity">
