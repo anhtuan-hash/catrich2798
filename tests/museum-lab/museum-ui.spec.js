@@ -1773,14 +1773,21 @@ test('ASEAN student workshop uses the Climate layout for all six ASEAN activitie
   expect(await project.getByTestId('student-task-scroll').evaluate(el=>el.scrollHeight>el.clientHeight)).toBe(true);
  }
  await page.screenshot({path:testInfo.outputPath('asean-workshop-focused.png')});
- const titles=['Write for a first-time visitor','Choose photographs with a purpose','Build your group’s 3D exhibit',
+ const titles=['1. Write about My Son Sanctuary','Choose photographs with a purpose','Build your group’s 3D exhibit',
   'Visit another group’s exhibit','Make one evidence-based change','Present and submit your work'];
  for(let i=0;i<2;i++)await lesson.getByRole('button',{name:'Previous activity'}).click();
  for(const [index,title] of titles.entries()){
   const slide=lesson.getByTestId('asean-student-slide-'+(index+1));
   await expect(slide.getByRole('heading',{name:title,exact:true})).toBeVisible();
-  await expect(slide.locator('.asean-activity-art')).toBeVisible();
-  for(const pane of [root,lesson.getByTestId('student-lesson-pane'),project.getByTestId('student-task-scroll')])
+  if(index!==0)await expect(slide.locator('.asean-activity-art')).toBeVisible();
+  if(index===0){
+   const example=root.getByRole('region',{name:'2. Discuss the class example',exact:true});
+   await expect(example.getByRole('heading',{name:'Hội An Ancient Town',exact:true})).toBeVisible();
+   await expect(example.getByText('Your 3D project topic',{exact:true})).toBeVisible();
+   await expect(example.locator('.asean-activity-art')).toBeVisible();
+   await expect(example.getByRole('textbox')).toHaveCount(0);
+  }
+  for(const pane of [root,lesson.getByTestId('student-lesson-pane'),root.getByTestId('student-task-scroll')])
    expect(await pane.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
   if(index<titles.length-1)await lesson.getByRole('button',{name:'Next activity'}).click();
  }

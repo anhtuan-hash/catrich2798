@@ -54,6 +54,7 @@
   max-width: 100%;
 }
 
+.bml .asean-student-activity > .asean-group-response,
 .bml .asean-student-project .asean-group-response {
   margin-top: 12px;
   padding: 10px;
@@ -62,6 +63,14 @@
   background: transparent;
   box-shadow: none;
 }
+.bml .asean-student-activity > .asean-group-response {
+  width: 100%;
+  min-width: 0;
+  margin-top: 0;
+  box-sizing: border-box;
+  container-type: inline-size;
+}
+.bml .asean-student-activity > .asean-response-closed { margin-block: 0; }
 .asean-group-response h3 { margin: 0 0 8px; }
 .asean-group-response :is(form, .bml-outline) { margin-top: 8px; }
 .asean-group-response fieldset { padding: 8px 10px; margin: 0; min-inline-size: 0; border: 1px solid var(--workshop-rule); }
@@ -121,4 +130,14 @@
   font-size: .8rem;
   font-weight: 700;
 }
-.bml .asean-writing-destination { margin: 0 0 4px; font-size: 1rem; }
+.asean-student-project > .asean-activity-art { margin-top: 10px; }
+.bml .asean-project-topic {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 14px 0 0;
+  padding-block: 10px;
+  border-top: 1px solid var(--workshop-rule);
+  color: #37534e;
+}
+.bml .asean-project-topic strong { color: var(--workshop-ink); }
