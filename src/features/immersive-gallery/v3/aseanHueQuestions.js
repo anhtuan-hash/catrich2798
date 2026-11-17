@@ -1,3 +1,5 @@
+export const ASEAN_HUE_CORRECT = Object.freeze([1, 2, 0]);
+
 export const ASEAN_HUE_QUESTIONS = [
  {
   "prompt": "Where is the Complex of Hué Monuments?",

@@ -2,7 +2,7 @@ import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowLeft,Box,Play,MonitorPlay,BookOpen,Printer,X} from 'lucide-react';
 import {presentationFor} from '../../v3/livePresentation.js';
 import {LIVE_STAGES,liveStage,LEGACY_LANGUAGE_MINI_LESSON} from '../../v3/liveLesson.js';
-import {ASEAN_STAGES,isAsean,ASEAN_DESTINATIONS,ASEAN_FRAMES,aseanDestination} from '../../v3/aseanLesson.js';
+import {ASEAN_STAGES,isAsean,ASEAN_DESTINATIONS,ASEAN_FRAMES,aseanDestination,aseanPeerGroup,aseanWritingCard} from '../../v3/aseanLesson.js';
 import {ASEAN_HUE_QUESTIONS} from '../../v3/aseanHueQuestions.js';
 import {liveStaff} from '../../v3/museumLiveApi.js';
 import {englishSystemGroupLabel} from '../../v3/museumApi.js';
@@ -93,12 +93,25 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     ?(currentIndex===1&&session?.questionVersion!==2?LEGACY_LANGUAGE_MINI_LESSON:liveStage(currentIndex))
     :session?.stage;
   const groups=(state?.groups||[]).map(g=>({...g,label:language==='en'?englishSystemGroupLabel(g.label):g.label}));
-  const studioGroup=groups.find(group=>group.id===studioGroupId)||groups[0];
-  const studioProgress=asean&&currentIndex===2&&serverIndex===currentIndex&&!data?.publicReadOnly&&Array.isArray(state?.studioProgress)
+  const selectedGroup=groups.find(group=>group.id===studioGroupId)||groups[0];
+  const displayedStageLoaded=Boolean(historicalSession&&serverIndex===currentIndex&&
+   (state.activityDataStageIndex??serverIndex)===currentIndex&&(!asean||!data?.publicReadOnly));
+  const studioProgress=asean&&currentIndex===2&&displayedStageLoaded&&Array.isArray(state?.studioProgress)
    ?state.studioProgress:null;
-  const v1ProgressLabel=studioProgress&&groups.length?t(language,
-   `${studioProgress.filter(draft=>draft.complete).length}/${groups.length} bản 3D đủ nội dung`,
-   `${studioProgress.filter(draft=>draft.complete).length}/${groups.length} complete 3D drafts`):null;
+  const selectedDraft=studioProgress?.find(draft=>draft.groupId===selectedGroup?.id);
+  const studentCard=asean&&selectedGroup&&!data?.publicReadOnly&&(currentIndex===0||currentIndex===5)
+   ?aseanWritingCard(selectedGroup.label,currentIndex===5):null;
+  const assignedRoom=asean&&displayedStageLoaded&&(currentIndex===3||currentIndex===4)
+   ?aseanPeerGroup(groups,selectedGroup?.id,currentIndex):null;
+  const retestQuestion=currentIndex===4&&assignedRoom
+   ?ASEAN_FRAMES[(state.retestProgress?.find(row=>englishSystemGroupLabel(row.group)===englishSystemGroupLabel(selectedGroup.label))?.question??0)-1]?.question:null;
+  const groupPicker=(studentCard||assignedRoom)&&<label>{t(language,'Chọn nhóm','Select group')}{' '}
+   <select value={selectedGroup.id} onChange={event=>setStudioGroupId(event.target.value)}>
+    {groups.map(group=><option key={group.id} value={group.id}>{group.label}</option>)}
+   </select>
+  </label>;
+  const aseanHighlights=asean&&displayedStageLoaded&&groups.length
+   ?aseanStageHighlights(currentIndex,state,groups,language):null;
   const minute=stages[currentIndex]?.minutes||0;
   const curriculumVideo=asean?null:MUSEUM_CURRICULUM_VIDEOS[currentIndex]||null;
   const presentation=presentationFor(currentIndex,readOnly?previewPresentation:
@@ -227,7 +240,6 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     };
     window.addEventListener('keydown',handle);return()=>window.removeEventListener('keydown',handle);
   },[isFullscreen,activeTool,busy,currentIndex,session?.version,session?.status,act,readOnly,stages.length]);
-  const displayedStageLoaded=Boolean(historicalSession&&serverIndex===currentIndex&&(!asean||!data?.publicReadOnly));
   const respondedCount=displayedStageLoaded&&Array.isArray(state?.responses)?state.responses.length:null;
   const survey=state?.survey;
   const surveyOptions=displayedStageLoaded&&state?.result?.options;
@@ -312,15 +324,28 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
             questions={questions} survey={slideSurvey}
             revealed={Boolean(session.revealed)}
             elapsed={elapsed} remaining={remaining}
-            respondedCount={asean&&currentIndex===2?null:respondedCount} progressLabel={v1ProgressLabel}
+            respondedCount={asean?null:respondedCount}
             isFullscreen={isFullscreen} onExitFullscreen={fullscreen}
             assignments={assignments} assignmentId={assignmentId} assignmentBusy={busy}
             onAssignment={e=>{++requestSequence.current;setAssignmentId(e.target.value);setBrowseIndex(null);setJumpIndex(null);setPreviewReveal(false);setState(null);setSpotlight(null);}}
             onAseanJoin={asean&&!data?.offlineReadOnly&&!data?.publicReadOnly?()=>toggleTool('qr'):undefined}
             onAseanStudioHelp={asean?()=>toggleTool('notes'):undefined}
-            aseanDraftTools={asean&&!data?.publicReadOnly&&studioGroup?<div>
+            aseanHighlights={aseanHighlights}
+            aseanContextCard={groupPicker&&<details className="asean-slide-disclosures asean-slide-writing-card">
+             <summary>{studentCard?t(language,'Thẻ viết của nhóm','Group writing card'):t(language,'Phòng được giao theo nhóm','Assigned exhibit by group')}</summary>
+             {groupPicker}
+             {studentCard?<dl lang="en"><dt>{studentCard.title}</dt><dd>{studentCard.country}</dd>
+              <dt>Visitors can …</dt><dd>{studentCard.experience}</dd>
+              <dt>Visitors should …</dt><dd>{studentCard.advice}</dd>
+             </dl>:<dl>
+              <dt>{t(language,'Phòng cần tham quan','Exhibit to visit')}</dt>
+              <dd>{[assignedRoom.label,aseanDestination(assignedRoom.label)?.name].filter(Boolean).join(' · ')}</dd>
+              {retestQuestion&&<><dt>{t(language,'Câu hỏi thử lại','Retest question')}</dt><dd lang="en">{retestQuestion}</dd></>}
+             </dl>}
+            </details>}
+            aseanDraftTools={asean&&currentIndex===2&&!data?.publicReadOnly&&selectedGroup?<div>
               <label>{t(language,'Bản đã lưu của','Saved draft from')}{' '}
-               <select value={studioGroup.id} onChange={event=>setStudioGroupId(event.target.value)}>
+               <select value={selectedGroup.id} onChange={event=>setStudioGroupId(event.target.value)}>
                 {groups.map(group=>{
                  const draft=studioProgress?.find(item=>item.groupId===group.id);
                  const status=draft?.complete?t(language,'đủ nội dung','complete'):draft?t(language,'đã lưu nháp','draft saved'):t(language,'chưa lưu','not saved');
@@ -328,9 +353,13 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
                 })}
                </select>
               </label>
-              <button type="button" className="adv-toolbtn" disabled={busy||Boolean(studioProgress&&!studioProgress.some(item=>item.groupId===studioGroup.id))} onClick={()=>spotlightGroup(studioGroup.id)}>
+              <button type="button" className="adv-toolbtn" disabled={busy||Boolean(studioProgress&&!selectedDraft)} onClick={()=>spotlightGroup(selectedGroup.id)}>
                <Box size={15}/>{t(language,'Mở bản lưu 3D','Open saved 3D draft')}
               </button>
+              {selectedDraft?.missing?.length>0&&<details className="asean-slide-disclosures">
+               <summary>{t(language,'Mục còn thiếu của nhóm','What this draft is missing')} ({selectedDraft.missing.length})</summary>
+               <ul lang="en">{selectedDraft.missing.map(item=><li key={item}>{item}</li>)}</ul>
+              </details>}
              </div>:null}
             fullscreenControls={toolbar} fullscreenPanel={fullscreenPanel}/>
           <div className="adv-live-dock">
@@ -408,15 +437,23 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
             </details>)}
           </section>}
           {asean&&displayedStageLoaded&&!data?.publicReadOnly&&state?.responses?.length>0?<section className="bml-surface">
-            <h3>Group records for this activity</h3>
-            {state.responses.map(record=><details key={record.group_id}><summary>{groups.find(group=>group.id===record.group_id)?.label}</summary>
+            <h3>{t(language,'Bài đã nộp của từng nhóm','Group submissions for this activity')}</h3>
+            {state.responses.map(record=>{
+             const group=groups.find(group=>group.id===record.group_id);
+             const target=aseanPeerGroup(groups,record.group_id,currentIndex);
+             const staffEntry=currentIndex===5&&state.staffTransferGroupIds?.includes(record.group_id);
+             return <details key={record.group_id}><summary>{group?.label}
+              {target?` → ${target.label} · ${aseanDestination(target.label)?.name||''}`:null}
+              {staffEntry?' · '+t(language,'Giáo viên nộp thay','Submitted by staff'):null}
+             </summary>
               <AseanGroupResponse value={record.value}/>
               {(currentIndex===0||currentIndex===5)&&<AseanWritingGrade
                key={assignmentId+'-'+currentIndex+'-'+record.group_id}
                value={state.writingScores?.find(score=>score.group_id===record.group_id)?.details}
                editable={canManageLesson&&!contentFrozenAt}
                save={async marks=>{await transport('asean-writing-grade',{assignmentId,groupId:record.group_id,stageIndex:currentIndex,...marks});await refresh();}}/>}
-            </details>)}
+             </details>;
+            })}
           </section>:null}
           {exitResponses.length?(
             <>
@@ -438,6 +475,39 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   );
 }
 export {TeacherLiveScreen};
+
+function aseanStageHighlights(stage,state,groups,language){
+ const found=Array.isArray(state.responses)?state.responses.length:null;
+ const item=(vi,en,value,extra)=>Number.isInteger(value)
+  ?{label:t(language,vi,en),count:`${value}/${groups.length}`,extra}:null;
+ let result;
+ switch(stage){
+  case 0: result=[
+   item('Nhóm đã nộp hai câu đầu','Baseline writing submitted',found),
+   item('Nhóm đã nộp trắc nghiệm Huế','Hué quiz submitted',state.hueQuizResults?.length),
+  ];break;
+  case 1: result=[item('Nhóm đã nộp kế hoạch ảnh','Photo plans submitted',found)];break;
+  case 2: result=[
+   item('Nhóm đã lưu bản nháp','3D drafts saved',state.studioProgress?.length),
+   item('Bản nháp đủ nội dung','Complete 3D drafts',state.studioProgress?.filter(draft=>draft.complete).length),
+  ];break;
+  case 3: result=[item('Nhóm đã nộp phiếu góp ý','Visitor feedback submitted',found)];break;
+  case 4: result=[
+   item('Bản chỉnh sửa sẵn sàng để thử','Revised exhibits ready',state.retestProgress?.filter(row=>row.ready).length),
+   item('Nhóm đã nộp phiếu thử lại','Retests submitted',state.retestProgress?.filter(row=>row.score!=null).length),
+  ];break;
+  case 5: {
+   const assisted=state.staffTransferGroupIds?.length;
+   result=[
+    item('Nhóm đã nộp hai câu','Transfer cards submitted',found,assisted?t(language,`${assisted} do giáo viên nộp thay`,`${assisted} submitted by staff`):null),
+    item('Nhóm đã gửi triển lãm 3D','3D exhibits submitted',groups.filter(group=>
+      ['submitted','ttcm_review','changes_requested','approved_locked','published'].includes(group.state)).length),
+   ];break;
+  }
+  default: return [];
+ }
+ return result.filter(Boolean);
+}
 
 function AseanTeachingNotes({stage,language,uploadsEnabled}){
  return stage?<div><h3>{language==='vi'?stage.vi:stage.title}</h3>

@@ -20,7 +20,7 @@ export const ASEAN_ACTIVITY_DESIGN = [
    [4, 'Tìm câu hỏi còn bỏ ngỏ', 'Find an unanswered visitor question'],
    [2, 'Chốt ba mục đích của khung', 'Confirm the three frame purposes'],
   ],
-  output: ['Hai câu tiếng Anh và một câu hỏi khách chưa được giải đáp.', 'Two English sentences and one unanswered visitor question.'],
+  output: ['Hai câu tiếng Anh và bài trắc nghiệm thảo luận về Huế.', 'Two English sentences and a submitted Hué discussion quiz.'],
  },
  {
   id: 'select',
@@ -78,7 +78,7 @@ export const ASEAN_ACTIVITY_DESIGN = [
   studentTask: 'Report what changed and what the fresh visitor found. Submit the final room and write two new sentences for the destination on your transfer card.',
   steps: [
    [3, 'Báo cáo thay đổi và kết quả thử lại', 'Report the change and the retest result'],
-   [4, 'Giao thẻ mới và dành 2 phút viết hai câu', 'Give the new card and allow 2 minutes for two sentences'],
+   [4, 'Dùng thẻ điểm đến mới và dành 2 phút viết hai câu', 'Use the new destination card and allow 2 minutes for writing'],
    [3, 'Nộp triển lãm và chốt bài học', 'Submit the exhibit and wrap up'],
   ],
   output: ['Phòng 3D nộp để giáo viên duyệt và thẻ viết vận dụng của nhóm.', 'A 3D exhibit submitted for teacher review and a group transfer writing card.'],

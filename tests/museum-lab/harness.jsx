@@ -255,6 +255,27 @@ const aseanRetestTeacherApi=async()=>({
   baselineReady:true,baselineReconstructed:true,ready:true,question:2,score:index===1?0:null,
   staffReview:{answer:'Staff review of the saved caption.',score:1},reference:'Visitors can look up at the stone faces.'})),
 });
+function AseanAlignmentHarness({language,visitor=false}){
+ const [live,setLive]=useState({stageIndex:0,revealed:false});
+ const transport=useCallback(async(operation,body,params)=>{
+  const index=visitor&&params?.viewStage!=null?Number(params.viewStage):live.stageIndex;
+  const session={...live,stageIndex:index,id:'qa-asean-alignment',assignmentId:'lesson-synthetic',status:'active',stageOpen:true};
+  if(operation==='control'){
+   const next=body.action==='reveal'?{...live,revealed:!live.revealed}:
+    {stageIndex:Math.max(0,Math.min(5,index+(body.action==='next'?1:-1))),revealed:false};
+   setLive(next);
+   return {session:{...session,...next}};
+  }
+  return {
+   session,activityDataStageIndex:index,groups:visitor?[]:tenGroups,
+   responses:visitor||index!==5?[]:[{group_id:'g1',value:{experience:'Visitors can look at the monuments.',advice:'Visitors should stay on the path.'}}],
+   staffTransferGroupIds:visitor?[]:['g1'],
+   hueQuizResults:[],
+   studioProgress:visitor?[]:[{groupId:'g1',complete:true,missing:[]},{groupId:'g2',complete:false,missing:['Factual source']}],
+  };
+ },[live,visitor]);
+ return <SwissTeacherLive data={visitor?{...aseanRetestQa,publicReadOnly:true}:aseanRetestQa} language={language} transport={transport}/>;
+}
 function ArtworkHarness({language}){
  const [studio,update]=useState({artworks:{issue:null,evidence:null,solution:null}});
  return <MuseumArtworkStudio studio={studio} csrf="qa-secret" language={language} uploadEnabled={true} update={update}/>;
@@ -268,7 +289,7 @@ function Harness(){
  return <div style={{fontFamily:'Roboto,Arial,sans-serif'}}>
   <div style={{display:'flex',gap:8,padding:10,background:'#e6f0ff',flexWrap:'wrap'}} data-testid="qa-harness">
    <strong>QA ONLY · ALL DATA SYNTHETIC</strong>
-   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','review-workflow-en','published-lesson','dashboard-en','dashboard-visitor','dashboard-submissions','dashboard-published-en','dashboard-published-fail-en','student-en','teacher-live-en','teacher-live-ten-en','teacher-live-frozen-en','teacher-live-v2-frozen-en','teacher-live-completion-en','teacher-live-visitor-en','teacher-asean-retest-en','v53-evidence-en','v54-speaking-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
+   {['dashboard','student','scene','wizard','evidence','teacher-live','student-live','artwork','exhibition','exhibition-layout','prepared','admin-review','review-workflow-en','published-lesson','dashboard-en','dashboard-visitor','dashboard-submissions','dashboard-published-en','dashboard-published-fail-en','student-en','teacher-live-en','teacher-live-ten-en','teacher-live-frozen-en','teacher-live-v2-frozen-en','teacher-live-completion-en','teacher-live-visitor-en','teacher-asean-retest-en','teacher-asean-alignment-en','teacher-asean-alignment-visitor-en','v53-evidence-en','v54-speaking-en','wizard-en','evidence-en','admin-review-en'].map(x=><button type="button" key={x} onClick={()=>setScreen(x)} data-testid={'qa-'+x}>{x}</button>)}
   </div>
   <div className={['dashboard','dashboard-visitor','dashboard-submissions'].includes(normalized)?'':'bml'}>
    {normalized==='dashboard'?<MuseumLabApp language={uiLanguage} currentUser={{id:'teacher-synthetic',name:'Demo Teacher'}} transport={demoDashboardApi}/>:null}
@@ -293,6 +314,8 @@ function Harness(){
    {normalized==='teacher-live-completion'?<LessonCompletionHarness/>:null}
    {normalized==='teacher-live-visitor'?<LessonCompletionHarness visitor/>:null}
    {normalized==='teacher-asean-retest'?<SwissTeacherLive data={aseanRetestQa} language={uiLanguage} transport={aseanRetestTeacherApi}/>:null}
+   {normalized==='teacher-asean-alignment'?<AseanAlignmentHarness language={uiLanguage}/>:null}
+   {normalized==='teacher-asean-alignment-visitor'?<AseanAlignmentHarness language={uiLanguage} visitor/>:null}
    {normalized==='student-live'?<MuseumLiveStudent csrf="qa-secret" language={uiLanguage}/>:null}
    {normalized==='artwork'?<ArtworkHarness language={uiLanguage}/>:null}
    {normalized==='scene'?<MuseumScene gallery={DEMO_GALLERY} language={uiLanguage} onBack={()=>setScreen('dashboard')}/>:null}

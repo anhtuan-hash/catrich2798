@@ -133,8 +133,11 @@ export default async function museumLive(req,res){
     const studioDrafts=asean&&viewIndex===2&&grp.length
      ?await query(admin.from('gcp_drafts').select('group_id,version,doc').in('group_id',grp.map(group=>group.id)).gt('version',0))
      :[];
-    const studioProgress=studioDrafts.map(draft=>({groupId:draft.group_id,complete:aseanExhibitMissing(draft.doc).length===0}));
-    const responses=privateAsean?[]:await query(admin.from('museum_live_responses').select('group_id,value,created_at')
+    const studioProgress=studioDrafts.map(draft=>{
+     const missing=aseanExhibitMissing(draft.doc);
+     return {groupId:draft.group_id,complete:missing.length===0,missing};
+    });
+    const responses=privateAsean?[]:await query(admin.from('museum_live_responses').select(asean&&viewIndex===5?'id,group_id,value,created_at':'group_id,value,created_at')
       .eq('session_id',session.id).eq('stage_index',viewIndex));
     let retestProgress;
     if(asean&&!privateAsean&&viewIndex===4&&grp.length){
@@ -156,10 +159,15 @@ export default async function museumLive(req,res){
        score:response?.score??null,staffReview,reference:frame?after.doc.learning?.[frame.key]:null};
      });
     }
-    const writingScores=asean&&!privateAsean&&(viewIndex===0||viewIndex===5)
-     ?await query(admin.from('museum_learning_events').select('group_id,details').eq('session_id',session.id)
-      .eq('stage_index',viewIndex).eq('action','asean_writing_grade').order('created_at',{ascending:false}))
+    const writingEvents=asean&&!privateAsean&&(viewIndex===0||viewIndex===5)
+     ?await query(admin.from('museum_learning_events').select('group_id,action,details').eq('session_id',session.id)
+      .eq('stage_index',viewIndex).in('action',viewIndex===5?['asean_writing_grade','asean_transfer_submitted_by_staff']:['asean_writing_grade'])
+      .order('created_at',{ascending:false}))
      :[];
+    const writingScores=writingEvents.filter(event=>event.action==='asean_writing_grade');
+    const staffTransferResponseIds=new Set(writingEvents.filter(event=>event.action==='asean_transfer_submitted_by_staff')
+      .map(event=>event.details?.responseId).filter(Boolean));
+    const staffTransferGroupIds=responses.filter(response=>staffTransferResponseIds.has(response.id)).map(response=>response.group_id);
     let feedback=[];
     if(asean&&!privateAsean&&viewIndex>=3){
      const [pairs,visitorRecords]=await Promise.all([
@@ -186,7 +194,7 @@ export default async function museumLive(req,res){
      contentFrozenAt:assignment.content_frozen_at??null,stageCount:stageCount(assignment),
      microResponses:micro.length,microResults:micro,
      result:asean?null:(()=>{const r=summarizeResponses(viewIndex,responses,sessionStage(viewing,viewIndex));if(r&&!asean&&session.evidence_version===0&&viewIndex===2)r.options=r.options.map((o,i)=>({...o,label:legacySurvey.options[i]}));return r;})(),
-     groups:grp,studioProgress,writingScores,retestProgress,hueQuizResults,needHelp:new Set(helps.map(h=>h.group_id)).size,helpGroups:[...new Set(helps.map(h=>h.group_id))],survey:await surveyFor(admin,session.id),feedback:[...feedback,...liveFeedback],responses:activityResponses});
+     groups:grp,activityDataStageIndex:viewIndex,studioProgress,writingScores,staffTransferGroupIds,retestProgress,hueQuizResults,needHelp:new Set(helps.map(h=>h.group_id)).size,helpGroups:[...new Set(helps.map(h=>h.group_id))],survey:await surveyFor(admin,session.id),feedback:[...feedback,...liveFeedback],responses:activityResponses});
    }
    if(op==='video-search'){
     requireMethod(req,'GET');

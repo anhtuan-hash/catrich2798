@@ -3,10 +3,9 @@ import {checkpointGallery} from './_museumEvidence.js';
 import {fail,guardBody,guardOrigin,query,requireMethod,send} from './_galleryCreator.js';
 import {ASEAN_FRAMES,aseanExhibitMissing,aseanPeerGroup,aseanWritingRepeats,validAseanResponse} from '../src/features/immersive-gallery/v3/aseanLesson.js';
 
-import {ASEAN_HUE_QUESTIONS} from '../src/features/immersive-gallery/v3/aseanHueQuestions.js';
+import {ASEAN_HUE_CORRECT,ASEAN_HUE_QUESTIONS} from '../src/features/immersive-gallery/v3/aseanHueQuestions.js';
 
 const HUE_QUIZ_ACTION='asean_hue_quiz';
-const HUE_CORRECT=[1,2,0];
 const HUE_FEEDBACK=[
  'The Place caption locates the site in central Viet Nam and describes its royal past.',
  'The Experience caption needs an activity a visitor can picture and do.',
@@ -21,7 +20,7 @@ export function aseanHueQuizRecords(admin,sessionId){
 export function gradeHueQuiz(answers){
  if(!Array.isArray(answers)||answers.length!==ASEAN_HUE_QUESTIONS.length||
   !answers.every((choice,i)=>Number.isInteger(choice)&&choice>=0&&choice<ASEAN_HUE_QUESTIONS[i].options.length))return null;
- return {answers,score:answers.filter((choice,i)=>choice===HUE_CORRECT[i]).length,expected:HUE_CORRECT,feedback:HUE_FEEDBACK};
+ return {answers,score:answers.filter((choice,i)=>choice===ASEAN_HUE_CORRECT[i]).length,expected:ASEAN_HUE_CORRECT,feedback:HUE_FEEDBACK};
 }
 
 function hueQuizEventId(sessionId,groupId){
