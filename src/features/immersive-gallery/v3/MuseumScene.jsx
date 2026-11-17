@@ -210,7 +210,7 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
   window.addEventListener('keydown',onKey);
   return()=>window.removeEventListener('keydown',onKey);
  },[cinema,threeD,focus.phase,focus.exhibitId,exhibits]);
- return <section ref={cinemaRef} className={'bml-scene bml-paper-2d '+(!threeD?'is-2d ':'')+(embedded?'bml-scene-embedded ':'')+(compact?'bml-scene-compact ':'')+(cinema?'bml-museum-cinema ':'')+(editorial?'bml-swiss-2d ':'')+(fallbackFullscreen?'is-fallback-fullscreen':'')}
+ return <section ref={cinemaRef} className={'bml-scene '+(editorial?'bml-swiss-2d ':'bml-paper-2d ')+(!threeD?'is-2d ':'')+(embedded?'bml-scene-embedded ':'')+(compact?'bml-scene-compact ':'')+(cinema?'bml-museum-cinema ':'')+(fallbackFullscreen?'is-fallback-fullscreen':'')}
   data-testid="museum-visitor" data-museum-mode={cinema?'cinema':'classic'}>
   {!compact&&!cinema?<header className="bml-scene-header">
    <div className="bml-scene-title">

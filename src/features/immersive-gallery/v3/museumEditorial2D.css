@@ -9,6 +9,15 @@
  font-family: Inter, "Be Vietnam Pro", "Helvetica Neue", Arial, sans-serif;
 }
 
+.bml .bml-review-cinema-overlay:has(> .bml-swiss-2d) {
+ inset: 0;
+ width: 100%;
+ height: 100dvh;
+ border: 0;
+ border-radius: 0;
+ box-shadow: none;
+}
+
 .bml .bml-swiss-2d button,
 .bml .bml-swiss-2d a { font-family: inherit; }
 
@@ -69,8 +78,12 @@
 
 .bml .bml-swiss-2d .bml-cinema-mode-group svg { display: none; }
 
-.bml .bml-museum-cinema.bml-swiss-2d .bml-cinema-hud button.is-active,
 .bml .bml-museum-cinema.bml-swiss-2d .bml-cinema-hud button:hover {
+ background: #ebe5da;
+ color: var(--swiss-editorial-ink);
+}
+
+.bml .bml-museum-cinema.bml-swiss-2d .bml-cinema-hud button.is-active {
  border-color: var(--swiss-editorial-red);
  background: var(--swiss-editorial-red);
  color: white;
@@ -154,7 +167,7 @@
  align-items: flex-end;
  justify-content: space-between;
  gap: 18px;
- margin: clamp(18px, 3.1vw, 45px) 0 clamp(16px, 2vw, 30px);
+ margin: clamp(18px, 2.4vw, 38px) 0 clamp(16px, 2vw, 30px);
 }
 
 .bml .bml-swiss-2d .bml-editorial-room-heading h2,
@@ -204,15 +217,31 @@
 }
 
 .bml .bml-scene.bml-swiss-2d .bml-editorial-work .bml-paper-art-photo {
- height: clamp(180px, min(25vw, 41dvh), 450px);
+ display: grid;
+ place-items: center;
+ width: 100%;
+ height: clamp(175px, min(25vw, 36dvh), 430px);
+ overflow: hidden;
  aspect-ratio: auto;
  border-radius: 0;
  background: #e7e1d6;
 }
 
 .bml .bml-scene.bml-swiss-2d .bml-editorial-work .bml-paper-art-photo img {
+ display: block;
+ width: 100%;
+ height: 100%;
  object-fit: cover !important;
  background: transparent;
+}
+
+.bml .bml-editorial-work .bml-paper-photo-placeholder {
+ display: grid;
+ justify-items: center;
+ gap: 8px;
+ padding: 12px;
+ color: var(--swiss-editorial-muted);
+ text-align: center;
 }
 
 .bml .bml-editorial-work-number {
@@ -340,19 +369,19 @@
 
 .bml .bml-swiss-2d .bml-editorial-media [data-view="original"] .bml-exhibit-360-stage {
  display: block;
- width: fit-content;
- max-width: 100%;
+ width: 100%;
  height: auto;
  background: transparent;
 }
 
 .bml .bml-swiss-2d .bml-editorial-media .bml-exhibit-360-stage .bml-exhibit-original-image {
  display: block;
- width: auto;
+ width: 100%;
  height: auto;
  max-width: 100%;
  max-height: 69dvh;
  object-fit: contain;
+ object-position: left center;
 }
 
 .bml .bml-swiss-2d .bml-editorial-media .bml-exhibit-360-toolbar {

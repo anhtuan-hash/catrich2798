@@ -3250,6 +3250,8 @@ test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published 
  await cinema.getByRole('button',{name:'2D',exact:true}).click();
  const roomOverview=cinema.getByTestId('museum-paper-2d-room');
  const artworkGrid=cinema.getByTestId('museum-2d-exhibits');
+ await expect(rooms.getByRole('button',{name:'10 · Vigan'})).toHaveCSS('background-color','rgb(201, 13, 37)');
+ await expect(rooms.getByRole('button',{name:'01 · Hội An'})).toHaveCSS('border-radius','0px');
  await expect(roomOverview.getByRole('heading',{name:'Vigan',exact:true})).toBeVisible();
  await expect(artworkGrid.getByRole('article')).toHaveCount(3);
  await expect(artworkGrid.locator('img').first()).toHaveCSS('object-fit','cover');
