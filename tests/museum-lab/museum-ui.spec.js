@@ -2055,6 +2055,7 @@ test('ASEAN V2 retest separates our revision, the teacher reference and the assi
  const assignment={id:'qa-asean',title:'ASEAN in Three Frames',class_scope:'11-QA',lesson_template:'asean-in-three-frames'};
  let response,incomingRetest;
  const live={id:'retest-session',stageIndex:4,status:'active',stageOpen:true};
+ const feedbackDraft={question:2,answer:'Look for the Bayon’s carved stone faces.',frame:2,score:1};
  const checkpoints=[{kind:'before',version:0,complete:true,reconstructed:true},{kind:'after',version:2,complete:true,reason:'Teacher-prepared V2: Revised the Place caption.'}];
  await page.route('**/api/gallery-guest?**',route=>{
   const operation=new URL(route.request().url()).searchParams.get('operation');
@@ -2069,7 +2070,7 @@ test('ASEAN V2 retest separates our revision, the teacher reference and the assi
    retestTask:{target:'Nhóm 03',ready:true,question:2,staffChecked:true}}});
   if(operation==='asean-reference-v1')return route.fulfill({json:{gallery:{version:0,
    draft:{title:'Hội An reference',rooms:[]},artworks:[]}}});
-  if(operation==='asean-visit')return route.fulfill({json:{target:'Nhóm 03',question:2,
+  if(operation==='asean-visit')return route.fulfill({json:{target:'Nhóm 03',question:2,feedbackDraft,
    gallery:{checkpointId:'v2-angkor',version:2,draft:{title:'Angkor',rooms:[]},artworks:[]}}});
   if(operation==='asean-submit'){
    const payload=route.request().postDataJSON();
@@ -2103,8 +2104,17 @@ test('ASEAN V2 retest separates our revision, the teacher reference and the assi
  await project.getByRole('button',{name:'Open assigned V2 exhibit'}).click();
  await page.getByRole('button',{name:'Close museum preview'}).click();
  await expect(project.getByRole('heading',{name:'Record your retest answer'})).toBeFocused();
- await project.getByRole('textbox',{name:'Your group’s answer'}).fill('Visitors can look up at the stone faces.');
- await project.getByLabel('Score').selectOption('1');
+ const answer=project.getByRole('textbox',{name:'Your group’s answer'});
+ await expect(answer).toHaveValue(feedbackDraft.answer);
+ await expect(project.getByLabel('Evidence frame')).toHaveValue('2');
+ await expect(project.getByLabel('Score')).toHaveValue('1');
+ await expect(project.getByText('Draft based on the teacher’s V2 reference check.',{exact:false})).toBeVisible();
+ expect(response).toBeUndefined();
+ await answer.fill('Visitors can look up at the stone faces.');
+ await project.getByLabel('Evidence frame').selectOption('');
+ await project.getByRole('button',{name:'Reopen assigned V2 exhibit'}).click();
+ await page.getByRole('button',{name:'Close museum preview'}).click();
+ await expect(answer).toHaveValue('Visitors can look up at the stone faces.');
  await expect(project.getByRole('button',{name:'Submit retest answer'})).toBeDisabled();
  await expect(project.getByText('For a score of 1, choose Experience as the evidence frame.',{exact:false})).toBeVisible();
  await project.getByLabel('Evidence frame').selectOption('1');
