@@ -3180,7 +3180,7 @@ test('Student Creator Group 01: 100% draft but missing sources opens Submit and 
  await expect(app).toContainText('Submission is locked');
 });
 
-test('V5 Cinema and 2D show the photo quiz for the matching published ASEAN artwork',async({page},testInfo)=>{
+test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published ASEAN artwork',async({page},testInfo)=>{
  test.setTimeout(90000);
  await page.emulateMedia({reducedMotion:'reduce'});
  const titles=['Hội An','Tràng An','Angkor','Luang Prabang','Ayutthaya','Melaka','George Town','Singapore Botanic Gardens','Borobudur','Vigan'];
@@ -3193,7 +3193,7 @@ test('V5 Cinema and 2D show the photo quiz for the matching published ASEAN artw
   document.documentElement.setAttribute('data-font-region-page-title','test');
   document.documentElement.style.setProperty('--bes-font-pageTitle','cursive');
  });
- const poster='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="240" height="150"%3E%3Crect width="240" height="150" fill="seagreen"/%3E%3C/svg%3E';
+ const poster='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAABICAIAAAA/EeF8AAAAtElEQVR4nO3aIQ6DQBBAUZZwr4paRAWu58NVVNQiOAt3qMFUNGlIk+5fsQ1D8p+CrNjP2CGtz6WJpN074JtBJFxQt32599ddIi6P8fMcbkIGEYNIuKAufzxMc/Urb+dT5vRoE3rLf1O5knmHm5BBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIkXboH9szX452oRqbcrKhZuQQSRcUPKXL2AQCRf0AkV7EkHU/73DAAAAAElFTkSuQmCC';
  await page.route('**/api/gallery-staff?operation=*',route=>{
   const request=route.request();
   const operation=new URL(request.url()).searchParams.get('operation');
@@ -3204,10 +3204,10 @@ test('V5 Cinema and 2D show the photo quiz for the matching published ASEAN artw
   expect(request.postDataJSON()).toEqual({id:collection.id});
   return route.fulfill({json:{gallery:{...collection,rooms:destinations.map(destination=>({
    id:'room-'+destination.id,exhibition_id:destination.id,title:destination.title,
-   exhibits:[{
-    id:destination.id==='exhibition-10'?'137b69b5-af44-4ed8-99ce-37148fa56d23':'image-'+destination.id,
-    kind:'image',title:'Place',description:destination.title,status:'published',image_url:poster
-   }],
+   exhibits:['Place','Experience','Visitor Advice'].map((title,index)=>({
+    id:destination.id==='exhibition-10'&&index===0?'137b69b5-af44-4ed8-99ce-37148fa56d23':destination.id+'-image-'+index,
+    kind:'image',title,description:destination.title,status:'published',image_url:poster
+   })),
   }))}}});
  });
  await page.getByTestId('qa-dashboard-visitor').click();
@@ -3248,20 +3248,58 @@ test('V5 Cinema and 2D show the photo quiz for the matching published ASEAN artw
  await plaque.getByRole('button',{name:'Back to wall'}).click();
  await expect(plaque).toHaveCount(0,{timeout:12000});
  await cinema.getByRole('button',{name:'2D',exact:true}).click();
- await expect(cinema.getByTestId('museum-2d-exhibits')).toContainText('Vigan');
+ const roomOverview=cinema.getByTestId('museum-paper-2d-room');
+ const artworkGrid=cinema.getByTestId('museum-2d-exhibits');
+ await expect(rooms.getByRole('button',{name:'10 · Vigan'})).toHaveCSS('background-color','rgb(201, 13, 37)');
+ await expect(rooms.getByRole('button',{name:'01 · Hội An'})).toHaveCSS('border-radius','0px');
+ await expect(roomOverview.getByRole('heading',{name:'Vigan',exact:true})).toBeVisible();
+ await expect(artworkGrid.getByRole('article')).toHaveCount(3);
+ await expect(artworkGrid.locator('img').first()).toHaveCSS('object-fit','cover');
+ const [tabsBounds,gridBounds]=await Promise.all([rooms.boundingBox(),artworkGrid.boundingBox()]);
+ expect(tabsBounds.y+tabsBounds.height).toBeLessThan(gridBounds.y);
+ await page.screenshot({path:testInfo.outputPath('asean-swiss-2d-room.png')});
  await cinema.getByRole('button',{name:'Explore exhibit 1: Place'}).click();
  const inspector=cinema.getByTestId('museum-artwork-inspector');
  const quiz=inspector.getByTestId('museum-photo-quiz');
+ await expect(roomOverview).toBeHidden();
+ await expect(inspector).toHaveClass(/bml-editorial-exhibit/);
+ await expect(inspector.getByRole('button',{name:'2D original'})).toHaveAttribute('aria-pressed','true');
+ await expect(inspector.getByRole('img',{name:'Place'})).toHaveCSS('object-fit','contain');
+ await inspector.getByRole('button',{name:'Zoom',exact:true}).click();
+ const zoom=cinema.getByTestId('museum-original-poster-dialog');
+ await expect(zoom.getByTestId('museum-original-poster')).toBeVisible();
+ await page.keyboard.press('Escape');
+ await expect(zoom).toHaveCount(0);
+ await inspector.getByRole('button',{name:'360° view'}).click();
+ await expect(inspector.getByTestId('exhibit-360-canvas')).toBeVisible();
+ await inspector.getByRole('button',{name:'2D original'}).click();
+ await expect(inspector.getByTestId('exhibit-360-canvas')).toHaveCount(0);
  await expect(quiz).toContainText('What is travelling down the middle of this historic street?');
  await quiz.getByRole('button',{name:'A motorbike',exact:true}).click();
  await expect(quiz.getByRole('status')).toHaveText('Try again.');
  await quiz.getByRole('button',{name:'A horse-drawn carriage',exact:true}).click();
  await expect(quiz.getByRole('status')).toContainText('Correct!');
- await inspector.getByRole('button',{name:'Close',exact:true}).click();
+ await page.screenshot({path:testInfo.outputPath('asean-swiss-2d-exhibit.png')});
+ await inspector.getByRole('button',{name:'Next exhibit'}).click();
+ await expect(inspector.getByRole('heading',{name:'Experience',exact:true})).toBeVisible();
+ await expect(quiz).toHaveCount(0);
+ await inspector.getByRole('button',{name:'Previous exhibit'}).click();
+ await expect(quiz).toBeVisible();
+ const desktopViewport=page.viewportSize();
+ await page.setViewportSize({width:390,height:844});
+ const [media,copy]=await Promise.all([
+  inspector.getByTestId('exhibit-360-viewer').boundingBox(),
+  inspector.getByRole('heading',{name:'Place',exact:true}).boundingBox(),
+ ]);
+ expect(media.y+media.height).toBeLessThan(copy.y);
+ expect(await inspector.evaluate(el=>el.scrollWidth<=el.clientWidth)).toBe(true);
+ await page.screenshot({path:testInfo.outputPath('asean-swiss-2d-mobile.png')});
+ await page.setViewportSize(desktopViewport);
+ await inspector.getByRole('button',{name:'All exhibits'}).click();
  await rooms.getByRole('button',{name:'01 · Hội An'}).click();
  await cinema.getByRole('button',{name:'Explore exhibit 1: Place'}).click();
  await expect(inspector.getByTestId('museum-photo-quiz')).toHaveCount(0);
- await inspector.getByRole('button',{name:'Close',exact:true}).click();
+ await inspector.getByRole('button',{name:'All exhibits'}).click();
  await cinema.getByRole('button',{name:'Close museum preview'}).click();
  await catalogue.getByRole('button',{name:'Open full exhibition'}).click();
  await expect(rooms.getByRole('button',{name:'01 · Hội An'})).toHaveClass(/is-active/);
