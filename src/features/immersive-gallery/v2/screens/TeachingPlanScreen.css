@@ -464,3 +464,66 @@
   .igv2 .swiss-teaching-plan .plan-unit-number span { display: inline; margin-left: 7px; }
   .igv2 .swiss-teaching-plan .plan-rubric { padding: 12px 0 0; border: 0; border-top: 1px solid var(--plan-rule); }
 }
+
+.igv2 .swiss-teaching-plan .plan-paper-metadata ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.igv2 .swiss-teaching-plan .plan-paper-metadata li + li { margin-top: 3px; }
+.igv2 .swiss-teaching-plan .plan-paper-metadata p { margin-block: 12px; }
+
+.igv2 .swiss-teaching-plan .plan-paper-body {
+  display: grid;
+  gap: var(--plan-gap);
+  margin-bottom: var(--plan-gap);
+}
+
+.igv2 .swiss-teaching-plan .plan-paper-body .plan-section { min-width: 0; }
+.igv2 .swiss-teaching-plan .plan-paper-body h3 { font-size: 1.125rem; }
+.igv2 .swiss-teaching-plan .plan-paper-body p { margin: 6px 0 13px; }
+
+.igv2 .swiss-teaching-plan .plan-paper-table {
+  width: 100%;
+  margin-block: 12px 18px;
+  border-collapse: collapse;
+  font-size: 0.925rem;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.igv2 .swiss-teaching-plan .plan-paper-table :is(th, td) {
+  padding: 9px clamp(6px, 1.1vw, 13px);
+  border: 1px solid var(--plan-rule);
+  text-align: start;
+  vertical-align: top;
+}
+
+.igv2 .swiss-teaching-plan .plan-paper-table thead { background: var(--plan-muted-paper); }
+.igv2 .swiss-teaching-plan .plan-paper-table th[scope="row"] { font-weight: 600; }
+
+.igv2 .swiss-teaching-plan .plan-paper-body .plan-activity h4 {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.23;
+  color: inherit;
+}
+
+.igv2 .swiss-teaching-plan .plan-paper-body .plan-activity h5 {
+  margin: 10px 0 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+.igv2 .swiss-teaching-plan .plan-paper-body .plan-paper-activity-details { margin-top: 8px; }
+.igv2 .swiss-teaching-plan .plan-paper-rubric { margin-bottom: 18px; }
+
+.igv2 .swiss-teaching-plan .plan-paper-body summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: inherit;
+}
+
+.igv2 .swiss-teaching-plan .plan-paper-activity-details ol { padding-inline-start: 1.4em; }
+.igv2 .swiss-teaching-plan .plan-paper-activity-details li + li { margin-top: 8px; }
