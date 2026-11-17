@@ -77,15 +77,16 @@ function SchoolIdentity(){
  </>;
 }
 
-function GalleryFurniture({title,exhibits}){
+function GalleryFurniture({title,exhibits,onRoomGuide,roomGuideLabel}){
  const labels=exhibits.slice(0,3).map(exhibit=>exhibit.title).join(' · ');
  const introduction=useCanvasTexture((ctx,w,h)=>{
   ctx.fillStyle=ivory;ctx.fillRect(0,0,w,h);
   ctx.fillStyle=iron;ctx.textBaseline='middle';
   ctx.font='800 62px Arial, sans-serif';ctx.fillText(title,32,88,w-64);
   ctx.fillStyle=brass;ctx.fillRect(32,141,w-64,4);
-  ctx.fillStyle=iron;ctx.font='600 30px Arial, sans-serif';ctx.fillText(labels,32,191,w-64);
- },[640,310],[title,labels]);
+  ctx.fillStyle=iron;ctx.font='600 30px Arial, sans-serif';ctx.fillText(labels,32,182,w-64);
+  ctx.fillStyle='#24402c';ctx.font='800 34px Arial, sans-serif';ctx.fillText(roomGuideLabel,32,259,w-64);
+ },[640,310],[title,labels,roomGuideLabel]);
  const wood=useCanvasTexture((ctx,w,h)=>{
   ctx.fillStyle='#65412b';ctx.fillRect(0,0,w,h);
   for(let line=0;line<64;line++){
@@ -129,7 +130,10 @@ function GalleryFurniture({title,exhibits}){
     <cylinderGeometry args={[.024,.033,.85,12]}/>
     <meshStandardMaterial color={iron} roughness={.58}/>
    </mesh>
-   <group position={[0,.93,0]} rotation={[-.79,-.11,0]}>
+   <group position={[0,.93,0]} rotation={[-.79,-.11,0]}
+    onClick={onRoomGuide?event=>{event.stopPropagation();onRoomGuide();}:undefined}
+    onPointerOver={onRoomGuide?event=>{event.stopPropagation();document.body.style.cursor='pointer';}:undefined}
+    onPointerOut={()=>{document.body.style.cursor='';}}>
     <mesh>
      <boxGeometry args={[lectern.width,.37,.042]}/>
      <meshStandardMaterial color={iron} roughness={.64}/>
@@ -143,10 +147,10 @@ function GalleryFurniture({title,exhibits}){
  </>;
 }
 
-export default function SwissEditorialHallDetails({title,exhibits}){
+export default function SwissEditorialHallDetails({title,exhibits,onRoomGuide,roomGuideLabel}){
  return <group name="PetrusKyGalleryDetails">
   <SchoolIdentity/>
-  <GalleryFurniture title={title} exhibits={exhibits}/>
+  <GalleryFurniture title={title} exhibits={exhibits} onRoomGuide={onRoomGuide} roomGuideLabel={roomGuideLabel}/>
   <mesh position={[-4.76,-.074,-7.03]}>
    <boxGeometry args={[.028,.003,1.14]}/>
    <meshBasicMaterial color={brass} toneMapped={false}/>

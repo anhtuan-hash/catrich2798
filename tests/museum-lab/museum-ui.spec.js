@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import JSZip from 'jszip';
 import {test,expect} from '@playwright/test';
+import {PerspectiveCamera,Vector3} from 'three';
 test.beforeEach(async({page})=>{
  page.on('pageerror',error=>console.error('[museum-browser-pageerror]',error.stack||String(error)));
  page.on('console',msg=>{if(msg.type()==='error')console.error('[museum-browser-console]',msg.text());});
@@ -3359,6 +3360,31 @@ test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published 
  await cinema.getByRole('button',{name:'Full room view'}).click();
  await expect.poll(getCameraZ).toBeCloseTo(wallZ,1);
  await page.screenshot({path:testInfo.outputPath('asean-pek-trang-an-hall.png')});
+ const roomCanvas=await canvas.boundingBox();
+ const view=await page.evaluate(()=>window.__bmlMuseumFocusQA.camera);
+ const roomCamera=new PerspectiveCamera(55,roomCanvas.width/roomCanvas.height,.08,55);
+ roomCamera.position.fromArray(view.position);
+ roomCamera.quaternion.fromArray(view.quaternion);
+ roomCamera.updateMatrixWorld();
+ const guidePoint=new Vector3(4.46,.85,-7.20).project(roomCamera);
+ await page.mouse.click(roomCanvas.x+(1+guidePoint.x)*roomCanvas.width/2,
+  roomCanvas.y+(1-guidePoint.y)*roomCanvas.height/2);
+ const guide=cinema.getByTestId('museum-cinema-info');
+ await expect(guide).toBeVisible();
+ await expect(guide.locator('header strong')).toHaveText('Tràng An');
+ await expect(guide.locator('[lang="vi"]')).toHaveText('Thân thiện - Trách nhiệm - Hợp tác - Phát triển');
+ await expect(guide.getByRole('button',{name:'Close information'})).toBeFocused();
+ await page.keyboard.press('Escape');
+ await expect(guide).toHaveCount(0);
+ const guideTrigger=cinema.getByRole('button',{name:'Museum information'});
+ await expect(guideTrigger).toBeFocused();
+ await guideTrigger.press('Enter');
+ await guide.getByRole('button',{name:'01 Place'}).click();
+ await expect(guide).toHaveCount(0);
+ await expect(plaque).toHaveAttribute('data-focus-phase','focused',{timeout:15000});
+ await expect(plaque.getByRole('heading',{name:'Place',exact:true})).toBeVisible();
+ await plaque.getByRole('button',{name:'Back to wall'}).click();
+ await expect(plaque).toHaveCount(0,{timeout:12000});
  await cinema.getByRole('button',{name:'Previous room'}).click();
  await expect(rooms.getByRole('button',{name:'01 · Hội An'})).toHaveAttribute('aria-current','true');
  await page.goto('/tests/museum-lab/v3.html#/tool/immersive-gallery?exhibition=exhibition-10');
