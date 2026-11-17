@@ -82,6 +82,53 @@ export function aseanWritingCard(label,transfer=false){
  const index=Math.max(0,aseanGroupIndex(label));
  return ASEAN_CARDS[(index+(transfer?1:0))%ASEAN_CARDS.length];
 }
+const TRANSFER_DRAFTS = {
+ 'Sukhothai Historical Park': {
+  experience: 'Visitors can walk along the paths and look at the historic monuments.',
+  advice: 'Visitors should leave room for others to pass when they stop to read a sign.',
+ },
+ 'Bagan': {
+  experience: 'Visitors can look at the old temple buildings from the path.',
+  advice: 'Visitors should move to one side when they stop to take photos.',
+ },
+ 'Vat Phou': {
+  experience: 'Visitors can follow the path to see the old temple buildings.',
+  advice: 'Visitors should take their time when walking near the stone steps.',
+ },
+ 'Temple of Preah Vihear': {
+  experience: 'Visitors can look closely at the stone carvings from the path.',
+  advice: 'Visitors should avoid touching the stonework.',
+ },
+ 'Prambanan Temple Compounds': {
+  experience: 'Visitors can look up at the tall temple towers from the courtyard.',
+  advice: 'Visitors should keep the entrance clear when taking a group photo.',
+ },
+ 'Rice Terraces of the Philippine Cordilleras': {
+  experience: 'Visitors can see the stepped rice fields from a viewpoint.',
+  advice: 'Visitors should stay on the marked path when taking photos.',
+ },
+ 'Kinabalu Park': {
+  experience: 'Visitors can look for forest plants along a marked trail.',
+  advice: 'Visitors should leave the plants where they grow.',
+ },
+ 'Ha Long Bay': {
+  experience: 'Visitors can look at the limestone islands from a boat.',
+  advice: 'Visitors should follow the crew’s instructions when moving around the boat.',
+ },
+ 'Komodo National Park': {
+  experience: 'Visitors can watch island wildlife with a guide.',
+  advice: 'Visitors should keep a safe distance from the animals.',
+ },
+ 'My Son Sanctuary': {
+  experience: 'Visitors can look at the historic brick towers from the path.',
+  advice: 'Visitors should stand to one side of the path when taking photos.',
+ },
+};
+export function aseanTransferDraft(label){
+ const index=aseanGroupIndex(label);
+ if(index<0||index>=ASEAN_CARDS.length)return null;
+ return TRANSFER_DRAFTS[aseanWritingCard(label,true).title]||null;
+}
 export function aseanWritingRepeats(baseline,transfer){
  const normalize=text=>String(text??'').normalize('NFC').toLowerCase().replace(/[\p{P}\s]+/gu,' ').trim();
  return ['experience','advice'].every(key=>{

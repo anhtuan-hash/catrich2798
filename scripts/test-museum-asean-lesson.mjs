@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {normalizeGuestDraft} from '../src/features/immersive-gallery/creatorPassPolicy.js';
 import {documentFromStudio,emptyStudio,scoreRubric} from '../src/features/immersive-gallery/v3/museumData.js';
-import {ASEAN_DESTINATIONS,ASEAN_FRAMES,ASEAN_RUBRIC,ASEAN_STAGES,ASEAN_TEMPLATE,aseanExhibitMissing,aseanWritingCard,aseanWritingRepeats,validAseanResponse} from '../src/features/immersive-gallery/v3/aseanLesson.js';
+import {ASEAN_DESTINATIONS,ASEAN_FRAMES,ASEAN_RUBRIC,ASEAN_STAGES,ASEAN_TEMPLATE,aseanBaselineDraft,aseanExhibitMissing,aseanTransferDraft,aseanWritingCard,aseanWritingRepeats,validAseanResponse} from '../src/features/immersive-gallery/v3/aseanLesson.js';
 import {sessionStage,LIVE_STAGES} from '../src/features/immersive-gallery/v3/liveLesson.js';
 import {ASEAN_MIN_GROUPS,ASEAN_MAX_GROUPS,aseanDestination,aseanPeerGroup,validAseanGroupCount} from '../src/features/immersive-gallery/v3/aseanLesson.js';
 
@@ -20,6 +20,18 @@ test('ASEAN uses two 45-minute group periods, ten destinations and parallel writ
  assert.equal(baseline[0],'My Son Sanctuary');
  assert.equal(transfer[0],'Sukhothai Historical Park');
  assert.ok(groups.every((_,i)=>baseline[i]!==transfer[i]));
+ const drafts=groups.map(aseanTransferDraft);
+ assert.equal(new Set(drafts.map(draft=>draft?.experience)).size,10);
+ assert.equal(new Set(drafts.map(draft=>draft?.advice)).size,10);
+ groups.forEach((label,i)=>{
+  assert.equal(validAseanResponse(5,drafts[i]),true,label);
+  assert.match(drafts[i].experience,/^Visitors can /);
+  assert.match(drafts[i].advice,/^Visitors should /);
+  assert.equal(aseanWritingRepeats(aseanBaselineDraft(label),drafts[i]),false,label);
+ });
+ assert.match(drafts[0].experience,/historic monuments/);
+ assert.match(drafts[9].experience,/brick towers/);
+ assert.equal(aseanTransferDraft('Nhóm 11'),null);
  assert.equal(sessionStage({media_board:{lessonTemplate:ASEAN_TEMPLATE}},3),ASEAN_STAGES[3]);
  assert.equal(sessionStage({media_board:{}},0),LIVE_STAGES[0]);
 });

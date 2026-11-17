@@ -2140,7 +2140,7 @@ test('ASEAN V2 retest separates our revision, the teacher reference and the assi
 });
 
 test('ASEAN final activity shows the writing card before opening and confirms each submission separately',async({page},testInfo)=>{
- const assignment={id:'qa-asean-share',title:'ASEAN in Three Frames',class_scope:'11-QA',lesson_template:'asean-in-three-frames'};
+ const assignment={id:'qa-asean-share',title:'ASEAN in Three Frames',class_scope:'11.3',lesson_template:'asean-in-three-frames'};
  const keys=['issue','evidence','solution'];
  const caption='From the riverbank, visitors can see the old trading houses and follow the narrow streets that connect the market to the bridge.';
  const version=7;
@@ -2185,6 +2185,10 @@ test('ASEAN final activity shows the writing card before opening and confirms ea
  const advice=lesson.getByRole('textbox',{name:'One piece of advice'});
  await expect(experience).toBeDisabled();
  await expect(lesson).toContainText('You can read the card now.');
+ await expect(lesson).toContainText('Two example sentences are filled in.');
+ await expect(experience).toHaveValue('Visitors can walk along the paths and look at the historic monuments.');
+ await expect(advice).toHaveValue('Visitors should leave room for others to pass when they stop to read a sign.');
+ expect(written).toBeUndefined();
  await expect(lesson).toContainText('Your previous response repeated your Activity 1 writing.');
  const submit=project.getByRole('button',{name:'Submit final 3D exhibit'});
  await expect(submit).toBeDisabled();
@@ -2199,6 +2203,7 @@ test('ASEAN final activity shows the writing card before opening and confirms ea
  checkpointVersion=version;
  await expect(submit).toBeEnabled({timeout:9000});
  await experience.fill('Visitors can follow the path and look at historic monuments.');
+ await expect(advice).toHaveValue('Visitors should leave room for others to pass when they stop to read a sign.');
  await advice.fill('Visitors should leave room on the path when stopping to read a sign.');
  await lesson.getByRole('button',{name:'Submit two sentences'}).click();
  await expect(lesson.getByText('Writing submitted',{exact:true})).toBeVisible();
