@@ -51,7 +51,7 @@ export const ASEAN_ACTIVITY_DESIGN = [
   id: 'visit',
   title: ['Tham quan chéo phòng 3D', 'Test another group’s 3D exhibit'],
   studentTitle: 'Visit another group’s exhibit',
-  studentTask: 'Visit your assigned V1 without help from the authors. Record the first frame you opened, answer all three questions with evidence, and suggest one change. After the visit, give your comment in English. As authors, reply or ask a follow-up question in English.',
+  studentTask: 'Test whether a first-time visitor can find all three answers in another group’s exhibit without asking the authors.',
   steps: [
    [2, 'Giao vai khách và hướng dẫn cách chấm /3', 'Assign visitor roles and explain scoring out of 3'],
    [8, 'Đọc ba khung và ghi bằng chứng', 'Read the three frames and record the evidence'],
