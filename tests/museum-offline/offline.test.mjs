@@ -4,6 +4,7 @@ import {aseanFixture,fixture} from './fixture.mjs';
 import {createOfflineRuntime} from '../../src/features/immersive-gallery/v3/offline/runtime.js';
 import {sanitizeSnapshot,safeJson,buildOfflineHtml,digest,BLOCKED_WRITE} from '../../src/features/immersive-gallery/v3/offline/snapshot.js';
 import {buildStudentWorkshopHtml,captureMuseum} from '../../src/features/immersive-gallery/v3/offline/exportMuseum.js';
+import {groupWorkshopRows} from '../../src/features/immersive-gallery/v3/offline/workshopRows.js';
 test('secrets and signed capabilities are excluded; evidence content remains',()=>{
  const result=sanitizeSnapshot({passcode:'private',invitation_handle:'private',nested:{access_token:'private',storage_path:'private'},reviewers:[{}],url:'https://example.test/?token=secret',learning:{evidence:'Observed note'},content_frozen_at:'date'});
  assert.deepEqual(result,{nested:{},url:'',learning:{evidence:'Observed note'},content_frozen_at:'date'});
@@ -64,6 +65,21 @@ test('ASEAN archive preserves teacher activities and group evidence in read-only
  const html=await file.blob.text();
  assert.match(html,/Visitors can see the QA temple/);
  assert.doesNotMatch(html,/OTHER GROUP QA ANSWER|qa-group-2|qa-group-3/);
+});
+test('the workshop board uses recorded Activity 6 writing for ASEAN and Exit Tickets for Climate',()=>{
+ const f=aseanFixture();
+ const responses=f.evidence['qa-lesson'].responses;
+ f.staff.aseanResponses=[...responses,{group_id:'qa-group-2',stage_index:5,value:{experience:'Draft only'}}];
+ f.staff.exitTickets=[{group_id:'qa-group-3',value:'Climate ticket'}];
+ assert.deepEqual(groupWorkshopRows({staff:f.staff}).map(row=>row.transfer),[true,false,false]);
+ assert.deepEqual(groupWorkshopRows(f).map(row=>row.transfer),[true,false,false]);
+ f.evidence['qa-lesson'].responses=responses.filter(row=>row.stage_index!==5);
+ assert.deepEqual(groupWorkshopRows(f).map(row=>row.transfer),[false,false,false]);
+ const climate=fixture();
+ climate.staff.exitTickets=[{group_id:'qa-group',value:'Saved exit answer'}];
+ const [row]=groupWorkshopRows(climate);
+ assert.equal(row.transfer,null);
+ assert.equal(row.exit,true);
 });
 test('public or offline viewers cannot capture a new archive',async()=>{
  for(const mode of ['publicReadOnly','offlineReadOnly']){

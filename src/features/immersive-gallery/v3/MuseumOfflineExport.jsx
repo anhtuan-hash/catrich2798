@@ -1,18 +1,21 @@
 import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {Download,Lock,PackageCheck,X} from 'lucide-react';
 import {saveBlob} from './museumDocx.js';
+import {isAsean} from './aseanLesson.js';
+import {groupWorkshopRows} from './offline/workshopRows.js';
 const STATE={issued:['Đã phát mã','Issued'],editing:['Đang làm','Editing'],submitted:['Đã nộp','Submitted'],ttcm_review:['Chờ duyệt','In review'],changes_requested:['Cần sửa','Changes requested'],approved_locked:['Đã duyệt','Approved'],published:['Đã công bố','Published'],rejected:['Trả lại','Returned']};
 export default function MuseumOfflineExport({language='en',data,transport,renderLayout}){
  const [busy,setBusy]=useState(false),[progress,setProgress]=useState(''),[error,setError]=useState(''),[report,setReport]=useState(null),[ready,setReady]=useState(false);
  const abort=useRef(null),pack=useRef(null),tr=(vi,en)=>language==='en'?en:vi;
- const rows=useMemo(()=>{
-  const groups=[...(data?.groups||[])].sort((a,b)=>String(a.label||'').localeCompare(String(b.label||''),undefined,{numeric:true}));
-  return groups.map(group=>{
-   const lesson=(data?.assignments||[]).find(item=>item.id===group.assignment_id);
-   const label=STATE[group.state]||[group.state||'—',group.state||'—'];
-   return {id:group.id,label:group.label||'—',classScope:lesson?.class_scope||'',museum:language==='en'?label[1]:label[0],exit:(data?.exitTickets||[]).some(item=>item.group_id===group.id)};
-  });
- },[data,language]);
+ const rows=useMemo(()=>groupWorkshopRows({staff:data??undefined}),[data]);
+ const hasTransfer=rows.some(row=>row.transfer!==null)||isAsean(data?.lessonTemplate);
+ const hasExit=rows.some(row=>row.transfer===null);
+ const writingHeading=hasTransfer
+  ?hasExit?tr('Bài cuối giờ','Final activity'):tr('Bài viết nhóm · Hoạt động 6','Group transfer card · Activity 6')
+  :'Exit Ticket';
+ const writingStatus=row=>row.transfer===null
+  ?row.exit?tr('Đã nộp','Submitted'):tr('Chưa có','None')
+  :row.transfer?tr('Đã có bản lưu','On file'):tr('Chưa có bài viết đã lưu','No saved writing');
  useEffect(()=>()=>abort.current?.abort(),[]);
  const downloadGroup=async row=>{
   setError('');
@@ -39,8 +42,8 @@ export default function MuseumOfflineExport({language='en',data,transport,render
    <div className="bml-frozen-table-wrap" role={renderLayout?'region':undefined}
     aria-labelledby={renderLayout?'asean-dossier-workshops':undefined} tabIndex={renderLayout?0:undefined}>
     <table className="bml-frozen-table" aria-labelledby={renderLayout?'asean-dossier-workshops':undefined}>
-     <thead><tr><th scope="col">#</th><th scope="col">{tr('Nhóm','Group')}</th><th scope="col">{tr('Lớp','Class')}</th><th scope="col">{tr('Bảo tàng','Museum')}</th><th scope="col">Exit Ticket</th><th scope="col">{tr('Tệp','File')}</th></tr></thead>
-     <tbody>{rows.map((row,index)=><tr key={row.id}><td>{String(index+1).padStart(2,'0')}</td><td>{row.label}</td><td>{row.classScope}</td><td>{row.museum}</td><td>{row.exit?tr('Đã nộp','Submitted'):tr('Chưa có','None')}</td>
+     <thead><tr><th scope="col">#</th><th scope="col">{tr('Nhóm','Group')}</th><th scope="col">{tr('Lớp','Class')}</th><th scope="col">{tr('Bảo tàng','Museum')}</th><th scope="col">{writingHeading}</th><th scope="col">{tr('Tệp','File')}</th></tr></thead>
+     <tbody>{rows.map((row,index)=><tr key={row.id}><td>{String(index+1).padStart(2,'0')}</td><td>{row.label}</td><td>{row.classScope}</td><td>{STATE[row.state]?.[language==='en'?1:0]||row.state||'—'}</td><td>{writingStatus(row)}</td>
        <td>{ready?<button type="button" className="bml-outline" onClick={()=>downloadGroup(row)}>{tr('Tải bài','Download')}</button>:tr('Trong gói ZIP','Inside the ZIP')}</td></tr>)}{!rows.length?<tr><td colSpan={6}>{tr('Chưa có nhóm để đóng gói.','No groups to package yet.')}</td></tr>:null}</tbody>
     </table>
    </div>
