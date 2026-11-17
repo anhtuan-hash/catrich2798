@@ -1810,6 +1810,10 @@ test('ASEAN student workshop renders all six editorial activities',async({page,i
    await expect(photo).toHaveAttribute('src','/museum/asean/presenter/hue-meridian-gate.webp');
    await expect.poll(()=>photo.evaluate(img=>img.naturalWidth)).toBeGreaterThan(0);
    await expect(example.getByRole('textbox')).toHaveCount(0);
+   await example.getByRole('button',{name:'Go to the quiz'}).click();
+   const quiz=example.getByRole('heading',{name:'Discussion quiz'});
+   await expect(quiz).toBeFocused();
+   await expect(quiz).toBeInViewport();
   }
   for(const pane of [root,lesson.getByTestId('student-lesson-pane'),root.getByTestId('student-task-scroll')])
    expect(await pane.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
@@ -1865,6 +1869,9 @@ test('ASEAN Build reuses three saved photos and links frame details to the draft
  const footer=root.getByRole('region',{name:'Group Project',exact:true}).locator('footer');
  const save=footer.getByRole('button',{name:'Save draft',exact:true});
  await expect(root.getByText('Your three photos are already in place.')).toBeVisible();
+ const previewPhotos=root.getByTestId('asean-student-slide-3').getByRole('img',{name:'Historic town'});
+ await expect(previewPhotos).toHaveCount(3);
+ await expect(previewPhotos.first()).toHaveAttribute('src','/museum/swiss-editorial/hero-petrus-ky-facade.png');
  await expect(footer.getByText('Draft saved · Ready for the visitor test')).toBeVisible();
  await expect(footer.getByText(/latest saved draft becomes the first exhibit/)).toBeVisible();
  await expect(footer.getByRole('button',{name:'Preview your exhibit'})).toBeEnabled();

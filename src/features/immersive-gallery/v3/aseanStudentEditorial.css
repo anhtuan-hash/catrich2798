@@ -1,25 +1,27 @@
 /* ASEAN inherits the shared workshop layout and responsive scrolling. */
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace[data-workshop-activity] {
-  --workshop-ink: #1b1b19;
-  --workshop-paper: #f9f7f1;
-  --workshop-rule: #d3cfc4;
+  --workshop-ink: #232521;
+  --workshop-paper: #f6f2e9;
+  --workshop-rule: #ddd5c7;
   --workshop-red: #b7132c;
-  --workshop-pad: clamp(13px, 1.85vw, 32px);
+  --workshop-pad: clamp(12px, 1.55vw, 28px);
   --asean-sheet: #fffdf8;
-  --asean-accent: var(--workshop-red);
-  --asean-wash: #f5e8e6;
+  --asean-accent: #883b35;
+  --asean-wash: #f9e9e1;
+  --asean-card-radius: 12px;
   gap: clamp(8px, 1vw, 15px);
 
-  &[data-workshop-activity="select"] { --asean-accent: #754a11; --asean-wash: #f5ecd8; }
-  &[data-workshop-activity="build"] { --asean-accent: #215748; --asean-wash: #e7eee7; }
-  &[data-workshop-activity="visit"] { --asean-accent: #21536e; --asean-wash: #e5edf2; }
-  &[data-workshop-activity="revise"] { --asean-accent: #654561; --asean-wash: #efe7ee; }
+  &[data-workshop-activity="select"] { --asean-accent: #754a11; --asean-wash: #fbefd1; }
+  &[data-workshop-activity="build"] { --asean-accent: #245746; --asean-wash: #e5efe5; }
+  &[data-workshop-activity="visit"] { --asean-accent: #245672; --asean-wash: #e5f1f5; }
+  &[data-workshop-activity="revise"] { --asean-accent: #664472; --asean-wash: #f1e9f4; }
+  &[data-workshop-activity="share"] { --asean-accent: #822f4c; --asean-wash: #f8e9ef; }
 
   & .bml-student-primary {
     border: 1px solid var(--workshop-rule) !important;
     background: var(--asean-sheet) !important;
-    border-radius: 0;
-    box-shadow: none;
+    border-radius: var(--asean-card-radius);
+    box-shadow: 0 3px 12px #33281c0a;
   }
   @media (min-width: 900px) {
     & .bml-student-workbench {
@@ -33,7 +35,7 @@
   border-inline: 0 !important;
   border-top-width: 3px !important;
 }
-.bml[data-workshop-activity] .bml-workshop-ribbon { border-color: var(--workshop-rule); }
+.bml.bml-student-dual-workspace[data-workshop-activity] .bml-workshop-ribbon { border-color: var(--workshop-rule); }
 .bml[data-workshop-activity] .bml-student-focus #bml-workshop-heading {
   padding-inline: 0 10px;
   font: 800 clamp(16px, 1.45vw, 24px)/1.09 var(--workshop-font);
@@ -43,14 +45,20 @@
   background: var(--asean-wash);
   border-block-end-color: var(--asean-accent);
 }
+.bml.bml-student-canvas16.bml-student-editorial[data-workshop-activity] .bml-student-focus .bml-student-steps button > span {
+  font-size: clamp(16px, 1.55vw, 24px);
+  letter-spacing: -.04em;
+}
+.bml[data-workshop-activity] .bml-student-focus .bml-student-steps button:not(.is-active):hover { background: #fffdf8; }
 .bml.bml-student-canvas16.bml-student-editorial[data-workshop-activity] .bml-student-focus .bml-student-steps button.is-active > span {
   color: var(--asean-accent) !important;
 }
 .bml.bml-student-canvas16.bml-student-editorial[data-workshop-activity] .bml-student-focus .bml-student-steps button small:not(.bml-student-activity-range) {
   font-size: clamp(11px, 1.05vw, 16px);
 }
-.bml[data-workshop-activity] .bml-student-group-activities button[aria-current] {
-  border-color: transparent;
+.bml.bml-student-dual-workspace[data-workshop-activity] .bml-student-group-activities button[aria-current] {
+  border-color: color-mix(in srgb, var(--asean-accent) 25%, var(--asean-wash));
+  border-radius: 6px;
   background: var(--asean-wash);
   box-shadow: inset 0 -2px var(--asean-accent);
 }
@@ -58,15 +66,15 @@
   font-variant-numeric: tabular-nums;
   color: var(--asean-accent);
 }
-.bml.bml-student-editorial[data-workshop-activity] .bml-student-panel-head {
+.bml.bml-student-editorial[data-workshop-activity] .bml-student-primary > .bml-student-panel-head {
   min-height: 44px;
   padding-block: 5px;
   border-block-end: 1px solid var(--workshop-rule);
-  background: var(--workshop-paper);
+  border-radius: var(--asean-card-radius) var(--asean-card-radius) 0 0;
+  background: var(--asean-sheet);
   color: var(--workshop-ink);
 }
-.bml.bml-student-editorial[data-workshop-activity] .bml-student-project-head {
-  border-block-start: 3px solid var(--asean-accent);
+.bml.bml-student-editorial[data-workshop-activity] .bml-student-project-panel > .bml-student-project-head {
   background: var(--asean-wash);
 }
 .bml[data-workshop-activity] .bml-student-panel-head h2 {
@@ -74,8 +82,9 @@
   align-items: center;
   gap: 8px;
   color: var(--workshop-ink);
-  font: 780 clamp(13px, 1.1vw, 17px)/1.2 var(--workshop-font);
-  letter-spacing: .035em;
+  font: 780 clamp(14px, 1.18vw, 19px)/1.2 var(--workshop-font);
+  letter-spacing: -.015em;
+  text-transform: none;
 }
 .bml[data-workshop-activity] .bml-student-panel-head h2 svg {
   width: 16px;
@@ -85,16 +94,20 @@
 }
 .bml.bml-student-editorial[data-workshop-activity] .bml-student-panel-head .bml-outline {
   border-color: var(--workshop-rule);
+  border-radius: 6px;
   background: var(--asean-sheet);
   color: var(--workshop-ink);
 }
 .bml.bml-student-editorial[data-workshop-activity] .bml-student-panel-head .bml-outline:hover { border-color: var(--asean-accent); }
 .bml[data-workshop-activity] .bml-student-project-status {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--asean-sheet);
   color: var(--asean-accent);
   font-size: clamp(11px, .98vw, 14px);
 }
-.bml[data-workshop-activity] .bml-student-lesson-panel .bml-student-lesson-scroll .bml-live-student {
-  padding-block: clamp(12px, 1.7vw, 25px);
+.bml.bml-student-dual-workspace[data-workshop-activity] .bml-student-lesson-panel .bml-student-lesson-scroll .bml-live-student {
+  padding-block: clamp(11px, 1.2vw, 19px);
 }
 .bml[data-workshop-activity] :is(.bml-student-lesson-scroll,.bml-student-task-scroll) { overflow-anchor: none; }
 .bml[data-workshop-activity] :is(.asean-student-activity,.asean-student-project) {
@@ -102,11 +115,12 @@
   line-height: 1.5;
 }
 .bml[data-workshop-activity] .asean-student-activity { gap: clamp(12px, 1.4vw, 22px); }
-.bml[data-workshop-activity] .asean-student-activity .bml-live-student-question {
+.bml.bml-student-dual-workspace[data-workshop-activity] .asean-student-activity .bml-live-student-question {
   width: 100%;
-  padding: 0 0 clamp(12px, 1.4vw, 22px);
-  border: 0;
-  border-block-end: 1px solid var(--workshop-rule);
+  padding: clamp(13px, 1.4vw, 22px);
+  border: 1px solid color-mix(in srgb, var(--asean-accent) 20%, var(--asean-wash));
+  border-radius: var(--asean-card-radius);
+  background: linear-gradient(115deg, var(--asean-wash), var(--asean-sheet));
 }
 .bml[data-workshop-activity] .asean-activity-meta {
   display: flex;
@@ -117,51 +131,57 @@
 .bml[data-workshop-activity] .asean-activity-index {
   display: grid;
   place-items: center;
-  min-width: 1.75em;
-  min-height: 1.65em;
+  inline-size: 38px;
+  block-size: 38px;
+  flex: none;
+  border-radius: 9px;
   background: var(--asean-accent);
   color: #fff;
-  font: 800 clamp(22px, 1.9vw, 30px)/1 var(--workshop-font);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -.04em;
 }
+.bml[data-workshop-activity] .asean-activity-index svg { width: 21px; height: 21px; }
 .bml[data-workshop-activity] .asean-activity-meta :is(.bml-question-eyebrow,.asean-activity-time) {
   margin: 0;
   color: var(--asean-accent);
-  font: 750 11px/1.5 var(--workshop-font);
-  letter-spacing: .07em;
-  text-transform: uppercase;
+  font: 750 12px/1.35 var(--workshop-font);
 }
 .bml[data-workshop-activity] .asean-activity-meta .asean-activity-time {
   display: flex;
   align-items: center;
   gap: 4px;
   color: #57534d;
-  letter-spacing: .035em;
+  font-weight: 550;
 }
 .bml[data-workshop-activity] .asean-activity-time svg { width: 13px; height: 13px; }
 .bml[data-workshop-activity] .asean-student-activity .bml-live-student-question h2 {
   max-width: 27ch;
   margin: 0;
   color: var(--workshop-ink);
-  font: 820 clamp(29px, 3.1vw, 50px)/1.06 var(--workshop-font);
-  letter-spacing: -.05em;
-  text-wrap: balance;
+  font: 810 clamp(24px, 2.35vw, 41px)/1.08 var(--workshop-font);
+  letter-spacing: -.04em;
+  text-wrap: pretty;
 }
 .bml[data-workshop-activity] .asean-student-activity .bml-live-student-question > p {
   max-width: 64ch;
-  margin: 10px 0 0;
+  margin: 8px 0 0;
   color: #49453f;
   font: 500 1em/1.5 var(--workshop-font);
 }
 .bml[data-workshop-activity] :is(.asean-build-instructions,.asean-visit-instructions) {
   width: 100%;
-  padding: 12px clamp(12px, 1.35vw, 20px);
+  padding: 0;
   margin: 0;
-  background: var(--asean-wash);
-  border-inline-start: 3px solid var(--asean-accent);
 }
-.bml[data-workshop-activity] :is(.asean-build-instructions,.asean-visit-instructions) li::marker {
+.bml[data-workshop-activity] .asean-action-list {
+  display: grid;
+  gap: 3px;
+  padding-inline-start: 2em;
+}
+.bml[data-workshop-activity] .asean-action-list li {
+  padding: 6px 9px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--asean-wash) 60%, var(--asean-sheet));
+}
+.bml[data-workshop-activity] .asean-action-list li::marker {
   color: var(--asean-accent);
   font-weight: 800;
 }
@@ -171,14 +191,33 @@
   gap: 6px;
   padding: 6px 9px;
   border: 1px solid var(--workshop-rule);
+  border-radius: 6px;
   color: var(--asean-accent);
   font-size: .9em;
   font-weight: 720;
 }
 .bml[data-workshop-activity] .asean-student-sources a svg { width: 14px; height: 14px; flex: none; }
 .bml[data-workshop-activity] .asean-student-sources a:hover { background: var(--asean-wash); }
-.bml[data-workshop-activity] .asean-activity-art { border-color: var(--workshop-rule); }
+.bml[data-workshop-activity] .asean-activity-art {
+  border-color: var(--workshop-rule);
+  border-radius: var(--asean-card-radius);
+}
 .bml[data-workshop-activity] .asean-activity-art--select { background-color: var(--asean-wash); }
+.bml[data-workshop-activity] .asean-art-contact li { border-radius: 5px; }
+.bml[data-workshop-activity] .asean-art-room-wall {
+  margin-inline: clamp(8px, 4%, 30px);
+}
+.bml[data-workshop-activity] .asean-art-room-wall > div:has(.asean-art-frame-photo) {
+  align-content: start;
+}
+.bml[data-workshop-activity] .asean-art-frame-photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  background: #eee4cf;
+}
+.bml[data-workshop-activity] .asean-art-ticket { flex-wrap: wrap; }
 .bml[data-workshop-activity="discover"] { --asean-lesson-width: 52fr; --asean-project-width: 48fr; }
 .bml[data-workshop-activity="build"] { --asean-lesson-width: 43fr; --asean-project-width: 57fr; }
 .bml:is([data-workshop-activity="select"],[data-workshop-activity="visit"],[data-workshop-activity="revise"]) {
@@ -186,23 +225,31 @@
   --asean-project-width: 56fr;
 }
 .bml[data-workshop-activity] .asean-exhibit-heading {
-  margin-block: 6px 16px;
-  padding-block-end: 10px;
-  border-block-end: 1px solid var(--workshop-rule);
+  margin-block: 6px 14px;
+  padding: 10px 12px;
+  background: var(--asean-wash);
+  border-radius: 8px;
 }
+.bml[data-workshop-activity] .asean-destination-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--asean-accent);
+}
+.bml[data-workshop-activity] .asean-destination-name > svg { width: 19px; height: 19px; flex: none; }
 .bml[data-workshop-activity] .asean-exhibit-heading .bml-workshop-draft-title,
 .bml[data-workshop-activity] .asean-visitor-model h3 {
   color: var(--workshop-ink);
-  font: 810 clamp(23px, 2.3vw, 38px)/1.1 var(--workshop-font);
+  font: 810 clamp(21px, 1.8vw, 31px)/1.13 var(--workshop-font);
   letter-spacing: -.042em;
 }
 .bml[data-workshop-activity] .asean-exhibit-heading .asean-student-country { margin-block-end: 0; }
 .bml[data-workshop-activity] .asean-visitor-model {
   margin: 0;
-  padding: 8px 0 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
+  padding: clamp(10px, 1.15vw, 16px);
+  border: 1px solid var(--workshop-rule);
+  border-radius: var(--asean-card-radius);
+  background: var(--asean-sheet);
   box-shadow: none;
 }
 .bml[data-workshop-activity] :is(.asean-discussion-photo img,.asean-model-image-fallback) {
@@ -238,18 +285,73 @@
   color: var(--asean-accent);
 }
 .bml[data-workshop-activity] .asean-model-captions svg { width: 15px; height: 15px; flex: none; }
-.bml[data-workshop-activity] .asean-visitor-model > p { font-weight: 650; }
+.bml[data-workshop-activity] .asean-model-prompt {
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--asean-wash);
+}
+.bml[data-workshop-activity] .asean-model-prompt p { display: flex; gap: 7px; margin-block-end: 8px; }
+.bml[data-workshop-activity] .asean-model-prompt p svg { flex: none; width: 17px; color: var(--asean-accent); }
 .bml[data-workshop-activity] .asean-group-response { padding: 0; border: 0; }
 .bml[data-workshop-activity] .asean-response-sheet { padding: 3px 0 0; border: 0; }
 .bml[data-workshop-activity] .asean-response-sheet > legend { padding: 0; font-size: 1.1em; }
-.bml[data-workshop-activity] :is(.asean-response-grid > :is(div,section),.asean-photo-plan,.asean-visit-question,.asean-own-revision) {
-  border-color: var(--asean-accent);
+.bml[data-workshop-activity] :is(.asean-response-grid > :is(div,section),.asean-photo-plan,.asean-visit-question,.asean-own-revision,.asean-visit-intro) {
+  border-color: color-mix(in srgb, var(--asean-accent) 28%, var(--asean-wash));
+  border-radius: 8px;
   background: var(--asean-wash);
 }
 .bml[data-workshop-activity] .asean-response-grid > :is(div,section) { padding: clamp(10px, 1.1vw, 16px); }
+.bml[data-workshop-activity] .asean-response-grid > .asean-writing-note {
+  border: 1px solid #c3d6c8;
+  background: #edf4ed;
+}
+.bml[data-workshop-activity] .asean-response-grid > .asean-writing-note + .asean-writing-note {
+  border-color: #e4d3ac;
+  background: #fbf1dd;
+}
+.bml[data-workshop-activity] .asean-writing-note p strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-block-end: 3px;
+}
+.bml[data-workshop-activity] .asean-writing-note strong svg { width: 17px; height: 17px; flex: none; }
+.bml[data-workshop-activity] .asean-photo-plan {
+  border: 1px solid var(--workshop-rule);
+  background: #edf4ed;
+}
+.bml[data-workshop-activity] .asean-photo-plan:nth-child(2) { background: #fbf1dd; }
+.bml[data-workshop-activity] .asean-photo-plan:nth-child(3) { background: #f9e9e4; }
+.bml[data-workshop-activity] .asean-photo-plan svg { margin-inline-end: 4px; vertical-align: text-bottom; }
+.bml[data-workshop-activity] .asean-response-saved {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-block: 10px 0;
+  color: #215748;
+  font-weight: 720;
+}
+.bml[data-workshop-activity] .asean-response-saved svg { flex: none; }
+.bml[data-workshop-activity] :is(.asean-hue-quiz,.asean-build-checklist button,.asean-retest-results > p,.asean-comparison-captions > div) {
+  border-radius: 8px;
+}
+.bml[data-workshop-activity] .asean-hue-quiz label:has(input:checked) {
+  border-radius: 5px;
+  background: var(--asean-wash);
+}
+.bml[data-workshop-activity] .asean-hue-quiz :is(label,fieldset) { padding-inline: 8px; }
+.bml[data-workshop-activity] .asean-hue-quiz h3:focus { outline: 2px solid var(--asean-accent); outline-offset: 3px; }
+.bml.bml-student-canvas16.bml-student-editorial[data-workshop-activity] .bml-student-task-scroll > .bml-workshop-readonly {
+  border-inline-start: 0;
+  border-radius: 6px;
+  background: #f0ede6;
+  color: #504a41;
+}
+.bml[data-workshop-activity] .asean-student-studio .bml-artwork-studio,
+.bml[data-workshop-activity] .asean-student-studio .bml-artwork-slot { border-radius: 8px; }
 .bml.bml-student-editorial[data-workshop-activity] .asean-response-sheet textarea {
   height: auto;
-  min-height: 6em;
+  min-height: 4.5em;
   max-height: none;
   field-sizing: content;
   line-height: 1.45;
@@ -279,10 +381,22 @@
 .bml[data-workshop-activity] .asean-final-submission {
   padding: 14px;
   background: var(--asean-wash);
-  border-block-start: 3px solid var(--asean-accent);
+  border: 1px solid var(--workshop-rule);
+  border-radius: 8px;
 }
 .bml[data-workshop-activity] :is(.bml-workshop-lesson-nav,.bml-student-bottom) button {
+  border-radius: 7px;
   font-size: clamp(12px, 1.05vw, 16px);
+}
+.bml.bml-student-dual-workspace[data-workshop-activity] .bml-workshop-lesson-nav {
+  border-radius: 0 0 var(--asean-card-radius) var(--asean-card-radius);
+}
+.bml.bml-student-canvas16.bml-student-editorial[data-workshop-activity] .bml-student-workbench :is(.bml-workshop-lesson-nav,.bml-student-bottom) .bml-primary {
+  border-color: var(--asean-accent) !important;
+  background: var(--asean-accent) !important;
+}
+.bml.bml-student-canvas16.bml-student-editorial[data-workshop-activity] .bml-student-workbench :is(.bml-workshop-lesson-nav,.bml-student-bottom) .bml-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--asean-accent) 82%, black) !important;
 }
 @media (max-width: 520px) {
   .bml[data-workshop-activity] .bml-student-masthead .bml-student-bar { row-gap: 2px; }

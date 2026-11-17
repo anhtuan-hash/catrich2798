@@ -28,7 +28,7 @@ export default function AseanHueQuiz({language,sessionId,csrf,open,readOnly,reco
  }
 
  return <section className="asean-hue-quiz bml-surface" aria-labelledby="asean-hue-quiz-title" lang={language}>
-  <h3 id="asean-hue-quiz-title">{t(language,'Trắc nghiệm thảo luận','Discussion quiz')}</h3>
+  <h3 id="asean-hue-quiz-title" tabIndex={-1}>{t(language,'Trắc nghiệm thảo luận','Discussion quiz')}</h3>
   {result?<p className="asean-hue-quiz-result" role="status">
    {t(language,'Đã lưu bài trắc nghiệm của nhóm','Group quiz submitted')} <strong>{result.score}/{ASEAN_HUE_QUESTIONS.length}</strong>
   </p>:<p role="status">{open
