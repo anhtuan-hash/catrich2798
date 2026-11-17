@@ -1,4 +1,4 @@
-import React,{useEffect,useRef,useState} from 'react';
+import React,{useEffect,useId,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,Box,LockKeyhole,Save} from 'lucide-react';
 import AseanHueQuiz from './AseanHueQuiz.jsx';
 import AseanDiscussionPhoto from './AseanDiscussionPhoto.jsx';
@@ -20,7 +20,7 @@ import './aseanStudentStudio.css';
 const emptyAnswer=()=>({text:'',frame:null,score:0});
 const initialFields=stage=>{
  if(stage===0||stage===5)return {experience:'',advice:''};
- if(stage===1)return {codes:['','',''],comparisonFrame:1,alternative:'',fact:'',source:'',reason:''};
+ if(stage===1)return {codes:['','',''],comparisonFrame:null,alternative:'',fact:'',source:'',reason:''};
  if(stage===3)return {first:null,answers:ASEAN_FRAMES.map(emptyAnswer),comment:''};
  return {answer:'',frame:null,score:0};
 };
@@ -69,7 +69,8 @@ function ResponseFields({stage,fields,update,groupLabel,question,recorded}){
   </fieldset>;
  }
  if(stage===1)return <fieldset className="asean-response-sheet" disabled={recorded}><legend>Exhibit plan</legend>
-  <p>Use the codes from your teacher’s photo set. If you found your own photos, give each one a different short code, for example P1, E1 and A1. Give the alternative its own code, such as E2 if you are comparing two Experience photos.</p>
+  <h3>1. Enter your three photo codes</h3>
+  <p>Use the codes from your teacher’s photo set or give your chosen photos short codes like P1, E1 and A1.</p>
   <div className="asean-response-grid asean-response-grid--three">
    {ASEAN_FRAMES.map((f,i)=><label className="bml-full-field asean-photo-plan" key={f.key}>
     <AseanFrameIcon index={i}/><span>{f.label} photo code</span><small>{f.question}</small>
@@ -77,12 +78,12 @@ function ResponseFields({stage,fields,update,groupLabel,question,recorded}){
    </label>)}
   </div>
   <div className="asean-response-grid">
-   <section><h3>Compare two images</h3>
+   <section><h3>2. Compare one alternative photo</h3>
     <label className="bml-full-field">Frame your group compared {frameSelect(fields.comparisonFrame,v=>update('comparisonFrame',v),'Select a frame')}</label>
-    {text('alternative','Code for the other photo you considered',35)}
+    {text('alternative','Code for the alternative photo, e.g. E2',35)}
     {text('reason','We chose this photo because visitors can see …')}
    </section>
-   <section><h3>Check one fact</h3>
+   <section><h3>3. Record one fact and its source</h3>
     {text('fact','A fact in your own words')}{text('source','Source for the fact',350)}
    </section>
   </div>
@@ -112,11 +113,15 @@ function ResponseFields({stage,fields,update,groupLabel,question,recorded}){
  </fieldset>;
 }
 
-function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLive,onVisit,retestTask,transferNeedsResubmission}){
+function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLive,onVisit,retestTask,transferNeedsResubmission,formId,onSubmittingChange}){
  const baselineDraft=stage===0&&session.assignment?.class_scope==='11.3'?aseanBaselineDraft(session.groupLabel):null;
  const [fields,setFields]=useState(()=>record||baselineDraft||initialFields(stage));
  const [visit,setVisit]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const submitted=Boolean(record);
+ const errorRef=useRef(null);
+ useEffect(()=>{
+  if(formId&&error)errorRef.current?.focus();
+ },[formId,error]);
  const visitStage=stage===3||stage===4;
  const reconstructed=stage===3&&visit?.gallery?.draft?.checkpointOrigin==='reconstructed_reference';
  const scoreMismatch=stage===4&&visit?.gallery&&fields.score===1&&fields.frame!==visit.question;
@@ -133,7 +138,9 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
   }catch(e){setError(errorText(e));}finally{setBusy(false);}
  };
  const submit=async event=>{
-  event.preventDefault();setError('');
+  event.preventDefault();
+  if(!open||submitted||busy)return;
+  setError('');
   const value=stage===4?{...fields,question:visit?.question}:fields;
   if(visitStage&&!visit?.gallery)return;
   if(!validAseanResponse(stage,value)){
@@ -146,14 +153,14 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
    }
    return;
   }
-  setBusy(true);
+  setBusy(true);onSubmittingChange?.(true);
   try{
    await liveGuest('asean-submit','POST',{
     sessionId:live.id,stageIndex:stage,value,
     ...(visitStage?{checkpointId:visit.gallery.checkpointId}:{}),
    },session.csrf);
    await Promise.all([refreshRecords(),refreshLive()]);
-  }catch(e){setError(errorText(e));}finally{setBusy(false);}
+  }catch(e){setError(errorText(e));}finally{setBusy(false);onSubmittingChange?.(false);}
  };
  if(!open&&!submitted&&!baselineDraft)return <p className="asean-response-closed" role="status">{transferNeedsResubmission
   ?session.readOnly?'A corrected transfer response is still pending.':'Your previous response repeated your baseline writing. When Activity 6 opens, write two new sentences using your transfer card.'
@@ -174,17 +181,17 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
    {reconstructed?'Opened a reconstructed V1 reference. Record what you observe in this reference.':`Opened the assigned ${stage===3?'V1':'V2'} exhibit.`}
   </p>}
   {stage===4&&open&&!submitted&&!visit?.gallery&&retestTask?.ready&&<p>Open the exhibit, inspect the frames, then close the viewer to answer and cite the frame you used.</p>}
-  {(!visitStage||submitted||visit?.gallery)&&<form onSubmit={submit}>
+  {(!visitStage||submitted||visit?.gallery)&&<form id={formId} onSubmit={submit}>
    {baselineDraft&&!submitted&&<p role="status">{open
     ?'Teacher-provided draft. Review the two sentences and edit them before submitting.'
     :session.readOnly?'Teacher-provided example shown for review.':'Teacher-provided draft. Your teacher needs to open Activity 1 for editing and submission.'}</p>}
    <ResponseFields stage={stage} fields={record||fields} update={(key,value)=>setFields(previous=>({...previous,[key]:value}))}
     groupLabel={session.groupLabel} question={visit?.question} recorded={submitted||!open}/>
    {!submitted&&scoreMismatch&&<p role="status">For a score of 1, choose {ASEAN_FRAMES[visit.question-1]?.label} as the evidence frame. Choose 0 if the answer is missing or unclear.</p>}
-   {submitted?<p role="status">Group response saved.</p>:
-    <button className="bml-primary" type="submit" disabled={busy||!open||scoreMismatch}>Submit group response</button>}
+   {submitted?<p role="status">{formId?'Exhibit plan submitted.':'Group response saved.'}</p>:
+    !formId&&<button className="bml-primary" type="submit" disabled={busy||!open||scoreMismatch}>Submit group response</button>}
   </form>}
-  {error&&<p className="bml-banner bml-danger-banner" role="alert">{error}</p>}
+  {error&&<p className="bml-banner bml-danger-banner" ref={errorRef} tabIndex={formId?-1:undefined} role="alert">{error}</p>}
  </section>;
 }
 
@@ -197,6 +204,8 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
  const [readOnly,setReadOnly]=useState(session.readOnly),[review,setReview]=useState(null);
  const [dirty,setDirty]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [imageBusy,setImageBusy]=useState(false);
+ const [planSubmitting,setPlanSubmitting]=useState(false);
+ const planFormId=useId();
  const [notice,setNotice]=useState(''),[preview,setPreview]=useState(null);
  const [bannerExpanded,setBannerExpanded]=useState(true),[activityStarted,setActivityStarted]=useState(false);
  const lessonRef=useRef(null),projectRef=useRef(null),studioRef=useRef(null);
@@ -260,8 +269,20 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
   else studioRef.current?.scrollIntoView({block:'nearest'});
  };
  const stageRecord=records.rows.find(item=>item.stage_index===stage)?.value;
- const projectStatus=readOnly?T(language,'Chỉ xem','View only'):
-  submitted?T(language,'Đã nộp','Submitted'):photoCount+' / '+ASEAN_FRAMES.length+' '+T(language,'ảnh','photos');
+ const frames=ASEAN_FRAMES.map(frame=>({...frame,ready:!missing.some(item=>item.startsWith(frame.label+' '))}));
+ const readyFrames=frames.filter(frame=>frame.ready).length;
+ const draftStatus=dirty?T(language,'Có thay đổi chưa lưu','Unsaved changes'):
+  missing.length?Number(version)>0
+   ?T(language,'Đã lưu bản nháp · Còn thiếu mục','Draft saved · Some items are still missing')
+   :T(language,'Còn thiếu nội dung hoặc nguồn','Some build requirements are still missing'):
+  Number(version)>0?T(language,'Đã lưu, sẵn sàng tham quan','Saved and ready for the visitor test'):
+  T(language,'Đủ nội dung · Hãy lưu bản nháp','All requirements met · Save your draft');
+ const projectStatus=stage===1
+  ?stageRecord?T(language,'Đã nộp kế hoạch','Plan submitted'):T(language,'Chưa nộp kế hoạch','Plan not submitted')
+  :readOnly?T(language,'Chỉ xem','View only'):
+   submitted?T(language,'Đã nộp','Submitted'):
+   stage===2?readyFrames+' / '+ASEAN_FRAMES.length+' '+T(language,'khung đã đủ','frames ready'):
+   photoCount+' / '+ASEAN_FRAMES.length+' '+T(language,'ảnh','photos');
  const edit=change=>{setStudio(value=>typeof change==='function'?change(value):change);setDirty(true);setNotice('');};
  const field=(key,value)=>edit(draft=>({...draft,learning:{...draft.learning,[key]:value}}));
  const save=async()=>{
@@ -348,6 +369,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        <a href={destination.source} target="_blank" rel="noreferrer">UNESCO destination source</a>
        <a href={'https://commons.wikimedia.org/wiki/Special:MediaSearch?type=image&search='+encodeURIComponent(destination.name)} target="_blank" rel="noreferrer">Find candidate photographs</a>
       </div>}
+      {stage===1&&<p>Complete all three steps in the project panel, then select Submit exhibit plan.</p>}
       {stage===2&&<button type="button" className="bml-primary" onClick={focusStudio}><Box size={18}/> Open the 3D Studio</button>}
      </section>
      {live?.stageIndex===stage&&live.media?.voiceEnabled&&<MuseumVoiceover stage={current} language="en" compact/>}
@@ -415,6 +437,14 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
       </section>}
       {workshopVisible&&!(stage===4&&captured)&&<section className="asean-student-studio" ref={studioRef} tabIndex={-1} data-testid="asean-3d-studio">
        <h4 className="asean-studio-title">{stage===2?'3D Studio':stage===4?'Revise your 3D exhibit':'Submit your 3D exhibit'}</h4>
+       {stage===2&&<section className="asean-build-checklist" aria-label="Exhibit progress">
+        <ul>{frames.map(({key,label,ready})=><li key={key} data-ready={ready}>
+         <strong>{label}</strong> <span>{ready?'Ready':'Incomplete'}</span>
+        </li>)}</ul>
+        {missing.length>0&&<details><summary>What’s still needed ({missing.length})</summary>
+         <ul className="asean-build-missing">{missing.map(item=><li key={item}>{item}</li>)}</ul>
+        </details>}
+       </section>}
        {photoCount===0&&<p>Upload a photo to preview your room in 3D.</p>}
        {!editable&&stage===2&&<p role="status">{readOnly||submitted?'This exhibit is view only.':'Your teacher needs to open Activity 3 before your group can edit.'}</p>}
        {stage===4&&records.feedback&&<p><strong>Feedback received</strong> {records.feedback.comment}</p>}
@@ -424,10 +454,10 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        {stage!==5&&<label className="bml-full-field">Factual source <input value={studio.learning.source} maxLength={600} disabled={!editable||busy} onChange={e=>field('source',e.target.value)}/></label>}
        {stage!==5&&<div className="asean-studio-save">
         <div className="bml-toolbar">
-         <button className="bml-primary" disabled={!editable||busy||imageBusy||!dirty} onClick={()=>action('save')}><Save size={18}/>Save draft</button>
+         {stage!==2&&<button type="button" className="bml-primary" disabled={!editable||busy||imageBusy||!dirty} onClick={()=>action('save')}><Save size={18}/>Save draft</button>}
          <button className="bml-outline" disabled={busy||imageBusy||!editable} onClick={()=>{if(!dirty||window.confirm('Discard unsaved caption and credit changes?'))action('reload');}}>Reload saved exhibit</button>
         </div>
-        {editable&&missing.length>0&&<details><summary>What’s still needed ({missing.length})</summary><ul>{missing.map(item=><li key={item}>{item}</li>)}</ul></details>}
+        {stage!==2&&editable&&missing.length>0&&<details><summary>What’s still needed ({missing.length})</summary><ul>{missing.map(item=><li key={item}>{item}</li>)}</ul></details>}
        </div>}
        {stage===4&&!captured&&editable&&<div className="bml-field-grid">
         <label>Question to retest <select value={revision.question} onChange={e=>setRevision({...revision,question:Number(e.target.value)})}>
@@ -440,16 +470,29 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        {stage===5&&liveOpen&&!captured&&!submitted&&<p>Save the revised V2 in Activity 5 before submitting.</p>}
       </section>}
       {(stage===1||stage===3)&&<GroupResponse key={stage} session={{...session,readOnly}} stage={stage} live={live} open={liveOpen}
-       record={stageRecord} refreshLive={refreshLive} refreshRecords={refreshRecords} onVisit={(gallery,reference)=>setPreview({gallery,reference})}/>}
+       record={stageRecord} refreshLive={refreshLive} refreshRecords={refreshRecords} onVisit={(gallery,reference)=>setPreview({gallery,reference})}
+       formId={stage===1?planFormId:undefined} onSubmittingChange={stage===1?setPlanSubmitting:undefined}/>}
       {stage===3&&records.feedback&&<p role="status"><strong>Feedback on your exhibit</strong> · {records.feedback.comment}</p>}
-      {error&&<p className="bml-banner bml-danger-banner" role="alert">{error}</p>}
-      {notice&&<p role="status">{notice}</p>}
+      {stage!==2&&error&&<p className="bml-banner bml-danger-banner" role="alert">{error}</p>}
+      {stage!==2&&notice&&<p role="status">{notice}</p>}
      </div>
-     <footer className="bml-student-bottom">
-      <button type="button" className="bml-primary" disabled={busy||imageBusy||!photoCount} onClick={()=>action('preview')}>
+     {(stage!==1||!stageRecord||photoCount>0)&&<footer className="bml-student-bottom">
+      {stage===1&&!stageRecord&&<button type="submit" form={planFormId} className="bml-primary asean-workshop-action" disabled={!liveOpen||planSubmitting}>
+       {planSubmitting?T(language,'Đang nộp…','Submitting…'):T(language,'Nộp kế hoạch triển lãm','Submit exhibit plan')}
+      </button>}
+      {stage===2&&<>
+       <p className="asean-build-status" role="status">{draftStatus}</p>
+       {error&&<p className="bml-banner bml-danger-banner asean-build-status" role="alert">{error}</p>}
+       <button type="button" className="bml-primary asean-workshop-action"
+        disabled={!editable||busy||imageBusy||(!dirty&&(missing.length>0||Number(version)>0))} onClick={()=>action('save')}>
+        <Save size={18}/>{T(language,'Lưu bản nháp','Save draft')}
+       </button>
+      </>}
+      {(stage!==1||photoCount>0)&&<button type="button" className={stage===1||stage===2?'bml-outline asean-workshop-action':'bml-primary'}
+       disabled={busy||imageBusy||!photoCount} onClick={()=>action('preview')}>
        <Box size={18}/>{stage===0?T(language,'Xem trước triển lãm của nhóm','Preview your exhibit'):T(language,'Xem trước 2D/3D','Preview 2D/3D')}
-      </button>
-     </footer>
+      </button>}
+     </footer>}
     </div></div>
    </div>
   </section>
