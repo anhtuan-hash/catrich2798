@@ -13,9 +13,12 @@ import MuseumPhotoQuiz from './MuseumPhotoQuiz.jsx';
 import {museumPhotoQuiz} from './museumPhotoQuizData.js';
 import {MuseumEditorialRoom,MuseumEditorialExhibit} from './MuseumEditorial2D.jsx';
 import {isAsean} from './aseanLesson.js';
+import './museumEditorial3D.css';
 const GalleryCanvas=lazy(()=>import('../GalleryCanvasR3F.jsx'));
 const Exhibit360Viewer=lazy(()=>import('./Exhibit360Viewer.jsx'));
 const clean=(x,n=180)=>String(x??'').slice(0,n);
+const numberLabel=n=>String(n).padStart(2,'0');
+const museumSchool='PÉTRUS KÝ';
 function ExhibitVisual({exhibit,index,language}){
  const [failed,setFailed]=useState(false);
  const source=typeof exhibit?.image_url==='string'?exhibit.image_url:'';
@@ -58,9 +61,12 @@ export function reviewMuseum(review,assets=[]){
 export default function MuseumScene({gallery,onBack,onClose,language='vi',embedded=false,compact=false,initial3D=false,onExhibitSelect,cinema=false,initialRoomIndex=0}){
  const [activeRoom,setActiveRoom]=useState(initialRoomIndex),[threeD,setThreeD]=useState(cinema||initial3D),[selectedId,setSelectedId]=useState(null);
  const [fullPosterId,setFullPosterId]=useState(null);
+ const editorialCinema=cinema&&isAsean(gallery);
+ const swiss3D=editorialCinema&&threeD;
+ const [viewpoint,setViewpoint]=useState(null);
  const [focus,dispatchFocus]=useReducer(focusReducer,FOCUS_IDLE);
  const isFocus=cinema&&threeD&&focusActive(focus);
- const editorial=cinema&&!threeD&&isAsean(gallery);
+ const editorial=editorialCinema&&!threeD;
  const focusBack=()=>dispatchFocus({type:'BACK'});
  const queuedFocus=useRef(null);
  const stepFocus=dir=>{
@@ -71,7 +77,7 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
   queuedFocus.current=next.id;
   dispatchFocus({type:'BACK'});
  };
- const changeTo2D=()=>{queuedFocus.current=null;dispatchFocus({type:'RESET'});setInfoOpen(false);setThreeD(false);};
+ const changeTo2D=()=>{setViewpoint(null);queuedFocus.current=null;dispatchFocus({type:'RESET'});setInfoOpen(false);setThreeD(false);};
  const changeTo3D=()=>{setInfoOpen(false);setSelectedId(null);setFullPosterId(null);setThreeD(true);};
  const lastFocusPhase=useRef('idle');
  const cinemaRef=useRef(null),cinemaOpenerRef=useRef(null),[infoOpen,setInfoOpen]=useState(false);
@@ -133,6 +139,7 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
  const rooms=gallery?.rooms||[];
  const roomIndex=Math.min(activeRoom,Math.max(0,rooms.length-1));
  const room=rooms[roomIndex];
+ const [roomHeading,roomSubtitle]=clean(room?.title,140).split(/ (?=Ancient Town$)/);
  const exhibits=useMemo(()=>room?.exhibits||[],[room]);
  const selected=exhibits.find(e=>e.id===selectedId);
  const fullPoster=exhibits.find(e=>e.id===fullPosterId);
@@ -193,7 +200,7 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
   if(!selectedId)roomTabsRef.current?.querySelector('[aria-current="true"]')
    ?.scrollIntoView({block:'nearest',inline:'nearest'});
  },[editorial,roomIndex,selectedId]);
- const changeRoom=n=>{queuedFocus.current=null;dispatchFocus({type:'RESET'});setActiveRoom(n);setSelectedId(null);setFullPosterId(null);};
+ const changeRoom=n=>{if(n===roomIndex)return;setViewpoint(null);queuedFocus.current=null;dispatchFocus({type:'RESET'});setActiveRoom(n);setSelectedId(null);setFullPosterId(null);};
  useEffect(()=>{
   if(!(cinema&&threeD)||focus.phase!=='idle'||!queuedFocus.current)return;
   const id=queuedFocus.current;
@@ -210,7 +217,7 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
   window.addEventListener('keydown',onKey);
   return()=>window.removeEventListener('keydown',onKey);
  },[cinema,threeD,focus.phase,focus.exhibitId,exhibits]);
- return <section ref={cinemaRef} className={'bml-scene '+(editorial?'bml-swiss-2d ':'bml-paper-2d ')+(!threeD?'is-2d ':'')+(embedded?'bml-scene-embedded ':'')+(compact?'bml-scene-compact ':'')+(cinema?'bml-museum-cinema ':'')+(fallbackFullscreen?'is-fallback-fullscreen':'')}
+ return <section ref={cinemaRef} className={'bml-scene '+(editorial?'bml-swiss-2d ':'bml-paper-2d ')+(!threeD?'is-2d ':'')+(embedded?'bml-scene-embedded ':'')+(compact?'bml-scene-compact ':'')+(cinema?'bml-museum-cinema ':'')+(swiss3D?'bml-swiss-3d ':'')+(fallbackFullscreen?'is-fallback-fullscreen':'')}
   data-testid="museum-visitor" data-museum-mode={cinema?'cinema':'classic'}>
   {!compact&&!cinema?<header className="bml-scene-header">
    <div className="bml-scene-title">
@@ -225,7 +232,9 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
    </div>
   </header>:null}
   {cinema?<div className="bml-cinema-hud" data-testid="museum-cinema-hud">
-   {editorial?<strong className="bml-editorial-masthead">{clean(gallery?.title,140)}</strong>:null}
+   {swiss3D?<div className="bml-swiss-3d-masthead">
+    <strong>{museumSchool}</strong><span>DISCOVERY MUSEUM</span>
+   </div>:editorial?<strong className="bml-editorial-masthead">{clean(gallery?.title,140)}</strong>:null}
    <div className="bml-cinema-mode-group" role="group" aria-label="Museum view mode">
     <button type="button" className={!threeD?'is-active':''} aria-pressed={!threeD}
      onClick={changeTo2D}><LayoutGrid size={17}/>2D</button>
@@ -250,13 +259,33 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
     'WASD / arrow keys to move, drag to look, tap artwork to inspect.'}</p>
   </aside>:null}
   {rooms.length?<>
-   <nav ref={roomTabsRef} className={'bml-room-tabs '+(cinema?'bml-cinema-room-tabs':'')} aria-label={tr('Các phòng trưng bày','Exhibition rooms')}
+   {!swiss3D?<nav ref={roomTabsRef} className={'bml-room-tabs '+(cinema?'bml-cinema-room-tabs':'')} aria-label={tr('Các phòng trưng bày','Exhibition rooms')}
     hidden={cinema&&(rooms.length===1||editorial&&Boolean(selected))}>
     {rooms.map((r,i)=><button type="button" key={r.id||i} className={i===roomIndex?'is-active':''}
      aria-current={i===roomIndex?'true':undefined} onClick={()=>changeRoom(i)}>
       {String(i+1).padStart(2,'0')} · {r.title}</button>)}
-   </nav>
+   </nav>:null}
    {threeD?<div className={'bml-3d-stage '+(cinema?'bml-cinema-stage':'')}>
+    {swiss3D?<aside className="bml-swiss-3d-index">
+     <div className="bml-swiss-3d-room-title">
+      <p>{clean(gallery?.title,90)}</p>
+      <h2>{roomHeading}{roomSubtitle?<span>{roomSubtitle}</span>:null}</h2>
+     </div>
+     {exhibits.length?<ul className="bml-swiss-3d-exhibits" aria-label={tr('Tác phẩm','Exhibits')}>
+      {exhibits.slice(0,30).map((exhibit,i)=><li key={exhibit.id||i}>
+       <button type="button" disabled={isFocus} onClick={()=>openExhibit(exhibit.id)}
+        aria-label={(language==='en'?'Inspect ':'Xem tác phẩm ')+clean(exhibit.title,120)}>
+        <span>{numberLabel(i+1)}</span><span>{clean(exhibit.title,120)}</span>
+       </button>
+      </li>)}
+     </ul>:null}
+     {rooms.length>1?<nav className="bml-swiss-3d-rooms" aria-label={tr('Các phòng trưng bày','Exhibition rooms')}>
+      <p>{tr('PHÒNG','ROOMS')}</p>
+      <div>{rooms.map((item,i)=><button key={item.id||i} type="button" onClick={()=>changeRoom(i)}
+       className={i===roomIndex?'is-active':''} aria-current={i===roomIndex?'true':undefined}
+       aria-label={numberLabel(i+1)+' · '+item.title} title={item.title}>{numberLabel(i+1)}</button>)}</div>
+     </nav>:null}
+    </aside>:null}
     {compact&&!cinema?<div className="bml-scene-mode-float" aria-label={tr('Chế độ xem','View mode')}>
      <button type="button" aria-pressed={!threeD} onClick={()=>setThreeD(false)}><LayoutGrid size={16}/> 2D</button>
      <button type="button" aria-pressed={threeD} className="is-active" onClick={()=>setThreeD(true)}><Box size={16}/> 3D</button>
@@ -266,13 +295,14 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
       selectedId={selectedId||''} focus={cinema?focus:FOCUS_IDLE}
       focusBoard={focusBoard} onFocusBack={focusBack} onFocusStep={stepFocus} focusIndex={Math.max(0,focusSelectedIndex)}
       onFocusPhaseChange={action=>dispatchFocus({...action,generation:focus.generation})}
-      onSelect={openExhibit} quality="auto" language={language} schoolEdition cinemaEdition={cinema}/>
+      onSelect={openExhibit} quality="auto" language={language} schoolEdition cinemaEdition={cinema}
+      editorial={swiss3D} roomNumber={numberLabel(roomIndex+1)} editorialViewpoint={viewpoint}/>
     </Suspense>
-    <div className="bml-3d-plate">
+    {!swiss3D?<div className="bml-3d-plate">
      <small>{clean(gallery?.title,90)||'Our Climate Action Museum'}</small>
      <strong>{clean(room?.title,90)}</strong>
      {exhibits.length?<p>{exhibits.slice(0,3).map(item=>clean(item.title,48)).filter(Boolean).join(' · ')}</p>:null}
-    </div>
+    </div>:null}
     {!cinema?<div className="bml-3d-caption"><Info size={15}/>{tr('Dùng WASD hoặc nút trên điện thoại để di chuyển. Chạm vào hiện vật để xem nội dung.','Use WASD or touch controls. Select any exhibit to read it.')}</div>:null}
    </div>:editorial?<div className="bml-editorial-viewport" ref={editorialScrollRef}>
     <div hidden={Boolean(selected)}>
@@ -316,14 +346,22 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
    </div>}
    {!cinema?<footer className="bml-scene-footer">
     <span><MapPin size={16}/>{activeRoom+1}/{rooms.length} {tr('phòng','rooms')} · {exhibits.length} {tr('hiện vật','exhibits')}</span>
-    <div><button type="button" disabled={activeRoom===0} onClick={()=>changeRoom(activeRoom-1)}><ChevronLeft size={18}/> {tr('Trước','Previous')}</button>
-     <button type="button" disabled={activeRoom===rooms.length-1} onClick={()=>changeRoom(activeRoom+1)}>{tr('Phòng tiếp','Next room')} <ChevronRight size={18}/></button></div>
+    <div><button type="button" disabled={roomIndex===0} onClick={()=>changeRoom(roomIndex-1)}><ChevronLeft size={18}/> {tr('Trước','Previous')}</button>
+     <button type="button" disabled={roomIndex===rooms.length-1} onClick={()=>changeRoom(roomIndex+1)}>{tr('Phòng tiếp','Next room')} <ChevronRight size={18}/></button></div>
    </footer>:null}
    {cinema&&!editorial?<div className="bml-cinema-bottom-hud" data-testid="museum-cinema-bottom-hud">
-    <span className="bml-cinema-room-counter">{activeRoom+1}/{rooms.length} rooms · {exhibits.length} exhibits</span>
+    {swiss3D?<div className="bml-swiss-3d-viewpoints" role="group" aria-label={tr('Góc nhìn','Museum viewpoints')}>
+     <button type="button" disabled={isFocus} onClick={()=>setViewpoint({type:'artwork'})}>
+      {tr('Đến gần tranh','See the artwork')}</button>
+     <button type="button" disabled={isFocus} onClick={()=>setViewpoint({type:'room'})}>
+      {tr('Toàn cảnh','Full room view')}</button>
+    </div>:null}
+    <span className="bml-cinema-room-counter">{swiss3D?
+     numberLabel(roomIndex+1)+' / '+numberLabel(rooms.length)+' '+tr('phòng','rooms'):
+     (roomIndex+1)+'/'+rooms.length+' rooms · '+exhibits.length+' exhibits'}</span>
     {rooms.length>1?<div className="bml-cinema-room-controls">
-     <button type="button" disabled={activeRoom===0} onClick={()=>changeRoom(activeRoom-1)} aria-label="Previous room"><ChevronLeft size={18}/></button>
-     <button type="button" disabled={activeRoom===rooms.length-1} onClick={()=>changeRoom(activeRoom+1)} aria-label="Next room"><ChevronRight size={18}/></button>
+     <button type="button" disabled={roomIndex===0} onClick={()=>changeRoom(roomIndex-1)} aria-label="Previous room"><ChevronLeft size={18}/></button>
+     <button type="button" disabled={roomIndex===rooms.length-1} onClick={()=>changeRoom(roomIndex+1)} aria-label="Next room"><ChevronRight size={18}/></button>
     </div>:null}
    </div>:null}
   </>:<div className="bml-empty">{tr('Triển lãm chưa có phòng.','No rooms available.')}</div>}

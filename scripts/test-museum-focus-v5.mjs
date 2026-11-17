@@ -114,9 +114,9 @@ test('Source contracts preserve fallback only outside the Cinema 3D focus path',
  assert.match(canvas,/position\.set\(/);
  assert.match(canvas,/quaternion\.copy\(/);
  assert.match(canvas,/RETURN_COMPLETE/);
- // Desktop uses true CSS3D board perspective; portrait mobile uses a
- // 2D DOM projection of the SAME world-anchored 3D board to prevent text collapse.
- assert.match(rig,/Html transform=\{size\.width>=650\} center/);
+ // Both presentations keep their HTML anchored to the same physical board.
+ assert.match(rig,/perspectivePlaque=!editorial&&size\.width>=650/);
+ assert.match(rig,/Html transform=\{perspectivePlaque\} center/);
  assert.match(rig,/position=\{\[0,0,\.114\]\}/);
  assert.doesNotMatch(rig,/position:\s*fixed/);
  assert.match(rig,/data-testid="museum-focus-stage"/);
