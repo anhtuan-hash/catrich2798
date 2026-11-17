@@ -87,10 +87,15 @@
 
 .asean-visit-instructions ol { margin: 0 0 10px; padding-inline-start: 1.4em; }
 .asean-visit-instructions li + li { margin-top: 4px; }
+.asean-retest-links { display: flex; gap: 6px 8px; flex-wrap: wrap; }
 .asean-visit-intro { padding: 10px 12px; border-inline-start: 3px solid #285445; background: #ecf0e8; }
 .asean-visit-intro p { margin: 6px 0; }
-.asean-v1-visit [tabindex="-1"]:focus { outline: 2px solid #285445; outline-offset: 3px; }
+.asean-student-project :is(.asean-v1-visit [tabindex="-1"], [data-activity5-own], [data-activity5-visitor], [data-activity5-answer]):focus {
+  outline: 2px solid #285445;
+  outline-offset: 3px;
+}
 .asean-v1-visit form > h3 { margin-top: 14px; }
+.asean-v2-retest form > h4 { margin: 14px 0 6px; }
 .asean-visit-target { margin: 0 0 8px; }
 .asean-v1-visit .asean-visit-scoring { margin: 8px 0 12px; color: #37534e; }
 .asean-visit-questions .asean-visit-question {
@@ -121,7 +126,9 @@
   border-inline-start: 3px solid #285445;
   background: #ecf0e8;
 }
-.asean-own-revision h4, .asean-own-revision p { margin: 0 0 6px; }
+.asean-own-revision :is(h3,h4,p) { margin: 0 0 6px; }
+.asean-retest-results { display: grid; gap: 6px; margin: 10px 0; }
+.asean-retest-results > p { margin: 0; padding: 6px 8px; background: var(--workshop-paper); }
 .bml .asean-visitor-model {
   padding: 12px 16px;
   margin-top: 8px;

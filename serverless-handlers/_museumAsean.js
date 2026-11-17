@@ -100,7 +100,9 @@ export async function handleAseanActivity({op,req,res,admin,ctx,session}){
   const staffRetest=authorRetest?aseanStaffRetest(staffChecks,authorRetest.id,afterCheckpoint):null;
   const transferNeedsResubmission=Boolean(session&&!rows.some(row=>row.stage_index===5)&&
    (await query(aseanArchivedTransferResponses(admin,session.id).eq('group_id',id).limit(1))).length);
-  return send(res,200,{rows,feedback:feedback?.value||null,retest:retest?.value||null,staffRetest,checkpoints,retestTask,revisionDetails,transferNeedsResubmission,hueQuiz:hueQuiz?.details??null});
+  return send(res,200,{rows,feedback:feedback?.value||null,retest:retest?.value||null,
+   retestVisitor:authorRetest?.label??null,staffRetest,checkpoints,retestTask,revisionDetails,
+   transferNeedsResubmission,hueQuiz:hueQuiz?.details??null});
  }
  if(op==='asean-reference-v1'){
   requireMethod(req,'GET');
