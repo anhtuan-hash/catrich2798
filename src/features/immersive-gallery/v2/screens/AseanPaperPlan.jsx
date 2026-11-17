@@ -1,5 +1,4 @@
 import React from 'react';
-import {ASEAN_PAPER_PLAN as plan} from '../../v3/aseanPaperPlan.js';
 import ContentPanel from '../shell/ContentPanel.jsx';
 
 function PlanTable({rows}) {
@@ -61,9 +60,11 @@ function PlanActivity({activity, number, language}) {
   );
 }
 
-export default function AseanPaperPlan({language}) {
+export default function AseanPaperPlan({plan, language}) {
+  const periodLabel = language === 'en' ? 'Period' : 'Tiết';
+  const minutesLabel = language === 'en' ? 'minutes' : 'phút';
   return (
-    <div className="plan-paper-body" lang="vi">
+    <div className="plan-paper-body" lang={language}>
       <ContentPanel className="plan-section" ariaLabel={plan.objectives.title}>
         <h2>{plan.objectives.title}</h2>
         {plan.objectives.sections.map(section => <PlanSection key={section.title} section={section} />)}
@@ -99,8 +100,8 @@ export default function AseanPaperPlan({language}) {
             const minutes = activities.reduce((sum, activity) => sum + activity.minutes, 0);
             const firstActivity = plan.activities.indexOf(activities[0]) + 1;
             return (
-              <section className="plan-period" key={period} aria-label={`Tiết ${period}`}>
-                <h3>Tiết {period} · {minutes} phút</h3>
+              <section className="plan-period" key={period} aria-label={`${periodLabel} ${period}`}>
+                <h3>{periodLabel} {period} · {minutes} {minutesLabel}</h3>
                 <ol className="plan-activities" role="list" start={firstActivity}>
                   {activities.map((activity, index) => <PlanActivity key={activity.title} activity={activity} number={firstActivity + index} language={language} />)}
                 </ol>
