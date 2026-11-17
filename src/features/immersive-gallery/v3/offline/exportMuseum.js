@@ -1,5 +1,7 @@
 import {staffRequest} from '../museumApi.js';
 import {liveStaff,artStaff} from '../museumLiveApi.js';
+import {isAsean} from '../aseanLesson.js';
+import {aseanStudentRecords} from './aseanRecords.js';
 import {SNAPSHOT_FORMAT,sanitizeSnapshot,digest,buildOfflineHtml} from './snapshot.js';
 
 // Read only existing, permission-checked staff endpoints. Never export the
@@ -34,10 +36,14 @@ export async function captureMuseum({onProgress=()=>{},signal,assignmentIds,staf
   }return value;
  };
  onProgress('Reading authorized lessons and submissions…');
- const dashboard=await staff('dashboard'),catalogue=await staff('showcase-state');check();
+ check();
+ const dashboard=await staff('dashboard');
+ if(dashboard.publicReadOnly||dashboard.offlineReadOnly)throw new Error('Sign in with an authorized teacher account to export the classroom archive.');
+ const catalogue=await staff('showcase-state');check();
  let staffData=dashboard,showcase=catalogue;
  if(staffData.assignments.length>=100||staffData.groups.length>=500||staffData.reviews.length>=500||
   (staffData.rubrics||[]).length>=500||(staffData.exitTickets||[]).length>=500||
+  (staffData.aseanResponses||[]).length>=2500||(staffData.aseanWritingScores||[]).length>=2500||
   (showcase.publishedGalleries||[]).length>=100)
   throw new Error('The staff catalogue reached its API limit. A complete archive cannot be guaranteed; export was stopped.');
  if(assignmentIds){
@@ -132,8 +138,8 @@ export async function exportMuseumOffline(options={}){
   'PÉTRUS KÝ SCHOOL SYSTEM — BẢN MINH CHỨNG OFFLINE CHỈ ĐỌC',
   '1. Giải nén ZIP. Mở PetrusKy_Museum_Offline.html bằng Chrome hoặc Edge trên máy tính.',
   '2. Có thể tắt Wi-Fi trước khi mở. Không cần cài đặt, máy chủ hay đăng nhập.',
-  '3. Xem bài học, bài nộp, tác phẩm, khảo sát, triển lãm 2D/3D và trình chiếu 11 hoạt động.',
-  '4. Mở hoc-sinh/index.html để quản 10 bài thực hành. Chọn một nhóm để mở đúng bài của nhóm đó. Chỉ xem.',
+  '3. Xem bài học, bài nộp, tác phẩm, phản hồi đã lưu, triển lãm 2D/3D và trình chiếu theo bài học.',
+  '4. Mở hoc-sinh/index.html để xem '+board.groups.length+' bài thực hành. Chọn một nhóm để mở đúng bài của nhóm đó. Chỉ xem.',
   '5. Nút chuyển hoạt động/hiện đáp án chỉ đổi cách xem. Không thêm, sửa, xóa, chấm điểm hay gửi dữ liệu.',
   '6. YouTube và trang ngoài không được tải kèm. Giọng đọc cần giọng en-US cài sẵn trên hệ điều hành.',
   '7. Đây là bản sao dữ liệu mà tài khoản xuất có quyền đọc. Người có tệp có thể xem nội dung này.',
@@ -158,7 +164,8 @@ export function groupWorkshopRows(snapshot){
 async function studentBoardHtml(runtime,snapshot){
  const sliced=sanitizeSnapshot({...snapshot,galleries:[],media:[]});
  const hash=await digest(JSON.stringify(sliced));
- return {groups:groupWorkshopRows(snapshot),html:buildOfflineHtml(runtime,sliced,hash,{mode:'student-board',title:'10 student workshops'})};
+ const groups=groupWorkshopRows(snapshot);
+ return {groups,html:buildOfflineHtml(runtime,sliced,hash,{mode:'student-board',title:groups.length+' student workshops'})};
 }
 export async function buildStudentWorkshopHtml(runtime,snapshot,groupId){
  const rows=groupWorkshopRows(snapshot);
@@ -172,6 +179,8 @@ export async function buildStudentWorkshopHtml(runtime,snapshot,groupId){
 }
 function studentSnapshot(full,group){
  const assignmentId=group.assignment_id;
+ const assignment=full.staff.assignments.find(item=>item.id===assignmentId);
+ const asean=isAsean(assignment);
  const evidence=full.evidence[assignmentId];
  const staff={...full.staff,
   assignments:full.staff.assignments.filter(item=>item.id===assignmentId),
@@ -187,10 +196,12 @@ function studentSnapshot(full,group){
   responses:(evidence.responses||[]).filter(item=>item.group_id===group.id),
   feedback:(evidence.feedback||[]).filter(item=>item.from_group===group.id||item.to_group===group.id),
   microResponses:(evidence.microResponses||[]).filter(item=>item.group_id===group.id)}:null;
- return sanitizeSnapshot({...full,staff,galleries:[],media:[],
+ return sanitizeSnapshot({...full,staff,galleries:[],media:[],showcase:{publishedGalleries:[]},
+  warnings:(full.warnings||[]).filter(item=>(!item.group||item.group===group.label)&&(!item.lesson||item.lesson===assignment?.title)),
   artworks:{[group.id]:full.artworks[group.id]||[]},
   groupDrafts:{[group.id]:full.groupDrafts[group.id]||null},
-  live:{[assignmentId]:full.live[assignmentId]||{session:null}},
-  evidence:slim?{[assignmentId]:slim}:{},
+  live:{[assignmentId]:{session:full.live[assignmentId]?.session||null}},
+  evidence:!asean&&slim?{[assignmentId]:slim}:{},
+  ...(asean?{aseanWorkshops:{[group.id]:aseanStudentRecords(full,group)}}:{}),
   comparisons:{[group.id]:full.comparisons[group.id]||{before:null,after:null,groupLabel:group.label}}});
 }

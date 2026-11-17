@@ -52,3 +52,26 @@ test('modified frozen data is rejected',async({page})=>{
  await page.goto(url('tampered'));await expect(page.locator('#root')).toContainText('snapshot checksum does not match');
  await expect(page.getByTestId('immersive-gallery-v2')).toHaveCount(0);
 });
+test('ASEAN ZIP opens the teacher dossier and the six student activities without the network',async({page})=>{
+ const requests=[],errors=[];
+ page.on('request',request=>{if(/^https?:/.test(request.url()))requests.push(request.url());});
+ page.on('pageerror',error=>errors.push(error.message));
+ await page.goto(url('asean/PetrusKy_Museum_Offline'));
+ await page.getByTestId('igv2-nav-competition-dossier').click();
+ await expect(page.getByRole('heading',{name:'ASEAN in Three Frames · Teaching dossier'})).toBeVisible();
+ await expect(page.getByTestId('museum-offline-export')).toHaveCount(0);
+ await page.getByRole('link',{name:'3 student workshops'}).click();
+ await expect(page.getByRole('heading',{name:'3 student workshops'})).toBeVisible();
+ await page.getByRole('row',{name:/Nhóm 01/}).getByRole('button',{name:'Open',exact:true}).click();
+ const workshop=page.getByTestId('asean-student-lesson');
+ await expect(workshop.getByTestId('asean-student-slide-1')).toBeVisible();
+ await expect(workshop.getByRole('textbox',{name:'One thing a visitor can do'})).toHaveValue('Visitors can explore the QA market.');
+ await expect(workshop.getByRole('textbox',{name:'One thing a visitor can do'})).toBeDisabled();
+ await workshop.getByRole('button',{name:'Review activity',exact:true}).click();
+ for(let n=2;n<=6;n++){
+  await workshop.getByRole('button',{name:'Next activity',exact:true}).click();
+  await expect(workshop.getByTestId('asean-student-slide-'+n)).toBeVisible();
+ }
+ await expect(workshop.getByRole('textbox',{name:'One thing a visitor can do'})).toHaveValue('Visitors can see the QA temple.');
+ expect(errors).toEqual([]);expect(requests).toEqual([]);
+});

@@ -2,7 +2,7 @@ import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {Download,Lock,PackageCheck,X} from 'lucide-react';
 import {saveBlob} from './museumDocx.js';
 const STATE={issued:['Đã phát mã','Issued'],editing:['Đang làm','Editing'],submitted:['Đã nộp','Submitted'],ttcm_review:['Chờ duyệt','In review'],changes_requested:['Cần sửa','Changes requested'],approved_locked:['Đã duyệt','Approved'],published:['Đã công bố','Published'],rejected:['Trả lại','Returned']};
-export default function MuseumOfflineExport({language='en',data}){
+export default function MuseumOfflineExport({language='en',data,transport}){
  const [busy,setBusy]=useState(false),[progress,setProgress]=useState(''),[error,setError]=useState(''),[report,setReport]=useState(null),[ready,setReady]=useState(false);
  const abort=useRef(null),pack=useRef(null),tr=(vi,en)=>language==='en'?en:vi;
  const rows=useMemo(()=>{
@@ -24,7 +24,8 @@ export default function MuseumOfflineExport({language='en',data}){
  const start=async()=>{
   abort.current=new AbortController();setBusy(true);setError('');setReport(null);setReady(false);pack.current=null;
   try{const {exportMuseumOffline}=await import('./offline/exportMuseum.js');
-   const result=await exportMuseumOffline({signal:abort.current.signal,onProgress:setProgress,assignmentIds:(data?.assignments||[]).map(assignment=>assignment.id)});
+   const result=await exportMuseumOffline({signal:abort.current.signal,onProgress:setProgress,staff:transport,
+    assignmentIds:(data?.assignments||[]).map(assignment=>assignment.id)});
    saveBlob(result.blob,result.filename);setReport({...result.manifest,bytes:result.blob.size});pack.current={runtime:result.runtime,snapshot:result.snapshot};setReady(true);
   }catch(e){setError(e.name==='AbortError'?tr('Đã hủy xuất.','Export cancelled.'):e.message);}
   finally{setBusy(false);setProgress('');abort.current=null;}
@@ -50,7 +51,7 @@ export default function MuseumOfflineExport({language='en',data}){
   {report?<div role="status" className="bml-banner bml-info-banner"><PackageCheck size={20}/><div>
    <strong>{tr('Đã xuất bản dữ liệu đóng băng','Frozen archive exported')}</strong>
    <p>{report.counts.lessons} lessons · {report.counts.groups} groups · {report.counts.studentWorkshops||0} student workshops · {report.counts.exhibitions} exhibitions · {(report.bytes/1048576).toFixed(1)} MB</p>
-   <p>{tr('Giải nén ZIP. Mở PetrusKy_Museum_Offline.html cho bản giáo viên, hoặc hoc-sinh/index.html để quản 10 bài học sinh.','Extract the ZIP. Open PetrusKy_Museum_Offline.html for the teacher app, or hoc-sinh/index.html to manage the student workshops.')}</p>
+   <p>{tr('Giải nén ZIP. Mở PetrusKy_Museum_Offline.html cho bản giáo viên, hoặc hoc-sinh/index.html để xem bài của các nhóm.','Extract the ZIP. Open PetrusKy_Museum_Offline.html for the teacher app, or hoc-sinh/index.html to view the student workshops.')}</p>
   </div></div>:null}
  </section>;
 }
