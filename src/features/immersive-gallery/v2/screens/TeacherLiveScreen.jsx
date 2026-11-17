@@ -105,8 +105,15 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     :session?.stage;
   const groups=(state?.groups||[]).map(g=>({...g,label:language==='en'?englishSystemGroupLabel(g.label):g.label}));
   const selectedGroup=groups.find(group=>group.id===studioGroupId)||groups[0];
+  const publicAsean=asean&&data?.publicReadOnly;
+  const evidenceGroups=publicAsean?(data.groups||[]).filter(group=>group.assignment_id===assignmentId):groups;
+  const publicGroupIds=publicAsean?new Set(evidenceGroups.map(group=>group.id)):null;
+  const publicResponses=publicAsean?(data.aseanResponses||[]).filter(record=>
+    record.stage_index===currentIndex&&publicGroupIds.has(record.group_id)):[];
   const displayedStageLoaded=Boolean(historicalSession&&serverIndex===currentIndex&&
-   (state.activityDataStageIndex??serverIndex)===currentIndex&&(!asean||!data?.publicReadOnly));
+   (state.activityDataStageIndex??serverIndex)===currentIndex&&!publicAsean);
+  const displayedResponses=publicAsean?publicResponses:displayedStageLoaded?(state.responses||[]):[];
+  const writingScores=publicAsean?(data.aseanWritingScores||[]).filter(score=>score.stage_index===currentIndex):(state?.writingScores||[]);
   const studioProgress=asean&&currentIndex===2&&displayedStageLoaded&&Array.isArray(state?.studioProgress)
    ?state.studioProgress:null;
   const selectedDraft=studioProgress?.find(draft=>draft.groupId===selectedGroup?.id);
@@ -460,22 +467,25 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
               </li>)}</ol>
             </details>)}
           </section>}
-          {asean&&displayedStageLoaded&&!data?.publicReadOnly&&state?.responses?.length>0?<section className="bml-surface">
+          {asean&&displayedResponses.length>0?<section className="bml-surface">
             <h3>{t(language,'Bài đã nộp của từng nhóm','Group submissions for this activity')}</h3>
-            {state.responses.map(record=>{
-             const group=groups.find(group=>group.id===record.group_id);
-             const target=aseanPeerGroup(groups,record.group_id,currentIndex);
-             const staffEntry=currentIndex===5&&state.staffTransferGroupIds?.includes(record.group_id);
-             return <details key={record.group_id}><summary>{group?.label}
+            {displayedResponses.map(record=>{
+             const group=evidenceGroups.find(group=>group.id===record.group_id);
+             const target=aseanPeerGroup(evidenceGroups,record.group_id,currentIndex);
+             const staffEntry=!publicAsean&&currentIndex===5&&state?.staffTransferGroupIds?.includes(record.group_id);
+             const marks=writingScores.find(score=>score.group_id===record.group_id)?.details;
+             return <details key={record.group_id}><summary>{language==='en'?englishSystemGroupLabel(group?.label):group?.label}
               {target?` → ${target.label} · ${aseanDestination(target.label)?.name||''}`:null}
               {staffEntry?' · '+t(language,'Giáo viên nộp thay','Submitted by staff'):null}
              </summary>
               <AseanGroupResponse value={record.value}/>
-              {(currentIndex===0||currentIndex===5)&&<AseanWritingGrade
+              {(currentIndex===0||currentIndex===5)&&(publicAsean
+               ?<p>{t(language,'Điểm viết','Writing score')} · {marks?marks.experience+marks.advice+'/2':t(language,'Chưa có điểm','Awaiting score')}</p>
+               :<AseanWritingGrade
                key={assignmentId+'-'+currentIndex+'-'+record.group_id}
-               value={state.writingScores?.find(score=>score.group_id===record.group_id)?.details}
+               value={marks}
                editable={canManageLesson&&!contentFrozenAt}
-               save={async marks=>{await transport('asean-writing-grade',{assignmentId,groupId:record.group_id,stageIndex:currentIndex,...marks});await refresh();}}/>}
+               save={async marks=>{await transport('asean-writing-grade',{assignmentId,groupId:record.group_id,stageIndex:currentIndex,...marks});await refresh();}}/>)}
              </details>;
             })}
           </section>:null}

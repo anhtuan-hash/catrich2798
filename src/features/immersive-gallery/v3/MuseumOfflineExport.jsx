@@ -3,19 +3,11 @@ import {Download,Lock,PackageCheck,X} from 'lucide-react';
 import {saveBlob} from './museumDocx.js';
 import {isAsean} from './aseanLesson.js';
 import {groupWorkshopRows} from './offline/workshopRows.js';
-const STATE={issued:['Đã phát mã','Issued'],editing:['Đang làm','Editing'],submitted:['Đã nộp','Submitted'],ttcm_review:['Chờ duyệt','In review'],changes_requested:['Cần sửa','Changes requested'],approved_locked:['Đã duyệt','Approved'],published:['Đã công bố','Published'],rejected:['Trả lại','Returned']};
+import MuseumWorkshopBoard from './MuseumWorkshopBoard.jsx';
 export default function MuseumOfflineExport({language='en',data,transport,renderLayout}){
  const [busy,setBusy]=useState(false),[progress,setProgress]=useState(''),[error,setError]=useState(''),[report,setReport]=useState(null),[ready,setReady]=useState(false);
  const abort=useRef(null),pack=useRef(null),tr=(vi,en)=>language==='en'?en:vi;
  const rows=useMemo(()=>groupWorkshopRows({staff:data??undefined}),[data]);
- const hasTransfer=rows.some(row=>row.transfer!==null)||isAsean(data?.lessonTemplate);
- const hasExit=rows.some(row=>row.transfer===null);
- const writingHeading=hasTransfer
-  ?hasExit?tr('Bài cuối giờ','Final activity'):tr('Bài viết nhóm · Hoạt động 6','Group transfer card · Activity 6')
-  :'Exit Ticket';
- const writingStatus=row=>row.transfer===null
-  ?row.exit?tr('Đã nộp','Submitted'):tr('Chưa có','None')
-  :row.transfer?tr('Đã có bản lưu','On file'):tr('Chưa có bài viết đã lưu','No saved writing');
  useEffect(()=>()=>abort.current?.abort(),[]);
  const downloadGroup=async row=>{
   setError('');
@@ -33,22 +25,10 @@ export default function MuseumOfflineExport({language='en',data,transport,render
   }catch(e){setError(e.name==='AbortError'?tr('Đã hủy xuất.','Export cancelled.'):e.message);}
   finally{setBusy(false);setProgress('');abort.current=null;}
  };
- const board=(
-  <div className="bml-frozen-board">
-   <div className="bml-section-head"><div>{renderLayout
-    ? <h2 id="asean-dossier-workshops">{tr('Bài thực hành theo nhóm','Group workshops')}</h2>
-    : <><h3>{tr('Bảng bài thực hành','Student workshop board')}</h3>
-       <p>{rows.length} {tr('nhóm · mỗi nhóm một bài đã đóng băng','groups · one frozen workshop each')}</p></>}</div></div>
-   <div className="bml-frozen-table-wrap" role={renderLayout?'region':undefined}
-    aria-labelledby={renderLayout?'asean-dossier-workshops':undefined} tabIndex={renderLayout?0:undefined}>
-    <table className="bml-frozen-table" aria-labelledby={renderLayout?'asean-dossier-workshops':undefined}>
-     <thead><tr><th scope="col">#</th><th scope="col">{tr('Nhóm','Group')}</th><th scope="col">{tr('Lớp','Class')}</th><th scope="col">{tr('Bảo tàng','Museum')}</th><th scope="col">{writingHeading}</th><th scope="col">{tr('Tệp','File')}</th></tr></thead>
-     <tbody>{rows.map((row,index)=><tr key={row.id}><td>{String(index+1).padStart(2,'0')}</td><td>{row.label}</td><td>{row.classScope}</td><td>{STATE[row.state]?.[language==='en'?1:0]||row.state||'—'}</td><td>{writingStatus(row)}</td>
-       <td>{ready?<button type="button" className="bml-outline" onClick={()=>downloadGroup(row)}>{tr('Tải bài','Download')}</button>:tr('Trong gói ZIP','Inside the ZIP')}</td></tr>)}{!rows.length?<tr><td colSpan={6}>{tr('Chưa có nhóm để đóng gói.','No groups to package yet.')}</td></tr>:null}</tbody>
-    </table>
-   </div>
-  </div>
- );
+ const board=<MuseumWorkshopBoard rows={rows} language={language} editorial={Boolean(renderLayout)} asean={isAsean(data?.lessonTemplate)}
+  action={{label:tr('Tệp','File'),render:row=>ready
+   ?<button type="button" className="bml-outline" onClick={()=>downloadGroup(row)}>{tr('Tải bài','Download')}</button>
+   :tr('Trong gói ZIP','Inside the ZIP')}}/>;
  const download=(
   <button className={renderLayout?'bml-primary asean-dossier-download':'bml-primary'} type="button"
     disabled={busy||!data?.assignments?.length} onClick={start}><Download size={22} aria-hidden="true"/>

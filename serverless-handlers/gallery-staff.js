@@ -11,7 +11,7 @@ import {canGradeReviewState} from './_museumRubricPolicy.js';
 
 // Copy approved private art into R1's still-private bucket before atomic promotion.
 // The SQL publication RPC verifies each link and the immutable TTCM snapshot hash.
-import {ASEAN_TEMPLATE,ASEAN_TITLE,ASEAN_RUBRIC,ASEAN_MIN_GROUPS,ASEAN_MAX_GROUPS,aseanPublicKey,isAsean,validAseanGroupCount} from '../src/features/immersive-gallery/v3/aseanLesson.js';
+import {ASEAN_TEMPLATE,ASEAN_TITLE,ASEAN_RUBRIC,ASEAN_MIN_GROUPS,ASEAN_MAX_GROUPS,aseanPublicKey,isAsean,validAseanGroupCount,validAseanResponse} from '../src/features/immersive-gallery/v3/aseanLesson.js';
 
 async function stageApprovedArt(ctx,scoped){
  const {review,group,assignment}=scoped,admin=ctx.admin;
@@ -278,7 +278,7 @@ export default async function galleryStaff(req,res){
 
   if(operation==='dashboard'){
    requireMethod(req,'GET');
-   const grants=await query(admin.from('gcp_reviewer_grants')
+   const grants=ctx.publicReadOnly?[]:await query(admin.from('gcp_reviewer_grants')
      .select('reviewer_id,school_scope,can_publish,active').eq('school_scope',ctx.profile.school)
      .eq('active',true));
    const where=(ctx.role==='admin'||ctx.publicReadOnly)?null:ctx.user.id;
@@ -287,10 +287,14 @@ export default async function galleryStaff(req,res){
    if(where)q=q.or('created_by.eq.'+where+',reviewer_id.eq.'+where);
    const assignments=await query(q);
    const ids=assignments.map(x=>x.id);
-   const quickRows=ids.length?await query(admin.from('gcp_quick_access')
+   const quickRows=!ctx.publicReadOnly&&ids.length?await query(admin.from('gcp_quick_access')
     .select('assignment_id,enabled').in('assignment_id',ids).limit(100)):[];
    const quickByAssignment=new Map(quickRows.map(x=>[x.assignment_id,x.enabled]));
-   const visibleAssignments=assignments.map(a=>({...a,quick_access_enabled:quickByAssignment.get(a.id)===true}));
+   const visibleAssignments=assignments.map(a=>{
+    if(!ctx.publicReadOnly)return {...a,quick_access_enabled:quickByAssignment.get(a.id)===true};
+    const {created_by,reviewer_id,...lesson}=a;
+    return lesson;
+   });
    const groups=ids.length?await query(admin.from('gcp_groups').select('*')
      .in('assignment_id',ids).limit(500)):[];
    const groupIds=groups.map(g=>g.id);
@@ -309,18 +313,39 @@ export default async function galleryStaff(req,res){
    const exitTickets=groupIds.length?await query(admin.from('museum_live_responses')
      .select('group_id,value,created_at').in('group_id',groupIds).eq('stage_index',10).limit(500)):[];
    const allReviews=groupIds.length?await query(admin.from('gcp_reviews')
-     .select('id,group_id,version,state,teacher_note,ttcm_note,approved_by,approved_at,submitted_at,snapshot_hash,snapshot')
+     .select(ctx.publicReadOnly?'id,group_id,version,state,teacher_note,snapshot':
+      'id,group_id,version,state,teacher_note,ttcm_note,approved_by,approved_at,submitted_at,snapshot_hash,snapshot')
      .in('group_id',groupIds).is('archived_at',null).order('submitted_at',{ascending:false}).limit(500)):[];
-   // Guests can read the five saved scores for published submissions within
-   // this dashboard's school scope. Staff retain the complete assessment row.
    const assignmentById=new Map(assignments.map(item=>[item.id,item]));
-   const aseanGroupIds=groups.filter(group=>isAsean(assignmentById.get(group.assignment_id))).map(group=>group.id);
-   const aseanResponses=!ctx.publicReadOnly&&aseanGroupIds.length?await query(admin.from('museum_live_responses')
-    .select('group_id,stage_index,value,created_at').in('group_id',aseanGroupIds).in('stage_index',[0,1,3,4,5]).limit(2500)):[];
-   const aseanWritingScores=!ctx.publicReadOnly&&aseanGroupIds.length?await query(admin.from('museum_learning_events')
-    .select('group_id,stage_index,details').eq('action','asean_writing_grade').in('group_id',aseanGroupIds)
-    .order('created_at',{ascending:false}).limit(2500)):[];
-   const reviews=allReviews.filter(row=>!ctx.publicReadOnly||!aseanGroupIds.includes(row.group_id)||row.state==='published');
+   const publishedGalleries=await publishedSchoolCatalog(ctx);
+   const reviews=allReviews.filter(row=>!ctx.publicReadOnly||row.state==='published');
+   const publishedReviewGroups=new Set(reviews.filter(row=>row.state==='published').map(row=>row.group_id));
+   const visibleDestinations=new Map(publishedGalleries.map(gallery=>[
+    gallery.assignment_id,new Set(gallery.destinations.map(destination=>destination.groupLabel)),
+   ]));
+   // Publish only recorded learning evidence from frozen lessons and groups
+   // with a published review and a currently visible exhibition room.
+   const aseanGroupIds=groups.filter(group=>{
+    const assignment=assignmentById.get(group.assignment_id);
+    return isAsean(assignment)&&(!ctx.publicReadOnly||(
+     assignment.content_frozen_at&&publishedReviewGroups.has(group.id)&&
+     visibleDestinations.get(group.assignment_id)?.has(group.label)
+    ));
+   }).map(group=>group.id);
+   const [responseRows,writingRows]=aseanGroupIds.length?await Promise.all([
+    query(admin.from('museum_live_responses')
+     .select(ctx.publicReadOnly?'group_id,stage_index,value':'group_id,stage_index,value,created_at')
+     .in('group_id',aseanGroupIds).in('stage_index',[0,1,3,4,5]).limit(2500)),
+    query(admin.from('museum_learning_events')
+     .select('group_id,stage_index,details').eq('action','asean_writing_grade').in('group_id',aseanGroupIds)
+     .order('created_at',{ascending:false}).limit(2500)),
+   ]):[[],[]];
+   const aseanResponses=ctx.publicReadOnly?responseRows.filter(row=>validAseanResponse(row.stage_index,row.value)):responseRows;
+   const aseanWritingScores=ctx.publicReadOnly?writingRows.flatMap(({group_id,stage_index,details})=>{
+    const {experience,advice}=details||{};
+    return [0,5].includes(stage_index)&&[0,1].includes(experience)&&[0,1].includes(advice)
+     ?[{group_id,stage_index,details:{experience,advice}}]:[];
+   }):writingRows;
    const rubricReviewIds=reviews.filter(review=>!ctx.publicReadOnly||review.state==='published').map(review=>review.id);
    const rubricRows=rubricReviewIds.length?await query(admin.from('gcp_rubric_scores')
      .select(ctx.publicReadOnly?'review_id,scores':'review_id,teacher_id,scores,feedback,updated_at')
@@ -339,7 +364,7 @@ export default async function galleryStaff(req,res){
     creatorSettings:await settings(admin),reviewerCandidates,
     reviewers:grants,rubrics,
     assignments:visibleAssignments,groups:visibleGroups,reviews,exitTickets,aseanResponses,aseanWritingScores,
-    publishedGalleries:await publishedSchoolCatalog(ctx)});
+    publishedGalleries});
   }
 
   // Enable only for an approved Admin's own active lesson. The default

@@ -72,6 +72,10 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
   if(typeof window!=='undefined'&&nextTab!=='gallery'&&window.location.hash.includes('?exhibition=')){
    window.history.replaceState(null,'',window.location.hash.split('?')[0]);
   }
+  if(nextTab==='gallery'&&typeof extra==='string'&&extra){
+   const route=window.location.hash.split('?')[0]||'#/tool/immersive-gallery';
+   window.history.replaceState(null,'',route+'?exhibition='+encodeURIComponent(extra));
+  }
   // A lesson/submission search must never silently hide newly published
   // exhibitions when navigating to a different Museum Lab tab.
   if(nextTab==='gallery'&&nextTab!==tab)setQuery('');
@@ -113,10 +117,7 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
    tab==='gallery'?<ExhibitionsScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate} query={query}/>:
    tab==='templates'?<TeachingPlanScreen {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate}/>:
    tab==='evidence'?(isAsean(lessonTemplate)?<AseanDossier data={matchingData} language={uiLanguage}
-    transport={staffTransport} readOnly={readOnly} onOpenGallery={id=>{
-    window.history.replaceState(null,'',window.location.hash.split('?')[0]+'?exhibition='+encodeURIComponent(id));
-    navigate('gallery');
-   }}/>:<DossierScreen {...sharedScreenProps} data={matchingData} transport={liveTransport}/>):
+    transport={staffTransport} readOnly={readOnly} onOpenGallery={id=>navigate('gallery',id)} onOpenReview={id=>navigate('submissions',id)}/>:<DossierScreen {...sharedScreenProps} data={matchingData} transport={liveTransport}/>):
    tab==='settings'?<SettingsScreen {...sharedScreenProps}/>:
    overview}
   </div>
