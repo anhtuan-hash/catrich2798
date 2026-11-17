@@ -3193,7 +3193,7 @@ test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published 
   document.documentElement.setAttribute('data-font-region-page-title','test');
   document.documentElement.style.setProperty('--bes-font-pageTitle','cursive');
  });
- const poster='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAABICAIAAAA/EeF8AAAAtElEQVR4nO3aIQ6DQBBAUZZwr4paRAWu58NVVNQiOAt3qMFUNGlIk+5fsQ1D8p+CrNjP2CGtz6WJpN074JtBJFxQt32599ddIi6P8fMcbkIGEYNIuKAufzxMc/Urb+dT5vRoE3rLf1O5knmHm5BBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIgYRg4hBxCBiEDGIGEQMIkXboH9szX452oRqbcrKhZuQQSRcUPKXL2AQCRf0AkV7EkHU/73DAAAAAElFTkSuQmCC';
+ const poster='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAAA0CAIAAACSFii2AAAAZklEQVR42u3WMQ0AIRREQY5gAVVUeMIAnqhQcVIwQULx5zmYbLNfGzNFKqdgAQMDAwMDAwMDAwMDAwMDAwMDAwMDP630f1kYGBgYGBgYGBj4xrXctVoYGBgYGBgYGBgYGBgYOBr4ANxOBLVwTJcJAAAAAElFTkSuQmCC';
  const portrait='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAA6CAIAAABXvmwkAAAAN0lEQVR42u3NAQkAMAgAMH1Vo5nFXm8hCFuB5XTFlheLZDKZTCaTyWQymUwmk8lkMplMJpPdyT731wI/n/aUSAAAAABJRU5ErkJggg==';
  await page.route('**/api/gallery-staff?operation=*',route=>{
   const request=route.request();

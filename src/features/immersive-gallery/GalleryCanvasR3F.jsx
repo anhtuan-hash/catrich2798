@@ -295,7 +295,7 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
   if(!cinemaEdition||!viewPreset)return;
   const overviewZ=editorialAspect?editorialRoomZ(editorialAspect):viewPreset.type==='room'?2.3:1.3;
   const destination=viewPreset.type==='artwork'?
-   [viewPreset.x??0,1.95,editorial&&viewPreset.x==null?Math.max(-3.65,overviewZ-2.4):-3.56]:[0,1.96,overviewZ];
+   [viewPreset.x??0,1.95,editorial&&viewPreset.x==null?Math.max(-3.55,overviewZ-1.30):-3.56]:[0,1.96,overviewZ];
   const reduce=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   tween.current={from:camera.position.clone(),to:new THREE.Vector3(...destination),
    elapsed:0,duration:reduce?0:(viewPreset.type==='artwork'?.62:.82)};
@@ -338,6 +338,7 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
     const ease=ratio*ratio*(3-2*ratio);
     camera.position.lerpVectors(t.from,t.to,ease);
     if(cinemaEdition){yaw.current=0;pitch.current=.075;camera.rotation.set(pitch.current,yaw.current,0,'YXZ');}
+    camera.updateMatrixWorld();
     if(ratio>=1)tween.current=null;
     else invalidate();
    }
@@ -350,9 +351,10 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
    const dir=new THREE.Vector3(sideways,0,-forward).applyEuler(new THREE.Euler(0,camera.rotation.y,0,'YXZ')).normalize();
    camera.position.x=Math.max(-6,Math.min(6,camera.position.x+dir.x*speed));
    camera.position.z=Math.max(-7.6,Math.min(7.9,camera.position.z+dir.z*speed));
+   camera.updateMatrixWorld();
    onPosition?.(camera.position.x,camera.position.z);
    invalidate();
- });
+ },-1);
  return null;
 }
 // R3F owns the canvas pixel dimensions; this observer keeps the perspective

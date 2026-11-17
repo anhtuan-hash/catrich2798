@@ -173,7 +173,7 @@
  padding: 4px clamp(8px, 1.5cqw, 24px);
 }
 .bml .bml-swiss-3d .bml-swiss-3d-viewpoints button:first-child { border-color: var(--museum-red) }
-.bml .bml-swiss-3d .bml-swiss-3d-viewpoints button:first-child:hover:not(:disabled) { background: #a82118 }
+.bml .bml-swiss-3d .bml-swiss-3d-viewpoints button:first-child:hover:not(:disabled) { background: #a82118; color: white }
 .bml .bml-swiss-3d .bml-cinema-room-counter {
  margin: 0 12px;
  font: 800 clamp(12px, 1.3cqw, 21px)/1.15 var(--museum-type);
@@ -206,7 +206,7 @@
  color: var(--museum-ink);
  box-shadow: none;
 }
-.bml .bml-swiss-3d .bml-v5-focus-status { top: 12px; left: auto; right: 12px }
+.bml .bml-swiss-3d .bml-v5-focus-status { top: clamp(64px, 5.5cqw, 100px); left: auto; right: 12px }
 
 @container (max-width: 700px) {
  .bml .bml-swiss-3d > .bml-cinema-hud,
@@ -272,7 +272,7 @@
  width: 100% !important;
  height: 100% !important;
  border: 0;
- border-radius: 0;
+ border-radius: 0 !important;
  box-shadow: none;
 }
 @container (min-width: 701px) and (max-width: 945px) {
