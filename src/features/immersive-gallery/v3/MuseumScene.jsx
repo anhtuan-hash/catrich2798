@@ -38,13 +38,14 @@ function ExhibitVisual({exhibit,index,language}){
    </div>}
  </div>;
 }
-export function reviewMuseum(review,assets=[]){
+export function reviewMuseum(review,assets=[],lessonTemplate){
  const byId=new Map(assets.filter(a=>a?.id&&a?.image_url).map(a=>[a.id,a]));
  const raw=review?.snapshot||{};
  return {
   id:'review-'+String(review?.id||'preview'),
   title:raw.title||'English Museum',
   summary:raw.summary||'Private review draft — not published',
+  lesson_template:lessonTemplate??raw.lesson_template,
   status:review?.state||'draft',
   learning:raw.learning||{},survey:raw.survey||null,artMeta:raw.artMeta||{},
   rooms:(raw.rooms||[]).map((r,i)=>({

@@ -312,6 +312,61 @@ test('visitors see saved scores for published submissions and missing scores nev
   await expect(other.locator('.bml-total-score')).toHaveCount(0);
  }
 });
+test('published student submission opens its own room in the shared Swiss Editorial cinema',async({page},testInfo)=>{
+ const lesson={id:'lesson-asean',title:'ASEAN in Three Frames',lesson_template:'asean-in-three-frames',content_frozen_at:'2026-11-17T00:00:00Z'};
+ const group={id:'group-05',assignment_id:lesson.id,label:'Nhóm 05',state:'published'};
+ const destinations=[{id:'hoi-an',title:'Hội An',groupLabel:'Nhóm 01'},{id:'ayutthaya',title:'Ayutthaya',groupLabel:group.label}];
+ const collection={id:'asean-gallery',title:lesson.title,assignment_id:lesson.id,lesson_template:lesson.lesson_template,status:'published',destinations};
+ const review={id:'review',group_id:group.id,version:2,state:'published',snapshot:{title:destinations[1].title}};
+ const image='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="150"><rect width="200" height="150" fill="#23634e"/></svg>');
+ let detailRequests=0;
+ await page.route('**/api/gallery-staff?operation=*',route=>{
+  const request=route.request();
+  const operation=new URL(request.url()).searchParams.get('operation');
+  if(operation==='dashboard')return route.fulfill({json:{publicReadOnly:true,profile:{role:'viewer'},
+   assignments:[lesson],groups:[group],reviews:[review],publishedGalleries:[collection]}});
+  expect(operation).toBe('showcase-exhibition');
+  expect(request.postDataJSON()).toEqual({id:collection.id});
+  detailRequests++;
+  return route.fulfill({json:{gallery:{...collection,rooms:destinations.map(destination=>({
+   id:'room-'+destination.id,exhibition_id:destination.id,title:destination.title,
+   exhibits:['Place','Experience','Visitor Advice'].map((title,index)=>({
+    id:destination.id+'-'+index,title,kind:'image',status:'published',image_url:image,description:destination.title+' caption',
+   })),
+  }))}}});
+ });
+ await page.getByTestId('qa-dashboard-visitor').click();
+ await page.getByTestId('igv2-nav-submissions').click();
+ const desk=page.getByTestId('museum-review-desk');
+ await desk.getByRole('button',{name:/Ayutthaya/}).click();
+ const submission=desk.getByRole('region',{name:'Ayutthaya'});
+ const trigger=submission.getByRole('button',{name:'Xem bảo tàng 2D/3D'});
+ await trigger.click();
+ const cinema=page.getByTestId('museum-teacher-cinema-portal');
+ const viewer=cinema.getByTestId('museum-visitor');
+ await expect(viewer).toHaveClass(/bml-swiss-3d/);
+ await expect(viewer.locator('.bml-swiss-3d-room-title h2')).toHaveText('Ayutthaya');
+ await expect(viewer.locator('.bml-swiss-3d-exhibits button')).toHaveCount(3);
+ await page.screenshot({path:testInfo.outputPath('submission-swiss-3d.png')});
+ await cinema.getByRole('button',{name:'2D',exact:true}).click();
+ await expect(viewer).toHaveClass(/bml-swiss-2d/);
+ const room=viewer.getByTestId('museum-paper-2d-room');
+ await expect(room.getByRole('heading',{name:'Ayutthaya'})).toBeVisible();
+ const posters=room.getByTestId('museum-2d-exhibits').getByRole('img');
+ await expect(posters).toHaveCount(3);
+ for(const poster of await posters.all()){
+  await poster.scrollIntoViewIfNeeded();
+  await expect.poll(()=>poster.evaluate(el=>el.naturalWidth)).toBeGreaterThan(0);
+ }
+ await room.getByRole('button',{name:/Khám phá hiện vật 3: Visitor Advice/}).click();
+ await expect(viewer.getByTestId('museum-artwork-inspector')).toContainText('Ayutthaya caption');
+ await page.screenshot({path:testInfo.outputPath('submission-swiss-2d.png')});
+ await cinema.getByRole('button',{name:'Close museum preview'}).click();
+ await expect(cinema).toHaveCount(0);
+ await expect(trigger).toBeFocused();
+ await expect(submission).toContainText('Finalized lesson');
+ expect(detailRequests).toBe(1);
+});
 test('paper dashboard fits the viewport and its decorative assets load',async({page},testInfo)=>{
  const banner=page.getByTestId('museum-competition-ribbon');
  await expect(banner).toBeVisible();
