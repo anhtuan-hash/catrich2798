@@ -1952,6 +1952,84 @@ test('ASEAN groups submit and revisit the Huế discussion quiz separately',asyn
  await expect(page.getByText('Group response saved.',{exact:true})).toBeVisible();
 });
 
+test('ASEAN Activity 4 guides a visitor from the assigned V1 to submitted feedback',async({page},testInfo)=>{
+ const assignment={id:'qa-asean-visit',title:'ASEAN in Three Frames',class_scope:'11-QA',lesson_template:'asean-in-three-frames'};
+ const live={id:'qa-visit-session',stageIndex:3,status:'active',stageOpen:true};
+ let ready=false,response;
+ await page.route('**/api/gallery-guest?**',route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  return route.fulfill({json:op==='me'?{assignment,groupLabel:'Nhóm 01',groupState:'editing',csrf:'qa-visitor'}:
+   {draft:{title:'Hội An Ancient Town'},version:2}});
+ });
+ await page.route('**/api/gallery-guest/live?**',route=>{
+  const op=new URL(route.request().url()).searchParams.get('operation');
+  if(op==='asean-records')return route.fulfill({json:{
+   rows:response?[{stage_index:3,value:response}]:[],checkpoints:[],feedback:{comment:'Tell visitors when the riverside is quiet.'}
+  }});
+  if(op==='asean-visit')return route.fulfill({json:{target:'Nhóm 02',gallery:ready?{
+   checkpointId:'qa-v1-trang-an',version:3,draft:{title:'Tràng An',rooms:[]},artworks:[]
+  }:null}});
+  if(op==='asean-submit'){
+   const payload=route.request().postDataJSON();
+   expect(payload.sessionId).toBe(live.id);
+   expect(payload.stageIndex).toBe(3);
+   expect(payload.checkpointId).toBe('qa-v1-trang-an');
+   response=payload.value;
+   return route.fulfill({json:{ok:true}});
+  }
+  return route.fulfill({json:{session:live}});
+ });
+ await page.getByTestId('qa-student-en').click();
+ const lesson=page.getByTestId('asean-student-slide-4');
+ const panel=page.getByRole('region',{name:'Visitor Feedback',exact:true});
+ const start=panel.getByRole('heading',{name:'1. Visit the assigned exhibit'});
+ const formHeading=panel.getByRole('heading',{name:'2. Complete the visitor feedback'});
+ const submit=panel.locator('footer').getByRole('button',{name:'Submit visitor feedback'});
+ const opener=panel.getByRole('button',{name:'Open assigned V1 exhibit'});
+ await expect(panel.getByRole('heading',{name:'Hội An Ancient Town'})).toHaveCount(0);
+ await expect(panel.getByRole('button',{name:/Preview 2D/})).toHaveCount(0);
+ await expect(submit).toHaveCount(0);
+ await lesson.getByRole('button',{name:'Go to the visitor task'}).click();
+ await expect(start).toBeFocused();
+ await expect(start).toBeInViewport();
+ await opener.click();
+ await expect(panel.getByText('Group 02 · Tràng An',{exact:true})).toBeVisible();
+ await expect(panel.getByText('This V1 is not ready.',{exact:false})).toBeVisible();
+ await expect(formHeading).toHaveCount(0);
+ ready=true;
+ await opener.click();
+ await expect(page.getByRole('dialog',{name:'Visit assigned exhibit'})).toBeVisible();
+ await page.getByRole('button',{name:'Close museum preview'}).click();
+ await expect(formHeading).toBeFocused();
+ await expect(formHeading).toBeInViewport();
+ await expect(panel.getByText('Exhibit visited · Group 02 · Tràng An')).toBeInViewport();
+ await page.screenshot({path:testInfo.outputPath('asean-visitor-feedback.png')});
+ await panel.getByLabel('Which frame did you open first?').selectOption('2');
+ const questions=['1. Where is it?','2. What can I do there?','3. What should I keep in mind?'];
+ const answers=['It is in Ninh Binh.','Visitors can take a boat.','The caption did not explain where to wait.'];
+ for(const [index,name] of questions.entries()){
+  const question=panel.getByRole('group',{name,exact:true});
+  await question.getByLabel('What did you find?').fill(answers[index]);
+  if(index<2)await question.getByLabel('Score').selectOption('1');
+ }
+ await panel.getByLabel('One specific change the group could make').fill('Show where visitors can wait for a boat.');
+ const place=panel.getByRole('group',{name:questions[0],exact:true});
+ await place.getByLabel('Evidence frame').selectOption('2');
+ await expect(place.getByText('To give 1 point, cite Place.',{exact:false})).toBeVisible();
+ await submit.click();
+ await expect(panel.getByRole('alert')).toContainText('select the frame that matches the question');
+ expect(response).toBeUndefined();
+ await place.getByLabel('Evidence frame').selectOption('1');
+ await panel.getByRole('group',{name:questions[1],exact:true}).getByLabel('Evidence frame').selectOption('2');
+ await submit.click();
+ await expect(panel.getByText('Visitor feedback submitted · 2/3',{exact:true})).toBeVisible();
+ expect(response).toEqual({first:2,answers:answers.map((text,index)=>({text,frame:index<2?index+1:null,score:index<2?1:0})),
+  comment:'Show where visitors can wait for a boat.'});
+ await expect(panel.getByRole('heading',{name:'Feedback received on your own exhibit'})).toBeVisible();
+ await expect(place.getByLabel('What did you find?')).toBeDisabled();
+ await expect(submit).toHaveCount(0);
+});
+
 test('ASEAN V2 retest opens ahead of the completed exhibit, then records the visitor’s answer',async({page})=>{
  const assignment={id:'qa-asean',title:'ASEAN in Three Frames',class_scope:'11-QA',lesson_template:'asean-in-three-frames'};
  let response;
