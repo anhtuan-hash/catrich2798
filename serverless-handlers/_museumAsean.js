@@ -110,7 +110,7 @@ export async function handleAseanActivity({op,req,res,admin,ctx,session}){
   const checkpoint=await query(admin.from('museum_checkpoints').select('*').eq('session_id',session.id)
    .eq('group_id',id).eq('kind','before').maybeSingle());
   if(checkpoint?.doc?.checkpointOrigin!=='reconstructed_reference'||aseanExhibitMissing(checkpoint.doc).length)
-   throw fail(404,'A reconstructed V1 reference is unavailable.');
+   throw fail(404,'The reconstructed first exhibit is unavailable.');
   return send(res,200,{gallery:await checkpointGallery(admin,checkpoint,ctx.group.label)});
  }
  if(session?.status!=='active'||!session.stage_open)throw fail(423,'Wait for the teacher to open this activity.');

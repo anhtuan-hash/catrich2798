@@ -23,8 +23,8 @@ const prompts = [
   'Record the frame used as evidence. Award 1 when the answer is supported and 0 when it is missing or unclear.',
  ],
  [
-  'Giữ nguyên câu hỏi của lượt đầu. Nhóm khách mới trả lời từ V2 để kiểm tra đúng thay đổi vừa thực hiện.',
-  'Keep the first visitor question. A fresh group answers from V2 to test the specific change.',
+  'Giữ nguyên câu hỏi của lượt đầu. Nhóm khách mới tìm câu trả lời trong bản đã chỉnh sửa để kiểm tra phần vừa thay đổi.',
+  'Keep the first visitor question. A fresh group looks for the answer in the revised exhibit to test the specific change.',
  ],
  [
   'Nhóm báo cáo khung đã sửa và điều khách mới tìm được. Phát thẻ điểm đến mới để viết hai câu vận dụng.',

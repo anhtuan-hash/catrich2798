@@ -445,7 +445,7 @@ function AseanTeachingNotes({stage,language,uploadsEnabled}){
    <ol>
     <li>{t(language,'Học sinh mở QR hoặc link mời của nhóm rồi đăng nhập bằng mã nhóm.','Students open the class QR or their invitation link and sign in with their group pass.')}</li>
     <li>{t(language,'Khi giáo viên mở Hoạt động 3, xưởng hiện trên trang học sinh. Nếu đang xem hoạt động khác, chọn Follow teacher.','The workshop appears on the student page when Activity 3 is open. If students are browsing another activity, select Follow teacher.')}</li>
-    <li>{t(language,'Tải ba ảnh, viết chú thích và ghi nguồn. Chọn Preview 2D/3D rồi chọn Save draft. Khi giáo viên chuyển sang Hoạt động 4, hệ thống chốt bản đã lưu mới nhất làm V1.','Upload the three photos, write the captions and add credits. Select Preview 2D/3D, then Save draft. When the teacher advances to Activity 4, the latest saved draft becomes V1.')}</li>
+    <li>{t(language,'Tải ba ảnh, viết chú thích và ghi nguồn. Chọn xem thử triển lãm rồi lưu bản nháp. Khi giáo viên mở Hoạt động 4, bản nháp mới nhất đã lưu trở thành bản trước góp ý.','Upload the three photos, write the captions and add credits. Preview the exhibit, then save the draft. When the teacher opens Activity 4, the latest saved draft becomes the first exhibit.')}</li>
    </ol>
    {uploadsEnabled===false&&<p role="status">{t(language,'Tải ảnh đang tắt. Bật “Tải tranh ảnh 3D” trong Cài đặt để nhóm có thể dựng phòng.','Photo uploads are off. Enable 3D artwork uploads in Settings so groups can build their rooms.')}</p>}
   </>}
@@ -462,14 +462,14 @@ function AseanRetestProgress({rows,language}){
  const v1References=rows.filter(row=>row.baselineReconstructed).length;
  const incomplete=rows.filter(row=>!row.baselineReady).length;
  return <section className="bml-surface" aria-labelledby="asean-retest-progress">
-  <h3 id="asean-retest-progress">{t(language,'Tiến độ thử lại V2','V2 visitor progress')} · {submitted}/{rows.length}</h3>
+  <h3 id="asean-retest-progress">{t(language,'Tiến độ thử lại bản đã chỉnh sửa','Revised exhibit retest progress')} · {submitted}/{rows.length}</h3>
   {staffChecked>0&&<p role="status"><strong>{t(language,`Phiếu kiểm tra hỗ trợ · ${staffChecked}/${rows.length}`,`Staff-prepared checks · ${staffChecked}/${rows.length}`)}</strong>
    {' · '}{t(language,`Học sinh tự nộp · ${submitted}/${rows.length}`,`Student submissions · ${submitted}/${rows.length}`)}</p>}
-  {v1References>0&&<p>{t(language,`${v1References} phòng có V1 phục dựng từ ảnh đã lưu. Dùng các bản này để đối chiếu nội dung triển lãm.`,
-   `${v1References} exhibits have reconstructed V1 references using saved photos. Compare the exhibit content with these references.`)}</p>}
-  {incomplete>0&&<p>{t(language,`${incomplete} phòng có mốc V1 chưa hoàn chỉnh. Dùng phiếu hiện tại để ghi nhận quan sát V2.`,
-   `${incomplete} rooms have incomplete V1 checkpoints. Use this round to record V2 observations.`)}</p>}
-  <div className="asean-retest-progress-table" tabIndex={0} role="region" aria-label={t(language,'Phân công thử lại V2','V2 visitor assignments')}>
+  {v1References>0&&<p>{t(language,`${v1References} phòng có bản trước góp ý được dựng lại từ ảnh đã lưu. Dùng các bản này để đối chiếu nội dung triển lãm.`,
+   `${v1References} rooms use reconstructed first exhibits based on saved photos. Use these references to compare the exhibits.`)}</p>}
+  {incomplete>0&&<p>{t(language,`${incomplete} phòng có bản trước góp ý chưa hoàn chỉnh. Dùng phiếu hiện tại để ghi lại điều khách tìm thấy trong bản đã chỉnh sửa.`,
+   `${incomplete} rooms have incomplete first exhibits. Use this round to record what visitors find in the revised exhibits.`)}</p>}
+  <div className="asean-retest-progress-table" tabIndex={0} role="region" aria-label={t(language,'Phân công thử lại bản đã chỉnh sửa','Revised exhibit retest assignments')}>
    <table>
     <thead><tr>{[["Nhóm làm phiếu","Visitor group"],["Phòng được giao","Assigned exhibit"],["Câu hỏi","Question"],["Kết quả","Result"]]
      .map(([vi,en])=><th key={en} scope="col">{t(language,vi,en)}</th>)}</tr></thead>
@@ -481,7 +481,7 @@ function AseanRetestProgress({rows,language}){
       <td>{frame?.question||'—'}
        {row.reference&&<details><summary>{t(language,'Chú thích để đối chiếu','Caption for reference')}</summary><p lang="en">{row.reference}</p></details>}
       </td>
-      <td>{row.score!==null?`${row.score}/1`:row.ready?t(language,'Chờ học sinh nộp','Awaiting response'):t(language,'V2 chưa sẵn sàng','V2 unavailable')}
+      <td>{row.score!==null?`${row.score}/1`:row.ready?t(language,'Chờ học sinh nộp','Awaiting response'):t(language,'Bản đã chỉnh sửa chưa sẵn sàng','Revised exhibit unavailable')}
        {row.staffReview&&<details><summary>{t(language,'Phiếu kiểm tra hỗ trợ','Staff-prepared check')} · {row.staffReview.score}/1</summary>
         <p lang="en">{row.staffReview.answer}</p></details>}
       </td>
