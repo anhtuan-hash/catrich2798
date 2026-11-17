@@ -1,8 +1,9 @@
 import React from 'react';
+import MuseumOfflineExport from './MuseumOfflineExport.jsx';
 import {saveTextFile,englishSystemGroupLabel} from './museumApi.js';
 import {ASEAN_TITLE} from './aseanLesson.js';
 
-export function AseanDossier({data,onOpenGallery}){
+export function AseanDossier({data,language,transport,readOnly,onOpenGallery}){
  const groups=data?.groups||[],assignments=data?.assignments||[],galleries=data?.publishedGalleries||[];
  const groupScore=(groupId,stage)=> {
   const grade=data?.aseanWritingScores?.find(row=>row.group_id===groupId&&row.stage_index===stage)?.details;
@@ -14,6 +15,8 @@ export function AseanDossier({data,onOpenGallery}){
    <li><a href="/museum/asean/asean-project-overview.docx" download="ASEAN_Project_Overview.docx">Part 1 · Project overview</a></li>
    <li><a href="/museum/asean/asean-group-lesson.docx" download="ASEAN_Group_Lesson.docx">Part 2 · English lesson and group worksheets</a></li>
   </ul>
+  {data?.profile?.id&&!readOnly&&
+   <MuseumOfflineExport data={data} language={language} transport={transport}/>}
   {assignments.map(assignment=>{
    const classGroups=groups.filter(group=>group.assignment_id===assignment.id);
    const rows=classGroups.map(group=>({group:englishSystemGroupLabel(group.label),baseline:groupScore(group.id,0),transfer:groupScore(group.id,5)}));

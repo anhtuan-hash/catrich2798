@@ -17,7 +17,8 @@ function OfflineApp({runtime,hash}){
  const groupLabel=id=>groups.find(g=>g.id===id)?.label||id||'—';
  return <div className="museum-offline-root" onClickCapture={event=>{
   const anchor=event.target.closest?.('a[href]');
-  if(anchor&&!anchor.download&&!/^(?:blob:|data:|#)/.test(anchor.getAttribute('href')||'')){
+  const href=anchor?.getAttribute('href')||'';
+  if(anchor&&!anchor.download&&href!=='hoc-sinh/index.html'&&!/^(?:blob:|data:|#)/.test(href)){
    event.preventDefault();event.stopPropagation();setNotice('This reference is external. Its content is not included in this offline archive.');
   }
  }}>
@@ -28,7 +29,7 @@ function OfflineApp({runtime,hash}){
     <button type="button" onClick={()=>setView('work')} aria-current={view==='work'?'page':undefined}>Saved student work</button>
     <button type="button" onClick={()=>setView('records')} aria-current={view==='records'?'page':undefined}>Evidence records</button>
    </nav>
-   <a href="hoc-sinh/index.html">10 student workshops</a>
+   <a href="hoc-sinh/index.html">{groups.length} student workshops</a>
    <details><summary>Archive details</summary><p>Viewing controls do not change this snapshot.</p>
     <p>Snapshot SHA-256: <code>{hash}</code></p><p>Checksums detect changes relative to this manifest; they are not a digital signature.</p>
     <ul>{snapshot.warnings.map((w,i)=><li key={i}>{w.lesson||w.group||''} {w.message}</li>)}</ul>
@@ -76,7 +77,7 @@ function StudentBoard({runtime}){
  }
  return <main className="bml museum-offline-records">
   <p>PÉTRUS KÝ · FROZEN · READ ONLY</p>
-  <h1>10 student workshops</h1>
+  <h1>{groups.length} student workshops</h1>
   <p>Each row opens that group’s saved practice. Nothing can be added, edited or deleted.</p>
   <p><a href="../PetrusKy_Museum_Offline.html">Open the teacher archive</a></p>
   <table className="bml-frozen-table"><thead><tr><th>#</th><th>Group</th><th>Class</th><th>Museum</th><th></th></tr></thead>

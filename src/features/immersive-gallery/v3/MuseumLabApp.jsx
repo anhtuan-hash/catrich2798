@@ -112,7 +112,8 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
    tab==='submissions'?<SubmissionsScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate} query={query}/>:
    tab==='gallery'?<ExhibitionsScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate} query={query}/>:
    tab==='templates'?<TeachingPlanScreen {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate}/>:
-   tab==='evidence'?(isAsean(lessonTemplate)?<AseanDossier data={matchingData} onOpenGallery={id=>{
+   tab==='evidence'?(isAsean(lessonTemplate)?<AseanDossier data={matchingData} language={uiLanguage}
+    transport={staffTransport} readOnly={readOnly} onOpenGallery={id=>{
     window.history.replaceState(null,'',window.location.hash.split('?')[0]+'?exhibition='+encodeURIComponent(id));
     navigate('gallery');
    }}/>:<DossierScreen {...sharedScreenProps} data={matchingData} transport={liveTransport}/>):

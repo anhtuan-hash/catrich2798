@@ -1,9 +1,9 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {fixture} from './fixture.mjs';
+import {aseanFixture,fixture} from './fixture.mjs';
 import {createOfflineRuntime} from '../../src/features/immersive-gallery/v3/offline/runtime.js';
 import {sanitizeSnapshot,safeJson,buildOfflineHtml,digest,BLOCKED_WRITE} from '../../src/features/immersive-gallery/v3/offline/snapshot.js';
-import {captureMuseum} from '../../src/features/immersive-gallery/v3/offline/exportMuseum.js';
+import {buildStudentWorkshopHtml,captureMuseum} from '../../src/features/immersive-gallery/v3/offline/exportMuseum.js';
 test('secrets and signed capabilities are excluded; evidence content remains',()=>{
  const result=sanitizeSnapshot({passcode:'private',invitation_handle:'private',nested:{access_token:'private',storage_path:'private'},reviewers:[{}],url:'https://example.test/?token=secret',learning:{evidence:'Observed note'},content_frozen_at:'date'});
  assert.deepEqual(result,{nested:{},url:'',learning:{evidence:'Observed note'},content_frozen_at:'date'});
@@ -40,6 +40,36 @@ test('cancelled or capped captures cannot report success',async()=>{
  await assert.rejects(captureMuseum({...fakeOptions(f),signal:controller.signal}),{name:'AbortError'});
  f.staff.assignments=Array.from({length:100},()=>f.staff.assignments[0]);
  await assert.rejects(captureMuseum(fakeOptions(f)),/API limit/);
+});
+test('ASEAN archive preserves teacher activities and group evidence in read-only mode',async()=>{
+ const f=aseanFixture(),rt=createOfflineRuntime(f);
+ const first=await rt.liveStaff('state',null,{assignmentId:'qa-lesson',viewStage:0});
+ assert.equal(first.session.stage.id,'asean-baseline');
+ assert.equal(first.hueQuizResults[0].details.score,2);
+ assert.equal(first.writingScores[0].details.advice,1);
+ const last=await rt.liveStaff('state',null,{assignmentId:'qa-lesson',viewStage:5});
+ assert.equal(last.stageCount,6);
+ assert.equal(last.session.stage.id,'asean-transfer');
+ await assert.rejects(rt.liveStaff('state',null,{assignmentId:'qa-lesson',viewStage:6}),/Invalid presentation activity/);
+ rt.useStudent('qa-group');
+ assert.equal((await rt.guest('me')).assignment.lesson_template,'asean-in-three-frames');
+ assert.equal((await rt.liveGuest('state')).readOnly,true);
+ const records=await rt.liveGuest('asean-records');
+ assert.deepEqual(records.rows.map(r=>r.stage_index),[0,5]);
+ assert.equal(records.retest.score,1);
+ assert.equal(records.feedback.comment,'Explain how to reach the QA footpath.');
+ assert.equal(records.revisionDetails[0].v2,'QA revised caption.');
+ await assert.rejects(rt.liveGuest('asean-submit','POST',{}),{message:BLOCKED_WRITE});
+ const file=await buildStudentWorkshopHtml({script:'void 0;',css:''},f,'qa-group');
+ const html=await file.blob.text();
+ assert.match(html,/Visitors can see the QA temple/);
+ assert.doesNotMatch(html,/OTHER GROUP QA ANSWER|qa-group-2|qa-group-3/);
+});
+test('public or offline viewers cannot capture a new archive',async()=>{
+ for(const mode of ['publicReadOnly','offlineReadOnly']){
+  const f=aseanFixture();f.staff[mode]=true;
+  await assert.rejects(captureMuseum(fakeOptions(f)),/authorized teacher account/);
+ }
 });
 test('image bytes are embedded before signed capabilities are stripped; failed downloads abort',async()=>{
  const original=globalThis.FileReader;
