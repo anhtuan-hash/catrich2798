@@ -194,6 +194,10 @@ function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdi
   onPointerOut={()=>{document.body.style.cursor='';if(editorial)setHovered(false);}}>
   <mesh><boxGeometry args={fitted? [...fitted.outer,.08]:cinemaEdition?[2.78,3.56,.08]:schoolEdition?[2.45,1.95,.11]:[2.04,1.70,.10]}/>
    <meshStandardMaterial color={editorial?(hovered&&focus.phase==='idle'?'#91703a':'#201e1a'):cinemaEdition?'#1A120C':schoolEdition?(isSelected?'#F6D477':'#B69B62'):(isSelected?'#e4aa64':'#ae856e')} roughness={.4} metalness={editorial ? .05 : cinemaEdition ? .48 : schoolEdition ? .19 : 0}/></mesh>
+  {bay&&fitted?<mesh name="ArtworkBronzeFrameLip" position={[0,0,.049]}>
+   <boxGeometry args={[fitted.mat[0]+.052,fitted.mat[1]+.052,.018]}/>
+   <meshStandardMaterial color="#a78650" metalness={.30} roughness={.56}/>
+  </mesh>:null}
   {fitted&&!editorial?<mesh position={[0,0,.03]}><boxGeometry args={[...fitted.gold,.07]}/>
    <meshStandardMaterial color={isSelected?'#FFE7A1':'#F0D27A'} emissive={isSelected?'#E8CE78':'#3A2A10'} emissiveIntensity={isSelected?.8:.12} metalness={.7} roughness={.22}/></mesh>:null}
   {fitted&&!editorial?<mesh position={[0,0,.044]}><boxGeometry args={[...fitted.liner,.02]}/>
