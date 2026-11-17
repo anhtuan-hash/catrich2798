@@ -156,14 +156,16 @@ export async function handleAseanActivity({op,req,res,admin,ctx,session}){
    return send(res,200,{gallery:null,target:target.label});
   const [gallery,prepared]=await Promise.all([
    checkpointGallery(admin,checkpoint,target.label),
-   stage===3?query(admin.from('museum_learning_events').select('details')
-    .eq('session_id',session.id).eq('group_id',id).eq('stage_index',3).eq('actor_role','teacher')
-    .eq('action','asean_visitor_feedback_draft').order('created_at',{ascending:false}).limit(1).maybeSingle()):null
+   query(admin.from('museum_learning_events').select('details')
+    .eq('session_id',session.id).eq('group_id',id).eq('stage_index',stage).eq('actor_role','teacher')
+    .eq('action','asean_visitor_feedback_draft').order('created_at',{ascending:false}).limit(1).maybeSingle())
   ]);
-  const feedbackDraft=prepared?.details?.checkpointId===checkpoint.id?prepared.details.response:null;
+  const question=stage===4?checkpoint.doc.retestQuestion:null;
+  const draft=prepared?.details;
+  const feedbackDraft=draft?.checkpointId===checkpoint.id&&
+   (stage===3||(draft.version===checkpoint.version&&draft.response?.question===question))?draft.response:null;
   return send(res,200,{gallery,target:target.label,
-   ...(validAseanResponse(3,feedbackDraft)?{feedbackDraft}:{}),
-   question:stage===4?checkpoint.doc.retestQuestion:null});
+   ...(validAseanResponse(stage,feedbackDraft)?{feedbackDraft}:{}),question});
  }
  requireMethod(req,'POST');guardOrigin(req);
  const body=guardBody(req,2200);

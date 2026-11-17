@@ -124,7 +124,7 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
  const [visit,setVisit]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [prefilledFeedback,setPrefilledFeedback]=useState(false);
  const submitted=Boolean(record);
- const errorRef=useRef(null),openedV1=useRef(false);
+ const errorRef=useRef(null),openedVisit=useRef(false);
  useEffect(()=>{
   if(formId&&error)errorRef.current?.focus();
  },[formId,error]);
@@ -144,9 +144,9 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
    const result=await liveGuest('asean-visit');
    setVisit(result);
    if(result.gallery){
-    if(v1Visit&&!openedV1.current){
-     openedV1.current=true;
-     if(validAseanResponse(3,result.feedbackDraft)){
+    if(!openedVisit.current){
+     openedVisit.current=true;
+     if(validAseanResponse(stage,result.feedbackDraft)){
       setFields(result.feedbackDraft);
       setPrefilledFeedback(true);
      }
@@ -229,7 +229,9 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
     {T(language,'Phòng vừa thử','Exhibit tested')} · <strong>{visitedExhibit}</strong>
    </p>}
    {prefilledFeedback&&!submitted&&<p className="bml-banner bml-info-banner" lang={language}>
-    {T(language,'Phiếu điền sẵn từ lượt rà soát V1. Hãy kiểm tra các câu trả lời, bằng chứng và khung nhóm mở đầu tiên trước khi nộp.',
+    {v2Visit?T(language,'Phiếu điền sẵn từ lượt kiểm tra tham chiếu V2. Hãy kiểm tra câu trả lời, khung bằng chứng và điểm trước khi nộp.',
+     'Draft based on the teacher’s V2 reference check. Check the answer, evidence frame and score before submitting.')
+     :T(language,'Phiếu điền sẵn từ lượt rà soát V1. Hãy kiểm tra các câu trả lời, bằng chứng và khung nhóm mở đầu tiên trước khi nộp.',
      'Draft based on a V1 review. Check the answers, evidence and the first frame your group opened before submitting.')}
    </p>}
    {baselineDraft&&!submitted&&<p role="status">{open
@@ -613,7 +615,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
         onClick={()=>action('submit')}>{submitted?'Submitted':'Submit final 3D exhibit'}</button>}
        {stage===5&&liveOpen&&!captured&&!submitted&&<p>Save the revised V2 in Activity 5 before submitting.</p>}
       </section>}
-      {stage===4&&<GroupResponse key={stage} session={{...session,readOnly}} stage={stage} live={live} open={liveOpen}
+      {stage===4&&<GroupResponse key={live?.id??stage} session={{...session,readOnly}} stage={stage} live={live} open={liveOpen}
        record={stageRecord} refreshLive={refreshLive} refreshRecords={refreshRecords}
        onVisit={gallery=>{startActivity();setPreview({gallery,retest:true});}}
        retestTask={records.retestTask} language={language}/>}
