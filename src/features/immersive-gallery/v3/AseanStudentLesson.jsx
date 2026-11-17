@@ -34,14 +34,14 @@ const ACTIVITY_GROUP_ENDS=[1,2,3,5,ASEAN_STAGES.length];
 const ASEAN_ACTIVITIES_VI=ASEAN_STAGES.map(stage=>({...stage,title:stage.vi}));
 const T=(language,vi,en)=>language==='en'?en:vi;
 
-function HoiAnVisitorModel(){
+function HoiAnVisitorModel({language}){
  const captions=[
   'Hội An Ancient Town is in central Viet Nam. Its historic streets and buildings show how local and overseas traders helped shape this old port.',
   'Enjoy the local culture.',
   'When you stop to take a photo near the bridge, stand to one side. Leave enough space for other visitors to pass safely.',
  ];
  return <section className="asean-visitor-model bml-surface" aria-labelledby="asean-visitor-model-title">
-  <h3 id="asean-visitor-model-title">Hội An Ancient Town</h3>
+  <h3 id="asean-visitor-model-title" lang={language}>{T(language,'Phố cổ Hội An','Hội An Ancient Town')}</h3>
   <ol>{ASEAN_FRAMES.map((frame,index)=><li key={frame.key}><strong>{frame.label}</strong> · {captions[index]}</li>)}</ol>
   <p>Which visitor question still needs a clearer answer? Agree on the missing detail and share it with your class.</p>
  </section>;
@@ -375,10 +375,10 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
       {readOnly&&<p className="bml-workshop-readonly" role="status"><LockKeyhole size={16}/>Lesson complete · View only</p>}
       {stage===0?<>
        {(stageRecord||live?.stageIndex>0||readOnly)?<>
-        <HoiAnVisitorModel/>
+        <HoiAnVisitorModel language={language}/>
         <AseanActivityArt activity={design.id}/>
        </>:
-        <p className="asean-response-closed" role="status">Submit your two sentences in Step 1 to open the Hội An example.</p>}
+        <p className="asean-response-closed" role="status" lang={language}>{T(language,'Nộp hai câu ở Bước 1 để mở mẫu Hội An.','Submit your two sentences in Step 1 to open the Hội An example.')}</p>}
        <p className="asean-project-topic"><span>Your 3D project topic</span><strong>{destination?.name||session.assignment.title}</strong></p>
       </>:<>
        {stage===5&&<p className="asean-exhibit-destination-label">Your 3D project topic</p>}
