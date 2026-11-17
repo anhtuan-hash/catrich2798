@@ -100,6 +100,9 @@ function MuseumFocusSpotlight({position,aim,lite=false,index=0,editorial=false})
 export default function MuseumExhibitFocusRig({focus,board,onBack,onStep,index=0,count=1,language='en',lite=false,editorial=false}){
  const {size,invalidate}=useThree();
  const stage=useRef(null),boardGroup=useRef(null),pedestalGroup=useRef(null);
+ // Position the editorial plaque from its 3D anchor without perspective CSS.
+ // The inset, clipped canvas otherwise makes rendered and clickable bounds diverge.
+ const perspectivePlaque=!editorial&&size.width>=650;
  const metal=editorial?"#211f1b":"#C8A34B";
  const active=focus?.phase!=='idle'&&focus?.phase!=='error';
  const layout=focusLayout(size.width,size.height);
@@ -178,8 +181,8 @@ export default function MuseumExhibitFocusRig({focus,board,onBack,onStep,index=0
        CSS3D transform collapses its DOM text to subpixel sizes in portrait
        WebGL contexts. Two-dimensional Drei positioning is still projected
        from the plaque's true world position; no modal or fixed overlay. */}
-   <Html transform={size.width>=650} center position={[0,0,.114]}
-    distanceFactor={size.width>=650?3.1:undefined} occlude={false}
+   <Html transform={perspectivePlaque} center position={[0,0,.114]}
+    distanceFactor={perspectivePlaque?3.1:undefined} occlude={false}
     style={{pointerEvents:'auto'}}>
     <PlaqueText key={focus.exhibitId} board={board} phase={focus.phase} onBack={onBack} onStep={onStep} index={index} count={count} language={language}/>
    </Html>

@@ -266,3 +266,20 @@
   min-width: 33px;
  }
 }
+
+.bml.bml-teacher-cinema-portal > .bml-review-cinema-overlay:has(> .bml-swiss-3d) {
+ inset: 0 !important;
+ width: 100% !important;
+ height: 100% !important;
+ border: 0;
+ border-radius: 0;
+ box-shadow: none;
+}
+@container (min-width: 701px) and (max-width: 945px) {
+ .bml .bml-swiss-3d .bml-v5-plaque-copy {
+  width: clamp(206px, 27cqw, 260px);
+  height: clamp(258px, 32cqw, 315px);
+  padding: 9px 10px;
+ }
+ .bml .bml-swiss-3d .bml-v5-plaque-copy .bml-v5-back { padding-inline: 8px; font-size: 11px }
+}
