@@ -1,41 +1,118 @@
 import React from 'react';
+import { ArrowRight, ExternalLink, FileText } from 'lucide-react';
 import MuseumOfflineExport from './MuseumOfflineExport.jsx';
-import {saveTextFile,englishSystemGroupLabel} from './museumApi.js';
-import {ASEAN_TITLE} from './aseanLesson.js';
+import { englishSystemGroupLabel, saveTextFile } from './museumApi.js';
+import { ASEAN_TITLE } from './aseanLesson.js';
+import './aseanDossierEditorial.css';
 
-export function AseanDossier({data,language,transport,readOnly,onOpenGallery}){
- const groups=data?.groups||[],assignments=data?.assignments||[],galleries=data?.publishedGalleries||[];
- const groupScore=(groupId,stage)=> {
-  const grade=data?.aseanWritingScores?.find(row=>row.group_id===groupId&&row.stage_index===stage)?.details;
-  return grade?grade.experience+grade.advice:null;
- };
- return <section className="bml-screen bml-surface">
-  <h1>{ASEAN_TITLE} · Teaching dossier</h1>
-  <ul>
-   <li><a href="/museum/asean/asean-project-overview.docx" download="ASEAN_Project_Overview.docx">Part 1 · Project overview</a></li>
-   <li><a href="/museum/asean/asean-group-lesson.docx" download="ASEAN_Group_Lesson.docx">Part 2 · English lesson and group worksheets</a></li>
-  </ul>
-  {data?.profile?.id&&!readOnly&&
-   <MuseumOfflineExport data={data} language={language} transport={transport}/>}
-  {assignments.map(assignment=>{
-   const classGroups=groups.filter(group=>group.assignment_id===assignment.id);
-   const rows=classGroups.map(group=>({group:englishSystemGroupLabel(group.label),baseline:groupScore(group.id,0),transfer:groupScore(group.id,5)}));
-   const paired=rows.filter(row=>row.baseline!==null&&row.transfer!==null);
-   const gallery=galleries.find(item=>item.id==='asean-'+assignment.id);
-   const summary={paired:paired.length,awaitingScores:rows.length-paired.length,
-    higher:paired.filter(row=>row.transfer>row.baseline).length,
-    unchanged:paired.filter(row=>row.transfer===row.baseline).length,
-    lower:paired.filter(row=>row.transfer<row.baseline).length,
-    fullMarksBaseline:paired.filter(row=>row.baseline===2).length,
-    fullMarksTransfer:paired.filter(row=>row.transfer===2).length};
-   return <section className="bml-surface" key={assignment.id}>
-    <h2>{assignment.class_scope} · {assignment.title}</h2>
-    {gallery&&<button type="button" className="bml-outline" onClick={()=>onOpenGallery(gallery.id)}>Open published 3D exhibition</button>}
-    {!data.publicReadOnly&&<>
-     <p>Paired group writing scores · {summary.paired}/{rows.length}. Higher {summary.higher} · unchanged {summary.unchanged} · lower {summary.lower}.</p>
-     <button type="button" className="bml-outline" onClick={()=>saveTextFile('ASEAN_Group_Writing.json','application/json',JSON.stringify({class:assignment.class_scope,summary,groups:rows},null,2))}>Export group writing summary</button>
-    </>}
-   </section>;
-  })}
- </section>;
+export function AseanDossier({ data, language, transport, readOnly, onOpenGallery }) {
+  const tr = (vi, en) => language === 'en' ? en : vi;
+  const groups = data?.groups || [];
+  const assignments = data?.assignments || [];
+  const galleries = data?.publishedGalleries || [];
+  const showWriting = !data?.publicReadOnly && (!readOnly || data?.offlineReadOnly);
+  const classScopes = [...new Set(assignments.map(assignment => assignment.class_scope).filter(Boolean))];
+  const publishedCount = assignments.filter(assignment => galleries.some(gallery => gallery.id === 'asean-' + assignment.id)).length;
+  const publicationStatus = publishedCount === 0
+    ? tr('Chưa công bố', 'Unpublished')
+    : publishedCount === assignments.length
+      ? tr('Đã công bố', 'Published')
+      : tr(`${publishedCount}/${assignments.length} đã công bố`, `${publishedCount}/${assignments.length} published`);
+
+  const groupScore = (groupId, stage) => {
+    const grade = data?.aseanWritingScores?.find(row => row.group_id === groupId && row.stage_index === stage)?.details;
+    return grade ? grade.experience + grade.advice : null;
+  };
+
+  const renderLayout = ({ board, download, feedback } = {}) => (
+    <>
+      <header className="asean-dossier-cover">
+        <h1 aria-label={`${ASEAN_TITLE} · ${tr('Hồ sơ dự thi', 'Teaching dossier')}`}>
+          <span>{tr('Hồ sơ', 'Teaching')}</span>{' '}
+          <span>{tr('dự thi', 'dossier')}</span>
+        </h1>
+        {(download || assignments.length > 0) && (
+          <div className="asean-dossier-details">
+            {download && <h2>{tr('Gói offline · Chỉ đọc', 'Offline pack · Read only')}</h2>}
+            {assignments.length > 0 && (
+              <dl className="asean-dossier-metadata">
+                <div><dt>{tr('Lớp', 'Class')}</dt><dd>{classScopes.join(' · ') || '—'}</dd></div>
+                <div><dt>{tr('Trạng thái', 'Status')}</dt><dd>{publicationStatus}</dd></div>
+              </dl>
+            )}
+          </div>
+        )}
+        {download}
+        <ul className="asean-dossier-documents">
+          <li><a href="/museum/asean/asean-project-overview.docx" download="ASEAN_Project_Overview.docx">
+            <span>{tr('Phần 1 · Tổng quan dự án', 'Part 1 · Project overview')}</span><ArrowRight aria-hidden="true" size={22}/>
+          </a></li>
+          <li><a href="/museum/asean/asean-group-lesson.docx" download="ASEAN_Group_Lesson.docx">
+            <span>{tr('Phần 2 · Kế hoạch dạy học và phiếu nhóm', 'Part 2 · English lesson and group worksheets')}</span><ArrowRight aria-hidden="true" size={22}/>
+          </a></li>
+        </ul>
+      </header>
+
+      <div className="asean-dossier-register">
+        {board}
+        {feedback}
+        {assignments.map(assignment => {
+          const classGroups = groups.filter(group => group.assignment_id === assignment.id);
+          const rows = classGroups.map(group => ({
+            group: englishSystemGroupLabel(group.label),
+            baseline: groupScore(group.id, 0),
+            transfer: groupScore(group.id, 5),
+          }));
+          const paired = rows.filter(row => row.baseline !== null && row.transfer !== null);
+          const gallery = galleries.find(item => item.id === 'asean-' + assignment.id);
+          const summary = {
+            paired: paired.length,
+            awaitingScores: rows.length - paired.length,
+            higher: paired.filter(row => row.transfer > row.baseline).length,
+            unchanged: paired.filter(row => row.transfer === row.baseline).length,
+            lower: paired.filter(row => row.transfer < row.baseline).length,
+            fullMarksBaseline: paired.filter(row => row.baseline === 2).length,
+            fullMarksTransfer: paired.filter(row => row.transfer === 2).length,
+          };
+          if (!gallery && !showWriting) return null;
+
+          const classTitle = `${assignment.class_scope} · ${assignment.title}`;
+          return (
+            <section className="asean-dossier-class" key={assignment.id} aria-label={classTitle}>
+              {(!board || assignments.length > 1) && <h2>{classTitle}</h2>}
+              <div className="asean-dossier-actions">
+                {gallery && (
+                  <button type="button" className="bml-outline" onClick={() => onOpenGallery(gallery.id)}>
+                    <ExternalLink size={18} aria-hidden="true"/>{tr('Triển lãm 3D (Museum Lab)', '3D exhibition (Museum Lab)')}
+                  </button>
+                )}
+                {showWriting && (
+                  <button type="button" className="bml-outline" onClick={() => saveTextFile(
+                    'ASEAN_Group_Writing.json', 'application/json',
+                    JSON.stringify({ class: assignment.class_scope, summary, groups: rows }, null, 2),
+                  )}>
+                    <FileText size={18} aria-hidden="true"/>{tr('Xuất điểm viết theo nhóm', 'Export group writing summary')}
+                  </button>
+                )}
+              </div>
+              {showWriting && (
+                <p>{tr(
+                  `Nhóm có đủ hai điểm viết: ${summary.paired}/${rows.length} · Tăng ${summary.higher} · Không đổi ${summary.unchanged} · Giảm ${summary.lower}`,
+                  `Paired group writing scores: ${summary.paired}/${rows.length} · Higher ${summary.higher} · Unchanged ${summary.unchanged} · Lower ${summary.lower}`,
+                )}</p>
+              )}
+            </section>
+          );
+        })}
+      </div>
+    </>
+  );
+
+  return (
+    <section className="swiss-editorial-dossier" data-testid="asean-dossier">
+      {data?.profile?.id && !readOnly
+        ? <MuseumOfflineExport data={data} language={language} transport={transport} renderLayout={renderLayout}/>
+        : <div className="asean-dossier-layout">{renderLayout()}</div>}
+    </section>
+  );
 }

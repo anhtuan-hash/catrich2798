@@ -1,0 +1,283 @@
+.bml .swiss-editorial-dossier {
+  --dossier-ink: #111;
+  --dossier-paper: #fffefa;
+  --dossier-red: #d3001c;
+  --dossier-padding: clamp(18px, 2.4cqw, 34px);
+  container-type: inline-size;
+  color: var(--dossier-ink);
+  background: var(--dossier-paper);
+}
+
+.swiss-editorial-dossier .asean-dossier-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 36fr) minmax(0, 64fr);
+}
+
+.swiss-editorial-dossier .asean-dossier-cover,
+.swiss-editorial-dossier .asean-dossier-register {
+  min-width: 0;
+  padding: var(--dossier-padding);
+}
+
+.swiss-editorial-dossier .asean-dossier-cover {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  background: var(--dossier-ink);
+  color: var(--dossier-paper);
+}
+
+.bml .swiss-editorial-dossier .asean-dossier-cover > h1 {
+  margin: .11em 0 .24em;
+  color: inherit;
+  font-size: clamp(3.65rem, 10.1cqw, 8.3rem);
+  font-weight: 900;
+  line-height: .87;
+  letter-spacing: -.08em;
+}
+
+.bml[lang="en"] .swiss-editorial-dossier .asean-dossier-cover > h1 {
+  font-size: clamp(3rem, 7cqw, 6.5rem);
+  line-height: .91;
+}
+
+.swiss-editorial-dossier .asean-dossier-cover > h1 span {
+  display: block;
+}
+
+.swiss-editorial-dossier .asean-dossier-details {
+  padding-block: 13px 18px;
+  border-top: 2px solid currentColor;
+}
+
+.bml .swiss-editorial-dossier .asean-dossier-details > h2 {
+  margin: 0 0 19px;
+  color: inherit;
+  font-size: clamp(1.23rem, 2.48cqw, 1.93rem);
+  font-weight: 800;
+  letter-spacing: -.045em;
+}
+
+.swiss-editorial-dossier .asean-dossier-metadata {
+  display: grid;
+  grid-template-columns: minmax(0, .76fr) minmax(0, 1.24fr);
+  margin: 0;
+}
+
+.swiss-editorial-dossier .asean-dossier-metadata > div:last-child {
+  border-inline-start: 1px solid #aaa;
+  padding-inline-start: clamp(10px, 2cqw, 23px);
+}
+
+.swiss-editorial-dossier .asean-dossier-metadata > div:first-child {
+  padding-inline-end: 12px;
+}
+
+.swiss-editorial-dossier .asean-dossier-metadata dt {
+  margin-bottom: 5px;
+  font-size: .87rem;
+}
+
+.swiss-editorial-dossier .asean-dossier-metadata dd {
+  margin: 0;
+  font-weight: 850;
+  line-height: 1.08;
+  letter-spacing: -.045em;
+  overflow-wrap: anywhere;
+}
+
+.swiss-editorial-dossier .asean-dossier-metadata > div:first-child dd {
+  font-size: clamp(1.55rem, 3.7cqw, 3.2rem);
+  font-variant-numeric: tabular-nums;
+}
+
+.swiss-editorial-dossier .asean-dossier-metadata > div:last-child dd {
+  font-size: clamp(1.05rem, 2.31cqw, 1.85rem);
+}
+
+.bml .swiss-editorial-dossier .asean-dossier-download {
+  width: 100%;
+  min-height: 52px;
+  padding: 11px 10px;
+  border-color: var(--dossier-red);
+  border-radius: 0;
+  background: var(--dossier-red);
+  box-shadow: none;
+  color: #fff;
+  font-size: clamp(1.04rem, 2.13cqw, 1.73rem);
+  line-height: 1.15;
+  letter-spacing: -.035em;
+}
+
+.bml .swiss-editorial-dossier .asean-dossier-download:hover:not(:disabled) {
+  background: #b00018;
+}
+
+.bml .swiss-editorial-dossier .asean-dossier-download:focus-visible,
+.bml .swiss-editorial-dossier .asean-dossier-documents a:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.bml .swiss-editorial-dossier .asean-dossier-pack p {
+  margin: 8px 0 0;
+  color: inherit;
+  font-size: clamp(.79rem, 1.38cqw, 1rem);
+  line-height: 1.38;
+}
+
+.bml .swiss-editorial-dossier .asean-dossier-pack p + p {
+  margin-top: 3px;
+  color: #c7c7c7;
+  font-size: .78rem;
+}
+
+.swiss-editorial-dossier .asean-dossier-documents {
+  display: grid;
+  padding: 0;
+  margin: 18px 0 0;
+  list-style: none;
+}
+
+.swiss-editorial-dossier .asean-dossier-documents li {
+  border-top: 1px solid #dcd8d0;
+}
+
+.bml .swiss-editorial-dossier .asean-dossier-documents a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-block: clamp(11px, 1.35cqw, 19px);
+  color: inherit;
+  font-size: clamp(.98rem, 1.9cqw, 1.42rem);
+  font-weight: 740;
+  line-height: 1.21;
+  letter-spacing: -.025em;
+  text-decoration: none;
+}
+
+.swiss-editorial-dossier .asean-dossier-documents a:hover span {
+  text-decoration: underline;
+  text-underline-offset: .18em;
+}
+
+.swiss-editorial-dossier :is(.asean-dossier-documents, .asean-dossier-actions, .asean-dossier-download) svg {
+  flex-shrink: 0;
+}
+
+.swiss-editorial-dossier .asean-dossier-register {
+  background: var(--dossier-paper);
+  border: 1px solid #dedad0;
+  border-inline-start: 0;
+}
+
+.bml .swiss-editorial-dossier .bml-frozen-board {
+  margin: 0;
+  border: 0;
+  background: transparent;
+}
+
+.bml .swiss-editorial-dossier .bml-frozen-board .bml-section-head {
+  margin: 0;
+  padding: 0 0 14px;
+}
+
+.bml .swiss-editorial-dossier .bml-frozen-board h2 {
+  margin: 0;
+  color: var(--dossier-ink);
+  font-size: clamp(1.83rem, 4.65cqw, 4.1rem);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -.06em;
+}
+
+.swiss-editorial-dossier .bml-frozen-table-wrap {
+  border-block: 1px solid var(--dossier-ink);
+  scrollbar-width: thin;
+}
+
+.swiss-editorial-dossier .bml-frozen-table-wrap:focus-visible {
+  outline: 2px solid var(--dossier-red);
+  outline-offset: 3px;
+}
+
+.bml .swiss-editorial-dossier .bml-frozen-table th,
+.bml .swiss-editorial-dossier .bml-frozen-table td {
+  padding: clamp(8px, 1cqw, 13px) clamp(7px, 1.04cqw, 15px);
+  border: 0;
+  border-bottom: 1px solid #5c5a57;
+  background: transparent;
+  color: var(--dossier-ink);
+  font-size: clamp(.81rem, 1.44cqw, 1.08rem);
+  line-height: 1.23;
+  white-space: normal;
+}
+
+.bml .swiss-editorial-dossier .bml-frozen-table th {
+  font-weight: 800;
+  letter-spacing: -.02em;
+  text-transform: none;
+}
+
+.swiss-editorial-dossier .bml-frozen-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.bml .swiss-editorial-dossier .bml-frozen-table tbody td:first-child:not([colspan]) {
+  min-width: 2.4em;
+  color: var(--dossier-red);
+  font-size: clamp(1.13rem, 2.15cqw, 1.65rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -.045em;
+  font-variant-numeric: tabular-nums;
+}
+
+.swiss-editorial-dossier .asean-dossier-class {
+  margin-top: clamp(15px, 2.8cqw, 33px);
+}
+
+.bml .swiss-editorial-dossier .asean-dossier-class > h2 {
+  margin: 0 0 10px;
+  font-size: clamp(1.04rem, 2.15cqw, 1.6rem);
+  font-weight: 800;
+}
+
+.swiss-editorial-dossier .asean-dossier-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px 12px;
+}
+
+.bml .swiss-editorial-dossier .asean-dossier-actions > button {
+  flex: 1 1 auto;
+  justify-content: flex-start;
+  padding-inline: 11px;
+  color: var(--dossier-ink);
+  border-color: var(--dossier-ink);
+  font-size: clamp(.82rem, 1.44cqw, 1.08rem);
+  text-align: start;
+}
+
+.bml .swiss-editorial-dossier .asean-dossier-class > p {
+  margin: 7px 0 0;
+  font-size: .8rem;
+  color: #554f49;
+}
+
+@container (max-width: 820px) {
+  .swiss-editorial-dossier .asean-dossier-layout { grid-template-columns: minmax(0, 1fr); }
+
+  .bml .swiss-editorial-dossier .asean-dossier-cover > h1,
+  .bml[lang="en"] .swiss-editorial-dossier .asean-dossier-cover > h1 {
+    font-size: clamp(2.7rem, 9.3cqw, 5.2rem);
+    line-height: .98;
+    letter-spacing: -.067em;
+  }
+
+  .swiss-editorial-dossier .asean-dossier-cover > h1 span { display: inline; }
+  .swiss-editorial-dossier .asean-dossier-register { border-inline-start: 1px solid #dedad0; }
+  .swiss-editorial-dossier .asean-dossier-download { max-width: 25rem; }
+  .swiss-editorial-dossier .bml-frozen-table { min-width: 448px; }
+}
