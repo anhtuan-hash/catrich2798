@@ -1,11 +1,12 @@
 import React,{Suspense} from 'react';
 import {useCanvasTexture} from './PekMuseumArchitecture.jsx';
 import {CrestImage} from './SwissEditorialHallDetails.jsx';
+import SwissGalleryFurnishings from './SwissGalleryFurnishings.jsx';
 import MetalWallLettering from './MetalWallLettering.jsx';
 import {hasMetalLetteringGlyphs} from './metalLetteringGeometry.js';
 import {useEditorialWallTexture} from './SwissEditorialHall.jsx';
 import {PEK_GALLERY_WALL_INSCRIPTIONS} from './pekMuseumMotto.js';
-import {collectionHallHeight,collectionHallPosition} from './swissCollectionLayout.js';
+import {collectionHallHeight,collectionHallPosition,collectionFurnishingAt} from './swissCollectionLayout.js';
 
 const pine='#254536',brass='#a8874a',ink='#211f1b',selectedRed='#b53326';
 const coveHeight=collectionHallHeight-.28;
@@ -132,9 +133,11 @@ export default function SwissCollectionHall({hall,collections,collectionIndex,on
  return <group name="PetrusKyFourWallGallery">
   <GalleryStoneFloor width={width} depth={depth} onWalk={event=>{
    event.stopPropagation();
-   onTeleport(collectionHallPosition(hall,event.point.x,event.point.z));
+   const [x,z]=collectionHallPosition(hall,event.point.x,event.point.z);
+   if(!collectionFurnishingAt(hall,x,z))onTeleport([x,z]);
   }}/>
   <GalleryCeiling width={width} depth={depth}/>
+  <SwissGalleryFurnishings furnishings={hall.furnishings}/>
   {hall.walls.map((wall,i)=><group key={i} name={'CollectionWall'+(i+1)} position={[wall.x,0,wall.z]} rotation={[0,wall.yaw,0]}>
    <mesh position={[0,collectionHallHeight/2,-.061]}>
     <boxGeometry args={[wall.length,collectionHallHeight+.16,.12]}/>
