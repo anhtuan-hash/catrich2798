@@ -5,11 +5,12 @@ import MuseumWorkshopBoard from './MuseumWorkshopBoard.jsx';
 import { groupWorkshopRows } from './offline/workshopRows.js';
 import { englishSystemGroupLabel, saveTextFile } from './museumApi.js';
 import { ASEAN_TITLE } from './aseanLesson.js';
-import { ASEAN_PLAN_DOWNLOAD, ASEAN_PLAN_FILENAME } from './aseanPaperPlan.js';
+import { getAseanPaperPlan } from './aseanPaperPlan.js';
 import './aseanDossierEditorial.css';
 
 export function AseanDossier({ data, language, transport, readOnly, onOpenGallery, onOpenReview }) {
   const tr = (vi, en) => language === 'en' ? en : vi;
+  const {href:planHref, filename:planFilename} = getAseanPaperPlan(language);
   const groups = data?.groups || [];
   const assignments = data?.assignments || [];
   const galleries = data?.publishedGalleries || [];
@@ -51,7 +52,7 @@ export function AseanDossier({ data, language, transport, readOnly, onOpenGaller
           <li><a href="/museum/asean/asean-project-overview.docx" download="ASEAN_Project_Overview.docx">
             <span>{tr('Phần 1 · Tổng quan dự án', 'Part 1 · Project overview')}</span><ArrowRight aria-hidden="true" size={22}/>
           </a></li>
-          <li><a href={ASEAN_PLAN_DOWNLOAD} download={ASEAN_PLAN_FILENAME}>
+          <li><a href={planHref} download={planFilename}>
             <span>{tr('Phần 2 · Kế hoạch bài dạy và phụ lục', 'Part 2 · Teaching plan and appendices')}</span><ArrowRight aria-hidden="true" size={22}/>
           </a></li>
         </ul>

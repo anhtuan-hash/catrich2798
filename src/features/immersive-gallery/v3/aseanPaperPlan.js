@@ -1,6 +1,5 @@
 // Phần 2 of the submitted ASEAN in Three Frames dossier (17 November 2026).
-export const ASEAN_PLAN_DOWNLOAD = '/museum/asean/asean-group-lesson.docx';
-export const ASEAN_PLAN_FILENAME = 'TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2.docx';
+import {ASEAN_PAPER_PLAN_ENGLISH} from './aseanPaperPlanEnglish.js';
 
 export const ASEAN_PAPER_PLAN = {
   "metadata": [
@@ -391,3 +390,26 @@ export const ASEAN_PAPER_PLAN = {
     }
   ]
 };
+
+const vietnamese = {
+  plan: ASEAN_PAPER_PLAN,
+  href: '/museum/asean/asean-group-lesson.docx',
+  filename: 'TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2.docx',
+};
+
+const english = {
+  plan: {
+    ...ASEAN_PAPER_PLAN_ENGLISH,
+    assessment: {...ASEAN_PAPER_PLAN.assessment, ...ASEAN_PAPER_PLAN_ENGLISH.assessment},
+    activities: ASEAN_PAPER_PLAN.activities.map((activity, index) => ({
+      ...activity,
+      ...ASEAN_PAPER_PLAN_ENGLISH.activities[index],
+    })),
+  },
+  href: '/museum/asean/asean-group-lesson-en.docx',
+  filename: 'TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2_EN.docx',
+};
+
+export function getAseanPaperPlan(language) {
+  return language === 'en' ? english : vietnamese;
+}

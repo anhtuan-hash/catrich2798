@@ -5,7 +5,7 @@ import {LIVE_STAGES,LIVE_TOTAL_MINUTES,LIVE_PERIOD_MINUTES} from '../../v3/liveL
 import {LESSON_PLAN_NOTES, PUBLIC_LESSON_GUIDE, OFFLINE_LESSON_WORKSHEET, VISITOR_TASKS, CLASSROOM_SETUP, CLASSROOM_RECORDS, VISITOR_TEST_GUIDANCE, LESSON_RUBRIC_LEVELS} from '../../v3/lessonPlanAlignment.js';
 import {MUSEUM_CURRICULUM_VIDEOS} from '../../v3/museumLiveExtensions.js';
 import {ASEAN_TITLE,ASEAN_TOPIC,isAsean} from '../../v3/aseanLesson.js';
-import {ASEAN_PAPER_PLAN,ASEAN_PLAN_DOWNLOAD,ASEAN_PLAN_FILENAME} from '../../v3/aseanPaperPlan.js';
+import {getAseanPaperPlan} from '../../v3/aseanPaperPlan.js';
 import AseanPaperPlan from './AseanPaperPlan.jsx';
 import EditorialHeading from '../shell/EditorialHeading.jsx';
 import MetricStrip from '../shell/MetricStrip.jsx';
@@ -16,12 +16,13 @@ const t=(lang,vi,en)=>lang==='en'?en:vi;
 const kit=LESSON_KITS[0]||{};
 export default function TeachingPlanScreen({language='vi',data,lessonTemplate,onCreate,onBack,onNavigate}){
   const asean=isAsean(lessonTemplate);
+  const {plan:paperPlan,href:planHref,filename:planFilename}=getAseanPaperPlan(language);
   const unit=asean ? 4 : 5;
-  const activityCount=asean ? ASEAN_PAPER_PLAN.activities.length : LIVE_STAGES.length;
+  const activityCount=asean ? paperPlan.activities.length : LIVE_STAGES.length;
   const indexedStages=LIVE_STAGES.map((stage,index)=>({stage,index}));
   const periods=[1,2].map(period=>indexedStages.filter(({stage})=>stage.period===period));
   const periodMinutes=asean
-    ? [1,2].map(period=>ASEAN_PAPER_PLAN.activities
+    ? [1,2].map(period=>paperPlan.activities
       .filter(activity=>activity.period===period)
       .reduce((sum,activity)=>sum+activity.minutes,0))
     : LIVE_PERIOD_MINUTES;
@@ -76,11 +77,11 @@ export default function TeachingPlanScreen({language='vi',data,lessonTemplate,on
           <div className="plan-label">{asean?t(language,'DỰ ÁN TRIỂN LÃM 3D','3D EXHIBITION PROJECT'):'OUR CLIMATE ACTION MUSEUM'}</div>
           <h2 id="plan-project-title" lang="en">{title}</h2>
           {asean ? (
-            <div className="plan-paper-metadata" lang="vi">
+            <div className="plan-paper-metadata" lang={language}>
               <ul role="list">
-                {ASEAN_PAPER_PLAN.metadata.map(line=><li key={line}>{line}</li>)}
+                {paperPlan.metadata.map(line=><li key={line}>{line}</li>)}
               </ul>
-              <p>{ASEAN_PAPER_PLAN.introduction}</p>
+              <p>{paperPlan.introduction}</p>
             </div>
           ) : <>
             <p lang="en">{kit.subtitle||'English 11 · Global Success · Unit 5: Global Warming'}</p>
@@ -101,13 +102,13 @@ export default function TeachingPlanScreen({language='vi',data,lessonTemplate,on
                 {t(language,'Tạo bài học từ kế hoạch này','Create lesson from this plan')} <ArrowRight size={16} aria-hidden="true"/>
               </button>
             ):null}
-            {asean?<a className="plan-button" href={ASEAN_PLAN_DOWNLOAD} download={ASEAN_PLAN_FILENAME}>{downloadLabel}</a>:null}
+            {asean?<a className="plan-button" href={planHref} download={planFilename}>{downloadLabel}</a>:null}
             {onBack?<button type="button" className="plan-button" onClick={onBack}>{t(language,'← Quay lại','← Back')}</button>:null}
           </div>
         </div>
       </section>
 
-      {asean ? <AseanPaperPlan language={language} /> : <>
+      {asean ? <AseanPaperPlan plan={paperPlan} language={language} /> : <>
         <div className="plan-note" role="note">{t(language,'Các nhóm thực hiện khảo sát ưu tiên thật, viết ba thuyết minh tiếng Anh, đưa hình có ghi công và biểu đồ đã chốt vào triển lãm, kiểm tra và cải tiến, sau đó trình bày theo cặp.','Groups conduct a real priority survey, write three English captions, add a credited visual and the frozen group-priority chart, test and revise, then present in pairs.')}</div>
 
         <div className="plan-pillars">

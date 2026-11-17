@@ -150,8 +150,13 @@ test('ASEAN teaching plan reuses the approved editorial screen',async({page},tes
  const download=screen.getByRole('link',{name:'Download Part 2 · Teaching plan and appendices (Word)'});
  const downloaded=page.waitForEvent('download');
  await download.click();
- expect((await downloaded).suggestedFilename()).toBe('TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2.docx');
- await expect(screen.getByRole('heading',{name:'III. Tiến trình dạy học'})).toBeVisible();
+ expect((await downloaded).suggestedFilename()).toBe('TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2_EN.docx');
+ await expect(screen.getByRole('heading',{name:'I. Learning Objectives'})).toBeVisible();
+ await expect(screen.getByRole('heading',{name:'II. Teaching Equipment and Learning Materials'})).toBeVisible();
+ await expect(screen.getByRole('heading',{name:'III. Lesson Sequence'})).toBeVisible();
+ await expect(screen.getByRole('heading',{name:'Activity 3. Writing Captions and Building the First 3D Room'})).toBeVisible();
+ await expect(screen.locator('.plan-paper-body')).toHaveAttribute('lang','en');
+ await expect(download).toHaveAttribute('href','/museum/asean/asean-group-lesson-en.docx');
  await screen.getByRole('button',{name:/^Create lesson from this plan/}).click();
  const wizard=page.getByTestId('museum-lesson-wizard');
  await expect(wizard.getByRole('heading',{name:'ASEAN in Three Frames'})).toBeVisible();
