@@ -2268,6 +2268,56 @@ test('ASEAN Teacher Live mirrors all six student activities and shows only recor
  await expect(slide(1).locator('.asean-slide-highlights')).toHaveCount(0);
 });
 
+test('ASEAN fullscreen presenter scrolls the slide while keeping its controls visible',async({page},testInfo)=>{
+ await page.getByTestId('qa-teacher-asean-alignment-en').click();
+ const stage=page.getByTestId('igv2-teacher-live-stage');
+ const toolbar=page.getByRole('toolbar',{name:'Teacher control toolbar'});
+ await expect(stage.getByTestId('asean-slide-1').getByText('Student instructions')).toBeVisible();
+ await toolbar.getByRole('button',{name:'Fullscreen',exact:true}).click();
+ await expect.poll(()=>page.evaluate(()=>document.fullscreenElement?.getAttribute('data-testid'))).toBe('igv2-teacher-live-stage');
+ const dock=stage.getByTestId('museum-fullscreen-viewer-controls');
+ const scroll=stage.getByRole('region',{name:'Scrollable slide content'});
+ await expect(dock).toBeInViewport();
+ await expect(scroll).toBeFocused();
+ await expect.poll(()=>stage.getByTestId('asean-discussion-photo').locator('img').evaluate(img=>img.naturalWidth)).toBeGreaterThan(0);
+ await stage.getByText('Shared Hué example',{exact:true}).click();
+ await stage.getByText('Discussion quiz · 3 questions',{exact:true}).click();
+ await stage.getByText('Student instructions',{exact:true}).click();
+ await stage.getByText('Teacher pacing',{exact:true}).click();
+ await expect.poll(()=>scroll.evaluate(el=>el.scrollHeight>el.clientHeight)).toBe(true);
+ await scroll.focus();
+ await page.keyboard.press('End');
+ await expect.poll(()=>scroll.evaluate(el=>el.scrollTop)).toBeGreaterThan(0);
+ await expect(dock.getByRole('button',{name:'Exit fullscreen'})).toBeInViewport();
+ await expect(dock.getByRole('button',{name:'Advance to next activity'})).toBeInViewport();
+ await dock.getByRole('button',{name:'Advance to next activity'}).click();
+ const slide=stage.getByTestId('asean-slide-2');
+ await expect(slide.locator('.asean-presenter-frames li')).toHaveCount(3);
+ await expect.poll(()=>scroll.evaluate(el=>el.scrollTop)).toBe(0);
+ await expect(slide.getByRole('link',{name:'lumoplank'})).toBeVisible();
+ await expect.poll(()=>slide.locator('.asean-presenter-photo img').evaluateAll(photos=>photos.map(photo=>photo.naturalWidth>0))).toEqual([true,true,true]);
+ expect(await scroll.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+ await page.screenshot({path:testInfo.outputPath('asean-presenter-fullscreen.png')});
+ await dock.getByRole('button',{name:'Exit fullscreen'}).click();
+ await expect(dock).toHaveCount(0);
+ await expect(toolbar.getByRole('button',{name:'Fullscreen',exact:true})).toBeVisible();
+});
+
+test('ASEAN presenter keeps scrolling in the viewport fallback when native fullscreen is blocked',async({page})=>{
+ await page.getByTestId('qa-teacher-asean-alignment-en').click();
+ await page.evaluate(()=>{
+  Element.prototype.requestFullscreen=()=>Promise.reject(new DOMException('Blocked in this browser','NotAllowedError'));
+ });
+ const stage=page.getByTestId('igv2-teacher-live-stage');
+ await page.getByRole('button',{name:'Fullscreen',exact:true}).click();
+ const scroll=stage.getByRole('region',{name:'Scrollable slide content'});
+ await expect(scroll).toBeFocused();
+ expect(await page.evaluate(()=>document.fullscreenElement)).toBeNull();
+ await expect(stage.getByRole('button',{name:'Exit fullscreen'})).toBeInViewport();
+ await page.keyboard.press('Escape');
+ await expect(scroll).toHaveCount(0);
+});
+
 test('ASEAN V2 retest teacher table distinguishes pending submissions from a recorded zero',async({page})=>{
  await page.getByTestId('qa-teacher-asean-retest-en').click();
  await expect(page.getByRole('heading',{name:'Revised exhibit retest progress · 1/10'})).toBeVisible();

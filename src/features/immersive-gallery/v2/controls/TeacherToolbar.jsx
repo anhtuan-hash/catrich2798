@@ -1,5 +1,5 @@
 import React,{useState} from 'react';
-import {QrCode,Maximize,BookOpen,Library,Volume2,Film,Sparkles,Pause,Play,RefreshCw,Eye,LockOpen,Lock} from 'lucide-react';
+import {QrCode,Maximize,Minimize2,BookOpen,Library,Volume2,Film,Sparkles,Pause,Play,RefreshCw,Eye,LockOpen,Lock} from 'lucide-react';
 const t=(lang,vi,en)=>lang==='en'?en:vi;
 /**
  * TeacherToolbar — the full teacher control row.
@@ -11,7 +11,7 @@ export default function TeacherToolbar({
   language='vi',
   readOnly=false,busy=false,offline=false,
   session=null,currentIndex=0,stageCount=11,
-  motionOn=true,activeTool=null,
+  motionOn=true,activeTool=null,presentationActive=false,
   onBack,onPrevious,onNext,onToggleTask,onReveal,onToggleTool,onFullscreen,
   onToggleMotion,onTogglePause,onRefresh,onChangeCompletion,completed=false
 }){
@@ -44,7 +44,7 @@ export default function TeacherToolbar({
       {btn('task',stageOpen?t(language,'Đóng nhiệm vụ','Close task'):t(language,'Mở nhiệm vụ','Open task'),stageOpen?Lock:LockOpen,{onClick:onToggleTask,disabled:mutateLocked,extraAria:stageOpen?t(language,'Đóng nhiệm vụ hiện tại','Close current task'):t(language,'Mở nhiệm vụ hiện tại','Open current task')})}
       {btn('reveal',readOnly?(revealed?t(language,'Ẩn giải thích','Hide explanation'):t(language,'Xem giải thích','Show explanation')):revealed?t(language,'Đã hiện giải thích','Explanation shown'):t(language,'Hiện giải thích','Reveal explanation'),Eye,{onClick:onReveal,disabled:busy||(!readOnly&&(ended||revealed))})}
       {btn('qr','QR',QrCode,{disabled:offline,onClick:()=>onToggleTool('qr'),pressed:activeTool==='qr'})}
-      {btn('fullscreen',t(language,'Toàn màn hình','Fullscreen'),Maximize,{onClick:onFullscreen})}
+      {btn('fullscreen',presentationActive?t(language,'Thoát toàn màn hình','Exit fullscreen'):t(language,'Toàn màn hình','Fullscreen'),presentationActive?Minimize2:Maximize,{onClick:onFullscreen})}
       {btn('notes',t(language,'Ghi chú dạy','Teaching notes'),BookOpen,{onClick:()=>onToggleTool('notes'),pressed:activeTool==='notes'})}
       {btn('resources',t(language,'Thư viện','Research library'),Library,{onClick:()=>onToggleTool('resources'),pressed:activeTool==='resources'})}
       {btn('voice',t(language,'Giọng đọc','Voiceover'),Volume2,{onClick:()=>onToggleTool('voice'),pressed:activeTool==='voice'})}
