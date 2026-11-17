@@ -24,6 +24,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
  const [reviewArtAssets,setReviewArtAssets]=useState([]);
  const [publishing,setPublishing]=useState(null);
  const detailHeading=useRef(null), openedCard=useRef(null);
+ const publicReadOnly=Boolean(data?.publicReadOnly);
  const groups=data?.groups||[],assignments=data?.assignments||[],reviews=data?.reviews||[];
  const mine=useMemo(()=>reviews.filter(r=>{const g=groups.find(x=>x.id===r.group_id),a=assignments.find(x=>x.id===g?.assignment_id);return (filter==='all'||r.state===filter)&&((r.snapshot?.title||'')+' '+(g?.label||'')+' '+(a?.class_scope||'')).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase());}),[reviews,filter,query,groups,assignments]);
  const selected=reviews.find(r=>r.id===selectedId);
@@ -34,7 +35,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
  // Teacher/admin art URLs are private and short-lived. Fetch when a submission
  // preview opens and renew while it remains visible, without touching snapshots.
  useEffect(()=>{
-  if(!preview||!selected?.group_id)return undefined;
+  if(publicReadOnly||!preview||!selected?.group_id)return undefined;
   let active=true;
   const refresh=async()=>{
    try{const assets=await artStaff(selected.group_id);if(active)setReviewArtAssets(assets);}
@@ -43,10 +44,9 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
   refresh();
   const timer=window.setInterval(refresh,55000);
   return()=>{active=false;window.clearInterval(timer);};
- },[preview,selected?.group_id]);
+ },[preview,selected?.group_id,publicReadOnly]);
  const assignment=assignments.find(a=>a.id===group?.assignment_id);
  const asean=isAsean(assignment),criteria=asean?ASEAN_RUBRIC:RUBRIC,maxScore=asean?10:100;
- const publicReadOnly=Boolean(data?.publicReadOnly);
  const isAdmin=data?.profile?.role==='admin'&&!data?.offlineReadOnly&&!publicReadOnly;
  const rubricsByReview=new Map((data?.rubrics||[]).map(row=>[row.review_id,row]));
  const rubric=!publicReadOnly||selected?.state==='published'?rubricsByReview.get(selectedId):undefined;
@@ -147,7 +147,9 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
    if(await refreshAfterChange())setForm(null);
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
- const previewButton=<button type="button" className="bml-outline bml-review-preview-toggle" onClick={()=>setPreview(v=>!v)}>
+ const publishedRoom=publicReadOnly&&(data?.publishedGalleries||[]).find(gallery=>gallery.assignment_id===assignment?.id)
+  ?.destinations?.find(destination=>destination.groupLabel===group?.label);
+ const previewButton=publicReadOnly&&!publishedRoom?null:<button type="button" className="bml-outline bml-review-preview-toggle" onClick={()=>publishedRoom?onNavigate?.('gallery',publishedRoom.id):setPreview(v=>!v)}>
   <Eye size={17} aria-hidden="true"/>{preview?tr(language,'Đọc nội dung','Read content'):tr(language,'Xem bảo tàng 2D/3D','Preview museum')}
  </button>;
  const groupContext=[language==='en'?englishSystemGroupLabel(group?.label):group?.label,assignment?.class_scope].filter(Boolean).join(' · ');
@@ -239,7 +241,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
           ['Vấn đề','issue'],['Nguồn','source'],['Phản hồi thử nghiệm','feedback'],['Cải tiến','improvement'],['Phản ánh','reflection']
          ].map(([label,key])=><p key={key}><b>{tr(language,label,{issue:'Problem',source:'Source',feedback:'Peer feedback',improvement:'Revision',reflection:'Reflection'}[key])}:</b> {selected.snapshot.learning[key]||tr(language,'Chưa ghi','Not recorded')}</p>)}
         </div>:null}
-        {asean&&!publicReadOnly?<AseanReviewEvidence group={group} groups={groups} responses={data?.aseanResponses||[]} snapshot={selected.snapshot}/>:null}
+        {asean?<AseanReviewEvidence group={group} groups={groups} responses={data?.aseanResponses||[]} writingScores={data?.aseanWritingScores||[]} snapshot={selected.snapshot} language={language}/>:null}
        </div>}
      </div>
      <aside className="bml-eval-pane"><div className="bml-eval-heading"><ClipboardCheck size={21}/><h3>{tr(language,'Rubric đánh giá','Assessment rubric')}</h3></div>
@@ -278,16 +280,25 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
  </div>;
 }
 
-function AseanReviewEvidence({group,groups,responses,snapshot}){
+function AseanReviewEvidence({group,groups,responses,writingScores,snapshot,language}){
  const classGroups=groups.filter(peer=>peer.assignment_id===group?.assignment_id);
  const visitor=stage=>aseanPeerGroup(classGroups,group?.id,stage,{reverse:true});
  const get=(peer,stage)=>responses.find(response=>response.group_id===peer?.id&&response.stage_index===stage)?.value;
  const feedback=get(visitor(3),3),retest=get(visitor(4),4);
  return <section className="bml-learning-evidence">
-  <h4>Group evidence</h4>
+  <h4>{tr(language,'Minh chứng của nhóm','Group evidence')}</h4>
   {snapshot?.learning?.source?<p><strong>Factual source</strong> · {snapshot.learning.source}</p>:null}
   {feedback?<><p><strong>Visitor test</strong> · {feedback.answers.reduce((sum,answer)=>sum+answer.score,0)}/3</p><p>{feedback.comment}</p></>:<p>Visitor feedback pending.</p>}
   {retest?<p><strong>Fresh visitor retest</strong> · {retest.score}/1 · {retest.answer}</p>:<p>Fresh visitor retest pending.</p>}
-  {[0,5].map(stage=>{const answer=get(group,stage);return answer?<p key={stage}><strong>{stage===0?'Baseline card':'Transfer card'}</strong> · {answer.experience} {answer.advice}</p>:null;})}
+  {[0,5].map(stage=>{
+   const answer=get(group,stage);
+   const marks=writingScores.find(row=>row.group_id===group?.id&&row.stage_index===stage)?.details;
+   if(!answer&&!marks)return null;
+   return <p key={stage}>
+    <strong>{stage===0?tr(language,'Phiếu viết đầu giờ','Baseline card'):tr(language,'Phiếu vận dụng','Transfer card')}</strong>
+    {marks&&<> · {tr(language,'Điểm viết','Writing score')} {marks.experience+marks.advice}/2</>}
+    {answer&&<><br/>{answer.experience} {answer.advice}</>}
+   </p>;
+  })}
  </section>;
 }

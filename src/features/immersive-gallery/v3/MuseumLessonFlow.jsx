@@ -266,7 +266,7 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
       <div className="bml-lesson-facts" aria-label="Lesson progress">
        <span><Users size={14}/>{mine.length} groups</span>
        {frozen?<span role="status" className="bml-lesson-frozen"><LockKeyhole size={14}/> FINAL · VIEW ONLY</span>:null}
-       {asean&&data?.publicReadOnly?null:<span><ClipboardList size={14}/>{asean?'Group transfer cards':'Exit Tickets'}: {exitCount}/{mine.length}</span>}
+       <span><ClipboardList size={14}/>{asean?tr(language,'Phiếu vận dụng','Group transfer cards'):'Exit Tickets'}: {exitCount}/{mine.length}</span>
        <span><Landmark size={14}/>Museum projects: {done}/{mine.length}</span>
       </div>
      </div>
@@ -320,7 +320,7 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
                       </button>
                     </th>
                     <td>{progressOfGroup(g.state,language).label}</td>
-                    <td>{asean&&data?.publicReadOnly?'—':submitted ? tr(language,'Đã nộp','Submitted') : tr(language,'Chưa nộp','Not submitted')}</td>
+                    <td>{submitted ? tr(language,'Đã nộp','Submitted') : tr(language,'Chưa nộp','Not submitted')}</td>
                     <td>{review ? (
                       <button type="button" className="swiss-editorial-review" onClick={() => onReview(review.id)}>
                         {tr(language,'Xem bài','Review')} <ArrowRight size={16} aria-hidden="true" />
@@ -335,9 +335,11 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
             <h3>{activeLabel}</h3>
             {activeTicket ? (
               <details className="bml-lesson-qr-ticket">
-                <summary>{asean?'View group transfer card':tr(language,'Xem câu trả lời Exit Ticket','View Exit Ticket response')} <ArrowRight size={15} aria-hidden="true" /></summary>
+                <summary>{asean?tr(language,'Xem phiếu vận dụng','View group transfer card'):tr(language,'Xem câu trả lời Exit Ticket','View Exit Ticket response')} <ArrowRight size={15} aria-hidden="true" /></summary>
                 {asean?<><p>{activeTicket.value?.experience}</p><p>{activeTicket.value?.advice}</p></>:<p>{activeAnswer?.slice(0,2000)}</p>}
               </details>
+            ) : data?.publicReadOnly ? (
+              <p className="bml-muted">{tr(language,'Chưa có câu trả lời đã lưu cho nhóm này.','No saved response is available for this group.')}</p>
             ) : null}
         {!data?.offlineReadOnly && !data?.publicReadOnly && activeGroup.invite_handle && (
               <div className="bml-lesson-qr-access">

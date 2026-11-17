@@ -1,16 +1,18 @@
 import React from 'react';
 import { ArrowRight, ExternalLink, FileText } from 'lucide-react';
 import MuseumOfflineExport from './MuseumOfflineExport.jsx';
+import MuseumWorkshopBoard from './MuseumWorkshopBoard.jsx';
+import { groupWorkshopRows } from './offline/workshopRows.js';
 import { englishSystemGroupLabel, saveTextFile } from './museumApi.js';
 import { ASEAN_TITLE } from './aseanLesson.js';
 import './aseanDossierEditorial.css';
 
-export function AseanDossier({ data, language, transport, readOnly, onOpenGallery }) {
+export function AseanDossier({ data, language, transport, readOnly, onOpenGallery, onOpenReview }) {
   const tr = (vi, en) => language === 'en' ? en : vi;
   const groups = data?.groups || [];
   const assignments = data?.assignments || [];
   const galleries = data?.publishedGalleries || [];
-  const showWriting = !data?.publicReadOnly && (!readOnly || data?.offlineReadOnly);
+  const canExport = !data?.publicReadOnly && (!readOnly || data?.offlineReadOnly);
   const classScopes = [...new Set(assignments.map(assignment => assignment.class_scope).filter(Boolean))];
   const publishedCount = assignments.filter(assignment => galleries.some(gallery => gallery.id === 'asean-' + assignment.id)).length;
   const publicationStatus = publishedCount === 0
@@ -21,7 +23,8 @@ export function AseanDossier({ data, language, transport, readOnly, onOpenGaller
 
   const groupScore = (groupId, stage) => {
     const grade = data?.aseanWritingScores?.find(row => row.group_id === groupId && row.stage_index === stage)?.details;
-    return grade ? grade.experience + grade.advice : null;
+    return grade && [0,1].includes(grade.experience) && [0,1].includes(grade.advice)
+      ? grade.experience + grade.advice : null;
   };
 
   const renderLayout = ({ board, download, feedback } = {}) => (
@@ -74,7 +77,7 @@ export function AseanDossier({ data, language, transport, readOnly, onOpenGaller
             fullMarksBaseline: paired.filter(row => row.baseline === 2).length,
             fullMarksTransfer: paired.filter(row => row.transfer === 2).length,
           };
-          if (!gallery && !showWriting) return null;
+          if (!gallery && rows.length === 0) return null;
 
           const classTitle = `${assignment.class_scope} · ${assignment.title}`;
           return (
@@ -86,7 +89,7 @@ export function AseanDossier({ data, language, transport, readOnly, onOpenGaller
                     <ExternalLink size={18} aria-hidden="true"/>{tr('Triển lãm 3D (Museum Lab)', '3D exhibition (Museum Lab)')}
                   </button>
                 )}
-                {showWriting && (
+                {canExport && (
                   <button type="button" className="bml-outline" onClick={() => saveTextFile(
                     'ASEAN_Group_Writing.json', 'application/json',
                     JSON.stringify({ class: assignment.class_scope, summary, groups: rows }, null, 2),
@@ -95,7 +98,7 @@ export function AseanDossier({ data, language, transport, readOnly, onOpenGaller
                   </button>
                 )}
               </div>
-              {showWriting && (
+              {rows.length > 0 && (
                 <p>{tr(
                   `Nhóm có đủ hai điểm viết: ${summary.paired}/${rows.length} · Tăng ${summary.higher} · Không đổi ${summary.unchanged} · Giảm ${summary.lower}`,
                   `Paired group writing scores: ${summary.paired}/${rows.length} · Higher ${summary.higher} · Unchanged ${summary.unchanged} · Lower ${summary.lower}`,
@@ -112,7 +115,20 @@ export function AseanDossier({ data, language, transport, readOnly, onOpenGaller
     <section className="swiss-editorial-dossier" data-testid="asean-dossier">
       {data?.profile?.id && !readOnly
         ? <MuseumOfflineExport data={data} language={language} transport={transport} renderLayout={renderLayout}/>
-        : <div className="asean-dossier-layout">{renderLayout()}</div>}
+        : <div className="asean-dossier-layout">{renderLayout({
+          board: data?.publicReadOnly && groups.length > 0 && (
+            <MuseumWorkshopBoard rows={groupWorkshopRows({ staff: data })} language={language} editorial asean
+              action={{
+                label: tr('Bài nộp', 'Submission'),
+                render: row => {
+                  const review = data.reviews?.find(item => item.group_id === row.id && item.state === 'published');
+                  return review ? <button type="button" className="bml-outline" onClick={() => onOpenReview(review.id)}>
+                    {tr('Xem bài', 'View submission')}
+                  </button> : '—';
+                },
+              }}/>
+          ),
+        })}</div>}
     </section>
   );
 }

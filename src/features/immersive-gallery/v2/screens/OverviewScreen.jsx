@@ -43,7 +43,7 @@ export default function OverviewScreen({
     ? publishedGroupIds.has(group.id)
     : SUBMITTED_STATES.includes(group.state || group.status)).length;
   const progress = [
-    ...(!publicAsean ? [{
+    {
       id: 'writing',
       icon: Users,
       count: linked.filter((group) => writtenGroupIds.has(group.id)).length,
@@ -51,7 +51,7 @@ export default function OverviewScreen({
       detail: asean
         ? tr(language, 'Phiếu vận dụng đã hoàn thành', 'Transfer Cards Completed')
         : tr(language, 'Phiếu thoát đã hoàn thành', 'Exit Tickets Completed'),
-    }] : []),
+    },
     {
       id: 'projects',
       icon: ImageIcon,
