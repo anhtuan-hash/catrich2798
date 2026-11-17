@@ -83,7 +83,7 @@
 .asean-art-proof { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; }
 .asean-art-proof div { display: grid; justify-items: start; align-content: start; gap: 5px; height: 100%; padding: clamp(7px, 1.1vw, 14px); background: #fbf4e5; border: 1px solid #baaa90; }
 .asean-art-proof div:last-child { color: #fff; background: #23483a; border-color: #23483a; }
-.asean-art-proof div strong { font-size: clamp(25px, 3.3vw, 48px); line-height: 1; }
+.asean-art-proof div strong { font-size: clamp(14px, 1.85vw, 27px); line-height: 1.16; }
 .asean-art-proof div span { font-size: clamp(11px, 1.2vw, 16px); }
 .asean-art-proof svg { width: clamp(15px, 2.5vw, 30px); height: auto; }
 .asean-activity-art--share { background: #ead9d5; }

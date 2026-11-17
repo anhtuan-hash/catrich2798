@@ -91,7 +91,7 @@ export default function TeachingPlanScreen({language='vi',data,lessonTemplate,on
           <p lang="en">{asean?ASEAN_SUBTITLE:kit.subtitle||'English 11 · Global Success · Unit 5: Global Warming'}</p>
           <div className="plan-label">{t(language,'CÂU HỎI ĐỊNH HƯỚNG','DRIVING QUESTION')}</div>
           <div className="plan-question" lang="en">{asean?ASEAN_CHALLENGE:kit.challenge||'How can our school reduce the impact of everyday activities on global warming?'}</div>
-          <p>{asean?t(language,'Mỗi nhóm dựng một phòng 3D về một điểm đến, với ba ảnh và ba chú thích tiếng Anh dài 20–30 từ. Các nhóm ghi nguồn dữ kiện, ghi công ảnh, kiểm tra V1 và mời nhóm khác thử lại V2.',ASEAN_BRIEF):kit.goal||''}</p>
+          <p>{asean?t(language,'Mỗi nhóm dựng một phòng 3D về một điểm đến, với ba ảnh và ba chú thích tiếng Anh dài 20–30 từ. Các nhóm ghi nguồn dữ kiện, ghi công ảnh, mời khách xem bản trước góp ý và nhờ nhóm khác thử lại bản đã chỉnh sửa.',ASEAN_BRIEF):kit.goal||''}</p>
           <div className="plan-chips">
             <span className="chip">English 11 · Unit {unit}</span>
             <span className="chip">{duration}</span>
@@ -112,7 +112,7 @@ export default function TeachingPlanScreen({language='vi',data,lessonTemplate,on
       </section>
 
       <div className="plan-note" role="note">{asean
-        ? t(language,'Mỗi lượt có một đề viết riêng cho từng nhóm. Ở lượt vận dụng, đề được xoay vòng để mỗi nhóm viết về địa điểm mới. Giữa hai lượt viết, nhóm chọn và ghi công ảnh, kiểm tra V1, rồi ghi lại một thay đổi và kết quả thử lại V2.','Each group has its own prompt in each round. For the transfer round, rotate the cards so every group writes about a new destination. Between the two rounds, groups select and credit photographs, test V1, then record one change and the result of the V2 retest.')
+        ? t(language,'Mỗi lượt có một đề viết riêng cho từng nhóm. Ở lượt vận dụng, đề được xoay vòng để mỗi nhóm viết về địa điểm mới. Giữa hai lượt viết, nhóm chọn và ghi công ảnh, thử bản trước góp ý, rồi ghi lại một thay đổi và kết quả thử lại bản đã chỉnh sửa.','Each group has its own prompt in each round. For the transfer round, rotate the cards so every group writes about a new destination. Between the two rounds, groups select and credit photographs, test the first exhibit, then record one change and the result of testing the revised exhibit.')
         : t(language,'Các nhóm thực hiện khảo sát ưu tiên thật, viết ba thuyết minh tiếng Anh, đưa hình có ghi công và biểu đồ đã chốt vào triển lãm, kiểm tra và cải tiến, sau đó trình bày theo cặp.','Groups conduct a real priority survey, write three English captions, add a credited visual and the frozen group-priority chart, test and revise, then present in pairs.')}</div>
 
       <div className="plan-pillars">
@@ -183,8 +183,8 @@ export default function TeachingPlanScreen({language='vi',data,lessonTemplate,on
             <div>
               <p>{t(language,'Dùng phiếu viết đầu giờ và phiếu viết vận dụng để đối chiếu cách nhóm viết về trải nghiệm và lời khuyên cho khách.','Compare the baseline and transfer writing cards to see how each group writes about a visitor experience and gives advice.')}</p>
               <ul>
-                <li>{t(language,'Phiếu kiểm tra V1 · 3 điểm','V1 visitor check · 3 points')}</li>
-                <li>{t(language,'Phiếu thử lại V2 · một câu hỏi đã chọn','V2 visitor retest · one selected question')}</li>
+                <li>{t(language,'Phiếu tham quan bản trước góp ý · 3 điểm','First exhibit visitor check · 3 points')}</li>
+                <li>{t(language,'Phiếu thử lại bản đã chỉnh sửa · một câu hỏi đã chọn','Revised exhibit retest · one selected question')}</li>
                 <li>{t(language,'Mỗi lượt viết nhóm · 2 điểm','Each group writing round · 2 points')}</li>
               </ul>
             </div>

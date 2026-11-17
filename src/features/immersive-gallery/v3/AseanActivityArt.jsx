@@ -1,6 +1,6 @@
 import React from 'react';
 import {ArrowRight, Binoculars, ClipboardCheck, Compass, Footprints, Globe2, Landmark, MapPin, MessageSquareQuote, PencilLine, ScanSearch, Send} from 'lucide-react';
-import {ASEAN_FRAMES} from './aseanLesson.js';
+import {ASEAN_EXHIBIT_NAMES,ASEAN_FRAMES} from './aseanLesson.js';
 import './aseanActivityArt.css';
 
 const frameIcons = [MapPin, Binoculars, Compass];
@@ -10,6 +10,7 @@ const questionsVi = ['Ở đâu?', 'Có thể làm gì?', 'Cần lưu ý gì?'];
 export default function AseanActivityArt({activity, language = 'en', revisionCaptured = false, revisionHasFeedback = true, visitorResult = null}) {
  const vi = language === 'vi';
  const t = (vn, en) => vi ? vn : en;
+ const names = ASEAN_EXHIBIT_NAMES[vi?'vi':'en'];
  const question = i => vi ? questionsVi[i] : ASEAN_FRAMES[i].question;
  let graphic;
  switch (activity) {
@@ -41,11 +42,11 @@ export default function AseanActivityArt({activity, language = 'en', revisionCap
   break;
  case 'revise':
   graphic = <div className="asean-art-proof">
-   <div><strong>V1</strong><MessageSquareQuote aria-hidden="true"/><span>{revisionCaptured
-    ?t('Xem lại chú thích V1', 'Review the V1 caption')
+   <div><strong>{names.first}</strong><MessageSquareQuote aria-hidden="true"/><span>{revisionCaptured
+    ?t('Xem chú thích trước khi sửa', 'Review the first caption')
     :revisionHasFeedback?t('Đọc góp ý', 'Read the feedback'):t('Xem lại điểm chưa rõ', 'Find an unclear detail')}</span></div>
    <ArrowRight aria-hidden="true"/>
-   <div><strong>V2</strong><PencilLine aria-hidden="true"/><span>{revisionCaptured
+   <div><strong>{names.revised}</strong><PencilLine aria-hidden="true"/><span>{revisionCaptured
     ?t('Đối chiếu và thử lại', 'Compare and retest'):t('Sửa và thử lại', 'Revise and retest')}</span></div>
   </div>;
   break;

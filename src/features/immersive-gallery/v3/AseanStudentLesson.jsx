@@ -4,7 +4,7 @@ import AseanHueQuiz from './AseanHueQuiz.jsx';
 import AseanDiscussionPhoto from './AseanDiscussionPhoto.jsx';
 import AseanActivityArt,{AseanFrameIcon} from './AseanActivityArt.jsx';
 import {ASEAN_ACTIVITY_DESIGN,ASEAN_DISCUSSION_MODEL} from './aseanActivityDesign.js';
-import {ASEAN_FRAMES,ASEAN_STAGES,ASEAN_TITLE,aseanBaselineDraft,aseanDestination,aseanExhibitMissing,aseanWritingCard,aseanWordCount,validAseanResponse} from './aseanLesson.js';
+import {ASEAN_EXHIBIT_NAMES,ASEAN_FRAMES,ASEAN_STAGES,ASEAN_TITLE,aseanBaselineDraft,aseanDestination,aseanExhibitMissing,aseanRevisionReason,aseanWritingCard,aseanWordCount,validAseanResponse} from './aseanLesson.js';
 import {guestRequest,englishSystemGroupLabel} from './museumApi.js';
 import {liveGuest,localMuseumFromDraft,artGuest} from './museumLiveApi.js';
 import {emptyStudio,normalizeStudio,documentFromStudio} from './museumData.js';
@@ -155,7 +155,8 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
     onVisit(reviewMuseum({snapshot:result.gallery.draft},result.gallery.artworks),reference);
    }
    else if(v1Visit)onVisit(null);
-   else setError(englishSystemGroupLabel(result.target)+' has not made V2 available yet.');
+   else setError(T(language,'Bản đã chỉnh sửa của '+result.target+' chưa sẵn sàng.',
+    'The revised exhibit from '+englishSystemGroupLabel(result.target)+' is not ready yet.'));
   }catch(e){setError(errorText(e));}finally{setBusy(false);}
  };
  const submit=async event=>{
@@ -192,26 +193,26 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
    <h3 data-visit-start tabIndex={-1}>{T(language,'1. Tham quan phòng được giao','1. Visit the assigned exhibit')}</h3>
    {visitedExhibit&&!visit?.gallery&&<p><strong>{visitedExhibit}</strong></p>}
    {!submitted&&<p role={visit&&!visit.gallery?'status':undefined}>{visit&&!visit.gallery
-    ?T(language,'Phòng V1 chưa sẵn sàng. Hỏi giáo viên rồi thử mở lại.','This V1 is not ready. Ask your teacher, then try again.')
-    :T(language,'Mở phòng V1, đọc ba khung và ghi nhớ khung mở đầu tiên. Đóng phòng để điền phiếu góp ý.','Open the V1 exhibit, inspect all three frames and remember which one you opened first. Close the viewer to fill in the feedback.')}</p>}
+    ?T(language,'Bản trước góp ý chưa sẵn sàng. Hỏi giáo viên rồi thử mở lại.','The first exhibit is not ready. Ask your teacher, then try again.')
+    :T(language,'Mở bản trước góp ý, đọc ba khung và ghi nhớ khung mở đầu tiên. Đóng phòng để điền phiếu góp ý.','Open the first exhibit, inspect all three frames and remember which one you opened first. Close the viewer to fill in the feedback.')}</p>}
    {open&&!submitted&&<button type="button" className={visit?.gallery?'bml-outline':'bml-primary'} onClick={loadVisit} disabled={busy}>
-    <Box size={18}/>{busy?T(language,'Đang mở…','Opening…'):visit?.gallery?T(language,'Mở lại phòng V1','Reopen the V1 exhibit'):T(language,'Mở phòng V1 được giao','Open assigned V1 exhibit')}
+    <Box size={18}/>{busy?T(language,'Đang mở…','Opening…'):visit?.gallery?T(language,'Mở lại bản trước góp ý','Reopen the first exhibit'):T(language,'Mở bản trước góp ý được giao','Open assigned first exhibit')}
    </button>}
-   {reconstructed&&<p role="status">{T(language,'Phòng này là bản tham chiếu V1 được dựng lại.','This exhibit is a reconstructed V1 reference.')}</p>}
+   {reconstructed&&<p role="status">{T(language,'Bản trước góp ý của phòng này là bản tham chiếu dựng lại.','This first exhibit is a reconstructed reference.')}</p>}
   </div>}
   {v2Visit&&<div className="asean-visit-intro" lang={language}>
-   <h3 data-activity5-visitor tabIndex={-1}>{T(language,'2. Thử phòng V2 của nhóm được giao','2. Retest the assigned group’s V2')}</h3>
+   <h3 data-activity5-visitor tabIndex={-1}>{T(language,'2. Thử bản đã chỉnh sửa của nhóm được giao','2. Retest the assigned group’s revised exhibit')}</h3>
    {visitedExhibit&&<p><strong>{visitedExhibit}</strong></p>}
    {!visit?.gallery&&!submitted&&retestTask?.ready&&<p lang="en">{ASEAN_FRAMES[retestTask.question-1]?.question}</p>}
    {!open&&!submitted&&<p role="status">{session.readOnly||live?.stageIndex>4
     ?T(language,'Nhóm em chưa có phiếu thử lại đã nộp.','Your group has no recorded retest submission.')
     :T(language,'Giáo viên sẽ mở phần nộp phiếu trong Hoạt động 5.','Your teacher will open submissions during Activity 5.')}</p>}
    {open&&!submitted&&(retestTask?.ready===false
-    ?<p role="status">{T(language,'Đang chờ nhóm được giao lưu bản V2.','Waiting for the assigned group to save its V2.')}</p>
+    ?<p role="status">{T(language,'Đang chờ nhóm được giao lưu bản đã chỉnh sửa.','Waiting for the assigned group to save its revised exhibit.')}</p>
     :<>
      <p>{T(language,'Mở phòng, tìm câu trả lời rồi đóng phòng để ghi bằng chứng.','Open the exhibit, find the answer, then close the viewer to cite the frame you used.')}</p>
      <button type="button" className={visit?.gallery?'bml-outline':'bml-primary'} onClick={loadVisit} disabled={busy}>
-      <Box size={18}/>{visit?.gallery?T(language,'Mở lại phòng V2 được giao','Reopen assigned V2 exhibit'):T(language,'Mở phòng V2 được giao','Open assigned V2 exhibit')}
+      <Box size={18}/>{visit?.gallery?T(language,'Mở lại bản đã chỉnh sửa được giao','Reopen assigned revised exhibit'):T(language,'Mở bản đã chỉnh sửa được giao','Open assigned revised exhibit')}
      </button>
     </>)}
   </div>}
@@ -229,10 +230,10 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
     {T(language,'Phòng vừa thử','Exhibit tested')} · <strong>{visitedExhibit}</strong>
    </p>}
    {prefilledFeedback&&!submitted&&<p className="bml-banner bml-info-banner" lang={language}>
-    {v2Visit?T(language,'Phiếu điền sẵn từ lượt kiểm tra tham chiếu V2. Hãy kiểm tra câu trả lời, khung bằng chứng và điểm trước khi nộp.',
-     'Draft based on the teacher’s V2 reference check. Check the answer, evidence frame and score before submitting.')
-     :T(language,'Phiếu điền sẵn từ lượt rà soát V1. Hãy kiểm tra các câu trả lời, bằng chứng và khung nhóm mở đầu tiên trước khi nộp.',
-     'Draft based on a V1 review. Check the answers, evidence and the first frame your group opened before submitting.')}
+    {v2Visit?T(language,'Phiếu điền sẵn từ lượt kiểm tra của giáo viên trên bản đã chỉnh sửa. Hãy kiểm tra câu trả lời, khung bằng chứng và điểm trước khi nộp.',
+     'Draft based on the teacher’s check of the revised exhibit. Check the answer, evidence frame and score before submitting.')
+     :T(language,'Phiếu điền sẵn từ lượt rà soát bản trước góp ý. Hãy kiểm tra các câu trả lời, bằng chứng và khung nhóm mở đầu tiên trước khi nộp.',
+     'Draft based on a review of the first exhibit. Check the answers, evidence and the first frame your group opened before submitting.')}
    </p>}
    {baselineDraft&&!submitted&&<p role="status">{open
     ?'Teacher-provided draft. Review the two sentences and edit them before submitting.'
@@ -251,6 +252,7 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
 
 export default function AseanStudentLesson({session,initialStudio,initialVersion,onLogout,language,onLanguageChange}){
  const destination=aseanDestination(session.groupLabel);
+ const exhibitNames=ASEAN_EXHIBIT_NAMES[language==='vi'?'vi':'en'];
  const [studio,setStudio]=useState(()=>initialStudio||emptyStudio());
  const [version,setVersion]=useState(initialVersion);
  const [assets,setAssets]=useState([]);
@@ -289,18 +291,19 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
  const liveOpen=!readOnly&&live?.status==='active'&&live.stageOpen&&live.stageIndex===stage;
  const captured=records.checkpoints.find(item=>item.kind==='after');
  const baseline=records.checkpoints.find(item=>item.kind==='before');
+ const revisionReason=aseanRevisionReason(captured?.reason,language);
  const retestVisitor=records.retestVisitor?groupName(language,records.retestVisitor)
   :T(language,'nhóm khách được giao','the assigned visitor group');
  const waitingForRetest=live?.stageIndex===4&&liveOpen
   ?T(language,'Đang chờ '+retestVisitor+' nộp phiếu thử lại.','Waiting for '+retestVisitor+' to submit its retest.')
   :T(language,'Chưa có phiếu thử lại từ '+retestVisitor+'.','No retest submission from '+retestVisitor+'.');
  const revisionTask=captured
-  ?T(language,'Đối chiếu bản sửa của nhóm em, rồi thử phòng V2 của nhóm được giao.',
-   'Review your group’s revision, then retest the V2 room assigned to you.')
+  ?T(language,'Đối chiếu bản sửa của nhóm em, rồi thử bản đã chỉnh sửa của nhóm được giao.',
+   'Review your group’s revision, then retest the revised exhibit assigned to you.')
   :records.feedback
-   ?T(language,'Đọc góp ý, sửa một khung và giải thích lý do. Lưu V2 để một nhóm khách mới thử lại cùng câu hỏi.',design.studentTask)
-   :T(language,'Chọn một chú thích hoặc ảnh cần làm rõ. Giải thích thay đổi rồi lưu V2 để nhóm khách mới thử lại.',
-    'Choose a caption or photo that could answer a visitor’s question more clearly. Explain your change and save V2 for the fresh visitor test.');
+   ?T(language,'Đọc góp ý, sửa một khung và giải thích lý do. Lưu bản đã chỉnh sửa để nhóm khách mới thử lại cùng câu hỏi.',design.studentTask)
+   :T(language,'Chọn một chú thích hoặc ảnh cần làm rõ. Giải thích thay đổi rồi lưu bản đã chỉnh sửa để nhóm khách mới thử lại.',
+    'Choose a caption or photo that could answer a visitor’s question more clearly. Explain your change and save the revised exhibit for the fresh visitor test.');
  const reportTask=records.retest
   ?'Report what changed and what the assigned visitor group found.'
   :records.staffRetest
@@ -367,7 +370,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
    :visitOpened?T(language,'Điền phiếu góp ý','Complete the feedback'):T(language,'Mở phòng được giao','Open the assigned exhibit')
   :readOnly?T(language,'Chỉ xem','View only'):
    submitted?T(language,'Đã nộp','Submitted'):
-   stage===4?captured?T(language,'Đã lưu bản V2','Our V2 saved'):T(language,'Cần lưu bản V2','Save our V2'):
+   stage===4?captured?T(language,'Đã lưu bản chỉnh sửa','Revised exhibit saved'):T(language,'Cần lưu bản chỉnh sửa','Save the revised exhibit'):
    stage===2?readyFrames+' / '+ASEAN_FRAMES.length+' '+T(language,'khung đã đủ','frames ready'):
    photoCount+' / '+ASEAN_FRAMES.length+' '+T(language,'ảnh','photos');
  const edit=change=>{setStudio(value=>typeof change==='function'?change(value):change);setDirty(true);setNotice('');};
@@ -397,7 +400,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
    if(operation==='capture'){
     const next=dirty?await save():version;
     await liveGuest('asean-capture','POST',{version:next,...revision},session.csrf);
-    await refreshRecords();setNotice('V2 opened for the fresh visitor group.');
+    await refreshRecords();setNotice(T(language,'Bản đã chỉnh sửa đã mở cho nhóm khách mới.','The revised exhibit is open to the fresh visitor group.'));
    }
    if(operation==='submit'){
     await guestRequest('submit','POST',{expectedVersion:version},session.csrf);
@@ -417,9 +420,11 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
    groups={ACTIVITY_GROUPS} ends={ACTIVITY_GROUP_ENDS} activities={language==='en'?ASEAN_STAGES:ASEAN_ACTIVITIES_VI}
    onGroup={group=>browseActivity(group===activityGroup?stage:(ACTIVITY_GROUP_ENDS[group-1]??0))} onActivity={browseActivity}/>}
   overlays={preview&&<div className="bml-student-detail-overlay bml-museum-preview-overlay" role="dialog" aria-modal="true"
-    aria-label={preview.reference?'Reconstructed V1 reference':preview.own?'Preview group museum':'Visit assigned exhibit'}>
+    aria-label={preview.reference?T(language,'Bản trước góp ý dựng lại','Reconstructed first exhibit'):preview.own?'Preview group museum':'Visit assigned exhibit'}>
    <div className="bml-student-detail-window bml-museum-preview-window">
-    {preview.reference&&<p className="asean-v1-reference-label">V1 · Reconstructed reference</p>}
+    {preview.reference&&<p className="asean-v1-reference-label" lang={language}>
+     {exhibitNames.first} · {T(language,'Tham chiếu dựng lại','Reconstructed reference')}
+    </p>}
     <GalleryRenderBoundary language="en" onFallback={closePreview}>
      <MuseumScene embedded cinema initial3D language="en" gallery={preview.own?localMuseumFromDraft(document,assets):preview.gallery}
       onClose={closePreview}/>
@@ -473,12 +478,12 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
       </div>}
       {stage===4&&<div className="asean-visit-instructions" lang={language}>
        <ol>
-        <li>{captured?T(language,'Phòng nhóm em: so sánh khung đã sửa giữa V1 và V2, rồi xem kết quả thử lại.',
-         'Your exhibit: compare the changed frame in V1 and V2, then check the retest result.')
-         :T(language,'Phòng nhóm em: sửa một khung, giải thích lý do và lưu bản V2.',
-         'Your exhibit: revise one frame, explain the change and save V2.')}</li>
-        <li>{T(language,'Phòng được giao: mở V2 và trả lời lại một câu hỏi kèm khung làm bằng chứng.',
-         'Assigned exhibit: open V2 and answer one question again, citing the frame you used.')}</li>
+        <li>{captured?T(language,'Phòng nhóm em: so sánh khung trước và sau khi sửa, rồi xem kết quả thử lại.',
+         'Your exhibit: compare the same frame before and after revision, then check the retest result.')
+         :T(language,'Phòng nhóm em: sửa một khung, giải thích lý do và lưu bản đã chỉnh sửa.',
+         'Your exhibit: revise one frame, explain the change and save the revised exhibit.')}</li>
+        <li>{T(language,'Phòng được giao: mở bản đã chỉnh sửa và trả lời lại một câu hỏi kèm khung làm bằng chứng.',
+         'Assigned exhibit: open the revised exhibit and answer one question again, citing the frame you used.')}</li>
        </ol>
        <div className="asean-retest-links">
         <button type="button" className="bml-outline" onClick={()=>{startActivity();focusVisitorStep('[data-activity5-own]');}}>
@@ -545,10 +550,10 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
       </>}
       {stage>=4&&captured&&<section className="asean-own-revision" data-testid="asean-own-revision">
        <h3 data-activity5-own={stage===4?true:undefined} tabIndex={stage===4?-1:undefined} lang={language}>
-        {stage===4?T(language,'1. Phòng V2 của nhóm em','1. Our V2 exhibit'):T(language,'Phòng V2 của nhóm em','Our V2 exhibit')}
+        {stage===4?'1. ':null}{T(language,'Bản đã chỉnh sửa của nhóm em','Our revised exhibit')}
        </h3>
        {stage===4&&<p><strong>{destination?.name||session.assignment.title}</strong></p>}
-       {captured.reason&&<p>{captured.reason}</p>}
+       {revisionReason&&<p>{revisionReason}</p>}
        <div className="asean-retest-results" lang={language}>
         {records.staffRetest&&<p><strong>{T(language,'Kiểm tra tham chiếu của giáo viên','Teacher reference check')}</strong>
          {' · '}{records.staffRetest.score}/1<br/><span lang="en">{records.staffRetest.answer}</span>
@@ -558,20 +563,20 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
         </p>:<p role="status">{waitingForRetest}</p>}
        </div>
        {baseline?.reconstructed&&<button type="button" className="bml-outline" disabled={busy} onClick={()=>action('reference-v1')}>
-        {T(language,'Xem bản tham chiếu V1','View reconstructed V1')}
+        {T(language,'Xem bản trước góp ý dựng lại','View reconstructed first exhibit')}
        </button>}
        {stage===4&&records.revisionDetails?.length>0&&<details className="asean-revision-comparison" open>
-        <summary>{T(language,'So sánh V1 và V2','Compare V1 and V2')}</summary>
+        <summary>{T(language,'So sánh trước và sau khi sửa','Compare before and after revision')}</summary>
         {records.revisionDetails.map(({frame,v1,v2,photoChanged})=><div key={frame}>
          <h5>{frame}</h5>
          {v1!==v2&&<>
-          <p><strong>{baseline?.reconstructed?'V1 reference':'V1'}</strong> · {v1||'No caption saved'}</p>
-          <p><strong>V2</strong> · {v2||'No caption saved'}</p>
+          <p><strong>{exhibitNames.first}</strong>{baseline?.reconstructed&&T(language,' (tham chiếu dựng lại)',' (reconstructed reference)')} · {v1||'No caption saved'}</p>
+          <p><strong>{exhibitNames.revised}</strong> · {v2||'No caption saved'}</p>
          </>}
-         {photoChanged&&<p>The photo in this frame changed in V2.</p>}
+         {photoChanged&&<p>{T(language,'Ảnh ở khung này đã thay đổi trong bản chỉnh sửa.','This frame has a different photo in the revised exhibit.')}</p>}
         </div>)}
        </details>}
-       {baseline?.complete===false&&<p>V1 was saved before the exhibit was complete. Record what the visitor finds in V2.</p>}
+       {baseline?.complete===false&&<p>{T(language,'Bản trước góp ý được lưu khi phòng chưa hoàn chỉnh. Hãy ghi điều khách tìm thấy trong bản đã chỉnh sửa.','The first exhibit was saved before the room was complete. Record what the visitor finds in the revised exhibit.')}</p>}
       </section>}
       {workshopVisible&&!(stage===4&&captured)&&<section className="asean-student-studio" ref={studioRef} tabIndex={-1} data-testid="asean-3d-studio">
        <h4 className="asean-studio-title" data-activity5-own={stage===4?true:undefined} tabIndex={stage===4?-1:undefined}>
@@ -609,11 +614,13 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
         <label>Question to retest <select value={revision.question} onChange={e=>setRevision({...revision,question:Number(e.target.value)})}>
          {ASEAN_FRAMES.map((f,i)=><option key={f.key} value={i+1}>{f.question}</option>)}</select></label>
         <label>Why did your group make this change? <input maxLength={300} value={revision.reason} onChange={e=>setRevision({...revision,reason:e.target.value})}/></label>
-        <button className="bml-primary" disabled={busy||imageBusy||!revision.reason.trim()} onClick={()=>action('capture')}>Open saved V2 for retest</button>
+        <button className="bml-primary" disabled={busy||imageBusy||!revision.reason.trim()} onClick={()=>action('capture')}>
+         {T(language,'Mở bản đã chỉnh sửa để thử lại','Open revised exhibit for retest')}
+        </button>
        </div>}
        {stage===5&&<button className="bml-primary" disabled={!liveOpen||dirty||busy||submitted||!captured||Boolean(missing.length)}
         onClick={()=>action('submit')}>{submitted?'Submitted':'Submit final 3D exhibit'}</button>}
-       {stage===5&&liveOpen&&!captured&&!submitted&&<p>Save the revised V2 in Activity 5 before submitting.</p>}
+       {stage===5&&liveOpen&&!captured&&!submitted&&<p>{T(language,'Lưu bản đã chỉnh sửa ở Hoạt động 5 trước khi nộp.','Save the revised exhibit in Activity 5 before submitting.')}</p>}
       </section>}
       {stage===4&&<GroupResponse key={live?.id??stage} session={{...session,readOnly}} stage={stage} live={live} open={liveOpen}
        record={stageRecord} refreshLive={refreshLive} refreshRecords={refreshRecords}
@@ -653,7 +660,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
         stage===0||stage===2?T(language,'Xem thử triển lãm','Preview your exhibit'):T(language,'Xem trước 2D/3D','Preview 2D/3D')}
       </button>}
       {stage===2&&<p className="asean-build-status asean-build-next">
-       {T(language,'Khi giáo viên mở Hoạt động 4, bản nháp đã lưu mới nhất sẽ là V1 cho lượt tham quan thử.','When your teacher opens Activity 4, the latest saved draft becomes V1 for the visitor test.')}
+       {T(language,'Khi giáo viên mở Hoạt động 4, bản nháp đã lưu mới nhất sẽ là bản trước góp ý để nhóm khách tham quan.','When your teacher opens Activity 4, the latest saved draft becomes the first exhibit for the visitor test.')}
       </p>}
      </footer>}
     </div></div>

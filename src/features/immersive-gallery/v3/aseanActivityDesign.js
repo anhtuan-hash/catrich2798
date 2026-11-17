@@ -45,7 +45,7 @@ export const ASEAN_ACTIVITY_DESIGN = [
    [8, 'Tải ảnh, ghi nguồn và quyền sử dụng, xem thử 3D', 'Upload photos, add sources and permissions, preview in 3D'],
    [2, 'Lưu bản nháp và kiểm tra tiến độ trên màn chiếu', 'Save the draft and check progress on the projector'],
   ],
-  output: ['Phòng 3D V1 đã lưu, đủ ba ảnh, chú thích và thông tin nguồn.', 'A saved V1 room with three photographs, captions and sources.'],
+  output: ['Bản trước góp ý đã lưu, đủ ba ảnh, chú thích và thông tin nguồn.', 'A saved first exhibit with three photographs, captions and sources.'],
  },
  {
   id: 'visit',
@@ -63,10 +63,10 @@ export const ASEAN_ACTIVITY_DESIGN = [
   id: 'revise',
   title: ['Sửa một khung. Thử lại.', 'Revise one frame. Test again.'],
   studentTitle: 'Make one evidence-based change',
-  studentTask: 'Read the feedback. Improve one frame, explain why, and make V2 available so a fresh visitor group can answer the same question.',
+  studentTask: 'Read the feedback. Improve one frame, explain why, and save the revised exhibit so a fresh visitor group can answer the same question.',
   steps: [
-   [3, 'Chọn một vấn đề từ góp ý V1', 'Choose one issue from the V1 feedback'],
-   [12, 'Sửa một khung, ghi lý do và lưu V2', 'Revise one frame, explain the change and save V2'],
+   [3, 'Chọn một vấn đề từ góp ý về bản đầu', 'Choose one issue from the first exhibit’s feedback'],
+   [12, 'Sửa một khung, ghi lý do và lưu bản chỉnh sửa', 'Revise one frame, explain the change and save the revised exhibit'],
    [5, 'Nhóm khách mới thử lại cùng câu hỏi', 'A fresh visitor group tests the same question'],
   ],
   output: ['Một thay đổi có lý do và kết quả thử lại cùng câu hỏi.', 'One justified change and the result of retesting the same question.'],

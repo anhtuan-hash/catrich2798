@@ -130,7 +130,7 @@ export default function CommandCenter({asean=false,
           <section role="dialog" aria-modal="true" aria-label={t(language,'So sánh các phiên bản triển lãm đã lưu','Compare saved exhibit revisions')} style={{background:'var(--adv-paper)',maxWidth:900,width:'100%',maxHeight:'90vh',overflow:'auto',padding:18,borderRadius:4}}>
             <header style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}><strong>{t(language,'Quá trình phát triển triển lãm nhóm','Group exhibit development')}</strong>
               <button type="button" onClick={()=>setCompareData(null)} aria-label={t(language,'Đóng so sánh','Close comparison')} className="adv-toolbtn" style={{fontSize:11}}><X size={13}/>{t(language,'Đóng','Close')}</button></header>
-            <MuseumBeforeAfter before={compareData.before} after={compareData.after} asean={asean} groupLabel={safeLabel(compareData.groupLabel)}/>
+            <MuseumBeforeAfter before={compareData.before} after={compareData.after} asean={asean} language={language} groupLabel={safeLabel(compareData.groupLabel)}/>
           </section>
         </div>
       ):null}
