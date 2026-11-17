@@ -1,7 +1,7 @@
 const bayWidth=9.85;
 const wallMountZ=-7.82;
 const tanHalfFov=Math.tan(55*Math.PI/360);
-export const collectionHallHeight=5.55;
+export const collectionHallHeight=6.25;
 
 export function buildCollectionHall(total){
  const counts=Array(4).fill(Math.floor(total/4));
@@ -43,8 +43,8 @@ export function collectionCameraView(bay,aspect,type){
  const distance=Math.min(bay.depth-1.08,close?Math.max(5.5,fit*.82):roomView?overviewDistance:Math.max(8.4,fit));
  // Aim between neighboring collections while leaving room for the next wall.
  const offset=wide?-Math.sign(bay.x)*Math.min(Math.abs(bay.x),bayWidth/2):0;
- const camera=collectionWorldPoint(bay,[offset+(wide?-3.1:0),roomView?2.56:2.15,wallMountZ+distance]);
- const look=collectionWorldPoint(bay,[offset+(wide?2.3:0),roomView?2.6:2.74,wallMountZ]);
+ const camera=collectionWorldPoint(bay,[offset+(wide?-3.1:0),roomView?2.72:2.15,wallMountZ+distance]);
+ const look=collectionWorldPoint(bay,[offset+(wide?2.3:0),roomView?2.92:2.74,wallMountZ]);
  return {camera,look};
 }
 

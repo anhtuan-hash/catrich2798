@@ -3449,9 +3449,10 @@ test('V5 Cinema and Swiss Editorial 2D show the quiz for the matching published 
  await expect(guide).toBeVisible();
  await expect(guide.locator('header strong')).toHaveText('Tràng An');
  await expect(guide.locator('[lang="vi"]')).toHaveText([
-  'Thân thiện - Trách nhiệm - Hợp tác - Phát triển',
+  'Trường Trung - Tiểu học Pétrus Ký',
   'Trật tự, vệ sinh, văn minh, nề nếp',
-  'Mỗi thầy cô là một tấm gương sáng về nhân cách, đạo đức, lối sống, tự học và sáng tạo'
+  'Mỗi thầy cô là một tấm gương sáng về nhân cách, đạo đức, lối sống, tự học và sáng tạo',
+  'Thân thiện, trách nhiệm, hợp tác, phát triển'
  ]);
  await expect(guide.getByRole('button',{name:'Close information'})).toBeFocused();
  await page.keyboard.press('Escape');

@@ -13,7 +13,7 @@ import MuseumPhotoQuiz from './MuseumPhotoQuiz.jsx';
 import {museumPhotoQuiz} from './museumPhotoQuizData.js';
 import {MuseumEditorialRoom,MuseumEditorialExhibit} from './MuseumEditorial2D.jsx';
 import {isAsean} from './aseanLesson.js';
-import {PEK_MUSEUM_MOTTO,PEK_COURTESY_MOTTO,PEK_TEACHER_MOTTO} from '../pekMuseumMotto.js';
+import {PEK_GALLERY_WALL_INSCRIPTIONS} from '../pekMuseumMotto.js';
 import './museumEditorial3D.css';
 const GalleryCanvas=lazy(()=>import('../GalleryCanvasR3F.jsx'));
 const Exhibit360Viewer=lazy(()=>import('./Exhibit360Viewer.jsx'));
@@ -282,9 +282,8 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
    <header><strong>{clean(swiss3D&&room?.title?room.title:gallery?.title,140)}</strong>
     <button type="button" ref={infoCloseRef} aria-label="Close information" onClick={closeInfo}><X size={16}/></button></header>
    <p>{clean(gallery?.summary,1000)||'Explore the museum and select artwork to learn more.'}</p>
-   {swiss3D?<><p className="bml-room-guide-motto" lang="vi">{PEK_MUSEUM_MOTTO}</p>
-    <p lang="vi">{PEK_COURTESY_MOTTO}</p>
-    <p lang="vi">{PEK_TEACHER_MOTTO}</p>
+   {swiss3D?<>{PEK_GALLERY_WALL_INSCRIPTIONS.map(({name,lines})=>
+    <p key={name} className="bml-room-guide-motto" lang="vi">{lines.join(' ')}</p>)}
     {exhibits.length?<ul className="bml-room-guide-exhibits" aria-label={tr('Tác phẩm trong phòng','Room exhibits')}>
      {exhibits.slice(0,30).map((exhibit,i)=><li key={exhibit.id||i}>
       <button type="button" disabled={isFocus} onClick={()=>openExhibit(exhibit.id)}>
