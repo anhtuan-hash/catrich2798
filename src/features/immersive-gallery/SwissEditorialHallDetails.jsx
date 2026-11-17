@@ -5,7 +5,7 @@ import {usePekSchoolCrest} from './PekDiscoveryHallV4.jsx';
 
 const pine='#263d2c',brass='#c5a14f',ivory='#f4ead3',iron='#211f1b';
 const bench={x:-2.08,z:-6.36,width:2.40,depth:.52};
-const lectern={x:4.78,z:-7.03,width:.76,depth:.50};
+const lectern={x:4.46,z:-7.20,width:.76,depth:.50};
 const furniture=[bench,lectern];
 
 export function isEditorialFurnitureAt(x,z){
@@ -125,11 +125,11 @@ function GalleryFurniture({title,exhibits}){
     <cylinderGeometry args={[.21,.23,.044,24]}/>
     <meshStandardMaterial color={iron} roughness={.62}/>
    </mesh>
-   <mesh position={[0,.49,0]}>
-    <cylinderGeometry args={[.024,.033,.93,12]}/>
+   <mesh position={[0,.45,0]}>
+    <cylinderGeometry args={[.024,.033,.85,12]}/>
     <meshStandardMaterial color={iron} roughness={.58}/>
    </mesh>
-   <group position={[0,1.01,0]} rotation={[-.79,-.11,0]}>
+   <group position={[0,.93,0]} rotation={[-.79,-.11,0]}>
     <mesh>
      <boxGeometry args={[lectern.width,.37,.042]}/>
      <meshStandardMaterial color={iron} roughness={.64}/>
