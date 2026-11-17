@@ -230,3 +230,11 @@
 .asean-build-next { font-size: .8rem; line-height: 1.3; }
 .asean-student-studio [data-artwork-frame]:focus { outline: 2px solid #25534a; outline-offset: -2px; }
 .bml-student-bottom .asean-workshop-action { flex: 1 1 10rem; min-inline-size: 0; }
+
+.asean-share-steps { margin-block: 0 12px; }
+.asean-final-submission :is(h3, p) { margin: 0 0 8px; }
+.asean-final-submission details { margin-block: 0 8px; }
+.bml [data-activity6-exhibit]:focus {
+  outline: 2px solid #285445;
+  outline-offset: 3px;
+}
