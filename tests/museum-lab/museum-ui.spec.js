@@ -1732,8 +1732,10 @@ test('student workshop expands both panels when an activity starts and can reope
  await expect(ribbon).toBeHidden();
 });
 
-test('ASEAN student workshop uses the Climate layout for all six ASEAN activities',async({page,isMobile},testInfo)=>{
+test('ASEAN student workshop renders all six editorial activities',async({page,isMobile},testInfo)=>{
  let stageIndex=2,readOnly=false;
+ const writing={experience:'Visitors can walk along the path and look at the ancient brick towers.',
+  advice:'If you want to take a photo, you should stand to one side of the path so other visitors can pass. Keep the walkway clear and follow the signs near the entrance.'};
  const assignment={id:'qa-asean',title:'ASEAN in Three Frames',class_scope:'11-QA',lesson_template:'asean-in-three-frames'};
  await page.route('**/api/gallery-guest?**',route=>{
   const operation=new URL(route.request().url()).searchParams.get('operation');
@@ -1743,7 +1745,7 @@ test('ASEAN student workshop uses the Climate layout for all six ASEAN activitie
  });
  await page.route('**/api/gallery-guest/live?**',route=>{
   const operation=new URL(route.request().url()).searchParams.get('operation');
-  return route.fulfill({json:operation==='asean-records'?{rows:[],checkpoints:[]}:
+  return route.fulfill({json:operation==='asean-records'?{rows:[{stage_index:0,value:writing}],checkpoints:[]}:
    {session:{id:'qa-asean-live',stageIndex,status:'active',stageOpen:true},readOnly}});
  });
  await page.route('**/api/gallery-guest/artwork?**',route=>route.fulfill({json:{assets:[]}}));
@@ -1788,12 +1790,17 @@ test('ASEAN student workshop uses the Climate layout for all six ASEAN activitie
   await expect(slide.getByRole('heading',{name:title,exact:true})).toBeVisible();
   if(index>0&&index<5)await expect(slide.locator('.asean-activity-art')).toBeVisible();
   if(index===0){
+   const advice=slide.getByRole('textbox',{name:'One piece of advice',exact:true});
+   await expect(advice).toHaveValue(writing.advice);
+   expect(await advice.evaluate(el=>el.scrollHeight<=el.clientHeight+1)).toBe(true);
    const example=root.getByRole('region',{name:'2. Discuss the class example',exact:true});
    await expect(example.getByRole('heading',{name:'Complex of Hué Monuments',exact:true})).toBeVisible();
    await expect(example.getByText('Your 3D project topic',{exact:true})).toBeVisible();
    await expect(example.getByText('Hội An Ancient Town',{exact:true})).toBeVisible();
    await expect(example.locator('.asean-activity-art')).toBeVisible();
-   await expect(example.getByTestId('asean-discussion-photo').getByRole('img')).toHaveAttribute('src',/Ngo_Mon\.jpg/);
+   const photo=example.getByTestId('asean-discussion-photo').getByRole('img');
+   await expect(photo).toHaveAttribute('src','/museum/asean/presenter/hue-meridian-gate.webp');
+   await expect.poll(()=>photo.evaluate(img=>img.naturalWidth)).toBeGreaterThan(0);
    await expect(example.getByRole('textbox')).toHaveCount(0);
   }
   for(const pane of [root,lesson.getByTestId('student-lesson-pane'),root.getByTestId('student-task-scroll')])
