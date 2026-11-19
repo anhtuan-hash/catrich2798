@@ -25,12 +25,8 @@ test('file opens without network, navigates frozen lessons, submissions and live
   await page.getByRole('button',{name:'Advance to next activity',exact:true}).click();
   await expect(page.getByTestId('igv2-teacher-live-stage')).toContainText('ACTIVITY '+String(i+1).padStart(2,'0')+' / 11');
  }
- await page.getByRole('button',{name:'Evidence records',exact:true}).click();
- await page.getByText('Activity responses (1)',{exact:true}).click();
- await expect(page.getByText('answer: QA recorded response',{exact:true})).toBeVisible();
- await expect(page.getByText(/^Source note:.*SYNTHETIC QA ONLY/)).toBeVisible();
  expect(await page.evaluate(()=>JSON.parse(document.getElementById('museum-frozen-payload').textContent).snapshot.live['qa-lesson'].session.stageIndex)).toBe(0);
- await page.screenshot({path:info.outputPath('offline-evidence.png'),fullPage:true});
+ await page.screenshot({path:info.outputPath('offline-teacher-live.png'),fullPage:true});
  expect(errors).toEqual([]);expect(requests).toEqual([]);
 });
 test('saved artwork works in 2D and actual WebGL 3D with no server',async({page},info)=>{
@@ -87,6 +83,9 @@ test('ASEAN ZIP opens the teacher dossier and the six student activities without
  page.on('request',request=>{if(/^https?:/.test(request.url()))requests.push(request.url());});
  page.on('pageerror',error=>errors.push(error.message));
  await page.goto(url('asean/PetrusKy_Museum_Offline'));
+ const archiveNav=page.getByRole('navigation',{name:'Offline archive navigation'});
+ await expect(archiveNav.getByRole('button')).toHaveText(['Museum Lab','Saved student work']);
+ await expect(page.getByRole('heading',{name:'Frozen classroom evidence'})).toHaveCount(0);
  await page.getByTestId('igv2-nav-competition-dossier').click();
  await expect(page.getByRole('heading',{name:'ASEAN in Three Frames · Teaching dossier'})).toBeVisible();
  await expect(page.getByTestId('museum-offline-export')).toHaveCount(0);
