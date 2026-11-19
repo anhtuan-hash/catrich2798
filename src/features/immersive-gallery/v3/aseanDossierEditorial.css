@@ -312,7 +312,7 @@
 @container (max-width: 560px) {
   .swiss-editorial-dossier .asean-dossier-mobile-table { min-width: 525px; }
 
-  .igv2 .bml .swiss-editorial-dossier .asean-dossier-mobile-cell {
+  .igv2 .bml .swiss-editorial-dossier .asean-dossier-mobile-table .asean-dossier-mobile-cell {
     position: sticky;
     inset-inline-end: 0;
     background: var(--dossier-paper);
