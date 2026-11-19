@@ -13,7 +13,7 @@ import './aseanDossierEditorial.css';
 export function AseanDossier({ data, language, transport, readOnly, onOpenGallery, onOpenReview }) {
   const preview = useMuseumFilePreview();
   const tr = (vi, en) => language === 'en' ? en : vi;
-  const {href:planHref, filename:planFilename} = getAseanPaperPlan(language);
+  const {href:planHref, filename:planFilename, overviewPdf} = getAseanPaperPlan(language);
   const groups = data?.groups || [];
   const assignments = data?.assignments || [];
   const galleries = data?.publishedGalleries || [];
@@ -68,7 +68,7 @@ export function AseanDossier({ data, language, transport, readOnly, onOpenGaller
         )}
         {download}
         <ul className="asean-dossier-documents">
-          <li><MuseumFileLink href="/museum/asean/asean-project-overview.docx" filename="ASEAN_Project_Overview.docx"
+          <li><MuseumFileLink {...overviewPdf}
             title={tr('Phần 1 · Tổng quan dự án', 'Part 1 · Project overview')}>
             <span>{tr('Phần 1 · Tổng quan dự án', 'Part 1 · Project overview')}</span><ArrowRight aria-hidden="true" size={22}/>
           </MuseumFileLink></li>
