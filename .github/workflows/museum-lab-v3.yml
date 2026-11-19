@@ -30,6 +30,8 @@ jobs:
         run: node --test scripts/test-museum-nasa-video-questions.mjs
       - name: Museum V3 data, security and workflow contracts
         run: node --test scripts/test-museum-lab-v3.mjs
+      - name: ASEAN new lesson blank responses and class isolation
+        run: node --test scripts/test-museum-asean-lesson.mjs
       - name: Server handler syntax
         run: node --check serverless-handlers/gallery-staff.js
       - name: Whole-site translated interface audit

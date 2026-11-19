@@ -4,7 +4,7 @@ import AseanHueQuiz from './AseanHueQuiz.jsx';
 import AseanDiscussionPhoto from './AseanDiscussionPhoto.jsx';
 import AseanActivityArt,{AseanFrameIcon} from './AseanActivityArt.jsx';
 import {ASEAN_ACTIVITY_DESIGN,ASEAN_DISCUSSION_MODEL} from './aseanActivityDesign.js';
-import {ASEAN_EXHIBIT_NAMES,ASEAN_FRAMES,ASEAN_STAGES,ASEAN_TITLE,aseanBaselineDraft,aseanDestination,aseanExhibitMissing,aseanRevisionReason,aseanTransferDraft,aseanWritingCard,aseanWordCount,isAseanReferenceRevision,validAseanResponse} from './aseanLesson.js';
+import {ASEAN_EXHIBIT_NAMES,ASEAN_FRAMES,ASEAN_STAGES,ASEAN_TITLE,aseanBlankResponse,aseanDestination,aseanExhibitMissing,aseanRevisionReason,aseanWritingCard,aseanWordCount,isAseanReferenceRevision,validAseanResponse} from './aseanLesson.js';
 import {guestRequest,englishSystemGroupLabel} from './museumApi.js';
 import {liveGuest,localMuseumFromDraft,artGuest} from './museumLiveApi.js';
 import {emptyStudio,normalizeStudio,documentFromStudio} from './museumData.js';
@@ -17,13 +17,6 @@ import MuseumScene,{reviewMuseum} from './MuseumScene.jsx';
 import GalleryRenderBoundary from '../GalleryRenderBoundary.jsx';
 import './aseanStudentStudio.css';
 
-const emptyAnswer=()=>({text:'',frame:null,score:0});
-const initialFields=stage=>{
- if(stage===0||stage===5)return {experience:'',advice:''};
- if(stage===1)return {codes:['','',''],comparisonFrame:null,alternative:'',fact:'',source:'',reason:''};
- if(stage===3)return {first:null,answers:ASEAN_FRAMES.map(emptyAnswer),comment:''};
- return {answer:'',frame:null,score:0};
-};
 const errorText=error=>error.message||'The request could not be completed.';
 const ACTIVITY_GROUPS=[
  {key:'discover',en:'Discover',vi:'Khám phá'},
@@ -128,11 +121,10 @@ function ResponseFields({stage,fields,update,groupLabel,question,recorded,langua
 }
 
 function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLive,onVisit,retestTask,transferNeedsResubmission,formId,onSubmittingChange,language='en'}){
- const baselineDraft=stage===0&&session.assignment?.class_scope==='11.3'?aseanBaselineDraft(session.groupLabel):null;
- const transferDraft=stage===5&&session.assignment?.class_scope==='11.3'&&!session.readOnly
-  ?aseanTransferDraft(session.groupLabel):null;
- const [fields,setFields]=useState(()=>record||baselineDraft||(stage===5?null:initialFields(stage)));
- const responseFields=fields||transferDraft||initialFields(stage);
+ // A new lesson always begins with blank responses. Submitted answers are read
+ // only from the current group's persisted record, never from a class label.
+ const [fields,setFields]=useState(()=>record||aseanBlankResponse(stage));
+ const responseFields=fields;
  const [visit,setVisit]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [prefilledFeedback,setPrefilledFeedback]=useState(false);
  const submitted=Boolean(record);
@@ -197,7 +189,7 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
   }catch(e){setError(errorText(e));}finally{setBusy(false);onSubmittingChange?.(false);}
  };
  const transfer=stage===5;
- if(!open&&!submitted&&!baselineDraft&&!v2Visit&&!transfer)return <p className="asean-response-closed" role="status">
+ if(!open&&!submitted&&!v2Visit&&!transfer)return <p className="asean-response-closed" role="status">
   {session.readOnly?'No group response was recorded for this activity.':'Your teacher has not opened this activity for responses.'}
  </p>;
  return <section className={'bml-surface asean-group-response'+(v1Visit?' asean-v1-visit':v2Visit?' asean-v2-retest':'')}>
@@ -208,13 +200,8 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
      :T(language,'Chờ giáo viên mở phần nộp Hoạt động 6. Em có thể đọc thẻ trước.','Wait for your teacher to open Activity 6 for submissions. You can read the card now.')}
    </p>}
    {transferNeedsResubmission&&!submitted&&<p role="status">
-    {transferDraft?T(language,'Câu trả lời trước trùng với bài ở Hoạt động 1.','Your previous response repeated your Activity 1 writing.')
-     :T(language,'Câu trả lời trước trùng với bài ở Hoạt động 1. Hãy dùng gợi ý trên thẻ để viết hai câu mới.',
-      'Your previous response repeated your Activity 1 writing. Use the clues on this card to write two new sentences.')}
-   </p>}
-   {transferDraft&&!submitted&&<p className="bml-banner bml-info-banner">
-    {T(language,'Nhóm em hãy đọc bản nháp và viết lại bằng lời của mình trước khi nộp.',
-     'Review the draft and use your own words before submitting.')}
+    {T(language,'Câu trả lời trước trùng với bài ở Hoạt động 1. Hãy dùng gợi ý trên thẻ để viết hai câu mới.',
+     'Your previous response repeated your Activity 1 writing. Use the clues on this card to write two new sentences.')}
    </p>}
   </div>}
   {v1Visit&&!submitted&&<div className="asean-visit-intro" lang={language}>
@@ -263,11 +250,7 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
      :T(language,'Hãy kiểm tra câu trả lời, bằng chứng và khung nhóm mở đầu tiên trước khi nộp.',
      'Check the answers, evidence and the first frame your group opened before submitting.')}
    </p>}
-   {baselineDraft&&!submitted&&<p role="status">{open
-    ?T(language,'Đọc và chỉnh hai câu trong bản nháp trước khi nộp.','Review and edit the draft sentences before submitting.')
-    :session.readOnly?T(language,'Bản nháp chưa nộp.','Unsubmitted draft.')
-     :T(language,'Đợi Hoạt động 1 mở để chỉnh và nộp phiếu.','Wait for Activity 1 to open for editing and submission.')}</p>}
-   <ResponseFields stage={stage} fields={record||(transfer&&session.readOnly?initialFields(stage):responseFields)} update={(key,value)=>setFields(previous=>({...(previous||responseFields),[key]:value}))}
+   <ResponseFields stage={stage} fields={record||responseFields} update={(key,value)=>setFields(previous=>({...(previous||responseFields),[key]:value}))}
     groupLabel={session.groupLabel} question={visit?.question} recorded={submitted||!open} language={language}/>
    {!submitted&&scoreMismatch&&<p role="status">For a score of 1, choose {ASEAN_FRAMES[visit.question-1]?.label} as the evidence frame. Choose 0 if the answer is missing or unclear.</p>}
    {submitted?!visitStage&&<p className="asean-response-saved" role="status" lang={transfer?language:undefined}><Check size={16} aria-hidden="true"/>{transfer

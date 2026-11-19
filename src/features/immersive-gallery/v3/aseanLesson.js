@@ -30,6 +30,14 @@ export const ASEAN_DESTINATIONS = Object.freeze([
  ['George Town','Malaysia',1223],['Singapore Botanic Gardens','Singapore',1483],
  ['Borobudur','Indonesia',592],['Vigan','Philippines',502],
 ].map(([name,country,sourceId])=>({name,country,source:'https://whc.unesco.org/en/list/'+sourceId+'/'})));
+// Each newly issued lesson gets an independent, empty response form.
+// Student submissions are loaded only from their current session/group records.
+export function aseanBlankResponse(stage){
+ if(stage===0||stage===5)return {experience:'',advice:''};
+ if(stage===1)return {codes:['','',''],comparisonFrame:null,alternative:'',fact:'',source:'',reason:''};
+ if(stage===3)return {first:null,answers:ASEAN_FRAMES.map(()=>({text:'',frame:null,score:0})),comment:''};
+ return {answer:'',frame:null,score:0};
+}
 export const ASEAN_MIN_GROUPS = 3;
 export const ASEAN_MAX_GROUPS = ASEAN_DESTINATIONS.length;
 export const validAseanGroupCount = count =>
