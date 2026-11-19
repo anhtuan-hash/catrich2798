@@ -4,9 +4,18 @@ import {saveBlob} from './museumDocx.js';
 import {isAsean} from './aseanLesson.js';
 import {groupWorkshopRows} from './offline/workshopRows.js';
 import MuseumWorkshopBoard from './MuseumWorkshopBoard.jsx';
+const exportStages={
+ runtime:['Đang tải ứng dụng ngoại tuyến','Loading the offline app'],
+ records:['Đang đọc hồ sơ lớp','Reading classroom records'],
+ exhibitions:['Đang tải triển lãm và ảnh','Downloading exhibits and images'],
+ lessons:['Đang lưu dữ liệu bài dạy','Saving lesson data'],
+ groups:['Đã lưu dữ liệu nhóm','Group data collected'],
+ packaging:['Đang kiểm tra và đóng gói','Verifying and packaging'],
+ compression:['Đang nén tệp ZIP','Compressing the ZIP'],
+ ready:['Gói ZIP đã sẵn sàng','ZIP ready to download'],
+};
 export default function MuseumOfflineExport({language='en',data,transport,renderLayout,mobileAction}){
- const [busy,setBusy]=useState(false),[progress,setProgress]=useState(''),[error,setError]=useState(''),[report,setReport]=useState(null),[ready,setReady]=useState(false);
- const [compressionPercent,setCompressionPercent]=useState(null);
+ const [busy,setBusy]=useState(false),[progress,setProgress]=useState({stage:'runtime',percent:0}),[error,setError]=useState(''),[report,setReport]=useState(null),[ready,setReady]=useState(false);
  const abort=useRef(null),pack=useRef(null),tr=(vi,en)=>language==='en'?en:vi;
  const rows=useMemo(()=>groupWorkshopRows({staff:data??undefined}),[data]);
  useEffect(()=>()=>abort.current?.abort(),[]);
@@ -24,16 +33,15 @@ export default function MuseumOfflineExport({language='en',data,transport,render
   }catch(e){setError(e.message);}
  };
  const start=async()=>{
-  abort.current=new AbortController();setBusy(true);setProgress(tr('Đang chuẩn bị gói ZIP…','Preparing the ZIP…'));setError('');setReport(null);setReady(false);pack.current=null;
-  setCompressionPercent(null);
+  abort.current=new AbortController();setBusy(true);setProgress({stage:'runtime',percent:0});setError('');setReport(null);setReady(false);pack.current=null;
   try{const {exportMuseumOffline}=await import('./offline/exportMuseum.js');
-   const result=await exportMuseumOffline({signal:abort.current.signal,onProgress:setProgress,onCompressionProgress:setCompressionPercent,staff:transport,
+   const result=await exportMuseumOffline({signal:abort.current.signal,onProgress:setProgress,staff:transport,
     assignmentIds:(data?.assignments||[]).map(assignment=>assignment.id)});
    pack.current=result;
    setReport({...result.manifest,bytes:result.blob.size});setReady(true);
    downloadArchive();
-  }catch(e){setError(e.name==='AbortError'?tr('Đã hủy xuất.','Export cancelled.'):e.message);}
-  finally{setBusy(false);setProgress('');abort.current=null;}
+  }catch(e){abort.current?.abort();setError(e.name==='AbortError'?tr('Đã hủy xuất.','Export cancelled.'):e.message);}
+  finally{setBusy(false);abort.current=null;}
  };
  const board=<MuseumWorkshopBoard rows={rows} language={language} editorial={Boolean(renderLayout)} asean={isAsean(data?.lessonTemplate)} mobileAction={mobileAction}
   action={{label:tr('Tệp','File'),render:row=>ready
@@ -50,18 +58,19 @@ export default function MuseumOfflineExport({language='en',data,transport,render
   </button>
  );
  const progressLabel=tr('Tiến trình xuất gói ZIP','ZIP export progress');
- const status= compressionPercent===null
-  ? progress
-  : tr(`Đang nén ZIP · ${compressionPercent}%`,`Compressing ZIP · ${compressionPercent}%`);
+ const stageLabel=tr(...exportStages[progress.stage]);
+ const stageCount=progress.stage==='groups'?` · ${progress.completed}/${progress.total}`:'';
  const feedback=<>
   {busy?<div className="bml-offline-export-progress">
-   <progress max={100} value={compressionPercent??undefined} aria-label={progressLabel}/>
-   <p role={compressionPercent===null?'status':undefined}>{status}</p>
+   <progress max={100} value={progress.percent} aria-label={progressLabel}/>
+   <div className="bml-offline-export-stage">
+    <span>{stageLabel}{stageCount}</span><strong>{progress.percent}%</strong>
+   </div>
    <button type="button" className="bml-outline" onClick={()=>abort.current?.abort()}><X size={16}/>{tr('Hủy','Cancel')}</button>
   </div>:null}
   {error?<p role="alert" className="bml-banner bml-danger-banner">{error}</p>:null}
   {report?<div role="status" className="bml-banner bml-info-banner"><PackageCheck size={20}/><div>
-   <strong>{tr('Gói ZIP đã sẵn sàng','ZIP ready to download')}</strong>
+   <strong>{tr('Gói ZIP đã sẵn sàng','ZIP ready to download')} · 100%</strong>
    <p>{report.counts.lessons} lessons · {report.counts.groups} groups · {report.counts.studentWorkshops||0} student workshops · {report.counts.exhibitions} exhibitions · {(report.bytes/1048576).toFixed(1)} MB</p>
    <p>{tr('Giải nén ZIP. Mở PetrusKy_Museum_Offline.html cho bản giáo viên, hoặc hoc-sinh/index.html để xem bài của các nhóm.','Extract the ZIP. Open PetrusKy_Museum_Offline.html for the teacher app, or hoc-sinh/index.html to view the student workshops.')}</p>
    <button type="button" className="bml-outline" onClick={downloadArchive}>
