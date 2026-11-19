@@ -24,7 +24,10 @@ import './museumSubmissionsEditorial.css';
 const tr=(language,vi,en)=>language==='en'?en:vi;
 const initialMuseumTab=()=>{
  if(typeof window==='undefined')return 'home';
- try{return new URLSearchParams(window.location.hash.split('?')[1]||'').has('exhibition')?'gallery':'home';}
+ try{
+  const params=new URLSearchParams(window.location.hash.split('?')[1]||'');
+  return params.has('exhibition')?'gallery':params.has('dossier')?'evidence':'home';
+ }
  catch{return 'home';}
 };
 

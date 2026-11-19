@@ -3,7 +3,8 @@ import AseanStudentLesson from './AseanStudentLesson.jsx';
 import React,{Suspense,useCallback,useEffect,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronLeft,ChevronRight,CircleHelp,Cloud,CloudAlert,CloudUpload,Eye,EyeOff,FileText,Info,KeyRound,Landmark,Leaf,Lightbulb,LockKeyhole,MessageSquare,RefreshCw,Send,ShieldCheck,Sparkles,Users,X} from 'lucide-react';
 import {emptyStudio,documentFromStudio,normalizeStudio,STEPS,moveStoryboardCard} from './museumData.js';
-import {guestRequest,getMuseumInviteInfo,englishSystemGroupLabel,museumInviteHandle} from './museumApi.js';
+import {guestRequest,getMuseumInviteInfo,englishSystemGroupLabel,museumInviteHandle,readPublicWorkshop} from './museumApi.js';
+import {DOSSIER_ROUTE} from './aseanPublicWorkshop.js';
 import {artGuest,liveGuest} from './museumLiveApi.js';
 import {buildStudentMuseumPreview} from './museumPreviewImages.js';
 import {stageMediaTools} from './museumLiveExtensions.js';
@@ -114,7 +115,66 @@ const field=(label,value,update,{rows=0,placeholder='',limit=2500,disabled=false
  {rows?<textarea rows={rows} maxLength={limit} disabled={disabled} required={required} placeholder={placeholder} value={value||''} onChange={e=>update(e.target.value)}/>:
  <input maxLength={limit} disabled={disabled} required={required} placeholder={placeholder} value={value||''} onChange={e=>update(e.target.value)}/>}
  </label>;
-export default function MuseumLabStudent({language:languageProp='en'}){
+const publicWorkshopLocation=()=>{
+ if(typeof window==='undefined'||getMuseumOffline())return null;
+ const [route,query]=window.location.hash.split('?');
+ return route==='#/gallery-create'?new URLSearchParams(query).get('viewGroup'):null;
+};
+
+function PublicAseanWorkshop({groupId,language:initialLanguage}){
+ const [language,setLanguage]=useState(initialLanguage);
+ const [workshop,setWorkshop]=useState(null);
+ const [attempt,setAttempt]=useState(0);
+ const [failed,setFailed]=useState(false);
+ const assetsFetchedAt=useRef(0);
+ useEffect(()=>{
+  const controller=new AbortController();
+  readPublicWorkshop(groupId,{signal:controller.signal}).then(value=>{
+   if(controller.signal.aborted)return;
+   if(!value.assignment||!value.groupLabel||!value.draft||!value.records)throw new Error('Invalid workshop.');
+   assetsFetchedAt.current=Date.now();
+   setWorkshop(value);
+  }).catch(()=>{if(!controller.signal.aborted)setFailed(true);});
+  return()=>controller.abort();
+ },[groupId,attempt]);
+ if(!workshop)return <main className="bml bml-student-shell bml-student-editorial bml-student-login-with-ribbon" lang={language}>
+  <div className="bml-paper bml-guest-competition-wrap">
+   <MuseumCompetitionRibbon variant="dashboard" language={language} lessonTemplate={ASEAN_TEMPLATE}/>
+  </div>
+  <div className="bml-surface bml-public-workshop-status">
+   {failed?<><p role="alert">{T(language,'Bài thực hành đã công bố hiện không khả dụng.','This published workshop is currently unavailable.')}</p>
+    <button type="button" className="bml-outline" onClick={()=>{setFailed(false);setAttempt(value=>value+1);}}>{T(language,'Thử lại','Try again')}</button></>:
+    <p role="status">{T(language,'Đang mở bài thực hành của nhóm…','Opening the group workshop…')}</p>}
+   <a href={DOSSIER_ROUTE}>{T(language,'Về hồ sơ dự thi','Back to the dossier')}</a>
+  </div>
+ </main>;
+ const refreshAssets=async()=>{
+  if(Date.now()-assetsFetchedAt.current<480000)return workshop.assets;
+  const {assets}=await readPublicWorkshop(groupId);
+  assetsFetchedAt.current=Date.now();
+  setWorkshop(value=>({...value,assets}));
+  return assets;
+ };
+ return <AseanStudentLesson session={{
+  assignment:workshop.assignment,groupLabel:workshop.groupLabel,groupState:'published',readOnly:true,uploadEnabled:false,
+ }} initialStudio={normalizeStudio(workshop.draft)} initialVersion={workshop.version} language={language}
+  onLanguageChange={setLanguage} publicWorkshop={workshop} onRefreshPublicAssets={refreshAssets}
+  onLoadPublicFirst={()=>readPublicWorkshop(groupId,{section:'first'})}/>;
+}
+
+export default function MuseumLabStudent({language='en'}){
+ const [viewGroup,setViewGroup]=useState(publicWorkshopLocation);
+ useEffect(()=>{
+  const sync=()=>setViewGroup(publicWorkshopLocation());
+  window.addEventListener('hashchange',sync);
+  return()=>window.removeEventListener('hashchange',sync);
+ },[]);
+ const lang=viewGroup===null?null:new URLSearchParams(window.location.hash.split('?')[1]).get('lang');
+ return viewGroup!==null?<PublicAseanWorkshop key={viewGroup} groupId={viewGroup}
+  language={lang==='vi'||lang==='en'?lang:language}/>:<MuseumCreatorPassStudent language={language}/>;
+}
+
+function MuseumCreatorPassStudent({language:languageProp='en'}){
  const [uiLanguage,setUiLanguage]=useState(()=>{
   try{const saved=sessionStorage.getItem('bml-student-ui');if(saved==='vi'||saved==='en')return saved;}catch{}
   return languageProp==='vi'?'vi':'en';

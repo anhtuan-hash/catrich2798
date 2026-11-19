@@ -57,10 +57,8 @@ async function aseanVisitTarget(admin,assignmentId,groupId,stage,reverse=false){
  return peer;
 }
 
-export async function handleAseanActivity({op,req,res,admin,ctx,session}){
- const stage=session?.stage_index,id=ctx.group.id;
- if(op==='asean-records'){
-  requireMethod(req,'GET');
+export async function readAseanActivityRecords(admin,ctx,session,{publicView=false}={}){
+  const id=ctx.group.id;
   // The group one place before the author supplied V1 feedback.
   const source=session?await query(admin.from('museum_peer_pairs').select('from_group')
    .eq('session_id',session.id).eq('to_group',id).maybeSingle()):null;
@@ -97,11 +95,20 @@ export async function handleAseanActivity({op,req,res,admin,ctx,session}){
    return v1!==v2||photoChanged?[{frame:label,v1,v2,photoChanged}]:[];
   }):[];
   const staffRetest=authorRetest?aseanStaffRetest(staffChecks,authorRetest.id,afterCheckpoint):null;
-  const transferNeedsResubmission=Boolean(session&&!rows.some(row=>row.stage_index===5)&&
+  const transferNeedsResubmission=Boolean(!publicView&&session&&!rows.some(row=>row.stage_index===5)&&
    (await query(aseanArchivedTransferResponses(admin,session.id).eq('group_id',id).limit(1))).length);
-  return send(res,200,{rows,feedback:feedback?.value||null,retest:retest?.value||null,
+  return {rows:publicView?rows.filter(row=>validAseanResponse(row.stage_index,row.value)):rows,
+   feedback:!publicView||validAseanResponse(3,feedback?.value)?feedback?.value||null:null,
+   retest:!publicView||validAseanResponse(4,retest?.value)?retest?.value||null:null,
    retestVisitor:authorRetest?.label??null,staffRetest,checkpoints,retestTask,revisionDetails,
-   transferNeedsResubmission,hueQuiz:hueQuiz?.details??null});
+   transferNeedsResubmission,hueQuiz:publicView?gradeHueQuiz(hueQuiz?.details?.answers):hueQuiz?.details??null};
+}
+
+export async function handleAseanActivity({op,req,res,admin,ctx,session}){
+ const stage=session?.stage_index,id=ctx.group.id;
+ if(op==='asean-records'){
+  requireMethod(req,'GET');
+  return send(res,200,await readAseanActivityRecords(admin,ctx,session));
  }
  if(op==='asean-reference-v1'){
   requireMethod(req,'GET');
