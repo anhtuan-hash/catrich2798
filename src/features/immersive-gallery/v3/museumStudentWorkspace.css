@@ -636,6 +636,9 @@
  font-weight: 750;
  text-decoration: none;
 }
+.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace[data-public-workshop] [data-banner-expanded] .bml-student-focus {
+ grid-template-columns: minmax(0, 1fr) !important;
+}
 .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace[data-public-workshop] :is(.bml-student-content,.bml-student-workbench) {
  height: auto;
  max-height: none;
