@@ -40,7 +40,15 @@ export default function MuseumOfflineExport({language='en',data,transport,render
    pack.current=result;
    setReport({...result.manifest,bytes:result.blob.size});setReady(true);
    downloadArchive();
-  }catch(e){abort.current?.abort();setError(e.name==='AbortError'?tr('Đã hủy xuất.','Export cancelled.'):e.message);}
+  }catch(e){
+   abort.current?.abort();
+   if(e.name==='AbortError')setError(tr('Đã hủy xuất.','Export cancelled.'));
+   else if(e.code==='OFFLINE_ARTWORK_LIMIT')setError(tr(
+    'Ảnh vẫn vượt giới hạn 180 MB sau khi tối ưu để xuất ngoại tuyến.',
+    'The optimized artwork still exceeds the 180 MB offline export limit.',
+   ));
+   else setError(e.message);
+  }
   finally{setBusy(false);abort.current=null;}
  };
  const board=<MuseumWorkshopBoard rows={rows} language={language} editorial={Boolean(renderLayout)} asean={isAsean(data?.lessonTemplate)} mobileAction={mobileAction}
