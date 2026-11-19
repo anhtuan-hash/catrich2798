@@ -127,5 +127,5 @@ test('new ASEAN lessons start with blank independent student responses, even for
  assert.equal(second.answers[0].text,'');
  const studentSource=readFileSync(new URL('../src/features/immersive-gallery/v3/AseanStudentLesson.jsx',import.meta.url),'utf8');
  assert.match(studentSource,/useState\(\(\)=>record\|\|aseanBlankResponse\(stage\)\)/);
- assert.doesNotMatch(studentSource,/aseanBaselineDraft|aseanTransferDraft|class_scope==='11\\.3'/);
+ assert.doesNotMatch(studentSource,/aseanBaselineDraft|aseanTransferDraft|class_scope==='11\.3'/);
 });
