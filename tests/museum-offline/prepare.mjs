@@ -8,10 +8,10 @@ const runtime=JSON.parse(await fs.readFile('dist/museum-offline-runtime.json','u
 assert.equal(/(?:[a-z0-9-]+)\.supabase\.co|eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/.test(runtime.script),false,'No cloud endpoint or JWT may ship in offline code');
 async function makeArchive(f,assignmentIds){
  const originalFetch=globalThis.fetch;
- const compression=[];
+ const progress=[];
  globalThis.fetch=async url=>{assert.equal(url,'/museum-offline-runtime.json');return Response.json(runtime);};
  try{
-  const result=await exportMuseumOffline({assignmentIds,onCompressionProgress:value=>compression.push(value),
+  const result=await exportMuseumOffline({assignmentIds,onProgress:value=>progress.push(value),
   staff:async action=>action==='dashboard'?f.staff:action==='showcase-state'?f.showcase:{gallery:f.galleries[0]},
   art:async groupId=>f.artworks[groupId]||[],
   live:async(action,body,params)=>{
@@ -25,10 +25,12 @@ async function makeArchive(f,assignmentIds){
    return {before:null,after:null};
   },
   fetcher:async()=>{throw Error('Unexpected external fetch');}});
-  assert(compression.length>1);
-  assert.equal(compression.at(-1),100);
-  assert(compression.every((value,index)=>Number.isInteger(value)&&value>=0&&value<=100&&
-   (index===0||value>compression[index-1])));
+  assert.deepEqual(progress[0],{stage:'runtime',percent:0});
+  assert.deepEqual(progress.at(-1),{stage:'ready',percent:100});
+  assert(progress.every(({percent},index)=>Number.isInteger(percent)&&percent>=0&&percent<=100&&
+   (index===0||percent>=progress[index-1].percent)));
+  assert(progress.some(item=>item.stage==='groups'&&item.completed===result.manifest.counts.groups));
+  assert(progress.some(item=>item.stage==='compression'&&item.percent>90&&item.percent<100));
   return result;
  }finally{globalThis.fetch=originalFetch;}
 }

@@ -103,6 +103,27 @@ test('image bytes are embedded before signed capabilities are stripped; failed d
   await assert.rejects(captureMuseum({...fakeOptions(f),fetcher:async()=>new Response('',{status:403})}),/could not be downloaded/);
  }finally{globalThis.FileReader=original;}
 });
+test('the exporter downloads unique images in parallel within a four-request limit',async()=>{
+ const original=globalThis.FileReader;
+ globalThis.FileReader=class {async readAsDataURL(blob){this.result='data:'+blob.type+';base64,'+Buffer.from(await blob.arrayBuffer()).toString('base64');this.onload();}};
+ try{
+  const f=fixture(),first='https://storage.example/exhibit-0.webp';
+  f.galleries[0].rooms[0].exhibits=Array.from({length:12},(_,i)=>({
+   image_url:i===11?first:'https://storage.example/exhibit-'+i+'.webp',
+  }));
+  let active=0,peak=0,calls=0;
+  const snapshot=await captureMuseum({...fakeOptions(f),fetcher:async()=>{
+   calls++;active++;peak=Math.max(peak,active);
+   await new Promise(resolve=>setImmediate(resolve));
+   active--;
+   return new Response('image bytes',{headers:{'Content-Type':'image/webp'}});
+  }});
+  assert.equal(peak,4);
+  assert.equal(calls,11);
+  assert.equal(snapshot.media.length,11);
+  assert.equal(snapshot.galleries[0].rooms[0].exhibits.length,12);
+ }finally{globalThis.FileReader=original;}
+});
 test('historical sessions retain their original quiz answer key and survey meaning',async()=>{
  const f=fixture();f.live['qa-lesson'].session.questionVersion=1;f.live['qa-lesson'].session.evidenceVersion=0;
  f.evidence['qa-lesson'].responses=[{group_id:'qa-group',stage_index:1,value:[0,1,1]}];

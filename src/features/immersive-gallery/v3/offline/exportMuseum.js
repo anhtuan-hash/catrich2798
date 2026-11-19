@@ -8,13 +8,10 @@ import {groupWorkshopRows} from './workshopRows.js';
 // Read only existing, permission-checked staff endpoints. Never export the
 // session token, Creator Pass, signed access URL or service-role credentials.
 export async function captureMuseum({onProgress=()=>{},signal,assignmentIds,staff=staffRequest,live=liveStaff,art=artStaff,fetcher=fetch}={}){
- const startedAt=new Date().toISOString(),warnings=[],media=[],cache=new Map();let totalBytes=0;
+ const startedAt=new Date().toISOString(),warnings=[],media=[],cache=new Map(),activeImages=new Set();let totalBytes=0;
  const LIMIT=180*1024*1024;
  const check=()=>{if(signal?.aborted)throw new DOMException('Export cancelled.','AbortError');};
- const download=async url=>{
-  if(!url||url.startsWith('data:'))return url;
-  if(cache.has(url))return cache.get(url);
-  const task=(async()=>{
+ const fetchImage=async url=>{
    check();const r=await fetcher(url,{signal,credentials:'omit',referrerPolicy:'no-referrer'});
    if(!r.ok)throw new Error('An artwork could not be downloaded. Export again while online.');
    const blob=await r.blob();
@@ -23,11 +20,24 @@ export async function captureMuseum({onProgress=()=>{},signal,assignmentIds,staf
    const bytes=new Uint8Array(await blob.arrayBuffer());
    const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(v=>v.toString(16).padStart(2,'0')).join('');
    const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(blob);});
-   media.push({sha256:hash,bytes:blob.size,type:blob.type});return data;
-  })();cache.set(url,task);return task;
+   return {data,record:{sha256:hash,bytes:blob.size,type:blob.type}};
+ };
+ const download=async url=>{
+  if(!url||url.startsWith('data:'))return url;
+  if(!cache.has(url)){
+   cache.set(url,(async()=>{
+    while(activeImages.size>=4)await Promise.race(activeImages);
+    const pending=fetchImage(url);
+    const settled=pending.then(()=>{},()=>{});
+    activeImages.add(settled);
+    try{return await pending;}
+    finally{activeImages.delete(settled);}
+   })());
+  }
+  return (await cache.get(url)).data;
  };
  const embed=async value=>{
-  if(Array.isArray(value)){const out=[];for(const x of value)out.push(await embed(x));return out;}
+  if(Array.isArray(value))return Promise.all(value.map(embed));
   if(value&&typeof value==='object'){
    const out={};for(const [key,v] of Object.entries(value)){
     if((key==='image_url'||key==='url')&&typeof v==='string'&&/^https?:\/\//.test(v)&&
@@ -36,7 +46,7 @@ export async function captureMuseum({onProgress=()=>{},signal,assignmentIds,staf
    }return out;
   }return value;
  };
- onProgress('Reading authorized lessons and submissions…');
+ onProgress({stage:'records',percent:8});
  check();
  const dashboard=await staff('dashboard');
  if(dashboard.publicReadOnly||dashboard.offlineReadOnly)throw new Error('Sign in with an authorized teacher account to export the classroom archive.');
@@ -67,27 +77,55 @@ export async function captureMuseum({onProgress=()=>{},signal,assignmentIds,staf
  }
  const snapshot={format:SNAPSHOT_FORMAT,startedAt,completedAt:null,source:'Pétrus Ký School System',
   staff:staffData,showcase,galleries:[],artworks:{},groupDrafts:{},live:{},evidence:{},comparisons:{},warnings,media};
- for(const [i,gallery] of (showcase.publishedGalleries||staffData.publishedGalleries||[]).entries()){
-  check();onProgress('Saving published exhibition '+(i+1)+'…');
+ const galleries=showcase.publishedGalleries||staffData.publishedGalleries||[];
+ const groupTotal=staffData.groups.length;
+ const units=galleries.length+staffData.assignments.length+groupTotal;
+ let finished=0,groupsDone=0;
+ const reportCapture=(stage,completed,total)=>onProgress({
+  stage,completed,total,percent:15+Math.floor(67*finished/Math.max(1,units)),
+ });
+ for(const [i,gallery] of galleries.entries()){
+  check();reportCapture('exhibitions',i,galleries.length);
   snapshot.galleries.push(await embed((await staff('showcase-exhibition',{id:gallery.id})).gallery));
+  finished++;
+  reportCapture('exhibitions',i+1,galleries.length);
  }
  for(const [index,a] of staffData.assignments.entries()){
-  check();onProgress('Freezing lesson '+(index+1)+'/'+staffData.assignments.length+': '+a.title);
+  check();reportCapture('lessons',index,staffData.assignments.length);
   const state=await live('state',null,{assignmentId:a.id});snapshot.live[a.id]=await embed(state);
   if(state.session?.id){
    snapshot.evidence[a.id]=await embed(await live('evidence',null,{assignmentId:a.id}));
   }else warnings.push({kind:'no-session',lesson:a.title,message:'No saved live session existed; the lesson plan remains available for offline presentation.'});
+  finished++;
+  reportCapture('lessons',index+1,staffData.assignments.length);
   const groups=staffData.groups.filter(g=>g.assignment_id===a.id);
-  for(const [i,g] of groups.entries()){
-   check();onProgress(a.title+' · group '+(i+1)+'/'+groups.length);
-   // Download each signed group asset immediately, before its short TTL expires.
-   snapshot.artworks[g.id]=await embed(await art(g.id));
-   try{snapshot.groupDrafts[g.id]=await embed(await live('group-gallery',null,{assignmentId:a.id,groupId:g.id}));}
-   catch(error){
-    if(error.status!==404)throw error;
-    warnings.push({kind:'no-draft',group:g.label,message:'No saved group draft existed at export.'});
+  for(let i=0;i<groups.length;i+=3){
+   reportCapture('groups',groupsDone,groupTotal);
+   const batch=await Promise.allSettled(groups.slice(i,i+3).map(async g=>{
+    check();
+    const assets=await embed(await art(g.id));
+    let draft,comparison,warning;
+    check();
+    try{draft=await embed(await live('group-gallery',null,{assignmentId:a.id,groupId:g.id}));}
+    catch(error){
+     if(error.status!==404)throw error;
+     warning={kind:'no-draft',group:g.label,message:'No saved group draft existed at export.'};
+    }
+    check();
+    if(state.session?.id)comparison=await embed(await live('checkpoint-compare',null,{assignmentId:a.id,groupId:g.id}));
+    check();
+    finished++;groupsDone++;
+    reportCapture('groups',groupsDone,groupTotal);
+    return {g,assets,draft,comparison,warning};
+   }));
+   for(const item of batch){
+    if(item.status==='rejected')throw item.reason;
+    const {g,assets,draft,comparison,warning}=item.value;
+    snapshot.artworks[g.id]=assets;
+    if(draft!==undefined)snapshot.groupDrafts[g.id]=draft;
+    if(comparison!==undefined)snapshot.comparisons[g.id]=comparison;
+    if(warning)warnings.push(warning);
    }
-   if(state.session?.id)snapshot.comparisons[g.id]=await embed(await live('checkpoint-compare',null,{assignmentId:a.id,groupId:g.id}));
   }
  }
  // A referenced artwork must exist locally; never produce an apparently complete
@@ -106,6 +144,7 @@ export async function captureMuseum({onProgress=()=>{},signal,assignmentIds,staf
  }
  snapshot.galleries.forEach(g=>assertArtwork(g,[]));
  check();
+ for(const image of cache.values())media.push((await image).record);
  // Snapshot content retains recorded provenance; it is not rewritten as observed
  // classroom participation. Collection time is a window, not an atomic DB claim.
  snapshot.completedAt=new Date().toISOString();
@@ -113,14 +152,15 @@ export async function captureMuseum({onProgress=()=>{},signal,assignmentIds,staf
  return sanitizeSnapshot(snapshot);
 }
 export async function exportMuseumOffline(options={}){
- options.onProgress?.('Loading the matching offline application…');
+ const report=(stage,percent)=>options.onProgress?.({stage,percent});
+ report('runtime',0);
  const r=await fetch('/museum-offline-runtime.json',{cache:'no-cache',signal:options.signal});
  if(!r.ok)throw new Error('Offline application is not available in this release. Refresh the online app and retry.');
  const runtime=await r.json();
  if(runtime.format!==SNAPSHOT_FORMAT||!runtime.script||!runtime.css)throw new Error('Invalid offline application package.');
  const snapshot=await captureMuseum(options);
+ report('packaging',84);
  const snapshotHash=await digest(JSON.stringify(snapshot));
- options.onProgress?.('Packaging the application and verifying the evidence…');
  const html=buildOfflineHtml(runtime,snapshot,snapshotHash);
  const board=await studentBoardHtml(runtime,snapshot);
  const {default:JSZip}=await import('jszip');const zip=new JSZip();
@@ -149,19 +189,21 @@ export async function exportMuseumOffline(options={}){
   '10. SHA-256 phát hiện thay đổi so với bản kê; không phải chữ ký số hoặc xác nhận của cơ quan tổ chức.',
   '11. Kiểm tra nguồn gốc minh chứng, quyền sử dụng ảnh và giới hạn dung lượng hồ sơ trước khi nộp.',
  ].join('\n'));
- let lastPercent=-1;
+ report('compression',90);
+ let lastPercent=90;
  const blob=await zip.generateAsync(
   {type:'blob',compression:'DEFLATE',compressionOptions:{level:6}},
   ({percent})=>{
    if(options.signal?.aborted)return;
-   const wholePercent=Math.floor(percent);
+   const wholePercent=90+Math.floor(percent*9/100);
    if(wholePercent!==lastPercent){
     lastPercent=wholePercent;
-    options.onCompressionProgress?.(wholePercent);
+    report('compression',wholePercent);
    }
   },
  );
  options.signal?.throwIfAborted();
+ report('ready',100);
  return {blob,manifest,filename:'PetrusKy_Museum_Offline_'+snapshot.completedAt.slice(0,10)+'.zip',runtime,snapshot};
 }
 async function studentBoardHtml(runtime,snapshot){
