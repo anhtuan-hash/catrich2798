@@ -34,8 +34,6 @@ function OfflineApp({runtime,hash}){
   setGroupId('');
   window.requestAnimationFrame(()=>groupPicker.current?.focus());
  };
- const evidence=Object.values(snapshot.evidence);
- const groupLabel=id=>groups.find(g=>g.id===id)?.label||id||'—';
  return <div className="museum-offline-root" onClickCapture={event=>{
   const anchor=event.target.closest?.('a[href]');
   const href=anchor?.getAttribute('href')||'';
@@ -48,7 +46,6 @@ function OfflineApp({runtime,hash}){
    <nav aria-label="Offline archive navigation">
     <button type="button" onClick={()=>setView('app')} aria-current={view==='app'?'page':undefined}>Museum Lab</button>
     <button type="button" onClick={()=>setView('work')} aria-current={view==='work'?'page':undefined}>Saved student work</button>
-    <button type="button" onClick={()=>setView('records')} aria-current={view==='records'?'page':undefined}>Evidence records</button>
    </nav>
    <a href="hoc-sinh/index.html">{groups.length} student workshops</a>
    <details><summary>Archive details</summary><p>Viewing controls do not change this snapshot.</p>
@@ -66,24 +63,7 @@ function OfflineApp({runtime,hash}){
     startInCinema startIn2D onBack={closeDraft}/>:gallery?<><h2>{gallery.title}</h2><p>{gallery.summary}</p>
     <MuseumScene gallery={gallery} language="en"/></>:groupId?<p>No saved draft was present in this snapshot.</p>:null}
   </main>:null}
-  {view==='records'?<main className="bml museum-offline-records"><h1>Frozen classroom evidence</h1>
-   <p>Recorded responses, feedback and original provenance are preserved. Empty sections mean no saved records were available.</p>
-   {evidence.map(bundle=><section className="bml-surface" key={bundle.assignment.id}>
-    <h2>{bundle.assignment.title} · {bundle.assignment.class_scope}</h2>
-    {bundle.presentationProvenance?<p><strong>Source note: </strong>{bundle.presentationProvenance.teacher_visible_note||bundle.presentationProvenance.data_origin}</p>:null}
-    <h3>Survey</h3><p>N = {bundle.survey?.n??'—'} groups</p>
-    <ul>{bundle.survey?.options?.map((o,i)=><li key={i}>{o.label}: {o.count} ({o.percent}%)</li>)}</ul>
-    <details><summary>Activity responses ({bundle.responses?.length||0})</summary>
-     {(bundle.responses||[]).map((r,i)=><article key={i}><strong>{groupLabel(r.group_id)} · Activity {r.stage_index+1}</strong>
-      <p>{typeof r.value==='string'?r.value:Object.entries(r.value||{}).map(([key,val])=>key+': '+(Array.isArray(val)?val.join(', '):String(val))).join(' · ')}</p></article>)}
-    </details>
-    <details><summary>Peer feedback ({bundle.feedback?.length||0})</summary>{(bundle.feedback||[]).map((r,i)=><article key={i}>
-     <strong>{groupLabel(r.from_group)} → {groupLabel(r.to_group)}</strong><p>{r.learned}</p><p>{r.clarify}</p></article>)}</details>
-    <details><summary>Thinking challenges ({bundle.microResponses?.length||0})</summary>{(bundle.microResponses||[]).map((r,i)=><article key={i}><strong>{groupLabel(r.group_id)} · Activity {r.stage_index+1}</strong><p>{r.reason}</p></article>)}</details>
-   </section>)}
-   {!evidence.length?<p>No recorded live sessions were available at export. Lesson plans and saved work remain accessible.</p>:null}
-  </main>:null}
-  {view!=='app'?<footer className="museum-offline-footer">PÉTRUS KÝ SCHOOL SYSTEM · Nguyễn Anh Tuấn · Teach Better Together</footer>:null}
+  {view==='work'?<footer className="museum-offline-footer">PÉTRUS KÝ SCHOOL SYSTEM · Nguyễn Anh Tuấn · Teach Better Together</footer>:null}
  </div>;
 }
 function StudentBoard({runtime}){
