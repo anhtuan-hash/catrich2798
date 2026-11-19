@@ -52,6 +52,36 @@ test('modified frozen data is rejected',async({page})=>{
  await page.goto(url('tampered'));await expect(page.locator('#root')).toContainText('snapshot checksum does not match');
  await expect(page.getByTestId('immersive-gallery-v2')).toHaveCount(0);
 });
+test('saved ASEAN artwork uses the online Swiss Editorial viewer offline',async({page},info)=>{
+ const errors=[],requests=[];
+ page.on('pageerror',error=>errors.push(error.message));
+ page.on('request',request=>{if(/^https?:/.test(request.url()))requests.push(request.url());});
+ await page.goto(url('asean/PetrusKy_Museum_Offline'));
+ await page.getByRole('button',{name:'Saved student work',exact:true}).click();
+ const picker=page.getByLabel('Choose a group');
+ await picker.selectOption('qa-group');
+ const viewer=page.getByTestId('museum-visitor');
+ await expect(viewer).toHaveClass(/bml-swiss-2d/);
+ await expect(viewer.locator('.bml-editorial-room-heading')).toContainText('QA room');
+ const image=viewer.locator('.bml-editorial-work img');
+ await expect.poll(()=>image.evaluate(img=>img.complete&&img.naturalWidth>0&&img.src.startsWith('data:'))).toBe(true);
+ await page.screenshot({path:info.outputPath('offline-asean-swiss-2d.png')});
+ await page.setViewportSize({width:390,height:844});
+ expect(await viewer.evaluate(node=>node.scrollWidth<=node.clientWidth)).toBe(true);
+ await viewer.getByRole('button',{name:'Explore exhibit 1: Synthetic QA artwork'}).click();
+ await expect(viewer.getByTestId('museum-artwork-inspector')).toBeVisible();
+ await viewer.getByRole('button',{name:'All exhibits',exact:true}).click();
+ await page.setViewportSize({width:1440,height:1000});
+ await viewer.getByRole('button',{name:'3D',exact:true}).click();
+ await expect(viewer).toHaveClass(/bml-swiss-3d/);
+ await expect(viewer.locator('canvas')).toBeVisible();
+ await viewer.getByRole('button',{name:'2D',exact:true}).click();
+ await expect(viewer.locator('.bml-editorial-room-heading')).toBeVisible();
+ await page.keyboard.press('Escape');
+ await expect(viewer).toHaveCount(0);
+ await expect(picker).toBeFocused();
+ expect(errors).toEqual([]);expect(requests).toEqual([]);
+});
 test('ASEAN ZIP opens the teacher dossier and the six student activities without the network',async({page})=>{
  const requests=[],errors=[];
  page.on('request',request=>{if(/^https?:/.test(request.url()))requests.push(request.url());});
