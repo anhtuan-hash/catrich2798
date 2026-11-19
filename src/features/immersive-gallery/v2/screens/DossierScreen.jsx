@@ -3,11 +3,11 @@ import React,{useMemo,useState} from 'react';
 import {CheckCircle2,Circle,Info,AlertTriangle} from 'lucide-react';
 import {buildProgressCsv} from '../../v3/museumData.js';
 import {p1Document,p2Document} from '../../v3/museumDossier.js';
-import {buildWordDraft,buildCompetitionZip,saveBlob} from '../../v3/museumDocx.js';
+import {buildWordDraft,buildCompetitionZip} from '../../v3/museumDocx.js';
 import {liveStaff} from '../../v3/museumLiveApi.js';
 import {buildEvidenceZip} from '../../v3/evidenceExport.js';
 import {contestBasename} from '../../v3/learningEvidence.js';
-import {saveTextFile} from '../../v3/museumApi.js';
+import {useMuseumFilePreview} from '../../v3/MuseumFilePreview.jsx';
 import DossierEditor from '../controls/DossierEditor.jsx';
 import EditorialHeading from '../shell/EditorialHeading.jsx';
 import MetricStrip from '../shell/MetricStrip.jsx';
@@ -17,12 +17,10 @@ const t=(l,vi,en)=>l==='en'?en:vi;
  * 06 Competition dossier — Swiss Editorial V2.
  * Readiness is computed from real evidence (assignments/reviews/rubrics in props.data);
  * "Authentic classroom evidence" is always false until the teacher attaches real materials
- * (never invented). Export buttons call the existing v3 integrations unchanged:
- * museumDocx (buildWordDraft/buildCompetitionZip/saveBlob), evidenceExport (buildEvidenceZip),
- * museumDossier (p1Document/p2Document), museumLiveApi (liveStaff evidence bundle),
- * museumData (buildProgressCsv), museumApi (saveTextFile).
+ * (never invented). Export buttons prepare the original formats for the file preview.
  */
 export default function DossierScreen({language='vi',data,staff,onRefresh,transport=liveStaff}){
+  const preview=useMuseumFilePreview();
   const assignments=data?.assignments||[],reviews=data?.reviews||[],rubrics=data?.rubrics||[];
   const [assignmentId,setAssignmentId]=useState(assignments[0]?.id||'');
   const [exportBusy,setExportBusy]=useState(false),[exportError,setExportError]=useState('');
@@ -53,14 +51,14 @@ export default function DossierScreen({language='vi',data,staff,onRefresh,transp
       const filename=contestBasename(fields.teacher)+part+'.docx';
       const content=part==='P1'?p1Document(fields,selected):p2Document(fields,selected);
       const output=await buildWordDraft(content);
-      saveBlob(output,filename);
+      preview({blob:output,filename});
     }catch(e){setExportError(e.message);}finally{setExportBusy(false);}
   };
   const downloadZip=async()=>{
     setExportBusy(true);setExportError('');
     try{
       const output=await buildCompetitionZip(p1Document(fields,selected),p2Document(fields,selected),checklist,fields.teacher);
-      saveBlob(output,'PetrusKy_HoSo_HoiThi.zip');
+      preview({blob:output,filename:'PetrusKy_HoSo_HoiThi.zip'});
     }catch(e){setExportError(e.message);}finally{setExportBusy(false);}
   };
   const downloadEvidence=async()=>{
@@ -69,10 +67,10 @@ export default function DossierScreen({language='vi',data,staff,onRefresh,transp
       const bundle=await transport('evidence',null,{assignmentId:selected.id});
       const ids=new Set(localReviews.map(r=>r.id));
       const out=await buildEvidenceZip(bundle,(rubrics||[]).filter(r=>ids.has(r.review_id)));
-      saveBlob(out,'PetrusKy_Museum_Class_Evidence.zip');
+      preview({blob:out,filename:'PetrusKy_Museum_Class_Evidence.zip'});
     }catch(e){setExportError(e.message);}finally{setExportBusy(false);}
   };
-  const downloadCsv=()=>{try{saveTextFile('PetrusKy_MuseumLab_Progress.csv','text/csv;charset=utf-8',buildProgressCsv(data,language));}catch(e){setExportError(e.message);}};
+  const downloadCsv=()=>{try{preview({filename:'PetrusKy_MuseumLab_Progress.csv',mime:'text/csv;charset=utf-8',text:buildProgressCsv(data,language)});}catch(e){setExportError(e.message);}};
   const missing=checklist.filter(c=>!c.done);
   return (
     <div className="igv2 igv2-screen" data-testid="igv2-dossier-screen">

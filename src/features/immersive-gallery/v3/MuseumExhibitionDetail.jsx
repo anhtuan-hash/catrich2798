@@ -1,10 +1,10 @@
 import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
-import {ArrowLeft,ArrowRight,Award,BarChart3,BookOpen,CheckCircle2,ChevronRight,Clock3,Copy,Download,Eye,FileText,FolderOpen,Home,Images,Info,Landmark,Layers3,Maximize2,MoreHorizontal,Presentation,Share2,ShieldCheck,Users,Trash2,X} from 'lucide-react';
+import {ArrowLeft,ArrowRight,Award,BarChart3,BookOpen,CheckCircle2,ChevronRight,Clock3,Copy,Eye,FileText,FolderOpen,Home,Images,Info,Landmark,Layers3,Maximize2,MoreHorizontal,Presentation,Share2,ShieldCheck,Users,Trash2,X} from 'lucide-react';
 import MuseumScene from './MuseumScene.jsx';
 import './museumExhibition.css';
 import {MuseumHeroArt} from './MuseumDashboard.jsx';
-import {saveTextFile} from './museumApi.js';
+import {useMuseumFilePreview} from './MuseumFilePreview.jsx';
 const t=(lang,vi,en)=>lang==='en'?en:vi;
 const short=(value,length=300)=>String(value??'').trim().slice(0,length);
 function Metric({icon:Icon,value,label,subtitle,tone}){
@@ -47,6 +47,7 @@ function OverviewCards({data,onNavigate,language}){
  </div>;
 }
 export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onNavigate,data,isDemo=false,onDelete=null,busy=false,startInCinema=false,initialRoomIndex=0,startIn2D=false}){
+ const preview=useMuseumFilePreview();
  const [section,setSection]=useState('space'),[moreOpen,setMoreOpen]=useState(false),[notice,setNotice]=useState('');
  const [cinemaOpen,setCinemaOpen]=useState(Boolean(startInCinema));
  const enterCinemaRef=useRef(null);
@@ -68,7 +69,7 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
    if(e?.name!=='AbortError')announce(t(language,'Không thể chia sẻ tự động.','Unable to share automatically.'));
   }
  };
- const downloadDetails=()=>{
+ const previewDetails=()=>{
   setMoreOpen(false);
   const lines=['PÉTRUS KÝ SCHOOL SYSTEM · EXHIBITION',gallery?.title||'',
    subtitle,'',
@@ -79,7 +80,7 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
    ]),
    isDemo?'DEMO — Illustrative content, not authentic student work.':'',
    'Generated from currently visible exhibition content.'];
-  saveTextFile('PetrusKy_Museum_Exhibition_Summary.txt','text/plain;charset=utf-8',lines.join('\n'));
+  preview({filename:'PetrusKy_Museum_Exhibition_Summary.txt',mime:'text/plain;charset=utf-8',text:lines.join('\n')});
  };
  // Teachers use the exact same full-viewport MuseumScene cinema mode as student
  // creators. Keep the management page mounted underneath for information,
@@ -146,7 +147,7 @@ export default function MuseumExhibitionDetail({gallery,language='vi',onBack,onN
        onClick={()=>setMoreOpen(v=>!v)}><MoreHorizontal size={20}/></button>
       {moreOpen?<div className="bml-exh-menu" role="menu">
        <button type="button" role="menuitem" onClick={copyLink}><Copy size={16}/>{t(language,'Sao chép liên kết','Copy link')}</button>
-       <button type="button" role="menuitem" onClick={downloadDetails}><Download size={16}/>{t(language,'Tải nội dung (.txt)','Download text summary')}</button>
+       <button type="button" role="menuitem" onClick={previewDetails}><FileText size={16}/>{t(language,'Xem nội dung (.txt)','View text summary')}</button>
        <button type="button" role="menuitem" onClick={()=>{setMoreOpen(false);setSection('about');}}><Info size={16}/>{t(language,'Xem thông tin','View information')}</button>
        {onDelete?<button type="button" role="menuitem" disabled={busy} className="bml-exh-delete-action" onClick={()=>{setMoreOpen(false);onDelete();}}><Trash2 size={16}/>Delete exhibition</button>:null}
       </div>:null}

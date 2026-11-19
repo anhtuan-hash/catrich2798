@@ -1,7 +1,7 @@
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {P2_FORMS,P2_STAFF_FORMS,P2_STUDENT_FORMS,P2_PEER_FORMS,P2_ROLES,summarizeP2} from './museumP2Forms.js';
 import {VISITOR_TASKS,VISITOR_TEST_GUIDANCE} from './lessonPlanAlignment.js';
-import {saveTextFile} from './museumApi.js';
+import {useMuseumFilePreview} from './MuseumFilePreview.jsx';
 import MuseumScene from './MuseumScene.jsx';
 import './museumP2Workbook.css';
 
@@ -101,6 +101,7 @@ function PitchTimer({language}){
 
 // Mounted inside the active student or teacher route using its existing session transport.
 export default function MuseumP2Workbook({language,role,transport,readOnly,groupPublished=false,stageIndex=0,stageOpen=false,draftVersion,draftReady,groups=[],assignmentId,initialForm}){
+ const previewFile=useMuseumFilePreview();
  const staff=role==='teacher';
  const choices=staff?P2_STAFF_FORMS:P2_STUDENT_FORMS;
  const [formId,setForm]=useState(choices.includes(initialForm)?initialForm:staff?'E1':'I1-A');
@@ -206,7 +207,7 @@ export default function MuseumP2Workbook({language,role,transport,readOnly,group
     {groups.map(item=><option key={item.id} value={item.id}>{item.label}</option>)}
    </select></label>:null}
    <button type="button" className="p2-button" onClick={reload} disabled={saving}>{tr(language,'Tải lại bản ghi','Reload records')}</button>
-   {staff&&rows?<button type="button" className="p2-button" onClick={()=>saveTextFile('Museum-P2-worksheets.json','application/json',JSON.stringify({groups,records:rows,summary:summarizeP2(rows)},null,2))}>{tr(language,'Xuất minh chứng P2','Export P2 evidence')}</button>:null}
+   {staff&&rows?<button type="button" className="p2-button" onClick={()=>previewFile({filename:'Museum-P2-worksheets.json',mime:'application/json',text:JSON.stringify({groups,records:rows,summary:summarizeP2(rows)},null,2)})}>{tr(language,'Xuất minh chứng P2','Export P2 evidence')}</button>:null}
   </div>
   {archivedCopy?<p role="note">{tr(language,'Phiếu được tổng hợp sau buổi học từ hồ sơ đã lưu. Ô trống là mục chưa có minh chứng tương ứng.','These worksheets were compiled from saved records after the lesson. Blank fields have no corresponding evidence.')}</p>:null}
   {formId==='D1'&&!readOnly&&!serverLocked&&gate?<PitchTimer language={language}/>:null}

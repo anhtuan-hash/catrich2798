@@ -1,6 +1,6 @@
 import React,{useEffect,useMemo,useRef,useState} from 'react';
-import {Download,Lock,PackageCheck,X} from 'lucide-react';
-import {saveBlob} from './museumDocx.js';
+import {Eye,Lock,PackageCheck,X} from 'lucide-react';
+import {useMuseumFilePreview} from './MuseumFilePreview.jsx';
 import {isAsean} from './aseanLesson.js';
 import {groupWorkshopRows} from './offline/workshopRows.js';
 import MuseumWorkshopBoard from './MuseumWorkshopBoard.jsx';
@@ -12,24 +12,29 @@ const exportStages={
  groups:['Đã lưu dữ liệu nhóm','Group data collected'],
  packaging:['Đang kiểm tra và đóng gói','Verifying and packaging'],
  compression:['Đang nén tệp ZIP','Compressing the ZIP'],
- ready:['Gói ZIP đã sẵn sàng','ZIP ready to download'],
+ ready:['Gói ZIP đã sẵn sàng','ZIP ready'],
 };
 export default function MuseumOfflineExport({language='en',data,transport,renderLayout,mobileAction}){
+ const preview=useMuseumFilePreview();
  const [busy,setBusy]=useState(false),[progress,setProgress]=useState({stage:'runtime',percent:0}),[error,setError]=useState(''),[report,setReport]=useState(null),[ready,setReady]=useState(false);
  const abort=useRef(null),pack=useRef(null),tr=(vi,en)=>language==='en'?en:vi;
  const rows=useMemo(()=>groupWorkshopRows({staff:data??undefined}),[data]);
  useEffect(()=>()=>abort.current?.abort(),[]);
- const downloadArchive=()=>{
+ const previewArchive=()=>{
   const archive=pack.current;
   setError('');
-  try{if(archive)saveBlob(archive.blob,archive.filename);}
-  catch(e){setError(e.message);}
+  if(archive)preview({
+   blob:archive.blob,filename:archive.filename,entries:archive.entries,
+   title:tr('Gói hội thi ngoại tuyến','Offline contest pack'),
+  });
  };
- const downloadGroup=async row=>{
+ const previewGroup=async row=>{
+  const archive=pack.current;
+  if(!archive)return;
   setError('');
   try{const {buildStudentWorkshopHtml}=await import('./offline/exportMuseum.js');
-   const file=await buildStudentWorkshopHtml(pack.current.runtime,pack.current.snapshot,row.id);
-   saveBlob(file.blob,file.filename);
+   const file=await buildStudentWorkshopHtml(archive.runtime,archive.snapshot,row.id);
+   preview({...file,interactive:true,title:tr('Bài thực hành · ','Workshop · ')+row.label});
   }catch(e){setError(e.message);}
  };
  const start=async()=>{
@@ -39,7 +44,7 @@ export default function MuseumOfflineExport({language='en',data,transport,render
     assignmentIds:(data?.assignments||[]).map(assignment=>assignment.id)});
    pack.current=result;
    setReport({...result.manifest,bytes:result.blob.size});setReady(true);
-   downloadArchive();
+   previewArchive();
   }catch(e){
    abort.current?.abort();
    if(e.name==='AbortError')setError(tr('Đã hủy xuất.','Export cancelled.'));
@@ -53,16 +58,16 @@ export default function MuseumOfflineExport({language='en',data,transport,render
  };
  const board=<MuseumWorkshopBoard rows={rows} language={language} editorial={Boolean(renderLayout)} asean={isAsean(data?.lessonTemplate)} mobileAction={mobileAction}
   action={{label:tr('Tệp','File'),render:row=>ready
-   ?<button type="button" className="bml-outline" onClick={()=>downloadGroup(row)}>{tr('Tải bài','Download')}</button>
+   ?<button type="button" className="bml-outline" onClick={()=>previewGroup(row)}>{tr('Xem tệp','View file')}</button>
    :tr('Trong gói ZIP','Inside the ZIP')}}/>;
  const download=(
   <button className={renderLayout?'bml-primary asean-dossier-download':'bml-primary'} type="button"
-    disabled={busy||!data?.assignments?.length} onClick={start}><Download size={22} aria-hidden="true"/>
+    disabled={busy||!data?.assignments?.length} onClick={start}><Eye size={22} aria-hidden="true"/>
     {busy
      ? tr('Đang tạo gói ZIP…','Preparing the ZIP…')
      : renderLayout
-     ? tr('Tải gói hội thi (.zip)','Download contest pack (.zip)')
-     : tr('Tải gói hội thi · giáo viên + '+rows.length+' bài học sinh','Download contest pack · teacher + '+rows.length+' student workshops')}
+     ? tr('Xem gói hội thi (.zip)','Preview contest pack (.zip)')
+     : tr('Xem gói hội thi · giáo viên + '+rows.length+' bài học sinh','Preview contest pack · teacher + '+rows.length+' student workshops')}
   </button>
  );
  const progressLabel=tr('Tiến trình xuất gói ZIP','ZIP export progress');
@@ -78,11 +83,11 @@ export default function MuseumOfflineExport({language='en',data,transport,render
   </div>:null}
   {error?<p role="alert" className="bml-banner bml-danger-banner">{error}</p>:null}
   {report?<div role="status" className="bml-banner bml-info-banner"><PackageCheck size={20}/><div>
-   <strong>{tr('Gói ZIP đã sẵn sàng','ZIP ready to download')} · 100%</strong>
+   <strong>{tr('Gói ZIP đã sẵn sàng','ZIP ready')} · 100%</strong>
    <p>{report.counts.lessons} lessons · {report.counts.groups} groups · {report.counts.studentWorkshops||0} student workshops · {report.counts.exhibitions} exhibitions · {(report.bytes/1048576).toFixed(1)} MB</p>
    <p>{tr('Giải nén ZIP. Mở PetrusKy_Museum_Offline.html cho bản giáo viên, hoặc hoc-sinh/index.html để xem bài của các nhóm.','Extract the ZIP. Open PetrusKy_Museum_Offline.html for the teacher app, or hoc-sinh/index.html to view the student workshops.')}</p>
-   <button type="button" className="bml-outline" onClick={downloadArchive}>
-    <Download size={16} aria-hidden="true"/>{tr('Tải lại tệp ZIP','Download the ZIP again')}
+   <button type="button" className="bml-outline" onClick={previewArchive}>
+    <Eye size={16} aria-hidden="true"/>{tr('Xem lại tệp ZIP','Preview the ZIP again')}
    </button>
   </div></div>:null}
  </>;

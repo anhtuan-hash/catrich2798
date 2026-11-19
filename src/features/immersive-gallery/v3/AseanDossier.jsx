@@ -3,13 +3,15 @@ import { ArrowRight, ExternalLink, FileText, Smartphone } from 'lucide-react';
 import MuseumOfflineExport from './MuseumOfflineExport.jsx';
 import MuseumWorkshopBoard from './MuseumWorkshopBoard.jsx';
 import { groupWorkshopRows } from './offline/workshopRows.js';
-import { englishSystemGroupLabel, saveTextFile } from './museumApi.js';
+import { englishSystemGroupLabel } from './museumApi.js';
+import { MuseumFileLink, useMuseumFilePreview } from './MuseumFilePreview.jsx';
 import { ASEAN_TITLE } from './aseanLesson.js';
 import { isPublicWorkshopGroup, publicWorkshopHref } from './aseanPublicWorkshop.js';
 import { ASEAN_EVIDENCE_PDF, getAseanPaperPlan } from './aseanPaperPlan.js';
 import './aseanDossierEditorial.css';
 
 export function AseanDossier({ data, language, transport, readOnly, onOpenGallery, onOpenReview }) {
+  const preview = useMuseumFilePreview();
   const tr = (vi, en) => language === 'en' ? en : vi;
   const {href:planHref, filename:planFilename} = getAseanPaperPlan(language);
   const groups = data?.groups || [];
@@ -66,15 +68,17 @@ export function AseanDossier({ data, language, transport, readOnly, onOpenGaller
         )}
         {download}
         <ul className="asean-dossier-documents">
-          <li><a href="/museum/asean/asean-project-overview.docx" download="ASEAN_Project_Overview.docx">
+          <li><MuseumFileLink href="/museum/asean/asean-project-overview.docx" filename="ASEAN_Project_Overview.docx"
+            title={tr('Phần 1 · Tổng quan dự án', 'Part 1 · Project overview')}>
             <span>{tr('Phần 1 · Tổng quan dự án', 'Part 1 · Project overview')}</span><ArrowRight aria-hidden="true" size={22}/>
-          </a></li>
-          <li><a href={planHref} download={planFilename}>
+          </MuseumFileLink></li>
+          <li><MuseumFileLink href={planHref} filename={planFilename} title={tr('Phần 2 · Kế hoạch bài dạy và phụ lục', 'Part 2 · Teaching plan and appendices')}>
             <span>{tr('Phần 2 · Kế hoạch bài dạy và phụ lục', 'Part 2 · Teaching plan and appendices')}</span><ArrowRight aria-hidden="true" size={22}/>
-          </a></li>
-          <li><a href={ASEAN_EVIDENCE_PDF} download="ASEAN_11_3_Evidence.pdf">
+          </MuseumFileLink></li>
+          <li><MuseumFileLink href={ASEAN_EVIDENCE_PDF} filename="ASEAN_11_3_Evidence.pdf"
+            title={tr('Minh chứng lớp 11.3 · Đối chiếu Angkor', 'Class 11.3 evidence · Angkor comparison')}>
             <span>{tr('Minh chứng lớp 11.3 · Đối chiếu Angkor', 'Class 11.3 evidence · Angkor comparison')}</span><ArrowRight aria-hidden="true" size={22}/>
-          </a></li>
+          </MuseumFileLink></li>
         </ul>
       </header>
 
@@ -112,10 +116,11 @@ export function AseanDossier({ data, language, transport, readOnly, onOpenGaller
                   </button>
                 )}
                 {canExport && (
-                  <button type="button" className="bml-outline" onClick={() => saveTextFile(
-                    'ASEAN_Group_Writing.json', 'application/json',
-                    JSON.stringify({ class: assignment.class_scope, summary, groups: rows }, null, 2),
-                  )}>
+                  <button type="button" className="bml-outline" onClick={() => preview({
+                    filename: 'ASEAN_Group_Writing.json', mime: 'application/json',
+                    title: tr('Điểm viết theo nhóm', 'Group writing scores'),
+                    text: JSON.stringify({ class: assignment.class_scope, summary, groups: rows }, null, 2),
+                  })}>
                     <FileText size={18} aria-hidden="true"/>{tr('Xuất điểm viết theo nhóm', 'Export group writing summary')}
                   </button>
                 )}
