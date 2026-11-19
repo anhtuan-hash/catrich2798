@@ -7,13 +7,13 @@ import { englishSystemGroupLabel } from './museumApi.js';
 import { MuseumFileLink, useMuseumFilePreview } from './MuseumFilePreview.jsx';
 import { ASEAN_TITLE } from './aseanLesson.js';
 import { isPublicWorkshopGroup, publicWorkshopHref } from './aseanPublicWorkshop.js';
-import { ASEAN_EVIDENCE_PDF, getAseanPaperPlan } from './aseanPaperPlan.js';
+import { ASEAN_EVIDENCE_PDF, ASEAN_PROJECT_OVERVIEW, getAseanPaperPlan } from './aseanPaperPlan.js';
 import './aseanDossierEditorial.css';
 
 export function AseanDossier({ data, language, transport, readOnly, onOpenGallery, onOpenReview }) {
   const preview = useMuseumFilePreview();
   const tr = (vi, en) => language === 'en' ? en : vi;
-  const {href:planHref, filename:planFilename, overviewPdf} = getAseanPaperPlan(language);
+  const {href:planHref, filename:planFilename} = getAseanPaperPlan(language);
   const groups = data?.groups || [];
   const assignments = data?.assignments || [];
   const galleries = data?.publishedGalleries || [];
@@ -68,7 +68,7 @@ export function AseanDossier({ data, language, transport, readOnly, onOpenGaller
         )}
         {download}
         <ul className="asean-dossier-documents">
-          <li><MuseumFileLink {...overviewPdf}
+          <li><MuseumFileLink {...ASEAN_PROJECT_OVERVIEW}
             title={tr('Phần 1 · Tổng quan dự án', 'Part 1 · Project overview')}>
             <span>{tr('Phần 1 · Tổng quan dự án', 'Part 1 · Project overview')}</span><ArrowRight aria-hidden="true" size={22}/>
           </MuseumFileLink></li>

@@ -395,10 +395,6 @@ const vietnamese = {
   plan: ASEAN_PAPER_PLAN,
   href: '/museum/asean/dossier-2026-11-19/TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2.pdf',
   filename: 'TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2.pdf',
-  overviewPdf: {
-    href: '/museum/asean/dossier-2026-11-19/TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P1.pdf',
-    filename: 'TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P1.pdf',
-  },
 };
 
 const english = {
@@ -412,10 +408,11 @@ const english = {
   },
   href: '/museum/asean/dossier-2026-11-19/TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2_EN_20261119.pdf',
   filename: 'TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2_EN_20261119.pdf',
-  overviewPdf: {
-    href: '/museum/asean/dossier-2026-11-19/ASEAN_Project_Overview_EN.pdf',
-    filename: 'ASEAN_Project_Overview_EN.pdf',
-  },
+};
+
+export const ASEAN_PROJECT_OVERVIEW = {
+  href: '/museum/asean/dossier-2026-11-19/TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P1.docx',
+  filename: 'TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P1(20261119-072355).docx',
 };
 
 export const ASEAN_EVIDENCE_PDF = '/museum/asean/asean-class-11-3-evidence.pdf';
