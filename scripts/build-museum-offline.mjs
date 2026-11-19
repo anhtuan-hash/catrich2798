@@ -11,6 +11,7 @@ export async function buildMuseumOffline(outDir='dist'){
   plugins:[{name:'museum-offline-cloud-boundary',enforce:'pre',resolveId(source){
    if(/(?:^|\/)utils\/supabase\.js$/.test(source))return path.join(folder,'cloudStub.js');
    if(source.endsWith('/MuseumOfflineExport.jsx'))return path.join(folder,'exportStub.jsx');
+   if(source.endsWith('/MuseumFileDialog.jsx'))return path.join(folder,'fileDialogStub.jsx');
   }}],
   build:{write:false,target:'es2020',minify:true,cssCodeSplit:false,assetsInlineLimit:100000000,
    lib:{entry:path.join(folder,'entry.jsx'),name:'BrianMuseumOffline',formats:['iife']},

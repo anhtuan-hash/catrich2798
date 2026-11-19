@@ -1,0 +1,44 @@
+.bml-file-dialog {
+ width:min(1080px,calc(100% - 32px));
+ height:min(880px,calc(100dvh - 32px));
+ max-width:none;
+ max-height:none;
+ padding:0;
+ border:1px solid #121212;
+ border-radius:0;
+ background:#f4f1e9;
+ color:#121212;
+ font-family:Inter,"Helvetica Neue",Arial,sans-serif;
+}
+.bml-file-dialog::backdrop {background:#121212ae}
+.bml-file-shell {height:100%;display:grid;grid-template-rows:auto minmax(0,1fr)}
+.bml-file-header {
+ display:flex;justify-content:space-between;align-items:center;gap:14px;
+ padding:14px 22px;border-top:5px solid #c90023;border-bottom:2px solid #121212;
+}
+.bml-file-header>div:first-child {min-width:0;overflow-wrap:anywhere}
+.bml-file-header p {margin:0 0 4px;color:#ab1021;font-size:11px;font-weight:750;letter-spacing:.045em;text-transform:uppercase}
+.bml-file-header h2 {margin:0;font-size:clamp(18px,2.55vw,32px);line-height:1.1;letter-spacing:-.035em;color:#121212}
+.bml-file-header small {display:block;margin-top:4px;color:#504a42;font-size:11px}
+.bml-file-actions,.bml-file-pagebar {display:flex;align-items:center;gap:8px}
+.bml-file-dialog button {display:inline-flex;justify-content:center;align-items:center;gap:6px;min-height:38px;padding:7px 11px;border:1px solid #121212;border-radius:0;background:#fffdf7;color:#121212;font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.bml-file-dialog button:focus-visible {outline:2px solid #c90023;outline-offset:3px}
+.bml-file-dialog button:disabled {opacity:.44;cursor:default}
+.bml-file-dialog .bml-file-download {background:#c70023;border-color:#c70023;color:#fff}
+.bml-file-body {min-height:0;overflow:auto}
+.bml-file-body iframe {width:100%;height:100%;border:0;display:block;background:#f4f1e9}
+.bml-file-pdf {min-height:100%;text-align:center;background:#ded9d0}
+.bml-file-pagebar {position:sticky;top:0;z-index:1;justify-content:center;padding:8px;background:#f4f1e9;border-bottom:1px solid #bcb5a8}
+.bml-file-pagebar span {min-width:100px;font-size:13px;font-weight:700}
+.bml-file-pdf canvas {width:min(100%,840px);height:auto;display:block;margin:14px auto 0;background:#fff}
+.bml-file-list {list-style:none;margin:18px 22px;padding:0;overflow-wrap:anywhere;font:14px/1.4 ui-monospace,monospace}
+.bml-file-list li {padding:10px 0;border-bottom:1px solid #c8c0b4}
+.bml-file-state,.bml-file-text {margin:0;padding:22px;overflow-wrap:anywhere}
+.bml-file-text {white-space:pre-wrap;font:13px/1.55 ui-monospace,monospace}
+.bml-file-image {display:block;max-width:100%;height:auto;margin:0 auto}
+@media(max-width:530px){
+ .bml-file-dialog {width:calc(100% - 14px);height:calc(100dvh - 14px)}
+ .bml-file-header {padding:10px 11px;gap:8px;align-items:flex-start;flex-wrap:wrap}
+ .bml-file-header h2 {font-size:19px}
+ .bml-file-dialog button {min-height:35px}
+}

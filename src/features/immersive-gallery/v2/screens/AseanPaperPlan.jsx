@@ -1,6 +1,7 @@
 import React from 'react';
 import ContentPanel from '../shell/ContentPanel.jsx';
 import {ASEAN_EVIDENCE_PDF} from '../../v3/aseanPaperPlan.js';
+import {MuseumFileLink} from '../../v3/MuseumFilePreview.jsx';
 
 function PlanTable({rows}) {
   const [columns, ...entries] = rows;
@@ -86,9 +87,10 @@ export default function AseanPaperPlan({plan, language}) {
         <h3>{plan.assessment.title}</h3>
         <PlanTable rows={plan.assessment.rows} />
         <p>{plan.assessment.note}</p>
-        <p><a href={ASEAN_EVIDENCE_PDF} download="ASEAN_11_3_Evidence.pdf">
+        <p><MuseumFileLink href={ASEAN_EVIDENCE_PDF} filename="ASEAN_11_3_Evidence.pdf"
+          title={language === 'en' ? 'Activity 5 evidence · Angkor, Class 11.3' : 'Minh chứng Hoạt động 5 · Angkor, lớp 11.3'}>
           {language === 'en' ? 'Activity 5 evidence · Angkor, Class 11.3' : 'Minh chứng Hoạt động 5 · Angkor, lớp 11.3'}
-        </a></p>
+        </MuseumFileLink></p>
         <details className="plan-paper-rubric">
           <summary lang={language}>{language === 'en'
             ? 'Group exhibition rubric · 10 points · Appendix F'

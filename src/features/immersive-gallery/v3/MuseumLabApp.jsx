@@ -13,6 +13,7 @@ import TeachingPlanScreen from '../v2/screens/TeachingPlanScreen.jsx';
 import DossierScreen from '../v2/screens/DossierScreen.jsx';
 import SettingsScreen from '../v2/screens/SettingsScreen.jsx';
 import {getMuseumOffline} from './offlineAccess.js';
+import {MuseumFilePreviewProvider} from './MuseumFilePreview.jsx';
 import {liveStaff,publicLiveStaff} from './museumLiveApi.js';
 import './museumLab.css';
 import './museumPaper.css';
@@ -52,7 +53,8 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
   try{sessionStorage.setItem('bml-ui-language',value);}catch{/* ignore */}
  };
  // Previously downloaded Climate evidence keeps its original viewer.
- const legacyArchive=getMuseumOffline()?.snapshot?.staff?.assignments?.some(assignment=>!isAsean(assignment));
+ const offlineArchive=getMuseumOffline();
+ const legacyArchive=offlineArchive?.snapshot?.staff?.assignments?.some(assignment=>!isAsean(assignment));
  const lessonTemplate=legacyArchive?'climate':ASEAN_TEMPLATE;
  const [tab,setTab]=useState(initialMuseumTab),[staff,setStaff]=useState(null);
  const [loading,setLoading]=useState(true),[error,setError]=useState('');
@@ -105,7 +107,8 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
   publishedGalleries:(staff.publishedGalleries||[]).filter(g=>isAsean(g)===isAsean(lessonTemplate))}:staff;
  const sharedScreenProps={language:uiLanguage,data:staff,staff,onNavigate:navigate,onRefresh:refresh,transport:staffTransport,onCreate:readOnly?undefined:create,onBack:()=>navigate('home'),initialReview:reviewId};
  const overview=<OverviewScreen {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate} publicReadOnly={visitor}/>;
- return <ImmersiveShell activeNav={activeNav} onNavigate={shellNavigate} language={uiLanguage} onLanguageChange={chooseLanguage} staff={staff} data={staff} query={query} onQueryChange={setQuery} onRefresh={refresh} onHelp={()=>setHelp(true)} pendingCount={pendingCount} lessonTemplate={lessonTemplate}>
+ return <MuseumFilePreviewProvider language={uiLanguage} enabled={!offlineArchive}>
+ <ImmersiveShell activeNav={activeNav} onNavigate={shellNavigate} language={uiLanguage} onLanguageChange={chooseLanguage} staff={staff} data={staff} query={query} onQueryChange={setQuery} onRefresh={refresh} onHelp={()=>setHelp(true)} pendingCount={pendingCount} lessonTemplate={lessonTemplate}>
   <div className="bml" data-testid="brian-museum-lab-v3" lang={uiLanguage} data-ui-locale={uiLanguage==='en'?'en-US':'vi-VN'} data-public-readonly={visitor?'true':'false'}>
    {error?<div className="bml-banner bml-danger-banner" role="alert" style={{marginBottom:18}}><ShieldAlert size={19}/>
      <div><strong>{tr(uiLanguage,'Không thể đồng bộ dữ liệu quản lý','Could not load staff data')}</strong><p>{error}</p>
@@ -136,5 +139,6 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
      ].map(([number,vi,en])=><div className="bml-check-item" key={number}><span className="bml-class-tag">{number}</span><div><strong>{tr(uiLanguage,vi,en)}</strong></div></div>)}</div>
      <button className="bml-primary" type="button" disabled={readOnly} onClick={()=>{setHelp(false);create();}}><Plus size={17}/>{tr(uiLanguage,'Tạo bài học ngay','Create a lesson')}</button>
     </section></div>:null}
- </ImmersiveShell>;
+ </ImmersiveShell>
+ </MuseumFilePreviewProvider>;
 }

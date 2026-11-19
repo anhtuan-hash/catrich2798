@@ -6,6 +6,7 @@ import {LESSON_PLAN_NOTES, PUBLIC_LESSON_GUIDE, OFFLINE_LESSON_WORKSHEET, VISITO
 import {MUSEUM_CURRICULUM_VIDEOS} from '../../v3/museumLiveExtensions.js';
 import {ASEAN_TITLE,ASEAN_TOPIC,isAsean} from '../../v3/aseanLesson.js';
 import {getAseanPaperPlan} from '../../v3/aseanPaperPlan.js';
+import {MuseumFileLink} from '../../v3/MuseumFilePreview.jsx';
 import AseanPaperPlan from './AseanPaperPlan.jsx';
 import EditorialHeading from '../shell/EditorialHeading.jsx';
 import MetricStrip from '../shell/MetricStrip.jsx';
@@ -53,7 +54,7 @@ export default function TeachingPlanScreen({language='vi',data,lessonTemplate,on
   ];
   const [firstTitleLine, secondTitleLine] = language === 'en' ? ['Teaching', 'plan'] : ['Kế hoạch', 'bài dạy'];
   const title=asean ? ASEAN_TITLE : kit.title||'Our Climate Action Museum';
-  const downloadLabel=t(language,'Tải Phần 2 · Kế hoạch bài dạy và phụ lục (Word)','Download Part 2 · Teaching plan and appendices (Word)');
+  const planFileTitle=t(language,'Phần 2 · Kế hoạch bài dạy và phụ lục (Word)','Part 2 · Teaching plan and appendices (Word)');
   return (
     <div className="igv2-screen swiss-teaching-plan" data-testid="igv2-teaching-plan-screen">
       <div className="plan-masthead">
@@ -102,7 +103,9 @@ export default function TeachingPlanScreen({language='vi',data,lessonTemplate,on
                 {t(language,'Tạo bài học từ kế hoạch này','Create lesson from this plan')} <ArrowRight size={16} aria-hidden="true"/>
               </button>
             ):null}
-            {asean?<a className="plan-button" href={planHref} download={planFilename}>{downloadLabel}</a>:null}
+            {asean?<MuseumFileLink className="plan-button" href={planHref} filename={planFilename} title={planFileTitle}>
+              {t(language,'Xem ','View ')}{planFileTitle}
+            </MuseumFileLink>:null}
             {onBack?<button type="button" className="plan-button" onClick={onBack}>{t(language,'← Quay lại','← Back')}</button>:null}
           </div>
         </div>

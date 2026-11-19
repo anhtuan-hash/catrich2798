@@ -218,7 +218,8 @@ export async function exportMuseumOffline(options={}){
  );
  options.signal?.throwIfAborted();
  report('ready',100);
- return {blob,manifest,filename:'PetrusKy_Museum_Offline_'+snapshot.completedAt.slice(0,10)+'.zip',runtime,snapshot};
+ const entries=Object.values(zip.files).filter(entry=>!entry.dir).map(entry=>entry.name);
+ return {blob,manifest,filename:'PetrusKy_Museum_Offline_'+snapshot.completedAt.slice(0,10)+'.zip',runtime,snapshot,entries};
 }
 async function studentBoardHtml(runtime,snapshot){
  const sliced=sanitizeSnapshot({...snapshot,galleries:[],media:[]});
