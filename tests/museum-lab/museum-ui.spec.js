@@ -2283,9 +2283,8 @@ test('ASEAN final activity shows the writing card before opening and confirms ea
  const advice=lesson.getByRole('textbox',{name:'One piece of advice'});
  await expect(experience).toBeDisabled();
  await expect(lesson).toContainText('You can read the card now.');
- await expect(lesson).toContainText('Review the draft and use your own words before submitting.');
- await expect(experience).toHaveValue('Visitors can walk along the paths and look at the historic monuments.');
- await expect(advice).toHaveValue('Visitors should leave room for others to pass when they stop to read a sign.');
+ await expect(experience).toHaveValue('');
+ await expect(advice).toHaveValue('');
  expect(written).toBeUndefined();
  await expect(lesson).toContainText('Your previous response repeated your Activity 1 writing.');
  const submit=project.getByRole('button',{name:'Submit final 3D exhibit'});
@@ -2301,7 +2300,7 @@ test('ASEAN final activity shows the writing card before opening and confirms ea
  checkpointVersion=version;
  await expect(submit).toBeEnabled({timeout:9000});
  await experience.fill('Visitors can follow the path and look at historic monuments.');
- await expect(advice).toHaveValue('Visitors should leave room for others to pass when they stop to read a sign.');
+ await expect(advice).toHaveValue('');
  await advice.fill('Visitors should leave room on the path when stopping to read a sign.');
  await lesson.getByRole('button',{name:'Submit two sentences'}).click();
  await expect(lesson.getByText('Writing submitted',{exact:true})).toBeVisible();
@@ -2346,10 +2345,12 @@ test('ASEAN Teacher Live mirrors all six student activities and shows only recor
  await page.screenshot({path:testInfo.outputPath('teacher-live-asean-build.png')});
  await next.click();
  await expect(slide(4).getByText('Record answers and evidence frames')).toBeVisible();
+ await expect(slide(4).getByText('Test',{exact:true})).toBeVisible();
  await slide(4).getByText('Assigned exhibit by group',{exact:true}).click();
  await expect(slide(4).getByText('Group 03 · Angkor',{exact:true})).toBeVisible();
  await next.click();
  await expect(slide(5).getByText('Assigned exhibit: retest the revised exhibit')).toBeVisible();
+ await expect(slide(5).getByText('Test',{exact:true})).toBeVisible();
  await next.click();
  await expect(slide(6).getByText('Submit two sentences',{exact:true})).toBeVisible();
  await expect(slide(6).getByText('Submit final 3D exhibit',{exact:true})).toBeVisible();
