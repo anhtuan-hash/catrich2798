@@ -1,8 +1,9 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {normalizeGuestDraft} from '../src/features/immersive-gallery/creatorPassPolicy.js';
 import {documentFromStudio,emptyStudio,scoreRubric} from '../src/features/immersive-gallery/v3/museumData.js';
-import {ASEAN_DESTINATIONS,ASEAN_FRAMES,ASEAN_RUBRIC,ASEAN_STAGES,ASEAN_TEMPLATE,aseanBaselineDraft,aseanExhibitMissing,aseanTransferDraft,aseanWritingCard,aseanWritingRepeats,validAseanResponse} from '../src/features/immersive-gallery/v3/aseanLesson.js';
+import {ASEAN_DESTINATIONS,ASEAN_FRAMES,ASEAN_RUBRIC,ASEAN_STAGES,ASEAN_TEMPLATE,aseanBaselineDraft,aseanBlankResponse,aseanExhibitMissing,aseanTransferDraft,aseanWritingCard,aseanWritingRepeats,validAseanResponse} from '../src/features/immersive-gallery/v3/aseanLesson.js';
 import {sessionStage,LIVE_STAGES} from '../src/features/immersive-gallery/v3/liveLesson.js';
 import {ASEAN_MIN_GROUPS,ASEAN_MAX_GROUPS,aseanDestination,aseanPeerGroup,validAseanGroupCount} from '../src/features/immersive-gallery/v3/aseanLesson.js';
 
@@ -110,4 +111,21 @@ test('ASEAN transfer rejects a repeated baseline and accepts new writing',()=>{
  }),false);
  assert.equal(aseanWritingRepeats(null,baseline),false);
  assert.equal(aseanWritingRepeats({experience:'Only one answer'},{experience:'Only one answer'}),false);
+});
+
+test('new ASEAN lessons start with blank independent student responses, even for another class 11.3',()=>{
+ for(const stage of [0,5]){
+  assert.deepEqual(aseanBlankResponse(stage),{experience:'',advice:''});
+ }
+ assert.deepEqual(aseanBlankResponse(1),{codes:['','',''],comparisonFrame:null,alternative:'',fact:'',source:'',reason:''});
+ assert.deepEqual(aseanBlankResponse(3),{
+  first:null,answers:ASEAN_FRAMES.map(()=>({text:'',frame:null,score:0})),comment:'',
+ });
+ assert.deepEqual(aseanBlankResponse(4),{answer:'',frame:null,score:0});
+ const first=aseanBlankResponse(3),second=aseanBlankResponse(3);
+ first.answers[0].text='An earlier class answer';
+ assert.equal(second.answers[0].text,'');
+ const studentSource=readFileSync(new URL('../src/features/immersive-gallery/v3/AseanStudentLesson.jsx',import.meta.url),'utf8');
+ assert.match(studentSource,/useState\(\(\)=>record\|\|aseanBlankResponse\(stage\)\)/);
+ assert.doesNotMatch(studentSource,/aseanBaselineDraft|aseanTransferDraft|class_scope==='11\\.3'/);
 });
