@@ -112,17 +112,58 @@ test('the exporter downloads unique images in parallel within a four-request lim
    image_url:i===11?first:'https://storage.example/exhibit-'+i+'.webp',
   }));
   let active=0,peak=0,calls=0;
-  const snapshot=await captureMuseum({...fakeOptions(f),fetcher:async()=>{
+  const snapshot=await captureMuseum({...fakeOptions(f),fetcher:async url=>{
    calls++;active++;peak=Math.max(peak,active);
    await new Promise(resolve=>setImmediate(resolve));
    active--;
-   return new Response('image bytes',{headers:{'Content-Type':'image/webp'}});
+   return new Response(url,{headers:{'Content-Type':'image/webp'}});
   }});
   assert.equal(peak,4);
   assert.equal(calls,11);
   assert.equal(snapshot.media.length,11);
   assert.equal(snapshot.galleries[0].rooms[0].exhibits.length,12);
  }finally{globalThis.FileReader=original;}
+});
+test('distinct signed links to the same image share one embedded media record',async()=>{
+ const original=globalThis.FileReader;
+ globalThis.FileReader=class {async readAsDataURL(blob){this.result='data:'+blob.type+';base64,'+Buffer.from(await blob.arrayBuffer()).toString('base64');this.onload();}};
+ try{
+  const f=fixture();
+  f.galleries[0].rooms[0].exhibits=[
+   {image_url:'https://storage.example/photo.webp?token=one'},
+   {image_url:'https://storage.example/photo.webp?token=two'},
+  ];
+  const snapshot=await captureMuseum({...fakeOptions(f),fetcher:async()=>
+   new Response('same image bytes',{headers:{'Content-Type':'image/webp'}})});
+  const [first,second]=snapshot.galleries[0].rooms[0].exhibits;
+  assert.equal(first.image_url,second.image_url);
+  assert.equal(snapshot.media.length,1);
+  assert.equal(snapshot.media[0].bytes,16);
+  assert(!JSON.stringify(snapshot).includes('token='));
+ }finally{globalThis.FileReader=original;}
+});
+test('the browser budget counts optimized photos rather than their larger sources',async()=>{
+ const previous={FileReader:globalThis.FileReader,createImageBitmap:globalThis.createImageBitmap,document:globalThis.document};
+ let encoded=0;
+ globalThis.FileReader=class {async readAsDataURL(blob){this.result='data:'+blob.type+';base64,'+Buffer.from(await blob.arrayBuffer()).toString('base64');this.onload();}};
+ globalThis.createImageBitmap=async()=>({width:1100,height:800,close(){}});
+ globalThis.document={createElement:()=>({
+  getContext:()=>({drawImage(){}}),
+  toBlob(callback){encoded++;callback(new Blob(['offline photo'],{type:'image/webp'}));},
+ })};
+ try{
+  const f=fixture();
+  const raw=new Blob([new Uint8Array(2*1024*1024)],{type:'image/jpeg'});
+  f.galleries[0].rooms[0].exhibits=Array.from({length:100},(_,i)=>({image_url:'https://storage.example/photo-'+i+'.jpg'}));
+  const snapshot=await captureMuseum({...fakeOptions(f),fetcher:async url=>new Response(
+   new Blob([raw,url],{type:'image/jpeg'}),
+  )});
+  assert.equal(encoded,100);
+  assert.equal(snapshot.media.length,100);
+  assert(snapshot.media.reduce((sum,image)=>sum+image.originalBytes,0)>180*1024*1024);
+  assert(snapshot.media.every(image=>image.bytes===13&&image.type==='image/webp'));
+  assert(snapshot.galleries[0].rooms[0].exhibits.every(entry=>entry.image_url.startsWith('data:image/webp;base64,')));
+ }finally{Object.assign(globalThis,previous);}
 });
 test('historical sessions retain their original quiz answer key and survey meaning',async()=>{
  const f=fixture();f.live['qa-lesson'].session.questionVersion=1;f.live['qa-lesson'].session.evidenceVersion=0;

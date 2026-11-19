@@ -4,11 +4,15 @@ import {isAsean} from '../aseanLesson.js';
 import {aseanStudentRecords} from './aseanRecords.js';
 import {SNAPSHOT_FORMAT,sanitizeSnapshot,digest,buildOfflineHtml} from './snapshot.js';
 import {groupWorkshopRows} from './workshopRows.js';
+import {prepareOfflineArtwork} from './prepareArtwork.js';
+
+const imageHash=async bytes=>
+ [...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(v=>v.toString(16).padStart(2,'0')).join('');
 
 // Read only existing, permission-checked staff endpoints. Never export the
 // session token, Creator Pass, signed access URL or service-role credentials.
 export async function captureMuseum({onProgress=()=>{},signal,assignmentIds,staff=staffRequest,live=liveStaff,art=artStaff,fetcher=fetch}={}){
- const startedAt=new Date().toISOString(),warnings=[],media=[],cache=new Map(),activeImages=new Set();let totalBytes=0;
+ const startedAt=new Date().toISOString(),warnings=[],media=[],cache=new Map(),imageContent=new Map(),activeImages=new Set();let totalBytes=0;
  const LIMIT=180*1024*1024;
  const check=()=>{if(signal?.aborted)throw new DOMException('Export cancelled.','AbortError');};
  const fetchImage=async url=>{
@@ -16,11 +20,20 @@ export async function captureMuseum({onProgress=()=>{},signal,assignmentIds,staf
    if(!r.ok)throw new Error('An artwork could not be downloaded. Export again while online.');
    const blob=await r.blob();
    if(!/^image\/(png|jpeg|webp|avif|gif|svg\+xml)$/.test(blob.type))throw new Error('An artwork URL did not return an image. The export was stopped.');
-   totalBytes+=blob.size;if(totalBytes>LIMIT)throw new Error('Artwork exceeds the 180 MB offline export limit. This archive is too large for the current browser export.');
    const bytes=new Uint8Array(await blob.arrayBuffer());
-   const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(v=>v.toString(16).padStart(2,'0')).join('');
-   const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(blob);});
-   return {data,record:{sha256:hash,bytes:blob.size,type:blob.type}};
+   const sourceHash=await imageHash(bytes);
+   const contentKey=blob.type+':'+sourceHash;
+   if(!imageContent.has(contentKey))imageContent.set(contentKey,(async()=>{
+    check();
+    const offline=await prepareOfflineArtwork(blob,bytes,check);
+    check();
+    totalBytes+=offline.size;
+    if(totalBytes>LIMIT)throw Object.assign(new Error('The optimized artwork still exceeds the 180 MB offline export limit.'),{code:'OFFLINE_ARTWORK_LIMIT'});
+    const hash=offline===blob?sourceHash:await imageHash(await offline.arrayBuffer());
+    const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(offline);});
+    return {data,record:{sha256:hash,bytes:offline.size,type:offline.type,...(offline!==blob?{originalBytes:blob.size}:{})}};
+   })());
+   return imageContent.get(contentKey);
  };
  const download=async url=>{
   if(!url||url.startsWith('data:'))return url;
@@ -144,7 +157,7 @@ export async function captureMuseum({onProgress=()=>{},signal,assignmentIds,staf
  }
  snapshot.galleries.forEach(g=>assertArtwork(g,[]));
  check();
- for(const image of cache.values())media.push((await image).record);
+ for(const image of imageContent.values())media.push((await image).record);
  // Snapshot content retains recorded provenance; it is not rewritten as observed
  // classroom participation. Collection time is a window, not an atomic DB claim.
  snapshot.completedAt=new Date().toISOString();
@@ -188,6 +201,7 @@ export async function exportMuseumOffline(options={}){
   '9. manifest.json ghi SHA-256 và các mục không có dữ liệu. Giữ nguyên bản ZIP gốc khi nộp.',
   '10. SHA-256 phát hiện thay đổi so với bản kê; không phải chữ ký số hoặc xác nhận của cơ quan tổ chức.',
   '11. Kiểm tra nguồn gốc minh chứng, quyền sử dụng ảnh và giới hạn dung lượng hồ sơ trước khi nộp.',
+  '12. Một số ảnh trong ZIP là bản tối ưu dung lượng để xem ngoại tuyến. Bản gốc nằm trên Museum Lab.',
  ].join('\n'));
  report('compression',90);
  let lastPercent=90;
