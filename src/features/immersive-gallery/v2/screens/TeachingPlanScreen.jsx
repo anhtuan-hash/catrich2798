@@ -54,7 +54,7 @@ export default function TeachingPlanScreen({language='vi',data,lessonTemplate,on
   ];
   const [firstTitleLine, secondTitleLine] = language === 'en' ? ['Teaching', 'plan'] : ['Kế hoạch', 'bài dạy'];
   const title=asean ? ASEAN_TITLE : kit.title||'Our Climate Action Museum';
-  const planFileTitle=t(language,'Phần 2 · Kế hoạch bài dạy và phụ lục (Word)','Part 2 · Teaching plan and appendices (Word)');
+  const planFileTitle=t(language,'Phần 2 · Kế hoạch bài dạy và phụ lục (PDF)','Part 2 · Teaching plan and appendices (PDF)');
   return (
     <div className="igv2-screen swiss-teaching-plan" data-testid="igv2-teaching-plan-screen">
       <div className="plan-masthead">
