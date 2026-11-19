@@ -157,7 +157,7 @@ export async function exportMuseumOffline(options={}){
    const wholePercent=Math.floor(percent);
    if(wholePercent!==lastPercent){
     lastPercent=wholePercent;
-    options.onProgress?.('Compressing the ZIP… '+wholePercent+'%');
+    options.onCompressionProgress?.(wholePercent);
    }
   },
  );

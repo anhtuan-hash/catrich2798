@@ -8,8 +8,11 @@ const runtime=JSON.parse(await fs.readFile('dist/museum-offline-runtime.json','u
 assert.equal(/(?:[a-z0-9-]+)\.supabase\.co|eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/.test(runtime.script),false,'No cloud endpoint or JWT may ship in offline code');
 async function makeArchive(f,assignmentIds){
  const originalFetch=globalThis.fetch;
+ const compression=[];
  globalThis.fetch=async url=>{assert.equal(url,'/museum-offline-runtime.json');return Response.json(runtime);};
- try{return await exportMuseumOffline({assignmentIds,staff:async action=>action==='dashboard'?f.staff:action==='showcase-state'?f.showcase:{gallery:f.galleries[0]},
+ try{
+  const result=await exportMuseumOffline({assignmentIds,onCompressionProgress:value=>compression.push(value),
+  staff:async action=>action==='dashboard'?f.staff:action==='showcase-state'?f.showcase:{gallery:f.galleries[0]},
   art:async groupId=>f.artworks[groupId]||[],
   live:async(action,body,params)=>{
    if(action==='state')return f.live[params.assignmentId];
@@ -22,6 +25,11 @@ async function makeArchive(f,assignmentIds){
    return {before:null,after:null};
   },
   fetcher:async()=>{throw Error('Unexpected external fetch');}});
+  assert(compression.length>1);
+  assert.equal(compression.at(-1),100);
+  assert(compression.every((value,index)=>Number.isInteger(value)&&value>=0&&value<=100&&
+   (index===0||value>compression[index-1])));
+  return result;
  }finally{globalThis.fetch=originalFetch;}
 }
 const result=await makeArchive(fixture());
