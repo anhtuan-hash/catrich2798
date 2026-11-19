@@ -4,7 +4,7 @@ import AseanHueQuiz from './AseanHueQuiz.jsx';
 import AseanDiscussionPhoto from './AseanDiscussionPhoto.jsx';
 import AseanActivityArt,{AseanFrameIcon} from './AseanActivityArt.jsx';
 import {ASEAN_ACTIVITY_DESIGN,ASEAN_DISCUSSION_MODEL} from './aseanActivityDesign.js';
-import {ASEAN_EXHIBIT_NAMES,ASEAN_FRAMES,ASEAN_STAGES,ASEAN_TITLE,aseanBlankResponse,aseanDestination,aseanExhibitMissing,aseanRevisionReason,aseanWritingCard,aseanWordCount,isAseanReferenceRevision,validAseanResponse} from './aseanLesson.js';
+import {ASEAN_EXHIBIT_NAMES,ASEAN_FRAMES,ASEAN_PHASES,ASEAN_STAGES,ASEAN_TITLE,ASEAN_VISIT_FORMATS,aseanPhase,isAseanVisitFormat,aseanBlankResponse,aseanDestination,aseanExhibitMissing,aseanRevisionReason,aseanWritingCard,aseanWordCount,isAseanReferenceRevision,validAseanResponse} from './aseanLesson.js';
 import {guestRequest,englishSystemGroupLabel} from './museumApi.js';
 import {liveGuest,localMuseumFromDraft,artGuest} from './museumLiveApi.js';
 import {emptyStudio,normalizeStudio,documentFromStudio} from './museumData.js';
@@ -18,14 +18,7 @@ import GalleryRenderBoundary from '../GalleryRenderBoundary.jsx';
 import './aseanStudentStudio.css';
 
 const errorText=error=>error.message||'The request could not be completed.';
-const ACTIVITY_GROUPS=[
- {key:'discover',en:'Discover',vi:'Khám phá'},
- {key:'plan',en:'Plan',vi:'Lập kế hoạch'},
- {key:'build',en:'Build',vi:'Chế tạo'},
- {key:'test',en:'Test & revise',vi:'Thử nghiệm'},
- {key:'share',en:'Share',vi:'Trình bày'},
-];
-const ACTIVITY_GROUP_ENDS=[1,2,3,5,ASEAN_STAGES.length];
+const ACTIVITY_GROUP_ENDS=ASEAN_PHASES.map(phase=>phase.end);
 const ACTIVITY_ICONS=[Compass,Images,Box,MessagesSquare,PencilLine,Send];
 const ASEAN_ACTIVITIES_VI=ASEAN_STAGES.map(stage=>({...stage,title:stage.vi}));
 const T=(language,vi,en)=>language==='en'?en:vi;
@@ -95,6 +88,12 @@ function ResponseFields({stage,fields,update,groupLabel,question,recorded,langua
   </div>
  </fieldset>;
  if(stage===3)return <fieldset className="asean-response-sheet asean-visit-questions" disabled={recorded}><legend>Three visitor questions</legend>
+  <label className="bml-full-field" lang={language}>{T(language,'Hình thức thử nghiệm','Viewing format')}
+   <select required value={fields.format??''} onChange={event=>update('format',event.currentTarget.value)}>
+    <option value="">{recorded?T(language,'Chưa ghi nhận','Not recorded'):T(language,'Chọn hình thức đã dùng','Choose the format used')}</option>
+    {ASEAN_VISIT_FORMATS.map(format=><option key={format.id} value={format.id}>{T(language,format.vi,format.en)}</option>)}
+   </select>
+  </label>
   <label className="bml-full-field">Which frame did you open first? <select required value={fields.first??''} onChange={event=>update('first',Number(event.target.value))}><option value="">Select a frame</option>{frameOptions}</select></label>
   <p className="asean-visit-scoring">Give 1 point for a clear answer supported by its matching frame. Give 0 if the answer was missing or unclear, and write what was missing.</p>
   {ASEAN_FRAMES.map(({key,label,question},i)=>{
@@ -142,7 +141,7 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
   aseanDestination(targetGroup)?.name||visit?.gallery?.draft?.title,
  ].filter(Boolean).join(' · ');
  const scoreMismatch=v2Visit&&visit?.gallery&&fields.score===1&&fields.frame!==visit.question;
- const loadVisit=async()=>{
+ const loadVisit=async format=>{
   setError('');setBusy(true);
   try{
    const result=await liveGuest('asean-visit');
@@ -155,8 +154,9 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
       setPrefilledFeedback(true);
      }
     }
+    if(v1Visit)setFields(previous=>({...previous,format}));
     const reference=stage===3&&result.gallery.draft?.checkpointOrigin==='reconstructed_reference';
-    onVisit(reviewMuseum({snapshot:result.gallery.draft},result.gallery.artworks),reference);
+    onVisit(reviewMuseum({snapshot:result.gallery.draft},result.gallery.artworks),reference,format);
    }
    else if(v1Visit)onVisit(null);
    else setError(T(language,'Bản đã chỉnh sửa của '+result.target+' chưa sẵn sàng.',
@@ -169,6 +169,10 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
   setError('');
   const value=stage===4?{...fields,question:visit?.question}:responseFields;
   if(visitStage&&!visit?.gallery)return;
+  if(v1Visit&&!isAseanVisitFormat(value.format)){
+   setError(T(language,'Chọn hình thức đã dùng để thử nghiệm.','Choose the format used for the visitor test.'));
+   return;
+  }
   if(!validAseanResponse(stage,value)){
    if(stage===1){
     setError('Use three different photo codes, choose the frame you compared, and give the alternative a different code from the photo you chose for that frame. Check that the fact, source and reason are filled in.');
@@ -210,9 +214,18 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
    {!submitted&&<p role={visit&&!visit.gallery?'status':undefined}>{visit&&!visit.gallery
     ?T(language,'Bản trước góp ý chưa sẵn sàng. Hỏi giáo viên rồi thử mở lại.','The first exhibit is not ready. Ask your teacher, then try again.')
     :T(language,'Mở bản trước góp ý, đọc ba khung và ghi nhớ khung mở đầu tiên. Đóng phòng để điền phiếu góp ý.','Open the first exhibit, inspect all three frames and remember which one you opened first. Close the viewer to fill in the feedback.')}</p>}
-   {open&&!submitted&&<button type="button" className={visit?.gallery?'bml-outline':'bml-primary'} onClick={loadVisit} disabled={busy}>
-    <Box size={18}/>{busy?T(language,'Đang mở…','Opening…'):visit?.gallery?T(language,'Mở lại bản trước góp ý','Reopen the first exhibit'):T(language,'Mở bản trước góp ý được giao','Open assigned first exhibit')}
-   </button>}
+   {open&&!submitted&&<div className="bml-toolbar">
+    <button type="button" className={visit?.gallery?'bml-outline':'bml-primary'} onClick={()=>loadVisit('3d')} disabled={busy}>
+     <Box size={18}/>{busy?T(language,'Đang mở…','Opening…'):visit?.gallery?T(language,'Mở lại bản trước góp ý','Reopen the first exhibit'):T(language,'Mở bản trước góp ý được giao','Open assigned first exhibit')}
+     {' · 3D'}
+    </button>
+    <button type="button" className="bml-outline" onClick={()=>loadVisit('2d')} disabled={busy}>
+     {T(language,'Mở bản 2D','Open 2D version')}
+    </button>
+    <button type="button" className="bml-outline" onClick={()=>loadVisit('print')} disabled={busy}>
+     {T(language,'Dùng bản in đã phát','Use the printed frames')}
+    </button>
+   </div>}
    {reconstructed&&<p role="status">{T(language,'Bản trước góp ý của phòng này là bản tham chiếu dựng lại.','This first exhibit is a reconstructed reference.')}</p>}
   </div>}
   {v2Visit&&<div className="asean-visit-intro" lang={language}>
@@ -226,7 +239,7 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
     ?<p role="status">{T(language,'Đang chờ nhóm được giao lưu bản đã chỉnh sửa.','Waiting for the assigned group to save its revised exhibit.')}</p>
     :<>
      <p>{T(language,'Mở phòng, tìm câu trả lời rồi đóng phòng để ghi bằng chứng.','Open the exhibit, find the answer, then close the viewer to cite the frame you used.')}</p>
-     <button type="button" className={visit?.gallery?'bml-outline':'bml-primary'} onClick={loadVisit} disabled={busy}>
+     <button type="button" className={visit?.gallery?'bml-outline':'bml-primary'} onClick={()=>loadVisit()} disabled={busy}>
       <Box size={18}/>{visit?.gallery?T(language,'Mở lại bản đã chỉnh sửa được giao','Reopen assigned revised exhibit'):T(language,'Mở bản đã chỉnh sửa được giao','Open assigned revised exhibit')}
      </button>
     </>)}
@@ -452,7 +465,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
   bannerExpanded={bannerExpanded} onBannerChange={setBannerExpanded} lessonTemplate={session.assignment.lesson_template}
   title={ASEAN_TITLE} testId="asean-student-lesson" activity={design.id}
   navigation={<MuseumStudentActivityGroups group={activityGroup} activity={stage} language={language}
-   groups={ACTIVITY_GROUPS} ends={ACTIVITY_GROUP_ENDS} activities={language==='en'?ASEAN_STAGES:ASEAN_ACTIVITIES_VI}
+   groups={ASEAN_PHASES} ends={ACTIVITY_GROUP_ENDS} activities={language==='en'?ASEAN_STAGES:ASEAN_ACTIVITIES_VI}
    onGroup={group=>browseActivity(group===activityGroup?stage:(ACTIVITY_GROUP_ENDS[group-1]??0))} onActivity={browseActivity}/>}
   overlays={preview&&<div className="bml-student-detail-overlay bml-museum-preview-overlay" role="dialog" aria-modal="true"
     aria-label={preview.reference?T(language,'Bản trước góp ý dựng lại','Reconstructed first exhibit'):preview.own?'Preview group museum':'Visit assigned exhibit'}>
@@ -461,7 +474,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
      {exhibitNames.first} · {T(language,'Tham chiếu dựng lại','Reconstructed reference')}
     </p>}
     <GalleryRenderBoundary language="en" onFallback={closePreview}>
-     <MuseumScene embedded cinema initial3D language="en" gallery={preview.own?localMuseumFromDraft(document,assets):preview.gallery}
+     <MuseumScene embedded cinema initial3D startIn2D={preview.format==='2d'} language="en" gallery={preview.own?localMuseumFromDraft(document,assets):preview.gallery}
       onClose={closePreview}/>
     </GalleryRenderBoundary>
    </div>
@@ -483,7 +496,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        <div className="asean-activity-meta" lang={language}>
         <span className="asean-activity-index" aria-hidden="true"><ActivityIcon/></span>
         <div>
-         <p className="bml-question-eyebrow">{T(language,'Hoạt động','Activity')} {stage+1} / {ASEAN_STAGES.length}</p>
+         <p className="bml-question-eyebrow">{T(language,'Hoạt động','Activity')} {stage+1} / {ASEAN_STAGES.length} · {aseanPhase(stage)[language==='en'?'en':'vi']}</p>
          <p className="asean-activity-time"><Clock3 aria-hidden="true"/>{T(language,'Tiết','Period')} {current.period} · {current.minutes} {T(language,'phút','min')}</p>
         </div>
        </div>
@@ -509,7 +522,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
       {stage===3&&<div className="asean-visit-instructions" lang={language}>
        <ol className="asean-action-list">
         <li>{T(language,'Mở phòng được giao và đọc ba khung. Ghi nhớ khung mở đầu tiên.','Open the assigned room, inspect all three frames and remember which one you opened first.')}</li>
-        <li>{T(language,'Đóng phòng, ghi điều tìm được và chấm từng câu theo bằng chứng.','Close the viewer, record what you found and score each answer using the evidence.')}</li>
+        <li>{T(language,'Ghi hình thức đã dùng, câu trả lời và điểm của từng câu theo bằng chứng.','Record the viewing format, answers and scores based on the evidence.')}</li>
         <li>{T(language,'Viết một đề xuất cụ thể bằng tiếng Anh và nộp phiếu.','Write one specific suggestion in English and submit the feedback.')}</li>
        </ol>
        {liveOpen&&!stageRecord&&<button type="button" className="bml-outline" onClick={()=>{
@@ -702,9 +715,12 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        retestTask={records.retestTask} language={language}/>}
       {(stage===1||stage===3)&&<GroupResponse key={stage===3?live?.id??stage:stage} session={{...session,readOnly}} stage={stage} live={live} open={liveOpen}
        record={stageRecord} refreshLive={refreshLive} refreshRecords={refreshRecords}
-       onVisit={(gallery,reference)=>{
+       onVisit={(gallery,reference,format)=>{
         setVisitOpened(Boolean(gallery));
-        if(gallery){startActivity();setPreview({gallery,reference});}
+        if(!gallery)return;
+        startActivity();
+        if(format==='print')focusVisitorStep('[data-visit-form-heading]');
+        else setPreview({gallery,reference,format});
        }}
        formId={projectFormId} onSubmittingChange={setProjectSubmitting} language={language}/>}
       {stage===3&&records.feedback&&<section className="asean-own-revision">

@@ -1,5 +1,5 @@
 import React,{useId,useState} from 'react';
-import {aseanDestination,aseanGroupIndex,aseanPeerGroup} from '../../v3/aseanLesson.js';
+import {ASEAN_VISIT_FORMATS,aseanDestination,aseanGroupIndex,aseanPeerGroup} from '../../v3/aseanLesson.js';
 import {englishSystemGroupLabel} from '../../v3/museumApi.js';
 import './aseanSubmissionBoard.css';
 
@@ -67,7 +67,7 @@ export default function AseanSubmissionBoard({
         <span>{hasScore?tr(language,'Điểm viết','Writing score'):tr(language,'Chưa có điểm','Awaiting score')}</span>
        </div>}
       </header>
-      {record?<AseanGroupResponse value={record.value}/>:
+      {record?<AseanGroupResponse value={record.value} language={language}/>:
        <p className="asean-submissions-empty">{tr(language,'Chưa có bài nộp cho hoạt động này.','No submission for this activity yet.')}</p>}
       {writingStage&&record&&canGrade&&<AseanWritingGrade language={language} value={hasScore?marks:null}
        save={newMarks=>onSaveGrade(group.id,newMarks)}/>}
@@ -78,16 +78,20 @@ export default function AseanSubmissionBoard({
  </section>;
 }
 
-function AseanGroupResponse({value}){
+function AseanGroupResponse({value,language}){
  if(!value||typeof value!=='object')return null;
  let fields;
- if(value.answers)fields=[
+ if(value.answers){
+  const format=ASEAN_VISIT_FORMATS.find(option=>option.id===value.format);
+  fields=[
+  [tr(language,'Hình thức thử nghiệm','Viewing format'),format?tr(language,format.vi,format.en):tr(language,'Chưa ghi nhận','Not recorded')],
+
   ['First frame opened',value.first],
   ['Answers',<ol>{value.answers.map((answer,index)=><li key={index}>{answer.text} · Frame {answer.frame??'—'} · {answer.score}/1</li>)}</ol>],
   ['Visitor test',value.answers.reduce((sum,answer)=>sum+answer.score,0)+'/3'],
   ['Peer feedback',value.comment],
- ];
- else if(value.question)fields=[
+  ];
+ }else if(value.question)fields=[
   ['Question',value.question],['Answer',value.answer],['Frame',value.frame??'—'],['Score',value.score+'/1'],
  ];
  else if(value.codes)fields=[

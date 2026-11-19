@@ -75,8 +75,8 @@ export function reviewMuseum(review,assets=[],lessonTemplate){
   }))
  };
 }
-export default function MuseumScene({gallery,onBack,onClose,language='vi',embedded=false,compact=false,initial3D=false,onExhibitSelect,cinema=false,initialRoomIndex=0}){
- const [activeRoom,setActiveRoom]=useState(initialRoomIndex),[threeD,setThreeD]=useState(cinema||initial3D),[selectedId,setSelectedId]=useState(null);
+export default function MuseumScene({gallery,onBack,onClose,language='vi',embedded=false,compact=false,initial3D=false,onExhibitSelect,cinema=false,initialRoomIndex=0,startIn2D=false}){
+ const [activeRoom,setActiveRoom]=useState(initialRoomIndex),[threeD,setThreeD]=useState(!startIn2D&&(cinema||initial3D)),[selectedId,setSelectedId]=useState(null);
  const [fullPosterId,setFullPosterId]=useState(null);
  const editorialCinema=cinema&&isAsean(gallery);
  const swiss3D=editorialCinema&&threeD;

@@ -49,7 +49,7 @@ export const ASEAN_ACTIVITY_DESIGN = [
  },
  {
   id: 'visit',
-  title: ['Tham quan chéo phòng 3D', 'Test another group’s 3D exhibit'],
+  title: ['Tham quan chéo và thử nghiệm', 'Test another group’s exhibit'],
   studentTitle: 'Visit another group’s exhibit',
   studentTask: 'Test whether a first-time visitor can find all three answers in another group’s exhibit without asking the authors.',
   steps: [
@@ -57,7 +57,7 @@ export const ASEAN_ACTIVITY_DESIGN = [
    [8, 'Đọc ba khung và ghi bằng chứng', 'Read the three frames and record the evidence'],
    [5, 'Gửi một góp ý có thể sửa được', 'Send one specific suggestion'],
   ],
-  output: ['Ba câu trả lời kèm số khung, điểm /3 và một góp ý cụ thể.', 'Three answers with frame numbers, a score out of 3 and one specific suggestion.'],
+  output: ['Hình thức thử nghiệm, ba câu trả lời kèm số khung, điểm /3 và một góp ý cụ thể.', 'The viewing format, three answers with frame numbers, a score out of 3 and one specific suggestion.'],
  },
  {
   id: 'revise',
