@@ -4,7 +4,7 @@ import AseanHueQuiz from './AseanHueQuiz.jsx';
 import AseanDiscussionPhoto from './AseanDiscussionPhoto.jsx';
 import AseanActivityArt,{AseanFrameIcon} from './AseanActivityArt.jsx';
 import {ASEAN_ACTIVITY_DESIGN,ASEAN_DISCUSSION_MODEL} from './aseanActivityDesign.js';
-import {ASEAN_EXHIBIT_NAMES,ASEAN_FRAMES,ASEAN_STAGES,ASEAN_TITLE,aseanDestination,aseanExhibitMissing,aseanRevisionReason,aseanWritingCard,aseanWordCount,isAseanReferenceRevision,validAseanResponse} from './aseanLesson.js';
+import {ASEAN_EXHIBIT_NAMES,ASEAN_FRAMES,ASEAN_STAGES,ASEAN_TITLE,aseanBlankResponse,aseanDestination,aseanExhibitMissing,aseanRevisionReason,aseanWritingCard,aseanWordCount,isAseanReferenceRevision,validAseanResponse} from './aseanLesson.js';
 import {guestRequest,englishSystemGroupLabel} from './museumApi.js';
 import {liveGuest,localMuseumFromDraft,artGuest} from './museumLiveApi.js';
 import {emptyStudio,normalizeStudio,documentFromStudio} from './museumData.js';
@@ -17,13 +17,6 @@ import MuseumScene,{reviewMuseum} from './MuseumScene.jsx';
 import GalleryRenderBoundary from '../GalleryRenderBoundary.jsx';
 import './aseanStudentStudio.css';
 
-const emptyAnswer=()=>({text:'',frame:null,score:0});
-const initialFields=stage=>{
- if(stage===0||stage===5)return {experience:'',advice:''};
- if(stage===1)return {codes:['','',''],comparisonFrame:null,alternative:'',fact:'',source:'',reason:''};
- if(stage===3)return {first:null,answers:ASEAN_FRAMES.map(emptyAnswer),comment:''};
- return {answer:'',frame:null,score:0};
-};
 const errorText=error=>error.message||'The request could not be completed.';
 const ACTIVITY_GROUPS=[
  {key:'discover',en:'Discover',vi:'Khám phá'},
@@ -130,7 +123,7 @@ function ResponseFields({stage,fields,update,groupLabel,question,recorded,langua
 function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLive,onVisit,retestTask,transferNeedsResubmission,formId,onSubmittingChange,language='en'}){
  // A new lesson always begins with blank responses. Submitted answers are read
  // only from the current group's persisted record, never from a class label.
- const [fields,setFields]=useState(()=>record||initialFields(stage));
+ const [fields,setFields]=useState(()=>record||aseanBlankResponse(stage));
  const responseFields=fields;
  const [visit,setVisit]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [prefilledFeedback,setPrefilledFeedback]=useState(false);
