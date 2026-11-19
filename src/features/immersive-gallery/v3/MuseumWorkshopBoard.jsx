@@ -19,7 +19,7 @@ export default function MuseumWorkshopBoard({rows,language,editorial=false,asean
        <p>{rows.length} {tr('nhóm · mỗi nhóm một bài đã đóng băng','groups · one frozen workshop each')}</p></>}</div></div>
    <div className="bml-frozen-table-wrap" role={editorial?'region':undefined}
     aria-labelledby={editorial?'asean-dossier-workshops':undefined} tabIndex={editorial?0:undefined}>
-    <table className="bml-frozen-table" aria-labelledby={editorial?'asean-dossier-workshops':undefined}>
+    <table className={'bml-frozen-table'+(mobileAction?' asean-dossier-mobile-table':'')} aria-labelledby={editorial?'asean-dossier-workshops':undefined}>
      <thead><tr><th scope="col">#</th><th scope="col">{tr('Nhóm','Group')}</th><th scope="col">{tr('Lớp','Class')}</th><th scope="col">{tr('Bảo tàng','Museum')}</th><th scope="col">{writingHeading}</th>{action&&<th scope="col">{action.label}</th>}
       {mobileAction&&<th scope="col" className="asean-dossier-mobile-cell">{mobileAction.label}</th>}</tr></thead>
      <tbody>{rows.map((row,index)=><tr key={row.id}><td>{String(index+1).padStart(2,'0')}</td><td>{row.label}</td><td>{row.classScope}</td><td>{STATE[row.state]?.[language==='en'?1:0]||row.state||'—'}</td><td>{writingStatus(row)}</td>
