@@ -78,12 +78,12 @@ export const ASEAN_PAPER_PLAN = {
   },
   "sequence": {
     "title": "III. Tiến trình dạy học",
-    "description": "Sáu hoạt động của bản điện tử triển khai bốn chức năng dạy học của Phụ lục IV. Lớp chuyển từ xác định nhu cầu thông tin của khách sang thiết kế, dựng phòng, thử nghiệm, điều chỉnh và vận dụng tiếng Anh cho điểm đến mới.",
+    "description": "Sáu hoạt động của bản điện tử triển khai bốn chức năng dạy học của Phụ lục IV. Lớp chuyển từ xác định nhu cầu thông tin của khách sang thiết kế, dựng phòng, thử nghiệm, điều chỉnh và vận dụng tiếng Anh cho điểm đến mới. Hoạt động 4 và 5 cùng thuộc giai đoạn Thử nghiệm.",
     "rows": [
       [
         "Tiết và thời gian",
         "Hoạt động trên Museum Lab",
-        "Chức năng theo 5512 và tiến trình thiết kế"
+        "Chức năng theo Công văn 5512 và giai đoạn hội thi"
       ],
       [
         "Tiết 1 · 0–10 phút",
@@ -98,22 +98,22 @@ export const ASEAN_PAPER_PLAN = {
       [
         "Tiết 1 · 20–45 phút",
         "3. Viết chú thích và dựng 3D",
-        "Luyện tập · Chế tạo bản đầu"
+        "Luyện tập · Chế tạo"
       ],
       [
         "Tiết 2 · 0–15 phút",
         "4. Tham quan chéo, góp ý",
-        "Luyện tập · Thử nghiệm bản đầu"
+        "Luyện tập · Thử nghiệm"
       ],
       [
         "Tiết 2 · 15–35 phút",
         "5. Chỉnh sửa và thử lại",
-        "Luyện tập · Kiểm tra giải pháp đã sửa"
+        "Luyện tập · Thử nghiệm"
       ],
       [
         "Tiết 2 · 35–45 phút",
         "6. Báo cáo, viết vận dụng, nộp",
-        "Vận dụng · Báo cáo và đánh giá"
+        "Vận dụng · Đánh giá"
       ]
     ]
   },
@@ -213,7 +213,7 @@ export const ASEAN_PAPER_PLAN = {
       "minutes": 10,
       "time": "Tiết 1, phút 10–20 (10 phút)",
       "title": "Hoạt động 2. Chọn ảnh và lập phương án cho ba khung",
-      "phase": "Hình thành kiến thức và thiết kế giải pháp",
+      "phase": "Hình thành kiến thức · Thiết kế giải pháp",
       "parts": [
         {
           "title": "a) Mục tiêu",
@@ -249,7 +249,7 @@ export const ASEAN_PAPER_PLAN = {
       "minutes": 25,
       "time": "Tiết 1, phút 20–45 (25 phút)",
       "title": "Hoạt động 3. Viết chú thích và dựng phòng 3D đầu tiên",
-      "phase": "Luyện tập · Chế tạo bản trước góp ý",
+      "phase": "Luyện tập · Chế tạo",
       "parts": [
         {
           "title": "a) Mục tiêu",
@@ -276,7 +276,7 @@ export const ASEAN_PAPER_PLAN = {
           "1. Chuyển giao nhiệm vụ  Trong 5 phút, GV mở nhóm bằng QR hoặc liên kết mời, trình diễn việc dựng một khung và chỉ cách kiểm tra trước khi lưu. HS xác định nội dung của khung, số từ và các trường thông tin bắt buộc.",
           "2. Thực hiện nhiệm vụ  HS dành 10 phút viết và đọc chéo ba chú thích. Trong 8 phút tiếp theo, nhóm tải ảnh, điền mô tả, ghi công và quyền sử dụng rồi xem thử 3D. GV theo dõi tình trạng từng khung, hỗ trợ mục còn thiếu và dùng bộ khung in khi thiết bị gặp sự cố.",
           "3. Báo cáo, thảo luận  GV mời một nhóm trình chiếu khung Experience qua bản xem thử. HS chỉ ra từ ngữ làm cho hoạt động cụ thể hơn và đối chiếu ảnh với chú thích. Nhóm còn lại rà lại khung tương ứng của mình.",
-          "4. Kết luận, nhận định  Trong 2 phút cuối, HS lưu bản nháp và báo trạng thái. GV kiểm tra mỗi nhóm đã lưu đủ ba khung. Khi mở Hoạt động 4, bản nháp mới nhất đã lưu trở thành bản trước góp ý cho nhóm khách được phân công."
+          "4. Kết luận, nhận định  Trong 2 phút cuối, HS lưu bản nháp và báo trạng thái. GV kiểm tra mỗi nhóm đã lưu đủ ba khung. Khi mở Hoạt động 4, bản nháp mới nhất đã lưu trở thành bản V1 cho nhóm khách được phân công. Bản công bố là sản phẩm sau duyệt."
         ]
       }
     },
@@ -285,7 +285,7 @@ export const ASEAN_PAPER_PLAN = {
       "minutes": 15,
       "time": "Tiết 2, phút 0–15 (15 phút)",
       "title": "Hoạt động 4. Tham quan chéo và góp ý bằng chứng",
-      "phase": "Luyện tập · Thử nghiệm bản đầu",
+      "phase": "Luyện tập · Thử nghiệm",
       "parts": [
         {
           "title": "a) Mục tiêu",
@@ -296,13 +296,13 @@ export const ASEAN_PAPER_PLAN = {
         {
           "title": "b) Nội dung",
           "paragraphs": [
-            "Nhóm khách mở bản trước góp ý được giao, quan sát mà không nhờ nhóm tác giả chỉ đường. Ghi khung mở đầu tiên, câu trả lời và khung làm bằng chứng cho từng câu hỏi. Hoạt động dùng Museum Lab hoặc phiếu C với bộ khung in."
+            "Nhóm khách mở bản trước góp ý được giao, quan sát mà không nhờ nhóm tác giả chỉ đường. Ghi khung mở đầu tiên, câu trả lời và khung làm bằng chứng cho từng câu hỏi. Ghi hình thức thử nghiệm (3D, 2D hoặc bản in) trong Museum Lab hoặc trên phiếu C."
           ]
         },
         {
           "title": "c) Sản phẩm",
           "paragraphs": [
-            "Một phiếu góp ý theo nhóm khách, gồm khung mở đầu, ba câu trả lời kèm bằng chứng và ba điểm 0/1, tổng /3, cùng một đề xuất sửa. Nếu câu trả lời thiếu hoặc mơ hồ, ghi chi tiết chưa tìm thấy."
+            "Một phiếu góp ý theo nhóm khách, gồm hình thức thử nghiệm, khung mở đầu, ba câu trả lời kèm bằng chứng và ba điểm 0/1, tổng /3, cùng một đề xuất sửa. Nếu câu trả lời thiếu hoặc mơ hồ, ghi chi tiết chưa tìm thấy."
           ]
         }
       ],
@@ -321,7 +321,7 @@ export const ASEAN_PAPER_PLAN = {
       "minutes": 20,
       "time": "Tiết 2, phút 15–35 (20 phút)",
       "title": "Hoạt động 5. Sửa một khung và nhờ nhóm khách mới thử lại",
-      "phase": "Luyện tập · Chỉnh sửa và thử lại",
+      "phase": "Luyện tập · Thử nghiệm",
       "parts": [
         {
           "title": "a) Mục tiêu",
@@ -357,7 +357,7 @@ export const ASEAN_PAPER_PLAN = {
       "minutes": 10,
       "time": "Tiết 2, phút 35–45 (10 phút)",
       "title": "Hoạt động 6. Báo cáo thay đổi và viết cho điểm đến mới",
-      "phase": "Vận dụng · Báo cáo và đánh giá",
+      "phase": "Vận dụng · Đánh giá",
       "parts": [
         {
           "title": "a) Mục tiêu",
@@ -409,6 +409,8 @@ const english = {
   href: '/museum/asean/asean-group-lesson-en.docx',
   filename: 'TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2_EN.docx',
 };
+
+export const ASEAN_EVIDENCE_PDF = '/museum/asean/asean-class-11-3-evidence.pdf';
 
 export function getAseanPaperPlan(language) {
   return language === 'en' ? english : vietnamese;

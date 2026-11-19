@@ -5,7 +5,7 @@ import MuseumWorkshopBoard from './MuseumWorkshopBoard.jsx';
 import { groupWorkshopRows } from './offline/workshopRows.js';
 import { englishSystemGroupLabel, saveTextFile } from './museumApi.js';
 import { ASEAN_TITLE } from './aseanLesson.js';
-import { getAseanPaperPlan } from './aseanPaperPlan.js';
+import { ASEAN_EVIDENCE_PDF, getAseanPaperPlan } from './aseanPaperPlan.js';
 import './aseanDossierEditorial.css';
 
 export function AseanDossier({ data, language, transport, readOnly, onOpenGallery, onOpenReview }) {
@@ -54,6 +54,9 @@ export function AseanDossier({ data, language, transport, readOnly, onOpenGaller
           </a></li>
           <li><a href={planHref} download={planFilename}>
             <span>{tr('Phần 2 · Kế hoạch bài dạy và phụ lục', 'Part 2 · Teaching plan and appendices')}</span><ArrowRight aria-hidden="true" size={22}/>
+          </a></li>
+          <li><a href={ASEAN_EVIDENCE_PDF} download="ASEAN_11_3_Evidence.pdf">
+            <span>{tr('Minh chứng lớp 11.3 · Đối chiếu Angkor', 'Class 11.3 evidence · Angkor comparison')}</span><ArrowRight aria-hidden="true" size={22}/>
           </a></li>
         </ul>
       </header>

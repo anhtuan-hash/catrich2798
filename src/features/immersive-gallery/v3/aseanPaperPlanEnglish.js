@@ -76,12 +76,12 @@ export const ASEAN_PAPER_PLAN_ENGLISH = {
   },
   "sequence": {
     "title": "III. Lesson Sequence",
-    "description": "The six online activities cover the four instructional functions described in Appendix IV. The class identifies what visitors need to know, then designs, builds, tests and revises the exhibit before applying the target English to a new destination.",
+    "description": "The six online activities cover the four instructional functions described in Appendix IV. The class identifies what visitors need to know, then designs, builds, tests and revises the exhibit before applying the target English to a new destination. Activities 4 and 5 both belong to the testing phase.",
     "rows": [
       [
         "Period and Time",
         "Museum Lab Activity",
-        "Instructional Function under Official Dispatch No. 5512 and Design Stage"
+        "Instructional Function under Official Dispatch No. 5512 and Competition Phase"
       ],
       [
         "Period 1 · 0–10 min",
@@ -96,22 +96,22 @@ export const ASEAN_PAPER_PLAN_ENGLISH = {
       [
         "Period 1 · 20–45 min",
         "3. Caption writing and 3D room construction",
-        "Practice · Build the first version"
+        "Practice · Build"
       ],
       [
         "Period 2 · 0–15 min",
         "4. Peer visits and feedback",
-        "Practice · Test the first version"
+        "Practice · Test"
       ],
       [
         "Period 2 · 15–35 min",
         "5. Revision and retest",
-        "Practice · Test the revised solution"
+        "Practice · Test"
       ],
       [
         "Period 2 · 35–45 min",
         "6. Reporting, transfer writing and submission",
-        "Application · Report and assess"
+        "Application · Evaluate"
       ]
     ]
   },
@@ -145,7 +145,7 @@ export const ASEAN_PAPER_PLAN_ENGLISH = {
     {
       "time": "Period 1, minutes 0–10 (10 minutes)",
       "title": "Activity 1. Baseline Writing and Identifying What Visitors Need to Know",
-      "phase": "Warm-up · Define the Problem",
+      "phase": "Warm-up · Define the problem",
       "parts": [
         {
           "title": "a) Objectives",
@@ -179,7 +179,7 @@ export const ASEAN_PAPER_PLAN_ENGLISH = {
     {
       "time": "Period 1, minutes 10–20 (10 minutes)",
       "title": "Activity 2. Selecting Images and Planning the Three Frames",
-      "phase": "Build Knowledge · Design a Solution",
+      "phase": "Build knowledge · Design a solution",
       "parts": [
         {
           "title": "a) Objectives",
@@ -213,7 +213,7 @@ export const ASEAN_PAPER_PLAN_ENGLISH = {
     {
       "time": "Period 1, minutes 20–45 (25 minutes)",
       "title": "Activity 3. Writing Captions and Building the First 3D Room",
-      "phase": "Practice · Build the First Version",
+      "phase": "Practice · Build",
       "parts": [
         {
           "title": "a) Objectives",
@@ -240,14 +240,14 @@ export const ASEAN_PAPER_PLAN_ENGLISH = {
           "1. Assign the Task  In 5 minutes, the teacher opens the group workspace via QR code or invitation link, demonstrates how to build one frame and shows what to check before saving. Students identify what goes in the frame, the word count and the required fields.",
           "2. Carry Out the Task  Students spend 10 minutes writing and peer-reviewing the three captions. In the next 8 minutes, they upload images, enter descriptions, credits and usage permissions and preview the room in 3D. The teacher monitors each frame, helps with missing fields and uses printed frames if devices fail.",
           "3. Report and Discuss  The teacher invites one group to show its Experience frame in the preview. Students identify the wording that makes the activity more specific and check that the image matches the caption. The other groups review their own corresponding frame.",
-          "4. Summarise and Assess  In the final 2 minutes, students save their draft and report its status. The teacher checks that all groups have saved three frames. When Activity 4 opens, the latest saved draft becomes the first exhibit for the assigned visitor group."
+          "4. Summarise and Assess  In the final 2 minutes, students save their draft and report its status. The teacher checks that all groups have saved three frames. When Activity 4 opens, the latest saved draft becomes the first exhibit (V1) for the assigned visitor group. The published version is the approved exhibit."
         ]
       }
     },
     {
       "time": "Period 2, minutes 0–15 (15 minutes)",
       "title": "Activity 4. Peer Visits and Evidence-Based Feedback",
-      "phase": "Practice · Test the First Version",
+      "phase": "Practice · Test",
       "parts": [
         {
           "title": "a) Objectives",
@@ -258,13 +258,13 @@ export const ASEAN_PAPER_PLAN_ENGLISH = {
         {
           "title": "b) Content",
           "paragraphs": [
-            "Visitor groups open their assigned first exhibit and explore it without directions from the author group. They record which frame they opened first, answer each question and identify the frame that supports each answer. Use Museum Lab or Handout C with the printed frames."
+            "Visitor groups open their assigned first exhibit and explore it without directions from the author group. They record which frame they opened first, answer each question and identify the frame that supports each answer. Record the viewing format (3D, 2D or printed frames) in Museum Lab or on Handout C."
           ]
         },
         {
           "title": "c) Deliverables",
           "paragraphs": [
-            "One feedback form per visitor group, including the first frame opened, three answers with evidence, three individual scores of 0 or 1 for a total out of 3, and one suggestion for revision. If an answer is missing or vague, record what the group could not find."
+            "One feedback form per visitor group, including the viewing format, first frame opened, three answers with evidence, three individual scores of 0 or 1 for a total out of 3, and one suggestion for revision. If an answer is missing or vague, record what the group could not find."
           ]
         }
       ],
@@ -281,7 +281,7 @@ export const ASEAN_PAPER_PLAN_ENGLISH = {
     {
       "time": "Period 2, minutes 15–35 (20 minutes)",
       "title": "Activity 5. Revising One Frame and Retesting with a New Visitor Group",
-      "phase": "Practice · Revise and Retest",
+      "phase": "Practice · Test",
       "parts": [
         {
           "title": "a) Objectives",
@@ -315,7 +315,7 @@ export const ASEAN_PAPER_PLAN_ENGLISH = {
     {
       "time": "Period 2, minutes 35–45 (10 minutes)",
       "title": "Activity 6. Reporting Changes and Writing for a New Destination",
-      "phase": "Application · Report and Assess",
+      "phase": "Application · Evaluate",
       "parts": [
         {
           "title": "a) Objectives",

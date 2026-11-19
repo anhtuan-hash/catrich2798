@@ -4,8 +4,9 @@ import {readFileSync} from 'node:fs';
 import {normalizeGuestDraft} from '../src/features/immersive-gallery/creatorPassPolicy.js';
 import {documentFromStudio,emptyStudio,scoreRubric} from '../src/features/immersive-gallery/v3/museumData.js';
 import {ASEAN_DESTINATIONS,ASEAN_FRAMES,ASEAN_RUBRIC,ASEAN_STAGES,ASEAN_TEMPLATE,aseanBaselineDraft,aseanBlankResponse,aseanExhibitMissing,aseanTransferDraft,aseanWritingCard,aseanWritingRepeats,validAseanResponse} from '../src/features/immersive-gallery/v3/aseanLesson.js';
+import {getAseanPaperPlan} from '../src/features/immersive-gallery/v3/aseanPaperPlan.js';
 import {sessionStage,LIVE_STAGES} from '../src/features/immersive-gallery/v3/liveLesson.js';
-import {ASEAN_MIN_GROUPS,ASEAN_MAX_GROUPS,aseanDestination,aseanPeerGroup,validAseanGroupCount} from '../src/features/immersive-gallery/v3/aseanLesson.js';
+import {ASEAN_MIN_GROUPS,ASEAN_MAX_GROUPS,aseanPhase,aseanDestination,aseanPeerGroup,validAseanGroupCount} from '../src/features/immersive-gallery/v3/aseanLesson.js';
 
 test('ASEAN uses two 45-minute group periods, ten destinations and parallel writing cards',()=>{
  for(const period of [1,2])assert.equal(ASEAN_STAGES.filter(stage=>stage.period===period).reduce((sum,stage)=>sum+stage.minutes,0),45);
@@ -78,6 +79,8 @@ test('group forms reject conflated image choices and incorrect scores for suppor
  assert.equal(validAseanResponse(1,{...plan,alternative:'b'}),false);
  const visit={first:2,comment:'Clarify the location.',answers:ASEAN_FRAMES.map((_,index)=>({text:'An answer',frame:index+1,score:1}))};
  assert.equal(validAseanResponse(3,visit),true);
+ for(const format of ['3d','2d','print'])assert.equal(validAseanResponse(3,{...visit,format}),true);
+ for(const format of ['',null,'video'])assert.equal(validAseanResponse(3,{...visit,format}),false);
  assert.equal(validAseanResponse(3,{...visit,answers:visit.answers.toReversed()}),false);
  assert.equal(validAseanResponse(4,{question:2,answer:'A visitor answer.',frame:2,score:1}),true);
  assert.equal(validAseanResponse(4,{question:1,answer:'A visitor answer.',frame:2,score:1}),false);
@@ -119,7 +122,7 @@ test('new ASEAN lessons start with blank independent student responses, even for
  }
  assert.deepEqual(aseanBlankResponse(1),{codes:['','',''],comparisonFrame:null,alternative:'',fact:'',source:'',reason:''});
  assert.deepEqual(aseanBlankResponse(3),{
-  first:null,answers:ASEAN_FRAMES.map(()=>({text:'',frame:null,score:0})),comment:'',
+  first:null,answers:ASEAN_FRAMES.map(()=>({text:'',frame:null,score:0})),comment:'',format:'',
  });
  assert.deepEqual(aseanBlankResponse(4),{answer:'',frame:null,score:0});
  const first=aseanBlankResponse(3),second=aseanBlankResponse(3);
@@ -128,4 +131,17 @@ test('new ASEAN lessons start with blank independent student responses, even for
  const studentSource=readFileSync(new URL('../src/features/immersive-gallery/v3/AseanStudentLesson.jsx',import.meta.url),'utf8');
  assert.match(studentSource,/useState\(\(\)=>record\|\|aseanBlankResponse\(stage\)\)/);
  assert.doesNotMatch(studentSource,/aseanBaselineDraft|aseanTransferDraft|class_scope==='11\.3'/);
+});
+
+test('both language versions use the same five competition phases as the live activities',()=>{
+ const keys=ASEAN_STAGES.map((_,index)=>aseanPhase(index).key);
+ assert.deepEqual(keys,['discover','plan','build','test','test','share']);
+ for(const language of ['vi','en']){
+  const {plan}=getAseanPaperPlan(language);
+  ASEAN_STAGES.forEach((_,index)=>{
+   const phase=aseanPhase(index)[language];
+   assert.equal(plan.activities[index].phase.split(' · ').at(-1),phase);
+   assert.equal(plan.sequence.rows[index+1][2].split(' · ').at(-1),phase);
+  });
+ }
 });

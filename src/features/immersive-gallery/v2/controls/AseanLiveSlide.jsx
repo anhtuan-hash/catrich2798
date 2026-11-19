@@ -3,7 +3,7 @@ import {ArrowRight, QrCode} from 'lucide-react';
 import AseanPresenterVisual from './AseanPresenterVisual.jsx';
 import {ASEAN_ACTIVITY_DESIGN, ASEAN_DISCUSSION_MODEL} from '../../v3/aseanActivityDesign.js';
 import {ASEAN_HUE_CORRECT, ASEAN_HUE_QUESTIONS} from '../../v3/aseanHueQuestions.js';
-import {ASEAN_FRAMES} from '../../v3/aseanLesson.js';
+import {ASEAN_FRAMES,aseanPhase} from '../../v3/aseanLesson.js';
 import './aseanLiveSlide.css';
 
 const studentActions = [
@@ -37,7 +37,7 @@ const studentActions = [
  ],
  [
   ['Mở phòng được giao', 'Open the assigned first exhibit',
-   'Đọc ba khung và ghi nhớ khung đã mở đầu tiên.', 'Inspect all three frames and remember the one you opened first.'],
+   'Dùng 3D, 2D hoặc bản in. Đọc ba khung, ghi hình thức đã dùng và khung đã mở đầu tiên.', 'Use 3D, 2D or printed frames. Inspect all three and record the viewing format and first frame.'],
   ['Tìm câu trả lời và khung làm bằng chứng', 'Record answers and evidence frames',
    'Chấm từng câu: 1 nếu có bằng chứng, 0 nếu thiếu hoặc chưa rõ.',
    'Score each answer: 1 if you found it with evidence, 0 if it was missing or unclear.'],
@@ -88,7 +88,9 @@ export default function AseanLiveSlide({currentIndex, language, revealed, onJoin
  const en = language === 'en';
  const lang = en ? 1 : 0;
  const build = slide.id === 'build';
+ const phase = aseanPhase(currentIndex);
  return <article key={slide.id} className={'asean-live-slide asean-live-slide--'+slide.id} data-testid={'asean-slide-'+(currentIndex+1)}>
+  <p className="asean-slide-section-title">{phase[en?'en':'vi']}</p>
   <h2 className="asean-slide-heading">{slide.title[lang]}</h2>
   <div className="asean-slide-body">
    <div className="asean-slide-visual">

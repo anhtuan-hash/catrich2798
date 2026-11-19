@@ -20,10 +20,24 @@ export const ASEAN_STAGES = Object.freeze([
  {id:'asean-baseline',period:1,minutes:10,title:'Collect a group baseline and identify visitor needs',vi:'Viết đầu giờ và xác định nhu cầu khách',kind:'asean',question:'Which visitor question does the first exhibit leave unanswered?',teaching:'2 min group writing · 2 min model · 4 min group discussion · 2 min confirm the task.',expected:'One baseline card per group and one identified information gap.'},
  {id:'asean-plan',period:1,minutes:10,title:'Plan the exhibit and choose photographs',vi:'Lập kế hoạch và chọn ảnh',kind:'asean',question:'Which three photographs will help a first-time visitor?',teaching:'2 min assign the plan · 6 min compare and select · 2 min explain and check.',expected:'Three image codes, a sourced fact and a reason for an image choice.'},
  {id:'asean-build',period:1,minutes:25,title:'Build your group’s 3D exhibit',vi:'Dựng triển lãm 3D của nhóm',kind:'asean',question:'Can a visitor locate the place, imagine an experience and follow the advice?',teaching:'5 min model the studio · 10 min write captions · 8 min upload and preview in 3D · 2 min save the draft for the first exhibit.',expected:'A saved three-frame 3D room with English captions, image credits and a factual source.'},
- {id:'asean-visit',period:2,minutes:15,title:'Visit another exhibit and exchange feedback',vi:'Tham quan chéo và góp ý',kind:'asean',question:'Can your group find all three answers without help from the authors?',teaching:'2 min brief the visitors · 8 min visit and record · 5 min exchange feedback.',expected:'Three answers with frame numbers, a visitor score out of 3 and one actionable comment.'},
+ {id:'asean-visit',period:2,minutes:15,title:'Visit another exhibit and exchange feedback',vi:'Tham quan chéo và góp ý',kind:'asean',question:'Can your group find all three answers without help from the authors?',teaching:'2 min brief the visitors · 8 min visit and record · 5 min exchange feedback.',expected:'The viewing format, three answers with frame numbers, a visitor score out of 3 and one actionable comment.'},
  {id:'asean-revise',period:2,minutes:20,title:'Revise one detail and test it again',vi:'Chỉnh sửa và nhờ nhóm mới thử lại',kind:'asean',question:'Can a fresh group find the answer after your revision?',teaching:'3 min select an issue · 12 min save the revised exhibit · 5 min retest.',expected:'One explained change between the two exhibits and a fresh visitor group’s answer.'},
  {id:'asean-transfer',period:2,minutes:10,title:'Report the revision and complete group transfer writing',vi:'Báo cáo và viết vận dụng theo nhóm',kind:'asean',question:'What did your group change and what should visitors do at a new destination?',teaching:'3 min reports · 4 min transfer task (2 min writing) · 3 min conclude.',expected:'One group transfer card and the final three-frame exhibit.'},
 ]);
+export const ASEAN_PHASES = Object.freeze([
+ {key:'discover',vi:'Xác định vấn đề',en:'Define the problem',end:1},
+ {key:'plan',vi:'Thiết kế giải pháp',en:'Design a solution',end:2},
+ {key:'build',vi:'Chế tạo',en:'Build',end:3},
+ {key:'test',vi:'Thử nghiệm',en:'Test',end:5},
+ {key:'share',vi:'Đánh giá',en:'Evaluate',end:ASEAN_STAGES.length},
+]);
+export const aseanPhase = activityIndex => ASEAN_PHASES.find(phase=>activityIndex<phase.end);
+export const ASEAN_VISIT_FORMATS = Object.freeze([
+ {id:'3d',vi:'3D',en:'3D'},
+ {id:'2d',vi:'2D',en:'2D'},
+ {id:'print',vi:'Bản in',en:'Printed frames'},
+]);
+export const isAseanVisitFormat = value => ASEAN_VISIT_FORMATS.some(format=>format.id===value);
 export const ASEAN_DESTINATIONS = Object.freeze([
  ['Hội An Ancient Town','Viet Nam',948],['Tràng An','Viet Nam',1438],['Angkor','Cambodia',668],
  ['Luang Prabang','Lao PDR',479],['Ayutthaya','Thailand',576],['Melaka','Malaysia',1223],
@@ -35,7 +49,7 @@ export const ASEAN_DESTINATIONS = Object.freeze([
 export function aseanBlankResponse(stage){
  if(stage===0||stage===5)return {experience:'',advice:''};
  if(stage===1)return {codes:['','',''],comparisonFrame:null,alternative:'',fact:'',source:'',reason:''};
- if(stage===3)return {first:null,answers:ASEAN_FRAMES.map(()=>({text:'',frame:null,score:0})),comment:''};
+ if(stage===3)return {first:null,answers:ASEAN_FRAMES.map(()=>({text:'',frame:null,score:0})),comment:'',format:''};
  return {answer:'',frame:null,score:0};
 }
 export const ASEAN_MIN_GROUPS = 3;
@@ -172,7 +186,9 @@ export function validAseanResponse(stage,value){
   frame(value.comparisonFrame)&&str(value.alternative,35)&&
   value.alternative.trim().toLowerCase()!==value.codes[value.comparisonFrame-1].trim().toLowerCase()&&
   str(value.fact)&&str(value.reason)&&str(value.source,350);
- if(stage===3)return exact('first','answers','comment')&&frame(value.first)&&str(value.comment)&&
+ // Older submissions have no format. Keep validating them as recorded.
+ if(stage===3)return (exact('first','answers','comment')||
+  (exact('first','answers','comment','format')&&isAseanVisitFormat(value.format)))&&frame(value.first)&&str(value.comment)&&
   Array.isArray(value.answers)&&value.answers.length===3&&value.answers.every((a,index)=>
    a&&Object.keys(a).length===3&&str(a.text,130)&&
    (frame(a.frame)||(a.frame===null&&a.score===0))&&score(a.score)&&(a.score===0||a.frame===index+1));

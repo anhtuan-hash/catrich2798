@@ -105,8 +105,8 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     ?(currentIndex===1&&session?.questionVersion!==2?LEGACY_LANGUAGE_MINI_LESSON:liveStage(currentIndex))
     :session?.stage;
   const publicAsean=asean&&data?.publicReadOnly;
-  const publicExhibits=publicAsean
-   ?data.publishedGalleries?.find(gallery=>gallery.assignment_id===assignmentId)?.destinations||[]:[];
+  const publicExhibits=asean&&(publicAsean||readOnly)
+   ?data?.publishedGalleries?.find(gallery=>gallery.assignment_id===assignmentId)?.destinations||[]:[];
   const exhibitByLabel=new Map(publicExhibits.map(exhibit=>[exhibit.groupLabel,exhibit]));
   const rawGroups=publicAsean
    ?(data.groups||[]).filter(group=>group.assignment_id===assignmentId&&exhibitByLabel.has(group.label))
@@ -389,8 +389,9 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
                </select>
               </label>
               <button type="button" className="adv-toolbtn" onClick={()=>onNavigate('gallery',selectedPublicExhibit.id)}>
-               <Box size={15}/>{t(language,'Mở triển lãm đã công bố','Open published exhibit')}
+               <Box size={15}/>{t(language,'Mở bản công bố','Open published version')}
               </button>
+              <p>{t(language,'Liên kết mở sản phẩm sau duyệt. V1 là bản được xác nhận đã lưu trước lượt góp ý.','This link opens the approved exhibit. The V1 label identifies a verified version saved before visitor feedback.')}</p>
              </div>:asean&&currentIndex===2&&!data?.publicReadOnly&&selectedGroup?<div>
               <label>{t(language,'Bản đã lưu của','Saved draft from')}{' '}
                <select value={selectedGroup.id} onChange={event=>setStudioGroupId(event.target.value)}>
