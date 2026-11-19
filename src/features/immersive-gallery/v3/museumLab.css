@@ -117,6 +117,17 @@
 .bml .bml-warning-banner{background:#fff7e4;color:#7a581a;border-color:#efdca3}
 .bml .bml-success-banner{background:#e9f7ee;color:#21644b;border-color:#b9dbc9}
 .bml .bml-info-banner{background:#eef6ff;color:#365c82;border-color:#c6dbf7}
+.bml .bml-offline-export-progress progress {
+  display: block;
+  width: 100%;
+  height: 6px;
+  margin-block-start: 8px;
+  accent-color: #b00018;
+}
+.bml .asean-dossier-pack .bml-offline-export-progress progress {
+  color-scheme: dark;
+  accent-color: #ff6679;
+}
 .bml .bml-wizard-progress{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .bml .bml-wizard-step{display:flex;align-items:center;gap:12px;color:#9ba6b2}
 .bml .bml-wizard-step>span{width:32px;height:32px;border-radius:50%;background:#e8ecf2;display:grid;place-items:center;font-weight:800;flex:none}

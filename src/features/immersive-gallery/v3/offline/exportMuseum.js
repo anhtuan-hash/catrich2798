@@ -149,7 +149,18 @@ export async function exportMuseumOffline(options={}){
   '10. SHA-256 phát hiện thay đổi so với bản kê; không phải chữ ký số hoặc xác nhận của cơ quan tổ chức.',
   '11. Kiểm tra nguồn gốc minh chứng, quyền sử dụng ảnh và giới hạn dung lượng hồ sơ trước khi nộp.',
  ].join('\n'));
- const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
+ let lastPercent=-1;
+ const blob=await zip.generateAsync(
+  {type:'blob',compression:'DEFLATE',compressionOptions:{level:6}},
+  ({percent})=>{
+   if(options.signal?.aborted)return;
+   const wholePercent=Math.floor(percent);
+   if(wholePercent!==lastPercent){
+    lastPercent=wholePercent;
+    options.onCompressionProgress?.(wholePercent);
+   }
+  },
+ );
  options.signal?.throwIfAborted();
  return {blob,manifest,filename:'PetrusKy_Museum_Offline_'+snapshot.completedAt.slice(0,10)+'.zip',runtime,snapshot};
 }
