@@ -214,16 +214,29 @@ test('ASEAN teaching plan reuses the approved editorial screen',async({page},tes
  await page.getByTestId('igv2-nav-competition-dossier').click();
  const dossier=page.getByTestId('asean-dossier');
  await expect(dossier.getByRole('link',{name:'Part 2 · Teaching plan and appendices'})).toHaveAttribute('href',pdfDirectory+enFilename);
- const overviewEn=dossier.getByRole('link',{name:'Part 1 · Project overview'});
- await expect(overviewEn).toHaveAttribute('href',pdfDirectory+'ASEAN_Project_Overview_EN.pdf');
- await overviewEn.click();
- const overviewPreview=page.getByRole('dialog',{name:'Part 1 · Project overview'});
- await expect(overviewPreview.getByText('Page 1 / 2',{exact:true})).toBeVisible();
- await expect(overviewPreview.getByRole('img',{name:'PDF page 1'})).toBeVisible();
- await overviewPreview.getByRole('button',{name:'Close'}).click();
- await page.getByRole('button',{name:'VI',exact:true}).click();
- await expect(dossier.getByRole('link',{name:'Phần 1 · Tổng quan dự án'})).toHaveAttribute('href',pdfDirectory+'TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P1.pdf');
- await expect(dossier.getByRole('link',{name:'Phần 2 · Kế hoạch bài dạy và phụ lục'})).toHaveAttribute('href',pdfDirectory+'TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2.pdf');
+ const overviewHref='/museum/asean/dossier-2026-11-19/TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P1.docx';
+ const overviewFilename='TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P1(20261119-072355).docx';
+ for(const [locale,title,downloadLabel,closeLabel] of [
+  ['EN','Part 1 · Project overview','Download','Close'],
+  ['VI','Phần 1 · Tổng quan dự án','Tải về','Đóng'],
+ ]){
+  await page.getByRole('button',{name:locale,exact:true}).click();
+  const link=dossier.getByRole('link',{name:title});
+  await expect(link).toHaveAttribute('href',overviewHref);
+  const priorDownloads=downloads.length;
+  await link.click();
+  const dialog=page.getByRole('dialog',{name:title});
+  await expect(dialog.frameLocator('iframe').getByText('PHẦN 1. TỔNG QUAN CHỦ ĐỀ DỰ THI',{exact:true})).toBeVisible();
+  expect(downloads).toHaveLength(priorDownloads);
+  const [overviewDownload]=await Promise.all([
+   page.waitForEvent('download'),
+   dialog.getByRole('button',{name:downloadLabel,exact:true}).click(),
+  ]);
+  expect(overviewDownload.suggestedFilename()).toBe(overviewFilename);
+  expect(fs.readFileSync(await overviewDownload.path()).equals(fs.readFileSync('public'+overviewHref))).toBe(true);
+  await dialog.getByRole('button',{name:closeLabel}).click();
+ }
+ await expect(dossier.getByRole('link',{name:'Phần 2 · Kế hoạch bài dạy và phụ lục'})).toHaveAttribute('href',pdfDirectory+viFilename);
 });
 test('Museum Lab cards share the banner and footer edges across tabs',async({page},testInfo)=>{
  test.setTimeout(120000);
